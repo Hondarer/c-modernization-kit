@@ -5,9 +5,9 @@ toc: true
 
 <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
 
-# markdown のサンプル
+# src/
 
-これは、Markdown のサンプルです。
+これは、Markdown のサンプルです。 フォルダの README には、相対フォルダ名を付与するルールとします。
 
 ```plantuml
 @startuml

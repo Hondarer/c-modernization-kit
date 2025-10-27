@@ -6,4 +6,4 @@ author: doxygen and doxybook
 
 # ページの一覧
 
-* page [markdown のサンプル](Pages/md_src_README.md)
+* page [src/](Pages/md_src_README.md)

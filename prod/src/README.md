@@ -1,6 +1,7 @@
-# markdown のサンプル
+# src/
 
 これは、Markdown のサンプルです。
+フォルダの README には、相対フォルダ名を付与するルールとします。
 
 ```plantuml
 @startuml
