@@ -1,9 +1,21 @@
+# サブディレクトリの定義
+ALL_SUBDIRS = prod testfw test doxyfw
+TEST_SUBDIRS = testfw test
+DOCS_SUBDIRS = doxyfw
+
+# サブディレクトリで make を実行するマクロ
+# $(1): サブディレクトリリスト
+# $(2): make ターゲット (空の場合はデフォルトターゲット)
+define make_in_subdirs
+	@for dir in $(1); do \
+		[ -d $$dir ] && [ -f $$dir/Makefile ] && make -C $$dir $(2) || true; \
+	done
+endef
+
 # ターゲットなしの make 対応
 .PHONY: default
 default : submodule
-	make -C testfw
-	make -C test
-	make -C doxyfw
+	$(call make_in_subdirs,$(ALL_SUBDIRS))
 
 .PHONY: submodule
 submodule :
@@ -12,21 +24,16 @@ submodule :
 
 .PHONY: all
 all : submodule
-	make -C testfw all
-	make -C test all
-	make -C doxyfw all
+	$(call make_in_subdirs,$(ALL_SUBDIRS),all)
 
 .PHONY: clean
 clean : submodule
-	make -C testfw clean
-	make -C test clean
-	make -C doxyfw clean
+	$(call make_in_subdirs,$(ALL_SUBDIRS),clean)
 
 .PHONY: test
 test : submodule
-	make -C testfw test
-	make -C test test
+	$(call make_in_subdirs,$(TEST_SUBDIRS),test)
 
 .PHONY: docs
 docs : submodule
-	make -C doxyfw docs
+	$(call make_in_subdirs,$(DOCS_SUBDIRS),docs)
