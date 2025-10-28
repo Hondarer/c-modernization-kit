@@ -1,3 +1,6 @@
 [submodule "doxyfw"]
 	path = doxyfw
 	url = https://github.com/Hondarer/doxygen-framework.git
+[submodule "testfw"]
+	path = testfw
+	url = https://github.com/Hondarer/googletest-c-framework.git
