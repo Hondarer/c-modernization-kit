@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['subtract',['subtract',['../group__public__api.html#ga470a2cec9c256d196c0e6b8fc7a6ec36',1,'subtract(int a, int b):&#160;calculator.c'],['../group__public__api.html#ga470a2cec9c256d196c0e6b8fc7a6ec36',1,'subtract(int a, int b):&#160;calculator.c']]]
+  ['main',['main',['../src_2add_2add_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'add.c']]],
+  ['multiply',['multiply',['../group__public__api.html#ga390660dbeb35c8538e7f24bfb067b2bc',1,'multiply(int a, int b):&#160;calculator.c'],['../group__public__api.html#ga390660dbeb35c8538e7f24bfb067b2bc',1,'multiply(int a, int b):&#160;calculator.c']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['divide',['divide',['../group__public__api.html#ga2e5135e2c6b1bbca5f0f314bbd757cc3',1,'divide(int a, int b):&#160;calculator.c'],['../group__public__api.html#ga2e5135e2c6b1bbca5f0f314bbd757cc3',1,'divide(int a, int b):&#160;calculator.c']]]
+  ['calchandler',['calcHandler',['../group__calc__api.html#ga2c1c6d87273968ef5b630f4f192f50cd',1,'calcHandler.c']]]
 ];

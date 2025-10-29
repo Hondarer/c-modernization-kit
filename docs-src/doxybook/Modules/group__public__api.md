@@ -118,15 +118,33 @@ int add (
 
 * [in] a 加算数a
 * [in] b 加算数b
+* [in] a 第一オペランド。
+* [in] b 第二オペランド。
 
 #### Return
 
-加算結果。
+##### 加算結果。
+##### a と b の合計値。
+
+#### Note
+
+オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。
 
 #### Remarks
 
 この関数はスレッド セーフです。
 
+#### Details
+
+2 つの整数を加算します。
+
+この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
+
+使用例: ```c
+
+int result = add(10, 20);
+printf("Result: %d\n", result);  // 出力: Result: 30
+```
 ## 定数、マクロ
 
 ### ZERO_DEVIDE
@@ -134,7 +152,6 @@ int add (
 ```cpp
 #define ZERO_DEVIDE (0.0)
 ```
-
 ゼロ除算の戻り値を定義します。
 
 ## 型
@@ -160,7 +177,6 @@ struct UserInfo {
     SampleEnum enumValue;
 }
 ```
-
 ユーザー情報を保持する構造体を定義します。
 
 #### name
@@ -168,7 +184,6 @@ struct UserInfo {
 ```cpp
 const char * name;
 ```
-
 ユーザー名
 
 #### id
@@ -176,7 +191,6 @@ const char * name;
 ```cpp
 int id;
 ```
-
 ユーザーID
 
 #### enumValue
@@ -184,5 +198,4 @@ int id;
 ```cpp
 SampleEnum enumValue;
 ```
-
 列挙値
