@@ -1,6 +1,6 @@
 SUBDIRS = \
 	libsrc \
-	calc
+	src
 
 .PHONY: all
 all : $(SUBDIRS)
