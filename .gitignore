@@ -12,6 +12,11 @@
 ## 中間ファイル
 lib
 obj
+gcov
+lcov
+results
+core
+coverage.xml
 
 ## 中間ファイル (Doxygen)
 /xml/
