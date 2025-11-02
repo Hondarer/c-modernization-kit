@@ -1,0 +1,7 @@
+{
+    "terminal.integrated.scrollback": 20000,
+    "makefile.configureOnOpen": false,
+    "files.associations": {
+        "c_cpp_properties.json": "jsonc"
+    }
+}
