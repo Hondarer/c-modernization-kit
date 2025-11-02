@@ -6,7 +6,7 @@ toc: true
 
 <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
 
-# "Calculation API"
+# Calculation API
 
 基本的な計算機能を提供します。
 
@@ -87,8 +87,6 @@ int add (
 オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。
 
  #### Details
-
-`a` と `b` を加算します。
 
 この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
 

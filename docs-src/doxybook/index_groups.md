@@ -6,5 +6,4 @@ author: doxygen and doxybook
 
 # カテゴリーの一覧
 
-* group ["Calculation API"](Modules/group__calc__api.md) <br/>基本的な計算機能を提供します。
-* group [公開 API](Modules/group__public__api.md) <br/>外部公開する API 群をカテゴライズします。
+* group [Calculation API](Modules/group__calc__api.md) <br/>基本的な計算機能を提供します。

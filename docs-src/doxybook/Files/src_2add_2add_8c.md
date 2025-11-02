@@ -1,4 +1,5 @@
 ---
+summary: add 関数のテストプログラム。
 author: doxygen and doxybook
 toc: true
 ---
@@ -6,6 +7,32 @@ toc: true
 <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
 
 # calc/src/add/add.c
+
+## ファイル
+
+### calc/src/add/add.c
+
+add 関数のテストプログラム。
+
+#### Author
+
+doxygen-sample team
+
+#### Version
+
+1.0.0
+
+#### Date
+
+2025/01/30
+
+#### Details
+
+コマンドライン引数から 2 つの整数を受け取り、add 関数を使用して 加算結果を標準出力に出力します。
+
+#### Copyright
+
+Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
 
 ## 関数
 

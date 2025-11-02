@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 /**
- *  @defgroup       calc_api "Calculation API"
+ *  @defgroup       calc_api Calculation API
  *  @brief          基本的な計算機能を提供します。
  */
 
