@@ -41,8 +41,9 @@ cd doxyfw && make clean
 
 ## サンプルコード
 
-- `prod/src/calculator.h` / `calculator.c` - 計算機能のサンプル実装
-- `prod/src/samplestruct.h` - 構造体定義のサンプル
+- `prod/calc/include/libcalc.h` - 計算ライブラリのヘッダーファイル
+- `prod/calc/libsrc/calc/` - ライブラリ実装 (add.c, calcHandler.c)
+- `prod/calc/src/add/add.c` - メインプログラム
 
 ## 詳細ドキュメント
 
@@ -50,7 +51,10 @@ cd doxyfw && make clean
 
 ## サブモジュール
 
-このプロジェクトは `doxyfw` サブモジュールを使用しています。サブモジュールの詳細については [doxyfw/CLAUDE.md](./doxyfw/CLAUDE.md) を参照してください。
+このプロジェクトは以下のサブモジュールを使用しています。
+
+- `doxyfw` - Doxygen ドキュメント生成フレームワーク ([doxyfw/CLAUDE.md](./doxyfw/CLAUDE.md))
+- `testfw` - Google Test ベースのテストフレームワーク ([testfw/README.md](./testfw/README.md))
 
 ## ライセンス
 
