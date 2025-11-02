@@ -1,6 +1,6 @@
 # サブディレクトリの定義
-ALL_SUBDIRS = prod testfw test doxyfw
-TEST_SUBDIRS = testfw test
+ALL_SUBDIRS  = prod testfw test doxyfw
+TEST_SUBDIRS = test
 DOCS_SUBDIRS = doxyfw
 
 # サブディレクトリで make を実行するマクロ
