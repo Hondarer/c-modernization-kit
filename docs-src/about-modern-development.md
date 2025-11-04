@@ -79,7 +79,7 @@
 
 ### CI/CD
 
-プッシュを契機にビルド、テスト、ドキュメント生成、デプロイまでを自動化します。GitHub Actions や GitLab CI、Jenkins などに組み込み、ドキュメントサイトの自動公開まで行います。
+プッシュを契機にビルド、テスト、ドキュメント生成、デプロイまでを自動化します。GitHub Actions や GitLab CI、Jenkins などに組み込み、ドキュメントサイトの自動公開までを一気通貫で行います。
 
 ```plantuml
 @startuml CI/CD ワークフロー
@@ -130,4 +130,65 @@ CI に脆弱性スキャンや静的解析を組み込み、既知のリスク�
 
 ## まとめ
 
-Docs as Code、自動テスト、CI/CD を段階的に導入すると、レガシー C コードを現代的で維持しやすい状態にできます。まず Docs as Code で「常に最新の資料」を作り、その上でテストと CI/CD を重ねると、品質と速度、コストに効きます。
+Docs as Code、自動テスト、CI/CD を段階的に導入すると、レガシー C コードを現代的で維持しやすい状態にできます。まず Docs as Code で "常に最新の資料" を作り、その上でテストと CI/CD を重ねると、品質と速度、コストに良い効果を得ることができます。
+
+## よくある懸念に対する回答
+
+### テストコードを作成するのは、手間ではないですか?
+
+手間はかかりますが、長期的には変更の失敗を減らして時間を取り戻せます。
+
+- 単体テストは小さな単位を素早く検証できるため、失敗を早期に見つけやすいです。
+- 大規模な UI テストより安価に自動で実行できるため、結果的に全体の工数を抑えやすいです。
+
+Google のテストブログでも、テストの実行時間や維持コストを常に意識して最適化する重要性が指摘されています [^GoogleTestingBlog]。
+
+また、テストは粒度のバランスが要で、単体・結合・E2E を使い分ける考え方は Martin Fowler の「テストピラミッド」で整理されています [^martinfowler_com]。
+
+[^GoogleTestingBlog]: [Google Testing Blog](https://testing.googleblog.com/2008/03/cost-benefit-analysis-of-test.html)
+
+[^martinfowler_com]: [martinfowler.com](https://martinfowler.com/articles/practical-test-pyramid.html)
+
+必ずしもすべてのテストコードを作成することにこだわらず、短時間で回る自動テストを先に整え、重いテストは頻度やトリガーを工夫して全体最適を目指すことでコストとベネフィットのバランスを取ることができます。
+
+### プログラムにドキュメントを含めるのに慣れていません。別管理ではだめですか?
+
+別管理でも不可能ではありませんが、更新のズレが起きやすいです。
+
+コードの変更と同じ Pull Request でドキュメントも更新する運用にすると、レビューとデプロイの仕組みに自然に乗り、陳腐化を防げます。
+
+これこそが Docs as Code の考え方で、プログラムと仕様が同じワークフローに入るため、正確さと一貫性が上がるとされています [^WriteTheDocs]。
+
+[^WriteTheDocs]: [Write the Docs](https://www.writethedocs.org/guide/docs-as-code.html)
+
+このドキュメントで示した構成では、Doxygen から抽出した API 情報を Markdown 化してリポジトリで一緒に管理します。変更点は Git の差分で追え、レビュー時に実装と説明を同時に確認できます。
+
+### Markdown でないとだめですか? Excel や Word など他形式はどうですか?
+
+Markdown には、プレーンテキストなので Git で扱いやすく、自動化しやすく、出力先を選ばないという利点があります。このため、Docs as Code の運用に適しており、開発のレビューやデプロイの流れに自然に組み込むことができます。これらの利点については、[Write the Docs](https://www.writethedocs.org/guide/docs-as-code/)、[UK Home Office Engineering](https://engineering.homeoffice.gov.uk/patterns/docs-as-code/) でも、開発フローとの統合やレビュー容易性として言及があります。
+
+- 差分とレビューが読みやすい  
+  Markdown はテキスト形式であるため、Pull Request 上で差分が明瞭に確認できます。これに対して Word の docx はバイナリのため、差分管理に難があります。
+
+- 出力先を自由に選べる  
+  1 つの Markdown から、Pandoc で HTML、PDF、docx などに変換できすることができます。既存の Word スタイルを参照テンプレートにすれば、必要な体裁に合わせることもできます。
+
+- 自動化と保守の容易さ  
+  テキスト形式なので Lint、リンク検査、見出しレベルのチェックなどを CI に組み込むことが容易です。  
+  Docs as Code の実践は、文書の所有を統合し、更新の遅れを防ぐのに有効です。
+
+- AI 時代の標準語  
+  Markdown は主要な LLM における標準的な入出力形式であり、LLM との親和性が高く、コード分析の際に AI に対して補足情報を与えるのに適しています。
+
+### CI/CD は小規模チームには過剰ではありませんか?
+
+小規模でも恩恵は大きいです。
+
+変更を自動でビルド・テスト・発行するだけで、レビューの確実性と反復速度が上がります。
+
+DORA (DevOps Research and Assessment) の年次レポートでは、継続的インテグレーションと短いリードタイムなどの実践が、配信の安定性と速度に結びつくことが繰り返し示されています [^DORA_Report] [^GoogleCloudBlog2024]。
+
+[^DORA_Report]: [DORA 2023](https://dora.dev/research/2023/dora-report/)
+[^GoogleCloudBlog2024]: [Google Cloud Blog 2024](https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report)
+
+まずは「プッシュでテストとドキュメント生成が走る」最小構成から始め、必要に応じて段階的に強化するとよいでしょう。
