@@ -1,83 +1,21 @@
 # Windows PoC: libcalc のビルド用 Makefile
 
-# ワークスペースのディレクトリ検索
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            cygpath -w "$$dir" 2>/dev/null || echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+# ターゲット名のベース
+# Target base name
+TARGET_BASE := calc
 
-# ディレクトリ設定
-OBJDIR := obj
-TARGETDIR := $(WORKSPACE_FOLDER)/prod/calc/lib
+# 生成されるライブラリを共有ライブラリ (shared, dynamic) とする
+# Build as shared library (shared, dynamic)
+BUILD := shared
 
-# OS 判定
-ifeq ($(OS),Windows_NT)
-    # Windows 環境 (MSVC)
-    CC := cl
-    AR := lib
-    OBJEXT := .obj
-    LIBEXT := .lib
-    CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(TARGETDIR)/calc.pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
-else
-    # Linux 環境 (GCC)
-    CC := gcc
-    AR := ar
-    OBJEXT := .o
-    LIBEXT := .a
-    CFLAGS := -Wall -Wextra -g -std=c99 -I$(WORKSPACE_FOLDER)/prod/calc/include
-endif
+# ライブラリ検索パス（遅延評価で WORKSPACE_FOLDER を参照）
+# Library search paths (deferred evaluation to reference WORKSPACE_FOLDER)
+LIBSDIR = $(WORKSPACE_FOLDER)/prod/calc/lib
 
-# ソースファイル
-SRCS_C := $(wildcard *.c)
+# ライブラリ依存関係
+# Library dependencies
+LIBS := calcbase
 
-# オブジェクトファイル
-OBJS := $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %$(OBJEXT), $(SRCS_C))))
-
-# ターゲット名
-ifeq ($(OS),Windows_NT)
-    TARGET := calc$(LIBEXT)
-else
-    TARGET := libcalc$(LIBEXT)
-endif
-
-# ビルドルール
-.PHONY: all
-all: $(TARGETDIR)/$(TARGET)
-
-ifeq ($(OS),Windows_NT)
-    # Windows (MSVC) のビルドルール
-$(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
-	$(AR) /OUT:$@ $(OBJS)
-
-$(OBJDIR)/%$(OBJEXT): %.c | $(OBJDIR) $(TARGETDIR)
-	$(CC) $(CFLAGS) /c /Fo$@ $<
-else
-    # Linux (GCC) のビルドルール
-$(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
-	$(AR) rvs $@ $(OBJS)
-
-$(OBJDIR)/%$(OBJEXT): %.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
-endif
-
-# ディレクトリ作成
-$(TARGETDIR):
-	mkdir -p $@
-
-$(OBJDIR):
-	mkdir -p $@
-
-# クリーン
-.PHONY: clean
-clean:
-	rm -rf $(OBJDIR)
-	rm -f $(TARGETDIR)/$(TARGET)
-ifeq ($(OS),Windows_NT)
-	rm -f $(TARGETDIR)/*.pdb
-endif
+# 共通テンプレートを include
+# Include common template
+include $(dir $(lastword $(MAKEFILE_LIST)))../makelibsrc-windows-poc.mk
