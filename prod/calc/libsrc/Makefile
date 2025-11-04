@@ -1,4 +1,6 @@
-SUBDIRS = $(wildcard */)
+SUBDIRS = \
+	calcbase \
+	calc
 
 .PHONY: all
 all : $(SUBDIRS)
