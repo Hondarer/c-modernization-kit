@@ -132,6 +132,132 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "exec pandoc",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\""
+            }
+        },
+        {
+            "label": "exec pandoc (current file)",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "windows": {
+                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\"",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\""
+            }
+        },
+        {
+            "label": "exec pandoc (current folder)",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "windows": {
+                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\"",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\""
+            }
+        },
+        {
+            "label": "exec pandoc (details)",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "windows": {
+                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /details:true",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --details=true"
+            }
+        },
+        {
+            "label": "exec pandoc (current file, details)",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "windows": {
+                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\" /details:true",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true"
+            }
+        },
+        {
+            "label": "exec pandoc (current folder, details)",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "windows": {
+                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\" /details:true",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
+            }
         }
     ]
 }
