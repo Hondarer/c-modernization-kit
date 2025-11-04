@@ -107,3 +107,57 @@ doxygen-sample/                          # このプロジェクト
 ライブラリを使用するサンプルプログラムです。
 
 - `prod/calc/src/add/add.c` - add コマンドのメインプログラム (コマンドライン引数から2つの整数を受け取り加算結果を出力)
+
+## 現在対応中の作業
+
+このレポジトリは、当初 Linux 専用として構築されました。  
+現在、Windows との相互運用を行えるよう、対応中です。
+
+## claude 起動時の重要事項
+
+Claude Code 起動時、OS が Linux か Windows かを強く意識するようにしてください。  
+このレポジトリはクロスプラットフォーム対応であり、環境の違いを意識する必要があります。
+
+### Windows にてあらかじめ実施しなくてはいけない作業
+
+Claude Code が Windows 対応を進めるにあたり、以下の前提を把握しておいてください。  
+現段階では、make コマンドを実施するにあたって、Claude Code は以下に留意する必要があります。
+
+#### GNU Make
+
+GNU Make (make.exe) へのパスはすでに通っています。
+
+#### ポータブル版 Visual Studio Build Tools のパス設定
+
+ポータブル版 Visual Studio Build Tools はあらかじめインストールされています。  
+呼び出しを行えるようにするには、
+
+```cmd
+set-vsbt-env-x64.bat
+```
+
+を実行する必要があります。set-vsbt-env-x64.bat より、パスを含む環境変数が設定されます。  
+call 命令で実行しないと、環境変数を取り込めない点に注意が必要です。
+
+#### Git for Windows のパス設定
+
+Git for Windows はあらかじめインストールされています。  
+MinGW の各種コマンドの呼び出しを行えるようにするには、
+
+```cmd
+Add-MinGW-Path.cmd
+```
+
+を実行する必要があります。Add-MinGW-Path.cmd より、パスを含む環境変数が設定されます。
+call 命令で実行しないと、環境変数を取り込めない点に注意が必要です。
+
+#### 環境設定の実行順序
+
+**重要**: 環境設定スクリプトは、以下の順序で実行する必要があります。
+
+```cmd
+call Add-MinGW-Path.cmd
+call set-vsbt-env-x64.bat
+```
+
+この順序で実行することで、MSVC の `link.exe` が MinGW の `link` コマンドより優先されます。逆の順序で実行すると、リンク時に MinGW の `link` が呼び出され、ビルドが失敗します。

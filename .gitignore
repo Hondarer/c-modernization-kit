@@ -21,3 +21,7 @@ coverage.xml
 ## 中間ファイル (Doxygen)
 /xml/
 /xml_org/
+
+## 成果物 (Windows)
+*.exe
+*.pdb
