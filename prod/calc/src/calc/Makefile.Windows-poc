@@ -1,4 +1,4 @@
-# Windows PoC: add コマンドのビルド用 Makefile
+# Windows PoC: calc コマンドのビルド用 Makefile
 
 # ワークスペースのディレクトリ検索
 WORKSPACE_FOLDER := $(shell \
@@ -23,9 +23,9 @@ ifeq ($(OS),Windows_NT)
     LD := link
     OBJEXT := .obj
     EXEEXT := .exe
-    CFLAGS := /nologo /W4 /Zi /TC /utf-8 /MD /Fd$(OBJDIR)/add.pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
-    LDFLAGS := /NOLOGO /DEBUG /PDB:$(TARGETDIR)/add.pdb /INCREMENTAL /ILK:$(OBJDIR)/add.ilk /LIBPATH:$(WORKSPACE_FOLDER)/prod/calc/lib
-    LIBS := calcbase.lib
+    CFLAGS := /nologo /W4 /Zi /TC /utf-8 /MD /Fd$(OBJDIR)/calc.pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
+    LDFLAGS := /NOLOGO /DEBUG /PDB:$(TARGETDIR)/calc.pdb /INCREMENTAL /ILK:$(OBJDIR)/calc.ilk /LIBPATH:$(WORKSPACE_FOLDER)/prod/calc/lib
+    LIBS := calc.lib
 else
     # Linux 環境 (GCC)
     CC := gcc
@@ -44,7 +44,7 @@ SRCS_C := $(wildcard *.c)
 OBJS := $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %$(OBJEXT), $(SRCS_C))))
 
 # ターゲット名
-TARGET := add$(EXEEXT)
+TARGET := calc$(EXEEXT)
 
 # ビルドルール
 .PHONY: all

@@ -46,11 +46,11 @@ ifeq ($(OS),Windows_NT)
     ifeq ($(BUILD),shared)
         LIBEXT := .dll
         IMPLIBEXT := .lib
-        CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MD /LD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include $(EXTRA_CFLAGS)
-        LDFLAGS := /DLL /DEBUG /PDB:$(TARGETDIR)/$(TARGET_BASE).pdb /IMPLIB:$(TARGETDIR)/$(TARGET_BASE)$(IMPLIBEXT) /ILK:$(OBJDIR)/$(TARGET_BASE).ilk
+        CFLAGS := /nologo /W4 /Zi /TC /utf-8 /FS /MD /LD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include $(EXTRA_CFLAGS)
+        LDFLAGS := /NOLOGO /DLL /DEBUG /PDB:$(TARGETDIR)/$(TARGET_BASE).pdb /IMPLIB:$(TARGETDIR)/$(TARGET_BASE)$(IMPLIBEXT) /ILK:$(OBJDIR)/$(TARGET_BASE).ilk
     else
         LIBEXT := .lib
-        CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include $(EXTRA_CFLAGS)
+        CFLAGS := /nologo /W4 /Zi /TC /utf-8 /FS /MD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include $(EXTRA_CFLAGS)
     endif
 else
     # Linux 環境 (GCC)
@@ -138,7 +138,7 @@ $(TARGETDIR)/$(TARGET): $(OBJS) $(STATIC_LIBS) | $(TARGETDIR)
         # 静的ライブラリのビルド
         # Build static library
 $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
-	$(AR) /OUT:$@ $(OBJS)
+	$(AR) /NOLOGO /OUT:$@ $(OBJS)
     endif
 
 $(OBJDIR)/%$(OBJEXT): %.c | $(OBJDIR) $(TARGETDIR)
@@ -155,7 +155,7 @@ $(TARGETDIR)/$(TARGET): $(OBJS) $(STATIC_LIBS) | $(TARGETDIR)
         # 静的ライブラリのビルド
         # Build static library
 $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
-	$(AR) rvs $@ $(OBJS)
+	$(AR) /NOLOGO rvs $@ $(OBJS)
     endif
 
 $(OBJDIR)/%$(OBJEXT): %.c | $(OBJDIR)
