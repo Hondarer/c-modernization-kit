@@ -46,11 +46,11 @@ ifeq ($(OS),Windows_NT)
     ifeq ($(BUILD),shared)
         LIBEXT := .dll
         IMPLIBEXT := .lib
-        CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MD /LD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
-        LDFLAGS := /DLL /DEBUG /PDB:$(TARGETDIR)/$(TARGET_BASE).pdb /IMPLIB:$(TARGETDIR)/$(TARGET_BASE)$(IMPLIBEXT)
+        CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MD /LD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include $(EXTRA_CFLAGS)
+        LDFLAGS := /DLL /DEBUG /PDB:$(TARGETDIR)/$(TARGET_BASE).pdb /IMPLIB:$(TARGETDIR)/$(TARGET_BASE)$(IMPLIBEXT) /ILK:$(OBJDIR)/$(TARGET_BASE).ilk
     else
         LIBEXT := .lib
-        CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
+        CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MD /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include $(EXTRA_CFLAGS)
     endif
 else
     # Linux 環境 (GCC)
@@ -133,6 +133,7 @@ ifeq ($(OS),Windows_NT)
         # Build shared library (DLL)
 $(TARGETDIR)/$(TARGET): $(OBJS) $(STATIC_LIBS) | $(TARGETDIR)
 	$(LD) /OUT:$@ $(OBJS) $(STATIC_LIBS) $(DYNAMIC_LIBS) $(LDFLAGS)
+	@if [ -f "$(TARGETDIR)/$(TARGET_BASE).exp" ]; then mv "$(TARGETDIR)/$(TARGET_BASE).exp" "$(OBJDIR)/"; fi
     else
         # 静的ライブラリのビルド
         # Build static library

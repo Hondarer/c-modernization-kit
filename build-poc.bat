@@ -1,81 +1,70 @@
 @echo off
 setlocal
 
-REM ç’°å¢ƒè¨­å®šï¼ˆé‡è¦: ã“ã®é †åºã‚’ç¶­æŒã™ã‚‹ã“ã¨ï¼‰
+REM ŠÂ‹«İ’èid—v: ‚±‚Ì‡˜‚ğˆÛ‚·‚é‚±‚Æj
 REM Environment setup (Important: maintain this order)
 call Add-MinGW-Path.cmd
 call set-vsbt-env-x64.bat
 
-REM ãƒ¯ãƒ¼ã‚¯ã‚¹ãƒšãƒ¼ã‚¹ãƒ•ã‚©ãƒ«ãƒ€ã®è¨­å®š
+REM ƒ[ƒNƒXƒy[ƒXƒtƒHƒ‹ƒ_‚Ìİ’è
 REM Set workspace folder
 set WORKSPACE_FOLDER=%CD%
 
-REM BUILD å¤‰æ•°ã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ï¼ˆstatic ã¾ãŸã¯ sharedï¼‰
-REM Default BUILD variable (static or shared)
-if "%BUILD%"=="" set BUILD=static
-
-echo ========================================
-echo Building with BUILD=%BUILD%
-echo ========================================
-
-REM libcalcbase ã®ãƒ“ãƒ«ãƒ‰
+REM libcalcbase ‚Ìƒrƒ‹ƒh
 REM Build libcalcbase
 echo.
-echo [1/3] Building libcalcbase...
+echo 1/3 Building libcalcbase...
 cd prod\calc\libsrc\calcbase
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
-    echo [ERROR] libcalcbase clean failed
+    echo ERROR libcalcbase clean failed
     exit /b 1
 )
 make -f Makefile.Windows-poc
 if errorlevel 1 (
-    echo [ERROR] libcalcbase build failed
+    echo ERROR libcalcbase build failed
     exit /b 1
 )
-echo [SUCCESS] libcalcbase built successfully
+echo SUCCESS libcalcbase built successfully
 
-REM libcalc ã®ãƒ“ãƒ«ãƒ‰
+REM libcalc ‚Ìƒrƒ‹ƒh
 REM Build libcalc
 echo.
-echo [2/3] Building libcalc...
+echo 2/3 Building libcalc...
 cd ..\calc
-make -f Makefile.Windows-poc clean BUILD=%BUILD%
+make -f Makefile.Windows-poc clean
 if errorlevel 1 (
-    echo [ERROR] libcalc clean failed
+    echo ERROR libcalc clean failed
     exit /b 1
 )
-make -f Makefile.Windows-poc BUILD=%BUILD%
+make -f Makefile.Windows-poc
 if errorlevel 1 (
-    echo [ERROR] libcalc build failed
+    echo ERROR libcalc build failed
     exit /b 1
 )
-echo [SUCCESS] libcalc built successfully
+echo SUCCESS libcalc built successfully
 
-REM add ã‚³ãƒãƒ³ãƒ‰ã®ãƒ“ãƒ«ãƒ‰
+REM add ƒRƒ}ƒ“ƒh‚Ìƒrƒ‹ƒh
 REM Build add command
 echo.
-echo [3/3] Building add command...
+echo 3/3 Building add command...
 cd ..\..\src\add
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
-    echo [ERROR] add command clean failed
+    echo ERROR add command clean failed
     exit /b 1
 )
 make -f Makefile.Windows-poc
 if errorlevel 1 (
-    echo [ERROR] add command build failed
+    echo ERROR add command build failed
     exit /b 1
 )
-echo [SUCCESS] add command built successfully
+echo SUCCESS add command built successfully
 
 echo.
 echo ========================================
 echo Build completed successfully
 echo ========================================
-echo.
-echo To build as shared library (DLL), run:
-echo   set BUILD=shared ^&^& build-poc.bat
 echo.
 
 endlocal

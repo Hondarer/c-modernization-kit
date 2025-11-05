@@ -23,7 +23,7 @@ ifeq ($(OS),Windows_NT)
     LD := link
     OBJEXT := .obj
     EXEEXT := .exe
-    CFLAGS := /W4 /Zi /TC /nologo /utf-8 /Fd$(OBJDIR)/add.pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
+    CFLAGS := /W4 /Zi /TC /nologo /utf-8 /MD /Fd$(OBJDIR)/add.pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
     LDFLAGS := /DEBUG /PDB:$(TARGETDIR)/add.pdb /INCREMENTAL /ILK:$(OBJDIR)/add.ilk /LIBPATH:$(WORKSPACE_FOLDER)/prod/calc/lib
     LIBS := calc.lib
 else

@@ -4,6 +4,10 @@
 # Target base name
 TARGET_BASE := calcbase
 
+# DLL エクスポート定義 (calc.dll にリンクされるため)
+# DLL export definition (because it will be linked into calc.dll)
+EXTRA_CFLAGS := /DCALC_EXPORTS
+
 # 共通テンプレートを include
 # Include common template
 include $(dir $(lastword $(MAKEFILE_LIST)))../makelibsrc-windows-poc.mk

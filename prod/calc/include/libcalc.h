@@ -17,6 +17,17 @@
 #ifndef LIBCALC_H
 #define LIBCALC_H
 
+/* DLL エクスポート/インポート定義 */
+#ifdef _WIN32
+    #ifdef CALC_EXPORTS
+        #define CALC_API __declspec(dllexport)
+    #else
+        #define CALC_API __declspec(dllimport)
+    #endif
+#else
+    #define CALC_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,7 +54,7 @@ extern "C" {
  *  @note           現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
  *******************************************************************************
  */
-extern int calcHandler(int kind, int a, int b);
+CALC_API extern int calcHandler(int kind, int a, int b);
 
 #ifdef __cplusplus
 }

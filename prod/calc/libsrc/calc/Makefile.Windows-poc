@@ -8,6 +8,10 @@ TARGET_BASE := calc
 # Build as shared library (shared, dynamic)
 BUILD := shared
 
+# DLL エクスポート定義
+# DLL export definition
+EXTRA_CFLAGS := /DCALC_EXPORTS
+
 # ライブラリ検索パス（遅延評価で WORKSPACE_FOLDER を参照）
 # Library search paths (deferred evaluation to reference WORKSPACE_FOLDER)
 LIBSDIR = $(WORKSPACE_FOLDER)/prod/calc/lib
