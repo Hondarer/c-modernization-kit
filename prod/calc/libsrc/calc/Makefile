@@ -17,7 +17,6 @@ include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
 BUILD = shared
 
 # ライブラリの追加
-# .a は、.so に静的リンクされる
 LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
 LIBS += -lcalcbase
 

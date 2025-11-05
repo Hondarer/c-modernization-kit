@@ -15,7 +15,7 @@ include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
 
 # ライブラリの追加
 LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
-LIBS += -lcalcbase
+LIBS += -lcalc -lcalcbase
 
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
