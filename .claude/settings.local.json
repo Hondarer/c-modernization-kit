@@ -2,23 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(tree:*)",
-      "Bash(call set-vsbt-env-x64.bat)",
-      "Bash(call Add-MinGW-Path.cmd)",
-      "Bash(cmd /c \"call set-vsbt-env-x64.bat && call Add-MinGW-Path.cmd && echo Environment setup complete\")",
-      "Bash(where set-vsbt-env-x64.bat)",
-      "Bash(where Add-MinGW-Path.cmd)",
-      "Bash(cmd /c \"call set-vsbt-env-x64.bat && call Add-MinGW-Path.cmd && cd prod\\calc\\libsrc\\calc && make -f Makefile.Windows-poc\")",
-      "Bash(cmd /c \"call Add-MinGW-Path.cmd && where make\")",
       "Bash(where:*)",
       "Bash(make:*)",
-      "Bash(powershell:*)",
-      "Bash(cmd /c \"set-vsbt-env-x64.bat >nul 2>&1 && Add-MinGW-Path.cmd >nul 2>&1 && set WORKSPACE_FOLDER=D:\\Users\\tetsuo\\Local\\repos\\doxygen-sample && cd prod\\calc\\libsrc\\calc && make -f Makefile.Windows-poc\")",
-      "Bash(./build-poc.bat)",
-      "Bash(cmd /c build-poc.bat)",
-      "Bash(bash -c \"./build-poc.bat\")",
-      "Bash(bash -c \"call set-vsbt-env-x64.bat >/dev/null 2>&1 && call Add-MinGW-Path.cmd >/dev/null 2>&1 && where link\")",
-      "Bash(bash -c:*)",
-      "Bash(./prod/calc/src/add/add.exe:*)"
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []
