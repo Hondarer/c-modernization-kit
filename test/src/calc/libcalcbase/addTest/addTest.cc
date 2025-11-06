@@ -4,7 +4,7 @@
 #include <test_com.h>
 #include <mock_stdio.h>
 
-#include <libcalc.h>
+#include <libcalcbase.h>
 
 using namespace testing;
 

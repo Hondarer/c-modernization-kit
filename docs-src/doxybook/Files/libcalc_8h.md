@@ -1,5 +1,5 @@
 ---
-summary: 計算ライブラリのヘッダーファイル。
+summary: 計算ライブラリ (動的リンク用) のヘッダーファイル。
 author: doxygen and doxybook
 toc: true
 ---
@@ -12,7 +12,7 @@ toc: true
 
 ### calc/include/libcalc.h
 
-計算ライブラリのヘッダーファイル。
+計算ライブラリ (動的リンク用) のヘッダーファイル。
 
 #### Author
 
@@ -28,7 +28,8 @@ doxygen-sample team
 
 #### Details
 
-このライブラリは基本的な整数演算を提供します。
+このライブラリは基本的な整数演算を提供します。  
+動的リンクによる機能外提供用の API を模しています。
 
 #### Copyright
 
@@ -39,7 +40,7 @@ Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
 ### calcHandler
 
 ```cpp
-int calcHandler (
+CALC_API int calcHandler (
     int kind,
     int a,
     int b
@@ -84,42 +85,6 @@ int calcHandler (
 int result = calcHandler(CALC_KIND_ADD, 10, 20);
 printf("Result: %d\n", result);  // 出力: Result: 30
 ```
-### add
-
-```cpp
-int add (
-    int a,
-    int b
-)
-```
-2 つの整数を加算します。
-
- #### Parameters
-
-* [in] a 第一オペランド。
-* [in] b 第二オペランド。
-* [in] a 第一オペランド。
-* [in] b 第二オペランド。
-
- #### Return
-
-##### a と b の合計値。
-##### a と b の合計値。
-
- #### Note
-
-オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。
-
- #### Details
-
-この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
-
-使用例: ```c
-
-int result = add(10, 20);
-printf("Result: %d\n", result);  // 出力: Result: 30
-```
-
 ## 定数、マクロ
 
 ### CALC_KIND_ADD
@@ -127,5 +92,10 @@ printf("Result: %d\n", result);  // 出力: Result: 30
 ```cpp
 #define CALC_KIND_ADD 1
 ```
-
 加算の演算種別を表す定数。
+
+### CALC_API
+
+```cpp
+#define CALC_API
+```

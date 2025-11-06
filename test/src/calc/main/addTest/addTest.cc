@@ -3,7 +3,7 @@
 #include <gtest_wrapmain.h>
 
 #include <mock_stdio.h>
-#include <mock_calc.h>
+#include <mock_calcbase.h>
 
 using namespace testing;
 
@@ -14,7 +14,7 @@ class addTest : public Test
 TEST_F(addTest, less_argc)
 {
     // Arrange
-    Mock_calc mock_calc;
+    Mock_calcbase mock_calcbase;
     int argc = 2;
     const char *argv[] = {"test_samplefunc", "1"}; // [状態] - main() に与える引数を、"1" **(不足)** とする。
 
@@ -31,12 +31,12 @@ TEST_F(addTest, normal)
 {
     // Arrange
     NiceMock<Mock_stdio> mock_stdio;
-    Mock_calc mock_calc;
+    Mock_calcbase mock_calcbase;
     int argc = 3;
     const char *argv[] = {"test_samplefunc", "1", "2"}; // [状態] - main() に与える引数を、"1", "2" とする。
 
     // Pre-Assert
-    EXPECT_CALL(mock_calc, add(1, 2))
+    EXPECT_CALL(mock_calcbase, add(1, 2))
         .WillOnce(Return(3)); // [Pre-Assert確認] - add(1, 2) が 1 回呼び出されること。
                               // [Pre-Assert手順] - add(1, 2) で 3 を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))

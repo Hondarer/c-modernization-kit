@@ -1,5 +1,5 @@
 <map id="calc/include/libcalc.h" name="calc/include/libcalc.h">
-<area shape="rect" id="node2" href="$calcHandler_8c.html" title="calcHandler 関数の実装ファイル。 " alt="" coords="5,87,196,114"/>
-<area shape="rect" id="node3" href="$libsrc_2calcbase_2add_8c.html" title="calc/libsrc/calcbase\l/add.c" alt="" coords="220,80,357,121"/>
-<area shape="rect" id="node4" href="$src_2add_2add_8c.html" title="add 関数のテストプログラム。 " alt="" coords="381,87,511,114"/>
+<area shape="rect" id="node2" href="$calcHandler_8c.html" title="calcHandler 関数の実装ファイル。 " alt="" coords="5,95,196,121"/>
+<area shape="rect" id="node3" href="$calc_8c.html" title="calc 関数の呼び出しコマンド。 " alt="" coords="220,95,355,121"/>
+<area shape="rect" id="node4" href="$shared-and-static-add_8c.html" title="動的リンク、静的リンクを使った関数の呼び出しコマンド。 " alt="" coords="379,80,529,136"/>
 </map>

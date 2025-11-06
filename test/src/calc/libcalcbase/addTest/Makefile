@@ -15,7 +15,7 @@ include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
 
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calc/add.c
+	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c
 
 # ライブラリの追加
 LIBS += -lmock_libc -ltest_com

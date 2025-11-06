@@ -15,7 +15,7 @@ toc: true
 ### calcHandler
 
 ```cpp
-int calcHandler (
+CALC_API int calcHandler (
     int kind,
     int a,
     int b
@@ -74,13 +74,10 @@ int add (
 
 * [in] a 第一オペランド。
 * [in] b 第二オペランド。
-* [in] a 第一オペランド。
-* [in] b 第二オペランド。
 
  #### Return
 
-##### a と b の合計値。
-##### a と b の合計値。
+a と b の合計値。
 
  #### Note
 

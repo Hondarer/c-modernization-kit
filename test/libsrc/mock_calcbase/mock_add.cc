@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
 #include <test_com.h>
-#include <mock_calc.h>
+#include <mock_calcbase.h>
 
 using namespace testing;
 
@@ -9,9 +9,9 @@ int add(int a, int b)
 {
     int rtc = 0;
 
-    if (_mock_calc != nullptr)
+    if (_mock_calcbase != nullptr)
     {
-        rtc = _mock_calc->add(a, b);
+        rtc = _mock_calcbase->add(a, b);
     }
 
     if (getTraceLevel() > TRACE_NONE)

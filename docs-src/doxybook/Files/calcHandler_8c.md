@@ -39,7 +39,7 @@ Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
 ### calcHandler
 
 ```cpp
-int calcHandler (
+CALC_API int calcHandler (
     int kind,
     int a,
     int b

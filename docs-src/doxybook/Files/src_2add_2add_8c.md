@@ -1,5 +1,5 @@
 ---
-summary: add 関数のテストプログラム。
+summary: add 関数の呼び出しコマンド。
 author: doxygen and doxybook
 toc: true
 ---
@@ -12,7 +12,7 @@ toc: true
 
 ### calc/src/add/add.c
 
-add 関数のテストプログラム。
+add 関数の呼び出しコマンド。
 
 #### Author
 

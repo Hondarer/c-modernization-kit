@@ -24,7 +24,7 @@ LDCOMFLAGS += -Wl,--wrap=main
 # ライブラリの追加
 # -lgtest_wrapmain にて、__wrap_main() 経由でのテスト実施
 # テスト対象のソースファイルにある main() は実行されない
-LIBS += -lgtest_wrapmain -lmock_libc -lmock_calc -ltest_com
+LIBS += -lgtest_wrapmain -lmock_libc -lmock_calcbase -ltest_com
 
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
