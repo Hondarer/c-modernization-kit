@@ -5,7 +5,9 @@ toc: true
 
 <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
 
-# add 関数呼び出しコマンド
+# calc/src/add/
+
+add 関数の呼び出しコマンド。
 
 ## .so の認識
 

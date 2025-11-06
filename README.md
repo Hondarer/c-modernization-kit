@@ -33,8 +33,8 @@ cd doxyfw && make docs
 - Markdown版: `docs-src/doxybook/`
 - GitHub Pages
     - [doxygen](https://hondarer.github.io/c-modernization-kit/doxygen/)
-    - [other docs](https://hondarer.github.io/c-modernization-kit/ja/html/)
-    - [other docs (details)](https://hondarer.github.io/c-modernization-kit/ja-details/html/)
+    - [other docs](https://hondarer.github.io/c-modernization-kit/ja/html/index.html)
+    - [other docs (details)](https://hondarer.github.io/c-modernization-kit/ja-details/html/index.html)
 
 ### クリーンアップ
 
