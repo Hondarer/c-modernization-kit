@@ -280,6 +280,153 @@
             "linux": {
                 "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
             }
+        },
+        {
+            "label": "Build Windows POC",
+            "type": "shell",
+            "windows": {
+                "command": "build-poc.bat",
+                "options": {
+                    "cwd": "${workspaceFolder}",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean Windows POC",
+            "type": "shell",
+            "windows": {
+                "command": "for /d %d in (prod\\calc\\libsrc\\calcbase prod\\calc\\libsrc\\calc prod\\calc\\src\\add prod\\calc\\src\\calc prod\\calc\\src\\shared-and-static-add) do (cd %d && make -f Makefile.Windows-poc clean && cd ${workspaceFolder})",
+                "options": {
+                    "cwd": "${workspaceFolder}",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Windows POC - add.exe only",
+            "type": "shell",
+            "windows": {
+                "command": "cd prod\\calc\\src\\add && make -f Makefile.Windows-poc",
+                "options": {
+                    "cwd": "${workspaceFolder}",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": [],
+            "dependsOn": [
+                "Build Windows POC - libraries"
+            ]
+        },
+        {
+            "label": "Build Windows POC - calc.exe only",
+            "type": "shell",
+            "windows": {
+                "command": "cd prod\\calc\\src\\calc && make -f Makefile.Windows-poc",
+                "options": {
+                    "cwd": "${workspaceFolder}",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": [],
+            "dependsOn": [
+                "Build Windows POC - libraries"
+            ]
+        },
+        {
+            "label": "Build Windows POC - shared-and-static-add.exe only",
+            "type": "shell",
+            "windows": {
+                "command": "cd prod\\calc\\src\\shared-and-static-add && make -f Makefile.Windows-poc",
+                "options": {
+                    "cwd": "${workspaceFolder}",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": [],
+            "dependsOn": [
+                "Build Windows POC - libraries"
+            ]
+        },
+        {
+            "label": "Build Windows POC - libraries",
+            "type": "shell",
+            "windows": {
+                "command": "call Add-MinGW-Path.cmd && call set-vsbt-env-x64.bat && set WORKSPACE_FOLDER=%CD% && cd prod\\calc\\libsrc\\calcbase && make -f Makefile.Windows-poc && cd ..\\calc && make -f Makefile.Windows-poc",
+                "options": {
+                    "cwd": "${workspaceFolder}",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": []
         }
     ]
 }
