@@ -13,7 +13,7 @@ set WORKSPACE_FOLDER=%CD%
 REM libcalcbase のビルド
 REM Build libcalcbase
 echo.
-echo 1/3 Building libcalcbase...
+echo 1/5 Building libcalcbase...
 cd prod\calc\libsrc\calcbase
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
@@ -30,7 +30,7 @@ echo SUCCESS libcalcbase built successfully
 REM libcalc のビルド
 REM Build libcalc
 echo.
-echo 2/3 Building libcalc...
+echo 2/5 Building libcalc...
 cd ..\calc
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
@@ -48,7 +48,7 @@ dumpbin /NOLOGO /EXPORTS %WORKSPACE_FOLDER%\prod\calc\lib\calc.dll | findstr /C:
 REM add コマンドのビルド
 REM Build add command
 echo.
-echo 3/3 Building add command...
+echo 3/5 Building add command...
 cd ..\..\src\add
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
@@ -66,7 +66,7 @@ dumpbin /NOLOGO /IMPORTS add.exe | findstr /C:"calc.dll" /C:"add" /C:"calcHandle
 REM calc コマンドのビルド
 REM Build calc command
 echo.
-echo 3/3 Building calc command...
+echo 4/5 Building calc command...
 cd ..\..\src\calc
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
@@ -82,9 +82,9 @@ echo SUCCESS calc command built successfully
 dumpbin /NOLOGO /IMPORTS calc.exe | findstr /C:"calc.dll" /C:"add" /C:"calcHandler"
 
 REM shared-and-static-add コマンドのビルド
-REM Build add command
+REM Build shared-and-static-add command
 echo.
-echo 3/3 Building shared-and-static-add command...
+echo 5/5 Building shared-and-static-add command...
 cd ..\..\src\shared-and-static-add
 make -f Makefile.Windows-poc clean
 if errorlevel 1 (
