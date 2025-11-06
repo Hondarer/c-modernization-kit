@@ -38,50 +38,39 @@ This order ensures MSVC's `link.exe` takes precedence over MinGW's `link`.
 
 ## ビルド方法 / Build Instructions
 
-### 基本ビルド（静的ライブラリ）/ Basic Build (Static Library)
+### ビルド実行 / Build Execution
 
 ```cmd
 build-poc.bat
 ```
 
-このコマンドで以下がビルドされます：
-- `prod/calc/lib/calcbase.lib` - 基本計算関数ライブラリ（静的）
-- `prod/calc/lib/calc.lib` - 計算ハンドラーライブラリ（静的）
-- `prod/calc/src/add/add.exe` - 加算コマンド
+このコマンドで以下がビルドされます（実験的実装として libcalcbase は静的固定、libcalc は動的固定）：
 
-This builds:
-- `prod/calc/lib/calcbase.lib` - Basic calculation library (static)
-- `prod/calc/lib/calc.lib` - Calculation handler library (static)
-- `prod/calc/src/add/add.exe` - Addition command
-
-### 共有ライブラリビルド / Shared Library Build (DLL)
-
-```cmd
-set BUILD=shared
-build-poc.bat
-```
-
-または / or:
-
-```cmd
-set BUILD=shared && build-poc.bat
-```
-
-このコマンドで以下がビルドされます：
-- `prod/calc/lib/calcbase.lib` - 基本計算関数ライブラリ（静的）
-- `prod/calc/lib/calc.dll` - 計算ハンドラーライブラリ（DLL、calcbase.lib を静的リンク）
+**ライブラリ / Libraries:**
+- `prod/calc/lib/calcbase.lib` - 基本計算関数ライブラリ（静的ライブラリ固定）
+- `prod/calc/lib/calc.dll` - 計算ハンドラーライブラリ（DLL 固定、calcbase.lib を内部に静的リンク）
 - `prod/calc/lib/calc.lib` - calc.dll のインポートライブラリ
-- `prod/calc/src/add/add.exe` - 加算コマンド（calc.lib をリンク）
 
-**重要**: `BUILD=shared` の場合、calc.dll は calcbase.lib を内部に静的リンクするため、add.exe は calc.lib（インポートライブラリ）のみをリンクすれば動作します。
+**コマンド / Commands:**
+- `prod/calc/src/add/add.exe` - 加算コマンド（calc.lib のみをリンク）
+- `prod/calc/src/calc/calc.exe` - 計算コマンド（calc.lib のみをリンク）
+- `prod/calc/src/shared-and-static-add/shared-and-static-add.exe` - 加算コマンド（calc.lib と calcbase.lib の両方をリンク、実験的）
 
-This builds:
-- `prod/calc/lib/calcbase.lib` - Basic calculation library (static)
-- `prod/calc/lib/calc.dll` - Calculation handler library (DLL with calcbase.lib statically linked)
+**重要**: libcalc は動的ライブラリ（DLL）として固定実装されており、calcbase.lib を内部に静的リンクします。そのため、add.exe と calc.exe は calc.lib（インポートライブラリ）のみをリンクすれば動作します。shared-and-static-add.exe は、DLL と静的ライブラリの両方をリンクする実験的な実装例です。
+
+This builds (as experimental implementation, libcalcbase is static-only, libcalc is dynamic-only):
+
+**Libraries:**
+- `prod/calc/lib/calcbase.lib` - Basic calculation library (static library only)
+- `prod/calc/lib/calc.dll` - Calculation handler library (DLL only, with calcbase.lib statically linked internally)
 - `prod/calc/lib/calc.lib` - Import library for calc.dll
-- `prod/calc/src/add/add.exe` - Addition command (links calc.lib)
 
-**Important**: When `BUILD=shared`, calc.dll statically links calcbase.lib internally, so add.exe only needs to link calc.lib (import library).
+**Commands:**
+- `prod/calc/src/add/add.exe` - Addition command (links calc.lib only)
+- `prod/calc/src/calc/calc.exe` - Calculation command (links calc.lib only)
+- `prod/calc/src/shared-and-static-add/shared-and-static-add.exe` - Addition command (links both calc.lib and calcbase.lib, experimental)
+
+**Important**: libcalc is implemented as a dynamic library (DLL) only and statically links calcbase.lib internally. Therefore, add.exe and calc.exe only need to link calc.lib (import library). shared-and-static-add.exe is an experimental implementation that links both DLL and static library.
 
 ## ファイル構成 / File Structure
 
@@ -90,24 +79,34 @@ This builds:
 ```
 prod/calc/
 ├── libsrc/
-│   ├── makelibsrc-windows-poc.mk       # 共通テンプレート（新規作成）
+│   ├── makelibsrc-windows-poc.mk       # ライブラリビルド用共通テンプレート
 │   ├── calcbase/
 │   │   ├── Makefile                    # Linux 版（testfw テンプレート使用）
-│   │   └── Makefile.Windows-poc        # Windows POC 版（テンプレート利用、簡素化）
+│   │   └── Makefile.Windows-poc        # Windows POC 版（静的ライブラリ固定）
 │   └── calc/
 │       ├── Makefile                    # Linux 版（testfw テンプレート使用）
-│       └── Makefile.Windows-poc        # Windows POC 版（テンプレート利用、簡素化）
+│       └── Makefile.Windows-poc        # Windows POC 版（動的ライブラリ固定、BUILD := shared）
 └── src/
-    └── add/
+    ├── add/
+    │   ├── Makefile                    # Linux 版（testfw テンプレート使用）
+    │   └── Makefile.Windows-poc        # Windows POC 版
+    ├── calc/
+    │   ├── Makefile                    # Linux 版（testfw テンプレート使用）
+    │   └── Makefile.Windows-poc        # Windows POC 版
+    └── shared-and-static-add/
         ├── Makefile                    # Linux 版（testfw テンプレート使用）
-        └── Makefile.Windows-poc        # Windows POC 版（変更なし）
+        └── Makefile.Windows-poc        # Windows POC 版（実験的、DLL + 静的ライブラリリンク）
 ```
 
 **共通テンプレートの導入**: calcbase と calc の Makefile.Windows-poc はほぼ同じ内容だったため、`makelibsrc-windows-poc.mk` として共通化しました。各 Makefile は必要最小限の設定のみを記述し、テンプレートを include します。
 
+**ライブラリのビルドモード**:
+- **calcbase**: BUILD 変数未設定 → 共通テンプレートのデフォルトで静的ライブラリ
+- **calc**: `BUILD := shared` 固定 → 動的ライブラリ（DLL）固定
+
 ### ビルドスクリプト
 
-- `build-poc.bat` - 全体のビルドスクリプト（BUILD 変数対応）
+- `build-poc.bat` - 全体のビルドスクリプト（libcalcbase, libcalc, add, calc, shared-and-static-add を順次ビルド）
 
 ## 主な機能 / Key Features
 
@@ -118,27 +117,32 @@ calcbase と calc の Makefile.Windows-poc はほぼ同じ内容だったため�
 Since calcbase and calc Makefile.Windows-poc had nearly identical content, they were unified into `makelibsrc-windows-poc.mk`.
 
 **各 Makefile で設定する変数:**
-- `TARGET_BASE`: ライブラリ名のベース（例: calcbase, calc）
-- `BUILD`: ビルドモード（static/shared、calcbase は設定不要）
-- `LIBS`: 依存ライブラリ（例: calcbase、必要な場合のみ）
-- `LIBSDIR`: ライブラリ検索パス（LIBS を使用する場合）
+- `TARGET_BASE`: ライブラリ名のベース（例: calcbase, calc）- 必須
+- `BUILD`: ビルドモード（static/shared）- 未設定の場合は static、calc では shared 固定
+- `LIBS`: 依存ライブラリ（例: calcbase）- 必要な場合のみ
+- `LIBSDIR`: ライブラリ検索パス - LIBS を使用する場合のみ
+- `EXTRA_CFLAGS`: 追加のコンパイラフラグ（例: /DCALC_EXPORTS）- 必要な場合のみ
 
 **Variables set in each Makefile:**
-- `TARGET_BASE`: Base library name (e.g., calcbase, calc)
-- `BUILD`: Build mode (static/shared, calcbase doesn't need to set)
-- `LIBS`: Dependent libraries (e.g., calcbase, only if needed)
-- `LIBSDIR`: Library search paths (when using LIBS)
+- `TARGET_BASE`: Base library name (e.g., calcbase, calc) - Required
+- `BUILD`: Build mode (static/shared) - Defaults to static if not set, fixed to shared for calc
+- `LIBS`: Dependent libraries (e.g., calcbase) - Only if needed
+- `LIBSDIR`: Library search paths - Only when using LIBS
+- `EXTRA_CFLAGS`: Additional compiler flags (e.g., /DCALC_EXPORTS) - Only if needed
 
-**calcbase の例 / calcbase example:**
+**calcbase の例 / calcbase example (静的ライブラリ固定 / static library only):**
 ```makefile
 TARGET_BASE := calcbase
+# BUILD 未設定 → デフォルトで static
+# BUILD not set → defaults to static
 include ../makelibsrc-windows-poc.mk
 ```
 
-**calc の例 / calc example:**
+**calc の例 / calc example (動的ライブラリ固定 / dynamic library only):**
 ```makefile
 TARGET_BASE := calc
-BUILD := shared
+BUILD := shared  # 動的ライブラリ（DLL）固定 / Fixed to dynamic library (DLL)
+EXTRA_CFLAGS := /DCALC_EXPORTS
 LIBSDIR = $(WORKSPACE_FOLDER)/prod/calc/lib
 LIBS := calcbase
 include ../makelibsrc-windows-poc.mk
@@ -197,47 +201,87 @@ endif
 
 Each Makefile only needs to include the template; no OS-specific code is required.
 
-### 4. BUILD 変数による切り替え / BUILD Variable Switching
+### 4. ライブラリ構成 / Library Configuration
 
-| BUILD 値 | Windows | Linux | 説明 |
-|----------|---------|-------|------|
-| `static` (デフォルト) | `.lib` | `.a` | 静的ライブラリ |
-| `shared` | `.dll` + `.lib` | `.so` | 共有ライブラリ + インポートライブラリ |
+本 POC では、実験的実装として以下の構成で固定されています：
 
-| BUILD value | Windows | Linux | Description |
-|-------------|---------|-------|-------------|
-| `static` (default) | `.lib` | `.a` | Static library |
-| `shared` | `.dll` + `.lib` | `.so` | Shared library + import library |
+| ライブラリ | BUILD 設定 | Windows | Linux | 説明 |
+|-----------|----------|---------|-------|------|
+| libcalcbase | 未設定 (static) | `.lib` | `.a` | 静的ライブラリ固定 |
+| libcalc | `shared` 固定 | `.dll` + `.lib` | `.so` | 動的ライブラリ固定 + インポートライブラリ |
 
-## 今回の改修内容 / Changes in This Update
+In this POC, the following configuration is fixed as an experimental implementation:
 
-### 変更したファイル / Modified Files
+| Library | BUILD setting | Windows | Linux | Description |
+|---------|--------------|---------|-------|-------------|
+| libcalcbase | Not set (static) | `.lib` | `.a` | Static library only |
+| libcalc | Fixed to `shared` | `.dll` + `.lib` | `.so` | Dynamic library only + import library |
 
-1. **新規作成**: `prod/calc/libsrc/makelibsrc-windows-poc.mk`（共通テンプレート）
-2. **新規作成**: `prod/calc/libsrc/calcbase/Makefile.Windows-poc`（簡素化、テンプレート利用）
-3. **更新**: `prod/calc/libsrc/calc/Makefile.Windows-poc`（簡素化、テンプレート利用、静的リンク機能追加）
-4. **更新**: `build-poc.bat`（calcbase ビルドを追加、BUILD 変数対応）
+**共通テンプレートの BUILD 変数サポート:**
 
-**変更していないファイル / Unchanged Files**
+共通テンプレート `makelibsrc-windows-poc.mk` 自体は BUILD 変数による static/shared の切り替えをサポートしていますが、本 POC では以下のように固定設定されています：
+- calcbase: BUILD を設定せず、デフォルトの static
+- calc: `BUILD := shared` を Makefile 内でハードコード
 
-- `prod/calc/src/add/Makefile.Windows-poc` - add コマンドは変更なし
-- `testfw/` 以下のすべてのファイル - testfw は変更なし（Windows POC は独立）
+**Common Template BUILD Variable Support:**
 
-### 改修の範囲 / Scope of Changes
+The common template `makelibsrc-windows-poc.mk` itself supports static/shared switching via BUILD variable, but in this POC it is fixed as follows:
+- calcbase: BUILD not set, uses default static
+- calc: `BUILD := shared` hardcoded in Makefile
 
-**今回の改修はライブラリ側（calc）の機能変更のみです。**
+## Windows POC の設計思想 / Design Philosophy
 
-This update only modifies the library side (calc) functionality.
+### ライブラリ構成の固定化 / Fixed Library Configuration
 
-- **ライブラリ側（calc）**: `BUILD=shared` 時に calcbase.lib を自動的に静的リンク
-- **アプリ側（add）**: 変更なし。calc.lib をリンクするだけ
+本 POC では、実験的実装として以下の構成で固定しています：
+- **libcalcbase**: 静的ライブラリのみ（BUILD 変数未設定、デフォルトで static）
+- **libcalc**: 動的ライブラリのみ（BUILD := shared を Makefile 内で固定）
 
-**Library side (calc)**: Automatically statically links calcbase.lib when `BUILD=shared`
-**Application side (add)**: No changes. Just links calc.lib
+この構成により、以下のメリットがあります：
+1. calc.dll が calcbase.lib を内部に静的リンクするため、アプリケーションは calc.lib（インポートライブラリ）のみをリンクすれば動作
+2. 依存関係が単純化され、配布時に calc.dll のみを配置すれば動作
+3. Linux 版（testfw/makefiles/makelibsrc.mk）と同様の動作を実現
 
-これにより、Linux 版（testfw/makefiles/makelibsrc.mk）と同様の動作を Windows POC でも実現しました。
+In this POC, the following configuration is fixed as an experimental implementation:
+- **libcalcbase**: Static library only (BUILD variable not set, defaults to static)
+- **libcalc**: Dynamic library only (BUILD := shared fixed in Makefile)
 
-This achieves the same behavior as the Linux version (testfw/makefiles/makelibsrc.mk) in Windows POC.
+This configuration provides the following benefits:
+1. Since calc.dll statically links calcbase.lib internally, applications only need to link calc.lib (import library)
+2. Dependencies are simplified; only calc.dll needs to be distributed
+3. Achieves the same behavior as the Linux version (testfw/makefiles/makelibsrc.mk)
+
+### 実装ファイル / Implementation Files
+
+**ライブラリ / Libraries:**
+1. `prod/calc/libsrc/makelibsrc-windows-poc.mk` - 共通テンプレート（BUILD 変数による static/shared 切り替えをサポート）
+2. `prod/calc/libsrc/calcbase/Makefile.Windows-poc` - calcbase ビルド設定（BUILD 未設定 → static）
+3. `prod/calc/libsrc/calc/Makefile.Windows-poc` - calc ビルド設定（BUILD := shared 固定）
+
+**コマンド / Commands:**
+- `prod/calc/src/add/Makefile.Windows-poc` - add コマンド（calc.lib のみリンク）
+- `prod/calc/src/calc/Makefile.Windows-poc` - calc コマンド（calc.lib のみリンク）
+- `prod/calc/src/shared-and-static-add/Makefile.Windows-poc` - shared-and-static-add コマンド（calc.lib + calcbase.lib をリンク、実験的）
+
+**ビルドスクリプト / Build Script:**
+- `build-poc.bat` - 全体のビルドスクリプト（libcalcbase, libcalc, add, calc, shared-and-static-add を順次ビルド）
+
+**Libraries:**
+1. `prod/calc/libsrc/makelibsrc-windows-poc.mk` - Common template (supports static/shared switching via BUILD variable)
+2. `prod/calc/libsrc/calcbase/Makefile.Windows-poc` - calcbase build settings (BUILD not set → static)
+3. `prod/calc/libsrc/calc/Makefile.Windows-poc` - calc build settings (BUILD := shared fixed)
+
+**Commands:**
+- `prod/calc/src/add/Makefile.Windows-poc` - add command (links calc.lib only)
+- `prod/calc/src/calc/Makefile.Windows-poc` - calc command (links calc.lib only)
+- `prod/calc/src/shared-and-static-add/Makefile.Windows-poc` - shared-and-static-add command (links calc.lib + calcbase.lib, experimental)
+
+**Build Script:**
+- `build-poc.bat` - Overall build script (sequentially builds libcalcbase, libcalc, add, calc, shared-and-static-add)
+
+**注**: testfw 以下のファイルは変更なし。Windows POC は testfw から独立した実装です。
+
+**Note**: Files under testfw are unchanged. Windows POC is an independent implementation from testfw.
 
 ## testfw テンプレートとの違い / Differences from testfw Templates
 
@@ -271,18 +315,22 @@ This achieves the same behavior as the Linux version (testfw/makefiles/makelibsr
 
 | 項目 | Linux (testfw) | Windows POC |
 |------|----------------|-------------|
-| calcbase | `BUILD` なし（static） | `BUILD` なし（static） |
-| calc | `BUILD=shared` | `BUILD=shared` 対応（静的リンク機能追加） |
-| add | testfw テンプレート | 変更なし（calc.lib をリンク） |
-| 依存関係 | `-lcalcbase` (自動解決) | `LIBS := calcbase` (直接指定) |
+| calcbase | `BUILD` なし（static 固定） | `BUILD` なし（static 固定） |
+| calc | `BUILD=shared`（calc.mk で固定） | `BUILD := shared`（Makefile で固定） |
+| add | testfw テンプレート（calc.lib のみリンク） | calc.lib のみリンク |
+| calc コマンド | testfw テンプレート（calc.lib のみリンク） | calc.lib のみリンク |
+| shared-and-static-add | testfw テンプレート（calc.lib + calcbase.lib） | calc.lib + calcbase.lib |
+| 依存関係（ライブラリ） | `-lcalcbase` (自動解決) | `LIBS := calcbase` (直接指定) |
 | 検索パス | `LIBSDIR`, `-L`, システム | `LIBSDIR` のみ |
 
 | Item | Linux (testfw) | Windows POC |
 |------|----------------|-------------|
-| calcbase | No `BUILD` (static) | No `BUILD` (static) |
-| calc | `BUILD=shared` | `BUILD=shared` supported (static linking added) |
-| add | testfw template | No changes (links calc.lib) |
-| Dependencies | `-lcalcbase` (auto-resolved) | `LIBS := calcbase` (direct) |
+| calcbase | No `BUILD` (static only) | No `BUILD` (static only) |
+| calc | `BUILD=shared` (fixed in calc.mk) | `BUILD := shared` (fixed in Makefile) |
+| add | testfw template (links calc.lib only) | Links calc.lib only |
+| calc command | testfw template (links calc.lib only) | Links calc.lib only |
+| shared-and-static-add | testfw template (calc.lib + calcbase.lib) | calc.lib + calcbase.lib |
+| Dependencies (library) | `-lcalcbase` (auto-resolved) | `LIBS := calcbase` (direct) |
 | Search paths | `LIBSDIR`, `-L`, system | `LIBSDIR` only |
 
 ## デバッグ / Debugging
@@ -291,12 +339,32 @@ This achieves the same behavior as the Linux version (testfw/makefiles/makelibsr
 
 The common template has a `debug` target to display configured variables:
 
+**calcbase のデバッグ / calcbase debug:**
 ```cmd
-cd prod\calc\libsrc\calc
-make -f Makefile.Windows-poc debug BUILD=shared
+cd prod\calc\libsrc\calcbase
+make -f Makefile.Windows-poc debug
 ```
 
 出力例 / Example output:
+```
+TARGET_BASE = calcbase
+BUILD = static
+OS = Windows_NT
+LIBS =
+LIBSDIR =
+STATIC_LIBS =
+DYNAMIC_LIBS =
+TARGET = calcbase.lib
+OBJS = obj/add.obj
+```
+
+**calc のデバッグ / calc debug:**
+```cmd
+cd prod\calc\libsrc\calc
+make -f Makefile.Windows-poc debug
+```
+
+出力例（BUILD は Makefile 内で shared 固定）/ Example output (BUILD fixed to shared in Makefile):
 ```
 TARGET_BASE = calc
 BUILD = shared
@@ -311,25 +379,35 @@ OBJS = obj/calcHandler.obj
 
 ## 制限事項 / Limitations
 
-1. **testfw テンプレートの機能は未対応**
+1. **ライブラリ構成が固定**
+   - libcalcbase は静的ライブラリ固定（BUILD 変数で変更不可）
+   - libcalc は動的ライブラリ（DLL）固定（BUILD 変数で変更不可）
+   - これは実験的実装のための意図的な制約です
+
+2. **testfw テンプレートの機能は未対応**
    - inject, filter, モック機能は Windows POC には含まれていません
 
-2. **検索パスは LIBSDIR のみ**
+3. **検索パスは LIBSDIR のみ**
    - Linux 版の `-L` オプションやシステムパスの自動検索は未実装
 
-3. **実験的な実装**
+4. **実験的な実装**
    - 本番環境での使用は推奨されません
    - 将来的に testfw との統合が必要
 
 **Limitations:**
 
-1. **testfw template features not supported**
+1. **Library configuration is fixed**
+   - libcalcbase is fixed to static library (cannot be changed via BUILD variable)
+   - libcalc is fixed to dynamic library (DLL) (cannot be changed via BUILD variable)
+   - This is an intentional constraint for experimental implementation
+
+2. **testfw template features not supported**
    - inject, filter, mock features are not included in Windows POC
 
-2. **Search path is LIBSDIR only**
+3. **Search path is LIBSDIR only**
    - Linux version's `-L` option and system path auto-search not implemented
 
-3. **Experimental implementation**
+4. **Experimental implementation**
    - Not recommended for production use
    - Future integration with testfw needed
 
