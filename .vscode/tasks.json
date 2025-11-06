@@ -68,6 +68,28 @@
             ]
         },
         {
+            "label": "make docs",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "docs"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always", // Terminal パネルを必ず開く
+                "clear": true // 実行前に Terminal をクリア
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
             "label": "make clean (current dir)",
             "type": "shell",
             "command": "make",

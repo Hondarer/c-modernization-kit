@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           libsrc/calc/add.c
+ *  @file           libsrc/calcbase/add.c
  *  @brief          add 関数の実装ファイル。
  *  @author         doxygen-sample team
  *  @date           2025/01/30

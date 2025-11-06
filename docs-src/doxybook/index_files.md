@@ -14,7 +14,7 @@ author: doxygen and doxybook
         * dir calc/libsrc/calc
             * file [calc/libsrc/calc/calcHandler.c](Files/calcHandler_8c.md) <br/>calcHandler 関数の実装ファイル。
         * dir calc/libsrc/calcbase
-            * file [calc/libsrc/calcbase/add.c](Files/libsrc_2calcbase_2add_8c.md)
+            * file [calc/libsrc/calcbase/add.c](Files/libsrc_2calcbase_2add_8c.md) <br/>add 関数の実装ファイル。
     * dir calc/src
         * dir calc/src/add
             * file [calc/src/add/add.c](Files/src_2add_2add_8c.md) <br/>add 関数の呼び出しコマンド。

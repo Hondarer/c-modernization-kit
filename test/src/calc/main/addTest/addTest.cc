@@ -14,9 +14,8 @@ class addTest : public Test
 TEST_F(addTest, less_argc)
 {
     // Arrange
-    Mock_calcbase mock_calcbase;
     int argc = 2;
-    const char *argv[] = {"test_samplefunc", "1"}; // [状態] - main() に与える引数を、"1" **(不足)** とする。
+    const char *argv[] = {"addTest", "1"}; // [状態] - main() に与える引数を、"1" **(不足)** とする。
 
     // Pre-Assert
 
@@ -33,7 +32,7 @@ TEST_F(addTest, normal)
     NiceMock<Mock_stdio> mock_stdio;
     Mock_calcbase mock_calcbase;
     int argc = 3;
-    const char *argv[] = {"test_samplefunc", "1", "2"}; // [状態] - main() に与える引数を、"1", "2" とする。
+    const char *argv[] = {"addTest", "1", "2"}; // [状態] - main() に与える引数を、"1", "2" とする。
 
     // Pre-Assert
     EXPECT_CALL(mock_calcbase, add(1, 2))
