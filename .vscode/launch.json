@@ -28,6 +28,67 @@
                 "engineLogging": true
             },
             "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "Debug add.exe (Windows POC)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/prod/calc/src/add/add.exe",
+            "args": [
+                "10",
+                "20"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/prod/calc/src/add",
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                }
+            ],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Windows POC"
+        },
+        {
+            "name": "Debug calc.exe (Windows POC)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/prod/calc/src/calc/calc.exe",
+            "args": [
+                "1",
+                "10",
+                "20"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/prod/calc/src/calc",
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                }
+            ],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Windows POC"
+        },
+        {
+            "name": "Debug shared-and-static-add.exe (Windows POC)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/prod/calc/src/shared-and-static-add/shared-and-static-add.exe",
+            "args": [
+                "10",
+                "20"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/prod/calc/src/shared-and-static-add",
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                }
+            ],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Windows POC"
         }
     ]
 }
