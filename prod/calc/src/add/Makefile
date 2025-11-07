@@ -8,13 +8,9 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
-ifneq ($(OS),Windows_NT)
-    # Linux
-    include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
-endif
+include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
 
 # ライブラリの指定
-LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
 ifneq ($(OS),Windows_NT)
     # Linux
     LIBS += -lcalcbase

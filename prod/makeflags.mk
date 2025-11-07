@@ -1,3 +1,5 @@
+ifneq ($(OS),Windows_NT)
+    # Linux
 CCOMFLAGS=\
 	-Wall \
 	-Wextra \
@@ -35,7 +37,6 @@ CCOMFLAGS=\
 	-Wunknown-pragmas \
 	-W \
 	-std=c99
-
 CPPCOMFLAGS=\
 	-Wall \
 	-Wextra \
@@ -67,6 +68,12 @@ CPPCOMFLAGS=\
 	-Wformat-overflow=0 \
 	-Wunknown-pragmas \
 	-W
-
 LDCOMFLAGS  =
-LIBSDIR     =
+else
+    # Windows
+CCOMFLAGS   =
+CPPCOMFLAGS =
+LDCOMFLAGS  =
+endif
+
+LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
