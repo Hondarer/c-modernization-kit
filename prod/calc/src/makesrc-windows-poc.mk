@@ -44,7 +44,7 @@ all: $(TARGET)
 ifneq ($(OS),Windows_NT)
     # Linux
 $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(LD) -o $@ $(OBJS) $(LIBS) $(LDFLAGS)
 else
     # Windows
 $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
@@ -73,9 +73,8 @@ clean:
 	rm -f $(TARGETDIR)/$(TARGET)
 ifeq ($(OS),Windows_NT)
     # Windows
-	rm -f $(TARGETDIR)/*.pdb
+	rm -f $(TARGETDIR)/$(TARGET_NAME).pdb
 endif
-
 
 # ヘルプ
 .PHONY: help
