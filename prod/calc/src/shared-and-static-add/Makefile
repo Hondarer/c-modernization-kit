@@ -1,21 +1,14 @@
-# ワークスペースのディレクトリ
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+# Windows PoC 用 Makefile
+# このディレクトリは shared-and-static-add コマンドをビルドします
 
-# 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+# ライブラリの指定
+# Windows: calc.lib calcbase.lib
+# Linux: -lcalc -lcalcbase
+ifeq ($(OS),Windows_NT)
+    LIBS := calc.lib calcbase.lib
+else
+    LIBS := -lcalc -lcalcbase
+endif
 
-# ライブラリの追加
-LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
-LIBS += -lcalc -lcalcbase
-
-# src の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
+# Windows PoC テンプレートを include
+include ../makesrc-windows-poc.mk
