@@ -1,29 +1,11 @@
 # ワークスペースのディレクトリ
-ifneq ($(OS),Windows_NT)
-    # Linux
-    WORKSPACE_FOLDER := $(shell \
-        dir=`pwd`; \
-        while [ "$$dir" != "/" ]; do \
-            if [ -f "$$dir/.workspaceRoot" ]; then \
-                echo $$dir; \
-                break; \
-            fi; \
-            dir=$$(dirname $$dir); \
-        done \
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
     )
-else
-    # Windows
-    WORKSPACE_FOLDER := $(shell \
-        dir=`pwd`; \
-        while [ "$$dir" != "/" ]; do \
-            if [ -f "$$dir/.workspaceRoot" ]; then \
-                cygpath -w "$$dir" 2>/dev/null || echo $$dir; \
-                break; \
-            fi; \
-            dir=$$(dirname $$dir); \
-        done \
-    )
-endif
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
 ifneq ($(OS),Windows_NT)
