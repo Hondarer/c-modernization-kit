@@ -1,6 +1,6 @@
 ifneq ($(OS),Windows_NT)
     # Linux
-CCOMFLAGS=\
+CFLAGS=\
 	-Wall \
 	-Wextra \
 	-Wcast-align \
@@ -35,9 +35,8 @@ CCOMFLAGS=\
 	-Wimplicit-fallthrough=0 \
 	-Wformat-overflow=0 \
 	-Wunknown-pragmas \
-	-W \
-	-std=c99
-CPPCOMFLAGS=\
+	-W
+CXXFLAGS=\
 	-Wall \
 	-Wextra \
 	-Wcast-align \
@@ -68,12 +67,13 @@ CPPCOMFLAGS=\
 	-Wformat-overflow=0 \
 	-Wunknown-pragmas \
 	-W
-LDCOMFLAGS  =
+LDFLAGS     =
 else
     # Windows
-CCOMFLAGS   =
-CPPCOMFLAGS =
-LDCOMFLAGS  =
+CFLAGS      =
+CXXFLAGS    =
+LDFLAGS     =
 endif
 
-LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
+LIBSDIR    +=\
+	$(WORKSPACE_FOLDER)/prod/calc/lib

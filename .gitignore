@@ -9,6 +9,10 @@
 
 # 以下は管理対象外
 
+# Claude Code
+
+/.claude
+
 ## 中間ファイル
 lib
 obj

@@ -73,6 +73,64 @@ C ランタイムライブラリのコードは実行ファイルには埋め込
 | リンク時のライブラリファイル   | `LIBCMT.lib`         | `MSVCRT.lib` (インポートライブラリ) |
 | モジュール間でのランタイム共有 | 不可 (各モジュールが独立) | 可 (同じ DLL を共有) |
 
+## デバッグビルドの /MTd と /MDd
+
+デバッグ用のランタイムは、追加の検査でバグを見つけやすくする特別版です。これをデバッグ CRT (Debug C Runtime) と呼びます。開発時の利用を想定しており、配布には使いません。
+
+### /MTd (静的・デバッグ CRT)
+
+デバッグ CRT を実行ファイルや DLL に静的に取り込みます。
+
+**使用されるライブラリファイル**
+
+- `LIBCMTD.lib` (デバッグビルド)
+
+**特徴**
+
+- アサートやデバッグヒープなどの追加チェックが有効になるため、問題を早期に見つけやすい
+- 実行ファイルがさらに大きくなり、処理も遅くなる
+- 配布用途には不適切。開発環境内での実行に限る
+- `/MT` や `/MD`、`/MDd` との混在は不可
+
+**ビルド設定例**
+
+```{.makefile caption="デバッグ構成の例（静的）"}
+CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MTd /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
+```
+
+### /MDd (動的・デバッグ CRT)
+
+デバッグ CRT を実行時に DLL として読み込みます。
+
+**使用されるライブラリファイル**
+
+- `MSVCRTD.lib` (インポートライブラリ、デバッグビルド)
+
+**実行時に必要な DLL**
+
+- `vcruntime140d.dll`
+- `msvcp140d.dll` (C++ の場合)
+- `ucrtbased.dll` (Universal CRT のデバッグ版)
+
+**特徴**
+
+- 追加チェックが有効で、実行サイズは小さめだが、実行には上記のデバッグ DLL が必要
+- デバッグ DLL は Visual Studio もしくは Build Tools の一部として提供され、再頒布可能パッケージには含まれない
+- 配布用途には不適切。開発環境内での実行に限る
+- `/MT` や `/MD`、`/MTd` との混在は不可
+
+**ビルド設定例**
+
+```{.makefile caption="デバッグ構成の例（動的）"}
+CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /MDd /Fd$(TARGETDIR)/$(TARGET_BASE).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
+```
+
+### デバッグ CRT 利用時の注意
+
+- デバッグとリリースを混在させない。プロジェクト内で、デバッグは一貫して `/MTd` または `/MDd` に統一し、リリースは `/MT` または `/MD` に統一する
+- 混在時は LNK4098 の警告が `MSVCRTD` などを含む形で出ることがある。必ず原因を直す
+- デバッグ CRT の挙動（イテレータ検証など）に依存したコードを書かない。リリースでは無効になる
+
 ## 混在時の問題
 
 異なるランタイムリンクモデル (`/MT` と `/MD`) でビルドされたモジュール (実行ファイル、静的ライブラリ、DLL) を混在させると、以下の深刻な問題が発生します。
@@ -227,6 +285,12 @@ Microsoft の公式サイトから、使用している Visual Studio のバー�
 
 インストール後、`/MD` でビルドされたプログラムが正常に実行できます。
 
+### デバッグビルドの実行についての注意
+
+- `/MDd` でビルドしたプログラムは、`vcruntime140d.dll`、`msvcp140d.dll`、`ucrtbased.dll` が必要です。これらは Visual Studio または Build Tools に含まれ、Visual C++ 再頒布可能パッケージには含まれません
+- `/MTd` は DLL 依存はありませんが、デバッグ CRT を静的に含むため配布には不向きです
+- いずれも配布用途ではなく、開発環境での動作確認に限って使用してください
+
 ## まとめ
 
 MSVC におけるランタイムライブラリのリンクモデルの選択は、プロジェクト全体の安定性と保守性に大きく影響します。
@@ -261,3 +325,9 @@ DLL を含むプロジェクトや、将来的な拡張を想定する場合は�
 
 - Microsoft Docs: 最新のサポートされる Visual C++ 再頒布可能パッケージのダウンロード
   [https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist](https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist)
+
+- Microsoft Docs: デバッグ CRT の概要
+  [https://learn.microsoft.com/ja-jp/cpp/c-runtime-library/debug-versions-of-the-crt-library](https://learn.microsoft.com/ja-jp/cpp/c-runtime-library/debug-versions-of-the-crt-library)
+
+- Microsoft Docs: Visual C++ ファイルの再頒布（デバッグ版は再頒布不可）
+  [https://learn.microsoft.com/ja-jp/cpp/windows/redistributing-visual-cpp-files](https://learn.microsoft.com/ja-jp/cpp/windows/redistributing-visual-cpp-files)
