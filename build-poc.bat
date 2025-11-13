@@ -4,7 +4,7 @@ setlocal
 REM 環境設定（重要: この順序を維持すること）
 REM Environment setup (Important: maintain this order)
 call Add-MinGW-Path.cmd
-call set-vsbt-env-x64.bat
+call Add-VSBT-Env-x64.cmd
 
 REM ワークスペースフォルダの設定
 REM Set workspace folder

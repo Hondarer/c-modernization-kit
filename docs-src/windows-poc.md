@@ -10,7 +10,7 @@
 
 1. **ポータブル版 Visual Studio Build Tools**
    - インストール済み
-   - `set-vsbt-env-x64.bat` で環境変数を設定
+   - `Add-VSBT-Env-x64.cmd` で環境変数を設定
 
 2. **Git for Windows (MinGW)**
    - インストール済み
@@ -19,7 +19,7 @@
 3. **環境設定の実行順序（重要）**
    ```cmd
    call Add-MinGW-Path.cmd
-   call set-vsbt-env-x64.bat
+   call Add-VSBT-Env-x64.cmd
    ```
    この順序で実行することで、MSVC の `link.exe` が MinGW の `link` より優先されます。
 

@@ -13,9 +13,7 @@ OBJEXT := .obj
 EXEEXT := .exe
 CFLAGS := /nologo /W4 /Zi /TC /utf-8 /MD /Fd$(OBJDIR)/$(TARGET_NAME).pdb /I$(WORKSPACE_FOLDER)/prod/calc/include
 LDFLAGS := /NOLOGO /DEBUG /PDB:$(TARGETDIR)/$(TARGET_NAME).pdb /INCREMENTAL /ILK:$(OBJDIR)/$(TARGET_NAME).ilk /LIBPATH:$(WORKSPACE_FOLDER)/prod/calc/lib
-# LIBS 変数は各 Makefile で Linux gcc 書式で定義される (例: LIBS = -lcalcbase -lcalc)
-# Linux gcc 書式を Windows 向け (例: LIBS = calcbase.lib calc.lib) に読み替える
-LIBS := $(patsubst -l%,%.lib,$(LIBS))
+LIBS := $(addsuffix .lib,$(LIBS))
 
 # ソースファイル
 SRCS_C := $(wildcard *.c)

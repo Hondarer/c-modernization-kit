@@ -302,7 +302,7 @@ CLAUDE.md に記載されているように、Windows 環境では以下のス�
 
 ```{.cmd caption="呼び出し例 (重要: この順序で実行)"}
 call Add-MinGW-Path.cmd
-call set-vsbt-env-x64.bat
+call Add-VSBT-Env-x64.cmd
 ```
 
 **注意**: この順序で実行することで、MSVC の `link.exe` が MinGW の `link` コマンドより PATH の優先順位が高くなります。逆の順序で実行すると、リンク時にエラーが発生します。
@@ -823,7 +823,7 @@ Windows 環境で、MSVC を使ったビルドが成功することを確認し�
 
 ```{.cmd caption="環境設定 (重要: この順序で実行)"}
 call Add-MinGW-Path.cmd
-call set-vsbt-env-x64.bat
+call Add-VSBT-Env-x64.cmd
 ```
 
 #### prod のビルド確認
@@ -920,7 +920,7 @@ Windows 用の PoC Makefile を実装して動作確認を行った結果、以�
 
 ```{.cmd caption="環境設定の正しい順序"}
 call Add-MinGW-Path.cmd
-call set-vsbt-env-x64.bat
+call Add-VSBT-Env-x64.cmd
 ```
 
 この順序で実行することで、MSVC の `link.exe` が MinGW の `link` コマンドより PATH の優先順位が高くなります。
@@ -1123,7 +1123,7 @@ obj ディレクトリの削除により、コンパイル時の PDB と ILK フ
 
 - testfw の Makefile テンプレートは複数のプロジェクトで共有されるため、変更時には慎重に行う
 - MSVC と GCC でコンパイラフラグが異なるため、makeflags.mk の条件分岐を慎重に設定する
-- Windows 環境では、環境設定スクリプトを **必ず正しい順序** (`Add-MinGW-Path.cmd` → `set-vsbt-env-x64.bat`) で実行する必要がある
+- Windows 環境では、環境設定スクリプトを **必ず正しい順序** (`Add-MinGW-Path.cmd` → `Add-VSBT-Env-x64.cmd`) で実行する必要がある
 - doxyfw は MinGW の bash を前提としているため、Windows では MinGW 環境が必須
 - テストライブラリ (gtest, gmock, gcov) の Windows 版が必要 (LINK_TEST=1 の場合)
 - ソースコードが UTF-8 の場合、MSVC では `/utf-8` オプションが必要

@@ -133,10 +133,10 @@ GNU Make (make.exe) へのパスはすでに通っています。
 呼び出しを行えるようにするには、
 
 ```cmd
-set-vsbt-env-x64.bat
+Add-VSBT-Env-x64.cmd
 ```
 
-を実行する必要があります。set-vsbt-env-x64.bat より、パスを含む環境変数が設定されます。  
+を実行する必要があります。Add-VSBT-Env-x64.cmd より、パスを含む環境変数が設定されます。  
 call 命令で実行しないと、環境変数を取り込めない点に注意が必要です。
 
 #### Git for Windows のパス設定
@@ -157,7 +157,7 @@ call 命令で実行しないと、環境変数を取り込めない点に注意
 
 ```cmd
 call Add-MinGW-Path.cmd
-call set-vsbt-env-x64.bat
+call Add-VSBT-Env-x64.cmd
 ```
 
 この順序で実行することで、MSVC の `link.exe` が MinGW の `link` コマンドより優先されます。逆の順序で実行すると、リンク時に MinGW の `link` が呼び出され、ビルドが失敗します。
