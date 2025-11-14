@@ -51,7 +51,25 @@ extern "C" {
  *  @param[in]      a 第一オペランド。
  *  @param[in]      b 第二オペランド。
  *  @return         計算結果。kind が無効な場合は -1 を返します。
+ *
+ *  @details
+ *  この関数は演算種別を受け取り、対応する計算関数を呼び出します。
+ *  現在サポートされている演算種別は以下の通りです。
+ *
+ *  | 演算種別        | 説明             |
+ *  | --------------- | ---------------- |
+ *  | CALC_KIND_ADD   | 加算を実行       |
+ *
+ *  使用例:
+ *
+ *  @code{.c}
+ *  int result = calcHandler(CALC_KIND_ADD, 10, 20);
+ *  printf("Result: %d\n", result);  // 出力: Result: 30
+ *  @endcode
+ *
  *  @note           現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
+ *  @warning        無効な kind を指定した場合、-1 を返します。
+ *                  呼び出し側で戻り値のチェックを行ってください。
  *******************************************************************************
  */
 CALC_API extern int calcHandler(int kind, int a, int b);

@@ -27,20 +27,30 @@ CONFIG ?= RelWithDebInfo
 
 ifneq ($(OS),Windows_NT)
     # Linux
-    CC  ?= gcc
-    CXX ?= g++
-    LD  ?= g++
-    AR  ?= ar
+    CC  := gcc
+    CXX := g++
+    LD  := g++
+    AR  := ar
 else
     # Windows
-    CC  ?= cl
-    CXX ?= cl
-    LD  ?= link
-    AR  ?= lib
+    CC  := cl
+    CXX := cl
+    LD  := link
+    AR  := lib
 endif
 
-C_STANDARD   ?= 17
-CXX_STANDARD ?= 17
+C_STANDARD   := 17
+CXX_STANDARD := 17
+
+#$(info ----)
+#$(info CONFIG: $(CONFIG))
+#$(info OS: $(OS))
+#$(info CC: $(CC))
+#$(info CXX: $(CXX))
+#$(info LD: $(LD))
+#$(info AR: $(AR))
+#$(info C_STANDARD: $(C_STANDARD))
+#$(info CXX_STANDARD: $(CXX_STANDARD))
 
 # デフォルト設定 END ################################################################
 

@@ -11,13 +11,7 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # ライブラリの指定
-LIBS += -lcalcbase -lcalc
+LIBS += calcbase calc
 
 # src の Makefile テンプレートを include
-ifneq ($(OS),Windows_NT)
-    # Linux
-    include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
-else
-    # Windows
-    include $(WORKSPACE_FOLDER)/prod/calc/src/makesrc-windows-poc.mk
-endif
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

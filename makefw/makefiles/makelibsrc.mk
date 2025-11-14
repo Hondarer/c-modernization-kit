@@ -6,21 +6,27 @@ OBJDIR := obj
 # -fPIC オプションが含まれていない場合に追加
 # Add -fPIC option if not already included
 ifeq ($(findstring -fPIC,$(CCOMFLAGS)),)
-	CCOMFLAGS += -fPIC
+	CFLAGS += -fPIC
 endif
 ifeq ($(findstring -fPIC,$(CPPCOMFLAGS)),)
-	CPPCOMFLAGS += -fPIC
+	CXXFLAGS += -fPIC
 endif
 
 # c_cpp_properties.json の defines にある値を -D として追加する
 # DEFINES は prepare.mk で設定されている
-# Add defines from c_cpp_properties.json to CCOMFLAGS
-CCOMFLAGS += $(addprefix -D,$(DEFINES))
-CPPCOMFLAGS += $(addprefix -D,$(DEFINES))
+CFLAGS += $(addprefix -D,$(DEFINES))
+CXXFLAGS += $(addprefix -D,$(DEFINES))
 
-DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
-CFLAGS := $(CCOMFLAGS) $(addprefix -I, $(INCDIR))
-CPPFLAGS := $(CPPCOMFLAGS) $(addprefix -I, $(INCDIR))
+ifneq ($(OS),Windows_NT)
+    # Linux
+    DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
+else
+    # Windows
+    DEPFLAGS =
+endif
+
+CFLAGS   += $(addprefix -I, $(INCDIR))
+CPPFLAGS += $(addprefix -I, $(INCDIR))
 
 # OBJS
 OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
@@ -28,6 +34,10 @@ OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
 	$(notdir $(patsubst %.c, %.o, $(patsubst %.cc, %.o, $(patsubst %.cpp, %.o, $(SRCS_C) $(SRCS_CPP))))))))
 # DEPS
 DEPS := $(patsubst %.o, %.d, $(OBJS))
+ifeq ($(OS),Windows_NT)
+    # Windows の場合は、.o を .obj に置換
+    OBJS := $(patsubst %.o, %.obj, $(OBJS))
+endif
 
 # BUILD の設定 (デフォルトは static)
 # BUILD setting (default is static)
@@ -40,16 +50,27 @@ endif
 # TARGETDIR := . の場合、カレントディレクトリにアーカイブを生成する
 # If TARGETDIR := ., the archive is created in the current directory
 ifeq ($(TARGETDIR),)
-	TARGETDIR := $(WORKSPACE_FOLDER)/test/lib
+    TARGETDIR := $(WORKSPACE_FOLDER)/test/lib
 endif
 # ディレクトリ名をアーカイブ名にする
 # Use directory name as archive name if TARGET is not specified
 ifeq ($(TARGET),)
-	ifeq ($(BUILD),shared)
-		TARGET := lib$(shell basename `pwd`).so
-	else
-		TARGET := lib$(shell basename `pwd`).a
-	endif
+    TARGET := $(shell basename `pwd`)
+endif
+ifneq ($(OS),Windows_NT)
+    # Linux
+    ifeq ($(BUILD),shared)
+        TARGET := lib$(TARGET).so
+    else
+        TARGET := lib$(TARGET).a
+    endif
+else
+    # Windows
+    ifeq ($(BUILD),shared)
+        TARGET := $(TARGET).dll
+    else
+        TARGET := $(TARGET).lib
+    endif
 endif
 
 # アーカイブまたは共有ライブラリの生成

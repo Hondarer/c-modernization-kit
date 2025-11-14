@@ -7,43 +7,61 @@ LIBSFILES := $(shell for dir in $(LIBSDIR); do [ -d $$dir ] && find $$dir -maxde
 # Set test libraries
 # LINK_TEST が 1 の場合にのみ設定する
 ifeq ($(LINK_TEST), 1)
-	TEST_LIBS := -lgtest_main -lgtest -lpthread -lgmock -lgcov
-	ifneq ($(NO_GTEST_MAIN),)
-		ifeq ($(NO_GTEST_MAIN), 1)
-			TEST_LIBS := $(filter-out -lgtest_main, $(TEST_LIBS))
-		endif
-	endif
+    TEST_LIBS := -lgtest_main -lgtest -lpthread -lgmock -lgcov
+    ifneq ($(NO_GTEST_MAIN),)
+        ifeq ($(NO_GTEST_MAIN), 1)
+            TEST_LIBS := $(filter-out -lgtest_main, $(TEST_LIBS))
+        endif
+    endif
 endif
 
 TESTSH := $(WORKSPACE_FOLDER)/testfw/cmnd/exec_test.sh
 
-OBJDIR := obj
+OBJDIR  := obj
 GCOVDIR := gcov
 LCOVDIR := lcov
 
 # c_cpp_properties.json の defines にある値を -D として追加する
 # DEFINES は prepare.mk で設定されている
-# Add defines from c_cpp_properties.json to CCOMFLAGS
-CCOMFLAGS += $(addprefix -D,$(DEFINES))
-CPPCOMFLAGS += $(addprefix -D,$(DEFINES))
+CFLAGS   += $(addprefix -D,$(DEFINES))
+CXXFLAGS += $(addprefix -D,$(DEFINES))
 
-DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
+ifneq ($(OS),Windows_NT)
+    # Linux
+    DEPFLAGS += -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
+endif
 
 # NOTE: テスト対象の場合は、CCOMFLAGS の後、通常の include の前に include_override を追加する
 #       CCOMFLAGS に追加した include パスは、include_override より前に評価されるので
 #       個別のテストでの include 注入に対応できる
 # NOTE: For test targets, add include_override after CCOMFLAGS but before normal includes, so that test-specific includes can override
 
-# テスト対象
-# For test targets
-CFLAGS_TEST := $(CCOMFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override $(addprefix -I, $(INCDIR))
-CPPFLAGS_TEST := $(CPPCOMFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override $(addprefix -I, $(INCDIR))
 # テスト対象以外
 # For non-test targets
-CFLAGS := $(CCOMFLAGS) $(addprefix -I, $(INCDIR))
-CPPFLAGS := $(CPPCOMFLAGS) $(addprefix -I, $(INCDIR))
+CFLAGS   += $(addprefix -I, $(INCDIR))
+CPPFLAGS += $(addprefix -I, $(INCDIR))
+# テスト対象
+# For test targets
+CFLAGS_TEST := $(CFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
+CXXFLAGS_TEST := $(CPPFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
 
-LDFLAGS := $(LDCOMFLAGS) $(addprefix -L, $(LIBSDIR))
+# リンクライブラリファイル名の解決
+ifneq ($(OS),Windows_NT)
+    # Linux
+    LIBS := $(addprefix -l, $(LIBS))
+else
+    # Windows
+    LIBS := $(addsuffix .lib,$(LIBS))
+endif
+
+# リンクライブラリフォルダ名の解決
+ifneq ($(OS),Windows_NT)
+    # Linux
+    LDFLAGS := $(LDFLAGS) $(addprefix -L, $(LIBSDIR))
+else
+    # Windows
+    LDFLAGS := $(LDFLAGS) $(addprefix /LIBPATH:, $(LIBSDIR))
+endif
 
 # OBJS
 OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
@@ -51,6 +69,10 @@ OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
 	$(notdir $(patsubst %.c, %.o, $(patsubst %.cc, %.o, $(patsubst %.cpp, %.o, $(SRCS_C) $(SRCS_CPP))))))))
 # DEPS
 DEPS := $(patsubst %.o, %.d, $(OBJS))
+ifeq ($(OS),Windows_NT)
+    # Windows の場合は、.o を .obj に置換
+    OBJS := $(patsubst %.o, %.obj, $(OBJS))
+endif
 
 # テストプログラムのディレクトリ名と実行体名
 # TARGETDIR := . の場合、カレントディレクトリに実行体を生成する
@@ -61,17 +83,28 @@ endif
 # ディレクトリ名を実行体名にする
 # Use directory name as executable name if TARGET is not specified
 ifeq ($(TARGET),)
-	TARGET := $(shell basename `pwd`)
+    TARGET := $(shell basename `pwd`)
+endif
+ifeq ($(OS),Windows_NT)
+    # Windows
+    TARGET := $(TARGET).exe
 endif
 
 ifndef NO_LINK
 # 実行体の生成
 # Build the executable
+ifneq ($(OS),Windows_NT)
+    # Linux
 $(TARGETDIR)/$(TARGET): $(OBJS) $(LIBSFILES) | $(TARGETDIR)
 	set -o pipefail; LANG=$(FILES_LANG) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(TEST_LIBS) -fdiagnostics-color=always 2>&1 | nkf
 else
-# リンクのみ
-# Link only
+    # Windows
+    $(TARGETDIR)/$(TARGET): $(OBJS) $(LIBSFILES) | $(TARGETDIR)
+		set -o pipefail; MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(LD) $(LDFLAGS) /PDB:$(patsubst %.exe,%.pdb,$@) /ILK:$(OBJDIR)/$(patsubst %.exe,%.ilk,$@) /OUT:$@ $(OBJS) $(LIBS) $(TEST_LIBS) 2>&1 | nkf
+endif
+else
+# コンパイルのみ
+# Compile only
 $(OBJS): $(LIBSFILES)
 endif
 
@@ -81,6 +114,8 @@ endif
 
 # C ソースファイルのコンパイル
 # Compile C source files
+ifneq ($(OS),Windows_NT)
+    # Linux
 $(OBJDIR)/%.o: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
 	@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
 		echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
@@ -89,6 +124,17 @@ $(OBJDIR)/%.o: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $
 		echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
 		LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
 	fi
+else
+    # Windows
+$(OBJDIR)/%.obj: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
+	@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
+		echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
+		MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
+	else \
+		echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /c /Fo$@ $< 2>&1 | nkf; \
+		MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /c /Fo$@ $< 2>&1 | nkf; \
+	fi
+endif
 
 # C++ ソースファイルのコンパイル (*.cc)
 # Compile C++ source files (*.cc)
@@ -196,13 +242,13 @@ $(LCOVDIR):
 
 .PHONY: all
 ifndef NO_LINK
-# 実行体の生成
-# Build the executable
-all: $(TARGETDIR)/$(TARGET)
+    # 実行体の生成
+    # Build the executable
+    all: $(TARGETDIR)/$(TARGET)
 else
-# コンパイルのみ
-# Compile only
-all: $(OBJS) $(LIBSFILES)
+    # コンパイルのみ
+    # Compile only
+    all: $(OBJS) $(LIBSFILES)
 endif
 
 .PHONY: clean
@@ -223,7 +269,14 @@ clean: clean-cov clean-test
 		mv $$tempfile .gitignore; \
 	done
 	-rm -rf $(OBJDIR)
-	-rm -f $(TARGETDIR)/$(TARGET) core
+	-rm -f $(TARGETDIR)/$(TARGET)
+    ifneq ($(OS),Windows_NT)
+        # Linux
+		-rm -f core
+    else
+        # Windows
+		-rm -f $(patsubst %.exe,%.pdb,$(TARGETDIR)/$(TARGET))
+    endif
 
 .PHONY: clean-cov
 clean-cov:
@@ -236,8 +289,8 @@ clean-cov:
 
 .PHONY: clean-test
 clean-test:
-#	テスト結果フォルダを削除する
-#	Delete test results folder if it exists
+    # テスト結果フォルダを削除する
+    # Delete test results folder if it exists
 	-rm -rf results
 
 # Check if both variables are empty

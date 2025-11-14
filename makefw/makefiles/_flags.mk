@@ -1,9 +1,10 @@
 # ユーザー設定のデフォルト値
-C_STANDARD        ?= 17      # 90, 99, 11, 17, 23
-CXX_STANDARD      ?= 17      # 14, 17, 20, 23
-C_EXTENSIONS      ?= OFF     # ON or OFF (GNU 拡張)
-CXX_EXTENSIONS    ?= OFF     # ON or OFF (GNU 拡張)
-STRICT            ?= ON      # 規格準拠を強める補助フラグ
+C_STANDARD        ?= 17             # 90, 99, 11, 17, 23
+CXX_STANDARD      ?= 17             # 14, 17, 20, 23
+C_EXTENSIONS      ?= OFF            # ON or OFF (GNU 拡張)
+CXX_EXTENSIONS    ?= OFF            # ON or OFF (GNU 拡張)
+STRICT            ?= ON             # 規格準拠を強める補助フラグ
+CONFIG            ?= RelWithDebInfo # ビルド構成
 
 # 標準フラグ生成 (C)
 ifeq ($(C_EXTENSIONS),ON)
@@ -78,33 +79,56 @@ endif
 CFLAGS   += $(C_STDFLAG) $(CWARNS)
 CXXFLAGS += $(CXX_STDFLAG) $(CXXWARNS)
 
+# 文字コード
+ifeq ($(OS),Windows_NT)
+    # Windows
+    ifneq (,$(filter %.utf8 %.UTF-8 %.utf-8 %.UTF8,$(FILES_LANG)))
+        # UTF-8
+        CFLAGS   += /utf-8
+        CXXFLAGS += /utf-8
+    endif
+endif
+
+# nologo
+ifeq ($(OS),Windows_NT)
+    # Windows
+    CFLAGS   += /nologo
+    CXXFLAGS += /nologo
+    LDFLAGS  += /NOLOGO
+endif
+
+# runtime
+ifeq ($(OS),Windows_NT)
+    # Windows
+    # 共通フラグ
+    CFLAGS   += /EHsc /Z7 /MP
+    CXXFLAGS += /EHsc /Z7 /MP
+    # 構成別フラグ
+    ifeq ($(CONFIG),Debug)
+      CPPDEFS  += /D_DEBUG
+      CFLAGS   += /MDd /Od /RTC1 /GS
+      CXXFLAGS += /MDd /Od /RTC1 /GS
+      LDFLAGS  += /DEBUG /INCREMENTAL
+    else ifeq ($(CONFIG),Release)
+      CPPDEFS  += /DNDEBUG
+      CFLAGS   += /MD /O2 /Ob2 /Oy
+      CXXFLAGS += /MD /O2 /Ob2 /Oy
+      LDFLAGS  += /INCREMENTAL:NO
+    else ifeq ($(CONFIG),RelWithDebInfo)
+      CPPDEFS  += /DNDEBUG
+      CFLAGS   += /MD /O2 /Ob2
+      CXXFLAGS += /MD /O2 /Ob2
+      # 速度重視なら /DEBUG:FASTLINK、サイズ重視なら /DEBUG
+      LDFLAGS  += /DEBUG /INCREMENTAL:NO
+    else
+      $(error CONFIG は Debug, Release, RelWithDebInfo のいずれか)
+    endif
+endif
+
 # 最後の Makefile で、以下を取り入れる
 ## 共通
-#WARN    := /W4
-#CCBASE  := /nologo /EHsc /std:c17 /Zi /MP $(WARN)
-#CPPDEFS :=
-#LDFLAGS :=
-#CFLAGS  :=
 #OBJDIR  := build/$(CONFIG)
 #BINDIR  := bin/$(CONFIG)
-#
-## 構成別フラグ
-#ifeq ($(CONFIG),Debug)
-#  CPPDEFS += /D_DEBUG
-#  CFLAGS  += /MDd /Od /RTC1 /GS
-#  LDFLAGS += /DEBUG /INCREMENTAL
-#else ifeq ($(CONFIG),Release)
-#  CPPDEFS += /DNDEBUG
-#  CFLAGS  += /MD /O2 /Ob2 /Oy
-#  LDFLAGS += /INCREMENTAL:NO
-#else ifeq ($(CONFIG),RelWithDebInfo)
-#  CPPDEFS += /DNDEBUG
-#  CFLAGS  += /MD /O2 /Ob2
-#  # 速度重視なら /DEBUG:FASTLINK、サイズ重視なら /DEBUG
-#  LDFLAGS += /DEBUG /INCREMENTAL:NO
-#else
-#  $(error CONFIG は Debug, Release, RelWithDebInfo のいずれか)
-#endif
 
 # -g オプションが含まれていない場合に追加
 # Add -g option if not already included
@@ -122,7 +146,7 @@ endif
 #$(info ----)
 #$(info C_STANDARD: $(C_STANDARD), C_EXTENSIONS: $(C_EXTENSIONS))
 #$(info CXX_STANDARD: $(CXX_STANDARD), CXX_EXTENSIONS: $(CXX_EXTENSIONS))
-$(info ----)
+$(info DEPFLAGS: $(DEPFLAGS))
 $(info CFLAGS: $(CFLAGS))
 $(info CXXFLAGS: $(CXXFLAGS))
-$(info ----)
+$(info LDFLAGS: $(LDFLAGS))
