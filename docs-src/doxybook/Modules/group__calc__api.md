@@ -15,7 +15,7 @@ toc: true
 ### calcHandler
 
 ```cpp
-CALC_API int calcHandler (
+CALC_API int WINAPI calcHandler (
     int kind,
     int a,
     int b

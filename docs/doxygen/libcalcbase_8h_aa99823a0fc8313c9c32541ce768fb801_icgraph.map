@@ -1,6 +1,6 @@
 <map id="add" name="add">
 <area shape="rect" id="Node000001" title="2 つの整数を加算します。" alt="" coords="243,31,285,56"/>
-<area shape="rect" id="Node000002" href="$group__calc__api.html#ga0b1e62c1d6dad4844b31d20161063e71" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="104,5,195,31"/>
+<area shape="rect" id="Node000002" href="$group__calc__api.html#gab0b0cfaa323f14dab216e9c7bbf08ff1" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="104,5,195,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,38,194,31,196,25,230,33"/>
 <area shape="rect" id="Node000004" href="$src_2add_2add_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="プログラムのエントリーポイント。" alt="" coords="124,55,175,80"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="230,53,175,65,174,59,229,48"/>

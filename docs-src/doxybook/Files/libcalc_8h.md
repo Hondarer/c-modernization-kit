@@ -37,6 +37,12 @@ Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
 
 ## 定数、マクロ
 
+### WINAPI
+
+```cpp
+#define WINAPI
+```
+
 ### CALC_API
 
 ```cpp
