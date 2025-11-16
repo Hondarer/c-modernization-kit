@@ -8,14 +8,14 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # テスト対象のソースファイル
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c
 
 # ライブラリの追加
-LIBS += -lmock_libc -ltest_com
+LIBS += mock_libc test_com
 
 # src の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

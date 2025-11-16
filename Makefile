@@ -8,7 +8,9 @@ DOCS_SUBDIRS = doxyfw
 # $(2): make ターゲット (空の場合はデフォルトターゲット)
 define make_in_subdirs
 	@for dir in $(1); do \
-		[ -d $$dir ] && [ -f $$dir/Makefile ] && make -C $$dir $(2) || true; \
+		if [ -d $$dir ] && [ -f $$dir/Makefile ]; then \
+			$(MAKE) -C $$dir $(2) || exit 1; \
+		fi; \
 	done
 endef
 
@@ -19,8 +21,9 @@ default : submodule
 
 .PHONY: submodule
 submodule :
-	git submodule sync
-	git submodule update --init --recursive
+	echo "INFO: sync disabled."
+#	git submodule sync
+#	git submodule update --init --recursive
 
 .PHONY: all
 all : submodule

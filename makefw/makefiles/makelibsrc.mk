@@ -15,11 +15,11 @@ endif
 
 # c_cpp_properties.json の defines にある値を -D として追加する
 # DEFINES は prepare.mk で設定されている
-CFLAGS += $(addprefix -D,$(DEFINES))
+CFLAGS   += $(addprefix -D,$(DEFINES))
 CXXFLAGS += $(addprefix -D,$(DEFINES))
 
 CFLAGS   += $(addprefix -I, $(INCDIR))
-CPPFLAGS += $(addprefix -I, $(INCDIR))
+CXXFLAGS += $(addprefix -I, $(INCDIR))
 
 # OBJS
 OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
@@ -28,7 +28,7 @@ OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
 # DEPS
 DEPS := $(patsubst %.o, %.d, $(OBJS))
 ifeq ($(OS),Windows_NT)
-    # Windows の場合は、.o を .obj に置換
+    # Windows の場合は .o を .obj に置換
     OBJS := $(patsubst %.o, %.obj, $(OBJS))
 endif
 
@@ -65,50 +65,6 @@ else
         TARGET := $(TARGET).lib
     endif
 endif
-
-## アーカイブまたは共有ライブラリの生成
-## Make the archive or shared library
-#ifeq ($(BUILD),shared)
-## LIBS から直接指定された .a ファイルを抽出
-## Extract explicitly specified .a files from LIBS
-#STATIC_LIBS := $(filter %.a,$(LIBS))
-#
-## LIBS から -L オプションを抽出（ライブラリ検索パス）
-## Extract -L options from LIBS (library search paths)
-#LIB_DIRS := $(patsubst -L%,%,$(filter -L%,$(LIBS)))
-#
-## LIBS から -l オプションを抽出
-## Extract -l options from LIBS
-#LIB_NAMES := $(patsubst -l%,%,$(filter -l%,$(LIBS)))
-#
-## システムライブラリパスを追加
-## Add system library paths
-#ALL_LIB_DIRS := $(LIBSDIR) $(LIB_DIRS) $(WORKSPACE_FOLDER)/test/lib /usr/lib /usr/local/lib /lib /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
-#
-## 各 -l に対して、.a ファイルを検索
-## Search for .a files for each -l option
-#define resolve_lib_to_static
-#$(strip \
-#  $(firstword $(wildcard $(addsuffix /lib$(1).a,$(ALL_LIB_DIRS)))) \
-#)
-#endef
-#
-## 各ライブラリについて、.a が見つかれば STATIC_LIBS に追加、
-## 見つからなければ DYNAMIC_LIBS_FLAGS に -l として追加
-## For each library, add to STATIC_LIBS if .a found, otherwise keep as -l in DYNAMIC_LIBS_FLAGS
-#DYNAMIC_LIBS_FLAGS :=
-#$(foreach lib,$(LIB_NAMES), \
-#  $(eval RESOLVED := $(call resolve_lib_to_static,$(lib))) \
-#  $(if $(RESOLVED), \
-#    $(eval STATIC_LIBS += $(RESOLVED)), \
-#    $(eval DYNAMIC_LIBS_FLAGS += -l$(lib)) \
-#  ) \
-#)
-#
-## その他のリンクオプション（-L, -Wl など）と .so ファイル
-## Other link options (-L, -Wl, etc.) and .so files
-#OTHER_LINK_FLAGS := $(filter-out -l% %.a,$(LIBS))
-#endif
 
 # ライブラリファイルの解決（BUILD=shared かつ LIBS が定義されている場合のみ）
 # Resolve library files (only when BUILD=shared and LIBS is defined)
@@ -158,10 +114,10 @@ ifeq ($(BUILD),shared)
     endif
 endif
 
-$(info STATIC_LIBS: $(STATIC_LIBS))
-$(info FOUND_LIBS: $(FOUND_LIBS))
-$(info NOT_FOUND_LIBS: $(NOT_FOUND_LIBS))
-$(info DYNAMIC_LIBS: $(DYNAMIC_LIBS))
+#$(info STATIC_LIBS: $(STATIC_LIBS))
+#$(info FOUND_LIBS: $(FOUND_LIBS))
+#$(info NOT_FOUND_LIBS: $(NOT_FOUND_LIBS))
+#$(info DYNAMIC_LIBS: $(DYNAMIC_LIBS))
 
 # 最終的なリンクコマンド
 # Final link command: static libs are embedded, dynamic libs remain as -l

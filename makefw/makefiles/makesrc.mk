@@ -25,19 +25,19 @@ LCOVDIR := lcov
 CFLAGS   += $(addprefix -D,$(DEFINES))
 CXXFLAGS += $(addprefix -D,$(DEFINES))
 
-# NOTE: テスト対象の場合は、CCOMFLAGS の後、通常の include の前に include_override を追加する
-#       CCOMFLAGS に追加した include パスは、include_override より前に評価されるので
+# NOTE: テスト対象の場合は、CFLAGS の後、通常の include の前に include_override を追加する
+#       CFLAGS に追加した include パスは、include_override より前に評価されるので
 #       個別のテストでの include 注入に対応できる
-# NOTE: For test targets, add include_override after CCOMFLAGS but before normal includes, so that test-specific includes can override
+# NOTE: For test targets, add include_override after CFLAGS but before normal includes, so that test-specific includes can override
 
+# テスト対象
+# For test targets
+CFLAGS_TEST := $(CFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override $(addprefix -I, $(INCDIR))
+CXXFLAGS_TEST := $(CXXFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override $(addprefix -I, $(INCDIR))
 # テスト対象以外
 # For non-test targets
 CFLAGS   += $(addprefix -I, $(INCDIR))
 CXXFLAGS += $(addprefix -I, $(INCDIR))
-# テスト対象
-# For test targets
-CFLAGS_TEST := $(CFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
-CXXFLAGS_TEST := $(CXXFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
 
 # リンクライブラリファイル名の解決
 ifneq ($(OS),Windows_NT)
@@ -64,7 +64,7 @@ OBJS := $(filter-out $(OBJDIR)/%.inject.o, \
 # DEPS
 DEPS := $(patsubst %.o, %.d, $(OBJS))
 ifeq ($(OS),Windows_NT)
-    # Windows の場合は、.o を .obj に置換
+    # Windows の場合は .o を .obj に置換
     OBJS := $(patsubst %.o, %.obj, $(OBJS))
 endif
 
