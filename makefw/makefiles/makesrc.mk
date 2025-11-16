@@ -18,6 +18,9 @@ ifeq ($(LINK_TEST), 1)
     ifeq ($(NO_GTEST_MAIN), 1)
         TEST_LIBS := $(filter-out gtest_main, $(TEST_LIBS))
     endif
+    ifeq ($(USE_WRAP_MAIN), 1)
+        TEST_LIBS := $(filter-out gtest_main, $(TEST_LIBS))
+    endif
 endif
 #$(info NO_GTEST_MAIN: $(NO_GTEST_MAIN))
 #$(info TEST_LIBS: $(TEST_LIBS))
