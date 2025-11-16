@@ -9,6 +9,7 @@
 ## gtest のライブラリ
 
 - /MD, /MT, /MDd, /MTd の対象ごとの LIB フォルダは、処理で切り分ける必要あり。
+  → もしかしたら release でいいのでは。
 
 ## Windows の ln -s
 
@@ -16,17 +17,14 @@ TEST_SRCS などでリンク指定して ln -s を発行しても、Windows で�
 
 ## Windows の main
 
-Windows では、main のすげ替えができないので、コピーしながら置換する必要がある。
+Windows では、gcc と同じ方法では main のすげ替えができない。
 
-以下を、目的に置換し、対応するプラットフォーム別の処理を書く必要がある。
+一応書いたが、もう少し効率的に書けないか。
 
-```makefile
-# リンクオプションの追加
-# -Wl,--wrap=main により、エントリポイントを __wrap_main() に、元々のエントリポイントを __real_main() に変更
-LDFLAGS += -Wl,--wrap=main
+## Windows gtest のデバッグ情報
 
-# ライブラリの追加
-# gtest_wrapmain にて、__wrap_main() 経由でのテスト実施
-# テスト対象のソースファイルにある main() は実行されない
-LIBS += gtest_wrapmain mock_libc mock_calcbase test_com
-```
+そのときのソースパスが埋め込まれるのでどうかと思う。
+
+## Windows VS Code からのデバッグ実行
+
+タスクで指定したプロセスにのみアタッチできるという制約があるのか、シェル経由でも大丈夫なのかを突き詰める。
