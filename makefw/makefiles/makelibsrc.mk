@@ -71,8 +71,8 @@ endif
 ifeq ($(BUILD),shared)
     ifneq ($(LIBS),)
 
-        $(info LIBS: $(LIBS))
-        $(info LIBSDIR: $(LIBSDIR))
+        #$(info LIBS: $(LIBS))
+        #$(info LIBSDIR: $(LIBSDIR))
 
         # 現在ビルド中のライブラリ名を取得 (拡張子なし)
         # Get the name of the library currently being built (without extension)
