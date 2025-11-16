@@ -32,11 +32,11 @@ ifeq ($(OS),Windows_NT)
     OBJS := $(patsubst %.o, %.obj, $(OBJS))
 endif
 
-# BUILD の設定 (デフォルトは static)
-# BUILD setting (default is static)
-# make BUILD=shared で、shared となる
+# BUILD の設定 (デフォルトは shared)
+# BUILD setting (default is shared)
+# make BUILD=static で、static となる
 ifeq ($(BUILD),)
-	BUILD := static
+	BUILD := shared
 endif
 
 # アーカイブのディレクトリ名とアーカイブ名

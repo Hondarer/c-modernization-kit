@@ -10,9 +10,6 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理 (Makefile テンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# 生成されるライブラリを共有ライブラリ (shared, dynamic) とする
-BUILD = shared
-
 # ライブラリの追加
 LIBS += calcbase
 

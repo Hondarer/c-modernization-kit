@@ -20,10 +20,14 @@
 /* DLL エクスポート/インポート定義 */
 #ifdef _WIN32
     #ifndef __INTELLISENSE__
-        #ifdef CALC_EXPORTS
-            #define CALC_API __declspec(dllexport)
+        #ifndef CALC_STATIC
+            #ifdef CALC_EXPORTS
+                #define CALC_API __declspec(dllexport)
+            #else
+                #define CALC_API __declspec(dllimport)
+            #endif
         #else
-            #define CALC_API __declspec(dllimport)
+            #define CALC_API
         #endif
     #else
         #define CALC_API

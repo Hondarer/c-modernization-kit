@@ -12,6 +12,8 @@ ifeq ($(LINK_TEST), 1)
         # Linux
         TEST_LIBS += pthread gcov
     endif
+    # FIXME: 決め打ちにしているので CONFIG で切替要
+    #        Linux 側もここで指定する必要がある
 	LIBSDIR += $(WORKSPACE_FOLDER)/testfw/gtest/lib/msvc/v144/x64/md/release
     ifneq ($(NO_GTEST_MAIN),)
         ifeq ($(NO_GTEST_MAIN), 1)
