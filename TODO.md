@@ -19,7 +19,7 @@ TEST_SRCS などでリンク指定して ln -s を発行しても、Windows で�
 
 Windows では、gcc と同じ方法では main のすげ替えができない。
 
-一応書いたが、もう少し効率的に書けないか。
+一応書いたが、もう少し効率的に書けないか。 WRAP_MAIN とか指定して。
 
 ## Windows gtest のデバッグ情報
 
