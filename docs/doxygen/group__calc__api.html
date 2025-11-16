@@ -108,7 +108,7 @@ Functions</h2></td></tr>
 
 <p>加算の演算種別を表す定数。 </p>
 
-<p class="definition">Definition at line <a class="el" href="libcalc_8h_source.html#l00048">48</a> of file <a class="el" href="libcalc_8h_source.html">libcalc.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="libcalc_8h_source.html#l00052">52</a> of file <a class="el" href="libcalc_8h_source.html">libcalc.h</a>.</p>
 
 </div>
 </div>
@@ -166,7 +166,7 @@ Functions</h2></td></tr>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> result = <a class="code hl_function" href="#ga0b1e62c1d6dad4844b31d20161063e71">calcHandler</a>(<a class="code hl_define" href="#gaead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a>, 10, 20);</div>
 <div class="line">printf(<span class="stringliteral">&quot;Result: %d\n&quot;</span>, result);  <span class="comment">// 出力: Result: 30</span></div>
 <div class="ttc" id="agroup__calc__api_html_ga0b1e62c1d6dad4844b31d20161063e71"><div class="ttname"><a href="#ga0b1e62c1d6dad4844b31d20161063e71">calcHandler</a></div><div class="ttdeci">CALC_API int calcHandler(int kind, int a, int b)</div><div class="ttdoc">指定された演算種別に基づいて計算を実行します。</div><div class="ttdef"><b>Definition</b> <a href="calcHandler_8c_source.html#l00020">calcHandler.c:20</a></div></div>
-<div class="ttc" id="agroup__calc__api_html_gaead1fc356185b0ba1c1b6e0a5708f779"><div class="ttname"><a href="#gaead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a></div><div class="ttdeci">#define CALC_KIND_ADD</div><div class="ttdoc">加算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc_8h_source.html#l00048">libcalc.h:48</a></div></div>
+<div class="ttc" id="agroup__calc__api_html_gaead1fc356185b0ba1c1b6e0a5708f779"><div class="ttname"><a href="#gaead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a></div><div class="ttdeci">#define CALC_KIND_ADD</div><div class="ttdoc">加算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc_8h_source.html#l00052">libcalc.h:52</a></div></div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。 </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>無効な kind を指定した場合、-1 を返します。 呼び出し側で戻り値のチェックを行ってください。 </dd></dl>
 
