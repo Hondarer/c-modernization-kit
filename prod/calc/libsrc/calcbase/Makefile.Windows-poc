@@ -1,9 +1,0 @@
-# Windows PoC: libcalcbase のビルド用 Makefile
-
-# ターゲット名のベース
-# Target base name
-TARGET_BASE := calcbase
-
-# 共通テンプレートを include
-# Include common template
-include $(dir $(lastword $(MAKEFILE_LIST)))../makelibsrc-windows-poc.mk
