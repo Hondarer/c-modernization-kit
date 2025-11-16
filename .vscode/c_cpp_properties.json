@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/prod/calc/include",
                 "${workspaceFolder}/testfw/include",
+                "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/include"
             ],
             "defines": [
@@ -21,6 +22,7 @@
             "includePath": [
                 "${workspaceFolder}/prod/calc/include",
                 "${workspaceFolder}/testfw/include",
+                "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/include"
             ],
             "defines": [

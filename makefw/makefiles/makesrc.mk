@@ -7,13 +7,20 @@ LIBSFILES := $(shell for dir in $(LIBSDIR); do [ -d $$dir ] && find $$dir -maxde
 # Set test libraries
 # LINK_TEST が 1 の場合にのみ設定する
 ifeq ($(LINK_TEST), 1)
-    TEST_LIBS := -lgtest_main -lgtest -lpthread -lgmock -lgcov
+    TEST_LIBS := gtest_main gtest gmock
+    ifneq ($(OS),Windows_NT)
+        # Linux
+        TEST_LIBS += pthread gcov
+    endif
+	LIBSDIR += $(WORKSPACE_FOLDER)/testfw/gtest/lib/msvc/v144/x64/md/release
     ifneq ($(NO_GTEST_MAIN),)
         ifeq ($(NO_GTEST_MAIN), 1)
-            TEST_LIBS := $(filter-out -lgtest_main, $(TEST_LIBS))
+            TEST_LIBS := $(filter-out gtest_main, $(TEST_LIBS))
         endif
     endif
 endif
+#$(info NO_GTEST_MAIN: $(NO_GTEST_MAIN))
+#$(info TEST_LIBS: $(TEST_LIBS))
 
 TESTSH := $(WORKSPACE_FOLDER)/testfw/cmnd/exec_test.sh
 
@@ -42,9 +49,11 @@ CXXFLAGS += $(addprefix -I, $(INCDIR))
 # リンクライブラリファイル名の解決
 ifneq ($(OS),Windows_NT)
     # Linux
+    TEST_LIBS := $(addprefix -l, $(TEST_LIBS))
     LIBS := $(addprefix -l, $(LIBS))
 else
     # Windows
+    TEST_LIBS := $(addsuffix .lib,$(TEST_LIBS))
     LIBS := $(addsuffix .lib,$(LIBS))
 endif
 

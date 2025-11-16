@@ -94,7 +94,9 @@ ifeq ($(OS),Windows_NT)
     # Windows
     CFLAGS   += /nologo
     CXXFLAGS += /nologo
-    LDFLAGS  += /NOLOGO
+    # /SUBSYSTEM:CONSOLE は、main と wmain のどちらを採用するかにかかわる
+    # 指定しないと、LINK : fatal error LNK1561: entry point must be defined となる場合がある
+    LDFLAGS  += /NOLOGO /SUBSYSTEM:CONSOLE
 endif
 
 # runtime
