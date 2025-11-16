@@ -97,9 +97,15 @@ Files</h2></td></tr>
 <tr class="memdesc:shared-and-static-add_8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">動的リンク、静的リンクを使った関数の呼び出しコマンド。 <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<h1>.so の認識</h1>
+<h1>ライブラリの認識</h1>
 <p>コマンド実行にあたって、lib にパスを通しておく必要があります。</p>
 <div class="fragment"><div class="line">export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`cd ../../lib &amp;&amp; pwd`</div>
+</div><!-- fragment --><div class="fragment"><div class="line">$lib = (Resolve-Path ../../lib).Path</div>
+<div class="line">if ($env:PATH) {</div>
+<div class="line">  $env:PATH += &quot;;$lib&quot;</div>
+<div class="line">} else {</div>
+<div class="line">  $env:PATH = $lib</div>
+<div class="line">}</div>
 </div><!-- fragment --> </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
