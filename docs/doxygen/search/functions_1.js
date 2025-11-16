@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['calchandler',['calcHandler',['../group__calc__api.html#ga2c1c6d87273968ef5b630f4f192f50cd',1,'calcHandler.c']]]
+  ['calchandler_0',['calcHandler',['../group__calc__api.html#ga0b1e62c1d6dad4844b31d20161063e71',1,'calcHandler(int kind, int a, int b):&#160;calcHandler.c'],['../group__calc__api.html#ga0b1e62c1d6dad4844b31d20161063e71',1,'calcHandler(int kind, int a, int b):&#160;calcHandler.c']]]
 ];

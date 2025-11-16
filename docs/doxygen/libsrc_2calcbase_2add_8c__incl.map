@@ -1,3 +1,5 @@
 <map id="calc/libsrc/calcbase/add.c" name="calc/libsrc/calcbase/add.c">
-<area shape="rect" id="node2" href="$libcalcbase_8h.html" title="計算ライブラリ (静的リンク用) のヘッダーファイル。 " alt="" coords="25,95,123,121"/>
+<area shape="rect" id="Node000001" title="add 関数の実装ファイル。" alt="" coords="5,5,142,48"/>
+<area shape="rect" id="Node000002" href="$libcalcbase_8h.html" title="計算ライブラリ (静的リンク用) のヘッダーファイル。" alt="" coords="25,96,122,123"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,49,76,80,71,80,71,49"/>
 </map>

@@ -1,7 +1,7 @@
-# Doxyfile 1.8.14
+# Doxyfile 1.14.0
 
-# This base configuration may be overridden by a project-specific Doxyfile.part,
-# where only the necessary tags for the project are redefined.
+# This file describes the settings to be used by the documentation system
+# Doxygen (www.doxygen.org) for a project.
 #
 # All text after a double hash (##) is considered a comment and is placed in
 # front of the TAG it is preceding.
@@ -12,6 +12,16 @@
 # For lists, items can also be appended using:
 # TAG += value [value, ...]
 # Values that contain spaces should be placed between quotes (\" \").
+#
+# Note:
+#
+# Use Doxygen to compare the used configuration file with the template
+# configuration file:
+# doxygen -x [configFile]
+# Use Doxygen to compare the used configuration file with the template
+# configuration file without replacing the environment variables or CMake type
+# replacement variables:
+# doxygen -x_noenv [configFile]
 
 #---------------------------------------------------------------------------
 # Project related configuration options

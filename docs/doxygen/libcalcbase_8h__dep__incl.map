@@ -1,6 +1,11 @@
 <map id="calc/include/libcalcbase.h" name="calc/include/libcalcbase.h">
-<area shape="rect" id="node2" href="$calcHandler_8c.html" title="calcHandler 関数の実装ファイル。 " alt="" coords="5,95,196,121"/>
-<area shape="rect" id="node3" href="$libsrc_2calcbase_2add_8c.html" title="add 関数の実装ファイル。 " alt="" coords="220,87,357,129"/>
-<area shape="rect" id="node4" href="$src_2add_2add_8c.html" title="add 関数の呼び出しコマンド。 " alt="" coords="381,95,511,121"/>
-<area shape="rect" id="node5" href="$shared-and-static-add_8c.html" title="動的リンク、静的リンクを使った関数の呼び出しコマンド。 " alt="" coords="535,80,685,136"/>
+<area shape="rect" id="Node000001" title="計算ライブラリ (静的リンク用) のヘッダーファイル。" alt="" coords="282,5,452,32"/>
+<area shape="rect" id="Node000002" href="$calcHandler_8c.html" title="calcHandler 関数の実装ファイル。" alt="" coords="5,96,198,123"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="315,40,140,98,139,93,314,35"/>
+<area shape="rect" id="Node000003" href="$libsrc_2calcbase_2add_8c.html" title="add 関数の実装ファイル。" alt="" coords="221,88,358,131"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="348,46,309,89,305,86,344,42"/>
+<area shape="rect" id="Node000004" href="$src_2add_2add_8c.html" title="add 関数の呼び出しコマンド。" alt="" coords="381,96,510,123"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="390,42,436,94,432,97,386,45"/>
+<area shape="rect" id="Node000005" href="$shared-and-static-add_8c.html" title="動的リンク、静的リンクを使った関数の呼び出しコマンド。" alt="" coords="534,80,685,139"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="417,35,535,78,533,83,415,40"/>
 </map>
