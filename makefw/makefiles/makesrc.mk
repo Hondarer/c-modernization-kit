@@ -17,7 +17,6 @@ endif
 
 TESTSH := $(WORKSPACE_FOLDER)/testfw/cmnd/exec_test.sh
 
-OBJDIR  := obj
 GCOVDIR := gcov
 LCOVDIR := lcov
 
@@ -29,6 +28,11 @@ CXXFLAGS += $(addprefix -D,$(DEFINES))
 ifneq ($(OS),Windows_NT)
     # Linux
     DEPFLAGS += -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
+else
+    # Windows
+    # TODO: gcc の .d に互換性がある依存関係ファイルを生成したい。
+    # フラグ以外に、出力を加工する必要がある。
+    DEPFLAGS =
 endif
 
 # NOTE: テスト対象の場合は、CCOMFLAGS の後、通常の include の前に include_override を追加する
@@ -39,11 +43,11 @@ endif
 # テスト対象以外
 # For non-test targets
 CFLAGS   += $(addprefix -I, $(INCDIR))
-CPPFLAGS += $(addprefix -I, $(INCDIR))
+CXXFLAGS += $(addprefix -I, $(INCDIR))
 # テスト対象
 # For test targets
 CFLAGS_TEST := $(CFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
-CXXFLAGS_TEST := $(CPPFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
+CXXFLAGS_TEST := $(CXXFLAGS) -I$(WORKSPACE_FOLDER)/testfw/include_override -I$(WORKSPACE_FOLDER)/test/include_override
 
 # リンクライブラリファイル名の解決
 ifneq ($(OS),Windows_NT)
@@ -74,7 +78,7 @@ ifeq ($(OS),Windows_NT)
     OBJS := $(patsubst %.o, %.obj, $(OBJS))
 endif
 
-# テストプログラムのディレクトリ名と実行体名
+# 実行体のディレクトリ名と実行体名
 # TARGETDIR := . の場合、カレントディレクトリに実行体を生成する
 # If TARGETDIR := ., the executable is created in the current directory
 ifeq ($(TARGETDIR),)
@@ -91,17 +95,17 @@ ifeq ($(OS),Windows_NT)
 endif
 
 ifndef NO_LINK
-# 実行体の生成
-# Build the executable
-ifneq ($(OS),Windows_NT)
-    # Linux
+    # 実行体の生成
+    # Build the executable
+    ifneq ($(OS),Windows_NT)
+        # Linux
 $(TARGETDIR)/$(TARGET): $(OBJS) $(LIBSFILES) | $(TARGETDIR)
-	set -o pipefail; LANG=$(FILES_LANG) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(TEST_LIBS) -fdiagnostics-color=always 2>&1 | nkf
-else
-    # Windows
-    $(TARGETDIR)/$(TARGET): $(OBJS) $(LIBSFILES) | $(TARGETDIR)
-		set -o pipefail; MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(LD) $(LDFLAGS) /PDB:$(patsubst %.exe,%.pdb,$@) /ILK:$(OBJDIR)/$(patsubst %.exe,%.ilk,$@) /OUT:$@ $(OBJS) $(LIBS) $(TEST_LIBS) 2>&1 | nkf
-endif
+			set -o pipefail; LANG=$(FILES_LANG) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(TEST_LIBS) -fdiagnostics-color=always 2>&1 | nkf
+    else
+        # Windows
+$(TARGETDIR)/$(TARGET): $(OBJS) $(LIBSFILES) | $(TARGETDIR)
+			set -o pipefail; MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(LD) $(LDFLAGS) /PDB:$(patsubst %.exe,%.pdb,$@) /ILK:$(OBJDIR)/$(patsubst %.exe,%.ilk,$@) /OUT:$@ $(OBJS) $(LIBS) $(TEST_LIBS) 2>&1 | nkf
+    endif
 else
 # コンパイルのみ
 # Compile only
@@ -117,23 +121,23 @@ endif
 ifneq ($(OS),Windows_NT)
     # Linux
 $(OBJDIR)/%.o: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
-	@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
-		echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-		LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-	else \
-		echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-		LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-	fi
+		@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
+			echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
+			LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
+		else \
+			echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
+			LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
+		fi
 else
     # Windows
 $(OBJDIR)/%.obj: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
-	@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
-		echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
-		MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
-	else \
-		echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /c /Fo$@ $< 2>&1 | nkf; \
-		MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /c /Fo$@ $< 2>&1 | nkf; \
-	fi
+		@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
+			echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
+			MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) /FdD:$(patsubst %.obj,%.pdb,$@) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
+		else \
+			echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /c /Fo$@ $< 2>&1 | nkf; \
+			MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /FdD:$(patsubst %.obj,%.pdb,$@) /c /Fo$@ $< 2>&1 | nkf; \
+		fi
 endif
 
 # C++ ソースファイルのコンパイル (*.cc)

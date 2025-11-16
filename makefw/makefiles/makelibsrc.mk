@@ -1,15 +1,16 @@
 include $(WORKSPACE_FOLDER)/makefw/makefiles/_collect_srcs.mk
 include $(WORKSPACE_FOLDER)/makefw/makefiles/_flags.mk
 
-OBJDIR := obj
-
 # -fPIC オプションが含まれていない場合に追加
 # Add -fPIC option if not already included
-ifeq ($(findstring -fPIC,$(CCOMFLAGS)),)
-	CFLAGS += -fPIC
-endif
-ifeq ($(findstring -fPIC,$(CPPCOMFLAGS)),)
-	CXXFLAGS += -fPIC
+ifneq ($(OS),Windows_NT)
+    # Linux
+    ifeq ($(findstring -fPIC,$(CFLAGS)),)
+        CFLAGS += -fPIC
+    endif
+    ifeq ($(findstring -fPIC,$(CXXFLAGS)),)
+        CXXFLAGS += -fPIC
+    endif
 endif
 
 # c_cpp_properties.json の defines にある値を -D として追加する
@@ -22,6 +23,8 @@ ifneq ($(OS),Windows_NT)
     DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
 else
     # Windows
+    # TODO: gcc の .d に互換性がある依存関係ファイルを生成したい。
+    # フラグ以外に、出力を加工する必要がある。
     DEPFLAGS =
 endif
 
@@ -73,56 +76,126 @@ else
     endif
 endif
 
-# アーカイブまたは共有ライブラリの生成
-# Make the archive or shared library
+## アーカイブまたは共有ライブラリの生成
+## Make the archive or shared library
+#ifeq ($(BUILD),shared)
+## LIBS から直接指定された .a ファイルを抽出
+## Extract explicitly specified .a files from LIBS
+#STATIC_LIBS := $(filter %.a,$(LIBS))
+#
+## LIBS から -L オプションを抽出（ライブラリ検索パス）
+## Extract -L options from LIBS (library search paths)
+#LIB_DIRS := $(patsubst -L%,%,$(filter -L%,$(LIBS)))
+#
+## LIBS から -l オプションを抽出
+## Extract -l options from LIBS
+#LIB_NAMES := $(patsubst -l%,%,$(filter -l%,$(LIBS)))
+#
+## システムライブラリパスを追加
+## Add system library paths
+#ALL_LIB_DIRS := $(LIBSDIR) $(LIB_DIRS) $(WORKSPACE_FOLDER)/test/lib /usr/lib /usr/local/lib /lib /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+#
+## 各 -l に対して、.a ファイルを検索
+## Search for .a files for each -l option
+#define resolve_lib_to_static
+#$(strip \
+#  $(firstword $(wildcard $(addsuffix /lib$(1).a,$(ALL_LIB_DIRS)))) \
+#)
+#endef
+#
+## 各ライブラリについて、.a が見つかれば STATIC_LIBS に追加、
+## 見つからなければ DYNAMIC_LIBS_FLAGS に -l として追加
+## For each library, add to STATIC_LIBS if .a found, otherwise keep as -l in DYNAMIC_LIBS_FLAGS
+#DYNAMIC_LIBS_FLAGS :=
+#$(foreach lib,$(LIB_NAMES), \
+#  $(eval RESOLVED := $(call resolve_lib_to_static,$(lib))) \
+#  $(if $(RESOLVED), \
+#    $(eval STATIC_LIBS += $(RESOLVED)), \
+#    $(eval DYNAMIC_LIBS_FLAGS += -l$(lib)) \
+#  ) \
+#)
+#
+## その他のリンクオプション（-L, -Wl など）と .so ファイル
+## Other link options (-L, -Wl, etc.) and .so files
+#OTHER_LINK_FLAGS := $(filter-out -l% %.a,$(LIBS))
+#endif
+
+# ライブラリファイルの解決（BUILD=shared かつ LIBS が定義されている場合のみ）
+# Resolve library files (only when BUILD=shared and LIBS is defined)
 ifeq ($(BUILD),shared)
-# LIBS から直接指定された .a ファイルを抽出
-# Extract explicitly specified .a files from LIBS
-STATIC_LIBS := $(filter %.a,$(LIBS))
+    ifneq ($(LIBS),)
 
-# LIBS から -L オプションを抽出（ライブラリ検索パス）
-# Extract -L options from LIBS (library search paths)
-LIB_DIRS := $(patsubst -L%,%,$(filter -L%,$(LIBS)))
+        $(info LIBS: $(LIBS))
+        $(info LIBSDIR: $(LIBSDIR))
 
-# LIBS から -l オプションを抽出
-# Extract -l options from LIBS
-LIB_NAMES := $(patsubst -l%,%,$(filter -l%,$(LIBS)))
+        # 現在ビルド中のライブラリ名を取得 (拡張子なし)
+        # Get the name of the library currently being built (without extension)
+        ifeq ($(OS),Windows_NT)
+            CURRENT_LIB := $(basename $(TARGET))
+        else
+            CURRENT_LIB := $(patsubst lib%.a,%,$(TARGET))
+        endif
 
-# システムライブラリパスを追加
-# Add system library paths
-ALL_LIB_DIRS := $(LIBSDIR) $(LIB_DIRS) $(WORKSPACE_FOLDER)/test/lib /usr/lib /usr/local/lib /lib /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+        # 静的ライブラリファイルの検索
+        # Search for static library files
+        ifeq ($(OS),Windows_NT)
+            # Windows: .lib を検索
+            # 自身を除外し、複数の LIBSDIR を考慮
+            # Windows: search for .lib
+            # Exclude self and consider multiple LIBSDIR
+            STATIC_LIBS := $(foreach lib,$(filter-out $(CURRENT_LIB),$(LIBS)),\
+                $(firstword $(foreach dir,$(LIBSDIR),$(wildcard $(dir)/$(lib).lib))))
+        else
+            # Linux: .a を検索
+            # 自身を除外し、複数の LIBSDIR を考慮
+            # Linux: search for .a
+            # Exclude self and consider multiple LIBSDIR
+            STATIC_LIBS := $(foreach lib,$(filter-out $(CURRENT_LIB),$(LIBS)),\
+                $(firstword $(foreach dir,$(LIBSDIR),$(wildcard $(dir)/lib$(lib).a))))
+        endif
 
-# 各 -l に対して、.a ファイルを検索
-# Search for .a files for each -l option
-define resolve_lib_to_static
-$(strip \
-  $(firstword $(wildcard $(addsuffix /lib$(1).a,$(ALL_LIB_DIRS)))) \
-)
-endef
+        # 見つからないライブラリは動的リンク用フラグとして保持
+        # Libraries not found are kept as dynamic link flags
+        ifeq ($(OS),Windows_NT)
+            FOUND_LIBS := $(notdir $(basename $(STATIC_LIBS)))
+            NOT_FOUND_LIBS := $(filter-out $(CURRENT_LIB) $(FOUND_LIBS),$(LIBS))
+            DYNAMIC_LIBS := $(addsuffix .lib,$(NOT_FOUND_LIBS))
+        else
+            FOUND_LIBS := $(patsubst lib%.a,%,$(notdir $(STATIC_LIBS)))
+            NOT_FOUND_LIBS := $(filter-out $(CURRENT_LIB) $(FOUND_LIBS),$(LIBS))
+            DYNAMIC_LIBS := $(addprefix -l,$(NOT_FOUND_LIBS))
+        endif
+    endif
+endif
 
-# 各ライブラリについて、.a が見つかれば STATIC_LIBS に追加、
-# 見つからなければ DYNAMIC_LIBS_FLAGS に -l として追加
-# For each library, add to STATIC_LIBS if .a found, otherwise keep as -l in DYNAMIC_LIBS_FLAGS
-DYNAMIC_LIBS_FLAGS :=
-$(foreach lib,$(LIB_NAMES), \
-  $(eval RESOLVED := $(call resolve_lib_to_static,$(lib))) \
-  $(if $(RESOLVED), \
-    $(eval STATIC_LIBS += $(RESOLVED)), \
-    $(eval DYNAMIC_LIBS_FLAGS += -l$(lib)) \
-  ) \
-)
-
-# その他のリンクオプション（-L, -Wl など）と .so ファイル
-# Other link options (-L, -Wl, etc.) and .so files
-OTHER_LINK_FLAGS := $(filter-out -l% %.a,$(LIBS))
+$(info STATIC_LIBS: $(STATIC_LIBS))
+$(info FOUND_LIBS: $(FOUND_LIBS))
+$(info NOT_FOUND_LIBS: $(NOT_FOUND_LIBS))
+$(info DYNAMIC_LIBS: $(DYNAMIC_LIBS))
 
 # 最終的なリンクコマンド
 # Final link command: static libs are embedded, dynamic libs remain as -l
+ifeq ($(BUILD),shared)
+    ifneq ($(OS),Windows_NT)
+        # Linux
 $(TARGETDIR)/$(TARGET): $(OBJS) $(STATIC_LIBS) | $(TARGETDIR)
-	$(CC) -shared -o $@ $(OBJS) $(STATIC_LIBS) $(DYNAMIC_LIBS_FLAGS) $(OTHER_LINK_FLAGS)
+			$(CC) -shared -o $@ $(OBJS) $(STATIC_LIBS) $(DYNAMIC_LIBS) $(LDFLAGS)
+    else
+        # Windows
+$(TARGETDIR)/$(TARGET): $(OBJS) $(STATIC_LIBS) | $(TARGETDIR)
+		$(LD) /DLL /OUT:$@ $(OBJS) $(STATIC_LIBS) $(DYNAMIC_LIBS) $(LDFLAGS)
+		@if [ -f "$(TARGETDIR)/$(patsubst %.dll,%.exp,$(TARGET))" ]; then mv "$(TARGETDIR)/$(patsubst %.dll,%.exp,$(TARGET))" "$(OBJDIR)/"; fi
+    endif
 else
+    ifneq ($(OS),Windows_NT)
+        # Linux
 $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
-	ar rvs $@ $(OBJS)
+			$(AR) rvs $@ $(OBJS)
+    else
+        # Windows
+$(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
+			$(AR) /NOLOGO /OUT:$@ $(OBJS)
+    endif
 endif
 
 # コンパイル時の依存関係に $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) を定義しているのは
@@ -131,18 +204,25 @@ endif
 
 # C ソースファイルのコンパイル
 # Compile C source files
+ifneq ($(OS),Windows_NT)
+    # Linux
 $(OBJDIR)/%.o: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-	set -o pipefail; LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+		set -o pipefail; LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+else
+    # Windows
+$(OBJDIR)/%.obj: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
+		set -o pipefail; MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /FdD:$(patsubst %.obj,%.pdb,$@) /c /Fo:$@ $< 2>&1 | nkf
+endif
 
 # C++ ソースファイルのコンパイル (*.cc)
 # Compile C++ source files (*.cc)
 $(OBJDIR)/%.o: %.cc $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-	set -o pipefail; LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+	set -o pipefail; LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CXXFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
 
 # C++ ソースファイルのコンパイル (*.cpp)
 # Compile C++ source files (*.cpp)
 $(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-	set -o pipefail; LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+	set -o pipefail; LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CXXFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
 
 # シンボリックリンク対象のソースファイルをシンボリックリンク
 # Create symbolic links for LINK_SRCS
@@ -248,6 +328,12 @@ clean:
 		mv $$tempfile .gitignore; \
 	done
 	-rm -rf $(OBJDIR)
+    ifeq ($(OS),Windows_NT)
+		rm -f $(TARGETDIR)/$(patsubst %.dll,%.pdb,$(TARGET))
+        ifeq ($(BUILD),shared)
+			rm -f $(TARGETDIR)/$(patsubst %.dll,%.lib,$(TARGET))
+        endif
+    endif
 
 .PHONY: test
 test: $(TARGETDIR)/$(TARGET)

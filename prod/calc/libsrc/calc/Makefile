@@ -8,14 +8,13 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # 生成されるライブラリを共有ライブラリ (shared, dynamic) とする
 BUILD = shared
 
 # ライブラリの追加
-LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib
-LIBS += -lcalcbase
+LIBS += calcbase
 
 # libsrc の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makelibsrc.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk

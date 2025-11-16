@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug current directory test",
+            "name": "(Linux gdb) Debug current directory",
             "type": "cppdbg",
             "request": "launch",
             "program": "/bin/bash",
@@ -12,7 +12,12 @@
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -28,6 +33,24 @@
                 "engineLogging": true
             },
             "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "(Windows vsdbg) Debug current directory",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "program": "${fileDirname}/${fileBasenameNoExtension}.exe",
+            "args": [
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${workspaceFolder}/prod/calc/lib;${env:PATH}"
+                }
+            ],
+            "console": "integratedTerminal",
+            "preLaunchTask": "make all (current dir)"
         }
     ]
 }

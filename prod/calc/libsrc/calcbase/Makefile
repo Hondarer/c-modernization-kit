@@ -8,7 +8,7 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # libsrc の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makelibsrc.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk

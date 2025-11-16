@@ -101,8 +101,8 @@ endif
 ifeq ($(OS),Windows_NT)
     # Windows
     # 共通フラグ
-    CFLAGS   += /EHsc /Z7 /MP
-    CXXFLAGS += /EHsc /Z7 /MP
+    CFLAGS   += /EHsc /Zi /MP
+    CXXFLAGS += /EHsc /Zi /MP
     # 構成別フラグ
     ifeq ($(CONFIG),Debug)
       CPPDEFS  += /D_DEBUG
@@ -125,10 +125,9 @@ ifeq ($(OS),Windows_NT)
     endif
 endif
 
-# 最後の Makefile で、以下を取り入れる
-## 共通
-#OBJDIR  := build/$(CONFIG)
-#BINDIR  := bin/$(CONFIG)
+# ビルド設定は基本的に固定のため、OBJDIR も obj に固定する
+#OBJDIR  := obj/$(CONFIG)
+OBJDIR  := obj
 
 # -g オプションが含まれていない場合に追加
 # Add -g option if not already included
