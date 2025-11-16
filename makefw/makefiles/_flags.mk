@@ -143,6 +143,24 @@ ifneq ($(OS),Windows_NT)
     endif
 endif
 
+# wrap-main
+ifeq ($(USE_WRAP_MAIN),1)
+    # リンクオプションの追加
+    ifneq ($(OS),Windows_NT)
+        # Linux
+        # -Wl,--wrap=main により、エントリポイントを __wrap_main() に、元々のエントリポイントを __real_main() に変更
+        LDFLAGS += -Wl,--wrap=main
+    else
+        # Windows
+        # /Dmain=__real_main により、元々のエントリポイントを __real_main() に変更 (エントリポイントは main のまま)
+        DEFINES += main=__real_main
+    endif
+    LIBS += wrapmain
+    ifneq ($(NO_GTEST_MAIN), 1)
+        LIBS += gtest_wrapmain
+    endif
+endif
+
 # 依存関係出力用フラグ
 ifneq ($(OS),Windows_NT)
     # Linux

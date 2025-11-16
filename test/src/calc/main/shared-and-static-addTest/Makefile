@@ -14,21 +14,13 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/src/shared-and-static-add/shared-and-static-add.c
 
-# リンクオプションの追加
-ifneq ($(OS),Windows_NT)
-    # Linux
-    # -Wl,--wrap=main により、エントリポイントを __wrap_main() に、元々のエントリポイントを __real_main() に変更
-    LDFLAGS += -Wl,--wrap=main
-else
-    # Windows
-    # /Dmain=__real_main により、元々のエントリポイントを __real_main() に変更 (エントリポイントは main のまま)
-    DEFINES += main=__real_main
-endif
+# エントリーポイントの変更
+# テスト対象のソースファイルにある main() は直接実行されず、
+# テストコード内から __real_main() 経由で実行される
+USE_WRAP_MAIN := 1
 
 # ライブラリの追加
-# wrapmain gtest_wrapmain にて、__wrap_main() 経由でのテスト実施
-# テスト対象のソースファイルにある main() は直接実行されない
-LIBS += wrapmain gtest_wrapmain mock_libc mock_calc mock_calcbase test_com
+LIBS += mock_libc mock_calc mock_calcbase test_com
 
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk
