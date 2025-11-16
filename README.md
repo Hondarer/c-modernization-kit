@@ -13,6 +13,19 @@ C 言語のサンプルソースコードから高品質な日本語ドキュメ
 - **複数形式出力**: HTML と Markdown の両方でドキュメント生成
 - **サンプルコード**: 実際の C プロジェクトでの使用例
 
+## 注意事項
+
+Windows では、VC Code 起動を以下の方法で行ってください。  
+現段階では、環境変数の VS Code 内での設定は未サポートです。
+
+```cmd
+REM 環境設定（重要: この順序を維持すること）
+REM Environment setup (Important: maintain this order)
+call Add-MinGW-Path.cmd
+call Add-VSBT-Env-x64.cmd
+code
+```
+
 ## クイックスタート
 
 ### サブモジュール初期化
