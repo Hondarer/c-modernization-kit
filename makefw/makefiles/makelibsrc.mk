@@ -32,11 +32,11 @@ ifeq ($(OS),Windows_NT)
     OBJS := $(patsubst %.o, %.obj, $(OBJS))
 endif
 
-# BUILD の設定 (デフォルトは shared)
-# BUILD setting (default is shared)
-# make BUILD=static で、static となる
-ifeq ($(BUILD),)
-	BUILD := shared
+# LIB_TYPE の設定 (デフォルトは static)
+# LIB_TYPE setting (default is static)
+# make LIB_TYPE=shared で、shared となる
+ifeq ($(LIB_TYPE),)
+	LIB_TYPE := static
 endif
 
 # アーカイブのディレクトリ名とアーカイブ名
@@ -52,23 +52,23 @@ ifeq ($(TARGET),)
 endif
 ifneq ($(OS),Windows_NT)
     # Linux
-    ifeq ($(BUILD),shared)
+    ifeq ($(LIB_TYPE),shared)
         TARGET := lib$(TARGET).so
     else
         TARGET := lib$(TARGET).a
     endif
 else
     # Windows
-    ifeq ($(BUILD),shared)
+    ifeq ($(LIB_TYPE),shared)
         TARGET := $(TARGET).dll
     else
         TARGET := $(TARGET).lib
     endif
 endif
 
-# ライブラリファイルの解決（BUILD=shared かつ LIBS が定義されている場合のみ）
-# Resolve library files (only when BUILD=shared and LIBS is defined)
-ifeq ($(BUILD),shared)
+# ライブラリファイルの解決（LIB_TYPE=shared かつ LIBS が定義されている場合のみ）
+# Resolve library files (only when LIB_TYPE=shared and LIBS is defined)
+ifeq ($(LIB_TYPE),shared)
     ifneq ($(LIBS),)
 
         #$(info LIBS: $(LIBS))
@@ -121,7 +121,7 @@ endif
 
 # 最終的なリンクコマンド
 # Final link command: static libs are embedded, dynamic libs remain as -l
-ifeq ($(BUILD),shared)
+ifeq ($(LIB_TYPE),shared)
     ifneq ($(OS),Windows_NT)
         # Linux
 $(TARGETDIR)/$(TARGET): $(OBJS) $(STATIC_LIBS) | $(TARGETDIR)
@@ -281,7 +281,7 @@ clean:
 	-rm -rf $(OBJDIR)
     ifeq ($(OS),Windows_NT)
 		rm -f $(TARGETDIR)/$(patsubst %.dll,%.pdb,$(TARGET))
-        ifeq ($(BUILD),shared)
+        ifeq ($(LIB_TYPE),shared)
 			rm -f $(TARGETDIR)/$(patsubst %.dll,%.lib,$(TARGET))
         endif
     endif

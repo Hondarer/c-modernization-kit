@@ -12,7 +12,7 @@
 
 using namespace testing;
 
-int calcHandler(int kind, int a, int b)
+CALC_API int WINAPI calcHandler(int kind, int a, int b)
 {
     int rtc = 0;
 

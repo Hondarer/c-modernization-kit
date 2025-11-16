@@ -88,4 +88,3 @@ ifeq ($(OS),Windows_NT)
     CFLAGS   += /DCALC_STATIC
     CXXFLAGS += /DCALC_STATIC
 endif
-BUILD = static

@@ -32,8 +32,12 @@
     #else
         #define CALC_API
     #endif
+    #ifndef WINAPI
+        #define WINAPI __stdcall
+    #endif
 #else
     #define CALC_API
+    #define WINAPI
 #endif
 
 #ifdef __cplusplus
@@ -80,7 +84,7 @@ extern "C" {
  *                  呼び出し側で戻り値のチェックを行ってください。
  *******************************************************************************
  */
-CALC_API extern int calcHandler(int kind, int a, int b);
+CALC_API extern int WINAPI calcHandler(int kind, int a, int b);
 
 #ifdef __cplusplus
 }

@@ -17,7 +17,7 @@
 #include <libcalc.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-CALC_API int calcHandler(int kind, int a, int b)
+CALC_API int WINAPI calcHandler(int kind, int a, int b)
 {
     switch (kind)
     {

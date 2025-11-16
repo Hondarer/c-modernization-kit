@@ -466,7 +466,7 @@ ifeq ($(TARGETDIR),)
 endif
 
 ifeq ($(TARGET),)
-    ifeq ($(BUILD),shared)
+    ifeq ($(LIB_TYPE),shared)
         ifeq ($(OS),Windows_NT)
             TARGET := $(shell basename `pwd`).dll
         else
@@ -490,7 +490,7 @@ OBJS := $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %$(OBJEXT), $(SRCS_C)))
 
 ifeq ($(OS),Windows_NT)
     # MSVC のビルドルール
-    ifeq ($(BUILD),shared)
+    ifeq ($(LIB_TYPE),shared)
         $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
             $(CC) /LD /Fe$@ $(OBJS)
     else
@@ -502,7 +502,7 @@ ifeq ($(OS),Windows_NT)
         $(CC) $(CFLAGS) /c /Fo$@ $<
 else
     # GCC のビルドルール (既存コードをそのまま維持)
-    ifeq ($(BUILD),shared)
+    ifeq ($(LIB_TYPE),shared)
         $(TARGETDIR)/$(TARGET): $(OBJS) | $(TARGETDIR)
             $(CC) -shared -o $@ $(OBJS)
     else
