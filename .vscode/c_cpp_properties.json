@@ -26,7 +26,7 @@
                 "${workspaceFolder}/test/include"
             ],
             "defines": [
-                "_CRT_SECURE_NO_WARNINGS",
+                // 安全のため、_CRT_SECURE_NO_WARNINGS は指定しない
                 "C_MODERNIZATION_KIT" // ユーザー指定の define の例
             ],
             "compilerPath": "cl.exe",
