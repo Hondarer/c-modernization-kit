@@ -21,7 +21,7 @@ default : submodule
 
 .PHONY: submodule
 submodule :
-	$(info INFO: sync disabled.)
+	$(info INFO: submodule sync disabled.)
 #	git submodule sync
 #	git submodule update --init --recursive
 

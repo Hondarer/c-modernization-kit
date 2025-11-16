@@ -18,10 +18,11 @@
 #   - TEST_SRCS, ADD_SRCS に指定されていて、カレントディレクトリに配置されている
 # - LINK_SRCS
 #   - シンボリックリンクして引き込むソースファイル
-#   - inject ファイル および フィルタファイルがない
+#   - Linux にて、inject ファイル および フィルタファイルがない
 # - CP_SRCS
 #   - フォルダ外からコピーして引き込むソースファイル
 #   - inject ファイル または フィルタファイルがある
+#   - Windows では、inject ファイル および フィルタファイルがない引き込みファイルも CP_SRCS として扱う
 
 # 出力 (include)
 # - INCDIR
@@ -70,6 +71,26 @@ CP_SRCS := $(sort $(CP_SRCS))
 # Remove CP_SRCS files from LINK_SRCS
 LINK_SRCS := $(filter-out $(CP_SRCS), $(LINK_SRCS))
 
+# Windows ではシンボリックリンク機能に制限があるため、すべて CP_SRCS 扱いとする
+ifeq ($(OS),Windows_NT)
+    # Windows
+    CP_SRCS += $(LINK_SRCS)
+    LINK_SRCS :=
+    # Windows ではコピーを行うことにより、inject ファイル および フィルタファイルがないにもかかわらず実体が存在するため、DIRECT_SRCS と判定されることへの対策として、
+    # DIRECT_SRCS と判定されたファイルが .gitignore に定義されている場合、DIRECT_SRCS から CP_SRCS に移動する
+    GITIGNORED_SRCS := $(shell for f in $(DIRECT_SRCS); do \
+        gitignore_file=".gitignore"; \
+        if [ -f "$$gitignore_file" ]; then \
+            base_f=$$(basename $$f); \
+            if grep -qxF "$$base_f" "$$gitignore_file"; then \
+                echo $$f; \
+            fi; \
+        fi; \
+    done)
+    CP_SRCS += $(GITIGNORED_SRCS)
+    DIRECT_SRCS := $(filter-out $(GITIGNORED_SRCS),$(DIRECT_SRCS))
+endif
+
 # gcovr のフィルタを作成
 # gcovr では、シンボリックリンクの場合は、実パスを与える必要がある
 # Create filters for gcovr (symbolic links require real paths)
@@ -80,8 +101,8 @@ GCOVR_SRCS := $(foreach src,$(TEST_SRCS), \
 
 # コンパイル対象のソースファイル (カレントディレクトリから自動収集 + 指定ファイル)
 # Collect source files for compilation (auto-detect + specified files)
-SRCS_C := $(wildcard *.c) $(filter %.c,$(CP_SRCS) $(LINK_SRCS))
-SRCS_CPP := $(wildcard *.cc) $(wildcard *.cpp) $(filter %.cc,$(CP_SRCS) $(LINK_SRCS)) $(filter %.cpp,$(CP_SRCS) $(LINK_SRCS))
+SRCS_C := $(sort $(wildcard *.c) $(notdir $(filter %.c,$(CP_SRCS) $(LINK_SRCS))))
+SRCS_CPP := $(sort $(wildcard *.cc) $(wildcard *.cpp) $(notdir $(filter %.cc,$(CP_SRCS) $(LINK_SRCS)) $(filter %.cpp,$(CP_SRCS) $(LINK_SRCS))))
 
 # c_cpp_properties.json から include ディレクトリを得る
 # Get include directories from c_cpp_properties.json
@@ -92,12 +113,12 @@ INCDIR += $(shell sh $(WORKSPACE_FOLDER)/makefw/cmnd/get_include_paths.sh)
 #$(info TEST_SRCS: $(TEST_SRCS))
 #$(info ADD_SRCS: $(ADD_SRCS))
 #$(info ----)
-#$(info SRCS_C: $(SRCS_C))
-#$(info SRCS_CPP: $(SRCS_CPP))
-#$(info ----)
 #$(info DIRECT_SRCS: $(DIRECT_SRCS))
 #$(info LINK_SRCS: $(LINK_SRCS))
 #$(info CP_SRCS: $(CP_SRCS))
+#$(info ----)
+#$(info SRCS_C: $(SRCS_C))
+#$(info SRCS_CPP: $(SRCS_CPP))
 #$(info ----)
 #$(info INCDIR: $(INCDIR))
 #$(info ----)
