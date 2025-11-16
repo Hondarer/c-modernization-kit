@@ -26,7 +26,7 @@
     <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
     
     <meta name="generator" content="pandoc" />
-  <meta name="author" content="doxygen and doxybook" />
+  <meta name="author" content="doxygen and doxybook2" />
   <title>calc/include/libcalcbase.h</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
@@ -105,8 +105,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="container">
         <span class="doc-title">calc/include/libcalcbase.h</span>
         <ul class="nav pull-right doc-info">
-                    <li><p class="navbar-text">doxygen and doxybook</p></li>
-                              <li><p class="navbar-text">Thu, 6 Nov 2025 15:51:22 +0900 48d1f73</p></li>
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sun, 16 Nov 2025 16:30:03 +0900 32f9bb9</p></li>
                   </ul>
       </div>
     </div>
@@ -147,7 +147,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
                 <H1>calc/include/libcalcbase.h</H1>
       
       
-      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
 <h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
 <h2 data-number="1.1" id="calcincludelibcalcbase.h"><span class="header-section-number">1.1</span> calc/include/libcalcbase.h</h2>
 <p>計算ライブラリ (静的リンク用) のヘッダーファイル。</p>
@@ -173,20 +173,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li>[in] a 第一オペランド。</li>
 <li>[in] b 第二オペランド。</li>
-<li>[in] a 第一オペランド。</li>
-<li>[in] b 第二オペランド。</li>
 </ul>
 <h3 data-number="2.1.2" id="return"><span class="header-section-number">2.1.2</span> Return</h3>
-<h4 data-number="2.1.2.1" id="a-と-b-の合計値"><span class="header-section-number">2.1.2.1</span> a と b の合計値。</h4>
-<h4 data-number="2.1.2.2" id="a-と-b-の合計値-1"><span class="header-section-number">2.1.2.2</span> a と b の合計値。</h4>
+<p>a と b の合計値。</p>
 <h3 data-number="2.1.3" id="note"><span class="header-section-number">2.1.3</span> Note</h3>
 <p>オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。</p>
 <h3 data-number="2.1.4" id="details-1"><span class="header-section-number">2.1.4</span> Details</h3>
 <p>この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。</p>
-<p>使用例: ```c</p>
-<p>int result = add(10, 20);<br />
-printf(“Result: %d”, result); // 出力: Result: 30<br />
-```</p>
+<p>使用例:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> result <span class="op">=</span> add<span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">20</span><span class="op">);</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>printf<span class="op">(</span><span class="st">&quot;Result: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> result<span class="op">);</span>  <span class="co">// 出力: Result: 30</span></span></code></pre></div>
             </div>
     </div>
   </div>

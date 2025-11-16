@@ -1,0 +1,512 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+    
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda, Claude" />
+  <title>Windows PoC (Proof of Concept) ビルドシステム</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Windows PoC (Proof of Concept) ビルドシステム</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda, Claude</p></li>
+                              <li><p class="navbar-text">Thu, 13 Nov 2025 22:36:55 +0900 18ac2c5</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <ul>
+        <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+        <li><a href="#前提条件" id="toc-前提条件"><span class="toc-section-number">2</span> 前提条件</a>
+        <ul>
+        <li><a href="#windows-環境" id="toc-windows-環境"><span class="toc-section-number">2.1</span> Windows 環境</a></li>
+        </ul></li>
+        <li><a href="#ビルド方法" id="toc-ビルド方法"><span class="toc-section-number">3</span> ビルド方法</a>
+        <ul>
+        <li><a href="#ビルド実行" id="toc-ビルド実行"><span class="toc-section-number">3.1</span> ビルド実行</a></li>
+        </ul></li>
+        <li><a href="#ファイル構成" id="toc-ファイル構成"><span class="toc-section-number">4</span> ファイル構成</a>
+        <ul>
+        <li><a href="#poc-makefile-ファイル" id="toc-poc-makefile-ファイル"><span class="toc-section-number">4.1</span> PoC Makefile ファイル</a></li>
+        <li><a href="#ビルドスクリプト" id="toc-ビルドスクリプト"><span class="toc-section-number">4.2</span> ビルドスクリプト</a></li>
+        </ul></li>
+        <li><a href="#主な機能" id="toc-主な機能"><span class="toc-section-number">5</span> 主な機能</a>
+        <ul>
+        <li><a href="#共通テンプレートによる統合" id="toc-共通テンプレートによる統合"><span class="toc-section-number">5.1</span> 1. 共通テンプレートによる統合</a></li>
+        <li><a href="#静的ライブラリの自動組み込み" id="toc-静的ライブラリの自動組み込み"><span class="toc-section-number">5.2</span> 2. 静的ライブラリの自動組み込み</a></li>
+        <li><a href="#クロスプラットフォーム対応" id="toc-クロスプラットフォーム対応"><span class="toc-section-number">5.3</span> 3. クロスプラットフォーム対応</a></li>
+        <li><a href="#ライブラリ構成" id="toc-ライブラリ構成"><span class="toc-section-number">5.4</span> 4. ライブラリ構成</a></li>
+        </ul></li>
+        <li><a href="#windows-poc-の設計思想" id="toc-windows-poc-の設計思想"><span class="toc-section-number">6</span> Windows PoC の設計思想</a>
+        <ul>
+        <li><a href="#ライブラリ構成の固定化" id="toc-ライブラリ構成の固定化"><span class="toc-section-number">6.1</span> ライブラリ構成の固定化</a></li>
+        <li><a href="#実装ファイル" id="toc-実装ファイル"><span class="toc-section-number">6.2</span> 実装ファイル</a></li>
+        </ul></li>
+        <li><a href="#testfw-テンプレートとの違い" id="toc-testfw-テンプレートとの違い"><span class="toc-section-number">7</span> testfw テンプレートとの違い</a>
+        <ul>
+        <li><a href="#testfw-linux-版-の特徴" id="toc-testfw-linux-版-の特徴"><span class="toc-section-number">7.1</span> testfw (Linux 版) の特徴</a></li>
+        <li><a href="#windows-poc-の特徴" id="toc-windows-poc-の特徴"><span class="toc-section-number">7.2</span> Windows PoC の特徴</a></li>
+        </ul></li>
+        <li><a href="#linux-版との対応関係" id="toc-linux-版との対応関係"><span class="toc-section-number">8</span> Linux 版との対応関係</a></li>
+        <li><a href="#デバッグ" id="toc-デバッグ"><span class="toc-section-number">9</span> デバッグ</a></li>
+        <li><a href="#制限事項" id="toc-制限事項"><span class="toc-section-number">10</span> 制限事項</a></li>
+        <li><a href="#今後の課題-future-work" id="toc-今後の課題-future-work"><span class="toc-section-number">11</span> 今後の課題 / Future Work</a></li>
+        </ul>
+
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Windows PoC (Proof of Concept) ビルドシステム</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>このプロジェクトの Windows 向け実験的なビルドシステムです。MSVC (Microsoft Visual C++) と MinGW 環境でのクロスプラットフォームビルドに対応しています。</p>
+<h1 data-number="2" id="前提条件"><span class="header-section-number">2</span> 前提条件</h1>
+<h2 data-number="2.1" id="windows-環境"><span class="header-section-number">2.1</span> Windows 環境</h2>
+<ol type="1">
+<li><p><strong>ポータブル版 Visual Studio Build Tools</strong></p>
+<ul>
+<li>インストール済み</li>
+<li><code>Add-VSBT-Env-x64.cmd</code> で環境変数を設定</li>
+</ul></li>
+<li><p><strong>Git for Windows (MinGW)</strong></p>
+<ul>
+<li>インストール済み</li>
+<li><code>Add-MinGW-Path.cmd</code> で環境変数を設定</li>
+</ul></li>
+<li><p><strong>環境設定の実行順序（重要）</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">call</span> <span class="ot">Add-MinGW-Path.cmd</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">call</span> <span class="ot">Add-VSBT-Env-x64.cmd</span></span></code></pre></div>
+<p>この順序で実行することで、MSVC の <code>link.exe</code> が MinGW の <code>link</code> より優先されます。</p></li>
+</ol>
+<h1 data-number="3" id="ビルド方法"><span class="header-section-number">3</span> ビルド方法</h1>
+<h2 data-number="3.1" id="ビルド実行"><span class="header-section-number">3.1</span> ビルド実行</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>build-poc.bat</span></code></pre></div>
+<p>このコマンドで以下がビルドされます（実験的実装として libcalcbase は静的固定、libcalc は動的固定）：</p>
+<p><strong>ライブラリ / Libraries:</strong><br />
+- <code>prod/calc/lib/calcbase.lib</code> - 基本計算関数ライブラリ（静的ライブラリ固定）<br />
+- <code>prod/calc/lib/calc.dll</code> - 計算ハンドラーライブラリ（DLL 固定、calcbase.lib を内部に静的リンク）<br />
+- <code>prod/calc/lib/calc.lib</code> - calc.dll のインポートライブラリ</p>
+<p><strong>コマンド / Commands:</strong><br />
+- <code>prod/calc/src/add/add.exe</code> - 加算コマンド（calcbase.lib のみをリンク）<br />
+- <code>prod/calc/src/calc/calc.exe</code> - 計算コマンド（calc.lib のみをリンク）<br />
+- <code>prod/calc/src/shared-and-static-add/shared-and-static-add.exe</code> - 加算コマンド（calc.lib と calcbase.lib の両方をリンク）</p>
+<p><strong>重要</strong>: libcalc は動的ライブラリ（DLL）として固定実装されており、calcbase.lib を内部に静的リンクします。shared-and-static-add.exe は、DLL と静的ライブラリの両方をリンクする実験的な実装例です。</p>
+<h1 data-number="4" id="ファイル構成"><span class="header-section-number">4</span> ファイル構成</h1>
+<h2 data-number="4.1" id="poc-makefile-ファイル"><span class="header-section-number">4.1</span> PoC Makefile ファイル</h2>
+<pre><code>prod/calc/
+├── libsrc/
+│   ├── makelibsrc-windows-poc.mk       # ライブラリビルド用共通テンプレート
+│   ├── calcbase/
+│   │   ├── Makefile                    # Linux 版（testfw テンプレート使用）
+│   │   └── Makefile.Windows-poc        # Windows PoC 版（静的ライブラリ固定）
+│   └── calc/
+│       ├── Makefile                    # Linux 版（testfw テンプレート使用）
+│       └── Makefile.Windows-poc        # Windows PoC 版（動的ライブラリ固定）
+└── src/
+    ├── add/
+    │   ├── Makefile                    # Linux 版（testfw テンプレート使用）
+    │   └── Makefile.Windows-poc        # Windows PoC 版
+    ├── calc/
+    │   ├── Makefile                    # Linux 版（testfw テンプレート使用）
+    │   └── Makefile.Windows-poc        # Windows PoC 版
+    └── shared-and-static-add/
+        ├── Makefile                    # Linux 版（testfw テンプレート使用）
+        └── Makefile.Windows-poc        # Windows PoC 版（DLL + 静的ライブラリリンク）</code></pre>
+<p><strong>共通テンプレートの導入</strong>: calcbase と calc の Makefile.Windows-poc はほぼ同じ内容だったため、<code>makelibsrc-windows-poc.mk</code> として共通化しました。各 Makefile は必要最小限の設定のみを記述し、テンプレートを include します。</p>
+<h2 data-number="4.2" id="ビルドスクリプト"><span class="header-section-number">4.2</span> ビルドスクリプト</h2>
+<ul>
+<li><code>build-poc.bat</code> - 全体のビルドスクリプト（libcalcbase, libcalc, add, calc, shared-and-static-add を順次ビルド）</li>
+</ul>
+<h1 data-number="5" id="主な機能"><span class="header-section-number">5</span> 主な機能</h1>
+<h2 data-number="5.1" id="共通テンプレートによる統合"><span class="header-section-number">5.1</span> 1. 共通テンプレートによる統合</h2>
+<p>calcbase と calc の Makefile.Windows-poc はほぼ同じ内容だったため、<code>makelibsrc-windows-poc.mk</code> として共通化しました。</p>
+<p><strong>各 Makefile で設定する変数:</strong><br />
+- <code>TARGET_BASE</code>: ライブラリ名のベース（例: calcbase, calc）- 必須<br />
+- <code>BUILD</code>: ビルドモード（static/shared）- 未設定の場合は static、calc では shared 固定<br />
+- <code>LIBS</code>: 依存ライブラリ（例: calcbase）- 必要な場合のみ<br />
+- <code>LIBSDIR</code>: ライブラリ検索パス - LIBS を使用する場合のみ<br />
+- <code>EXTRA_CFLAGS</code>: 追加のコンパイラフラグ（例: /DCALC_EXPORTS）- 必要な場合のみ</p>
+<p><strong>calcbase の例 / calcbase example (静的ライブラリ固定 / static library only):</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TARGET_BASE</span> <span class="ch">:=</span><span class="st"> calcbase</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> ../makelibsrc-windows-poc.mk</span></code></pre></div>
+<p><strong>calc の例 / calc example (動的ライブラリ固定 / dynamic library only):</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TARGET_BASE</span> <span class="ch">:=</span><span class="st"> calc</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">BUILD</span> <span class="ch">:=</span><span class="st"> shared  </span><span class="co"># 動的ライブラリ（DLL）固定 / Fixed to dynamic library (DLL)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="dt">EXTRA_CFLAGS</span> <span class="ch">:=</span><span class="st"> /DCALC_EXPORTS</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBSDIR</span> <span class="ch">=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/calc/lib</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">:=</span><span class="st"> calcbase</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> ../makelibsrc-windows-poc.mk</span></code></pre></div>
+<h2 data-number="5.2" id="静的ライブラリの自動組み込み"><span class="header-section-number">5.2</span> 2. 静的ライブラリの自動組み込み</h2>
+<p><code>BUILD=shared</code> の場合、<code>calc.dll</code> は <code>calcbase.lib</code> を自動的に静的リンクします。</p>
+<p>When <code>BUILD=shared</code>, <code>calc.dll</code> automatically statically links <code>calcbase.lib</code>.</p>
+<p><strong>calc/Makefile.Windows-poc の設定例:</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TARGET_BASE</span> <span class="ch">:=</span><span class="st"> calc</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">BUILD</span> <span class="ch">:=</span><span class="st"> shared</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBSDIR</span> <span class="ch">=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/calc/lib</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">:=</span><span class="st"> calcbase</span></span></code></pre></div>
+<p><strong>動作:</strong><br />
+- <code>LIBS</code> に指定された <code>calcbase</code> を <code>LIBSDIR</code> から検索<br />
+- Windows: <code>calcbase.lib</code> を検索<br />
+- Linux: <code>libcalcbase.a</code> を検索<br />
+- 見つかった場合は DLL/.so に静的リンク<br />
+- 見つからない場合は動的リンクフラグとして保持</p>
+<h2 data-number="5.3" id="クロスプラットフォーム対応"><span class="header-section-number">5.3</span> 3. クロスプラットフォーム対応</h2>
+<p>共通テンプレート <code>makelibsrc-windows-poc.mk</code> が Windows (MSVC) と Linux (GCC) の両方に対応しています。</p>
+<p>The common template <code>makelibsrc-windows-poc.mk</code> supports both Windows (MSVC) and Linux (GCC).</p>
+<p><strong>テンプレート内の OS 判定:</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Windows (MSVC)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CC</span> <span class="ch">:=</span><span class="st"> cl</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">LD</span> <span class="ch">:=</span><span class="st"> link</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ...</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Linux (GCC)</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CC</span> <span class="ch">:=</span><span class="st"> gcc</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">LD</span> <span class="ch">:=</span><span class="st"> gcc</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ...</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span></code></pre></div>
+<p>各 Makefile はテンプレートを include するだけで、OS 固有の処理は不要です。</p>
+<h2 data-number="5.4" id="ライブラリ構成"><span class="header-section-number">5.4</span> 4. ライブラリ構成</h2>
+<p>本 PoC では、実験的実装として以下の構成で固定されています：</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 23%" />
+<col style="width: 20%" />
+<col style="width: 16%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr>
+<th>ライブラリ</th>
+<th>BUILD 設定</th>
+<th>Windows</th>
+<th>Linux</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>libcalcbase</td>
+<td>未設定 (static)</td>
+<td><code>.lib</code></td>
+<td><code>.a</code></td>
+<td>静的ライブラリ固定</td>
+</tr>
+<tr>
+<td>libcalc</td>
+<td><code>shared</code> 固定</td>
+<td><code>.dll</code> + <code>.lib</code></td>
+<td><code>.so</code></td>
+<td>動的ライブラリ固定 + インポートライブラリ</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共通テンプレートの BUILD 変数サポート:</strong></p>
+<p>共通テンプレート <code>makelibsrc-windows-poc.mk</code> 自体は BUILD 変数による static/shared の切り替えをサポートしています。各ライブラリの Makefile にて static/shared が固定的に設定されることに対応しています。</p>
+<h1 data-number="6" id="windows-poc-の設計思想"><span class="header-section-number">6</span> Windows PoC の設計思想</h1>
+<h2 data-number="6.1" id="ライブラリ構成の固定化"><span class="header-section-number">6.1</span> ライブラリ構成の固定化</h2>
+<p>本 PoC では、実験的実装として以下の構成で固定しています：<br />
+- <strong>libcalcbase</strong>: 静的ライブラリのみ（BUILD 変数未設定、デフォルトで static）<br />
+- <strong>libcalc</strong>: 動的ライブラリのみ（BUILD := shared を Makefile 内で固定）</p>
+<p>この構成により、以下のメリットがあります：<br />
+1. calc.dll が calcbase.lib を内部に静的リンクする<br />
+2. 依存関係が単純化され、配布時に calc.dll のみを配置すれば動作<br />
+3. Linux 版（testfw/makefiles/makelibsrc.mk）と同様の動作を実現</p>
+<h2 data-number="6.2" id="実装ファイル"><span class="header-section-number">6.2</span> 実装ファイル</h2>
+<p><strong>ライブラリ:</strong><br />
+1. <code>prod/calc/libsrc/makelibsrc-windows-poc.mk</code> - 共通テンプレート（BUILD 変数による static/shared 切り替えをサポート）<br />
+2. <code>prod/calc/libsrc/calcbase/Makefile.Windows-poc</code> - calcbase ビルド設定（BUILD 未設定 → static）<br />
+3. <code>prod/calc/libsrc/calc/Makefile.Windows-poc</code> - calc ビルド設定（BUILD := shared 固定）</p>
+<p><strong>コマンド:</strong><br />
+- <code>prod/calc/src/add/Makefile.Windows-poc</code> - add コマンド（calc.lib のみリンク）<br />
+- <code>prod/calc/src/calc/Makefile.Windows-poc</code> - calc コマンド（calc.lib のみリンク）<br />
+- <code>prod/calc/src/shared-and-static-add/Makefile.Windows-poc</code> - shared-and-static-add コマンド（calc.lib + calcbase.lib をリンク）</p>
+<p><strong>ビルドスクリプト:</strong><br />
+- <code>build-poc.bat</code> - 全体のビルドスクリプト（libcalcbase, libcalc, add, calc, shared-and-static-add を順次ビルド）</p>
+<p><strong>注</strong>: testfw 以下のファイルは PoC としては変更なし。Windows PoC は testfw から独立した実装です。</p>
+<h1 data-number="7" id="testfw-テンプレートとの違い"><span class="header-section-number">7</span> testfw テンプレートとの違い</h1>
+<h2 data-number="7.1" id="testfw-linux-版-の特徴"><span class="header-section-number">7.1</span> testfw (Linux 版) の特徴</h2>
+<ul>
+<li><code>testfw/makefiles/makelibsrc.mk</code> を使用</li>
+<li>高度な機能（inject, filter, テストフレームワーク統合）</li>
+<li><code>-l</code> オプションの自動解決（<code>.a</code> ファイルを検索）</li>
+<li>複数の検索パス対応（<code>LIBSDIR</code>, <code>-L</code>, システムパス）</li>
+</ul>
+<h2 data-number="7.2" id="windows-poc-の特徴"><span class="header-section-number">7.2</span> Windows PoC の特徴</h2>
+<ul>
+<li>スタンドアロン Makefile（testfw に依存しない）</li>
+<li>シンプルな構成（実験的な実装）</li>
+<li>ライブラリ名を直接指定（<code>LIBS := calcbase</code>）</li>
+<li>Windows/Linux 両対応</li>
+</ul>
+<h1 data-number="8" id="linux-版との対応関係"><span class="header-section-number">8</span> Linux 版との対応関係</h1>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 45%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>Linux (testfw)</th>
+<th>Windows PoC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>calcbase</td>
+<td><code>BUILD</code> なし（static 固定）</td>
+<td><code>BUILD</code> なし（static 固定）</td>
+</tr>
+<tr>
+<td>calc</td>
+<td><code>BUILD=shared</code>（calc.mk で固定）</td>
+<td><code>BUILD := shared</code>（Makefile で固定）</td>
+</tr>
+<tr>
+<td>add</td>
+<td>testfw テンプレート（calc.lib のみリンク）</td>
+<td>calc.lib のみリンク</td>
+</tr>
+<tr>
+<td>calc コマンド</td>
+<td>testfw テンプレート（calc.lib のみリンク）</td>
+<td>calc.lib のみリンク</td>
+</tr>
+<tr>
+<td>shared-and-static-add</td>
+<td>testfw テンプレート（calc.lib + calcbase.lib）</td>
+<td>calc.lib + calcbase.lib</td>
+</tr>
+<tr>
+<td>依存関係（ライブラリ）</td>
+<td><code>-lcalcbase</code> (自動解決)</td>
+<td><code>LIBS := calcbase</code> (直接指定)</td>
+</tr>
+<tr>
+<td>検索パス</td>
+<td><code>LIBSDIR</code>, <code>-L</code>, システム</td>
+<td><code>LIBSDIR</code> のみ</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 45%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Linux (testfw)</th>
+<th>Windows PoC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>calcbase</td>
+<td>No <code>BUILD</code> (static only)</td>
+<td>No <code>BUILD</code> (static only)</td>
+</tr>
+<tr>
+<td>calc</td>
+<td><code>BUILD=shared</code> (fixed in calc.mk)</td>
+<td><code>BUILD := shared</code> (fixed in Makefile)</td>
+</tr>
+<tr>
+<td>add</td>
+<td>testfw template (links calc.lib only)</td>
+<td>Links calc.lib only</td>
+</tr>
+<tr>
+<td>calc command</td>
+<td>testfw template (links calc.lib only)</td>
+<td>Links calc.lib only</td>
+</tr>
+<tr>
+<td>shared-and-static-add</td>
+<td>testfw template (calc.lib + calcbase.lib)</td>
+<td>calc.lib + calcbase.lib</td>
+</tr>
+<tr>
+<td>Dependencies (library)</td>
+<td><code>-lcalcbase</code> (auto-resolved)</td>
+<td><code>LIBS := calcbase</code> (direct)</td>
+</tr>
+<tr>
+<td>Search paths</td>
+<td><code>LIBSDIR</code>, <code>-L</code>, system</td>
+<td><code>LIBSDIR</code> only</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="9" id="デバッグ"><span class="header-section-number">9</span> デバッグ</h1>
+<p>共通テンプレートには <code>debug</code> ターゲットがあり、設定された変数を表示できます：</p>
+<p>The common template has a <code>debug</code> target to display configured variables:</p>
+<p><strong>calcbase のデバッグ:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod\calc\libsrc\calcbase</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>make <span class="at">-f</span> Makefile.Windows<span class="at">-poc</span> debug</span></code></pre></div>
+<p>出力例 / Example output:</p>
+<pre><code>TARGET_BASE = calcbase
+BUILD = static
+OS = Windows_NT
+LIBS =
+LIBSDIR =
+STATIC_LIBS =
+DYNAMIC_LIBS =
+TARGET = calcbase.lib
+OBJS = obj/add.obj</code></pre>
+<p><strong>calc のデバッグ:</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod\calc\libsrc\calc</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>make <span class="at">-f</span> Makefile.Windows<span class="at">-poc</span> debug</span></code></pre></div>
+<p>出力例（BUILD は Makefile 内で shared 固定）/ Example output (BUILD fixed to shared in Makefile):</p>
+<pre><code>TARGET_BASE = calc
+BUILD = shared
+OS = Windows_NT
+LIBS = calcbase
+LIBSDIR = D:/Users/tetsuo/Local/repos/doxygen-sample/prod/calc/lib
+STATIC_LIBS = D:/Users/tetsuo/Local/repos/doxygen-sample/prod/calc/lib/calcbase.lib
+DYNAMIC_LIBS =
+TARGET = calc.dll
+OBJS = obj/calcHandler.obj</code></pre>
+<h1 data-number="10" id="制限事項"><span class="header-section-number">10</span> 制限事項</h1>
+<ol type="1">
+<li><strong>ライブラリ構成は固定</strong>
+<ul>
+<li>libcalcbase は静的ライブラリ固定（BUILD 変数で変更不可）</li>
+<li>libcalc は動的ライブラリ（DLL）固定（BUILD 変数で変更不可）</li>
+</ul></li>
+<li><strong>testfw テンプレートの機能は未対応</strong>
+<ul>
+<li>inject, filter, モック機能は Windows PoC には含まれていません</li>
+</ul></li>
+<li><strong>検索パスは LIBSDIR のみ</strong>
+<ul>
+<li>Linux 版に実装がある <code>-L</code> オプションやシステムパスの自動検索は未実装</li>
+</ul></li>
+<li><strong>実験的な実装</strong>
+<ul>
+<li>本番環境での使用は推奨されません</li>
+<li>将来的に testfw との統合が必要</li>
+</ul></li>
+</ol>
+<h1 data-number="11" id="今後の課題-future-work"><span class="header-section-number">11</span> 今後の課題 / Future Work</h1>
+<ol type="1">
+<li>testfw テンプレートとの統合</li>
+<li><code>-L</code> オプションのサポート</li>
+<li>より高度な依存関係解決</li>
+<li>Windows 専用の最適化</li>
+</ol>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+</body>
+</html>
