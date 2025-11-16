@@ -18,16 +18,6 @@ endif
 CFLAGS += $(addprefix -D,$(DEFINES))
 CXXFLAGS += $(addprefix -D,$(DEFINES))
 
-ifneq ($(OS),Windows_NT)
-    # Linux
-    DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
-else
-    # Windows
-    # TODO: gcc の .d に互換性がある依存関係ファイルを生成したい。
-    # フラグ以外に、出力を加工する必要がある。
-    DEPFLAGS =
-endif
-
 CFLAGS   += $(addprefix -I, $(INCDIR))
 CPPFLAGS += $(addprefix -I, $(INCDIR))
 
@@ -202,27 +192,32 @@ endif
 # ヘッダ類などを引き込んでおく必要がある場合に、先に処理を行っておきたいため
 # We define $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) as compile-time dependencies to ensure all headers are processed first
 
-# C ソースファイルのコンパイル
-# Compile C source files
-ifneq ($(OS),Windows_NT)
+# コンパイルルールのテンプレート定義
+# Compile rule template definition
+# 引数: $(1)=拡張子 (c/cc/cpp), $(2)=コンパイラ変数名 (CC/CXX), $(3)=フラグ変数名 (CFLAGS/CXXFLAGS)
+define compile_rule_template
+ifneq ($$(OS),Windows_NT)
     # Linux
-$(OBJDIR)/%.o: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-		set -o pipefail; LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+$$(OBJDIR)/%.o: %.$(1) $$(OBJDIR)/%.d $$(notdir $$(LINK_SRCS)) $$(notdir $$(CP_SRCS)) | $$(OBJDIR) $$(TARGETDIR)
+		set -o pipefail; LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)) -c -o $$@ $$< -fdiagnostics-color=always 2>&1 | nkf
 else
     # Windows
-$(OBJDIR)/%.obj: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-		set -o pipefail; MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /FdD:$(patsubst %.obj,%.pdb,$@) /c /Fo:$@ $< 2>&1 | nkf
+$$(OBJDIR)/%.obj: %.$(1) $$(OBJDIR)/%.d $$(notdir $$(LINK_SRCS)) $$(notdir $$(CP_SRCS)) | $$(OBJDIR) $$(TARGETDIR)
+		set -o pipefail; MSYS_NO_PATHCONV=1 LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)) /FdD:$$(patsubst %.obj,%.pdb,$$@) /c /Fo:$$@ $$< 2>&1 | sh $$(WORKSPACE_FOLDER)/makefw/cmnd/msvc_dep.sh $$@ $$< $$(OBJDIR)/$$*.d | nkf
 endif
+endef
+
+# C ソースファイルのコンパイル
+# Compile C source files
+$(eval $(call compile_rule_template,c,CC,CFLAGS))
 
 # C++ ソースファイルのコンパイル (*.cc)
 # Compile C++ source files (*.cc)
-$(OBJDIR)/%.o: %.cc $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-	set -o pipefail; LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CXXFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+$(eval $(call compile_rule_template,cc,CXX,CXXFLAGS))
 
 # C++ ソースファイルのコンパイル (*.cpp)
 # Compile C++ source files (*.cpp)
-$(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR) $(TARGETDIR)
-	set -o pipefail; LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CXXFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf
+$(eval $(call compile_rule_template,cpp,CXX,CXXFLAGS))
 
 # シンボリックリンク対象のソースファイルをシンボリックリンク
 # Create symbolic links for LINK_SRCS

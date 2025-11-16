@@ -25,16 +25,6 @@ LCOVDIR := lcov
 CFLAGS   += $(addprefix -D,$(DEFINES))
 CXXFLAGS += $(addprefix -D,$(DEFINES))
 
-ifneq ($(OS),Windows_NT)
-    # Linux
-    DEPFLAGS += -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
-else
-    # Windows
-    # TODO: gcc の .d に互換性がある依存関係ファイルを生成したい。
-    # フラグ以外に、出力を加工する必要がある。
-    DEPFLAGS =
-endif
-
 # NOTE: テスト対象の場合は、CCOMFLAGS の後、通常の include の前に include_override を追加する
 #       CCOMFLAGS に追加した include パスは、include_override より前に評価されるので
 #       個別のテストでの include 注入に対応できる
@@ -116,51 +106,44 @@ endif
 # ヘッダ類などを引き込んでおく必要がある場合に、先に処理を行っておきたいため
 # We define $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) as compile-time dependencies to ensure all headers are processed first
 
-# C ソースファイルのコンパイル
-# Compile C source files
-ifneq ($(OS),Windows_NT)
+# コンパイルルールのテンプレート定義
+# Compile rule template definition
+# 引数: $(1)=拡張子 (c/cc/cpp), $(2)=コンパイラ変数名 (CC/CXX), $(3)=フラグ変数名 (CFLAGS/CXXFLAGS)
+define compile_rule_template
+ifneq ($$(OS),Windows_NT)
     # Linux
-$(OBJDIR)/%.o: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
-		@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
-			echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-			LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
+$$(OBJDIR)/%.o: %.$(1) $$(OBJDIR)/%.d $$(notdir $$(LINK_SRCS)) $$(notdir $$(CP_SRCS)) | $$(OBJDIR)
+		@set -o pipefail; if echo $$(TEST_SRCS) | grep -q $$(notdir $$<); then \
+			echo LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)_TEST) -coverage -D_IN_TEST_SRC_ -c -o $$@ $$< -fdiagnostics-color=always 2>&1 | nkf; \
+			LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)_TEST) -coverage -D_IN_TEST_SRC_ -c -o $$@ $$< -fdiagnostics-color=always 2>&1 | nkf; \
 		else \
-			echo LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-			LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
+			echo LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)) -c -o $$@ $$< -fdiagnostics-color=always 2>&1 | nkf; \
+			LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)) -c -o $$@ $$< -fdiagnostics-color=always 2>&1 | nkf; \
 		fi
 else
     # Windows
-$(OBJDIR)/%.obj: %.c $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
-		@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
-			echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
-			MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS_TEST) /FdD:$(patsubst %.obj,%.pdb,$@) -D_IN_TEST_SRC_ /c /Fo$@ $< 2>&1 | nkf; \
+$$(OBJDIR)/%.obj: %.$(1) $$(OBJDIR)/%.d $$(notdir $$(LINK_SRCS)) $$(notdir $$(CP_SRCS)) | $$(OBJDIR)
+		@set -o pipefail; if echo $$(TEST_SRCS) | grep -q $$(notdir $$<); then \
+			echo MSYS_NO_PATHCONV=1 LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)_TEST) -D_IN_TEST_SRC_ /c /Fo$$@ $$< 2>&1 '|' sh $$(WORKSPACE_FOLDER)/makefw/cmnd/msvc_dep.sh $$@ $$< $$(OBJDIR)/$$*.d '|' nkf; \
+			MSYS_NO_PATHCONV=1 LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)_TEST) /FdD:$$(patsubst %.obj,%.pdb,$$@) -D_IN_TEST_SRC_ /c /Fo$$@ $$< 2>&1 | sh $$(WORKSPACE_FOLDER)/makefw/cmnd/msvc_dep.sh $$@ $$< $$(OBJDIR)/$$*.d | nkf; \
 		else \
-			echo MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /c /Fo$@ $< 2>&1 | nkf; \
-			MSYS_NO_PATHCONV=1 LANG=$(FILES_LANG) $(CC) $(DEPFLAGS) $(CFLAGS) /FdD:$(patsubst %.obj,%.pdb,$@) /c /Fo$@ $< 2>&1 | nkf; \
+			echo MSYS_NO_PATHCONV=1 LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)) /c /Fo$$@ $$< 2>&1 '|' sh $$(WORKSPACE_FOLDER)/makefw/cmnd/msvc_dep.sh $$@ $$< $$(OBJDIR)/$$*.d '|' nkf; \
+			MSYS_NO_PATHCONV=1 LANG=$$(FILES_LANG) $$($(2)) $$(DEPFLAGS) $$($(3)) /FdD:$$(patsubst %.obj,%.pdb,$$@) /c /Fo$$@ $$< 2>&1 | sh $$(WORKSPACE_FOLDER)/makefw/cmnd/msvc_dep.sh $$@ $$< $$(OBJDIR)/$$*.d | nkf; \
 		fi
 endif
+endef
+
+# C ソースファイルのコンパイル
+# Compile C source files
+$(eval $(call compile_rule_template,c,CC,CFLAGS))
 
 # C++ ソースファイルのコンパイル (*.cc)
 # Compile C++ source files (*.cc)
-$(OBJDIR)/%.o: %.cc $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
-	@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
-		echo LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-		LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-	else \
-		echo LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-		LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-	fi
+$(eval $(call compile_rule_template,cc,CXX,CXXFLAGS))
 
 # C++ ソースファイルのコンパイル (*.cpp)
 # Compile C++ source files (*.cpp)
-$(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d $(notdir $(LINK_SRCS)) $(notdir $(CP_SRCS)) | $(OBJDIR)
-	@set -o pipefail; if echo $(TEST_SRCS) | grep -q $(notdir $<); then \
-		echo LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-		LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS_TEST) -coverage -D_IN_TEST_SRC_ -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-	else \
-		echo LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-		LANG=$(FILES_LANG) $(CPP) $(DEPFLAGS) $(CPPFLAGS) -c -o $@ $< -fdiagnostics-color=always 2>&1 | nkf; \
-	fi
+$(eval $(call compile_rule_template,cpp,CXX,CXXFLAGS))
 
 # シンボリックリンク対象のソースファイルをシンボリックリンク
 # Create symbolic links for LINK_SRCS

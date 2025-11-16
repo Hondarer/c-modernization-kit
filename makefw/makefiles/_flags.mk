@@ -141,11 +141,22 @@ ifneq ($(OS),Windows_NT)
     endif
 endif
 
+# 依存関係出力用フラグ
+ifneq ($(OS),Windows_NT)
+    # Linux
+    DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
+else
+    # Windows
+    # MSVC では /showIncludes を使用して依存関係を生成
+    # Use /showIncludes to generate dependencies with MSVC
+    DEPFLAGS = /showIncludes
+endif
+
 # デバッグ出力
 #$(info ----)
 #$(info C_STANDARD: $(C_STANDARD), C_EXTENSIONS: $(C_EXTENSIONS))
 #$(info CXX_STANDARD: $(CXX_STANDARD), CXX_EXTENSIONS: $(CXX_EXTENSIONS))
-$(info DEPFLAGS: $(DEPFLAGS))
-$(info CFLAGS: $(CFLAGS))
-$(info CXXFLAGS: $(CXXFLAGS))
-$(info LDFLAGS: $(LDFLAGS))
+#$(info DEPFLAGS: $(DEPFLAGS))
+#$(info CFLAGS: $(CFLAGS))
+#$(info CXXFLAGS: $(CXXFLAGS))
+#$(info LDFLAGS: $(LDFLAGS))
