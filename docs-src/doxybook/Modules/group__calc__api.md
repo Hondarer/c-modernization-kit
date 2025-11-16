@@ -1,10 +1,10 @@
 ---
 summary: 基本的な計算機能を提供します。
-author: doxygen and doxybook
+author: doxygen and doxybook2
 toc: true
 ---
 
-<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
+<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
 
 # Calculation API
 
@@ -29,19 +29,14 @@ CALC_API int calcHandler (
 * [in] kind 演算の種別 (CALC_KIND_ADD など)。
 * [in] a 第一オペランド。
 * [in] b 第二オペランド。
-* [in] kind 演算の種別 (CALC_KIND_ADD など)。
-* [in] a 第一オペランド。
-* [in] b 第二オペランド。
 
 #### Return
 
-##### 計算結果。kind が無効な場合は -1 を返します。
-##### 計算結果。kind が無効な場合は -1 を返します。
+計算結果。kind が無効な場合は -1 を返します。
 
 #### Note
 
-##### 現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
-##### 現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
+現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
 
 #### Warning
 
@@ -51,45 +46,14 @@ CALC_API int calcHandler (
 
 この関数は演算種別を受け取り、対応する計算関数を呼び出します。 現在サポートされている演算種別は以下の通りです。
 
-| 演算種別   | 説明    |
+| 演算種別   | 説明   |
 |  -------- | -------- |
-| CALC_KIND_ADD   | 加算を実行    |
+| CALC_KIND_ADD   | 加算を実行   |
 
-使用例: ```c
+使用例:
 
+```c
 int result = calcHandler(CALC_KIND_ADD, 10, 20);
-printf("Result: %d\n", result);  // 出力: Result: 30
-```
-### add
-
-```cpp
-int add (
-    int a,
-    int b
-)
-```
-2 つの整数を加算します。
-
- #### Parameters
-
-* [in] a 第一オペランド。
-* [in] b 第二オペランド。
-
- #### Return
-
-a と b の合計値。
-
- #### Note
-
-オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。
-
- #### Details
-
-この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
-
-使用例: ```c
-
-int result = add(10, 20);
 printf("Result: %d\n", result);  // 出力: Result: 30
 ```
 

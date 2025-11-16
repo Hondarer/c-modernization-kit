@@ -1,10 +1,10 @@
 ---
 summary: add 関数の実装ファイル。
-author: doxygen and doxybook
+author: doxygen and doxybook2
 toc: true
 ---
 
-<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
+<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
 
 # calc/libsrc/calcbase/add.c
 
@@ -64,8 +64,9 @@ a と b の合計値。
 
 この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
 
-使用例: ```c
+使用例:
 
+```c
 int result = add(10, 20);
 printf("Result: %d\n", result);  // 出力: Result: 30
 ```
