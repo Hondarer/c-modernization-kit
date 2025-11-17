@@ -19,6 +19,13 @@ FILES_LANG := $(shell sh $(WORKSPACE_FOLDER)/makefw/cmnd/get_files_lang.sh)
 
 #$(info FILES_LANG: $(FILES_LANG));
 
+# FILES_LANG が UTF-8 の場合は nkf を省略 (cat で代用)
+ifneq (,$(filter %.utf8 %.UTF-8 %.utf-8 %.UTF8,$(FILES_LANG)))
+    NKF := cat
+else
+    NKF := nkf
+endif
+
 # デフォルト設定 START ##############################################################
 
 # コンフィグ設定 (RelWithDebInfo, Debug, Release)
