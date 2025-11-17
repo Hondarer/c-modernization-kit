@@ -106,7 +106,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         <span class="doc-title">クロスプラットフォーム対応設計</span>
         <ul class="nav pull-right doc-info">
                     <li><p class="navbar-text">Tetsuo Honda</p></li>
-                              <li><p class="navbar-text">Thu, 13 Nov 2025 22:36:55 +0900 18ac2c5</p></li>
+                              <li><p class="navbar-text">Mon, 17 Nov 2025 06:21:59 +0900 4a88ffa</p></li>
                   </ul>
       </div>
     </div>
@@ -780,7 +780,7 @@ testfw/makefiles/makelibsrc.mk (OS 判定部分)
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">TARGET</span><span class="ch">)</span>,)</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">BUILD</span><span class="ch">)</span>,shared)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">LIB_TYPE</span><span class="ch">)</span>,shared)</span>
 <span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
 <span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>            <span class="dt">TARGET</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">shell</span><span class="st"> basename `pwd`</span><span class="ch">)</span><span class="st">.dll</span></span>
 <span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span></span>
@@ -803,7 +803,7 @@ testfw/makefiles/makelibsrc.mk (ターゲット名設定)
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># MSVC のビルドルール</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">BUILD</span><span class="ch">)</span>,shared)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">LIB_TYPE</span><span class="ch">)</span>,shared)</span>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>        <span class="ch">$(</span><span class="dt">TARGETDIR</span><span class="ch">)</span>/<span class="ch">$(</span><span class="dt">TARGET</span><span class="ch">)</span>: <span class="ch">$(</span><span class="dt">OBJS</span><span class="ch">)</span> | <span class="ch">$(</span><span class="dt">TARGETDIR</span><span class="ch">)</span></span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>            <span class="ch">$(</span><span class="dt">CC</span><span class="ch">)</span> /LD /Fe<span class="ch">$@</span> <span class="ch">$(</span><span class="dt">OBJS</span><span class="ch">)</span></span>
 <span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
@@ -815,7 +815,7 @@ testfw/makefiles/makelibsrc.mk (ターゲット名設定)
 <span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>        <span class="ch">$(</span><span class="dt">CC</span><span class="ch">)</span> <span class="ch">$(</span><span class="dt">CFLAGS</span><span class="ch">)</span> /c /Fo<span class="ch">$@</span> <span class="ch">$&lt;</span></span>
 <span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
 <span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># GCC のビルドルール (既存コードをそのまま維持)</span></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">BUILD</span><span class="ch">)</span>,shared)</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">LIB_TYPE</span><span class="ch">)</span>,shared)</span>
 <span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>        <span class="ch">$(</span><span class="dt">TARGETDIR</span><span class="ch">)</span>/<span class="ch">$(</span><span class="dt">TARGET</span><span class="ch">)</span>: <span class="ch">$(</span><span class="dt">OBJS</span><span class="ch">)</span> | <span class="ch">$(</span><span class="dt">TARGETDIR</span><span class="ch">)</span></span>
 <span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>            <span class="ch">$(</span><span class="dt">CC</span><span class="ch">)</span> -shared -o <span class="ch">$@</span> <span class="ch">$(</span><span class="dt">OBJS</span><span class="ch">)</span></span>
 <span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>

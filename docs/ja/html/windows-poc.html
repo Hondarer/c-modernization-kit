@@ -106,7 +106,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         <span class="doc-title">Windows PoC (Proof of Concept) ビルドシステム</span>
         <ul class="nav pull-right doc-info">
                     <li><p class="navbar-text">Tetsuo Honda, Claude</p></li>
-                              <li><p class="navbar-text">Thu, 13 Nov 2025 22:36:55 +0900 18ac2c5</p></li>
+                              <li><p class="navbar-text">Mon, 17 Nov 2025 06:21:59 +0900 4a88ffa</p></li>
                   </ul>
       </div>
     </div>
@@ -225,7 +225,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>calcbase と calc の Makefile.Windows-poc はほぼ同じ内容だったため、<code>makelibsrc-windows-poc.mk</code> として共通化しました。</p>
 <p><strong>各 Makefile で設定する変数:</strong><br />
 - <code>TARGET_BASE</code>: ライブラリ名のベース（例: calcbase, calc）- 必須<br />
-- <code>BUILD</code>: ビルドモード（static/shared）- 未設定の場合は static、calc では shared 固定<br />
+- <code>LIB_TYPE</code>: ビルドモード（static/shared）- 未設定の場合は static、calc では shared 固定<br />
 - <code>LIBS</code>: 依存ライブラリ（例: calcbase）- 必要な場合のみ<br />
 - <code>LIBSDIR</code>: ライブラリ検索パス - LIBS を使用する場合のみ<br />
 - <code>EXTRA_CFLAGS</code>: 追加のコンパイラフラグ（例: /DCALC_EXPORTS）- 必要な場合のみ</p>
@@ -234,17 +234,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> ../makelibsrc-windows-poc.mk</span></code></pre></div>
 <p><strong>calc の例 / calc example (動的ライブラリ固定 / dynamic library only):</strong></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TARGET_BASE</span> <span class="ch">:=</span><span class="st"> calc</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">BUILD</span> <span class="ch">:=</span><span class="st"> shared  </span><span class="co"># 動的ライブラリ（DLL）固定 / Fixed to dynamic library (DLL)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">:=</span><span class="st"> shared  </span><span class="co"># 動的ライブラリ（DLL）固定 / Fixed to dynamic library (DLL)</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="dt">EXTRA_CFLAGS</span> <span class="ch">:=</span><span class="st"> /DCALC_EXPORTS</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBSDIR</span> <span class="ch">=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/calc/lib</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">:=</span><span class="st"> calcbase</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> ../makelibsrc-windows-poc.mk</span></code></pre></div>
 <h2 data-number="5.2" id="静的ライブラリの自動組み込み"><span class="header-section-number">5.2</span> 2. 静的ライブラリの自動組み込み</h2>
-<p><code>BUILD=shared</code> の場合、<code>calc.dll</code> は <code>calcbase.lib</code> を自動的に静的リンクします。</p>
-<p>When <code>BUILD=shared</code>, <code>calc.dll</code> automatically statically links <code>calcbase.lib</code>.</p>
+<p><code>LIB_TYPE=shared</code> の場合、<code>calc.dll</code> は <code>calcbase.lib</code> を自動的に静的リンクします。</p>
+<p>When <code>LIB_TYPE=shared</code>, <code>calc.dll</code> automatically statically links <code>calcbase.lib</code>.</p>
 <p><strong>calc/Makefile.Windows-poc の設定例:</strong></p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TARGET_BASE</span> <span class="ch">:=</span><span class="st"> calc</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">BUILD</span> <span class="ch">:=</span><span class="st"> shared</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">:=</span><span class="st"> shared</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBSDIR</span> <span class="ch">=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/calc/lib</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">:=</span><span class="st"> calcbase</span></span></code></pre></div>
 <p><strong>動作:</strong><br />
@@ -282,7 +282,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <thead>
 <tr>
 <th>ライブラリ</th>
-<th>BUILD 設定</th>
+<th>LIB_TYPE 設定</th>
 <th>Windows</th>
 <th>Linux</th>
 <th>説明</th>
@@ -305,22 +305,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 </tbody>
 </table>
-<p><strong>共通テンプレートの BUILD 変数サポート:</strong></p>
-<p>共通テンプレート <code>makelibsrc-windows-poc.mk</code> 自体は BUILD 変数による static/shared の切り替えをサポートしています。各ライブラリの Makefile にて static/shared が固定的に設定されることに対応しています。</p>
+<p><strong>共通テンプレートの LIB_TYPE 変数サポート:</strong></p>
+<p>共通テンプレート <code>makelibsrc-windows-poc.mk</code> 自体は LIB_TYPE 変数による static/shared の切り替えをサポートしています。各ライブラリの Makefile にて static/shared が固定的に設定されることに対応しています。</p>
 <h1 data-number="6" id="windows-poc-の設計思想"><span class="header-section-number">6</span> Windows PoC の設計思想</h1>
 <h2 data-number="6.1" id="ライブラリ構成の固定化"><span class="header-section-number">6.1</span> ライブラリ構成の固定化</h2>
 <p>本 PoC では、実験的実装として以下の構成で固定しています：<br />
-- <strong>libcalcbase</strong>: 静的ライブラリのみ（BUILD 変数未設定、デフォルトで static）<br />
-- <strong>libcalc</strong>: 動的ライブラリのみ（BUILD := shared を Makefile 内で固定）</p>
+- <strong>libcalcbase</strong>: 静的ライブラリのみ（LIB_TYPE 変数未設定、デフォルトで static）<br />
+- <strong>libcalc</strong>: 動的ライブラリのみ（LIB_TYPE := shared を Makefile 内で固定）</p>
 <p>この構成により、以下のメリットがあります：<br />
 1. calc.dll が calcbase.lib を内部に静的リンクする<br />
 2. 依存関係が単純化され、配布時に calc.dll のみを配置すれば動作<br />
 3. Linux 版（testfw/makefiles/makelibsrc.mk）と同様の動作を実現</p>
 <h2 data-number="6.2" id="実装ファイル"><span class="header-section-number">6.2</span> 実装ファイル</h2>
 <p><strong>ライブラリ:</strong><br />
-1. <code>prod/calc/libsrc/makelibsrc-windows-poc.mk</code> - 共通テンプレート（BUILD 変数による static/shared 切り替えをサポート）<br />
-2. <code>prod/calc/libsrc/calcbase/Makefile.Windows-poc</code> - calcbase ビルド設定（BUILD 未設定 → static）<br />
-3. <code>prod/calc/libsrc/calc/Makefile.Windows-poc</code> - calc ビルド設定（BUILD := shared 固定）</p>
+1. <code>prod/calc/libsrc/makelibsrc-windows-poc.mk</code> - 共通テンプレート（LIB_TYPE 変数による static/shared 切り替えをサポート）<br />
+2. <code>prod/calc/libsrc/calcbase/Makefile.Windows-poc</code> - calcbase ビルド設定（LIB_TYPE 未設定 → static）<br />
+3. <code>prod/calc/libsrc/calc/Makefile.Windows-poc</code> - calc ビルド設定（LIB_TYPE := shared 固定）</p>
 <p><strong>コマンド:</strong><br />
 - <code>prod/calc/src/add/Makefile.Windows-poc</code> - add コマンド（calc.lib のみリンク）<br />
 - <code>prod/calc/src/calc/Makefile.Windows-poc</code> - calc コマンド（calc.lib のみリンク）<br />
@@ -360,13 +360,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <tbody>
 <tr>
 <td>calcbase</td>
-<td><code>BUILD</code> なし（static 固定）</td>
-<td><code>BUILD</code> なし（static 固定）</td>
+<td><code>LIB_TYPE</code> なし（static 固定）</td>
+<td><code>LIB_TYPE</code> なし（static 固定）</td>
 </tr>
 <tr>
 <td>calc</td>
-<td><code>BUILD=shared</code>（calc.mk で固定）</td>
-<td><code>BUILD := shared</code>（Makefile で固定）</td>
+<td><code>LIB_TYPE=shared</code>（calc.mk で固定）</td>
+<td><code>LIB_TYPE := shared</code>（Makefile で固定）</td>
 </tr>
 <tr>
 <td>add</td>
@@ -411,13 +411,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <tbody>
 <tr>
 <td>calcbase</td>
-<td>No <code>BUILD</code> (static only)</td>
-<td>No <code>BUILD</code> (static only)</td>
+<td>No <code>LIB_TYPE</code> (static only)</td>
+<td>No <code>LIB_TYPE</code> (static only)</td>
 </tr>
 <tr>
 <td>calc</td>
-<td><code>BUILD=shared</code> (fixed in calc.mk)</td>
-<td><code>BUILD := shared</code> (fixed in Makefile)</td>
+<td><code>LIB_TYPE=shared</code> (fixed in calc.mk)</td>
+<td><code>LIB_TYPE := shared</code> (fixed in Makefile)</td>
 </tr>
 <tr>
 <td>add</td>
@@ -454,7 +454,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>make <span class="at">-f</span> Makefile.Windows<span class="at">-poc</span> debug</span></code></pre></div>
 <p>出力例 / Example output:</p>
 <pre><code>TARGET_BASE = calcbase
-BUILD = static
+LIB_TYPE = static
 OS = Windows_NT
 LIBS =
 LIBSDIR =
@@ -467,7 +467,7 @@ OBJS = obj/add.obj</code></pre>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>make <span class="at">-f</span> Makefile.Windows<span class="at">-poc</span> debug</span></code></pre></div>
 <p>出力例（BUILD は Makefile 内で shared 固定）/ Example output (BUILD fixed to shared in Makefile):</p>
 <pre><code>TARGET_BASE = calc
-BUILD = shared
+LIB_TYPE = shared
 OS = Windows_NT
 LIBS = calcbase
 LIBSDIR = D:/Users/tetsuo/Local/repos/doxygen-sample/prod/calc/lib
@@ -479,8 +479,8 @@ OBJS = obj/calcHandler.obj</code></pre>
 <ol type="1">
 <li><strong>ライブラリ構成は固定</strong>
 <ul>
-<li>libcalcbase は静的ライブラリ固定（BUILD 変数で変更不可）</li>
-<li>libcalc は動的ライブラリ（DLL）固定（BUILD 変数で変更不可）</li>
+<li>libcalcbase は静的ライブラリ固定（LIB_TYPE 変数で変更不可）</li>
+<li>libcalc は動的ライブラリ（DLL）固定（LIB_TYPE 変数で変更不可）</li>
 </ul></li>
 <li><strong>testfw テンプレートの機能は未対応</strong>
 <ul>

@@ -96,9 +96,9 @@ doxygen-sample/                          # このプロジェクト
 
 ### 計算ライブラリ (libcalc)
 
-基本的な整数演算を提供するライブラリのサンプルです。`@ingroup calc_api` を使用した API グループ化の例を示しています。
+基本的な整数演算を提供するライブラリのサンプルです。
 
-- `prod/calc/include/libcalc.h` - ライブラリヘッダー (関数宣言、CALC_KIND_ADD 定数定義、`@ingroup` による API 分類)
+- `prod/calc/include/libcalc.h` - ライブラリヘッダー (関数宣言、CALC_KIND_ADD 定数定義)
 - `prod/calc/libsrc/calc/add.c` - add 関数の実装 (2つの整数を加算)
 - `prod/calc/libsrc/calc/calcHandler.c` - calcHandler 関数の実装 (演算種別に基づく計算ハンドラー)
 

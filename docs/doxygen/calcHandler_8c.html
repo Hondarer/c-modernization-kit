@@ -102,8 +102,8 @@ Include dependency graph for calcHandler.c:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gab0b0cfaa323f14dab216e9c7bbf08ff1" id="r_gab0b0cfaa323f14dab216e9c7bbf08ff1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a> int <a class="el" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__calc__api.html#gab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a> (int kind, int a, int b)</td></tr>
-<tr class="memdesc:gab0b0cfaa323f14dab216e9c7bbf08ff1"><td class="mdescLeft">&#160;</td><td class="mdescRight">指定された演算種別に基づいて計算を実行します。  <br /></td></tr>
+<tr class="memitem:ab0b0cfaa323f14dab216e9c7bbf08ff1" id="r_ab0b0cfaa323f14dab216e9c7bbf08ff1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a> int <a class="el" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a> (int kind, int a, int b)</td></tr>
+<tr class="memdesc:ab0b0cfaa323f14dab216e9c7bbf08ff1"><td class="mdescLeft">&#160;</td><td class="mdescRight">指定された演算種別に基づいて計算を実行します。  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>calcHandler 関数の実装ファイル。 </p>
@@ -114,7 +114,81 @@ Functions</h2></td></tr>
 <dl class="section copyright"><dt>Copyright</dt><dd>Copyright (C) CompanyName, Ltd. 2025. All rights reserved. </dd></dl>
 
 <p class="definition">Definition in file <a class="el" href="calcHandler_8c_source.html">calcHandler.c</a>.</p>
-</div></div><!-- contents -->
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="ab0b0cfaa323f14dab216e9c7bbf08ff1" name="ab0b0cfaa323f14dab216e9c7bbf08ff1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0b0cfaa323f14dab216e9c7bbf08ff1">&#9670;&#160;</a></span>calcHandler()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a> int <a class="el" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a> calcHandler </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>kind</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>a</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>b</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>指定された演算種別に基づいて計算を実行します。 </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">kind</td><td>演算の種別 (CALC_KIND_ADD など)。 </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a</td><td>第一オペランド。 </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">b</td><td>第二オペランド。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>計算結果。kind が無効な場合は -1 を返します。</dd></dl>
+<p>この関数は演算種別を受け取り、対応する計算関数を呼び出します。 現在サポートされている演算種別は以下の通りです。</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">演算種別  </th><th class="markdownTableHeadNone">説明  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">CALC_KIND_ADD  </td><td class="markdownTableBodyNone">加算を実行  </td></tr>
+</table>
+<p>使用例:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">int</span> result = <a class="code hl_function" href="libcalc_8h.html#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a>(<a class="code hl_define" href="libcalc_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a>, 10, 20);</div>
+<div class="line">printf(<span class="stringliteral">&quot;Result: %d\n&quot;</span>, result);  <span class="comment">// 出力: Result: 30</span></div>
+<div class="ttc" id="alibcalc_8h_html_ab0b0cfaa323f14dab216e9c7bbf08ff1"><div class="ttname"><a href="libcalc_8h.html#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a></div><div class="ttdeci">CALC_API int WINAPI calcHandler(int kind, int a, int b)</div><div class="ttdoc">指定された演算種別に基づいて計算を実行します。</div><div class="ttdef"><b>Definition</b> <a href="calcHandler_8c_source.html#l00020">calcHandler.c:20</a></div></div>
+<div class="ttc" id="alibcalc_8h_html_aead1fc356185b0ba1c1b6e0a5708f779"><div class="ttname"><a href="libcalc_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a></div><div class="ttdeci">#define CALC_KIND_ADD</div><div class="ttdoc">加算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc_8h_source.html#l00048">libcalc.h:48</a></div></div>
+</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。 </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>無効な kind を指定した場合、-1 を返します。 呼び出し側で戻り値のチェックを行ってください。 </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="calcHandler_8c_source.html#l00020">20</a> of file <a class="el" href="calcHandler_8c_source.html">calcHandler.c</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="calcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_cgraph.png" border="0" usemap="#acalcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_cgraph" loading="lazy" alt=""/></div>
+<map name="acalcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_cgraph" id="acalcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_cgraph">
+<area shape="rect" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="5,5,96,31"/>
+<area shape="rect" href="libsrc_2calcbase_2add_8c.html#aa99823a0fc8313c9c32541ce768fb801" title="2 つの整数を加算します。" alt="" coords="144,5,187,31"/>
+<area shape="poly" title=" " alt="" coords="97,15,130,15,130,21,97,21"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="calcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_icgraph.png" border="0" usemap="#acalcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_icgraph" loading="lazy" alt=""/></div>
+<map name="acalcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_icgraph" id="acalcHandler_8c_ab0b0cfaa323f14dab216e9c7bbf08ff1_icgraph">
+<area shape="rect" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="104,5,195,31"/>
+<area shape="rect" href="calc_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="プログラムのエントリーポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" title=" " alt="" coords="90,21,56,21,56,15,90,15"/>
+</map>
+</div>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0

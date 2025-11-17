@@ -6,7 +6,7 @@
  *  @date           2025/01/30
  *  @version        1.0.0
  *
- *  このライブラリは基本的な整数演算を提供します。<br />
+ *  このライブラリは基本的な整数演算を提供します。\n
  *  静的リンクによる機能の内部関数を模しています。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.

@@ -4,8 +4,7 @@ var indexSectionsWithContent =
   1: "aclrs",
   2: "acm",
   3: "cw",
-  4: "ac",
-  5: "dfサ"
+  4: "dfサ"
 };
 
 var indexSectionNames =
@@ -14,8 +13,7 @@ var indexSectionNames =
   1: "files",
   2: "functions",
   3: "defines",
-  4: "groups",
-  5: "pages"
+  4: "pages"
 };
 
 var indexSectionLabels =
@@ -24,7 +22,6 @@ var indexSectionLabels =
   1: "Files",
   2: "Functions",
   3: "Macros",
-  4: "Modules",
-  5: "Pages"
+  4: "Pages"
 };
 
