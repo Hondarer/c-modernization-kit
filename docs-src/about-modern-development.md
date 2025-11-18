@@ -23,6 +23,8 @@
     folder "製品ドキュメント\n(Markdown)" as src_md
     folder "テストのソースコード" as test_src #ffc0c0
     folder "単体試験結果\n(テストエビデンス)" as test_evi
+    component "gcov" as gcov
+    component "lcov" as lcov
     component "Google Test\n(w/Google Mock)" as gtest
     folder "関連ドキュメント\n(Markdown)" as docs_md #ffc0c0
     component Pandoc
@@ -43,6 +45,10 @@
     Doxybook2 --> src_md
     Doxygen --> html
     src --> gtest
+    src --> gcov
+    gcov --> lcov
+    gcov --> test_evi
+    lcov --> test_evi
     test_src --> gtest
     gtest -----> test_evi
     docs_md --> Pandoc
