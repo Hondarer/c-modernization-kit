@@ -1,5 +1,7 @@
 # クロスプラットフォームビルドシステムの設計と実装
 
+TODO: 未精査。
+
 ## 概要
 
 このドキュメントは、c-modernization-kit プロジェクトのクロスプラットフォームビルドシステムの設計、実装、および使用方法を説明します。
@@ -10,8 +12,8 @@
 
 - prod, test 配下のソースコードを Linux と Windows の両環境でビルドできるようにする
 - doxyfw でのドキュメント生成を Linux と Windows の両環境で実行できるようにする
-- makefw フレームワークをクロスプラットフォーム対応する（他のプロジェクトでも利用可能にする）
-- 既存の Linux 環境でのビルドを完全に維持する（動作に変更を加えない）
+- makefw フレームワークをクロスプラットフォーム対応する (他のプロジェクトでも利用可能にする)
+- 既存の Linux 環境でのビルドを完全に維持する (動作に変更を加えない)
 - Windows 環境では MSVC (cl.exe, lib.exe, link.exe) を使用する
 - Git for Windows に付属している MinGW 環境のシェルコマンドを活用して、既存スクリプトの互換性を保つ
 
@@ -29,16 +31,19 @@
    - GNU Make (`make.exe`)
    - 各種 Unix コマンド
 
-3. **環境設定の実行順序（手動設定時のみ）**
+3. **環境設定の実行順序 (手動設定時のみ)**
+
    ```cmd
    call Add-MinGW-Path.cmd
    call Add-VSBT-Env-x64.cmd
    ```
+
    この順序で実行することで、MSVC の `link.exe` が MinGW の `link` より優先されます。
 
 ### Linux 環境
 
 標準的な開発ツールが必要です：
+
 - GCC コンパイラ
 - GNU Make
 
@@ -49,11 +54,13 @@
 プロジェクトルートまたは `prod/calc` ディレクトリで make コマンドを実行します：
 
 **Windows:**
+
 ```cmd
 make
 ```
 
 **Linux:**
+
 ```bash
 make
 ```
@@ -64,8 +71,8 @@ make
 
 | ライブラリ | Windows | Linux | 説明 |
 |-----------|---------|-------|------|
-| libcalcbase | `prod/calc/lib/calcbase.lib` | `prod/calc/lib/libcalcbase.a` | 基本計算関数ライブラリ（静的ライブラリ固定） |
-| libcalc | `prod/calc/lib/calc.dll` + `calc.lib` | `prod/calc/lib/libcalc.so` | 計算ハンドラーライブラリ（動的ライブラリ固定、calcbase を内部に静的リンク） |
+| libcalcbase | `prod/calc/lib/calcbase.lib` | `prod/calc/lib/libcalcbase.a` | 基本計算関数ライブラリ (静的ライブラリ固定) |
+| libcalc | `prod/calc/lib/calc.dll` + `calc.lib` | `prod/calc/lib/libcalc.so` | 計算ハンドラーライブラリ (動的ライブラリ固定、calcbase を内部に静的リンク) |
 
 **コマンド / Commands:**
 
@@ -82,31 +89,36 @@ make
 test/ ディレクトリでテストをビルド・実行します：
 
 **Windows:**
+
 ```cmd
 cd test
 make
 ```
 
 **Linux:**
+
 ```bash
 cd test
 make
 ```
 
 テストは Google Test フレームワークを使用しており、以下の種類があります：
-- **単体テスト**: ライブラリ関数の単体テスト（`test/src/calc/libcalcbaseTest/`）
-- **統合テスト**: コマンド全体の統合テスト（`test/src/calc/main/`）
-- **モックライブラリ**: テスト用のモック実装（`test/libsrc/mock_*/`）
+
+- **単体テスト**: ライブラリ関数の単体テスト (`test/src/calc/libcalcbaseTest/`)
+- **統合テスト**: コマンド全体の統合テスト (`test/src/calc/main/`)
+- **モックライブラリ**: テスト用のモック実装 (`test/libsrc/mock_*/`)
 
 ### クリーンアップ
 
 **プロダクションコードのクリーンアップ:**
+
 ```bash
 cd prod/calc
 make clean
 ```
 
 **テストコードのクリーンアップ:**
+
 ```bash
 cd test
 make clean
@@ -116,9 +128,9 @@ make clean
 
 ### プロジェクト構造
 
-```
+```text
 c-modernization-kit/
-├── makefw/                              # Makefile フレームワーク（testfw から切り出し）
+├── makefw/                              # Makefile フレームワーク (testfw から切り出し)
 │   ├── makefiles/
 │   │   ├── makelibsrc.mk               # ライブラリビルド用共通テンプレート
 │   │   ├── makesrc.mk                  # 実行ファイルビルド用共通テンプレート
@@ -126,15 +138,15 @@ c-modernization-kit/
 │   │   └── _*.mk                       # 内部処理用ファイル
 │   └── docs-src/                       # フレームワーク技術ドキュメント
 ├── prod/calc/
-│   ├── Makefile                        # トップレベル Makefile（再帰ビルド）
+│   ├── Makefile                        # トップレベル Makefile (再帰ビルド)
 │   ├── libsrc/
 │   │   ├── Makefile                    # libsrc 配下の再帰ビルド
 │   │   ├── makeflags.mk                # ライブラリ共通設定
 │   │   ├── calcbase/
-│   │   │   └── Makefile                # calcbase ビルド定義（静的ライブラリ）
+│   │   │   └── Makefile                # calcbase ビルド定義 (静的ライブラリ)
 │   │   └── calc/
-│   │       ├── Makefile                # calc ビルド定義（動的ライブラリ）
-│   │       └── makeflags.mk            # calc 固有設定（LIB_TYPE=shared）
+│   │       ├── Makefile                # calc ビルド定義 (動的ライブラリ)
+│   │       └── makeflags.mk            # calc 固有設定 (LIB_TYPE=shared)
 │   └── src/
 │       ├── Makefile                    # src 配下の再帰ビルド
 │       ├── add/
@@ -168,6 +180,7 @@ c-modernization-kit/
 ```
 
 **設計方針**:
+
 - 単一の `Makefile` で Linux/Windows 両対応
 - makefw テンプレートが OS 判定を自動処理
 - 各 Makefile は最小限の設定のみを記述
@@ -179,6 +192,7 @@ c-modernization-kit/
 `makefw` は testfw から Makefile 機能を切り出したフレームワークです。共通テンプレートにより、Windows/Linux の差異を吸収します。
 
 **ライブラリ用 Makefile の基本形:**
+
 ```makefile
 # ワークスペース検索
 find-up = ...
@@ -187,7 +201,7 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理を include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# 依存ライブラリの指定（必要な場合）
+# 依存ライブラリの指定 (必要な場合)
 LIBS += calcbase
 
 # ライブラリビルドテンプレートを include
@@ -195,8 +209,9 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk
 ```
 
 **実行ファイル用 Makefile の基本形:**
+
 ```makefile
-# （ワークスペース検索は同じ）
+# (ワークスペース検索は同じ)
 
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 LIBS += calc
@@ -208,6 +223,7 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk
 各ライブラリ/コマンド固有の設定は `makeflags.mk` に記述できます。
 
 **calc/makeflags.mk の例:**
+
 ```makefile
 ifeq ($(OS),Windows_NT)
     # Windows: DLL エクスポート定義
@@ -222,6 +238,7 @@ LIB_TYPE = shared
 この設定により、calc は Windows では DLL、Linux では .so として自動的にビルドされます。
 
 **test/makeflags.mk の例:**
+
 ```makefile
 # テストフレームワークをリンク
 LINK_TEST = 1
@@ -243,20 +260,23 @@ LIBSDIR += \
 
 ### 3. 静的ライブラリの自動組み込み
 
-`LIB_TYPE=shared` の場合、動的ライブラリ（DLL/.so）は依存する静的ライブラリを自動的に内部リンクします。
+`LIB_TYPE=shared` の場合、動的ライブラリ (DLL/.so) は依存する静的ライブラリを自動的に内部リンクします。
 
 **calc/Makefile の例:**
+
 ```makefile
 LIBS += calcbase
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk
 ```
 
 **calc/makeflags.mk:**
+
 ```makefile
 LIB_TYPE = shared
 ```
 
 **動作:**
+
 - `LIBS` に指定された `calcbase` をライブラリ検索パスから検索
   - Windows: `calcbase.lib` を検索
   - Linux: `libcalcbase.a` を検索
@@ -268,6 +288,7 @@ LIB_TYPE = shared
 makefw テンプレートが Windows (MSVC) と Linux (GCC) の両方に自動対応します。
 
 **makefw/makefiles/makelibsrc.mk 内の OS 判定:**
+
 ```makefile
 ifeq ($(OS),Windows_NT)
     # Windows (MSVC)
@@ -294,6 +315,7 @@ endif
 | libcalc | `shared` (makeflags.mk で指定) | `.dll` + `.lib` | `.so` | 動的ライブラリ + インポートライブラリ |
 
 **LIB_TYPE 変数:**
+
 - 未設定の場合はデフォルトで `static`
 - `makeflags.mk` で `LIB_TYPE = shared` を指定すると動的ライブラリとしてビルド
 
@@ -350,6 +372,7 @@ Windows 環境では、Git for Windows に付属する MinGW 環境を活用し�
 ### makefw フレームワーク
 
 makefw は testfw から Makefile 関連機能を切り出したフレームワークです：
+
 - **testfw**: テスト実行、モック、Google Test 統合に特化
 - **makefw**: クロスプラットフォームビルドシステムに特化
 
@@ -358,10 +381,12 @@ makefw は testfw から Makefile 関連機能を切り出したフレームワ�
 ### ライブラリ構成
 
 本プロジェクトでは、以下の構成を採用しています：
-- **libcalcbase**: 静的ライブラリ（LIB_TYPE 変数未設定、デフォルトで static）
-- **libcalc**: 動的ライブラリ（makeflags.mk で `LIB_TYPE = shared` を指定）
+
+- **libcalcbase**: 静的ライブラリ (LIB_TYPE 変数未設定、デフォルトで static)
+- **libcalc**: 動的ライブラリ (makeflags.mk で `LIB_TYPE = shared` を指定)
 
 この構成により、以下のメリットがあります：
+
 1. calc.dll/.so が calcbase を内部に静的リンクする
 2. 依存関係が単純化され、配布時に calc.dll/.so のみを配置すれば動作
 3. Windows と Linux で同様の動作を実現
@@ -369,22 +394,26 @@ makefw は testfw から Makefile 関連機能を切り出したフレームワ�
 ### 実装ファイル
 
 **フレームワーク:**
+
 - `makefw/makefiles/makelibsrc.mk` - ライブラリビルド用共通テンプレート
 - `makefw/makefiles/makesrc.mk` - 実行ファイルビルド用共通テンプレート
 - `makefw/makefiles/prepare.mk` - 準備処理
 
 **ライブラリ:**
-- `prod/calc/libsrc/calcbase/Makefile` - calcbase ビルド定義（LIB_TYPE 未設定 → static）
+
+- `prod/calc/libsrc/calcbase/Makefile` - calcbase ビルド定義 (LIB_TYPE 未設定 → static)
 - `prod/calc/libsrc/calc/Makefile` - calc ビルド定義
-- `prod/calc/libsrc/calc/makeflags.mk` - calc 固有設定（LIB_TYPE = shared）
+- `prod/calc/libsrc/calc/makeflags.mk` - calc 固有設定 (LIB_TYPE = shared)
 
 **コマンド:**
-- `prod/calc/src/add/Makefile` - add コマンド（calcbase のみリンク）
-- `prod/calc/src/calc/Makefile` - calc コマンド（calc のみリンク）
-- `prod/calc/src/shared-and-static-add/Makefile` - shared-and-static-add コマンド（calc + calcbase をリンク）
+
+- `prod/calc/src/add/Makefile` - add コマンド (calcbase のみリンク)
+- `prod/calc/src/calc/Makefile` - calc コマンド (calc のみリンク)
+- `prod/calc/src/shared-and-static-add/Makefile` - shared-and-static-add コマンド (calc + calcbase をリンク)
 
 **テスト:**
-- `test/makeflags.mk` - テスト共通設定（テストフレームワークリンク、警告レベル設定）
+
+- `test/makeflags.mk` - テスト共通設定 (テストフレームワークリンク、警告レベル設定)
 - `test/libsrc/mock_calcbase/Makefile` - calcbase モックライブラリ
 - `test/libsrc/mock_calc/Makefile` - calc モックライブラリ
 - `test/src/calc/libcalcbaseTest/addTest/Makefile` - add 関数単体テスト
@@ -411,19 +440,22 @@ makefw テンプレートには `debug` ターゲットがあり、設定され�
 **calcbase のデバッグ:**
 
 Windows:
+
 ```cmd
 cd prod\calc\libsrc\calcbase
 make debug
 ```
 
 Linux:
+
 ```bash
 cd prod/calc/libsrc/calcbase
 make debug
 ```
 
-出力例（Windows の場合）:
-```
+出力例 (Windows の場合):
+
+```text
 TARGET = calcbase.lib
 LIB_TYPE = static
 OS = Windows_NT
@@ -435,19 +467,22 @@ OBJS = obj/add.obj
 **calc のデバッグ:**
 
 Windows:
+
 ```cmd
 cd prod\calc\libsrc\calc
 make debug
 ```
 
 Linux:
+
 ```bash
 cd prod/calc/libsrc/calc
 make debug
 ```
 
-出力例（Windows の場合、makeflags.mk で LIB_TYPE=shared 設定済み）:
-```
+出力例 (Windows の場合、makeflags.mk で LIB_TYPE=shared 設定済み):
+
+```text
 TARGET = calc.dll
 LIB_TYPE = shared
 OS = Windows_NT
@@ -459,12 +494,12 @@ OBJS = obj/calcHandler.obj
 ## 現在の制限事項
 
 1. **ライブラリ構成の固定**
-   - libcalcbase は静的ライブラリとして実装（makeflags.mk で変更可能だが、依存関係上推奨しない）
-   - libcalc は動的ライブラリとして実装（makeflags.mk で `LIB_TYPE = shared` 設定済み）
+   - libcalcbase は静的ライブラリとして実装 (makeflags.mk で変更可能だが、依存関係上推奨しない)
+   - libcalc は動的ライブラリとして実装 (makeflags.mk で `LIB_TYPE = shared` 設定済み)
 
 2. **testfw 機能との分離**
    - makefw はビルドシステムのみを提供
-   - テスト機能（inject, filter, モック）は testfw が提供
+   - テスト機能 (inject, filter, モック) は testfw が提供
 
 3. **ライブラリ検索パス**
    - `LIBSDIR` で指定されたパスから検索
@@ -490,7 +525,7 @@ OBJS = obj/calcHandler.obj
 
 このセクションでは、クロスプラットフォーム対応の実装で得られた重要な知見とベストプラクティスを説明します。
 
-### 環境設定スクリプトの実行順序（重要）
+### 環境設定スクリプトの実行順序 (重要)
 
 Windows 環境では、環境設定スクリプトを**必ず以下の順序で実行する必要があります**：
 
@@ -508,7 +543,7 @@ link: extra operand 'calc.lib'
 Try 'link --help' for more information.
 ```
 
-これは、MinGW の `link` コマンド（シンボリックリンク作成用）が呼び出されてしまうためです。
+これは、MinGW の `link` コマンド (シンボリックリンク作成用) が呼び出されてしまうためです。
 
 ### UTF-8 ソースコードへの対応
 
