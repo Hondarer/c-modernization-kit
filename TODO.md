@@ -1,10 +1,8 @@
 # ToDo
 
-## Windows 側の make test 対応
-
-性能に難があるが、動作するようになった。
-
 ## Windows 側のカバレッジツール検討
+
+OpenCppCoverage で進める。
 
 ## gtest のライブラリ
 
