@@ -29,3 +29,7 @@ coverage.xml
 ## 成果物 (Windows)
 *.exe
 *.pdb
+
+# puhlished docs
+/docs/ja/docx
+/docs/ja-details/docx
