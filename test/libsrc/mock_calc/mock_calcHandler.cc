@@ -1,11 +1,18 @@
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+#endif // _WIN32
 #include <gmock/gmock.h>
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif // _WIN32
 
 #include <test_com.h>
 #include <mock_calc.h>
 
 using namespace testing;
 
-int calcHandler(int kind, int a, int b)
+CALC_API int WINAPI calcHandler(int kind, int a, int b)
 {
     int rtc = 0;
 

@@ -9,8 +9,8 @@ clean : $(SUBDIRS)
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :
 	@if [ -f $@/Makefile ]; then \
-		echo make -C $@ $(MAKECMDGOALS); \
-		make -C $@ $(MAKECMDGOALS); \
+		echo $(MAKE) -C $@ $(MAKECMDGOALS); \
+		$(MAKE) -C $@ $(MAKECMDGOALS) || exit 1; \
 	else \
 		echo "Skipping directory '$@' (no Makefile)"; \
 	fi

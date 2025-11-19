@@ -1,10 +1,10 @@
 ---
 summary: add 関数の呼び出しコマンド。
-author: doxygen and doxybook
+author: doxygen and doxybook2
 toc: true
 ---
 
-<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
+<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
 
 # calc/src/add/add.c
 

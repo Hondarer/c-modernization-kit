@@ -1,8 +1,8 @@
 ---
-author: doxygen and doxybook
+author: doxygen and doxybook2
 ---
 
-<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
+<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
 
 # ファイルの一覧
 

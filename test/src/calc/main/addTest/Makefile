@@ -1,30 +1,26 @@
 # ワークスペースのディレクトリ
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # テスト対象のソースファイル
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/src/add/add.c
 
-# リンクオプションの追加
-# -Wl,--wrap=main により、エントリポイントを __wrap_main() に、元々のエントリポイントを __real_main() に変更
-LDCOMFLAGS += -Wl,--wrap=main
+# エントリーポイントの変更
+# テスト対象のソースファイルにある main() は直接実行されず、
+# テストコード内から __real_main() 経由で実行される
+USE_WRAP_MAIN := 1
 
 # ライブラリの追加
-# -lgtest_wrapmain にて、__wrap_main() 経由でのテスト実施
-# テスト対象のソースファイルにある main() は実行されない
-LIBS += -lgtest_wrapmain -lmock_libc -lmock_calcbase -ltest_com
+LIBS += mock_libc mock_calcbase test_com
 
 # src の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

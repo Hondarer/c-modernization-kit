@@ -5,16 +5,34 @@
             "includePath": [
                 "${workspaceFolder}/prod/calc/include",
                 "${workspaceFolder}/testfw/include",
+                "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/include"
             ],
             "defines": [
                 "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
-                "GOOGLETEST_C_SAMPLE"
+                "C_MODERNIZATION_KIT" // ユーザー指定の define の例
             ],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c99",
-            "cppStandard": "gnu++17",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
             "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/prod/calc/include",
+                "${workspaceFolder}/testfw/include",
+                "${workspaceFolder}/testfw/gtest/include",
+                "${workspaceFolder}/test/include"
+            ],
+            "defines": [
+                // 安全のため、_CRT_SECURE_NO_WARNINGS は指定しない
+                "C_MODERNIZATION_KIT" // ユーザー指定の define の例
+            ],
+            "compilerPath": "cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4

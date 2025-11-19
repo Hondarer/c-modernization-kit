@@ -23,6 +23,8 @@
     folder "製品ドキュメント\n(Markdown)" as src_md
     folder "テストのソースコード" as test_src #ffc0c0
     folder "単体試験結果\n(テストエビデンス)" as test_evi
+    component "gcov" as gcov
+    component "lcov" as lcov
     component "Google Test\n(w/Google Mock)" as gtest
     folder "関連ドキュメント\n(Markdown)" as docs_md #ffc0c0
     component Pandoc
@@ -43,6 +45,10 @@
     Doxybook2 --> src_md
     Doxygen --> html
     src --> gtest
+    src --> gcov
+    gcov --> lcov
+    gcov --> test_evi
+    lcov --> test_evi
     test_src --> gtest
     gtest -----> test_evi
     docs_md --> Pandoc
@@ -122,7 +128,7 @@ CI に脆弱性スキャンや静的解析を組み込み、既知のリスク�
 
 ## 導入ステップ
 
-1. Docs as Code の導入から始めます。重要な関数から Doxygen コメントを追加します (`@ingroup` で整理)。
+1. Docs as Code の導入から始めます。重要な関数から Doxygen コメントを追加します。
 2. バージョン管理を整えます。ブランチ戦略を決め、生成物も Git で差分管理します。
 3. 自動テストを追加します。頻繁に触る箇所やリスクが高い箇所を優先します。
 4. CI を構築します。チームに合うサービスを選びます。

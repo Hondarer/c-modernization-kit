@@ -96,9 +96,9 @@ doxygen-sample/                          # このプロジェクト
 
 ### 計算ライブラリ (libcalc)
 
-基本的な整数演算を提供するライブラリのサンプルです。`@ingroup calc_api` を使用した API グループ化の例を示しています。
+基本的な整数演算を提供するライブラリのサンプルです。
 
-- `prod/calc/include/libcalc.h` - ライブラリヘッダー (関数宣言、CALC_KIND_ADD 定数定義、`@ingroup` による API 分類)
+- `prod/calc/include/libcalc.h` - ライブラリヘッダー (関数宣言、CALC_KIND_ADD 定数定義)
 - `prod/calc/libsrc/calc/add.c` - add 関数の実装 (2つの整数を加算)
 - `prod/calc/libsrc/calc/calcHandler.c` - calcHandler 関数の実装 (演算種別に基づく計算ハンドラー)
 
@@ -133,10 +133,10 @@ GNU Make (make.exe) へのパスはすでに通っています。
 呼び出しを行えるようにするには、
 
 ```cmd
-set-vsbt-env-x64.bat
+Add-VSBT-Env-x64.cmd
 ```
 
-を実行する必要があります。set-vsbt-env-x64.bat より、パスを含む環境変数が設定されます。  
+を実行する必要があります。Add-VSBT-Env-x64.cmd より、パスを含む環境変数が設定されます。  
 call 命令で実行しないと、環境変数を取り込めない点に注意が必要です。
 
 #### Git for Windows のパス設定
@@ -157,7 +157,7 @@ call 命令で実行しないと、環境変数を取り込めない点に注意
 
 ```cmd
 call Add-MinGW-Path.cmd
-call set-vsbt-env-x64.bat
+call Add-VSBT-Env-x64.cmd
 ```
 
 この順序で実行することで、MSVC の `link.exe` が MinGW の `link` コマンドより優先されます。逆の順序で実行すると、リンク時に MinGW の `link` が呼び出され、ビルドが失敗します。

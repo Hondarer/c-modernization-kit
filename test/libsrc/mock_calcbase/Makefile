@@ -1,17 +1,14 @@
 # ワークスペースのディレクトリ
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # libsrc の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makelibsrc.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk

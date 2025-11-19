@@ -1,10 +1,10 @@
 ---
 summary: 計算ライブラリ (静的リンク用) のヘッダーファイル。
-author: doxygen and doxybook
+author: doxygen and doxybook2
 toc: true
 ---
 
-<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook. Manual edits are NOT allowed. -->
+<!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
 
 # calc/include/libcalcbase.h
 
@@ -52,13 +52,10 @@ int add (
 
 * [in] a 第一オペランド。
 * [in] b 第二オペランド。
-* [in] a 第一オペランド。
-* [in] b 第二オペランド。
 
 #### Return
 
-##### a と b の合計値。
-##### a と b の合計値。
+a と b の合計値。
 
 #### Note
 
@@ -68,8 +65,9 @@ int add (
 
 この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
 
-使用例: ```c
+使用例:
 
+```c
 int result = add(10, 20);
 printf("Result: %d\n", result);  // 出力: Result: 30
 ```
