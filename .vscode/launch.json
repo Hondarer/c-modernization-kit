@@ -35,6 +35,22 @@
             "internalConsoleOptions": "neverOpen"
         },
         {
+            "name": "(Linux gdb) Attach to PID",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${input:programPath}",
+            "processId": "${input:processId}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(Windows vsdbg) Debug current directory",
             "request": "launch",
             "type": "cppvsdbg",
@@ -51,6 +67,24 @@
             ],
             "console": "integratedTerminal",
             "preLaunchTask": "make all (current dir)"
+        },
+        {
+            "name": "(Windows vsdbg) Attach to PID",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processId": "${input:processId}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "processId",
+            "type": "promptString",
+            "description": "Enter the process ID to attach to"
+        },
+        {
+            "id": "programPath",
+            "type": "promptString",
+            "description": "Enter the program path (relative to workspace or absolute)"
         }
     ]
 }
