@@ -9,6 +9,8 @@ C 言語のサンプルソースコードから高品質な日本語ドキュメ
 ## 特徴
 
 - **Doxygen フレームワーク**: サブモジュール `doxyfw` として統合された包括的なドキュメント生成システム
+- **Makefile フレームワーク**: サブモジュール `makefw` として統合されたクロスプラットフォーム対応ビルドシステム
+- **テストフレームワーク**: サブモジュール `testfw` として統合された Google Test ベースのテスト基盤
 - **日本語対応**: 日本語コメントに最適化されたカスタムテンプレート
 - **複数形式出力**: HTML と Markdown の両方でドキュメント生成
 - **サンプルコード**: 実際の C プロジェクトでの使用例
@@ -70,6 +72,7 @@ cd doxyfw && make clean
 このプロジェクトは以下のサブモジュールを使用しています。
 
 - `doxyfw` - Doxygen ドキュメント生成フレームワーク ([doxyfw/CLAUDE.md](./doxyfw/CLAUDE.md))
+- `makefw` - クロスプラットフォーム Makefile フレームワーク ([makefw/](./makefw/))
 - `testfw` - Google Test ベースのテストフレームワーク ([testfw/README.md](./testfw/README.md))
 
 ## ライセンス

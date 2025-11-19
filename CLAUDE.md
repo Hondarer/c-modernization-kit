@@ -14,6 +14,7 @@ Doxygen フレームワーク機能はサブモジュール `doxyfw` として�
 
 - `prod/calc/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
 - `doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール)
+- `makefw/` - Makefile ビルドフレームワーク (git サブモジュール)
 - `testfw/` - テストフレームワーク (git サブモジュール)
 - `Doxyfile.part` - プロジェクト固有の Doxygen 設定
 
@@ -33,6 +34,19 @@ Doxygen ドキュメント生成機能を提供するフレームワークです
 - 日本語ドキュメント出力用のカスタムテンプレート
 
 詳細な使用方法や設定については、`doxyfw/CLAUDE.md` を参照してください。
+
+### makefw
+
+C/C++ プロジェクト向けのクロスプラットフォーム Makefile フレームワークです。
+
+`makefw` サブモジュールは以下の機能を提供します。
+
+- GCC (Linux/MinGW) と MSVC (Windows) の両方に対応した再利用可能なビルドルール
+- 依存関係の自動管理
+- ソースファイルの自動収集
+- コンパイルフラグの統一管理
+
+詳細な使用方法については、`makefw/` 内のドキュメントを参照してください。
 
 ### testfw
 
@@ -72,6 +86,10 @@ doxygen-sample/                          # このプロジェクト
 │   ├── docs-src/                    # フレームワーク技術ドキュメント
 │   ├── Makefile                     # ドキュメント生成用 Makefile
 │   └── CLAUDE.md                    # フレームワーク詳細ドキュメント
+├── makefw/                           # Makefile フレームワーク (git submodule)
+│   ├── makefiles/                   # 再利用可能な Makefile 群
+│   ├── cmnd/                        # ビルド支援スクリプト
+│   └── docs-src/                    # フレームワーク技術ドキュメント
 ├── testfw/                           # テストフレームワーク (git submodule)
 │   ├── cmnd/                        # テスト実行スクリプト群
 │   ├── include/                     # テスト用ヘッダーファイル
