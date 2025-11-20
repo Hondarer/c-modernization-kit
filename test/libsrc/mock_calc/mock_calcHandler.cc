@@ -12,18 +12,18 @@
 
 using namespace testing;
 
-CALC_API int WINAPI calcHandler(int kind, int a, int b)
+CALC_API int WINAPI calcHandler(int kind, int a, int b, int *result)
 {
     int rtc = 0;
 
     if (_mock_calc != nullptr)
     {
-        rtc = _mock_calc->calcHandler(kind, a, b);
+        rtc = _mock_calc->calcHandler(kind, a, b, result);
     }
 
     if (getTraceLevel() > TRACE_NONE)
     {
-        printf("  > %s %d, %d, %d", __func__, kind, a, b);
+        printf("  > %s %d, %d, %d, %p", __func__, kind, a, b, (void *)result);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
             printf(" -> %d\n", rtc);

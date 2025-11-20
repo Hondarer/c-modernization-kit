@@ -12,18 +12,93 @@
 
 using namespace testing;
 
-int add(int a, int b)
+int add(int a, int b, int *result)
 {
     int rtc = 0;
 
     if (_mock_calcbase != nullptr)
     {
-        rtc = _mock_calcbase->add(a, b);
+        rtc = _mock_calcbase->add(a, b, result);
     }
 
     if (getTraceLevel() > TRACE_NONE)
     {
-        printf("  > %s %d, %d", __func__, a, b);
+        printf("  > %s %d, %d, %p", __func__, a, b, (void *)result);
+        if (getTraceLevel() >= TRACE_DETAIL)
+        {
+            printf(" -> %d\n", rtc);
+        }
+        else
+        {
+            printf("\n");
+        }
+    }
+
+    return rtc;
+}
+
+int subtract(int a, int b, int *result)
+{
+    int rtc = 0;
+
+    if (_mock_calcbase != nullptr)
+    {
+        rtc = _mock_calcbase->subtract(a, b, result);
+    }
+
+    if (getTraceLevel() > TRACE_NONE)
+    {
+        printf("  > %s %d, %d, %p", __func__, a, b, (void *)result);
+        if (getTraceLevel() >= TRACE_DETAIL)
+        {
+            printf(" -> %d\n", rtc);
+        }
+        else
+        {
+            printf("\n");
+        }
+    }
+
+    return rtc;
+}
+
+int multiply(int a, int b, int *result)
+{
+    int rtc = 0;
+
+    if (_mock_calcbase != nullptr)
+    {
+        rtc = _mock_calcbase->multiply(a, b, result);
+    }
+
+    if (getTraceLevel() > TRACE_NONE)
+    {
+        printf("  > %s %d, %d, %p", __func__, a, b, (void *)result);
+        if (getTraceLevel() >= TRACE_DETAIL)
+        {
+            printf(" -> %d\n", rtc);
+        }
+        else
+        {
+            printf("\n");
+        }
+    }
+
+    return rtc;
+}
+
+int divide(int a, int b, int *result)
+{
+    int rtc = 0;
+
+    if (_mock_calcbase != nullptr)
+    {
+        rtc = _mock_calcbase->divide(a, b, result);
+    }
+
+    if (getTraceLevel() > TRACE_NONE)
+    {
+        printf("  > %s %d, %d, %p", __func__, a, b, (void *)result);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
             printf(" -> %d\n", rtc);

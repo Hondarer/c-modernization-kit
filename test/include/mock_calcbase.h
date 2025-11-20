@@ -9,7 +9,10 @@
 class Mock_calcbase
 {
 public:
-    MOCK_METHOD(int, add, (int, int));
+    MOCK_METHOD(int, add, (int, int, int *));
+    MOCK_METHOD(int, subtract, (int, int, int *));
+    MOCK_METHOD(int, multiply, (int, int, int *));
+    MOCK_METHOD(int, divide, (int, int, int *));
 
     Mock_calcbase();
     ~Mock_calcbase();
