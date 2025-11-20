@@ -44,8 +44,11 @@ TEST_F(calcTest, normal)
 
     // Pre-Assert
     EXPECT_CALL(mock_calc, calcHandler(CALC_KIND_ADD, 1, 2, _))
-        .WillOnce(DoAll(SetArgPointee<3>(3), Return(0))); // [Pre-Assert確認] - calcHandler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
-                                                          // [Pre-Assert手順] - result に 3 を設定し、0 を返す。
+        .WillOnce([](int, int, int, int *result) {
+            *result = 3;
+            return 0;
+        }); // [Pre-Assert確認] - calcHandler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
+            // [Pre-Assert手順] - result に 3 を設定し、0 を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
         .WillOnce(DoDefault()); // [Pre-Assert確認] - printf() が 1 回呼び出され、内容が "3\n" であること。
 
