@@ -56,7 +56,11 @@ int main(int argc, char *argv[])
     switch (argv[2][0])
     {
     case '+':
-        result = calcHandler(CALC_KIND_ADD, arg1, arg3);
+        if (calcHandler(CALC_KIND_ADD, arg1, arg3, &result) != 0)
+        {
+            fprintf(stderr, "Error: calcHandler failed\n");
+            return 1;
+        }
         break;
     default:
         fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);

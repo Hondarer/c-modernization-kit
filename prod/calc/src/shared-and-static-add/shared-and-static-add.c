@@ -57,9 +57,20 @@ int main(int argc, char *argv[])
     {
     case '+':
     {
-        int result_shared = calcHandler(CALC_KIND_ADD, arg1, arg3);
+        int result_shared;
+        if (calcHandler(CALC_KIND_ADD, arg1, arg3, &result_shared) != 0)
+        {
+            fprintf(stderr, "Error: calcHandler failed\n");
+            return 1;
+        }
         printf("result_shared: %d\n", result_shared);
-        int result_static = add(arg1, arg3);
+
+        int result_static;
+        if (add(arg1, arg3, &result_static) != 0)
+        {
+            fprintf(stderr, "Error: add failed\n");
+            return 1;
+        }
         printf("result_static: %d\n", result_static);
 
         break;

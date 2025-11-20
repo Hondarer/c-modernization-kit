@@ -44,7 +44,13 @@ int main(int argc, char *argv[])
 
     int arg1 = atoi(argv[1]);
     int arg2 = atoi(argv[2]);
-    int result = add(arg1, arg2);
+    int result;
+
+    if (add(arg1, arg2, &result) != 0)
+    {
+        fprintf(stderr, "Error: add failed\n");
+        return 1;
+    }
 
     printf("%d\n", result);
 
