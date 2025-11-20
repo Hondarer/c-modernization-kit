@@ -57,5 +57,5 @@ TEST_F(calcTest, normal)
     int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(0, rtc); // [確認] - 戻り値が 0 であること。
+    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
 }
