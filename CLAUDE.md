@@ -14,6 +14,7 @@ Doxygen フレームワーク機能はサブモジュール `doxyfw` として�
 
 - `prod/calc/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
 - `doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール)
+- `docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール)
 - `testfw/` - テストフレームワーク (git サブモジュール)
 - `Doxyfile.part` - プロジェクト固有の Doxygen 設定
 
@@ -33,6 +34,19 @@ Doxygen ドキュメント生成機能を提供するフレームワークです
 - 日本語ドキュメント出力用のカスタムテンプレート
 
 詳細な使用方法や設定については、`doxyfw/CLAUDE.md` を参照してください。
+
+### docsfw
+
+Markdown から HTML や docx を Pandoc で生成するためのフレームワークです。
+
+`docsfw` サブモジュールは以下の機能を提供します。
+
+- Pandoc を使用した Markdown から HTML/docx への変換
+- PlantUML 図の統合
+- 多言語ドキュメント対応
+- カスタムスタイルとテンプレート
+
+詳細な使用方法については、`docsfw/README.md` を参照してください。
 
 ### testfw
 
@@ -72,6 +86,11 @@ doxygen-sample/                          # このプロジェクト
 │   ├── docs-src/                    # フレームワーク技術ドキュメント
 │   ├── Makefile                     # ドキュメント生成用 Makefile
 │   └── CLAUDE.md                    # フレームワーク詳細ドキュメント
+├── docsfw/                           # Markdown 発行フレームワーク (git submodule)
+│   ├── bin/                         # Pandoc 実行スクリプト
+│   ├── lib/                         # フィルタ・変換ライブラリ
+│   ├── styles/                      # カスタムスタイル
+│   └── README.md                    # フレームワーク詳細ドキュメント
 ├── testfw/                           # テストフレームワーク (git submodule)
 │   ├── cmnd/                        # テスト実行スクリプト群
 │   ├── include/                     # テスト用ヘッダーファイル
