@@ -54,6 +54,44 @@ container:
    - `make test` を実行
    - testfw および test ディレクトリ配下のテストを実行
 
+3. **ドキュメント生成**
+   - `make docs` を実行
+   - docs-src および docs ディレクトリに差分がある場合、自動コミット
+
+## ドキュメント自動生成
+
+CI はテスト完了後にドキュメントを自動生成し、変更があれば自動的にコミット・プッシュします。
+
+### 動作
+
+1. `make docs` でドキュメント生成
+2. `docs-src` および `docs` の差分を検出
+3. 差分がある場合、`github-actions[bot]` として自動コミット
+4. `[skip ci]` タグにより無限ループを防止
+
+### 無限ループ対策
+
+自動生成コミットには `[skip ci]` を付与し、再度 CI がトリガーされることを防ぎます。ドキュメント生成は決定論的であるため、テスト不要です。
+
+### ローカルでの代替手段 (pre-commit hook)
+
+CI での自動生成を待たずにローカルでコミット前に生成する場合は、pre-commit hook を設定できます:
+
+```bash
+# .githooks/pre-commit を作成
+#!/bin/bash
+make docs
+git add docs-src docs
+```
+
+```bash
+# hook を有効化
+chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
+```
+
+**注意**: pre-commit hook はコミット時にユーザーの待ち時間が発生します。CI での自動生成を推奨します。
+
 ## 認証
 
 GitHub Container Registry (ghcr.io) からのイメージ取得には `GITHUB_TOKEN` を使用します。
