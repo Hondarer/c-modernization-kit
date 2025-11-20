@@ -23,6 +23,12 @@ CALC_API int WINAPI calcHandler(int kind, int a, int b)
     {
     case CALC_KIND_ADD:
         return add(a, b);
+    case CALC_KIND_SUBTRACT:
+        return subtract(a, b);
+    case CALC_KIND_MULTIPLY:
+        return multiply(a, b);
+    case CALC_KIND_DIVIDE:
+        return divide(a, b);
     default:
         return -1;
     }
