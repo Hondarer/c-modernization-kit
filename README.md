@@ -70,7 +70,9 @@ cd doxyfw && make clean
 このプロジェクトは以下のサブモジュールを使用しています。
 
 - `doxyfw` - Doxygen ドキュメント生成フレームワーク ([doxyfw/CLAUDE.md](./doxyfw/CLAUDE.md))
+- `docsfw` - Markdown ドキュメント発行フレームワーク (Pandoc による HTML/docx 生成) ([docsfw/README.md](./docsfw/README.md))
 - `testfw` - Google Test ベースのテストフレームワーク ([testfw/README.md](./testfw/README.md))
+- `makefw` - Make ビルドフレームワーク ([makefw/README.md](./makefw/README.md))
 
 ## ライセンス
 

@@ -7,3 +7,6 @@
 [submodule "makefw"]
 	path = makefw
 	url = https://github.com/Hondarer/make-framework.git
+[submodule "docsfw"]
+	path = docsfw
+	url = https://github.com/Hondarer/pub_markdown.git
