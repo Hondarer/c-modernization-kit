@@ -43,9 +43,9 @@ TEST_F(addTest, normal)
     const char *argv[] = {"addTest", "1", "2"}; // [状態] - main() に与える引数を、"1", "2" とする。
 
     // Pre-Assert
-    EXPECT_CALL(mock_calcbase, add(1, 2))
-        .WillOnce(Return(3)); // [Pre-Assert確認] - add(1, 2) が 1 回呼び出されること。
-                              // [Pre-Assert手順] - add(1, 2) で 3 を返す。
+    EXPECT_CALL(mock_calcbase, add(1, 2, _))
+        .WillOnce(DoAll(SetArgPointee<2>(3), Return(0))); // [Pre-Assert確認] - add(1, 2, &result) が 1 回呼び出されること。
+                                                          // [Pre-Assert手順] - result に 3 を設定し、0 を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
         .WillOnce(DoDefault()); // [Pre-Assert確認] - printf() が 1 回呼び出され、内容が "3\n" であること。
 

@@ -45,12 +45,12 @@ TEST_F(shared_and_static_addTest, normal)
     const char *argv[] = {"shared_and_static_addTest", "1", "+", "2"}; // [状態] - main() に与える引数を、"1", "+", "2" とする。
 
     // Pre-Assert
-    EXPECT_CALL(mock_calc, calcHandler(CALC_KIND_ADD, 1, 2))
-        .WillOnce(Return(3)); // [Pre-Assert確認] - calcHandler(CALC_KIND_ADD, 1, 2) が 1 回呼び出されること。
-                              // [Pre-Assert手順] - calcHandler(CALC_KIND_ADD, 1, 2) で 3 を返す。
-    EXPECT_CALL(mock_calcbase, add(1, 2))
-        .WillOnce(Return(3)); // [Pre-Assert確認] - add(1, 2) が 1 回呼び出されること。
-                              // [Pre-Assert手順] - add(1, 2) で 3 を返す。
+    EXPECT_CALL(mock_calc, calcHandler(CALC_KIND_ADD, 1, 2, _))
+        .WillOnce(DoAll(SetArgPointee<3>(3), Return(0))); // [Pre-Assert確認] - calcHandler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
+                                                          // [Pre-Assert手順] - result に 3 を設定し、0 を返す。
+    EXPECT_CALL(mock_calcbase, add(1, 2, _))
+        .WillOnce(DoAll(SetArgPointee<2>(3), Return(0))); // [Pre-Assert確認] - add(1, 2, &result) が 1 回呼び出されること。
+                                                          // [Pre-Assert手順] - result に 3 を設定し、0 を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("result_shared: 3\n")))
         .WillOnce(DoDefault()); // [Pre-Assert確認] - printf() が 1 回呼び出され、内容が "result_shared: 3\n" であること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("result_static: 3\n")))
