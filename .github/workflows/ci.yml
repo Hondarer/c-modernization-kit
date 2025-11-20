@@ -55,7 +55,7 @@ jobs:
 
           # Determine branch to push
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git push origin HEAD:${{ github.head_ref }}
+            git push origin HEAD:refs/heads/${{ github.head_ref }}
           else
             git push
           fi
