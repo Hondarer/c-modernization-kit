@@ -26,96 +26,110 @@ extern "C" {
  *  @brief          2 つの整数を加算します。
  *  @param[in]      a 第一オペランド。
  *  @param[in]      b 第二オペランド。
- *  @return         a と b の合計値。
+ *  @param[out]     result 計算結果を格納するポインタ。
+ *  @return         成功時は 0、失敗時は -1。
  *
  *  @details
- *  この関数は 2 つの整数を受け取り、その合計を返します。
+ *  この関数は 2 つの整数を受け取り、その合計を result に格納します。
  *  オーバーフローのチェックは行いません。
  *
  *  使用例:
  *
  *  @code{.c}
- *  int result = add(10, 20);
- *  printf("Result: %d\n", result);  // 出力: Result: 30
+ *  int result;
+ *  if (add(10, 20, &result) == 0) {
+ *      printf("Result: %d\n", result);  // 出力: Result: 30
+ *  }
  *  @endcode
  *
  *  @note           オーバーフローが発生する可能性がある場合は、
  *                  呼び出し側で範囲チェックを行ってください。
+ *  @warning        result が NULL の場合、-1 を返します。
  *******************************************************************************
  */
-extern int add(int a, int b);
+extern int add(int a, int b, int *result);
 
 /**
  *******************************************************************************
  *  @brief          2 つの整数を減算します。
  *  @param[in]      a 第一オペランド。
  *  @param[in]      b 第二オペランド。
- *  @return         a から b を引いた値。
+ *  @param[out]     result 計算結果を格納するポインタ。
+ *  @return         成功時は 0、失敗時は -1。
  *
  *  @details
- *  この関数は 2 つの整数を受け取り、その差を返します。
+ *  この関数は 2 つの整数を受け取り、その差を result に格納します。
  *  オーバーフローのチェックは行いません。
  *
  *  使用例:
  *
  *  @code{.c}
- *  int result = subtract(10, 3);
- *  printf("Result: %d\n", result);  // 出力: Result: 7
+ *  int result;
+ *  if (subtract(10, 3, &result) == 0) {
+ *      printf("Result: %d\n", result);  // 出力: Result: 7
+ *  }
  *  @endcode
  *
  *  @note           オーバーフローが発生する可能性がある場合は、
  *                  呼び出し側で範囲チェックを行ってください。
+ *  @warning        result が NULL の場合、-1 を返します。
  *******************************************************************************
  */
-extern int subtract(int a, int b);
+extern int subtract(int a, int b, int *result);
 
 /**
  *******************************************************************************
  *  @brief          2 つの整数を乗算します。
  *  @param[in]      a 第一オペランド。
  *  @param[in]      b 第二オペランド。
- *  @return         a と b の積。
+ *  @param[out]     result 計算結果を格納するポインタ。
+ *  @return         成功時は 0、失敗時は -1。
  *
  *  @details
- *  この関数は 2 つの整数を受け取り、その積を返します。
+ *  この関数は 2 つの整数を受け取り、その積を result に格納します。
  *  オーバーフローのチェックは行いません。
  *
  *  使用例:
  *
  *  @code{.c}
- *  int result = multiply(5, 4);
- *  printf("Result: %d\n", result);  // 出力: Result: 20
+ *  int result;
+ *  if (multiply(5, 4, &result) == 0) {
+ *      printf("Result: %d\n", result);  // 出力: Result: 20
+ *  }
  *  @endcode
  *
  *  @note           オーバーフローが発生する可能性がある場合は、
  *                  呼び出し側で範囲チェックを行ってください。
+ *  @warning        result が NULL の場合、-1 を返します。
  *******************************************************************************
  */
-extern int multiply(int a, int b);
+extern int multiply(int a, int b, int *result);
 
 /**
  *******************************************************************************
  *  @brief          2 つの整数を除算します。
  *  @param[in]      a 被除数。
  *  @param[in]      b 除数。
- *  @return         a を b で割った商。b が 0 の場合は 0 を返します。
+ *  @param[out]     result 計算結果を格納するポインタ。
+ *  @return         成功時は 0、失敗時は -1。
  *
  *  @details
- *  この関数は 2 つの整数を受け取り、その商を返します。
+ *  この関数は 2 つの整数を受け取り、その商を result に格納します。
  *  整数除算のため、小数点以下は切り捨てられます。
  *
  *  使用例:
  *
  *  @code{.c}
- *  int result = divide(20, 4);
- *  printf("Result: %d\n", result);  // 出力: Result: 5
+ *  int result;
+ *  if (divide(20, 4, &result) == 0) {
+ *      printf("Result: %d\n", result);  // 出力: Result: 5
+ *  }
  *  @endcode
  *
- *  @warning        ゼロ除算の場合は 0 を返します。
- *                  呼び出し側で除数のチェックを行うことを推奨します。
+ *  @warning        ゼロ除算の場合、または result が NULL の場合は -1 を返します。
  *******************************************************************************
  */
-extern int divide(int a, int b);
+extern int divide(int a, int b, int *result);
 
 #ifdef __cplusplus
 }

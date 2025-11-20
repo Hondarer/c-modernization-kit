@@ -16,7 +16,12 @@
 #include <libcalcbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int add(int a, int b)
+int add(int a, int b, int *result)
 {
-    return a + b;
+    if (result == NULL)
+    {
+        return -1;
+    }
+    *result = a + b;
+    return 0;
 }

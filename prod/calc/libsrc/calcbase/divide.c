@@ -16,11 +16,16 @@
 #include <libcalcbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int divide(int a, int b)
+int divide(int a, int b, int *result)
 {
+    if (result == NULL)
+    {
+        return -1;
+    }
     if (b == 0)
     {
-        return 0;
+        return -1;
     }
-    return a / b;
+    *result = a / b;
+    return 0;
 }

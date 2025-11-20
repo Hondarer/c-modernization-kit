@@ -56,7 +56,8 @@ extern "C"
      *  @param[in]      kind 演算の種別 (CALC_KIND_ADD など)。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @return         計算結果。kind が無効な場合は -1 を返します。
+     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @return         成功時は 0、失敗時は -1。
      *
      *  @details
      *  この関数は演算種別を受け取り、対応する計算関数を呼び出します。
@@ -72,16 +73,18 @@ extern "C"
      *  使用例:
      *
      *  @code{.c}
-     *  int result = calcHandler(CALC_KIND_ADD, 10, 20);
-     *  printf("Result: %d\n", result);  // 出力: Result: 30
+     *  int result;
+     *  if (calcHandler(CALC_KIND_ADD, 10, 20, &result) == 0) {
+     *      printf("Result: %d\n", result);  // 出力: Result: 30
+     *  }
      *  @endcode
      *
-     *  @note           除算 (CALC_KIND_DIVIDE) でゼロ除算が発生した場合は 0 を返します。
-     *  @warning        無効な kind を指定した場合、-1 を返します。
+     *  @warning        無効な kind を指定した場合、ゼロ除算の場合、
+     *                  または result が NULL の場合は -1 を返します。
      *                  呼び出し側で戻り値のチェックを行ってください。
      *******************************************************************************
      */
-    CALC_API extern int WINAPI calcHandler(int kind, int a, int b);
+    CALC_API extern int WINAPI calcHandler(int kind, int a, int b, int *result);
 
 #ifdef __cplusplus
 }

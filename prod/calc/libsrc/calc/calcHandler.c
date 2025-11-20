@@ -17,18 +17,23 @@
 #include <libcalc.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-CALC_API int WINAPI calcHandler(int kind, int a, int b)
+CALC_API int WINAPI calcHandler(int kind, int a, int b, int *result)
 {
+    if (result == NULL)
+    {
+        return -1;
+    }
+
     switch (kind)
     {
     case CALC_KIND_ADD:
-        return add(a, b);
+        return add(a, b, result);
     case CALC_KIND_SUBTRACT:
-        return subtract(a, b);
+        return subtract(a, b, result);
     case CALC_KIND_MULTIPLY:
-        return multiply(a, b);
+        return multiply(a, b, result);
     case CALC_KIND_DIVIDE:
-        return divide(a, b);
+        return divide(a, b, result);
     default:
         return -1;
     }
