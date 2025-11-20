@@ -20,12 +20,12 @@ int divide(int a, int b, int *result)
 {
     if (result == NULL)
     {
-        return -1;
+        return CALC_ERROR;
     }
     if (b == 0)
     {
-        return -1;
+        return CALC_ERROR;
     }
     *result = a / b;
-    return 0;
+    return CALC_SUCCESS;
 }

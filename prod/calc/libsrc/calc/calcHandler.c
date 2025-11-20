@@ -21,7 +21,7 @@ CALC_API int WINAPI calcHandler(int kind, int a, int b, int *result)
 {
     if (result == NULL)
     {
-        return -1;
+        return CALC_ERROR;
     }
 
     switch (kind)
@@ -35,6 +35,6 @@ CALC_API int WINAPI calcHandler(int kind, int a, int b, int *result)
     case CALC_KIND_DIVIDE:
         return divide(a, b, result);
     default:
-        return -1;
+        return CALC_ERROR;
     }
 }
