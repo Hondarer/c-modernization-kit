@@ -6,7 +6,7 @@ author: doxygen and doxybook2
 
 # ページの一覧
 
-* page [README.md](Pages/README.md) <br/>doxygen-framework サンプル
+* page [README.md](Pages/README.md) <br/>c-modernization-kit サンプル
 * dir calc
     * page [calc/README.md](Pages/calc/README.md) <br/>サンプル計算機能
     * dir src

@@ -1,3 +1,3 @@
-# doxygen-framework サンプル
+# c-modernization-kit サンプル
 
-これは、doxygen-framework を利用したドキュメントのサンプルです。
+これは、c-modernization-kit を利用したソースドキュメントのサンプルです。

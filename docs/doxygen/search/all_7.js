@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['shared_2dand_2dstatic_2dadd_2ec_0',['shared-and-static-add.c',['../shared-and-static-add_8c.html',1,'']]]
+  ['winapi_0',['WINAPI',['../libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3',1,'libcalc.h']]]
 ];
