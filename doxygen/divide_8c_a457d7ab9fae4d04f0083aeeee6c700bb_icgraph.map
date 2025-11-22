@@ -1,0 +1,9 @@
+<map id="divide" name="divide">
+<area shape="rect" id="Node000001" title="2 つの整数を除算します。" alt="" coords="243,31,299,56"/>
+<area shape="rect" id="Node000002" href="$calcHandler_8c.html#a642fe53112def0e783784459698b3318" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="104,5,195,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,37,194,30,195,25,230,32"/>
+<area shape="rect" id="Node000004" href="$shared-and-static-add_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="プログラムのエントリーポイント。" alt="" coords="124,55,175,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="230,54,175,65,174,60,229,49"/>
+<area shape="rect" id="Node000003" href="$calc_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="プログラムのエントリーポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="90,21,56,21,56,15,90,15"/>
+</map>
