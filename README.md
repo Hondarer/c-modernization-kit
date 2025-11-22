@@ -15,8 +15,17 @@ C 言語のソースコードを対象として、Linux/Windows 両対応のコ�
 
 ### 公開される成果物
 
+注: Markdown 側で多言語対応や詳細化対応の記載を行っていないので、現段階で以下の言語別、詳細別ページは目立った作用を発揮していません。また、Doxygen の出力は単一言語で Japanese-en 固定です。
+
 - GitHub Pages
     - [ja](https://hondarer.github.io/c-modernization-kit/ja/html/index.html)
+    - [ja-details](https://hondarer.github.io/c-modernization-kit/ja-details/html/index.html)
+    - [en](https://hondarer.github.io/c-modernization-kit/en/html/index.html)
+    - [en-details](https://hondarer.github.io/c-modernization-kit/en-details/html/index.html)
+- アーティファクト
+    - [テスト結果 (test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/test-results.zip)
+    - [html (docs-html.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html.zip)
+    - [docx (docs-docx.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx.zip)
 
 ## サンプルコード
 
@@ -29,16 +38,16 @@ C 言語のソースコードを対象として、Linux/Windows 両対応のコ�
 
 ### メインプログラムのテスト
 
-- [test/src/calc/main/addTest/](test/src/calc/main/addTest/) - add コマンドのテスト (addTest.cc)
-- [test/src/calc/main/calcTest/](test/src/calc/main/calcTest/) - calc コマンドのテスト (calcTest.cc)
-- [test/src/calc/main/shared-and-static-addTest/](test/src/calc/main/shared-and-static-addTest/) - shared-and-static-add コマンドのテスト (shared-and-static-addTest.cc)
+- [test/src/calc/main/addTest/](test/src/calc/main/addTest/) - add コマンドのテスト
+- [test/src/calc/main/calcTest/](test/src/calc/main/calcTest/) - calc コマンドのテスト
+- [test/src/calc/main/shared-and-static-addTest/](test/src/calc/main/shared-and-static-addTest/) - shared-and-static-add コマンドのテスト
 
 ### libcalcbase ライブラリのテスト
 
-- [test/src/calc/libcalcbaseTest/addTest/](test/src/calc/libcalcbaseTest/addTest/) - add 関数のテスト (addTest.cc)
-- [test/src/calc/libcalcbaseTest/subtractTest/](test/src/calc/libcalcbaseTest/subtractTest/) - subtract 関数のテスト (subtractTest.cc)
-- [test/src/calc/libcalcbaseTest/multiplyTest/](test/src/calc/libcalcbaseTest/multiplyTest/) - multiply 関数のテスト (multiplyTest.cc)
-- [test/src/calc/libcalcbaseTest/divideTest/](test/src/calc/libcalcbaseTest/divideTest/) - divide 関数のテスト (divideTest.cc)
+- [test/src/calc/libcalcbaseTest/addTest/](test/src/calc/libcalcbaseTest/addTest/) - add 関数のテスト
+- [test/src/calc/libcalcbaseTest/subtractTest/](test/src/calc/libcalcbaseTest/subtractTest/) - subtract 関数のテスト
+- [test/src/calc/libcalcbaseTest/multiplyTest/](test/src/calc/libcalcbaseTest/multiplyTest/) - multiply 関数のテスト
+- [test/src/calc/libcalcbaseTest/divideTest/](test/src/calc/libcalcbaseTest/divideTest/) - divide 関数のテスト
 
 ### モック
 
