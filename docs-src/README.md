@@ -6,6 +6,8 @@
 
 ## API ドキュメント
 
+Doxygen 成果物の単一ファイル版ドキュメントです。
+
 - [ファイルの一覧](doxybook/index_files.md)
 - [ページの一覧](doxybook/index_pages.md)
 
