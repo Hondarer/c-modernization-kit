@@ -13,7 +13,6 @@
 !Makefile
 
 ## サブモジュール
-
 !/docsfw
 !/doxyfw
 !/makefw
@@ -22,7 +21,6 @@
 # 以下は管理対象外
 
 ## Claude Code
-
 /.claude
 
 ## 中間ファイル
@@ -41,3 +39,9 @@ coverage.xml
 ## 成果物 (Windows)
 *.exe
 *.pdb
+
+## docx (ビットパーフェクトにならない)
+/docs/ja/docx
+/docs/ja-details/docx
+/docs/en/docx
+/docs/en-details/docx
