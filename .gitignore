@@ -36,12 +36,9 @@ coverage.xml
 /xml/
 /xml_org/
 
+## 生成ドキュメント (gh-pages で公開)
+/docs/
+
 ## 成果物 (Windows)
 *.exe
 *.pdb
-
-## docx (ビットパーフェクトにならない)
-/docs/ja/docx
-/docs/ja-details/docx
-/docs/en/docx
-/docs/en-details/docx
