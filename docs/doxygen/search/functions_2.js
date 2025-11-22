@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['main_0',['main',['../src_2add_2add_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;add.c'],['../calc_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;calc.c'],['../shared-and-static-add_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;shared-and-static-add.c']]]
+  ['divide_0',['divide',['../libcalcbase_8h.html#a457d7ab9fae4d04f0083aeeee6c700bb',1,'divide(const int a, const int b, int *result):&#160;divide.c'],['../divide_8c.html#a457d7ab9fae4d04f0083aeeee6c700bb',1,'divide(const int a, const int b, int *result):&#160;divide.c']]]
 ];

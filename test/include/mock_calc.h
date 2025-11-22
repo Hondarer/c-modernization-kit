@@ -1,5 +1,5 @@
-#ifndef _MOCK_CALC_H_
-#define _MOCK_CALC_H_
+#ifndef _MOCK_CALC_H
+#define _MOCK_CALC_H
 
 #include <stdio.h>
 #include <gmock/gmock.h>
@@ -17,4 +17,4 @@ public:
 
 extern Mock_calc *_mock_calc;
 
-#endif // _MOCK_CALC_H_
+#endif // _MOCK_CALC_H

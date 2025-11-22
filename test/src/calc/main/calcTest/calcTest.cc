@@ -9,7 +9,6 @@
 #endif // _WIN32
 
 #include <gtest_wrapmain.h>
-
 #include <mock_stdio.h>
 #include <mock_calc.h>
 #include <libcalcbase.h>
@@ -32,7 +31,7 @@ TEST_F(calcTest, less_argc)
     int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(1, rtc); // [確認] - 戻り値が 1 であること。
+    EXPECT_NE(0, rtc); // [確認] - main() の戻り値が 0 以外であること。
 }
 
 TEST_F(calcTest, normal)
@@ -49,7 +48,7 @@ TEST_F(calcTest, normal)
             *result = 3;
             return CALC_SUCCESS;
         }); // [Pre-Assert確認] - calcHandler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
-            // [Pre-Assert手順] - result に 3 を設定し、0 を返す。
+            // [Pre-Assert手順] - calcHandler(CALC_KIND_ADD, 1, 2, &result) にて result に 3 を設定し、CALC_SUCCESS を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
         .WillOnce(DoDefault()); // [Pre-Assert確認] - printf() が 1 回呼び出され、内容が "3\n" であること。
 
@@ -57,5 +56,5 @@ TEST_F(calcTest, normal)
     int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
+    EXPECT_EQ(0, rtc); // [確認] - main() の戻り値が 0 であること。
 }

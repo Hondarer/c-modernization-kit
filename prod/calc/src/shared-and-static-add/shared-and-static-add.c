@@ -2,8 +2,8 @@
  *******************************************************************************
  *  @file           src/shared-and-static-add/shared-and-static-add.c
  *  @brief          動的リンク、静的リンクを使った関数の呼び出しコマンド。
- *  @author         doxygen-sample team
- *  @date           2025/11/06
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
  *  コマンドライン引数から 2 つの整数を受け取り、calc 関数、add 関数を使用して
@@ -24,7 +24,7 @@
  *  @brief          プログラムのエントリーポイント。
  *  @param[in]      argc コマンドライン引数の数。
  *  @param[in]      argv コマンドライン引数の配列。
- *  @return         成功時は 0、失敗時は 1 を返します。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  *
  *  @details
  *  使用例:
@@ -67,6 +67,66 @@ int main(int argc, char *argv[])
 
         int result_static;
         if (add(arg1, arg3, &result_static) != 0)
+        {
+            fprintf(stderr, "Error: add failed\n");
+            return 1;
+        }
+        printf("result_static: %d\n", result_static);
+
+        break;
+    }
+    case '-':
+    {
+        int result_shared;
+        if (calcHandler(CALC_KIND_SUBTRACT, arg1, arg3, &result_shared) != 0)
+        {
+            fprintf(stderr, "Error: calcHandler failed\n");
+            return 1;
+        }
+        printf("result_shared: %d\n", result_shared);
+
+        int result_static;
+        if (subtract(arg1, arg3, &result_static) != 0)
+        {
+            fprintf(stderr, "Error: add failed\n");
+            return 1;
+        }
+        printf("result_static: %d\n", result_static);
+
+        break;
+    }
+    case 'x':
+    {
+        int result_shared;
+        if (calcHandler(CALC_KIND_MULTIPLY, arg1, arg3, &result_shared) != 0)
+        {
+            fprintf(stderr, "Error: calcHandler failed\n");
+            return 1;
+        }
+        printf("result_shared: %d\n", result_shared);
+
+        int result_static;
+        if (multiply(arg1, arg3, &result_static) != 0)
+        {
+            fprintf(stderr, "Error: add failed\n");
+            return 1;
+        }
+        printf("result_static: %d\n", result_static);
+
+        break;
+    }
+    case '/':
+    {
+        int result_shared;
+        if (calcHandler(CALC_KIND_DIVIDE, arg1, arg3, &result_shared) != 0)
+        {
+            fprintf(stderr, "Error: calcHandler failed\n");
+            return 1;
+        }
+        printf("result_shared: %d\n", result_shared);
+
+        int result_static;
+        if (divide(arg1, arg3, &result_static) != 0)
         {
             fprintf(stderr, "Error: add failed\n");
             return 1;

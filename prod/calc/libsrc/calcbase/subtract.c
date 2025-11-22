@@ -2,8 +2,8 @@
  *******************************************************************************
  *  @file           libsrc/calcbase/subtract.c
  *  @brief          subtract 関数の実装ファイル。
- *  @author         doxygen-sample team
- *  @date           2025/01/30
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
  *  2 つの整数を減算する関数を提供します。
@@ -13,15 +13,11 @@
  *******************************************************************************
  */
 
+#include <stddef.h>
 #include <libcalcbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int subtract(int a, int b, int *result)
+int subtract(const int a, const int b, int *result)
 {
-    if (result == NULL)
-    {
-        return CALC_ERROR;
-    }
-    *result = a - b;
-    return CALC_SUCCESS;
+    return add(a, -1 * b, result); /* 再帰的な関数呼び出しの実装例として add を呼ぶ */
 }

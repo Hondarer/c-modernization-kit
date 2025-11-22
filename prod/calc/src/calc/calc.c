@@ -2,8 +2,8 @@
  *******************************************************************************
  *  @file           src/calc/calc.c
  *  @brief          calc 関数の呼び出しコマンド。
- *  @author         doxygen-sample team
- *  @date           2025/11/06
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
  *  コマンドライン引数から 2 つの整数と演算子を受け取り、calcHandler 関数を使用して
@@ -23,7 +23,7 @@
  *  @brief          プログラムのエントリーポイント。
  *  @param[in]      argc コマンドライン引数の数。
  *  @param[in]      argv コマンドライン引数の配列。
- *  @return         成功時は 0、失敗時は 1 を返します。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  *
  *  @details
  *  使用例:

@@ -2,8 +2,8 @@
  *******************************************************************************
  *  @file           libsrc/calcbase/multiply.c
  *  @brief          multiply 関数の実装ファイル。
- *  @author         doxygen-sample team
- *  @date           2025/01/30
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
  *  2 つの整数を乗算する関数を提供します。
@@ -13,10 +13,11 @@
  *******************************************************************************
  */
 
+#include <stddef.h>
 #include <libcalcbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int multiply(int a, int b, int *result)
+int multiply(const int a, const int b, int *result)
 {
     if (result == NULL)
     {

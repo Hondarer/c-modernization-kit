@@ -20,7 +20,7 @@ TEST_SRCS := \
 USE_WRAP_MAIN := 1
 
 # ライブラリの追加
-LIBS += mock_libc mock_calcbase test_com
+LIBS += mock_calcbase mock_libc
 
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

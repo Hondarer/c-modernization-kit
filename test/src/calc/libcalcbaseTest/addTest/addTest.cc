@@ -8,9 +8,7 @@
 #pragma GCC diagnostic pop
 #endif // _WIN32
 
-#include <test_com.h>
 #include <mock_stdio.h>
-
 #include <libcalcbase.h>
 
 using namespace testing;
@@ -30,8 +28,8 @@ TEST_F(addTest, test_1_add_2)
     int rtc = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(0, rtc);      // [確認] - 戻り値が 0 (成功) であること。
-    EXPECT_EQ(3, result);   // [確認] - 結果が 3 であること。
+    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること。
 }
 
 TEST_F(addTest, test_2_add_1)
@@ -45,8 +43,8 @@ TEST_F(addTest, test_2_add_1)
     int rtc = add(2, 1, &result); // [手順] - add(2, 1, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(0, rtc);      // [確認] - 戻り値が 0 (成功) であること。
-    EXPECT_EQ(3, result);   // [確認] - 結果が 3 であること。
+    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること。
 }
 
 TEST_F(addTest, test_null_result)
@@ -59,5 +57,5 @@ TEST_F(addTest, test_null_result)
     int rtc = add(1, 2, NULL); // [手順] - add(1, 2, NULL) を呼び出す。
 
     // Assert
-    EXPECT_EQ(-1, rtc); // [確認] - 戻り値が -1 (失敗) であること。
+    EXPECT_EQ(CALC_ERROR, rtc); // [確認] - 戻り値が CALC_ERROR であること。
 }

@@ -14,8 +14,5 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/multiply.c
 
-# ライブラリの追加
-LIBS += mock_libc test_com
-
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

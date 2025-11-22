@@ -15,7 +15,8 @@ TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/subtract.c
 
 # ライブラリの追加
-LIBS += mock_libc test_com
+# subtractTest では、add 関数のモックを使ってテストを行う。
+LIBS += mock_calcbase
 
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

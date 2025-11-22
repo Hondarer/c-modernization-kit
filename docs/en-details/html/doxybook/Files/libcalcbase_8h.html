@@ -106,7 +106,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         <span class="doc-title">calc/include/libcalcbase.h</span>
         <ul class="nav pull-right doc-info">
                     <li><p class="navbar-text">doxygen and doxybook2</p></li>
-                              <li><p class="navbar-text">Sun, 16 Nov 2025 16:30:03 +0900 32f9bb9</p></li>
+                              <li><p class="navbar-text">Sat, 22 Nov 2025 13:28:11 +0900 32f9bb9+</p></li>
                   </ul>
       </div>
     </div>
@@ -130,12 +130,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         </ul></li>
         <li><a href="#関数" id="toc-関数"><span class="toc-section-number">2</span> 関数</a>
         <ul>
-        <li><a href="#add" id="toc-add"><span class="toc-section-number">2.1</span> add</a>
+        <li><a href="#subtract" id="toc-subtract"><span class="toc-section-number">2.1</span> subtract</a>
         <ul>
         <li><a href="#parameters" id="toc-parameters"><span class="toc-section-number">2.1.1</span> Parameters</a></li>
         <li><a href="#return" id="toc-return"><span class="toc-section-number">2.1.2</span> Return</a></li>
         <li><a href="#note" id="toc-note"><span class="toc-section-number">2.1.3</span> Note</a></li>
-        <li><a href="#details-1" id="toc-details-1"><span class="toc-section-number">2.1.4</span> Details</a></li>
+        <li><a href="#warning" id="toc-warning"><span class="toc-section-number">2.1.4</span> Warning</a></li>
+        <li><a href="#details-1" id="toc-details-1"><span class="toc-section-number">2.1.5</span> Details</a></li>
+        </ul></li>
+        <li><a href="#multiply" id="toc-multiply"><span class="toc-section-number">2.2</span> multiply</a>
+        <ul>
+        <li><a href="#parameters-1" id="toc-parameters-1"><span class="toc-section-number">2.2.1</span> Parameters</a></li>
+        <li><a href="#return-1" id="toc-return-1"><span class="toc-section-number">2.2.2</span> Return</a></li>
+        <li><a href="#note-1" id="toc-note-1"><span class="toc-section-number">2.2.3</span> Note</a></li>
+        <li><a href="#warning-1" id="toc-warning-1"><span class="toc-section-number">2.2.4</span> Warning</a></li>
+        <li><a href="#details-2" id="toc-details-2"><span class="toc-section-number">2.2.5</span> Details</a></li>
+        </ul></li>
+        <li><a href="#divide" id="toc-divide"><span class="toc-section-number">2.3</span> divide</a>
+        <ul>
+        <li><a href="#parameters-2" id="toc-parameters-2"><span class="toc-section-number">2.3.1</span> Parameters</a></li>
+        <li><a href="#return-2" id="toc-return-2"><span class="toc-section-number">2.3.2</span> Return</a></li>
+        <li><a href="#warning-2" id="toc-warning-2"><span class="toc-section-number">2.3.3</span> Warning</a></li>
+        <li><a href="#details-3" id="toc-details-3"><span class="toc-section-number">2.3.4</span> Details</a></li>
+        </ul></li>
+        <li><a href="#add" id="toc-add"><span class="toc-section-number">2.4</span> add</a>
+        <ul>
+        <li><a href="#parameters-3" id="toc-parameters-3"><span class="toc-section-number">2.4.1</span> Parameters</a></li>
+        <li><a href="#return-3" id="toc-return-3"><span class="toc-section-number">2.4.2</span> Return</a></li>
+        <li><a href="#note-2" id="toc-note-2"><span class="toc-section-number">2.4.3</span> Note</a></li>
+        <li><a href="#warning-3" id="toc-warning-3"><span class="toc-section-number">2.4.4</span> Warning</a></li>
+        <li><a href="#details-4" id="toc-details-4"><span class="toc-section-number">2.4.5</span> Details</a></li>
         </ul></li>
         </ul></li>
         </ul>
@@ -152,37 +176,119 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 data-number="1.1" id="calcincludelibcalcbase.h"><span class="header-section-number">1.1</span> calc/include/libcalcbase.h</h2>
 <p>計算ライブラリ (静的リンク用) のヘッダーファイル。</p>
 <h3 data-number="1.1.1" id="author"><span class="header-section-number">1.1.1</span> Author</h3>
-<p>doxygen-sample team</p>
+<p>c-modenization-kit sample team</p>
 <h3 data-number="1.1.2" id="version"><span class="header-section-number">1.1.2</span> Version</h3>
 <p>1.0.0</p>
 <h3 data-number="1.1.3" id="date"><span class="header-section-number">1.1.3</span> Date</h3>
-<p>2025/01/30</p>
+<p>2025/11/22</p>
 <h3 data-number="1.1.4" id="details"><span class="header-section-number">1.1.4</span> Details</h3>
 <p>このライブラリは基本的な整数演算を提供します。<br />
 静的リンクによる機能の内部関数を模しています。</p>
 <h3 data-number="1.1.5" id="copyright"><span class="header-section-number">1.1.5</span> Copyright</h3>
 <p>Copyright (C) CompanyName, Ltd. 2025. All rights reserved.</p>
 <h1 data-number="2" id="関数"><span class="header-section-number">2</span> 関数</h1>
-<h2 data-number="2.1" id="add"><span class="header-section-number">2.1</span> add</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> add <span class="op">(</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> a<span class="op">,</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> b</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
-<p>2 つの整数を加算します。</p>
+<h2 data-number="2.1" id="subtract"><span class="header-section-number">2.1</span> subtract</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> subtract <span class="op">(</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> a<span class="op">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> b<span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">*</span> result</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>2 つの整数を減算します。</p>
 <h3 data-number="2.1.1" id="parameters"><span class="header-section-number">2.1.1</span> Parameters</h3>
 <ul>
 <li>[in] a 第一オペランド。</li>
 <li>[in] b 第二オペランド。</li>
+<li>[out] result 計算結果を格納するポインタ。</li>
 </ul>
 <h3 data-number="2.1.2" id="return"><span class="header-section-number">2.1.2</span> Return</h3>
-<p>a と b の合計値。</p>
+<p>成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。</p>
 <h3 data-number="2.1.3" id="note"><span class="header-section-number">2.1.3</span> Note</h3>
 <p>オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。</p>
-<h3 data-number="2.1.4" id="details-1"><span class="header-section-number">2.1.4</span> Details</h3>
-<p>この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。</p>
+<h3 data-number="2.1.4" id="warning"><span class="header-section-number">2.1.4</span> Warning</h3>
+<p>result が NULL の場合は失敗を返します。</p>
+<h3 data-number="2.1.5" id="details-1"><span class="header-section-number">2.1.5</span> Details</h3>
+<p>この関数は 2 つの整数を受け取り、その差を result に格納します。</p>
 <p>使用例:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> result <span class="op">=</span> add<span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">20</span><span class="op">);</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>printf<span class="op">(</span><span class="st">&quot;Result: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> result<span class="op">);</span>  <span class="co">// 出力: Result: 30</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> result<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>subtract<span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="op">&amp;</span>result<span class="op">)</span> <span class="op">==</span> CALC_SUCCESS<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Result: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> result<span class="op">);</span>  <span class="co">// 出力: Result: 7</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="2.2" id="multiply"><span class="header-section-number">2.2</span> multiply</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> multiply <span class="op">(</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> a<span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> b<span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">*</span> result</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>2 つの整数を乗算します。</p>
+<h3 data-number="2.2.1" id="parameters-1"><span class="header-section-number">2.2.1</span> Parameters</h3>
+<ul>
+<li>[in] a 第一オペランド。</li>
+<li>[in] b 第二オペランド。</li>
+<li>[out] result 計算結果を格納するポインタ。</li>
+</ul>
+<h3 data-number="2.2.2" id="return-1"><span class="header-section-number">2.2.2</span> Return</h3>
+<p>成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。</p>
+<h3 data-number="2.2.3" id="note-1"><span class="header-section-number">2.2.3</span> Note</h3>
+<p>オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。</p>
+<h3 data-number="2.2.4" id="warning-1"><span class="header-section-number">2.2.4</span> Warning</h3>
+<p>result が NULL の場合は失敗を返します。</p>
+<h3 data-number="2.2.5" id="details-2"><span class="header-section-number">2.2.5</span> Details</h3>
+<p>この関数は 2 つの整数を受け取り、その積を result に格納します。</p>
+<p>使用例:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> result<span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>multiply<span class="op">(</span><span class="dv">5</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> <span class="op">&amp;</span>result<span class="op">)</span> <span class="op">==</span> CALC_SUCCESS<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Result: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> result<span class="op">);</span>  <span class="co">// 出力: Result: 20</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="2.3" id="divide"><span class="header-section-number">2.3</span> divide</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> divide <span class="op">(</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> a<span class="op">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> b<span class="op">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">*</span> result</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>2 つの整数を除算します。</p>
+<h3 data-number="2.3.1" id="parameters-2"><span class="header-section-number">2.3.1</span> Parameters</h3>
+<ul>
+<li>[in] a 被除数。</li>
+<li>[in] b 除数。</li>
+<li>[out] result 計算結果を格納するポインタ。</li>
+</ul>
+<h3 data-number="2.3.2" id="return-2"><span class="header-section-number">2.3.2</span> Return</h3>
+<p>成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。</p>
+<h3 data-number="2.3.3" id="warning-2"><span class="header-section-number">2.3.3</span> Warning</h3>
+<p>ゼロ除算の場合、または result が NULL の場合は失敗を返します。</p>
+<h3 data-number="2.3.4" id="details-3"><span class="header-section-number">2.3.4</span> Details</h3>
+<p>この関数は 2 つの整数を受け取り、その商を result に格納します。 整数除算のため、小数点以下は切り捨てられます。</p>
+<p>使用例:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> result<span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>divide<span class="op">(</span><span class="dv">20</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> <span class="op">&amp;</span>result<span class="op">)</span> <span class="op">==</span> CALC_SUCCESS<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Result: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> result<span class="op">);</span>  <span class="co">// 出力: Result: 5</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="2.4" id="add"><span class="header-section-number">2.4</span> add</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> add <span class="op">(</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> a<span class="op">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">int</span> b<span class="op">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">*</span> result</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>2 つの整数を加算します。</p>
+<h3 data-number="2.4.1" id="parameters-3"><span class="header-section-number">2.4.1</span> Parameters</h3>
+<ul>
+<li>[in] a 第一オペランド。</li>
+<li>[in] b 第二オペランド。</li>
+<li>[out] result 計算結果を格納するポインタ。</li>
+</ul>
+<h3 data-number="2.4.2" id="return-3"><span class="header-section-number">2.4.2</span> Return</h3>
+<p>成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。</p>
+<h3 data-number="2.4.3" id="note-2"><span class="header-section-number">2.4.3</span> Note</h3>
+<p>オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。</p>
+<h3 data-number="2.4.4" id="warning-3"><span class="header-section-number">2.4.4</span> Warning</h3>
+<p>result が NULL の場合は失敗を返します。</p>
+<h3 data-number="2.4.5" id="details-4"><span class="header-section-number">2.4.5</span> Details</h3>
+<p>この関数は 2 つの整数を受け取り、その合計を result に格納します。</p>
+<p>使用例:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> result<span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>add<span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">20</span><span class="op">,</span> <span class="op">&amp;</span>result<span class="op">)</span> <span class="op">==</span> CALC_SUCCESS<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Result: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> result<span class="op">);</span>  <span class="co">// 出力: Result: 30</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
             </div>
     </div>
   </div>

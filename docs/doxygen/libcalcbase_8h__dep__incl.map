@@ -1,11 +1,17 @@
 <map id="calc/include/libcalcbase.h" name="calc/include/libcalcbase.h">
-<area shape="rect" id="Node000001" title="計算ライブラリ (静的リンク用) のヘッダーファイル。" alt="" coords="282,5,453,31"/>
+<area shape="rect" id="Node000001" title="計算ライブラリ (静的リンク用) のヘッダーファイル。" alt="" coords="526,5,697,31"/>
 <area shape="rect" id="Node000002" href="$calcHandler_8c.html" title="calcHandler 関数の実装ファイル。" alt="" coords="5,93,196,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="316,38,140,96,138,91,315,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="513,33,368,53,208,81,147,96,145,91,207,76,367,48,512,27"/>
 <area shape="rect" id="Node000003" href="$libsrc_2calcbase_2add_8c.html" title="add 関数の実装ファイル。" alt="" coords="220,86,357,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="349,43,309,88,305,84,345,39"/>
-<area shape="rect" id="Node000004" href="$src_2add_2add_8c.html" title="add 関数の呼び出しコマンド。" alt="" coords="381,93,511,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="390,39,436,91,432,95,386,43"/>
-<area shape="rect" id="Node000005" href="$shared-and-static-add_8c.html" title="動的リンク、静的リンクを使った関数の呼び出しコマンド。" alt="" coords="535,79,685,133"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="416,33,535,76,534,81,415,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="542,36,369,81,346,89,344,83,368,76,541,31"/>
+<area shape="rect" id="Node000004" href="$divide_8c.html" title="divide 関数の実装ファイル。" alt="" coords="381,86,519,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="577,40,489,88,486,83,575,35"/>
+<area shape="rect" id="Node000005" href="$multiply_8c.html" title="multiply 関数の実装ファイル。" alt="" coords="543,86,680,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="614,45,614,86,609,86,609,45"/>
+<area shape="rect" id="Node000006" href="$subtract_8c.html" title="subtract 関数の実装ファイル。" alt="" coords="704,86,841,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="648,35,737,83,734,88,646,40"/>
+<area shape="rect" id="Node000007" href="$src_2add_2add_8c.html" title="add 関数の呼び出しコマンド。" alt="" coords="865,93,995,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="683,31,855,76,898,91,896,96,853,81,682,36"/>
+<area shape="rect" id="Node000008" href="$shared-and-static-add_8c.html" title="動的リンク、静的リンクを使った関数の呼び出しコマンド。" alt="" coords="1019,79,1169,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="711,26,852,46,1008,76,1019,79,1018,84,1007,81,851,51,710,32"/>
 </map>

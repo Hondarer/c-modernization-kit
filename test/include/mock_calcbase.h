@@ -1,5 +1,5 @@
-#ifndef _MOCK_CALCBASE_H_
-#define _MOCK_CALCBASE_H_
+#ifndef _MOCK_CALCBASE_H
+#define _MOCK_CALCBASE_H
 
 #include <stdio.h>
 #include <gmock/gmock.h>
@@ -20,4 +20,4 @@ public:
 
 extern Mock_calcbase *_mock_calcbase;
 
-#endif // _MOCK_CALCBASE_H_
+#endif // _MOCK_CALCBASE_H
