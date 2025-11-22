@@ -103,26 +103,45 @@ $(function() {
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordtype">int</span> arg3 = atoi(argv[3]);</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">int</span> result;</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordflow">switch</span> (argv[2][0])</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    {</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keywordflow">case</span> <span class="charliteral">&#39;+&#39;</span>:</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        result = <a class="code hl_function" href="libcalc_8h.html#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a>(<a class="code hl_define" href="libcalc_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a>, arg1, arg3);</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordflow">default</span>:</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        fprintf(stderr, <span class="stringliteral">&quot;Usage: %s &lt;arg1&gt; &lt;arg2&gt; &lt;arg3&gt;\n&quot;</span>, argv[0]);</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordtype">int</span> kind;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordflow">switch</span> (argv[2][0])</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    {</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">case</span> <span class="charliteral">&#39;+&#39;</span>:</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        kind = <a class="code hl_define" href="libcalc__const_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a>;</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordflow">case</span> <span class="charliteral">&#39;-&#39;</span>:</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        kind = <a class="code hl_define" href="libcalc__const_8h.html#a63f8b886dcdf5f007e172ad547ab8607">CALC_KIND_SUBTRACT</a>;</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    }</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    printf(<span class="stringliteral">&quot;%d\n&quot;</span>, result);</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>}</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordflow">case</span> <span class="charliteral">&#39;x&#39;</span>:</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        kind = <a class="code hl_define" href="libcalc__const_8h.html#a3290089a2a4e34555d9b1d1ead789dd1">CALC_KIND_MULTIPLY</a>;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordflow">case</span> <span class="charliteral">&#39;/&#39;</span>:</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        kind = <a class="code hl_define" href="libcalc__const_8h.html#aaf94a68cd814fcab39b968ee6b7a5d14">CALC_KIND_DIVIDE</a>;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordflow">default</span>:</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        fprintf(stderr, <span class="stringliteral">&quot;Usage: %s &lt;num1&gt; &lt;+|-|x|/&gt; &lt;num2&gt;\n&quot;</span>, argv[0]);</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    }</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="libcalc_8h.html#a642fe53112def0e783784459698b3318">calcHandler</a>(kind, arg1, arg3, &amp;result) != 0)</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        fprintf(stderr, <span class="stringliteral">&quot;Error: calcHandler failed\n&quot;</span>);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    }</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    printf(<span class="stringliteral">&quot;%d\n&quot;</span>, result);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>}</div>
 </div>
 <div class="ttc" id="acalc_8c_html_a0ddf1224851353fc92bfbff6f499fa97"><div class="ttname"><a href="calc_8c.html#a0ddf1224851353fc92bfbff6f499fa97">main</a></div><div class="ttdeci">int main(int argc, char *argv[])</div><div class="ttdoc">プログラムのエントリーポイント。</div><div class="ttdef"><b>Definition</b> <a href="#l00038">calc.c:38</a></div></div>
 <div class="ttc" id="alibcalc_8h_html"><div class="ttname"><a href="libcalc_8h.html">libcalc.h</a></div><div class="ttdoc">計算ライブラリ (動的リンク用) のヘッダーファイル。</div></div>
-<div class="ttc" id="alibcalc_8h_html_ab0b0cfaa323f14dab216e9c7bbf08ff1"><div class="ttname"><a href="libcalc_8h.html#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a></div><div class="ttdeci">CALC_API int WINAPI calcHandler(int kind, int a, int b)</div><div class="ttdoc">指定された演算種別に基づいて計算を実行します。</div><div class="ttdef"><b>Definition</b> <a href="calcHandler_8c_source.html#l00020">calcHandler.c:20</a></div></div>
-<div class="ttc" id="alibcalc_8h_html_aead1fc356185b0ba1c1b6e0a5708f779"><div class="ttname"><a href="libcalc_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a></div><div class="ttdeci">#define CALC_KIND_ADD</div><div class="ttdoc">加算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc_8h_source.html#l00048">libcalc.h:48</a></div></div>
+<div class="ttc" id="alibcalc_8h_html_a642fe53112def0e783784459698b3318"><div class="ttname"><a href="libcalc_8h.html#a642fe53112def0e783784459698b3318">calcHandler</a></div><div class="ttdeci">CALC_API int WINAPI calcHandler(const int kind, const int a, const int b, int *result)</div><div class="ttdoc">指定された演算種別に基づいて計算を実行します。</div><div class="ttdef"><b>Definition</b> <a href="calcHandler_8c_source.html#l00021">calcHandler.c:21</a></div></div>
+<div class="ttc" id="alibcalc__const_8h_html_a3290089a2a4e34555d9b1d1ead789dd1"><div class="ttname"><a href="libcalc__const_8h.html#a3290089a2a4e34555d9b1d1ead789dd1">CALC_KIND_MULTIPLY</a></div><div class="ttdeci">#define CALC_KIND_MULTIPLY</div><div class="ttdoc">乗算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc__const_8h_source.html#l00022">libcalc_const.h:22</a></div></div>
+<div class="ttc" id="alibcalc__const_8h_html_a63f8b886dcdf5f007e172ad547ab8607"><div class="ttname"><a href="libcalc__const_8h.html#a63f8b886dcdf5f007e172ad547ab8607">CALC_KIND_SUBTRACT</a></div><div class="ttdeci">#define CALC_KIND_SUBTRACT</div><div class="ttdoc">減算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc__const_8h_source.html#l00021">libcalc_const.h:21</a></div></div>
+<div class="ttc" id="alibcalc__const_8h_html_aaf94a68cd814fcab39b968ee6b7a5d14"><div class="ttname"><a href="libcalc__const_8h.html#aaf94a68cd814fcab39b968ee6b7a5d14">CALC_KIND_DIVIDE</a></div><div class="ttdeci">#define CALC_KIND_DIVIDE</div><div class="ttdoc">除算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc__const_8h_source.html#l00023">libcalc_const.h:23</a></div></div>
+<div class="ttc" id="alibcalc__const_8h_html_aead1fc356185b0ba1c1b6e0a5708f779"><div class="ttname"><a href="libcalc__const_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">CALC_KIND_ADD</a></div><div class="ttdeci">#define CALC_KIND_ADD</div><div class="ttdoc">加算の演算種別を表す定数。</div><div class="ttdef"><b>Definition</b> <a href="libcalc__const_8h_source.html#l00020">libcalc_const.h:20</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

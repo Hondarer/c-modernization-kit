@@ -80,49 +80,50 @@ $(function() {
 <div class="contents">
 <a href="libcalc_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#ifndef LIBCALC_H</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#define LIBCALC_H</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#ifndef _LIBCALC_H</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#define _LIBCALC_H</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">/* DLL エクスポート/インポート定義 */</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#ifdef _WIN32</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef __INTELLISENSE__</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifndef CALC_STATIC</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#ifdef CALC_EXPORTS</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#define CALC_API __declspec(dllexport)</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#else </span><span class="comment">/* CALC_EXPORTS */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define CALC_API __declspec(dllimport)</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#endif </span><span class="comment">/* CALC_EXPORTS */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#else  </span><span class="comment">/* CALC_STATIC */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#define CALC_API</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif </span><span class="comment">/* CALC_STATIC */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#else  </span><span class="comment">/* __INTELLISENSE__ */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#define CALC_API</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#endif </span><span class="comment">/* __INTELLISENSE__ */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#ifndef WINAPI</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#define WINAPI __stdcall</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#endif </span><span class="comment">/* WINAPI */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#else  </span><span class="comment">/* _WIN32 */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">   39</a></span><span class="preprocessor">#define CALC_API</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">   40</a></span><span class="preprocessor">#define WINAPI</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#endif </span><span class="comment">/* _WIN32 */</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>{</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="libcalc_8h.html#aead1fc356185b0ba1c1b6e0a5708f779">   48</a></span><span class="preprocessor">#define CALC_KIND_ADD 1 </span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;<a class="code" href="libcalc__const_8h.html">libcalc_const.h</a>&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="comment">/* DLL エクスポート/インポート定義 */</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifdef _WIN32</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#ifndef __INTELLISENSE__</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#ifndef CALC_STATIC</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#ifdef CALC_EXPORTS</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define CALC_API __declspec(dllexport)</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#else </span><span class="comment">/* CALC_EXPORTS */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#define CALC_API __declspec(dllimport)</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#endif </span><span class="comment">/* CALC_EXPORTS */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#else  </span><span class="comment">/* CALC_STATIC */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#define CALC_API</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#endif </span><span class="comment">/* CALC_STATIC */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#else  </span><span class="comment">/* __INTELLISENSE__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#define CALC_API</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#endif </span><span class="comment">/* __INTELLISENSE__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#ifndef WINAPI</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#define WINAPI __stdcall</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#endif </span><span class="comment">/* WINAPI */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#else  </span><span class="comment">/* _WIN32 */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">   41</a></span><span class="preprocessor">#define CALC_API</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">   42</a></span><span class="preprocessor">#define WINAPI</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#endif </span><span class="comment">/* _WIN32 */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>{</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_define" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a> <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_define" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a> <a class="code hl_function" href="libcalc_8h.html#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a>(<span class="keywordtype">int</span> kind, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> b);</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>}</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="preprocessor">#endif </span><span class="comment">/* LIBCALC_H */</span><span class="preprocessor"></span></div>
-<div class="ttc" id="alibcalc_8h_html_a510c75fd29cc34add40f6b1ee7b0d565"><div class="ttname"><a href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a></div><div class="ttdeci">#define CALC_API</div><div class="ttdef"><b>Definition</b> <a href="#l00039">libcalc.h:39</a></div></div>
-<div class="ttc" id="alibcalc_8h_html_a9aa60e1ead64be77ad551e745cbfd4d3"><div class="ttname"><a href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a></div><div class="ttdeci">#define WINAPI</div><div class="ttdef"><b>Definition</b> <a href="#l00040">libcalc.h:40</a></div></div>
-<div class="ttc" id="alibcalc_8h_html_ab0b0cfaa323f14dab216e9c7bbf08ff1"><div class="ttname"><a href="libcalc_8h.html#ab0b0cfaa323f14dab216e9c7bbf08ff1">calcHandler</a></div><div class="ttdeci">CALC_API int WINAPI calcHandler(int kind, int a, int b)</div><div class="ttdoc">指定された演算種別に基づいて計算を実行します。</div><div class="ttdef"><b>Definition</b> <a href="calcHandler_8c_source.html#l00020">calcHandler.c:20</a></div></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <a class="code hl_define" href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a> <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_define" href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a> <a class="code hl_function" href="libcalc_8h.html#a642fe53112def0e783784459698b3318">calcHandler</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> kind, <span class="keyword">const</span> <span class="keywordtype">int</span> a, <span class="keyword">const</span> <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> *result);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="preprocessor">#endif </span><span class="comment">/* _LIBCALC_H */</span><span class="preprocessor"></span></div>
+<div class="ttc" id="alibcalc_8h_html_a510c75fd29cc34add40f6b1ee7b0d565"><div class="ttname"><a href="libcalc_8h.html#a510c75fd29cc34add40f6b1ee7b0d565">CALC_API</a></div><div class="ttdeci">#define CALC_API</div><div class="ttdef"><b>Definition</b> <a href="#l00041">libcalc.h:41</a></div></div>
+<div class="ttc" id="alibcalc_8h_html_a642fe53112def0e783784459698b3318"><div class="ttname"><a href="libcalc_8h.html#a642fe53112def0e783784459698b3318">calcHandler</a></div><div class="ttdeci">CALC_API int WINAPI calcHandler(const int kind, const int a, const int b, int *result)</div><div class="ttdoc">指定された演算種別に基づいて計算を実行します。</div><div class="ttdef"><b>Definition</b> <a href="calcHandler_8c_source.html#l00021">calcHandler.c:21</a></div></div>
+<div class="ttc" id="alibcalc_8h_html_a9aa60e1ead64be77ad551e745cbfd4d3"><div class="ttname"><a href="libcalc_8h.html#a9aa60e1ead64be77ad551e745cbfd4d3">WINAPI</a></div><div class="ttdeci">#define WINAPI</div><div class="ttdef"><b>Definition</b> <a href="#l00042">libcalc.h:42</a></div></div>
+<div class="ttc" id="alibcalc__const_8h_html"><div class="ttname"><a href="libcalc__const_8h.html">libcalc_const.h</a></div><div class="ttdoc">計算ライブラリの定数ファイル。</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

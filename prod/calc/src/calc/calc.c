@@ -2,12 +2,12 @@
  *******************************************************************************
  *  @file           src/calc/calc.c
  *  @brief          calc 関数の呼び出しコマンド。
- *  @author         doxygen-sample team
- *  @date           2025/11/06
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
- *  コマンドライン引数から 2 つの整数を受け取り、calc 関数を使用して
- *  加算結果を標準出力に出力します。
+ *  コマンドライン引数から 2 つの整数と演算子を受け取り、calcHandler 関数を使用して
+ *  計算結果を標準出力に出力します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
@@ -23,7 +23,7 @@
  *  @brief          プログラムのエントリーポイント。
  *  @param[in]      argc コマンドライン引数の数。
  *  @param[in]      argv コマンドライン引数の配列。
- *  @return         成功時は 0、失敗時は 1 を返します。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  *
  *  @details
  *  使用例:
@@ -53,15 +53,31 @@ int main(int argc, char *argv[])
     int arg3 = atoi(argv[3]);
     int result;
 
+    int kind;
     switch (argv[2][0])
     {
     case '+':
-        result = calcHandler(CALC_KIND_ADD, arg1, arg3);
+        kind = CALC_KIND_ADD;
+        break;
+    case '-':
+        kind = CALC_KIND_SUBTRACT;
+        break;
+    case 'x':
+        kind = CALC_KIND_MULTIPLY;
+        break;
+    case '/':
+        kind = CALC_KIND_DIVIDE;
         break;
     default:
-        fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <num1> <+|-|x|/> <num2>\n", argv[0]);
         return 1;
         break;
+    }
+
+    if (calcHandler(kind, arg1, arg3, &result) != 0)
+    {
+        fprintf(stderr, "Error: calcHandler failed\n");
+        return 1;
     }
 
     printf("%d\n", result);

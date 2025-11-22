@@ -16,7 +16,7 @@ calc 関数の呼び出しコマンド。
 
 #### Author
 
-doxygen-sample team
+c-modenization-kit sample team
 
 #### Version
 
@@ -24,11 +24,11 @@ doxygen-sample team
 
 #### Date
 
-2025/11/06
+2025/11/22
 
 #### Details
 
-コマンドライン引数から 2 つの整数を受け取り、calc 関数を使用して 加算結果を標準出力に出力します。
+コマンドライン引数から 2 つの整数と演算子を受け取り、calcHandler 関数を使用して 計算結果を標準出力に出力します。
 
 #### Copyright
 
@@ -54,7 +54,7 @@ int main (
 
 #### Return
 
-成功時は 0、失敗時は 1 を返します。
+成功時は 0、失敗時は 0 以外の値を返します。
 
 #### Attention
 

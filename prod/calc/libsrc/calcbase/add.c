@@ -2,8 +2,8 @@
  *******************************************************************************
  *  @file           libsrc/calcbase/add.c
  *  @brief          add 関数の実装ファイル。
- *  @author         doxygen-sample team
- *  @date           2025/01/30
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
  *  2 つの整数を加算する関数を提供します。
@@ -13,10 +13,16 @@
  *******************************************************************************
  */
 
+#include <stddef.h>
 #include <libcalcbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int add(int a, int b)
+int add(const int a, const int b, int *result)
 {
-    return a + b;
+    if (result == NULL)
+    {
+        return CALC_ERROR;
+    }
+    *result = a + b;
+    return CALC_SUCCESS;
 }

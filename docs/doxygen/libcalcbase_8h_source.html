@@ -80,21 +80,34 @@ $(function() {
 <div class="contents">
 <a href="libcalcbase_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#ifndef LIBCALCBASE_H</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#define LIBCALCBASE_H</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#ifndef _LIBCALCBASE_H</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#define _LIBCALCBASE_H</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> {</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_function" href="libcalcbase_8h.html#aa99823a0fc8313c9c32541ce768fb801">add</a>(<span class="keywordtype">int</span> a, <span class="keywordtype">int</span> b);</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>}</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#endif </span><span class="comment">/* LIBCALCBASE_H */</span><span class="preprocessor"></span></div>
-<div class="ttc" id="alibcalcbase_8h_html_aa99823a0fc8313c9c32541ce768fb801"><div class="ttname"><a href="libcalcbase_8h.html#aa99823a0fc8313c9c32541ce768fb801">add</a></div><div class="ttdeci">int add(int a, int b)</div><div class="ttdoc">2 つの整数を加算します。</div><div class="ttdef"><b>Definition</b> <a href="libsrc_2calcbase_2add_8c_source.html#l00019">add.c:19</a></div></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;<a class="code" href="libcalc__const_8h.html">libcalc_const.h</a>&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>{</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_function" href="libcalcbase_8h.html#ae0a73dcc2e58d59cbc0f200e50736260">add</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> a, <span class="keyword">const</span> <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> *result);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_function" href="libcalcbase_8h.html#a1bf275b5894cc190077fcae5246956ac">subtract</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> a, <span class="keyword">const</span> <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> *result);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span></div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_function" href="libcalcbase_8h.html#aa2620c22f253b878c0356f0df6ac6d61">multiply</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> a, <span class="keyword">const</span> <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> *result);</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    <span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_function" href="libcalcbase_8h.html#a457d7ab9fae4d04f0083aeeee6c700bb">divide</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> a, <span class="keyword">const</span> <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> *result);</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>}</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span><span class="preprocessor">#endif </span><span class="comment">/* _LIBCALCBASE_H */</span><span class="preprocessor"></span></div>
+<div class="ttc" id="alibcalc__const_8h_html"><div class="ttname"><a href="libcalc__const_8h.html">libcalc_const.h</a></div><div class="ttdoc">計算ライブラリの定数ファイル。</div></div>
+<div class="ttc" id="alibcalcbase_8h_html_a1bf275b5894cc190077fcae5246956ac"><div class="ttname"><a href="libcalcbase_8h.html#a1bf275b5894cc190077fcae5246956ac">subtract</a></div><div class="ttdeci">int subtract(const int a, const int b, int *result)</div><div class="ttdoc">2 つの整数を減算します。</div><div class="ttdef"><b>Definition</b> <a href="subtract_8c_source.html#l00020">subtract.c:20</a></div></div>
+<div class="ttc" id="alibcalcbase_8h_html_a457d7ab9fae4d04f0083aeeee6c700bb"><div class="ttname"><a href="libcalcbase_8h.html#a457d7ab9fae4d04f0083aeeee6c700bb">divide</a></div><div class="ttdeci">int divide(const int a, const int b, int *result)</div><div class="ttdoc">2 つの整数を除算します。</div><div class="ttdef"><b>Definition</b> <a href="divide_8c_source.html#l00020">divide.c:20</a></div></div>
+<div class="ttc" id="alibcalcbase_8h_html_aa2620c22f253b878c0356f0df6ac6d61"><div class="ttname"><a href="libcalcbase_8h.html#aa2620c22f253b878c0356f0df6ac6d61">multiply</a></div><div class="ttdeci">int multiply(const int a, const int b, int *result)</div><div class="ttdoc">2 つの整数を乗算します。</div><div class="ttdef"><b>Definition</b> <a href="multiply_8c_source.html#l00020">multiply.c:20</a></div></div>
+<div class="ttc" id="alibcalcbase_8h_html_ae0a73dcc2e58d59cbc0f200e50736260"><div class="ttname"><a href="libcalcbase_8h.html#ae0a73dcc2e58d59cbc0f200e50736260">add</a></div><div class="ttdeci">int add(const int a, const int b, int *result)</div><div class="ttdoc">2 つの整数を加算します。</div><div class="ttdef"><b>Definition</b> <a href="libsrc_2calcbase_2add_8c_source.html#l00020">add.c:20</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

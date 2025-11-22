@@ -16,8 +16,15 @@ Mock_calcbase *_mock_calcbase = nullptr;
 
 Mock_calcbase::Mock_calcbase()
 {
-    ON_CALL(*this, add(_, _)).WillByDefault(Invoke([](int a, int b)
-                                                   { return a + b; }));
+    ON_CALL(*this, add(_, _, _))
+        .WillByDefault(Invoke([](int a, int b, int *result)
+                              { *result = a+b; return CALC_SUCCESS; })); // モック自身でデフォルトの処理を定義しておきたい場合
+    ON_CALL(*this, subtract(_, _, _))
+        .WillByDefault(Return(CALC_SUCCESS)); // 一般的に、モックの既定の挙動は NOP にしておく
+    ON_CALL(*this, multiply(_, _, _))
+        .WillByDefault(Return(CALC_SUCCESS));
+    ON_CALL(*this, divide(_, _, _))
+        .WillByDefault(Return(CALC_SUCCESS));
 
     _mock_calcbase = this;
 }

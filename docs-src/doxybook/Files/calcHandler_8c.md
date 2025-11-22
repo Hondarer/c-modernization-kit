@@ -16,7 +16,7 @@ calcHandler 関数の実装ファイル。
 
 #### Author
 
-doxygen-sample team
+c-modenization-kit sample team
 
 #### Version
 
@@ -24,7 +24,7 @@ doxygen-sample team
 
 #### Date
 
-2025/01/30
+2025/11/22
 
 #### Details
 
@@ -40,9 +40,10 @@ Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
 
 ```cpp
 CALC_API int WINAPI calcHandler (
-    int kind,
-    int a,
-    int b
+    const int kind,
+    const int a,
+    const int b,
+    int * result
 )
 ```
 
@@ -53,18 +54,15 @@ CALC_API int WINAPI calcHandler (
 * [in] kind 演算の種別 (CALC_KIND_ADD など)。
 * [in] a 第一オペランド。
 * [in] b 第二オペランド。
+* [out] result 計算結果を格納するポインタ。
 
 #### Return
 
-計算結果。kind が無効な場合は -1 を返します。
-
-#### Note
-
-現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
+成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
 
 #### Warning
 
-無効な kind を指定した場合、-1 を返します。 呼び出し側で戻り値のチェックを行ってください。
+無効な kind を指定した場合、ゼロ除算の場合、 または result が NULL の場合は失敗を返します。 呼び出し側で戻り値のチェックを行ってください。
 
 #### Details
 
@@ -73,10 +71,15 @@ CALC_API int WINAPI calcHandler (
 | 演算種別   | 説明   |
 |  -------- | -------- |
 | CALC_KIND_ADD   | 加算を実行   |
+| CALC_KIND_SUBTRACT   | 減算を実行   |
+| CALC_KIND_MULTIPLY   | 乗算を実行   |
+| CALC_KIND_DIVIDE   | 除算を実行   |
 
 使用例:
 
 ```c
-int result = calcHandler(CALC_KIND_ADD, 10, 20);
-printf("Result: %d\n", result);  // 出力: Result: 30
+int result;
+if (calcHandler(CALC_KIND_ADD, 10, 20, &result) == CALC_SUCCESS) {
+    printf("Result: %d\n", result);  // 出力: Result: 30
+}
 ```

@@ -11,6 +11,7 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 # ライブラリの指定
+# libcalcbase.a と libcalc.so の両方
 LIBS += calcbase calc
 
 # src の Makefile テンプレートを include

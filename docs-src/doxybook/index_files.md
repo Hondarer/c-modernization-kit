@@ -9,12 +9,16 @@ author: doxygen and doxybook2
 * dir calc
     * dir calc/include
         * file [calc/include/libcalc.h](Files/libcalc_8h.md) <br/>計算ライブラリ (動的リンク用) のヘッダーファイル。
+        * file [calc/include/libcalc_const.h](Files/libcalc__const_8h.md) <br/>計算ライブラリの定数ファイル。
         * file [calc/include/libcalcbase.h](Files/libcalcbase_8h.md) <br/>計算ライブラリ (静的リンク用) のヘッダーファイル。
     * dir calc/libsrc
         * dir calc/libsrc/calc
             * file [calc/libsrc/calc/calcHandler.c](Files/calcHandler_8c.md) <br/>calcHandler 関数の実装ファイル。
         * dir calc/libsrc/calcbase
             * file [calc/libsrc/calcbase/add.c](Files/libsrc_2calcbase_2add_8c.md) <br/>add 関数の実装ファイル。
+            * file [calc/libsrc/calcbase/divide.c](Files/divide_8c.md) <br/>divide 関数の実装ファイル。
+            * file [calc/libsrc/calcbase/multiply.c](Files/multiply_8c.md) <br/>multiply 関数の実装ファイル。
+            * file [calc/libsrc/calcbase/subtract.c](Files/subtract_8c.md) <br/>subtract 関数の実装ファイル。
     * dir calc/src
         * dir calc/src/add
             * file [calc/src/add/add.c](Files/src_2add_2add_8c.md) <br/>add 関数の呼び出しコマンド。

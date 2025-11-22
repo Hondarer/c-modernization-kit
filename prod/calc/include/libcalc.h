@@ -2,8 +2,8 @@
  *******************************************************************************
  *  @file           libcalc.h
  *  @brief          計算ライブラリ (動的リンク用) のヘッダーファイル。
- *  @author         doxygen-sample team
- *  @date           2025/01/30
+ *  @author         c-modenization-kit sample team
+ *  @date           2025/11/22
  *  @version        1.0.0
  *
  *  このライブラリは基本的な整数演算を提供します。\n
@@ -14,8 +14,10 @@
  *******************************************************************************
  */
 
-#ifndef LIBCALC_H
-#define LIBCALC_H
+#ifndef _LIBCALC_H
+#define _LIBCALC_H
+
+#include <libcalc_const.h>
 
 /* DLL エクスポート/インポート定義 */
 #ifdef _WIN32
@@ -45,40 +47,44 @@ extern "C"
 {
 #endif
 
-#define CALC_KIND_ADD 1 /*!< 加算の演算種別を表す定数。 */
-
     /**
      *******************************************************************************
      *  @brief          指定された演算種別に基づいて計算を実行します。
      *  @param[in]      kind 演算の種別 (CALC_KIND_ADD など)。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @return         計算結果。kind が無効な場合は -1 を返します。
+     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
      *  @details
      *  この関数は演算種別を受け取り、対応する計算関数を呼び出します。
      *  現在サポートされている演算種別は以下の通りです。
      *
-     *  | 演算種別        | 説明             |
-     *  | --------------- | ---------------- |
-     *  | CALC_KIND_ADD   | 加算を実行       |
+     *  | 演算種別            | 説明             |
+     *  | ------------------- | ---------------- |
+     *  | CALC_KIND_ADD       | 加算を実行       |
+     *  | CALC_KIND_SUBTRACT  | 減算を実行       |
+     *  | CALC_KIND_MULTIPLY  | 乗算を実行       |
+     *  | CALC_KIND_DIVIDE    | 除算を実行       |
      *
      *  使用例:
      *
      *  @code{.c}
-     *  int result = calcHandler(CALC_KIND_ADD, 10, 20);
-     *  printf("Result: %d\n", result);  // 出力: Result: 30
+     *  int result;
+     *  if (calcHandler(CALC_KIND_ADD, 10, 20, &result) == CALC_SUCCESS) {
+     *      printf("Result: %d\n", result);  // 出力: Result: 30
+     *  }
      *  @endcode
      *
-     *  @note           現在サポートされている演算は加算 (CALC_KIND_ADD) のみです。
-     *  @warning        無効な kind を指定した場合、-1 を返します。
+     *  @warning        無効な kind を指定した場合、ゼロ除算の場合、
+     *                  または result が NULL の場合は失敗を返します。
      *                  呼び出し側で戻り値のチェックを行ってください。
      *******************************************************************************
      */
-    CALC_API extern int WINAPI calcHandler(int kind, int a, int b);
+    CALC_API extern int WINAPI calcHandler(const int kind, const int a, const int b, int *result);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LIBCALC_H */
+#endif /* _LIBCALC_H */

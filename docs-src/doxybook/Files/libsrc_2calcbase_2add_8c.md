@@ -16,7 +16,7 @@ add 関数の実装ファイル。
 
 #### Author
 
-doxygen-sample team
+c-modenization-kit sample team
 
 #### Version
 
@@ -24,7 +24,7 @@ doxygen-sample team
 
 #### Date
 
-2025/01/30
+2025/11/22
 
 #### Details
 
@@ -40,8 +40,9 @@ Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
 
 ```cpp
 int add (
-    int a,
-    int b
+    const int a,
+    const int b,
+    int * result
 )
 ```
 
@@ -51,22 +52,29 @@ int add (
 
 * [in] a 第一オペランド。
 * [in] b 第二オペランド。
+* [out] result 計算結果を格納するポインタ。
 
 #### Return
 
-a と b の合計値。
+成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
 
 #### Note
 
 オーバーフローが発生する可能性がある場合は、 呼び出し側で範囲チェックを行ってください。
 
+#### Warning
+
+result が NULL の場合は失敗を返します。
+
 #### Details
 
-この関数は 2 つの整数を受け取り、その合計を返します。 オーバーフローのチェックは行いません。
+この関数は 2 つの整数を受け取り、その合計を result に格納します。
 
 使用例:
 
 ```c
-int result = add(10, 20);
-printf("Result: %d\n", result);  // 出力: Result: 30
+int result;
+if (add(10, 20, &result) == CALC_SUCCESS) {
+    printf("Result: %d\n", result);  // 出力: Result: 30
+}
 ```

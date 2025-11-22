@@ -16,7 +16,7 @@ add 関数の呼び出しコマンド。
 
 #### Author
 
-doxygen-sample team
+c-modenization-kit sample team
 
 #### Version
 
@@ -24,7 +24,7 @@ doxygen-sample team
 
 #### Date
 
-2025/01/30
+2025/11/22
 
 #### Details
 
@@ -54,7 +54,7 @@ int main (
 
 #### Return
 
-成功時は 0、失敗時は 1 を返します。
+成功時は 0、失敗時は 0 以外の値を返します。
 
 #### Attention
 
