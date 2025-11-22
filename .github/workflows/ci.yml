@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  build-and-docs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
@@ -29,6 +29,9 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Build and run tests
         run: make test
 
@@ -38,7 +41,6 @@ jobs:
       - name: Check for documentation changes
         id: docs-check
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git add -A docs-src docs
           if git diff --cached --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
