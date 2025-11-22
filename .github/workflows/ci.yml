@@ -41,6 +41,17 @@ jobs:
       - name: Generate documentation
         run: make docs
 
+      - name: Create artifact archives for gh-pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          mkdir -p docs/artifacts
+          # HTML ドキュメント
+          zip -r docs/artifacts/docs-html.zip docs/doxygen docs/**/html || true
+          # DOCX ドキュメント
+          zip -r docs/artifacts/docs-docx.zip docs/**/docx/ || true
+          # テスト結果
+          zip -r docs/artifacts/test-results.zip test/**/results/ || true
+
       - name: Deploy to gh-pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
