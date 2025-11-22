@@ -41,29 +41,22 @@ jobs:
       - name: Generate documentation
         run: make docs
 
-      - name: Check for documentation changes
-        id: docs-check
-        run: |
-          git add -A docs-src docs
-          if git diff --cached --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
+      - name: Deploy to gh-pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true
 
-      - name: Commit documentation changes
-        if: steps.docs-check.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "docs: auto-generate documentation [skip ci]"
-
-          # Determine branch to push
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git push origin HEAD:refs/heads/${{ github.head_ref }}
-          else
-            git push
-          fi
+      - name: Upload html artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-${{ github.sha }}
+          path: |
+            docs/doxygen
+            docs/**/html
+          if-no-files-found: warn
 
       - name: Upload docx artifacts
         uses: actions/upload-artifact@v4
