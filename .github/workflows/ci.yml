@@ -64,3 +64,17 @@ jobs:
           else
             git push
           fi
+
+      - name: Upload docx artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-${{ github.sha }}
+          path: docs/**/docx/
+          if-no-files-found: warn
+
+      - name: Upload test results artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-test-results-${{ github.sha }}
+          path: test/**/results/
+          if-no-files-found: warn
