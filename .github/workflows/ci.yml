@@ -68,13 +68,13 @@ jobs:
       - name: Upload docx artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: docs-docx
+          name: ${{ github.event.repository.name }}-docs-docx-${{ github.sha }}
           path: docs/**/docx/
           if-no-files-found: warn
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: ${{ github.event.repository.name }}-test-results-${{ github.sha }}
           path: test/**/results/
           if-no-files-found: warn
