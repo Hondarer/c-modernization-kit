@@ -65,30 +65,16 @@ jobs:
             git push
           fi
 
-      - name: Collect docx evidence
-        run: |
-          # docs/下のサブ階層にある複数のdocxフォルダを圧縮
-          cd docs
-          find . -type d -name "docx" -exec sh -c 'zip -r ../docx.zip "$@"' _ {} +
-          cd ..
-
-      - name: Collect test results evidence
-        run: |
-          # test/下のサブ階層にある複数のresultsフォルダを圧縮
-          cd test
-          find . -type d -name "results" -exec sh -c 'zip -r ../results.zip "$@"' _ {} +
-          cd ..
-
       - name: Upload docx artifacts
         uses: actions/upload-artifact@v4
         with:
           name: docx
-          path: docx.zip
+          path: docs/**/docx/
           if-no-files-found: warn
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v4
         with:
           name: results
-          path: results.zip
+          path: test/**/results/
           if-no-files-found: warn
