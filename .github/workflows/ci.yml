@@ -68,13 +68,13 @@ jobs:
       - name: Upload docx artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: docx
+          name: docs-docx
           path: docs/**/docx/
           if-no-files-found: warn
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: results
+          name: test-results
           path: test/**/results/
           if-no-files-found: warn
