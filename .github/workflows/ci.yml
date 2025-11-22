@@ -49,6 +49,15 @@ jobs:
           publish_dir: ./docs
           force_orphan: true
 
+      - name: Upload html artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-${{ github.sha }}
+          path: |
+            docs/doxygen
+            docs/**/html
+          if-no-files-found: warn
+
       - name: Upload docx artifacts
         uses: actions/upload-artifact@v4
         with:
