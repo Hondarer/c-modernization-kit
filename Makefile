@@ -1,5 +1,5 @@
 # サブディレクトリの定義
-ALL_SUBDIRS  = prod testfw test doxyfw
+ALL_SUBDIRS  = prod testfw test
 TEST_SUBDIRS = testfw test
 DOCS_SUBDIRS = doxyfw
 
@@ -14,7 +14,7 @@ define make_in_subdirs
 	done
 endef
 
-# ターゲットなしの make 対応
+# ターゲットなしの make
 .PHONY: default
 default : submodule
 	$(call make_in_subdirs,$(ALL_SUBDIRS))

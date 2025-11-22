@@ -12,7 +12,9 @@
 
 using namespace testing;
 
+#ifndef _WIN32
 #pragma weak divide
+#endif // _WIN32
 int divide(int a, int b, int *result)
 {
     int rtc = 0;

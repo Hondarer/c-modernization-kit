@@ -12,7 +12,9 @@
 
 using namespace testing;
 
+#ifndef _WIN32
 #pragma weak calcHandler
+#endif // _WIN32
 CALC_API int WINAPI calcHandler(int kind, int a, int b, int *result)
 {
     int rtc = 0;
