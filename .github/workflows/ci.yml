@@ -26,8 +26,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          fetch-depth: 0  # 全履歴を取得（git log用）
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize submodules (shallow)
+        run: git submodule update --init --recursive --depth 1
 
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
