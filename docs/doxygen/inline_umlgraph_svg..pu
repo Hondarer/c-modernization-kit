@@ -1,3 +1,0 @@
-@startuml inline_umlgraph_1.svg
-Alice->Bob: Hello
-@enduml

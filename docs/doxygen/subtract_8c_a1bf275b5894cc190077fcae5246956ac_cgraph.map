@@ -1,5 +1,0 @@
-<map id="subtract" name="subtract">
-<area shape="rect" id="Node000001" title="2 つの整数を減算します。" alt="" coords="5,5,75,31"/>
-<area shape="rect" id="Node000002" href="$libsrc_2calcbase_2add_8c.html#ae0a73dcc2e58d59cbc0f200e50736260" title="2 つの整数を加算します。" alt="" coords="123,5,165,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,15,109,15,109,21,75,21"/>
-</map>
