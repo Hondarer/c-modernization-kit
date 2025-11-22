@@ -25,6 +25,26 @@ C 言語のソースコードを対象として、Linux/Windows 両対応のコ�
 - [prod/calc/libsrc/calcbase/](prod/calc/libsrc/calcbase/) - 基本演算実装 (add.c, subtract.c, multiply.c, divide.c)
 - [prod/calc/src/](prod/calc/src/) - メインプログラム (add/, calc/, shared-and-static-add/)
 
+## サンプルコードに対応するテストコード
+
+### メインプログラムのテスト
+
+- [test/src/calc/main/addTest/](test/src/calc/main/addTest/) - add コマンドのテスト (addTest.cc)
+- [test/src/calc/main/calcTest/](test/src/calc/main/calcTest/) - calc コマンドのテスト (calcTest.cc)
+- [test/src/calc/main/shared-and-static-addTest/](test/src/calc/main/shared-and-static-addTest/) - shared-and-static-add コマンドのテスト (shared-and-static-addTest.cc)
+
+### libcalcbase ライブラリのテスト
+
+- [test/src/calc/libcalcbaseTest/addTest/](test/src/calc/libcalcbaseTest/addTest/) - add 関数のテスト (addTest.cc)
+- [test/src/calc/libcalcbaseTest/subtractTest/](test/src/calc/libcalcbaseTest/subtractTest/) - subtract 関数のテスト (subtractTest.cc)
+- [test/src/calc/libcalcbaseTest/multiplyTest/](test/src/calc/libcalcbaseTest/multiplyTest/) - multiply 関数のテスト (multiplyTest.cc)
+- [test/src/calc/libcalcbaseTest/divideTest/](test/src/calc/libcalcbaseTest/divideTest/) - divide 関数のテスト (divideTest.cc)
+
+### モック
+
+- [test/libsrc/mock_calcbase/](test/libsrc/mock_calcbase/) - calcbase ライブラリのモック実装
+- [test/libsrc/mock_calc/](test/libsrc/mock_calc/) - calc ライブラリのモック実装
+
 ## 詳細ドキュメント
 
 プロジェクト構造、設定方法については [CLAUDE.md](./CLAUDE.md) をご覧ください。
