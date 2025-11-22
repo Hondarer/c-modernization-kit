@@ -6,13 +6,13 @@ author: doxygen and doxybook2
 
 # ページの一覧
 
-* page [README.md](Pages/README.md) <br/>c-modernization-kit サンプル
-* dir calc
-    * page [calc/README.md](Pages/calc/README.md) <br/>サンプル計算機能
-    * dir src
-        * dir add
-            * page [calc/src/add/README.md](Pages/calc/src/add/README.md) <br/>add 関数の呼び出しコマンド
-        * dir calc
-            * page [calc/src/calc/README.md](Pages/calc/src/calc/README.md) <br/>動的リンクを使った関数の呼び出しコマンド
-        * dir shared-and-static-add
-            * page [calc/src/shared-and-static-add/README.md](Pages/calc/src/shared-and-static-add/README.md) <br/>動的リンク、静的リンクを使った関数の呼び出しコマンド
+* 📄 [README.md](Pages/README.md) <br/>c-modernization-kit サンプル
+* 📁 calc
+    * 📄 [calc/README.md](Pages/calc/README.md) <br/>サンプル計算機能
+    * 📁 src
+        * 📁 add
+            * 📄 [calc/src/add/README.md](Pages/calc/src/add/README.md) <br/>add 関数の呼び出しコマンド
+        * 📁 calc
+            * 📄 [calc/src/calc/README.md](Pages/calc/src/calc/README.md) <br/>動的リンクを使った関数の呼び出しコマンド
+        * 📁 shared-and-static-add
+            * 📄 [calc/src/shared-and-static-add/README.md](Pages/calc/src/shared-and-static-add/README.md) <br/>動的リンク、静的リンクを使った関数の呼び出しコマンド

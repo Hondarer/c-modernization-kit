@@ -40,4 +40,4 @@ test : submodule
 .PHONY: docs
 docs : submodule
 	$(call make_in_subdirs,$(DOCS_SUBDIRS),docs)
-	$(BASH) docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --lang=ja,en --details=both --docx=true
+	$(BASH) docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true
