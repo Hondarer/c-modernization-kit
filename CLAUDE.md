@@ -16,6 +16,7 @@ Doxygen フレームワーク機能はサブモジュール `doxyfw` として�
 - `doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール)
 - `docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール)
 - `testfw/` - テストフレームワーク (git サブモジュール)
+- `makefw/` - Make ビルドフレームワーク (git サブモジュール)
 - `Doxyfile.part` - プロジェクト固有の Doxygen 設定
 
 ## サブモジュール
@@ -78,7 +79,7 @@ cd doxyfw && make clean
 ## プロジェクト構造
 
 ```text
-doxygen-sample/                          # このプロジェクト
+c-modernization-kit/                      # このプロジェクト
 ├── doxyfw/                           # Doxygen フレームワーク (git submodule)
 │   ├── Doxyfile                     # Doxygen 基本設定
 │   ├── doxybook-config.json         # Doxybook2 設定
@@ -96,14 +97,28 @@ doxygen-sample/                          # このプロジェクト
 │   ├── include/                     # テスト用ヘッダーファイル
 │   ├── libsrc/                      # テスト用ライブラリソース
 │   └── README.md                    # テストフレームワーク詳細ドキュメント
+├── makefw/                           # Make ビルドフレームワーク (git submodule)
+│   ├── makefiles/                   # ビルド用テンプレート
+│   └── README.md                    # フレームワーク詳細ドキュメント
 ├── Doxyfile.part                     # Doxygen プロジェクト固有設定
 ├── prod/calc/                        # サンプル C プロジェクト
-│   ├── include/libcalc.h            # ライブラリヘッダー (関数宣言、定数定義)
-│   ├── libsrc/calc/                 # ライブラリ実装
-│   │   ├── add.c                   # add 関数の実装
-│   │   └── calcHandler.c           # calcHandler 関数の実装
-│   └── src/add/                     # メインプログラム
-│       └── add.c                   # add コマンドのメインプログラム
+│   ├── include/                     # ライブラリヘッダー
+│   │   ├── libcalc.h               # 動的リンク用ヘッダー (calcHandler 関数)
+│   │   ├── libcalcbase.h           # 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
+│   │   └── libcalc_const.h         # 定数定義 (CALC_KIND_ADD など)
+│   ├── libsrc/                      # ライブラリ実装
+│   │   ├── calcbase/               # 基本計算関数 (静的ライブラリ)
+│   │   │   ├── add.c              # add 関数の実装
+│   │   │   ├── subtract.c         # subtract 関数の実装
+│   │   │   ├── multiply.c         # multiply 関数の実装
+│   │   │   └── divide.c           # divide 関数の実装
+│   │   └── calc/                   # 計算ハンドラー (動的ライブラリ)
+│   │       └── calcHandler.c      # calcHandler 関数の実装
+│   └── src/                         # メインプログラム
+│       ├── add/add.c               # add コマンド (calcbase を静的リンク)
+│       ├── calc/calc.c             # calc コマンド (calc を動的リンク)
+│       └── shared-and-static-add/  # 動的・静的両方をリンクする例
+│           └── shared-and-static-add.c
 ├── test/                             # テストコード
 │   └── src/calc/                    # 計算ライブラリのテスト
 ├── docs/doxygen/                     # 生成される HTML ドキュメント
@@ -113,19 +128,34 @@ doxygen-sample/                          # このプロジェクト
 
 ## サンプルソースコード
 
-### 計算ライブラリ (libcalc)
+### 計算ライブラリ
 
 基本的な整数演算を提供するライブラリのサンプルです。
 
-- `prod/calc/include/libcalc.h` - ライブラリヘッダー (関数宣言、CALC_KIND_ADD 定数定義)
-- `prod/calc/libsrc/calc/add.c` - add 関数の実装 (2つの整数を加算)
+#### ヘッダーファイル
+
+- `prod/calc/include/libcalc_const.h` - 定数定義 (CALC_SUCCESS, CALC_KIND_ADD など)
+- `prod/calc/include/libcalcbase.h` - 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
+- `prod/calc/include/libcalc.h` - 動的リンク用ヘッダー (calcHandler 関数)
+
+#### libcalcbase (静的ライブラリ)
+
+- `prod/calc/libsrc/calcbase/add.c` - add 関数の実装 (2つの整数を加算)
+- `prod/calc/libsrc/calcbase/subtract.c` - subtract 関数の実装 (2つの整数を減算)
+- `prod/calc/libsrc/calcbase/multiply.c` - multiply 関数の実装 (2つの整数を乗算)
+- `prod/calc/libsrc/calcbase/divide.c` - divide 関数の実装 (2つの整数を除算)
+
+#### libcalc (動的ライブラリ)
+
 - `prod/calc/libsrc/calc/calcHandler.c` - calcHandler 関数の実装 (演算種別に基づく計算ハンドラー)
 
 ### メインプログラム
 
 ライブラリを使用するサンプルプログラムです。
 
-- `prod/calc/src/add/add.c` - add コマンドのメインプログラム (コマンドライン引数から2つの整数を受け取り加算結果を出力)
+- `prod/calc/src/add/add.c` - add コマンド (calcbase を静的リンク)
+- `prod/calc/src/calc/calc.c` - calc コマンド (calc を動的リンク)
+- `prod/calc/src/shared-and-static-add/shared-and-static-add.c` - 動的・静的両方をリンクする例
 
 ## 現在対応中の作業
 

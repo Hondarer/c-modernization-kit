@@ -57,9 +57,10 @@ cd doxyfw && make clean
 
 ## サンプルコード
 
-- `prod/calc/include/libcalc.h` - 計算ライブラリのヘッダーファイル
-- `prod/calc/libsrc/calc/` - ライブラリ実装 (add.c, calcHandler.c)
-- `prod/calc/src/add/add.c` - メインプログラム
+- `prod/calc/include/` - ライブラリヘッダー (libcalc.h, libcalcbase.h, libcalc_const.h)
+- `prod/calc/libsrc/calcbase/` - 基本計算関数 (add.c, subtract.c, multiply.c, divide.c)
+- `prod/calc/libsrc/calc/` - 計算ハンドラー (calcHandler.c)
+- `prod/calc/src/` - メインプログラム (add, calc, shared-and-static-add)
 
 ## 詳細ドキュメント
 
