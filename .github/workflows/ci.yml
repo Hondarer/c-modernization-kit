@@ -44,13 +44,17 @@ jobs:
       - name: Create artifact archives for gh-pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
+          shopt -s globstar nullglob
           mkdir -p docs/artifacts
           # HTML ドキュメント
-          zip -r docs/artifacts/docs-html.zip docs/doxygen docs/**/html || true
+          html_files=(docs/doxygen docs/**/html)
+          [ ${#html_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-html.zip "${html_files[@]}" || true
           # DOCX ドキュメント
-          zip -r docs/artifacts/docs-docx.zip docs/**/docx/ || true
+          docx_files=(docs/**/docx/)
+          [ ${#docx_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-docx.zip "${docx_files[@]}" || true
           # テスト結果
-          zip -r docs/artifacts/test-results.zip test/**/results/ || true
+          test_files=(test/**/results/)
+          [ ${#test_files[@]} -gt 0 ] && zip -r docs/artifacts/test-results.zip "${test_files[@]}" || true
 
       - name: Deploy to gh-pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
