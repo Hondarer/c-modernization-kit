@@ -26,7 +26,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 全履歴を取得（git log用）
+          fetch-depth: 0  # 全履歴を取得 (git log 用: Markdown 処理時に author と date を取得するため)
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git safe directory
