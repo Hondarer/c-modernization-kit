@@ -1,37 +1,33 @@
-# クロスプラットフォームビルドシステムの設計と実装
-
-TODO: 未精査。
+# クロスプラットフォームビルドシステムの実装
 
 ## 概要
 
 このドキュメントは、c-modernization-kit プロジェクトのクロスプラットフォームビルドシステムの設計、実装、および使用方法を説明します。
 
-本プロジェクトは、Windows/Linux クロスプラットフォームビルドシステムを実現しています。MSVC (Microsoft Visual C++) と GCC の両方に対応し、単一の Makefile で Linux と Windows の両環境でビルドできます。
-
-### 設計の目標
-
-- prod, test 配下のソースコードを Linux と Windows の両環境でビルドできるようにする
-- doxyfw でのドキュメント生成を Linux と Windows の両環境で実行できるようにする
-- makefw フレームワークをクロスプラットフォーム対応する (他のプロジェクトでも利用可能にする)
-- 既存の Linux 環境でのビルドを完全に維持する (動作に変更を加えない)
-- Windows 環境では MSVC (cl.exe, lib.exe, link.exe) を使用する
-- Git for Windows に付属している MinGW 環境のシェルコマンドを活用して、既存スクリプトの互換性を保つ
+本プロジェクトは、Linux/Windows クロスプラットフォームビルドシステムを実現しています。GCC と MSVC (Microsoft Visual C++) との両方に対応し、単一の Makefile で Linux と Windows の両環境でビルドできます。
 
 ## 前提条件
 
+### Linux 環境
+
+標準的な開発ツールが必要です:
+
+- GCC コンパイラ
+- GNU Make
+
 ### Windows 環境
 
-**VS Code 使用時**: 環境変数は VS Code 起動時に自動設定済みの前提です。以下の環境が利用可能である必要があります：
+注: 環境変数は VS Code 起動時に自動設定済みの前提です。以下の環境が利用可能である必要があります：
 
-1. **ポータブル版 Visual Studio Build Tools**
+1. ポータブル版 Visual Studio Build Tools
    - MSVC コンパイラ (`cl.exe`)
    - MSVC リンカー (`link.exe`)
 
-2. **Git for Windows (MinGW)**
+2. Git for Windows (MinGW)
    - GNU Make (`make.exe`)
    - 各種 Unix コマンド
 
-3. **環境設定の実行順序 (手動設定時のみ)**
+3. 環境設定の実行順序 (手動設定時のみ)
 
    ```cmd
    call Add-MinGW-Path.cmd
@@ -40,41 +36,36 @@ TODO: 未精査。
 
    この順序で実行することで、MSVC の `link.exe` が MinGW の `link` より優先されます。
 
-### Linux 環境
-
-標準的な開発ツールが必要です：
-
-- GCC コンパイラ
-- GNU Make
-
 ## ビルド方法
 
 ### ビルド実行
 
-プロジェクトルートまたは `prod/calc` ディレクトリで make コマンドを実行します：
+prod/ ディレクトリでビルドします:
 
-**Windows:**
+Windows:
 
 ```cmd
+cd prod
 make
 ```
 
-**Linux:**
+Linux:
 
 ```bash
+cd prod
 make
 ```
 
-このコマンドで以下がビルドされます：
+このコマンドで以下がビルドされます:
 
-**ライブラリ / Libraries:**
+ライブラリ / Libraries:
 
 | ライブラリ | Windows | Linux | 説明 |
 |-----------|---------|-------|------|
-| libcalcbase | `prod/calc/lib/calcbase.lib` | `prod/calc/lib/libcalcbase.a` | 基本計算関数ライブラリ (静的ライブラリ固定) |
-| libcalc | `prod/calc/lib/calc.dll` + `calc.lib` | `prod/calc/lib/libcalc.so` | 計算ハンドラーライブラリ (動的ライブラリ固定、calcbase を内部に静的リンク) |
+| libcalcbase | `prod/calc/lib/calcbase.lib` | `prod/calc/lib/libcalcbase.a` | 基本計算関数ライブラリ (静的ライブラリ) |
+| libcalc | `prod/calc/lib/calc.dll` + `calc.lib` | `prod/calc/lib/libcalc.so` | 計算ハンドラーライブラリ (動的ライブラリ、calcbase を内部に静的リンク) |
 
-**コマンド / Commands:**
+コマンド / Commands:
 
 | コマンド | Windows | Linux | リンクライブラリ |
 |---------|---------|-------|----------------|
@@ -82,31 +73,36 @@ make
 | calc | `prod/calc/src/calc/calc.exe` | `prod/calc/src/calc/calc` | calc のみ |
 | shared-and-static-add | `prod/calc/src/shared-and-static-add/shared-and-static-add.exe` | `prod/calc/src/shared-and-static-add/shared-and-static-add` | calc + calcbase (両方) |
 
-**重要**: libcalc は動的ライブラリとして固定実装されており、calcbase を内部に静的リンクします。shared-and-static-add は、動的ライブラリと静的ライブラリの両方をリンクする実装例です。
+重要: libcalc は動的ライブラリとして実装されており、calcbase を内部に静的リンクします。shared-and-static-add は、コマンドにおいて動的ライブラリと静的ライブラリの両方をリンクする実装例です。
 
 ### テストのビルドと実行
 
-test/ ディレクトリでテストをビルド・実行します：
+testfw/ ディレクトリおよび test/ ディレクトリでテストをビルド・実行します:
 
-**Windows:**
+Windows:
 
 ```cmd
-cd test
+cd testfw
+make
+cd ..\test
 make
 ```
 
-**Linux:**
+Linux:
 
 ```bash
-cd test
+cd testfw
+make
+cd ../test
 make
 ```
 
-テストは Google Test フレームワークを使用しており、以下の種類があります：
+テストは Google Test フレームワークを使用しています:
 
-- **単体テスト**: ライブラリ関数の単体テスト (`test/src/calc/libcalcbaseTest/`)
-- **統合テスト**: コマンド全体の統合テスト (`test/src/calc/main/`)
-- **モックライブラリ**: テスト用のモック実装 (`test/libsrc/mock_*/`)
+- 単体テスト: ライブラリ関数の単体テスト (`test/src/calc/libcalcbaseTest/`) および コマンドの単体テスト (`test/src/calc/main/`)
+- モックライブラリ: テスト用のモック実装 (`test/libsrc/mock_*/`)
+
+TODO: 以降、未精査。
 
 ### クリーンアップ
 

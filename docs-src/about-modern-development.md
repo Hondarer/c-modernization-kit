@@ -4,15 +4,38 @@
 
 長年運用してきた C 言語のコードは、変更のたびに影響範囲が読みにくく、ドキュメントやテストが古くなりがちです。ここでは、Docs as Code、自動テスト、CI/CD を組み合わせて、品質と保守性、開発速度を高める方法を、実運用に耐える全体ワークフローとあわせて示します。
 
-## Docs as Code とは
+## モダン開発手法の 3 要素
+
+### Docs as Code
 
 ドキュメントをコードと同じように扱い、バージョン管理と自動化で常に最新に保つ考え方です。Markdown で書き、Git で管理し、レビューや自動生成を組み込みます。解説は次が参考になります[^about_docs_as_code]。
 
 [^about_docs_as_code]: [ゼロから始めるDocs as Code](https://qiita.com/tikamoto/items/c05a5c117c78fb7a4e47)
 
+### 自動テスト
+
+ユニットテストを自動で実行してリグレッション (デグレード) を早期に見つけます。Google Test を使い、重要な関数から順に追加します。警告やカバレッジを CI で監視すると効果が上がります。
+
+### CI/CD
+
+プッシュを契機にビルド、テスト、ドキュメント生成、デプロイまでを自動化します。GitHub Actions や GitLab CI、Jenkins などに組み込み、ドキュメントサイトの自動公開までを一気通貫で行います。
+
+```plantuml
+@startuml CI/CD ワークフロー
+   caption CI/CD ワークフロー
+   start
+      :コード変更とコミット;
+      :CI トリガー (GitHub Actions / GitLab CI など);
+      :コードのビルドとテスト実行;
+      :make docs によるドキュメント自動生成;
+      :ドキュメントサイトへの自動デプロイ (GitHub Pages / GitLab Pages など);
+   stop
+@enduml
+```
+
 ## 全体ワークフロー
 
-このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を RAG (検索拡張生成) の入力にして、リポジトリ全体の構造を LLM が理解しやすくします。
+このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を RAG (検索拡張生成) の入力にして、リポジトリ全体の構造を LLM が理解しやすくすることもできます。
 
 ```plantuml
 @startuml 全体ワークフロー
@@ -28,8 +51,8 @@
     component "Google Test\n(w/Google Mock)" as gtest
     folder "関連ドキュメント\n(Markdown)" as docs_md #ffc0c0
     component Pandoc
-    folder "ドキュメント\n(html)" as html
-    folder "ドキュメント\n(docx)" as docx
+    folder "ドキュメント\n(HTML)" as html
+    folder "ドキュメント\n(DOCX)" as docx
     note bottom
         納品用
     end note
@@ -69,38 +92,7 @@
 - Pandoc で HTML と DOCX を生成し、納品や社内共有に使います。
 - Markdown 群を RAG の入力にし、LLM の応答精度を上げます。
 
-## モダン開発手法の 3 要素
-
-### Docs as Code の実装例
-
-- Doxygen による自動ドキュメント生成 (HTML と XML)
-- Doxybook2 による Markdown 変換と Pandoc による発行
-- 日本語向けカスタムテンプレート
-- PlantUML 変換や include 前後処理などのスクリプト
-- `make docs` で一連の生成を自動実行
-
-### 自動テスト
-
-ユニットテストを自動で実行してリグレッション (デグレード) を早期に見つけます。Google Test を使い、重要な関数から順に追加します。警告やカバレッジを CI で監視すると効果が上がります。
-
-### CI/CD
-
-プッシュを契機にビルド、テスト、ドキュメント生成、デプロイまでを自動化します。GitHub Actions や GitLab CI、Jenkins などに組み込み、ドキュメントサイトの自動公開までを一気通貫で行います。
-
-```plantuml
-@startuml CI/CD ワークフロー
-   caption CI/CD ワークフロー
-   start
-      :コード変更とコミット;
-      :CI トリガー (GitHub Actions / GitLab CI など);
-      :コードのビルドとテスト実行;
-      :make docs によるドキュメント自動生成;
-      :ドキュメントサイトへの自動デプロイ (GitHub Pages / GitLab Pages など);
-   stop
-@enduml
-```
-
-## レガシー C コードに導入するメリット
+## レガシー C コードにモダン手法を導入するメリット
 
 ### 品質と安定性が上がる
 

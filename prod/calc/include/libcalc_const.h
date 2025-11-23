@@ -14,8 +14,8 @@
 #ifndef _LIBCALC_CONST_H
 #define _LIBCALC_CONST_H
 
-#define CALC_SUCCESS 0 /*!< 成功を表す戻り値。 */
-#define CALC_ERROR -1  /*!< 失敗を表す戻り値。 */
+#define CALC_SUCCESS 0 /*!< 成功の戻り値を表す定数。 */
+#define CALC_ERROR -1  /*!< 失敗の戻り値を表す定数。 */
 
 #define CALC_KIND_ADD 1      /*!< 加算の演算種別を表す定数。 */
 #define CALC_KIND_SUBTRACT 2 /*!< 減算の演算種別を表す定数。 */
