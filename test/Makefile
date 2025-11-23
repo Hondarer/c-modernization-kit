@@ -7,6 +7,7 @@ all : $(SUBDIRS)
 
 .PHONY: clean
 clean : $(SUBDIRS)
+	-rm -f coverage.xml
 
 .PHONY: test
 test : $(SUBDIRS)
@@ -15,7 +16,6 @@ ifneq ($(OS),Windows_NT)
     # gcovr (dnf install python3.11 python3.11-pip; pip3.11 install gcovr)
 	@if command -v gcovr > /dev/null 2>&1; then \
 		gcovr --exclude-unreachable-branches --cobertura-pretty --output coverage.xml; \
-		#gcovr --exclude-unreachable-branches; \
 	fi
 else
     # Windows
