@@ -5,11 +5,8 @@
             "name": "(Linux gdb) Debug current directory",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/bin/bash",
-            "args": [
-                "-c",
-                "ulimit -s `ulimit -H -s` && ./$(basename `pwd`)"
-            ],
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [
@@ -25,14 +22,15 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Set exec-wrapper for ulimit",
+                    "text": "set exec-wrapper /bin/sh -c 'ulimit -s $(ulimit -H -s) && exec \"$@\"' --",
+                    "ignoreFailures": false
                 }
             ],
             "preLaunchTask": "make all (current dir)",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "logging": {
-                "engineLogging": true
-            },
-            "internalConsoleOptions": "neverOpen"
+            "miDebuggerPath": "/usr/bin/gdb"
         },
         {
             "name": "(Linux gdb) Attach to PID",
