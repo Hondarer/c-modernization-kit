@@ -28,7 +28,7 @@ lib
 obj
 gcov
 lcov
-opencppcoverage
+coverage
 results
 core
 coverage.xml
