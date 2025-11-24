@@ -668,7 +668,7 @@ include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
 # Linux / Windows 共通
 cd test
 make clean    # クリーンビルド
-make all      # ビルド
+make          # ビルド
 make test     # テスト実行
 ```
 
@@ -1056,7 +1056,7 @@ gcovr --exclude-unreachable-branches --html --html-details -o coverage.html
 
 cd test
 make clean
-make all
+make
 make test
 
 if [ $? -ne 0 ]; then
@@ -1073,7 +1073,7 @@ REM test-runner.bat (Windows)
 
 cd test
 make clean
-make all
+make
 make test
 
 if %ERRORLEVEL% neq 0 (
