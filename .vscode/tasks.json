@@ -66,6 +66,28 @@
             ]
         },
         {
+            "label": "make doxy",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "doxy"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always", // Terminal パネルを必ず開く
+                "clear": true // 実行前に Terminal をクリア
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
             "label": "make docs",
             "type": "shell",
             "command": "make",
