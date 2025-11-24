@@ -1,7 +1,6 @@
 # サブディレクトリの定義
-SUBDIRS  = prod testfw test
+MAKE_SUBDIRS  = prod testfw test
 TEST_SUBDIRS = testfw test
-DOCS_SUBDIRS = doxyfw
 
 # サブディレクトリで make を実行するマクロ
 # $(1): サブディレクトリリスト
@@ -18,7 +17,7 @@ endef
 
 .PHONY: default
 default : submodule
-	$(call make_in_subdirs,$(SUBDIRS))
+	$(call make_in_subdirs,$(MAKE_SUBDIRS))
 
 .PHONY: submodule
 submodule :
@@ -28,13 +27,16 @@ submodule :
 
 .PHONY: clean
 clean : submodule
-	$(call make_in_subdirs,$(SUBDIRS),clean)
+	$(call make_in_subdirs,$(MAKE_SUBDIRS),clean)
 
 .PHONY: test
 test : submodule
 	$(call make_in_subdirs,$(TEST_SUBDIRS),test)
 
+.PHONY: doxy
+doxy : submodule
+	$(MAKE) -C doxyfw
+
 .PHONY: docs
 docs : submodule
-	$(call make_in_subdirs,$(DOCS_SUBDIRS),docs)
 	$(BASH) docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true
