@@ -16,6 +16,8 @@
                 }
             ],
             "externalConsole": false,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -30,7 +32,8 @@
                 }
             ],
             "preLaunchTask": "make all (current dir)",
-            "miDebuggerPath": "/usr/bin/gdb"
+            "miDebuggerPath": "/usr/bin/gdb",
+            "useDebugParams": true
         },
         {
             "name": "(Linux gdb) Attach to PID",
@@ -64,7 +67,9 @@
                 }
             ],
             "console": "integratedTerminal",
-            "preLaunchTask": "make all (current dir)"
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "make all (current dir)",
+            "useDebugParams": true
         },
         {
             "name": "(Windows vsdbg) Attach to PID",
