@@ -160,7 +160,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
+                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -169,7 +169,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\""
+                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\""
             }
         },
         {
@@ -181,7 +181,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\"",
+                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\"",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -190,7 +190,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\""
+                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\""
             }
         },
         {
@@ -202,7 +202,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\"",
+                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\"",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -211,7 +211,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\""
+                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\""
             }
         },
         {
@@ -223,7 +223,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /details:true",
+                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /details:true",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -232,7 +232,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --details=true"
+                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --details=true"
             }
         },
         {
@@ -244,7 +244,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\" /details:true",
+                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\" /details:true",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -253,7 +253,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true"
+                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true"
             }
         },
         {
@@ -265,7 +265,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\" /details:true",
+                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\" /details:true",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -274,7 +274,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i ../pub_markdown/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
+                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
             }
         }
     ]
