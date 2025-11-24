@@ -7,6 +7,15 @@ using namespace testing;
 
 class shared_and_static_addTest : public Test
 {
+    void SetUp() override
+    {
+        // mock 呼び出しのテストエビデンスへの可視化のために、トレースレベルを変更する例。
+        // (あらかじめ、mock にトレース対応処理を記述しておく必要がある。
+        //  トレース対応処理の実装も手間なので、ポイントになりそうな関数でのみサポートするとよい)
+        resetTraceLevel();
+        setTraceLevel("calcHandler", TRACE_DETAIL);
+        setTraceLevel("add", TRACE_DETAIL);
+    }
 };
 
 TEST_F(shared_and_static_addTest, less_argc)

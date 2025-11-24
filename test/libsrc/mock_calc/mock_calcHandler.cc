@@ -15,7 +15,7 @@ CALC_API WEAK_ATR int WINAPI calcHandler(int kind, int a, int b, int *result)
         printf("  > %s %d, %d, %d, %p", __func__, kind, a, b, (void *)result);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
-            printf(" -> %d\n", rtc);
+            printf(" -> %d, %d\n", *result, rtc);
         }
         else
         {
