@@ -1,5 +1,5 @@
 # サブディレクトリの定義
-ALL_SUBDIRS  = prod testfw test
+SUBDIRS  = prod testfw test
 TEST_SUBDIRS = testfw test
 DOCS_SUBDIRS = doxyfw
 
@@ -14,10 +14,11 @@ define make_in_subdirs
 	done
 endef
 
-# ターゲットなしの make
+.DEFAULT_GOAL := default
+
 .PHONY: default
 default : submodule
-	$(call make_in_subdirs,$(ALL_SUBDIRS))
+	$(call make_in_subdirs,$(SUBDIRS))
 
 .PHONY: submodule
 submodule :
@@ -25,13 +26,9 @@ submodule :
 #	git submodule sync
 #	git submodule update --init --recursive
 
-.PHONY: all
-all : submodule
-	$(call make_in_subdirs,$(ALL_SUBDIRS),all)
-
 .PHONY: clean
 clean : submodule
-	$(call make_in_subdirs,$(ALL_SUBDIRS),clean)
+	$(call make_in_subdirs,$(SUBDIRS),clean)
 
 .PHONY: test
 test : submodule

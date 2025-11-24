@@ -37,6 +37,9 @@ coverage.xml
 /xml/
 /xml_org/
 
+## doxybook によって生成される Markdown
+/docs-src/doxybook/
+
 ## 生成ドキュメント (gh-pages で公開)
 /docs/
 

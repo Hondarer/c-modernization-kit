@@ -31,7 +31,7 @@
                     "ignoreFailures": false
                 }
             ],
-            "preLaunchTask": "make all (current dir)",
+            "preLaunchTask": "make (current dir)",
             "miDebuggerPath": "/usr/bin/gdb",
             "useDebugParams": true
         },
@@ -68,7 +68,7 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "preLaunchTask": "make all (current dir)",
+            "preLaunchTask": "make (current dir)",
             "useDebugParams": true
         },
         {

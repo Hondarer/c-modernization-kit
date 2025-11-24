@@ -24,12 +24,10 @@
             ]
         },
         {
-            "label": "make all",
+            "label": "make",
             "type": "shell",
             "command": "make",
-            "args": [
-                "all"
-            ],
+            "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -112,12 +110,10 @@
             ]
         },
         {
-            "label": "make all (current dir)",
+            "label": "make (current dir)",
             "type": "shell",
             "command": "make",
-            "args": [
-                "all"
-            ],
+            "args": [],
             "options": {
                 "cwd": "${fileDirname}"
             },
@@ -161,7 +157,7 @@
             "problemMatcher": [],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
             "windows": {
                 "command": "..\\pub_markdown\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
