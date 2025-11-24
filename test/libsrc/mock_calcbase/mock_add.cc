@@ -12,7 +12,7 @@ WEAK_ATR int add(int a, int b, int *result)
 
     if (getTraceLevel() > TRACE_NONE)
     {
-        printf("  > %s %d, %d, %p", __func__, a, b, (void *)result);
+        printf("  > %s %d, %d, 0x%p", __func__, a, b, (void *)result);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
             printf(" -> %d, %d\n", *result, rtc);
