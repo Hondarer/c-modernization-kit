@@ -1,16 +1,5 @@
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // _WIN32
-#include <gmock/gmock.h>
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif // _WIN32
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_calcbase.h>
-
-using namespace testing;
 
 Mock_calcbase *_mock_calcbase = nullptr;
 
@@ -18,9 +7,10 @@ Mock_calcbase::Mock_calcbase()
 {
     ON_CALL(*this, add(_, _, _))
         .WillByDefault(Invoke([](int a, int b, int *result)
-                              { *result = a+b; return CALC_SUCCESS; })); // モック自身でデフォルトの処理を定義しておきたい場合
+                              { *result = a+b;
+                                return CALC_SUCCESS; })); // モックの既定の挙動を定義する例
     ON_CALL(*this, subtract(_, _, _))
-        .WillByDefault(Return(CALC_SUCCESS)); // 一般的に、モックの既定の挙動は NOP にしておく
+        .WillByDefault(Return(CALC_SUCCESS)); // 一般的にはモックの既定の挙動は NOP にしておき、テストプログラムで具体的な挙動を決める
     ON_CALL(*this, multiply(_, _, _))
         .WillByDefault(Return(CALC_SUCCESS));
     ON_CALL(*this, divide(_, _, _))

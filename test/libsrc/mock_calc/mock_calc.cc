@@ -1,16 +1,5 @@
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // _WIN32
-#include <gmock/gmock.h>
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif // _WIN32
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_calc.h>
-
-using namespace testing;
 
 Mock_calc *_mock_calc = nullptr;
 

@@ -1,21 +1,7 @@
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpadded"
-#endif // _WIN32
-#include <gmock/gmock.h>
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif // _WIN32
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_calcbase.h>
 
-using namespace testing;
-
-#ifndef _WIN32
-#pragma weak divide
-#endif // _WIN32
-int divide(int a, int b, int *result)
+WEAK_ATR int divide(int a, int b, int *result)
 {
     int rtc = 0;
 
