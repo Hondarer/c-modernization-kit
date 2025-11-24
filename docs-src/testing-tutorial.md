@@ -1,12 +1,14 @@
-# C言語テスト実践チュートリアル (Linux環境)
+# C言語テスト実践チュートリアル
 
-このチュートリアルでは、Google Test フレームワークを使用して C言語プログラムをテストする方法を詳しく説明します。
+このチュートリアルでは、Linux/Windows クロスプラットフォーム環境において、Google Test フレームワークを使用して C言語プログラムをテストする方法を詳しく説明します。
 
 ## 目次
 
 1. [テストフレームワークの概要](#テストフレームワークの概要)
 2. [プロジェクト構造](#プロジェクト構造)
 3. [環境構築](#環境構築)
+   - [Linux 環境](#linux-環境)
+   - [Windows 環境](#windows-環境)
 4. [モックの作成方法](#モックの作成方法)
 5. [関数のテスト方法](#関数のテスト方法)
 6. [main関数を含むプログラムのテスト](#main関数を含むプログラムのテスト)
@@ -14,18 +16,23 @@
 8. [テストの実行](#テストの実行)
 9. [実践例](#実践例)
 10. [ベストプラクティス](#ベストプラクティス)
+11. [トラブルシューティング](#トラブルシューティング)
+    - [共通の問題](#共通の問題)
+    - [Windows 固有の問題](#windows-固有の問題)
 
 ---
 
 ## テストフレームワークの概要
 
 本プロジェクトでは、Google Test (gtest/gmock) を使用してC言語プログラムのユニットテストを行います。
+Linux では GCC、Windows では MSVC を使用したクロスプラットフォーム開発環境をサポートしています。
 
 ### 主な特徴
 
+- **クロスプラットフォーム対応**: Linux (GCC) と Windows (MSVC) の両方でシームレスに動作
 - **C言語とC++の統合**: C言語で書かれたコードをC++ (Google Test) でテスト
 - **モックフレームワーク**: Google Mock を使用した依存関係のモック化
-- **リンカラップ機能**: `-Wl,--wrap` を使用した関数の置き換え
+- **リンカラップ機能**: Linux では `-Wl,--wrap`、Windows では適切なリンカオプションを使用した関数の置き換え
 - **テストフェーズの明確化**: Arrange, Pre-Assert, Act, Assert の4フェーズでテストを構造化
 
 ### テストの4フェーズ
@@ -42,7 +49,7 @@
 ## プロジェクト構造
 
 ```
-doxygen-sample/
+c-modernization-kit/
 ├── testfw/                           # テストフレームワーク (サブモジュール)
 │   ├── cmnd/                        # テスト支援コマンド
 │   ├── include/                     # フレームワーク提供のモック (stdio等)
@@ -87,7 +94,9 @@ doxygen-sample/
 
 ## 環境構築
 
-### 必要なパッケージ
+### Linux 環境
+
+#### 必要なパッケージ
 
 ```bash
 # Debian/Ubuntu系
@@ -112,10 +121,41 @@ sudo dnf install -y \
 sudo pip3 install gcovr
 ```
 
+### Windows 環境
+
+#### 必要なツール
+
+- **Visual Studio Build Tools** (または Visual Studio) - MSVC コンパイラとリンカ
+- **GNU Make** - Make ビルドシステム (make.exe)
+- **Git for Windows** - MinGW ツールチェーンを含む
+- **Google Test/Mock** - テストフレームワーク
+
+#### 環境設定スクリプト
+
+Windows では、コマンドプロンプトで以下のスクリプトを実行してから VS Code を起動します:
+
+```cmd
+REM 環境設定 (重要: この順序を維持すること)
+call Add-MinGW-Path.cmd
+call Add-VSBT-Env-x64.cmd
+code
+```
+
+**重要**: スクリプトの実行順序が重要です:
+
+1. **Add-MinGW-Path.cmd**: Git for Windows の MinGW ツールへのパスを設定
+2. **Add-VSBT-Env-x64.cmd**: Visual Studio Build Tools の環境変数を設定
+
+この順序により、MSVC の `link.exe` が MinGW の `link` コマンドより優先されます。
+
+> **注意**: `Add-VSBT-Env-x64.cmd` は、Visual Studio の環境設定スクリプトと適宜読み替えてください。
+> 一般的には、x64 Native Tools Command Prompt for VS で使用される `vcvars64.bat` に相当します。
+
 ### サブモジュールの初期化
 
 ```bash
-cd /path/to/doxygen-sample
+# Linux / Windows 共通
+cd /path/to/c-modernization-kit
 git submodule update --init --recursive
 ```
 
@@ -124,7 +164,14 @@ git submodule update --init --recursive
 プロジェクトのルートディレクトリに `.workspaceRoot` ファイルを作成します:
 
 ```bash
+# Linux
 touch .workspaceRoot
+
+# Windows (PowerShell)
+New-Item .workspaceRoot -ItemType File
+
+# Windows (コマンドプロンプト)
+type nul > .workspaceRoot
 ```
 
 このファイルにより、Makefile がプロジェクトルートを自動検出できます。
@@ -618,17 +665,21 @@ include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
 プロジェクトルートから:
 
 ```bash
+# Linux / Windows 共通
 cd test
 make clean    # クリーンビルド
-make all      # ビルド
+make          # ビルド
 make test     # テスト実行
 ```
+
+> **Windows の注意**: コマンドプロンプトで環境設定スクリプトを実行してから make を実行してください。
 
 ### 個別テストの実行
 
 特定のテストディレクトリで:
 
 ```bash
+# Linux / Windows 共通
 cd test/src/calc/libcalcbaseTest/addTest
 make test
 ```
@@ -638,6 +689,7 @@ make test
 フィルター機能を使用:
 
 ```bash
+# Linux
 # 方法1: 環境変数で指定
 export GTEST_FILTER=*test_1_add_2*
 make test
@@ -647,15 +699,41 @@ export -n GTEST_FILTER  # フィルターを解除
 make test GTEST_FILTER=*test_1_add_2*
 ```
 
+```cmd
+REM Windows (コマンドプロンプト)
+REM 方法1: 環境変数で指定
+set GTEST_FILTER=*test_1_add_2*
+make test
+set GTEST_FILTER=
+
+REM 方法2: makeコマンドに指定
+make test GTEST_FILTER=*test_1_add_2*
+```
+
+```powershell
+# Windows (PowerShell)
+# 方法1: 環境変数で指定
+$env:GTEST_FILTER="*test_1_add_2*"
+make test
+Remove-Item Env:\GTEST_FILTER
+
+# 方法2: makeコマンドに指定
+make test GTEST_FILTER=*test_1_add_2*
+```
+
 ### カバレッジレポートの生成
 
 ```bash
+# Linux
 cd test
 make test  # テスト実行 (カバレッジデータ収集)
 
 # gcovr でカバレッジレポート生成
 gcovr --exclude-unreachable-branches
 ```
+
+> **注意**: Windows でのコードカバレッジ取得は、使用するツールによって手順が異なります。
+> MSVC 環境では、Visual Studio のコードカバレッジツールまたはサードパーティツールの使用を検討してください。
 
 ### テスト出力例
 
@@ -974,11 +1052,11 @@ gcovr --exclude-unreachable-branches --html --html-details -o coverage.html
 
 ```bash
 #!/bin/bash
-# test-runner.sh
+# test-runner.sh (Linux)
 
 cd test
 make clean
-make all
+make
 make test
 
 if [ $? -ne 0 ]; then
@@ -989,11 +1067,65 @@ fi
 echo "All tests passed!"
 ```
 
+```cmd
+@echo off
+REM test-runner.bat (Windows)
+
+cd test
+make clean
+make
+make test
+
+if %ERRORLEVEL% neq 0 (
+    echo Tests failed!
+    exit /b 1
+)
+
+echo All tests passed!
+```
+
+### 11. クロスプラットフォーム開発のヒント
+
+異なるプラットフォームでコードを保守する際のベストプラクティス:
+
+#### プラットフォーム固有のコードを最小限に
+
+- できるだけ標準C言語の機能のみを使用
+- プラットフォーム固有の処理は条件付きコンパイルで分離
+
+```c
+#ifdef _WIN32
+    // Windows 固有の処理
+#else
+    // Linux 固有の処理
+#endif
+```
+
+#### ビルドシステムの活用
+
+- makefw サブモジュールがプラットフォーム検出を自動化
+- 各プラットフォームに適したコンパイラオプションを自動設定
+- Makefile は共通のテンプレートを使用
+
+#### 定期的なクロスプラットフォームテスト
+
+- 両方のプラットフォームで定期的にテストを実行
+- CI/CD パイプラインで両環境をテスト
+- プラットフォーム固有の問題を早期に発見
+
+#### ドキュメントの明確化
+
+- プラットフォーム固有の手順を明記
+- 環境設定の要件を文書化
+- トラブルシューティング情報を共有
+
 ---
 
 ## トラブルシューティング
 
-### リンクエラー: undefined reference
+### 共通の問題
+
+#### リンクエラー: undefined reference
 
 **原因**: 必要なライブラリがリンクされていない
 
@@ -1003,7 +1135,7 @@ echo "All tests passed!"
 LIBS += -lmock_calcbase -ltest_com
 ```
 
-### 多重定義エラー: multiple definition
+#### 多重定義エラー: multiple definition
 
 **原因**: 同じシンボルが複数回定義されている
 
@@ -1011,18 +1143,18 @@ LIBS += -lmock_calcbase -ltest_com
 - モック関数の実装ファイルを確認
 - `TEST_SRCS` に同じソースを重複して追加していないか確認
 
-### テストが実行されない
+#### テストが実行されない
 
 **原因**: `__real_main` が未定義
 
-**解決策**: Makefile に `--wrap=main` を追加
+**解決策**: Makefile に `--wrap=main` を追加 (Linux)
 
 ```makefile
 LDCOMFLAGS += -Wl,--wrap=main
 LIBS += -lgtest_wrapmain
 ```
 
-### モックが呼ばれない
+#### モックが呼ばれない
 
 **原因**: リンク順序の問題
 
@@ -1037,6 +1169,40 @@ LIBS += -lgtest_wrapmain
 # モックライブラリをリンク
 LIBS += -lmock_calcbase  # OK
 ```
+
+### Windows 固有の問題
+
+#### 環境変数が設定されていないエラー
+
+**原因**: Visual Studio Build Tools の環境変数が設定されていない
+
+**解決策**: コマンドプロンプトで環境設定スクリプトを実行
+
+```cmd
+call Add-MinGW-Path.cmd
+call Add-VSBT-Env-x64.cmd
+```
+
+#### link.exe が見つからないエラー
+
+**原因**: 環境設定スクリプトの実行順序が間違っている
+
+**解決策**: 正しい順序でスクリプトを実行
+
+```cmd
+REM 正しい順序
+call Add-MinGW-Path.cmd      # 1. MinGW を先に
+call Add-VSBT-Env-x64.cmd    # 2. VSBT を後に
+```
+
+この順序により、MSVC の `link.exe` が MinGW の `link` より優先されます。
+
+#### ビルドエラー: コンパイラオプションの違い
+
+**原因**: GCC と MSVC ではコンパイラオプションが異なる
+
+**解決策**: makefw サブモジュールのビルドフレームワークが自動的にプラットフォームを検出し、
+適切なコンパイラオプションを設定します。Makefile の設定を確認してください。
 
 ---
 
@@ -1057,11 +1223,14 @@ LIBS += -lmock_calcbase  # OK
 
 このチュートリアルでは、以下の内容を説明しました:
 
-1. **テストフレームワークの構造**: Google Test を使用した C言語のテスト環境
-2. **モックの作成**: ヘッダー、クラス、関数の3段階でのモック実装
-3. **関数のテスト**: 通常の関数のユニットテスト方法
-4. **main関数のテスト**: リンカラップ機能を使用した main関数のテスト
-5. **Makefileの作成**: テンプレートを活用した効率的なビルド設定
-6. **実践例**: 実際のコードを使った具体的なテスト例
+1. **クロスプラットフォーム対応**: Linux (GCC) と Windows (MSVC) の両方でシームレスに動作するテスト環境
+2. **環境構築**: Linux と Windows それぞれの環境設定手順
+3. **テストフレームワークの構造**: Google Test を使用した C言語のテスト環境
+4. **モックの作成**: ヘッダー、クラス、関数の3段階でのモック実装
+5. **関数のテスト**: 通常の関数のユニットテスト方法
+6. **main関数のテスト**: リンカラップ機能を使用した main関数のテスト
+7. **Makefileの作成**: テンプレートを活用した効率的なビルド設定
+8. **実践例**: 実際のコードを使った具体的なテスト例
+9. **トラブルシューティング**: プラットフォーム固有の問題と解決方法
 
-これらの知識を活用して、堅牢で保守性の高いテストコードを作成してください。
+これらの知識を活用して、Linux/Windows 両対応の堅牢で保守性の高いテストコードを作成してください。
