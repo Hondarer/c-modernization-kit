@@ -13,16 +13,8 @@ clean : $(SUBDIRS)
 
 .PHONY: test
 test : $(SUBDIRS)
-ifneq ($(OS),Windows_NT)
-    # Linux
-    # gcovr (dnf install python3.11 python3.11-pip; pip3.11 install gcovr)
-	@if command -v gcovr > /dev/null 2>&1; then \
-		gcovr --exclude-unreachable-branches --cobertura-pretty --output coverage.xml; \
-	fi
-else
-    # Windows
+    # このフォルダ以下の coverage.xml をマージする
 	python ../testfw/cmnd/cobertura_merge.py . 1> /dev/null 2>&1
-endif
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :
