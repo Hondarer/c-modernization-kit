@@ -2,8 +2,10 @@ SUBDIRS = \
 	libsrc \
 	src
 
-.PHONY: all
-all : $(SUBDIRS)
+.DEFAULT_GOAL := default
+
+.PHONY: default
+default : $(SUBDIRS)
 
 .PHONY: clean
 clean : $(SUBDIRS)
