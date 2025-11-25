@@ -52,4 +52,5 @@ PROJECT_NUMBER         = "1.0.0"
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ./README.md \
-                         ./calc
+                         ./calc \
+                         ./tutorial
