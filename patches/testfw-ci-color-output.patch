@@ -1,0 +1,117 @@
+From 535e365a38eb39a0eb622265c756c034ed19dcc4 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 25 Nov 2025 20:49:42 +0000
+Subject: [PATCH] =?UTF-8?q?Fix:=20CI=E7=92=B0=E5=A2=83=E3=81=A7=E3=81=AE?=
+ =?UTF-8?q?=E3=83=86=E3=82=B9=E3=83=88=E7=B5=90=E6=9E=9C=E3=81=AE=E8=89=B2?=
+ =?UTF-8?q?=E5=87=BA=E5=8A=9B=E3=82=92=E6=9C=89=E5=8A=B9=E5=8C=96?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+exec_test.shにCI環境検出機能を追加し、CI環境では
+scriptコマンドを使わずに直接bash実行することで、
+ANSI カラーコードがCIログに正しく出力されるように修正。
+
+- CI環境を検出する変数IS_CIを追加
+- CI環境(GitHub Actions等)ではbash -cで直接実行
+- ローカル環境では従来通りscriptコマンドを使用
+- --gtest_color=yesは両環境で維持
+
+これにより、ローカルLinux環境での着色を維持しつつ、
+CI環境でも色付きのテスト結果が表示される。
+---
+ cmnd/exec_test.sh | 71 ++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 52 insertions(+), 19 deletions(-)
+
+diff --git a/cmnd/exec_test.sh b/cmnd/exec_test.sh
+index eebd60f..ff2c98f 100644
+--- a/cmnd/exec_test.sh
++++ b/cmnd/exec_test.sh
+@@ -7,6 +7,14 @@ else
+     IS_WINDOWS=0
+ fi
+ 
++# CI 環境検出
++# GitHub Actions, GitLab CI, Travis CI, CircleCI などの一般的な CI 環境を検出
++if [[ -n "$CI" || -n "$GITHUB_ACTIONS" || -n "$GITLAB_CI" || -n "$TRAVIS" || -n "$CIRCLECI" ]]; then
++    IS_CI=1
++else
++    IS_CI=0
++fi
++
+ # このスクリプトのパス (dirname "$0" 相当)
+ SCRIPT_DIR=${0%/*}
+ 
+@@ -79,25 +87,50 @@ function run_test() {
+ 
+     if [ $IS_WINDOWS -ne 1 ]; then
+         # Linux
+-        LANG=$FILES_LANG script -q -a -c \
+-           "echo \"----\"; \
+-            cat *.cc *.cpp 2>/dev/null | awk -v test_id=\"$test_name\" -f $SCRIPT_DIR/get_test_code.awk | awk -f $SCRIPT_DIR/insert_summary.awk; \
+-            echo \"----\"; \
+-            echo ./$TEST_BINARY --gtest_filter=\"$test_name\"; \
+-            ./$TEST_BINARY --gtest_color=yes --gtest_filter=\"$test_name\" 2>&1 | grep -v \"Note: Google Test filter\"; \
+-            exit_code=\${PIPESTATUS[0]}; \
+-            if [ \$exit_code -ge 128 ]; then \
+-                signal=\$((exit_code - 128)); \
+-                echo -n -e \"\\n\\e[31m[  FAILED  ]\\e[0m Terminated by signal \$signal, \"; \
+-                case \$signal in \
+-                    6)  echo \"SIGABRT: abort.\";; \
+-                    11) echo \"SIGSEGV: segmentation fault.\";; \
+-                    8)  echo \"SIGFPE: floating-point exception.\";; \
+-                    4)  echo \"SIGILL: illegal instruction.\";; \
+-                    *)  echo \"Abnormal termination by other signal.\";; \
+-                esac; \
+-            fi; \
+-            echo \$exit_code > $temp_exit_code" $temp_file
++        if [ $IS_CI -eq 1 ]; then
++            # CI 環境: script コマンドを使わず直接実行
++            # CI 環境では ANSI カラーコードがサポートされているため、script を使わなくても色出力が可能
++            LANG=$FILES_LANG bash -c \
++               "echo \"----\"; \
++                cat *.cc *.cpp 2>/dev/null | awk -v test_id=\"$test_name\" -f $SCRIPT_DIR/get_test_code.awk | awk -f $SCRIPT_DIR/insert_summary.awk; \
++                echo \"----\"; \
++                echo ./$TEST_BINARY --gtest_filter=\"$test_name\"; \
++                ./$TEST_BINARY --gtest_color=yes --gtest_filter=\"$test_name\" 2>&1 | grep -v \"Note: Google Test filter\"; \
++                exit_code=\${PIPESTATUS[0]}; \
++                if [ \$exit_code -ge 128 ]; then \
++                    signal=\$((exit_code - 128)); \
++                    echo -n -e \"\\n\\e[31m[  FAILED  ]\\e[0m Terminated by signal \$signal, \"; \
++                    case \$signal in \
++                        6)  echo \"SIGABRT: abort.\";; \
++                        11) echo \"SIGSEGV: segmentation fault.\";; \
++                        8)  echo \"SIGFPE: floating-point exception.\";; \
++                        4)  echo \"SIGILL: illegal instruction.\";; \
++                        *)  echo \"Abnormal termination by other signal.\";; \
++                    esac; \
++                fi; \
++                echo \$exit_code > $temp_exit_code" 2>&1 | tee -a $temp_file
++        else
++            # ローカル環境: script コマンドを使用（従来通り）
++            LANG=$FILES_LANG script -q -a -c \
++               "echo \"----\"; \
++                cat *.cc *.cpp 2>/dev/null | awk -v test_id=\"$test_name\" -f $SCRIPT_DIR/get_test_code.awk | awk -f $SCRIPT_DIR/insert_summary.awk; \
++                echo \"----\"; \
++                echo ./$TEST_BINARY --gtest_filter=\"$test_name\"; \
++                ./$TEST_BINARY --gtest_color=yes --gtest_filter=\"$test_name\" 2>&1 | grep -v \"Note: Google Test filter\"; \
++                exit_code=\${PIPESTATUS[0]}; \
++                if [ \$exit_code -ge 128 ]; then \
++                    signal=\$((exit_code - 128)); \
++                    echo -n -e \"\\n\\e[31m[  FAILED  ]\\e[0m Terminated by signal \$signal, \"; \
++                    case \$signal in \
++                        6)  echo \"SIGABRT: abort.\";; \
++                        11) echo \"SIGSEGV: segmentation fault.\";; \
++                        8)  echo \"SIGFPE: floating-point exception.\";; \
++                        4)  echo \"SIGILL: illegal instruction.\";; \
++                        *)  echo \"Abnormal termination by other signal.\";; \
++                    esac; \
++                fi; \
++                echo \$exit_code > $temp_exit_code" $temp_file
++        fi
+         gcovr --exclude-unreachable-branches --cobertura-pretty --output coverage/coverage.xml 1> /dev/null 2>&1
+     else
+         # Windows
+-- 
+2.43.0
+

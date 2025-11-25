@@ -35,6 +35,14 @@ jobs:
       - name: Initialize submodules (shallow)
         run: git submodule update --init --recursive --depth 1
 
+      - name: Apply testfw patches for CI color output
+        run: |
+          if [ -f patches/testfw-ci-color-output.patch ]; then
+            cd testfw
+            git apply ../patches/testfw-ci-color-output.patch
+            cd ..
+          fi
+
       - name: Build and run tests
         run: make && make test
 
