@@ -4,7 +4,8 @@
 
 ## VS Code でのインテリセンス設定
 
-VS Code の C/C++ 拡張機能でインテリセンス (コード補完、定義へのジャンプなど) を有効にするには、`.vscode/c_cpp_properties.json` の `includePath` にこのフォルダのパスを記載する必要があります。
+コード補完、定義へのジャンプなど、VS Code の C/C++ 拡張機能でインテリセンス (コード補完、定義へのジャンプなど) を有効にするには、  
+`.vscode/c_cpp_properties.json` の `includePath` にこのフォルダのパスを記載する必要があります。
 
 ### 設定例
 
@@ -40,4 +41,5 @@ VS Code の C/C++ 拡張機能でインテリセンス (コード補完、定義
 - コード補完が機能しない
 - 型情報が表示されない
 
-新しい include フォルダを追加した場合は、`.vscode/c_cpp_properties.json` の `includePath` に必ずパスを追加してください。
+新しい include フォルダを追加した場合は、  
+`.vscode/c_cpp_properties.json` の `includePath` に必ずパスを追加してください。
