@@ -35,8 +35,11 @@ jobs:
       - name: Initialize submodules (shallow)
         run: git submodule update --init --recursive --depth 1
 
-      - name: Build and run tests
-        run: make && make test
+      - name: Build
+        run: make
+
+      - name: Run tests
+        run: make test
 
       - name: Generate and publish documentation
         run: make doxy && make docs
