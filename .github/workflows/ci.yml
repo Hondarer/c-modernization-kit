@@ -21,6 +21,7 @@ jobs:
         HOST_USER: user
         HOST_UID: 1001
         HOST_GID: 127
+        TERM: xterm-256color
 
     steps:
       - name: Checkout repository
