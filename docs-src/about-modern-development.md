@@ -35,7 +35,7 @@
 
 ## 全体ワークフロー
 
-このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を RAG (検索拡張生成) の入力にして、リポジトリ全体の構造を LLM が理解しやすくすることもできます。
+このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を LLM の入力にすることで、リポジトリ全体の構造を LLM が理解しやすくすることもできます。
 
 ```plantuml
 @startuml 全体ワークフロー
@@ -46,8 +46,8 @@
     folder "製品ドキュメント\n(Markdown)" as src_md
     folder "テストのソースコード" as test_src #ffc0c0
     folder "単体試験結果\n(テストエビデンス)" as test_evi
-    component "gcov" as gcov
-    component "lcov" as lcov
+    component "gcov / OpenCppCovrage" as gcov
+    component "lcov / ReportGenerator" as lcov
     component "Google Test\n(w/Google Mock)" as gtest
     folder "関連ドキュメント\n(Markdown)" as docs_md #ffc0c0
     component Pandoc
@@ -57,11 +57,10 @@
         納品用
     end note
     actor "ブラウザで閲覧" as developer
-    component "RAG\n(検索拡張生成)" as rag
-    database "データベース\n(LLM 分析用)" as llm_db
+    component "AI (LLM)" as llm
     note bottom
-        AI の応答向け
-        入力データ
+        AI の入力データ として
+        Markdown を活用する
     end note
     src --> Doxygen
     Doxygen --> Doxybook2
@@ -79,9 +78,8 @@
     Pandoc --> html
     Pandoc --> docx
     html --> developer
-    docs_md --> rag
-    src_md --> rag
-    rag --> llm_db
+    docs_md --> llm
+    src_md ---> llm
 @enduml
 ```
 
@@ -90,7 +88,7 @@
 - 製品ソースから Doxygen で API を抽出し、Doxybook2 で Markdown に変換します。
 - 単体試験を自動実行し、カバレッジなどのエビデンスを残します。
 - Pandoc で HTML と DOCX を生成し、納品や社内共有に使います。
-- Markdown 群を RAG の入力にし、LLM の応答精度を上げます。
+- Markdown 群を LLM の入力にし、LLM の応答精度を上げます。
 
 ## レガシー C コードにモダン手法を導入するメリット
 
