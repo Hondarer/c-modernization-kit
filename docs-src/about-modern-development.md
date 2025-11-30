@@ -56,11 +56,12 @@
     note bottom
         納品用
     end note
-    actor "ブラウザで閲覧" as developer
+    actor "開発者" as developer
+    component "VS Code\n(インテリセンス)" as vscode
     component "AI (LLM)" as llm
     note bottom
         AI の入力データ として
-        Markdown を活用する
+        Markdown を活用
     end note
     src --> Doxygen
     Doxygen --> Doxybook2
@@ -80,6 +81,8 @@
     html --> developer
     docs_md --> llm
     src_md ---> llm
+    src -----> vscode : ヘッダの\nDoxygen コメント
+    vscode -> developer
 @enduml
 ```
 
