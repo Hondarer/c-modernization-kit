@@ -9,6 +9,8 @@ define make_in_subdirs
 	@for dir in $(1); do \
 		if [ -d $$dir ] && [ -f $$dir/Makefile ]; then \
 			$(MAKE) -C $$dir $(2) || exit 1; \
+		else \
+			echo "INFO: $$dir directory not found, skipping."; \
 		fi; \
 	done
 endef
@@ -35,8 +37,16 @@ test : submodule
 
 .PHONY: doxy
 doxy : submodule
-	$(MAKE) -C doxyfw
+	@if [ -d doxyfw ] && [ -f doxyfw/Makefile ]; then \
+		$(MAKE) -C doxyfw; \
+	else \
+		echo "INFO: doxyfw directory not found, skipping."; \
+	fi
 
 .PHONY: docs
 docs : submodule
-	$(BASH) docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true
+	@if [ -d docsfw ] && [ -f docsfw/bin/pub_markdown_core.sh ]; then \
+		$(BASH) docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true; \
+	else \
+		echo "INFO: docsfw directory not found, skipping."; \
+	fi
