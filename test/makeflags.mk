@@ -75,7 +75,8 @@ else
     LDFLAGS     =
 endif
 
-LIBSDIR    +=\
+# テストフレームワークのライブラリ参照を追加する
+LIBSDIR +=\
 	$(WORKSPACE_FOLDER)/testfw/lib \
 	$(WORKSPACE_FOLDER)/test/lib
 

@@ -1,4 +1,4 @@
-name: CI
+name: Documentation
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-docs:
+  docs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
@@ -35,12 +35,6 @@ jobs:
       - name: Initialize submodules (shallow)
         run: git submodule update --init --recursive --depth 1
 
-      - name: Build
-        run: make
-
-      - name: Run tests
-        run: make test
-
       - name: Generate and publish documentation
         run: make doxy && make docs
 
@@ -55,9 +49,6 @@ jobs:
           # DOCX ドキュメント
           docx_files=(docs/**/docx/)
           [ ${#docx_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-docx.zip "${docx_files[@]}" || true
-          # テスト結果
-          test_files=(test/**/results/)
-          [ ${#test_files[@]} -gt 0 ] && zip -r docs/artifacts/test-results.zip "${test_files[@]}" || true
 
       - name: Deploy to gh-pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -81,11 +72,4 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-docs-docx-${{ github.sha }}
           path: docs/**/docx/
-          if-no-files-found: warn
-
-      - name: Upload test results artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.event.repository.name }}-test-results-${{ github.sha }}
-          path: test/**/results/
           if-no-files-found: warn
