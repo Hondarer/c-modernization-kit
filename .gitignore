@@ -43,6 +43,7 @@ coverage.xml
 ## 生成ドキュメント (gh-pages で公開)
 /docs/
 
-## 成果物 (Windows)
+## 成果物
+bin
 *.exe
 *.pdb

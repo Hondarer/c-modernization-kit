@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>CalcDotNet</RootNamespace>
+    <AssemblyName>CalcDotNet</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>c-modernization-kit sample team</Authors>
+    <Description>.NET wrapper for the calc native library</Description>
+    <Copyright>Copyright (C) CompanyName, Ltd. 2025. All rights reserved.</Copyright>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <!-- Define WINDOWS symbol for conditional compilation on Windows -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+  </ItemGroup>
+</Project>
