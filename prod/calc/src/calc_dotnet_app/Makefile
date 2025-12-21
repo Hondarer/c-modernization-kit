@@ -11,7 +11,7 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 CONFIGURATION ?= RelWithDebInfo
 PROJECT_FILE := calc_dotnet_app.csproj
 #OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/bin
-#OUTPUT_DIR := $(CURDIR)
+OUTPUT_DIR := $(CURDIR)/bin
 NATIVE_LIB_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
 
 ifneq ($(OS),Windows_NT)
@@ -34,8 +34,8 @@ build:
 		echo "Please build the native calc library first."; \
 		exit 1; \
 	fi
-#	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
-	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION)
+	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
+#	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION)
 
 .PHONY: run
 run: build

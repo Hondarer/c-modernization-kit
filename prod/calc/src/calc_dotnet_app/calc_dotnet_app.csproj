@@ -19,18 +19,18 @@
 
   <!-- Reference the CalcDotNet library -->
   <ItemGroup>
-    <ProjectReference Include="../../libsrc/calc_dotnet/calc_dotnet.csproj" />
+    <ProjectReference Include="../../libsrc/calc_dotnet_lib/calc_dotnet_lib.csproj" />
   </ItemGroup>
 
   <!-- Copy native library to output directory -->
   <ItemGroup>
     <None Include="../../lib/libcalc.so"
           Condition="'$(OS)' != 'Windows_NT'"
-          CopyToOutputDirectory="PreserveNewest"
+          CopyToOutputDirectory="None"
           Visible="false" />
     <None Include="../../lib/calc.dll"
           Condition="'$(OS)' == 'Windows_NT'"
-          CopyToOutputDirectory="PreserveNewest"
+          CopyToOutputDirectory="None"
           Visible="false" />
   </ItemGroup>
 </Project>

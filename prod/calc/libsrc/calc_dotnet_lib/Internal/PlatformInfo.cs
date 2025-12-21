@@ -17,7 +17,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace CalcDotNet.Internal
+namespace CalcDotNetLib.Internal
 {
     /// <summary>
     /// プラットフォーム検出ユーティリティを提供します。

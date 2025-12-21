@@ -16,7 +16,7 @@
 
 using System;
 
-namespace CalcDotNet
+namespace CalcDotNetLib
 {
     /// <summary>
     /// 計算演算が失敗した際にスローされる例外。

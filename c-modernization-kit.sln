@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "calc", "calc", "{6E4D4892-3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libsrc", "libsrc", "{79377192-5ADE-4B0E-9621-687A619A43A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet", "prod\calc\libsrc\calc_dotnet\calc_dotnet.csproj", "{60D4761B-A4F8-49BB-858D-1B631C79036B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet_lib", "prod\calc\libsrc\calc_dotnet_lib\calc_dotnet_lib.csproj", "{60D4761B-A4F8-49BB-858D-1B631C79036B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C02F2EFD-50FE-42D5-B658-5F9DAE71FE0E}"
 EndProject
@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2C6E36E7-2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C95FC081-BE50-4E30-8B7C-FBEBF79E5A84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet_tests", "test\src\calc_dotnet\calc_dotnet_tests.csproj", "{97546AD9-7F3A-443E-97D8-4D93EF151554}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet_test", "test\src\calc_dotnet\calc_dotnet_test.csproj", "{97546AD9-7F3A-443E-97D8-4D93EF151554}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

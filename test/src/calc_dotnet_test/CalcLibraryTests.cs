@@ -15,7 +15,7 @@
  */
 
 using Xunit;
-using CalcDotNet;
+using CalcDotNetLib;
 
 namespace CalcDotNet.Tests
 {

@@ -15,7 +15,7 @@
  */
 
 using System;
-using CalcDotNet;
+using CalcDotNetLib;
 
 namespace CalcDotNetApp
 {

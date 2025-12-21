@@ -1,7 +1,7 @@
 SUBDIRS = \
 	calcbase \
 	calc \
-	calc_dotnet
+	calc_dotnet_lib
 
 .DEFAULT_GOAL := default
 

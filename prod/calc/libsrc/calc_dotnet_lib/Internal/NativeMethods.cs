@@ -16,7 +16,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace CalcDotNet.Internal
+namespace CalcDotNetLib.Internal
 {
     /// <summary>
     /// ネイティブ calc ライブラリの P/Invoke 宣言を含みます。

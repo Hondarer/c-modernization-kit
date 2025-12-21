@@ -14,9 +14,9 @@
  *******************************************************************************
  */
 
-using CalcDotNet.Internal;
+using CalcDotNetLib.Internal;
 
-namespace CalcDotNet
+namespace CalcDotNetLib
 {
     /// <summary>
     /// ネイティブ calc ライブラリを使用して基本的な整数演算を実行するための
