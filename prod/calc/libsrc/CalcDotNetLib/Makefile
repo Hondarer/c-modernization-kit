@@ -10,23 +10,5 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理 (Makefile テンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-.DEFAULT_GOAL := default
-
-.PHONY: default
-default: build
-
-.PHONY: build
-build:
-	dotnet build -c $(CONFIG) -o $(OUTPUT_DIR)
-
-.PHONY: clean
-clean:
-	rm -f $(OUTPUT_DIR)/CalcDotNetLib.*
-	rm -rf bin obj
-
-.PHONY: restore
-restore:
-	dotnet restore
-
-.PHONY: rebuild
-rebuild: clean build
+# libsrc (for .NET) の Makefile テンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc_dotnet.mk

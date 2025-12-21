@@ -7,29 +7,8 @@ find-up = \
     )
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# Configuration
-CONFIG ?= RelWithDebInfo
+# 準備処理 (Makefile テンプレートより前に include)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-.DEFAULT_GOAL := default
-
-.PHONY: default
-default: build
-
-.PHONY: build
-build:
-	dotnet build -c $(CONFIG)
-
-.PHONY: test
-test: build
-	dotnet test -c $(CONFIG) --no-build --verbosity normal
-
-.PHONY: clean
-clean:
-	rm -rf bin obj results
-
-.PHONY: restore
-restore:
-	dotnet restore
-
-.PHONY: rebuild
-rebuild: clean build
+# src (for .NET) の Makefile テンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc_dotnet.mk
