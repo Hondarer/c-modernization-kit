@@ -1,1 +1,1 @@
-TARGETDIR := $(WORKSPACE_FOLDER)/prod/tutorial/lib
+OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/tutorial/lib

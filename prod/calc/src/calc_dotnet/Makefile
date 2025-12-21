@@ -46,7 +46,7 @@ run: build
 clean:
 	dotnet clean $(PROJECT_FILE) -c $(CONFIGURATION)
 	rm -rf bin obj
-	rm -f $(OUTPUT_DIR)/$(EXECUTABLE) $(OUTPUT_DIR)/calc_dotnet.* $(OUTPUT_DIR)/CalcDotNet.*
+	rm -f $(OUTPUT_DIR)/$(EXECUTABLE) $(OUTPUT_DIR)/calc_dotnet.*
 
 .PHONY: restore
 restore:

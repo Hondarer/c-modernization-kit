@@ -565,7 +565,7 @@ MSVC のデバッグ情報ファイル (PDB) は、以下のように配置し�
 ライブラリファイル (.lib) と同じディレクトリに配置します。
 
 ```makefile
-CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(TARGETDIR)/calc.pdb /I...
+CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(OUTPUT_DIR)/calc.pdb /I...
 ```
 
 生成結果：
@@ -582,7 +582,7 @@ prod/calc/lib/
 
 ```makefile
 CFLAGS := /W4 /Zi /TC /nologo /utf-8 /Fd$(OBJDIR)/add.pdb /I...
-LDFLAGS := /DEBUG /PDB:$(TARGETDIR)/add.pdb /LIBPATH:...
+LDFLAGS := /DEBUG /PDB:$(OUTPUT_DIR)/add.pdb /LIBPATH:...
 ```
 
 生成結果：
@@ -601,7 +601,7 @@ prod/calc/src/add/
 複数のソースファイルが同じ PDB ファイルに同時に書き込む場合、`/FS` オプションを追加して同期を保証する必要があります。
 
 ```makefile
-CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(TARGETDIR)/calc.pdb /I...
+CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(OUTPUT_DIR)/calc.pdb /I...
 ```
 
 このオプションを指定しないと、以下のエラーが発生することがあります：
@@ -632,14 +632,14 @@ WORKSPACE_FOLDER := $(shell \
 
 ### ディレクトリの依存関係
 
-PDB ファイルを TARGETDIR に出力する場合、コンパイルルールに TARGETDIR の依存関係を追加する必要があります。
+PDB ファイルを OUTPUT_DIR に出力する場合、コンパイルルールに OUTPUT_DIR の依存関係を追加する必要があります。
 
 ```makefile
-$(OBJDIR)/%$(OBJEXT): %.c | $(OBJDIR) $(TARGETDIR)
+$(OBJDIR)/%$(OBJEXT): %.c | $(OBJDIR) $(OUTPUT_DIR)
     $(CC) $(CFLAGS) /c /Fo$@ $<
 ```
 
-これにより、コンパイル前に TARGETDIR が作成されることが保証されます。
+これにより、コンパイル前に OUTPUT_DIR が作成されることが保証されます。
 
 ### clean ターゲットの実装
 
@@ -649,13 +649,13 @@ Windows 環境では、clean ターゲットで PDB ファイルも削除する�
 .PHONY: clean
 clean:
     rm -rf $(OBJDIR)
-    rm -f $(TARGETDIR)/$(TARGET)
+    rm -f $(OUTPUT_DIR)/$(TARGET)
 ifeq ($(OS),Windows_NT)
-    rm -f $(TARGETDIR)/*.pdb
+    rm -f $(OUTPUT_DIR)/*.pdb
 endif
 ```
 
-obj ディレクトリの削除により、コンパイル時の PDB と ILK ファイルが削除されます。TARGETDIR に配置されたリンク時の PDB ファイルのみ、明示的に削除します。
+obj ディレクトリの削除により、コンパイル時の PDB と ILK ファイルが削除されます。OUTPUT_DIR に配置されたリンク時の PDB ファイルのみ、明示的に削除します。
 
 ## まとめと今後の展望
 

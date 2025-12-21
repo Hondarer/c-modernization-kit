@@ -124,14 +124,14 @@ install-libs:
 ifneq ($(INSTALL_LIB),)
 	@echo "Installing library to $(LIBDIR)"
 	@mkdir -p $(LIBDIR)
-	@echo "  Installing $(TARGETDIR)/$(TARGET)"
-	@cp -p $(TARGETDIR)/$(TARGET) $(LIBDIR)/
+	@echo "  Installing $(OUTPUT_DIR)/$(TARGET)"
+	@cp -p $(OUTPUT_DIR)/$(TARGET) $(LIBDIR)/
 ifeq ($(OS),Windows_NT)
     # Windows の場合、インポートライブラリもコピー
     # For Windows, also copy import library
-	@if [ -f "$(TARGETDIR)/$(patsubst %.dll,%.lib,$(TARGET))" ]; then \
-		echo "  Installing $(TARGETDIR)/$(patsubst %.dll,%.lib,$(TARGET))"; \
-		cp -p $(TARGETDIR)/$(patsubst %.dll,%.lib,$(TARGET)) $(LIBDIR)/; \
+	@if [ -f "$(OUTPUT_DIR)/$(patsubst %.dll,%.lib,$(TARGET))" ]; then \
+		echo "  Installing $(OUTPUT_DIR)/$(patsubst %.dll,%.lib,$(TARGET))"; \
+		cp -p $(OUTPUT_DIR)/$(patsubst %.dll,%.lib,$(TARGET)) $(LIBDIR)/; \
 	fi
 endif
 endif
@@ -143,14 +143,14 @@ install-bins:
 ifneq ($(INSTALL_BIN),)
 	@echo "Installing binary to $(BINDIR)"
 	@mkdir -p $(BINDIR)
-	@echo "  Installing $(TARGETDIR)/$(TARGET)"
-	@cp -p $(TARGETDIR)/$(TARGET) $(BINDIR)/
+	@echo "  Installing $(OUTPUT_DIR)/$(TARGET)"
+	@cp -p $(OUTPUT_DIR)/$(TARGET) $(BINDIR)/
 ifeq ($(OS),Windows_NT)
     # Windows の場合、PDB ファイルもコピー
     # For Windows, also copy PDB file
-	@if [ -f "$(patsubst %.exe,%.pdb,$(TARGETDIR)/$(TARGET))" ]; then \
-		echo "  Installing $(patsubst %.exe,%.pdb,$(TARGETDIR)/$(TARGET))"; \
-		cp -p $(patsubst %.exe,%.pdb,$(TARGETDIR)/$(TARGET)) $(BINDIR)/; \
+	@if [ -f "$(patsubst %.exe,%.pdb,$(OUTPUT_DIR)/$(TARGET))" ]; then \
+		echo "  Installing $(patsubst %.exe,%.pdb,$(OUTPUT_DIR)/$(TARGET))"; \
+		cp -p $(patsubst %.exe,%.pdb,$(OUTPUT_DIR)/$(TARGET)) $(BINDIR)/; \
 	fi
 endif
 endif
