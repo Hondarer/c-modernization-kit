@@ -9,7 +9,15 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # Configuration
 CONFIGURATION ?= RelWithDebInfo
-PROJECT_FILE := calc_dotnet_test.csproj
+PROJECT_FILE := CalcDotNetApp.csproj
+OUTPUT_DIR := $(CURDIR)/bin
+NATIVE_LIB_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
+
+ifneq ($(OS),Windows_NT)
+    EXECUTABLE := CalcDotNetApp
+else
+    EXECUTABLE := CalcDotNetApp.exe
+endif
 
 .DEFAULT_GOAL := default
 
@@ -18,16 +26,17 @@ default: build
 
 .PHONY: build
 build:
-	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION)
+	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
 
-.PHONY: test
-test: build
-	dotnet test $(PROJECT_FILE) -c $(CONFIGURATION) --no-build --verbosity normal
+.PHONY: run
+run: build
+	cd $(OUTPUT_DIR) && LD_LIBRARY_PATH=$(NATIVE_LIB_DIR):$$LD_LIBRARY_PATH ./$(EXECUTABLE)
 
 .PHONY: clean
 clean:
 	dotnet clean $(PROJECT_FILE) -c $(CONFIGURATION)
-	rm -rf bin obj results
+	rm -rf bin obj
+#	rm -f $(OUTPUT_DIR)/$(EXECUTABLE) $(OUTPUT_DIR)/calc_dotnet.*
 
 .PHONY: restore
 restore:

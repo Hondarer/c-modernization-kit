@@ -18,7 +18,7 @@ using System;
 using Xunit;
 using CalcDotNetLib;
 
-namespace CalcDotNet.Tests
+namespace CalcDotNetLib.Tests
 {
     /// <summary>
     /// CalcException クラスの単体テスト。

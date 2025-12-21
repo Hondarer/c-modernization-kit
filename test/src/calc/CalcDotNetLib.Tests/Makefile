@@ -9,8 +9,7 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # Configuration
 CONFIGURATION ?= RelWithDebInfo
-PROJECT_FILE := calc_dotnet_lib.csproj
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
+PROJECT_FILE := CalcDotNetLib.Tests.csproj
 
 .DEFAULT_GOAL := default
 
@@ -19,13 +18,16 @@ default: build
 
 .PHONY: build
 build:
-	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
+	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION)
+
+.PHONY: test
+test: build
+	dotnet test $(PROJECT_FILE) -c $(CONFIGURATION) --no-build --verbosity normal
 
 .PHONY: clean
 clean:
 	dotnet clean $(PROJECT_FILE) -c $(CONFIGURATION)
-	rm -rf bin obj
-	rm -f $(OUTPUT_DIR)/calc_dotnet_lib.*
+	rm -rf bin obj results
 
 .PHONY: restore
 restore:

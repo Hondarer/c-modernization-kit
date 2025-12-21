@@ -1,10 +1,10 @@
-# CalcDotNet テスト
+# CalcDotNetLib テスト
 
-CalcDotNet ライブラリの包括的な単体テスト。
+CalcDotNetLib ライブラリの包括的な単体テスト。
 
 ## 概要
 
-このテストスイートは、xUnit を使用して CalcDotNet ラッパーライブラリの機能を検証します。すべての計算操作、エラー処理、例外動作、クロスプラットフォーム互換性のテストが含まれます。
+このテストスイートは、xUnit を使用して CalcDotNetLib ラッパーライブラリの機能を検証します。すべての計算操作、エラー処理、例外動作、クロスプラットフォーム互換性のテストが含まれます。
 
 ## 要件
 
@@ -18,7 +18,7 @@ CalcDotNet ライブラリの包括的な単体テスト。
 
 ```bash
 # すべてのテストを実行
-cd test/src/calc_dotnet
+cd test/src/CalcDotNetLib.Tests
 make test
 
 # 実行せずにテストをビルド
@@ -35,10 +35,10 @@ make restore
 
 ```bash
 # すべてのテストを実行
-dotnet test calc_dotnet_tests.csproj
+dotnet test CalcDotNetLib.Tests.csproj
 
 # 詳細出力で実行
-dotnet test calc_dotnet_tests.csproj --verbosity detailed
+dotnet test CalcDotNetLib.Tests.csproj --verbosity detailed
 
 # 特定のテストクラスを実行
 dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
@@ -121,41 +121,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 - ✅ プラットフォーム検出
 - ✅ クロスプラットフォームライブラリローディング
 
-## プラットフォーム固有のテスト
-
-### Linux
-
-```bash
-# Makefile が自動的に LD_LIBRARY_PATH を設定
-make test
-```
-
-### Windows
-
-```bash
-# ネイティブ DLL は同じディレクトリまたは PATH に配置する必要がある
-make test
-```
-
 ## トラブルシューティング
-
-### ネイティブライブラリが見つからない
-
-次のようなエラーが表示される場合:
-
-```text
-DllNotFoundException: Unable to load DLL 'libcalc.so' or 'calc.dll'
-```
-
-**解決方法:**
-
-1. ネイティブライブラリがビルドされていることを確認:
-   ```bash
-   cd prod/calc/libsrc/calc
-   make build
-   ```
-2. ライブラリが `prod/calc/lib/` に存在することを確認
-3. Linux では `LD_LIBRARY_PATH` にライブラリディレクトリが含まれることを確認
 
 ### テストのビルドが失敗する
 
@@ -175,11 +141,11 @@ make build
 **Linux:**
 
 - `libcalc.so` がライブラリパスに存在することを確認
-- `LD_LIBRARY_PATH` が正しく設定されていることを確認 (Makefile がこれを処理)
+- .csproj ファイルが自動的に DLL を出力ディレクトリにコピー
 
 **Windows:**
 
-- `calc.dll` がテスト実行ファイルと同じディレクトリに存在することを確認
+- `calc.dll` がライブラリパスに存在することを確認
 - .csproj ファイルが自動的に DLL を出力ディレクトリにコピー
 
 ## 新しいテストの追加
