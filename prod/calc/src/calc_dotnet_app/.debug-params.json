@@ -1,0 +1,15 @@
+// このファイルは VS Code の Debug Params プラグインのための設定ファイルです。
+// Debug Params プラグインをインストールすると、デバッグ実行時に環境変数や引数を動的に設定できます。
+// https://marketplace.visualstudio.com/items?itemName=TetsuoHonda.vscode-debug-params
+{
+  "configs": [
+    {
+      "name": "1 + 3", 
+      "args": ["1", "+", "3"] 
+    },
+    {
+      "name": "引数任意入力",
+      "args": "${input:@args}"
+    }
+  ]
+}

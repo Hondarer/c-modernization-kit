@@ -9,16 +9,17 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # Configuration
 CONFIGURATION ?= RelWithDebInfo
-PROJECT_FILE := calc_dotnet.csproj
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/bin
+PROJECT_FILE := calc_dotnet_app.csproj
+#OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/bin
+#OUTPUT_DIR := $(CURDIR)
 NATIVE_LIB_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
 
 ifneq ($(OS),Windows_NT)
     NATIVE_LIB := libcalc.so
-    EXECUTABLE := calc_dotnet
+    EXECUTABLE := calc_dotnet_app
 else
     NATIVE_LIB := calc.dll
-    EXECUTABLE := calc_dotnet.exe
+    EXECUTABLE := calc_dotnet_app.exe
 endif
 
 .DEFAULT_GOAL := default
@@ -33,7 +34,8 @@ build:
 		echo "Please build the native calc library first."; \
 		exit 1; \
 	fi
-	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
+#	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
+	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION)
 
 .PHONY: run
 run: build
@@ -43,7 +45,7 @@ run: build
 clean:
 	dotnet clean $(PROJECT_FILE) -c $(CONFIGURATION)
 	rm -rf bin obj
-	rm -f $(OUTPUT_DIR)/$(EXECUTABLE) $(OUTPUT_DIR)/calc_dotnet.*
+#	rm -f $(OUTPUT_DIR)/$(EXECUTABLE) $(OUTPUT_DIR)/calc_dotnet.*
 
 .PHONY: restore
 restore:

@@ -76,6 +76,48 @@
             "type": "cppvsdbg",
             "request": "attach",
             "processId": "${input:processId}"
+        },
+        {
+            "name": "(Linux coreclr) Debug current directory",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${fileDirname}/bin/RelWithDebInfo/net9.0/${fileBasenameNoExtension}",
+            "args": [],
+            "cwd": "${fileDirname}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "justMyCode": false,
+            "enableStepFiltering": false,
+            "preLaunchTask": "make (current dir)",
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+            },
+            "sourceFileMap": {
+                "/build": "${workspaceFolder}"
+            },
+            "useDebugParams": true
+        },
+        {
+            "name": "(Windows coreclr) Debug current directory",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${fileDirname}/bin/RelWithDebInfo/net9.0/${fileBasenameNoExtension}",
+            "args": [],
+            "cwd": "${fileDirname}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "justMyCode": false,
+            "enableStepFiltering": false,
+            "preLaunchTask": "make (current dir)",
+            "env": {
+                "PATH": "${workspaceFolder}/prod/calc/lib;${env:PATH}"
+            },
+            "sourceFileMap": {
+                "/build": "${workspaceFolder}"
+            },
+            "useDebugParams": true
         }
     ],
     "inputs": [

@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>CalcDotNetApp</RootNamespace>
-    <AssemblyName>calc_dotnet</AssemblyName>
+    <AssemblyName>calc_dotnet_app</AssemblyName>
     <Version>1.0.0</Version>
     <Authors>c-modernization-kit sample team</Authors>
     <Description>.NET version of the calc command-line application</Description>

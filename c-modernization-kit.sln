@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet", "prod\calc\li
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C02F2EFD-50FE-42D5-B658-5F9DAE71FE0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet", "prod\calc\src\calc_dotnet\calc_dotnet.csproj", "{826D1E90-8C22-469D-ADB9-73CBB76D2F29}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calc_dotnet_app", "prod\calc\src\calc_dotnet_app\calc_dotnet_app.csproj", "{826D1E90-8C22-469D-ADB9-73CBB76D2F29}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2C6E36E7-2816-4424-99E3-B5A470BBC328}"
 EndProject
