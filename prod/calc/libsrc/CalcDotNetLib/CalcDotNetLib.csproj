@@ -9,6 +9,7 @@
     <Copyright>Copyright (C) CompanyName, Ltd. 2025. All rights reserved.</Copyright>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <LangVersion>8.0</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Define WINDOWS symbol for conditional compilation on Windows -->

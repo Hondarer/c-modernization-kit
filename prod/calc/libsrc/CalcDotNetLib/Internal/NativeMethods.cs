@@ -1,3 +1,4 @@
+#pragma warning disable 1587
 /**
  *******************************************************************************
  *  @file           NativeMethods.cs
@@ -13,6 +14,7 @@
  *
  *******************************************************************************
  */
+#pragma warning restore 1587
 
 using System.Runtime.InteropServices;
 
