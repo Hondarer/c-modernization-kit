@@ -1,18 +1,24 @@
 # GitHub Actions CI/CD 仕様
 
-本プロジェクトでは GitHub Actions を使用した継続的インテグレーション (CI) を実装しています。
+本プロジェクトでは GitHub Actions を使用した継続的インテグレーション (CI) とドキュメント生成を実装しています。
 
 ## 概要
 
-main ブランチへの変更時に自動テストを実行し、コード品質を維持します。
+main ブランチへの変更時に、Linux/Windows 両環境での自動ビルド・テスト、およびドキュメント生成を実行し、コード品質を維持します。
 
 ## ワークフロー構成
 
-### ファイル
+### ワークフローファイル
 
-- `.github/workflows/ci.yml`
+本プロジェクトでは以下の3つのワークフローを使用しています：
+
+1. `.github/workflows/build-and-test-linux.yml` - Linux 環境でのビルドとテスト
+2. `.github/workflows/build-and-test-windows.yml` - Windows 環境でのビルドとテスト
+3. `.github/workflows/docs.yml` - ドキュメント生成と GitHub Pages へのデプロイ
 
 ### トリガー条件
+
+すべてのワークフローは以下のイベントで実行されます：
 
 | イベント | 対象ブランチ |
 |---------|-------------|
@@ -21,11 +27,12 @@ main ブランチへの変更時に自動テストを実行し、コード品質
 
 ## 実行環境
 
-### コンテナイメージ
+### Linux 環境
 
-Oracle Linux 8 開発コンテナを使用しています。
+Linux 環境では Oracle Linux 8 開発コンテナを使用しています。
 
 ```yaml
+runs-on: ubuntu-latest
 container:
   image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
 ```
@@ -37,7 +44,7 @@ container:
 - Google Test
 - Doxygen, PlantUML, Pandoc
 
-### 環境変数
+#### Linux 環境変数
 
 | 変数名 | 値 | 説明 |
 |--------|-----|------|
@@ -45,11 +52,68 @@ container:
 | HOST_UID | 1001 | ユーザー ID |
 | HOST_GID | 127 | グループ ID |
 
+### Windows 環境
+
+Windows 環境では Windows Server 2025 ランナーを使用しています。
+
+```yaml
+runs-on: windows-2025
+```
+
+Windows 環境では以下のツールを動的にセットアップしています:
+
+- **OpenCppCoverage** - C++ コードカバレッジツール (Chocolatey 経由でインストール)
+- **ReportGenerator** - カバレッジレポート生成ツール (.NET ツール)
+- **MSVC 環境** - カスタムスクリプト (`Add-VSBT-Env-x64.ps1`) で環境変数を設定
+
 ## 実行ステップ
+
+### Build and Test (Linux) ワークフロー
+
+1. **リポジトリのチェックアウト**
+   - サブモジュールを含めて再帰的にチェックアウト
+
+2. **Git safe directory 設定**
+   - コンテナ内での Git 操作を許可
+
+3. **ビルド**
+   - `make` を実行してプロジェクトをビルド
+
+4. **テストの実行**
+   - `make test` を実行
+   - testfw および test ディレクトリ配下のテストを実行
+
+5. **テスト結果アーティファクトのアップロード**
+   - テスト結果 (`test/**/results/`) を保存
+
+### Build and Test (Windows) ワークフロー
+
+1. **リポジトリのチェックアウト**
+   - サブモジュールを含めて再帰的にチェックアウト
+
+2. **OpenCppCoverage のインストール**
+   - Chocolatey を使用してインストール
+   - PATH に追加
+
+3. **ReportGenerator のインストール**
+   - .NET Global Tool としてインストール
+
+4. **MSVC 環境のセットアップ**
+   - カスタムスクリプト (`Add-VSBT-Env-x64.ps1`) で環境変数を設定
+
+5. **ビルド**
+   - `make` を実行してプロジェクトをビルド
+
+6. **テストの実行**
+   - `make test` を実行
+
+7. **テスト結果アーティファクトのアップロード**
+   - テスト結果 (`test/**/results/`) を保存
+
+### Documentation ワークフロー
 
 1. **リポジトリのチェックアウト**
    - `fetch-depth: 0` で全履歴を取得 (Markdown 処理時の author/date 取得用)
-   - サブモジュールは shallow clone で初期化 (`--depth 1`)
 
 2. **Git safe directory 設定**
    - コンテナ内での Git 操作を許可
@@ -57,19 +121,20 @@ container:
 3. **サブモジュール初期化**
    - `git submodule update --init --recursive --depth 1` で浅いクローン
 
-4. **テストの実行**
-   - `make test` を実行
-   - testfw および test ディレクトリ配下のテストを実行
+4. **ドキュメント生成**
+   - `make doxy && make docs` を実行
+   - Doxygen および Pandoc でドキュメントを生成
 
-5. **ドキュメント生成**
-   - `make docs` を実行
+5. **gh-pages 用アーティファクトアーカイブの作成**
+   - main ブランチへの push 時のみ実行
+   - HTML と docx ファイルを zip 形式でアーカイブ
 
 6. **GitHub Pages へのデプロイ**
    - main ブランチへの push 時のみ実行
    - gh-pages ブランチに公開
 
 7. **アーティファクトのアップロード**
-   - HTML ドキュメント、docx ファイル、テスト結果を保存
+   - HTML ドキュメント、docx ファイルを保存
 
 ## GitHub Pages デプロイ
 
@@ -116,7 +181,9 @@ GitHub Pages を有効にするには、リポジトリ設定で以下を行い�
 
 CI 実行時に生成されるファイルをアーティファクトとして保存し、後から確認できます。
 
-### HTML ドキュメント
+### ドキュメントアーティファクト (Documentation ワークフロー)
+
+#### HTML ドキュメント
 
 ```yaml
 - name: Upload html artifacts
@@ -133,7 +200,7 @@ CI 実行時に生成されるファイルをアーティファクトとして�
 - `docs/doxygen` - Doxygen 生成 HTML
 - `docs/**/html` - Pandoc 生成 HTML
 
-### docx ドキュメント
+#### docx ドキュメント
 
 ```yaml
 - name: Upload docx artifacts
@@ -144,13 +211,26 @@ CI 実行時に生成されるファイルをアーティファクトとして�
     if-no-files-found: warn
 ```
 
-### テスト結果
+### テスト結果アーティファクト
+
+#### Linux テスト結果
 
 ```yaml
 - name: Upload test results artifacts
   uses: actions/upload-artifact@v4
   with:
-    name: ${{ github.event.repository.name }}-test-results-${{ github.sha }}
+    name: ${{ github.event.repository.name }}-linux-test-results-${{ github.sha }}
+    path: test/**/results/
+    if-no-files-found: warn
+```
+
+#### Windows テスト結果
+
+```yaml
+- name: Upload test results artifacts
+  uses: actions/upload-artifact@v4
+  with:
+    name: ${{ github.event.repository.name }}-windows-test-results-${{ github.sha }}
     path: test/**/results/
     if-no-files-found: warn
 ```
@@ -161,7 +241,7 @@ CI 実行時に生成されるファイルをアーティファクトとして�
 2. 対象のワークフロー実行を選択
 3. 「Artifacts」セクションからダウンロード
 
-Pull Request 時はアーティファクトをダウンロードしてローカルでドキュメントを確認できます。
+Pull Request 時はアーティファクトをダウンロードしてローカルでドキュメントやテスト結果を確認できます。
 
 ## 認証
 
@@ -175,11 +255,33 @@ credentials:
 
 ## ローカルでの動作確認
 
-CI と同等のテストをローカルで実行する場合:
+CI と同等のビルドとテストをローカルで実行できます。
+
+### Linux 環境
 
 ```bash
+# ビルド
+make
+
+# テスト実行
+make test
+
+# ドキュメント生成
+make doxy
+make docs
+```
+
+### Windows 環境
+
+```powershell
+# ビルド
+make
+
+# テスト実行
 make test
 ```
+
+**注意**: Windows 環境では、事前に必要な環境設定を行う必要があります。詳細は [CLAUDE.md](../CLAUDE.md) の「Windows にてあらかじめ実施しなくてはいけない作業」を参照してください。
 
 ## 関連ドキュメント
 

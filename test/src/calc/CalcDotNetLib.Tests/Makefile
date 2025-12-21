@@ -8,8 +8,7 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # Configuration
-CONFIGURATION ?= RelWithDebInfo
-PROJECT_FILE := CalcDotNetLib.Tests.csproj
+CONFIG ?= RelWithDebInfo
 
 .DEFAULT_GOAL := default
 
@@ -18,11 +17,11 @@ default: build
 
 .PHONY: build
 build:
-	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION)
+	dotnet build -c $(CONFIG)
 
 .PHONY: test
 test: build
-	dotnet test $(PROJECT_FILE) -c $(CONFIGURATION) --no-build --verbosity normal
+	dotnet test -c $(CONFIG) --no-build --verbosity normal
 
 .PHONY: clean
 clean:
@@ -30,7 +29,7 @@ clean:
 
 .PHONY: restore
 restore:
-	dotnet restore $(PROJECT_FILE)
+	dotnet restore
 
 .PHONY: rebuild
 rebuild: clean build

@@ -7,10 +7,8 @@ find-up = \
     )
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# Configuration
-CONFIGURATION ?= RelWithDebInfo
-PROJECT_FILE := CalcDotNetLib.csproj
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
+# 準備処理 (Makefile テンプレートより前に include)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 .DEFAULT_GOAL := default
 
@@ -19,7 +17,7 @@ default: build
 
 .PHONY: build
 build:
-	dotnet build $(PROJECT_FILE) -c $(CONFIGURATION) -o $(OUTPUT_DIR)
+	dotnet build -c $(CONFIG) -o $(OUTPUT_DIR)
 
 .PHONY: clean
 clean:
@@ -28,7 +26,7 @@ clean:
 
 .PHONY: restore
 restore:
-	dotnet restore $(PROJECT_FILE)
+	dotnet restore
 
 .PHONY: rebuild
 rebuild: clean build

@@ -1,64 +1,239 @@
-# VS Code における環境変数の設定ガイド
+# VS Code における環境変数の注入方法
 
-VS Code では、プロジェクトごとに `.vscode` フォルダ配下の設定ファイルを使って環境変数を設定できます。ただし、設定できる範囲は用途によって異なります。
+VS Code で環境変数を扱う方法は大きく分けて2つあります。それぞれの特徴と実装方法を説明します。
 
-## 設定できる範囲の概要
+## 方法1: 環境変数設定後に VS Code を起動 (最も適切)
 
-VS Code で環境変数を設定できる主な場面は 3 つあります。
+VS Code プロセスを起動する前に環境変数を設定する方法です。この方法では、VS Code 本体とそこから起動されるすべての子プロセス (ターミナル、ビルドタスク、デバッグ実行) が同じ環境変数を継承します。
 
-**統合ターミナルを開いた時**に環境変数を設定するには、`settings.json` を使います。ターミナルで直接コマンドを実行する際や、ターミナル経由で起動するプログラムに環境変数を渡せます。
+### 利点
 
-**タスクを実行する時**に環境変数を設定するには、`tasks.json` を使います。ビルドやテスト実行などのタスクに環境変数を渡せます。
+- 設定ファイルの重複が不要
+- すべてのシーンで完全に同一の環境変数
+- 設定の一元管理が容易
+- プラットフォーム間の差異を吸収しやすい
 
-**デバッグ実行する時**に環境変数を設定するには、`launch.json` を使います。デバッガー経由で起動するプログラムに環境変数を渡せます。
+### 欠点
 
-## 統合ターミナルでの環境変数設定
+- VS Code を GUI から直接起動できない (スクリプト経由での起動が必要)
+- チームメンバー全員が同じ起動方法を理解する必要がある
 
-ターミナルを開いた時に自動的に環境変数を設定するには、プラットフォームごとに設定項目を指定します。
+### 実装方法
 
-```{.json caption=".vscode/settings.json"}
+#### Linux / macOS
+
+プロジェクトルートに起動スクリプトを作成します。
+
+`start-vscode.sh`
+
+```bash
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/.env"
+
+if [ ! -f "${ENV_FILE}" ]; then
+    echo "Error: .env file not found at ${ENV_FILE}"
+    exit 1
+fi
+
+while IFS='=' read -r key value; do
+    [[ "${key}" =~ ^#.*$ ]] && continue
+    [[ -z "${key}" ]] && continue
+    
+    value="${value//\$\{WORKSPACE\}/${SCRIPT_DIR}}"
+    value=$(eval echo "${value}")
+    
+    export "${key}=${value}"
+done < "${ENV_FILE}"
+
+code "${SCRIPT_DIR}"
+```
+
+実行権限を付与して使用します。
+
+```bash
+chmod +x start-vscode.sh
+./start-vscode.sh
+```
+
+#### Windows (PowerShell)
+
+`start-vscode.ps1`
+
+```powershell
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$EnvFile = Join-Path $ScriptDir ".env"
+
+if (-not (Test-Path $EnvFile)) {
+    Write-Error "Error: .env file not found at $EnvFile"
+    exit 1
+}
+
+Get-Content $EnvFile | ForEach-Object {
+    $line = $_.Trim()
+    
+    if ($line -match '^#' -or $line -eq '') {
+        return
+    }
+    
+    if ($line -match '^([^=]+)=(.*)$') {
+        $key = $matches[1].Trim()
+        $value = $matches[2].Trim()
+        
+        $value = $value -replace '\$\{WORKSPACE\}', $ScriptDir
+        $value = $ExecutionContext.InvokeCommand.ExpandString($value)
+        
+        [Environment]::SetEnvironmentVariable($key, $value, 'Process')
+    }
+}
+
+code $ScriptDir
+```
+
+実行ポリシーを設定して使用します。
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\start-vscode.ps1
+```
+
+#### .env ファイルの例
+
+`.env`
+
+```text
+# プロジェクト固有のライブラリパス
+LD_LIBRARY_PATH=${WORKSPACE}/lib:${LD_LIBRARY_PATH}
+DYLD_LIBRARY_PATH=${WORKSPACE}/lib:${DYLD_LIBRARY_PATH}
+
+# プロジェクト固有の実行ファイルパス
+PATH=${WORKSPACE}/bin:${PATH}
+
+# カスタム環境変数
+PROJECT_ROOT=${WORKSPACE}
+BUILD_TYPE=Debug
+```
+
+Windows では `LD_LIBRARY_PATH` は無視され、`PATH` のみが有効になります。プラットフォーム固有の変数を混在させても問題ありません。
+
+### 使用例
+
+```bash
+# ターミナルから起動
+./start-vscode.sh
+
+# VS Code 内の統合ターミナルで確認
+echo $LD_LIBRARY_PATH
+# 出力: /path/to/project/lib:/original/ld/library/path
+
+# ビルドタスクやデバッグ実行でも同じ環境変数が使用される
+```
+
+## 方法2: 個々の設定ファイルで環境変数を設定
+
+VS Code の設定ファイル (`.vscode/settings.json`, `tasks.json`, `launch.json`) に環境変数を記述する方法です。
+
+### 利点
+
+- VS Code を通常通り GUI から起動可能
+- 各機能ごとに異なる環境変数を設定できる (必要に応じて)
+- VS Code の標準機能のみで実現可能
+
+### 欠点
+
+- 設定ファイルが3箇所に分散し、重複が発生
+- 環境変数の変更時に複数ファイルの修正が必要
+- 設定の不整合が発生しやすい
+
+### 実装方法
+
+#### 統合ターミナル用: .vscode/settings.json
+
+`.vscode/settings.json`
+
+```json
 {
   "terminal.integrated.env.linux": {
-    "LD_LIBRARY_PATH": "${workspaceFolder}/lib:/usr/local/lib"
+    "LD_LIBRARY_PATH": "${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}",
+    "PATH": "${workspaceFolder}/bin:${env:PATH}",
+    "PROJECT_ROOT": "${workspaceFolder}",
+    "BUILD_TYPE": "Debug"
   },
   "terminal.integrated.env.osx": {
-    "DYLD_LIBRARY_PATH": "${workspaceFolder}/lib:/usr/local/lib"
+    "DYLD_LIBRARY_PATH": "${workspaceFolder}/lib:${env:DYLD_LIBRARY_PATH}",
+    "PATH": "${workspaceFolder}/bin:${env:PATH}",
+    "PROJECT_ROOT": "${workspaceFolder}",
+    "BUILD_TYPE": "Debug"
   },
   "terminal.integrated.env.windows": {
-    "PATH": "${workspaceFolder}\\bin;${env:PATH}"
+    "PATH": "${workspaceFolder}/bin;${env:PATH}",
+    "PROJECT_ROOT": "${workspaceFolder}",
+    "BUILD_TYPE": "Debug"
   }
 }
 ```
 
-この設定を行うと、VS Code でターミナルを新しく開いた時に、指定した環境変数が自動的に追加されます。既に開いているターミナルには反映されないため、設定後は新しいターミナルを開く必要があります。
+新しく開くターミナルに環境変数が設定されます。既存のターミナルには反映されないため、設定変更後は再起動が必要です。
 
-既存の環境変数を参照するには `${env:変数名}` の形式を使います。ワークスペースのルートパスを参照するには `${workspaceFolder}` を使います。
+#### ビルドタスク用: .vscode/tasks.json
 
-## タスク実行時の環境変数設定
+`.vscode/tasks.json`
 
-タスクを実行する際に環境変数を設定するには、`tasks.json` の `options.env` を指定します。
-
-```{.json caption=".vscode/tasks.json"}
+```json
 {
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build Project",
+      "label": "build",
       "type": "shell",
       "command": "make",
       "options": {
         "env": {
-          "LD_LIBRARY_PATH": "${workspaceFolder}/lib:/usr/local/lib"
+          "LD_LIBRARY_PATH": "${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}",
+          "PATH": "${workspaceFolder}/bin:${env:PATH}",
+          "PROJECT_ROOT": "${workspaceFolder}",
+          "BUILD_TYPE": "Debug"
         }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
       }
-    },
+    }
+  ]
+}
+```
+
+##### タスクタイプによる環境変数の扱いの違い
+
+タスクの `type` プロパティによって、`settings.json` で設定した環境変数の影響を受けるかどうかが変わります。
+
+**`"type": "shell"`** のタスクは統合ターミナルで実行されるため、`settings.json` の `terminal.integrated.env.*` で設定した環境変数も自動的に利用できます。
+
+**`"type": "process"`** のタスクは統合ターミナルを経由せず直接プロセスを起動するため、`settings.json` の設定は反映されません。環境変数が必要な場合は `tasks.json` に明示的に指定する必要があります。
+
+Windows と Linux で異なるパス区切り文字を使用する場合は、`windows` プロパティで上書きします。
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
     {
-      "label": "Run Tests",
-      "type": "process",
-      "command": "${workspaceFolder}/bin/test",
+      "label": "build",
+      "type": "shell",
+      "command": "make",
       "options": {
         "env": {
-          "LD_LIBRARY_PATH": "${workspaceFolder}/lib:/usr/local/lib"
+          "LD_LIBRARY_PATH": "${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}",
+          "PATH": "${workspaceFolder}/bin:${env:PATH}"
+        }
+      },
+      "windows": {
+        "options": {
+          "env": {
+            "PATH": "${workspaceFolder}/bin;${env:PATH}"
+          }
         }
       }
     }
@@ -66,123 +241,131 @@ VS Code で環境変数を設定できる主な場面は 3 つあります。
 }
 ```
 
-タスクの種類 (type) によって、settings.json で設定した環境変数の影響を受けるかどうかが変わります。
+#### デバッグ実行用: .vscode/launch.json
 
-`"type": "shell"` のタスクは統合ターミナルで実行されるため、settings.json の `terminal.integrated.env.*` で設定した環境変数も利用できます。
+`.vscode/launch.json`
 
-`"type": "process"` のタスクは統合ターミナルを経由せず直接プロセスを起動するため、settings.json の設定は反映されません。環境変数が必要な場合は tasks.json に明示的に指定する必要があります。
-
-## デバッグ実行時の環境変数設定
-
-デバッグ実行時に環境変数を設定するには、`launch.json` の各構成に `env` プロパティを指定します。
-
-```{.json caption=".vscode/launch.json"}
+```json
 {
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C++: Debug",
+      "name": "Debug Program",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/myapp",
       "args": [],
       "cwd": "${workspaceFolder}",
-      "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/lib:/usr/local/lib"
-      }
-    },
-    {
-      "name": "Python: Current File",
-      "type": "python",
-      "request": "launch",
-      "program": "${file}",
-      "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/lib:/usr/local/lib",
-        "PYTHONPATH": "${workspaceFolder}/src"
-      }
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}"
+        },
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/bin:${env:PATH}"
+        },
+        {
+          "name": "PROJECT_ROOT",
+          "value": "${workspaceFolder}"
+        },
+        {
+          "name": "BUILD_TYPE",
+          "value": "Debug"
+        }
+      ]
     }
   ]
 }
 ```
 
-デバッグ構成は統合ターミナルを経由せず直接プロセスを起動するため、settings.json の `terminal.integrated.env.*` の設定は反映されません。
+**重要**: デバッグ構成は統合ターミナルを経由せず直接プロセスを起動するため、`settings.json` の `terminal.integrated.env.*` の設定は反映されません。必要な環境変数はすべて `launch.json` に明示的に指定する必要があります。
 
-## VS Code の定義済み変数の活用
+Windows 用には別の設定を追加できます。
 
-すべての設定ファイルで VS Code の定義済み変数を使えます。これらを使うことで、プロジェクト構造に依存しない設定を作れます。
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Program (Linux)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/myapp",
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}"
+        }
+      ]
+    },
+    {
+      "name": "Debug Program (Windows)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/myapp.exe",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/bin;${env:PATH}"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### VS Code の定義済み変数
+
+すべての設定ファイル（`settings.json`、`tasks.json`、`launch.json`）で VS Code の定義済み変数を使えます。これらを使うことで、プロジェクト構造に依存しない設定を作れます。
 
 よく使う変数は以下です。
 
-`${workspaceFolder}` はワークスペースのルートパスを表します。プロジェクトの絶対パスが環境によって異なる場合でも、この変数を使うことでポータブルな設定を作れます。
+**`${workspaceFolder}`** はワークスペースのルートパスを表します。プロジェクトの絶対パスが環境によって異なる場合でも、この変数を使うことでポータブルな設定を作れます。
 
-`${workspaceFolderBasename}` はワークスペースフォルダ名を表します。
+**`${workspaceFolderBasename}`** はワークスペースフォルダ名を表します。
 
-`${env:既存の環境変数名}` は既存の環境変数を参照します。PATH に値を追加する場合などに便利です。
+**`${env:既存の環境変数名}`** は既存の環境変数を参照します。PATH に値を追加する場合などに便利です。
 
-`${file}` は現在開いているファイルのパスを表します (tasks.json と launch.json で使用可能)。
+**`${file}`** は現在開いているファイルのパスを表します（`tasks.json` と `launch.json` で使用可能）。
 
 より詳しい変数の一覧は、公式ドキュメントで確認できます。
 
 [Variables Reference - Visual Studio Code](https://code.visualstudio.com/docs/editor/variables-reference)
 
-## 推奨される設定方法
+## 比較表
 
-プロジェクト全体で共通の環境変数を使いたい場合は、以下のように設定するのが確実です。
+| 項目 | 方法1: 起動前に設定 | 方法2: 設定ファイル |
+|------|-------------------|-------------------|
+| 環境変数の一貫性 | 完全に一致 | ほぼ一致 (設定次第) |
+| 設定の一元管理 | 容易 (.env のみ) | 困難 (3ファイル) |
+| VS Code の起動方法 | スクリプト経由 | GUI から直接可能 |
+| 学習コスト | やや高い | 低い |
+| メンテナンス性 | 高い | 低い (重複管理) |
+| チーム共有 | スクリプト共有 | 設定ファイル共有 |
 
-settings.json で `terminal.integrated.env.*` を設定することで、ターミナルでの作業時に環境変数を利用できます。
+## 推奨する運用方法
 
-launch.json の各デバッグ構成に `env` を設定することで、デバッグ実行時に環境変数を利用できます。
+### 個人開発の場合
 
-tasks.json のプロセスタスクに `options.env` を設定することで、タスク実行時に環境変数を利用できます。シェルタスクの場合は settings.json の設定が反映されますが、明示的に指定することで動作を明確にできます。
+**方法1 (起動前に設定)** を推奨します。
 
-設定が重複しますが、それぞれの実行環境に確実に環境変数を渡せます。
+- `.env` で環境変数を一元管理
+- `start-vscode.sh` または `start-vscode.ps1` で起動
+- 設定ファイルの重複を排除
 
-## LD_LIBRARY_PATH 設定の完全な例
+### チーム開発の場合
 
-共有ライブラリのパスを設定する完全な例を示します。
+**方法2 (設定ファイル)** を推奨します。
 
-```{.json caption=".vscode/settings.json"}
-{
-  "terminal.integrated.env.linux": {
-    "LD_LIBRARY_PATH": "${workspaceFolder}/lib:${workspaceFolder}/external/lib:/usr/local/lib"
-  }
-}
-```
+- 各設定ファイルを適切に維持
+- ドキュメントに注意事項や動作の説明を明記
 
-```{.json caption=".vscode/tasks.json"}
-{
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Build",
-      "type": "shell",
-      "command": "cmake --build build",
-      "options": {
-        "env": {
-          "LD_LIBRARY_PATH": "${workspaceFolder}/lib:${workspaceFolder}/external/lib:/usr/local/lib"
-        }
-      }
-    }
-  ]
-}
-```
+チームメンバーは通常通り VS Code を起動できます。
 
-```{.json caption=".vscode/launch.json"}
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug App",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/myapp",
-      "cwd": "${workspaceFolder}",
-      "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/lib:${workspaceFolder}/external/lib:/usr/local/lib"
-      }
-    }
-  ]
-}
-```
+## まとめ
 
-この設定により、ターミナルでのコマンド実行、タスク実行、デバッグ実行のすべてで同じライブラリパスを使えます。
+VS Code における環境変数の設定は、用途に応じて適切な方法を選択することが重要です。
+
+- 完全な一貫性と一元管理を優先する場合: **方法1**
+- チームの利便性と学習コストを優先する場合: **方法2**
