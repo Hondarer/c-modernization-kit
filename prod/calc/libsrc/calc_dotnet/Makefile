@@ -8,16 +8,9 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # Configuration
-CONFIGURATION ?= Release
+CONFIGURATION ?= RelWithDebInfo
 PROJECT_FILE := calc_dotnet.csproj
 OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
-
-# Detect OS
-ifneq ($(OS),Windows_NT)
-    DETECTED_OS := $(shell uname -s)
-else
-    DETECTED_OS := Windows
-endif
 
 .DEFAULT_GOAL := default
 

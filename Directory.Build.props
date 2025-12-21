@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    .NET用 Directory.Build.props
+
+    このファイルは、.NET SDK のビルドシステムにより自動的に認識され、
+    このディレクトリおよびサブディレクトリ内のすべての .csproj プロジェクトに対して
+    プロジェクトファイルよりも先に評価されます。
+
+    主な用途:
+    - プロジェクト全体で共通のプロパティやビルド設定を一元管理
+    - デフォルト値の設定 (プロジェクトファイルで上書き可能)
+
+    参考: https://learn.microsoft.com/ja-jp/visualstudio/msbuild/customize-by-directory
+  -->
+
+  <!-- デフォルトのビルド構成を RelWithDebInfo に設定 -->
+  <!--
+    -c オプション未指定時の動作:
+    - dotnet build → RelWithDebInfo でビルド
+    - dotnet test → RelWithDebInfo でビルド
+    - dotnet run → RelWithDebInfo でビルド
+
+    明示的な構成指定で上書き可能:
+    - dotnet build -c Debug → Debug でビルド
+    - dotnet build -c Release → Release でビルド
+  -->
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">RelWithDebInfo</Configuration>
+  </PropertyGroup>
+</Project>

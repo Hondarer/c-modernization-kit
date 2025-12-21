@@ -8,18 +8,15 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # Configuration
-CONFIGURATION ?= Release
+CONFIGURATION ?= RelWithDebInfo
 PROJECT_FILE := calc_dotnet.csproj
 OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/bin
 NATIVE_LIB_DIR := $(WORKSPACE_FOLDER)/prod/calc/lib
 
-# Detect OS
 ifneq ($(OS),Windows_NT)
-    DETECTED_OS := $(shell uname -s)
     NATIVE_LIB := libcalc.so
     EXECUTABLE := calc_dotnet
 else
-    DETECTED_OS := Windows
     NATIVE_LIB := calc.dll
     EXECUTABLE := calc_dotnet.exe
 endif

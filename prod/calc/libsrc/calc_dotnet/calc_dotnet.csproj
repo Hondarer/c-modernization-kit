@@ -16,6 +16,13 @@
     <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
   </PropertyGroup>
 
+  <!-- RelWithDebInfo configuration: optimized with debug symbols -->
+  <PropertyGroup Condition="'$(Configuration)' == 'RelWithDebInfo'">
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>

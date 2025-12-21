@@ -10,6 +10,13 @@
     <Copyright>Copyright (C) CompanyName, Ltd. 2025. All rights reserved.</Copyright>
   </PropertyGroup>
 
+  <!-- RelWithDebInfo configuration: optimized with debug symbols -->
+  <PropertyGroup Condition="'$(Configuration)' == 'RelWithDebInfo'">
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
   <!-- Reference the CalcDotNet library -->
   <ItemGroup>
     <ProjectReference Include="../../libsrc/calc_dotnet/calc_dotnet.csproj" />
