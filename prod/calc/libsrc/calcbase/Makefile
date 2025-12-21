@@ -1,3 +1,7 @@
+# Makefile テンプレート
+# すべての最終階層 Makefile で使用する標準テンプレート
+# 本ファイルの編集は行わない。必要な差分は、makepart.mk に記載する。
+
 # ワークスペースのディレクトリ
 find-up = \
     $(if $(wildcard $(1)/$(2)),$(1),\
@@ -7,8 +11,10 @@ find-up = \
     )
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# 準備処理 (Makefile テンプレートより前に include)
+# 準備処理 (ビルドテンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# libsrc の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk
+##### makepart.mk の内容は、このタイミングで処理される #####
+
+# ビルドテンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
