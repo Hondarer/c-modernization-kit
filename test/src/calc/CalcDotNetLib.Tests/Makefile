@@ -26,7 +26,6 @@ test: build
 
 .PHONY: clean
 clean:
-	dotnet clean $(PROJECT_FILE) -c $(CONFIGURATION)
 	rm -rf bin obj results
 
 .PHONY: restore

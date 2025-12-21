@@ -23,9 +23,8 @@ build:
 
 .PHONY: clean
 clean:
-	dotnet clean $(PROJECT_FILE) -c $(CONFIGURATION)
-	rm -rf bin obj
 	rm -f $(OUTPUT_DIR)/CalcDotNetLib.*
+	rm -rf bin obj
 
 .PHONY: restore
 restore:
