@@ -10,5 +10,5 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理 (Makefile テンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# src (for .NET) の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc_dotnet.mk
+# src の Makefile テンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

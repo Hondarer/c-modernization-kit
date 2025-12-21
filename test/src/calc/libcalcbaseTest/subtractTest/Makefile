@@ -10,13 +10,5 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理 (Makefile テンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# テスト対象のソースファイル
-TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/subtract.c
-
-# ライブラリの追加
-# subtractTest では、add 関数のモックを使ってテストを行う。
-LIBS += mock_calcbase
-
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

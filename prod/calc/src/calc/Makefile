@@ -10,9 +10,5 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理 (Makefile テンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# ライブラリの指定
-# libcalc.so のみ
-LIBS += calc
-
 # src の Makefile テンプレートを include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk

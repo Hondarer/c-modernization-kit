@@ -241,7 +241,7 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 # 準備処理 (Makefile テンプレートより前に include)
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# ライブラリの追加
+# ライブラリの指定
 LIBS += calcbase
 
 # ライブラリをインストール対象に指定

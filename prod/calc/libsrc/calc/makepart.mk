@@ -1,3 +1,6 @@
+# ライブラリの指定
+LIBS += calcbase
+
 ifeq ($(OS),Windows_NT)
     # Windows
     # DLL エクスポート定義

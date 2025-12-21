@@ -602,7 +602,7 @@ TEST_SRCS := \
 # 元のmainを __real_main に変更
 LDCOMFLAGS += -Wl,--wrap=main
 
-# ライブラリの追加
+# ライブラリの指定
 # -lgtest_wrapmain: __wrap_main() 経由でのテスト実施
 # -lmock_libc: 標準C関数のモック (stdio等)
 # -lmock_calcbase: add関数のモック
