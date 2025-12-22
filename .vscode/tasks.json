@@ -53,6 +53,20 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+            "linux": {
+                "options": {
+                    "env": {
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+                    }
+                }
+            },
+            "windows": {
+                "options": {
+                    "env": {
+                        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                    }
+                }
+            },
             "group": {
                 "kind": "test",
                 "isDefault": false
@@ -160,6 +174,20 @@
             ],
             "options": {
                 "cwd": "${fileDirname}"
+            },
+            "linux": {
+                "options": {
+                    "env": {
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+                    }
+                }
+            },
+            "windows": {
+                "options": {
+                    "env": {
+                        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                    }
+                }
             },
             "group": {
                 "kind": "test",

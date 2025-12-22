@@ -31,6 +31,9 @@ jobs:
       - name: Build
         run: make
 
+      - name: Set library path for tests
+        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
       - name: Run tests
         run: make test
 

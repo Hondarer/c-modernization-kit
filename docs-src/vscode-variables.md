@@ -176,6 +176,29 @@ VS Code の設定ファイル (`.vscode/settings.json`, `tasks.json`, `launch.js
 
 新しく開くターミナルに環境変数が設定されます。既存のターミナルには反映されないため、設定変更後は再起動が必要です。
 
+##### 本プロジェクトでの実装例
+
+本プロジェクトでは、`prod/calc/lib` ディレクトリに動的ライブラリが配置されているため、以下のように設定しています。
+
+`.vscode/settings.json`
+
+```json
+{
+  "terminal.integrated.env.linux": {
+    "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+  },
+  "terminal.integrated.env.windows": {
+    "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+  }
+}
+```
+
+**ポイント**:
+- Linux では `LD_LIBRARY_PATH` を設定（動的ライブラリの検索パス）
+- Windows では `PATH` を設定（DLL の検索パス）
+- Windows のパス区切り文字は `\` を使用（`\\` でエスケープ）
+- パスの区切りは Linux が `:`, Windows が `;`
+
 #### ビルドタスク用: .vscode/tasks.json
 
 `.vscode/tasks.json`
@@ -240,6 +263,53 @@ Windows と Linux で異なるパス区切り文字を使用する場合は、`w
   ]
 }
 ```
+
+##### 本プロジェクトでの実装例
+
+本プロジェクトでは、`make test` タスクと `make test (current dir)` タスクでプラットフォーム別の環境変数設定を行っています。
+
+`.vscode/tasks.json`
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "make test",
+      "type": "shell",
+      "command": "make",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "linux": {
+        "options": {
+          "env": {
+            "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+          }
+        }
+      },
+      "windows": {
+        "options": {
+          "env": {
+            "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+          }
+        }
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    }
+  ]
+}
+```
+
+**ポイント**:
+- `linux` プロパティでLinux固有の環境変数を設定
+- `windows` プロパティでWindows固有の環境変数を設定
+- トップレベルの `options` とプラットフォーム固有の `options` はマージされる
+- この方法により、プラットフォームごとに異なるパス区切り文字や環境変数名を適切に扱える
 
 #### デバッグ実行用: .vscode/launch.json
 
@@ -314,6 +384,131 @@ Windows 用には別の設定を追加できます。
   ]
 }
 ```
+
+##### 本プロジェクトでの実装例
+
+本プロジェクトでは、4つのデバッグ構成でそれぞれ環境変数を設定しています。
+
+- `(Linux gdb) Debug current directory` - Linux向けネイティブデバッグ
+- `(Windows vsdbg) Debug current directory` - Windows向けネイティブデバッグ
+- `(Linux coreclr) Debug current directory` - Linux向け.NETデバッグ
+- `(Windows coreclr) Debug current directory` - Windows向け.NETデバッグ
+
+すべての構成で `prod/calc/lib` へのパスを設定しています。
+
+`.vscode/launch.json` (抜粋)
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(Linux gdb) Debug current directory",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${fileDirname}/${fileDirnameBasename}",
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+        }
+      ]
+    },
+    {
+      "name": "(Windows vsdbg) Debug current directory",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${fileDirname}/${fileDirnameBasename}.exe",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**ポイント**:
+- デバッグ構成ごとにプラットフォームを分けて定義
+- `cppdbg` はネイティブC/C++デバッグ用、`coreclr` は.NETデバッグ用
+- Windows版では必ずパス区切り文字を `\\` にする
+
+#### GitHub Actions ワークフロー用
+
+CI/CD環境でも同様に環境変数を設定する必要があります。GitHub Actionsでは、環境変数を永続化するための特別なメカニズムがあります。
+
+##### Linux ワークフロー
+
+`.github/workflows/build-and-test-linux.yml`
+
+```yaml
+jobs:
+  build-and-test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build
+        run: make
+
+      - name: Set library path for tests
+        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: make test
+```
+
+**ポイント**:
+- `$GITHUB_ENV` に書き込むことで環境変数を永続化
+- 以降のすべてのステップで設定した環境変数が有効になる
+- `$GITHUB_WORKSPACE` はワークスペースのルートパスを表す
+
+##### Windows ワークフロー
+
+`.github/workflows/build-and-test-windows.yml`
+
+```yaml
+jobs:
+  build-and-test-windows:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build
+        run: make
+        shell: pwsh
+
+      - name: Set library path for tests
+        run: |
+          $calcLibPath = "${{ github.workspace }}\prod\calc\lib"
+          Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath
+          Write-Host "Added $calcLibPath to PATH"
+        shell: pwsh
+
+      - name: Run tests
+        run: make test
+        shell: pwsh
+```
+
+**ポイント**:
+- `$env:GITHUB_PATH` に書き込むことで `PATH` 環境変数に追加
+- PowerShell を使用（`shell: pwsh`）
+- `${{ github.workspace }}` はワークスペースのルートパスを表す
+
+##### GitHub Actions の環境変数永続化メカニズム
+
+- **`$GITHUB_ENV`**: 環境変数を設定（`VARIABLE=value` 形式で書き込み）
+- **`$GITHUB_PATH`**: `PATH` 環境変数にパスを追加（パスを1行ずつ書き込み）
+
+これらの特別なファイルに書き込むことで、以降のステップでその環境変数が利用可能になります。
 
 ### VS Code の定義済み変数
 

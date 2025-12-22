@@ -63,7 +63,7 @@
             "environment": [
                 {
                     "name": "PATH",
-                    "value": "${workspaceFolder}/prod/calc/lib;${env:PATH}"
+                    "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
                 }
             ],
             "console": "integratedTerminal",
@@ -112,7 +112,7 @@
             "enableStepFiltering": false,
             "preLaunchTask": "make (current dir)",
             "env": {
-                "PATH": "${workspaceFolder}/prod/calc/lib;${env:PATH}"
+                "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
             },
             "sourceFileMap": {
                 "/build": "${workspaceFolder}"

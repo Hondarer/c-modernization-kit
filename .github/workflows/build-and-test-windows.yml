@@ -45,6 +45,13 @@ jobs:
         run: make
         shell: pwsh
 
+      - name: Set library path for tests
+        run: |
+          $calcLibPath = "${{ github.workspace }}\prod\calc\lib"
+          Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath
+          Write-Host "Added $calcLibPath to PATH"
+        shell: pwsh
+
       - name: Run tests
         run: make test
         shell: pwsh

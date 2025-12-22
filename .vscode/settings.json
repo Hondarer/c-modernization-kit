@@ -4,5 +4,11 @@
     "files.associations": {
         "c_cpp_properties.json": "jsonc",
         ".debug-params.json": "jsonc"
+    },
+    "terminal.integrated.env.linux": {
+        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+    },
+    "terminal.integrated.env.windows": {
+        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
     }
 }
