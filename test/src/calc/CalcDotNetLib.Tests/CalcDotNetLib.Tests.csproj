@@ -37,16 +37,4 @@
       <HintPath>../../../../prod/calc/lib/CalcDotNetLib.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <!-- Copy native library to output directory for testing -->
-  <ItemGroup>
-    <None Include="../../../../prod/calc/lib/libcalc.so"
-          Condition="'$(OS)' != 'Windows_NT'"
-          CopyToOutputDirectory="PreserveNewest"
-          Visible="false" />
-    <None Include="../../../../prod/calc/lib/calc.dll"
-          Condition="'$(OS)' == 'Windows_NT'"
-          CopyToOutputDirectory="PreserveNewest"
-          Visible="false" />
-  </ItemGroup>
 </Project>
