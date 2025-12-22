@@ -31,9 +31,11 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Reference the calc_dotnet library -->
+  <!-- Reference the calc_dotnet library (assembly reference) -->
   <ItemGroup>
-    <ProjectReference Include="../../../../prod/calc/libsrc/CalcDotNetLib/CalcDotNetLib.csproj" />
+    <Reference Include="CalcDotNetLib">
+      <HintPath>../../../../prod/calc/lib/CalcDotNetLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <!-- Copy native library to output directory for testing -->

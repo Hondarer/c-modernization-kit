@@ -26,18 +26,6 @@ namespace CalcDotNetLib.Internal
     internal static class NativeMethods
     {
         /// <summary>
-        /// プラットフォーム固有のライブラリ名。
-        /// Windows: calc.dll
-        /// Linux: libcalc.so
-        /// </summary>
-        private const string LibraryName =
-#if WINDOWS
-            "calc.dll";
-#else
-            "libcalc.so";
-#endif
-
-        /// <summary>
         /// ネイティブ calcHandler 関数の宣言。
         /// 指定された演算種別に基づいて計算を実行します。
         /// </summary>
@@ -46,13 +34,8 @@ namespace CalcDotNetLib.Internal
         /// <param name="b">第二オペランド。</param>
         /// <param name="result">計算結果 (出力パラメータ)。</param>
         /// <returns>成功時は 0 (CALC_SUCCESS)、失敗時は -1 (CALC_ERROR)。</returns>
-        [DllImport(LibraryName,
-                   CallingConvention =
-#if WINDOWS
-                       CallingConvention.StdCall,  // Windows では WINAPI (__stdcall)
-#else
-                       CallingConvention.Cdecl,    // Linux ではデフォルト (cdecl)
-#endif
+        [DllImport("calc", // Windows (calc.dll), Linux (libcalc.so) で適切な dllName を自動選択
+                   CallingConvention = CallingConvention.Winapi, // Windows (__stdcall), Linux (cdecl) で適切な呼び出しを自動選択
                    EntryPoint = "calcHandler")]
         internal static extern int CalcHandler(int kind, int a, int b, out int result);
     }

@@ -17,9 +17,11 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
-  <!-- Reference the CalcDotNet library -->
+  <!-- Reference the CalcDotNet library (assembly reference) -->
   <ItemGroup>
-    <ProjectReference Include="../../libsrc/CalcDotNetLib/CalcDotNetLib.csproj" />
+    <Reference Include="CalcDotNetLib">
+      <HintPath>../../lib/CalcDotNetLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <!-- Copy native library to output directory -->
