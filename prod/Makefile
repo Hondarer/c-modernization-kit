@@ -1,5 +1,6 @@
 SUBDIRS = \
-	calc
+	calc \
+	calc.net
 
 .DEFAULT_GOAL := default
 

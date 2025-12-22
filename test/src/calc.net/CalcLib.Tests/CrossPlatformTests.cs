@@ -17,9 +17,9 @@
 using System;
 using System.Runtime.InteropServices;
 using Xunit;
-using CalcDotNetLib;
+using CalcLib;
 
-namespace CalcDotNetLib.Tests
+namespace CalcLib.Tests
 {
     /// <summary>
     /// クロスプラットフォーム互換性テスト。

@@ -6,7 +6,7 @@
  *  @date           2025/12/20
  *  @version        1.0.0
  *
- *  コマンドライン引数から 2 つの整数と演算子を受け取り、CalcDotNet ライブラリを
+ *  コマンドライン引数から 2 つの整数と演算子を受け取り、Calc ライブラリを
  *  使用して計算結果を標準出力に出力します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
@@ -15,9 +15,9 @@
  */
 
 using System;
-using CalcDotNetLib;
+using CalcLib;
 
-namespace CalcDotNetApp
+namespace CalcApp
 {
     /// <summary>
     /// calc コマンドのメインクラス。
@@ -33,16 +33,16 @@ namespace CalcDotNetApp
         /// <example>
         /// 使用例:
         /// <code>
-        /// ./calc_dotnet 10 + 20
+        /// ./CalcApp 10 + 20
         /// // 出力: 30
         ///
-        /// ./calc_dotnet 15 - 5
+        /// ./CalcApp 15 - 5
         /// // 出力: 10
         ///
-        /// ./calc_dotnet 6 x 7
+        /// ./CalcApp 6 x 7
         /// // 出力: 42
         ///
-        /// ./calc_dotnet 20 / 4
+        /// ./CalcApp 20 / 4
         /// // 出力: 5
         /// </code>
         /// </example>
@@ -51,14 +51,14 @@ namespace CalcDotNetApp
             // 引数の数をチェック
             if (args.Length != 3)
             {
-                Console.Error.WriteLine("Usage: calc_dotnet <arg1> <arg2> <arg3>");
+                Console.Error.WriteLine("Usage: CalcApp <arg1> <arg2> <arg3>");
                 return 1;
             }
 
             // オペレーターが1文字であることをチェック
             if (string.IsNullOrEmpty(args[1]) || args[1].Length != 1)
             {
-                Console.Error.WriteLine("Usage: calc_dotnet <arg1> <arg2> <arg3>");
+                Console.Error.WriteLine("Usage: CalcApp <arg1> <arg2> <arg3>");
                 return 1;
             }
 
@@ -92,7 +92,7 @@ namespace CalcDotNetApp
                     kind = CalcKind.Divide;
                     break;
                 default:
-                    Console.Error.WriteLine("Usage: calc_dotnet <num1> <+|-|x|/> <num2>");
+                    Console.Error.WriteLine("Usage: CalcApp <num1> <+|-|x|/> <num2>");
                     return 1;
             }
 

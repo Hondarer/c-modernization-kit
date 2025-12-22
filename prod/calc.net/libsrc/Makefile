@@ -1,6 +1,4 @@
-SUBDIRS = \
-	calcbase \
-	calc
+SUBDIRS = $(wildcard */)
 
 .DEFAULT_GOAL := default
 

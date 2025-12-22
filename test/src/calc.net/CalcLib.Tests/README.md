@@ -1,10 +1,10 @@
-# CalcDotNetLib テスト
+# CalcLib テスト
 
-CalcDotNetLib ライブラリの包括的な単体テスト。
+CalcLib ライブラリの包括的な単体テスト。
 
 ## 概要
 
-このテストスイートは、xUnit を使用して CalcDotNetLib ラッパーライブラリの機能を検証します。すべての計算操作、エラー処理、例外動作、クロスプラットフォーム互換性のテストが含まれます。
+このテストスイートは、xUnit を使用して CalcLib ラッパーライブラリの機能を検証します。すべての計算操作、エラー処理、例外動作、クロスプラットフォーム互換性のテストが含まれます。
 
 ## 要件
 
@@ -18,7 +18,7 @@ CalcDotNetLib ライブラリの包括的な単体テスト。
 
 ```bash
 # すべてのテストを実行
-cd test/src/CalcDotNetLib.Tests
+cd test/src/calc.net/CalcLib.Tests
 make test
 
 # 実行せずにテストをビルド
@@ -35,10 +35,10 @@ make restore
 
 ```bash
 # すべてのテストを実行
-dotnet test CalcDotNetLib.Tests.csproj
+dotnet test CalcLib.Tests.csproj
 
 # 詳細出力で実行
-dotnet test CalcDotNetLib.Tests.csproj --verbosity detailed
+dotnet test CalcLib.Tests.csproj --verbosity detailed
 
 # 特定のテストクラスを実行
 dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
@@ -112,14 +112,14 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 
 ### 現在のカバレッジ
 
-- ✅ 加算操作
-- ✅ 減算操作
-- ✅ 乗算操作
-- ✅ 除算操作
-- ✅ ゼロ除算エラー処理
-- ✅ 例外のスローとキャッチ
-- ✅ プラットフォーム検出
-- ✅ クロスプラットフォームライブラリローディング
+- 加算操作
+- 減算操作
+- 乗算操作
+- 除算操作
+- ゼロ除算エラー処理
+- 例外のスローとキャッチ
+- プラットフォーム検出
+- クロスプラットフォームライブラリローディング
 
 ## トラブルシューティング
 

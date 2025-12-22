@@ -5,15 +5,15 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prod", "prod", "{FCF15797-3BE5-4F55-8D72-A1326C10FE13}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "calc", "calc", "{6E4D4892-3E99-4561-985A-E329C0FB7465}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "calc.net", "calc.net", "{6E4D4892-3E99-4561-985A-E329C0FB7465}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libsrc", "libsrc", "{79377192-5ADE-4B0E-9621-687A619A43A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcDotNetLib", "prod\calc\libsrc\CalcDotNetLib\CalcDotNetLib.csproj", "{60D4761B-A4F8-49BB-858D-1B631C79036B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcLib", "prod\calc.net\libsrc\CalcLib\CalcLib.csproj", "{60D4761B-A4F8-49BB-858D-1B631C79036B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C02F2EFD-50FE-42D5-B658-5F9DAE71FE0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcDotNetApp", "prod\calc\src\CalcDotNetApp\CalcDotNetApp.csproj", "{826D1E90-8C22-469D-ADB9-73CBB76D2F29}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcApp", "prod\calc.net\src\CalcApp\CalcApp.csproj", "{826D1E90-8C22-469D-ADB9-73CBB76D2F29}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2C6E36E7-2816-4424-99E3-B5A470BBC328}"
 EndProject
@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C95FC081-BE5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "calc", "calc", "{E20EA619-356C-4B4D-3CC3-A046C579C085}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcDotNetLib.Tests", "test\src\calc\CalcDotNetLib.Tests\CalcDotNetLib.Tests.csproj", "{97546AD9-7F3A-443E-97D8-4D93EF151554}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcLib.Tests", "test\src\calc.net\CalcLib.Tests\CalcLib.Tests.csproj", "{97546AD9-7F3A-443E-97D8-4D93EF151554}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

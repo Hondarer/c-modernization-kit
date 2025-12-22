@@ -1,6 +1,4 @@
-SUBDIRS = \
-	calcbase \
-	calc
+SUBDIRS = $(wildcard */)
 
 .DEFAULT_GOAL := default
 
@@ -9,6 +7,9 @@ default : $(SUBDIRS)
 
 .PHONY: clean
 clean : $(SUBDIRS)
+
+.PHONY: test
+test : $(SUBDIRS)
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :

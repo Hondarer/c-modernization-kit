@@ -3,7 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>CalcDotNetLib.Tests</RootNamespace>
+    <RootNamespace>CalcLib.Tests</RootNamespace>
   </PropertyGroup>
 
   <!-- Define WINDOWS symbol for conditional compilation on Windows -->
@@ -31,10 +31,10 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Reference the calc_dotnet library (assembly reference) -->
+  <!-- Reference the calc.net library (assembly reference) -->
   <ItemGroup>
-    <Reference Include="CalcDotNetLib">
-      <HintPath>../../../../prod/calc/lib/CalcDotNetLib.dll</HintPath>
+    <Reference Include="CalcLib">
+      <HintPath>../../../../prod/calc.net/lib/CalcLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

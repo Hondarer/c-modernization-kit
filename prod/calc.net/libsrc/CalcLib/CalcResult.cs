@@ -16,7 +16,7 @@
  */
 #pragma warning restore 1587
 
-namespace CalcDotNetLib
+namespace CalcLib
 {
     /// <summary>
     /// 計算演算の結果を表します。

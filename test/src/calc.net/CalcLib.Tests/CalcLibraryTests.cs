@@ -15,9 +15,9 @@
  */
 
 using Xunit;
-using CalcDotNetLib;
+using CalcLib;
 
-namespace CalcDotNetLib.Tests
+namespace CalcLib.Tests
 {
     /// <summary>
     /// CalcLibrary クラスの単体テスト。

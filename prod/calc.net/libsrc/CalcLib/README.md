@@ -1,6 +1,6 @@
-# CalcDotNet - calc ライブラリ用 .NET ラッパー
+# CalcLib - calc ライブラリ用 .NET ラッパー
 
-CalcDotNet は、ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では calc.dll) 用の .NET Standard 2.0 ラッパーです。基本的な整数演算を実行するための、クリーンで慣用的な C# API を提供します。
+CalcLib は、ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では calc.dll) 用の .NET Standard 2.0 ラッパーです。基本的な整数演算を実行するための、クリーンで慣用的な C# API を提供します。
 
 ## 機能
 
@@ -27,7 +27,7 @@ CalcDotNet は、ネイティブ calc ライブラリ (Linux では libcalc.so�
 
 ```bash
 # ライブラリをビルド
-cd prod/calc/libsrc/calc_dotnet
+cd prod/calc.net/libsrc/CalcLib
 make build
 
 # ビルド成果物をクリーン
@@ -37,14 +37,14 @@ make clean
 make restore
 ```
 
-コンパイルされたライブラリは `prod/calc/lib/CalcDotNet.dll` に配置されます。
+コンパイルされたライブラリは `prod/calc.net/lib/CalcLib.dll` に配置されます。
 
 ## 使用方法
 
 ### 基本的な使用方法
 
 ```csharp
-using CalcDotNet;
+using CalcLib;
 
 // 結果オブジェクトを使用 (エラー処理に推奨)
 var result = CalcLibrary.Add(10, 20);
@@ -61,7 +61,7 @@ else
 ### 例外を使用
 
 ```csharp
-using CalcDotNet;
+using CalcLib;
 
 try
 {
@@ -77,7 +77,7 @@ catch (CalcException ex)
 ### 便利メソッド
 
 ```csharp
-using CalcDotNet;
+using CalcLib;
 
 var addResult = CalcLibrary.Add(5, 3);        // 8
 var subResult = CalcLibrary.Subtract(10, 4);  // 6
