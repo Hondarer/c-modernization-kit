@@ -1,0 +1,80 @@
+# このMakefileのディレクトリ (絶対パス) を取得
+MAKEFILE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+# Bash を使用
+SHELL := /bin/bash
+
+# プラットフォーム定義
+PLATFORMS := linux windows
+
+# doxyfw ディレクトリ
+DOXYFW_DIR := $(MAKEFILE_DIR)/doxyfw
+
+.DEFAULT_GOAL := default
+
+.PHONY: default
+default: clean
+# doxygen コマンドが存在しない場合は全体をスキップ
+	@if ! command -v doxygen >/dev/null 2>&1; then \
+		echo "Warning: doxygen command not found. Skipping documentation generation."; \
+		exit 0; \
+	fi
+# 各プラットフォームに対してドキュメント生成
+	@for platform in $(PLATFORMS); do \
+		echo "=== Generating documentation for $$platform ==="; \
+		$(MAKE) -f Makefile.doxy generate-docs PLATFORM=$$platform || exit 1; \
+	done
+
+# プラットフォーム固有のドキュメント生成
+.PHONY: generate-docs
+generate-docs:
+ifndef PLATFORM
+	$(error PLATFORM is not set. Use: make -f Makefile.doxy generate-docs PLATFORM=linux or PLATFORM=windows)
+endif
+	mkdir -p docs/doxygen/$(PLATFORM)
+# Doxyfile.part.$(PLATFORM) がある場合は結合した一時 Doxyfile を作成
+	@if [ -f "Doxyfile.part.$(PLATFORM)" ]; then \
+		echo "Merging Doxyfile.part.$(PLATFORM)..."; \
+		TEMP_DOXYFILE=$$(mktemp); \
+		cat $(DOXYFW_DIR)/Doxyfile Doxyfile.part.$(PLATFORM) > $$TEMP_DOXYFILE || exit 1; \
+		cd prod && doxygen $$TEMP_DOXYFILE 2>&1 | $(DOXYFW_DIR)/doxygen-colorize-output.sh; \
+		DOXYGEN_EXIT=$${PIPESTATUS[0]}; \
+		rm -f $$TEMP_DOXYFILE; \
+		if [ $$DOXYGEN_EXIT -ne 0 ]; then exit $$DOXYGEN_EXIT; fi; \
+	else \
+		echo "Warning: Doxyfile.part.$(PLATFORM) not found, skipping $(PLATFORM)."; \
+		exit 0; \
+	fi
+# doxybook2 コマンドが存在しない場合は前処理～doxybook2～後処理をスキップ
+	@if ! command -v doxybook2 >/dev/null 2>&1; then \
+		echo "Warning: doxybook2 command not found. Skipping Markdown generation."; \
+		exit 0; \
+	fi
+	mkdir -p docs-src/doxybook/$(PLATFORM)
+# デバッグ用にオリジナルの xml をバックアップ
+#	rm -rf xml_org/$(PLATFORM)
+#	mkdir -p xml_org
+#	cp -rp xml/$(PLATFORM) xml_org/$(PLATFORM)
+# プリプロセッシング
+	$(DOXYFW_DIR)/templates/preprocess.sh xml/$(PLATFORM) || exit 1
+# xml -> md 変換
+	doxybook2 \
+		-i xml/$(PLATFORM) \
+		-o docs-src/doxybook/$(PLATFORM) \
+		--config $(DOXYFW_DIR)/doxybook-config.json \
+		--templates $(DOXYFW_DIR)/templates 2>&1 | $(DOXYFW_DIR)/doxybook2-decolorize-output.sh; \
+	DOXYBOOK_EXIT=$${PIPESTATUS[0]}; \
+	if [ $$DOXYBOOK_EXIT -ne 0 ]; then exit $$DOXYBOOK_EXIT; fi
+# 正常に変換できたら xml は不要なため削除
+	rm -rf xml/$(PLATFORM)
+#	rm -rf xml_org/$(PLATFORM)
+# ポストプロセッシング
+	$(DOXYFW_DIR)/templates/postprocess.sh docs-src/doxybook/$(PLATFORM) || exit 1
+# Markdown 収集
+	$(DOXYFW_DIR)/collect-pages.sh $(MAKEFILE_DIR) prod docs-src/doxybook/$(PLATFORM)/Pages || exit 1
+
+.PHONY: clean
+clean:
+	-rm -rf docs/doxygen/linux docs/doxygen/windows
+	-rm -rf docs-src/doxybook/linux docs-src/doxybook/windows
+	-rm -rf xml/linux xml/windows

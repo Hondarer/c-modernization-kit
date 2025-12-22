@@ -37,10 +37,10 @@ test : submodule
 
 .PHONY: doxy
 doxy : submodule
-	@if [ -d doxyfw ] && [ -f doxyfw/Makefile ]; then \
-		$(MAKE) -C doxyfw; \
+	@if [ -d doxyfw ] && [ -f Makefile.doxy ]; then \
+		$(MAKE) -f Makefile.doxy; \
 	else \
-		echo "INFO: doxyfw directory not found, skipping."; \
+		echo "INFO: doxyfw directory or Makefile.doxy not found, skipping."; \
 	fi
 
 .PHONY: docs
