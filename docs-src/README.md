@@ -2,8 +2,8 @@
 
 ## Doxygen
 
-- [Doxygen (calc)](../../doxygen/calc/index.html)
-- [Doxygen (calc dotnet wrapper)](../../doxygen/calc.net/index.html)
+- [calc](../../doxygen/calc/index.html)
+- [calc dotnet wrapper](../../doxygen/calc.net/index.html)
 
 ## API ドキュメント
 
@@ -24,5 +24,7 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
 
 テスト結果およびドキュメントを圧縮した zip ファイルです。
 
+- [テスト結果 (Linux) (linux-test-results.zip)](../../artifacts/linux-test-results.zip)
+- [テスト結果 (Windows) (windows-test-results.zip)](../../artifacts/windows-test-results.zip)
 - [html (docs-html.zip)](../../artifacts/docs-html.zip)
 - [docx (docs-docx.zip)](../../artifacts/docs-docx.zip)
