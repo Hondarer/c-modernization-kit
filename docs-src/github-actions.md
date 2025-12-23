@@ -127,13 +127,18 @@ end note
 
 3. **ビルド**
    - `make` を実行してプロジェクトをビルド
+   - ビルドログを `logs/linux-build.log` に保存
 
 4. **テストの実行**
    - `make test` を実行
    - testfw および test ディレクトリ配下のテストを実行
+   - テストログを `logs/linux-test.log` に保存
 
 5. **テスト結果アーティファクトのアップロード**
    - テスト結果 (`test/**/results/`) を保存
+
+6. **ビルド&テストログアーティファクトのアップロード**
+   - ビルドログとテストログ (`logs/`) を保存
 
 ### build-and-test-windows ジョブ
 
@@ -152,12 +157,17 @@ end note
 
 5. **ビルド**
    - `make` を実行してプロジェクトをビルド
+   - ビルドログを `logs/windows-build.log` に保存
 
 6. **テストの実行**
    - `make test` を実行
+   - テストログを `logs/windows-test.log` に保存
 
 7. **テスト結果アーティファクトのアップロード**
    - テスト結果 (`test/**/results/`) を保存
+
+8. **ビルド&テストログアーティファクトのアップロード**
+   - ビルドログとテストログ (`logs/`) を保存
 
 ### publish-docs ジョブ
 
@@ -207,10 +217,14 @@ end note
    - Linux テスト結果アーティファクト (`linux-test-results`) をダウンロード
    - Windows テスト結果アーティファクト (`windows-test-results`) をダウンロード
    - ドキュメントアーティファクト (`documentation`) をダウンロード
+   - Linux ログアーティファクト (`linux-logs`) をダウンロード
+   - Windows ログアーティファクト (`windows-logs`) をダウンロード
 
 2. **アーティファクトの整理と統合**
    - Linux テスト結果を `linux-test-results.zip` にアーカイブ
    - Windows テスト結果を `windows-test-results.zip` にアーカイブ
+   - Linux ビルド&テストログを `linux-logs.zip` にアーカイブ
+   - Windows ビルド&テストログを `windows-logs.zip` にアーカイブ
    - アーカイブを `docs/artifacts/` に配置
    - ドキュメントと統合
 
@@ -280,6 +294,8 @@ https://<username>.github.io/<repository>/
 |   +-- docs-docx.zip                 # DOCX ドキュメントアーカイブ (固定 URL)
 |   +-- linux-test-results.zip        # Linux テスト結果アーカイブ (固定 URL)
 |   +-- windows-test-results.zip      # Windows テスト結果アーカイブ (固定 URL)
+|   +-- linux-logs.zip                # Linux ビルド&テストログ (固定 URL)
+|   +-- windows-logs.zip              # Windows ビルド&テストログ (固定 URL)
 +-- (その他の生成ドキュメント)
 ```
 
