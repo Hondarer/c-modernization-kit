@@ -1,12 +1,13 @@
 /**
  *******************************************************************************
- *  @file           src/shared-and-static-add/shared-and-static-add.c
+ *  @file           src/shared-and-static-calc/shared-and-static-calc.c
  *  @brief          動的リンク、静的リンクを使った関数の呼び出しコマンド。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *
- *  コマンドライン引数から 2 つの整数を受け取り、calc 関数、add 関数を使用して
+ *  コマンドライン引数から 2 つの整数を受け取り、
+ *  calc 関数、add, subtract, multiply, divide 関数を使用して
  *  加算結果を標準出力に出力します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
@@ -89,7 +90,7 @@ int main(int argc, char *argv[])
         int result_static;
         if (subtract(arg1, arg3, &result_static) != 0)
         {
-            fprintf(stderr, "Error: add failed\n");
+            fprintf(stderr, "Error: subtract failed\n");
             return 1;
         }
         printf("result_static: %d\n", result_static);
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
         int result_static;
         if (multiply(arg1, arg3, &result_static) != 0)
         {
-            fprintf(stderr, "Error: add failed\n");
+            fprintf(stderr, "Error: multiply failed\n");
             return 1;
         }
         printf("result_static: %d\n", result_static);
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
         int result_static;
         if (divide(arg1, arg3, &result_static) != 0)
         {
-            fprintf(stderr, "Error: add failed\n");
+            fprintf(stderr, "Error: divide failed\n");
             return 1;
         }
         printf("result_static: %d\n", result_static);
