@@ -35,7 +35,7 @@ jobs:
         run: make
 
       - name: Set library path for tests
-        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Run tests
         run: make test
@@ -88,8 +88,11 @@ jobs:
       - name: Set library path for tests
         run: |
           $calcLibPath = "${{ github.workspace }}\prod\calc\lib"
+          $calcNetLibPath = "${{ github.workspace }}\prod\calc.net\lib"
           Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath
+          Add-Content -Path $env:GITHUB_PATH -Value $calcNetLibPath
           Write-Host "Added $calcLibPath to PATH"
+          Write-Host "Added $calcNetLibPath to PATH"
         shell: pwsh
 
       - name: Run tests
