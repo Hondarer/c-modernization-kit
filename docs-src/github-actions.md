@@ -21,7 +21,7 @@ main ブランチへの変更時に、Linux/Windows 両環境での自動ビル�
 3. `docs` - ドキュメント生成
 4. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
 
-Linux テスト、Windows テスト、ドキュメント生成は並列実行され、すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
+Linux テストと Windows テストが並列実行され、両方が成功した後にドキュメント生成が実行されます。すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
 
 ### トリガー条件
 
@@ -86,11 +86,12 @@ skinparam defaultFontName "Courier"
 rectangle "並列実行" {
   card "build-and-test-linux" as linux
   card "build-and-test-windows" as windows
-  card "docs" as docs
 }
 
 artifact "linux-test-results" as linux_artifact
 artifact "windows-test-results" as windows_artifact
+
+card "docs\n(needs: ビルド＆テスト完了後)" as docs
 artifact "documentation" as docs_artifact
 
 card "deploy-pages\n(needs: すべて完了後)" as deploy
@@ -98,6 +99,10 @@ cloud "GitHub Pages" as pages
 
 linux -down-> linux_artifact
 windows -down-> windows_artifact
+
+linux_artifact -down-> docs
+windows_artifact -down-> docs
+
 docs -down-> docs_artifact
 
 linux_artifact -down-> deploy
@@ -105,6 +110,11 @@ windows_artifact -down-> deploy
 docs_artifact -down-> deploy
 
 deploy -down-> pages : アーティファクト統合
+
+note right of docs
+  ビルド＆テスト成功時のみ実行
+  クレジット消費を節約
+end note
 
 note right of deploy
   アーティファクトストレージ経由で
@@ -159,6 +169,14 @@ end note
    - テスト結果 (`test/**/results/`) を保存
 
 ### docs ジョブ
+
+このジョブは、`build-and-test-linux` と `build-and-test-windows` の両方が成功した後に実行されます。
+
+**実行条件**:
+- `needs: [build-and-test-linux, build-and-test-windows]` により、ビルド＆テストがすべて成功するまで待機
+- ビルドまたはテストが失敗した場合、このジョブはスキップされます（クレジット消費を節約）
+
+**処理フロー**:
 
 1. **リポジトリのチェックアウト**
    - `fetch-depth: 0` で全履歴を取得 (Markdown 処理時の author/date 取得用)

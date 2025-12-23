@@ -107,6 +107,7 @@ jobs:
           if-no-files-found: warn
 
   docs:
+    needs: [build-and-test-linux, build-and-test-windows]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
