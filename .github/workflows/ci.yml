@@ -106,7 +106,7 @@ jobs:
           path: test/**/results/
           if-no-files-found: warn
 
-  docs:
+  publish-docs:
     needs: [build-and-test-linux, build-and-test-windows]
     runs-on: ubuntu-latest
     container:
@@ -170,7 +170,7 @@ jobs:
           if-no-files-found: warn
 
   deploy-pages:
-    needs: [build-and-test-linux, build-and-test-windows, docs]
+    needs: [build-and-test-linux, build-and-test-windows, publish-docs]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 

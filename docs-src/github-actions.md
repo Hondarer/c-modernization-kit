@@ -18,7 +18,7 @@ main ブランチへの変更時に、Linux/Windows 両環境での自動ビル�
 
 1. `build-and-test-linux` - Linux 環境でのビルドとテスト
 2. `build-and-test-windows` - Windows 環境でのビルドとテスト
-3. `docs` - ドキュメント生成
+3. `publish-docs` - ドキュメント生成
 4. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
 
 Linux テストと Windows テストが並列実行され、両方が成功した後にドキュメント生成が実行されます。すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
@@ -91,7 +91,7 @@ rectangle "並列実行" {
 artifact "linux-test-results" as linux_artifact
 artifact "windows-test-results" as windows_artifact
 
-card "docs\n(needs: ビルド＆テスト完了後)" as docs
+card "publish-docs\n(needs: ビルド＆テスト完了後)" as docs
 artifact "documentation" as docs_artifact
 
 card "deploy-pages\n(needs: すべて完了後)" as deploy
@@ -168,7 +168,7 @@ end note
 7. **テスト結果アーティファクトのアップロード**
    - テスト結果 (`test/**/results/`) を保存
 
-### docs ジョブ
+### publish-docs ジョブ
 
 このジョブは、`build-and-test-linux` と `build-and-test-windows` の両方が成功した後に実行されます。
 
@@ -204,10 +204,10 @@ end note
 
 ### deploy-pages ジョブ
 
-このジョブは、上記 3 つのジョブ（`build-and-test-linux`、`build-and-test-windows`、`docs`）がすべて完了した後に実行されます。
+このジョブは、上記 3 つのジョブ（`build-and-test-linux`、`build-and-test-windows`、`publish-docs`）がすべて完了した後に実行されます。
 
 **実行条件**:
-- `needs: [build-and-test-linux, build-and-test-windows, docs]` により、3 つのジョブがすべて成功するまで待機
+- `needs: [build-and-test-linux, build-and-test-windows, publish-docs]` により、3 つのジョブがすべて成功するまで待機
 - `if: github.ref == 'refs/heads/main' && github.event_name == 'push'` により、main ブランチへの push 時のみ実行
 
 **処理フロー**:

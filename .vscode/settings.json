@@ -6,9 +6,10 @@
         ".debug-params.json": "jsonc"
     },
     "terminal.integrated.env.linux": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}"
+        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}",
+        "PATH": "${workspaceFolder}/prod/calc/bin:${workspaceFolder}/prod/calc.net/bin:${env:PATH}"
     },
     "terminal.integrated.env.windows": {
-        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
+        "PATH": "${workspaceFolder}\\prod\\calc\\bin;${workspaceFolder}\\prod\\calc.net\\bin;${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
     }
 }
