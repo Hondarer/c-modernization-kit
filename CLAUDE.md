@@ -18,7 +18,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `prod/calc/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
 - `prod/calc.net/` - .NET ラッパーとアプリケーション (C ライブラリの .NET からの呼び出し例)
-- `prod/tutorial/` - チュートリアル用サンプルコード
 - `test/` - テストコード (Google Test ベース)
 - `doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール)
 - `docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール)
@@ -166,7 +165,7 @@ c-modernization-kit/                          # このプロジェクト
 |   |   |       +-- subtractTest/        # subtract 関数のテスト
 |   |   |       +-- multiplyTest/        # multiply 関数のテスト
 |   |   |       +-- divideTest/          # divide 関数のテスト
-|   |   +-- tutorial/                     # チュートリアルのテスト
+|   |   +-- tutorial/                     # テストのチュートリアル
 |   +-- libsrc/                           # テスト用モック実装
 |       +-- mock_calcbase/                # calcbase ライブラリのモック
 |       +-- mock_calc/                    # calc ライブラリのモック

@@ -1,5 +1,5 @@
 #include <testfw.h>
-#include <samplestatic.h>
+#include "sample-static-lib/samplestatic.h"
 #include "samplestatic.inject.h"
 
 using namespace testing;

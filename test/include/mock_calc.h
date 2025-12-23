@@ -1,9 +1,7 @@
 #ifndef _MOCK_CALC_H
 #define _MOCK_CALC_H
 
-#include <stdio.h>
-#include <gmock/gmock.h>
-
+#include <testfw.h>
 #include <libcalc.h>
 
 class Mock_calc

@@ -24,10 +24,18 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
     - [ja-details](https://hondarer.github.io/c-modernization-kit/ja-details/html/index.html)
     - [en](https://hondarer.github.io/c-modernization-kit/en/html/index.html)
     - [en-details](https://hondarer.github.io/c-modernization-kit/en-details/html/index.html)
-    - [テスト結果 (Linux) (linux-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-test-results.zip)
-    - [テスト結果 (Windows) (windows-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-test-results.zip)
-    - [ビルド&テストログ (Linux) (linux-logs.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-logs.zip)
-    - [ビルド&テストログ (Windows) (windows-logs.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-logs.zip)
+
+#### アーティファクト
+
+ビルドログ、テスト結果、およびドキュメントを圧縮した zip ファイルです。
+
+- ビルド&テストログ
+    - [Linux (linux-logs.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-logs.zip)
+    - [Windows (windows-logs.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-logs.zip)
+- テスト結果
+    - [Linux (linux-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-test-results.zip)
+    - [Windows (windows-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-test-results.zip)
+- ドキュメントを圧縮した zip ファイル
     - [html (docs-html.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html.zip)
     - [docx (docs-docx.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx.zip)
 
@@ -44,10 +52,6 @@ C ライブラリを .NET から利用するための実装例です。
 
 - [prod/calc.net/libsrc/CalcLib/](prod/calc.net/libsrc/CalcLib/) - .NET ラッパーライブラリ (CalcLibrary.cs, CalcKind.cs, CalcResult.cs, CalcException.cs, Internal/NativeMethods.cs)
 - [prod/calc.net/src/CalcApp/](prod/calc.net/src/CalcApp/) - サンプルアプリケーション (Program.cs, ModuleInitializer.cs)
-
-### チュートリアル
-
-- [prod/tutorial/](prod/tutorial/) - チュートリアル用サンプルコード
 
 ## サンプルコードに対応するテストコード
 
@@ -100,10 +104,10 @@ Clone 後、サブモジュールの初期化を行ってください。
 git submodule update --init --recursive
 ```
 
-- `doxyfw` - Doxygen ドキュメント生成フレームワーク ([doxyfw/CLAUDE.md](./doxyfw/CLAUDE.md))
-- `docsfw` - Markdown ドキュメント発行フレームワーク ([docsfw/README.md](./docsfw/README.md))
-- `testfw` - Google Test ベースのテストフレームワーク ([testfw/README.md](./testfw/README.md))
-- `makefw` - Make ビルドフレームワーク ([makefw/README.md](./makefw/README.md))
+- `doxyfw` - Doxygen ドキュメント生成フレームワーク ([https://github.com/Hondarer/doxygen-framework](https://github.com/Hondarer/doxygen-framework))
+- `docsfw` - Markdown ドキュメント発行フレームワーク ([https://github.com/Hondarer/pub_markdown](https://github.com/Hondarer/pub_markdown))
+- `testfw` - Google Test ベースのテストフレームワーク ([https://github.com/Hondarer/googletest-c-framework](https://github.com/Hondarer/googletest-c-framework))
+- `makefw` - Make ビルドフレームワーク ([https://github.com/Hondarer/make-framework](https://github.com/Hondarer/make-framework))
 
 ## ライセンス
 

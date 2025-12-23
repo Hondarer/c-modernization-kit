@@ -8,7 +8,7 @@
 
 ## テスト対象
 
-- prod/tutorial/libsrc/samplestatic/samplestatic.c
+- sample-static-lib/samplestatic.c
   - `static int static_int` - ファイルスコープの static 変数
   - `int samplestatic(void)` - static 変数の値を返す関数
 
@@ -61,7 +61,7 @@ void set_static_int(int set_value)
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-    $(WORKSPACE_FOLDER)/prod/tutorial/libsrc/samplestatic/samplestatic.c
+    sample-static-lib/samplestatic.c
 ```
 
 `TEST_SRCS` 変数にテスト対象のソースファイルを指定します。makefw のビルドシステムが自動的に inject ファイルを検出し、結合処理を行います。
@@ -77,7 +77,7 @@ TEST_SRCS := \
    ```c
    // samplestatic.inject.h の内容が挿入される
 
-   #include <samplestatic.h>
+   #include "samplestatic.h"
 
    static int static_int;  // この変数にアクセスしたい
 
@@ -123,5 +123,5 @@ make test
 ## 参考
 
 - testfw フレームワークの詳細: `testfw/README.md`
-- テスト対象ソース: `prod/tutorial/libsrc/samplestatic/samplestatic.c`
+- テスト対象ソース: `sample-static-lib/samplestatic.c`
 - テスト対象ヘッダー: `prod/tutorial/include/samplestatic.h`

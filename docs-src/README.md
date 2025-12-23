@@ -22,11 +22,14 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
 
 ## アーティファクト
 
-テスト結果、ビルドログ、およびドキュメントを圧縮した zip ファイルです。
+ビルドログ、テスト結果、およびドキュメントを圧縮した zip ファイルです。
 
-- [テスト結果 (Linux) (linux-test-results.zip)](../../artifacts/linux-test-results.zip)
-- [テスト結果 (Windows) (windows-test-results.zip)](../../artifacts/windows-test-results.zip)
-- [ビルド&テストログ (Linux) (linux-logs.zip)](../../artifacts/linux-logs.zip)
-- [ビルド&テストログ (Windows) (windows-logs.zip)](../../artifacts/windows-logs.zip)
-- [html (docs-html.zip)](../../artifacts/docs-html.zip)
-- [docx (docs-docx.zip)](../../artifacts/docs-docx.zip)
+- ビルド&テストログ
+    - [Linux (linux-logs.zip)](../../artifacts/linux-logs.zip)
+    - [Windows (windows-logs.zip)](../../artifacts/windows-logs.zip)
+- テスト結果
+    - [Linux (linux-test-results.zip)](../../artifacts/linux-test-results.zip)
+    - [Windows (windows-test-results.zip)](../../artifacts/windows-test-results.zip)
+- ドキュメントを圧縮した zip ファイル
+    - [html (docs-html.zip)](../../artifacts/docs-html.zip)
+    - [docx (docs-docx.zip)](../../artifacts/docs-docx.zip)

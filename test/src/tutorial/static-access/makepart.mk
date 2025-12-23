@@ -1,3 +1,7 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/tutorial/libsrc/samplestatic/samplestatic.c
+	sample-static-lib/samplestatic.c
+
+# 追加のインクルードディレクトリ
+INCDIR += \
+	sample-static-lib
