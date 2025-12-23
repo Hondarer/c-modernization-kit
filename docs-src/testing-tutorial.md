@@ -50,44 +50,67 @@ Linux では GCC、Windows では MSVC を使用したクロスプラットフ�
 
 ```
 c-modernization-kit/
-├── testfw/                           # テストフレームワーク (サブモジュール)
-│   ├── cmnd/                        # テスト支援コマンド
-│   ├── include/                     # フレームワーク提供のモック (stdio等)
-│   ├── include_override/            # オーバーライド用ヘッダー
-│   ├── libsrc/                      # フレームワーク提供のモック実装
-│   └── makefiles/                   # Makefile テンプレート
-├── test/                             # テストコード (本プロジェクト固有)
-│   ├── include/                     # プロジェクト固有のモックヘッダー
-│   │   ├── mock_calc.h             # calcHandlerのモック
-│   │   └── mock_calcbase.h         # add関数のモック
-│   ├── libsrc/                      # プロジェクト固有のモック実装
-│   │   ├── mock_calc/              # calcHandler モックライブラリ
-│   │   │   ├── mock_calc.cc
-│   │   │   └── mock_calcHandler.cc
-│   │   └── mock_calcbase/          # add モックライブラリ
-│   │       ├── mock_add.cc
-│   │       └── mock_calcbase.cc
-│   └── src/                         # テストコード
-│       └── calc/
-│           ├── libcalcbaseTest/    # ライブラリ関数のテスト
-│           │   └── addTest/
-│           │       └── addTest.cc
-│           └── main/                # main関数を含むプログラムのテスト
-│               ├── addTest/
-│               │   └── addTest.cc
-│               └── calcTest/
-│                   └── calcTest.cc
-└── prod/                             # テスト対象のソースコード
-    └── calc/
-        ├── include/
-        │   ├── libcalcbase.h       # 静的リンク用API
-        │   └── libcalc.h           # 動的リンク用API
-        ├── libsrc/
-        │   └── calcbase/
-        │       └── add.c           # add関数の実装
-        └── src/
-            └── add/
-                └── add.c           # addコマンドのmain関数
++-- testfw/                           # テストフレームワーク (サブモジュール)
+|   +-- cmnd/                        # テスト支援コマンド
+|   +-- include/                     # フレームワーク提供のモック (stdio等)
+|   +-- include_override/            # オーバーライド用ヘッダー
+|   +-- libsrc/                      # フレームワーク提供のモック実装
+|   +-- docs-src/                    # テストフレームワークドキュメント
++-- makefw/                           # Make ビルドフレームワーク (サブモジュール)
+|   +-- makefiles/                   # Makefile テンプレート
+|       +-- prepare.mk              # 準備処理
+|       +-- makemain.mk             # ビルドルール生成
++-- test/                             # テストコード (本プロジェクト固有)
+|   +-- include/                     # プロジェクト固有のモックヘッダー
+|   |   +-- mock_calc.h             # calcHandlerのモック
+|   |   +-- mock_calcbase.h         # add, subtract, multiply, divide のモック
+|   +-- libsrc/                      # プロジェクト固有のモック実装
+|   |   +-- mock_calc/              # calcHandler モックライブラリ
+|   |   |   +-- Makefile            # 標準テンプレート
+|   |   |   +-- makepart.mk         # プロジェクト固有の設定
+|   |   |   +-- mock_calc.cc
+|   |   |   +-- mock_calcHandler.cc
+|   |   +-- mock_calcbase/          # calcbase 関数モックライブラリ
+|   |       +-- Makefile            # 標準テンプレート
+|   |       +-- makepart.mk         # プロジェクト固有の設定
+|   |       +-- mock_calcbase.cc
+|   |       +-- mock_add.cc
+|   |       +-- mock_subtract.cc
+|   |       +-- mock_multiply.cc
+|   |       +-- mock_divide.cc
+|   +-- src/                         # テストコード
+|       +-- calc/
+|           +-- libcalcbaseTest/    # ライブラリ関数のテスト
+|           |   +-- addTest/
+|           |       +-- Makefile    # 標準テンプレート
+|           |       +-- makepart.mk # プロジェクト固有の設定
+|           |       +-- addTest.cc
+|           +-- main/                # main関数を含むプログラムのテスト
+|               +-- addTest/
+|               |   +-- Makefile    # 標準テンプレート
+|               |   +-- makepart.mk # プロジェクト固有の設定
+|               |   +-- addTest.cc
+|               +-- calcTest/
+|                   +-- Makefile    # 標準テンプレート
+|                   +-- makepart.mk # プロジェクト固有の設定
+|                   +-- calcTest.cc
++-- prod/                             # テスト対象のソースコード
+    +-- calc/
+        +-- include/
+        |   +-- libcalcbase.h       # 静的リンク用API
+        |   +-- libcalc.h           # 動的リンク用API
+        |   +-- libcalc_const.h     # 定数定義
+        +-- libsrc/
+        |   +-- calcbase/
+        |       +-- add.c           # add関数の実装
+        |       +-- subtract.c      # subtract関数の実装
+        |       +-- multiply.c      # multiply関数の実装
+        |       +-- divide.c        # divide関数の実装
+        +-- src/
+            +-- add/
+            |   +-- add.c           # addコマンドのmain関数
+            +-- calc/
+                +-- calc.c          # calcコマンドのmain関数
 ```
 
 ---
@@ -189,8 +212,8 @@ type nul > .workspaceRoot
 #### 例: mock_calcbase.h
 
 ```cpp
-#ifndef _MOCK_CALCBASE_H_
-#define _MOCK_CALCBASE_H_
+#ifndef _MOCK_CALCBASE_H
+#define _MOCK_CALCBASE_H
 
 #include <stdio.h>
 #include <gmock/gmock.h>
@@ -204,7 +227,10 @@ class Mock_calcbase
 public:
     // MOCK_METHOD マクロで関数をモック化
     // 構文: MOCK_METHOD(戻り値の型, 関数名, (引数リスト));
-    MOCK_METHOD(int, add, (int, int));
+    MOCK_METHOD(int, add, (int, int, int *));
+    MOCK_METHOD(int, subtract, (int, int, int *));
+    MOCK_METHOD(int, multiply, (int, int, int *));
+    MOCK_METHOD(int, divide, (int, int, int *));
 
     Mock_calcbase();
     ~Mock_calcbase();
@@ -213,7 +239,7 @@ public:
 // グローバルなモックインスタンスへのポインタ
 extern Mock_calcbase *_mock_calcbase;
 
-#endif // _MOCK_CALCBASE_H_
+#endif // _MOCK_CALCBASE_H
 ```
 
 #### ポイント
@@ -229,12 +255,8 @@ extern Mock_calcbase *_mock_calcbase;
 #### 例: mock_calcbase.cc
 
 ```cpp
-#include <gmock/gmock.h>
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_calcbase.h>
-
-using namespace testing;
 
 // グローバルインスタンスの実体
 Mock_calcbase *_mock_calcbase = nullptr;
@@ -242,10 +264,21 @@ Mock_calcbase *_mock_calcbase = nullptr;
 // コンストラクタ: デフォルト動作を設定
 Mock_calcbase::Mock_calcbase()
 {
-    // デフォルト動作は設定しない (テストケースで個別に設定)
-    // または、共通のデフォルト動作を設定:
-    // ON_CALL(*this, add(_, _))
-    //     .WillByDefault(Invoke([](int a, int b) { return a + b; }));
+    // デフォルト動作を設定 (オプション)
+    ON_CALL(*this, add(_, _, _))
+        .WillByDefault(Invoke([](int a, int b, int *result) {
+            *result = a + b;
+            return CALC_SUCCESS;
+        })); // モックの既定の挙動を定義する例
+
+    ON_CALL(*this, subtract(_, _, _))
+        .WillByDefault(Return(CALC_SUCCESS)); // 一般的にはモックの既定の挙動は NOP にしておき、テストプログラムで具体的な挙動を決める
+
+    ON_CALL(*this, multiply(_, _, _))
+        .WillByDefault(Return(CALC_SUCCESS));
+
+    ON_CALL(*this, divide(_, _, _))
+        .WillByDefault(Return(CALC_SUCCESS));
 
     _mock_calcbase = this;
 }
@@ -264,32 +297,29 @@ Mock_calcbase::~Mock_calcbase()
 #### 例: mock_add.cc
 
 ```cpp
-#include <gmock/gmock.h>
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_calcbase.h>
-
-using namespace testing;
 
 // C言語の関数として実装
 // この関数がテスト時に本物の add() 関数の代わりに呼ばれます
-int add(int a, int b)
+// WEAK_ATR 属性により、リンク時に弱いシンボルとして扱われる
+WEAK_ATR int add(int a, int b, int *result)
 {
     int rtc = 0;
 
     // モックインスタンスが存在する場合はモックを呼び出す
     if (_mock_calcbase != nullptr)
     {
-        rtc = _mock_calcbase->add(a, b);
+        rtc = _mock_calcbase->add(a, b, result);
     }
 
     // トレース出力 (デバッグ用)
     if (getTraceLevel() > TRACE_NONE)
     {
-        printf("  > %s %d, %d", __func__, a, b);
+        printf("  > %s %d, %d, 0x%p", __func__, a, b, (void *)result);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
-            printf(" -> %d\n", rtc);
+            printf(" -> %d, %d\n", *result, rtc);
         }
         else
         {
@@ -303,40 +333,57 @@ int add(int a, int b)
 
 #### ポイント
 
+- **WEAK_ATR 属性**: リンク時に弱いシンボルとして扱われ、実装がない場合にモック関数が使用される
 - **C言語関数**: `extern "C"` は不要 (`.cc` ファイルでも関数名が C++ にならない)
 - **モックインスタンスチェック**: `_mock_calcbase != nullptr` でモックの有無を確認
 - **トレース機能**: デバッグ時に関数呼び出しを確認できる
 
 ### モックライブラリの Makefile
 
-`test/libsrc/mock_xxxxx/Makefile` を作成します。
+`test/libsrc/mock_xxxxx/` ディレクトリに以下のファイルを作成します。
+
+#### Makefile (標準テンプレート)
+
+`test/libsrc/mock_xxxxx/Makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
+# Makefile テンプレート
+# すべての最終階層 Makefile で使用する標準テンプレート
+# 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
+
 # ワークスペースのディレクトリ
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# 準備処理
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+# 準備処理 (ビルドテンプレートより前に include)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# ライブラリ名
-TARGET_LIB := libmock_calcbase.a
+##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ソースファイル
+# ビルドテンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+```
+
+#### makepart.mk (プロジェクト固有の設定)
+
+`test/libsrc/mock_xxxxx/makepart.mk` にプロジェクト固有の設定を記述します。
+
+```makefile
+# 出力先ディレクトリ (ライブラリの場合のみ必要)
+OUTPUT_DIR := $(WORKSPACE_FOLDER)/test/lib
+
+# ソースファイル (必要に応じて追加)
 SRCS := \
 	mock_calcbase.cc \
-	mock_add.cc
-
-# ライブラリ生成用の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makelib.mk
+	mock_add.cc \
+	mock_subtract.cc \
+	mock_multiply.cc \
+	mock_divide.cc
 ```
 
 ---
@@ -348,15 +395,9 @@ include $(WORKSPACE_FOLDER)/testfw/makefiles/makelib.mk
 ### テストコードの基本構造
 
 ```cpp
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_stdio.h>
-
 #include <libcalcbase.h>
-
-using namespace testing;
 
 // テストフィクスチャクラス
 class addTest : public Test
@@ -367,16 +408,17 @@ class addTest : public Test
 TEST_F(addTest, test_1_add_2)
 {
     // Arrange (状態設定)
-    // - テストに必要な初期状態を準備
+    int result;
 
     // Pre-Assert (期待動作設定)
     // - モックの期待動作を設定 (この例では不要)
 
     // Act (実行)
-    int rtc = add(1, 2); // [手順] - add(1, 2) を呼び出す。
+    int rtc = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
 
     // Assert (検証)
-    EXPECT_EQ(3, rtc); // [確認] - 戻り値が 3 であること。
+    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること。
 }
 ```
 
@@ -385,15 +427,9 @@ TEST_F(addTest, test_1_add_2)
 `test/src/calc/libcalcbaseTest/addTest/addTest.cc`
 
 ```cpp
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include <test_com.h>
+#include <testfw.h>
 #include <mock_stdio.h>
-
 #include <libcalcbase.h>
-
-using namespace testing;
 
 class addTest : public Test
 {
@@ -403,56 +439,46 @@ class addTest : public Test
 TEST_F(addTest, test_1_add_2)
 {
     // Arrange
+    int result;
 
     // Pre-Assert
 
     // Act
-    int rtc = add(1, 2); // [手順] - add(1, 2) を呼び出す。
+    int rtc = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(3, rtc); // [確認] - 戻り値が 3 であること。
+    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること。
 }
 
 // 交換法則のテスト
 TEST_F(addTest, test_2_add_1)
 {
     // Arrange
+    int result;
 
     // Pre-Assert
 
     // Act
-    int rtc = add(2, 1); // [手順] - add(2, 1) を呼び出す。
+    int rtc = add(2, 1, &result); // [手順] - add(2, 1, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(3, rtc); // [確認] - 戻り値が 3 であること。
+    EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること。
 }
 
-// ゼロとの加算テスト
-TEST_F(addTest, test_add_zero)
+// NULLポインタのテスト
+TEST_F(addTest, test_null_result)
 {
     // Arrange
 
     // Pre-Assert
 
     // Act
-    int rtc = add(5, 0); // [手順] - add(5, 0) を呼び出す。
+    int rtc = add(1, 2, NULL); // [手順] - add(1, 2, NULL) を呼び出す。
 
     // Assert
-    EXPECT_EQ(5, rtc); // [確認] - 戻り値が 5 であること。
-}
-
-// 負の数の加算テスト
-TEST_F(addTest, test_add_negative)
-{
-    // Arrange
-
-    // Pre-Assert
-
-    // Act
-    int rtc = add(-3, 5); // [手順] - add(-3, 5) を呼び出す。
-
-    // Assert
-    EXPECT_EQ(2, rtc); // [確認] - 戻り値が 2 であること。
+    EXPECT_EQ(CALC_ERROR, rtc); // [確認] - 戻り値が CALC_ERROR であること。
 }
 ```
 
@@ -473,14 +499,9 @@ GCCの `-Wl,--wrap=main` オプションを使用すると:
 ### テストコードの構造
 
 ```cpp
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <gtest_wrapmain.h>  // main関数ラップ用
-
+#include <testfw.h>
 #include <mock_stdio.h>
 #include <mock_calcbase.h>
-
-using namespace testing;
 
 class addTest : public Test
 {
@@ -490,15 +511,15 @@ TEST_F(addTest, less_argc)
 {
     // Arrange
     int argc = 2;
-    const char *argv[] = {"addTest", "1"}; // [状態] - 引数が不足
+    const char *argv[] = {"addTest", "1"}; // [状態] - main() に与える引数を、"1" **(不足)** とする。
 
     // Pre-Assert
 
     // Act
-    int rtc = __real_main(argc, (char **)&argv); // 元のmain関数を呼び出す
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(1, rtc); // [確認] - エラーコード 1 が返ること
+    EXPECT_NE(0, rtc); // [確認] - main() の戻り値が 0 以外であること。
 }
 
 TEST_F(addTest, normal)
@@ -507,20 +528,24 @@ TEST_F(addTest, normal)
     NiceMock<Mock_stdio> mock_stdio;
     Mock_calcbase mock_calcbase;
     int argc = 3;
-    const char *argv[] = {"addTest", "1", "2"}; // [状態] - 正常な引数
+    const char *argv[] = {"addTest", "1", "2"}; // [状態] - main() に与える引数を、"1", "2" とする。
 
     // Pre-Assert
-    EXPECT_CALL(mock_calcbase, add(1, 2))
-        .WillOnce(Return(3)); // [Pre-Assert確認] - add(1, 2) が呼ばれ、3 を返す
+    EXPECT_CALL(mock_calcbase, add(1, 2, _))
+        .WillOnce([](int, int, int *result) {
+            *result = 3;
+            return CALC_SUCCESS;
+        }); // [Pre-Assert確認] - add(1, 2, &result) が 1 回呼び出されること。
+            // [Pre-Assert手順] - add(1, 2, &result) にて result に 3 を設定し、CALC_SUCCESS を返す。
 
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認] - printf で "3\n" が出力される
+        .WillOnce(DoDefault()); // [Pre-Assert確認] - printf() が 1 回呼び出され、内容が "3\n" であること。
 
     // Act
-    int rtc = __real_main(argc, (char **)&argv); // [手順] - main関数を実行
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(0, rtc); // [確認] - 正常終了
+    EXPECT_EQ(0, rtc); // [確認] - main() の戻り値が 0 であること。
 }
 ```
 
@@ -545,116 +570,143 @@ NiceMock<Mock_stdio> mock_stdio;
 
 ### テストコード用 Makefile
 
-`test/src/calc/libcalcbaseTest/addTest/Makefile`
+テストディレクトリに以下のファイルを作成します。
+
+#### Makefile (標準テンプレート)
+
+`test/src/calc/libcalcbaseTest/addTest/Makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
+# Makefile テンプレート
+# すべての最終階層 Makefile で使用する標準テンプレート
+# 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
+
 # ワークスペースのディレクトリ
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# 準備処理 (Makefile テンプレートより前に include)
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+# 準備処理 (ビルドテンプレートより前に include)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
+##### makepart.mk の内容は、このタイミングで処理される #####
+
+# ビルドテンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+```
+
+#### makepart.mk (プロジェクト固有の設定)
+
+`test/src/calc/libcalcbaseTest/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
+
+```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c
-
-# リンクするライブラリの追加
-# -ltest_com: テストフレームワークの共通機能
-LIBS += -ltest_com
-
-# src の Makefile テンプレートを include
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
 ```
 
 ### main関数テスト用 Makefile
 
-`test/src/calc/main/addTest/Makefile`
+#### Makefile (標準テンプレート)
+
+`test/src/calc/main/addTest/Makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
+# Makefile テンプレート
+# すべての最終階層 Makefile で使用する標準テンプレート
+# 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
 
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+# ワークスペースのディレクトリ
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# テスト対象のソースファイル (main関数を含む)
+# 準備処理 (ビルドテンプレートより前に include)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+
+##### makepart.mk の内容は、このタイミングで処理される #####
+
+# ビルドテンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+```
+
+#### makepart.mk (プロジェクト固有の設定)
+
+`test/src/calc/main/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
+
+```makefile
+# テスト対象のソースファイル
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/src/add/add.c
 
-# リンクオプションの追加
-# -Wl,--wrap=main により、main を __wrap_main に、
-# 元のmainを __real_main に変更
-LDCOMFLAGS += -Wl,--wrap=main
+# エントリーポイントの変更
+# テスト対象のソースファイルにある main() は直接実行されず、
+# テストコード内から __real_main() 経由で実行される
+USE_WRAP_MAIN := 1
 
 # ライブラリの指定
-# -lgtest_wrapmain: __wrap_main() 経由でのテスト実施
-# -lmock_libc: 標準C関数のモック (stdio等)
-# -lmock_calcbase: add関数のモック
-# -ltest_com: テストフレームワークの共通機能
-LIBS += -lgtest_wrapmain -lmock_libc -lmock_calcbase -ltest_com
-
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
+LIBS += mock_calcbase mock_libc
 ```
 
 ### Makefile のポイント
 
+#### Makefile と makepart.mk の分離
+
+- **Makefile**: 標準テンプレート（すべてのテストディレクトリで共通）
+- **makepart.mk**: プロジェクト固有の設定を記述
+
+この分離により、ビルドシステムの更新が容易になり、保守性が向上します。
+
 #### ワークスペースフォルダの検出
 
-```makefile
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
-```
+Makefile テンプレート内で `find-up` 関数を使用して `.workspaceRoot` ファイルを検出し、プロジェクトルートを特定します。
 
-`.workspaceRoot` ファイルを検出してプロジェクトルートを特定します。
+```makefile
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
+WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+```
 
 #### テンプレートの読み込み順序
 
 ```makefile
 # 1. prepare.mk を先に読み込む
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# 2. 変数を設定
+# 2. makepart.mk の内容が処理される (変数設定など)
 
-# 3. makesrc.mk または makelib.mk を最後に読み込む
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
+# 3. makemain.mk を最後に読み込む
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
 ```
 
-#### リンクオプション
+#### main関数のラップ
 
-- `LDCOMFLAGS`: リンカに渡すオプション
-  - `-Wl,--wrap=main`: main関数のラップ
-  - `-Wl,--wrap=関数名`: 他の関数のラップ
+- `USE_WRAP_MAIN := 1`: main関数をラップして `__real_main` として呼び出し可能にする
+  - Linux では `-Wl,--wrap=main` オプションが自動的に設定される
+  - Windows では適切なリンカオプションが自動的に設定される
 
 #### ライブラリの指定
 
-- `LIBS`: リンクするライブラリ
-  - `-lgtest_wrapmain`: main関数ラップ用
-  - `-lmock_xxxxx`: モックライブラリ
-  - `-ltest_com`: テスト共通機能
+- `LIBS`: リンクするライブラリ (プレフィックス `-l` なしで指定)
+  - `mock_xxxxx`: モックライブラリ
+  - `mock_libc`: 標準C関数のモック (stdio等)
+
+例:
+```makefile
+LIBS += mock_calcbase mock_libc
+```
 
 ---
 
@@ -761,10 +813,7 @@ gcovr --exclude-unreachable-branches
 `test/src/calc/main/calcTest/calcTest.cc`
 
 ```cpp
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <gtest_wrapmain.h>
-
+#include <testfw.h>
 #include <mock_stdio.h>
 #include <mock_calc.h>
 
@@ -779,15 +828,15 @@ TEST_F(calcTest, less_argc)
 {
     // Arrange
     int argc = 2;
-    const char *argv[] = {"calcTest", "1"}; // [状態] - 引数が不足
+    const char *argv[] = {"calcTest", "1"}; // [状態] - main() に与える引数を、"1" **(不足)** とする。
 
     // Pre-Assert
 
     // Act
-    int rtc = __real_main(argc, (char **)&argv);
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(1, rtc); // [確認] - エラーコード 1
+    EXPECT_NE(0, rtc); // [確認] - main() の戻り値が 0 以外であること。
 }
 
 // 正常系のテスト
@@ -797,48 +846,39 @@ TEST_F(calcTest, normal)
     NiceMock<Mock_stdio> mock_stdio;
     Mock_calc mock_calc;
     int argc = 4;
-    const char *argv[] = {"calcTest", "1", "+", "2"}; // [状態] - "1" "+" "2"
+    const char *argv[] = {"calcTest", "1", "+", "2"}; // [状態] - main() に与える引数を、"1", "+", "2" とする。
 
     // Pre-Assert
-    EXPECT_CALL(mock_calc, calcHandler(CALC_KIND_ADD, 1, 2))
-        .WillOnce(Return(3)); // [Pre-Assert確認] - calcHandler が呼ばれ 3 を返す
+    EXPECT_CALL(mock_calc, calcHandler(CALC_KIND_ADD, 1, 2, _))
+        .WillOnce([](int, int, int, int *result) {
+            *result = 3;
+            return CALC_SUCCESS;
+        }); // [Pre-Assert確認] - calcHandler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
+            // [Pre-Assert手順] - calcHandler(CALC_KIND_ADD, 1, 2, &result) にて result に 3 を設定し、CALC_SUCCESS を返す。
 
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認] - "3\n" が出力される
+        .WillOnce(DoDefault()); // [Pre-Assert確認] - printf() が 1 回呼び出され、内容が "3\n" であること。
 
     // Act
-    int rtc = __real_main(argc, (char **)&argv);
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(0, rtc); // [確認] - 正常終了
+    EXPECT_EQ(0, rtc); // [確認] - main() の戻り値が 0 であること。
 }
 ```
 
-このテストの Makefile:
+このテストの makepart.mk:
 
 ```makefile
-WORKSPACE_FOLDER := $(shell \
-    dir=`pwd`; \
-    while [ "$$dir" != "/" ]; do \
-        if [ -f "$$dir/.workspaceRoot" ]; then \
-            echo $$dir; \
-            break; \
-        fi; \
-        dir=$$(dirname $$dir); \
-    done \
-)
-
-include $(WORKSPACE_FOLDER)/testfw/makefiles/prepare.mk
-
-# calcコマンドのmain関数を含むソース
+# テスト対象のソースファイル
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/src/calc/calc.c
 
-LDCOMFLAGS += -Wl,--wrap=main
+# エントリーポイントの変更
+USE_WRAP_MAIN := 1
 
-LIBS += -lgtest_wrapmain -lmock_libc -lmock_calc -ltest_com
-
-include $(WORKSPACE_FOLDER)/testfw/makefiles/makesrc.mk
+# ライブラリの指定
+LIBS += mock_calc mock_libc
 ```
 
 ### 例2: モックの高度な使い方
@@ -1029,13 +1069,17 @@ EXPECT_EQ(3, rtc); // [確認] - 戻り値が 3 であること。
 
 ### 8. Makefileの保守性
 
-共通処理はテンプレートに集約:
+Makefile と makepart.mk を分離:
 
-- `testfw/makefiles/prepare.mk`: 準備処理
-- `testfw/makefiles/makesrc.mk`: テスト実行ファイル生成
-- `testfw/makefiles/makelib.mk`: ライブラリ生成
+- **Makefile**: 標準テンプレート（すべてのディレクトリで共通、編集禁止）
+- **makepart.mk**: プロジェクト固有の設定（TEST_SRCS, LIBS, USE_WRAP_MAIN など）
 
-個別のMakefileには最小限の設定のみ記述。
+共通処理はフレームワークに集約:
+
+- `makefw/makefiles/prepare.mk`: 準備処理
+- `makefw/makefiles/makemain.mk`: ビルドルール生成
+
+この分離により、ビルドシステムの更新が容易になり、保守性が向上します。
 
 ### 9. カバレッジの確認
 
@@ -1147,27 +1191,28 @@ LIBS += -lmock_calcbase -ltest_com
 
 **原因**: `__real_main` が未定義
 
-**解決策**: Makefile に `--wrap=main` を追加 (Linux)
+**解決策**: makepart.mk に `USE_WRAP_MAIN := 1` を追加
 
 ```makefile
-LDCOMFLAGS += -Wl,--wrap=main
-LIBS += -lgtest_wrapmain
+USE_WRAP_MAIN := 1
 ```
+
+これにより、ビルドシステムが自動的にプラットフォームに応じた適切なリンカオプションを設定します。
 
 #### モックが呼ばれない
 
 **原因**: リンク順序の問題
 
 **解決策**:
-1. モックライブラリを先にリンク
+1. モックライブラリを makepart.mk の LIBS に追加
 2. `TEST_SRCS` に実体のソースを含めない
 
 ```makefile
 # モックを使う場合は実体のソースを含めない
 # TEST_SRCS := $(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c  # NG
 
-# モックライブラリをリンク
-LIBS += -lmock_calcbase  # OK
+# モックライブラリをリンク (プレフィックス -l なし)
+LIBS += mock_calcbase  # OK
 ```
 
 ### Windows 固有の問題
@@ -1227,9 +1272,15 @@ call Add-VSBT-Env-x64.cmd    # 2. VSBT を後に
 2. **環境構築**: Linux と Windows それぞれの環境設定手順
 3. **テストフレームワークの構造**: Google Test を使用した C言語のテスト環境
 4. **モックの作成**: ヘッダー、クラス、関数の3段階でのモック実装
+   - WEAK_ATR 属性を使用したモック関数の実装
+   - ON_CALL を使用したデフォルト動作の設定
 5. **関数のテスト**: 通常の関数のユニットテスト方法
+   - ステータスコードとポインタ経由の結果取得パターン
 6. **main関数のテスト**: リンカラップ機能を使用した main関数のテスト
-7. **Makefileの作成**: テンプレートを活用した効率的なビルド設定
+   - `USE_WRAP_MAIN := 1` による自動設定
+7. **Makefileの作成**: Makefile と makepart.mk の分離による保守性の向上
+   - 標準テンプレート（Makefile）とプロジェクト固有の設定（makepart.mk）の分離
+   - makefw サブモジュールによるクロスプラットフォーム対応
 8. **実践例**: 実際のコードを使った具体的なテスト例
 9. **トラブルシューティング**: プラットフォーム固有の問題と解決方法
 

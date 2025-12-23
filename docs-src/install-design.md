@@ -55,9 +55,9 @@ makefw フレームワークは以下のファイルで構成されています�
 
 ```
 $(PREFIX)/
-├── bin/          # 実行ファイル
-├── lib/          # ライブラリファイル (.a, .so)
-└── include/      # ヘッダーファイル
++-- bin/          # 実行ファイル
++-- lib/          # ライブラリファイル (.a, .so)
++-- include/      # ヘッダーファイル
 ```
 
 デフォルトの `PREFIX`: `/usr/local`
@@ -66,9 +66,9 @@ $(PREFIX)/
 
 ```
 $(PREFIX)/
-├── bin/          # 実行ファイル (.exe), DLL (.dll)
-├── lib/          # インポートライブラリ (.lib)
-└── include/      # ヘッダーファイル
++-- bin/          # 実行ファイル (.exe), DLL (.dll)
++-- lib/          # インポートライブラリ (.lib)
++-- include/      # ヘッダーファイル
 ```
 
 デフォルトの `PREFIX`: `C:/Program Files/$(PROJECT_NAME)`
@@ -351,18 +351,18 @@ make install PREFIX="C:/MyApp"
 
 ```
 /usr/local/
-├── bin/
-│   ├── add
-│   ├── calc
-│   └── shared-and-static-add
-├── lib/
-│   ├── libcalcbase.a
-│   └── libcalc.so
-└── include/
-    └── calc/
-        ├── libcalcbase.h
-        ├── libcalc.h
-        └── libcalc_const.h
++-- bin/
+|   +-- add
+|   +-- calc
+|   +-- shared-and-static-add
++-- lib/
+|   +-- libcalcbase.a
+|   +-- libcalc.so
++-- include/
+    +-- calc/
+        +-- libcalcbase.h
+        +-- libcalc.h
+        +-- libcalc_const.h
 ```
 
 ### Windows の場合
@@ -371,22 +371,22 @@ make install PREFIX="C:/MyApp"
 
 ```
 C:/Program Files/c-modernization-kit/
-├── bin/
-│   ├── add.exe
-│   ├── add.pdb
-│   ├── calc.exe
-│   ├── calc.pdb
-│   ├── shared-and-static-add.exe
-│   ├── shared-and-static-add.pdb
-│   └── calc.dll
-├── lib/
-│   ├── calcbase.lib
-│   └── calc.lib
-└── include/
-    └── calc/
-        ├── libcalcbase.h
-        ├── libcalc.h
-        └── libcalc_const.h
++-- bin/
+|   +-- add.exe
+|   +-- add.pdb
+|   +-- calc.exe
+|   +-- calc.pdb
+|   +-- shared-and-static-add.exe
+|   +-- shared-and-static-add.pdb
+|   +-- calc.dll
++-- lib/
+|   +-- calcbase.lib
+|   +-- calc.lib
++-- include/
+    +-- calc/
+        +-- libcalcbase.h
+        +-- libcalc.h
+        +-- libcalc_const.h
 ```
 
 ## メリット

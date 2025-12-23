@@ -2,6 +2,9 @@
 // Debug Params プラグインをインストールすると、デバッグ実行時に環境変数や引数を動的に設定できます。
 // https://marketplace.visualstudio.com/items?itemName=TetsuoHonda.vscode-debug-params
 {
+  "defaults": {
+    "program": "${shell:make show-exepath}"
+  },
   "configs": [
     {
       "name": "1 + 3", 

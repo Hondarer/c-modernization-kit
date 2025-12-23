@@ -439,9 +439,9 @@ Windows 用には別の設定を追加できます。
 
 CI/CD環境でも同様に環境変数を設定する必要があります。GitHub Actionsでは、環境変数を永続化するための特別なメカニズムがあります。
 
-##### Linux ワークフロー
+##### Linux ジョブ
 
-`.github/workflows/build-and-test-linux.yml`
+`.github/workflows/ci.yml` (build-and-test-linux ジョブ)
 
 ```yaml
 jobs:
@@ -468,9 +468,9 @@ jobs:
 - 以降のすべてのステップで設定した環境変数が有効になる
 - `$GITHUB_WORKSPACE` はワークスペースのルートパスを表す
 
-##### Windows ワークフロー
+##### Windows ジョブ
 
-`.github/workflows/build-and-test-windows.yml`
+`.github/workflows/ci.yml` (build-and-test-windows ジョブ)
 
 ```yaml
 jobs:

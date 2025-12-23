@@ -12,7 +12,7 @@
             "environment": [
                 {
                     "name": "LD_LIBRARY_PATH",
-                    "value": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+                    "value": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}"
                 }
             ],
             "externalConsole": false,
@@ -63,7 +63,7 @@
             "environment": [
                 {
                     "name": "PATH",
-                    "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                    "value": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
                 }
             ],
             "console": "integratedTerminal",
@@ -91,7 +91,7 @@
             "enableStepFiltering": false,
             "preLaunchTask": "make (current dir)",
             "env": {
-                "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+                "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}"
             },
             "sourceFileMap": {
                 "/build": "${workspaceFolder}"
@@ -112,7 +112,7 @@
             "enableStepFiltering": false,
             "preLaunchTask": "make (current dir)",
             "env": {
-                "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+                "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
             },
             "sourceFileMap": {
                 "/build": "${workspaceFolder}"

@@ -1,3 +1,4 @@
+#pragma warning disable 1587
 /**
  *******************************************************************************
  *  @file           CalcExceptionTests.cs
@@ -13,6 +14,7 @@
  *
  *******************************************************************************
  */
+#pragma warning restore 1587
 
 using System;
 using Xunit;
@@ -28,90 +30,76 @@ namespace CalcLib.Tests
         [Fact]
         public void CalcException_WithErrorCodeAndMessage_ShouldSetProperties()
         {
-            // Arrange
-            int errorCode = -1;
-            string message = "Test error message";
+            int errorCode = -1; // [状態] - エラーコードを準備する。
+            string message = "Test error message"; // [状態] - メッセージを準備する。
 
-            // Act
-            var exception = new CalcException(errorCode, message);
+            var exception = new CalcException(errorCode, message); // [手順] - CalcException を作成する。
 
-            // Assert
-            Assert.Equal(errorCode, exception.ErrorCode);
-            Assert.Equal(message, exception.Message);
+            Assert.Equal(errorCode, exception.ErrorCode); // [確認] - エラーコードが正しく設定されていること。
+            Assert.Equal(message, exception.Message); // [確認] - メッセージが正しく設定されていること。
         }
 
         [Fact]
         public void CalcException_WithInnerException_ShouldSetProperties()
         {
-            // Arrange
-            int errorCode = -1;
-            string message = "Test error message";
-            var innerException = new InvalidOperationException("Inner exception");
+            int errorCode = -1; // [状態] - エラーコードを準備する。
+            string message = "Test error message"; // [状態] - メッセージを準備する。
+            var innerException = new InvalidOperationException("Inner exception"); // [状態] - 内部例外を準備する。
 
-            // Act
-            var exception = new CalcException(errorCode, message, innerException);
+            var exception = new CalcException(errorCode, message, innerException); // [手順] - CalcException を内部例外付きで作成する。
 
-            // Assert
-            Assert.Equal(errorCode, exception.ErrorCode);
-            Assert.Equal(message, exception.Message);
-            Assert.Same(innerException, exception.InnerException);
+            Assert.Equal(errorCode, exception.ErrorCode); // [確認] - エラーコードが正しく設定されていること。
+            Assert.Equal(message, exception.Message); // [確認] - メッセージが正しく設定されていること。
+            Assert.Same(innerException, exception.InnerException); // [確認] - 内部例外が正しく設定されていること。
         }
 
         [Fact]
         public void CalcException_ThrownFromCalculateOrThrow_ShouldContainContextInfo()
         {
-            // Act & Assert
-            var exception = Assert.Throws<CalcException>(() =>
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0));
+            var exception = Assert.Throws<CalcException>(() => // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0) を呼び出す (ゼロ除算)。
+                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0)); // [確認] - CalcException が発生すること。
 
-            // Verify exception contains context information
-            Assert.Equal(-1, exception.ErrorCode);
-            Assert.Contains("kind=Divide", exception.Message);
-            Assert.Contains("a=100", exception.Message);
-            Assert.Contains("b=0", exception.Message);
-            Assert.Contains("errorCode=-1", exception.Message);
+            Assert.Equal(-1, exception.ErrorCode); // [確認] - 例外のエラーコードが -1 であること。
+            Assert.Contains("kind=Divide", exception.Message); // [確認] - メッセージに "kind=Divide" が含まれること。
+            Assert.Contains("a=100", exception.Message); // [確認] - メッセージに "a=100" が含まれること。
+            Assert.Contains("b=0", exception.Message); // [確認] - メッセージに "b=0" が含まれること。
+            Assert.Contains("errorCode=-1", exception.Message); // [確認] - メッセージに "errorCode=-1" が含まれること。
         }
 
         [Fact]
         public void CalcException_CanBeCaught_AsException()
         {
-            // Arrange
-            bool caughtAsException = false;
+            bool caughtAsException = false; // [状態] - 例外キャッチフラグを準備する。
 
-            // Act
             try
             {
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0);
+                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す。
             }
             catch (Exception ex)
             {
                 caughtAsException = true;
-                Assert.IsType<CalcException>(ex);
+                Assert.IsType<CalcException>(ex); // [確認] - CalcException 型であること。
             }
 
-            // Assert
-            Assert.True(caughtAsException);
+            Assert.True(caughtAsException); // [確認] - Exception としてキャッチできたこと。
         }
 
         [Fact]
         public void CalcException_CanBeCaught_AsCalcException()
         {
-            // Arrange
-            bool caughtAsCalcException = false;
+            bool caughtAsCalcException = false; // [状態] - 例外キャッチフラグを準備する。
 
-            // Act
             try
             {
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0);
+                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す。
             }
             catch (CalcException ex)
             {
                 caughtAsCalcException = true;
-                Assert.Equal(-1, ex.ErrorCode);
+                Assert.Equal(-1, ex.ErrorCode); // [確認] - エラーコードが -1 であること。
             }
 
-            // Assert
-            Assert.True(caughtAsCalcException);
+            Assert.True(caughtAsCalcException); // [確認] - CalcException としてキャッチできたこと。
         }
     }
 }

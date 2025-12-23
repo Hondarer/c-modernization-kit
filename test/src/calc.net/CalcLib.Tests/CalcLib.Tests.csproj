@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="CalcLib">
       <HintPath>../../../../prod/calc.net/lib/CalcLib.dll</HintPath>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 </Project>

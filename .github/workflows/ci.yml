@@ -1,0 +1,217 @@
+name: CI (Build, Test, and Docs)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        HOST_USER: user
+        HOST_UID: 1001
+        HOST_GID: 127
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Build
+        run: make
+
+      - name: Set library path for tests
+        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: make test
+
+      - name: Upload test results artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-test-results
+          path: test/**/results/
+          if-no-files-found: warn
+
+  build-and-test-windows:
+    runs-on: windows-2025
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install OpenCppCoverage
+        run: |
+          choco install opencppcoverage -y
+
+          # PATH に追加 (GitHub Actions の永続化メカニズムを使用)
+          $opencppPath = "C:\Program Files\OpenCppCoverage"
+          if (Test-Path $opencppPath) {
+              Write-Host "`nAdding OpenCppCoverage to PATH..."
+              Add-Content -Path $env:GITHUB_PATH -Value $opencppPath
+              Write-Host "PATH addition completed."
+          } else {
+              Write-Host "ERROR: OpenCppCoverage installation directory not found at $opencppPath"
+              exit 1
+          }
+        shell: pwsh
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+        shell: pwsh
+
+      - name: Setup MSVC environment
+        run: |
+          & "${{ github.workspace }}\.github\workflows\Add-VSBT-Env-x64.ps1"
+        shell: pwsh
+
+      - name: Build
+        run: make
+        shell: pwsh
+
+      - name: Set library path for tests
+        run: |
+          $calcLibPath = "${{ github.workspace }}\prod\calc\lib"
+          Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath
+          Write-Host "Added $calcLibPath to PATH"
+        shell: pwsh
+
+      - name: Run tests
+        run: make test
+        shell: pwsh
+
+      - name: Upload test results artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-test-results
+          path: test/**/results/
+          if-no-files-found: warn
+
+  docs:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        HOST_USER: user
+        HOST_UID: 1001
+        HOST_GID: 127
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 全履歴を取得 (git log 用: Markdown 処理時に author と date を取得するため)
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Initialize submodules (shallow)
+        run: git submodule update --init --recursive --depth 1
+
+      - name: Generate and publish documentation
+        run: make doxy && make docs
+
+      - name: Create artifact archives
+        run: |
+          shopt -s globstar nullglob
+          mkdir -p docs/artifacts
+          # HTML ドキュメント
+          html_files=(docs/doxygen docs/**/html)
+          [ ${#html_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-html.zip "${html_files[@]}" || true
+          # DOCX ドキュメント
+          docx_files=(docs/**/docx/)
+          [ ${#docx_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-docx.zip "${docx_files[@]}" || true
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-${{ github.sha }}
+          path: |
+            docs/doxygen
+            docs/**/html
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-${{ github.sha }}
+          path: docs/**/docx/
+          if-no-files-found: warn
+
+  deploy-pages:
+    needs: [build-and-test-linux, build-and-test-windows, docs]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Download Linux test results
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-test-results
+          path: test-results/linux
+
+      - name: Download Windows test results
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-test-results
+          path: test-results/windows
+
+      - name: Download documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation
+          path: docs
+
+      - name: Organize artifacts for Pages
+        run: |
+          # テスト結果をアーカイブ化
+          mkdir -p docs/artifacts
+
+          if [ -d "test-results/linux" ]; then
+            zip -r docs/artifacts/linux-test-results.zip test-results/linux
+            echo "Created linux-test-results.zip"
+          fi
+
+          if [ -d "test-results/windows" ]; then
+            zip -r docs/artifacts/windows-test-results.zip test-results/windows
+            echo "Created windows-test-results.zip"
+          fi
+
+          # ディレクトリ構造を確認
+          echo "=== Pages directory structure ==="
+          find docs -type f | head -20
+          echo "..."
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true

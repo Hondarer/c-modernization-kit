@@ -126,53 +126,53 @@ make clean
 
 ```text
 c-modernization-kit/
-├── makefw/                              # Makefile フレームワーク (testfw から切り出し)
-│   ├── makefiles/
-│   │   ├── makelibsrc.mk               # ライブラリビルド用共通テンプレート
-│   │   ├── makesrc.mk                  # 実行ファイルビルド用共通テンプレート
-│   │   ├── prepare.mk                  # 準備処理
-│   │   └── _*.mk                       # 内部処理用ファイル
-│   └── docs-src/                       # フレームワーク技術ドキュメント
-├── prod/calc/
-│   ├── Makefile                        # トップレベル Makefile (再帰ビルド)
-│   ├── libsrc/
-│   │   ├── Makefile                    # libsrc 配下の再帰ビルド
-│   │   ├── makepart.mk                # ライブラリ共通設定
-│   │   ├── calcbase/
-│   │   │   └── Makefile                # calcbase ビルド定義 (静的ライブラリ)
-│   │   └── calc/
-│   │       ├── Makefile                # calc ビルド定義 (動的ライブラリ)
-│   │       └── makepart.mk            # calc 固有設定 (LIB_TYPE=shared)
-│   └── src/
-│       ├── Makefile                    # src 配下の再帰ビルド
-│       ├── add/
-│       │   └── Makefile                # add コマンドビルド定義
-│       ├── calc/
-│       │   └── Makefile                # calc コマンドビルド定義
-│       └── shared-and-static-add/
-│           └── Makefile                # shared-and-static-add ビルド定義
-└── test/
-    ├── Makefile                        # テストトップレベル Makefile
-    ├── makepart.mk                    # テスト共通設定
-    ├── libsrc/
-    │   ├── Makefile                    # テスト用ライブラリ配下の再帰ビルド
-    │   ├── mock_calcbase/
-    │   │   └── Makefile                # calcbase モックライブラリ
-    │   └── mock_calc/
-    │       └── Makefile                # calc モックライブラリ
-    └── src/
-        ├── Makefile                    # テスト配下の再帰ビルド
-        └── calc/
-            ├── libcalcbaseTest/
-            │   └── addTest/
-            │       └── Makefile        # add 関数単体テスト
-            └── main/
-                ├── addTest/
-                │   └── Makefile        # add コマンド統合テスト
-                ├── calcTest/
-                │   └── Makefile        # calc コマンド統合テスト
-                └── shared-and-static-addTest/
-                    └── Makefile        # shared-and-static-add 統合テスト
++-- makefw/                              # Makefile フレームワーク (testfw から切り出し)
+|   +-- makefiles/
+|   |   +-- makelibsrc.mk               # ライブラリビルド用共通テンプレート
+|   |   +-- makesrc.mk                  # 実行ファイルビルド用共通テンプレート
+|   |   +-- prepare.mk                  # 準備処理
+|   |   +-- _*.mk                       # 内部処理用ファイル
+|   +-- docs-src/                       # フレームワーク技術ドキュメント
++-- prod/calc/
+|   +-- Makefile                        # トップレベル Makefile (再帰ビルド)
+|   +-- libsrc/
+|   |   +-- Makefile                    # libsrc 配下の再帰ビルド
+|   |   +-- makepart.mk                # ライブラリ共通設定
+|   |   +-- calcbase/
+|   |   |   +-- Makefile                # calcbase ビルド定義 (静的ライブラリ)
+|   |   +-- calc/
+|   |       +-- Makefile                # calc ビルド定義 (動的ライブラリ)
+|   |       +-- makepart.mk            # calc 固有設定 (LIB_TYPE=shared)
+|   +-- src/
+|       +-- Makefile                    # src 配下の再帰ビルド
+|       +-- add/
+|       |   +-- Makefile                # add コマンドビルド定義
+|       +-- calc/
+|       |   +-- Makefile                # calc コマンドビルド定義
+|       +-- shared-and-static-add/
+|           +-- Makefile                # shared-and-static-add ビルド定義
++-- test/
+    +-- Makefile                        # テストトップレベル Makefile
+    +-- makepart.mk                    # テスト共通設定
+    +-- libsrc/
+    |   +-- Makefile                    # テスト用ライブラリ配下の再帰ビルド
+    |   +-- mock_calcbase/
+    |   |   +-- Makefile                # calcbase モックライブラリ
+    |   +-- mock_calc/
+    |       +-- Makefile                # calc モックライブラリ
+    +-- src/
+        +-- Makefile                    # テスト配下の再帰ビルド
+        +-- calc/
+            +-- libcalcbaseTest/
+            |   +-- addTest/
+            |       +-- Makefile        # add 関数単体テスト
+            +-- main/
+                +-- addTest/
+                |   +-- Makefile        # add コマンド統合テスト
+                +-- calcTest/
+                |   +-- Makefile        # calc コマンド統合テスト
+                +-- shared-and-static-addTest/
+                    +-- Makefile        # shared-and-static-add 統合テスト
 ```
 
 **設計方針**:
@@ -572,8 +572,8 @@ CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(OUTPUT_DIR)/calc.pdb /I...
 
 ```text
 prod/calc/lib/
-├── calc.lib
-└── calc.pdb
++-- calc.lib
++-- calc.pdb
 ```
 
 #### 実行ファイルの PDB
@@ -589,11 +589,11 @@ LDFLAGS := /DEBUG /PDB:$(OUTPUT_DIR)/add.pdb /LIBPATH:...
 
 ```text
 prod/calc/src/add/
-├── add.exe
-├── add.pdb     (リンク時の PDB、実行ファイルと同じ場所)
-└── obj/
-    ├── add.obj
-    └── add.pdb (コンパイル時の PDB、obj ディレクトリ)
++-- add.exe
++-- add.pdb     (リンク時の PDB、実行ファイルと同じ場所)
++-- obj/
+    +-- add.obj
+    +-- add.pdb (コンパイル時の PDB、obj ディレクトリ)
 ```
 
 ### /FS オプションの追加

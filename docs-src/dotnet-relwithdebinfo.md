@@ -271,16 +271,16 @@ RelWithDebInfo をデフォルト構成に設定することで、以下のメ�
 
 ```
 project-root/
-├── Directory.Build.props        # デフォルト構成: RelWithDebInfo
-├── solution.sln                 # RelWithDebInfo を最初に配置
-├── src/
-│   ├── Project1/
-│   │   └── Project1.csproj     # RelWithDebInfo 構成を定義
-│   └── Project2/
-│       └── Project2.csproj     # RelWithDebInfo 構成を定義
-└── test/
-    └── Tests/
-        └── Tests.csproj         # RelWithDebInfo 構成を定義
++-- Directory.Build.props        # デフォルト構成: RelWithDebInfo
++-- solution.sln                 # RelWithDebInfo を最初に配置
++-- src/
+|   +-- Project1/
+|   |   +-- Project1.csproj     # RelWithDebInfo 構成を定義
+|   +-- Project2/
+|       +-- Project2.csproj     # RelWithDebInfo 構成を定義
++-- test/
+    +-- Tests/
+        +-- Tests.csproj         # RelWithDebInfo 構成を定義
 ```
 
 ### 3. チーム開発での運用
