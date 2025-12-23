@@ -1,6 +1,6 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/calc/src/shared-and-static-add/shared-and-static-add.c
+	$(WORKSPACE_FOLDER)/prod/calc/src/shared-and-static-calc/shared-and-static-calc.c
 
 # エントリーポイントの変更
 # テスト対象のソースファイルにある main() は直接実行されず、

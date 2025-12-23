@@ -62,11 +62,9 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
 Windows では、VS Code 起動を以下の方法で行ってください。  
 `Add-VSBT-Env-x64.cmd` は、Visual Studio の環境設定と適宜読み替えてください (一般的には、x64 Native Tools Command Prompt for VS: vcvars64.bat)。
 
-現段階では、環境変数の VS Code 内での設定は未サポートです。
-
 ```cmd
-REM 環境設定 (重要: この順序を維持すること)
-REM Environment setup (Important: maintain this order)
+REM 環境設定
+REM Environment setup
 call Add-MinGW-Path.cmd
 call Add-VSBT-Env-x64.cmd
 code
