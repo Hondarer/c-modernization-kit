@@ -32,19 +32,28 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Build
-        run: make
+        run: |
+          mkdir -p logs
+          make 2>&1 | tee logs/linux-build.log
 
       - name: Set library path for tests
         run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Run tests
-        run: make test
+        run: make test 2>&1 | tee logs/linux-test.log
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-test-results
           path: test/**/results/
+          if-no-files-found: warn
+
+      - name: Upload build and test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-logs
+          path: logs/
           if-no-files-found: warn
 
   build-and-test-windows:
@@ -82,7 +91,9 @@ jobs:
         shell: pwsh
 
       - name: Build
-        run: make
+        run: |
+          New-Item -ItemType Directory -Force -Path logs
+          make 2>&1 | Tee-Object -FilePath logs/windows-build.log
         shell: pwsh
 
       - name: Set library path for tests
@@ -96,7 +107,7 @@ jobs:
         shell: pwsh
 
       - name: Run tests
-        run: make test
+        run: make test 2>&1 | Tee-Object -FilePath logs/windows-test.log
         shell: pwsh
 
       - name: Upload test results artifacts
@@ -106,8 +117,14 @@ jobs:
           path: test/**/results/
           if-no-files-found: warn
 
+      - name: Upload build and test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-logs
+          path: logs/
+          if-no-files-found: warn
+
   publish-docs:
-    needs: [build-and-test-linux, build-and-test-windows]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
@@ -193,9 +210,21 @@ jobs:
           name: documentation
           path: docs
 
+      - name: Download Linux logs
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-logs
+          path: logs/linux
+
+      - name: Download Windows logs
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-logs
+          path: logs/windows
+
       - name: Organize artifacts for Pages
         run: |
-          # テスト結果をアーカイブ化
+          # テスト結果とログをアーカイブ化
           mkdir -p docs/artifacts
 
           if [ -d "test-results/linux" ]; then
@@ -206,6 +235,16 @@ jobs:
           if [ -d "test-results/windows" ]; then
             zip -r docs/artifacts/windows-test-results.zip test-results/windows
             echo "Created windows-test-results.zip"
+          fi
+
+          if [ -d "logs/linux" ]; then
+            zip -r docs/artifacts/linux-logs.zip logs/linux
+            echo "Created linux-logs.zip"
+          fi
+
+          if [ -d "logs/windows" ]; then
+            zip -r docs/artifacts/windows-logs.zip logs/windows
+            echo "Created windows-logs.zip"
           fi
 
           # ディレクトリ構造を確認

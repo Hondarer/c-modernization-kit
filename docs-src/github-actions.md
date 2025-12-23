@@ -21,7 +21,7 @@ main ブランチへの変更時に、Linux/Windows 両環境での自動ビル�
 3. `publish-docs` - ドキュメント生成
 4. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
 
-Linux テストと Windows テストが並列実行され、両方が成功した後にドキュメント生成が実行されます。すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
+Linux ビルド、Windows ビルド、ドキュメント生成の 3 つのジョブが並列実行されます。すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
 
 ### トリガー条件
 
@@ -86,12 +86,11 @@ skinparam defaultFontName "Courier"
 rectangle "並列実行" {
   card "build-and-test-linux" as linux
   card "build-and-test-windows" as windows
+  card "publish-docs" as docs
 }
 
 artifact "linux-test-results" as linux_artifact
 artifact "windows-test-results" as windows_artifact
-
-card "publish-docs\n(needs: ビルド＆テスト完了後)" as docs
 artifact "documentation" as docs_artifact
 
 card "deploy-pages\n(needs: すべて完了後)" as deploy
@@ -99,10 +98,6 @@ cloud "GitHub Pages" as pages
 
 linux -down-> linux_artifact
 windows -down-> windows_artifact
-
-linux_artifact -down-> docs
-windows_artifact -down-> docs
-
 docs -down-> docs_artifact
 
 linux_artifact -down-> deploy
@@ -111,14 +106,10 @@ docs_artifact -down-> deploy
 
 deploy -down-> pages : アーティファクト統合
 
-note right of docs
-  ビルド＆テスト成功時のみ実行
-  クレジット消費を節約
-end note
-
 note right of deploy
   アーティファクトストレージ経由で
   異なる OS 環境のファイルを統合
+  3 つのジョブすべて成功時のみ実行
 end note
 
 @enduml
@@ -136,13 +127,18 @@ end note
 
 3. **ビルド**
    - `make` を実行してプロジェクトをビルド
+   - ビルドログを `logs/linux-build.log` に保存
 
 4. **テストの実行**
    - `make test` を実行
    - testfw および test ディレクトリ配下のテストを実行
+   - テストログを `logs/linux-test.log` に保存
 
 5. **テスト結果アーティファクトのアップロード**
    - テスト結果 (`test/**/results/`) を保存
+
+6. **ビルド&テストログアーティファクトのアップロード**
+   - ビルドログとテストログ (`logs/`) を保存
 
 ### build-and-test-windows ジョブ
 
@@ -161,20 +157,25 @@ end note
 
 5. **ビルド**
    - `make` を実行してプロジェクトをビルド
+   - ビルドログを `logs/windows-build.log` に保存
 
 6. **テストの実行**
    - `make test` を実行
+   - テストログを `logs/windows-test.log` に保存
 
 7. **テスト結果アーティファクトのアップロード**
    - テスト結果 (`test/**/results/`) を保存
 
+8. **ビルド&テストログアーティファクトのアップロード**
+   - ビルドログとテストログ (`logs/`) を保存
+
 ### publish-docs ジョブ
 
-このジョブは、`build-and-test-linux` と `build-and-test-windows` の両方が成功した後に実行されます。
+このジョブは、`build-and-test-linux` および `build-and-test-windows` と並列に実行されます。
 
 **実行条件**:
-- `needs: [build-and-test-linux, build-and-test-windows]` により、ビルド＆テストがすべて成功するまで待機
-- ビルドまたはテストが失敗した場合、このジョブはスキップされます（クレジット消費を節約）
+- 他のビルド＆テストジョブと独立して並列実行されます
+- CI 全体の実行時間を短縮し、効率的なリソース利用を実現します
 
 **処理フロー**:
 
@@ -204,10 +205,10 @@ end note
 
 ### deploy-pages ジョブ
 
-このジョブは、上記 3 つのジョブ（`build-and-test-linux`、`build-and-test-windows`、`publish-docs`）がすべて完了した後に実行されます。
+このジョブは、上記 3 つのジョブ（`build-and-test-linux`、`build-and-test-windows`、`publish-docs`）が並列実行され、すべて完了した後に実行されます。
 
 **実行条件**:
-- `needs: [build-and-test-linux, build-and-test-windows, publish-docs]` により、3 つのジョブがすべて成功するまで待機
+- `needs: [build-and-test-linux, build-and-test-windows, publish-docs]` により、並列実行された 3 つのジョブがすべて成功するまで待機
 - `if: github.ref == 'refs/heads/main' && github.event_name == 'push'` により、main ブランチへの push 時のみ実行
 
 **処理フロー**:
@@ -216,10 +217,14 @@ end note
    - Linux テスト結果アーティファクト (`linux-test-results`) をダウンロード
    - Windows テスト結果アーティファクト (`windows-test-results`) をダウンロード
    - ドキュメントアーティファクト (`documentation`) をダウンロード
+   - Linux ログアーティファクト (`linux-logs`) をダウンロード
+   - Windows ログアーティファクト (`windows-logs`) をダウンロード
 
 2. **アーティファクトの整理と統合**
    - Linux テスト結果を `linux-test-results.zip` にアーカイブ
    - Windows テスト結果を `windows-test-results.zip` にアーカイブ
+   - Linux ビルド&テストログを `linux-logs.zip` にアーカイブ
+   - Windows ビルド&テストログを `windows-logs.zip` にアーカイブ
    - アーカイブを `docs/artifacts/` に配置
    - ドキュメントと統合
 
@@ -289,6 +294,8 @@ https://<username>.github.io/<repository>/
 |   +-- docs-docx.zip                 # DOCX ドキュメントアーカイブ (固定 URL)
 |   +-- linux-test-results.zip        # Linux テスト結果アーカイブ (固定 URL)
 |   +-- windows-test-results.zip      # Windows テスト結果アーカイブ (固定 URL)
+|   +-- linux-logs.zip                # Linux ビルド&テストログ (固定 URL)
+|   +-- windows-logs.zip              # Windows ビルド&テストログ (固定 URL)
 +-- (その他の生成ドキュメント)
 ```
 

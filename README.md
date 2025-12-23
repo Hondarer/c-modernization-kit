@@ -26,6 +26,8 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
     - [en-details](https://hondarer.github.io/c-modernization-kit/en-details/html/index.html)
     - [テスト結果 (Linux) (linux-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-test-results.zip)
     - [テスト結果 (Windows) (windows-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-test-results.zip)
+    - [ビルド&テストログ (Linux) (linux-logs.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-logs.zip)
+    - [ビルド&テストログ (Windows) (windows-logs.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-logs.zip)
     - [html (docs-html.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html.zip)
     - [docx (docs-docx.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx.zip)
 
