@@ -69,11 +69,20 @@ make
 
 | コマンド | Windows | Linux | リンクライブラリ |
 |---------|---------|-------|----------------|
-| add | `prod/calc/src/add/add.exe` | `prod/calc/src/add/add` | calcbase のみ |
-| calc | `prod/calc/src/calc/calc.exe` | `prod/calc/src/calc/calc` | calc のみ |
-| shared-and-static-add | `prod/calc/src/shared-and-static-add/shared-and-static-add.exe` | `prod/calc/src/shared-and-static-add/shared-and-static-add` | calc + calcbase (両方) |
+| add | `prod/calc/bin/add.exe` | `prod/calc/bin/add` | calcbase のみ |
+| calc | `prod/calc/bin/calc.exe` | `prod/calc/bin/calc` | calc のみ |
+| shared-and-static-calc | `prod/calc/bin/shared-and-static-calc.exe` | `prod/calc/bin/shared-and-static-calc` | calc + calcbase (両方) |
 
-重要: libcalc は動的ライブラリとして実装されており、calcbase を内部に静的リンクします。shared-and-static-add は、コマンドにおいて動的ライブラリと静的ライブラリの両方をリンクする実装例です。
+.NET コマンド / .NET Commands:
+
+| コマンド | Windows | Linux | 依存ライブラリ |
+|---------|---------|-------|--------------|
+| CalcApp | `prod/calc.net/bin/CalcApp.exe` | `prod/calc.net/bin/CalcApp` | CalcLib (libcalc の .NET ラッパー) |
+
+重要:
+- libcalc は動的ライブラリとして実装されており、calcbase を内部に静的リンクします
+- shared-and-static-calc は、コマンドにおいて動的ライブラリと静的ライブラリの両方をリンクする実装例です
+- 実行ファイルの出力先は `prod/calc/src/makepart.mk` および `prod/calc.net/src/makepart.mk` で `OUTPUT_DIR` として設定されています
 
 ### テストのビルドと実行
 
@@ -101,8 +110,6 @@ make
 
 - 単体テスト: ライブラリ関数の単体テスト (`test/src/calc/libcalcbaseTest/`) および コマンドの単体テスト (`test/src/calc/main/`)
 - モックライブラリ: テスト用のモック実装 (`test/libsrc/mock_*/`)
-
-TODO: 以降、未精査。
 
 ### クリーンアップ
 
@@ -135,6 +142,8 @@ c-modernization-kit/
 |   +-- docs-src/                       # フレームワーク技術ドキュメント
 +-- prod/calc/
 |   +-- Makefile                        # トップレベル Makefile (再帰ビルド)
+|   +-- lib/                            # ビルド済みライブラリ
+|   +-- bin/                            # ビルド済み実行ファイル
 |   +-- libsrc/
 |   |   +-- Makefile                    # libsrc 配下の再帰ビルド
 |   |   +-- makepart.mk                # ライブラリ共通設定
@@ -145,12 +154,20 @@ c-modernization-kit/
 |   |       +-- makepart.mk            # calc 固有設定 (LIB_TYPE=shared)
 |   +-- src/
 |       +-- Makefile                    # src 配下の再帰ビルド
+|       +-- makepart.mk                # 実行ファイル出力先設定 (OUTPUT_DIR)
 |       +-- add/
 |       |   +-- Makefile                # add コマンドビルド定義
 |       +-- calc/
 |       |   +-- Makefile                # calc コマンドビルド定義
-|       +-- shared-and-static-add/
-|           +-- Makefile                # shared-and-static-add ビルド定義
+|       +-- shared-and-static-calc/
+|           +-- Makefile                # shared-and-static-calc ビルド定義
++-- prod/calc.net/
+|   +-- lib/                            # ビルド済みライブラリ
+|   +-- bin/                            # ビルド済み実行ファイル
+|   +-- libsrc/CalcLib/                 # .NET ライブラリソース
+|   +-- src/
+|       +-- makepart.mk                # 実行ファイル出力先設定 (OUTPUT_DIR)
+|       +-- CalcApp/                    # .NET アプリケーションソース
 +-- test/
     +-- Makefile                        # テストトップレベル Makefile
     +-- makepart.mk                    # テスト共通設定
@@ -171,8 +188,8 @@ c-modernization-kit/
                 |   +-- Makefile        # add コマンド統合テスト
                 +-- calcTest/
                 |   +-- Makefile        # calc コマンド統合テスト
-                +-- shared-and-static-addTest/
-                    +-- Makefile        # shared-and-static-add 統合テスト
+                +-- shared-and-static-calcTest/
+                    +-- Makefile        # shared-and-static-calc 統合テスト
 ```
 
 **設計方針**:
@@ -187,32 +204,32 @@ c-modernization-kit/
 
 `makefw` は testfw から Makefile 機能を切り出したフレームワークです。共通テンプレートにより、Windows/Linux の差異を吸収します。
 
-**ライブラリ用 Makefile の基本形:**
+**Makefile の基本形 (ライブラリ・実行ファイル共通):**
 
 ```makefile
 # ワークスペース検索
-find-up = ...
+find-up = \
+    $(if $(wildcard $(1)/$(2)),$(1),\
+        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
+            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
+        )\
+    )
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理を include
 include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
-# 依存ライブラリの指定 (必要な場合)
-LIBS += calcbase
+##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ライブラリビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk
+# ビルドテンプレートを include (ディレクトリパスに基づいて自動選択)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
 ```
 
-**実行ファイル用 Makefile の基本形:**
+`makemain.mk` は、カレントディレクトリのパスを判定して、自動的に適切なテンプレートを選択します:
 
-```makefile
-# (ワークスペース検索は同じ)
-
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
-LIBS += calc
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk
-```
+- パスに `/libsrc/` を含む → ライブラリ用テンプレート (`makelibsrc_c_cpp.mk` または `makelibsrc_dotnet.mk`)
+- パスに `/src/` を含む → 実行ファイル用テンプレート (`makesrc_c_cpp.mk` または `makesrc_dotnet.mk`)
+- `.csproj` ファイルの有無により、C/C++ 用か .NET 用かを判定
 
 ### 2. makepart.mk による追加設定
 
@@ -221,35 +238,67 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/makesrc.mk
 **calc/makepart.mk の例:**
 
 ```makefile
+# ライブラリの指定
+LIBS += calcbase
+
 ifeq ($(OS),Windows_NT)
-    # Windows: DLL エクスポート定義
+    # Windows
+    # DLL エクスポート定義
+    # DLL export definition
     CFLAGS   += /DCALC_EXPORTS
     CXXFLAGS += /DCALC_EXPORTS
 endif
 
-# 動的ライブラリとして固定
+# 生成されるライブラリを動的ライブラリ (shared) とする
+# 未指定の場合 (デフォルト) は static
 LIB_TYPE = shared
 ```
 
 この設定により、calc は Windows では DLL、Linux では .so として自動的にビルドされます。
 
+**prod/calc/src/makepart.mk の例 (実行ファイルの出力先設定):**
+
+```makefile
+OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/calc/bin
+```
+
+この設定により、`prod/calc/src/` 配下のすべての実行ファイルは `prod/calc/bin/` に出力されます。
+
 **test/makepart.mk の例:**
 
 ```makefile
-# テストフレームワークをリンク
+ifneq ($(OS),Windows_NT)
+    # Linux
+    # 詳細な警告レベル設定 (gcc)
+    CFLAGS=\
+        -Wall \
+        -Wextra \
+        # ... (その他の警告オプション)
+    CXXFLAGS=\
+        -Wall \
+        -Wextra \
+        # ... (その他の警告オプション)
+else
+    # Windows
+    CFLAGS      =
+    CXXFLAGS    =
+    LDFLAGS     =
+endif
+
+# テストフレームワークのライブラリ参照を追加する
+LIBSDIR +=\
+    $(WORKSPACE_FOLDER)/testfw/lib \
+    $(WORKSPACE_FOLDER)/test/lib
+
+# テストフレームワークをリンクする
 LINK_TEST = 1
 
 # テスト関連ライブラリは、すべて静的リンクとする
 ifeq ($(OS),Windows_NT)
-    # Windows: CALC_STATIC マクロを定義
+    # Windows
     CFLAGS   += /DCALC_STATIC
     CXXFLAGS += /DCALC_STATIC
 endif
-
-# ライブラリ検索パスの追加
-LIBSDIR += \
-    $(WORKSPACE_FOLDER)/testfw/lib \
-    $(WORKSPACE_FOLDER)/test/lib
 ```
 
 `LINK_TEST = 1` を設定することで、Google Test フレームワークが自動的にリンクされます。
@@ -261,13 +310,21 @@ LIBSDIR += \
 **calc/Makefile の例:**
 
 ```makefile
-LIBS += calcbase
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc.mk
+# (ワークスペース検索、prepare.mk include は省略)
+
+# makemain.mk を include (自動的に makelibsrc_c_cpp.mk が選択される)
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
 ```
 
 **calc/makepart.mk:**
 
 ```makefile
+# ライブラリの指定
+LIBS += calcbase
+
+# ... (CFLAGS, CXXFLAGS の設定)
+
+# 動的ライブラリとして固定
 LIB_TYPE = shared
 ```
 
@@ -283,19 +340,37 @@ LIB_TYPE = shared
 
 makefw テンプレートが Windows (MSVC) と Linux (GCC) の両方に自動対応します。
 
-**makefw/makefiles/makelibsrc.mk 内の OS 判定:**
+**makefw/makefiles/prepare.mk 内の OS 判定:**
 
 ```makefile
-ifeq ($(OS),Windows_NT)
-    # Windows (MSVC)
-    CC := cl
-    LD := link
-    TARGET := $(TARGET).dll  # (LIB_TYPE=shared の場合)
+ifneq ($(OS),Windows_NT)
+    # Linux (gcc/g++)
+    ifeq ($(origin CC),default)
+        CC = gcc
+    endif
+    ifeq ($(origin CXX),default)
+        CXX = g++
+    endif
+    ifeq ($(origin LD),default)
+        LD = g++
+    endif
+    ifeq ($(origin AR),default)
+        AR = ar
+    endif
 else
-    # Linux (GCC)
-    CC := gcc
-    LD := gcc
-    TARGET := lib$(TARGET).so  # (LIB_TYPE=shared の場合)
+    # Windows (MSVC)
+    ifeq ($(origin CC),default)
+        CC = cl
+    endif
+    ifeq ($(origin CXX),default)
+        CXX = cl
+    endif
+    ifeq ($(origin LD),default)
+        LD = link  # (MSVC の link.exe)
+    endif
+    ifeq ($(origin AR),default)
+        AR = lib
+    endif
 endif
 ```
 
@@ -391,9 +466,12 @@ makefw は testfw から Makefile 関連機能を切り出したフレームワ�
 
 **フレームワーク:**
 
-- `makefw/makefiles/makelibsrc.mk` - ライブラリビルド用共通テンプレート
-- `makefw/makefiles/makesrc.mk` - 実行ファイルビルド用共通テンプレート
 - `makefw/makefiles/prepare.mk` - 準備処理
+- `makefw/makefiles/makemain.mk` - テンプレート自動選択
+    - `makefw/makefiles/makelibsrc_c_cpp.mk` - C/C++ ライブラリビルド用テンプレート
+    - `makefw/makefiles/makesrc_c_cpp.mk` - C/C++ 実行ファイルビルド用テンプレート
+    - `makefw/makefiles/makelibsrc_dotnet.mk` - .NET ライブラリビルド用テンプレート
+    - `makefw/makefiles/makesrc_dotnet.mk` - .NET 実行ファイルビルド用テンプレート
 
 **ライブラリ:**
 
@@ -405,7 +483,7 @@ makefw は testfw から Makefile 関連機能を切り出したフレームワ�
 
 - `prod/calc/src/add/Makefile` - add コマンド (calcbase のみリンク)
 - `prod/calc/src/calc/Makefile` - calc コマンド (calc のみリンク)
-- `prod/calc/src/shared-and-static-add/Makefile` - shared-and-static-add コマンド (calc + calcbase をリンク)
+- `prod/calc/src/shared-and-static-calc/Makefile` - shared-and-static-calc コマンド (calc + calcbase をリンク)
 
 **テスト:**
 
@@ -415,7 +493,7 @@ makefw は testfw から Makefile 関連機能を切り出したフレームワ�
 - `test/src/calc/libcalcbaseTest/addTest/Makefile` - add 関数単体テスト
 - `test/src/calc/main/addTest/Makefile` - add コマンド統合テスト
 - `test/src/calc/main/calcTest/Makefile` - calc コマンド統合テスト
-- `test/src/calc/main/shared-and-static-addTest/Makefile` - shared-and-static-add 統合テスト
+- `test/src/calc/main/shared-and-static-calcTest/Makefile` - shared-and-static-calc 統合テスト
 
 ## 実装の特徴
 
@@ -521,25 +599,14 @@ OBJS = obj/calcHandler.obj
 
 このセクションでは、クロスプラットフォーム対応の実装で得られた重要な知見とベストプラクティスを説明します。
 
-### 環境設定スクリプトの実行順序 (重要)
+### 環境設定スクリプト
 
-Windows 環境では、環境設定スクリプトを**必ず以下の順序で実行する必要があります**：
+Windows 環境では、環境設定スクリプトを実行する必要があります。
 
 ```cmd
 call Add-MinGW-Path.cmd
 call Add-VSBT-Env-x64.cmd
 ```
-
-この順序で実行することで、MSVC の `link.exe` が MinGW の `link` コマンドより PATH の優先順位が高くなります。
-
-**逆の順序で実行すると、リンク時にエラーが発生します：**
-
-```text
-link: extra operand 'calc.lib'
-Try 'link --help' for more information.
-```
-
-これは、MinGW の `link` コマンド (シンボリックリンク作成用) が呼び出されてしまうためです。
 
 ### UTF-8 ソースコードへの対応
 

@@ -178,25 +178,28 @@ VS Code の設定ファイル (`.vscode/settings.json`, `tasks.json`, `launch.js
 
 ##### 本プロジェクトでの実装例
 
-本プロジェクトでは、`prod/calc/lib` ディレクトリに動的ライブラリが配置されているため、以下のように設定しています。
+本プロジェクトでは、C プロジェクト (`prod/calc/`) と .NET プロジェクト (`prod/calc.net/`) の両方が存在するため、それぞれのライブラリと実行ファイルへのパスを設定しています。
 
 `.vscode/settings.json`
 
 ```json
 {
   "terminal.integrated.env.linux": {
-    "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+    "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}",
+    "PATH": "${workspaceFolder}/prod/calc/bin:${workspaceFolder}/prod/calc.net/bin:${env:PATH}"
   },
   "terminal.integrated.env.windows": {
-    "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+    "PATH": "${workspaceFolder}\\prod\\calc\\bin;${workspaceFolder}\\prod\\calc.net\\bin;${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
   }
 }
 ```
 
 **ポイント**:
-- Linux では `LD_LIBRARY_PATH` を設定（動的ライブラリの検索パス）
-- Windows では `PATH` を設定（DLL の検索パス）
-- Windows のパス区切り文字は `\` を使用（`\\` でエスケープ）
+- Linux では `LD_LIBRARY_PATH` を設定 (動的ライブラリの検索パス)
+- Linux では `PATH` も設定 (実行ファイルの検索パス)
+- Windows では `PATH` を設定 (実行ファイル・DLL の検索パス)
+- C プロジェクトと .NET プロジェクトの両方のパスを含める
+- Windows のパス区切り文字は `\` を使用 (`\\` でエスケープ)
 - パスの区切りは Linux が `:`, Windows が `;`
 
 #### ビルドタスク用: .vscode/tasks.json
@@ -266,7 +269,7 @@ Windows と Linux で異なるパス区切り文字を使用する場合は、`w
 
 ##### 本プロジェクトでの実装例
 
-本プロジェクトでは、`make test` タスクと `make test (current dir)` タスクでプラットフォーム別の環境変数設定を行っています。
+本プロジェクトでは、`make test` タスクと `make test (current dir)` タスクでプラットフォーム別の環境変数設定を行っています。C プロジェクトと .NET プロジェクトの両方のライブラリパスを設定しています。
 
 `.vscode/tasks.json`
 
@@ -285,14 +288,14 @@ Windows と Linux で異なるパス区切り文字を使用する場合は、`w
       "linux": {
         "options": {
           "env": {
-            "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+            "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}"
           }
         }
       },
       "windows": {
         "options": {
           "env": {
-            "PATH": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+            "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
           }
         }
       },
@@ -308,6 +311,7 @@ Windows と Linux で異なるパス区切り文字を使用する場合は、`w
 **ポイント**:
 - `linux` プロパティでLinux固有の環境変数を設定
 - `windows` プロパティでWindows固有の環境変数を設定
+- C プロジェクト (`prod/calc/lib`) と .NET プロジェクト (`prod/calc.net/lib`) の両方のライブラリパスを含める
 - トップレベルの `options` とプラットフォーム固有の `options` はマージされる
 - この方法により、プラットフォームごとに異なるパス区切り文字や環境変数名を適切に扱える
 
@@ -394,7 +398,7 @@ Windows 用には別の設定を追加できます。
 - `(Linux coreclr) Debug current directory` - Linux向け.NETデバッグ
 - `(Windows coreclr) Debug current directory` - Windows向け.NETデバッグ
 
-すべての構成で `prod/calc/lib` へのパスを設定しています。
+すべての構成で C プロジェクトと .NET プロジェクトの両方のライブラリパスを設定しています。
 
 `.vscode/launch.json` (抜粋)
 
@@ -410,7 +414,7 @@ Windows 用には別の設定を追加できます。
       "environment": [
         {
           "name": "LD_LIBRARY_PATH",
-          "value": "${workspaceFolder}/prod/calc/lib:${env:LD_LIBRARY_PATH}"
+          "value": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}"
         }
       ]
     },
@@ -422,9 +426,27 @@ Windows 用には別の設定を追加できます。
       "environment": [
         {
           "name": "PATH",
-          "value": "${workspaceFolder}\\prod\\calc\\lib;${env:PATH}"
+          "value": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
         }
       ]
+    },
+    {
+      "name": "(Linux coreclr) Debug current directory",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${fileDirname}/bin/${fileDirnameBasename}",
+      "env": {
+        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}"
+      }
+    },
+    {
+      "name": "(Windows coreclr) Debug current directory",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${fileDirname}/bin/${fileDirnameBasename}",
+      "env": {
+        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
+      }
     }
   ]
 }
@@ -432,7 +454,10 @@ Windows 用には別の設定を追加できます。
 
 **ポイント**:
 - デバッグ構成ごとにプラットフォームを分けて定義
-- `cppdbg` はネイティブC/C++デバッグ用、`coreclr` は.NETデバッグ用
+- `cppdbg` はネイティブC/C++デバッグ用、`cppvsdbg` はWindows用ネイティブC/C++デバッグ用
+- `coreclr` は.NETデバッグ用
+- C プロジェクト (`prod/calc/lib`) と .NET プロジェクト (`prod/calc.net/lib`) の両方のライブラリパスを含める
+- ネイティブデバッグでは `environment` プロパティ、.NETデバッグでは `env` プロパティを使用
 - Windows版では必ずパス区切り文字を `\\` にする
 
 #### GitHub Actions ワークフロー用
@@ -457,7 +482,7 @@ jobs:
         run: make
 
       - name: Set library path for tests
-        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Run tests
         run: make test
@@ -466,6 +491,7 @@ jobs:
 **ポイント**:
 - `$GITHUB_ENV` に書き込むことで環境変数を永続化
 - 以降のすべてのステップで設定した環境変数が有効になる
+- C プロジェクトと .NET プロジェクトの両方のライブラリパスを含める
 - `$GITHUB_WORKSPACE` はワークスペースのルートパスを表す
 
 ##### Windows ジョブ
@@ -489,8 +515,11 @@ jobs:
       - name: Set library path for tests
         run: |
           $calcLibPath = "${{ github.workspace }}\prod\calc\lib"
+          $calcNetLibPath = "${{ github.workspace }}\prod\calc.net\lib"
           Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath
+          Add-Content -Path $env:GITHUB_PATH -Value $calcNetLibPath
           Write-Host "Added $calcLibPath to PATH"
+          Write-Host "Added $calcNetLibPath to PATH"
         shell: pwsh
 
       - name: Run tests
@@ -500,19 +529,20 @@ jobs:
 
 **ポイント**:
 - `$env:GITHUB_PATH` に書き込むことで `PATH` 環境変数に追加
-- PowerShell を使用（`shell: pwsh`）
+- C プロジェクトと .NET プロジェクトの両方のライブラリパスを含める
+- PowerShell を使用 (`shell: pwsh`)
 - `${{ github.workspace }}` はワークスペースのルートパスを表す
 
 ##### GitHub Actions の環境変数永続化メカニズム
 
-- **`$GITHUB_ENV`**: 環境変数を設定（`VARIABLE=value` 形式で書き込み）
-- **`$GITHUB_PATH`**: `PATH` 環境変数にパスを追加（パスを1行ずつ書き込み）
+- **`$GITHUB_ENV`**: 環境変数を設定 (`VARIABLE=value` 形式で書き込み)
+- **`$GITHUB_PATH`**: `PATH` 環境変数にパスを追加 (パスを1行ずつ書き込み)
 
 これらの特別なファイルに書き込むことで、以降のステップでその環境変数が利用可能になります。
 
 ### VS Code の定義済み変数
 
-すべての設定ファイル（`settings.json`、`tasks.json`、`launch.json`）で VS Code の定義済み変数を使えます。これらを使うことで、プロジェクト構造に依存しない設定を作れます。
+すべての設定ファイル (`settings.json`、`tasks.json`、`launch.json`) で VS Code の定義済み変数を使えます。これらを使うことで、プロジェクト構造に依存しない設定を作れます。
 
 よく使う変数は以下です。
 
@@ -522,7 +552,7 @@ jobs:
 
 **`${env:既存の環境変数名}`** は既存の環境変数を参照します。PATH に値を追加する場合などに便利です。
 
-**`${file}`** は現在開いているファイルのパスを表します（`tasks.json` と `launch.json` で使用可能）。
+**`${file}`** は現在開いているファイルのパスを表します (`tasks.json` と `launch.json` で使用可能)。
 
 より詳しい変数の一覧は、公式ドキュメントで確認できます。
 
