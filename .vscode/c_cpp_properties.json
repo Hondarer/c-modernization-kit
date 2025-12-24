@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/prod/calc/include",
-                "${workspaceFolder}/prod/tutorial/include",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/include"
@@ -22,7 +21,6 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/prod/calc/include",
-                "${workspaceFolder}/prod/tutorial/include",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/include"
