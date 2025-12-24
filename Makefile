@@ -38,8 +38,9 @@ test : submodule
 .PHONY: doxy
 doxy : submodule
 	@if [ -d doxyfw ] && [ -f doxyfw/Makefile ]; then \
-		$(MAKE) -C doxyfw  CATEGORY=calc; \
-		$(MAKE) -C doxyfw  CATEGORY=calc.net; \
+		set -e; \
+		$(MAKE) -C doxyfw CATEGORY=calc; \
+		$(MAKE) -C doxyfw CATEGORY=calc.net; \
 	else \
 		echo "INFO: doxyfw directory not found, skipping."; \
 	fi

@@ -5,18 +5,16 @@
 - [calc](../../doxygen/calc/index.html)
 - [calc dotnet wrapper](../../doxygen/calc.net/index.html)
 
-## API ドキュメント
+## 単一ファイル版ドキュメント
 
 Doxygen 成果物の単一ファイル版ドキュメントです。
 
 - calc
-    - [ファイルの一覧](doxybook/calc/index_files.md)
-    - [ページの一覧](doxybook/calc/index_pages.md)
+    - [ファイル、ページの一覧](doxybook/calc/index_files_and_pages.md)
 - calc dotnet wrapper
-    - [ファイルの一覧](doxybook/calc.net/index_files.md)
+    - [ファイル、ページの一覧](doxybook/calc.net/index_files_and_pages.md)
     - [名前空間の一覧](doxybook/calc.net/index_namespaces.md)
     - [クラスの一覧](doxybook/calc.net/index_classes.md)
-    - [ページの一覧](doxybook/calc.net/index_pages.md)
 
 ## 関連ドキュメント
 

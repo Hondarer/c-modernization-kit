@@ -158,18 +158,11 @@ sudo pip3 install gcovr
 Windows では、コマンドプロンプトで以下のスクリプトを実行してから VS Code を起動します:
 
 ```cmd
-REM 環境設定 (重要: この順序を維持すること)
+REM 環境設定
 call Add-MinGW-Path.cmd
 call Add-VSBT-Env-x64.cmd
 code
 ```
-
-**重要**: スクリプトの実行順序が重要です:
-
-1. **Add-MinGW-Path.cmd**: Git for Windows の MinGW ツールへのパスを設定
-2. **Add-VSBT-Env-x64.cmd**: Visual Studio Build Tools の環境変数を設定
-
-この順序により、MSVC の `link.exe` が MinGW の `link` コマンドより優先されます。
 
 > **注意**: `Add-VSBT-Env-x64.cmd` は、Visual Studio の環境設定スクリプトと適宜読み替えてください。
 > 一般的には、x64 Native Tools Command Prompt for VS で使用される `vcvars64.bat` に相当します。

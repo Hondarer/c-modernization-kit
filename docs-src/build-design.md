@@ -34,8 +34,6 @@
    call Add-VSBT-Env-x64.cmd
    ```
 
-   この順序で実行することで、MSVC の `link.exe` が MinGW の `link` より優先されます。
-
 ## ビルド方法
 
 ### ビルド実行
