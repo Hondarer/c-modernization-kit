@@ -10,9 +10,9 @@
 Doxygen 成果物の単一ファイル版ドキュメントです。
 
 - calc
-    - [ファイル、ページの一覧](doxybook/calc/index_files_and_pages.md)
+    - [ファイルとページの一覧](doxybook/calc/index_files_and_pages.md)
 - calc dotnet wrapper
-    - [ファイル、ページの一覧](doxybook/calc.net/index_files_and_pages.md)
+    - [ファイルとページの一覧](doxybook/calc.net/index_files_and_pages.md)
     - [名前空間の一覧](doxybook/calc.net/index_namespaces.md)
     - [クラスの一覧](doxybook/calc.net/index_classes.md)
 
