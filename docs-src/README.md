@@ -18,7 +18,7 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
 
 ## 関連ドキュメント
 
-\toc depth=-1 exclude="doxybook/*"
+\toc depth=-1 exclude-basedir=true exclude="doxybook/*"
 
 ## アーティファクト
 
