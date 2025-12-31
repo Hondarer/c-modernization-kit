@@ -77,7 +77,7 @@ endif
 
 # テストフレームワークのライブラリ参照を追加する
 LIBSDIR +=\
-	$(WORKSPACE_FOLDER)/testfw/lib \
+	$(WORKSPACE_FOLDER)/testfw/lib/$(TARGET_ARCH) \
 	$(WORKSPACE_FOLDER)/test/lib
 
 # テストフレームワークをリンクする

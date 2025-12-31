@@ -24,7 +24,6 @@
 /.claude
 
 ## 中間ファイル
-lib
 obj
 gcov
 lcov
@@ -44,6 +43,7 @@ coverage.xml
 /docs/
 
 ## 成果物
+lib
 bin
 *.exe
 *.pdb

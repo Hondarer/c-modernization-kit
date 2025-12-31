@@ -1,6 +1,6 @@
-# サブディレクトリの定義
-MAKE_SUBDIRS  = prod testfw test
-TEST_SUBDIRS = testfw test
+SUBDIRS = \
+	prod \
+	test
 
 # サブディレクトリで make を実行するマクロ
 # $(1): サブディレクトリリスト
@@ -19,7 +19,7 @@ endef
 
 .PHONY: default
 default : submodule
-	$(call make_in_subdirs,$(MAKE_SUBDIRS))
+	$(call make_in_subdirs,$(SUBDIRS))
 
 .PHONY: submodule
 submodule :
@@ -29,11 +29,11 @@ submodule :
 
 .PHONY: clean
 clean : submodule
-	$(call make_in_subdirs,$(MAKE_SUBDIRS),clean)
+	$(call make_in_subdirs,$(SUBDIRS),clean)
 
 .PHONY: test
 test : submodule
-	$(call make_in_subdirs,$(TEST_SUBDIRS),test)
+	$(call make_in_subdirs,$(SUBDIRS),test)
 
 .PHONY: doxy
 doxy : submodule
