@@ -33,7 +33,18 @@ clean : submodule
 
 .PHONY: test
 test : submodule
-	$(call make_in_subdirs,$(SUBDIRS),test)
+    # prod ディレクトリで make (引数なし、デフォルトターゲット)
+	@if [ -d prod ] && [ -f prod/Makefile ]; then \
+		$(MAKE) -C prod || exit 1; \
+	else \
+		echo "INFO: prod directory not found, skipping."; \
+	fi
+    # test ディレクトリで make test
+	@if [ -d test ] && [ -f test/Makefile ]; then \
+		$(MAKE) -C test test || exit 1; \
+	else \
+		echo "INFO: test directory not found, skipping."; \
+	fi
 
 .PHONY: doxy
 doxy : submodule
