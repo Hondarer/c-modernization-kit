@@ -87,7 +87,7 @@ jobs:
 
       - name: Setup MSVC environment
         run: |
-          & "${{ github.workspace }}\.github\workflows\Add-VSBT-Env-x64.ps1"
+          & "${{ github.workspace }}\.github\scripts\Add-VSBT-Env-x64.ps1"
         shell: pwsh
 
       - name: Build
