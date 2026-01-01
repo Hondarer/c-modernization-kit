@@ -39,8 +39,7 @@
             "name": "(Linux gdb) Attach to PID",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${input:programPath}",
-            "processId": "${input:processId}",
+            "processId": "${command:pickProcess}",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [
@@ -56,8 +55,7 @@
             "request": "launch",
             "type": "cppvsdbg",
             "program": "${fileDirname}/${fileDirnameBasename}.exe",
-            "args": [
-            ],
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [
@@ -75,7 +73,7 @@
             "name": "(Windows vsdbg) Attach to PID",
             "type": "cppvsdbg",
             "request": "attach",
-            "processId": "${input:processId}"
+            "processId": "${command:pickProcess}"
         },
         {
             "name": "(Linux coreclr) Debug current directory",
@@ -118,18 +116,6 @@
                 "/build": "${workspaceFolder}"
             },
             "useDebugParams": true
-        }
-    ],
-    "inputs": [
-        {
-            "id": "processId",
-            "type": "promptString",
-            "description": "Enter the process ID to attach to"
-        },
-        {
-            "id": "programPath",
-            "type": "promptString",
-            "description": "Enter the program path (relative to workspace or absolute)"
         }
     ]
 }
