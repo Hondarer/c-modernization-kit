@@ -2,8 +2,6 @@
 #include <mock_stdio.h>
 #include <mock_calc.h>
 
-using namespace testing;
-
 class calcTest : public Test
 {
 };

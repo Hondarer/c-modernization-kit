@@ -3,8 +3,6 @@
 #include <mock_calcbase.h>
 #include <mock_calc.h>
 
-using namespace testing;
-
 class shared_and_static_addTest : public Test
 {
     void SetUp() override

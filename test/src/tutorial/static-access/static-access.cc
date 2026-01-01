@@ -2,8 +2,6 @@
 #include "sample-static-lib/samplestatic.h"
 #include "samplestatic.inject.h"
 
-using namespace testing;
-
 class test_static_access : public Test
 {
 };
