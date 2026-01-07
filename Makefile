@@ -23,9 +23,12 @@ default : submodule
 
 .PHONY: submodule
 submodule :
-	$(info INFO: submodule sync disabled.)
-#	git submodule sync
-#	git submodule update --init --recursive
+	@if [ ! -d makefw ] || [ ! -f makefw/.git ]; then \
+		echo "ERROR: makefw submodule is not initialized."; \
+		echo "Please run the following command to initialize submodules:"; \
+		echo "  git submodule update --init --recursive"; \
+		exit 1; \
+	fi
 
 .PHONY: clean
 clean : submodule
