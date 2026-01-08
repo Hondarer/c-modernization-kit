@@ -1,7 +1,5 @@
 SUBDIRS = \
-	calc \
-	calc.net \
-	subfolder-sample
+	libsubfolder-sample
 
 .DEFAULT_GOAL := default
 
@@ -10,9 +8,6 @@ default : $(SUBDIRS)
 
 .PHONY: clean
 clean : $(SUBDIRS)
-
-.PHONY: test
-test : $(SUBDIRS)
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :
