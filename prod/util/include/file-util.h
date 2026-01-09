@@ -8,13 +8,17 @@
 #ifndef _WIN32
 #define FILE_UTIL_API
 #define WINAPI
-#else /* _WIN32 */
+#else  /* _WIN32 */
 #ifndef __INTELLISENSE__
+#ifndef FILE_UTIL_STATIC
 #ifdef FILE_UTIL_EXPORTS
 #define FILE_UTIL_API __declspec(dllexport)
 #else /* FILE_UTIL_EXPORTS */
 #define FILE_UTIL_API __declspec(dllimport)
 #endif /* FILE_UTIL_EXPORTS */
+#else  /* FILE_UTIL_STATIC */
+#define FILE_UTIL_API
+#endif /* FILE_UTIL_STATIC */
 #else  /* __INTELLISENSE__ */
 #define FILE_UTIL_API
 #endif /* __INTELLISENSE__ */

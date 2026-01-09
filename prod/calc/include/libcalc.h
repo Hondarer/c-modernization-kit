@@ -20,7 +20,10 @@
 #include <libcalc_const.h>
 
 /* DLL エクスポート/インポート定義 */
-#ifdef _WIN32
+#ifndef _WIN32
+#define CALC_API
+#define WINAPI
+#else  /* _WIN32 */
 #ifndef __INTELLISENSE__
 #ifndef CALC_STATIC
 #ifdef CALC_EXPORTS
@@ -37,9 +40,6 @@
 #ifndef WINAPI
 #define WINAPI __stdcall
 #endif /* WINAPI */
-#else  /* _WIN32 */
-#define CALC_API
-#define WINAPI
 #endif /* _WIN32 */
 
 #ifdef __cplusplus
