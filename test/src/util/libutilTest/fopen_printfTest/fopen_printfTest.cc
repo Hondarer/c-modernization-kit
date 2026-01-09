@@ -7,19 +7,15 @@ class fopen_printfTest : public Test
 {
 };
 
+#ifndef _WIN32
 TEST_F(fopen_printfTest, test_null_modes)
 {
     // Arrange
     Mock_stdio mock_stdio;
 
     // Pre-Assert
-#ifndef _WIN32
     EXPECT_CALL(mock_stdio, fopen(_, _, _, _, _))
         .Times(0); // [Pre-Assert確認_異常系] - fopen が呼び出されないこと。
-#else
-    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, _, _))
-        .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
-#endif
 
     // Act
     FILE *fp = fopen_printf(NULL, "test_%d.txt", 1); // [手順] - modes に NULL を渡す。
@@ -27,20 +23,33 @@ TEST_F(fopen_printfTest, test_null_modes)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
 }
+#else
+TEST_F(fopen_printfTest, test_null_modes)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
 
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, _, _))
+        .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
+
+    // Act
+    FILE *fp = fopen_printf(NULL, "test_%d.txt", 1); // [手順] - modes に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
+}
+#endif
+
+#ifndef _WIN32
 TEST_F(fopen_printfTest, test_null_format)
 {
     // Arrange
     Mock_stdio mock_stdio;
 
     // Pre-Assert
-#ifndef _WIN32
     EXPECT_CALL(mock_stdio, fopen(_, _, _, _, _))
         .Times(0); // [Pre-Assert確認_異常系] - fopen が呼び出されないこと。
-#else
-    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, _, _))
-        .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
-#endif
 
     // Act
     FILE *fp = fopen_printf("r", NULL); // [手順] - format に NULL を渡す。
@@ -48,7 +57,25 @@ TEST_F(fopen_printfTest, test_null_format)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
 }
+#else
+TEST_F(fopen_printfTest, test_null_format)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
 
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, _, _))
+        .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
+
+    // Act
+    FILE *fp = fopen_printf("r", NULL); // [手順] - format に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
+}
+#endif
+
+#ifndef _WIN32
 TEST_F(fopen_printfTest, test_buffer_overflow)
 {
     // Arrange
@@ -59,13 +86,8 @@ TEST_F(fopen_printfTest, test_buffer_overflow)
     long_string[sizeof(long_string) - 1] = '\0';
 
     // Pre-Assert
-#ifndef _WIN32
     EXPECT_CALL(mock_stdio, fopen(_, _, _, _, _))
         .Times(0); // [Pre-Assert確認_異常系] - fopen が呼び出されないこと。
-#else
-    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, _, _))
-        .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
-#endif
 
     // Act
     FILE *fp = fopen_printf("w", "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
@@ -73,7 +95,29 @@ TEST_F(fopen_printfTest, test_buffer_overflow)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
 }
+#else
+TEST_F(fopen_printfTest, test_buffer_overflow)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
+    // 非常に長いファイル名を生成 (バッファサイズを超える)
+    char long_string[5000];
+    memset(long_string, 'a', sizeof(long_string) - 1);
+    long_string[sizeof(long_string) - 1] = '\0';
 
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, _, _))
+        .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
+
+    // Act
+    FILE *fp = fopen_printf("w", "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
+
+    // Assert
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
+}
+#endif
+
+#ifndef _WIN32
 TEST_F(fopen_printfTest, test_successful_call_with_format)
 {
     // Arrange
@@ -81,13 +125,8 @@ TEST_F(fopen_printfTest, test_successful_call_with_format)
     FILE *expected_fp = (FILE *)0x12345678;
 
     // Pre-Assert
-#ifndef _WIN32
     EXPECT_CALL(mock_stdio, fopen(_, _, _, StrEq("test_123.txt"), StrEq("r")))
         .WillOnce(Return(expected_fp)); // [Pre-Assert確認_正常系] - fopen が正しくフォーマットされたファイル名で呼ばれること。
-#else
-    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("test_123.txt"), StrEq("r")))
-        .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
-#endif
 
     // Act
     FILE *fp = fopen_printf("r", "test_%d.txt", 123); // [手順] - fopen_printf にフォーマット文字列でファイル名を指定する。
@@ -95,7 +134,26 @@ TEST_F(fopen_printfTest, test_successful_call_with_format)
     // Assert
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_printf から fp が返されること。
 }
+#else
+TEST_F(fopen_printfTest, test_successful_call_with_format)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
+    FILE *expected_fp = (FILE *)0x12345678;
 
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("test_123.txt"), StrEq("r")))
+        .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
+
+    // Act
+    FILE *fp = fopen_printf("r", "test_%d.txt", 123); // [手順] - fopen_printf にフォーマット文字列でファイル名を指定する。
+
+    // Assert
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_printf から fp が返されること。
+}
+#endif
+
+#ifndef _WIN32
 TEST_F(fopen_printfTest, test_successful_call_with_multiple_parameters)
 {
     // Arrange
@@ -103,13 +161,8 @@ TEST_F(fopen_printfTest, test_successful_call_with_multiple_parameters)
     FILE *expected_fp = (FILE *)0x87654321;
 
     // Pre-Assert
-#ifndef _WIN32
     EXPECT_CALL(mock_stdio, fopen(_, _, _, StrEq("output_1_2_3.txt"), StrEq("w")))
         .WillOnce(Return(expected_fp)); // [Pre-Assert確認_正常系] - fopen が正しくフォーマットされたファイル名で呼ばれること。
-#else
-    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("output_1_2_3.txt"), StrEq("w")))
-        .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
-#endif
 
     // Act
     FILE *fp = fopen_printf("w", "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - fopen_printf に複数のフォーマットパラメータを指定する。
@@ -117,22 +170,35 @@ TEST_F(fopen_printfTest, test_successful_call_with_multiple_parameters)
     // Assert
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_printf から fp が返されること。
 }
+#else
+TEST_F(fopen_printfTest, test_successful_call_with_multiple_parameters)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
+    FILE *expected_fp = (FILE *)0x87654321;
 
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("output_1_2_3.txt"), StrEq("w")))
+        .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
+
+    // Act
+    FILE *fp = fopen_printf("w", "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - fopen_printf に複数のフォーマットパラメータを指定する。
+
+    // Assert
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_printf から fp が返されること。
+}
+#endif
+
+#ifndef _WIN32
 TEST_F(fopen_printfTest, test_fopen_returns_null)
 {
     // Arrange
     Mock_stdio mock_stdio;
 
     // Pre-Assert
-#ifndef _WIN32
     EXPECT_CALL(mock_stdio, fopen(_, _, _, StrEq("nonexistent.txt"), StrEq("r")))
         .WillOnce(Return((FILE *)NULL)); // [Pre-Assert確認_異常系] - fopen が正しくフォーマットされたファイル名で呼ばれること。
                                          // [Pre-Assert手順_異常系] - fopen から NULL を返す。
-#else
-    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("nonexistent.txt"), StrEq("r")))
-        .WillOnce(Return(ENOENT)); // [Pre-Assert確認_異常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
-                                   // [Pre-Assert手順_異常系] - fopen_s からエラーコードを返す。
-#endif
 
     // Act
     FILE *fp = fopen_printf("r", "nonexistent.txt"); // [手順] - fopen_printf を呼び出す。
@@ -140,3 +206,21 @@ TEST_F(fopen_printfTest, test_fopen_returns_null)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
 }
+#else
+TEST_F(fopen_printfTest, test_fopen_returns_null)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
+
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("nonexistent.txt"), StrEq("r")))
+        .WillOnce(Return(ENOENT)); // [Pre-Assert確認_異常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
+                                   // [Pre-Assert手順_異常系] - fopen_s からエラーコードを返す。
+
+    // Act
+    FILE *fp = fopen_printf("r", "nonexistent.txt"); // [手順] - fopen_printf を呼び出す。
+
+    // Assert
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
+}
+#endif
