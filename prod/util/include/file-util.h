@@ -42,7 +42,7 @@ extern "C"
          *  @note           ファイル名の最大長は OS の規定値です (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)
          *  @note           使用例: FILE *fp = fopen_printf("r", "data_%d.txt", 123);
          */
-        FILE_UTIL_API FILE *WINAPI fopen_printf(const char *modes, const char *format, ...)
+        FILE_UTIL_API FILE WINAPI *fopen_printf(const char *modes, const char *format, ...)
 #ifdef __GNUC__
             __attribute__((format(printf, 2, 3)))
 #endif
