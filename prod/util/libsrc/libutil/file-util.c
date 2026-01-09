@@ -49,5 +49,15 @@ FILE_UTIL_API FILE *WINAPI fopen_printf(const char *modes, const char *format, .
     }
 
     /* fopen を呼び出してファイルを開く */
+#ifndef _WIN32
     return fopen(filename, modes);
+#else
+    FILE *fp = NULL;
+    errno_t err = fopen_s(&fp, filename, modes);
+    if (err != 0)
+    {
+        return NULL;
+    }
+    return fp;
+#endif
 }
