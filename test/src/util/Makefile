@@ -1,8 +1,4 @@
-SUBDIRS = \
-	calc \
-	calc.net \
-	subfolder-sample \
-	util
+SUBDIRS = $(wildcard */)
 
 .DEFAULT_GOAL := default
 
