@@ -55,6 +55,7 @@ doxy : submodule
 		set -e; \
 		$(MAKE) -C doxyfw CATEGORY=calc; \
 		$(MAKE) -C doxyfw CATEGORY=calc.net; \
+		$(MAKE) -C doxyfw CATEGORY=util; \
 	else \
 		echo "INFO: doxyfw directory not found, skipping."; \
 	fi
