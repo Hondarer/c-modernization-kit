@@ -223,4 +223,21 @@ TEST_F(fopen_printfTest, test_fopen_returns_null)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
 }
+
+TEST_F(fopen_printfTest, test_fopen_s_access_denied)
+{
+    // Arrange
+    Mock_stdio mock_stdio;
+
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("protected.txt"), StrEq("w")))
+        .WillOnce(Return(EACCES)); // [Pre-Assert確認_異常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
+                                   // [Pre-Assert手順_異常系] - fopen_s からアクセス拒否エラーを返す。
+
+    // Act
+    FILE *fp = fopen_printf("w", "protected.txt"); // [手順] - fopen_printf を呼び出す。
+
+    // Assert
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_printf から NULL が返されること。
+}
 #endif
