@@ -1,0 +1,858 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+    
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>サブディレクトリコンパイル拡張設計</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">サブディレクトリコンパイル拡張設計</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Fri, 9 Jan 2026 07:40:44 +0900 160e1f7</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <ul>
+        <li><a href="#目次" id="toc-目次"><span class="toc-section-number">1</span> 目次</a></li>
+        <li><a href="#概要" id="toc-概要"><span class="toc-section-number">2</span> 概要</a>
+        <ul>
+        <li><a href="#目的" id="toc-目的"><span class="toc-section-number">2.1</span> 目的</a></li>
+        <li><a href="#背景" id="toc-背景"><span class="toc-section-number">2.2</span> 背景</a></li>
+        <li><a href="#対象プロジェクト" id="toc-対象プロジェクト"><span class="toc-section-number">2.3</span> 対象プロジェクト</a></li>
+        </ul></li>
+        <li><a href="#現状分析" id="toc-現状分析"><span class="toc-section-number">3</span> 現状分析</a>
+        <ul>
+        <li><a href="#フレームワークの仕組み" id="toc-フレームワークの仕組み"><span class="toc-section-number">3.1</span> フレームワークの仕組み</a>
+        <ul>
+        <li><a href="#ソース収集メカニズム" id="toc-ソース収集メカニズム"><span class="toc-section-number">3.1.1</span> ソース収集メカニズム</a></li>
+        <li><a href="#オブジェクトファイルの配置" id="toc-オブジェクトファイルの配置"><span class="toc-section-number">3.1.2</span> オブジェクトファイルの配置</a></li>
+        </ul></li>
+        <li><a href="#カスタマイズポイント" id="toc-カスタマイズポイント"><span class="toc-section-number">3.2</span> カスタマイズポイント</a></li>
+        <li><a href="#現在の制約" id="toc-現在の制約"><span class="toc-section-number">3.3</span> 現在の制約</a></li>
+        </ul></li>
+        <li><a href="#アプローチ比較" id="toc-アプローチ比較"><span class="toc-section-number">4</span> アプローチ比較</a>
+        <ul>
+        <li><a href="#比較表" id="toc-比較表"><span class="toc-section-number">4.1</span> 比較表</a></li>
+        <li><a href="#アプローチ1-再帰的ビルド-推奨" id="toc-アプローチ1-再帰的ビルド-推奨"><span class="toc-section-number">4.2</span> アプローチ1: 再帰的ビルド (推奨)</a>
+        <ul>
+        <li><a href="#概要-1" id="toc-概要-1"><span class="toc-section-number">4.2.1</span> 概要</a></li>
+        <li><a href="#実装方法" id="toc-実装方法"><span class="toc-section-number">4.2.2</span> 実装方法</a></li>
+        <li><a href="#利点" id="toc-利点"><span class="toc-section-number">4.2.3</span> 利点</a></li>
+        <li><a href="#欠点" id="toc-欠点"><span class="toc-section-number">4.2.4</span> 欠点</a></li>
+        <li><a href="#適用ケース" id="toc-適用ケース"><span class="toc-section-number">4.2.5</span> 適用ケース</a></li>
+        </ul></li>
+        <li><a href="#アプローチ2-add_srcs-による手動追加" id="toc-アプローチ2-add_srcs-による手動追加"><span class="toc-section-number">4.3</span> アプローチ2: ADD_SRCS による手動追加</a>
+        <ul>
+        <li><a href="#概要-2" id="toc-概要-2"><span class="toc-section-number">4.3.1</span> 概要</a></li>
+        <li><a href="#実装方法-1" id="toc-実装方法-1"><span class="toc-section-number">4.3.2</span> 実装方法</a></li>
+        <li><a href="#利点-1" id="toc-利点-1"><span class="toc-section-number">4.3.3</span> 利点</a></li>
+        <li><a href="#欠点-1" id="toc-欠点-1"><span class="toc-section-number">4.3.4</span> 欠点</a></li>
+        <li><a href="#適用ケース-1" id="toc-適用ケース-1"><span class="toc-section-number">4.3.5</span> 適用ケース</a></li>
+        </ul></li>
+        <li><a href="#アプローチ3-ワイルドカード拡張" id="toc-アプローチ3-ワイルドカード拡張"><span class="toc-section-number">4.4</span> アプローチ3: ワイルドカード拡張</a>
+        <ul>
+        <li><a href="#概要-3" id="toc-概要-3"><span class="toc-section-number">4.4.1</span> 概要</a></li>
+        <li><a href="#実装方法-2" id="toc-実装方法-2"><span class="toc-section-number">4.4.2</span> 実装方法</a></li>
+        <li><a href="#利点-2" id="toc-利点-2"><span class="toc-section-number">4.4.3</span> 利点</a></li>
+        <li><a href="#欠点-2" id="toc-欠点-2"><span class="toc-section-number">4.4.4</span> 欠点</a></li>
+        <li><a href="#技術的注意点" id="toc-技術的注意点"><span class="toc-section-number">4.4.5</span> 技術的注意点</a></li>
+        <li><a href="#適用ケース-2" id="toc-適用ケース-2"><span class="toc-section-number">4.4.6</span> 適用ケース</a></li>
+        </ul></li>
+        <li><a href="#アプローチ4-フラット化" id="toc-アプローチ4-フラット化"><span class="toc-section-number">4.5</span> アプローチ4: フラット化</a>
+        <ul>
+        <li><a href="#概要-4" id="toc-概要-4"><span class="toc-section-number">4.5.1</span> 概要</a></li>
+        <li><a href="#実装方法-3" id="toc-実装方法-3"><span class="toc-section-number">4.5.2</span> 実装方法</a></li>
+        <li><a href="#利点-3" id="toc-利点-3"><span class="toc-section-number">4.5.3</span> 利点</a></li>
+        <li><a href="#欠点-3" id="toc-欠点-3"><span class="toc-section-number">4.5.4</span> 欠点</a></li>
+        <li><a href="#適用ケース-3" id="toc-適用ケース-3"><span class="toc-section-number">4.5.5</span> 適用ケース</a></li>
+        </ul></li>
+        <li><a href="#アプローチ5-フレームワーク拡張" id="toc-アプローチ5-フレームワーク拡張"><span class="toc-section-number">4.6</span> アプローチ5: フレームワーク拡張</a>
+        <ul>
+        <li><a href="#概要-5" id="toc-概要-5"><span class="toc-section-number">4.6.1</span> 概要</a></li>
+        <li><a href="#実装方法-4" id="toc-実装方法-4"><span class="toc-section-number">4.6.2</span> 実装方法</a></li>
+        <li><a href="#利点-4" id="toc-利点-4"><span class="toc-section-number">4.6.3</span> 利点</a></li>
+        <li><a href="#欠点-4" id="toc-欠点-4"><span class="toc-section-number">4.6.4</span> 欠点</a></li>
+        <li><a href="#適用ケース-4" id="toc-適用ケース-4"><span class="toc-section-number">4.6.5</span> 適用ケース</a></li>
+        </ul></li>
+        </ul></li>
+        <li><a href="#推奨アプローチ" id="toc-推奨アプローチ"><span class="toc-section-number">5</span> 推奨アプローチ</a>
+        <ul>
+        <li><a href="#選定-アプローチ1---再帰的ビルド" id="toc-選定-アプローチ1---再帰的ビルド"><span class="toc-section-number">5.1</span> 選定: アプローチ1 - 再帰的ビルド</a></li>
+        <li><a href="#選定理由" id="toc-選定理由"><span class="toc-section-number">5.2</span> 選定理由</a></li>
+        <li><a href="#小規模プロジェクト向けの代替案" id="toc-小規模プロジェクト向けの代替案"><span class="toc-section-number">5.3</span> 小規模プロジェクト向けの代替案</a></li>
+        </ul></li>
+        <li><a href="#実装ガイド" id="toc-実装ガイド"><span class="toc-section-number">6</span> 実装ガイド</a>
+        <ul>
+        <li><a href="#対象ファイル" id="toc-対象ファイル"><span class="toc-section-number">6.1</span> 対象ファイル</a></li>
+        <li><a href="#ステップ1-subfolder_a-の-makefile-作成" id="toc-ステップ1-subfolder_a-の-makefile-作成"><span class="toc-section-number">6.2</span> ステップ1: subfolder_a の Makefile 作成</a></li>
+        <li><a href="#ステップ2-subfolder_a-の-makepart.mk-作成" id="toc-ステップ2-subfolder_a-の-makepart.mk-作成"><span class="toc-section-number">6.3</span> ステップ2: subfolder_a の makepart.mk 作成</a></li>
+        <li><a href="#ステップ3-subfolder_b-の-makefile-と-makepart.mk-作成" id="toc-ステップ3-subfolder_b-の-makefile-と-makepart.mk-作成"><span class="toc-section-number">6.4</span> ステップ3: subfolder_b の Makefile と makepart.mk 作成</a></li>
+        <li><a href="#ステップ4-親ディレクトリの-makepart.mk-修正" id="toc-ステップ4-親ディレクトリの-makepart.mk-修正"><span class="toc-section-number">6.5</span> ステップ4: 親ディレクトリの makepart.mk 修正</a></li>
+        <li><a href="#ビルドフロー" id="toc-ビルドフロー"><span class="toc-section-number">6.6</span> ビルドフロー</a></li>
+        <li><a href="#生成される成果物" id="toc-生成される成果物"><span class="toc-section-number">6.7</span> 生成される成果物</a></li>
+        </ul></li>
+        <li><a href="#トラブルシューティング" id="toc-トラブルシューティング"><span class="toc-section-number">7</span> トラブルシューティング</a>
+        <ul>
+        <li><a href="#問題1-サブディレクトリのライブラリが見つからない" id="toc-問題1-サブディレクトリのライブラリが見つからない"><span class="toc-section-number">7.1</span> 問題1: サブディレクトリのライブラリが見つからない</a></li>
+        <li><a href="#問題2-サブディレクトリがビルドされない" id="toc-問題2-サブディレクトリがビルドされない"><span class="toc-section-number">7.2</span> 問題2: サブディレクトリがビルドされない</a></li>
+        <li><a href="#問題3-windows-でビルドエラー" id="toc-問題3-windows-でビルドエラー"><span class="toc-section-number">7.3</span> 問題3: Windows でビルドエラー</a></li>
+        <li><a href="#問題4-並列ビルドで競合が発生" id="toc-問題4-並列ビルドで競合が発生"><span class="toc-section-number">7.4</span> 問題4: 並列ビルドで競合が発生</a></li>
+        <li><a href="#問題5-clean-ターゲットがサブディレクトリを削除しない" id="toc-問題5-clean-ターゲットがサブディレクトリを削除しない"><span class="toc-section-number">7.5</span> 問題5: clean ターゲットがサブディレクトリを削除しない</a></li>
+        </ul></li>
+        <li><a href="#検証手順" id="toc-検証手順"><span class="toc-section-number">8</span> 検証手順</a>
+        <ul>
+        <li><a href="#linux-での検証" id="toc-linux-での検証"><span class="toc-section-number">8.1</span> Linux での検証</a></li>
+        <li><a href="#windows-での検証" id="toc-windows-での検証"><span class="toc-section-number">8.2</span> Windows での検証</a></li>
+        </ul></li>
+        <li><a href="#今後の拡張" id="toc-今後の拡張"><span class="toc-section-number">9</span> 今後の拡張</a>
+        <ul>
+        <li><a href="#サブディレクトリの自動検出機能" id="toc-サブディレクトリの自動検出機能"><span class="toc-section-number">9.1</span> 1. サブディレクトリの自動検出機能</a></li>
+        <li><a href="#テンプレートファイル生成スクリプト" id="toc-テンプレートファイル生成スクリプト"><span class="toc-section-number">9.2</span> 2. テンプレートファイル生成スクリプト</a></li>
+        <li><a href="#ドキュメント生成の統合" id="toc-ドキュメント生成の統合"><span class="toc-section-number">9.3</span> 3. ドキュメント生成の統合</a></li>
+        <li><a href="#テストフレームワークの統合" id="toc-テストフレームワークの統合"><span class="toc-section-number">9.4</span> 4. テストフレームワークの統合</a></li>
+        <li><a href="#条件付きビルド" id="toc-条件付きビルド"><span class="toc-section-number">9.5</span> 5. 条件付きビルド</a></li>
+        </ul></li>
+        <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">10</span> まとめ</a>
+        <ul>
+        <li><a href="#推奨実装" id="toc-推奨実装"><span class="toc-section-number">10.1</span> 推奨実装</a></li>
+        <li><a href="#得られる効果" id="toc-得られる効果"><span class="toc-section-number">10.2</span> 得られる効果</a></li>
+        <li><a href="#次のステップ" id="toc-次のステップ"><span class="toc-section-number">10.3</span> 次のステップ</a></li>
+        </ul></li>
+        <li><a href="#参考資料" id="toc-参考資料"><span class="toc-section-number">11</span> 参考資料</a></li>
+        </ul>
+
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>サブディレクトリコンパイル拡張設計</H1>
+      
+      
+      <h1 data-number="1" id="目次"><span class="header-section-number">1</span> 目次</h1>
+<ol type="1">
+<li><a href="#概要">概要</a></li>
+<li><a href="#現状分析">現状分析</a></li>
+<li><a href="#アプローチ比較">アプローチ比較</a></li>
+<li><a href="#推奨アプローチ">推奨アプローチ</a></li>
+<li><a href="#実装ガイド">実装ガイド</a></li>
+<li><a href="#トラブルシューティング">トラブルシューティング</a></li>
+<li><a href="#今後の拡張">今後の拡張</a></li>
+</ol>
+<h1 data-number="2" id="概要"><span class="header-section-number">2</span> 概要</h1>
+<h2 data-number="2.1" id="目的"><span class="header-section-number">2.1</span> 目的</h2>
+<p><code>prod/subfolder-sample/libsrc/libsubfolder-sample/Makefile</code> にて、サブディレクトリ (subfolder_a, subfolder_b) のソースファイルをコンパイルできるように拡張する方法を設計し、実装する。</p>
+<h2 data-number="2.2" id="背景"><span class="header-section-number">2.2</span> 背景</h2>
+<p>makefw フレームワークは、デフォルトでカレントディレクトリの <code>.c</code> ファイルのみを収集してコンパイルする仕組みになっています。サブディレクトリに配置されたソースファイルは自動的に収集されないため、サブディレクトリを活用したモジュール構成を実現するには、適切な拡張が必要です。</p>
+<h2 data-number="2.3" id="対象プロジェクト"><span class="header-section-number">2.3</span> 対象プロジェクト</h2>
+<pre><code>prod/subfolder-sample/libsrc/libsubfolder-sample/
+├── Makefile (標準テンプレート)
+├── makepart.mk (カスタマイズ用)
+├── func.c (ルートレベルのソース)
+├── subfolder_a/
+│   └── func_a.c
+└── subfolder_b/
+    └── func_b.c</code></pre>
+<h1 data-number="3" id="現状分析"><span class="header-section-number">3</span> 現状分析</h1>
+<h2 data-number="3.1" id="フレームワークの仕組み"><span class="header-section-number">3.1</span> フレームワークの仕組み</h2>
+<h3 data-number="3.1.1" id="ソース収集メカニズム"><span class="header-section-number">3.1.1</span> ソース収集メカニズム</h3>
+<p><code>makefw/makefiles/_collect_srcs.mk</code> の行103-104:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">SRCS_C</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">sort</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> *.c</span><span class="ch">)</span><span class="st"> </span><span class="ch">$(</span><span class="kw">notdir</span><span class="st"> </span><span class="ch">$(</span><span class="kw">filter</span><span class="st"> %.c</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CP_SRCS</span><span class="ch">)</span><span class="st"> </span><span class="ch">$(</span><span class="dt">LINK_SRCS</span><span class="ch">))))</span></span></code></pre></div>
+<ul>
+<li><code>wildcard *.c</code>: カレントディレクトリの <code>.c</code> ファイルのみを検索</li>
+<li>サブディレクトリは検索対象外</li>
+</ul>
+<h3 data-number="3.1.2" id="オブジェクトファイルの配置"><span class="header-section-number">3.1.2</span> オブジェクトファイルの配置</h3>
+<p><code>makefw/makefiles/makelibsrc_c_cpp.mk</code> の行26-28:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">OBJS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">filter-out</span><span class="st"> </span><span class="ch">$(</span><span class="dt">OBJDIR</span><span class="ch">)</span><span class="st">/%.inject.o</span><span class="kw">,</span><span class="st"> \</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="kw">sort</span><span class="st"> </span><span class="ch">$(</span><span class="kw">addprefix</span><span class="st"> </span><span class="ch">$(</span><span class="dt">OBJDIR</span><span class="ch">)</span><span class="st">/</span><span class="kw">,</span><span class="st"> \</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="kw">notdir</span><span class="st"> </span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %.c</span><span class="kw">,</span><span class="st"> %.o</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %.cc</span><span class="kw">,</span><span class="st"> %.o</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %.cpp</span><span class="kw">,</span><span class="st"> %.o</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="dt">SRCS_C</span><span class="ch">)</span><span class="st"> </span><span class="ch">$(</span><span class="dt">SRCS_CPP</span><span class="ch">))))))))</span></span></code></pre></div>
+<ul>
+<li><code>$(notdir ...)</code>: ファイル名のみに変換</li>
+<li>すべてのオブジェクトファイルは <code>$(OBJDIR)/</code> (通常は <code>obj/</code>) に配置される</li>
+<li>サブディレクトリ構造は保持されない</li>
+</ul>
+<h2 data-number="3.2" id="カスタマイズポイント"><span class="header-section-number">3.2</span> カスタマイズポイント</h2>
+<p>makepart.mk を使用した拡張が可能:</p>
+<ol type="1">
+<li><strong>ADD_SRCS</strong>: フォルダ外のソースファイルを追加
+<ul>
+<li>シンボリックリンクまたはコピーして引き込む</li>
+<li>Linux: inject/filter がなければシンボリックリンク</li>
+<li>Windows: 常にコピー</li>
+</ul></li>
+<li><strong>SRCS_C / SRCS_CPP</strong>: 直接オーバーライド可能
+<ul>
+<li>フレームワークの想定外の使い方</li>
+<li>副作用のリスクあり</li>
+</ul></li>
+<li><strong>LIBS / LIBSDIR</strong>: 依存ライブラリの指定
+<ul>
+<li>他のライブラリをリンクする際に使用</li>
+<li>LIB_TYPE=shared の場合、静的ライブラリを埋め込み可能</li>
+</ul></li>
+</ol>
+<h2 data-number="3.3" id="現在の制約"><span class="header-section-number">3.3</span> 現在の制約</h2>
+<ol type="1">
+<li>サブディレクトリのソースは自動収集されない</li>
+<li>オブジェクトファイルはフラットな構造でのみ配置可能</li>
+<li>ファイル名の衝突リスク (同名ファイルが複数サブディレクトリにある場合)</li>
+</ol>
+<h1 data-number="4" id="アプローチ比較"><span class="header-section-number">4</span> アプローチ比較</h1>
+<h2 data-number="4.1" id="比較表"><span class="header-section-number">4.1</span> 比較表</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 14%" />
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 25%" />
+<col style="width: 10%" />
+</colgroup>
+<thead>
+<tr>
+<th>アプローチ</th>
+<th>実装難易度</th>
+<th>保守性</th>
+<th>スケーラビリティ</th>
+<th>フレームワーク準拠</th>
+<th>推奨度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 再帰的ビルド</td>
+<td>中</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>2. ADD_SRCS 手動追加</td>
+<td>低</td>
+<td>⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>3. ワイルドカード拡張</td>
+<td>低</td>
+<td>⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>4. フラット化</td>
+<td>低</td>
+<td>⭐</td>
+<td>⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐</td>
+</tr>
+<tr>
+<td>5. フレームワーク拡張</td>
+<td>高</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>-</td>
+<td>⭐</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.2" id="アプローチ1-再帰的ビルド-推奨"><span class="header-section-number">4.2</span> アプローチ1: 再帰的ビルド (推奨)</h2>
+<h3 data-number="4.2.1" id="概要-1"><span class="header-section-number">4.2.1</span> 概要</h3>
+<p>サブディレクトリごとに Makefile を作成し、上位 Makefile から再帰的に make を呼び出す。</p>
+<h3 data-number="4.2.2" id="実装方法"><span class="header-section-number">4.2.2</span> 実装方法</h3>
+<ol type="1">
+<li><code>subfolder_a/Makefile</code> と <code>subfolder_b/Makefile</code> を作成</li>
+<li>各サブディレクトリで静的ライブラリをビルド</li>
+<li>親ディレクトリの makepart.mk で LIBS を追加してリンク</li>
+</ol>
+<h3 data-number="4.2.3" id="利点"><span class="header-section-number">4.2.3</span> 利点</h3>
+<ul>
+<li>✅ フレームワークの標準パターンに準拠 (prod/calc と同様の構造)</li>
+<li>✅ モジュール性が高く、各サブディレクトリが独立してビルド可能</li>
+<li>✅ 依存関係が明確で、並列ビルドに対応しやすい</li>
+<li>✅ テンプレートの変更不要、既存の仕組みを活用</li>
+<li>✅ サブディレクトリが増えても拡張しやすい</li>
+<li>✅ オブジェクトファイルが各サブディレクトリに独立配置される</li>
+</ul>
+<h3 data-number="4.2.4" id="欠点"><span class="header-section-number">4.2.4</span> 欠点</h3>
+<ul>
+<li>❌ Makefile の数が増える (サブディレクトリごとに1つ)</li>
+<li>❌ 小規模プロジェクトには過剰な構造</li>
+<li>❌ ビルドプロセスが多段階になる</li>
+</ul>
+<h3 data-number="4.2.5" id="適用ケース"><span class="header-section-number">4.2.5</span> 適用ケース</h3>
+<ul>
+<li>中規模以上のプロジェクト</li>
+<li>サブディレクトリが今後増える可能性がある</li>
+<li>モジュール間の依存関係を明確にしたい</li>
+<li>長期的な保守性を重視</li>
+</ul>
+<h2 data-number="4.3" id="アプローチ2-add_srcs-による手動追加"><span class="header-section-number">4.3</span> アプローチ2: ADD_SRCS による手動追加</h2>
+<h3 data-number="4.3.1" id="概要-2"><span class="header-section-number">4.3.1</span> 概要</h3>
+<p>makepart.mk で ADD_SRCS 変数にサブディレクトリのソースファイルを追加する。</p>
+<h3 data-number="4.3.2" id="実装方法-1"><span class="header-section-number">4.3.2</span> 実装方法</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">ADD_SRCS</span> <span class="ch">+=</span><span class="st"> subfolder_a/func_a.c</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">ADD_SRCS</span> <span class="ch">+=</span><span class="st"> subfolder_b/func_b.c</span></span></code></pre></div>
+<h3 data-number="4.3.3" id="利点-1"><span class="header-section-number">4.3.3</span> 利点</h3>
+<ul>
+<li>✅ 実装が簡単で、makepart.mk の数行で完結</li>
+<li>✅ 既存のフレームワーク機能を活用</li>
+<li>✅ 全ファイルが1つのライブラリにまとまる</li>
+<li>✅ ビルドプロセスが単純</li>
+</ul>
+<h3 data-number="4.3.4" id="欠点-1"><span class="header-section-number">4.3.4</span> 欠点</h3>
+<ul>
+<li>❌ ファイルを手動で列挙する必要がある (メンテナンス負荷)</li>
+<li>❌ サブディレクトリにファイルが追加されても自動検出されない</li>
+<li>❌ Linux ではシンボリックリンク、Windows ではコピーが発生</li>
+<li>❌ スケーラビリティに欠ける (ファイルが多いと管理困難)</li>
+</ul>
+<h3 data-number="4.3.5" id="適用ケース-1"><span class="header-section-number">4.3.5</span> 適用ケース</h3>
+<ul>
+<li>ファイル数が非常に少ない (5個以下)</li>
+<li>今後もファイルがあまり増えない見込み</li>
+<li>簡潔な実装を優先したい</li>
+</ul>
+<h2 data-number="4.4" id="アプローチ3-ワイルドカード拡張"><span class="header-section-number">4.4</span> アプローチ3: ワイルドカード拡張</h2>
+<h3 data-number="4.4.1" id="概要-3"><span class="header-section-number">4.4.1</span> 概要</h3>
+<p>makepart.mk で SRCS_C をオーバーライドし、サブディレクトリを含むワイルドカードを使用する。</p>
+<h3 data-number="4.4.2" id="実装方法-2"><span class="header-section-number">4.4.2</span> 実装方法</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">SRCS_C</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">sort</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> *.c</span><span class="ch">)</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> subfolder_a/*.c</span><span class="ch">)</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> subfolder_b/*.c</span><span class="ch">))</span></span></code></pre></div>
+<h3 data-number="4.4.3" id="利点-2"><span class="header-section-number">4.4.3</span> 利点</h3>
+<ul>
+<li>✅ 実装が簡単</li>
+<li>✅ ファイルが自動検出される</li>
+<li>✅ 全ファイルが1つのライブラリにまとまる</li>
+</ul>
+<h3 data-number="4.4.4" id="欠点-2"><span class="header-section-number">4.4.4</span> 欠点</h3>
+<ul>
+<li>❌ SRCS_C のオーバーライドがフレームワークの想定外の使い方</li>
+<li>❌ オブジェクトファイルの配置が同一ディレクトリ (obj/) になり、名前衝突の可能性</li>
+<li>❌ サブディレクトリが動的に増える場合に対応できない</li>
+<li>❌ <code>_collect_srcs.mk</code> の処理と競合する可能性</li>
+</ul>
+<h3 data-number="4.4.5" id="技術的注意点"><span class="header-section-number">4.4.5</span> 技術的注意点</h3>
+<p><code>makelibsrc_c_cpp.mk</code> の <code>$(notdir ...)</code> により、サブディレクトリ構造が失われます:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">OBJS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">addprefix</span><span class="st"> </span><span class="ch">$(</span><span class="dt">OBJDIR</span><span class="ch">)</span><span class="st">/</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="kw">notdir</span><span class="st"> </span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %.c</span><span class="kw">,</span><span class="st"> %.o</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="dt">SRCS_C</span><span class="ch">))))</span></span></code></pre></div>
+<p>例:<br />
+- <code>subfolder_a/func.c</code> → <code>obj/func.o</code><br />
+- <code>subfolder_b/func.c</code> → <code>obj/func.o</code> (衝突!)</p>
+<h3 data-number="4.4.6" id="適用ケース-2"><span class="header-section-number">4.4.6</span> 適用ケース</h3>
+<ul>
+<li>一時的な実装</li>
+<li>サブディレクトリ数が固定かつ少数</li>
+<li>ファイル名の衝突がないことが保証される</li>
+</ul>
+<h2 data-number="4.5" id="アプローチ4-フラット化"><span class="header-section-number">4.5</span> アプローチ4: フラット化</h2>
+<h3 data-number="4.5.1" id="概要-4"><span class="header-section-number">4.5.1</span> 概要</h3>
+<p>サブディレクトリのソースファイルをルートディレクトリに移動またはシンボリックリンクする。</p>
+<h3 data-number="4.5.2" id="実装方法-3"><span class="header-section-number">4.5.2</span> 実装方法</h3>
+<ol type="1">
+<li>物理的にファイルを移動: <code>mv subfolder_a/func_a.c ./</code></li>
+<li>またはシンボリックリンク: <code>ln -s subfolder_a/func_a.c ./</code></li>
+</ol>
+<h3 data-number="4.5.3" id="利点-3"><span class="header-section-number">4.5.3</span> 利点</h3>
+<ul>
+<li>✅ フレームワークの変更が一切不要</li>
+<li>✅ 既存の仕組みがそのまま動作</li>
+</ul>
+<h3 data-number="4.5.4" id="欠点-3"><span class="header-section-number">4.5.4</span> 欠点</h3>
+<ul>
+<li>❌ ディレクトリ構造が失われ、ファイルの論理的な整理ができない</li>
+<li>❌ ファイル名の衝突リスクが高まる</li>
+<li>❌ プロジェクトの可読性が低下</li>
+<li>❌ サブディレクトリによる分類の意味がなくなる</li>
+</ul>
+<h3 data-number="4.5.5" id="適用ケース-3"><span class="header-section-number">4.5.5</span> 適用ケース</h3>
+<ul>
+<li>サブディレクトリ構造が不要な場合</li>
+<li>一時的な回避策として</li>
+</ul>
+<h2 data-number="4.6" id="アプローチ5-フレームワーク拡張"><span class="header-section-number">4.6</span> アプローチ5: フレームワーク拡張</h2>
+<h3 data-number="4.6.1" id="概要-5"><span class="header-section-number">4.6.1</span> 概要</h3>
+<p><code>makefw/makefiles/_collect_srcs.mk</code> を拡張してサブディレクトリも検索する。</p>
+<h3 data-number="4.6.2" id="実装方法-4"><span class="header-section-number">4.6.2</span> 実装方法</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">SRCS_C</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">sort</span><span class="st"> </span><span class="ch">$(</span><span class="kw">shell</span><span class="st"> find . -name &quot;*.c&quot;</span><span class="ch">)</span><span class="st"> ...</span><span class="ch">)</span></span></code></pre></div>
+<h3 data-number="4.6.3" id="利点-4"><span class="header-section-number">4.6.3</span> 利点</h3>
+<ul>
+<li>✅ すべてのプロジェクトで自動的にサブディレクトリをサポート</li>
+<li>✅ フレームワークレベルの改善</li>
+</ul>
+<h3 data-number="4.6.4" id="欠点-4"><span class="header-section-number">4.6.4</span> 欠点</h3>
+<ul>
+<li>❌ フレームワーク本体の変更が必要 (サブモジュール)</li>
+<li>❌ 既存プロジェクトへの影響が大きい</li>
+<li>❌ オブジェクトファイルの配置戦略を再設計する必要がある</li>
+<li>❌ 本プロジェクトだけの要件に対して変更範囲が大きすぎる</li>
+</ul>
+<h3 data-number="4.6.5" id="適用ケース-4"><span class="header-section-number">4.6.5</span> 適用ケース</h3>
+<ul>
+<li>フレームワーク全体の改善が必要な場合</li>
+<li>複数プロジェクトで同様の要件がある場合</li>
+</ul>
+<h1 data-number="5" id="推奨アプローチ"><span class="header-section-number">5</span> 推奨アプローチ</h1>
+<h2 data-number="5.1" id="選定-アプローチ1---再帰的ビルド"><span class="header-section-number">5.1</span> 選定: アプローチ1 - 再帰的ビルド</h2>
+<p><strong>アプローチ1: 再帰的ビルド</strong> を推奨します。</p>
+<h2 data-number="5.2" id="選定理由"><span class="header-section-number">5.2</span> 選定理由</h2>
+<ol type="1">
+<li><strong>フレームワークの設計思想に合致</strong>
+<ul>
+<li>makefw は階層的なビルドを想定</li>
+<li>prod/calc プロジェクトも同様の構造を採用</li>
+<li>標準パターンに従うことで将来の保守が容易</li>
+</ul></li>
+<li><strong>スケーラビリティ</strong>
+<ul>
+<li>サブディレクトリが増えても容易に対応可能</li>
+<li>各サブディレクトリが独立してビルド可能</li>
+<li>並列ビルドに対応</li>
+</ul></li>
+<li><strong>保守性</strong>
+<ul>
+<li>依存関係が明確</li>
+<li>モジュール間の結合度が低い</li>
+<li>各モジュールの責任範囲が明確</li>
+</ul></li>
+<li><strong>既存資産の活用</strong>
+<ul>
+<li>標準テンプレートをそのまま使用可能</li>
+<li>フレームワークの変更不要</li>
+<li>既存のビルドロジックを再利用</li>
+</ul></li>
+</ol>
+<h2 data-number="5.3" id="小規模プロジェクト向けの代替案"><span class="header-section-number">5.3</span> 小規模プロジェクト向けの代替案</h2>
+<p>ファイル数が非常に少なく (5-10ファイル程度)、かつ今後もあまり増えない見込みの場合は、<strong>アプローチ2: ADD_SRCS による手動追加</strong> も検討可能です。</p>
+<p>ただし、長期的な保守性を考慮すると、最初から再帰的ビルドを採用する方が望ましいです。短期的な簡便性よりも、長期的な拡張性を優先することを推奨します。</p>
+<h1 data-number="6" id="実装ガイド"><span class="header-section-number">6</span> 実装ガイド</h1>
+<h2 data-number="6.1" id="対象ファイル"><span class="header-section-number">6.1</span> 対象ファイル</h2>
+<p>実装では以下のファイルを作成・修正します:</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 28%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>操作</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/Makefile</code></td>
+<td>新規作成</td>
+<td>標準テンプレート</td>
+</tr>
+<tr>
+<td><code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/makepart.mk</code></td>
+<td>新規作成</td>
+<td>OUTPUT_DIR設定</td>
+</tr>
+<tr>
+<td><code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_b/Makefile</code></td>
+<td>新規作成</td>
+<td>標準テンプレート</td>
+</tr>
+<tr>
+<td><code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_b/makepart.mk</code></td>
+<td>新規作成</td>
+<td>OUTPUT_DIR設定</td>
+</tr>
+<tr>
+<td><code>prod/subfolder-sample/libsrc/libsubfolder-sample/makepart.mk</code></td>
+<td>修正</td>
+<td>サブディレクトリビルド設定追加</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="6.2" id="ステップ1-subfolder_a-の-makefile-作成"><span class="header-section-number">6.2</span> ステップ1: subfolder_a の Makefile 作成</h2>
+<p><strong>ファイル</strong>: <code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/Makefile</code></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">find-up</span> <span class="ch">=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="st">/</span><span class="ch">$(</span><span class="dt">2</span><span class="ch">))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="st">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">        </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="kw">filter</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %/</span><span class="kw">,</span><span class="st">%</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">))))</span><span class="kw">,,</span><span class="st">\</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">            </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %/</span><span class="kw">,</span><span class="st">%</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">2</span><span class="ch">))</span><span class="st">\</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">        </span><span class="ch">)</span><span class="st">\</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">)</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="dt">WORKSPACE_FOLDER</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">strip</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">)</span><span class="kw">,</span><span class="st">.workspaceRoot</span><span class="ch">))</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/prepare.mk</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">##### makepart.mk の内容は、このタイミングで処理される #####</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makemain.mk</span></code></pre></div>
+<h2 data-number="6.3" id="ステップ2-subfolder_a-の-makepart.mk-作成"><span class="header-section-number">6.3</span> ステップ2: subfolder_a の makepart.mk 作成</h2>
+<p><strong>ファイル</strong>: <code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/makepart.mk</code></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">OUTPUT_DIR</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/subfolder-sample/lib</span></span></code></pre></div>
+<p><strong>説明</strong>:<br />
+- OUTPUT_DIR を親プロジェクトの lib ディレクトリに設定<br />
+- 生成される <code>libsubfolder_a.a</code> (静的ライブラリ) が親プロジェクトから参照しやすくなる</p>
+<h2 data-number="6.4" id="ステップ3-subfolder_b-の-makefile-と-makepart.mk-作成"><span class="header-section-number">6.4</span> ステップ3: subfolder_b の Makefile と makepart.mk 作成</h2>
+<p>subfolder_a と同じ内容で作成します。</p>
+<p><strong>ファイル</strong>: <code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_b/Makefile</code><br />
+- subfolder_a/Makefile と同内容</p>
+<p><strong>ファイル</strong>: <code>prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_b/makepart.mk</code><br />
+- subfolder_a/makepart.mk と同内容</p>
+<h2 data-number="6.5" id="ステップ4-親ディレクトリの-makepart.mk-修正"><span class="header-section-number">6.5</span> ステップ4: 親ディレクトリの makepart.mk 修正</h2>
+<p><strong>ファイル</strong>: <code>prod/subfolder-sample/libsrc/libsubfolder-sample/makepart.mk</code></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> subfolder_a subfolder_b</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">.PHONY:</span><span class="dt"> </span><span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="dv">$(SUBDIRS):</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">$(</span><span class="dt">MAKE</span><span class="ch">)</span> -C <span class="ch">$@</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="dv">$(OUTPUT_DIR)/$(TARGET):</span><span class="dt"> </span><span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">+=</span><span class="st"> subfolder_a subfolder_b</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBSDIR</span> <span class="ch">+=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">OUTPUT_DIR</span><span class="ch">)</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Windows</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># DLL エクスポート定義</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># DLL export definition</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CFLAGS</span>   <span class="ch">+=</span><span class="st"> /DSUBFOLDER_SAMPLE_EXPORTS</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CXXFLAGS</span> <span class="ch">+=</span><span class="st"> /DSUBFOLDER_SAMPLE_EXPORTS</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">=</span><span class="st"> shared</span></span></code></pre></div>
+<p><strong>説明</strong>:<br />
+- <strong>SUBDIRS</strong>: サブディレクトリのリスト<br />
+- <strong>.PHONY: <span class="math inline">(<em>S</em><em>U</em><em>B</em><em>D</em><em>I</em><em>R</em><em>S</em>) * * : <em>サ</em><em>ブ</em><em>デ</em><em>ィ</em><em>レ</em><em>ク</em><em>ト</em><em>リ</em><em>を</em><em>ビ</em><em>ル</em><em>ド</em><em>タ</em><em>ー</em><em>ゲ</em><em>ッ</em><em>ト</em><em>と</em><em>し</em><em>て</em><em>定</em><em>義</em> − **</span>(SUBDIRS)</strong>: 各サブディレクトリで <code>make</code> を実行<br />
+- <strong><span class="math inline">(<em>O</em><em>U</em><em>T</em><em>P</em><em>U</em><em>T</em><sub><em>D</em></sub><em>I</em><em>R</em>)/</span>(TARGET): $(SUBDIRS)</strong>: メインライブラリビルド前にサブディレクトリをビルド<br />
+- <strong>LIBS</strong>: リンク時にサブディレクトリのライブラリを含める<br />
+- <strong>LIBSDIR</strong>: ライブラリの検索パスに OUTPUT_DIR を追加</p>
+<h2 data-number="6.6" id="ビルドフロー"><span class="header-section-number">6.6</span> ビルドフロー</h2>
+<pre><code>1. make を libsubfolder-sample/ で実行
+   ↓
+2. makepart.mk により、$(SUBDIRS) がビルドされる
+   ├── make -C subfolder_a
+   │   └── libsubfolder_a.a を生成 (prod/subfolder-sample/lib/)
+   └── make -C subfolder_b
+       └── libsubfolder_b.a を生成 (prod/subfolder-sample/lib/)
+   ↓
+3. 親ライブラリが func.c をコンパイル
+   ↓
+4. サブライブラリとリンク
+   - libsubfolder_a.a を埋め込み
+   - libsubfolder_b.a を埋め込み
+   ↓
+5. libsubfolder-sample.so (または .dll) を生成</code></pre>
+<h2 data-number="6.7" id="生成される成果物"><span class="header-section-number">6.7</span> 生成される成果物</h2>
+<pre><code>prod/subfolder-sample/lib/
+├── libsubfolder_a.a (または subfolder_a.lib)
+├── libsubfolder_b.a (または subfolder_b.lib)
+└── libsubfolder-sample.so (または libsubfolder-sample.dll)</code></pre>
+<p><strong>Linux の場合</strong>:<br />
+- <code>libsubfolder_a.a</code>: 静的ライブラリ<br />
+- <code>libsubfolder_b.a</code>: 静的ライブラリ<br />
+- <code>libsubfolder-sample.so</code>: 動的ライブラリ (サブライブラリを埋め込み)</p>
+<p><strong>Windows の場合</strong>:<br />
+- <code>subfolder_a.lib</code>: 静的ライブラリ<br />
+- <code>subfolder_b.lib</code>: 静的ライブラリ<br />
+- <code>libsubfolder-sample.dll</code>: 動的ライブラリ (サブライブラリを埋め込み)<br />
+- <code>libsubfolder-sample.lib</code>: インポートライブラリ<br />
+- <code>libsubfolder-sample.pdb</code>: デバッグシンボル</p>
+<h1 data-number="7" id="トラブルシューティング"><span class="header-section-number">7</span> トラブルシューティング</h1>
+<h2 data-number="7.1" id="問題1-サブディレクトリのライブラリが見つからない"><span class="header-section-number">7.1</span> 問題1: サブディレクトリのライブラリが見つからない</h2>
+<p><strong>症状</strong>:</p>
+<pre><code>/usr/bin/ld: cannot find -lsubfolder_a</code></pre>
+<p><strong>原因</strong>:<br />
+- LIBSDIR にライブラリの出力先が含まれていない<br />
+- サブディレクトリのビルドが失敗している</p>
+<p><strong>解決方法</strong>:<br />
+1. makepart.mk に <code>LIBSDIR += $(OUTPUT_DIR)</code> が記述されているか確認<br />
+2. サブディレクトリで単独ビルドを試す:<br />
+<code>bash    cd subfolder_a    make clean    make    ls -la ../../lib/libsubfolder_a.a</code></p>
+<h2 data-number="7.2" id="問題2-サブディレクトリがビルドされない"><span class="header-section-number">7.2</span> 問題2: サブディレクトリがビルドされない</h2>
+<p><strong>症状</strong>:<br />
+- サブディレクトリのライブラリが生成されない</p>
+<p><strong>原因</strong>:<br />
+- 依存関係の設定が不足<br />
+- SUBDIRS の定義が欠落</p>
+<p><strong>解決方法</strong>:<br />
+1. makepart.mk に以下が記述されているか確認:<br />
+<code>makefile    SUBDIRS := subfolder_a subfolder_b    .PHONY: $(SUBDIRS)    $(SUBDIRS):        $(MAKE) -C $@    $(OUTPUT_DIR)/$(TARGET): $(SUBDIRS)</code></p>
+<h2 data-number="7.3" id="問題3-windows-でビルドエラー"><span class="header-section-number">7.3</span> 問題3: Windows でビルドエラー</h2>
+<p><strong>症状</strong>:</p>
+<pre><code>LINK : fatal error LNK1181: cannot open input file &#39;subfolder_a.lib&#39;</code></pre>
+<p><strong>原因</strong>:<br />
+- Windows では静的ライブラリの拡張子が <code>.lib</code><br />
+- パスの指定が Windows 形式でない</p>
+<p><strong>解決方法</strong>:<br />
+1. makefw のテンプレートが自動的に対応しているはずですが、LIBSDIR のパスを確認:<br />
+<code>makefile    LIBSDIR += $(OUTPUT_DIR)</code><br />
+2. ライブラリが実際に生成されているか確認:<br />
+<code>cmd    dir ..\..\lib\subfolder_a.lib</code></p>
+<h2 data-number="7.4" id="問題4-並列ビルドで競合が発生"><span class="header-section-number">7.4</span> 問題4: 並列ビルドで競合が発生</h2>
+<p><strong>症状</strong>:</p>
+<pre><code>make[1]: *** [Makefile:10: ../../lib/libsubfolder_a.a] Error 1</code></pre>
+<p><strong>原因</strong>:<br />
+- 複数のサブディレクトリが同時に同じディレクトリにライブラリを書き込もうとしている<br />
+- ディレクトリ作成の競合</p>
+<p><strong>解決方法</strong>:<br />
+1. makefw のテンプレートは <code>| $(OUTPUT_DIR)</code> で order-only 依存を使用しているため、通常は問題ありません<br />
+2. 問題が発生する場合は、順次ビルドを試す:<br />
+<code>bash    make -j1</code></p>
+<h2 data-number="7.5" id="問題5-clean-ターゲットがサブディレクトリを削除しない"><span class="header-section-number">7.5</span> 問題5: clean ターゲットがサブディレクトリを削除しない</h2>
+<p><strong>症状</strong>:<br />
+- <code>make clean</code> してもサブディレクトリのオブジェクトファイルが残る</p>
+<p><strong>原因</strong>:<br />
+- 親 Makefile の clean ターゲットがサブディレクトリを処理していない</p>
+<p><strong>解決方法</strong>:<br />
+1. makepart.mk に clean ターゲットを追加:<br />
+<code>makefile    .PHONY: clean    clean:        $(MAKE) -C subfolder_a clean        $(MAKE) -C subfolder_b clean</code></p>
+<ol start="2" type="1">
+<li><p>または、prod/subfolder-sample/Makefile のパターンを使用:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">.PHONY:</span><span class="dt"> clean</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="dv">clean:</span><span class="dt"> </span><span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span></span></code></pre></div></li>
+</ol>
+<h1 data-number="8" id="検証手順"><span class="header-section-number">8</span> 検証手順</h1>
+<h2 data-number="8.1" id="linux-での検証"><span class="header-section-number">8.1</span> Linux での検証</h2>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/user/c-modernization-kit/prod/subfolder-sample/libsrc/libsubfolder-sample</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> ../../lib/</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> subfolder_a/obj/</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> subfolder_b/obj/</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="fu">nm</span> ../../lib/libsubfolder-sample.so <span class="kw">|</span> <span class="fu">grep</span> func</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ldd</span> ../../lib/libsubfolder-sample.so</span></code></pre></div>
+<h2 data-number="8.2" id="windows-での検証"><span class="header-section-number">8.2</span> Windows での検証</h2>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">REM 1. ビルドディレクトリに移動</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> C:\path\to\c-modernization-kit\prod\subfolder-sample\libsrc\libsubfolder-sample</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">REM 2. クリーンビルド</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>make clean</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>make</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">REM 3. 成果物の確認</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="bu">dir</span> ..\..\lib\</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co">REM 期待:</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co">REM - subfolder_a.lib</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co">REM - subfolder_b.lib</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="co">REM - libsubfolder-sample.dll</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co">REM - libsubfolder-sample.lib</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="co">REM - libsubfolder-sample.pdb</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="co">REM 4. サブディレクトリのオブジェクトファイル確認</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="bu">dir</span> subfolder_a\obj\</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="bu">dir</span> subfolder_b\obj\</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="co">REM 期待: 各ディレクトリに .obj ファイルが生成されている</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="co">REM 5. シンボル確認</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>dumpbin <span class="at">/EXPORTS</span> ..\..\lib\libsubfolder-sample.dll</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="co">REM 期待: func, func_a, func_b のエクスポートが含まれている</span></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a><span class="co">REM 6. 依存DLL確認</span></span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>dumpbin <span class="at">/DEPENDENTS</span> ..\..\lib\libsubfolder-sample.dll</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a><span class="co">REM 期待: システムDLLのみ </span><span class="er">(</span><span class="co">サブライブラリは埋め込まれている</span><span class="er">)</span></span></code></pre></div>
+<h1 data-number="9" id="今後の拡張"><span class="header-section-number">9</span> 今後の拡張</h1>
+<h2 data-number="9.1" id="サブディレクトリの自動検出機能"><span class="header-section-number">9.1</span> 1. サブディレクトリの自動検出機能</h2>
+<p>現在は SUBDIRS を手動で列挙していますが、自動検出も可能です:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> */Makefile</span><span class="ch">))</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="kw">:</span><span class="ss">/</span><span class="kw">=</span><span class="ch">)</span></span></code></pre></div>
+<p><strong>注意</strong>: この方法はすべてのサブディレクトリを無条件でビルドするため、明示的な制御が必要な場合は手動列挙を推奨します。</p>
+<h2 data-number="9.2" id="テンプレートファイル生成スクリプト"><span class="header-section-number">9.2</span> 2. テンプレートファイル生成スクリプト</h2>
+<p>サブディレクトリの Makefile と makepart.mk を自動生成するスクリプトを作成:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="va">SUBDIR</span><span class="op">=</span><span class="va">$1</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$SUBDIR</span><span class="st">&quot;</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&gt;</span> <span class="st">&quot;</span><span class="va">$SUBDIR</span><span class="st">/Makefile&quot;</span> <span class="op">&lt;&lt;&#39;EOF&#39;</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="st">find-up = \</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="st">    $(if $(wildcard $(1)/$(2)),$(1),\</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="st">        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="st">            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="st">        )\</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="st">    )</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="st">WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="st">include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="st">include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&gt;</span> <span class="st">&quot;</span><span class="va">$SUBDIR</span><span class="st">/makepart.mk&quot;</span> <span class="op">&lt;&lt;EOF</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="st">OUTPUT_DIR := </span><span class="dt">\$</span><span class="st">(WORKSPACE_FOLDER)/prod/subfolder-sample/lib</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span></code></pre></div>
+<h2 data-number="9.3" id="ドキュメント生成の統合"><span class="header-section-number">9.3</span> 3. ドキュメント生成の統合</h2>
+<p>Doxygen でサブディレクトリのドキュメントも含める:</p>
+<pre><code>INPUT += prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a \
+         prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_b</code></pre>
+<h2 data-number="9.4" id="テストフレームワークの統合"><span class="header-section-number">9.4</span> 4. テストフレームワークの統合</h2>
+<p>各サブディレクトリのテストを追加:</p>
+<pre><code>test/src/subfolder-sample/libsubfolder-sampleTest/
+├── subfolder_aTest/
+│   └── func_aTest.cc
+└── subfolder_bTest/
+    └── func_bTest.cc</code></pre>
+<h2 data-number="9.5" id="条件付きビルド"><span class="header-section-number">9.5</span> 5. 条件付きビルド</h2>
+<p>特定のサブディレクトリのみをビルドする機能:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="cf">ifdef</span> BUILD_SUBFOLDER_A_ONLY</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> subfolder_a</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span> <span class="cf">ifdef</span> BUILD_SUBFOLDER_B_ONLY</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> subfolder_b</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> subfolder_a subfolder_b</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span></code></pre></div>
+<p>使用例:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> BUILD_SUBFOLDER_A_ONLY=1</span></code></pre></div>
+<h1 data-number="10" id="まとめ"><span class="header-section-number">10</span> まとめ</h1>
+<h2 data-number="10.1" id="推奨実装"><span class="header-section-number">10.1</span> 推奨実装</h2>
+<ol type="1">
+<li><strong>アプローチ1: 再帰的ビルド</strong> を採用</li>
+<li>各サブディレクトリに Makefile と makepart.mk を作成</li>
+<li>親ディレクトリの makepart.mk でサブディレクトリをビルド・リンク</li>
+</ol>
+<h2 data-number="10.2" id="得られる効果"><span class="header-section-number">10.2</span> 得られる効果</h2>
+<ul>
+<li>✅ モジュール性の向上</li>
+<li>✅ スケーラビリティの確保</li>
+<li>✅ 保守性の向上</li>
+<li>✅ フレームワークの標準パターンに準拠</li>
+</ul>
+<h2 data-number="10.3" id="次のステップ"><span class="header-section-number">10.3</span> 次のステップ</h2>
+<ol type="1">
+<li>本ドキュメントに基づいて実装</li>
+<li>ビルドとテストの実行</li>
+<li>必要に応じて追加のサブディレクトリを作成</li>
+<li>ドキュメント生成との統合を検討</li>
+</ol>
+<h1 data-number="11" id="参考資料"><span class="header-section-number">11</span> 参考資料</h1>
+<ul>
+<li>makefw フレームワークのテンプレート:
+<ul>
+<li><code>makefw/makefiles/prepare.mk</code></li>
+<li><code>makefw/makefiles/makemain.mk</code></li>
+<li><code>makefw/makefiles/makelibsrc_c_cpp.mk</code></li>
+<li><code>makefw/makefiles/_collect_srcs.mk</code></li>
+</ul></li>
+<li>参考プロジェクト:
+<ul>
+<li><code>prod/calc/libsrc/</code>: 階層的ビルドの実例</li>
+<li><code>prod/calc/libsrc/calc/makepart.mk</code>: 依存ライブラリの指定例</li>
+</ul></li>
+<li>Claude Code 設定:
+<ul>
+<li><code>CLAUDE.md</code>: プロジェクト概要とガイドライン</li>
+</ul></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+</body>
+</html>
