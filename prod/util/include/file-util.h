@@ -4,6 +4,15 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <stdint.h>
+#include <time.h>
+
+/* プラットフォーム固有の stat 構造体の typedef */
+#ifndef _WIN32
+typedef struct stat file_stat_t;
+#else /* _WIN32 */
+typedef struct _stat64 file_stat_t;
+#endif /* _WIN32 */
 
 /* DLL エクスポート/インポート定義 */
 #ifndef _WIN32
@@ -85,16 +94,20 @@ extern "C"
          *  この関数は、printf と同じ形式でファイル名を指定してファイル情報を取得します。
          *  内部で vsnprintf を使用してファイル名をフォーマットし、stat を呼び出します。
          *
-         *  @param[out]     buf ファイル情報を格納する構造体へのポインタ
+         *  @param[out]     buf ファイル情報を格納する構造体へのポインタ (file_stat_t 型)
          *  @param[in]      format ファイル名のフォーマット文字列 (printf 形式)
          *  @param[in]      ... フォーマット文字列の可変引数
          *  @return         成功時は 0、失敗時は -1
          *
          *  @note           ファイル名の最大長は OS の規定値です (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)
-         *  @note           使用例: struct stat st; int ret = stat_printf(&st, "data_%d.txt", 123);
-         *  @note           Linux では stat()、Windows では _stat() を使用します
+         *  @note           file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です
+         *  @note           使用例: file_stat_t st; int ret = stat_printf(&st, "data_%d.txt", 123);
+         *  @note           Linux では stat()、Windows では _stat64() を使用します
+         *  @warning        Linux と Windows では構造体のフィールドが異なるため、プラットフォーム固有のコードが必要です
+         *                  - Windows には st_blksize, st_blocks フィールドがありません
+         *                  - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
          */
-        FILE_UTIL_API int WINAPI stat_printf(struct stat *buf, const char *format, ...)
+        FILE_UTIL_API int WINAPI stat_printf(file_stat_t *buf, const char *format, ...)
 #ifdef __GNUC__
             __attribute__((format(printf, 2, 3)))
 #endif

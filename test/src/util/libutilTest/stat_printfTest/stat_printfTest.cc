@@ -4,6 +4,13 @@
 #include <file-util.h>
 #include <string.h>
 
+/* プラットフォームに応じたモックメソッド名を定義 */
+#ifndef _WIN32
+#define STAT_MOCK_METHOD stat
+#else
+#define STAT_MOCK_METHOD stat64
+#endif
+
 class stat_printfTest : public Test
 {
 };
@@ -14,7 +21,7 @@ TEST_F(stat_printfTest, test_null_buf)
     Mock_sys_stat mock_sys_stat;
 
     // Pre-Assert
-    EXPECT_CALL(mock_sys_stat, stat(_, _, _, _, _))
+    EXPECT_CALL(mock_sys_stat, STAT_MOCK_METHOD(_, _, _, _, _))
         .Times(0); // [Pre-Assert確認_異常系] - stat が呼び出されないこと。
 
     // Act
@@ -28,10 +35,10 @@ TEST_F(stat_printfTest, test_null_format)
 {
     // Arrange
     Mock_sys_stat mock_sys_stat;
-    struct stat st;
+    file_stat_t st;
 
     // Pre-Assert
-    EXPECT_CALL(mock_sys_stat, stat(_, _, _, _, _))
+    EXPECT_CALL(mock_sys_stat, STAT_MOCK_METHOD(_, _, _, _, _))
         .Times(0); // [Pre-Assert確認_異常系] - stat が呼び出されないこと。
 
     // Act
@@ -45,14 +52,14 @@ TEST_F(stat_printfTest, test_buffer_overflow)
 {
     // Arrange
     Mock_sys_stat mock_sys_stat;
-    struct stat st;
+    file_stat_t st;
     // 非常に長いファイル名を生成 (バッファサイズを超える)
     char long_string[5000];
     memset(long_string, 'a', sizeof(long_string) - 1);
     long_string[sizeof(long_string) - 1] = '\0';
 
     // Pre-Assert
-    EXPECT_CALL(mock_sys_stat, stat(_, _, _, _, _))
+    EXPECT_CALL(mock_sys_stat, STAT_MOCK_METHOD(_, _, _, _, _))
         .Times(0); // [Pre-Assert確認_異常系] - stat が呼び出されないこと。
 
     // Act
@@ -66,10 +73,10 @@ TEST_F(stat_printfTest, test_successful_call_with_format)
 {
     // Arrange
     Mock_sys_stat mock_sys_stat;
-    struct stat st;
+    file_stat_t st;
 
     // Pre-Assert
-    EXPECT_CALL(mock_sys_stat, stat(_, _, _, StrEq("test_123.txt"), _))
+    EXPECT_CALL(mock_sys_stat, STAT_MOCK_METHOD(_, _, _, StrEq("test_123.txt"), _))
         .WillOnce(Return(0)); // [Pre-Assert確認_正常系] - stat が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
@@ -83,10 +90,10 @@ TEST_F(stat_printfTest, test_successful_call_with_multiple_parameters)
 {
     // Arrange
     Mock_sys_stat mock_sys_stat;
-    struct stat st;
+    file_stat_t st;
 
     // Pre-Assert
-    EXPECT_CALL(mock_sys_stat, stat(_, _, _, StrEq("output_1_2_3.txt"), _))
+    EXPECT_CALL(mock_sys_stat, STAT_MOCK_METHOD(_, _, _, StrEq("output_1_2_3.txt"), _))
         .WillOnce(Return(0)); // [Pre-Assert確認_正常系] - stat が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
@@ -100,10 +107,10 @@ TEST_F(stat_printfTest, test_stat_returns_error)
 {
     // Arrange
     Mock_sys_stat mock_sys_stat;
-    struct stat st;
+    file_stat_t st;
 
     // Pre-Assert
-    EXPECT_CALL(mock_sys_stat, stat(_, _, _, StrEq("nonexistent.txt"), _))
+    EXPECT_CALL(mock_sys_stat, STAT_MOCK_METHOD(_, _, _, StrEq("nonexistent.txt"), _))
         .WillOnce(Return(-1)); // [Pre-Assert確認_異常系] - stat が正しくフォーマットされたファイル名で呼ばれること。
                                // [Pre-Assert手順_異常系] - stat から -1 を返す。
 
