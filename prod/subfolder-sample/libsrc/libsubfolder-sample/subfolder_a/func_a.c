@@ -1,6 +1,6 @@
 #include <sabfolder-sample.h>
 
-SUBFOLDER_SAMPLE_API void WINAPI func_a(void)
+SUBFOLDER_SAMPLE_API int WINAPI func_a(void)
 {
-    return;
+    return 1;
 }

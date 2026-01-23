@@ -25,9 +25,9 @@ extern "C"
 {
 #endif
 
-    SUBFOLDER_SAMPLE_API extern void WINAPI func(void);
-    SUBFOLDER_SAMPLE_API extern void WINAPI func_a(void);
-    SUBFOLDER_SAMPLE_API extern void WINAPI func_b(void);
+    SUBFOLDER_SAMPLE_API extern int WINAPI func(void);
+    SUBFOLDER_SAMPLE_API extern int WINAPI func_a(void);
+    SUBFOLDER_SAMPLE_API extern int WINAPI func_b(void);
 
 #ifdef __cplusplus
 }
