@@ -1,4 +1,4 @@
-#include <sabfolder-sample.h>
+#include <subfolder-sample.h>
 
 SUBFOLDER_SAMPLE_API int WINAPI func_a(void)
 {

@@ -1,5 +1,5 @@
 #include <testfw.h>
-#include <sabfolder-sample.h>
+#include <subfolder-sample.h>
 #include <string.h>
 #include <errno.h>
 
