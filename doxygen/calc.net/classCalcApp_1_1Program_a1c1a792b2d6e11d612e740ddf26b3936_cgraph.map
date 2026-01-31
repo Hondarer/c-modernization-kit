@@ -1,0 +1,5 @@
+<map id="CalcApp.Program.Main" name="CalcApp.Program.Main">
+<area shape="rect" id="Node000001" title="プログラムのエントリーポイント。" alt="" coords="5,5,161,31"/>
+<area shape="rect" id="Node000002" href="$classCalcLib_1_1CalcLibrary.html#a34a86f8468ea21ed264e06c6074984f4" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="209,5,400,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,15,196,15,196,21,161,21"/>
+</map>
