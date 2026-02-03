@@ -29,4 +29,4 @@
 # サブモジュール mdRoot マージ機能
 # マージ対象のサブモジュールをスペース区切りで指定
 # 空または未指定の場合は機能無効
-mergeSubmoduleDocs: doxyfw makefw testfw
+mergeSubmoduleDocs: doxyfw makefw testfw testfw/gtest docsfw
