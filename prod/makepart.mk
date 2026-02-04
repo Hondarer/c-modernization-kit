@@ -75,5 +75,5 @@ else
     LDFLAGS     =
 endif
 
-LIBSDIR    +=\
+LIBSDIR    += \
 	$(WORKSPACE_FOLDER)/prod/calc/lib
