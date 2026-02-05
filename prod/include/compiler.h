@@ -74,6 +74,22 @@
  *  | FORCE_INLINE | __forceinline        | inline __attribute__((always_inline)) | inline |
  *  | NO_INLINE    | __declspec(noinline) | __attribute__((noinline))             | (空)   |
  *
+ *  使用例:
+ *
+ *  @code{.c}
+ *  #include "compiler.h"
+ *
+ *  FORCE_INLINE int fast_add(int a, int b)
+ *  {
+ *      return a + b;
+ *  }
+ *
+ *  NO_INLINE void debug_dump(const char *msg)
+ *  {
+ *      fprintf(stderr, "%s\n", msg);
+ *  }
+ *  @endcode
+ *
  *  @{
  */
 #ifdef DOXYGEN

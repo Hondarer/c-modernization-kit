@@ -4,6 +4,7 @@
 
 - [calc](../../doxygen/calc/index.html)
 - [calc dotnet wrapper](../../doxygen/calc.net/index.html)
+- [util](../../doxygen/util/index.html)
 
 ## 単一ファイル版ドキュメント
 
