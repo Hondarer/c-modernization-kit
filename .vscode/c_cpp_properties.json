@@ -3,6 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
+                "${workspaceFolder}/prod/include",
                 "${workspaceFolder}/prod/calc/include",
                 "${workspaceFolder}/prod/subfolder-sample/include",
                 "${workspaceFolder}/prod/util/include",
@@ -22,6 +23,7 @@
         {
             "name": "Win32",
             "includePath": [
+                "${workspaceFolder}/prod/include",
                 "${workspaceFolder}/prod/calc/include",
                 "${workspaceFolder}/prod/subfolder-sample/include",
                 "${workspaceFolder}/prod/util/include",
