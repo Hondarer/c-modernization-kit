@@ -1,5 +1,5 @@
-#ifndef _FILE_UTIL_H
-#define _FILE_UTIL_H
+#ifndef FILE_UTIL_H
+#define FILE_UTIL_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -117,4 +117,4 @@ extern "C"
 }
 #endif
 
-#endif /* _FILE_UTIL_H */
+#endif /* FILE_UTIL_H */

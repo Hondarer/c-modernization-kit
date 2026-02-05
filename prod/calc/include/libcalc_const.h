@@ -11,8 +11,8 @@
  *******************************************************************************
  */
 
-#ifndef _LIBCALC_CONST_H
-#define _LIBCALC_CONST_H
+#ifndef LIBCALC_CONST_H
+#define LIBCALC_CONST_H
 
 #define CALC_SUCCESS 0 /*!< 成功の戻り値を表す定数。 */
 #define CALC_ERROR -1  /*!< 失敗の戻り値を表す定数。 */
@@ -22,4 +22,4 @@
 #define CALC_KIND_MULTIPLY 3 /*!< 乗算の演算種別を表す定数。 */
 #define CALC_KIND_DIVIDE 4   /*!< 除算の演算種別を表す定数。 */
 
-#endif /* _LIBCALC_CONST_H */
+#endif /* LIBCALC_CONST_H */

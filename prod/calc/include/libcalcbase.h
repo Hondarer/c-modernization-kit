@@ -14,8 +14,8 @@
  *******************************************************************************
  */
 
-#ifndef _LIBCALCBASE_H
-#define _LIBCALCBASE_H
+#ifndef LIBCALCBASE_H
+#define LIBCALCBASE_H
 
 #include <libcalc_const.h>
 
@@ -135,4 +135,4 @@ extern "C"
 }
 #endif
 
-#endif /* _LIBCALCBASE_H */
+#endif /* LIBCALCBASE_H */

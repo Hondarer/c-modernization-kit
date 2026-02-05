@@ -1,5 +1,5 @@
-#ifndef _SUBFOLDER_SAMPLE_H
-#define _SUBFOLDER_SAMPLE_H
+#ifndef SUBFOLDER_SAMPLE_H
+#define SUBFOLDER_SAMPLE_H
 
 /* DLL エクスポート/インポート定義 */
 #ifdef _WIN32
@@ -37,4 +37,4 @@ extern "C"
 }
 #endif
 
-#endif /* _SUBFOLDER_SAMPLE_H */
+#endif /* SUBFOLDER_SAMPLE_H */
