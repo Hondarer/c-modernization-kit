@@ -12,7 +12,7 @@
 4. [モックの作成方法](#モックの作成方法)
 5. [関数のテスト方法](#関数のテスト方法)
 6. [main関数を含むプログラムのテスト](#main関数を含むプログラムのテスト)
-7. [Makefileの作成](#makefileの作成)
+7. [makefileの作成](#makefileの作成)
 8. [テストの実行](#テストの実行)
 9. [実践例](#実践例)
 10. [ベストプラクティス](#ベストプラクティス)
@@ -57,7 +57,7 @@ c-modernization-kit/
 |   +-- libsrc/                      # フレームワーク提供のモック実装
 |   +-- docs-src/                    # テストフレームワークドキュメント
 +-- makefw/                           # Make ビルドフレームワーク (サブモジュール)
-|   +-- makefiles/                   # Makefile テンプレート
+|   +-- makefiles/                   # makefile テンプレート
 |       +-- prepare.mk              # 準備処理
 |       +-- makemain.mk             # ビルドルール生成
 +-- test/                             # テストコード (本プロジェクト固有)
@@ -66,12 +66,12 @@ c-modernization-kit/
 |   |   +-- mock_calcbase.h         # add, subtract, multiply, divide のモック
 |   +-- libsrc/                      # プロジェクト固有のモック実装
 |   |   +-- mock_calc/              # calcHandler モックライブラリ
-|   |   |   +-- Makefile            # 標準テンプレート
+|   |   |   +-- makefile            # 標準テンプレート
 |   |   |   +-- makepart.mk         # プロジェクト固有の設定
 |   |   |   +-- mock_calc.cc
 |   |   |   +-- mock_calcHandler.cc
 |   |   +-- mock_calcbase/          # calcbase 関数モックライブラリ
-|   |       +-- Makefile            # 標準テンプレート
+|   |       +-- makefile            # 標準テンプレート
 |   |       +-- makepart.mk         # プロジェクト固有の設定
 |   |       +-- mock_calcbase.cc
 |   |       +-- mock_add.cc
@@ -82,16 +82,16 @@ c-modernization-kit/
 |       +-- calc/
 |           +-- libcalcbaseTest/    # ライブラリ関数のテスト
 |           |   +-- addTest/
-|           |       +-- Makefile    # 標準テンプレート
+|           |       +-- makefile    # 標準テンプレート
 |           |       +-- makepart.mk # プロジェクト固有の設定
 |           |       +-- addTest.cc
 |           +-- main/                # main関数を含むプログラムのテスト
 |               +-- addTest/
-|               |   +-- Makefile    # 標準テンプレート
+|               |   +-- makefile    # 標準テンプレート
 |               |   +-- makepart.mk # プロジェクト固有の設定
 |               |   +-- addTest.cc
 |               +-- calcTest/
-|                   +-- Makefile    # 標準テンプレート
+|                   +-- makefile    # 標準テンプレート
 |                   +-- makepart.mk # プロジェクト固有の設定
 |                   +-- calcTest.cc
 +-- prod/                             # テスト対象のソースコード
@@ -190,7 +190,7 @@ New-Item .workspaceRoot -ItemType File
 type nul > .workspaceRoot
 ```
 
-このファイルにより、Makefile がプロジェクトルートを自動検出できます。
+このファイルにより、makefile がプロジェクトルートを自動検出できます。
 
 ---
 
@@ -331,17 +331,17 @@ WEAK_ATR int add(int a, int b, int *result)
 - **モックインスタンスチェック**: `_mock_calcbase != nullptr` でモックの有無を確認
 - **トレース機能**: デバッグ時に関数呼び出しを確認できる
 
-### モックライブラリの Makefile
+### モックライブラリの makefile
 
 `test/libsrc/mock_xxxxx/` ディレクトリに以下のファイルを作成します。
 
-#### Makefile (標準テンプレート)
+#### makefile (標準テンプレート)
 
-`test/libsrc/mock_xxxxx/Makefile` は標準テンプレートをそのまま使用します。
+`test/libsrc/mock_xxxxx/makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
-# Makefile テンプレート
-# すべての最終階層 Makefile で使用する標準テンプレート
+# makefile テンプレート
+# すべての最終階層 makefile で使用する標準テンプレート
 # 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
 
 # ワークスペースのディレクトリ
@@ -559,19 +559,19 @@ NiceMock<Mock_stdio> mock_stdio;
 
 ---
 
-## Makefileの作成
+## makefileの作成
 
-### テストコード用 Makefile
+### テストコード用 makefile
 
 テストディレクトリに以下のファイルを作成します。
 
-#### Makefile (標準テンプレート)
+#### makefile (標準テンプレート)
 
-`test/src/calc/libcalcbaseTest/addTest/Makefile` は標準テンプレートをそのまま使用します。
+`test/src/calc/libcalcbaseTest/addTest/makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
-# Makefile テンプレート
-# すべての最終階層 Makefile で使用する標準テンプレート
+# makefile テンプレート
+# すべての最終階層 makefile で使用する標準テンプレート
 # 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
 
 # ワークスペースのディレクトリ
@@ -602,15 +602,15 @@ TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c
 ```
 
-### main関数テスト用 Makefile
+### main関数テスト用 makefile
 
-#### Makefile (標準テンプレート)
+#### makefile (標準テンプレート)
 
-`test/src/calc/main/addTest/Makefile` は標準テンプレートをそのまま使用します。
+`test/src/calc/main/addTest/makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
-# Makefile テンプレート
-# すべての最終階層 Makefile で使用する標準テンプレート
+# makefile テンプレート
+# すべての最終階層 makefile で使用する標準テンプレート
 # 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
 
 # ワークスペースのディレクトリ
@@ -649,18 +649,18 @@ USE_WRAP_MAIN := 1
 LIBS += mock_calcbase mock_libc
 ```
 
-### Makefile のポイント
+### makefile のポイント
 
-#### Makefile と makepart.mk の分離
+#### makefile と makepart.mk の分離
 
-- **Makefile**: 標準テンプレート（すべてのテストディレクトリで共通）
+- **makefile**: 標準テンプレート（すべてのテストディレクトリで共通）
 - **makepart.mk**: プロジェクト固有の設定を記述
 
 この分離により、ビルドシステムの更新が容易になり、保守性が向上します。
 
 #### ワークスペースフォルダの検出
 
-Makefile テンプレート内で `find-up` 関数を使用して `.workspaceRoot` ファイルを検出し、プロジェクトルートを特定します。
+makefile テンプレート内で `find-up` 関数を使用して `.workspaceRoot` ファイルを検出し、プロジェクトルートを特定します。
 
 ```makefile
 find-up = \
@@ -1058,11 +1058,11 @@ int rtc = add(1, 2); // [手順] - add(1, 2) を呼び出す。
 EXPECT_EQ(3, rtc); // [確認] - 戻り値が 3 であること。
 ```
 
-### 8. Makefileの保守性
+### 8. makefileの保守性
 
-Makefile と makepart.mk を分離:
+makefile と makepart.mk を分離:
 
-- **Makefile**: 標準テンプレート（すべてのディレクトリで共通、編集禁止）
+- **makefile**: 標準テンプレート（すべてのディレクトリで共通、編集禁止）
 - **makepart.mk**: プロジェクト固有の設定（TEST_SRCS, LIBS, USE_WRAP_MAIN など）
 
 共通処理はフレームワークに集約:
@@ -1140,7 +1140,7 @@ echo All tests passed!
 
 - makefw サブモジュールがプラットフォーム検出を自動化
 - 各プラットフォームに適したコンパイラオプションを自動設定
-- Makefile は共通のテンプレートを使用
+- makefile は共通のテンプレートを使用
 
 #### 定期的なクロスプラットフォームテスト
 
@@ -1164,7 +1164,7 @@ echo All tests passed!
 
 **原因**: 必要なライブラリがリンクされていない
 
-**解決策**: Makefile の `LIBS` に追加
+**解決策**: makefile の `LIBS` に追加
 
 ```makefile
 LIBS += -lmock_calcbase -ltest_com
@@ -1238,7 +1238,7 @@ call Add-VSBT-Env-x64.cmd    # 2. VSBT を後に
 **原因**: GCC と MSVC ではコンパイラオプションが異なる
 
 **解決策**: makefw サブモジュールのビルドフレームワークが自動的にプラットフォームを検出し、
-適切なコンパイラオプションを設定します。Makefile の設定を確認してください。
+適切なコンパイラオプションを設定します。makefile の設定を確認してください。
 
 ---
 
@@ -1269,8 +1269,8 @@ call Add-VSBT-Env-x64.cmd    # 2. VSBT を後に
    - ステータスコードとポインタ経由の結果取得パターン
 6. **main関数のテスト**: リンカラップ機能を使用した main関数のテスト
    - `USE_WRAP_MAIN := 1` による自動設定
-7. **Makefileの作成**: Makefile と makepart.mk の分離による保守性の向上
-   - 標準テンプレート（Makefile）とプロジェクト固有の設定（makepart.mk）の分離
+7. **makefileの作成**: makefile と makepart.mk の分離による保守性の向上
+   - 標準テンプレート（makefile）とプロジェクト固有の設定（makepart.mk）の分離
    - makefw サブモジュールによるクロスプラットフォーム対応
 8. **実践例**: 実際のコードを使った具体的なテスト例
 9. **トラブルシューティング**: プラットフォーム固有の問題と解決方法

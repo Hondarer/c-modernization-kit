@@ -144,7 +144,7 @@ libcalc.so / calc.dll (ネイティブライブラリ)
 
 ## ビルドシステムとの統合
 
-アプリケーションは既存の Makefile ビルドシステムに統合されています。
+アプリケーションは既存の makefile ビルドシステムに統合されています。
 
 ```bash
 # プロジェクトルートからビルド
@@ -204,5 +204,5 @@ Project reference not found
 
 - `Program.cs` - メインアプリケーションロジック
 - `CalcApp.csproj` - プロジェクト設定
-- `Makefile` - ビルド統合
+- `makefile` - ビルド統合
 - `README.md` - このドキュメント

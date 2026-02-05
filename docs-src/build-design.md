@@ -4,7 +4,7 @@
 
 このドキュメントは、c-modernization-kit プロジェクトのクロスプラットフォームビルドシステムの設計、実装、および使用方法を説明します。
 
-本プロジェクトは、Linux/Windows クロスプラットフォームビルドシステムを実現しています。GCC と MSVC (Microsoft Visual C++) との両方に対応し、単一の Makefile で Linux と Windows の両環境でビルドできます。
+本プロジェクトは、Linux/Windows クロスプラットフォームビルドシステムを実現しています。GCC と MSVC (Microsoft Visual C++) との両方に対応し、単一の makefile で Linux と Windows の両環境でビルドできます。
 
 ## 前提条件
 
@@ -131,7 +131,7 @@ make clean
 
 ```text
 c-modernization-kit/
-+-- makefw/                              # Makefile フレームワーク (testfw から切り出し)
++-- makefw/                              # makefile フレームワーク (testfw から切り出し)
 |   +-- makefiles/
 |   |   +-- makelibsrc.mk               # ライブラリビルド用共通テンプレート
 |   |   +-- makesrc.mk                  # 実行ファイルビルド用共通テンプレート
@@ -139,26 +139,26 @@ c-modernization-kit/
 |   |   +-- _*.mk                       # 内部処理用ファイル
 |   +-- docs-src/                       # フレームワーク技術ドキュメント
 +-- prod/calc/
-|   +-- Makefile                        # トップレベル Makefile (再帰ビルド)
+|   +-- makefile                        # トップレベル makefile (再帰ビルド)
 |   +-- lib/                            # ビルド済みライブラリ
 |   +-- bin/                            # ビルド済み実行ファイル
 |   +-- libsrc/
-|   |   +-- Makefile                    # libsrc 配下の再帰ビルド
+|   |   +-- makefile                    # libsrc 配下の再帰ビルド
 |   |   +-- makepart.mk                # ライブラリ共通設定
 |   |   +-- calcbase/
-|   |   |   +-- Makefile                # calcbase ビルド定義 (静的ライブラリ)
+|   |   |   +-- makefile                # calcbase ビルド定義 (静的ライブラリ)
 |   |   +-- calc/
-|   |       +-- Makefile                # calc ビルド定義 (動的ライブラリ)
+|   |       +-- makefile                # calc ビルド定義 (動的ライブラリ)
 |   |       +-- makepart.mk            # calc 固有設定 (LIB_TYPE=shared)
 |   +-- src/
-|       +-- Makefile                    # src 配下の再帰ビルド
+|       +-- makefile                    # src 配下の再帰ビルド
 |       +-- makepart.mk                # 実行ファイル出力先設定 (OUTPUT_DIR)
 |       +-- add/
-|       |   +-- Makefile                # add コマンドビルド定義
+|       |   +-- makefile                # add コマンドビルド定義
 |       +-- calc/
-|       |   +-- Makefile                # calc コマンドビルド定義
+|       |   +-- makefile                # calc コマンドビルド定義
 |       +-- shared-and-static-calc/
-|           +-- Makefile                # shared-and-static-calc ビルド定義
+|           +-- makefile                # shared-and-static-calc ビルド定義
 +-- prod/calc.net/
 |   +-- lib/                            # ビルド済みライブラリ
 |   +-- bin/                            # ビルド済み実行ファイル
@@ -167,42 +167,42 @@ c-modernization-kit/
 |       +-- makepart.mk                # 実行ファイル出力先設定 (OUTPUT_DIR)
 |       +-- CalcApp/                    # .NET アプリケーションソース
 +-- test/
-    +-- Makefile                        # テストトップレベル Makefile
+    +-- makefile                        # テストトップレベル makefile
     +-- makepart.mk                    # テスト共通設定
     +-- libsrc/
-    |   +-- Makefile                    # テスト用ライブラリ配下の再帰ビルド
+    |   +-- makefile                    # テスト用ライブラリ配下の再帰ビルド
     |   +-- mock_calcbase/
-    |   |   +-- Makefile                # calcbase モックライブラリ
+    |   |   +-- makefile                # calcbase モックライブラリ
     |   +-- mock_calc/
-    |       +-- Makefile                # calc モックライブラリ
+    |       +-- makefile                # calc モックライブラリ
     +-- src/
-        +-- Makefile                    # テスト配下の再帰ビルド
+        +-- makefile                    # テスト配下の再帰ビルド
         +-- calc/
             +-- libcalcbaseTest/
             |   +-- addTest/
-            |       +-- Makefile        # add 関数単体テスト
+            |       +-- makefile        # add 関数単体テスト
             +-- main/
                 +-- addTest/
-                |   +-- Makefile        # add コマンド統合テスト
+                |   +-- makefile        # add コマンド統合テスト
                 +-- calcTest/
-                |   +-- Makefile        # calc コマンド統合テスト
+                |   +-- makefile        # calc コマンド統合テスト
                 +-- shared-and-static-calcTest/
-                    +-- Makefile        # shared-and-static-calc 統合テスト
+                    +-- makefile        # shared-and-static-calc 統合テスト
 ```
 
 **設計方針**:
 
-- 単一の `Makefile` で Linux/Windows 両対応
+- 単一の `makefile` で Linux/Windows 両対応
 - makefw テンプレートが OS 判定を自動処理
-- 各 Makefile は最小限の設定のみを記述
+- 各 makefile は最小限の設定のみを記述
 
 ## 主な機能
 
 ### 1. makefw フレームワークによる統合
 
-`makefw` は testfw から Makefile 機能を切り出したフレームワークです。共通テンプレートにより、Windows/Linux の差異を吸収します。
+`makefw` は testfw から makefile 機能を切り出したフレームワークです。共通テンプレートにより、Windows/Linux の差異を吸収します。
 
-**Makefile の基本形 (ライブラリ・実行ファイル共通):**
+**makefile の基本形 (ライブラリ・実行ファイル共通):**
 
 ```makefile
 # ワークスペース検索
@@ -311,7 +311,7 @@ endif
 
 `LIB_TYPE=shared` の場合、動的ライブラリ (DLL/.so) は依存する静的ライブラリを自動的に内部リンクします。
 
-**calc/Makefile の例:**
+**calc/makefile の例:**
 
 ```makefile
 # (ワークスペース検索、prepare.mk include は省略)
@@ -378,7 +378,7 @@ else
 endif
 ```
 
-各 Makefile はテンプレートを include するだけで、OS 固有の処理は不要です。
+各 makefile はテンプレートを include するだけで、OS 固有の処理は不要です。
 
 ### 5. ライブラリ構成
 
@@ -400,7 +400,7 @@ endif
 
 #### OS 判定による条件分岐
 
-Makefile 内で OS を判定し、コンパイラやツールを切り替えます。
+makefile 内で OS を判定し、コンパイラやツールを切り替えます。
 
 ```makefile
 ifeq ($(OS),Windows_NT)
@@ -442,11 +442,11 @@ Windows 環境では、Git for Windows に付属する MinGW 環境を活用し�
 - `bash`, `pwd`, `dirname` などの Linux コマンドが使える
 - `sh` コマンドで既存のシェルスクリプトを実行できる
 - makefw/cmnd/ 配下のシェルスクリプトがそのまま動作する
-- doxyfw の Makefile がそのまま動作する
+- doxyfw の makefile がそのまま動作する
 
 ### makefw フレームワーク
 
-makefw は testfw から Makefile 関連機能を切り出したフレームワークです：
+makefw は testfw から makefile 関連機能を切り出したフレームワークです：
 
 - **testfw**: テスト実行、モック、Google Test 統合に特化
 - **makefw**: クロスプラットフォームビルドシステムに特化
@@ -479,31 +479,31 @@ makefw は testfw から Makefile 関連機能を切り出したフレームワ�
 
 **ライブラリ:**
 
-- `prod/calc/libsrc/calcbase/Makefile` - calcbase ビルド定義 (LIB_TYPE 未設定 → static)
-- `prod/calc/libsrc/calc/Makefile` - calc ビルド定義
+- `prod/calc/libsrc/calcbase/makefile` - calcbase ビルド定義 (LIB_TYPE 未設定 → static)
+- `prod/calc/libsrc/calc/makefile` - calc ビルド定義
 - `prod/calc/libsrc/calc/makepart.mk` - calc 固有設定 (LIB_TYPE = shared)
 
 **コマンド:**
 
-- `prod/calc/src/add/Makefile` - add コマンド (calcbase のみリンク)
-- `prod/calc/src/calc/Makefile` - calc コマンド (calc のみリンク)
-- `prod/calc/src/shared-and-static-calc/Makefile` - shared-and-static-calc コマンド (calc + calcbase をリンク)
+- `prod/calc/src/add/makefile` - add コマンド (calcbase のみリンク)
+- `prod/calc/src/calc/makefile` - calc コマンド (calc のみリンク)
+- `prod/calc/src/shared-and-static-calc/makefile` - shared-and-static-calc コマンド (calc + calcbase をリンク)
 
 **テスト:**
 
 - `test/makepart.mk` - テスト共通設定 (テストフレームワークリンク、警告レベル設定)
-- `test/libsrc/mock_calcbase/Makefile` - calcbase モックライブラリ
-- `test/libsrc/mock_calc/Makefile` - calc モックライブラリ
-- `test/src/calc/libcalcbaseTest/addTest/Makefile` - add 関数単体テスト
-- `test/src/calc/main/addTest/Makefile` - add コマンド統合テスト
-- `test/src/calc/main/calcTest/Makefile` - calc コマンド統合テスト
-- `test/src/calc/main/shared-and-static-calcTest/Makefile` - shared-and-static-calc 統合テスト
+- `test/libsrc/mock_calcbase/makefile` - calcbase モックライブラリ
+- `test/libsrc/mock_calc/makefile` - calc モックライブラリ
+- `test/src/calc/libcalcbaseTest/addTest/makefile` - add 関数単体テスト
+- `test/src/calc/main/addTest/makefile` - add コマンド統合テスト
+- `test/src/calc/main/calcTest/makefile` - calc コマンド統合テスト
+- `test/src/calc/main/shared-and-static-calcTest/makefile` - shared-and-static-calc 統合テスト
 
 ## 実装の特徴
 
 | 項目 | 説明 |
 |------|------|
-| クロスプラットフォーム | 単一の Makefile で Windows/Linux 両対応 |
+| クロスプラットフォーム | 単一の makefile で Windows/Linux 両対応 |
 | OS 判定 | makefw テンプレートが自動処理 |
 | ライブラリ構成 | makepart.mk で柔軟に設定可能 |
 | 依存関係解決 | `LIBS` 変数による明示的な指定 |
@@ -684,7 +684,7 @@ if multiple CL.EXE write to the same .PDB file, please use /FS
 
 ### WORKSPACE_FOLDER のパス変換
 
-Makefile 内で Unix スタイルのパス (`/d/Users/...`) を取得した場合、MSVC はこのパスを認識できません。`cygpath -w` を使用して Windows スタイルのパス (`D:\Users\...`) に変換する必要があります。
+makefile 内で Unix スタイルのパス (`/d/Users/...`) を取得した場合、MSVC はこのパスを認識できません。`cygpath -w` を使用して Windows スタイルのパス (`D:\Users\...`) に変換する必要があります。
 
 ```makefile
 WORKSPACE_FOLDER := $(shell \
@@ -742,7 +742,7 @@ obj ディレクトリの削除により、コンパイル時の PDB と ILK フ
 ### メリット
 
 - **再利用性**: makefw がクロスプラットフォーム対応され、他のプロジェクトでも利用できる
-- **保守性**: Linux と Windows で同じ Makefile を使用できるため、メンテナンス性が向上
+- **保守性**: Linux と Windows で同じ makefile を使用できるため、メンテナンス性が向上
 - **互換性**: MinGW 環境により、既存のシェルスクリプトとシェルコマンドを活用できる
 - **ネイティブ性**: MSVC を使用することで、Windows ネイティブなバイナリを生成できる
 - **安定性**: Linux の動作は完全に維持される

@@ -107,7 +107,7 @@ c-modernization-kit/                          # このプロジェクト
 |   +-- doxybook-config.json              # Doxybook2 設定
 |   +-- templates/                        # カスタムテンプレート群
 |   +-- docs-src/                         # フレームワーク技術ドキュメント
-|   +-- Makefile                          # ドキュメント生成用 Makefile
+|   +-- makefile                          # ドキュメント生成用 makefile
 |   +-- CLAUDE.md                         # フレームワーク詳細ドキュメント
 +-- docsfw/                                # Markdown 発行フレームワーク (git submodule)
 |   +-- bin/                              # Pandoc 実行スクリプト
@@ -126,7 +126,7 @@ c-modernization-kit/                          # このプロジェクト
 +-- Doxyfile.part.calc.net                 # .NET プロジェクト用 Doxygen 設定
 +-- c-modernization-kit.sln                # Visual Studio ソリューションファイル
 +-- Directory.Build.props                  # .NET プロジェクト共通設定
-+-- Makefile                               # トップレベル Makefile
++-- makefile                               # トップレベル makefile
 +-- prod/                                  # プロダクションコード
 |   +-- calc/                             # サンプル C プロジェクト
 |   |   +-- include/                      # ライブラリヘッダー

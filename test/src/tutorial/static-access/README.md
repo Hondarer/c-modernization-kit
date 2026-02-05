@@ -56,7 +56,7 @@ void set_static_int(int set_value)
 
 この関数は、static 変数へのアクセサー (setter) として機能します。テスト対象ソースファイルと同一ファイル内にコンパイルされるため、static 変数にアクセスできます。
 
-### Makefile
+### makefile
 
 ```makefile
 # テスト対象のソースファイル

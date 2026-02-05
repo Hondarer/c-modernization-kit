@@ -46,10 +46,10 @@ OBJS += $(SUBDIR_OBJS)
 
 ### 再帰的 make 処理
 
-`makemain.mk` は、Makefile を含むサブディレクトリを自動検出し、再帰的に make を実行します。
+`makemain.mk` は、makefile を含むサブディレクトリを自動検出し、再帰的に make を実行します。
 
 ```makefile
-# サブディレクトリの検出 (GNUmakefile/makefile/Makefileを含むディレクトリのみ)
+# サブディレクトリの検出 (GNUmakefile/makefile/Makefile を含むディレクトリのみ)
 SUBDIRS := $(sort $(dir $(wildcard */GNUmakefile */makefile */Makefile)))
 
 # サブディレクトリの再帰的make処理
@@ -72,22 +72,22 @@ prod/subfolder-sample/
 +-- lib/                                    # ビルド済みライブラリ出力先
 |   +-- liblibsubfolder-sample.so
 +-- libsrc/
-    +-- Makefile                            # 再帰ビルド用
+    +-- makefile                            # 再帰ビルド用
     +-- makepart.mk
     +-- libsubfolder-sample/
-        +-- Makefile                        # ライブラリ本体 (リンク実行)
+        +-- makefile                        # ライブラリ本体 (リンク実行)
         +-- makepart.mk                     # LIB_TYPE = shared 設定
         +-- func.c                          # ルートのソースファイル
         +-- obj/
         |   +-- func.o
         +-- subfolder_a/
-        |   +-- Makefile                    # サブディレクトリ (NO_LINK = 1)
+        |   +-- makefile                    # サブディレクトリ (NO_LINK = 1)
         |   +-- makepart.mk
         |   +-- func_a.c
         |   +-- obj/
         |       +-- func_a.o
         +-- subfolder_b/
-            +-- Makefile                    # サブディレクトリ (NO_LINK = 1)
+            +-- makefile                    # サブディレクトリ (NO_LINK = 1)
             +-- makepart.mk
             +-- func_b.c
             +-- obj/
@@ -148,22 +148,22 @@ prod/subfolder-sample/
 +-- bin/                                    # ビルド済み実行ファイル出力先
 |   +-- sample-app
 +-- src/
-    +-- Makefile                            # 再帰ビルド用
+    +-- makefile                            # 再帰ビルド用
     +-- makepart.mk
     +-- sample-app/
-        +-- Makefile                        # 実行ファイル本体 (リンク実行)
+        +-- makefile                        # 実行ファイル本体 (リンク実行)
         +-- sample-app.h                    # ヘッダーファイル
         +-- main.c                          # メインソースファイル
         +-- obj/
         |   +-- main.o
         +-- subfolder_a/
-        |   +-- Makefile                    # サブディレクトリ (NO_LINK = 1)
+        |   +-- makefile                    # サブディレクトリ (NO_LINK = 1)
         |   +-- makepart.mk
         |   +-- helper_a.c
         |   +-- obj/
         |       +-- helper_a.o
         +-- subfolder_b/
-            +-- Makefile                    # サブディレクトリ (NO_LINK = 1)
+            +-- makefile                    # サブディレクトリ (NO_LINK = 1)
             +-- makepart.mk
             +-- helper_b.c
             +-- obj/
@@ -228,10 +228,10 @@ prod/subfolder-sample/bin/sample-app
 
 ```text
 test/src/subfolder-sample/
-+-- Makefile                                # 再帰ビルド用
++-- makefile                                # 再帰ビルド用
 +-- makepart.mk
 +-- subfolder-sampleTest/
-    +-- Makefile                            # テスト本体 (リンク・テスト実行)
+    +-- makefile                            # テスト本体 (リンク・テスト実行)
     +-- makepart.mk                         # TEST_SRCS 設定 (ルートのテスト対象)
     +-- subfolder-sampleTest.cc             # ルートのテストコード
     +-- bin/
@@ -256,14 +256,14 @@ test/src/subfolder-sample/
     |       +-- results.log
     |       +-- func_b.c.gcov.txt
     +-- subfolder_a/
-    |   +-- Makefile                        # サブディレクトリ (NO_LINK = 1)
+    |   +-- makefile                        # サブディレクトリ (NO_LINK = 1)
     |   +-- makepart.mk                     # TEST_SRCS 設定 (サブディレクトリのテスト対象)
     |   +-- subfolder-sampleTest_a.cc       # サブディレクトリのテストコード
     |   +-- obj/
     |       +-- func_a.o
     |       +-- subfolder-sampleTest_a.o
     +-- subfolder_b/
-        +-- Makefile                        # サブディレクトリ (NO_LINK = 1)
+        +-- makefile                        # サブディレクトリ (NO_LINK = 1)
         +-- makepart.mk                     # TEST_SRCS 設定 (サブディレクトリのテスト対象)
         +-- subfolder-sampleTest_b.cc       # サブディレクトリのテストコード
         +-- obj/
@@ -471,13 +471,13 @@ Running main() from .../gtest_main.cc
 
 ## サブディレクトリ対応のベストプラクティス
 
-### 1. Makefile の配置
+### 1. makefile の配置
 
-各サブディレクトリに Makefile を配置します。内容は標準テンプレートをそのまま使用します。
+各サブディレクトリに makefile を配置します。内容は標準テンプレートをそのまま使用します。
 
 ```makefile
-# Makefile テンプレート
-# すべての最終階層 Makefile で使用する標準テンプレート
+# makefile テンプレート
+# すべての最終階層 makefile で使用する標準テンプレート
 # 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
 
 find-up = \

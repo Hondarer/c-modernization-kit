@@ -9,8 +9,9 @@
 ## ディレクトリ配下の拡張子付きファイル
 !*.*
 
-## Makefile
+## makefile
 !Makefile
+!makefile
 
 ## サブモジュール
 !/docsfw

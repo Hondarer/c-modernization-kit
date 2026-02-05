@@ -440,5 +440,5 @@ make test
 ## 関連ドキュメント
 
 - [テストチュートリアル](testing-tutorial.md) - テストの書き方
-- [ビルド設計](build-design.md) - Makefile の構成
+- [ビルド設計](build-design.md) - makefile の構成
 - [Oracle Linux 8 コンテナ](https://github.com/Hondarer/oracle-linux-8-container) - 開発コンテナの詳細
