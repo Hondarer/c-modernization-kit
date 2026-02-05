@@ -11,5 +11,6 @@
     },
     "terminal.integrated.env.windows": {
         "PATH": "${workspaceFolder}\\prod\\calc\\bin;${workspaceFolder}\\prod\\calc.net\\bin;${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${env:PATH}"
-    }
+    },
+    "C_Cpp.formatting": "clangFormat"
 }

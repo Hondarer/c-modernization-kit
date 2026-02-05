@@ -1,0 +1,14 @@
+# ベーススタイル: LLVM
+BasedOnStyle: LLVM
+
+# プリプロセッサディレクティブを # ごとインデントする
+IndentPPDirectives: BeforeHash
+
+# 折り返しカラム: 120 文字
+ColumnLimit: 120
+
+# インデント幅: 4 スペース
+IndentWidth: 4
+
+# 連続するマクロ定義の値を揃える
+AlignConsecutiveMacros: Consecutive
