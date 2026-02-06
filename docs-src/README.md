@@ -16,6 +16,8 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
     - [ファイルとページの一覧](doxybook/calc.net/index_files_and_pages.md)
     - [名前空間の一覧](doxybook/calc.net/index_namespaces.md)
     - [クラスの一覧](doxybook/calc.net/index_classes.md)
+- util
+    - [ファイルとページの一覧](doxybook/util/index_files_and_pages.md)
 
 ## 関連ドキュメント
 
