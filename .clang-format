@@ -1,3 +1,6 @@
+# clang-format 設定ファイル
+# C/C++ ソースコードのフォーマットルールを定義します。
+
 # ベーススタイル: LLVM
 BasedOnStyle: LLVM
 
