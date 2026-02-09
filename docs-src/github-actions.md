@@ -41,7 +41,7 @@ Linux 環境では Oracle Linux 8 開発コンテナを使用しています。
 ```yaml
 runs-on: ubuntu-latest
 container:
-  image: ghcr.io/hondarer/oracle-linux-8-container/oracle-linux-8-dev:latest
+  image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
 ```
 
 このコンテナには以下の開発ツールが含まれています:
