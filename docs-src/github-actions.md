@@ -16,12 +16,12 @@ main ブランチへの変更時に、Linux/Windows 両環境での自動ビル�
 
 このワークフローには以下の 4 つのジョブが含まれています：
 
-1. `build-and-test-linux` - Linux 環境でのビルドとテスト
+1. `build-and-test-linux` - Linux 環境でのビルドとテスト (Oracle Linux 8 / Oracle Linux 10 のマトリクス実行)
 2. `build-and-test-windows` - Windows 環境でのビルドとテスト
 3. `publish-docs` - ドキュメント生成
 4. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
 
-Linux ビルド、Windows ビルド、ドキュメント生成の 3 つのジョブが並列実行されます。すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
+Linux ビルド (OL8/OL10)、Windows ビルド、ドキュメント生成のジョブが並列実行されます。すべて完了後に `deploy-pages` ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
 
 ### トリガー条件
 
@@ -36,15 +36,27 @@ Linux ビルド、Windows ビルド、ドキュメント生成の 3 つのジョ
 
 ### Linux 環境
 
-Linux 環境では Oracle Linux 8 開発コンテナを使用しています。
+Linux 環境では Oracle Linux 開発コンテナをマトリクス戦略で使用し、複数バージョンでのビルドとテストを実行しています。
 
 ```yaml
 runs-on: ubuntu-latest
+strategy:
+  matrix:
+    include:
+      - os-name: ol8
+        image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+      - os-name: ol10
+        image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest
 container:
-  image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+  image: ${{ matrix.image }}
 ```
 
-このコンテナには以下の開発ツールが含まれています:
+| OS 名 | コンテナイメージ | 説明 |
+|--------|-----------------|------|
+| ol8 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest` | Oracle Linux 8 開発コンテナ |
+| ol10 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest` | Oracle Linux 10 開発コンテナ |
+
+これらのコンテナには以下の開発ツールが含まれています:
 
 - C/C++ コンパイラ (GCC)
 - GNU Make
@@ -84,23 +96,27 @@ skinparam shadowing false
 skinparam defaultFontName "Courier"
 
 rectangle "並列実行" {
-  card "build-and-test-linux" as linux
+  card "build-and-test-linux\n(OL8)" as linux_ol8
+  card "build-and-test-linux\n(OL10)" as linux_ol10
   card "build-and-test-windows" as windows
   card "publish-docs" as docs
 }
 
-artifact "linux-test-results" as linux_artifact
+artifact "linux-ol8-test-results" as linux_ol8_artifact
+artifact "linux-ol10-test-results" as linux_ol10_artifact
 artifact "windows-test-results" as windows_artifact
 artifact "documentation" as docs_artifact
 
 card "deploy-pages\n(needs: すべて完了後)" as deploy
 cloud "GitHub Pages" as pages
 
-linux -down-> linux_artifact
+linux_ol8 -down-> linux_ol8_artifact
+linux_ol10 -down-> linux_ol10_artifact
 windows -down-> windows_artifact
 docs -down-> docs_artifact
 
-linux_artifact -down-> deploy
+linux_ol8_artifact -down-> deploy
+linux_ol10_artifact -down-> deploy
 windows_artifact -down-> deploy
 docs_artifact -down-> deploy
 
@@ -109,7 +125,7 @@ deploy -down-> pages : アーティファクト統合
 note right of deploy
   アーティファクトストレージ経由で
   異なる OS 環境のファイルを統合
-  3 つのジョブすべて成功時のみ実行
+  すべてのジョブ成功時のみ実行
 end note
 
 @enduml
@@ -205,25 +221,29 @@ end note
 
 ### deploy-pages ジョブ
 
-このジョブは、上記 3 つのジョブ（`build-and-test-linux`、`build-and-test-windows`、`publish-docs`）が並列実行され、すべて完了した後に実行されます。
+このジョブは、上記のジョブ（`build-and-test-linux` (OL8/OL10)、`build-and-test-windows`、`publish-docs`）が並列実行され、すべて完了した後に実行されます。
 
 **実行条件**:
-- `needs: [build-and-test-linux, build-and-test-windows, publish-docs]` により、並列実行された 3 つのジョブがすべて成功するまで待機
+- `needs: [build-and-test-linux, build-and-test-windows, publish-docs]` により、並列実行されたすべてのジョブが成功するまで待機
 - `if: github.ref == 'refs/heads/main' && github.event_name == 'push'` により、main ブランチへの push 時のみ実行
 
 **処理フロー**:
 
 1. **アーティファクトのダウンロード**
-   - Linux テスト結果アーティファクト (`linux-test-results`) をダウンロード
+   - Linux OL8 テスト結果アーティファクト (`linux-ol8-test-results`) をダウンロード
+   - Linux OL10 テスト結果アーティファクト (`linux-ol10-test-results`) をダウンロード
    - Windows テスト結果アーティファクト (`windows-test-results`) をダウンロード
    - ドキュメントアーティファクト (`documentation`) をダウンロード
-   - Linux ログアーティファクト (`linux-logs`) をダウンロード
+   - Linux OL8 ログアーティファクト (`linux-ol8-logs`) をダウンロード
+   - Linux OL10 ログアーティファクト (`linux-ol10-logs`) をダウンロード
    - Windows ログアーティファクト (`windows-logs`) をダウンロード
 
 2. **アーティファクトの整理と統合**
-   - Linux テスト結果を `linux-test-results.zip` にアーカイブ
+   - Linux OL8 テスト結果を `linux-ol8-test-results.zip` にアーカイブ
+   - Linux OL10 テスト結果を `linux-ol10-test-results.zip` にアーカイブ
    - Windows テスト結果を `windows-test-results.zip` にアーカイブ
-   - Linux ビルド&テストログを `linux-logs.zip` にアーカイブ
+   - Linux OL8 ビルド&テストログを `linux-ol8-logs.zip` にアーカイブ
+   - Linux OL10 ビルド&テストログを `linux-ol10-logs.zip` にアーカイブ
    - Windows ビルド&テストログを `windows-logs.zip` にアーカイブ
    - アーカイブを `docs/artifacts/` に配置
    - ドキュメントと統合
@@ -242,7 +262,7 @@ GitHub Actions のアーティファクトストレージを中継ストレー�
 skinparam monochrome true
 skinparam shadowing false
 
-card "各ジョブ\n(Linux/Windows/docs)" as jobs
+card "各ジョブ\n(Linux OL8/OL10/Windows/docs)" as jobs
 storage "アーティファクトストレージ\n(中継)" as storage
 card "deploy-pages" as deploy
 cloud "GitHub Pages" as pages
@@ -292,9 +312,11 @@ https://<username>.github.io/<repository>/
 +-- artifacts/
 |   +-- docs-html.zip                 # HTML ドキュメントアーカイブ (固定 URL)
 |   +-- docs-docx.zip                 # DOCX ドキュメントアーカイブ (固定 URL)
-|   +-- linux-test-results.zip        # Linux テスト結果アーカイブ (固定 URL)
+|   +-- linux-ol8-test-results.zip    # Linux OL8 テスト結果アーカイブ (固定 URL)
+|   +-- linux-ol10-test-results.zip   # Linux OL10 テスト結果アーカイブ (固定 URL)
 |   +-- windows-test-results.zip      # Windows テスト結果アーカイブ (固定 URL)
-|   +-- linux-logs.zip                # Linux ビルド&テストログ (固定 URL)
+|   +-- linux-ol8-logs.zip            # Linux OL8 ビルド&テストログ (固定 URL)
+|   +-- linux-ol10-logs.zip           # Linux OL10 ビルド&テストログ (固定 URL)
 |   +-- windows-logs.zip              # Windows ビルド&テストログ (固定 URL)
 +-- (その他の生成ドキュメント)
 ```
@@ -325,11 +347,13 @@ CI 実行時に生成されるファイルをアーティファクトとして�
 
 #### Linux テスト結果
 
+マトリクス戦略により、OL8/OL10 それぞれのアーティファクトが生成されます。
+
 ```yaml
 - name: Upload test results artifacts
   uses: actions/upload-artifact@v4
   with:
-    name: linux-test-results
+    name: linux-${{ matrix.os-name }}-test-results
     path: test/**/results/
     if-no-files-found: warn
 ```
@@ -441,4 +465,4 @@ make test
 
 - [テストチュートリアル](testing-tutorial.md) - テストの書き方
 - [ビルド設計](build-design.md) - makefile の構成
-- [Oracle Linux 8 コンテナ](https://github.com/Hondarer/oracle-linux-8-container) - 開発コンテナの詳細
+- [Oracle Linux コンテナ](https://github.com/Hondarer/oracle-linux-container) - 開発コンテナの詳細
