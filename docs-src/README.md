@@ -28,10 +28,12 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
 ビルドログ、テスト結果、およびドキュメントを圧縮した zip ファイルです。
 
 - ビルド&テストログ
-    - [Linux (linux-logs.zip)](../../artifacts/linux-logs.zip)
+    - [Linux OL8 (linux-ol8-logs.zip)](../../artifacts/linux-ol8-logs.zip)
+    - [Linux OL10 (linux-ol10-logs.zip)](../../artifacts/linux-ol10-logs.zip)
     - [Windows (windows-logs.zip)](../../artifacts/windows-logs.zip)
 - テスト結果
-    - [Linux (linux-test-results.zip)](../../artifacts/linux-test-results.zip)
+    - [Linux OL8 (linux-ol8-test-results.zip)](../../artifacts/linux-ol8-test-results.zip)
+    - [Linux OL10 (linux-ol10-test-results.zip)](../../artifacts/linux-ol10-test-results.zip)
     - [Windows (windows-test-results.zip)](../../artifacts/windows-test-results.zip)
 - ドキュメントを圧縮した zip ファイル
     - [html (docs-html.zip)](../../artifacts/docs-html.zip)
