@@ -12,8 +12,15 @@ permissions:
 jobs:
   build-and-test-linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os-name: ol8
+            image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+          - os-name: ol10
+            image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest
     container:
-      image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+      image: ${{ matrix.image }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -34,25 +41,25 @@ jobs:
       - name: Build
         run: |
           mkdir -p logs
-          make 2>&1 | tee logs/linux-build.log
+          make 2>&1 | tee logs/linux-${{ matrix.os-name }}-build.log
 
       - name: Set library path for tests
         run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Run tests
-        run: make test 2>&1 | tee logs/linux-test.log
+        run: make test 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-test-results
+          name: linux-${{ matrix.os-name }}-test-results
           path: test/**/results/
           if-no-files-found: warn
 
       - name: Upload build and test logs
         uses: actions/upload-artifact@v4
         with:
-          name: linux-logs
+          name: linux-${{ matrix.os-name }}-logs
           path: logs/
           if-no-files-found: warn
 
@@ -127,7 +134,7 @@ jobs:
   publish-docs:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+      image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -192,11 +199,17 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Download Linux test results
+      - name: Download Linux OL8 test results
         uses: actions/download-artifact@v4
         with:
-          name: linux-test-results
-          path: test-results/linux
+          name: linux-ol8-test-results
+          path: test-results/linux-ol8
+
+      - name: Download Linux OL10 test results
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-ol10-test-results
+          path: test-results/linux-ol10
 
       - name: Download Windows test results
         uses: actions/download-artifact@v4
@@ -210,11 +223,17 @@ jobs:
           name: documentation
           path: docs
 
-      - name: Download Linux logs
+      - name: Download Linux OL8 logs
         uses: actions/download-artifact@v4
         with:
-          name: linux-logs
-          path: logs/linux
+          name: linux-ol8-logs
+          path: logs/linux-ol8
+
+      - name: Download Linux OL10 logs
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-ol10-logs
+          path: logs/linux-ol10
 
       - name: Download Windows logs
         uses: actions/download-artifact@v4
@@ -227,9 +246,14 @@ jobs:
           # テスト結果とログをアーカイブ化
           mkdir -p docs/artifacts
 
-          if [ -d "test-results/linux" ]; then
-            zip -r docs/artifacts/linux-test-results.zip test-results/linux
-            echo "Created linux-test-results.zip"
+          if [ -d "test-results/linux-ol8" ]; then
+            zip -r docs/artifacts/linux-ol8-test-results.zip test-results/linux-ol8
+            echo "Created linux-ol8-test-results.zip"
+          fi
+
+          if [ -d "test-results/linux-ol10" ]; then
+            zip -r docs/artifacts/linux-ol10-test-results.zip test-results/linux-ol10
+            echo "Created linux-ol10-test-results.zip"
           fi
 
           if [ -d "test-results/windows" ]; then
@@ -237,9 +261,14 @@ jobs:
             echo "Created windows-test-results.zip"
           fi
 
-          if [ -d "logs/linux" ]; then
-            zip -r docs/artifacts/linux-logs.zip logs/linux
-            echo "Created linux-logs.zip"
+          if [ -d "logs/linux-ol8" ]; then
+            zip -r docs/artifacts/linux-ol8-logs.zip logs/linux-ol8
+            echo "Created linux-ol8-logs.zip"
+          fi
+
+          if [ -d "logs/linux-ol10" ]; then
+            zip -r docs/artifacts/linux-ol10-logs.zip logs/linux-ol10
+            echo "Created linux-ol10-logs.zip"
           fi
 
           if [ -d "logs/windows" ]; then
