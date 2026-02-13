@@ -10,7 +10,7 @@ CalcLib ライブラリの包括的な単体テスト。
 
 - .NET SDK 9.0 以降
 - xUnit テストフレームワーク
-- ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では calc.dll)
+- ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では libcalc.dll)
 
 ## テストの実行
 
@@ -145,7 +145,7 @@ make build
 
 **Windows:**
 
-- `calc.dll` がライブラリパスに存在することを確認
+- `libcalc.dll` がライブラリパスに存在することを確認
 - .csproj ファイルが自動的に DLL を出力ディレクトリにコピー
 
 ## 新しいテストの追加

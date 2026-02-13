@@ -1,5 +1,5 @@
 SUBDIRS = \
-	libutil
+	util
 
 .DEFAULT_GOAL := default
 

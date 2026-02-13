@@ -20,7 +20,7 @@ calc コマンドライン電卓の .NET 版です。このアプリケーショ
 
 - .NET SDK 9.0 以降
 - CalcLib ライブラリ (自動的に参照される)
-- ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では calc.dll)
+- ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では libcalc.dll)
 
 ### ランタイム要件
 
@@ -114,7 +114,7 @@ CalcApp (コンソールアプリ)
     ↓
 CalcLib (ラッパーライブラリ)
     ↓
-libcalc.so / calc.dll (ネイティブライブラリ)
+libcalc.so / libcalc.dll (ネイティブライブラリ)
 ```
 
 ### プログラムフロー

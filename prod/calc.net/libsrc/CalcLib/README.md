@@ -1,6 +1,6 @@
 # CalcLib - calc ライブラリ用 .NET ラッパー
 
-CalcLib は、ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では calc.dll) 用の .NET Standard 2.0 ラッパーです。基本的な整数演算を実行するための、クリーンで慣用的な C# API を提供します。
+CalcLib は、ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では libcalc.dll) 用の .NET Standard 2.0 ラッパーです。基本的な整数演算を実行するための、クリーンで慣用的な C# API を提供します。
 
 ## 機能
 
@@ -16,7 +16,7 @@ CalcLib は、ネイティブ calc ライブラリ (Linux では libcalc.so、Wi
 ### ビルド要件
 
 - .NET SDK 5.0 以降
-- ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では calc.dll)
+- ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では libcalc.dll)
 
 ### ランタイム要件
 
@@ -150,7 +150,7 @@ var divResult = CalcLibrary.Divide(20, 5);    // 4
 
 ### Windows
 
-- `calc.dll` を使用
+- `libcalc.dll` を使用
 - 呼び出し規約: `__stdcall` (WINAPI)
 - ライブラリは実行ファイルと同じディレクトリまたはシステム PATH に配置する必要がある
 

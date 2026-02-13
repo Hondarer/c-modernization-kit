@@ -60,8 +60,8 @@ make
 
 | ライブラリ | Windows | Linux | 説明 |
 |-----------|---------|-------|------|
-| libcalcbase | `prod/calc/lib/calcbase.lib` | `prod/calc/lib/libcalcbase.a` | 基本計算関数ライブラリ (静的ライブラリ) |
-| libcalc | `prod/calc/lib/calc.dll` + `calc.lib` | `prod/calc/lib/libcalc.so` | 計算ハンドラーライブラリ (動的ライブラリ、calcbase を内部に静的リンク) |
+| libcalcbase | `prod/calc/lib/libcalcbase.lib` | `prod/calc/lib/libcalcbase.a` | 基本計算関数ライブラリ (静的ライブラリ) |
+| libcalc | `prod/calc/lib/libcalc.dll` + `libcalc.lib` | `prod/calc/lib/libcalc.so` | 計算ハンドラーライブラリ (動的ライブラリ、calcbase を内部に静的リンク) |
 
 コマンド / Commands:
 
@@ -335,7 +335,7 @@ LIB_TYPE = shared
 **動作:**
 
 - `LIBS` に指定された `calcbase` をライブラリ検索パスから検索
-  - Windows: `calcbase.lib` を検索
+  - Windows: `libcalcbase.lib` を検索
   - Linux: `libcalcbase.a` を検索
 - 静的ライブラリが見つかった場合は DLL/.so に静的リンク
 - 見つからない場合は動的リンクフラグとして保持
@@ -462,8 +462,8 @@ makefw は testfw から makefile 関連機能を切り出したフレームワ�
 
 この構成により、以下のメリットがあります：
 
-1. calc.dll/.so が calcbase を内部に静的リンクする
-2. 依存関係が単純化され、配布時に calc.dll/.so のみを配置すれば動作
+1. libcalc.dll/.so が calcbase を内部に静的リンクする
+2. 依存関係が単純化され、配布時に libcalc.dll/.so のみを配置すれば動作
 3. Windows と Linux で同様の動作を実現
 
 ### 実装ファイル
@@ -534,7 +534,7 @@ make debug
 出力例 (Windows の場合):
 
 ```text
-TARGET = calcbase.lib
+TARGET = libcalcbase.lib
 LIB_TYPE = static
 OS = Windows_NT
 LIBS =
@@ -561,11 +561,11 @@ make debug
 出力例 (Windows の場合、makepart.mk で LIB_TYPE=shared 設定済み):
 
 ```text
-TARGET = calc.dll
+TARGET = libcalc.dll
 LIB_TYPE = shared
 OS = Windows_NT
 LIBS = calcbase
-STATIC_LIBS = C:/path/to/prod/calc/lib/calcbase.lib
+STATIC_LIBS = C:/path/to/prod/calc/lib/libcalcbase.lib
 OBJS = obj/calcHandler.obj
 ```
 
@@ -636,15 +636,15 @@ MSVC のデバッグ情報ファイル (PDB) は、以下のように配置し�
 ライブラリファイル (.lib) と同じディレクトリに配置します。
 
 ```makefile
-CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(OUTPUT_DIR)/calc.pdb /I...
+CFLAGS := /W4 /Zi /TC /nologo /utf-8 /FS /Fd$(OUTPUT_DIR)/libcalc.pdb /I...
 ```
 
 生成結果：
 
 ```text
 prod/calc/lib/
-+-- calc.lib
-+-- calc.pdb
++-- libcalc.lib
++-- libcalc.pdb
 ```
 
 #### 実行ファイルの PDB

@@ -7,7 +7,7 @@
  *  @date           2025/12/20
  *  @version        1.0.0
  *
- *  ネイティブ libcalc.so (Linux) または calc.dll (Windows)
+ *  ネイティブ libcalc.so (Linux) または libcalc.dll (Windows)
  *  ライブラリとの相互運用のためのプラットフォーム固有の P/Invoke 宣言を含みます。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
@@ -34,7 +34,7 @@ namespace CalcLib.Internal
         /// <param name="b">第二オペランド。</param>
         /// <param name="result">計算結果 (出力パラメータ)。</param>
         /// <returns>成功時は 0 (CALC_SUCCESS)、失敗時は -1 (CALC_ERROR)。</returns>
-        [DllImport("calc", // Windows (calc.dll), Linux (libcalc.so) で適切な dllName を自動選択
+        [DllImport("libcalc", // Windows (libcalc.dll), Linux (libcalc.so) で適切な dllName を自動選択
                    CallingConvention = CallingConvention.Winapi, // Windows (__stdcall), Linux (cdecl) で適切な呼び出しを自動選択
                    EntryPoint = "calcHandler")]
         internal static extern int CalcHandler(int kind, int a, int b, out int result);
