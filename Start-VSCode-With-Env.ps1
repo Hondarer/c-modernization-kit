@@ -6,6 +6,9 @@
     MinGW PATH と VSBT 環境変数を現在のセッションに設定し、VS Code を起動します。
     このテンプレートを任意のユーザーフォルダにコピーし、カスタマイズして利用してください。
 
+    各設定値が空文字 ("") の場合、候補ディレクトリを自動走査して検出します。
+    明示的にパスを設定した場合は、その値が優先されます。
+
 .PARAMETER EnvOnly
     環境変数の設定のみを行い、VS Code を起動しません。
 
@@ -14,7 +17,7 @@
 
 .EXAMPLE
     .\Start-VSCode-With-Env.ps1
-    環境変数を設定し、VS Code を新しいウィンドウで起動します。
+    候補ディレクトリを自動走査し、環境変数を設定して VS Code を起動します。
 
 .EXAMPLE
     . .\Start-VSCode-With-Env.ps1 -EnvOnly
@@ -28,6 +31,12 @@
 .NOTES
     VS Code の起動のみが目的の場合、ドットソースは不要です。
     VS Code はスクリプトの子プロセスとして起動するため、環境変数を継承します。
+
+    自動走査の対象:
+    - Git for Windows: "C:\Program Files\Git", "C:\ProgramData\devbin-win\bin\git"
+    - Visual Studio: "C:\Program Files\Microsoft Visual Studio\*\*", "C:\ProgramData\devbin-win\bin\vsbt"
+    - Windows SDK: "C:\Program Files (x86)\Windows Kits\10", "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+    - MSVC / Windows SDK のバージョンは、最新のものが自動選択されます。
 #>
 
 # ---- パラメータ宣言 ----
@@ -45,39 +54,40 @@ $scriptDir = Split-Path -Parent $scriptPath
 # ---- ユーザー設定値 START ----------------------------------------------------------------------------
 
 # 以下の内容は、環境に応じてカスタマイズを行ってください
+# 空文字 ("") を設定すると、候補ディレクトリの走査による自動検出を行います
 
 # Git for Windows ディレクトリ
 # 例:                 "C:\Program Files\Git"
 #                     "C:\ProgramData\devbin-win\bin\git"
-$gitProgramPath     = "C:\Program Files\Git"
+$gitProgramPath     = ""
 
 # VS Debug Interface Access SDK ディレクトリ
 # 例:                 "C:\Program Files\Microsoft Visual Studio\2022\Professional\DIA SDK"
 #                     "C:\Program Files\Microsoft Visual Studio\18\Professional\DIA SDK"
 #                     "C:\ProgramData\devbin-win\bin\vsbt\DIA SDK"
-$diaSDKPath         = "C:\Program Files\Microsoft Visual Studio\18\Professional\DIA SDK"
+$diaSDKPath         = ""
 
 # MSVC ツールセット ディレクトリ
 # 例:                 "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC"
 #                     "C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC"
 #                     "C:\ProgramData\devbin-win\bin\vsbt\VC\Tools\MSVC"
-$msvcToolSetPath    = "C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC"
+$msvcToolSetPath    = ""
 
 # MSVC ツールセット バージョン
 # インストールされているバージョンを確認するには、$msvcToolSetPath 配下を確認してください
 # 例:                 "14.50.35717"
 #                     "14.44.35207"
-$msvcToolSetVersion = "14.50.35717"
+$msvcToolSetVersion = ""
 
 # Windows SDK ディレクトリ
 # 例:                 "C:\Program Files (x86)\Windows Kits\10"
 #                     "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
-$windowsSDKPath     = "C:\Program Files (x86)\Windows Kits\10"
+$windowsSDKPath     = ""
 
 # Windows SDK バージョン
 # インストールされているバージョンを確認するには、$windowsSDKPath\Lib 配下を確認してください
 # 例:                 "10.0.26100.0"
-$windowsSDKVersion  = "10.0.26100.0"
+$windowsSDKVersion  = ""
 
 # VS Code 起動対象のレポジトリのパス
 # このスクリプトを個人フォルダにコピーして利用する場合に変更してください
@@ -97,6 +107,127 @@ if (-not $IsWindows -and $PSVersionTable.PSEdition -ne 'Desktop') {
 if ($Help) {
     Get-Help $scriptPath -Detailed
     return
+}
+
+# ---- 候補ディレクトリ走査用ヘルパー関数 ----
+
+# 候補パスのリストから最初に存在するパスを返す
+function Find-FirstValidPath {
+    param([string[]]$Candidates)
+    foreach ($path in $Candidates) {
+        if (Test-Path $path) { return $path }
+    }
+    return $null
+}
+
+# ディレクトリ内のバージョン番号ディレクトリから最新のものを返す
+function Find-LatestVersionDirectory {
+    param([string]$BasePath)
+    if (-not (Test-Path $BasePath)) { return $null }
+    $dirs = Get-ChildItem $BasePath -Directory | Where-Object { $_.Name -match '^\d+\.' }
+    if (-not $dirs) { return $null }
+    $sorted = $dirs | Sort-Object {
+        try { [version]$_.Name } catch { [version]"0.0" }
+    } -Descending
+    return ($sorted | Select-Object -First 1).Name
+}
+
+# ---- 候補ディレクトリの走査 ----
+
+# Visual Studio インストールの候補パスを構築
+$vsBaseCandidates = @()
+$vsProgramFiles = "C:\Program Files\Microsoft Visual Studio"
+if (Test-Path $vsProgramFiles) {
+    # インストール済みの VS を走査 (バージョン降順)
+    $vsYears = Get-ChildItem $vsProgramFiles -Directory | Sort-Object Name -Descending
+    foreach ($year in $vsYears) {
+        $vsEditions = Get-ChildItem $year.FullName -Directory
+        foreach ($edition in $vsEditions) {
+            $vsBaseCandidates += $edition.FullName
+        }
+    }
+}
+$vsBaseCandidates += "C:\ProgramData\devbin-win\bin\vsbt"
+
+# Git for Windows の自動検出
+if (-not $gitProgramPath) {
+    $gitCandidates = @(
+        "C:\Program Files\Git",
+        "C:\ProgramData\devbin-win\bin\git"
+    )
+    $gitProgramPath = Find-FirstValidPath $gitCandidates
+    if ($gitProgramPath) {
+        Write-Host "Auto-detected Git: $gitProgramPath"
+    } else {
+        Write-Host "Error: Git for Windows not found in candidate directories:"
+        $gitCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+}
+
+# DIA SDK の自動検出
+if (-not $diaSDKPath) {
+    $diaCandidates = $vsBaseCandidates | ForEach-Object { Join-Path $_ "DIA SDK" }
+    $diaSDKPath = Find-FirstValidPath $diaCandidates
+    if ($diaSDKPath) {
+        Write-Host "Auto-detected DIA SDK: $diaSDKPath"
+    } else {
+        Write-Host "Error: DIA SDK not found in candidate directories:"
+        $diaCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+}
+
+# MSVC ツールセットの自動検出
+if (-not $msvcToolSetPath) {
+    $msvcCandidates = $vsBaseCandidates | ForEach-Object { Join-Path $_ "VC\Tools\MSVC" }
+    $msvcToolSetPath = Find-FirstValidPath $msvcCandidates
+    if ($msvcToolSetPath) {
+        Write-Host "Auto-detected MSVC ToolSet: $msvcToolSetPath"
+    } else {
+        Write-Host "Error: MSVC ToolSet not found in candidate directories:"
+        $msvcCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+}
+
+# MSVC ツールセットバージョンの自動検出
+if (-not $msvcToolSetVersion) {
+    $msvcToolSetVersion = Find-LatestVersionDirectory $msvcToolSetPath
+    if ($msvcToolSetVersion) {
+        Write-Host "Auto-detected MSVC version: $msvcToolSetVersion"
+    } else {
+        Write-Host "Error: No MSVC ToolSet version found in: $msvcToolSetPath"
+        exit 1
+    }
+}
+
+# Windows SDK の自動検出
+if (-not $windowsSDKPath) {
+    $sdkCandidates = @(
+        "C:\Program Files (x86)\Windows Kits\10",
+        "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+    )
+    $windowsSDKPath = Find-FirstValidPath $sdkCandidates
+    if ($windowsSDKPath) {
+        Write-Host "Auto-detected Windows SDK: $windowsSDKPath"
+    } else {
+        Write-Host "Error: Windows SDK not found in candidate directories:"
+        $sdkCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+}
+
+# Windows SDK バージョンの自動検出
+if (-not $windowsSDKVersion) {
+    $sdkLibPath = Join-Path $windowsSDKPath "Lib"
+    $windowsSDKVersion = Find-LatestVersionDirectory $sdkLibPath
+    if ($windowsSDKVersion) {
+        Write-Host "Auto-detected Windows SDK version: $windowsSDKVersion"
+    } else {
+        Write-Host "Error: No Windows SDK version found in: $sdkLibPath"
+        exit 1
+    }
 }
 
 # ---- MinGW 環境変数の設定 ----
