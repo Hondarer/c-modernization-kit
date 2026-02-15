@@ -134,7 +134,7 @@ jobs:
   publish-docs:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest
+      image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
