@@ -1,0 +1,822 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>VS Code における環境変数の注入方法</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">VS Code における環境変数の注入方法</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Tue, 23 Dec 2025 23:01:25 +0900 129a09c</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#方法1-環境変数設定後に-vs-code-を起動-最も適切" id="toc-方法1-環境変数設定後に-vs-code-を起動-最も適切"><span class="toc-section-number">1</span> 方法1: 環境変数設定後に VS Code を起動 (最も適切)</a>
+                <ul>
+                <li><a href="#利点" id="toc-利点"><span class="toc-section-number">1.1</span> 利点</a></li>
+                <li><a href="#欠点" id="toc-欠点"><span class="toc-section-number">1.2</span> 欠点</a></li>
+                <li><a href="#実装方法" id="toc-実装方法"><span class="toc-section-number">1.3</span> 実装方法</a>
+                <ul>
+                <li><a href="#linux-macos" id="toc-linux-macos"><span class="toc-section-number">1.3.1</span> Linux / macOS</a></li>
+                <li><a href="#windows-powershell" id="toc-windows-powershell"><span class="toc-section-number">1.3.2</span> Windows (PowerShell)</a></li>
+                <li><a href="#env-ファイルの例" id="toc-env-ファイルの例"><span class="toc-section-number">1.3.3</span> .env ファイルの例</a></li>
+                </ul></li>
+                <li><a href="#使用例" id="toc-使用例"><span class="toc-section-number">1.4</span> 使用例</a></li>
+                </ul></li>
+                <li><a href="#方法2-個々の設定ファイルで環境変数を設定" id="toc-方法2-個々の設定ファイルで環境変数を設定"><span class="toc-section-number">2</span> 方法2: 個々の設定ファイルで環境変数を設定</a>
+                <ul>
+                <li><a href="#利点-1" id="toc-利点-1"><span class="toc-section-number">2.1</span> 利点</a></li>
+                <li><a href="#欠点-1" id="toc-欠点-1"><span class="toc-section-number">2.2</span> 欠点</a></li>
+                <li><a href="#実装方法-1" id="toc-実装方法-1"><span class="toc-section-number">2.3</span> 実装方法</a>
+                <ul>
+                <li><a href="#統合ターミナル用-.vscodesettings.json" id="toc-統合ターミナル用-.vscodesettings.json"><span class="toc-section-number">2.3.1</span> 統合ターミナル用: .vscode/settings.json</a></li>
+                <li><a href="#ビルドタスク用-.vscodetasks.json" id="toc-ビルドタスク用-.vscodetasks.json"><span class="toc-section-number">2.3.2</span> ビルドタスク用: .vscode/tasks.json</a></li>
+                <li><a href="#デバッグ実行用-.vscodelaunch.json" id="toc-デバッグ実行用-.vscodelaunch.json"><span class="toc-section-number">2.3.3</span> デバッグ実行用: .vscode/launch.json</a></li>
+                <li><a href="#github-actions-ワークフロー用" id="toc-github-actions-ワークフロー用"><span class="toc-section-number">2.3.4</span> GitHub Actions ワークフロー用</a></li>
+                </ul></li>
+                <li><a href="#vs-code-の定義済み変数" id="toc-vs-code-の定義済み変数"><span class="toc-section-number">2.4</span> VS Code の定義済み変数</a></li>
+                </ul></li>
+                <li><a href="#比較表" id="toc-比較表"><span class="toc-section-number">3</span> 比較表</a></li>
+                <li><a href="#推奨する運用方法" id="toc-推奨する運用方法"><span class="toc-section-number">4</span> 推奨する運用方法</a>
+                <ul>
+                <li><a href="#個人開発の場合" id="toc-個人開発の場合"><span class="toc-section-number">4.1</span> 個人開発の場合</a></li>
+                <li><a href="#チーム開発の場合" id="toc-チーム開発の場合"><span class="toc-section-number">4.2</span> チーム開発の場合</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">5</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>VS Code における環境変数の注入方法</H1>
+      
+      
+      <p>VS Code で環境変数を扱う方法は大きく分けて2つあります。それぞれの特徴と実装方法を説明します。</p>
+<h1 data-number="1" id="方法1-環境変数設定後に-vs-code-を起動-最も適切"><span class="header-section-number">1</span> 方法1: 環境変数設定後に VS Code を起動 (最も適切)</h1>
+<p>VS Code プロセスを起動する前に環境変数を設定する方法です。この方法では、VS Code 本体とそこから起動されるすべての子プロセス (ターミナル、ビルドタスク、デバッグ実行) が同じ環境変数を継承します。</p>
+<h2 data-number="1.1" id="利点"><span class="header-section-number">1.1</span> 利点</h2>
+<ul>
+<li>設定ファイルの重複が不要</li>
+<li>すべてのシーンで完全に同一の環境変数</li>
+<li>設定の一元管理が容易</li>
+<li>プラットフォーム間の差異を吸収しやすい</li>
+</ul>
+<h2 data-number="1.2" id="欠点"><span class="header-section-number">1.2</span> 欠点</h2>
+<ul>
+<li>VS Code を GUI から直接起動できない (スクリプト経由での起動が必要)</li>
+<li>チームメンバー全員が同じ起動方法を理解する必要がある</li>
+</ul>
+<h2 data-number="1.3" id="実装方法"><span class="header-section-number">1.3</span> 実装方法</h2>
+<h3 data-number="1.3.1" id="linux-macos"><span class="header-section-number">1.3.1</span> Linux / macOS</h3>
+<p>プロジェクトルートに起動スクリプトを作成します。</p>
+<p><code>start-vscode.sh</code></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="va">SCRIPT_DIR</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$(</span><span class="bu">cd</span> <span class="st">&quot;</span><span class="va">$(</span><span class="fu">dirname</span> <span class="st">&quot;</span><span class="va">${BASH_SOURCE</span><span class="op">[</span><span class="dv">0</span><span class="op">]</span><span class="va">}</span><span class="st">&quot;</span><span class="va">)</span><span class="st">&quot;</span> <span class="kw">&amp;&amp;</span> <span class="bu">pwd</span><span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">ENV_FILE</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${SCRIPT_DIR}</span><span class="st">/.env&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">${ENV_FILE}</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: .env file not found at </span><span class="va">${ENV_FILE}</span><span class="st">&quot;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 1</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="va">IFS</span><span class="op">=</span><span class="st">&#39;=&#39;</span> <span class="bu">read</span> <span class="at">-r</span> <span class="va">key</span> <span class="va">value</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">${key}</span><span class="st">&quot;</span> <span class="ot">=~</span> <span class="pp">^</span><span class="ss">#</span><span class="pp">.*</span><span class="op">$</span> <span class="kw">]]</span> <span class="kw">&amp;&amp;</span> <span class="cf">continue</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">[[</span> <span class="ot">-z</span> <span class="st">&quot;</span><span class="va">${key}</span><span class="st">&quot;</span> <span class="kw">]]</span> <span class="kw">&amp;&amp;</span> <span class="cf">continue</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="va">value</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${value</span><span class="op">//</span><span class="dt">\$\{</span><span class="ss">WORKSPACE</span><span class="dt">\}</span><span class="op">/</span><span class="va">${SCRIPT_DIR}}</span><span class="st">&quot;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="va">value</span><span class="op">=</span><span class="va">$(</span><span class="bu">eval</span> echo <span class="st">&quot;</span><span class="va">${value}</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">export</span> <span class="st">&quot;</span><span class="va">${key}</span><span class="st">=</span><span class="va">${value}</span><span class="st">&quot;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span> <span class="op">&lt;</span> <span class="st">&quot;</span><span class="va">${ENV_FILE}</span><span class="st">&quot;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> <span class="st">&quot;</span><span class="va">${SCRIPT_DIR}</span><span class="st">&quot;</span></span></code></pre></div>
+<p>実行権限を付与して使用します。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x start-vscode.sh</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./start-vscode.sh</span></span></code></pre></div>
+<h3 data-number="1.3.2" id="windows-powershell"><span class="header-section-number">1.3.2</span> Windows (PowerShell)</h3>
+<p><code>start-vscode.ps1</code></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">$ScriptDir</span> <span class="op">=</span> <span class="fu">Split-Path</span> <span class="op">-</span>Parent <span class="va">$MyInvocation</span><span class="op">.</span><span class="fu">MyCommand</span><span class="op">.</span><span class="fu">Path</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="va">$EnvFile</span> <span class="op">=</span> <span class="fu">Join-Path</span> <span class="va">$ScriptDir</span> <span class="st">&quot;.env&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(-not</span> <span class="op">(</span><span class="fu">Test-Path</span> <span class="va">$EnvFile</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Write-Error</span> <span class="st">&quot;Error: .env file not found at </span><span class="va">$EnvFile</span><span class="st">&quot;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">exit</span> <span class="dv">1</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-Content</span> <span class="va">$EnvFile</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="va">$line</span> <span class="op">=</span> <span class="va">$_</span><span class="op">.</span><span class="fu">Trim</span><span class="op">()</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span><span class="va">$line</span> <span class="op">-match</span> <span class="st">&#39;^#&#39;</span> <span class="op">-or</span> <span class="va">$line</span> <span class="op">-eq</span> <span class="st">&#39;&#39;</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span><span class="va">$line</span> <span class="op">-match</span> <span class="st">&#39;^([^=]+)=(.*)$&#39;</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">$key</span> <span class="op">=</span> <span class="va">$matches</span><span class="op">[</span><span class="dv">1</span><span class="op">].</span><span class="fu">Trim</span><span class="op">()</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">$value</span> <span class="op">=</span> <span class="va">$matches</span><span class="op">[</span><span class="dv">2</span><span class="op">].</span><span class="fu">Trim</span><span class="op">()</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        <span class="va">$value</span> <span class="op">=</span> <span class="va">$value</span> <span class="op">-replace</span> <span class="st">&#39;\$\{WORKSPACE\}&#39;</span><span class="op">,</span> <span class="va">$ScriptDir</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        <span class="va">$value</span> <span class="op">=</span> <span class="va">$ExecutionContext</span><span class="op">.</span><span class="fu">InvokeCommand</span><span class="op">.</span><span class="fu">ExpandString</span><span class="op">(</span><span class="va">$value</span><span class="op">)</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">[</span>Environment<span class="op">]::</span>SetEnvironmentVariable<span class="op">(</span><span class="va">$key</span><span class="op">,</span> <span class="va">$value</span><span class="op">,</span> <span class="st">&#39;Process&#39;</span><span class="op">)</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>code <span class="va">$ScriptDir</span></span></code></pre></div>
+<p>実行ポリシーを設定して使用します。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Set-ExecutionPolicy</span> <span class="op">-</span>ExecutionPolicy RemoteSigned <span class="op">-</span>Scope CurrentUser</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">.</span>\start-vscode<span class="op">.</span><span class="fu">ps1</span></span></code></pre></div>
+<h3 data-number="1.3.3" id="env-ファイルの例"><span class="header-section-number">1.3.3</span> .env ファイルの例</h3>
+<p><code>.env</code></p>
+<pre class="text"><code>LD_LIBRARY_PATH=${WORKSPACE}/lib:${LD_LIBRARY_PATH}
+DYLD_LIBRARY_PATH=${WORKSPACE}/lib:${DYLD_LIBRARY_PATH}
+
+PATH=${WORKSPACE}/bin:${PATH}
+
+PROJECT_ROOT=${WORKSPACE}
+BUILD_TYPE=Debug</code></pre>
+<p>Windows では <code>LD_LIBRARY_PATH</code> は無視され、<code>PATH</code> のみが有効になります。プラットフォーム固有の変数を混在させても問題ありません。</p>
+<h2 data-number="1.4" id="使用例"><span class="header-section-number">1.4</span> 使用例</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./start-vscode.sh</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$LD_LIBRARY_PATH</span></span></code></pre></div>
+<h1 data-number="2" id="方法2-個々の設定ファイルで環境変数を設定"><span class="header-section-number">2</span> 方法2: 個々の設定ファイルで環境変数を設定</h1>
+<p>VS Code の設定ファイル (<code>.vscode/settings.json</code>, <code>tasks.json</code>, <code>launch.json</code>) に環境変数を記述する方法です。</p>
+<h2 data-number="2.1" id="利点-1"><span class="header-section-number">2.1</span> 利点</h2>
+<ul>
+<li>VS Code を通常通り GUI から起動可能</li>
+<li>各機能ごとに異なる環境変数を設定できる (必要に応じて)</li>
+<li>VS Code の標準機能のみで実現可能</li>
+</ul>
+<h2 data-number="2.2" id="欠点-1"><span class="header-section-number">2.2</span> 欠点</h2>
+<ul>
+<li>設定ファイルが3箇所に分散し、重複が発生</li>
+<li>環境変数の変更時に複数ファイルの修正が必要</li>
+<li>設定の不整合が発生しやすい</li>
+</ul>
+<h2 data-number="2.3" id="実装方法-1"><span class="header-section-number">2.3</span> 実装方法</h2>
+<h3 data-number="2.3.1" id="統合ターミナル用-.vscodesettings.json"><span class="header-section-number">2.3.1</span> 統合ターミナル用: .vscode/settings.json</h3>
+<p><code>.vscode/settings.json</code></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;terminal.integrated.env.linux&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin:${env:PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PROJECT_ROOT&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;BUILD_TYPE&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug&quot;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;terminal.integrated.env.osx&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;DYLD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/lib:${env:DYLD_LIBRARY_PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin:${env:PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PROJECT_ROOT&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;BUILD_TYPE&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug&quot;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;terminal.integrated.env.windows&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin;${env:PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PROJECT_ROOT&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span><span class="fu">,</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;BUILD_TYPE&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug&quot;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>新しく開くターミナルに環境変数が設定されます。既存のターミナルには反映されないため、設定変更後は再起動が必要です。</p>
+<h4 data-number="2.3.1.1" id="本プロジェクトでの実装例"><span class="header-section-number">2.3.1.1</span> 本プロジェクトでの実装例</h4>
+<p>本プロジェクトでは、C プロジェクト (<code>prod/calc/</code>) と .NET プロジェクト (<code>prod/calc.net/</code>) の両方が存在するため、それぞれのライブラリと実行ファイルへのパスを設定しています。</p>
+<p><code>.vscode/settings.json</code></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;terminal.integrated.env.linux&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/prod/calc/bin:${workspaceFolder}/prod/calc.net/bin:${env:PATH}&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;terminal.integrated.env.windows&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc</span><span class="ch">\\</span><span class="st">bin;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc.net</span><span class="ch">\\</span><span class="st">bin;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc</span><span class="ch">\\</span><span class="st">lib;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc.net</span><span class="ch">\\</span><span class="st">lib;${env:PATH}&quot;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>ポイント</strong>:<br />
+- Linux では <code>LD_LIBRARY_PATH</code> を設定 (動的ライブラリの検索パス)<br />
+- Linux では <code>PATH</code> も設定 (実行ファイルの検索パス)<br />
+- Windows では <code>PATH</code> を設定 (実行ファイル・DLL の検索パス)<br />
+- C プロジェクトと .NET プロジェクトの両方のパスを含める<br />
+- Windows のパス区切り文字は <code>\</code> を使用 (<code>\\</code> でエスケープ)<br />
+- パスの区切りは Linux が <code>:</code>, Windows が <code>;</code></p>
+<h3 data-number="2.3.2" id="ビルドタスク用-.vscodetasks.json"><span class="header-section-number">2.3.2</span> ビルドタスク用: .vscode/tasks.json</h3>
+<p><code>.vscode/tasks.json</code></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;2.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tasks&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;build&quot;</span><span class="fu">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;shell&quot;</span><span class="fu">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;make&quot;</span><span class="fu">,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin:${env:PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;PROJECT_ROOT&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span><span class="fu">,</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;BUILD_TYPE&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug&quot;</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;group&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;build&quot;</span><span class="fu">,</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;isDefault&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="2.3.2.1" id="タスクタイプによる環境変数の扱いの違い"><span class="header-section-number">2.3.2.1</span> タスクタイプによる環境変数の扱いの違い</h4>
+<p>タスクの <code>type</code> プロパティによって、<code>settings.json</code> で設定した環境変数の影響を受けるかどうかが変わります。</p>
+<p><strong><code>"type": "shell"</code></strong> のタスクは統合ターミナルで実行されるため、<code>settings.json</code> の <code>terminal.integrated.env.*</code> で設定した環境変数も自動的に利用できます。</p>
+<p><strong><code>"type": "process"</code></strong> のタスクは統合ターミナルを経由せず直接プロセスを起動するため、<code>settings.json</code> の設定は反映されません。環境変数が必要な場合は <code>tasks.json</code> に明示的に指定する必要があります。</p>
+<p>Windows と Linux で異なるパス区切り文字を使用する場合は、<code>windows</code> プロパティで上書きします。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;2.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tasks&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;build&quot;</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;shell&quot;</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;make&quot;</span><span class="fu">,</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}&quot;</span><span class="fu">,</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin:${env:PATH}&quot;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;windows&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin;${env:PATH}&quot;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>          <span class="fu">}</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="2.3.2.2" id="本プロジェクトでの実装例-1"><span class="header-section-number">2.3.2.2</span> 本プロジェクトでの実装例</h4>
+<p>本プロジェクトでは、<code>make test</code> タスクと <code>make test (current dir)</code> タスクでプラットフォーム別の環境変数設定を行っています。C プロジェクトと .NET プロジェクトの両方のライブラリパスを設定しています。</p>
+<p><code>.vscode/tasks.json</code></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;2.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tasks&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;make test&quot;</span><span class="fu">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;shell&quot;</span><span class="fu">,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;make&quot;</span><span class="fu">,</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;args&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;test&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;cwd&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;linux&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}&quot;</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>          <span class="fu">}</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;windows&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc</span><span class="ch">\\</span><span class="st">lib;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc.net</span><span class="ch">\\</span><span class="st">lib;${env:PATH}&quot;</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>          <span class="fu">}</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;group&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;test&quot;</span><span class="fu">,</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;isDefault&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>ポイント</strong>:<br />
+- <code>linux</code> プロパティでLinux固有の環境変数を設定<br />
+- <code>windows</code> プロパティでWindows固有の環境変数を設定<br />
+- C プロジェクト (<code>prod/calc/lib</code>) と .NET プロジェクト (<code>prod/calc.net/lib</code>) の両方のライブラリパスを含める<br />
+- トップレベルの <code>options</code> とプラットフォーム固有の <code>options</code> はマージされる<br />
+- この方法により、プラットフォームごとに異なるパス区切り文字や環境変数名を適切に扱える</p>
+<h3 data-number="2.3.3" id="デバッグ実行用-.vscodelaunch.json"><span class="header-section-number">2.3.3</span> デバッグ実行用: .vscode/launch.json</h3>
+<p><code>.vscode/launch.json</code></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.2.0&quot;</span><span class="fu">,</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;configurations&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug Program&quot;</span><span class="fu">,</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;cppdbg&quot;</span><span class="fu">,</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/build/myapp&quot;</span><span class="fu">,</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;args&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;cwd&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span><span class="fu">,</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;environment&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">,</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}&quot;</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;PATH&quot;</span><span class="fu">,</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin:${env:PATH}&quot;</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;PROJECT_ROOT&quot;</span><span class="fu">,</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}&quot;</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;BUILD_TYPE&quot;</span><span class="fu">,</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug&quot;</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>重要</strong>: デバッグ構成は統合ターミナルを経由せず直接プロセスを起動するため、<code>settings.json</code> の <code>terminal.integrated.env.*</code> の設定は反映されません。必要な環境変数はすべて <code>launch.json</code> に明示的に指定する必要があります。</p>
+<p>Windows 用には別の設定を追加できます。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.2.0&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;configurations&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug Program (Linux)&quot;</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;cppdbg&quot;</span><span class="fu">,</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/build/myapp&quot;</span><span class="fu">,</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;environment&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">,</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/lib:${env:LD_LIBRARY_PATH}&quot;</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Debug Program (Windows)&quot;</span><span class="fu">,</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;cppvsdbg&quot;</span><span class="fu">,</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/build/myapp.exe&quot;</span><span class="fu">,</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;environment&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;PATH&quot;</span><span class="fu">,</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/bin;${env:PATH}&quot;</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="2.3.3.1" id="本プロジェクトでの実装例-2"><span class="header-section-number">2.3.3.1</span> 本プロジェクトでの実装例</h4>
+<p>本プロジェクトでは、4つのデバッグ構成でそれぞれ環境変数を設定しています。</p>
+<ul>
+<li><code>(Linux gdb) Debug current directory</code> - Linux向けネイティブデバッグ</li>
+<li><code>(Windows vsdbg) Debug current directory</code> - Windows向けネイティブデバッグ</li>
+<li><code>(Linux coreclr) Debug current directory</code> - Linux向け.NETデバッグ</li>
+<li><code>(Windows coreclr) Debug current directory</code> - Windows向け.NETデバッグ</li>
+</ul>
+<p>すべての構成で C プロジェクトと .NET プロジェクトの両方のライブラリパスを設定しています。</p>
+<p><code>.vscode/launch.json</code> (抜粋)</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.2.0&quot;</span><span class="fu">,</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;configurations&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;(Linux gdb) Debug current directory&quot;</span><span class="fu">,</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;cppdbg&quot;</span><span class="fu">,</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${fileDirname}/${fileDirnameBasename}&quot;</span><span class="fu">,</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;environment&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">,</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}&quot;</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;(Windows vsdbg) Debug current directory&quot;</span><span class="fu">,</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;cppvsdbg&quot;</span><span class="fu">,</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${fileDirname}/${fileDirnameBasename}.exe&quot;</span><span class="fu">,</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;environment&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;PATH&quot;</span><span class="fu">,</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc</span><span class="ch">\\</span><span class="st">lib;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc.net</span><span class="ch">\\</span><span class="st">lib;${env:PATH}&quot;</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;(Linux coreclr) Debug current directory&quot;</span><span class="fu">,</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;coreclr&quot;</span><span class="fu">,</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${fileDirname}/bin/${fileDirnameBasename}&quot;</span><span class="fu">,</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;LD_LIBRARY_PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${env:LD_LIBRARY_PATH}&quot;</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;(Windows coreclr) Debug current directory&quot;</span><span class="fu">,</span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;coreclr&quot;</span><span class="fu">,</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="st">&quot;launch&quot;</span><span class="fu">,</span></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;program&quot;</span><span class="fu">:</span> <span class="st">&quot;${fileDirname}/bin/${fileDirnameBasename}&quot;</span><span class="fu">,</span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;env&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;PATH&quot;</span><span class="fu">:</span> <span class="st">&quot;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc</span><span class="ch">\\</span><span class="st">lib;${workspaceFolder}</span><span class="ch">\\</span><span class="st">prod</span><span class="ch">\\</span><span class="st">calc.net</span><span class="ch">\\</span><span class="st">lib;${env:PATH}&quot;</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>ポイント</strong>:<br />
+- デバッグ構成ごとにプラットフォームを分けて定義<br />
+- <code>cppdbg</code> はネイティブC/C++デバッグ用、<code>cppvsdbg</code> はWindows用ネイティブC/C++デバッグ用<br />
+- <code>coreclr</code> は.NETデバッグ用<br />
+- C プロジェクト (<code>prod/calc/lib</code>) と .NET プロジェクト (<code>prod/calc.net/lib</code>) の両方のライブラリパスを含める<br />
+- ネイティブデバッグでは <code>environment</code> プロパティ、.NETデバッグでは <code>env</code> プロパティを使用<br />
+- Windows版では必ずパス区切り文字を <code>\\</code> にする</p>
+<h3 data-number="2.3.4" id="github-actions-ワークフロー用"><span class="header-section-number">2.3.4</span> GitHub Actions ワークフロー用</h3>
+<p>CI/CD環境でも同様に環境変数を設定する必要があります。GitHub Actionsでは、環境変数を永続化するための特別なメカニズムがあります。</p>
+<h4 data-number="2.3.4.1" id="linux-ジョブ"><span class="header-section-number">2.3.4.1</span> Linux ジョブ</h4>
+<p><code>.github/workflows/ci.yml</code> (build-and-test-linux ジョブ)</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">build-and-test-linux</span><span class="kw">:</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Checkout repository</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">submodules</span><span class="kw">:</span><span class="at"> recursive</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Build</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> make</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set library path for tests</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> echo &quot;LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH&quot; &gt;&gt; $GITHUB_ENV</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run tests</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> make test</span></span></code></pre></div>
+<p><strong>ポイント</strong>:<br />
+- <code>$GITHUB_ENV</code> に書き込むことで環境変数を永続化<br />
+- 以降のすべてのステップで設定した環境変数が有効になる<br />
+- C プロジェクトと .NET プロジェクトの両方のライブラリパスを含める<br />
+- <code>$GITHUB_WORKSPACE</code> はワークスペースのルートパスを表す</p>
+<h4 data-number="2.3.4.2" id="windows-ジョブ"><span class="header-section-number">2.3.4.2</span> Windows ジョブ</h4>
+<p><code>.github/workflows/ci.yml</code> (build-and-test-windows ジョブ)</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">build-and-test-windows</span><span class="kw">:</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> windows-2025</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Checkout repository</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">submodules</span><span class="kw">:</span><span class="at"> recursive</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Build</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> make</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">shell</span><span class="kw">:</span><span class="at"> pwsh</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set library path for tests</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>          $calcLibPath = &quot;${{ github.workspace }}\prod\calc\lib&quot;</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>          $calcNetLibPath = &quot;${{ github.workspace }}\prod\calc.net\lib&quot;</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>          Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>          Add-Content -Path $env:GITHUB_PATH -Value $calcNetLibPath</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>          Write-Host &quot;Added $calcLibPath to PATH&quot;</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>          Write-Host &quot;Added $calcNetLibPath to PATH&quot;</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">shell</span><span class="kw">:</span><span class="at"> pwsh</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run tests</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> make test</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">shell</span><span class="kw">:</span><span class="at"> pwsh</span></span></code></pre></div>
+<p><strong>ポイント</strong>:<br />
+- <code>$env:GITHUB_PATH</code> に書き込むことで <code>PATH</code> 環境変数に追加<br />
+- C プロジェクトと .NET プロジェクトの両方のライブラリパスを含める<br />
+- PowerShell を使用 (<code>shell: pwsh</code>)<br />
+- <code>${{ github.workspace }}</code> はワークスペースのルートパスを表す</p>
+<h4 data-number="2.3.4.3" id="github-actions-の環境変数永続化メカニズム"><span class="header-section-number">2.3.4.3</span> GitHub Actions の環境変数永続化メカニズム</h4>
+<ul>
+<li><strong><code>$GITHUB_ENV</code></strong>: 環境変数を設定 (<code>VARIABLE=value</code> 形式で書き込み)</li>
+<li><strong><code>$GITHUB_PATH</code></strong>: <code>PATH</code> 環境変数にパスを追加 (パスを1行ずつ書き込み)</li>
+</ul>
+<p>これらの特別なファイルに書き込むことで、以降のステップでその環境変数が利用可能になります。</p>
+<h2 data-number="2.4" id="vs-code-の定義済み変数"><span class="header-section-number">2.4</span> VS Code の定義済み変数</h2>
+<p>すべての設定ファイル (<code>settings.json</code>、<code>tasks.json</code>、<code>launch.json</code>) で VS Code の定義済み変数を使えます。これらを使うことで、プロジェクト構造に依存しない設定を作れます。</p>
+<p>よく使う変数は以下です。</p>
+<p><strong><code>${workspaceFolder}</code></strong> はワークスペースのルートパスを表します。プロジェクトの絶対パスが環境によって異なる場合でも、この変数を使うことでポータブルな設定を作れます。</p>
+<p><strong><code>${workspaceFolderBasename}</code></strong> はワークスペースフォルダ名を表します。</p>
+<p><strong><code>${env:既存の環境変数名}</code></strong> は既存の環境変数を参照します。PATH に値を追加する場合などに便利です。</p>
+<p><strong><code>${file}</code></strong> は現在開いているファイルのパスを表します (<code>tasks.json</code> と <code>launch.json</code> で使用可能)。</p>
+<p>より詳しい変数の一覧は、公式ドキュメントで確認できます。</p>
+<p><a href="https://code.visualstudio.com/docs/editor/variables-reference">Variables Reference - Visual Studio Code</a></p>
+<h1 data-number="3" id="比較表"><span class="header-section-number">3</span> 比較表</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>方法1: 起動前に設定</th>
+<th>方法2: 設定ファイル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>環境変数の一貫性</td>
+<td>完全に一致</td>
+<td>ほぼ一致 (設定次第)</td>
+</tr>
+<tr>
+<td>設定の一元管理</td>
+<td>容易 (.env のみ)</td>
+<td>困難 (3ファイル)</td>
+</tr>
+<tr>
+<td>VS Code の起動方法</td>
+<td>スクリプト経由</td>
+<td>GUI から直接可能</td>
+</tr>
+<tr>
+<td>学習コスト</td>
+<td>やや高い</td>
+<td>低い</td>
+</tr>
+<tr>
+<td>メンテナンス性</td>
+<td>高い</td>
+<td>低い (重複管理)</td>
+</tr>
+<tr>
+<td>チーム共有</td>
+<td>スクリプト共有</td>
+<td>設定ファイル共有</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="推奨する運用方法"><span class="header-section-number">4</span> 推奨する運用方法</h1>
+<h2 data-number="4.1" id="個人開発の場合"><span class="header-section-number">4.1</span> 個人開発の場合</h2>
+<p><strong>方法1 (起動前に設定)</strong> を推奨します。</p>
+<ul>
+<li><code>.env</code> で環境変数を一元管理</li>
+<li><code>start-vscode.sh</code> または <code>start-vscode.ps1</code> で起動</li>
+<li>設定ファイルの重複を排除</li>
+</ul>
+<h2 data-number="4.2" id="チーム開発の場合"><span class="header-section-number">4.2</span> チーム開発の場合</h2>
+<p><strong>方法2 (設定ファイル)</strong> を推奨します。</p>
+<ul>
+<li>各設定ファイルを適切に維持</li>
+<li>ドキュメントに注意事項や動作の説明を明記</li>
+</ul>
+<p>チームメンバーは通常通り VS Code を起動できます。</p>
+<h1 data-number="5" id="まとめ"><span class="header-section-number">5</span> まとめ</h1>
+<p>VS Code における環境変数の設定は、用途に応じて適切な方法を選択することが重要です。</p>
+<ul>
+<li>完全な一貫性と一元管理を優先する場合: <strong>方法1</strong></li>
+<li>チームの利便性と学習コストを優先する場合: <strong>方法2</strong></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

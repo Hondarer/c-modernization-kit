@@ -1,0 +1,646 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>.NET プロジェクトにおける RelWithDebInfo ビルド構成</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">.NET プロジェクトにおける RelWithDebInfo ビルド構成</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Tue, 23 Dec 2025 19:19:35 +0900 0eb1395</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#relwithdebinfo-の意義" id="toc-relwithdebinfo-の意義"><span class="toc-section-number">2</span> RelWithDebInfo の意義</a>
+                <ul>
+                <li><a href="#標準的なビルド構成との比較" id="toc-標準的なビルド構成との比較"><span class="toc-section-number">2.1</span> 標準的なビルド構成との比較</a></li>
+                <li><a href="#relwithdebinfo-が有用な場面" id="toc-relwithdebinfo-が有用な場面"><span class="toc-section-number">2.2</span> RelWithDebInfo が有用な場面</a></li>
+                </ul></li>
+                <li><a href="#net-における-relwithdebinfo-の実装" id="toc-net-における-relwithdebinfo-の実装"><span class="toc-section-number">3</span> .NET における RelWithDebInfo の実装</a>
+                <ul>
+                <li><a href="#構成の定義" id="toc-構成の定義"><span class="toc-section-number">3.1</span> 構成の定義</a>
+                <ul>
+                <li><a href="#プロパティの説明" id="toc-プロパティの説明"><span class="toc-section-number">3.1.1</span> プロパティの説明</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#実装手順" id="toc-実装手順"><span class="toc-section-number">4</span> 実装手順</a>
+                <ul>
+                <li><a href="#各プロジェクトファイル-.csproj-への構成追加" id="toc-各プロジェクトファイル-.csproj-への構成追加"><span class="toc-section-number">4.1</span> 1. 各プロジェクトファイル (.csproj) への構成追加</a></li>
+                <li><a href="#ソリューションファイル-.sln-への構成追加" id="toc-ソリューションファイル-.sln-への構成追加"><span class="toc-section-number">4.2</span> 2. ソリューションファイル (.sln) への構成追加</a>
+                <ul>
+                <li><a href="#ソリューション構成の追加" id="toc-ソリューション構成の追加"><span class="toc-section-number">4.2.1</span> 2.1 ソリューション構成の追加</a></li>
+                <li><a href="#各プロジェクトの構成マッピング追加" id="toc-各プロジェクトの構成マッピング追加"><span class="toc-section-number">4.2.2</span> 2.2 各プロジェクトの構成マッピング追加</a></li>
+                </ul></li>
+                <li><a href="#directory.build.props-でのデフォルト構成設定" id="toc-directory.build.props-でのデフォルト構成設定"><span class="toc-section-number">4.3</span> 3. Directory.Build.props でのデフォルト構成設定</a>
+                <ul>
+                <li><a href="#directory.build.props-の仕組み" id="toc-directory.build.props-の仕組み"><span class="toc-section-number">4.3.1</span> Directory.Build.props の仕組み</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#使用方法" id="toc-使用方法"><span class="toc-section-number">5</span> 使用方法</a>
+                <ul>
+                <li><a href="#コマンドラインでのビルド" id="toc-コマンドラインでのビルド"><span class="toc-section-number">5.1</span> コマンドラインでのビルド</a>
+                <ul>
+                <li><a href="#デフォルト構成でビルド-relwithdebinfo" id="toc-デフォルト構成でビルド-relwithdebinfo"><span class="toc-section-number">5.1.1</span> デフォルト構成でビルド (RelWithDebInfo)</a></li>
+                <li><a href="#明示的に構成を指定" id="toc-明示的に構成を指定"><span class="toc-section-number">5.1.2</span> 明示的に構成を指定</a></li>
+                </ul></li>
+                <li><a href="#テストの実行" id="toc-テストの実行"><span class="toc-section-number">5.2</span> テストの実行</a></li>
+                <li><a href="#アプリケーションの実行" id="toc-アプリケーションの実行"><span class="toc-section-number">5.3</span> アプリケーションの実行</a></li>
+                <li><a href="#ビルド出力の確認" id="toc-ビルド出力の確認"><span class="toc-section-number">5.4</span> ビルド出力の確認</a></li>
+                </ul></li>
+                <li><a href="#ide-における対応状況" id="toc-ide-における対応状況"><span class="toc-section-number">6</span> IDE における対応状況</a>
+                <ul>
+                <li><a href="#visual-studio-code-c-dev-kit" id="toc-visual-studio-code-c-dev-kit"><span class="toc-section-number">6.1</span> Visual Studio Code + C# Dev Kit</a></li>
+                <li><a href="#visual-studio-windows" id="toc-visual-studio-windows"><span class="toc-section-number">6.2</span> Visual Studio (Windows)</a></li>
+                <li><a href="#jetbrains-rider" id="toc-jetbrains-rider"><span class="toc-section-number">6.3</span> JetBrains Rider</a></li>
+                </ul></li>
+                <li><a href="#ベストプラクティス" id="toc-ベストプラクティス"><span class="toc-section-number">7</span> ベストプラクティス</a>
+                <ul>
+                <li><a href="#継続的インテグレーション-ci-での使用" id="toc-継続的インテグレーション-ci-での使用"><span class="toc-section-number">7.1</span> 1. 継続的インテグレーション (CI) での使用</a></li>
+                <li><a href="#プロジェクト構成の推奨事項" id="toc-プロジェクト構成の推奨事項"><span class="toc-section-number">7.2</span> 2. プロジェクト構成の推奨事項</a></li>
+                <li><a href="#チーム開発での運用" id="toc-チーム開発での運用"><span class="toc-section-number">7.3</span> 3. チーム開発での運用</a></li>
+                </ul></li>
+                <li><a href="#トラブルシューティング" id="toc-トラブルシューティング"><span class="toc-section-number">8</span> トラブルシューティング</a>
+                <ul>
+                <li><a href="#デフォルト構成が適用されない" id="toc-デフォルト構成が適用されない"><span class="toc-section-number">8.1</span> デフォルト構成が適用されない</a></li>
+                <li><a href="#c-dev-kit-で-relwithdebinfo-が選択できない" id="toc-c-dev-kit-で-relwithdebinfo-が選択できない"><span class="toc-section-number">8.2</span> C# Dev Kit で RelWithDebInfo が選択できない</a></li>
+                <li><a href="#ビルド出力のパスが想定と異なる" id="toc-ビルド出力のパスが想定と異なる"><span class="toc-section-number">8.3</span> ビルド出力のパスが想定と異なる</a></li>
+                </ul></li>
+                <li><a href="#参考資料" id="toc-参考資料"><span class="toc-section-number">9</span> 参考資料</a></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">10</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>.NET プロジェクトにおける RelWithDebInfo ビルド構成</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>RelWithDebInfo (Release with Debug Information) は、リリース最適化を適用しながらデバッグ情報も含めるビルド構成です。CMake などのビルドシステムで一般的に使用されている概念を .NET プロジェクトに適用したものです。</p>
+<h1 data-number="2" id="relwithdebinfo-の意義"><span class="header-section-number">2</span> RelWithDebInfo の意義</h1>
+<h2 data-number="2.1" id="標準的なビルド構成との比較"><span class="header-section-number">2.1</span> 標準的なビルド構成との比較</h2>
+<p>.NET プロジェクトでは、標準で以下の2つのビルド構成が提供されています:</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 21%" />
+<col style="width: 47%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr>
+<th>構成</th>
+<th>最適化</th>
+<th>デバッグシンボル</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debug</td>
+<td>無効</td>
+<td>有効</td>
+<td>開発・デバッグ時</td>
+</tr>
+<tr>
+<td>Release</td>
+<td>有効</td>
+<td>無効（または限定的）</td>
+<td>本番リリース時（デバッグ情報不要の場合）</td>
+</tr>
+<tr>
+<td><strong>RelWithDebInfo</strong></td>
+<td><strong>有効</strong></td>
+<td><strong>有効</strong></td>
+<td><strong>本番リリース時・パフォーマンス測定・トラブルシューティング</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="2.2" id="relwithdebinfo-が有用な場面"><span class="header-section-number">2.2</span> RelWithDebInfo が有用な場面</h2>
+<ol type="1">
+<li><strong>本番リリース時の推奨構成</strong>
+<ul>
+<li>最適化によるパフォーマンス維持</li>
+<li>デバッグシンボルにより、本番環境での問題発生時に詳細なスタックトレースを取得可能</li>
+<li>クラッシュダンプ解析時に関数名やソースファイル情報が利用可能</li>
+<li>.pdb ファイルをシンボルサーバーに配置することで、必要時のみ利用可能</li>
+</ul></li>
+<li><strong>パフォーマンス測定・プロファイリング</strong>
+<ul>
+<li>本番環境と同等の最適化された状態でプロファイリング</li>
+<li>デバッグシンボルにより、ボトルネックの関数名・行番号を特定可能</li>
+<li>CPU プロファイラーやメモリプロファイラーでの詳細な解析</li>
+</ul></li>
+<li><strong>本番環境のトラブルシューティング</strong>
+<ul>
+<li>最適化されたコードで問題を正確に再現</li>
+<li>エラーログやスタックトレースに関数名やソースファイル情報が含まれる</li>
+<li>デバッガーをアタッチしての調査が可能</li>
+</ul></li>
+<li><strong>統合テスト・受け入れテスト</strong>
+<ul>
+<li>本番リリースと同じビルド構成でテスト実行</li>
+<li>問題発生時のデバッグが容易</li>
+<li>パフォーマンステストでの正確な測定</li>
+</ul></li>
+<li><strong>継続的インテグレーション (CI)</strong>
+<ul>
+<li>デフォルトのビルド構成として設定することで、開発中も本番に近い最適化を常に適用</li>
+<li>パフォーマンス劣化の早期発見</li>
+<li>デバッグシンボルを含むため、CI でのテスト失敗時の調査が容易</li>
+</ul></li>
+</ol>
+<h1 data-number="3" id="net-における-relwithdebinfo-の実装"><span class="header-section-number">3</span> .NET における RelWithDebInfo の実装</h1>
+<h2 data-number="3.1" id="構成の定義"><span class="header-section-number">3.1</span> 構成の定義</h2>
+<p>RelWithDebInfo 構成は、以下の MSBuild プロパティで定義されます。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">PropertyGroup</span><span class="ot"> Condition=</span><span class="st">&quot;&#39;$(Configuration)&#39; == &#39;RelWithDebInfo&#39;&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Optimize</span>&gt;true&lt;/<span class="kw">Optimize</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">DebugType</span>&gt;portable&lt;/<span class="kw">DebugType</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">DebugSymbols</span>&gt;true&lt;/<span class="kw">DebugSymbols</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">PropertyGroup</span>&gt;</span></code></pre></div>
+<h3 data-number="3.1.1" id="プロパティの説明"><span class="header-section-number">3.1.1</span> プロパティの説明</h3>
+<ul>
+<li><strong>Optimize</strong>: <code>true</code> に設定することで、Release と同等のコンパイラ最適化を有効化</li>
+<li><strong>DebugType</strong>: <code>portable</code> を指定することで、クロスプラットフォーム対応の .pdb ファイルを生成</li>
+<li><strong>DebugSymbols</strong>: <code>true</code> に設定することで、デバッグシンボルの生成を有効化</li>
+</ul>
+<h1 data-number="4" id="実装手順"><span class="header-section-number">4</span> 実装手順</h1>
+<h2 data-number="4.1" id="各プロジェクトファイル-.csproj-への構成追加"><span class="header-section-number">4.1</span> 1. 各プロジェクトファイル (.csproj) への構成追加</h2>
+<p>プロジェクト内のすべての <code>.csproj</code> ファイルに RelWithDebInfo 構成を追加します。</p>
+<p><strong>追加場所</strong>: <code>&lt;/PropertyGroup&gt;</code> と <code>&lt;ItemGroup&gt;</code> の間など、適切な位置</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">Project</span><span class="ot"> Sdk=</span><span class="st">&quot;Microsoft.NET.Sdk&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PropertyGroup</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- 既存のプロパティ --&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">PropertyGroup</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- RelWithDebInfo 構成の追加 --&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PropertyGroup</span><span class="ot"> Condition=</span><span class="st">&quot;&#39;$(Configuration)&#39; == &#39;RelWithDebInfo&#39;&quot;</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Optimize</span>&gt;true&lt;/<span class="kw">Optimize</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DebugType</span>&gt;portable&lt;/<span class="kw">DebugType</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DebugSymbols</span>&gt;true&lt;/<span class="kw">DebugSymbols</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">PropertyGroup</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">ItemGroup</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- 既存のアイテム --&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">ItemGroup</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">Project</span>&gt;</span></code></pre></div>
+<h2 data-number="4.2" id="ソリューションファイル-.sln-への構成追加"><span class="header-section-number">4.2</span> 2. ソリューションファイル (.sln) への構成追加</h2>
+<h3 data-number="4.2.1" id="ソリューション構成の追加"><span class="header-section-number">4.2.1</span> 2.1 ソリューション構成の追加</h3>
+<p><code>GlobalSection(SolutionConfigurationPlatforms)</code> に RelWithDebInfo を追加します。</p>
+<pre class="text"><code>Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    RelWithDebInfo|Any CPU = RelWithDebInfo|Any CPU
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection</code></pre>
+<p><strong>重要</strong>: RelWithDebInfo を最初に配置することで、一部の IDE でデフォルト構成として認識されやすくなります。</p>
+<h3 data-number="4.2.2" id="各プロジェクトの構成マッピング追加"><span class="header-section-number">4.2.2</span> 2.2 各プロジェクトの構成マッピング追加</h3>
+<p><code>GlobalSection(ProjectConfigurationPlatforms)</code> で、各プロジェクトに RelWithDebInfo のマッピングを追加します。</p>
+<pre><code>GlobalSection(ProjectConfigurationPlatforms) = postSolution
+  {PROJECT-GUID}.RelWithDebInfo|Any CPU.ActiveCfg = RelWithDebInfo|Any CPU
+  {PROJECT-GUID}.RelWithDebInfo|Any CPU.Build.0 = RelWithDebInfo|Any CPU
+  {PROJECT-GUID}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {PROJECT-GUID}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {PROJECT-GUID}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {PROJECT-GUID}.Release|Any CPU.Build.0 = Release|Any CPU
+EndGlobalSection</code></pre>
+<p>各プロジェクトの GUID について、同様のマッピングを追加します。</p>
+<h2 data-number="4.3" id="directory.build.props-でのデフォルト構成設定"><span class="header-section-number">4.3</span> 3. Directory.Build.props でのデフォルト構成設定</h2>
+<p>プロジェクトのルートディレクトリに <code>Directory.Build.props</code> ファイルを作成し、デフォルトのビルド構成を RelWithDebInfo に設定します。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">Project</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!--</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">    .NET用 Directory.Build.props</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">    このファイルは、.NET SDK のビルドシステムにより自動的に認識され、</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">    このディレクトリおよびサブディレクトリ内のすべての .csproj プロジェクトに対して</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">    プロジェクトファイルよりも先に評価されます。</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">    主な用途:</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">    - プロジェクト全体で共通のプロパティやビルド設定を一元管理</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">    - デフォルト値の設定 (プロジェクトファイルで上書き可能)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">    参考: https://learn.microsoft.com/ja-jp/visualstudio/msbuild/customize-by-directory</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">  --&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- デフォルトのビルド構成を RelWithDebInfo に設定 --&gt;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!--</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co">    -c オプション未指定時の動作:</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co">    - dotnet build → RelWithDebInfo でビルド</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">    - dotnet test → RelWithDebInfo でビルド</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">    - dotnet run → RelWithDebInfo でビルド</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">    明示的な構成指定で上書き可能:</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co">    - dotnet build -c Debug → Debug でビルド</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co">    - dotnet build -c Release → Release でビルド</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">  --&gt;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PropertyGroup</span>&gt;</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Configuration</span><span class="ot"> Condition=</span><span class="st">&quot;&#39;$(Configuration)&#39; == &#39;&#39;&quot;</span>&gt;RelWithDebInfo&lt;/<span class="kw">Configuration</span>&gt;</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">PropertyGroup</span>&gt;</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">Project</span>&gt;</span></code></pre></div>
+<h3 data-number="4.3.1" id="directory.build.props-の仕組み"><span class="header-section-number">4.3.1</span> Directory.Build.props の仕組み</h3>
+<ul>
+<li>このファイルは、.NET SDK により自動的に検出され、すべてのプロジェクトファイルよりも<strong>先に</strong>評価されます</li>
+<li>プロジェクトファイル内で <code>&lt;Configuration&gt;</code> を設定することもできますが、SDK の評価タイミングの問題で効果がない場合があります</li>
+<li><code>Directory.Build.props</code> を使用することで、確実にデフォルト構成を設定できます</li>
+</ul>
+<h1 data-number="5" id="使用方法"><span class="header-section-number">5</span> 使用方法</h1>
+<h2 data-number="5.1" id="コマンドラインでのビルド"><span class="header-section-number">5.1</span> コマンドラインでのビルド</h2>
+<h3 data-number="5.1.1" id="デフォルト構成でビルド-relwithdebinfo"><span class="header-section-number">5.1.1</span> デフォルト構成でビルド (RelWithDebInfo)</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> build</span></code></pre></div>
+<p><code>Directory.Build.props</code> の設定により、構成を指定しない場合は RelWithDebInfo でビルドされます。</p>
+<h3 data-number="5.1.2" id="明示的に構成を指定"><span class="header-section-number">5.1.2</span> 明示的に構成を指定</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> build <span class="at">-c</span> Debug</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> build <span class="at">-c</span> Release</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> build <span class="at">-c</span> RelWithDebInfo</span></code></pre></div>
+<h2 data-number="5.2" id="テストの実行"><span class="header-section-number">5.2</span> テストの実行</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> test</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> test <span class="at">-c</span> Debug</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> test <span class="at">-c</span> RelWithDebInfo</span></code></pre></div>
+<h2 data-number="5.3" id="アプリケーションの実行"><span class="header-section-number">5.3</span> アプリケーションの実行</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> run <span class="at">--project</span> <span class="op">&lt;</span>project-path<span class="op">&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> run <span class="at">--project</span> <span class="op">&lt;</span>project-path<span class="op">&gt;</span> -c Release</span></code></pre></div>
+<h2 data-number="5.4" id="ビルド出力の確認"><span class="header-section-number">5.4</span> ビルド出力の確認</h2>
+<p>構成が正しく適用されているかは、ビルド出力のパスで確認できます:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> build</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> build <span class="at">-c</span> Debug</span></code></pre></div>
+<h1 data-number="6" id="ide-における対応状況"><span class="header-section-number">6</span> IDE における対応状況</h1>
+<h2 data-number="6.1" id="visual-studio-code-c-dev-kit"><span class="header-section-number">6.1</span> Visual Studio Code + C# Dev Kit</h2>
+<p><strong>制限事項</strong>: C# Dev Kit には、UI からビルド構成を選択する機能が現時点で存在しません。</p>
+<ul>
+<li>ソリューションエクスプローラーでの構成選択 UI がない</li>
+<li><code>csharp.preview.improvedLaunchExperience</code> 設定は起動構成の選択用で、ビルド構成の切り替えには使用できない</li>
+</ul>
+<p><strong>回避策</strong>:<br />
+1. <strong>統合ターミナルを使用</strong> (推奨)<br />
+- VS Code の統合ターミナルから <code>dotnet build -c &lt;構成&gt;</code> を実行<br />
+- <code>Directory.Build.props</code> の設定により、デフォルトで RelWithDebInfo が使用される</p>
+<ol start="2" type="1">
+<li><strong>tasks.json でビルドタスクを定義</strong>
+<ul>
+<li><code>.vscode/tasks.json</code> に異なる構成のビルドタスクを作成</li>
+<li>キーボードショートカットでタスクを実行</li>
+</ul></li>
+<li><strong>launch.json でデバッグ構成を指定</strong>
+<ul>
+<li>デバッグ実行時の構成を変更可能</li>
+</ul></li>
+</ol>
+<h2 data-number="6.2" id="visual-studio-windows"><span class="header-section-number">6.2</span> Visual Studio (Windows)</h2>
+<ul>
+<li>ソリューションエクスプローラーの上部にある構成ドロップダウンで RelWithDebInfo を選択可能</li>
+<li><code>.sln</code> ファイルで RelWithDebInfo を最初に配置することで、デフォルトとして認識されやすい</li>
+</ul>
+<h2 data-number="6.3" id="jetbrains-rider"><span class="header-section-number">6.3</span> JetBrains Rider</h2>
+<ul>
+<li>ツールバーの構成ドロップダウンで選択可能</li>
+<li>ビルド構成の管理 UI が充実</li>
+</ul>
+<h1 data-number="7" id="ベストプラクティス"><span class="header-section-number">7</span> ベストプラクティス</h1>
+<h2 data-number="7.1" id="継続的インテグレーション-ci-での使用"><span class="header-section-number">7.1</span> 1. 継続的インテグレーション (CI) での使用</h2>
+<p>RelWithDebInfo をデフォルト構成に設定することで、以下のメリットがあります:</p>
+<ul>
+<li><strong>パフォーマンス劣化の早期発見</strong>: 開発中も常に最適化されたコードでテスト</li>
+<li><strong>本番環境に近い状態でのテスト</strong>: より実環境に近い条件でのテスト実行</li>
+<li><strong>問題発生時のデバッグが容易</strong>: デバッグシンボルにより、スタックトレースが詳細</li>
+</ul>
+<h2 data-number="7.2" id="プロジェクト構成の推奨事項"><span class="header-section-number">7.2</span> 2. プロジェクト構成の推奨事項</h2>
+<pre><code>project-root/
++-- Directory.Build.props        # デフォルト構成: RelWithDebInfo
++-- solution.sln                 # RelWithDebInfo を最初に配置
++-- src/
+|   +-- Project1/
+|   |   +-- Project1.csproj     # RelWithDebInfo 構成を定義
+|   +-- Project2/
+|       +-- Project2.csproj     # RelWithDebInfo 構成を定義
++-- test/
+    +-- Tests/
+        +-- Tests.csproj         # RelWithDebInfo 構成を定義</code></pre>
+<h2 data-number="7.3" id="チーム開発での運用"><span class="header-section-number">7.3</span> 3. チーム開発での運用</h2>
+<ul>
+<li><strong>Directory.Build.props をリポジトリに含める</strong>: チーム全体で同じデフォルト構成を使用</li>
+<li><strong>ドキュメント化</strong>: プロジェクトの README に RelWithDebInfo を使用していることを明記</li>
+<li><strong>CI/CD パイプラインでの明示的指定</strong>: CI では <code>-c RelWithDebInfo</code> を明示的に指定することを推奨</li>
+</ul>
+<h1 data-number="8" id="トラブルシューティング"><span class="header-section-number">8</span> トラブルシューティング</h1>
+<h2 data-number="8.1" id="デフォルト構成が適用されない"><span class="header-section-number">8.1</span> デフォルト構成が適用されない</h2>
+<p><strong>症状</strong>: <code>dotnet build</code> を実行しても Debug でビルドされる</p>
+<p><strong>原因と対策</strong>:<br />
+1. <code>Directory.Build.props</code> がプロジェクトルートに存在するか確認<br />
+2. ファイルのエンコーディングが UTF-8 であることを確認<br />
+3. XML の構文エラーがないか確認</p>
+<h2 data-number="8.2" id="c-dev-kit-で-relwithdebinfo-が選択できない"><span class="header-section-number">8.2</span> C# Dev Kit で RelWithDebInfo が選択できない</h2>
+<p><strong>症状</strong>: C# Dev Kit のソリューションエクスプローラーに RelWithDebInfo が表示されない</p>
+<p><strong>対策</strong>:<br />
+1. VS Code のウィンドウをリロード<br />
+2. <code>.sln</code> ファイルが正しく更新されているか確認<br />
+3. ソリューションをクローズして再度開く</p>
+<h2 data-number="8.3" id="ビルド出力のパスが想定と異なる"><span class="header-section-number">8.3</span> ビルド出力のパスが想定と異なる</h2>
+<p><strong>症状</strong>: <code>bin/Debug/</code> にビルドされる</p>
+<p><strong>確認事項</strong>:<br />
+1. プロジェクトファイルで明示的に <code>&lt;Configuration&gt;Debug&lt;/Configuration&gt;</code> が設定されていないか確認<br />
+2. IDE の設定で構成がオーバーライドされていないか確認</p>
+<h1 data-number="9" id="参考資料"><span class="header-section-number">9</span> 参考資料</h1>
+<ul>
+<li><a href="https://learn.microsoft.com/ja-jp/visualstudio/msbuild/customize-by-directory">MSBuild によるディレクトリのカスタマイズ</a></li>
+<li><a href="https://learn.microsoft.com/ja-jp/visualstudio/ide/understanding-build-configurations">.NET のビルド構成について</a></li>
+<li><a href="https://learn.microsoft.com/ja-jp/dotnet/core/tools/dotnet-build">dotnet build コマンド</a></li>
+</ul>
+<h1 data-number="10" id="まとめ"><span class="header-section-number">10</span> まとめ</h1>
+<p>RelWithDebInfo ビルド構成を .NET プロジェクトに追加することで、以下の利点が得られます:</p>
+<ol type="1">
+<li><strong>本番環境での運用改善</strong>:
+<ul>
+<li>リリース最適化によるパフォーマンス維持</li>
+<li>デバッグシンボルにより、本番環境での問題発生時に詳細なスタックトレースを取得</li>
+<li>クラッシュダンプやエラーログからの迅速な原因特定</li>
+</ul></li>
+<li><strong>開発効率の向上</strong>:
+<ul>
+<li>パフォーマンス測定とデバッグを同時に実施可能</li>
+<li>プロファイリング時に関数名・行番号を特定可能</li>
+</ul></li>
+<li><strong>品質の向上</strong>:
+<ul>
+<li>本番環境と同じビルド構成でのテスト実施</li>
+<li>最適化による問題の早期発見（Release のみで発生する問題の検出）</li>
+</ul></li>
+<li><strong>トラブルシューティングの効率化</strong>:
+<ul>
+<li>本番環境での問題再現時にデバッグ情報が利用可能</li>
+<li>シンボルサーバーとの連携による柔軟な運用</li>
+</ul></li>
+</ol>
+<p><strong>推奨事項</strong>: 多くのプロダクションシステムでは、RelWithDebInfo を本番リリースのデフォルト構成として採用しています。デバッグシンボルのオーバーヘッドは最小限であり、トラブルシューティングの効率向上による利点が大きく上回ります。</p>
+<p>特に CI/CD パイプラインのデフォルト構成として RelWithDebInfo を採用することで、継続的にパフォーマンスを監視しながら、問題発生時には迅速なデバッグが可能になります。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

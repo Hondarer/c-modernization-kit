@@ -1,0 +1,383 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Doxygen における画像の仕様</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Doxygen における画像の仕様</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 7 Feb 2026 08:08:49 +0900 8055e65</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#markdown-画像参照の対応" id="toc-markdown-画像参照の対応"><span class="toc-section-number">1</span> Markdown 画像参照の対応</a></li>
+                <li><a href="#image_path-の設定" id="toc-image_path-の設定"><span class="toc-section-number">2</span> IMAGE_PATH の設定</a>
+                <ul>
+                <li><a href="#複数パスの指定" id="toc-複数パスの指定"><span class="toc-section-number">2.1</span> 複数パスの指定</a></li>
+                </ul></li>
+                <li><a href="#画像検索の仕組み" id="toc-画像検索の仕組み"><span class="toc-section-number">3</span> 画像検索の仕組み</a>
+                <ul>
+                <li><a href="#具体例" id="toc-具体例"><span class="toc-section-number">3.1</span> 具体例</a></li>
+                </ul></li>
+                <li><a href="#ワイルドカードと再帰探索" id="toc-ワイルドカードと再帰探索"><span class="toc-section-number">4</span> ワイルドカードと再帰探索</a></li>
+                <li><a href="#過去の問題と現状" id="toc-過去の問題と現状"><span class="toc-section-number">5</span> 過去の問題と現状</a></li>
+                <li><a href="#推奨される使い方" id="toc-推奨される使い方"><span class="toc-section-number">6</span> 推奨される使い方</a>
+                <ul>
+                <li><a href="#方法-1-markdown-構文を使用" id="toc-方法-1-markdown-構文を使用"><span class="toc-section-number">6.1</span> 方法 1: Markdown 構文を使用</a></li>
+                <li><a href="#方法-2-doxygen-コマンドを使用より確実" id="toc-方法-2-doxygen-コマンドを使用より確実"><span class="toc-section-number">6.2</span> 方法 2: Doxygen コマンドを使用（より確実）</a></li>
+                </ul></li>
+                <li><a href="#参考情報" id="toc-参考情報"><span class="toc-section-number">7</span> 参考情報</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Doxygen における画像の仕様</H1>
+      
+      
+      <h1 data-number="1" id="markdown-画像参照の対応"><span class="header-section-number">1</span> Markdown 画像参照の対応</h1>
+<p>Doxygen は <code>![alt](path_to_png)</code> 形式の Markdown 画像参照を Pages として処理できます。</p>
+<p><code>.md</code> または <code>.markdown</code> 拡張子のファイルは自動的にページとして変換され、その中の Markdown 画像構文もサポートされます。</p>
+<h1 data-number="2" id="image_path-の設定"><span class="header-section-number">2</span> IMAGE_PATH の設定</h1>
+<p>画像を正しく表示するには、Doxyfile で <code>IMAGE_PATH</code> の設定が必要です。</p>
+<pre class="doxyfile"><code>IMAGE_PATH = path/to/your/images</code></pre>
+<div data-custom-style="Source Code Caption">
+基本設定
+</div>
+<h2 data-number="2.1" id="複数パスの指定"><span class="header-section-number">2.1</span> 複数パスの指定</h2>
+<pre class="doxyfile"><code>IMAGE_PATH = docs/images \
+             examples/images \
+             ../shared/images</code></pre>
+<div data-custom-style="Source Code Caption">
+複数のディレクトリを指定
+</div>
+<p>IMAGE_PATH は以下の形式で指定できます。</p>
+<ul>
+<li>Doxygen を実行する場所からの相対パス</li>
+<li>絶対パス</li>
+</ul>
+<h1 data-number="3" id="画像検索の仕組み"><span class="header-section-number">3</span> 画像検索の仕組み</h1>
+<p>Doxygen の画像検索には特殊な仕組みがあります。</p>
+<ul>
+<li>画像が見つかるには、ファイル名とパスが実際のフルパスの一部と一致する必要がある</li>
+<li>Markdown ファイルからの相対パスではなく、IMAGE_PATH で指定したディレクトリから画像を探す</li>
+</ul>
+<h2 data-number="3.1" id="具体例"><span class="header-section-number">3.1</span> 具体例</h2>
+<pre class="text"><code>/project/docs/page.md
+/project/docs/images/screenshot.png</code></pre>
+<p>この場合の設定は次のようになります。</p>
+<pre class="doxyfile"><code>IMAGE_PATH = docs/images</code></pre>
+<div data-custom-style="Source Code Caption">
+Doxyfile
+</div>
+<p>Markdown 内では次のように参照できます。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="al">![スクリーンショット](screenshot.png)</span></span></code></pre></div>
+<div data-custom-style="Source Code Caption">
+page.md
+</div>
+<h1 data-number="4" id="ワイルドカードと再帰探索"><span class="header-section-number">4</span> ワイルドカードと再帰探索</h1>
+<p><strong>重要:</strong> IMAGE_PATH ではワイルドカード記法は使用できません。</p>
+<ul>
+<li><code>*/images</code> のような記法は使えない</li>
+<li>再帰的な探索オプションも存在しない</li>
+</ul>
+<p>すべてのパスを個別に列挙する必要があります。</p>
+<pre class="doxyfile"><code>IMAGE_PATH = docs/module1/images \
+             docs/module2/images \
+             docs/module3/images \
+             examples/images</code></pre>
+<div data-custom-style="Source Code Caption">
+複数の images ディレクトリを列挙
+</div>
+<h1 data-number="5" id="過去の問題と現状"><span class="header-section-number">5</span> 過去の問題と現状</h1>
+<p>過去には以下の問題がありましたが、現在は修正されています。</p>
+<ul>
+<li>Markdown 構文 <code>![caption](filename)</code> を使った場合に画像ファイルがコピーされない問題 → Doxygen 1.8.1 で修正済み</li>
+</ul>
+<p>ただし、相対パスを使った場合に画像が出力ディレクトリにコピーされず、パスの変換だけが行われる問題が報告されることもあります。</p>
+<h1 data-number="6" id="推奨される使い方"><span class="header-section-number">6</span> 推奨される使い方</h1>
+<p>確実に動作させるには次のいずれかを選択してください。</p>
+<h2 data-number="6.1" id="方法-1-markdown-構文を使用"><span class="header-section-number">6.1</span> 方法 1: Markdown 構文を使用</h2>
+<p>IMAGE_PATH に画像ディレクトリを設定し、ファイル名のみで参照します。</p>
+<pre class="doxyfile"><code>IMAGE_PATH = docs/images</code></pre>
+<div data-custom-style="Source Code Caption">
+Doxyfile
+</div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="al">![ロゴ画像](logo.png)</span></span></code></pre></div>
+<div data-custom-style="Source Code Caption">
+page.md
+</div>
+<h2 data-number="6.2" id="方法-2-doxygen-コマンドを使用より確実"><span class="header-section-number">6.2</span> 方法 2: Doxygen コマンドを使用（より確実）</h2>
+<pre class="text"><code>\image html logo.png &quot;ロゴ画像&quot;</code></pre>
+<h1 data-number="7" id="参考情報"><span class="header-section-number">7</span> 参考情報</h1>
+<ul>
+<li><a href="https://www.doxygen.nl/manual/markdown.html">Doxygen Markdown サポート</a></li>
+<li><a href="https://www.doxygen.nl/manual/config.html">Doxygen 設定リファレンス</a></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>
