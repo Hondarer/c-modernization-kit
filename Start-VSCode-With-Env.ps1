@@ -365,9 +365,15 @@ if ($makeVersionOutput -notmatch "^GNU Make") {
 # https://github.com/microsoft/vscode/issues/236981
 $codeProcess = Get-Process -Name "Code" -ErrorAction SilentlyContinue
 if ($codeProcess) {
-    Write-Host "Error: VS Code is already running."
-    Write-Host "Environment variables set by this script will not be inherited by the existing instance."
-    Write-Host "Please close all VS Code windows and run this script again."
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.MessageBox]::Show(
+        "VS Code が既に起動しています。`n`n" +
+        "既存のインスタンスが存在する場合、このスクリプトで設定した環境変数は反映されません。`n" +
+        "すべての VS Code ウィンドウを閉じてから、再度実行してください。",
+        "Start-VSCode-With-Env",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    ) | Out-Null
     exit 1
 }
 
