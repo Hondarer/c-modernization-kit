@@ -6,6 +6,9 @@
     MinGW PATH と VSBT 環境変数を現在のセッションに設定し、VS Code を起動します。
     このテンプレートを任意のユーザーフォルダにコピーし、カスタマイズして利用してください。
 
+    各設定値が空文字 ("") の場合、候補ディレクトリを自動走査して検出します。
+    明示的にパスを設定した場合は、その値が優先されます。
+
 .PARAMETER EnvOnly
     環境変数の設定のみを行い、VS Code を起動しません。
 
@@ -14,7 +17,7 @@
 
 .EXAMPLE
     .\Start-VSCode-With-Env.ps1
-    環境変数を設定し、VS Code を新しいウィンドウで起動します。
+    候補ディレクトリを自動走査し、環境変数を設定して VS Code を起動します。
 
 .EXAMPLE
     . .\Start-VSCode-With-Env.ps1 -EnvOnly
@@ -28,6 +31,12 @@
 .NOTES
     VS Code の起動のみが目的の場合、ドットソースは不要です。
     VS Code はスクリプトの子プロセスとして起動するため、環境変数を継承します。
+
+    自動走査の対象:
+    - Git for Windows: "C:\Program Files\Git", "C:\ProgramData\devbin-win\bin\git"
+    - Visual Studio: "C:\Program Files\Microsoft Visual Studio\*\*", "C:\ProgramData\devbin-win\bin\vsbt"
+    - Windows SDK: "C:\Program Files (x86)\Windows Kits\10", "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+    - MSVC / Windows SDK のバージョンは、最新のものが自動選択されます。
 #>
 
 # ---- パラメータ宣言 ----
@@ -40,44 +49,46 @@ param(
 # ---- このスクリプトのファイル名とディレクトリ ----
 
 $scriptPath = $MyInvocation.MyCommand.Path
+$scriptName = [System.IO.Path]::GetFileNameWithoutExtension($scriptPath)
 $scriptDir = Split-Path -Parent $scriptPath
 
 # ---- ユーザー設定値 START ----------------------------------------------------------------------------
 
 # 以下の内容は、環境に応じてカスタマイズを行ってください
+# 空文字 ("") を設定すると、候補ディレクトリの走査による自動検出を行います
 
 # Git for Windows ディレクトリ
 # 例:                 "C:\Program Files\Git"
 #                     "C:\ProgramData\devbin-win\bin\git"
-$gitProgramPath     = "C:\Program Files\Git"
+$gitProgramPath     = ""
 
 # VS Debug Interface Access SDK ディレクトリ
 # 例:                 "C:\Program Files\Microsoft Visual Studio\2022\Professional\DIA SDK"
 #                     "C:\Program Files\Microsoft Visual Studio\18\Professional\DIA SDK"
 #                     "C:\ProgramData\devbin-win\bin\vsbt\DIA SDK"
-$diaSDKPath         = "C:\Program Files\Microsoft Visual Studio\18\Professional\DIA SDK"
+$diaSDKPath         = ""
 
 # MSVC ツールセット ディレクトリ
 # 例:                 "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC"
 #                     "C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC"
 #                     "C:\ProgramData\devbin-win\bin\vsbt\VC\Tools\MSVC"
-$msvcToolSetPath    = "C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC"
+$msvcToolSetPath    = ""
 
 # MSVC ツールセット バージョン
 # インストールされているバージョンを確認するには、$msvcToolSetPath 配下を確認してください
 # 例:                 "14.50.35717"
 #                     "14.44.35207"
-$msvcToolSetVersion = "14.50.35717"
+$msvcToolSetVersion = ""
 
 # Windows SDK ディレクトリ
 # 例:                 "C:\Program Files (x86)\Windows Kits\10"
 #                     "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
-$windowsSDKPath     = "C:\Program Files (x86)\Windows Kits\10"
+$windowsSDKPath     = ""
 
 # Windows SDK バージョン
 # インストールされているバージョンを確認するには、$windowsSDKPath\Lib 配下を確認してください
 # 例:                 "10.0.26100.0"
-$windowsSDKVersion  = "10.0.26100.0"
+$windowsSDKVersion  = ""
 
 # VS Code 起動対象のレポジトリのパス
 # このスクリプトを個人フォルダにコピーして利用する場合に変更してください
@@ -88,7 +99,12 @@ $vscodeTargetPath   = Join-Path $scriptDir "."
 # ---- プラットフォームチェック ----
 
 if (-not $IsWindows -and $PSVersionTable.PSEdition -ne 'Desktop') {
-    Write-Host "Error: This script is for Windows only."
+    Write-Error "This script is for Windows only."
+    exit 1
+}
+
+if ([System.Environment]::Is64BitOperatingSystem -eq $false) {
+    Write-Error "This script requires a 64-bit operating system."
     exit 1
 }
 
@@ -99,19 +115,159 @@ if ($Help) {
     return
 }
 
+# ---- 候補ディレクトリ走査用ヘルパー関数 ----
+
+# 候補パスのリストから最初に存在するパスを返す
+function Find-FirstValidPath {
+    param([string[]]$Candidates)
+    foreach ($path in $Candidates) {
+        if (Test-Path $path) { return $path }
+    }
+    return $null
+}
+
+# ディレクトリ内のバージョン番号ディレクトリから最新のものを返す
+function Find-LatestVersionDirectory {
+    param([string]$BasePath)
+    if (-not (Test-Path $BasePath)) { return $null }
+    $dirs = Get-ChildItem $BasePath -Directory | Where-Object { $_.Name -match '^\d+\.' }
+    if (-not $dirs) { return $null }
+    $sorted = $dirs | Sort-Object {
+        try { [version]$_.Name } catch { [version]"0.0" }
+    } -Descending
+    return ($sorted | Select-Object -First 1).Name
+}
+
+# ---- 候補ディレクトリの走査 ----
+
+# Visual Studio インストールの候補パスを構築
+# VS2022 以前: 年ベースのディレクトリ名 (2017, 2019, 2022)
+# VS2026 以降: 内部メジャーバージョン番号 (18, 19, ...)
+# 新しいバージョンを優先するため、内部バージョン番号 (< 2000) を年ベース (>= 2000) より先にソートする
+$vsBaseCandidates = @()
+$vsProgramFiles = "C:\Program Files\Microsoft Visual Studio"
+if (Test-Path $vsProgramFiles) {
+    $vsVersionDirs = Get-ChildItem $vsProgramFiles -Directory |
+        Where-Object { $_.Name -match '^\d+$' } |
+        Sort-Object {
+            $v = [int]$_.Name
+            if ($v -lt 2000) { 10000 + $v } else { $v }
+        } -Descending
+    foreach ($versionDir in $vsVersionDirs) {
+        $vsEditions = Get-ChildItem $versionDir.FullName -Directory
+        foreach ($edition in $vsEditions) {
+            $vsBaseCandidates += $edition.FullName
+        }
+    }
+}
+$vsBaseCandidates += "C:\ProgramData\devbin-win\bin\vsbt"
+
+# Git for Windows の自動検出
+if (-not $gitProgramPath) {
+    $gitCandidates = @(
+        "C:\Program Files\Git",
+        "C:\ProgramData\devbin-win\bin\git"
+    )
+    $gitProgramPath = Find-FirstValidPath $gitCandidates
+    if ($gitProgramPath) {
+        Write-Host "Git:                 $gitProgramPath"
+    } else {
+        Write-Error "Git for Windows not found in candidate directories:"
+        $gitCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+} else {
+    Write-Host "Git:                 $gitProgramPath"
+}
+
+# DIA SDK の自動検出
+if (-not $diaSDKPath) {
+    $diaCandidates = $vsBaseCandidates | ForEach-Object { Join-Path $_ "DIA SDK" }
+    $diaSDKPath = Find-FirstValidPath $diaCandidates
+    if ($diaSDKPath) {
+        Write-Host "DIA SDK:             $diaSDKPath"
+    } else {
+        Write-Error "DIA SDK not found in candidate directories:"
+        $diaCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+} else {
+    Write-Host "DIA SDK:             $diaSDKPath"
+}
+
+# MSVC ツールセットの自動検出
+if (-not $msvcToolSetPath) {
+    $msvcCandidates = $vsBaseCandidates | ForEach-Object { Join-Path $_ "VC\Tools\MSVC" }
+    $msvcToolSetPath = Find-FirstValidPath $msvcCandidates
+    if ($msvcToolSetPath) {
+        Write-Host "MSVC ToolSet:        $msvcToolSetPath"
+    } else {
+        Write-Error "MSVC ToolSet not found in candidate directories:"
+        $msvcCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+} else {
+    Write-Host "MSVC ToolSet:        $msvcToolSetPath"
+}
+
+# MSVC ツールセットバージョンの自動検出
+if (-not $msvcToolSetVersion) {
+    $msvcToolSetVersion = Find-LatestVersionDirectory $msvcToolSetPath
+    if ($msvcToolSetVersion) {
+        Write-Host "MSVC version:        $msvcToolSetVersion"
+    } else {
+        Write-Error "No MSVC ToolSet version found in: $msvcToolSetPath"
+        exit 1
+    }
+} else {
+    Write-Host "MSVC version:        $msvcToolSetVersion"
+}
+
+# Windows SDK の自動検出
+if (-not $windowsSDKPath) {
+    $sdkCandidates = @(
+        "C:\Program Files (x86)\Windows Kits\10",
+        "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+    )
+    $windowsSDKPath = Find-FirstValidPath $sdkCandidates
+    if ($windowsSDKPath) {
+        Write-Host "Windows SDK:         $windowsSDKPath"
+    } else {
+        Write-Error "Windows SDK not found in candidate directories:"
+        $sdkCandidates | ForEach-Object { Write-Host "  - $_" }
+        exit 1
+    }
+} else {
+    Write-Host "Windows SDK:         $windowsSDKPath"
+}
+
+# Windows SDK バージョンの自動検出
+if (-not $windowsSDKVersion) {
+    $sdkLibPath = Join-Path $windowsSDKPath "Lib"
+    $windowsSDKVersion = Find-LatestVersionDirectory $sdkLibPath
+    if ($windowsSDKVersion) {
+        Write-Host "Windows SDK version: $windowsSDKVersion"
+    } else {
+        Write-Error "No Windows SDK version found in: $sdkLibPath"
+        exit 1
+    }
+} else {
+    Write-Host "Windows SDK version: $windowsSDKVersion"
+}
+
 # ---- MinGW 環境変数の設定 ----
 
 $mingwPath = Join-Path $gitProgramPath "mingw64\bin"
 $usrPath   = Join-Path $gitProgramPath "usr\bin"
 
 if (-not (Test-Path $mingwPath)) {
-    Write-Host "Error: MinGW path not found: $mingwPath"
+    Write-Error "MinGW path not found: $mingwPath"
     Write-Host "Please ensure Git is properly installed"
     exit 1
 }
 
 if (-not (Test-Path $usrPath)) {
-    Write-Host "Error: usr/bin path not found: $usrPath"
+    Write-Error "usr/bin path not found: $usrPath"
     Write-Host "Please ensure Git is properly installed"
     exit 1
 }
@@ -126,11 +282,11 @@ foreach ($pathToAdd in @($mingwPath, $usrPath)) {
     }
 }
 
-if ($mingwChanged) {
-    Write-Host "MinGW PATH addition completed."
-} else {
-    Write-Host "MinGW PATH already set."
-}
+#if ($mingwChanged) {
+#    Write-Host "MinGW PATH addition completed."
+#} else {
+#    Write-Host "MinGW PATH already set."
+#}
 
 # ---- VSBT 環境変数の設定 ----
 
@@ -161,7 +317,7 @@ $vsbtDirs = @(
 
 foreach ($dir in $vsbtDirs) {
     if (-not (Test-Path $dir)) {
-        Write-Host "Error: VSBT path not found: $dir"
+        Write-Error "VSBT path not found: $dir"
         exit 1
     }
 }
@@ -186,11 +342,11 @@ foreach ($pathToAdd in @($msvcBin, $sdkBin, $sdkUcrtBin, $diaBin)) {
 $env:INCLUDE = "$msvcInclude;$sdkUcrtInclude;$sdkSharedInclude;$sdkUmInclude;$sdkWinrtInclude;$sdkCppWinrtInclude;$diaInclude"
 $env:LIB     = "$msvcLib;$sdkUcrtLib;$sdkUmLib;$diaLib"
 
-if ($vsbtChanged) {
-    Write-Host "VSBT PATH addition completed."
-} else {
-    Write-Host "VSBT PATH already set."
-}
+#if ($vsbtChanged) {
+#    Write-Host "VSBT PATH addition completed."
+#} else {
+#    Write-Host "VSBT PATH already set."
+#}
 
 # ---- 環境変数設定のみの場合は、ここで終了 ----
 
@@ -202,13 +358,13 @@ if ($EnvOnly) {
 
 $makeCmd = Get-Command make.exe -ErrorAction SilentlyContinue
 if (-not $makeCmd) {
-    Write-Host "Error: make.exe not found in PATH."
+    Write-Error "make.exe not found in PATH."
     Write-Host "Please ensure GNU Make is installed and its path is configured."
     exit 1
 }
 $makeVersionOutput = & make.exe --version 2>&1 | Select-Object -First 1
 if ($makeVersionOutput -notmatch "^GNU Make") {
-    Write-Host "Error: make.exe is not GNU Make."
+    Write-Error "make.exe is not GNU Make."
     Write-Host "Found: $makeVersionOutput"
     Write-Host "Path: $($makeCmd.Source)"
     exit 1
@@ -217,8 +373,66 @@ if ($makeVersionOutput -notmatch "^GNU Make") {
 
 # ---- VS Code 起動 ----
 
+# 既存の VS Code インスタンスが存在する場合、新しいウィンドウは既存プロセスの環境変数を
+# 継承するため、このスクリプトで設定した環境変数が反映されない (as-designed)。
+# https://github.com/microsoft/vscode/issues/236981
+$codeProcess = Get-Process -Name "Code" -ErrorAction SilentlyContinue
+if ($codeProcess) {
+    Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+
+public class Win32MessageBox {
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetTopWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
+    public const uint GW_HWNDNEXT = 2;
+}
+"@
+
+    $codeProcessIds = @($codeProcess) | ForEach-Object { $_.Id }
+
+    # トップレベルウィンドウを Z-order 順に走査し、最初の可視 Code.exe ウィンドウを探す
+    # スクリプト起動時はショートカットやコンソールが最前面にあるため、
+    # Code.exe のウィンドウはその下に位置する
+    $ownerHwnd = [IntPtr]::Zero
+    $hWnd = [Win32MessageBox]::GetTopWindow([IntPtr]::Zero)
+    while ($hWnd -ne [IntPtr]::Zero) {
+        if ([Win32MessageBox]::IsWindowVisible($hWnd)) {
+            $wndPid = [uint32]0
+            [Win32MessageBox]::GetWindowThreadProcessId($hWnd, [ref]$wndPid) | Out-Null
+            if ($codeProcessIds -contains $wndPid) {
+                $ownerHwnd = $hWnd
+                break
+            }
+        }
+        $hWnd = [Win32MessageBox]::GetWindow($hWnd, [Win32MessageBox]::GW_HWNDNEXT)
+    }
+
+    # MB_OK = 0x0
+    $message = "VS Code がすでに起動しています。`n`n" +
+               "既存のインスタンスが存在する場合、スクリプトで設定した環境変数は反映されません。`n" +
+               "すべての VS Code ウィンドウを閉じてから、再度実行してください。"
+    Write-Error $message
+    [System.Media.SystemSounds]::Exclamation.Play()
+    [Win32MessageBox]::MessageBox($ownerHwnd, $message, $scriptName, 0x0) | Out-Null
+    exit 1
+}
+
 if (-not (Test-Path $vscodeTargetPath)) {
-    Write-Host "Error: VS Code target path not found: $vscodeTargetPath"
+    Write-Error "VS Code target path not found: $vscodeTargetPath"
     exit 1
 }
 Write-Host "Starting new VS Code window with configured environment..."
