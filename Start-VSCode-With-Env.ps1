@@ -135,13 +135,20 @@ function Find-LatestVersionDirectory {
 # ---- 候補ディレクトリの走査 ----
 
 # Visual Studio インストールの候補パスを構築
+# VS2022 以前: 年ベースのディレクトリ名 (2017, 2019, 2022)
+# VS2026 以降: 内部メジャーバージョン番号 (18, 19, ...)
+# 新しいバージョンを優先するため、内部バージョン番号 (< 2000) を年ベース (>= 2000) より先にソートする
 $vsBaseCandidates = @()
 $vsProgramFiles = "C:\Program Files\Microsoft Visual Studio"
 if (Test-Path $vsProgramFiles) {
-    # インストール済みの VS を走査 (バージョン降順)
-    $vsYears = Get-ChildItem $vsProgramFiles -Directory | Sort-Object Name -Descending
-    foreach ($year in $vsYears) {
-        $vsEditions = Get-ChildItem $year.FullName -Directory
+    $vsVersionDirs = Get-ChildItem $vsProgramFiles -Directory |
+        Where-Object { $_.Name -match '^\d+$' } |
+        Sort-Object {
+            $v = [int]$_.Name
+            if ($v -lt 2000) { 10000 + $v } else { $v }
+        } -Descending
+    foreach ($versionDir in $vsVersionDirs) {
+        $vsEditions = Get-ChildItem $versionDir.FullName -Directory
         foreach ($edition in $vsEditions) {
             $vsBaseCandidates += $edition.FullName
         }
