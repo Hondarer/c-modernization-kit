@@ -365,15 +365,46 @@ if ($makeVersionOutput -notmatch "^GNU Make") {
 # https://github.com/microsoft/vscode/issues/236981
 $codeProcess = Get-Process -Name "Code" -ErrorAction SilentlyContinue
 if ($codeProcess) {
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.MessageBox]::Show(
-        "VS Code が既に起動しています。`n`n" +
-        "既存のインスタンスが存在する場合、このスクリプトで設定した環境変数は反映されません。`n" +
-        "すべての VS Code ウィンドウを閉じてから、再度実行してください。",
-        "Start-VSCode-With-Env",
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    ) | Out-Null
+    Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+
+public class Win32MessageBox {
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+}
+"@
+
+    $codeProcessIds = @($codeProcess) | ForEach-Object { $_.Id }
+
+    # フォアグラウンドウィンドウが Code.exe のものであればそれをオーナーにする
+    $ownerHwnd = [IntPtr]::Zero
+    $fgHwnd = [Win32MessageBox]::GetForegroundWindow()
+    $fgPid = [uint32]0
+    [Win32MessageBox]::GetWindowThreadProcessId($fgHwnd, [ref]$fgPid) | Out-Null
+    if ($codeProcessIds -contains $fgPid) {
+        $ownerHwnd = $fgHwnd
+    } else {
+        # フォアグラウンドが Code.exe でない場合、MainWindowHandle にフォールバック
+        foreach ($proc in @($codeProcess)) {
+            if ($proc.MainWindowHandle -ne [IntPtr]::Zero) {
+                $ownerHwnd = $proc.MainWindowHandle
+                break
+            }
+        }
+    }
+
+    # MB_OK | MB_ICONERROR = 0x10
+    $message = "VS Code が既に起動しています。`n`n" +
+               "既存のインスタンスが存在する場合、このスクリプトで設定した環境変数は反映されません。`n" +
+               "すべての VS Code ウィンドウを閉じてから、再度実行してください。"
+    [Win32MessageBox]::MessageBox($ownerHwnd, $message, "Start-VSCode-With-Env", 0x10) | Out-Null
     exit 1
 }
 
