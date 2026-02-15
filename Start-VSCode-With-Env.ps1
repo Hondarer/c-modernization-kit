@@ -371,33 +371,41 @@ using System.Runtime.InteropServices;
 
 public class Win32MessageBox {
     [DllImport("user32.dll")]
-    public static extern IntPtr GetForegroundWindow();
+    public static extern IntPtr GetTopWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
 
     [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
+    public const uint GW_HWNDNEXT = 2;
 }
 "@
 
     $codeProcessIds = @($codeProcess) | ForEach-Object { $_.Id }
 
-    # フォアグラウンドウィンドウが Code.exe のものであればそれをオーナーにする
+    # トップレベルウィンドウを Z-order 順に走査し、最初の可視 Code.exe ウィンドウを探す
+    # スクリプト起動時はショートカットやコンソールが最前面にあるため、
+    # Code.exe のウィンドウはその下に位置する
     $ownerHwnd = [IntPtr]::Zero
-    $fgHwnd = [Win32MessageBox]::GetForegroundWindow()
-    $fgPid = [uint32]0
-    [Win32MessageBox]::GetWindowThreadProcessId($fgHwnd, [ref]$fgPid) | Out-Null
-    if ($codeProcessIds -contains $fgPid) {
-        $ownerHwnd = $fgHwnd
-    } else {
-        # フォアグラウンドが Code.exe でない場合、MainWindowHandle にフォールバック
-        foreach ($proc in @($codeProcess)) {
-            if ($proc.MainWindowHandle -ne [IntPtr]::Zero) {
-                $ownerHwnd = $proc.MainWindowHandle
+    $hWnd = [Win32MessageBox]::GetTopWindow([IntPtr]::Zero)
+    while ($hWnd -ne [IntPtr]::Zero) {
+        if ([Win32MessageBox]::IsWindowVisible($hWnd)) {
+            $wndPid = [uint32]0
+            [Win32MessageBox]::GetWindowThreadProcessId($hWnd, [ref]$wndPid) | Out-Null
+            if ($codeProcessIds -contains $wndPid) {
+                $ownerHwnd = $hWnd
                 break
             }
         }
+        $hWnd = [Win32MessageBox]::GetWindow($hWnd, [Win32MessageBox]::GW_HWNDNEXT)
     }
 
     # MB_OK | MB_ICONERROR = 0x10
