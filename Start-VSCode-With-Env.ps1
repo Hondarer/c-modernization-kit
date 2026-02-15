@@ -102,6 +102,11 @@ if (-not $IsWindows -and $PSVersionTable.PSEdition -ne 'Desktop') {
     exit 1
 }
 
+if ([System.Environment]::Is64BitOperatingSystem -eq $false) {
+    Write-Host "Error: This script requires a 64-bit operating system."
+    exit 1
+}
+
 # ---- ヘルプ表示 ----
 
 if ($Help) {
