@@ -360,6 +360,17 @@ if ($makeVersionOutput -notmatch "^GNU Make") {
 
 # ---- VS Code 起動 ----
 
+# 既存の VS Code インスタンスが存在する場合、新しいウィンドウは既存プロセスの環境変数を
+# 継承するため、このスクリプトで設定した環境変数が反映されない (as-designed)。
+# https://github.com/microsoft/vscode/issues/236981
+$codeProcess = Get-Process -Name "Code" -ErrorAction SilentlyContinue
+if ($codeProcess) {
+    Write-Host "Error: VS Code is already running."
+    Write-Host "Environment variables set by this script will not be inherited by the existing instance."
+    Write-Host "Please close all VS Code windows and run this script again."
+    exit 1
+}
+
 if (-not (Test-Path $vscodeTargetPath)) {
     Write-Host "Error: VS Code target path not found: $vscodeTargetPath"
     exit 1
