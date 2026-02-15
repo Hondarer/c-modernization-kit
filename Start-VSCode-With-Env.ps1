@@ -437,3 +437,4 @@ if (-not (Test-Path $vscodeTargetPath)) {
 }
 Write-Host "Starting new VS Code window with configured environment..."
 code --new-window "$vscodeTargetPath"
+exit
