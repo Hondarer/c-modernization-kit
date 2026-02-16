@@ -40,11 +40,13 @@ C テストフレームワークは以下の仕組みで results を生成して
 
 ### 現在の .NET テスト
 
-現在の `exec_test_dotnet.sh` は以下の機能のみを提供:
+`exec_test_dotnet.sh` は以下の機能を提供:
 
-- `dotnet test` の実行
-- `results/summary.log` への全体サマリ出力
-- **個別テストのログは生成されない**
+- `dotnet test` の一括実行 (TRX ロガーによる結果収集)
+- TRX XML のパースによるテストごとの Passed/Failed 判定
+- バッチ出力からの個別テスト結果抽出
+- `results/<TestClass>.<TestMethod>/results.log` への個別ログ生成
+- `results/all_tests/summary.log` への全体サマリ出力
 
 ## 設計
 
@@ -367,11 +369,13 @@ if __name__ == '__main__':
 
 **機能**:
 - `dotnet test --list-tests` でテスト一覧を取得
-- 各テストを個別に実行
+- `dotnet test` を1回だけ一括実行 (TRX ロガーで結果を記録)
+- `parse_trx_results.py` で TRX XML を解析し、テストごとの Passed/Failed を取得
+- `extract_dotnet_output.py` でバッチ出力から個別テスト結果を抽出
 - `get_test_code_dotnet.py` と `insert_summary_dotnet.py` を使用してログ生成
 - `results/<TestClass>.<TestMethod>/results.log` に出力
 
-**実装の拡張ポイント**:
+**一括実行の流れ**:
 
 ```bash
 # テスト一覧を取得
@@ -381,49 +385,34 @@ function list_tests() {
         sed -e 's/^[ \t]*//'
 }
 
-# 個別テストを実行
-function run_test() {
-    local fully_qualified_name=$1
+# テストを一括実行して結果をパース
+function run_all_tests_batch() {
+    # 1. テスト一覧取得 (パラメータ付きテストは重複除去)
+    local tests=$(list_tests | sed 's/(.*//' | sort -u)
 
-    # クラス名とメソッド名を分離
-    # 例: CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult
-    local namespace_and_class="${fully_qualified_name%.*}"
-    local method_name="${fully_qualified_name##*.}"
-    local class_name="${namespace_and_class##*.}"
+    # 2. dotnet test を1回だけ実行 (TRX ロガー付き)
+    dotnet test --no-build -c "$CONFIG" -o "$OUTPUT_DIR" \
+        --verbosity normal \
+        --logger "trx;LogFileName=results.trx" \
+        --results-directory "$trx_dir" > "$batch_output" 2>&1
 
-    # パラメータ付きテストの場合、パラメータ部分を除去
-    method_name_base=$(echo "$method_name" | sed 's/(.*//')
+    # 3. TRX を解析してテストごとの結果を取得
+    python3 "$SCRIPT_DIR/parse_trx_results.py" "$trx_file" > "$trx_results"
 
-    # results ディレクトリを作成
-    local test_id="$class_name.$method_name_base"
-    mkdir -p "results/$test_id"
-
-    # テストコードを抽出してサマリを生成
-    echo "Running test: $test_id"
-    echo "Running test: $test_id" > "results/$test_id/results.log"
-    echo "----" >> "results/$test_id/results.log"
-
-    # テストファイルを探す
-    local test_file=$(find . -name "${class_name}.cs" -type f | head -1)
-
-    if [ -n "$test_file" ]; then
-        python3 "$SCRIPT_DIR/get_test_code_dotnet.py" "$test_file" "$class_name" "$method_name_base" | \
-            python3 "$SCRIPT_DIR/insert_summary_dotnet.py" >> "results/$test_id/results.log"
-        echo "----" >> "results/$test_id/results.log"
-    fi
-
-    # テストを実行
-    echo "dotnet test --filter \"FullyQualifiedName~$class_name.$method_name_base\"" >> "results/$test_id/results.log"
-    dotnet test --filter "FullyQualifiedName~$class_name.$method_name_base" \
-        --no-build -c "$CONFIG" -o "$OUTPUT_DIR" --verbosity normal 2>&1 | \
-        grep -v '^\[xUnit\.net' | \
-        grep -v 'にビルドを開始しました' | \
-        grep -v 'Build started' | \
-        grep -v 'ビルドに成功しました' | \
-        grep -v 'Build succeeded' | \
-        cat -s >> "results/$test_id/results.log"
+    # 4. 各テストについてループ:
+    #    - テストコード抽出 + サマリ生成
+    #    - バッチ出力から該当テスト分を抽出
+    #    - results.log に保存
+    for test in $tests; do
+        # ...
+        python3 "$SCRIPT_DIR/extract_dotnet_output.py" "$batch_output" "$test_id" "$test_result"
+    done
 }
 ```
+
+**パフォーマンス改善**:
+- 従来: テストごとに `dotnet test --filter` を個別起動 (1回あたり約1.7秒のランタイム起動オーバーヘッド)
+- 現在: `dotnet test` を1回だけ実行し、結果をパースして同一の results 構造を生成
 
 ## 実現性評価
 
@@ -475,21 +464,30 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests.Add_ShouldReturnCorrec
 
 ## 技術的な課題と対策
 
-### 課題1: .NET テストの個別実行
+### 課題1: .NET テストの実行方式
 
 **課題**: dotnet test で個別のテストケースを実行する方法
 
-**対策**: `--filter` オプションを使用
+**対策 (フェーズ1)**: `--filter` オプションを使用した個別実行
 
 ```bash
-# 完全修飾名で指定
-dotnet test --filter "FullyQualifiedName=Namespace.ClassName.MethodName"
-
 # 部分一致 (Theory テストで推奨)
 dotnet test --filter "FullyQualifiedName~ClassName.MethodName"
 ```
 
-**検証済み**: ✅ 部分一致 (`~`) を使用することで Theory テストの全データセットを実行できる
+**対策 (フェーズ1.5)**: 一括実行 + TRX パースに変更
+
+```bash
+# 一括実行 (TRX ロガーで結果を記録)
+dotnet test --no-build --verbosity normal \
+    --logger "trx;LogFileName=results.trx" \
+    --results-directory "$trx_dir"
+```
+
+個別実行では1回あたり約1.7秒のランタイム起動オーバーヘッドが発生するため、
+一括実行方式に変更し、TRX XML のパースで個別テスト結果を取得する。
+
+**検証済み**: ✅ 一括実行で生成される results.log は、合計時間と個別テスト実行時間を除き従来版と同一
 
 ### 課題2: Theory/InlineData のパラメータテスト
 
@@ -578,7 +576,7 @@ if re.match(r'^\s*#pragma', line):
 | テストファイル検出の失敗 | 中 | 低 | find コマンドでの検索 + エラーハンドリング |
 | .NET のバージョン差異 | 低 | 低 | .NET 9.0 で動作確認済み |
 | カバレッジツールとの統合 | 高 | 中 | フェーズ1では除外、フェーズ2で検討 |
-| 既存の exec_test_dotnet.sh の破壊 | 高 | 低 | バックアップを作成、オプション化で既存動作を保持 |
+| 既存の exec_test_dotnet.sh の破壊 | 高 | 低 | 従来版との results 差分検証で同一性を確認 |
 
 ## 改善提案
 
@@ -599,26 +597,25 @@ if re.match(r'^\s*#pragma', line):
     continue
 ```
 
-### 2. exec_test_dotnet.sh の拡張方針
+### 2. exec_test_dotnet.sh のアーキテクチャ
 
-既存の動作を保持しつつ、新機能を追加する:
+一括実行方式を採用:
 
 ```bash
 #!/bin/bash
 
-# オプション解析
-INDIVIDUAL_TESTS=${INDIVIDUAL_TESTS:-true}
-
-if [ "$INDIVIDUAL_TESTS" = "true" ]; then
-    # 新しい個別テスト実行ロジック
-    run_individual_tests
-else
-    # 既存のサマリのみのロジック
-    run_summary_only
-fi
+# テストを一括実行して結果をパース
+function run_all_tests_batch() {
+    # 1. テスト一覧取得
+    # 2. dotnet test を1回だけ一括実行 (TRX ロガー付き)
+    # 3. parse_trx_results.py で TRX を解析
+    # 4. 各テストについて:
+    #    - テストコード抽出 + サマリ生成
+    #    - extract_dotnet_output.py でバッチ出力から該当テスト分を抽出
+    #    - results.log に保存
+    # 5. サマリ表示 + バナー
+}
 ```
-
-**推奨**: 環境変数 `INDIVIDUAL_TESTS=false` で既存の動作に戻せるようにする
 
 ### 3. ディレクトリ構造の明確化
 
@@ -652,14 +649,34 @@ results/
    - `testfw/cmnd/insert_summary_dotnet.py` (155行)
    - `testfw/cmnd/exec_test_dotnet.sh` (237行、既存のバックアップも保存)
 
-2. **フェーズ2: 機能拡張** (オプション)
+2. **フェーズ1.5: 一括実行への最適化** ✅ **完了** (2026-02-17)
+   - [x] `parse_trx_results.py` の新規作成 (TRX XML パーサー)
+   - [x] `extract_dotnet_output.py` の新規作成 (バッチ出力抽出)
+   - [x] `exec_test_dotnet.sh` の修正 (個別実行 → 一括実行)
+   - [x] 従来版との results 差分検証
+
+   **変更内容**:
+   - `dotnet test` を1回だけ一括実行し、TRX ロガーで結果を記録
+   - TRX XML を解析してテストごとの Passed/Failed を取得
+   - バッチ出力から個別テスト結果を抽出して results.log を生成
+   - .NET ランタイム起動オーバーヘッド (約1.7秒 × 23回) を大幅削減
+
+   **results.log の差分** (従来版との比較):
+   - `summary.log`: 日時のみ異なる
+   - 各 `results.log`: `合計時間` と個別テスト実行時間 `[XX ms]` のみ異なる
+   - テストコード、サマリ、テスト結果行 (成功/失敗) は同一
+
+   **追加されたファイル**:
+   - `testfw/cmnd/parse_trx_results.py` (TRX XML パーサー)
+   - `testfw/cmnd/extract_dotnet_output.py` (バッチ出力抽出)
+
+3. **フェーズ2: 機能拡張** (オプション)
    - [ ] Theory テストの個別パラメータログ生成 (必要性を再評価)
    - [ ] カバレッジ情報の統合 (coverlet, dotnet-coverage との連携)
    - [ ] エラー処理の強化
-   - [ ] パフォーマンスの最適化
 
-3. **フェーズ3: ドキュメント** (推奨)
-   - [ ] testfw/README.md への追記
+4. **フェーズ3: ドキュメント** (推奨)
+   - [x] testfw/README.md への追記
    - [ ] docs-src/testing-tutorial.md の更新
    - [ ] サンプルの追加
 
@@ -669,8 +686,12 @@ results/
 
 - `testfw/cmnd/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
 - `testfw/cmnd/get_test_code_c_cpp.awk` - テストコード抽出 (AWK)
-- `testfw/cmnd/insert_summary.awk` - サマリ生成 (AWK)
-- `testfw/cmnd/exec_test_dotnet.sh` - .NET テスト実行スクリプト (現状)
+- `testfw/cmnd/insert_summary_c_cpp.awk` - サマリ生成 (AWK)
+- `testfw/cmnd/exec_test_dotnet.sh` - .NET テスト実行スクリプト (一括実行)
+- `testfw/cmnd/get_test_code_dotnet.py` - .NET テストコード抽出
+- `testfw/cmnd/insert_summary_dotnet.py` - .NET サマリ生成
+- `testfw/cmnd/parse_trx_results.py` - TRX XML パーサー
+- `testfw/cmnd/extract_dotnet_output.py` - バッチ出力から個別テスト結果を抽出
 
 ### .NET テストプロジェクト
 
