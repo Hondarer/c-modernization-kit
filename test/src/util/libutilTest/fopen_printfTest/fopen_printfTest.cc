@@ -3,6 +3,7 @@
 #include <file-util.h>
 #include <string.h>
 #include <errno.h>
+#include <stdint.h>
 
 class fopen_printfTest : public Test
 {
@@ -123,7 +124,7 @@ TEST_F(fopen_printfTest, test_successful_call_with_format)
 {
     // Arrange
     Mock_stdio mock_stdio;
-    FILE *expected_fp = (FILE *)0x12345678;
+    FILE *expected_fp = (FILE *)(uintptr_t)0x12345678;
 
     // Pre-Assert
     EXPECT_CALL(mock_stdio, fopen(_, _, _, StrEq("test_123.txt"), StrEq("r")))
@@ -140,7 +141,7 @@ TEST_F(fopen_printfTest, test_successful_call_with_format)
 {
     // Arrange
     Mock_stdio mock_stdio;
-    FILE *expected_fp = (FILE *)0x12345678;
+    FILE *expected_fp = (FILE *)(uintptr_t)0x12345678;
 
     // Pre-Assert
     EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("test_123.txt"), StrEq("r")))
@@ -159,7 +160,7 @@ TEST_F(fopen_printfTest, test_successful_call_with_multiple_parameters)
 {
     // Arrange
     Mock_stdio mock_stdio;
-    FILE *expected_fp = (FILE *)0x87654321;
+    FILE *expected_fp = (FILE *)(uintptr_t)0x87654321;
 
     // Pre-Assert
     EXPECT_CALL(mock_stdio, fopen(_, _, _, StrEq("output_1_2_3.txt"), StrEq("w")))
@@ -176,7 +177,7 @@ TEST_F(fopen_printfTest, test_successful_call_with_multiple_parameters)
 {
     // Arrange
     Mock_stdio mock_stdio;
-    FILE *expected_fp = (FILE *)0x87654321;
+    FILE *expected_fp = (FILE *)(uintptr_t)0x87654321;
 
     // Pre-Assert
     EXPECT_CALL(mock_stdio, fopen_s(_, _, _, _, StrEq("output_1_2_3.txt"), StrEq("w")))
@@ -291,7 +292,7 @@ TEST_F(fopen_printfTest, test_fopen_success_errno_not_set)
 {
     // Arrange
     Mock_stdio mock_stdio;
-    FILE *expected_fp = (FILE *)0x12345678;
+    FILE *expected_fp = (FILE *)(uintptr_t)0x12345678;
     int error_code = 999; // 初期値を設定
 
     // Pre-Assert
@@ -310,7 +311,7 @@ TEST_F(fopen_printfTest, test_fopen_s_success_errno_not_set)
 {
     // Arrange
     Mock_stdio mock_stdio;
-    FILE *expected_fp = (FILE *)0x12345678;
+    FILE *expected_fp = (FILE *)(uintptr_t)0x12345678;
     int error_code = 999; // 初期値を設定
 
     // Pre-Assert
