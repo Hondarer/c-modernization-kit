@@ -38,8 +38,12 @@ jobs:
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Record make version
+        run: make --version
+
       - name: Build
         run: |
+          set -o pipefail
           mkdir -p logs
           make 2>&1 | tee logs/linux-${{ matrix.os-name }}-build.log
 
@@ -47,7 +51,9 @@ jobs:
         run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Run tests
-        run: make test 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
+        run: |
+          set -o pipefail
+          make test 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v4
@@ -95,6 +101,10 @@ jobs:
       - name: Setup MSVC environment
         run: |
           & "${{ github.workspace }}\.github\scripts\Add-VSBT-Env-x64.ps1"
+        shell: pwsh
+
+      - name: Record make version
+        run: make --version
         shell: pwsh
 
       - name: Build
