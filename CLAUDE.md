@@ -260,26 +260,22 @@ Claude Code が Windows 対応を進めるにあたり、以下の前提を把�
 
 GNU Make (make.exe) へのパスはすでに通っています。
 
-#### ポータブル版 Visual Studio Build Tools のパス設定
+#### 開発環境のセットアップ
 
-ポータブル版 Visual Studio Build Tools はあらかじめインストールされています。  
-呼び出しを行えるようにするには、
+ポータブル版 Visual Studio Build Tools と Git for Windows はあらかじめインストールされています。
+MinGW PATH と VSBT 環境変数を設定するには、`Start-VSCode-With-Env.ps1` を利用します。
 
-```cmd
-Add-VSBT-Env-x64.cmd
+環境変数の設定のみを行う場合は、`-EnvOnly` パラメータを指定してドットソースで実行します。
+
+```powershell
+. .\Start-VSCode-With-Env.ps1 -EnvOnly
 ```
 
-を実行する必要があります。Add-VSBT-Env-x64.cmd より、パスを含む環境変数が設定されます。  
-call 命令で実行しないと、環境変数を取り込めない点に注意が必要です。
+VS Code を起動する場合は、パラメータなしで実行します。VS Code は子プロセスとして起動するため、設定した環境変数を継承します。
 
-#### Git for Windows のパス設定
-
-Git for Windows はあらかじめインストールされています。  
-MinGW の各種コマンドの呼び出しを行えるようにするには、
-
-```cmd
-Add-MinGW-Path.cmd
+```powershell
+.\Start-VSCode-With-Env.ps1
 ```
 
-を実行する必要があります。Add-MinGW-Path.cmd より、パスを含む環境変数が設定されます。
-call 命令で実行しないと、環境変数を取り込めない点に注意が必要です。
+各種パス (Git for Windows, MSVC ToolSet, Windows SDK など) は候補ディレクトリを自動走査して検出されます。  
+明示的にパスを設定する場合は、スクリプト内のユーザー設定値セクションを編集してください。

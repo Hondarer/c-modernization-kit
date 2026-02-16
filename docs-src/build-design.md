@@ -27,11 +27,10 @@
    - GNU Make (`make.exe`)
    - 各種 Unix コマンド
 
-3. 環境設定の実行順序 (手動設定時のみ)
+3. 環境設定の実行 (手動設定時のみ)
 
-   ```cmd
-   call Add-MinGW-Path.cmd
-   call Add-VSBT-Env-x64.cmd
+   ```powershell
+   . .\Start-VSCode-With-Env.ps1 -EnvOnly
    ```
 
 ## ビルド方法
@@ -605,11 +604,10 @@ OBJS = obj/calcHandler.obj
 
 ### 環境設定スクリプト
 
-Windows 環境では、環境設定スクリプトを実行する必要があります。
+Windows 環境では、`Start-VSCode-With-Env.ps1` で環境設定を行う必要があります。VS Code を起動せず環境変数のみを設定する場合は、`-EnvOnly` パラメータを指定してドットソースで実行します。
 
-```cmd
-call Add-MinGW-Path.cmd
-call Add-VSBT-Env-x64.cmd
+```powershell
+. .\Start-VSCode-With-Env.ps1 -EnvOnly
 ```
 
 ### UTF-8 ソースコードへの対応

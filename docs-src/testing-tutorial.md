@@ -155,17 +155,11 @@ sudo pip3 install gcovr
 
 #### 環境設定スクリプト
 
-Windows では、コマンドプロンプトで以下のスクリプトを実行してから VS Code を起動します:
+Windows では、`Start-VSCode-With-Env.ps1` を実行して VS Code を起動します:
 
-```cmd
-REM 環境設定
-call Add-MinGW-Path.cmd
-call Add-VSBT-Env-x64.cmd
-code
+```powershell
+.\Start-VSCode-With-Env.ps1
 ```
-
-> **注意**: `Add-VSBT-Env-x64.cmd` は、Visual Studio の環境設定スクリプトと適宜読み替えてください。
-> 一般的には、x64 Native Tools Command Prompt for VS で使用される `vcvars64.bat` に相当します。
 
 ### サブモジュールの初期化
 
@@ -1212,26 +1206,11 @@ LIBS += mock_calcbase  # OK
 
 **原因**: Visual Studio Build Tools の環境変数が設定されていない
 
-**解決策**: コマンドプロンプトで環境設定スクリプトを実行
+**解決策**: `Start-VSCode-With-Env.ps1` で環境設定を実行
 
-```cmd
-call Add-MinGW-Path.cmd
-call Add-VSBT-Env-x64.cmd
+```powershell
+. .\Start-VSCode-With-Env.ps1 -EnvOnly
 ```
-
-#### link.exe が見つからないエラー
-
-**原因**: 環境設定スクリプトの実行順序が間違っている
-
-**解決策**: 正しい順序でスクリプトを実行
-
-```cmd
-REM 正しい順序
-call Add-MinGW-Path.cmd      # 1. MinGW を先に
-call Add-VSBT-Env-x64.cmd    # 2. VSBT を後に
-```
-
-この順序により、MSVC の `link.exe` が MinGW の `link` より優先されます。
 
 #### ビルドエラー: コンパイラオプションの違い
 

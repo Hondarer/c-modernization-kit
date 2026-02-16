@@ -87,14 +87,10 @@ C ライブラリを .NET から利用するための実装例です。
 
 ## Windows 環境における注意事項
 
-Windows では、VS Code 起動を以下の方法で行ってください。  
-`Add-VSBT-Env-x64.cmd` は、Visual Studio の環境設定と適宜読み替えてください (一般的には、x64 Native Tools Command Prompt for VS: vcvars64.bat)。
+Windows では、`Start-VSCode-With-Env.ps1` を使用して VS Code を起動してください。MinGW PATH と VSBT 環境変数を自動設定し、VS Code を起動します。
 
-```cmd
-REM 環境設定
-call Add-MinGW-Path.cmd
-call Add-VSBT-Env-x64.cmd
-code
+```powershell
+.\Start-VSCode-With-Env.ps1
 ```
 
 ## サブモジュール
@@ -106,10 +102,10 @@ Clone 後、サブモジュールの初期化を行ってください。
 git submodule update --init --recursive
 ```
 
-- `doxyfw` - Doxygen ドキュメント生成フレームワーク ([https://github.com/Hondarer/doxygen-framework](https://github.com/Hondarer/doxygen-framework))
 - `docsfw` - Markdown ドキュメント発行フレームワーク ([https://github.com/Hondarer/pub_markdown](https://github.com/Hondarer/pub_markdown))
-- `testfw` - Google Test ベースのテストフレームワーク ([https://github.com/Hondarer/googletest-c-framework](https://github.com/Hondarer/googletest-c-framework))
+- `doxyfw` - Doxygen ドキュメント生成フレームワーク ([https://github.com/Hondarer/doxygen-framework](https://github.com/Hondarer/doxygen-framework))
 - `makefw` - Make ビルドフレームワーク ([https://github.com/Hondarer/make-framework](https://github.com/Hondarer/make-framework))
+- `testfw` - Google Test ベースのテストフレームワーク ([https://github.com/Hondarer/googletest-c-framework](https://github.com/Hondarer/googletest-c-framework))
 
 ## ライセンス
 
