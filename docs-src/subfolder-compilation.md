@@ -26,6 +26,19 @@ NO_LINK = 1
 - リンク処理 (ライブラリ生成や実行ファイル生成) はスキップされます
 - コンパイル結果のオブジェクトファイル (`.o` / `.obj`) は、各サブディレクトリの `obj/` に配置されます
 
+**配置先:**
+
+`NO_LINK = 1` は、リンクを行う起点ディレクトリの `makechild.mk` に定義します。
+`makechild.mk` は自ディレクトリには適用されず子階層以降にのみ有効であるため、起点ディレクトリでは通常のリンクが行われ、すべてのサブディレクトリではコンパイルのみが実行されます。
+
+```makefile
+# libsubfolder-sample/makechild.mk (起点ディレクトリ)
+# サブフォルダはコンパイルのみ
+NO_LINK = 1
+```
+
+これにより、各サブディレクトリに個別の `makepart.mk` で `NO_LINK = 1` を定義する必要がなくなります。
+
 ### オブジェクトファイルの自動収集
 
 親ディレクトリ (リンクを行うディレクトリ) では、サブディレクトリのオブジェクトファイルが自動的に収集されます。
@@ -77,18 +90,17 @@ prod/subfolder-sample/
     +-- libsubfolder-sample/
         +-- makefile                        # ライブラリ本体 (リンク実行)
         +-- makepart.mk                     # LIB_TYPE = shared 設定
+        +-- makechild.mk                    # NO_LINK = 1 (サブフォルダはコンパイルのみ)
         +-- func.c                          # ルートのソースファイル
         +-- obj/
         |   +-- func.o
         +-- subfolder_a/
-        |   +-- makefile                    # サブディレクトリ (NO_LINK = 1)
-        |   +-- makepart.mk
+        |   +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
         |   +-- func_a.c
         |   +-- obj/
         |       +-- func_a.o
         +-- subfolder_b/
-            +-- makefile                    # サブディレクトリ (NO_LINK = 1)
-            +-- makepart.mk
+            +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
             +-- func_b.c
             +-- obj/
                 +-- func_b.o
@@ -96,7 +108,7 @@ prod/subfolder-sample/
 
 ### 設定ファイルの内容
 
-**libsubfolder-sample/makepart.mk (親ディレクトリ):**
+**libsubfolder-sample/makepart.mk (起点ディレクトリ):**
 
 ```makefile
 ifeq ($(OS),Windows_NT)
@@ -109,19 +121,14 @@ endif
 LIB_TYPE = shared
 ```
 
-**subfolder_a/makepart.mk (サブディレクトリ):**
+**libsubfolder-sample/makechild.mk (起点ディレクトリ):**
 
 ```makefile
 # サブフォルダはコンパイルのみ
 NO_LINK = 1
 ```
 
-**subfolder_b/makepart.mk (サブディレクトリ):**
-
-```makefile
-# サブフォルダはコンパイルのみ
-NO_LINK = 1
-```
+`makechild.mk` は自ディレクトリには適用されないため、`libsubfolder-sample/` ではリンクが実行され、サブディレクトリ (`subfolder_a/`, `subfolder_b/`) ではコンパイルのみが行われます。
 
 ### ビルドの流れ
 
@@ -152,19 +159,18 @@ prod/subfolder-sample/
     +-- makepart.mk
     +-- sample-app/
         +-- makefile                        # 実行ファイル本体 (リンク実行)
+        +-- makechild.mk                    # NO_LINK = 1 (サブフォルダはコンパイルのみ)
         +-- sample-app.h                    # ヘッダーファイル
         +-- main.c                          # メインソースファイル
         +-- obj/
         |   +-- main.o
         +-- subfolder_a/
-        |   +-- makefile                    # サブディレクトリ (NO_LINK = 1)
-        |   +-- makepart.mk
+        |   +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
         |   +-- helper_a.c
         |   +-- obj/
         |       +-- helper_a.o
         +-- subfolder_b/
-            +-- makefile                    # サブディレクトリ (NO_LINK = 1)
-            +-- makepart.mk
+            +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
             +-- helper_b.c
             +-- obj/
                 +-- helper_b.o
@@ -205,12 +211,14 @@ int helper_a(int value)
 
 ### 設定ファイルの内容
 
-**subfolder_a/makepart.mk:**
+**sample-app/makechild.mk (起点ディレクトリ):**
 
 ```makefile
 # サブフォルダはコンパイルのみ
 NO_LINK = 1
 ```
+
+ライブラリの場合と同様に、起点ディレクトリの `makechild.mk` で `NO_LINK = 1` を定義します。
 
 ### ビルドの流れ
 
@@ -233,6 +241,7 @@ test/src/subfolder-sample/
 +-- subfolder-sampleTest/
     +-- makefile                            # テスト本体 (リンク・テスト実行)
     +-- makepart.mk                         # TEST_SRCS 設定 (ルートのテスト対象)
+    +-- makechild.mk                        # NO_LINK = 1 (サブフォルダはコンパイルのみ)
     +-- subfolder-sampleTest.cc             # ルートのテストコード
     +-- bin/
     |   +-- subfolder-sampleTest            # テスト実行ファイル
@@ -256,15 +265,15 @@ test/src/subfolder-sample/
     |       +-- results.log
     |       +-- func_b.c.gcov.txt
     +-- subfolder_a/
-    |   +-- makefile                        # サブディレクトリ (NO_LINK = 1)
-    |   +-- makepart.mk                     # TEST_SRCS 設定 (サブディレクトリのテスト対象)
+    |   +-- makefile                        # サブディレクトリ (makechild.mk により NO_LINK 適用)
+    |   +-- makelocal.mk                    # TEST_SRCS 設定 (サブディレクトリのテスト対象)
     |   +-- subfolder-sampleTest_a.cc       # サブディレクトリのテストコード
     |   +-- obj/
     |       +-- func_a.o
     |       +-- subfolder-sampleTest_a.o
     +-- subfolder_b/
-        +-- makefile                        # サブディレクトリ (NO_LINK = 1)
-        +-- makepart.mk                     # TEST_SRCS 設定 (サブディレクトリのテスト対象)
+        +-- makefile                        # サブディレクトリ (makechild.mk により NO_LINK 適用)
+        +-- makelocal.mk                    # TEST_SRCS 設定 (サブディレクトリのテスト対象)
         +-- subfolder-sampleTest_b.cc       # サブディレクトリのテストコード
         +-- obj/
             +-- func_b.o
@@ -273,7 +282,7 @@ test/src/subfolder-sample/
 
 ### 設定ファイルの内容
 
-**subfolder-sampleTest/makepart.mk (親ディレクトリ):**
+**subfolder-sampleTest/makepart.mk (起点ディレクトリ):**
 
 ```makefile
 # テスト対象のソースファイル
@@ -281,17 +290,24 @@ TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/subfolder-sample/libsrc/libsubfolder-sample/func.c
 ```
 
-**subfolder_a/makepart.mk (サブディレクトリ):**
+**subfolder-sampleTest/makechild.mk (起点ディレクトリ):**
 
 ```makefile
 # サブフォルダはコンパイルのみ
 NO_LINK = 1
+```
 
+**subfolder_a/makelocal.mk (サブディレクトリ):**
+
+```makefile
 # テスト対象のソースファイル
 # NOTE: 上位フォルダで TEST_SRCS を指定している場合、テスト対象ソースが重複しないように留意すること。
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/func_a.c
 ```
+
+テストでは、`NO_LINK = 1` は起点ディレクトリの `makechild.mk` に、`TEST_SRCS` は各サブディレクトリの `makelocal.mk` にそれぞれ分離して定義します。
+`TEST_SRCS` を `makelocal.mk` に配置することで、各テスト対象の指定が自ディレクトリに限定され、親階層に継承されません。
 
 ### テストコードの例
 
@@ -493,21 +509,21 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
 ```
 
-### 2. makepart.mk でのカスタマイズ
+### 2. makechild.mk での NO_LINK 設定
 
-サブディレクトリでは必ず `NO_LINK = 1` を設定します。
+リンクを行う起点ディレクトリに `makechild.mk` を配置し、`NO_LINK = 1` を定義します。
+これにより、すべてのサブディレクトリに自動的に適用されます。
 
 ```makefile
+# 起点ディレクトリの makechild.mk
 # サブフォルダはコンパイルのみ
 NO_LINK = 1
 ```
 
-テストの場合は、`TEST_SRCS` も設定します。
+テストの場合は、各サブディレクトリの `makelocal.mk` で `TEST_SRCS` を設定します。
 
 ```makefile
-# サブフォルダはコンパイルのみ
-NO_LINK = 1
-
+# サブディレクトリの makelocal.mk
 # テスト対象のソースファイル
 TEST_SRCS := \
 	$(WORKSPACE_FOLDER)/prod/.../subfolder_a/func_a.c
@@ -533,9 +549,10 @@ INCDIR += $(WORKSPACE_FOLDER)/prod/subfolder-sample/src/sample-app
 
 ## まとめ
 
-| 観点 | 設定 | 説明 |
-|------|------|------|
-| ライブラリ | `NO_LINK = 1` | サブディレクトリではコンパイルのみ、親でリンク |
-| コマンド | `NO_LINK = 1` | サブディレクトリではコンパイルのみ、親でリンク |
-| テスト | `NO_LINK = 1` + `TEST_SRCS` | サブディレクトリごとにテスト対象を指定 |
-| テストレポート | `results/` | 個別テスト結果と全体カバレッジを出力 |
+| 観点 | 設定ファイル | 設定 | 説明 |
+|------|------------|------|------|
+| ライブラリ | 起点の `makechild.mk` | `NO_LINK = 1` | サブディレクトリではコンパイルのみ、起点でリンク |
+| コマンド | 起点の `makechild.mk` | `NO_LINK = 1` | サブディレクトリではコンパイルのみ、起点でリンク |
+| テスト | 起点の `makechild.mk` | `NO_LINK = 1` | サブディレクトリではコンパイルのみ、起点でリンク |
+| テスト | 各サブの `makelocal.mk` | `TEST_SRCS` | サブディレクトリごとにテスト対象を指定 |
+| テストレポート | - | `results/` | 個別テスト結果と全体カバレッジを出力 |
