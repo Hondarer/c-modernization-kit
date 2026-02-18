@@ -37,6 +37,9 @@ coverage.xml
 /xml/
 /xml_org/
 
+## 中間ファイル (Coverity)
+idir
+
 ## doxybook によって生成される Markdown
 /docs-src/doxybook/
 
