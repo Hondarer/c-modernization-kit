@@ -41,10 +41,12 @@ jobs:
       - name: Record make version
         run: make --version
 
+      - name: Make build log directory
+        run: mkdir -p logs
+
       - name: Build
         run: |
           set -o pipefail
-          mkdir -p logs
           make 2>&1 | tee logs/linux-${{ matrix.os-name }}-build.log
 
       - name: Set library path for tests
@@ -107,10 +109,12 @@ jobs:
         run: make --version
         shell: pwsh
 
+      - name: Make build log directory
+        run: New-Item -ItemType Directory -Force -Path logs
+        shell: pwsh
+
       - name: Build
-        run: |
-          New-Item -ItemType Directory -Force -Path logs
-          make 2>&1 | Tee-Object -FilePath logs/windows-build.log
+        run: make 2>&1 | Tee-Object -FilePath logs/windows-build.log
         shell: pwsh
 
       - name: Set library path for tests
