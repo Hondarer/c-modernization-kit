@@ -35,8 +35,7 @@ extern "C"
      *  @details
      *  この関数は 2 つの整数を受け取り、その合計を result に格納します。
      *
-     *  使用例:
-     *
+     *  @par            使用例
      *  @code{.c}
      *  int result;
      *  if (add(10, 20, &result) == CALC_SUCCESS) {
@@ -62,8 +61,7 @@ extern "C"
      *  @details
      *  この関数は 2 つの整数を受け取り、その差を result に格納します。
      *
-     *  使用例:
-     *
+     *  @par            使用例
      *  @code{.c}
      *  int result;
      *  if (subtract(10, 3, &result) == CALC_SUCCESS) {
@@ -89,8 +87,7 @@ extern "C"
      *  @details
      *  この関数は 2 つの整数を受け取り、その積を result に格納します。
      *
-     *  使用例:
-     *
+     *  @par            使用例
      *  @code{.c}
      *  int result;
      *  if (multiply(5, 4, &result) == CALC_SUCCESS) {
@@ -117,8 +114,7 @@ extern "C"
      *  この関数は 2 つの整数を受け取り、その商を result に格納します。
      *  整数除算のため、小数点以下は切り捨てられます。
      *
-     *  使用例:
-     *
+     *  @par            使用例
      *  @code{.c}
      *  int result;
      *  if (divide(20, 4, &result) == CALC_SUCCESS) {

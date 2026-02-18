@@ -67,8 +67,7 @@ extern "C"
      *  | CALC_KIND_MULTIPLY  | 乗算を実行       |
      *  | CALC_KIND_DIVIDE    | 除算を実行       |
      *
-     *  使用例:
-     *
+     *  @par            使用例
      *  @code{.c}
      *  int result;
      *  if (calcHandler(CALC_KIND_ADD, 10, 20, &result) == CALC_SUCCESS) {

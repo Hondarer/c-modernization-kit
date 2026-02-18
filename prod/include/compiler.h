@@ -30,8 +30,7 @@
  *  | FORCE_INLINE | __forceinline        | inline __attribute__((always_inline)) | inline |
  *  | NO_INLINE    | __declspec(noinline) | __attribute__((noinline))             | (空)   |
  *
- *  使用例:
- *
+ *  @section        usage 使用例
  *  @code{.c}
  *  #include "compiler.h"
  *

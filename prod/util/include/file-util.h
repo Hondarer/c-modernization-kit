@@ -101,7 +101,10 @@ extern "C"
          *
          *  @note           ファイル名の最大長は OS の規定値です (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)
          *  @note           file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です
-         *  @note           使用例: file_stat_t st; int ret = stat_printf(&st, "data_%d.txt", 123);
+         *  @par            使用例
+         *                  @code
+         *                  file_stat_t st; int ret = stat_printf(&st, "data_%d.txt", 123);
+         *                  @endcode
          *  @note           Linux では stat()、Windows では _stat64() を使用します
          *  @warning        Linux と Windows では構造体のフィールドが異なるため、プラットフォーム固有のコードが必要です
          *                  - Windows には st_blksize, st_blocks フィールドがありません
