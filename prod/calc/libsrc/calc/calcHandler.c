@@ -13,12 +13,12 @@
  *******************************************************************************
  */
 
-#include <stddef.h>
-#include <libcalcbase.h>
 #include <libcalc.h>
+#include <libcalcbase.h>
+#include <stddef.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-CALC_API int WINAPI calcHandler(const int kind,const  int a,const  int b, int *result)
+CALC_API int WINAPI calcHandler(const int kind, const int a, const int b, int *result)
 {
     if (result == NULL)
     {

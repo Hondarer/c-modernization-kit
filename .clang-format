@@ -15,3 +15,6 @@ IndentWidth: 4
 
 # 連続するマクロ定義の値を揃える
 AlignConsecutiveMacros: Consecutive
+
+# 波括弧の配置: すべての波括弧を次の行に配置 (Allman スタイル)
+BreakBeforeBraces: Allman

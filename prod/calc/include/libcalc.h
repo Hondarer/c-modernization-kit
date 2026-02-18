@@ -21,26 +21,26 @@
 
 /* DLL エクスポート/インポート定義 */
 #ifndef _WIN32
-#define CALC_API
-#define WINAPI
-#else  /* _WIN32 */
-#ifndef __INTELLISENSE__
-#ifndef CALC_STATIC
-#ifdef CALC_EXPORTS
-#define CALC_API __declspec(dllexport)
-#else /* CALC_EXPORTS */
-#define CALC_API __declspec(dllimport)
-#endif /* CALC_EXPORTS */
-#else  /* CALC_STATIC */
-#define CALC_API
-#endif /* CALC_STATIC */
-#else  /* __INTELLISENSE__ */
-#define CALC_API
-#endif /* __INTELLISENSE__ */
-#ifndef WINAPI
-#define WINAPI __stdcall
-#endif /* WINAPI */
-#endif /* _WIN32 */
+    #define CALC_API
+    #define WINAPI
+#else /* _WIN32 */
+    #ifndef __INTELLISENSE__
+        #ifndef CALC_STATIC
+            #ifdef CALC_EXPORTS
+                #define CALC_API __declspec(dllexport)
+            #else /* CALC_EXPORTS */
+                #define CALC_API __declspec(dllimport)
+            #endif /* CALC_EXPORTS */
+        #else      /* CALC_STATIC */
+            #define CALC_API
+        #endif /* CALC_STATIC */
+    #else      /* __INTELLISENSE__ */
+        #define CALC_API
+    #endif /* __INTELLISENSE__ */
+    #ifndef WINAPI
+        #define WINAPI __stdcall
+    #endif /* WINAPI */
+#endif     /* _WIN32 */
 
 #ifdef __cplusplus
 extern "C"

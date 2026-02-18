@@ -15,8 +15,8 @@
  *******************************************************************************
  */
 
-#include <libcalcbase.h>
 #include <libcalc.h>
+#include <libcalcbase.h>
 #include <stdio.h>
 #include <stdlib.h>
 

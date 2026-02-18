@@ -13,8 +13,8 @@
  *******************************************************************************
  */
 
-#include <stddef.h>
 #include <libcalcbase.h>
+#include <stddef.h>
 
 /* doxygen コメントは、ヘッダに記載 */
 int subtract(const int a, const int b, int *result)
