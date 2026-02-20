@@ -2,6 +2,19 @@ SUBDIRS = \
 	prod \
 	test
 
+# Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
+# bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
+# bash がなく cmd.exe へフォールバックしている場合は SHELL = "sh" (スラッシュなし) のままになる。
+ifeq ($(OS),Windows_NT)
+    ifeq ($(findstring /,$(SHELL)),)
+        $(info )
+        $(info ERROR: Build environment is not configured correctly.)
+        $(info Please launch VS Code via Start-VSCode-With-Env.ps1 to set up the environment.)
+        $(info )
+        $(error Aborted.)
+    endif
+endif
+
 # サブディレクトリで make を実行するマクロ
 # $(1): サブディレクトリリスト
 # $(2): make ターゲット (空の場合はデフォルトターゲット)
