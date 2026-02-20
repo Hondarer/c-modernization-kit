@@ -1,4 +1,4 @@
-# calc src {#page_calc_src}
+# calc src
 
 calc コマンド群のソースコードです。
 
@@ -8,7 +8,7 @@ calc コマンド群は、libcalcbase (静的ライブラリ) および libcalc 
 
 以下に、各コマンドの位置づけを示します。
 
-![calc コマンド群の概要](calc-overview.png)
+![calc コマンド群の概要](images/calc-overview.png)
 
 ## コマンド一覧
 
