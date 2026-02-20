@@ -2,6 +2,11 @@ SUBDIRS = \
 	prod \
 	test
 
+DOXY_CATEGORIES = \
+	calc \
+	calc.net \
+	util
+
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
 # bash がなく cmd.exe へフォールバックしている場合は SHELL = "sh" (スラッシュなし) のままになる。
@@ -66,9 +71,13 @@ test : submodule
 doxy : submodule
 	@if [ -d doxyfw ] && [ -f doxyfw/makefile ]; then \
 		set -e; \
-		$(MAKE) -C doxyfw CATEGORY=calc; \
-		$(MAKE) -C doxyfw CATEGORY=calc.net; \
-		$(MAKE) -C doxyfw CATEGORY=util; \
+		if [ -z "$(DOXY_CATEGORIES)" ]; then \
+			$(MAKE) -C doxyfw; \
+		else \
+			for cat in $(DOXY_CATEGORIES); do \
+				$(MAKE) -C doxyfw CATEGORY=$$cat; \
+			done; \
+		fi; \
 	else \
 		echo "INFO: doxyfw directory not found, skipping."; \
 	fi
