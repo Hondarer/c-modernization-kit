@@ -25,7 +25,10 @@
  *  @param[in]      argv コマンドライン引数の配列。
  *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  *
- *  @details
+ *  @details        以下に、calc コマンドの処理フローを示します。
+ *
+ *  @image          html calc-flow.png "calc コマンドの処理フロー"
+ *
  *  使用例:
  *
  *  @code{.c}
