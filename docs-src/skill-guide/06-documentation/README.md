@@ -7,9 +7,9 @@ Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソースコー�
 
 | スキルガイド | 内容                                     |
 |--------------|------------------------------------------|
-| [Markdown](markdown.md) | ドキュメント記法の基礎                   |
-| [Doxygen](doxygen.md)   | C/C++ ソースコードからのドキュメント生成 |
-| [Pandoc](pandoc.md)     | Markdown から HTML / docx への変換       |
+| [Markdown](markdown.md) | ドキュメント記法の基礎                    |
+| [Doxygen](doxygen.md)   | C/C++ ソースコードからのドキュメント生成  |
+| [Pandoc](pandoc.md)     | Markdown から HTML/docx への変換          |
 | [PlantUML](plantuml.md) | テキストベースの UML 図表作成 (第 1 選択) |
 | [Mermaid](mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
 | [draw.io](drawio.md)    | GUI による任意の図作成 (第 3 選択)        |

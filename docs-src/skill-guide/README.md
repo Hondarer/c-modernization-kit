@@ -73,11 +73,11 @@ P4 -down-> P5
 
 Git を使ったバージョン管理はすべての現代的な開発の基盤です。まずここから始めてください。
 
-| スキルガイド          | 内容                                   |
-|-----------------------|----------------------------------------|
-| [Git 基礎](02-version-control/git-basics.md)                 | init / clone / commit / branch / merge |
-| [Git サブモジュール](02-version-control/git-submodules.md)   | サブモジュールの操作                   |
-| [GitHub ワークフロー](02-version-control/github-workflow.md) | PR・Issues・コードレビュー             |
+| スキルガイド          | 内容                           |
+|-----------------------|--------------------------------|
+| [Git 基礎](02-version-control/git-basics.md)                 | init/clone/commit/branch/merge |
+| [Git サブモジュール](02-version-control/git-submodules.md)   | サブモジュールの操作           |
+| [GitHub ワークフロー](02-version-control/github-workflow.md) | PR・Issues・コードレビュー     |
 
 ## ステップ 3 - ビルド理解
 
@@ -114,9 +114,9 @@ C ライブラリの種類とビルドシステムを理解することで、こ
 
 | スキルガイド | 内容                                     |
 |--------------|------------------------------------------|
-| [Markdown](06-documentation/markdown.md) | ドキュメント記法の基礎                   |
-| [Doxygen](06-documentation/doxygen.md)   | C/C++ ソースコードからのドキュメント生成 |
-| [Pandoc](06-documentation/pandoc.md)     | Markdown から HTML/docx への変換         |
+| [Markdown](06-documentation/markdown.md) | ドキュメント記法の基礎                    |
+| [Doxygen](06-documentation/doxygen.md)   | C/C++ ソースコードからのドキュメント生成  |
+| [Pandoc](06-documentation/pandoc.md)     | Markdown から HTML/docx への変換          |
 | [PlantUML](06-documentation/plantuml.md) | テキストベースの UML 図表作成 (第 1 選択) |
 | [Mermaid](06-documentation/mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
 | [draw.io](06-documentation/drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
