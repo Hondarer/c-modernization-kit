@@ -85,6 +85,6 @@ gcc -c --coverage -fprofile-arcs -ftest-coverage ...
 ### 関連ドキュメント
 
 - [GNU Make (スキルガイド)](gnu-make.md) - Makefile でのコンパイラコマンドの自動化
-- [C ライブラリの種類 (スキルガイド)](../02-c-language/c-library-types.md) - 静的・動的ライブラリのビルド
-- [コードカバレッジ (スキルガイド)](../04-testing/code-coverage.md) - gcov / lcov によるカバレッジ計測
-- [WSL / MinGW 環境 (スキルガイド)](../07-dev-environment/wsl-mingw.md) - Windows での環境構築
+- [C ライブラリの種類 (スキルガイド)](../03-c-language/c-library-types.md) - 静的・動的ライブラリのビルド
+- [コードカバレッジ (スキルガイド)](../05-testing/code-coverage.md) - gcov / lcov によるカバレッジ計測
+- [WSL / MinGW 環境 (スキルガイド)](../08-dev-environment/wsl-mingw.md) - Windows での環境構築

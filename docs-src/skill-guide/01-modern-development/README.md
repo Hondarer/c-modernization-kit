@@ -1,0 +1,22 @@
+# モダンな開発の理解 (フェーズ 1 - 導入)
+
+レガシー C コードにモダン手法を適用するにあたり、まず「なぜモダナイゼーションが必要か」「どのような考え方・潮流があるか」を理解します。
+技術スキルの習得を始める前に、ここで全体像を把握してください。
+
+## スキルガイド一覧
+
+| ドキュメント | 内容 |
+|------------|------|
+| [レガシー C コードにモダン手法を適用する全体像](about-modern-development.md) | Docs as Code・自動テスト・CI/CD を組み合わせた全体ワークフロー |
+| [生成 AI 時代のソースコード管理 (X as Code)](x_as_code.md) | X as Code・GitOps・生成 AI 活用の DevOps 進化論 |
+
+## このリポジトリとの関連
+
+- このリポジトリ全体が「X as Code」および「GitOps」の実践例として構成されている
+- `docs-src/` — Documentation as Code / Design as Code の実践
+- サブモジュール (`doxyfw` / `docsfw` / `testfw` / `makefw`) — Pipeline as Code / Infrastructure as Code の実践
+- `CLAUDE.md` 群 — 生成 AI へのコンテキスト提供を意識したドキュメント管理
+
+## 次のステップ
+
+全体像を把握したら、[フェーズ 2 - バージョン管理](../02-version-control/README.md) に進んでください。

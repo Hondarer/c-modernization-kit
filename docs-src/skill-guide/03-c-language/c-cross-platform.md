@@ -69,5 +69,5 @@ endif
 
 - [ビルド設計](../../build-design.md) — クロスプラットフォームビルドの詳細設計
 - [C ライブラリの種類](c-library-types.md) — 静的・動的ライブラリの仕組み
-- [GNU Make（スキルガイド）](../03-build-system/gnu-make.md) — Makefile によるクロスプラットフォームビルド
-- [WSL / MinGW 環境（スキルガイド）](../07-dev-environment/wsl-mingw.md) — Windows での Linux 互換ビルド環境
+- [GNU Make（スキルガイド）](../04-build-system/gnu-make.md) — Makefile によるクロスプラットフォームビルド
+- [WSL / MinGW 環境（スキルガイド）](../08-dev-environment/wsl-mingw.md) — Windows での Linux 互換ビルド環境

@@ -1,6 +1,6 @@
 # レガシー C コードにモダン手法を適用する全体像
 
-## はじめに
+## 概要
 
 長年運用してきた C 言語のコードは、変更のたびに影響範囲が読みにくく、ドキュメントやテストが古くなりがちです。ここでは、Docs as Code、自動テスト、CI/CD を組み合わせて、品質と保守性、開発速度を高める方法を、実運用に耐える全体ワークフローとあわせて示します。
 
@@ -8,9 +8,7 @@
 
 ### Docs as Code
 
-ドキュメントをコードと同じように扱い、バージョン管理と自動化で常に最新に保つ考え方です。Markdown で書き、Git で管理し、レビューや自動生成を組み込みます。解説は次が参考になります[^about_docs_as_code]。
-
-[^about_docs_as_code]: [ゼロから始めるDocs as Code](https://qiita.com/tikamoto/items/c05a5c117c78fb7a4e47)
+ドキュメントをコードと同じように扱い、バージョン管理と自動化で常に最新に保つ考え方です。Markdown で書き、Git で管理し、レビューや自動生成を組み込みます。解説は [ゼロから始めるDocs as Code](https://qiita.com/tikamoto/items/c05a5c117c78fb7a4e47) が参考になります。
 
 ### 自動テスト
 
@@ -35,7 +33,7 @@
 
 ## 全体ワークフロー
 
-このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を LLM の入力にすることで、リポジトリ全体の構造を LLM が理解しやすくすることもできます。
+このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を AI の入力にすることで、リポジトリ全体の構造を AI が理解しやすくします。
 
 ```plantuml
 @startuml 全体ワークフロー
@@ -58,7 +56,7 @@
     end note
     actor "開発者" as developer
     component "VS Code\n(インテリセンス)" as vscode
-    component "AI (LLM)" as llm
+    component "AI (LLM, RAG)" as llm
     note bottom
         AI の入力データ として
         Markdown を活用
@@ -91,9 +89,9 @@
 - 製品ソースから Doxygen で API を抽出し、Doxybook2 で Markdown に変換します。
 - 単体試験を自動実行し、カバレッジなどのエビデンスを残します。
 - Pandoc で HTML と DOCX を生成し、納品や社内共有に使います。
-- Markdown 群を LLM の入力にし、LLM の応答精度を上げます。
+- Markdown 群を AI の入力にし、AI の応答精度を上げます。
 
-## レガシー C コードにモダン手法を導入するメリット
+## 導入するメリット
 
 ### 品質と安定性が上がる
 
@@ -131,7 +129,7 @@ CI に脆弱性スキャンや静的解析を組み込み、既知のリスク�
 
 Docs as Code、自動テスト、CI/CD を段階的に導入すると、レガシー C コードを現代的で維持しやすい状態にできます。まず Docs as Code で "常に最新の資料" を作り、その上でテストと CI/CD を重ねると、品質と速度、コストに良い効果を得ることができます。
 
-## よくある懸念に対する回答
+## よくある懸念
 
 ### テストコードを作成するのは、手間ではないですか?
 
@@ -140,44 +138,38 @@ Docs as Code、自動テスト、CI/CD を段階的に導入すると、レガ�
 - 単体テストは小さな単位を素早く検証できるため、失敗を早期に見つけやすいです。
 - 大規模な UI テストより安価に自動で実行できるため、結果的に全体の工数を抑えやすいです。
 
-Google のテストブログでも、テストの実行時間や維持コストを常に意識して最適化する重要性が指摘されています [^GoogleTestingBlog]。
+[Google Testing Blog](https://testing.googleblog.com/2008/03/cost-benefit-analysis-of-test.html) でも、テストの実行時間や維持コストを常に意識して最適化する重要性が指摘されています。
 
-また、テストは粒度のバランスが要で、単体・結合・E2E を使い分ける考え方は Martin Fowler の「テストピラミッド」で整理されています [^martinfowler_com]。
-
-[^GoogleTestingBlog]: [Google Testing Blog](https://testing.googleblog.com/2008/03/cost-benefit-analysis-of-test.html)
-
-[^martinfowler_com]: [martinfowler.com](https://martinfowler.com/articles/practical-test-pyramid.html)
+また、テストは粒度のバランスが要で、単体・結合・E2E を使い分ける考え方は [Martin Fowler のテストピラミッド](https://martinfowler.com/articles/practical-test-pyramid.html) で整理されています。
 
 必ずしもすべてのテストコードを作成することにこだわらず、短時間で回る自動テストを先に整え、重いテストは頻度やトリガーを工夫して全体最適を目指すことでコストとベネフィットのバランスを取ることができます。
 
-### プログラムにドキュメントを含めるのに慣れていません。別管理ではだめですか?
+### プログラムにドキュメントを含めるのに慣れていません。別管理ではどのような問題があるのでしょうか?
 
 別管理でも不可能ではありませんが、更新のズレが起きやすいです。
 
 コードの変更と同じ Pull Request でドキュメントも更新する運用にすると、レビューとデプロイの仕組みに自然に乗り、陳腐化を防げます。
 
-これこそが Docs as Code の考え方で、プログラムと仕様が同じワークフローに入るため、正確さと一貫性が上がるとされています [^WriteTheDocs]。
-
-[^WriteTheDocs]: [Write the Docs](https://www.writethedocs.org/guide/docs-as-code.html)
+これこそが Docs as Code の考え方で、プログラムと仕様が同じワークフローに入るため、正確さと一貫性が上がるとされています ([Write the Docs](https://www.writethedocs.org/guide/docs-as-code.html))。
 
 このドキュメントで示した構成では、Doxygen から抽出した API 情報を Markdown 化してリポジトリで一緒に管理します。変更点は Git の差分で追え、レビュー時に実装と説明を同時に確認できます。
 
-### Markdown でないとだめですか? Excel や Word など他形式はどうですか?
+### Markdown に統一する必要はありますか? Excel や Word など他形式ではどのような問題が発生しますか?
 
 Markdown には、プレーンテキストなので Git で扱いやすく、自動化しやすく、出力先を選ばないという利点があります。このため、Docs as Code の運用に適しており、開発のレビューやデプロイの流れに自然に組み込むことができます。これらの利点については、[Write the Docs](https://www.writethedocs.org/guide/docs-as-code/)、[UK Home Office Engineering](https://engineering.homeoffice.gov.uk/patterns/docs-as-code/) でも、開発フローとの統合やレビュー容易性として言及があります。
 
-- 差分とレビューが読みやすい  
+- 差分とレビューが読みやすい
   Markdown はテキスト形式であるため、Pull Request 上で差分が明瞭に確認できます。これに対して Word の docx はバイナリのため、差分管理に難があります。
 
-- 出力先を自由に選べる  
-  1 つの Markdown から、Pandoc で HTML、PDF、docx などに変換できすることができます。既存の Word スタイルを参照テンプレートにすれば、必要な体裁に合わせることもできます。
+- 出力先を自由に選べる
+  1 つの Markdown から、Pandoc で HTML、PDF、docx などに変換できます。既存の Word スタイルを参照テンプレートにすれば、必要な体裁に合わせることもできます。
 
-- 自動化と保守の容易さ  
-  テキスト形式なので Lint、リンク検査、見出しレベルのチェックなどを CI に組み込むことが容易です。  
+- 自動化と保守の容易さ
+  テキスト形式なので Lint、リンク検査、見出しレベルのチェックなどを CI に組み込むことが容易です。
   Docs as Code の実践は、文書の所有を統合し、更新の遅れを防ぐのに有効です。
 
 - AI 時代の標準語
-  Markdown は主要な LLM における標準的な入出力形式であり、AI にとってのネイティブ言語と言えます。LLM との親和性が高く、コード分析の際に AI に対して補足情報を与えるのに適しています。コードとドキュメントを同一リポジトリで一元管理することで、AI への親和性と情報の一貫性を維持できます。
+  Markdown は主要な AI における標準的な入出力形式であり、コード分析の際に AI に対して補足情報を与えるのに適しています。コードとドキュメントを同一リポジトリで一元管理することで、AI への親和性と情報の一貫性を維持できます。
 
 ### CI/CD は小規模チームには過剰ではありませんか?
 
@@ -185,9 +177,16 @@ Markdown には、プレーンテキストなので Git で扱いやすく、自
 
 変更を自動でビルド・テスト・発行するだけで、レビューの確実性と反復速度が上がります。
 
-DORA (DevOps Research and Assessment) の年次レポートでは、継続的インテグレーションと短いリードタイムなどの実践が、配信の安定性と速度に結びつくことが繰り返し示されています [^DORA_Report] [^GoogleCloudBlog2024]。
-
-[^DORA_Report]: [DORA 2023](https://dora.dev/research/2023/dora-report/)
-[^GoogleCloudBlog2024]: [Google Cloud Blog 2024](https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report)
+[DORA レポート](https://dora.dev/research/2023/dora-report/)（DevOps Research and Assessment の年次調査）では、継続的インテグレーションと短いリードタイムなどの実践が、配信の安定性と速度に結びつくことが繰り返し示されています ([Google Cloud Blog 2024](https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report))。
 
 まずは「プッシュでテストとドキュメント生成が走る」最小構成から始め、必要に応じて段階的に強化するとよいでしょう。
+
+## 学習マテリアル
+
+- [ゼロから始めるDocs as Code](https://qiita.com/tikamoto/items/c05a5c117c78fb7a4e47) - Docs as Code の入門解説
+- [Google Testing Blog - テストのコストとベネフィット](https://testing.googleblog.com/2008/03/cost-benefit-analysis-of-test.html) - テストコストの最適化
+- [martinfowler.com - テストピラミッド](https://martinfowler.com/articles/practical-test-pyramid.html) - 単体・結合・E2E テストの使い分け
+- [Write the Docs - Docs as Code](https://www.writethedocs.org/guide/docs-as-code.html) - Docs as Code のガイド
+- [UK Home Office Engineering - Docs as Code](https://engineering.homeoffice.gov.uk/patterns/docs-as-code/) - 開発フローとの統合事例
+- [DORA 2023 レポート](https://dora.dev/research/2023/dora-report/) - DevOps パフォーマンス研究
+- [Google Cloud Blog 2024 - DORA レポート](https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report) - 2024 年版 DORA レポート

@@ -65,4 +65,4 @@ OpenCppCoverage.exe --sources prod\calc\libsrc -- addTest.exe
 
 - [テストチュートリアル](../../testing-tutorial.md) — テストフレームワークの実践的な使い方
 - [Google Test（スキルガイド）](google-test.md) — テストコードの書き方
-- [GitHub Actions（スキルガイド）](../06-ci-cd/github-actions.md) — CI でのカバレッジ自動計測
+- [GitHub Actions（スキルガイド）](../07-ci-cd/github-actions.md) — CI でのカバレッジ自動計測

@@ -74,5 +74,5 @@ dotnet run --project prod/calc.net/src/CalcApp/CalcApp.csproj
 ### 関連ドキュメント
 
 - [.NET RelWithDebInfo ビルド](../../dotnet-relwithdebinfo.md) - RelWithDebInfo 設定の詳細
-- [C# / P/Invoke (スキルガイド)](../07-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す実装
-- [.NET テスト (スキルガイド)](../04-testing/dotnet-testing.md) - xUnit による .NET テスト
+- [C# / P/Invoke (スキルガイド)](../08-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す実装
+- [.NET テスト (スキルガイド)](../05-testing/dotnet-testing.md) - xUnit による .NET テスト

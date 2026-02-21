@@ -68,5 +68,5 @@ OS による出力ファイルの違い:
 ### 関連ドキュメント
 
 - [VS Code（スキルガイド）](vscode.md) — VS Code の設定と拡張機能
-- [GCC / MSVC ツールチェイン（スキルガイド）](../03-build-system/gcc-toolchain.md) — コンパイラのオプション
-- [クロスプラットフォーム対応（スキルガイド）](../02-c-language/c-cross-platform.md) — OS 差異の吸収方法
+- [GCC / MSVC ツールチェイン（スキルガイド）](../04-build-system/gcc-toolchain.md) — コンパイラのオプション
+- [クロスプラットフォーム対応（スキルガイド）](../03-c-language/c-cross-platform.md) — OS 差異の吸収方法

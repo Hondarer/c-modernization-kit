@@ -107,6 +107,6 @@ prod/calc.net/libsrc/CalcLib/
 ### 関連ドキュメント
 
 - [.NET RelWithDebInfo ビルド](../../dotnet-relwithdebinfo.md) — .NET ビルド設定の詳細
-- [.NET SDK（スキルガイド）](../03-build-system/dotnet-sdk.md) — dotnet コマンドとプロジェクト構造
-- [.NET テスト（スキルガイド）](../04-testing/dotnet-testing.md) — .NET ラッパーの単体テスト
-- [C ライブラリの種類（スキルガイド）](../02-c-language/c-library-types.md) — P/Invoke で呼び出す DLL の仕組み
+- [.NET SDK（スキルガイド）](../04-build-system/dotnet-sdk.md) — dotnet コマンドとプロジェクト構造
+- [.NET テスト（スキルガイド）](../05-testing/dotnet-testing.md) — .NET ラッパーの単体テスト
+- [C ライブラリの種類（スキルガイド）](../03-c-language/c-library-types.md) — P/Invoke で呼び出す DLL の仕組み

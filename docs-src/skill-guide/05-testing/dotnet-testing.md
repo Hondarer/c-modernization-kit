@@ -101,5 +101,5 @@ dotnet test --logger "trx;LogFileName=test-results.trx"
 ### 関連ドキュメント
 
 - [.NET テスト結果設計](../../dotnet-test-results-design.md) — このリポジトリのテスト結果管理
-- [.NET SDK（スキルガイド）](../03-build-system/dotnet-sdk.md) — dotnet コマンドの基礎
-- [C# / P/Invoke（スキルガイド）](../07-dev-environment/dotnet-csharp.md) — テスト対象の実装詳細
+- [.NET SDK（スキルガイド）](../04-build-system/dotnet-sdk.md) — dotnet コマンドの基礎
+- [C# / P/Invoke（スキルガイド）](../08-dev-environment/dotnet-csharp.md) — テスト対象の実装詳細

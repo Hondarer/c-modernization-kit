@@ -70,5 +70,5 @@ C 言語では、コードを再利用するためにライブラリとしてま
 ### 関連ドキュメント
 
 - [ビルド設計](../../build-design.md) - このリポジトリのビルド構成の詳細
-- [GNU Make (スキルガイド)](../03-build-system/gnu-make.md) - Makefile によるビルド自動化
-- [C# / P/Invoke (スキルガイド)](../07-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す
+- [GNU Make (スキルガイド)](../04-build-system/gnu-make.md) - Makefile によるビルド自動化
+- [C# / P/Invoke (スキルガイド)](../08-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す

@@ -68,5 +68,5 @@ GitHub リポジトリの Pages 設定確認:
 ### 関連ドキュメント
 
 - [GitHub Actions（スキルガイド）](github-actions.md) — デプロイを実行する CI/CD パイプライン
-- [Doxygen（スキルガイド）](../05-documentation/doxygen.md) — 公開するドキュメントの生成
-- [Pandoc（スキルガイド）](../05-documentation/pandoc.md) — HTML への変換
+- [Doxygen（スキルガイド）](../06-documentation/doxygen.md) — 公開するドキュメントの生成
+- [Pandoc（スキルガイド）](../06-documentation/pandoc.md) — HTML への変換

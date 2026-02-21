@@ -76,4 +76,4 @@ jobs:
 
 - [GitHub Actions 設定](../../github-actions.md) — このリポジトリの CI/CD 設定の詳細
 - [GitHub Pages（スキルガイド）](github-pages.md) — 生成ドキュメントの公開
-- [GitHub ワークフロー（スキルガイド）](../01-version-control/github-workflow.md) — PR ベースの開発フロー
+- [GitHub ワークフロー（スキルガイド）](../02-version-control/github-workflow.md) — PR ベースの開発フロー
