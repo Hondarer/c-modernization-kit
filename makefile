@@ -5,7 +5,8 @@ SUBDIRS = \
 DOXY_CATEGORIES = \
 	calc \
 	calc.net \
-	util
+	util \
+	override-sample
 
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。

@@ -18,7 +18,7 @@
 #include <stddef.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-CALC_API int WINAPI calcHandler(const int kind, const int a, const int b, int *result)
+int WINAPI calcHandler(const int kind, const int a, const int b, int *result)
 {
     if (result == NULL)
     {

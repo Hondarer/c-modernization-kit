@@ -23,6 +23,7 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
     - [calc](https://hondarer.github.io/c-modernization-kit/doxygen/calc/index.html)
     - [calc dotnet wrapper](https://hondarer.github.io/c-modernization-kit/doxygen/calc.net/index.html)
     - [util](https://hondarer.github.io/c-modernization-kit/doxygen/util/index.html)
+    - [override-sample](https://hondarer.github.io/c-modernization-kit/doxygen/override-sample/index.html)
 - GitHub Pages
     - [ja](https://hondarer.github.io/c-modernization-kit/ja/html/index.html)
     - [ja-details](https://hondarer.github.io/c-modernization-kit/ja-details/html/index.html)
