@@ -15,6 +15,9 @@
 
 #include <libbase.h>
 #include <stdio.h>
+#ifdef _WIN32
+    #include <windows.h>
+#endif
 
 /**
  *******************************************************************************
@@ -30,6 +33,10 @@ int main(void)
 {
     int result;
     int rtc;
+
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
+#endif
 
     rtc = func(0, 1, 2, &result);
     console_output("rtc: %d\n", rtc);
