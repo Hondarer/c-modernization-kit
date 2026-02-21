@@ -2,13 +2,17 @@
 
 ## dlopen / LoadLibrary の都度オープン・クローズについて
 
-`func.c` の `useOverride != 0` パスでは、`func` を呼び出すたびに以下を実行しています。
+`func.c` の `useOverride != 0` パスでは、初回呼び出し時のみ以下を実行します。
 
 ```text
 dlopen("liboverride.so", RTLD_LAZY)   // ① ライブラリのロード / 参照カウント増加
 dlsym(handle, "func_override")        // ② シンボルテーブル検索
-func_override(...)                    // ③ 本来の処理
-dlclose(handle)                       // ④ 参照カウント減少 / アンロード
+```
+
+2 回目以降は静的変数にキャッシュされたハンドルと関数ポインタをそのまま使用します。
+
+```text
+func_override(...)                    // ③ 本来の処理 (キャッシュ済みポインタを呼び出し)
 ```
 
 ### 各操作のコスト
@@ -20,7 +24,7 @@ dlclose(handle)                       // ④ 参照カウント減少 / アン�
 | `dlclose` | 中 (参照カウント -1、0 になればデストラクタ + アンマップ) | 同左 |
 | 関数呼び出し本体 | ns 単位 | ns 単位 |
 
-Linux / Windows ともに `dlopen` / `LoadLibrary` は内部で参照カウントを管理しています。`dlclose` で参照カウントが 0 になると OS はライブラリをアンマップするため、次回の `dlopen` は冷たいロードに近いコストが再びかかります。現在の実装はオープンとクローズを対で行っているため、毎回このコストを支払います。
+Linux / Windows ともに `dlopen` / `LoadLibrary` は内部で参照カウントを管理しています。`dlclose` で参照カウントが 0 になると OS はライブラリをアンマップするため、次回の `dlopen` は冷たいロードに近いコストが再びかかります。キャッシュパターンではこのコストを初回のみに抑えます。
 
 ### 呼び出し頻度別の判断
 
@@ -30,13 +34,14 @@ Linux / Windows ともに `dlopen` / `LoadLibrary` は内部で参照カウン�
 | Web API のリクエスト単位など中頻度 | 測定して判断してください |
 | ループ内・高速処理パスなど高頻度 | 無視できません。`dlopen` の数 μs ~ 数十 μs が積み重なり支配的になります |
 
-### 本番適用時の対策パターン
+## ハンドルと関数ポインタのキャッシュ
 
-頻度が高い場合は、ハンドルと関数ポインタをプロセス生存中キャッシュする方法が一般的です。
+`func.c` では、静的変数 `s_handle` と `s_func_override` にハンドルと関数ポインタをキャッシュしています。
 
 ```c
 // 静的変数でハンドルと関数ポインタを保持 (初回のみロード)
-static void             *s_handle        = NULL;
+static void             *s_handle        = NULL;  // Linux
+// static HMODULE        s_handle        = NULL;  // Windows
 static func_override_t   s_func_override = NULL;
 
 if (s_handle == NULL) {
@@ -44,14 +49,66 @@ if (s_handle == NULL) {
     s_func_override = (func_override_t)dlsym(s_handle, "func_override");
 }
 return s_func_override(useOverride, a, b, result);
-// dlclose はプロセス終了時または明示的なリセット時のみ
 ```
 
 マルチスレッド環境では、初回ロードのタイミングに対して排他制御が必要になる点に注意してください。
 
-### このサンプルの位置づけ
+## base.so / base.dll アンロード時の処理
 
-`func.c` はデモンストレーション用のため、毎回オープン / クローズする構造でも問題ありません。実際にこの機構を本番適用する際は、呼び出し頻度を踏まえてハンドルのライフサイクル設計が必要です。
+`s_handle` に保持したハンドルは、`base.so` / `base.dll` がアンロードされるタイミングで自動的に解放されます。
+
+### Linux: `__attribute__((destructor))`
+
+```c
+__attribute__((destructor))
+static void unload_liboverride(void)
+{
+    if (s_handle != NULL)
+    {
+        dlclose(s_handle);
+        s_handle        = NULL;
+        s_func_override = NULL;
+    }
+}
+```
+
+`__attribute__((destructor))` を付与した関数は、以下のタイミングで呼ばれます。
+
+| トリガー | 呼び出しタイミング |
+| -------- | ------------------ |
+| `dlclose(base.so)` で参照カウントが 0 になったとき | ライブラリのアンロード直前 |
+| プロセス正常終了 (`return` / `exit()`) | `atexit` コールバックの後、OS へ制御が返る前 |
+| `_exit()` / `abort()` による強制終了 | **呼ばれない** |
+
+### Windows: `DllMain(DLL_PROCESS_DETACH)`
+
+```c
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+    (void)hinstDLL;
+    (void)lpvReserved;
+    if (fdwReason == DLL_PROCESS_DETACH)
+    {
+        if (s_handle != NULL)
+        {
+            FreeLibrary(s_handle);
+            s_handle        = NULL;
+            s_func_override = NULL;
+        }
+    }
+    return TRUE;
+}
+```
+
+`DLL_PROCESS_DETACH` は以下のタイミングで呼ばれます。
+
+| トリガー | 呼び出しタイミング |
+| -------- | ------------------ |
+| `FreeLibrary(base.dll)` で参照カウントが 0 になったとき | ライブラリのアンロード直前 |
+| プロセス正常終了 (`return` / `ExitProcess()`) | Windows ローダーがロード済み DLL を順にアンロードするとき |
+| `TerminateProcess()` による強制終了 | **呼ばれない** |
+
+> **注意**: `DllMain` の `DLL_PROCESS_DETACH` ハンドラ内では、呼び出せる Win32 API が制限されています。`FreeLibrary` は `DLL_PROCESS_DETACH` から呼び出し可能ですが、`lpvReserved != NULL`（プロセス終了による DETACH）の場合はリソースは OS が回収するため、`FreeLibrary` を省略することもあります。本実装では明示的に解放しています。
 
 ## ハンドルを保持したままプロセスを終了した場合の影響
 
@@ -99,4 +156,4 @@ OS が回収できない外部リソースをライブラリの終了処理が�
 
 ### このサンプルへの適用
 
-`liboverride` は乗算のみを行い外部リソースを一切管理していないため、ハンドルを保持したままプロセスを終了しても Linux・Windows ともに問題ありません。キャッシュパターンは安全に採用できます。
+`liboverride` は乗算のみを行い外部リソースを一切管理していないため、ハンドルを保持したままプロセスを終了しても Linux・Windows ともに問題ありません。アンロード時処理はリソース管理の明示的な例として実装しています。
