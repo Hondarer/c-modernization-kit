@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           base.c
+ *  @file           func.c
  *  @brief          func 関数の実装ファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21

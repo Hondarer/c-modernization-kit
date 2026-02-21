@@ -59,6 +59,52 @@ extern "C"
      *  useOverride が 1 の場合、liboverride.so (Linux) または liboverride.dll (Windows)
      *  を動的にロードし、func_override 関数に処理を委譲します。
      *
+     *  @details
+     *  本実装は useOverride フラグによって拡張呼び出しを制御していますが、
+     *  これはサンプルとして分かりやすく切り替えを示すための手法です。\n
+     *  \n
+     *  実際にこの機構を実装する際は、ロードするライブラリ名・シンボル名を
+     *  ハードコードする必要はありません。\n
+     *  設定ファイルや定義ファイルからライブラリ名と関数名を読み取れば、
+     *  シグネチャが一致する限り任意の so / dll の任意の関数を
+     *  実行時に差し替えることができます。\n
+     *  例えば以下のように応用できます。
+     *  - 設定ファイルに `lib=libmyplugin.so, func=my_func` と記述しておき、
+     *    起動時に読み込んで dlopen / dlsym で動的にバインドする
+     *  - 環境変数でオーバーライドライブラリを指定し、テスト環境と本番環境で
+     *    実装を切り替える
+     *
+        @startuml func 処理アクティビティ
+            caption func 処理アクティビティ
+            start
+            if (result == NULL?) then (true)
+                :return -1;
+                stop
+            endif
+            if (useOverride == 0?) then (true)
+                :console_output で処理を行う旨を表示;
+                :**result = a + b**;
+                :return 0;
+                stop
+            endif
+            :dlopen / LoadLibrary で\nliboverride をロード\n(ライブラリ名は定義ファイル等で変更可);
+            if (handle == NULL?) then (true)
+                :return -1;
+                stop
+            endif
+            :dlsym / GetProcAddress で\nfunc_override を取得\n(関数名は定義ファイル等で変更可);
+            if (func_override == NULL?) then (true)
+                :ハンドルをクローズ;
+                :return -1;
+                stop
+            endif
+            :console_output で移譲する旨を表示;
+            :func_override(useOverride, a, b, result) を呼び出す;
+            :ハンドルをクローズ;
+            :return ret;
+            stop
+        @enduml
+     *
      *  @par            使用例
      *  @code{.c}
      *  int result;
