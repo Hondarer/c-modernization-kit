@@ -1,10 +1,5 @@
 SUBDIRS = \
-	calc \
-	calc.net \
-	override-sample \
-	subfolder-sample \
-	tutorial \
-	util
+	src
 
 .DEFAULT_GOAL := default
 
@@ -13,12 +8,9 @@ default : $(SUBDIRS)
 
 .PHONY: clean
 clean : $(SUBDIRS)
-	-rm -f coverage.xml
 
 .PHONY: test
 test : $(SUBDIRS)
-    # このフォルダ以下の coverage.xml をマージする
-	python ../testfw/cmnd/cobertura_merge.py . 1> /dev/null 2>&1
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :

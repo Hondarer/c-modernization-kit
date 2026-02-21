@@ -20,19 +20,36 @@
  */
 
 #include "libbase_local.h"
-
+#include <stddef.h>
 #ifndef _WIN32
+    #include <syslog.h>
+#endif /* _WIN32 */
 
-__attribute__((destructor))
-static void unload_liboverride(void)
+static void onUnload(void);
+
+void onUnload(void)
 {
+#ifndef _WIN32
+    syslog(LOG_INFO, "base: onUnload called");
+#else  /* _WIN32 */
+    OutputDebugStringA("base: onUnload called\n");
+#endif /* _WIN32 */
+
     if (s_handle != NULL)
     {
+#ifndef _WIN32
         dlclose(s_handle);
-        s_handle        = NULL;
+#else  /* _WIN32 */
+        FreeLibrary(s_handle);
+#endif /* _WIN32 */
+        s_handle = NULL;
         s_func_override = NULL;
     }
 }
+
+#ifndef _WIN32
+
+__attribute__((destructor)) static void unload_liboverride(void) { onUnload(); }
 
 #else /* _WIN32 */
 
@@ -42,12 +59,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     (void)lpvReserved;
     if (fdwReason == DLL_PROCESS_DETACH)
     {
-        if (s_handle != NULL)
-        {
-            FreeLibrary(s_handle);
-            s_handle        = NULL;
-            s_func_override = NULL;
-        }
+        onUnload();
     }
     return TRUE;
 }

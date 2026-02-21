@@ -10,7 +10,7 @@
                 "${workspaceFolder}/prod/override-sample/include",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
-                "${workspaceFolder}/test/include"
+                "${workspaceFolder}/test/calc/include"
             ],
             "defines": [
                 "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
@@ -31,7 +31,7 @@
                 "${workspaceFolder}/prod/override-sample/include",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
-                "${workspaceFolder}/test/include"
+                "${workspaceFolder}/test/calc/include"
             ],
             "defines": [
                 // 安全のため、_CRT_SECURE_NO_WARNINGS は指定しない

@@ -19,11 +19,7 @@
 
 /* ハンドルと関数ポインタのキャッシュ (初回ロード時のみ取得)
  * アンロード時の解放は DllMain.c が担当する。 */
-#ifndef _WIN32
-void            *s_handle        = NULL;
-#else  /* _WIN32 */
-HMODULE          s_handle        = NULL;
-#endif /* _WIN32 */
+MODULE_HANDLE    s_handle        = NULL;
 func_override_t  s_func_override = NULL;
 
 /* doxygen コメントは、ヘッダに記載 */

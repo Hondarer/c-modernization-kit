@@ -1,2 +1,1 @@
-LIBSDIR    += \
-	$(WORKSPACE_FOLDER)/prod/calc/lib
+LIBSDIR += $(WORKSPACE_FOLDER)/prod/calc/lib

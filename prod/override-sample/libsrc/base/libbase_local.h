@@ -26,15 +26,18 @@
 /** liboverride の関数ポインタ型 */
 typedef int (*func_override_t)(const int, const int, const int, int *);
 
+/** Linux/Windows 共通のモジュールハンドル型 */
+#ifndef _WIN32
+#    define MODULE_HANDLE void *
+#else  /* _WIN32 */
+#    define MODULE_HANDLE HMODULE
+#endif /* _WIN32 */
+
 /**
  * liboverride の DLL/SO ハンドルキャッシュ。
  * func.c で定義し、DllMain.c からも参照する。
  */
-#ifndef _WIN32
-extern void            *s_handle;
-#else  /* _WIN32 */
-extern HMODULE          s_handle;
-#endif /* _WIN32 */
+extern MODULE_HANDLE    s_handle;
 
 /**
  * liboverride の関数ポインタキャッシュ。
