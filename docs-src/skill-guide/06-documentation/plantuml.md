@@ -4,7 +4,7 @@
 
 PlantUML はテキスト形式でUML図（シーケンス図・クラス図・アクティビティ図など）を記述し、画像として出力するツールです。コードとして管理できるため、Git での差分管理が可能で、Markdown ドキュメントに図を埋め込むのに適しています。
 
-このリポジトリでは PlantUML をドキュメント内の図表作成に使用しています。`docsfw/` サブモジュールが PlantUML の統合機能を提供しており、Markdown ドキュメント内に埋め込んだ PlantUML 記述を Pandoc のフィルタが画像に変換します。このスキルガイドの `README.md` でも学習フェーズの概要図に PlantUML を使用しています。
+このリポジトリでは PlantUML をドキュメント内の図表作成に使用しています。`docsfw/` サブモジュールが PlantUML の統合機能を提供しており、Markdown ドキュメント内に埋め込んだ PlantUML 記述を Pandoc のフィルタが画像に変換します。このスキルガイドの `README.md` でも学習ステップの概要図に PlantUML を使用しています。
 
 テキストベースの図は Word 上でドラッグ&ドロップで作成する図と比べ、バージョン管理・レビュー・修正が容易です。
 
@@ -31,18 +31,18 @@ PlantUML はテキスト形式でUML図（シーケンス図・クラス図・�
 
 ### 使用箇所（具体的なファイル・コマンド）
 
-このスキルガイドの README.md で使用している学習フェーズ図（PlantUML 記述例）:
+このスキルガイドの README.md で使用している学習ステップ図（PlantUML 記述例）:
 
 ```plantuml
 @startuml
 skinparam backgroundColor #FAFAFA
 skinparam roundcorner 8
 
-rectangle "フェーズ1\n必須基盤" as P1 #E8F4FD {
+rectangle "ステップ1\n必須基盤" as P1 #E8F4FD {
   rectangle "バージョン管理\n(Git / GitHub)" as P1A
 }
 
-rectangle "フェーズ2\nビルド理解" as P2 #E8F5E9 {
+rectangle "ステップ2\nビルド理解" as P2 #E8F5E9 {
   rectangle "C言語発展" as P2A
   rectangle "ビルドシステム" as P2B
 }
