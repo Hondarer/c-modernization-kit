@@ -41,6 +41,8 @@ Git サブモジュールは、ひとつの Git リポジトリの中に別の G
 | `testfw`       | `testfw/` | Google Test テストフレームワーク       |
 | `makefw`       | `makefw/` | Make ビルドフレームワーク              |
 
+Table: サブモジュール一覧
+
 基本的な操作コマンド:
 
 ```bash

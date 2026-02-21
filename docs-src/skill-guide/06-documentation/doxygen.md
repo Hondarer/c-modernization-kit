@@ -73,6 +73,8 @@ cd doxyfw && make docs
 | `doxyfw/doxybook-config.json` | Doxybook2 の設定 |
 | `doxyfw/templates/` | カスタム出力テンプレート |
 
+Table: Doxygen 設定ファイル一覧
+
 ### 関連ドキュメント
 
 - [doxyfw/CLAUDE.md](../../doxyfw/CLAUDE.md) - doxyfw フレームワークの詳細ドキュメント

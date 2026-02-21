@@ -14,6 +14,8 @@ DevOps における「コード化」の潮流を時系列で整理していま�
 | 2010 年代前半 | Pipeline as Code・Configuration as Code の実用化 |
 | 2010 年代後半 | Policy as Code・Everything as Code の台頭        |
 
+Table: X as Code の歴史的進化
+
 ### GitOps の概念
 
 Git リポジトリを唯一の信頼源 (Single Source of Truth) とし、すべての変更をコミットとプルリクエストを通じて実行する運用手法です。宣言的な構成管理と変更履歴の完全な追跡可能性が特徴です。

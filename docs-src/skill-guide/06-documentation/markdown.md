@@ -45,6 +45,8 @@ Markdown を使用しているファイル:
 | `CLAUDE.md` | Claude Code への指針 |
 | `*/README.md` | 各サブモジュールの説明 |
 
+Table: Markdown 使用ファイル・ディレクトリ一覧
+
 GFM のタスクリスト (このスキルガイドでの使用例):
 
 ```markdown

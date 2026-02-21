@@ -10,6 +10,8 @@ GitHub Actions によるビルド・テスト・ドキュメント生成の自�
 | [GitHub Actions](github-actions.md) | 自動ビルド・テスト・デプロイのワークフロー定義 |
 | [GitHub Pages](github-pages.md)     | 生成ドキュメントの静的サイト公開               |
 
+Table: スキルガイド一覧
+
 ## このリポジトリとの関連
 
 - `.github/workflows/` - GitHub Actions ワークフロー定義ファイル

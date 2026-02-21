@@ -44,9 +44,11 @@ Windows での環境セットアップ (PowerShell):
 
 | 環境変数  | 内容                                         |
 |-----------|----------------------------------------------|
-| `PATH`    | Git for Windows(MinGW)のバイナリパスを追加   |
+| `PATH`    | Git for Windows (MinGW) のバイナリパスを追加 |
 | `INCLUDE` | Visual Studio Build Tools のインクルードパス |
 | `LIB`     | Visual Studio Build Tools のライブラリパス   |
+
+Table: Start-VSCode-With-Env.ps1 が設定する環境変数一覧
 
 WSL を使った Linux ビルドの確認:
 
@@ -64,6 +66,8 @@ OS による出力ファイルの違いの例:
 | 動的ライブラリ | `libcalc.so`    | `libcalc.dll`     |
 | 静的ライブラリ | `libcalcbase.a` | `libcalcbase.lib` |
 | 実行ファイル   | `add`           | `add.exe`         |
+
+Table: OS による出力ファイルの違い
 
 ### 関連ドキュメント
 

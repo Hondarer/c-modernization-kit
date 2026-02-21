@@ -10,6 +10,8 @@
 | [レガシー C コードにモダン手法を適用する全体像](about-modern-development.md) | Docs as Code・自動テスト・CI/CD を組み合わせた全体ワークフロー |
 | [生成 AI 時代のソースコード管理 (X as Code)](x_as_code.md)                   | X as Code・GitOps・生成 AI 活用の DevOps 進化論                |
 
+Table: スキルガイド一覧
+
 ## このリポジトリとの関連
 
 - このリポジトリ全体が「X as Code」および「GitOps」の実践例として構成されている

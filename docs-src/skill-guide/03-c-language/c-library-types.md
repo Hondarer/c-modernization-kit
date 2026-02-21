@@ -53,6 +53,8 @@ C 言語では、コードを再利用するためにライブラリとしてま
 | `libcalcbase` | 静的 | `libcalcbase.a` | `libcalcbase.lib` | `prod/calc/libsrc/calcbase/` |
 | `libcalc`     | 動的 | `libcalc.so`    | `libcalc.dll`     | `prod/calc/libsrc/calc/`     |
 
+Table: ライブラリ構成一覧
+
 各プログラムのリンク方式:
 
 | プログラム               | リンク                     | ソース                                  |
@@ -60,6 +62,8 @@ C 言語では、コードを再利用するためにライブラリとしてま
 | `add`                    | `libcalcbase` を静的リンク | `prod/calc/src/add/add.c`               |
 | `calc`                   | `libcalc` を動的リンク     | `prod/calc/src/calc/calc.c`             |
 | `shared-and-static-calc` | 両方をリンク               | `prod/calc/src/shared-and-static-calc/` |
+
+Table: 各プログラムのリンク方式
 
 ヘッダーファイル:
 

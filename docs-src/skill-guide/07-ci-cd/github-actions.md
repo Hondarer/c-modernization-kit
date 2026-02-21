@@ -45,6 +45,8 @@ GitHub Actions のワークフローを理解することで、CI の実行状�
 | docs | Doxygen・Pandoc によるドキュメント生成 |
 | deploy | GitHub Pages へのドキュメント公開 |
 
+Table: GitHub Actions ジョブ一覧
+
 ワークフロー YAML の基本構造:
 
 ```yaml

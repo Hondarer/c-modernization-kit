@@ -11,6 +11,8 @@ Google Test によるC コードの単体テスト、コードカバレッジの
 | [コードカバレッジ](code-coverage.md)        | gcov/lcov/OpenCppCoverage によるカバレッジ計測 |
 | [.NET テスト(xUnit)](dotnet-testing.md)     | xUnit による .NET 単体テスト                       |
 
+Table: スキルガイド一覧
+
 ## このリポジトリとの関連
 
 - `test/` - テストコードのルートディレクトリ

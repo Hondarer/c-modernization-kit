@@ -14,6 +14,8 @@ Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソースコー�
 | [Mermaid](mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
 | [draw.io](drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
 
+Table: スキルガイド一覧
+
 ## 図ツールの選択基準
 
 本フレームワークでは PlantUML・Mermaid・draw.io のすべてを扱うことができます。意味論を明確に表現しやすいことから PlantUML を第 1 選択とし、次いで Mermaid、任意のレイアウトの図が必要な場合にのみ draw.io の使用を推奨します。既存の PNG 等の画像ファイルも Markdown に直接引用できますが、修正履歴の管理が困難なため限定的な使用とすべきです。
@@ -24,6 +26,8 @@ Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソースコー�
 | Mermaid      | GitHub でネイティブ表示・記法が簡潔 | フロー図など、GitHub 上でのプレビューを重視する場合 (第 2 選択) |
 | draw.io      | GUI で自由に作図できる              | UML の意味論で表現しにくい任意のレイアウトの図 (第 3 選択)      |
 | PNG/SVG など | 既存の画像をそのまま利用できる      | 外部ツールで作成済みの図・スクリーンショットなど (第 4 選択)    |
+
+Table: 図ツールの選択基準
 
 ## このリポジトリとの関連
 

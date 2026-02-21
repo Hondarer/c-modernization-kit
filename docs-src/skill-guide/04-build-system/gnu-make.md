@@ -60,6 +60,8 @@ make docs
 | `test/src/calc/libcalcbaseTest/addTest/makefile` | add テストのビルド                 |
 | `makefw/makefiles/`                              | テンプレート makefile 群           |
 
+Table: makefile ファイル構成一覧
+
 カスタマイズ:
 各サブディレクトリに `makepart.mk` を配置することで、テンプレートの動作をカスタマイズできます。
 
