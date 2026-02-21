@@ -14,14 +14,13 @@
  */
 
 #include <libbase.h>
-#ifndef _WIN32
-    #include <dlfcn.h>
-#else /* _WIN32 */
-    #include <windows.h>
-#endif /* _WIN32 */
+#include "libbase_local.h"
 #include <stddef.h>
 
-typedef int (*func_override_t)(const int, const int, const int, int *);
+/* ハンドルと関数ポインタのキャッシュ (初回ロード時のみ取得)
+ * アンロード時の解放は DllMain.c が担当する。 */
+MODULE_HANDLE    s_handle        = NULL;
+func_override_t  s_func_override = NULL;
 
 /* doxygen コメントは、ヘッダに記載 */
 int WINAPI func(const int useOverride, const int a, const int b, int *result)
@@ -41,37 +40,41 @@ int WINAPI func(const int useOverride, const int a, const int b, int *result)
     /* useOverride != 0: liboverride に委譲 */
     {
 #ifndef _WIN32
-        void *handle = dlopen("liboverride.so", RTLD_LAZY);
-        if (handle == NULL)
+        if (s_handle == NULL)
         {
-            return -1;
-        }
-        func_override_t func_override = (func_override_t)dlsym(handle, "func_override");
-        if (func_override == NULL)
-        {
-            dlclose(handle);
-            return -1;
+            s_handle = dlopen("liboverride.so", RTLD_LAZY);
+            if (s_handle == NULL)
+            {
+                return -1;
+            }
+            s_func_override = (func_override_t)dlsym(s_handle, "func_override");
+            if (s_func_override == NULL)
+            {
+                dlclose(s_handle);
+                s_handle = NULL;
+                return -1;
+            }
         }
         console_output("func: func_override に移譲します\n");
-        int ret = func_override(useOverride, a, b, result);
-        dlclose(handle);
-        return ret;
+        return s_func_override(useOverride, a, b, result);
 #else /* _WIN32 */
-        HMODULE handle = LoadLibrary("liboverride.dll");
-        if (handle == NULL)
+        if (s_handle == NULL)
         {
-            return -1;
-        }
-        func_override_t func_override = (func_override_t)GetProcAddress(handle, "func_override");
-        if (func_override == NULL)
-        {
-            FreeLibrary(handle);
-            return -1;
+            s_handle = LoadLibrary("liboverride.dll");
+            if (s_handle == NULL)
+            {
+                return -1;
+            }
+            s_func_override = (func_override_t)GetProcAddress(s_handle, "func_override");
+            if (s_func_override == NULL)
+            {
+                FreeLibrary(s_handle);
+                s_handle = NULL;
+                return -1;
+            }
         }
         console_output("func: func_override に移譲します\n");
-        int ret = func_override(useOverride, a, b, result);
-        FreeLibrary(handle);
-        return ret;
+        return s_func_override(useOverride, a, b, result);
 #endif /* _WIN32 */
     }
 }
