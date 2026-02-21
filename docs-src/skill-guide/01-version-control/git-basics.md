@@ -2,9 +2,9 @@
 
 ## 概要
 
-Git は分散型バージョン管理システムです。ソースコードの変更履歴を記録し、複数人での並行開発を可能にします。Word ファイルによる手動バージョン管理（`仕様書_v1_最終版_修正2.docx` のような管理）と比べ、誰がいつどのような変更を加えたかを正確に追跡できます。
+Git は分散型バージョン管理システムです。ソースコードの変更履歴を記録し、複数人での並行開発を可能にします。Word ファイルによる手動バージョン管理 (`仕様書_v1_最終版_修正2.docx` のような管理) と比べ、誰がいつどのような変更を加えたかを正確に追跡できます。
 
-このリポジトリはすべての成果物を Git で管理しています。C ソースコード、Makefile、テストコード、ドキュメントソースのすべてが Git の追跡対象です。また、`doxyfw`・`docsfw`・`testfw`・`makefw` の 4 つのサブモジュールを含む構成のため、通常の `git clone` に加えてサブモジュールの初期化が必要です。
+このリポジトリはすべての成果物を Git で管理しています。C ソースコード、makefile、テストコード、ドキュメントソースのすべてが Git の追跡対象です。また、`doxyfw`・`docsfw`・`testfw`・`makefw` の 4 つのサブモジュールを含む構成のため、通常の `git clone` に加えてサブモジュールの初期化が必要です。
 
 Git の基本操作を習得することは、このリポジトリを利用するための最初のステップです。コミット・ブランチ・マージの概念を理解すれば、変更の追跡と協調開発ができるようになります。
 
@@ -22,21 +22,21 @@ Git の基本操作を習得することは、このリポジトリを利用す�
 
 ### 公式ドキュメント
 
-- [Pro Git（日本語版）](https://git-scm.com/book/ja/v2) — Git の公式書籍。無料でオンライン公開されており、入門から応用まで網羅
-  - [第2章 Git の基本](https://git-scm.com/book/ja/v2/Git-の基本-Git-リポジトリの取得) — `init`・`clone`・`commit`・`log`
-  - [第3章 Git のブランチ機能](https://git-scm.com/book/ja/v2/Git-のブランチ機能-ブランチとは) — ブランチとマージ
+- [Pro Git (日本語版)](https://git-scm.com/book/ja/v2) - Git の公式書籍。無料でオンライン公開されており、入門から応用まで網羅
+  - [第 2 章 Git の基本](https://git-scm.com/book/ja/v2/Git-の基本-Git-リポジトリの取得) - `init`・`clone`・`commit`・`log`
+  - [第 3 章 Git のブランチ機能](https://git-scm.com/book/ja/v2/Git-のブランチ機能-ブランチとは) - ブランチとマージ
 
 ### チュートリアル・入門
 
-- [サルでも分かるGit入門](https://www.backlog.com/ja/git-tutorial/) — 図解でわかりやすく解説された日本語チュートリアル（Backlog 提供）
+- [サルでも分かる Git 入門](https://www.backlog.com/ja/git-tutorial/) - 図解でわかりやすく解説された日本語チュートリアル (Backlog 提供)
 
 ### 日本語コンテンツ
 
-- [GitHub Docs — Git 入門](https://docs.github.com/ja/get-started/getting-started-with-git) — GitHub 公式の Git 入門ガイド（日本語）
+- [GitHub Docs - Git 入門](https://docs.github.com/ja/get-started/getting-started-with-git) - GitHub 公式の Git 入門ガイド (日本語)
 
 ## このリポジトリとの関連
 
-### 使用箇所（具体的なファイル・コマンド）
+### 使用箇所 (具体的なファイル・コマンド)
 
 リポジトリをクローンするには、サブモジュールを含めて取得する必要があります。
 
@@ -48,7 +48,7 @@ git clone --recurse-submodules <リポジトリURL>
 git submodule update --init --recursive
 ```
 
-`.gitignore` の設定例（このリポジトリのビルド出力を除外）:
+`.gitignore` の設定例
 
 ```gitignore
 # ビルド出力
@@ -64,5 +64,5 @@ xml/
 
 ### 関連ドキュメント
 
-- [Git サブモジュール](git-submodules.md) — このリポジトリで使用するサブモジュールの詳細
-- [GitHub ワークフロー](github-workflow.md) — チーム開発のための PR とレビュー
+- [Git サブモジュール](git-submodules.md) - このリポジトリで使用するサブモジュールの詳細
+- [GitHub ワークフロー](github-workflow.md) - チーム開発のための PR とレビュー

@@ -21,30 +21,30 @@ Git サブモジュールは、ひとつの Git リポジトリの中に別の G
 
 ### 公式ドキュメント
 
-- [Pro Git — Git ツール: サブモジュール（日本語）](https://git-scm.com/book/ja/v2/Git-ツール-サブモジュール) — サブモジュールの公式解説。基本操作から注意点まで詳細に説明
-- [GitHub Docs — サブモジュールについて](https://docs.github.com/ja/get-started/getting-started-with-git/about-git-subtree-merges) — GitHub 公式の補足説明
+- [Pro Git - Git ツール: サブモジュール (日本語)](https://git-scm.com/book/ja/v2/Git-ツール-サブモジュール) - サブモジュールの公式解説。基本操作から注意点まで詳細に説明
+- [GitHub Docs - サブモジュールについて](https://docs.github.com/ja/get-started/getting-started-with-git/about-git-subtree-merges) - GitHub 公式の補足説明
 
 ### チュートリアル・入門
 
-- [サルでも分かるGit入門 — サブモジュール](https://www.backlog.com/ja/git-tutorial/) — 図解入りの入門説明
+- [サルでも分かるGit入門 - サブモジュール](https://www.backlog.com/ja/git-tutorial/) - 図解入りの入門説明
 
 ## このリポジトリとの関連
 
-### 使用箇所（具体的なファイル・コマンド）
+### 使用箇所 (具体的なファイル・コマンド)
 
-このリポジトリの `.gitmodules` に定義されたサブモジュール:
+このリポジトリの `.gitmodules` に定義されたサブモジュールは以下の通りです。
 
-| サブモジュール | パス | 役割 |
-|-------------|------|------|
-| `doxyfw` | `doxyfw/` | Doxygen ドキュメント生成フレームワーク |
-| `docsfw` | `docsfw/` | Markdown 発行フレームワーク（Pandoc） |
-| `testfw` | `testfw/` | Google Test テストフレームワーク |
-| `makefw` | `makefw/` | Make ビルドフレームワーク |
+| サブモジュール | パス      | 役割                                   |
+|----------------|-----------|----------------------------------------|
+| `doxyfw`       | `doxyfw/` | Doxygen ドキュメント生成フレームワーク |
+| `docsfw`       | `docsfw/` | Markdown 発行フレームワーク (Pandoc)   |
+| `testfw`       | `testfw/` | Google Test テストフレームワーク       |
+| `makefw`       | `makefw/` | Make ビルドフレームワーク              |
 
 基本的な操作コマンド:
 
 ```bash
-# 初回クローン（サブモジュールを含む）
+# 初回クローン (サブモジュールを含む)
 git clone --recurse-submodules <URL>
 
 # クローン後にサブモジュールを初期化
@@ -59,5 +59,5 @@ git submodule status
 
 ### 関連ドキュメント
 
-- [Git 基礎](git-basics.md) — Git の基本操作
-- [GitHub ワークフロー](github-workflow.md) — チーム開発のワークフロー
+- [Git 基礎](git-basics.md) - Git の基本操作
+- [GitHub ワークフロー](github-workflow.md) - チーム開発のワークフロー
