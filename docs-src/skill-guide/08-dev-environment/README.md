@@ -5,10 +5,10 @@ VS Code の設定・拡張機能、WSL / MinGW を使った Windows での Linux
 
 ## スキルガイド一覧
 
-| スキルガイド | 内容 |
-|------------|------|
-| [VS Code](vscode.md) | エディタの設定・拡張機能・デバッグ構成 |
-| [WSL / MinGW 環境](wsl-mingw.md) | Windows での Linux 互換ビルド環境の構築 |
+| スキルガイド         | 内容                                             |
+|----------------------|--------------------------------------------------|
+| [VS Code](vscode.md)                   | エディタの設定・拡張機能・デバッグ構成           |
+| [WSL / MinGW 環境](wsl-mingw.md)       | Windows での Linux 互換ビルド環境の構築          |
 | [C# / P/Invoke 基礎](dotnet-csharp.md) | .NET から C ライブラリを呼び出す P/Invoke の実装 |
 
 ## このリポジトリとの関連

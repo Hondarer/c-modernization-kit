@@ -5,18 +5,18 @@ GNU Make・GCC / MSVC・.NET SDK を使ったビルドの仕組みを理解し�
 
 ## スキルガイド一覧
 
-| スキルガイド | 内容 |
-|------------|------|
-| [GNU Make](gnu-make.md) | makefile の基礎と階層ビルド構造 |
-| [GCC / MSVC ツールチェイン](gcc-toolchain.md) | コンパイラとリンカのオプション |
-| [.NET SDK](dotnet-sdk.md) | dotnet コマンドと .NET プロジェクト構造 |
+| スキルガイド                | 内容                                    |
+|-----------------------------|-----------------------------------------|
+| [GNU Make](gnu-make.md)                       | makefile の基礎と階層ビルド構造         |
+| [GCC / MSVC ツールチェイン](gcc-toolchain.md) | コンパイラとリンカのオプション          |
+| [.NET SDK](dotnet-sdk.md)                     | dotnet コマンドと .NET プロジェクト構造 |
 
 ## このリポジトリとの関連
 
 - `makefile` (トップレベル) - 全体ビルドのエントリポイント
-- `makefw/` - Make ビルドフレームワーク（サブモジュール）
+- `makefw/` - Make ビルドフレームワーク (サブモジュール)
 - `prod/calc/` - C プロジェクトのビルド対象
-- `prod/calc.net/` - .NET プロジェクトのビルド対象（`dotnet build`）
+- `prod/calc.net/` - .NET プロジェクトのビルド対象 (`dotnet build`)
 
 ## 次のステップ
 

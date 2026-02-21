@@ -5,17 +5,17 @@
 
 ## スキルガイド一覧
 
-| ドキュメント | 内容 |
-|------------|------|
+| ドキュメント                                    | 内容                                                           |
+|-------------------------------------------------|----------------------------------------------------------------|
 | [レガシー C コードにモダン手法を適用する全体像](about-modern-development.md) | Docs as Code・自動テスト・CI/CD を組み合わせた全体ワークフロー |
-| [生成 AI 時代のソースコード管理 (X as Code)](x_as_code.md) | X as Code・GitOps・生成 AI 活用の DevOps 進化論 |
+| [生成 AI 時代のソースコード管理 (X as Code)](x_as_code.md)                   | X as Code・GitOps・生成 AI 活用の DevOps 進化論                |
 
 ## このリポジトリとの関連
 
 - このリポジトリ全体が「X as Code」および「GitOps」の実践例として構成されている
-- `docs-src/` — Documentation as Code / Design as Code の実践
-- サブモジュール (`doxyfw` / `docsfw` / `testfw` / `makefw`) — Pipeline as Code / Infrastructure as Code の実践
-- `CLAUDE.md` 群 — 生成 AI へのコンテキスト提供を意識したドキュメント管理
+- `docs-src/` - Documentation as Code / Design as Code の実践
+- サブモジュール (`doxyfw` / `docsfw` / `testfw` / `makefw`) - Pipeline as Code / Infrastructure as Code の実践
+- 生成 AI へのコンテキスト提供を意識したドキュメント管理
 
 ## 次のステップ
 

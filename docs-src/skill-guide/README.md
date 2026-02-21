@@ -104,20 +104,22 @@ C ライブラリの種類とビルドシステムを理解することで、こ
 
 ### テスト自動化
 
-| スキルガイド | 内容 |
-|------------|------|
-| [Google Test](05-testing/google-test.md) | C/C++ 単体テストフレームワーク |
-| [コードカバレッジ](05-testing/code-coverage.md) | gcov / lcov / OpenCppCoverage |
-| [.NET テスト](05-testing/dotnet-testing.md) | xUnit による .NET 単体テスト |
+| スキルガイド       | 内容                           |
+|--------------------|--------------------------------|
+| [Google Test](05-testing/google-test.md)        | C/C++ 単体テストフレームワーク |
+| [コードカバレッジ](05-testing/code-coverage.md) | gcov / lcov / OpenCppCoverage  |
+| [.NET テスト](05-testing/dotnet-testing.md)     | xUnit による .NET 単体テスト   |
 
 ### ドキュメント自動化
 
-| スキルガイド | 内容 |
-|------------|------|
-| [Markdown](06-documentation/markdown.md) | ドキュメント記法の基礎 |
-| [Doxygen](06-documentation/doxygen.md) | C/C++ ソースコードからのドキュメント生成 |
-| [Pandoc](06-documentation/pandoc.md) | Markdown から HTML/docx への変換 |
-| [PlantUML](06-documentation/plantuml.md) | テキストベースの図表作成 |
+| スキルガイド | 内容                                     |
+|--------------|------------------------------------------|
+| [Markdown](06-documentation/markdown.md) | ドキュメント記法の基礎                   |
+| [Doxygen](06-documentation/doxygen.md)   | C/C++ ソースコードからのドキュメント生成 |
+| [Pandoc](06-documentation/pandoc.md)     | Markdown から HTML/docx への変換         |
+| [PlantUML](06-documentation/plantuml.md) | テキストベースの UML 図表作成 (第 1 選択) |
+| [Mermaid](06-documentation/mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
+| [draw.io](06-documentation/drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
 
 ## ステップ 5 - 自動化・拡張
 
@@ -125,18 +127,18 @@ CI/CD によるビルド・テストの自動化と、.NET 連携および開発
 
 ### CI/CD
 
-| スキルガイド | 内容 |
-|------------|------|
+| スキルガイド      | 内容                         |
+|-------------------|------------------------------|
 | [GitHub Actions](07-ci-cd/github-actions.md) | 自動ビルド・テスト・デプロイ |
-| [GitHub Pages](07-ci-cd/github-pages.md) | 生成ドキュメントの公開 |
+| [GitHub Pages](07-ci-cd/github-pages.md)     | 生成ドキュメントの公開       |
 
 ### 開発環境・.NET連携
 
-| スキルガイド | 内容 |
-|------------|------|
-| [VS Code](08-dev-environment/vscode.md) | エディタの設定と拡張機能 |
-| [WSL / MinGW 環境](08-dev-environment/wsl-mingw.md) | Windows での Linux 互換ビルド環境 |
-| [C# / P/Invoke](08-dev-environment/dotnet-csharp.md) | .NET から C ライブラリを呼び出す |
+| スキルガイド       | 内容                              |
+|--------------------|-----------------------------------|
+| [VS Code](08-dev-environment/vscode.md)              | エディタの設定と拡張機能          |
+| [WSL / MinGW 環境](08-dev-environment/wsl-mingw.md)  | Windows での Linux 互換ビルド環境 |
+| [C# / P/Invoke](08-dev-environment/dotnet-csharp.md) | .NET から C ライブラリを呼び出す  |
 
 ## 関連ドキュメント
 

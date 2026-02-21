@@ -42,8 +42,8 @@
 
 ```text
 prod/calc.net/
-├── libsrc/CalcLib/CalcLib.csproj      # C ライブラリの .NET ラッパー
-└── src/CalcApp/CalcApp.csproj         # サンプルアプリケーション
++-- libsrc/CalcLib/CalcLib.csproj      # C ライブラリの .NET ラッパー
++-- src/CalcApp/CalcApp.csproj         # サンプルアプリケーション
 ```
 
 `Directory.Build.props` (ルートの共通設定):

@@ -5,18 +5,18 @@ Google Test によるC コードの単体テスト、コードカバレッジの
 
 ## スキルガイド一覧
 
-| スキルガイド | 内容 |
-|------------|------|
-| [Google Test / Google Mock](google-test.md) | C/C++ 単体テストフレームワーク |
-| [コードカバレッジ](code-coverage.md) | gcov / lcov / OpenCppCoverage によるカバレッジ計測 |
-| [.NET テスト（xUnit）](dotnet-testing.md) | xUnit による .NET 単体テスト |
+| スキルガイド                | 内容                                               |
+|-----------------------------|----------------------------------------------------|
+| [Google Test / Google Mock](google-test.md) | C/C++ 単体テストフレームワーク                     |
+| [コードカバレッジ](code-coverage.md)        | gcov/lcov/OpenCppCoverage によるカバレッジ計測 |
+| [.NET テスト(xUnit)](dotnet-testing.md)     | xUnit による .NET 単体テスト                       |
 
 ## このリポジトリとの関連
 
 - `test/` - テストコードのルートディレクトリ
 - `test/src/calc/libcalcbaseTest/` - `libcalcbase` ライブラリの単体テスト
-- `test/libsrc/mock_calcbase/` - モック実装（Google Mock 使用例）
-- `testfw/` - テストフレームワーク（サブモジュール）
+- `test/libsrc/mock_calcbase/` - モック実装 (Google Mock 使用例)
+- `testfw/` - テストフレームワーク (サブモジュール)
 
 ## 次のステップ
 

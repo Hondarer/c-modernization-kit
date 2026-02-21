@@ -177,7 +177,7 @@ Markdown には、プレーンテキストなので Git で扱いやすく、自
 
 変更を自動でビルド・テスト・発行するだけで、レビューの確実性と反復速度が上がります。
 
-[DORA レポート](https://dora.dev/research/2023/dora-report/)（DevOps Research and Assessment の年次調査）では、継続的インテグレーションと短いリードタイムなどの実践が、配信の安定性と速度に結びつくことが繰り返し示されています ([Google Cloud Blog 2024](https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report))。
+[DORA レポート](https://dora.dev/research/2023/dora-report/)(DevOps Research and Assessment の年次調査) では、継続的インテグレーションと短いリードタイムなどの実践が、配信の安定性と速度に結びつくことが繰り返し示されています ([Google Cloud Blog 2024](https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report))。
 
 まずは「プッシュでテストとドキュメント生成が走る」最小構成から始め、必要に応じて段階的に強化するとよいでしょう。
 
