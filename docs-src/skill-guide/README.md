@@ -94,7 +94,7 @@ C ライブラリの種類とビルドシステムを理解することで、こ
 
 | スキルガイド                | 内容                                    |
 |-----------------------------|-----------------------------------------|
-| [GNU Make](04-build-system/gnu-make.md)                       | Makefile の基礎と階層ビルド構造         |
+| [GNU Make](04-build-system/gnu-make.md)                       | makefile の基礎と階層ビルド構造         |
 | [GCC / MSVC ツールチェイン](04-build-system/gcc-toolchain.md) | コンパイラとリンカのオプション          |
 | [.NET SDK](04-build-system/dotnet-sdk.md)                     | dotnet コマンドと .NET プロジェクト構造 |
 

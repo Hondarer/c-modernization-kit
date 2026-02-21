@@ -7,7 +7,7 @@ GNU Make・GCC / MSVC・.NET SDK を使ったビルドの仕組みを理解し�
 
 | スキルガイド | 内容 |
 |------------|------|
-| [GNU Make](gnu-make.md) | Makefile の基礎と階層ビルド構造 |
+| [GNU Make](gnu-make.md) | makefile の基礎と階層ビルド構造 |
 | [GCC / MSVC ツールチェイン](gcc-toolchain.md) | コンパイラとリンカのオプション |
 | [.NET SDK](dotnet-sdk.md) | dotnet コマンドと .NET プロジェクト構造 |
 

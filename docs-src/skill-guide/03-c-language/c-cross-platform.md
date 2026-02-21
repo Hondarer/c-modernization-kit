@@ -6,7 +6,7 @@ C 言語は Linux と Windows の両方で動作するコードを書けます�
 
 このリポジトリは Linux（GCC）と Windows（MSVC）の両方をサポートするクロスプラットフォーム設計になっています。`prod/calc/include/libcalc.h` では、Windows の DLL エクスポート宣言（`__declspec(dllexport)`）と Linux の可視性属性（`__attribute__((visibility("default")))`）を条件コンパイルで切り替えています。同様のパターンは `prod/` 配下の他のヘッダーファイルにも見られます。
 
-ビルドシステム（Makefile）側でも OS やコンパイラの違いを吸収しており、`makefw/` サブモジュールが Linux / Windows の差異をテンプレートとして提供しています。
+ビルドシステム（makefile）側でも OS やコンパイラの違いを吸収しており、`makefw/` サブモジュールが Linux / Windows の差異をテンプレートとして提供しています。
 
 ## 習得目標
 
@@ -51,7 +51,7 @@ C 言語は Linux と Windows の両方で動作するコードを書けます�
 - `prod/calc/include/libcalcbase.h` — 静的ライブラリのヘッダー
 - `prod/calc/include/libcalc_const.h` — OS に依存しない定数定義
 
-Makefile での OS 判別（`makefw/` テンプレートより）:
+makefile での OS 判別（`makefw/` テンプレートより）:
 
 ```makefile
 ifeq ($(OS),Windows_NT)
@@ -69,5 +69,5 @@ endif
 
 - [ビルド設計](../../build-design.md) — クロスプラットフォームビルドの詳細設計
 - [C ライブラリの種類](c-library-types.md) — 静的・動的ライブラリの仕組み
-- [GNU Make（スキルガイド）](../04-build-system/gnu-make.md) — Makefile によるクロスプラットフォームビルド
+- [GNU Make（スキルガイド）](../04-build-system/gnu-make.md) — makefile によるクロスプラットフォームビルド
 - [WSL / MinGW 環境（スキルガイド）](../08-dev-environment/wsl-mingw.md) — Windows での Linux 互換ビルド環境
