@@ -56,8 +56,9 @@ return s_func_override(useOverride, a, b, result);
 ## base.so / base.dll アンロード時の処理
 
 `s_handle` に保持したハンドルは、`base.so` / `base.dll` がアンロードされるタイミングで自動的に解放されます。
+アンロード処理は `DllMain.c` に分離しており、`func.c` との変数共有には `libbase_local.h` を使用しています。
 
-### Linux: `__attribute__((destructor))`
+### Linux: `__attribute__((destructor))` (`DllMain.c`)
 
 ```c
 __attribute__((destructor))
@@ -80,7 +81,7 @@ static void unload_liboverride(void)
 | プロセス正常終了 (`return` / `exit()`) | `atexit` コールバックの後、OS へ制御が返る前 |
 | `_exit()` / `abort()` による強制終了 | **呼ばれない** |
 
-### Windows: `DllMain(DLL_PROCESS_DETACH)`
+### Windows: `DllMain(DLL_PROCESS_DETACH)` (`DllMain.c`)
 
 ```c
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

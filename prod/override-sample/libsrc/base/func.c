@@ -14,63 +14,17 @@
  */
 
 #include <libbase.h>
-#ifndef _WIN32
-    #include <dlfcn.h>
-#else /* _WIN32 */
-    #include <windows.h>
-#endif /* _WIN32 */
+#include "libbase_local.h"
 #include <stddef.h>
 
-typedef int (*func_override_t)(const int, const int, const int, int *);
-
-/* ハンドルと関数ポインタのキャッシュ (初回ロード時のみ取得) */
+/* ハンドルと関数ポインタのキャッシュ (初回ロード時のみ取得)
+ * アンロード時の解放は DllMain.c が担当する。 */
 #ifndef _WIN32
-static void            *s_handle        = NULL;
+void            *s_handle        = NULL;
 #else  /* _WIN32 */
-static HMODULE          s_handle        = NULL;
+HMODULE          s_handle        = NULL;
 #endif /* _WIN32 */
-static func_override_t  s_func_override = NULL;
-
-/*
- * base.so / base.dll がアンロードされるときに s_handle を解放する。
- *
- * Linux  : __attribute__((destructor)) により、dlclose(base.so) または
- *          プロセス正常終了時に自動的に呼び出される。
- * Windows: DllMain の DLL_PROCESS_DETACH により、FreeLibrary(base.dll) または
- *          プロセス正常終了時に自動的に呼び出される。
- */
-#ifndef _WIN32
-
-__attribute__((destructor))
-static void unload_liboverride(void)
-{
-    if (s_handle != NULL)
-    {
-        dlclose(s_handle);
-        s_handle        = NULL;
-        s_func_override = NULL;
-    }
-}
-
-#else /* _WIN32 */
-
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    (void)hinstDLL;
-    (void)lpvReserved;
-    if (fdwReason == DLL_PROCESS_DETACH)
-    {
-        if (s_handle != NULL)
-        {
-            FreeLibrary(s_handle);
-            s_handle        = NULL;
-            s_func_override = NULL;
-        }
-    }
-    return TRUE;
-}
-
-#endif /* _WIN32 */
+func_override_t  s_func_override = NULL;
 
 /* doxygen コメントは、ヘッダに記載 */
 int WINAPI func(const int useOverride, const int a, const int b, int *result)
