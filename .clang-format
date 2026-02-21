@@ -18,3 +18,6 @@ AlignConsecutiveMacros: Consecutive
 
 # 波括弧の配置: すべての波括弧を次の行に配置 (Allman スタイル)
 BreakBeforeBraces: Allman
+
+# 短い関数の1行化: 空の関数本体のみ許可 (非空関数は複数行に展開)
+AllowShortFunctionsOnASingleLine: Empty

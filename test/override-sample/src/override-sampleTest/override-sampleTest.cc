@@ -1,64 +1,28 @@
 #include <array>
 #include <cstdio>
-#include <limits.h>
 #include <string>
-#include <sys/stat.h>
 #include <sys/wait.h>
 #include <testfw.h>
 #include <unistd.h>
 
-/**
- * /proc/self/exe から実行ファイルのパスを取得し、
- * 上位ディレクトリを順に遡って .workspaceRoot が存在する
- * ディレクトリを返す。見つからない場合は空文字列を返す。
- */
-static string findWorkspaceRoot()
-{
-    char exe_path[PATH_MAX];
-    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
-    if (len == -1)
-    {
-        return "";
-    }
-    exe_path[len] = '\0';
-
-    string dir(exe_path);
-    size_t pos = dir.rfind('/');
-    if (pos != string::npos)
-    {
-        dir = dir.substr(0, pos);
-    }
-
-    while (!dir.empty() && dir != "/")
-    {
-        struct stat st;
-        string marker = dir + "/.workspaceRoot";
-        if (stat(marker.c_str(), &st) == 0)
-        {
-            return dir;
-        }
-        pos = dir.rfind('/');
-        if (pos == string::npos || pos == 0)
-        {
-            break;
-        }
-        dir = dir.substr(0, pos);
-    }
-    return "";
-}
-
 class override_sampleTest : public Test
 {
+  protected:
+    string binary_path;
+    string lib_path;
+
+    void SetUp() override
+    {
+        string workspace_root = findWorkspaceRoot();
+        ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
+        binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
+        lib_path = workspace_root + "/prod/override-sample/lib";
+    }
 };
 
 TEST_F(override_sampleTest, override_sampleTest)
 {
     // Arrange
-    string workspace_root = findWorkspaceRoot();
-    ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
-
-    string binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
-    string lib_path = workspace_root + "/prod/override-sample/lib";
 
     // Pre-Assert
 
@@ -94,11 +58,6 @@ TEST_F(override_sampleTest, override_sampleTest)
 TEST_F(override_sampleTest, onUnload_syslog)
 {
     // Arrange
-    string workspace_root = findWorkspaceRoot();
-    ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
-
-    string binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
-    string lib_path = workspace_root + "/prod/override-sample/lib";
 
     // Pre-Assert
 
