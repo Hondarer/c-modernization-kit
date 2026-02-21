@@ -9,7 +9,7 @@
 | useOverride | 動作 |
 |---|---|
 | `0` | `libbase` 自身が処理を行う (`a + b`) |
-| `1` (それ以外) | `dlopen` / `LoadLibrary` で `liboverride` を実行時にロードし、`func_override` に処理を委譲する (`a * b`) |
+| `1` (0 以外) | `dlopen` / `LoadLibrary` で `liboverride` を実行時にロードし、`func_override` に処理を委譲する (`a * b`) |
 
 これにより、メインプログラムを変更せずに、ライブラリの実装を差し替えられることを示します。
 
@@ -18,19 +18,19 @@
 ```text
 prod/override-sample/
 +-- include/
-|   +-- libbase.h          # libbase ヘッダー (func, console_output の宣言)
-|   +-- libbase_ext.h      # liboverride ヘッダー (func_override の宣言)
+|   +-- libbase.h             # libbase ヘッダー (func, console_output の宣言)
+|   +-- libbase_ext.h         # liboverride ヘッダー (func_override の宣言)
 +-- libsrc/
 |   +-- base/
-|   |   +-- base.c         # func の実装 (useOverride による切り替えロジック)
+|   |   +-- base.c            # func の実装 (useOverride による切り替えロジック)
 |   |   +-- console_output.c  # console_output の実装 (printf ラッパー)
 |   +-- override/
 |       +-- func_override.c   # func_override の実装 (libbase から dlopen で呼ばれる)
 +-- src/
 |   +-- override-sample/
 |       +-- override-sample.c # メインプログラム
-+-- lib/                   # ビルド済みライブラリ (libbase.so / liboverride.so)
-+-- bin/                   # ビルド済み実行ファイル (override-sample)
++-- lib/                      # ビルド済みライブラリ (libbase.so / liboverride.so / libbase.dll / liboverride.dll)
++-- bin/                      # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
 ## ライブラリ
@@ -74,15 +74,15 @@ int func_override(const int useOverride, const int a, const int b, int *result);
 override-sample (実行ファイル)
     |
     | func(0, 1, 2, &result)        useOverride=0
-    +---> libbase.so
+    +---> libbase.so / libbase.dll
     |         func() が自身で処理
     |         *result = 1 + 2 = 3
     |
     | func(1, 1, 2, &result)        useOverride=1
-    +---> libbase.so
-              func() が dlopen("liboverride.so") を呼び出す
+    +---> libbase.so / libbase.dll
+              func() が dlopen / LoadLibrary で liboverride.so / liboverride.dll を呼び出す
                   |
-                  +---> liboverride.so (実行時ロード)
+                  +---> liboverride.so / liboverride.dll (実行時ロード)
                             func_override() が処理
                             *result = 1 * 2 = 2
 ```
@@ -101,6 +101,9 @@ make
 | `lib/libbase.so` | ベースライブラリ (Linux) |
 | `lib/liboverride.so` | オーバーライドライブラリ (Linux) |
 | `bin/override-sample` | メインプログラム (Linux) |
+| `lib/libbase.dll` | ベースライブラリ (Windows) |
+| `lib/liboverride.dll` | オーバーライドライブラリ (Windows) |
+| `bin/override-sample.exe` | メインプログラム (Windows) |
 
 クリーンビルドを行う場合は以下のとおりです。
 
@@ -115,6 +118,14 @@ Linux では `LD_LIBRARY_PATH` にライブラリのパスを設定して実行�
 ```bash
 cd prod/override-sample/bin
 LD_LIBRARY_PATH=../lib ./override-sample
+```
+
+Windows では `PATH` にライブラリのパスを設定して実行します。
+
+```cmd
+cd prod\override-sample\bin
+set PATH=%PATH%;..\lib
+override-sample.exe
 ```
 
 ### 実行結果
