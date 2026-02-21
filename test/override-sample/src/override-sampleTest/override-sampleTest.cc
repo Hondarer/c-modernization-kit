@@ -20,6 +20,9 @@ class override_sampleTest : public Test
   protected:
     string binary_path;
     string lib_path;
+#ifndef _WIN32
+    string mock_lib_path;
+#endif /* _WIN32 */
 
     void SetUp() override
     {
@@ -28,6 +31,7 @@ class override_sampleTest : public Test
 #ifndef _WIN32
         binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
         lib_path = workspace_root + "/prod/override-sample/lib";
+        mock_lib_path = workspace_root + "/test/override-sample/lib/libsyslog_mock.so";
 #else  /* _WIN32 */
         binary_path = workspace_root + "\\prod\\override-sample\\bin\\override-sample.exe";
         lib_path = workspace_root + "\\prod\\override-sample\\lib";
@@ -117,6 +121,10 @@ TEST_F(override_sampleTest, check_stdout_windows)
 TEST_F(override_sampleTest, onUnload_syslog_linux)
 {
     // Arrange
+    char tmp_path[] = "/tmp/syslog_mock_XXXXXX";
+    int fd = mkstemp(tmp_path); // [手順] - syslog 出力を受け取る一時ファイルを作成する。
+    ASSERT_NE(-1, fd) << "mkstemp に失敗しました";
+    close(fd);
 
     // Pre-Assert
 
@@ -126,8 +134,10 @@ TEST_F(override_sampleTest, onUnload_syslog_linux)
 
     if (pid == 0)
     {
-        // 子プロセス: LD_LIBRARY_PATH を設定してから exec する。
+        // 子プロセス: LD_LIBRARY_PATH / SYSLOG_MOCK_FILE / LD_PRELOAD を設定してから exec する。
         setenv("LD_LIBRARY_PATH", lib_path.c_str(), 1);
+        setenv("SYSLOG_MOCK_FILE", tmp_path, 1);
+        setenv("LD_PRELOAD", mock_lib_path.c_str(), 1); // [手順] - LD_PRELOAD で syslog_mock.so を挿入する。
         freopen("/dev/null", "w", stdout);
         freopen("/dev/null", "w", stderr);
         execl(binary_path.c_str(), binary_path.c_str(), nullptr); // [手順] - override-sample を実行する。
@@ -137,23 +147,24 @@ TEST_F(override_sampleTest, onUnload_syslog_linux)
     // 親プロセス: 子プロセスの終了を待つ。
     int status;
     waitpid(pid, &status, 0);
-    ASSERT_EQ(0, WEXITSTATUS(status));
+    int exit_code = WEXITSTATUS(status);
 
     // Assert
-    // [手順] - journalctl _PID=<PID> で onUnload の syslog 出力を確認する。
-    char pid_str[16];
-    snprintf(pid_str, sizeof(pid_str), "%d", static_cast<int>(pid));
-    string log_cmd = "journalctl _PID=" + string(pid_str) + " --no-pager 2>/dev/null";
-
-    array<char, 65536> log_buf;
+    // [手順] - 一時ファイルから syslog モックの出力を読み取る。
+    array<char, 4096> log_buf;
     string log_output;
-    FILE *log_pipe = popen(log_cmd.c_str(), "r");
-    ASSERT_NE(nullptr, log_pipe) << "journalctl の実行に失敗しました";
-    while (fgets(log_buf.data(), static_cast<int>(log_buf.size()), log_pipe) != nullptr)
+    FILE *f = fopen(tmp_path, "r");
+    if (f != nullptr)
     {
-        log_output += log_buf.data();
+        while (fgets(log_buf.data(), static_cast<int>(log_buf.size()), f) != nullptr)
+        {
+            log_output += log_buf.data();
+        }
+        fclose(f);
     }
-    pclose(log_pipe);
+    unlink(tmp_path);
+
+    ASSERT_EQ(0, exit_code); // [確認] - override-sample の終了コードが 0 であること。
 
     EXPECT_NE(string::npos, log_output.find("base: onUnload called")) // [確認] - syslog に onUnload の記録があること。
         << "syslog に 'base: onUnload called' が出力されていません\nlog:\n"
@@ -268,7 +279,7 @@ TEST_F(override_sampleTest, onUnload_syslog_windows)
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 
-    ASSERT_EQ(0U, child_exit_code);
+    ASSERT_EQ(0U, child_exit_code); // [確認] - override-sample の終了コードが 0 であること。
 
     // Assert
     EXPECT_NE(string::npos,
