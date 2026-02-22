@@ -17,7 +17,29 @@
 #ifndef LIBBASE_EXT_H
 #define LIBBASE_EXT_H
 
-/* DLL エクスポート/インポート定義 */
+/**
+ *  @def            BASE_EXT_API
+ *  @brief          DLL エクスポート/インポート制御マクロ。
+ *
+ *  @details        ビルド条件に応じて以下の値を取ります。
+ *
+ *  | 条件                                                  | 値                       |
+ *  | ----------------------------------------------------- | ------------------------ |
+ *  | Linux (非 Windows)                                    | (空)                     |
+ *  | Windows / `__INTELLISENSE__` 定義時                   | (空)                     |
+ *  | Windows / `BASE_EXT_STATIC` 定義時 (静的リンク)       | (空)                     |
+ *  | Windows / `BASE_EXT_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
+ *  | Windows / `BASE_EXT_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+ */
+
+/**
+ *  @def            WINAPI
+ *  @brief          Windows 呼び出し規約マクロ。
+ *
+ *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。
+ *                  Linux (非 Windows) 環境では空に展開されます。
+ *                  既に定義済みの場合は再定義されません。
+ */
 #ifndef _WIN32
     #define BASE_EXT_API
     #define WINAPI
