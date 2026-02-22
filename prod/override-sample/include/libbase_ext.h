@@ -55,8 +55,8 @@ extern "C"
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
      *  @details
-     *  libbase の func から動的にロードされ呼び出されます。\n
-     *  a * b を計算して result に格納します。
+     *                  libbase の func から動的にロードされ呼び出されます。\n
+     *                  a * b を計算して result に格納します。
      *
      *  @par            使用例
      *  @code{.c}

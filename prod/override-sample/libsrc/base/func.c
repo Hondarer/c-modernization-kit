@@ -13,14 +13,14 @@
  *******************************************************************************
  */
 
-#include <libbase.h>
 #include "libbase_local.h"
+#include <libbase.h>
 #include <stddef.h>
 
 /* ハンドルと関数ポインタのキャッシュ (初回ロード時のみ取得)
  * アンロード時の解放は DllMain.c が担当する。 */
-MODULE_HANDLE    s_handle        = NULL;
-func_override_t  s_func_override = NULL;
+MODULE_HANDLE s_handle = NULL;
+func_override_t s_func_override = NULL;
 
 /* doxygen コメントは、ヘッダに記載 */
 int WINAPI func(const int useOverride, const int a, const int b, int *result)
@@ -39,9 +39,9 @@ int WINAPI func(const int useOverride, const int a, const int b, int *result)
 
     /* useOverride != 0: liboverride に委譲 */
     {
-#ifndef _WIN32
         if (s_handle == NULL)
         {
+#ifndef _WIN32
             s_handle = dlopen("liboverride.so", RTLD_LAZY);
             if (s_handle == NULL)
             {
@@ -54,12 +54,7 @@ int WINAPI func(const int useOverride, const int a, const int b, int *result)
                 s_handle = NULL;
                 return -1;
             }
-        }
-        console_output("func: func_override に移譲します\n");
-        return s_func_override(useOverride, a, b, result);
-#else /* _WIN32 */
-        if (s_handle == NULL)
-        {
+#else  /* _WIN32 */
             s_handle = LoadLibrary("liboverride.dll");
             if (s_handle == NULL)
             {
@@ -72,9 +67,9 @@ int WINAPI func(const int useOverride, const int a, const int b, int *result)
                 s_handle = NULL;
                 return -1;
             }
+#endif /* _WIN32 */
         }
         console_output("func: func_override に移譲します\n");
         return s_func_override(useOverride, a, b, result);
-#endif /* _WIN32 */
     }
 }

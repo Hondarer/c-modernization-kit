@@ -17,7 +17,29 @@
 #ifndef LIBBASE_H
 #define LIBBASE_H
 
-/* DLL エクスポート/インポート定義 */
+/**
+ *  @def            BASE_API
+ *  @brief          DLL エクスポート/インポート制御マクロ。
+ *
+ *  @details        ビルド条件に応じて以下の値を取ります。
+ *
+ *  | 条件                                              | 値                       |
+ *  | ------------------------------------------------- | ------------------------ |
+ *  | Linux (非 Windows)                                | (空)                     |
+ *  | Windows / `__INTELLISENSE__` 定義時               | (空)                     |
+ *  | Windows / `BASE_STATIC` 定義時 (静的リンク)       | (空)                     |
+ *  | Windows / `BASE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
+ *  | Windows / `BASE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+ */
+
+/**
+ *  @def            WINAPI
+ *  @brief          Windows 呼び出し規約マクロ。
+ *
+ *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+ *                  Linux (非 Windows) 環境では空に展開されます。\n
+ *                  既に定義済みの場合は再定義されません。
+ */
 #ifndef _WIN32
     #define BASE_API
     #define WINAPI
@@ -54,25 +76,23 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインタ。
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
-     *  @details
-     *  useOverride が 0 の場合、この関数自身が a + b を計算して result に格納します。\n
-     *  useOverride が 1 の場合、liboverride.so (Linux) または liboverride.dll (Windows)
-     *  を動的にロードし、func_override 関数に処理を委譲します。
+     *  @details        useOverride が 0 の場合、この関数自身が a + b を計算して result に格納します。\n
+     *                  useOverride が 1 の場合、liboverride.so (Linux) または liboverride.dll (Windows)
+     *                  を動的にロードし、func_override 関数に処理を委譲します。
      *
-     *  @details
-     *  本実装は useOverride フラグによって拡張呼び出しを制御していますが、
-     *  これはサンプルとして分かりやすく切り替えを示すための手法です。\n
-     *  \n
-     *  実際にこの機構を実装する際は、ロードするライブラリ名・シンボル名を
-     *  ハードコードする必要はありません。\n
-     *  設定ファイルや定義ファイルからライブラリ名と関数名を読み取れば、
-     *  シグネチャが一致する限り任意の so / dll の任意の関数を
-     *  実行時に差し替えることができます。\n
-     *  例えば以下のように応用できます。
-     *  - 設定ファイルに `lib=libmyplugin.so, func=my_func` と記述しておき、
-     *    起動時に読み込んで dlopen / dlsym で動的にバインドする
-     *  - 環境変数でオーバーライドライブラリを指定し、テスト環境と本番環境で
-     *    実装を切り替える
+     *                  本実装は useOverride フラグによって拡張呼び出しを制御していますが、
+     *                  これはサンプルとして分かりやすく切り替えを示すための手法です。
+     *
+     *                  実際にこの機構を実装する際は、ロードするライブラリ名・シンボル名を
+     *                  ハードコードする必要はありません。\n
+     *                  設定ファイルや定義ファイルからライブラリ名と関数名を読み取れば、
+     *                  シグネチャが一致する限り任意の so / dll の任意の関数を
+     *                  実行時に差し替えることができます。\n
+     *                  例えば以下のように応用できます。
+     *                      - 設定ファイルに `lib=libmyplugin.so, func=my_func` と記述しておき、
+     *                        起動時に読み込んで dlopen / dlsym で動的にバインドする
+     *                      - 環境変数でオーバーライドライブラリを指定し、テスト環境と本番環境で
+     *                        実装を切り替える
      *
         @startuml func 処理アクティビティ
             caption func 処理アクティビティ
@@ -124,9 +144,8 @@ extern "C"
      *  @param[in]      format printf 互換の書式文字列。
      *  @param[in]      ... 書式文字列に対応する引数。
      *
-     *  @details
-     *  この関数は printf のラッパーです。\n
-     *  動的ライブラリ内から呼び出し元プロセスのコンソールに出力します。
+     *  @details        この関数は printf のラッパーです。\n
+     *                  動的ライブラリ内から呼び出し元プロセスのコンソールに出力します。
      *
      *  @par            使用例
      *  @code{.c}

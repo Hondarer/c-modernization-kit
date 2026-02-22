@@ -1,6 +1,6 @@
 #include <subfolder-sample.h>
 
-SUBFOLDER_SAMPLE_API int WINAPI func_b(void)
+int WINAPI func_b(void)
 {
     return 2;
 }

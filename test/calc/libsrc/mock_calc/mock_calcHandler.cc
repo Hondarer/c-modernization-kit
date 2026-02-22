@@ -1,7 +1,7 @@
 #include <testfw.h>
 #include <mock_calc.h>
 
-CALC_API WEAK_ATR int WINAPI calcHandler(int kind, int a, int b, int *result)
+WEAK_ATR int WINAPI calcHandler(int kind, int a, int b, int *result)
 {
     int rtc = 0;
 

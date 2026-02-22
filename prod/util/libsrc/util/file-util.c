@@ -15,7 +15,7 @@
 #endif /* _WIN32 */
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE_UTIL_API FILE *WINAPI fopen_printf(const char *modes, int *errno_out, const char *format, ...)
+FILE *WINAPI fopen_printf(const char *modes, int *errno_out, const char *format, ...)
 {
     va_list args;
     char filename[FILE_PATH_MAX] = {0};
@@ -81,7 +81,7 @@ FILE_UTIL_API FILE *WINAPI fopen_printf(const char *modes, int *errno_out, const
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE_UTIL_API int WINAPI stat_printf(file_stat_t *buf, const char *format, ...)
+int WINAPI stat_printf(file_stat_t *buf, const char *format, ...)
 {
     va_list args;
     char filename[FILE_PATH_MAX] = {0};

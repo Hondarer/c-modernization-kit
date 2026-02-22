@@ -3,25 +3,25 @@
 
 /* DLL エクスポート/インポート定義 */
 #ifdef _WIN32
-#ifndef __INTELLISENSE__
-#ifndef SUBFOLDER_SAMPLE_STATIC
-#ifdef SUBFOLDER_SAMPLE_EXPORTS
-#define SUBFOLDER_SAMPLE_API __declspec(dllexport)
-#else /* SUBFOLDER_SAMPLE_EXPORTS */
-#define SUBFOLDER_SAMPLE_API __declspec(dllimport)
-#endif /* SUBFOLDER_SAMPLE_EXPORTS */
-#else  /* SUBFOLDER_SAMPLE_STATIC */
-#define SUBFOLDER_SAMPLE_API
-#endif /* SUBFOLDER_SAMPLE_STATIC */
-#else  /* __INTELLISENSE__ */
-#define SUBFOLDER_SAMPLE_API
-#endif /* __INTELLISENSE__ */
-#ifndef WINAPI
-#define WINAPI __stdcall
-#endif /* WINAPI */
-#else  /* _WIN32 */
-#define SUBFOLDER_SAMPLE_API
-#define WINAPI
+    #ifndef __INTELLISENSE__
+        #ifndef SUBFOLDER_SAMPLE_STATIC
+            #ifdef SUBFOLDER_SAMPLE_EXPORTS
+                #define SUBFOLDER_SAMPLE_API __declspec(dllexport)
+            #else /* SUBFOLDER_SAMPLE_EXPORTS */
+                #define SUBFOLDER_SAMPLE_API __declspec(dllimport)
+            #endif /* SUBFOLDER_SAMPLE_EXPORTS */
+        #else      /* SUBFOLDER_SAMPLE_STATIC */
+            #define SUBFOLDER_SAMPLE_API
+        #endif /* SUBFOLDER_SAMPLE_STATIC */
+    #else      /* __INTELLISENSE__ */
+        #define SUBFOLDER_SAMPLE_API
+    #endif /* __INTELLISENSE__ */
+    #ifndef WINAPI
+        #define WINAPI __stdcall
+    #endif /* WINAPI */
+#else      /* _WIN32 */
+    #define SUBFOLDER_SAMPLE_API
+    #define WINAPI
 #endif /* _WIN32 */
 
 #ifdef __cplusplus
