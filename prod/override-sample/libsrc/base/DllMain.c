@@ -31,46 +31,12 @@
     #define LOG_INFO_MSG(msg) OutputDebugStringA(msg)
 #endif /* _WIN32 */
 
-/**
- *  @brief          ライブラリアンロード時のクリーンアップ処理。
- *  @details        s_handle に保持している liboverride のハンドルを解放し、
- *                  キャッシュした関数ポインタ s_func_override を NULL にリセットします。
- *                  本関数は DLL アンロードコンテキスト (DLL_PROCESS_DETACH または
- *                  __attribute__((destructor))) からのみ呼び出されます。
- *
- *  @attention      DLL / 共有ライブラリのアンロードコンテキストで呼び出せる API には
- *                  プラットフォームごとに重要な制限があります。\n
- *                  \n
- *                  **Linux: __attribute__((destructor)) コンテキスト**\n
- *                  デストラクタは dlclose() 呼び出し時、またはプロセス終了時の atexit
- *                  ハンドラと同等のタイミングで実行されます。
- *                  他の共有ライブラリのデストラクタが先に実行されている可能性があるため、
- *                  依存ライブラリの関数呼び出しは未定義動作を引き起こす場合があります。\n
- *                  \n
- *                  **Windows: DLL_PROCESS_DETACH コンテキスト**\n
- *                  DllMain はローダーロック (loader lock) を保持した状態で呼び出されます。
- *                  このコンテキストで安全に呼び出せるのは、主に kernel32.dll が提供する
- *                  一部の API (CloseHandle, OutputDebugStringA, HeapFree など) に限られます。
- *
- *  @see            https://learn.microsoft.com/ja-jp/windows/win32/dlls/dllmain
- */
 static void onUnload(void);
 
-/* doxygen コメントは、ヘッダに記載 */
 void onUnload(void)
 {
     LOG_INFO_MSG("base: onUnload called");
-
-    if (s_handle != NULL)
-    {
-#ifndef _WIN32
-        dlclose(s_handle);
-#else  /* _WIN32 */
-        FreeLibrary(s_handle);
-#endif /* _WIN32 */
-        s_handle = NULL;
-        s_func_override = NULL;
-    }
+    libbase_unload_all();
 }
 
 #ifndef _WIN32
