@@ -1,0 +1,72 @@
+@startuml inline_umlgraph_1.svg
+    caption func 処理アクティビティ
+    start
+    if (result == NULL?) then (true)
+        :return -1;
+        stop
+    endif
+    if (useOverride == 0?) then (true)
+        :console_output で処理を行う旨を表示;
+        :**result = a + b**;
+        :return 0;
+        stop
+    endif
+    :dlopen / LoadLibrary で\nliboverride をロード\n(ライブラリ名は定義ファイル等で変更可);
+    if (handle == NULL?) then (true)
+        :return -1;
+        stop
+    endif
+    :dlsym / GetProcAddress で\nfunc_override を取得\n(関数名は定義ファイル等で変更可);
+    if (func_override == NULL?) then (true)
+        :ハンドルをクローズ;
+        :return -1;
+        stop
+    endif
+    :console_output で移譲する旨を表示;
+    :func_override(useOverride, a, b, result) を呼び出す;
+    :ハンドルをクローズ;
+    :return ret;
+    stop
+@enduml
+@startuml inline_umlgraph_2.svg
+    caption func 処理アクティビティ
+    start
+    if (result == NULL?) then (true)
+        :return -1;
+        stop
+    endif
+    if (useOverride == 0?) then (true)
+        :console_output で処理を行う旨を表示;
+        :**result = a + b**;
+        :return 0;
+        stop
+    endif
+    :dlopen / LoadLibrary で\nliboverride をロード\n(ライブラリ名は定義ファイル等で変更可);
+    if (handle == NULL?) then (true)
+        :return -1;
+        stop
+    endif
+    :dlsym / GetProcAddress で\nfunc_override を取得\n(関数名は定義ファイル等で変更可);
+    if (func_override == NULL?) then (true)
+        :ハンドルをクローズ;
+        :return -1;
+        stop
+    endif
+    :console_output で移譲する旨を表示;
+    :func_override(useOverride, a, b, result) を呼び出す;
+    :ハンドルをクローズ;
+    :return ret;
+    stop
+@enduml
+@startuml inline_umlgraph_3.svg
+    caption 競合シナリオ (排他制御なし)
+
+    participant "スレッド A" as A
+    participant "s_handle\n(共有変数)" as S
+    participant "スレッド B" as B
+
+    A -> S : if (s_handle == NULL) → true\n(まだロードされていない)
+    B -> S : if (s_handle == NULL) → true\n(A がロード完了する前に割り込む)
+    A -> S : s_handle = dlopen(...)
+    B -> S : s_handle = dlopen(...)\n← 二重ロード
+@enduml

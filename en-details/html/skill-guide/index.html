@@ -1,0 +1,540 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>スキルガイド - 学習ロードマップ</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">スキルガイド - 学習ロードマップ</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 18:45:59 +0900 d6e38c7</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#対象読者" id="toc-対象読者"><span class="toc-section-number">1</span> 対象読者</a></li>
+                <li><a href="#学習ステップ" id="toc-学習ステップ"><span class="toc-section-number">2</span> 学習ステップ</a></li>
+                <li><a href="#ステップ-1---導入-モダンな開発の理解" id="toc-ステップ-1---導入-モダンな開発の理解"><span class="toc-section-number">3</span> ステップ 1 - 導入 (モダンな開発の理解)</a></li>
+                <li><a href="#ステップ-2---必須基盤-バージョン管理" id="toc-ステップ-2---必須基盤-バージョン管理"><span class="toc-section-number">4</span> ステップ 2 - 必須基盤 (バージョン管理)</a></li>
+                <li><a href="#ステップ-3---ビルド理解" id="toc-ステップ-3---ビルド理解"><span class="toc-section-number">5</span> ステップ 3 - ビルド理解</a>
+                <ul>
+                <li><a href="#c-言語発展トピック" id="toc-c-言語発展トピック"><span class="toc-section-number">5.1</span> C 言語発展トピック</a></li>
+                <li><a href="#ビルドシステム" id="toc-ビルドシステム"><span class="toc-section-number">5.2</span> ビルドシステム</a></li>
+                </ul></li>
+                <li><a href="#ステップ-4---品質向上" id="toc-ステップ-4---品質向上"><span class="toc-section-number">6</span> ステップ 4 - 品質向上</a>
+                <ul>
+                <li><a href="#テスト自動化" id="toc-テスト自動化"><span class="toc-section-number">6.1</span> テスト自動化</a></li>
+                <li><a href="#ドキュメント自動化" id="toc-ドキュメント自動化"><span class="toc-section-number">6.2</span> ドキュメント自動化</a></li>
+                </ul></li>
+                <li><a href="#ステップ-5---自動化拡張" id="toc-ステップ-5---自動化拡張"><span class="toc-section-number">7</span> ステップ 5 - 自動化・拡張</a>
+                <ul>
+                <li><a href="#cicd" id="toc-cicd"><span class="toc-section-number">7.1</span> CI/CD</a></li>
+                <li><a href="#開発環境.net連携" id="toc-開発環境.net連携"><span class="toc-section-number">7.2</span> 開発環境・.NET連携</a></li>
+                </ul></li>
+                <li><a href="#関連ドキュメント" id="toc-関連ドキュメント"><span class="toc-section-number">8</span> 関連ドキュメント</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>スキルガイド - 学習ロードマップ</H1>
+      
+      
+      <p>このスキルガイドは、<code>c-modernization-kit</code> リポジトリを活用するために必要な技術スキルを整理した学習ガイドです。<br />
+レガシー C 言語開発チームが段階的にモダンな開発プラクティスを習得できるよう、5 つのステップに分けて学習マテリアルをまとめています。</p>
+<p>各スキルガイドは「学習の入り口」として機能します。<br />
+技術の詳細な解説は外部の公式ドキュメントやチュートリアルへのリンクで提供し、このリポジトリのどのコードと関連するかを示します。</p>
+<h1 data-number="1" id="対象読者"><span class="header-section-number">1</span> 対象読者</h1>
+<ul>
+<li>C 言語の基本的な知識を持つ開発者</li>
+<li>Git・自動ビルド・自動テスト・ドキュメント自動化の経験が少ない開発者</li>
+<li>このリポジトリのコードを読み、ビルドし、拡張したい開発者</li>
+</ul>
+<blockquote>
+<p>C言語の基礎 (変数・関数・ポインタなど) は習得済みを前提とします。</p>
+</blockquote>
+<h1 data-number="2" id="学習ステップ"><span class="header-section-number">2</span> 学習ステップ</h1>
+<figure>
+<img src="puml_f330e5490042143721568c47df4f4bab0baf5d55.svg" alt="学習ステップ" />
+<figcaption aria-hidden="true">学習ステップ</figcaption>
+</figure>
+<table>
+<caption>学習ステップ一覧</caption>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 42%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>ステップ</th>
+<th>目標</th>
+<th>技術カテゴリ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ステップ 1: 導入</td>
+<td>モダン開発の全体像と背景を理解できる</td>
+<td>X as Code・GitOps・生成 AI</td>
+</tr>
+<tr>
+<td>ステップ 2: 必須基盤</td>
+<td>チームでコードを共有・管理できる</td>
+<td>バージョン管理</td>
+</tr>
+<tr>
+<td>ステップ 3: ビルド理解</td>
+<td>ライブラリのビルドと依存関係を理解できる</td>
+<td>C ライブラリ・ビルドシステム</td>
+</tr>
+<tr>
+<td>ステップ 4: 品質向上</td>
+<td>テストとドキュメントを自動化できる</td>
+<td>テスト・ドキュメント</td>
+</tr>
+<tr>
+<td>ステップ 5: 自動化・拡張</td>
+<td>CI/CD とクロス言語連携を実現できる</td>
+<td>CI/CD・開発環境・.NET</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="ステップ-1---導入-モダンな開発の理解"><span class="header-section-number">3</span> <a href="01-modern-development/index.html">ステップ 1 - 導入 (モダンな開発の理解)</a></h1>
+<p>技術スキルを習得する前に、モダン開発の全体像・背景・思想を把握します。</p>
+<table>
+<caption>ステップ 1 ドキュメント一覧</caption>
+<colgroup>
+<col style="width: 66%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ドキュメント</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="01-modern-development/about-modern-development.html">レガシー C コードにモダン手法を適用する全体像</a></td>
+<td>Docs as Code・自動テスト・CI/CD を組み合わせた全体ワークフロー</td>
+</tr>
+<tr>
+<td><a href="01-modern-development/x_as_code.html">生成 AI 時代のソースコード管理 (X as Code)</a></td>
+<td>X as Code・GitOps・生成 AI 活用の DevOps 進化論</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="ステップ-2---必須基盤-バージョン管理"><span class="header-section-number">4</span> <a href="02-version-control/index.html">ステップ 2 - 必須基盤 (バージョン管理)</a></h1>
+<p>Git を使ったバージョン管理はすべての現代的な開発の基盤です。まずここから始めてください。</p>
+<table>
+<caption>バージョン管理スキルガイド一覧</caption>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="02-version-control/git-basics.html">Git 基礎</a></td>
+<td>init/clone/commit/branch/merge</td>
+</tr>
+<tr>
+<td><a href="02-version-control/git-submodules.html">Git サブモジュール</a></td>
+<td>サブモジュールの操作</td>
+</tr>
+<tr>
+<td><a href="02-version-control/github-workflow.html">GitHub ワークフロー</a></td>
+<td>PR・Issues・コードレビュー</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="5" id="ステップ-3---ビルド理解"><span class="header-section-number">5</span> ステップ 3 - ビルド理解</h1>
+<p>C ライブラリの種類とビルドシステムを理解することで、このリポジトリのコード構造を把握できます。</p>
+<h2 data-number="5.1" id="c-言語発展トピック"><span class="header-section-number">5.1</span> <a href="03-c-language/index.html">C 言語発展トピック</a></h2>
+<table>
+<caption>C 言語発展トピックスキルガイド一覧</caption>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="03-c-language/c-library-types.html">Cライブラリの種類</a></td>
+<td>静的ライブラリ・動的ライブラリの違いとリンク方法</td>
+</tr>
+<tr>
+<td><a href="03-c-language/c-cross-platform.html">クロスプラットフォーム対応</a></td>
+<td>Linux / Windows 対応マクロとビルド条件分岐</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="5.2" id="ビルドシステム"><span class="header-section-number">5.2</span> <a href="04-build-system/index.html">ビルドシステム</a></h2>
+<table>
+<caption>ビルドシステムスキルガイド一覧</caption>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="04-build-system/gnu-make.html">GNU Make</a></td>
+<td>makefile の基礎と階層ビルド構造</td>
+</tr>
+<tr>
+<td><a href="04-build-system/gcc-toolchain.html">GCC / MSVC ツールチェイン</a></td>
+<td>コンパイラとリンカのオプション</td>
+</tr>
+<tr>
+<td><a href="04-build-system/dotnet-sdk.html">.NET SDK</a></td>
+<td>dotnet コマンドと .NET プロジェクト構造</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="6" id="ステップ-4---品質向上"><span class="header-section-number">6</span> ステップ 4 - 品質向上</h1>
+<p>テストの自動化とドキュメントの自動生成により、品質と保守性を高めます。</p>
+<h2 data-number="6.1" id="テスト自動化"><span class="header-section-number">6.1</span> <a href="05-testing/index.html">テスト自動化</a></h2>
+<table>
+<caption>テスト自動化スキルガイド一覧</caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="05-testing/google-test.html">Google Test</a></td>
+<td>C/C++ 単体テストフレームワーク</td>
+</tr>
+<tr>
+<td><a href="05-testing/code-coverage.html">コードカバレッジ</a></td>
+<td>gcov / lcov / OpenCppCoverage</td>
+</tr>
+<tr>
+<td><a href="05-testing/dotnet-testing.html">.NET テスト</a></td>
+<td>xUnit による .NET 単体テスト</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="6.2" id="ドキュメント自動化"><span class="header-section-number">6.2</span> <a href="06-documentation/index.html">ドキュメント自動化</a></h2>
+<table>
+<caption>ドキュメント自動化スキルガイド一覧</caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="06-documentation/markdown.html">Markdown</a></td>
+<td>ドキュメント記法の基礎</td>
+</tr>
+<tr>
+<td><a href="06-documentation/doxygen.html">Doxygen</a></td>
+<td>C/C++ ソースコードからのドキュメント生成</td>
+</tr>
+<tr>
+<td><a href="06-documentation/pandoc.html">Pandoc</a></td>
+<td>Markdown から HTML/docx への変換</td>
+</tr>
+<tr>
+<td><a href="06-documentation/plantuml.html">PlantUML</a></td>
+<td>テキストベースの UML 図表作成 (第 1 選択)</td>
+</tr>
+<tr>
+<td><a href="06-documentation/mermaid.html">Mermaid</a></td>
+<td>テキストベースの図表作成 (第 2 選択)</td>
+</tr>
+<tr>
+<td><a href="06-documentation/drawio.html">draw.io</a></td>
+<td>GUI による任意の図作成 (第 3 選択)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="7" id="ステップ-5---自動化拡張"><span class="header-section-number">7</span> ステップ 5 - 自動化・拡張</h1>
+<p>CI/CD によるビルド・テストの自動化と、.NET 連携および開発環境の整備を行います。</p>
+<h2 data-number="7.1" id="cicd"><span class="header-section-number">7.1</span> <a href="07-ci-cd/index.html">CI/CD</a></h2>
+<table>
+<caption>CI/CD スキルガイド一覧</caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="07-ci-cd/github-actions.html">GitHub Actions</a></td>
+<td>自動ビルド・テスト・デプロイ</td>
+</tr>
+<tr>
+<td><a href="07-ci-cd/github-pages.html">GitHub Pages</a></td>
+<td>生成ドキュメントの公開</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="7.2" id="開発環境.net連携"><span class="header-section-number">7.2</span> <a href="08-dev-environment/index.html">開発環境・.NET連携</a></h2>
+<table>
+<caption>開発環境・.NET 連携スキルガイド一覧</caption>
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="08-dev-environment/vscode.html">VS Code</a></td>
+<td>エディタの設定と拡張機能</td>
+</tr>
+<tr>
+<td><a href="08-dev-environment/wsl-mingw.html">WSL / MinGW 環境</a></td>
+<td>Windows での Linux 互換ビルド環境</td>
+</tr>
+<tr>
+<td><a href="08-dev-environment/dotnet-csharp.html">C# / P/Invoke</a></td>
+<td>.NET から C ライブラリを呼び出す</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="8" id="関連ドキュメント"><span class="header-section-number">8</span> 関連ドキュメント</h1>
+<p>このリポジトリの実装・設計の詳細については、以下のドキュメントを参照してください。</p>
+<ul>
+<li><a href="../build-design.html">ビルド設計</a> - このリポジトリのビルド構成の詳細</li>
+<li><a href="../testing-tutorial.html">テストチュートリアル</a> - テストフレームワークの実践的な使い方</li>
+<li><a href="../github-actions.html">GitHub Actions 設定</a> - このリポジトリの CI/CD 設定</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

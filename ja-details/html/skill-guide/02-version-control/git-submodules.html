@@ -1,0 +1,370 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Git サブモジュール</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Git サブモジュール</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 18:45:59 +0900 d6e38c7</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#習得目標" id="toc-習得目標"><span class="toc-section-number">2</span> 習得目標</a></li>
+                <li><a href="#学習マテリアル" id="toc-学習マテリアル"><span class="toc-section-number">3</span> 学習マテリアル</a>
+                <ul>
+                <li><a href="#公式ドキュメント" id="toc-公式ドキュメント"><span class="toc-section-number">3.1</span> 公式ドキュメント</a></li>
+                <li><a href="#チュートリアル入門" id="toc-チュートリアル入門"><span class="toc-section-number">3.2</span> チュートリアル・入門</a></li>
+                </ul></li>
+                <li><a href="#このリポジトリとの関連" id="toc-このリポジトリとの関連"><span class="toc-section-number">4</span> このリポジトリとの関連</a>
+                <ul>
+                <li><a href="#使用箇所-具体的なファイルコマンド" id="toc-使用箇所-具体的なファイルコマンド"><span class="toc-section-number">4.1</span> 使用箇所 (具体的なファイル・コマンド)</a></li>
+                <li><a href="#関連ドキュメント" id="toc-関連ドキュメント"><span class="toc-section-number">4.2</span> 関連ドキュメント</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Git サブモジュール</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>Git サブモジュールは、ひとつの Git リポジトリの中に別の Git リポジトリを組み込む機能です。共通のフレームワークやライブラリを複数のプロジェクトで共有しつつ、それぞれのバージョンを独立して管理できます。</p>
+<p>このリポジトリは <code>doxyfw</code>・<code>docsfw</code>・<code>testfw</code>・<code>makefw</code> の 4 つのサブモジュールを使用しています。これらはドキュメント生成・テスト・ビルドのフレームワークとして機能し、メインリポジトリから独立したリポジトリとして管理されています。サブモジュールを理解することで、フレームワークの更新と本体の更新を分離して扱えるようになります。</p>
+<p>通常の <code>git clone</code> ではサブモジュールの内容は取得されません。サブモジュールを含むリポジトリを正しく扱うには、専用のコマンドが必要です。</p>
+<h1 data-number="2" id="習得目標"><span class="header-section-number">2</span> 習得目標</h1>
+<ul class="task-list">
+<li><label><input type="checkbox" />サブモジュールとは何か、使う理由を説明できる</label></li>
+<li><label><input type="checkbox" /><code>git clone --recurse-submodules</code> でサブモジュールごとクローンできる</label></li>
+<li><label><input type="checkbox" /><code>git submodule update --init --recursive</code> でサブモジュールを初期化できる</label></li>
+<li><label><input type="checkbox" /><code>git submodule update --remote</code> でサブモジュールを最新版に更新できる</label></li>
+<li><label><input type="checkbox" /><code>.gitmodules</code> ファイルの内容を読み、サブモジュールの設定を理解できる</label></li>
+<li><label><input type="checkbox" />サブモジュールの変更をメインリポジトリにコミットできる</label></li>
+</ul>
+<h1 data-number="3" id="学習マテリアル"><span class="header-section-number">3</span> 学習マテリアル</h1>
+<h2 data-number="3.1" id="公式ドキュメント"><span class="header-section-number">3.1</span> 公式ドキュメント</h2>
+<ul>
+<li><a href="https://git-scm.com/book/ja/v2/Git-ツール-サブモジュール">Pro Git - Git ツール: サブモジュール (日本語)</a> - サブモジュールの公式解説。基本操作から注意点まで詳細に説明</li>
+<li><a href="https://docs.github.com/ja/get-started/getting-started-with-git/about-git-subtree-merges">GitHub Docs - サブモジュールについて</a> - GitHub 公式の補足説明</li>
+</ul>
+<h2 data-number="3.2" id="チュートリアル入門"><span class="header-section-number">3.2</span> チュートリアル・入門</h2>
+<ul>
+<li><a href="https://www.backlog.com/ja/git-tutorial/">サルでも分かるGit入門 - サブモジュール</a> - 図解入りの入門説明</li>
+</ul>
+<h1 data-number="4" id="このリポジトリとの関連"><span class="header-section-number">4</span> このリポジトリとの関連</h1>
+<h2 data-number="4.1" id="使用箇所-具体的なファイルコマンド"><span class="header-section-number">4.1</span> 使用箇所 (具体的なファイル・コマンド)</h2>
+<p>このリポジトリの <code>.gitmodules</code> に定義されたサブモジュールは以下の通りです。</p>
+<table>
+<caption>サブモジュール一覧</caption>
+<thead>
+<tr>
+<th>サブモジュール</th>
+<th>パス</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>doxyfw</code></td>
+<td><code>doxyfw/</code></td>
+<td>Doxygen ドキュメント生成フレームワーク</td>
+</tr>
+<tr>
+<td><code>docsfw</code></td>
+<td><code>docsfw/</code></td>
+<td>Markdown 発行フレームワーク (Pandoc)</td>
+</tr>
+<tr>
+<td><code>testfw</code></td>
+<td><code>testfw/</code></td>
+<td>Google Test テストフレームワーク</td>
+</tr>
+<tr>
+<td><code>makefw</code></td>
+<td><code>makefw/</code></td>
+<td>Make ビルドフレームワーク</td>
+</tr>
+</tbody>
+</table>
+<p>基本的な操作コマンド:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="at">--recurse-submodules</span> <span class="op">&lt;</span>URL<span class="op">&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> submodule update <span class="at">--init</span> <span class="at">--recursive</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> submodule update <span class="at">--remote</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> submodule status</span></code></pre></div>
+<h2 data-number="4.2" id="関連ドキュメント"><span class="header-section-number">4.2</span> 関連ドキュメント</h2>
+<ul>
+<li><a href="git-basics.html">Git 基礎</a> - Git の基本操作</li>
+<li><a href="github-workflow.html">GitHub ワークフロー</a> - チーム開発のワークフロー</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

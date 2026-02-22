@@ -1,0 +1,312 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>ドキュメント自動化 (ステップ 4 - 品質向上)</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">ドキュメント自動化 (ステップ 4 - 品質向上)</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 18:45:59 +0900 d6e38c7</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#スキルガイド一覧" id="toc-スキルガイド一覧"><span class="toc-section-number">1</span> スキルガイド一覧</a></li>
+                <li><a href="#図ツールの選択基準" id="toc-図ツールの選択基準"><span class="toc-section-number">2</span> 図ツールの選択基準</a></li>
+                <li><a href="#このリポジトリとの関連" id="toc-このリポジトリとの関連"><span class="toc-section-number">3</span> このリポジトリとの関連</a></li>
+                <li><a href="#次のステップ" id="toc-次のステップ"><span class="toc-section-number">4</span> 次のステップ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>ドキュメント自動化 (ステップ 4 - 品質向上)</H1>
+      
+      
+      <p>Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソースコードから高品質なドキュメントを自動生成する方法を学びます。<br />
+ドキュメントをコードと同じリポジトリで管理することで、常に最新の状態を維持できます。</p>
+<h1 data-number="1" id="スキルガイド一覧"><span class="header-section-number">1</span> スキルガイド一覧</h1>
+<table>
+<caption>スキルガイド一覧</caption>
+<thead>
+<tr>
+<th>スキルガイド</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="markdown.html">Markdown</a></td>
+<td>ドキュメント記法の基礎</td>
+</tr>
+<tr>
+<td><a href="doxygen.html">Doxygen</a></td>
+<td>C/C++ ソースコードからのドキュメント生成</td>
+</tr>
+<tr>
+<td><a href="pandoc.html">Pandoc</a></td>
+<td>Markdown から HTML/docx への変換</td>
+</tr>
+<tr>
+<td><a href="plantuml.html">PlantUML</a></td>
+<td>テキストベースの UML 図表作成 (第 1 選択)</td>
+</tr>
+<tr>
+<td><a href="mermaid.html">Mermaid</a></td>
+<td>テキストベースの図表作成 (第 2 選択)</td>
+</tr>
+<tr>
+<td><a href="drawio.html">draw.io</a></td>
+<td>GUI による任意の図作成 (第 3 選択)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="2" id="図ツールの選択基準"><span class="header-section-number">2</span> 図ツールの選択基準</h1>
+<p>本フレームワークでは PlantUML・Mermaid・draw.io のすべてを扱うことができます。意味論を明確に表現しやすいことから PlantUML を第 1 選択とし、次いで Mermaid、任意のレイアウトの図が必要な場合にのみ draw.io の使用を推奨します。既存の PNG 等の画像ファイルも Markdown に直接引用できますが、修正履歴の管理が困難なため限定的な使用とすべきです。</p>
+<table>
+<caption>図ツールの選択基準</caption>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 32%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr>
+<th>ツール</th>
+<th>特徴</th>
+<th>推奨ケース</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PlantUML</td>
+<td>UML の意味論を厳密に表現できる</td>
+<td>シーケンス図・クラス図・コンポーネント図など (第 1 選択)</td>
+</tr>
+<tr>
+<td>Mermaid</td>
+<td>GitHub でネイティブ表示・記法が簡潔</td>
+<td>フロー図など、GitHub 上でのプレビューを重視する場合 (第 2 選択)</td>
+</tr>
+<tr>
+<td>draw.io</td>
+<td>GUI で自由に作図できる</td>
+<td>UML の意味論で表現しにくい任意のレイアウトの図 (第 3 選択)</td>
+</tr>
+<tr>
+<td>PNG/SVG など</td>
+<td>既存の画像をそのまま利用できる</td>
+<td>外部ツールで作成済みの図・スクリーンショットなど (第 4 選択)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="このリポジトリとの関連"><span class="header-section-number">3</span> このリポジトリとの関連</h1>
+<ul>
+<li><code>doxyfw/</code> - Doxygen ドキュメント生成フレームワーク (サブモジュール)</li>
+<li><code>docsfw/</code> - Markdown 発行フレームワーク (サブモジュール)</li>
+<li><code>Doxyfile.part.calc</code> - C プロジェクト用 Doxygen 設定</li>
+<li><code>docs-src/</code> - ドキュメントソース (Markdown ファイル群)</li>
+<li><code>docs/</code> - 生成済みドキュメント (HTML)</li>
+</ul>
+<h1 data-number="4" id="次のステップ"><span class="header-section-number">4</span> 次のステップ</h1>
+<p>ドキュメント自動化を習得したら、<a href="../07-ci-cd/index.html">ステップ 5 - 自動化・拡張</a> に進んでください。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

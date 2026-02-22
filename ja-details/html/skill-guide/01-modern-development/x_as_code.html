@@ -1,0 +1,302 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>生成 AI 時代のソースコード管理を考える: 'X as Code' から GitOps への DevOps 進化論</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">生成 AI 時代のソースコード管理を考える: 'X as Code' から GitOps への DevOps 進化論</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 18:45:59 +0900 d6e38c7</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a>
+                <ul>
+                <li><a href="#x-as-code-の歴史的進化" id="toc-x-as-code-の歴史的進化"><span class="toc-section-number">1.1</span> X as Code の歴史的進化</a></li>
+                <li><a href="#gitops-の概念" id="toc-gitops-の概念"><span class="toc-section-number">1.2</span> GitOps の概念</a></li>
+                <li><a href="#生成-ai-とコードベースの相互作用" id="toc-生成-ai-とコードベースの相互作用"><span class="toc-section-number">1.3</span> 生成 AI とコードベースの相互作用</a></li>
+                <li><a href="#design-as-code-と-adr-architecture-decision-record" id="toc-design-as-code-と-adr-architecture-decision-record"><span class="toc-section-number">1.4</span> Design as Code と ADR (Architecture Decision Record)</a></li>
+                <li><a href="#組織的課題" id="toc-組織的課題"><span class="toc-section-number">1.5</span> 組織的課題</a></li>
+                </ul></li>
+                <li><a href="#このリポジトリとの関連" id="toc-このリポジトリとの関連"><span class="toc-section-number">2</span> このリポジトリとの関連</a>
+                <ul>
+                <li><a href="#infrastructure-pipeline-as-code" id="toc-infrastructure-pipeline-as-code"><span class="toc-section-number">2.1</span> Infrastructure / Pipeline as Code</a></li>
+                <li><a href="#documentation-as-code" id="toc-documentation-as-code"><span class="toc-section-number">2.2</span> Documentation as Code</a></li>
+                <li><a href="#gitops-との整合" id="toc-gitops-との整合"><span class="toc-section-number">2.3</span> GitOps との整合</a></li>
+                <li><a href="#生成-ai-活用との関係" id="toc-生成-ai-活用との関係"><span class="toc-section-number">2.4</span> 生成 AI 活用との関係</a></li>
+                </ul></li>
+                <li><a href="#学習マテリアル" id="toc-学習マテリアル"><span class="toc-section-number">3</span> 学習マテリアル</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>生成 AI 時代のソースコード管理を考える: 'X as Code' から GitOps への DevOps 進化論</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>DevOps における「コード化」(X as Code) の歴史的進化と、GitOps による運用実践、生成 AI 時代におけるコードベース品質の重要性を論じた発表資料のサマリです。</p>
+<h2 data-number="1.1" id="x-as-code-の歴史的進化"><span class="header-section-number">1.1</span> X as Code の歴史的進化</h2>
+<p>DevOps における「コード化」の潮流を時系列で整理しています。</p>
+<table>
+<caption>X as Code の歴史的進化</caption>
+<thead>
+<tr>
+<th>時代</th>
+<th>概念</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2000 年代</td>
+<td>Infrastructure as Code の登場</td>
+</tr>
+<tr>
+<td>2010 年代前半</td>
+<td>Pipeline as Code・Configuration as Code の実用化</td>
+</tr>
+<tr>
+<td>2010 年代後半</td>
+<td>Policy as Code・Everything as Code の台頭</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="1.2" id="gitops-の概念"><span class="header-section-number">1.2</span> GitOps の概念</h2>
+<p>Git リポジトリを唯一の信頼源 (Single Source of Truth) とし、すべての変更をコミットとプルリクエストを通じて実行する運用手法です。宣言的な構成管理と変更履歴の完全な追跡可能性が特徴です。</p>
+<h2 data-number="1.3" id="生成-ai-とコードベースの相互作用"><span class="header-section-number">1.3</span> 生成 AI とコードベースの相互作用</h2>
+<ul>
+<li>GitHub Copilot などの登場により、組織のコードベースが生成 AI の学習・参照対象となります。</li>
+<li>コードベースの品質が高いほど、AI からより質の高いサポートが得られます。</li>
+<li>可読性の高い命名規則・明確なアーキテクチャが生成 AI の活用効果を左右します。</li>
+</ul>
+<h2 data-number="1.4" id="design-as-code-と-adr-architecture-decision-record"><span class="header-section-number">1.4</span> Design as Code と ADR (Architecture Decision Record)</h2>
+<p>設計思想や意思決定の根拠をコードと同じリポジトリで管理する手法です。組織知識の属人化を防ぎ、生成 AI へのコンテキスト提供を実現します。</p>
+<h2 data-number="1.5" id="組織的課題"><span class="header-section-number">1.5</span> 組織的課題</h2>
+<p>技術の急速な進歩に比べ、組織文化の適応には遅れが生じやすいことが指摘されています。段階的なコード化推進と、変更を受け入れる組織文化の醸成が重要とされています。</p>
+<h1 data-number="2" id="このリポジトリとの関連"><span class="header-section-number">2</span> このリポジトリとの関連</h1>
+<p>本リポジトリ <code>c-modernization-kit</code> は、発表で提唱された X as Code・GitOps の実践例として位置づけられます。</p>
+<h2 data-number="2.1" id="infrastructure-pipeline-as-code"><span class="header-section-number">2.1</span> Infrastructure / Pipeline as Code</h2>
+<ul>
+<li><strong><code>makefw/</code></strong> (サブモジュール) - Make ビルドシステムをコード化したフレームワークです。C/C++ および .NET のビルドルールをテンプレートとして定義し、プロジェクト横断で再利用できます。</li>
+<li><strong><code>testfw/</code></strong> (サブモジュール) - テスト実行・レポート生成をコード化しています。Google Test ベースのテストパイプラインを makefile で制御します。</li>
+</ul>
+<h2 data-number="2.2" id="documentation-as-code"><span class="header-section-number">2.2</span> Documentation as Code</h2>
+<ul>
+<li><strong><code>doxyfw/</code></strong> (サブモジュール) - Doxygen・Doxybook2 を使い、ソースコードコメントから HTML/Markdown ドキュメントを自動生成します。ドキュメントをコードと同一リポジトリで管理する Design as Code の実践例です。</li>
+<li><strong><code>docsfw/</code></strong> (サブモジュール) - Pandoc を使った Markdown → HTML/docx 変換フレームワークです。ドキュメントの発行プロセスもコード化されています。</li>
+<li><strong><code>docs-src/</code></strong> - ADR に相当するドキュメントソース群です。設計上の決定や背景をコードと並列管理しています。</li>
+</ul>
+<h2 data-number="2.3" id="gitops-との整合"><span class="header-section-number">2.3</span> GitOps との整合</h2>
+<p>サブモジュールによる依存管理は Git のコミット単位でバージョンが固定され、GitOps の「Git を唯一の信頼源とする」原則に沿った構成になっています。フレームワーク側の更新はサブモジュールの更新コミットとして記録され、変更履歴が完全に追跡可能です。</p>
+<h2 data-number="2.4" id="生成-ai-活用との関係"><span class="header-section-number">2.4</span> 生成 AI 活用との関係</h2>
+<p>本リポジトリの <code>docs-src</code> および各サブモジュールの <code>docs-src</code> は、開発者に加えて AI へのコンテキスト提供も意図したドキュメントです。「コードベースの品質が生成 AI の活用効果を左右する」という発表の主張を体現しています。</p>
+<h1 data-number="3" id="学習マテリアル"><span class="header-section-number">3</span> 学習マテリアル</h1>
+<ul>
+<li><a href="https://speakerdeck.com/yuriemori/sheng-cheng-aishi-dai-nososukodoguan-li-wokao-eru-x-as-codekaragitopshenodevopsjin-hua-lun">Speaker Deck - 発表スライド</a> - 発表者: 森友梨映 (Yurie Mori)、Microsoft MVP for Developer Technologies</li>
+<li>発表イベント:
+<ul>
+<li><a href="https://x.com/1115_lilium/status/1885534108799164522">Burikaigi 2025 (2025 年 1 月 31 日)</a></li>
+<li><a href="https://x.com/1115_lilium/status/1912383966323306915">DevOps Days Tokyo 2025 Day2 (2025 年 4 月 16 日)</a></li>
+</ul></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

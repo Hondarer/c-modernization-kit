@@ -1,0 +1,373 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>GCC / MSVC ツールチェイン</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">GCC / MSVC ツールチェイン</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 15:56:41 +0900 0a1adea</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#習得目標" id="toc-習得目標"><span class="toc-section-number">2</span> 習得目標</a>
+                <ul>
+                <li><a href="#gcc-linux" id="toc-gcc-linux"><span class="toc-section-number">2.1</span> GCC (Linux)</a></li>
+                <li><a href="#msvc-windows" id="toc-msvc-windows"><span class="toc-section-number">2.2</span> MSVC (Windows)</a></li>
+                </ul></li>
+                <li><a href="#学習マテリアル" id="toc-学習マテリアル"><span class="toc-section-number">3</span> 学習マテリアル</a>
+                <ul>
+                <li><a href="#公式ドキュメント" id="toc-公式ドキュメント"><span class="toc-section-number">3.1</span> 公式ドキュメント</a></li>
+                <li><a href="#チュートリアル入門" id="toc-チュートリアル入門"><span class="toc-section-number">3.2</span> チュートリアル・入門</a></li>
+                </ul></li>
+                <li><a href="#このリポジトリとの関連" id="toc-このリポジトリとの関連"><span class="toc-section-number">4</span> このリポジトリとの関連</a>
+                <ul>
+                <li><a href="#使用箇所-具体的なファイルコマンド" id="toc-使用箇所-具体的なファイルコマンド"><span class="toc-section-number">4.1</span> 使用箇所 (具体的なファイル・コマンド)</a></li>
+                <li><a href="#関連ドキュメント" id="toc-関連ドキュメント"><span class="toc-section-number">4.2</span> 関連ドキュメント</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>GCC / MSVC ツールチェイン</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>C 言語のコンパイルには、ソースファイル (<code>.c</code>) を機械語 (<code>.o</code>) に変換するコンパイラと、オブジェクトファイルを実行ファイルやライブラリに結合するリンカが必要です。Linux では GCC (GNU Compiler Collection) が広く使われ、Windows では MSVC (Microsoft Visual C++) が標準的です。</p>
+<p>このリポジトリは GCC (Linux 環境) と MSVC (Windows 環境) の両方をサポートしています。<code>makefw/</code> サブモジュールのビルドテンプレートが環境に応じたコンパイラコマンドを選択します。Linux 環境 (WSL を含む) では <code>gcc</code>・<code>g++</code>・<code>ar</code> コマンドを使用し、Windows 環境では <code>cl.exe</code>・<code>link.exe</code>・<code>lib.exe</code> を使用します。</p>
+<p>コンパイラのオプション (デバッグ情報・最適化・警告設定) とリンカのオプション (ライブラリパス・ライブラリ名) を理解することで、ビルドエラーの原因特定と Makefile のカスタマイズができるようになります。</p>
+<h1 data-number="2" id="習得目標"><span class="header-section-number">2</span> 習得目標</h1>
+<h2 data-number="2.1" id="gcc-linux"><span class="header-section-number">2.1</span> GCC (Linux)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>gcc -c</code> でソースファイルをオブジェクトファイルにコンパイルできる</label></li>
+<li><label><input type="checkbox" /><code>gcc -o</code> でオブジェクトファイルを実行ファイルにリンクできる</label></li>
+<li><label><input type="checkbox" /><code>-I</code> (インクルードパス)・<code>-L</code> (ライブラリパス)・<code>-l</code> (ライブラリ名) オプションを理解できる</label></li>
+<li><label><input type="checkbox" /><code>-g</code> (デバッグ情報)・<code>-O2</code> (最適化)・<code>-Wall</code> (警告)オプションを使用できる</label></li>
+<li><label><input type="checkbox" /><code>ar rcs</code> で静的ライブラリ (<code>.a</code>) を作成できる</label></li>
+<li><label><input type="checkbox" /><code>-shared -fPIC</code> で動的ライブラリ (<code>.so</code>) を作成できる</label></li>
+<li><label><input type="checkbox" />MSVC での同等操作 (<code>cl.exe</code>・<code>/MD</code>・<code>/LD</code>) を理解できる</label></li>
+</ul>
+<h2 data-number="2.2" id="msvc-windows"><span class="header-section-number">2.2</span> MSVC (Windows)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>cl.exe /c</code> でソースファイルをオブジェクトファイルにコンパイルできる</label></li>
+<li><label><input type="checkbox" /><code>link.exe</code> または <code>cl.exe</code> でオブジェクトファイルを実行ファイルにリンクできる</label></li>
+<li><label><input type="checkbox" /><code>/I</code> (インクルードパス)・<code>/LIBPATH</code> (ライブラリパス)・追加の依存ファイル設定を理解できる</label></li>
+<li><label><input type="checkbox" /><code>/Zi</code> (デバッグ情報)・<code>/O2</code> (最適化)・<code>/W4</code> (警告レベル) を使用できる</label></li>
+<li><label><input type="checkbox" /><code>lib.exe</code> で静的ライブラリ (<code>.lib</code>) を作成できる</label></li>
+<li><label><input type="checkbox" /><code>cl.exe /LD</code> で動的ライブラリ (<code>.dll</code>) を作成できる</label></li>
+<li><label><input type="checkbox" /><code>/MD</code>・<code>/MT</code> の違い (CRT リンク方式) を理解できる</label></li>
+</ul>
+<h1 data-number="3" id="学習マテリアル"><span class="header-section-number">3</span> 学習マテリアル</h1>
+<h2 data-number="3.1" id="公式ドキュメント"><span class="header-section-number">3.1</span> 公式ドキュメント</h2>
+<ul>
+<li><a href="https://gcc.gnu.org/onlinedocs/">GCC 公式ドキュメント</a> - GCC の完全なドキュメント (英語)
+<ul>
+<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Invoking-GCC.html">GCC コンパイルオプション</a> - コマンドラインオプション一覧</li>
+<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html">GCC リンクオプション</a> - リンカ関連オプション</li>
+</ul></li>
+<li><a href="https://learn.microsoft.com/ja-jp/cpp/build/reference/compiler-command-line-syntax">MSVCコンパイラリファレンス</a> - MSVC コンパイラの構文 (日本語)</li>
+</ul>
+<h2 data-number="3.2" id="チュートリアル入門"><span class="header-section-number">3.2</span> チュートリアル・入門</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/ja-jp/cpp/build/walkthrough-creating-and-using-a-dynamic-link-library-cpp">DLL の作成と使用 (Microsoft Learn)</a> - Windows での DLL 作成チュートリアル (日本語)</li>
+</ul>
+<h1 data-number="4" id="このリポジトリとの関連"><span class="header-section-number">4</span> このリポジトリとの関連</h1>
+<h2 data-number="4.1" id="使用箇所-具体的なファイルコマンド"><span class="header-section-number">4.1</span> 使用箇所 (具体的なファイル・コマンド)</h2>
+<p>Linux (GCC) での代表的なビルドコマンド:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-c</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-g</span> <span class="at">-fPIC</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">-I</span> prod/calc/include <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    prod/calc/libsrc/calcbase/add.c <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> add.o</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ar</span> rcs prod/calc/lib/libcalcbase.a add.o subtract.o multiply.o divide.o</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-shared</span> <span class="at">-fPIC</span> <span class="dt">\</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> prod/calc/lib/libcalc.so <span class="dt">\</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    calcHandler.o</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-o</span> prod/calc/bin/add <span class="dt">\</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    prod/calc/src/add/add.o <span class="dt">\</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">-L</span> prod/calc/lib <span class="at">-lcalcbase</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-o</span> prod/calc/bin/calc <span class="dt">\</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    prod/calc/src/calc/calc.o <span class="dt">\</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">-L</span> prod/calc/lib <span class="at">-lcalc</span> <span class="dt">\</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">-Wl,-rpath,</span><span class="st">&#39;$$ORIGIN/../lib&#39;</span></span></code></pre></div>
+<p>カバレッジ計測用のコンパイルオプション (<code>testfw/</code> で使用):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-c</span> <span class="at">--coverage</span> <span class="at">-fprofile-arcs</span> <span class="at">-ftest-coverage</span> ...</span></code></pre></div>
+<h2 data-number="4.2" id="関連ドキュメント"><span class="header-section-number">4.2</span> 関連ドキュメント</h2>
+<ul>
+<li><a href="gnu-make.html">GNU Make (スキルガイド)</a> - makefile でのコンパイラコマンドの自動化</li>
+<li><a href="../03-c-language/c-library-types.html">C ライブラリの種類 (スキルガイド)</a> - 静的・動的ライブラリのビルド</li>
+<li><a href="../05-testing/code-coverage.html">コードカバレッジ (スキルガイド)</a> - gcov / lcov によるカバレッジ計測</li>
+<li><a href="../08-dev-environment/wsl-mingw.html">WSL / MinGW 環境 (スキルガイド)</a> - Windows での環境構築</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>レガシー C コードにモダン手法を適用する全体像</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">レガシー C コードにモダン手法を適用する全体像</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 17:29:15 +0900 2f6f51b</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#モダン開発手法の-3-要素" id="toc-モダン開発手法の-3-要素"><span class="toc-section-number">2</span> モダン開発手法の 3 要素</a>
+                <ul>
+                <li><a href="#docs-as-code" id="toc-docs-as-code"><span class="toc-section-number">2.1</span> Docs as Code</a></li>
+                <li><a href="#自動テスト" id="toc-自動テスト"><span class="toc-section-number">2.2</span> 自動テスト</a></li>
+                <li><a href="#cicd" id="toc-cicd"><span class="toc-section-number">2.3</span> CI/CD</a></li>
+                </ul></li>
+                <li><a href="#全体ワークフロー" id="toc-全体ワークフロー"><span class="toc-section-number">3</span> 全体ワークフロー</a>
+                <ul>
+                <li><a href="#ステップの要点" id="toc-ステップの要点"><span class="toc-section-number">3.1</span> ステップの要点</a></li>
+                </ul></li>
+                <li><a href="#導入するメリット" id="toc-導入するメリット"><span class="toc-section-number">4</span> 導入するメリット</a>
+                <ul>
+                <li><a href="#品質と安定性が上がる" id="toc-品質と安定性が上がる"><span class="toc-section-number">4.1</span> 品質と安定性が上がる</a></li>
+                <li><a href="#保守が楽になる" id="toc-保守が楽になる"><span class="toc-section-number">4.2</span> 保守が楽になる</a></li>
+                <li><a href="#デプロイが速くなりリスクが下がる" id="toc-デプロイが速くなりリスクが下がる"><span class="toc-section-number">4.3</span> デプロイが速くなり、リスクが下がる</a></li>
+                <li><a href="#開発が速くなる" id="toc-開発が速くなる"><span class="toc-section-number">4.4</span> 開発が速くなる</a></li>
+                <li><a href="#コストを下げられる" id="toc-コストを下げられる"><span class="toc-section-number">4.5</span> コストを下げられる</a></li>
+                <li><a href="#セキュリティが強くなる" id="toc-セキュリティが強くなる"><span class="toc-section-number">4.6</span> セキュリティが強くなる</a></li>
+                </ul></li>
+                <li><a href="#導入ステップ" id="toc-導入ステップ"><span class="toc-section-number">5</span> 導入ステップ</a></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">6</span> まとめ</a></li>
+                <li><a href="#よくある懸念" id="toc-よくある懸念"><span class="toc-section-number">7</span> よくある懸念</a>
+                <ul>
+                <li><a href="#テストコードを作成するのは手間ではないですか" id="toc-テストコードを作成するのは手間ではないですか"><span class="toc-section-number">7.1</span> テストコードを作成するのは、手間ではないですか?</a></li>
+                <li><a href="#プログラムにドキュメントを含めるのに慣れていません別管理ではどのような問題があるのでしょうか" id="toc-プログラムにドキュメントを含めるのに慣れていません別管理ではどのような問題があるのでしょうか"><span class="toc-section-number">7.2</span> プログラムにドキュメントを含めるのに慣れていません。別管理ではどのような問題があるのでしょうか?</a></li>
+                <li><a href="#markdown-に統一する必要はありますか-excel-や-word-など他形式ではどのような問題が発生しますか" id="toc-markdown-に統一する必要はありますか-excel-や-word-など他形式ではどのような問題が発生しますか"><span class="toc-section-number">7.3</span> Markdown に統一する必要はありますか? Excel や Word など他形式ではどのような問題が発生しますか?</a></li>
+                <li><a href="#cicd-は小規模チームには過剰ではありませんか" id="toc-cicd-は小規模チームには過剰ではありませんか"><span class="toc-section-number">7.4</span> CI/CD は小規模チームには過剰ではありませんか?</a></li>
+                </ul></li>
+                <li><a href="#学習マテリアル" id="toc-学習マテリアル"><span class="toc-section-number">8</span> 学習マテリアル</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>レガシー C コードにモダン手法を適用する全体像</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>長年運用してきた C 言語のコードは、変更のたびに影響範囲が読みにくく、ドキュメントやテストが古くなりがちです。ここでは、Docs as Code、自動テスト、CI/CD を組み合わせて、品質と保守性、開発速度を高める方法を、実運用に耐える全体ワークフローとあわせて示します。</p>
+<h1 data-number="2" id="モダン開発手法の-3-要素"><span class="header-section-number">2</span> モダン開発手法の 3 要素</h1>
+<h2 data-number="2.1" id="docs-as-code"><span class="header-section-number">2.1</span> Docs as Code</h2>
+<p>ドキュメントをコードと同じように扱い、バージョン管理と自動化で常に最新に保つ考え方です。Markdown で書き、Git で管理し、レビューや自動生成を組み込みます。解説は <a href="https://qiita.com/tikamoto/items/c05a5c117c78fb7a4e47">ゼロから始めるDocs as Code</a> が参考になります。</p>
+<h2 data-number="2.2" id="自動テスト"><span class="header-section-number">2.2</span> 自動テスト</h2>
+<p>ユニットテストを自動で実行してリグレッション (デグレード) を早期に見つけます。Google Test を使い、重要な関数から順に追加します。警告やカバレッジを CI で監視すると効果が上がります。</p>
+<h2 data-number="2.3" id="cicd"><span class="header-section-number">2.3</span> CI/CD</h2>
+<p>プッシュを契機にビルド、テスト、ドキュメント生成、デプロイまでを自動化します。GitHub Actions や GitLab CI、Jenkins などに組み込み、ドキュメントサイトの自動公開までを一気通貫で行います。</p>
+<figure>
+<img src="puml_9151131c7b567ba287f3934be184f942a43f6598.svg" alt="CI/CD ワークフロー" />
+<figcaption aria-hidden="true">CI/CD ワークフロー</figcaption>
+</figure>
+<h1 data-number="3" id="全体ワークフロー"><span class="header-section-number">3</span> 全体ワークフロー</h1>
+<p>このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を AI の入力にすることで、リポジトリ全体の構造を AI が理解しやすくします。</p>
+<figure>
+<img src="puml_90aaefbec3e12be1de90dced928c21b6c06fb467.svg" alt="全体ワークフロー" />
+<figcaption aria-hidden="true">全体ワークフロー</figcaption>
+</figure>
+<h2 data-number="3.1" id="ステップの要点"><span class="header-section-number">3.1</span> ステップの要点</h2>
+<ul>
+<li>製品ソースから Doxygen で API を抽出し、Doxybook2 で Markdown に変換します。</li>
+<li>単体試験を自動実行し、カバレッジなどのエビデンスを残します。</li>
+<li>Pandoc で HTML と DOCX を生成し、納品や社内共有に使います。</li>
+<li>Markdown 群を AI の入力にし、AI の応答精度を上げます。</li>
+</ul>
+<h1 data-number="4" id="導入するメリット"><span class="header-section-number">4</span> 導入するメリット</h1>
+<h2 data-number="4.1" id="品質と安定性が上がる"><span class="header-section-number">4.1</span> 品質と安定性が上がる</h2>
+<p>自動テストで変更の影響をすぐ検知できます。静的解析 (cppcheck など) やメモリ検査も CI に入れられます。Doxygen の警告を品質ゲートにすれば、コメントの不整合も早期に直せます。</p>
+<h2 data-number="4.2" id="保守が楽になる"><span class="header-section-number">4.2</span> 保守が楽になる</h2>
+<p>コードコメントから Markdown を生成するため、コードとドキュメントが乖離しにくくなります。差分は Git で追えます。PlantUML にも対応し、図を含む資料を継続的に更新できます。</p>
+<h2 data-number="4.3" id="デプロイが速くなりリスクが下がる"><span class="header-section-number">4.3</span> デプロイが速くなり、リスクが下がる</h2>
+<p>手順を自動化して再現性を確保します。<code>make docs</code> にまとめることで、誰が実行しても同じ結果になります。</p>
+<h2 data-number="4.4" id="開発が速くなる"><span class="header-section-number">4.4</span> 開発が速くなる</h2>
+<p>即時にテストと生成結果を確認でき、フィードバックループが短くなります。テンプレートを使って体裁調整の手間を削減します。</p>
+<h2 data-number="4.5" id="コストを下げられる"><span class="header-section-number">4.5</span> コストを下げられる</h2>
+<p>手作業のテストやデプロイ、ドキュメント整備の時間を減らします。サブモジュール化したテンプレートやスクリプトを複数プロジェクトで再利用できます。</p>
+<h2 data-number="4.6" id="セキュリティが強くなる"><span class="header-section-number">4.6</span> セキュリティが強くなる</h2>
+<p>CI に脆弱性スキャンや静的解析を組み込み、既知のリスクに素早く対応します。依存関係のアップデートも自動化します。</p>
+<h1 data-number="5" id="導入ステップ"><span class="header-section-number">5</span> 導入ステップ</h1>
+<ol type="1">
+<li>Docs as Code の導入から始めます。重要な関数から Doxygen コメントを追加します。</li>
+<li>バージョン管理を整えます。ブランチ戦略を決め、生成物も Git で差分管理します。</li>
+<li>自動テストを追加します。頻繁に触る箇所やリスクが高い箇所を優先します。</li>
+<li>CI を構築します。チームに合うサービスを選びます。</li>
+<li>CD に広げます。まずはステージングへ自動デプロイし、安定後に本番適用を検討します。ドキュメントサイトは Pages で自動公開します。</li>
+</ol>
+<h1 data-number="6" id="まとめ"><span class="header-section-number">6</span> まとめ</h1>
+<p>Docs as Code、自動テスト、CI/CD を段階的に導入すると、レガシー C コードを現代的で維持しやすい状態にできます。まず Docs as Code で “常に最新の資料” を作り、その上でテストと CI/CD を重ねると、品質と速度、コストに良い効果を得ることができます。</p>
+<h1 data-number="7" id="よくある懸念"><span class="header-section-number">7</span> よくある懸念</h1>
+<h2 data-number="7.1" id="テストコードを作成するのは手間ではないですか"><span class="header-section-number">7.1</span> テストコードを作成するのは、手間ではないですか?</h2>
+<p>手間はかかりますが、長期的には変更の失敗を減らして時間を取り戻せます。</p>
+<ul>
+<li>単体テストは小さな単位を素早く検証できるため、失敗を早期に見つけやすいです。</li>
+<li>大規模な UI テストより安価に自動で実行できるため、結果的に全体の工数を抑えやすいです。</li>
+</ul>
+<p><a href="https://testing.googleblog.com/2008/03/cost-benefit-analysis-of-test.html">Google Testing Blog</a> でも、テストの実行時間や維持コストを常に意識して最適化する重要性が指摘されています。</p>
+<p>また、テストは粒度のバランスが要で、単体・結合・E2E を使い分ける考え方は <a href="https://martinfowler.com/articles/practical-test-pyramid.html">Martin Fowler のテストピラミッド</a> で整理されています。</p>
+<p>必ずしもすべてのテストコードを作成することにこだわらず、短時間で回る自動テストを先に整え、重いテストは頻度やトリガーを工夫して全体最適を目指すことでコストとベネフィットのバランスを取ることができます。</p>
+<h2 data-number="7.2" id="プログラムにドキュメントを含めるのに慣れていません別管理ではどのような問題があるのでしょうか"><span class="header-section-number">7.2</span> プログラムにドキュメントを含めるのに慣れていません。別管理ではどのような問題があるのでしょうか?</h2>
+<p>別管理でも不可能ではありませんが、更新のズレが起きやすいです。</p>
+<p>コードの変更と同じ Pull Request でドキュメントも更新する運用にすると、レビューとデプロイの仕組みに自然に乗り、陳腐化を防げます。</p>
+<p>これこそが Docs as Code の考え方で、プログラムと仕様が同じワークフローに入るため、正確さと一貫性が上がるとされています (<a href="https://www.writethedocs.org/guide/docs-as-code.html">Write the Docs</a>)。</p>
+<p>このドキュメントで示した構成では、Doxygen から抽出した API 情報を Markdown 化してリポジトリで一緒に管理します。変更点は Git の差分で追え、レビュー時に実装と説明を同時に確認できます。</p>
+<h2 data-number="7.3" id="markdown-に統一する必要はありますか-excel-や-word-など他形式ではどのような問題が発生しますか"><span class="header-section-number">7.3</span> Markdown に統一する必要はありますか? Excel や Word など他形式ではどのような問題が発生しますか?</h2>
+<p>Markdown には、プレーンテキストなので Git で扱いやすく、自動化しやすく、出力先を選ばないという利点があります。このため、Docs as Code の運用に適しており、開発のレビューやデプロイの流れに自然に組み込むことができます。これらの利点については、<a href="https://www.writethedocs.org/guide/docs-as-code/">Write the Docs</a>、<a href="https://engineering.homeoffice.gov.uk/patterns/docs-as-code/">UK Home Office Engineering</a> でも、開発フローとの統合やレビュー容易性として言及があります。</p>
+<ul>
+<li><p>差分とレビューが読みやすい<br />
+Markdown はテキスト形式であるため、Pull Request 上で差分が明瞭に確認できます。これに対して Word の docx はバイナリのため、差分管理に難があります。</p></li>
+<li><p>出力先を自由に選べる<br />
+1 つの Markdown から、Pandoc で HTML、PDF、docx などに変換できます。既存の Word スタイルを参照テンプレートにすれば、必要な体裁に合わせることもできます。</p></li>
+<li><p>自動化と保守の容易さ<br />
+テキスト形式なので Lint、リンク検査、見出しレベルのチェックなどを CI に組み込むことが容易です。<br />
+Docs as Code の実践は、文書の所有を統合し、更新の遅れを防ぐのに有効です。</p></li>
+<li><p>AI 時代の標準語<br />
+Markdown は主要な AI における標準的な入出力形式であり、コード分析の際に AI に対して補足情報を与えるのに適しています。コードとドキュメントを同一リポジトリで一元管理することで、AI への親和性と情報の一貫性を維持できます。</p></li>
+</ul>
+<h2 data-number="7.4" id="cicd-は小規模チームには過剰ではありませんか"><span class="header-section-number">7.4</span> CI/CD は小規模チームには過剰ではありませんか?</h2>
+<p>小規模でも恩恵は大きいです。</p>
+<p>変更を自動でビルド・テスト・発行するだけで、レビューの確実性と反復速度が上がります。</p>
+<p><a href="https://dora.dev/research/2023/dora-report/">DORA レポート</a>(DevOps Research and Assessment の年次調査) では、継続的インテグレーションと短いリードタイムなどの実践が、配信の安定性と速度に結びつくことが繰り返し示されています (<a href="https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report">Google Cloud Blog 2024</a>)。</p>
+<p>まずは「プッシュでテストとドキュメント生成が走る」最小構成から始め、必要に応じて段階的に強化するとよいでしょう。</p>
+<h1 data-number="8" id="学習マテリアル"><span class="header-section-number">8</span> 学習マテリアル</h1>
+<ul>
+<li><a href="https://qiita.com/tikamoto/items/c05a5c117c78fb7a4e47">ゼロから始めるDocs as Code</a> - Docs as Code の入門解説</li>
+<li><a href="https://testing.googleblog.com/2008/03/cost-benefit-analysis-of-test.html">Google Testing Blog - テストのコストとベネフィット</a> - テストコストの最適化</li>
+<li><a href="https://martinfowler.com/articles/practical-test-pyramid.html">martinfowler.com - テストピラミッド</a> - 単体・結合・E2E テストの使い分け</li>
+<li><a href="https://www.writethedocs.org/guide/docs-as-code.html">Write the Docs - Docs as Code</a> - Docs as Code のガイド</li>
+<li><a href="https://engineering.homeoffice.gov.uk/patterns/docs-as-code/">UK Home Office Engineering - Docs as Code</a> - 開発フローとの統合事例</li>
+<li><a href="https://dora.dev/research/2023/dora-report/">DORA 2023 レポート</a> - DevOps パフォーマンス研究</li>
+<li><a href="https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report">Google Cloud Blog 2024 - DORA レポート</a> - 2024 年版 DORA レポート</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

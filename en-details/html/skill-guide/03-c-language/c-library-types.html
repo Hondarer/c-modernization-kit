@@ -1,0 +1,357 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>C ライブラリの種類</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">C ライブラリの種類</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sat, 21 Feb 2026 18:45:59 +0900 d6e38c7</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#習得目標" id="toc-習得目標"><span class="toc-section-number">2</span> 習得目標</a>
+                <ul>
+                <li><a href="#プラットフォーム共通" id="toc-プラットフォーム共通"><span class="toc-section-number">2.1</span> プラットフォーム共通</a></li>
+                <li><a href="#linux" id="toc-linux"><span class="toc-section-number">2.2</span> Linux</a></li>
+                <li><a href="#windows" id="toc-windows"><span class="toc-section-number">2.3</span> Windows</a></li>
+                </ul></li>
+                <li><a href="#学習マテリアル" id="toc-学習マテリアル"><span class="toc-section-number">3</span> 学習マテリアル</a>
+                <ul>
+                <li><a href="#公式ドキュメント" id="toc-公式ドキュメント"><span class="toc-section-number">3.1</span> 公式ドキュメント</a></li>
+                <li><a href="#チュートリアル入門" id="toc-チュートリアル入門"><span class="toc-section-number">3.2</span> チュートリアル・入門</a></li>
+                </ul></li>
+                <li><a href="#このリポジトリとの関連" id="toc-このリポジトリとの関連"><span class="toc-section-number">4</span> このリポジトリとの関連</a>
+                <ul>
+                <li><a href="#使用箇所-具体的なファイルコマンド" id="toc-使用箇所-具体的なファイルコマンド"><span class="toc-section-number">4.1</span> 使用箇所 (具体的なファイル・コマンド)</a></li>
+                <li><a href="#関連ドキュメント" id="toc-関連ドキュメント"><span class="toc-section-number">4.2</span> 関連ドキュメント</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>C ライブラリの種類</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>C 言語では、コードを再利用するためにライブラリとしてまとめる方法が 2 種類あります。静的ライブラリ (Linux: <code>.a</code>、Windows: <code>.lib</code>) は実行ファイルにリンク時に組み込まれ、動的ライブラリ (Linux: <code>.so</code>、Windows: <code>.dll</code>) は実行時に読み込まれます。それぞれにメリット・デメリットがあり、用途に応じて使い分けます。</p>
+<p>このリポジトリの <code>prod/calc/</code> はこの 2 種類のライブラリを意図的に使い分けています。<code>libcalcbase</code> (add / subtract / multiply / divide) は静的ライブラリとして提供され、<code>libcalc</code> (calcHandler) は動的ライブラリとして提供されます。<code>libcalc</code> は <code>libcalcbase</code> に依存しており、ライブラリの生成時に参照されます。<code>src/shared-and-static-calc/</code> は両方を同時にリンクするサンプルです。</p>
+<p>また、.NET 連携においては <code>libcalc.dll</code> (Windows) または <code>libcalc.so</code> (Linux) を P/Invoke で呼び出す実装が <code>prod/calc.net/</code> に含まれています。ライブラリの種類と動作の違いを理解することは、このリポジトリのビルド構成を理解するための重要なステップです。</p>
+<h1 data-number="2" id="習得目標"><span class="header-section-number">2</span> 習得目標</h1>
+<h2 data-number="2.1" id="プラットフォーム共通"><span class="header-section-number">2.1</span> プラットフォーム共通</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />静的ライブラリと動的ライブラリの違いを説明できる</label></li>
+<li><label><input type="checkbox" /><code>prod/calc/</code> のライブラリ構成を読み取ることができる</label></li>
+</ul>
+<h2 data-number="2.2" id="linux"><span class="header-section-number">2.2</span> Linux</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />GCC で静的ライブラリ (<code>.a</code>) をビルドできる (<code>ar</code> コマンド)</label></li>
+<li><label><input type="checkbox" />GCC で動的ライブラリ (<code>.so</code>) をビルドできる (<code>-shared -fPIC</code> オプション)</label></li>
+<li><label><input type="checkbox" />実行ファイルに静的ライブラリをリンクできる (<code>-l</code> / <code>-L</code> オプション)</label></li>
+<li><label><input type="checkbox" />実行ファイルに動的ライブラリをリンクし、実行時パスを設定できる (<code>LD_LIBRARY_PATH</code>)</label></li>
+</ul>
+<h2 data-number="2.3" id="windows"><span class="header-section-number">2.3</span> Windows</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />MSVC で静的ライブラリ (<code>.lib</code>) をビルドできる (<code>lib.exe</code> コマンド)</label></li>
+<li><label><input type="checkbox" />MSVC で動的ライブラリ (<code>.dll</code>) をビルドできる (<code>/LD</code> オプション)</label></li>
+<li><label><input type="checkbox" />実行ファイルに静的ライブラリをリンクできる (追加の依存ファイル設定)</label></li>
+<li><label><input type="checkbox" />実行ファイルに動的ライブラリをリンクし、実行時パスを設定できる (<code>PATH</code>)</label></li>
+<li><label><input type="checkbox" />Windows での DLL ビルドに必要な <code>__declspec(dllexport)</code> / <code>__declspec(dllimport)</code> を理解できる</label></li>
+</ul>
+<h1 data-number="3" id="学習マテリアル"><span class="header-section-number">3</span> 学習マテリアル</h1>
+<h2 data-number="3.1" id="公式ドキュメント"><span class="header-section-number">3.1</span> 公式ドキュメント</h2>
+<ul>
+<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html">GCC リンクオプション</a> - <code>-l</code>・<code>-L</code>・<code>-shared</code>・<code>-fPIC</code> などのオプション説明 (英語)</li>
+<li><a href="https://learn.microsoft.com/ja-jp/cpp/build/walkthrough-creating-and-using-a-dynamic-link-library-cpp">DLL の作成と使用 (Microsoft Learn)</a> - Windows DLL の作成チュートリアル (日本語)</li>
+<li><a href="https://ja.cppreference.com/w/c">cppreference - C 言語</a> - C 言語リファレンス (日本語)</li>
+</ul>
+<h2 data-number="3.2" id="チュートリアル入門"><span class="header-section-number">3.2</span> チュートリアル・入門</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/pinvoke">P/Invoke の概要 (Microsoft Learn)</a> - .NET から C ライブラリを呼び出す仕組みの解説 (日本語)</li>
+</ul>
+<h1 data-number="4" id="このリポジトリとの関連"><span class="header-section-number">4</span> このリポジトリとの関連</h1>
+<h2 data-number="4.1" id="使用箇所-具体的なファイルコマンド"><span class="header-section-number">4.1</span> 使用箇所 (具体的なファイル・コマンド)</h2>
+<p>ライブラリの構成:</p>
+<table>
+<caption>ライブラリ構成一覧</caption>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 6%" />
+<col style="width: 19%" />
+<col style="width: 21%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>ライブラリ</th>
+<th>種別</th>
+<th>Linux</th>
+<th>Windows</th>
+<th>実装ファイル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>libcalcbase</code></td>
+<td>静的</td>
+<td><code>libcalcbase.a</code></td>
+<td><code>libcalcbase.lib</code></td>
+<td><code>prod/calc/libsrc/calcbase/</code></td>
+</tr>
+<tr>
+<td><code>libcalc</code></td>
+<td>動的</td>
+<td><code>libcalc.so</code></td>
+<td><code>libcalc.dll</code></td>
+<td><code>prod/calc/libsrc/calc/</code></td>
+</tr>
+</tbody>
+</table>
+<p>各プログラムのリンク方式:</p>
+<table>
+<caption>各プログラムのリンク方式</caption>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 29%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>プログラム</th>
+<th>リンク</th>
+<th>ソース</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add</code></td>
+<td><code>libcalcbase</code> を静的リンク</td>
+<td><code>prod/calc/src/add/add.c</code></td>
+</tr>
+<tr>
+<td><code>calc</code></td>
+<td><code>libcalc</code> を動的リンク</td>
+<td><code>prod/calc/src/calc/calc.c</code></td>
+</tr>
+<tr>
+<td><code>shared-and-static-calc</code></td>
+<td>両方をリンク</td>
+<td><code>prod/calc/src/shared-and-static-calc/</code></td>
+</tr>
+</tbody>
+</table>
+<p>ヘッダーファイル:</p>
+<ul>
+<li><code>prod/calc/include/libcalc_const.h</code> - 定数定義 (<code>CALC_SUCCESS</code> など)</li>
+<li><code>prod/calc/include/libcalcbase.h</code> - 静的ライブラリ用ヘッダー</li>
+<li><code>prod/calc/include/libcalc.h</code> - 動的ライブラリ用ヘッダー</li>
+</ul>
+<h2 data-number="4.2" id="関連ドキュメント"><span class="header-section-number">4.2</span> 関連ドキュメント</h2>
+<ul>
+<li><a href="../../build-design.html">ビルド設計</a> - このリポジトリのビルド構成の詳細</li>
+<li><a href="../04-build-system/gnu-make.html">GNU Make (スキルガイド)</a> - makefile によるビルド自動化</li>
+<li><a href="../08-dev-environment/dotnet-csharp.html">C# / P/Invoke (スキルガイド)</a> - .NET から C ライブラリを呼び出す</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>
