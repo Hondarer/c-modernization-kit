@@ -1,6 +1,7 @@
 ifneq ($(OS),Windows_NT)
     # Linux: dlopen/dlsym/dlclose を使用するため -ldl が必要
-    LDFLAGS += -ldl
+    #        pthread_once を使用するため -lpthread が必要
+    LDFLAGS += -ldl -lpthread
 else
     # Windows
     # DLL エクスポート定義
