@@ -39,26 +39,18 @@
  *                  __attribute__((destructor))) からのみ呼び出されます。
  *
  *  @attention      DLL / 共有ライブラリのアンロードコンテキストで呼び出せる API には
- *                  プラットフォームごとに重要な制限があります。
- *
- *  @attention      **Linux — __attribute__((destructor)) コンテキスト:**\n
+ *                  プラットフォームごとに重要な制限があります。\n
+ *                  \n
+ *                  **Linux: __attribute__((destructor)) コンテキスト**\n
  *                  デストラクタは dlclose() 呼び出し時、またはプロセス終了時の atexit
  *                  ハンドラと同等のタイミングで実行されます。
  *                  他の共有ライブラリのデストラクタが先に実行されている可能性があるため、
- *                  依存ライブラリの関数呼び出しは未定義動作を引き起こす場合があります。
- *                      - dlclose() は通常安全ですが、依存先ライブラリが既にアンロード済みの
- *                        場合は未定義動作となります。
- *                      - syslog() は通常利用可能ですが、ログデーモンとの接続状態に依存します。
- *
- *  @attention      **Windows — DLL_PROCESS_DETACH コンテキスト:**\n
+ *                  依存ライブラリの関数呼び出しは未定義動作を引き起こす場合があります。\n
+ *                  \n
+ *                  **Windows: DLL_PROCESS_DETACH コンテキスト**\n
  *                  DllMain はローダーロック (loader lock) を保持した状態で呼び出されます。
  *                  このコンテキストで安全に呼び出せるのは、主に kernel32.dll が提供する
  *                  一部の API (CloseHandle, OutputDebugStringA, HeapFree など) に限られます。
- *                  以下の操作はデッドロックや未定義動作を引き起こす可能性があります。
- *                      - LoadLibrary / FreeLibrary (別 DLL のローダー操作)
- *                      - スレッドの生成・待機
- *                      - mutex など同期オブジェクトの取得
- *                      - C ランタイム (CRT) の一部関数 (malloc, printf など)
  *
  *  @see            https://learn.microsoft.com/ja-jp/windows/win32/dlls/dllmain
  */
@@ -99,7 +91,7 @@ __attribute__((destructor)) static void unload_liboverride(void)
  *  @brief          DLL エントリーポイント (Windows 専用)。
  *  @details        DLL_PROCESS_DETACH を受け取った際に onUnload() を呼び出し、
  *                   liboverride のハンドルと関数ポインタを解放します。
- * 
+ *
  *  @param[in]      hinstDLL    DLL のインスタンスハンドル (本実装では未使用)。
  *  @param[in]      fdwReason   呼び出し理由。DLL_PROCESS_DETACH の場合のみ処理します。
  *  @param[in]      lpvReserved 予約済みパラメータ (本実装では未使用)。
