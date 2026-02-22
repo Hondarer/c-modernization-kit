@@ -25,8 +25,12 @@
 /** ライブラリ名バッファの最大長 (ベース名 + 拡張子を含む) */
 #define LIBBASE_MAX_LIB_NAME 256
 
-/* func.c で定義したキャッシュエントリ */
-extern LibFuncCache s_cache_func_override;
+/* liboverride の関数ポインタキャッシュ。
+ * lib_name は拡張子なし (libbase_load_func が .so/.dll を付加する)。
+ * 排他制御は libbase_load_func が内部で担当する。
+ * アンロード時の解放は DllMain.c が担当する。 */
+LibFuncCache s_cache_func_override =
+    LIBFUNCCACHE_INIT("liboverride", "func_override", func_override_t);
 
 /* クリーンアップ対象のキャッシュポインタ配列。
  * 関数が増えた場合はここにエントリを追加するだけでよい。 */

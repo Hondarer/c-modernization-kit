@@ -17,12 +17,8 @@
 #include <libbase.h>
 #include <stddef.h>
 
-/* liboverride の関数ポインタキャッシュ。
- * lib_name は拡張子なし (libbase_load_func が .so/.dll を付加する)。
- * 排他制御は libbase_load_func が内部で担当する。
- * アンロード時の解放は DllMain.c が担当する。 */
-LibFuncCache s_cache_func_override =
-    LIBFUNCCACHE_INIT("liboverride", "func_override", func_override_t);
+/* lib_loader.c に定義しているキャッシュエントリ */
+extern LibFuncCache s_cache_func_override;
 
 /* doxygen コメントは、ヘッダに記載 */
 int WINAPI func(const int useOverride, const int a, const int b, int *result)
