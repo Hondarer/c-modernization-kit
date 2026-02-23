@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- *  @file           func_manager_config.h
- *  @brief          func_manager が管理する関数ポインタの extern 定義。
+ *  @file           funcman_libbase.h
+ *  @brief          funcman が管理する関数ポインタの extern 定義。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
@@ -14,20 +14,20 @@
  *******************************************************************************
  */
 
-#ifndef FUNC_MANAGER_CONFIG_H
-#define FUNC_MANAGER_CONFIG_H
+#ifndef FUNCMAN_LIBBASE_H
+#define FUNCMAN_LIBBASE_H
 
-#include <func_manager.h>
+#include <libbase.h>
 
 /* --- 拡張可能な各関数のポインタ型とアクセス用のオブジェクトへのポインタ --- */
 
 typedef int (*sample_func_t)(const int, const int, int *);
-extern func_object *const p_sample_func;
+extern funcman_object *const pfo_sample_func;
 
-/** func_manager に設定するポインタ配列。 */
-extern func_object *const func_objects[];
+/** funcman に設定するポインタ配列。 */
+extern funcman_object *const fobj_array_libbase[];
 
-/** func_manager に設定するポインタ配列の要素数 */
-extern const size_t FUNC_OBEJCTS_COUNT;
+/** funcman に設定するポインタ配列の要素数 */
+extern const size_t fobj_length_libbase;
 
-#endif /* FUNC_MANAGER_CONFIG_H */
+#endif /* FUNCMAN_LIBBASE_H */

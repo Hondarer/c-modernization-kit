@@ -1,10 +1,9 @@
-#include <func_manager.h>
-#include "func_manager_local.h"
+#include <libbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-void func_manager_dispose(void)
+void funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length)
 {
-    size_t i;
+    size_t fobj_index;
 
     /* DllMain / destructor コンテキストから呼ばれるため、
      * ローダーロック保持中にミューテックスを取得すると
@@ -12,9 +11,9 @@ void func_manager_dispose(void)
      * このコンテキストではシングルスレッド動作が保証されるため、
      * ロックなしで解放する。 */
 
-    for (i = 0; i < _func_objects_count; i++)
+    for (fobj_index = 0; fobj_index < fobj_length; fobj_index++)
     {
-        func_object *cache = _func_objects[i];
+        funcman_object *cache = fobj_array[fobj_index];
 
         if (cache->handle == NULL)
         {

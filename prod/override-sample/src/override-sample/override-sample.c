@@ -61,6 +61,10 @@ int main(void)
     printf("       del \"%s\"\n\n", configpath);
 #endif
 
+    printf("--- funcman info ---\n");
+    funcman_info_libbase();
+    printf("\n");
+
     rtc = sample_func(1, 2, &result);
     console_output("rtc: %d\n", rtc);
     if (rtc != 0)

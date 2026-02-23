@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- *  @file           func_manager_load_config.c
- *  @brief          設定テキストファイルから func_object エントリを読み込む。
+ *  @file           funcman_init.c
+ *  @brief          設定テキストファイルから funcman_object エントリを読み込む。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/23
  *  @version        1.0.0
  *
- *  /tmp/libbase_ext.txt 等のテキストファイルから func_key / lib_name / func_name を
+ *  テキストファイルから func_key / lib_name / func_name を
  *  読み込み、_func_objects 配列の対応エントリに設定します。\n
  *
  *  ファイルフォーマット:\n
@@ -26,8 +26,7 @@
  *******************************************************************************
  */
 
-#include "func_manager_local.h"
-#include <func_manager.h>
+#include <libbase.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -35,21 +34,20 @@
 #define CONFIG_LINE_MAX 1024
 
 /* doxygen コメントは、ヘッダに記載 */
-int func_manager_load_config(const char *configpath)
+void funcman_init(funcman_object *const *fobj_array, const size_t fobj_length, const char *configpath)
 {
     FILE *fp;
     char line[CONFIG_LINE_MAX];
-    char func_key[FUNC_MANAGER_NAME_MAX];
-    char lib_name[FUNC_MANAGER_NAME_MAX];
-    char func_name[FUNC_MANAGER_NAME_MAX];
+    char func_key[FUNCMAN_NAME_MAX];
+    char lib_name[FUNCMAN_NAME_MAX];
+    char func_name[FUNCMAN_NAME_MAX];
     char *comment;
-    size_t cache_index;
-    int loaded = 0;
+    size_t fobj_index;
 
     fp = fopen(configpath, "r");
     if (fp == NULL)
     {
-        return -1;
+        return;
     }
 
     while (fgets(line, sizeof(line), fp) != NULL)
@@ -69,23 +67,22 @@ int func_manager_load_config(const char *configpath)
         }
 
         /* func_key が一致するキャッシュを検索し、配列に書き込む */
-        for (cache_index = 0; cache_index < _func_objects_count; cache_index++)
+        for (fobj_index = 0; fobj_index < fobj_length; fobj_index++)
         {
-            func_object *cache = _func_objects[cache_index];
+            funcman_object *cache = fobj_array[fobj_index];
             if (cache->func_key == NULL || strcmp(cache->func_key, func_key) != 0)
             {
                 continue;
             }
 
-            strncpy(cache->lib_name, lib_name, FUNC_MANAGER_NAME_MAX - 1);
-            cache->lib_name[FUNC_MANAGER_NAME_MAX - 1] = '\0';
-            strncpy(cache->func_name, func_name, FUNC_MANAGER_NAME_MAX - 1);
-            cache->func_name[FUNC_MANAGER_NAME_MAX - 1] = '\0';
-            loaded++;
+            strncpy(cache->lib_name, lib_name, FUNCMAN_NAME_MAX - 1);
+            cache->lib_name[FUNCMAN_NAME_MAX - 1] = '\0';
+            strncpy(cache->func_name, func_name, FUNCMAN_NAME_MAX - 1);
+            cache->func_name[FUNCMAN_NAME_MAX - 1] = '\0';
             break;
         }
     }
 
     fclose(fp);
-    return loaded;
+    return;
 }

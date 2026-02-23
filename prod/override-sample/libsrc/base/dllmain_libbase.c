@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           DllMain.c
+ *  @file           dllmain_libbase.c
  *  @brief          base.so / base.dll のロード・アンロード時処理。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
@@ -16,7 +16,7 @@
  *******************************************************************************
  */
 
-#include "func_manager_config.h"
+#include "funcman_libbase.h"
 #include <dllmain.h>
 #include <libbase.h>
 #include <stdio.h>
@@ -52,12 +52,12 @@ void onLoad(void)
 #endif /* _WIN32 */
     }
 
-    func_manager_init(func_objects, FUNC_OBEJCTS_COUNT, configpath);
+    funcman_init(fobj_array_libbase, fobj_length_libbase, configpath);
 }
 
 /* doxygen コメントは、ヘッダに記載 */
 void onUnload(void)
 {
     DLLMAIN_INFO_MSG("base: onUnload called");
-    func_manager_dispose();
+    funcman_dispose(fobj_array_libbase, fobj_length_libbase);
 }

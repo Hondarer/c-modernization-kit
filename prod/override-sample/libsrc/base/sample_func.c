@@ -13,7 +13,7 @@
  *******************************************************************************
  */
 
-#include "func_manager_config.h"
+#include "funcman_libbase.h"
 #include <libbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -24,7 +24,7 @@ int WINAPI sample_func(const int a, const int b, int *result)
         return -1;
     }
 
-    sample_func_t fp = func_manager_get_func(p_sample_func, sample_func_t);
+    sample_func_t fp = funcman_get_func(pfo_sample_func, sample_func_t);
     if (fp != NULL)
     {
         /* 拡張 (オーバーライド) 処理 */

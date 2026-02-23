@@ -22,7 +22,6 @@
     #include <string.h>
     #include <windows.h>
 #else
-    #define _GNU_SOURCE
     #include <dlfcn.h>
     #include <limits.h>
     #include <stddef.h>
