@@ -41,9 +41,8 @@ funcman_object *const fobj_array_libbase[] = {
 const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_array_libbase[0]);
 
 /* doxygen コメントは、ヘッダに記載 */
-void funcman_info_libbase()
+int funcman_info_libbase()
 {
     printf("- congigpath: %s\n", funcman_configpath);
-    funcman_info(fobj_array_libbase, fobj_length_libbase);
-    return;
+    return funcman_info(fobj_array_libbase, fobj_length_libbase);
 }

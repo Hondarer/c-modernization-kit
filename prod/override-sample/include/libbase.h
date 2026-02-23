@@ -219,9 +219,9 @@ extern "C"
      */
     BASE_API extern void WINAPI funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length);
 
-    BASE_API extern void WINAPI funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
+    BASE_API extern int WINAPI funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
 
-    BASE_API extern void WINAPI funcman_info_libbase(void);
+    BASE_API extern int WINAPI funcman_info_libbase(void);
 
     /* --- funcman END ---*/
 

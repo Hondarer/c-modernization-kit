@@ -53,7 +53,7 @@ int main(void)
 #endif
 
     printf("configpath: %s\n", configpath);
-    printf("Processing will be extended if configpath defines sample_func, liboverride, or override_func.\n");
+    printf("Processing will be extended if defines.\n");
     printf(" e.g.  echo \"sample_func liboverride override_func\" > \"%s\"\n", configpath);
 #ifndef _WIN32
     printf("       rm \"%s\"\n\n", configpath);
@@ -62,8 +62,8 @@ int main(void)
 #endif
 
     printf("--- funcman info ---\n");
-    funcman_info_libbase();
-    printf("\n");
+    rtc = funcman_info_libbase();
+    printf("rtc: %d\n\n", rtc);
 
     rtc = sample_func(1, 2, &result);
     console_output("rtc: %d\n", rtc);
