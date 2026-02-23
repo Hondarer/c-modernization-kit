@@ -1,9 +1,10 @@
-# funcman
+# funcman: 動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュール
 
-動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュールです。  
-funcman は function manager の略です。
+funcman は、動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュールです。
 
-## 設計方針
+> funcman は function manager の略です。
+
+## 設計思想
 
 funcman はモジュール内にインスタンス変数を持ちません。管理対象の状態はすべて呼び出し側が用意した `funcman_object` に保持されます。そのため、このフォルダのソースコードは `libbase` に限らず任意のライブラリから利用できます。
 
@@ -18,7 +19,6 @@ funcman はモジュール内にインスタンス変数を持ちません。管
 | `funcman_is_declared_default.c` | `funcman_object` が明示的デフォルト (`lib_name` / `func_name` ともに `"default"`) かどうかを返す |
 | `funcman_dispose.c` | ロード済みライブラリをアンロードしてリソースを解放する |
 | `funcman_info.c` | `funcman_object` の現在の状態を標準出力に表示する |
-| `load-unload-notes.md` | 動的ライブラリのロード・アンロードに関する実装メモ |
 
 ## API
 
