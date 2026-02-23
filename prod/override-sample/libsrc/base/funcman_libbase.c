@@ -15,13 +15,22 @@
  */
 
 #include "funcman_libbase.h"
+#include <stdio.h>
+
+/* doxygen コメントは、ヘッダに記載 */
+char funcman_configpath[FUNCMAN_CONFIG_PATH_MAX] = {0};
 
 /* --- 拡張可能な各関数のアクセス用のオブジェクトとアクセス用のポインタ設定 --- */
+/* --- 対応関数を追加した場合、以下に追加が必要です。                       --- */
 
 static funcman_object sfo_sample_func = NEW_FUNCMAN_OBJECT("sample_func", sample_func_t);
 funcman_object *const pfo_sample_func = &sfo_sample_func;
 
-/* --- funcman に渡すポインタ配列 --- */
+/* static funcman_object sfo_func_name = NEW_FUNCMAN_OBJECT("func_name", func_name_t); */ /* 将来追加 */
+/* funcman_object *const pfo_func_name = &sfo_func_name; */                               /* 将来追加 */
+
+/* --- funcman に渡すポインタ配列                     --- */
+/* --- 対応関数を追加した場合、以下に追加が必要です。 --- */
 
 funcman_object *const fobj_array_libbase[] = {
     &sfo_sample_func,
@@ -31,8 +40,10 @@ funcman_object *const fobj_array_libbase[] = {
 /* doxygen コメントは、ヘッダに記載 */
 const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_array_libbase[0]);
 
+/* doxygen コメントは、ヘッダに記載 */
 void funcman_info_libbase()
 {
+    printf("- congigpath: %s\n", funcman_configpath);
     funcman_info(fobj_array_libbase, fobj_length_libbase);
     return;
 }

@@ -24,8 +24,7 @@
 /* doxygen コメントは、ヘッダに記載 */
 void onLoad(void)
 {
-    char basename[1024] = {0};
-    char configpath[1024 + 260] = {0}; /* tempdir + basename + suffix を想定して余裕を持たせる */
+    char basename[FUNCMAN_NAME_MAX] = {0};
 
     DLLMAIN_INFO_MSG("base: onLoad called");
 
@@ -33,7 +32,7 @@ void onLoad(void)
     {
 #ifndef _WIN32
         /* Linux: 定義ファイルを /tmp から読み込み */
-        snprintf(configpath, sizeof(configpath), "/tmp/%s_extdef.txt", basename);
+        snprintf(funcman_configpath, sizeof(funcman_configpath), "/tmp/%s_extdef.txt", basename);
 #else  /* _WIN32 */
         /* Windows: 定義ファイルを %TEMP% から読み込み */
         wchar_t tmpw[MAX_PATH] = L"";
@@ -46,13 +45,13 @@ void onLoad(void)
             if (m > 0)
             {
                 /* GetTempPathW は通常末尾に '\' を付けて返す */
-                snprintf(configpath, sizeof(configpath), "%s%s_extdef.txt", tmpu8, basename);
+                snprintf(funcman_configpath, sizeof(funcman_configpath), "%s%s_extdef.txt", tmpu8, basename);
             }
         }
 #endif /* _WIN32 */
     }
 
-    funcman_init(fobj_array_libbase, fobj_length_libbase, configpath);
+    funcman_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath);
 }
 
 /* doxygen コメントは、ヘッダに記載 */

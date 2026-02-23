@@ -20,14 +20,26 @@
 #include <libbase.h>
 
 /* --- 拡張可能な各関数のポインタ型とアクセス用のオブジェクトへのポインタ --- */
+/* --- 対応関数を追加した場合、以下に追加が必要です。                     --- */
 
 typedef int (*sample_func_t)(const int, const int, int *);
 extern funcman_object *const pfo_sample_func;
+
+/* typedef any (*func_name_t)(...); */            /* 将来追加 */
+/* extern funcman_object *const pfo_func_name; */ /* 将来追加 */
 
 /** funcman に設定するポインタ配列。 */
 extern funcman_object *const fobj_array_libbase[];
 
 /** funcman に設定するポインタ配列の要素数 */
 extern const size_t fobj_length_libbase;
+
+/** funcman 設定ファイルのパス長 (終端 '\0' を含む)
+ *  tempdir + basename + suffix を想定して余裕を持たせる
+ */
+#define FUNCMAN_CONFIG_PATH_MAX 1024
+
+/** funcman 設定ファイルのパス */
+extern char funcman_configpath[FUNCMAN_CONFIG_PATH_MAX];
 
 #endif /* FUNCMAN_LIBBASE_H */

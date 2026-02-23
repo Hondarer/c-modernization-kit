@@ -165,6 +165,8 @@ extern "C"
         char func_name[FUNCMAN_NAME_MAX]; /**< 関数シンボル名。[0]=='\0' = 未設定 */
         MODULE_HANDLE handle;             /**< キャッシュ済みハンドル (NULL = 未ロード) */
         void *func_ptr;                   /**< キャッシュ済み関数ポインタ (NULL = 未取得) */
+        int resolved;                     /**< 解決済フラグ (0 = 未解決) */
+        int padding;                      /**< パディング */
 #ifndef _WIN32
         pthread_mutex_t mutex; /**< ロード処理を保護する mutex (Linux) */
 #else                          /* _WIN32 */
@@ -180,9 +182,9 @@ extern "C"
  *                  funcman_get_func の第2引数と一致させること。
  */
 #ifndef _WIN32
-    #define NEW_FUNCMAN_OBJECT(key, type) {(key), {0}, {0}, NULL, NULL, PTHREAD_MUTEX_INITIALIZER}
+    #define NEW_FUNCMAN_OBJECT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, PTHREAD_MUTEX_INITIALIZER}
 #else /* _WIN32 */
-    #define NEW_FUNCMAN_OBJECT(key, type) {(key), {0}, {0}, NULL, NULL, SRWLOCK_INIT}
+    #define NEW_FUNCMAN_OBJECT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, SRWLOCK_INIT}
 #endif /* _WIN32 */
 
     /**

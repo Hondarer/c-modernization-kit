@@ -8,9 +8,6 @@
  *
  *  funcman_get_func はスレッドセーフです。
  *  内部で mutex (Linux) または SRW ロック (Windows) を使用して排他制御します。
- * 
- *  @todo           一度探索に失敗した場合は、次回以降探索を省略するために
- *                  探索済みフラグを設ける必要がある。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -30,15 +27,15 @@ void *_funcman_get_func(funcman_object *fobj)
 #endif /* _WIN32 */
     char lib_with_ext[FUNCMAN_NAME_MAX];
 
-    /* ロード完了後は func_ptr が NULL 以外になる。
-     * 初回ロード後の読み取りのみになるため早期リターンで判定する。 */
-    if (fobj->func_ptr != NULL)
+    /* ロード完了後は resolved が 0 以外になる。早期リターンで判定する。
+     * もし解決に失敗している場合は、NULL が返却される。 */
+    if (fobj->resolved != 0)
     {
         return fobj->func_ptr;
     }
 
     /* ロード処理を排他制御する。
-     * ロック取得後に再度 func_ptr を確認し、他スレッドが先にロードを
+     * ロック取得後に再度 resolved を確認し、他スレッドが先にロードを
      * 完了していた場合は処理をスキップする (double-checked locking)。 */
 #ifndef _WIN32
     if (pthread_mutex_lock(&fobj->mutex) != 0)
@@ -49,14 +46,16 @@ void *_funcman_get_func(funcman_object *fobj)
     AcquireSRWLockExclusive(&fobj->lock);
 #endif /* _WIN32 */
 
-    if (fobj->func_ptr == NULL)
+    if (fobj->resolved == 0)
     {
         if (fobj->lib_name[0] == '\0' || fobj->func_name[0] == '\0')
         {
+            fobj->resolved = -1; /* resolved=-1: 定義なし */
             goto unlock;
         }
         if (strlen(fobj->lib_name) + strlen(ext) >= FUNCMAN_NAME_MAX)
         {
+            fobj->resolved = -2; /* resolved=-2: 名称長さオーバー */
             goto unlock;
         }
         strcpy(lib_with_ext, fobj->lib_name);
@@ -69,6 +68,7 @@ void *_funcman_get_func(funcman_object *fobj)
 #endif /* _WIN32 */
         if (fobj->handle == NULL)
         {
+            fobj->resolved = -3; /* resolved=-3: ライブラリオープンエラー */
             goto unlock;
         }
 
@@ -79,6 +79,7 @@ void *_funcman_get_func(funcman_object *fobj)
 #endif /* _WIN32 */
         if (fobj->func_ptr == NULL)
         {
+            fobj->resolved = -4; /* resolved=-4: 関数探索エラー */
 #ifndef _WIN32
             dlclose(fobj->handle);
 #else  /* _WIN32 */
@@ -86,6 +87,7 @@ void *_funcman_get_func(funcman_object *fobj)
 #endif /* _WIN32 */
             fobj->handle = NULL;
         }
+        fobj->resolved = 1; /* resolved=1: 解決済 */
     }
 
 unlock:
