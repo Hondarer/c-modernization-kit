@@ -67,7 +67,8 @@ int WINAPI sample_func(const int a, const int b, int *result);
 void WINAPI console_output(const char *format, ...);
 ```
 
-`printf` と同じ書式でコンソールに出力する関数です。`liboverride` からも呼び出せます。
+`printf` と同じ書式でコンソールに出力する関数です。  
+`liboverride` からも呼び出しています。これは、動的にロードされた拡張処理から基底ライブラリの関数を呼び出すことができることのサンプル実装です。
 
 #### get_lib_path / get_lib_basename
 
