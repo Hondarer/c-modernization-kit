@@ -1,52 +1,28 @@
 /**
  *******************************************************************************
- *  @file           lib_loader.c
- *  @brief          動的ライブラリロード Factory 関数の実装ファイル。
+ *  @file           func_manager.c
+ *  @brief          拡張可能な関数の動的ロードを行い、関数アドレスを返却します。
  *  @author         c-modenization-kit sample team
- *  @date           2026/02/22
+ *  @date           2026/02/23
  *  @version        1.0.0
  *
- *  ライブラリ名・関数名・ハンドル・関数ポインタを保持する LibFuncCache 構造体に対して、
- *  プラットフォーム共通のロード／アンロード処理を提供します。
- *
- *  libbase_load_func はスレッドセーフです。
+ *  func_manager_get_func はスレッドセーフです。
  *  内部で mutex (Linux) または SRW ロック (Windows) を使用して排他制御します。
- *  呼び出し元での pthread_once / INIT_ONCE による保護は不要です。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
  *******************************************************************************
  */
 
-#include "libbase_local.h"
-#include <stddef.h>
+#include <func_manager.h>
+#include "func_manager_local.h"
 #include <string.h>
 
 /** ライブラリ名バッファの最大長 (ベース名 + 拡張子を含む) */
 #define LIBBASE_MAX_LIB_NAME 256
 
-/* liboverride の関数ポインタキャッシュ。
- * lib_name は拡張子なし (libbase_load_func が .so/.dll を付加する)。
- * 排他制御は libbase_load_func が内部で担当する。
- * アンロード時の解放は DllMain.c が担当する。 */
-LibFuncCache s_cache_func_override =
-    LIBFUNCCACHE_INIT("liboverride", "func_override", func_override_t);
-
-/* クリーンアップ対象のキャッシュポインタ配列。
- * 関数が増えた場合はここにエントリを追加するだけでよい。 */
-static LibFuncCache * const s_all_caches[] = {
-    &s_cache_func_override,
-    /* &s_cache_func2, */ /* 将来追加 */
-};
-
-/**
- * cache->handle を閉じ、handle と func_ptr を NULL にリセットする。
- * DllMain / destructor コンテキストからのみ呼ぶこと。
- */
-static void libbase_unload_func(LibFuncCache *cache);
-
 /* doxygen コメントは、ヘッダに記載 */
-void *libbase_load_func_impl(LibFuncCache *cache)
+void *_func_manager_get_func(func_object *cache)
 {
 #ifndef _WIN32
     const char *ext = ".so";
@@ -76,6 +52,10 @@ void *libbase_load_func_impl(LibFuncCache *cache)
 
     if (cache->func_ptr == NULL)
     {
+        if (cache->lib_name[0] == '\0' || cache->func_name[0] == '\0')
+        {
+            goto unlock;
+        }
         if (strlen(cache->lib_name) + strlen(ext) >= LIBBASE_MAX_LIB_NAME)
         {
             goto unlock;
@@ -117,35 +97,4 @@ unlock:
 #endif /* _WIN32 */
 
     return cache->func_ptr;
-}
-
-/* doxygen コメントは、ヘッダに記載 */
-void libbase_unload_all(void)
-{
-    size_t i;
-    for (i = 0; i < sizeof(s_all_caches) / sizeof(s_all_caches[0]); i++)
-    {
-        libbase_unload_func(s_all_caches[i]);
-    }
-}
-
-/* doxygen コメントは、ヘッダに記載 */
-void libbase_unload_func(LibFuncCache *cache)
-{
-    /* DllMain / destructor コンテキストから呼ばれるため、
-     * ローダーロック保持中にミューテックスを取得すると
-     * デッドロックを引き起こす恐れがある。
-     * このコンテキストではシングルスレッド動作が保証されるため、
-     * ロックなしで解放する。 */
-    if (cache->handle == NULL)
-    {
-        return;
-    }
-#ifndef _WIN32
-    dlclose(cache->handle);
-#else  /* _WIN32 */
-    FreeLibrary(cache->handle);
-#endif /* _WIN32 */
-    cache->handle  = NULL;
-    cache->func_ptr = NULL;
 }

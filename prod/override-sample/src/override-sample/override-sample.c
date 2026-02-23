@@ -23,41 +23,53 @@
  *******************************************************************************
  *  @brief          メインエントリポイント。
  *  @return         正常終了時は 0 を返します。
- *
- *  @details
- *  useOverride=0 と useOverride=1 の両パターンで func を呼び出し、\n
- *  動的ライブラリのオーバーライド機能を示します。
  *******************************************************************************
  */
 int main(void)
 {
     int result;
     int rtc;
+    char configpath[4096];
 
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
 #endif
 
-    rtc = func(0, 1, 2, &result);
-    console_output("rtc: %d\n", rtc);
-    if (rtc != 0)
+#ifndef _WIN32
+    snprintf(configpath, sizeof(configpath), "/tmp/libbase_extdef.txt");
+#else
     {
-        fprintf(stderr, "func failed (useOverride=0)\n");
+        wchar_t tmpw[MAX_PATH] = L"";
+        DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
+        configpath[0] = '\0';
+        if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
+        {
+            char tmpu8[MAX_PATH * 4] = {0};
+            int m = WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
+            if (m > 0)
+                snprintf(configpath, sizeof(configpath), "%slibbase_extdef.txt", tmpu8);
+        }
     }
-    else
-    {
-        console_output("result: %d\n", result);
-    }
+#endif
 
-    rtc = func(1, 1, 2, &result);
+    printf("configpath: %s\n", configpath);
+    printf("Processing will be extended if configpath defines sample_func, liboverride, or override_func.\n");
+    printf(" e.g.  echo \"sample_func liboverride override_func\" > \"%s\"\n", configpath);
+#ifndef _WIN32
+    printf("       rm \"%s\"\n\n", configpath);
+#else
+    printf("       del \"%s\"\n\n", configpath);
+#endif
+
+    rtc = sample_func(1, 2, &result);
     console_output("rtc: %d\n", rtc);
     if (rtc != 0)
     {
-        fprintf(stderr, "func failed (useOverride=1)\n");
+        fprintf(stderr, "func failed (sample_func(1, 2, &result))\n");
     }
     else
     {
-        console_output("result: %d\n", result);
+        printf("result: %d\n", result);
     }
 
     return 0;

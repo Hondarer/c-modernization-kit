@@ -1,77 +1,63 @@
 /**
  *******************************************************************************
  *  @file           DllMain.c
- *  @brief          base.so / base.dll のアンロード時処理。
+ *  @brief          base.so / base.dll のロード・アンロード時処理。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
- *  base.so / base.dll がアンロードされるとき、func.c がキャッシュした
- *  liboverride のハンドルと関数ポインタを解放します。
+ *  base.so / base.dll のロード時およびアンロード時に処理を行います。
  *
- *  Linux  : __attribute__((destructor)) により dlclose(base.so) または
- *           プロセス正常終了時に自動的に呼び出されます。
- *
- *  Windows: DllMain の DLL_PROCESS_DETACH により FreeLibrary(base.dll) または
- *           プロセス正常終了時に自動的に呼び出されます。
+ *  プラットフォームごとのフック (Linux constructor/destructor, Windows DllMain)
+ *  は dllmain.h が提供します。このファイルは onLoad / onUnload を定義します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
  *******************************************************************************
  */
 
-#include "libbase_local.h"
-#include <stddef.h>
+#include "func_manager_config.h"
+#include <dllmain.h>
+#include <libbase.h>
+#include <stdio.h>
 
-/* DLL アンロード時の API 呼び出し制約に対応したログ出力マクロ */
+/* doxygen コメントは、ヘッダに記載 */
+void onLoad(void)
+{
+    char basename[1024] = {0};
+    char configpath[1024 + 260] = {0}; /* tempdir + basename + suffix を想定して余裕を持たせる */
+
+    DLLMAIN_INFO_MSG("base: onLoad called");
+
+    if (get_lib_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
+    {
 #ifndef _WIN32
-    #include <syslog.h>
-    #define LOG_INFO_MSG(msg) syslog(LOG_INFO, (msg))
-#else /* _WIN32 */
-    #define LOG_INFO_MSG(msg) OutputDebugStringA(msg)
+        /* Linux: 定義ファイルを /tmp から読み込み */
+        snprintf(configpath, sizeof(configpath), "/tmp/%s_extdef.txt", basename);
+#else  /* _WIN32 */
+        /* Windows: 定義ファイルを %TEMP% から読み込み */
+        wchar_t tmpw[MAX_PATH] = L"";
+        DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
+        if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
+        {
+            /* UTF-16 -> UTF-8 変換 */
+            char tmpu8[MAX_PATH * 4] = {0};
+            int m = WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
+            if (m > 0)
+            {
+                /* GetTempPathW は通常末尾に '\' を付けて返す */
+                snprintf(configpath, sizeof(configpath), "%s%s_extdef.txt", tmpu8, basename);
+            }
+        }
 #endif /* _WIN32 */
+    }
 
-static void onUnload(void);
+    func_manager_init(func_objects, FUNC_OBEJCTS_COUNT, configpath);
+}
 
+/* doxygen コメントは、ヘッダに記載 */
 void onUnload(void)
 {
-    LOG_INFO_MSG("base: onUnload called");
-    libbase_unload_all();
+    DLLMAIN_INFO_MSG("base: onUnload called");
+    func_manager_dispose();
 }
-
-#ifndef _WIN32
-
-/**
- *  @brief          共有ライブラリアンロード時のデストラクタ (Linux 専用)。
- *  @details        __attribute__((destructor)) により、dlclose(base.so) または
- *                  プロセス正常終了時に自動的に呼び出されます。
- */
-__attribute__((destructor)) static void unload_liboverride(void)
-{
-    onUnload();
-}
-
-#else /* _WIN32 */
-
-/**
- *  @brief          DLL エントリーポイント (Windows 専用)。
- *  @details        DLL_PROCESS_DETACH を受け取った際に onUnload() を呼び出し、
- *                   liboverride のハンドルと関数ポインタを解放します。
- *
- *  @param[in]      hinstDLL    DLL のインスタンスハンドル (本実装では未使用)。
- *  @param[in]      fdwReason   呼び出し理由。DLL_PROCESS_DETACH の場合のみ処理します。
- *  @param[in]      lpvReserved 予約済みパラメータ (本実装では未使用)。
- *  @return         常に TRUE を返します。
- */
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    (void)hinstDLL;
-    (void)lpvReserved;
-    if (fdwReason == DLL_PROCESS_DETACH)
-    {
-        onUnload();
-    }
-    return TRUE;
-}
-
-#endif /* _WIN32 */

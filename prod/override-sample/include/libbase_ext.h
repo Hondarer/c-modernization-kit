@@ -6,7 +6,7 @@
  *  @date           2026/02/21
  *  @version        1.0.0
  *
- *  このライブラリは libbase の func から動的にロードされ、\n
+ *  このライブラリは libbase から動的にロードされ、\n
  *  処理を引き受けるオーバーライド関数を提供します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -69,21 +69,20 @@ extern "C"
 
     /**
      *******************************************************************************
-     *  @brief          func のオーバーライド実装です。
-     *  @param[in]      useOverride 未使用 (func との互換性のために保持)。
+     *  @brief          sample_func のオーバーライド実装。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
      *  @param[out]     result 計算結果を格納するポインタ。
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
      *  @details
-     *                  libbase の func から動的にロードされ呼び出されます。\n
+     *                  libbase の sample_func から動的にロードされ呼び出されます。\n
      *                  a * b を計算して result に格納します。
      *
      *  @par            使用例
      *  @code{.c}
      *  int result;
-     *  if (func_override(0, 1, 2, &result) == 0) {
+     *  if (override_func(1, 2, &result) == 0) {
      *      console_output("result: %d\n", result);  // 出力: result: 2
      *  }
      *  @endcode
@@ -91,7 +90,7 @@ extern "C"
      *  @warning        result が NULL の場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_EXT_API extern int WINAPI func_override(const int useOverride, const int a, const int b, int *result);
+    BASE_EXT_API extern int WINAPI override_func(const int a, const int b, int *result);
 
 #ifdef __cplusplus
 }

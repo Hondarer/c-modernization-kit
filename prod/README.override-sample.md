@@ -126,16 +126,3 @@ Windows では `PATH` にライブラリのパスを設定して実行します�
 cd prod\override-sample\bin
 set PATH=%PATH%;..\lib
 override-sample.exe
-```
-
-### 実行結果
-
-```
-func: a=1, b=2 の処理 (*result = a + b;) を行います
-rtc: 0
-result: 3
-func: func_override に移譲します
-func_override: a=1, b=2 の処理 (*result = a * b;) を行います
-rtc: 0
-result: 2
-```
