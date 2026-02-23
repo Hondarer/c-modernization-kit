@@ -23,7 +23,9 @@ char funcman_configpath[FUNCMAN_CONFIG_PATH_MAX] = {0};
 /* --- 拡張可能な各関数のアクセス用のオブジェクトとアクセス用のポインタ設定 --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。                       --- */
 
+/** sample_func 用の funcman オブジェクト実体。 */
 static funcman_object sfo_sample_func = NEW_FUNCMAN_OBJECT("sample_func", sample_func_t);
+/* doxygen コメントは、ヘッダに記載 */
 funcman_object *const pfo_sample_func = &sfo_sample_func;
 
 /* static funcman_object sfo_func_name = NEW_FUNCMAN_OBJECT("func_name", func_name_t); */ /* 将来追加 */
@@ -32,6 +34,7 @@ funcman_object *const pfo_sample_func = &sfo_sample_func;
 /* --- funcman に渡すポインタ配列                     --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。 --- */
 
+/* doxygen コメントは、ヘッダに記載 */
 funcman_object *const fobj_array_libbase[] = {
     &sfo_sample_func,
     /* &s_func_name, */ /* 将来追加 */

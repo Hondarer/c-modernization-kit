@@ -22,7 +22,9 @@
 /* --- 拡張可能な各関数のポインタ型とアクセス用のオブジェクトへのポインタ --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。                     --- */
 
+/** sample_func に対応する関数ポインタの型定義。 */
 typedef int (*sample_func_t)(const int, const int, int *);
+/** sample_func に対応する funcman オブジェクトへのポインタ。 */
 extern funcman_object *const pfo_sample_func;
 
 /* typedef any (*func_name_t)(...); */            /* 将来追加 */

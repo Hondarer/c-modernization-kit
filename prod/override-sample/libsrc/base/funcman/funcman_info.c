@@ -1,6 +1,23 @@
+/**
+ *******************************************************************************
+ *  @file           funcman_info.c
+ *  @brief          funcman_object ポインタ配列の内容を標準出力に表示します。
+ *  @author         c-modenization-kit sample team
+ *  @date           2026/02/23
+ *  @version        1.0.0
+ *
+ *  各エントリを表示し、未解決のエントリがあれば解決を試みます。\n
+ *  1 つでも解決失敗した場合は -1 を返します。\n
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
 #include <libbase.h>
 #include <stdio.h>
 
+/* doxygen コメントは、ヘッダに記載 */
 int funcman_info(funcman_object *const *fobj_array, const size_t fobj_length)
 {
     int rtc = 0;

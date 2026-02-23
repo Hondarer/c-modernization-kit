@@ -1,3 +1,16 @@
+/**
+ *******************************************************************************
+ *  @file           funcman_dispose.c
+ *  @brief          funcman_object ポインタ配列を解放します。
+ *  @author         c-modenization-kit sample team
+ *  @date           2026/02/23
+ *  @version        1.0.0
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
 #include <libbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */

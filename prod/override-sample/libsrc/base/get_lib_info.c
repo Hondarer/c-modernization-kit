@@ -1,16 +1,23 @@
 /**
- * @file get_lib_info.c
- * @brief 共有ライブラリ自身 (.so/.dll) の絶対パスと basename (パスなし・拡張子なし) を取得するクロスプラットフォーム API
+ *******************************************************************************
+ *  @file           get_lib_info.c
+ *  @brief          共有ライブラリ自身 (.so/.dll) の絶対パスと basename
+ *                  (パスなし・拡張子なし) を取得します。
+ *  @author         c-modenization-kit sample team
+ *  @date           2026/02/23
+ *  @version        1.0.0
  *
- * Linux(gcc) では dladdr() で共有オブジェクトを特定し、realpath() で可能な限り正規化 (絶対化・symlink 解決) します。
- * Windows(MSVC) では GetModuleHandleEx() で DLL の HMODULE を得て、GetModuleFileNameW() でパスを取得します。
- * 取得したパスは UTF-8 で返却します。
+ *  Linux(gcc) では dladdr() で共有オブジェクトを特定し、realpath() で可能な限り正規化 (絶対化・symlink 解決) します。
+ *  Windows(MSVC) では GetModuleHandleEx() で DLL の HMODULE を得て、GetModuleFileNameW() でパスを取得します。
  *
- * @note
- * - 「絶対パス」は OS/ローダの情報とファイルシステム状態に依存します。
- *   Linux でロード後にファイルが移動/削除される等により realpath()
- *   が失敗する場合、可能な範囲で絶対化した文字列を返します。
- * - Windows は基本的にフルパスが得られますが、古い環境では MAX_PATH 制約が残る場合があります。
+ *  @note           - 「絶対パス」は OS/ローダの情報とファイルシステム状態に依存します。
+ *                    Linux でロード後にファイルが移動/削除される等により realpath()
+ *                    が失敗する場合、可能な範囲で絶対化した文字列を返します。
+ *                  - Windows は基本的にフルパスが得られますが、古い環境では MAX_PATH 制約が残る場合があります。
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
  */
 
 #include <libbase.h>
@@ -33,10 +40,11 @@
 #endif
 
 /**
- * @enum mylib_status_t
- * @brief API の戻り値(ステータス)
+ *******************************************************************************
+ *  @brief          内部関数の戻り値(ステータス)。
+ *******************************************************************************
  */
-typedef enum mylib_status_t
+typedef enum get_lib_info_status_t
 {
     /** 成功 */
     MYLIB_OK = 0,
@@ -46,17 +54,19 @@ typedef enum mylib_status_t
     MYLIB_ENOBUFS = -2,
     /** その他の失敗 (取得不能、OS API 失敗など) */
     MYLIB_EFAIL = -3
-} mylib_status_t;
+} get_lib_info_status_t;
 
 /**
- * @brief 文字列を安全にコピーします (UTF-8 想定だが単なる byte 列として扱う)。
+ *******************************************************************************
+ *  @brief          文字列を安全にコピーします (UTF-8 想定だが単なる byte 列として扱う)。
  *
- * @param[out] dst     出力バッファ
- * @param[in]  dst_sz  出力バッファサイズ[byte]
- * @param[in]  src     入力文字列(NUL終端)
- * @return mylib_status_t
+ *  @param[out]     dst    出力バッファ。
+ *  @param[in]      dst_sz 出力バッファサイズ[byte]。
+ *  @param[in]      src    入力文字列 (NULL 終端)。
+ *  @return         get_lib_info_status_t
+ *******************************************************************************
  */
-static mylib_status_t mylib__copy_str(char *dst, size_t dst_sz, const char *src)
+static get_lib_info_status_t copy_str(char *dst, size_t dst_sz, const char *src)
 {
     size_t n;
 
@@ -74,12 +84,14 @@ static mylib_status_t mylib__copy_str(char *dst, size_t dst_sz, const char *src)
 }
 
 /**
- * @brief パス文字列からファイル名部分 (最後の区切り文字以降) を返します。
+ *******************************************************************************
+ *  @brief          パス文字列からファイル名部分 (最後の区切り文字以降) を返します。
  *
- * @param[in] path パス
- * @return const char* ファイル名部分へのポインタ (元の文字列内)
+ *  @param[in]      path パス。
+ *  @return         const char* ファイル名部分へのポインタ (元の文字列内)。
+ *******************************************************************************
  */
-static const char *mylib__filename_part(const char *path)
+static const char *get_ilename_part(const char *path)
 {
     const char *p;
     const char *last = path;
@@ -95,16 +107,17 @@ static const char *mylib__filename_part(const char *path)
 }
 
 /**
- * @brief 拡張子を取り除きます (その場で書き換え)。
+ *******************************************************************************
+ *  @brief          拡張子を取り除きます (その場で書き換え)。
  *
- * @details
- * - Linux: ".so." が含まれる場合はそこから先を削除 (例: libx.so.1.2.3 -> libx)
- * - Linux: 末尾が ".so" の場合は削除 (例: libx.so -> libx)
- * - その他: 最後の '.' 以降を削除 (一般的な拡張子扱い)
+ *  @details        - Linux: ".so." が含まれる場合はそこから先を削除 (例: libx.so.1.2.3 -> libx)
+ *                  - Linux: 末尾が ".so" の場合は削除 (例: libx.so -> libx)
+ *                  - その他: 最後の '.' 以降を削除 (一般的な拡張子扱い)
  *
- * @param[in,out] s 対象文字列(NUL終端)
+ *  @param[in,out]  s 対象文字列 (NULL 終端)。
+ *******************************************************************************
  */
-static void mylib__strip_extension_inplace(char *s)
+static void strip_extension_inplace(char *s)
 {
     char *dot;
 
@@ -150,14 +163,16 @@ static void mylib__strip_extension_inplace(char *s)
 #if defined(_WIN32)
 
 /**
- * @brief Windows ワイド文字列 (UTF-16) を UTF-8 に変換します。
+ *******************************************************************************
+ *  @brief          Windows ワイド文字列 (UTF-16) を UTF-8 に変換します。
  *
- * @param[in]  w          入力 (UTF-16、NUL 終端)
- * @param[out] out_u8     出力 (UTF-8、NUL 終端)
- * @param[in]  out_u8_sz  出力バッファサイズ[byte]
- * @return mylib_status_t
+ *  @param[in]      w         入力 (UTF-16、NULL 終端)。
+ *  @param[out]     out_u8    出力 (UTF-8、NULL 終端)。
+ *  @param[in]      out_u8_sz 出力バッファサイズ[byte]。
+ *  @return         get_lib_info_status_t
+ *******************************************************************************
  */
-static mylib_status_t mylib__narrow_utf8(const wchar_t *w, char *out_u8, size_t out_u8_sz)
+static get_lib_info_status_t narrow_utf8(const wchar_t *w, char *out_u8, size_t out_u8_sz)
 {
     int need;
     if (!w || !out_u8 || out_u8_sz == 0)
@@ -175,14 +190,16 @@ static mylib_status_t mylib__narrow_utf8(const wchar_t *w, char *out_u8, size_t 
 }
 
 /**
- * @brief DLL 自身の絶対パス (ワイド文字列) を取得します。
+ *******************************************************************************
+ *  @brief          DLL 自身の絶対パス (ワイド文字列) を取得します。
  *
- * @param[out] out_w      出力 (UTF-16、NUL 終端)
- * @param[in]  out_w_cap  出力バッファサイズ[wchar_t 個数]
- * @param[in]  func_addr  所属モジュールを特定するための関数アドレス
- * @return mylib_status_t
+ *  @param[out]     out_w     出力 (UTF-16、NULL 終端)。
+ *  @param[in]      out_w_cap 出力バッファサイズ[wchar_t 個数]。
+ *  @param[in]      func_addr 所属モジュールを特定するための関数アドレス。
+ *  @return         get_lib_info_status_t
+ *******************************************************************************
  */
-static mylib_status_t mylib__get_self_path_w(wchar_t *out_w, size_t out_w_cap, const void *func_addr)
+static get_lib_info_status_t get_self_path_w(wchar_t *out_w, size_t out_w_cap, const void *func_addr)
 {
     HMODULE hm = NULL;
     wchar_t buf[MAX_PATH];
@@ -204,10 +221,8 @@ static mylib_status_t mylib__get_self_path_w(wchar_t *out_w, size_t out_w_cap, c
     }
     buf[n] = L'\0';
 
-    /**
-     * GetModuleFileNameW は通常フルパスを返しますが、念のため GetFullPathNameW で正規化します。
-     * (失敗した場合は buf をそのまま返す)
-     */
+    /* GetModuleFileNameW は通常フルパスを返しますが、念のため GetFullPathNameW で正規化します。 */
+    /* (失敗した場合は buf をそのまま返す) */
     {
         wchar_t full[MAX_PATH];
         DWORD m = GetFullPathNameW(buf, (DWORD)(sizeof(full) / sizeof(full[0])), full, NULL);
@@ -228,17 +243,19 @@ static mylib_status_t mylib__get_self_path_w(wchar_t *out_w, size_t out_w_cap, c
 #else /* Linux/Unix */
 
 /**
- * @brief .so 自身の絶対パスを取得します (Linux/Unix)。
+ *******************************************************************************
+ *  @brief          .so 自身の絶対パスを取得します (Linux/Unix)。
  *
- * dladdr() に指定された関数アドレスを渡して所属共有オブジェクトを取得し、
- * realpath() で可能な限り絶対化・正規化します。
+ *  dladdr() に指定された関数アドレスを渡して所属共有オブジェクトを取得し、\n
+ *  realpath() で可能な限り絶対化・正規化します。
  *
- * @param[out] out_path     出力 (UTF-8、NUL 終端)
- * @param[in]  out_path_sz  出力バッファサイズ[byte]
- * @param[in]  func_addr    所属モジュールを特定するための関数アドレス
- * @return mylib_status_t
+ *  @param[out]     out_path    出力 (UTF-8、NULL 終端)。
+ *  @param[in]      out_path_sz 出力バッファサイズ[byte]。
+ *  @param[in]      func_addr   所属モジュールを特定するための関数アドレス。
+ *  @return         get_lib_info_status_t
+ *******************************************************************************
  */
-static mylib_status_t mylib__get_self_path_posix(char *out_path, size_t out_path_sz, const void *func_addr)
+static get_lib_info_status_t get_self_path_posix(char *out_path, size_t out_path_sz, const void *func_addr)
 {
     Dl_info info;
     const char *p;
@@ -257,19 +274,17 @@ static mylib_status_t mylib__get_self_path_posix(char *out_path, size_t out_path
     if (p[0] == '\0')
         return MYLIB_EFAIL;
 
-    /**
-     * realpath() は symlink 解決と絶対化を行います。
-     * ロード後にファイルが移動/削除される等で失敗する場合があるため、その場合はフォールバックします。
-     */
+    /* realpath() は symlink 解決と絶対化を行います。 */
+    /* ロード後にファイルが移動/削除される等で失敗する場合があるため、その場合はフォールバックします。 */
     if (realpath(p, resolved) != NULL)
     {
-        return mylib__copy_str(out_path, out_path_sz, resolved);
+        return copy_str(out_path, out_path_sz, resolved);
     }
 
     /* すでに絶対パスならそのまま返す (正規化はできない) */
     if (p[0] == '/')
     {
-        return mylib__copy_str(out_path, out_path_sz, p);
+        return copy_str(out_path, out_path_sz, p);
     }
 
     /* 相対パスなら CWD と結合して絶対化を試みる */
@@ -284,36 +299,38 @@ static mylib_status_t mylib__get_self_path_posix(char *out_path, size_t out_path
 
         if (realpath(joined, resolved) != NULL)
         {
-            return mylib__copy_str(out_path, out_path_sz, resolved);
+            return copy_str(out_path, out_path_sz, resolved);
         }
 
         /* 最後の手段: 結合した絶対パス文字列 (正規化なし) */
-        return mylib__copy_str(out_path, out_path_sz, joined);
+        return copy_str(out_path, out_path_sz, joined);
     }
 }
 
 #endif
 
+/* doxygen コメントは、ヘッダに記載 */
 int get_lib_path(char *out_path, const size_t out_path_sz, const void *func_addr)
 {
 #if defined(_WIN32)
     wchar_t wpath[MAX_PATH];
-    mylib_status_t st = mylib__get_self_path_w(wpath, (size_t)(sizeof(wpath) / sizeof(wpath[0])), func_addr);
+    get_lib_info_status_t st = get_self_path_w(wpath, (size_t)(sizeof(wpath) / sizeof(wpath[0])), func_addr);
     if (st != MYLIB_OK)
     {
         if (out_path && out_path_sz)
             out_path[0] = '\0';
         return st;
     }
-    return (int)mylib__narrow_utf8(wpath, out_path, out_path_sz);
+    return (int)narrow_utf8(wpath, out_path, out_path_sz);
 #else
-    return (int)mylib__get_self_path_posix(out_path, out_path_sz, func_addr);
+    return (int)get_self_path_posix(out_path, out_path_sz, func_addr);
 #endif
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 int get_lib_basename(char *out_basename, const size_t out_basename_sz, const void *func_addr)
 {
-    mylib_status_t st;
+    get_lib_info_status_t st;
     char path_buf[4096];
     const char *fname;
     char tmp[1024];
@@ -328,7 +345,7 @@ int get_lib_basename(char *out_basename, const size_t out_basename_sz, const voi
         return st;
     }
 
-    fname = mylib__filename_part(path_buf);
+    fname = get_ilename_part(path_buf);
     if (!fname || fname[0] == '\0')
     {
         out_basename[0] = '\0';
@@ -336,14 +353,14 @@ int get_lib_basename(char *out_basename, const size_t out_basename_sz, const voi
     }
 
     /* ファイル名のみをコピーして拡張子を除く */
-    st = mylib__copy_str(tmp, sizeof(tmp), fname);
+    st = copy_str(tmp, sizeof(tmp), fname);
     if (st != MYLIB_OK)
     {
         out_basename[0] = '\0';
         return st;
     }
 
-    mylib__strip_extension_inplace(tmp);
+    strip_extension_inplace(tmp);
 
-    return (int)mylib__copy_str(out_basename, out_basename_sz, tmp);
+    return (int)copy_str(out_basename, out_basename_sz, tmp);
 }
