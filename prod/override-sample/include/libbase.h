@@ -192,7 +192,7 @@ extern "C"
      * 既にロード済みの場合は即座に格納済みの関数ポインタを返す。
      * @return 成功時 void * (関数ポインタ)、失敗時 NULL
      */
-    BASE_API extern void WINAPI *_funcman_get_func(funcman_object *fobj);
+    BASE_API extern void *WINAPI _funcman_get_func(funcman_object *fobj);
 
 /**
  * _funcman_get_func を呼び出し、結果を type にキャストして返します。
