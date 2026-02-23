@@ -31,16 +31,16 @@ class override_sampleTest : public Test
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
 #ifndef _WIN32
         binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
-        lib_path    = workspace_root + "/prod/override-sample/lib";
+        lib_path = workspace_root + "/prod/override-sample/lib";
         mock_lib_path = workspace_root + "/test/override-sample/lib/libsyslog_mock.so";
         config_path = "/tmp/libbase_extdef.txt";
 #else  /* _WIN32 */
         binary_path = workspace_root + "\\prod\\override-sample\\bin\\override-sample.exe";
-        lib_path    = workspace_root + "\\prod\\override-sample\\lib";
+        lib_path = workspace_root + "\\prod\\override-sample\\lib";
         {
             wchar_t tmpw[MAX_PATH] = L"";
-            char    tmpu8[MAX_PATH * 4] = {0};
-            DWORD   n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
+            char tmpu8[MAX_PATH * 4] = {0};
+            DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
             if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
             {
                 WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
@@ -89,7 +89,7 @@ TEST_F(override_sampleTest, check_stdout_default_linux)
     // Pre-Assert
 
     // Act
-    string command = "LD_LIBRARY_PATH=" + lib_path + " " + binary_path + " 2>/dev/null";
+    string command = "LD_LIBRARY_PATH=" + lib_path + " " + binary_path;
     array<char, 4096> buffer;
     string stdout_capture;
     FILE *pipe = popen(command.c_str(), "r"); // [手順] - override-sample を stdout キャプチャしつつ実行する。
@@ -100,35 +100,42 @@ TEST_F(override_sampleTest, check_stdout_default_linux)
         fputs(buffer.data(), stdout);
     }
     int exit_status = pclose(pipe);
-    int exit_code   = WEXITSTATUS(exit_status);
+    int exit_code = WEXITSTATUS(exit_status);
 
     // Assert
     EXPECT_EQ(0, exit_code); // [確認] - override-sample の終了コードが 0 であること。
-    EXPECT_NE(string::npos,
-              stdout_capture.find("sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")) // [確認] - デフォルト処理のメッセージが出力されること。
-        << "stdout:\n"
-        << stdout_capture;
+    EXPECT_NE(
+        string::npos,
+        stdout_capture.find(
+            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")) // [確認] -
+                                                                           // デフォルト処理のメッセージが出力されること。
+                                                                           << "stdout:\n"
+                                                                           << stdout_capture;
     EXPECT_NE(string::npos, stdout_capture.find("rtc: 0")) // [確認] - rtc が 0 であること。
         << "stdout:\n"
         << stdout_capture;
     EXPECT_NE(string::npos, stdout_capture.find("result: 3")) // [確認] - result が 3 (1+2) であること。
         << "stdout:\n"
         << stdout_capture;
-    EXPECT_EQ(string::npos,
-              stdout_capture.find("sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] - オーバーライドへの移譲が行われないこと。
-        << "stdout:\n"
-        << stdout_capture;
+    EXPECT_EQ(
+        string::npos,
+        stdout_capture.find(
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] -
+                                                                            // オーバーライドへの移譲が行われないこと。
+                                                                            << "stdout:\n"
+                                                                            << stdout_capture;
 }
 
 TEST_F(override_sampleTest, check_stdout_with_config_linux)
 {
     // Arrange
-    createConfigFile("sample_func liboverride override_func\n"); // [手順] - 定義ファイルを作成してオーバーライドを設定する。
+    createConfigFile(
+        "sample_func liboverride override_func\n"); // [手順] - 定義ファイルを作成してオーバーライドを設定する。
 
     // Pre-Assert
 
     // Act
-    string command = "LD_LIBRARY_PATH=" + lib_path + " " + binary_path + " 2>/dev/null";
+    string command = "LD_LIBRARY_PATH=" + lib_path + " " + binary_path;
     array<char, 4096> buffer;
     string stdout_capture;
     FILE *pipe = popen(command.c_str(), "r"); // [手順] - override-sample を stdout キャプチャしつつ実行する。
@@ -139,18 +146,24 @@ TEST_F(override_sampleTest, check_stdout_with_config_linux)
         fputs(buffer.data(), stdout);
     }
     int exit_status = pclose(pipe);
-    int exit_code   = WEXITSTATUS(exit_status);
+    int exit_code = WEXITSTATUS(exit_status);
 
     // Assert
     EXPECT_EQ(0, exit_code); // [確認] - override-sample の終了コードが 0 であること。
-    EXPECT_NE(string::npos,
-              stdout_capture.find("sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] - オーバーライドへの移譲メッセージが出力されること。
-        << "stdout:\n"
-        << stdout_capture;
-    EXPECT_NE(string::npos,
-              stdout_capture.find("override_func: a=1, b=2 の処理 (*result = a * b;) を行います")) // [確認] - オーバーライド処理のメッセージが出力されること。
-        << "stdout:\n"
-        << stdout_capture;
+    EXPECT_NE(
+        string::npos,
+        stdout_capture.find(
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] -
+                                                                            // オーバーライドへの移譲メッセージが出力されること。
+                                                                            << "stdout:\n"
+                                                                            << stdout_capture;
+    EXPECT_NE(
+        string::npos,
+        stdout_capture.find(
+            "override_func: a=1, b=2 の処理 (*result = a * b;) を行います")) // [確認] -
+                                                                             // オーバーライド処理のメッセージが出力されること。
+                                                                             << "stdout:\n"
+                                                                             << stdout_capture;
     EXPECT_NE(string::npos, stdout_capture.find("rtc: 0")) // [確認] - rtc が 0 であること。
         << "stdout:\n"
         << stdout_capture;
@@ -159,7 +172,7 @@ TEST_F(override_sampleTest, check_stdout_with_config_linux)
         << stdout_capture;
 }
 
-#else  /* _WIN32 */
+#else /* _WIN32 */
 
 /* ============================================================
  *  stdout 確認テスト (Windows)
@@ -180,10 +193,10 @@ TEST_F(override_sampleTest, check_stdout_default_windows)
     string new_path = lib_path + ";" + string(saved_path);
     SetEnvironmentVariableA("PATH", new_path.c_str());
 
-    string command = "\"" + binary_path + "\" 2>NUL";
+    string command = "\"" + binary_path + "\"";
     array<char, 4096> buffer;
     string stdout_capture;
-    FILE *pipe = _popen(command.c_str(), "r"); // [手順] - override-sample を stdout キャプチャしつつ実行する。
+    FILE *pipe = _popen(command.c_str(), "r");   // [手順] - override-sample を stdout キャプチャしつつ実行する。
     SetEnvironmentVariableA("PATH", saved_path); /* _popen 直後に PATH を復元する */
     ASSERT_NE(nullptr, pipe) << "_popen に失敗しました";
     while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr)
@@ -195,26 +208,33 @@ TEST_F(override_sampleTest, check_stdout_default_windows)
 
     // Assert
     EXPECT_EQ(0, exit_code); // [確認] - override-sample の終了コードが 0 であること。
-    EXPECT_NE(string::npos,
-              stdout_capture.find("sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")) // [確認] - デフォルト処理のメッセージが出力されること。
-        << "stdout:\n"
-        << stdout_capture;
+    EXPECT_NE(
+        string::npos,
+        stdout_capture.find(
+            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")) // [確認] -
+                                                                           // デフォルト処理のメッセージが出力されること。
+                                                                           << "stdout:\n"
+                                                                           << stdout_capture;
     EXPECT_NE(string::npos, stdout_capture.find("rtc: 0")) // [確認] - rtc が 0 であること。
         << "stdout:\n"
         << stdout_capture;
     EXPECT_NE(string::npos, stdout_capture.find("result: 3")) // [確認] - result が 3 (1+2) であること。
         << "stdout:\n"
         << stdout_capture;
-    EXPECT_EQ(string::npos,
-              stdout_capture.find("sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] - オーバーライドへの移譲が行われないこと。
-        << "stdout:\n"
-        << stdout_capture;
+    EXPECT_EQ(
+        string::npos,
+        stdout_capture.find(
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] -
+                                                                            // オーバーライドへの移譲が行われないこと。
+                                                                            << "stdout:\n"
+                                                                            << stdout_capture;
 }
 
 TEST_F(override_sampleTest, check_stdout_with_config_windows)
 {
     // Arrange
-    createConfigFile("sample_func liboverride override_func\n"); // [手順] - 定義ファイルを作成してオーバーライドを設定する。
+    createConfigFile(
+        "sample_func liboverride override_func\n"); // [手順] - 定義ファイルを作成してオーバーライドを設定する。
 
     // Pre-Assert
 
@@ -224,10 +244,10 @@ TEST_F(override_sampleTest, check_stdout_with_config_windows)
     string new_path = lib_path + ";" + string(saved_path);
     SetEnvironmentVariableA("PATH", new_path.c_str());
 
-    string command = "\"" + binary_path + "\" 2>NUL";
+    string command = "\"" + binary_path + "\"";
     array<char, 4096> buffer;
     string stdout_capture;
-    FILE *pipe = _popen(command.c_str(), "r"); // [手順] - override-sample を stdout キャプチャしつつ実行する。
+    FILE *pipe = _popen(command.c_str(), "r");   // [手順] - override-sample を stdout キャプチャしつつ実行する。
     SetEnvironmentVariableA("PATH", saved_path); /* _popen 直後に PATH を復元する */
     ASSERT_NE(nullptr, pipe) << "_popen に失敗しました";
     while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr)
@@ -239,14 +259,20 @@ TEST_F(override_sampleTest, check_stdout_with_config_windows)
 
     // Assert
     EXPECT_EQ(0, exit_code); // [確認] - override-sample の終了コードが 0 であること。
-    EXPECT_NE(string::npos,
-              stdout_capture.find("sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] - オーバーライドへの移譲メッセージが出力されること。
-        << "stdout:\n"
-        << stdout_capture;
-    EXPECT_NE(string::npos,
-              stdout_capture.find("override_func: a=1, b=2 の処理 (*result = a * b;) を行います")) // [確認] - オーバーライド処理のメッセージが出力されること。
-        << "stdout:\n"
-        << stdout_capture;
+    EXPECT_NE(
+        string::npos,
+        stdout_capture.find(
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")) // [確認] -
+                                                                            // オーバーライドへの移譲メッセージが出力されること。
+                                                                            << "stdout:\n"
+                                                                            << stdout_capture;
+    EXPECT_NE(
+        string::npos,
+        stdout_capture.find(
+            "override_func: a=1, b=2 の処理 (*result = a * b;) を行います")) // [確認] -
+                                                                             // オーバーライド処理のメッセージが出力されること。
+                                                                             << "stdout:\n"
+                                                                             << stdout_capture;
     EXPECT_NE(string::npos, stdout_capture.find("rtc: 0")) // [確認] - rtc が 0 であること。
         << "stdout:\n"
         << stdout_capture;
@@ -282,10 +308,8 @@ TEST_F(override_sampleTest, onUnload_syslog_linux)
         setenv("LD_LIBRARY_PATH", lib_path.c_str(), 1);
         setenv("SYSLOG_MOCK_FILE", tmp_path, 1);
         setenv("LD_PRELOAD", mock_lib_path.c_str(), 1); // [手順] - LD_PRELOAD で syslog_mock.so を挿入する。
-        freopen("/dev/null", "w", stdout);
-        freopen("/dev/null", "w", stderr);
         execl(binary_path.c_str(), binary_path.c_str(), nullptr); // [手順] - override-sample を実行する。
-        _exit(1);                                                  // execl が失敗した場合のみ到達する。
+        _exit(1);                                                 // execl が失敗した場合のみ到達する。
     }
 
     // 親プロセス: 子プロセスの終了を待つ。
@@ -337,20 +361,12 @@ TEST_F(override_sampleTest, onUnload_syslog_windows)
     string new_path = lib_path + ";" + string(saved_path);
     SetEnvironmentVariableA("PATH", new_path.c_str());
 
-    /* 標準出力/エラーを NUL にリダイレクトする */
-    HANDLE hNull = CreateFileA("NUL", GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
-                               FILE_ATTRIBUTE_NORMAL, NULL);
-
     STARTUPINFOA si = {};
-    si.cb           = sizeof(si);
-    si.dwFlags      = STARTF_USESTDHANDLES;
-    si.hStdInput    = GetStdHandle(STD_INPUT_HANDLE);
-    si.hStdOutput   = (hNull != INVALID_HANDLE_VALUE) ? hNull : GetStdHandle(STD_OUTPUT_HANDLE);
-    si.hStdError    = (hNull != INVALID_HANDLE_VALUE) ? hNull : GetStdHandle(STD_ERROR_HANDLE);
+    si.cb = sizeof(si);
 
     PROCESS_INFORMATION pi = {};
-    string              cmd_line = "\"" + binary_path + "\"";
-    vector<char>        cmd_buf(cmd_line.begin(), cmd_line.end());
+    string cmd_line = "\"" + binary_path + "\"";
+    vector<char> cmd_buf(cmd_line.begin(), cmd_line.end());
     cmd_buf.push_back('\0');
 
     BOOL created = CreateProcessA(NULL, cmd_buf.data(), NULL, NULL, TRUE,  /* ハンドル継承 */
@@ -358,16 +374,12 @@ TEST_F(override_sampleTest, onUnload_syslog_windows)
                                   NULL, NULL, &si, &pi);                   // [手順] - override-sample を実行する。
 
     SetEnvironmentVariableA("PATH", saved_path); /* CreateProcess 直後に PATH を復元する */
-    if (hNull != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(hNull);
-    }
     ASSERT_NE(FALSE, created) << "CreateProcess に失敗しました (GetLastError: " << GetLastError() << ")";
 
     /* デバッグイベントループ: EXIT_PROCESS_DEBUG_EVENT まで全イベントを処理する */
     string log_output;
-    DWORD  child_exit_code = 0;
-    bool   running         = true;
+    DWORD child_exit_code = 0;
+    bool running = true;
     while (running)
     {
         DEBUG_EVENT de;
@@ -380,19 +392,54 @@ TEST_F(override_sampleTest, onUnload_syslog_windows)
         {
         case OUTPUT_DEBUG_STRING_EVENT:
         {
-            /* [手順] - OutputDebugString の出力を捕捉する。 */
             const auto &ods = de.u.DebugString;
-            if (ods.fUnicode == 0) /* ANSI 文字列のみ処理する */
+
+            if (ods.fUnicode == 0) /* ANSI */
             {
                 DWORD len = ods.nDebugStringLength;
                 if (len > 0 && len <= 4096)
                 {
-                    vector<char> buf(len + 1, '\0');
-                    SIZE_T       read = 0;
-                    ReadProcessMemory(pi.hProcess, ods.lpDebugStringData, buf.data(), len, &read);
-                    log_output += buf.data();
+                    std::vector<char> buf(len, '\0'); /* len には終端 '\0' が含まれる前提 */
+                    SIZE_T read = 0;
+
+                    if (ReadProcessMemory(pi.hProcess, ods.lpDebugStringData, buf.data(), len, &read) && read > 0)
+                    {
+                        /* ログ蓄積(終端まで) */
+                        log_output.append(buf.data());
+
+                        /* stdout へも出す(実読込長で出す: '\0' を含んでも安全) */
+                        fwrite(buf.data(), 1, (size_t)read, stdout);
+                        fflush(stdout);
+                    }
                 }
             }
+            else
+            {
+                /* 必要なら Unicode も拾う(UTF-16LE -> UTF-8) */
+                DWORD len = ods.nDebugStringLength;
+                if (len > 0 && len <= 4096)
+                {
+                    std::vector<wchar_t> wbuf(len, L'\0');
+                    SIZE_T read = 0;
+
+                    if (ReadProcessMemory(pi.hProcess, ods.lpDebugStringData, wbuf.data(), len * sizeof(wchar_t),
+                                          &read) &&
+                        read > 0)
+                    {
+                        int u8len = WideCharToMultiByte(CP_UTF8, 0, wbuf.data(), -1, NULL, 0, NULL, NULL);
+                        if (u8len > 0)
+                        {
+                            std::vector<char> u8(u8len, '\0');
+                            WideCharToMultiByte(CP_UTF8, 0, wbuf.data(), -1, u8.data(), u8len, NULL, NULL);
+
+                            log_output.append(u8.data());
+                            fputs(u8.data(), stdout);
+                            fflush(stdout);
+                        }
+                    }
+                }
+            }
+
             break;
         }
         case LOAD_DLL_DEBUG_EVENT:
@@ -404,7 +451,7 @@ TEST_F(override_sampleTest, onUnload_syslog_windows)
             break;
         case EXIT_PROCESS_DEBUG_EVENT:
             child_exit_code = de.u.ExitProcess.dwExitCode;
-            running         = false;
+            running = false;
             break;
         case EXCEPTION_DEBUG_EVENT:
             /* デバッグ開始時の初回ブレークポイント例外 (INT 3) は DBG_CONTINUE で継続する。

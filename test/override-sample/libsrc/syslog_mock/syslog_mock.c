@@ -1,9 +1,9 @@
 /* syslog モックライブラリ
  *
  * LD_PRELOAD でロードすることで syslog() をインターセプトする。
+ * syslog() の出力は常に stdout へ出力する。
  * 環境変数 SYSLOG_MOCK_FILE にファイルパスを設定すると、
- * syslog() の出力をそのファイルに追記する。
- * SYSLOG_MOCK_FILE が未設定の場合は何もしない。
+ * syslog() の出力をそのファイルにも追記する。
  */
 #define _GNU_SOURCE
 #include <stdarg.h>
@@ -16,20 +16,27 @@ void syslog(int priority, const char *fmt, ...)
 {
     (void)priority;
 
-    const char *path = getenv("SYSLOG_MOCK_FILE");
-    if (path == NULL)
-    {
-        return;
-    }
-    FILE *f = fopen(path, "a"); /* 追記モードで開く */
-    if (f == NULL)
-    {
-        return;
-    }
     va_list ap;
     va_start(ap, fmt);
-    vfprintf(f, fmt, ap);
+
+    const char *path = getenv("SYSLOG_MOCK_FILE");
+    if (path != NULL)
+    {
+        FILE *f = fopen(path, "a"); /* 追記モードで開く */
+        if (f != NULL)
+        {
+            va_list ap_file;
+            va_copy(ap_file, ap);
+            vfprintf(f, fmt, ap_file);
+            fputc('\n', f);
+            va_end(ap_file);
+            fclose(f);
+        }
+    }
+
+    vfprintf(stdout, fmt, ap);
+    fputc('\n', stdout);
+    fflush(stdout);
+
     va_end(ap);
-    fputc('\n', f);
-    fclose(f);
 }

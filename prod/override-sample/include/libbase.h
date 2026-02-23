@@ -141,22 +141,29 @@ extern "C"
 
     /* --- funcman START ---*/
 
-/** Linux/Windows 共通のモジュールハンドル型 */
+/**
+ *  @def            MODULE_HANDLE
+ *  @brief          Linux/Windows 共通のモジュールハンドル型。
+ */
 #ifndef _WIN32
     #define MODULE_HANDLE void *
 #else /* _WIN32 */
     #define MODULE_HANDLE HMODULE
 #endif /* _WIN32 */
 
-/** lib_name / func_name 配列の最大長 (終端 '\0' を含む) */
+/**
+ *  @def            FUNCMAN_NAME_MAX
+ *  @brief          lib_name / func_name 配列の最大長 (終端 '\0' を含む)。
+ */
 #define FUNCMAN_NAME_MAX 256
 
     /**
-     * 関数ポインタキャッシュエントリ。
-     * ライブラリ名・関数名・ハンドル・関数ポインタおよび排他制御用ロックを管理する。
+     *******************************************************************************
+     *  @brief          関数ポインタキャッシュエントリ。
      *
-     * 静的変数として定義する場合は NEW_FUNCMAN_OBJECT マクロで初期化すること。
-     * lib_name / func_name は _funcman_load_config によって設定される。
+     *  @details        ライブラリ名・関数名・ハンドル・関数ポインタおよび排他制御用ロックを管理します。\n
+     *                  静的変数として定義する場合は NEW_FUNCMAN_OBJECT マクロで初期化してください。\n
+     *******************************************************************************
      */
     typedef struct
     {
@@ -175,11 +182,11 @@ extern "C"
     } funcman_object;
 
 /**
- * funcman_object 静的変数の初期化マクロ。
- * lib_name / func_name は _funcman_load_config で設定される。
- * @param[in] key   この関数インスタンスの識別キー (文字列リテラル)
- * @param[in] type  格納する関数ポインタの型 (例: sample_func_t)。
- *                  funcman_get_func の第2引数と一致させること。
+ *  @def            NEW_FUNCMAN_OBJECT
+ *  @brief          funcman_object 静的変数の初期化マクロ。
+ *
+ *  @param[in]      key     この関数インスタンスの識別キー (文字列リテラル)。
+ *  @param[in]      type    格納する関数ポインタの型 (例: sample_func_t)。
  */
 #ifndef _WIN32
     #define NEW_FUNCMAN_OBJECT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, PTHREAD_MUTEX_INITIALIZER}
@@ -188,39 +195,69 @@ extern "C"
 #endif /* _WIN32 */
 
     /**
-     * 未ロードなら lib_name に拡張子を付加して dlopen/dlsym し、fobj に格納する。
-     * 既にロード済みの場合は即座に格納済みの関数ポインタを返す。
-     * @return 成功時 void * (関数ポインタ)、失敗時 NULL
+     *******************************************************************************
+     *  @brief          拡張関数ポインタを返します。この関数は内部用です。
+     *
+     *  @details        既にロード済みの場合は即座に格納済みの関数ポインタを返します。
+     *
+     *  @param[in,out]  fobj funcman_object へのポインタ。
+     *  @return         成功時 void * (関数ポインタ)、失敗時 NULL。
+     *******************************************************************************
      */
     BASE_API extern void *WINAPI _funcman_get_func(funcman_object *fobj);
 
 /**
- * _funcman_get_func を呼び出し、結果を type にキャストして返します。
- * @param fobj  funcman_object へのポインタ
- * @param type   NEW_FUNCMAN_OBJECT で指定したものと同じ関数ポインタ型
+ *  @def            funcman_get_func
+ *  @brief          拡張関数ポインタを返します。
+ *
+ *  @param[in]      fobj funcman_object へのポインタ。
+ *  @param[in]      type NEW_FUNCMAN_OBJECT で指定したものと同じ関数ポインタ型。
  */
 #define funcman_get_func(fobj, type) ((type)_funcman_get_func(fobj))
 
     /**
-     * 管理するキャッシュポインタ配列を初期化します。
-     * 必ず、constructor / DllMain コンテキストから呼ぶこと。
-     * @param fobj_array[in]     管理対象の funcman_object ポインタ配列
-     * @param fobj_length[in]      配列の要素数
-     * @param configpath[in] 定義ファイルのパス
+     *******************************************************************************
+     *  @brief          funcman_object ポインタ配列を初期化します。
+     *
+     *  @details        必ず、constructor / DllMain コンテキストから呼ぶようにしてください。
+     *
+     *  @param[in]      fobj_array  funcman_object ポインタ配列。
+     *  @param[in]      fobj_length 配列の要素数。
+     *  @param[in]      configpath  定義ファイルのパス。
+     *******************************************************************************
      */
     BASE_API extern void WINAPI funcman_init(funcman_object *const *fobj_array, const size_t fobj_length,
                                              const char *configpath);
 
     /**
-     * 管理下にあるすべてのキャッシュエントリを解放する。
-     * 必ず、destructor / DllMain コンテキストから呼ぶこと。
-     * @param fobj_array[in]     管理対象の funcman_object ポインタ配列
-     * @param fobj_length[in]      配列の要素数
+     *******************************************************************************
+     *  @brief          funcman_object ポインタ配列を解放します。
+     *
+     *  @details        必ず、destructor / DllMain コンテキストから呼ぶようにしてください。
+     *
+     *  @param[in]      fobj_array  funcman_object ポインタ配列。
+     *  @param[in]      fobj_length 配列の要素数。
+     *******************************************************************************
      */
     BASE_API extern void WINAPI funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length);
 
+    /**
+     *******************************************************************************
+     *  @brief          funcman_object ポインタ配列の内容を標準出力に表示します。
+     *
+     *  @param[in]      fobj_array      funcman_object ポインタ配列。
+     *  @param[in]      fobj_length     配列の要素数。
+     *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
+     *******************************************************************************
+     */
     BASE_API extern int WINAPI funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
 
+    /**
+     *******************************************************************************
+     *  @brief          libbase が管理する funcman_object ポインタ配列の内容を標準出力に表示します。
+     *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
+     *******************************************************************************
+     */
     BASE_API extern int WINAPI funcman_info_libbase(void);
 
     /* --- funcman END ---*/
