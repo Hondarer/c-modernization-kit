@@ -19,11 +19,6 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
 
 注: Markdown 側で多言語対応や詳細化対応の記載を行っていないので、現段階で以下の言語別、詳細別ページは目立った作用を発揮していません。また、Doxygen の出力は単一言語で Japanese-en 固定です。
 
-- Doxygen
-    - [calc](https://hondarer.github.io/c-modernization-kit/doxygen/calc/index.html)
-    - [calc dotnet wrapper](https://hondarer.github.io/c-modernization-kit/doxygen/calc.net/index.html)
-    - [util](https://hondarer.github.io/c-modernization-kit/doxygen/util/index.html)
-    - [override-sample](https://hondarer.github.io/c-modernization-kit/doxygen/override-sample/index.html)
 - GitHub Pages
     - [ja](https://hondarer.github.io/c-modernization-kit/ja/html/index.html)
     - [ja-details](https://hondarer.github.io/c-modernization-kit/ja-details/html/index.html)
