@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           funcman.c
+ *  @file           funcman_get_func.c
  *  @brief          拡張可能な関数の動的ロードを行い、関数アドレスを返却します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/23
