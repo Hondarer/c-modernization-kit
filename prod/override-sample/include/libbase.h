@@ -217,6 +217,19 @@ extern "C"
 
     /**
      *******************************************************************************
+     *  @brief          funcman_object が明示的デフォルトかどうかを返します。
+     *
+     *  @details        lib_name と func_name がともに定義ファイルで default に設定されている場合に 1 を返します。\n
+     *                  それ以外の場合は 0 を返します。
+     *
+     *  @param[in]      fobj funcman_object へのポインタ。
+     *  @return         明示的デフォルトの場合は 1、それ以外は 0。
+     *******************************************************************************
+     */
+    BASE_API extern int WINAPI funcman_is_declared_default(const funcman_object *fobj);
+
+    /**
+     *******************************************************************************
      *  @brief          funcman_object ポインタ配列を初期化します。
      *
      *  @details        必ず、constructor / DllMain コンテキストから呼ぶようにしてください。

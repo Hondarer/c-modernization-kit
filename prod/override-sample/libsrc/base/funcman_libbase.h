@@ -7,7 +7,7 @@
  *  @version        1.0.0
  *
  *  libbase 内の機能拡張対応関数の型定義および変数の extern 宣言を提供します。
- *  libbase 内での利用を前提とするため、外部公開 API には含めません。
+ *  関数を追加する場合は、funcman_libbase.h, funcman_libbase.c をメンテナンスします。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -36,9 +36,7 @@ extern funcman_object *const fobj_array_libbase[];
 /** funcman に設定するポインタ配列の要素数 */
 extern const size_t fobj_length_libbase;
 
-/** funcman 設定ファイルのパス長 (終端 '\0' を含む)
- *  tempdir + basename + suffix を想定して余裕を持たせる
- */
+/** funcman 設定ファイルのパス長 (終端 '\0' を含む) */
 #define FUNCMAN_CONFIG_PATH_MAX 1024
 
 /** funcman 設定ファイルのパス */

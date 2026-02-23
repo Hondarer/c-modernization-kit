@@ -6,8 +6,8 @@
  *  @date           2026/02/23
  *  @version        1.0.0
  *
- *  funcman_libbase.h には extern 宣言のみを宣言し、実体をここで定義します。\n
- *  関数を追加する場合は、funcman_libbase.h, funcman_libbase.c をメンテナンスします。\n
+ *  funcman_libbase.h には extern 宣言のみを宣言し、実体をここで定義します。
+ *  関数を追加する場合は、funcman_libbase.h, funcman_libbase.c をメンテナンスします。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -37,7 +37,7 @@ funcman_object *const pfo_sample_func = &sfo_sample_func;
 /* doxygen コメントは、ヘッダに記載 */
 funcman_object *const fobj_array_libbase[] = {
     &sfo_sample_func,
-    /* &s_func_name, */ /* 将来追加 */
+    /* &sfo_func_name, */ /* 将来追加 */
 };
 
 /* doxygen コメントは、ヘッダに記載 */

@@ -48,9 +48,14 @@ void *_funcman_get_func(funcman_object *fobj)
 
     if (fobj->resolved == 0)
     {
+        if (strcmp(fobj->lib_name, "default") == 0 && strcmp(fobj->func_name, "default") == 0)
+        {
+            fobj->resolved = 2; /* resolved=2: 明示的デフォルト */
+            goto unlock;
+        }
         if (fobj->lib_name[0] == '\0' || fobj->func_name[0] == '\0')
         {
-            fobj->resolved = -1; /* resolved=-1: 定義なし */
+            fobj->resolved = -1; /* resolved=-1: 定義なし (定義ファイル不存在、定義行が不存在) */
             goto unlock;
         }
         if (strlen(fobj->lib_name) + strlen(ext) >= FUNCMAN_NAME_MAX)
