@@ -12,19 +12,19 @@
 Doxygen 成果物の単一ファイル版ドキュメントです。
 
 - calc
-    - [ファイルとページの一覧](doxybook/calc/index_files_and_pages.md)
+    - [ファイルとページの一覧](doxybook2/calc/index_files_and_pages.md)
 - calc dotnet wrapper
-    - [ファイルとページの一覧](doxybook/calc.net/index_files_and_pages.md)
-    - [名前空間の一覧](doxybook/calc.net/index_namespaces.md)
-    - [クラスの一覧](doxybook/calc.net/index_classes.md)
+    - [ファイルとページの一覧](doxybook2/calc.net/index_files_and_pages.md)
+    - [名前空間の一覧](doxybook2/calc.net/index_namespaces.md)
+    - [クラスの一覧](doxybook2/calc.net/index_classes.md)
 - util
-    - [ファイルとページの一覧](doxybook/util/index_files_and_pages.md)
+    - [ファイルとページの一覧](doxybook2/util/index_files_and_pages.md)
 - override-sample
-    - [ファイルとページの一覧](doxybook/override-sample/index_files_and_pages.md)
+    - [ファイルとページの一覧](doxybook2/override-sample/index_files_and_pages.md)
 
 ## 関連ドキュメント
 
-\toc depth=-1 exclude-basedir=true exclude="doxybook/*"
+\toc depth=-1 exclude-basedir=true exclude="doxybook2/*"
 
 ## アーティファクト
 

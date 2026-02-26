@@ -38,7 +38,7 @@ C ソースコード (Doxygen コメント)
     ↓ doxygen
 XML ファイル (xml/)
     ↓ doxybook2
-Markdown (docs-src/doxybook/)
+Markdown (docs-src/doxybook2/)
     ↓ pandoc (docsfw/)
 HTML / docx (docs/ja/html/ など)
 ```

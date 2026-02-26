@@ -11,7 +11,7 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
 - Linux/Windows クロスプラットフォーム対応: Linux は gcc、Windows は MSVC を使用したコーディング、ビルド、デバッグ環境
 - .NET サポート: C ライブラリを .NET から利用するためのラッパー実装例とサンプルアプリケーション
 - 自動テスト: Google Test を利用した自動テスト、テストコードはプロダクションコードと分離して管理、整理されたエビデンス
-- Docs as Code: Doxygen と Doxybook を利用した包括的なドキュメント生成
+- Docs as Code: Doxygen と Doxybook2 を利用した包括的なドキュメント生成
 - ドキュメント発行: Pandoc を利用した html と docx 形式の出力
 - サンプルコード: 実際のプロジェクトでの使用例を想定したサンプルコード
 

@@ -104,7 +104,7 @@ cd doxyfw && make clean
 c-modernization-kit/                          # このプロジェクト
 +-- doxyfw/                                # Doxygen フレームワーク (git submodule)
 |   +-- Doxyfile                          # Doxygen 基本設定
-|   +-- doxybook-config.json              # Doxybook2 設定
+|   +-- doxybook2-config.json             # Doxybook2 設定
 |   +-- templates/                        # カスタムテンプレート群
 |   +-- docs-src/                         # フレームワーク技術ドキュメント
 |   +-- makefile                          # ドキュメント生成用 makefile
@@ -187,7 +187,7 @@ c-modernization-kit/                          # このプロジェクト
 |   +-- ja/html/                          # 日本語版 HTML
 |   +-- en/html/                          # 英語版 HTML
 +-- docs-src/                              # ドキュメントソース
-|   +-- doxybook/                         # 生成される Markdown (Doxybook2)
+|   +-- doxybook2/                        # 生成される Markdown (Doxybook2)
 |   |   +-- calc/                         # C プロジェクトのドキュメント
 |   |   +-- calc.net/                     # .NET プロジェクトのドキュメント
 |   +-- *.md                              # 追加ドキュメント

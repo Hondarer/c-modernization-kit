@@ -59,7 +59,7 @@ cd doxyfw && make docs
 
 # 生成されたファイルの場所
 # XML:      xml/
-# Markdown: docs-src/doxybook/
+# Markdown: docs-src/doxybook2/
 # HTML:     docs/ja/html/ および docs/en/html/
 ```
 
@@ -70,7 +70,7 @@ cd doxyfw && make docs
 | `Doxyfile.part.calc` | C プロジェクト用 Doxygen 設定 |
 | `Doxyfile.part.calc.net` | .NET プロジェクト用 Doxygen 設定 |
 | `doxyfw/Doxyfile` | 基本設定ファイル |
-| `doxyfw/doxybook-config.json` | Doxybook2 の設定 |
+| `doxyfw/doxybook2-config.json` | Doxybook2 の設定 |
 | `doxyfw/templates/` | カスタム出力テンプレート |
 
 Table: Doxygen 設定ファイル一覧
