@@ -14,5 +14,14 @@
     "terminal.integrated.env.windows": {
         "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc\\bin;${workspaceFolder}\\prod\\calc.net\\lib;${workspaceFolder}\\prod\\calc.net\\bin;${workspaceFolder}\\prod\\override-sample\\lib;${workspaceFolder}\\prod\\override-sample\\bin;${env:PATH}"
     },
-    "C_Cpp.formatting": "clangFormat"
+    "dotnet.defaultSolution": "disable",
+    "C_Cpp.formatting": "clangFormat",
+    "todohighlight.keywords": [
+        {
+            "text": "@todo",
+            "color": "#fff",
+            "backgroundColor": "#ffbd2a",
+            "overviewRulerColor": "rgba(255,189,42,0.8)"
+        },
+    ] // https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight
 }
