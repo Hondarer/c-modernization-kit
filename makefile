@@ -6,7 +6,8 @@ DOXY_CATEGORIES = \
 	calc \
 	calc.net \
 	util \
-	override-sample
+	override-sample \
+	doxygen-sample
 
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
@@ -73,9 +74,11 @@ doxy : submodule
 	@if [ -d doxyfw ] && [ -f doxyfw/makefile ]; then \
 		set -e; \
 		if [ -z "$(DOXY_CATEGORIES)" ]; then \
+			echo $(MAKE) -C doxyfw; \
 			$(MAKE) -C doxyfw; \
 		else \
 			for cat in $(DOXY_CATEGORIES); do \
+				echo $(MAKE) -C doxyfw CATEGORY=$$cat; \
 				$(MAKE) -C doxyfw CATEGORY=$$cat; \
 			done; \
 		fi; \

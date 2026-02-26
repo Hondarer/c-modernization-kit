@@ -23,6 +23,8 @@
 
 ## Claude Code
 /.claude
+## デバッグのために LLM に参照させるファイル群の一時置き場
+/prompt
 
 ## 中間ファイル
 obj
