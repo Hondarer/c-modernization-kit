@@ -36,12 +36,12 @@ extern "C"
      *  この関数は 2 つの整数を受け取り、その合計を result に格納します。
      *
      *  @par            使用例
-     *  @code{.c}
-     *  int result;
-     *  if (add(10, 20, &result) == CALC_SUCCESS) {
-     *      printf("Result: %d\n", result);  // 出力: Result: 30
-     *  }
-     *  @endcode
+        @code{.c}
+        int result;
+        if (add(10, 20, &result) == CALC_SUCCESS) {
+            printf("Result: %d\n", result);  // 出力: Result: 30
+        }
+        @endcode
      *
      *  @note           オーバーフローが発生する可能性がある場合は、
      *                  呼び出し側で範囲チェックを行ってください。
@@ -62,12 +62,12 @@ extern "C"
      *  この関数は 2 つの整数を受け取り、その差を result に格納します。
      *
      *  @par            使用例
-     *  @code{.c}
-     *  int result;
-     *  if (subtract(10, 3, &result) == CALC_SUCCESS) {
-     *      printf("Result: %d\n", result);  // 出力: Result: 7
-     *  }
-     *  @endcode
+        @code{.c}
+        int result;
+        if (subtract(10, 3, &result) == CALC_SUCCESS) {
+            printf("Result: %d\n", result);  // 出力: Result: 7
+        }
+        @endcode
      *
      *  @note           オーバーフローが発生する可能性がある場合は、
      *                  呼び出し側で範囲チェックを行ってください。
@@ -88,12 +88,12 @@ extern "C"
      *  この関数は 2 つの整数を受け取り、その積を result に格納します。
      *
      *  @par            使用例
-     *  @code{.c}
-     *  int result;
-     *  if (multiply(5, 4, &result) == CALC_SUCCESS) {
-     *      printf("Result: %d\n", result);  // 出力: Result: 20
-     *  }
-     *  @endcode
+        @code{.c}
+        int result;
+        if (multiply(5, 4, &result) == CALC_SUCCESS) {
+            printf("Result: %d\n", result);  // 出力: Result: 20
+        }
+        @endcode
      *
      *  @note           オーバーフローが発生する可能性がある場合は、
      *                  呼び出し側で範囲チェックを行ってください。
@@ -115,12 +115,12 @@ extern "C"
      *  整数除算のため、小数点以下は切り捨てられます。
      *
      *  @par            使用例
-     *  @code{.c}
-     *  int result;
-     *  if (divide(20, 4, &result) == CALC_SUCCESS) {
-     *      printf("Result: %d\n", result);  // 出力: Result: 5
-     *  }
-     *  @endcode
+        @code{.c}
+        int result;
+        if (divide(20, 4, &result) == CALC_SUCCESS) {
+            printf("Result: %d\n", result);  // 出力: Result: 5
+        }
+        @endcode
      *
      *  @warning        ゼロ除算の場合、または result が NULL の場合は失敗を返します。
      *******************************************************************************

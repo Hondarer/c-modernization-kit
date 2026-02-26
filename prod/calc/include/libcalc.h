@@ -90,12 +90,12 @@ extern "C"
      *  | CALC_KIND_DIVIDE    | 除算を実行       |
      *
      *  @par            使用例
-     *  @code{.c}
-     *  int result;
-     *  if (calcHandler(CALC_KIND_ADD, 10, 20, &result) == CALC_SUCCESS) {
-     *      printf("Result: %d\n", result);  // 出力: Result: 30
-     *  }
-     *  @endcode
+        @code{.c}
+        int result;
+        if (calcHandler(CALC_KIND_ADD, 10, 20, &result) == CALC_SUCCESS) {
+            printf("Result: %d\n", result);  // 出力: Result: 30
+        }
+        @endcode
      *
      *  @warning        無効な kind を指定した場合、ゼロ除算の場合、
      *                  または result が NULL の場合は失敗を返します。

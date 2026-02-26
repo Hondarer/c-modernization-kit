@@ -34,10 +34,10 @@ extern "C"
      *
      *  使用例:
      *
-     *  @code{.c}
-     *  int value = samplestatic();
-     *  printf("Value: %d\n", value);
-     *  @endcode
+        @code{.c}
+        int value = samplestatic();
+        printf("Value: %d\n", value);
+        @endcode
      *
      *  @note           static 変数のテスト方法については、testfw のドキュメントを
      *                  参照してください。

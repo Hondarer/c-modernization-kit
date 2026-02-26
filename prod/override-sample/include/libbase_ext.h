@@ -80,12 +80,12 @@ extern "C"
      *                  a * b を計算して result に格納します。
      *
      *  @par            使用例
-     *  @code{.c}
-     *  int result;
-     *  if (override_func(1, 2, &result) == 0) {
-     *      console_output("result: %d\n", result);  // 出力: result: 2
-     *  }
-     *  @endcode
+        @code{.c}
+        int result;
+        if (override_func(1, 2, &result) == 0) {
+            console_output("result: %d\n", result);  // 出力: result: 2
+        }
+        @endcode
      *
      *  @warning        result が NULL の場合は -1 を返します。
      *******************************************************************************

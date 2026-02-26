@@ -31,19 +31,19 @@
  *  | NO_INLINE    | __declspec(noinline) | __attribute__((noinline))             | (空)   |
  *
  *  @section        usage 使用例
- *  @code{.c}
- *  #include "compiler.h"
- *
- *  FORCE_INLINE int fast_add(int a, int b)
- *  {
- *      return a + b;
- *  }
- *
- *  NO_INLINE void debug_dump(const char *msg)
- *  {
- *      fprintf(stderr, "%s\n", msg);
- *  }
- *  @endcode
+    @code{.c}
+    #include "compiler.h"
+
+    FORCE_INLINE int fast_add(int a, int b)
+    {
+        return a + b;
+    }
+
+    NO_INLINE void debug_dump(const char *msg)
+    {
+        fprintf(stderr, "%s\n", msg);
+    }
+    @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
