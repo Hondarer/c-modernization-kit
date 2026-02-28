@@ -32,14 +32,6 @@
  *  | Windows / `BASE_EXT_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
  */
 
-/**
- *  @def            WINAPI
- *  @brief          Windows 呼び出し規約マクロ。
- *
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。
- *                  Linux (非 Windows) 環境では空に展開されます。
- *                  既に定義済みの場合は再定義されません。
- */
 #ifndef _WIN32
     #define BASE_EXT_API
     #define WINAPI
