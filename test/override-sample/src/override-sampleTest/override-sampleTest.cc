@@ -110,15 +110,13 @@ TEST_F(override_sampleTest, check_stdout_default)
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] -
-                                                                            // デフォルト処理のメッセージが出力されること。
-    EXPECT_NE(string::npos, res.stdout_out.find("rtc: 0"));    // [確認] - rtc が 0 であること。
-    EXPECT_NE(string::npos, res.stdout_out.find("result: 3")); // [確認] - result が 3 (1+2) であること。
+            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] - デフォルト処理のメッセージが出力されること。
+    EXPECT_NE(string::npos, res.stdout_out.find("rtc: 0"));                 // [確認] - rtc が 0 であること。
+    EXPECT_NE(string::npos, res.stdout_out.find("result: 3"));              // [確認] - result が 3 (1+2) であること。
     EXPECT_EQ(
         string::npos,
         res.stdout_out.find(
-            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] -
-                                                                             // オーバーライドへの移譲が行われないこと。
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの移譲が行われないこと。
 }
 
 TEST_F(override_sampleTest, check_stdout_with_config)
@@ -139,13 +137,11 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] -
-                                                                             // オーバーライドへの移譲メッセージが出力されること。
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの移譲メッセージが出力されること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "override_func: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認] -
-                                                                              // オーバーライド処理のメッセージが出力されること。
+            "override_func: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認] -  オーバーライド処理のメッセージが出力されること。
     EXPECT_NE(string::npos, res.stdout_out.find("rtc: 0"));    // [確認] - rtc が 0 であること。
     EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認] - result が 2 (1*2) であること。
 }
@@ -166,8 +162,8 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Pre-Assert
 
     // Act
-    ProcessResult res = runProcess(binary_path, opts); // [手順] - override-sample を実行し、
-                                                       //         syslog/OutputDebugString をキャプチャする。
+    ProcessResult res =
+        runProcess(binary_path, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString をキャプチャする。
     cout << res.debug_log;
 
     // Assert

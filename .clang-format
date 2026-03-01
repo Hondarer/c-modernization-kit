@@ -19,5 +19,12 @@ AlignConsecutiveMacros: Consecutive
 # 波括弧の配置: すべての波括弧を次の行に配置 (Allman スタイル)
 BreakBeforeBraces: Allman
 
-# 短い関数の1行化: 空の関数本体のみ許可 (非空関数は複数行に展開)
+# 短い関数の 1 行化: 空の関数本体のみ許可 (非空関数は複数行に展開)
 AllowShortFunctionsOnASingleLine: Empty
+
+# 引数・パラメータのビンパッキング (false にすると 1 引数ずつ別行に展開)
+BinPackArguments: true
+BinPackParameters: true
+
+# コメントの自動折り返しを無効化: 長いコメントへの改行挿入を禁止する
+ReflowComments: false
