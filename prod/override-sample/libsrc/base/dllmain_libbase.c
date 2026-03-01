@@ -18,7 +18,6 @@
 
 #include "funcman_libbase.h"
 #include <dllmain.h>
-#include <libbase.h>
 #include <stdio.h>
 
 /* doxygen コメントは、ヘッダに記載 */
