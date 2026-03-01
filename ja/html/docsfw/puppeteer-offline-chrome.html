@@ -1,0 +1,478 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Puppeteer で利用する Chrome のオフラインインストール方法</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Puppeteer で利用する Chrome のオフラインインストール方法</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 14:28:57 +0900 9161a70</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#puppeteer-パッケージの種類" id="toc-puppeteer-パッケージの種類"><span class="toc-section-number">2</span> Puppeteer パッケージの種類</a>
+                <ul>
+                <li><a href="#puppeteer-フルパッケージ" id="toc-puppeteer-フルパッケージ"><span class="toc-section-number">2.1</span> puppeteer (フルパッケージ)</a></li>
+                <li><a href="#puppeteer-core-ライブラリのみ" id="toc-puppeteer-core-ライブラリのみ"><span class="toc-section-number">2.2</span> puppeteer-core (ライブラリのみ)</a></li>
+                </ul></li>
+                <li><a href="#オフラインインストールの方法" id="toc-オフラインインストールの方法"><span class="toc-section-number">3</span> オフラインインストールの方法</a>
+                <ul>
+                <li><a href="#方法-1-puppeteerbrowsers-cli-ツールを使用" id="toc-方法-1-puppeteerbrowsers-cli-ツールを使用"><span class="toc-section-number">3.1</span> 方法 1: <span class="citation" data-cites="puppeteer/browsers">[@puppeteer/browsers]</span> CLI ツールを使用</a>
+                <ul>
+                <li><a href="#最新の安定版をダウンロード" id="toc-最新の安定版をダウンロード"><span class="toc-section-number">3.1.1</span> 最新の安定版をダウンロード</a></li>
+                <li><a href="#特定のバージョンをダウンロード" id="toc-特定のバージョンをダウンロード"><span class="toc-section-number">3.1.2</span> 特定のバージョンをダウンロード</a></li>
+                <li><a href="#マイルストーンの最新版をダウンロード" id="toc-マイルストーンの最新版をダウンロード"><span class="toc-section-number">3.1.3</span> マイルストーンの最新版をダウンロード</a></li>
+                <li><a href="#ダウンロード先" id="toc-ダウンロード先"><span class="toc-section-number">3.1.4</span> ダウンロード先</a></li>
+                </ul></li>
+                <li><a href="#方法-2-環境変数を使用したスキップとキャッシュ管理" id="toc-方法-2-環境変数を使用したスキップとキャッシュ管理"><span class="toc-section-number">3.2</span> 方法 2: 環境変数を使用したスキップとキャッシュ管理</a>
+                <ul>
+                <li><a href="#chrome-の自動ダウンロードをスキップ" id="toc-chrome-の自動ダウンロードをスキップ"><span class="toc-section-number">3.2.1</span> Chrome の自動ダウンロードをスキップ</a></li>
+                <li><a href="#キャッシュディレクトリのカスタマイズ" id="toc-キャッシュディレクトリのカスタマイズ"><span class="toc-section-number">3.2.2</span> キャッシュディレクトリのカスタマイズ</a></li>
+                <li><a href="#その他の環境変数" id="toc-その他の環境変数"><span class="toc-section-number">3.2.3</span> その他の環境変数</a></li>
+                </ul></li>
+                <li><a href="#方法-3-設定ファイルによる管理" id="toc-方法-3-設定ファイルによる管理"><span class="toc-section-number">3.3</span> 方法 3: 設定ファイルによる管理</a></li>
+                <li><a href="#方法-4-chrome-for-testing-を手動でダウンロード" id="toc-方法-4-chrome-for-testing-を手動でダウンロード"><span class="toc-section-number">3.4</span> 方法 4: Chrome for Testing を手動でダウンロード</a>
+                <ul>
+                <li><a href="#json-api-エンドポイント" id="toc-json-api-エンドポイント"><span class="toc-section-number">3.4.1</span> JSON API エンドポイント</a></li>
+                <li><a href="#直接ダウンロード-url-パターン" id="toc-直接ダウンロード-url-パターン"><span class="toc-section-number">3.4.2</span> 直接ダウンロード URL パターン</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#オフライン環境での使用方法" id="toc-オフライン環境での使用方法"><span class="toc-section-number">4</span> オフライン環境での使用方法</a>
+                <ul>
+                <li><a href="#executablepath-を指定して起動" id="toc-executablepath-を指定して起動"><span class="toc-section-number">4.1</span> executablePath を指定して起動</a></li>
+                <li><a href="#キャッシュディレクトリから自動検出" id="toc-キャッシュディレクトリから自動検出"><span class="toc-section-number">4.2</span> キャッシュディレクトリから自動検出</a></li>
+                </ul></li>
+                <li><a href="#オフラインインストールの推奨フロー" id="toc-オフラインインストールの推奨フロー"><span class="toc-section-number">5</span> オフラインインストールの推奨フロー</a>
+                <ul>
+                <li><a href="#オンライン環境での準備" id="toc-オンライン環境での準備"><span class="toc-section-number">5.1</span> オンライン環境での準備</a></li>
+                <li><a href="#オフライン環境での使用" id="toc-オフライン環境での使用"><span class="toc-section-number">5.2</span> オフライン環境での使用</a></li>
+                </ul></li>
+                <li><a href="#バージョン互換性" id="toc-バージョン互換性"><span class="toc-section-number">6</span> バージョン互換性</a></li>
+                <li><a href="#トラブルシューティング" id="toc-トラブルシューティング"><span class="toc-section-number">7</span> トラブルシューティング</a>
+                <ul>
+                <li><a href="#chrome-が見つからないエラー" id="toc-chrome-が見つからないエラー"><span class="toc-section-number">7.1</span> Chrome が見つからないエラー</a></li>
+                <li><a href="#ネットワークエラー" id="toc-ネットワークエラー"><span class="toc-section-number">7.2</span> ネットワークエラー</a></li>
+                </ul></li>
+                <li><a href="#参考資料" id="toc-参考資料"><span class="toc-section-number">8</span> 参考資料</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Puppeteer で利用する Chrome のオフラインインストール方法</H1>
+      
+      
+      <p>Puppeteer でオフライン環境において Chrome を利用するための手順を整理したドキュメントです。</p>
+<h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>Puppeteer は Node.js 上で動作するヘッドレスブラウザ自動化ツールです。通常、<code>puppeteer</code> パッケージをインストールすると Chrome for Testing が自動的にダウンロードされますが、オフライン環境ではこの自動ダウンロードが利用できません。</p>
+<p>本ドキュメントでは、オフライン環境で Puppeteer を利用するための複数のアプローチを説明します。</p>
+<h1 data-number="2" id="puppeteer-パッケージの種類"><span class="header-section-number">2</span> Puppeteer パッケージの種類</h1>
+<p>Puppeteer には 2 種類のパッケージがあります。</p>
+<h2 data-number="2.1" id="puppeteer-フルパッケージ"><span class="header-section-number">2.1</span> puppeteer (フルパッケージ)</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> i puppeteer</span></code></pre></div>
+<p>インストール時に Chrome for Testing (約 170MB macOS、約 282MB Linux、約 280MB Windows) と chrome-headless-shell バイナリを自動的にダウンロードします。</p>
+<h2 data-number="2.2" id="puppeteer-core-ライブラリのみ"><span class="header-section-number">2.2</span> puppeteer-core (ライブラリのみ)</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> i puppeteer-core</span></code></pre></div>
+<p>ブラウザをダウンロードせず、ライブラリのみをインストールします。既存の Chrome または Chromium を使用する場合に適しています。</p>
+<h1 data-number="3" id="オフラインインストールの方法"><span class="header-section-number">3</span> オフラインインストールの方法</h1>
+<h2 data-number="3.1" id="方法-1-puppeteerbrowsers-cli-ツールを使用"><span class="header-section-number">3.1</span> 方法 1: <span class="citation" data-cites="puppeteer/browsers">[@puppeteer/browsers]</span> CLI ツールを使用</h2>
+<p><code>@puppeteer/browsers</code> CLI ツールを使用して、事前に Chrome for Testing をダウンロードする方法です。</p>
+<h3 data-number="3.1.1" id="最新の安定版をダウンロード"><span class="header-section-number">3.1.1</span> 最新の安定版をダウンロード</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> @puppeteer/browsers install chrome@stable</span></code></pre></div>
+<h3 data-number="3.1.2" id="特定のバージョンをダウンロード"><span class="header-section-number">3.1.2</span> 特定のバージョンをダウンロード</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> @puppeteer/browsers install chrome@116.0.5793.0</span></code></pre></div>
+<h3 data-number="3.1.3" id="マイルストーンの最新版をダウンロード"><span class="header-section-number">3.1.3</span> マイルストーンの最新版をダウンロード</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> @puppeteer/browsers install chrome@117</span></code></pre></div>
+<h3 data-number="3.1.4" id="ダウンロード先"><span class="header-section-number">3.1.4</span> ダウンロード先</h3>
+<p>Puppeteer v19.0.0 以降、ブラウザは <code>$HOME/.cache/puppeteer</code> にユーザーグローバルにキャッシュされます。このキャッシュディレクトリは複数のインストール間で共有されるため、一度ダウンロードすればオフライン環境で再利用できます。</p>
+<p>Linux の場合:</p>
+<pre class="text"><code>$HOME/.cache/puppeteer/chrome/linux-142.0.7444.175/chrome-linux64/chrome</code></pre>
+<p>Windows の場合:</p>
+<pre class="text"><code>%USERPROFILE%\.cache\puppeteer\chrome\win64-137.0.7151.70\chrome-win64\chrome.exe</code></pre>
+<h2 data-number="3.2" id="方法-2-環境変数を使用したスキップとキャッシュ管理"><span class="header-section-number">3.2</span> 方法 2: 環境変数を使用したスキップとキャッシュ管理</h2>
+<h3 data-number="3.2.1" id="chrome-の自動ダウンロードをスキップ"><span class="header-section-number">3.2.1</span> Chrome の自動ダウンロードをスキップ</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PUPPETEER_SKIP_CHROMIUM_DOWNLOAD</span><span class="op">=</span>true</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install puppeteer</span></code></pre></div>
+<h3 data-number="3.2.2" id="キャッシュディレクトリのカスタマイズ"><span class="header-section-number">3.2.2</span> キャッシュディレクトリのカスタマイズ</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PUPPETEER_CACHE_DIR</span><span class="op">=</span>/path/to/custom/cache</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install puppeteer</span></code></pre></div>
+<p>デフォルトのキャッシュディレクトリは <code>os.homedir()/.cache/puppeteer</code> です。</p>
+<h3 data-number="3.2.3" id="その他の環境変数"><span class="header-section-number">3.2.3</span> その他の環境変数</h3>
+<ul>
+<li><code>PUPPETEER_TMP_DIR</code>: Puppeteer が一時ファイルを作成するディレクトリを指定</li>
+<li><code>HTTP_PROXY</code>、<code>HTTPS_PROXY</code>、<code>NO_PROXY</code>: ブラウザのダウンロードと実行時に使用する HTTP プロキシ設定</li>
+</ul>
+<h2 data-number="3.3" id="方法-3-設定ファイルによる管理"><span class="header-section-number">3.3</span> 方法 3: 設定ファイルによる管理</h2>
+<p>プロジェクトのルートディレクトリに <code>.puppeteerrc.cjs</code> を作成し、キャッシュディレクトリを指定します。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { join } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;path&#39;</span>)<span class="op">;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>module<span class="op">.</span><span class="at">exports</span> <span class="op">=</span> {</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">cacheDirectory</span><span class="op">:</span> <span class="fu">join</span>(<span class="bu">__dirname</span><span class="op">,</span> <span class="st">&#39;.cache&#39;</span><span class="op">,</span> <span class="st">&#39;puppeteer&#39;</span>)<span class="op">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<p><strong>注意</strong>: Puppeteer の設定ファイルと環境変数は <code>puppeteer-core</code> では無視されます。</p>
+<h2 data-number="3.4" id="方法-4-chrome-for-testing-を手動でダウンロード"><span class="header-section-number">3.4</span> 方法 4: Chrome for Testing を手動でダウンロード</h2>
+<p>Chrome for Testing は Google が提供する自動化テスト専用の Chrome ビルドです。</p>
+<h3 data-number="3.4.1" id="json-api-エンドポイント"><span class="header-section-number">3.4.1</span> JSON API エンドポイント</h3>
+<p>Chrome for Testing の各バージョンは JSON API から取得できます。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build-with-downloads.json</span></code></pre></div>
+<h3 data-number="3.4.2" id="直接ダウンロード-url-パターン"><span class="header-section-number">3.4.2</span> 直接ダウンロード URL パターン</h3>
+<p>Chrome for Testing バイナリは以下の URL パターンで直接ダウンロードできます。</p>
+<pre class="text"><code>https://storage.googleapis.com/chrome-for-testing-public/{VERSION}/{PLATFORM}/{BINARY}-{PLATFORM}.zip</code></pre>
+<h4 data-number="3.4.2.1" id="対応プラットフォーム"><span class="header-section-number">3.4.2.1</span> 対応プラットフォーム</h4>
+<ul>
+<li><code>linux64</code></li>
+<li><code>mac-arm64</code></li>
+<li><code>mac-x64</code></li>
+<li><code>win32</code></li>
+<li><code>win64</code></li>
+</ul>
+<h4 data-number="3.4.2.2" id="ダウンロード例"><span class="header-section-number">3.4.2.2</span> ダウンロード例</h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-O</span> https://storage.googleapis.com/chrome-for-testing-public/118.0.5962.0/linux64/chrome-linux64.zip</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span> chrome-linux64.zip</span></code></pre></div>
+<h1 data-number="4" id="オフライン環境での使用方法"><span class="header-section-number">4</span> オフライン環境での使用方法</h1>
+<h2 data-number="4.1" id="executablepath-を指定して起動"><span class="header-section-number">4.1</span> executablePath を指定して起動</h2>
+<p>手動でダウンロードした Chrome や既存の Chrome を使用する場合は、<code>executablePath</code> オプションで実行パスを指定します。</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> puppeteer <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;puppeteer&#39;</span>)<span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> browser <span class="op">=</span> <span class="cf">await</span> puppeteer<span class="op">.</span><span class="fu">launch</span>({</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">executablePath</span><span class="op">:</span> <span class="st">&#39;/path/to/chrome/executable&#39;</span><span class="op">,</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> page <span class="op">=</span> <span class="cf">await</span> browser<span class="op">.</span><span class="fu">newPage</span>()<span class="op">;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;https://example.com&#39;</span>)<span class="op">;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> browser<span class="op">.</span><span class="fu">close</span>()<span class="op">;</span></span></code></pre></div>
+<h2 data-number="4.2" id="キャッシュディレクトリから自動検出"><span class="header-section-number">4.2</span> キャッシュディレクトリから自動検出</h2>
+<p>Puppeteer v19.0.0 以降、ブラウザは <code>~/.cache/puppeteer</code> から自動的に検出されます。事前にこのディレクトリに Chrome をダウンロードしておけば、<code>executablePath</code> を指定せずに使用できます。</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> puppeteer <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;puppeteer&#39;</span>)<span class="op">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">// キャッシュディレクトリから自動的に Chrome を検出</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> browser <span class="op">=</span> <span class="cf">await</span> puppeteer<span class="op">.</span><span class="fu">launch</span>()<span class="op">;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> page <span class="op">=</span> <span class="cf">await</span> browser<span class="op">.</span><span class="fu">newPage</span>()<span class="op">;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&#39;https://example.com&#39;</span>)<span class="op">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> browser<span class="op">.</span><span class="fu">close</span>()<span class="op">;</span></span></code></pre></div>
+<h1 data-number="5" id="オフラインインストールの推奨フロー"><span class="header-section-number">5</span> オフラインインストールの推奨フロー</h1>
+<p>以下の手順で、オンライン環境で Chrome をダウンロードし、オフライン環境で使用することを推奨します。</p>
+<h2 data-number="5.1" id="オンライン環境での準備"><span class="header-section-number">5.1</span> オンライン環境での準備</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /path/to/your/project</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PUPPETEER_SKIP_CHROMIUM_DOWNLOAD</span><span class="op">=</span>true</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install puppeteer</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> .cache/puppeteer</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PUPPETEER_CACHE_DIR</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/.cache/puppeteer</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> @puppeteer/browsers install chrome@stable</span></code></pre></div>
+<h2 data-number="5.2" id="オフライン環境での使用"><span class="header-section-number">5.2</span> オフライン環境での使用</h2>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /path/to/your/project</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PUPPETEER_CACHE_DIR</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/.cache/puppeteer</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> your-script.js</span></code></pre></div>
+<p>または、<code>.puppeteerrc.cjs</code> を使用してキャッシュディレクトリを指定します。</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">// .puppeteerrc.cjs</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { join } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;path&#39;</span>)<span class="op">;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>module<span class="op">.</span><span class="at">exports</span> <span class="op">=</span> {</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">cacheDirectory</span><span class="op">:</span> <span class="fu">join</span>(<span class="bu">__dirname</span><span class="op">,</span> <span class="st">&#39;.cache&#39;</span><span class="op">,</span> <span class="st">&#39;puppeteer&#39;</span>)<span class="op">,</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h1 data-number="6" id="バージョン互換性"><span class="header-section-number">6</span> バージョン互換性</h1>
+<p>各 Puppeteer バージョンは単一の Chrome バージョンに対応しています。互換性を確保するため、Puppeteer がインストールされているプロジェクトで以下のコマンドを実行することを推奨します。</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> puppeteer browsers install chrome</span></code></pre></div>
+<p>このコマンドは、インストールされている Puppeteer バージョンに対応する Chrome バージョンを自動的にダウンロードします。</p>
+<h1 data-number="7" id="トラブルシューティング"><span class="header-section-number">7</span> トラブルシューティング</h1>
+<h2 data-number="7.1" id="chrome-が見つからないエラー"><span class="header-section-number">7.1</span> Chrome が見つからないエラー</h2>
+<pre class="text"><code>Error: Could not find Chrome</code></pre>
+<p>このエラーが発生した場合、以下を確認してください。</p>
+<ul>
+<li>Chrome がキャッシュディレクトリにダウンロードされているか</li>
+<li><code>PUPPETEER_CACHE_DIR</code> 環境変数が正しく設定されているか</li>
+<li><code>.puppeteerrc.cjs</code> の <code>cacheDirectory</code> が正しいパスを指しているか</li>
+<li><code>executablePath</code> を明示的に指定しているか</li>
+</ul>
+<h2 data-number="7.2" id="ネットワークエラー"><span class="header-section-number">7.2</span> ネットワークエラー</h2>
+<p>オンライン環境でダウンロード時にネットワークエラーが発生する場合、プロキシ設定を確認してください。</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">HTTP_PROXY</span><span class="op">=</span>http://proxy.example.com:8080</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">HTTPS_PROXY</span><span class="op">=</span>http://proxy.example.com:8080</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> @puppeteer/browsers install chrome@stable</span></code></pre></div>
+<h1 data-number="8" id="参考資料"><span class="header-section-number">8</span> 参考資料</h1>
+<ul>
+<li><a href="https://pptr.dev/guides/installation">Puppeteer Installation Guide</a></li>
+<li><a href="https://pptr.dev/guides/configuration">Puppeteer Configuration Guide</a></li>
+<li><a href="https://www.npmjs.com/package/@puppeteer/browsers"><span class="citation" data-cites="puppeteer/browsers">[@puppeteer/browsers]</span> NPM Package</a></li>
+<li><a href="https://developer.chrome.com/blog/chrome-for-testing">Chrome for Testing: reliable downloads for browser automation</a></li>
+<li><a href="https://github.com/GoogleChromeLabs/chrome-for-testing">Chrome for Testing JSON API</a></li>
+<li><a href="https://stackoverflow.com/questions/56081642/use-puppeteer-core-and-installing-chromium-manually">Stack Overflow: Use puppeteer-core and installing chromium manually</a></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

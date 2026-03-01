@@ -1,0 +1,369 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>funcman: 動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュール</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../../../../../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">funcman: 動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュール</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Sun, 01 Mar 2026 22:09:40 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../../../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#設計思想" id="toc-設計思想"><span class="toc-section-number">1</span> 設計思想</a></li>
+                <li><a href="#ファイル構成" id="toc-ファイル構成"><span class="toc-section-number">2</span> ファイル構成</a></li>
+                <li><a href="#api" id="toc-api"><span class="toc-section-number">3</span> API</a></li>
+                <li><a href="#呼び出しタイミング" id="toc-呼び出しタイミング"><span class="toc-section-number">4</span> 呼び出しタイミング</a></li>
+                <li><a href="#他ライブラリでの利用方法" id="toc-他ライブラリでの利用方法"><span class="toc-section-number">5</span> 他ライブラリでの利用方法</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>funcman: 動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュール</H1>
+      
+      
+      <p>funcman は、動的ライブラリのロードと関数ポインタのキャッシュを管理する汎用モジュールです。</p>
+<blockquote>
+<p>funcman は function manager の略です。</p>
+</blockquote>
+<h1 data-number="1" id="設計思想"><span class="header-section-number">1</span> 設計思想</h1>
+<p>funcman はモジュール内にインスタンス変数を持ちません。管理対象の状態はすべて呼び出し側が用意した <code>funcman_object</code> に保持されます。そのため、このフォルダのソースコードは <code>libbase</code> に限らず任意のライブラリから利用できます。</p>
+<p>利用するライブラリ側では、管理対象の関数ごとに <code>funcman_object</code> を定義し、それを配列にまとめて funcman の各関数に渡します。<code>libbase</code> における実体定義とその配列の管理は <code>funcman_libbase.c</code> / <code>funcman_libbase.h</code> が担っています。</p>
+<h1 data-number="2" id="ファイル構成"><span class="header-section-number">2</span> ファイル構成</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>funcman_init.c</code></td>
+<td>設定ファイルを解析し、<code>funcman_object</code> の <code>lib_name</code> / <code>func_name</code> を設定する</td>
+</tr>
+<tr>
+<td><code>funcman_get_func.c</code></td>
+<td><code>lib_name</code> / <code>func_name</code> をもとに動的ライブラリをロードし、関数ポインタを返す。スレッドセーフ</td>
+</tr>
+<tr>
+<td><code>funcman_is_declared_default.c</code></td>
+<td><code>funcman_object</code> が明示的デフォルト (<code>lib_name</code> / <code>func_name</code> ともに <code>"default"</code>) かどうかを返す</td>
+</tr>
+<tr>
+<td><code>funcman_dispose.c</code></td>
+<td>ロード済みライブラリをアンロードしてリソースを解放する</td>
+</tr>
+<tr>
+<td><code>funcman_info.c</code></td>
+<td><code>funcman_object</code> の現在の状態を標準出力に表示する</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="api"><span class="header-section-number">3</span> API</h1>
+<p>型・構造体・マクロを含む宣言はすべて <code>libbase.h</code> に集約されています。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>API</th>
+<th>種別</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>funcman_init</code></td>
+<td>関数</td>
+<td>設定ファイルを読み込み、<code>funcman_object</code> 配列を初期化する</td>
+</tr>
+<tr>
+<td><code>funcman_dispose</code></td>
+<td>関数</td>
+<td><code>funcman_object</code> 配列のハンドルをすべて解放する</td>
+</tr>
+<tr>
+<td><code>funcman_info</code></td>
+<td>関数</td>
+<td><code>funcman_object</code> 配列の内容を表示し、失敗エントリがあれば -1 を返す</td>
+</tr>
+<tr>
+<td><code>funcman_get_func</code></td>
+<td>マクロ</td>
+<td><code>_funcman_get_func</code> を呼び出し、指定型にキャストして関数ポインタを返す</td>
+</tr>
+<tr>
+<td><code>_funcman_get_func</code></td>
+<td>関数</td>
+<td>関数ポインタを取得する内部実装。初回のみロードし、以降はキャッシュを返す</td>
+</tr>
+<tr>
+<td><code>funcman_is_declared_default</code></td>
+<td>関数</td>
+<td>明示的デフォルト判定。<code>resolved</code> が未解決の場合は解決を試みてから判定する</td>
+</tr>
+<tr>
+<td><code>funcman_object</code></td>
+<td>構造体</td>
+<td>1 関数分のキャッシュエントリ。呼び出し側が保持する</td>
+</tr>
+<tr>
+<td><code>NEW_FUNCMAN_OBJECT</code></td>
+<td>マクロ</td>
+<td><code>funcman_object</code> 静的変数の初期化子</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="呼び出しタイミング"><span class="header-section-number">4</span> 呼び出しタイミング</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>関数</th>
+<th>呼び出しタイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>funcman_init</code></td>
+<td>ライブラリのロード時 (constructor / <code>DllMain(DLL_PROCESS_ATTACH)</code>)</td>
+</tr>
+<tr>
+<td><code>funcman_dispose</code></td>
+<td>ライブラリのアンロード時 (destructor / <code>DllMain(DLL_PROCESS_DETACH)</code>)</td>
+</tr>
+<tr>
+<td><code>funcman_get_func</code></td>
+<td>オーバーライド対応関数の呼び出しごとに実行 (2 回目以降はキャッシュを返すため低コスト)</td>
+</tr>
+<tr>
+<td><code>funcman_is_declared_default</code></td>
+<td>デフォルト動作かオーバーライド動作かをログ等で区別したいときに任意で呼び出し</td>
+</tr>
+<tr>
+<td><code>funcman_info</code></td>
+<td>デバッグ・診断用途で任意に呼び出し</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="5" id="他ライブラリでの利用方法"><span class="header-section-number">5</span> 他ライブラリでの利用方法</h1>
+<ol type="1">
+<li><code>libbase.h</code> をインクルードする</li>
+<li>管理対象の関数ごとに関数ポインタ型の <code>typedef</code> を定義する</li>
+<li><code>NEW_FUNCMAN_OBJECT</code> で <code>funcman_object</code> 静的変数を定義し、<code>funcman_object *const</code> ポインタを用意する</li>
+<li><code>funcman_object *const</code> ポインタを集めた配列と要素数を定義する</li>
+<li>ライブラリのロード・アンロードフックから <code>funcman_init</code> / <code>funcman_dispose</code> を呼び出す</li>
+<li>各関数の実装内で <code>funcman_get_func</code> を使って関数ポインタを取得し、オーバーライド処理とデフォルト処理を分岐する</li>
+</ol>
+<p><code>libbase</code> における 2〜4 の実装例は <code>funcman_libbase.h</code> / <code>funcman_libbase.c</code> を、5 の実装例は <code>dllmain_libbase.c</code> を、6 の実装例は <code>sample_func.c</code> を参照してください。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+<map id="onUnload" name="onUnload">
+<area shape="rect" id="Node000001" title="ライブラリのアンロード時に呼び出されるフック関数。" alt="" coords="5,5,81,31"/>
+<area shape="rect" id="Node000002" href="$funcman__dispose_8c.html#a3c008e5be7dc14066ffbf97960de71f6" title="funcman_object ポインタ配列を解放します。" alt="" coords="129,5,253,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,15,116,15,116,21,81,21"/>
+</map>

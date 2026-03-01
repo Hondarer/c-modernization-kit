@@ -1,0 +1,754 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>C 言語サブディレクトリ対応の詳細と実装ガイド</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">C 言語サブディレクトリ対応の詳細と実装ガイド</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Wed, 18 Feb 2026 06:58:29 +0900 3f8c938</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#サブディレクトリ対応の仕様" id="toc-サブディレクトリ対応の仕様"><span class="toc-section-number">2</span> サブディレクトリ対応の仕様</a>
+                <ul>
+                <li><a href="#no_link-変数" id="toc-no_link-変数"><span class="toc-section-number">2.1</span> NO_LINK 変数</a></li>
+                <li><a href="#オブジェクトファイルの自動収集" id="toc-オブジェクトファイルの自動収集"><span class="toc-section-number">2.2</span> オブジェクトファイルの自動収集</a></li>
+                <li><a href="#再帰的-make-処理" id="toc-再帰的-make-処理"><span class="toc-section-number">2.3</span> 再帰的 make 処理</a></li>
+                </ul></li>
+                <li><a href="#ライブラリのサブディレクトリ対応" id="toc-ライブラリのサブディレクトリ対応"><span class="toc-section-number">3</span> ライブラリのサブディレクトリ対応</a>
+                <ul>
+                <li><a href="#ディレクトリ構造" id="toc-ディレクトリ構造"><span class="toc-section-number">3.1</span> ディレクトリ構造</a></li>
+                <li><a href="#設定ファイルの内容" id="toc-設定ファイルの内容"><span class="toc-section-number">3.2</span> 設定ファイルの内容</a></li>
+                <li><a href="#ビルドの流れ" id="toc-ビルドの流れ"><span class="toc-section-number">3.3</span> ビルドの流れ</a></li>
+                </ul></li>
+                <li><a href="#コマンド-実行ファイル-のサブディレクトリ対応" id="toc-コマンド-実行ファイル-のサブディレクトリ対応"><span class="toc-section-number">4</span> コマンド (実行ファイル) のサブディレクトリ対応</a>
+                <ul>
+                <li><a href="#ディレクトリ構造-1" id="toc-ディレクトリ構造-1"><span class="toc-section-number">4.1</span> ディレクトリ構造</a></li>
+                <li><a href="#ソースコードの例" id="toc-ソースコードの例"><span class="toc-section-number">4.2</span> ソースコードの例</a></li>
+                <li><a href="#設定ファイルの内容-1" id="toc-設定ファイルの内容-1"><span class="toc-section-number">4.3</span> 設定ファイルの内容</a></li>
+                <li><a href="#ビルドの流れ-1" id="toc-ビルドの流れ-1"><span class="toc-section-number">4.4</span> ビルドの流れ</a></li>
+                </ul></li>
+                <li><a href="#テストのサブディレクトリ対応" id="toc-テストのサブディレクトリ対応"><span class="toc-section-number">5</span> テストのサブディレクトリ対応</a>
+                <ul>
+                <li><a href="#ディレクトリ構造-2" id="toc-ディレクトリ構造-2"><span class="toc-section-number">5.1</span> ディレクトリ構造</a></li>
+                <li><a href="#設定ファイルの内容-2" id="toc-設定ファイルの内容-2"><span class="toc-section-number">5.2</span> 設定ファイルの内容</a></li>
+                <li><a href="#テストコードの例" id="toc-テストコードの例"><span class="toc-section-number">5.3</span> テストコードの例</a></li>
+                <li><a href="#test_srcs-の自動収集" id="toc-test_srcs-の自動収集"><span class="toc-section-number">5.4</span> TEST_SRCS の自動収集</a></li>
+                </ul></li>
+                <li><a href="#テストレポートの構造" id="toc-テストレポートの構造"><span class="toc-section-number">6</span> テストレポートの構造</a>
+                <ul>
+                <li><a href="#results-ディレクトリ構造" id="toc-results-ディレクトリ構造"><span class="toc-section-number">6.1</span> results/ ディレクトリ構造</a></li>
+                <li><a href="#summary.log-の内容例" id="toc-summary.log-の内容例"><span class="toc-section-number">6.2</span> summary.log の内容例</a></li>
+                <li><a href="#個別テスト結果-results.log-の内容例" id="toc-個別テスト結果-results.log-の内容例"><span class="toc-section-number">6.3</span> 個別テスト結果 (results.log) の内容例</a></li>
+                <li><a href="#カバレッジファイル-.gcov.txt-の内容例" id="toc-カバレッジファイル-.gcov.txt-の内容例"><span class="toc-section-number">6.4</span> カバレッジファイル (*.gcov.txt) の内容例</a></li>
+                </ul></li>
+                <li><a href="#サブディレクトリ対応のベストプラクティス" id="toc-サブディレクトリ対応のベストプラクティス"><span class="toc-section-number">7</span> サブディレクトリ対応のベストプラクティス</a>
+                <ul>
+                <li><a href="#makefile-の配置" id="toc-makefile-の配置"><span class="toc-section-number">7.1</span> 1. makefile の配置</a></li>
+                <li><a href="#makechild.mk-での-no_link-設定" id="toc-makechild.mk-での-no_link-設定"><span class="toc-section-number">7.2</span> 2. makechild.mk での NO_LINK 設定</a></li>
+                <li><a href="#test_srcs-の重複回避" id="toc-test_srcs-の重複回避"><span class="toc-section-number">7.3</span> 3. TEST_SRCS の重複回避</a></li>
+                <li><a href="#ヘッダーファイルの参照" id="toc-ヘッダーファイルの参照"><span class="toc-section-number">7.4</span> 4. ヘッダーファイルの参照</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">8</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>C 言語サブディレクトリ対応の詳細と実装ガイド</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>このドキュメントは、makefw および testfw フレームワークにおける C 言語ソースコードのサブディレクトリ対応について説明します。</p>
+<p>大規模な C 言語プロジェクトでは、ソースコードを機能別にサブディレクトリに分割することが一般的です。<br />
+本フレームワークは、以下の観点からサブディレクトリ対応を提供します。</p>
+<ol type="1">
+<li><strong>ライブラリ</strong>: サブディレクトリに配置したソースファイルを単一のライブラリにリンク</li>
+<li><strong>コマンド (実行ファイル)</strong>: サブディレクトリに配置したソースファイルを単一の実行ファイルにリンク</li>
+<li><strong>テスト</strong>: サブディレクトリごとのテストコードとテスト対象ソースの管理</li>
+</ol>
+<h1 data-number="2" id="サブディレクトリ対応の仕様"><span class="header-section-number">2</span> サブディレクトリ対応の仕様</h1>
+<h2 data-number="2.1" id="no_link-変数"><span class="header-section-number">2.1</span> NO_LINK 変数</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">NO_LINK</span> <span class="ch">=</span><span class="st"> 1</span></span></code></pre></div>
+<p><strong>動作:</strong></p>
+<ul>
+<li><code>NO_LINK = 1</code> を設定したディレクトリでは、ソースファイルのコンパイルのみが行われます</li>
+<li>リンク処理 (ライブラリ生成や実行ファイル生成) はスキップされます</li>
+<li>コンパイル結果のオブジェクトファイル (<code>.o</code> / <code>.obj</code>) は、各サブディレクトリの <code>obj/</code> に配置されます</li>
+</ul>
+<p><strong>配置先:</strong></p>
+<p><code>NO_LINK = 1</code> は、リンクを行う起点ディレクトリの <code>makechild.mk</code> に定義します。<br />
+<code>makechild.mk</code> は自ディレクトリには適用されず子階層以降にのみ有効であるため、起点ディレクトリでは通常のリンクが行われ、すべてのサブディレクトリではコンパイルのみが実行されます。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">NO_LINK</span> <span class="ch">=</span><span class="st"> 1</span></span></code></pre></div>
+<p>これにより、各サブディレクトリに個別の <code>makepart.mk</code> で <code>NO_LINK = 1</code> を定義する必要がなくなります。</p>
+<h2 data-number="2.2" id="オブジェクトファイルの自動収集"><span class="header-section-number">2.2</span> オブジェクトファイルの自動収集</h2>
+<p>親ディレクトリ (リンクを行うディレクトリ) では、サブディレクトリのオブジェクトファイルが自動的に収集されます。</p>
+<p><strong>makelibsrc_c_cpp.mk / makesrc_c_cpp.mk より:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SUBDIR_OBJS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">shell</span><span class="st"> find . -type d -name obj -not -path &quot;./obj&quot; -exec find {} -maxdepth 1 -type f -name &quot;*.obj&quot; \; 2&gt;/dev/null</span><span class="ch">)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SUBDIR_OBJS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">shell</span><span class="st"> find . -type d -name obj -not -path &quot;./obj&quot; -exec find {} -maxdepth 1 -type f -name &quot;*.o&quot; \; 2&gt;/dev/null</span><span class="ch">)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">OBJS</span> <span class="ch">+=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">SUBDIR_OBJS</span><span class="ch">)</span></span></code></pre></div>
+<p>これにより、親ディレクトリでリンクを実行すると、サブディレクトリのオブジェクトファイルも含めてリンクされます。</p>
+<h2 data-number="2.3" id="再帰的-make-処理"><span class="header-section-number">2.3</span> 再帰的 make 処理</h2>
+<p><code>makemain.mk</code> は、makefile を含むサブディレクトリを自動検出し、再帰的に make を実行します。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">SUBDIRS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">sort</span><span class="st"> </span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> */GNUmakefile */makefile */Makefile</span><span class="ch">)))</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">ifneq</span> (<span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span>,)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">.PHONY:</span><span class="dt"> </span><span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span>:</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="ch">@$(</span><span class="dt">MAKE</span><span class="ch">)</span><span class="fu"> -C </span><span class="ch">$@</span><span class="fu"> </span><span class="ch">$(</span><span class="dt">MAKECMDGOALS</span><span class="ch">)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 主要なターゲットにサブディレクトリ依存を追加 (サブディレクトリを先に処理)</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    default build clean test run restore rebuild: <span class="ch">$(</span><span class="dt">SUBDIRS</span><span class="ch">)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span></code></pre></div>
+<h1 data-number="3" id="ライブラリのサブディレクトリ対応"><span class="header-section-number">3</span> ライブラリのサブディレクトリ対応</h1>
+<h2 data-number="3.1" id="ディレクトリ構造"><span class="header-section-number">3.1</span> ディレクトリ構造</h2>
+<pre class="text"><code>prod/subfolder-sample/
++-- lib/                                    # ビルド済みライブラリ出力先
+|   +-- liblibsubfolder-sample.so
++-- libsrc/
+    +-- makefile                            # 再帰ビルド用
+    +-- makepart.mk
+    +-- libsubfolder-sample/
+        +-- makefile                        # ライブラリ本体 (リンク実行)
+        +-- makepart.mk                     # LIB_TYPE = shared 設定
+        +-- makechild.mk                    # NO_LINK = 1 (サブフォルダはコンパイルのみ)
+        +-- func.c                          # ルートのソースファイル
+        +-- obj/
+        |   +-- func.o
+        +-- subfolder_a/
+        |   +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
+        |   +-- func_a.c
+        |   +-- obj/
+        |       +-- func_a.o
+        +-- subfolder_b/
+            +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
+            +-- func_b.c
+            +-- obj/
+                +-- func_b.o</code></pre>
+<h2 data-number="3.2" id="設定ファイルの内容"><span class="header-section-number">3.2</span> 設定ファイルの内容</h2>
+<p><strong>libsubfolder-sample/makepart.mk (起点ディレクトリ):</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Windows</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CFLAGS</span>   <span class="ch">+=</span><span class="st"> /DSUBFOLDER_SAMPLE_EXPORTS</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CXXFLAGS</span> <span class="ch">+=</span><span class="st"> /DSUBFOLDER_SAMPLE_EXPORTS</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">=</span><span class="st"> shared</span></span></code></pre></div>
+<p><strong>libsubfolder-sample/makechild.mk (起点ディレクトリ):</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">NO_LINK</span> <span class="ch">=</span><span class="st"> 1</span></span></code></pre></div>
+<p><code>makechild.mk</code> は自ディレクトリには適用されないため、<code>libsubfolder-sample/</code> ではリンクが実行され、サブディレクトリ (<code>subfolder_a/</code>, <code>subfolder_b/</code>) ではコンパイルのみが行われます。</p>
+<h2 data-number="3.3" id="ビルドの流れ"><span class="header-section-number">3.3</span> ビルドの流れ</h2>
+<ol type="1">
+<li><code>make</code> を <code>libsubfolder-sample/</code> で実行</li>
+<li><code>makemain.mk</code> がサブディレクトリ <code>subfolder_a/</code> と <code>subfolder_b/</code> を検出</li>
+<li>各サブディレクトリで <code>make</code> が再帰的に実行される</li>
+<li>サブディレクトリでは <code>NO_LINK = 1</code> によりコンパイルのみ実行</li>
+<li>親ディレクトリで全オブジェクトファイルを収集してライブラリを生成</li>
+</ol>
+<p><strong>生成されるライブラリ:</strong></p>
+<pre class="text"><code>prod/subfolder-sample/lib/liblibsubfolder-sample.so</code></pre>
+<p>このライブラリには、<code>func.o</code>、<code>func_a.o</code>、<code>func_b.o</code> が含まれます。</p>
+<h1 data-number="4" id="コマンド-実行ファイル-のサブディレクトリ対応"><span class="header-section-number">4</span> コマンド (実行ファイル) のサブディレクトリ対応</h1>
+<h2 data-number="4.1" id="ディレクトリ構造-1"><span class="header-section-number">4.1</span> ディレクトリ構造</h2>
+<pre class="text"><code>prod/subfolder-sample/
++-- bin/                                    # ビルド済み実行ファイル出力先
+|   +-- sample-app
++-- src/
+    +-- makefile                            # 再帰ビルド用
+    +-- makepart.mk
+    +-- sample-app/
+        +-- makefile                        # 実行ファイル本体 (リンク実行)
+        +-- makechild.mk                    # NO_LINK = 1 (サブフォルダはコンパイルのみ)
+        +-- sample-app.h                    # ヘッダーファイル
+        +-- main.c                          # メインソースファイル
+        +-- obj/
+        |   +-- main.o
+        +-- subfolder_a/
+        |   +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
+        |   +-- helper_a.c
+        |   +-- obj/
+        |       +-- helper_a.o
+        +-- subfolder_b/
+            +-- makefile                    # サブディレクトリ (makechild.mk により NO_LINK 適用)
+            +-- helper_b.c
+            +-- obj/
+                +-- helper_b.o</code></pre>
+<h2 data-number="4.2" id="ソースコードの例"><span class="header-section-number">4.2</span> ソースコードの例</h2>
+<p><strong>main.c:</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;sample-app.h&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Testing subfolder make for src</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;helper_a(</span><span class="sc">%d</span><span class="st">) = </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> a<span class="op">,</span> helper_a<span class="op">(</span>a<span class="op">));</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;helper_b(</span><span class="sc">%d</span><span class="st">) = </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> b<span class="op">,</span> helper_b<span class="op">(</span>b<span class="op">));</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;helper_a(</span><span class="sc">%d</span><span class="st">) + helper_b(</span><span class="sc">%d</span><span class="st">) = </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> a<span class="op">,</span> b<span class="op">,</span> helper_a<span class="op">(</span>a<span class="op">)</span> <span class="op">+</span> helper_b<span class="op">(</span>b<span class="op">));</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>subfolder_a/helper_a.c:</strong></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../sample-app.h&quot;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> helper_a<span class="op">(</span><span class="dt">int</span> value<span class="op">)</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> value <span class="op">*</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="4.3" id="設定ファイルの内容-1"><span class="header-section-number">4.3</span> 設定ファイルの内容</h2>
+<p><strong>sample-app/makechild.mk (起点ディレクトリ):</strong></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">NO_LINK</span> <span class="ch">=</span><span class="st"> 1</span></span></code></pre></div>
+<p>ライブラリの場合と同様に、起点ディレクトリの <code>makechild.mk</code> で <code>NO_LINK = 1</code> を定義します。</p>
+<h2 data-number="4.4" id="ビルドの流れ-1"><span class="header-section-number">4.4</span> ビルドの流れ</h2>
+<p>ライブラリと同様に、サブディレクトリのオブジェクトファイルが親ディレクトリに収集されてリンクされます。</p>
+<p><strong>生成される実行ファイル:</strong></p>
+<pre class="text"><code>prod/subfolder-sample/bin/sample-app</code></pre>
+<h1 data-number="5" id="テストのサブディレクトリ対応"><span class="header-section-number">5</span> テストのサブディレクトリ対応</h1>
+<h2 data-number="5.1" id="ディレクトリ構造-2"><span class="header-section-number">5.1</span> ディレクトリ構造</h2>
+<pre class="text"><code>test/src/subfolder-sample/
++-- makefile                                # 再帰ビルド用
++-- makepart.mk
++-- subfolder-sampleTest/
+    +-- makefile                            # テスト本体 (リンク・テスト実行)
+    +-- makepart.mk                         # TEST_SRCS 設定 (ルートのテスト対象)
+    +-- makechild.mk                        # NO_LINK = 1 (サブフォルダはコンパイルのみ)
+    +-- subfolder-sampleTest.cc             # ルートのテストコード
+    +-- bin/
+    |   +-- subfolder-sampleTest            # テスト実行ファイル
+    +-- obj/
+    |   +-- func.o                          # テスト対象ソースのオブジェクト
+    |   +-- subfolder-sampleTest.o          # テストコードのオブジェクト
+    +-- results/                            # テスト結果出力先
+    |   +-- all_tests/                      # 全体テスト結果
+    |   |   +-- summary.log
+    |   |   +-- coverage.xml
+    |   |   +-- func.c.gcov.txt
+    |   |   +-- func_a.c.gcov.txt
+    |   |   +-- func_b.c.gcov.txt
+    |   +-- subfolder_sampleTest.test_func/
+    |   |   +-- results.log
+    |   |   +-- func.c.gcov.txt
+    |   +-- subfolder_sampleTest_a.test_func_a/
+    |   |   +-- results.log
+    |   |   +-- func_a.c.gcov.txt
+    |   +-- subfolder_sampleTest_b.test_func_b/
+    |       +-- results.log
+    |       +-- func_b.c.gcov.txt
+    +-- subfolder_a/
+    |   +-- makefile                        # サブディレクトリ (makechild.mk により NO_LINK 適用)
+    |   +-- makelocal.mk                    # TEST_SRCS 設定 (サブディレクトリのテスト対象)
+    |   +-- subfolder-sampleTest_a.cc       # サブディレクトリのテストコード
+    |   +-- obj/
+    |       +-- func_a.o
+    |       +-- subfolder-sampleTest_a.o
+    +-- subfolder_b/
+        +-- makefile                        # サブディレクトリ (makechild.mk により NO_LINK 適用)
+        +-- makelocal.mk                    # TEST_SRCS 設定 (サブディレクトリのテスト対象)
+        +-- subfolder-sampleTest_b.cc       # サブディレクトリのテストコード
+        +-- obj/
+            +-- func_b.o
+            +-- subfolder-sampleTest_b.o</code></pre>
+<h2 data-number="5.2" id="設定ファイルの内容-2"><span class="header-section-number">5.2</span> 設定ファイルの内容</h2>
+<p><strong>subfolder-sampleTest/makepart.mk (起点ディレクトリ):</strong></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TEST_SRCS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/subfolder-sample/libsrc/libsubfolder-sample/func.c</span></span></code></pre></div>
+<p><strong>subfolder-sampleTest/makechild.mk (起点ディレクトリ):</strong></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dt">NO_LINK</span> <span class="ch">=</span><span class="st"> 1</span></span></code></pre></div>
+<p><strong>subfolder_a/makelocal.mk (サブディレクトリ):</strong></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TEST_SRCS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/func_a.c</span></span></code></pre></div>
+<p>テストでは、<code>NO_LINK = 1</code> は起点ディレクトリの <code>makechild.mk</code> に、<code>TEST_SRCS</code> は各サブディレクトリの <code>makelocal.mk</code> にそれぞれ分離して定義します。<br />
+<code>TEST_SRCS</code> を <code>makelocal.mk</code> に配置することで、各テスト対象の指定が自ディレクトリに限定され、親階層に継承されません。</p>
+<h2 data-number="5.3" id="テストコードの例"><span class="header-section-number">5.3</span> テストコードの例</h2>
+<p><strong>subfolder-sampleTest.cc (親ディレクトリ):</strong></p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;testfw.h&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;subfolder-sample.h&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> subfolder_sampleTest <span class="op">:</span> <span class="kw">public</span> Test</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>TEST_F<span class="op">(</span>subfolder_sampleTest<span class="op">,</span> test_func<span class="op">)</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Act</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> rtc <span class="op">=</span> func<span class="op">();</span> <span class="co">// [手順] - func() を呼び出す。</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Assert</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    EXPECT_EQ<span class="op">(</span><span class="dv">0</span><span class="op">,</span> rtc<span class="op">);</span> <span class="co">// [確認] - func() から 0 が返されること。</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>subfolder_a/subfolder-sampleTest_a.cc (サブディレクトリ):</strong></p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;testfw.h&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;subfolder-sample.h&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> subfolder_sampleTest_a <span class="op">:</span> <span class="kw">public</span> Test</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>TEST_F<span class="op">(</span>subfolder_sampleTest_a<span class="op">,</span> test_func_a<span class="op">)</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Act</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> rtc <span class="op">=</span> func_a<span class="op">();</span> <span class="co">// [手順] - func_a() を呼び出す。</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Assert</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    EXPECT_EQ<span class="op">(</span><span class="dv">1</span><span class="op">,</span> rtc<span class="op">);</span> <span class="co">// [確認] - func_a() から 1 が返されること。</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="5.4" id="test_srcs-の自動収集"><span class="header-section-number">5.4</span> TEST_SRCS の自動収集</h2>
+<p>テスト実行スクリプト (<code>exec_test_c_cpp.sh</code>) は、サブディレクトリの <code>makepart.mk</code> から <code>TEST_SRCS</code> を自動的に収集します。</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-z</span> <span class="st">&quot;</span><span class="va">$TEST_SRCS</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> makepart <span class="kw">in</span> <span class="va">$(</span><span class="fu">find</span> . <span class="at">-mindepth</span> 2 <span class="at">-name</span> <span class="st">&quot;makepart.mk&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null<span class="va">)</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">subdir_test_srcs</span><span class="op">=</span><span class="va">$(</span><span class="fu">grep</span> <span class="at">-A10</span> <span class="st">&quot;^TEST_SRCS&quot;</span> <span class="st">&quot;</span><span class="va">$makepart</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">grep</span> <span class="at">-v</span> <span class="st">&quot;^TEST_SRCS&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-v</span> <span class="st">&quot;^#&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-v</span> <span class="st">&quot;^--$&quot;</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">sed</span> <span class="st">&quot;s|</span><span class="dt">\\\$</span><span class="st">(WORKSPACE_FOLDER)|</span><span class="va">$WORKSPACE_FOLDER</span><span class="st">|g&quot;</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>            <span class="fu">xargs</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null<span class="va">)</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">TEST_SRCS</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$TEST_SRCS</span><span class="st"> </span><span class="va">$subdir_test_srcs</span><span class="st">&quot;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">done</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>これにより、各サブディレクトリで個別にテスト対象を指定しつつ、全体のカバレッジレポートを生成できます。</p>
+<h1 data-number="6" id="テストレポートの構造"><span class="header-section-number">6</span> テストレポートの構造</h1>
+<p><code>make test</code> を実行すると、<code>results/</code> ディレクトリにテストレポートが生成されます。</p>
+<h2 data-number="6.1" id="results-ディレクトリ構造"><span class="header-section-number">6.1</span> results/ ディレクトリ構造</h2>
+<pre class="text"><code>results/
++-- all_tests/                              # 全体テスト結果
+|   +-- summary.log                         # テストサマリー
+|   +-- coverage.xml                        # 全体カバレッジ (Cobertura形式)
+|   +-- func.c.gcov.txt                     # func.c のカバレッジ詳細
+|   +-- func_a.c.gcov.txt                   # func_a.c のカバレッジ詳細
+|   +-- func_b.c.gcov.txt                   # func_b.c のカバレッジ詳細
+|   +-- lcov/                               # HTML カバレッジレポート (Linux)
++-- &lt;テストクラス&gt;.&lt;テスト名&gt;/              # 個別テスト結果
+    +-- results.log                         # テスト実行ログ
+    +-- &lt;ソースファイル&gt;.gcov.txt           # 個別テストのカバレッジ</code></pre>
+<h2 data-number="6.2" id="summary.log-の内容例"><span class="header-section-number">6.2</span> summary.log の内容例</h2>
+<pre class="text"><code>Test start on Sat Jan 24 07:55:31 JST 2026.
+----
+MD5 checksums of files in TEST_SRCS:
+8c18e38566df7a9630b40ca18881a5d4  prod/subfolder-sample/libsrc/libsubfolder-sample/func.c
+----
+subfolder_sampleTest_a.test_func_a  PASSED
+subfolder_sampleTest_b.test_func_b  PASSED
+subfolder_sampleTest.test_func  PASSED
+Test results:
+----
+Total tests 3
+Passed      3
+Warning(s)  0
+Failed      0
+
+------------------------------------------------------------------------------
+                             Code Coverage Report
+------------------------------------------------------------------------------
+File                                       Lines    Exec  Cover   Missing
+------------------------------------------------------------------------------
+func.c                                         2       2   100%
+func_a.c                                       2       2   100%
+func_b.c                                       2       2   100%
+------------------------------------------------------------------------------
+TOTAL                                          6       6   100%
+------------------------------------------------------------------------------</code></pre>
+<h2 data-number="6.3" id="個別テスト結果-results.log-の内容例"><span class="header-section-number">6.3</span> 個別テスト結果 (results.log) の内容例</h2>
+<pre class="text"><code>Running test: subfolder_sampleTest.test_func on bin/subfolder-sampleTest
+----
+## テスト項目
+
+### 状態
+
+### 手順
+
+- func() を呼び出す。
+
+### 確認内容 (1)
+
+- func() から 0 が返されること。
+----
+TEST_F(subfolder_sampleTest, test_func)
+{
+    // Arrange
+
+    // Pre-Assert
+
+    // Act
+    int rtc = func(); // [手順] - func() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(0, rtc); // [確認] - func() から 0 が返されること。
+}
+----
+./bin/subfolder-sampleTest --gtest_filter=subfolder_sampleTest.test_func
+Running main() from .../gtest_main.cc
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from subfolder_sampleTest
+[ RUN      ] subfolder_sampleTest.test_func
+[       OK ] subfolder_sampleTest.test_func (0 ms)
+[----------] 1 test from subfolder_sampleTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.</code></pre>
+<h2 data-number="6.4" id="カバレッジファイル-.gcov.txt-の内容例"><span class="header-section-number">6.4</span> カバレッジファイル (*.gcov.txt) の内容例</h2>
+<pre class="text"><code>        -:    0:Source:func.c
+        -:    0:Graph:.../obj/func.gcno
+        -:    0:Data:.../obj/func.gcda
+        -:    0:Runs:1
+        -:    0:Programs:1
+        -:    1:#include &lt;subfolder-sample.h&gt;
+        -:    2:
+        1:    3:SUBFOLDER_SAMPLE_API int WINAPI func(void)
+        -:    4:{
+        1:    5:    return 0;
+        -:    6:}</code></pre>
+<p>各行の先頭の数字は実行回数を示します:<br />
+- <code>-</code>: 実行対象外の行 (コメント、空行など)<br />
+- <code>1</code> 以上: 実行された回数</p>
+<h1 data-number="7" id="サブディレクトリ対応のベストプラクティス"><span class="header-section-number">7</span> サブディレクトリ対応のベストプラクティス</h1>
+<h2 data-number="7.1" id="makefile-の配置"><span class="header-section-number">7.1</span> 1. makefile の配置</h2>
+<p>各サブディレクトリに makefile を配置します。内容は標準テンプレートをそのまま使用します。</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="dt">find-up</span> <span class="ch">=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="st">/</span><span class="ch">$(</span><span class="dt">2</span><span class="ch">))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="st">\</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="st">        </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="kw">filter</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %/</span><span class="kw">,</span><span class="st">%</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">))))</span><span class="kw">,,</span><span class="st">\</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="st">            </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %/</span><span class="kw">,</span><span class="st">%</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">2</span><span class="ch">))</span><span class="st">\</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="st">        </span><span class="ch">)</span><span class="st">\</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">)</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="dt">WORKSPACE_FOLDER</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">strip</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">)</span><span class="kw">,</span><span class="st">.workspaceRoot</span><span class="ch">))</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/prepare.mk</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makemain.mk</span></code></pre></div>
+<h2 data-number="7.2" id="makechild.mk-での-no_link-設定"><span class="header-section-number">7.2</span> 2. makechild.mk での NO_LINK 設定</h2>
+<p>リンクを行う起点ディレクトリに <code>makechild.mk</code> を配置し、<code>NO_LINK = 1</code> を定義します。<br />
+これにより、すべてのサブディレクトリに自動的に適用されます。</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="dt">NO_LINK</span> <span class="ch">=</span><span class="st"> 1</span></span></code></pre></div>
+<p>テストの場合は、各サブディレクトリの <code>makelocal.mk</code> で <code>TEST_SRCS</code> を設定します。</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TEST_SRCS</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/.../subfolder_a/func_a.c</span></span></code></pre></div>
+<h2 data-number="7.3" id="test_srcs-の重複回避"><span class="header-section-number">7.3</span> 3. TEST_SRCS の重複回避</h2>
+<p>テストでは、親ディレクトリとサブディレクトリで <code>TEST_SRCS</code> が重複しないように注意してください。重複すると、同じソースファイルが複数回コンパイルされ、リンクエラーが発生します。</p>
+<h2 data-number="7.4" id="ヘッダーファイルの参照"><span class="header-section-number">7.4</span> 4. ヘッダーファイルの参照</h2>
+<p>サブディレクトリから親ディレクトリのヘッダーファイルを参照する場合は、相対パスを使用します。</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../sample-app.h&quot;</span></span></code></pre></div>
+<p>または、<code>makepart.mk</code> で <code>INCDIR</code> を設定します。</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="dt">INCDIR</span> <span class="ch">+=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/prod/subfolder-sample/src/sample-app</span></span></code></pre></div>
+<h1 data-number="8" id="まとめ"><span class="header-section-number">8</span> まとめ</h1>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>観点</th>
+<th>設定ファイル</th>
+<th>設定</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ライブラリ</td>
+<td>起点の <code>makechild.mk</code></td>
+<td><code>NO_LINK = 1</code></td>
+<td>サブディレクトリではコンパイルのみ、起点でリンク</td>
+</tr>
+<tr>
+<td>コマンド</td>
+<td>起点の <code>makechild.mk</code></td>
+<td><code>NO_LINK = 1</code></td>
+<td>サブディレクトリではコンパイルのみ、起点でリンク</td>
+</tr>
+<tr>
+<td>テスト</td>
+<td>起点の <code>makechild.mk</code></td>
+<td><code>NO_LINK = 1</code></td>
+<td>サブディレクトリではコンパイルのみ、起点でリンク</td>
+</tr>
+<tr>
+<td>テスト</td>
+<td>各サブの <code>makelocal.mk</code></td>
+<td><code>TEST_SRCS</code></td>
+<td>サブディレクトリごとにテスト対象を指定</td>
+</tr>
+<tr>
+<td>テストレポート</td>
+<td>-</td>
+<td><code>results/</code></td>
+<td>個別テスト結果と全体カバレッジを出力</td>
+</tr>
+</tbody>
+</table>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

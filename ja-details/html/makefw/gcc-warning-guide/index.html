@@ -1,0 +1,392 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>gcc 警告オプション運用ガイド</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">gcc 警告オプション運用ガイド</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Mon, 2 Mar 2026 07:07:40 +0900 a2acfde</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#目的" id="toc-目的"><span class="toc-section-number">1</span> 目的</a></li>
+                <li><a href="#基本方針" id="toc-基本方針"><span class="toc-section-number">2</span> 基本方針</a></li>
+                <li><a href="#推奨警告セット" id="toc-推奨警告セット"><span class="toc-section-number">3</span> 推奨警告セット</a>
+                <ul>
+                <li><a href="#base-警告-言語共通" id="toc-base-警告-言語共通"><span class="toc-section-number">3.1</span> Base 警告 (言語共通)</a></li>
+                <li><a href="#c-専用警告" id="toc-c-専用警告"><span class="toc-section-number">3.2</span> C 専用警告</a></li>
+                <li><a href="#makefile-例" id="toc-makefile-例"><span class="toc-section-number">3.3</span> makefile 例</a></li>
+                </ul></li>
+                <li><a href="#構造体レイアウト固定-io-に関する指針" id="toc-構造体レイアウト固定-io-に関する指針"><span class="toc-section-number">4</span> 構造体レイアウト固定 (I/O) に関する指針</a></li>
+                <li><a href="#付録-a-各警告の概要" id="toc-付録-a-各警告の概要"><span class="toc-section-number">5</span> 付録 A: 各警告の概要</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>gcc 警告オプション運用ガイド</H1>
+      
+      
+      <h1 data-number="1" id="目的"><span class="header-section-number">1</span> 目的</h1>
+<p>本ガイドは、gcc の警告を品質ゲートとして活用し、<br />
+EL8 (gcc8) と EL10 (gcc14) の両環境でビルドを破綻させずに<br />
+ロバストな C / C++ プログラミングを行うことを目的としています。</p>
+<p>特に以下を重視しています。</p>
+<ul>
+<li>移植時に顕在化しやすい未定義動作や API 設計ミスの早期検出</li>
+<li>コンパイラ世代差 (gcc8 ↔︎ gcc14) による警告増減への耐性</li>
+<li>メモリレイアウトをそのままファイル I/O に用いる要件への対応<br />
+(暗黙パディング検出は必須です)</li>
+</ul>
+<h1 data-number="2" id="基本方針"><span class="header-section-number">2</span> 基本方針</h1>
+<ul>
+<li>-Wall -Wextra を基礎とし、バグに直結しやすい警告のみを厳選して追加します</li>
+<li>C と C++ で意味の異なる警告は必ず分離します</li>
+<li>警告を抑制するための指定 (=0, -Wno-*) は原則使いません</li>
+<li>gcc14 で warning → error に昇格した項目に依存しないコードを書きます</li>
+</ul>
+<h1 data-number="3" id="推奨警告セット"><span class="header-section-number">3</span> 推奨警告セット</h1>
+<h2 data-number="3.1" id="base-警告-言語共通"><span class="header-section-number">3.1</span> Base 警告 (言語共通)</h2>
+<pre class="text"><code>-Wall -Wextra
+-Wformat=2
+-Wshadow
+-Wundef
+-Wpointer-arith
+-Wcast-qual
+-Wcast-align
+-Wswitch-enum
+-Wswitch-default
+-Wpacked
+-Wpadded
+-Wunknown-pragmas</code></pre>
+<h2 data-number="3.2" id="c-専用警告"><span class="header-section-number">3.2</span> C 専用警告</h2>
+<pre class="text"><code>-Wmissing-prototypes
+-Wstrict-prototypes
+-Wmissing-declarations</code></pre>
+<h2 data-number="3.3" id="makefile-例"><span class="header-section-number">3.3</span> makefile 例</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">WARN_BASE</span> <span class="ch">=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wall -Wextra </span><span class="ch">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wformat=2 </span><span class="ch">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wshadow -Wundef </span><span class="ch">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wpointer-arith -Wcast-qual -Wcast-align </span><span class="ch">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wswitch-enum -Wswitch-default </span><span class="ch">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wpacked -Wpadded </span><span class="ch">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wunknown-pragmas</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="dt">WARN_C_ONLY</span> <span class="ch">=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wmissing-prototypes </span><span class="ch">\</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wstrict-prototypes </span><span class="ch">\</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="st">    -Wmissing-declarations</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="dt">CFLAGS</span>   <span class="ch">+=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WARN_BASE</span><span class="ch">)</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WARN_C_ONLY</span><span class="ch">)</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="dt">CXXFLAGS</span> <span class="ch">+=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">WARN_BASE</span><span class="ch">)</span></span></code></pre></div>
+<h1 data-number="4" id="構造体レイアウト固定-io-に関する指針"><span class="header-section-number">4</span> 構造体レイアウト固定 (I/O) に関する指針</h1>
+<ul>
+<li>ファイル I/O 用構造体は用途専用に分離します</li>
+<li>フィールドは固定幅整数型のみを使用します</li>
+<li>sizeof と offsetof を static_assert で固定化します</li>
+<li>packed 構造体は memcpy 専用とし、直接アクセスを避けます</li>
+</ul>
+<h1 data-number="5" id="付録-a-各警告の概要"><span class="header-section-number">5</span> 付録 A: 各警告の概要</h1>
+<ul>
+<li><p>-Wall<br />
+一般的に有用とされる基本警告群です。</p></li>
+<li><p>-Wextra<br />
+-Wall に含まれない追加警告です。</p></li>
+<li><p>-Wformat=2<br />
+printf 系フォーマット不整合を厳密に検出します。</p></li>
+<li><p>-Wshadow<br />
+変数の意図しない隠蔽を検出します。</p></li>
+<li><p>-Wundef<br />
+未定義マクロ使用を検出します。</p></li>
+<li><p>-Wpointer-arith<br />
+非標準なポインタ演算を検出します。</p></li>
+<li><p>-Wcast-qual<br />
+const / volatile 除去キャストを検出します。</p></li>
+<li><p>-Wcast-align<br />
+アラインメント破壊の可能性を検出します。</p></li>
+<li><p>-Wswitch-enum<br />
+enum の未処理列挙子を検出します。</p></li>
+<li><p>-Wswitch-default<br />
+default 節の無い switch を検出します。</p></li>
+<li><p>-Wpacked<br />
+packed 指定による危険なレイアウトを検出します。</p></li>
+<li><p>-Wpadded<br />
+暗黙パディングの発生を検出します。</p></li>
+<li><p>-Wunknown-pragmas<br />
+未対応 pragma を検出します。</p></li>
+<li><p>-Wmissing-prototypes (C)<br />
+非 static 関数の未宣言を検出します。</p></li>
+<li><p>-Wstrict-prototypes (C)<br />
+古い関数宣言形式を検出します。</p></li>
+<li><p>-Wmissing-declarations (C)<br />
+ヘッダ未宣言のグローバル関数を検出します。</p></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>.NET テスト用 results 生成機能 設計書</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">.NET テスト用 results 生成機能 設計書</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Tue, 17 Feb 2026 08:55:13 +0900 9129721</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a>
+                <ul>
+                <li><a href="#目的" id="toc-目的"><span class="toc-section-number">1.1</span> 目的</a></li>
+                </ul></li>
+                <li><a href="#現状の仕組み" id="toc-現状の仕組み"><span class="toc-section-number">2</span> 現状の仕組み</a>
+                <ul>
+                <li><a href="#c-テストフレームワーク-testfw" id="toc-c-テストフレームワーク-testfw"><span class="toc-section-number">2.1</span> C テストフレームワーク (testfw)</a></li>
+                <li><a href="#現在の-.net-テスト" id="toc-現在の-.net-テスト"><span class="toc-section-number">2.2</span> 現在の .NET テスト</a></li>
+                </ul></li>
+                <li><a href="#設計" id="toc-設計"><span class="toc-section-number">3</span> 設計</a>
+                <ul>
+                <li><a href="#要件" id="toc-要件"><span class="toc-section-number">3.1</span> 要件</a></li>
+                <li><a href="#ディレクトリ構造" id="toc-ディレクトリ構造"><span class="toc-section-number">3.2</span> ディレクトリ構造</a></li>
+                <li><a href="#results.log-の内容" id="toc-results.log-の内容"><span class="toc-section-number">3.3</span> results.log の内容</a></li>
+                </ul></li>
+                <li><a href="#実装方針" id="toc-実装方針"><span class="toc-section-number">4</span> 実装方針</a>
+                <ul>
+                <li><a href="#テストコード抽出スクリプト" id="toc-テストコード抽出スクリプト"><span class="toc-section-number">4.1</span> 1. テストコード抽出スクリプト</a></li>
+                <li><a href="#サマリ生成スクリプト" id="toc-サマリ生成スクリプト"><span class="toc-section-number">4.2</span> 2. サマリ生成スクリプト</a></li>
+                <li><a href="#exec_test_dotnet.sh-の拡張" id="toc-exec_test_dotnet.sh-の拡張"><span class="toc-section-number">4.3</span> 3. exec_test_dotnet.sh の拡張</a></li>
+                </ul></li>
+                <li><a href="#実現性評価" id="toc-実現性評価"><span class="toc-section-number">5</span> 実現性評価</a>
+                <ul>
+                <li><a href="#技術的な検証結果" id="toc-技術的な検証結果"><span class="toc-section-number">5.1</span> 技術的な検証結果</a>
+                <ul>
+                <li><a href="#python-スクリプトの動作検証" id="toc-python-スクリプトの動作検証"><span class="toc-section-number">5.1.1</span> 1. Python スクリプトの動作検証</a></li>
+                <li><a href="#dotnet-test-の個別実行検証" id="toc-dotnet-test-の個別実行検証"><span class="toc-section-number">5.1.2</span> 2. dotnet test の個別実行検証</a></li>
+                <li><a href="#既存テストコードの適合性" id="toc-既存テストコードの適合性"><span class="toc-section-number">5.1.3</span> 3. 既存テストコードの適合性</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#技術的な課題と対策" id="toc-技術的な課題と対策"><span class="toc-section-number">6</span> 技術的な課題と対策</a>
+                <ul>
+                <li><a href="#課題1-.net-テストの実行方式" id="toc-課題1-.net-テストの実行方式"><span class="toc-section-number">6.1</span> 課題1: .NET テストの実行方式</a></li>
+                <li><a href="#課題2-theoryinlinedata-のパラメータテスト" id="toc-課題2-theoryinlinedata-のパラメータテスト"><span class="toc-section-number">6.2</span> 課題2: Theory/InlineData のパラメータテスト</a></li>
+                <li><a href="#課題3-テストファイルの検出" id="toc-課題3-テストファイルの検出"><span class="toc-section-number">6.3</span> 課題3: テストファイルの検出</a></li>
+                <li><a href="#課題4-名前空間の扱い" id="toc-課題4-名前空間の扱い"><span class="toc-section-number">6.4</span> 課題4: 名前空間の扱い</a></li>
+                <li><a href="#課題5-言語の違い-c-vs-cc" id="toc-課題5-言語の違い-c-vs-cc"><span class="toc-section-number">6.5</span> 課題5: 言語の違い (C# vs C/C++)</a></li>
+                </ul></li>
+                <li><a href="#リスクと緩和策" id="toc-リスクと緩和策"><span class="toc-section-number">7</span> リスクと緩和策</a></li>
+                <li><a href="#改善提案" id="toc-改善提案"><span class="toc-section-number">8</span> 改善提案</a>
+                <ul>
+                <li><a href="#get_test_code_dotnet.py-の改善" id="toc-get_test_code_dotnet.py-の改善"><span class="toc-section-number">8.1</span> 1. get_test_code_dotnet.py の改善</a></li>
+                <li><a href="#exec_test_dotnet.sh-のアーキテクチャ" id="toc-exec_test_dotnet.sh-のアーキテクチャ"><span class="toc-section-number">8.2</span> 2. exec_test_dotnet.sh のアーキテクチャ</a></li>
+                <li><a href="#ディレクトリ構造の明確化" id="toc-ディレクトリ構造の明確化"><span class="toc-section-number">8.3</span> 3. ディレクトリ構造の明確化</a></li>
+                </ul></li>
+                <li><a href="#実装ステップ" id="toc-実装ステップ"><span class="toc-section-number">9</span> 実装ステップ</a></li>
+                <li><a href="#参考" id="toc-参考"><span class="toc-section-number">10</span> 参考</a>
+                <ul>
+                <li><a href="#c-テストフレームワークの関連ファイル" id="toc-c-テストフレームワークの関連ファイル"><span class="toc-section-number">10.1</span> C テストフレームワークの関連ファイル</a></li>
+                <li><a href="#net-テストプロジェクト" id="toc-net-テストプロジェクト"><span class="toc-section-number">10.2</span> .NET テストプロジェクト</a></li>
+                <li><a href="#既存のタグ規則" id="toc-既存のタグ規則"><span class="toc-section-number">10.3</span> 既存のタグ規則</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">11</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>.NET テスト用 results 生成機能 設計書</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>C テストフレームワーク (testfw) と同様に、.NET テストプロジェクトでも個別のテストケースごとに詳細な結果ログを生成する機能を設計する。</p>
+<h2 data-number="1.1" id="目的"><span class="header-section-number">1.1</span> 目的</h2>
+<ul>
+<li>テスト項目のサマリ表示 (状態、手順、確認内容)</li>
+<li>テストコードの抜粋表示</li>
+<li>テスト実行結果の記録</li>
+<li>C テストフレームワークとの統一的なユーザー体験</li>
+</ul>
+<h1 data-number="2" id="現状の仕組み"><span class="header-section-number">2</span> 現状の仕組み</h1>
+<h2 data-number="2.1" id="c-テストフレームワーク-testfw"><span class="header-section-number">2.1</span> C テストフレームワーク (testfw)</h2>
+<p>C テストフレームワークは以下の仕組みで results を生成している:</p>
+<ol type="1">
+<li><strong>テストコード抽出</strong> (<code>get_test_code_c_cpp.awk</code>)
+<ul>
+<li>テストファイルから特定のテストケースのコードを抽出</li>
+<li>テストメソッド直前のコメントも含めて抽出</li>
+</ul></li>
+<li><strong>サマリ生成</strong> (<code>insert_summary.awk</code>)
+<ul>
+<li>コード内の特殊タグを検出:
+<ul>
+<li><code>[状態]</code> - テストの前提条件</li>
+<li><code>[手順]</code> - 実行手順</li>
+<li><code>[Pre-Assert手順]</code> - Assert 前の手順</li>
+<li><code>[確認]</code> - Assert による確認内容</li>
+<li><code>[Pre-Assert確認]</code> - Pre-Assert による確認</li>
+</ul></li>
+<li>マークダウン形式のサマリを生成</li>
+</ul></li>
+<li><strong>テスト実行とログ生成</strong> (<code>exec_test_c_cpp.sh</code>)
+<ul>
+<li>各テストを個別に実行</li>
+<li><code>results/&lt;test_id&gt;/results.log</code> に以下を出力:
+<ul>
+<li>テスト項目サマリ (Markdown)</li>
+<li>テストコード</li>
+<li>テスト実行結果</li>
+</ul></li>
+<li><code>results/all_tests/summary.log</code> に全体サマリを出力</li>
+</ul></li>
+</ol>
+<h2 data-number="2.2" id="現在の-.net-テスト"><span class="header-section-number">2.2</span> 現在の .NET テスト</h2>
+<p><code>exec_test_dotnet.sh</code> は以下の機能を提供:</p>
+<ul>
+<li><code>dotnet test</code> の一括実行 (TRX ロガーによる結果収集)</li>
+<li>TRX XML のパースによるテストごとの Passed/Failed 判定</li>
+<li>バッチ出力からの個別テスト結果抽出</li>
+<li><code>results/&lt;TestClass&gt;.&lt;TestMethod&gt;/results.log</code> への個別ログ生成</li>
+<li><code>results/all_tests/summary.log</code> への全体サマリ出力</li>
+</ul>
+<h1 data-number="3" id="設計"><span class="header-section-number">3</span> 設計</h1>
+<h2 data-number="3.1" id="要件"><span class="header-section-number">3.1</span> 要件</h2>
+<ol type="1">
+<li>C テストフレームワークと同様の results ディレクトリ構造</li>
+<li>個別テストごとの results.log 生成</li>
+<li>テストコード内の <code>[手順]</code>、<code>[確認]</code> などのタグによるサマリ生成</li>
+<li>xUnit の [Theory]/[InlineData] によるパラメータテストへの対応</li>
+</ol>
+<h2 data-number="3.2" id="ディレクトリ構造"><span class="header-section-number">3.2</span> ディレクトリ構造</h2>
+<pre><code>test/src/calc.net/CalcLib.Tests/
+├── results/
+│   ├── all_tests/
+│   │   └── summary.log                 # 全体サマリ
+│   ├── CalcLibraryTests.Add_ShouldReturnCorrectResult/
+│   │   ├── results.log                  # データセット全体のログ
+│   │   ├── a_10_b_20_expected_30.log   # 個別パラメータのログ (オプション)
+│   │   ├── a_-5_b_5_expected_0.log
+│   │   └── ...
+│   ├── CalcLibraryTests.Divide_ByZero_ShouldReturnError/
+│   │   └── results.log
+│   └── ...</code></pre>
+<p><strong>注記</strong>: Theory テストの個別パラメータログは、必要に応じて実装する。</p>
+<h2 data-number="3.3" id="results.log-の内容"><span class="header-section-number">3.3</span> results.log の内容</h2>
+<pre><code>Running test: CalcLibraryTests.Add_ShouldReturnCorrectResult
+----
+## テスト項目
+
+### 状態
+
+### 手順
+
+- CalcLibrary.Add(a, b) を呼び出す。
+
+### 確認内容 (3)
+
+- 結果が成功であること。
+- 期待値と一致すること。
+- エラーコードが 0 であること。
+----
+[Theory]
+[InlineData(10, 20, 30)]
+[InlineData(-5, 5, 0)]
+[InlineData(0, 0, 0)]
+[InlineData(100, -50, 50)]
+[InlineData(-10, -20, -30)]
+public void Add_ShouldReturnCorrectResult(int a, int b, int expected)
+{
+    var result = CalcLibrary.Add(a, b); // [手順] - CalcLibrary.Add(a, b) を呼び出す。
+
+    Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。
+    Assert.Equal(expected, result.Value); // [確認] - 期待値と一致すること。
+    Assert.Equal(0, result.ErrorCode); // [確認] - エラーコードが 0 であること。
+}
+----
+dotnet test --filter &quot;FullyQualifiedName=CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult&quot;
+
+  成功 CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: 10, b: 20, expected: 30) [2 ms]
+  成功 CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: -5, b: 5, expected: 0) [&lt; 1 ms]
+  成功 CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: 0, b: 0, expected: 0) [&lt; 1 ms]
+  成功 CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: 100, b: -50, expected: 50) [&lt; 1 ms]
+  成功 CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: -10, b: -20, expected: -30) [&lt; 1 ms]
+
+テストの実行に成功しました。
+テストの合計数: 5
+     成功: 5</code></pre>
+<h1 data-number="4" id="実装方針"><span class="header-section-number">4</span> 実装方針</h1>
+<h2 data-number="4.1" id="テストコード抽出スクリプト"><span class="header-section-number">4.1</span> 1. テストコード抽出スクリプト</h2>
+<p><strong>ファイル名</strong>: <code>testfw/cmnd/get_test_code_dotnet.py</code></p>
+<p><strong>機能</strong>:<br />
+- .NET テストファイル (.cs) から特定のテストメソッドを抽出<br />
+- メソッド直前の XML コメントや通常のコメントを含める<br />
+- xUnit の属性 ([Fact], [Theory], [InlineData]) を含める</p>
+<p><strong>入力</strong>:<br />
+- テストファイルパス (.cs)<br />
+- テストクラス名<br />
+- テストメソッド名</p>
+<p><strong>出力</strong>:<br />
+- 抽出されたテストコード (標準出力)</p>
+<p><strong>実装例</strong>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env python3</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_test_code(file_path, class_name, method_name):</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">    .NET テストファイルからテストメソッドを抽出する</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">        file_path: テストファイルのパス</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">        class_name: テストクラス名</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">        method_name: テストメソッド名</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(file_path, <span class="st">&#39;r&#39;</span>, encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        lines <span class="op">=</span> f.readlines()</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># クラス内部のフラグ</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    in_class <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># メソッド検出フラグ</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    in_method <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 括弧のカウント</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    brace_count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># バッファ (コメント用)</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="bu">buffer</span> <span class="op">=</span> []</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 出力フラグ</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    output_started <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> lines:</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># クラス定義を検出</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> re.search(<span class="vs">rf&#39;class</span><span class="dv">\s</span><span class="op">+</span><span class="sc">{</span>re<span class="sc">.</span>escape(class_name)<span class="sc">}</span><span class="dv">\s</span><span class="op">*</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>            in_class <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> in_class:</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># コメント行をバッファに追加</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="kw">(</span><span class="vs">//</span><span class="cf">|</span><span class="vs">/</span><span class="ch">\*</span><span class="cf">|</span><span class="ch">\*</span><span class="kw">)</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>            <span class="bu">buffer</span>.append(line)</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 空行でバッファをクリア (メソッド検出前のみ)</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="dv">$</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="kw">not</span> in_method:</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>                <span class="bu">buffer</span> <span class="op">=</span> []</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 属性行をバッファに追加</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="ch">\[</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>            <span class="bu">buffer</span>.append(line)</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>        <span class="co"># メソッド定義を検出</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> re.search(<span class="vs">rf&#39;</span><span class="dv">\s</span><span class="op">+</span><span class="sc">{</span>re<span class="sc">.</span>escape(method_name)<span class="sc">}</span><span class="dv">\s</span><span class="op">*</span><span class="ch">\(</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>            in_method <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>            output_started <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>            <span class="co"># バッファの内容を出力</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> buf_line <span class="kw">in</span> <span class="bu">buffer</span>:</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>                sys.stdout.write(buf_line)</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>            <span class="bu">buffer</span> <span class="op">=</span> []</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>            sys.stdout.write(line)</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>            brace_count <span class="op">+=</span> line.count(<span class="st">&#39;{&#39;</span>) <span class="op">-</span> line.count(<span class="st">&#39;}&#39;</span>)</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>        <span class="co"># メソッド内の処理</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> in_method:</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>            sys.stdout.write(line)</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>            brace_count <span class="op">+=</span> line.count(<span class="st">&#39;{&#39;</span>) <span class="op">-</span> line.count(<span class="st">&#39;}&#39;</span>)</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>            <span class="co"># メソッド終了を検出</span></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> brace_count <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>            <span class="co"># メソッド外はバッファをクリア</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>            <span class="bu">buffer</span> <span class="op">=</span> []</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> output_started:</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Error: Test method &#39;</span><span class="sc">{</span>class_name<span class="sc">}</span><span class="ss">.</span><span class="sc">{</span>method_name<span class="sc">}</span><span class="ss">&#39; not found.&quot;</span>, <span class="bu">file</span><span class="op">=</span>sys.stderr)</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>        sys.exit(<span class="dv">1</span>)</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(sys.argv) <span class="op">!=</span> <span class="dv">4</span>:</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Usage: get_test_code_dotnet.py &lt;file_path&gt; &lt;class_name&gt; &lt;method_name&gt;&quot;</span>, <span class="bu">file</span><span class="op">=</span>sys.stderr)</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>        sys.exit(<span class="dv">1</span>)</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>    extract_test_code(sys.argv[<span class="dv">1</span>], sys.argv[<span class="dv">2</span>], sys.argv[<span class="dv">3</span>])</span></code></pre></div>
+<h2 data-number="4.2" id="サマリ生成スクリプト"><span class="header-section-number">4.2</span> 2. サマリ生成スクリプト</h2>
+<p><strong>ファイル名</strong>: <code>testfw/cmnd/insert_summary_dotnet.py</code></p>
+<p><strong>機能</strong>:<br />
+- <code>insert_summary.awk</code> の Python 移植<br />
+- コード内の <code>[状態]</code>、<code>[手順]</code>、<code>[確認]</code> などのタグを検出<br />
+- マークダウン形式のサマリを生成</p>
+<p><strong>入力</strong>:<br />
+- テストコード (標準入力)</p>
+<p><strong>出力</strong>:<br />
+- サマリ付きテストコード (標準出力)</p>
+<p><strong>実装例</strong>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env python3</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> trim(s):</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;先頭の空白1つと末尾の空白群を削除&quot;&quot;&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> re.sub(<span class="vs">r&#39;</span><span class="dv">^</span><span class="vs"> &#39;</span>, <span class="st">&#39;&#39;</span>, s, count<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> re.sub(<span class="vs">r&#39;</span><span class="pp">[ </span><span class="ch">\t</span><span class="pp">]</span><span class="op">+</span><span class="dv">$</span><span class="vs">&#39;</span>, <span class="st">&#39;&#39;</span>, s)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> s</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> is_list_item(s):</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;リスト項目かどうかを判定&quot;&quot;&quot;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">bool</span>(re.match(<span class="vs">r&#39;</span><span class="dv">^</span><span class="pp">[-*+]</span><span class="cf">|</span><span class="dv">^</span><span class="pp">[0-9]</span><span class="op">+</span><span class="ch">\.</span><span class="vs">&#39;</span>, s))</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> insert_summary():</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;標準入力からテストコードを読み込み、サマリを挿入して標準出力&quot;&quot;&quot;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    lines <span class="op">=</span> sys.stdin.readlines()</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># カテゴリ別の配列</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    state <span class="op">=</span> []</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    act <span class="op">=</span> []</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    pre_step <span class="op">=</span> []</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    pre_chk <span class="op">=</span> []</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    asrt_chk <span class="op">=</span> []</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    check_count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 各行を解析してタグを検出</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> lines:</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># [状態]</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>        match <span class="op">=</span> re.search(<span class="vs">r&#39;</span><span class="ch">\[</span><span class="vs">状態</span><span class="ch">\]</span><span class="vs">&#39;</span>, line)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> match:</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> trim(line[match.end():])</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> s:</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>                state.append(s)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># [手順]</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        match <span class="op">=</span> re.search(<span class="vs">r&#39;</span><span class="ch">\[</span><span class="vs">手順</span><span class="ch">\]</span><span class="vs">&#39;</span>, line)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> match:</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> trim(line[match.end():])</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> s:</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>                act.append(s)</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>        <span class="co"># [Pre-Assert手順]</span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>        match <span class="op">=</span> re.search(<span class="vs">r&#39;</span><span class="ch">\[</span><span class="vs">Pre-Assert手順</span><span class="ch">\]</span><span class="vs">&#39;</span>, line)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> match:</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> trim(line[match.end():])</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> s:</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>                pre_step.append(s)</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>        <span class="co"># [Pre-Assert確認]</span></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>        match <span class="op">=</span> re.search(<span class="vs">r&#39;</span><span class="ch">\[</span><span class="vs">Pre-Assert確認</span><span class="ch">\]</span><span class="vs">&#39;</span>, line)</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> match:</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> trim(line[match.end():])</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> s:</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>                pre_chk.append(s)</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> is_list_item(s):</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>                    check_count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>        <span class="co"># [確認]</span></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>        match <span class="op">=</span> re.search(<span class="vs">r&#39;</span><span class="ch">\[</span><span class="vs">確認</span><span class="ch">\]</span><span class="vs">&#39;</span>, line)</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> match:</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> trim(line[match.end():])</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> s:</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>                asrt_chk.append(s)</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> is_list_item(s):</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>                    check_count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    <span class="co"># サマリ項目が存在するかチェック</span></span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    has_summary <span class="op">=</span> <span class="bu">len</span>(state) <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">or</span> <span class="bu">len</span>(act) <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">or</span> <span class="bu">len</span>(pre_step) <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">or</span> <span class="bu">len</span>(pre_chk) <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">or</span> <span class="bu">len</span>(asrt_chk) <span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>    <span class="co"># サマリを出力</span></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> has_summary:</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;## テスト項目&quot;</span>)</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>        <span class="co"># --- 状態 ---</span></span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">### 状態</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> state:</span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(s)</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>        <span class="co"># --- 手順 ---</span></span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(state) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">### 手順</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">&quot;### 手順</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> act:</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(s)</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> pre_step:</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(s)</span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>        <span class="co"># --- 確認内容 ---</span></span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(act) <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">or</span> <span class="bu">len</span>(pre_step) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\n</span><span class="ss">### 確認内容 (</span><span class="sc">{</span>check_count<span class="sc">}</span><span class="ss">)</span><span class="ch">\n</span><span class="ss">&quot;</span>)</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;### 確認内容 (</span><span class="sc">{</span>check_count<span class="sc">}</span><span class="ss">)</span><span class="ch">\n</span><span class="ss">&quot;</span>)</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> pre_chk:</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(s)</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> asrt_chk:</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(s)</span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;----&quot;</span>)</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 元のコードを出力</span></span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> lines:</span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>        sys.stdout.write(line)</span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>    insert_summary()</span></code></pre></div>
+<h2 data-number="4.3" id="exec_test_dotnet.sh-の拡張"><span class="header-section-number">4.3</span> 3. exec_test_dotnet.sh の拡張</h2>
+<p><strong>機能</strong>:<br />
+- <code>dotnet test --list-tests</code> でテスト一覧を取得<br />
+- <code>dotnet test</code> を1回だけ一括実行 (TRX ロガーで結果を記録)<br />
+- <code>parse_trx_results.py</code> で TRX XML を解析し、テストごとの Passed/Failed を取得<br />
+- <code>extract_dotnet_output.py</code> でバッチ出力から個別テスト結果を抽出<br />
+- <code>get_test_code_dotnet.py</code> と <code>insert_summary_dotnet.py</code> を使用してログ生成<br />
+- <code>results/&lt;TestClass&gt;.&lt;TestMethod&gt;/results.log</code> に出力</p>
+<p><strong>一括実行の流れ</strong>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> list_tests()</span> <span class="kw">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">dotnet</span> test <span class="at">--list-tests</span> <span class="at">--no-build</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$CONFIG</span><span class="st">&quot;</span> <span class="at">-o</span> <span class="st">&quot;</span><span class="va">$OUTPUT_DIR</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">grep</span> <span class="at">-E</span> <span class="st">&#39;^\s+&#39;</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sed</span> <span class="at">-e</span> <span class="st">&#39;s/^[ \t]*//&#39;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> run_all_tests_batch()</span> <span class="kw">{</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. テスト一覧取得 (パラメータ付きテストは重複除去)</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">local</span> <span class="va">tests</span><span class="op">=</span><span class="va">$(</span><span class="ex">list_tests</span> <span class="kw">|</span> <span class="fu">sed</span> <span class="st">&#39;s/(.*//&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-u</span><span class="va">)</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. dotnet test を1回だけ実行 (TRX ロガー付き)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">dotnet</span> test <span class="at">--no-build</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$CONFIG</span><span class="st">&quot;</span> <span class="at">-o</span> <span class="st">&quot;</span><span class="va">$OUTPUT_DIR</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">--verbosity</span> normal <span class="dt">\</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">--logger</span> <span class="st">&quot;trx;LogFileName=results.trx&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">--results-directory</span> <span class="st">&quot;</span><span class="va">$trx_dir</span><span class="st">&quot;</span> <span class="op">&gt;</span> <span class="st">&quot;</span><span class="va">$batch_output</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. TRX を解析してテストごとの結果を取得</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="ex">python3</span> <span class="st">&quot;</span><span class="va">$SCRIPT_DIR</span><span class="st">/parse_trx_results.py&quot;</span> <span class="st">&quot;</span><span class="va">$trx_file</span><span class="st">&quot;</span> <span class="op">&gt;</span> <span class="st">&quot;</span><span class="va">$trx_results</span><span class="st">&quot;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. 各テストについてループ:</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    - テストコード抽出 + サマリ生成</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    - バッチ出力から該当テスト分を抽出</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    - results.log に保存</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> test <span class="kw">in</span> <span class="va">$tests</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ...</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        <span class="ex">python3</span> <span class="st">&quot;</span><span class="va">$SCRIPT_DIR</span><span class="st">/extract_dotnet_output.py&quot;</span> <span class="st">&quot;</span><span class="va">$batch_output</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$test_id</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$test_result</span><span class="st">&quot;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">done</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<p><strong>パフォーマンス改善</strong>:<br />
+- 従来: テストごとに <code>dotnet test --filter</code> を個別起動 (1回あたり約1.7秒のランタイム起動オーバーヘッド)<br />
+- 現在: <code>dotnet test</code> を1回だけ実行し、結果をパースして同一の results 構造を生成</p>
+<h1 data-number="5" id="実現性評価"><span class="header-section-number">5</span> 実現性評価</h1>
+<h2 data-number="5.1" id="技術的な検証結果"><span class="header-section-number">5.1</span> 技術的な検証結果</h2>
+<p>本設計の実現性を検証するため、以下の項目について実装と動作確認を行った。</p>
+<h3 data-number="5.1.1" id="python-スクリプトの動作検証"><span class="header-section-number">5.1.1</span> 1. Python スクリプトの動作検証</h3>
+<p><strong>get_test_code_dotnet.py の検証</strong>:<br />
+- ✅ .NET テストファイルから特定のメソッドを正確に抽出できることを確認<br />
+- ✅ [Theory] 属性と [InlineData] を含めて抽出できることを確認<br />
+- ✅ クラス検出とメソッド検出のロジックが適切に動作することを確認</p>
+<p><strong>insert_summary_dotnet.py の検証</strong>:<br />
+- ✅ <code>[手順]</code> タグから手順を抽出できることを確認<br />
+- ✅ <code>[確認]</code> タグから確認内容を抽出できることを確認<br />
+- ✅ マークダウン形式のサマリが正しく生成されることを確認</p>
+<p><strong>検証コマンド例</strong>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> get_test_code_dotnet.py CalcLibraryTests.cs CalcLibraryTests Add_ShouldReturnCorrectResult <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">python3</span> insert_summary_dotnet.py</span></code></pre></div>
+<h3 data-number="5.1.2" id="dotnet-test-の個別実行検証"><span class="header-section-number">5.1.2</span> 2. dotnet test の個別実行検証</h3>
+<p><strong>検証コマンド</strong>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> test <span class="at">--filter</span> <span class="st">&quot;FullyQualifiedName~CalcLibraryTests.Add_ShouldReturnCorrectResult&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--no-build</span> <span class="at">-c</span> RelWithDebInfo <span class="at">--verbosity</span> normal</span></code></pre></div>
+<p><strong>結果</strong>:<br />
+- ✅ Theory テストの全データセット (5件) を実行できることを確認<br />
+- ✅ フィルター機能が期待通りに動作することを確認<br />
+- ✅ テスト結果が適切に出力されることを確認</p>
+<h3 data-number="5.1.3" id="既存テストコードの適合性"><span class="header-section-number">5.1.3</span> 3. 既存テストコードの適合性</h3>
+<p><strong>検証対象</strong>: <code>test/src/calc.net/CalcLib.Tests/CalcLibraryTests.cs</code></p>
+<p><strong>確認事項</strong>:<br />
+- ✅ <code>[手順]</code> と <code>[確認]</code> のタグが既に適切に記述されている<br />
+- ✅ コメントの書き方が統一されている<br />
+- ✅ 設計書の例と実際のコードが一致している</p>
+<p><strong>結論</strong>: <strong>実現性は非常に高い (95%)</strong>。技術的な障壁はほぼなく、設計通りの実装が可能。</p>
+<h1 data-number="6" id="技術的な課題と対策"><span class="header-section-number">6</span> 技術的な課題と対策</h1>
+<h2 data-number="6.1" id="課題1-.net-テストの実行方式"><span class="header-section-number">6.1</span> 課題1: .NET テストの実行方式</h2>
+<p><strong>課題</strong>: dotnet test で個別のテストケースを実行する方法</p>
+<p><strong>対策 (フェーズ1)</strong>: <code>--filter</code> オプションを使用した個別実行</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> test <span class="at">--filter</span> <span class="st">&quot;FullyQualifiedName~ClassName.MethodName&quot;</span></span></code></pre></div>
+<p><strong>対策 (フェーズ1.5)</strong>: 一括実行 + TRX パースに変更</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> test <span class="at">--no-build</span> <span class="at">--verbosity</span> normal <span class="dt">\</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--logger</span> <span class="st">&quot;trx;LogFileName=results.trx&quot;</span> <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--results-directory</span> <span class="st">&quot;</span><span class="va">$trx_dir</span><span class="st">&quot;</span></span></code></pre></div>
+<p>個別実行では1回あたり約1.7秒のランタイム起動オーバーヘッドが発生するため、<br />
+一括実行方式に変更し、TRX XML のパースで個別テスト結果を取得する。</p>
+<p><strong>検証済み</strong>: ✅ 一括実行で生成される results.log は、合計時間と個別テスト実行時間を除き従来版と同一</p>
+<h2 data-number="6.2" id="課題2-theoryinlinedata-のパラメータテスト"><span class="header-section-number">6.2</span> 課題2: Theory/InlineData のパラメータテスト</h2>
+<p><strong>課題</strong>: Theory テストは複数のデータセットで実行される</p>
+<p><strong>dotnet test –list-tests の出力例</strong>:</p>
+<pre><code>CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: 10, b: 20, expected: 30)
+CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult(a: -5, b: 5, expected: 0)
+...</code></pre>
+<p><strong>対策</strong>:<br />
+- 初期実装では、Theory メソッド全体で1つの results.log を生成<br />
+- パラメータ部分を除去して基本メソッド名を取得: <code>sed 's/(.*//'</code><br />
+- <code>--filter</code> に <code>~</code> (部分一致) を使用して全データセットを実行<br />
+- 将来的には、各データセットごとに個別ログを生成することも検討 (フェーズ2)</p>
+<p><strong>検証済み</strong>: ✅ パラメータ付きテスト名からメソッド名を抽出できる</p>
+<h2 data-number="6.3" id="課題3-テストファイルの検出"><span class="header-section-number">6.3</span> 課題3: テストファイルの検出</h2>
+<p><strong>課題</strong>: テストクラス名からテストファイルのパスを特定する必要がある</p>
+<p><strong>対策</strong>:<br />
+- <code>find</code> コマンドで .cs ファイルを検索<br />
+- 命名規則 (ClassName.cs) に従っていることを前提</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="va">test_file</span><span class="op">=</span><span class="va">$(</span><span class="fu">find</span> . <span class="at">-name</span> <span class="st">&quot;</span><span class="va">${class_name}</span><span class="st">.cs&quot;</span> <span class="at">-type</span> f <span class="kw">|</span> <span class="fu">head</span> <span class="at">-1</span><span class="va">)</span></span></code></pre></div>
+<p><strong>検証済み</strong>: ✅ CalcLibraryTests.cs はこの規則に従っている</p>
+<h2 data-number="6.4" id="課題4-名前空間の扱い"><span class="header-section-number">6.4</span> 課題4: 名前空間の扱い</h2>
+<p><strong>課題</strong>: 完全修飾名から名前空間、クラス名、メソッド名を分離する</p>
+<p><strong>完全修飾名の例</strong>: <code>CalcLib.Tests.CalcLibraryTests.Add_ShouldReturnCorrectResult</code><br />
+- 名前空間: <code>CalcLib.Tests</code><br />
+- クラス名: <code>CalcLibraryTests</code><br />
+- メソッド名: <code>Add_ShouldReturnCorrectResult</code></p>
+<p><strong>対策</strong>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="va">namespace_and_class</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${fully_qualified_name</span><span class="op">%</span>.<span class="pp">*</span><span class="va">}</span><span class="st">&quot;</span>   <span class="co"># 最後の &#39;.&#39; より前</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="va">method_name</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${fully_qualified_name</span><span class="op">##</span><span class="pp">*</span>.<span class="va">}</span><span class="st">&quot;</span>          <span class="co"># 最後の &#39;.&#39; より後</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="va">class_name</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${namespace_and_class</span><span class="op">##</span><span class="pp">*</span>.<span class="va">}</span><span class="st">&quot;</span>            <span class="co"># 最後の &#39;.&#39; より後</span></span></code></pre></div>
+<p><strong>検証済み</strong>: ✅ bash の文字列操作で適切に分離できる</p>
+<h2 data-number="6.5" id="課題5-言語の違い-c-vs-cc"><span class="header-section-number">6.5</span> 課題5: 言語の違い (C# vs C/C++)</h2>
+<p><strong>課題</strong>: C# と C/C++ では構文が異なる</p>
+<p><strong>C# 特有の要素</strong>:<br />
+- XML ドキュメントコメント (<code>///</code>)<br />
+- 属性 (<code>[Fact]</code>, <code>[Theory]</code>, <code>[InlineData]</code>)<br />
+- <code>#region</code> / <code>#endregion</code><br />
+- <code>#pragma warning</code></p>
+<p><strong>対策</strong>:<br />
+- Python スクリプトで C# の構文に対応したパーサーを実装<br />
+- 正規表現で属性 ([Fact], [Theory]) やメソッド定義を検出<br />
+- XML コメント (<code>///</code>) のサポートを追加</p>
+<p><strong>改善点</strong>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="kw">(</span><span class="vs">//</span><span class="cf">|</span><span class="vs">/</span><span class="ch">\*</span><span class="cf">|</span><span class="ch">\*</span><span class="cf">|</span><span class="vs">///</span><span class="kw">)</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">buffer</span>.append(line)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">continue</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="vs">#pragma&#39;</span>, line):</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> in_method:</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="bu">buffer</span>.append(line)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">continue</span></span></code></pre></div>
+<h1 data-number="7" id="リスクと緩和策"><span class="header-section-number">7</span> リスクと緩和策</h1>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr>
+<th>リスク</th>
+<th>影響</th>
+<th>確率</th>
+<th>緩和策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Theory テストの扱いが複雑</td>
+<td>中</td>
+<td>低</td>
+<td>フェーズ1では全データセットを1ログに集約</td>
+</tr>
+<tr>
+<td>テストファイル検出の失敗</td>
+<td>中</td>
+<td>低</td>
+<td>find コマンドでの検索 + エラーハンドリング</td>
+</tr>
+<tr>
+<td>.NET のバージョン差異</td>
+<td>低</td>
+<td>低</td>
+<td>.NET 9.0 で動作確認済み</td>
+</tr>
+<tr>
+<td>カバレッジツールとの統合</td>
+<td>高</td>
+<td>中</td>
+<td>フェーズ1では除外、フェーズ2で検討</td>
+</tr>
+<tr>
+<td>既存の exec_test_dotnet.sh の破壊</td>
+<td>高</td>
+<td>低</td>
+<td>従来版との results 差分検証で同一性を確認</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="8" id="改善提案"><span class="header-section-number">8</span> 改善提案</h1>
+<h2 data-number="8.1" id="get_test_code_dotnet.py-の改善"><span class="header-section-number">8.1</span> 1. get_test_code_dotnet.py の改善</h2>
+<p>設計書の実装例に以下の改善を提案:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="kw">(</span><span class="vs">//</span><span class="cf">|</span><span class="vs">/</span><span class="ch">\*</span><span class="cf">|</span><span class="ch">\*</span><span class="cf">|</span><span class="vs">///</span><span class="kw">)</span><span class="vs">&#39;</span>, line):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">buffer</span>.append(line)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">continue</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> re.match(<span class="vs">r&#39;</span><span class="dv">^\s</span><span class="op">*</span><span class="vs">#pragma&#39;</span>, line):</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> in_method:</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="bu">buffer</span>.append(line)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">continue</span></span></code></pre></div>
+<h2 data-number="8.2" id="exec_test_dotnet.sh-のアーキテクチャ"><span class="header-section-number">8.2</span> 2. exec_test_dotnet.sh のアーキテクチャ</h2>
+<p>一括実行方式を採用:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> run_all_tests_batch()</span> <span class="kw">{</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. テスト一覧取得</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. dotnet test を1回だけ一括実行 (TRX ロガー付き)</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. parse_trx_results.py で TRX を解析</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. 各テストについて:</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    - テストコード抽出 + サマリ生成</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    - extract_dotnet_output.py でバッチ出力から該当テスト分を抽出</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    - results.log に保存</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 5. サマリ表示 + バナー</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<h2 data-number="8.3" id="ディレクトリ構造の明確化"><span class="header-section-number">8.3</span> 3. ディレクトリ構造の明確化</h2>
+<pre><code>results/
+├── all_tests/
+│   └── summary.log           # 全体サマリ (SUCCESS/FAILURE 集計)
+├── &lt;TestClass&gt;.&lt;TestMethod&gt;/
+│   └── results.log           # テストコード + サマリ + 実行結果
+└── (将来) coverage/          # カバレッジ情報 (フェーズ2)</code></pre>
+<h1 data-number="9" id="実装ステップ"><span class="header-section-number">9</span> 実装ステップ</h1>
+<ol type="1">
+<li><strong>フェーズ1: 基本実装</strong> ✅ <strong>完了</strong> (2025-12-31)
+<ul class="task-list">
+<li><label><input type="checkbox" checked="" /><code>get_test_code_dotnet.py</code> の実装 (改善点を含む)</label></li>
+<li><label><input type="checkbox" checked="" /><code>insert_summary_dotnet.py</code> の実装</label></li>
+<li><label><input type="checkbox" checked="" /><code>exec_test_dotnet.sh</code> の拡張 (個別テスト実行)</label></li>
+<li><label><input type="checkbox" checked="" />既存の .NET テストでの動作確認</label></li>
+<li><label><input type="checkbox" checked="" />エラーハンドリングの追加</label></li>
+</ul>
+<strong>実装結果</strong>:
+<ul>
+<li>23個のテストケースで動作確認完了</li>
+<li>Theory テスト (5データセット) も正常に動作</li>
+<li>Fact テストも正常に動作</li>
+<li><code>[状態]</code>, <code>[手順]</code>, <code>[確認]</code> タグの抽出が正常に動作</li>
+<li>C テストフレームワークと同様のディレクトリ構造を実現</li>
+</ul>
+<strong>生成されたファイル</strong>:
+<ul>
+<li><code>testfw/cmnd/get_test_code_dotnet.py</code> (211行)</li>
+<li><code>testfw/cmnd/insert_summary_dotnet.py</code> (155行)</li>
+<li><code>testfw/cmnd/exec_test_dotnet.sh</code> (237行、既存のバックアップも保存)</li>
+</ul></li>
+<li><strong>フェーズ1.5: 一括実行への最適化</strong> ✅ <strong>完了</strong> (2026-02-17)
+<ul class="task-list">
+<li><label><input type="checkbox" checked="" /><code>parse_trx_results.py</code> の新規作成 (TRX XML パーサー)</label></li>
+<li><label><input type="checkbox" checked="" /><code>extract_dotnet_output.py</code> の新規作成 (バッチ出力抽出)</label></li>
+<li><label><input type="checkbox" checked="" /><code>exec_test_dotnet.sh</code> の修正 (個別実行 → 一括実行)</label></li>
+<li><label><input type="checkbox" checked="" />従来版との results 差分検証</label></li>
+</ul>
+<strong>変更内容</strong>:
+<ul>
+<li><code>dotnet test</code> を1回だけ一括実行し、TRX ロガーで結果を記録</li>
+<li>TRX XML を解析してテストごとの Passed/Failed を取得</li>
+<li>バッチ出力から個別テスト結果を抽出して results.log を生成</li>
+<li>.NET ランタイム起動オーバーヘッド (約1.7秒 × 23回) を大幅削減</li>
+</ul>
+<strong>results.log の差分</strong> (従来版との比較):
+<ul>
+<li><code>summary.log</code>: 日時のみ異なる</li>
+<li>各 <code>results.log</code>: <code>合計時間</code> と個別テスト実行時間 <code>[XX ms]</code> のみ異なる</li>
+<li>テストコード、サマリ、テスト結果行 (成功/失敗) は同一</li>
+</ul>
+<strong>追加されたファイル</strong>:
+<ul>
+<li><code>testfw/cmnd/parse_trx_results.py</code> (TRX XML パーサー)</li>
+<li><code>testfw/cmnd/extract_dotnet_output.py</code> (バッチ出力抽出)</li>
+</ul></li>
+<li><strong>フェーズ2: 機能拡張</strong> (オプション)
+<ul class="task-list">
+<li><label><input type="checkbox" />Theory テストの個別パラメータログ生成 (必要性を再評価)</label></li>
+<li><label><input type="checkbox" />カバレッジ情報の統合 (coverlet, dotnet-coverage との連携)</label></li>
+<li><label><input type="checkbox" />エラー処理の強化</label></li>
+</ul></li>
+<li><strong>フェーズ3: ドキュメント</strong> (推奨)
+<ul class="task-list">
+<li><label><input type="checkbox" checked="" />testfw/README.md への追記</label></li>
+<li><label><input type="checkbox" />docs-src/testing-tutorial.md の更新</label></li>
+<li><label><input type="checkbox" />サンプルの追加</label></li>
+</ul></li>
+</ol>
+<h1 data-number="10" id="参考"><span class="header-section-number">10</span> 参考</h1>
+<h2 data-number="10.1" id="c-テストフレームワークの関連ファイル"><span class="header-section-number">10.1</span> C テストフレームワークの関連ファイル</h2>
+<ul>
+<li><code>testfw/cmnd/exec_test_c_cpp.sh</code> - C/C++ テスト実行スクリプト</li>
+<li><code>testfw/cmnd/get_test_code_c_cpp.awk</code> - テストコード抽出 (AWK)</li>
+<li><code>testfw/cmnd/insert_summary_c_cpp.awk</code> - サマリ生成 (AWK)</li>
+<li><code>testfw/cmnd/exec_test_dotnet.sh</code> - .NET テスト実行スクリプト (一括実行)</li>
+<li><code>testfw/cmnd/get_test_code_dotnet.py</code> - .NET テストコード抽出</li>
+<li><code>testfw/cmnd/insert_summary_dotnet.py</code> - .NET サマリ生成</li>
+<li><code>testfw/cmnd/parse_trx_results.py</code> - TRX XML パーサー</li>
+<li><code>testfw/cmnd/extract_dotnet_output.py</code> - バッチ出力から個別テスト結果を抽出</li>
+</ul>
+<h2 data-number="10.2" id="net-テストプロジェクト"><span class="header-section-number">10.2</span> .NET テストプロジェクト</h2>
+<ul>
+<li><code>test/src/calc.net/CalcLib.Tests/CalcLibraryTests.cs</code> - サンプルテスト</li>
+<li><code>test/src/calc.net/CalcLib.Tests/results/summary.log</code> - 現状の全体サマリ</li>
+</ul>
+<h2 data-number="10.3" id="既存のタグ規則"><span class="header-section-number">10.3</span> 既存のタグ規則</h2>
+<p>テストコード内のコメントに以下のタグを記述:</p>
+<ul>
+<li><code>[状態]</code> - テストの前提条件</li>
+<li><code>[手順]</code> - 実行手順 (Act)</li>
+<li><code>[Pre-Assert手順]</code> - Assert 前の手順</li>
+<li><code>[確認]</code> - Assert による確認内容</li>
+<li><code>[Pre-Assert確認]</code> - Pre-Assert による確認</li>
+</ul>
+<p><strong>例</strong>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode csharp"><code class="sourceCode cs"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> result <span class="op">=</span> CalcLibrary<span class="op">.</span><span class="fu">Add</span><span class="op">(</span>a<span class="op">,</span> b<span class="op">);</span> <span class="co">// [手順] - CalcLibrary.Add(a, b) を呼び出す。</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>Assert<span class="op">.</span><span class="fu">True</span><span class="op">(</span>result<span class="op">.</span><span class="fu">IsSuccess</span><span class="op">);</span> <span class="co">// [確認] - 結果が成功であること。</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>Assert<span class="op">.</span><span class="fu">Equal</span><span class="op">(</span>expected<span class="op">,</span> result<span class="op">.</span><span class="fu">Value</span><span class="op">);</span> <span class="co">// [確認] - 期待値と一致すること。</span></span></code></pre></div>
+<h1 data-number="11" id="まとめ"><span class="header-section-number">11</span> まとめ</h1>
+<p>本設計により、.NET テストでも C テストフレームワークと同様の詳細な results 生成が可能となる。これにより、以下のメリットが得られる:</p>
+<ol type="1">
+<li><strong>統一的なテスト結果の管理</strong>: C と .NET で同じ形式の結果ログ</li>
+<li><strong>テストの可視化</strong>: サマリによりテストの内容が一目で理解できる</li>
+<li><strong>トレーサビリティ</strong>: テスト項目とコードの対応が明確</li>
+<li><strong>ドキュメント生成への活用</strong>: 結果ログをドキュメントとして活用可能</li>
+</ol>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

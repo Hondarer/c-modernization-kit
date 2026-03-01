@@ -1,0 +1,1008 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>コマンド (タグ) の解説 日本語版</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">コマンド (タグ) の解説 日本語版</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#brief-brief-description" id="toc-brief-brief-description"><span class="toc-section-number">1</span> <code>@brief { brief description }</code></a></li>
+                <li><a href="#paramdir-parameter-name-parameter-description" id="toc-paramdir-parameter-name-parameter-description"><span class="toc-section-number">2</span> <code>@param[&lt;dir&gt;] &lt;parameter-name&gt; { parameter description }</code></a></li>
+                <li><a href="#return-description-of-the-return-value" id="toc-return-description-of-the-return-value"><span class="toc-section-number">3</span> <code>@return { description of the return value }</code></a></li>
+                <li><a href="#exception-exception-object-exception-description" id="toc-exception-exception-object-exception-description"><span class="toc-section-number">4</span> <code>@exception &lt;exception-object&gt; { exception description }</code></a></li>
+                <li><a href="#tparam-template-parameter-name-description" id="toc-tparam-template-parameter-name-description"><span class="toc-section-number">5</span> <code>@tparam &lt;template-parameter-name&gt; { description }</code></a></li>
+                <li><a href="#deprecated-description" id="toc-deprecated-description"><span class="toc-section-number">6</span> <code>@deprecated { description }</code></a></li>
+                <li><a href="#see-references" id="toc-see-references"><span class="toc-section-number">7</span> <code>@see { references }</code></a></li>
+                <li><a href="#author-list-of-authors" id="toc-author-list-of-authors"><span class="toc-section-number">8</span> <code>@author { list of authors }</code></a></li>
+                <li><a href="#version-version-number" id="toc-version-version-number"><span class="toc-section-number">9</span> <code>@version { version number }</code></a></li>
+                <li><a href="#since-text" id="toc-since-text"><span class="toc-section-number">10</span> <code>@since { text }</code></a></li>
+                <li><a href="#date-date-description" id="toc-date-date-description"><span class="toc-section-number">11</span> <code>@date { date description }</code></a>
+                <ul>
+                <li><a href="#date-の実際の使用例" id="toc-date-の実際の使用例"><span class="toc-section-number">11.1</span> <code>@date</code> の実際の使用例</a></li>
+                </ul></li>
+                <li><a href="#bug-bug-description" id="toc-bug-bug-description"><span class="toc-section-number">12</span> <code>@bug { bug description }</code></a></li>
+                <li><a href="#test-paragraph-describing-a-test-case" id="toc-test-paragraph-describing-a-test-case"><span class="toc-section-number">13</span> <code>@test { paragraph describing a test case }</code></a></li>
+                <li><a href="#todo-paragraph-describing-what-is-to-be-done" id="toc-todo-paragraph-describing-what-is-to-be-done"><span class="toc-section-number">14</span> <code>@todo { paragraph describing what is to be done }</code></a></li>
+                <li><a href="#pre-description-of-the-precondition" id="toc-pre-description-of-the-precondition"><span class="toc-section-number">15</span> <code>@pre { description of the precondition }</code></a></li>
+                <li><a href="#post-description-of-the-postcondition" id="toc-post-description-of-the-postcondition"><span class="toc-section-number">16</span> <code>@post { description of the postcondition }</code></a></li>
+                <li><a href="#invariant-description-of-invariant" id="toc-invariant-description-of-invariant"><span class="toc-section-number">17</span> <code>@invariant { description of invariant }</code></a></li>
+                <li><a href="#warning-warning-message" id="toc-warning-warning-message"><span class="toc-section-number">18</span> <code>@warning { warning message }</code></a></li>
+                <li><a href="#attention-attention-text" id="toc-attention-attention-text"><span class="toc-section-number">19</span> <code>@attention { attention text }</code></a></li>
+                <li><a href="#note-text" id="toc-note-text"><span class="toc-section-number">20</span> <code>@note { text }</code></a></li>
+                <li><a href="#remarks-remark-text" id="toc-remarks-remark-text"><span class="toc-section-number">21</span> <code>@remarks { remark text }</code></a></li>
+                <li><a href="#par-paragraph-title-paragraph" id="toc-par-paragraph-title-paragraph"><span class="toc-section-number">22</span> <code>@par [(paragraph title)] { paragraph }</code></a></li>
+                <li><a href="#section-section-name-section-title" id="toc-section-section-name-section-title"><span class="toc-section-number">23</span> <code>@section &lt;section-name&gt; (section title)</code></a>
+                <ul>
+                <li><a href="#par-との使い分け" id="toc-par-との使い分け"><span class="toc-section-number">23.1</span> <code>@par</code> との使い分け</a></li>
+                <li><a href="#subsection-subsection-name-subsection-title" id="toc-subsection-subsection-name-subsection-title"><span class="toc-section-number">23.2</span> <code>@subsection &lt;subsection-name&gt; (subsection title)</code></a></li>
+                </ul></li>
+                <li><a href="#details-detailed-description" id="toc-details-detailed-description"><span class="toc-section-number">24</span> <code>@details { detailed description }</code></a></li>
+                <li><a href="#copyright-copyright-description" id="toc-copyright-copyright-description"><span class="toc-section-number">25</span> <code>@copyright { copyright description }</code></a></li>
+                <li><a href="#startuml-enduml" id="toc-startuml-enduml"><span class="toc-section-number">26</span> <code>@startuml ~ @enduml</code></a></li>
+                <li><a href="#imagesizeindication-format-file-caption" id="toc-imagesizeindication-format-file-caption"><span class="toc-section-number">27</span> <code>@image[{&lt;sizeindication&gt;}] &lt;format&gt; &lt;file&gt; ["&lt;caption&gt;"]</code></a></li>
+                <li><a href="#codelanguage-endcode" id="toc-codelanguage-endcode"><span class="toc-section-number">28</span> <code>@code[{&lt;language&gt;}] ~ @endcode</code></a></li>
+                <li><a href="#verbatim-endverbatim" id="toc-verbatim-endverbatim"><span class="toc-section-number">29</span> <code>@verbatim ~ @endverbatim</code></a></li>
+                <li><a href="#markdown-形式のコードブロック" id="toc-markdown-形式のコードブロック"><span class="toc-section-number">30</span> Markdown 形式のコードブロック</a></li>
+                <li><a href="#コードブロックの使い分けガイド" id="toc-コードブロックの使い分けガイド"><span class="toc-section-number">31</span> コードブロックの使い分けガイド</a>
+                <ul>
+                <li><a href="#選択基準" id="toc-選択基準"><span class="toc-section-number">31.1</span> 選択基準</a></li>
+                </ul></li>
+                <li><a href="#f-f-f-f" id="toc-f-f-f-f"><span class="toc-section-number">32</span> <code>@f[ ~ @f]</code>, <code>@f$ ~ @f$</code></a></li>
+                <li><a href="#defgroup-name-group-title" id="toc-defgroup-name-group-title"><span class="toc-section-number">33</span> <code>@defgroup &lt;name&gt; (group title)</code></a></li>
+                <li><a href="#ingroup-groupname-groupname" id="toc-ingroup-groupname-groupname"><span class="toc-section-number">34</span> <code>@ingroup (&lt;groupname&gt; [&lt;groupname&gt;]*)</code></a></li>
+                <li><a href="#対象の指定" id="toc-対象の指定"><span class="toc-section-number">35</span> 対象の指定</a>
+                <ul>
+                <li><a href="#fn-class-var-def-enum-struct-typedef" id="toc-fn-class-var-def-enum-struct-typedef"><span class="toc-section-number">35.1</span> <code>@fn</code>, <code>@class</code>, <code>@var</code>, <code>@def</code>, <code>@enum</code>, <code>@struct</code>, <code>@typedef</code></a></li>
+                </ul></li>
+                <li><a href="#注釈コマンド-タグ-使い分けガイド" id="toc-注釈コマンド-タグ-使い分けガイド"><span class="toc-section-number">36</span> 注釈コマンド (タグ) 使い分けガイド</a>
+                <ul>
+                <li><a href="#各タグの特徴と使い分け" id="toc-各タグの特徴と使い分け"><span class="toc-section-number">36.1</span> 各タグの特徴と使い分け</a>
+                <ul>
+                <li><a href="#優先度重要度マトリックス" id="toc-優先度重要度マトリックス"><span class="toc-section-number">36.1.1</span> 優先度・重要度マトリックス</a></li>
+                </ul></li>
+                <li><a href="#warning---危険回避のための警告" id="toc-warning---危険回避のための警告"><span class="toc-section-number">36.2</span> <code>@warning</code> - 危険回避のための警告</a>
+                <ul>
+                <li><a href="#適用例" id="toc-適用例"><span class="toc-section-number">36.2.1</span> 適用例</a></li>
+                <li><a href="#使用指針" id="toc-使用指針"><span class="toc-section-number">36.2.2</span> 使用指針</a></li>
+                </ul></li>
+                <li><a href="#attention---必須の制約条件" id="toc-attention---必須の制約条件"><span class="toc-section-number">36.3</span> <code>@attention</code> - 必須の制約条件</a>
+                <ul>
+                <li><a href="#適用例-1" id="toc-適用例-1"><span class="toc-section-number">36.3.1</span> 適用例</a></li>
+                <li><a href="#使用指針-1" id="toc-使用指針-1"><span class="toc-section-number">36.3.2</span> 使用指針</a></li>
+                </ul></li>
+                <li><a href="#note---技術的詳細実装仕様" id="toc-note---技術的詳細実装仕様"><span class="toc-section-number">36.4</span> <code>@note</code> - 技術的詳細・実装仕様</a>
+                <ul>
+                <li><a href="#適用例-2" id="toc-適用例-2"><span class="toc-section-number">36.4.1</span> 適用例</a></li>
+                <li><a href="#使用指針-2" id="toc-使用指針-2"><span class="toc-section-number">36.4.2</span> 使用指針</a></li>
+                </ul></li>
+                <li><a href="#remarks---補足情報推奨事項" id="toc-remarks---補足情報推奨事項"><span class="toc-section-number">36.5</span> <code>@remarks</code> - 補足情報・推奨事項</a>
+                <ul>
+                <li><a href="#適用例-3" id="toc-適用例-3"><span class="toc-section-number">36.5.1</span> 適用例</a></li>
+                <li><a href="#使用指針-3" id="toc-使用指針-3"><span class="toc-section-number">36.5.2</span> 使用指針</a></li>
+                </ul></li>
+                <li><a href="#実践的な使い分け例" id="toc-実践的な使い分け例"><span class="toc-section-number">36.6</span> 実践的な使い分け例</a>
+                <ul>
+                <li><a href="#複数タグを組み合わせた例" id="toc-複数タグを組み合わせた例"><span class="toc-section-number">36.6.1</span> 複数タグを組み合わせた例</a></li>
+                </ul></li>
+                <li><a href="#判断フローチャート" id="toc-判断フローチャート"><span class="toc-section-number">36.7</span> 判断フローチャート</a></li>
+                </ul></li>
+                <li><a href="#その他" id="toc-その他"><span class="toc-section-number">37</span> その他</a>
+                <ul>
+                <li><a href="#コマンド-タグ-の接頭子" id="toc-コマンド-タグ-の接頭子"><span class="toc-section-number">37.1</span> コマンド (タグ) の接頭子</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>コマンド (タグ) の解説 日本語版</H1>
+      
+      
+      <p><a href="https://www.doxygen.nl/manual/commands.html">Doxygen - Special Commands</a> より、主に C 言語による開発で利用するコマンド (タグ) の説明を示します。</p>
+<h1 data-number="1" id="brief-brief-description"><span class="header-section-number">1</span> <code>@brief { brief description }</code></h1>
+<p>簡単な説明を表します。ファイルの場合、簡単な説明はページの先頭で使用されます。ファイル・メンバーの場合、簡単な説明はメンバーの宣言に配置され、詳細な説明の先頭に追加されます。</p>
+<h1 data-number="2" id="paramdir-parameter-name-parameter-description"><span class="header-section-number">2</span> <code>@param[&lt;dir&gt;] &lt;parameter-name&gt; { parameter description }</code></h1>
+<p>名前が <code>&lt;parameter-name&gt;</code> の関数パラメータの説明を表します。</p>
+<p>パラメータの存在がチェックされ、このパラメータ (またはその他のパラメータ) のドキュメンテーションが欠落しているか、関数の宣言または定義に存在しない場合は警告が表示されます。</p>
+<p>このコマンドには、パラメーターの方向を指定するオプションの属性 <code>&lt;dir&gt;</code> があります。可能な値は <code>in</code>、<code>out</code>、および <code>in,out</code> です。<code>in,out</code> の場合、方向 <code>in</code> と <code>out</code> は任意の順序で指定でき、まとめて記述することも、コンマ (,) またはスペースで区切ることもできます。つまり、たとえば、値 <code>outin</code> や <code>in out</code> も有効です。</p>
+<p>コンマ区切りリストを使用して、複数のパラメーターの説明を表すこともできます。以下に例を示します。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Sets the position.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">x</span><span class="co">,y,z Coordinates of the position in 3D space.</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> setPosition<span class="op">(</span><span class="dt">double</span> x<span class="op">,</span> <span class="dt">double</span> y<span class="op">,</span> <span class="dt">double</span> z<span class="op">);</span></span></code></pre></div>
+<h1 data-number="3" id="return-description-of-the-return-value"><span class="header-section-number">3</span> <code>@return { description of the return value }</code></h1>
+<p>関数の戻り値の説明を表します。</p>
+<h1 data-number="4" id="exception-exception-object-exception-description"><span class="header-section-number">4</span> <code>@exception &lt;exception-object&gt; { exception description }</code></h1>
+<p><strong>C++のみ</strong></p>
+<p>名前が <code>&lt;exception-object&gt;</code> の例外オブジェクトの例外の説明を表します。</p>
+<p>例外オブジェクトの存在はチェックされません。</p>
+<h1 data-number="5" id="tparam-template-parameter-name-description"><span class="header-section-number">5</span> <code>@tparam &lt;template-parameter-name&gt; { description }</code></h1>
+<p><strong>C++のみ</strong></p>
+<p>名前が <code>&lt;template-parameter-name&gt;</code> の関数テンプレート パラメータの説明を表します。</p>
+<h1 data-number="6" id="deprecated-description"><span class="header-section-number">6</span> <code>@deprecated { description }</code></h1>
+<p>非推奨であることを示す説明を表します。代替案、廃止予定などを説明するために使用します。</p>
+<h1 data-number="7" id="see-references"><span class="header-section-number">7</span> <code>@see { references }</code></h1>
+<p>クラス、関数、メソッド、変数、ファイル、または URL への 1 つ以上の相互参照を表します。</p>
+<p><strong>C++のみ</strong></p>
+<p>いくつかのオーバーロードされたメソッドまたはコンストラクターの 1 つは、メソッド名の後に引数の型の括弧で囲まれたリストを含めることによって指定します。</p>
+<h1 data-number="8" id="author-list-of-authors"><span class="header-section-number">8</span> <code>@author { list of authors }</code></h1>
+<p>作成者を表します。</p>
+<p>以下に 2 人の作成者を指定する例を示します。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Pretty nice method.</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span><span class="co">        This method is used to demonstrate a number of section commands.</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@author</span><span class="co">         John Doe</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@author</span><span class="co">         Jan Doe</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@version</span><span class="co">        </span><span class="cv">4.1a</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@date</span><span class="co">           1990-2011</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@pre</span><span class="co">            First initialize the system.</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@bug</span><span class="co">            Not all memory is freed when deleting an object of this method.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        Improper use can crash your application.</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@copyright</span><span class="co">      </span><span class="do">GNU</span><span class="co"> </span><span class="do">Public</span><span class="co"> </span><span class="do">License.</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> SomeNiceMethod <span class="op">();</span></span></code></pre></div>
+<p>Doxygen によって生成された対応する HTML ドキュメントについては、<a href="https://www.doxygen.nl/manual/examples/author/html/class_some_nice_class.html">こちら</a> をクリックしてください。</p>
+<h1 data-number="9" id="version-version-number"><span class="header-section-number">9</span> <code>@version { version number }</code></h1>
+<p>バージョンを表します。</p>
+<h1 data-number="10" id="since-text"><span class="header-section-number">10</span> <code>@since { text }</code></h1>
+<p>いつのバージョン、あるいは、いつの時間から利用可能になる / なったかを表します。</p>
+<h1 data-number="11" id="date-date-description"><span class="header-section-number">11</span> <code>@date { date description }</code></h1>
+<p>日付を表します。作成日、最終更新日、開発期間などの日付情報を記録するために使用されます。どのような意味を持たせるかは、一般的プロジェクトごとに規定されます。</p>
+<h2 data-number="11.1" id="date-の実際の使用例"><span class="header-section-number">11.1</span> <code>@date</code> の実際の使用例</h2>
+<ul>
+<li>プロジェクトの開発期間: <code>\date 2020-2023</code></li>
+<li>特定機能の実装日: <code>\date 2024-01-15</code></li>
+<li>ライブラリのリリース時期: `
+arch 2024@</li>
+<li>API変更の日付: <code>\date Modified: 2024-03-10</code></li>
+<li>文書の最終更新日: <code>\date Last updated: 2024-12-25</code></li>
+</ul>
+<h1 data-number="12" id="bug-bug-description"><span class="header-section-number">12</span> <code>@bug { bug description }</code></h1>
+<p>バグまたはバグの可能性を表します。</p>
+<h1 data-number="13" id="test-paragraph-describing-a-test-case"><span class="header-section-number">13</span> <code>@test { paragraph describing a test case }</code></h1>
+<p><strong>テストコード内で使用</strong></p>
+<p>テスト・ケースの説明を表します。以下に利用例を示します。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@defgroup</span><span class="co">       </span><span class="cv">MenuTests</span><span class="co"> &quot;Menu Testing Procedures&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Manual testing procedures for menu functionality.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@test</span><span class="co">           Menu item selection test.</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  1. Open the application menu.</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  2. Click on &quot;File&quot; menu item.</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  3. Verify submenu appears.</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  4. Select &quot;New Document&quot; option.</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  5. Confirm new document is created.</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> testMenuSelection<span class="op">();</span></span></code></pre></div>
+<h1 data-number="14" id="todo-paragraph-describing-what-is-to-be-done"><span class="header-section-number">14</span> <code>@todo { paragraph describing what is to be done }</code></h1>
+<p>Todo 項目を表します。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@todo</span><span class="co">           Todo リストを記載します。この行はリスト名となります (省略可能)。</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  - 子リスト1</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  - 子リスト2</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  - 子リスト3</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h1 data-number="15" id="pre-description-of-the-precondition"><span class="header-section-number">15</span> <code>@pre { description of the precondition }</code></h1>
+<p>前提条件 (関数が正しく動作するために満たすべき条件) を表します。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Some description.</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">grid1</span><span class="co"> First grid.</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">grid2</span><span class="co"> Second grid.</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@pre</span><span class="co">            </span><span class="an">@p</span><span class="co"> </span><span class="cv">grid1</span><span class="co"> and </span><span class="an">@p</span><span class="co"> </span><span class="cv">grid2</span><span class="co"> must be of the same dimensions.</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Trim leading and trailing whitespace from a string.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in,out]</span><span class="co">  </span><span class="cv">str</span><span class="co"> string to prune.</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@pre</span><span class="co">            </span><span class="an">@p</span><span class="co"> </span><span class="cv">str</span><span class="co"> is non-empty.</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="dt">void</span> trim<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// If the string is empty, do nothing</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h1 data-number="16" id="post-description-of-the-postcondition"><span class="header-section-number">16</span> <code>@post { description of the postcondition }</code></h1>
+<p>事後条件 (関数の実行完了後に満たされるべき条件や結果の状態) を表します。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          配列をソートします。</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in,out]</span><span class="co">  </span><span class="cv">arr</span><span class="co"> ソート対象の配列を表します。</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">size</span><span class="co"> 配列のサイズを表します。</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@post</span><span class="co">           </span><span class="an">@p</span><span class="co"> </span><span class="cv">arr</span><span class="co"> contains the same elements as before, but in sorted order.</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@post</span><span class="co">           arr[i] &lt;= arr[i+1] for all valid i (0 &lt;= i &lt; size-1).</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@post</span><span class="co">           The original elements are preserved (no elements added or removed).</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> sortArray<span class="op">(</span><span class="dt">int</span> <span class="op">*</span>arr<span class="op">,</span> <span class="dt">size_t</span> size<span class="op">);</span></span></code></pre></div>
+<h1 data-number="17" id="invariant-description-of-invariant"><span class="header-section-number">17</span> <code>@invariant { description of invariant }</code></h1>
+<p>不変条件を表します。不変条件とは、関数の実行前後で常に成り立つべき条件のことです。</p>
+<h1 data-number="18" id="warning-warning-message"><span class="header-section-number">18</span> <code>@warning { warning message }</code></h1>
+<p>重大なエラーや危険の回避のための警告を表します。</p>
+<h1 data-number="19" id="attention-attention-text"><span class="header-section-number">19</span> <code>@attention { attention text }</code></h1>
+<p>必須の制約条件・使用条件などの注意を表します。</p>
+<h1 data-number="20" id="note-text"><span class="header-section-number">20</span> <code>@note { text }</code></h1>
+<p>技術的な背景や実装の注釈を表します。</p>
+<h1 data-number="21" id="remarks-remark-text"><span class="header-section-number">21</span> <code>@remarks { remark text }</code></h1>
+<p>使用上のヒントや最適化のアドバイスなどの補足情報を表します。</p>
+<h1 data-number="22" id="par-paragraph-title-paragraph"><span class="header-section-number">22</span> <code>@par [(paragraph title)] { paragraph }</code></h1>
+<p>ユーザー定義の見出しを使った説明を表します。Doxygen で用意されていない見出しを利用するために用います。見出しにどのような意味を持たせるかは、一般的にプロジェクトごとに規定されます。</p>
+<p><code>History</code> というユーザー定義の見出しを使った例を以下に示します。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@par</span><span class="co">            </span><span class="do">History</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  - yyyy/mm/dd [修正ID](https://example.com/id/1234) 修正の概要を記載します。</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *                      - 子リスト1</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *                      - 子リスト2</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *                  - yyyy/mm/dd [修正ID](https://example.com/id/5678) 修正の概要を記載します。</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *                      - 子リスト1</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *                        子リスト1の続き</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h1 data-number="23" id="section-section-name-section-title"><span class="header-section-number">23</span> <code>@section &lt;section-name&gt; (section title)</code></h1>
+<p>ファイルドキュメント内にセクション見出しを作成します。主にヘッダーファイルの <code>@file</code> コメント内で、関連するマクロや定義をグループ化して説明するために使用します。</p>
+<p><code>&lt;section-name&gt;</code> はセクションの内部識別子 (英数字とアンダースコア)、<code>(section title)</code> は表示されるセクションタイトルです。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *******************************************************************************</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@file</span><span class="co">           </span><span class="cv">compiler.h</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          コンパイラ検出マクロのヘッダーファイル。</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@section</span><span class="co">        </span><span class="cv">compiler_detection</span><span class="co"> コンパイラ検出マクロ</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  検出されたコンパイラに応じて、以下のマクロを定義します。</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | コンパイラ | 識別マクロ    | COMPILER_NAME |</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | ---------- | ------------- | ------------- |</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | MSVC       | COMPILER_MSVC | &quot;MSVC&quot;        |</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | GCC        | COMPILER_GCC  | &quot;GCC&quot;         |</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | Clang      | COMPILER_CLANG| &quot;Clang&quot;       |</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@section</span><span class="co">        </span><span class="cv">inline_control</span><span class="co"> インライン制御マクロ</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co"> *  コンパイラ固有のインライン属性を抽象化します。</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co"> *  使用例:</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@code</span><span class="co">{.c}</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">    FORCE_INLINE int fast_add(int a, int b) { return a + b; }</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@endcode</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co"> *******************************************************************************</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h2 data-number="23.1" id="par-との使い分け"><span class="header-section-number">23.1</span> <code>@par</code> との使い分け</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>コマンド</th>
+<th>用途</th>
+<th>見出しレベル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@section</code></td>
+<td>ファイル全体の構造化、複数のマクロや定義のグループ化</td>
+<td>独立したセクション見出し</td>
+</tr>
+<tr>
+<td><code>@par</code></td>
+<td>関数やメンバーの補足情報、履歴などの追加項目</td>
+<td>段落見出し</td>
+</tr>
+</tbody>
+</table>
+<p><code>@section</code> は主にファイルレベルのドキュメントで使用し、<code>@par</code> は関数やメンバーのドキュメントで使用します。</p>
+<h2 data-number="23.2" id="subsection-subsection-name-subsection-title"><span class="header-section-number">23.2</span> <code>@subsection &lt;subsection-name&gt; (subsection title)</code></h2>
+<p><code>@section</code> の下位レベルのセクションを作成します。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@section</span><span class="co">        </span><span class="cv">platform</span><span class="co"> プラットフォーム検出</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@subsection</span><span class="co">     </span><span class="cv">platform_os</span><span class="co"> OS 検出マクロ</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  OS を検出して識別マクロを定義します。</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@subsection</span><span class="co">     </span><span class="cv">platform_arch</span><span class="co"> アーキテクチャ検出マクロ</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  CPU アーキテクチャを検出して識別マクロを定義します。</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h1 data-number="24" id="details-detailed-description"><span class="header-section-number">24</span> <code>@details { detailed description }</code></h1>
+<p>詳細な説明を表します。</p>
+<p><code>\brief</code> には概要のみを記載し、<code>\details</code> に詳細を記載します。</p>
+<h1 data-number="25" id="copyright-copyright-description"><span class="header-section-number">25</span> <code>@copyright { copyright description }</code></h1>
+<p>著作権の説明を表します。以下に例を示します。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@copyright</span><span class="co"> </span><span class="do">Copyright</span><span class="co"> </span><span class="do">(C)</span><span class="co"> </span><span class="do">CompanyName,</span><span class="co"> </span><span class="do">Ltd.</span><span class="co"> </span><span class="do">2025.</span><span class="co"> </span><span class="do">All</span><span class="co"> </span><span class="do">rights</span><span class="co"> </span><span class="do">reserved.</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@copyright</span><span class="co"> </span><span class="do">Copyright</span><span class="co"> </span><span class="do">(C)</span><span class="co"> </span><span class="do">CompanyName,</span><span class="co"> </span><span class="do">Ltd.</span><span class="co"> </span><span class="do">2023-2025.</span><span class="co"> </span><span class="do">All</span><span class="co"> </span><span class="do">rights</span><span class="co"> </span><span class="do">reserved.</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h1 data-number="26" id="startuml-enduml"><span class="header-section-number">26</span> <code>@startuml ~ @enduml</code></h1>
+<p>PlantUML 形式の図を表します。</p>
+<p>以下のように記載すると、<a href="https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml">PlantUML プラグイン</a> のプレビュー機能も活用できます。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          2 つの整数を除算します。</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">a</span><span class="co"> 被除数。</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">b</span><span class="co"> 除数。</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         除算結果。</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span><span class="co">        PlantUML の図を挿入することができます。</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@startuml</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">        caption 図のテスト</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">        circle a</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">        circle b</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">        rectangle &quot;a/b&quot; as devide</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">        circle return</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">        a -&gt; devide : 被除数</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">        b -&gt; devide : 除数</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">        devide -&gt; return</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@enduml</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        </span><span class="an">@p</span><span class="co"> </span><span class="cv">b</span><span class="co"> が 0 の場合、結果は未定義です。</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> divide<span class="op">(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">);</span></span></code></pre></div>
+<h1 data-number="27" id="imagesizeindication-format-file-caption"><span class="header-section-number">27</span> <code>@image[{&lt;sizeindication&gt;}] &lt;format&gt; &lt;file&gt; ["&lt;caption&gt;"]</code></h1>
+<p>ドキュメントに画像を挿入します。</p>
+<p><code>&lt;format&gt;</code> には出力形式を指定します。指定できる形式は <code>html</code>、<code>latex</code>、<code>docbook</code>、<code>rtf</code> などです。<br />
+<code>&lt;file&gt;</code> には画像ファイル名を指定します。画像ファイルは Doxygen の <code>IMAGE_PATH</code> 設定で指定したパスに配置する必要があります。画像のファイル名部分のみ記載します。配置する画像ファイル名称は、<code>IMAGE_PATH</code> の範囲内で一意である必要があります。<br />
+<code>&lt;caption&gt;</code> はオプションで、画像のキャプションをダブルクォートで囲んで指定します。</p>
+<p>注: <code>@image</code> コマンドを使った画像ベースのドキュメンテーションは、修正や grep チェック、構成管理が困難なため、可能な限り避けてください。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *******************************************************************************</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          プログラムのエントリーポイント。</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">argc</span><span class="co"> コマンドライン引数の数。</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">argv</span><span class="co"> コマンドライン引数の配列。</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         成功時は 0、失敗時は 0 以外の値を返します。</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span><span class="co">        以下に、calc コマンドの処理フローを示します。</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@image</span><span class="co">          </span><span class="cv">html</span><span class="co"> </span><span class="cv">calc-flow.png</span><span class="co"> &quot;calc コマンドの処理フロー&quot;</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@attention</span><span class="co">      引数は正確に 3 つ必要です。</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *******************************************************************************</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>argv<span class="op">[]);</span></span></code></pre></div>
+<h1 data-number="28" id="codelanguage-endcode"><span class="header-section-number">28</span> <code>@code[{&lt;language&gt;}] ~ @endcode</code></h1>
+<p>コードブロックを表します。言語を指定することで、適切なシンタックスハイライトが適用されます。</p>
+<p>オプションの <code>{&lt;language&gt;}</code> パラメータには、言語名 (c, cpp, python, java など) を指定できます。省略した場合は、コンテキストから言語が推測されます。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          文字列を反転します。</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in,out]</span><span class="co">  </span><span class="cv">str</span><span class="co"> 反転する文字列。</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span><span class="co">        以下は使用例です。</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@code</span><span class="co">{.c}</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">    char text[] = &quot;Hello&quot;;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">    reverseString(text);</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">    printf(&quot;%s\n&quot;, text);  // 出力: olleH</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@endcode</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> reverseString<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          配列の最大値を取得します。</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">arr</span><span class="co"> 配列。</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">size</span><span class="co"> 配列のサイズ。</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         最大値。</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  この関数は配列内の最大値を線形探索で見つけます。</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@code</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">    int numbers[] = {3, 7, 2, 9, 1};</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">    int max = findMax(numbers, 5);</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">    printf(&quot;最大値: %d\n&quot;, max);  // 出力: 最大値: 9</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@endcode</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> findMax<span class="op">(</span><span class="dt">const</span> <span class="dt">int</span> <span class="op">*</span>arr<span class="op">,</span> <span class="dt">size_t</span> size<span class="op">);</span></span></code></pre></div>
+<h1 data-number="29" id="verbatim-endverbatim"><span class="header-section-number">29</span> <code>@verbatim ~ @endverbatim</code></h1>
+<p>テキストをそのままの形式で表示します。Doxygen による解釈や整形を行わず、記述したとおりに出力されます。</p>
+<p><code>@code</code> と異なり、シンタックスハイライトは適用されません。また、Doxygen のコマンド (タグ) や特殊文字もそのまま表示されます。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          環境変数の設定例を表示します。</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span><span class="co">        以下の形式で環境変数を設定してください。</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@verbatim</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">    export PATH=/usr/local/bin:$PATH</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">    export CC=gcc</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">    export CFLAGS=&quot;-Wall -O2&quot;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@endverbatim</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> showEnvironmentSetup<span class="op">();</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          ビルド手順を表示します。</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  以下のコマンドを順に実行してください。</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@verbatim</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co">    $ cd project_directory</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">    $ mkdir build</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">    $ cd build</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co">    $ cmake ..</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co">    $ make</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co">    $ make install</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@endverbatim</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> showBuildInstructions<span class="op">();</span></span></code></pre></div>
+<h1 data-number="30" id="markdown-形式のコードブロック"><span class="header-section-number">30</span> Markdown 形式のコードブロック</h1>
+<p>Doxygen は Markdown 形式のコードブロック (バッククォート3つ) もサポートしています。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          エラーコードを返します。</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         エラーコード。</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@details</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  以下のようにエラーコードを処理します:</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  ```c</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co">    int result = getErrorCode();</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">    if (result != 0) {</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co">        fprintf(stderr, &quot;Error: %d</span><span class="an">\n&quot;,</span><span class="co"> result);</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co">        return EXIT_FAILURE;</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="co">    }</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  ```</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> getErrorCode<span class="op">();</span></span></code></pre></div>
+<h1 data-number="31" id="コードブロックの使い分けガイド"><span class="header-section-number">31</span> コードブロックの使い分けガイド</h1>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>コマンド</th>
+<th>シンタックスハイライト</th>
+<th>Doxygen コマンド解釈</th>
+<th>主な用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@code ~ @endcode</code></td>
+<td>✅ あり</td>
+<td>❌ なし</td>
+<td>プログラミングコードの例示</td>
+</tr>
+<tr>
+<td><code>@verbatim ~ @endverbatim</code></td>
+<td>❌ なし</td>
+<td>❌ なし</td>
+<td>シェルコマンド、設定ファイルの内容</td>
+</tr>
+<tr>
+<td>Markdown 形式</td>
+<td>✅ あり</td>
+<td>❌ なし</td>
+<td>一般的なコード例、複数言語の混在</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="31.1" id="選択基準"><span class="header-section-number">31.1</span> 選択基準</h2>
+<ul>
+<li><strong>プログラミングコードの例</strong>: <code>@code{.c}</code> または Markdown 形式を使用</li>
+<li><strong>シェルコマンドや実行例</strong>: <code>@verbatim</code> を使用</li>
+<li><strong>設定ファイルの内容</strong>: <code>@verbatim</code> を使用</li>
+<li><strong>複数の言語が混在</strong>: Markdown 形式を使用</li>
+<li><strong>Doxygen コマンド自体を表示</strong>: <code>@verbatim</code> を使用</li>
+</ul>
+<h1 data-number="32" id="f-f-f-f"><span class="header-section-number">32</span> <code>@f[ ~ @f]</code>, <code>@f$ ~ @f$</code></h1>
+<p>Latex の式を表します。複数行形式と行内形式の 2 つの書式があります。</p>
+<p>参考: <a href="https://www.mathcha.io/">数式エディタ Mathcha.io</a></p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  式のサンプル</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@f[</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">        (1 + 2 + 3) +</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">        (4 + 5 + 6) +</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">        (7 + 8 + 9) +</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="er">@f]</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  式のサンプル</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="an">@f$</span><span class="co"> \sum_{k=1}^n a_k </span><span class="an">@f$</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define THUMB_RGB565_SIZE  </span><span class="dv">28800</span><span class="pp">   </span><span class="co">/**&lt; RGB565 タイプのサムネイルサイズ </span><span class="an">@f$</span><span class="co"> (160 * 90 * 2) </span><span class="an">@f$</span><span class="co">。 */</span></span></code></pre></div>
+<h1 data-number="33" id="defgroup-name-group-title"><span class="header-section-number">33</span> <code>@defgroup &lt;name&gt; (group title)</code></h1>
+<p>モジュールや機能のグループを定義します。</p>
+<p><code>@defgroup</code> を用いることで、一連の関数やクラス、変数などを一つのグループとしてまとめることができます。これにより、ドキュメントが読みやすくなり、大規模なコードベースでの情報管理に役立ちます。API ドキュメントなど、カテゴリー別の公開情報をまとめる場合に使用します。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@defgroup</span><span class="co">       </span><span class="cv">MathFunctions</span><span class="co"> &quot;Mathematical Functions&quot;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Provides common mathematical functions.</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Calculates the factorial of a number.</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">n</span><span class="co"> An integer number.</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         The factorial of </span><span class="an">@p</span><span class="co"> </span><span class="cv">n</span><span class="co">.</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> factorial<span class="op">(</span><span class="dt">int</span> n<span class="op">);</span></span></code></pre></div>
+<h1 data-number="34" id="ingroup-groupname-groupname"><span class="header-section-number">34</span> <code>@ingroup (&lt;groupname&gt; [&lt;groupname&gt;]*)</code></h1>
+<p>既存のグループに機能を追加します。</p>
+<p><code>@ingroup</code> コマンドを用いることで、複数のファイルや異なる箇所に置かれた関連機能を一つのグループとしてドキュメント化できます。</p>
+<p><strong>重要</strong>: <code>@ingroup</code> コマンドを使用すると、ファイル側の記載が出力から除かれます。これは Doxygen の仕様ですが、ファイル側のドキュメントにおける網羅性を下げるため、本コマンドの使用は非推奨です。</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@ingroup</span><span class="co">        </span><span class="do">MathFunctions</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          Calculates the greatest common divisor of two numbers.</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">a</span><span class="co"> First integer.</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">b</span><span class="co"> Second integer.</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         The greatest common divisor of </span><span class="an">@p</span><span class="co"> </span><span class="cv">a</span><span class="co"> and </span><span class="an">@p</span><span class="co"> </span><span class="cv">b</span><span class="co">.</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> gcd<span class="op">(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">);</span></span></code></pre></div>
+<h1 data-number="35" id="対象の指定"><span class="header-section-number">35</span> 対象の指定</h1>
+<h2 data-number="35.1" id="fn-class-var-def-enum-struct-typedef"><span class="header-section-number">35.1</span> <code>@fn</code>, <code>@class</code>, <code>@var</code>, <code>@def</code>, <code>@enum</code>, <code>@struct</code>, <code>@typedef</code></h2>
+<p>これらのコマンドは特定の関数、クラス、変数、定義、列挙、構造体、型定義に対するドキュメンテーションを行うために使用されます。<br />
+ただし、それらの対象の直前に Doxygen コメントが記載されている場合、これらのコマンドを省略することができます。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          演算を行う関数。</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">a</span><span class="co"> 演算の入力1。</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">b</span><span class="co"> 演算の入力2。</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         演算結果。</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> computeOperation<span class="op">(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">);</span>  <span class="co">// @fn を省略</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          トークンを表すクラス。</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Token <span class="op">{};</span>  <span class="co">// @class を省略</span></span></code></pre></div>
+<h1 data-number="36" id="注釈コマンド-タグ-使い分けガイド"><span class="header-section-number">36</span> 注釈コマンド (タグ) 使い分けガイド</h1>
+<p><code>\note</code>、<code>\warning</code>、<code>\remarks</code>、<code>\attention</code> の 4 つの注釈コマンド (タグ) を適切に使い分けるためのガイドラインを示します。</p>
+<p>適切なコマンド (タグ) の使い分けにより、開発者にとって実用的で理解しやすいドキュメントを作成できます。各コマンド (タグ) の特徴を理解し、情報の重要度と緊急度に応じて適切に選択することで、コードの品質と保守性の向上につながります。</p>
+<h2 data-number="36.1" id="各タグの特徴と使い分け"><span class="header-section-number">36.1</span> 各タグの特徴と使い分け</h2>
+<h3 data-number="36.1.1" id="優先度重要度マトリックス"><span class="header-section-number">36.1.1</span> 優先度・重要度マトリックス</h3>
+<table>
+<thead>
+<tr>
+<th>タグ</th>
+<th>重要度</th>
+<th>緊急度</th>
+<th>主な用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\warning</code></td>
+<td>🔴 高</td>
+<td>🔴 高</td>
+<td>重大なエラーや危険の回避</td>
+</tr>
+<tr>
+<td><code>\attention</code></td>
+<td>🔴 高</td>
+<td>🟡 中</td>
+<td>必須の制約条件・使用条件</td>
+</tr>
+<tr>
+<td><code>\note</code></td>
+<td>🟡 中</td>
+<td>🟡 中</td>
+<td>技術的詳細・実装仕様</td>
+</tr>
+<tr>
+<td><code>\remarks</code></td>
+<td>🟢 低～中</td>
+<td>🟢 低</td>
+<td>補足情報・推奨事項</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="36.2" id="warning---危険回避のための警告"><span class="header-section-number">36.2</span> <code>@warning</code> - 危険回避のための警告</h2>
+<p><strong>使用場面</strong>: 不適切な使用により重大な問題が発生する可能性がある場合</p>
+<h3 data-number="36.2.1" id="適用例"><span class="header-section-number">36.2.1</span> 適用例</h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          生のメモリポインタを操作します。</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in,out]</span><span class="co">  </span><span class="cv">ptr</span><span class="co"> メモリポインタ。</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">size</span><span class="co"> 操作するサイズ。</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        この関数を呼ぶ前に必ず ptr != nullptr を確認してください。</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        </span><span class="an">@p</span><span class="co"> </span><span class="cv">size</span><span class="co"> は実際のメモリサイズを超えてはいけません。</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> manipulateRawMemory<span class="op">(</span><span class="dt">void</span><span class="op">*</span> ptr<span class="op">,</span> <span class="dt">size_t</span> size<span class="op">);</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          暗号化キーを生成します。</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         生成されたキー。</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        生成されたキーは必ず安全な場所に保存してください。</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        デバッグ時でもキーをログに出力しないでください。</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span><span class="op">*</span> generateEncryptionKey<span class="op">();</span></span></code></pre></div>
+<h3 data-number="36.2.2" id="使用指針"><span class="header-section-number">36.2.2</span> 使用指針</h3>
+<ul>
+<li>セキュリティリスクがある場合</li>
+<li>メモリリークやクラッシュの可能性がある場合</li>
+<li>データ破損の危険がある場合</li>
+</ul>
+<h2 data-number="36.3" id="attention---必須の制約条件"><span class="header-section-number">36.3</span> <code>@attention</code> - 必須の制約条件</h2>
+<p><strong>使用場面</strong>: 正しい動作のために必ず守る必要がある条件や手順がある場合</p>
+<h3 data-number="36.3.1" id="適用例-1"><span class="header-section-number">36.3.1</span> 適用例</h3>
+<div class="sourceCode" id="cb28"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          データベース接続を初期化します。</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">config</span><span class="co"> 設定情報。</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@attention</span><span class="co">      この関数は main() 関数内で1回だけ呼び出してください。</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@attention</span><span class="co">      cleanup() を呼ぶ前に必ず disconnect() を実行してください。</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> initializeDatabase<span class="op">(</span><span class="dt">const</span> Config <span class="op">*</span>config<span class="op">);</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          スレッドプールを作成します。</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">threadCount</span><span class="co"> スレッド数。</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@attention</span><span class="co">      </span><span class="an">@p</span><span class="co"> </span><span class="cv">threadCount</span><span class="co"> は CPU コア数以下に設定してください。</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@attention</span><span class="co">      他のスレッドプールが動作中の場合は先に停止してください。</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> createThreadPool<span class="op">(</span><span class="dt">int</span> threadCount<span class="op">);</span></span></code></pre></div>
+<h3 data-number="36.3.2" id="使用指針-1"><span class="header-section-number">36.3.2</span> 使用指針</h3>
+<ul>
+<li>呼び出し順序が重要な場合</li>
+<li>初期化・終了処理の制約がある場合</li>
+<li>リソースの排他制御が必要な場合</li>
+</ul>
+<h2 data-number="36.4" id="note---技術的詳細実装仕様"><span class="header-section-number">36.4</span> <code>@note</code> - 技術的詳細・実装仕様</h2>
+<p><strong>使用場面</strong>: 技術的な背景や実装の詳細を説明する場合</p>
+<h3 data-number="36.4.1" id="適用例-2"><span class="header-section-number">36.4.1</span> 適用例</h3>
+<div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          高速ソートアルゴリズムを提供します。</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in,out]</span><span class="co">  </span><span class="cv">data</span><span class="co"> ソートするデータ。</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           このアルゴリズムはクイックソートを基に最適化されています。</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           平均時間計算量は O(n log n)、最悪時間計算量は O(n²) です。</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           安定ソートではありません。</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fastSort<span class="op">(</span>Data <span class="op">*</span>data<span class="op">);</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          HTTP リクエストを送信します。</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">url</span><span class="co"> リクエスト URL。</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         レスポンス内容。</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           内部で libcurl ライブラリを使用しています。</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           タイムアウト値は 30 秒に設定されています。</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           SSL 証明書の検証を有効にしています。</span></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>sendHttpRequest<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>url<span class="op">);</span></span></code></pre></div>
+<h3 data-number="36.4.2" id="使用指針-2"><span class="header-section-number">36.4.2</span> 使用指針</h3>
+<ul>
+<li>アルゴリズムの説明</li>
+<li>使用しているライブラリの情報</li>
+<li>性能特性の説明</li>
+<li>実装の技術的な詳細</li>
+</ul>
+<h2 data-number="36.5" id="remarks---補足情報推奨事項"><span class="header-section-number">36.5</span> <code>@remarks</code> - 補足情報・推奨事項</h2>
+<p><strong>使用場面</strong>: 使用上のヒントや最適化のアドバイスを提供する場合</p>
+<h3 data-number="36.5.1" id="適用例-3"><span class="header-section-number">36.5.1</span> 適用例</h3>
+<div class="sourceCode" id="cb30"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          大量のデータを処理します。</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">dataset</span><span class="co"> 処理するデータセット。</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@remarks</span><span class="co">        10 万件以上のデータの場合は並列処理版の使用を推奨します。</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@remarks</span><span class="co">        メモリ使用量はデータサイズの約 1.5 倍になります。</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@remarks</span><span class="co">        処理中にプログレスバーを表示することを推奨します。</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> processLargeDataset<span class="op">(</span><span class="dt">const</span> Dataset <span class="op">*</span>dataset<span class="op">);</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          設定ファイルを読み込みます。</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">filePath</span><span class="co"> ファイルパス。</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         設定内容。</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@remarks</span><span class="co">        起動時のパフォーマンスを向上させるため、設定をキャッシュすることを推奨します。</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>Config <span class="op">*</span>loadConfiguration<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>filePath<span class="op">);</span></span></code></pre></div>
+<h3 data-number="36.5.2" id="使用指針-3"><span class="header-section-number">36.5.2</span> 使用指針</h3>
+<ul>
+<li>パフォーマンス最適化のヒント</li>
+<li>代替手段の提案</li>
+<li>使用経験に基づくアドバイス</li>
+<li>設計上の考慮事項</li>
+</ul>
+<h2 data-number="36.6" id="実践的な使い分け例"><span class="header-section-number">36.6</span> 実践的な使い分け例</h2>
+<h3 data-number="36.6.1" id="複数タグを組み合わせた例"><span class="header-section-number">36.6.1</span> 複数タグを組み合わせた例</h3>
+<div class="sourceCode" id="cb31"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          金融取引を実行します。</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">transaction</span><span class="co"> 取引情報。</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">account</span><span class="co"> 口座情報。</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         取引結果。</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@attention</span><span class="co">      取引実行前に必ず口座残高を確認してください。</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="wa">@warning</span><span class="co">        取引が失敗した場合でも重複実行は禁止です。</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           取引履歴は自動的にデータベースに保存されます。</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@remarks</span><span class="co">        高頻度取引の場合はバッチ処理の使用を検討してください。</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>TransactionResult <span class="op">*</span>executeTransaction<span class="op">(</span><span class="dt">const</span> Transaction <span class="op">*</span>transaction<span class="op">,</span> </span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>                                      <span class="dt">const</span> Account <span class="op">*</span>account<span class="op">);</span></span></code></pre></div>
+<h2 data-number="36.7" id="判断フローチャート"><span class="header-section-number">36.7</span> 判断フローチャート</h2>
+<figure>
+<img src="puml_61facfe9dc24d547187e15e0c9effaa72e7711cb.svg" alt="判断フローチャート" />
+<figcaption aria-hidden="true">判断フローチャート</figcaption>
+</figure>
+<h1 data-number="37" id="その他"><span class="header-section-number">37</span> その他</h1>
+<h2 data-number="37.1" id="コマンド-タグ-の接頭子"><span class="header-section-number">37.1</span> コマンド (タグ) の接頭子</h2>
+<p>Doxygen では、コマンドの先頭に <code>@</code> もしくは <code>\</code> のどちらを使用しても機能しますが、一般的なスタイルとして多くのプロジェクトやガイドラインでは <code>@</code> が推奨されている場合が多いです。</p>
+<p>統一性を保つためには、<code>@</code> に統一すると良いでしょう。</p>
+<p>以下に例を示します。</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          This function does something important.</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@param[in]</span><span class="co">      </span><span class="cv">param1</span><span class="co"> Description of param1.</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@return</span><span class="co">         Description of return value.</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> exampleFunction<span class="op">(</span><span class="dt">int</span> param1<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Function implementation</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>または (非推奨)</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">\brief</span><span class="co">          This function does something important.</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">\param[in]</span><span class="co">      </span><span class="cv">param1</span><span class="co"> Description of param1.</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">\return</span><span class="co">         Description of return value.</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> exampleFunction<span class="op">(</span><span class="dt">int</span> param1<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Function implementation</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

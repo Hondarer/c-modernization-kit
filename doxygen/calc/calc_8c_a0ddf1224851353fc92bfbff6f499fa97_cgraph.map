@@ -1,0 +1,14 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title="プログラムのエントリーポイント。" alt="" coords="5,50,56,75"/>
+<area shape="rect" id="Node000002" href="$calcHandler_8c.html#a076a4c6ceba865f94fc475a5411115f7" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="104,50,195,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,60,90,60,90,65,56,65"/>
+<area shape="rect" id="Node000003" href="$libsrc_2calcbase_2add_8c.html#ae0a73dcc2e58d59cbc0f200e50736260" title="2 つの整数を加算します。" alt="" coords="360,49,403,74"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="165,47,200,26,242,9,278,3,313,9,338,21,360,37,356,41,335,26,311,14,278,8,243,14,202,31,168,52"/>
+<area shape="rect" id="Node000004" href="$divide_8c.html#a457d7ab9fae4d04f0083aeeee6c700bb" title="2 つの整数を除算します。" alt="" coords="249,25,305,50"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="194,51,235,43,236,48,195,56"/>
+<area shape="rect" id="Node000005" href="$multiply_8c.html#aa2620c22f253b878c0356f0df6ac6d61" title="2 つの整数を乗算します。" alt="" coords="244,74,311,99"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="195,68,231,75,230,80,194,74"/>
+<area shape="rect" id="Node000006" href="$subtract_8c.html#a1bf275b5894cc190077fcae5246956ac" title="2 つの整数を減算します。" alt="" coords="243,123,312,149"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="173,73,244,114,242,119,170,78"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="294,121,351,80,354,84,297,125"/>
+</map>

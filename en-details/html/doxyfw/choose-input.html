@@ -1,0 +1,257 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Doxyfile で複数の個別ディレクトリを対象に指定する方法</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Doxyfile で複数の個別ディレクトリを対象に指定する方法</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#input-設定での複数ディレクトリ指定" id="toc-input-設定での複数ディレクトリ指定"><span class="toc-section-number">1</span> INPUT 設定での複数ディレクトリ指定</a></li>
+                <li><a href="#相対パスでの指定" id="toc-相対パスでの指定"><span class="toc-section-number">2</span> 相対パスでの指定</a></li>
+                <li><a href="#ワイルドカードの使用" id="toc-ワイルドカードの使用"><span class="toc-section-number">3</span> ワイルドカードの使用</a></li>
+                <li><a href="#recursive-設定との組み合わせ" id="toc-recursive-設定との組み合わせ"><span class="toc-section-number">4</span> RECURSIVE 設定との組み合わせ</a></li>
+                <li><a href="#exclude-設定での除外" id="toc-exclude-設定での除外"><span class="toc-section-number">5</span> EXCLUDE 設定での除外</a></li>
+                <li><a href="#file_patterns-設定" id="toc-file_patterns-設定"><span class="toc-section-number">6</span> FILE_PATTERNS 設定</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Doxyfile で複数の個別ディレクトリを対象に指定する方法</H1>
+      
+      
+      <p>Doxygen の <code>Doxyfile</code> で複数の個別ディレクトリを対象に指定する方法を説明します。</p>
+<h1 data-number="1" id="input-設定での複数ディレクトリ指定"><span class="header-section-number">1</span> INPUT 設定での複数ディレクトリ指定</h1>
+<p>最も一般的な方法は、<code>INPUT</code> 設定で複数のディレクトリをスペース区切りで指定することです。</p>
+<pre class="text"><code>INPUT = /path/to/dir1 /path/to/dir2 /path/to/dir3</code></pre>
+<p>または、改行とバックスラッシュを使用して見やすく記述することもできます。</p>
+<pre class="text"><code>INPUT = /path/to/dir1 \
+        /path/to/dir2 \
+        /path/to/dir3</code></pre>
+<h1 data-number="2" id="相対パスでの指定"><span class="header-section-number">2</span> 相対パスでの指定</h1>
+<p>相対パスでも指定可能です。<br />
+先頭の ./ は中間一致を防くために明示したほうがベターです。</p>
+<pre class="text"><code>INPUT = ./src ./include ./examples</code></pre>
+<h1 data-number="3" id="ワイルドカードの使用"><span class="header-section-number">3</span> ワイルドカードの使用</h1>
+<p>ワイルドカードパターンも使用できます。</p>
+<pre class="text"><code>INPUT = ./src/* ./libs/*/include</code></pre>
+<h1 data-number="4" id="recursive-設定との組み合わせ"><span class="header-section-number">4</span> RECURSIVE 設定との組み合わせ</h1>
+<p><code>RECURSIVE</code> を <code>YES</code>に設定すると、指定したディレクトリのサブディレクトリも再帰的に処理されます。</p>
+<pre class="text"><code>INPUT = dir1 dir2 dir3
+RECURSIVE = YES</code></pre>
+<h1 data-number="5" id="exclude-設定での除外"><span class="header-section-number">5</span> EXCLUDE 設定での除外</h1>
+<p>特定のディレクトリやファイルを除外したい場合は <code>EXCLUDE</code> 設定を使用します。</p>
+<pre><code>INPUT = src libs
+EXCLUDE = src/deprecated libs/external
+RECURSIVE = YES</code></pre>
+<h1 data-number="6" id="file_patterns-設定"><span class="header-section-number">6</span> FILE_PATTERNS 設定</h1>
+<p>特定の拡張子のファイルのみを対象にしたい場合は以下のように設定します。</p>
+<pre class="text"><code>INPUT = src include
+FILE_PATTERNS = *.cpp *.h *.hpp
+RECURSIVE = YES</code></pre>
+<p>これらの方法により、プロジェクトの構造に応じて柔軟にドキュメント生成の対象を指定できます。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

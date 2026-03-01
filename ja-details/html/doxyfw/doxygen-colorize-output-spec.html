@@ -1,0 +1,433 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>doxygen-colorize-output.sh 仕様</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">doxygen-colorize-output.sh 仕様</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#ファイルパス" id="toc-ファイルパス"><span class="toc-section-number">2</span> ファイルパス</a></li>
+                <li><a href="#実行権限" id="toc-実行権限"><span class="toc-section-number">3</span> 実行権限</a></li>
+                <li><a href="#機能" id="toc-機能"><span class="toc-section-number">4</span> 機能</a>
+                <ul>
+                <li><a href="#着色ルール" id="toc-着色ルール"><span class="toc-section-number">4.1</span> 着色ルール</a></li>
+                </ul></li>
+                <li><a href="#実装詳細" id="toc-実装詳細"><span class="toc-section-number">5</span> 実装詳細</a>
+                <ul>
+                <li><a href="#ansi-カラーコード定義" id="toc-ansi-カラーコード定義"><span class="toc-section-number">5.1</span> ANSI カラーコード定義</a></li>
+                <li><a href="#処理フロー" id="toc-処理フロー"><span class="toc-section-number">5.2</span> 処理フロー</a></li>
+                <li><a href="#マッチング条件" id="toc-マッチング条件"><span class="toc-section-number">5.3</span> マッチング条件</a>
+                <ul>
+                <li><a href="#エラーの検出" id="toc-エラーの検出"><span class="toc-section-number">5.3.1</span> エラーの検出</a></li>
+                <li><a href="#ワーニングの検出" id="toc-ワーニングの検出"><span class="toc-section-number">5.3.2</span> ワーニングの検出</a></li>
+                </ul></li>
+                <li><a href="#誤検知の防止" id="toc-誤検知の防止"><span class="toc-section-number">5.4</span> 誤検知の防止</a></li>
+                </ul></li>
+                <li><a href="#使用方法" id="toc-使用方法"><span class="toc-section-number">6</span> 使用方法</a>
+                <ul>
+                <li><a href="#makefile-からの呼び出し" id="toc-makefile-からの呼び出し"><span class="toc-section-number">6.1</span> makefile からの呼び出し</a></li>
+                <li><a href="#終了コードの保持" id="toc-終了コードの保持"><span class="toc-section-number">6.2</span> 終了コードの保持</a></li>
+                </ul></li>
+                <li><a href="#出力例" id="toc-出力例"><span class="toc-section-number">7</span> 出力例</a>
+                <ul>
+                <li><a href="#着色前" id="toc-着色前"><span class="toc-section-number">7.1</span> 着色前</a></li>
+                <li><a href="#着色後" id="toc-着色後"><span class="toc-section-number">7.2</span> 着色後</a></li>
+                </ul></li>
+                <li><a href="#制限事項" id="toc-制限事項"><span class="toc-section-number">8</span> 制限事項</a>
+                <ul>
+                <li><a href="#ansi-カラーコード非対応環境" id="toc-ansi-カラーコード非対応環境"><span class="toc-section-number">8.1</span> ANSI カラーコード非対応環境</a></li>
+                <li><a href="#ログファイルへの出力" id="toc-ログファイルへの出力"><span class="toc-section-number">8.2</span> ログファイルへの出力</a></li>
+                </ul></li>
+                <li><a href="#テスト方法" id="toc-テスト方法"><span class="toc-section-number">9</span> テスト方法</a></li>
+                <li><a href="#関連ファイル" id="toc-関連ファイル"><span class="toc-section-number">10</span> 関連ファイル</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>doxygen-colorize-output.sh 仕様</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p><code>doxygen-colorize-output.sh</code> は、Doxygen の出力メッセージに ANSI カラーコードを適用し、エラーとワーニングを視覚的に区別しやすくするフィルタースクリプトです。</p>
+<h1 data-number="2" id="ファイルパス"><span class="header-section-number">2</span> ファイルパス</h1>
+<pre class="text"><code>doxygen-colorize-output.sh</code></pre>
+<h1 data-number="3" id="実行権限"><span class="header-section-number">3</span> 実行権限</h1>
+<p>実行可能 (chmod +x)</p>
+<h1 data-number="4" id="機能"><span class="header-section-number">4</span> 機能</h1>
+<p>標準入力から受け取った各行を解析し、エラーまたはワーニングメッセージを検出して着色します。</p>
+<h2 data-number="4.1" id="着色ルール"><span class="header-section-number">4.1</span> 着色ルール</h2>
+<table>
+<thead>
+<tr>
+<th>メッセージタイプ</th>
+<th>検出パターン</th>
+<th>ANSI カラーコード</th>
+<th>表示色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>エラー</td>
+<td><code>error:</code></td>
+<td><code>\033[0;31m</code></td>
+<td>🔴 赤</td>
+</tr>
+<tr>
+<td>ワーニング</td>
+<td><code>warning:</code></td>
+<td><code>\033[0;33m</code></td>
+<td>🟡 黄</td>
+</tr>
+<tr>
+<td>その他</td>
+<td>(該当なし)</td>
+<td>(なし)</td>
+<td>デフォルト</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="5" id="実装詳細"><span class="header-section-number">5</span> 実装詳細</h1>
+<h2 data-number="5.1" id="ansi-カラーコード定義"><span class="header-section-number">5.1</span> ANSI カラーコード定義</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">RED</span><span class="op">=</span><span class="st">&#39;\033[0;31m&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="va">YELLOW</span><span class="op">=</span><span class="st">&#39;\033[0;33m&#39;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="va">RESET</span><span class="op">=</span><span class="st">&#39;\033[0m&#39;</span></span></code></pre></div>
+<h2 data-number="5.2" id="処理フロー"><span class="header-section-number">5.2</span> 処理フロー</h2>
+<figure>
+<img src="puml_7cc98fc9171d5adccbe1bde0cd8f4ffa2e7b9bf0.svg" alt="処理フロー" />
+<figcaption aria-hidden="true">処理フロー</figcaption>
+</figure>
+<h2 data-number="5.3" id="マッチング条件"><span class="header-section-number">5.3</span> マッチング条件</h2>
+<h3 data-number="5.3.1" id="エラーの検出"><span class="header-section-number">5.3.1</span> エラーの検出</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span><span class="st">&quot; error: &quot;</span><span class="pp">*</span> <span class="kw">]];</span> <span class="cf">then</span></span></code></pre></div>
+<p>行内に <code>error:</code> (前後にスペースを含む) が含まれる場合にマッチします。</p>
+<h3 data-number="5.3.2" id="ワーニングの検出"><span class="header-section-number">5.3.2</span> ワーニングの検出</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span><span class="st">&quot; warning: &quot;</span><span class="pp">*</span> <span class="kw">]];</span> <span class="cf">then</span></span></code></pre></div>
+<p>行内に <code>warning:</code> (前後にスペースを含む) が含まれる場合にマッチします。</p>
+<h2 data-number="5.4" id="誤検知の防止"><span class="header-section-number">5.4</span> 誤検知の防止</h2>
+<p>スペースを含むパターンマッチングにより、以下のような誤検知を防止します。</p>
+<ul>
+<li>変数名: <code>show_error_flag</code>, <code>warning_count</code></li>
+<li>関数名: <code>print_error()</code>, <code>handle_warning()</code></li>
+<li>コメント内の単語: <code>// This is an error example</code></li>
+</ul>
+<h1 data-number="6" id="使用方法"><span class="header-section-number">6</span> 使用方法</h1>
+<h2 data-number="6.1" id="makefile-からの呼び出し"><span class="header-section-number">6.1</span> makefile からの呼び出し</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxygen</span> Doxyfile <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="ex">../doxyfw/doxygen-colorize-output.sh</span></span></code></pre></div>
+<ul>
+<li><code>2&gt;&amp;1</code>: stderr を stdout にリダイレクトして結合</li>
+<li><code>|</code>: パイプでフィルタースクリプトに渡す</li>
+</ul>
+<h2 data-number="6.2" id="終了コードの保持"><span class="header-section-number">6.2</span> 終了コードの保持</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxygen</span> Doxyfile <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="ex">../doxyfw/doxygen-colorize-output.sh</span><span class="kw">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="va">DOXYGEN_EXIT</span><span class="op">=</span><span class="va">${PIPESTATUS</span><span class="op">[</span><span class="dv">0</span><span class="op">]</span><span class="va">}</span><span class="kw">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">exit</span> <span class="va">$DOXYGEN_EXIT</span><span class="kw">;</span></span></code></pre></div>
+<p><code>PIPESTATUS[0]</code> を使用して、パイプの最初のコマンド (doxygen) の終了コードを取得し、ビルドの成否を正しく判定します。</p>
+<h1 data-number="7" id="出力例"><span class="header-section-number">7</span> 出力例</h1>
+<h2 data-number="7.1" id="着色前"><span class="header-section-number">7.1</span> 着色前</h2>
+<pre class="text"><code>/path/to/file.c:42: warning: undocumented parameter &#39;foo&#39;
+/path/to/file.c:100: error: invalid syntax
+Normal output line</code></pre>
+<h2 data-number="7.2" id="着色後"><span class="header-section-number">7.2</span> 着色後</h2>
+<p>(ターミナルでは以下のように表示されます)</p>
+<p><span style="color: #ffaa00">/path/to/file.c:42: warning: undocumented parameter ‘foo’</span><br />
+<span style="color: #ff0000">/path/to/file.c:100: error: invalid syntax</span><br />
+Normal output line</p>
+<h1 data-number="8" id="制限事項"><span class="header-section-number">8</span> 制限事項</h1>
+<h2 data-number="8.1" id="ansi-カラーコード非対応環境"><span class="header-section-number">8.1</span> ANSI カラーコード非対応環境</h2>
+<p>Windows コマンドプロンプトなど、ANSI カラーコードに対応していないターミナルでは、エスケープシーケンスがそのまま表示される可能性があります。</p>
+<h2 data-number="8.2" id="ログファイルへの出力"><span class="header-section-number">8.2</span> ログファイルへの出力</h2>
+<p>ANSI カラーコードを含む出力をファイルにリダイレクトすると、エスケープシーケンスがそのまま記録されます。</p>
+<p>ログファイルに保存する場合は、以下のいずれかの方法を推奨します。</p>
+<ul>
+<li>フィルターを適用せずに doxygen を直接実行</li>
+<li><code>WARN_LOGFILE</code> 設定を使用して Doxygen が直接ログファイルに出力</li>
+</ul>
+<h1 data-number="9" id="テスト方法"><span class="header-section-number">9</span> テスト方法</h1>
+<p>以下のコマンドでスクリプト単体のテストが可能です。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&lt;&lt;&#39;EOF&#39;</span> <span class="kw">|</span> <span class="ex">doxygen-colorize-output.sh</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">Normal output line</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">/path/to/file.c:42: warning: undocumented parameter &#39;foo&#39;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">Another normal line</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">/path/to/file.c:100: error: invalid syntax</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">More normal output</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span></code></pre></div>
+<p>期待される結果: warning 行が黄色、error 行が赤色で表示されます。</p>
+<h1 data-number="10" id="関連ファイル"><span class="header-section-number">10</span> 関連ファイル</h1>
+<ul>
+<li><code>makefile</code>: 本スクリプトを doxygen 実行時に適用</li>
+<li><code>Doxyfile</code>: Doxygen の警告フォーマット設定 (<code>WARN_FORMAT</code>)</li>
+<li><code>docs-src/doxygen-colored-output-research.md</code>: 調査結果と背景情報</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

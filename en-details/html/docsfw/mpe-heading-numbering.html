@@ -1,0 +1,434 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Markdown Preview Enhanced での見出し自動採番</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Markdown Preview Enhanced での見出し自動採番</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 14:28:57 +0900 9161a70</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#前提環境" id="toc-前提環境"><span class="toc-section-number">2</span> 前提環境</a></li>
+                <li><a href="#設定手順" id="toc-設定手順"><span class="toc-section-number">3</span> 設定手順</a>
+                <ul>
+                <li><a href="#スタイルファイルを開く" id="toc-スタイルファイルを開く"><span class="toc-section-number">3.1</span> スタイルファイルを開く</a></li>
+                <li><a href="#見出し自動採番の-css-を追記する" id="toc-見出し自動採番の-css-を追記する"><span class="toc-section-number">3.2</span> 見出し自動採番の CSS を追記する</a></li>
+                <li><a href="#プレビューで確認する" id="toc-プレビューで確認する"><span class="toc-section-number">3.3</span> プレビューで確認する</a></li>
+                </ul></li>
+                <li><a href="#css-カウンターの仕組み" id="toc-css-カウンターの仕組み"><span class="toc-section-number">4</span> CSS カウンターの仕組み</a>
+                <ul>
+                <li><a href="#counter-reset" id="toc-counter-reset"><span class="toc-section-number">4.1</span> counter-reset</a></li>
+                <li><a href="#counter-increment-と-content" id="toc-counter-increment-と-content"><span class="toc-section-number">4.2</span> counter-increment と content</a></li>
+                <li><a href="#カウンター変数の対応関係" id="toc-カウンター変数の対応関係"><span class="toc-section-number">4.3</span> カウンター変数の対応関係</a></li>
+                <li><a href="#セレクタの重複指定" id="toc-セレクタの重複指定"><span class="toc-section-number">4.4</span> セレクタの重複指定</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Markdown Preview Enhanced での見出し自動採番</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>VS Code の拡張機能「Markdown Preview Enhanced」のプレビュー表示において、CSS カウンターを使用して見出し (h2〜h6) に自動的に章番号を振る方法を説明します。</p>
+<p>注: Pandoc にて h1 はドキュメントの見出しとして使用しているため、番号を付与するのは Markdown 上では h2 からとし、Pandoc の出力との一貫性を確保しています。</p>
+<p>参考: <a href="https://qiita.com/UKawamura/items/42f907c88686fb3be4da">Markdown の見出しに章番号を振る方法(ついでに目次にも) - Qiita</a></p>
+<h1 data-number="2" id="前提環境"><span class="header-section-number">2</span> 前提環境</h1>
+<ul>
+<li>Visual Studio Code</li>
+<li>拡張機能: Markdown Preview Enhanced</li>
+</ul>
+<h1 data-number="3" id="設定手順"><span class="header-section-number">3</span> 設定手順</h1>
+<h2 data-number="3.1" id="スタイルファイルを開く"><span class="header-section-number">3.1</span> スタイルファイルを開く</h2>
+<ol type="1">
+<li>VS Code で任意の Markdown ファイルを開く</li>
+<li><code>Ctrl+Shift+P</code> でコマンドパレットを開く</li>
+<li>「Markdown Preview Enhanced: Customize CSS (Global)」を選択する</li>
+</ol>
+<p><code>style.less</code> ファイルが開きます。このファイルの CSS を編集します。</p>
+<h2 data-number="3.2" id="見出し自動採番の-css-を追記する"><span class="header-section-number">3.2</span> 見出し自動採番の CSS を追記する</h2>
+<p><code>style.less</code> を以下のように置換します。すでに他のカスタマイズが行われている場合は適宜マージを行ってください。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* Please visit the URL below for more information: */</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>h1 {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">counter-reset</span><span class="ch">:</span> <span class="dv">chapter</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>h2 {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">counter-reset</span><span class="ch">:</span> <span class="dv">sub-chapter</span><span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>h3 {</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">counter-reset</span><span class="ch">:</span> <span class="dv">section</span><span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>h4 {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">counter-reset</span><span class="ch">:</span> <span class="dv">sub-section</span><span class="op">;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>h5 {</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">counter-reset</span><span class="ch">:</span> <span class="dv">sub-sub-section</span><span class="op">;</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">.markdown-preview.markdown-preview</span> {</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  h2<span class="ch">:</span>:<span class="dv">before </span>{</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="dv">counter-increment</span>: <span class="dv">chapter</span><span class="op">;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">content</span><span class="ch">:</span> <span class="fu">counter(</span><span class="dv">chapter</span><span class="fu">)</span> <span class="st">&quot; &quot;</span><span class="op">;</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  h3<span class="in">::before</span> {</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">counter-increment</span><span class="ch">:</span> <span class="dv">sub-chapter</span><span class="op">;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">content</span><span class="ch">:</span> <span class="fu">counter(</span><span class="dv">chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-chapter</span><span class="fu">)</span> <span class="st">&quot; &quot;</span><span class="op">;</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  h4<span class="in">::before</span> {</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">counter-increment</span><span class="ch">:</span> <span class="dv">section</span><span class="op">;</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">content</span><span class="ch">:</span> <span class="fu">counter(</span><span class="dv">chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">section</span><span class="fu">)</span> <span class="st">&quot; &quot;</span><span class="op">;</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  h5<span class="in">::before</span> {</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="kw">counter-increment</span><span class="ch">:</span> <span class="dv">sub-section</span><span class="op">;</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">content</span><span class="ch">:</span> <span class="fu">counter(</span><span class="dv">chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">section</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-section</span><span class="fu">)</span> <span class="st">&quot; &quot;</span><span class="op">;</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  h6<span class="in">::before</span> {</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">counter-increment</span><span class="ch">:</span> <span class="dv">sub-sub-section</span><span class="op">;</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">content</span><span class="ch">:</span> <span class="fu">counter(</span><span class="dv">chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-chapter</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">section</span><span class="fu">)</span> <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-section</span><span class="fu">)</span>  <span class="st">&quot;.&quot;</span> <span class="fu">counter(</span><span class="dv">sub-sub-section</span><span class="fu">)</span> <span class="st">&quot; &quot;</span><span class="op">;</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 data-number="3.3" id="プレビューで確認する"><span class="header-section-number">3.3</span> プレビューで確認する</h2>
+<p>設定後、Markdown ファイルのプレビューを開くと、各見出しの先頭に章番号が自動的に表示されます。</p>
+<p>表示例を次に示します。</p>
+<pre class="text"><code>見出し1
+1 見出し2
+1.1 見出し3
+1.1.1 見出し4
+1.1.1.1 見出し5
+1.1.1.1.1 見出し6</code></pre>
+<h1 data-number="4" id="css-カウンターの仕組み"><span class="header-section-number">4</span> CSS カウンターの仕組み</h1>
+<h2 data-number="4.1" id="counter-reset"><span class="header-section-number">4.1</span> counter-reset</h2>
+<p>上位の見出しが出現したとき、下位のカウンターをリセットします。</p>
+<ul>
+<li><code>h1</code> で <code>chapter</code> カウンターをリセット</li>
+<li><code>h2</code> で <code>sub-chapter</code> カウンターをリセット</li>
+<li><code>h3</code> で <code>section</code> カウンターをリセット</li>
+<li><code>h4</code> で <code>sub-section</code> カウンターをリセット</li>
+<li><code>h5</code> で <code>sub-sub-section</code> カウンターをリセット</li>
+</ul>
+<h2 data-number="4.2" id="counter-increment-と-content"><span class="header-section-number">4.2</span> counter-increment と content</h2>
+<p><code>::before</code> 疑似要素を使用して、見出しの前に番号を挿入します。</p>
+<ul>
+<li><code>counter-increment</code> で対応するカウンターを加算する</li>
+<li><code>content</code> で各階層のカウンター値を連結して表示する</li>
+</ul>
+<h2 data-number="4.3" id="カウンター変数の対応関係"><span class="header-section-number">4.3</span> カウンター変数の対応関係</h2>
+<table>
+<thead>
+<tr>
+<th>見出し</th>
+<th>カウンター変数</th>
+<th>表示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>h2</td>
+<td>chapter</td>
+<td>1</td>
+</tr>
+<tr>
+<td>h3</td>
+<td>sub-chapter</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>h4</td>
+<td>section</td>
+<td>1.1.1</td>
+</tr>
+<tr>
+<td>h5</td>
+<td>sub-section</td>
+<td>1.1.1.1</td>
+</tr>
+<tr>
+<td>h6</td>
+<td>sub-sub-section</td>
+<td>1.1.1.1.1</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.4" id="セレクタの重複指定"><span class="header-section-number">4.4</span> セレクタの重複指定</h2>
+<p><code>.markdown-preview.markdown-preview</code> のようにセレクタを重複指定することで、CSS の詳細度 (specificity) を高め、Markdown Preview Enhanced のデフォルトスタイルを確実に上書きします。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

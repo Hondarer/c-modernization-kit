@@ -1,0 +1,807 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>推奨セットに含めない警告オプションとその理由</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">推奨セットに含めない警告オプションとその理由</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Mon, 2 Mar 2026 07:07:40 +0900 a2acfde</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#判断基準" id="toc-判断基準"><span class="toc-section-number">1</span> 判断基準</a></li>
+                <li><a href="#w" id="toc-w"><span class="toc-section-number">2</span> -W</a></li>
+                <li><a href="#wbad-function-cast" id="toc-wbad-function-cast"><span class="toc-section-number">3</span> -Wbad-function-cast</a></li>
+                <li><a href="#wdeclaration-after-statement" id="toc-wdeclaration-after-statement"><span class="toc-section-number">4</span> -Wdeclaration-after-statement</a></li>
+                <li><a href="#wdisabled-optimization" id="toc-wdisabled-optimization"><span class="toc-section-number">5</span> -Wdisabled-optimization</a></li>
+                <li><a href="#wfloat-equal" id="toc-wfloat-equal"><span class="toc-section-number">6</span> -Wfloat-equal</a></li>
+                <li><a href="#wformat-overflow0" id="toc-wformat-overflow0"><span class="toc-section-number">7</span> -Wformat-overflow=0</a></li>
+                <li><a href="#wimplicit-fallthrough0" id="toc-wimplicit-fallthrough0"><span class="toc-section-number">8</span> -Wimplicit-fallthrough=0</a></li>
+                <li><a href="#winit-self" id="toc-winit-self"><span class="toc-section-number">9</span> -Winit-self</a></li>
+                <li><a href="#winline" id="toc-winline"><span class="toc-section-number">10</span> -Winline</a></li>
+                <li><a href="#wint-to-pointer-cast" id="toc-wint-to-pointer-cast"><span class="toc-section-number">11</span> -Wint-to-pointer-cast</a></li>
+                <li><a href="#winvalid-pch" id="toc-winvalid-pch"><span class="toc-section-number">12</span> -Winvalid-pch</a></li>
+                <li><a href="#wmissing-format-attribute" id="toc-wmissing-format-attribute"><span class="toc-section-number">13</span> -Wmissing-format-attribute</a></li>
+                <li><a href="#wmissing-noreturn" id="toc-wmissing-noreturn"><span class="toc-section-number">14</span> -Wmissing-noreturn</a></li>
+                <li><a href="#wnested-externs" id="toc-wnested-externs"><span class="toc-section-number">15</span> -Wnested-externs</a></li>
+                <li><a href="#wpointer-to-int-cast" id="toc-wpointer-to-int-cast"><span class="toc-section-number">16</span> -Wpointer-to-int-cast</a></li>
+                <li><a href="#wredundant-decls" id="toc-wredundant-decls"><span class="toc-section-number">17</span> -Wredundant-decls</a></li>
+                <li><a href="#wsequence-point" id="toc-wsequence-point"><span class="toc-section-number">18</span> -Wsequence-point</a></li>
+                <li><a href="#wstrict-aliasing2" id="toc-wstrict-aliasing2"><span class="toc-section-number">19</span> -Wstrict-aliasing=2</a></li>
+                <li><a href="#wunsafe-loop-optimizations" id="toc-wunsafe-loop-optimizations"><span class="toc-section-number">20</span> -Wunsafe-loop-optimizations</a></li>
+                <li><a href="#wvariadic-macros" id="toc-wvariadic-macros"><span class="toc-section-number">21</span> -Wvariadic-macros</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>推奨セットに含めない警告オプションとその理由</H1>
+      
+      
+      <p>本ドキュメントは、<a href="index.html">gcc 警告オプション運用ガイド</a> の推奨警告セットに<br />
+含めなかった警告オプションについて、除外理由を整理したものです。</p>
+<h1 data-number="1" id="判断基準"><span class="header-section-number">1</span> 判断基準</h1>
+<p>除外の判断は、ガイドの基本方針に基づいています。</p>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 64%" />
+</colgroup>
+<thead>
+<tr>
+<th>基準</th>
+<th>方針の根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>バグ直結性</td>
+<td>「バグに直結しやすい警告のみを厳選して追加します」</td>
+</tr>
+<tr>
+<td>抑制禁止</td>
+<td>「警告を抑制するための指定 (=0, -Wno-*) は原則使いません」</td>
+</tr>
+<tr>
+<td>既存カバー</td>
+<td>-Wall -Wextra またはデフォルトで既に有効な警告は重複追加しません</td>
+</tr>
+<tr>
+<td>対象環境</td>
+<td>EL8 (gcc8) と EL10 (gcc14) の両方で利用可能であること</td>
+</tr>
+</tbody>
+</table>
+<p>除外理由を以下のカテゴリに分類しています。</p>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>カテゴリ</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. 既に有効</td>
+<td>-Wall / -Wextra / デフォルトに含まれるため重複します</td>
+</tr>
+<tr>
+<td>B. 抑制指定</td>
+<td>=0 による警告抑制であり、基本方針に違反します</td>
+</tr>
+<tr>
+<td>C. スタイル制約</td>
+<td>コーディングスタイルの強制であり、バグ検出ではありません</td>
+</tr>
+<tr>
+<td>D. 最適化情報</td>
+<td>コンパイラ最適化に関するフィードバックであり、コードの正しさと無関係です</td>
+</tr>
+<tr>
+<td>E. 高ノイズ</td>
+<td>正当なコードに対する警告が多く、品質ゲートとして機能しません</td>
+</tr>
+<tr>
+<td>F. 環境非対応</td>
+<td>対象環境 (gcc8 以降) で利用できません</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 data-number="2" id="w"><span class="header-section-number">2</span> -W</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>A. 既に有効</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>-Wextra の旧名 (非推奨エイリアス)</td>
+</tr>
+</tbody>
+</table>
+<p>推奨セットに -Wextra を含んでいるため、-W を併記する意味はありません。<br />
+GCC のドキュメントでも -Wextra の使用が推奨されています。</p>
+<hr />
+<h1 data-number="3" id="wbad-function-cast"><span class="header-section-number">3</span> -Wbad-function-cast</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>E. 高ノイズ</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>関数の戻り値を異なる型クラスにキャストした場合に警告 (C 専用)</td>
+</tr>
+</tbody>
+</table>
+<p>明示的なキャストに対して警告するため、開発者が意図的に型変換している箇所にも<br />
+警告が発生します。<code>(int)strlen(s)</code> のような一般的かつ安全なパターンでも<br />
+警告されるため、品質ゲートとして運用すると大量の抑制が必要になります。</p>
+<p>型変換の安全性を包括的に検出するには -Wconversion の方が適切ですが、<br />
+こちらもノイズが多いため推奨セットには含めていません。</p>
+<hr />
+<h1 data-number="4" id="wdeclaration-after-statement"><span class="header-section-number">4</span> -Wdeclaration-after-statement</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>C. スタイル制約</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>文の後に変数宣言がある場合に警告 (C89 スタイルの強制、C 専用)</td>
+</tr>
+</tbody>
+</table>
+<p>C89 では変数宣言はブロック先頭のみに許可されていましたが、C99 以降は<br />
+文の後の宣言が合法です。対象環境 (gcc8: gnu11、gcc14: gnu17) は<br />
+いずれも C99 以降が既定であり、この制約を課す理由はありません。</p>
+<p>さらに、使用箇所に近い宣言はスコープを狭め、未初期化変数のリスクを<br />
+低減するため、C99 スタイルの方がバグ防止に寄与します。<br />
+モダナイゼーションの方向性とも相反します。</p>
+<hr />
+<h1 data-number="5" id="wdisabled-optimization"><span class="header-section-number">5</span> -Wdisabled-optimization</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>D. 最適化情報</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>コードが複雑すぎて最適化パスが無効化された場合に警告</td>
+</tr>
+</tbody>
+</table>
+<p>コンパイラの最適化器が内部的に処理を断念したことを通知するものであり、<br />
+コードの正しさや移植性とは無関係です。<br />
+出力の有無はコンパイラバージョンや最適化レベルに強く依存し、<br />
+gcc8 と gcc14 で挙動が異なる可能性が高いです。品質ゲートには適しません。</p>
+<hr />
+<h1 data-number="6" id="wfloat-equal"><span class="header-section-number">6</span> -Wfloat-equal</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>E. 高ノイズ</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>浮動小数点数の等値比較 (==, !=) に警告</td>
+</tr>
+</tbody>
+</table>
+<p>浮動小数点数の等値比較が危険な場合があるのは事実ですが、0.0 との比較や<br />
+番兵値との比較など、正当なパターンも多くあります。<br />
+一律に警告すると誤検出が多発し、品質ゲートとして機能しません。</p>
+<p>本プロジェクトのサンプルコード (calc) は整数演算が中心であり、<br />
+浮動小数点演算の安全性はコードレビューで対応する方が実用的です。</p>
+<hr />
+<h1 data-number="7" id="wformat-overflow0"><span class="header-section-number">7</span> -Wformat-overflow=0</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>B. 抑制指定</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>-Wformat-overflow による書式オーバーフロー検出を無効化</td>
+</tr>
+</tbody>
+</table>
+<p>=0 は警告の抑制指定であり、基本方針「警告を抑制するための指定<br />
+(=0, -Wno-*) は原則使いません」に違反します。</p>
+<p>-Wformat-overflow は gcc7 以降で -Wall に含まれており (レベル 1)、<br />
+推奨セットではこれをそのまま有効にしています。<br />
+抑制ではなく、警告が出ないコードを書くべきです。</p>
+<hr />
+<h1 data-number="8" id="wimplicit-fallthrough0"><span class="header-section-number">8</span> -Wimplicit-fallthrough=0</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>B. 抑制指定</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>-Wimplicit-fallthrough による switch フォールスルー検出を無効化</td>
+</tr>
+</tbody>
+</table>
+<p>=0 は警告の抑制指定であり、基本方針に違反します。</p>
+<p>-Wimplicit-fallthrough は gcc7 以降で -Wextra に含まれており、<br />
+推奨セットではこれをそのまま有効にしています。<br />
+意図的なフォールスルーには <code>__attribute__((fallthrough))</code> または<br />
+コメントアノテーションで明示してください。</p>
+<hr />
+<h1 data-number="9" id="winit-self"><span class="header-section-number">9</span> -Winit-self</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>A. 既に有効</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>変数が自分自身で初期化されている場合に警告 (<code>int i = i;</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>-Winit-self は -Wall に含まれています。<br />
+推奨セットで -Wall を指定しているため、明示的に追加する必要はありません。</p>
+<hr />
+<h1 data-number="10" id="winline"><span class="header-section-number">10</span> -Winline</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>D. 最適化情報</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>inline 宣言された関数がインライン展開できない場合に警告</td>
+</tr>
+</tbody>
+</table>
+<p>コンパイラの最適化判断に関するフィードバックであり、<br />
+コードの正しさやバグの検出とは無関係です。<br />
+inline 展開の可否はコンパイラバージョンや最適化レベルに依存するため、<br />
+gcc8 と gcc14 で異なる結果が出る可能性が高く、<br />
+品質ゲートとして安定しません。</p>
+<hr />
+<h1 data-number="11" id="wint-to-pointer-cast"><span class="header-section-number">11</span> -Wint-to-pointer-cast</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>A. 既に有効</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>整数からポインタへのキャストでサイズが異なる場合に警告 (C 専用)</td>
+</tr>
+</tbody>
+</table>
+<p>GCC ではデフォルトで有効であり、-Wall の有無にかかわらず警告が出力されます。<br />
+推奨セットに明示的に追加する必要はありません。</p>
+<hr />
+<h1 data-number="12" id="winvalid-pch"><span class="header-section-number">12</span> -Winvalid-pch</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>C. スタイル制約</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>プリコンパイル済みヘッダーが使用できない場合に警告</td>
+</tr>
+</tbody>
+</table>
+<p>ビルドインフラの構成管理に関する警告であり、<br />
+コードの品質やバグの検出とは無関係です。<br />
+プリコンパイル済みヘッダーの管理はビルドシステム側で対応すべき問題であり、<br />
+コード品質ゲートの範囲外です。</p>
+<hr />
+<h1 data-number="13" id="wmissing-format-attribute"><span class="header-section-number">13</span> -Wmissing-format-attribute</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>E. 高ノイズ</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>format 属性を付与できる関数に属性がない場合に警告</td>
+</tr>
+</tbody>
+</table>
+<p>printf/scanf 系のラッパー関数に <code>__attribute__((format(...)))</code> の<br />
+付与を促す警告です。属性の付与は良い習慣ですが、属性が欠けていること自体は<br />
+バグではありません。推奨セットの -Wformat=2 によって、format 属性が付与された<br />
+関数の呼び出し側での不整合は既に厳密に検出されています。</p>
+<hr />
+<h1 data-number="14" id="wmissing-noreturn"><span class="header-section-number">14</span> -Wmissing-noreturn</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>E. 高ノイズ</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>noreturn 属性を付与できる関数に属性がない場合に警告</td>
+</tr>
+</tbody>
+</table>
+<p><code>__attribute__((noreturn))</code> の付与を促す警告です。<br />
+属性の欠落はコンパイラの最適化機会の損失にはなりますが、バグではありません。<br />
+exit() や abort() を呼ぶユーティリティ関数すべてに警告が出るため、<br />
+ノイズが多くなります。</p>
+<hr />
+<h1 data-number="15" id="wnested-externs"><span class="header-section-number">15</span> -Wnested-externs</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>C. スタイル制約</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>関数内部での extern 宣言に警告 (C 専用)</td>
+</tr>
+</tbody>
+</table>
+<p>関数ブロック内の extern 宣言は合法な C コードであり、<br />
+バグに直結するものではありません。可読性やメンテナンス性の問題であり、<br />
+コードレビューで対応すべき範囲です。</p>
+<hr />
+<h1 data-number="16" id="wpointer-to-int-cast"><span class="header-section-number">16</span> -Wpointer-to-int-cast</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>A. 既に有効</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>ポインタから整数へのキャストでサイズが異なる場合に警告 (C 専用)</td>
+</tr>
+</tbody>
+</table>
+<p>GCC ではデフォルトで有効であり、-Wall の有無にかかわらず警告が出力されます。<br />
+推奨セットに明示的に追加する必要はありません。</p>
+<hr />
+<h1 data-number="17" id="wredundant-decls"><span class="header-section-number">17</span> -Wredundant-decls</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>E. 高ノイズ</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>同一スコープ内での冗長な再宣言に警告</td>
+</tr>
+</tbody>
+</table>
+<p>ヘッダーファイルの防御的インクルード設計 (複数のヘッダーが同じ宣言を<br />
+含む場合) で正当に発生します。ライブラリの公開ヘッダーと内部ヘッダーの<br />
+両方に宣言を持つ一般的なパターンでも警告されるため、<br />
+品質ゲートとして運用すると抑制が必要になる場面が多くなります。</p>
+<hr />
+<h1 data-number="18" id="wsequence-point"><span class="header-section-number">18</span> -Wsequence-point</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>A. 既に有効</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>シーケンスポイント違反 (未定義動作) を検出</td>
+</tr>
+</tbody>
+</table>
+<p>-Wsequence-point は -Wall に含まれています。<br />
+推奨セットで -Wall を指定しているため、明示的に追加する必要はありません。</p>
+<hr />
+<h1 data-number="19" id="wstrict-aliasing2"><span class="header-section-number">19</span> -Wstrict-aliasing=2</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>E. 高ノイズ</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>strict aliasing ルール違反の検出 (レベル 2)</td>
+</tr>
+</tbody>
+</table>
+<p>-Wall は -Wstrict-aliasing をレベル 3 (最も保守的) で有効にしています。<br />
+レベル 2 はより積極的に検出しますが、誤検出 (false positive) も増加します。</p>
+<p>レベル 2 の誤検出を抑制するために -Wno-strict-aliasing を追加するのは<br />
+基本方針に反します。-Wall によるレベル 3 の検出で十分であり、<br />
+真に危険なエイリアシング違反はコードレビューや静的解析ツールで対応する方が<br />
+実用的です。</p>
+<hr />
+<h1 data-number="20" id="wunsafe-loop-optimizations"><span class="header-section-number">20</span> -Wunsafe-loop-optimizations</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>F. 環境非対応</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>ループ最適化が安全でない可能性がある場合に警告</td>
+</tr>
+</tbody>
+</table>
+<p>この警告オプションは GCC 8 で削除されています。<br />
+対象環境の下限が gcc8 (EL8) であるため、そもそも利用できません。</p>
+<p>仮に利用可能であったとしても、最適化器の内部判断に関するフィードバックであり、<br />
+コードの正しさとは無関係 (カテゴリ D) に該当します。</p>
+<hr />
+<h1 data-number="21" id="wvariadic-macros"><span class="header-section-number">21</span> -Wvariadic-macros</h1>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除外カテゴリ</td>
+<td>C. スタイル制約</td>
+</tr>
+<tr>
+<td>概要</td>
+<td>可変引数マクロの使用に警告</td>
+</tr>
+</tbody>
+</table>
+<p>可変引数マクロは C99 で標準化された機能であり、<br />
+対象環境 (gcc8: gnu11、gcc14: gnu17) では言語仕様として正当です。<br />
+デバッグマクロやログマクロで広く使用されるパターンであり、<br />
+これを禁止する合理的な理由はありません。</p>
+<p>-Wdeclaration-after-statement と同様に、C99 以降の正当な機能に対する<br />
+制約はモダナイゼーションの方向性と相反します。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

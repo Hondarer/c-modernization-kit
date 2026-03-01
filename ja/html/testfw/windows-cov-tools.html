@@ -1,0 +1,467 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="github-actions[bot]" />
+  <title>VSBT でのカバレッジツール選択ガイド</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">VSBT でのカバレッジツール選択ガイド</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">github-actions[bot]</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 21:06:51 +0000 cbf6a8f</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#vsbt-でのカバレッジツールの選択肢" id="toc-vsbt-でのカバレッジツールの選択肢"><span class="toc-section-number">1</span> VSBT でのカバレッジツールの選択肢</a>
+                <ul>
+                <li><a href="#opencppcoverage-推奨" id="toc-opencppcoverage-推奨"><span class="toc-section-number">1.1</span> OpenCppCoverage (推奨)</a></li>
+                <li><a href="#その他のサードパーティツール" id="toc-その他のサードパーティツール"><span class="toc-section-number">1.2</span> その他のサードパーティツール</a></li>
+                <li><a href="#msvc-標準ツールの制限" id="toc-msvc-標準ツールの制限"><span class="toc-section-number">1.3</span> MSVC 標準ツールの制限</a></li>
+                </ul></li>
+                <li><a href="#opencppcoverage-の特徴" id="toc-opencppcoverage-の特徴"><span class="toc-section-number">2</span> OpenCppCoverage の特徴</a>
+                <ul>
+                <li><a href="#対応言語" id="toc-対応言語"><span class="toc-section-number">2.1</span> 対応言語</a></li>
+                <li><a href="#基本的な使い方" id="toc-基本的な使い方"><span class="toc-section-number">2.2</span> 基本的な使い方</a></li>
+                <li><a href="#推奨ビルドオプション" id="toc-推奨ビルドオプション"><span class="toc-section-number">2.3</span> 推奨ビルドオプション</a></li>
+                <li><a href="#出力形式" id="toc-出力形式"><span class="toc-section-number">2.4</span> 出力形式</a></li>
+                <li><a href="#動作の仕組み" id="toc-動作の仕組み"><span class="toc-section-number">2.5</span> 動作の仕組み</a></li>
+                </ul></li>
+                <li><a href="#opencppcoverage-を利用して-gcov-形式のシンプルなテキストを生成する方法" id="toc-opencppcoverage-を利用して-gcov-形式のシンプルなテキストを生成する方法"><span class="toc-section-number">3</span> OpenCppCoverage を利用して gcov 形式のシンプルなテキストを生成する方法</a>
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">3.1</span> 概要</a></li>
+                <li><a href="#変換スクリプト" id="toc-変換スクリプト"><span class="toc-section-number">3.2</span> 変換スクリプト</a></li>
+                <li><a href="#使用方法" id="toc-使用方法"><span class="toc-section-number">3.3</span> 使用方法</a></li>
+                <li><a href="#gcov-形式の出力例" id="toc-gcov-形式の出力例"><span class="toc-section-number">3.4</span> gcov 形式の出力例</a></li>
+                <li><a href="#注意点" id="toc-注意点"><span class="toc-section-number">3.5</span> 注意点</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">4</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>VSBT でのカバレッジツール選択ガイド</H1>
+      
+      
+      <h1 data-number="1" id="vsbt-でのカバレッジツールの選択肢"><span class="header-section-number">1</span> VSBT でのカバレッジツールの選択肢</h1>
+<p>VSBT (Visual Studio Build Tools) 環境で、Enterprise ツールを使わない場合の選択肢を整理します。</p>
+<h2 data-number="1.1" id="opencppcoverage-推奨"><span class="header-section-number">1.1</span> OpenCppCoverage (推奨)</h2>
+<p>Windows 向けのオープンソースカバレッジツールです。gcov に最も近い使い勝手で、MSVC でビルドしたバイナリに対応しています。</p>
+<p><strong>特徴</strong></p>
+<ul>
+<li>コマンドラインから実行できる</li>
+<li>PDB (Program Database) ファイルを使ってカバレッジを取得する</li>
+<li>HTML、Cobertura、Binary 形式でレポート出力できる</li>
+<li>CI/CD パイプラインに組み込みやすい</li>
+<li>オープンソースで無料</li>
+<li>C言語と C++ の両方に対応</li>
+</ul>
+<p><strong>導入方法</strong></p>
+<ul>
+<li>インストーラーをダウンロードして実行する</li>
+<li>Chocolatey を使う場合: <code>choco install opencppcoverage</code></li>
+</ul>
+<p>関連リンク: <a href="https://github.com/OpenCppCoverage/OpenCppCoverage">OpenCppCoverage GitHub</a></p>
+<h2 data-number="1.2" id="その他のサードパーティツール"><span class="header-section-number">1.2</span> その他のサードパーティツール</h2>
+<p><strong>BullseyeCoverage</strong></p>
+<p>商用ツールですが、MSVC に対応しており、ソースコードのインストルメンテーション (コードに計測用の処理を埋め込むこと) を行ってカバレッジを取得します。ライセンス費用が発生します。</p>
+<p><strong>gcov + MinGW-w64</strong></p>
+<p>MSVC ではなく MinGW-w64 の GCC を使う選択肢もあります。この場合は gcov がそのまま使えますが、MSVC でのビルドが要件の場合は選択できません。</p>
+<h2 data-number="1.3" id="msvc-標準ツールの制限"><span class="header-section-number">1.3</span> MSVC 標準ツールの制限</h2>
+<p>VSInstr.exe や VSPerfCmd.exe は Visual Studio に付属していますが、これらは主にプロファイリング用途であり、Code Coverage 機能自体は Enterprise エディション専用です。Build Tools だけでは完全なカバレッジレポート生成は難しいです。</p>
+<h1 data-number="2" id="opencppcoverage-の特徴"><span class="header-section-number">2</span> OpenCppCoverage の特徴</h1>
+<h2 data-number="2.1" id="対応言語"><span class="header-section-number">2.1</span> 対応言語</h2>
+<p>OpenCppCoverage は名前に “Cpp” と入っていますが、C言語と C++ の両方に対応しています。MSVC でコンパイルされた C言語のプログラムでもカバレッジを取得できます。</p>
+<h2 data-number="2.2" id="基本的な使い方"><span class="header-section-number">2.2</span> 基本的な使い方</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>cl<span class="op">.</span><span class="fu">exe</span> <span class="op">/</span>Zi <span class="op">/</span>Od your_program<span class="op">.</span><span class="fu">c</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>OpenCppCoverage<span class="op">.</span><span class="fu">exe</span> <span class="op">--</span>sources <span class="st">&quot;C:\your\source\path&quot;</span> <span class="op">--</span> your_program<span class="op">.</span><span class="fu">exe</span></span></code></pre></div>
+<h2 data-number="2.3" id="推奨ビルドオプション"><span class="header-section-number">2.3</span> 推奨ビルドオプション</h2>
+<ul>
+<li><code>/Zi</code>: デバッグ情報 (PDB ファイル) を生成する</li>
+<li><code>/Od</code>: 最適化を無効にする (カバレッジの精度が上がる)</li>
+</ul>
+<p>最適化を有効にすると、コンパイラがコードを変形するため、カバレッジ結果が実際のソースコードと対応しにくくなることがあります。</p>
+<h2 data-number="2.4" id="出力形式"><span class="header-section-number">2.4</span> 出力形式</h2>
+<p>OpenCppCoverage が対応している出力形式は次のとおりです。</p>
+<ul>
+<li><strong>HTML</strong>: ブラウザで閲覧できる詳細なレポート (デフォルト)</li>
+<li><strong>Cobertura XML</strong>: Jenkins や Azure DevOps などの CI ツールで使える形式</li>
+<li><strong>Binary</strong>: OpenCppCoverage 独自のバイナリ形式 (複数実行結果のマージ用)</li>
+</ul>
+<p>gcov のようなシンプルなテキスト出力形式は標準では用意されていません。</p>
+<h2 data-number="2.5" id="動作の仕組み"><span class="header-section-number">2.5</span> 動作の仕組み</h2>
+<p>OpenCppCoverage は PDB (Program Database) ファイルを使ってソースコードとバイナリの対応関係を取得します。この仕組みは C言語でも C++ でも同じように機能します。</p>
+<h1 data-number="3" id="opencppcoverage-を利用して-gcov-形式のシンプルなテキストを生成する方法"><span class="header-section-number">3</span> OpenCppCoverage を利用して gcov 形式のシンプルなテキストを生成する方法</h1>
+<h2 data-number="3.1" id="概要"><span class="header-section-number">3.1</span> 概要</h2>
+<p>OpenCppCoverage は gcov 形式のテキスト出力に直接対応していませんが、Cobertura XML 形式で出力し、それを変換することで gcov 互換のテキストファイルを生成できます。</p>
+<h2 data-number="3.2" id="変換スクリプト"><span class="header-section-number">3.2</span> 変換スクリプト</h2>
+<p>Cobertura XML をパースして gcov 風のテキストを生成する Python スクリプトの実装例を示します。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xml.etree.ElementTree <span class="im">as</span> ET</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> convert_cobertura_to_gcov(xml_path, output_dir<span class="op">=</span><span class="st">&#39;.&#39;</span>):</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Cobertura XMLをgcov風テキストに変換する&quot;&quot;&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    tree <span class="op">=</span> ET.parse(xml_path)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> tree.getroot()</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    output_path <span class="op">=</span> Path(output_dir)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    output_path.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 各ソースファイルを処理</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> package <span class="kw">in</span> root.findall(<span class="st">&#39;.//package&#39;</span>):</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> cls <span class="kw">in</span> package.findall(<span class="st">&#39;.//class&#39;</span>):</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>            filename <span class="op">=</span> cls.get(<span class="st">&#39;filename&#39;</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="kw">not</span> filename:</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            <span class="co"># ソースファイルを読み込む</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span>:</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>                <span class="cf">with</span> <span class="bu">open</span>(filename, <span class="st">&#39;r&#39;</span>, encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>                    source_lines <span class="op">=</span> f.readlines()</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">except</span> <span class="pp">FileNotFoundError</span>:</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f&quot;Warning: Source file not found: </span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">&quot;</span>, <span class="bu">file</span><span class="op">=</span>sys.stderr)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            <span class="co"># 行ごとの実行回数を取得</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>            line_hits <span class="op">=</span> {}</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> line <span class="kw">in</span> cls.findall(<span class="st">&#39;.//line&#39;</span>):</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                line_num <span class="op">=</span> <span class="bu">int</span>(line.get(<span class="st">&#39;number&#39;</span>))</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                hits <span class="op">=</span> <span class="bu">int</span>(line.get(<span class="st">&#39;hits&#39;</span>))</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                line_hits[line_num] <span class="op">=</span> hits</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>            <span class="co"># gcov形式で出力</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>            gcov_filename <span class="op">=</span> Path(filename).name <span class="op">+</span> <span class="st">&#39;.gcov&#39;</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            gcov_path <span class="op">=</span> output_path <span class="op">/</span> gcov_filename</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(gcov_path, <span class="st">&#39;w&#39;</span>, encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>                <span class="co"># ヘッダー情報</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>                f.write(<span class="ss">f&quot;        -:    0:Source:</span><span class="sc">{</span>filename<span class="sc">}</span><span class="ch">\n</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>                f.write(<span class="ss">f&quot;        -:    0:Graph:(generated by cobertura_to_gcov.py)</span><span class="ch">\n</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                f.write(<span class="ss">f&quot;        -:    0:Data:(generated by cobertura_to_gcov.py)</span><span class="ch">\n</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>                <span class="co"># 各行を出力</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> line_num, line_text <span class="kw">in</span> <span class="bu">enumerate</span>(source_lines, start<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> line_num <span class="kw">in</span> line_hits:</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>                        hits <span class="op">=</span> line_hits[line_num]</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">if</span> hits <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>                            prefix <span class="op">=</span> <span class="st">&quot;    #####&quot;</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">else</span>:</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>                            prefix <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>hits<span class="sc">:9d}</span><span class="ss">&quot;</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">else</span>:</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>                        prefix <span class="op">=</span> <span class="st">&quot;        -&quot;</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>                    f.write(<span class="ss">f&quot;</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>line_num<span class="sc">:5d}</span><span class="ss">:</span><span class="sc">{</span>line_text<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Generated: </span><span class="sc">{</span>gcov_path<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(sys.argv) <span class="op">&lt;</span> <span class="dv">2</span>:</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Usage: python cobertura_to_gcov.py &lt;coverage.xml&gt; [output_dir]&quot;</span>)</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>        sys.exit(<span class="dv">1</span>)</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>    xml_path <span class="op">=</span> sys.argv[<span class="dv">1</span>]</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>    output_dir <span class="op">=</span> sys.argv[<span class="dv">2</span>] <span class="cf">if</span> <span class="bu">len</span>(sys.argv) <span class="op">&gt;</span> <span class="dv">2</span> <span class="cf">else</span> <span class="st">&#39;.&#39;</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    convert_cobertura_to_gcov(xml_path, output_dir)</span></code></pre></div>
+<h2 data-number="3.3" id="使用方法"><span class="header-section-number">3.3</span> 使用方法</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>OpenCppCoverage<span class="op">.</span><span class="fu">exe</span> <span class="op">--</span>export_type cobertura<span class="op">:</span>coverage<span class="op">.</span><span class="fu">xml</span> <span class="op">--</span>sources <span class="st">&quot;C:\your\source&quot;</span> <span class="op">--</span> your_test<span class="op">.</span><span class="fu">exe</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>python cobertura_to_gcov<span class="op">.</span><span class="fu">py</span> coverage<span class="op">.</span><span class="fu">xml</span> gcov_output</span></code></pre></div>
+<h2 data-number="3.4" id="gcov-形式の出力例"><span class="header-section-number">3.4</span> gcov 形式の出力例</h2>
+<p>生成されるファイルは次のような形式になります。</p>
+<pre class="text"><code>        -:    0:Source:example.c
+        -:    0:Graph:(generated by cobertura_to_gcov.py)
+        -:    0:Data:(generated by cobertura_to_gcov.py)
+        -:    1:#include &lt;stdio.h&gt;
+        -:    2:
+        5:    3:int add(int a, int b) {
+        5:    4:    return a + b;
+        5:    5:}
+        -:    6:
+        1:    7:int main() {
+        1:    8:    printf(&quot;%d\n&quot;, add(2, 3));
+    #####:    9:    printf(&quot;not executed\n&quot;);
+        1:   10:    return 0;
+        1:   11:}</code></pre>
+<p>各行の先頭の数字は次の意味を持ちます。</p>
+<ul>
+<li>数値: その行が実行された回数</li>
+<li><code>#####</code>: カバレッジ対象だが実行されなかった行</li>
+<li><code>-</code>: カバレッジ対象外の行 (コメントや空行など)</li>
+</ul>
+<h2 data-number="3.5" id="注意点"><span class="header-section-number">3.5</span> 注意点</h2>
+<ul>
+<li>Cobertura XML にはソースファイルの内容が含まれないため、元のソースファイルにアクセスできる必要があります</li>
+<li>Cobertura XML のパス情報と実際のソースファイルの配置が一致している必要があります</li>
+<li>gcov の完全な互換性を目指す場合は、ブランチカバレッジなどの情報も追加する必要があります</li>
+</ul>
+<p>このスクリプトを基に、必要に応じてカスタマイズできます。</p>
+<h1 data-number="4" id="まとめ"><span class="header-section-number">4</span> まとめ</h1>
+<p>VSBT 環境で Enterprise ツールを使わない場合、OpenCppCoverage が最も現実的な選択肢です。Cobertura XML 形式で出力し、簡単な Python スクリプトで変換することで、gcov 互換のテキスト形式も生成できます。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

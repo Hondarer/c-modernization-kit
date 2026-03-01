@@ -1,0 +1,541 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>doxybook2-decolorize-output.sh 仕様</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">doxybook2-decolorize-output.sh 仕様</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#背景と目的" id="toc-背景と目的"><span class="toc-section-number">2</span> 背景と目的</a>
+                <ul>
+                <li><a href="#問題点" id="toc-問題点"><span class="toc-section-number">2.1</span> 問題点</a></li>
+                <li><a href="#目標" id="toc-目標"><span class="toc-section-number">2.2</span> 目標</a></li>
+                </ul></li>
+                <li><a href="#ファイルパス" id="toc-ファイルパス"><span class="toc-section-number">3</span> ファイルパス</a></li>
+                <li><a href="#実行権限" id="toc-実行権限"><span class="toc-section-number">4</span> 実行権限</a></li>
+                <li><a href="#機能" id="toc-機能"><span class="toc-section-number">5</span> 機能</a>
+                <ul>
+                <li><a href="#処理ルール" id="toc-処理ルール"><span class="toc-section-number">5.1</span> 処理ルール</a></li>
+                </ul></li>
+                <li><a href="#実装詳細" id="toc-実装詳細"><span class="toc-section-number">6</span> 実装詳細</a>
+                <ul>
+                <li><a href="#処理フロー" id="toc-処理フロー"><span class="toc-section-number">6.1</span> 処理フロー</a></li>
+                <li><a href="#マッチング条件" id="toc-マッチング条件"><span class="toc-section-number">6.2</span> マッチング条件</a>
+                <ul>
+                <li><a href="#info-ログの検出" id="toc-info-ログの検出"><span class="toc-section-number">6.2.1</span> Info ログの検出</a></li>
+                <li><a href="#critical-ログの検出" id="toc-critical-ログの検出"><span class="toc-section-number">6.2.2</span> Critical ログの検出</a></li>
+                <li><a href="#warningerror-ログの検出" id="toc-warningerror-ログの検出"><span class="toc-section-number">6.2.3</span> Warning/Error ログの検出</a></li>
+                </ul></li>
+                <li><a href="#ansi-エスケープコードの除去変換" id="toc-ansi-エスケープコードの除去変換"><span class="toc-section-number">6.3</span> ANSI エスケープコードの除去・変換</a>
+                <ul>
+                <li><a href="#info-ログの完全脱色" id="toc-info-ログの完全脱色"><span class="toc-section-number">6.3.1</span> Info ログの完全脱色</a></li>
+                <li><a href="#critical-ログの太字と背景色の除去" id="toc-critical-ログの太字と背景色の除去"><span class="toc-section-number">6.3.2</span> Critical ログの太字と背景色の除去</a></li>
+                <li><a href="#warningerror-ログの太字除去" id="toc-warningerror-ログの太字除去"><span class="toc-section-number">6.3.3</span> Warning/Error ログの太字除去</a></li>
+                </ul></li>
+                <li><a href="#設計上の考慮事項" id="toc-設計上の考慮事項"><span class="toc-section-number">6.4</span> 設計上の考慮事項</a>
+                <ul>
+                <li><a href="#doxygen-着色スクリプトとの対比" id="toc-doxygen-着色スクリプトとの対比"><span class="toc-section-number">6.4.1</span> Doxygen 着色スクリプトとの対比</a></li>
+                <li><a href="#パターンマッチングの簡潔性" id="toc-パターンマッチングの簡潔性"><span class="toc-section-number">6.4.2</span> パターンマッチングの簡潔性</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#使用方法" id="toc-使用方法"><span class="toc-section-number">7</span> 使用方法</a>
+                <ul>
+                <li><a href="#makefile-からの呼び出し" id="toc-makefile-からの呼び出し"><span class="toc-section-number">7.1</span> makefile からの呼び出し</a></li>
+                <li><a href="#終了コードの保持" id="toc-終了コードの保持"><span class="toc-section-number">7.2</span> 終了コードの保持</a></li>
+                </ul></li>
+                <li><a href="#出力例" id="toc-出力例"><span class="toc-section-number">8</span> 出力例</a>
+                <ul>
+                <li><a href="#処理前" id="toc-処理前"><span class="toc-section-number">8.1</span> 処理前</a></li>
+                <li><a href="#処理後" id="toc-処理後"><span class="toc-section-number">8.2</span> 処理後</a></li>
+                </ul></li>
+                <li><a href="#制限事項" id="toc-制限事項"><span class="toc-section-number">9</span> 制限事項</a>
+                <ul>
+                <li><a href="#ansi-カラーコード非対応環境" id="toc-ansi-カラーコード非対応環境"><span class="toc-section-number">9.1</span> ANSI カラーコード非対応環境</a></li>
+                <li><a href="#ログファイルへの出力" id="toc-ログファイルへの出力"><span class="toc-section-number">9.2</span> ログファイルへの出力</a></li>
+                </ul></li>
+                <li><a href="#テスト方法" id="toc-テスト方法"><span class="toc-section-number">10</span> テスト方法</a></li>
+                <li><a href="#関連ファイル" id="toc-関連ファイル"><span class="toc-section-number">11</span> 関連ファイル</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>doxybook2-decolorize-output.sh 仕様</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p><code>doxybook2-decolorize-output.sh</code> は、Doxybook2 の出力メッセージから過剰な ANSI カラーコードを除去するフィルタースクリプトです。<code>[info]</code> ログを完全に脱色し、<code>[warning]</code> / <code>[error]</code> / <code>[critical]</code> の太字を除去します。</p>
+<h1 data-number="2" id="背景と目的"><span class="header-section-number">2</span> 背景と目的</h1>
+<h2 data-number="2.1" id="問題点"><span class="header-section-number">2.1</span> 問題点</h2>
+<p>Doxybook2 は spdlog ライブラリを使用してログ出力を行っており、デフォルトで ANSI カラーコードによる着色が有効になっています。実行時、以下の問題が発生します。</p>
+<ul>
+<li><code>[info]</code> レベルのログが緑色で大量に出力され、視認性が低下する</li>
+<li>Doxygen とは逆に、着色が過剰である</li>
+<li><code>[info]</code> は情報メッセージであり、着色の必要性が低い</li>
+<li><code>[warning]</code>、<code>[error]</code>、<code>[critical]</code> の太字も、強調が過剰である</li>
+<li><code>[critical]</code> の赤背景も過剰であり、通常の赤文字で十分である</li>
+</ul>
+<h2 data-number="2.2" id="目標"><span class="header-section-number">2.2</span> 目標</h2>
+<p>Doxygen 着色スクリプト (<code>doxygen-colorize-output.sh</code>) とは逆のアプローチを採用します。</p>
+<ul>
+<li>着色の削除: 過剰な ANSI エスケープコードを除去</li>
+<li>選択的処理: <code>[info]</code> は完全脱色、<code>[warning]</code> / <code>[error]</code> / <code>[critical]</code> は太字を除去</li>
+<li>単語のみ着色: すべてのログレベルで、<code>[単語]</code> のみが着色される</li>
+</ul>
+<h1 data-number="3" id="ファイルパス"><span class="header-section-number">3</span> ファイルパス</h1>
+<pre class="text"><code>doxybook2-decolorize-output.sh</code></pre>
+<h1 data-number="4" id="実行権限"><span class="header-section-number">4</span> 実行権限</h1>
+<p>実行可能 (chmod +x)</p>
+<h1 data-number="5" id="機能"><span class="header-section-number">5</span> 機能</h1>
+<p>標準入力から受け取った各行を解析し、ログレベルに応じて ANSI カラーコードを除去または調整します。</p>
+<h2 data-number="5.1" id="処理ルール"><span class="header-section-number">5.1</span> 処理ルール</h2>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 28%" />
+<col style="width: 20%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr>
+<th>ログレベル</th>
+<th>検出パターン</th>
+<th>処理内容</th>
+<th>処理後の表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Info</td>
+<td><code>[info]</code></td>
+<td>全ての ANSI コードを削除</td>
+<td>デフォルト (着色なし)</td>
+</tr>
+<tr>
+<td>Critical</td>
+<td><code>[critical]</code></td>
+<td>太字と背景色を除去し、赤色に変換</td>
+<td>🔴 赤 (通常の太さ、背景なし)</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td><code>[warning]</code></td>
+<td>太字コードを除去、黄色は維持</td>
+<td>🟡 黄 (通常の太さ)</td>
+</tr>
+<tr>
+<td>Error</td>
+<td><code>[error]</code></td>
+<td>太字コードを除去、赤色は維持</td>
+<td>🔴 赤 (通常の太さ)</td>
+</tr>
+<tr>
+<td>その他</td>
+<td>(該当なし)</td>
+<td>そのまま出力</td>
+<td>変更なし</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="6" id="実装詳細"><span class="header-section-number">6</span> 実装詳細</h1>
+<h2 data-number="6.1" id="処理フロー"><span class="header-section-number">6.1</span> 処理フロー</h2>
+<figure>
+<img src="puml_1c91a9229b8dbdc15a7912b89e0f4f69653423be.svg" alt="処理フロー" />
+<figcaption aria-hidden="true">処理フロー</figcaption>
+</figure>
+<h2 data-number="6.2" id="マッチング条件"><span class="header-section-number">6.2</span> マッチング条件</h2>
+<h3 data-number="6.2.1" id="info-ログの検出"><span class="header-section-number">6.2.1</span> Info ログの検出</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span><span class="st">&quot;[info]&quot;</span><span class="pp">*</span> <span class="kw">]];</span> <span class="cf">then</span></span></code></pre></div>
+<p>行内に <code>[info]</code> が含まれる場合にマッチします。</p>
+<h3 data-number="6.2.2" id="critical-ログの検出"><span class="header-section-number">6.2.2</span> Critical ログの検出</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span><span class="st">&quot;[critical]&quot;</span><span class="pp">*</span> <span class="kw">]];</span> <span class="cf">then</span></span></code></pre></div>
+<p>行内に <code>[critical]</code> が含まれる場合にマッチします。</p>
+<h3 data-number="6.2.3" id="warningerror-ログの検出"><span class="header-section-number">6.2.3</span> Warning/Error ログの検出</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span><span class="st">&quot;[warning]&quot;</span><span class="pp">*</span> <span class="kw">]]</span> <span class="kw">||</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span><span class="st">&quot;[error]&quot;</span><span class="pp">*</span> <span class="kw">]];</span> <span class="cf">then</span></span></code></pre></div>
+<p>行内に <code>[warning]</code> または <code>[error]</code> が含まれる場合にマッチします。</p>
+<h2 data-number="6.3" id="ansi-エスケープコードの除去変換"><span class="header-section-number">6.3</span> ANSI エスケープコードの除去・変換</h2>
+<h3 data-number="6.3.1" id="info-ログの完全脱色"><span class="header-section-number">6.3.1</span> Info ログの完全脱色</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">sed</span> <span class="st">&#39;s/\x1b\[[0-9;]*m//g&#39;</span></span></code></pre></div>
+<p>正規表現の説明:<br />
+- <code>\x1b</code>: ESC 文字 (8 進数 033)<br />
+- <code>\[</code>: 左角括弧<br />
+- <code>[0-9;]*</code>: 数字とセミコロンの 0 回以上の繰り返し<br />
+- <code>m</code>: 終端文字</p>
+<h3 data-number="6.3.2" id="critical-ログの太字と背景色の除去"><span class="header-section-number">6.3.2</span> Critical ログの太字と背景色の除去</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">sed</span> <span class="st">&#39;s/\x1b\[1;41m/\x1b[0;31m/g&#39;</span></span></code></pre></div>
+<p>処理内容:<br />
+- 太字 + 赤背景 (<code>\033[1;41m</code>) を通常の赤文字 (<code>\033[0;31m</code>) に変換<br />
+- <code>[critical]</code> という単語のみが赤色で表示される</p>
+<h3 data-number="6.3.3" id="warningerror-ログの太字除去"><span class="header-section-number">6.3.3</span> Warning/Error ログの太字除去</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$line</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">sed</span> <span class="st">&#39;s/\x1b\[1;/\x1b[0;/g&#39;</span></span></code></pre></div>
+<p>変換例:<br />
+- <code>\033[1;33m</code> (太字 + 黄色) → <code>\033[0;33m</code> (通常 + 黄色)<br />
+- <code>\033[1;31m</code> (太字 + 赤色) → <code>\033[0;31m</code> (通常 + 赤色)</p>
+<h2 data-number="6.4" id="設計上の考慮事項"><span class="header-section-number">6.4</span> 設計上の考慮事項</h2>
+<h3 data-number="6.4.1" id="doxygen-着色スクリプトとの対比"><span class="header-section-number">6.4.1</span> Doxygen 着色スクリプトとの対比</h3>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>doxygen-colorize-output.sh</th>
+<th>doxybook2-decolorize-output.sh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目的</td>
+<td>着色を追加</td>
+<td>着色を削除/調整</td>
+</tr>
+<tr>
+<td>対象</td>
+<td>error, warning</td>
+<td>info, warning, error</td>
+</tr>
+<tr>
+<td>処理</td>
+<td>ANSI コードを付与</td>
+<td>ANSI コードを除去/変換</td>
+</tr>
+<tr>
+<td>理由</td>
+<td>着色が不足</td>
+<td>着色が過剰</td>
+</tr>
+</tbody>
+</table>
+<h3 data-number="6.4.2" id="パターンマッチングの簡潔性"><span class="header-section-number">6.4.2</span> パターンマッチングの簡潔性</h3>
+<p><code>[info]</code> の形式は、スペースを含まない明確なパターンであるため、誤検知の可能性が低く、シンプルなマッチングで十分です。</p>
+<h1 data-number="7" id="使用方法"><span class="header-section-number">7</span> 使用方法</h1>
+<h2 data-number="7.1" id="makefile-からの呼び出し"><span class="header-section-number">7.1</span> makefile からの呼び出し</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxybook2</span> <span class="at">-i</span> ../xml <span class="at">-o</span> ../docs-src/doxybook2 <span class="at">--config</span> doxybook2-config.json <span class="at">--templates</span> templates <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="va">$(</span><span class="ex">MAKEFILE_DIR</span><span class="va">)</span><span class="ex">/doxybook2-decolorize-output.sh</span></span></code></pre></div>
+<ul>
+<li><code>2&gt;&amp;1</code>: stderr を stdout にリダイレクトして結合</li>
+<li><code>|</code>: パイプでフィルタースクリプトに渡す</li>
+</ul>
+<h2 data-number="7.2" id="終了コードの保持"><span class="header-section-number">7.2</span> 終了コードの保持</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxybook2</span> <span class="at">-i</span> ../xml <span class="at">-o</span> ../docs-src/doxybook2 <span class="at">--config</span> doxybook2-config.json <span class="at">--templates</span> templates <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="va">$(</span><span class="ex">MAKEFILE_DIR</span><span class="va">)</span><span class="ex">/doxybook2-decolorize-output.sh</span><span class="kw">;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="va">DOXYBOOK2_EXIT</span><span class="op">=</span><span class="va">${PIPESTATUS</span><span class="op">[</span><span class="dv">0</span><span class="op">]</span><span class="va">}</span><span class="kw">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">exit</span> <span class="va">$DOXYBOOK2_EXIT</span><span class="kw">;</span></span></code></pre></div>
+<p><code>PIPESTATUS[0]</code> を使用して、パイプの最初のコマンド (doxybook2) の終了コードを取得し、ビルドの成否を正しく判定します。</p>
+<h1 data-number="8" id="出力例"><span class="header-section-number">8</span> 出力例</h1>
+<h2 data-number="8.1" id="処理前"><span class="header-section-number">8.1</span> 処理前</h2>
+<pre class="text"><code>[2025-11-26 10:30:15.123] [info] Processing file calculator.h
+[2025-11-26 10:30:15.124] [warning] Missing brief description
+[2025-11-26 10:30:15.125] [error] Failed to parse member
+[2025-11-26 10:30:15.126] [critical] Fatal error occurred</code></pre>
+<p>(ターミナルでは <code>[info]</code> が緑、<code>[warning]</code> が太字黄色、<code>[error]</code> が太字赤色、<code>[critical]</code> が太字 + 赤背景で表示)</p>
+<h2 data-number="8.2" id="処理後"><span class="header-section-number">8.2</span> 処理後</h2>
+<pre class="text"><code>[2025-11-26 10:30:15.123] [info] Processing file calculator.h</code></pre>
+<p>[2025-11-26 10:30:15.124] <span style="color: #ffaa00">[warning]</span> Missing brief description<br />
+[2025-11-26 10:30:15.125] <span style="color: #ff0000">[error]</span> Failed to parse member<br />
+[2025-11-26 10:30:15.126] <span style="color: #ff0000">[critical]</span> Fatal error occurred</p>
+<p>(<code>[info]</code> は着色なし、<code>[warning]</code> 単語は通常の太さの黄色、<code>[error]</code> と <code>[critical]</code> 単語は通常の太さの赤色で表示)</p>
+<h1 data-number="9" id="制限事項"><span class="header-section-number">9</span> 制限事項</h1>
+<h2 data-number="9.1" id="ansi-カラーコード非対応環境"><span class="header-section-number">9.1</span> ANSI カラーコード非対応環境</h2>
+<p>元々 ANSI カラーコードに対応していないターミナルでは、Doxybook2 自体が着色を出力しないため、本スクリプトの効果はありません。</p>
+<h2 data-number="9.2" id="ログファイルへの出力"><span class="header-section-number">9.2</span> ログファイルへの出力</h2>
+<p>ANSI カラーコードを含む出力をファイルにリダイレクトする場合、本スクリプトを適用することで、ログファイルに不要なエスケープシーケンスが含まれることを防げます。</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxybook2</span> ... <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="ex">doxybook2-decolorize-output.sh</span> <span class="kw">|</span> <span class="fu">tee</span> doxybook2.log</span></code></pre></div>
+<h1 data-number="10" id="テスト方法"><span class="header-section-number">10</span> テスト方法</h1>
+<p>以下のコマンドでスクリプト単体のテストが可能です。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&lt;&lt;&#39;EOF&#39;</span> <span class="kw">|</span> <span class="ex">doxybook2-decolorize-output.sh</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="st">Normal output line</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.123] [info] Processing file</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="st">Another normal line</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.124] [warning] Missing description</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.125] [error] Parse failed</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.126] [critical] Fatal error</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="st">More normal output</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span></code></pre></div>
+<p>期待される結果:<br />
+- <code>[info]</code> 行: ANSI コードが完全に削除される<br />
+- <code>[critical]</code> 行: 太字と背景色が除去され、<code>[critical]</code> 単語が通常の太さの赤色になる<br />
+- <code>[warning]</code> 行: 太字が除去され、<code>[warning]</code> 単語が通常の太さの黄色になる<br />
+- <code>[error]</code> 行: 太字が除去され、<code>[error]</code> 単語が通常の太さの赤色になる</p>
+<p>実際の ANSI コードを含むテストは以下の通りです。</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&lt;&lt;&#39;EOF&#39;</span> <span class="kw">|</span> <span class="ex">doxybook2-decolorize-output.sh</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="st">Normal output line</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.123] [32m[info][0m Processing file</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.124] [1;33m[warning][0m Missing description</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.125] [1;31m[error][0m Parse failed</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="st">[2025-11-26 10:30:15.126] [1;41m[critical][0m Fatal error</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span></code></pre></div>
+<h1 data-number="11" id="関連ファイル"><span class="header-section-number">11</span> 関連ファイル</h1>
+<ul>
+<li><code>makefile</code>: 本スクリプトを doxybook2 実行時に適用</li>
+<li><code>docs-src/doxybook2-decolorize-output-research.md</code>: 調査結果と背景情報</li>
+<li><code>doxygen-colorize-output.sh</code>: Doxygen 用の着色スクリプト (対比参考)</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

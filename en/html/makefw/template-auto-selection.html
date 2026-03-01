@@ -1,0 +1,592 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>makefile テンプレート自動選択機構</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">makefile テンプレート自動選択機構</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Mon, 2 Mar 2026 07:07:40 +0900 a2acfde</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#アーキテクチャ" id="toc-アーキテクチャ"><span class="toc-section-number">2</span> アーキテクチャ</a>
+                <ul>
+                <li><a href="#ファイル構成" id="toc-ファイル構成"><span class="toc-section-number">2.1</span> ファイル構成</a></li>
+                <li><a href="#処理フロー" id="toc-処理フロー"><span class="toc-section-number">2.2</span> 処理フロー</a></li>
+                </ul></li>
+                <li><a href="#統一テンプレート-__template.mk" id="toc-統一テンプレート-__template.mk"><span class="toc-section-number">3</span> 統一テンプレート (__template.mk)</a>
+                <ul>
+                <li><a href="#重要なポイント" id="toc-重要なポイント"><span class="toc-section-number">3.1</span> 重要なポイント</a></li>
+                </ul></li>
+                <li><a href="#自動選択ロジック-makemain.mk" id="toc-自動選択ロジック-makemain.mk"><span class="toc-section-number">4</span> 自動選択ロジック (makemain.mk)</a>
+                <ul>
+                <li><a href="#判定ルール" id="toc-判定ルール"><span class="toc-section-number">4.1</span> 判定ルール</a></li>
+                </ul></li>
+                <li><a href="#サブディレクトリの-os-フィルタリング" id="toc-サブディレクトリの-os-フィルタリング"><span class="toc-section-number">5</span> サブディレクトリの OS フィルタリング</a></li>
+                <li><a href="#使用例" id="toc-使用例"><span class="toc-section-number">6</span> 使用例</a>
+                <ul>
+                <li><a href="#cc-ライブラリ" id="toc-cc-ライブラリ"><span class="toc-section-number">6.1</span> C/C++ ライブラリ</a></li>
+                <li><a href="#net-ライブラリ" id="toc-net-ライブラリ"><span class="toc-section-number">6.2</span> .NET ライブラリ</a></li>
+                <li><a href="#cc-実行体" id="toc-cc-実行体"><span class="toc-section-number">6.3</span> C/C++ 実行体</a></li>
+                <li><a href="#net-実行体" id="toc-net-実行体"><span class="toc-section-number">6.4</span> .NET 実行体</a></li>
+                </ul></li>
+                <li><a href="#プロジェクト固有設定-makepart.mk" id="toc-プロジェクト固有設定-makepart.mk"><span class="toc-section-number">7</span> プロジェクト固有設定 (makepart.mk)</a>
+                <ul>
+                <li><a href="#makepart.mk-の配置場所" id="toc-makepart.mk-の配置場所"><span class="toc-section-number">7.1</span> makepart.mk の配置場所</a></li>
+                <li><a href="#makepart.mk-の読み込みタイミング" id="toc-makepart.mk-の読み込みタイミング"><span class="toc-section-number">7.2</span> makepart.mk の読み込みタイミング</a></li>
+                <li><a href="#makepart.mk-の記述例" id="toc-makepart.mk-の記述例"><span class="toc-section-number">7.3</span> makepart.mk の記述例</a></li>
+                </ul></li>
+                <li><a href="#導入方法" id="toc-導入方法"><span class="toc-section-number">8</span> 導入方法</a>
+                <ul>
+                <li><a href="#最終階層-makefile-の更新" id="toc-最終階層-makefile-の更新"><span class="toc-section-number">8.1</span> 1. 最終階層 makefile の更新</a></li>
+                <li><a href="#固有設定の移行" id="toc-固有設定の移行"><span class="toc-section-number">8.2</span> 2. 固有設定の移行</a></li>
+                <li><a href="#動作確認" id="toc-動作確認"><span class="toc-section-number">8.3</span> 3. 動作確認</a></li>
+                </ul></li>
+                <li><a href="#トラブルシューティング" id="toc-トラブルシューティング"><span class="toc-section-number">9</span> トラブルシューティング</a>
+                <ul>
+                <li><a href="#エラー-cannot-auto-select-makefile-template" id="toc-エラー-cannot-auto-select-makefile-template"><span class="toc-section-number">9.1</span> エラー: “Cannot auto-select makefile template”</a></li>
+                <li><a href="#ビルドが失敗する" id="toc-ビルドが失敗する"><span class="toc-section-number">9.2</span> ビルドが失敗する</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">10</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>makefile テンプレート自動選択機構</H1>
+      
+      
+      <p>本ドキュメントでは、makefw フレームワークにおける makefile テンプレートの自動選択機構について説明します。</p>
+<h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>makefw では、すべての最終階層 makefile を統一テンプレート (<code>__template.mk</code>) に統一し、ディレクトリパスと言語の自動判定により、適切なビルドテンプレートを自動的に選択します。</p>
+<p>これにより、以下のメリットが得られます：</p>
+<ul>
+<li><strong>完全な統一</strong>: すべての makefile が同一内容になり、メンテナンスが容易</li>
+<li><strong>自動判定</strong>: ディレクトリパスと .csproj の有無で自動的に適切なテンプレートを選択</li>
+<li><strong>柔軟性</strong>: プロジェクト固有の設定は makepart.mk で管理</li>
+</ul>
+<h1 data-number="2" id="アーキテクチャ"><span class="header-section-number">2</span> アーキテクチャ</h1>
+<h2 data-number="2.1" id="ファイル構成"><span class="header-section-number">2.1</span> ファイル構成</h2>
+<pre class="text"><code>makefw/makefiles/
++-- __template.mk           # 統一テンプレート（すべての最終階層 makefile で使用）
++-- prepare.mk              # 準備処理（コンパイラ設定、makepart.mk 読み込み）
++-- makemain.mk             # テンプレート自動選択ロジック
++-- auto-select.mk          # パス判定による分岐（makemain.mk と同じ）
++-- makelibsrc_c_cpp.mk     # C/C++ ライブラリビルド用テンプレート
++-- makelibsrc_dotnet.mk    # .NET ライブラリビルド用テンプレート
++-- makesrc_c_cpp.mk        # C/C++ 実行体ビルド用テンプレート
++-- makesrc_dotnet.mk       # .NET 実行体ビルド用テンプレート</code></pre>
+<h2 data-number="2.2" id="処理フロー"><span class="header-section-number">2.2</span> 処理フロー</h2>
+<figure>
+<img src="puml_76012fe93562656301d302f25f75f631cf42b439.svg" alt="plantuml" />
+</figure>
+<h1 data-number="3" id="統一テンプレート-__template.mk"><span class="header-section-number">3</span> 統一テンプレート (__template.mk)</h1>
+<p>すべての最終階層 makefile で使用する標準テンプレートです。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">find-up</span> <span class="ch">=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="st">/</span><span class="ch">$(</span><span class="dt">2</span><span class="ch">))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="st">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">        </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="kw">filter</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %/</span><span class="kw">,</span><span class="st">%</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">))))</span><span class="kw">,,</span><span class="st">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">            </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">patsubst</span><span class="st"> %/</span><span class="kw">,</span><span class="st">%</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">dir</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">2</span><span class="ch">))</span><span class="st">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">        </span><span class="ch">)</span><span class="st">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">WORKSPACE_FOLDER</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">strip</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">)</span><span class="kw">,</span><span class="st">.workspaceRoot</span><span class="ch">))</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/prepare.mk</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">##### makepart.mk の内容は、このタイミングで処理される #####</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makemain.mk</span></code></pre></div>
+<h2 data-number="3.1" id="重要なポイント"><span class="header-section-number">3.1</span> 重要なポイント</h2>
+<ol type="1">
+<li><strong>統一性</strong>: すべての最終階層 makefile が完全に同一</li>
+<li><strong>編集禁止</strong>: 固有の設定は makepart.mk に記述</li>
+<li><strong>処理順序</strong>: prepare.mk → makepart.mk → makemain.mk</li>
+</ol>
+<h1 data-number="4" id="自動選択ロジック-makemain.mk"><span class="header-section-number">4</span> 自動選択ロジック (makemain.mk)</h1>
+<p>ディレクトリパスと .csproj の有無により、適切なビルドテンプレートを自動選択します。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ifneq</span> (,<span class="ch">$(</span><span class="kw">findstring</span><span class="st"> /libsrc/</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">))</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># .csproj があれば .NET ライブラリ、なければ C/C++ ライブラリ</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifneq</span> (<span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> *.csproj</span><span class="ch">)</span>,)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makelibsrc_dotnet.mk</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makelibsrc_c_cpp.mk</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">endif</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span> <span class="cf">ifneq</span> (,<span class="ch">$(</span><span class="kw">findstring</span><span class="st"> /src/</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">))</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># .csproj があれば .NET 実行体、なければ C/C++ 実行体</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ifneq</span> (<span class="ch">$(</span><span class="kw">wildcard</span><span class="st"> *.csproj</span><span class="ch">)</span>,)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makesrc_dotnet.mk</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makesrc_c_cpp.mk</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">endif</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="ch">$(</span><span class="kw">error</span><span class="st"> Cannot auto-select makefile template. Current path must contain /libsrc/ or /src/: </span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">))</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span></code></pre></div>
+<h2 data-number="4.1" id="判定ルール"><span class="header-section-number">4.1</span> 判定ルール</h2>
+<table>
+<thead>
+<tr>
+<th>ディレクトリパス</th>
+<th>.csproj</th>
+<th>選択されるテンプレート</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/libsrc/</code> を含む</td>
+<td>無し</td>
+<td><code>makelibsrc_c_cpp.mk</code></td>
+</tr>
+<tr>
+<td><code>/libsrc/</code> を含む</td>
+<td>有り</td>
+<td><code>makelibsrc_dotnet.mk</code></td>
+</tr>
+<tr>
+<td><code>/src/</code> を含む</td>
+<td>無し</td>
+<td><code>makesrc_c_cpp.mk</code></td>
+</tr>
+<tr>
+<td><code>/src/</code> を含む</td>
+<td>有り</td>
+<td><code>makesrc_dotnet.mk</code></td>
+</tr>
+<tr>
+<td>上記以外</td>
+<td>-</td>
+<td>エラー</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="5" id="サブディレクトリの-os-フィルタリング"><span class="header-section-number">5</span> サブディレクトリの OS フィルタリング</h1>
+<p>サブディレクトリ名に基づく OS フィルタリングの詳細は、<a href="os-subdirectory-filtering.html">サブディレクトリの OS フィルタリング</a> を参照してください。</p>
+<h1 data-number="6" id="使用例"><span class="header-section-number">6</span> 使用例</h1>
+<h2 data-number="6.1" id="cc-ライブラリ"><span class="header-section-number">6.1</span> C/C++ ライブラリ</h2>
+<pre class="text"><code>ディレクトリ: prod/calc/libsrc/calcbase/
+ファイル構成:
+  - makefile (__template.mk の内容)
+  - add.c, subtract.c, multiply.c, divide.c
+  - makepart.mk (固有設定、必要な場合のみ)
+
+判定結果:
+  パス: /libsrc/ を含む → ライブラリ
+  .csproj: 無し → C/C++
+  → makelibsrc_c_cpp.mk を使用</code></pre>
+<h2 data-number="6.2" id="net-ライブラリ"><span class="header-section-number">6.2</span> .NET ライブラリ</h2>
+<pre class="text"><code>ディレクトリ: prod/calc.net/libsrc/CalcLib/
+ファイル構成:
+  - makefile (__template.mk の内容)
+  - CalcLib.csproj
+  - Calculator.cs
+  - makepart.mk (固有設定、必要な場合のみ)
+
+判定結果:
+  パス: /libsrc/ を含む → ライブラリ
+  .csproj: 有り → .NET
+  → makelibsrc_dotnet.mk を使用</code></pre>
+<h2 data-number="6.3" id="cc-実行体"><span class="header-section-number">6.3</span> C/C++ 実行体</h2>
+<pre class="text"><code>ディレクトリ: prod/calc/src/add/
+ファイル構成:
+  - makefile (__template.mk の内容)
+  - add.c
+  - makepart.mk (固有設定、必要な場合のみ)
+
+判定結果:
+  パス: /src/ を含む → 実行体
+  .csproj: 無し → C/C++
+  → makesrc_c_cpp.mk を使用</code></pre>
+<h2 data-number="6.4" id="net-実行体"><span class="header-section-number">6.4</span> .NET 実行体</h2>
+<pre class="text"><code>ディレクトリ: prod/calc.net/src/CalcApp/
+ファイル構成:
+  - makefile (__template.mk の内容)
+  - CalcApp.csproj
+  - Program.cs
+  - makepart.mk (固有設定、必要な場合のみ)
+
+判定結果:
+  パス: /src/ を含む → 実行体
+  .csproj: 有り → .NET
+  → makesrc_dotnet.mk を使用</code></pre>
+<h1 data-number="7" id="プロジェクト固有設定-makepart.mk"><span class="header-section-number">7</span> プロジェクト固有設定 (makepart.mk)</h1>
+<p>各プロジェクト固有の設定は、<code>makepart.mk</code> ファイルに記述します。</p>
+<h2 data-number="7.1" id="makepart.mk-の配置場所"><span class="header-section-number">7.1</span> makepart.mk の配置場所</h2>
+<p>makepart.mk は、以下の階層に配置できます：</p>
+<ol type="1">
+<li><strong>カレントディレクトリ</strong> - 最も優先される</li>
+<li><strong>親ディレクトリ（複数）</strong> - ワークスペースルートまで遡って検索</li>
+<li><strong>複数の階層</strong> - 親階層から順次読み込まれる</li>
+</ol>
+<h2 data-number="7.2" id="makepart.mk-の読み込みタイミング"><span class="header-section-number">7.2</span> makepart.mk の読み込みタイミング</h2>
+<p>prepare.mk 内で、親階層からワークスペースルートに向かって順次読み込まれます。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">MAKEPART_MK</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">shell</span><span class="st"> \</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">    dir=`pwd`; \</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">    while [ &quot;</span><span class="ch">$$</span><span class="st">dir&quot; != &quot;/&quot; ]; do \</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">        if [ -f &quot;</span><span class="ch">$$</span><span class="st">dir/makepart.mk&quot; ]; then \</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">            echo &quot;</span><span class="ch">$$</span><span class="st">dir/makepart.mk&quot;; \</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">        fi; \</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="st">        if [ -f &quot;</span><span class="ch">$$</span><span class="st">dir/.workspaceRoot&quot; ]; then \</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="st">            break; \</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="st">        fi; \</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="st">        dir=</span><span class="ch">$$</span><span class="st">{dir%/*}; \</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="st">        if [ -z &quot;</span><span class="ch">$$</span><span class="st">dir&quot; ]; then dir=/; fi; \</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="st">    done \</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="ch">)</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="dt">_reverse</span> <span class="ch">=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">if</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">call</span><span class="st"> _reverse</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">wordlist</span><span class="st"> 2</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">words</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">))</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)))</span><span class="st"> </span><span class="ch">$(</span><span class="kw">firstword</span><span class="st"> </span><span class="ch">$(</span><span class="dt">1</span><span class="ch">)))</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="dt">MAKEPART_MK</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">strip</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> _reverse</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">MAKEPART_MK</span><span class="ch">)))</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="ch">$(</span><span class="kw">foreach</span><span class="st"> makepart</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="dt">MAKEPART_MK</span><span class="ch">)</span><span class="kw">,</span><span class="st"> </span><span class="ch">$(</span><span class="kw">eval</span><span class="st"> include </span><span class="ch">$(</span><span class="dt">makepart</span><span class="ch">)))</span></span></code></pre></div>
+<h2 data-number="7.3" id="makepart.mk-の記述例"><span class="header-section-number">7.3</span> makepart.mk の記述例</h2>
+<p><strong>例1: 動的ライブラリの指定</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">+=</span><span class="st"> calcbase</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Windows: DLL エクスポート定義</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CFLAGS</span>   <span class="ch">+=</span><span class="st"> /DCALC_EXPORTS</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CXXFLAGS</span> <span class="ch">+=</span><span class="st"> /DCALC_EXPORTS</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">=</span><span class="st"> shared</span></span></code></pre></div>
+<p><strong>例2: テスト共通設定</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">LINK_TEST</span> <span class="ch">=</span><span class="st"> 1</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ifeq</span> (<span class="ch">$(</span><span class="dt">OS</span><span class="ch">)</span>,Windows_NT)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Windows: CALC_STATIC マクロを定義</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CFLAGS</span>   <span class="ch">+=</span><span class="st"> /DCALC_STATIC</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">CXXFLAGS</span> <span class="ch">+=</span><span class="st"> /DCALC_STATIC</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="cf">endif</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBSDIR</span> <span class="ch">+=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/testfw/lib </span><span class="ch">\</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span><span class="st">/test/lib</span></span></code></pre></div>
+<h1 data-number="8" id="導入方法"><span class="header-section-number">8</span> 導入方法</h1>
+<p>既存プロジェクトに makefile テンプレート自動選択機構を導入する手順を説明します。</p>
+<h2 data-number="8.1" id="最終階層-makefile-の更新"><span class="header-section-number">8.1</span> 1. 最終階層 makefile の更新</h2>
+<p>すべての最終階層 makefile を <code>__template.mk</code> の内容で置き換えます。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> makefw/makefiles/__template.mk prod/calc/libsrc/calcbase/makefile</span></code></pre></div>
+<h2 data-number="8.2" id="固有設定の移行"><span class="header-section-number">8.2</span> 2. 固有設定の移行</h2>
+<p>既存の makefile に固有設定（LIBS, CFLAGS など）がある場合、<code>makepart.mk</code> に移行します。</p>
+<p><strong>変更前 (makefile):</strong></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">find-up</span> <span class="ch">=</span><span class="st"> ...</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="dt">WORKSPACE_FOLDER</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">strip</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">)</span><span class="kw">,</span><span class="st">.workspaceRoot</span><span class="ch">))</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/prepare.mk</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">+=</span><span class="st"> calcbase</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">=</span><span class="st"> shared</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makelibsrc.mk</span></code></pre></div>
+<p><strong>変更後:</strong></p>
+<p>**makefile (__template.mk の内容):**</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="dt">find-up</span> <span class="ch">=</span><span class="st"> ...</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="dt">WORKSPACE_FOLDER</span> <span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">strip</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> find-up</span><span class="kw">,</span><span class="ch">$(</span><span class="dt">CURDIR</span><span class="ch">)</span><span class="kw">,</span><span class="st">.workspaceRoot</span><span class="ch">))</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/prepare.mk</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">##### makepart.mk の内容は、このタイミングで処理される #####</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">WORKSPACE_FOLDER</span><span class="ch">)</span>/makefw/makefiles/makemain.mk</span></code></pre></div>
+<p><strong>makepart.mk (固有設定):</strong></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">LIBS</span> <span class="ch">+=</span><span class="st"> calcbase</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="dt">LIB_TYPE</span> <span class="ch">=</span><span class="st"> shared</span></span></code></pre></div>
+<h2 data-number="8.3" id="動作確認"><span class="header-section-number">8.3</span> 3. 動作確認</h2>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod/calc/libsrc/calcbase</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div>
+<h1 data-number="9" id="トラブルシューティング"><span class="header-section-number">9</span> トラブルシューティング</h1>
+<h2 data-number="9.1" id="エラー-cannot-auto-select-makefile-template"><span class="header-section-number">9.1</span> エラー: “Cannot auto-select makefile template”</h2>
+<p><strong>原因</strong>: ディレクトリパスに <code>/libsrc/</code> も <code>/src/</code> も含まれていない</p>
+<p><strong>解決策</strong>:<br />
+1. ディレクトリ構造を見直し、<code>libsrc</code> または <code>src</code> の下に配置する<br />
+2. または、makefile で直接テンプレートを指定する（自動選択を使わない）</p>
+<h2 data-number="9.2" id="ビルドが失敗する"><span class="header-section-number">9.2</span> ビルドが失敗する</h2>
+<p><strong>確認事項</strong>:<br />
+1. <code>makepart.mk</code> の内容が正しいか<br />
+2. <code>WORKSPACE_FOLDER</code> が正しく設定されているか（<code>.workspaceRoot</code> ファイルの配置）<br />
+3. 依存ライブラリが正しくビルドされているか</p>
+<p><strong>デバッグ方法</strong>:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> debug  <span class="co"># 変数の内容を表示</span></span></code></pre></div>
+<h1 data-number="10" id="まとめ"><span class="header-section-number">10</span> まとめ</h1>
+<p>makefile テンプレート自動選択機構により、以下が実現されます：</p>
+<ul>
+<li><strong>統一性</strong>: すべての makefile が同一内容</li>
+<li><strong>自動化</strong>: ディレクトリパスと言語の自動判定</li>
+<li><strong>保守性</strong>: 固有設定は makepart.mk で管理</li>
+<li><strong>拡張性</strong>: 新しい言語やビルドタイプの追加が容易</li>
+</ul>
+<p>この機構により、プロジェクト全体のビルドシステムが統一され、メンテナンスが大幅に容易になります。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

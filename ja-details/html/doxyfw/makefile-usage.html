@@ -1,0 +1,479 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>makefile 使用方法</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">makefile 使用方法</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#基本的な使用方法" id="toc-基本的な使用方法"><span class="toc-section-number">1</span> 基本的な使用方法</a>
+                <ul>
+                <li><a href="#ドキュメント生成" id="toc-ドキュメント生成"><span class="toc-section-number">1.1</span> ドキュメント生成</a></li>
+                <li><a href="#クリーンアップ" id="toc-クリーンアップ"><span class="toc-section-number">1.2</span> クリーンアップ</a></li>
+                </ul></li>
+                <li><a href="#category-オプション" id="toc-category-オプション"><span class="toc-section-number">2</span> CATEGORY オプション</a>
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">2.1</span> 概要</a></li>
+                <li><a href="#動作仕様" id="toc-動作仕様"><span class="toc-section-number">2.2</span> 動作仕様</a>
+                <ul>
+                <li><a href="#category-未指定時-デフォルト" id="toc-category-未指定時-デフォルト"><span class="toc-section-number">2.2.1</span> CATEGORY 未指定時 (デフォルト)</a></li>
+                <li><a href="#category-指定時" id="toc-category-指定時"><span class="toc-section-number">2.2.2</span> CATEGORY 指定時</a></li>
+                </ul></li>
+                <li><a href="#使用例" id="toc-使用例"><span class="toc-section-number">2.3</span> 使用例</a>
+                <ul>
+                <li><a href="#api-ドキュメント生成" id="toc-api-ドキュメント生成"><span class="toc-section-number">2.3.1</span> API ドキュメント生成</a></li>
+                <li><a href="#内部仕様ドキュメント生成" id="toc-内部仕様ドキュメント生成"><span class="toc-section-number">2.3.2</span> 内部仕様ドキュメント生成</a></li>
+                <li><a href="#テストドキュメント生成" id="toc-テストドキュメント生成"><span class="toc-section-number">2.3.3</span> テストドキュメント生成</a></li>
+                </ul></li>
+                <li><a href="#クリーンアップ-category-指定時" id="toc-クリーンアップ-category-指定時"><span class="toc-section-number">2.4</span> クリーンアップ (CATEGORY 指定時)</a></li>
+                <li><a href="#doxyfile.part-の命名規則" id="toc-doxyfile.part-の命名規則"><span class="toc-section-number">2.5</span> Doxyfile.part の命名規則</a>
+                <ul>
+                <li><a href="#ファイル配置例" id="toc-ファイル配置例"><span class="toc-section-number">2.5.1</span> ファイル配置例</a></li>
+                </ul></li>
+                <li><a href="#doxyfile.part-の設定例" id="toc-doxyfile.part-の設定例"><span class="toc-section-number">2.6</span> Doxyfile.part の設定例</a>
+                <ul>
+                <li><a href="#doxyfile.part.api" id="toc-doxyfile.part.api"><span class="toc-section-number">2.6.1</span> Doxyfile.part.api</a></li>
+                <li><a href="#doxyfile.part.internal" id="toc-doxyfile.part.internal"><span class="toc-section-number">2.6.2</span> Doxyfile.part.internal</a></li>
+                <li><a href="#doxyfile.part.test" id="toc-doxyfile.part.test"><span class="toc-section-number">2.6.3</span> Doxyfile.part.test</a></li>
+                </ul></li>
+                <li><a href="#内部動作" id="toc-内部動作"><span class="toc-section-number">2.7</span> 内部動作</a>
+                <ul>
+                <li><a href="#ドキュメント生成時" id="toc-ドキュメント生成時"><span class="toc-section-number">2.7.1</span> ドキュメント生成時</a></li>
+                <li><a href="#デバッグ用-xml-バックアップ" id="toc-デバッグ用-xml-バックアップ"><span class="toc-section-number">2.7.2</span> デバッグ用 XML バックアップ</a></li>
+                <li><a href="#クリーンアップ時" id="toc-クリーンアップ時"><span class="toc-section-number">2.7.3</span> クリーンアップ時</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#トラブルシューティング" id="toc-トラブルシューティング"><span class="toc-section-number">3</span> トラブルシューティング</a>
+                <ul>
+                <li><a href="#category-指定時に-doxyfile.part-が見つからない" id="toc-category-指定時に-doxyfile.part-が見つからない"><span class="toc-section-number">3.1</span> CATEGORY 指定時に Doxyfile.part が見つからない</a></li>
+                <li><a href="#複数の大分類を一度に生成したい" id="toc-複数の大分類を一度に生成したい"><span class="toc-section-number">3.2</span> 複数の大分類を一度に生成したい</a></li>
+                <li><a href="#全ての大分類をクリーンアップしたい" id="toc-全ての大分類をクリーンアップしたい"><span class="toc-section-number">3.3</span> 全ての大分類をクリーンアップしたい</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>makefile 使用方法</H1>
+      
+      
+      <p>このドキュメントでは、doxyfw の makefile の使用方法とオプションについて説明します。</p>
+<h1 data-number="1" id="基本的な使用方法"><span class="header-section-number">1</span> 基本的な使用方法</h1>
+<h2 data-number="1.1" id="ドキュメント生成"><span class="header-section-number">1.1</span> ドキュメント生成</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div>
+<p>このコマンドは以下の処理を順次実行します。</p>
+<ol type="1">
+<li>既存のドキュメントをクリーンアップ</li>
+<li>Doxygen で C ソースコードを解析し、HTML と XML を生成</li>
+<li>XML ファイルを前処理</li>
+<li>Doxybook2 で Markdown に変換</li>
+<li>Markdown ファイルを後処理</li>
+</ol>
+<h2 data-number="1.2" id="クリーンアップ"><span class="header-section-number">1.2</span> クリーンアップ</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean</span></code></pre></div>
+<p>生成されたドキュメント (<code>docs/doxygen</code>、<code>docs-src/doxybook2</code>、<code>xml</code>) を削除します。</p>
+<h1 data-number="2" id="category-オプション"><span class="header-section-number">2</span> CATEGORY オプション</h1>
+<p><code>CATEGORY</code> オプションを使用すると、ドキュメントを大分類ごとに生成できます。これにより、同一プロジェクト内で複数種類のドキュメントを管理できます。</p>
+<h2 data-number="2.1" id="概要"><span class="header-section-number">2.1</span> 概要</h2>
+<ul>
+<li><strong>オプション名</strong>: <code>CATEGORY</code></li>
+<li><strong>デフォルト値</strong>: 空 (大分類なし)</li>
+<li><strong>用途</strong>: API ドキュメント、内部仕様書、テストドキュメントなど、異なる種類のドキュメントを分類して生成</li>
+</ul>
+<h2 data-number="2.2" id="動作仕様"><span class="header-section-number">2.2</span> 動作仕様</h2>
+<h3 data-number="2.2.1" id="category-未指定時-デフォルト"><span class="header-section-number">2.2.1</span> CATEGORY 未指定時 (デフォルト)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div>
+<ul>
+<li><strong>使用する設定ファイル</strong>: <code>../Doxyfile.part</code></li>
+<li><strong>HTML 出力先</strong>: <code>../docs/doxygen/</code></li>
+<li><strong>Markdown 出力先</strong>: <code>../docs-src/doxybook2/</code></li>
+<li><strong>XML 中間ファイル</strong>: <code>../xml/</code> (処理後削除)</li>
+</ul>
+<h3 data-number="2.2.2" id="category-指定時"><span class="header-section-number">2.2.2</span> CATEGORY 指定時</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=api</span></code></pre></div>
+<ul>
+<li><strong>使用する設定ファイル</strong>: <code>../Doxyfile.part.api</code></li>
+<li><strong>HTML 出力先</strong>: <code>../docs/doxygen/api/</code></li>
+<li><strong>Markdown 出力先</strong>: <code>../docs-src/doxybook2/api/</code></li>
+<li><strong>XML 中間ファイル</strong>: <code>../xml/api/</code> (処理後削除)</li>
+</ul>
+<h2 data-number="2.3" id="使用例"><span class="header-section-number">2.3</span> 使用例</h2>
+<h3 data-number="2.3.1" id="api-ドキュメント生成"><span class="header-section-number">2.3.1</span> API ドキュメント生成</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=api</span></code></pre></div>
+<p>このコマンドは <code>Doxyfile.part.api</code> を使用し、API 向けのドキュメントを生成します。</p>
+<h3 data-number="2.3.2" id="内部仕様ドキュメント生成"><span class="header-section-number">2.3.2</span> 内部仕様ドキュメント生成</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=internal</span></code></pre></div>
+<p>このコマンドは <code>Doxyfile.part.internal</code> を使用し、内部仕様向けのドキュメントを生成します。</p>
+<h3 data-number="2.3.3" id="テストドキュメント生成"><span class="header-section-number">2.3.3</span> テストドキュメント生成</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=test</span></code></pre></div>
+<p>このコマンドは <code>Doxyfile.part.test</code> を使用し、テスト向けのドキュメントを生成します。</p>
+<h2 data-number="2.4" id="クリーンアップ-category-指定時"><span class="header-section-number">2.4</span> クリーンアップ (CATEGORY 指定時)</h2>
+<p>特定の大分類のドキュメントのみを削除できます。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean CATEGORY=api</span></code></pre></div>
+<p>このコマンドは <code>docs/doxygen/api/</code>、<code>docs-src/doxybook2/api/</code>、<code>xml/api/</code> を削除します。</p>
+<p>さらに、親ディレクトリ (<code>docs/doxygen/</code>、<code>docs-src/doxybook2/</code>、<code>xml/</code>) が空になった場合は、親ディレクトリも自動的に削除されます。</p>
+<h2 data-number="2.5" id="doxyfile.part-の命名規則"><span class="header-section-number">2.5</span> Doxyfile.part の命名規則</h2>
+<p>CATEGORY を使用する場合、メインプロジェクトのルートディレクトリに以下の命名規則でファイルを配置します。</p>
+<ul>
+<li><strong>デフォルト</strong>: <code>Doxyfile.part</code></li>
+<li><strong>CATEGORY 指定時</strong>: <code>Doxyfile.part.{CATEGORY}</code></li>
+</ul>
+<h3 data-number="2.5.1" id="ファイル配置例"><span class="header-section-number">2.5.1</span> ファイル配置例</h3>
+<pre class="text"><code>main-project/
++-- doxyfw/                  # doxyfw サブモジュール
++-- Doxyfile.part            # デフォルト設定
++-- Doxyfile.part.api        # API ドキュメント設定
++-- Doxyfile.part.internal   # 内部仕様ドキュメント設定
++-- Doxyfile.part.test       # テストドキュメント設定
++-- prod/                    # ソースコード</code></pre>
+<h2 data-number="2.6" id="doxyfile.part-の設定例"><span class="header-section-number">2.6</span> Doxyfile.part の設定例</h2>
+<p>各大分類に応じて、異なる入力ディレクトリやプロジェクト名を指定できます。</p>
+<h3 data-number="2.6.1" id="doxyfile.part.api"><span class="header-section-number">2.6.1</span> Doxyfile.part.api</h3>
+<pre class="text"><code>PROJECT_NAME           = &quot;API Documentation&quot;
+INPUT                  = prod/calc/include</code></pre>
+<h3 data-number="2.6.2" id="doxyfile.part.internal"><span class="header-section-number">2.6.2</span> Doxyfile.part.internal</h3>
+<pre class="text"><code>PROJECT_NAME           = &quot;Internal Specification&quot;
+INPUT                  = prod/calc/libsrc prod/calc/include
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES</code></pre>
+<h3 data-number="2.6.3" id="doxyfile.part.test"><span class="header-section-number">2.6.3</span> Doxyfile.part.test</h3>
+<pre class="text"><code>PROJECT_NAME           = &quot;Test Documentation&quot;
+INPUT                  = test/src</code></pre>
+<h2 data-number="2.7" id="内部動作"><span class="header-section-number">2.7</span> 内部動作</h2>
+<h3 data-number="2.7.1" id="ドキュメント生成時"><span class="header-section-number">2.7.1</span> ドキュメント生成時</h3>
+<p>CATEGORY が指定された場合、makefile は以下の処理を自動的に行います。</p>
+<ol type="1">
+<li><code>Doxyfile.part.{CATEGORY}</code> を基本 Doxyfile と結合</li>
+<li>結合した一時 Doxyfile の <code>OUTPUT_DIRECTORY</code> と <code>XML_OUTPUT</code> を書き換え
+<ul>
+<li><code>OUTPUT_DIRECTORY = ../docs/doxygen/{CATEGORY}</code></li>
+<li><code>XML_OUTPUT = ../../xml/{CATEGORY}</code></li>
+</ul></li>
+<li>書き換えた一時 Doxyfile で Doxygen を実行</li>
+<li>以降の処理も CATEGORY に応じたディレクトリを使用</li>
+</ol>
+<h3 data-number="2.7.2" id="デバッグ用-xml-バックアップ"><span class="header-section-number">2.7.2</span> デバッグ用 XML バックアップ</h3>
+<p>makefile にはデバッグ用の XML バックアップ機能がコメントアウトされています。この機能を有効にすると、前処理前の XML ファイルを <code>xml_org</code> ディレクトリにバックアップできます。</p>
+<p>バックアップディレクトリの構造は <code>xml</code> と同じ階層構造になります。</p>
+<ul>
+<li><strong>CATEGORY 未指定時</strong>: <code>xml_org/</code></li>
+<li><strong>CATEGORY 指定時</strong>: <code>xml_org/{CATEGORY}/</code></li>
+</ul>
+<p>makefile の以下の行のコメントを解除することで有効化できます。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#   rm -rf $(XML_ORG_DIR)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   mkdir -p $(XML_ORG_DIR)</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   cp -rp $(XML_DIR)/* $(XML_ORG_DIR)/</span></span></code></pre></div>
+<p>および</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#   rm -rf $(XML_ORG_DIR)</span></span></code></pre></div>
+<h3 data-number="2.7.3" id="クリーンアップ時"><span class="header-section-number">2.7.3</span> クリーンアップ時</h3>
+<p>CATEGORY が指定された場合、clean ターゲットは以下の処理を自動的に行います。</p>
+<ol type="1">
+<li>CATEGORY に応じたサブディレクトリを削除
+<ul>
+<li><code>docs/doxygen/{CATEGORY}/</code></li>
+<li><code>docs-src/doxybook2/{CATEGORY}/</code></li>
+<li><code>xml/{CATEGORY}/</code></li>
+</ul></li>
+<li>親ディレクトリが空になった場合、親ディレクトリも削除
+<ul>
+<li><code>docs/doxygen/</code></li>
+<li><code>docs-src/doxybook2/</code></li>
+<li><code>xml/</code></li>
+</ul></li>
+</ol>
+<h1 data-number="3" id="トラブルシューティング"><span class="header-section-number">3</span> トラブルシューティング</h1>
+<h2 data-number="3.1" id="category-指定時に-doxyfile.part-が見つからない"><span class="header-section-number">3.1</span> CATEGORY 指定時に Doxyfile.part が見つからない</h2>
+<p><code>Doxyfile.part.{CATEGORY}</code> が存在しない場合、基本 Doxyfile のみで生成されます。意図した設定でドキュメントが生成されない場合は、ファイル名と配置場所を確認してください。</p>
+<h2 data-number="3.2" id="複数の大分類を一度に生成したい"><span class="header-section-number">3.2</span> 複数の大分類を一度に生成したい</h2>
+<p>複数の大分類を生成する場合は、個別に make コマンドを実行してください。</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=api</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=internal</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CATEGORY=test</span></code></pre></div>
+<h2 data-number="3.3" id="全ての大分類をクリーンアップしたい"><span class="header-section-number">3.3</span> 全ての大分類をクリーンアップしたい</h2>
+<p>各大分類を個別にクリーンアップするか、親ディレクトリから直接削除してください。</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> doxyfw</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean CATEGORY=api</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean CATEGORY=internal</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean CATEGORY=test</span></code></pre></div>
+<p>または</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> docs/doxygen/<span class="pp">*</span> docs-src/doxybook2/<span class="pp">*</span> xml/<span class="pp">*</span></span></code></pre></div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

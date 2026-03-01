@@ -1,0 +1,489 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="github-actions[bot]" />
+  <title>C 言語における `extern` と実体の理解</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">C 言語における `extern` と実体の理解</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">github-actions[bot]</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 21:06:51 +0000 cbf6a8f</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#extern-とは何か" id="toc-extern-とは何か"><span class="toc-section-number">1</span> <code>extern</code> とは何か？</a></li>
+                <li><a href="#関数と変数における-extern-の違いと使い方" id="toc-関数と変数における-extern-の違いと使い方"><span class="toc-section-number">2</span> 関数と変数における <code>extern</code> の違いと使い方</a>
+                <ul>
+                <li><a href="#関数の-extern" id="toc-関数の-extern"><span class="toc-section-number">2.1</span> 関数の <code>extern</code></a></li>
+                <li><a href="#変数の-extern" id="toc-変数の-extern"><span class="toc-section-number">2.2</span> 変数の <code>extern</code></a></li>
+                </ul></li>
+                <li><a href="#c-との相互運用-extern-c" id="toc-c-との相互運用-extern-c"><span class="toc-section-number">3</span> C++ との相互運用 (<code>extern "C"</code>)</a>
+                <ul>
+                <li><a href="#解決策-extern-c-を使う" id="toc-解決策-extern-c-を使う"><span class="toc-section-number">3.1</span> 解決策: <code>extern "C"</code> を使う</a></li>
+                </ul></li>
+                <li><a href="#なぜヘッダファイルに実体を定義してはいけないのか" id="toc-なぜヘッダファイルに実体を定義してはいけないのか"><span class="toc-section-number">4</span> なぜヘッダファイルに実体を定義してはいけないのか?</a>
+                <ul>
+                <li><a href="#理由-複数の実体が生成される" id="toc-理由-複数の実体が生成される"><span class="toc-section-number">4.1</span> 理由: <strong>複数の実体が生成される</strong></a></li>
+                </ul></li>
+                <li><a href="#extern-があっても実体がない場合は" id="toc-extern-があっても実体がない場合は"><span class="toc-section-number">5</span> <code>extern</code> があっても実体がない場合は?</a></li>
+                <li><a href="#extern-がない変数や関数はファイル内に閉じる" id="toc-extern-がない変数や関数はファイル内に閉じる"><span class="toc-section-number">6</span> <code>extern</code> がない変数や関数はファイル内に閉じる</a></li>
+                <li><a href="#関数の重複" id="toc-関数の重複"><span class="toc-section-number">7</span> 関数の重複</a>
+                <ul>
+                <li><a href="#モック関数と-pragma-weak" id="toc-モック関数と-pragma-weak"><span class="toc-section-number">7.1</span> モック関数と <code>#pragma weak</code></a></li>
+                <li><a href="#実行時の振る舞い" id="toc-実行時の振る舞い"><span class="toc-section-number">7.2</span> 実行時の振る舞い</a></li>
+                <li><a href="#注意点" id="toc-注意点"><span class="toc-section-number">7.3</span> 注意点</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">8</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>C 言語における `extern` と実体の理解</H1>
+      
+      
+      <h1 data-number="1" id="extern-とは何か"><span class="header-section-number">1</span> <code>extern</code> とは何か？</h1>
+<p><code>extern</code> は <strong>外部に定義された関数や変数の参照を宣言するキーワード</strong> である。<br />
+主に複数ファイルにまたがって関数や変数を共有する際に使用される。</p>
+<h1 data-number="2" id="関数と変数における-extern-の違いと使い方"><span class="header-section-number">2</span> 関数と変数における <code>extern</code> の違いと使い方</h1>
+<h2 data-number="2.1" id="関数の-extern"><span class="header-section-number">2.1</span> 関数の <code>extern</code></h2>
+<ul>
+<li>C 言語では、関数は <strong>暗黙的に <code>extern</code> 扱い</strong> になる。</li>
+<li>ただし、<strong>可読性や意図の明示の観点から <code>extern</code> を明示することが推奨される</strong>。</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// sample.h</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> print_message<span class="op">(</span><span class="dt">void</span><span class="op">);</span> <span class="co">// extern を明示すると意図が伝わる</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// sample.c</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;sample.h&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> print_message<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Hello, World!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figure>
+<img src="puml_6a043357467953755fb96520e13728f0a2680a86.svg" alt="関数の extern による参照関係" />
+<figcaption aria-hidden="true">関数の extern による参照関係</figcaption>
+</figure>
+<h2 data-number="2.2" id="変数の-extern"><span class="header-section-number">2.2</span> 変数の <code>extern</code></h2>
+<ul>
+<li><strong>変数は <code>extern</code> を明示しなければ外部から参照できない</strong>。</li>
+<li>実体 (メモリの確保) は <strong>1 か所のソースファイル</strong> にだけ必要である。</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// global.h</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">int</span> global_counter<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// global.c</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> global_counter <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
+<figure>
+<img src="puml_eb458af603de248d28a42162b44a55fee6493fea.svg" alt="変数の宣言と定義の関係" />
+<figcaption aria-hidden="true">変数の宣言と定義の関係</figcaption>
+</figure>
+<h1 data-number="3" id="c-との相互運用-extern-c"><span class="header-section-number">3</span> C++ との相互運用 (<code>extern "C"</code>)</h1>
+<p>C++ では関数名に名前修飾が行われるため、C 関数を直接リンクできない。</p>
+<h2 data-number="3.1" id="解決策-extern-c-を使う"><span class="header-section-number">3.1</span> 解決策: <code>extern "C"</code> を使う</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// sample.h</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef __cplusplus</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">extern</span> <span class="st">&quot;C&quot;</span> <span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">extern</span> <span class="dt">void</span> my_function<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef __cplusplus</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<figure>
+<img src="puml_4e41e3a9ed16cacb8ef95c711a8e2bf9ace040b0.svg" alt="C++ と C 間のリンクのイメージ" />
+<figcaption aria-hidden="true">C++ と C 間のリンクのイメージ</figcaption>
+</figure>
+<h1 data-number="4" id="なぜヘッダファイルに実体を定義してはいけないのか"><span class="header-section-number">4</span> なぜヘッダファイルに実体を定義してはいけないのか?</h1>
+<h2 data-number="4.1" id="理由-複数の実体が生成される"><span class="header-section-number">4.1</span> 理由: <strong>複数の実体が生成される</strong></h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// NG: header.h</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> counter <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> <span class="co">// 実体を定義してしまっている</span></span></code></pre></div>
+<p>これを複数ファイルで include すると、リンク時にエラーが発生する:</p>
+<pre><code>multiple definition of `counter`</code></pre>
+<figure>
+<img src="puml_fde417b2192b9d3424985c7dd8ea3633ee2a906d.svg" alt="ヘッダに実体があるとどうなるか (NG 例)" />
+<figcaption aria-hidden="true">ヘッダに実体があるとどうなるか (NG 例)</figcaption>
+</figure>
+<h1 data-number="5" id="extern-があっても実体がない場合は"><span class="header-section-number">5</span> <code>extern</code> があっても実体がない場合は?</h1>
+<ul>
+<li>コンパイルは通るが <strong>リンク時に未定義シンボルエラー</strong> になる。</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// header.h</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">int</span> missing_var<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// main.c</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;header.h&quot;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> missing_var<span class="op">;</span> <span class="co">// リンクエラー</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figure>
+<img src="puml_d955fe4daa37e10ec99ba5badfc1aeb9cc699ad6.svg" alt="宣言のみで実体がない場合" />
+<figcaption aria-hidden="true">宣言のみで実体がない場合</figcaption>
+</figure>
+<h1 data-number="6" id="extern-がない変数や関数はファイル内に閉じる"><span class="header-section-number">6</span> <code>extern</code> がない変数や関数はファイル内に閉じる</h1>
+<ul>
+<li><strong><code>static</code> を使うことで、外部に公開しないローカルなシンボルとして定義可能である</strong>。</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">// file.c</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span> local_counter <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> <span class="co">// 他ファイルからアクセス不可</span></span></code></pre></div>
+<figure>
+<img src="puml_4de134dcc4b2bc599f21434d5e241948c146f310.svg" alt="static 変数と外部ファイルの関係" />
+<figcaption aria-hidden="true">static 変数と外部ファイルの関係</figcaption>
+</figure>
+<h1 data-number="7" id="関数の重複"><span class="header-section-number">7</span> 関数の重複</h1>
+<p>C 言語では <strong>関数の定義は重複できない</strong>。複数の <code>.o</code> ファイルに同じシンボル (関数名) があると、リンク時にエラーになる。</p>
+<p>しかし、<strong>テストやモックライブラリの構成時に例外的に許される手法がある</strong>。</p>
+<h2 data-number="7.1" id="モック関数と-pragma-weak"><span class="header-section-number">7.1</span> モック関数と <code>#pragma weak</code></h2>
+<p>テスト用に本物の関数の代わりに <strong>モック関数を使いたい場合</strong>、<code>#pragma weak</code> を使うことで、<strong>モック関数を「弱い定義 (weak symbol)」として登録</strong> し、リンク時に本物の関数があればそちらを優先させることができる。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">// mock.c（モック側）</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#pragma weak real_func</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> real_func<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;This is a mock!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// real.c（本物の実装）</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> real_func<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;This is the real one!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<figure>
+<img src="puml_d01008268dd43e42790457e5962736560db1485c.svg" alt="モックと実体の関数の解決関係" />
+<figcaption aria-hidden="true">モックと実体の関数の解決関係</figcaption>
+</figure>
+<h2 data-number="7.2" id="実行時の振る舞い"><span class="header-section-number">7.2</span> 実行時の振る舞い</h2>
+<table>
+<thead>
+<tr>
+<th>リンク対象</th>
+<th>実行結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main.o + mock.o</code></td>
+<td>“This is a mock!” が表示される</td>
+</tr>
+<tr>
+<td><code>main.o + mock.o + real.o</code></td>
+<td>“This is the real one!” が表示される</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="7.3" id="注意点"><span class="header-section-number">7.3</span> 注意点</h2>
+<ul>
+<li><code>#pragma weak</code> は <strong>GCCなどの一部コンパイラに依存</strong> する。</li>
+<li>本番コードでは使用を避け、<strong>主にユニットテストのための手法</strong> として理解する。</li>
+</ul>
+<h1 data-number="8" id="まとめ"><span class="header-section-number">8</span> まとめ</h1>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>extern</code></td>
+<td>外部の定義を参照するキーワード</td>
+</tr>
+<tr>
+<td>関数の宣言</td>
+<td><code>extern</code> を省略可だが、可読性から明示推奨</td>
+</tr>
+<tr>
+<td>実体 (定義)</td>
+<td>メモリを確保する唯一の場所</td>
+</tr>
+<tr>
+<td>ヘッダでの実体定義</td>
+<td>複数ファイルで include されると危険</td>
+</tr>
+<tr>
+<td>C++ 相互運用</td>
+<td><code>extern "C"</code> でCの名前修飾を防止</td>
+</tr>
+<tr>
+<td><code>static</code></td>
+<td>ファイル内限定のシンボル</td>
+</tr>
+<tr>
+<td>関数の重複定義</td>
+<td>原則禁止だが <code>#pragma weak</code> で差し替え可能</td>
+</tr>
+<tr>
+<td>weak symbol のリンク順</td>
+<td>実体が存在すればそちらが優先される</td>
+</tr>
+</tbody>
+</table>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

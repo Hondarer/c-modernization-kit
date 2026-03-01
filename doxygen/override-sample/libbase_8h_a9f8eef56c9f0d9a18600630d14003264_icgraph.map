@@ -1,0 +1,5 @@
+<map id="sample_func" name="sample_func">
+<area shape="rect" id="Node000001" title="計算処理を行います。" alt="" coords="104,5,200,31"/>
+<area shape="rect" id="Node000002" href="$override-sample_8c.html#a840291bc02cba5474a4cb46a9b9566fe" title="メインエントリポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,21,56,21,56,15,90,15"/>
+</map>

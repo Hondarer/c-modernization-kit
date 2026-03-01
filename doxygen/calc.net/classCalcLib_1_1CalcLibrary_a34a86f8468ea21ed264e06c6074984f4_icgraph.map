@@ -1,0 +1,7 @@
+<map id="CalcLib.CalcLibrary.Calculate" name="CalcLib.CalcLibrary.Calculate">
+<area shape="rect" id="Node000001" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="244,42,435,67"/>
+<area shape="rect" id="Node000002" href="$classCalcLib_1_1CalcLibrary.html#a2a5d124125389d3ff10bf82898c9a732" title="計算を実行し、失敗した場合は例外をスローします。" alt="" coords="5,5,196,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,44,196,40,197,34,231,39"/>
+<area shape="rect" id="Node000003" href="$classCalcApp_1_1Program.html#a1c1a792b2d6e11d612e740ddf26b3936" title="プログラムのエントリーポイント。" alt="" coords="23,70,179,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,70,179,76,179,71,230,65"/>
+</map>

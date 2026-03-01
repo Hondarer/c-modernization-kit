@@ -1,0 +1,689 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>動的ライブラリのロード・アンロードに関する実装メモ</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../../../../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">動的ライブラリのロード・アンロードに関する実装メモ</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Sun, 01 Mar 2026 22:09:40 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../../../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#dlopen-loadlibrary-の都度オープンクローズについて" id="toc-dlopen-loadlibrary-の都度オープンクローズについて"><span class="toc-section-number">1</span> dlopen / LoadLibrary の都度オープン・クローズについて</a>
+                <ul>
+                <li><a href="#各操作のコスト" id="toc-各操作のコスト"><span class="toc-section-number">1.1</span> 各操作のコスト</a></li>
+                <li><a href="#呼び出し頻度別の判断" id="toc-呼び出し頻度別の判断"><span class="toc-section-number">1.2</span> 呼び出し頻度別の判断</a></li>
+                </ul></li>
+                <li><a href="#ハンドルと関数ポインタのキャッシュ" id="toc-ハンドルと関数ポインタのキャッシュ"><span class="toc-section-number">2</span> ハンドルと関数ポインタのキャッシュ</a>
+                <ul>
+                <li><a href="#スレッドセーフな実装" id="toc-スレッドセーフな実装"><span class="toc-section-number">2.1</span> スレッドセーフな実装</a>
+                <ul>
+                <li><a href="#なぜ必要か" id="toc-なぜ必要か"><span class="toc-section-number">2.1.1</span> なぜ必要か</a></li>
+                <li><a href="#実装方法" id="toc-実装方法"><span class="toc-section-number">2.1.2</span> 実装方法</a></li>
+                </ul></li>
+                <li><a href="#初期化失敗時の再試行について" id="toc-初期化失敗時の再試行について"><span class="toc-section-number">2.2</span> 初期化失敗時の再試行について</a></li>
+                </ul></li>
+                <li><a href="#base.so-base.dll-アンロード時の処理" id="toc-base.so-base.dll-アンロード時の処理"><span class="toc-section-number">3</span> base.so / base.dll アンロード時の処理</a>
+                <ul>
+                <li><a href="#共通ヘルパー-onunload-dllmain_libbase.c" id="toc-共通ヘルパー-onunload-dllmain_libbase.c"><span class="toc-section-number">3.1</span> 共通ヘルパー: <code>onUnload()</code> (<code>dllmain_libbase.c</code>)</a></li>
+                <li><a href="#linux-__attribute__constructordestructor-dllmain.h" id="toc-linux-__attribute__constructordestructor-dllmain.h"><span class="toc-section-number">3.2</span> Linux: <code>__attribute__((constructor/destructor))</code> (<code>dllmain.h</code>)</a></li>
+                <li><a href="#windows-dllmain-dllmain.h" id="toc-windows-dllmain-dllmain.h"><span class="toc-section-number">3.3</span> Windows: <code>DllMain</code> (<code>dllmain.h</code>)</a></li>
+                </ul></li>
+                <li><a href="#ハンドルを保持したままプロセスを終了した場合の影響" id="toc-ハンドルを保持したままプロセスを終了した場合の影響"><span class="toc-section-number">4</span> ハンドルを保持したままプロセスを終了した場合の影響</a>
+                <ul>
+                <li><a href="#終了方法別の動作" id="toc-終了方法別の動作"><span class="toc-section-number">4.1</span> 終了方法別の動作</a>
+                <ul>
+                <li><a href="#linux-dlopen" id="toc-linux-dlopen"><span class="toc-section-number">4.1.1</span> Linux (dlopen)</a></li>
+                <li><a href="#windows-loadlibrary" id="toc-windows-loadlibrary"><span class="toc-section-number">4.1.2</span> Windows (LoadLibrary)</a></li>
+                </ul></li>
+                <li><a href="#終了方法まとめ" id="toc-終了方法まとめ"><span class="toc-section-number">4.2</span> 終了方法まとめ</a></li>
+                <li><a href="#注意が必要な外部リソース" id="toc-注意が必要な外部リソース"><span class="toc-section-number">4.3</span> 注意が必要な外部リソース</a></li>
+                <li><a href="#このサンプルへの適用" id="toc-このサンプルへの適用"><span class="toc-section-number">4.4</span> このサンプルへの適用</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>動的ライブラリのロード・アンロードに関する実装メモ</H1>
+      
+      
+      <h1 data-number="1" id="dlopen-loadlibrary-の都度オープンクローズについて"><span class="header-section-number">1</span> dlopen / LoadLibrary の都度オープン・クローズについて</h1>
+<p><code>funcman_get_func.c</code> の <code>_funcman_get_func()</code> では、初回呼び出し時のみ以下を実行します。</p>
+<pre class="text"><code>dlopen(&quot;lib_name.so&quot;, RTLD_LAZY)   // ① ライブラリのロード / 参照カウント増加
+dlsym(handle, &quot;func_name&quot;)         // ② シンボルテーブル検索</code></pre>
+<p><code>lib_name</code> と <code>func_name</code> は <code>funcman_init()</code> が設定ファイルから読み込んだ値です。</p>
+<p>2 回目以降は <code>funcman_object</code> の <code>handle</code> と <code>func_ptr</code> にキャッシュされた値をそのまま使用します。</p>
+<pre class="text"><code>func_ptr(...)                    // ③ 本来の処理 (キャッシュ済みポインタを呼び出し)</code></pre>
+<h2 data-number="1.1" id="各操作のコスト"><span class="header-section-number">1.1</span> 各操作のコスト</h2>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 37%" />
+<col style="width: 52%" />
+</colgroup>
+<thead>
+<tr>
+<th>操作</th>
+<th>初回 (コールド)</th>
+<th>2 回目以降 (ウォーム)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dlopen</code></td>
+<td>大 (ファイル検索・mmap・シンボル解決・コンストラクタ実行)</td>
+<td>中 (前回の <code>dlclose</code> でアンロード済みなら再ロードに近いコスト)</td>
+</tr>
+<tr>
+<td><code>dlsym</code></td>
+<td>中 (ハッシュテーブル検索、数 μs 程度)</td>
+<td>同左</td>
+</tr>
+<tr>
+<td><code>dlclose</code></td>
+<td>中 (参照カウント -1、0 になればデストラクタ + アンマップ)</td>
+<td>同左</td>
+</tr>
+<tr>
+<td>関数呼び出し本体</td>
+<td>ns 単位</td>
+<td>ns 単位</td>
+</tr>
+</tbody>
+</table>
+<p>Linux / Windows ともに <code>dlopen</code> / <code>LoadLibrary</code> は内部で参照カウントを管理しています。<code>dlclose</code> で参照カウントが 0 になると OS はライブラリをアンマップするため、次回の <code>dlopen</code> は冷たいロードに近いコストが再びかかります。キャッシュパターンではこのコストを初回のみに抑えます。</p>
+<h2 data-number="1.2" id="呼び出し頻度別の判断"><span class="header-section-number">1.2</span> 呼び出し頻度別の判断</h2>
+<table>
+<colgroup>
+<col style="width: 75%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>呼び出し頻度</th>
+<th>判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>起動時や設定変更時など低頻度</td>
+<td>無視できます</td>
+</tr>
+<tr>
+<td>Web API のリクエスト単位など中頻度</td>
+<td>測定して判断してください</td>
+</tr>
+<tr>
+<td>ループ内・高速処理パスなど高頻度</td>
+<td>無視できません。<code>dlopen</code> の数 μs ~ 数十 μs が積み重なり支配的になります</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="2" id="ハンドルと関数ポインタのキャッシュ"><span class="header-section-number">2</span> ハンドルと関数ポインタのキャッシュ</h1>
+<p><code>funcman_get_func.c</code> では、<code>funcman_object</code> 構造体の <code>handle</code> と <code>func_ptr</code> メンバにハンドルと関数ポインタを保持します。<code>dllmain_libbase.c</code> からも参照するため、<code>funcman_libbase.c</code> で実体を定義し、<code>funcman_libbase.h</code> の <code>extern</code> 宣言で共有します。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* funcman_libbase.c での実体定義 */</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> funcman_object sfo_sample_func <span class="op">=</span> NEW_FUNCMAN_OBJECT<span class="op">(</span><span class="st">&quot;sample_func&quot;</span><span class="op">,</span> sample_func_t<span class="op">);</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>funcman_object <span class="op">*</span><span class="dt">const</span> pfo_sample_func <span class="op">=</span> <span class="op">&amp;</span>sfo_sample_func<span class="op">;</span></span></code></pre></div>
+<p><code>funcman_object</code> には以下のキャッシュフィールドが含まれます。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>func_key<span class="op">;</span>             <span class="co">/* この関数インスタンスの識別キー */</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> lib_name<span class="op">[</span>FUNCMAN_NAME_MAX<span class="op">];</span>  <span class="co">/* 拡張子なしライブラリ名 */</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> func_name<span class="op">[</span>FUNCMAN_NAME_MAX<span class="op">];</span> <span class="co">/* 関数シンボル名 */</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    MODULE_HANDLE handle<span class="op">;</span>             <span class="co">/* キャッシュ済みハンドル (NULL = 未ロード) */</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">*</span>func_ptr<span class="op">;</span>                   <span class="co">/* キャッシュ済み関数ポインタ (NULL = 未取得) */</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> resolved<span class="op">;</span>                     <span class="co">/* 解決済フラグ (0 = 未解決) */</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* ... mutex (Linux) または lock (Windows) ... */</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> funcman_object<span class="op">;</span></span></code></pre></div>
+<h2 data-number="2.1" id="スレッドセーフな実装"><span class="header-section-number">2.1</span> スレッドセーフな実装</h2>
+<h3 data-number="2.1.1" id="なぜ必要か"><span class="header-section-number">2.1.1</span> なぜ必要か</h3>
+<p><code>resolved == 0</code> の単純なチェックでは、複数のスレッドが同時に関数ポインタを取得しようとしたとき競合が発生します。</p>
+<figure>
+<img src="puml_083abec049a1e3dc73cd735ce3be3abfc0b7c370.svg" alt="競合シナリオ (排他制御なし)" />
+<figcaption aria-hidden="true">競合シナリオ (排他制御なし)</figcaption>
+</figure>
+<p>この競合が引き起こす問題は複数あります。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>問題</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>二重ロード</td>
+<td><code>dlopen</code> が 2 回実行され、参照カウントが期待より増加する。<code>onUnload()</code> での <code>dlclose</code> が 1 回では不十分になる</td>
+</tr>
+<tr>
+<td>部分書き込みの参照</td>
+<td>スレッド A が <code>handle</code> を書き込んでいる途中でスレッド B が読むと、不完全な値を参照する可能性がある (メモリバリアなしでは CPU の書き込み順序が保証されない)</td>
+</tr>
+<tr>
+<td><code>func_ptr</code> の不整合</td>
+<td><code>handle</code> の書き込みと <code>func_ptr</code> の書き込みの間に別スレッドが割り込むと、<code>handle != NULL</code> なのに <code>func_ptr == NULL</code> という矛盾した状態が見える</td>
+</tr>
+</tbody>
+</table>
+<h3 data-number="2.1.2" id="実装方法"><span class="header-section-number">2.1.2</span> 実装方法</h3>
+<p><code>_funcman_get_func()</code> では <code>pthread_mutex_t</code> (Linux) または <code>SRWLOCK</code> (Windows) と double-checked locking パターンを組み合わせています。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* 早期リターン: ロード完了後はロックなしで高速にキャッシュを参照する */</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>fobj<span class="op">-&gt;</span>resolved <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fobj<span class="op">-&gt;</span>func_ptr<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">/* ロック取得 */</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef _WIN32</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>pthread_mutex_lock<span class="op">(&amp;</span>fobj<span class="op">-&gt;</span>mutex<span class="op">);</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#else  </span><span class="co">/* _WIN32 */</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>AcquireSRWLockExclusive<span class="op">(&amp;</span>fobj<span class="op">-&gt;</span>lock<span class="op">);</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif </span><span class="co">/* _WIN32 */</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">/* ロック取得後に再確認 (double-checked locking):</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"> * 他スレッドが先にロードを完了していた場合はスキップする */</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>fobj<span class="op">-&gt;</span>resolved <span class="op">==</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* ... dlopen / LoadLibrary ... */</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* ... dlsym / GetProcAddress ... */</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    fobj<span class="op">-&gt;</span>resolved <span class="op">=</span> <span class="dv">1</span><span class="op">;</span>  <span class="co">/* 解決済 */</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef _WIN32</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>pthread_mutex_unlock<span class="op">(&amp;</span>fobj<span class="op">-&gt;</span>mutex<span class="op">);</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="pp">#else  </span><span class="co">/* _WIN32 */</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>ReleaseSRWLockExclusive<span class="op">(&amp;</span>fobj<span class="op">-&gt;</span>lock<span class="op">);</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif </span><span class="co">/* _WIN32 */</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> fobj<span class="op">-&gt;</span>func_ptr<span class="op">;</span></span></code></pre></div>
+<p><code>pthread_mutex_t</code> / <code>SRWLOCK</code> はロック取得・解放時にメモリバリアを提供するため、<code>handle</code> や <code>func_ptr</code> への書き込み順序が他スレッドから正しく見えることが保証されます。</p>
+<h2 data-number="2.2" id="初期化失敗時の再試行について"><span class="header-section-number">2.2</span> 初期化失敗時の再試行について</h2>
+<p><code>resolved != 0</code> のチェックにより「一度実行したら以降はスキップ」という意味論が実現されます。<code>dlopen</code> / <code>LoadLibrary</code> が失敗した場合でも <code>resolved</code> が 0 以外に設定され、以降の呼び出しではロードを再試行しません。<code>resolved &lt; 0</code> の場合は <code>func_ptr == NULL</code> のままとなり、呼び出し元では NULL チェックで失敗を検出できます。</p>
+<p><code>resolved</code> の状態値は以下のとおりです。</p>
+<table>
+<colgroup>
+<col style="width: 66%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>resolved</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>未解決</td>
+</tr>
+<tr>
+<td>1</td>
+<td>解決済</td>
+</tr>
+<tr>
+<td>2</td>
+<td>明示的デフォルト (<code>lib_name</code> と <code>func_name</code> がともに <code>"default"</code>)</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>定義なし (定義ファイル不存在、定義行が不存在)</td>
+</tr>
+<tr>
+<td>-2</td>
+<td>名称長さオーバー</td>
+</tr>
+<tr>
+<td>-3</td>
+<td>ライブラリオープンエラー (<code>dlopen</code> / <code>LoadLibrary</code> 失敗)</td>
+</tr>
+<tr>
+<td>-4</td>
+<td>関数探索エラー (<code>dlsym</code> / <code>GetProcAddress</code> 失敗)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="base.so-base.dll-アンロード時の処理"><span class="header-section-number">3</span> base.so / base.dll アンロード時の処理</h1>
+<p><code>handle</code> に保持したハンドルは、<code>base.so</code> / <code>base.dll</code> がアンロードされるタイミングで自動的に解放されます。<br />
+アンロード処理は <code>dllmain_libbase.c</code> に分離しており、<code>funcman_libbase.h</code> の <code>extern</code> 宣言で変数を共有します。プラットフォームごとのフックは <code>dllmain.h</code> が提供します。</p>
+<h2 data-number="3.1" id="共通ヘルパー-onunload-dllmain_libbase.c"><span class="header-section-number">3.1</span> 共通ヘルパー: <code>onUnload()</code> (<code>dllmain_libbase.c</code>)</h2>
+<p>Linux / Windows 共通のクリーンアップ処理を <code>onUnload()</code> にまとめています。Linux / Windows それぞれのエントリーポイント (<code>dllmain.h</code> が提供) からこの関数を呼び出します。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> onUnload<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    DLLMAIN_INFO_MSG<span class="op">(</span><span class="st">&quot;base: onUnload called&quot;</span><span class="op">);</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    funcman_dispose<span class="op">(</span>fobj_array_libbase<span class="op">,</span> fobj_length_libbase<span class="op">);</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>DLLMAIN_INFO_MSG</code> は DLL アンロードコンテキストの API 制約に合わせたログ出力マクロです。Linux では <code>syslog()</code>、Windows では <code>OutputDebugStringA()</code> を使用します。</p>
+<p><code>funcman_dispose()</code> はすべての <code>funcman_object</code> を走査し、<code>handle != NULL</code> のものに対して <code>dlclose</code> / <code>FreeLibrary</code> を呼び出します。</p>
+<h2 data-number="3.2" id="linux-__attribute__constructordestructor-dllmain.h"><span class="header-section-number">3.2</span> Linux: <code>__attribute__((constructor/destructor))</code> (<code>dllmain.h</code>)</h2>
+<p><code>dllmain.h</code> が以下のフックを提供します。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>__attribute__<span class="op">((</span>constructor<span class="op">))</span> <span class="dt">static</span> <span class="dt">void</span> dllmain_on_load__<span class="op">(</span><span class="dt">void</span><span class="op">)</span>   <span class="op">{</span> onLoad<span class="op">();</span> <span class="op">}</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>__attribute__<span class="op">((</span>destructor<span class="op">))</span>  <span class="dt">static</span> <span class="dt">void</span> dllmain_on_unload__<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span> onUnload<span class="op">();</span> <span class="op">}</span></span></code></pre></div>
+<p><code>__attribute__((constructor/destructor))</code> を付与した関数は、以下のタイミングで呼ばれます。</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr>
+<th>トリガー</th>
+<th>呼び出しタイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dlopen(base.so)</code> されたとき</td>
+<td>ライブラリのロード直後 (constructor)</td>
+</tr>
+<tr>
+<td><code>dlclose(base.so)</code> で参照カウントが 0 になったとき</td>
+<td>ライブラリのアンロード直前 (destructor)</td>
+</tr>
+<tr>
+<td>プロセス正常終了 (<code>return</code> / <code>exit()</code>)</td>
+<td><code>atexit</code> コールバックの後、OS へ制御が返る前</td>
+</tr>
+<tr>
+<td><code>_exit()</code> / <code>abort()</code> による強制終了</td>
+<td><strong>呼ばれない</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.3" id="windows-dllmain-dllmain.h"><span class="header-section-number">3.3</span> Windows: <code>DllMain</code> (<code>dllmain.h</code>)</h2>
+<p><code>dllmain.h</code> が以下の <code>DllMain</code> を提供します。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>BOOL WINAPI DllMain<span class="op">(</span>HINSTANCE hinstDLL<span class="op">,</span> DWORD fdwReason<span class="op">,</span> LPVOID lpvReserved<span class="op">)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span><span class="dt">void</span><span class="op">)</span>hinstDLL<span class="op">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span><span class="dt">void</span><span class="op">)</span>lpvReserved<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">switch</span> <span class="op">(</span>fdwReason<span class="op">)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> DLL_PROCESS_ATTACH<span class="op">:</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        onLoad<span class="op">();</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> DLL_PROCESS_DETACH<span class="op">:</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        onUnload<span class="op">();</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">default</span><span class="op">:</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> TRUE<span class="op">;</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>DLL_PROCESS_DETACH</code> は以下のタイミングで呼ばれます。</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr>
+<th>トリガー</th>
+<th>呼び出しタイミング</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FreeLibrary(base.dll)</code> で参照カウントが 0 になったとき</td>
+<td>ライブラリのアンロード直前</td>
+</tr>
+<tr>
+<td>プロセス正常終了 (<code>return</code> / <code>ExitProcess()</code>)</td>
+<td>Windows ローダーがロード済み DLL を順にアンロードするとき</td>
+</tr>
+<tr>
+<td><code>TerminateProcess()</code> による強制終了</td>
+<td><strong>呼ばれない</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>注意</strong>: <code>DllMain</code> の <code>DLL_PROCESS_DETACH</code> ハンドラ内では、呼び出せる Win32 API が制限されています。<code>FreeLibrary</code> は <code>DLL_PROCESS_DETACH</code> から呼び出し可能ですが、<code>lpvReserved != NULL</code>（プロセス終了による DETACH）の場合はリソースは OS が回収するため、<code>FreeLibrary</code> を省略することもあります。本実装では明示的に解放しています。</p>
+</blockquote>
+<h1 data-number="4" id="ハンドルを保持したままプロセスを終了した場合の影響"><span class="header-section-number">4</span> ハンドルを保持したままプロセスを終了した場合の影響</h1>
+<p>キャッシュパターン採用時など、<code>dlclose</code> / <code>FreeLibrary</code> を呼ばずにプロセスを終了した場合の動作です。</p>
+<p><strong>結論: OS リソースの観点では問題ありません。ただしライブラリが外部リソースを管理している場合は注意が必要です。</strong></p>
+<h2 data-number="4.1" id="終了方法別の動作"><span class="header-section-number">4.1</span> 終了方法別の動作</h2>
+<h3 data-number="4.1.1" id="linux-dlopen"><span class="header-section-number">4.1.1</span> Linux (dlopen)</h3>
+<p>プロセスが <code>exit()</code> で終了すると、glibc の終了処理が以下を順に実行します。</p>
+<ul>
+<li><code>__cxa_atexit()</code> で登録されたコールバック (C++ 静的デストラクタを含む) を呼び出します</li>
+<li>dlopen されたライブラリが <code>__cxa_atexit()</code> 経由でコールバックを登録していれば、dlclose なしでも呼び出されます</li>
+<li>その後 OS がプロセスの全メモリマッピング・ファイルディスクリプタを回収します</li>
+</ul>
+<p><code>_exit()</code> や <code>abort()</code> による強制終了では glibc の終了処理をスキップするため、登録済みコールバックは呼ばれません。</p>
+<h3 data-number="4.1.2" id="windows-loadlibrary"><span class="header-section-number">4.1.2</span> Windows (LoadLibrary)</h3>
+<p>プロセスが正常終了 (<code>ExitProcess()</code> または <code>main</code> の return) すると、Windows ローダーが全ロード済み DLL の <code>DllMain</code> を <code>DLL_PROCESS_DETACH</code> で呼び出します。<code>FreeLibrary</code> していない DLL も対象になります。</p>
+<p><code>TerminateProcess()</code> による強制終了では <code>DllMain</code> は呼ばれません。</p>
+<h2 data-number="4.2" id="終了方法まとめ"><span class="header-section-number">4.2</span> 終了方法まとめ</h2>
+<table>
+<thead>
+<tr>
+<th>終了方法</th>
+<th>Linux デストラクタ</th>
+<th>Windows DllMain(DETACH)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正常終了 (<code>return</code> / <code>exit()</code>)</td>
+<td>呼ばれる</td>
+<td>呼ばれる</td>
+</tr>
+<tr>
+<td><code>_exit()</code> / <code>abort()</code></td>
+<td>呼ばれない</td>
+<td>呼ばれない</td>
+</tr>
+<tr>
+<td><code>TerminateProcess()</code></td>
+<td>—</td>
+<td>呼ばれない</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.3" id="注意が必要な外部リソース"><span class="header-section-number">4.3</span> 注意が必要な外部リソース</h2>
+<p>OS が回収できない外部リソースをライブラリの終了処理が管理している場合に影響が出ます。</p>
+<table>
+<colgroup>
+<col style="width: 80%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>外部リソースの例</th>
+<th>影響</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ファイル・ソケット</td>
+<td>OS がクローズするため問題ありません</td>
+</tr>
+<tr>
+<td>プロセス間共有メモリ (<code>shm_open</code> / <code>CreateFileMapping</code>)</td>
+<td>他プロセスが参照中なら残存する可能性があります</td>
+</tr>
+<tr>
+<td>名前付きミューテックス・セマフォ</td>
+<td>解放されずロックしたまま残存する可能性があります</td>
+</tr>
+<tr>
+<td>一時ファイル・ロックファイル</td>
+<td>削除されずに残る可能性があります</td>
+</tr>
+<tr>
+<td>外部サービスへの接続 (DB など)</td>
+<td>コネクションが即時切断されず、サーバ側で残留する可能性があります</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.4" id="このサンプルへの適用"><span class="header-section-number">4.4</span> このサンプルへの適用</h2>
+<p><code>liboverride</code> は乗算のみを行い外部リソースを一切管理していないため、ハンドルを保持したままプロセスを終了しても Linux・Windows ともに問題ありません。アンロード時処理はリソース管理の明示的な例として実装しています。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

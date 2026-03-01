@@ -1,0 +1,440 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>include/platform.h</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">include/platform.h</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sun, 01 Mar 2026 22:09:36 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#includeplatform.h" id="toc-includeplatform.h"><span class="toc-section-number">1.1</span> include/platform.h</a>
+                <ul>
+                <li><a href="#作者" id="toc-作者"><span class="toc-section-number">1.1.1</span> 作者</a></li>
+                <li><a href="#日付" id="toc-日付"><span class="toc-section-number">1.1.2</span> 日付</a></li>
+                <li><a href="#インクルード元" id="toc-インクルード元"><span class="toc-section-number">1.1.3</span> インクルード元</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#定数マクロ" id="toc-定数マクロ"><span class="toc-section-number">2</span> 定数、マクロ</a>
+                <ul>
+                <li><a href="#platform_windows" id="toc-platform_windows"><span class="toc-section-number">2.1</span> PLATFORM_WINDOWS</a></li>
+                <li><a href="#platform_linux" id="toc-platform_linux"><span class="toc-section-number">2.2</span> PLATFORM_LINUX</a></li>
+                <li><a href="#platform_macos" id="toc-platform_macos"><span class="toc-section-number">2.3</span> PLATFORM_MACOS</a></li>
+                <li><a href="#platform_apple_other" id="toc-platform_apple_other"><span class="toc-section-number">2.4</span> PLATFORM_APPLE_OTHER</a></li>
+                <li><a href="#platform_unknown" id="toc-platform_unknown"><span class="toc-section-number">2.5</span> PLATFORM_UNKNOWN</a></li>
+                <li><a href="#platform_name" id="toc-platform_name"><span class="toc-section-number">2.6</span> PLATFORM_NAME</a></li>
+                <li><a href="#arch_x64" id="toc-arch_x64"><span class="toc-section-number">2.7</span> ARCH_X64</a></li>
+                <li><a href="#arch_x86" id="toc-arch_x86"><span class="toc-section-number">2.8</span> ARCH_X86</a></li>
+                <li><a href="#arch_arm64" id="toc-arch_arm64"><span class="toc-section-number">2.9</span> ARCH_ARM64</a></li>
+                <li><a href="#arch_arm" id="toc-arch_arm"><span class="toc-section-number">2.10</span> ARCH_ARM</a></li>
+                <li><a href="#arch_unknown" id="toc-arch_unknown"><span class="toc-section-number">2.11</span> ARCH_UNKNOWN</a></li>
+                <li><a href="#arch_name" id="toc-arch_name"><span class="toc-section-number">2.12</span> ARCH_NAME</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>include/platform.h</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="includeplatform.h"><span class="header-section-number">1.1</span> include/platform.h</h2>
+<p>プラットフォームおよびアーキテクチャ検出マクロのヘッダーファイル。</p>
+<p>ビルド対象の OS とプロセッサアーキテクチャを検出し、統一的なマクロを定義します。</p>
+<h4 data-number="1.1.0.1" id="プラットフォーム検出マクロ"><span class="header-section-number">1.1.0.1</span> プラットフォーム検出マクロ</h4>
+<p>検出されたプラットフォームに応じて、以下のマクロを定義します。</p>
+<table>
+<thead>
+<tr>
+<th>プラットフォーム</th>
+<th>識別マクロ</th>
+<th>PLATFORM_NAME</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td>PLATFORM_WINDOWS</td>
+<td>“Windows”</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>PLATFORM_LINUX</td>
+<td>“Linux”</td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>PLATFORM_MACOS</td>
+<td>“macOS”</td>
+</tr>
+<tr>
+<td>Apple (非 macOS)</td>
+<td>PLATFORM_APPLE_OTHER</td>
+<td>“Apple (non-macOS)”</td>
+</tr>
+<tr>
+<td>その他</td>
+<td>PLATFORM_UNKNOWN</td>
+<td>“Unknown”</td>
+</tr>
+</tbody>
+</table>
+<p>Apple プラットフォームでは TargetConditionals.h を使用して macOS と iOS 等を区別しています。</p>
+<h4 data-number="1.1.0.2" id="アーキテクチャ検出マクロ"><span class="header-section-number">1.1.0.2</span> アーキテクチャ検出マクロ</h4>
+<p>検出されたアーキテクチャに応じて、以下のマクロを定義します。</p>
+<table>
+<thead>
+<tr>
+<th>アーキテクチャ</th>
+<th>識別マクロ</th>
+<th>ARCH_NAME</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x86_64</td>
+<td>ARCH_X64</td>
+<td>“x64”</td>
+</tr>
+<tr>
+<td>x86 (32bit)</td>
+<td>ARCH_X86</td>
+<td>“x86”</td>
+</tr>
+<tr>
+<td>AArch64</td>
+<td>ARCH_ARM64</td>
+<td>“ARM64”</td>
+</tr>
+<tr>
+<td>ARM (32bit)</td>
+<td>ARCH_ARM</td>
+<td>“ARM”</td>
+</tr>
+<tr>
+<td>その他</td>
+<td>ARCH_UNKNOWN</td>
+<td>“Unknown”</td>
+</tr>
+</tbody>
+</table>
+<p>Copyright (C) CompanyName, Ltd. 2025. All rights reserved.</p>
+<h3 data-number="1.1.1" id="作者"><span class="header-section-number">1.1.1</span> 作者</h3>
+<p>c-modernization-kit sample team</p>
+<h3 data-number="1.1.2" id="日付"><span class="header-section-number">1.1.2</span> 日付</h3>
+<p>2025/11/22</p>
+<h3 data-number="1.1.3" id="インクルード元"><span class="header-section-number">1.1.3</span> インクルード元</h3>
+<figure>
+<img src="puml_056a3cfcffbc81beee5ca863c33a4db40e59b310.svg" alt="platform.h のインクルード元" />
+<figcaption aria-hidden="true">platform.h のインクルード元</figcaption>
+</figure>
+<h1 data-number="2" id="定数マクロ"><span class="header-section-number">2</span> 定数、マクロ</h1>
+<h2 data-number="2.1" id="platform_windows"><span class="header-section-number">2.1</span> PLATFORM_WINDOWS</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PLATFORM_WINDOWS</span></span></code></pre></div>
+<p>Windows の場合に定義されます。</p>
+<h2 data-number="2.2" id="platform_linux"><span class="header-section-number">2.2</span> PLATFORM_LINUX</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PLATFORM_LINUX</span></span></code></pre></div>
+<p>Linux の場合に定義されます。</p>
+<h2 data-number="2.3" id="platform_macos"><span class="header-section-number">2.3</span> PLATFORM_MACOS</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PLATFORM_MACOS</span></span></code></pre></div>
+<p>macOS の場合に定義されます。</p>
+<h2 data-number="2.4" id="platform_apple_other"><span class="header-section-number">2.4</span> PLATFORM_APPLE_OTHER</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PLATFORM_APPLE_OTHER</span></span></code></pre></div>
+<p>macOS 以外の Apple プラットフォームの場合に定義されます。</p>
+<h2 data-number="2.5" id="platform_unknown"><span class="header-section-number">2.5</span> PLATFORM_UNKNOWN</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PLATFORM_UNKNOWN</span></span></code></pre></div>
+<p>未知のプラットフォームの場合に定義されます。</p>
+<h2 data-number="2.6" id="platform_name"><span class="header-section-number">2.6</span> PLATFORM_NAME</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PLATFORM_NAME         </span><span class="st">&quot;name&quot;</span></span></code></pre></div>
+<p>プラットフォーム名の文字列 (“Windows”, “Linux”, “macOS”, “Apple (non-macOS)”, “Unknown”)。</p>
+<h2 data-number="2.7" id="arch_x64"><span class="header-section-number">2.7</span> ARCH_X64</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define ARCH_X64</span></span></code></pre></div>
+<p>x86_64 アーキテクチャの場合に定義されます。</p>
+<h2 data-number="2.8" id="arch_x86"><span class="header-section-number">2.8</span> ARCH_X86</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define ARCH_X86</span></span></code></pre></div>
+<p>x86 (32bit) アーキテクチャの場合に定義されます。</p>
+<h2 data-number="2.9" id="arch_arm64"><span class="header-section-number">2.9</span> ARCH_ARM64</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define ARCH_ARM64</span></span></code></pre></div>
+<p>AArch64 アーキテクチャの場合に定義されます。</p>
+<h2 data-number="2.10" id="arch_arm"><span class="header-section-number">2.10</span> ARCH_ARM</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define ARCH_ARM</span></span></code></pre></div>
+<p>ARM (32bit) アーキテクチャの場合に定義されます。</p>
+<h2 data-number="2.11" id="arch_unknown"><span class="header-section-number">2.11</span> ARCH_UNKNOWN</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define ARCH_UNKNOWN</span></span></code></pre></div>
+<p>未知のアーキテクチャの場合に定義されます。</p>
+<h2 data-number="2.12" id="arch_name"><span class="header-section-number">2.12</span> ARCH_NAME</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define ARCH_NAME </span><span class="st">&quot;name&quot;</span></span></code></pre></div>
+<p>アーキテクチャ名の文字列 (“x64”, “x86”, “ARM64”, “ARM”, “Unknown”)。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

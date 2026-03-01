@@ -1,0 +1,539 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>c-modernization-kit サンプル (override-sample)</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">c-modernization-kit サンプル (override-sample)</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Sun, 01 Mar 2026 22:09:40 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#ファイル構成" id="toc-ファイル構成"><span class="toc-section-number">2</span> ファイル構成</a></li>
+                <li><a href="#ライブラリ" id="toc-ライブラリ"><span class="toc-section-number">3</span> ライブラリ</a>
+                <ul>
+                <li><a href="#libbase-動的ライブラリ" id="toc-libbase-動的ライブラリ"><span class="toc-section-number">3.1</span> libbase (動的ライブラリ)</a>
+                <ul>
+                <li><a href="#sample_func" id="toc-sample_func"><span class="toc-section-number">3.1.1</span> sample_func</a></li>
+                <li><a href="#console_output" id="toc-console_output"><span class="toc-section-number">3.1.2</span> console_output</a></li>
+                <li><a href="#get_lib_path-get_lib_basename" id="toc-get_lib_path-get_lib_basename"><span class="toc-section-number">3.1.3</span> get_lib_path / get_lib_basename</a></li>
+                </ul></li>
+                <li><a href="#liboverride-動的ライブラリ" id="toc-liboverride-動的ライブラリ"><span class="toc-section-number">3.2</span> liboverride (動的ライブラリ)</a>
+                <ul>
+                <li><a href="#override_func" id="toc-override_func"><span class="toc-section-number">3.2.1</span> override_func</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#動作の仕組み" id="toc-動作の仕組み"><span class="toc-section-number">4</span> 動作の仕組み</a>
+                <ul>
+                <li><a href="#設定ファイル" id="toc-設定ファイル"><span class="toc-section-number">4.1</span> 設定ファイル</a></li>
+                <li><a href="#呼び出しフロー" id="toc-呼び出しフロー"><span class="toc-section-number">4.2</span> 呼び出しフロー</a></li>
+                </ul></li>
+                <li><a href="#ビルド" id="toc-ビルド"><span class="toc-section-number">5</span> ビルド</a></li>
+                <li><a href="#実行" id="toc-実行"><span class="toc-section-number">6</span> 実行</a>
+                <ul>
+                <li><a href="#linux" id="toc-linux"><span class="toc-section-number">6.1</span> Linux</a>
+                <ul>
+                <li><a href="#デフォルト動作-設定ファイルなし" id="toc-デフォルト動作-設定ファイルなし"><span class="toc-section-number">6.1.1</span> デフォルト動作 (設定ファイルなし)</a></li>
+                <li><a href="#オーバーライド動作-設定ファイルあり" id="toc-オーバーライド動作-設定ファイルあり"><span class="toc-section-number">6.1.2</span> オーバーライド動作 (設定ファイルあり)</a></li>
+                </ul></li>
+                <li><a href="#windows" id="toc-windows"><span class="toc-section-number">6.2</span> Windows</a>
+                <ul>
+                <li><a href="#デフォルト動作-設定ファイルなし-1" id="toc-デフォルト動作-設定ファイルなし-1"><span class="toc-section-number">6.2.1</span> デフォルト動作 (設定ファイルなし)</a></li>
+                <li><a href="#オーバーライド動作-設定ファイルあり-1" id="toc-オーバーライド動作-設定ファイルあり-1"><span class="toc-section-number">6.2.2</span> オーバーライド動作 (設定ファイルあり)</a></li>
+                </ul></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>c-modernization-kit サンプル (override-sample)</H1>
+      
+      
+      <p>これは、動的ライブラリのオーバーライド機能を示すサンプルです。</p>
+<h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p><code>libbase</code> が公開する <code>sample_func</code> 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>設定ファイルの状態</th>
+<th>動作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>存在しない (または定義なし)</td>
+<td><code>libbase</code> 自身が処理を行う (<code>a + b</code>)</td>
+</tr>
+<tr>
+<td><code>sample_func liboverride override_func</code> を定義</td>
+<td><code>dlopen</code> / <code>LoadLibrary</code> で <code>liboverride</code> を実行時にロードし、<code>override_func</code> に処理を委譲する (<code>a * b</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>オーバーライドの切り替えは <code>libbase</code> がロードされるタイミング (constructor / <code>DllMain</code>) で行われます。メインプログラムを変更せずに、設定ファイルを置くだけでライブラリの実装を差し替えられることを示します。</p>
+<h1 data-number="2" id="ファイル構成"><span class="header-section-number">2</span> ファイル構成</h1>
+<pre class="text"><code>prod/override-sample/
++-- include/
+|   +-- libbase.h              # libbase ヘッダー (sample_func, console_output 等の宣言、funcman 型定義)
+|   +-- libbase_ext.h          # liboverride ヘッダー (override_func の宣言)
+|   +-- dllmain.h              # 汎用 DLL ロード・アンロードフックヘッダー
++-- libsrc/
+|   +-- base/
+|   |   +-- funcman/           # 関数ポインタキャッシュ管理 (funcman)
+|   |   |   +-- funcman_init.c          # 設定ファイルからの初期化
+|   |   |   +-- funcman_get_func.c      # 関数ポインタ取得 (スレッドセーフ)
+|   |   |   +-- funcman_is_declared_default.c  # 明示的デフォルト判定
+|   |   |   +-- funcman_dispose.c       # クリーンアップ処理
+|   |   |   +-- funcman_info.c          # 情報表示
+|   |   +-- funcman_libbase.h  # funcman オブジェクトの extern 宣言
+|   |   +-- funcman_libbase.c  # funcman オブジェクトの実体定義
+|   |   +-- sample_func.c      # sample_func の実装 (funcman 経由でオーバーライドを呼び出す)
+|   |   +-- console_output.c   # console_output の実装 (printf ラッパー)
+|   |   +-- dllmain_libbase.c  # onLoad / onUnload の実装
+|   |   +-- get_lib_info.c     # ライブラリパス取得ユーティリティ
+|   +-- override/
+|       +-- override_func.c    # override_func の実装 (libbase から dlopen で呼ばれる)
++-- src/
+|   +-- override-sample/
+|       +-- override-sample.c  # メインプログラム
++-- sample-config/
+|   +-- libbase_extdef.txt     # 設定ファイルのサンプル
++-- lib/                       # ビルド済みライブラリ (libbase.so / liboverride.so / libbase.dll / liboverride.dll)
++-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)</code></pre>
+<h1 data-number="3" id="ライブラリ"><span class="header-section-number">3</span> ライブラリ</h1>
+<h2 data-number="3.1" id="libbase-動的ライブラリ"><span class="header-section-number">3.1</span> libbase (動的ライブラリ)</h2>
+<p><code>libbase.so</code> / <code>libbase.dll</code> を提供します。</p>
+<h3 data-number="3.1.1" id="sample_func"><span class="header-section-number">3.1.1</span> sample_func</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> WINAPI sample_func<span class="op">(</span><span class="dt">const</span> <span class="dt">int</span> a<span class="op">,</span> <span class="dt">const</span> <span class="dt">int</span> b<span class="op">,</span> <span class="dt">int</span> <span class="op">*</span>result<span class="op">);</span></span></code></pre></div>
+<ul>
+<li>設定ファイルで <code>override_func</code> が定義されているとき: <code>liboverride.so</code> / <code>liboverride.dll</code> を動的にロードし、<code>override_func</code> に処理を委譲する</li>
+<li>それ以外のとき: <code>*result = a + b</code> を計算して返す</li>
+</ul>
+<h3 data-number="3.1.2" id="console_output"><span class="header-section-number">3.1.2</span> console_output</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> WINAPI console_output<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>format<span class="op">,</span> <span class="op">...);</span></span></code></pre></div>
+<p><code>printf</code> と同じ書式でコンソールに出力する関数です。<br />
+<code>liboverride</code> からも呼び出しています。これは、動的にロードされた拡張処理から基底ライブラリの関数を呼び出すことができることのサンプル実装です。</p>
+<h3 data-number="3.1.3" id="get_lib_path-get_lib_basename"><span class="header-section-number">3.1.3</span> get_lib_path / get_lib_basename</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> WINAPI get_lib_path<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>out_path<span class="op">,</span> <span class="dt">const</span> <span class="dt">size_t</span> out_path_sz<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>func_addr<span class="op">);</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> WINAPI get_lib_basename<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>out_basename<span class="op">,</span> <span class="dt">const</span> <span class="dt">size_t</span> out_basename_sz<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>func_addr<span class="op">);</span></span></code></pre></div>
+<p>指定した関数が所属する共有ライブラリの絶対パスまたは basename (パスなし・拡張子なし) を取得します。設定ファイルパスの構築に内部で使用しています。</p>
+<h2 data-number="3.2" id="liboverride-動的ライブラリ"><span class="header-section-number">3.2</span> liboverride (動的ライブラリ)</h2>
+<p><code>liboverride.so</code> / <code>liboverride.dll</code> を提供します。<code>libbase</code> の <code>sample_func</code> から設定に応じて実行時にロードされます。</p>
+<h3 data-number="3.2.1" id="override_func"><span class="header-section-number">3.2.1</span> override_func</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> WINAPI override_func<span class="op">(</span><span class="dt">const</span> <span class="dt">int</span> a<span class="op">,</span> <span class="dt">const</span> <span class="dt">int</span> b<span class="op">,</span> <span class="dt">int</span> <span class="op">*</span>result<span class="op">);</span></span></code></pre></div>
+<p><code>sample_func</code> と同じシグネチャを持ちます。<code>*result = a * b</code> を計算して返します。</p>
+<h1 data-number="4" id="動作の仕組み"><span class="header-section-number">4</span> 動作の仕組み</h1>
+<h2 data-number="4.1" id="設定ファイル"><span class="header-section-number">4.1</span> 設定ファイル</h2>
+<p><code>libbase</code> はロード時 (constructor / <code>DllMain(DLL_PROCESS_ATTACH)</code>) に設定ファイルを読み込みます。</p>
+<table>
+<thead>
+<tr>
+<th>プラットフォーム</th>
+<th>設定ファイルパス</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td><code>/tmp/libbase_extdef.txt</code></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><code>%TEMP%\libbase_extdef.txt</code></td>
+</tr>
+</tbody>
+</table>
+<p>ファイルが存在しない場合はデフォルト動作になります。ファイルのフォーマットは以下のとおりです。</p>
+<pre class="text"><code>func_key  lib_name  func_name</code></pre>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>lib_name / func_name の値</th>
+<th>動作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ともに <code>default</code></td>
+<td>明示的デフォルト。設定ファイルなしと同様にデフォルト処理を行う</td>
+</tr>
+<tr>
+<td>ライブラリ名 / 関数名</td>
+<td>指定したライブラリを動的ロードし、関数に処理を委譲する</td>
+</tr>
+</tbody>
+</table>
+<p><code>sample-config/libbase_extdef.txt</code> に設定ファイルのサンプルがあります。初期状態では <code>default default</code> (明示的デフォルト) が設定されており、オーバーライドする行はコメントアウトされています。</p>
+<p><code>sample_func</code> をオーバーライドする場合は以下の行を記述します。</p>
+<pre class="text"><code>sample_func  liboverride  override_func</code></pre>
+<h2 data-number="4.2" id="呼び出しフロー"><span class="header-section-number">4.2</span> 呼び出しフロー</h2>
+<pre class="text"><code>override-sample (実行ファイル)
+    |
+    | sample_func(1, 2, &amp;result)
+    +---&gt; libbase.so / libbase.dll
+              |
+              funcman が解決済み関数ポインタを確認
+              |
+              [設定ファイルなし / 定義なし → デフォルト動作]
+              |  *result = 1 + 2 = 3
+              |
+              [設定ファイルで liboverride / override_func を定義 → オーバーライド動作]
+              |  funcman が liboverride.so / liboverride.dll を dlopen / LoadLibrary
+              |  override_func に処理を委譲
+              +---&gt; liboverride.so / liboverride.dll (実行時ロード)
+                        *result = 1 * 2 = 2</code></pre>
+<h1 data-number="5" id="ビルド"><span class="header-section-number">5</span> ビルド</h1>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod/override-sample</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div>
+<p>ビルド成功後、以下のファイルが生成されます。</p>
+<table>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lib/libbase.so</code></td>
+<td>ベースライブラリ (Linux)</td>
+</tr>
+<tr>
+<td><code>lib/liboverride.so</code></td>
+<td>オーバーライドライブラリ (Linux)</td>
+</tr>
+<tr>
+<td><code>bin/override-sample</code></td>
+<td>メインプログラム (Linux)</td>
+</tr>
+<tr>
+<td><code>lib/libbase.dll</code></td>
+<td>ベースライブラリ (Windows)</td>
+</tr>
+<tr>
+<td><code>lib/liboverride.dll</code></td>
+<td>オーバーライドライブラリ (Windows)</td>
+</tr>
+<tr>
+<td><code>bin/override-sample.exe</code></td>
+<td>メインプログラム (Windows)</td>
+</tr>
+</tbody>
+</table>
+<p>クリーンビルドを行う場合は以下のとおりです。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean <span class="kw">&amp;&amp;</span> <span class="fu">make</span></span></code></pre></div>
+<h1 data-number="6" id="実行"><span class="header-section-number">6</span> 実行</h1>
+<h2 data-number="6.1" id="linux"><span class="header-section-number">6.1</span> Linux</h2>
+<h3 data-number="6.1.1" id="デフォルト動作-設定ファイルなし"><span class="header-section-number">6.1.1</span> デフォルト動作 (設定ファイルなし)</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod/override-sample/bin</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="va">LD_LIBRARY_PATH</span><span class="op">=</span>../lib <span class="ex">./override-sample</span></span></code></pre></div>
+<p>出力例:</p>
+<pre class="text"><code>sample_func: a=1, b=2 の処理 (*result = a + b;) を行います
+result: 3</code></pre>
+<h3 data-number="6.1.2" id="オーバーライド動作-設定ファイルあり"><span class="header-section-number">6.1.2</span> オーバーライド動作 (設定ファイルあり)</h3>
+<p><code>sample-config/libbase_extdef.txt</code> を <code>/tmp</code> にコピーし、オーバーライド行のコメントを外して配置します。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> prod/override-sample/sample-config/libbase_extdef.txt /tmp/libbase_extdef.txt</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod/override-sample/bin</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="va">LD_LIBRARY_PATH</span><span class="op">=</span>../lib <span class="ex">./override-sample</span></span></code></pre></div>
+<p>または直接書き込む場合は以下のとおりです。</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;sample_func liboverride override_func&quot;</span> <span class="op">&gt;</span> /tmp/libbase_extdef.txt</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod/override-sample/bin</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="va">LD_LIBRARY_PATH</span><span class="op">=</span>../lib <span class="ex">./override-sample</span></span></code></pre></div>
+<p>出力例:</p>
+<pre class="text"><code>sample_func: 拡張処理が見つかりました。拡張処理に移譲します
+override_func: a=1, b=2 の処理 (*result = a * b;) を行います
+result: 2</code></pre>
+<h2 data-number="6.2" id="windows"><span class="header-section-number">6.2</span> Windows</h2>
+<h3 data-number="6.2.1" id="デフォルト動作-設定ファイルなし-1"><span class="header-section-number">6.2.1</span> デフォルト動作 (設定ファイルなし)</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod\override-sample\bin</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="va">PATH</span>=<span class="pp">%</span><span class="va">PATH</span><span class="pp">%</span>;..\lib</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>override-sample.exe</span></code></pre></div>
+<h3 data-number="6.2.2" id="オーバーライド動作-設定ファイルあり-1"><span class="header-section-number">6.2.2</span> オーバーライド動作 (設定ファイルあり)</h3>
+<p><code>sample-config\libbase_extdef.txt</code> を <code>%TEMP%</code> にコピーし、オーバーライド行のコメントを外して配置します。</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="bu">copy</span> prod\override-sample\sample-config\libbase_extdef.txt <span class="pp">%</span><span class="va">TEMP</span><span class="pp">%</span>\libbase_extdef.txt</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">rem エディタで %TEMP%\libbase_extdef.txt を編集し、以下の行のコメントを外す</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">rem sample_func  liboverride  override_func</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod\override-sample\bin</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="va">PATH</span>=<span class="pp">%</span><span class="va">PATH</span><span class="pp">%</span>;..\lib</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>override-sample.exe</span></code></pre></div>
+<p>または直接書き込む場合は以下のとおりです。</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> sample_func liboverride override_func <span class="kw">&gt;</span> <span class="pp">%</span><span class="va">TEMP</span><span class="pp">%</span>\libbase_extdef.txt</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> prod\override-sample\bin</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="va">PATH</span>=<span class="pp">%</span><span class="va">PATH</span><span class="pp">%</span>;..\lib</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>override-sample.exe</span></code></pre></div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

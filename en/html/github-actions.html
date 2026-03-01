@@ -1,0 +1,752 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Claude, Tetsuo Honda" />
+  <title>GitHub Actions CI/CD 仕様</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">GitHub Actions CI/CD 仕様</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Claude, Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Wed, 11 Feb 2026 03:21:41 +0000 ca31057</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#ワークフロー構成" id="toc-ワークフロー構成"><span class="toc-section-number">2</span> ワークフロー構成</a>
+                <ul>
+                <li><a href="#ワークフローファイル" id="toc-ワークフローファイル"><span class="toc-section-number">2.1</span> ワークフローファイル</a></li>
+                <li><a href="#トリガー条件" id="toc-トリガー条件"><span class="toc-section-number">2.2</span> トリガー条件</a></li>
+                </ul></li>
+                <li><a href="#実行環境" id="toc-実行環境"><span class="toc-section-number">3</span> 実行環境</a>
+                <ul>
+                <li><a href="#linux-環境" id="toc-linux-環境"><span class="toc-section-number">3.1</span> Linux 環境</a>
+                <ul>
+                <li><a href="#linux-環境変数" id="toc-linux-環境変数"><span class="toc-section-number">3.1.1</span> Linux 環境変数</a></li>
+                </ul></li>
+                <li><a href="#windows-環境" id="toc-windows-環境"><span class="toc-section-number">3.2</span> Windows 環境</a></li>
+                </ul></li>
+                <li><a href="#ジョブ実行フロー" id="toc-ジョブ実行フロー"><span class="toc-section-number">4</span> ジョブ実行フロー</a></li>
+                <li><a href="#実行ステップ" id="toc-実行ステップ"><span class="toc-section-number">5</span> 実行ステップ</a>
+                <ul>
+                <li><a href="#build-and-test-linux-ジョブ" id="toc-build-and-test-linux-ジョブ"><span class="toc-section-number">5.1</span> build-and-test-linux ジョブ</a></li>
+                <li><a href="#build-and-test-windows-ジョブ" id="toc-build-and-test-windows-ジョブ"><span class="toc-section-number">5.2</span> build-and-test-windows ジョブ</a></li>
+                <li><a href="#publish-docs-ジョブ" id="toc-publish-docs-ジョブ"><span class="toc-section-number">5.3</span> publish-docs ジョブ</a></li>
+                <li><a href="#deploy-pages-ジョブ" id="toc-deploy-pages-ジョブ"><span class="toc-section-number">5.4</span> deploy-pages ジョブ</a></li>
+                </ul></li>
+                <li><a href="#github-pages-デプロイ" id="toc-github-pages-デプロイ"><span class="toc-section-number">6</span> GitHub Pages デプロイ</a>
+                <ul>
+                <li><a href="#使用アクション" id="toc-使用アクション"><span class="toc-section-number">6.1</span> 使用アクション</a></li>
+                <li><a href="#設定詳細" id="toc-設定詳細"><span class="toc-section-number">6.2</span> 設定詳細</a></li>
+                <li><a href="#デプロイ条件" id="toc-デプロイ条件"><span class="toc-section-number">6.3</span> デプロイ条件</a></li>
+                <li><a href="#pages-に配置される内容" id="toc-pages-に配置される内容"><span class="toc-section-number">6.4</span> Pages に配置される内容</a></li>
+                <li><a href="#github-リポジトリ設定" id="toc-github-リポジトリ設定"><span class="toc-section-number">6.5</span> GitHub リポジトリ設定</a></li>
+                </ul></li>
+                <li><a href="#アーティファクト" id="toc-アーティファクト"><span class="toc-section-number">7</span> アーティファクト</a>
+                <ul>
+                <li><a href="#ジョブ間アーティファクト中継用" id="toc-ジョブ間アーティファクト中継用"><span class="toc-section-number">7.1</span> ジョブ間アーティファクト（中継用）</a>
+                <ul>
+                <li><a href="#linux-テスト結果" id="toc-linux-テスト結果"><span class="toc-section-number">7.1.1</span> Linux テスト結果</a></li>
+                <li><a href="#windows-テスト結果" id="toc-windows-テスト結果"><span class="toc-section-number">7.1.2</span> Windows テスト結果</a></li>
+                <li><a href="#ドキュメント" id="toc-ドキュメント"><span class="toc-section-number">7.1.3</span> ドキュメント</a></li>
+                </ul></li>
+                <li><a href="#履歴管理用アーティファクトコミット固有" id="toc-履歴管理用アーティファクトコミット固有"><span class="toc-section-number">7.2</span> 履歴管理用アーティファクト（コミット固有）</a>
+                <ul>
+                <li><a href="#html-ドキュメント" id="toc-html-ドキュメント"><span class="toc-section-number">7.2.1</span> HTML ドキュメント</a></li>
+                <li><a href="#docx-ドキュメント" id="toc-docx-ドキュメント"><span class="toc-section-number">7.2.2</span> docx ドキュメント</a></li>
+                </ul></li>
+                <li><a href="#アーティファクトの確認方法" id="toc-アーティファクトの確認方法"><span class="toc-section-number">7.3</span> アーティファクトの確認方法</a></li>
+                </ul></li>
+                <li><a href="#認証" id="toc-認証"><span class="toc-section-number">8</span> 認証</a></li>
+                <li><a href="#ローカルでの動作確認" id="toc-ローカルでの動作確認"><span class="toc-section-number">9</span> ローカルでの動作確認</a>
+                <ul>
+                <li><a href="#linux-環境-1" id="toc-linux-環境-1"><span class="toc-section-number">9.1</span> Linux 環境</a></li>
+                <li><a href="#windows-環境-1" id="toc-windows-環境-1"><span class="toc-section-number">9.2</span> Windows 環境</a></li>
+                </ul></li>
+                <li><a href="#関連ドキュメント" id="toc-関連ドキュメント"><span class="toc-section-number">10</span> 関連ドキュメント</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>GitHub Actions CI/CD 仕様</H1>
+      
+      
+      <p>本プロジェクトでは GitHub Actions を使用した継続的インテグレーション (CI) とドキュメント生成を実装しています。</p>
+<h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>main ブランチへの変更時に、Linux/Windows 両環境での自動ビルド・テスト、およびドキュメント生成を実行し、コード品質を維持します。</p>
+<h1 data-number="2" id="ワークフロー構成"><span class="header-section-number">2</span> ワークフロー構成</h1>
+<h2 data-number="2.1" id="ワークフローファイル"><span class="header-section-number">2.1</span> ワークフローファイル</h2>
+<p>本プロジェクトでは統合ワークフローを使用しています：</p>
+<ul>
+<li><code>.github/workflows/ci.yml</code> - ビルド、テスト、ドキュメント生成、Pages デプロイの統合ワークフロー</li>
+</ul>
+<p>このワークフローには以下の 4 つのジョブが含まれています：</p>
+<ol type="1">
+<li><code>build-and-test-linux</code> - Linux 環境でのビルドとテスト (Oracle Linux 8 / Oracle Linux 10 のマトリクス実行)</li>
+<li><code>build-and-test-windows</code> - Windows 環境でのビルドとテスト</li>
+<li><code>publish-docs</code> - ドキュメント生成</li>
+<li><code>deploy-pages</code> - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ</li>
+</ol>
+<p>Linux ビルド (OL8/OL10)、Windows ビルド、ドキュメント生成のジョブが並列実行されます。すべて完了後に <code>deploy-pages</code> ジョブがテスト結果とドキュメントを統合して GitHub Pages にデプロイします。</p>
+<h2 data-number="2.2" id="トリガー条件"><span class="header-section-number">2.2</span> トリガー条件</h2>
+<p>すべてのワークフローは以下のイベントで実行されます：</p>
+<table>
+<thead>
+<tr>
+<th>イベント</th>
+<th>対象ブランチ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>push</td>
+<td>main</td>
+</tr>
+<tr>
+<td>pull_request</td>
+<td>main</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="実行環境"><span class="header-section-number">3</span> 実行環境</h1>
+<h2 data-number="3.1" id="linux-環境"><span class="header-section-number">3.1</span> Linux 環境</h2>
+<p>Linux 環境では Oracle Linux 開発コンテナをマトリクス戦略で使用し、複数バージョンでのビルドとテストを実行しています。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">strategy</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">matrix</span><span class="kw">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">include</span><span class="kw">:</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">os-name</span><span class="kw">:</span><span class="at"> ol8</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">image</span><span class="kw">:</span><span class="at"> ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">os-name</span><span class="kw">:</span><span class="at"> ol10</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">image</span><span class="kw">:</span><span class="at"> ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">container</span><span class="kw">:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">image</span><span class="kw">:</span><span class="at"> ${{ matrix.image }}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 54%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr>
+<th>OS 名</th>
+<th>コンテナイメージ</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ol8</td>
+<td><code>ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest</code></td>
+<td>Oracle Linux 8 開発コンテナ</td>
+</tr>
+<tr>
+<td>ol10</td>
+<td><code>ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest</code></td>
+<td>Oracle Linux 10 開発コンテナ</td>
+</tr>
+</tbody>
+</table>
+<p>これらのコンテナには以下の開発ツールが含まれています:</p>
+<ul>
+<li>C/C++ コンパイラ (GCC)</li>
+<li>GNU Make</li>
+<li>Google Test</li>
+<li>Doxygen, PlantUML, Pandoc</li>
+</ul>
+<h3 data-number="3.1.1" id="linux-環境変数"><span class="header-section-number">3.1.1</span> Linux 環境変数</h3>
+<table>
+<thead>
+<tr>
+<th>変数名</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HOST_USER</td>
+<td>user</td>
+<td>コンテナ内ユーザー名</td>
+</tr>
+<tr>
+<td>HOST_UID</td>
+<td>1001</td>
+<td>ユーザー ID</td>
+</tr>
+<tr>
+<td>HOST_GID</td>
+<td>127</td>
+<td>グループ ID</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.2" id="windows-環境"><span class="header-section-number">3.2</span> Windows 環境</h2>
+<p>Windows 環境では Windows Server 2025 ランナーを使用しています。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> windows-2025</span></span></code></pre></div>
+<p>Windows 環境では以下のツールを動的にセットアップしています:</p>
+<ul>
+<li><strong>OpenCppCoverage</strong> - C++ コードカバレッジツール (Chocolatey 経由でインストール)</li>
+<li><strong>ReportGenerator</strong> - カバレッジレポート生成ツール (.NET ツール)</li>
+<li><strong>MSVC 環境</strong> - カスタムスクリプト (<code>Add-VSBT-Env-x64.ps1</code>) で環境変数を設定</li>
+</ul>
+<h1 data-number="4" id="ジョブ実行フロー"><span class="header-section-number">4</span> ジョブ実行フロー</h1>
+<figure>
+<img src="puml_9549184aa98e691e8f1090e174dc25387c3de8c5.svg" alt="plantuml" />
+</figure>
+<h1 data-number="5" id="実行ステップ"><span class="header-section-number">5</span> 実行ステップ</h1>
+<h2 data-number="5.1" id="build-and-test-linux-ジョブ"><span class="header-section-number">5.1</span> build-and-test-linux ジョブ</h2>
+<ol type="1">
+<li><strong>リポジトリのチェックアウト</strong>
+<ul>
+<li>サブモジュールを含めて再帰的にチェックアウト</li>
+</ul></li>
+<li><strong>Git safe directory 設定</strong>
+<ul>
+<li>コンテナ内での Git 操作を許可</li>
+</ul></li>
+<li><strong>ビルド</strong>
+<ul>
+<li><code>make</code> を実行してプロジェクトをビルド</li>
+<li>ビルドログを <code>logs/linux-build.log</code> に保存</li>
+</ul></li>
+<li><strong>テストの実行</strong>
+<ul>
+<li><code>make test</code> を実行</li>
+<li>testfw および test ディレクトリ配下のテストを実行</li>
+<li>テストログを <code>logs/linux-test.log</code> に保存</li>
+</ul></li>
+<li><strong>テスト結果アーティファクトのアップロード</strong>
+<ul>
+<li>テスト結果 (<code>test/**/results/</code>) を保存</li>
+</ul></li>
+<li><strong>ビルド&amp;テストログアーティファクトのアップロード</strong>
+<ul>
+<li>ビルドログとテストログ (<code>logs/</code>) を保存</li>
+</ul></li>
+</ol>
+<h2 data-number="5.2" id="build-and-test-windows-ジョブ"><span class="header-section-number">5.2</span> build-and-test-windows ジョブ</h2>
+<ol type="1">
+<li><strong>リポジトリのチェックアウト</strong>
+<ul>
+<li>サブモジュールを含めて再帰的にチェックアウト</li>
+</ul></li>
+<li><strong>OpenCppCoverage のインストール</strong>
+<ul>
+<li>Chocolatey を使用してインストール</li>
+<li>PATH に追加</li>
+</ul></li>
+<li><strong>ReportGenerator のインストール</strong>
+<ul>
+<li>.NET Global Tool としてインストール</li>
+</ul></li>
+<li><strong>MSVC 環境のセットアップ</strong>
+<ul>
+<li>カスタムスクリプト (<code>Add-VSBT-Env-x64.ps1</code>) で環境変数を設定</li>
+</ul></li>
+<li><strong>ビルド</strong>
+<ul>
+<li><code>make</code> を実行してプロジェクトをビルド</li>
+<li>ビルドログを <code>logs/windows-build.log</code> に保存</li>
+</ul></li>
+<li><strong>テストの実行</strong>
+<ul>
+<li><code>make test</code> を実行</li>
+<li>テストログを <code>logs/windows-test.log</code> に保存</li>
+</ul></li>
+<li><strong>テスト結果アーティファクトのアップロード</strong>
+<ul>
+<li>テスト結果 (<code>test/**/results/</code>) を保存</li>
+</ul></li>
+<li><strong>ビルド&amp;テストログアーティファクトのアップロード</strong>
+<ul>
+<li>ビルドログとテストログ (<code>logs/</code>) を保存</li>
+</ul></li>
+</ol>
+<h2 data-number="5.3" id="publish-docs-ジョブ"><span class="header-section-number">5.3</span> publish-docs ジョブ</h2>
+<p>このジョブは、<code>build-and-test-linux</code> および <code>build-and-test-windows</code> と並列に実行されます。</p>
+<p><strong>実行条件</strong>:<br />
+- 他のビルド＆テストジョブと独立して並列実行されます<br />
+- CI 全体の実行時間を短縮し、効率的なリソース利用を実現します</p>
+<p><strong>処理フロー</strong>:</p>
+<ol type="1">
+<li><strong>リポジトリのチェックアウト</strong>
+<ul>
+<li><code>fetch-depth: 0</code> で全履歴を取得 (Markdown 処理時の author/date 取得用)</li>
+</ul></li>
+<li><strong>Git safe directory 設定</strong>
+<ul>
+<li>コンテナ内での Git 操作を許可</li>
+</ul></li>
+<li><strong>サブモジュール初期化</strong>
+<ul>
+<li><code>git submodule update --init --recursive --depth 1</code> で浅いクローン</li>
+</ul></li>
+<li><strong>ドキュメント生成</strong>
+<ul>
+<li><code>make doxy &amp;&amp; make docs</code> を実行</li>
+<li>Doxygen および Pandoc でドキュメントを生成</li>
+</ul></li>
+<li><strong>gh-pages 用アーティファクトアーカイブの作成</strong>
+<ul>
+<li>main ブランチへの push 時のみ実行</li>
+<li>HTML と docx ファイルを zip 形式でアーカイブ</li>
+</ul></li>
+<li><strong>GitHub Pages へのデプロイ</strong>
+<ul>
+<li>main ブランチへの push 時のみ実行</li>
+<li>gh-pages ブランチに公開</li>
+</ul></li>
+<li><strong>アーティファクトのアップロード</strong>
+<ul>
+<li>HTML ドキュメント、docx ファイルを保存</li>
+</ul></li>
+</ol>
+<h2 data-number="5.4" id="deploy-pages-ジョブ"><span class="header-section-number">5.4</span> deploy-pages ジョブ</h2>
+<p>このジョブは、上記のジョブ（<code>build-and-test-linux</code> (OL8/OL10)、<code>build-and-test-windows</code>、<code>publish-docs</code>）が並列実行され、すべて完了した後に実行されます。</p>
+<p><strong>実行条件</strong>:<br />
+- <code>needs: [build-and-test-linux, build-and-test-windows, publish-docs]</code> により、並列実行されたすべてのジョブが成功するまで待機<br />
+- <code>if: github.ref == 'refs/heads/main' &amp;&amp; github.event_name == 'push'</code> により、main ブランチへの push 時のみ実行</p>
+<p><strong>処理フロー</strong>:</p>
+<ol type="1">
+<li><strong>アーティファクトのダウンロード</strong>
+<ul>
+<li>Linux OL8 テスト結果アーティファクト (<code>linux-ol8-test-results</code>) をダウンロード</li>
+<li>Linux OL10 テスト結果アーティファクト (<code>linux-ol10-test-results</code>) をダウンロード</li>
+<li>Windows テスト結果アーティファクト (<code>windows-test-results</code>) をダウンロード</li>
+<li>ドキュメントアーティファクト (<code>documentation</code>) をダウンロード</li>
+<li>Linux OL8 ログアーティファクト (<code>linux-ol8-logs</code>) をダウンロード</li>
+<li>Linux OL10 ログアーティファクト (<code>linux-ol10-logs</code>) をダウンロード</li>
+<li>Windows ログアーティファクト (<code>windows-logs</code>) をダウンロード</li>
+</ul></li>
+<li><strong>アーティファクトの整理と統合</strong>
+<ul>
+<li>Linux OL8 テスト結果を <code>linux-ol8-test-results.zip</code> にアーカイブ</li>
+<li>Linux OL10 テスト結果を <code>linux-ol10-test-results.zip</code> にアーカイブ</li>
+<li>Windows テスト結果を <code>windows-test-results.zip</code> にアーカイブ</li>
+<li>Linux OL8 ビルド&amp;テストログを <code>linux-ol8-logs.zip</code> にアーカイブ</li>
+<li>Linux OL10 ビルド&amp;テストログを <code>linux-ol10-logs.zip</code> にアーカイブ</li>
+<li>Windows ビルド&amp;テストログを <code>windows-logs.zip</code> にアーカイブ</li>
+<li>アーカイブを <code>docs/artifacts/</code> に配置</li>
+<li>ドキュメントと統合</li>
+</ul></li>
+<li><strong>GitHub Pages へのデプロイ</strong>
+<ul>
+<li>統合された <code>docs/</code> ディレクトリを gh-pages ブランチに公開</li>
+</ul></li>
+</ol>
+<p><strong>アーティファクトストレージの役割</strong>:</p>
+<p>GitHub Actions のアーティファクトストレージを中継ストレージとして使用することで、異なる OS 環境（Linux、Windows）で生成されたファイルを 1 つのジョブに集約します。</p>
+<figure>
+<img src="puml_4418f81dec91bd5f931cad47737527a6b4b5574e.svg" alt="plantuml" />
+</figure>
+<h1 data-number="6" id="github-pages-デプロイ"><span class="header-section-number">6</span> GitHub Pages デプロイ</h1>
+<p>main ブランチへの push 時に、<code>deploy-pages</code> ジョブがドキュメントとテスト結果を統合して GitHub Pages に自動公開します。</p>
+<h2 data-number="6.1" id="使用アクション"><span class="header-section-number">6.1</span> 使用アクション</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Deploy to gh-pages</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> peaceiris/actions-gh-pages@v4</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">github_token</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">publish_dir</span><span class="kw">:</span><span class="at"> ./docs</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">force_orphan</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div>
+<h2 data-number="6.2" id="設定詳細"><span class="header-section-number">6.2</span> 設定詳細</h2>
+<table>
+<thead>
+<tr>
+<th>パラメータ</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>publish_dir</td>
+<td><code>./docs</code></td>
+<td>公開するディレクトリ</td>
+</tr>
+<tr>
+<td>force_orphan</td>
+<td><code>true</code></td>
+<td>履歴なしの孤立ブランチとしてデプロイ</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="6.3" id="デプロイ条件"><span class="header-section-number">6.3</span> デプロイ条件</h2>
+<ul>
+<li><strong>実行される場合</strong>: main ブランチへの push</li>
+<li><strong>実行されない場合</strong>: Pull Request (PR のレビュー時はアーティファクトで確認)</li>
+</ul>
+<h2 data-number="6.4" id="pages-に配置される内容"><span class="header-section-number">6.4</span> Pages に配置される内容</h2>
+<p><code>deploy-pages</code> ジョブにより、以下の内容が Pages に統合配置されます:</p>
+<pre><code>https://&lt;username&gt;.github.io/&lt;repository&gt;/
++-- doxygen/                          # Doxygen 生成 HTML
+|   +-- index.html
++-- artifacts/
+|   +-- docs-html.zip                 # HTML ドキュメントアーカイブ (固定 URL)
+|   +-- docs-docx.zip                 # DOCX ドキュメントアーカイブ (固定 URL)
+|   +-- linux-ol8-test-results.zip    # Linux OL8 テスト結果アーカイブ (固定 URL)
+|   +-- linux-ol10-test-results.zip   # Linux OL10 テスト結果アーカイブ (固定 URL)
+|   +-- windows-test-results.zip      # Windows テスト結果アーカイブ (固定 URL)
+|   +-- linux-ol8-logs.zip            # Linux OL8 ビルド&amp;テストログ (固定 URL)
+|   +-- linux-ol10-logs.zip           # Linux OL10 ビルド&amp;テストログ (固定 URL)
+|   +-- windows-logs.zip              # Windows ビルド&amp;テストログ (固定 URL)
++-- (その他の生成ドキュメント)</code></pre>
+<p><strong>固定 URL の利点</strong>:<br />
+- テスト結果アーカイブは常に同じファイル名で配置されるため、固定 URL でアクセス可能<br />
+- ドキュメントへのリンクをハードコードしても、更新後も同じ URL でアクセスできる</p>
+<h2 data-number="6.5" id="github-リポジトリ設定"><span class="header-section-number">6.5</span> GitHub リポジトリ設定</h2>
+<p>GitHub Pages を有効にするには、リポジトリ設定で以下を行います:</p>
+<ol type="1">
+<li>Settings → Pages を開く</li>
+<li>Source で「Deploy from a branch」を選択</li>
+<li>Branch で「gh-pages」ブランチを選択</li>
+<li>フォルダは「/ (root)」を選択</li>
+<li>Save をクリック</li>
+</ol>
+<p>公開後、<code>https://&lt;username&gt;.github.io/&lt;repository&gt;/</code> でアクセス可能になります。</p>
+<h1 data-number="7" id="アーティファクト"><span class="header-section-number">7</span> アーティファクト</h1>
+<p>CI 実行時に生成されるファイルをアーティファクトとして保存し、後から確認できます。</p>
+<h2 data-number="7.1" id="ジョブ間アーティファクト中継用"><span class="header-section-number">7.1</span> ジョブ間アーティファクト（中継用）</h2>
+<p>ジョブ間でファイルを受け渡すためのアーティファクトです。これらは <code>deploy-pages</code> ジョブで統合されます。</p>
+<h3 data-number="7.1.1" id="linux-テスト結果"><span class="header-section-number">7.1.1</span> Linux テスト結果</h3>
+<p>マトリクス戦略により、OL8/OL10 それぞれのアーティファクトが生成されます。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload test results artifacts</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-${{ matrix.os-name }}-test-results</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> test/**/results/</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if-no-files-found</span><span class="kw">:</span><span class="at"> warn</span></span></code></pre></div>
+<h3 data-number="7.1.2" id="windows-テスト結果"><span class="header-section-number">7.1.2</span> Windows テスト結果</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload test results artifacts</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> windows-test-results</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> test/**/results/</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if-no-files-found</span><span class="kw">:</span><span class="at"> warn</span></span></code></pre></div>
+<h3 data-number="7.1.3" id="ドキュメント"><span class="header-section-number">7.1.3</span> ドキュメント</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload documentation artifacts</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> documentation</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> docs/</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if-no-files-found</span><span class="kw">:</span><span class="at"> warn</span></span></code></pre></div>
+<p>含まれるファイル:<br />
+- <code>docs/doxygen</code> - Doxygen 生成 HTML<br />
+- <code>docs/**/html</code> - Pandoc 生成 HTML<br />
+- <code>docs/artifacts/*.zip</code> - ドキュメントアーカイブ</p>
+<h2 data-number="7.2" id="履歴管理用アーティファクトコミット固有"><span class="header-section-number">7.2</span> 履歴管理用アーティファクト（コミット固有）</h2>
+<p>過去のビルドを参照するためのアーティファクトです。</p>
+<h3 data-number="7.2.1" id="html-ドキュメント"><span class="header-section-number">7.2.1</span> HTML ドキュメント</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload html artifacts</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> ${{ github.event.repository.name }}-docs-html-${{ github.sha }}</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">    path</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      docs/doxygen</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      docs/**/html</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if-no-files-found</span><span class="kw">:</span><span class="at"> warn</span></span></code></pre></div>
+<h3 data-number="7.2.2" id="docx-ドキュメント"><span class="header-section-number">7.2.2</span> docx ドキュメント</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Upload docx artifacts</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v4</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> ${{ github.event.repository.name }}-docs-docx-${{ github.sha }}</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> docs/**/docx/</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if-no-files-found</span><span class="kw">:</span><span class="at"> warn</span></span></code></pre></div>
+<h2 data-number="7.3" id="アーティファクトの確認方法"><span class="header-section-number">7.3</span> アーティファクトの確認方法</h2>
+<ol type="1">
+<li>GitHub リポジトリの Actions タブを開く</li>
+<li>対象のワークフロー実行を選択</li>
+<li>「Artifacts」セクションからダウンロード</li>
+</ol>
+<p>Pull Request 時はアーティファクトをダウンロードしてローカルでドキュメントやテスト結果を確認できます。</p>
+<h1 data-number="8" id="認証"><span class="header-section-number">8</span> 認証</h1>
+<p>GitHub Container Registry (ghcr.io) からのイメージ取得には <code>GITHUB_TOKEN</code> を使用します。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">credentials</span><span class="kw">:</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">username</span><span class="kw">:</span><span class="at"> ${{ github.actor }}</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">password</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span></code></pre></div>
+<h1 data-number="9" id="ローカルでの動作確認"><span class="header-section-number">9</span> ローカルでの動作確認</h1>
+<p>CI と同等のビルドとテストをローカルで実行できます。</p>
+<h2 data-number="9.1" id="linux-環境-1"><span class="header-section-number">9.1</span> Linux 環境</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> doxy</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> docs</span></code></pre></div>
+<h2 data-number="9.2" id="windows-環境-1"><span class="header-section-number">9.2</span> Windows 環境</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>make</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>make test</span></code></pre></div>
+<p><strong>注意</strong>: Windows 環境では、事前に必要な環境設定を行う必要があります。詳細は <a href="../CLAUDE.html">CLAUDE.md</a> の「Windows にてあらかじめ実施しなくてはいけない作業」を参照してください。</p>
+<h1 data-number="10" id="関連ドキュメント"><span class="header-section-number">10</span> 関連ドキュメント</h1>
+<ul>
+<li><a href="testing-tutorial.html">テストチュートリアル</a> - テストの書き方</li>
+<li><a href="build-design.html">ビルド設計</a> - makefile の構成</li>
+<li><a href="https://github.com/Hondarer/oracle-linux-container">Oracle Linux コンテナ</a> - 開発コンテナの詳細</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

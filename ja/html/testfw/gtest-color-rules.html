@@ -1,0 +1,600 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="github-actions[bot]" />
+  <title>GoogleTest 実行結果の着色ルール</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">GoogleTest 実行結果の着色ルール</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">github-actions[bot]</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 21:06:51 +0000 cbf6a8f</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#色の定義" id="toc-色の定義"><span class="toc-section-number">2</span> 色の定義</a></li>
+                <li><a href="#見出し行と着色の対応" id="toc-見出し行と着色の対応"><span class="toc-section-number">3</span> 見出し行と着色の対応</a>
+                <ul>
+                <li><a href="#テスト実行フェーズ" id="toc-テスト実行フェーズ"><span class="toc-section-number">3.1</span> テスト実行フェーズ</a></li>
+                <li><a href="#テスト結果" id="toc-テスト結果"><span class="toc-section-number">3.2</span> テスト結果</a></li>
+                <li><a href="#その他の情報出力" id="toc-その他の情報出力"><span class="toc-section-number">3.3</span> その他の情報出力</a></li>
+                </ul></li>
+                <li><a href="#出力例" id="toc-出力例"><span class="toc-section-number">4</span> 出力例</a></li>
+                <li><a href="#色出力の制御" id="toc-色出力の制御"><span class="toc-section-number">5</span> 色出力の制御</a>
+                <ul>
+                <li><a href="#コマンドラインオプション" id="toc-コマンドラインオプション"><span class="toc-section-number">5.1</span> コマンドラインオプション</a></li>
+                <li><a href="#環境変数" id="toc-環境変数"><span class="toc-section-number">5.2</span> 環境変数</a></li>
+                <li><a href="#auto-モードの判定条件" id="toc-auto-モードの判定条件"><span class="toc-section-number">5.3</span> auto モードの判定条件</a></li>
+                </ul></li>
+                <li><a href="#ソースコード上の実装" id="toc-ソースコード上の実装"><span class="toc-section-number">6</span> ソースコード上の実装</a></li>
+                <li><a href="#着色フィルターの使用" id="toc-着色フィルターの使用"><span class="toc-section-number">7</span> 着色フィルターの使用</a></li>
+                <li><a href="#フィルターの可逆性について" id="toc-フィルターの可逆性について"><span class="toc-section-number">8</span> フィルターの可逆性について</a>
+                <ul>
+                <li><a href="#結論" id="toc-結論"><span class="toc-section-number">8.1</span> 結論</a></li>
+                <li><a href="#可逆である部分" id="toc-可逆である部分"><span class="toc-section-number">8.2</span> 可逆である部分</a></li>
+                <li><a href="#可逆性の技術的根拠" id="toc-可逆性の技術的根拠"><span class="toc-section-number">8.3</span> 可逆性の技術的根拠</a></li>
+                <li><a href="#可逆でない可能性がある部分" id="toc-可逆でない可能性がある部分"><span class="toc-section-number">8.4</span> 可逆でない可能性がある部分</a></li>
+                <li><a href="#検証方法" id="toc-検証方法"><span class="toc-section-number">8.5</span> 検証方法</a></li>
+                </ul></li>
+                <li><a href="#参考リンク" id="toc-参考リンク"><span class="toc-section-number">9</span> 参考リンク</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>GoogleTest 実行結果の着色ルール</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>GoogleTest は、テスト実行結果の視認性を高めるため、ターミナル出力に ANSI カラーコードを使用します。このドキュメントでは、出力行の見出し部 (角括弧で囲まれた部分) に適用される色を説明します。</p>
+<h1 data-number="2" id="色の定義"><span class="header-section-number">2</span> 色の定義</h1>
+<p>GoogleTest の内部では、以下の 4 つの色が定義されています。</p>
+<table>
+<thead>
+<tr>
+<th>色</th>
+<th>内部定義名</th>
+<th>ANSI コード</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>デフォルト (無色)</td>
+<td><code>kDefault</code></td>
+<td><code>\033[0m</code></td>
+<td>色のリセット</td>
+</tr>
+<tr>
+<td>緑</td>
+<td><code>kGreen</code></td>
+<td><code>\033[0;32m</code></td>
+<td>成功状態の表示</td>
+</tr>
+<tr>
+<td>赤</td>
+<td><code>kRed</code></td>
+<td><code>\033[0;31m</code></td>
+<td>失敗状態の表示</td>
+</tr>
+<tr>
+<td>黄</td>
+<td><code>kYellow</code></td>
+<td><code>\033[0;33m</code></td>
+<td>スキップ、警告の表示</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="見出し行と着色の対応"><span class="header-section-number">3</span> 見出し行と着色の対応</h1>
+<p>テスト実行中に表示される見出し行と、それぞれに適用される色を以下に示します。</p>
+<h2 data-number="3.1" id="テスト実行フェーズ"><span class="header-section-number">3.1</span> テスト実行フェーズ</h2>
+<table>
+<thead>
+<tr>
+<th>見出し</th>
+<th>色</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[==========]</code></td>
+<td>緑</td>
+<td>テスト全体の開始・終了</td>
+</tr>
+<tr>
+<td><code>[----------]</code></td>
+<td>緑</td>
+<td>テストスイートの開始・終了</td>
+</tr>
+<tr>
+<td><code>[ RUN      ]</code></td>
+<td>緑</td>
+<td>個別テストの開始</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.2" id="テスト結果"><span class="header-section-number">3.2</span> テスト結果</h2>
+<table>
+<thead>
+<tr>
+<th>見出し</th>
+<th>色</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[       OK ]</code></td>
+<td>緑</td>
+<td>個別テストの成功</td>
+</tr>
+<tr>
+<td><code>[  PASSED  ]</code></td>
+<td>緑</td>
+<td>テスト全体の成功サマリ</td>
+</tr>
+<tr>
+<td><code>[  FAILED  ]</code></td>
+<td>赤</td>
+<td>個別テストの失敗、または失敗サマリ</td>
+</tr>
+<tr>
+<td><code>[ SKIPPED  ]</code></td>
+<td>黄</td>
+<td>テストのスキップ (GTEST_SKIP 使用時)</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.3" id="その他の情報出力"><span class="header-section-number">3.3</span> その他の情報出力</h2>
+<table>
+<thead>
+<tr>
+<th>見出し</th>
+<th>色</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[  DEATH   ]</code></td>
+<td>黄</td>
+<td>Death test 実行中</td>
+</tr>
+<tr>
+<td><code>[  INFO    ]</code></td>
+<td>黄</td>
+<td>情報メッセージ</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="出力例"><span class="header-section-number">4</span> 出力例</h1>
+<p>以下は、典型的なテスト実行結果の出力例です。</p>
+<pre class="text"><code>[==========] Running 3 tests from 2 test suites.      &lt;- 緑
+[----------] Global test environment set-up.          &lt;- 緑
+[----------] 2 tests from FooTest                     &lt;- 緑
+[ RUN      ] FooTest.DoesAbc                          &lt;- 緑
+[       OK ] FooTest.DoesAbc (0 ms)                   &lt;- 緑
+[ RUN      ] FooTest.HasXyzProperty                   &lt;- 緑
+[  FAILED  ] FooTest.HasXyzProperty (1 ms)            &lt;- 赤
+[----------] 2 tests from FooTest (1 ms total)        &lt;- 緑
+[----------] 1 test from BarTest                      &lt;- 緑
+[ RUN      ] BarTest.SkippedOnCondition               &lt;- 緑
+[ SKIPPED  ] BarTest.SkippedOnCondition (0 ms)        &lt;- 黄
+[----------] 1 test from BarTest (0 ms total)         &lt;- 緑
+[----------] Global test environment tear-down        &lt;- 緑
+[==========] 3 tests from 2 test suites ran. (2 ms)   &lt;- 緑
+[  PASSED  ] 1 test.                                  &lt;- 緑
+[ SKIPPED  ] 1 test, listed below:                    &lt;- 黄
+[ SKIPPED  ] BarTest.SkippedOnCondition               &lt;- 黄
+[  FAILED  ] 1 test, listed below:                    &lt;- 赤
+[  FAILED  ] FooTest.HasXyzProperty                   &lt;- 赤
+
+ 1 FAILED TEST</code></pre>
+<h1 data-number="5" id="色出力の制御"><span class="header-section-number">5</span> 色出力の制御</h1>
+<p>色の有効・無効は、以下の方法で制御できます。</p>
+<h2 data-number="5.1" id="コマンドラインオプション"><span class="header-section-number">5.1</span> コマンドラインオプション</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./test_binary</span> <span class="at">--gtest_color</span><span class="op">=</span>yes   <span class="co"># 常に色を使用</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./test_binary</span> <span class="at">--gtest_color</span><span class="op">=</span>no    <span class="co"># 色を使用しない</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./test_binary</span> <span class="at">--gtest_color</span><span class="op">=</span>auto  <span class="co"># 自動判定 (デフォルト)</span></span></code></pre></div>
+<h2 data-number="5.2" id="環境変数"><span class="header-section-number">5.2</span> 環境変数</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">GTEST_COLOR</span><span class="op">=</span>1    <span class="co"># 色を有効化</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">GTEST_COLOR</span><span class="op">=</span>0    <span class="co"># 色を無効化</span></span></code></pre></div>
+<h2 data-number="5.3" id="auto-モードの判定条件"><span class="header-section-number">5.3</span> auto モードの判定条件</h2>
+<p><code>--gtest_color=auto</code> (デフォルト) の場合、以下の条件をすべて満たすときに色が有効になります。</p>
+<ul>
+<li>出力先がターミナル (TTY) である</li>
+<li>UNIX 系 OS の場合、環境変数 <code>TERM</code> が <code>xterm</code> または <code>xterm-color</code> に設定されている</li>
+<li>Windows の場合、コンソールがカラー出力をサポートしている</li>
+</ul>
+<h1 data-number="6" id="ソースコード上の実装"><span class="header-section-number">6</span> ソースコード上の実装</h1>
+<p>着色は <code>gtest.cc</code> 内の <code>PrettyUnitTestResultPrinter</code> クラスで実装されています。主要なメソッドを以下に示します。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>出力する見出し</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OnTestProgramStart</code></td>
+<td><code>[==========]</code> (緑)</td>
+</tr>
+<tr>
+<td><code>OnTestSuiteStart</code></td>
+<td><code>[----------]</code> (緑)</td>
+</tr>
+<tr>
+<td><code>OnTestStart</code></td>
+<td><code>[ RUN      ]</code> (緑)</td>
+</tr>
+<tr>
+<td><code>OnTestEnd</code></td>
+<td><code>[       OK ]</code> (緑) または <code>[  FAILED  ]</code> (赤) または <code>[ SKIPPED  ]</code> (黄)</td>
+</tr>
+<tr>
+<td><code>OnTestProgramEnd</code></td>
+<td><code>[  PASSED  ]</code> (緑)、<code>[  FAILED  ]</code> (赤)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="7" id="着色フィルターの使用"><span class="header-section-number">7</span> 着色フィルターの使用</h1>
+<p>Windows 環境などでエスケープシーケンスなしの出力に色を付けるフィルタースクリプトについて説明します。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">test.exe</span> <span class="kw">|</span> <span class="ex">python</span> add_gtest_color.py</span></code></pre></div>
+<p>このフィルターは、見出し部 (角括弧で囲まれた部分) のみに色を付け、本文はそのまま出力します。</p>
+<h1 data-number="8" id="フィルターの可逆性について"><span class="header-section-number">8</span> フィルターの可逆性について</h1>
+<h2 data-number="8.1" id="結論"><span class="header-section-number">8.1</span> 結論</h2>
+<p>テキストベースのフィルターは、元の GoogleTest の着色と <strong>ほぼ完全に可逆</strong> です。ただし、以下の制約があります。</p>
+<h2 data-number="8.2" id="可逆である部分"><span class="header-section-number">8.2</span> 可逆である部分</h2>
+<p>標準的なテスト実行で出力されるすべての見出しは、テキストパターンから一意に色を復元できます。</p>
+<table>
+<thead>
+<tr>
+<th>見出しテキスト</th>
+<th>色</th>
+<th>可逆性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[ RUN      ]</code></td>
+<td>緑</td>
+<td>✅ 完全</td>
+</tr>
+<tr>
+<td><code>[       OK ]</code></td>
+<td>緑</td>
+<td>✅ 完全</td>
+</tr>
+<tr>
+<td><code>[  PASSED  ]</code></td>
+<td>緑</td>
+<td>✅ 完全</td>
+</tr>
+<tr>
+<td><code>[  FAILED  ]</code></td>
+<td>赤</td>
+<td>✅ 完全</td>
+</tr>
+<tr>
+<td><code>[ SKIPPED  ]</code></td>
+<td>黄</td>
+<td>✅ 完全</td>
+</tr>
+<tr>
+<td><code>[==========]</code></td>
+<td>緑</td>
+<td>✅ 完全</td>
+</tr>
+<tr>
+<td><code>[----------]</code></td>
+<td>緑</td>
+<td>✅ 完全</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="8.3" id="可逆性の技術的根拠"><span class="header-section-number">8.3</span> 可逆性の技術的根拠</h2>
+<p>元の GoogleTest ソースコード (<code>gtest.cc</code>) では、<code>PrettyUnitTestResultPrinter</code> クラスが以下のように着色を行っています。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// OnTestStart - テスト開始時</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ColoredPrintf<span class="op">(</span>GTestColor<span class="op">::</span>kGreen<span class="op">,</span> <span class="st">&quot;[ RUN      ]&quot;</span><span class="op">);</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// OnTestEnd - テスト終了時</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>result<span class="op">.</span>Skipped<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  ColoredPrintf<span class="op">(</span>GTestColor<span class="op">::</span>kYellow<span class="op">,</span> <span class="st">&quot;[ SKIPPED  ]&quot;</span><span class="op">);</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>result<span class="op">.</span>Passed<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  ColoredPrintf<span class="op">(</span>GTestColor<span class="op">::</span>kGreen<span class="op">,</span> <span class="st">&quot;[       OK ]&quot;</span><span class="op">);</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  ColoredPrintf<span class="op">(</span>GTestColor<span class="op">::</span>kRed<span class="op">,</span> <span class="st">&quot;[  FAILED  ]&quot;</span><span class="op">);</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>この実装から、見出し文字列と色は 1 対 1 で対応しており、テキストから色を一意に復元できます。</p>
+<h2 data-number="8.4" id="可逆でない可能性がある部分"><span class="header-section-number">8.4</span> 可逆でない可能性がある部分</h2>
+<p>以下のケースでは、フィルターが対応できない可能性があります。</p>
+<ol type="1">
+<li><p><strong>カスタム TestEventListener の出力</strong>: ユーザーが独自の Listener を実装し、標準と異なる見出しを使用した場合</p></li>
+<li><p><strong>将来の GoogleTest バージョン</strong>: 新しい見出しが追加された場合は、フィルターの更新が必要</p></li>
+<li><p><strong>サードパーティツールの出力</strong>: GoogleTest 互換のフォーマットでも、微妙に異なるスペーシングを使用している場合</p></li>
+</ol>
+<h2 data-number="8.5" id="検証方法"><span class="header-section-number">8.5</span> 検証方法</h2>
+<p>フィルターの正確性を確認するには、以下のコマンドで元の出力と比較できます。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./test.exe</span> <span class="at">--gtest_color</span><span class="op">=</span>yes <span class="op">&gt;</span> colored.txt</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./test.exe</span> <span class="at">--gtest_color</span><span class="op">=</span>no <span class="kw">|</span> <span class="ex">python</span> add_gtest_color.py <span class="op">&gt;</span> filtered.txt</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">diff</span> colored.txt filtered.txt</span></code></pre></div>
+<h1 data-number="9" id="参考リンク"><span class="header-section-number">9</span> 参考リンク</h1>
+<ul>
+<li><a href="https://google.github.io/googletest/advanced.html">GoogleTest Advanced Topics - Colored Terminal Output</a></li>
+<li><a href="https://github.com/google/googletest/blob/main/googletest/src/gtest.cc">GoogleTest ソースコード (gtest.cc)</a></li>
+<li><a href="https://github.com/google/googletest/pull/1544">GTEST_SKIP によるテストスキップ機能 (PR #1544)</a></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

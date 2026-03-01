@@ -1,0 +1,688 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="github-actions[bot]" />
+  <title>GoogleTest 手動ビルド手順</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">GoogleTest 手動ビルド手順</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">github-actions[bot]</p></li>
+                              <li><p class="navbar-text">Mon, 9 Feb 2026 12:42:25 +0000 e79b8bd</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#このレポジトリで提供されるビルド構成" id="toc-このレポジトリで提供されるビルド構成"><span class="toc-section-number">1</span> このレポジトリで提供されるビルド構成</a></li>
+                <li><a href="#linux-環境でのビルド" id="toc-linux-環境でのビルド"><span class="toc-section-number">2</span> Linux 環境でのビルド</a>
+                <ul>
+                <li><a href="#前提条件" id="toc-前提条件"><span class="toc-section-number">2.1</span> 前提条件</a></li>
+                <li><a href="#必要なパッケージのインストール" id="toc-必要なパッケージのインストール"><span class="toc-section-number">2.2</span> 必要なパッケージのインストール</a>
+                <ul>
+                <li><a href="#rhelcentosrocky-linux-8" id="toc-rhelcentosrocky-linux-8"><span class="toc-section-number">2.2.1</span> RHEL/CentOS/Rocky Linux 8</a></li>
+                <li><a href="#ubuntudebian" id="toc-ubuntudebian"><span class="toc-section-number">2.2.2</span> Ubuntu/Debian</a></li>
+                </ul></li>
+                <li><a href="#環境変数" id="toc-環境変数"><span class="toc-section-number">2.3</span> 環境変数</a></li>
+                <li><a href="#ビルド手順" id="toc-ビルド手順"><span class="toc-section-number">2.4</span> ビルド手順</a>
+                <ul>
+                <li><a href="#static-release" id="toc-static-release"><span class="toc-section-number">2.4.1</span> 1. Static Release</a></li>
+                <li><a href="#static-release-with-debug-info" id="toc-static-release-with-debug-info"><span class="toc-section-number">2.4.2</span> 2. Static Release with Debug Info</a></li>
+                <li><a href="#static-debug" id="toc-static-debug"><span class="toc-section-number">2.4.3</span> 3. Static Debug</a></li>
+                </ul></li>
+                <li><a href="#カスタムインストール先を指定する場合" id="toc-カスタムインストール先を指定する場合"><span class="toc-section-number">2.5</span> カスタムインストール先を指定する場合</a></li>
+                <li><a href="#生成されるライブラリファイル-linux" id="toc-生成されるライブラリファイル-linux"><span class="toc-section-number">2.6</span> 生成されるライブラリファイル (Linux)</a></li>
+                <li><a href="#cmake-設定オプションの説明-linux" id="toc-cmake-設定オプションの説明-linux"><span class="toc-section-number">2.7</span> CMake 設定オプションの説明 (Linux)</a></li>
+                <li><a href="#rpm-パッケージ化-rhelcentosrocky-linux" id="toc-rpm-パッケージ化-rhelcentosrocky-linux"><span class="toc-section-number">2.8</span> RPM パッケージ化 (RHEL/CentOS/Rocky Linux)</a></li>
+                <li><a href="#動作確認-linux" id="toc-動作確認-linux"><span class="toc-section-number">2.9</span> 動作確認 (Linux)</a></li>
+                <li><a href="#トラブルシューティング-linux" id="toc-トラブルシューティング-linux"><span class="toc-section-number">2.10</span> トラブルシューティング (Linux)</a>
+                <ul>
+                <li><a href="#cmake-のバージョンが古い場合" id="toc-cmake-のバージョンが古い場合"><span class="toc-section-number">2.10.1</span> CMake のバージョンが古い場合</a></li>
+                <li><a href="#pthread-リンクエラーが発生する場合" id="toc-pthread-リンクエラーが発生する場合"><span class="toc-section-number">2.10.2</span> pthread リンクエラーが発生する場合</a></li>
+                <li><a href="#ライブラリのリンク順序エラーが発生する場合" id="toc-ライブラリのリンク順序エラーが発生する場合"><span class="toc-section-number">2.10.3</span> ライブラリのリンク順序エラーが発生する場合</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#windows-環境でのビルド" id="toc-windows-環境でのビルド"><span class="toc-section-number">3</span> Windows 環境でのビルド</a>
+                <ul>
+                <li><a href="#前提条件-1" id="toc-前提条件-1"><span class="toc-section-number">3.1</span> 前提条件</a></li>
+                <li><a href="#環境変数-1" id="toc-環境変数-1"><span class="toc-section-number">3.2</span> 環境変数</a></li>
+                <li><a href="#ビルド手順-1" id="toc-ビルド手順-1"><span class="toc-section-number">3.3</span> ビルド手順</a>
+                <ul>
+                <li><a href="#mt-release-static-with-debug-info" id="toc-mt-release-static-with-debug-info"><span class="toc-section-number">3.3.1</span> 1. /MT (Release Static with Debug Info)</a></li>
+                <li><a href="#md-release-dll-with-debug-info" id="toc-md-release-dll-with-debug-info"><span class="toc-section-number">3.3.2</span> 2. /MD (Release DLL with Debug Info)</a></li>
+                <li><a href="#mtd-debug-static" id="toc-mtd-debug-static"><span class="toc-section-number">3.3.3</span> 3. /MTd (Debug Static)</a></li>
+                <li><a href="#mdd-debug-dll" id="toc-mdd-debug-dll"><span class="toc-section-number">3.3.4</span> 4. /MDd (Debug DLL)</a></li>
+                </ul></li>
+                <li><a href="#クリーンアップ-オプション" id="toc-クリーンアップ-オプション"><span class="toc-section-number">3.4</span> クリーンアップ (オプション)</a></li>
+                <li><a href="#生成されるライブラリファイル-windows" id="toc-生成されるライブラリファイル-windows"><span class="toc-section-number">3.5</span> 生成されるライブラリファイル (Windows)</a></li>
+                <li><a href="#cmake-設定オプションの説明-windows" id="toc-cmake-設定オプションの説明-windows"><span class="toc-section-number">3.6</span> CMake 設定オプションの説明 (Windows)</a></li>
+                <li><a href="#ビルド構成の説明-windows" id="toc-ビルド構成の説明-windows"><span class="toc-section-number">3.7</span> ビルド構成の説明 (Windows)</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>GoogleTest 手動ビルド手順</H1>
+      
+      
+      <p>このドキュメントでは、GoogleTest を Linux および Windows 環境で手動ビルドする手順を説明します。</p>
+<p>通常は GitHub Actions が自動的にビルドしますが、カスタムビルドが必要な場合はこの手順を参照してください。</p>
+<p>source: <a href="https://github.com/google/googletest">google/googletest</a></p>
+<h1 data-number="1" id="このレポジトリで提供されるビルド構成"><span class="header-section-number">1</span> このレポジトリで提供されるビルド構成</h1>
+<p><strong>Linux:</strong><br />
+- RelWithDebInfo (最適化あり、デバッグ情報あり)</p>
+<p><strong>Windows:</strong><br />
+- /MD (MultiThreadedDLL, RelWithDebInfo)<br />
+- /MDd (MultiThreadedDebugDLL, Debug)<br />
+- /MT (MultiThreaded, RelWithDebInfo)<br />
+- /MTd (MultiThreadedDebug, Debug)</p>
+<h1 data-number="2" id="linux-環境でのビルド"><span class="header-section-number">2</span> Linux 環境でのビルド</h1>
+<p>Linux 環境で gcc/g++ を使用して静的ライブラリ (.a) をビルドする手順を説明します。</p>
+<h2 data-number="2.1" id="前提条件"><span class="header-section-number">2.1</span> 前提条件</h2>
+<ul>
+<li>gcc/g++ コンパイラ</li>
+<li>CMake 3.5 以降</li>
+<li>make</li>
+<li>googletest ソースコード</li>
+</ul>
+<h2 data-number="2.2" id="必要なパッケージのインストール"><span class="header-section-number">2.2</span> 必要なパッケージのインストール</h2>
+<h3 data-number="2.2.1" id="rhelcentosrocky-linux-8"><span class="header-section-number">2.2.1</span> RHEL/CentOS/Rocky Linux 8</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> gcc gcc-c++ cmake make</span></code></pre></div>
+<h3 data-number="2.2.2" id="ubuntudebian"><span class="header-section-number">2.2.2</span> Ubuntu/Debian</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> build-essential cmake</span></code></pre></div>
+<h2 data-number="2.3" id="環境変数"><span class="header-section-number">2.3</span> 環境変数</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">GOOGLETEST_SOURCE</span><span class="op">=</span><span class="st">&quot;/path/to/googletest-1.17.0&quot;</span></span></code></pre></div>
+<h2 data-number="2.4" id="ビルド手順"><span class="header-section-number">2.4</span> ビルド手順</h2>
+<h3 data-number="2.4.1" id="static-release"><span class="header-section-number">2.4.1</span> 1. Static Release</h3>
+<p>静的ライブラリを Release 設定でビルドします。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-static-release</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-static-release</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DBUILD_SHARED_LIBS</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install DESTDIR=./installed</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-static-release/lib/*.a</code></li>
+<li>インストール済み: <code>build-static-release/installed/</code>
+<ul>
+<li><code>usr/local/lib/</code> - ライブラリファイル</li>
+<li><code>usr/local/lib/cmake/GTest/</code> - CMake 設定ファイル</li>
+<li><code>usr/local/lib/pkgconfig/</code> - pkgconfig ファイル</li>
+<li><code>usr/local/include/</code> - ヘッダファイル</li>
+</ul></li>
+</ul>
+<h3 data-number="2.4.2" id="static-release-with-debug-info"><span class="header-section-number">2.4.2</span> 2. Static Release with Debug Info</h3>
+<p>静的ライブラリを Release 設定 + デバッグ情報付きでビルドします。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-static-relwithdebinfo</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-static-relwithdebinfo</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>RelWithDebInfo <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DBUILD_SHARED_LIBS</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install DESTDIR=./installed</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-static-relwithdebinfo/lib/*.a</code> (デバッグシンボル付き)</li>
+<li>インストール済み: <code>build-static-relwithdebinfo/installed/</code></li>
+</ul>
+<h3 data-number="2.4.3" id="static-debug"><span class="header-section-number">2.4.3</span> 3. Static Debug</h3>
+<p>静的ライブラリを Debug 設定でビルドします。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-static-debug</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-static-debug</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Debug <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DBUILD_SHARED_LIBS</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install DESTDIR=./installed</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-static-debug/lib/*.a</code></li>
+<li>インストール済み: <code>build-static-debug/installed/</code></li>
+</ul>
+<h2 data-number="2.5" id="カスタムインストール先を指定する場合"><span class="header-section-number">2.5</span> カスタムインストール先を指定する場合</h2>
+<p>デフォルトでは <code>/usr/local</code> にインストールされますが、カスタムパスを指定できます。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-static-release</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-static-release</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DBUILD_SHARED_LIBS</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DCMAKE_INSTALL_PREFIX</span><span class="op">=</span>/opt/googletest <span class="dt">\</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install DESTDIR=./installed</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<h2 data-number="2.6" id="生成されるライブラリファイル-linux"><span class="header-section-number">2.6</span> 生成されるライブラリファイル (Linux)</h2>
+<p>静的ライブラリ (.a) として以下のファイルが生成されます。</p>
+<ul>
+<li><code>libgmock.a</code> - Google Mock ライブラリ</li>
+<li><code>libgmock_main.a</code> - Google Mock main 関数付き</li>
+<li><code>libgtest.a</code> - Google Test ライブラリ</li>
+<li><code>libgtest_main.a</code> - Google Test main 関数付き</li>
+</ul>
+<h2 data-number="2.7" id="cmake-設定オプションの説明-linux"><span class="header-section-number">2.7</span> CMake 設定オプションの説明 (Linux)</h2>
+<table>
+<thead>
+<tr>
+<th>オプション</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-DCMAKE_BUILD_TYPE=Release</code></td>
+<td>最適化あり、デバッグ情報なし</td>
+</tr>
+<tr>
+<td><code>-DCMAKE_BUILD_TYPE=RelWithDebInfo</code></td>
+<td>最適化あり、デバッグ情報あり</td>
+</tr>
+<tr>
+<td><code>-DCMAKE_BUILD_TYPE=Debug</code></td>
+<td>最適化なし、デバッグ情報あり</td>
+</tr>
+<tr>
+<td><code>-DBUILD_SHARED_LIBS=OFF</code></td>
+<td>静的ライブラリ (.a) をビルド</td>
+</tr>
+<tr>
+<td><code>-DCMAKE_INSTALL_PREFIX=/path</code></td>
+<td>インストール先のパス</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="2.8" id="rpm-パッケージ化-rhelcentosrocky-linux"><span class="header-section-number">2.8</span> RPM パッケージ化 (RHEL/CentOS/Rocky Linux)</h2>
+<p>RPM パッケージとして配布する場合の手順例です。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-rpm</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-rpm</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="dt">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DBUILD_SHARED_LIBS</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DCMAKE_INSTALL_PREFIX</span><span class="op">=</span>/usr <span class="dt">\</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ex">cpack</span> <span class="at">-G</span> RPM</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<h2 data-number="2.9" id="動作確認-linux"><span class="header-section-number">2.9</span> 動作確認 (Linux)</h2>
+<p>ビルドしたライブラリを使用する簡単なテストプログラムで確認します。</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// test_sample.cpp</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;gtest/gtest.h&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>TEST<span class="op">(</span>SampleTest<span class="op">,</span> BasicTest<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    EXPECT_EQ<span class="op">(</span><span class="dv">1</span><span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">::</span>testing<span class="op">::</span>InitGoogleTest<span class="op">(&amp;</span>argc<span class="op">,</span> argv<span class="op">);</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> RUN_ALL_TESTS<span class="op">();</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>コンパイルと実行:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">g++</span> <span class="at">-std</span><span class="op">=</span>c++14 test_sample.cpp <span class="dt">\</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-I</span> build-static-release/installed/usr/local/include <span class="dt">\</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-L</span> build-static-release/installed/usr/local/lib <span class="dt">\</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-lgtest</span> <span class="at">-lgtest_main</span> <span class="at">-pthread</span> <span class="dt">\</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> test_sample</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ex">./test_sample</span></span></code></pre></div>
+<h2 data-number="2.10" id="トラブルシューティング-linux"><span class="header-section-number">2.10</span> トラブルシューティング (Linux)</h2>
+<h3 data-number="2.10.1" id="cmake-のバージョンが古い場合"><span class="header-section-number">2.10.1</span> CMake のバージョンが古い場合</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://github.com/Kitware/CMake/releases/download/v3.28.0/cmake-3.28.0-linux-x86_64.sh</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x cmake-3.28.0-linux-x86_64.sh</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ./cmake-3.28.0-linux-x86_64.sh <span class="at">--prefix</span><span class="op">=</span>/usr/local <span class="at">--skip-license</span></span></code></pre></div>
+<h3 data-number="2.10.2" id="pthread-リンクエラーが発生する場合"><span class="header-section-number">2.10.2</span> pthread リンクエラーが発生する場合</h3>
+<p>リンク時に <code>-pthread</code> オプションを追加してください。</p>
+<h3 data-number="2.10.3" id="ライブラリのリンク順序エラーが発生する場合"><span class="header-section-number">2.10.3</span> ライブラリのリンク順序エラーが発生する場合</h3>
+<p>ライブラリは依存関係の逆順でリンクする必要があります。</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">g++</span> test_sample.cpp <span class="at">-lgtest_main</span> <span class="at">-lgtest</span> <span class="at">-pthread</span> <span class="at">-o</span> test_sample</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ex">g++</span> test_sample.cpp <span class="at">-lgtest</span> <span class="at">-lgtest_main</span> <span class="at">-pthread</span> <span class="at">-o</span> test_sample</span></code></pre></div>
+<h1 data-number="3" id="windows-環境でのビルド"><span class="header-section-number">3</span> Windows 環境でのビルド</h1>
+<p>MSVC で 4 つのランタイムオプション (/MT, /MD, /MTd, /MDd) でビルドする手順を説明します。</p>
+<h2 data-number="3.1" id="前提条件-1"><span class="header-section-number">3.1</span> 前提条件</h2>
+<ul>
+<li>Visual Studio 2022 Professional (CMake 付属)</li>
+<li>googletest ソースコード</li>
+</ul>
+<h2 data-number="3.2" id="環境変数-1"><span class="header-section-number">3.2</span> 環境変数</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="va">CMAKE_EXE</span><span class="op">=</span><span class="st">&quot;C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe&quot;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="va">GOOGLETEST_SOURCE</span><span class="op">=</span><span class="st">&quot;D:\path\to\googletest-1.17.0&quot;</span></span></code></pre></div>
+<h2 data-number="3.3" id="ビルド手順-1"><span class="header-section-number">3.3</span> ビルド手順</h2>
+<h3 data-number="3.3.1" id="mt-release-static-with-debug-info"><span class="header-section-number">3.3.1</span> 1. /MT (Release Static with Debug Info)</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-MT</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-MT</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">-G</span> <span class="st">&quot;Visual Studio 2022&quot;</span> <span class="at">-A</span> x64 <span class="dt">\</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DCMAKE_MSVC_RUNTIME_LIBRARY</span><span class="op">=</span>MultiThreaded <span class="dt">\</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-Dgtest_force_shared_crt</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--build</span> . <span class="at">--config</span> RelWithDebInfo</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--install</span> . <span class="at">--config</span> RelWithDebInfo <span class="at">--prefix</span> ./installed</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-MT/lib/RelWithDebInfo/*.lib</code></li>
+<li>PDB ファイル: <code>build-MT/lib/RelWithDebInfo/*.pdb</code></li>
+<li>インストール済み: <code>build-MT/installed/</code>
+<ul>
+<li><code>lib/</code> - ライブラリファイル</li>
+<li><code>lib/cmake/GTest/</code> - CMake 設定ファイル</li>
+<li><code>lib/pkgconfig/</code> - pkgconfig ファイル</li>
+<li><code>include/</code> - ヘッダファイル</li>
+</ul></li>
+</ul>
+<h3 data-number="3.3.2" id="md-release-dll-with-debug-info"><span class="header-section-number">3.3.2</span> 2. /MD (Release DLL with Debug Info)</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-MD</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-MD</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">-G</span> <span class="st">&quot;Visual Studio 2022&quot;</span> <span class="at">-A</span> x64 <span class="dt">\</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DCMAKE_MSVC_RUNTIME_LIBRARY</span><span class="op">=</span>MultiThreadedDLL <span class="dt">\</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-Dgtest_force_shared_crt</span><span class="op">=</span>ON <span class="dt">\</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--build</span> . <span class="at">--config</span> RelWithDebInfo</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--install</span> . <span class="at">--config</span> RelWithDebInfo <span class="at">--prefix</span> ./installed</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-MD/lib/RelWithDebInfo/*.lib</code></li>
+<li>PDB ファイル: <code>build-MD/lib/RelWithDebInfo/*.pdb</code></li>
+<li>インストール済み: <code>build-MD/installed/</code></li>
+</ul>
+<h3 data-number="3.3.3" id="mtd-debug-static"><span class="header-section-number">3.3.3</span> 3. /MTd (Debug Static)</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-MTd</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-MTd</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">-G</span> <span class="st">&quot;Visual Studio 2022&quot;</span> <span class="at">-A</span> x64 <span class="dt">\</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DCMAKE_MSVC_RUNTIME_LIBRARY</span><span class="op">=</span>MultiThreadedDebug <span class="dt">\</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-Dgtest_force_shared_crt</span><span class="op">=</span>OFF <span class="dt">\</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--build</span> . <span class="at">--config</span> Debug</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--install</span> . <span class="at">--config</span> Debug <span class="at">--prefix</span> ./installed</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-MTd/lib/Debug/*.lib</code></li>
+<li>PDB ファイル: <code>build-MTd/lib/Debug/*.pdb</code></li>
+<li>インストール済み: <code>build-MTd/installed/</code></li>
+</ul>
+<h3 data-number="3.3.4" id="mdd-debug-dll"><span class="header-section-number">3.3.4</span> 4. /MDd (Debug DLL)</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build-MDd</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build-MDd</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">-G</span> <span class="st">&quot;Visual Studio 2022&quot;</span> <span class="at">-A</span> x64 <span class="dt">\</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-DCMAKE_MSVC_RUNTIME_LIBRARY</span><span class="op">=</span>MultiThreadedDebugDLL <span class="dt">\</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-Dgtest_force_shared_crt</span><span class="op">=</span>ON <span class="dt">\</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;</span><span class="va">${GOOGLETEST_SOURCE}</span><span class="st">&quot;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--build</span> . <span class="at">--config</span> Debug</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">${CMAKE_EXE}</span><span class="st">&quot;</span> <span class="at">--install</span> . <span class="at">--config</span> Debug <span class="at">--prefix</span> ./installed</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<p><strong>成果物</strong></p>
+<ul>
+<li>ライブラリ: <code>build-MDd/lib/Debug/*.lib</code></li>
+<li>PDB ファイル: <code>build-MDd/lib/Debug/*.pdb</code></li>
+<li>インストール済み: <code>build-MDd/installed/</code></li>
+</ul>
+<h2 data-number="3.4" id="クリーンアップ-オプション"><span class="header-section-number">3.4</span> クリーンアップ (オプション)</h2>
+<p>Debug ビルドで生成される不要な NOTFOUND.pdb ファイルを削除します。</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> build-MTd/lib/Debug/<span class="pp">*</span>NOTFOUND.pdb</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> build-MDd/lib/Debug/<span class="pp">*</span>NOTFOUND.pdb</span></code></pre></div>
+<h2 data-number="3.5" id="生成されるライブラリファイル-windows"><span class="header-section-number">3.5</span> 生成されるライブラリファイル (Windows)</h2>
+<p>各ビルド設定で以下のライブラリが生成されます。</p>
+<ul>
+<li><code>gmock.lib</code> - Google Mock ライブラリ</li>
+<li><code>gmock_main.lib</code> - Google Mock main 関数付き</li>
+<li><code>gtest.lib</code> - Google Test ライブラリ</li>
+<li><code>gtest_main.lib</code> - Google Test main 関数付き</li>
+</ul>
+<p>各 lib ファイルに対応する pdb ファイルも生成されます。</p>
+<h2 data-number="3.6" id="cmake-設定オプションの説明-windows"><span class="header-section-number">3.6</span> CMake 設定オプションの説明 (Windows)</h2>
+<table>
+<colgroup>
+<col style="width: 64%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr>
+<th>オプション</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded</code></td>
+<td>/MT (Release Static)</td>
+</tr>
+<tr>
+<td><code>-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL</code></td>
+<td>/MD (Release DLL)</td>
+</tr>
+<tr>
+<td><code>-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug</code></td>
+<td>/MTd (Debug Static)</td>
+</tr>
+<tr>
+<td><code>-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL</code></td>
+<td>/MDd (Debug DLL)</td>
+</tr>
+<tr>
+<td><code>-Dgtest_force_shared_crt=OFF</code></td>
+<td>CRT を静的リンク</td>
+</tr>
+<tr>
+<td><code>-Dgtest_force_shared_crt=ON</code></td>
+<td>CRT を動的リンク</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.7" id="ビルド構成の説明-windows"><span class="header-section-number">3.7</span> ビルド構成の説明 (Windows)</h2>
+<table>
+<thead>
+<tr>
+<th>構成</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Release</code></td>
+<td>最適化あり、デバッグ情報なし</td>
+</tr>
+<tr>
+<td><code>RelWithDebInfo</code></td>
+<td>最適化あり、デバッグ情報あり (pdb 生成)</td>
+</tr>
+<tr>
+<td><code>Debug</code></td>
+<td>最適化なし、デバッグ情報あり (pdb 生成)</td>
+</tr>
+</tbody>
+</table>
+<p>Release ビルドで pdb を生成する場合は、<code>RelWithDebInfo</code> 構成を使用します。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

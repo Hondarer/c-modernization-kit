@@ -1,0 +1,305 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>サブディレクトリの OS フィルタリング</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">サブディレクトリの OS フィルタリング</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Mon, 2 Mar 2026 07:07:40 +0900 a2acfde</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#フィルタルール" id="toc-フィルタルール"><span class="toc-section-number">2</span> フィルタルール</a></li>
+                <li><a href="#ディレクトリ構成例" id="toc-ディレクトリ構成例"><span class="toc-section-number">3</span> ディレクトリ構成例</a>
+                <ul>
+                <li><a href="#linux-での実行結果" id="toc-linux-での実行結果"><span class="toc-section-number">3.1</span> Linux での実行結果</a></li>
+                <li><a href="#windows-での実行結果" id="toc-windows-での実行結果"><span class="toc-section-number">3.2</span> Windows での実行結果</a></li>
+                </ul></li>
+                <li><a href="#複数階層での動作" id="toc-複数階層での動作"><span class="toc-section-number">4</span> 複数階層での動作</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>サブディレクトリの OS フィルタリング</H1>
+      
+      
+      <p>本ドキュメントでは、makemain.mk におけるサブディレクトリの OS フィルタリング機能について説明します。</p>
+<h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>makemain.mk では、サブディレクトリの再帰的 make 処理に先立ち、ディレクトリ名に基づく OS フィルタリングを行います。これにより、プラットフォーム固有のコードをディレクトリ単位で分離できます。</p>
+<h1 data-number="2" id="フィルタルール"><span class="header-section-number">2</span> フィルタルール</h1>
+<p>サブディレクトリの <strong>最終ディレクトリ名</strong> (大文字小文字を無視) に基づいて、以下のルールで判定します。</p>
+<table>
+<thead>
+<tr>
+<th>最終ディレクトリ名</th>
+<th style="text-align: center;">Linux</th>
+<th style="text-align: center;">Windows</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>linux</code></td>
+<td style="text-align: center;">有効</td>
+<td style="text-align: center;">除外</td>
+<td>Linux 固有のコード</td>
+</tr>
+<tr>
+<td><code>windows</code></td>
+<td style="text-align: center;">除外</td>
+<td style="text-align: center;">有効</td>
+<td>Windows 固有のコード</td>
+</tr>
+<tr>
+<td><code>shared</code></td>
+<td style="text-align: center;">有効</td>
+<td style="text-align: center;">有効</td>
+<td>両 OS 共通コード (明示的)</td>
+</tr>
+<tr>
+<td>その他</td>
+<td style="text-align: center;">有効</td>
+<td style="text-align: center;">有効</td>
+<td>デフォルト動作</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>shared</code> とその他は動作上同じですが、<code>shared</code> はクロスプラットフォームであることを明示する意図で使用します。</li>
+<li>大文字小文字を無視するため、<code>Linux</code>、<code>LINUX</code>、<code>linux</code> はすべて同一視されます。</li>
+</ul>
+<h1 data-number="3" id="ディレクトリ構成例"><span class="header-section-number">3</span> ディレクトリ構成例</h1>
+<pre class="text"><code>prod/calc/src/calcapp/
++-- makefile
++-- shared/          # 両 OS で有効 (明示的)
+|   +-- makefile
+|   +-- common.c
++-- linux/           # Linux でのみ有効
+|   +-- makefile
+|   +-- platform_linux.c
++-- windows/         # Windows でのみ有効
+|   +-- makefile
+|   +-- platform_windows.c
++-- utils/           # 両 OS で有効 (デフォルト)
+    +-- makefile
+    +-- helper.c</code></pre>
+<h2 data-number="3.1" id="linux-での実行結果"><span class="header-section-number">3.1</span> Linux での実行結果</h2>
+<pre class="text"><code>SUBDIRS = linux/ shared/ utils/</code></pre>
+<h2 data-number="3.2" id="windows-での実行結果"><span class="header-section-number">3.2</span> Windows での実行結果</h2>
+<pre class="text"><code>SUBDIRS = shared/ utils/ windows/</code></pre>
+<h1 data-number="4" id="複数階層での動作"><span class="header-section-number">4</span> 複数階層での動作</h1>
+<p>サブディレクトリが複数階層にまたがる場合、各階層で個別にフィルタリングが適用されます。最終ディレクトリ名のみで判定されるため、中間階層の名前は影響しません。</p>
+<pre class="text"><code>prod/calc/src/calcapp/
++-- platform/           # &quot;platform&quot; → 両 OS で有効
+    +-- makefile
+    +-- linux/           # &quot;linux&quot; → Linux でのみ有効
+    |   +-- makefile
+    |   +-- impl_linux.c
+    +-- windows/         # &quot;windows&quot; → Windows でのみ有効
+        +-- makefile
+        +-- impl_windows.c</code></pre>
+<p>この場合、<code>calcapp/</code> レベルでは <code>platform/</code> が両 OS で有効となり、<code>platform/</code> 内で再帰的に make が実行される際に <code>linux/</code> または <code>windows/</code> がフィルタリングされます。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

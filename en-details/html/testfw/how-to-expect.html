@@ -1,0 +1,524 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="github-actions[bot]" />
+  <title>How to expect</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">How to expect</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">github-actions[bot]</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 21:06:51 +0000 cbf6a8f</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#引数のマッチング" id="toc-引数のマッチング"><span class="toc-section-number">1</span> 引数のマッチング</a>
+                <ul>
+                <li><a href="#char-のマッチ" id="toc-char-のマッチ"><span class="toc-section-number">1.1</span> char* のマッチ</a></li>
+                </ul></li>
+                <li><a href="#呼び出し回数の制限-times" id="toc-呼び出し回数の制限-times"><span class="toc-section-number">2</span> 呼び出し回数の制限 (Times)</a>
+                <ul>
+                <li><a href="#times0" id="toc-times0"><span class="toc-section-number">2.1</span> Times(0)</a></li>
+                <li><a href="#回以上の制限" id="toc-回以上の制限"><span class="toc-section-number">2.2</span> 2回以上の制限</a></li>
+                </ul></li>
+                <li><a href="#結果-返却値-の切り替え-willonce-willrepeatedly" id="toc-結果-返却値-の切り替え-willonce-willrepeatedly"><span class="toc-section-number">3</span> 結果 (返却値) の切り替え (WillOnce / WillRepeatedly)</a>
+                <ul>
+                <li><a href="#回目2回目3回目以降で返却値を変える" id="toc-回目2回目3回目以降で返却値を変える"><span class="toc-section-number">3.1</span> 1回目、2回目、3回目以降で返却値を変える</a></li>
+                <li><a href="#返却値以外の動作" id="toc-返却値以外の動作"><span class="toc-section-number">3.2</span> 返却値以外の動作</a></li>
+                </ul></li>
+                <li><a href="#デフォルト動作の定義-on_call" id="toc-デフォルト動作の定義-on_call"><span class="toc-section-number">4</span> デフォルト動作の定義 (ON_CALL)</a></li>
+                <li><a href="#expect_call-の引数評価順-マッチの優先度" id="toc-expect_call-の引数評価順-マッチの優先度"><span class="toc-section-number">5</span> EXPECT_CALL の引数評価順 (マッチの優先度)</a>
+                <ul>
+                <li><a href="#すべてにマッチする-_-は先に-上のほうで-定義しておく例" id="toc-すべてにマッチする-_-は先に-上のほうで-定義しておく例"><span class="toc-section-number">5.1</span> 「すべてにマッチする <code>_</code> は先に (上のほうで) 定義しておく」例</a></li>
+                </ul></li>
+                <li><a href="#expect_call-で呼び出し順序をテストする" id="toc-expect_call-で呼び出し順序をテストする"><span class="toc-section-number">6</span> EXPECT_CALL で呼び出し順序をテストする</a>
+                <ul>
+                <li><a href="#insequence-ブロックを使用する" id="toc-insequence-ブロックを使用する"><span class="toc-section-number">6.1</span> <code>InSequence</code> ブロックを使用する</a></li>
+                <li><a href="#sequence-オブジェクトを使う" id="toc-sequence-オブジェクトを使う"><span class="toc-section-number">6.2</span> <code>Sequence</code> オブジェクトを使う</a></li>
+                </ul></li>
+                <li><a href="#nicemock-とは" id="toc-nicemock-とは"><span class="toc-section-number">7</span> NiceMock とは</a>
+                <ul>
+                <li><a href="#nicemock-の使用例" id="toc-nicemock-の使用例"><span class="toc-section-number">7.1</span> <code>NiceMock</code> の使用例</a></li>
+                </ul></li>
+                <li><a href="#まとめ" id="toc-まとめ"><span class="toc-section-number">8</span> まとめ</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>How to expect</H1>
+      
+      
+      <p>This content was created by editing and refining material generated using AI.</p>
+<p>以下はよく利用されるシナリオに関して、平易に解説したものである。<br />
+より詳細は <a href="https://google.github.io/googletest/">GoogleTest User’s Guide</a> を参照のこと。</p>
+<h1 data-number="1" id="引数のマッチング"><span class="header-section-number">1</span> 引数のマッチング</h1>
+<h2 data-number="1.1" id="char-のマッチ"><span class="header-section-number">1.1</span> char* のマッチ</h2>
+<p>Google Mock では、引数が文字列 (<code>char*</code> など) の場合、文字列比較用のマッチャを利用できる。たとえば以下のようなマッチャがよく使われる。</p>
+<ul>
+<li><code>StrEq("期待する文字列")</code>: 完全一致</li>
+<li><code>StrCaseEq("期待する文字列")</code>: 大文字・小文字を区別しないで一致</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Mock対象のインターフェース (例)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MyInterface <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> <span class="op">~</span>MyInterface<span class="op">()</span> <span class="op">{}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> <span class="dt">int</span> DoSomething<span class="op">(</span><span class="at">const</span> <span class="dt">char</span><span class="op">*</span> str<span class="op">)</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Mockクラス</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MockMyInterface <span class="op">:</span> <span class="kw">public</span> MyInterface <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    MOCK_METHOD<span class="op">(</span><span class="dt">int</span><span class="op">,</span> DoSomething<span class="op">,</span> <span class="op">(</span><span class="at">const</span> <span class="dt">char</span><span class="op">*</span> str<span class="op">),</span> <span class="op">(</span><span class="kw">override</span><span class="op">));</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>TEST<span class="op">(</span>MyTest<span class="op">,</span> CharPointerMatch<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    MockMyInterface mock<span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// &quot;Hello&quot; という文字列が引数として渡される呼び出しを期待</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>StrEq<span class="op">(</span><span class="st">&quot;Hello&quot;</span><span class="op">)))</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>Times<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 実際のコード側: 呼び出し</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;Hello&quot;</span><span class="op">);</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>この例では、<code>DoSomething("Hello")</code> が1回呼ばれることをチェックしている。もし大文字・小文字を区別しないでチェックしたい場合は <code>StrCaseEq("hello")</code> などを利用できる。</p>
+<p>また、引数が正規表現にマッチするかどうかをチェックしたいときは、Google Mock の <code>MatchesRegex</code> マッチャを使用できる。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// &quot;test&quot; を含む文字列にマッチさせる例</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>MatchesRegex<span class="op">(</span><span class="st">&quot;.*test.*&quot;</span><span class="op">)))</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>WillOnce<span class="op">(</span>Return<span class="op">(</span><span class="dv">1</span><span class="op">));</span></span></code></pre></div>
+<p>この例は、「どこかに <code>test</code> という文字列が含まれていればOK」というマッチになる。たとえば <code>"mytestdata"</code> や <code>"this is a test string"</code> などがヒットする。</p>
+<h1 data-number="2" id="呼び出し回数の制限-times"><span class="header-section-number">2</span> 呼び出し回数の制限 (Times)</h1>
+<h2 data-number="2.1" id="times0"><span class="header-section-number">2.1</span> Times(0)</h2>
+<p><strong>Times(0)</strong> は、「その関数は呼ばれてはいけない」ことを示す。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>_<span class="op">))</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>ここで <code>(_)</code> は「どんな引数でも」というワイルドカードである。<code>Times(0)</code> と宣言しているので、テスト中に <code>mock.DoSomething(...)</code> が一度でも呼ばれるとテストが失敗する。呼ばれてほしくないパスを明示することで、誤って呼んでいないかを検証できる。</p>
+<h2 data-number="2.2" id="回以上の制限"><span class="header-section-number">2.2</span> 2回以上の制限</h2>
+<p>呼び出し回数に制限を設ける場合、以下のように書く。</p>
+<ul>
+<li><code>Times(2)</code>: ちょうど2回呼ばれることを期待</li>
+<li><code>Times(AtLeast(n))</code>: <strong>最低</strong> n 回以上呼ばれることを期待</li>
+<li><code>Times(AtMost(n))</code>: <strong>最大</strong> n 回まで呼ばれることを期待</li>
+<li><code>Times(Between(a, b))</code>: a回以上、b回以下の呼び出しを期待</li>
+<li><code>Times(AnyNumber())</code>: 何回でもよい</li>
+</ul>
+<p>例:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ちょうど 2 回呼び出される</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>StrEq<span class="op">(</span><span class="st">&quot;CountUp&quot;</span><span class="op">)))</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span><span class="dv">2</span><span class="op">);</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2回以上ならOK</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>StrEq<span class="op">(</span><span class="st">&quot;CountUp&quot;</span><span class="op">)))</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span>AtLeast<span class="op">(</span><span class="dv">2</span><span class="op">));</span></span></code></pre></div>
+<h1 data-number="3" id="結果-返却値-の切り替え-willonce-willrepeatedly"><span class="header-section-number">3</span> 結果 (返却値) の切り替え (WillOnce / WillRepeatedly)</h1>
+<h2 data-number="3.1" id="回目2回目3回目以降で返却値を変える"><span class="header-section-number">3.1</span> 1回目、2回目、3回目以降で返却値を変える</h2>
+<p><code>WillOnce</code> は「その指定した呼び出し回数分だけ、ある動作を行う」ために使う。複数回 <code>WillOnce</code> をつないで書くことで、回数に応じて返却値 (あるいは動作) を変化させられる。その後、さらに呼び出しが続くときは <code>WillRepeatedly</code> が使われる。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 例: 1回目は 10 を返す、2回目は 20 を返す、3回目以降は常に -1 を返す</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>_<span class="op">))</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span>AnyNumber<span class="op">())</span>                  <span class="co">// 呼び出し回数自体は制限しない</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>WillOnce<span class="op">(</span>Return<span class="op">(</span><span class="dv">10</span><span class="op">))</span>               <span class="co">// 1回目</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>WillOnce<span class="op">(</span>Return<span class="op">(</span><span class="dv">20</span><span class="op">))</span>               <span class="co">// 2回目</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>WillRepeatedly<span class="op">(</span>Return<span class="op">(-</span><span class="dv">1</span><span class="op">));</span>        <span class="co">// 3回目以降</span></span></code></pre></div>
+<p>以下のような呼び出しを想定する。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 実際のコード側:</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;1回目: &quot;</span> <span class="op">&lt;&lt;</span> mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;test1&quot;</span><span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span>  <span class="co">// =&gt; 10</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;2回目: &quot;</span> <span class="op">&lt;&lt;</span> mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;test2&quot;</span><span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span>  <span class="co">// =&gt; 20</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;3回目: &quot;</span> <span class="op">&lt;&lt;</span> mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;test3&quot;</span><span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span>  <span class="co">// =&gt; -1</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>cout <span class="op">&lt;&lt;</span> <span class="st">&quot;4回目: &quot;</span> <span class="op">&lt;&lt;</span> mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;test4&quot;</span><span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span>  <span class="co">// =&gt; -1</span></span></code></pre></div>
+<h2 data-number="3.2" id="返却値以外の動作"><span class="header-section-number">3.2</span> 返却値以外の動作</h2>
+<p><code>WillOnce(...)</code> / <code>WillRepeatedly(...)</code> には、<code>Return()</code> だけでなく <code>Invoke()</code> や <code>InvokeWithoutArgs()</code> など、さらに複雑な処理を実装することも可能である。たとえば「モック内でカウンタを増やしてログを出力する」などの挙動を仕込むこともできる。</p>
+<h1 data-number="4" id="デフォルト動作の定義-on_call"><span class="header-section-number">4</span> デフォルト動作の定義 (ON_CALL)</h1>
+<p>すべてのテストで <code>EXPECT_CALL</code> を書くとコードが煩雑になる場合や、「あるメソッドの既定の返却値はテスト全体で共通にしておきたい」というケースがある。そのようなときに <code>ON_CALL</code> を使うと、モックに対する<strong>デフォルトの動作</strong>を定義できる。</p>
+<p><code>ON_CALL(mock, メソッド(引数マッチャ))...</code> は、具体的な <strong>期待</strong>(Expect) ではなく、「もし呼ばれたらこう振る舞う」という<strong>動作設定</strong>を与える。呼び出しが本当に起こるかどうかは <code>EXPECT_CALL</code> で別に検証する。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MockMyInterface <span class="op">:</span> <span class="kw">public</span> MyInterface <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    MOCK_METHOD<span class="op">(</span><span class="dt">int</span><span class="op">,</span> DoSomething<span class="op">,</span> <span class="op">(</span><span class="at">const</span> <span class="dt">char</span><span class="op">*</span> str<span class="op">),</span> <span class="op">(</span><span class="kw">override</span><span class="op">));</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>TEST<span class="op">(</span>MyTest<span class="op">,</span> OnCallDefaultBehavior<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    MockMyInterface mock<span class="op">;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// デフォルト動作を設定: どんな文字列がきても -1 を返す</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    ON_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>_<span class="op">))</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>WillByDefault<span class="op">(</span>Return<span class="op">(-</span><span class="dv">1</span><span class="op">));</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 特定のケースだけ、挙動を上書きして期待も設定</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>StrEq<span class="op">(</span><span class="st">&quot;special&quot;</span><span class="op">)))</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>WillOnce<span class="op">(</span>Return<span class="op">(</span><span class="dv">999</span><span class="op">));</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// テストコード内の呼び出し</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// special 以外ならデフォルトの -1、&quot;special&quot; なら 999 を返す</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    EXPECT_EQ<span class="op">(</span>mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;foo&quot;</span><span class="op">),</span> <span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    EXPECT_EQ<span class="op">(</span>mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;special&quot;</span><span class="op">),</span> <span class="dv">999</span><span class="op">);</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>このように <code>ON_CALL</code> でデフォルト (既定) の動作を定義しておき、<strong>特定の引数に対する期待と動作を <code>EXPECT_CALL</code> で上書きする</strong>、という使い分けを行うとよい。</p>
+<h1 data-number="5" id="expect_call-の引数評価順-マッチの優先度"><span class="header-section-number">5</span> EXPECT_CALL の引数評価順 (マッチの優先度)</h1>
+<p>Google Mock では、1つのモックメソッドに対して複数の <code>EXPECT_CALL</code> を書くとき、<strong>「最後に定義した期待が最初に評価される」</strong> というルールがある。つまり、</p>
+<ol type="1">
+<li>テストコード上で書かれた順に上から下へ <code>EXPECT_CALL</code> を定義していく</li>
+<li>実行時にモックメソッドが呼び出されたら、<strong>下 (最後) に定義した <code>EXPECT_CALL</code></strong> から順に「この呼び出しにマッチするか？」をチェックする</li>
+<li>マッチした時点で、その <code>EXPECT_CALL</code> の動作が適用される</li>
+</ol>
+<p>したがって、<strong>特定の引数パターンを先に書き、その後に「どんな引数でもマッチする (<code>_</code>)」というパターンを書いてしまうと、後ろの <code>_</code> が優先されてしまう</strong> 可能性がある。一般的に「もっとも限定的 (具体的) なマッチ」を後に書きたい場合は、その意図に沿って定義順を工夫する必要がある。</p>
+<h2 data-number="5.1" id="すべてにマッチする-_-は先に-上のほうで-定義しておく例"><span class="header-section-number">5.1</span> 「すべてにマッチする <code>_</code> は先に (上のほうで) 定義しておく」例</h2>
+<p>もし「ある条件に厳密にマッチさせたい <code>EXPECT_CALL</code>」と「デフォルトでマッチしてほしい <code>_</code>」を共存させる場合、Google Mock の“最後に定義したもの優先”の特性を踏まえると、以下のように書くことが多い。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// (1) まず「どんな引数でもマッチする」ルールを定義</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>_<span class="op">))</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span>AnyNumber<span class="op">())</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>WillRepeatedly<span class="op">(</span>Return<span class="op">(-</span><span class="dv">1</span><span class="op">));</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">// (2) その後で、特定の引数のルールを定義 (こちらが優先される)</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>StrEq<span class="op">(</span><span class="st">&quot;Hello&quot;</span><span class="op">)))</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>Times<span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>WillOnce<span class="op">(</span>Return<span class="op">(</span><span class="dv">999</span><span class="op">));</span></span></code></pre></div>
+<p>この順番にすることで、以下のような動きになる。</p>
+<ol type="1">
+<li><code>DoSomething("Hello")</code> が呼ばれた → まず後で定義した (2) の <code>EXPECT_CALL</code> にマッチするかをチェック → マッチするので、<strong>999</strong> が返る。</li>
+<li><code>DoSomething("Other")</code> が呼ばれた → (2) はマッチしないので、次に (1) の <code>_</code> がマッチ → <strong>-1</strong> が返る。</li>
+</ol>
+<p>もしこれを逆に書いてしまうと、(2) のほうが先に定義され、(1) のほうが後に定義されるため、<code>DoSomething("Hello")</code> が呼ばれたとき、(1) の <code>_</code> が優先して評価されてしまう (マッチしてしまう) ので、意図どおりに「Hello だけ特別な返却値」を返せなくなる可能性が高い。</p>
+<h1 data-number="6" id="expect_call-で呼び出し順序をテストする"><span class="header-section-number">6</span> EXPECT_CALL で呼び出し順序をテストする</h1>
+<p>Google Mock では、複数のメソッド呼び出しが特定の順序で行われることをテストできる。主に以下の方法がある。</p>
+<h2 data-number="6.1" id="insequence-ブロックを使用する"><span class="header-section-number">6.1</span> <code>InSequence</code> ブロックを使用する</h2>
+<p><code>InSequence</code> オブジェクトをスコープ内に配置すると、そのスコープ内で記述した <code>EXPECT_CALL</code> が記述順に呼ばれることを期待する。</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    testing<span class="op">::</span>InSequence seq<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> MethodA<span class="op">()).</span>Times<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> MethodB<span class="op">()).</span>Times<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">// ここでは、MethodA() → MethodB() の順で呼び出されることをテスト</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">// 実際に MethodB() → MethodA() の順で呼ばれるとテスト失敗になる</span></span></code></pre></div>
+<p><code>InSequence</code> はシンプルで扱いやすい方法である。複数のメソッドに対して呼び出し順序をテストしたい場合に便利である。</p>
+<h2 data-number="6.2" id="sequence-オブジェクトを使う"><span class="header-section-number">6.2</span> <code>Sequence</code> オブジェクトを使う</h2>
+<p>より複雑な順序制御を行う場合は、<code>testing::Sequence</code> オブジェクトを使う。<code>Sequence</code> を使うと、複数のシーケンスを定義し、一部のメソッドはシーケンス1の順序に従う、一部のメソッドはシーケンス2の順序に従う、といった分割もできる。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Sequence s1<span class="op">,</span> s2<span class="op">;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">// s1 に属する呼び出し: M1 → M2 の順で呼ばれることを期待</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> M1<span class="op">())</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>InSequence<span class="op">(</span>s1<span class="op">);</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> M2<span class="op">())</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>InSequence<span class="op">(</span>s1<span class="op">);</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">// s2 に属する呼び出し: M3 → M4 の順で呼ばれることを期待</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> M3<span class="op">())</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>InSequence<span class="op">(</span>s2<span class="op">);</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> M4<span class="op">())</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>InSequence<span class="op">(</span>s2<span class="op">);</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co">// これら2つのシーケンス (s1, s2) はそれぞれ独立して順序をチェックする</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="co">// M1 → M2 の順と、M3 → M4 の順が守られていれば OK</span></span></code></pre></div>
+<p>シーケンス間の順序制御はとくに指定しない限り独立なので、たとえば s1 に属する呼び出しの途中に s2 の呼び出しが行われても構わない。</p>
+<h1 data-number="7" id="nicemock-とは"><span class="header-section-number">7</span> NiceMock とは</h1>
+<p>テストを作成しているときに、「モッククラスで定義しているメソッドが未使用の場合や、意図しない呼び出しが行われる場合」の警告が煩わしく感じることがある。Google Mock では以下のような仕組みが用意されている。</p>
+<ul>
+<li><code>StrictMock&lt;T&gt;</code>: 未設定の呼び出しはすべてテスト失敗とする</li>
+<li><code>NiceMock&lt;T&gt;</code>: 未設定の呼び出しは許容し、テストを失敗させない（警告も出さない）</li>
+<li><code>NaggyMock&lt;T&gt;</code>: 未設定の呼び出しに対し警告を出すが、テストは失敗させない</li>
+</ul>
+<p>テストを記載していく中で、「想定外の呼び出しがあったときにテストを失敗させる」という Strict な設定はテスト記述の冗長性を高めたりハードルを上げたりすることがある。そこで、定義されていない呼び出しを許容する <code>NiceMock</code> を使うと、<strong>明示的に <code>EXPECT_CALL</code> しなかったメソッドが呼ばれてもテスト失敗にならない</strong> ため、コストを下げつつテストが書けるというメリットがある。</p>
+<p>ただし <code>NiceMock</code> は「想定外の呼び出し」があっても見逃してしまうため、大規模なテストでバグが混入しやすくなる可能性がある。最初は <code>NiceMock</code> を使いつつ、テストがこなれてきたら <code>NaggyMock</code> や <code>StrictMock</code> に切り替えていく、という運用が良い。</p>
+<h2 data-number="7.1" id="nicemock-の使用例"><span class="header-section-number">7.1</span> <code>NiceMock</code> の使用例</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="op">::</span>testing<span class="op">::</span>NiceMock<span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MockMyInterface <span class="op">:</span> <span class="kw">public</span> MyInterface <span class="op">{</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    MOCK_METHOD<span class="op">(</span><span class="dt">int</span><span class="op">,</span> DoSomething<span class="op">,</span> <span class="op">(</span><span class="at">const</span> <span class="dt">char</span><span class="op">*</span> str<span class="op">),</span> <span class="op">(</span><span class="kw">override</span><span class="op">));</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>TEST<span class="op">(</span>MyTest<span class="op">,</span> NiceMockExample<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// NiceMock 化</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    NiceMock<span class="op">&lt;</span>MockMyInterface<span class="op">&gt;</span> mock<span class="op">;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ここでは特定の引数 &quot;Hello&quot; に対する期待を設定</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    EXPECT_CALL<span class="op">(</span>mock<span class="op">,</span> DoSomething<span class="op">(</span>StrEq<span class="op">(</span><span class="st">&quot;Hello&quot;</span><span class="op">)))</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>WillOnce<span class="op">(</span>Return<span class="op">(</span><span class="dv">123</span><span class="op">));</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// &quot;Hello&quot; 以外の文字列を渡してもテストが失敗したり警告が出たりしない</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;Hello&quot;</span><span class="op">);</span>    <span class="co">// =&gt; 123</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    mock<span class="op">.</span>DoSomething<span class="op">(</span><span class="st">&quot;Other&quot;</span><span class="op">);</span>    <span class="co">// =&gt; 期待を設定していないがエラーにならない</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>このように、<code>NiceMock</code> を使うと「厳密にどのメソッドが呼ばれたかはあまり気にしない」状況で、とりあえずテストを通す・試験的にモックを利用してみる、といったケースで重宝する。</p>
+<h1 data-number="8" id="まとめ"><span class="header-section-number">8</span> まとめ</h1>
+<ul>
+<li><strong>引数のマッチング</strong>では、<code>StrEq</code> や <code>MatchesRegex</code> などを使うことで、文字列や正規表現に対する一致を指定できる。<br />
+</li>
+<li><strong>呼び出し回数の制限 (Times)</strong> では、<code>Times(0)</code> で「呼ばれてはいけない」というテスト、<code>Times(2)</code> で「ちょうど2回」、<code>AtLeast(2)</code> で「2回以上」など、細かい条件を指定できる。<br />
+</li>
+<li><strong>返却値の切り替え (WillOnce, WillRepeatedly)</strong> を用いると、呼び出し回数に応じて返却する値や動作を変化させることができる。<br />
+</li>
+<li><strong>デフォルト動作 (ON_CALL)</strong> では、モックが呼ばれた際の標準的な挙動を定義しておき、一部ケースで <code>EXPECT_CALL</code> によって上書き (あるいは厳密な期待設定) をする使い方が一般的である。<br />
+</li>
+<li><strong>EXPECT_CALL のマッチ優先度</strong>は「<strong>最後に定義したものが最初にマッチ判定される</strong>」ため、特定の引数に厳密にマッチさせたい <code>EXPECT_CALL</code> を後に書き、どんな引数でもよい <code>_</code> のようなルールは先に書くのがセオリーである。</li>
+<li><strong>呼び出し順序のテスト</strong>は <code>InSequence</code> や <code>Sequence</code> を活用することで、「メソッドA→メソッドBの順で呼び出されること」を厳密にチェックできる。</li>
+<li><strong>NiceMock</strong> は、未設定の呼び出しがあってもテストを失敗させず、コストを下げるために有用である。大規模・本格的にモックを利用する際は <code>NaggyMock</code> や <code>StrictMock</code> も検討するとよい。</li>
+</ul>
+<p>これらを踏まえると、Google Mock で柔軟かつ意図通りのテストを組むことが可能になる。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Doxybook2 出力の調査結果</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Doxybook2 出力の調査結果</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#調査概要" id="toc-調査概要"><span class="toc-section-number">1</span> 調査概要</a></li>
+                <li><a href="#調査結果" id="toc-調査結果"><span class="toc-section-number">2</span> 調査結果</a>
+                <ul>
+                <li><a href="#doxybook2-の着色機能" id="toc-doxybook2-の着色機能"><span class="toc-section-number">2.1</span> Doxybook2 の着色機能</a></li>
+                <li><a href="#spdlog-の出力形式" id="toc-spdlog-の出力形式"><span class="toc-section-number">2.2</span> spdlog の出力形式</a></li>
+                <li><a href="#spdlog-のデフォルト着色" id="toc-spdlog-のデフォルト着色"><span class="toc-section-number">2.3</span> spdlog のデフォルト着色</a></li>
+                </ul></li>
+                <li><a href="#doxybook2-のコマンドラインオプション" id="toc-doxybook2-のコマンドラインオプション"><span class="toc-section-number">3</span> Doxybook2 のコマンドラインオプション</a></li>
+                <li><a href="#参考情報" id="toc-参考情報"><span class="toc-section-number">4</span> 参考情報</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Doxybook2 出力の調査結果</H1>
+      
+      
+      <h1 data-number="1" id="調査概要"><span class="header-section-number">1</span> 調査概要</h1>
+<p>Doxybook2 の出力形式と着色パターンについて調査を実施しました。</p>
+<h1 data-number="2" id="調査結果"><span class="header-section-number">2</span> 調査結果</h1>
+<h2 data-number="2.1" id="doxybook2-の着色機能"><span class="header-section-number">2.1</span> Doxybook2 の着色機能</h2>
+<p>Doxybook2 は <a href="https://github.com/gabime/spdlog">spdlog</a> ライブラリを使用してログ出力を行っており、デフォルトで ANSI カラーコードによる着色が有効になっています。</p>
+<p>spdlog は 2022 年頃に Doxybook2 に統合され、以前のカスタム Log.hpp/cpp ファイルを置き換えています。</p>
+<h2 data-number="2.2" id="spdlog-の出力形式"><span class="header-section-number">2.2</span> spdlog の出力形式</h2>
+<p>spdlog のデフォルト出力形式は以下の通りです。</p>
+<pre class="text"><code>[2022-07-05 14:25:26.685] [info] Welcome to spdlog!
+[2022-07-05 14:25:26.686] [warning] Configuration file not found
+[2022-07-05 14:25:26.687] [error] Failed to parse XML</code></pre>
+<p>各行の構成:<br />
+- タイムスタンプ (ミリ秒まで)<br />
+- ログレベル (<code>[info]</code>, <code>[warning]</code>, <code>[error]</code> など)<br />
+- メッセージ本文</p>
+<h2 data-number="2.3" id="spdlog-のデフォルト着色"><span class="header-section-number">2.3</span> spdlog のデフォルト着色</h2>
+<p>spdlog の <code>ansicolor_sink</code> は、以下のデフォルトカラーマッピングを使用します。</p>
+<table>
+<thead>
+<tr>
+<th>ログレベル</th>
+<th>ANSI カラーコード</th>
+<th>表示色</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[trace]</code></td>
+<td><code>\033[37m</code></td>
+<td>白</td>
+<td>通常の太さ</td>
+</tr>
+<tr>
+<td><code>[debug]</code></td>
+<td><code>\033[36m</code></td>
+<td>シアン</td>
+<td>通常の太さ</td>
+</tr>
+<tr>
+<td><code>[info]</code></td>
+<td><code>\033[32m</code></td>
+<td>🟢 緑</td>
+<td>通常の太さ</td>
+</tr>
+<tr>
+<td><code>[warning]</code></td>
+<td><code>\033[1;33m</code></td>
+<td>🟡 黄</td>
+<td>太字</td>
+</tr>
+<tr>
+<td><code>[error]</code></td>
+<td><code>\033[1;31m</code></td>
+<td>🔴 赤</td>
+<td>太字</td>
+</tr>
+<tr>
+<td><code>[critical]</code></td>
+<td><code>\033[1;41m</code></td>
+<td>赤背景</td>
+<td>太字 + 赤背景</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="doxybook2-のコマンドラインオプション"><span class="header-section-number">3</span> Doxybook2 のコマンドラインオプション</h1>
+<p>Doxybook2 には <code>-q, --quiet</code> オプションが存在します。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxybook2</span> <span class="at">-q</span> <span class="at">-i</span> xml/ <span class="at">-o</span> output/</span></code></pre></div>
+<p>このオプションは stdout を抑制し、stderr にエラーとワーニングのみを出力します。</p>
+<h1 data-number="4" id="参考情報"><span class="header-section-number">4</span> 参考情報</h1>
+<ul>
+<li><a href="https://github.com/matusnovak/doxybook2">GitHub - matusnovak/doxybook2: Doxygen XML to Markdown (or JSON)</a></li>
+<li><a href="https://github.com/gabime/spdlog">GitHub - gabime/spdlog: Fast C++ logging library</a></li>
+<li><a href="https://internal.dunescience.org/doxygen/classspdlog_1_1sinks_1_1ansicolor__sink.html">spdlog::sinks::ansicolor_sink Class Template Reference</a></li>
+<li><a href="https://github.com/gabime/spdlog/wiki/Custom-formatting">spdlog Custom formatting Wiki</a></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>doxybook2 のメンバーグループ非対応について</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">doxybook2 のメンバーグループ非対応について</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#doxygen-のメンバーグループ機能" id="toc-doxygen-のメンバーグループ機能"><span class="toc-section-number">1</span> Doxygen のメンバーグループ機能</a></li>
+                <li><a href="#doxygen-xml-出力の構造" id="toc-doxygen-xml-出力の構造"><span class="toc-section-number">2</span> Doxygen XML 出力の構造</a></li>
+                <li><a href="#doxybook2-の処理" id="toc-doxybook2-の処理"><span class="toc-section-number">3</span> doxybook2 の処理</a></li>
+                <li><a href="#出力結果" id="toc-出力結果"><span class="toc-section-number">4</span> 出力結果</a>
+                <ul>
+                <li><a href="#期待される出力" id="toc-期待される出力"><span class="toc-section-number">4.1</span> 期待される出力</a></li>
+                <li><a href="#実際の出力" id="toc-実際の出力"><span class="toc-section-number">4.2</span> 実際の出力</a></li>
+                </ul></li>
+                <li><a href="#推奨ワークアラウンド-section-によるファイルドキュメントの構造化" id="toc-推奨ワークアラウンド-section-によるファイルドキュメントの構造化"><span class="toc-section-number">5</span> 推奨ワークアラウンド: <code>@section</code> によるファイルドキュメントの構造化</a>
+                <ul>
+                <li><a href="#理由" id="toc-理由"><span class="toc-section-number">5.1</span> 理由</a></li>
+                <li><a href="#変換前-メンバーグループ使用" id="toc-変換前-メンバーグループ使用"><span class="toc-section-number">5.2</span> 変換前 (メンバーグループ使用)</a></li>
+                <li><a href="#変換後-推奨-section-使用" id="toc-変換後-推奨-section-使用"><span class="toc-section-number">5.3</span> 変換後 (推奨: <code>@section</code> 使用)</a></li>
+                <li><a href="#出力結果の比較" id="toc-出力結果の比較"><span class="toc-section-number">5.4</span> 出力結果の比較</a></li>
+                <li><a href="#注意事項" id="toc-注意事項"><span class="toc-section-number">5.5</span> 注意事項</a></li>
+                <li><a href="#参考" id="toc-参考"><span class="toc-section-number">5.6</span> 参考</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>doxybook2 のメンバーグループ非対応について</H1>
+      
+      
+      <p>doxybook2 は Doxygen の「メンバーグループ」(<code>@name</code> + <code>@{</code>/<code>@}</code>) 機能に対応しておらず、<code>&lt;sectiondef kind="user-defined"&gt;</code> の <code>&lt;header&gt;</code> と <code>&lt;description&gt;</code> を完全に無視します。これは doxybook2 の設計上の制限です。</p>
+<h1 data-number="1" id="doxygen-のメンバーグループ機能"><span class="header-section-number">1</span> Doxygen のメンバーグループ機能</h1>
+<p>Doxygen では、<code>@name</code> コマンドと <code>@{</code>/<code>@}</code> マーカーを使用して、メンバーをグループ化できます。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@name</span><span class="co"> </span><span class="do">コンパイラ検出マクロ</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="re">@{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">/** </span><span class="an">@brief</span><span class="co"> MSVC コンパイラの場合に定義されます。 */</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COMPILER_MSVC</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">/** </span><span class="an">@brief</span><span class="co"> GCC コンパイラの場合に定義されます。 */</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COMPILER_GCC</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">/** </span><span class="re">@}</span><span class="co"> */</span></span></code></pre></div>
+<p>この記法により、Doxygen は XML 出力で <code>&lt;sectiondef kind="user-defined"&gt;</code> を生成します。</p>
+<h1 data-number="2" id="doxygen-xml-出力の構造"><span class="header-section-number">2</span> Doxygen XML 出力の構造</h1>
+<div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">sectiondef</span><span class="ot"> kind=</span><span class="st">&quot;user-defined&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">header</span>&gt;コンパイラ検出マクロ&lt;/<span class="kw">header</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">description</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">para</span>&gt;グループの詳細説明...&lt;/<span class="kw">para</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">memberdef</span><span class="ot"> kind=</span><span class="st">&quot;define&quot;</span><span class="ot"> id=</span><span class="st">&quot;...&quot;</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;COMPILER_MSVC&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">briefdescription</span>&gt;...&lt;/<span class="kw">briefdescription</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">memberdef</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">memberdef</span><span class="ot"> kind=</span><span class="st">&quot;define&quot;</span><span class="ot"> id=</span><span class="st">&quot;...&quot;</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;COMPILER_GCC&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">briefdescription</span>&gt;...&lt;/<span class="kw">briefdescription</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">memberdef</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">sectiondef</span>&gt;</span></code></pre></div>
+<h1 data-number="3" id="doxybook2-の処理"><span class="header-section-number">3</span> doxybook2 の処理</h1>
+<p>doxybook2 のソースコード (Node.cpp) では、<code>sectiondef</code> 要素を以下のように処理しています。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sectiondef <span class="op">=</span> compounddef<span class="op">.</span>firstChildElement<span class="op">(</span><span class="st">&quot;sectiondef&quot;</span><span class="op">);</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(</span>sectiondef<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> memberdef <span class="op">=</span> sectiondef<span class="op">.</span>firstChildElement<span class="op">(</span><span class="st">&quot;memberdef&quot;</span><span class="op">);</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>memberdef<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// memberdef のみを抽出</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        memberdef <span class="op">=</span> memberdef<span class="op">.</span>nextSiblingElement<span class="op">(</span><span class="st">&quot;memberdef&quot;</span><span class="op">);</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    sectiondef <span class="op">=</span> sectiondef<span class="op">.</span>nextSiblingElement<span class="op">(</span><span class="st">&quot;sectiondef&quot;</span><span class="op">);</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>この処理により、以下の情報が失われます。</p>
+<table>
+<thead>
+<tr>
+<th>XML 要素</th>
+<th>doxybook2 の処理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sectiondef kind</code> 属性</td>
+<td>確認しない (すべての sectiondef を同一視)</td>
+</tr>
+<tr>
+<td><code>&lt;header&gt;</code></td>
+<td>読み取らない (無視される)</td>
+</tr>
+<tr>
+<td><code>&lt;description&gt;</code></td>
+<td>読み取らない (無視される)</td>
+</tr>
+<tr>
+<td><code>&lt;memberdef&gt;</code></td>
+<td>抽出され、kind 属性に基づいてカテゴリ分け</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="出力結果"><span class="header-section-number">4</span> 出力結果</h1>
+<h2 data-number="4.1" id="期待される出力"><span class="header-section-number">4.1</span> 期待される出力</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## コンパイラ検出マクロ</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>グループの詳細説明...</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">### COMPILER_MSVC</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>MSVC コンパイラの場合に定義されます。</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">### COMPILER_GCC</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>GCC コンパイラの場合に定義されます。</span></code></pre></div>
+<h2 data-number="4.2" id="実際の出力"><span class="header-section-number">4.2</span> 実際の出力</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## 定数、マクロ</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">### COMPILER_MSVC</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>MSVC コンパイラの場合に定義されます。</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">### COMPILER_GCC</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>GCC コンパイラの場合に定義されます。</span></code></pre></div>
+<p>グループヘッダーとグループ説明が欠落し、すべてのマクロが「定数、マクロ」セクションにまとめられます。</p>
+<h1 data-number="5" id="推奨ワークアラウンド-section-によるファイルドキュメントの構造化"><span class="header-section-number">5</span> 推奨ワークアラウンド: <code>@section</code> によるファイルドキュメントの構造化</h1>
+<p>doxybook2 と Doxygen を併用するプロジェクトでは、メンバーグループ (<code>@name</code> + <code>@{</code>/<code>@}</code>) の代わりに、<code>@section</code> コマンドを使用してファイルドキュメント内で内容を構造化することを推奨します。</p>
+<h2 data-number="5.1" id="理由"><span class="header-section-number">5.1</span> 理由</h2>
+<ol type="1">
+<li><strong>doxybook2 が正しく処理する</strong>: <code>@section</code> は <code>&lt;sect1&gt;</code> 要素として出力され、doxybook2 で見出しとして変換されます。</li>
+<li><strong>グループ説明が保持される</strong>: テーブル、使用例、注意事項などの詳細説明がドキュメントに反映されます。</li>
+<li><strong>ファイル単位での一覧性</strong>: ファイルドキュメントを開くだけで、すべてのマクログループの概要が把握できます。</li>
+</ol>
+<h2 data-number="5.2" id="変換前-メンバーグループ使用"><span class="header-section-number">5.2</span> 変換前 (メンバーグループ使用)</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@file</span><span class="co">           </span><span class="cv">compiler.h</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          コンパイラ検出マクロのヘッダーファイル。</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@name</span><span class="co">           </span><span class="do">コンパイラ検出マクロ</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          コンパイラの種類を検出します。</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | コンパイラ | 識別マクロ    |</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | ---------- | ------------- |</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | MSVC       | COMPILER_MSVC |</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | GCC        | COMPILER_GCC  |</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="re">@{</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COMPILER_MSVC  </span><span class="co">/**&lt; MSVC の場合に定義。 */</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COMPILER_GCC   </span><span class="co">/**&lt; GCC の場合に定義。 */</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co">/** </span><span class="re">@}</span><span class="co"> */</span></span></code></pre></div>
+<h2 data-number="5.3" id="変換後-推奨-section-使用"><span class="header-section-number">5.3</span> 変換後 (推奨: <code>@section</code> 使用)</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"> *******************************************************************************</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@file</span><span class="co">           </span><span class="cv">compiler.h</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@brief</span><span class="co">          コンパイラ検出マクロのヘッダーファイル。</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="an">@section</span><span class="co">        </span><span class="cv">compiler_detection</span><span class="co"> コンパイラ検出マクロ</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *  コンパイラの種類を検出します。</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | コンパイラ | 識別マクロ    |</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | ---------- | ------------- |</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | MSVC       | COMPILER_MSVC |</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *  | GCC        | COMPILER_GCC  |</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span><span class="in">@note</span><span class="co">           Clang は __GNUC__ も定義するため、先に判定しています。</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"> *******************************************************************************</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COMPILER_MSVC  </span><span class="co">/**&lt; MSVC の場合に定義。 */</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COMPILER_GCC   </span><span class="co">/**&lt; GCC の場合に定義。 */</span></span></code></pre></div>
+<h2 data-number="5.4" id="出力結果の比較"><span class="header-section-number">5.4</span> 出力結果の比較</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>メンバーグループ</th>
+<th><code>@section</code> 使用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>グループ見出し</td>
+<td>❌ 出力されない</td>
+<td>✅ 出力される</td>
+</tr>
+<tr>
+<td>グループ説明 (テーブル等)</td>
+<td>❌ 出力されない</td>
+<td>✅ 出力される</td>
+</tr>
+<tr>
+<td>個別マクロの説明</td>
+<td>✅ 出力される</td>
+<td>✅ 出力される</td>
+</tr>
+<tr>
+<td>Doxygen HTML 出力</td>
+<td>✅ グループ化表示</td>
+<td>✅ セクション表示</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="5.5" id="注意事項"><span class="header-section-number">5.5</span> 注意事項</h2>
+<p><code>@section</code> は Doxygen XML で <code>&lt;sect1&gt;</code> として出力されます。doxybook2 はこれを Markdown の <code>#</code> (レベル1) に変換しますが、ファイルドキュメントの構造上 <code>#####</code> (レベル5) が適切です。</p>
+<p>同様に、<code>@subsection</code> は <code>&lt;sect2&gt;</code> として出力され、doxybook2 は <code>##</code> (レベル2) に変換しますが、<code>######</code> (レベル6) が適切です。</p>
+<p>本フレームワークでは、<code>preprocess.sh</code> で以下の変換を行うことで、適切な見出しレベルで出力されるようにしています。</p>
+<table>
+<thead>
+<tr>
+<th>Doxygen コマンド</th>
+<th>XML 要素</th>
+<th>変換後</th>
+<th>Markdown 見出し</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@section</code></td>
+<td><code>&lt;sect1&gt;</code></td>
+<td><code>&lt;sect5&gt;</code></td>
+<td><code>#####</code> (レベル5)</td>
+</tr>
+<tr>
+<td><code>@subsection</code></td>
+<td><code>&lt;sect2&gt;</code></td>
+<td><code>&lt;sect6&gt;</code></td>
+<td><code>######</code> (レベル6)</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="5.6" id="参考"><span class="header-section-number">5.6</span> 参考</h2>
+<ul>
+<li><code>@section</code> コマンドの詳細: <a href="commands.html">commands.md</a></li>
+<li>使用例: <a href="cheatsheet.html">cheatsheet.md</a></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

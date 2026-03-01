@@ -1,0 +1,575 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>Doxygen 関連図の Markdown 挿入</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Doxygen 関連図の Markdown 挿入</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#背景" id="toc-背景"><span class="toc-section-number">1</span> 背景</a></li>
+                <li><a href="#処理パイプライン" id="toc-処理パイプライン"><span class="toc-section-number">2</span> 処理パイプライン</a></li>
+                <li><a href="#対応するグラフの種類" id="toc-対応するグラフの種類"><span class="toc-section-number">3</span> 対応するグラフの種類</a>
+                <ul>
+                <li><a href="#ファイルレベルのグラフ" id="toc-ファイルレベルのグラフ"><span class="toc-section-number">3.1</span> ファイルレベルのグラフ</a></li>
+                <li><a href="#クラス構造体レベルのグラフ" id="toc-クラス構造体レベルのグラフ"><span class="toc-section-number">3.2</span> クラス/構造体レベルのグラフ</a></li>
+                <li><a href="#関数レベルのグラフ" id="toc-関数レベルのグラフ"><span class="toc-section-number">3.3</span> 関数レベルのグラフ</a></li>
+                </ul></li>
+                <li><a href="#doxygen-xml-のグラフデータ構造" id="toc-doxygen-xml-のグラフデータ構造"><span class="toc-section-number">4</span> Doxygen XML のグラフデータ構造</a>
+                <ul>
+                <li><a href="#graphtype-要素" id="toc-graphtype-要素"><span class="toc-section-number">4.1</span> graphType 要素</a></li>
+                <li><a href="#references-referencedby-要素" id="toc-references-referencedby-要素"><span class="toc-section-number">4.2</span> references / referencedby 要素</a></li>
+                </ul></li>
+                <li><a href="#生成される-plantuml-の例" id="toc-生成される-plantuml-の例"><span class="toc-section-number">5</span> 生成される PlantUML の例</a>
+                <ul>
+                <li><a href="#コールグラフ" id="toc-コールグラフ"><span class="toc-section-number">5.1</span> コールグラフ</a></li>
+                <li><a href="#呼び出し元グラフ" id="toc-呼び出し元グラフ"><span class="toc-section-number">5.2</span> 呼び出し元グラフ</a></li>
+                <li><a href="#インクルード依存グラフ" id="toc-インクルード依存グラフ"><span class="toc-section-number">5.3</span> インクルード依存グラフ</a></li>
+                <li><a href="#コラボレーション図" id="toc-コラボレーション図"><span class="toc-section-number">5.4</span> コラボレーション図</a></li>
+                </ul></li>
+                <li><a href="#設定と制御" id="toc-設定と制御"><span class="toc-section-number">6</span> 設定と制御</a>
+                <ul>
+                <li><a href="#グラフ生成の制御" id="toc-グラフ生成の制御"><span class="toc-section-number">6.1</span> グラフ生成の制御</a></li>
+                <li><a href="#ノード数の上限" id="toc-ノード数の上限"><span class="toc-section-number">6.2</span> ノード数の上限</a></li>
+                <li><a href="#インクルードグラフのラベル表示モード" id="toc-インクルードグラフのラベル表示モード"><span class="toc-section-number">6.3</span> インクルードグラフのラベル表示モード</a></li>
+                <li><a href="#スキップ条件" id="toc-スキップ条件"><span class="toc-section-number">6.4</span> スキップ条件</a></li>
+                </ul></li>
+                <li><a href="#技術的な詳細" id="toc-技術的な詳細"><span class="toc-section-number">7</span> 技術的な詳細</a>
+                <ul>
+                <li><a href="#xml-書式の保持" id="toc-xml-書式の保持"><span class="toc-section-number">7.1</span> XML 書式の保持</a></li>
+                <li><a href="#挿入位置" id="toc-挿入位置"><span class="toc-section-number">7.2</span> 挿入位置</a></li>
+                <li><a href="#plantuml-変換の流れ" id="toc-plantuml-変換の流れ"><span class="toc-section-number">7.3</span> PlantUML 変換の流れ</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Doxygen 関連図の Markdown 挿入</H1>
+      
+      
+      <p>このドキュメントでは、Doxygen が生成するグラフ情報を Markdown 版ドキュメントに PlantUML 形式で自動挿入する仕組みについて説明します。</p>
+<h1 data-number="1" id="背景"><span class="header-section-number">1</span> 背景</h1>
+<p>Doxygen は HTML ドキュメント生成時に Graphviz (dot) を用いてコールグラフ、インクルード依存図、コラボレーション図などの SVG 画像を生成します。しかし、Doxybook2 を経由した Markdown 変換ではこれらのグラフ情報が失われます。</p>
+<p>Doxybook2 はグラフデータをテンプレート変数として公開しておらず、プロジェクト自体も 2022 年にアーカイブされているため、今後の機能追加は見込めません。</p>
+<p>本機能は、Doxygen XML に含まれるグラフ構造データを解析し、PlantUML 形式に変換して Markdown ドキュメントに挿入することで、この課題を解決します。</p>
+<h1 data-number="2" id="処理パイプライン"><span class="header-section-number">2</span> 処理パイプライン</h1>
+<p>グラフ抽出は、既存のドキュメント生成パイプラインに統合されています。</p>
+<figure>
+<img src="puml_1777865ac2923cfa46a0b2e3952ae6a4d223a06e.svg" alt="グラフ抽出を含むドキュメント生成パイプライン" />
+<figcaption aria-hidden="true">グラフ抽出を含むドキュメント生成パイプライン</figcaption>
+</figure>
+<p><code>make docs</code> を実行すると、<code>extract-graphs.py</code> は <code>preprocess.sh</code> の前に自動的に呼び出されます。生成された <code>&lt;plantuml&gt;</code> タグは、既存の PlantUML 変換パイプラインによって Markdown コードフェンスに変換されます。</p>
+<h1 data-number="3" id="対応するグラフの種類"><span class="header-section-number">3</span> 対応するグラフの種類</h1>
+<h2 data-number="3.1" id="ファイルレベルのグラフ"><span class="header-section-number">3.1</span> ファイルレベルのグラフ</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>グラフ種別</th>
+<th>XML ソース要素</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>インクルード依存</td>
+<td><code>incdepgraph</code></td>
+<td>対象ファイルがインクルードしているファイルの関係を示します</td>
+</tr>
+<tr>
+<td>被インクルード関係</td>
+<td><code>invincdepgraph</code></td>
+<td>対象ファイルをインクルードしているファイルの関係を示します</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.2" id="クラス構造体レベルのグラフ"><span class="header-section-number">3.2</span> クラス/構造体レベルのグラフ</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>グラフ種別</th>
+<th>XML ソース要素</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>継承関係</td>
+<td><code>inheritancegraph</code></td>
+<td>クラスの継承階層を示します</td>
+</tr>
+<tr>
+<td>コラボレーション図</td>
+<td><code>collaborationgraph</code></td>
+<td>クラス/構造体のメンバ型の関連を示します</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.3" id="関数レベルのグラフ"><span class="header-section-number">3.3</span> 関数レベルのグラフ</h2>
+<table>
+<thead>
+<tr>
+<th>グラフ種別</th>
+<th>XML ソース要素</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>コールグラフ</td>
+<td><code>references</code></td>
+<td>対象関数が呼び出す関数を示します</td>
+</tr>
+<tr>
+<td>呼び出し元グラフ</td>
+<td><code>referencedby</code></td>
+<td>対象関数を呼び出す関数を示します</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="doxygen-xml-のグラフデータ構造"><span class="header-section-number">4</span> Doxygen XML のグラフデータ構造</h1>
+<h2 data-number="4.1" id="graphtype-要素"><span class="header-section-number">4.1</span> graphType 要素</h2>
+<p><code>incdepgraph</code>、<code>invincdepgraph</code>、<code>inheritancegraph</code>、<code>collaborationgraph</code> は共通の <code>graphType</code> 構造を持ちます。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">incdepgraph</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">node</span><span class="ot"> id=</span><span class="st">&quot;1&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">label</span>&gt;calculator.c&lt;/<span class="kw">label</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">link</span><span class="ot"> refid=</span><span class="st">&quot;calculator_8c&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">childnode</span><span class="ot"> refid=</span><span class="st">&quot;2&quot;</span><span class="ot"> relation=</span><span class="st">&quot;include&quot;</span>/&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">childnode</span><span class="ot"> refid=</span><span class="st">&quot;3&quot;</span><span class="ot"> relation=</span><span class="st">&quot;include&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">node</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">node</span><span class="ot"> id=</span><span class="st">&quot;2&quot;</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">label</span>&gt;calculator.h&lt;/<span class="kw">label</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">link</span><span class="ot"> refid=</span><span class="st">&quot;calculator_8h&quot;</span>/&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">node</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">node</span><span class="ot"> id=</span><span class="st">&quot;3&quot;</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">label</span>&gt;stdio.h&lt;/<span class="kw">label</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">node</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">incdepgraph</span>&gt;</span></code></pre></div>
+<p><code>node</code> 要素がグラフのノードを定義し、<code>childnode</code> 要素がノード間のエッジを定義します。<code>relation</code> 属性はエッジの種類を表します。</p>
+<p><code>relation</code> 属性の値と PlantUML 矢印の対応は以下の通りです。</p>
+<table>
+<thead>
+<tr>
+<th>relation 値</th>
+<th>意味</th>
+<th>PlantUML 矢印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>include</code></td>
+<td>インクルード関係</td>
+<td><code>--&gt;</code></td>
+</tr>
+<tr>
+<td><code>usage</code></td>
+<td>メンバ使用関係</td>
+<td><code>..&gt;</code></td>
+</tr>
+<tr>
+<td><code>public-inheritance</code></td>
+<td>public 継承</td>
+<td><code>--\|&gt;</code></td>
+</tr>
+<tr>
+<td><code>protected-inheritance</code></td>
+<td>protected 継承</td>
+<td><code>--\|&gt;</code></td>
+</tr>
+<tr>
+<td><code>private-inheritance</code></td>
+<td>private 継承</td>
+<td><code>--\|&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.2" id="references-referencedby-要素"><span class="header-section-number">4.2</span> references / referencedby 要素</h2>
+<p>関数間の呼び出し関係は、<code>memberdef</code> 要素の子要素として格納されます。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">memberdef</span><span class="ot"> kind=</span><span class="st">&quot;function&quot;</span><span class="ot"> id=</span><span class="st">&quot;calculator_8c_1a001&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">name</span>&gt;add&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- 略 --&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">references</span><span class="ot"> refid=</span><span class="st">&quot;calculator_8c_1a005&quot;</span><span class="ot"> compoundref=</span><span class="st">&quot;calculator_8c&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ot">              startline=</span><span class="st">&quot;10&quot;</span><span class="ot"> endline=</span><span class="st">&quot;10&quot;</span>&gt;validate_input&lt;/<span class="kw">references</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">referencedby</span><span class="ot"> refid=</span><span class="st">&quot;main_8c_1a099&quot;</span><span class="ot"> compoundref=</span><span class="st">&quot;main_8c&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="ot">                startline=</span><span class="st">&quot;25&quot;</span><span class="ot"> endline=</span><span class="st">&quot;25&quot;</span>&gt;main&lt;/<span class="kw">referencedby</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">memberdef</span>&gt;</span></code></pre></div>
+<p><code>references</code> は対象関数が呼び出す関数を、<code>referencedby</code> は対象関数を呼び出す関数を表します。</p>
+<p>これらの要素を XML に含めるには、Doxyfile で以下の設定が必要です。</p>
+<pre class="text"><code>REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES</code></pre>
+<h1 data-number="5" id="生成される-plantuml-の例"><span class="header-section-number">5</span> 生成される PlantUML の例</h1>
+<h2 data-number="5.1" id="コールグラフ"><span class="header-section-number">5.1</span> コールグラフ</h2>
+<p>関数 <code>divide</code> が <code>validate_input</code> と <code>check_zero</code> を呼び出す場合、以下の PlantUML が生成されます。</p>
+<figure>
+<img src="puml_b176fe62d6a2b4b98afbd068e62fd72ec0fc09de.svg" alt="divide の呼び出し先" />
+<figcaption aria-hidden="true">divide の呼び出し先</figcaption>
+</figure>
+<h2 data-number="5.2" id="呼び出し元グラフ"><span class="header-section-number">5.2</span> 呼び出し元グラフ</h2>
+<p>関数 <code>add</code> が <code>main</code> と <code>test_add</code> から呼び出される場合、以下の PlantUML が生成されます。</p>
+<figure>
+<img src="puml_fb590f982db20a69235a7acfedd99221533531b5.svg" alt="add の呼び出し元" />
+<figcaption aria-hidden="true">add の呼び出し元</figcaption>
+</figure>
+<h2 data-number="5.3" id="インクルード依存グラフ"><span class="header-section-number">5.3</span> インクルード依存グラフ</h2>
+<p><code>calculator.c</code> が <code>calculator.h</code> と <code>stdio.h</code> をインクルードする場合、以下の PlantUML が生成されます。</p>
+<figure>
+<img src="puml_ab9ed932febda0ed2e3ef1aaf25b1cb73d98dfc7.svg" alt="calculator.c のインクルード元" />
+<figcaption aria-hidden="true">calculator.c のインクルード元</figcaption>
+</figure>
+<h2 data-number="5.4" id="コラボレーション図"><span class="header-section-number">5.4</span> コラボレーション図</h2>
+<p>構造体 <code>UserInfo</code> が <code>char *</code> 型のメンバを持つ場合、以下の PlantUML が生成されます。</p>
+<figure>
+<img src="puml_6ab92a36b655feada0c8d6621f3cded0a69dee31.svg" alt="UserInfo のコラボレーション図" />
+<figcaption aria-hidden="true">UserInfo のコラボレーション図</figcaption>
+</figure>
+<h1 data-number="6" id="設定と制御"><span class="header-section-number">6</span> 設定と制御</h1>
+<h2 data-number="6.1" id="グラフ生成の制御"><span class="header-section-number">6.1</span> グラフ生成の制御</h2>
+<p>グラフの生成は Doxyfile の設定によって制御されます。</p>
+<table>
+<thead>
+<tr>
+<th>Doxyfile 設定</th>
+<th>対応するグラフ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>INCLUDE_GRAPH = YES</code></td>
+<td>インクルード依存グラフ</td>
+</tr>
+<tr>
+<td><code>INCLUDED_BY_GRAPH = YES</code></td>
+<td>被インクルード関係グラフ</td>
+</tr>
+<tr>
+<td><code>CLASS_GRAPH = YES</code></td>
+<td>継承グラフ</td>
+</tr>
+<tr>
+<td><code>COLLABORATION_GRAPH = YES</code></td>
+<td>コラボレーション図</td>
+</tr>
+<tr>
+<td><code>REFERENCES_RELATION = YES</code></td>
+<td>コールグラフ</td>
+</tr>
+<tr>
+<td><code>REFERENCED_BY_RELATION = YES</code></td>
+<td>呼び出し元グラフ</td>
+</tr>
+</tbody>
+</table>
+<p>これらの設定を <code>NO</code> にすると、対応する XML 要素が生成されなくなり、Markdown への図の挿入もスキップされます。</p>
+<h2 data-number="6.2" id="ノード数の上限"><span class="header-section-number">6.2</span> ノード数の上限</h2>
+<p><code>extract-graphs.py</code> では、グラフあたりの最大ノード数を 50 に設定しています。この値は Doxygen の <code>DOT_GRAPH_MAX_NODES</code> (デフォルト 50) に合わせています。この値を超えるグラフは生成をスキップします。上限値はスクリプト先頭の <code>DOT_GRAPH_MAX_NODES</code> 定数で変更できます。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>DOT_GRAPH_MAX_NODES <span class="op">=</span> <span class="dv">50</span></span></code></pre></div>
+<h2 data-number="6.3" id="インクルードグラフのラベル表示モード"><span class="header-section-number">6.3</span> インクルードグラフのラベル表示モード</h2>
+<p>インクルード依存グラフ・被インクルード関係グラフのノードラベルをファイル名のみにするかフルパスにするかを制御できます。スクリプト先頭の <code>INC_GRAPH_LABEL_BASENAME_ONLY</code> 定数で設定します。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>INC_GRAPH_LABEL_BASENAME_ONLY <span class="op">=</span> <span class="va">True</span></span></code></pre></div>
+<p>デフォルト値は <code>True</code> (ファイル名のみ) です。同一ファイル名が別フォルダに存在しない前提でこのモードを利用することを推奨します。フルパスで区別が必要な場合は <code>False</code> に変更してください。</p>
+<h2 data-number="6.4" id="スキップ条件"><span class="header-section-number">6.4</span> スキップ条件</h2>
+<p>以下の条件に該当する場合、グラフの生成はスキップされます。</p>
+<ul>
+<li>ノード数が <code>MAX_GRAPH_NODES</code> を超える場合</li>
+<li>エッジが 1 つもない場合 (ノードが 1 つだけで関係のないグラフ)</li>
+<li><code>index.xml</code> や <code>combine.xslt</code> 等のインデックスファイル</li>
+</ul>
+<h1 data-number="7" id="技術的な詳細"><span class="header-section-number">7</span> 技術的な詳細</h1>
+<h2 data-number="7.1" id="xml-書式の保持"><span class="header-section-number">7.1</span> XML 書式の保持</h2>
+<p><code>extract-graphs.py</code> は XML の解析に正規表現ベースのテキスト操作を使用しています。ElementTree 等の XML パーサを用いた場合、ファイル再書き込み時に属性の順序変更、空要素の展開、名前空間宣言の変更などが発生する可能性があります。正規表現による操作は、変更箇所以外の XML 書式を完全に保持します。</p>
+<h2 data-number="7.2" id="挿入位置"><span class="header-section-number">7.2</span> 挿入位置</h2>
+<p>生成された <code>&lt;plantuml&gt;</code> タグは、対象要素の <code>&lt;detaileddescription&gt;</code> 閉じタグの直前に <code>&lt;simplesect kind="par"&gt;</code> 要素で囲んで挿入されます。Doxybook2 の <code>details.tmpl</code> はこれを <code>par</code> セクションとして処理し、<code>####</code> 見出し付きの独立セクションとして出力します。</p>
+<p>compound レベルのグラフ (インクルード依存図等) は、<code>content.rfind()</code> により compounddef 自身の <code>&lt;/detaileddescription&gt;</code> を検索するため、memberdef 内ではなく正しい位置に挿入されます。</p>
+<pre class="text"><code>&lt;detaileddescription&gt;
+  &lt;para&gt;既存の説明テキスト&lt;/para&gt;
+  &lt;para&gt;&lt;simplesect kind=&quot;par&quot;&gt;&lt;title&gt;... の呼び出し先&lt;/title&gt;&lt;para&gt;&lt;plantuml&gt;
+caption ... の呼び出し先
+rectangle &quot;**...**&quot; as current #LightBlue
+...
+&lt;/plantuml&gt;&lt;/para&gt;&lt;/simplesect&gt;&lt;/para&gt;     ← ここに挿入
+&lt;/detaileddescription&gt;</code></pre>
+<h2 data-number="7.3" id="plantuml-変換の流れ"><span class="header-section-number">7.3</span> PlantUML 変換の流れ</h2>
+<p>挿入された <code>&lt;plantuml&gt;</code> タグは、<code>preprocess.sh</code> の既存の変換ルールによって Markdown コードフェンスに変換されます。</p>
+<pre class="text"><code>変換前 (XML):   &lt;plantuml&gt;caption Title ...&lt;/plantuml&gt;
+変換後 (テキスト): ```plantuml\n@startuml\ncaption Title ...@enduml\n```</code></pre>
+<p>doxybook2 はこのテキストを Markdown にそのまま出力するため、最終的な Markdown ファイルに PlantUML コードブロックが含まれます。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

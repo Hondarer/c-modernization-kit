@@ -1,0 +1,448 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>clang-format 設定の解説</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">clang-format 設定の解説</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 14:19:06 +0900 7a743da</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#オプションの値" id="toc-オプションの値"><span class="toc-section-number">2</span> オプションの値</a>
+                <ul>
+                <li><a href="#none-デフォルト" id="toc-none-デフォルト"><span class="toc-section-number">2.1</span> None (デフォルト)</a></li>
+                <li><a href="#afterhash-clang-6-で導入" id="toc-afterhash-clang-6-で導入"><span class="toc-section-number">2.2</span> AfterHash (Clang 6 で導入)</a></li>
+                <li><a href="#beforehash-clang-9-で導入" id="toc-beforehash-clang-9-で導入"><span class="toc-section-number">2.3</span> BeforeHash (Clang 9 で導入)</a></li>
+                </ul></li>
+                <li><a href="#デフォルトが-none-である歴史的経緯" id="toc-デフォルトが-none-である歴史的経緯"><span class="toc-section-number">3</span> デフォルトが None である歴史的経緯</a>
+                <ul>
+                <li><a href="#c-言語の仕様上の制約-1970年代1989年" id="toc-c-言語の仕様上の制約-1970年代1989年"><span class="toc-section-number">3.1</span> C 言語の仕様上の制約 (1970年代〜1989年)</a></li>
+                <li><a href="#プリプロセッサの独立性という設計思想" id="toc-プリプロセッサの独立性という設計思想"><span class="toc-section-number">3.2</span> プリプロセッサの独立性という設計思想</a></li>
+                <li><a href="#主要プロジェクトのコーディングスタイル" id="toc-主要プロジェクトのコーディングスタイル"><span class="toc-section-number">3.3</span> 主要プロジェクトのコーディングスタイル</a></li>
+                <li><a href="#既存コードベースへの影響の最小化" id="toc-既存コードベースへの影響の最小化"><span class="toc-section-number">3.4</span> 既存コードベースへの影響の最小化</a></li>
+                <li><a href="#オプションの追加時期" id="toc-オプションの追加時期"><span class="toc-section-number">3.5</span> オプションの追加時期</a></li>
+                </ul></li>
+                <li><a href="#beforehash-採用のメリット" id="toc-beforehash-採用のメリット"><span class="toc-section-number">4</span> BeforeHash 採用のメリット</a></li>
+                <li><a href="#alignconsecutivemacros" id="toc-alignconsecutivemacros"><span class="toc-section-number">5</span> AlignConsecutiveMacros</a>
+                <ul>
+                <li><a href="#オプションの説明" id="toc-オプションの説明"><span class="toc-section-number">5.1</span> オプションの説明</a></li>
+                <li><a href="#consecutive-本プロジェクトの設定" id="toc-consecutive-本プロジェクトの設定"><span class="toc-section-number">5.2</span> Consecutive (本プロジェクトの設定)</a></li>
+                <li><a href="#none-デフォルト-1" id="toc-none-デフォルト-1"><span class="toc-section-number">5.3</span> None (デフォルト)</a></li>
+                <li><a href="#デフォルトが-none-である理由" id="toc-デフォルトが-none-である理由"><span class="toc-section-number">5.4</span> デフォルトが None である理由</a></li>
+                <li><a href="#本プロジェクトで-consecutive-を採用した理由" id="toc-本プロジェクトで-consecutive-を採用した理由"><span class="toc-section-number">5.5</span> 本プロジェクトで Consecutive を採用した理由</a></li>
+                </ul></li>
+                <li><a href="#参考資料" id="toc-参考資料"><span class="toc-section-number">6</span> 参考資料</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>clang-format 設定の解説</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>本プロジェクトでは <code>.clang-format</code> により、C/C++ ソースコードのフォーマットルールを定義しています。<br />
+このドキュメントでは、各オプションの設定意図とデフォルト値との違いを説明します。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">BasedOnStyle</span><span class="kw">:</span><span class="at"> LLVM</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">IndentPPDirectives</span><span class="kw">:</span><span class="at"> BeforeHash</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ColumnLimit</span><span class="kw">:</span><span class="at"> </span><span class="dv">120</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">IndentWidth</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">AlignConsecutiveMacros</span><span class="kw">:</span><span class="at"> Consecutive</span></span></code></pre></div>
+<h1 data-number="2" id="オプションの値"><span class="header-section-number">2</span> オプションの値</h1>
+<p><code>IndentPPDirectives</code> には以下の 3 つの値を指定できます。</p>
+<h2 data-number="2.1" id="none-デフォルト"><span class="header-section-number">2.1</span> None (デフォルト)</h2>
+<p>ディレクティブをインデントしません。すべてのディレクティブが行頭に配置されます。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> func<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>condition<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef DEBUG</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(VERBOSE)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;debug</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="2.2" id="afterhash-clang-6-で導入"><span class="header-section-number">2.2</span> AfterHash (Clang 6 で導入)</h2>
+<p><code>#</code> は行頭に固定し、<code>#</code> の後にインデントを挿入します。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> func<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>condition<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;debug</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="2.3" id="beforehash-clang-9-で導入"><span class="header-section-number">2.3</span> BeforeHash (Clang 9 で導入)</h2>
+<p><code>#</code> ごとインデントします。ネストの深さが視覚的にわかりやすくなります。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> func<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>condition<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#ifdef DEBUG</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>            <span class="pp">#if defined(VERBOSE)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;debug</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>            <span class="pp">#endif</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#endif</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h1 data-number="3" id="デフォルトが-none-である歴史的経緯"><span class="header-section-number">3</span> デフォルトが None である歴史的経緯</h1>
+<h2 data-number="3.1" id="c-言語の仕様上の制約-1970年代1989年"><span class="header-section-number">3.1</span> C 言語の仕様上の制約 (1970年代〜1989年)</h2>
+<p>K&amp;R C および初期の C コンパイラでは、<code>#</code> は行の先頭カラムに置かなければならないという制約がありました。この制約により、プリプロセッサディレクティブを行頭に書くスタイルが定着しました。</p>
+<p>ANSI C (C89) 以降、<code>#</code> の前に空白を置くことが規格上許容されるようになりましたが、慣習は変わりませんでした。</p>
+<h2 data-number="3.2" id="プリプロセッサの独立性という設計思想"><span class="header-section-number">3.2</span> プリプロセッサの独立性という設計思想</h2>
+<p>C 言語においてプリプロセッサは、コンパイラ本体とは独立したフェーズとして設計されています。プリプロセッサディレクティブはソースコードの構文構造 (関数やブロック) とは別の次元で処理されるため、コードのインデント階層に従属させないという思想がありました。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* ディレクティブはコードの構造とは独立した存在 */</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> func<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> x <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef FEATURE_A        </span><span class="co">/* コードブロックの中だが行頭に書く */</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> calculate<span class="op">();</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> default_value<span class="op">();</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="3.3" id="主要プロジェクトのコーディングスタイル"><span class="header-section-number">3.3</span> 主要プロジェクトのコーディングスタイル</h2>
+<p>影響力のある大規模プロジェクトがディレクティブを行頭に書くスタイルを採用しており、これが業界標準として定着しました。</p>
+<ul>
+<li>Linux カーネル: <a href="https://www.kernel.org/doc/html/latest/process/coding-style.html">Linux kernel coding style</a> ではディレクティブを行頭に配置</li>
+<li>LLVM/Clang: clang-format の開発元である LLVM プロジェクト自体がこのスタイルを採用</li>
+<li>GNU プロジェクト: GCC をはじめとする GNU ソフトウェアも同様</li>
+</ul>
+<p>clang-format のデフォルト値は LLVM のコーディングスタイルに基づいているため、<code>None</code> がデフォルトになっています。</p>
+<h2 data-number="3.4" id="既存コードベースへの影響の最小化"><span class="header-section-number">3.4</span> 既存コードベースへの影響の最小化</h2>
+<p>デフォルトを <code>BeforeHash</code> や <code>AfterHash</code> にした場合、clang-format を既存プロジェクトに適用すると大量のプリプロセッサ行に差分が発生します。既存のコードベースの大多数がディレクティブを行頭に書くスタイルであるため、<code>None</code> をデフォルトにすることで既存コードへの影響を最小限に抑えています。</p>
+<h2 data-number="3.5" id="オプションの追加時期"><span class="header-section-number">3.5</span> オプションの追加時期</h2>
+<p><code>IndentPPDirectives</code> オプション自体が比較的新しい機能です。</p>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr>
+<th>バージョン</th>
+<th>追加内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clang 6 (2018年3月)</td>
+<td><code>IndentPPDirectives</code> オプション導入、<code>AfterHash</code> をサポート</td>
+</tr>
+<tr>
+<td>Clang 9 (2019年9月)</td>
+<td><code>BeforeHash</code> をサポート</td>
+</tr>
+</tbody>
+</table>
+<p>後から追加されたオプションであるため、既存のデフォルト動作 (<code>None</code>) を変更する理由がありませんでした。</p>
+<h1 data-number="4" id="beforehash-採用のメリット"><span class="header-section-number">4</span> BeforeHash 採用のメリット</h1>
+<p>C89 以降であれば、BeforeHash を採用することが推奨されます。その理由は以下の通りです。</p>
+<ol type="1">
+<li>可読性の向上: ディレクティブのネスト構造が視覚的にわかりやすくなる</li>
+<li>コードとの一体感: ディレクティブが周囲のコードと同じインデント階層に属するため、コードの流れを追いやすい</li>
+</ol>
+<h1 data-number="5" id="alignconsecutivemacros"><span class="header-section-number">5</span> AlignConsecutiveMacros</h1>
+<h2 data-number="5.1" id="オプションの説明"><span class="header-section-number">5.1</span> オプションの説明</h2>
+<p><code>AlignConsecutiveMacros</code> は、連続する <code>#define</code> マクロの値やコメントの位置を縦に揃えるかどうかを制御します。デフォルト値は <code>None</code> (揃えない) です。</p>
+<h2 data-number="5.2" id="consecutive-本プロジェクトの設定"><span class="header-section-number">5.2</span> Consecutive (本プロジェクトの設定)</h2>
+<p>連続するマクロ定義の値の開始位置を、最長のマクロ名に合わせて揃えます。空行やコメント行で区切られたグループごとに揃えます。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_ADD      </span><span class="dv">1</span><span class="pp"> </span><span class="co">/**&lt; 加算の演算種別を表す定数。 */</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_SUBTRACT </span><span class="dv">2</span><span class="pp"> </span><span class="co">/**&lt; 減算の演算種別を表す定数。 */</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_MULTIPLY </span><span class="dv">3</span><span class="pp"> </span><span class="co">/**&lt; 乗算の演算種別を表す定数。 */</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_DIVIDE   </span><span class="dv">4</span><span class="pp"> </span><span class="co">/**&lt; 除算の演算種別を表す定数。 */</span></span></code></pre></div>
+<h2 data-number="5.3" id="none-デフォルト-1"><span class="header-section-number">5.3</span> None (デフォルト)</h2>
+<p>マクロ名の直後に値が配置され、位置は揃えられません。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_ADD </span><span class="dv">1</span><span class="pp"> </span><span class="co">/**&lt; 加算の演算種別を表す定数。 */</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_SUBTRACT </span><span class="dv">2</span><span class="pp"> </span><span class="co">/**&lt; 減算の演算種別を表す定数。 */</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_MULTIPLY </span><span class="dv">3</span><span class="pp"> </span><span class="co">/**&lt; 乗算の演算種別を表す定数。 */</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define CALC_KIND_DIVIDE </span><span class="dv">4</span><span class="pp"> </span><span class="co">/**&lt; 除算の演算種別を表す定数。 */</span></span></code></pre></div>
+<h2 data-number="5.4" id="デフォルトが-none-である理由"><span class="header-section-number">5.4</span> デフォルトが None である理由</h2>
+<p><code>None</code> がデフォルトである主な理由は、git diff への影響です。<code>Consecutive</code> を指定した場合、新しいマクロの追加や既存マクロのリネームにより最長のマクロ名が変わると、グループ内の全行でアライメントが再調整されます。これにより、本質的な変更が1行であっても、git diff 上では複数行の変更として表示されます。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode diff"><code class="sourceCode diff"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a> /* CALC_KIND_MULTIPLICATION を追加した場合の差分 */</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">-#define CALC_KIND_ADD      1</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">-#define CALC_KIND_SUBTRACT 2</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">-#define CALC_KIND_MULTIPLY 3</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">-#define CALC_KIND_DIVIDE   4</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="va">+#define CALC_KIND_ADD            1</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="va">+#define CALC_KIND_SUBTRACT       2</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="va">+#define CALC_KIND_MULTIPLY       3</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="va">+#define CALC_KIND_DIVIDE         4</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="va">+#define CALC_KIND_MULTIPLICATION 5</span></span></code></pre></div>
+<h2 data-number="5.5" id="本プロジェクトで-consecutive-を採用した理由"><span class="header-section-number">5.5</span> 本プロジェクトで Consecutive を採用した理由</h2>
+<ol type="1">
+<li>定数定義の一覧性: 値とコメントが縦に揃うことで、定数テーブルとしての可読性が大幅に向上する</li>
+<li>定数の安定性: 定数定義は一度決めたら変更頻度が低いため、アライメント再調整による差分の影響は限定的である</li>
+<li>レビュー効率: コードレビュー時に値の違いを一目で比較できる</li>
+</ol>
+<h1 data-number="6" id="参考資料"><span class="header-section-number">6</span> 参考資料</h1>
+<ul>
+<li><a href="https://clang.llvm.org/docs/ClangFormatStyleOptions.html#indentppdirectives">Clang-Format Style Options - IndentPPDirectives</a></li>
+<li><a href="https://clang.llvm.org/docs/ClangFormatStyleOptions.html#alignconsecutivemacros">Clang-Format Style Options - AlignConsecutiveMacros</a></li>
+<li><a href="https://llvm.org/docs/CodingStandards.html">LLVM Coding Standards</a></li>
+<li><a href="https://www.kernel.org/doc/html/latest/process/coding-style.html">Linux kernel coding style</a></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

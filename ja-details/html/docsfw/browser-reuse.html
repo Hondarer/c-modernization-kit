@@ -1,0 +1,498 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>共有ブラウザインスタンスについて</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">共有ブラウザインスタンスについて</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 14:28:57 +0900 9161a70</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#背景と課題" id="toc-背景と課題"><span class="toc-section-number">2</span> 背景と課題</a>
+                <ul>
+                <li><a href="#ブラウザ起動コストの問題" id="toc-ブラウザ起動コストの問題"><span class="toc-section-number">2.1</span> ブラウザ起動コストの問題</a></li>
+                </ul></li>
+                <li><a href="#アーキテクチャ" id="toc-アーキテクチャ"><span class="toc-section-number">3</span> アーキテクチャ</a>
+                <ul>
+                <li><a href="#ファイル構成" id="toc-ファイル構成"><span class="toc-section-number">3.1</span> ファイル構成</a></li>
+                <li><a href="#処理フロー" id="toc-処理フロー"><span class="toc-section-number">3.2</span> 処理フロー</a></li>
+                <li><a href="#コンポーネント間の接続" id="toc-コンポーネント間の接続"><span class="toc-section-number">3.3</span> コンポーネント間の接続</a></li>
+                </ul></li>
+                <li><a href="#技術仕様" id="toc-技術仕様"><span class="toc-section-number">4</span> 技術仕様</a>
+                <ul>
+                <li><a href="#環境変数" id="toc-環境変数"><span class="toc-section-number">4.1</span> 環境変数</a></li>
+                <li><a href="#websocket-エンドポイントファイル" id="toc-websocket-エンドポイントファイル"><span class="toc-section-number">4.2</span> WebSocket エンドポイントファイル</a></li>
+                <li><a href="#browser-server.js" id="toc-browser-server.js"><span class="toc-section-number">4.3</span> browser-server.js</a></li>
+                <li><a href="#rsvg-convert.js-の共有ブラウザ対応" id="toc-rsvg-convert.js-の共有ブラウザ対応"><span class="toc-section-number">4.4</span> rsvg-convert.js の共有ブラウザ対応</a></li>
+                <li><a href="#mmdc-reuse.js" id="toc-mmdc-reuse.js"><span class="toc-section-number">4.5</span> mmdc-reuse.js</a></li>
+                <li><a href="#mmdc-wrapper.sh-の分岐ロジック" id="toc-mmdc-wrapper.sh-の分岐ロジック"><span class="toc-section-number">4.6</span> mmdc-wrapper.sh の分岐ロジック</a></li>
+                <li><a href="#pub_markdown_core.sh-のライフサイクル管理" id="toc-pub_markdown_core.sh-のライフサイクル管理"><span class="toc-section-number">4.7</span> pub_markdown_core.sh のライフサイクル管理</a></li>
+                </ul></li>
+                <li><a href="#prepare_puppeteer_env.sh-との関係" id="toc-prepare_puppeteer_env.sh-との関係"><span class="toc-section-number">5</span> prepare_puppeteer_env.sh との関係</a>
+                <ul>
+                <li><a href="#二重ラップの回避" id="toc-二重ラップの回避"><span class="toc-section-number">5.1</span> 二重ラップの回避</a></li>
+                <li><a href="#プラットフォーム別の動作" id="toc-プラットフォーム別の動作"><span class="toc-section-number">5.2</span> プラットフォーム別の動作</a></li>
+                </ul></li>
+                <li><a href="#フォールバック機構" id="toc-フォールバック機構"><span class="toc-section-number">6</span> フォールバック機構</a>
+                <ul>
+                <li><a href="#フォールバック発生条件" id="toc-フォールバック発生条件"><span class="toc-section-number">6.1</span> フォールバック発生条件</a></li>
+                <li><a href="#フォールバック時の動作" id="toc-フォールバック時の動作"><span class="toc-section-number">6.2</span> フォールバック時の動作</a></li>
+                </ul></li>
+                <li><a href="#前提事項制約事項" id="toc-前提事項制約事項"><span class="toc-section-number">7</span> 前提事項、制約事項</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>共有ブラウザインスタンスについて</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>pub_markdown のビルドプロセスでは、SVG→PNG 変換 (rsvg-convert.js) や Mermaid 図のレンダリング (mmdc) において Puppeteer 経由で Chromium ブラウザを使用します。共有ブラウザインスタンス機構により、ビルド全体で 1 つのブラウザを使い回すことで起動コストを削減しています。</p>
+<h1 data-number="2" id="背景と課題"><span class="header-section-number">2</span> 背景と課題</h1>
+<h2 data-number="2.1" id="ブラウザ起動コストの問題"><span class="header-section-number">2.1</span> ブラウザ起動コストの問題</h2>
+<p>Puppeteer による Chromium 起動には約 1〜2 秒を要します。ビルド対象に多数の SVG 画像や Mermaid 図が含まれる場合、以下の累積コストが発生します。</p>
+<ol type="1">
+<li><strong>rsvg-convert.js</strong>: Pandoc が DOCX 生成時に SVG→PNG 変換のたびにブラウザを起動・停止</li>
+<li><strong>mmdc (mermaid-cli)</strong>: Mermaid 図のレンダリングのたびにブラウザを起動・停止</li>
+</ol>
+<p>例えば SVG 画像 10 個と Mermaid 図 5 個を含むドキュメントの場合、ブラウザの起動だけで 15〜30 秒のオーバーヘッドが発生してしまいます。</p>
+<h1 data-number="3" id="アーキテクチャ"><span class="header-section-number">3</span> アーキテクチャ</h1>
+<h2 data-number="3.1" id="ファイル構成"><span class="header-section-number">3.1</span> ファイル構成</h2>
+<pre class="text"><code>browser-server.js       # 共有ブラウザサーバー (新規)
+mmdc-reuse.js           # 共有ブラウザ対応 Mermaid レンダラー (新規)
+rsvg-convert.js         # SVG→PNG 変換 (共有ブラウザ対応に改修)
+mmdc-wrapper.sh         # Mermaid CLI ラッパー (共有ブラウザ対応に改修)
+pub_markdown_core.sh    # メインビルドスクリプト (ライフサイクル管理を追加)</code></pre>
+<h2 data-number="3.2" id="処理フロー"><span class="header-section-number">3.2</span> 処理フロー</h2>
+<figure>
+<img src="puml_e1e6e328c55a46597b38c51b6242b3ee01e62023.svg" alt="共有ブラウザの処理フロー" />
+<figcaption aria-hidden="true">共有ブラウザの処理フロー</figcaption>
+</figure>
+<h2 data-number="3.3" id="コンポーネント間の接続"><span class="header-section-number">3.3</span> コンポーネント間の接続</h2>
+<figure>
+<img src="puml_c17ce81d72f01e6afc6970db8371112e9b843e03.svg" alt="コンポーネント間の接続" />
+<figcaption aria-hidden="true">コンポーネント間の接続</figcaption>
+</figure>
+<h1 data-number="4" id="技術仕様"><span class="header-section-number">4</span> 技術仕様</h1>
+<h2 data-number="4.1" id="環境変数"><span class="header-section-number">4.1</span> 環境変数</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>変数名</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PUB_MARKDOWN_BROWSER_WS_FILE</code></td>
+<td>WebSocket エンドポイントが書かれたファイルのパス</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.2" id="websocket-エンドポイントファイル"><span class="header-section-number">4.2</span> WebSocket エンドポイントファイル</h2>
+<ul>
+<li>パス: <code>/tmp/pub_markdown_browser_ws_&lt;PID&gt;</code> (PID は pub_markdown_core.sh のプロセス ID)</li>
+<li>内容: <code>ws://127.0.0.1:&lt;PORT&gt;/devtools/browser/&lt;UUID&gt;</code> 形式の WebSocket URL</li>
+<li>ライフサイクル: ビルド開始時に作成、ビルド終了時 (正常・異常とも) に削除</li>
+</ul>
+<h2 data-number="4.3" id="browser-server.js"><span class="header-section-number">4.3</span> browser-server.js</h2>
+<p>共有ブラウザの起動と管理を行うサーバースクリプトです。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>puppeteer<span class="op">.</span><span class="fu">launch</span>({ <span class="dt">args</span><span class="op">:</span> [<span class="st">&#39;--no-sandbox&#39;</span>] })</span></code></pre></div>
+<ul>
+<li>Puppeteer のデフォルトブラウザ検出を使用します</li>
+<li><code>chrome-wrapper.sh</code> は適用しません (WebSocket 競合回避はファイルベースの待機で代替)</li>
+<li>SIGTERM/SIGINT でブラウザを閉じ、エンドポイントファイルを削除して終了します</li>
+<li>ブラウザプロセスが予期せず終了した場合もエンドポイントファイルを削除します</li>
+</ul>
+<h2 data-number="4.4" id="rsvg-convert.js-の共有ブラウザ対応"><span class="header-section-number">4.4</span> rsvg-convert.js の共有ブラウザ対応</h2>
+<p>接続ロジック:</p>
+<ol type="1">
+<li><code>PUB_MARKDOWN_BROWSER_WS_FILE</code> 環境変数を確認</li>
+<li>ファイルが存在すれば WebSocket エンドポイントを読み取り、<code>puppeteer.connect()</code> で接続</li>
+<li>接続失敗時は <code>puppeteer.launch()</code> にフォールバック</li>
+</ol>
+<p>リソース管理:</p>
+<ul>
+<li><strong>共有ブラウザ使用時</strong>: <code>page.close()</code> でページのみ閉じ、<code>browser.disconnect()</code> で切断</li>
+<li><strong>専用ブラウザ使用時</strong>: <code>browser.close()</code> でブラウザごと閉じる</li>
+</ul>
+<h2 data-number="4.5" id="mmdc-reuse.js"><span class="header-section-number">4.5</span> mmdc-reuse.js</h2>
+<p><code>@mermaid-js/mermaid-cli</code> の <code>mmdc</code> コマンドの代替として動作する Mermaid レンダラーです。</p>
+<p>対応オプション:</p>
+<ul>
+<li><code>-i &lt;input.mmd&gt;</code>: 入力ファイル (Mermaid ダイアグラムコード)</li>
+<li><code>-o &lt;output.svg&gt;</code>: 出力ファイル (SVG)</li>
+<li><code>-b transparent</code>: 背景色 (デフォルト: white)</li>
+</ul>
+<p>Mermaid ライブラリの検出:</p>
+<p>以下の優先順位でブラウザバンドル (<code>mermaid.min.js</code>) を探索します。</p>
+<ol type="1">
+<li><code>require.resolve('mermaid/package.json')</code> 経由</li>
+<li><code>require.resolve('@mermaid-js/mermaid-cli/package.json')</code> 経由のネスト検索</li>
+<li><code>node_modules/mermaid/dist/mermaid.min.js</code> (スクリプトディレクトリ起点)</li>
+<li><code>node_modules/@mermaid-js/mermaid-cli/node_modules/mermaid/dist/mermaid.min.js</code></li>
+</ol>
+<p>レンダリング処理:</p>
+<ol type="1">
+<li>共有ブラウザに接続 (またはフォールバックで新規起動)</li>
+<li>新規ページを作成し、Mermaid ライブラリを <code>addScriptTag()</code> で読み込み</li>
+<li><code>mermaid.render()</code> でダイアグラムを SVG にレンダリング</li>
+<li>SVG を出力ファイルに書き込み</li>
+<li>ページを閉じて切断</li>
+</ol>
+<h2 data-number="4.6" id="mmdc-wrapper.sh-の分岐ロジック"><span class="header-section-number">4.6</span> mmdc-wrapper.sh の分岐ロジック</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="ex">PUB_MARKDOWN_BROWSER_WS_FILE</span> が存在する</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">→</span> mmdc-reuse.js を使用 <span class="er">(</span><span class="ex">共有ブラウザ経由</span><span class="kw">)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">→</span> mmdc を使用 <span class="er">(</span><span class="ex">chrome-wrapper.sh</span> 経由<span class="kw">)</span></span></code></pre></div>
+<h2 data-number="4.7" id="pub_markdown_core.sh-のライフサイクル管理"><span class="header-section-number">4.7</span> pub_markdown_core.sh のライフサイクル管理</h2>
+<p>起動シーケンス:</p>
+<ol type="1">
+<li><code>PUB_MARKDOWN_BROWSER_WS_FILE</code> 環境変数を設定</li>
+<li><code>browser-server.js</code> をバックグラウンドで起動</li>
+<li>エンドポイントファイルが作成されるまでポーリング待機 (最大 30 秒、100ms 間隔)</li>
+<li>待機タイムアウト時はフォールバックモードに切り替え</li>
+</ol>
+<p>停止処理:</p>
+<ul>
+<li>正常終了時: ビルド完了後に <code>kill</code> → <code>wait</code> → ファイル削除</li>
+<li>異常終了時: <code>trap</code> ハンドラ (SIGINT/SIGTERM) で同じ停止処理を実行</li>
+</ul>
+<h1 data-number="5" id="prepare_puppeteer_env.sh-との関係"><span class="header-section-number">5</span> prepare_puppeteer_env.sh との関係</h1>
+<h2 data-number="5.1" id="二重ラップの回避"><span class="header-section-number">5.1</span> 二重ラップの回避</h2>
+<p><code>browser-server.js</code> の起動時に <code>prepare_puppeteer_env.sh</code> を適用すると、以下の無限ループが発生する可能性があります:</p>
+<ol type="1">
+<li><code>pub_markdown_core.sh</code> が <code>prepare_puppeteer_env.sh</code> を source → <code>PUPPETEER_EXECUTABLE_PATH</code> = <code>chrome-wrapper.sh</code></li>
+<li>後に <code>rsvg-convert</code> シェルスクリプトが <code>prepare_puppeteer_env.sh</code> を再度 source → <code>ORG_PUPPETEER_EXECUTABLE_PATH</code> = <code>chrome-wrapper.sh</code></li>
+<li>フォールバック時に <code>puppeteer.launch()</code> が <code>chrome-wrapper.sh</code> を起動</li>
+<li><code>chrome-wrapper.sh</code> が <code>ORG_PUPPETEER_EXECUTABLE_PATH</code> を復元 → <code>PUPPETEER_EXECUTABLE_PATH</code> = <code>chrome-wrapper.sh</code></li>
+<li><code>puppeteer.executablePath()</code> が <code>chrome-wrapper.sh</code> を返す → <strong>無限ループ</strong></li>
+</ol>
+<p>この問題を避けるため、<code>browser-server.js</code> は <code>prepare_puppeteer_env.sh</code> を経由せず、Puppeteer のデフォルトブラウザ検出を使用します。</p>
+<h2 data-number="5.2" id="プラットフォーム別の動作"><span class="header-section-number">5.2</span> プラットフォーム別の動作</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>プラットフォーム</th>
+<th>browser-server.js のブラウザ</th>
+<th>フォールバック時のブラウザ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td>Puppeteer バンドルの Chromium</td>
+<td>chrome-wrapper.sh 経由の Chromium</td>
+</tr>
+<tr>
+<td>WSL</td>
+<td>Puppeteer バンドルの Chromium</td>
+<td>chrome-wrapper.sh 経由の Chromium</td>
+</tr>
+<tr>
+<td>Windows (Git Bash)</td>
+<td>Edge (<code>PUPPETEER_EXECUTABLE_PATH</code> 経由)</td>
+<td>Edge (<code>PUPPETEER_EXECUTABLE_PATH</code> 経由)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="6" id="フォールバック機構"><span class="header-section-number">6</span> フォールバック機構</h1>
+<p>共有ブラウザが利用できない場合は、都度ブラウザを起動します。</p>
+<h2 data-number="6.1" id="フォールバック発生条件"><span class="header-section-number">6.1</span> フォールバック発生条件</h2>
+<ol type="1">
+<li><code>browser-server.js</code> の起動失敗 (Chromium が見つからない等)</li>
+<li>WebSocket エンドポイントファイルの作成タイムアウト (30 秒)</li>
+<li>共有ブラウザへの接続失敗 (ブラウザクラッシュ等)</li>
+</ol>
+<h2 data-number="6.2" id="フォールバック時の動作"><span class="header-section-number">6.2</span> フォールバック時の動作</h2>
+<ul>
+<li><code>PUB_MARKDOWN_BROWSER_WS_FILE</code> 環境変数が未設定になります</li>
+<li><code>rsvg-convert.js</code> は <code>puppeteer.launch()</code> で自前のブラウザを起動します</li>
+<li><code>mmdc-wrapper.sh</code> は <code>mmdc</code> コマンドを使用します</li>
+</ul>
+<h1 data-number="7" id="前提事項制約事項"><span class="header-section-number">7</span> 前提事項、制約事項</h1>
+<ul>
+<li><code>browser-server.js</code> は Puppeteer のデフォルトブラウザ検出に依存するため、<code>chrome-wrapper.sh</code> のバージョンフォールバック機能は利用されません</li>
+<li><code>mmdc-reuse.js</code> は <code>@mermaid-js/mermaid-cli</code> に同梱される mermaid ライブラリのブラウザバンドルに依存します</li>
+<li>同時に複数の pub_markdown ビルドを実行する場合でも、PID ベースのエンドポイントファイルにより干渉は発生しません</li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

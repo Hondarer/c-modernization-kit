@@ -1,0 +1,430 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Claude, Tetsuo Honda" />
+  <title>Document of c-modernization-kit</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">Document of c-modernization-kit</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Claude, Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Fri, 27 Feb 2026 08:10:10 +0900 d564faa</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#doxygen" id="toc-doxygen"><span class="toc-section-number">1</span> Doxygen</a></li>
+                <li><a href="#単一ファイル版ドキュメント" id="toc-単一ファイル版ドキュメント"><span class="toc-section-number">2</span> 単一ファイル版ドキュメント</a></li>
+                <li><a href="#関連ドキュメント" id="toc-関連ドキュメント"><span class="toc-section-number">3</span> 関連ドキュメント</a></li>
+                <li><a href="#アーティファクト" id="toc-アーティファクト"><span class="toc-section-number">4</span> アーティファクト</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>Document of c-modernization-kit</H1>
+      
+      
+      <h1 data-number="1" id="doxygen"><span class="header-section-number">1</span> Doxygen</h1>
+<ul>
+<li><a href="../../doxygen/calc/index.html">calc</a></li>
+<li><a href="../../doxygen/calc.net/index.html">calc dotnet wrapper</a></li>
+<li><a href="../../doxygen/util/index.html">util</a></li>
+<li><a href="../../doxygen/override-sample/index.html">override-sample</a></li>
+<li><a href="../../doxygen/doxygen-sample/index.html">doxygen-sample</a></li>
+</ul>
+<h1 data-number="2" id="単一ファイル版ドキュメント"><span class="header-section-number">2</span> 単一ファイル版ドキュメント</h1>
+<p>Doxygen 成果物の単一ファイル版ドキュメントです。</p>
+<ul>
+<li>calc
+<ul>
+<li><a href="doxybook2/calc/index_files_and_pages.html">ファイルとページの一覧</a></li>
+</ul></li>
+<li>calc dotnet wrapper
+<ul>
+<li><a href="doxybook2/calc.net/index_files_and_pages.html">ファイルとページの一覧</a></li>
+<li><a href="doxybook2/calc.net/index_namespaces.html">名前空間の一覧</a></li>
+<li><a href="doxybook2/calc.net/index_classes.html">クラスの一覧</a></li>
+</ul></li>
+<li>util
+<ul>
+<li><a href="doxybook2/util/index_files_and_pages.html">ファイルとページの一覧</a></li>
+</ul></li>
+<li>override-sample
+<ul>
+<li><a href="doxybook2/override-sample/index_files_and_pages.html">ファイルとページの一覧</a></li>
+</ul></li>
+<li>doxygen-sample
+<ul>
+<li><a href="doxybook2/doxygen-sample/index_files_and_pages.html">ファイルとページの一覧</a></li>
+</ul></li>
+</ul>
+<h1 data-number="3" id="関連ドキュメント"><span class="header-section-number">3</span> 関連ドキュメント</h1>
+<div class="collapsible-list">
+<ul>
+<li>📁 <a href="docsfw/index.html">docsfw</a> <br/>     pub_markdown
+<ul>
+<li>📁 <a href="docsfw/sample/index.html">sample</a> <br/>     トップレベルの index
+<ul>
+<li>📁 <a href="docsfw/sample/subfolder/index.html">subfolder</a> <br/>     サブフォルダの index
+<ul>
+<li>📁 <a href="docsfw/sample/subfolder/svg-test/index.html">svg-test</a> <br/>     drawio.svg 変換テスト</li>
+</ul></li>
+<li>📁 <a href="docsfw/sample/空白を%20含むサブフォルダ/index.html">空白を 含むサブフォルダ</a> <br/>     空白を含むサブフォルダ</li>
+<li>📁 <a href="docsfw/sample/日本語を含むサブフォルダ/index.html">日本語を含むサブフォルダ</a> <br/>     日本語を含むサブフォルダ</li>
+<li>📄 <a href="docsfw/sample/codeblock-caption.html">codeblock-caption.md</a> <br/>     コードブロックキャプションののサンプル</li>
+<li>📄 <a href="docsfw/sample/crossref.html">crossref.md</a> <br/>     相互参照サンプル</li>
+<li>📄 <a href="docsfw/sample/image-width.html">image-width.md</a> <br/>     image-width</li>
+<li>📄 <a href="docsfw/sample/mermaid-caption.html">mermaid-caption.md</a> <br/>     Mermaid キャプションのサンプル</li>
+<li>📄 <a href="docsfw/sample/plantuml.html">plantuml.md</a> <br/>     plantuml</li>
+</ul></li>
+<li>📄 <a href="docsfw/browser-reuse.html">browser-reuse.md</a> <br/>     共有ブラウザインスタンスについて</li>
+<li>📄 <a href="docsfw/chrome-wrapper.html">chrome-wrapper.md</a> <br/>     chrome-wrapper について</li>
+<li>📄 <a href="docsfw/collapsible-list.html">collapsible-list.md</a> <br/>     展開可能リスト機能 (collapsible-list)</li>
+<li>📄 <a href="docsfw/insert-toc.html">insert-toc.md</a> <br/>     Pandoc 目次挿入 Lua フィルタ (insert-toc.lua)</li>
+<li>📄 <a href="docsfw/mermaid.html">mermaid.md</a> <br/>     Pandoc Mermaid Lua フィルタ (mermaid.lua)</li>
+<li>📄 <a href="docsfw/mpe-heading-numbering.html">mpe-heading-numbering.md</a> <br/>     Markdown Preview Enhanced での見出し自動採番</li>
+<li>📄 <a href="docsfw/pandoc-linebreak.html">pandoc-linebreak.md</a> <br/>     Pandoc の改行コード: Windows/Linux 差異の実装調査</li>
+<li>📄 <a href="docsfw/pipeline.html">pipeline.md</a> <br/>     パイプラインに関する関連知見</li>
+<li>📄 <a href="docsfw/puppeteer-offline-chrome.html">puppeteer-offline-chrome.md</a> <br/>     Puppeteer で利用する Chrome のオフラインインストール方法</li>
+<li>📄 <a href="docsfw/rsvg-convert.html">rsvg-convert.md</a> <br/>     rsvg-convert の独自実装について</li>
+<li>📄 <a href="docsfw/submodule-docs-merge-design.html">submodule-docs-merge-design.md</a> <br/>     サブモジュール mdRoot マージ機能</li>
+<li>📄 <a href="docsfw/windows-dot.html">windows-dot.md</a> <br/>     Windows における PlantUML の <code>dot.exe</code> 自動展開 (同梱 Graphviz) 仕様</li>
+</ul></li>
+<li>📁 doxyfw
+<ul>
+<li>📄 <a href="doxyfw/c-doc-report.html">c-doc-report.md</a> <br/>     C 言語ドキュメンテーションツール包括調査</li>
+<li>📄 <a href="doxyfw/cheatsheet.html">cheatsheet.md</a> <br/>     CheatSheet</li>
+<li>📄 <a href="doxyfw/choose-input.html">choose-input.md</a> <br/>     Doxyfile で複数の個別ディレクトリを対象に指定する方法</li>
+<li>📄 <a href="doxyfw/commands.html">commands.md</a> <br/>     コマンド (タグ) の解説 日本語版</li>
+<li>📄 <a href="doxyfw/copydoc.html">copydoc.md</a> <br/>     Doxygen の <span class="citation" data-cites="copydoc">[@copydoc]</span> 活用ガイド</li>
+<li>📄 <a href="doxyfw/defines.html">defines.md</a> <br/>     define 値の展開について</li>
+<li>📄 <a href="doxyfw/direction.html">direction.md</a> <br/>     パラメータの direction の処理</li>
+<li>📄 <a href="doxyfw/doxybook2-decolorize-output-research.html">doxybook2-decolorize-output-research.md</a> <br/>     Doxybook2 出力の調査結果</li>
+<li>📄 <a href="doxyfw/doxybook2-decolorize-output-spec.html">doxybook2-decolorize-output-spec.md</a> <br/>     doxybook2-decolorize-output.sh 仕様</li>
+<li>📄 <a href="doxyfw/doxybook2-member-groups.html">doxybook2-member-groups.md</a> <br/>     doxybook2 のメンバーグループ非対応について</li>
+<li>📄 <a href="doxyfw/doxybook2-plantuml.html">doxybook2-plantuml.md</a> <br/>     doxybook2 への PlantUML 対応</li>
+<li>📄 <a href="doxyfw/doxygen-colored-output-research.html">doxygen-colored-output-research.md</a> <br/>     Doxygen 着色出力の調査結果</li>
+<li>📄 <a href="doxyfw/doxygen-colorize-output-spec.html">doxygen-colorize-output-spec.md</a> <br/>     doxygen-colorize-output.sh 仕様</li>
+<li>📄 <a href="doxyfw/doxygen-images.html">doxygen-images.md</a> <br/>     Doxygen における画像の仕様</li>
+<li>📄 <a href="doxyfw/extract-graphs.html">extract-graphs.md</a> <br/>     Doxygen 関連図の Markdown 挿入</li>
+<li>📄 <a href="doxyfw/how-to-edit-template.html">how-to-edit-template.md</a> <br/>     doxybook2 のテンプレート編集方法</li>
+<li>📄 <a href="doxyfw/localization-todo.html">localization-todo.md</a> <br/>     テンプレート 日本語ローカライズ TODO</li>
+<li>📄 <a href="doxyfw/makefile-usage.html">makefile-usage.md</a> <br/>     makefile 使用方法</li>
+</ul></li>
+<li>📁 makefw
+<ul>
+<li>📁 <a href="makefw/gcc-warning-guide/index.html">gcc-warning-guide</a> <br/>     gcc 警告オプション運用ガイド
+<ul>
+<li>📄 <a href="makefw/gcc-warning-guide/excluded-warnings.html">excluded-warnings.md</a> <br/>     推奨セットに含めない警告オプションとその理由</li>
+</ul></li>
+<li>📄 <a href="makefw/make-variable-assignment.html">make-variable-assignment.md</a> <br/>     makefile の変数代入 “= と :=” の違い</li>
+<li>📄 <a href="makefw/makelevel-usage.html">makelevel-usage.md</a> <br/>     MAKELEVEL 変数による再帰 make の階層判定</li>
+<li>📄 <a href="makefw/makeparts.html">makeparts.md</a> <br/>     makepart.mk / makechild.mk / makelocal.mk について</li>
+<li>📄 <a href="makefw/msvc-runtime-linkage.html">msvc-runtime-linkage.md</a> <br/>     MSVC ランタイムライブラリのリンクモデル</li>
+<li>📄 <a href="makefw/os-subdirectory-filtering.html">os-subdirectory-filtering.md</a> <br/>     サブディレクトリの OS フィルタリング</li>
+<li>📄 <a href="makefw/template-auto-selection.html">template-auto-selection.md</a> <br/>     makefile テンプレート自動選択機構</li>
+</ul></li>
+<li>📁 <a href="skill-guide/index.html">skill-guide</a> <br/>     スキルガイド - 学習ロードマップ
+<ul>
+<li>📁 <a href="skill-guide/01-modern-development/index.html">01-modern-development</a> <br/>     モダンな開発の理解 (ステップ 1 - 導入)
+<ul>
+<li>📄 <a href="skill-guide/01-modern-development/about-modern-development.html">about-modern-development.md</a> <br/>     レガシー C コードにモダン手法を適用する全体像</li>
+<li>📄 <a href="skill-guide/01-modern-development/x_as_code.html">x_as_code.md</a> <br/>     生成 AI 時代のソースコード管理を考える: ‘X as Code’ から GitOps への DevOps 進化論</li>
+</ul></li>
+<li>📁 <a href="skill-guide/02-version-control/index.html">02-version-control</a> <br/>     バージョン管理 (ステップ 2 - 必須基盤)
+<ul>
+<li>📄 <a href="skill-guide/02-version-control/git-basics.html">git-basics.md</a> <br/>     Git 基礎</li>
+<li>📄 <a href="skill-guide/02-version-control/git-submodules.html">git-submodules.md</a> <br/>     Git サブモジュール</li>
+<li>📄 <a href="skill-guide/02-version-control/github-workflow.html">github-workflow.md</a> <br/>     GitHub ワークフロー</li>
+</ul></li>
+<li>📁 <a href="skill-guide/03-c-language/index.html">03-c-language</a> <br/>     C 言語発展トピック (ステップ 3 - ビルド理解)
+<ul>
+<li>📄 <a href="skill-guide/03-c-language/c-cross-platform.html">c-cross-platform.md</a> <br/>     クロスプラットフォーム対応</li>
+<li>📄 <a href="skill-guide/03-c-language/c-library-types.html">c-library-types.md</a> <br/>     C ライブラリの種類</li>
+</ul></li>
+<li>📁 <a href="skill-guide/04-build-system/index.html">04-build-system</a> <br/>     ビルドシステム (ステップ 3 - ビルド理解)
+<ul>
+<li>📄 <a href="skill-guide/04-build-system/dotnet-sdk.html">dotnet-sdk.md</a> <br/>     .NET SDK</li>
+<li>📄 <a href="skill-guide/04-build-system/gcc-toolchain.html">gcc-toolchain.md</a> <br/>     GCC / MSVC ツールチェイン</li>
+<li>📄 <a href="skill-guide/04-build-system/gnu-make.html">gnu-make.md</a> <br/>     GNU Make</li>
+</ul></li>
+<li>📁 <a href="skill-guide/05-testing/index.html">05-testing</a> <br/>     テスト自動化 (ステップ 4 - 品質向上)
+<ul>
+<li>📄 <a href="skill-guide/05-testing/code-coverage.html">code-coverage.md</a> <br/>     コードカバレッジ</li>
+<li>📄 <a href="skill-guide/05-testing/dotnet-testing.html">dotnet-testing.md</a> <br/>     .NET テスト (xUnit)</li>
+<li>📄 <a href="skill-guide/05-testing/google-test.html">google-test.md</a> <br/>     Google Test / Google Mock</li>
+</ul></li>
+<li>📁 <a href="skill-guide/06-documentation/index.html">06-documentation</a> <br/>     ドキュメント自動化 (ステップ 4 - 品質向上)
+<ul>
+<li>📄 <a href="skill-guide/06-documentation/doxygen.html">doxygen.md</a> <br/>     Doxygen</li>
+<li>📄 <a href="skill-guide/06-documentation/drawio.html">drawio.md</a> <br/>     draw.io</li>
+<li>📄 <a href="skill-guide/06-documentation/markdown.html">markdown.md</a> <br/>     Markdown</li>
+<li>📄 <a href="skill-guide/06-documentation/mermaid.html">mermaid.md</a> <br/>     Mermaid</li>
+<li>📄 <a href="skill-guide/06-documentation/pandoc.html">pandoc.md</a> <br/>     Pandoc</li>
+<li>📄 <a href="skill-guide/06-documentation/plantuml.html">plantuml.md</a> <br/>     PlantUML</li>
+</ul></li>
+<li>📁 <a href="skill-guide/07-ci-cd/index.html">07-ci-cd</a> <br/>     CI/CD (ステップ 5 - 自動化・拡張)
+<ul>
+<li>📄 <a href="skill-guide/07-ci-cd/github-actions.html">github-actions.md</a> <br/>     GitHub Actions</li>
+<li>📄 <a href="skill-guide/07-ci-cd/github-pages.html">github-pages.md</a> <br/>     GitHub Pages</li>
+</ul></li>
+<li>📁 <a href="skill-guide/08-dev-environment/index.html">08-dev-environment</a> <br/>     開発環境・.NET 連携 (ステップ 4 - 自動化・拡張)
+<ul>
+<li>📄 <a href="skill-guide/08-dev-environment/dotnet-csharp.html">dotnet-csharp.md</a> <br/>     C# / P/Invoke 基礎</li>
+<li>📄 <a href="skill-guide/08-dev-environment/vscode.html">vscode.md</a> <br/>     VS Code (Visual Studio Code)</li>
+<li>📄 <a href="skill-guide/08-dev-environment/wsl-mingw.html">wsl-mingw.md</a> <br/>     WSL/MinGW 環境</li>
+</ul></li>
+</ul></li>
+<li>📁 testfw
+<ul>
+<li>📁 gtest
+<ul>
+<li>📄 <a href="testfw/gtest/manual-build.html">manual-build.md</a> <br/>     GoogleTest 手動ビルド手順</li>
+<li>📄 <a href="testfw/gtest/version-update.html">version-update.md</a> <br/>     GoogleTest バージョン更新ガイド</li>
+</ul></li>
+<li>📄 <a href="testfw/about-shared-lib-static-linking.html">about-shared-lib-static-linking.md</a> <br/>     共有ライブラリビルド時の静的ライブラリ組み込み機能</li>
+<li>📄 <a href="testfw/about-struct.html">about-struct.md</a> <br/>     構造体の宣言について</li>
+<li>📄 <a href="testfw/about-test-phase.html">about-test-phase.md</a> <br/>     テストコードの各フェーズについての解説</li>
+<li>📄 <a href="testfw/check-categorization.html">check-categorization.md</a> <br/>     確認の細分化</li>
+<li>📄 <a href="testfw/gtest-color-rules.html">gtest-color-rules.md</a> <br/>     GoogleTest 実行結果の着色ルール</li>
+<li>📄 <a href="testfw/how-to-expect.html">how-to-expect.md</a> <br/>     How to expect</li>
+<li>📄 <a href="testfw/how-to-extern.html">how-to-extern.md</a> <br/>     C 言語における <code>extern</code> と実体の理解</li>
+<li>📄 <a href="testfw/how-to-mock.html">how-to-mock.md</a> <br/>     How to mock</li>
+<li>📄 <a href="testfw/how-to-test.html">how-to-test.md</a> <br/>     How to test</li>
+<li>📄 <a href="testfw/mock-injection-technique.html">mock-injection-technique.md</a> <br/>     標準ライブラリへのモック注入テクニック</li>
+<li>📄 <a href="testfw/opencppcoverage-sources.html">opencppcoverage-sources.md</a> <br/>     OpenCppCoverage の source 指定における中間一致の仕様</li>
+<li>📄 <a href="testfw/windows-cov-tools.html">windows-cov-tools.md</a> <br/>     VSBT でのカバレッジツール選択ガイド</li>
+</ul></li>
+<li>📄 <a href="build-design.html">build-design.md</a> <br/>     クロスプラットフォームビルドシステムの実装</li>
+<li>📄 <a href="c-cpp-include-folder.html">c-cpp-include-folder.md</a> <br/>     include フォルダについて</li>
+<li>📄 <a href="clang-format-indentppdirectives.html">clang-format-indentppdirectives.md</a> <br/>     clang-format 設定の解説</li>
+<li>📄 <a href="dotnet-relwithdebinfo.html">dotnet-relwithdebinfo.md</a> <br/>     .NET プロジェクトにおける RelWithDebInfo ビルド構成</li>
+<li>📄 <a href="dotnet-test-results-design.html">dotnet-test-results-design.md</a> <br/>     .NET テスト用 results 生成機能 設計書</li>
+<li>📄 <a href="github-actions.html">github-actions.md</a> <br/>     GitHub Actions CI/CD 仕様</li>
+<li>📄 <a href="include-guard-guideline.html">include-guard-guideline.md</a> <br/>     インクルードガードのガイドライン</li>
+<li>📄 <a href="makepart-hooks-design.html">makepart-hooks-design.md</a> <br/>     フック機能</li>
+<li>📄 <a href="subfolder-compilation.html">subfolder-compilation.md</a> <br/>     C 言語サブディレクトリ対応の詳細と実装ガイド</li>
+<li>📄 <a href="testing-tutorial.html">testing-tutorial.md</a> <br/>     C言語テスト実践チュートリアル</li>
+<li>📄 <a href="vscode-variables.html">vscode-variables.md</a> <br/>     VS Code における環境変数の注入方法</li>
+</ul>
+</div>
+<h1 data-number="4" id="アーティファクト"><span class="header-section-number">4</span> アーティファクト</h1>
+<p>ビルドログ、テスト結果、およびドキュメントを圧縮した zip ファイルです。</p>
+<ul>
+<li>ビルド&amp;テストログ
+<ul>
+<li><a href="../../artifacts/linux-ol8-logs.zip">Linux OL8 (linux-ol8-logs.zip)</a></li>
+<li><a href="../../artifacts/linux-ol10-logs.zip">Linux OL10 (linux-ol10-logs.zip)</a></li>
+<li><a href="../../artifacts/windows-logs.zip">Windows (windows-logs.zip)</a></li>
+</ul></li>
+<li>テスト結果
+<ul>
+<li><a href="../../artifacts/linux-ol8-test-results.zip">Linux OL8 (linux-ol8-test-results.zip)</a></li>
+<li><a href="../../artifacts/linux-ol10-test-results.zip">Linux OL10 (linux-ol10-test-results.zip)</a></li>
+<li><a href="../../artifacts/windows-test-results.zip">Windows (windows-test-results.zip)</a></li>
+</ul></li>
+<li>ドキュメントを圧縮した zip ファイル
+<ul>
+<li><a href="../../artifacts/docs-html.zip">html (docs-html.zip)</a></li>
+<li><a href="../../artifacts/docs-docx.zip">docx (docs-docx.zip)</a></li>
+</ul></li>
+</ul>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

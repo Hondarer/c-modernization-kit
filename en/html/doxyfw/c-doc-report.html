@@ -1,0 +1,626 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="Tetsuo Honda" />
+  <title>C 言語ドキュメンテーションツール包括調査</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">C 言語ドキュメンテーションツール包括調査</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">Tetsuo Honda</p></li>
+                              <li><p class="navbar-text">Sun, 1 Mar 2026 20:20:33 +0900 a18c617</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#業界標準ツールの現状とシェア分析" id="toc-業界標準ツールの現状とシェア分析"><span class="toc-section-number">1</span> 業界標準ツールの現状とシェア分析</a>
+                <ul>
+                <li><a href="#doxygenの圧倒的な地位とその理由" id="toc-doxygenの圧倒的な地位とその理由"><span class="toc-section-number">1.1</span> Doxygenの圧倒的な地位とその理由</a></li>
+                <li><a href="#現代的代替案sphinx-breatheの台頭" id="toc-現代的代替案sphinx-breatheの台頭"><span class="toc-section-number">1.2</span> 現代的代替案：Sphinx + Breatheの台頭</a></li>
+                <li><a href="#その他の選択肢の位置づけ" id="toc-その他の選択肢の位置づけ"><span class="toc-section-number">1.3</span> その他の選択肢の位置づけ</a></li>
+                </ul></li>
+                <li><a href="#主要ossプロジェクトの実装事例と戦略" id="toc-主要ossプロジェクトの実装事例と戦略"><span class="toc-section-number">2</span> 主要OSSプロジェクトの実装事例と戦略</a>
+                <ul>
+                <li><a href="#linux-kernelsphinxベースの統合アプローチ" id="toc-linux-kernelsphinxベースの統合アプローチ"><span class="toc-section-number">2.1</span> Linux Kernel：Sphinxベースの統合アプローチ</a></li>
+                <li><a href="#gcc伝統的texinfoアプローチの継続" id="toc-gcc伝統的texinfoアプローチの継続"><span class="toc-section-number">2.2</span> GCC：伝統的Texinfoアプローチの継続</a></li>
+                <li><a href="#gitasciidocとhugoの現代的統合" id="toc-gitasciidocとhugoの現代的統合"><span class="toc-section-number">2.3</span> Git：AsciiDocとHugoの現代的統合</a></li>
+                <li><a href="#opensslmaterial-for-mkdocsによる現代化" id="toc-opensslmaterial-for-mkdocsによる現代化"><span class="toc-section-number">2.4</span> OpenSSL：Material for MkDocsによる現代化</a></li>
+                <li><a href="#apache-http-serverカスタムxmlxslt変換システム" id="toc-apache-http-serverカスタムxmlxslt変換システム"><span class="toc-section-number">2.5</span> Apache HTTP Server：カスタムXML/XSLT変換システム</a></li>
+                <li><a href="#実装パターンの共通要素" id="toc-実装パターンの共通要素"><span class="toc-section-number">2.6</span> 実装パターンの共通要素</a></li>
+                </ul></li>
+                <li><a href="#ツール機能比較と採用判断基準" id="toc-ツール機能比較と採用判断基準"><span class="toc-section-number">3</span> ツール機能比較と採用判断基準</a>
+                <ul>
+                <li><a href="#技術的機能マトリックス" id="toc-技術的機能マトリックス"><span class="toc-section-number">3.1</span> 技術的機能マトリックス</a></li>
+                <li><a href="#プロジェクト特性別選択指針" id="toc-プロジェクト特性別選択指針"><span class="toc-section-number">3.2</span> プロジェクト特性別選択指針</a></li>
+                <li><a href="#採用率と意思決定要因" id="toc-採用率と意思決定要因"><span class="toc-section-number">3.3</span> 採用率と意思決定要因</a></li>
+                </ul></li>
+                <li><a href="#現代的ベストプラクティス" id="toc-現代的ベストプラクティス"><span class="toc-section-number">4</span> 現代的ベストプラクティス</a>
+                <ul>
+                <li><a href="#コメント記述標準とスタイルガイド" id="toc-コメント記述標準とスタイルガイド"><span class="toc-section-number">4.1</span> コメント記述標準とスタイルガイド</a></li>
+                <li><a href="#構造化とモジュール組織" id="toc-構造化とモジュール組織"><span class="toc-section-number">4.2</span> 構造化とモジュール組織</a></li>
+                <li><a href="#品質保証と保守戦略" id="toc-品質保証と保守戦略"><span class="toc-section-number">4.3</span> 品質保証と保守戦略</a></li>
+                </ul></li>
+                <li><a href="#現代的統合アプローチ" id="toc-現代的統合アプローチ"><span class="toc-section-number">5</span> 現代的統合アプローチ</a>
+                <ul>
+                <li><a href="#github-actions統合の実装" id="toc-github-actions統合の実装"><span class="toc-section-number">5.1</span> GitHub Actions統合の実装</a></li>
+                <li><a href="#静的サイトジェネレーター統合" id="toc-静的サイトジェネレーター統合"><span class="toc-section-number">5.2</span> 静的サイトジェネレーター統合</a></li>
+                <li><a href="#cicd統合とドキュメント自動化" id="toc-cicd統合とドキュメント自動化"><span class="toc-section-number">5.3</span> CI/CD統合とドキュメント自動化</a></li>
+                </ul></li>
+                <li><a href="#企業採用事例と選択理由" id="toc-企業採用事例と選択理由"><span class="toc-section-number">6</span> 企業採用事例と選択理由</a>
+                <ul>
+                <li><a href="#規模別採用パターン" id="toc-規模別採用パターン"><span class="toc-section-number">6.1</span> 規模別採用パターン</a></li>
+                <li><a href="#定量的コスト分析" id="toc-定量的コスト分析"><span class="toc-section-number">6.2</span> 定量的コスト分析</a></li>
+                <li><a href="#業界別選択傾向" id="toc-業界別選択傾向"><span class="toc-section-number">6.3</span> 業界別選択傾向</a></li>
+                </ul></li>
+                <li><a href="#将来トレンドと新技術動向" id="toc-将来トレンドと新技術動向"><span class="toc-section-number">7</span> 将来トレンドと新技術動向</a>
+                <ul>
+                <li><a href="#ai統合の展望2025年" id="toc-ai統合の展望2025年"><span class="toc-section-number">7.1</span> AI統合の展望（2025年）</a></li>
+                <li><a href="#新興技術とプラットフォーム進化" id="toc-新興技術とプラットフォーム進化"><span class="toc-section-number">7.2</span> 新興技術とプラットフォーム進化</a></li>
+                </ul></li>
+                <li><a href="#実践的選択指針" id="toc-実践的選択指針"><span class="toc-section-number">8</span> 実践的選択指針</a>
+                <ul>
+                <li><a href="#即座の実装優先事項" id="toc-即座の実装優先事項"><span class="toc-section-number">8.1</span> 即座の実装優先事項</a></li>
+                <li><a href="#長期戦略目標" id="toc-長期戦略目標"><span class="toc-section-number">8.2</span> 長期戦略目標</a></li>
+                <li><a href="#意思決定フレームワーク" id="toc-意思決定フレームワーク"><span class="toc-section-number">8.3</span> 意思決定フレームワーク</a></li>
+                </ul></li>
+                <li><a href="#結論" id="toc-結論"><span class="toc-section-number">9</span> 結論</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>C 言語ドキュメンテーションツール包括調査</H1>
+      
+      
+      <p><a href="https://claude.ai/public/artifacts/8fc26618-ecdd-4fc8-b43e-d3629086ebb8">公開アーティファクト</a></p>
+<p>C言語開発における包括的なドキュメンテーション戦略の現状と実践的な選択指針を明らかにする。主要OSSプロジェクトの実例分析から、<strong>Doxygenが依然として業界標準を維持する一方で、プロジェクトの特性に応じた多様なアプローチが採用されている</strong>ことが判明した。特に大規模プロジェクトでは保守性を重視してDoxygen選択が優勢である一方、ユーザー体験を重視するプロジェクトではSphinxベースの現代的ソリューションが増加している。</p>
+<h1 data-number="1" id="業界標準ツールの現状とシェア分析"><span class="header-section-number">1</span> 業界標準ツールの現状とシェア分析</h1>
+<h2 data-number="1.1" id="doxygenの圧倒的な地位とその理由"><span class="header-section-number">1.1</span> Doxygenの圧倒的な地位とその理由</h2>
+<p><strong>Doxygen</strong>は26年の開発実績を持つ事実上の業界標準として確固たる地位を築いている。GitHubで6,000スター、1,300フォークを獲得し、2025年5月にリリースされた最新版1.14.0まで継続的に保守されている。その優位性は<strong>自動化された一貫性</strong>と<strong>包括的な言語サポート</strong>にある。</p>
+<p>C/C++、C#、Java、Python、PHP、Objective-C、Fortran、VHDL、Dなどの多言語対応により、HTML、PDF、RTF、XML、DocBook、Unixマニュアルページ、コンパイル済みHTMLヘルプなど多様な出力形式を提供する。特にクラス階層、呼び出しグラフ、インクルード依存関係の自動図表生成機能は大規模プロジェクトでの価値が高い。</p>
+<p><strong>技術的優位性の要因：</strong><br />
+- JavaDoc形式（<code>/** */</code>）とQt形式（<code>/*! */</code>）の両方をサポート<br />
+- 2012年以降のMarkdown統合により現代的なマークアップが可能<br />
+- CMakeネイティブサポートによる自然なビルドシステム統合<br />
+- 自動相互参照とハイパーリンク生成</p>
+<h2 data-number="1.2" id="現代的代替案sphinx-breatheの台頭"><span class="header-section-number">1.2</span> 現代的代替案：Sphinx + Breatheの台頭</h2>
+<p><strong>Sphinx + Breathe</strong>の組み合わせが現代的な代替案として注目を集めている。Sphinxコアの広範な採用とBreatheの779GitHubスターが示すように、視覚的品質を重視するプロジェクトでの採用が増加している。</p>
+<p>reStructuredTextによるより強力なマークアップ、拡張的なテーマシステム、レスポンシブデザイン、高度な相互参照機能が特徴である。Read the Docsホスティング、CI/CD統合、豊富なプラグインエコシステムにより、<strong>混合型ドキュメンテーション</strong>（叙述的内容とAPI参照の統合）に最適化されている。</p>
+<h2 data-number="1.3" id="その他の選択肢の位置づけ"><span class="header-section-number">1.3</span> その他の選択肢の位置づけ</h2>
+<p><strong>GTK-Doc</strong>はGNOMEエコシステムにおける伝統的な標準だが、2023年以降メンテナンス不足の問題を抱えており、GNOMEは新プロジェクトでgi-docgenへの移行を推進している。<strong>Natural Docs</strong>は商用ライセンスを提供する自然言語解析重視のニッチな選択肢、<strong>HeaderDoc</strong>はApple固有のレガシーツールとして位置づけられる。</p>
+<h1 data-number="2" id="主要ossプロジェクトの実装事例と戦略"><span class="header-section-number">2</span> 主要OSSプロジェクトの実装事例と戦略</h1>
+<h2 data-number="2.1" id="linux-kernelsphinxベースの統合アプローチ"><span class="header-section-number">2.1</span> Linux Kernel：Sphinxベースの統合アプローチ</h2>
+<p>Linux Kernelは<strong>Sphinx</strong>をドキュメンテーションの中核として採用し、reStructuredText形式で<code>make htmldocs</code>または<code>make pdfdocs</code>によって生成する包括的なシステムを構築している。kernel-doc形式（<code>/** ... */</code>）の特定タグ（<span class="citation" data-cites="param">[@param]</span>、<span class="citation" data-cites="returnなど">[@returnなど]</span>）を使用し、ソースコードコメントからの自動抽出とkernel.orgでの公式ホスティングを実現している。</p>
+<p>カスタムkernel-docスクリプトとSphinx-buildを組み合わせ、Read the Docsテーマを使用することで、<strong>技術的精度と現代的な視覚的品質</strong>を両立させている。</p>
+<h2 data-number="2.2" id="gcc伝統的texinfoアプローチの継続"><span class="header-section-number">2.2</span> GCC：伝統的Texinfoアプローチの継続</h2>
+<p><strong>GNU Compiler Collection</strong>は伝統的なTexinfo（GNU文書システム）を維持し、.texiファイルからmakeinfoとtexi2pdfを使用してHTML、PDF、info形式を生成している。gcc.gnu.orgでのホスティングと、autotools統合により、GNUプロジェクト標準に準拠した一貫したドキュメンテーション戦略を採用している。</p>
+<h2 data-number="2.3" id="gitasciidocとhugoの現代的統合"><span class="header-section-number">2.3</span> Git：AsciiDocとHugoの現代的統合</h2>
+<p><strong>Git</strong>プロジェクトは<strong>AsciiDoc/Asciidoctor</strong>をベースとし、カスタムRubyスクリプトとHugo静的サイトジェネレーターを組み合わせた革新的なアプローチを採用している。git-scm.com（GitHub Pages）でのホスティングと、GitHub Actions経由の自動ビルド、「Pro Git」書籍統合により、包括的なマニュアルページシステムを構築している。</p>
+<h2 data-number="2.4" id="opensslmaterial-for-mkdocsによる現代化"><span class="header-section-number">2.4</span> OpenSSL：Material for MkDocsによる現代化</h2>
+<p><strong>OpenSSL</strong>は<strong>Material for MkDocs</strong>を採用し、YAML frontmatterを持つMarkdownファイルと、バージョニング用のmikeを使用したPythonビルドスクリプトを組み合わせている。docs.openssl.org（GitHub Pages）での自動リビルドにより、メインリポジトリ変更との同期を実現している。</p>
+<h2 data-number="2.5" id="apache-http-serverカスタムxmlxslt変換システム"><span class="header-section-number">2.5</span> Apache HTTP Server：カスタムXML/XSLT変換システム</h2>
+<p><strong>Apache HTTP Server</strong>は独自の<strong>XML/XSLT変換システム</strong>を維持し、カスタムDTDを持つXMLファイルからXSLTプロセッサを使用してhttpd.apache.orgを生成している。専用文書チームによる協働的努力により、メインコードベースから分離された文書プロジェクトを運営している。</p>
+<h2 data-number="2.6" id="実装パターンの共通要素"><span class="header-section-number">2.6</span> 実装パターンの共通要素</h2>
+<p>主要プロジェクトの分析から、以下の共通パターンが明確になった：</p>
+<ol type="1">
+<li><strong>ビルドシステム統合</strong>：<code>make docs</code>、<code>make htmldocs</code>、CMakeターゲットによる自動生成</li>
+<li><strong>CI/CD自動化</strong>：GitHub Actions、夜間ビルドによるドキュメンテーション更新</li>
+<li><strong>分離リポジトリ戦略</strong>：文書専用リポジトリによる独立した保守体制</li>
+<li><strong>現代的ホスティング</strong>：GitHub Pages、自己ホスティングの使い分け</li>
+</ol>
+<h1 data-number="3" id="ツール機能比較と採用判断基準"><span class="header-section-number">3</span> ツール機能比較と採用判断基準</h1>
+<h2 data-number="3.1" id="技術的機能マトリックス"><span class="header-section-number">3.1</span> 技術的機能マトリックス</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 13%" />
+<col style="width: 24%" />
+<col style="width: 13%" />
+<col style="width: 21%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>機能</th>
+<th>Doxygen</th>
+<th>Sphinx+Breathe</th>
+<th>GTK-Doc</th>
+<th>Natural Docs</th>
+<th>HeaderDoc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>C言語サポート</strong></td>
+<td>優秀</td>
+<td>良好（Doxygen経由）</td>
+<td>良好</td>
+<td>良好</td>
+<td>限定的</td>
+</tr>
+<tr>
+<td><strong>C++サポート</strong></td>
+<td>優秀</td>
+<td>良好（Doxygen経由）</td>
+<td>限定的</td>
+<td>良好</td>
+<td>限定的</td>
+</tr>
+<tr>
+<td><strong>視覚的品質</strong></td>
+<td>基本的</td>
+<td>優秀</td>
+<td>基本的</td>
+<td>良好</td>
+<td>古い</td>
+</tr>
+<tr>
+<td><strong>カスタマイズ性</strong></td>
+<td>限定的</td>
+<td>広範囲</td>
+<td>限定的</td>
+<td>中程度</td>
+<td>限定的</td>
+</tr>
+<tr>
+<td><strong>学習曲線</strong></td>
+<td>中程度</td>
+<td>急勾配</td>
+<td>中程度</td>
+<td>容易</td>
+<td>中程度</td>
+</tr>
+<tr>
+<td><strong>保守状況</strong></td>
+<td>活発</td>
+<td>非常に活発</td>
+<td>衰退</td>
+<td>限定的</td>
+<td>最小限</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.2" id="プロジェクト特性別選択指針"><span class="header-section-number">3.2</span> プロジェクト特性別選択指針</h2>
+<p><strong>小規模プロジェクト</strong>（1万行未満）では文書ツール選択の影響が限定的であり、チームの熟練度に基づく選択が効果的である。Sphinxは表示品質重視の場合に適している。</p>
+<p><strong>中規模プロジェクト</strong>（1万〜10万行）では保守効率が重要な要素となり、ハイブリッドソリューションが支持を獲得している。ビルドシステムとの統合が必須条件となる。</p>
+<p><strong>大規模プロジェクト</strong>（10万行超）では自動化と一貫性が最優先事項となり、API文書についてはDoxygenが圧倒的に優勢である。カスタムツール開発も一般的になる。</p>
+<h2 data-number="3.3" id="採用率と意思決定要因"><span class="header-section-number">3.3</span> 採用率と意思決定要因</h2>
+<p><strong>OpenCVプロジェクトの移行事例</strong>は業界の重要な参考点となっている。OpenCV 2.xではSphinxによる優れたナビゲーションと表示を採用していたが、OpenCV 3.0以降は保守性向上のためDoxygenに移行した。</p>
+<p><strong>移行の決定要因：</strong><br />
+- <strong>一貫性確保</strong>：Doxygenによる自動生成でAPI参照がコードと完全同期<br />
+- <strong>組み込み検証</strong>：欠落文書の正確性チェックと警告機能<br />
+- <strong>生成速度</strong>：31分（Sphinx）から1分（Doxygen）への大幅短縮<br />
+- <strong>保守負担軽減</strong>：コード変更との文書同期の手動作業削減</p>
+<h1 data-number="4" id="現代的ベストプラクティス"><span class="header-section-number">4</span> 現代的ベストプラクティス</h1>
+<h2 data-number="4.1" id="コメント記述標準とスタイルガイド"><span class="header-section-number">4.1</span> コメント記述標準とスタイルガイド</h2>
+<p><strong>Doxygenスタイル（推奨）：</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> 関数の簡潔な説明</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * 関数の目的、動作、重要な実装詳細についての</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"> * 詳細な説明。</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in]</span><span class="co"> </span><span class="cv">input_param</span><span class="co"> 入力パラメータの説明</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[out]</span><span class="co"> </span><span class="cv">output_param</span><span class="co"> 出力パラメータの説明</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in,out]</span><span class="co"> </span><span class="cv">inout_param</span><span class="co"> 入出力パラメータの説明</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> 戻り値の説明</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@retval</span><span class="co"> </span><span class="cv">0</span><span class="co"> 成功条件</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@retval</span><span class="co"> </span><span class="cv">-1</span><span class="co"> エラー条件</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="in">@note</span><span class="co"> 使用上の重要な注意点</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="wa">@warning</span><span class="co"> 重要な警告</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@see</span><span class="co"> related_function()</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@since</span><span class="co"> いつから利用可能か</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<p><strong>Linux Kernel-docスタイル：</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * function_name() - 一行での簡潔な説明</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param1:</span><span class="co"> 第一パラメータの説明</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param2:</span><span class="co"> 第二パラメータの説明</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"> * 関数の動作、コンテキスト、カーネル開発者向けの</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"> * 重要な詳細についてのより長い説明。</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"> * Return: 戻り値と条件の説明</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h2 data-number="4.2" id="構造化とモジュール組織"><span class="header-section-number">4.2</span> 構造化とモジュール組織</h2>
+<p><strong>ヘッダーファイル構造：</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef PROJECT_MODULE_FILENAME_H_</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define PROJECT_MODULE_FILENAME_H_</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@file</span><span class="co"> </span><span class="cv">filename.h</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> モジュールの説明</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">/* システムインクルード */</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">/* プロジェクトインクルード */</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;project_common.h&quot;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">/* 前方宣言 */</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> private_struct<span class="op">;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">/* パブリック定数 */</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">const</span> <span class="dt">int</span> kMaxConnections<span class="op">;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">/* パブリック型定義 */</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> member1<span class="op">;</span>    <span class="co">///&lt; member1の説明</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">*</span> member2<span class="op">;</span>  <span class="co">///&lt; member2の説明</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> public_struct_t<span class="op">;</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">/* パブリック関数宣言 */</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> 完全な文書化を持つ関数宣言</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> public_function<span class="op">(</span><span class="dt">int</span> param1<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> param2<span class="op">);</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif </span><span class="co">/* PROJECT_MODULE_FILENAME_H_ */</span></span></code></pre></div>
+<h2 data-number="4.3" id="品質保証と保守戦略"><span class="header-section-number">4.3</span> 品質保証と保守戦略</h2>
+<p><strong>多層レビューシステム：</strong><br />
+1. <strong>技術レビュー</strong>：正確性と完全性の確認<br />
+2. <strong>編集レビュー</strong>：文法、スタイル、明確性の確認<br />
+3. <strong>ユーザー体験レビュー</strong>：使いやすさとアクセシビリティの確認<br />
+4. <strong>コンプライアンスレビュー</strong>：標準準拠の確認</p>
+<p><strong>自動化品質チェック：</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">doxygen</span> <span class="at">-q</span> Doxyfile <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> <span class="st">&quot;warning\|error&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">spell_check_docs.sh</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">grammar_check_docs.sh</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">link_checker.py</span> <span class="at">--recursive</span> ./docs/</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">accessibility_checker.py</span> <span class="at">--wcag-level</span><span class="op">=</span>AA</span></code></pre></div>
+<h1 data-number="5" id="現代的統合アプローチ"><span class="header-section-number">5</span> 現代的統合アプローチ</h1>
+<h2 data-number="5.1" id="github-actions統合の実装"><span class="header-section-number">5.1</span> GitHub Actions統合の実装</h2>
+<p><strong>人気のあるアクション：</strong><br />
+- <strong>mattnotmitt/doxygen-action</strong>：最も広く使用され、Doxygenリリースにマッチするバージョンサポート<br />
+- <strong>DenverCoder1/doxygen-github-pages-action</strong>：GitHub Pages展開組み込みの複合アクション<br />
+- <strong>AgarwalSaurav/ghaction-doxygen-ghpages</strong>：高度なカスタマイズ対応のDocker基盤ソリューション</p>
+<p><strong>実装例：</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Documentation</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at"> main </span><span class="kw">]</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">deploy</span><span class="kw">:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">permissions</span><span class="kw">:</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">contents</span><span class="kw">:</span><span class="at"> write</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> DenverCoder1/doxygen-github-pages-action@v2.0.0</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">github_token</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">branch</span><span class="kw">:</span><span class="at"> gh-pages</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">folder</span><span class="kw">:</span><span class="at"> docs/html</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">config_file</span><span class="kw">:</span><span class="at"> Doxyfile</span></span></code></pre></div>
+<h2 data-number="5.2" id="静的サイトジェネレーター統合"><span class="header-section-number">5.2</span> 静的サイトジェネレーター統合</h2>
+<p><strong>Jekyll統合</strong>はGitHub Pagesの自動展開とゼロ設定による基本的な文書サイト構築を提供する。<strong>Hugo統合</strong>は最速のビルド時間（大部分のサイトで1分未満）と、組み込みSASS/SCSS処理、多言語サポート、複雑な文書構造のページバンドルを特徴とする。</p>
+<p><strong>現代的統合パターン：</strong><br />
+- Doxygen生成の参照文書と手書きガイドを組み合わせるハイブリッドアプローチ<br />
+- より広範なプロジェクト文書サイト内に埋め込まれたAPI文書<br />
+- コード参照と概念文書間の自動相互リンク</p>
+<h2 data-number="5.3" id="cicd統合とドキュメント自動化"><span class="header-section-number">5.3</span> CI/CD統合とドキュメント自動化</h2>
+<p><strong>パフォーマンス比較：</strong><br />
+- <strong>GitHub Pages</strong>：パブリックリポジトリの無制限無料ビルド、1時間あたり10ビルド制限、最大20分の展開遅延<br />
+- <strong>Netlify</strong>：無料プランで月300ビルド分、1分あたり3ビルド制限、1分未満の展開時間、展開プレビュー、A/Bテスト、ワンクリックロールバック</p>
+<p><strong>文書テストと検証：</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DocumentationTester:</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_code_examples(<span class="va">self</span>):</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;&quot;&quot;全コード例の抽出とコンパイル&quot;&quot;&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_api_coverage(<span class="va">self</span>):</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;&quot;&quot;全パブリックAPIの文書化確認&quot;&quot;&quot;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> test_link_validity(<span class="va">self</span>):</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;&quot;&quot;全内部・外部リンクの確認&quot;&quot;&quot;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span></code></pre></div>
+<h1 data-number="6" id="企業採用事例と選択理由"><span class="header-section-number">6</span> 企業採用事例と選択理由</h1>
+<h2 data-number="6.1" id="規模別採用パターン"><span class="header-section-number">6.1</span> 規模別採用パターン</h2>
+<p><strong>大規模プロジェクト</strong>（1000名以上の開発者）では自動化と一貫性の理由でDoxygenをAPI文書に選択し、しばしばハイブリッドアプローチ（Doxygen + BreathepluginによるSphinx）を実装する。表示品質よりも保守効率を優先する。</p>
+<p><strong>中規模プロジェクト</strong>（50〜1000名）では純粋DoxygenとDoxygen+Sphinxの組み合わせで分かれ、既存ツールチェーンとの互換性が選択を左右することが多い。</p>
+<p><strong>小規模チーム</strong>（50名未満）ではSphinxベースソリューションの採用率が高く、より良い表示のための手動文書作業への投資意欲が高い。</p>
+<h2 data-number="6.2" id="定量的コスト分析"><span class="header-section-number">6.2</span> 定量的コスト分析</h2>
+<p><strong>初期設定コスト：</strong><br />
+- Doxygen：基本設定で2〜5開発者日<br />
+- Sphinx：テーマカスタマイズ含めて5〜15開発者日<br />
+- Doxygen+Sphinx：統合ワークフローで10〜25開発者日</p>
+<p><strong>保守オーバーヘッド</strong>（年間10万行コードあたり）：<br />
+- 純粋Doxygen：0.1〜0.3 FTE<br />
+- 純粋Sphinx：0.5〜1.2 FTE<br />
+- ハイブリッドソリューション：0.3〜0.8 FTE</p>
+<h2 data-number="6.3" id="業界別選択傾向"><span class="header-section-number">6.3</span> 業界別選択傾向</h2>
+<p><strong>金融サービス・ヘルスケア</strong>では規制文書要件が包括的ツールを求め、成熟した十分にサポートされたソリューション（Doxygen）を選択する傾向がある。<strong>ゲーム・消費者ソフトウェア</strong>ではユーザー体験重視がSphinx採用を促し、保守オーバーヘッドへの寛容度が高い。</p>
+<h1 data-number="7" id="将来トレンドと新技術動向"><span class="header-section-number">7</span> 将来トレンドと新技術動向</h1>
+<h2 data-number="7.1" id="ai統合の展望2025年"><span class="header-section-number">7.1</span> AI統合の展望（2025年）</h2>
+<p><strong>開発者調査（Stack Overflow 2024）</strong>によると、開発者の81%がAIツールが2025年までに文書ワークフローを改善すると期待している。90%が主要学習リソースとしてAPI/SDK文書に依存しており、技術文書が実践的コーディングに次ぐ学習方法として位置づけられている。</p>
+<p><strong>AI統合の具体的方向性：</strong><br />
+- <strong>AI支援文書作成</strong>：コードからの自然言語説明自動生成<br />
+- <strong>自動相互参照</strong>：AI駆動のリンク生成と一貫性チェック<br />
+- <strong>スマート品質保証</strong>：AI活用の文書完全性検証</p>
+<h2 data-number="7.2" id="新興技術とプラットフォーム進化"><span class="header-section-number">7.2</span> 新興技術とプラットフォーム進化</h2>
+<p><strong>インタラクティブ文書</strong>ではコード実行環境との統合が進み、<strong>バージョン対応文書</strong>ではAPI変更のバージョン間追跡ツールが開発されている。<strong>多言語生成</strong>では単一ソースから複数プログラミング言語向け文書の生成が可能になりつつある。</p>
+<p><strong>クラウドネイティブソリューション</strong>は分散開発向けに設計された文書ツール、<strong>統合プラットフォーム</strong>は文書、テスト、展開を統合する統一ツール、<strong>分析統合</strong>は文書改善のための使用追跡とフィードバックループを提供する。</p>
+<h1 data-number="8" id="実践的選択指針"><span class="header-section-number">8</span> 実践的選択指針</h1>
+<h2 data-number="8.1" id="即座の実装優先事項"><span class="header-section-number">8.1</span> 即座の実装優先事項</h2>
+<ol type="1">
+<li><strong>Doxygenの採用</strong>：一貫性のためJavaDocスタイルコメントを使用</li>
+<li><strong>自動品質チェック</strong>のCI/CDパイプライン実装</li>
+<li><strong>文書レビュープロセス</strong>のコードレビューと並行確立</li>
+<li><strong>文書テンプレート</strong>の一貫した構造作成</li>
+<li><strong>アクセシビリティテスト</strong>の包括的文書設定</li>
+</ol>
+<h2 data-number="8.2" id="長期戦略目標"><span class="header-section-number">8.2</span> 長期戦略目標</h2>
+<p><strong>包括的文書文化</strong>の開発チーム内構築、<strong>ユーザー中心文書設計</strong>の実際の使用パターンに基づく実装、<strong>文書メトリクス</strong>の継続的改善確立、<strong>コミュニティ貢献フレームワーク</strong>の文書強化作成、<strong>ドメイン固有文書標準</strong>の専門アプリケーション開発が重要である。</p>
+<h2 data-number="8.3" id="意思決定フレームワーク"><span class="header-section-number">8.3</span> 意思決定フレームワーク</h2>
+<p><strong>新規Cプロジェクト（2025年）</strong>では、純粋C/API文書にはDoxygenが標準選択、混合文書（ユーザーガイド+API）にはSphinx + Breatheの組み合わせ、GNOME/GTKプロジェクトではgi-docgenへの移行（レガシープロジェクトはGTK-Doc継続）、Appleエコシステムでは HeaderDocよりも現代的Xcode文書ツールが推奨される。</p>
+<h1 data-number="9" id="結論"><span class="header-section-number">9</span> 結論</h1>
+<p>C言語文書ツールの現状は、<strong>自動化による保守効率</strong>と<strong>視覚的品質</strong>の明確なトレードオフを示している。Doxygenは成熟度と包括的なC/C++サポートにより業界標準の地位を維持する一方、Sphinxは視覚的表示と文書サイト品質が優先される場面で支持を獲得している。</p>
+<p>将来は確立された解析機能と現代的ユーザー体験設計を活用するハイブリッドソリューション（Doxygen + 現代的フロントエンド）へのトレンドが示唆され、AI統合とドキュメント・アズ・コードの実践が標準化していくと予想される。</p>
+<p><strong>成功する文書戦略</strong>の核心は、完璧な文書の手動作成ではなく、<strong>自動化と統合</strong>に焦点を当てることにある。プロジェクト規模、チーム構成、長期保守能力の慎重な考慮により、コード機能とユーザー理解を効果的に橋渡しする高品質で持続可能な文書システムの構築が可能になる。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

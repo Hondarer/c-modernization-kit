@@ -1,0 +1,338 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>funcman_libbase の概要</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../../../../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">funcman_libbase の概要</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Sun, 01 Mar 2026 22:09:40 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#役割" id="toc-役割"><span class="toc-section-number">1</span> 役割</a></li>
+                <li><a href="#ファイルの責務" id="toc-ファイルの責務"><span class="toc-section-number">2</span> ファイルの責務</a></li>
+                <li><a href="#利用側との関係" id="toc-利用側との関係"><span class="toc-section-number">3</span> 利用側との関係</a></li>
+                <li><a href="#オーバーライド対応関数を追加する場合の作業" id="toc-オーバーライド対応関数を追加する場合の作業"><span class="toc-section-number">4</span> オーバーライド対応関数を追加する場合の作業</a>
+                <ul>
+                <li><a href="#funcman_libbase.h-への追加" id="toc-funcman_libbase.h-への追加"><span class="toc-section-number">4.1</span> 1. <code>funcman_libbase.h</code> への追加</a></li>
+                <li><a href="#funcman_libbase.c-への追加" id="toc-funcman_libbase.c-への追加"><span class="toc-section-number">4.2</span> 2. <code>funcman_libbase.c</code> への追加</a></li>
+                <li><a href="#呼び出し元となる-.c-ファイルの作成修正" id="toc-呼び出し元となる-.c-ファイルの作成修正"><span class="toc-section-number">4.3</span> 3. 呼び出し元となる .c ファイルの作成・修正</a></li>
+                <li><a href="#オーバーライド側ライブラリへの追加" id="toc-オーバーライド側ライブラリへの追加"><span class="toc-section-number">4.4</span> 4. オーバーライド側ライブラリへの追加</a></li>
+                <li><a href="#変更ファイルのまとめ" id="toc-変更ファイルのまとめ"><span class="toc-section-number">4.5</span> 変更ファイルのまとめ</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>funcman_libbase の概要</H1>
+      
+      
+      <h1 data-number="1" id="役割"><span class="header-section-number">1</span> 役割</h1>
+<p><code>funcman_libbase.h</code> / <code>funcman_libbase.c</code> は、<code>libbase</code> ライブラリが管理するオーバーライド対応関数の <strong>funcman_object 実体と、それに紐付く型・変数の宣言</strong> を提供します。</p>
+<p><code>funcman</code> の汎用機能 (<code>funcman_init</code>, <code>_funcman_get_func</code>, <code>funcman_dispose</code> など) は <code>libbase.h</code> で定義されています。<code>funcman_libbase.h</code> / <code>funcman_libbase.c</code> はそれを <code>libbase</code> 固有の関数群に接続する「接着剤」の役割を担います。</p>
+<h1 data-number="2" id="ファイルの責務"><span class="header-section-number">2</span> ファイルの責務</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>責務</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>funcman_libbase.h</code></td>
+<td>関数ポインタ型の <code>typedef</code>、<code>funcman_object</code> ポインタ・配列・設定ファイルパスの <code>extern</code> 宣言</td>
+</tr>
+<tr>
+<td><code>funcman_libbase.c</code></td>
+<td><code>funcman_object</code> 実体の定義、配列・要素数・設定ファイルパスの実体定義、<code>funcman_info_libbase()</code> の実装</td>
+</tr>
+</tbody>
+</table>
+<p><code>funcman_object</code> の実体は <code>funcman_libbase.c</code> 内で <code>static</code> 変数として定義します。外部からのアクセスは <code>funcman_object *const</code> ポインタ経由に限定することで、直接書き換えを防いでいます。</p>
+<h1 data-number="3" id="利用側との関係"><span class="header-section-number">3</span> 利用側との関係</h1>
+<pre class="text"><code>sample_func.c  (呼び出し元)
+    |  funcman_get_func(pfo_sample_func, sample_func_t)
+    +---&gt; funcman_libbase.h の extern 宣言 (pfo_sample_func)
+              |
+              funcman_libbase.c の実体 (sfo_sample_func)
+
+dllmain_libbase.c  (初期化・解放)
+    |  funcman_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath)
+    |  funcman_dispose(fobj_array_libbase, fobj_length_libbase)
+    +---&gt; funcman_libbase.h の extern 宣言 (fobj_array_libbase, fobj_length_libbase, funcman_configpath)
+              |
+              funcman_libbase.c の実体</code></pre>
+<hr />
+<h1 data-number="4" id="オーバーライド対応関数を追加する場合の作業"><span class="header-section-number">4</span> オーバーライド対応関数を追加する場合の作業</h1>
+<p><code>sample_func</code> に相当する新しい関数 <code>new_func</code> を追加する場合の手順です。</p>
+<h2 data-number="4.1" id="funcman_libbase.h-への追加"><span class="header-section-number">4.1</span> 1. <code>funcman_libbase.h</code> への追加</h2>
+<p>以下の 2 点を追記します。</p>
+<ul>
+<li><code>new_func</code> に対応する関数ポインタ型の <code>typedef</code></li>
+<li>その funcman_object へのポインタの <code>extern</code> 宣言</li>
+</ul>
+<h2 data-number="4.2" id="funcman_libbase.c-への追加"><span class="header-section-number">4.2</span> 2. <code>funcman_libbase.c</code> への追加</h2>
+<p>以下の 2 点を追記します。</p>
+<ul>
+<li><code>NEW_FUNCMAN_OBJECT</code> マクロで funcman_object の <code>static</code> 実体を定義し、対応する <code>const</code> ポインタを定義</li>
+<li><code>fobj_array_libbase</code> 配列に新しい実体のアドレスを追加</li>
+</ul>
+<p><code>fobj_length_libbase</code> は配列サイズから自動計算されるため変更不要です。</p>
+<h2 data-number="4.3" id="呼び出し元となる-.c-ファイルの作成修正"><span class="header-section-number">4.3</span> 3. 呼び出し元となる .c ファイルの作成・修正</h2>
+<p><code>new_func</code> の実装ファイルで、<code>funcman_get_func</code> を使って関数ポインタを取得し、オーバーライド処理またはデフォルト処理に分岐させます。<code>sample_func.c</code> を参考にしてください。</p>
+<h2 data-number="4.4" id="オーバーライド側ライブラリへの追加"><span class="header-section-number">4.4</span> 4. オーバーライド側ライブラリへの追加</h2>
+<p><code>liboverride</code> 側 (または別のオーバーライドライブラリ) に、<code>new_func</code> と同じシグネチャを持つ実装関数を追加します。</p>
+<blockquote>
+<p><strong>警告: 循環参照によるスタックオーバーフロー</strong></p>
+<p>オーバーライド実装の中で、オーバーライド元の関数 (<code>new_func</code>) を直接または間接的に呼び出すと無限再帰となりスタックオーバーフローが発生します。</p>
+<pre class="text"><code>new_func (libbase)
+  └─ funcman_get_func でオーバーライド関数を取得
+       └─ new_override_func (liboverride) を呼び出す
+             └─ new_func (libbase) を呼び出す  ← 無限再帰</code></pre>
+<p>オーバーライド実装はオーバーライド元の関数を呼ばないよう設計してください。同様に、複数の関数をオーバーライドする場合、A のオーバーライドが B を呼び、B のオーバーライドが A を呼ぶような間接的な循環にも注意が必要です。関数を追加する際は、呼び出し経路全体を把握したうえで設計してください。</p>
+</blockquote>
+<h2 data-number="4.5" id="変更ファイルのまとめ"><span class="header-section-number">4.5</span> 変更ファイルのまとめ</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>funcman_libbase.h</code></td>
+<td>型定義・extern 宣言を追加</td>
+</tr>
+<tr>
+<td><code>funcman_libbase.c</code></td>
+<td>実体定義・配列エントリを追加</td>
+</tr>
+<tr>
+<td><code>libsrc/base/new_func.c</code> (新規)</td>
+<td>funcman を使ったオーバーライド対応の実装</td>
+</tr>
+<tr>
+<td><code>libsrc/override/new_override_func.c</code> (新規)</td>
+<td>オーバーライド実装</td>
+</tr>
+<tr>
+<td><code>include/libbase.h</code></td>
+<td><code>new_func</code> のエクスポート宣言を追加</td>
+</tr>
+<tr>
+<td><code>include/libbase_ext.h</code></td>
+<td>オーバーライド関数のエクスポート宣言を追加</td>
+</tr>
+</tbody>
+</table>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

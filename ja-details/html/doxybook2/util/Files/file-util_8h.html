@@ -1,0 +1,433 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>util/include/file-util.h</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">util/include/file-util.h</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sun, 01 Mar 2026 22:09:36 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#utilincludefile-util.h" id="toc-utilincludefile-util.h"><span class="toc-section-number">1.1</span> util/include/file-util.h</a>
+                <ul>
+                <li><a href="#インクルード元" id="toc-インクルード元"><span class="toc-section-number">1.1.1</span> インクルード元</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#関数" id="toc-関数"><span class="toc-section-number">2</span> 関数</a>
+                <ul>
+                <li><a href="#fopen_printf" id="toc-fopen_printf"><span class="toc-section-number">2.1</span> fopen_printf</a>
+                <ul>
+                <li><a href="#引数" id="toc-引数"><span class="toc-section-number">2.1.1</span> 引数</a></li>
+                <li><a href="#戻り値" id="toc-戻り値"><span class="toc-section-number">2.1.2</span> 戻り値</a></li>
+                <li><a href="#注記" id="toc-注記"><span class="toc-section-number">2.1.3</span> 注記</a></li>
+                <li><a href="#使用例-エラー-コードの取得なし" id="toc-使用例-エラー-コードの取得なし"><span class="toc-section-number">2.1.4</span> 使用例 (エラー コードの取得なし)</a></li>
+                <li><a href="#使用例-エラー-コードの取得あり" id="toc-使用例-エラー-コードの取得あり"><span class="toc-section-number">2.1.5</span> 使用例 (エラー コードの取得あり)</a></li>
+                </ul></li>
+                <li><a href="#stat_printf" id="toc-stat_printf"><span class="toc-section-number">2.2</span> stat_printf</a>
+                <ul>
+                <li><a href="#引数-1" id="toc-引数-1"><span class="toc-section-number">2.2.1</span> 引数</a></li>
+                <li><a href="#戻り値-1" id="toc-戻り値-1"><span class="toc-section-number">2.2.2</span> 戻り値</a></li>
+                <li><a href="#注記-1" id="toc-注記-1"><span class="toc-section-number">2.2.3</span> 注記</a></li>
+                <li><a href="#警告" id="toc-警告"><span class="toc-section-number">2.2.4</span> 警告</a></li>
+                <li><a href="#使用例" id="toc-使用例"><span class="toc-section-number">2.2.5</span> 使用例</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#定数マクロ" id="toc-定数マクロ"><span class="toc-section-number">3</span> 定数、マクロ</a>
+                <ul>
+                <li><a href="#file_util_api" id="toc-file_util_api"><span class="toc-section-number">3.1</span> FILE_UTIL_API</a></li>
+                <li><a href="#winapi" id="toc-winapi"><span class="toc-section-number">3.2</span> WINAPI</a></li>
+                </ul></li>
+                <li><a href="#型" id="toc-型"><span class="toc-section-number">4</span> 型</a>
+                <ul>
+                <li><a href="#utilincludefile-util.hfile_stat_t" id="toc-utilincludefile-util.hfile_stat_t"><span class="toc-section-number">4.1</span> util/include/file-util.h::file_stat_t</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>util/include/file-util.h</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="utilincludefile-util.h"><span class="header-section-number">1.1</span> util/include/file-util.h</h2>
+<h3 data-number="1.1.1" id="インクルード元"><span class="header-section-number">1.1.1</span> インクルード元</h3>
+<figure>
+<img src="puml_b11b65f10a9285f8bb37bd75020e3416a162f67b.svg" alt="file-util.h のインクルード元" />
+<figcaption aria-hidden="true">file-util.h のインクルード元</figcaption>
+</figure>
+<h1 data-number="2" id="関数"><span class="header-section-number">2</span> 関数</h1>
+<h2 data-number="2.1" id="fopen_printf"><span class="header-section-number">2.1</span> fopen_printf</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>FILE_UTIL_API <span class="dt">FILE</span> <span class="op">*</span>WINAPI fopen_printf <span class="op">(</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">char</span> <span class="op">*</span> modes<span class="op">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">*</span> errno_out<span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">char</span> <span class="op">*</span> format<span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>printf 形式でファイル名を指定してファイルを開きます。</p>
+<p>本関数は、呼び出し元が printf と同様の書式指定を用いてファイル名を組み立てられるようにするための fopen ラッパー関数です。</p>
+<p>指定された書式文字列 (format) と可変引数 (…) からファイル名を生成し、その結果を用いてファイルをオープンします。</p>
+<p>書式展開には vsnprintf を使用し、生成されたファイル名が OS の制限や内部バッファ長に収まらない場合、またはファイルのオープンに失敗した場合は NULL を返します。</p>
+<p>失敗理由の取得が必要な場合は errno_out を指定してください。 指定された場合、環境に応じたエラーコードを格納します。</p>
+<h3 data-number="2.1.1" id="引数"><span class="header-section-number">2.1.1</span> 引数</h3>
+<ul>
+<li>[in] modes ファイルのオープン モード (“r”, “w”, “a”, “rb”, “wb” など)。</li>
+<li>[out] errno_out エラー コードの格納先。 Linux では errno の値、Windows では fopen_s の戻り値を格納します。 NULL を指定した場合、エラー コードの取得は行いません。</li>
+<li>[in] format ファイル名の書式文字列 (printf 形式)。</li>
+<li>[in] … 書式文字列に対応する可変引数。</li>
+</ul>
+<h3 data-number="2.1.2" id="戻り値"><span class="header-section-number">2.1.2</span> 戻り値</h3>
+<p>成功した場合は FILE* を返します。失敗した場合は NULL を返します。</p>
+<h3 data-number="2.1.3" id="注記"><span class="header-section-number">2.1.3</span> 注記</h3>
+<p>ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。</p>
+<h3 data-number="2.1.4" id="使用例-エラー-コードの取得なし"><span class="header-section-number">2.1.4</span> 使用例 (エラー コードの取得なし)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">FILE</span> <span class="op">*</span>fp <span class="op">=</span> fopen_printf<span class="op">(</span><span class="st">&quot;r&quot;</span><span class="op">,</span> NULL<span class="op">,</span> <span class="st">&quot;data_</span><span class="sc">%d</span><span class="st">.txt&quot;</span><span class="op">,</span> <span class="dv">123</span><span class="op">);</span></span></code></pre></div>
+<h3 data-number="2.1.5" id="使用例-エラー-コードの取得あり"><span class="header-section-number">2.1.5</span> 使用例 (エラー コードの取得あり)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> err<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">FILE</span> <span class="op">*</span>fp <span class="op">=</span> fopen_printf<span class="op">(</span><span class="st">&quot;r&quot;</span><span class="op">,</span> <span class="op">&amp;</span>err<span class="op">,</span> <span class="st">&quot;data_</span><span class="sc">%d</span><span class="st">.txt&quot;</span><span class="op">,</span> <span class="dv">123</span><span class="op">);</span></span></code></pre></div>
+<h2 data-number="2.2" id="stat_printf"><span class="header-section-number">2.2</span> stat_printf</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>FILE_UTIL_API <span class="dt">int</span> WINAPI stat_printf <span class="op">(</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">file_stat_t</span> <span class="op">*</span> buf<span class="op">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">char</span> <span class="op">*</span> format<span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>printf 形式でファイル名を指定する stat ラッパー関数</p>
+<p>この関数は、printf と同じ形式でファイル名を指定してファイル情報を取得します。 内部で vsnprintf を使用してファイル名をフォーマットし、stat を呼び出します。</p>
+<h3 data-number="2.2.1" id="引数-1"><span class="header-section-number">2.2.1</span> 引数</h3>
+<ul>
+<li>[out] buf ファイル情報を格納する構造体へのポインタ (file_stat_t 型)</li>
+<li>[in] format ファイル名のフォーマット文字列 (printf 形式)</li>
+<li>[in] … フォーマット文字列の可変引数</li>
+</ul>
+<h3 data-number="2.2.2" id="戻り値-1"><span class="header-section-number">2.2.2</span> 戻り値</h3>
+<p>成功時は 0、失敗時は -1</p>
+<h3 data-number="2.2.3" id="注記-1"><span class="header-section-number">2.2.3</span> 注記</h3>
+<h4 data-number="2.2.3.1" id="ファイル名の最大長は-os-の規定値です-windows-max_path260-linux-path_max通常4096"><span class="header-section-number">2.2.3.1</span> ファイル名の最大長は OS の規定値です (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)</h4>
+<h4 data-number="2.2.3.2" id="file_stat_t-はlinux-では-struct-statwindows-では-struct-_stat64-の-typedef-です"><span class="header-section-number">2.2.3.2</span> file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です</h4>
+<h4 data-number="2.2.3.3" id="linux-では-statwindows-では-_stat64-を使用します"><span class="header-section-number">2.2.3.3</span> Linux では stat()、Windows では _stat64() を使用します</h4>
+<h3 data-number="2.2.4" id="警告"><span class="header-section-number">2.2.4</span> 警告</h3>
+<p>Linux と Windows では構造体のフィールドが異なるため、プラットフォーム固有のコードが必要です</p>
+<ul>
+<li>Windows には st_blksize, st_blocks フィールドがありません</li>
+<li>st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します</li>
+</ul>
+<h3 data-number="2.2.5" id="使用例"><span class="header-section-number">2.2.5</span> 使用例</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">file_stat_t</span> st<span class="op">;</span> <span class="dt">int</span> ret <span class="op">=</span> stat_printf<span class="op">(&amp;</span>st<span class="op">,</span> <span class="st">&quot;data_</span><span class="sc">%d</span><span class="st">.txt&quot;</span><span class="op">,</span> <span class="dv">123</span><span class="op">);</span></span></code></pre></div>
+<h1 data-number="3" id="定数マクロ"><span class="header-section-number">3</span> 定数、マクロ</h1>
+<h2 data-number="3.1" id="file_util_api"><span class="header-section-number">3.1</span> FILE_UTIL_API</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define FILE_UTIL_API</span></span></code></pre></div>
+<p>DLL エクスポート/インポート制御マクロ。</p>
+<p>ビルド条件に応じて以下の値を取ります。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>条件</th>
+<th>値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux (非 Windows)</td>
+<td>(空)</td>
+</tr>
+<tr>
+<td>Windows / <code>__INTELLISENSE__</code> 定義時</td>
+<td>(空)</td>
+</tr>
+<tr>
+<td>Windows / <code>FILE_UTIL_STATIC</code> 定義時 (静的リンク)</td>
+<td>(空)</td>
+</tr>
+<tr>
+<td>Windows / <code>FILE_UTIL_EXPORTS</code> 定義時 (DLL ビルド)</td>
+<td><code>__declspec(dllexport)</code></td>
+</tr>
+<tr>
+<td>Windows / <code>FILE_UTIL_EXPORTS</code> 未定義時 (DLL 利用側)</td>
+<td><code>__declspec(dllimport)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.2" id="winapi"><span class="header-section-number">3.2</span> WINAPI</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define WINAPI</span></span></code></pre></div>
+<p>Windows 呼び出し規約マクロ。</p>
+<p>Windows 環境では <code>__stdcall</code> 呼び出し規約を指定します。 Linux (非 Windows) 環境では空に展開されます。 既に定義済みの場合は再定義されません。</p>
+<h1 data-number="4" id="型"><span class="header-section-number">4</span> 型</h1>
+<h2 data-number="4.1" id="utilincludefile-util.hfile_stat_t"><span class="header-section-number">4.1</span> util/include/file-util.h::file_stat_t</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> stat <span class="dt">file_stat_t</span><span class="op">;</span></span></code></pre></div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>
