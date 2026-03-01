@@ -1,2 +1,0 @@
-# WINDOWS ではビルドをスキップ
-SKIP_BUILD = WINDOWS

@@ -1,5 +1,4 @@
 SUBDIRS = \
-	libsrc \
 	src
 
 .DEFAULT_GOAL := default

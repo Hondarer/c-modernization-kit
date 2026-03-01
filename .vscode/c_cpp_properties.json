@@ -14,6 +14,7 @@
             ],
             "defines": [
                 "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
+                "TARGET_ARCH=\"\"", // makefw/makefiles/prepare.mk で定義される TARGET_ARCH をインテリセンスで模擬するため (コンパイル時には環境に応じて適切な値が渡される)
                 "C_MODERNIZATION_KIT" // ユーザー指定の define の例
             ],
             "compilerPath": "/usr/bin/gcc",
@@ -35,6 +36,7 @@
             ],
             "defines": [
                 // 安全のため、_CRT_SECURE_NO_WARNINGS は指定しない
+                "TARGET_ARCH=\"\"", // makefw/makefiles/prepare.mk で定義される TARGET_ARCH をインテリセンスで模擬するため (コンパイル時には環境に応じて適切な値が渡される)
                 "C_MODERNIZATION_KIT" // ユーザー指定の define の例
             ],
             "compilerPath": "cl.exe",
