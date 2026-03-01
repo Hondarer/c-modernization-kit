@@ -42,6 +42,9 @@ coverage.xml
 ## 中間ファイル (Coverity)
 idir
 
+## Python cache
+__pycache__/
+
 ## doxybook2 によって生成される Markdown
 /docs-src/doxybook2/
 
