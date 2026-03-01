@@ -151,7 +151,7 @@ extern "C"
     #define MODULE_HANDLE HMODULE
 #endif /* _WIN32 */
 
-#define FUNCMAN_NAME_MAX 256 /*!< lib_name / func_name 配列の最大長 (終端 '\0' を含む)。 */
+#define FUNCMAN_NAME_MAX 256 /**< lib_name / func_name 配列の最大長 (終端 '\0' を含む)。 */
 
     /**
      *******************************************************************************
@@ -163,17 +163,17 @@ extern "C"
      */
     typedef struct
     {
-        const char *func_key;             /*!< この関数インスタンスの識別キー */
-        char lib_name[FUNCMAN_NAME_MAX];  /*!< 拡張子なしライブラリ名。[0]=='\0' = 未設定 */
-        char func_name[FUNCMAN_NAME_MAX]; /*!< 関数シンボル名。[0]=='\0' = 未設定 */
-        MODULE_HANDLE handle;             /*!< キャッシュ済みハンドル (NULL = 未ロード) */
-        void *func_ptr;                   /*!< キャッシュ済み関数ポインタ (NULL = 未取得) */
-        int resolved;                     /*!< 解決済フラグ (0 = 未解決) */
-        int padding;                      /*!< パディング */
+        const char *func_key;             /**< この関数インスタンスの識別キー。 */
+        char lib_name[FUNCMAN_NAME_MAX];  /**< 拡張子なしライブラリ名。[0]=='\0' = 未設定。 */
+        char func_name[FUNCMAN_NAME_MAX]; /**< 関数シンボル名。[0]=='\0' = 未設定。 */
+        MODULE_HANDLE handle;             /**< キャッシュ済みハンドル (NULL = 未ロード)。 */
+        void *func_ptr;                   /**< キャッシュ済み関数ポインタ (NULL = 未取得)。 */
+        int resolved;                     /**< 解決済フラグ (0 = 未解決)。 */
+        int padding;                      /**< パディング。 */
 #ifndef _WIN32
-        pthread_mutex_t mutex; /*!< ロード処理を保護する mutex (Linux) */
+        pthread_mutex_t mutex; /**< ロード処理を保護する mutex (Linux)。 */
 #else                          /* _WIN32 */
-    SRWLOCK lock; /*!< ロード処理を保護する SRW ロック (Windows) */
+    SRWLOCK lock; /**< ロード処理を保護する SRW ロック (Windows)。 */
 #endif                         /* _WIN32 */
     } funcman_object;
 

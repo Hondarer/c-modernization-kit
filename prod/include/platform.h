@@ -45,13 +45,13 @@
 #include "compiler.h"
 
 #ifdef DOXYGEN
-    #define PLATFORM_WINDOWS     /*!< Windows の場合に定義されます。 */
-    #define PLATFORM_LINUX       /*!< Linux の場合に定義されます。 */
-    #define PLATFORM_MACOS       /*!< macOS の場合に定義されます。 */
-    #define PLATFORM_APPLE_OTHER /*!< macOS 以外の Apple プラットフォームの場合に定義されます。 */
-    #define PLATFORM_UNKNOWN     /*!< 未知のプラットフォームの場合に定義されます。 */
+    #define PLATFORM_WINDOWS     /**< Windows の場合に定義されます。 */
+    #define PLATFORM_LINUX       /**< Linux の場合に定義されます。 */
+    #define PLATFORM_MACOS       /**< macOS の場合に定義されます。 */
+    #define PLATFORM_APPLE_OTHER /**< macOS 以外の Apple プラットフォームの場合に定義されます。 */
+    #define PLATFORM_UNKNOWN     /**< 未知のプラットフォームの場合に定義されます。 */
     #define PLATFORM_NAME                                                                                              \
-        "name" /*!< プラットフォーム名の文字列 ("Windows", "Linux", "macOS", "Apple (non-macOS)", "Unknown")。 */
+        "name" /**< プラットフォーム名の文字列 ("Windows", "Linux", "macOS", "Apple (non-macOS)", "Unknown")。 */
 #else
     #if defined(_WIN32) || defined(_WIN64)
         #define PLATFORM_WINDOWS
@@ -75,12 +75,12 @@
 #endif
 
 #ifdef DOXYGEN
-    #define ARCH_X64            /*!< x86_64 アーキテクチャの場合に定義されます。 */
-    #define ARCH_X86            /*!< x86 (32bit) アーキテクチャの場合に定義されます。 */
-    #define ARCH_ARM64          /*!< AArch64 アーキテクチャの場合に定義されます。 */
-    #define ARCH_ARM            /*!< ARM (32bit) アーキテクチャの場合に定義されます。 */
-    #define ARCH_UNKNOWN        /*!< 未知のアーキテクチャの場合に定義されます。 */
-    #define ARCH_NAME    "name" /*!< アーキテクチャ名の文字列 ("x64", "x86", "ARM64", "ARM", "Unknown")。 */
+    #define ARCH_X64            /**< x86_64 アーキテクチャの場合に定義されます。 */
+    #define ARCH_X86            /**< x86 (32bit) アーキテクチャの場合に定義されます。 */
+    #define ARCH_ARM64          /**< AArch64 アーキテクチャの場合に定義されます。 */
+    #define ARCH_ARM            /**< ARM (32bit) アーキテクチャの場合に定義されます。 */
+    #define ARCH_UNKNOWN        /**< 未知のアーキテクチャの場合に定義されます。 */
+    #define ARCH_NAME    "name" /**< アーキテクチャ名の文字列 ("x64", "x86", "ARM64", "ARM", "Unknown")。 */
 #else
     #if defined(__x86_64__) || defined(_M_X64)
         #define ARCH_X64

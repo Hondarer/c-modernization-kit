@@ -134,10 +134,10 @@ C89 以降であれば、BeforeHash を採用することが推奨されます�
 連続するマクロ定義の値の開始位置を、最長のマクロ名に合わせて揃えます。空行やコメント行で区切られたグループごとに揃えます。
 
 ```c
-#define CALC_KIND_ADD      1 /*!< 加算の演算種別を表す定数。 */
-#define CALC_KIND_SUBTRACT 2 /*!< 減算の演算種別を表す定数。 */
-#define CALC_KIND_MULTIPLY 3 /*!< 乗算の演算種別を表す定数。 */
-#define CALC_KIND_DIVIDE   4 /*!< 除算の演算種別を表す定数。 */
+#define CALC_KIND_ADD      1 /**< 加算の演算種別を表す定数。 */
+#define CALC_KIND_SUBTRACT 2 /**< 減算の演算種別を表す定数。 */
+#define CALC_KIND_MULTIPLY 3 /**< 乗算の演算種別を表す定数。 */
+#define CALC_KIND_DIVIDE   4 /**< 除算の演算種別を表す定数。 */
 ```
 
 ### None (デフォルト)
@@ -145,10 +145,10 @@ C89 以降であれば、BeforeHash を採用することが推奨されます�
 マクロ名の直後に値が配置され、位置は揃えられません。
 
 ```c
-#define CALC_KIND_ADD 1 /*!< 加算の演算種別を表す定数。 */
-#define CALC_KIND_SUBTRACT 2 /*!< 減算の演算種別を表す定数。 */
-#define CALC_KIND_MULTIPLY 3 /*!< 乗算の演算種別を表す定数。 */
-#define CALC_KIND_DIVIDE 4 /*!< 除算の演算種別を表す定数。 */
+#define CALC_KIND_ADD 1 /**< 加算の演算種別を表す定数。 */
+#define CALC_KIND_SUBTRACT 2 /**< 減算の演算種別を表す定数。 */
+#define CALC_KIND_MULTIPLY 3 /**< 乗算の演算種別を表す定数。 */
+#define CALC_KIND_DIVIDE 4 /**< 除算の演算種別を表す定数。 */
 ```
 
 ### デフォルトが None である理由

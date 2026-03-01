@@ -5,6 +5,6 @@
  */
 typedef struct
 {
-    int a;   /*!< 整数値。 */
-    float b; /*!< 浮動小数点数値。 */
+    int a;   /**< 整数値。 */
+    float b; /**< 浮動小数点数値。 */
 } SAMPLE_STRUCT;
