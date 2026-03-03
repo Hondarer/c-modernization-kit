@@ -9,5 +9,5 @@
  * 
  *  - ${ENV_NAME} (${ENV_NAME})
  * 
- *  ただし、数式内の $VAR や LaTeX コマンドの $\command などはエスケープ不要です。
+ *  ただし、数式内の $VAR や LaTeX コマンドの `$\command` などはエスケープ不要です。
  */
