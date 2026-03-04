@@ -8,7 +8,7 @@ DOXY_CATEGORIES = \
 	util \
 	override-sample \
 	doxygen-sample \
-	simplecomm
+	porter
 
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
@@ -71,7 +71,7 @@ test : submodule
 	fi
 
 # NOTE: 単一カテゴリを指定して Doxygen を実行可能。
-# 例: make doxy CATEGORY=simplecomm
+# 例: make doxy CATEGORY=porter
 .PHONY: doxy
 doxy : submodule
 	@if [ -d doxyfw ] && [ -f doxyfw/makefile ]; then \

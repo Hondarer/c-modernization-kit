@@ -1,0 +1,95 @@
+/**
+ *******************************************************************************
+ *  @file           send.c
+ *  @brief          送信テストコマンド。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/03/04
+ *  @version        1.0.0
+ *
+ *  @details
+ *  指定サービスへデータを送信する CLI テストコマンドです。
+ *
+ *  @par            使用方法
+ *  @code{.sh}
+ *  send <config_path> <service_id> <message>
+ *  @endcode
+ *
+ *  @par            使用例
+ *  @code{.sh}
+ *  send porter-services.conf 10 "Hello, World!"
+ *  @endcode
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <porter.h>
+
+/**
+ *******************************************************************************
+ *  @brief          メインエントリーポイント。
+ *  @param[in]      argc コマンドライン引数の数。
+ *  @param[in]      argv コマンドライン引数の配列。
+ *  @return         成功時は EXIT_SUCCESS、失敗時は EXIT_FAILURE を返します。
+ *******************************************************************************
+ */
+int main(int argc, char *argv[])
+{
+    const char *config_path;
+    int         service_id;
+    const char *message;
+    int         compress;
+    PotrHandle  handle;
+    size_t      msg_len;
+
+    if (argc < 4)
+    {
+        fprintf(stderr,
+                "使用方法: %s <config_path> <service_id> <message> [compress]\n",
+                argv[0]);
+        fprintf(stderr, "例: %s porter-services.conf 10 \"Hello\"\n", argv[0]);
+        fprintf(stderr, "例: %s porter-services.conf 10 \"Hello\" 1  # 圧縮あり\n",
+                argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    config_path = argv[1];
+    service_id  = atoi(argv[2]);
+    message     = argv[3];
+    compress    = (argc >= 5) ? atoi(argv[4]) : 0;
+    msg_len     = strlen(message);
+
+    if (msg_len == 0)
+    {
+        fprintf(stderr, "エラー: 空のメッセージは送信できません。\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
+
+    if (potrOpenService(config_path, service_id, NULL, &handle) != POTR_SUCCESS)
+    {
+        fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
+        return EXIT_FAILURE;
+    }
+
+    printf("送信中: \"%s\" (%zu バイト)%s\n", message, msg_len,
+           compress ? " [圧縮あり]" : "");
+
+    if (potrSend(handle, message, msg_len, compress) != POTR_SUCCESS)
+    {
+        fprintf(stderr, "エラー: 送信に失敗しました。\n");
+        potrClose(handle);
+        return EXIT_FAILURE;
+    }
+
+    printf("送信完了。\n");
+
+    potrClose(handle);
+    return EXIT_SUCCESS;
+}

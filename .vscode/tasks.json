@@ -56,14 +56,14 @@
             "linux": {
                 "options": {
                     "env": {
-                        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${workspaceFolder}/prod/simplecomm/lib:${env:LD_LIBRARY_PATH}"
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${workspaceFolder}/prod/porter/lib:${env:LD_LIBRARY_PATH}"
                     }
                 }
             },
             "windows": {
                 "options": {
                     "env": {
-                        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${workspaceFolder}\\prod\\simplecomm\\lib;${env:PATH}"
+                        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${workspaceFolder}\\prod\\porter\\lib;${env:PATH}"
                     }
                 }
             },
@@ -178,14 +178,14 @@
             "linux": {
                 "options": {
                     "env": {
-                        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${workspaceFolder}/prod/simplecomm/lib:${env:LD_LIBRARY_PATH}"
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${workspaceFolder}/prod/porter/lib:${env:LD_LIBRARY_PATH}"
                     }
                 }
             },
             "windows": {
                 "options": {
                     "env": {
-                        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${workspaceFolder}\\prod\\simplecomm\\lib;${env:PATH}"
+                        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc.net\\lib;${workspaceFolder}\\prod\\porter\\lib;${env:PATH}"
                     }
                 }
             },
