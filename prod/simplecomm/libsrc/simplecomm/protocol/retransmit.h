@@ -16,7 +16,7 @@
 
 #include <stdint.h>
 
-#include <libsimplecomm_const.h>
+#include <simplecomm_const.h>
 
 /**
  *  @brief  再送制御エントリ。

@@ -19,8 +19,8 @@
     #include <arpa/inet.h>
 #endif
 
-#include <libsimplecomm_const.h>
-#include <libsimplecomm_type.h>
+#include <simplecomm_const.h>
+#include <simplecomm_type.h>
 
 #include "packet.h"
 

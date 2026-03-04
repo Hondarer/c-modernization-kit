@@ -1,5 +1,4 @@
 SUBDIRS = \
-	simplecommcore \
 	simplecomm
 
 .DEFAULT_GOAL := default

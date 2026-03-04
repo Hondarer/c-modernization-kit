@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <libsimplecomm_type.h>
+#include <simplecomm_type.h>
 
 #ifdef __cplusplus
 extern "C"

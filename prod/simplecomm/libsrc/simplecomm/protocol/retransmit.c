@@ -13,7 +13,7 @@
 
 #include <string.h>
 
-#include <libsimplecomm_const.h>
+#include <simplecomm_const.h>
 
 #include "retransmit.h"
 

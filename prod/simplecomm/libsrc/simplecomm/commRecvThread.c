@@ -23,10 +23,10 @@
     #include <unistd.h>
 #endif
 
-#include <libsimplecomm_const.h>
+#include <simplecomm_const.h>
 
-#include "../simplecommcore/packet.h"
-#include "../simplecommcore/window.h"
+#include "protocol/packet.h"
+#include "protocol/window.h"
 #include "commContext.h"
 #include "commRecvThread.h"
 

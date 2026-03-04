@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           libsimplecomm.h
+ *  @file           simplecomm.h
  *  @brief          簡易通信ライブラリ (動的リンク用) のヘッダーファイル。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/04
@@ -17,7 +17,7 @@
 #ifndef LIBSIMPLECOMM_H
 #define LIBSIMPLECOMM_H
 
-#include <libsimplecomm_type.h>
+#include <simplecomm_type.h>
 
 /**
  *  @def            COMM_API

@@ -36,7 +36,7 @@
     #include <unistd.h>
 #endif
 
-#include <libsimplecomm.h>
+#include <simplecomm.h>
 
 /** 受信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
 static volatile int g_running = 1;

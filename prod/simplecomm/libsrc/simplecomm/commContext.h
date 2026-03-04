@@ -17,10 +17,10 @@
 #ifndef COMM_CONTEXT_H
 #define COMM_CONTEXT_H
 
-#include <libsimplecomm_type.h>
+#include <simplecomm_type.h>
 
-#include "../simplecommcore/retransmit.h"
-#include "../simplecommcore/window.h"
+#include "protocol/retransmit.h"
+#include "protocol/window.h"
 
 #ifdef _WIN32
     #include <winsock2.h>

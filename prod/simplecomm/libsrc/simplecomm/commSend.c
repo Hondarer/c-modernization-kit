@@ -22,24 +22,14 @@
     #include <arpa/inet.h>
 #endif
 
-#include <libsimplecomm_const.h>
-#include <libsimplecomm.h>
+#include <simplecomm_const.h>
+#include <simplecomm.h>
 
-#include "../simplecommcore/packet.h"
-#include "../simplecommcore/seqnum.h"
-#include "../simplecommcore/window.h"
+#include "protocol/packet.h"
+#include "protocol/seqnum.h"
+#include "protocol/window.h"
 #include "commContext.h"
-
-/* IPv4 文字列をネットワークバイトオーダーへ変換する。 */
-static int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr)
-{
-    if (ip_str == NULL || out_addr == NULL)
-    {
-        return COMM_ERROR;
-    }
-
-    return (inet_pton(AF_INET, ip_str, out_addr) == 1) ? COMM_SUCCESS : COMM_ERROR;
-}
+#include "util/commIpAddr.h"
 
 /* 通信種別に応じた送信先アドレスを構築する */
 static int build_dest_addr(const struct CommContext_ *ctx,

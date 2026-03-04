@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           libsimplecomm_const.h
+ *  @file           simplecomm_const.h
  *  @brief          簡易通信ライブラリの定数ファイル。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/04

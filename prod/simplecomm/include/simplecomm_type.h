@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           libsimplecomm_type.h
+ *  @file           simplecomm_type.h
  *  @brief          簡易通信ライブラリの型定義ファイル。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/04
@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <libsimplecomm_const.h>
+#include <simplecomm_const.h>
 
 /**
  *******************************************************************************

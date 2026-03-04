@@ -16,8 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libsimplecomm_const.h>
-#include <libsimplecomm_type.h>
+#include <simplecomm_const.h>
+#include <simplecomm_type.h>
 
 #include "config.h"
 

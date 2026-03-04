@@ -14,7 +14,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <libsimplecomm_type.h>
+#include <simplecomm_type.h>
 
 #ifdef __cplusplus
 extern "C"

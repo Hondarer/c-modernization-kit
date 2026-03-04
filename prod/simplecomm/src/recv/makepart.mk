@@ -3,4 +3,3 @@ LIBSDIR += $(WORKSPACE_FOLDER)/prod/simplecomm/lib
 
 # 依存ライブラリ
 LIBS += simplecomm
-LIBS += simplecommcore

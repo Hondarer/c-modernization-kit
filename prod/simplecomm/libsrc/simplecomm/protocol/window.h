@@ -16,8 +16,8 @@
 
 #include <stdint.h>
 
-#include <libsimplecomm_const.h>
-#include <libsimplecomm_type.h>
+#include <simplecomm_const.h>
+#include <simplecomm_type.h>
 
 /**
  *  @brief  スライディングウィンドウ管理構造体。

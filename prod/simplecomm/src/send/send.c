@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libsimplecomm.h>
+#include <simplecomm.h>
 
 /**
  *******************************************************************************
