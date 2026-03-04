@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C95FC081-BE5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "calc", "calc", "{E20EA619-356C-4B4D-3CC3-A046C579C085}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcLib.Tests", "test\src\calc.net\CalcLib.Tests\CalcLib.Tests.csproj", "{97546AD9-7F3A-443E-97D8-4D93EF151554}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalcLib.Tests", "test\calc.net\src\CalcLib.Tests\CalcLib.Tests.csproj", "{97546AD9-7F3A-443E-97D8-4D93EF151554}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
