@@ -70,11 +70,16 @@ test : submodule
 		echo "INFO: test directory not found, skipping."; \
 	fi
 
+# NOTE: 単一カテゴリを指定して Doxygen を実行可能。
+# 例: make doxy CATEGORY=simplecomm
 .PHONY: doxy
 doxy : submodule
 	@if [ -d doxyfw ] && [ -f doxyfw/makefile ]; then \
 		set -e; \
-		if [ -z "$(DOXY_CATEGORIES)" ]; then \
+		if [ -n "$(CATEGORY)" ]; then \
+			echo $(MAKE) -C doxyfw CATEGORY=$(CATEGORY); \
+			$(MAKE) -C doxyfw CATEGORY=$(CATEGORY); \
+		elif [ -z "$(DOXY_CATEGORIES)" ]; then \
 			echo $(MAKE) -C doxyfw; \
 			$(MAKE) -C doxyfw; \
 		else \
