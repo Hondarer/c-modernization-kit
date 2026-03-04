@@ -49,6 +49,9 @@ struct CommContext_
     CommSocket       sock;         /**< UDP ソケット。 */
     volatile int     running;      /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
     uint8_t          _pad[4];      /**< パディング。 */
+    size_t           frag_buf_len; /**< フラグメント結合バッファの現在のデータ長 (バイト)。 */
+    uint8_t          frag_buf[COMM_MAX_MESSAGE_SIZE]; /**< フラグメント結合バッファ。 */
+    uint8_t          _frag_pad[1]; /**< パディング (frag_buf を 8 バイト境界に揃える)。 */
 };
 
 #endif /* COMM_CONTEXT_H */

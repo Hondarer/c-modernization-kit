@@ -11,8 +11,8 @@
  *******************************************************************************
  */
 
-#ifndef LIBSIMPLECOMM_CONST_H
-#define LIBSIMPLECOMM_CONST_H
+#ifndef SIMPLECOMM_CONST_H
+#define SIMPLECOMM_CONST_H
 
 /** @defgroup COMM_RESULT 戻り値
  *  @{
@@ -24,9 +24,10 @@
 /** @defgroup COMM_FLAG パケットフラグ
  *  @{
  */
-#define COMM_FLAG_DATA  0x0001U /**< データパケットであることを示すフラグ。 */
-#define COMM_FLAG_ACK   0x0002U /**< 確認応答パケットであることを示すフラグ。 */
-#define COMM_FLAG_NACK  0x0004U /**< 再送要求パケットであることを示すフラグ。 */
+#define COMM_FLAG_DATA      0x0001U /**< データパケットであることを示すフラグ。 */
+#define COMM_FLAG_ACK       0x0002U /**< 確認応答パケットであることを示すフラグ。 */
+#define COMM_FLAG_NACK      0x0004U /**< 再送要求パケットであることを示すフラグ。 */
+#define COMM_FLAG_MORE_FRAG 0x0008U /**< 後続フラグメントが存在することを示すフラグ。 */
 /** @} */
 
 /** @defgroup COMM_DEFAULT デフォルト値
@@ -42,10 +43,11 @@
 /** @defgroup COMM_LIMIT 上限値
  *  @{
  */
-#define COMM_MAX_ADDR_LEN    64U  /**< アドレス文字列の最大長 (バイト、終端 NUL を含む)。 */
-#define COMM_MAX_PAYLOAD     1400U /**< ペイロードの最大長 (バイト)。 */
-#define COMM_MAX_WINDOW_SIZE 256U  /**< ウィンドウサイズの最大値 (パケット数)。 */
-#define COMM_MAX_SERVICES    64U   /**< 設定ファイルに定義できるサービスの最大数。 */
+#define COMM_MAX_ADDR_LEN     64U    /**< アドレス文字列の最大長 (バイト、終端 NUL を含む)。 */
+#define COMM_MAX_PAYLOAD      1400U  /**< ペイロードの最大長 (バイト)。 */
+#define COMM_MAX_WINDOW_SIZE  256U   /**< ウィンドウサイズの最大値 (パケット数)。 */
+#define COMM_MAX_SERVICES     64U    /**< 設定ファイルに定義できるサービスの最大数。 */
+#define COMM_MAX_MESSAGE_SIZE 65535U /**< 1 回の commSend で送信できる最大メッセージ長 (バイト)。フラグメント化により COMM_MAX_PAYLOAD を超えるメッセージも送受信できる。 */
 /** @} */
 
-#endif /* LIBSIMPLECOMM_CONST_H */
+#endif /* SIMPLECOMM_CONST_H */

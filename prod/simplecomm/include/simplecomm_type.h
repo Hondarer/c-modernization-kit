@@ -11,8 +11,8 @@
  *******************************************************************************
  */
 
-#ifndef LIBSIMPLECOMM_TYPES_H
-#define LIBSIMPLECOMM_TYPES_H
+#ifndef SIMPLECOMM_TYPE_H
+#define SIMPLECOMM_TYPE_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -136,4 +136,4 @@ typedef struct CommContext_ *CommHandle;
  */
 typedef void (*CommRecvCallback)(int service_id, const void *data, size_t len);
 
-#endif /* LIBSIMPLECOMM_TYPES_H */
+#endif /* SIMPLECOMM_TYPE_H */

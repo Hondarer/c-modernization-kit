@@ -145,14 +145,55 @@ static void *recv_thread_func(void *arg)
             send_nack(ctx, &sender_addr, nack_num);
         }
 
-        /* 順序整列済みパケットをコールバックへ渡す */
+        /* 順序整列済みパケットをコールバックへ渡す（フラグメント結合対応） */
         while (window_recv_pop(&ctx->recv_window, &ordered_pkt) == COMM_SUCCESS)
         {
-            if (ctx->callback != NULL)
+            if (ordered_pkt.flags & COMM_FLAG_MORE_FRAG)
             {
-                ctx->callback(ctx->service.service_id,
-                              ordered_pkt.payload,
-                              (size_t)ordered_pkt.payload_len);
+                /* 後続フラグメントあり: バッファに蓄積する */
+                if (ctx->frag_buf_len + ordered_pkt.payload_len
+                    <= COMM_MAX_MESSAGE_SIZE)
+                {
+                    memcpy(ctx->frag_buf + ctx->frag_buf_len,
+                           ordered_pkt.payload,
+                           ordered_pkt.payload_len);
+                    ctx->frag_buf_len += ordered_pkt.payload_len;
+                }
+                else
+                {
+                    /* バッファオーバーフロー: 受信途中のフラグメントを破棄 */
+                    ctx->frag_buf_len = 0;
+                }
+            }
+            else if (ctx->frag_buf_len > 0)
+            {
+                /* フラグメントの最終パケット: バッファに追記してコールバック */
+                if (ctx->frag_buf_len + ordered_pkt.payload_len
+                    <= COMM_MAX_MESSAGE_SIZE)
+                {
+                    memcpy(ctx->frag_buf + ctx->frag_buf_len,
+                           ordered_pkt.payload,
+                           ordered_pkt.payload_len);
+                    ctx->frag_buf_len += ordered_pkt.payload_len;
+
+                    if (ctx->callback != NULL)
+                    {
+                        ctx->callback(ctx->service.service_id,
+                                      ctx->frag_buf,
+                                      ctx->frag_buf_len);
+                    }
+                }
+                ctx->frag_buf_len = 0;
+            }
+            else
+            {
+                /* 非フラグメントパケット: 直接コールバック */
+                if (ctx->callback != NULL)
+                {
+                    ctx->callback(ctx->service.service_id,
+                                  ordered_pkt.payload,
+                                  (size_t)ordered_pkt.payload_len);
+                }
             }
         }
     }

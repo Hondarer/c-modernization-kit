@@ -14,8 +14,8 @@
  *******************************************************************************
  */
 
-#ifndef LIBSIMPLECOMM_H
-#define LIBSIMPLECOMM_H
+#ifndef SIMPLECOMM_H
+#define SIMPLECOMM_H
 
 #include <simplecomm_type.h>
 
@@ -163,4 +163,4 @@ extern "C"
 }
 #endif
 
-#endif /* LIBSIMPLECOMM_H */
+#endif /* SIMPLECOMM_H */

@@ -77,31 +77,13 @@ static int build_dest_addr(const struct CommContext_ *ctx,
 /* doxygen コメントは、ヘッダに記載 */
 COMM_API int COMMAPI commSend(CommHandle handle, const void *data, size_t len)
 {
-    struct CommContext_ *ctx = (struct CommContext_ *)handle;
-    CommPacket           pkt;
+    struct CommContext_ *ctx       = (struct CommContext_ *)handle;
+    const uint8_t       *ptr      = (const uint8_t *)data;
     struct sockaddr_in   dest;
-    size_t               wire_len;
-    uint32_t             seq;
+    size_t               remaining;
+    size_t               max_payload;
 
-    if (ctx == NULL || data == NULL || len == 0 || len > COMM_MAX_PAYLOAD)
-    {
-        return COMM_ERROR;
-    }
-
-    /* 送信ウィンドウが満杯の場合はエラー返し（ブロッキングは未実装） */
-    if (window_send_full(&ctx->send_window))
-    {
-        return COMM_ERROR;
-    }
-
-    seq = ctx->send_window.next_seq;
-
-    if (packet_build_data(&pkt, seq, data, len) != COMM_SUCCESS)
-    {
-        return COMM_ERROR;
-    }
-
-    if (window_send_push(&ctx->send_window, &pkt) != COMM_SUCCESS)
+    if (ctx == NULL || data == NULL || len == 0 || len > COMM_MAX_MESSAGE_SIZE)
     {
         return COMM_ERROR;
     }
@@ -111,21 +93,59 @@ COMM_API int COMMAPI commSend(CommHandle handle, const void *data, size_t len)
         return COMM_ERROR;
     }
 
-    wire_len = packet_wire_size(&pkt);
+    remaining   = len;
+    max_payload = ctx->global.max_payload;
+
+    while (remaining > 0)
+    {
+        CommPacket pkt;
+        size_t     chunk     = (remaining > max_payload) ? max_payload : remaining;
+        int        more_frag = (remaining > chunk);
+        uint32_t   seq;
+        size_t     wire_len;
+
+        /* 送信ウィンドウが満杯の場合はエラー返し（ブロッキングは未実装） */
+        if (window_send_full(&ctx->send_window))
+        {
+            return COMM_ERROR;
+        }
+
+        seq = ctx->send_window.next_seq;
+
+        if (packet_build_data(&pkt, seq, ptr, chunk) != COMM_SUCCESS)
+        {
+            return COMM_ERROR;
+        }
+
+        if (more_frag)
+        {
+            pkt.flags |= COMM_FLAG_MORE_FRAG;
+        }
+
+        if (window_send_push(&ctx->send_window, &pkt) != COMM_SUCCESS)
+        {
+            return COMM_ERROR;
+        }
+
+        wire_len = packet_wire_size(&pkt);
 
 #ifdef _WIN32
-    if (sendto(ctx->sock, (const char *)&pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&dest, sizeof(dest)) == SOCKET_ERROR)
-    {
-        return COMM_ERROR;
-    }
+        if (sendto(ctx->sock, (const char *)&pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&dest, sizeof(dest)) == SOCKET_ERROR)
+        {
+            return COMM_ERROR;
+        }
 #else
-    if (sendto(ctx->sock, &pkt, wire_len, 0,
-               (const struct sockaddr *)&dest, sizeof(dest)) < 0)
-    {
-        return COMM_ERROR;
-    }
+        if (sendto(ctx->sock, &pkt, wire_len, 0,
+                   (const struct sockaddr *)&dest, sizeof(dest)) < 0)
+        {
+            return COMM_ERROR;
+        }
 #endif
+
+        ptr       += chunk;
+        remaining -= chunk;
+    }
 
     return COMM_SUCCESS;
 }
