@@ -8,6 +8,7 @@
                 "${workspaceFolder}/prod/subfolder-sample/include",
                 "${workspaceFolder}/prod/util/include",
                 "${workspaceFolder}/prod/override-sample/include",
+                "${workspaceFolder}/prod/simplecomm/include",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/calc/include"
@@ -30,6 +31,7 @@
                 "${workspaceFolder}/prod/subfolder-sample/include",
                 "${workspaceFolder}/prod/util/include",
                 "${workspaceFolder}/prod/override-sample/include",
+                "${workspaceFolder}/prod/simplecomm/include",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
                 "${workspaceFolder}/test/calc/include"

@@ -7,7 +7,8 @@ DOXY_CATEGORIES = \
 	calc.net \
 	util \
 	override-sample \
-	doxygen-sample
+	doxygen-sample \
+	simplecomm
 
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
