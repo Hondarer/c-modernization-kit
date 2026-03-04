@@ -29,6 +29,7 @@
 #include "protocol/seqnum.h"
 #include "protocol/window.h"
 #include "commContext.h"
+#include "compress/compress.h"
 #include "util/commIpAddr.h"
 
 /* 通信種別に応じた送信先アドレスを構築する */
@@ -75,17 +76,35 @@ static int build_dest_addr(const struct CommContext_ *ctx,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-COMM_API int COMMAPI commSend(CommHandle handle, const void *data, size_t len)
+COMM_API int COMMAPI commSend(CommHandle handle, const void *data, size_t len,
+                              int compress)
 {
     struct CommContext_ *ctx       = (struct CommContext_ *)handle;
     const uint8_t       *ptr      = (const uint8_t *)data;
     struct sockaddr_in   dest;
     size_t               remaining;
     size_t               max_payload;
+    uint16_t             data_flags = COMM_FLAG_DATA;
 
     if (ctx == NULL || data == NULL || len == 0 || len > COMM_MAX_MESSAGE_SIZE)
     {
         return COMM_ERROR;
+    }
+
+    /* 圧縮が要求された場合はペイロード全体を圧縮する */
+    if (compress != 0)
+    {
+        size_t cmp_len = sizeof(ctx->compress_buf);
+
+        if (comm_compress(ctx->compress_buf, &cmp_len,
+                          (const uint8_t *)data, len) != 0)
+        {
+            return COMM_ERROR;
+        }
+
+        ptr        = ctx->compress_buf;
+        len        = cmp_len;
+        data_flags = (uint16_t)(COMM_FLAG_DATA | COMM_FLAG_COMPRESSED);
     }
 
     if (build_dest_addr(ctx, &dest) != COMM_SUCCESS)
@@ -117,6 +136,8 @@ COMM_API int COMMAPI commSend(CommHandle handle, const void *data, size_t len)
             return COMM_ERROR;
         }
 
+        /* 圧縮フラグと後続フラグメントフラグを付与 */
+        pkt.flags |= (uint16_t)(data_flags & ~(uint16_t)COMM_FLAG_DATA);
         if (more_frag)
         {
             pkt.flags |= COMM_FLAG_MORE_FRAG;

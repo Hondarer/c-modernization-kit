@@ -43,20 +43,25 @@ int main(int argc, char *argv[])
     const char *config_path;
     int         service_id;
     const char *message;
+    int         compress;
     CommHandle  handle;
     size_t      msg_len;
 
     if (argc < 4)
     {
-        fprintf(stderr, "使用方法: %s <config_path> <service_id> <message>\n",
+        fprintf(stderr,
+                "使用方法: %s <config_path> <service_id> <message> [compress]\n",
                 argv[0]);
         fprintf(stderr, "例: %s simplecomm-services.conf 10 \"Hello\"\n", argv[0]);
+        fprintf(stderr, "例: %s simplecomm-services.conf 10 \"Hello\" 1  # 圧縮あり\n",
+                argv[0]);
         return EXIT_FAILURE;
     }
 
     config_path = argv[1];
     service_id  = atoi(argv[2]);
     message     = argv[3];
+    compress    = (argc >= 5) ? atoi(argv[4]) : 0;
     msg_len     = strlen(message);
 
     if (msg_len == 0)
@@ -73,9 +78,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    printf("送信中: \"%s\" (%zu バイト)\n", message, msg_len);
+    printf("送信中: \"%s\" (%zu バイト)%s\n", message, msg_len,
+           compress ? " [圧縮あり]" : "");
 
-    if (commSend(handle, message, msg_len) != COMM_SUCCESS)
+    if (commSend(handle, message, msg_len, compress) != COMM_SUCCESS)
     {
         fprintf(stderr, "エラー: 送信に失敗しました。\n");
         commClose(handle);

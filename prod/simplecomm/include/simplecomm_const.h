@@ -24,10 +24,11 @@
 /** @defgroup COMM_FLAG パケットフラグ
  *  @{
  */
-#define COMM_FLAG_DATA      0x0001U /**< データパケットであることを示すフラグ。 */
-#define COMM_FLAG_ACK       0x0002U /**< 確認応答パケットであることを示すフラグ。 */
-#define COMM_FLAG_NACK      0x0004U /**< 再送要求パケットであることを示すフラグ。 */
-#define COMM_FLAG_MORE_FRAG 0x0008U /**< 後続フラグメントが存在することを示すフラグ。 */
+#define COMM_FLAG_DATA       0x0001U /**< データパケットであることを示すフラグ。 */
+#define COMM_FLAG_ACK        0x0002U /**< 確認応答パケットであることを示すフラグ。 */
+#define COMM_FLAG_NACK       0x0004U /**< 再送要求パケットであることを示すフラグ。 */
+#define COMM_FLAG_MORE_FRAG  0x0008U /**< 後続フラグメントが存在することを示すフラグ。 */
+#define COMM_FLAG_COMPRESSED 0x0010U /**< ペイロードが圧縮されていることを示すフラグ。先頭 4 バイトが元サイズ (NBO)、続くデータが raw DEFLATE。 */
 /** @} */
 
 /** @defgroup COMM_DEFAULT デフォルト値

@@ -29,6 +29,7 @@
 #include "protocol/window.h"
 #include "commContext.h"
 #include "commRecvThread.h"
+#include "compress/compress.h"
 
 /** 受信バッファサイズ。ヘッダー + 最大ペイロード分を確保する。 */
 #define RECV_BUF_SIZE (sizeof(CommPacket))
@@ -55,6 +56,31 @@ static void send_nack(struct CommContext_ *ctx,
     sendto(ctx->sock, &nack_pkt, wire_len, 0,
            (const struct sockaddr *)sender_addr, sizeof(*sender_addr));
 #endif
+}
+
+/* 受信データを解凍してコールバックに渡す */
+static void recv_deliver(struct CommContext_ *ctx,
+                         const uint8_t      *payload,
+                         size_t              payload_len,
+                         int                 compressed)
+{
+    if (compressed)
+    {
+        size_t dec_len = sizeof(ctx->compress_buf);
+
+        if (comm_decompress(ctx->compress_buf, &dec_len,
+                            payload, payload_len) == 0)
+        {
+            ctx->callback(ctx->service.service_id,
+                          ctx->compress_buf,
+                          dec_len);
+        }
+        /* 解凍失敗時はパケットを破棄する */
+    }
+    else
+    {
+        ctx->callback(ctx->service.service_id, payload, payload_len);
+    }
 }
 
 /* 受信スレッド本体 */
@@ -145,7 +171,7 @@ static void *recv_thread_func(void *arg)
             send_nack(ctx, &sender_addr, nack_num);
         }
 
-        /* 順序整列済みパケットをコールバックへ渡す（フラグメント結合対応） */
+        /* 順序整列済みパケットをコールバックへ渡す（フラグメント結合・解凍対応） */
         while (window_recv_pop(&ctx->recv_window, &ordered_pkt) == COMM_SUCCESS)
         {
             if (ordered_pkt.flags & COMM_FLAG_MORE_FRAG)
@@ -154,6 +180,12 @@ static void *recv_thread_func(void *arg)
                 if (ctx->frag_buf_len + ordered_pkt.payload_len
                     <= COMM_MAX_MESSAGE_SIZE)
                 {
+                    /* 最初のフラグメントで圧縮フラグを記録する */
+                    if (ctx->frag_buf_len == 0)
+                    {
+                        ctx->frag_compressed =
+                            (ordered_pkt.flags & COMM_FLAG_COMPRESSED) ? 1 : 0;
+                    }
                     memcpy(ctx->frag_buf + ctx->frag_buf_len,
                            ordered_pkt.payload,
                            ordered_pkt.payload_len);
@@ -162,7 +194,8 @@ static void *recv_thread_func(void *arg)
                 else
                 {
                     /* バッファオーバーフロー: 受信途中のフラグメントを破棄 */
-                    ctx->frag_buf_len = 0;
+                    ctx->frag_buf_len    = 0;
+                    ctx->frag_compressed = 0;
                 }
             }
             else if (ctx->frag_buf_len > 0)
@@ -178,21 +211,24 @@ static void *recv_thread_func(void *arg)
 
                     if (ctx->callback != NULL)
                     {
-                        ctx->callback(ctx->service.service_id,
-                                      ctx->frag_buf,
-                                      ctx->frag_buf_len);
+                        recv_deliver(ctx,
+                                     ctx->frag_buf,
+                                     ctx->frag_buf_len,
+                                     ctx->frag_compressed);
                     }
                 }
-                ctx->frag_buf_len = 0;
+                ctx->frag_buf_len    = 0;
+                ctx->frag_compressed = 0;
             }
             else
             {
-                /* 非フラグメントパケット: 直接コールバック */
+                /* 非フラグメントパケット */
                 if (ctx->callback != NULL)
                 {
-                    ctx->callback(ctx->service.service_id,
-                                  ordered_pkt.payload,
-                                  (size_t)ordered_pkt.payload_len);
+                    recv_deliver(ctx,
+                                 ordered_pkt.payload,
+                                 (size_t)ordered_pkt.payload_len,
+                                 (ordered_pkt.flags & COMM_FLAG_COMPRESSED) ? 1 : 0);
                 }
             }
         }

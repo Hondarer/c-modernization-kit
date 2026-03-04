@@ -118,9 +118,11 @@ extern "C"
     /**
      *******************************************************************************
      *  @brief          データを送信します。
-     *  @param[in]      handle  commOpenService() で取得したセッションハンドル。
-     *  @param[in]      data    送信するデータへのポインタ。
-     *  @param[in]      len     送信するデータのバイト数。
+     *  @param[in]      handle    commOpenService() で取得したセッションハンドル。
+     *  @param[in]      data      送信するデータへのポインタ。
+     *  @param[in]      len       送信するデータのバイト数。
+     *  @param[in]      compress  0 以外を指定するとペイロードを圧縮して送信します。
+     *                            0 を指定すると非圧縮で送信します。
      *  @return         成功時は COMM_SUCCESS、失敗時は COMM_ERROR を返します。
      *
      *  @details
@@ -132,16 +134,24 @@ extern "C"
      *  | COMM_TYPE_MULTICAST   | multicast_group:src_port へ送信            |
      *  | COMM_TYPE_BROADCAST   | broadcast_addr:src_port へ送信             |
      *
-     *  送信ウィンドウが満杯の場合は、ウィンドウに空きが生じるまでブロックします。
+     *  compress に 0 以外を指定した場合、内部で圧縮処理を行ってから送信します。\n
+     *  受信側の CommRecvCallback には、解凍済みの元データが渡されます。\n
+     *  送受信ともにフラグメント化と組み合わせて使用できます。
+     *
+     *  @note
+     *  圧縮フォーマットには raw DEFLATE (RFC 1951) を使用します。\n
+     *  Linux (zlib) と Windows (Compression API MSZIP|COMPRESS_RAW) は
+     *  同一フォーマットを出力するため、クロスプラットフォーム通信に対応します。
      *
      *  @warning        handle が NULL の場合は失敗を返します。\n
      *                  data が NULL の場合は失敗を返します。\n
-     *                  len が COMM_MAX_PAYLOAD を超える場合は失敗を返します。
+     *                  len が COMM_MAX_MESSAGE_SIZE を超える場合は失敗を返します。
      *******************************************************************************
      */
     COMM_API extern int COMMAPI commSend(CommHandle  handle,
                                          const void *data,
-                                         size_t      len);
+                                         size_t      len,
+                                         int         compress);
 
     /**
      *******************************************************************************

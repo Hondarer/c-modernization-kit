@@ -1,8 +1,8 @@
 ifneq ($(OS),Windows_NT)
-    LIBS += pthread
+    LIBS += pthread z
 endif
 ifeq ($(OS),Windows_NT)
-    LIBS += ws2_32
+    LIBS += ws2_32 Cabinet
 endif
 
 ifeq ($(OS),Windows_NT)
