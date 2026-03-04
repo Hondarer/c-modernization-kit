@@ -3,7 +3,8 @@ SUBDIRS = \
 	calc.net \
 	subfolder-sample \
 	util \
-	override-sample
+	override-sample \
+	simplecomm
 
 .DEFAULT_GOAL := default
 

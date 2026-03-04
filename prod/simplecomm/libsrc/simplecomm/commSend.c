@@ -30,6 +30,17 @@
 #include "../simplecommcore/window.h"
 #include "commContext.h"
 
+/* IPv4 文字列をネットワークバイトオーダーへ変換する。 */
+static int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr)
+{
+    if (ip_str == NULL || out_addr == NULL)
+    {
+        return COMM_ERROR;
+    }
+
+    return (inet_pton(AF_INET, ip_str, out_addr) == 1) ? COMM_SUCCESS : COMM_ERROR;
+}
+
 /* 通信種別に応じた送信先アドレスを構築する */
 static int build_dest_addr(const struct CommContext_ *ctx,
                             struct sockaddr_in        *dest)
@@ -49,12 +60,20 @@ static int build_dest_addr(const struct CommContext_ *ctx,
             break;
 
         case COMM_TYPE_MULTICAST:
-            dest->sin_addr.s_addr = inet_addr(ctx->service.multicast_group);
+            if (parse_ipv4_addr(ctx->service.multicast_group, &dest->sin_addr)
+                != COMM_SUCCESS)
+            {
+                return COMM_ERROR;
+            }
             dest->sin_port        = htons(ctx->service.src_port);
             break;
 
         case COMM_TYPE_BROADCAST:
-            dest->sin_addr.s_addr = inet_addr(ctx->service.broadcast_addr);
+            if (parse_ipv4_addr(ctx->service.broadcast_addr, &dest->sin_addr)
+                != COMM_SUCCESS)
+            {
+                return COMM_ERROR;
+            }
             dest->sin_port        = htons(ctx->service.src_port);
             break;
 

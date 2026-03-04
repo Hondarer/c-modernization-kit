@@ -33,6 +33,54 @@
 /** 値文字列の最大長。 */
 #define CONFIG_VAL_MAX 128
 
+/* 読み取り専用で設定ファイルを開く。失敗時は NULL を返す。 */
+static FILE *open_config_file_read(const char *path)
+{
+    FILE *fp = NULL;
+
+    if (path == NULL)
+    {
+        return NULL;
+    }
+
+#ifdef _WIN32
+    if (fopen_s(&fp, path, "r") != 0)
+    {
+        return NULL;
+    }
+#else
+    fp = fopen(path, "r");
+#endif
+
+    return fp;
+}
+
+/* src を dst に切り詰めコピーする。 */
+static void copy_cstr_trunc(char *dst, size_t dst_size, const char *src)
+{
+    size_t len;
+
+    if (dst == NULL || dst_size == 0)
+    {
+        return;
+    }
+
+    if (src == NULL)
+    {
+        dst[0] = '\0';
+        return;
+    }
+
+    len = strlen(src);
+    if (len >= dst_size)
+    {
+        len = dst_size - 1;
+    }
+
+    memcpy(dst, src, len);
+    dst[len] = '\0';
+}
+
 /* 文字列の先頭・末尾の空白を除去して buf に格納する */
 static void trim(const char *src, char *buf, size_t buf_size)
 {
@@ -126,7 +174,7 @@ int config_load_global(const char *config_path, CommGlobalConfig *global)
     global->retransmit_timeout_ms = (uint32_t)COMM_DEFAULT_RETRANSMIT_TIMEOUT_MS;
     global->retransmit_count      = (uint8_t)COMM_DEFAULT_RETRANSMIT_COUNT;
 
-    fp = fopen(config_path, "r");
+    fp = open_config_file_read(config_path);
     if (fp == NULL)
     {
         return COMM_ERROR;
@@ -225,8 +273,9 @@ static void apply_service_kv(const char *key, const char *val,
     }
     else if (strcmp(key, "multicast_group") == 0)
     {
-        strncpy(current->multicast_group, val, COMM_MAX_ADDR_LEN - 1);
-        current->multicast_group[COMM_MAX_ADDR_LEN - 1] = '\0';
+        copy_cstr_trunc(current->multicast_group,
+                        sizeof(current->multicast_group),
+                        val);
     }
     else if (strcmp(key, "ttl") == 0)
     {
@@ -234,8 +283,9 @@ static void apply_service_kv(const char *key, const char *val,
     }
     else if (strcmp(key, "broadcast_addr") == 0)
     {
-        strncpy(current->broadcast_addr, val, COMM_MAX_ADDR_LEN - 1);
-        current->broadcast_addr[COMM_MAX_ADDR_LEN - 1] = '\0';
+        copy_cstr_trunc(current->broadcast_addr,
+                        sizeof(current->broadcast_addr),
+                        val);
     }
 }
 
@@ -267,7 +317,7 @@ int config_load_service(const char *config_path, int service_id,
         return COMM_ERROR;
     }
 
-    fp = fopen(config_path, "r");
+    fp = open_config_file_read(config_path);
     if (fp == NULL)
     {
         return COMM_ERROR;

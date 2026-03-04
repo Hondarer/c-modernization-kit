@@ -3,7 +3,12 @@ LIBSDIR += $(WORKSPACE_FOLDER)/prod/simplecomm/lib
 
 # 依存ライブラリ
 LIBS += simplecommcore
-LIBS += pthread
+ifneq ($(OS),Windows_NT)
+    LIBS += pthread
+endif
+ifeq ($(OS),Windows_NT)
+    LIBS += ws2_32
+endif
 
 ifeq ($(OS),Windows_NT)
     # DLL エクスポート定義
