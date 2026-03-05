@@ -1,0 +1,5 @@
+<map id="send_nack" name="send_nack">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,91,31"/>
+<area shape="rect" id="Node000002" href="$packet_8c.html#aaf155f7d2936ffa8015eddaddd1d96be" title="NACK パケットを構築します。" alt="" coords="139,5,269,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,15,125,15,125,21,91,21"/>
+</map>

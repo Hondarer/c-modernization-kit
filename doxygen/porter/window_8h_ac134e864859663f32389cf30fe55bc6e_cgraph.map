@@ -1,0 +1,7 @@
+<map id="window_recv_push" name="window_recv_push">
+<area shape="rect" id="Node000001" title="受信ウィンドウにパケットを格納します。" alt="" coords="5,31,136,56"/>
+<area shape="rect" id="Node000002" href="$seqnum_8c.html#a45fcfa48b2d66889a5b9b8f63650336a" title="通番 seq がウィンドウ [base, base + window_size) に含まれるか判定します。" alt="" coords="184,5,319,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,31,170,27,170,32,137,37"/>
+<area shape="rect" id="Node000003" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="212,55,291,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="137,49,198,58,198,63,136,55"/>
+</map>

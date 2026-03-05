@@ -1,0 +1,7 @@
+<map id="window_send_ack" name="window_send_ack">
+<area shape="rect" id="Node000001" title="ACK を処理して送信ウィンドウを前進させます。" alt="" coords="5,31,132,56"/>
+<area shape="rect" id="Node000002" href="$seqnum_8c.html#a45fcfa48b2d66889a5b9b8f63650336a" title="通番 seq がウィンドウ [base, base + window_size) に含まれるか判定します。" alt="" coords="180,5,315,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,32,166,27,167,32,133,37"/>
+<area shape="rect" id="Node000003" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="208,55,287,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,49,195,58,194,63,132,55"/>
+</map>

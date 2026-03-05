@@ -1,0 +1,13 @@
+<map id="porter/libsrc/porter/protocol/packet.h" name="porter/libsrc/porter/protocol/packet.h">
+<area shape="rect" id="Node000001" title="パケット構築・解析モジュールの内部ヘッダー。" alt="" coords="89,5,215,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,167,75,192"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,48,93,95,55,156,51,153,89,92,129,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="229,167,294,192"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,44,216,92,252,153,247,156,211,95,171,47"/>
+<area shape="rect" id="Node000004" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="103,93,201,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,46,155,80,149,80,149,46"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="134,121,73,161,70,157,131,117"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="173,117,232,157,229,161,170,121"/>
+<area shape="rect" id="Node000005" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="99,167,205,192"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="155,119,155,153,149,153,149,119"/>
+</map>

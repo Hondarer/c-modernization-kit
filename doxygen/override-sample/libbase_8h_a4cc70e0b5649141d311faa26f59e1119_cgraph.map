@@ -1,0 +1,14 @@
+<map id="get_lib_basename" name="get_lib_basename">
+<area shape="rect" id="Node000001" title="指定した関数が所属する共有ライブラリ (.so/.dll) の basename (パスなし・拡張子なし) を取得します。" alt="" coords="5,57,132,83"/>
+<area shape="rect" id="Node000002" href="$get__lib__info_8c.html#a6b8f85c79c31c267b18934757210e83e" title="文字列を安全にコピーします (UTF&#45;8 想定だが単なる byte 列として扱う)。" alt="" coords="573,31,645,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,55,129,34,179,17,232,8,285,4,391,6,486,17,561,30,560,35,485,22,390,11,285,9,232,14,181,22,131,39,91,60"/>
+<area shape="rect" id="Node000003" href="$get__lib__info_8c.html#ae72331c635b126219e7aa22222353d80" title="パス文字列からファイル名部分 (最後の区切り文字以降) を返します。" alt="" coords="199,32,320,57"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,59,184,52,185,57,133,64"/>
+<area shape="rect" id="Node000004" href="$get__lib__info_8c.html#af6ea2bf0e62a8f5f9fe488ef6b07db62" title="指定した関数が所属する共有ライブラリ (.so/.dll) の絶対パスを取得します。" alt="" coords="213,81,305,107"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="132,75,200,84,199,89,132,81"/>
+<area shape="rect" id="Node000006" href="$get__lib__info_8c.html#a6a4373ad8047dc25256fd9320083d960" title="拡張子を取り除きます (その場で書き換え)。" alt="" coords="180,131,339,156"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="96,80,181,117,201,124,200,129,179,122,94,85"/>
+<area shape="rect" id="Node000005" href="$get__lib__info_8c.html#a3da7623fb03ca9f5a9febbfb28bca8c6" title=".so 自身の絶対パスを取得します (Linux/Unix)。" alt="" coords="387,56,525,81"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="305,86,373,77,373,82,306,91"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="525,55,559,49,560,54,526,60"/>
+</map>

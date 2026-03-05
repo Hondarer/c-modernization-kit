@@ -1,0 +1,7 @@
+<map id="window_send_push" name="window_send_push">
+<area shape="rect" id="Node000001" title="送信ウィンドウにパケットを積みます。" alt="" coords="227,5,361,31"/>
+<area shape="rect" id="Node000002" href="$potrSend_8c.html#a50f796e2c18751b09924b8251fbd81aa" title="データを送信します。" alt="" coords="104,5,179,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,21,179,21,179,15,213,15"/>
+<area shape="rect" id="Node000003" href="$send_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="90,21,56,21,56,15,90,15"/>
+</map>

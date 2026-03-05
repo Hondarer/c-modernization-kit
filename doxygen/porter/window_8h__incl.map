@@ -1,0 +1,13 @@
+<map id="porter/libsrc/porter/protocol/window.h" name="porter/libsrc/porter/protocol/window.h">
+<area shape="rect" id="Node000001" title="スライディングウィンドウ管理モジュールの内部ヘッダー。" alt="" coords="66,5,194,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,167,71,192"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,47,89,69,71,95,57,125,47,154,42,152,52,123,66,92,85,66,106,44"/>
+<area shape="rect" id="Node000003" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="189,167,295,192"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,44,193,92,231,153,227,156,189,95,148,48"/>
+<area shape="rect" id="Node000004" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="81,93,179,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,46,133,80,127,80,127,46"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="116,121,67,160,64,156,112,117"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="151,117,212,157,209,161,148,121"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="95,167,165,192"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="133,119,133,153,127,153,127,119"/>
+</map>

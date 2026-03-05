@@ -1,0 +1,56 @@
+<map id="porter/libsrc/porter/potrOpenService.c" name="porter/libsrc/porter/potrOpenService.c">
+<area shape="rect" id="Node000001" title="potrOpenService 関数の実装。" alt="" coords="549,5,683,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,69,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="549,33,344,55,215,73,83,96,82,91,215,67,343,49,548,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="94,93,159,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="549,36,382,58,173,96,172,91,381,53,548,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="183,93,281,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="549,42,295,96,294,90,548,37"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="295,167,382,192"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="549,36,490,45,430,58,378,75,359,84,346,95,339,108,335,123,335,153,330,153,330,122,334,106,342,92,356,80,376,70,428,53,489,40,548,30"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="427,167,509,192"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="590,48,535,95,486,157,482,153,531,91,586,44"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="546,93,614,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="609,47,594,82,589,80,604,45"/>
+<area shape="rect" id="Node000008" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="753,387,858,412"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="626,45,644,104,652,141,655,179,655,253,658,299,665,317,679,337,709,362,744,379,741,384,706,366,675,340,660,319,652,300,649,253,649,179,646,142,639,105,621,46"/>
+<area shape="rect" id="Node000009" href="$porter_8h.html" title="通信ライブラリ (動的リンク用) のヘッダーファイル。" alt="" coords="1142,240,1207,265"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="684,29,829,50,914,68,997,91,1082,115,1116,132,1151,165,1168,195,1175,225,1170,227,1163,197,1147,168,1113,136,1080,120,995,96,913,73,828,56,683,35"/>
+<area shape="rect" id="Node000013" href="$config_8h.html" title="設定ファイル解析モジュールの内部ヘッダー。" alt="" coords="1018,167,1137,192"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="684,28,813,48,885,66,956,91,1011,122,1055,156,1051,160,1008,126,954,96,884,71,812,53,684,33"/>
+<area shape="rect" id="Node000014" href="$window_8h.html" title="スライディングウィンドウ管理モジュールの内部ヘッダー。" alt="" coords="791,240,915,265"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="654,43,689,65,723,91,758,126,790,163,839,227,835,230,786,166,754,130,720,95,686,69,652,48"/>
+<area shape="rect" id="Node000015" href="$retransmit_8h.html" title="再送制御モジュールの内部ヘッダー。" alt="" coords="689,313,831,339"/>
+<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="637,44,673,92,701,148,725,206,756,299,750,301,720,208,696,150,668,95,633,47"/>
+<area shape="rect" id="Node000016" href="$potrContext_8h.html" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="894,167,994,192"/>
+<area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="684,29,752,37,824,50,888,68,913,79,930,91,940,105,945,121,949,152,944,153,940,122,935,108,926,95,910,83,886,73,823,55,751,43,683,34"/>
+<area shape="rect" id="Node000019" href="$potrRecvThread_8h.html" title="受信スレッド内部ヘッダー。" alt="" coords="791,93,916,119"/>
+<area shape="poly" id="edge30_Node000001_Node000019" title=" " alt="" coords="676,43,804,86,802,91,674,48"/>
+<area shape="rect" id="Node000020" href="$potrIpAddr_8h.html" title="IPv4 アドレス変換ユーティリティ (内部用)。" alt="" coords="357,93,470,119"/>
+<area shape="poly" id="edge32_Node000001_Node000020" title=" " alt="" coords="566,48,459,91,457,86,564,43"/>
+<area shape="rect" id="Node000010" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="995,313,1093,339"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1153,268,1080,309,1078,304,1151,263"/>
+<area shape="poly" id="edge12_Node000010_Node000008" title=" " alt="" coords="1003,341,860,385,859,380,1002,336"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1017,387,1087,412"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1048,338,1052,372,1046,373,1043,339"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="917,387,982,412"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="1029,341,979,380,975,376,1026,337"/>
+<area shape="poly" id="edge14_Node000013_Node000010" title=" " alt="" coords="1081,192,1080,226,1075,266,1060,302,1055,300,1069,265,1075,226,1075,192"/>
+<area shape="poly" id="edge17_Node000014_Node000008" title=" " alt="" coords="856,266,854,300,845,340,826,377,821,374,840,338,849,299,851,266"/>
+<area shape="poly" id="edge18_Node000014_Node000010" title=" " alt="" coords="888,263,999,306,997,311,886,268"/>
+<area shape="poly" id="edge16_Node000014_Node000012" title=" " alt="" coords="864,264,936,374,931,377,860,267"/>
+<area shape="poly" id="edge21_Node000015_Node000008" title=" " alt="" coords="770,337,792,373,788,376,766,340"/>
+<area shape="poly" id="edge20_Node000015_Node000012" title=" " alt="" coords="794,336,905,379,903,384,792,341"/>
+<area shape="poly" id="edge23_Node000016_Node000010" title=" " alt="" coords="972,190,1002,210,1029,239,1041,269,1046,299,1041,300,1036,271,1024,241,999,214,969,194"/>
+<area shape="poly" id="edge25_Node000016_Node000014" title=" " alt="" coords="930,194,882,233,878,229,927,190"/>
+<area shape="poly" id="edge24_Node000016_Node000015" title=" " alt="" coords="894,187,865,194,834,205,805,220,781,242,767,270,762,300,757,299,761,268,777,238,802,216,832,200,863,189,893,182"/>
+<area shape="rect" id="Node000017" href="$compress_8h.html" title="データ圧縮・解凍モジュールの内部ヘッダー。" alt="" coords="1118,313,1269,339"/>
+<area shape="poly" id="edge26_Node000016_Node000017" title=" " alt="" coords="995,187,1222,238,1229,254,1228,271,1214,303,1209,301,1223,270,1224,255,1218,242,994,193"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="939,240,1015,265"/>
+<area shape="poly" id="edge29_Node000016_Node000018" title=" " alt="" coords="952,191,968,226,963,228,947,193"/>
+<area shape="poly" id="edge27_Node000017_Node000011" title=" " alt="" coords="1170,341,1090,383,1088,378,1167,336"/>
+<area shape="poly" id="edge28_Node000017_Node000012" title=" " alt="" coords="1152,341,996,388,995,383,1150,336"/>
+<area shape="poly" id="edge31_Node000019_Node000016" title=" " alt="" coords="871,117,919,156,915,160,867,121"/>
+<area shape="poly" id="edge34_Node000020_Node000005" title=" " alt="" coords="402,121,364,158,360,155,398,117"/>
+<area shape="poly" id="edge33_Node000020_Node000006" title=" " alt="" coords="425,117,452,154,448,157,421,120"/>
+</map>

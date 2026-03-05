@@ -1,0 +1,522 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>簡易通信フレームワーク</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">簡易通信フレームワーク</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Thu, 05 Mar 2026 03:43:15 +0000</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#プラットフォーム" id="toc-プラットフォーム"><span class="toc-section-number">2</span> プラットフォーム</a></li>
+                <li><a href="#通信方式" id="toc-通信方式"><span class="toc-section-number">3</span> 通信方式</a></li>
+                <li><a href="#基本プロトコル" id="toc-基本プロトコル"><span class="toc-section-number">4</span> 基本プロトコル</a></li>
+                <li><a href="#ポート" id="toc-ポート"><span class="toc-section-number">5</span> ポート</a></li>
+                <li><a href="#テストコマンド" id="toc-テストコマンド"><span class="toc-section-number">6</span> テストコマンド</a></li>
+                <li><a href="#実装" id="toc-実装"><span class="toc-section-number">7</span> 実装</a>
+                <ul>
+                <li><a href="#プロジェクト構成" id="toc-プロジェクト構成"><span class="toc-section-number">7.1</span> プロジェクト構成</a></li>
+                <li><a href="#サービスの概念" id="toc-サービスの概念"><span class="toc-section-number">7.2</span> サービスの概念</a></li>
+                <li><a href="#n-通信の方式" id="toc-n-通信の方式"><span class="toc-section-number">7.3</span> 1:N 通信の方式</a></li>
+                <li><a href="#サービス定義ファイル" id="toc-サービス定義ファイル"><span class="toc-section-number">7.4</span> サービス定義ファイル</a></li>
+                <li><a href="#公開-api" id="toc-公開-api"><span class="toc-section-number">7.5</span> 公開 API</a></li>
+                <li><a href="#プロトコル設計" id="toc-プロトコル設計"><span class="toc-section-number">7.6</span> プロトコル設計</a>
+                <ul>
+                <li><a href="#パケット構造" id="toc-パケット構造"><span class="toc-section-number">7.6.1</span> パケット構造</a></li>
+                <li><a href="#通番管理" id="toc-通番管理"><span class="toc-section-number">7.6.2</span> 通番管理</a></li>
+                <li><a href="#ウィンドウ管理" id="toc-ウィンドウ管理"><span class="toc-section-number">7.6.3</span> ウィンドウ管理</a></li>
+                <li><a href="#再送制御" id="toc-再送制御"><span class="toc-section-number">7.6.4</span> 再送制御</a></li>
+                <li><a href="#クロスプラットフォーム対応" id="toc-クロスプラットフォーム対応"><span class="toc-section-number">7.6.5</span> クロスプラットフォーム対応</a></li>
+                </ul></li>
+                <li><a href="#テストコマンド-1" id="toc-テストコマンド-1"><span class="toc-section-number">7.7</span> テストコマンド</a>
+                <ul>
+                <li><a href="#送信コマンド" id="toc-送信コマンド"><span class="toc-section-number">7.7.1</span> 送信コマンド</a></li>
+                <li><a href="#受信コマンド" id="toc-受信コマンド"><span class="toc-section-number">7.7.2</span> 受信コマンド</a></li>
+                </ul></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>簡易通信フレームワーク</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>DLL 呼び出しで、プラットフォームをまたいだ通信を行うサンプル実装を示す。</p>
+<h1 data-number="2" id="プラットフォーム"><span class="header-section-number">2</span> プラットフォーム</h1>
+<p>Linux/Windows で同じ関数プロトタイプとし、同じ動作を行う。</p>
+<h1 data-number="3" id="通信方式"><span class="header-section-number">3</span> 通信方式</h1>
+<p>以下の通信方式をサポートする。</p>
+<ul>
+<li>1:1 通信</li>
+<li>1:N 通信</li>
+</ul>
+<h1 data-number="4" id="基本プロトコル"><span class="header-section-number">4</span> 基本プロトコル</h1>
+<p>UDP/IP とする。</p>
+<p>通番管理、ウインドウ管理を行い、パケットロストが発生した場合でも、一定の過去パケットは再送要求を行う。<br />
+パケットの追い越しにも対応する。(再送中は追い越しに近い挙動を示すため、再送をサポートする場合、追い越し対応が必須)</p>
+<h1 data-number="5" id="ポート"><span class="header-section-number">5</span> ポート</h1>
+<p>定義ファイルで、サービスポートを指定可能とする。</p>
+<h1 data-number="6" id="テストコマンド"><span class="header-section-number">6</span> テストコマンド</h1>
+<p>CLI のテストコマンドを用意する。</p>
+<hr />
+<h1 data-number="7" id="実装"><span class="header-section-number">7</span> 実装</h1>
+<h2 data-number="7.1" id="プロジェクト構成"><span class="header-section-number">7.1</span> プロジェクト構成</h2>
+<pre class="text"><code>prod/porter/
+├── sample-config/
+│   └── porter-services.conf    # サービス定義ファイル (サンプル)
+├── makefile
+├── include/
+│   ├── libporter_const.h       # 定数定義
+│   ├── libporter_type.h       # 型定義
+│   └── libporter.h             # 公開 API
+├── libsrc/
+│   ├── portercore/             # 静的ライブラリ (プロトコルロジック)
+│   │   ├── config.c / config.h     # INI 形式設定ファイル解析
+│   │   ├── packet.c / packet.h     # パケット構築・解析
+│   │   ├── seqnum.c / seqnum.h     # 通番管理
+│   │   ├── window.c / window.h     # スライディングウィンドウ管理
+│   │   └── retransmit.c / retransmit.h  # 再送制御
+│   └── porter/                 # 動的ライブラリ (UDP ソケット層)
+│       ├── potrContext.h           # PotrHandle 実体 (内部非公開)
+│       ├── potrOpenService.c       # サービス開設
+│       ├── potrSend.c              # データ送信
+│       ├── potrClose.c             # サービス終了
+│       └── potrRecvThread.c        # 受信スレッド (内部)
+└── src/
+    ├── send/send.c                 # 送信テストコマンド
+    └── recv/recv.c                 # 受信テストコマンド</code></pre>
+<h2 data-number="7.2" id="サービスの概念"><span class="header-section-number">7.2</span> サービスの概念</h2>
+<p>通信の単位を「サービス」として管理する。サービス ID は <code>int</code> 型の任意の値。</p>
+<p>サービス ID は設定ファイルのセクション名 <code>[service.&lt;id&gt;]</code> の <code>&lt;id&gt;</code> 部分から取得する。ポート番号とは無関係である。</p>
+<p>通信種別によってサービスの識別子となるポートが異なる。</p>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 57%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>通信種別</th>
+<th>サービスの識別子</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unicast (1:1)</td>
+<td><code>dst_port</code></td>
+<td>受信側が待機するポート番号</td>
+</tr>
+<tr>
+<td>multicast (1:N)</td>
+<td><code>src_port</code></td>
+<td>送信元ポート番号。受信側はこのポートで待機する。</td>
+</tr>
+<tr>
+<td>broadcast (1:N)</td>
+<td><code>src_port</code></td>
+<td>送信元ポート番号。受信側はこのポートで待機する。</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="7.3" id="n-通信の方式"><span class="header-section-number">7.3</span> 1:N 通信の方式</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>方式</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>マルチキャスト</td>
+<td>グループ参加ホストのみに送信。ルーター越え可 (ルーター設定次第)。IGMP が必要。</td>
+</tr>
+<tr>
+<td>ブロードキャスト</td>
+<td>同一サブネット内の全ホストに送信。ルーター越え不可。設定が簡単。</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="7.4" id="サービス定義ファイル"><span class="header-section-number">7.4</span> サービス定義ファイル</h2>
+<p>INI 形式のテキストファイルで設定する。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">window_size           </span><span class="ot">=</span><span class="st"> </span><span class="dv">16</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">max_payload           </span><span class="ot">=</span><span class="st"> </span><span class="dv">1400</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dt">retransmit_timeout_ms </span><span class="ot">=</span><span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="dt">retransmit_count      </span><span class="ot">=</span><span class="st"> </span><span class="dv">3</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.1001]</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">type     </span><span class="ot">=</span><span class="st"> unicast</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port </span><span class="ot">=</span><span class="st"> </span><span class="dv">5001</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.2001]</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="dt">type            </span><span class="ot">=</span><span class="st"> multicast</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="dt">src_port        </span><span class="ot">=</span><span class="st"> </span><span class="dv">6001</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="dt">multicast_group </span><span class="ot">=</span><span class="st"> 239.0.0.1</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="dt">ttl             </span><span class="ot">=</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.3001]</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="dt">type           </span><span class="ot">=</span><span class="st"> broadcast</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="dt">src_port       </span><span class="ot">=</span><span class="st"> </span><span class="dv">7001</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="dt">broadcast_addr </span><span class="ot">=</span><span class="st"> 255.255.255.255</span></span></code></pre></div>
+<h2 data-number="7.5" id="公開-api"><span class="header-section-number">7.5</span> 公開 API</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 受信コールバック型</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">void</span> <span class="op">(*</span>PotrRecvCallback<span class="op">)(</span><span class="dt">int</span> service_id<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">);</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// 設定ファイルから指定サービスを開く</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrOpenService<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span>       <span class="op">*</span>config_path<span class="op">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">int</span>               service_id<span class="op">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                                     PotrRecvCallback  callback<span class="op">,</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                                     PotrHandle       <span class="op">*</span>handle<span class="op">);</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// データを送信する</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrSend<span class="op">(</span>PotrHandle handle<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">);</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">// サービスを閉じる</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrClose<span class="op">(</span>PotrHandle handle<span class="op">);</span></span></code></pre></div>
+<h2 data-number="7.6" id="プロトコル設計"><span class="header-section-number">7.6</span> プロトコル設計</h2>
+<h3 data-number="7.6.1" id="パケット構造"><span class="header-section-number">7.6.1</span> パケット構造</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> seq_num<span class="op">;</span>                   <span class="co">// 通番 (NBO)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> ack_num<span class="op">;</span>                   <span class="co">// 確認応答/再送要求番号 (NBO)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> flags<span class="op">;</span>                     <span class="co">// POTR_FLAG_DATA / ACK / NACK (NBO)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> payload_len<span class="op">;</span>               <span class="co">// ペイロード長 (NBO)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  payload<span class="op">[</span>POTR_MAX_PAYLOAD<span class="op">];</span> <span class="co">// ペイロードデータ</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> PotrPacket<span class="op">;</span></span></code></pre></div>
+<p>各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納する。</p>
+<h3 data-number="7.6.2" id="通番管理"><span class="header-section-number">7.6.2</span> 通番管理</h3>
+<p><code>uint32_t</code> の循環カウンタを使用する。折り返しを考慮した比較を <code>seqnum_is_newer()</code> で提供する。</p>
+<h3 data-number="7.6.3" id="ウィンドウ管理"><span class="header-section-number">7.6.3</span> ウィンドウ管理</h3>
+<p>スライディングウィンドウ方式。送信側・受信側それぞれ <code>PotrWindow</code> 構造体で管理する。</p>
+<ul>
+<li>送信ウィンドウ: 未確認パケットをリングバッファに保持し、ACK 受信で前進する。</li>
+<li>受信ウィンドウ: 順序外到着 (追い越し) パケットをバッファリングし、通番順に整列してコールバックへ渡す。</li>
+</ul>
+<h3 data-number="7.6.4" id="再送制御"><span class="header-section-number">7.6.4</span> 再送制御</h3>
+<p>NACK ベースを基本とし、タイムアウトをフォールバックとする。</p>
+<ul>
+<li>受信側: 欠番を検出したとき、送信元へユニキャストで NACK を送出する。</li>
+<li>送信側: NACK 受信時に該当パケットを再送する。再送もマルチキャスト/ブロードキャストで送出するため、他の受信者も恩恵を受ける。</li>
+<li>タイムアウト: <code>retransmit_timeout_ms</code> 経過後も ACK がなければ再送する。<code>retransmit_count</code> 回を超えた場合は管理解除する。</li>
+</ul>
+<h3 data-number="7.6.5" id="クロスプラットフォーム対応"><span class="header-section-number">7.6.5</span> クロスプラットフォーム対応</h3>
+<p><code>potrContext.h</code> でプラットフォーム差異を吸収する。</p>
+<table>
+<thead>
+<tr>
+<th>機能</th>
+<th>Linux</th>
+<th>Windows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ソケット型</td>
+<td><code>int</code></td>
+<td><code>SOCKET</code></td>
+</tr>
+<tr>
+<td>無効ソケット値</td>
+<td><code>-1</code></td>
+<td><code>INVALID_SOCKET</code></td>
+</tr>
+<tr>
+<td>スレッド型</td>
+<td><code>pthread_t</code></td>
+<td><code>HANDLE</code></td>
+</tr>
+<tr>
+<td>ソケット初期化</td>
+<td>不要</td>
+<td><code>WSAStartup()</code></td>
+</tr>
+<tr>
+<td>ソケットクローズ</td>
+<td><code>close()</code></td>
+<td><code>closesocket()</code></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="7.7" id="テストコマンド-1"><span class="header-section-number">7.7</span> テストコマンド</h2>
+<h3 data-number="7.7.1" id="送信コマンド"><span class="header-section-number">7.7.1</span> 送信コマンド</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">send</span> <span class="op">&lt;</span>config_path<span class="op">&gt;</span> <span class="op">&lt;</span>service_id<span class="op">&gt;</span> <span class="op">&lt;</span>message<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">send</span> sample-config/porter-services.conf 2001 <span class="st">&quot;Hello, World!&quot;</span></span></code></pre></div>
+<h3 data-number="7.7.2" id="受信コマンド"><span class="header-section-number">7.7.2</span> 受信コマンド</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">recv</span> <span class="op">&lt;</span>config_path<span class="op">&gt;</span> <span class="op">&lt;</span>service_id<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">recv</span> sample-config/porter-services.conf 2001</span></code></pre></div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

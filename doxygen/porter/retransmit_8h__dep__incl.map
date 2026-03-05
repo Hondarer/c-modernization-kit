@@ -1,0 +1,21 @@
+<map id="porter/libsrc/porter/protocol/retransmit.h" name="porter/libsrc/porter/protocol/retransmit.h">
+<area shape="rect" id="Node000001" title="再送制御モジュールの内部ヘッダー。" alt="" coords="177,5,323,45"/>
+<area shape="rect" id="Node000002" href="$potrContext_8h.html" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="187,93,313,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="253,59,253,93,247,93,247,59"/>
+<area shape="rect" id="Node000004" href="$potrOpenService_8c.html" title="potrOpenService 関数の実装。" alt="" coords="5,269,140,309"/>
+<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="203,55,170,78,135,108,102,143,78,182,71,204,68,227,71,269,66,269,63,227,66,203,73,180,98,139,131,104,166,74,200,50"/>
+<area shape="rect" id="Node000008" href="$retransmit_8c.html" title="再送制御モジュール。" alt="" coords="337,93,483,133"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="300,50,375,91,372,96,298,55"/>
+<area shape="rect" id="Node000003" href="$potrClose_8c.html" title="potrClose 関数の実装。" alt="" coords="415,269,541,309"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="327,134,386,156,426,179,444,200,458,224,475,268,470,270,454,226,440,203,423,183,383,161,325,139"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="175,135,134,154,100,183,88,203,80,226,75,269,70,269,75,225,83,201,96,180,131,150,172,130"/>
+<area shape="rect" id="Node000005" href="$potrRecvThread_8c.html" title="受信スレッドモジュール。" alt="" coords="261,269,391,309"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="327,136,375,157,394,168,406,180,411,193,412,206,402,230,382,253,360,271,356,267,378,249,397,227,406,205,406,194,401,183,390,172,372,161,325,141"/>
+<area shape="rect" id="Node000006" href="$potrRecvThread_8h.html" title="受信スレッド内部ヘッダー。" alt="" coords="261,181,391,221"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="279,142,310,179,306,183,274,146"/>
+<area shape="rect" id="Node000007" href="$potrSend_8c.html" title="potrSend 関数の実装。" alt="" coords="111,181,237,221"/>
+<area shape="poly" id="edge9_Node000002_Node000007" title=" " alt="" coords="226,146,194,183,190,179,221,142"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="374,226,445,267,442,272,372,231"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="256,229,131,272,130,267,254,224"/>
+<area shape="poly" id="edge8_Node000006_Node000005" title=" " alt="" coords="329,235,329,269,323,269,323,235"/>
+</map>

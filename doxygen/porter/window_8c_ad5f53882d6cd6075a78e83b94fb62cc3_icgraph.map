@@ -1,0 +1,28 @@
+<map id="win_index" name="win_index">
+<area shape="rect" id="Node000001" title=" " alt="" coords="877,104,956,129"/>
+<area shape="rect" id="Node000002" href="$window_8c.html#a6ecfb9f52ac33918ba6f8cd0386b17c2" title="受信ウィンドウで欠番が発生しているか確認し、NACK 番号を返します。" alt="" coords="656,5,829,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="893,96,864,69,828,44,801,33,803,28,831,40,867,65,897,92"/>
+<area shape="rect" id="Node000007" href="$window_8c.html#a883a182a547ff084957069939b131527" title="受信ウィンドウから順序整列済みパケットを取り出します。" alt="" coords="681,55,805,80"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="863,104,829,94,788,83,790,77,830,89,865,99"/>
+<area shape="rect" id="Node000008" href="$window_8c.html#ac134e864859663f32389cf30fe55bc6e" title="受信ウィンドウにパケットを格納します。" alt="" coords="677,104,808,129"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="864,119,808,119,808,114,864,114"/>
+<area shape="rect" id="Node000009" href="$window_8c.html#aa3c39809a6b6c7275a2539d6edf95036" title="ACK を処理して送信ウィンドウを前進させます。" alt="" coords="679,153,806,179"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="865,134,788,156,787,151,863,129"/>
+<area shape="rect" id="Node000010" href="$window_8c.html#a194f99cfb5f1631fb7643c1838a5278a" title="送信ウィンドウにパケットを積みます。" alt="" coords="675,203,810,228"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="897,142,867,169,831,194,803,205,801,200,828,189,864,165,893,138"/>
+<area shape="rect" id="Node000003" href="$potrRecvThread_8c.html#a300c2d6c99e3491d0ee4c7cb4de36146" title=" " alt="" coords="485,80,608,105"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="679,37,657,44,572,82,570,77,655,40,678,32"/>
+<area shape="rect" id="Node000004" href="$potrRecvThread_8c.html#a1006d5ccaf47db6c24908eb7ae366505" title="受信スレッドを起動します。" alt="" coords="271,80,437,105"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="472,95,437,95,437,90,472,90"/>
+<area shape="rect" id="Node000005" href="$potrOpenService_8c.html#a7b5bb6c02c8f7ca7eaa193b07bbe7cba" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,80,223,105"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="257,95,223,95,223,90,257,90"/>
+<area shape="rect" id="Node000006" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,80,56,105"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="91,95,56,95,56,90,91,90"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="668,80,609,87,608,82,667,74"/>
+<area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="663,110,608,103,608,98,664,104"/>
+<area shape="poly" id="edge11_Node000009_Node000003" title=" " alt="" coords="681,152,655,143,572,108,574,103,657,138,683,147"/>
+<area shape="rect" id="Node000011" href="$potrSend_8c.html#a50f796e2c18751b09924b8251fbd81aa" title="データを送信します。" alt="" coords="509,203,584,228"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="662,218,585,218,585,213,662,213"/>
+<area shape="rect" id="Node000012" href="$send_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="329,203,379,228"/>
+<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="495,218,380,218,380,213,495,213"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="potrClose" name="potrClose">
+<area shape="rect" id="Node000001" title="サービスを閉じます。" alt="" coords="5,31,83,56"/>
+<area shape="rect" id="Node000002" href="$potrRecvThread_8c.html#a7c78b3cb3453065cd140eb118741ad45" title="受信スレッドを停止します。" alt="" coords="131,5,296,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,35,117,30,118,35,83,40"/>
+<area shape="rect" id="Node000003" href="$potrIpAddr_8c.html#a3cec4d9d1cf322295151f0f4319db29e" title=" " alt="" coords="155,55,272,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="83,46,141,54,140,60,82,51"/>
+</map>

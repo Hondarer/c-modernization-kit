@@ -1,0 +1,5 @@
+<map id="PotrRetransmit" name="PotrRetransmit">
+<area shape="rect" id="Node000001" title="再送制御管理構造体。" alt="" coords="10,221,111,327"/>
+<area shape="rect" id="Node000002" href="$structRetransmitEntry.html" title="再送制御エントリ。" alt="" coords="5,5,116,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,151,63,205,58,205,58,151"/>
+</map>

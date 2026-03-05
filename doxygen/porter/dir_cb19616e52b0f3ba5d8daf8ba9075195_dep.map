@@ -1,0 +1,20 @@
+<map id="porter/libsrc/porter" name="porter/libsrc/porter">
+<area shape="rect" id="node2" href="dir_546bad689c6bde8554165c9df10744d6.html" title="compress" alt="" coords="38,136,117,161"/>
+<area shape="poly" id="edge2" href="dir_000004_000000.html" alt="" coords="188,90,114,131,111,127,185,86"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000004_000000.html" title="3" alt="" coords="116,127,124,142"/>
+<area shape="rect" id="node3" href="dir_d993ac7669cfe3def177e8c85bc6ec08.html" title="protocol" alt="" coords="141,136,209,161"/>
+<area shape="poly" id="edge4" href="dir_000004_000005.html" alt="" coords="206,89,189,124,184,122,201,87"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000004_000005.html" title="10" alt="" coords="189,115,204,130"/>
+<area shape="rect" id="node4" href="dir_73360a8c3810217557a8a196134bea06.html" title="util" alt="" coords="233,136,271,161"/>
+<area shape="poly" id="edge3" href="dir_000004_000009.html" alt="" coords="219,87,240,123,235,125,214,89"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000004_000009.html" title="3" alt="" coords="239,108,247,123"/>
+<area shape="rect" id="node5" href="dir_1e5ea896c89a57fb533cc05a7d6bb751.html" title="include" alt="" coords="221,209,283,235"/>
+<area shape="poly" id="edge1" href="dir_000004_000001.html" alt="" coords="236,86,264,106,286,135,293,159,286,184,277,200,273,197,282,182,287,159,282,137,260,110,233,90"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000004_000001.html" title="20" alt="" coords="277,194,292,208"/>
+<area shape="poly" id="edge5" href="dir_000005_000001.html" alt="" coords="190,160,230,198,226,201,186,163"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000005_000001.html" title="11" alt="" coords="224,183,237,198"/>
+<area shape="poly" id="edge6" href="dir_000009_000001.html" alt="" coords="255,161,255,195,249,195,249,161"/>
+<area shape="rect" id="edge6-headlabel" href="dir_000009_000001.html" title="1" alt="" coords="256,183,264,198"/>
+<area shape="rect" id="clust2" href="dir_cb19616e52b0f3ba5d8daf8ba9075195.html" alt="" coords="27,52,283,172"/>
+<area shape="rect" id="clust1" href="dir_67ba40f6444fab6a6a1bd995386ad277.html" title="libsrc" alt="" coords="16,16,293,183"/>
+</map>

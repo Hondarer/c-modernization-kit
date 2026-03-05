@@ -1,0 +1,26 @@
+<map id="porter/libsrc/porter/potrContext.h" name="porter/libsrc/porter/potrContext.h">
+<area shape="rect" id="Node000001" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="260,5,387,45"/>
+<area shape="rect" id="Node000002" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="181,167,279,192"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="295,48,271,69,251,95,239,124,234,153,229,152,234,122,246,92,267,65,292,44"/>
+<area shape="rect" id="Node000006" href="$retransmit_8h.html" title="再送制御モジュールの内部ヘッダー。" alt="" coords="405,167,546,192"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="349,44,400,91,457,154,453,157,396,95,345,48"/>
+<area shape="rect" id="Node000007" href="$window_8h.html" title="スライディングウィンドウ管理モジュールの内部ヘッダー。" alt="" coords="261,93,385,119"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="326,46,326,80,321,80,321,46"/>
+<area shape="rect" id="Node000008" href="$compress_8h.html" title="データ圧縮・解凍モジュールの内部ヘッダー。" alt="" coords="5,167,156,192"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="293,48,114,161,111,157,290,43"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="461,93,537,119"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="368,43,460,85,458,90,366,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="89,240,158,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="213,194,155,234,152,230,210,190"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="211,240,276,265"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="235,192,241,226,236,227,230,193"/>
+<area shape="rect" id="Node000005" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="315,240,420,265"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="255,190,332,231,330,236,253,194"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="436,195,290,241,288,236,434,190"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="458,194,399,234,396,230,455,190"/>
+<area shape="poly" id="edge11_Node000007_Node000002" title=" " alt="" coords="309,121,259,160,256,156,305,117"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="322,120,311,154,294,193,267,231,262,228,289,191,306,152,317,118"/>
+<area shape="poly" id="edge10_Node000007_Node000005" title=" " alt="" coords="330,118,362,226,357,228,325,120"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="90,191,111,227,107,229,86,193"/>
+<area shape="poly" id="edge14_Node000008_Node000004" title=" " alt="" coords="110,190,204,232,201,237,108,195"/>
+</map>

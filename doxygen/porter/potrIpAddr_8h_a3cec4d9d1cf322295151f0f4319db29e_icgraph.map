@@ -1,0 +1,18 @@
+<map id="parse_ipv4_addr" name="parse_ipv4_addr">
+<area shape="rect" id="Node000001" title=" " alt="" coords="475,55,592,80"/>
+<area shape="rect" id="Node000002" href="$potrSend_8c.html#a9ebacd64367cd4c5f9965da30ab0d622" title=" " alt="" coords="292,5,405,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="472,54,396,33,397,28,474,49"/>
+<area shape="rect" id="Node000005" href="$potrOpenService_8c.html#a946841991d9b2b7998aa8137584b34b7" title=" " alt="" coords="271,55,427,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="461,70,427,70,427,65,461,65"/>
+<area shape="rect" id="Node000008" href="$potrClose_8c.html#a51c433a52d99667ce32f68845db2379e" title="サービスを閉じます。" alt="" coords="125,104,202,129"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="474,86,427,95,304,110,203,118,202,112,304,105,426,90,473,81"/>
+<area shape="rect" id="Node000003" href="$potrSend_8c.html#a50f796e2c18751b09924b8251fbd81aa" title="データを送信します。" alt="" coords="126,5,201,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="278,21,201,21,201,15,278,15"/>
+<area shape="rect" id="Node000004" href="$send_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="112,21,56,21,56,15,112,15"/>
+<area shape="rect" id="Node000006" href="$potrOpenService_8c.html#a7b5bb6c02c8f7ca7eaa193b07bbe7cba" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,55,223,80"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="257,70,223,70,223,65,257,65"/>
+<area shape="rect" id="Node000007" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,79,56,104"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="91,83,57,89,56,84,90,78"/>
+<area shape="poly" id="edge8_Node000008_Node000007" title=" " alt="" coords="111,109,56,99,57,94,112,104"/>
+</map>

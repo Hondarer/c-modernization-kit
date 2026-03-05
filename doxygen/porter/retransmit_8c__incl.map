@@ -1,0 +1,12 @@
+<map id="porter/libsrc/porter/protocol/retransmit.c" name="porter/libsrc/porter/protocol/retransmit.c">
+<area shape="rect" id="Node000001" title="再送制御モジュール。" alt="" coords="36,5,181,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,71,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,47,60,85,56,81,89,44"/>
+<area shape="rect" id="Node000003" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="56,167,161,192"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="111,45,111,153,106,153,106,45"/>
+<area shape="rect" id="Node000004" href="$retransmit_8h.html" title="再送制御モジュールの内部ヘッダー。" alt="" coords="146,93,237,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="131,44,170,82,167,86,128,48"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="179,121,135,159,132,155,175,117"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="185,167,251,192"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="198,118,211,153,206,154,193,120"/>
+</map>

@@ -1,0 +1,63 @@
+<map id="potrOpenService" name="potrOpenService">
+<area shape="rect" id="Node000001" title="設定ファイルから指定サービスを開きます。" alt="" coords="5,413,124,439"/>
+<area shape="rect" id="Node000002" href="$potrRecvThread_8c.html#a1006d5ccaf47db6c24908eb7ae366505" title="受信スレッドを起動します。" alt="" coords="172,203,339,228"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,412,109,350,138,311,170,275,222,233,225,238,174,279,142,315,114,353,74,414"/>
+<area shape="rect" id="Node000015" href="$config_8c.html#afd290b0c734dce1335e786e638c67a12" title="設定ファイルから [global] セクションを読み込みます。" alt="" coords="191,289,320,315"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="73,411,113,369,140,344,171,324,184,317,187,322,173,328,143,349,116,372,77,415"/>
+<area shape="rect" id="Node000019" href="$config_8c.html#a4b72d1221265c0c8c3748a30ac0fd48f" title="設定ファイルから指定サービスの定義を読み込みます。" alt="" coords="187,339,324,364"/>
+<area shape="poly" id="edge23_Node000001_Node000019" title=" " alt="" coords="88,411,171,373,192,366,194,371,173,378,90,416"/>
+<area shape="rect" id="Node000022" href="$potrOpenService_8c.html#aafa846f610c7badee584434e161be459" title=" " alt="" coords="175,388,335,413"/>
+<area shape="poly" id="edge29_Node000001_Node000022" title=" " alt="" coords="124,415,161,410,162,416,125,421"/>
+<area shape="rect" id="Node000023" href="$potrOpenService_8c.html#a946841991d9b2b7998aa8137584b34b7" title=" " alt="" coords="177,437,333,463"/>
+<area shape="poly" id="edge30_Node000001_Node000023" title=" " alt="" coords="125,431,164,436,164,441,124,436"/>
+<area shape="rect" id="Node000025" href="$potrOpenService_8c.html#a4a8bf6df6f3ab1ea5a6ce77fba8d2d34" title=" " alt="" coords="183,487,328,512"/>
+<area shape="poly" id="edge32_Node000001_Node000025" title=" " alt="" coords="91,436,173,473,194,480,193,485,171,478,89,441"/>
+<area shape="rect" id="Node000026" href="$retransmit_8c.html#a5b35cc6aee4a37fc60b71abd175527e0" title="再送制御管理構造体を初期化します。" alt="" coords="203,536,307,561"/>
+<area shape="poly" id="edge33_Node000001_Node000026" title=" " alt="" coords="77,437,117,479,144,502,173,522,191,531,189,536,171,527,140,507,113,483,73,441"/>
+<area shape="rect" id="Node000027" href="$window_8c.html#ac2fe725387be874649c2557619abf841" title="ウィンドウを初期化します。" alt="" coords="211,585,299,611"/>
+<area shape="poly" id="edge34_Node000001_Node000027" title=" " alt="" coords="73,438,109,502,138,540,174,572,199,584,196,589,170,576,134,543,104,505,68,440"/>
+<area shape="rect" id="Node000003" href="$potrRecvThread_8c.html#a300c2d6c99e3491d0ee4c7cb4de36146" title=" " alt="" coords="399,165,522,191"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="325,200,385,189,386,194,326,205"/>
+<area shape="rect" id="Node000004" href="$packet_8c.html#a15889622b4af9f2ad1d7f3269532dc6f" title="受信バイト列をパケット構造体に解析します。" alt="" coords="619,301,719,327"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="482,189,536,231,551,247,560,261,569,274,584,286,607,298,605,303,581,291,565,277,555,264,546,250,533,235,479,193"/>
+<area shape="rect" id="Node000005" href="$potrRecvThread_8c.html#a6c210bf450de8b4bc7b00a665ab436f9" title=" " alt="" coords="623,5,715,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="466,164,510,104,543,69,581,40,609,27,611,32,584,44,546,73,514,108,471,167"/>
+<area shape="rect" id="Node000007" href="$potrRecvThread_8c.html#abc16a3b58a39e0842eab75e0e4a2ff82" title=" " alt="" coords="627,252,712,277"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="484,188,530,212,584,237,614,247,613,253,582,242,527,217,482,193"/>
+<area shape="rect" id="Node000009" href="$window_8c.html#a6ecfb9f52ac33918ba6f8cd0386b17c2" title="受信ウィンドウで欠番が発生しているか確認し、NACK 番号を返します。" alt="" coords="583,104,756,129"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="500,163,582,138,609,130,610,136,583,143,502,168"/>
+<area shape="rect" id="Node000011" href="$window_8c.html#a883a182a547ff084957069939b131527" title="受信ウィンドウから順序整列済みパケットを取り出します。" alt="" coords="607,55,731,80"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="473,163,520,127,581,89,599,82,601,87,584,94,523,131,477,167"/>
+<area shape="rect" id="Node000012" href="$window_8c.html#ac134e864859663f32389cf30fe55bc6e" title="受信ウィンドウにパケットを格納します。" alt="" coords="604,153,735,179"/>
+<area shape="poly" id="edge12_Node000003_Node000012" title=" " alt="" coords="522,172,590,168,590,173,522,177"/>
+<area shape="rect" id="Node000014" href="$window_8c.html#aa3c39809a6b6c7275a2539d6edf95036" title="ACK を処理して送信ウィンドウを前進させます。" alt="" coords="606,203,733,228"/>
+<area shape="poly" id="edge15_Node000003_Node000014" title=" " alt="" coords="523,186,593,199,592,204,522,192"/>
+<area shape="rect" id="Node000006" href="$compress__linux_8c.html#a9b4c1ab5034e8a243544747d2efdcd21" title="圧縮データを解凍します。" alt="" coords="810,5,933,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="716,15,796,15,796,21,716,21"/>
+<area shape="rect" id="Node000008" href="$packet_8c.html#aaf155f7d2936ffa8015eddaddd1d96be" title="NACK パケットを構築します。" alt="" coords="806,252,937,277"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="712,262,792,262,792,267,712,267"/>
+<area shape="rect" id="Node000010" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="832,128,911,153"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="756,124,819,132,818,137,756,130"/>
+<area shape="poly" id="edge11_Node000011_Node000010" title=" " alt="" coords="720,77,757,89,833,120,831,125,755,94,719,83"/>
+<area shape="poly" id="edge14_Node000012_Node000010" title=" " alt="" coords="735,155,818,145,819,150,735,160"/>
+<area shape="rect" id="Node000013" href="$seqnum_8c.html#a45fcfa48b2d66889a5b9b8f63650336a" title="通番 seq がウィンドウ [base, base + window_size) に含まれるか判定します。" alt="" coords="804,191,939,216"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="735,175,791,186,790,191,734,181"/>
+<area shape="poly" id="edge17_Node000014_Node000010" title=" " alt="" coords="716,200,755,187,831,156,833,161,757,193,718,205"/>
+<area shape="poly" id="edge16_Node000014_Node000013" title=" " alt="" coords="733,209,790,206,790,211,733,214"/>
+<area shape="rect" id="Node000016" href="$config_8c.html#a613c87799141fafda471fdd4069f8343" title=" " alt="" coords="387,289,535,315"/>
+<area shape="poly" id="edge19_Node000015_Node000016" title=" " alt="" coords="320,299,373,299,373,305,320,305"/>
+<area shape="rect" id="Node000017" href="$config_8c.html#a5f2de03809866bfac8920bc13a97aaca" title=" " alt="" coords="423,339,498,364"/>
+<area shape="poly" id="edge20_Node000015_Node000017" title=" " alt="" coords="309,312,410,337,409,342,308,317"/>
+<area shape="rect" id="Node000018" href="$config_8c.html#a2c8b5f7a0223db682d3326ce74f794f4" title=" " alt="" coords="647,351,691,376"/>
+<area shape="poly" id="edge22_Node000015_Node000018" title=" " alt="" coords="285,287,335,271,399,258,434,255,469,256,503,262,536,274,553,288,562,305,570,321,584,336,609,348,635,356,633,361,607,353,581,340,565,324,557,307,549,292,533,279,502,267,468,262,434,260,400,263,337,276,287,292"/>
+<area shape="poly" id="edge21_Node000017_Node000018" title=" " alt="" coords="499,351,634,359,633,364,498,356"/>
+<area shape="poly" id="edge26_Node000019_Node000016" title=" " alt="" coords="308,336,394,315,395,321,309,341"/>
+<area shape="poly" id="edge27_Node000019_Node000017" title=" " alt="" coords="324,349,410,349,410,354,324,354"/>
+<area shape="poly" id="edge28_Node000019_Node000018" title=" " alt="" coords="313,361,387,373,455,376,523,374,634,365,634,371,524,380,455,381,386,378,312,367"/>
+<area shape="rect" id="Node000020" href="$config_8c.html#af598a3e207900d3f07fc6afa897ff37f" title=" " alt="" coords="399,440,522,465"/>
+<area shape="poly" id="edge24_Node000019_Node000020" title=" " alt="" coords="314,362,340,373,355,384,365,396,374,407,388,418,413,432,411,437,385,423,371,411,361,399,352,388,337,378,312,367"/>
+<area shape="rect" id="Node000021" href="$config_8c.html#a07c7ea9e8c66fbaa3d3c8c848a8a4975" title=" " alt="" coords="612,440,727,465"/>
+<area shape="poly" id="edge25_Node000020_Node000021" title=" " alt="" coords="522,450,598,450,598,455,522,455"/>
+<area shape="rect" id="Node000024" href="$potrIpAddr_8c.html#a3cec4d9d1cf322295151f0f4319db29e" title=" " alt="" coords="402,489,519,515"/>
+<area shape="poly" id="edge31_Node000023_Node000024" title=" " alt="" coords="306,460,398,483,397,489,305,465"/>
+</map>

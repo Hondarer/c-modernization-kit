@@ -1,0 +1,16 @@
+<map id="seqnum_in_window" name="seqnum_in_window">
+<area shape="rect" id="Node000001" title="通番 seq がウィンドウ [base, base + window_size) に含まれるか判定します。" alt="" coords="835,31,969,56"/>
+<area shape="rect" id="Node000002" href="$window_8c.html#ac134e864859663f32389cf30fe55bc6e" title="受信ウィンドウにパケットを格納します。" alt="" coords="656,5,787,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="820,35,787,30,787,25,821,29"/>
+<area shape="rect" id="Node000007" href="$window_8c.html#aa3c39809a6b6c7275a2539d6edf95036" title="ACK を処理して送信ウィンドウを前進させます。" alt="" coords="658,55,785,80"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="821,57,785,62,784,56,820,51"/>
+<area shape="rect" id="Node000003" href="$potrRecvThread_8c.html#a300c2d6c99e3491d0ee4c7cb4de36146" title=" " alt="" coords="485,31,608,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="643,32,609,37,608,32,642,27"/>
+<area shape="rect" id="Node000004" href="$potrRecvThread_8c.html#a1006d5ccaf47db6c24908eb7ae366505" title="受信スレッドを起動します。" alt="" coords="271,31,437,56"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="472,46,437,46,437,41,472,41"/>
+<area shape="rect" id="Node000005" href="$potrOpenService_8c.html#a7b5bb6c02c8f7ca7eaa193b07bbe7cba" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,31,223,56"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="257,46,223,46,223,41,257,41"/>
+<area shape="rect" id="Node000006" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,31,56,56"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="91,46,56,46,56,41,91,41"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="644,59,608,54,608,49,645,54"/>
+</map>

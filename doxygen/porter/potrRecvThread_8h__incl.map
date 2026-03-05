@@ -1,0 +1,28 @@
+<map id="porter/libsrc/porter/potrRecvThread.h" name="porter/libsrc/porter/potrRecvThread.h">
+<area shape="rect" id="Node000001" title="受信スレッド内部ヘッダー。" alt="" coords="259,5,388,45"/>
+<area shape="rect" id="Node000002" href="$potrContext_8h.html" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="273,93,373,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="326,46,326,80,321,80,321,46"/>
+<area shape="rect" id="Node000003" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="181,240,279,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="302,121,275,141,251,168,239,197,234,226,229,225,234,196,246,165,271,137,299,117"/>
+<area shape="rect" id="Node000007" href="$retransmit_8h.html" title="再送制御モジュールの内部ヘッダー。" alt="" coords="405,240,546,265"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="342,117,400,165,458,227,454,231,396,169,339,121"/>
+<area shape="rect" id="Node000008" href="$window_8h.html" title="スライディングウィンドウ管理モジュールの内部ヘッダー。" alt="" coords="261,167,385,192"/>
+<area shape="poly" id="edge9_Node000002_Node000008" title=" " alt="" coords="326,119,326,153,321,153,321,119"/>
+<area shape="rect" id="Node000009" href="$compress_8h.html" title="データ圧縮・解凍モジュールの内部ヘッダー。" alt="" coords="5,240,156,265"/>
+<area shape="poly" id="edge13_Node000002_Node000009" title=" " alt="" coords="304,121,115,235,112,230,301,116"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="461,167,537,192"/>
+<area shape="poly" id="edge16_Node000002_Node000010" title=" " alt="" coords="355,116,457,159,455,164,353,121"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="89,313,158,339"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="213,268,155,307,152,303,210,263"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="211,313,276,339"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="235,265,241,299,236,300,230,266"/>
+<area shape="rect" id="Node000006" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="315,313,420,339"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="255,263,332,304,330,309,253,268"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="436,268,290,314,288,309,434,263"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="458,268,399,308,396,303,455,263"/>
+<area shape="poly" id="edge12_Node000008_Node000003" title=" " alt="" coords="309,194,259,233,256,229,305,190"/>
+<area shape="poly" id="edge10_Node000008_Node000005" title=" " alt="" coords="322,193,311,227,294,267,267,304,262,301,289,264,306,225,317,191"/>
+<area shape="poly" id="edge11_Node000008_Node000006" title=" " alt="" coords="330,192,362,300,357,301,325,193"/>
+<area shape="poly" id="edge14_Node000009_Node000004" title=" " alt="" coords="90,264,111,300,107,303,86,267"/>
+<area shape="poly" id="edge15_Node000009_Node000005" title=" " alt="" coords="110,263,204,305,201,310,108,268"/>
+</map>

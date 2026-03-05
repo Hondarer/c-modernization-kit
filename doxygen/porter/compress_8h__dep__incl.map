@@ -1,0 +1,22 @@
+<map id="porter/libsrc/porter/compress/compress.h" name="porter/libsrc/porter/compress/compress.h">
+<area shape="rect" id="Node000001" title="データ圧縮・解凍モジュールの内部ヘッダー。" alt="" coords="299,5,454,45"/>
+<area shape="rect" id="Node000002" href="$compress__linux_8c.html" title="Linux 向け圧縮・解凍モジュール (zlib)。" alt="" coords="49,93,238,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="311,53,198,96,196,91,309,48"/>
+<area shape="rect" id="Node000003" href="$potrContext_8h.html" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="263,93,389,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="360,59,340,94,335,92,356,56"/>
+<area shape="rect" id="Node000006" href="$potrRecvThread_8c.html" title="受信スレッドモジュール。" alt="" coords="315,269,444,309"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="413,53,464,108,488,143,506,180,512,202,506,223,479,252,446,272,443,267,476,248,501,220,506,202,501,182,483,145,460,111,409,56"/>
+<area shape="rect" id="Node000008" href="$potrSend_8c.html" title="potrSend 関数の実装。" alt="" coords="364,181,491,221"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="392,57,405,93,426,181,421,182,399,94,387,59"/>
+<area shape="rect" id="Node000004" href="$potrClose_8c.html" title="potrClose 関数の実装。" alt="" coords="5,269,132,309"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="250,137,184,160,137,183,117,203,101,226,79,270,74,268,96,224,113,200,134,179,182,155,249,132"/>
+<area shape="rect" id="Node000005" href="$potrOpenService_8c.html" title="potrOpenService 関数の実装。" alt="" coords="156,269,291,309"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="251,140,184,164,148,183,143,194,143,205,152,227,171,249,193,267,190,271,167,253,147,230,137,206,138,192,144,180,182,159,249,135"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="336,146,355,221,373,268,368,270,350,222,331,148"/>
+<area shape="rect" id="Node000007" href="$potrRecvThread_8h.html" title="受信スレッド内部ヘッダー。" alt="" coords="159,181,288,221"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="294,145,249,183,245,179,290,141"/>
+<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="361,141,406,179,402,183,358,145"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="177,230,105,272,103,267,175,226"/>
+<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="226,235,226,269,221,269,221,235"/>
+<area shape="poly" id="edge9_Node000007_Node000006" title=" " alt="" coords="272,226,345,267,342,272,270,231"/>
+</map>

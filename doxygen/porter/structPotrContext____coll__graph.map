@@ -1,0 +1,15 @@
+<map id="PotrContext_" name="PotrContext_">
+<area shape="rect" id="Node000001" title="セッションコンテキスト構造体。PotrHandle の実体。" alt="" coords="223,517,349,803"/>
+<area shape="rect" id="Node000002" href="$structPotrServiceDef.html" title="サービス定義。" alt="" coords="5,221,124,427"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,413,216,549,211,552,122,416"/>
+<area shape="rect" id="Node000003" href="$structPotrGlobalConfig.html" title="グローバル設定。" alt="" coords="148,251,307,397"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,396,261,501,256,501,237,397"/>
+<area shape="rect" id="Node000004" href="$structPotrWindow.html" title="スライディングウィンドウ管理構造体。" alt="" coords="331,251,430,397"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="363,398,333,502,328,501,358,396"/>
+<area shape="rect" id="Node000005" href="$structPotrPacket.html" title="ネットワーク送受信用パケット構造体。" alt="" coords="333,5,428,151"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="383,151,383,235,378,235,378,151"/>
+<area shape="rect" id="Node000006" href="$structPotrRetransmit.html" title="再送制御管理構造体。" alt="" coords="455,271,557,377"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="495,378,475,436,446,495,407,548,363,595,359,591,403,544,441,492,470,434,490,376"/>
+<area shape="rect" id="Node000007" href="$structRetransmitEntry.html" title="再送制御エントリ。" alt="" coords="452,5,563,151"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="510,151,509,255,504,255,504,151"/>
+</map>

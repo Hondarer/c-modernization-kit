@@ -1,0 +1,5 @@
+<map id="onUnload" name="onUnload">
+<area shape="rect" id="Node000001" title="ライブラリのアンロード時に呼び出されるフック関数。" alt="" coords="151,5,227,31"/>
+<area shape="rect" id="Node000002" href="$dllmain_8h.html#a6f20f5f9db695531c457be9a609e05e3" title="共有ライブラリアンロード時のデストラクタ (Linux 専用)。" alt="" coords="5,5,103,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,21,103,21,103,15,137,15"/>
+</map>

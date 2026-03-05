@@ -1,0 +1,13 @@
+<map id="porter/libsrc/porter/util/potrIpAddr.c" name="porter/libsrc/porter/util/potrIpAddr.c">
+<area shape="rect" id="Node000001" title="IPv4 アドレス変換ユーティリティ (内部用)。" alt="" coords="89,5,215,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,75,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,48,70,88,67,83,122,44"/>
+<area shape="rect" id="Node000003" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="99,93,205,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,46,155,80,149,80,149,46"/>
+<area shape="rect" id="Node000004" href="$potrIpAddr_8h.html" title="IPv4 アドレス変換ユーティリティ (内部用)。" alt="" coords="229,93,321,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,43,245,83,242,88,181,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="179,167,261,192"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="267,120,240,157,236,154,263,117"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="286,167,373,192"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="286,117,314,154,309,157,282,120"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="include/compiler.h" name="include/compiler.h">
+<area shape="rect" id="Node000001" title="コンパイラ検出および抽象化マクロのヘッダーファイル。" alt="" coords="5,5,132,31"/>
+<area shape="rect" id="Node000002" href="$platform_8h.html" title="プラットフォームおよびアーキテクチャ検出マクロのヘッダーファイル。" alt="" coords="6,79,131,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="71,44,71,78,66,78,66,44"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="onLoad" name="onLoad">
+<area shape="rect" id="Node000001" title="ライブラリのロード時に呼び出されるフック関数。" alt="" coords="5,37,69,62"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="13,38,8,28,11,19,21,12,37,10,57,14,65,22,62,26,54,18,37,15,23,17,15,22,14,28,18,35"/>
+<area shape="rect" id="Node000002" href="$funcman__init_8c.html#ad099e9dc6636b098cd80ec25a338a091" title="funcman_object ポインタ配列を初期化します。" alt="" coords="133,11,229,37"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,41,118,32,119,38,70,46"/>
+<area shape="rect" id="Node000003" href="$get__lib__info_8c.html#a29793dd1bfe75be29def445e0ada69a0" title="指定した関数が所属する共有ライブラリ (.so/.dll) の basename (パスなし・拡張子なし) を取得します。" alt="" coords="117,61,244,86"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="70,52,104,58,103,63,69,57"/>
+<area shape="rect" id="Node000004" href="$get__lib__info_8c.html#a6b8f85c79c31c267b18934757210e83e" title="文字列を安全にコピーします (UTF&#45;8 想定だが単なる byte 列として扱う)。" alt="" coords="685,34,757,59"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="216,58,243,47,266,32,291,20,343,10,396,5,502,6,598,17,672,32,671,37,597,23,502,11,397,10,344,15,293,25,269,37,245,52,218,63"/>
+<area shape="rect" id="Node000005" href="$get__lib__info_8c.html#ae72331c635b126219e7aa22222353d80" title="パス文字列からファイル名部分 (最後の区切り文字以降) を返します。" alt="" coords="311,35,432,61"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="244,62,296,55,297,61,245,68"/>
+<area shape="rect" id="Node000006" href="$get__lib__info_8c.html#af6ea2bf0e62a8f5f9fe488ef6b07db62" title="指定した関数が所属する共有ライブラリ (.so/.dll) の絶対パスを取得します。" alt="" coords="325,85,417,110"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="244,79,312,87,311,92,244,84"/>
+<area shape="rect" id="Node000008" href="$get__lib__info_8c.html#a6a4373ad8047dc25256fd9320083d960" title="拡張子を取り除きます (その場で書き換え)。" alt="" coords="292,134,451,159"/>
+<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="208,84,293,120,313,127,312,132,291,125,206,88"/>
+<area shape="rect" id="Node000007" href="$get__lib__info_8c.html#a3da7623fb03ca9f5a9febbfb28bca8c6" title=".so 自身の絶対パスを取得します (Linux/Unix)。" alt="" coords="499,59,637,85"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="417,89,485,80,485,85,418,94"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="637,58,671,52,672,57,638,63"/>
+</map>

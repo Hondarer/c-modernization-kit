@@ -1,0 +1,7 @@
+<map id="window_send_push" name="window_send_push">
+<area shape="rect" id="Node000001" title="送信ウィンドウにパケットを積みます。" alt="" coords="5,31,140,56"/>
+<area shape="rect" id="Node000002" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="210,5,289,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,31,196,23,196,28,141,36"/>
+<area shape="rect" id="Node000003" href="$window_8c.html#aa49e58851242a05b75813c79490da396" title="送信ウィンドウが満杯かどうかを返します。" alt="" coords="188,55,311,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="141,50,175,54,174,60,140,55"/>
+</map>

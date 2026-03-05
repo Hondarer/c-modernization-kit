@@ -1,0 +1,31 @@
+<map id="comm_recv_thread_start" name="comm_recv_thread_start">
+<area shape="rect" id="Node000001" title="受信スレッドを起動します。" alt="" coords="5,153,172,179"/>
+<area shape="rect" id="Node000002" href="$potrRecvThread_8c.html#a300c2d6c99e3491d0ee4c7cb4de36146" title=" " alt="" coords="220,153,343,179"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,163,206,163,206,169,172,169"/>
+<area shape="rect" id="Node000003" href="$packet_8c.html#a15889622b4af9f2ad1d7f3269532dc6f" title="受信バイト列をパケット構造体に解析します。" alt="" coords="427,5,527,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,152,326,98,355,66,389,40,413,28,415,33,392,44,359,70,330,101,291,155"/>
+<area shape="rect" id="Node000004" href="$potrRecvThread_8c.html#a6c210bf450de8b4bc7b00a665ab436f9" title=" " alt="" coords="431,55,523,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="295,151,336,120,390,89,417,79,419,84,392,94,339,125,298,155"/>
+<area shape="rect" id="Node000006" href="$potrRecvThread_8c.html#abc16a3b58a39e0842eab75e0e4a2ff82" title=" " alt="" coords="435,104,520,129"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="331,151,420,128,422,133,332,156"/>
+<area shape="rect" id="Node000008" href="$window_8c.html#a6ecfb9f52ac33918ba6f8cd0386b17c2" title="受信ウィンドウで欠番が発生しているか確認し、NACK 番号を返します。" alt="" coords="391,203,564,228"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="332,176,414,197,413,202,331,181"/>
+<area shape="rect" id="Node000010" href="$window_8c.html#a883a182a547ff084957069939b131527" title="受信ウィンドウから順序整列済みパケットを取り出します。" alt="" coords="415,153,539,179"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="343,163,401,163,401,169,343,169"/>
+<area shape="rect" id="Node000011" href="$window_8c.html#ac134e864859663f32389cf30fe55bc6e" title="受信ウィンドウにパケットを格納します。" alt="" coords="412,301,543,327"/>
+<area shape="poly" id="edge11_Node000002_Node000011" title=" " alt="" coords="291,177,330,230,359,261,392,286,406,294,403,299,389,291,356,265,326,234,287,180"/>
+<area shape="rect" id="Node000013" href="$window_8c.html#aa3c39809a6b6c7275a2539d6edf95036" title="ACK を処理して送信ウィンドウを前進させます。" alt="" coords="414,252,541,277"/>
+<area shape="poly" id="edge14_Node000002_Node000013" title=" " alt="" coords="299,177,340,207,392,237,412,245,410,250,389,242,337,211,295,181"/>
+<area shape="rect" id="Node000005" href="$compress__linux_8c.html#a9b4c1ab5034e8a243544747d2efdcd21" title="圧縮データを解凍します。" alt="" coords="618,55,741,80"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="524,65,604,65,604,70,524,70"/>
+<area shape="rect" id="Node000007" href="$packet_8c.html#aaf155f7d2936ffa8015eddaddd1d96be" title="NACK パケットを構築します。" alt="" coords="614,104,745,129"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="520,114,600,114,600,119,520,119"/>
+<area shape="rect" id="Node000009" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="640,215,719,240"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="564,218,626,221,626,227,564,223"/>
+<area shape="poly" id="edge10_Node000010_Node000009" title=" " alt="" coords="525,176,565,187,630,208,628,213,563,193,524,181"/>
+<area shape="poly" id="edge13_Node000011_Node000009" title=" " alt="" coords="527,299,563,286,644,244,646,249,565,291,528,304"/>
+<area shape="rect" id="Node000012" href="$seqnum_8c.html#a45fcfa48b2d66889a5b9b8f63650336a" title="通番 seq がウィンドウ [base, base + window_size) に含まれるか判定します。" alt="" coords="612,277,747,303"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="543,304,598,297,598,302,543,309"/>
+<area shape="poly" id="edge16_Node000013_Node000009" title=" " alt="" coords="540,250,626,234,627,240,541,256"/>
+<area shape="poly" id="edge15_Node000013_Node000012" title=" " alt="" coords="541,270,598,277,598,282,540,275"/>
+</map>
