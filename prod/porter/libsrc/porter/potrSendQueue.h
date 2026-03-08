@@ -87,6 +87,8 @@ extern "C"
     extern int  potr_send_queue_pop(PotrSendQueue *q, PotrSendEntry *out,
                                     volatile int *running);
     extern int  potr_send_queue_peek(PotrSendQueue *q, PotrSendEntry *out);
+    extern int  potr_send_queue_peek_timed(PotrSendQueue *q, PotrSendEntry *out,
+                                           uint32_t timeout_ms);
     extern int  potr_send_queue_try_pop(PotrSendQueue *q, PotrSendEntry *out);
     extern void potr_send_queue_complete(PotrSendQueue *q);
     extern void potr_send_queue_wait_drained(PotrSendQueue *q);

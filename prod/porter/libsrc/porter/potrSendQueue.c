@@ -13,6 +13,10 @@
 
 #include <string.h>
 
+#ifndef _WIN32
+    #include <time.h>
+#endif
+
 #include <porter_const.h>
 
 #include "potrSendQueue.h"
@@ -120,6 +124,42 @@ int potr_send_queue_peek(PotrSendQueue *q, PotrSendEntry *out)
     }
 
     *out = q->entries[q->head]; /* head は送信スレッドのみが変更するので安全 */
+
+    POTR_MUTEX_UNLOCK(&q->mutex);
+    return POTR_SUCCESS;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+int potr_send_queue_peek_timed(PotrSendQueue *q, PotrSendEntry *out,
+                               uint32_t timeout_ms)
+{
+    POTR_MUTEX_LOCK(&q->mutex);
+
+    if (q->count == 0)
+    {
+#ifdef _WIN32
+        SleepConditionVariableCS(&q->not_empty, &q->mutex, (DWORD)timeout_ms);
+#else
+        struct timespec abs_ts;
+        clock_gettime(CLOCK_REALTIME, &abs_ts);
+        abs_ts.tv_sec  += (time_t)(timeout_ms / 1000U);
+        abs_ts.tv_nsec += (long)((timeout_ms % 1000U) * 1000000UL);
+        if (abs_ts.tv_nsec >= 1000000000L)
+        {
+            abs_ts.tv_sec++;
+            abs_ts.tv_nsec -= 1000000000L;
+        }
+        pthread_cond_timedwait(&q->not_empty, &q->mutex, &abs_ts);
+#endif
+    }
+
+    if (q->count == 0)
+    {
+        POTR_MUTEX_UNLOCK(&q->mutex);
+        return POTR_ERROR;
+    }
+
+    *out = q->entries[q->head];
 
     POTR_MUTEX_UNLOCK(&q->mutex);
     return POTR_SUCCESS;

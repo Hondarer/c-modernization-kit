@@ -88,48 +88,49 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
         potr_send_queue_destroy(&ctx->send_queue);
     }
 
-    /* 受信スレッドを停止（スレッド停止内でソケットをクローズする） */
+    /* 受信スレッドを停止する */
     if (ctx->running)
     {
         comm_recv_thread_stop(ctx);
     }
-    else
+
+    /* ソケットをクローズする (recv スレッドの有無によらず実施)。
+       Windows: comm_recv_thread_stop 内で closesocket 済みの場合は INVALID_SOCKET になっているため
+                guard により二重 close を回避する。
+       Linux: comm_recv_thread_stop は shutdown のみで close しないため、ここで必ず close する。 */
+    if (ctx->sock != POTR_INVALID_SOCKET)
     {
-        /* 受信スレッドなしの場合はここでソケットをクローズ */
-        if (ctx->sock != POTR_INVALID_SOCKET)
-        {
 #ifdef _WIN32
-            /* マルチキャストのグループ離脱 */
-            if (ctx->service.type == POTR_TYPE_MULTICAST)
+        /* マルチキャストのグループ離脱 */
+        if (ctx->service.type == POTR_TYPE_MULTICAST)
+        {
+            struct ip_mreq mreq;
+            memset(&mreq, 0, sizeof(mreq));
+            if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
+                == POTR_SUCCESS)
             {
-                struct ip_mreq mreq;
-                memset(&mreq, 0, sizeof(mreq));
-                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
-                    == POTR_SUCCESS)
-                {
-                    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-                    setsockopt(ctx->sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
-                               (const char *)&mreq, sizeof(mreq));
-                }
+                mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+                setsockopt(ctx->sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                           (const char *)&mreq, sizeof(mreq));
             }
-            closesocket(ctx->sock);
-#else
-            if (ctx->service.type == POTR_TYPE_MULTICAST)
-            {
-                struct ip_mreq mreq;
-                memset(&mreq, 0, sizeof(mreq));
-                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
-                    == POTR_SUCCESS)
-                {
-                    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-                    setsockopt(ctx->sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
-                               &mreq, sizeof(mreq));
-                }
-            }
-            close(ctx->sock);
-#endif
-            ctx->sock = POTR_INVALID_SOCKET;
         }
+        closesocket(ctx->sock);
+#else
+        if (ctx->service.type == POTR_TYPE_MULTICAST)
+        {
+            struct ip_mreq mreq;
+            memset(&mreq, 0, sizeof(mreq));
+            if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
+                == POTR_SUCCESS)
+            {
+                mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+                setsockopt(ctx->sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                           &mreq, sizeof(mreq));
+            }
+        }
+        close(ctx->sock);
+#endif
+        ctx->sock = POTR_INVALID_SOCKET;
     }
 
 #ifdef _WIN32

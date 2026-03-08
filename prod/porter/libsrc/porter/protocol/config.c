@@ -295,6 +295,10 @@ static void apply_service_kv(const char *key, const char *val,
     {
         copy_cstr_trunc(current->src_addr, sizeof(current->src_addr), val);
     }
+    else if (strcmp(key, "pack_wait_ms") == 0)
+    {
+        current->pack_wait_ms = (uint32_t)atoi(val);
+    }
 }
 
 /**
@@ -372,8 +376,9 @@ int config_load_service(const char *config_path, int service_id,
                     atoi(section + 8) == service_id)
                 {
                     memset(def, 0, sizeof(*def));
-                    def->ttl        = (uint8_t)POTR_DEFAULT_TTL;
-                    def->service_id = service_id;
+                    def->ttl          = (uint8_t)POTR_DEFAULT_TTL;
+                    def->pack_wait_ms = (uint32_t)POTR_DEFAULT_PACK_WAIT_MS;
+                    def->service_id   = service_id;
                     in_target       = 1;
                     found           = 1;
                 }

@@ -648,11 +648,16 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
     {
         /* ソケットをクローズして recvfrom をアンブロック */
         closesocket(ctx->sock);
+        ctx->sock = POTR_INVALID_SOCKET;
         WaitForSingleObject(ctx->recv_thread, 3000);
         CloseHandle(ctx->recv_thread);
         ctx->recv_thread = NULL;
     }
 #else
+    /* shutdown (SHUT_RD) でブロック中の recvfrom を即時アンブロックする。
+       close と異なり FD を維持するため FD 再利用リスクがなく、
+       sendto (NACK 再送) も引き続き有効。ソケットの close は呼び出し元で行う。 */
+    shutdown(ctx->sock, SHUT_RD);
     pthread_join(ctx->recv_thread, NULL);
 #endif
 

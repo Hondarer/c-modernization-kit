@@ -87,8 +87,9 @@ typedef struct
     uint16_t src_port; /**< 送信者の送信元 bind ポート番号。0 = OS 自動選定。(全通信種別で省略可) */
 
     /* POTR_TYPE_MULTICAST */
-    uint8_t ttl;      /**< マルチキャスト TTL。(multicast のみ) */
-    uint8_t _pad[3];  /**< パディング。 */
+    uint8_t  ttl;           /**< マルチキャスト TTL。(multicast のみ) */
+    uint8_t  _pad[3];       /**< パディング (pack_wait_ms を 4 バイト境界に揃える)。 */
+    uint32_t pack_wait_ms;  /**< パッキング待ち時間 (ミリ秒)。最初の送信要求からこの時間だけ待ち合わせ、複数メッセージを 1 パケットにまとめる。0 = 即時送信 (パッキング待ちなし)。パケット容量が満杯になった場合はタイマーを無視して即時送信する。 */
 
     char multicast_group[POTR_MAX_ADDR_LEN]; /**< マルチキャストグループアドレス。(multicast のみ) */
     char broadcast_addr[POTR_MAX_ADDR_LEN];  /**< ブロードキャスト宛先アドレス。(broadcast のみ) */

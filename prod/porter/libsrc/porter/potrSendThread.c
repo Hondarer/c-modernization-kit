@@ -39,6 +39,7 @@
     #include <pthread.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
+    #include <time.h>
 #endif
 
 #include <string.h>
@@ -50,6 +51,18 @@
 #include "potrSendThread.h"
 #include "protocol/packet.h"
 #include "protocol/window.h"
+
+/* 現在時刻をミリ秒単位で返す (単調増加クロック) */
+static uint64_t get_ms(void)
+{
+#ifdef _WIN32
+    return (uint64_t)GetTickCount64();
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
+#endif
+}
 
 /* サブパケットを packed_buf に追記する */
 static void append_sub_packet(uint8_t *packed_buf, size_t *packed_len,
@@ -131,33 +144,85 @@ static void *send_thread_func(void *arg)
             /* MORE_FRAG エントリはパッキング不可。そのまま単体コンテナとして送信。 */
             if (!(first.flags & POTR_FLAG_MORE_FRAG))
             {
-                /* キューを peek しながら空き容量が許す限りエントリを追加 */
-                PotrSendEntry next;
+                uint32_t pack_wait_ms = ctx->service.pack_wait_ms;
 
-                while (potr_send_queue_peek(&ctx->send_queue, &next) == POTR_SUCCESS)
+                if (pack_wait_ms > 0)
                 {
-                    size_t sub_size;
+                    /* パッキング待ちあり: タイムアウトまで追加エントリを待ち合わせる */
+                    uint64_t      deadline = get_ms() + pack_wait_ms;
+                    PotrSendEntry next;
 
-                    /* MORE_FRAG はパッキング不可 */
-                    if (next.flags & POTR_FLAG_MORE_FRAG)
+                    for (;;)
                     {
-                        break;
+                        uint64_t now = get_ms();
+                        uint32_t remaining;
+                        size_t   sub_size;
+
+                        if (now >= deadline)
+                        {
+                            break; /* タイムアウト */
+                        }
+
+                        remaining = (uint32_t)(deadline - now);
+
+                        if (potr_send_queue_peek_timed(&ctx->send_queue, &next, remaining)
+                            != POTR_SUCCESS)
+                        {
+                            break; /* タイムアウト (エントリなし) */
+                        }
+
+                        if (next.flags & POTR_FLAG_MORE_FRAG)
+                        {
+                            break; /* MORE_FRAG はパッキング不可 */
+                        }
+
+                        sub_size = POTR_PACKED_SUB_HDR_SIZE + (size_t)next.payload_len;
+
+                        if (packed_len + sub_size > POTR_MAX_PAYLOAD)
+                        {
+                            break; /* 容量満杯: 即時送信してタイマーリセット */
+                        }
+
+                        if (potr_send_queue_try_pop(&ctx->send_queue, &next)
+                            != POTR_SUCCESS)
+                        {
+                            break; /* 競合防止 (通常発生しない) */
+                        }
+
+                        append_sub_packet(packed_buf, &packed_len, &next);
+                        n_dequeued++;
                     }
+                }
+                else
+                {
+                    /* パッキング待ちなし: キューにあるエントリを即時まとめる */
+                    PotrSendEntry next;
 
-                    sub_size = POTR_PACKED_SUB_HDR_SIZE + (size_t)next.payload_len;
-
-                    if (packed_len + sub_size > POTR_MAX_PAYLOAD)
+                    while (potr_send_queue_peek(&ctx->send_queue, &next) == POTR_SUCCESS)
                     {
-                        break; /* スペース不足 */
-                    }
+                        size_t sub_size;
 
-                    if (potr_send_queue_try_pop(&ctx->send_queue, &next) != POTR_SUCCESS)
-                    {
-                        break; /* 競合防止 (通常発生しない) */
-                    }
+                        if (next.flags & POTR_FLAG_MORE_FRAG)
+                        {
+                            break;
+                        }
 
-                    append_sub_packet(packed_buf, &packed_len, &next);
-                    n_dequeued++;
+                        sub_size = POTR_PACKED_SUB_HDR_SIZE + (size_t)next.payload_len;
+
+                        if (packed_len + sub_size > POTR_MAX_PAYLOAD)
+                        {
+                            break;
+                        }
+
+                        if (potr_send_queue_try_pop(&ctx->send_queue, &next)
+                            != POTR_SUCCESS)
+                        {
+                            break;
+                        }
+
+                        append_sub_packet(packed_buf, &packed_len, &next);
+                        n_dequeued++;
+                    }
                 }
             }
 
