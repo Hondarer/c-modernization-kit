@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
         printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len,
                compress ? " [圧縮あり]" : "");
 
-        if (potrSend(handle, msg_buf, msg_len, compress, 0) != POTR_SUCCESS)
+        if (potrSend(handle, msg_buf, msg_len, compress, 1) != POTR_SUCCESS)
         {
             fprintf(stderr, "エラー: 送信に失敗しました。\n");
             ret = EXIT_FAILURE;

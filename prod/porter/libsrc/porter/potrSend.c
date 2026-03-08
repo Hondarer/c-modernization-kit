@@ -20,7 +20,7 @@
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
-                              int compress, int nonblocking)
+                              int compress, int blocking)
 {
     struct PotrContext_ *ctx       = (struct PotrContext_ *)handle;
     const uint8_t       *ptr      = (const uint8_t *)data;
@@ -50,15 +50,15 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
     }
 
     remaining   = len;
-    /* サブパケットヘッダー分を差し引いた実効フラグメントサイズ上限 */
+    /* ペイロードエレメントヘッダー分を差し引いた実効フラグメントサイズ上限 */
     max_payload = ctx->global.max_payload;
-    if (max_payload > POTR_MAX_PAYLOAD - POTR_PACKED_SUB_HDR_SIZE)
+    if (max_payload > POTR_MAX_PAYLOAD - POTR_PAYLOAD_ELEM_HDR_SIZE)
     {
-        max_payload = POTR_MAX_PAYLOAD - POTR_PACKED_SUB_HDR_SIZE;
+        max_payload = POTR_MAX_PAYLOAD - POTR_PAYLOAD_ELEM_HDR_SIZE;
     }
 
     /* ブロッキング送信: 先行キューの sendto が全完了するまで待機する */
-    if (nonblocking == 0)
+    if (blocking != 0)
     {
         potr_send_queue_wait_drained(&ctx->send_queue);
     }
@@ -74,7 +74,8 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
             flags |= POTR_FLAG_MORE_FRAG;
         }
 
-        if (potr_send_queue_push(&ctx->send_queue, flags, ptr, (uint16_t)chunk)
+        if (potr_send_queue_push_wait(&ctx->send_queue, flags, ptr, (uint16_t)chunk,
+                                      &ctx->send_thread_running)
             != POTR_SUCCESS)
         {
             return POTR_ERROR;
@@ -84,8 +85,8 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
         remaining -= chunk;
     }
 
-    /* ブロッキング送信: 自身のデータの sendto 完了まで待機する */
-    if (nonblocking == 0)
+    /* ブロッキング送信: 自身のメッセージの sendto 完了まで待機する */
+    if (blocking != 0)
     {
         potr_send_queue_wait_drained(&ctx->send_queue);
     }

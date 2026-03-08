@@ -265,24 +265,24 @@ static void recv_deliver(struct PotrContext_ *ctx,
     }
 }
 
-/* サブパケット 1 件のフラグメント結合・解凍・コールバック処理。
+/* ペイロードエレメント 1 件のフラグメント結合・解凍・コールバック処理。
    window_recv_pop で取り出した外側パケットを packet_unpack_next で展開した
-   各サブパケットに対して呼び出す。 */
-static void deliver_sub_pkt(struct PotrContext_ *ctx, const PotrPacket *sub_pkt)
+   各ペイロードエレメントに対して呼び出す。 */
+static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *elem)
 {
-    if (sub_pkt->flags & POTR_FLAG_MORE_FRAG)
+    if (elem->flags & POTR_FLAG_MORE_FRAG)
     {
         /* 中間フラグメント: バッファに追記 */
-        if (ctx->frag_buf_len + sub_pkt->payload_len <= POTR_MAX_MESSAGE_SIZE)
+        if (ctx->frag_buf_len + elem->payload_len <= POTR_MAX_MESSAGE_SIZE)
         {
             if (ctx->frag_buf_len == 0)
             {
                 ctx->frag_compressed =
-                    (sub_pkt->flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
+                    (elem->flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
             }
             memcpy(ctx->frag_buf + ctx->frag_buf_len,
-                   sub_pkt->payload, sub_pkt->payload_len);
-            ctx->frag_buf_len += sub_pkt->payload_len;
+                   elem->payload, elem->payload_len);
+            ctx->frag_buf_len += elem->payload_len;
         }
         else
         {
@@ -293,11 +293,11 @@ static void deliver_sub_pkt(struct PotrContext_ *ctx, const PotrPacket *sub_pkt)
     else if (ctx->frag_buf_len > 0)
     {
         /* 最終フラグメント: バッファに追記してコールバック */
-        if (ctx->frag_buf_len + sub_pkt->payload_len <= POTR_MAX_MESSAGE_SIZE)
+        if (ctx->frag_buf_len + elem->payload_len <= POTR_MAX_MESSAGE_SIZE)
         {
             memcpy(ctx->frag_buf + ctx->frag_buf_len,
-                   sub_pkt->payload, sub_pkt->payload_len);
-            ctx->frag_buf_len += sub_pkt->payload_len;
+                   elem->payload, elem->payload_len);
+            ctx->frag_buf_len += elem->payload_len;
 
             if (ctx->callback != NULL)
             {
@@ -310,18 +310,18 @@ static void deliver_sub_pkt(struct PotrContext_ *ctx, const PotrPacket *sub_pkt)
     }
     else
     {
-        /* 単体パケット: 直接コールバック */
+        /* フラグメントなし: 直接コールバック */
         if (ctx->callback != NULL)
         {
             recv_deliver(ctx,
-                         sub_pkt->payload,
-                         (size_t)sub_pkt->payload_len,
-                         (sub_pkt->flags & POTR_FLAG_COMPRESSED) ? 1 : 0);
+                         elem->payload,
+                         (size_t)elem->payload_len,
+                         (elem->flags & POTR_FLAG_COMPRESSED) ? 1 : 0);
         }
     }
 }
 
-/* recv_window から順序整列済みの外側パケットを取り出してサブパケットを配信する。
+/* recv_window から順序整列済みの外側パケットを取り出してペイロードエレメントを配信する。
    REJECT 処理後と通常受信処理の両方から呼び出す。 */
 static void drain_recv_window(struct PotrContext_ *ctx)
 {
@@ -333,17 +333,17 @@ static void drain_recv_window(struct PotrContext_ *ctx)
 
         if (pop_pkt.flags & POTR_FLAG_PING)
         {
-            continue; /* PING: 生存確認のみ、サブパケット展開不要 */
+            continue; /* PING: 生存確認のみ、ペイロードエレメント展開不要 */
         }
 
-        /* DATA: サブパケットを順に展開して配信 */
+        /* DATA: ペイロードエレメントを順に展開して配信 */
         {
             size_t     offset = 0;
-            PotrPacket sub_pkt;
+            PotrPacket elem;
 
-            while (packet_unpack_next(&pop_pkt, &offset, &sub_pkt) == POTR_SUCCESS)
+            while (packet_unpack_next(&pop_pkt, &offset, &elem) == POTR_SUCCESS)
             {
-                deliver_sub_pkt(ctx, &sub_pkt);
+                deliver_payload_elem(ctx, &elem);
             }
         }
     }

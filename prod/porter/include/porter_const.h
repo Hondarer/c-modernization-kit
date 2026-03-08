@@ -25,7 +25,7 @@
  *  @{
  *  @details
  *  UDP で送受信される外側パケット (PotrPacket) の flags フィールドに設定するフラグです。\n
- *  サブパケットのフラグ (@ref POTR_SUB_FLAG) とは独立したビット空間で管理します。
+ *  ペイロードエレメントのフラグ (@ref POTR_ELEM_FLAG) とは独立したビット空間で管理します。
  */
 #define POTR_FLAG_DATA       0x0001U /**< データパケット (パックコンテナ) であることを示すフラグ。常に設定される。 */
 #define POTR_FLAG_NACK       0x0002U /**< 再送要求パケットであることを示すフラグ。ack_num に要求通番を格納する。 */
@@ -34,15 +34,15 @@
 #define POTR_FLAG_FIN        0x0010U /**< 正常終了通知パケットであることを示すフラグ。送信者が potrClose 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。 */
 /** @} */
 
-/** @defgroup POTR_SUB_FLAG サブパケットフラグ (パックコンテナ内サブヘッダー.flags)
+/** @defgroup POTR_ELEM_FLAG ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)
  *  @{
  *  @details
- *  POTR_FLAG_DATA パケットのペイロード内に格納されるサブパケットのヘッダー flags フィールドに設定するフラグです。\n
- *  圧縮・フラグメント化はメッセージ単位で行われ、サブパケット単位で管理します。\n
+ *  POTR_FLAG_DATA パケットのペイロード内に格納されるペイロードエレメントのヘッダー flags フィールドに設定するフラグです。\n
+ *  圧縮・フラグメント化はメッセージ単位で行われ、ペイロードエレメント単位で管理します。\n
  *  外側パケットのフラグ (@ref POTR_OUTER_FLAG) には設定しません。
  */
-#define POTR_FLAG_MORE_FRAG  0x0001U /**< 後続フラグメントが存在することを示すサブパケットフラグ。メッセージが複数サブパケットに分割された場合、最終フラグメント以外に設定する。 */
-#define POTR_FLAG_COMPRESSED 0x0002U /**< ペイロードが圧縮されていることを示すサブパケットフラグ。圧縮はメッセージ単位で行い、全フラグメントのサブパケットに設定する。先頭 4 バイトが元サイズ (NBO)、続くデータが raw DEFLATE。 */
+#define POTR_FLAG_MORE_FRAG  0x0001U /**< 後続フラグメントが存在することを示すペイロードエレメントフラグ。メッセージが複数ペイロードエレメントに分割された場合、最終フラグメント以外に設定する。 */
+#define POTR_FLAG_COMPRESSED 0x0002U /**< ペイロードが圧縮されていることを示すペイロードエレメントフラグ。圧縮はメッセージ単位で行い、全フラグメントのペイロードエレメントに設定する。先頭 4 バイトが元サイズ (NBO)、続くデータが raw DEFLATE。 */
 /** @} */
 
 /** @defgroup POTR_DEFAULT デフォルト値
@@ -64,8 +64,8 @@
 #define POTR_MAX_WINDOW_SIZE   256U   /**< ウィンドウサイズの最大値 (パケット数)。 */
 #define POTR_MAX_SERVICES      64U    /**< 設定ファイルに定義できるサービスの最大数。 */
 #define POTR_MAX_MESSAGE_SIZE  65535U /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。フラグメント化により POTR_MAX_PAYLOAD を超えるメッセージも送受信できる。 */
-#define POTR_SEND_QUEUE_DEPTH    1024U  /**< 非同期送信キューの最大エントリ数 (パケット数)。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する。 */
-#define POTR_PACKED_SUB_HDR_SIZE    4U  /**< パッキングコンテナ内サブパケットのヘッダーサイズ (バイト)。flags (2): POTR_FLAG_MORE_FRAG / POTR_FLAG_COMPRESSED を格納 + payload_len (2)。通番は外側パケットで管理するためサブパケットには含まない。 */
+#define POTR_SEND_QUEUE_DEPTH    1024U  /**< 非同期送信キューの最大エントリ数。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する。 */
+#define POTR_PAYLOAD_ELEM_HDR_SIZE  4U  /**< パックコンテナ内ペイロードエレメントのヘッダーサイズ (バイト)。flags (2): POTR_FLAG_MORE_FRAG / POTR_FLAG_COMPRESSED を格納 + payload_len (2)。通番は外側パケットで管理するためペイロードエレメントには含まない。 */
 /** @} */
 
 #endif /* PORTER_CONST_H */

@@ -7,11 +7,11 @@
  *  @version        1.0.0
  *
  *  @details
- *  送信キュー (PotrSendQueue) からサブパケットエントリを取り出して
+ *  送信キュー (PotrSendQueue) からペイロードエレメントを取り出して
  *  外側パケット (POTR_FLAG_DATA) を構築し sendto を呼び出す送信スレッド。\n
  *  potrOpenService (POTR_ROLE_SENDER) 時に起動し、potrClose 時に停止します。\n
- *  potrSend の nonblocking 引数の値によらず常に起動しており、
- *  ノンブロッキング送信時のみキューが使用されます。
+ *  potrSend の blocking 引数の値によらず常に起動しており、
+ *  ノンブロッキング送信 (blocking = 0) 時のみキューが使用されます。
  *
  *  @par            通番管理
  *  すべてのデータパケットはパックコンテナ形式で送受信します。\n
@@ -20,10 +20,10 @@
  *  送信ウィンドウ (ctx->send_window) への登録も本スレッドが行います。
  *
  *  @par            パッキング機能
- *  POTR_MAX_PAYLOAD - POTR_PACKED_SUB_HDR_SIZE 以下のフラグメントが
+ *  POTR_MAX_PAYLOAD - POTR_PAYLOAD_ELEM_HDR_SIZE 以下のフラグメントが
  *  複数キューに滞留している場合、送信スレッドが 1 つの外側パケットに
  *  まとめて送信します。\n
- *  以下の場合は単体 (サブパケット 1 件) のコンテナとして送信します。
+ *  以下の場合は単体 (ペイロードエレメント 1 件) のコンテナとして送信します。
  *  - MORE_FRAG フラグが付いているエントリ (フラグメント化メッセージの途中)
  *  - キューに追加エントリが存在しない場合
  *
@@ -64,9 +64,9 @@ static uint64_t get_ms(void)
 #endif
 }
 
-/* サブパケットを packed_buf に追記する */
-static void append_sub_packet(uint8_t *packed_buf, size_t *packed_len,
-                               const PotrSendEntry *entry)
+/* ペイロードエレメントを packed_buf に追記する */
+static void append_payload_elem(uint8_t *packed_buf, size_t *packed_len,
+                               const PotrPayloadElem *entry)
 {
     uint16_t flags_nbo = htons(entry->flags);
     uint16_t plen_nbo  = htons(entry->payload_len);
@@ -122,7 +122,7 @@ static void *send_thread_func(void *arg)
 #endif
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
-    PotrSendEntry        first;
+    PotrPayloadElem        first;
 
     for (;;)
     {
@@ -139,7 +139,7 @@ static void *send_thread_func(void *arg)
             size_t   packed_len = 0;
             int      n_dequeued = 1;
 
-            append_sub_packet(packed_buf, &packed_len, &first);
+            append_payload_elem(packed_buf, &packed_len, &first);
 
             /* MORE_FRAG エントリはパッキング不可。そのまま単体コンテナとして送信。 */
             if (!(first.flags & POTR_FLAG_MORE_FRAG))
@@ -150,13 +150,13 @@ static void *send_thread_func(void *arg)
                 {
                     /* パッキング待ちあり: タイムアウトまで追加エントリを待ち合わせる */
                     uint64_t      deadline = get_ms() + pack_wait_ms;
-                    PotrSendEntry next;
+                    PotrPayloadElem next;
 
                     for (;;)
                     {
                         uint64_t now = get_ms();
                         uint32_t remaining;
-                        size_t   sub_size;
+                        size_t   elem_size;
 
                         if (now >= deadline)
                         {
@@ -176,9 +176,9 @@ static void *send_thread_func(void *arg)
                             break; /* MORE_FRAG はパッキング不可 */
                         }
 
-                        sub_size = POTR_PACKED_SUB_HDR_SIZE + (size_t)next.payload_len;
+                        elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
 
-                        if (packed_len + sub_size > POTR_MAX_PAYLOAD)
+                        if (packed_len + elem_size > POTR_MAX_PAYLOAD)
                         {
                             break; /* 容量満杯: 即時送信してタイマーリセット */
                         }
@@ -189,27 +189,27 @@ static void *send_thread_func(void *arg)
                             break; /* 競合防止 (通常発生しない) */
                         }
 
-                        append_sub_packet(packed_buf, &packed_len, &next);
+                        append_payload_elem(packed_buf, &packed_len, &next);
                         n_dequeued++;
                     }
                 }
                 else
                 {
                     /* パッキング待ちなし: キューにあるエントリを即時まとめる */
-                    PotrSendEntry next;
+                    PotrPayloadElem next;
 
                     while (potr_send_queue_peek(&ctx->send_queue, &next) == POTR_SUCCESS)
                     {
-                        size_t sub_size;
+                        size_t elem_size;
 
                         if (next.flags & POTR_FLAG_MORE_FRAG)
                         {
                             break;
                         }
 
-                        sub_size = POTR_PACKED_SUB_HDR_SIZE + (size_t)next.payload_len;
+                        elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
 
-                        if (packed_len + sub_size > POTR_MAX_PAYLOAD)
+                        if (packed_len + elem_size > POTR_MAX_PAYLOAD)
                         {
                             break;
                         }
@@ -220,7 +220,7 @@ static void *send_thread_func(void *arg)
                             break;
                         }
 
-                        append_sub_packet(packed_buf, &packed_len, &next);
+                        append_payload_elem(packed_buf, &packed_len, &next);
                         n_dequeued++;
                     }
                 }

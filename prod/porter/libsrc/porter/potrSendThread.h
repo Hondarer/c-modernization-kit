@@ -9,8 +9,8 @@
  *  @details
  *  送信者 (POTR_ROLE_SENDER) が非ブロッキング送信を使用する場合に起動する
  *  送信スレッドの起動・停止 API。\n
- *  送信スレッドは送信キュー (PotrSendQueue) からパケットを取り出して
- *  sendto を呼び出します。
+ *  送信スレッドは送信キュー (PotrSendQueue) からペイロードエレメントを取り出して
+ *  外側パケットを構築し sendto を呼び出します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *

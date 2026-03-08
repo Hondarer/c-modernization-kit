@@ -112,7 +112,7 @@ typedef struct
     uint16_t window_size;        /**< スライディングウィンドウサイズ (パケット数)。 */
     uint16_t max_payload;        /**< 最大ペイロード長 (バイト)。 */
     uint32_t health_interval_ms; /**< ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。 */
-    uint32_t health_timeout_ms;  /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なフレームが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
+    uint32_t health_timeout_ms;  /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なパケットが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
 } PotrGlobalConfig;
 
 /**
@@ -160,7 +160,7 @@ typedef struct PotrContext_ *PotrHandle;
  *  | ------------------------ | ------------------------------------------------------------ |
  *  | POTR_EVENT_DATA          | データ受信。data/len に受信内容が格納されます。              |
  *  | POTR_EVENT_CONNECTED     | 送信者からの疎通を初検知、または切断後の復帰を検知しました。 |
- *  | POTR_EVENT_DISCONNECTED  | health_timeout_ms 以内に有効なフレームが受信できず切断を検知しました。 |
+ *  | POTR_EVENT_DISCONNECTED  | health_timeout_ms 以内に有効なパケットが受信できず切断を検知しました。 |
  *
  *  @note
  *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
@@ -172,7 +172,7 @@ typedef enum
 {
     POTR_EVENT_DATA         = 0, /**< データ受信。data/len に内容が格納される。 */
     POTR_EVENT_CONNECTED    = 1, /**< 送信者からの疎通を初検知 or 復帰。data=NULL, len=0。 */
-    POTR_EVENT_DISCONNECTED = 2, /**< health_timeout_ms 以内に有効なフレームが受信できず切断を検知。data=NULL, len=0。 */
+    POTR_EVENT_DISCONNECTED = 2, /**< health_timeout_ms 以内に有効なパケットが受信できず切断を検知。data=NULL, len=0。 */
 } PotrEvent;
 
 /**

@@ -56,7 +56,7 @@ extern "C"
                                       size_t payload_len);
     extern int    packet_unpack_next(const PotrPacket *container,
                                      size_t *offset,
-                                     PotrPacket *sub_out);
+                                     PotrPacket *elem_out);
     extern int    packet_parse(PotrPacket *packet, const void *buf, size_t buf_len);
     extern size_t packet_wire_size(const PotrPacket *packet);
 

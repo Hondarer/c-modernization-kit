@@ -52,6 +52,7 @@ int potr_send_queue_init(PotrSendQueue *q)
     memset(q, 0, sizeof(*q));
     POTR_MUTEX_INIT(&q->mutex);
     POTR_COND_INIT(&q->not_empty);
+    POTR_COND_INIT(&q->not_full);
     POTR_COND_INIT(&q->drained);
     return POTR_SUCCESS;
 }
@@ -60,6 +61,7 @@ int potr_send_queue_init(PotrSendQueue *q)
 void potr_send_queue_destroy(PotrSendQueue *q)
 {
     POTR_COND_DESTROY(&q->drained);
+    POTR_COND_DESTROY(&q->not_full);
     POTR_COND_DESTROY(&q->not_empty);
     POTR_MUTEX_DESTROY(&q->mutex);
 }
@@ -89,7 +91,36 @@ int potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_pop(PotrSendQueue *q, PotrSendEntry *out, volatile int *running)
+int potr_send_queue_push_wait(PotrSendQueue *q, uint16_t flags,
+                              const void *payload, uint16_t payload_len,
+                              volatile int *running)
+{
+    POTR_MUTEX_LOCK(&q->mutex);
+
+    while (q->count >= POTR_SEND_QUEUE_DEPTH)
+    {
+        if (!*running)
+        {
+            POTR_MUTEX_UNLOCK(&q->mutex);
+            return POTR_ERROR;
+        }
+        POTR_COND_WAIT(&q->not_full, &q->mutex);
+    }
+
+    q->entries[q->tail].flags       = flags;
+    q->entries[q->tail].payload_len = payload_len;
+    memcpy(q->entries[q->tail].payload, payload, payload_len);
+    q->tail = (q->tail + 1U) % POTR_SEND_QUEUE_DEPTH;
+    q->count++;
+
+    POTR_COND_SIGNAL(&q->not_empty);
+    POTR_MUTEX_UNLOCK(&q->mutex);
+
+    return POTR_SUCCESS;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+int potr_send_queue_pop(PotrSendQueue *q, PotrPayloadElem *out, volatile int *running)
 {
     POTR_MUTEX_LOCK(&q->mutex);
 
@@ -108,12 +139,13 @@ int potr_send_queue_pop(PotrSendQueue *q, PotrSendEntry *out, volatile int *runn
     q->count--;
     q->inflight++;
 
+    POTR_COND_SIGNAL(&q->not_full);
     POTR_MUTEX_UNLOCK(&q->mutex);
     return POTR_SUCCESS;
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_peek(PotrSendQueue *q, PotrSendEntry *out)
+int potr_send_queue_peek(PotrSendQueue *q, PotrPayloadElem *out)
 {
     POTR_MUTEX_LOCK(&q->mutex);
 
@@ -130,7 +162,7 @@ int potr_send_queue_peek(PotrSendQueue *q, PotrSendEntry *out)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_peek_timed(PotrSendQueue *q, PotrSendEntry *out,
+int potr_send_queue_peek_timed(PotrSendQueue *q, PotrPayloadElem *out,
                                uint32_t timeout_ms)
 {
     POTR_MUTEX_LOCK(&q->mutex);
@@ -166,7 +198,7 @@ int potr_send_queue_peek_timed(PotrSendQueue *q, PotrSendEntry *out,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_try_pop(PotrSendQueue *q, PotrSendEntry *out)
+int potr_send_queue_try_pop(PotrSendQueue *q, PotrPayloadElem *out)
 {
     POTR_MUTEX_LOCK(&q->mutex);
 
@@ -181,6 +213,7 @@ int potr_send_queue_try_pop(PotrSendQueue *q, PotrSendEntry *out)
     q->count--;
     q->inflight++;
 
+    POTR_COND_SIGNAL(&q->not_full);
     POTR_MUTEX_UNLOCK(&q->mutex);
     return POTR_SUCCESS;
 }
@@ -221,5 +254,6 @@ void potr_send_queue_shutdown(PotrSendQueue *q)
 {
     POTR_MUTEX_LOCK(&q->mutex);
     POTR_COND_BROADCAST(&q->not_empty);
+    POTR_COND_BROADCAST(&q->not_full);
     POTR_MUTEX_UNLOCK(&q->mutex);
 }

@@ -176,17 +176,17 @@ int packet_build_fin(PotrPacket *packet, const PotrPacketSessionHdr *shdr)
  *  @param[out]     out             構築結果を格納するパケット構造体へのポインタ。
  *  @param[in]      shdr            セッション識別ヘッダーへのポインタ。
  *  @param[in]      seq_num         外側パケットの通番。再送・順序整列に使用する。
- *  @param[in]      packed_payload  送信スレッドが構築したサブパケット列。
+ *  @param[in]      packed_payload  送信スレッドが構築したペイロードエレメント列。
  *  @param[in]      payload_len     packed_payload のバイト数。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *
  *  @details
  *  すべてのデータパケットはパックコンテナ形式で送受信します。\n
- *  サブパケットが 1 件のみの場合も同じ形式を使用します。\n
+ *  ペイロードエレメントが 1 件のみの場合も同じ形式を使用します。\n
  *  再送・順序整列の単位は外側パケット (本関数が構築する UDP ペイロード) であり、
  *  通番は外側パケットの seq_num フィールドで管理します。\n
- *  サブパケットの形式は flags(2) + payload_len(2) + payload(N) です。\n
- *  受信者は POTR_FLAG_DATA を検出後 packet_unpack_next() でサブパケットを展開します。
+ *  ペイロードエレメントの形式は flags(2) + payload_len(2) + payload(N) です。\n
+ *  受信者は POTR_FLAG_DATA を検出後 packet_unpack_next() でペイロードエレメントを展開します。
  *******************************************************************************
  */
 int packet_build_packed(PotrPacket *out, const PotrPacketSessionHdr *shdr,
@@ -212,35 +212,35 @@ int packet_build_packed(PotrPacket *out, const PotrPacketSessionHdr *shdr,
 
 /**
  *******************************************************************************
- *  @brief          データパケットから次のサブパケットを取り出します。
+ *  @brief          データパケットから次のペイロードエレメントを取り出します。
  *  @param[in]      container  packet_parse() 済みのデータパケット (POTR_FLAG_DATA)。
  *  @param[in,out]  offset     コンテナ payload 内の読み取り位置。呼び出し毎に更新。
- *  @param[out]     sub_out    取り出したサブパケットを格納する構造体へのポインタ。
- *  @return         サブパケットを取り出せた場合は POTR_SUCCESS、
+ *  @param[out]     elem_out    取り出したペイロードエレメントを格納する構造体へのポインタ。
+ *  @return         ペイロードエレメントを取り出せた場合は POTR_SUCCESS、
  *                  末尾に達した場合またはエラーの場合は POTR_ERROR を返します。
  *
  *  @details
- *  サブパケットの形式は flags(2) + payload_len(2) + payload(N) です。\n
- *  通番は外側パケットで管理するためサブパケットに含まれません。\n
+ *  ペイロードエレメントの形式は flags(2) + payload_len(2) + payload(N) です。\n
+ *  通番は外側パケットで管理するためペイロードエレメントには含まれません。\n
  *  container->payload_len はホストバイトオーダー (packet_parse() 変換済み) で参照します。\n
- *  sub_out の session 情報は container から引き継ぎます。
+ *  elem_out の session 情報は container から引き継ぎます。
  *******************************************************************************
  */
 int packet_unpack_next(const PotrPacket *container, size_t *offset,
-                       PotrPacket *sub_out)
+                       PotrPacket *elem_out)
 {
     const uint8_t *p;
     uint16_t       flags_nbo;
     uint16_t       plen_nbo;
     uint16_t       payload_len;
 
-    if (container == NULL || offset == NULL || sub_out == NULL)
+    if (container == NULL || offset == NULL || elem_out == NULL)
     {
         return POTR_ERROR;
     }
 
     /* 末尾チェック (container->payload_len はホストバイトオーダー) */
-    if (*offset + POTR_PACKED_SUB_HDR_SIZE > (size_t)container->payload_len)
+    if (*offset + POTR_PAYLOAD_ELEM_HDR_SIZE > (size_t)container->payload_len)
     {
         return POTR_ERROR;
     }
@@ -252,23 +252,23 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
 
     payload_len = ntohs(plen_nbo);
 
-    if (*offset + POTR_PACKED_SUB_HDR_SIZE + payload_len > (size_t)container->payload_len
+    if (*offset + POTR_PAYLOAD_ELEM_HDR_SIZE + payload_len > (size_t)container->payload_len
         || payload_len > POTR_MAX_PAYLOAD)
     {
         return POTR_ERROR;
     }
 
-    memset(sub_out, 0, sizeof(*sub_out));
-    sub_out->service_id      = container->service_id;
-    sub_out->session_id      = container->session_id;
-    sub_out->session_tv_sec  = container->session_tv_sec;
-    sub_out->session_tv_nsec = container->session_tv_nsec;
-    sub_out->ack_num         = 0;
-    sub_out->flags           = ntohs(flags_nbo);
-    sub_out->payload_len     = payload_len;
-    memcpy(sub_out->payload, p + POTR_PACKED_SUB_HDR_SIZE, payload_len);
+    memset(elem_out, 0, sizeof(*elem_out));
+    elem_out->service_id      = container->service_id;
+    elem_out->session_id      = container->session_id;
+    elem_out->session_tv_sec  = container->session_tv_sec;
+    elem_out->session_tv_nsec = container->session_tv_nsec;
+    elem_out->ack_num         = 0;
+    elem_out->flags           = ntohs(flags_nbo);
+    elem_out->payload_len     = payload_len;
+    memcpy(elem_out->payload, p + POTR_PAYLOAD_ELEM_HDR_SIZE, payload_len);
 
-    *offset += POTR_PACKED_SUB_HDR_SIZE + payload_len;
+    *offset += POTR_PAYLOAD_ELEM_HDR_SIZE + payload_len;
     return POTR_SUCCESS;
 }
 
