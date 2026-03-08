@@ -36,16 +36,32 @@
 #include "potrContext.h"
 #include "potrHealthThread.h"
 
-/* health_interval_ms ミリ秒スリープする */
-static void health_sleep(uint32_t interval_ms)
+/* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする */
+static void health_sleep(struct PotrContext_ *ctx, uint32_t interval_ms)
 {
 #ifdef _WIN32
-    Sleep((DWORD)interval_ms);
+    EnterCriticalSection(&ctx->health_mutex);
+    if (ctx->health_running)
+    {
+        SleepConditionVariableCS(&ctx->health_wakeup, &ctx->health_mutex, (DWORD)interval_ms);
+    }
+    LeaveCriticalSection(&ctx->health_mutex);
 #else
-    struct timespec ts;
-    ts.tv_sec  = (time_t)(interval_ms / 1000U);
-    ts.tv_nsec = (long)((interval_ms % 1000U) * 1000000UL);
-    nanosleep(&ts, NULL);
+    struct timespec abs_ts;
+    clock_gettime(CLOCK_REALTIME, &abs_ts);
+    abs_ts.tv_sec  += (time_t)(interval_ms / 1000U);
+    abs_ts.tv_nsec += (long)((interval_ms % 1000U) * 1000000UL);
+    if (abs_ts.tv_nsec >= 1000000000L)
+    {
+        abs_ts.tv_sec++;
+        abs_ts.tv_nsec -= 1000000000L;
+    }
+    pthread_mutex_lock(&ctx->health_mutex);
+    if (ctx->health_running)
+    {
+        pthread_cond_timedwait(&ctx->health_wakeup, &ctx->health_mutex, &abs_ts);
+    }
+    pthread_mutex_unlock(&ctx->health_mutex);
 #endif
 }
 
@@ -66,7 +82,7 @@ static void *health_thread_func(void *arg)
 
     while (ctx->health_running)
     {
-        health_sleep(ctx->global.health_interval_ms);
+        health_sleep(ctx, ctx->global.health_interval_ms);
 
         if (!ctx->health_running)
         {
@@ -131,6 +147,14 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
         return POTR_SUCCESS; /* ヘルスチェック無効 */
     }
 
+#ifdef _WIN32
+    InitializeCriticalSection(&ctx->health_mutex);
+    InitializeConditionVariable(&ctx->health_wakeup);
+#else
+    pthread_mutex_init(&ctx->health_mutex, NULL);
+    pthread_cond_init(&ctx->health_wakeup, NULL);
+#endif
+
     ctx->health_running = 1;
 
 #ifdef _WIN32
@@ -175,12 +199,27 @@ int potr_health_thread_stop(struct PotrContext_ *ctx)
 #ifdef _WIN32
     if (ctx->health_thread != NULL)
     {
-        WaitForSingleObject(ctx->health_thread, (DWORD)(ctx->global.health_interval_ms + 1000U));
+        /* 条件変数をシグナルしてスリープ中のスレッドを即時起床させる */
+        EnterCriticalSection(&ctx->health_mutex);
+        WakeConditionVariable(&ctx->health_wakeup);
+        LeaveCriticalSection(&ctx->health_mutex);
+
+        WaitForSingleObject(ctx->health_thread, INFINITE);
         CloseHandle(ctx->health_thread);
         ctx->health_thread = NULL;
     }
+    DeleteCriticalSection(&ctx->health_mutex);
+    /* Windows の CONDITION_VARIABLE は破棄不要 */
 #else
+    /* 条件変数をシグナルしてスリープ中のスレッドを即時起床させる */
+    pthread_mutex_lock(&ctx->health_mutex);
+    pthread_cond_signal(&ctx->health_wakeup);
+    pthread_mutex_unlock(&ctx->health_mutex);
+
     pthread_join(ctx->health_thread, NULL);
+
+    pthread_cond_destroy(&ctx->health_wakeup);
+    pthread_mutex_destroy(&ctx->health_mutex);
 #endif
 
     return POTR_SUCCESS;

@@ -45,6 +45,8 @@ struct PotrContext_
     PotrRecvCallback callback;        /**< 受信コールバック。 */
     PotrThread       recv_thread;     /**< 受信スレッドハンドル。 */
     PotrThread       health_thread;   /**< ヘルスチェックスレッドハンドル (送信者のみ)。 */
+    PotrMutex        health_mutex;    /**< ヘルスチェックスレッド停止用ミューテックス。 */
+    PotrCondVar      health_wakeup;   /**< ヘルスチェックスレッドを即時起床させる条件変数。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
     PotrWindow       send_window;  /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
