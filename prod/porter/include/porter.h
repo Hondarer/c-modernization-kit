@@ -144,11 +144,13 @@ extern "C"
     /**
      *******************************************************************************
      *  @brief          データを送信します。
-     *  @param[in]      handle    potrOpenService() で取得したセッションハンドル。
-     *  @param[in]      data      送信するデータへのポインタ。
-     *  @param[in]      len       送信するデータのバイト数。
-     *  @param[in]      compress  0 以外を指定するとペイロードを圧縮して送信します。
-     *                            0 を指定すると非圧縮で送信します。
+     *  @param[in]      handle      potrOpenService() で取得したセッションハンドル。
+     *  @param[in]      data        送信するデータへのポインタ。
+     *  @param[in]      len         送信するデータのバイト数。
+     *  @param[in]      compress    0 以外を指定するとペイロードを圧縮して送信します。
+     *                              0 を指定すると非圧縮で送信します。
+     *  @param[in]      nonblocking 0 以外を指定するとノンブロッキング送信を行います。
+     *                              0 を指定するとブロッキング送信を行います。
      *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
      *
      *  @details
@@ -164,20 +166,35 @@ extern "C"
      *  受信側の PotrRecvCallback には、解凍済みの元データが渡されます。\n
      *  送受信ともにフラグメント化と組み合わせて使用できます。
      *
+     *  @par            ブロッキング送信 (nonblocking = 0)
+     *  呼び出し前に滞留している非ブロッキング送信のパケットが
+     *  すべて sendto 完了するまで待機します。\n
+     *  その後、本呼び出しのパケットを直接 sendto して返ります。\n
+     *  本関数が返った時点で、自身のデータの sendto は完了しています。
+     *
+     *  @par            ノンブロッキング送信 (nonblocking != 0)
+     *  パケットを内部送信キューに積んで即座に返ります。\n
+     *  実際の sendto はバックグラウンド送信スレッドが非同期に実行します。\n
+     *  キューが満杯 (POTR_SEND_QUEUE_DEPTH 以上) の場合は POTR_ERROR を返します。
+     *
      *  @note
      *  圧縮フォーマットには raw DEFLATE (RFC 1951) を使用します。\n
      *  Linux (zlib) と Windows (Compression API MSZIP|COMPRESS_RAW) は
-     *  同一フォーマットを出力するため、クロスプラットフォーム通信に対応します。
+     *  同一フォーマットを出力するため、クロスプラットフォーム通信に対応します。\n
+     *  本関数はシングルスレッドから呼び出すことを前提としています。
+     *  複数スレッドから同時に呼び出した場合の動作は未定義です。
      *
      *  @warning        handle が NULL の場合は失敗を返します。\n
      *                  data が NULL の場合は失敗を返します。\n
-     *                  len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。
+     *                  len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。\n
+     *                  ノンブロッキング送信でキューが満杯の場合は失敗を返します。
      *******************************************************************************
      */
     POTR_API extern int POTRAPI potrSend(PotrHandle  handle,
                                          const void *data,
                                          size_t      len,
-                                         int         compress);
+                                         int         compress,
+                                         int         nonblocking);
 
     /**
      *******************************************************************************

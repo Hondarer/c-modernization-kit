@@ -33,6 +33,8 @@
 #include "potrContext.h"
 #include "potrRecvThread.h"
 #include "potrHealthThread.h"
+#include "potrSendQueue.h"
+#include "potrSendThread.h"
 #include "util/potrIpAddr.h"
 
 /* ソケットを作成して bind する。成功時は PotrSocket を返す。失敗時は POTR_INVALID_SOCKET。
@@ -484,11 +486,36 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         }
     }
 
-    /* 送信者: ヘルスチェックスレッドと ACK/NACK 受信スレッドを起動 */
+    /* 送信者: 送信キュー・送信スレッド・ヘルスチェックスレッド・ACK/NACK 受信スレッドを起動 */
     if (role == POTR_ROLE_SENDER)
     {
+        if (potr_send_queue_init(&ctx->send_queue) != POTR_SUCCESS)
+        {
+#ifdef _WIN32
+            closesocket(ctx->sock);
+#else
+            close(ctx->sock);
+#endif
+            free(ctx);
+            return POTR_ERROR;
+        }
+
+        if (potr_send_thread_start(ctx) != POTR_SUCCESS)
+        {
+            potr_send_queue_destroy(&ctx->send_queue);
+#ifdef _WIN32
+            closesocket(ctx->sock);
+#else
+            close(ctx->sock);
+#endif
+            free(ctx);
+            return POTR_ERROR;
+        }
+
         if (potr_health_thread_start(ctx) != POTR_SUCCESS)
         {
+            potr_send_thread_stop(ctx);
+            potr_send_queue_destroy(&ctx->send_queue);
 #ifdef _WIN32
             closesocket(ctx->sock);
 #else
@@ -501,6 +528,8 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
         {
             potr_health_thread_stop(ctx);
+            potr_send_thread_stop(ctx);
+            potr_send_queue_destroy(&ctx->send_queue);
 #ifdef _WIN32
             closesocket(ctx->sock);
 #else

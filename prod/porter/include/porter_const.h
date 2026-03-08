@@ -30,6 +30,7 @@
 #define POTR_FLAG_COMPRESSED 0x0010U /**< ペイロードが圧縮されていることを示すフラグ。先頭 4 バイトが元サイズ (NBO)、続くデータが raw DEFLATE。 */
 #define POTR_FLAG_PING       0x0020U /**< ヘルスチェック要求パケットであることを示すフラグ。ペイロードなし。 */
 #define POTR_FLAG_REJECT     0x0040U /**< 再送不能通知パケットであることを示すフラグ。ack_num に再送不能な通番を格納する。 */
+#define POTR_FLAG_FIN        0x0080U /**< 正常終了通知パケットであることを示すフラグ。送信者が potrClose 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。 */
 /** @} */
 
 /** @defgroup POTR_DEFAULT デフォルト値
@@ -45,11 +46,13 @@
 /** @defgroup POTR_LIMIT 上限値
  *  @{
  */
-#define POTR_MAX_ADDR_LEN     64U    /**< アドレス文字列の最大長 (バイト、終端 NUL を含む)。 */
-#define POTR_MAX_PAYLOAD      1400U  /**< ペイロードの最大長 (バイト)。 */
-#define POTR_MAX_WINDOW_SIZE  256U   /**< ウィンドウサイズの最大値 (パケット数)。 */
-#define POTR_MAX_SERVICES     64U    /**< 設定ファイルに定義できるサービスの最大数。 */
-#define POTR_MAX_MESSAGE_SIZE 65535U /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。フラグメント化により POTR_MAX_PAYLOAD を超えるメッセージも送受信できる。 */
+#define POTR_MAX_ADDR_LEN      64U    /**< アドレス文字列の最大長 (バイト、終端 NUL を含む)。 */
+#define POTR_MAX_PAYLOAD       1400U  /**< ペイロードの最大長 (バイト)。 */
+#define POTR_MAX_WINDOW_SIZE   256U   /**< ウィンドウサイズの最大値 (パケット数)。 */
+#define POTR_MAX_SERVICES      64U    /**< 設定ファイルに定義できるサービスの最大数。 */
+#define POTR_MAX_MESSAGE_SIZE  65535U /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。フラグメント化により POTR_MAX_PAYLOAD を超えるメッセージも送受信できる。 */
+#define POTR_SEND_QUEUE_DEPTH    1024U  /**< 非同期送信キューの最大エントリ数 (パケット数)。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する。 */
+#define POTR_PACKED_SUB_HDR_SIZE    4U  /**< パッキングコンテナ内サブパケットのヘッダーサイズ (バイト)。flags: 2 + payload_len: 2。通番は外側パケットで管理するためサブパケットには含まない。 */
 /** @} */
 
 #endif /* PORTER_CONST_H */

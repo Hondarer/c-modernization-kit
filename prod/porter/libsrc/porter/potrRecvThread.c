@@ -33,6 +33,10 @@
 #include "potrRecvThread.h"
 #include "compress/compress.h"
 
+/* 前方宣言: recv_deliver は後で定義 */
+static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
+                         size_t payload_len, int compressed);
+
 /* 送信元 IP が src_addr_resolved と一致するか確認する。
    src_addr が未設定の場合は常に 1 (合格) を返す。 */
 static int check_src_addr(const struct PotrContext_ *ctx,
@@ -261,6 +265,111 @@ static void recv_deliver(struct PotrContext_ *ctx,
     }
 }
 
+/* サブパケット 1 件のフラグメント結合・解凍・コールバック処理。
+   window_recv_pop で取り出した外側パケットを packet_unpack_next で展開した
+   各サブパケットに対して呼び出す。 */
+static void deliver_sub_pkt(struct PotrContext_ *ctx, const PotrPacket *sub_pkt)
+{
+    if (sub_pkt->flags & POTR_FLAG_MORE_FRAG)
+    {
+        /* 中間フラグメント: バッファに追記 */
+        if (ctx->frag_buf_len + sub_pkt->payload_len <= POTR_MAX_MESSAGE_SIZE)
+        {
+            if (ctx->frag_buf_len == 0)
+            {
+                ctx->frag_compressed =
+                    (sub_pkt->flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
+            }
+            memcpy(ctx->frag_buf + ctx->frag_buf_len,
+                   sub_pkt->payload, sub_pkt->payload_len);
+            ctx->frag_buf_len += sub_pkt->payload_len;
+        }
+        else
+        {
+            ctx->frag_buf_len    = 0;
+            ctx->frag_compressed = 0;
+        }
+    }
+    else if (ctx->frag_buf_len > 0)
+    {
+        /* 最終フラグメント: バッファに追記してコールバック */
+        if (ctx->frag_buf_len + sub_pkt->payload_len <= POTR_MAX_MESSAGE_SIZE)
+        {
+            memcpy(ctx->frag_buf + ctx->frag_buf_len,
+                   sub_pkt->payload, sub_pkt->payload_len);
+            ctx->frag_buf_len += sub_pkt->payload_len;
+
+            if (ctx->callback != NULL)
+            {
+                recv_deliver(ctx, ctx->frag_buf,
+                             ctx->frag_buf_len, ctx->frag_compressed);
+            }
+        }
+        ctx->frag_buf_len    = 0;
+        ctx->frag_compressed = 0;
+    }
+    else
+    {
+        /* 単体パケット: 直接コールバック */
+        if (ctx->callback != NULL)
+        {
+            recv_deliver(ctx,
+                         sub_pkt->payload,
+                         (size_t)sub_pkt->payload_len,
+                         (sub_pkt->flags & POTR_FLAG_COMPRESSED) ? 1 : 0);
+        }
+    }
+}
+
+/* recv_window から順序整列済みの外側パケットを取り出してサブパケットを配信する。
+   REJECT 処理後と通常受信処理の両方から呼び出す。 */
+static void drain_recv_window(struct PotrContext_ *ctx)
+{
+    PotrPacket pop_pkt;
+
+    while (window_recv_pop(&ctx->recv_window, &pop_pkt) == POTR_SUCCESS)
+    {
+        notify_health_alive(ctx);
+
+        if (pop_pkt.flags & POTR_FLAG_PING)
+        {
+            continue; /* PING: 生存確認のみ、サブパケット展開不要 */
+        }
+
+        /* DATA: サブパケットを順に展開して配信 */
+        {
+            size_t     offset = 0;
+            PotrPacket sub_pkt;
+
+            while (packet_unpack_next(&pop_pkt, &offset, &sub_pkt) == POTR_SUCCESS)
+            {
+                deliver_sub_pkt(ctx, &sub_pkt);
+            }
+        }
+    }
+}
+
+/* 外側パケット (DATA / PING) を受信ウィンドウに投入し、順序整列済みパケットを配信する。
+   再送・順序整列の単位は外側パケットであり、NACK も外側パケットの seq_num を指定する。 */
+static void process_outer_pkt(struct PotrContext_      *ctx,
+                               const PotrPacket         *pkt,
+                               const struct sockaddr_in *sender_addr)
+{
+    uint32_t nack_num;
+
+    if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
+    {
+        return;
+    }
+
+    if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
+    {
+        send_nack(ctx, sender_addr, nack_num);
+    }
+
+    drain_recv_window(ctx);
+}
+
 /* 受信スレッド本体 */
 #ifdef _WIN32
 static DWORD WINAPI recv_thread_func(LPVOID arg)
@@ -272,7 +381,6 @@ static void *recv_thread_func(void *arg)
     uint8_t             buf[RECV_BUF_SIZE];
     PotrPacket          pkt;
     struct sockaddr_in  sender_addr;
-    uint32_t            nack_num;
 
 #ifdef _WIN32
     int sender_len = sizeof(sender_addr);
@@ -373,20 +481,18 @@ static void *recv_thread_func(void *arg)
                 if (window_send_get(&ctx->send_window, pkt.ack_num, &resend_pkt)
                     == POTR_SUCCESS)
                 {
-                    /* send_window に存在: 再送 */
-                    {
-                        size_t wire_len = packet_wire_size(&resend_pkt);
+                    /* send_window に存在: 外側パケットをそのまま再送 */
+                    size_t wire_len = packet_wire_size(&resend_pkt);
 #ifdef _WIN32
-                        sendto(ctx->sock, (const char *)&resend_pkt,
-                               (int)wire_len, 0,
-                               (const struct sockaddr *)&ctx->dest_addr,
-                               sizeof(ctx->dest_addr));
+                    sendto(ctx->sock, (const char *)&resend_pkt,
+                           (int)wire_len, 0,
+                           (const struct sockaddr *)&ctx->dest_addr,
+                           sizeof(ctx->dest_addr));
 #else
-                        sendto(ctx->sock, &resend_pkt, wire_len, 0,
-                               (const struct sockaddr *)&ctx->dest_addr,
-                               sizeof(ctx->dest_addr));
+                    sendto(ctx->sock, &resend_pkt, wire_len, 0,
+                           (const struct sockaddr *)&ctx->dest_addr,
+                           sizeof(ctx->dest_addr));
 #endif
-                    }
                 }
                 else
                 {
@@ -398,9 +504,43 @@ static void *recv_thread_func(void *arg)
             continue;
         }
 
-        /* ── 受信者ロール: PING / DATA / REJECT を処理 ── */
+        /* ── 受信者ロール: PING / DATA / REJECT / FIN を処理 ── */
 
-        /* REJECT: 欠落通番をスキップして後続パケットを配信する */
+        /* FIN: 送信者からの正常終了通知 → 即座に DISCONNECTED へ遷移 */
+        if (pkt.flags & POTR_FLAG_FIN)
+        {
+            if (!check_and_update_session(ctx, &pkt))
+            {
+                continue; /* 旧セッションの FIN → 無視 */
+            }
+
+            /* ヘルスチェック有効時: health_alive で重複発火を防止する */
+            if (ctx->health_alive)
+            {
+                ctx->health_alive = 0;
+                if (ctx->callback != NULL)
+                {
+                    ctx->callback(ctx->service.service_id,
+                                  POTR_EVENT_DISCONNECTED, NULL, 0);
+                }
+            }
+            else if (ctx->global.health_timeout_ms == 0 && ctx->peer_session_known)
+            {
+                /* ヘルスチェック無効時: peer_session_known で重複発火を防止する */
+                if (ctx->callback != NULL)
+                {
+                    ctx->callback(ctx->service.service_id,
+                                  POTR_EVENT_DISCONNECTED, NULL, 0);
+                }
+            }
+
+            /* セッション状態をリセットして次の接続を受け入れ可能にする */
+            ctx->peer_session_known = 0;
+            ctx->last_recv_tv_sec   = 0;
+            continue;
+        }
+
+        /* REJECT: 欠落外側パケットをスキップして後続パケットを配信する */
         if (pkt.flags & POTR_FLAG_REJECT)
         {
             if (!check_and_update_session(ctx, &pkt))
@@ -419,76 +559,11 @@ static void *recv_thread_func(void *arg)
                 }
             }
 
-            /* 欠落通番をスキップして recv_window を前進させる */
+            /* 欠落外側パケットをスキップして recv_window を前進させる */
             window_recv_skip(&ctx->recv_window, pkt.ack_num);
 
             /* 後続パケットを配信 (最初の pop で CONNECTED を発火) */
-            {
-                PotrPacket pop_pkt;
-
-                while (window_recv_pop(&ctx->recv_window, &pop_pkt)
-                       == POTR_SUCCESS)
-                {
-                    /* CONNECTED は最初の pop で発火 (health_alive=0 のため) */
-                    notify_health_alive(ctx);
-
-                    if (pop_pkt.flags & POTR_FLAG_PING)
-                    {
-                        continue;
-                    }
-
-                    /* DATA: フラグメント結合・解凍・コールバック */
-                    if (pop_pkt.flags & POTR_FLAG_MORE_FRAG)
-                    {
-                        if (ctx->frag_buf_len + pop_pkt.payload_len
-                            <= POTR_MAX_MESSAGE_SIZE)
-                        {
-                            if (ctx->frag_buf_len == 0)
-                            {
-                                ctx->frag_compressed =
-                                    (pop_pkt.flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
-                            }
-                            memcpy(ctx->frag_buf + ctx->frag_buf_len,
-                                   pop_pkt.payload, pop_pkt.payload_len);
-                            ctx->frag_buf_len += pop_pkt.payload_len;
-                        }
-                        else
-                        {
-                            ctx->frag_buf_len    = 0;
-                            ctx->frag_compressed = 0;
-                        }
-                    }
-                    else if (ctx->frag_buf_len > 0)
-                    {
-                        if (ctx->frag_buf_len + pop_pkt.payload_len
-                            <= POTR_MAX_MESSAGE_SIZE)
-                        {
-                            memcpy(ctx->frag_buf + ctx->frag_buf_len,
-                                   pop_pkt.payload, pop_pkt.payload_len);
-                            ctx->frag_buf_len += pop_pkt.payload_len;
-                            if (ctx->callback != NULL)
-                            {
-                                recv_deliver(ctx, ctx->frag_buf,
-                                             ctx->frag_buf_len,
-                                             ctx->frag_compressed);
-                            }
-                        }
-                        ctx->frag_buf_len    = 0;
-                        ctx->frag_compressed = 0;
-                    }
-                    else
-                    {
-                        if (ctx->callback != NULL)
-                        {
-                            recv_deliver(ctx,
-                                         pop_pkt.payload,
-                                         (size_t)pop_pkt.payload_len,
-                                         (pop_pkt.flags & POTR_FLAG_COMPRESSED)
-                                             ? 1 : 0);
-                        }
-                    }
-                }
-            }
+            drain_recv_window(ctx);
             continue;
         }
 
@@ -507,92 +582,8 @@ static void *recv_thread_func(void *arg)
         /* 受信時刻を更新 (健全性タイムアウト計算用) */
         update_last_recv_time(ctx);
 
-        /* 受信ウィンドウへ格納 */
-        if (window_recv_push(&ctx->recv_window, &pkt) != POTR_SUCCESS)
-        {
-            continue;
-        }
-
-        /* 欠番検出 → NACK 送信 */
-        if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
-        {
-            send_nack(ctx, &sender_addr, nack_num);
-        }
-
-        /* 順序整列済みパケットを処理する */
-        {
-            PotrPacket pop_pkt;
-
-            while (window_recv_pop(&ctx->recv_window, &pop_pkt) == POTR_SUCCESS)
-            {
-                /* 生存通知 (dead → alive で CONNECTED イベント発火) */
-                notify_health_alive(ctx);
-
-                if (pop_pkt.flags & POTR_FLAG_PING)
-                {
-                    /* PING: 疎通確認のみ。データ配信なし。 */
-                    continue;
-                }
-
-                /* DATA: フラグメント結合・解凍・コールバック */
-                if (pop_pkt.flags & POTR_FLAG_MORE_FRAG)
-                {
-                    /* 後続フラグメントあり: バッファに蓄積 */
-                    if (ctx->frag_buf_len + pop_pkt.payload_len
-                        <= POTR_MAX_MESSAGE_SIZE)
-                    {
-                        if (ctx->frag_buf_len == 0)
-                        {
-                            ctx->frag_compressed =
-                                (pop_pkt.flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
-                        }
-                        memcpy(ctx->frag_buf + ctx->frag_buf_len,
-                               pop_pkt.payload,
-                               pop_pkt.payload_len);
-                        ctx->frag_buf_len += pop_pkt.payload_len;
-                    }
-                    else
-                    {
-                        /* バッファオーバーフロー → 破棄 */
-                        ctx->frag_buf_len    = 0;
-                        ctx->frag_compressed = 0;
-                    }
-                }
-                else if (ctx->frag_buf_len > 0)
-                {
-                    /* フラグメント最終パケット */
-                    if (ctx->frag_buf_len + pop_pkt.payload_len
-                        <= POTR_MAX_MESSAGE_SIZE)
-                    {
-                        memcpy(ctx->frag_buf + ctx->frag_buf_len,
-                               pop_pkt.payload,
-                               pop_pkt.payload_len);
-                        ctx->frag_buf_len += pop_pkt.payload_len;
-
-                        if (ctx->callback != NULL)
-                        {
-                            recv_deliver(ctx,
-                                         ctx->frag_buf,
-                                         ctx->frag_buf_len,
-                                         ctx->frag_compressed);
-                        }
-                    }
-                    ctx->frag_buf_len    = 0;
-                    ctx->frag_compressed = 0;
-                }
-                else
-                {
-                    /* 非フラグメントパケット */
-                    if (ctx->callback != NULL)
-                    {
-                        recv_deliver(ctx,
-                                     pop_pkt.payload,
-                                     (size_t)pop_pkt.payload_len,
-                                     (pop_pkt.flags & POTR_FLAG_COMPRESSED) ? 1 : 0);
-                    }
-                }
-            }
-        }
+        /* 外側パケットを受信ウィンドウに投入し、順序整列済みパケットを配信する */
+        process_outer_pkt(ctx, &pkt, &sender_addr);
     }
 
 #ifdef _WIN32

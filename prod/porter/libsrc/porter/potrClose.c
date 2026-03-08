@@ -30,7 +30,38 @@
 #include "potrContext.h"
 #include "potrRecvThread.h"
 #include "potrHealthThread.h"
+#include "potrSendQueue.h"
+#include "potrSendThread.h"
+#include "protocol/packet.h"
 #include "util/potrIpAddr.h"
+
+/* FIN パケットを宛先へ直接 sendto する */
+static void send_fin(struct PotrContext_ *ctx)
+{
+    PotrPacket           fin_pkt;
+    PotrPacketSessionHdr shdr;
+    size_t               wire_len;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+
+    if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS)
+    {
+        return;
+    }
+
+    wire_len = packet_wire_size(&fin_pkt);
+
+#ifdef _WIN32
+    sendto(ctx->sock, (const char *)&fin_pkt, (int)wire_len, 0,
+           (const struct sockaddr *)&ctx->dest_addr, sizeof(ctx->dest_addr));
+#else
+    sendto(ctx->sock, &fin_pkt, wire_len, 0,
+           (const struct sockaddr *)&ctx->dest_addr, sizeof(ctx->dest_addr));
+#endif
+}
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrClose(PotrHandle handle)
@@ -46,6 +77,15 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
     if (ctx->health_running)
     {
         potr_health_thread_stop(ctx);
+    }
+
+    /* 送信スレッドを停止してキューを破棄 (送信者のみ) */
+    if (ctx->send_thread_running)
+    {
+        potr_send_queue_wait_drained(&ctx->send_queue);
+        send_fin(ctx);
+        potr_send_thread_stop(ctx);
+        potr_send_queue_destroy(&ctx->send_queue);
     }
 
     /* 受信スレッドを停止（スレッド停止内でソケットをクローズする） */

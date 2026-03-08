@@ -21,6 +21,7 @@
 
 #include "protocol/window.h"
 #include "compress/compress.h"
+#include "potrSendQueue.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -83,6 +84,12 @@ struct PotrContext_
     uint8_t          _frag_pad[1];      /**< パディング (frag_buf を 8 バイト境界に揃える)。 */
     uint8_t          compress_buf[POTR_COMPRESS_BUF_SIZE]; /**< 圧縮・解凍用一時バッファ。 */
     uint8_t          _cmp_pad[5];       /**< パディング (compress_buf を 8 バイト境界に揃える)。 */
+
+    /* 非同期送信 (POTR_ROLE_SENDER のみ使用) */
+    PotrThread     send_thread;         /**< 送信スレッドハンドル。 */
+    volatile int   send_thread_running; /**< 送信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
+    uint32_t       _send_pad;           /**< パディング (send_queue を 8 バイト境界に揃える)。 */
+    PotrSendQueue  send_queue;          /**< 非同期送信キュー。 */
 };
 
 #endif /* POTR_CONTEXT_H */
