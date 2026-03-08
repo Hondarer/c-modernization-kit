@@ -47,7 +47,6 @@ struct PotrContext_
     PotrThread       health_thread;   /**< ヘルスチェックスレッドハンドル (送信者のみ)。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
-    uint32_t         _pad_win;    /**< パディング (send_window を 8 バイト境界に揃える)。 */
     PotrWindow       send_window;  /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
     PotrWindow       recv_window;  /**< 受信ウィンドウ (順序整列・欠番検出)。 */
     PotrSocket       sock;            /**< UDP ソケット。 */
