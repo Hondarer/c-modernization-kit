@@ -30,9 +30,9 @@
 
 #include "protocol/config.h"
 #include "protocol/window.h"
-#include "protocol/retransmit.h"
 #include "potrContext.h"
 #include "potrRecvThread.h"
+#include "potrHealthThread.h"
 #include "util/potrIpAddr.h"
 
 /* ソケットを作成して bind する。成功時は PotrSocket を返す。失敗時は POTR_INVALID_SOCKET。
@@ -410,22 +410,97 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 
     ctx->sock     = sock;
     ctx->callback = callback;
+    ctx->role     = role;
+
+    /* 送信者: 送信先ソケットアドレスを設定 */
+    if (role == POTR_ROLE_SENDER)
+    {
+        struct in_addr dest_ip;
+        uint16_t       dest_port = ctx->service.dst_port;
+
+        switch (ctx->service.type)
+        {
+            case POTR_TYPE_UNICAST:
+                dest_ip = ctx->dst_addr_resolved;
+                break;
+
+            case POTR_TYPE_MULTICAST:
+                if (parse_ipv4_addr(ctx->service.multicast_group, &dest_ip) != POTR_SUCCESS)
+                {
+#ifdef _WIN32
+                    closesocket(ctx->sock);
+#else
+                    close(ctx->sock);
+#endif
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+                break;
+
+            case POTR_TYPE_BROADCAST:
+                if (parse_ipv4_addr(ctx->service.broadcast_addr, &dest_ip) != POTR_SUCCESS)
+                {
+#ifdef _WIN32
+                    closesocket(ctx->sock);
+#else
+                    close(ctx->sock);
+#endif
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+                break;
+
+            default:
+                dest_ip.s_addr = 0;
+                dest_port      = 0;
+                break;
+        }
+
+        memset(&ctx->dest_addr, 0, sizeof(ctx->dest_addr));
+        ctx->dest_addr.sin_family = AF_INET;
+        ctx->dest_addr.sin_addr   = dest_ip;
+        ctx->dest_addr.sin_port   = htons(dest_port);
+    }
 
     /* セッション識別子を生成する */
     generate_session(ctx);
 
-    /* ウィンドウ・再送制御を初期化 */
+    /* 送受信バッファを初期化 */
     window_init(&ctx->send_window, 0, ctx->global.window_size);
     window_init(&ctx->recv_window, 0, ctx->global.window_size);
-    retransmit_init(&ctx->retransmit,
-                    ctx->global.retransmit_timeout_ms,
-                    ctx->global.retransmit_count);
 
     /* 受信者の場合は受信スレッドを起動 */
     if (role == POTR_ROLE_RECEIVER)
     {
         if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
         {
+#ifdef _WIN32
+            closesocket(ctx->sock);
+#else
+            close(ctx->sock);
+#endif
+            free(ctx);
+            return POTR_ERROR;
+        }
+    }
+
+    /* 送信者: ヘルスチェックスレッドと ACK/NACK 受信スレッドを起動 */
+    if (role == POTR_ROLE_SENDER)
+    {
+        if (potr_health_thread_start(ctx) != POTR_SUCCESS)
+        {
+#ifdef _WIN32
+            closesocket(ctx->sock);
+#else
+            close(ctx->sock);
+#endif
+            free(ctx);
+            return POTR_ERROR;
+        }
+
+        if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
+        {
+            potr_health_thread_stop(ctx);
 #ifdef _WIN32
             closesocket(ctx->sock);
 #else

@@ -169,10 +169,10 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     }
 
     /* デフォルト値で初期化 */
-    global->window_size           = (uint16_t)POTR_DEFAULT_WINDOW_SIZE;
-    global->max_payload           = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
-    global->retransmit_timeout_ms = (uint32_t)POTR_DEFAULT_RETRANSMIT_TIMEOUT_MS;
-    global->retransmit_count      = (uint8_t)POTR_DEFAULT_RETRANSMIT_COUNT;
+    global->window_size        = (uint16_t)POTR_DEFAULT_WINDOW_SIZE;
+    global->max_payload        = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
+    global->health_interval_ms = (uint32_t)POTR_DEFAULT_HEALTH_INTERVAL_MS;
+    global->health_timeout_ms  = (uint32_t)POTR_DEFAULT_HEALTH_TIMEOUT_MS;
 
     fp = open_config_file_read(config_path);
     if (fp == NULL)
@@ -230,13 +230,13 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         {
             global->max_payload = (uint16_t)atoi(val);
         }
-        else if (strcmp(key, "retransmit_timeout_ms") == 0)
+        else if (strcmp(key, "health_interval_ms") == 0)
         {
-            global->retransmit_timeout_ms = (uint32_t)atoi(val);
+            global->health_interval_ms = (uint32_t)atoi(val);
         }
-        else if (strcmp(key, "retransmit_count") == 0)
+        else if (strcmp(key, "health_timeout_ms") == 0)
         {
-            global->retransmit_count = (uint8_t)atoi(val);
+            global->health_timeout_ms = (uint32_t)atoi(val);
         }
     }
 

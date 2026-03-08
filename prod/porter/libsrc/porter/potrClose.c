@@ -29,6 +29,7 @@
 
 #include "potrContext.h"
 #include "potrRecvThread.h"
+#include "potrHealthThread.h"
 #include "util/potrIpAddr.h"
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -39,6 +40,12 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
     if (ctx == NULL)
     {
         return POTR_ERROR;
+    }
+
+    /* ヘルスチェックスレッドを停止 (送信者のみ) */
+    if (ctx->health_running)
+    {
+        potr_health_thread_stop(ctx);
     }
 
     /* 受信スレッドを停止（スレッド停止内でソケットをクローズする） */

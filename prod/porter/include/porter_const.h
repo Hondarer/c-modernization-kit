@@ -25,20 +25,21 @@
  *  @{
  */
 #define POTR_FLAG_DATA       0x0001U /**< データパケットであることを示すフラグ。 */
-#define POTR_FLAG_ACK        0x0002U /**< 確認応答パケットであることを示すフラグ。 */
 #define POTR_FLAG_NACK       0x0004U /**< 再送要求パケットであることを示すフラグ。 */
 #define POTR_FLAG_MORE_FRAG  0x0008U /**< 後続フラグメントが存在することを示すフラグ。 */
 #define POTR_FLAG_COMPRESSED 0x0010U /**< ペイロードが圧縮されていることを示すフラグ。先頭 4 バイトが元サイズ (NBO)、続くデータが raw DEFLATE。 */
+#define POTR_FLAG_PING       0x0020U /**< ヘルスチェック要求パケットであることを示すフラグ。ペイロードなし。 */
+#define POTR_FLAG_REJECT     0x0040U /**< 再送不能通知パケットであることを示すフラグ。ack_num に再送不能な通番を格納する。 */
 /** @} */
 
 /** @defgroup POTR_DEFAULT デフォルト値
  *  @{
  */
-#define POTR_DEFAULT_WINDOW_SIZE           16U    /**< デフォルトウィンドウサイズ (パケット数)。 */
-#define POTR_DEFAULT_MAX_PAYLOAD           1400U  /**< デフォルト最大ペイロード長 (バイト)。 */
-#define POTR_DEFAULT_RETRANSMIT_TIMEOUT_MS 1000U  /**< デフォルト再送タイムアウト (ミリ秒)。 */
-#define POTR_DEFAULT_RETRANSMIT_COUNT      3U     /**< デフォルト最大再送回数。 */
-#define POTR_DEFAULT_TTL                   1U     /**< デフォルトマルチキャスト TTL。 */
+#define POTR_DEFAULT_WINDOW_SIZE  16U    /**< デフォルトウィンドウサイズ (パケット数)。 */
+#define POTR_DEFAULT_MAX_PAYLOAD  1400U  /**< デフォルト最大ペイロード長 (バイト)。 */
+#define POTR_DEFAULT_TTL          1U     /**< デフォルトマルチキャスト TTL。 */
+#define POTR_DEFAULT_HEALTH_INTERVAL_MS    0U     /**< デフォルトヘルスチェック送信間隔 (ミリ秒)。0 = 無効。 */
+#define POTR_DEFAULT_HEALTH_TIMEOUT_MS     0U     /**< デフォルトヘルスチェックタイムアウト (ミリ秒)。0 = 無効。 */
 /** @} */
 
 /** @defgroup POTR_LIMIT 上限値

@@ -75,8 +75,8 @@ extern "C"
      *  @param[in]      config_path 設定ファイルのパス。
      *  @param[in]      service_id  開くサービスの ID。
      *  @param[in]      role        役割種別。POTR_ROLE_SENDER または POTR_ROLE_RECEIVER。
-     *  @param[in]      callback    データ受信時に呼び出されるコールバック関数。
-     *                              POTR_ROLE_RECEIVER の場合は必須。
+     *  @param[in]      callback    イベント発生時に呼び出されるコールバック関数 (PotrRecvCallback)。
+     *                              POTR_ROLE_RECEIVER の場合は必須。データ受信・接続検知・切断検知を受け取る。
      *                              POTR_ROLE_SENDER の場合は NULL を指定すること。
      *  @param[out]     handle      成功時にセッションハンドルを格納するポインタ。
      *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
@@ -100,8 +100,14 @@ extern "C"
      *
      *  @par            使用例 (受信者)
      *  @code{.c}
-     *  void on_recv(int service_id, const void *data, size_t len) {
-     *      printf("service %d: received %zu bytes\n", service_id, len);
+     *  void on_recv(int service_id, PotrEvent event,
+     *               const void *data, size_t len) {
+     *      if (event == POTR_EVENT_CONNECTED)
+     *          printf("service %d: connected\n", service_id);
+     *      else if (event == POTR_EVENT_DISCONNECTED)
+     *          printf("service %d: disconnected\n", service_id);
+     *      else
+     *          printf("service %d: received %zu bytes\n", service_id, len);
      *  }
      *
      *  PotrHandle handle;

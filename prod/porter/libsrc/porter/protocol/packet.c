@@ -87,33 +87,6 @@ int packet_build_data(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
 
 /**
  *******************************************************************************
- *  @brief          ACK パケットを構築します。
- *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
- *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
- *  @param[in]      ack_num     確認応答番号。
- *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
- *******************************************************************************
- */
-int packet_build_ack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
-                     uint32_t ack_num)
-{
-    if (packet == NULL || shdr == NULL)
-    {
-        return POTR_ERROR;
-    }
-
-    memset(packet, 0, sizeof(*packet));
-    fill_session_hdr(packet, shdr);
-    packet->seq_num     = 0;
-    packet->ack_num     = htonl(ack_num);
-    packet->flags       = htons(POTR_FLAG_ACK);
-    packet->payload_len = 0;
-
-    return POTR_SUCCESS;
-}
-
-/**
- *******************************************************************************
  *  @brief          NACK パケットを構築します。
  *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
  *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
@@ -134,6 +107,69 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
     packet->seq_num     = 0;
     packet->ack_num     = htonl(nack_num);
     packet->flags       = htons(POTR_FLAG_NACK);
+    packet->payload_len = 0;
+
+    return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          PING パケットを構築します。
+ *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
+ *  @param[in]      seq_num     通番 (ウィンドウ管理に使用)。
+ *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+ *
+ *  @details
+ *  ヘルスチェック要求パケットです。ペイロードなし (payload_len=0)。\n
+ *  通番はデータパケットと同一の送信ウィンドウで管理されます。
+ *******************************************************************************
+ */
+int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
+                      uint32_t seq_num)
+{
+    if (packet == NULL || shdr == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    memset(packet, 0, sizeof(*packet));
+    fill_session_hdr(packet, shdr);
+    packet->seq_num     = htonl(seq_num);
+    packet->ack_num     = 0;
+    packet->flags       = htons(POTR_FLAG_PING);
+    packet->payload_len = 0;
+
+    return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          再送不能通知 (REJECT) パケットを構築します。
+ *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
+ *  @param[in]      seq_num     再送不能な通番。ack_num フィールドに格納します。
+ *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+ *
+ *  @details
+ *  受信者から NACK を受け取ったが、送信ウィンドウに該当パケットが存在しない場合に
+ *  送信者が返すパケットです。受信者はこのパケットを受け取ると即時 DISCONNECTED を
+ *  発火し、欠落通番をスキップして後続パケットの配信を継続します。
+ *******************************************************************************
+ */
+int packet_build_reject(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
+                        uint32_t seq_num)
+{
+    if (packet == NULL || shdr == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    memset(packet, 0, sizeof(*packet));
+    fill_session_hdr(packet, shdr);
+    packet->seq_num     = 0;
+    packet->ack_num     = htonl(seq_num);
+    packet->flags       = htons(POTR_FLAG_REJECT);
     packet->payload_len = 0;
 
     return POTR_SUCCESS;

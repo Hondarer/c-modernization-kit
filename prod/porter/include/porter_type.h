@@ -108,11 +108,10 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t retransmit_timeout_ms; /**< 再送タイムアウト (ミリ秒)。 */
-    uint16_t window_size;           /**< スライディングウィンドウサイズ (パケット数)。 */
-    uint16_t max_payload;           /**< 最大ペイロード長 (バイト)。 */
-    uint8_t  retransmit_count;      /**< 最大再送回数。 */
-    uint8_t  _pad[3];               /**< パディング。 */
+    uint16_t window_size;        /**< スライディングウィンドウサイズ (パケット数)。 */
+    uint16_t max_payload;        /**< 最大ペイロード長 (バイト)。 */
+    uint32_t health_interval_ms; /**< ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。 */
+    uint32_t health_timeout_ms;  /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なフレームが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
 } PotrGlobalConfig;
 
 /**
@@ -132,7 +131,7 @@ typedef struct
     int64_t  session_tv_sec;           /**< セッション開始時刻 秒部 (NBO)。struct timespec の tv_sec 相当。 */
     int32_t  session_tv_nsec;          /**< セッション開始時刻 ナノ秒部 (NBO)。struct timespec の tv_nsec 相当。 */
     uint32_t seq_num;                  /**< 通番。送信側が付与する連番 (NBO)。 */
-    uint32_t ack_num;                  /**< 確認応答番号 / 再送要求番号 (NBO)。 */
+    uint32_t ack_num;                  /**< 再送要求番号 / 再送不能通番 (NBO)。NACK では要求通番、REJECT では再送不能通番を格納する。 */
     uint16_t flags;                    /**< パケット種別フラグ (POTR_FLAG_*) (NBO)。 */
     uint16_t payload_len;              /**< ペイロード長 (バイト) (NBO)。 */
     uint8_t  payload[POTR_MAX_PAYLOAD]; /**< ペイロードデータ。 */
@@ -151,17 +150,47 @@ typedef struct PotrContext_ *PotrHandle;
 
 /**
  *******************************************************************************
+ *  @brief          受信イベント種別。
+ *
+ *  @details
+ *  PotrRecvCallback の第 2 引数に渡されるイベント種別です。
+ *
+ *  | 値                       | 説明                                                         |
+ *  | ------------------------ | ------------------------------------------------------------ |
+ *  | POTR_EVENT_DATA          | データ受信。data/len に受信内容が格納されます。              |
+ *  | POTR_EVENT_CONNECTED     | 送信者からの疎通を初検知、または切断後の復帰を検知しました。 |
+ *  | POTR_EVENT_DISCONNECTED  | health_timeout_ms 以内に有効なフレームが受信できず切断を検知しました。 |
+ *
+ *  @note
+ *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
+ *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。\n
+ *  ヘルスチェック無効時 (health_timeout_ms=0) は CONNECTED / DISCONNECTED は発生しません。
+ *******************************************************************************
+ */
+typedef enum
+{
+    POTR_EVENT_DATA         = 0, /**< データ受信。data/len に内容が格納される。 */
+    POTR_EVENT_CONNECTED    = 1, /**< 送信者からの疎通を初検知 or 復帰。data=NULL, len=0。 */
+    POTR_EVENT_DISCONNECTED = 2, /**< health_timeout_ms 以内に有効なフレームが受信できず切断を検知。data=NULL, len=0。 */
+} PotrEvent;
+
+/**
+ *******************************************************************************
  *  @brief          受信コールバック関数型。
  *
  *  @details
- *  データパケットを受信したとき、受信スレッドから呼び出されます。\n
- *  コールバック内でブロッキング処理を行わないようにしてください。
+ *  データ受信またはヘルスチェック状態変化時に、受信スレッドから呼び出されます。\n
+ *  コールバック内でブロッキング処理を行わないようにしてください。\n
+ *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。
  *
- *  @param[in]      service_id  受信したサービスの ID。
- *  @param[in]      data        受信データへのポインタ。コールバック復帰後は無効になります。
- *  @param[in]      len         受信データのバイト数。
+ *  @param[in]      service_id  サービスの ID。
+ *  @param[in]      event       イベント種別 (PotrEvent)。
+ *  @param[in]      data        受信データへのポインタ。POTR_EVENT_DATA 時のみ有効。
+ *                              コールバック復帰後は無効になります。
+ *  @param[in]      len         受信データのバイト数。POTR_EVENT_DATA 時のみ有効。
  *******************************************************************************
  */
-typedef void (*PotrRecvCallback)(int service_id, const void *data, size_t len);
+typedef void (*PotrRecvCallback)(int service_id, PotrEvent event,
+                                 const void *data, size_t len);
 
 #endif /* PORTER_TYPE_H */

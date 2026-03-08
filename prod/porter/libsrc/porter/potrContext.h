@@ -19,7 +19,6 @@
 
 #include <porter_type.h>
 
-#include "protocol/retransmit.h"
 #include "protocol/window.h"
 #include "compress/compress.h"
 
@@ -42,21 +41,24 @@
  */
 struct PotrContext_
 {
-    PotrRecvCallback callback;     /**< 受信コールバック。 */
-    PotrThread       recv_thread;  /**< 受信スレッドハンドル。 */
+    PotrRecvCallback callback;        /**< 受信コールバック。 */
+    PotrThread       recv_thread;     /**< 受信スレッドハンドル。 */
+    PotrThread       health_thread;   /**< ヘルスチェックスレッドハンドル (送信者のみ)。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
     uint32_t         _pad_win;    /**< パディング (send_window を 8 バイト境界に揃える)。 */
-    PotrWindow       send_window;  /**< 送信ウィンドウ。 */
-    PotrWindow       recv_window;  /**< 受信ウィンドウ。 */
-    PotrRetransmit   retransmit;   /**< 再送制御。 */
-    PotrSocket       sock;         /**< UDP ソケット。 */
-    volatile int     running;      /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
-    uint8_t          _pad[4];      /**< パディング。 */
+    PotrWindow       send_window;  /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
+    PotrWindow       recv_window;  /**< 受信ウィンドウ (順序整列・欠番検出)。 */
+    PotrSocket       sock;            /**< UDP ソケット。 */
+    volatile int     running;         /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
+    volatile int     health_running;  /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。 */
+    volatile int     health_alive;    /**< 疎通状態 (1: alive, 0: dead/未接続)。受信者が管理。 */
+    PotrRole         role;            /**< 役割 (POTR_ROLE_SENDER / POTR_ROLE_RECEIVER)。 */
 
     /* 解決済みアドレス */
-    struct in_addr   dst_addr_resolved; /**< 解決済み宛先 IPv4 アドレス。送信先 (送信者) または bind アドレス (受信者)。(unicast のみ) */
-    struct in_addr   src_addr_resolved; /**< 解決済み送信元 IPv4 アドレス。bind / 送信インターフェース (送信者) または送信元フィルタ (受信者)。src_addr が設定されている場合のみ有効。 */
+    struct in_addr     dst_addr_resolved; /**< 解決済み宛先 IPv4 アドレス。送信先 (送信者) または bind アドレス (受信者)。(unicast のみ) */
+    struct in_addr     src_addr_resolved; /**< 解決済み送信元 IPv4 アドレス。bind / 送信インターフェース (送信者) または送信元フィルタ (受信者)。src_addr が設定されている場合のみ有効。 */
+    struct sockaddr_in dest_addr;         /**< 送信先ソケットアドレス (送信者が sendto に使用)。 */
 
     /* 自セッション識別子 (potrOpenService 時に決定) */
     uint32_t         session_id;        /**< 自セッション識別子 (乱数)。 */
@@ -68,6 +70,11 @@ struct PotrContext_
     int64_t          peer_session_tv_sec;  /**< 追跡中の相手セッション開始時刻 秒部。 */
     int32_t          peer_session_tv_nsec; /**< 追跡中の相手セッション開始時刻 ナノ秒部。 */
     int              peer_session_known;   /**< 相手セッションが初期化済みか (0: 未初期化)。 */
+
+    /* ヘルスチェック: 最終受信時刻 (受信者が使用。CLOCK_MONOTONIC 基準)。 */
+    int32_t          last_recv_tv_nsec;   /**< 最終受信時刻 ナノ秒部。 */
+    uint32_t         _pad_lastrecv;       /**< パディング (last_recv_tv_sec を 8 バイト境界に揃える)。 */
+    int64_t          last_recv_tv_sec;    /**< 最終受信時刻 秒部。0 = 未受信。 */
 
     size_t           frag_buf_len;       /**< フラグメント結合バッファの現在のデータ長 (バイト)。 */
     int              frag_compressed;   /**< フラグメント受信中の圧縮フラグ (非 0: 圧縮あり)。 */

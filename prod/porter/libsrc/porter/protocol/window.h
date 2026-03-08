@@ -39,11 +39,13 @@ extern "C"
 
     extern void window_init(PotrWindow *win, uint32_t initial_seq, uint16_t window_size);
     extern int  window_send_push(PotrWindow *win, const PotrPacket *packet);
-    extern int  window_send_ack(PotrWindow *win, uint32_t ack_num);
     extern int  window_send_full(const PotrWindow *win);
+    extern int  window_send_get(const PotrWindow *win, uint32_t seq_num,
+                                PotrPacket *packet_out);
     extern int  window_recv_push(PotrWindow *win, const PotrPacket *packet);
     extern int  window_recv_pop(PotrWindow *win, PotrPacket *packet);
     extern int  window_recv_needs_nack(const PotrWindow *win, uint32_t *nack_num);
+    extern void window_recv_skip(PotrWindow *win, uint32_t seq_num);
 
 #ifdef __cplusplus
 }

@@ -133,8 +133,8 @@ POTR_API int POTRAPI potrClose(PotrHandle handle);
 ```c
 typedef struct {
     uint32_t seq_num;                   // 通番 (NBO)
-    uint32_t ack_num;                   // 確認応答/再送要求番号 (NBO)
-    uint16_t flags;                     // POTR_FLAG_DATA / ACK / NACK (NBO)
+    uint32_t ack_num;                   // 再送要求番号 / 再送不能通番 (NBO)
+    uint16_t flags;                     // POTR_FLAG_DATA / NACK / PING / REJECT など (NBO)
     uint16_t payload_len;               // ペイロード長 (NBO)
     uint8_t  payload[POTR_MAX_PAYLOAD]; // ペイロードデータ
 } PotrPacket;
@@ -150,16 +150,16 @@ typedef struct {
 
 スライディングウィンドウ方式。送信側・受信側それぞれ `PotrWindow` 構造体で管理する。
 
-- 送信ウィンドウ: 未確認パケットをリングバッファに保持し、ACK 受信で前進する。
+- 送信ウィンドウ: 過去 N パケットを循環バッファに保持する。満杯時は最古エントリを evict して新パケットを格納する。
 - 受信ウィンドウ: 順序外到着 (追い越し) パケットをバッファリングし、通番順に整列してコールバックへ渡す。
 
 #### 再送制御
 
-NACK ベースを基本とし、タイムアウトをフォールバックとする。
+NACK のみ方式 (ACK なし)。スループットを優先し、問題発生時のみ受信側から通知する。
 
 - 受信側: 欠番を検出したとき、送信元へユニキャストで NACK を送出する。
 - 送信側: NACK 受信時に該当パケットを再送する。再送もマルチキャスト/ブロードキャストで送出するため、他の受信者も恩恵を受ける。
-- タイムアウト: `retransmit_timeout_ms` 経過後も ACK がなければ再送する。`retransmit_count` 回を超えた場合は管理解除する。
+- 再送不能 (REJECT): 送信側の循環バッファから evict 済みの通番を NACK で要求された場合、送信側は REJECT を返す。受信側は REJECT 受信で DISCONNECTED イベントを発火し、欠落通番をスキップして処理を継続する。
 
 #### クロスプラットフォーム対応
 

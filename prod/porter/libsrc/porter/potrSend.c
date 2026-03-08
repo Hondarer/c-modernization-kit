@@ -125,12 +125,6 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
         uint32_t   seq;
         size_t     wire_len;
 
-        /* 送信ウィンドウが満杯の場合はエラー返し（ブロッキングは未実装） */
-        if (window_send_full(&ctx->send_window))
-        {
-            return POTR_ERROR;
-        }
-
         seq = ctx->send_window.next_seq;
 
         if (packet_build_data(&pkt, &shdr, seq, ptr, chunk) != POTR_SUCCESS)

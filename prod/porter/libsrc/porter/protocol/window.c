@@ -66,12 +66,16 @@ int window_send_push(PotrWindow *win, const PotrPacket *packet)
         return POTR_ERROR;
     }
 
+    /* ACK なし設計のため、満杯の場合は最古エントリを evict して循環利用する。
+       evict されたエントリへの NACK は REJECT で応答する。 */
     if (window_send_full(win))
     {
-        return POTR_ERROR;
+        idx               = win_index(win, win->base_seq);
+        win->valid[idx]   = 0;
+        win->base_seq++;
     }
 
-    idx             = win_index(win, win->next_seq);
+    idx               = win_index(win, win->next_seq);
     win->packets[idx] = *packet;
     win->valid[idx]   = 1;
     win->next_seq++;
@@ -79,34 +83,6 @@ int window_send_push(PotrWindow *win, const PotrPacket *packet)
     return POTR_SUCCESS;
 }
 
-/**
- *******************************************************************************
- *  @brief          ACK を処理して送信ウィンドウを前進させます。
- *  @param[in,out]  win     送信ウィンドウ構造体へのポインタ。
- *  @param[in]      ack_num 確認応答された通番。
- *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
- *******************************************************************************
- */
-int window_send_ack(PotrWindow *win, uint32_t ack_num)
-{
-    uint16_t idx;
-
-    if (win == NULL)
-    {
-        return POTR_ERROR;
-    }
-
-    while (seqnum_in_window(win->base_seq, win->base_seq,
-                             (uint16_t)(ack_num - win->base_seq + 1U)) &&
-           win->base_seq != ack_num + 1U)
-    {
-        idx               = win_index(win, win->base_seq);
-        win->valid[idx]   = 0;
-        win->base_seq++;
-    }
-
-    return POTR_SUCCESS;
-}
 
 /**
  *******************************************************************************
@@ -122,6 +98,41 @@ int window_send_full(const PotrWindow *win)
         return 1;
     }
     return (uint32_t)(win->next_seq - win->base_seq) >= (uint32_t)win->window_size;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          送信ウィンドウから指定通番のパケットを取得します (再送用)。
+ *  @param[in]      win         送信ウィンドウ構造体へのポインタ。
+ *  @param[in]      seq_num     取得する通番。
+ *  @param[out]     packet_out  取得したパケットを格納する構造体へのポインタ。
+ *  @return         成功時は POTR_SUCCESS、エントリが存在しない場合は POTR_ERROR を返します。
+ *******************************************************************************
+ */
+int window_send_get(const PotrWindow *win, uint32_t seq_num, PotrPacket *packet_out)
+{
+    uint16_t idx;
+
+    if (win == NULL || packet_out == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    /* 通番がウィンドウ範囲外 */
+    if (!seqnum_in_window(seq_num, win->base_seq,
+                          (uint16_t)(win->next_seq - win->base_seq)))
+    {
+        return POTR_ERROR;
+    }
+
+    idx = win_index(win, seq_num);
+    if (!win->valid[idx])
+    {
+        return POTR_ERROR;
+    }
+
+    *packet_out = win->packets[idx];
+    return POTR_SUCCESS;
 }
 
 /* ---------- 受信側 ---------- */
@@ -188,6 +199,32 @@ int window_recv_pop(PotrWindow *win, PotrPacket *packet)
     win->next_seq++;
 
     return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          受信ウィンドウで指定通番をスキップして次の通番へ前進させます。
+ *  @param[in,out]  win     受信ウィンドウ構造体へのポインタ。
+ *  @param[in]      seq_num スキップする通番。next_seq と一致する場合のみ動作します。
+ *
+ *  @details
+ *  REJECT 受信時に欠落パケットを「配信済み」として扱い、後続パケットの配信を
+ *  継続するために使用します。seq_num が next_seq と一致しない場合は何もしません。
+ *******************************************************************************
+ */
+void window_recv_skip(PotrWindow *win, uint32_t seq_num)
+{
+    uint16_t idx;
+
+    if (win == NULL || win->next_seq != seq_num)
+    {
+        return;
+    }
+
+    idx               = win_index(win, seq_num);
+    win->valid[idx]   = 0; /* 万一セットされていても無効化 */
+    win->base_seq++;
+    win->next_seq++;
 }
 
 /**

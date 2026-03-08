@@ -57,20 +57,36 @@ static void sig_handler(int sig)
 /**
  *******************************************************************************
  *  @brief          受信コールバック関数。
- *  @param[in]      service_id  受信したサービスの ID。
- *  @param[in]      data        受信データへのポインタ。
- *  @param[in]      len         受信データのバイト数。
+ *  @param[in]      service_id  サービスの ID。
+ *  @param[in]      event       イベント種別。
+ *  @param[in]      data        受信データへのポインタ (POTR_EVENT_DATA 時のみ有効)。
+ *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
  *******************************************************************************
  */
-static void on_recv(int service_id, const void *data, size_t len)
+static void on_recv(int service_id, PotrEvent event,
+                    const void *data, size_t len)
 {
-    char buf[POTR_MAX_PAYLOAD + 1];
-    size_t copy_len = len < POTR_MAX_PAYLOAD ? len : POTR_MAX_PAYLOAD;
+    char   buf[POTR_MAX_PAYLOAD + 1];
+    size_t copy_len;
 
-    memcpy(buf, data, copy_len);
-    buf[copy_len] = '\0';
+    switch (event)
+    {
+        case POTR_EVENT_CONNECTED:
+            printf("[サービス %d] 接続確立\n", service_id);
+            break;
 
-    printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+        case POTR_EVENT_DISCONNECTED:
+            printf("[サービス %d] 切断検知\n", service_id);
+            break;
+
+        case POTR_EVENT_DATA:
+        default:
+            copy_len = len < POTR_MAX_PAYLOAD ? len : POTR_MAX_PAYLOAD;
+            memcpy(buf, data, copy_len);
+            buf[copy_len] = '\0';
+            printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+            break;
+    }
 }
 
 /**

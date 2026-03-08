@@ -42,12 +42,15 @@ extern "C"
                                     const PotrPacketSessionHdr *shdr,
                                     uint32_t seq_num,
                                     const void *data, size_t len);
-    extern int    packet_build_ack(PotrPacket *packet,
-                                   const PotrPacketSessionHdr *shdr,
-                                   uint32_t ack_num);
     extern int    packet_build_nack(PotrPacket *packet,
                                     const PotrPacketSessionHdr *shdr,
                                     uint32_t nack_num);
+    extern int    packet_build_ping(PotrPacket *packet,
+                                    const PotrPacketSessionHdr *shdr,
+                                    uint32_t seq_num);
+    extern int    packet_build_reject(PotrPacket *packet,
+                                      const PotrPacketSessionHdr *shdr,
+                                      uint32_t seq_num);
     extern int    packet_parse(PotrPacket *packet, const void *buf, size_t buf_len);
     extern size_t packet_wire_size(const PotrPacket *packet);
 
