@@ -31,6 +31,70 @@
 #include "potrRecvThread.h"
 #include "compress/compress.h"
 
+/* 送信元 IP が src_addr_resolved と一致するか確認する。
+   src_addr が未設定の場合は常に 1 (合格) を返す。 */
+static int check_src_addr(const struct PotrContext_ *ctx,
+                           const struct sockaddr_in  *sender)
+{
+    if (ctx->service.src_addr[0] == '\0')
+    {
+        return 1; /* src_addr 未設定: フィルタなし */
+    }
+    return (sender->sin_addr.s_addr == ctx->src_addr_resolved.s_addr) ? 1 : 0;
+}
+
+/* セッションの採用判定を行い、必要であればコンテキストの相手セッション情報を更新する。
+   採用すべきセッションなら 1、破棄すべき旧セッションなら 0 を返す。 */
+static int check_and_update_session(struct PotrContext_ *ctx,
+                                    const PotrPacket    *pkt)
+{
+    if (!ctx->peer_session_known)
+    {
+        /* 初回受信: そのまま採用 */
+        ctx->peer_session_id      = pkt->session_id;
+        ctx->peer_session_tv_sec  = pkt->session_tv_sec;
+        ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
+        ctx->peer_session_known   = 1;
+        return 1;
+    }
+
+    /* start_time が大きい → 新セッション */
+    if (pkt->session_tv_sec > ctx->peer_session_tv_sec)
+    {
+        goto adopt;
+    }
+    if (pkt->session_tv_sec < ctx->peer_session_tv_sec)
+    {
+        return 0; /* 旧セッション */
+    }
+
+    /* start_time が等しい場合は session_id で判定 (タイブレーク) */
+    if (pkt->session_tv_nsec > ctx->peer_session_tv_nsec)
+    {
+        goto adopt;
+    }
+    if (pkt->session_tv_nsec < ctx->peer_session_tv_nsec)
+    {
+        return 0;
+    }
+
+    if (pkt->session_id > ctx->peer_session_id)
+    {
+        goto adopt;
+    }
+
+    /* 既知のセッションと一致するか確認 */
+    return (pkt->session_id == ctx->peer_session_id) ? 1 : 0;
+
+adopt:
+    ctx->peer_session_id      = pkt->session_id;
+    ctx->peer_session_tv_sec  = pkt->session_tv_sec;
+    ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
+    /* 新セッション採用時はウィンドウをリセットする */
+    window_init(&ctx->recv_window, 0, ctx->global.window_size);
+    return 1;
+}
+
 /** 受信バッファサイズ。ヘッダー + 最大ペイロード分を確保する。 */
 #define RECV_BUF_SIZE (sizeof(PotrPacket))
 
@@ -39,15 +103,21 @@ static void send_nack(struct PotrContext_ *ctx,
                       const struct sockaddr_in *sender_addr,
                       uint32_t nack_seq)
 {
-    PotrPacket nack_pkt;
-    size_t     wire_len;
+    PotrPacket           nack_pkt;
+    PotrPacketSessionHdr shdr;
+    size_t               wire_len;
 
-    if (packet_build_nack(&nack_pkt, nack_seq) != POTR_SUCCESS)
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+
+    if (packet_build_nack(&nack_pkt, &shdr, nack_seq) != POTR_SUCCESS)
     {
         return;
     }
 
-    wire_len = sizeof(uint32_t) * 2 + sizeof(uint16_t) * 2;
+    wire_len = packet_wire_size(&nack_pkt);
 
 #ifdef _WIN32
     sendto(ctx->sock, (const char *)&nack_pkt, (int)wire_len, 0,
@@ -138,6 +208,20 @@ static void *recv_thread_func(void *arg)
             continue;
         }
 
+        /* service_id 照合: 不一致は破棄 */
+        if (pkt.service_id != ctx->service.service_id)
+        {
+            continue;
+        }
+
+        /* unicast: 送信元 IP フィルタ */
+        if (!check_src_addr(ctx, &sender_addr))
+        {
+            continue;
+        }
+
+        /* ACK / NACK はセッション照合不要 (service_id のみで十分) */
+
         /* ACK パケット: 送信ウィンドウを前進させる */
         if (pkt.flags & POTR_FLAG_ACK)
         {
@@ -155,6 +239,12 @@ static void *recv_thread_func(void *arg)
 
         /* データパケット: 受信ウィンドウへ格納 */
         if (!(pkt.flags & POTR_FLAG_DATA))
+        {
+            continue;
+        }
+
+        /* セッション照合: 旧セッションのパケットは破棄 */
+        if (!check_and_update_session(ctx, &pkt))
         {
             continue;
         }

@@ -29,7 +29,7 @@ typedef struct
     uint32_t   base_seq;                      /**< ウィンドウ先頭の通番。 */
     uint32_t   next_seq;                      /**< 送信側: 次に割り当てる通番。受信側: 次に期待する通番。 */
     uint16_t   window_size;                   /**< ウィンドウサイズ (パケット数)。 */
-    uint16_t   _pad;                          /**< パディング。 */
+    uint16_t   _pad[3];                       /**< パディング (構造体サイズを 8 バイト境界に揃える)。 */
 } PotrWindow;
 
 #ifdef __cplusplus

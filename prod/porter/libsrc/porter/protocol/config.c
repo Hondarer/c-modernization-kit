@@ -287,6 +287,14 @@ static void apply_service_kv(const char *key, const char *val,
                         sizeof(current->broadcast_addr),
                         val);
     }
+    else if (strcmp(key, "dst_addr") == 0)
+    {
+        copy_cstr_trunc(current->dst_addr, sizeof(current->dst_addr), val);
+    }
+    else if (strcmp(key, "src_addr") == 0)
+    {
+        copy_cstr_trunc(current->src_addr, sizeof(current->src_addr), val);
+    }
 }
 
 /**

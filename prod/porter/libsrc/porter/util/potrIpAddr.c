@@ -13,6 +13,13 @@
 
 #include <stddef.h>
 
+#ifdef _WIN32
+    #include <ws2tcpip.h>
+#else
+    #include <netdb.h>
+    #include <string.h>
+#endif
+
 #include <porter_const.h>
 
 #include "potrIpAddr.h"
@@ -26,4 +33,33 @@ int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr)
     }
 
     return (inet_pton(AF_INET, ip_str, out_addr) == 1) ? POTR_SUCCESS : POTR_ERROR;
+}
+
+/* ホスト名または IPv4 アドレス文字列を struct in_addr に解決する。 */
+int resolve_ipv4_addr(const char *host, struct in_addr *out_addr)
+{
+    struct addrinfo  hints;
+    struct addrinfo *res = NULL;
+    int              ret;
+
+    if (host == NULL || out_addr == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+
+    ret = getaddrinfo(host, NULL, &hints, &res);
+    if (ret != 0 || res == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    /* 複数アドレスが返された場合は先頭を採用する */
+    *out_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+
+    freeaddrinfo(res);
+    return POTR_SUCCESS;
 }

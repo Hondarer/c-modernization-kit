@@ -42,6 +42,25 @@ typedef enum
 
 /**
  *******************************************************************************
+ *  @brief          役割種別。
+ *
+ *  @details
+ *  potrOpenService() の呼び出し元がデータを送信する役割か受信する役割かを明示します。
+ *
+ *  | 値                  | 説明       |
+ *  | ------------------- | ---------- |
+ *  | POTR_ROLE_SENDER    | 送信者     |
+ *  | POTR_ROLE_RECEIVER  | 受信者     |
+ *******************************************************************************
+ */
+typedef enum
+{
+    POTR_ROLE_SENDER   = 1, /**< 送信者。 */
+    POTR_ROLE_RECEIVER = 2, /**< 受信者。 */
+} PotrRole;
+
+/**
+ *******************************************************************************
  *  @brief          サービス定義。
  *
  *  @details
@@ -49,11 +68,11 @@ typedef enum
  *
  *  通信種別によって有効なフィールドが異なります。
  *
- *  | 通信種別              | サービスの識別子        | 有効なフィールド                                 |
- *  | --------------------- | ----------------------- | ------------------------------------------------ |
- *  | POTR_TYPE_UNICAST     | dst_port                | dst_port                                         |
- *  | POTR_TYPE_MULTICAST   | src_port                | src_port, multicast_group, ttl                   |
- *  | POTR_TYPE_BROADCAST   | src_port                | src_port, broadcast_addr                         |
+ *  | 通信種別              | サービスの識別子        | 有効なフィールド                                                       |
+ *  | --------------------- | ----------------------- | ---------------------------------------------------------------------- |
+ *  | POTR_TYPE_UNICAST     | dst_port                | dst_addr, src_addr, dst_port, src_port (省略可)                        |
+ *  | POTR_TYPE_MULTICAST   | dst_port                | src_addr, src_port (省略可), dst_port, multicast_group, ttl            |
+ *  | POTR_TYPE_BROADCAST   | dst_port                | src_addr, src_port (省略可), dst_port, broadcast_addr                  |
  *******************************************************************************
  */
 typedef struct
@@ -62,10 +81,10 @@ typedef struct
     PotrType type;       /**< 通信種別。 */
 
     /* POTR_TYPE_UNICAST */
-    uint16_t dst_port; /**< 宛先ポート番号。サービスの識別子。(unicast のみ) */
+    uint16_t dst_port; /**< 宛先ポート番号。サービスの識別子。受信者の bind ポート / 送信者の送信先ポート。(全通信種別で必須) */
 
     /* POTR_TYPE_MULTICAST / POTR_TYPE_BROADCAST */
-    uint16_t src_port; /**< 送信元ポート番号。サービスの識別子。受信側はこのポートで待機する。(multicast / broadcast) */
+    uint16_t src_port; /**< 送信者の送信元 bind ポート番号。0 = OS 自動選定。(全通信種別で省略可) */
 
     /* POTR_TYPE_MULTICAST */
     uint8_t ttl;      /**< マルチキャスト TTL。(multicast のみ) */
@@ -73,6 +92,10 @@ typedef struct
 
     char multicast_group[POTR_MAX_ADDR_LEN]; /**< マルチキャストグループアドレス。(multicast のみ) */
     char broadcast_addr[POTR_MAX_ADDR_LEN];  /**< ブロードキャスト宛先アドレス。(broadcast のみ) */
+
+    /* POTR_TYPE_UNICAST */
+    char dst_addr[POTR_MAX_ADDR_LEN]; /**< 宛先アドレス (IPv4 またはホスト名)。送信者は送信先、受信者は bind アドレス。(unicast のみ) */
+    char src_addr[POTR_MAX_ADDR_LEN]; /**< 送信元アドレス (IPv4 またはホスト名)。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須) */
 } PotrServiceDef;
 
 /**
@@ -98,15 +121,20 @@ typedef struct
  *
  *  @details
  *  UDP で送受信される物理パケットのレイアウトです。\n
- *  各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納します。
+ *  各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納します。\n
+ *  ヘッダー固定長: offsetof(PotrPacket, payload) = 32 バイト。
  *******************************************************************************
  */
 typedef struct
 {
-    uint32_t seq_num;                  /**< 通番。送信側が付与する連番。 */
-    uint32_t ack_num;                  /**< 確認応答番号 / 再送要求番号。 */
-    uint16_t flags;                    /**< パケット種別フラグ (POTR_FLAG_*)。 */
-    uint16_t payload_len;              /**< ペイロード長 (バイト)。 */
+    int32_t  service_id;               /**< サービス識別子 (NBO)。受信時に照合する。 */
+    uint32_t session_id;               /**< セッション識別子 (NBO)。potrOpenService 時に決定する乱数。 */
+    int64_t  session_tv_sec;           /**< セッション開始時刻 秒部 (NBO)。struct timespec の tv_sec 相当。 */
+    int32_t  session_tv_nsec;          /**< セッション開始時刻 ナノ秒部 (NBO)。struct timespec の tv_nsec 相当。 */
+    uint32_t seq_num;                  /**< 通番。送信側が付与する連番 (NBO)。 */
+    uint32_t ack_num;                  /**< 確認応答番号 / 再送要求番号 (NBO)。 */
+    uint16_t flags;                    /**< パケット種別フラグ (POTR_FLAG_*) (NBO)。 */
+    uint16_t payload_len;              /**< ペイロード長 (バイト) (NBO)。 */
     uint8_t  payload[POTR_MAX_PAYLOAD]; /**< ペイロードデータ。 */
 } PotrPacket;
 

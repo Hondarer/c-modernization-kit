@@ -19,15 +19,35 @@
 
 #include <porter_type.h>
 
+/**
+ *  @brief  パケットに付与するセッション識別情報。
+ *  @details
+ *  potrOpenService 時に決定し、全パケットのヘッダーに格納する。
+ */
+typedef struct
+{
+    int32_t  service_id;     /**< サービス識別子。 */
+    uint32_t session_id;     /**< セッション識別子 (乱数)。 */
+    int64_t  session_tv_sec; /**< セッション開始時刻 秒部。 */
+    int32_t  session_tv_nsec;/**< セッション開始時刻 ナノ秒部。 */
+    uint32_t _pad;           /**< パディング (構造体サイズを 8 バイト境界に揃える)。 */
+} PotrPacketSessionHdr;
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern int    packet_build_data(PotrPacket *packet, uint32_t seq_num,
+    extern int    packet_build_data(PotrPacket *packet,
+                                    const PotrPacketSessionHdr *shdr,
+                                    uint32_t seq_num,
                                     const void *data, size_t len);
-    extern int    packet_build_ack(PotrPacket *packet, uint32_t ack_num);
-    extern int    packet_build_nack(PotrPacket *packet, uint32_t nack_num);
+    extern int    packet_build_ack(PotrPacket *packet,
+                                   const PotrPacketSessionHdr *shdr,
+                                   uint32_t ack_num);
+    extern int    packet_build_nack(PotrPacket *packet,
+                                    const PotrPacketSessionHdr *shdr,
+                                    uint32_t nack_num);
     extern int    packet_parse(PotrPacket *packet, const void *buf, size_t buf_len);
     extern size_t packet_wire_size(const PotrPacket *packet);
 

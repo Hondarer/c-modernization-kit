@@ -22,6 +22,7 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
+    #include <time.h>
 #endif
 
 #include <porter_const.h>
@@ -34,8 +35,9 @@
 #include "potrRecvThread.h"
 #include "util/potrIpAddr.h"
 
-/* ソケットを作成して bind する。成功時は PotrSocket を返す。失敗時は POTR_INVALID_SOCKET。 */
-static PotrSocket open_socket_unicast(uint16_t port)
+/* ソケットを作成して bind する。成功時は PotrSocket を返す。失敗時は POTR_INVALID_SOCKET。
+   bind_addr: bind する IPv4 アドレス。port: bind するポート番号 (0 = OS 自動選定)。 */
+static PotrSocket open_socket_unicast(struct in_addr bind_addr, uint16_t port)
 {
     PotrSocket         sock;
     struct sockaddr_in addr;
@@ -56,7 +58,7 @@ static PotrSocket open_socket_unicast(uint16_t port)
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family      = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_addr        = bind_addr;
     addr.sin_port        = htons(port);
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
@@ -72,13 +74,69 @@ static PotrSocket open_socket_unicast(uint16_t port)
     return sock;
 }
 
-/* マルチキャストソケットを作成して bind・グループ参加する。 */
-static PotrSocket open_socket_multicast(const PotrServiceDef *def)
+/* unicast の dst_addr / src_addr を解決してコンテキストに格納する。
+   失敗時は POTR_ERROR を返す。 */
+static int resolve_unicast_addrs(struct PotrContext_ *ctx)
+{
+    if (ctx->service.dst_addr[0] == '\0' || ctx->service.src_addr[0] == '\0')
+    {
+        return POTR_ERROR;
+    }
+
+    if (resolve_ipv4_addr(ctx->service.dst_addr, &ctx->dst_addr_resolved) != POTR_SUCCESS)
+    {
+        return POTR_ERROR;
+    }
+
+    if (resolve_ipv4_addr(ctx->service.src_addr, &ctx->src_addr_resolved) != POTR_SUCCESS)
+    {
+        return POTR_ERROR;
+    }
+
+    return POTR_SUCCESS;
+}
+
+/* セッション識別子と開始時刻を生成してコンテキストに格納する。 */
+static void generate_session(struct PotrContext_ *ctx)
+{
+#ifdef _WIN32
+    FILETIME       ft;
+    ULARGE_INTEGER uli;
+
+    srand((unsigned)(GetTickCount() ^ GetCurrentProcessId()));
+    ctx->session_id = (uint32_t)rand();
+
+    GetSystemTimeAsFileTime(&ft);
+    uli.LowPart  = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+    /* FILETIME: 100ns 単位、1601-01-01 起点。Unix エポックとの差: 11644473600 秒 */
+    ctx->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
+    ctx->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
+#else
+    struct timespec ts;
+
+    srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
+    ctx->session_id = (uint32_t)rand();
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ctx->session_tv_sec  = (int64_t)ts.tv_sec;
+    ctx->session_tv_nsec = (int32_t)ts.tv_nsec;
+#endif
+}
+
+/* マルチキャストソケットを作成して bind・グループ参加する。
+   src_if: 使用するローカルインターフェース (INADDR_ANY = OS 自動選択)。
+   is_receiver: 1 = 受信者、0 = 送信者。 */
+static PotrSocket open_socket_multicast(const PotrServiceDef *def,
+                                        struct in_addr        src_if,
+                                        int                   is_receiver)
 {
     PotrSocket         sock;
     struct sockaddr_in addr;
     struct ip_mreq     mreq;
     int                reuse = 1;
+    /* 受信者: dst_port で bind する。送信者: src_port で bind する (送信元ポート)。 */
+    uint16_t           bind_port = is_receiver ? def->dst_port : def->src_port;
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == POTR_INVALID_SOCKET)
@@ -96,7 +154,7 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family      = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port        = htons(def->src_port);
+    addr.sin_port        = htons(bind_port);
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
@@ -108,7 +166,7 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def)
         return POTR_INVALID_SOCKET;
     }
 
-    /* マルチキャストグループへ参加 */
+    /* マルチキャストグループへ参加 (送受信ともに参加する) */
     memset(&mreq, 0, sizeof(mreq));
     if (parse_ipv4_addr(def->multicast_group, &mreq.imr_multiaddr) != POTR_SUCCESS)
     {
@@ -119,7 +177,7 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def)
 #endif
         return POTR_INVALID_SOCKET;
     }
-    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    mreq.imr_interface = src_if;
 
 #ifdef _WIN32
     if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
@@ -137,16 +195,37 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def)
     }
 #endif
 
+    /* 送信者: マルチキャスト送信インターフェースを設定する */
+    if (!is_receiver)
+    {
+#ifdef _WIN32
+        setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
+                   (const char *)&src_if, sizeof(src_if));
+#else
+        setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
+                   &src_if, sizeof(src_if));
+#endif
+    }
+
     return sock;
 }
 
-/* ブロードキャストソケットを作成して bind する。 */
-static PotrSocket open_socket_broadcast(uint16_t port)
+/* ブロードキャストソケットを作成して bind する。
+   src_port: 送信者の送信元 bind ポート (0 = OS 自動選定)。
+   dst_port: 受信者の listen ポート / 送信者の送信先ポート (省略不可)。
+   src_if: 送信者が使用するローカルインターフェース (INADDR_ANY = OS 自動選択)。
+   is_receiver: 1 = 受信者 (INADDR_ANY で bind)、0 = 送信者 (src_if で bind)。 */
+static PotrSocket open_socket_broadcast(uint16_t       src_port,
+                                        uint16_t       dst_port,
+                                        struct in_addr src_if,
+                                        int            is_receiver)
 {
     PotrSocket         sock;
     struct sockaddr_in addr;
-    int                reuse  = 1;
-    int                bcast  = 1;
+    int                reuse      = 1;
+    int                bcast      = 1;
+    /* 受信者: dst_port で bind する。送信者: src_port で bind する (送信元ポート)。 */
+    uint16_t           bind_port  = is_receiver ? dst_port : src_port;
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == POTR_INVALID_SOCKET)
@@ -165,9 +244,10 @@ static PotrSocket open_socket_broadcast(uint16_t port)
 #endif
 
     memset(&addr, 0, sizeof(addr));
-    addr.sin_family      = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port        = htons(port);
+    addr.sin_family = AF_INET;
+    /* 送信者: src_addr で bind してインターフェースを選択する。受信者: INADDR_ANY で bind する。 */
+    addr.sin_addr.s_addr = (!is_receiver) ? src_if.s_addr : htonl(INADDR_ANY);
+    addr.sin_port        = htons(bind_port);
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
@@ -185,6 +265,7 @@ static PotrSocket open_socket_broadcast(uint16_t port)
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                      int               service_id,
+                                     PotrRole          role,
                                      PotrRecvCallback  callback,
                                      PotrHandle       *handle)
 {
@@ -192,6 +273,20 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     PotrSocket           sock;
 
     if (config_path == NULL || handle == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    /* role と callback の整合性チェック */
+    if (role == POTR_ROLE_RECEIVER && callback == NULL)
+    {
+        return POTR_ERROR;
+    }
+    if (role == POTR_ROLE_SENDER && callback != NULL)
+    {
+        return POTR_ERROR;
+    }
+    if (role != POTR_ROLE_SENDER && role != POTR_ROLE_RECEIVER)
     {
         return POTR_ERROR;
     }
@@ -231,16 +326,76 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     switch (ctx->service.type)
     {
         case POTR_TYPE_UNICAST:
-            sock = open_socket_unicast(ctx->service.dst_port);
+        {
+            struct in_addr bind_addr;
+            uint16_t       bind_port;
+
+            if (resolve_unicast_addrs(ctx) != POTR_SUCCESS)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
+
+            if (ctx->service.dst_port == 0)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
+
+            if (role == POTR_ROLE_RECEIVER)
+            {
+                /* 受信者: dst_addr:dst_port で bind する */
+                bind_addr = ctx->dst_addr_resolved;
+                bind_port = ctx->service.dst_port;
+            }
+            else
+            {
+                /* 送信者: src_addr:src_port で bind する (src_port = 0 なら OS 自動選定) */
+                bind_addr = ctx->src_addr_resolved;
+                bind_port = ctx->service.src_port;
+            }
+
+            sock = open_socket_unicast(bind_addr, bind_port);
             break;
+        }
 
         case POTR_TYPE_MULTICAST:
-            sock = open_socket_multicast(&ctx->service);
+        {
+            if (ctx->service.src_addr[0] == '\0' || ctx->service.dst_port == 0)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
+            if (resolve_ipv4_addr(ctx->service.src_addr,
+                                  &ctx->src_addr_resolved) != POTR_SUCCESS)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
+            sock = open_socket_multicast(&ctx->service, ctx->src_addr_resolved,
+                                         role == POTR_ROLE_RECEIVER);
             break;
+        }
 
         case POTR_TYPE_BROADCAST:
-            sock = open_socket_broadcast(ctx->service.src_port);
+        {
+            if (ctx->service.src_addr[0] == '\0' || ctx->service.dst_port == 0)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
+            if (resolve_ipv4_addr(ctx->service.src_addr,
+                                  &ctx->src_addr_resolved) != POTR_SUCCESS)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
+            sock = open_socket_broadcast(ctx->service.src_port,
+                                         ctx->service.dst_port,
+                                         ctx->src_addr_resolved,
+                                         role == POTR_ROLE_RECEIVER);
             break;
+        }
 
         default:
             free(ctx);
@@ -256,6 +411,9 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     ctx->sock     = sock;
     ctx->callback = callback;
 
+    /* セッション識別子を生成する */
+    generate_session(ctx);
+
     /* ウィンドウ・再送制御を初期化 */
     window_init(&ctx->send_window, 0, ctx->global.window_size);
     window_init(&ctx->recv_window, 0, ctx->global.window_size);
@@ -263,8 +421,8 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                     ctx->global.retransmit_timeout_ms,
                     ctx->global.retransmit_count);
 
-    /* 受信コールバックが指定された場合は受信スレッドを起動 */
-    if (callback != NULL)
+    /* 受信者の場合は受信スレッドを起動 */
+    if (role == POTR_ROLE_RECEIVER)
     {
         if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
         {

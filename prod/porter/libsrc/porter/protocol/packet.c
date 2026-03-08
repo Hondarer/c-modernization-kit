@@ -11,6 +11,7 @@
  *******************************************************************************
  */
 
+#include <stddef.h>
 #include <string.h>
 
 #ifdef _WIN32
@@ -24,10 +25,37 @@
 
 #include "packet.h"
 
+/* ヘッダー固定長: payload フィールドの開始オフセット */
+#define PACKET_HEADER_SIZE (offsetof(PotrPacket, payload))
+
+/* 64 ビット値をホストバイトオーダーからネットワークバイトオーダーへ変換する */
+static uint64_t hton64(uint64_t v)
+{
+    uint32_t hi = htonl((uint32_t)(v >> 32));
+    uint32_t lo = htonl((uint32_t)(v & 0xFFFFFFFFUL));
+    return ((uint64_t)lo << 32) | (uint64_t)hi;
+}
+
+/* 64 ビット値をネットワークバイトオーダーからホストバイトオーダーへ変換する */
+static uint64_t ntoh64(uint64_t v)
+{
+    return hton64(v); /* 対称変換 */
+}
+
+/* セッションヘッダーフィールドをパケットに NBO で書き込む */
+static void fill_session_hdr(PotrPacket *packet, const PotrPacketSessionHdr *shdr)
+{
+    packet->service_id      = htonl((uint32_t)shdr->service_id);
+    packet->session_id      = htonl(shdr->session_id);
+    packet->session_tv_sec  = (int64_t)hton64((uint64_t)shdr->session_tv_sec);
+    packet->session_tv_nsec = htonl((uint32_t)shdr->session_tv_nsec);
+}
+
 /**
  *******************************************************************************
  *  @brief          データパケットを構築します。
  *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
  *  @param[in]      seq_num     通番。
  *  @param[in]      data        ペイロードデータへのポインタ。
  *  @param[in]      len         ペイロードのバイト数。
@@ -37,15 +65,17 @@
  *  各フィールドをネットワークバイトオーダーに変換してパケットを構築します。
  *******************************************************************************
  */
-int packet_build_data(PotrPacket *packet, uint32_t seq_num,
-                      const void *data, size_t len)
+int packet_build_data(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
+                      uint32_t seq_num, const void *data, size_t len)
 {
-    if (packet == NULL || data == NULL || len == 0 || len > POTR_MAX_PAYLOAD)
+    if (packet == NULL || shdr == NULL || data == NULL
+        || len == 0 || len > POTR_MAX_PAYLOAD)
     {
         return POTR_ERROR;
     }
 
     memset(packet, 0, sizeof(*packet));
+    fill_session_hdr(packet, shdr);
     packet->seq_num     = htonl(seq_num);
     packet->ack_num     = 0;
     packet->flags       = htons(POTR_FLAG_DATA);
@@ -59,18 +89,21 @@ int packet_build_data(PotrPacket *packet, uint32_t seq_num,
  *******************************************************************************
  *  @brief          ACK パケットを構築します。
  *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
  *  @param[in]      ack_num     確認応答番号。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *******************************************************************************
  */
-int packet_build_ack(PotrPacket *packet, uint32_t ack_num)
+int packet_build_ack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
+                     uint32_t ack_num)
 {
-    if (packet == NULL)
+    if (packet == NULL || shdr == NULL)
     {
         return POTR_ERROR;
     }
 
     memset(packet, 0, sizeof(*packet));
+    fill_session_hdr(packet, shdr);
     packet->seq_num     = 0;
     packet->ack_num     = htonl(ack_num);
     packet->flags       = htons(POTR_FLAG_ACK);
@@ -83,18 +116,21 @@ int packet_build_ack(PotrPacket *packet, uint32_t ack_num)
  *******************************************************************************
  *  @brief          NACK パケットを構築します。
  *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
  *  @param[in]      nack_num    再送要求する通番。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *******************************************************************************
  */
-int packet_build_nack(PotrPacket *packet, uint32_t nack_num)
+int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
+                      uint32_t nack_num)
 {
-    if (packet == NULL)
+    if (packet == NULL || shdr == NULL)
     {
         return POTR_ERROR;
     }
 
     memset(packet, 0, sizeof(*packet));
+    fill_session_hdr(packet, shdr);
     packet->seq_num     = 0;
     packet->ack_num     = htonl(nack_num);
     packet->flags       = htons(POTR_FLAG_NACK);
@@ -117,19 +153,21 @@ int packet_build_nack(PotrPacket *packet, uint32_t nack_num)
  */
 int packet_parse(PotrPacket *packet, const void *buf, size_t buf_len)
 {
-    const size_t header_size = sizeof(uint32_t) * 2 + sizeof(uint16_t) * 2;
-
-    if (packet == NULL || buf == NULL || buf_len < header_size)
+    if (packet == NULL || buf == NULL || buf_len < PACKET_HEADER_SIZE)
     {
         return POTR_ERROR;
     }
 
     memcpy(packet, buf, buf_len < sizeof(*packet) ? buf_len : sizeof(*packet));
 
-    packet->seq_num     = ntohl(packet->seq_num);
-    packet->ack_num     = ntohl(packet->ack_num);
-    packet->flags       = ntohs(packet->flags);
-    packet->payload_len = ntohs(packet->payload_len);
+    packet->service_id      = (int32_t)ntohl((uint32_t)packet->service_id);
+    packet->session_id      = ntohl(packet->session_id);
+    packet->session_tv_sec  = (int64_t)ntoh64((uint64_t)packet->session_tv_sec);
+    packet->session_tv_nsec = (int32_t)ntohl((uint32_t)packet->session_tv_nsec);
+    packet->seq_num         = ntohl(packet->seq_num);
+    packet->ack_num         = ntohl(packet->ack_num);
+    packet->flags           = ntohs(packet->flags);
+    packet->payload_len     = ntohs(packet->payload_len);
 
     if (packet->payload_len > POTR_MAX_PAYLOAD)
     {
@@ -151,12 +189,10 @@ int packet_parse(PotrPacket *packet, const void *buf, size_t buf_len)
  */
 size_t packet_wire_size(const PotrPacket *packet)
 {
-    const size_t header_size = sizeof(uint32_t) * 2 + sizeof(uint16_t) * 2;
-
     if (packet == NULL)
     {
         return 0;
     }
 
-    return header_size + ntohs(packet->payload_len);
+    return PACKET_HEADER_SIZE + ntohs(packet->payload_len);
 }

@@ -1,4 +1,4 @@
-# 簡易通信フレームワーク
+# 通信フレームワーク
 
 ## 概要
 
@@ -24,7 +24,7 @@ UDP/IP とする。
 
 ## ポート
 
-定義ファイルで、サービスポートを指定可能とする。
+定義ファイルでサービスポートを指定する。`dst_port` がサービスの識別子であり全通信種別で必須。`src_port` は送信者の送信元 bind ポートで省略可（省略時は OS がエフェメラルポートを自動選定）。
 
 ## テストコマンド
 
@@ -67,16 +67,6 @@ prod/porter/
 
 通信の単位を「サービス」として管理する。サービス ID は `int` 型の任意の値。
 
-サービス ID は設定ファイルのセクション名 `[service.<id>]` の `<id>` 部分から取得する。ポート番号とは無関係である。
-
-通信種別によってサービスの識別子となるポートが異なる。
-
-| 通信種別 | サービスの識別子 | 説明 |
-| -------- | ---------------- | ---- |
-| unicast (1:1) | `dst_port` | 受信側が待機するポート番号 |
-| multicast (1:N) | `src_port` | 送信元ポート番号。受信側はこのポートで待機する。 |
-| broadcast (1:N) | `src_port` | 送信元ポート番号。受信側はこのポートで待機する。 |
-
 ### 1:N 通信の方式
 
 | 方式 | 説明 |
@@ -86,37 +76,35 @@ prod/porter/
 
 ### サービス定義ファイル
 
-INI 形式のテキストファイルで設定する。
+INI 形式のテキストファイルで設定する。通信種別ごとのフィールド一覧を以下に示す。
 
-```ini
-# プロトコル共通パラメータ
-[global]
-window_size           = 16
-max_payload           = 1400
-retransmit_timeout_ms = 1000
-retransmit_count      = 3
+#### unicast (1:1)
 
-# 1:1 通信 (unicast)
-# サービス ID = 1001。サービスの識別子 = dst_port
-[service.1001]
-type     = unicast
-dst_port = 5001
+| フィールド | 必須 | 送信者 | 受信者 |
+| --------- | ---- | ------ | ------ |
+| `src_addr` | ✅ | bind アドレス | 送信元 IP フィルタ |
+| `src_port` | — | bind ポート (0 = エフェメラル) | (無効) |
+| `dst_addr` | ✅ | 送信先アドレス | bind アドレス |
+| `dst_port` | ✅ | 送信先ポート | listen ポート |
 
-# 1:N マルチキャスト
-# サービス ID = 2001。サービスの識別子 = src_port (受信側も同ポートで待機)
-[service.2001]
-type            = multicast
-src_port        = 6001
-multicast_group = 239.0.0.1
-ttl             = 1
+#### multicast (1:N)
 
-# 1:N ブロードキャスト
-# サービス ID = 3001。サービスの識別子 = src_port (受信側も同ポートで待機)
-[service.3001]
-type           = broadcast
-src_port       = 7001
-broadcast_addr = 255.255.255.255
-```
+| フィールド | 必須 | 送信者 | 受信者 |
+| --------- | ---- | ------ | ------ |
+| `src_addr` | ✅ | 送信インターフェース (`IP_MULTICAST_IF`) | マルチキャスト参加インターフェース + 送信元 IP フィルタ |
+| `src_port` | — | bind ポート (0 = エフェメラル) | (無効) |
+| `dst_port` | ✅ | 送信先ポート | listen ポート |
+| `multicast_group` | ✅ | 送信先グループアドレス | 参加グループアドレス |
+| `ttl` | — | マルチキャスト TTL (デフォルト: 1) | (無効) |
+
+#### broadcast (1:N)
+
+| フィールド | 必須 | 送信者 | 受信者 |
+| --------- | ---- | ------ | ------ |
+| `src_addr` | ✅ | bind アドレス (インターフェース選択) | 送信元 IP フィルタ |
+| `src_port` | — | bind ポート (0 = エフェメラル) | (無効) |
+| `dst_port` | ✅ | 送信先ポート | listen ポート |
+| `broadcast_addr` | ✅ | 送信先ブロードキャストアドレス | (無効) |
 
 ### 公開 API
 
@@ -127,11 +115,12 @@ typedef void (*PotrRecvCallback)(int service_id, const void *data, size_t len);
 // 設定ファイルから指定サービスを開く
 POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                      int               service_id,
+                                     PotrRole          role,
                                      PotrRecvCallback  callback,
                                      PotrHandle       *handle);
 
 // データを送信する
-POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len);
+POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len, int compress);
 
 // サービスを閉じる
 POTR_API int POTRAPI potrClose(PotrHandle handle);

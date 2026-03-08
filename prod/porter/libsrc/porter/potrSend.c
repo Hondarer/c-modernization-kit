@@ -42,12 +42,8 @@ static int build_dest_addr(const struct PotrContext_ *ctx,
     switch (ctx->service.type)
     {
         case POTR_TYPE_UNICAST:
-            /* unicast: 接続相手のポートへ送信。
-               相手アドレスは受信時に取得するため、ここでは未設定。
-               本実装では送信先ホストは呼び出し元が別途設定すると想定し、
-               サービスの dst_port を宛先ポートとして使用する。 */
-            dest->sin_addr.s_addr = htonl(INADDR_LOOPBACK); /* 暫定: 同一ホスト */
-            dest->sin_port        = htons(ctx->service.dst_port);
+            dest->sin_addr = ctx->dst_addr_resolved;
+            dest->sin_port = htons(ctx->service.dst_port);
             break;
 
         case POTR_TYPE_MULTICAST:
@@ -56,7 +52,7 @@ static int build_dest_addr(const struct PotrContext_ *ctx,
             {
                 return POTR_ERROR;
             }
-            dest->sin_port        = htons(ctx->service.src_port);
+            dest->sin_port = htons(ctx->service.dst_port);
             break;
 
         case POTR_TYPE_BROADCAST:
@@ -65,7 +61,7 @@ static int build_dest_addr(const struct PotrContext_ *ctx,
             {
                 return POTR_ERROR;
             }
-            dest->sin_port        = htons(ctx->service.src_port);
+            dest->sin_port = htons(ctx->service.dst_port);
             break;
 
         default:
@@ -79,12 +75,13 @@ static int build_dest_addr(const struct PotrContext_ *ctx,
 POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
                               int compress)
 {
-    struct PotrContext_ *ctx       = (struct PotrContext_ *)handle;
-    const uint8_t       *ptr      = (const uint8_t *)data;
-    struct sockaddr_in   dest;
-    size_t               remaining;
-    size_t               max_payload;
-    uint16_t             data_flags = POTR_FLAG_DATA;
+    struct PotrContext_  *ctx       = (struct PotrContext_ *)handle;
+    const uint8_t        *ptr      = (const uint8_t *)data;
+    struct sockaddr_in    dest;
+    PotrPacketSessionHdr  shdr;
+    size_t                remaining;
+    size_t                max_payload;
+    uint16_t              data_flags = POTR_FLAG_DATA;
 
     if (ctx == NULL || data == NULL || len == 0 || len > POTR_MAX_MESSAGE_SIZE)
     {
@@ -112,6 +109,11 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
         return POTR_ERROR;
     }
 
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+
     remaining   = len;
     max_payload = ctx->global.max_payload;
 
@@ -131,7 +133,7 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
 
         seq = ctx->send_window.next_seq;
 
-        if (packet_build_data(&pkt, seq, ptr, chunk) != POTR_SUCCESS)
+        if (packet_build_data(&pkt, &shdr, seq, ptr, chunk) != POTR_SUCCESS)
         {
             return POTR_ERROR;
         }

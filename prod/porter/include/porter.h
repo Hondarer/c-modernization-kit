@@ -74,44 +74,64 @@ extern "C"
      *  @brief          設定ファイルから指定サービスを開きます。
      *  @param[in]      config_path 設定ファイルのパス。
      *  @param[in]      service_id  開くサービスの ID。
+     *  @param[in]      role        役割種別。POTR_ROLE_SENDER または POTR_ROLE_RECEIVER。
      *  @param[in]      callback    データ受信時に呼び出されるコールバック関数。
-     *                              受信不要の場合は NULL を指定可能。
+     *                              POTR_ROLE_RECEIVER の場合は必須。
+     *                              POTR_ROLE_SENDER の場合は NULL を指定すること。
      *  @param[out]     handle      成功時にセッションハンドルを格納するポインタ。
      *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
      *
      *  @details
      *  設定ファイルを解析してサービス定義を取得し、UDP ソケットを初期化します。\n
-     *  通信種別に応じて以下の処理を行います。
+     *  role と callback の組み合わせが不正な場合は POTR_ERROR を返します。\n
+     *  role と設定ファイルの IP アドレスが不整合 (bind 失敗など) の場合も POTR_ERROR を返します。\n
+     *  通信種別・役割に応じて以下のソケット設定を行います。
      *
-     *  | 通信種別              | ソケット設定                                     |
-     *  | --------------------- | ------------------------------------------------ |
-     *  | POTR_TYPE_UNICAST     | dst_port をバインド                              |
-     *  | POTR_TYPE_MULTICAST   | src_port をバインド、グループ参加 (IGMP)        |
-     *  | POTR_TYPE_BROADCAST   | src_port をバインド、SO_BROADCAST を設定        |
+     *  | 通信種別              | 役割     | bind アドレス     | bind ポート   |
+     *  | --------------------- | -------- | ----------------- | ------------- |
+     *  | POTR_TYPE_UNICAST     | 送信者   | src_addr          | src_port      |
+     *  | POTR_TYPE_UNICAST     | 受信者   | dst_addr          | dst_port      |
+     *  | POTR_TYPE_MULTICAST   | 送信者   | INADDR_ANY        | src_port      |
+     *  | POTR_TYPE_MULTICAST   | 受信者   | INADDR_ANY        | dst_port      |
+     *  | POTR_TYPE_BROADCAST   | 送信者   | src_addr          | src_port      |
+     *  | POTR_TYPE_BROADCAST   | 受信者   | INADDR_ANY        | dst_port      |
      *
-     *  受信コールバックが指定された場合、内部で受信スレッドを起動します。
+     *  POTR_ROLE_RECEIVER の場合、内部で受信スレッドを起動します。
      *
-     *  @par            使用例
+     *  @par            使用例 (受信者)
      *  @code{.c}
      *  void on_recv(int service_id, const void *data, size_t len) {
      *      printf("service %d: received %zu bytes\n", service_id, len);
      *  }
      *
      *  PotrHandle handle;
-     *  if (potrOpenService("porter-services.conf", 1, on_recv, &handle)
-     *          == POTR_SUCCESS) {
-     *      // 通信処理
+     *  if (potrOpenService("porter-services.conf", 1001,
+     *                      POTR_ROLE_RECEIVER, on_recv, &handle) == POTR_SUCCESS) {
+     *      // 受信待機中 (受信スレッドが動作)
+     *      potrClose(handle);
+     *  }
+     *  @endcode
+     *
+     *  @par            使用例 (送信者)
+     *  @code{.c}
+     *  PotrHandle handle;
+     *  if (potrOpenService("porter-services.conf", 1001,
+     *                      POTR_ROLE_SENDER, NULL, &handle) == POTR_SUCCESS) {
+     *      potrSend(handle, "hello", 5, 0);
      *      potrClose(handle);
      *  }
      *  @endcode
      *
      *  @warning        handle が NULL の場合は失敗を返します。\n
      *                  config_path が NULL または存在しない場合は失敗を返します。\n
-     *                  指定した service_id が設定ファイルに存在しない場合は失敗を返します。
+     *                  指定した service_id が設定ファイルに存在しない場合は失敗を返します。\n
+     *                  POTR_ROLE_RECEIVER かつ callback が NULL の場合は失敗を返します。\n
+     *                  POTR_ROLE_SENDER かつ callback が NULL でない場合は失敗を返します。
      *******************************************************************************
      */
     POTR_API extern int POTRAPI potrOpenService(const char       *config_path,
                                                 int               service_id,
+                                                PotrRole          role,
                                                 PotrRecvCallback  callback,
                                                 PotrHandle       *handle);
 

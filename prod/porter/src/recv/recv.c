@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
     printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
 
-    if (potrOpenService(config_path, service_id, on_recv, &handle) != POTR_SUCCESS)
+    if (potrOpenService(config_path, service_id, POTR_ROLE_RECEIVER, on_recv, &handle) != POTR_SUCCESS)
     {
         fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
         return EXIT_FAILURE;

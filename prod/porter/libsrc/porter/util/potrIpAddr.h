@@ -24,4 +24,12 @@
 
 int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr);
 
+/**
+ *  @brief  ホスト名または IPv4 アドレス文字列を struct in_addr に解決する。
+ *  @details
+ *  getaddrinfo() を使用して AF_INET で名前解決する。
+ *  複数のアドレスが返された場合は先頭のアドレスを採用する。
+ */
+int resolve_ipv4_addr(const char *host, struct in_addr *out_addr);
+
 #endif /* POTR_IP_ADDR_H */

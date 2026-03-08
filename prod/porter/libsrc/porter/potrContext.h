@@ -25,11 +25,13 @@
 
 #ifdef _WIN32
     #include <winsock2.h>
+    #include <ws2tcpip.h>
     typedef SOCKET     PotrSocket;
     typedef HANDLE     PotrThread;
     #define POTR_INVALID_SOCKET INVALID_SOCKET
 #else
     #include <pthread.h>
+    #include <netinet/in.h>
     typedef int        PotrSocket;
     typedef pthread_t  PotrThread;
     #define POTR_INVALID_SOCKET (-1)
@@ -44,12 +46,29 @@ struct PotrContext_
     PotrThread       recv_thread;  /**< 受信スレッドハンドル。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
+    uint32_t         _pad_win;    /**< パディング (send_window を 8 バイト境界に揃える)。 */
     PotrWindow       send_window;  /**< 送信ウィンドウ。 */
     PotrWindow       recv_window;  /**< 受信ウィンドウ。 */
     PotrRetransmit   retransmit;   /**< 再送制御。 */
     PotrSocket       sock;         /**< UDP ソケット。 */
     volatile int     running;      /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
     uint8_t          _pad[4];      /**< パディング。 */
+
+    /* 解決済みアドレス */
+    struct in_addr   dst_addr_resolved; /**< 解決済み宛先 IPv4 アドレス。送信先 (送信者) または bind アドレス (受信者)。(unicast のみ) */
+    struct in_addr   src_addr_resolved; /**< 解決済み送信元 IPv4 アドレス。bind / 送信インターフェース (送信者) または送信元フィルタ (受信者)。src_addr が設定されている場合のみ有効。 */
+
+    /* 自セッション識別子 (potrOpenService 時に決定) */
+    uint32_t         session_id;        /**< 自セッション識別子 (乱数)。 */
+    int64_t          session_tv_sec;    /**< 自セッション開始時刻 秒部。 */
+    int32_t          session_tv_nsec;   /**< 自セッション開始時刻 ナノ秒部。 */
+
+    /* 相手セッション追跡 (受信者が使用) */
+    uint32_t         peer_session_id;      /**< 追跡中の相手セッション識別子。 */
+    int64_t          peer_session_tv_sec;  /**< 追跡中の相手セッション開始時刻 秒部。 */
+    int32_t          peer_session_tv_nsec; /**< 追跡中の相手セッション開始時刻 ナノ秒部。 */
+    int              peer_session_known;   /**< 相手セッションが初期化済みか (0: 未初期化)。 */
+
     size_t           frag_buf_len;       /**< フラグメント結合バッファの現在のデータ長 (バイト)。 */
     int              frag_compressed;   /**< フラグメント受信中の圧縮フラグ (非 0: 圧縮あり)。 */
     uint8_t          _frag_pad2[4];     /**< パディング。 */
