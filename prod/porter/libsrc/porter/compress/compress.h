@@ -33,11 +33,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <porter_const.h>
+
 /** 圧縮ペイロード先頭に付加する元サイズフィールドのバイト数。 */
 #define POTR_COMPRESS_HEADER_SIZE 4U
 
 /** 圧縮後の最大バッファサイズ (元データ + ヘッダー + DEFLATE オーバーヘッド)。 */
-#define POTR_COMPRESS_BUF_SIZE (POTR_COMPRESS_HEADER_SIZE + 65535U + 64U)
+#define POTR_COMPRESS_BUF_SIZE (POTR_COMPRESS_HEADER_SIZE + POTR_MAX_MESSAGE_SIZE + 64U)
 
 #ifdef __cplusplus
 extern "C"

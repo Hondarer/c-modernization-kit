@@ -185,7 +185,7 @@ int packet_build_fin(PotrPacket *packet, const PotrPacketSessionHdr *shdr)
  *  ペイロードエレメントが 1 件のみの場合も同じ形式を使用します。\n
  *  再送・順序整列の単位は外側パケット (本関数が構築する UDP ペイロード) であり、
  *  通番は外側パケットの seq_num フィールドで管理します。\n
- *  ペイロードエレメントの形式は flags(2) + payload_len(2) + payload(N) です。\n
+ *  ペイロードエレメントの形式は flags(2) + payload_len(4) + payload(N) です。\n
  *  受信者は POTR_FLAG_DATA を検出後 packet_unpack_next() でペイロードエレメントを展開します。
  *******************************************************************************
  */
@@ -220,7 +220,7 @@ int packet_build_packed(PotrPacket *out, const PotrPacketSessionHdr *shdr,
  *                  末尾に達した場合またはエラーの場合は POTR_ERROR を返します。
  *
  *  @details
- *  ペイロードエレメントの形式は flags(2) + payload_len(2) + payload(N) です。\n
+ *  ペイロードエレメントの形式は flags(2) + payload_len(4) + payload(N) です。\n
  *  通番は外側パケットで管理するためペイロードエレメントには含まれません。\n
  *  container->payload_len はホストバイトオーダー (packet_parse() 変換済み) で参照します。\n
  *  elem_out の session 情報は container から引き継ぎます。
@@ -231,8 +231,8 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
 {
     const uint8_t *p;
     uint16_t       flags_nbo;
-    uint16_t       plen_nbo;
-    uint16_t       payload_len;
+    uint32_t       plen_nbo;
+    uint32_t       payload_len;
 
     if (container == NULL || offset == NULL || elem_out == NULL)
     {
@@ -248,9 +248,9 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
     p = container->payload + *offset;
 
     memcpy(&flags_nbo, p,     2);
-    memcpy(&plen_nbo,  p + 2, 2);
+    memcpy(&plen_nbo,  p + 2, 4);
 
-    payload_len = ntohs(plen_nbo);
+    payload_len = ntohl(plen_nbo);
 
     if (*offset + POTR_PAYLOAD_ELEM_HDR_SIZE + payload_len > (size_t)container->payload_len
         || payload_len > POTR_MAX_PAYLOAD)

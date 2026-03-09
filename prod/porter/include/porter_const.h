@@ -63,9 +63,9 @@
 #define POTR_MAX_PAYLOAD       1400U  /**< ペイロードの最大長 (バイト)。 */
 #define POTR_MAX_WINDOW_SIZE   256U   /**< ウィンドウサイズの最大値 (パケット数)。 */
 #define POTR_MAX_SERVICES      64U    /**< 設定ファイルに定義できるサービスの最大数。 */
-#define POTR_MAX_MESSAGE_SIZE  65535U /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。フラグメント化により POTR_MAX_PAYLOAD を超えるメッセージも送受信できる。 */
+#define POTR_MAX_MESSAGE_SIZE  65535U /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。フラグメント化により POTR_MAX_PAYLOAD を超えるメッセージも送受信できる。プロトコル仕様上は UINT32_MAX まで拡張可能。現在の実装上限は 65535 バイト。 */
 #define POTR_SEND_QUEUE_DEPTH    1024U  /**< 非同期送信キューの最大エントリ数。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する。 */
-#define POTR_PAYLOAD_ELEM_HDR_SIZE  4U  /**< パックコンテナ内ペイロードエレメントのヘッダーサイズ (バイト)。flags (2): POTR_FLAG_MORE_FRAG / POTR_FLAG_COMPRESSED を格納 + payload_len (2)。通番は外側パケットで管理するためペイロードエレメントには含まない。 */
+#define POTR_PAYLOAD_ELEM_HDR_SIZE  6U  /**< パックコンテナ内ペイロードエレメントのヘッダーサイズ (バイト)。flags (2): POTR_FLAG_MORE_FRAG / POTR_FLAG_COMPRESSED を格納 + payload_len (4): uint32_t (NBO)。通番は外側パケットで管理するためペイロードエレメントには含まない。 */
 #define POTR_MAX_MULTIHOME  4U    /**< 多重帰属の最大パス数。 */
 /** @} */
 
