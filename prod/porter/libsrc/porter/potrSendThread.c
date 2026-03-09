@@ -69,10 +69,10 @@ static void append_payload_elem(uint8_t *packed_buf, size_t *packed_len,
                                const PotrPayloadElem *entry)
 {
     uint16_t flags_nbo = htons(entry->flags);
-    uint16_t plen_nbo  = htons(entry->payload_len);
+    uint32_t plen_nbo  = htonl((uint32_t)entry->payload_len);
 
     memcpy(packed_buf + *packed_len, &flags_nbo,       2); *packed_len += 2;
-    memcpy(packed_buf + *packed_len, &plen_nbo,        2); *packed_len += 2;
+    memcpy(packed_buf + *packed_len, &plen_nbo,        4); *packed_len += 4;
     memcpy(packed_buf + *packed_len, entry->payload, entry->payload_len);
     *packed_len += entry->payload_len;
 }
