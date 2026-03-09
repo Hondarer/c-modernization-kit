@@ -68,11 +68,11 @@ typedef enum
  *
  *  通信種別によって有効なフィールドが異なります。
  *
- *  | 通信種別              | サービスの識別子        | 有効なフィールド                                                       |
- *  | --------------------- | ----------------------- | ---------------------------------------------------------------------- |
- *  | POTR_TYPE_UNICAST     | dst_port                | dst_addr, src_addr, dst_port, src_port (省略可)                        |
- *  | POTR_TYPE_MULTICAST   | dst_port                | src_addr, src_port (省略可), dst_port, multicast_group, ttl            |
- *  | POTR_TYPE_BROADCAST   | dst_port                | src_addr, src_port (省略可), dst_port, broadcast_addr                  |
+ *  | 通信種別              | サービスの識別子        | 有効なフィールド                                                                            |
+ *  | --------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+ *  | POTR_TYPE_UNICAST     | dst_port                | src_addr1〜4, dst_addr1〜4, dst_port, src_port (省略可)                                    |
+ *  | POTR_TYPE_MULTICAST   | dst_port                | src_addr1〜4, src_port (省略可), dst_port, multicast_group, ttl                            |
+ *  | POTR_TYPE_BROADCAST   | dst_port                | src_addr1〜4, src_port (省略可), dst_port, broadcast_addr                                  |
  *******************************************************************************
  */
 typedef struct
@@ -92,11 +92,11 @@ typedef struct
     uint32_t pack_wait_ms;  /**< パッキング待ち時間 (ミリ秒)。最初の送信要求からこの時間だけ待ち合わせ、複数メッセージを 1 パケットにまとめる。0 = 即時送信 (パッキング待ちなし)。パケット容量が満杯になった場合はタイマーを無視して即時送信する。 */
 
     char multicast_group[POTR_MAX_ADDR_LEN]; /**< マルチキャストグループアドレス。(multicast のみ) */
-    char broadcast_addr[POTR_MAX_ADDR_LEN];  /**< ブロードキャスト宛先アドレス。(broadcast のみ) */
+    char broadcast_addr[POTR_MAX_ADDR_LEN];  /**< ブロードキャスト宛先アドレス。省略時は 255.255.255.255。(broadcast のみ) */
 
-    /* POTR_TYPE_UNICAST */
-    char dst_addr[POTR_MAX_ADDR_LEN]; /**< 宛先アドレス (IPv4 またはホスト名)。送信者は送信先、受信者は bind アドレス。(unicast のみ) */
-    char src_addr[POTR_MAX_ADDR_LEN]; /**< 送信元アドレス (IPv4 またはホスト名)。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須) */
+    /* 多重帰属対応 (src_addr は全通信種別、dst_addr は unicast のみ有効) */
+    char src_addr[POTR_MAX_MULTIHOME][POTR_MAX_ADDR_LEN]; /**< 送信元アドレス [0]=src_addr1 〜 [3]=src_addr4。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須) */
+    char dst_addr[POTR_MAX_MULTIHOME][POTR_MAX_ADDR_LEN]; /**< 宛先アドレス [0]=dst_addr1 〜 [3]=dst_addr4。送信者は送信先、受信者は bind アドレス。(unicast のみ) */
 } PotrServiceDef;
 
 /**

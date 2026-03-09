@@ -35,32 +35,36 @@
 #include "protocol/packet.h"
 #include "util/potrIpAddr.h"
 
-/* FIN パケットを宛先へ直接 sendto する */
+/* FIN パケットを全パスへ送信する */
 static void send_fin(struct PotrContext_ *ctx)
 {
     PotrPacket           fin_pkt;
     PotrPacketSessionHdr shdr;
     size_t               wire_len;
+    int                  i;
 
     shdr.service_id      = ctx->service.service_id;
     shdr.session_id      = ctx->session_id;
     shdr.session_tv_sec  = ctx->session_tv_sec;
     shdr.session_tv_nsec = ctx->session_tv_nsec;
 
-    if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS)
-    {
-        return;
-    }
+    if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS) return;
 
     wire_len = packet_wire_size(&fin_pkt);
 
+    for (i = 0; i < ctx->n_path; i++)
+    {
+        if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
 #ifdef _WIN32
-    sendto(ctx->sock, (const char *)&fin_pkt, (int)wire_len, 0,
-           (const struct sockaddr *)&ctx->dest_addr, sizeof(ctx->dest_addr));
+        sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0,
+               (const struct sockaddr *)&ctx->dest_addr[i],
+               sizeof(ctx->dest_addr[i]));
 #else
-    sendto(ctx->sock, &fin_pkt, wire_len, 0,
-           (const struct sockaddr *)&ctx->dest_addr, sizeof(ctx->dest_addr));
+        sendto(ctx->sock[i], &fin_pkt, wire_len, 0,
+               (const struct sockaddr *)&ctx->dest_addr[i],
+               sizeof(ctx->dest_addr[i]));
 #endif
+    }
 }
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -94,43 +98,46 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
         comm_recv_thread_stop(ctx);
     }
 
-    /* ソケットをクローズする (recv スレッドの有無によらず実施)。
+    /* ソケットをクローズ (recv スレッドの有無によらず実施)。
        Windows: comm_recv_thread_stop 内で closesocket 済みの場合は INVALID_SOCKET になっているため
                 guard により二重 close を回避する。
        Linux: comm_recv_thread_stop は shutdown のみで close しないため、ここで必ず close する。 */
-    if (ctx->sock != POTR_INVALID_SOCKET)
     {
+        int i;
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
 #ifdef _WIN32
-        /* マルチキャストのグループ離脱 */
-        if (ctx->service.type == POTR_TYPE_MULTICAST)
-        {
-            struct ip_mreq mreq;
-            memset(&mreq, 0, sizeof(mreq));
-            if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
-                == POTR_SUCCESS)
+            if (ctx->service.type == POTR_TYPE_MULTICAST)
             {
-                mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-                setsockopt(ctx->sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
-                           (const char *)&mreq, sizeof(mreq));
+                struct ip_mreq mreq;
+                memset(&mreq, 0, sizeof(mreq));
+                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
+                    == POTR_SUCCESS)
+                {
+                    mreq.imr_interface = ctx->src_addr_resolved[i];
+                    setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                               (const char *)&mreq, sizeof(mreq));
+                }
             }
-        }
-        closesocket(ctx->sock);
+            closesocket(ctx->sock[i]);
 #else
-        if (ctx->service.type == POTR_TYPE_MULTICAST)
-        {
-            struct ip_mreq mreq;
-            memset(&mreq, 0, sizeof(mreq));
-            if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
-                == POTR_SUCCESS)
+            if (ctx->service.type == POTR_TYPE_MULTICAST)
             {
-                mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-                setsockopt(ctx->sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
-                           &mreq, sizeof(mreq));
+                struct ip_mreq mreq;
+                memset(&mreq, 0, sizeof(mreq));
+                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
+                    == POTR_SUCCESS)
+                {
+                    mreq.imr_interface = ctx->src_addr_resolved[i];
+                    setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                               &mreq, sizeof(mreq));
+                }
             }
-        }
-        close(ctx->sock);
+            close(ctx->sock[i]);
 #endif
-        ctx->sock = POTR_INVALID_SOCKET;
+            ctx->sock[i] = POTR_INVALID_SOCKET;
+        }
     }
 
 #ifdef _WIN32

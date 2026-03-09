@@ -76,28 +76,6 @@ static PotrSocket open_socket_unicast(struct in_addr bind_addr, uint16_t port)
     return sock;
 }
 
-/* unicast の dst_addr / src_addr を解決してコンテキストに格納する。
-   失敗時は POTR_ERROR を返す。 */
-static int resolve_unicast_addrs(struct PotrContext_ *ctx)
-{
-    if (ctx->service.dst_addr[0] == '\0' || ctx->service.src_addr[0] == '\0')
-    {
-        return POTR_ERROR;
-    }
-
-    if (resolve_ipv4_addr(ctx->service.dst_addr, &ctx->dst_addr_resolved) != POTR_SUCCESS)
-    {
-        return POTR_ERROR;
-    }
-
-    if (resolve_ipv4_addr(ctx->service.src_addr, &ctx->src_addr_resolved) != POTR_SUCCESS)
-    {
-        return POTR_ERROR;
-    }
-
-    return POTR_SUCCESS;
-}
-
 /* セッション識別子と開始時刻を生成してコンテキストに格納する。 */
 static void generate_session(struct PotrContext_ *ctx)
 {
@@ -264,6 +242,24 @@ static PotrSocket open_socket_broadcast(uint16_t       src_port,
     return sock;
 }
 
+/* 生成済みソケットをすべてクローズする */
+static void cleanup_sockets(struct PotrContext_ *ctx)
+{
+    int i;
+    for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+    {
+        if (ctx->sock[i] != POTR_INVALID_SOCKET)
+        {
+#ifdef _WIN32
+            closesocket(ctx->sock[i]);
+#else
+            close(ctx->sock[i]);
+#endif
+            ctx->sock[i] = POTR_INVALID_SOCKET;
+        }
+    }
+}
+
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                      int               service_id,
@@ -272,7 +268,6 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                      PotrHandle       *handle)
 {
     struct PotrContext_ *ctx;
-    PotrSocket           sock;
 
     if (config_path == NULL || handle == NULL)
     {
@@ -309,7 +304,15 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         return POTR_ERROR;
     }
     memset(ctx, 0, sizeof(*ctx));
-    ctx->sock = POTR_INVALID_SOCKET;
+
+    /* 全ソケットを INVALID で初期化 */
+    {
+        int i;
+        for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+        {
+            ctx->sock[i] = POTR_INVALID_SOCKET;
+        }
+    }
 
     /* 設定ファイルを読み込む */
     if (config_load_global(config_path, &ctx->global) != POTR_SUCCESS)
@@ -329,14 +332,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     {
         case POTR_TYPE_UNICAST:
         {
-            struct in_addr bind_addr;
-            uint16_t       bind_port;
-
-            if (resolve_unicast_addrs(ctx) != POTR_SUCCESS)
-            {
-                free(ctx);
-                return POTR_ERROR;
-            }
+            int i;
 
             if (ctx->service.dst_port == 0)
             {
@@ -344,58 +340,150 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 return POTR_ERROR;
             }
 
-            if (role == POTR_ROLE_RECEIVER)
+            for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
             {
-                /* 受信者: dst_addr:dst_port で bind する */
-                bind_addr = ctx->dst_addr_resolved;
-                bind_port = ctx->service.dst_port;
-            }
-            else
-            {
-                /* 送信者: src_addr:src_port で bind する (src_port = 0 なら OS 自動選定) */
-                bind_addr = ctx->src_addr_resolved;
-                bind_port = ctx->service.src_port;
+                struct in_addr bind_addr;
+                uint16_t       bind_port;
+
+                if (ctx->service.src_addr[i][0] == '\0' ||
+                    ctx->service.dst_addr[i][0] == '\0')
+                {
+                    break;
+                }
+
+                if (resolve_ipv4_addr(ctx->service.src_addr[i],
+                                      &ctx->src_addr_resolved[i]) != POTR_SUCCESS ||
+                    resolve_ipv4_addr(ctx->service.dst_addr[i],
+                                      &ctx->dst_addr_resolved[i]) != POTR_SUCCESS)
+                {
+                    cleanup_sockets(ctx);
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+
+                if (role == POTR_ROLE_RECEIVER)
+                {
+                    bind_addr = ctx->dst_addr_resolved[i];
+                    bind_port = ctx->service.dst_port;
+                }
+                else
+                {
+                    bind_addr = ctx->src_addr_resolved[i];
+                    bind_port = ctx->service.src_port;
+                }
+
+                ctx->sock[i] = open_socket_unicast(bind_addr, bind_port);
+                if (ctx->sock[i] == POTR_INVALID_SOCKET)
+                {
+                    cleanup_sockets(ctx);
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+
+                ctx->n_path++;
             }
 
-            sock = open_socket_unicast(bind_addr, bind_port);
+            if (ctx->n_path == 0)
+            {
+                free(ctx);
+                return POTR_ERROR;
+            }
             break;
         }
 
         case POTR_TYPE_MULTICAST:
         {
-            if (ctx->service.src_addr[0] == '\0' || ctx->service.dst_port == 0)
+            int i;
+
+            if (ctx->service.dst_port == 0 ||
+                ctx->service.multicast_group[0] == '\0')
             {
                 free(ctx);
                 return POTR_ERROR;
             }
-            if (resolve_ipv4_addr(ctx->service.src_addr,
-                                  &ctx->src_addr_resolved) != POTR_SUCCESS)
+
+            for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+            {
+                if (ctx->service.src_addr[i][0] == '\0') break;
+
+                if (resolve_ipv4_addr(ctx->service.src_addr[i],
+                                      &ctx->src_addr_resolved[i]) != POTR_SUCCESS)
+                {
+                    cleanup_sockets(ctx);
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+
+                ctx->sock[i] = open_socket_multicast(&ctx->service,
+                                                     ctx->src_addr_resolved[i],
+                                                     role == POTR_ROLE_RECEIVER);
+                if (ctx->sock[i] == POTR_INVALID_SOCKET)
+                {
+                    cleanup_sockets(ctx);
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+
+                ctx->n_path++;
+            }
+
+            if (ctx->n_path == 0)
             {
                 free(ctx);
                 return POTR_ERROR;
             }
-            sock = open_socket_multicast(&ctx->service, ctx->src_addr_resolved,
-                                         role == POTR_ROLE_RECEIVER);
             break;
         }
 
         case POTR_TYPE_BROADCAST:
         {
-            if (ctx->service.src_addr[0] == '\0' || ctx->service.dst_port == 0)
+            int i;
+
+            if (ctx->service.dst_port == 0)
             {
                 free(ctx);
                 return POTR_ERROR;
             }
-            if (resolve_ipv4_addr(ctx->service.src_addr,
-                                  &ctx->src_addr_resolved) != POTR_SUCCESS)
+
+            /* broadcast_addr 省略時は限定ブロードキャスト (255.255.255.255) を使用する */
+            if (ctx->service.broadcast_addr[0] == '\0')
+            {
+                const char *dflt = "255.255.255.255";
+                size_t      len  = strlen(dflt);
+                memcpy(ctx->service.broadcast_addr, dflt, len + 1);
+            }
+
+            for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+            {
+                if (ctx->service.src_addr[i][0] == '\0') break;
+
+                if (resolve_ipv4_addr(ctx->service.src_addr[i],
+                                      &ctx->src_addr_resolved[i]) != POTR_SUCCESS)
+                {
+                    cleanup_sockets(ctx);
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+
+                ctx->sock[i] = open_socket_broadcast(ctx->service.src_port,
+                                                     ctx->service.dst_port,
+                                                     ctx->src_addr_resolved[i],
+                                                     role == POTR_ROLE_RECEIVER);
+                if (ctx->sock[i] == POTR_INVALID_SOCKET)
+                {
+                    cleanup_sockets(ctx);
+                    free(ctx);
+                    return POTR_ERROR;
+                }
+
+                ctx->n_path++;
+            }
+
+            if (ctx->n_path == 0)
             {
                 free(ctx);
                 return POTR_ERROR;
             }
-            sock = open_socket_broadcast(ctx->service.src_port,
-                                         ctx->service.dst_port,
-                                         ctx->src_addr_resolved,
-                                         role == POTR_ROLE_RECEIVER);
             break;
         }
 
@@ -404,64 +492,67 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
             return POTR_ERROR;
     }
 
-    if (sock == POTR_INVALID_SOCKET)
-    {
-        free(ctx);
-        return POTR_ERROR;
-    }
-
-    ctx->sock     = sock;
     ctx->callback = callback;
     ctx->role     = role;
 
     /* 送信者: 送信先ソケットアドレスを設定 */
     if (role == POTR_ROLE_SENDER)
     {
-        struct in_addr dest_ip;
-        uint16_t       dest_port = ctx->service.dst_port;
+        int i;
 
         switch (ctx->service.type)
         {
             case POTR_TYPE_UNICAST:
-                dest_ip = ctx->dst_addr_resolved;
+                for (i = 0; i < ctx->n_path; i++)
+                {
+                    memset(&ctx->dest_addr[i], 0, sizeof(ctx->dest_addr[i]));
+                    ctx->dest_addr[i].sin_family = AF_INET;
+                    ctx->dest_addr[i].sin_addr   = ctx->dst_addr_resolved[i];
+                    ctx->dest_addr[i].sin_port   = htons(ctx->service.dst_port);
+                }
                 break;
 
             case POTR_TYPE_MULTICAST:
-                if (parse_ipv4_addr(ctx->service.multicast_group, &dest_ip) != POTR_SUCCESS)
+            {
+                struct in_addr mcast_ip;
+                if (parse_ipv4_addr(ctx->service.multicast_group, &mcast_ip) != POTR_SUCCESS)
                 {
-#ifdef _WIN32
-                    closesocket(ctx->sock);
-#else
-                    close(ctx->sock);
-#endif
+                    cleanup_sockets(ctx);
                     free(ctx);
                     return POTR_ERROR;
                 }
+                for (i = 0; i < ctx->n_path; i++)
+                {
+                    memset(&ctx->dest_addr[i], 0, sizeof(ctx->dest_addr[i]));
+                    ctx->dest_addr[i].sin_family = AF_INET;
+                    ctx->dest_addr[i].sin_addr   = mcast_ip;
+                    ctx->dest_addr[i].sin_port   = htons(ctx->service.dst_port);
+                }
                 break;
+            }
 
             case POTR_TYPE_BROADCAST:
-                if (parse_ipv4_addr(ctx->service.broadcast_addr, &dest_ip) != POTR_SUCCESS)
+            {
+                struct in_addr bcast_ip;
+                if (parse_ipv4_addr(ctx->service.broadcast_addr, &bcast_ip) != POTR_SUCCESS)
                 {
-#ifdef _WIN32
-                    closesocket(ctx->sock);
-#else
-                    close(ctx->sock);
-#endif
+                    cleanup_sockets(ctx);
                     free(ctx);
                     return POTR_ERROR;
                 }
+                for (i = 0; i < ctx->n_path; i++)
+                {
+                    memset(&ctx->dest_addr[i], 0, sizeof(ctx->dest_addr[i]));
+                    ctx->dest_addr[i].sin_family = AF_INET;
+                    ctx->dest_addr[i].sin_addr   = bcast_ip;
+                    ctx->dest_addr[i].sin_port   = htons(ctx->service.dst_port);
+                }
                 break;
+            }
 
             default:
-                dest_ip.s_addr = 0;
-                dest_port      = 0;
                 break;
         }
-
-        memset(&ctx->dest_addr, 0, sizeof(ctx->dest_addr));
-        ctx->dest_addr.sin_family = AF_INET;
-        ctx->dest_addr.sin_addr   = dest_ip;
-        ctx->dest_addr.sin_port   = htons(dest_port);
     }
 
     /* セッション識別子を生成する */
@@ -476,11 +567,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     {
         if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
         {
-#ifdef _WIN32
-            closesocket(ctx->sock);
-#else
-            close(ctx->sock);
-#endif
+            cleanup_sockets(ctx);
             free(ctx);
             return POTR_ERROR;
         }
@@ -491,11 +578,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     {
         if (potr_send_queue_init(&ctx->send_queue) != POTR_SUCCESS)
         {
-#ifdef _WIN32
-            closesocket(ctx->sock);
-#else
-            close(ctx->sock);
-#endif
+            cleanup_sockets(ctx);
             free(ctx);
             return POTR_ERROR;
         }
@@ -503,11 +586,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         if (potr_send_thread_start(ctx) != POTR_SUCCESS)
         {
             potr_send_queue_destroy(&ctx->send_queue);
-#ifdef _WIN32
-            closesocket(ctx->sock);
-#else
-            close(ctx->sock);
-#endif
+            cleanup_sockets(ctx);
             free(ctx);
             return POTR_ERROR;
         }
@@ -516,11 +595,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         {
             potr_send_thread_stop(ctx);
             potr_send_queue_destroy(&ctx->send_queue);
-#ifdef _WIN32
-            closesocket(ctx->sock);
-#else
-            close(ctx->sock);
-#endif
+            cleanup_sockets(ctx);
             free(ctx);
             return POTR_ERROR;
         }
@@ -530,11 +605,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
             potr_health_thread_stop(ctx);
             potr_send_thread_stop(ctx);
             potr_send_queue_destroy(&ctx->send_queue);
-#ifdef _WIN32
-            closesocket(ctx->sock);
-#else
-            close(ctx->sock);
-#endif
+            cleanup_sockets(ctx);
             free(ctx);
             return POTR_ERROR;
         }

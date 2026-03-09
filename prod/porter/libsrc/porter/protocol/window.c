@@ -163,9 +163,12 @@ int window_recv_push(PotrWindow *win, const PotrPacket *packet)
         return POTR_ERROR;
     }
 
-    idx               = win_index(win, packet->seq_num);
-    win->packets[idx] = *packet;
-    win->valid[idx]   = 1;
+    idx = win_index(win, packet->seq_num);
+    if (!win->valid[idx])
+    {
+        win->packets[idx] = *packet;
+        win->valid[idx]   = 1;
+    }
 
     return POTR_SUCCESS;
 }

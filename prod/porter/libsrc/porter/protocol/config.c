@@ -287,13 +287,26 @@ static void apply_service_kv(const char *key, const char *val,
                         sizeof(current->broadcast_addr),
                         val);
     }
-    else if (strcmp(key, "dst_addr") == 0)
+    else if (strncmp(key, "src_addr", 8) == 0)
     {
-        copy_cstr_trunc(current->dst_addr, sizeof(current->dst_addr), val);
+        int idx;
+        /* "src_addr1"〜"src_addr4" のみ有効。それ以外は無視。 */
+        if (key[8] < '1' || key[8] > '4' || key[9] != '\0')
+        {
+            return;
+        }
+        idx = key[8] - '1'; /* 0〜3 */
+        copy_cstr_trunc(current->src_addr[idx], POTR_MAX_ADDR_LEN, val);
     }
-    else if (strcmp(key, "src_addr") == 0)
+    else if (strncmp(key, "dst_addr", 8) == 0)
     {
-        copy_cstr_trunc(current->src_addr, sizeof(current->src_addr), val);
+        int idx;
+        if (key[8] < '1' || key[8] > '4' || key[9] != '\0')
+        {
+            return;
+        }
+        idx = key[8] - '1';
+        copy_cstr_trunc(current->dst_addr[idx], POTR_MAX_ADDR_LEN, val);
     }
     else if (strcmp(key, "pack_wait_ms") == 0)
     {

@@ -9,7 +9,7 @@
  *  @details
  *  送信者側で動作する定周期 PING 送信スレッドです。\n
  *  health_interval_ms 周期で PING パケットを送信します。\n
- *  受信者への応答要求は行いません (一方向ヘルスチェック)。
+ *  受信者側から送信者へのヘルスチェックは行いません (一方向ヘルスチェック)。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -106,15 +106,21 @@ static void *health_thread_func(void *arg)
 
             wire_len = packet_wire_size(&ping_pkt);
 
+            {
+                int k;
+                for (k = 0; k < ctx->n_path; k++)
+                {
 #ifdef _WIN32
-            sendto(ctx->sock, (const char *)&ping_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr,
-                   sizeof(ctx->dest_addr));
+                    sendto(ctx->sock[k], (const char *)&ping_pkt, (int)wire_len, 0,
+                           (const struct sockaddr *)&ctx->dest_addr[k],
+                           sizeof(ctx->dest_addr[k]));
 #else
-            sendto(ctx->sock, &ping_pkt, wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr,
-                   sizeof(ctx->dest_addr));
+                    sendto(ctx->sock[k], &ping_pkt, wire_len, 0,
+                           (const struct sockaddr *)&ctx->dest_addr[k],
+                           sizeof(ctx->dest_addr[k]));
 #endif
+                }
+            }
         }
     }
 

@@ -105,13 +105,21 @@ static void flush_packed(struct PotrContext_ *ctx,
 
     wire_len = packet_wire_size(&outer_pkt);
 
+    {
+        int i;
+        for (i = 0; i < ctx->n_path; i++)
+        {
 #ifdef _WIN32
-    sendto(ctx->sock, (const char *)&outer_pkt, (int)wire_len, 0,
-           (const struct sockaddr *)&ctx->dest_addr, sizeof(ctx->dest_addr));
+            sendto(ctx->sock[i], (const char *)&outer_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
 #else
-    sendto(ctx->sock, &outer_pkt, wire_len, 0,
-           (const struct sockaddr *)&ctx->dest_addr, sizeof(ctx->dest_addr));
+            sendto(ctx->sock[i], &outer_pkt, wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
 #endif
+        }
+    }
 }
 
 /* 送信スレッド本体 */
