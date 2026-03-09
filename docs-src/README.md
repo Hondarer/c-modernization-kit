@@ -46,4 +46,7 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
     - [Windows (windows-test-results.zip)](../../artifacts/windows-test-results.zip)
 - ドキュメントを圧縮した zip ファイル
     - [html (docs-html.zip)](../../artifacts/docs-html.zip)
-    - [docx (docs-docx.zip)](../../artifacts/docs-docx.zip)
+    - [docx ja (docs-docx-ja.zip)](../../artifacts/docs-docx-ja.zip)
+    - [docx en (docs-docx-en.zip)](../../artifacts/docs-docx-en.zip)
+    - [docx ja-details (docs-docx-ja-details.zip)](../../artifacts/docs-docx-ja-details.zip)
+    - [docx en-details (docs-docx-en-details.zip)](../../artifacts/docs-docx-en-details.zip)

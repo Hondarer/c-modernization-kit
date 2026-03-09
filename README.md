@@ -39,7 +39,10 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
     - [Windows (windows-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-test-results.zip)
 - ドキュメントを圧縮した zip ファイル
     - [html (docs-html.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html.zip)
-    - [docx (docs-docx.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx.zip)
+    - [docx ja (docs-docx-ja.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-ja.zip)
+    - [docx en (docs-docx-en.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-en.zip)
+    - [docx ja-details (docs-docx-ja-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-ja-details.zip)
+    - [docx en-details (docs-docx-en-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-en-details.zip)
 
 ## サンプルコード
 

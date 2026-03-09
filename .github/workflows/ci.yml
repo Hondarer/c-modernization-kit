@@ -180,9 +180,11 @@ jobs:
           # HTML ドキュメント
           html_files=(docs/doxygen docs/**/html)
           [ ${#html_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-html.zip "${html_files[@]}" || true
-          # DOCX ドキュメント
-          docx_files=(docs/**/docx/)
-          [ ${#docx_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-docx.zip "${docx_files[@]}" || true
+          # DOCX ドキュメント (サブディレクトリごとに分割)
+          find docs -type d -name docx | while read -r docx_dir; do
+            label=$(echo "$docx_dir" | sed 's|^docs/||;s|/docx$||;s|/|-|g')
+            zip -r "docs/artifacts/docs-docx-${label}.zip" "$docx_dir" || true
+          done
 
       - name: Upload documentation artifacts
         uses: actions/upload-artifact@v4
@@ -200,11 +202,32 @@ jobs:
             docs/**/html
           if-no-files-found: warn
 
-      - name: Upload docx artifacts
+      - name: Upload docx artifacts (ja)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-docs-docx-${{ github.sha }}
-          path: docs/**/docx/
+          name: ${{ github.event.repository.name }}-docs-docx-ja-${{ github.sha }}
+          path: docs/ja/docx/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (en)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-en-${{ github.sha }}
+          path: docs/en/docx/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (ja-details)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-ja-details-${{ github.sha }}
+          path: docs/ja-details/docx/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (en-details)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-en-details-${{ github.sha }}
+          path: docs/en-details/docx/
           if-no-files-found: warn
 
   deploy-pages:
