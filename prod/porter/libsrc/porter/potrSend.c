@@ -17,6 +17,7 @@
 #include "potrContext.h"
 #include "potrSendQueue.h"
 #include "compress/compress.h"
+#include "potrLog.h"
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
@@ -30,8 +31,15 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
 
     if (ctx == NULL || data == NULL || len == 0 || len > POTR_MAX_MESSAGE_SIZE)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrSend: invalid argument (handle=%p data=%p len=%zu max=%u)",
+                 (const void *)handle, data, len, (unsigned)POTR_MAX_MESSAGE_SIZE);
         return POTR_ERROR;
     }
+
+    POTR_LOG(POTR_LOG_TRACE,
+             "potrSend: service_id=%d len=%zu compress=%d blocking=%d",
+             ctx->service.service_id, len, compress, blocking);
 
     /* 圧縮が要求された場合はペイロード全体を圧縮する */
     if (compress != 0)
@@ -41,6 +49,9 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
         if (potr_compress(ctx->compress_buf, &cmp_len,
                           (const uint8_t *)data, len) != 0)
         {
+            POTR_LOG(POTR_LOG_ERROR,
+                     "potrSend: service_id=%d compression failed (len=%zu)",
+                     ctx->service.service_id, len);
             return POTR_ERROR;
         }
 
@@ -78,6 +89,10 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
                                       &ctx->send_thread_running)
             != POTR_SUCCESS)
         {
+            POTR_LOG(POTR_LOG_ERROR,
+                     "potrSend: service_id=%d send queue push failed"
+                     " (send_thread_running=%d)",
+                     ctx->service.service_id, ctx->send_thread_running);
             return POTR_ERROR;
         }
 

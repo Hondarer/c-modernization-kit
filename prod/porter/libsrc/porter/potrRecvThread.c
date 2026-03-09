@@ -33,6 +33,7 @@
 #include "potrContext.h"
 #include "potrRecvThread.h"
 #include "compress/compress.h"
+#include "potrLog.h"
 
 /* 前方宣言: recv_deliver は後で定義 */
 static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
@@ -162,6 +163,9 @@ static void notify_health_alive(struct PotrContext_ *ctx)
     if (!ctx->health_alive)
     {
         ctx->health_alive = 1;
+        POTR_LOG(POTR_LOG_INFO,
+                 "recv[service_id=%d]: CONNECTED",
+                 ctx->service.service_id);
         if (ctx->callback != NULL)
         {
             ctx->callback(ctx->service.service_id,
@@ -209,6 +213,11 @@ static void check_health_timeout(struct PotrContext_ *ctx)
         if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
         {
             ctx->health_alive = 0;
+            POTR_LOG(POTR_LOG_WARN,
+                     "recv[service_id=%d]: DISCONNECTED (timeout %lldms >= %ums)",
+                     ctx->service.service_id,
+                     (long long)elapsed_ms,
+                     (unsigned)ctx->global.health_timeout_ms);
             if (ctx->callback != NULL)
             {
                 ctx->callback(ctx->service.service_id,
@@ -425,6 +434,9 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
 
     if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
     {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "recv[service_id=%d]: NACK seq=%u",
+                 ctx->service.service_id, (unsigned)nack_num);
         send_nack(ctx, nack_num);
     }
 
@@ -526,8 +538,20 @@ static void *recv_thread_func(void *arg)
             if (recv_len < 0) continue;
 #endif
 
-            if (packet_parse(&pkt, buf, (size_t)recv_len) != POTR_SUCCESS) continue;
-            if (pkt.service_id != ctx->service.service_id) continue;
+            if (packet_parse(&pkt, buf, (size_t)recv_len) != POTR_SUCCESS)
+            {
+                POTR_LOG(POTR_LOG_TRACE,
+                         "recv[service_id=%d]: packet parse failed (len=%d)",
+                         ctx->service.service_id, recv_len);
+                continue;
+            }
+            if (pkt.service_id != ctx->service.service_id)
+            {
+                POTR_LOG(POTR_LOG_TRACE,
+                         "recv[service_id=%d]: ignored packet for service_id=%d",
+                         ctx->service.service_id, pkt.service_id);
+                continue;
+            }
             if (!check_src_addr(ctx, &sender_addr)) continue;
 
             /* ── 送信者ロール: NACK のみ処理 ── */
@@ -557,6 +581,11 @@ static void *recv_thread_func(void *arg)
                                             &resend_pkt) == POTR_SUCCESS)
                         {
                             size_t wire_len = packet_wire_size(&resend_pkt);
+                            POTR_LOG(POTR_LOG_DEBUG,
+                                     "sender[service_id=%d]: NACK received seq=%u"
+                                     " -> retransmit",
+                                     ctx->service.service_id,
+                                     (unsigned)ctx->last_nack_ack_num);
                             for (j = 0; j < ctx->n_path; j++)
                             {
 #ifdef _WIN32
@@ -573,6 +602,11 @@ static void *recv_thread_func(void *arg)
                         }
                         else
                         {
+                            POTR_LOG(POTR_LOG_WARN,
+                                     "sender[service_id=%d]: NACK seq=%u not in window"
+                                     " -> REJECT",
+                                     ctx->service.service_id,
+                                     (unsigned)ctx->last_nack_ack_num);
                             send_reject(ctx, ctx->last_nack_ack_num);
                         }
                     }
@@ -590,6 +624,10 @@ static void *recv_thread_func(void *arg)
                 {
                     continue; /* 旧セッションの FIN → 無視 */
                 }
+
+                POTR_LOG(POTR_LOG_INFO,
+                         "recv[service_id=%d]: FIN received -> DISCONNECTED",
+                         ctx->service.service_id);
 
                 /* ヘルスチェック有効時: health_alive で重複発火を防止する */
                 if (ctx->health_alive)
@@ -624,6 +662,11 @@ static void *recv_thread_func(void *arg)
                 {
                     continue;
                 }
+
+                POTR_LOG(POTR_LOG_WARN,
+                         "recv[service_id=%d]: REJECT received seq=%u"
+                         " (packet unrecoverable)",
+                         ctx->service.service_id, (unsigned)pkt.ack_num);
 
                 /* DISCONNECTED イベント発火 (alive のときのみ。連続 REJECT で重複しない) */
                 if (ctx->health_alive)
@@ -687,17 +730,27 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
 
     ctx->running = 1;
 
+    POTR_LOG(POTR_LOG_DEBUG,
+             "recv_thread[service_id=%d]: starting",
+             ctx->service.service_id);
+
 #ifdef _WIN32
     ctx->recv_thread = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
     if (ctx->recv_thread == NULL)
     {
         ctx->running = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "recv_thread[service_id=%d]: CreateThread failed",
+                 ctx->service.service_id);
         return POTR_ERROR;
     }
 #else
     if (pthread_create(&ctx->recv_thread, NULL, recv_thread_func, ctx) != 0)
     {
         ctx->running = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "recv_thread[service_id=%d]: pthread_create failed",
+                 ctx->service.service_id);
         return POTR_ERROR;
     }
 #endif

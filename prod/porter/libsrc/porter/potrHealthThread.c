@@ -35,6 +35,7 @@
 #include "protocol/window.h"
 #include "potrContext.h"
 #include "potrHealthThread.h"
+#include "potrLog.h"
 
 /* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする */
 static void health_sleep(struct PotrContext_ *ctx, uint32_t interval_ms)
@@ -104,6 +105,10 @@ static void *health_thread_func(void *arg)
                 continue;
             }
 
+            POTR_LOG(POTR_LOG_TRACE,
+                     "health[service_id=%d]: PING seq=%u",
+                     ctx->service.service_id, (unsigned)seq);
+
             wire_len = packet_wire_size(&ping_pkt);
 
             {
@@ -150,8 +155,16 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
 
     if (ctx->global.health_interval_ms == 0)
     {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "health_thread[service_id=%d]: disabled (health_interval_ms=0)",
+                 ctx->service.service_id);
         return POTR_SUCCESS; /* ヘルスチェック無効 */
     }
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "health_thread[service_id=%d]: starting (interval=%ums)",
+             ctx->service.service_id,
+             (unsigned)ctx->global.health_interval_ms);
 
 #ifdef _WIN32
     InitializeCriticalSection(&ctx->health_mutex);
@@ -168,12 +181,18 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
     if (ctx->health_thread == NULL)
     {
         ctx->health_running = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "health_thread[service_id=%d]: CreateThread failed",
+                 ctx->service.service_id);
         return POTR_ERROR;
     }
 #else
     if (pthread_create(&ctx->health_thread, NULL, health_thread_func, ctx) != 0)
     {
         ctx->health_running = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "health_thread[service_id=%d]: pthread_create failed",
+                 ctx->service.service_id);
         return POTR_ERROR;
     }
 #endif

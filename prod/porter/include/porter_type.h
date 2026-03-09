@@ -194,4 +194,34 @@ typedef enum
 typedef void (*PotrRecvCallback)(int service_id, PotrEvent event,
                                  const void *data, size_t len);
 
+/**
+ *******************************************************************************
+ *  @brief          ログレベル。
+ *
+ *  @details
+ *  potrLogConfig() の level 引数に指定するログ出力レベルです。\n
+ *  指定したレベル以上のメッセージのみが出力されます。
+ *
+ *  | 値                  | 説明                                           |
+ *  | ------------------- | ---------------------------------------------- |
+ *  | POTR_LOG_TRACE      | トレース (最詳細)。パケット単位の動作を記録。  |
+ *  | POTR_LOG_DEBUG      | デバッグ情報。設定値・ソケット操作等を記録。   |
+ *  | POTR_LOG_INFO       | 情報。サービスのライフサイクルイベントを記録。 |
+ *  | POTR_LOG_WARN       | 警告。回復可能な異常 (NACK・REJECT 等) を記録。|
+ *  | POTR_LOG_ERROR      | エラー。操作の失敗を記録。                     |
+ *  | POTR_LOG_FATAL      | 致命的エラー。回復不能な障害を記録。           |
+ *  | POTR_LOG_OFF        | ログ出力を無効にします (デフォルト)。          |
+ *******************************************************************************
+ */
+typedef enum
+{
+    POTR_LOG_TRACE = 0, /**< トレース (最詳細)。 */
+    POTR_LOG_DEBUG = 1, /**< デバッグ情報。 */
+    POTR_LOG_INFO  = 2, /**< 情報。 */
+    POTR_LOG_WARN  = 3, /**< 警告。 */
+    POTR_LOG_ERROR = 4, /**< エラー。 */
+    POTR_LOG_FATAL = 5, /**< 致命的エラー。 */
+    POTR_LOG_OFF   = 6, /**< ログ出力を無効にします。 */
+} PotrLogLevel;
+
 #endif /* PORTER_TYPE_H */
