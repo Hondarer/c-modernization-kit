@@ -56,8 +56,8 @@ struct PotrContext_
     PotrWindow       send_window;  /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
     PotrWindow       recv_window;  /**< 受信ウィンドウ (順序整列・欠番検出)。 */
 
-    /* 多重帰属: ソケット配列 */
-    PotrSocket         sock[POTR_MAX_MULTIHOME];              /**< 各パスの UDP ソケット。 */
+    /* マルチパス: ソケット配列 */
+    PotrSocket         sock[POTR_MAX_PATH];              /**< 各パスの UDP ソケット。 */
     int                n_path;                               /**< 有効パス数。 */
 
     volatile int     running;         /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
@@ -66,9 +66,9 @@ struct PotrContext_
     PotrRole         role;            /**< 役割 (POTR_ROLE_SENDER / POTR_ROLE_RECEIVER)。 */
 
     /* 解決済みアドレス (各パス分) */
-    struct in_addr     src_addr_resolved[POTR_MAX_MULTIHOME]; /**< 解決済み送信元 IPv4 アドレス。 */
-    struct in_addr     dst_addr_resolved[POTR_MAX_MULTIHOME]; /**< 解決済み宛先 IPv4 アドレス (unicast のみ)。 */
-    struct sockaddr_in dest_addr[POTR_MAX_MULTIHOME];         /**< 送信先ソケットアドレス (送信者が sendto に使用)。 */
+    struct in_addr     src_addr_resolved[POTR_MAX_PATH]; /**< 解決済み送信元 IPv4 アドレス。 */
+    struct in_addr     dst_addr_resolved[POTR_MAX_PATH]; /**< 解決済み宛先 IPv4 アドレス (unicast のみ)。 */
+    struct sockaddr_in dest_addr[POTR_MAX_PATH];         /**< 送信先ソケットアドレス (送信者が sendto に使用)。 */
 
     /* 自セッション識別子 (potrOpenService 時に決定) */
     uint32_t         session_id;        /**< 自セッション識別子 (乱数)。 */
@@ -82,7 +82,7 @@ struct PotrContext_
     int              peer_session_known;   /**< 相手セッションが初期化済みか (0: 未初期化)。 */
 
     /* 受信者: パスごとの送信者ポートキャッシュ (src_port=0 対応) */
-    uint16_t           peer_port[POTR_MAX_MULTIHOME]; /**< 各パスで観測した送信者ポート (NBO)。0 = 未観測。 */
+    uint16_t           peer_port[POTR_MAX_PATH]; /**< 各パスで観測した送信者ポート (NBO)。0 = 未観測。 */
 
     /* ヘルスチェック: 最終受信時刻 (受信者が使用。CLOCK_MONOTONIC 基準)。 */
     int32_t          last_recv_tv_nsec;   /**< 最終受信時刻 ナノ秒部。 */
@@ -90,8 +90,8 @@ struct PotrContext_
     int64_t          last_recv_tv_sec;    /**< 最終受信時刻 秒部。0 = 未受信。 */
 
     /* 受信者: パスごとの最終受信時刻 (パス単位の peer_port クリア用。CLOCK_MONOTONIC 基準)。 */
-    int64_t            path_last_recv_sec[POTR_MAX_MULTIHOME];  /**< パスごとの最終受信時刻 秒部。0 = 未受信。 */
-    int32_t            path_last_recv_nsec[POTR_MAX_MULTIHOME]; /**< パスごとの最終受信時刻 ナノ秒部。 */
+    int64_t            path_last_recv_sec[POTR_MAX_PATH];  /**< パスごとの最終受信時刻 秒部。0 = 未受信。 */
+    int32_t            path_last_recv_nsec[POTR_MAX_PATH]; /**< パスごとの最終受信時刻 ナノ秒部。 */
 
     size_t           frag_buf_len;       /**< フラグメント結合バッファの現在のデータ長 (バイト)。 */
     int              frag_compressed;   /**< フラグメント受信中の圧縮フラグ (非 0: 圧縮あり)。 */

@@ -94,9 +94,9 @@ typedef struct
     char multicast_group[POTR_MAX_ADDR_LEN]; /**< マルチキャストグループアドレス。(multicast のみ) */
     char broadcast_addr[POTR_MAX_ADDR_LEN];  /**< ブロードキャスト宛先アドレス。省略時は 255.255.255.255。(broadcast のみ) */
 
-    /* 多重帰属対応 (src_addr は全通信種別、dst_addr は unicast のみ有効) */
-    char src_addr[POTR_MAX_MULTIHOME][POTR_MAX_ADDR_LEN]; /**< 送信元アドレス [0]=src_addr1 〜 [3]=src_addr4。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須) */
-    char dst_addr[POTR_MAX_MULTIHOME][POTR_MAX_ADDR_LEN]; /**< 宛先アドレス [0]=dst_addr1 〜 [3]=dst_addr4。送信者は送信先、受信者は bind アドレス。(unicast のみ) */
+    /* マルチパス対応 (src_addr は全通信種別、dst_addr は unicast のみ有効) */
+    char src_addr[POTR_MAX_PATH][POTR_MAX_ADDR_LEN]; /**< 送信元アドレス [0]=src_addr1 〜 [3]=src_addr4。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須) */
+    char dst_addr[POTR_MAX_PATH][POTR_MAX_ADDR_LEN]; /**< 宛先アドレス [0]=dst_addr1 〜 [3]=dst_addr4。送信者は送信先、受信者は bind アドレス。(unicast のみ) */
 } PotrServiceDef;
 
 /**

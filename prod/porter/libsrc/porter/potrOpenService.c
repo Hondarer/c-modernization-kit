@@ -247,7 +247,7 @@ static PotrSocket open_socket_broadcast(uint16_t       src_port,
 static void cleanup_sockets(struct PotrContext_ *ctx)
 {
     int i;
-    for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+    for (i = 0; i < (int)POTR_MAX_PATH; i++)
     {
         if (ctx->sock[i] != POTR_INVALID_SOCKET)
         {
@@ -326,7 +326,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     /* 全ソケットを INVALID で初期化 */
     {
         int i;
-        for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+        for (i = 0; i < (int)POTR_MAX_PATH; i++)
         {
             ctx->sock[i] = POTR_INVALID_SOCKET;
         }
@@ -372,7 +372,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 return POTR_ERROR;
             }
 
-            for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
                 struct in_addr bind_addr;
                 uint16_t       bind_port;
@@ -434,7 +434,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 return POTR_ERROR;
             }
 
-            for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
                 if (ctx->service.src_addr[i][0] == '\0') break;
 
@@ -485,7 +485,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 memcpy(ctx->service.broadcast_addr, dflt, len + 1);
             }
 
-            for (i = 0; i < (int)POTR_MAX_MULTIHOME; i++)
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
                 if (ctx->service.src_addr[i][0] == '\0') break;
 
