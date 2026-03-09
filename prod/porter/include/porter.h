@@ -212,6 +212,62 @@ extern "C"
      */
     POTR_API extern int POTRAPI potrClose(PotrHandle handle);
 
+    /**
+     *******************************************************************************
+     *  @brief          ロガーを設定します。
+     *  @param[in]      level       出力する最低ログレベル。POTR_LOG_OFF でログ無効 (デフォルト)。
+     *  @param[in]      log_file    ログファイルのパス。NULL または空文字列を指定するとファイル出力なし。
+     *  @param[in]      console     0 以外を指定すると標準エラー出力 (stderr) にも出力します。
+     *  @return         成功時は POTR_SUCCESS、log_file が開けない場合は POTR_ERROR を返します。
+     *
+     *  @details
+     *  本関数は potrOpenService() の前に呼び出してください。\n
+     *  複数回呼び出した場合は最後の設定が有効になります。\n
+     *  スレッドセーフです。
+     *
+     *  @par            出力先
+     *  | OS      | 出力先                                                                    |
+     *  | ------- | ------------------------------------------------------------------------- |
+     *  | Linux   | syslog (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)   |
+     *  | Windows | ログファイル (log_file 指定時)、stderr (console 指定時)                   |
+     *
+     *  @par            ログフォーマット (ファイル / stderr)
+     *  @code
+     *  [YYYY-MM-DD HH:MM:SS.mmm] [LEVEL] [file.c:line] message
+     *  @endcode
+     *
+     *  @par            ログレベル一覧
+     *  | レベル          | 値 | syslog priority | 出力内容                          |
+     *  | --------------- | -- | --------------- | --------------------------------- |
+     *  | POTR_LOG_TRACE  |  0 | LOG_DEBUG       | パケット送受信・スレッド動作      |
+     *  | POTR_LOG_DEBUG  |  1 | LOG_DEBUG       | ソケット操作・設定値              |
+     *  | POTR_LOG_INFO   |  2 | LOG_INFO        | サービス開始・終了・接続状態変化  |
+     *  | POTR_LOG_WARN   |  3 | LOG_WARNING     | NACK・REJECT・回復可能な異常      |
+     *  | POTR_LOG_ERROR  |  4 | LOG_ERR         | 操作失敗                          |
+     *  | POTR_LOG_FATAL  |  5 | LOG_CRIT        | 致命的エラー                      |
+     *  | POTR_LOG_OFF    |  6 | -               | ログ無効 (デフォルト)             |
+     *
+     *  @par            使用例
+     *  @code{.c}
+     *  // INFO 以上をファイルと stderr に出力
+     *  potrLogConfig(POTR_LOG_INFO, "/var/log/porter.log", 1);
+     *
+     *  // DEBUG 以上をファイルのみに出力 (Linux では syslog にも出力)
+     *  potrLogConfig(POTR_LOG_DEBUG, "/tmp/porter.log", 0);
+     *
+     *  // ログを無効化
+     *  potrLogConfig(POTR_LOG_OFF, NULL, 0);
+     *  @endcode
+     *
+     *  @warning        log_file に指定したパスが書き込み不可の場合は POTR_ERROR を返します。\n
+     *                  本関数はロガー状態を再設定するため、呼び出し中にログを出力するスレッドが
+     *                  存在する場合でも安全に動作します (内部でミューテックスを使用)。
+     *******************************************************************************
+     */
+    POTR_API extern int POTRAPI potrLogConfig(PotrLogLevel  level,
+                                              const char   *log_file,
+                                              int           console);
+
 #ifdef __cplusplus
 }
 #endif

@@ -34,6 +34,7 @@
 #include "potrSendThread.h"
 #include "protocol/packet.h"
 #include "util/potrIpAddr.h"
+#include "potrLog.h"
 
 /* FIN パケットを全パスへ送信する */
 static void send_fin(struct PotrContext_ *ctx)
@@ -74,18 +75,29 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
 
     if (ctx == NULL)
     {
+        POTR_LOG(POTR_LOG_ERROR, "potrClose: handle is NULL");
         return POTR_ERROR;
     }
+
+    POTR_LOG(POTR_LOG_INFO,
+             "potrClose: service_id=%d closing",
+             ctx->service.service_id);
 
     /* ヘルスチェックスレッドを停止 (送信者のみ) */
     if (ctx->health_running)
     {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "potrClose: service_id=%d stopping health thread",
+                 ctx->service.service_id);
         potr_health_thread_stop(ctx);
     }
 
     /* 送信スレッドを停止してキューを破棄 (送信者のみ) */
     if (ctx->send_thread_running)
     {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "potrClose: service_id=%d flushing send queue and sending FIN",
+                 ctx->service.service_id);
         potr_send_queue_wait_drained(&ctx->send_queue);
         send_fin(ctx);
         potr_send_thread_stop(ctx);
@@ -95,6 +107,9 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
     /* 受信スレッドを停止する */
     if (ctx->running)
     {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "potrClose: service_id=%d stopping recv thread",
+                 ctx->service.service_id);
         comm_recv_thread_stop(ctx);
     }
 
@@ -143,6 +158,9 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
 #ifdef _WIN32
     WSACleanup();
 #endif
+
+    POTR_LOG(POTR_LOG_INFO,
+             "potrClose: service closed");
 
     free(ctx);
     return POTR_SUCCESS;

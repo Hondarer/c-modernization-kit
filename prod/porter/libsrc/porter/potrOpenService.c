@@ -36,6 +36,7 @@
 #include "potrSendQueue.h"
 #include "potrSendThread.h"
 #include "util/potrIpAddr.h"
+#include "potrLog.h"
 
 /* ソケットを作成して bind する。成功時は PotrSocket を返す。失敗時は POTR_INVALID_SOCKET。
    bind_addr: bind する IPv4 アドレス。port: bind するポート番号 (0 = OS 自動選定)。 */
@@ -269,22 +270,39 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 {
     struct PotrContext_ *ctx;
 
+    POTR_LOG(POTR_LOG_DEBUG,
+             "potrOpenService: service_id=%d role=%d config=%s",
+             service_id, (int)role,
+             (config_path != NULL) ? config_path : "(null)");
+
     if (config_path == NULL || handle == NULL)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: invalid argument (config_path=%p handle=%p)",
+                 (const void *)config_path, (const void *)handle);
         return POTR_ERROR;
     }
 
     /* role と callback の整合性チェック */
     if (role == POTR_ROLE_RECEIVER && callback == NULL)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d RECEIVER role requires callback",
+                 service_id);
         return POTR_ERROR;
     }
     if (role == POTR_ROLE_SENDER && callback != NULL)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d SENDER role must not have callback",
+                 service_id);
         return POTR_ERROR;
     }
     if (role != POTR_ROLE_SENDER && role != POTR_ROLE_RECEIVER)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d unknown role=%d",
+                 service_id, (int)role);
         return POTR_ERROR;
     }
 
@@ -317,15 +335,29 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     /* 設定ファイルを読み込む */
     if (config_load_global(config_path, &ctx->global) != POTR_SUCCESS)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d failed to load global config from '%s'",
+                 service_id, config_path);
         free(ctx);
         return POTR_ERROR;
     }
 
     if (config_load_service(config_path, service_id, &ctx->service) != POTR_SUCCESS)
     {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d not found in '%s'",
+                 service_id, config_path);
         free(ctx);
         return POTR_ERROR;
     }
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "potrOpenService: service_id=%d type=%d window=%u max_payload=%u"
+             " health_interval=%ums health_timeout=%ums",
+             service_id, (int)ctx->service.type,
+             (unsigned)ctx->global.window_size, (unsigned)ctx->global.max_payload,
+             (unsigned)ctx->global.health_interval_ms,
+             (unsigned)ctx->global.health_timeout_ms);
 
     /* 通信種別に応じてソケットを作成 */
     switch (ctx->service.type)
@@ -612,5 +644,9 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     }
 
     *handle = ctx;
+    POTR_LOG(POTR_LOG_INFO,
+             "potrOpenService: service_id=%d role=%s opened successfully",
+             service_id,
+             (role == POTR_ROLE_SENDER) ? "SENDER" : "RECEIVER");
     return POTR_SUCCESS;
 }
