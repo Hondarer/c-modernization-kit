@@ -4,7 +4,7 @@
  *  @brief          受信テストコマンド。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/04
- *  @version        1.0.0
+ *  @version        1.1.0
  *
  *  @details
  *  指定サービスでデータを受信し続ける CLI テストコマンドです。\n
@@ -12,12 +12,21 @@
  *
  *  @par            使用方法
  *  @code{.sh}
- *  recv <config_path> <service_id>
+ *  recv [-l <level>] <config_path> <service_id>
  *  @endcode
+ *
+ *  @par            オプション
+ *  | オプション       | 説明                                                        |
+ *  | ---------------- | ----------------------------------------------------------- |
+ *  | -l \<level\>     | ログレベルを指定します。指定がない場合はログ出力なし。      |
+ *
+ *  level に指定可能な値: TRACE, DEBUG, INFO, WARN, ERROR, FATAL (大文字小文字不問)
  *
  *  @par            使用例
  *  @code{.sh}
  *  recv porter-services.conf 10
+ *  recv -l INFO porter-services.conf 10
+ *  recv -l DEBUG porter-services.conf 10
  *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -91,6 +100,47 @@ static void on_recv(int service_id, PotrEvent event,
 
 /**
  *******************************************************************************
+ *  @brief          ログレベル文字列を PotrLogLevel に変換する。
+ *  @param[in]      str     レベル文字列 (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)。
+ *  @param[out]     out     変換結果の格納先。
+ *  @return         変換に成功した場合は 1、未知の文字列の場合は 0 を返します。
+ *******************************************************************************
+ */
+static int parse_log_level(const char *str, PotrLogLevel *out)
+{
+    static const struct { const char *name; PotrLogLevel level; } tbl[] = {
+        { "TRACE", POTR_LOG_TRACE },
+        { "DEBUG", POTR_LOG_DEBUG },
+        { "INFO",  POTR_LOG_INFO  },
+        { "WARN",  POTR_LOG_WARN  },
+        { "ERROR", POTR_LOG_ERROR },
+        { "FATAL", POTR_LOG_FATAL },
+    };
+    char   upper[16];
+    size_t i;
+    size_t j;
+
+    for (j = 0; j < sizeof(upper) - 1U && str[j] != '\0'; j++)
+    {
+        upper[j] = (str[j] >= 'a' && str[j] <= 'z')
+                       ? (char)(str[j] - ('a' - 'A'))
+                       : str[j];
+    }
+    upper[j] = '\0';
+
+    for (i = 0; i < sizeof(tbl) / sizeof(tbl[0]); i++)
+    {
+        if (strcmp(upper, tbl[i].name) == 0)
+        {
+            *out = tbl[i].level;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ *******************************************************************************
  *  @brief          メインエントリーポイント。
  *  @param[in]      argc コマンドライン引数の数。
  *  @param[in]      argv コマンドライン引数の配列。
@@ -99,19 +149,65 @@ static void on_recv(int service_id, PotrEvent event,
  */
 int main(int argc, char *argv[])
 {
-    const char *config_path;
-    int         service_id;
-    PotrHandle  handle;
+    const char  *config_path;
+    int          service_id;
+    PotrHandle   handle;
+    int          i;
+    PotrLogLevel log_level     = POTR_LOG_OFF;
+    int          log_level_set = 0;
 
-    if (argc < 3)
+    /* オプション解析 */
+    for (i = 1; i < argc; i++)
     {
-        fprintf(stderr, "使用方法: %s <config_path> <service_id>\n", argv[0]);
+        if (strcmp(argv[i], "-l") == 0)
+        {
+            if (i + 1 >= argc)
+            {
+                fprintf(stderr, "エラー: -l オプションにレベルを指定してください。\n");
+                fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
+                        argv[0]);
+                return EXIT_FAILURE;
+            }
+            i++;
+            if (!parse_log_level(argv[i], &log_level))
+            {
+                fprintf(stderr,
+                        "エラー: 不明なログレベル \"%s\"。"
+                        "TRACE/DEBUG/INFO/WARN/ERROR/FATAL のいずれかを指定してください。\n",
+                        argv[i]);
+                return EXIT_FAILURE;
+            }
+            log_level_set = 1;
+        }
+        else
+        {
+            break; /* 最初の非オプション引数で停止 */
+        }
+    }
+
+    /* positional 引数チェック */
+    if (argc - i < 2)
+    {
+        fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
+                argv[0]);
+        fprintf(stderr, "  -l <level>  ログレベル (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)\n");
         fprintf(stderr, "例: %s porter-services.conf 10\n", argv[0]);
+        fprintf(stderr, "例: %s -l INFO porter-services.conf 10\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    config_path = argv[1];
-    service_id  = atoi(argv[2]);
+    config_path = argv[i];
+    service_id  = atoi(argv[i + 1]);
+
+    /* ロガー設定 (stderr 出力、ファイルなし) */
+    if (log_level_set)
+    {
+        if (potrLogConfig(log_level, NULL, 1) != POTR_SUCCESS)
+        {
+            fprintf(stderr, "エラー: ロガーの設定に失敗しました。\n");
+            return EXIT_FAILURE;
+        }
+    }
 
     signal(SIGINT, sig_handler);
 
@@ -138,3 +234,4 @@ int main(int argc, char *argv[])
     printf("終了しました。\n");
     return EXIT_SUCCESS;
 }
+
