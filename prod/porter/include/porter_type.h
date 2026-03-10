@@ -25,12 +25,6 @@
  *
  *  @details
  *  サービス定義の通信方式を表します。
- *
- *  | 値                      | 説明                            |
- *  | ----------------------- | ------------------------------- |
- *  | POTR_TYPE_UNICAST       | 1:1 通信 (UDP ユニキャスト)     |
- *  | POTR_TYPE_MULTICAST     | 1:N 通信 (UDP マルチキャスト)   |
- *  | POTR_TYPE_BROADCAST     | 1:N 通信 (UDP ブロードキャスト) |
  *******************************************************************************
  */
 typedef enum
@@ -46,11 +40,6 @@ typedef enum
  *
  *  @details
  *  potrOpenService() の呼び出し元がデータを送信する役割か受信する役割かを明示します。
- *
- *  | 値                  | 説明       |
- *  | ------------------- | ---------- |
- *  | POTR_ROLE_SENDER    | 送信者     |
- *  | POTR_ROLE_RECEIVER  | 受信者     |
  *******************************************************************************
  */
 typedef enum
@@ -67,12 +56,6 @@ typedef enum
  *  設定ファイルの [service.N] セクションから読み込まれるサービス設定です。
  *
  *  通信種別によって有効なフィールドが異なります。
- *
- *  | 通信種別              | サービスの識別子        | 有効なフィールド                                                                            |
- *  | --------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
- *  | POTR_TYPE_UNICAST     | dst_port                | src_addr1〜4, dst_addr1〜4, dst_port, src_port (省略可)                                    |
- *  | POTR_TYPE_MULTICAST   | dst_port                | src_addr1〜4, src_port (省略可), dst_port, multicast_group, ttl                            |
- *  | POTR_TYPE_BROADCAST   | dst_port                | src_addr1〜4, src_port (省略可), dst_port, broadcast_addr                                  |
  *******************************************************************************
  */
 typedef struct
@@ -156,12 +139,6 @@ typedef struct PotrContext_ *PotrHandle;
  *  @details
  *  PotrRecvCallback の第 2 引数に渡されるイベント種別です。
  *
- *  | 値                       | 説明                                                                                      |
- *  | ------------------------ | ----------------------------------------------------------------------------------------- |
- *  | POTR_EVENT_DATA          | データ受信。data/len に受信内容が格納されます。                                           |
- *  | POTR_EVENT_CONNECTED     | 送信者からの疎通を初検知、または切断後の復帰を検知しました。                             |
- *  | POTR_EVENT_DISCONNECTED  | 切断を検知しました (タイムアウト / FIN 受信 / REJECT 受信のいずれか)。                   |
- *
  *  @note
  *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
  *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。\n
@@ -205,16 +182,6 @@ typedef void (*PotrRecvCallback)(int service_id, PotrEvent event,
  *  @details
  *  potrLogConfig() の level 引数に指定するログ出力レベルです。\n
  *  指定したレベル以上のメッセージのみが出力されます。
- *
- *  | 値                  | 説明                                           |
- *  | ------------------- | ---------------------------------------------- |
- *  | POTR_LOG_TRACE      | トレース (最詳細)。パケット単位の動作を記録。  |
- *  | POTR_LOG_DEBUG      | デバッグ情報。設定値・ソケット操作等を記録。   |
- *  | POTR_LOG_INFO       | 情報。サービスのライフサイクルイベントを記録。 |
- *  | POTR_LOG_WARN       | 警告。回復可能な異常 (NACK・REJECT 等) を記録。|
- *  | POTR_LOG_ERROR      | エラー。操作の失敗を記録。                     |
- *  | POTR_LOG_FATAL      | 致命的エラー。回復不能な障害を記録。           |
- *  | POTR_LOG_OFF        | ログ出力を無効にします (デフォルト)。          |
  *******************************************************************************
  */
 typedef enum
@@ -222,9 +189,9 @@ typedef enum
     POTR_LOG_TRACE = 0, /**< トレース (最詳細)。 */
     POTR_LOG_DEBUG = 1, /**< デバッグ情報。 */
     POTR_LOG_INFO  = 2, /**< 情報。 */
-    POTR_LOG_WARN  = 3, /**< 警告。 */
-    POTR_LOG_ERROR = 4, /**< エラー。 */
-    POTR_LOG_FATAL = 5, /**< 致命的エラー。 */
+    POTR_LOG_WARN  = 3, /**< 警告。回復可能な異常を記録。 */
+    POTR_LOG_ERROR = 4, /**< エラー。操作の失敗を記録。 */
+    POTR_LOG_FATAL = 5, /**< 致命的エラー。回復不能な障害を記録。 */
     POTR_LOG_OFF   = 6, /**< ログ出力を無効にします。 */
 } PotrLogLevel;
 
