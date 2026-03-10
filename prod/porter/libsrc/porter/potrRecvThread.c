@@ -152,14 +152,10 @@ static void update_path_recv(struct PotrContext_      *ctx,
     ctx->peer_port[path_idx] = sender->sin_port; /* NBO のまま格納 */
 }
 
-/* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。 */
+/* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。
+   ヘルスチェック有効/無効に関わらず health_alive フラグで接続状態を統一管理する。 */
 static void notify_health_alive(struct PotrContext_ *ctx)
 {
-    if (ctx->global.health_timeout_ms == 0)
-    {
-        return; /* ヘルスチェック無効 */
-    }
-
     if (!ctx->health_alive)
     {
         ctx->health_alive = 1;
@@ -629,19 +625,10 @@ static void *recv_thread_func(void *arg)
                          "recv[service_id=%d]: FIN received -> DISCONNECTED",
                          ctx->service.service_id);
 
-                /* ヘルスチェック有効時: health_alive で重複発火を防止する */
+                /* health_alive で重複発火を防止する (ヘルスチェック有無によらず接続済み状態のみ) */
                 if (ctx->health_alive)
                 {
                     ctx->health_alive = 0;
-                    if (ctx->callback != NULL)
-                    {
-                        ctx->callback(ctx->service.service_id,
-                                      POTR_EVENT_DISCONNECTED, NULL, 0);
-                    }
-                }
-                else if (ctx->global.health_timeout_ms == 0 && ctx->peer_session_known)
-                {
-                    /* ヘルスチェック無効時: peer_session_known で重複発火を防止する */
                     if (ctx->callback != NULL)
                     {
                         ctx->callback(ctx->service.service_id,
@@ -668,7 +655,7 @@ static void *recv_thread_func(void *arg)
                          " (packet unrecoverable)",
                          ctx->service.service_id, (unsigned)pkt.ack_num);
 
-                /* DISCONNECTED イベント発火 (alive のときのみ。連続 REJECT で重複しない) */
+                /* DISCONNECTED イベント発火 (接続済みのときのみ。連続 REJECT で重複しない) */
                 if (ctx->health_alive)
                 {
                     ctx->health_alive = 0;
@@ -682,7 +669,7 @@ static void *recv_thread_func(void *arg)
                 /* 欠落外側パケットをスキップして recv_window を前進させる */
                 window_recv_skip(&ctx->recv_window, pkt.ack_num);
 
-                /* 後続パケットを配信 (最初の pop で CONNECTED を発火) */
+                /* 後続パケットを配信 (ウィンドウに溜まっていれば最初の pop で CONNECTED を発火) */
                 drain_recv_window(ctx);
                 continue;
             }
