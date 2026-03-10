@@ -165,7 +165,8 @@ typedef struct PotrContext_ *PotrHandle;
  *  @note
  *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
  *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。\n
- *  ヘルスチェック無効時 (health_timeout_ms=0) は CONNECTED / DISCONNECTED は発生しません。
+ *  ヘルスチェック無効時 (health_timeout_ms=0) は、通常の疎通監視による CONNECTED / DISCONNECTED は発生しません。\n
+ *  ただし、送信者が potrClose を呼び出した際に送出する FIN パケットを受信した場合は、ヘルスチェック設定に関わらず DISCONNECTED が発生します。
  *******************************************************************************
  */
 typedef enum
