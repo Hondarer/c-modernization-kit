@@ -45,7 +45,11 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
     - [Linux OL10 (linux-ol10-test-results.zip)](../../artifacts/linux-ol10-test-results.zip)
     - [Windows (windows-test-results.zip)](../../artifacts/windows-test-results.zip)
 - ドキュメントを圧縮した zip ファイル
-    - [html (docs-html.zip)](../../artifacts/docs-html.zip)
+    - [html doxygen (docs-html-doxygen.zip)](../../artifacts/docs-html-doxygen.zip)
+    - [html ja (docs-html-ja.zip)](../../artifacts/docs-html-ja.zip)
+    - [html en (docs-html-en.zip)](../../artifacts/docs-html-en.zip)
+    - [html ja-details (docs-html-ja-details.zip)](../../artifacts/docs-html-ja-details.zip)
+    - [html en-details (docs-html-en-details.zip)](../../artifacts/docs-html-en-details.zip)
     - [docx ja (docs-docx-ja.zip)](../../artifacts/docs-docx-ja.zip)
     - [docx en (docs-docx-en.zip)](../../artifacts/docs-docx-en.zip)
     - [docx ja-details (docs-docx-ja-details.zip)](../../artifacts/docs-docx-ja-details.zip)

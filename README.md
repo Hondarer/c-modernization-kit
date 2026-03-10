@@ -38,7 +38,11 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
     - [Linux OL10 (linux-ol10-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/linux-ol10-test-results.zip)
     - [Windows (windows-test-results.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/windows-test-results.zip)
 - ドキュメントを圧縮した zip ファイル
-    - [html (docs-html.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html.zip)
+    - [html doxygen (docs-html-doxygen.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html-doxygen.zip)
+    - [html ja (docs-html-ja.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html-ja.zip)
+    - [html en (docs-html-en.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html-en.zip)
+    - [html ja-details (docs-html-ja-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html-ja-details.zip)
+    - [html en-details (docs-html-en-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-html-en-details.zip)
     - [docx ja (docs-docx-ja.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-ja.zip)
     - [docx en (docs-docx-en.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-en.zip)
     - [docx ja-details (docs-docx-ja-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-ja-details.zip)

@@ -175,11 +175,15 @@ jobs:
 
       - name: Create artifact archives
         run: |
-          shopt -s globstar nullglob
           mkdir -p docs/artifacts
-          # HTML ドキュメント
-          html_files=(docs/doxygen docs/**/html)
-          [ ${#html_files[@]} -gt 0 ] && zip -r docs/artifacts/docs-html.zip "${html_files[@]}" || true
+          # HTML ドキュメント (サブディレクトリごとに分割)
+          if [ -d "docs/doxygen" ]; then
+            zip -r docs/artifacts/docs-html-doxygen.zip docs/doxygen || true
+          fi
+          find docs -type d -name html | while read -r html_dir; do
+            label=$(echo "$html_dir" | sed 's|^docs/||;s|/html$||;s|/|-|g')
+            zip -r "docs/artifacts/docs-html-${label}.zip" "$html_dir" || true
+          done
           # DOCX ドキュメント (サブディレクトリごとに分割)
           find docs -type d -name docx | while read -r docx_dir; do
             label=$(echo "$docx_dir" | sed 's|^docs/||;s|/docx$||;s|/|-|g')
@@ -193,13 +197,39 @@ jobs:
           path: docs/
           if-no-files-found: warn
 
-      - name: Upload html artifacts
+      - name: Upload html artifacts (doxygen)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-docs-html-${{ github.sha }}
-          path: |
-            docs/doxygen
-            docs/**/html
+          name: ${{ github.event.repository.name }}-docs-html-doxygen-${{ github.sha }}
+          path: docs/doxygen/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (ja)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-ja-${{ github.sha }}
+          path: docs/ja/html/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (en)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-en-${{ github.sha }}
+          path: docs/en/html/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (ja-details)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-ja-details-${{ github.sha }}
+          path: docs/ja-details/html/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (en-details)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-en-details-${{ github.sha }}
+          path: docs/en-details/html/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (ja)
