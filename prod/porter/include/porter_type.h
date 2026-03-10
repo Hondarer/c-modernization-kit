@@ -156,23 +156,27 @@ typedef struct PotrContext_ *PotrHandle;
  *  @details
  *  PotrRecvCallback の第 2 引数に渡されるイベント種別です。
  *
- *  | 値                       | 説明                                                         |
- *  | ------------------------ | ------------------------------------------------------------ |
- *  | POTR_EVENT_DATA          | データ受信。data/len に受信内容が格納されます。              |
- *  | POTR_EVENT_CONNECTED     | 送信者からの疎通を初検知、または切断後の復帰を検知しました。 |
- *  | POTR_EVENT_DISCONNECTED  | health_timeout_ms 以内に有効なパケットが受信できず切断を検知しました。 |
+ *  | 値                       | 説明                                                                                      |
+ *  | ------------------------ | ----------------------------------------------------------------------------------------- |
+ *  | POTR_EVENT_DATA          | データ受信。data/len に受信内容が格納されます。                                           |
+ *  | POTR_EVENT_CONNECTED     | 送信者からの疎通を初検知、または切断後の復帰を検知しました。                             |
+ *  | POTR_EVENT_DISCONNECTED  | 切断を検知しました (タイムアウト / FIN 受信 / REJECT 受信のいずれか)。                   |
  *
  *  @note
  *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
  *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。\n
- *  ヘルスチェック無効時 (health_timeout_ms=0) は CONNECTED / DISCONNECTED は発生しません。
+ *  ヘルスチェックの有効/無効に関わらず、初回パケット受信時に CONNECTED が発火し、接続状態を管理します。\n
+ *  DISCONNECTED の発火条件:\n
+ *  - ヘルスチェック有効時 (health_timeout_ms > 0): タイムアウト / FIN 受信 / REJECT 受信\n
+ *  - ヘルスチェック無効時 (health_timeout_ms = 0): FIN 受信 / REJECT 受信\n
+ *  REJECT 受信後は DISCONNECTED の直後に、次のパケット受信で CONNECTED が発火します。
  *******************************************************************************
  */
 typedef enum
 {
     POTR_EVENT_DATA         = 0, /**< データ受信。data/len に内容が格納される。 */
     POTR_EVENT_CONNECTED    = 1, /**< 送信者からの疎通を初検知 or 復帰。data=NULL, len=0。 */
-    POTR_EVENT_DISCONNECTED = 2, /**< health_timeout_ms 以内に有効なパケットが受信できず切断を検知。data=NULL, len=0。 */
+    POTR_EVENT_DISCONNECTED = 2, /**< 切断を検知 (タイムアウト / FIN 受信 / REJECT 受信)。data=NULL, len=0。 */
 } PotrEvent;
 
 /**

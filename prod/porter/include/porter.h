@@ -159,8 +159,8 @@ extern "C"
      *  | 通信種別              | 送信先                                     |
      *  | --------------------- | ------------------------------------------ |
      *  | POTR_TYPE_UNICAST     | 接続相手の dst_port 宛にユニキャスト送信   |
-     *  | POTR_TYPE_MULTICAST   | multicast_group:src_port へ送信            |
-     *  | POTR_TYPE_BROADCAST   | broadcast_addr:src_port へ送信             |
+     *  | POTR_TYPE_MULTICAST   | multicast_group:dst_port へ送信            |
+     *  | POTR_TYPE_BROADCAST   | broadcast_addr:dst_port へ送信             |
      *
      *  compress に 0 以外を指定した場合、内部で圧縮処理を行ってから送信します。\n
      *  受信側の PotrRecvCallback には、解凍済みの元メッセージが渡されます。\n
@@ -186,6 +186,7 @@ extern "C"
      *
      *  @warning        handle が NULL の場合は失敗を返します。\n
      *                  data が NULL の場合は失敗を返します。\n
+     *                  len が 0 の場合は失敗を返します。\n
      *                  len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。\n
      *                  送信スレッドが停止している場合 (potrClose 呼び出し後など) は失敗を返します。
      *******************************************************************************
@@ -206,6 +207,12 @@ extern "C"
      *  受信スレッドを停止し、ソケットをクローズしてリソースを解放します。\n
      *  マルチキャストの場合はグループから離脱します。\n
      *  本関数呼び出し後、handle は無効となります。
+     *
+     *  @note
+     *  本関数呼び出し時、POTR_EVENT_DISCONNECTED コールバックは発火しません。\n
+     *  アプリケーション自身が明示的にサービスを閉じる操作は、接続状態変化イベントとして通知しない設計です。\n
+     *  送信者 (POTR_ROLE_SENDER) が本関数を呼び出した場合は、FIN パケットが送信されます。
+     *  FIN を受信した受信者側では POTR_EVENT_DISCONNECTED が発火します。
      *
      *  @warning        handle が NULL の場合は失敗を返します。
      *******************************************************************************
