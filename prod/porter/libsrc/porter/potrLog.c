@@ -140,7 +140,7 @@ static const char *log_basename(const char *path)
 
 /**
  *  @brief  現在時刻を "[YYYY-MM-DD HH:MM:SS.mmm]" 形式で buf に書き込む。
- *  @param[out] buf     出力バッファ (最低 28 バイト)。
+ *  @param[out] buf     出力バッファ (最低 96 バイト)。
  *  @param[in]  buflen  バッファサイズ。
  */
 static void log_timestamp(char *buf, size_t buflen)
@@ -182,6 +182,7 @@ static int level_to_syslog_priority(PotrLogLevel level)
         case POTR_LOG_WARN:  return LOG_WARNING;
         case POTR_LOG_ERROR: return LOG_ERR;
         case POTR_LOG_FATAL: return LOG_CRIT;
+        case POTR_LOG_OFF:   return LOG_DEBUG;
         default:             return LOG_DEBUG;
     }
 }
@@ -263,7 +264,7 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
                     const char *fmt, ...)
 {
     char    msg[512];
-    char    ts[32];
+    char    ts[96];
     va_list ap;
     int     cur_level;
 

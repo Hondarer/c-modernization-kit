@@ -1,198 +1,141 @@
-# 通信フレームワーク
+# porter
 
-## 概要
+porter は UDP/IP を基盤とするクロスプラットフォーム（Linux / Windows）通信ライブラリです。
+1:1（ユニキャスト）・1:N（マルチキャスト・ブロードキャスト）通信をサポートし、
+スライディングウィンドウによる NACK ベース再送制御、ヘルスチェック、データ圧縮を提供します。
 
-DLL 呼び出しで、プラットフォームをまたいだ通信を行うサンプル実装を示す。
+## 特徴
 
-## プラットフォーム
+| 機能 | 詳細 |
+|---|---|
+| トランスポート | UDP/IPv4 |
+| 通信モデル | ユニキャスト / マルチキャスト / ブロードキャスト |
+| 再送制御 | NACK ベース、スライディングウィンドウ（最大 256 スロット） |
+| データ圧縮 | raw DEFLATE（Linux: zlib、Windows: Compression API） |
+| フラグメント化 | 最大 65,535 バイトのメッセージを自動分割・結合 |
+| ヘルスチェック | 定周期 PING による疎通確認と切断検知 |
+| マルチパス | 最大 4 経路の並列送信 |
+| プラットフォーム | Linux、Windows |
 
-Linux/Windows で同じ関数プロトタイプとし、同じ動作を行う。
-
-## 通信方式
-
-以下の通信方式をサポートする。
-
-- 1:1 通信
-- 1:N 通信
-
-## 基本プロトコル
-
-UDP/IP とする。
-
-通番管理、ウインドウ管理を行い、パケットロストが発生した場合でも、一定の過去パケットは再送要求を行う。
-パケットの追い越しにも対応する。(再送中は追い越しに近い挙動を示すため、再送をサポートする場合、追い越し対応が必須)
-
-## ポート
-
-定義ファイルでサービスポートを指定する。`dst_port` がサービスの識別子であり全通信種別で必須。`src_port` は送信者の送信元 bind ポートで省略可（省略時は OS がエフェメラルポートを自動選定）。
-
-## テストコマンド
-
-CLI のテストコマンドを用意する。
-
----
-
-## 実装
-
-### プロジェクト構成
+## ディレクトリ構成
 
 ```text
 prod/porter/
-├── sample-config/
-│   └── porter-services.conf    # サービス定義ファイル (サンプル)
-├── makefile
+├── README.md                        # このファイル
+├── docs/
+│   ├── architecture.md             # アーキテクチャ設計
+│   ├── api.md                      # 公開 API 仕様
+│   ├── protocol.md                 # プロトコル仕様
+│   ├── config.md                   # 設定ファイル仕様
+│   └── sequence.md                 # シーケンス図集
 ├── include/
-│   ├── libporter_const.h       # 定数定義
-│   ├── libporter_type.h       # 型定義
-│   └── libporter.h             # 公開 API
-├── libsrc/
-│   ├── portercore/             # 静的ライブラリ (プロトコルロジック)
-│   │   ├── config.c / config.h     # INI 形式設定ファイル解析
-│   │   ├── packet.c / packet.h     # パケット構築・解析
-│   │   ├── seqnum.c / seqnum.h     # 通番管理
-│   │   ├── window.c / window.h     # スライディングウィンドウ管理
-│   │   └── retransmit.c / retransmit.h  # 再送制御
-│   └── porter/                 # 動的ライブラリ (UDP ソケット層)
-│       ├── potrContext.h           # PotrHandle 実体 (内部非公開)
-│       ├── potrOpenService.c       # サービス開設
-│       ├── potrSend.c              # データ送信
-│       ├── potrClose.c             # サービス終了
-│       └── potrRecvThread.c        # 受信スレッド (内部)
-└── src/
-    ├── send/send.c                 # 送信テストコマンド
-    └── recv/recv.c                 # 受信テストコマンド
+│   ├── porter.h                    # 公開 API
+│   ├── porter_const.h              # 定数定義
+│   └── porter_type.h               # 型定義
+├── libsrc/porter/                  # ライブラリ実装（内部）
+│   ├── potrContext.h               # コンテキスト定義
+│   ├── potrOpenService.c           # サービス開放
+│   ├── potrSend.c                  # 送信
+│   ├── potrClose.c                 # サービス閉鎖
+│   ├── potrLog.c                   # ロギング
+│   ├── potrRecvThread.c            # 受信スレッド
+│   ├── potrSendThread.c            # 非同期送信スレッド
+│   ├── potrHealthThread.c          # ヘルスチェックスレッド
+│   ├── potrSendQueue.c             # 送信キュー（リングバッファ）
+│   ├── compress/                   # 圧縮・解凍（プラットフォーム別）
+│   ├── protocol/                   # パケット・ウィンドウ・通番・設定
+│   └── util/                       # ユーティリティ
+├── src/
+│   ├── send/send.c                 # 送信テストコマンド
+│   └── recv/recv.c                 # 受信テストコマンド
+└── sample-config/
+    └── porter-services.conf        # サンプル設定ファイル
 ```
 
-### サービスの概念
+## クイックスタート
 
-通信の単位を「サービス」として管理する。サービス ID は `int` 型の任意の値。
+### 設定ファイルの準備
 
-### 1:N 通信の方式
+porter は INI 形式の設定ファイルでサービスを定義します。詳細は [設定ファイル仕様](docs/config.md) を参照してください。
 
-| 方式 | 説明 |
-| ---- | ---- |
-| マルチキャスト | グループ参加ホストのみに送信。ルーター越え可 (ルーター設定次第)。IGMP が必要。 |
-| ブロードキャスト | 同一サブネット内の全ホストに送信。ルーター越え不可。設定が簡単。 |
+```ini
+[global]
+window_size        = 16
+health_interval_ms = 3000
+health_timeout_ms  = 10000
 
-### サービス定義ファイル
+[service.1001]
+type     = unicast
+src_addr = 192.168.1.20
+dst_addr = 192.168.1.10
+dst_port = 5001
+```
 
-INI 形式のテキストファイルで設定する。通信種別ごとのフィールド一覧を以下に示す。
-
-#### unicast (1:1)
-
-| フィールド | 必須 | 送信者 | 受信者 |
-| --------- | ---- | ------ | ------ |
-| `src_addr` | ✅ | bind アドレス | 送信元 IP フィルタ |
-| `src_port` | — | bind ポート (0 = エフェメラル) | (無効) |
-| `dst_addr` | ✅ | 送信先アドレス | bind アドレス |
-| `dst_port` | ✅ | 送信先ポート | listen ポート |
-
-#### multicast (1:N)
-
-| フィールド | 必須 | 送信者 | 受信者 |
-| --------- | ---- | ------ | ------ |
-| `src_addr` | ✅ | 送信インターフェース (`IP_MULTICAST_IF`) | マルチキャスト参加インターフェース + 送信元 IP フィルタ |
-| `src_port` | — | bind ポート (0 = エフェメラル) | (無効) |
-| `dst_port` | ✅ | 送信先ポート | listen ポート |
-| `multicast_group` | ✅ | 送信先グループアドレス | 参加グループアドレス |
-| `ttl` | — | マルチキャスト TTL (デフォルト: 1) | (無効) |
-
-#### broadcast (1:N)
-
-| フィールド | 必須 | 送信者 | 受信者 |
-| --------- | ---- | ------ | ------ |
-| `src_addr` | ✅ | bind アドレス (インターフェース選択) | 送信元 IP フィルタ |
-| `src_port` | — | bind ポート (0 = エフェメラル) | (無効) |
-| `dst_port` | ✅ | 送信先ポート | listen ポート |
-| `broadcast_addr` | ✅ | 送信先ブロードキャストアドレス | (無効) |
-
-### 公開 API
+### 受信者の実装例
 
 ```c
-// 受信コールバック型
-typedef void (*PotrRecvCallback)(int service_id, const void *data, size_t len);
+#include "porter.h"
 
-// 設定ファイルから指定サービスを開く
-POTR_API int POTRAPI potrOpenService(const char       *config_path,
-                                     int               service_id,
-                                     PotrRole          role,
-                                     PotrRecvCallback  callback,
-                                     PotrHandle       *handle);
+void on_event(int service_id, PotrEvent event, const void *data, size_t len) {
+    switch (event) {
+    case POTR_EVENT_CONNECTED:
+        /* 送信者からの最初のパケット到着 */
+        break;
+    case POTR_EVENT_DISCONNECTED:
+        /* タイムアウト / FIN / REJECT 受信 */
+        break;
+    case POTR_EVENT_DATA:
+        /* データ受信: data[0..len-1] に内容 */
+        break;
+    }
+}
 
-// データを送信する
-POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len, int compress);
-
-// サービスを閉じる
-POTR_API int POTRAPI potrClose(PotrHandle handle);
+int main(void) {
+    PotrHandle handle;
+    potrLogConfig(POTR_LOG_INFO, NULL, 1);
+    potrOpenService("porter-services.conf", 1001, POTR_ROLE_RECEIVER, on_event, &handle);
+    /* ... 待機 ... */
+    potrClose(handle);
+    return 0;
+}
 ```
 
-### プロトコル設計
-
-#### パケット構造
+### 送信者の実装例
 
 ```c
-typedef struct {
-    uint32_t seq_num;                   // 通番 (NBO)
-    uint32_t ack_num;                   // 再送要求番号 / 再送不能通番 (NBO)
-    uint16_t flags;                     // POTR_FLAG_DATA / NACK / PING / REJECT など (NBO)
-    uint16_t payload_len;               // ペイロード長 (NBO)
-    uint8_t  payload[POTR_MAX_PAYLOAD]; // ペイロードデータ
-} PotrPacket;
+#include "porter.h"
+
+int main(void) {
+    PotrHandle handle;
+    potrLogConfig(POTR_LOG_INFO, NULL, 1);
+    potrOpenService("porter-services.conf", 1001, POTR_ROLE_SENDER, NULL, &handle);
+
+    const char *msg = "Hello, porter!";
+    potrSend(handle, msg, strlen(msg), 0, 1);  /* 圧縮なし・ブロッキング */
+
+    potrClose(handle);
+    return 0;
+}
 ```
-
-各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納する。
-
-#### 通番管理
-
-`uint32_t` の循環カウンタを使用する。折り返しを考慮した比較を `seqnum_is_newer()` で提供する。
-
-#### ウィンドウ管理
-
-スライディングウィンドウ方式。送信側・受信側それぞれ `PotrWindow` 構造体で管理する。
-
-- 送信ウィンドウ: 過去 N パケットを循環バッファに保持する。満杯時は最古エントリを evict して新パケットを格納する。
-- 受信ウィンドウ: 順序外到着 (追い越し) パケットをバッファリングし、通番順に整列してコールバックへ渡す。
-
-#### 再送制御
-
-NACK のみ方式 (ACK なし)。スループットを優先し、問題発生時のみ受信側から通知する。
-
-- 受信側: 欠番を検出したとき、送信元へユニキャストで NACK を送出する。
-- 送信側: NACK 受信時に該当パケットを再送する。再送もマルチキャスト/ブロードキャストで送出するため、他の受信者も恩恵を受ける。
-- 再送不能 (REJECT): 送信側の循環バッファから evict 済みの通番を NACK で要求された場合、送信側は REJECT を返す。受信側は REJECT 受信で DISCONNECTED イベントを発火し、欠落通番をスキップして処理を継続する。
-
-#### クロスプラットフォーム対応
-
-`potrContext.h` でプラットフォーム差異を吸収する。
-
-| 機能 | Linux | Windows |
-| ---- | ----- | ------- |
-| ソケット型 | `int` | `SOCKET` |
-| 無効ソケット値 | `-1` | `INVALID_SOCKET` |
-| スレッド型 | `pthread_t` | `HANDLE` |
-| ソケット初期化 | 不要 | `WSAStartup()` |
-| ソケットクローズ | `close()` | `closesocket()` |
 
 ### テストコマンド
 
-#### 送信コマンド
+同梱のテストコマンドで動作を確認できます。
 
 ```sh
-send <config_path> <service_id> <message>
+# 受信側（別ターミナルで先に起動）
+recv sample-config/porter-services.conf 1001
+
+# 送信側
+send sample-config/porter-services.conf 1001 "Hello, World!"
 ```
 
-```sh
-# 例: マルチキャストサービス 2001 へ送信
-send sample-config/porter-services.conf 2001 "Hello, World!"
-```
+## ドキュメント一覧
 
-#### 受信コマンド
-
-```sh
-recv <config_path> <service_id>
-```
-
-```sh
-# 例: マルチキャストサービス 2001 で受信待機 (Ctrl+C で終了)
-recv sample-config/porter-services.conf 2001
-```
+| ドキュメント | 内容 |
+|---|---|
+| [アーキテクチャ設計](docs/architecture.md) | スレッド構成・コンポーネント・データフロー |
+| [公開 API 仕様](docs/api.md) | 関数・コールバック・戻り値の詳細 |
+| [プロトコル仕様](docs/protocol.md) | パケット構造・再送制御・ウィンドウ・圧縮 |
+| [設定ファイル仕様](docs/config.md) | INI 形式設定・通信種別・マルチパス |
+| [シーケンス図集](docs/sequence.md) | 送受信・再送・ヘルスチェックのシーケンス図 |

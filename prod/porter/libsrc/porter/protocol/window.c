@@ -240,6 +240,7 @@ void window_recv_skip(PotrWindow *win, uint32_t seq_num)
  */
 int window_recv_needs_nack(const PotrWindow *win, uint32_t *nack_num)
 {
+    uint16_t i;
     uint16_t idx;
 
     if (win == NULL || nack_num == NULL)
@@ -248,12 +249,21 @@ int window_recv_needs_nack(const PotrWindow *win, uint32_t *nack_num)
     }
 
     idx = win_index(win, win->next_seq);
-    if (!win->valid[idx])
+    if (win->valid[idx])
     {
-        /* next_seq が未着 = 欠番 */
-        *nack_num = win->next_seq;
-        return 1;
+        return 0; /* next_seq が既着 = 欠番なし */
     }
 
-    return 0;
+    /* next_seq が未着のとき、ウィンドウ内に先行して到着したパケットがあれば欠番 */
+    for (i = 1U; i < win->window_size; i++)
+    {
+        uint16_t look_idx = win_index(win, win->next_seq + i);
+        if (win->valid[look_idx])
+        {
+            *nack_num = win->next_seq;
+            return 1;
+        }
+    }
+
+    return 0; /* ウィンドウが空 = 欠番なし */
 }

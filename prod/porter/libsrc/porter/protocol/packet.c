@@ -314,10 +314,14 @@ int packet_parse(PotrPacket *packet, const void *buf, size_t buf_len)
  *******************************************************************************
  *  @brief          パケットのヘッダー + ペイロードの合計バイト数を返します。
  *  @param[in]      packet  対象のパケット構造体へのポインタ。
+ *                          packet_build_*() で構築した NBO パケットを渡すこと。
+ *                          packet_parse() 済み (ホストバイトオーダー) のパケットを
+ *                          渡すと payload_len の ntohs 変換が二重になり誤値を返す。
  *  @return         パケットの送信サイズ (バイト)。packet が NULL の場合は 0。
  *
  *  @details
- *  UDP 送信時に sendto() へ渡すバイト数を求めるために使用します。
+ *  UDP 送信時に sendto() へ渡すバイト数を求めるために使用します。\n
+ *  内部で ntohs(packet->payload_len) を呼ぶため、引数は必ず NBO 状態で渡してください。
  *******************************************************************************
  */
 size_t packet_wire_size(const PotrPacket *packet)

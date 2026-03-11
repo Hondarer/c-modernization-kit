@@ -41,6 +41,17 @@
     #define POTR_INVALID_SOCKET (-1)
 #endif
 
+/** NACK 重複抑制リングバッファのスロット数 (POTR_MAX_PATH × 2)。 */
+#define POTR_NACK_DEDUP_SLOTS 8U
+
+/** NACK 重複抑制バッファの 1 エントリ。 */
+typedef struct
+{
+    uint32_t ack_num; /**< 再送または REJECT した ack_num。 */
+    uint32_t _pad;    /**< パディング (time_ms を 8 バイト境界に揃える)。 */
+    uint64_t time_ms; /**< 処理時刻 (ms、単調増加)。0 = 未使用スロット。 */
+} PotrNackDedupEntry;
+
 /**
  *  @brief  セッションコンテキスト構造体。PotrHandle の実体。
  */
@@ -53,8 +64,9 @@ struct PotrContext_
     PotrCondVar      health_wakeup;   /**< ヘルスチェックスレッドを即時起床させる条件変数。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
-    PotrWindow       send_window;  /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
-    PotrWindow       recv_window;  /**< 受信ウィンドウ (順序整列・欠番検出)。 */
+    PotrWindow       send_window;       /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
+    PotrMutex        send_window_mutex; /**< send_window 保護用ミューテックス (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合するため)。 */
+    PotrWindow       recv_window;       /**< 受信ウィンドウ (順序整列・欠番検出)。 */
 
     /* マルチパス: ソケット配列 */
     PotrSocket         sock[POTR_MAX_PATH];              /**< 各パスの UDP ソケット。 */
@@ -102,12 +114,15 @@ struct PotrContext_
     uint8_t          _cmp_pad[5];       /**< パディング (compress_buf を 8 バイト境界に揃える)。 */
 
     /* 非同期送信 (POTR_ROLE_SENDER のみ使用) */
-    PotrThread     send_thread;         /**< 送信スレッドハンドル。 */
-    volatile int   send_thread_running; /**< 送信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
+    PotrThread        send_thread;          /**< 送信スレッドハンドル。 */
+    volatile int      send_thread_running;  /**< 送信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
+    uint32_t          _pad_send_thread;     /**< パディング (last_send_ms を 8 バイト境界に揃える)。 */
+    volatile uint64_t last_send_ms;         /**< 最終パケット送信時刻 (データ or PING、ms、単調増加)。0 = 未送信。 */
 
-    /* 送信者: NACK 重複抑制キャッシュ */
-    uint32_t           last_nack_ack_num; /**< 直近に再送または REJECT した ack_num。 */
-    uint64_t           last_nack_time_ms; /**< last_nack_ack_num を処理した時刻 (ms、単調増加)。0 = 未処理。 */
+    /* 送信者: NACK 重複抑制リングバッファ */
+    PotrNackDedupEntry nack_dedup_buf[POTR_NACK_DEDUP_SLOTS]; /**< NACK 重複抑制エントリ配列。 */
+    uint8_t            nack_dedup_next;                        /**< 次に書き込むスロットインデックス。 */
+    uint8_t            _pad_nack_dedup[7];                     /**< パディング (send_queue を 8 バイト境界に揃える)。 */
 
     PotrSendQueue  send_queue;          /**< 非同期送信キュー。 */
 };

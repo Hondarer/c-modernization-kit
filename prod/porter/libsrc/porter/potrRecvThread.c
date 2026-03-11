@@ -318,12 +318,20 @@ static void recv_deliver(struct PotrContext_ *ctx,
         if (potr_decompress(ctx->compress_buf, &dec_len,
                             payload, payload_len) == 0)
         {
+            POTR_LOG(POTR_LOG_TRACE,
+                     "recv[service_id=%d]: decompress %zu -> %zu bytes",
+                     ctx->service.service_id, payload_len, dec_len);
             ctx->callback(ctx->service.service_id,
                           POTR_EVENT_DATA,
                           ctx->compress_buf,
                           dec_len);
         }
-        /* 解凍失敗時はパケットを破棄する */
+        else
+        {
+            POTR_LOG(POTR_LOG_ERROR,
+                     "recv[service_id=%d]: decompress failed (src_len=%zu)",
+                     ctx->service.service_id, payload_len);
+        }
     }
     else
     {
@@ -398,6 +406,12 @@ static void drain_recv_window(struct PotrContext_ *ctx)
     {
         notify_health_alive(ctx);
 
+        POTR_LOG(POTR_LOG_TRACE,
+                 "recv[service_id=%d]: pop seq=%u %s",
+                 ctx->service.service_id,
+                 (unsigned)pop_pkt.seq_num,
+                 (pop_pkt.flags & POTR_FLAG_PING) ? "PING" : "DATA");
+
         if (pop_pkt.flags & POTR_FLAG_PING)
         {
             continue; /* PING: 生存確認のみ、ペイロードエレメント展開不要 */
@@ -422,10 +436,32 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
                                const PotrPacket    *pkt)
 {
     uint32_t nack_num;
+    uint32_t stretch;
 
     if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
     {
+        /* 通番がウィンドウ範囲外のためドロップ (受信ウィンドウ満杯、または古い重複パケット)。
+           受信者は next_seq を待ち続けるが、ヘルスチェックや後続パケット到着時に NACK が送られる。 */
+        POTR_LOG(POTR_LOG_ERROR,
+                 "recv[service_id=%d]: recv_window full (100%%), dropping seq=%u"
+                 " (base_seq=%u window_size=%u)",
+                 ctx->service.service_id, (unsigned)pkt->seq_num,
+                 (unsigned)ctx->recv_window.base_seq,
+                 (unsigned)ctx->recv_window.window_size);
         return;
+    }
+
+    /* ウィンドウ利用率チェック: 今回のパケットが占める先頭からの距離で推定する。
+       stretch = pkt->seq_num - base_seq + 1 。push 成功後は [1, window_size] の範囲。 */
+    stretch = (uint32_t)(pkt->seq_num - ctx->recv_window.base_seq) + 1U;
+    if (stretch * 10U >= (uint32_t)ctx->recv_window.window_size * 8U)
+    {
+        POTR_LOG(POTR_LOG_WARN,
+                 "recv[service_id=%d]: recv_window utilization high (%u/%u >= 80%%)"
+                 " seq=%u base_seq=%u",
+                 ctx->service.service_id,
+                 (unsigned)stretch, (unsigned)ctx->recv_window.window_size,
+                 (unsigned)pkt->seq_num, (unsigned)ctx->recv_window.base_seq);
     }
 
     if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
@@ -437,6 +473,17 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
     }
 
     drain_recv_window(ctx);
+
+    /* drain 後に next_seq が前進した結果、新たな欠番が先頭に現れる場合は NACK を送る。
+       例: seq=3,4 欠落・seq=5 着時、drain 前は NACK(3)、seq=3 再送着→ drain で pop 後
+       next_seq=4 が欠番になるが次のパケット到着まで NACK(4) が遅延するのを防ぐ。 */
+    if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
+    {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "recv[service_id=%d]: NACK seq=%u (post-drain)",
+                 ctx->service.service_id, (unsigned)nack_num);
+        send_nack(ctx, nack_num);
+    }
 }
 
 /* 受信スレッド本体 */
@@ -559,29 +606,67 @@ static void *recv_thread_func(void *arg)
 
                     /* 同一 ack_num の NACK が POTR_NACK_DEDUP_MS 以内に届いた場合は破棄 */
                     {
-                        uint64_t now_ms = get_ms_mono();
-                        if (ctx->last_nack_time_ms != 0
-                            && pkt.ack_num == ctx->last_nack_ack_num
-                            && (now_ms - ctx->last_nack_time_ms)
-                               < (uint64_t)POTR_NACK_DEDUP_MS)
+                        uint64_t now_ms    = get_ms_mono();
+                        int      dedup_idx;
+                        int      is_dup    = 0;
+
+                        for (dedup_idx = 0;
+                             dedup_idx < (int)POTR_NACK_DEDUP_SLOTS;
+                             dedup_idx++)
+                        {
+                            const PotrNackDedupEntry *e =
+                                &ctx->nack_dedup_buf[dedup_idx];
+                            if (e->time_ms != 0
+                                && e->ack_num == pkt.ack_num
+                                && (now_ms - e->time_ms)
+                                   < (uint64_t)POTR_NACK_DEDUP_MS)
+                            {
+                                is_dup = 1;
+                                break;
+                            }
+                        }
+
+                        if (is_dup)
                         {
                             continue;
                         }
-                        ctx->last_nack_ack_num = pkt.ack_num;
-                        ctx->last_nack_time_ms = now_ms;
+
+                        ctx->nack_dedup_buf[ctx->nack_dedup_next].ack_num =
+                            pkt.ack_num;
+                        ctx->nack_dedup_buf[ctx->nack_dedup_next].time_ms =
+                            now_ms;
+                        ctx->nack_dedup_next =
+                            (uint8_t)((ctx->nack_dedup_next + 1U)
+                                      % POTR_NACK_DEDUP_SLOTS);
                     }
 
                     {
                         PotrPacket resend_pkt;
-                        if (window_send_get(&ctx->send_window, ctx->last_nack_ack_num,
-                                            &resend_pkt) == POTR_SUCCESS)
+                        int        get_result;
+
+                        /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッドと競合) */
+#ifdef _WIN32
+                        EnterCriticalSection(&ctx->send_window_mutex);
+#else
+                        pthread_mutex_lock(&ctx->send_window_mutex);
+#endif
+                        get_result = window_send_get(&ctx->send_window,
+                                                     pkt.ack_num,
+                                                     &resend_pkt);
+#ifdef _WIN32
+                        LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+                        pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+
+                        if (get_result == POTR_SUCCESS)
                         {
                             size_t wire_len = packet_wire_size(&resend_pkt);
                             POTR_LOG(POTR_LOG_DEBUG,
                                      "sender[service_id=%d]: NACK received seq=%u"
                                      " -> retransmit",
                                      ctx->service.service_id,
-                                     (unsigned)ctx->last_nack_ack_num);
+                                     (unsigned)pkt.ack_num);
                             for (j = 0; j < ctx->n_path; j++)
                             {
 #ifdef _WIN32
@@ -602,8 +687,8 @@ static void *recv_thread_func(void *arg)
                                      "sender[service_id=%d]: NACK seq=%u not in window"
                                      " -> REJECT",
                                      ctx->service.service_id,
-                                     (unsigned)ctx->last_nack_ack_num);
-                            send_reject(ctx, ctx->last_nack_ack_num);
+                                     (unsigned)pkt.ack_num);
+                            send_reject(ctx, pkt.ack_num);
                         }
                     }
                 }
@@ -650,6 +735,9 @@ static void *recv_thread_func(void *arg)
                     continue;
                 }
 
+                /* 送信元から受信できている = 生存確認としてタイムアウトをリセットする */
+                update_path_recv(ctx, i, &sender_addr);
+
                 POTR_LOG(POTR_LOG_WARN,
                          "recv[service_id=%d]: REJECT received seq=%u"
                          " (packet unrecoverable)",
@@ -688,6 +776,12 @@ static void *recv_thread_func(void *arg)
 
             /* 受信時刻とパスポートを更新 (健全性タイムアウト計算用) */
             update_path_recv(ctx, i, &sender_addr);
+
+            POTR_LOG(POTR_LOG_TRACE,
+                     "recv[service_id=%d]: %s seq=%u path=%d",
+                     ctx->service.service_id,
+                     (pkt.flags & POTR_FLAG_PING) ? "PING" : "DATA",
+                     (unsigned)pkt.seq_num, i);
 
             /* 外側パケットを受信ウィンドウに投入し、順序整列済みパケットを配信する */
             process_outer_pkt(ctx, &pkt);

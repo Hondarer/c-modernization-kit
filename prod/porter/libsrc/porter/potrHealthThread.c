@@ -66,6 +66,18 @@ static void health_sleep(struct PotrContext_ *ctx, uint32_t interval_ms)
 #endif
 }
 
+/* 現在時刻をミリ秒単位で返す (単調増加クロック) */
+static uint64_t health_get_ms(void)
+{
+#ifdef _WIN32
+    return (uint64_t)GetTickCount64();
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
+#endif
+}
+
 /* ヘルスチェックスレッド本体 */
 #ifdef _WIN32
 static DWORD WINAPI health_thread_func(LPVOID arg)
@@ -80,27 +92,94 @@ static void *health_thread_func(void *arg)
     shdr.session_id      = ctx->session_id;
     shdr.session_tv_sec  = ctx->session_tv_sec;
     shdr.session_tv_nsec = ctx->session_tv_nsec;
+    shdr._pad            = 0;
 
     while (ctx->health_running)
     {
-        health_sleep(ctx, ctx->global.health_interval_ms);
+        /* 最終送信 (データ or PING) から health_interval_ms 経過するまで待機する。
+           スリープ時間を動的に計算することで、直後にデータ送信があっても
+           health_interval_ms 周期が崩れないようにする。 */
+        {
+            uint64_t last_send = ctx->last_send_ms; /* volatile 読み取り */
+            uint32_t sleep_ms;
+
+            if (last_send == 0)
+            {
+                /* 未送信: 通常の間隔でそのままスリープ */
+                sleep_ms = ctx->global.health_interval_ms;
+            }
+            else
+            {
+                uint64_t now     = health_get_ms();
+                uint64_t elapsed = now - last_send;
+
+                if (elapsed >= (uint64_t)ctx->global.health_interval_ms)
+                {
+                    /* 既に間隔を超過: 即時送信するため極短時間だけ待つ */
+                    sleep_ms = 1U;
+                }
+                else
+                {
+                    /* 残り時間だけスリープ */
+                    sleep_ms = (uint32_t)(ctx->global.health_interval_ms - elapsed);
+                }
+            }
+
+            health_sleep(ctx, sleep_ms);
+        }
 
         if (!ctx->health_running)
         {
             break;
         }
 
+        /* データ送信によりタイマーがリセットされた場合は PING 不要 */
+        {
+            uint64_t last_send = ctx->last_send_ms; /* volatile 読み取り */
+            if (last_send != 0)
+            {
+                uint64_t now     = health_get_ms();
+                uint64_t elapsed = now - last_send;
+
+                if (elapsed < (uint64_t)ctx->global.health_interval_ms)
+                {
+                    POTR_LOG(POTR_LOG_TRACE,
+                             "health[service_id=%d]: PING timer reset",
+                             ctx->service.service_id);
+                    continue;
+                }
+            }
+        }
+
+        /* PING をウィンドウに積んで送信する */
         {
             PotrPacket ping_pkt;
-            uint32_t   seq      = ctx->send_window.next_seq;
+            uint32_t   seq;
             size_t     wire_len;
+            int        push_result;
 
-            if (packet_build_ping(&ping_pkt, &shdr, seq) != POTR_SUCCESS)
+            /* send_window へのアクセスを排他制御する (送信スレッド・受信スレッドと競合) */
+#ifdef _WIN32
+            EnterCriticalSection(&ctx->send_window_mutex);
+#else
+            pthread_mutex_lock(&ctx->send_window_mutex);
+#endif
+
+            seq         = ctx->send_window.next_seq;
+            push_result = POTR_ERROR;
+
+            if (packet_build_ping(&ping_pkt, &shdr, seq) == POTR_SUCCESS)
             {
-                continue;
+                push_result = window_send_push(&ctx->send_window, &ping_pkt);
             }
 
-            if (window_send_push(&ctx->send_window, &ping_pkt) != POTR_SUCCESS)
+#ifdef _WIN32
+            LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+            pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+
+            if (push_result != POTR_SUCCESS)
             {
                 continue;
             }
@@ -126,6 +205,9 @@ static void *health_thread_func(void *arg)
 #endif
                 }
             }
+
+            /* 最終送信時刻を更新する (次回の待機時間計算に使用) */
+            ctx->last_send_ms = health_get_ms();
         }
     }
 

@@ -51,6 +51,7 @@
 #include "potrSendThread.h"
 #include "protocol/packet.h"
 #include "protocol/window.h"
+#include "potrLog.h"
 
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t get_ms(void)
@@ -93,17 +94,39 @@ static void flush_packed(struct PotrContext_ *ctx,
     shdr.session_tv_nsec = ctx->session_tv_nsec;
     shdr._pad            = 0;
 
+    /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合) */
+#ifdef _WIN32
+    EnterCriticalSection(&ctx->send_window_mutex);
+#else
+    pthread_mutex_lock(&ctx->send_window_mutex);
+#endif
+
     seq = ctx->send_window.next_seq;
 
     if (packet_build_packed(&outer_pkt, &shdr, seq, packed_buf, packed_len)
         != POTR_SUCCESS)
     {
+#ifdef _WIN32
+        LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+        pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
         return;
     }
 
     window_send_push(&ctx->send_window, &outer_pkt);
 
+#ifdef _WIN32
+    LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+    pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+
     wire_len = packet_wire_size(&outer_pkt);
+
+    POTR_LOG(POTR_LOG_TRACE,
+             "sender[service_id=%d]: DATA seq=%u packed_len=%zu",
+             ctx->service.service_id, (unsigned)seq, packed_len);
 
     {
         int i;
@@ -119,6 +142,23 @@ static void flush_packed(struct PotrContext_ *ctx,
                    sizeof(ctx->dest_addr[i]));
 #endif
         }
+    }
+
+    /* ヘルスチェックスレッドが参照する最終送信時刻を更新し、
+       スリープ中のヘルスチェックスレッドを起床させてタイマーをリセットする */
+    ctx->last_send_ms = get_ms();
+
+    if (ctx->health_running)
+    {
+#ifdef _WIN32
+        EnterCriticalSection(&ctx->health_mutex);
+        WakeConditionVariable(&ctx->health_wakeup);
+        LeaveCriticalSection(&ctx->health_mutex);
+#else
+        pthread_mutex_lock(&ctx->health_mutex);
+        pthread_cond_signal(&ctx->health_wakeup);
+        pthread_mutex_unlock(&ctx->health_mutex);
+#endif
     }
 }
 
@@ -261,16 +301,20 @@ int potr_send_thread_start(struct PotrContext_ *ctx)
     ctx->send_thread_running = 1;
 
 #ifdef _WIN32
+    InitializeCriticalSection(&ctx->send_window_mutex);
     ctx->send_thread = CreateThread(NULL, 0, send_thread_func, ctx, 0, NULL);
     if (ctx->send_thread == NULL)
     {
         ctx->send_thread_running = 0;
+        DeleteCriticalSection(&ctx->send_window_mutex);
         return POTR_ERROR;
     }
 #else
+    pthread_mutex_init(&ctx->send_window_mutex, NULL);
     if (pthread_create(&ctx->send_thread, NULL, send_thread_func, ctx) != 0)
     {
         ctx->send_thread_running = 0;
+        pthread_mutex_destroy(&ctx->send_window_mutex);
         return POTR_ERROR;
     }
 #endif
@@ -287,7 +331,9 @@ void potr_send_thread_stop(struct PotrContext_ *ctx)
 #ifdef _WIN32
     WaitForSingleObject(ctx->send_thread, INFINITE);
     CloseHandle(ctx->send_thread);
+    DeleteCriticalSection(&ctx->send_window_mutex);
 #else
     pthread_join(ctx->send_thread, NULL);
+    pthread_mutex_destroy(&ctx->send_window_mutex);
 #endif
 }

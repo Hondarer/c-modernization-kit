@@ -108,13 +108,13 @@ static void on_recv(int service_id, PotrEvent event,
  */
 static int parse_log_level(const char *str, PotrLogLevel *out)
 {
-    static const struct { const char *name; PotrLogLevel level; } tbl[] = {
-        { "TRACE", POTR_LOG_TRACE },
-        { "DEBUG", POTR_LOG_DEBUG },
-        { "INFO",  POTR_LOG_INFO  },
-        { "WARN",  POTR_LOG_WARN  },
-        { "ERROR", POTR_LOG_ERROR },
-        { "FATAL", POTR_LOG_FATAL },
+    static const struct { const char *name; PotrLogLevel level; uint32_t _pad; } tbl[] = {
+        { "TRACE", POTR_LOG_TRACE, 0U },
+        { "DEBUG", POTR_LOG_DEBUG, 0U },
+        { "INFO",  POTR_LOG_INFO,  0U },
+        { "WARN",  POTR_LOG_WARN,  0U },
+        { "ERROR", POTR_LOG_ERROR, 0U },
+        { "FATAL", POTR_LOG_FATAL, 0U },
     };
     char   upper[16];
     size_t i;
