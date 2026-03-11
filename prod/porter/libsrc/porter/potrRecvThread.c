@@ -72,8 +72,7 @@ static int check_and_update_session(struct PotrContext_ *ctx,
            NACK/REJECT サイクルなしに再加入できる。
              DATA 着信時: window_init(DATA.seq_num) → push → pop → 即時 CONNECTED
              PING 着信時: window_init(PING.seq_num) → gap スキャン範囲がゼロ → NACK なし
-           goto adopt（新セッション検出）は送信者が必ず seq=0 から開始するため 0 で初期化する。
-           こちらは FIN/タイムアウト後で送信者が同一セッションのまま任意の seq から
+           FIN/タイムアウト後は送信者が同一セッションのまま任意の seq から
            再開する可能性があるため pkt->seq_num を使用する。 */
         ctx->peer_session_id      = pkt->session_id;
         ctx->peer_session_tv_sec  = pkt->session_tv_sec;
@@ -83,49 +82,62 @@ static int check_and_update_session(struct PotrContext_ *ctx,
         return 1;
     }
 
-    /* start_time が大きい → 新セッション */
+    /* (session_tv_sec, session_tv_nsec, session_id) の辞書順で新旧を判定する。
+       pkt が既知セッションより大きければ新セッションとして採用し、
+       小さければ旧セッションとして破棄する。 */
     if (pkt->session_tv_sec > ctx->peer_session_tv_sec)
     {
-        goto adopt;
+        POTR_LOG(POTR_LOG_TRACE,
+                 "recv[service_id=%d]: new session (tv_sec %lld > %lld)"
+                 ", old_id=%u new_id=%u",
+                 ctx->service.service_id,
+                 (long long)pkt->session_tv_sec, (long long)ctx->peer_session_tv_sec,
+                 ctx->peer_session_id, pkt->session_id);
     }
-    if (pkt->session_tv_sec < ctx->peer_session_tv_sec)
+    else if (pkt->session_tv_sec < ctx->peer_session_tv_sec)
     {
         return 0; /* 旧セッション */
     }
-
-    /* start_time が等しい場合は session_id で判定 (タイブレーク) */
-    if (pkt->session_tv_nsec > ctx->peer_session_tv_nsec)
+    else if (pkt->session_tv_nsec > ctx->peer_session_tv_nsec)
     {
-        goto adopt;
+        POTR_LOG(POTR_LOG_TRACE,
+                 "recv[service_id=%d]: new session (tv_nsec %d > %d)"
+                 ", old_id=%u new_id=%u",
+                 ctx->service.service_id,
+                 pkt->session_tv_nsec, ctx->peer_session_tv_nsec,
+                 ctx->peer_session_id, pkt->session_id);
     }
-    if (pkt->session_tv_nsec < ctx->peer_session_tv_nsec)
+    else if (pkt->session_tv_nsec < ctx->peer_session_tv_nsec)
     {
-        return 0;
+        return 0; /* 旧セッション */
     }
-
-    if (pkt->session_id > ctx->peer_session_id)
+    else if (pkt->session_id > ctx->peer_session_id)
     {
-        goto adopt;
-    }
-
-    /* 既知のセッションと一致するか確認 */
-    if (pkt->session_id == ctx->peer_session_id)
-    {
-        return 1;
+        POTR_LOG(POTR_LOG_TRACE,
+                 "recv[service_id=%d]: new session (id tiebreak %u > %u)",
+                 ctx->service.service_id,
+                 pkt->session_id, ctx->peer_session_id);
     }
     else
     {
-        return 0;
+        /* 既知のセッションと一致するか確認 */
+        if (pkt->session_id == ctx->peer_session_id)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
-adopt:
-    ctx->peer_session_id      = pkt->session_id;
-    ctx->peer_session_tv_sec  = pkt->session_tv_sec;
-    ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
-    /* 新セッション採用時はウィンドウをリセットする。
+    /* 新セッション採用: コンテキストを更新しウィンドウをリセットする。
        最初に受信したパケットの seq_num で初期化することで、送信者が先行して
        送信済みの seq に直接同期し、不要な NACK/REJECT サイクルを発生させない。
        送信者を先に起動して受信者が後から参加した場合も同様に機能する。 */
+    ctx->peer_session_id      = pkt->session_id;
+    ctx->peer_session_tv_sec  = pkt->session_tv_sec;
+    ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
     window_init(&ctx->recv_window, pkt->seq_num, ctx->global.window_size);
     return 1;
 }
