@@ -78,15 +78,24 @@ static int check_and_update_session(struct PotrContext_ *ctx,
         ctx->peer_session_tv_sec  = pkt->session_tv_sec;
         ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
         ctx->peer_session_known   = 1;
+        POTR_LOG(POTR_LOG_TRACE,
+                 "recv[service_id=%d]: new session (first contact), new_id=%u seq=%u",
+                 ctx->service.service_id,
+                 pkt->session_id, (unsigned)pkt->seq_num);
         window_init(&ctx->recv_window, pkt->seq_num, ctx->global.window_size);
         return 1;
     }
 
     /* (session_tv_sec, session_tv_nsec, session_id) の辞書順で新旧を判定する。
-       pkt が既知セッションより大きければ新セッションとして採用し、
-       小さければ旧セッションとして破棄する。 */
+       - pkt > 既知セッション: 新セッション。return せずにフォールスルーし、
+         関数末尾の「新セッション採用」ブロックで採用処理を行う。
+       - pkt < 既知セッション: 旧セッション。即 return 0 で破棄する。
+       - pkt == 既知セッション: 同一セッション。即 return 1 で通常受信を継続する。
+       新セッションと判定された分岐は LOG のみで return しないため、
+       if-else チェーンを抜けた後に必ず末尾の採用ブロックに到達する。 */
     if (pkt->session_tv_sec > ctx->peer_session_tv_sec)
     {
+        /* 新セッション (tv_sec が大): フォールスルーして採用 */
         POTR_LOG(POTR_LOG_TRACE,
                  "recv[service_id=%d]: new session (tv_sec %lld > %lld)"
                  ", old_id=%u new_id=%u",
@@ -96,10 +105,11 @@ static int check_and_update_session(struct PotrContext_ *ctx,
     }
     else if (pkt->session_tv_sec < ctx->peer_session_tv_sec)
     {
-        return 0; /* 旧セッション */
+        return 0; /* 旧セッション (tv_sec が小): 破棄 */
     }
     else if (pkt->session_tv_nsec > ctx->peer_session_tv_nsec)
     {
+        /* 新セッション (tv_sec 同一・tv_nsec が大): フォールスルーして採用 */
         POTR_LOG(POTR_LOG_TRACE,
                  "recv[service_id=%d]: new session (tv_nsec %d > %d)"
                  ", old_id=%u new_id=%u",
@@ -109,10 +119,11 @@ static int check_and_update_session(struct PotrContext_ *ctx,
     }
     else if (pkt->session_tv_nsec < ctx->peer_session_tv_nsec)
     {
-        return 0; /* 旧セッション */
+        return 0; /* 旧セッション (tv_sec 同一・tv_nsec が小): 破棄 */
     }
     else if (pkt->session_id > ctx->peer_session_id)
     {
+        /* 新セッション (タイムスタンプ完全一致・session_id が大): フォールスルーして採用 */
         POTR_LOG(POTR_LOG_TRACE,
                  "recv[service_id=%d]: new session (id tiebreak %u > %u)",
                  ctx->service.service_id,
@@ -120,14 +131,16 @@ static int check_and_update_session(struct PotrContext_ *ctx,
     }
     else
     {
-        /* 既知のセッションと一致するか確認 */
+        /* ここに到達するのは tv_sec == tv_sec かつ tv_nsec == tv_nsec かつ
+           session_id <= peer_session_id の場合のみ。
+           新セッション分岐はこの else には入らない。 */
         if (pkt->session_id == ctx->peer_session_id)
         {
-            return 1;
+            return 1; /* 同一セッション: 採用済みのため再初期化不要 */
         }
         else
         {
-            return 0;
+            return 0; /* 旧セッション (タイムスタンプ完全一致・session_id が小): 破棄 */
         }
     }
 
