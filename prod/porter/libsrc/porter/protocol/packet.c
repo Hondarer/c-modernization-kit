@@ -88,7 +88,9 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
  *
  *  @details
  *  ヘルスチェック要求パケットです。ペイロードなし (payload_len=0)。\n
- *  通番はデータパケットと同一の送信ウィンドウで管理されます。
+ *  通番には送信側の next_seq（次に送出する DATA に割り当てる通番）を格納します。\n
+ *  PING はウィンドウに登録されません（NACK・再送の対象外）。\n
+ *  受信者は seq_num を上限として受信ウィンドウをスキャンし、欠番を一括 NACK します。
  *******************************************************************************
  */
 int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
@@ -149,7 +151,7 @@ int packet_build_reject(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *
  *  @details
- *  送信者が potrClose 時に送出する終了通知パケットです。ペイロードなし。\n
+ *  送信者が potrCloseService 時に送出する終了通知パケットです。ペイロードなし。\n
  *  受信者はこのパケットを受け取ると即座に POTR_EVENT_DISCONNECTED を発火します。
  *******************************************************************************
  */

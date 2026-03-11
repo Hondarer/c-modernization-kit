@@ -151,27 +151,23 @@ static void *health_thread_func(void *arg)
             }
         }
 
-        /* PING をウィンドウに積んで送信する */
+        /* PING を送信する (ウィンドウには登録しない: NACK・再送の対象外) */
         {
             PotrPacket ping_pkt;
             uint32_t   seq;
             size_t     wire_len;
-            int        push_result;
+            int        build_result;
 
-            /* send_window へのアクセスを排他制御する (送信スレッド・受信スレッドと競合) */
+            /* send_window へのアクセスを排他制御する (next_seq の読み取りにのみ使用) */
 #ifdef _WIN32
             EnterCriticalSection(&ctx->send_window_mutex);
 #else
             pthread_mutex_lock(&ctx->send_window_mutex);
 #endif
 
-            seq         = ctx->send_window.next_seq;
-            push_result = POTR_ERROR;
-
-            if (packet_build_ping(&ping_pkt, &shdr, seq) == POTR_SUCCESS)
-            {
-                push_result = window_send_push(&ctx->send_window, &ping_pkt);
-            }
+            /* next_seq を読み取る (PING は消費しない: window_send_push は呼ばない) */
+            seq          = ctx->send_window.next_seq;
+            build_result = packet_build_ping(&ping_pkt, &shdr, seq);
 
 #ifdef _WIN32
             LeaveCriticalSection(&ctx->send_window_mutex);
@@ -179,7 +175,7 @@ static void *health_thread_func(void *arg)
             pthread_mutex_unlock(&ctx->send_window_mutex);
 #endif
 
-            if (push_result != POTR_SUCCESS)
+            if (build_result != POTR_SUCCESS)
             {
                 continue;
             }

@@ -114,7 +114,7 @@ extern "C"
      *  if (potrOpenService("porter-services.conf", 1001,
      *                      POTR_ROLE_RECEIVER, on_recv, &handle) == POTR_SUCCESS) {
      *      // 受信待機中 (受信スレッドが動作)
-     *      potrClose(handle);
+     *      potrCloseService(handle);
      *  }
      *  @endcode
      *
@@ -124,7 +124,7 @@ extern "C"
      *  if (potrOpenService("porter-services.conf", 1001,
      *                      POTR_ROLE_SENDER, NULL, &handle) == POTR_SUCCESS) {
      *      potrSend(handle, "hello", 5, 0);
-     *      potrClose(handle);
+     *      potrCloseService(handle);
      *  }
      *  @endcode
      *
@@ -188,7 +188,7 @@ extern "C"
      *                  data が NULL の場合は失敗を返します。\n
      *                  len が 0 の場合は失敗を返します。\n
      *                  len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。\n
-     *                  送信スレッドが停止している場合 (potrClose 呼び出し後など) は失敗を返します。
+     *                  送信スレッドが停止している場合 (potrCloseService 呼び出し後など) は失敗を返します。
      *******************************************************************************
      */
     POTR_API extern int POTRAPI potrSend(PotrHandle  handle,
@@ -217,7 +217,7 @@ extern "C"
      *  @warning        handle が NULL の場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_API extern int POTRAPI potrClose(PotrHandle handle);
+    POTR_API extern int POTRAPI potrCloseService(PotrHandle handle);
 
     /**
      *******************************************************************************

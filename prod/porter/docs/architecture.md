@@ -76,7 +76,7 @@ title porter コンポーネント構成
 package "公開 API 層" {
   [potrOpenService]
   [potrSend]
-  [potrClose]
+  [potrCloseService]
   [potrLogConfig]
 }
 
@@ -104,7 +104,7 @@ database "PotrContext\n(セッション全状態)" as CTX
 
 [potrOpenService] --> CTX : 生成・初期化
 [potrSend] --> [potrSendQueue] : エレメント push
-[potrClose] --> CTX : スレッド停止・解放
+[potrCloseService] --> CTX : スレッド停止・解放
 
 [potrSendThread] --> [packet]
 [potrSendThread] --> [window]

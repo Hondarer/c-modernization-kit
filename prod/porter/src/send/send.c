@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    potrClose(handle);
+    potrCloseService(handle);
     return ret;
 }
 

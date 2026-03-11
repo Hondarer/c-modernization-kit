@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 #endif
     }
 
-    potrClose(handle);
+    potrCloseService(handle);
     printf("終了しました。\n");
     return EXIT_SUCCESS;
 }

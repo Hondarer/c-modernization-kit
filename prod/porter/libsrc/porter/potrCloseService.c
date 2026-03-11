@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- *  @file           potrClose.c
- *  @brief          potrClose 関数の実装。
+ *  @file           potrCloseServiceService.c
+ *  @brief          potrCloseServiceService 関数の実装。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/04
  *  @version        1.0.0
@@ -69,25 +69,25 @@ static void send_fin(struct PotrContext_ *ctx)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-POTR_API int POTRAPI potrClose(PotrHandle handle)
+POTR_API int POTRAPI potrCloseService(PotrHandle handle)
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)handle;
 
     if (ctx == NULL)
     {
-        POTR_LOG(POTR_LOG_ERROR, "potrClose: handle is NULL");
+        POTR_LOG(POTR_LOG_ERROR, "potrCloseService: handle is NULL");
         return POTR_ERROR;
     }
 
     POTR_LOG(POTR_LOG_INFO,
-             "potrClose: service_id=%d closing",
+             "potrCloseService: service_id=%d closing",
              ctx->service.service_id);
 
     /* ヘルスチェックスレッドを停止 (送信者のみ) */
     if (ctx->health_running)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrClose: service_id=%d stopping health thread",
+                 "potrCloseService: service_id=%d stopping health thread",
                  ctx->service.service_id);
         potr_health_thread_stop(ctx);
     }
@@ -96,7 +96,7 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
     if (ctx->send_thread_running)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrClose: service_id=%d flushing send queue and sending FIN",
+                 "potrCloseService: service_id=%d flushing send queue and sending FIN",
                  ctx->service.service_id);
         potr_send_queue_wait_drained(&ctx->send_queue);
         send_fin(ctx);
@@ -108,7 +108,7 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
     if (ctx->running)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrClose: service_id=%d stopping recv thread",
+                 "potrCloseService: service_id=%d stopping recv thread",
                  ctx->service.service_id);
         comm_recv_thread_stop(ctx);
     }
@@ -160,7 +160,7 @@ POTR_API int POTRAPI potrClose(PotrHandle handle)
 #endif
 
     POTR_LOG(POTR_LOG_INFO,
-             "potrClose: service closed");
+             "potrCloseService: service closed");
 
     free(ctx);
     return POTR_SUCCESS;

@@ -29,6 +29,7 @@
 #include <porter_const.h>
 
 #include "protocol/packet.h"
+#include "protocol/seqnum.h"
 #include "protocol/window.h"
 #include "potrContext.h"
 #include "potrRecvThread.h"
@@ -66,11 +67,19 @@ static int check_and_update_session(struct PotrContext_ *ctx,
 {
     if (!ctx->peer_session_known)
     {
-        /* 初回受信: そのまま採用 */
+        /* 初回受信 (または FIN/タイムアウト後の再接続): セッション採用 + ウィンドウをリセット。
+           pkt->seq_num で初期化することで、送信者の現在位置に直接同期し
+           NACK/REJECT サイクルなしに再加入できる。
+             DATA 着信時: window_init(DATA.seq_num) → push → pop → 即時 CONNECTED
+             PING 着信時: window_init(PING.seq_num) → gap スキャン範囲がゼロ → NACK なし
+           goto adopt（新セッション検出）は送信者が必ず seq=0 から開始するため 0 で初期化する。
+           こちらは FIN/タイムアウト後で送信者が同一セッションのまま任意の seq から
+           再開する可能性があるため pkt->seq_num を使用する。 */
         ctx->peer_session_id      = pkt->session_id;
         ctx->peer_session_tv_sec  = pkt->session_tv_sec;
         ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
         ctx->peer_session_known   = 1;
+        window_init(&ctx->recv_window, pkt->seq_num, ctx->global.window_size);
         return 1;
     }
 
@@ -106,8 +115,11 @@ adopt:
     ctx->peer_session_id      = pkt->session_id;
     ctx->peer_session_tv_sec  = pkt->session_tv_sec;
     ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
-    /* 新セッション採用時はウィンドウをリセットする */
-    window_init(&ctx->recv_window, 0, ctx->global.window_size);
+    /* 新セッション採用時はウィンドウをリセットする。
+       最初に受信したパケットの seq_num で初期化することで、送信者が先行して
+       送信済みの seq に直接同期し、不要な NACK/REJECT サイクルを発生させない。
+       送信者を先に起動して受信者が後から参加した場合も同様に機能する。 */
+    window_init(&ctx->recv_window, pkt->seq_num, ctx->global.window_size);
     return 1;
 }
 
@@ -219,6 +231,14 @@ static void check_health_timeout(struct PotrContext_ *ctx)
                 ctx->callback(ctx->service.service_id,
                               POTR_EVENT_DISCONNECTED, NULL, 0);
             }
+
+            /* FIN と同様にセッション状態をリセットして次の接続を受け入れ可能にする。
+               peer_session_known をクリアすることで、送信者が同一セッションのまま
+               復帰した場合でも window_init を経由して受信ウィンドウを初期化し、
+               前セッションの next_seq が gap スキャンに影響しないようにする。 */
+            ctx->peer_session_known = 0;
+            ctx->last_recv_tv_sec   = 0;
+            window_init(&ctx->recv_window, 0, ctx->global.window_size);
         }
     }
 }
@@ -721,9 +741,11 @@ static void *recv_thread_func(void *arg)
                     }
                 }
 
-                /* セッション状態をリセットして次の接続を受け入れ可能にする */
+                /* セッション状態をリセットして次の接続を受け入れ可能にする。
+                   受信ウィンドウも初期化して前セッションの next_seq を残さない。 */
                 ctx->peer_session_known = 0;
                 ctx->last_recv_tv_sec   = 0;
+                window_init(&ctx->recv_window, 0, ctx->global.window_size);
                 continue;
             }
 
@@ -783,8 +805,37 @@ static void *recv_thread_func(void *arg)
                      (pkt.flags & POTR_FLAG_PING) ? "PING" : "DATA",
                      (unsigned)pkt.seq_num, i);
 
-            /* 外側パケットを受信ウィンドウに投入し、順序整列済みパケットを配信する */
-            process_outer_pkt(ctx, &pkt);
+            if (pkt.flags & POTR_FLAG_PING)
+            {
+                /* PING はウィンドウ外: NACK・再送の対象外。
+                   seq_num は送信側の next_seq (消費前) を示す。
+                   [recv_window.next_seq, seq_num) の範囲を全スキャンして欠番を一括 NACK する。 */
+                uint32_t scan_seq;
+
+                notify_health_alive(ctx);
+
+                scan_seq = ctx->recv_window.next_seq;
+                while (scan_seq != pkt.seq_num
+                       && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
+                                           ctx->recv_window.window_size))
+                {
+                    uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
+                                              % ctx->recv_window.window_size);
+                    if (!ctx->recv_window.valid[idx])
+                    {
+                        POTR_LOG(POTR_LOG_DEBUG,
+                                 "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
+                                 ctx->service.service_id, (unsigned)scan_seq);
+                        send_nack(ctx, scan_seq);
+                    }
+                    scan_seq++;
+                }
+            }
+            else
+            {
+                /* DATA: ウィンドウ経由で順序整列・再送管理する */
+                process_outer_pkt(ctx, &pkt);
+            }
         }
     }
 

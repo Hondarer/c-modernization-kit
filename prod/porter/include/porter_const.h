@@ -31,7 +31,7 @@
 #define POTR_FLAG_NACK       0x0002U /**< 再送要求パケットであることを示すフラグ。ack_num に要求通番を格納する。 */
 #define POTR_FLAG_PING       0x0004U /**< ヘルスチェック要求パケットであることを示すフラグ。ペイロードなし。 */
 #define POTR_FLAG_REJECT     0x0008U /**< 再送不能通知パケットであることを示すフラグ。ack_num に再送不能な通番を格納する。 */
-#define POTR_FLAG_FIN        0x0010U /**< 正常終了通知パケットであることを示すフラグ。送信者が potrClose 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。 */
+#define POTR_FLAG_FIN        0x0010U /**< 正常終了通知パケットであることを示すフラグ。送信者が potrCloseService 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。 */
 /** @} */
 
 /** @defgroup POTR_ELEM_FLAG ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)
