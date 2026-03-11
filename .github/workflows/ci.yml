@@ -156,6 +156,7 @@ jobs:
         HOST_USER: user
         HOST_UID: 1001
         HOST_GID: 127
+        TZ: Asia/Tokyo
 
     steps:
       - name: Checkout repository
