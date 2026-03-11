@@ -90,7 +90,14 @@ static void on_recv(int service_id, PotrEvent event,
 
         case POTR_EVENT_DATA:
         default:
-            copy_len = len < POTR_MAX_PAYLOAD ? len : POTR_MAX_PAYLOAD;
+            if (len < POTR_MAX_PAYLOAD)
+            {
+                copy_len = len;
+            }
+            else
+            {
+                copy_len = POTR_MAX_PAYLOAD;
+            }
             memcpy(buf, data, copy_len);
             buf[copy_len] = '\0';
             printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);

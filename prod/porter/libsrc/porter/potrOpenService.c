@@ -117,7 +117,15 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def,
     struct ip_mreq     mreq;
     int                reuse = 1;
     /* 受信者: dst_port で bind する。送信者: src_port で bind する (送信元ポート)。 */
-    uint16_t           bind_port = is_receiver ? def->dst_port : def->src_port;
+    uint16_t           bind_port;
+    if (is_receiver)
+    {
+        bind_port = def->dst_port;
+    }
+    else
+    {
+        bind_port = def->src_port;
+    }
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == POTR_INVALID_SOCKET)
@@ -206,7 +214,15 @@ static PotrSocket open_socket_broadcast(uint16_t       src_port,
     int                reuse      = 1;
     int                bcast      = 1;
     /* 受信者: dst_port で bind する。送信者: src_port で bind する (送信元ポート)。 */
-    uint16_t           bind_port  = is_receiver ? dst_port : src_port;
+    uint16_t           bind_port;
+    if (is_receiver)
+    {
+        bind_port = dst_port;
+    }
+    else
+    {
+        bind_port = src_port;
+    }
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == POTR_INVALID_SOCKET)
@@ -227,7 +243,14 @@ static PotrSocket open_socket_broadcast(uint16_t       src_port,
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     /* 送信者: src_addr で bind してインターフェースを選択する。受信者: INADDR_ANY で bind する。 */
-    addr.sin_addr.s_addr = (!is_receiver) ? src_if.s_addr : htonl(INADDR_ANY);
+    if (!is_receiver)
+    {
+        addr.sin_addr.s_addr = src_if.s_addr;
+    }
+    else
+    {
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    }
     addr.sin_port        = htons(bind_port);
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
@@ -270,10 +293,19 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 {
     struct PotrContext_ *ctx;
 
+    const char *config_path_log;
+    if (config_path != NULL)
+    {
+        config_path_log = config_path;
+    }
+    else
+    {
+        config_path_log = "(null)";
+    }
     POTR_LOG(POTR_LOG_DEBUG,
              "potrOpenService: service_id=%d role=%d config=%s",
              service_id, (int)role,
-             (config_path != NULL) ? config_path : "(null)");
+             config_path_log);
 
     if (config_path == NULL || handle == NULL)
     {
@@ -644,9 +676,18 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     }
 
     *handle = ctx;
+    const char *role_str;
+    if (role == POTR_ROLE_SENDER)
+    {
+        role_str = "SENDER";
+    }
+    else
+    {
+        role_str = "RECEIVER";
+    }
     POTR_LOG(POTR_LOG_INFO,
              "potrOpenService: service_id=%d role=%s opened successfully",
              service_id,
-             (role == POTR_ROLE_SENDER) ? "SENDER" : "RECEIVER");
+             role_str);
     return POTR_SUCCESS;
 }

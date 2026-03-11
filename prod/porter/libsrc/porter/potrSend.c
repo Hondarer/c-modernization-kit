@@ -79,7 +79,15 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
 
     while (remaining > 0)
     {
-        size_t   chunk     = (remaining > max_payload) ? max_payload : remaining;
+        size_t   chunk;
+        if (remaining > max_payload)
+        {
+            chunk = max_payload;
+        }
+        else
+        {
+            chunk = remaining;
+        }
         int      more_frag = (remaining > chunk);
         uint16_t flags     = base_flags;
 

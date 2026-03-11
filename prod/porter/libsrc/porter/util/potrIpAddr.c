@@ -32,7 +32,14 @@ int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr)
         return POTR_ERROR;
     }
 
-    return (inet_pton(AF_INET, ip_str, out_addr) == 1) ? POTR_SUCCESS : POTR_ERROR;
+    if (inet_pton(AF_INET, ip_str, out_addr) == 1)
+    {
+        return POTR_SUCCESS;
+    }
+    else
+    {
+        return POTR_ERROR;
+    }
 }
 
 /* ホスト名または IPv4 アドレス文字列を struct in_addr に解決する。 */

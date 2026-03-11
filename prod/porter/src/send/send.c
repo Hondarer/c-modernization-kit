@@ -218,8 +218,16 @@ int main(int argc, char *argv[])
             }
         }
 
-        printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len,
-               compress ? " [圧縮あり]" : "");
+        const char *compress_label;
+        if (compress)
+        {
+            compress_label = " [圧縮あり]";
+        }
+        else
+        {
+            compress_label = "";
+        }
+        printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len, compress_label);
 
         if (potrSend(handle, msg_buf, msg_len, compress, 1) != POTR_SUCCESS)
         {

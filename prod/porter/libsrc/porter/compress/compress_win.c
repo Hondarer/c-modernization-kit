@@ -64,7 +64,14 @@ int potr_compress(uint8_t       *dst,
     }
 
     /* ブロックサイズをデータサイズ以上に設定して単一ブロックとして処理する */
-    block_size = (src_len > 32768U) ? (ULONG)src_len : 32768U;
+    if (src_len > 32768U)
+    {
+        block_size = (ULONG)src_len;
+    }
+    else
+    {
+        block_size = 32768U;
+    }
     (void)SetCompressorInformation(h,
                                    COMPRESS_INFORMATION_CLASS_BLOCK_SIZE,
                                    &block_size,
@@ -122,7 +129,14 @@ int potr_decompress(uint8_t       *dst,
     }
 
     /* 圧縮時に設定したブロックサイズと揃える */
-    block_size = (orig_len > 32768U) ? orig_len : 32768U;
+    if (orig_len > 32768U)
+    {
+        block_size = orig_len;
+    }
+    else
+    {
+        block_size = 32768U;
+    }
     (void)SetDecompressorInformation(h,
                                      COMPRESS_INFORMATION_CLASS_BLOCK_SIZE,
                                      &block_size,

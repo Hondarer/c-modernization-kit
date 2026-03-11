@@ -293,7 +293,16 @@ int packet_parse(PotrPacket *packet, const void *buf, size_t buf_len)
         return POTR_ERROR;
     }
 
-    memcpy(packet, buf, buf_len < sizeof(*packet) ? buf_len : sizeof(*packet));
+    size_t copy_size;
+    if (buf_len < sizeof(*packet))
+    {
+        copy_size = buf_len;
+    }
+    else
+    {
+        copy_size = sizeof(*packet);
+    }
+    memcpy(packet, buf, copy_size);
 
     packet->service_id      = (int32_t)ntohl((uint32_t)packet->service_id);
     packet->session_id      = ntohl(packet->session_id);

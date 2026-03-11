@@ -207,7 +207,14 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
                 }
                 memcpy(section, trimmed + 1, sec_len);
                 section[sec_len] = '\0';
-                in_global = (strcmp(section, "global") == 0) ? 1 : 0;
+                if (strcmp(section, "global") == 0)
+                {
+                    in_global = 1;
+                }
+                else
+                {
+                    in_global = 0;
+                }
             }
             continue;
         }
@@ -413,5 +420,12 @@ int config_load_service(const char *config_path, int service_id,
     }
 
     fclose(fp);
-    return found ? POTR_SUCCESS : POTR_ERROR;
+    if (found)
+    {
+        return POTR_SUCCESS;
+    }
+    else
+    {
+        return POTR_ERROR;
+    }
 }

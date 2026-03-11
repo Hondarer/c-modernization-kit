@@ -109,7 +109,14 @@ static int check_and_update_session(struct PotrContext_ *ctx,
     }
 
     /* 既知のセッションと一致するか確認 */
-    return (pkt->session_id == ctx->peer_session_id) ? 1 : 0;
+    if (pkt->session_id == ctx->peer_session_id)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 
 adopt:
     ctx->peer_session_id      = pkt->session_id;
@@ -372,8 +379,14 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
         {
             if (ctx->frag_buf_len == 0)
             {
-                ctx->frag_compressed =
-                    (elem->flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
+                if (elem->flags & POTR_FLAG_COMPRESSED)
+                {
+                    ctx->frag_compressed = 1;
+                }
+                else
+                {
+                    ctx->frag_compressed = 0;
+                }
             }
             memcpy(ctx->frag_buf + ctx->frag_buf_len,
                    elem->payload, elem->payload_len);
@@ -408,10 +421,19 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
         /* フラグメントなし: 直接コールバック */
         if (ctx->callback != NULL)
         {
+            int is_compressed;
+            if (elem->flags & POTR_FLAG_COMPRESSED)
+            {
+                is_compressed = 1;
+            }
+            else
+            {
+                is_compressed = 0;
+            }
             recv_deliver(ctx,
                          elem->payload,
                          (size_t)elem->payload_len,
-                         (elem->flags & POTR_FLAG_COMPRESSED) ? 1 : 0);
+                         is_compressed);
         }
     }
 }
@@ -426,11 +448,20 @@ static void drain_recv_window(struct PotrContext_ *ctx)
     {
         notify_health_alive(ctx);
 
+        const char *pkt_type_str;
+        if (pop_pkt.flags & POTR_FLAG_PING)
+        {
+            pkt_type_str = "PING";
+        }
+        else
+        {
+            pkt_type_str = "DATA";
+        }
         POTR_LOG(POTR_LOG_TRACE,
                  "recv[service_id=%d]: pop seq=%u %s",
                  ctx->service.service_id,
                  (unsigned)pop_pkt.seq_num,
-                 (pop_pkt.flags & POTR_FLAG_PING) ? "PING" : "DATA");
+                 pkt_type_str);
 
         if (pop_pkt.flags & POTR_FLAG_PING)
         {
@@ -799,11 +830,22 @@ static void *recv_thread_func(void *arg)
             /* 受信時刻とパスポートを更新 (健全性タイムアウト計算用) */
             update_path_recv(ctx, i, &sender_addr);
 
-            POTR_LOG(POTR_LOG_TRACE,
-                     "recv[service_id=%d]: %s seq=%u path=%d",
-                     ctx->service.service_id,
-                     (pkt.flags & POTR_FLAG_PING) ? "PING" : "DATA",
-                     (unsigned)pkt.seq_num, i);
+            {
+                const char *pkt_kind_str;
+                if (pkt.flags & POTR_FLAG_PING)
+                {
+                    pkt_kind_str = "PING";
+                }
+                else
+                {
+                    pkt_kind_str = "DATA";
+                }
+                POTR_LOG(POTR_LOG_TRACE,
+                         "recv[service_id=%d]: %s seq=%u path=%d",
+                         ctx->service.service_id,
+                         pkt_kind_str,
+                         (unsigned)pkt.seq_num, i);
+            }
 
             if (pkt.flags & POTR_FLAG_PING)
             {
