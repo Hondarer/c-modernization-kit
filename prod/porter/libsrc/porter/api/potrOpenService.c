@@ -28,15 +28,15 @@
 #include <porter_const.h>
 #include <porter.h>
 
-#include "protocol/config.h"
-#include "protocol/window.h"
-#include "potrContext.h"
-#include "potrRecvThread.h"
-#include "potrHealthThread.h"
-#include "potrSendQueue.h"
-#include "potrSendThread.h"
-#include "util/potrIpAddr.h"
-#include "potrLog.h"
+#include "../protocol/config.h"
+#include "../protocol/window.h"
+#include "../potrContext.h"
+#include "../thread/potrRecvThread.h"
+#include "../thread/potrHealthThread.h"
+#include "../infra/potrSendQueue.h"
+#include "../thread/potrSendThread.h"
+#include "../util/potrIpAddr.h"
+#include "../infra/potrLog.h"
 
 /* ソケットを作成して bind する。成功時は PotrSocket を返す。失敗時は POTR_INVALID_SOCKET。
    bind_addr: bind する IPv4 アドレス。port: bind するポート番号 (0 = OS 自動選定)。 */

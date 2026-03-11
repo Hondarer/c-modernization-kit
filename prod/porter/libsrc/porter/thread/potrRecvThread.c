@@ -28,13 +28,13 @@
 
 #include <porter_const.h>
 
-#include "protocol/packet.h"
-#include "protocol/seqnum.h"
-#include "protocol/window.h"
-#include "potrContext.h"
+#include "../protocol/packet.h"
+#include "../protocol/seqnum.h"
+#include "../protocol/window.h"
+#include "../potrContext.h"
 #include "potrRecvThread.h"
-#include "compress/compress.h"
-#include "potrLog.h"
+#include "../infra/compress/compress.h"
+#include "../infra/potrLog.h"
 
 /* 前方宣言: recv_deliver は後で定義 */
 static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,

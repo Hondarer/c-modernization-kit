@@ -46,12 +46,12 @@
 
 #include <porter_const.h>
 
-#include "potrContext.h"
-#include "potrSendQueue.h"
+#include "../potrContext.h"
+#include "../infra/potrSendQueue.h"
 #include "potrSendThread.h"
-#include "protocol/packet.h"
-#include "protocol/window.h"
-#include "potrLog.h"
+#include "../protocol/packet.h"
+#include "../protocol/window.h"
+#include "../infra/potrLog.h"
 
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t get_ms(void)

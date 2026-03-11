@@ -14,10 +14,10 @@
 #include <porter_const.h>
 #include <porter.h>
 
-#include "potrContext.h"
-#include "potrSendQueue.h"
-#include "compress/compress.h"
-#include "potrLog.h"
+#include "../potrContext.h"
+#include "../infra/potrSendQueue.h"
+#include "../infra/compress/compress.h"
+#include "../infra/potrLog.h"
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,

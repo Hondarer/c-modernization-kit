@@ -27,14 +27,14 @@
 #include <porter_const.h>
 #include <porter.h>
 
-#include "potrContext.h"
-#include "potrRecvThread.h"
-#include "potrHealthThread.h"
-#include "potrSendQueue.h"
-#include "potrSendThread.h"
-#include "protocol/packet.h"
-#include "util/potrIpAddr.h"
-#include "potrLog.h"
+#include "../potrContext.h"
+#include "../thread/potrRecvThread.h"
+#include "../thread/potrHealthThread.h"
+#include "../infra/potrSendQueue.h"
+#include "../thread/potrSendThread.h"
+#include "../protocol/packet.h"
+#include "../util/potrIpAddr.h"
+#include "../infra/potrLog.h"
 
 /* FIN パケットを全パスへ送信する */
 static void send_fin(struct PotrContext_ *ctx)

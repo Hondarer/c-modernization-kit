@@ -20,8 +20,8 @@
 #include <porter_type.h>
 
 #include "protocol/window.h"
-#include "compress/compress.h"
-#include "potrSendQueue.h"
+#include "infra/compress/compress.h"
+#include "infra/potrSendQueue.h"
 
 #ifdef _WIN32
     #include <winsock2.h>

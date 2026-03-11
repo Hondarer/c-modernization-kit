@@ -69,30 +69,34 @@ HT --> SOCK : sendto (PING)\n一定間隔で送信
 @startuml
 title porter コンポーネント構成
 
-package "公開 API 層" {
+package "api" {
   [potrOpenService]
   [potrSend]
   [potrCloseService]
-  [potrLogConfig]
 }
 
-package "スレッド層" {
+package "thread" {
   [potrRecvThread]
   [potrSendThread]
   [potrHealthThread]
 }
 
-package "プロトコル層" {
+package "protocol" {
   [packet\n(パケット構築・解析)]
   [window\n(スライディングウィンドウ)]
   [seqnum\n(通番管理)]
   [config\n(設定ファイル解析)]
 }
 
-package "インフラ層" {
+package "infra" {
   [potrSendQueue\n(リングバッファ)]
-  [compress\n(raw DEFLATE)]
-  [potrLog\n(ロギング)]
+  [potrLog\n(ロギング・設定)]
+  package "compress" {
+    [compress\n(raw DEFLATE)]
+  }
+}
+
+package "util" {
   [potrIpAddr\n(名前解決)]
 }
 
@@ -111,6 +115,12 @@ database "PotrContext\n(セッション全状態)" as CTX
 [potrRecvThread] --> [window]
 [potrRecvThread] --> [seqnum]
 [potrRecvThread] --> [compress]
+
+api -[hidden]--thread
+thread -[hidden]-- infra
+api -[hidden]----- protocol
+protocol -[hidden]--util
+
 @enduml
 ```
 

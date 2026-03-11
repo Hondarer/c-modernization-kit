@@ -14,7 +14,7 @@
 #ifndef POTR_RECV_THREAD_H
 #define POTR_RECV_THREAD_H
 
-#include "potrContext.h"
+#include "../potrContext.h"
 
 #ifdef __cplusplus
 extern "C"

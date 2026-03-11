@@ -20,7 +20,7 @@
 #ifndef POTR_SEND_THREAD_H
 #define POTR_SEND_THREAD_H
 
-#include "potrContext.h"
+#include "../potrContext.h"
 
 #ifdef __cplusplus
 extern "C"

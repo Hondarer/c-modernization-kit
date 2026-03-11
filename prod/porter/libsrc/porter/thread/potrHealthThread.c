@@ -31,11 +31,11 @@
 #include <porter_const.h>
 #include <porter.h>
 
-#include "protocol/packet.h"
-#include "protocol/window.h"
-#include "potrContext.h"
+#include "../protocol/packet.h"
+#include "../protocol/window.h"
+#include "../potrContext.h"
 #include "potrHealthThread.h"
-#include "potrLog.h"
+#include "../infra/potrLog.h"
 
 /* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする */
 static void health_sleep(struct PotrContext_ *ctx, uint32_t interval_ms)
