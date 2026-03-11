@@ -55,12 +55,23 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
             return POTR_ERROR;
         }
 
-        POTR_LOG(POTR_LOG_TRACE,
-                 "potrSend: service_id=%d compress %zu -> %zu bytes",
-                 ctx->service.service_id, len, cmp_len);
-        ptr        = ctx->compress_buf;
-        len        = cmp_len;
-        base_flags = POTR_FLAG_COMPRESSED;
+        if (cmp_len < len)
+        {
+            POTR_LOG(POTR_LOG_TRACE,
+                     "potrSend: service_id=%d compress %zu -> %zu bytes",
+                     ctx->service.service_id, len, cmp_len);
+            ptr        = ctx->compress_buf;
+            len        = cmp_len;
+            base_flags = POTR_FLAG_COMPRESSED;
+        }
+        else
+        {
+            POTR_LOG(POTR_LOG_TRACE,
+                     "potrSend: service_id=%d compression skipped"
+                     " (compressed %zu >= original %zu bytes), sending uncompressed",
+                     ctx->service.service_id, cmp_len, len);
+            /* 圧縮効果なし: 非圧縮のまま送信 (ptr, len, base_flags は初期値を維持) */
+        }
     }
 
     remaining   = len;
