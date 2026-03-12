@@ -147,10 +147,13 @@ extern "C"
      *  @param[in]      handle      potrOpenService() で取得したセッションハンドル。
      *  @param[in]      data        送信するメッセージへのポインタ。
      *  @param[in]      len         送信するメッセージのバイト数。
-     *  @param[in]      compress    0 以外を指定するとメッセージを圧縮して送信します。
-     *                              0 を指定すると非圧縮で送信します。
-     *  @param[in]      blocking    0 以外を指定するとブロッキング送信を行います。
-     *                              0 を指定するとノンブロッキング送信を行います。
+     *  @param[in]      flags       送信オプションフラグ。以下のフラグを論理和で組み合わせて指定します。
+     *                              0 を指定すると非圧縮・ノンブロッキング送信になります。
+     *
+     *                              | フラグ                | 説明                                     |
+     *                              | --------------------- | ---------------------------------------- |
+     *                              | `POTR_SEND_COMPRESS`  | メッセージを圧縮して送信します。         |
+     *                              | `POTR_SEND_BLOCKING`  | ブロッキング送信を行います。             |
      *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
      *
      *  @details
@@ -162,17 +165,17 @@ extern "C"
      *  | POTR_TYPE_MULTICAST   | multicast_group:dst_port へ送信            |
      *  | POTR_TYPE_BROADCAST   | broadcast_addr:dst_port へ送信             |
      *
-     *  compress に 0 以外を指定した場合、内部で圧縮処理を行ってから送信します。\n
+     *  compress に `POTR_SEND_COMPRESS` を指定した場合、内部で圧縮処理を行ってから送信します。\n
      *  圧縮後のサイズが元のサイズ以上になった場合は、自動的に非圧縮で送信します。\n
      *  受信側の PotrRecvCallback には、解凍済みの元メッセージが渡されます。\n
      *  送受信ともにフラグメント化と組み合わせて使用できます。
      *
-     *  @par            ノンブロッキング送信 (blocking = 0)
+     *  @par            ノンブロッキング送信 (flags に POTR_SEND_BLOCKING を指定しない場合)
      *  メッセージを内部送信キューに登録して即座に返ります。\n
      *  実際の sendto はバックグラウンド送信スレッドが非同期に実行します。\n
      *  キューが満杯の場合は空きが生じるまで待機してからメッセージを登録し、登録後に返ります。
      *
-     *  @par            ブロッキング送信 (blocking != 0)
+     *  @par            ブロッキング送信 (flags に POTR_SEND_BLOCKING を指定した場合)
      *  呼び出し前に滞留しているノンブロッキング送信のメッセージが
      *  すべて sendto 完了するまで待機します。\n
      *  その後、本呼び出しのメッセージをキューを通じて sendto して返ります。\n
@@ -197,8 +200,7 @@ extern "C"
     POTR_API extern int POTRAPI potrSend(PotrHandle  handle,
                                          const void *data,
                                          size_t      len,
-                                         int         compress,
-                                         int         blocking);
+                                         int         flags);
 
     /**
      *******************************************************************************

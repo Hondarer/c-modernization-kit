@@ -10,8 +10,8 @@
  *  送信キュー (PotrSendQueue) からペイロードエレメントを取り出して
  *  外側パケット (POTR_FLAG_DATA) を構築し sendto を呼び出す送信スレッド。\n
  *  potrOpenService (POTR_ROLE_SENDER) 時に起動し、potrCloseService 時に停止します。\n
- *  potrSend の blocking 引数の値によらず常に起動しており、
- *  ノンブロッキング送信 (blocking = 0) 時のみキューが使用されます。
+ *  potrSend の flags 引数の値によらず常に起動しており、
+ *  ノンブロッキング送信 (POTR_SEND_BLOCKING なし) 時のみキューが使用されます。
  *
  *  @par            通番管理
  *  すべてのデータパケットはパックコンテナ形式で送受信します。\n

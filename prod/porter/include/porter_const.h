@@ -14,6 +14,16 @@
 #ifndef PORTER_CONST_H
 #define PORTER_CONST_H
 
+/** @defgroup POTR_SEND_FLAG 送信オプションフラグ (potrSend の flags 引数)
+ *  @{
+ *  @details
+ *  `potrSend()` の `flags` 引数に論理和で組み合わせて指定するビットフラグです。\n
+ *  0 を指定すると非圧縮・ノンブロッキング送信になります。
+ */
+#define POTR_SEND_COMPRESS  0x0001U /**< メッセージを圧縮して送信します。圧縮後のサイズが元のサイズ以上の場合は自動的に非圧縮で送信します。 */
+#define POTR_SEND_BLOCKING  0x0002U /**< ブロッキング送信を行います。0 を指定するとノンブロッキング送信を行います。 */
+/** @} */
+
 /** @defgroup POTR_RESULT 戻り値
  *  @{
  */

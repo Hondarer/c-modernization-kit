@@ -7,7 +7,7 @@
  *  @version        1.0.0
  *
  *  @details
- *  ノンブロッキング送信 (potrSend の blocking = 0) で使用される
+ *  ノンブロッキング送信 (potrSend の flags に POTR_SEND_BLOCKING なし) で使用される
  *  スレッドセーフな送信キューです。\n
  *  ペイロードエレメントをリングバッファに積み、送信スレッドが順に
  *  sendto で送出します。\n

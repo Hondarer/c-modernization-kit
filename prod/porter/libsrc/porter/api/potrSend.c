@@ -21,7 +21,7 @@
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
-                              int compress, int blocking)
+                              int flags)
 {
     struct PotrContext_ *ctx       = (struct PotrContext_ *)handle;
     const uint8_t       *ptr      = (const uint8_t *)data;
@@ -40,11 +40,11 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
     }
 
     POTR_LOG(POTR_LOG_TRACE,
-             "potrSend: service_id=%d len=%zu compress=%d blocking=%d",
-             ctx->service.service_id, len, compress, blocking);
+             "potrSend: service_id=%d len=%zu flags=0x%x",
+             ctx->service.service_id, len, (unsigned)flags);
 
     /* 圧縮が要求された場合はペイロード全体を圧縮する */
-    if (compress != 0)
+    if ((flags & POTR_SEND_COMPRESS) != 0)
     {
         size_t cmp_len = ctx->compress_buf_size;
 
@@ -81,7 +81,7 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
     max_payload = ctx->global.max_payload - POTR_PAYLOAD_ELEM_HDR_SIZE;
 
     /* ブロッキング送信: 先行キューの sendto が全完了するまで待機する */
-    if (blocking != 0)
+    if ((flags & POTR_SEND_BLOCKING) != 0)
     {
         potr_send_queue_wait_drained(&ctx->send_queue);
     }
@@ -121,7 +121,7 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
     }
 
     /* ブロッキング送信: 自身のメッセージの sendto 完了まで待機する */
-    if (blocking != 0)
+    if ((flags & POTR_SEND_BLOCKING) != 0)
     {
         potr_send_queue_wait_drained(&ctx->send_queue);
     }

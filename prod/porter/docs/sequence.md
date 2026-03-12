@@ -76,7 +76,7 @@ note over RT: DATA/PING/FIN を\n待機するポーリングループ\nヘルス
 
 ## 正常送受信 (ノンブロッキング)
 
-`blocking = 0` で `potrSend()` を呼び出したときのデータフローです。
+`POTR_SEND_BLOCKING` を指定せずに `potrSend()` を呼び出したときのデータフローです。
 
 ```plantuml
 @startuml 正常送受信 (ノンブロッキング)
@@ -89,7 +89,7 @@ participant "UDP" as UDP
 participant "受信スレッド\n(受信者)" as RRT
 participant "アプリ\n(受信側)" as RAPP
 
-SAPP -> Q: potrSend(handle, data, len, 0, blocking=0)\n→ エレメントを push して即座に返る
+SAPP -> Q: potrSend(handle, data, len, 0)\n→ エレメントを push して即座に返る
 SAPP <-- Q: POTR_SUCCESS
 
 note over Q, ST: 非同期に処理
@@ -112,7 +112,7 @@ RRT -> RAPP: callback(POTR_EVENT_DATA, data, len)
 
 ## 正常送受信 (ブロッキング)
 
-`blocking != 0` で `potrSend()` を呼び出したときのデータフローです。
+`POTR_SEND_BLOCKING` を指定して `potrSend()` を呼び出したときのデータフローです。
 送信完了まで `potrSend()` が返りません。
 
 ```plantuml
@@ -124,7 +124,7 @@ participant "送信キュー" as Q
 participant "送信スレッド" as ST
 participant "UDP" as UDP
 
-SAPP -> Q: potrSend(handle, data, len, 0, blocking=1)
+SAPP -> Q: potrSend(handle, data, len, POTR_SEND_BLOCKING)
 activate SAPP
 
 Q -> Q: (1) 既存キューが drained になるまで待機\n count == 0 && inflight == 0
