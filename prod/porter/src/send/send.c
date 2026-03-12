@@ -39,6 +39,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif
+
 #include <porter.h>
 
 /** 入力バッファサイズ。POTR_MAX_MESSAGE_SIZE + 改行 + NUL。 */
@@ -124,6 +130,10 @@ int main(int argc, char *argv[])
     int          i;
     PotrLogLevel log_level    = POTR_LOG_OFF;
     int          log_level_set = 0;
+
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
+#endif
 
     /* オプション解析 */
     for (i = 1; i < argc; i++)

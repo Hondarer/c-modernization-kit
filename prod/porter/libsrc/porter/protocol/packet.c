@@ -272,7 +272,7 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
     elem_out->session_tv_nsec = container->session_tv_nsec;
     elem_out->ack_num         = 0;
     elem_out->flags           = ntohs(flags_nbo);
-    elem_out->payload_len     = payload_len;
+    elem_out->payload_len     = (uint16_t)payload_len;
     /* ゼロコピー: コンテナのペイロード領域を直接指す。
        コンテナの生存期間中 (呼び出し元の処理完了まで) のみ有効。 */
     elem_out->payload = p + POTR_PAYLOAD_ELEM_HDR_SIZE;

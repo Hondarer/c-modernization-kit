@@ -200,7 +200,14 @@ POTR_API int POTRAPI potrLogConfig(PotrLogLevel  level,
     /* log_file を事前にオープンしておく (ミューテックス外で実施し、ロック時間を短縮)。 */
     if (log_file != NULL && log_file[0] != '\0')
     {
+#ifdef _WIN32
+        if (fopen_s(&new_fp, log_file, "a") != 0)
+        {
+            new_fp = NULL;
+        }
+#else
         new_fp = fopen(log_file, "a");
+#endif
         if (new_fp == NULL)
         {
             return POTR_ERROR;
