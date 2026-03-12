@@ -11,7 +11,14 @@
  *******************************************************************************
  */
 
+#include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+    #include <winsock2.h>
+#else
+    #include <arpa/inet.h>
+#endif
 
 #include <porter_const.h>
 
@@ -21,24 +28,98 @@
 /**
  *******************************************************************************
  *  @brief          ウィンドウを初期化します。
- *  @param[out]     win         初期化するウィンドウ構造体へのポインタ。
+ *  @param[in,out]  win         初期化するウィンドウ構造体へのポインタ。
  *  @param[in]      initial_seq 初期通番。
  *  @param[in]      window_size ウィンドウサイズ (パケット数)。
+ *  @param[in]      max_payload エントリごとのペイロード最大長 (バイト)。
+ *  @return         成功時は POTR_SUCCESS、malloc 失敗時は POTR_ERROR を返します。
+ *
+ *  @details
+ *  サイズが既存と同一の場合は状態をリセットするのみで再確保は行いません。\n
+ *  異なるサイズの場合は既存バッファを解放して再確保します。
  *******************************************************************************
  */
-void window_init(PotrWindow *win, uint32_t initial_seq, uint16_t window_size)
+int window_init(PotrWindow *win, uint32_t initial_seq,
+                uint16_t window_size, uint16_t max_payload)
+{
+    uint16_t i;
+
+    if (win == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    /* 既存バッファがあり、サイズが一致する場合は状態リセットのみ */
+    if (win->packets != NULL
+        && win->window_size == window_size
+        && win->max_payload == max_payload)
+    {
+        memset(win->valid, 0, window_size);
+        win->base_seq = initial_seq;
+        win->next_seq = initial_seq;
+        return POTR_SUCCESS;
+    }
+
+    /* 既存バッファを解放 */
+    free(win->packets);
+    free(win->valid);
+    free(win->payload_pool);
+    win->packets      = NULL;
+    win->valid        = NULL;
+    win->payload_pool = NULL;
+
+    /* 新規確保 */
+    win->packets      = (PotrPacket *)malloc((size_t)window_size * sizeof(PotrPacket));
+    win->valid        = (uint8_t *)malloc((size_t)window_size);
+    win->payload_pool = (uint8_t *)malloc((size_t)window_size * (size_t)max_payload);
+
+    if (win->packets == NULL || win->valid == NULL || win->payload_pool == NULL)
+    {
+        free(win->packets);
+        free(win->valid);
+        free(win->payload_pool);
+        win->packets      = NULL;
+        win->valid        = NULL;
+        win->payload_pool = NULL;
+        return POTR_ERROR;
+    }
+
+    memset(win->valid, 0, (size_t)window_size);
+
+    /* 各エントリの payload ポインタをプールスロットへ設定 */
+    for (i = 0; i < window_size; i++)
+    {
+        memset(&win->packets[i], 0, sizeof(PotrPacket));
+        win->packets[i].payload = win->payload_pool + (size_t)i * (size_t)max_payload;
+    }
+
+    win->base_seq    = initial_seq;
+    win->next_seq    = initial_seq;
+    win->window_size = window_size;
+    win->max_payload = max_payload;
+
+    return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          ウィンドウが保持する動的確保バッファを解放します。
+ *  @param[in,out]  win  解放するウィンドウ構造体へのポインタ。
+ *******************************************************************************
+ */
+void window_destroy(PotrWindow *win)
 {
     if (win == NULL)
     {
         return;
     }
 
-    memset(win, 0, sizeof(*win));
-    win->base_seq   = initial_seq;
-    win->next_seq   = initial_seq;
-    win->window_size = (window_size <= POTR_MAX_WINDOW_SIZE)
-                           ? window_size
-                           : (uint16_t)POTR_MAX_WINDOW_SIZE;
+    free(win->packets);
+    free(win->valid);
+    free(win->payload_pool);
+    win->packets      = NULL;
+    win->valid        = NULL;
+    win->payload_pool = NULL;
 }
 
 /* ウィンドウ内インデックス計算 */
@@ -75,9 +156,18 @@ int window_send_push(PotrWindow *win, const PotrPacket *packet)
         win->base_seq++;
     }
 
-    idx               = win_index(win, win->next_seq);
-    win->packets[idx] = *packet;
-    win->valid[idx]   = 1;
+    idx = win_index(win, win->next_seq);
+
+    /* プールスロットへ深コピー (packet->payload_len は NBO: packet_build_packed が設定) */
+    {
+        /* プールスロットアドレスをインデックスから直接計算することで const 除去キャストを回避する */
+        uint8_t *slot     = win->payload_pool + idx * (size_t)win->max_payload;
+        win->packets[idx] = *packet;                   /* 構造体コピー */
+        win->packets[idx].payload = slot;              /* プールスロットを設定 */
+        memcpy(slot, packet->payload, (size_t)ntohs(packet->payload_len));
+    }
+
+    win->valid[idx] = 1;
     win->next_seq++;
 
     return POTR_SUCCESS;
@@ -166,8 +256,13 @@ int window_recv_push(PotrWindow *win, const PotrPacket *packet)
     idx = win_index(win, packet->seq_num);
     if (!win->valid[idx])
     {
+        /* プールスロットへ深コピー (packet->payload_len はホストバイトオーダー: packet_parse が変換済み) */
+        /* プールスロットアドレスをインデックスから直接計算することで const 除去キャストを回避する */
+        uint8_t *slot     = win->payload_pool + idx * (size_t)win->max_payload;
         win->packets[idx] = *packet;
-        win->valid[idx]   = 1;
+        win->packets[idx].payload = slot;
+        memcpy(slot, packet->payload, (size_t)packet->payload_len);
+        win->valid[idx] = 1;
     }
 
     return POTR_SUCCESS;

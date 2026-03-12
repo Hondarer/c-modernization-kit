@@ -25,8 +25,7 @@
 
 #include "packet.h"
 
-/* ヘッダー固定長: payload フィールドの開始オフセット */
-#define PACKET_HEADER_SIZE (offsetof(PotrPacket, payload))
+/* packet.h で公開した PACKET_HEADER_SIZE をそのまま使用する */
 
 /* 64 ビット値をホストバイトオーダーからネットワークバイトオーダーへ変換する */
 static uint64_t hton64(uint64_t v)
@@ -68,7 +67,8 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
         return POTR_ERROR;
     }
 
-    memset(packet, 0, sizeof(*packet));
+    memset(packet, 0, PACKET_HEADER_SIZE);
+    packet->payload     = NULL;
     fill_session_hdr(packet, shdr);
     packet->seq_num     = 0;
     packet->ack_num     = htonl(nack_num);
@@ -101,7 +101,8 @@ int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
         return POTR_ERROR;
     }
 
-    memset(packet, 0, sizeof(*packet));
+    memset(packet, 0, PACKET_HEADER_SIZE);
+    packet->payload     = NULL;
     fill_session_hdr(packet, shdr);
     packet->seq_num     = htonl(seq_num);
     packet->ack_num     = 0;
@@ -133,7 +134,8 @@ int packet_build_reject(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
         return POTR_ERROR;
     }
 
-    memset(packet, 0, sizeof(*packet));
+    memset(packet, 0, PACKET_HEADER_SIZE);
+    packet->payload     = NULL;
     fill_session_hdr(packet, shdr);
     packet->seq_num     = 0;
     packet->ack_num     = htonl(seq_num);
@@ -162,7 +164,8 @@ int packet_build_fin(PotrPacket *packet, const PotrPacketSessionHdr *shdr)
         return POTR_ERROR;
     }
 
-    memset(packet, 0, sizeof(*packet));
+    memset(packet, 0, PACKET_HEADER_SIZE);
+    packet->payload     = NULL;
     fill_session_hdr(packet, shdr);
     packet->seq_num     = 0;
     packet->ack_num     = 0;
@@ -201,13 +204,14 @@ int packet_build_packed(PotrPacket *out, const PotrPacketSessionHdr *shdr,
         return POTR_ERROR;
     }
 
-    memset(out, 0, sizeof(*out));
+    memset(out, 0, PACKET_HEADER_SIZE);
     fill_session_hdr(out, shdr);
     out->seq_num     = htonl(seq_num);
     out->ack_num     = 0;
     out->flags       = htons(POTR_FLAG_DATA);
     out->payload_len = htons((uint16_t)payload_len);
-    memcpy(out->payload, packed_payload, payload_len);
+    /* ゼロコピー: 呼び出し元バッファを直接指す。 */
+    out->payload     = (const uint8_t *)packed_payload;
 
     return POTR_SUCCESS;
 }
@@ -260,7 +264,8 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
         return POTR_ERROR;
     }
 
-    memset(elem_out, 0, sizeof(*elem_out));
+    memset(elem_out, 0, PACKET_HEADER_SIZE);
+    elem_out->payload         = NULL;
     elem_out->service_id      = container->service_id;
     elem_out->session_id      = container->session_id;
     elem_out->session_tv_sec  = container->session_tv_sec;
@@ -268,7 +273,9 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
     elem_out->ack_num         = 0;
     elem_out->flags           = ntohs(flags_nbo);
     elem_out->payload_len     = payload_len;
-    memcpy(elem_out->payload, p + POTR_PAYLOAD_ELEM_HDR_SIZE, payload_len);
+    /* ゼロコピー: コンテナのペイロード領域を直接指す。
+       コンテナの生存期間中 (呼び出し元の処理完了まで) のみ有効。 */
+    elem_out->payload = p + POTR_PAYLOAD_ELEM_HDR_SIZE;
 
     *offset += POTR_PAYLOAD_ELEM_HDR_SIZE + payload_len;
     return POTR_SUCCESS;
@@ -288,35 +295,34 @@ int packet_unpack_next(const PotrPacket *container, size_t *offset,
  */
 int packet_parse(PotrPacket *packet, const void *buf, size_t buf_len)
 {
+    const uint8_t *b = (const uint8_t *)buf;
+    uint32_t tmp32;
+    uint64_t tmp64;
+    uint16_t tmp16;
+
     if (packet == NULL || buf == NULL || buf_len < PACKET_HEADER_SIZE)
     {
         return POTR_ERROR;
     }
 
-    size_t copy_size;
-    if (buf_len < sizeof(*packet))
-    {
-        copy_size = buf_len;
-    }
-    else
-    {
-        copy_size = sizeof(*packet);
-    }
-    memcpy(packet, buf, copy_size);
+    memcpy(&tmp32, b +  0, 4); packet->service_id      = (int32_t)ntohl(tmp32);
+    memcpy(&tmp32, b +  4, 4); packet->session_id      = ntohl(tmp32);
+    memcpy(&tmp64, b +  8, 8); packet->session_tv_sec  = (int64_t)ntoh64(tmp64);
+    memcpy(&tmp32, b + 16, 4); packet->session_tv_nsec = (int32_t)ntohl(tmp32);
+    memcpy(&tmp32, b + 20, 4); packet->seq_num         = ntohl(tmp32);
+    memcpy(&tmp32, b + 24, 4); packet->ack_num         = ntohl(tmp32);
+    memcpy(&tmp16, b + 28, 2); packet->flags           = ntohs(tmp16);
+    memcpy(&tmp16, b + 30, 2); packet->payload_len     = ntohs(tmp16);
 
-    packet->service_id      = (int32_t)ntohl((uint32_t)packet->service_id);
-    packet->session_id      = ntohl(packet->session_id);
-    packet->session_tv_sec  = (int64_t)ntoh64((uint64_t)packet->session_tv_sec);
-    packet->session_tv_nsec = (int32_t)ntohl((uint32_t)packet->session_tv_nsec);
-    packet->seq_num         = ntohl(packet->seq_num);
-    packet->ack_num         = ntohl(packet->ack_num);
-    packet->flags           = ntohs(packet->flags);
-    packet->payload_len     = ntohs(packet->payload_len);
-
-    if (packet->payload_len > POTR_MAX_PAYLOAD)
+    if (packet->payload_len > POTR_MAX_PAYLOAD
+        || (size_t)packet->payload_len + PACKET_HEADER_SIZE > buf_len)
     {
         return POTR_ERROR;
     }
+
+    /* ゼロコピー: 受信バッファ内のペイロード領域を直接指す。
+       呼び出し元バッファ (recv_buf) の生存期間中のみ有効。 */
+    packet->payload = b + PACKET_HEADER_SIZE;
 
     return POTR_SUCCESS;
 }

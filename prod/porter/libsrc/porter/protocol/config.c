@@ -19,6 +19,7 @@
 #include <porter_const.h>
 #include <porter_type.h>
 
+#include "../infra/potrLog.h"
 #include "config.h"
 
 /** 設定ファイル 1 行の最大長。 */
@@ -173,6 +174,8 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     global->max_payload        = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
     global->health_interval_ms = (uint32_t)POTR_DEFAULT_HEALTH_INTERVAL_MS;
     global->health_timeout_ms  = (uint32_t)POTR_DEFAULT_HEALTH_TIMEOUT_MS;
+    global->max_message_size   = (uint32_t)POTR_MAX_MESSAGE_SIZE;
+    global->send_queue_depth   = (uint32_t)POTR_SEND_QUEUE_DEPTH;
 
     fp = open_config_file_read(config_path);
     if (fp == NULL)
@@ -245,7 +248,23 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         {
             global->health_timeout_ms = (uint32_t)atoi(val);
         }
+        else if (strcmp(key, "max_message_size") == 0)
+        {
+            global->max_message_size = (uint32_t)atoi(val);
+        }
+        else if (strcmp(key, "send_queue_depth") == 0)
+        {
+            global->send_queue_depth = (uint32_t)atoi(val);
+        }
     }
+
+    POTR_LOG(POTR_LOG_TRACE,
+             "config loaded: window_size=%u max_payload=%u "
+             "max_message_size=%u send_queue_depth=%u "
+             "health_interval_ms=%u health_timeout_ms=%u",
+             (unsigned)global->window_size, (unsigned)global->max_payload,
+             (unsigned)global->max_message_size, (unsigned)global->send_queue_depth,
+             (unsigned)global->health_interval_ms, (unsigned)global->health_timeout_ms);
 
     fclose(fp);
     return POTR_SUCCESS;
@@ -422,10 +441,113 @@ int config_load_service(const char *config_path, int service_id,
     fclose(fp);
     if (found)
     {
+        POTR_LOG(POTR_LOG_TRACE,
+                 "service loaded: service_id=%d type=%d "
+                 "src_addr1=%s dst_addr1=%s dst_port=%u src_port=%u",
+                 def->service_id, (int)def->type,
+                 def->src_addr[0], def->dst_addr[0],
+                 (unsigned)def->dst_port, (unsigned)def->src_port);
         return POTR_SUCCESS;
     }
     else
     {
         return POTR_ERROR;
     }
+}
+
+/**
+ *******************************************************************************
+ *  @brief          設定ファイルに登録されているすべてのサービス ID を列挙します。
+ *  @param[in]      config_path 設定ファイルのパス。
+ *  @param[out]     ids_out     サービス ID 配列へのポインタを格納する変数。
+ *                              呼び出し元が free(*ids_out) の責務を持つ。
+ *  @param[out]     count_out   列挙したサービス ID 数。
+ *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+ *
+ *  @details
+ *  初期容量 POTR_MAX_SERVICES で配列を確保し、超過時は realloc で 2 倍に拡張します。
+ *******************************************************************************
+ */
+int config_list_service_ids(const char *config_path, int **ids_out, int *count_out)
+{
+    FILE *fp;
+    char  line[CONFIG_LINE_MAX];
+    int  *ids;
+    int   capacity;
+    int   count;
+
+    if (config_path == NULL || ids_out == NULL || count_out == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    fp = open_config_file_read(config_path);
+    if (fp == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    capacity = (int)POTR_MAX_SERVICES;
+    count    = 0;
+    ids      = (int *)malloc((size_t)capacity * sizeof(int));
+    if (ids == NULL)
+    {
+        fclose(fp);
+        return POTR_ERROR;
+    }
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        char trimmed[CONFIG_LINE_MAX];
+        trim(line, trimmed, sizeof(trimmed));
+
+        if (trimmed[0] != '[')
+        {
+            continue;
+        }
+
+        {
+            char  *close = strchr(trimmed, ']');
+            char   section[CONFIG_SECTION_MAX];
+            size_t sec_len;
+
+            if (close == NULL)
+            {
+                continue;
+            }
+            sec_len = (size_t)(close - trimmed - 1);
+            if (sec_len >= CONFIG_SECTION_MAX)
+            {
+                sec_len = CONFIG_SECTION_MAX - 1;
+            }
+            memcpy(section, trimmed + 1, sec_len);
+            section[sec_len] = '\0';
+
+            if (strncmp(section, "service.", 8) != 0)
+            {
+                continue;
+            }
+
+            if (count >= capacity)
+            {
+                int  new_cap = capacity * 2;
+                int *new_ids = (int *)realloc(ids, (size_t)new_cap * sizeof(int));
+                if (new_ids == NULL)
+                {
+                    free(ids);
+                    fclose(fp);
+                    return POTR_ERROR;
+                }
+                ids      = new_ids;
+                capacity = new_cap;
+            }
+
+            ids[count++] = atoi(section + 8);
+        }
+    }
+
+    fclose(fp);
+    *ids_out   = ids;
+    *count_out = count;
+    return POTR_SUCCESS;
 }

@@ -92,10 +92,12 @@ typedef struct
  */
 typedef struct
 {
-    uint16_t window_size;        /**< スライディングウィンドウサイズ (パケット数)。 */
-    uint16_t max_payload;        /**< 最大ペイロード長 (バイト)。 */
-    uint32_t health_interval_ms; /**< ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。 */
-    uint32_t health_timeout_ms;  /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なパケットが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
+    uint16_t window_size;         /**< スライディングウィンドウサイズ (パケット数)。 */
+    uint16_t max_payload;         /**< 最大ペイロード長 (バイト)。 */
+    uint32_t health_interval_ms;  /**< ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。 */
+    uint32_t health_timeout_ms;   /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なパケットが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
+    uint32_t max_message_size;    /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。デフォルト: POTR_MAX_MESSAGE_SIZE。 */
+    uint32_t send_queue_depth;    /**< 非同期送信キューの最大エントリ数。デフォルト: POTR_SEND_QUEUE_DEPTH。 */
 } PotrGlobalConfig;
 
 /**
@@ -105,20 +107,22 @@ typedef struct
  *  @details
  *  UDP で送受信される物理パケットのレイアウトです。\n
  *  各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納します。\n
- *  ヘッダー固定長: offsetof(PotrPacket, payload) = 32 バイト。
+ *  ヘッダー固定長: offsetof(PotrPacket, payload) = 32 バイト。\n
+ *  payload フィールドはポインタであり、wire データとして直接 sendto に渡せません。\n
+ *  送信時は PotrContext_ の send_wire_buf / recv_buf に wire データを組み立ててください。
  *******************************************************************************
  */
 typedef struct
 {
-    int32_t  service_id;               /**< サービス識別子 (NBO)。受信時に照合する。 */
-    uint32_t session_id;               /**< セッション識別子 (NBO)。potrOpenService 時に決定する乱数。 */
-    int64_t  session_tv_sec;           /**< セッション開始時刻 秒部 (NBO)。struct timespec の tv_sec 相当。 */
-    int32_t  session_tv_nsec;          /**< セッション開始時刻 ナノ秒部 (NBO)。struct timespec の tv_nsec 相当。 */
-    uint32_t seq_num;                  /**< 通番。送信側が付与する連番 (NBO)。 */
-    uint32_t ack_num;                  /**< 再送要求番号 / 再送不能通番 (NBO)。NACK では要求通番、REJECT では再送不能通番を格納する。 */
-    uint16_t flags;                    /**< パケット種別フラグ (POTR_FLAG_*) (NBO)。 */
-    uint16_t payload_len;              /**< ペイロード長 (バイト) (NBO)。 */
-    uint8_t  payload[POTR_MAX_PAYLOAD]; /**< ペイロードデータ。 */
+    int32_t  service_id;      /**< サービス識別子 (NBO)。受信時に照合する。 */
+    uint32_t session_id;      /**< セッション識別子 (NBO)。potrOpenService 時に決定する乱数。 */
+    int64_t  session_tv_sec;  /**< セッション開始時刻 秒部 (NBO)。struct timespec の tv_sec 相当。 */
+    int32_t  session_tv_nsec; /**< セッション開始時刻 ナノ秒部 (NBO)。struct timespec の tv_nsec 相当。 */
+    uint32_t seq_num;         /**< 通番。送信側が付与する連番 (NBO)。 */
+    uint32_t ack_num;         /**< 再送要求番号 / 再送不能通番 (NBO)。NACK では要求通番、REJECT では再送不能通番を格納する。 */
+    uint16_t flags;           /**< パケット種別フラグ (POTR_FLAG_*) (NBO)。 */
+    uint16_t payload_len;     /**< ペイロード長 (バイト) (NBO)。 */
+    const uint8_t *payload;   /**< ペイロードデータへのポインタ (読み取り専用)。ウィンドウプールまたは受信バッファ内を指す。 */
 } PotrPacket;
 
 /**

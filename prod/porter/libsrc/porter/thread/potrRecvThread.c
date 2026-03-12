@@ -82,7 +82,8 @@ static int check_and_update_session(struct PotrContext_ *ctx,
                  "recv[service_id=%d]: new session (first contact), new_id=%u seq=%u",
                  ctx->service.service_id,
                  pkt->session_id, (unsigned)pkt->seq_num);
-        window_init(&ctx->recv_window, pkt->seq_num, ctx->global.window_size);
+        window_init(&ctx->recv_window, pkt->seq_num,
+                    ctx->global.window_size, ctx->global.max_payload);
         return 1;
     }
 
@@ -151,7 +152,8 @@ static int check_and_update_session(struct PotrContext_ *ctx,
     ctx->peer_session_id      = pkt->session_id;
     ctx->peer_session_tv_sec  = pkt->session_tv_sec;
     ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
-    window_init(&ctx->recv_window, pkt->seq_num, ctx->global.window_size);
+    window_init(&ctx->recv_window, pkt->seq_num,
+                ctx->global.window_size, ctx->global.max_payload);
     return 1;
 }
 
@@ -270,13 +272,11 @@ static void check_health_timeout(struct PotrContext_ *ctx)
                前セッションの next_seq が gap スキャンに影響しないようにする。 */
             ctx->peer_session_known = 0;
             ctx->last_recv_tv_sec   = 0;
-            window_init(&ctx->recv_window, 0, ctx->global.window_size);
+            window_init(&ctx->recv_window, 0,
+                        ctx->global.window_size, ctx->global.max_payload);
         }
     }
 }
-
-/** 受信バッファサイズ。ヘッダー + 最大ペイロード分を確保する。 */
-#define RECV_BUF_SIZE (sizeof(PotrPacket))
 
 /* NACK パケットを全パスへ送信する */
 static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
@@ -365,7 +365,7 @@ static void recv_deliver(struct PotrContext_ *ctx,
 {
     if (compressed)
     {
-        size_t dec_len = sizeof(ctx->compress_buf);
+        size_t dec_len = ctx->compress_buf_size;
 
         if (potr_decompress(ctx->compress_buf, &dec_len,
                             payload, payload_len) == 0)
@@ -400,7 +400,7 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
     if (elem->flags & POTR_FLAG_MORE_FRAG)
     {
         /* 中間フラグメント: バッファに追記 */
-        if (ctx->frag_buf_len + elem->payload_len <= POTR_MAX_MESSAGE_SIZE)
+        if (ctx->frag_buf_len + elem->payload_len <= ctx->global.max_message_size)
         {
             if (ctx->frag_buf_len == 0)
             {
@@ -426,7 +426,7 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
     else if (ctx->frag_buf_len > 0)
     {
         /* 最終フラグメント: バッファに追記してコールバック */
-        if (ctx->frag_buf_len + elem->payload_len <= POTR_MAX_MESSAGE_SIZE)
+        if (ctx->frag_buf_len + elem->payload_len <= ctx->global.max_message_size)
         {
             memcpy(ctx->frag_buf + ctx->frag_buf_len,
                    elem->payload, elem->payload_len);
@@ -570,7 +570,7 @@ static void *recv_thread_func(void *arg)
 #endif
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
-    uint8_t             buf[RECV_BUF_SIZE];
+    uint8_t            *buf = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
     PotrPacket          pkt;
     struct sockaddr_in  sender_addr;
     uint32_t            poll_ms;
@@ -647,15 +647,23 @@ static void *recv_thread_func(void *arg)
             sender_len = sizeof(sender_addr);
 
 #ifdef _WIN32
-            recv_len = recvfrom(ctx->sock[i], (char *)buf, (int)sizeof(buf), 0,
-                                (struct sockaddr *)&sender_addr, &sender_len);
-            if (recv_len == SOCKET_ERROR) continue;
+            recv_len = recvfrom(ctx->sock[i], (char *)buf,
+                                (int)(PACKET_HEADER_SIZE + ctx->global.max_payload),
+                                0, (struct sockaddr *)&sender_addr, &sender_len);
 #else
-            recv_len = (int)recvfrom(ctx->sock[i], buf, sizeof(buf), 0,
-                                     (struct sockaddr *)&sender_addr,
+            recv_len = (int)recvfrom(ctx->sock[i], buf,
+                                     PACKET_HEADER_SIZE + ctx->global.max_payload,
+                                     0, (struct sockaddr *)&sender_addr,
                                      &sender_len);
-            if (recv_len < 0) continue;
 #endif
+            if (recv_len <= 0)
+            {
+                if (!ctx->running) break; /* 正常終了: ソケットクローズによる割り込み */
+                POTR_LOG(POTR_LOG_TRACE,
+                         "recv[service_id=%d]: recvfrom returned %d",
+                         ctx->service.service_id, recv_len);
+                continue;
+            }
 
             if (packet_parse(&pkt, buf, (size_t)recv_len) != POTR_SUCCESS)
             {
@@ -719,8 +727,11 @@ static void *recv_thread_func(void *arg)
                     {
                         PotrPacket resend_pkt;
                         int        get_result;
+                        size_t     wire_len = 0;
 
-                        /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッドと競合) */
+                        /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッドと競合)。
+                           ミューテックス保持中に recv_buf へ wire データを組み立て、
+                           プールスロットが上書きされる前にコピーを完了させる。 */
 #ifdef _WIN32
                         EnterCriticalSection(&ctx->send_window_mutex);
 #else
@@ -729,6 +740,17 @@ static void *recv_thread_func(void *arg)
                         get_result = window_send_get(&ctx->send_window,
                                                      pkt.ack_num,
                                                      &resend_pkt);
+
+                        if (get_result == POTR_SUCCESS)
+                        {
+                            /* [NBO ヘッダー 32B][ペイロード] を recv_buf に組み立てる */
+                            wire_len = packet_wire_size(&resend_pkt);
+                            memcpy(ctx->recv_buf, &resend_pkt, PACKET_HEADER_SIZE);
+                            memcpy(ctx->recv_buf + PACKET_HEADER_SIZE,
+                                   resend_pkt.payload,
+                                   wire_len - PACKET_HEADER_SIZE);
+                        }
+
 #ifdef _WIN32
                         LeaveCriticalSection(&ctx->send_window_mutex);
 #else
@@ -737,7 +759,6 @@ static void *recv_thread_func(void *arg)
 
                         if (get_result == POTR_SUCCESS)
                         {
-                            size_t wire_len = packet_wire_size(&resend_pkt);
                             POTR_LOG(POTR_LOG_DEBUG,
                                      "sender[service_id=%d]: NACK received seq=%u"
                                      " -> retransmit",
@@ -746,12 +767,12 @@ static void *recv_thread_func(void *arg)
                             for (j = 0; j < ctx->n_path; j++)
                             {
 #ifdef _WIN32
-                                sendto(ctx->sock[j], (const char *)&resend_pkt,
+                                sendto(ctx->sock[j], (const char *)ctx->recv_buf,
                                        (int)wire_len, 0,
                                        (const struct sockaddr *)&ctx->dest_addr[j],
                                        sizeof(ctx->dest_addr[j]));
 #else
-                                sendto(ctx->sock[j], &resend_pkt, wire_len, 0,
+                                sendto(ctx->sock[j], ctx->recv_buf, wire_len, 0,
                                        (const struct sockaddr *)&ctx->dest_addr[j],
                                        sizeof(ctx->dest_addr[j]));
 #endif
@@ -801,7 +822,8 @@ static void *recv_thread_func(void *arg)
                    受信ウィンドウも初期化して前セッションの next_seq を残さない。 */
                 ctx->peer_session_known = 0;
                 ctx->last_recv_tv_sec   = 0;
-                window_init(&ctx->recv_window, 0, ctx->global.window_size);
+                window_init(&ctx->recv_window, 0,
+                            ctx->global.window_size, ctx->global.max_payload);
                 continue;
             }
 

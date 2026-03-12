@@ -29,10 +29,12 @@
 #include <porter.h>
 
 #include "../protocol/config.h"
+#include "../protocol/packet.h"
 #include "../protocol/window.h"
 #include "../potrContext.h"
 #include "../thread/potrRecvThread.h"
 #include "../thread/potrHealthThread.h"
+#include "../infra/compress/compress.h"
 #include "../infra/potrSendQueue.h"
 #include "../thread/potrSendThread.h"
 #include "../util/potrIpAddr.h"
@@ -284,6 +286,20 @@ static void cleanup_sockets(struct PotrContext_ *ctx)
     }
 }
 
+/* コンテキストが保持するすべてのリソースを解放して ctx 本体を free する。
+   memset(ctx, 0, ...) 後であれば、未初期化ポインタ (NULL) に対しても安全に呼び出せる。 */
+static void ctx_cleanup(struct PotrContext_ *ctx)
+{
+    window_destroy(&ctx->send_window);
+    window_destroy(&ctx->recv_window);
+    free(ctx->frag_buf);
+    free(ctx->compress_buf);
+    free(ctx->recv_buf);
+    free(ctx->send_wire_buf);
+    cleanup_sockets(ctx);
+    free(ctx);
+}
+
 /* doxygen コメントは、ヘッダに記載 */
 POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                      int               service_id,
@@ -383,11 +399,48 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         return POTR_ERROR;
     }
 
+    /* 設定値バリデーション */
+    if (ctx->global.max_payload < 64U || ctx->global.max_payload > POTR_MAX_PAYLOAD)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d invalid max_payload=%u (range: 64..%u)",
+                 service_id, (unsigned)ctx->global.max_payload, (unsigned)POTR_MAX_PAYLOAD);
+        free(ctx);
+        return POTR_ERROR;
+    }
+    if (ctx->global.window_size < 2U || ctx->global.window_size > POTR_MAX_WINDOW_SIZE)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d invalid window_size=%u (range: 2..%u)",
+                 service_id, (unsigned)ctx->global.window_size, (unsigned)POTR_MAX_WINDOW_SIZE);
+        free(ctx);
+        return POTR_ERROR;
+    }
+    if (ctx->global.max_message_size < (uint32_t)ctx->global.max_payload)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d max_message_size=%u must be >= max_payload=%u",
+                 service_id, (unsigned)ctx->global.max_message_size,
+                 (unsigned)ctx->global.max_payload);
+        free(ctx);
+        return POTR_ERROR;
+    }
+    if (ctx->global.send_queue_depth < 2U)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d invalid send_queue_depth=%u (min: 2)",
+                 service_id, (unsigned)ctx->global.send_queue_depth);
+        free(ctx);
+        return POTR_ERROR;
+    }
+
     POTR_LOG(POTR_LOG_DEBUG,
              "potrOpenService: service_id=%d type=%d window=%u max_payload=%u"
+             " max_message_size=%u send_queue_depth=%u"
              " health_interval=%ums health_timeout=%ums",
              service_id, (int)ctx->service.type,
              (unsigned)ctx->global.window_size, (unsigned)ctx->global.max_payload,
+             (unsigned)ctx->global.max_message_size, (unsigned)ctx->global.send_queue_depth,
              (unsigned)ctx->global.health_interval_ms,
              (unsigned)ctx->global.health_timeout_ms);
 
@@ -420,8 +473,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                     resolve_ipv4_addr(ctx->service.dst_addr[i],
                                       &ctx->dst_addr_resolved[i]) != POTR_SUCCESS)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
 
@@ -439,8 +491,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 ctx->sock[i] = open_socket_unicast(bind_addr, bind_port);
                 if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
 
@@ -449,7 +500,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 
             if (ctx->n_path == 0)
             {
-                free(ctx);
+                ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
             break;
@@ -462,7 +513,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
             if (ctx->service.dst_port == 0 ||
                 ctx->service.multicast_group[0] == '\0')
             {
-                free(ctx);
+                ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
 
@@ -473,8 +524,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 if (resolve_ipv4_addr(ctx->service.src_addr[i],
                                       &ctx->src_addr_resolved[i]) != POTR_SUCCESS)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
 
@@ -483,8 +533,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                                      role == POTR_ROLE_RECEIVER);
                 if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
 
@@ -493,7 +542,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 
             if (ctx->n_path == 0)
             {
-                free(ctx);
+                ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
             break;
@@ -505,7 +554,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 
             if (ctx->service.dst_port == 0)
             {
-                free(ctx);
+                ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
 
@@ -524,8 +573,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 if (resolve_ipv4_addr(ctx->service.src_addr[i],
                                       &ctx->src_addr_resolved[i]) != POTR_SUCCESS)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
 
@@ -535,8 +583,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                                                      role == POTR_ROLE_RECEIVER);
                 if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
 
@@ -545,14 +592,14 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
 
             if (ctx->n_path == 0)
             {
-                free(ctx);
+                ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
             break;
         }
 
         default:
-            free(ctx);
+            ctx_cleanup(ctx);
             return POTR_ERROR;
     }
 
@@ -581,8 +628,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 struct in_addr mcast_ip;
                 if (parse_ipv4_addr(ctx->service.multicast_group, &mcast_ip) != POTR_SUCCESS)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
                 for (i = 0; i < ctx->n_path; i++)
@@ -600,8 +646,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 struct in_addr bcast_ip;
                 if (parse_ipv4_addr(ctx->service.broadcast_addr, &bcast_ip) != POTR_SUCCESS)
                 {
-                    cleanup_sockets(ctx);
-                    free(ctx);
+                    ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
                 for (i = 0; i < ctx->n_path; i++)
@@ -622,17 +667,57 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     /* セッション識別子を生成する */
     generate_session(ctx);
 
-    /* 送受信バッファを初期化 */
-    window_init(&ctx->send_window, 0, ctx->global.window_size);
-    window_init(&ctx->recv_window, 0, ctx->global.window_size);
+    /* 送受信ウィンドウを初期化 */
+    if (window_init(&ctx->send_window, 0,
+                    ctx->global.window_size, ctx->global.max_payload) != POTR_SUCCESS)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
+    if (window_init(&ctx->recv_window, 0,
+                    ctx->global.window_size, ctx->global.max_payload) != POTR_SUCCESS)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
+
+    /* 動的バッファを確保 */
+    ctx->frag_buf = (uint8_t *)malloc(ctx->global.max_message_size);
+    if (ctx->frag_buf == NULL)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
+
+    ctx->compress_buf_size = POTR_COMPRESS_HEADER_SIZE
+                             + (size_t)ctx->global.max_message_size + 64U;
+    ctx->compress_buf = (uint8_t *)malloc(ctx->compress_buf_size);
+    if (ctx->compress_buf == NULL)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
+
+    ctx->recv_buf = (uint8_t *)malloc(PACKET_HEADER_SIZE + ctx->global.max_payload);
+    if (ctx->recv_buf == NULL)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
+
+    ctx->send_wire_buf = (uint8_t *)malloc(PACKET_HEADER_SIZE + ctx->global.max_payload);
+    if (ctx->send_wire_buf == NULL)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
 
     /* 受信者の場合は受信スレッドを起動 */
     if (role == POTR_ROLE_RECEIVER)
     {
         if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
         {
-            cleanup_sockets(ctx);
-            free(ctx);
+            ctx_cleanup(ctx);
             return POTR_ERROR;
         }
     }
@@ -640,18 +725,18 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     /* 送信者: 送信キュー・送信スレッド・ヘルスチェックスレッド・ACK/NACK 受信スレッドを起動 */
     if (role == POTR_ROLE_SENDER)
     {
-        if (potr_send_queue_init(&ctx->send_queue) != POTR_SUCCESS)
+        if (potr_send_queue_init(&ctx->send_queue,
+                                 (size_t)ctx->global.send_queue_depth,
+                                 ctx->global.max_payload) != POTR_SUCCESS)
         {
-            cleanup_sockets(ctx);
-            free(ctx);
+            ctx_cleanup(ctx);
             return POTR_ERROR;
         }
 
         if (potr_send_thread_start(ctx) != POTR_SUCCESS)
         {
             potr_send_queue_destroy(&ctx->send_queue);
-            cleanup_sockets(ctx);
-            free(ctx);
+            ctx_cleanup(ctx);
             return POTR_ERROR;
         }
 
@@ -659,8 +744,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         {
             potr_send_thread_stop(ctx);
             potr_send_queue_destroy(&ctx->send_queue);
-            cleanup_sockets(ctx);
-            free(ctx);
+            ctx_cleanup(ctx);
             return POTR_ERROR;
         }
 
@@ -669,8 +753,7 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
             potr_health_thread_stop(ctx);
             potr_send_thread_stop(ctx);
             potr_send_queue_destroy(&ctx->send_queue);
-            cleanup_sockets(ctx);
-            free(ctx);
+            ctx_cleanup(ctx);
             return POTR_ERROR;
         }
     }

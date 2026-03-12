@@ -107,11 +107,12 @@ struct PotrContext_
 
     size_t           frag_buf_len;       /**< フラグメント結合バッファの現在のデータ長 (バイト)。 */
     int              frag_compressed;   /**< フラグメント受信中の圧縮フラグ (非 0: 圧縮あり)。 */
-    uint8_t          _frag_pad2[4];     /**< パディング。 */
-    uint8_t          frag_buf[POTR_MAX_MESSAGE_SIZE]; /**< フラグメント結合バッファ。 */
-    uint8_t          _frag_pad[1];      /**< パディング (frag_buf を 8 バイト境界に揃える)。 */
-    uint8_t          compress_buf[POTR_COMPRESS_BUF_SIZE]; /**< 圧縮・解凍用一時バッファ。 */
-    uint8_t          _cmp_pad[5];       /**< パディング (compress_buf を 8 バイト境界に揃える)。 */
+    uint32_t         _pad_frag;         /**< パディング (frag_buf を 8 バイト境界に揃える)。 */
+    uint8_t         *frag_buf;          /**< フラグメント結合バッファ (動的確保。max_message_size バイト)。 */
+    uint8_t         *compress_buf;      /**< 圧縮・解凍用一時バッファ (動的確保)。 */
+    size_t           compress_buf_size; /**< compress_buf のサイズ (バイト)。 */
+    uint8_t         *recv_buf;          /**< 受信バッファ / 再送 wire 組立バッファ (動的確保。PACKET_HEADER_SIZE + max_payload バイト)。 */
+    uint8_t         *send_wire_buf;     /**< 送信 wire 組立バッファ (動的確保。PACKET_HEADER_SIZE + max_payload バイト)。送信スレッドのみ使用。 */
 
     /* 非同期送信 (POTR_ROLE_SENDER のみ使用) */
     PotrThread        send_thread;          /**< 送信スレッドハンドル。 */

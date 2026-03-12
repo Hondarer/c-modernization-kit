@@ -24,6 +24,8 @@ extern "C"
     extern int config_load_global(const char *config_path, PotrGlobalConfig *global);
     extern int config_load_service(const char *config_path, int service_id,
                                    PotrServiceDef *def);
+    extern int config_list_service_ids(const char *config_path,
+                                       int **ids_out, int *count_out);
 
 #ifdef __cplusplus
 }

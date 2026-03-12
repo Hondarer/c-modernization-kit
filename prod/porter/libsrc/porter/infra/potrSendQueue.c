@@ -11,6 +11,7 @@
  *******************************************************************************
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef _WIN32
@@ -47,9 +48,33 @@
 #endif
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_init(PotrSendQueue *q)
+int potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload)
 {
+    size_t i;
+
     memset(q, 0, sizeof(*q));
+
+    q->entries      = (PotrPayloadElem *)malloc(depth * sizeof(PotrPayloadElem));
+    q->payload_pool = (uint8_t *)malloc(depth * (size_t)max_payload);
+
+    if (q->entries == NULL || q->payload_pool == NULL)
+    {
+        free(q->entries);
+        free(q->payload_pool);
+        q->entries      = NULL;
+        q->payload_pool = NULL;
+        return POTR_ERROR;
+    }
+
+    q->depth = depth;
+
+    for (i = 0; i < depth; i++)
+    {
+        q->entries[i].flags       = 0;
+        q->entries[i].payload_len = 0;
+        q->entries[i].payload     = q->payload_pool + i * (size_t)max_payload;
+    }
+
     POTR_MUTEX_INIT(&q->mutex);
     POTR_COND_INIT(&q->not_empty);
     POTR_COND_INIT(&q->not_full);
@@ -64,6 +89,10 @@ void potr_send_queue_destroy(PotrSendQueue *q)
     POTR_COND_DESTROY(&q->not_full);
     POTR_COND_DESTROY(&q->not_empty);
     POTR_MUTEX_DESTROY(&q->mutex);
+    free(q->entries);
+    free(q->payload_pool);
+    q->entries      = NULL;
+    q->payload_pool = NULL;
 }
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -72,7 +101,7 @@ int potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
 {
     POTR_MUTEX_LOCK(&q->mutex);
 
-    if (q->count >= POTR_SEND_QUEUE_DEPTH)
+    if (q->count + q->inflight >= q->depth)
     {
         POTR_MUTEX_UNLOCK(&q->mutex);
         return POTR_ERROR;
@@ -81,7 +110,7 @@ int potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
     q->entries[q->tail].flags       = flags;
     q->entries[q->tail].payload_len = payload_len;
     memcpy(q->entries[q->tail].payload, payload, payload_len);
-    q->tail = (q->tail + 1U) % POTR_SEND_QUEUE_DEPTH;
+    q->tail = (q->tail + 1U) % q->depth;
     q->count++;
 
     POTR_COND_SIGNAL(&q->not_empty);
@@ -97,7 +126,9 @@ int potr_send_queue_push_wait(PotrSendQueue *q, uint16_t flags,
 {
     POTR_MUTEX_LOCK(&q->mutex);
 
-    while (q->count >= POTR_SEND_QUEUE_DEPTH)
+    /* count + inflight < depth が保証されるまで待機する。
+       inflight エントリもプールスロットを占有するため、count だけでは不足。 */
+    while (q->count + q->inflight >= q->depth)
     {
         if (!*running)
         {
@@ -110,7 +141,7 @@ int potr_send_queue_push_wait(PotrSendQueue *q, uint16_t flags,
     q->entries[q->tail].flags       = flags;
     q->entries[q->tail].payload_len = payload_len;
     memcpy(q->entries[q->tail].payload, payload, payload_len);
-    q->tail = (q->tail + 1U) % POTR_SEND_QUEUE_DEPTH;
+    q->tail = (q->tail + 1U) % q->depth;
     q->count++;
 
     POTR_COND_SIGNAL(&q->not_empty);
@@ -135,11 +166,12 @@ int potr_send_queue_pop(PotrSendQueue *q, PotrPayloadElem *out, volatile int *ru
     }
 
     *out    = q->entries[q->head];
-    q->head = (q->head + 1U) % POTR_SEND_QUEUE_DEPTH;
+    q->head = (q->head + 1U) % q->depth;
     q->count--;
     q->inflight++;
 
-    POTR_COND_SIGNAL(&q->not_full);
+    /* count + inflight は変化しない (count-- と inflight++ が相殺) ため
+       not_full シグナルは complete() が担う */
     POTR_MUTEX_UNLOCK(&q->mutex);
     return POTR_SUCCESS;
 }
@@ -209,11 +241,10 @@ int potr_send_queue_try_pop(PotrSendQueue *q, PotrPayloadElem *out)
     }
 
     *out    = q->entries[q->head];
-    q->head = (q->head + 1U) % POTR_SEND_QUEUE_DEPTH;
+    q->head = (q->head + 1U) % q->depth;
     q->count--;
     q->inflight++;
 
-    POTR_COND_SIGNAL(&q->not_full);
     POTR_MUTEX_UNLOCK(&q->mutex);
     return POTR_SUCCESS;
 }
@@ -232,6 +263,10 @@ void potr_send_queue_complete(PotrSendQueue *q)
     {
         POTR_COND_BROADCAST(&q->drained);
     }
+
+    /* inflight 減少により count + inflight < depth となる可能性があるため
+       push_wait で待機中のスレッドを起床させる */
+    POTR_COND_SIGNAL(&q->not_full);
 
     POTR_MUTEX_UNLOCK(&q->mutex);
 }

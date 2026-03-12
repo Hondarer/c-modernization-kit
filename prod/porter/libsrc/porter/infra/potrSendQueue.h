@@ -43,13 +43,15 @@
  *
  *  @details
  *  外側パケットの構築 (seq_num 付与・window_send_push・sendto) は送信スレッドが行う。\n
- *  本エントリはペイロードエレメントのデータのみを保持し、再送バッファには登録しない。
+ *  本エントリはペイロードエレメントのデータのみを保持し、再送バッファには登録しない。\n
+ *  payload はキュー初期化時に確保したプールスロットを指す。
  */
 typedef struct
 {
-    uint16_t flags;                      /**< ペイロードエレメントフラグ (MORE_FRAG, COMPRESSED など)。 */
-    uint16_t payload_len;                /**< ペイロード長 (バイト)。 */
-    uint8_t  payload[POTR_MAX_PAYLOAD];  /**< ペイロードデータ。 */
+    uint16_t  flags;       /**< ペイロードエレメントフラグ (MORE_FRAG, COMPRESSED など)。 */
+    uint16_t  payload_len; /**< ペイロード長 (バイト)。 */
+    uint32_t  _pad;        /**< パディング (payload を 8 バイト境界に揃える)。 */
+    uint8_t  *payload;     /**< ペイロードデータへのポインタ (プールスロット内を指す)。 */
 } PotrPayloadElem;
 
 /**
@@ -61,20 +63,23 @@ typedef struct
  *  ペイロードエレメント (メッセージのフラグメント) を受け渡します。\n
  *  - count: キュー内エントリ数\n
  *  - inflight: 送信スレッドが sendto 実行中のエントリ数\n
- *  - not_full 条件変数: count < POTR_SEND_QUEUE_DEPTH になったことを通知 (push_wait が待機)\n
+ *  - count + inflight <= depth が常に保証される (ペイロードプールスロット衝突を防止)\n
+ *  - not_full 条件変数: count + inflight < depth になったことを通知 (push_wait が待機)\n
  *  - drained 条件変数: count == 0 かつ inflight == 0 を通知 (ブロッキング送信が待機)
  */
 typedef struct
 {
-    PotrPayloadElem entries[POTR_SEND_QUEUE_DEPTH]; /**< ペイロードエレメントバッファ (リングバッファ)。 */
-    size_t          head;                           /**< 読み出し位置 (送信スレッドが使用)。 */
-    size_t          tail;                           /**< 書き込み位置 (potrSend 呼び出し元が使用)。 */
-    size_t          count;                          /**< キュー内エントリ数。 */
-    size_t          inflight;                       /**< sendto 実行中エントリ数。 */
-    PotrMutex       mutex;                          /**< 排他制御。 */
-    PotrCondVar     not_empty;                      /**< count > 0 になったことを通知する条件変数。 */
-    PotrCondVar     not_full;                       /**< count < POTR_SEND_QUEUE_DEPTH になったことを通知する条件変数。 */
-    PotrCondVar     drained;                        /**< count == 0 && inflight == 0 を通知する条件変数。 */
+    PotrPayloadElem *entries;      /**< ペイロードエレメントバッファ (動的確保。depth 要素)。 */
+    uint8_t         *payload_pool; /**< ペイロードプール (動的確保。depth × max_payload バイト)。 */
+    size_t           depth;        /**< キュー容量 (エントリ数)。 */
+    size_t           head;         /**< 読み出し位置 (送信スレッドが使用)。 */
+    size_t           tail;         /**< 書き込み位置 (potrSend 呼び出し元が使用)。 */
+    size_t           count;        /**< キュー内エントリ数。 */
+    size_t           inflight;     /**< sendto 実行中エントリ数。 */
+    PotrMutex        mutex;        /**< 排他制御。 */
+    PotrCondVar      not_empty;    /**< count > 0 になったことを通知する条件変数。 */
+    PotrCondVar      not_full;     /**< count + inflight < depth になったことを通知する条件変数。 */
+    PotrCondVar      drained;      /**< count == 0 && inflight == 0 を通知する条件変数。 */
 } PotrSendQueue;
 
 #ifdef __cplusplus
@@ -82,7 +87,7 @@ extern "C"
 {
 #endif
 
-    extern int  potr_send_queue_init(PotrSendQueue *q);
+    extern int  potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload);
     extern void potr_send_queue_destroy(PotrSendQueue *q);
     extern int  potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
                                      const void *payload, uint16_t payload_len);      /* 満杯時は即時 POTR_ERROR */

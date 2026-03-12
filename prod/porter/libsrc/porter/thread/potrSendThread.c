@@ -78,15 +78,17 @@ static void append_payload_elem(uint8_t *packed_buf, size_t *packed_len,
     *packed_len += entry->payload_len;
 }
 
-/* packed_buf からデータパケット (外側コンテナ) を構築して sendto する。
-   seq_num を付与し、再送バッファ (send_window) にも登録する。 */
-static void flush_packed(struct PotrContext_ *ctx,
-                         const uint8_t *packed_buf, size_t packed_len)
+/* send_wire_buf の [PACKET_HEADER_SIZE .. PACKET_HEADER_SIZE+packed_len-1] に
+   詰め済みのペイロードから外側コンテナを構築して sendto する。
+   seq_num を付与し、再送バッファ (send_window) にも登録する。
+   send_wire_buf = [NBO ヘッダー 32B][packed_payload packed_len B] として組み立てる。 */
+static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
 {
     PotrPacket           outer_pkt;
     PotrPacketSessionHdr shdr;
     uint32_t             seq;
     size_t               wire_len;
+    uint8_t             *packed_buf = ctx->send_wire_buf + PACKET_HEADER_SIZE;
 
     shdr.service_id      = ctx->service.service_id;
     shdr.session_id      = ctx->session_id;
@@ -122,7 +124,9 @@ static void flush_packed(struct PotrContext_ *ctx,
     pthread_mutex_unlock(&ctx->send_window_mutex);
 #endif
 
-    wire_len = packet_wire_size(&outer_pkt);
+    /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードは既に直後に配置済み) */
+    memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
+    wire_len = PACKET_HEADER_SIZE + packed_len;
 
     POTR_LOG(POTR_LOG_TRACE,
              "sender[service_id=%d]: DATA seq=%u packed_len=%zu",
@@ -133,11 +137,11 @@ static void flush_packed(struct PotrContext_ *ctx,
         for (i = 0; i < ctx->n_path; i++)
         {
 #ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)&outer_pkt, (int)wire_len, 0,
+            sendto(ctx->sock[i], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
 #else
-            sendto(ctx->sock[i], &outer_pkt, wire_len, 0,
+            sendto(ctx->sock[i], ctx->send_wire_buf, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
 #endif
@@ -183,7 +187,8 @@ static void *send_thread_func(void *arg)
 
         /* パッキング試行 */
         {
-            uint8_t  packed_buf[POTR_MAX_PAYLOAD];
+            /* packed_buf は send_wire_buf のヘッダー直後領域を直接使用 (ゼロコピー) */
+            uint8_t *packed_buf = ctx->send_wire_buf + PACKET_HEADER_SIZE;
             size_t   packed_len = 0;
             int      n_dequeued = 1;
 
@@ -226,7 +231,7 @@ static void *send_thread_func(void *arg)
 
                         elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
 
-                        if (packed_len + elem_size > POTR_MAX_PAYLOAD)
+                        if (packed_len + elem_size > (size_t)ctx->global.max_payload)
                         {
                             break; /* 容量満杯: 即時送信してタイマーリセット */
                         }
@@ -257,7 +262,7 @@ static void *send_thread_func(void *arg)
 
                         elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
 
-                        if (packed_len + elem_size > POTR_MAX_PAYLOAD)
+                        if (packed_len + elem_size > (size_t)ctx->global.max_payload)
                         {
                             break;
                         }
@@ -275,7 +280,7 @@ static void *send_thread_func(void *arg)
             }
 
             /* 外側パケットを構築して送信 */
-            flush_packed(ctx, packed_buf, packed_len);
+            flush_packed(ctx, packed_len);
 
             /* デキューした全エントリ分の inflight を減算 */
             {

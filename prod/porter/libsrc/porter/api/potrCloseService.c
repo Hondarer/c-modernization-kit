@@ -33,6 +33,7 @@
 #include "../infra/potrSendQueue.h"
 #include "../thread/potrSendThread.h"
 #include "../protocol/packet.h"
+#include "../protocol/window.h"
 #include "../util/potrIpAddr.h"
 #include "../infra/potrLog.h"
 
@@ -158,6 +159,14 @@ POTR_API int POTRAPI potrCloseService(PotrHandle handle)
 #ifdef _WIN32
     WSACleanup();
 #endif
+
+    /* 送受信ウィンドウと動的バッファを解放 */
+    window_destroy(&ctx->send_window);
+    window_destroy(&ctx->recv_window);
+    free(ctx->frag_buf);
+    free(ctx->compress_buf);
+    free(ctx->recv_buf);
+    free(ctx->send_wire_buf);
 
     POTR_LOG(POTR_LOG_INFO,
              "potrCloseService: service closed");
