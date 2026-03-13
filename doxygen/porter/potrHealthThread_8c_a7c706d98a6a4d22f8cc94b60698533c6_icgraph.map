@@ -1,0 +1,9 @@
+<map id="health_thread_func" name="health_thread_func">
+<area shape="rect" id="Node000001" title=" " alt="" coords="448,13,580,38"/>
+<area shape="rect" id="Node000002" href="$potrHealthThread_8c.html#a8545c91db5b627eed4bf0b82280d661c" title="ヘルスチェックスレッドを起動します。" alt="" coords="271,5,400,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="434,28,400,28,400,23,434,23"/>
+<area shape="rect" id="Node000003" href="$potrOpenService_8c.html#a8ce1599677086e0c54400b696ed28680" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,13,223,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="257,28,223,28,223,23,257,23"/>
+<area shape="rect" id="Node000004" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,13,56,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="91,28,56,28,56,23,91,23"/>
+</map>

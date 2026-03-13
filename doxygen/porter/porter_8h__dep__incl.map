@@ -1,0 +1,17 @@
+<map id="porter/include/porter.h" name="porter/include/porter.h">
+<area shape="rect" id="Node000001" title="通信ライブラリ (動的リンク用) のヘッダーファイル。" alt="" coords="507,5,653,31"/>
+<area shape="rect" id="Node000002" href="$potrCloseService_8c.html" title=" " alt="" coords="5,79,163,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="494,32,345,53,175,81,164,84,163,78,174,76,344,48,493,27"/>
+<area shape="rect" id="Node000003" href="$potrOpenService_8c.html" title="potrOpenService 関数の実装。" alt="" coords="187,79,341,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="518,37,342,81,341,76,517,31"/>
+<area shape="rect" id="Node000004" href="$potrSend_8c.html" title="potrSend 関数の実装。" alt="" coords="366,79,493,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="545,40,468,81,466,76,543,35"/>
+<area shape="rect" id="Node000005" href="$potrLog_8c.html" title="porter ロガー実装。" alt="" coords="517,79,643,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="583,44,583,78,577,78,577,44"/>
+<area shape="rect" id="Node000006" href="$potrHealthThread_8c.html" title="ヘルスチェックスレッドモジュール。" alt="" coords="668,79,844,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="621,34,713,76,711,81,619,39"/>
+<area shape="rect" id="Node000007" href="$recv_8c.html" title="受信テストコマンド。" alt="" coords="869,86,1014,111"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="653,31,857,76,888,83,887,89,855,81,652,36"/>
+<area shape="rect" id="Node000008" href="$send_8c.html" title="送信テストコマンド。" alt="" coords="1039,86,1191,111"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="667,25,834,46,1027,76,1063,83,1062,89,1026,81,834,51,667,30"/>
+</map>

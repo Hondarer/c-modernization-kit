@@ -1,0 +1,657 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>porter/include/porter_type.h</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">porter/include/porter_type.h</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#porterincludeporter_type.h" id="toc-porterincludeporter_type.h"><span class="toc-section-number">1.1</span> porter/include/porter_type.h</a>
+                <ul>
+                <li><a href="#作者" id="toc-作者"><span class="toc-section-number">1.1.1</span> 作者</a></li>
+                <li><a href="#バージョン" id="toc-バージョン"><span class="toc-section-number">1.1.2</span> バージョン</a></li>
+                <li><a href="#日付" id="toc-日付"><span class="toc-section-number">1.1.3</span> 日付</a></li>
+                <li><a href="#インクルード元" id="toc-インクルード元"><span class="toc-section-number">1.1.4</span> インクルード元</a></li>
+                <li><a href="#インクルード先" id="toc-インクルード先"><span class="toc-section-number">1.1.5</span> インクルード先</a></li>
+                <li><a href="#著作権" id="toc-著作権"><span class="toc-section-number">1.1.6</span> 著作権</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#型" id="toc-型"><span class="toc-section-number">2</span> 型</a>
+                <ul>
+                <li><a href="#potrtype" id="toc-potrtype"><span class="toc-section-number">2.1</span> PotrType</a></li>
+                <li><a href="#potrrole" id="toc-potrrole"><span class="toc-section-number">2.2</span> PotrRole</a></li>
+                <li><a href="#potrevent" id="toc-potrevent"><span class="toc-section-number">2.3</span> PotrEvent</a>
+                <ul>
+                <li><a href="#補足" id="toc-補足"><span class="toc-section-number">2.3.1</span> 補足</a></li>
+                </ul></li>
+                <li><a href="#potrloglevel" id="toc-potrloglevel"><span class="toc-section-number">2.4</span> PotrLogLevel</a></li>
+                <li><a href="#potrhandle" id="toc-potrhandle"><span class="toc-section-number">2.5</span> PotrHandle</a></li>
+                <li><a href="#potrrecvcallback" id="toc-potrrecvcallback"><span class="toc-section-number">2.6</span> PotrRecvCallback</a>
+                <ul>
+                <li><a href="#引数" id="toc-引数"><span class="toc-section-number">2.6.1</span> 引数</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#クラス構造体" id="toc-クラス構造体"><span class="toc-section-number">3</span> クラス/構造体</a>
+                <ul>
+                <li><a href="#potrservicedef" id="toc-potrservicedef"><span class="toc-section-number">3.1</span> PotrServiceDef</a>
+                <ul>
+                <li><a href="#属性" id="toc-属性"><span class="toc-section-number">3.1.1</span> 属性</a></li>
+                </ul></li>
+                <li><a href="#potrglobalconfig" id="toc-potrglobalconfig"><span class="toc-section-number">3.2</span> PotrGlobalConfig</a>
+                <ul>
+                <li><a href="#属性-1" id="toc-属性-1"><span class="toc-section-number">3.2.1</span> 属性</a></li>
+                </ul></li>
+                <li><a href="#potrpacket" id="toc-potrpacket"><span class="toc-section-number">3.3</span> PotrPacket</a>
+                <ul>
+                <li><a href="#属性-2" id="toc-属性-2"><span class="toc-section-number">3.3.1</span> 属性</a></li>
+                </ul></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>porter/include/porter_type.h</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="porterincludeporter_type.h"><span class="header-section-number">1.1</span> porter/include/porter_type.h</h2>
+<p>通信ライブラリの型定義ファイル。</p>
+<h3 data-number="1.1.1" id="作者"><span class="header-section-number">1.1.1</span> 作者</h3>
+<p>c-modernization-kit sample team</p>
+<h3 data-number="1.1.2" id="バージョン"><span class="header-section-number">1.1.2</span> バージョン</h3>
+<p>1.0.0</p>
+<h3 data-number="1.1.3" id="日付"><span class="header-section-number">1.1.3</span> 日付</h3>
+<p>2026/03/04</p>
+<h3 data-number="1.1.4" id="インクルード元"><span class="header-section-number">1.1.4</span> インクルード元</h3>
+<figure>
+<img src="puml_b75fab74fdd676e608ae6fbeeb5c49e154ec1f62.svg" alt="porter_type.h のインクルード元" />
+<figcaption aria-hidden="true">porter_type.h のインクルード元</figcaption>
+</figure>
+<h3 data-number="1.1.5" id="インクルード先"><span class="header-section-number">1.1.5</span> インクルード先</h3>
+<figure>
+<img src="puml_3981226cb91c93697f493c6384c9f8eca640a260.svg" alt="porter_type.h のインクルード先" />
+<figcaption aria-hidden="true">porter_type.h のインクルード先</figcaption>
+</figure>
+<h3 data-number="1.1.6" id="著作権"><span class="header-section-number">1.1.6</span> 著作権</h3>
+<p>Copyright (C) CompanyName, Ltd. 2026. All rights reserved.</p>
+<h1 data-number="2" id="型"><span class="header-section-number">2</span> 型</h1>
+<h2 data-number="2.1" id="potrtype"><span class="header-section-number">2.1</span> PotrType</h2>
+<p>通信種別。</p>
+<p>サービス定義の通信方式を表します。</p>
+<table>
+<thead>
+<tr>
+<th>列挙子</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_TYPE_UNICAST</td>
+<td>1</td>
+<td>1:1 通信 (UDP ユニキャスト)。</td>
+</tr>
+<tr>
+<td>POTR_TYPE_MULTICAST</td>
+<td>2</td>
+<td>1:N 通信 (UDP マルチキャスト)。</td>
+</tr>
+<tr>
+<td>POTR_TYPE_BROADCAST</td>
+<td>3</td>
+<td>1:N 通信 (UDP ブロードキャスト)。</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="2.2" id="potrrole"><span class="header-section-number">2.2</span> PotrRole</h2>
+<p>役割種別。</p>
+<p>potrOpenService() の呼び出し元がデータを送信する役割か受信する役割かを明示します。</p>
+<table>
+<thead>
+<tr>
+<th>列挙子</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_ROLE_SENDER</td>
+<td>1</td>
+<td>送信者。</td>
+</tr>
+<tr>
+<td>POTR_ROLE_RECEIVER</td>
+<td>2</td>
+<td>受信者。</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="2.3" id="potrevent"><span class="header-section-number">2.3</span> PotrEvent</h2>
+<p>受信イベント種別。</p>
+<p>PotrRecvCallback の第 2 引数に渡されるイベント種別です。</p>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 42%" />
+</colgroup>
+<thead>
+<tr>
+<th>列挙子</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_EVENT_DATA</td>
+<td>0</td>
+<td>データ受信。data/len に内容が格納される。</td>
+</tr>
+<tr>
+<td>POTR_EVENT_CONNECTED</td>
+<td>1</td>
+<td>送信者からの疎通を初検知 or 復帰。data=NULL, len=0。</td>
+</tr>
+<tr>
+<td>POTR_EVENT_DISCONNECTED</td>
+<td>2</td>
+<td>切断を検知 (タイムアウト / FIN 受信 / REJECT 受信)。data=NULL, len=0。</td>
+</tr>
+</tbody>
+</table>
+<h3 data-number="2.3.1" id="補足"><span class="header-section-number">2.3.1</span> 補足</h3>
+<p>POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。<br />
+すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。<br />
+ヘルスチェックの有効/無効に関わらず、初回パケット受信時に CONNECTED が発火し、接続状態を管理します。<br />
+DISCONNECTED の発火条件:</p>
+<ul>
+<li><p>ヘルスチェック有効時 (health_timeout_ms &gt; 0): タイムアウト / FIN 受信 / REJECT 受信</p></li>
+<li><p>ヘルスチェック無効時 (health_timeout_ms = 0): FIN 受信 / REJECT 受信<br />
+REJECT 受信後は DISCONNECTED の直後に、次のパケット受信で CONNECTED が発火します。</p></li>
+</ul>
+<h2 data-number="2.4" id="potrloglevel"><span class="header-section-number">2.4</span> PotrLogLevel</h2>
+<p>ログレベル。</p>
+<p>potrLogConfig() の level 引数に指定するログ出力レベルです。<br />
+指定したレベル以上のメッセージのみが出力されます。</p>
+<table>
+<thead>
+<tr>
+<th>列挙子</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_LOG_TRACE</td>
+<td>0</td>
+<td>トレース (最詳細)。</td>
+</tr>
+<tr>
+<td>POTR_LOG_DEBUG</td>
+<td>1</td>
+<td>デバッグ情報。</td>
+</tr>
+<tr>
+<td>POTR_LOG_INFO</td>
+<td>2</td>
+<td>情報。</td>
+</tr>
+<tr>
+<td>POTR_LOG_WARN</td>
+<td>3</td>
+<td>警告。回復可能な異常を記録。</td>
+</tr>
+<tr>
+<td>POTR_LOG_ERROR</td>
+<td>4</td>
+<td>エラー。操作の失敗を記録。</td>
+</tr>
+<tr>
+<td>POTR_LOG_FATAL</td>
+<td>5</td>
+<td>致命的エラー。回復不能な障害を記録。</td>
+</tr>
+<tr>
+<td>POTR_LOG_OFF</td>
+<td>6</td>
+<td>ログ出力を無効にします。</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="2.5" id="potrhandle"><span class="header-section-number">2.5</span> PotrHandle</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>PotrHandle<span class="op">;</span></span></code></pre></div>
+<p>セッションハンドル。</p>
+<p>potrOpenService() が返す不透明ポインタです。<br />
+内部実装の詳細はライブラリ利用者からは隠蔽されます。</p>
+<h2 data-number="2.6" id="potrrecvcallback"><span class="header-section-number">2.6</span> PotrRecvCallback</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">void</span> <span class="op">(*</span>PotrRecvCallback<span class="op">)</span> <span class="op">(</span><span class="dt">int</span> service_id<span class="op">,</span> PotrEvent event<span class="op">,</span> <span class="at">const</span> <span class="dt">void</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">);</span></span></code></pre></div>
+<p>受信コールバック関数型。</p>
+<p>データ受信またはヘルスチェック状態変化時に、受信スレッドから呼び出されます。<br />
+コールバック内でブロッキング処理を行わないようにしてください。<br />
+すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。</p>
+<h3 data-number="2.6.1" id="引数"><span class="header-section-number">2.6.1</span> 引数</h3>
+<ul>
+<li>service_id [in] サービスの ID。</li>
+<li>event [in] イベント種別 (PotrEvent)。</li>
+<li>data [in] 受信データへのポインタ。POTR_EVENT_DATA 時のみ有効。 コールバック復帰後は無効になります。</li>
+<li>len [in] 受信データのバイト数。POTR_EVENT_DATA 時のみ有効。</li>
+</ul>
+<h1 data-number="3" id="クラス構造体"><span class="header-section-number">3</span> クラス/構造体</h1>
+<h2 data-number="3.1" id="potrservicedef"><span class="header-section-number">3.1</span> PotrServiceDef</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PotrServiceDef <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> service_id<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    PotrType type<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> dst_port<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> src_port<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> ttl<span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span><span class="op">[</span><span class="dv">3</span><span class="op">]</span> _pad<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> pack_wait_ms<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">[</span>POTR_MAX_ADDR_LEN<span class="op">]</span> multicast_group<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">[</span>POTR_MAX_ADDR_LEN<span class="op">]</span> broadcast_addr<span class="op">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">[</span>POTR_MAX_PATH<span class="op">][</span>POTR_MAX_ADDR_LEN<span class="op">]</span> src_addr<span class="op">;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">[</span>POTR_MAX_PATH<span class="op">][</span>POTR_MAX_ADDR_LEN<span class="op">]</span> dst_addr<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span><span class="op">[</span>POTR_CRYPTO_KEY_SIZE<span class="op">]</span> encrypt_key<span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> encrypt_enabled<span class="op">;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> _pad_encrypt<span class="op">;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>サービス定義。</p>
+<p>設定ファイルの [service.N] セクションから読み込まれるサービス設定です。</p>
+<p>通信種別によって有効なフィールドが異なります。</p>
+<h3 data-number="3.1.1" id="属性"><span class="header-section-number">3.1.1</span> 属性</h3>
+<h4 data-number="3.1.1.1" id="service_id"><span class="header-section-number">3.1.1.1</span> service_id</h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> service_id<span class="op">;</span></span></code></pre></div>
+<p>サービス ID。</p>
+<h4 data-number="3.1.1.2" id="type"><span class="header-section-number">3.1.1.2</span> type</h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>PotrType type<span class="op">;</span></span></code></pre></div>
+<p>通信種別。</p>
+<h4 data-number="3.1.1.3" id="dst_port"><span class="header-section-number">3.1.1.3</span> dst_port</h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> dst_port<span class="op">;</span></span></code></pre></div>
+<p>宛先ポート番号。サービスの識別子。受信者の bind ポート / 送信者の送信先ポート。(全通信種別で必須)</p>
+<h4 data-number="3.1.1.4" id="src_port"><span class="header-section-number">3.1.1.4</span> src_port</h4>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> src_port<span class="op">;</span></span></code></pre></div>
+<p>送信者の送信元 bind ポート番号。0 = OS 自動選定。(全通信種別で省略可)</p>
+<h4 data-number="3.1.1.5" id="ttl"><span class="header-section-number">3.1.1.5</span> ttl</h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint8_t</span> ttl<span class="op">;</span></span></code></pre></div>
+<p>マルチキャスト TTL。(multicast のみ)</p>
+<h4 data-number="3.1.1.6" id="pad"><span class="header-section-number">3.1.1.6</span> _pad</h4>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint8_t</span><span class="op">[</span><span class="dv">3</span><span class="op">]</span> _pad<span class="op">;</span></span></code></pre></div>
+<p>パディング (pack_wait_ms を 4 バイト境界に揃える)。</p>
+<h4 data-number="3.1.1.7" id="pack_wait_ms"><span class="header-section-number">3.1.1.7</span> pack_wait_ms</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> pack_wait_ms<span class="op">;</span></span></code></pre></div>
+<p>パッキング待ち時間 (ミリ秒)。最初の送信要求からこの時間だけ待ち合わせ、複数メッセージを 1 パケットにまとめる。0 = 即時送信 (パッキング待ちなし)。パケット容量が満杯になった場合はタイマーを無視して即時送信する。</p>
+<h4 data-number="3.1.1.8" id="multicast_group"><span class="header-section-number">3.1.1.8</span> multicast_group</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span><span class="op">[</span>POTR_MAX_ADDR_LEN<span class="op">]</span> multicast_group<span class="op">;</span></span></code></pre></div>
+<p>マルチキャストグループアドレス。(multicast のみ)</p>
+<h4 data-number="3.1.1.9" id="broadcast_addr"><span class="header-section-number">3.1.1.9</span> broadcast_addr</h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span><span class="op">[</span>POTR_MAX_ADDR_LEN<span class="op">]</span> broadcast_addr<span class="op">;</span></span></code></pre></div>
+<p>ブロードキャスト宛先アドレス。省略時は 255.255.255.255。(broadcast のみ)</p>
+<h4 data-number="3.1.1.10" id="src_addr"><span class="header-section-number">3.1.1.10</span> src_addr</h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span><span class="op">[</span>POTR_MAX_PATH<span class="op">][</span>POTR_MAX_ADDR_LEN<span class="op">]</span> src_addr<span class="op">;</span></span></code></pre></div>
+<p>送信元アドレス [0]=src_addr1 〜 [3]=src_addr4。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須)</p>
+<h4 data-number="3.1.1.11" id="dst_addr"><span class="header-section-number">3.1.1.11</span> dst_addr</h4>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span><span class="op">[</span>POTR_MAX_PATH<span class="op">][</span>POTR_MAX_ADDR_LEN<span class="op">]</span> dst_addr<span class="op">;</span></span></code></pre></div>
+<p>宛先アドレス [0]=dst_addr1 〜 [3]=dst_addr4。送信者は送信先、受信者は bind アドレス。(unicast のみ)</p>
+<h4 data-number="3.1.1.12" id="encrypt_key"><span class="header-section-number">3.1.1.12</span> encrypt_key</h4>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint8_t</span><span class="op">[</span>POTR_CRYPTO_KEY_SIZE<span class="op">]</span> encrypt_key<span class="op">;</span></span></code></pre></div>
+<p>AES-256-GCM 事前共有鍵 (32 バイト)。encrypt_enabled が 0 の場合は未使用。</p>
+<h4 data-number="3.1.1.13" id="encrypt_enabled"><span class="header-section-number">3.1.1.13</span> encrypt_enabled</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> encrypt_enabled<span class="op">;</span></span></code></pre></div>
+<p>非 0 のとき暗号化有効。設定ファイルに有効な encrypt_key が存在するときに 1 に設定される。</p>
+<h4 data-number="3.1.1.14" id="pad_encrypt"><span class="header-section-number">3.1.1.14</span> _pad_encrypt</h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> _pad_encrypt<span class="op">;</span></span></code></pre></div>
+<p>パディング (PotrServiceDef + PotrGlobalConfig のバイト和を 8 バイト境界に揃える)。</p>
+<h2 data-number="3.2" id="potrglobalconfig"><span class="header-section-number">3.2</span> PotrGlobalConfig</h2>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PotrGlobalConfig <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> window_size<span class="op">;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> max_payload<span class="op">;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> health_interval_ms<span class="op">;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> health_timeout_ms<span class="op">;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> max_message_size<span class="op">;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> send_queue_depth<span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>グローバル設定。</p>
+<p>設定ファイルの [global] セクションから読み込まれる共通プロトコル設定です。</p>
+<h3 data-number="3.2.1" id="属性-1"><span class="header-section-number">3.2.1</span> 属性</h3>
+<h4 data-number="3.2.1.1" id="window_size"><span class="header-section-number">3.2.1.1</span> window_size</h4>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> window_size<span class="op">;</span></span></code></pre></div>
+<p>スライディングウィンドウサイズ (パケット数)。</p>
+<h4 data-number="3.2.1.2" id="max_payload"><span class="header-section-number">3.2.1.2</span> max_payload</h4>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> max_payload<span class="op">;</span></span></code></pre></div>
+<p>最大ペイロード長 (バイト)。</p>
+<h4 data-number="3.2.1.3" id="health_interval_ms"><span class="header-section-number">3.2.1.3</span> health_interval_ms</h4>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> health_interval_ms<span class="op">;</span></span></code></pre></div>
+<p>ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。</p>
+<h4 data-number="3.2.1.4" id="health_timeout_ms"><span class="header-section-number">3.2.1.4</span> health_timeout_ms</h4>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> health_timeout_ms<span class="op">;</span></span></code></pre></div>
+<p>ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なパケットが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。</p>
+<h4 data-number="3.2.1.5" id="max_message_size"><span class="header-section-number">3.2.1.5</span> max_message_size</h4>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> max_message_size<span class="op">;</span></span></code></pre></div>
+<p>1 回の potrSend で送信できる最大メッセージ長 (バイト)。デフォルト: POTR_MAX_MESSAGE_SIZE。</p>
+<h4 data-number="3.2.1.6" id="send_queue_depth"><span class="header-section-number">3.2.1.6</span> send_queue_depth</h4>
+<div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> send_queue_depth<span class="op">;</span></span></code></pre></div>
+<p>非同期送信キューの最大エントリ数。デフォルト: POTR_SEND_QUEUE_DEPTH。</p>
+<h2 data-number="3.3" id="potrpacket"><span class="header-section-number">3.3</span> PotrPacket</h2>
+<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PotrPacket <span class="op">{</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int32_t</span> service_id<span class="op">;</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> session_id<span class="op">;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int64_t</span> session_tv_sec<span class="op">;</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int32_t</span> session_tv_nsec<span class="op">;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> seq_num<span class="op">;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> ack_num<span class="op">;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> flags<span class="op">;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> payload_len<span class="op">;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>payload<span class="op">;</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>ネットワーク送受信用パケット構造体。</p>
+<p>UDP で送受信される物理パケットのレイアウトです。<br />
+各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納します。<br />
+ヘッダー固定長: offsetof(PotrPacket, payload) = 32 バイト。<br />
+payload フィールドはポインタであり、wire データとして直接 sendto に渡せません。<br />
+送信時は PotrContext_ の send_wire_buf / recv_buf に wire データを組み立ててください。</p>
+<h3 data-number="3.3.1" id="属性-2"><span class="header-section-number">3.3.1</span> 属性</h3>
+<h4 data-number="3.3.1.1" id="service_id-1"><span class="header-section-number">3.3.1.1</span> service_id</h4>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int32_t</span> service_id<span class="op">;</span></span></code></pre></div>
+<p>サービス識別子 (NBO)。受信時に照合する。</p>
+<h4 data-number="3.3.1.2" id="session_id"><span class="header-section-number">3.3.1.2</span> session_id</h4>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> session_id<span class="op">;</span></span></code></pre></div>
+<p>セッション識別子 (NBO)。potrOpenService 時に決定する乱数。</p>
+<h4 data-number="3.3.1.3" id="session_tv_sec"><span class="header-section-number">3.3.1.3</span> session_tv_sec</h4>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int64_t</span> session_tv_sec<span class="op">;</span></span></code></pre></div>
+<p>セッション開始時刻 秒部 (NBO)。struct timespec の tv_sec 相当。</p>
+<h4 data-number="3.3.1.4" id="session_tv_nsec"><span class="header-section-number">3.3.1.4</span> session_tv_nsec</h4>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int32_t</span> session_tv_nsec<span class="op">;</span></span></code></pre></div>
+<p>セッション開始時刻 ナノ秒部 (NBO)。struct timespec の tv_nsec 相当。</p>
+<h4 data-number="3.3.1.5" id="seq_num"><span class="header-section-number">3.3.1.5</span> seq_num</h4>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> seq_num<span class="op">;</span></span></code></pre></div>
+<p>通番。送信側が付与する連番 (NBO)。</p>
+<h4 data-number="3.3.1.6" id="ack_num"><span class="header-section-number">3.3.1.6</span> ack_num</h4>
+<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> ack_num<span class="op">;</span></span></code></pre></div>
+<p>再送要求番号 / 再送不能通番 (NBO)。NACK では要求通番、REJECT では再送不能通番を格納する。</p>
+<h4 data-number="3.3.1.7" id="flags"><span class="header-section-number">3.3.1.7</span> flags</h4>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> flags<span class="op">;</span></span></code></pre></div>
+<p>パケット種別フラグ (POTR_FLAG_*) (NBO)。</p>
+<h4 data-number="3.3.1.8" id="payload_len"><span class="header-section-number">3.3.1.8</span> payload_len</h4>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> payload_len<span class="op">;</span></span></code></pre></div>
+<p>ペイロード長 (バイト) (NBO)。</p>
+<h4 data-number="3.3.1.9" id="payload"><span class="header-section-number">3.3.1.9</span> payload</h4>
+<div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>payload<span class="op">;</span></span></code></pre></div>
+<p>ペイロードデータへのポインタ (読み取り専用)。ウィンドウプールまたは受信バッファ内を指す。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

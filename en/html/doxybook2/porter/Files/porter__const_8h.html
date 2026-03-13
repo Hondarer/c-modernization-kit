@@ -1,0 +1,452 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>porter/include/porter_const.h</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">porter/include/porter_const.h</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#porterincludeporter_const.h" id="toc-porterincludeporter_const.h"><span class="toc-section-number">1.1</span> porter/include/porter_const.h</a>
+                <ul>
+                <li><a href="#作者" id="toc-作者"><span class="toc-section-number">1.1.1</span> 作者</a></li>
+                <li><a href="#バージョン" id="toc-バージョン"><span class="toc-section-number">1.1.2</span> バージョン</a></li>
+                <li><a href="#日付" id="toc-日付"><span class="toc-section-number">1.1.3</span> 日付</a></li>
+                <li><a href="#インクルード先" id="toc-インクルード先"><span class="toc-section-number">1.1.4</span> インクルード先</a></li>
+                <li><a href="#著作権" id="toc-著作権"><span class="toc-section-number">1.1.5</span> 著作権</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#カテゴリー" id="toc-カテゴリー"><span class="toc-section-number">2</span> カテゴリー</a>
+                <ul>
+                <li><a href="#送信オプションフラグ-potrsend-の-flags-引数" id="toc-送信オプションフラグ-potrsend-の-flags-引数"><span class="toc-section-number">2.1</span> 送信オプションフラグ (potrSend の flags 引数)</a>
+                <ul>
+                <li><a href="#定数マクロ" id="toc-定数マクロ"><span class="toc-section-number">2.1.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                <li><a href="#戻り値" id="toc-戻り値"><span class="toc-section-number">2.2</span> 戻り値</a>
+                <ul>
+                <li><a href="#定数マクロ-1" id="toc-定数マクロ-1"><span class="toc-section-number">2.2.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                <li><a href="#外側パケットフラグ-potrpacket.flags" id="toc-外側パケットフラグ-potrpacket.flags"><span class="toc-section-number">2.3</span> 外側パケットフラグ (PotrPacket.flags)</a>
+                <ul>
+                <li><a href="#定数マクロ-2" id="toc-定数マクロ-2"><span class="toc-section-number">2.3.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                <li><a href="#ペイロードエレメントフラグ-パックコンテナ内エレメントヘッダー.flags" id="toc-ペイロードエレメントフラグ-パックコンテナ内エレメントヘッダー.flags"><span class="toc-section-number">2.4</span> ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)</a>
+                <ul>
+                <li><a href="#定数マクロ-3" id="toc-定数マクロ-3"><span class="toc-section-number">2.4.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                <li><a href="#デフォルト値" id="toc-デフォルト値"><span class="toc-section-number">2.5</span> デフォルト値</a>
+                <ul>
+                <li><a href="#定数マクロ-4" id="toc-定数マクロ-4"><span class="toc-section-number">2.5.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                <li><a href="#暗号化定数-aes-256-gcm" id="toc-暗号化定数-aes-256-gcm"><span class="toc-section-number">2.6</span> 暗号化定数 (AES-256-GCM)</a>
+                <ul>
+                <li><a href="#定数マクロ-5" id="toc-定数マクロ-5"><span class="toc-section-number">2.6.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                <li><a href="#上限値デフォルト値" id="toc-上限値デフォルト値"><span class="toc-section-number">2.7</span> 上限値・デフォルト値</a>
+                <ul>
+                <li><a href="#定数マクロ-6" id="toc-定数マクロ-6"><span class="toc-section-number">2.7.1</span> 定数、マクロ</a></li>
+                </ul></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>porter/include/porter_const.h</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="porterincludeporter_const.h"><span class="header-section-number">1.1</span> porter/include/porter_const.h</h2>
+<p>通信ライブラリの定数ファイル。</p>
+<h3 data-number="1.1.1" id="作者"><span class="header-section-number">1.1.1</span> 作者</h3>
+<p>c-modernization-kit sample team</p>
+<h3 data-number="1.1.2" id="バージョン"><span class="header-section-number">1.1.2</span> バージョン</h3>
+<p>1.0.0</p>
+<h3 data-number="1.1.3" id="日付"><span class="header-section-number">1.1.3</span> 日付</h3>
+<p>2026/03/04</p>
+<h3 data-number="1.1.4" id="インクルード先"><span class="header-section-number">1.1.4</span> インクルード先</h3>
+<figure>
+<img src="puml_a161a62296ca6e21c5f48e2089cd611f55a0b9a1.svg" alt="porter_const.h のインクルード先" />
+<figcaption aria-hidden="true">porter_const.h のインクルード先</figcaption>
+</figure>
+<h3 data-number="1.1.5" id="著作権"><span class="header-section-number">1.1.5</span> 著作権</h3>
+<p>Copyright (C) CompanyName, Ltd. 2026. All rights reserved.</p>
+<h1 data-number="2" id="カテゴリー"><span class="header-section-number">2</span> カテゴリー</h1>
+<h2 data-number="2.1" id="送信オプションフラグ-potrsend-の-flags-引数"><span class="header-section-number">2.1</span> 送信オプションフラグ (potrSend の flags 引数)</h2>
+<h3 data-number="2.1.1" id="定数マクロ"><span class="header-section-number">2.1.1</span> 定数、マクロ</h3>
+<h4 data-number="2.1.1.1" id="potr_send_compress"><span class="header-section-number">2.1.1.1</span> POTR_SEND_COMPRESS</h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_SEND_COMPRESS </span><span class="bn">0x0001</span><span class="bu">U</span></span></code></pre></div>
+<p>メッセージを圧縮して送信します。圧縮後のサイズが元のサイズ以上の場合は自動的に非圧縮で送信します。</p>
+<h4 data-number="2.1.1.2" id="potr_send_blocking"><span class="header-section-number">2.1.1.2</span> POTR_SEND_BLOCKING</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_SEND_BLOCKING </span><span class="bn">0x0002</span><span class="bu">U</span></span></code></pre></div>
+<p>ブロッキング送信を行います。0 を指定するとノンブロッキング送信を行います。</p>
+<h2 data-number="2.2" id="戻り値"><span class="header-section-number">2.2</span> 戻り値</h2>
+<h3 data-number="2.2.1" id="定数マクロ-1"><span class="header-section-number">2.2.1</span> 定数、マクロ</h3>
+<h4 data-number="2.2.1.1" id="potr_success"><span class="header-section-number">2.2.1.1</span> POTR_SUCCESS</h4>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_SUCCESS </span><span class="dv">0</span></span></code></pre></div>
+<p>成功の戻り値を表す定数。</p>
+<h4 data-number="2.2.1.2" id="potr_error"><span class="header-section-number">2.2.1.2</span> POTR_ERROR</h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_ERROR </span><span class="op">-</span><span class="dv">1</span></span></code></pre></div>
+<p>失敗の戻り値を表す定数。</p>
+<h2 data-number="2.3" id="外側パケットフラグ-potrpacket.flags"><span class="header-section-number">2.3</span> 外側パケットフラグ (PotrPacket.flags)</h2>
+<h3 data-number="2.3.1" id="定数マクロ-2"><span class="header-section-number">2.3.1</span> 定数、マクロ</h3>
+<h4 data-number="2.3.1.1" id="potr_flag_data"><span class="header-section-number">2.3.1.1</span> POTR_FLAG_DATA</h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_DATA </span><span class="bn">0x0001</span><span class="bu">U</span></span></code></pre></div>
+<p>データパケット (パックコンテナ) であることを示すフラグ。常に設定される。</p>
+<h4 data-number="2.3.1.2" id="potr_flag_nack"><span class="header-section-number">2.3.1.2</span> POTR_FLAG_NACK</h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_NACK </span><span class="bn">0x0002</span><span class="bu">U</span></span></code></pre></div>
+<p>再送要求パケットであることを示すフラグ。ack_num に要求通番を格納する。</p>
+<h4 data-number="2.3.1.3" id="potr_flag_ping"><span class="header-section-number">2.3.1.3</span> POTR_FLAG_PING</h4>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_PING </span><span class="bn">0x0004</span><span class="bu">U</span></span></code></pre></div>
+<p>ヘルスチェック要求パケットであることを示すフラグ。ペイロードなし。</p>
+<h4 data-number="2.3.1.4" id="potr_flag_reject"><span class="header-section-number">2.3.1.4</span> POTR_FLAG_REJECT</h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_REJECT </span><span class="bn">0x0008</span><span class="bu">U</span></span></code></pre></div>
+<p>再送不能通知パケットであることを示すフラグ。ack_num に再送不能な通番を格納する。</p>
+<h4 data-number="2.3.1.5" id="potr_flag_fin"><span class="header-section-number">2.3.1.5</span> POTR_FLAG_FIN</h4>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_FIN </span><span class="bn">0x0010</span><span class="bu">U</span></span></code></pre></div>
+<p>正常終了通知パケットであることを示すフラグ。送信者が potrCloseService 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。</p>
+<h4 data-number="2.3.1.6" id="potr_flag_encrypted"><span class="header-section-number">2.3.1.6</span> POTR_FLAG_ENCRYPTED</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_ENCRYPTED </span><span class="bn">0x0020</span><span class="bu">U</span></span></code></pre></div>
+<p>ペイロードが AES-256-GCM で暗号化されていることを示す外側パケットフラグ。<br />
+POTR_FLAG_DATA と組み合わせて使用する。<br />
+[PotrPacket ヘッダー 32B: 平文] [暗号文: packed_len B] [GCM 認証タグ: 16B] の順で格納する。<br />
+ヘッダー全体 (32B) が AAD として認証される。<br />
+Nonce (12B) = session_id (4B NBO) + seq_num (4B NBO) + padding (4B 0x00)。</p>
+<h2 data-number="2.4" id="ペイロードエレメントフラグ-パックコンテナ内エレメントヘッダー.flags"><span class="header-section-number">2.4</span> ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)</h2>
+<h3 data-number="2.4.1" id="定数マクロ-3"><span class="header-section-number">2.4.1</span> 定数、マクロ</h3>
+<h4 data-number="2.4.1.1" id="potr_flag_more_frag"><span class="header-section-number">2.4.1.1</span> POTR_FLAG_MORE_FRAG</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_MORE_FRAG </span><span class="bn">0x0001</span><span class="bu">U</span></span></code></pre></div>
+<p>後続フラグメントが存在することを示すペイロードエレメントフラグ。メッセージが複数ペイロードエレメントに分割された場合、最終フラグメント以外に設定する。</p>
+<h4 data-number="2.4.1.2" id="potr_flag_compressed"><span class="header-section-number">2.4.1.2</span> POTR_FLAG_COMPRESSED</h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_FLAG_COMPRESSED </span><span class="bn">0x0002</span><span class="bu">U</span></span></code></pre></div>
+<p>ペイロードが圧縮されていることを示すペイロードエレメントフラグ。圧縮はメッセージ単位で行い、全フラグメントのペイロードエレメントに設定する。先頭 4 バイトが元サイズ (NBO)、続くデータが raw DEFLATE。</p>
+<h2 data-number="2.5" id="デフォルト値"><span class="header-section-number">2.5</span> デフォルト値</h2>
+<h3 data-number="2.5.1" id="定数マクロ-4"><span class="header-section-number">2.5.1</span> 定数、マクロ</h3>
+<h4 data-number="2.5.1.1" id="potr_default_window_size"><span class="header-section-number">2.5.1.1</span> POTR_DEFAULT_WINDOW_SIZE</h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_DEFAULT_WINDOW_SIZE </span><span class="dv">16</span><span class="bu">U</span></span></code></pre></div>
+<p>デフォルトウィンドウサイズ (パケット数)。</p>
+<h4 data-number="2.5.1.2" id="potr_default_max_payload"><span class="header-section-number">2.5.1.2</span> POTR_DEFAULT_MAX_PAYLOAD</h4>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_DEFAULT_MAX_PAYLOAD </span><span class="dv">1400</span><span class="bu">U</span></span></code></pre></div>
+<p>デフォルト最大ペイロード長 (バイト)。</p>
+<h4 data-number="2.5.1.3" id="potr_default_ttl"><span class="header-section-number">2.5.1.3</span> POTR_DEFAULT_TTL</h4>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_DEFAULT_TTL </span><span class="dv">1</span><span class="bu">U</span></span></code></pre></div>
+<p>デフォルトマルチキャスト TTL。</p>
+<h4 data-number="2.5.1.4" id="potr_default_health_interval_ms"><span class="header-section-number">2.5.1.4</span> POTR_DEFAULT_HEALTH_INTERVAL_MS</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_DEFAULT_HEALTH_INTERVAL_MS </span><span class="dv">0</span><span class="bu">U</span></span></code></pre></div>
+<p>デフォルトヘルスチェック送信間隔 (ミリ秒)。0 = 無効。</p>
+<h4 data-number="2.5.1.5" id="potr_default_health_timeout_ms"><span class="header-section-number">2.5.1.5</span> POTR_DEFAULT_HEALTH_TIMEOUT_MS</h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_DEFAULT_HEALTH_TIMEOUT_MS </span><span class="dv">0</span><span class="bu">U</span></span></code></pre></div>
+<p>デフォルトヘルスチェックタイムアウト (ミリ秒)。0 = 無効。</p>
+<h4 data-number="2.5.1.6" id="potr_default_pack_wait_ms"><span class="header-section-number">2.5.1.6</span> POTR_DEFAULT_PACK_WAIT_MS</h4>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_DEFAULT_PACK_WAIT_MS </span><span class="dv">0</span><span class="bu">U</span></span></code></pre></div>
+<p>デフォルトパッキング待ち時間 (ミリ秒)。0 = 即時送信。</p>
+<h2 data-number="2.6" id="暗号化定数-aes-256-gcm"><span class="header-section-number">2.6</span> 暗号化定数 (AES-256-GCM)</h2>
+<h3 data-number="2.6.1" id="定数マクロ-5"><span class="header-section-number">2.6.1</span> 定数、マクロ</h3>
+<h4 data-number="2.6.1.1" id="potr_crypto_key_size"><span class="header-section-number">2.6.1.1</span> POTR_CRYPTO_KEY_SIZE</h4>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_CRYPTO_KEY_SIZE </span><span class="dv">32</span><span class="bu">U</span></span></code></pre></div>
+<p>AES-256-GCM 鍵サイズ (バイト)。設定ファイルの encrypt_key に 64 文字 hex で指定する。</p>
+<h4 data-number="2.6.1.2" id="potr_crypto_nonce_size"><span class="header-section-number">2.6.1.2</span> POTR_CRYPTO_NONCE_SIZE</h4>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_CRYPTO_NONCE_SIZE </span><span class="dv">12</span><span class="bu">U</span></span></code></pre></div>
+<p>AES-256-GCM ノンスサイズ (バイト)。session_id (4B NBO) + seq_num (4B NBO) + padding (4B 0x00) で構成する。</p>
+<h4 data-number="2.6.1.3" id="potr_crypto_tag_size"><span class="header-section-number">2.6.1.3</span> POTR_CRYPTO_TAG_SIZE</h4>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_CRYPTO_TAG_SIZE </span><span class="dv">16</span><span class="bu">U</span></span></code></pre></div>
+<p>AES-256-GCM 認証タグサイズ (バイト)。暗号文の直後に付加する。</p>
+<h2 data-number="2.7" id="上限値デフォルト値"><span class="header-section-number">2.7</span> 上限値・デフォルト値</h2>
+<h3 data-number="2.7.1" id="定数マクロ-6"><span class="header-section-number">2.7.1</span> 定数、マクロ</h3>
+<h4 data-number="2.7.1.1" id="potr_max_addr_len"><span class="header-section-number">2.7.1.1</span> POTR_MAX_ADDR_LEN</h4>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_MAX_ADDR_LEN </span><span class="dv">64</span><span class="bu">U</span></span></code></pre></div>
+<p>アドレス文字列の最大長 (バイト、終端 NUL を含む)。</p>
+<h4 data-number="2.7.1.2" id="potr_max_payload"><span class="header-section-number">2.7.1.2</span> POTR_MAX_PAYLOAD</h4>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_MAX_PAYLOAD </span><span class="dv">65507</span><span class="bu">U</span></span></code></pre></div>
+<p>ペイロードの最大長 (バイト)。UDP 最大ペイロード (65535 - IP20 - UDP8)。max_payload 設定値のバリデーション上限として使用する。</p>
+<h4 data-number="2.7.1.3" id="potr_max_window_size"><span class="header-section-number">2.7.1.3</span> POTR_MAX_WINDOW_SIZE</h4>
+<div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_MAX_WINDOW_SIZE </span><span class="dv">256</span><span class="bu">U</span></span></code></pre></div>
+<p>ウィンドウサイズの最大値 (パケット数)。window_size 設定値のバリデーション上限として使用する。</p>
+<h4 data-number="2.7.1.4" id="potr_max_services"><span class="header-section-number">2.7.1.4</span> POTR_MAX_SERVICES</h4>
+<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_MAX_SERVICES </span><span class="dv">64</span><span class="bu">U</span></span></code></pre></div>
+<p>config_list_service_ids() の初期バッファ容量。サービス数がこれを超えた場合は realloc で自動拡張する。</p>
+<h4 data-number="2.7.1.5" id="potr_max_message_size"><span class="header-section-number">2.7.1.5</span> POTR_MAX_MESSAGE_SIZE</h4>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_MAX_MESSAGE_SIZE </span><span class="dv">65535</span><span class="bu">U</span></span></code></pre></div>
+<p>1 回の potrSend で送信できる最大メッセージ長 (バイト) のデフォルト値。設定ファイルの max_message_size で変更可能。フラグメント化により max_payload を超えるメッセージも送受信できる。</p>
+<h4 data-number="2.7.1.6" id="potr_send_queue_depth"><span class="header-section-number">2.7.1.6</span> POTR_SEND_QUEUE_DEPTH</h4>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_SEND_QUEUE_DEPTH </span><span class="dv">1024</span><span class="bu">U</span></span></code></pre></div>
+<p>非同期送信キューの最大エントリ数のデフォルト値。設定ファイルの send_queue_depth で変更可能。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する。</p>
+<h4 data-number="2.7.1.7" id="potr_payload_elem_hdr_size"><span class="header-section-number">2.7.1.7</span> POTR_PAYLOAD_ELEM_HDR_SIZE</h4>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_PAYLOAD_ELEM_HDR_SIZE </span><span class="dv">6</span><span class="bu">U</span></span></code></pre></div>
+<p>パックコンテナ内ペイロードエレメントのヘッダーサイズ (バイト)。flags (2): POTR_FLAG_MORE_FRAG / POTR_FLAG_COMPRESSED を格納 + payload_len (4): uint32_t (NBO)。通番は外側パケットで管理するためペイロードエレメントには含まない。</p>
+<h4 data-number="2.7.1.8" id="potr_max_path"><span class="header-section-number">2.7.1.8</span> POTR_MAX_PATH</h4>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_MAX_PATH </span><span class="dv">4</span><span class="bu">U</span></span></code></pre></div>
+<p>マルチパスの最大パス数。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+<map id="check_health_timeout" name="check_health_timeout">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,155,56"/>
+<area shape="rect" id="Node000002" href="$potrRecvThread_8c.html#a019adce8e207841015b8f2a83e5d0a07" title=" " alt="" coords="203,5,309,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,30,189,25,190,30,156,35"/>
+<area shape="rect" id="Node000003" href="$window_8c.html#a2589115bd38c8d2dcbc47ef7ef87e8a7" title="ウィンドウを初期化します。" alt="" coords="212,55,300,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,51,199,57,198,62,155,56"/>
+</map>

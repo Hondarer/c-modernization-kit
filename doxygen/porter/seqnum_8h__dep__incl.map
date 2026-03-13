@@ -1,0 +1,9 @@
+<map id="porter/libsrc/porter/protocol/seqnum.h" name="porter/libsrc/porter/protocol/seqnum.h">
+<area shape="rect" id="Node000001" title="通番管理モジュールの内部ヘッダー。" alt="" coords="160,5,293,45"/>
+<area shape="rect" id="Node000002" href="$seqnum_8c.html" title="通番管理モジュール。" alt="" coords="5,93,139,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,54,109,96,106,91,178,50"/>
+<area shape="rect" id="Node000003" href="$window_8c.html" title="スライディングウィンドウ管理モジュール。" alt="" coords="163,93,291,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,59,229,93,224,93,224,59"/>
+<area shape="rect" id="Node000004" href="$potrRecvThread_8c.html" title="受信スレッドモジュール。" alt="" coords="315,93,485,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,49,362,91,359,96,277,54"/>
+</map>

@@ -1,0 +1,18 @@
+<map id="window_init" name="window_init">
+<area shape="rect" id="Node000001" title="ウィンドウを初期化します。" alt="" coords="887,81,975,107"/>
+<area shape="rect" id="Node000002" href="$potrRecvThread_8c.html#aa7706a3d13b19d6f86696195cb2d9190" title=" " alt="" coords="656,5,839,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="893,78,838,52,786,33,788,28,840,48,895,73"/>
+<area shape="rect" id="Node000003" href="$potrRecvThread_8c.html#a300c2d6c99e3491d0ee4c7cb4de36146" title=" " alt="" coords="485,69,608,95"/>
+<area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="873,95,608,87,608,81,873,90"/>
+<area shape="rect" id="Node000005" href="$potrOpenService_8c.html#a8ce1599677086e0c54400b696ed28680" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,132,223,157"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="904,117,874,134,839,147,754,165,666,175,578,180,492,180,338,171,223,157,223,152,338,166,493,175,578,175,666,170,753,159,838,142,871,129,901,112"/>
+<area shape="rect" id="Node000007" href="$potrRecvThread_8c.html#acffd59e7efedff4fe46050ebfb68be25" title=" " alt="" coords="673,107,822,132"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="873,105,822,112,822,106,872,99"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="695,37,588,72,586,67,694,32"/>
+<area shape="rect" id="Node000004" href="$potrRecvThread_8c.html#a1006d5ccaf47db6c24908eb7ae366505" title="受信スレッドを起動します。" alt="" coords="271,81,437,107"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="472,89,438,91,437,86,472,84"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="294,113,212,134,211,129,292,108"/>
+<area shape="rect" id="Node000006" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,132,56,157"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="91,147,56,147,56,142,91,142"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="665,107,608,96,609,91,666,102"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="comm_recv_thread_stop" name="comm_recv_thread_stop">
+<area shape="rect" id="Node000001" title="受信スレッドを停止します。" alt="" coords="273,5,439,31"/>
+<area shape="rect" id="Node000002" href="$potrCloseService_8c.html#a69faa7ad17883d282cfbbabfe2d4913f" title="サービスを閉じます。" alt="" coords="104,5,225,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,21,226,21,226,15,260,15"/>
+<area shape="rect" id="Node000003" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="91,21,56,21,56,15,91,15"/>
+</map>

@@ -1,0 +1,711 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>プロトコル仕様</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../../../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">プロトコル仕様</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ネットワーク層" id="toc-ネットワーク層"><span class="toc-section-number">1</span> ネットワーク層</a></li>
+                <li><a href="#パケット構造" id="toc-パケット構造"><span class="toc-section-number">2</span> パケット構造</a>
+                <ul>
+                <li><a href="#外側パケット-potrpacket" id="toc-外側パケット-potrpacket"><span class="toc-section-number">2.1</span> 外側パケット (PotrPacket)</a></li>
+                <li><a href="#パケット種別フラグ-flags" id="toc-パケット種別フラグ-flags"><span class="toc-section-number">2.2</span> パケット種別フラグ (flags)</a></li>
+                </ul></li>
+                <li><a href="#ペイロードエレメント-パッキングコンテナ" id="toc-ペイロードエレメント-パッキングコンテナ"><span class="toc-section-number">3</span> ペイロードエレメント (パッキングコンテナ)</a>
+                <ul>
+                <li><a href="#エレメントのフォーマット" id="toc-エレメントのフォーマット"><span class="toc-section-number">3.1</span> エレメントのフォーマット</a></li>
+                <li><a href="#エレメントフラグ-elem_flags" id="toc-エレメントフラグ-elem_flags"><span class="toc-section-number">3.2</span> エレメントフラグ (elem_flags)</a></li>
+                <li><a href="#パッキングの動作" id="toc-パッキングの動作"><span class="toc-section-number">3.3</span> パッキングの動作</a></li>
+                </ul></li>
+                <li><a href="#セッション識別" id="toc-セッション識別"><span class="toc-section-number">4</span> セッション識別</a>
+                <ul>
+                <li><a href="#目的" id="toc-目的"><span class="toc-section-number">4.1</span> 目的</a></li>
+                <li><a href="#セッション識別子の構成" id="toc-セッション識別子の構成"><span class="toc-section-number">4.2</span> セッション識別子の構成</a></li>
+                <li><a href="#受信者のセッション採用ポリシー" id="toc-受信者のセッション採用ポリシー"><span class="toc-section-number">4.3</span> 受信者のセッション採用ポリシー</a></li>
+                <li><a href="#クロック逆行時の挙動" id="toc-クロック逆行時の挙動"><span class="toc-section-number">4.4</span> クロック逆行時の挙動</a></li>
+                </ul></li>
+                <li><a href="#通番管理" id="toc-通番管理"><span class="toc-section-number">5</span> 通番管理</a>
+                <ul>
+                <li><a href="#型と範囲" id="toc-型と範囲"><span class="toc-section-number">5.1</span> 型と範囲</a></li>
+                <li><a href="#折り返し対応の比較" id="toc-折り返し対応の比較"><span class="toc-section-number">5.2</span> 折り返し対応の比較</a></li>
+                <li><a href="#通番の付与タイミング" id="toc-通番の付与タイミング"><span class="toc-section-number">5.3</span> 通番の付与タイミング</a></li>
+                </ul></li>
+                <li><a href="#スライディングウィンドウ" id="toc-スライディングウィンドウ"><span class="toc-section-number">6</span> スライディングウィンドウ</a>
+                <ul>
+                <li><a href="#目的-1" id="toc-目的-1"><span class="toc-section-number">6.1</span> 目的</a></li>
+                <li><a href="#ウィンドウサイズ" id="toc-ウィンドウサイズ"><span class="toc-section-number">6.2</span> ウィンドウサイズ</a></li>
+                <li><a href="#送信ウィンドウの動作" id="toc-送信ウィンドウの動作"><span class="toc-section-number">6.3</span> 送信ウィンドウの動作</a></li>
+                <li><a href="#受信ウィンドウの動作" id="toc-受信ウィンドウの動作"><span class="toc-section-number">6.4</span> 受信ウィンドウの動作</a></li>
+                <li><a href="#欠番検出と-nack-送出" id="toc-欠番検出と-nack-送出"><span class="toc-section-number">6.5</span> 欠番検出と NACK 送出</a></li>
+                </ul></li>
+                <li><a href="#フラグメント化と結合" id="toc-フラグメント化と結合"><span class="toc-section-number">7</span> フラグメント化と結合</a>
+                <ul>
+                <li><a href="#フラグメント化-送信側" id="toc-フラグメント化-送信側"><span class="toc-section-number">7.1</span> フラグメント化 (送信側)</a></li>
+                <li><a href="#フラグメント結合-受信側" id="toc-フラグメント結合-受信側"><span class="toc-section-number">7.2</span> フラグメント結合 (受信側)</a></li>
+                </ul></li>
+                <li><a href="#再送制御" id="toc-再送制御"><span class="toc-section-number">8</span> 再送制御</a>
+                <ul>
+                <li><a href="#方式" id="toc-方式"><span class="toc-section-number">8.1</span> 方式</a></li>
+                <li><a href="#再送フロー" id="toc-再送フロー"><span class="toc-section-number">8.2</span> 再送フロー</a></li>
+                <li><a href="#nack-重複抑制" id="toc-nack-重複抑制"><span class="toc-section-number">8.3</span> NACK 重複抑制</a></li>
+                <li><a href="#reject-の役割" id="toc-reject-の役割"><span class="toc-section-number">8.4</span> REJECT の役割</a></li>
+                </ul></li>
+                <li><a href="#圧縮" id="toc-圧縮"><span class="toc-section-number">9</span> 圧縮</a>
+                <ul>
+                <li><a href="#方式-1" id="toc-方式-1"><span class="toc-section-number">9.1</span> 方式</a></li>
+                <li><a href="#圧縮データのフォーマット" id="toc-圧縮データのフォーマット"><span class="toc-section-number">9.2</span> 圧縮データのフォーマット</a></li>
+                <li><a href="#圧縮の適用単位" id="toc-圧縮の適用単位"><span class="toc-section-number">9.3</span> 圧縮の適用単位</a></li>
+                </ul></li>
+                <li><a href="#ヘルスチェックプロトコル" id="toc-ヘルスチェックプロトコル"><span class="toc-section-number">10</span> ヘルスチェックプロトコル</a>
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">10.1</span> 概要</a></li>
+                <li><a href="#送信者の動作" id="toc-送信者の動作"><span class="toc-section-number">10.2</span> 送信者の動作</a></li>
+                <li><a href="#受信者の動作" id="toc-受信者の動作"><span class="toc-section-number">10.3</span> 受信者の動作</a></li>
+                <li><a href="#ping-パケットの性質" id="toc-ping-パケットの性質"><span class="toc-section-number">10.4</span> PING パケットの性質</a></li>
+                </ul></li>
+                <li><a href="#マルチパス" id="toc-マルチパス"><span class="toc-section-number">11</span> マルチパス</a></li>
+                <li><a href="#定数上限値" id="toc-定数上限値"><span class="toc-section-number">12</span> 定数・上限値</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>プロトコル仕様</H1>
+      
+      
+      <h1 data-number="1" id="ネットワーク層"><span class="header-section-number">1</span> ネットワーク層</h1>
+<ul>
+<li><strong>トランスポート</strong>: UDP/IPv4</li>
+<li><strong>IPv6</strong>: 非対応</li>
+<li><strong>バイトオーダー</strong>: すべてのワイヤーフォーマットはビッグエンディアン (ネットワークバイトオーダー、NBO)</li>
+</ul>
+<h1 data-number="2" id="パケット構造"><span class="header-section-number">2</span> パケット構造</h1>
+<p>すべてのパケットは共通のヘッダー (32 バイト) とペイロード (0〜1,400 バイト) で構成されます。<br />
+UDP データグラム 1 個が外側パケット 1 個に対応します。</p>
+<h2 data-number="2.1" id="外側パケット-potrpacket"><span class="header-section-number">2.1</span> 外側パケット (PotrPacket)</h2>
+<pre><code> 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         service_id (int32)                    |  4バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         session_id (uint32)                   |  4バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 session_tv_sec (int64) [高位 32 bit]          |  8バイト
++               -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 session_tv_sec (int64) [低位 32 bit]          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      session_tv_nsec (int32)                  |  4バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         seq_num (uint32)                      |  4バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         ack_num (uint32)                      |  4バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           flags (uint16)      |       payload_len (uint16)    |  4バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  payload (0〜1,400 バイト)                    |
+|                         ...                                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</code></pre>
+<p><strong>ヘッダー固定長</strong>: 32 バイト</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型 (NBO)</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>service_id</code></td>
+<td>int32</td>
+<td>サービス識別子。受信時に設定ファイルの値と照合する</td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>uint32</td>
+<td>セッション乱数識別子</td>
+</tr>
+<tr>
+<td><code>session_tv_sec</code></td>
+<td>int64</td>
+<td>セッション開始時刻 (POSIX 秒)</td>
+</tr>
+<tr>
+<td><code>session_tv_nsec</code></td>
+<td>int32</td>
+<td>セッション開始時刻 (ナノ秒部、0〜999,999,999)</td>
+</tr>
+<tr>
+<td><code>seq_num</code></td>
+<td>uint32</td>
+<td>パケット通番。各セッション開始時に 0 からカウント</td>
+</tr>
+<tr>
+<td><code>ack_num</code></td>
+<td>uint32</td>
+<td>NACK・REJECT 時: 対象通番。DATA・PING・FIN 時: 0</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>uint16</td>
+<td>パケット種別フラグ (下記参照)</td>
+</tr>
+<tr>
+<td><code>payload_len</code></td>
+<td>uint16</td>
+<td>ペイロード長 (バイト) 。0〜1,400</td>
+</tr>
+<tr>
+<td><code>payload</code></td>
+<td>可変長</td>
+<td>ペイロードデータ (最大 1,400 バイト)</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="2.2" id="パケット種別フラグ-flags"><span class="header-section-number">2.2</span> パケット種別フラグ (flags)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>定数</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POTR_FLAG_DATA</code></td>
+<td>0x0001</td>
+<td>データパケット。ペイロードにエレメントを含む</td>
+</tr>
+<tr>
+<td><code>POTR_FLAG_NACK</code></td>
+<td>0x0002</td>
+<td>再送要求。<code>ack_num</code> に要求する通番を格納</td>
+</tr>
+<tr>
+<td><code>POTR_FLAG_PING</code></td>
+<td>0x0004</td>
+<td>ヘルスチェック要求。ペイロードなし (payload_len=0)</td>
+</tr>
+<tr>
+<td><code>POTR_FLAG_REJECT</code></td>
+<td>0x0008</td>
+<td>再送不能通知。<code>ack_num</code> に再送不能な通番を格納</td>
+</tr>
+<tr>
+<td><code>POTR_FLAG_FIN</code></td>
+<td>0x0010</td>
+<td>正常終了通知。ペイロードなし (payload_len=0)</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="3" id="ペイロードエレメント-パッキングコンテナ"><span class="header-section-number">3</span> ペイロードエレメント (パッキングコンテナ)</h1>
+<p>DATA パケットのペイロードには、1 つ以上のペイロードエレメントが連続して格納されます。<br />
+これを<strong>パッキング</strong>と呼び、複数の小さなエレメントを 1 つの UDP パケットにまとめて送信効率を高めます。</p>
+<h2 data-number="3.1" id="エレメントのフォーマット"><span class="header-section-number">3.1</span> エレメントのフォーマット</h2>
+<pre><code>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      elem_flags (uint16, NBO) |   2 バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            payload_len (uint32, NBO)          |   4 バイト
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          payload (payload_len バイト)         |   可変長
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</code></pre>
+<p><strong>エレメントヘッダー</strong>: 6 バイト固定</p>
+<p>ヘッダーフィールド (<code>elem_flags</code>・<code>payload_len</code>) はネットワークバイトオーダー (NBO) で格納します。<br />
+<code>payload</code> 部はアプリケーションが <code>potrSend()</code> に渡したデータをそのままコピーしたバイト列であり、<br />
+porter はバイトオーダーの変換を行いません。エンディアン管理はアプリケーションの責務です。</p>
+<h2 data-number="3.2" id="エレメントフラグ-elem_flags"><span class="header-section-number">3.2</span> エレメントフラグ (elem_flags)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>定数</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POTR_FLAG_MORE_FRAG</code></td>
+<td>0x0001</td>
+<td>後続フラグメントが存在する (フラグメント続行)</td>
+</tr>
+<tr>
+<td><code>POTR_FLAG_COMPRESSED</code></td>
+<td>0x0002</td>
+<td>ペイロードが raw DEFLATE 圧縮済み</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.3" id="パッキングの動作"><span class="header-section-number">3.3</span> パッキングの動作</h2>
+<p>送信スレッドは送信キューから複数のエレメントを取り出し、1 つの DATA パケットにまとめます。<br />
+以下の条件に該当するエレメントは単体で送信されます (直前のパケットをフラッシュしてから送信) 。</p>
+<ul>
+<li><code>POTR_FLAG_MORE_FRAG</code> フラグが立っているエレメント (フラグメントの中間)</li>
+</ul>
+<h1 data-number="4" id="セッション識別"><span class="header-section-number">4</span> セッション識別</h1>
+<h2 data-number="4.1" id="目的"><span class="header-section-number">4.1</span> 目的</h2>
+<p>送信者プロセスの再起動後に OS が同一の ephemeral ポートを再利用した場合や、<br />
+ネットワーク上に残留した前セッションのパケットが遅延して届いた場合に、<br />
+受信者がそれらを誤って処理しないようにします。</p>
+<h2 data-number="4.2" id="セッション識別子の構成"><span class="header-section-number">4.2</span> セッション識別子の構成</h2>
+<p>送信者は <code>potrOpenService()</code> 呼び出し時に以下を決定し、以後のすべてのパケットに付与します。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>決定方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td>乱数 (シード: 現在時刻 × PID)</td>
+</tr>
+<tr>
+<td><code>session_tv_sec</code></td>
+<td><code>CLOCK_REALTIME</code> (Linux) または <code>GetSystemTimeAsFileTime()</code> (Windows) による現在時刻 (秒)</td>
+</tr>
+<tr>
+<td><code>session_tv_nsec</code></td>
+<td>同上 (ナノ秒部)</td>
+</tr>
+</tbody>
+</table>
+<p>採用判定はタイムスタンプを同一送信者の 2 パケット間で比較するため、<br />
+送信者と受信者のクロック同期には依存しません。</p>
+<h2 data-number="4.3" id="受信者のセッション採用ポリシー"><span class="header-section-number">4.3</span> 受信者のセッション採用ポリシー</h2>
+<p>受信者は受信したパケットの識別子を、現在追跡中のセッションと比較します。</p>
+<pre><code>1. session_tv_sec が現在追跡中より大きい           → 新セッションとして採用
+2. session_tv_sec が等しく session_tv_nsec が大きい → 新セッションとして採用
+3. 上記が等しく session_id が大きい                → 新セッションとして採用 (タイブレーク)
+4. それ以外                                        → 旧セッションのパケットとして破棄</code></pre>
+<p>新セッション採用時 (および FIN 受信・ヘルスチェックタイムアウト後の再接続時) は、<br />
+受信ウィンドウを <strong>最初に受信したパケットの <code>seq_num</code></strong> で初期化します。<br />
+これにより、送信者が任意の通番から送信を再開した場合でも、NACK/REJECT サイクルなしに即時同期できます。</p>
+<h2 data-number="4.4" id="クロック逆行時の挙動"><span class="header-section-number">4.4</span> クロック逆行時の挙動</h2>
+<p>OS クロックが手動設定や NTP スラムで過去に戻った場合、新セッションのタイムスタンプが<br />
+旧セッションより小さくなり、受信者のセッション採用ポリシー上は「旧セッション」と判定されます。<br />
+この状況での挙動は <code>health_timeout_ms</code> の設定により異なります。</p>
+<p><strong>ヘルスチェックタイムアウト有効 (<code>health_timeout_ms &gt; 0</code>)</strong></p>
+<p>送信者が再起動すると旧セッションの PING が途絶えるため、<code>health_timeout_ms</code> 経過後に<br />
+ヘルスチェックタイムアウトが発火します。タイムアウト時は FIN 受信と同様に<br />
+<code>DISCONNECTED</code> イベントが発火し <code>peer_session_known</code> がクリアされます。<br />
+その後、次に到着したパケット (タイムスタンプが逆転した新セッションを含む) を<br />
+無条件に採用して <code>CONNECTED</code> イベントが発火します。<br />
+クロック逆行があっても <code>health_timeout_ms</code> の待機を伴う切断・再接続を経て自動回復します。</p>
+<p><strong>ヘルスチェックタイムアウト無効 (<code>health_timeout_ms = 0</code>)</strong></p>
+<p><code>peer_session_known</code> がクリアされる契機がなく、旧セッションが追跡中のまま残ります。<br />
+タイムスタンプが逆転した新セッションのパケットは永続的に破棄されます。<br />
+これはヘルスチェック無効環境における既知の制限です。</p>
+<h1 data-number="5" id="通番管理"><span class="header-section-number">5</span> 通番管理</h1>
+<h2 data-number="5.1" id="型と範囲"><span class="header-section-number">5.1</span> 型と範囲</h2>
+<p>通番 (<code>seq_num</code>) は <code>uint32_t</code> の循環カウンタです。各セッション開始時に 0 から始まり、<br />
+最大値に達すると 0 に折り返します。</p>
+<h2 data-number="5.2" id="折り返し対応の比較"><span class="header-section-number">5.2</span> 折り返し対応の比較</h2>
+<p>通番の新旧を比較する際は、単純な大小比較ではなく折り返しを考慮した比較を使用します。<br />
+差が <code>UINT32_MAX / 2</code> 未満であれば、a が b より後から送信された (新しい) と判断します。</p>
+<h2 data-number="5.3" id="通番の付与タイミング"><span class="header-section-number">5.3</span> 通番の付与タイミング</h2>
+<p>通番は送信スレッドが DATA パケットを送出する際に付与します。<br />
+フラグメント化されたメッセージの各フラグメントはそれぞれ独立した通番を持ちます。<br />
+PING パケットは送信側の <code>next_seq</code> (次に割り当てる DATA の通番) を <code>seq_num</code> に格納しますが、通番を消費しません。</p>
+<h1 data-number="6" id="スライディングウィンドウ"><span class="header-section-number">6</span> スライディングウィンドウ</h1>
+<h2 data-number="6.1" id="目的-1"><span class="header-section-number">6.1</span> 目的</h2>
+<ul>
+<li><strong>送信ウィンドウ</strong>: NACK 受信時に再送するために、過去パケットのコピーを保持する</li>
+<li><strong>受信ウィンドウ</strong>: 到着順序が入れ替わったパケット (追い越し) をバッファリングし、通番順に整列する</li>
+</ul>
+<h2 data-number="6.2" id="ウィンドウサイズ"><span class="header-section-number">6.2</span> ウィンドウサイズ</h2>
+<p>設定パラメータ <code>window_size</code> で指定します。デフォルト 16、最大 256。</p>
+<h2 data-number="6.3" id="送信ウィンドウの動作"><span class="header-section-number">6.3</span> 送信ウィンドウの動作</h2>
+<p>送信スレッドは DATA パケットを送出するたびに送信ウィンドウに登録します。<br />
+PING パケットはウィンドウに登録されません (NACK・再送の対象外) 。<br />
+ウィンドウが満杯になると、最も古いエントリを <strong>evict</strong> (削除) して循環利用します。<br />
+evict された通番に対して後から NACK が届いた場合、そのパケットは再送不能となり REJECT を返します。</p>
+<h2 data-number="6.4" id="受信ウィンドウの動作"><span class="header-section-number">6.4</span> 受信ウィンドウの動作</h2>
+<p>受信スレッドは届いたパケットを受信ウィンドウに格納します。<br />
+期待する通番より大きい通番のパケット (追い越し) もウィンドウ内に保持します。<br />
+ウィンドウの先頭から連続した通番のパケットが揃ったところで、上位層へ順番に渡します。</p>
+<h2 data-number="6.5" id="欠番検出と-nack-送出"><span class="header-section-number">6.5</span> 欠番検出と NACK 送出</h2>
+<p>受信ウィンドウが、期待する通番より大きい通番のパケットを受け取った場合、欠番が生じています。<br />
+受信スレッドは欠番となっている通番を特定し、送信者へ向けて NACK を送出します。</p>
+<h1 data-number="7" id="フラグメント化と結合"><span class="header-section-number">7</span> フラグメント化と結合</h1>
+<h2 data-number="7.1" id="フラグメント化-送信側"><span class="header-section-number">7.1</span> フラグメント化 (送信側)</h2>
+<p>1 回の <code>potrSend()</code> で送信するデータが <code>max_payload</code> を超える場合、複数のフラグメントに分割します。<br />
+圧縮を指定した場合は圧縮後のデータをフラグメント化します。</p>
+<p>各フラグメントは個別のペイロードエレメントとして送信キューに積まれ、<br />
+後続フラグメントが存在する場合は <code>POTR_FLAG_MORE_FRAG</code> フラグを立てます。<br />
+最終フラグメントには <code>POTR_FLAG_MORE_FRAG</code> を立てません。</p>
+<h2 data-number="7.2" id="フラグメント結合-受信側"><span class="header-section-number">7.2</span> フラグメント結合 (受信側)</h2>
+<p>受信スレッドは <code>POTR_FLAG_MORE_FRAG</code> フラグを監視し、フラグメントをバッファに蓄積します。<br />
+<code>POTR_FLAG_MORE_FRAG</code> がないエレメントを受け取った時点でフラグメント結合が完了し、<br />
+完全なメッセージとしてコールバックを呼び出します。</p>
+<p>フラグメントバッファのサイズは最大 65,535 バイトです。</p>
+<h1 data-number="8" id="再送制御"><span class="header-section-number">8</span> 再送制御</h1>
+<h2 data-number="8.1" id="方式"><span class="header-section-number">8.1</span> 方式</h2>
+<p><strong>NACK のみ方式</strong> (ACK なし) を採用します。<br />
+通常時は ACK を返さないためスループットが高く、問題発生時のみ受信側から通知します。</p>
+<h2 data-number="8.2" id="再送フロー"><span class="header-section-number">8.2</span> 再送フロー</h2>
+<pre><code>1. 受信者が欠番を検出する
+2. 受信者が欠番の通番を NACK パケットで送信者へ送出する
+3. 送信者が NACK を受信し、該当通番のパケットを送信ウィンドウから検索する
+4a. 該当パケットが存在する → 全パスへ再送する
+4b. 該当パケットが存在しない (evict 済み) → REJECT パケットを返す</code></pre>
+<p>再送パケットはマルチキャスト・ブロードキャスト時でも全受信者へ送信されます。<br />
+これにより、他の受信者も再送パケットの恩恵を受けられます。</p>
+<h2 data-number="8.3" id="nack-重複抑制"><span class="header-section-number">8.3</span> NACK 重複抑制</h2>
+<p>マルチキャスト・ブロードキャスト環境では、複数の受信者が同じ通番の NACK を短時間に送る場合があります。<br />
+また、同一受信者が再送の到着を待たずに同じ NACK を複数回送る場合もあります。</p>
+<p>送信者は直近 8 エントリのリングバッファで NACK 受信履歴を管理し、<br />
+同一通番の NACK が <strong>200ms</strong> 以内に再度届いた場合は処理をスキップします。</p>
+<h2 data-number="8.4" id="reject-の役割"><span class="header-section-number">8.4</span> REJECT の役割</h2>
+<p>送信者が REJECT を返す状況は、受信者が送信ウィンドウから evict 済みの通番を要求した場合です。</p>
+<p>受信者は REJECT を受信すると：</p>
+<ol type="1">
+<li>直ちに <code>POTR_EVENT_DISCONNECTED</code> を発火する</li>
+<li>欠落した通番をスキップし、次の通番から処理を再開できる状態になる</li>
+<li>次のパケットが届いた時点で <code>POTR_EVENT_CONNECTED</code> を発火する</li>
+</ol>
+<h1 data-number="9" id="圧縮"><span class="header-section-number">9</span> 圧縮</h1>
+<h2 data-number="9.1" id="方式-1"><span class="header-section-number">9.1</span> 方式</h2>
+<p><strong>raw DEFLATE</strong> (RFC 1951) を使用します。</p>
+<table>
+<thead>
+<tr>
+<th>プラットフォーム</th>
+<th>実装</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td>zlib (windowBits = -15)</td>
+</tr>
+<tr>
+<td>Windows</td>
+<td>Compression API (MSZIP | COMPRESS_RAW)</td>
+</tr>
+</tbody>
+</table>
+<p>両プラットフォームは同じ raw DEFLATE フォーマットを出力するため、<br />
+Linux 送信者と Windows 受信者 (またはその逆) の組み合わせで透過的に動作します。</p>
+<h2 data-number="9.2" id="圧縮データのフォーマット"><span class="header-section-number">9.2</span> 圧縮データのフォーマット</h2>
+<p>圧縮ペイロードの先頭 4 バイトには、展開後のサイズを NBO の uint32 で格納します。</p>
+<pre><code>[展開後サイズ (uint32, NBO, 4 バイト)] [圧縮データ (可変長)]</code></pre>
+<p>受信者はこのサイズ情報をもとに展開バッファを準備します。</p>
+<h2 data-number="9.3" id="圧縮の適用単位"><span class="header-section-number">9.3</span> 圧縮の適用単位</h2>
+<p>圧縮は <code>potrSend()</code> の <code>flags</code> 引数に <code>POTR_SEND_COMPRESS</code> を指定することで制御します。<br />
+圧縮はメッセージ全体に適用した後にフラグメント化されます。<br />
+圧縮済みエレメントには <code>POTR_FLAG_COMPRESSED</code> フラグが立ちます。</p>
+<p>圧縮後のサイズが元のサイズ以上になった場合 (圧縮効果なし) は、内部で自動的に非圧縮に切り替えて送信します。<br />
+この場合、圧縮前のデータを <code>POTR_FLAG_COMPRESSED</code> なしで送ります。</p>
+<h1 data-number="10" id="ヘルスチェックプロトコル"><span class="header-section-number">10</span> ヘルスチェックプロトコル</h1>
+<h2 data-number="10.1" id="概要"><span class="header-section-number">10.1</span> 概要</h2>
+<p>送信者が定周期で PING パケットを送信し、受信者が最終受信時刻を監視することで疎通状態を管理します。<br />
+ヘルスチェックは <strong>一方向</strong> (送信者 → 受信者のみ) です。</p>
+<h2 data-number="10.2" id="送信者の動作"><span class="header-section-number">10.2</span> 送信者の動作</h2>
+<p><code>health_interval_ms &gt; 0</code> のときヘルスチェックスレッドが有効になります。</p>
+<p>ヘルスチェックスレッドは最終 DATA/PING 送信時刻を参照し、<code>health_interval_ms</code> が経過したときに PING を送信します。<br />
+データ送信が頻繁な場合、PING の送信は不要と判断されスキップされます。</p>
+<h2 data-number="10.3" id="受信者の動作"><span class="header-section-number">10.3</span> 受信者の動作</h2>
+<p><code>health_timeout_ms &gt; 0</code> のときタイムアウト監視が有効になります。</p>
+<p>受信スレッドは最終パケット受信時刻 (PING・DATA いずれも対象) を監視し、<br />
+<code>health_timeout_ms</code> が経過したとき、切断と判定します。</p>
+<p>切断判定時:<br />
+1. <code>health_alive</code> を 0 に設定する<br />
+2. <code>POTR_EVENT_DISCONNECTED</code> をコールバックで通知する<br />
+3. <code>peer_session_known</code> をリセットして次の接続を受け入れ可能にする<br />
+4. 受信ウィンドウをリセットする (次に受信するパケットの <code>seq_num</code> で再初期化される)</p>
+<p>次のパケットを受信したとき:<br />
+1. セッションを採用し、受信ウィンドウをそのパケットの <code>seq_num</code> で初期化する<br />
+2. <code>health_alive</code> を 1 に設定する<br />
+3. <code>POTR_EVENT_CONNECTED</code> をコールバックで通知する</p>
+<h2 data-number="10.4" id="ping-パケットの性質"><span class="header-section-number">10.4</span> PING パケットの性質</h2>
+<ul>
+<li><code>seq_num</code> には送信側の <code>next_seq</code> (次に送出する DATA に割り当てる通番) を格納します</li>
+<li>PING はウィンドウに登録されません (NACK・再送の対象外)</li>
+<li>ペイロードは空 (payload_len = 0)</li>
+<li>受信者は PING を受け取っても返信しません</li>
+<li>受信者は <code>seq_num</code> を上限として受信ウィンドウをスキャンし、欠番を一括 NACK します</li>
+</ul>
+<h1 data-number="11" id="マルチパス"><span class="header-section-number">11</span> マルチパス</h1>
+<p>送信者は最大 4 経路の UDP ソケットを同時に保持できます。<br />
+DATA パケット・PING パケット・再送パケットはすべての経路へ同時に送信されます。</p>
+<p>経路の冗長化により、1 経路がパケットロスした場合でも他の経路で届く可能性があります。</p>
+<p>NACK パケットは送信者へのユニキャストで返されます。<br />
+マルチキャスト・ブロードキャスト環境でも、NACK は送信元アドレスへユニキャストされます。<br />
+なお、受信者が保持する全パスのソケットからそれぞれユニキャスト送信されます。</p>
+<h1 data-number="12" id="定数上限値"><span class="header-section-number">12</span> 定数・上限値</h1>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>定数</th>
+<th>値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POTR_MAX_PAYLOAD</code></td>
+<td>1,400 バイト</td>
+<td>DATA パケットのペイロード上限</td>
+</tr>
+<tr>
+<td><code>POTR_MAX_WINDOW_SIZE</code></td>
+<td>256</td>
+<td>スライディングウィンドウの最大スロット数</td>
+</tr>
+<tr>
+<td><code>POTR_MAX_MESSAGE_SIZE</code></td>
+<td>65,535 バイト</td>
+<td>1 回の <code>potrSend()</code> で送信できるデータの上限</td>
+</tr>
+<tr>
+<td><code>POTR_MAX_PATH</code></td>
+<td>4</td>
+<td>マルチパスの最大経路数</td>
+</tr>
+<tr>
+<td><code>POTR_SEND_QUEUE_DEPTH</code></td>
+<td>1,024</td>
+<td>送信キューの最大エレメント数</td>
+</tr>
+<tr>
+<td><code>POTR_PAYLOAD_ELEM_HDR_SIZE</code></td>
+<td>6 バイト</td>
+<td>ペイロードエレメントヘッダーの固定長</td>
+</tr>
+<tr>
+<td><code>POTR_NACK_DEDUP_MS</code></td>
+<td>200 ms</td>
+<td>NACK 重複抑制の時間窓</td>
+</tr>
+</tbody>
+</table>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

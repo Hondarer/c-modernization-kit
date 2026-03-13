@@ -1,0 +1,5 @@
+<map id="CalcLib.CalcLibrary.CalculateOrThrow" name="CalcLib.CalcLibrary.CalculateOrThrow">
+<area shape="rect" id="Node000001" title="計算を実行し、失敗した場合は例外をスローします。" alt="" coords="5,5,196,45"/>
+<area shape="rect" id="Node000002" href="$classCalcLib_1_1CalcLibrary.html#a34a86f8468ea21ed264e06c6074984f4" title="指定された演算種別に基づいて計算を実行します。" alt="" coords="244,13,435,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,23,230,23,230,28,196,28"/>
+</map>

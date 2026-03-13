@@ -1,0 +1,513 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>porter/libsrc/porter/protocol/window.h</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">porter/libsrc/porter/protocol/window.h</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#porterlibsrcporterprotocolwindow.h" id="toc-porterlibsrcporterprotocolwindow.h"><span class="toc-section-number">1.1</span> porter/libsrc/porter/protocol/window.h</a>
+                <ul>
+                <li><a href="#作者" id="toc-作者"><span class="toc-section-number">1.1.1</span> 作者</a></li>
+                <li><a href="#バージョン" id="toc-バージョン"><span class="toc-section-number">1.1.2</span> バージョン</a></li>
+                <li><a href="#日付" id="toc-日付"><span class="toc-section-number">1.1.3</span> 日付</a></li>
+                <li><a href="#インクルード元" id="toc-インクルード元"><span class="toc-section-number">1.1.4</span> インクルード元</a></li>
+                <li><a href="#インクルード先" id="toc-インクルード先"><span class="toc-section-number">1.1.5</span> インクルード先</a></li>
+                <li><a href="#著作権" id="toc-著作権"><span class="toc-section-number">1.1.6</span> 著作権</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#関数" id="toc-関数"><span class="toc-section-number">2</span> 関数</a>
+                <ul>
+                <li><a href="#window_init" id="toc-window_init"><span class="toc-section-number">2.1</span> window_init</a>
+                <ul>
+                <li><a href="#引数" id="toc-引数"><span class="toc-section-number">2.1.1</span> 引数</a></li>
+                <li><a href="#戻り値" id="toc-戻り値"><span class="toc-section-number">2.1.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_destroy" id="toc-window_destroy"><span class="toc-section-number">2.2</span> window_destroy</a>
+                <ul>
+                <li><a href="#引数-1" id="toc-引数-1"><span class="toc-section-number">2.2.1</span> 引数</a></li>
+                </ul></li>
+                <li><a href="#window_send_push" id="toc-window_send_push"><span class="toc-section-number">2.3</span> window_send_push</a>
+                <ul>
+                <li><a href="#引数-2" id="toc-引数-2"><span class="toc-section-number">2.3.1</span> 引数</a></li>
+                <li><a href="#戻り値-1" id="toc-戻り値-1"><span class="toc-section-number">2.3.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_send_full" id="toc-window_send_full"><span class="toc-section-number">2.4</span> window_send_full</a>
+                <ul>
+                <li><a href="#引数-3" id="toc-引数-3"><span class="toc-section-number">2.4.1</span> 引数</a></li>
+                <li><a href="#戻り値-2" id="toc-戻り値-2"><span class="toc-section-number">2.4.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_send_get" id="toc-window_send_get"><span class="toc-section-number">2.5</span> window_send_get</a>
+                <ul>
+                <li><a href="#引数-4" id="toc-引数-4"><span class="toc-section-number">2.5.1</span> 引数</a></li>
+                <li><a href="#戻り値-3" id="toc-戻り値-3"><span class="toc-section-number">2.5.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_recv_push" id="toc-window_recv_push"><span class="toc-section-number">2.6</span> window_recv_push</a>
+                <ul>
+                <li><a href="#引数-5" id="toc-引数-5"><span class="toc-section-number">2.6.1</span> 引数</a></li>
+                <li><a href="#戻り値-4" id="toc-戻り値-4"><span class="toc-section-number">2.6.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_recv_pop" id="toc-window_recv_pop"><span class="toc-section-number">2.7</span> window_recv_pop</a>
+                <ul>
+                <li><a href="#引数-6" id="toc-引数-6"><span class="toc-section-number">2.7.1</span> 引数</a></li>
+                <li><a href="#戻り値-5" id="toc-戻り値-5"><span class="toc-section-number">2.7.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_recv_needs_nack" id="toc-window_recv_needs_nack"><span class="toc-section-number">2.8</span> window_recv_needs_nack</a>
+                <ul>
+                <li><a href="#引数-7" id="toc-引数-7"><span class="toc-section-number">2.8.1</span> 引数</a></li>
+                <li><a href="#戻り値-6" id="toc-戻り値-6"><span class="toc-section-number">2.8.2</span> 戻り値</a></li>
+                </ul></li>
+                <li><a href="#window_recv_skip" id="toc-window_recv_skip"><span class="toc-section-number">2.9</span> window_recv_skip</a>
+                <ul>
+                <li><a href="#引数-8" id="toc-引数-8"><span class="toc-section-number">2.9.1</span> 引数</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#クラス構造体" id="toc-クラス構造体"><span class="toc-section-number">3</span> クラス/構造体</a>
+                <ul>
+                <li><a href="#potrwindow" id="toc-potrwindow"><span class="toc-section-number">3.1</span> PotrWindow</a>
+                <ul>
+                <li><a href="#コラボレーション図" id="toc-コラボレーション図"><span class="toc-section-number">3.1.1</span> コラボレーション図</a></li>
+                <li><a href="#属性" id="toc-属性"><span class="toc-section-number">3.1.2</span> 属性</a></li>
+                </ul></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>porter/libsrc/porter/protocol/window.h</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="porterlibsrcporterprotocolwindow.h"><span class="header-section-number">1.1</span> porter/libsrc/porter/protocol/window.h</h2>
+<p>スライディングウィンドウ管理モジュールの内部ヘッダー。</p>
+<h3 data-number="1.1.1" id="作者"><span class="header-section-number">1.1.1</span> 作者</h3>
+<p>c-modernization-kit sample team</p>
+<h3 data-number="1.1.2" id="バージョン"><span class="header-section-number">1.1.2</span> バージョン</h3>
+<p>1.0.0</p>
+<h3 data-number="1.1.3" id="日付"><span class="header-section-number">1.1.3</span> 日付</h3>
+<p>2026/03/04</p>
+<h3 data-number="1.1.4" id="インクルード元"><span class="header-section-number">1.1.4</span> インクルード元</h3>
+<figure>
+<img src="puml_0ab1a59e4d012bc5becfaa6daa9df788bb8dae0c.svg" alt="window.h のインクルード元" />
+<figcaption aria-hidden="true">window.h のインクルード元</figcaption>
+</figure>
+<h3 data-number="1.1.5" id="インクルード先"><span class="header-section-number">1.1.5</span> インクルード先</h3>
+<figure>
+<img src="puml_3ddc0f45af82814b09dab3dc0320fdb6df0065b3.svg" alt="window.h のインクルード先" />
+<figcaption aria-hidden="true">window.h のインクルード先</figcaption>
+</figure>
+<h3 data-number="1.1.6" id="著作権"><span class="header-section-number">1.1.6</span> 著作権</h3>
+<p>Copyright (C) CompanyName, Ltd. 2026. All rights reserved.</p>
+<h1 data-number="2" id="関数"><span class="header-section-number">2</span> 関数</h1>
+<h2 data-number="2.1" id="window_init"><span class="header-section-number">2.1</span> window_init</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_init <span class="op">(</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> <span class="dt">uint32_t</span> initial_seq<span class="op">,</span> <span class="dt">uint16_t</span> window_size<span class="op">,</span> <span class="dt">uint16_t</span> max_payload <span class="op">)</span></span></code></pre></div>
+<p>ウィンドウを初期化します。</p>
+<p>サイズが既存と同一の場合は状態をリセットするのみで再確保は行いません。<br />
+異なるサイズの場合は既存バッファを解放して再確保します。</p>
+<h3 data-number="2.1.1" id="引数"><span class="header-section-number">2.1.1</span> 引数</h3>
+<ul>
+<li>win [in,out] 初期化するウィンドウ構造体へのポインタ。</li>
+<li>initial_seq [in] 初期通番。</li>
+<li>window_size [in] ウィンドウサイズ (パケット数)。</li>
+<li>max_payload [in] エントリごとのペイロード最大長 (バイト)。</li>
+</ul>
+<h3 data-number="2.1.2" id="戻り値"><span class="header-section-number">2.1.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、malloc 失敗時は POTR_ERROR を返します。</p>
+<h2 data-number="2.2" id="window_destroy"><span class="header-section-number">2.2</span> window_destroy</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> window_destroy <span class="op">(</span> PotrWindow <span class="op">*</span>win <span class="op">)</span></span></code></pre></div>
+<p>ウィンドウが保持する動的確保バッファを解放します。</p>
+<h3 data-number="2.2.1" id="引数-1"><span class="header-section-number">2.2.1</span> 引数</h3>
+<ul>
+<li>win [in,out] 解放するウィンドウ構造体へのポインタ。</li>
+</ul>
+<h2 data-number="2.3" id="window_send_push"><span class="header-section-number">2.3</span> window_send_push</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_send_push <span class="op">(</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> <span class="at">const</span> PotrPacket <span class="op">*</span>packet <span class="op">)</span></span></code></pre></div>
+<p>送信ウィンドウにパケットを積みます。</p>
+<h3 data-number="2.3.1" id="引数-2"><span class="header-section-number">2.3.1</span> 引数</h3>
+<ul>
+<li>win [in,out] 送信ウィンドウ構造体へのポインタ。</li>
+<li>packet [in] 積むパケットへのポインタ。</li>
+</ul>
+<h3 data-number="2.3.2" id="戻り値-1"><span class="header-section-number">2.3.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、ウィンドウ満杯の場合は POTR_ERROR を返します。</p>
+<h2 data-number="2.4" id="window_send_full"><span class="header-section-number">2.4</span> window_send_full</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_send_full <span class="op">(</span> <span class="at">const</span> PotrWindow <span class="op">*</span>win <span class="op">)</span></span></code></pre></div>
+<p>送信ウィンドウが満杯かどうかを返します。</p>
+<h3 data-number="2.4.1" id="引数-3"><span class="header-section-number">2.4.1</span> 引数</h3>
+<ul>
+<li>win [in] 送信ウィンドウ構造体へのポインタ。</li>
+</ul>
+<h3 data-number="2.4.2" id="戻り値-2"><span class="header-section-number">2.4.2</span> 戻り値</h3>
+<p>満杯の場合は 1、空きがある場合は 0 を返します。</p>
+<h2 data-number="2.5" id="window_send_get"><span class="header-section-number">2.5</span> window_send_get</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_send_get <span class="op">(</span> <span class="at">const</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> <span class="dt">uint32_t</span> seq_num<span class="op">,</span> PotrPacket <span class="op">*</span>packet_out <span class="op">)</span></span></code></pre></div>
+<p>送信ウィンドウから指定通番のパケットを取得します (再送用)。</p>
+<h3 data-number="2.5.1" id="引数-4"><span class="header-section-number">2.5.1</span> 引数</h3>
+<ul>
+<li>win [in] 送信ウィンドウ構造体へのポインタ。</li>
+<li>seq_num [in] 取得する通番。</li>
+<li>packet_out [out] 取得したパケットを格納する構造体へのポインタ。</li>
+</ul>
+<h3 data-number="2.5.2" id="戻り値-3"><span class="header-section-number">2.5.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、エントリが存在しない場合は POTR_ERROR を返します。</p>
+<h2 data-number="2.6" id="window_recv_push"><span class="header-section-number">2.6</span> window_recv_push</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_recv_push <span class="op">(</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> <span class="at">const</span> PotrPacket <span class="op">*</span>packet <span class="op">)</span></span></code></pre></div>
+<p>受信ウィンドウにパケットを格納します。</p>
+<p>通番が受信ウィンドウ内であればバッファリングします。<br />
+追い越し (順序外到着) にも対応します。</p>
+<h3 data-number="2.6.1" id="引数-5"><span class="header-section-number">2.6.1</span> 引数</h3>
+<ul>
+<li>win [in,out] 受信ウィンドウ構造体へのポインタ。</li>
+<li>packet [in] 格納するパケットへのポインタ。</li>
+</ul>
+<h3 data-number="2.6.2" id="戻り値-4"><span class="header-section-number">2.6.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、ウィンドウ外の場合は POTR_ERROR を返します。</p>
+<h2 data-number="2.7" id="window_recv_pop"><span class="header-section-number">2.7</span> window_recv_pop</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_recv_pop <span class="op">(</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> PotrPacket <span class="op">*</span>packet <span class="op">)</span></span></code></pre></div>
+<p>受信ウィンドウから順序整列済みパケットを取り出します。</p>
+<h3 data-number="2.7.1" id="引数-6"><span class="header-section-number">2.7.1</span> 引数</h3>
+<ul>
+<li>win [in,out] 受信ウィンドウ構造体へのポインタ。</li>
+<li>packet [out] 取り出したパケットを格納する構造体へのポインタ。</li>
+</ul>
+<h3 data-number="2.7.2" id="戻り値-5"><span class="header-section-number">2.7.2</span> 戻り値</h3>
+<p>取り出せた場合は POTR_SUCCESS、次のパケットが未着の場合は POTR_ERROR を返します。</p>
+<h2 data-number="2.8" id="window_recv_needs_nack"><span class="header-section-number">2.8</span> window_recv_needs_nack</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> window_recv_needs_nack <span class="op">(</span> <span class="at">const</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> <span class="dt">uint32_t</span> <span class="op">*</span>nack_num <span class="op">)</span></span></code></pre></div>
+<p>受信ウィンドウで欠番が発生しているか確認し、NACK 番号を返します。</p>
+<h3 data-number="2.8.1" id="引数-7"><span class="header-section-number">2.8.1</span> 引数</h3>
+<ul>
+<li>win [in] 受信ウィンドウ構造体へのポインタ。</li>
+<li>nack_num [out] 欠番の通番を格納するポインタ。</li>
+</ul>
+<h3 data-number="2.8.2" id="戻り値-6"><span class="header-section-number">2.8.2</span> 戻り値</h3>
+<p>欠番がある場合は 1、ない場合は 0 を返します。</p>
+<h2 data-number="2.9" id="window_recv_skip"><span class="header-section-number">2.9</span> window_recv_skip</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> window_recv_skip <span class="op">(</span> PotrWindow <span class="op">*</span>win<span class="op">,</span> <span class="dt">uint32_t</span> seq_num <span class="op">)</span></span></code></pre></div>
+<p>受信ウィンドウで指定通番をスキップして次の通番へ前進させます。</p>
+<p>REJECT 受信時に欠落パケットを「配信済み」として扱い、後続パケットの配信を 継続するために使用します。seq_num が next_seq と一致しない場合は何もしません。</p>
+<h3 data-number="2.9.1" id="引数-8"><span class="header-section-number">2.9.1</span> 引数</h3>
+<ul>
+<li>win [in,out] 受信ウィンドウ構造体へのポインタ。</li>
+<li>seq_num [in] スキップする通番。next_seq と一致する場合のみ動作します。</li>
+</ul>
+<h1 data-number="3" id="クラス構造体"><span class="header-section-number">3</span> クラス/構造体</h1>
+<h2 data-number="3.1" id="potrwindow"><span class="header-section-number">3.1</span> PotrWindow</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PotrWindow <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    PotrPacket <span class="op">*</span>packets<span class="op">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> <span class="op">*</span>valid<span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> <span class="op">*</span>payload_pool<span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> base_seq<span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> next_seq<span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> window_size<span class="op">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> max_payload<span class="op">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> _pad<span class="op">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>スライディングウィンドウ管理構造体。</p>
+<p>パケットバッファ・有効フラグ・ペイロードプールは動的確保する。<br />
+window_init() で確保し、window_destroy() で解放すること。</p>
+<h3 data-number="3.1.1" id="コラボレーション図"><span class="header-section-number">3.1.1</span> コラボレーション図</h3>
+<figure>
+<img src="puml_b20e571de195bcc0b88fb1545079b685d23409ee.svg" alt="PotrWindow のコラボレーション図" />
+<figcaption aria-hidden="true">PotrWindow のコラボレーション図</figcaption>
+</figure>
+<h3 data-number="3.1.2" id="属性"><span class="header-section-number">3.1.2</span> 属性</h3>
+<h4 data-number="3.1.2.1" id="packets"><span class="header-section-number">3.1.2.1</span> packets</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>PotrPacket <span class="op">*</span>packets<span class="op">;</span></span></code></pre></div>
+<p>パケットバッファ (動的確保。window_size 要素)。</p>
+<h4 data-number="3.1.2.2" id="valid"><span class="header-section-number">3.1.2.2</span> valid</h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint8_t</span> <span class="op">*</span>valid<span class="op">;</span></span></code></pre></div>
+<p>バッファ有効フラグ配列 (動的確保。window_size バイト)。</p>
+<h4 data-number="3.1.2.3" id="payload_pool"><span class="header-section-number">3.1.2.3</span> payload_pool</h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint8_t</span> <span class="op">*</span>payload_pool<span class="op">;</span></span></code></pre></div>
+<p>ペイロードプール (動的確保。window_size × max_payload バイト)。</p>
+<h4 data-number="3.1.2.4" id="base_seq"><span class="header-section-number">3.1.2.4</span> base_seq</h4>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> base_seq<span class="op">;</span></span></code></pre></div>
+<p>ウィンドウ先頭の通番。</p>
+<h4 data-number="3.1.2.5" id="next_seq"><span class="header-section-number">3.1.2.5</span> next_seq</h4>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> next_seq<span class="op">;</span></span></code></pre></div>
+<p>送信側: 次に割り当てる通番。受信側: 次に期待する通番。</p>
+<h4 data-number="3.1.2.6" id="window_size"><span class="header-section-number">3.1.2.6</span> window_size</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> window_size<span class="op">;</span></span></code></pre></div>
+<p>ウィンドウサイズ (パケット数)。</p>
+<h4 data-number="3.1.2.7" id="max_payload"><span class="header-section-number">3.1.2.7</span> max_payload</h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> max_payload<span class="op">;</span></span></code></pre></div>
+<p>エントリごとのペイロード最大長 (バイト)。</p>
+<h4 data-number="3.1.2.8" id="pad"><span class="header-section-number">3.1.2.8</span> _pad</h4>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> _pad<span class="op">;</span></span></code></pre></div>
+<p>パディング (構造体サイズを 8 バイト境界に揃える)。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+@startuml inline_umlgraph_1.svg
+    caption 競合シナリオ (排他制御なし)
+
+    participant "スレッド A" as A
+    participant "resolved\n(共有変数)" as S
+    participant "スレッド B" as B
+
+    A -> S : if (resolved == 0) → true\n(まだロードされていない)
+    B -> S : if (resolved == 0) → true\n(A がロード完了する前に割り込む)
+    A -> S : dlopen() → handle に格納
+    B -> S : dlopen(...)\n← 二重ロード
+@enduml

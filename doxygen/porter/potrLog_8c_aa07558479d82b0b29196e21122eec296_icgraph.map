@@ -1,0 +1,9 @@
+<map id="log_unlock" name="log_unlock">
+<area shape="rect" id="Node000001" title=" " alt="" coords="255,31,339,56"/>
+<area shape="rect" id="Node000002" href="$potrLog_8c.html#a569f064227175571bb7a9c98e9032f44" title="ログメッセージを書き込みます (内部関数)。" alt="" coords="104,5,207,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,36,206,30,207,25,242,31"/>
+<area shape="rect" id="Node000003" href="$potrLog_8c.html#aeae805e3776ba2eb58743ea2178c9970" title="ロガーを設定します。" alt="" coords="104,55,207,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,55,207,61,207,56,241,50"/>
+<area shape="rect" id="Node000004" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,55,56,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="90,70,56,70,56,65,90,65"/>
+</map>

@@ -1,0 +1,587 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>porter/libsrc/porter/thread/potrRecvThread.c</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">porter/libsrc/porter/thread/potrRecvThread.c</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#porterlibsrcporterthreadpotrrecvthread.c" id="toc-porterlibsrcporterthreadpotrrecvthread.c"><span class="toc-section-number">1.1</span> porter/libsrc/porter/thread/potrRecvThread.c</a>
+                <ul>
+                <li><a href="#作者" id="toc-作者"><span class="toc-section-number">1.1.1</span> 作者</a></li>
+                <li><a href="#バージョン" id="toc-バージョン"><span class="toc-section-number">1.1.2</span> バージョン</a></li>
+                <li><a href="#日付" id="toc-日付"><span class="toc-section-number">1.1.3</span> 日付</a></li>
+                <li><a href="#インクルード元" id="toc-インクルード元"><span class="toc-section-number">1.1.4</span> インクルード元</a></li>
+                <li><a href="#著作権" id="toc-著作権"><span class="toc-section-number">1.1.5</span> 著作権</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#関数" id="toc-関数"><span class="toc-section-number">2</span> 関数</a>
+                <ul>
+                <li><a href="#recv_deliver" id="toc-recv_deliver"><span class="toc-section-number">2.1</span> recv_deliver</a>
+                <ul>
+                <li><a href="#呼び出し元" id="toc-呼び出し元"><span class="toc-section-number">2.1.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先" id="toc-呼び出し先"><span class="toc-section-number">2.1.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#check_src_addr" id="toc-check_src_addr"><span class="toc-section-number">2.2</span> check_src_addr</a>
+                <ul>
+                <li><a href="#呼び出し元-1" id="toc-呼び出し元-1"><span class="toc-section-number">2.2.1</span> 呼び出し元</a></li>
+                </ul></li>
+                <li><a href="#check_and_update_session" id="toc-check_and_update_session"><span class="toc-section-number">2.3</span> check_and_update_session</a>
+                <ul>
+                <li><a href="#呼び出し元-2" id="toc-呼び出し元-2"><span class="toc-section-number">2.3.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-1" id="toc-呼び出し先-1"><span class="toc-section-number">2.3.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#get_ms_mono" id="toc-get_ms_mono"><span class="toc-section-number">2.4</span> get_ms_mono</a>
+                <ul>
+                <li><a href="#呼び出し元-3" id="toc-呼び出し元-3"><span class="toc-section-number">2.4.1</span> 呼び出し元</a></li>
+                </ul></li>
+                <li><a href="#get_monotonic" id="toc-get_monotonic"><span class="toc-section-number">2.5</span> get_monotonic</a>
+                <ul>
+                <li><a href="#呼び出し元-4" id="toc-呼び出し元-4"><span class="toc-section-number">2.5.1</span> 呼び出し元</a></li>
+                </ul></li>
+                <li><a href="#update_path_recv" id="toc-update_path_recv"><span class="toc-section-number">2.6</span> update_path_recv</a>
+                <ul>
+                <li><a href="#呼び出し元-5" id="toc-呼び出し元-5"><span class="toc-section-number">2.6.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-2" id="toc-呼び出し先-2"><span class="toc-section-number">2.6.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#notify_health_alive" id="toc-notify_health_alive"><span class="toc-section-number">2.7</span> notify_health_alive</a>
+                <ul>
+                <li><a href="#呼び出し元-6" id="toc-呼び出し元-6"><span class="toc-section-number">2.7.1</span> 呼び出し元</a></li>
+                </ul></li>
+                <li><a href="#check_health_timeout" id="toc-check_health_timeout"><span class="toc-section-number">2.8</span> check_health_timeout</a>
+                <ul>
+                <li><a href="#呼び出し元-7" id="toc-呼び出し元-7"><span class="toc-section-number">2.8.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-3" id="toc-呼び出し先-3"><span class="toc-section-number">2.8.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#send_nack" id="toc-send_nack"><span class="toc-section-number">2.9</span> send_nack</a>
+                <ul>
+                <li><a href="#呼び出し元-8" id="toc-呼び出し元-8"><span class="toc-section-number">2.9.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-4" id="toc-呼び出し先-4"><span class="toc-section-number">2.9.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#send_reject" id="toc-send_reject"><span class="toc-section-number">2.10</span> send_reject</a>
+                <ul>
+                <li><a href="#呼び出し元-9" id="toc-呼び出し元-9"><span class="toc-section-number">2.10.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-5" id="toc-呼び出し先-5"><span class="toc-section-number">2.10.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#deliver_payload_elem" id="toc-deliver_payload_elem"><span class="toc-section-number">2.11</span> deliver_payload_elem</a>
+                <ul>
+                <li><a href="#呼び出し元-10" id="toc-呼び出し元-10"><span class="toc-section-number">2.11.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-6" id="toc-呼び出し先-6"><span class="toc-section-number">2.11.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#drain_recv_window" id="toc-drain_recv_window"><span class="toc-section-number">2.12</span> drain_recv_window</a>
+                <ul>
+                <li><a href="#呼び出し元-11" id="toc-呼び出し元-11"><span class="toc-section-number">2.12.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-7" id="toc-呼び出し先-7"><span class="toc-section-number">2.12.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#process_outer_pkt" id="toc-process_outer_pkt"><span class="toc-section-number">2.13</span> process_outer_pkt</a>
+                <ul>
+                <li><a href="#呼び出し元-12" id="toc-呼び出し元-12"><span class="toc-section-number">2.13.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-8" id="toc-呼び出し先-8"><span class="toc-section-number">2.13.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#recv_thread_func" id="toc-recv_thread_func"><span class="toc-section-number">2.14</span> recv_thread_func</a>
+                <ul>
+                <li><a href="#呼び出し元-13" id="toc-呼び出し元-13"><span class="toc-section-number">2.14.1</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-9" id="toc-呼び出し先-9"><span class="toc-section-number">2.14.2</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#comm_recv_thread_start" id="toc-comm_recv_thread_start"><span class="toc-section-number">2.15</span> comm_recv_thread_start</a>
+                <ul>
+                <li><a href="#引数" id="toc-引数"><span class="toc-section-number">2.15.1</span> 引数</a></li>
+                <li><a href="#戻り値" id="toc-戻り値"><span class="toc-section-number">2.15.2</span> 戻り値</a></li>
+                <li><a href="#呼び出し元-14" id="toc-呼び出し元-14"><span class="toc-section-number">2.15.3</span> 呼び出し元</a></li>
+                <li><a href="#呼び出し先-10" id="toc-呼び出し先-10"><span class="toc-section-number">2.15.4</span> 呼び出し先</a></li>
+                </ul></li>
+                <li><a href="#comm_recv_thread_stop" id="toc-comm_recv_thread_stop"><span class="toc-section-number">2.16</span> comm_recv_thread_stop</a>
+                <ul>
+                <li><a href="#引数-1" id="toc-引数-1"><span class="toc-section-number">2.16.1</span> 引数</a></li>
+                <li><a href="#戻り値-1" id="toc-戻り値-1"><span class="toc-section-number">2.16.2</span> 戻り値</a></li>
+                <li><a href="#呼び出し元-15" id="toc-呼び出し元-15"><span class="toc-section-number">2.16.3</span> 呼び出し元</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#定数マクロ" id="toc-定数マクロ"><span class="toc-section-number">3</span> 定数、マクロ</a>
+                <ul>
+                <li><a href="#potr_nack_dedup_ms" id="toc-potr_nack_dedup_ms"><span class="toc-section-number">3.1</span> POTR_NACK_DEDUP_MS</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>porter/libsrc/porter/thread/potrRecvThread.c</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="porterlibsrcporterthreadpotrrecvthread.c"><span class="header-section-number">1.1</span> porter/libsrc/porter/thread/potrRecvThread.c</h2>
+<p>受信スレッドモジュール。</p>
+<h3 data-number="1.1.1" id="作者"><span class="header-section-number">1.1.1</span> 作者</h3>
+<p>c-modernization-kit sample team</p>
+<h3 data-number="1.1.2" id="バージョン"><span class="header-section-number">1.1.2</span> バージョン</h3>
+<p>1.0.0</p>
+<h3 data-number="1.1.3" id="日付"><span class="header-section-number">1.1.3</span> 日付</h3>
+<p>2026/03/04</p>
+<h3 data-number="1.1.4" id="インクルード元"><span class="header-section-number">1.1.4</span> インクルード元</h3>
+<figure>
+<img src="puml_0ceb8272e5f0f757bfc1809ebd6e98d5ce3f4635.svg" alt="potrRecvThread.c のインクルード元" />
+<figcaption aria-hidden="true">potrRecvThread.c のインクルード元</figcaption>
+</figure>
+<h3 data-number="1.1.5" id="著作権"><span class="header-section-number">1.1.5</span> 著作権</h3>
+<p>Copyright (C) CompanyName, Ltd. 2026. All rights reserved.</p>
+<h1 data-number="2" id="関数"><span class="header-section-number">2</span> 関数</h1>
+<h2 data-number="2.1" id="recv_deliver"><span class="header-section-number">2.1</span> recv_deliver</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> recv_deliver <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="at">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>payload<span class="op">,</span> <span class="dt">size_t</span> payload_len<span class="op">,</span> <span class="dt">int</span> compressed <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.1.1" id="呼び出し元"><span class="header-section-number">2.1.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_716fcb4a92beeb8175f7f013a2378675a6eda129.svg" alt="recv_deliver の呼び出し元" />
+<figcaption aria-hidden="true">recv_deliver の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.1.2" id="呼び出し先"><span class="header-section-number">2.1.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_ce7059d090f5ac888e2792f1d4a8fce98d22d2b4.svg" alt="recv_deliver の呼び出し先" />
+<figcaption aria-hidden="true">recv_deliver の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.2" id="check_src_addr"><span class="header-section-number">2.2</span> check_src_addr</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">int</span> check_src_addr <span class="op">(</span> <span class="at">const</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="at">const</span> <span class="kw">struct</span> sockaddr_in <span class="op">*</span>sender <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.2.1" id="呼び出し元-1"><span class="header-section-number">2.2.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_dd020e15b58a795992266924314658fc6ab91c85.svg" alt="check_src_addr の呼び出し元" />
+<figcaption aria-hidden="true">check_src_addr の呼び出し元</figcaption>
+</figure>
+<h2 data-number="2.3" id="check_and_update_session"><span class="header-section-number">2.3</span> check_and_update_session</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">int</span> check_and_update_session <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="at">const</span> PotrPacket <span class="op">*</span>pkt <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.3.1" id="呼び出し元-2"><span class="header-section-number">2.3.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_3005331263b0faef99b408ee49c77f8d44cd3878.svg" alt="check_and_update_session の呼び出し元" />
+<figcaption aria-hidden="true">check_and_update_session の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.3.2" id="呼び出し先-1"><span class="header-section-number">2.3.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_d4f1f5d9557308501c04cf78a6902915b58843e9.svg" alt="check_and_update_session の呼び出し先" />
+<figcaption aria-hidden="true">check_and_update_session の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.4" id="get_ms_mono"><span class="header-section-number">2.4</span> get_ms_mono</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">uint64_t</span> get_ms_mono <span class="op">(</span> <span class="dt">void</span> <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.4.1" id="呼び出し元-3"><span class="header-section-number">2.4.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_2cf09b044166496b504de9b15ab48c71329e362b.svg" alt="get_ms_mono の呼び出し元" />
+<figcaption aria-hidden="true">get_ms_mono の呼び出し元</figcaption>
+</figure>
+<h2 data-number="2.5" id="get_monotonic"><span class="header-section-number">2.5</span> get_monotonic</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> get_monotonic <span class="op">(</span> <span class="dt">int64_t</span> <span class="op">*</span>tv_sec<span class="op">,</span> <span class="dt">int32_t</span> <span class="op">*</span>tv_nsec <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.5.1" id="呼び出し元-4"><span class="header-section-number">2.5.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_92f631c8ea9f30e8d2e1c9445092f0bdfd2860e8.svg" alt="get_monotonic の呼び出し元" />
+<figcaption aria-hidden="true">get_monotonic の呼び出し元</figcaption>
+</figure>
+<h2 data-number="2.6" id="update_path_recv"><span class="header-section-number">2.6</span> update_path_recv</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> update_path_recv <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="dt">int</span> path_idx<span class="op">,</span> <span class="at">const</span> <span class="kw">struct</span> sockaddr_in <span class="op">*</span>sender <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.6.1" id="呼び出し元-5"><span class="header-section-number">2.6.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_4df574b116c411485f94bf6684b6b7c137706b95.svg" alt="update_path_recv の呼び出し元" />
+<figcaption aria-hidden="true">update_path_recv の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.6.2" id="呼び出し先-2"><span class="header-section-number">2.6.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_b21a933269b213c51ac9ea1765dc89c61c43bb79.svg" alt="update_path_recv の呼び出し先" />
+<figcaption aria-hidden="true">update_path_recv の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.7" id="notify_health_alive"><span class="header-section-number">2.7</span> notify_health_alive</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> notify_health_alive <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.7.1" id="呼び出し元-6"><span class="header-section-number">2.7.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_e1946b61236a704170a6ffdb597eca2c67424aaa.svg" alt="notify_health_alive の呼び出し元" />
+<figcaption aria-hidden="true">notify_health_alive の呼び出し元</figcaption>
+</figure>
+<h2 data-number="2.8" id="check_health_timeout"><span class="header-section-number">2.8</span> check_health_timeout</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> check_health_timeout <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.8.1" id="呼び出し元-7"><span class="header-section-number">2.8.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_a0a20c3b7b78d1426c243fbdcc30c789261ba8af.svg" alt="check_health_timeout の呼び出し元" />
+<figcaption aria-hidden="true">check_health_timeout の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.8.2" id="呼び出し先-3"><span class="header-section-number">2.8.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_8c4a059e304993a05ebf2c5b231bc66c3d0b7c2d.svg" alt="check_health_timeout の呼び出し先" />
+<figcaption aria-hidden="true">check_health_timeout の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.9" id="send_nack"><span class="header-section-number">2.9</span> send_nack</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> send_nack <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="dt">uint32_t</span> nack_seq <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.9.1" id="呼び出し元-8"><span class="header-section-number">2.9.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_4c0ac5b544c03a952e7e74d804cf72dfa0a022a9.svg" alt="send_nack の呼び出し元" />
+<figcaption aria-hidden="true">send_nack の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.9.2" id="呼び出し先-4"><span class="header-section-number">2.9.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_9567835992191ee292d5d6bb6dc3e504c656b5db.svg" alt="send_nack の呼び出し先" />
+<figcaption aria-hidden="true">send_nack の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.10" id="send_reject"><span class="header-section-number">2.10</span> send_reject</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> send_reject <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="dt">uint32_t</span> seq_num <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.10.1" id="呼び出し元-9"><span class="header-section-number">2.10.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_c3620a25d8cc3b1980c0e2139cc3e389a58dd572.svg" alt="send_reject の呼び出し元" />
+<figcaption aria-hidden="true">send_reject の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.10.2" id="呼び出し先-5"><span class="header-section-number">2.10.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_90763f88c1dd5a9a7fc18d5c2c2d45e68bffd203.svg" alt="send_reject の呼び出し先" />
+<figcaption aria-hidden="true">send_reject の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.11" id="deliver_payload_elem"><span class="header-section-number">2.11</span> deliver_payload_elem</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> deliver_payload_elem <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="at">const</span> PotrPacket <span class="op">*</span>elem <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.11.1" id="呼び出し元-10"><span class="header-section-number">2.11.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_29f6402eeaa9155e2b14ec3384198effff126f0c.svg" alt="deliver_payload_elem の呼び出し元" />
+<figcaption aria-hidden="true">deliver_payload_elem の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.11.2" id="呼び出し先-6"><span class="header-section-number">2.11.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_76bb27d0cb8cc5d091baf8be57e859a8ef0dc214.svg" alt="deliver_payload_elem の呼び出し先" />
+<figcaption aria-hidden="true">deliver_payload_elem の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.12" id="drain_recv_window"><span class="header-section-number">2.12</span> drain_recv_window</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> drain_recv_window <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.12.1" id="呼び出し元-11"><span class="header-section-number">2.12.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_23ac913a7ac5f1dc6f0b7725963194100d27362c.svg" alt="drain_recv_window の呼び出し元" />
+<figcaption aria-hidden="true">drain_recv_window の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.12.2" id="呼び出し先-7"><span class="header-section-number">2.12.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_350e14d91a05baf28d1a21a1a73555f86e155767.svg" alt="drain_recv_window の呼び出し先" />
+<figcaption aria-hidden="true">drain_recv_window の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.13" id="process_outer_pkt"><span class="header-section-number">2.13</span> process_outer_pkt</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> process_outer_pkt <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx<span class="op">,</span> <span class="at">const</span> PotrPacket <span class="op">*</span>pkt <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.13.1" id="呼び出し元-12"><span class="header-section-number">2.13.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_1220b8e82283833180a475692c63219fa38e2803.svg" alt="process_outer_pkt の呼び出し元" />
+<figcaption aria-hidden="true">process_outer_pkt の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.13.2" id="呼び出し先-8"><span class="header-section-number">2.13.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_cfa6bcd361a4482ab4e3b00c7cb366a3e1df04d9.svg" alt="process_outer_pkt の呼び出し先" />
+<figcaption aria-hidden="true">process_outer_pkt の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.14" id="recv_thread_func"><span class="header-section-number">2.14</span> recv_thread_func</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">void</span> <span class="op">*</span>recv_thread_func <span class="op">(</span> <span class="dt">void</span> <span class="op">*</span>arg <span class="op">)</span></span></code></pre></div>
+<h3 data-number="2.14.1" id="呼び出し元-13"><span class="header-section-number">2.14.1</span> 呼び出し元</h3>
+<figure>
+<img src="puml_479a53daf02dc42cb51a19253b911dc89ed1d46b.svg" alt="recv_thread_func の呼び出し元" />
+<figcaption aria-hidden="true">recv_thread_func の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.14.2" id="呼び出し先-9"><span class="header-section-number">2.14.2</span> 呼び出し先</h3>
+<figure>
+<img src="puml_cd05cc30ae47096749736b20d5b8b6877734c9f1.svg" alt="recv_thread_func の呼び出し先" />
+<figcaption aria-hidden="true">recv_thread_func の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.15" id="comm_recv_thread_start"><span class="header-section-number">2.15</span> comm_recv_thread_start</h2>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> comm_recv_thread_start <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx <span class="op">)</span></span></code></pre></div>
+<p>受信スレッドを起動します。</p>
+<h3 data-number="2.15.1" id="引数"><span class="header-section-number">2.15.1</span> 引数</h3>
+<ul>
+<li>ctx [in,out] セッションコンテキストへのポインタ。</li>
+</ul>
+<h3 data-number="2.15.2" id="戻り値"><span class="header-section-number">2.15.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。</p>
+<h3 data-number="2.15.3" id="呼び出し元-14"><span class="header-section-number">2.15.3</span> 呼び出し元</h3>
+<figure>
+<img src="puml_0f93cf8533f1d800de526e38380e2ea7f052cbc9.svg" alt="comm_recv_thread_start の呼び出し元" />
+<figcaption aria-hidden="true">comm_recv_thread_start の呼び出し元</figcaption>
+</figure>
+<h3 data-number="2.15.4" id="呼び出し先-10"><span class="header-section-number">2.15.4</span> 呼び出し先</h3>
+<figure>
+<img src="puml_e65ce83f0a5f5590cab8cd6056b943221e4c7fa0.svg" alt="comm_recv_thread_start の呼び出し先" />
+<figcaption aria-hidden="true">comm_recv_thread_start の呼び出し先</figcaption>
+</figure>
+<h2 data-number="2.16" id="comm_recv_thread_stop"><span class="header-section-number">2.16</span> comm_recv_thread_stop</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> comm_recv_thread_stop <span class="op">(</span> <span class="kw">struct</span> PotrContext_ <span class="op">*</span>ctx <span class="op">)</span></span></code></pre></div>
+<p>受信スレッドを停止します。</p>
+<h3 data-number="2.16.1" id="引数-1"><span class="header-section-number">2.16.1</span> 引数</h3>
+<ul>
+<li>ctx [in,out] セッションコンテキストへのポインタ。</li>
+</ul>
+<h3 data-number="2.16.2" id="戻り値-1"><span class="header-section-number">2.16.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。</p>
+<h3 data-number="2.16.3" id="呼び出し元-15"><span class="header-section-number">2.16.3</span> 呼び出し元</h3>
+<figure>
+<img src="puml_dc6141ab96a9a614de284c5b46a8e35f150d6a4d.svg" alt="comm_recv_thread_stop の呼び出し元" />
+<figcaption aria-hidden="true">comm_recv_thread_stop の呼び出し元</figcaption>
+</figure>
+<h1 data-number="3" id="定数マクロ"><span class="header-section-number">3</span> 定数、マクロ</h1>
+<h2 data-number="3.1" id="potr_nack_dedup_ms"><span class="header-section-number">3.1</span> POTR_NACK_DEDUP_MS</h2>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_NACK_DEDUP_MS </span><span class="dv">200</span><span class="bu">U</span></span></code></pre></div>
+<p>NACK 重複抑制の時間窓 (ミリ秒)。この時間内の同一 ack_num の NACK は破棄する。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

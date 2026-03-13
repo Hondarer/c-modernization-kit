@@ -1,0 +1,34 @@
+<map id="send_thread_func" name="send_thread_func">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,181,131,207"/>
+<area shape="rect" id="Node000002" href="$potrSendThread_8c.html#a071263257ea1725404c4a69fa37735da" title=" " alt="" coords="194,5,345,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,180,111,117,141,80,177,48,203,33,206,38,180,52,145,84,115,121,77,183"/>
+<area shape="rect" id="Node000003" href="$potrSendThread_8c.html#a260e2ab6373553aa61c9a71e9901ff46" title=" " alt="" coords="220,107,319,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="93,179,178,142,206,133,208,138,180,147,95,184"/>
+<area shape="rect" id="Node000004" href="$potrSendThread_8c.html#add6449980c94371f0df31387da6fa642" title=" " alt="" coords="447,56,513,81"/>
+<area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="76,179,116,135,145,110,178,92,245,71,315,61,380,59,434,61,434,66,380,64,315,66,246,76,180,96,148,115,120,138,80,183"/>
+<area shape="rect" id="Node000012" href="$potrSendQueue_8c.html#a458ccbc2cfa29875c0cdd383dc02ec07" title=" " alt="" coords="179,156,360,181"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="131,183,165,179,165,184,131,189"/>
+<area shape="rect" id="Node000013" href="$potrSendQueue_8c.html#a85bee3d59492ac3b4ed8f2dabd101d6a" title=" " alt="" coords="191,205,347,231"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="131,199,178,204,177,210,131,204"/>
+<area shape="rect" id="Node000014" href="$potrSendQueue_8c.html#a5ed67f7c2e47cd353cba9332312d0434" title=" " alt="" coords="191,255,347,295"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="96,204,180,241,198,248,196,253,178,246,94,209"/>
+<area shape="rect" id="Node000015" href="$potrSendQueue_8c.html#a527d9e5acbec5ca38349cfcef5fffafa" title=" " alt="" coords="195,320,344,345"/>
+<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="79,205,119,254,148,282,180,305,195,313,193,318,177,310,144,286,115,258,75,209"/>
+<area shape="rect" id="Node000016" href="$potrSendQueue_8c.html#a9c6fa4e2e1a8775e220623020d191611" title=" " alt="" coords="184,369,355,395"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="75,206,89,237,111,278,142,320,180,356,189,361,186,366,177,360,138,324,107,280,84,239,71,208"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="318,105,433,77,435,82,319,110"/>
+<area shape="rect" id="Node000005" href="$packet_8c.html#a0f1ece40d194d02905f9ebfa68cac012" title="データパケット (パックコンテナ) を構築します。" alt="" coords="408,105,552,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="319,116,394,116,394,121,319,122"/>
+<area shape="rect" id="Node000008" href="$crypto__linux_8c.html#a379b176a834b6fb61d80039e32eebf73" title="AES&#45;256&#45;GCM でデータを暗号化します。" alt="" coords="433,155,527,180"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="319,128,420,151,419,156,318,133"/>
+<area shape="rect" id="Node000009" href="$window_8c.html#a194f99cfb5f1631fb7643c1838a5278a" title="送信ウィンドウにパケットを積みます。" alt="" coords="413,204,547,229"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="320,126,361,142,377,154,386,167,395,179,409,190,420,196,418,201,407,195,391,182,382,170,373,158,359,147,318,131"/>
+<area shape="rect" id="Node000006" href="$packet_8c.html#a479088cf3b9ccf5ebe8891ad2881b196" title=" " alt="" coords="605,105,717,131"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="552,115,591,115,591,121,552,121"/>
+<area shape="rect" id="Node000007" href="$packet_8c.html#a6564ae80f665edd6931ef662818e19b0" title=" " alt="" coords="771,105,832,131"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="717,115,757,115,757,121,717,121"/>
+<area shape="rect" id="Node000010" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="622,179,701,204"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="547,205,608,196,609,201,548,210"/>
+<area shape="rect" id="Node000011" href="$window_8c.html#aa49e58851242a05b75813c79490da396" title="送信ウィンドウが満杯かどうかを返します。" alt="" coords="600,228,723,253"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="548,223,587,228,586,233,547,228"/>
+</map>

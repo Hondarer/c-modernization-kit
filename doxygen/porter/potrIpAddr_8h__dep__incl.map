@@ -1,0 +1,9 @@
+<map id="porter/libsrc/porter/util/potrIpAddr.h" name="porter/libsrc/porter/util/potrIpAddr.h">
+<area shape="rect" id="Node000001" title="IPv4 アドレス変換ユーティリティ (内部用)。" alt="" coords="201,5,327,45"/>
+<area shape="rect" id="Node000002" href="$potrCloseService_8c.html" title=" " alt="" coords="5,93,163,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,54,126,96,124,91,209,49"/>
+<area shape="rect" id="Node000003" href="$potrOpenService_8c.html" title="potrOpenService 関数の実装。" alt="" coords="187,93,341,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,59,267,93,261,93,261,59"/>
+<area shape="rect" id="Node000004" href="$potrIpAddr_8c.html" title="IPv4 アドレス変換ユーティリティ (内部用)。" alt="" coords="366,93,493,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="315,49,393,91,390,96,313,54"/>
+</map>

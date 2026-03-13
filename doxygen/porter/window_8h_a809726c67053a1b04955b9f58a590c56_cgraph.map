@@ -1,0 +1,7 @@
+<map id="window_send_get" name="window_send_get">
+<area shape="rect" id="Node000001" title="送信ウィンドウから指定通番のパケットを取得します (再送用)。" alt="" coords="5,31,129,56"/>
+<area shape="rect" id="Node000002" href="$seqnum_8c.html#a45fcfa48b2d66889a5b9b8f63650336a" title="通番 seq がウィンドウ [base, base + window_size) に含まれるか判定します。" alt="" coords="177,5,312,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,32,163,27,164,32,130,37"/>
+<area shape="rect" id="Node000003" href="$window_8c.html#ad5f53882d6cd6075a78e83b94fb62cc3" title=" " alt="" coords="205,55,284,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,49,192,57,191,63,129,54"/>
+</map>

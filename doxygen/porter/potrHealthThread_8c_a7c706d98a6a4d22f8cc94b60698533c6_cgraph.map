@@ -1,0 +1,15 @@
+<map id="health_thread_func" name="health_thread_func">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,137,105"/>
+<area shape="rect" id="Node000002" href="$potrHealthThread_8c.html#a98907ad6292bda01a6e3646c1d92b50f" title=" " alt="" coords="195,5,302,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,78,184,40,200,33,202,38,186,44,100,82"/>
+<area shape="rect" id="Node000003" href="$potrHealthThread_8c.html#a142f92f00ffbf573f3ceede05d5020cb" title=" " alt="" coords="201,55,296,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="137,81,187,73,188,79,138,86"/>
+<area shape="rect" id="Node000004" href="$packet_8c.html#a208f7dc4daa3e772a3f46ed3ab649a6f" title="PING パケットを構築します。" alt="" coords="185,104,312,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="138,99,172,104,171,109,137,104"/>
+<area shape="rect" id="Node000007" href="$packet_8c.html#aee7ebc74dbbe67fa4c9bcdced8dca70c" title="パケットのヘッダー + ペイロードの合計バイト数を返します。" alt="" coords="187,153,310,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="102,103,186,138,205,146,203,151,184,143,100,108"/>
+<area shape="rect" id="Node000005" href="$packet_8c.html#a479088cf3b9ccf5ebe8891ad2881b196" title=" " alt="" coords="360,104,472,129"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="312,114,346,114,346,119,312,119"/>
+<area shape="rect" id="Node000006" href="$packet_8c.html#a6564ae80f665edd6931ef662818e19b0" title=" " alt="" coords="520,104,581,129"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="472,114,506,114,506,119,472,119"/>
+</map>

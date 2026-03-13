@@ -1,0 +1,5 @@
+<map id="PotrWindow" name="PotrWindow">
+<area shape="rect" id="Node000001" title="スライディングウィンドウ管理構造体。" alt="" coords="16,301,119,487"/>
+<area shape="rect" id="Node000002" href="$structPotrPacket.html" title="ネットワーク送受信用パケット構造体。" alt="" coords="5,5,129,231"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,231,70,285,65,285,65,231"/>
+</map>

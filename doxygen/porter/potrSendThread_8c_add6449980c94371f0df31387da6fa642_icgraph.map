@@ -1,0 +1,14 @@
+<map id="get_ms" name="get_ms">
+<area shape="rect" id="Node000001" title=" " alt="" coords="793,31,859,56"/>
+<area shape="rect" id="Node000002" href="$potrSendThread_8c.html#a260e2ab6373553aa61c9a71e9901ff46" title=" " alt="" coords="647,5,745,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="780,37,745,30,746,25,781,32"/>
+<area shape="rect" id="Node000003" href="$potrSendThread_8c.html#a73c68e6c27f4228dd3e7bfdf470d9a6f" title=" " alt="" coords="473,31,599,56"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="780,46,599,46,599,41,780,41"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="633,31,599,36,598,31,632,25"/>
+<area shape="rect" id="Node000004" href="$potrSendThread_8c.html#a43c9d922d9a3e693d9327f34beee30bf" title=" " alt="" coords="271,31,425,56"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="459,46,426,46,426,41,459,41"/>
+<area shape="rect" id="Node000005" href="$potrOpenService_8c.html#a8ce1599677086e0c54400b696ed28680" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,31,223,56"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="257,46,223,46,223,41,257,41"/>
+<area shape="rect" id="Node000006" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,31,56,56"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="91,46,56,46,56,41,91,41"/>
+</map>

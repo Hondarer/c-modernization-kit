@@ -1,0 +1,11 @@
+<map id="send_fin" name="send_fin">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,76,56"/>
+<area shape="rect" id="Node000002" href="$packet_8c.html#a062c5f9f3ce1273c5ac873ed39537537" title="正常終了通知 (FIN) パケットを構築します。" alt="" coords="127,5,243,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,35,113,28,114,33,77,40"/>
+<area shape="rect" id="Node000005" href="$packet_8c.html#aee7ebc74dbbe67fa4c9bcdced8dca70c" title="パケットのヘッダー + ペイロードの合計バイト数を返します。" alt="" coords="124,55,247,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="76,47,111,52,110,58,76,52"/>
+<area shape="rect" id="Node000003" href="$packet_8c.html#a479088cf3b9ccf5ebe8891ad2881b196" title=" " alt="" coords="295,5,407,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="244,15,281,15,281,21,244,21"/>
+<area shape="rect" id="Node000004" href="$packet_8c.html#a6564ae80f665edd6931ef662818e19b0" title=" " alt="" coords="455,5,516,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="407,15,441,15,441,21,407,21"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="porter/libsrc/porter/protocol/config.h" name="porter/libsrc/porter/protocol/config.h">
+<area shape="rect" id="Node000001" title="設定ファイル解析モジュールの内部ヘッダー。" alt="" coords="102,5,229,45"/>
+<area shape="rect" id="Node000002" href="$potrOpenService_8c.html" title="potrOpenService 関数の実装。" alt="" coords="5,93,160,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,57,104,95,100,91,135,54"/>
+<area shape="rect" id="Node000003" href="$config_8c.html" title="設定ファイル (INI 形式) 解析モジュール。" alt="" coords="185,93,311,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,54,231,91,227,95,192,57"/>
+</map>

@@ -1,0 +1,24 @@
+<map id="porter/libsrc/porter/infra/potrSendQueue.c" name="porter/libsrc/porter/infra/potrSendQueue.c">
+<area shape="rect" id="Node000001" title="非同期送信キューの実装。" alt="" coords="135,5,291,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,69,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,48,79,90,77,85,168,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="94,93,159,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,48,152,86,149,82,190,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="184,93,243,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="216,46,216,80,211,80,211,46"/>
+<area shape="rect" id="Node000005" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="299,240,405,265"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="293,40,349,60,403,91,438,123,457,166,461,180,457,193,435,219,407,236,404,232,431,215,452,191,455,180,452,168,433,126,400,95,347,65,291,45"/>
+<area shape="rect" id="Node000006" href="$potrSendQueue_8h.html" title="非同期送信キューの型定義と操作関数。" alt="" coords="267,93,389,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="244,44,300,83,297,88,241,48"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="333,119,350,226,345,227,327,119"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="116,240,185,265"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="267,121,222,139,201,152,182,168,165,197,156,227,151,226,160,195,178,165,197,148,219,135,265,116"/>
+<area shape="rect" id="Node000008" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="192,167,291,192"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="315,121,269,159,266,155,311,117"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="366,167,442,192"/>
+<area shape="poly" id="edge12_Node000006_Node000010" title=" " alt="" coords="343,117,383,155,379,159,339,121"/>
+<area shape="poly" id="edge11_Node000008_Node000005" title=" " alt="" coords="262,190,323,230,320,235,259,194"/>
+<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="227,194,179,233,176,229,224,190"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="210,240,275,265"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="244,192,245,226,240,226,239,192"/>
+</map>

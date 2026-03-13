@@ -1,0 +1,7 @@
+<map id="get_lib_path" name="get_lib_path">
+<area shape="rect" id="Node000001" title="指定した関数が所属する共有ライブラリ (.so/.dll) の絶対パスを取得します。" alt="" coords="5,5,97,31"/>
+<area shape="rect" id="Node000002" href="$get__lib__info_8c.html#a3da7623fb03ca9f5a9febbfb28bca8c6" title=".so 自身の絶対パスを取得します (Linux/Unix)。" alt="" coords="145,5,284,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,15,131,15,131,21,98,21"/>
+<area shape="rect" id="Node000003" href="$get__lib__info_8c.html#a6b8f85c79c31c267b18934757210e83e" title="文字列を安全にコピーします (UTF&#45;8 想定だが単なる byte 列として扱う)。" alt="" coords="332,5,404,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="284,15,319,15,319,21,284,21"/>
+</map>

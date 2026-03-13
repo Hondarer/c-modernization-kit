@@ -1,0 +1,707 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <meta name="author" content="doxygen and doxybook2" />
+  <title>porter/include/porter.h</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">porter/include/porter.h</span>
+        <ul class="nav pull-right doc-info">
+                    <li><p class="navbar-text">doxygen and doxybook2</p></li>
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#ファイル" id="toc-ファイル"><span class="toc-section-number">1</span> ファイル</a>
+                <ul>
+                <li><a href="#porterincludeporter.h" id="toc-porterincludeporter.h"><span class="toc-section-number">1.1</span> porter/include/porter.h</a>
+                <ul>
+                <li><a href="#作者" id="toc-作者"><span class="toc-section-number">1.1.1</span> 作者</a></li>
+                <li><a href="#バージョン" id="toc-バージョン"><span class="toc-section-number">1.1.2</span> バージョン</a></li>
+                <li><a href="#日付" id="toc-日付"><span class="toc-section-number">1.1.3</span> 日付</a></li>
+                <li><a href="#インクルード元" id="toc-インクルード元"><span class="toc-section-number">1.1.4</span> インクルード元</a></li>
+                <li><a href="#著作権" id="toc-著作権"><span class="toc-section-number">1.1.5</span> 著作権</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#関数" id="toc-関数"><span class="toc-section-number">2</span> 関数</a>
+                <ul>
+                <li><a href="#potropenservice" id="toc-potropenservice"><span class="toc-section-number">2.1</span> potrOpenService</a>
+                <ul>
+                <li><a href="#引数" id="toc-引数"><span class="toc-section-number">2.1.1</span> 引数</a></li>
+                <li><a href="#戻り値" id="toc-戻り値"><span class="toc-section-number">2.1.2</span> 戻り値</a></li>
+                <li><a href="#警告" id="toc-警告"><span class="toc-section-number">2.1.3</span> 警告</a></li>
+                <li><a href="#使用例-受信者" id="toc-使用例-受信者"><span class="toc-section-number">2.1.4</span> 使用例 (受信者)</a></li>
+                <li><a href="#使用例-送信者" id="toc-使用例-送信者"><span class="toc-section-number">2.1.5</span> 使用例 (送信者)</a></li>
+                </ul></li>
+                <li><a href="#potrsend" id="toc-potrsend"><span class="toc-section-number">2.2</span> potrSend</a>
+                <ul>
+                <li><a href="#引数-1" id="toc-引数-1"><span class="toc-section-number">2.2.1</span> 引数</a></li>
+                <li><a href="#戻り値-1" id="toc-戻り値-1"><span class="toc-section-number">2.2.2</span> 戻り値</a></li>
+                <li><a href="#補足" id="toc-補足"><span class="toc-section-number">2.2.3</span> 補足</a></li>
+                <li><a href="#警告-1" id="toc-警告-1"><span class="toc-section-number">2.2.4</span> 警告</a></li>
+                <li><a href="#ノンブロッキング送信-flags-に-potr_send_blocking-を指定しない場合" id="toc-ノンブロッキング送信-flags-に-potr_send_blocking-を指定しない場合"><span class="toc-section-number">2.2.5</span> ノンブロッキング送信 (flags に POTR_SEND_BLOCKING を指定しない場合)</a></li>
+                <li><a href="#ブロッキング送信-flags-に-potr_send_blocking-を指定した場合" id="toc-ブロッキング送信-flags-に-potr_send_blocking-を指定した場合"><span class="toc-section-number">2.2.6</span> ブロッキング送信 (flags に POTR_SEND_BLOCKING を指定した場合)</a></li>
+                </ul></li>
+                <li><a href="#potrcloseservice" id="toc-potrcloseservice"><span class="toc-section-number">2.3</span> potrCloseService</a>
+                <ul>
+                <li><a href="#引数-2" id="toc-引数-2"><span class="toc-section-number">2.3.1</span> 引数</a></li>
+                <li><a href="#戻り値-2" id="toc-戻り値-2"><span class="toc-section-number">2.3.2</span> 戻り値</a></li>
+                <li><a href="#補足-1" id="toc-補足-1"><span class="toc-section-number">2.3.3</span> 補足</a></li>
+                <li><a href="#警告-2" id="toc-警告-2"><span class="toc-section-number">2.3.4</span> 警告</a></li>
+                </ul></li>
+                <li><a href="#potrlogconfig" id="toc-potrlogconfig"><span class="toc-section-number">2.4</span> potrLogConfig</a>
+                <ul>
+                <li><a href="#引数-3" id="toc-引数-3"><span class="toc-section-number">2.4.1</span> 引数</a></li>
+                <li><a href="#戻り値-3" id="toc-戻り値-3"><span class="toc-section-number">2.4.2</span> 戻り値</a></li>
+                <li><a href="#警告-3" id="toc-警告-3"><span class="toc-section-number">2.4.3</span> 警告</a></li>
+                <li><a href="#出力先" id="toc-出力先"><span class="toc-section-number">2.4.4</span> 出力先</a></li>
+                <li><a href="#ログフォーマット-ファイル-stderr" id="toc-ログフォーマット-ファイル-stderr"><span class="toc-section-number">2.4.5</span> ログフォーマット (ファイル / stderr)</a></li>
+                <li><a href="#ログレベル一覧" id="toc-ログレベル一覧"><span class="toc-section-number">2.4.6</span> ログレベル一覧</a></li>
+                <li><a href="#使用例" id="toc-使用例"><span class="toc-section-number">2.4.7</span> 使用例</a></li>
+                </ul></li>
+                </ul></li>
+                <li><a href="#定数マクロ" id="toc-定数マクロ"><span class="toc-section-number">3</span> 定数、マクロ</a>
+                <ul>
+                <li><a href="#potr_api" id="toc-potr_api"><span class="toc-section-number">3.1</span> POTR_API</a></li>
+                <li><a href="#potrapi" id="toc-potrapi"><span class="toc-section-number">3.2</span> POTRAPI</a></li>
+                </ul></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>porter/include/porter.h</H1>
+      
+      
+      <!-- IMPORTANT: This is an AUTOMATICALLY GENERATED file by doxygen and doxybook2. Manual edits are NOT allowed. -->
+<h1 data-number="1" id="ファイル"><span class="header-section-number">1</span> ファイル</h1>
+<h2 data-number="1.1" id="porterincludeporter.h"><span class="header-section-number">1.1</span> porter/include/porter.h</h2>
+<p>通信ライブラリ (動的リンク用) のヘッダーファイル。</p>
+<p>このライブラリは UDP/IP を用いたプラットフォーム間通信を提供します。<br />
+Linux / Windows クロスプラットフォーム対応の DLL として提供されます。</p>
+<h3 data-number="1.1.1" id="作者"><span class="header-section-number">1.1.1</span> 作者</h3>
+<p>c-modernization-kit sample team</p>
+<h3 data-number="1.1.2" id="バージョン"><span class="header-section-number">1.1.2</span> バージョン</h3>
+<p>1.0.0</p>
+<h3 data-number="1.1.3" id="日付"><span class="header-section-number">1.1.3</span> 日付</h3>
+<p>2026/03/04</p>
+<h3 data-number="1.1.4" id="インクルード元"><span class="header-section-number">1.1.4</span> インクルード元</h3>
+<figure>
+<img src="puml_02c0f66310232eabdea9c56632a53c2ec4b8a080.svg" alt="porter.h のインクルード元" />
+<figcaption aria-hidden="true">porter.h のインクルード元</figcaption>
+</figure>
+<h3 data-number="1.1.5" id="著作権"><span class="header-section-number">1.1.5</span> 著作権</h3>
+<p>Copyright (C) CompanyName, Ltd. 2026. All rights reserved.</p>
+<h1 data-number="2" id="関数"><span class="header-section-number">2</span> 関数</h1>
+<h2 data-number="2.1" id="potropenservice"><span class="header-section-number">2.1</span> potrOpenService</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrOpenService <span class="op">(</span> <span class="at">const</span> <span class="dt">char</span> <span class="op">*</span>config_path<span class="op">,</span> <span class="dt">int</span> service_id<span class="op">,</span> PotrRole role<span class="op">,</span> PotrRecvCallback callback<span class="op">,</span> PotrHandle <span class="op">*</span>handle <span class="op">)</span></span></code></pre></div>
+<p>設定ファイルから指定サービスを開きます。</p>
+<p>設定ファイルを解析してサービス定義を取得し、UDP ソケットを初期化します。<br />
+role と callback の組み合わせが不正な場合は POTR_ERROR を返します。<br />
+role と設定ファイルの IP アドレスが不整合 (bind 失敗など) の場合も POTR_ERROR を返します。<br />
+通信種別・役割に応じて以下のソケット設定を行います。</p>
+<table>
+<thead>
+<tr>
+<th>通信種別</th>
+<th>役割</th>
+<th>bind アドレス</th>
+<th>bind ポート</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_TYPE_UNICAST</td>
+<td>送信者</td>
+<td>src_addr</td>
+<td>src_port</td>
+</tr>
+<tr>
+<td>POTR_TYPE_UNICAST</td>
+<td>受信者</td>
+<td>dst_addr</td>
+<td>dst_port</td>
+</tr>
+<tr>
+<td>POTR_TYPE_MULTICAST</td>
+<td>送信者</td>
+<td>INADDR_ANY</td>
+<td>src_port</td>
+</tr>
+<tr>
+<td>POTR_TYPE_MULTICAST</td>
+<td>受信者</td>
+<td>INADDR_ANY</td>
+<td>dst_port</td>
+</tr>
+<tr>
+<td>POTR_TYPE_BROADCAST</td>
+<td>送信者</td>
+<td>src_addr</td>
+<td>src_port</td>
+</tr>
+<tr>
+<td>POTR_TYPE_BROADCAST</td>
+<td>受信者</td>
+<td>INADDR_ANY</td>
+<td>dst_port</td>
+</tr>
+</tbody>
+</table>
+<p>POTR_ROLE_RECEIVER の場合、内部で受信スレッドを起動します。</p>
+<h3 data-number="2.1.1" id="引数"><span class="header-section-number">2.1.1</span> 引数</h3>
+<ul>
+<li>config_path [in] 設定ファイルのパス。</li>
+<li>service_id [in] 開くサービスの ID。</li>
+<li>role [in] 役割種別。POTR_ROLE_SENDER または POTR_ROLE_RECEIVER。</li>
+<li>callback [in] イベント発生時に呼び出されるコールバック関数 (PotrRecvCallback)。 POTR_ROLE_RECEIVER の場合は必須。データ受信・接続検知・切断検知を受け取る。 POTR_ROLE_SENDER の場合は NULL を指定すること。</li>
+<li>handle [out] 成功時にセッションハンドルを格納するポインタ。</li>
+</ul>
+<h3 data-number="2.1.2" id="戻り値"><span class="header-section-number">2.1.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。</p>
+<h3 data-number="2.1.3" id="警告"><span class="header-section-number">2.1.3</span> 警告</h3>
+<p>handle が NULL の場合は失敗を返します。<br />
+config_path が NULL または存在しない場合は失敗を返します。<br />
+指定した service_id が設定ファイルに存在しない場合は失敗を返します。<br />
+POTR_ROLE_RECEIVER かつ callback が NULL の場合は失敗を返します。<br />
+POTR_ROLE_SENDER かつ callback が NULL でない場合は失敗を返します。</p>
+<h3 data-number="2.1.4" id="使用例-受信者"><span class="header-section-number">2.1.4</span> 使用例 (受信者)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> on_recv<span class="op">(</span><span class="dt">int</span> service_id<span class="op">,</span> PotrEvent event<span class="op">,</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>             <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>event <span class="op">==</span> POTR_EVENT_CONNECTED<span class="op">)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;service </span><span class="sc">%d</span><span class="st">: connected</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> service_id<span class="op">);</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>event <span class="op">==</span> POTR_EVENT_DISCONNECTED<span class="op">)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;service </span><span class="sc">%d</span><span class="st">: disconnected</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> service_id<span class="op">);</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;service </span><span class="sc">%d</span><span class="st">: received </span><span class="sc">%zu</span><span class="st"> bytes</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> service_id<span class="op">,</span> len<span class="op">);</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>PotrHandle handle<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>potrOpenService<span class="op">(</span><span class="st">&quot;porter-services.conf&quot;</span><span class="op">,</span> <span class="dv">1001</span><span class="op">,</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                    POTR_ROLE_RECEIVER<span class="op">,</span> on_recv<span class="op">,</span> <span class="op">&amp;</span>handle<span class="op">)</span> <span class="op">==</span> POTR_SUCCESS<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 受信待機中 (受信スレッドが動作)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    potrCloseService<span class="op">(</span>handle<span class="op">);</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 data-number="2.1.5" id="使用例-送信者"><span class="header-section-number">2.1.5</span> 使用例 (送信者)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>PotrHandle handle<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>potrOpenService<span class="op">(</span><span class="st">&quot;porter-services.conf&quot;</span><span class="op">,</span> <span class="dv">1001</span><span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                    POTR_ROLE_SENDER<span class="op">,</span> NULL<span class="op">,</span> <span class="op">&amp;</span>handle<span class="op">)</span> <span class="op">==</span> POTR_SUCCESS<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    potrSend<span class="op">(</span>handle<span class="op">,</span> <span class="st">&quot;hello&quot;</span><span class="op">,</span> <span class="dv">5</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    potrCloseService<span class="op">(</span>handle<span class="op">);</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="2.2" id="potrsend"><span class="header-section-number">2.2</span> potrSend</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrSend <span class="op">(</span> PotrHandle handle<span class="op">,</span> <span class="at">const</span> <span class="dt">void</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">,</span> <span class="dt">int</span> flags <span class="op">)</span></span></code></pre></div>
+<p>メッセージを送信します。</p>
+<table>
+<thead>
+<tr>
+<th>フラグ</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POTR_SEND_COMPRESS</code></td>
+<td>メッセージを圧縮して送信します。</td>
+</tr>
+<tr>
+<td><code>POTR_SEND_BLOCKING</code></td>
+<td>ブロッキング送信を行います。</td>
+</tr>
+</tbody>
+</table>
+<p>通信種別に応じて以下の宛先へ UDP パケットを送信します。</p>
+<table>
+<thead>
+<tr>
+<th>通信種別</th>
+<th>送信先</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_TYPE_UNICAST</td>
+<td>接続相手の dst_port 宛にユニキャスト送信</td>
+</tr>
+<tr>
+<td>POTR_TYPE_MULTICAST</td>
+<td>multicast_group:dst_port へ送信</td>
+</tr>
+<tr>
+<td>POTR_TYPE_BROADCAST</td>
+<td>broadcast_addr:dst_port へ送信</td>
+</tr>
+</tbody>
+</table>
+<p>compress に <code>POTR_SEND_COMPRESS</code> を指定した場合、内部で圧縮処理を行ってから送信します。<br />
+圧縮後のサイズが元のサイズ以上になった場合は、自動的に非圧縮で送信します。<br />
+受信側の PotrRecvCallback には、解凍済みの元メッセージが渡されます。<br />
+送受信ともにフラグメント化と組み合わせて使用できます。</p>
+<h3 data-number="2.2.1" id="引数-1"><span class="header-section-number">2.2.1</span> 引数</h3>
+<ul>
+<li>handle [in] potrOpenService() で取得したセッションハンドル。</li>
+<li>data [in] 送信するメッセージへのポインタ。</li>
+<li>len [in] 送信するメッセージのバイト数。</li>
+<li>flags [in] 送信オプションフラグ。以下のフラグを論理和で組み合わせて指定します。 0 を指定すると非圧縮・ノンブロッキング送信になります。</li>
+</ul>
+<h3 data-number="2.2.2" id="戻り値-1"><span class="header-section-number">2.2.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。</p>
+<h3 data-number="2.2.3" id="補足"><span class="header-section-number">2.2.3</span> 補足</h3>
+<p>圧縮フォーマットには raw DEFLATE (RFC 1951) を使用します。<br />
+Linux (zlib) と Windows (Compression API MSZIP|COMPRESS_RAW) は 同一フォーマットを出力するため、クロスプラットフォーム通信に対応します。<br />
+圧縮効果がない場合 (圧縮後サイズ &gt;= 元サイズ) は、アプリケーションへの通知なしに 内部で非圧縮に切り替えて送信します。送受信のデータ内容に影響はありません。<br />
+本関数はシングルスレッドから呼び出すことを前提としています。 複数スレッドから同時に呼び出した場合の動作は未定義です。</p>
+<h3 data-number="2.2.4" id="警告-1"><span class="header-section-number">2.2.4</span> 警告</h3>
+<p>handle が NULL の場合は失敗を返します。<br />
+data が NULL の場合は失敗を返します。<br />
+len が 0 の場合は失敗を返します。<br />
+len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。<br />
+送信スレッドが停止している場合 (potrCloseService 呼び出し後など) は失敗を返します。</p>
+<h3 data-number="2.2.5" id="ノンブロッキング送信-flags-に-potr_send_blocking-を指定しない場合"><span class="header-section-number">2.2.5</span> ノンブロッキング送信 (flags に POTR_SEND_BLOCKING を指定しない場合)</h3>
+<p>メッセージを内部送信キューに登録して即座に返ります。<br />
+実際の sendto はバックグラウンド送信スレッドが非同期に実行します。<br />
+キューが満杯の場合は空きが生じるまで待機してからメッセージを登録し、登録後に返ります。</p>
+<h3 data-number="2.2.6" id="ブロッキング送信-flags-に-potr_send_blocking-を指定した場合"><span class="header-section-number">2.2.6</span> ブロッキング送信 (flags に POTR_SEND_BLOCKING を指定した場合)</h3>
+<p>呼び出し前に滞留しているノンブロッキング送信のメッセージが すべて sendto 完了するまで待機します。<br />
+その後、本呼び出しのメッセージをキューを通じて sendto して返ります。<br />
+本関数が返った時点で、自身のメッセージの sendto は完了しています。</p>
+<h2 data-number="2.3" id="potrcloseservice"><span class="header-section-number">2.3</span> potrCloseService</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrCloseService <span class="op">(</span> PotrHandle handle <span class="op">)</span></span></code></pre></div>
+<p>サービスを閉じます。</p>
+<p>受信スレッドを停止し、ソケットをクローズしてリソースを解放します。<br />
+マルチキャストの場合はグループから離脱します。<br />
+本関数呼び出し後、handle は無効となります。</p>
+<h3 data-number="2.3.1" id="引数-2"><span class="header-section-number">2.3.1</span> 引数</h3>
+<ul>
+<li>handle [in] potrOpenService() で取得したセッションハンドル。</li>
+</ul>
+<h3 data-number="2.3.2" id="戻り値-2"><span class="header-section-number">2.3.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。</p>
+<h3 data-number="2.3.3" id="補足-1"><span class="header-section-number">2.3.3</span> 補足</h3>
+<p>本関数呼び出し時、POTR_EVENT_DISCONNECTED コールバックは発火しません。<br />
+アプリケーション自身が明示的にサービスを閉じる操作は、接続状態変化イベントとして通知しない設計です。<br />
+送信者 (POTR_ROLE_SENDER) が本関数を呼び出した場合は、FIN パケットが送信されます。 FIN を受信した受信者側では POTR_EVENT_DISCONNECTED が発火します。</p>
+<h3 data-number="2.3.4" id="警告-2"><span class="header-section-number">2.3.4</span> 警告</h3>
+<p>handle が NULL の場合は失敗を返します。</p>
+<h2 data-number="2.4" id="potrlogconfig"><span class="header-section-number">2.4</span> potrLogConfig</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>POTR_API <span class="dt">int</span> POTRAPI potrLogConfig <span class="op">(</span> PotrLogLevel level<span class="op">,</span> <span class="at">const</span> <span class="dt">char</span> <span class="op">*</span>log_file<span class="op">,</span> <span class="dt">int</span> console <span class="op">)</span></span></code></pre></div>
+<p>ロガーを設定します。</p>
+<p>本関数は potrOpenService() の前に呼び出してください。<br />
+複数回呼び出した場合は最後の設定が有効になります。<br />
+スレッドセーフです。</p>
+<h3 data-number="2.4.1" id="引数-3"><span class="header-section-number">2.4.1</span> 引数</h3>
+<ul>
+<li>level [in] 出力する最低ログレベル。POTR_LOG_OFF でログ無効 (デフォルト)。</li>
+<li>log_file [in] ログファイルのパス。NULL または空文字列を指定するとファイル出力なし。</li>
+<li>console [in] 0 以外を指定すると標準エラー出力 (stderr) にも出力します。</li>
+</ul>
+<h3 data-number="2.4.2" id="戻り値-3"><span class="header-section-number">2.4.2</span> 戻り値</h3>
+<p>成功時は POTR_SUCCESS、log_file が開けない場合は POTR_ERROR を返します。</p>
+<h3 data-number="2.4.3" id="警告-3"><span class="header-section-number">2.4.3</span> 警告</h3>
+<p>log_file に指定したパスが書き込み不可の場合は POTR_ERROR を返します。<br />
+本関数はロガー状態を再設定するため、呼び出し中にログを出力するスレッドが 存在する場合でも安全に動作します (内部でミューテックスを使用)。</p>
+<h3 data-number="2.4.4" id="出力先"><span class="header-section-number">2.4.4</span> 出力先</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>OS</th>
+<th>出力先</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td>syslog (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)</td>
+</tr>
+<tr>
+<td>Windows</td>
+<td>ログファイル (log_file 指定時)、stderr (console 指定時)</td>
+</tr>
+</tbody>
+</table>
+<h3 data-number="2.4.5" id="ログフォーマット-ファイル-stderr"><span class="header-section-number">2.4.5</span> ログフォーマット (ファイル / stderr)</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="op">[</span>YYYY<span class="op">-</span>MM<span class="op">-</span>DD HH<span class="op">:</span>MM<span class="op">:</span>SS<span class="op">.</span>mmm<span class="op">]</span> <span class="op">[</span>LEVEL<span class="op">]</span> <span class="op">[</span>file<span class="op">.</span>c<span class="op">:</span>line<span class="op">]</span> message</span></code></pre></div>
+<h3 data-number="2.4.6" id="ログレベル一覧"><span class="header-section-number">2.4.6</span> ログレベル一覧</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>レベル</th>
+<th>値</th>
+<th>syslog priority</th>
+<th>出力内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POTR_LOG_TRACE</td>
+<td>0</td>
+<td>LOG_DEBUG</td>
+<td>パケット送受信・スレッド動作</td>
+</tr>
+<tr>
+<td>POTR_LOG_DEBUG</td>
+<td>1</td>
+<td>LOG_DEBUG</td>
+<td>ソケット操作・設定値</td>
+</tr>
+<tr>
+<td>POTR_LOG_INFO</td>
+<td>2</td>
+<td>LOG_INFO</td>
+<td>サービス開始・終了・接続状態変化</td>
+</tr>
+<tr>
+<td>POTR_LOG_WARN</td>
+<td>3</td>
+<td>LOG_WARNING</td>
+<td>NACK・REJECT・回復可能な異常</td>
+</tr>
+<tr>
+<td>POTR_LOG_ERROR</td>
+<td>4</td>
+<td>LOG_ERR</td>
+<td>操作失敗</td>
+</tr>
+<tr>
+<td>POTR_LOG_FATAL</td>
+<td>5</td>
+<td>LOG_CRIT</td>
+<td>致命的エラー</td>
+</tr>
+<tr>
+<td>POTR_LOG_OFF</td>
+<td>6</td>
+<td>-</td>
+<td>ログ無効 (デフォルト)</td>
+</tr>
+</tbody>
+</table>
+<h3 data-number="2.4.7" id="使用例"><span class="header-section-number">2.4.7</span> 使用例</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// INFO 以上をファイルと stderr に出力</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>potrLogConfig<span class="op">(</span>POTR_LOG_INFO<span class="op">,</span> <span class="st">&quot;/var/log/porter.log&quot;</span><span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">// DEBUG 以上をファイルのみに出力 (Linux では syslog にも出力)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>potrLogConfig<span class="op">(</span>POTR_LOG_DEBUG<span class="op">,</span> <span class="st">&quot;/tmp/porter.log&quot;</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">// ログを無効化</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>potrLogConfig<span class="op">(</span>POTR_LOG_OFF<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<h1 data-number="3" id="定数マクロ"><span class="header-section-number">3</span> 定数、マクロ</h1>
+<h2 data-number="3.1" id="potr_api"><span class="header-section-number">3.1</span> POTR_API</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTR_API</span></span></code></pre></div>
+<p>DLL エクスポート/インポート制御マクロ。</p>
+<p>ビルド条件に応じて以下の値を取ります。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>条件</th>
+<th>値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux (非 Windows)</td>
+<td>(空)</td>
+</tr>
+<tr>
+<td>Windows / <code>__INTELLISENSE__</code> 定義時</td>
+<td>(空)</td>
+</tr>
+<tr>
+<td>Windows / <code>POTR_STATIC</code> 定義時 (静的リンク)</td>
+<td>(空)</td>
+</tr>
+<tr>
+<td>Windows / <code>POTR_EXPORTS</code> 定義時 (DLL ビルド)</td>
+<td><code>__declspec(dllexport)</code></td>
+</tr>
+<tr>
+<td>Windows / <code>POTR_EXPORTS</code> 未定義時 (DLL 利用側)</td>
+<td><code>__declspec(dllimport)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.2" id="potrapi"><span class="header-section-number">3.2</span> POTRAPI</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define POTRAPI</span></span></code></pre></div>
+<p>Windows 呼び出し規約マクロ。</p>
+<p>Windows 環境では <code>__stdcall</code> 呼び出し規約を指定します。<br />
+Linux (非 Windows) 環境では空に展開されます。<br />
+既に定義済みの場合は再定義されません。</p>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

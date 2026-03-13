@@ -1,0 +1,7 @@
+<map id="ctx_cleanup" name="ctx_cleanup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,97,56"/>
+<area shape="rect" id="Node000002" href="$potrOpenService_8c.html#ad7336994233561158dcf0cf6f0a4a43e" title=" " alt="" coords="145,5,265,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,33,131,28,132,33,98,38"/>
+<area shape="rect" id="Node000003" href="$window_8c.html#a4e7e88f824efef8f1e6c7fcd82e1b350" title="ウィンドウが保持する動的確保バッファを解放します。" alt="" coords="148,55,263,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="98,48,135,54,134,59,97,53"/>
+</map>

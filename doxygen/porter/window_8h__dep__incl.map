@@ -1,0 +1,39 @@
+<map id="porter/libsrc/porter/protocol/window.h" name="porter/libsrc/porter/protocol/window.h">
+<area shape="rect" id="Node000001" title="スライディングウィンドウ管理モジュールの内部ヘッダー。" alt="" coords="1023,5,1151,45"/>
+<area shape="rect" id="Node000002" href="$potrCloseService_8c.html" title=" " alt="" coords="632,269,789,309"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1086,60,1079,98,1065,142,1044,186,1012,223,974,243,917,260,790,283,789,277,916,255,972,238,1009,219,1039,183,1060,140,1073,97,1081,59"/>
+<area shape="rect" id="Node000003" href="$potrOpenService_8c.html" title="potrOpenService 関数の実装。" alt="" coords="243,269,397,309"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1009,30,816,39,696,49,573,63,454,83,348,109,303,125,264,142,232,162,209,183,202,195,202,206,206,217,215,228,242,249,274,267,271,272,239,254,211,232,202,220,197,207,197,193,205,180,229,157,261,137,301,120,347,104,453,78,572,58,696,43,815,34,1009,24"/>
+<area shape="rect" id="Node000004" href="$potrContext_8h.html" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="709,93,835,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="1010,49,836,98,835,93,1009,44"/>
+<area shape="rect" id="Node000006" href="$potrHealthThread_8c.html" title="ヘルスチェックスレッドモジュール。" alt="" coords="5,269,181,309"/>
+<area shape="poly" id="edge23_Node000001_Node000006" title=" " alt="" coords="1009,30,840,35,628,47,425,67,342,80,279,96,238,112,207,128,179,150,149,183,120,228,102,270,97,268,115,225,145,180,176,147,204,124,235,107,278,91,341,75,424,61,628,42,839,30,1009,24"/>
+<area shape="rect" id="Node000008" href="$potrRecvThread_8c.html" title="受信スレッドモジュール。" alt="" coords="1123,269,1293,309"/>
+<area shape="poly" id="edge24_Node000001_Node000008" title=" " alt="" coords="1112,55,1134,92,1177,190,1204,268,1199,270,1172,192,1130,95,1107,58"/>
+<area shape="rect" id="Node000010" href="$potrSendThread_8c.html" title="非同期送信スレッドの実装。" alt="" coords="930,269,1099,309"/>
+<area shape="poly" id="edge25_Node000001_Node000010" title=" " alt="" coords="1103,57,1113,93,1120,135,1120,180,1108,223,1086,251,1058,271,1055,267,1082,247,1103,220,1115,179,1115,135,1108,94,1097,59"/>
+<area shape="rect" id="Node000012" href="$window_8c.html" title="スライディングウィンドウ管理モジュール。" alt="" coords="1276,93,1404,133"/>
+<area shape="poly" id="edge22_Node000001_Node000012" title=" " alt="" coords="1159,48,1283,91,1281,96,1157,53"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="798,144,814,182,816,202,810,223,787,251,758,271,755,267,784,247,806,220,811,202,809,183,793,146"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="695,120,564,128,415,142,287,160,244,171,222,183,216,194,215,205,219,216,227,227,251,249,280,267,278,272,248,253,223,231,214,218,210,206,210,192,218,179,242,166,286,155,415,137,564,123,695,115"/>
+<area shape="rect" id="Node000005" href="$potrSend_8c.html" title="potrSend 関数の実装。" alt="" coords="871,181,998,221"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="823,138,899,179,896,184,820,142"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="695,119,574,127,432,139,300,158,247,170,208,184,178,202,150,225,110,271,106,267,147,221,174,198,206,179,246,165,299,153,432,134,574,121,694,114"/>
+<area shape="rect" id="Node000007" href="$potrHealthThread_8h.html" title="ヘルスチェックスレッド内部ヘッダー。" alt="" coords="232,181,408,221"/>
+<area shape="poly" id="edge8_Node000004_Node000007" title=" " alt="" coords="696,131,421,184,409,186,408,181,419,179,695,125"/>
+<area shape="poly" id="edge12_Node000004_Node000008" title=" " alt="" coords="850,124,941,146,1037,179,1119,223,1183,267,1180,271,1116,227,1035,184,939,151,848,129"/>
+<area shape="rect" id="Node000009" href="$potrRecvThread_8h.html" title="受信スレッド内部ヘッダー。" alt="" coords="626,181,795,221"/>
+<area shape="poly" id="edge13_Node000004_Node000009" title=" " alt="" coords="752,146,727,183,723,180,748,143"/>
+<area shape="poly" id="edge17_Node000004_Node000010" title=" " alt="" coords="850,123,946,145,987,161,1013,180,1024,201,1028,226,1023,269,1018,269,1022,226,1019,203,1009,183,984,166,945,150,848,128"/>
+<area shape="rect" id="Node000011" href="$potrSendThread_8h.html" title="非同期送信スレッドの内部ヘッダー。" alt="" coords="433,181,602,221"/>
+<area shape="poly" id="edge18_Node000004_Node000011" title=" " alt="" coords="701,141,576,184,575,179,700,136"/>
+<area shape="poly" id="edge9_Node000007_Node000002" title=" " alt="" coords="422,222,632,269,631,274,421,227"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="323,235,323,269,317,269,317,235"/>
+<area shape="poly" id="edge11_Node000007_Node000006" title=" " alt="" coords="256,229,146,272,144,267,255,224"/>
+<area shape="poly" id="edge14_Node000009_Node000002" title=" " alt="" coords="713,235,713,269,708,269,708,235"/>
+<area shape="poly" id="edge15_Node000009_Node000003" title=" " alt="" coords="613,226,399,274,397,269,612,221"/>
+<area shape="poly" id="edge16_Node000009_Node000008" title=" " alt="" coords="809,214,1112,267,1124,269,1123,274,1112,272,808,220"/>
+<area shape="poly" id="edge19_Node000011_Node000002" title=" " alt="" coords="575,225,668,267,665,272,573,230"/>
+<area shape="poly" id="edge20_Node000011_Node000003" title=" " alt="" coords="461,230,366,272,364,267,458,225"/>
+<area shape="poly" id="edge21_Node000011_Node000010" title=" " alt="" coords="616,219,930,273,929,279,615,224"/>
+</map>

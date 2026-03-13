@@ -1,0 +1,63 @@
+<map id="porter/libsrc/porter/thread/potrHealthThread.c" name="porter/libsrc/porter/thread/potrHealthThread.c">
+<area shape="rect" id="Node000001" title="ヘルスチェックスレッドモジュール。" alt="" coords="441,5,617,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,71,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="441,38,279,60,85,96,84,90,278,55,440,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="95,93,192,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="441,46,206,96,205,90,440,41"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="268,240,355,265"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="515,47,453,120,392,183,338,233,334,229,388,179,449,117,511,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="274,93,357,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="476,48,363,91,361,86,474,43"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="381,93,439,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="500,48,441,88,438,84,497,43"/>
+<area shape="rect" id="Node000007" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="503,387,608,412"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="441,41,337,64,293,79,264,95,246,114,237,132,233,153,233,179,233,253,233,279,237,300,247,318,265,337,303,355,361,371,489,390,488,396,360,376,301,360,262,341,243,321,232,302,228,280,227,253,227,179,228,152,232,130,242,111,260,91,290,74,335,59,440,36"/>
+<area shape="rect" id="Node000008" href="$porter_8h.html" title="通信ライブラリ (動的リンク用) のヘッダーファイル。" alt="" coords="809,167,875,192"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="618,38,688,59,724,73,758,91,796,121,826,153,822,157,793,125,755,96,722,78,686,64,616,43"/>
+<area shape="rect" id="Node000012" href="$packet_8h.html" title="パケット構築・解析モジュールの内部ヘッダー。" alt="" coords="1020,240,1155,265"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="617,37,730,59,856,88,970,124,1015,144,1046,165,1069,194,1083,226,1078,228,1064,197,1043,169,1012,148,968,129,855,93,729,64,616,42"/>
+<area shape="rect" id="Node000013" href="$window_8h.html" title="スライディングウィンドウ管理モジュールの内部ヘッダー。" alt="" coords="758,240,894,265"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="588,43,635,64,681,91,721,124,757,161,811,227,807,230,753,165,717,128,678,96,633,69,586,48"/>
+<area shape="rect" id="Node000014" href="$potrContext_8h.html" title="セッションコンテキスト内部定義ヘッダー。" alt="" coords="563,167,675,192"/>
+<area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="600,43,634,63,662,92,667,109,664,127,644,158,640,155,659,125,661,110,657,95,631,67,598,48"/>
+<area shape="rect" id="Node000019" href="$potrHealthThread_8h.html" title="ヘルスチェックスレッド内部ヘッダー。" alt="" coords="515,93,647,119"/>
+<area shape="poly" id="edge38_Node000001_Node000019" title=" " alt="" coords="544,44,567,80,563,83,540,47"/>
+<area shape="rect" id="Node000020" href="$potrLog_8h.html" title="porter 内部ログマクロ定義ヘッダー。" alt="" coords="915,167,1033,192"/>
+<area shape="poly" id="edge40_Node000001_Node000020" title=" " alt="" coords="618,41,702,63,791,91,871,124,939,158,937,163,869,129,789,96,701,68,616,47"/>
+<area shape="rect" id="Node000009" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="897,313,995,339"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="861,190,885,212,908,238,926,269,939,299,934,301,921,272,904,242,881,215,857,194"/>
+<area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="897,339,885,341,622,390,621,385,884,336,896,334"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="769,387,838,412"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="922,341,842,383,839,378,920,336"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="913,387,979,412"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="949,339,949,373,943,373,943,339"/>
+<area shape="poly" id="edge15_Node000012_Node000009" title=" " alt="" coords="1064,268,984,309,982,305,1061,263"/>
+<area shape="poly" id="edge13_Node000012_Node000010" title=" " alt="" coords="1081,267,1052,304,1032,324,1009,341,970,361,928,376,852,395,851,390,927,371,968,356,1006,336,1028,320,1048,300,1077,264"/>
+<area shape="poly" id="edge14_Node000012_Node000011" title=" " alt="" coords="1097,265,1110,300,1111,321,1104,340,1087,355,1059,368,993,390,992,385,1057,363,1084,350,1100,337,1106,320,1105,301,1092,266"/>
+<area shape="poly" id="edge18_Node000013_Node000007" title=" " alt="" coords="758,259,690,265,618,276,556,292,534,303,519,315,513,329,515,344,535,375,530,378,510,346,508,328,515,312,531,298,555,287,617,271,690,260,758,254"/>
+<area shape="poly" id="edge19_Node000013_Node000009" title=" " alt="" coords="848,263,915,304,912,308,846,268"/>
+<area shape="poly" id="edge17_Node000013_Node000011" title=" " alt="" coords="889,263,961,284,991,297,1010,312,1015,330,1009,349,996,366,980,380,976,376,992,362,1005,346,1010,330,1005,315,988,301,959,289,888,268"/>
+<area shape="poly" id="edge37_Node000014_Node000004" title=" " alt="" coords="567,195,369,242,367,237,565,189"/>
+<area shape="poly" id="edge21_Node000014_Node000009" title=" " alt="" coords="638,190,695,230,747,263,817,290,884,310,882,315,815,295,745,268,692,235,635,194"/>
+<area shape="poly" id="edge22_Node000014_Node000013" title=" " alt="" coords="656,190,778,233,777,238,654,195"/>
+<area shape="rect" id="Node000015" href="$compress_8h.html" title="データ圧縮・解凍モジュールの内部ヘッダー。" alt="" coords="529,313,709,339"/>
+<area shape="poly" id="edge23_Node000014_Node000015" title=" " alt="" coords="622,192,622,300,617,300,617,192"/>
+<area shape="rect" id="Node000016" href="$crypto_8h.html" title="データ暗号化・復号モジュールの内部ヘッダー。" alt="" coords="734,313,873,339"/>
+<area shape="poly" id="edge27_Node000014_Node000016" title=" " alt="" coords="632,190,662,225,704,263,767,304,764,309,700,267,659,229,628,194"/>
+<area shape="rect" id="Node000017" href="$potrSendQueue_8h.html" title="非同期送信キューの型定義と操作関数。" alt="" coords="430,240,582,265"/>
+<area shape="poly" id="edge31_Node000014_Node000017" title=" " alt="" coords="601,194,539,235,536,230,598,190"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="276,313,352,339"/>
+<area shape="poly" id="edge36_Node000014_Node000018" title=" " alt="" coords="564,193,493,212,419,242,374,273,338,305,334,301,371,269,417,238,491,207,562,187"/>
+<area shape="poly" id="edge26_Node000015_Node000007" title=" " alt="" coords="610,341,578,378,574,374,606,337"/>
+<area shape="poly" id="edge24_Node000015_Node000010" title=" " alt="" coords="652,336,759,379,757,384,650,341"/>
+<area shape="poly" id="edge25_Node000015_Node000011" title=" " alt="" coords="676,336,900,386,899,392,675,341"/>
+<area shape="poly" id="edge30_Node000016_Node000007" title=" " alt="" coords="761,341,612,385,611,380,759,336"/>
+<area shape="poly" id="edge28_Node000016_Node000010" title=" " alt="" coords="806,339,806,373,801,373,801,339"/>
+<area shape="poly" id="edge29_Node000016_Node000011" title=" " alt="" coords="829,336,910,378,908,383,827,341"/>
+<area shape="poly" id="edge33_Node000017_Node000007" title=" " alt="" coords="478,268,454,281,433,299,421,318,420,327,424,337,437,353,453,365,491,383,489,388,451,370,434,357,420,340,415,328,416,316,429,295,451,277,476,263"/>
+<area shape="poly" id="edge34_Node000017_Node000009" title=" " alt="" coords="583,261,884,311,883,316,582,266"/>
+<area shape="poly" id="edge32_Node000017_Node000010" title=" " alt="" coords="506,266,505,301,509,320,519,337,534,348,558,359,621,375,692,386,755,393,755,398,691,392,620,380,556,364,532,353,515,340,504,322,499,302,501,266"/>
+<area shape="poly" id="edge35_Node000017_Node000018" title=" " alt="" coords="474,268,361,311,359,306,472,263"/>
+<area shape="poly" id="edge39_Node000019_Node000014" title=" " alt="" coords="590,118,608,153,604,155,585,120"/>
+<area shape="poly" id="edge41_Node000020_Node000009" title=" " alt="" coords="974,193,954,300,948,299,969,192"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="open_config_file_read" name="open_config_file_read">
+<area shape="rect" id="Node000001" title=" " alt="" coords="473,55,621,80"/>
+<area shape="rect" id="Node000002" href="$config_8c.html#a7a7aec613b4ed41a5f5070fdd599d89a" title="設定ファイルに登録されているすべてのサービス ID を列挙します。" alt="" coords="271,5,425,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="482,54,399,33,400,28,483,49"/>
+<area shape="rect" id="Node000003" href="$config_8c.html#afd290b0c734dce1335e786e638c67a12" title="設定ファイルから [global] セクションを読み込みます。" alt="" coords="283,55,413,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="460,70,413,70,413,65,460,65"/>
+<area shape="rect" id="Node000006" href="$config_8c.html#a4b72d1221265c0c8c3748a30ac0fd48f" title="設定ファイルから指定サービスの定義を読み込みます。" alt="" coords="279,104,417,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="483,86,400,107,399,101,482,81"/>
+<area shape="rect" id="Node000004" href="$potrOpenService_8c.html#a8ce1599677086e0c54400b696ed28680" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,80,223,105"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="270,81,223,87,223,82,269,75"/>
+<area shape="rect" id="Node000005" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,80,56,105"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="91,95,56,95,56,90,91,90"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="265,109,223,103,223,98,266,103"/>
+</map>

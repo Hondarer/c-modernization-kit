@@ -1,0 +1,834 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/template.css" />
+
+    <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.cookie.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.hoverIntent.minified.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/diversen/pandoc-bootstrap-adaptive-template@959c3622/jquery.sticky-kit.js"></script>
+
+    <style type="text/css">
+        /* TOC のスクロールバーを常にビューポート全高にする。
+           sticky-kit の挙動 (ヘッダ考慮・ページ下部処理) はそのまま維持する。 */
+        @media (min-width: 768px) {
+            #TOC {
+                height: 100vh;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
+    <meta name="generator" content="pandoc" />
+  <title>設定ファイル仕様</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../../../../../html-style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+</head>
+<body>
+
+    
+    <div class="navbar navbar-static-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <span class="doc-title">設定ファイル仕様</span>
+        <ul class="nav pull-right doc-info">
+                              <li><p class="navbar-text">Sat, 14 Mar 2026 08:20:51 +0900</p></li>
+                  </ul>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <div class="toc-navi">
+          <a href="javascript:history.back()">BACK</a>&nbsp;
+          <a href="../../../../../index.html">HOME</a>
+        </div>
+
+                <ul>
+                <li><a href="#概要" id="toc-概要"><span class="toc-section-number">1</span> 概要</a></li>
+                <li><a href="#ファイル形式" id="toc-ファイル形式"><span class="toc-section-number">2</span> ファイル形式</a></li>
+                <li><a href="#global-セクション" id="toc-global-セクション"><span class="toc-section-number">3</span> <span class="math display">\[global\]</span> セクション</a>
+                <ul>
+                <li><a href="#window_size-の影響" id="toc-window_size-の影響"><span class="toc-section-number">3.1</span> window_size の影響</a></li>
+                <li><a href="#max_payload-の影響" id="toc-max_payload-の影響"><span class="toc-section-number">3.2</span> max_payload の影響</a></li>
+                <li><a href="#health_interval_ms-と-health_timeout_ms-の関係" id="toc-health_interval_ms-と-health_timeout_ms-の関係"><span class="toc-section-number">3.3</span> health_interval_ms と health_timeout_ms の関係</a></li>
+                </ul></li>
+                <li><a href="#service.n-セクション" id="toc-service.n-セクション"><span class="toc-section-number">4</span> <span class="math display">\[service.N\]</span> セクション</a>
+                <ul>
+                <li><a href="#全通信種別で共通のフィールド" id="toc-全通信種別で共通のフィールド"><span class="toc-section-number">4.1</span> 全通信種別で共通のフィールド</a></li>
+                <li><a href="#unicast-専用フィールド" id="toc-unicast-専用フィールド"><span class="toc-section-number">4.2</span> unicast 専用フィールド</a></li>
+                <li><a href="#multicast-専用フィールド" id="toc-multicast-専用フィールド"><span class="toc-section-number">4.3</span> multicast 専用フィールド</a></li>
+                <li><a href="#broadcast-専用フィールド" id="toc-broadcast-専用フィールド"><span class="toc-section-number">4.4</span> broadcast 専用フィールド</a></li>
+                <li><a href="#encrypt_key-の詳細" id="toc-encrypt_key-の詳細"><span class="toc-section-number">4.5</span> encrypt_key の詳細</a></li>
+                <li><a href="#dns-解決のポリシー" id="toc-dns-解決のポリシー"><span class="toc-section-number">4.6</span> DNS 解決のポリシー</a></li>
+                </ul></li>
+                <li><a href="#通信種別ごとのソケット動作" id="toc-通信種別ごとのソケット動作"><span class="toc-section-number">5</span> 通信種別ごとのソケット動作</a>
+                <ul>
+                <li><a href="#unicast-11-通信" id="toc-unicast-11-通信"><span class="toc-section-number">5.1</span> unicast (1:1 通信)</a></li>
+                <li><a href="#multicast-1n-通信" id="toc-multicast-1n-通信"><span class="toc-section-number">5.2</span> multicast (1:N 通信)</a></li>
+                <li><a href="#broadcast-1n-通信" id="toc-broadcast-1n-通信"><span class="toc-section-number">5.3</span> broadcast (1:N 通信)</a></li>
+                </ul></li>
+                <li><a href="#送信元フィルタリング" id="toc-送信元フィルタリング"><span class="toc-section-number">6</span> 送信元フィルタリング</a>
+                <ul>
+                <li><a href="#通信の制約" id="toc-通信の制約"><span class="toc-section-number">6.1</span> 1:1 通信の制約</a></li>
+                </ul></li>
+                <li><a href="#マルチパス設定" id="toc-マルチパス設定"><span class="toc-section-number">7</span> マルチパス設定</a></li>
+                <li><a href="#サンプル設定ファイル" id="toc-サンプル設定ファイル"><span class="toc-section-number">8</span> サンプル設定ファイル</a></li>
+                </ul>
+        
+        </div>
+      </div>
+            <div class="span9">
+
+                <H1>設定ファイル仕様</H1>
+      
+      
+      <h1 data-number="1" id="概要"><span class="header-section-number">1</span> 概要</h1>
+<p>porter は INI 形式のテキストファイルでサービスを定義します。<br />
+1 つの設定ファイルに定義できるサービス数に上限はありません (初期バッファ容量は 64 で、超過時は自動拡張されます)。</p>
+<p><code>potrOpenService()</code> 呼び出し時にファイルを読み込み、指定した <code>service_id</code> のエントリを使用します。<br />
+以後はファイルを参照しないため、起動後にファイルを変更しても動作に影響はありません。</p>
+<h1 data-number="2" id="ファイル形式"><span class="header-section-number">2</span> ファイル形式</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">キー </span><span class="ot">=</span><span class="st"> 値</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.サービスID]</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">キー </span><span class="ot">=</span><span class="st"> 値</span></span></code></pre></div>
+<ul>
+<li>セクション名は <code>[global]</code> と <code>[service.数値]</code> の 2 種類です。</li>
+<li>コメントは <code>#</code> または <code>;</code> で始まる行です。</li>
+<li>値前後の空白は無視されます。</li>
+</ul>
+<h1 data-number="3" id="global-セクション"><span class="header-section-number">3</span> <span class="math display">\[global\]</span> セクション</h1>
+<p>すべてのサービスに適用されるグローバル設定です。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>キー</th>
+<th>型</th>
+<th>デフォルト</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>window_size</code></td>
+<td>uint16</td>
+<td>16</td>
+<td>スライディングウィンドウサイズ (2〜256)</td>
+</tr>
+<tr>
+<td><code>max_payload</code></td>
+<td>uint16</td>
+<td>1,400</td>
+<td>DATA パケットのペイロード上限バイト数 (64〜65507)</td>
+</tr>
+<tr>
+<td><code>max_message_size</code></td>
+<td>uint32</td>
+<td>65,535</td>
+<td>1 回の potrSend で送信できる最大メッセージ長 (バイト)。フラグメント化により max_payload を超えるメッセージを送受信できる</td>
+</tr>
+<tr>
+<td><code>send_queue_depth</code></td>
+<td>uint32</td>
+<td>1,024</td>
+<td>非同期送信キューの最大エントリ数。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する</td>
+</tr>
+<tr>
+<td><code>health_interval_ms</code></td>
+<td>uint32</td>
+<td>0</td>
+<td>PING 送信間隔 (ミリ秒) 。0 でヘルスチェック送信を無効化</td>
+</tr>
+<tr>
+<td><code>health_timeout_ms</code></td>
+<td>uint32</td>
+<td>0</td>
+<td>タイムアウト閾値 (ミリ秒) 。0 でタイムアウト検知を無効化</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.1" id="window_size-の影響"><span class="header-section-number">3.1</span> window_size の影響</h2>
+<p>ウィンドウサイズは再送可能な過去パケット数の上限です。<br />
+送信側ウィンドウが満杯になると最古エントリが evict (削除) されます。<br />
+evict 済みの通番を受信者が NACK で要求した場合、REJECT を返します。</p>
+<p>通信の安定性を高めるには、往復遅延時間と送信レートに応じてウィンドウサイズを調整してください。</p>
+<h2 data-number="3.2" id="max_payload-の影響"><span class="header-section-number">3.2</span> max_payload の影響</h2>
+<p>ペイロードエレメント 1 個分のデータサイズ上限です。<br />
+<code>potrSend()</code> で送信するデータがこのサイズを超える場合、複数のフラグメントに分割されます。</p>
+<h2 data-number="3.3" id="health_interval_ms-と-health_timeout_ms-の関係"><span class="header-section-number">3.3</span> health_interval_ms と health_timeout_ms の関係</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>設定</th>
+<th>効果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>health_interval_ms = 0</code></td>
+<td>送信者が PING を送信しない。受信者はデータパケットが届いたときのみ最終受信時刻を更新する</td>
+</tr>
+<tr>
+<td><code>health_timeout_ms = 0</code></td>
+<td>受信者がタイムアウト監視を行わない。DISCONNECTED は FIN / REJECT 受信時のみ発火する</td>
+</tr>
+<tr>
+<td>両方 0</td>
+<td>ヘルスチェック機能が完全に無効。CONNECTED / DISCONNECTED は FIN / REJECT のみで発火する</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="4" id="service.n-セクション"><span class="header-section-number">4</span> <span class="math display">\[service.N\]</span> セクション</h1>
+<p><code>N</code> には整数のサービス ID を指定します。</p>
+<h2 data-number="4.1" id="全通信種別で共通のフィールド"><span class="header-section-number">4.1</span> 全通信種別で共通のフィールド</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>キー</th>
+<th>型</th>
+<th>必須</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>文字列</td>
+<td>必須</td>
+<td><code>unicast</code> / <code>multicast</code> / <code>broadcast</code></td>
+</tr>
+<tr>
+<td><code>dst_port</code></td>
+<td>uint16</td>
+<td>必須</td>
+<td>宛先ポート番号 (サービスの識別子)</td>
+</tr>
+<tr>
+<td><code>src_addr</code></td>
+<td>文字列</td>
+<td>必須</td>
+<td>送信者: 送信元 bind アドレス。受信者: 送信元 IP フィルタ</td>
+</tr>
+<tr>
+<td><code>src_port</code></td>
+<td>uint16</td>
+<td>省略可</td>
+<td>送信者の送信元 bind ポート (0 = OS が自動選定)</td>
+</tr>
+<tr>
+<td><code>pack_wait_ms</code></td>
+<td>uint32</td>
+<td>省略可</td>
+<td>パッキング待機時間 (ミリ秒)。0 で即時送信</td>
+</tr>
+<tr>
+<td><code>encrypt_key</code></td>
+<td>文字列</td>
+<td>省略可</td>
+<td>AES-256-GCM 事前共有鍵。以下の2形式を受け付ける:<br><strong>① hex 鍵</strong>: 256 ビット (32 バイト) を 64 文字の 16 進数文字列で指定<br><strong>② パスフレーズ</strong>: 上記以外の任意の文字列を指定すると SHA-256 で 32 バイト鍵に変換する。省略時は暗号化なし</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.2" id="unicast-専用フィールド"><span class="header-section-number">4.2</span> unicast 専用フィールド</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>キー</th>
+<th>型</th>
+<th>必須</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dst_addr</code></td>
+<td>文字列</td>
+<td>必須</td>
+<td>送信者: 送信先アドレス。受信者: bind アドレス</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.3" id="multicast-専用フィールド"><span class="header-section-number">4.3</span> multicast 専用フィールド</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>キー</th>
+<th>型</th>
+<th>必須</th>
+<th>デフォルト</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>multicast_group</code></td>
+<td>文字列</td>
+<td>必須</td>
+<td>—</td>
+<td>マルチキャストグループ IP アドレス (例: <code>224.0.0.1</code>)</td>
+</tr>
+<tr>
+<td><code>ttl</code></td>
+<td>uint8</td>
+<td>省略可</td>
+<td>1</td>
+<td>マルチキャスト TTL</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.4" id="broadcast-専用フィールド"><span class="header-section-number">4.4</span> broadcast 専用フィールド</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>キー</th>
+<th>型</th>
+<th>必須</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>broadcast_addr</code></td>
+<td>文字列</td>
+<td>必須</td>
+<td>送信者: 送信先ブロードキャストアドレス (例: <code>192.168.1.255</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="4.5" id="encrypt_key-の詳細"><span class="header-section-number">4.5</span> encrypt_key の詳細</h2>
+<p><code>encrypt_key</code> を設定すると AES-256-GCM によるペイロード暗号化が有効になります。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>形式① hex 鍵</strong></td>
+<td>256 ビット鍵を 16 進数文字列 (64 文字、英数字) で記述する</td>
+</tr>
+<tr>
+<td><strong>形式② パスフレーズ</strong></td>
+<td>64 文字 hex 以外の任意の文字列。SHA-256 ハッシュで 32 バイト鍵を自動導出する</td>
+</tr>
+<tr>
+<td>暗号化範囲</td>
+<td>外側パケットの <strong>ペイロード部分のみ</strong> を暗号化する。ヘッダー 32 バイトは平文</td>
+</tr>
+<tr>
+<td>AAD</td>
+<td>ヘッダー 32 バイトを追加認証データ (AAD) として使用するため、ヘッダー改ざんも検知する</td>
+</tr>
+<tr>
+<td>認証タグ</td>
+<td>16 バイトの GCM 認証タグをペイロード末尾に付与する</td>
+</tr>
+<tr>
+<td>ペイロード削減</td>
+<td>認証タグ 16 バイト分、実効ペイロードが <code>max_payload - 16</code> バイトに減少する</td>
+</tr>
+<tr>
+<td>双方一致</td>
+<td>送信者・受信者ともに同一の <code>encrypt_key</code> を設定すること</td>
+</tr>
+<tr>
+<td>マルチキャスト</td>
+<td>受信者全員が同一の <code>encrypt_key</code> を持っていれば動作する</td>
+</tr>
+</tbody>
+</table>
+<p><code>src_addr</code>・<code>dst_addr</code> には以下のいずれかを指定できます。</p>
+<ul>
+<li><strong>IPv4 アドレス</strong> (例: <code>192.168.1.10</code>)</li>
+<li><strong>DNS で解決できるホスト名</strong> (例: <code>receiver.local</code>)</li>
+</ul>
+<h2 data-number="4.6" id="dns-解決のポリシー"><span class="header-section-number">4.6</span> DNS 解決のポリシー</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>項目</th>
+<th>仕様</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>解決タイミング</td>
+<td><code>potrOpenService()</code> 呼び出し時に 1 回のみ解決する</td>
+</tr>
+<tr>
+<td>再解決</td>
+<td>プロセス生存中は再解決しない。DNS 更新後に接続できなくなった場合はプロセスを再起動する</td>
+</tr>
+<tr>
+<td>複数アドレス返却時</td>
+<td>仕様上未定義。実装上は先頭アドレスを採用する</td>
+</tr>
+<tr>
+<td>IPv6</td>
+<td>非対応</td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="5" id="通信種別ごとのソケット動作"><span class="header-section-number">5</span> 通信種別ごとのソケット動作</h1>
+<h2 data-number="5.1" id="unicast-11-通信"><span class="header-section-number">5.1</span> unicast (1:1 通信)</h2>
+<figure>
+<img src="puml_d9598a8a24b8803c37aa3708c1b96f7b29865dfb.svg" alt="plantuml" />
+</figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>送信者</th>
+<th>受信者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bind アドレス</td>
+<td><code>src_addr</code></td>
+<td><code>dst_addr</code></td>
+</tr>
+<tr>
+<td>bind ポート</td>
+<td><code>src_port</code> (0 = OS 自動)</td>
+<td><code>dst_port</code></td>
+</tr>
+<tr>
+<td>送信先</td>
+<td><code>dst_addr:dst_port</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>送信元フィルタ</td>
+<td>—</td>
+<td><code>src_addr</code></td>
+</tr>
+</tbody>
+</table>
+<p>受信者は <code>dst_addr</code> でソケットを bind するため、<code>dst_addr</code> は当該ホストの NIC に割り当てられているアドレスでなければなりません。</p>
+<h2 data-number="5.2" id="multicast-1n-通信"><span class="header-section-number">5.2</span> multicast (1:N 通信)</h2>
+<figure>
+<img src="puml_1c6c1b33a5a21531bc89ddc1c114b7fc31fdffd3.svg" alt="plantuml" />
+</figure>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th></th>
+<th>送信者</th>
+<th>受信者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bind アドレス</td>
+<td><code>INADDR_ANY</code></td>
+<td><code>INADDR_ANY</code></td>
+</tr>
+<tr>
+<td>bind ポート</td>
+<td><code>src_port</code> (0 = OS 自動)</td>
+<td><code>dst_port</code></td>
+</tr>
+<tr>
+<td>マルチキャスト設定</td>
+<td><code>IP_MULTICAST_IF = src_addr</code></td>
+<td>グループ参加: <code>src_addr</code> (NIC 指定)</td>
+</tr>
+<tr>
+<td>送信先</td>
+<td><code>multicast_group:dst_port</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>送信元フィルタ</td>
+<td>—</td>
+<td><code>src_addr</code></td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="5.3" id="broadcast-1n-通信"><span class="header-section-number">5.3</span> broadcast (1:N 通信)</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>送信者</th>
+<th>受信者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bind アドレス</td>
+<td><code>src_addr</code></td>
+<td><code>INADDR_ANY</code></td>
+</tr>
+<tr>
+<td>bind ポート</td>
+<td><code>src_port</code> (0 = OS 自動)</td>
+<td><code>dst_port</code></td>
+</tr>
+<tr>
+<td>ソケットオプション</td>
+<td><code>SO_BROADCAST</code> 有効</td>
+<td><code>SO_BROADCAST</code> 有効</td>
+</tr>
+<tr>
+<td>送信先</td>
+<td><code>broadcast_addr:dst_port</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>送信元フィルタ</td>
+<td>—</td>
+<td><code>src_addr</code></td>
+</tr>
+</tbody>
+</table>
+<h1 data-number="6" id="送信元フィルタリング"><span class="header-section-number">6</span> 送信元フィルタリング</h1>
+<p>受信スレッドは受信パケットの送信元 IP アドレスを <code>src_addr</code> と照合します。<br />
+一致しないパケットはアプリケーション層で破棄します (ソケットの bind アドレスは変更しません) 。</p>
+<h2 data-number="6.1" id="通信の制約"><span class="header-section-number">6.1</span> 1:1 通信の制約</h2>
+<p>1:1 通信サービスで <code>potrSend()</code> を発行するプロセスは 1 つでなければなりません。<br />
+同一 IP アドレス上の複数プロセスが同じサービスの送信者となることは現行仕様では対象外です。</p>
+<h1 data-number="7" id="マルチパス設定"><span class="header-section-number">7</span> マルチパス設定</h1>
+<p>最大 4 経路を並列に設定できます。<br />
+各経路は独立した UDP ソケットを持ちます。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.1001]</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">type     </span><span class="ot">=</span><span class="st"> unicast</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">; 経路 0</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr </span><span class="ot">=</span><span class="st"> 192.168.1.20</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_addr </span><span class="ot">=</span><span class="st"> 192.168.1.10</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port </span><span class="ot">=</span><span class="st"> </span><span class="dv">5001</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">; 経路 1</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr.1 </span><span class="ot">=</span><span class="st"> 10.0.0.20</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_addr.1 </span><span class="ot">=</span><span class="st"> 10.0.0.10</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">; 経路 2</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr.2 </span><span class="ot">=</span><span class="st"> 172.16.0.20</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_addr.2 </span><span class="ot">=</span><span class="st"> 172.16.0.10</span></span></code></pre></div>
+<p>マルチパスを使用すると、DATA・PING・再送パケットがすべての経路へ同時送信されます。</p>
+<h1 data-number="8" id="サンプル設定ファイル"><span class="header-section-number">8</span> サンプル設定ファイル</h1>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">window_size        </span><span class="ot">=</span><span class="st"> </span><span class="dv">16</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">max_payload        </span><span class="ot">=</span><span class="st"> </span><span class="dv">1400</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">health_interval_ms </span><span class="ot">=</span><span class="st"> </span><span class="dv">3000</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="dt">health_timeout_ms  </span><span class="ot">=</span><span class="st"> </span><span class="dv">10000</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">; ---- ユニキャスト ----</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.1001]</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="dt">type     </span><span class="ot">=</span><span class="st"> unicast</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr </span><span class="ot">=</span><span class="st"> 192.168.1.20</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_addr </span><span class="ot">=</span><span class="st"> 192.168.1.10</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port </span><span class="ot">=</span><span class="st"> </span><span class="dv">5001</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">; ホスト名でも指定可能</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.1002]</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="dt">type     </span><span class="ot">=</span><span class="st"> unicast</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr </span><span class="ot">=</span><span class="st"> sender.local</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_addr </span><span class="ot">=</span><span class="st"> receiver.local</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port </span><span class="ot">=</span><span class="st"> </span><span class="dv">5002</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">; ---- マルチキャスト ----</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.2001]</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="dt">type            </span><span class="ot">=</span><span class="st"> multicast</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr        </span><span class="ot">=</span><span class="st"> 192.168.1.20</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port        </span><span class="ot">=</span><span class="st"> </span><span class="dv">6001</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="dt">multicast_group </span><span class="ot">=</span><span class="st"> 224.0.0.1</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="dt">ttl             </span><span class="ot">=</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">; ---- ブロードキャスト ----</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.3001]</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="dt">type           </span><span class="ot">=</span><span class="st"> broadcast</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr       </span><span class="ot">=</span><span class="st"> 192.168.1.20</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port       </span><span class="ot">=</span><span class="st"> </span><span class="dv">7001</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="dt">broadcast_addr </span><span class="ot">=</span><span class="st"> 192.168.1.255</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="co">; ---- AES-256-GCM 暗号化 (encrypt_key に 64 文字の16進数文字列を指定) ----</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="kw">[service.1010]</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="dt">type        </span><span class="ot">=</span><span class="st"> unicast</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="dt">src_addr    </span><span class="ot">=</span><span class="st"> 192.168.1.20</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_addr    </span><span class="ot">=</span><span class="st"> 192.168.1.10</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="dt">dst_port    </span><span class="ot">=</span><span class="st"> </span><span class="dv">5010</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="dt">encrypt_key </span><span class="ot">=</span><span class="st"> 0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f0a1b2c3d4e5f6a7b8c9d0e1f2a3b</span></span></code></pre></div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+  <!-- ============================================================
+       展開可能リスト (collapsible-list) 変換スクリプト
+
+       このスクリプトは .collapsible-list クラスを持つ要素内の
+       ネストされたリストを <details>/<summary> 構造に変換します。
+
+       - 対象: .collapsible-list 内の子要素 (<ul>/<ol>) を持つ <li>
+       - 動作: デフォルトで折りたたみ、クリックで展開
+       - 通常のリストには影響しません
+       - ブラウザの「戻る」で状態を復元します (sessionStorage)
+
+       詳細は docs-src/collapsible-list.md を参照してください。
+       ============================================================ -->
+  <script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      // .collapsible-list 内のすべての li 要素を処理
+      var containers = document.querySelectorAll('.collapsible-list');
+      containers.forEach(function(container) {
+        var listItems = container.querySelectorAll('li');
+        listItems.forEach(function(li) {
+          // 子要素として ul または ol を持つかチェック
+          var childList = li.querySelector(':scope > ul, :scope > ol');
+          if (!childList) return;
+
+          // 既に details でラップされている場合はスキップ
+          if (li.querySelector(':scope > details')) return;
+
+          // li の直接のテキストコンテンツと要素を取得
+          var summaryContent = [];
+          var nodesToMove = [];
+
+          // 子ノードを走査
+          Array.from(li.childNodes).forEach(function(node) {
+            if (node === childList) return;
+            if (node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                 node.tagName !== 'UL' && node.tagName !== 'OL')) {
+              summaryContent.push(node.cloneNode(true));
+              nodesToMove.push(node);
+            }
+          });
+
+          // details/summary 構造を作成
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+
+          // summary にコンテンツを追加
+          summaryContent.forEach(function(node) {
+            summary.appendChild(node);
+          });
+
+          // 元のノードを削除
+          nodesToMove.forEach(function(node) {
+            li.removeChild(node);
+          });
+
+          // details 構造を組み立て
+          details.appendChild(summary);
+
+          // 子リストを details に移動
+          li.removeChild(childList);
+          details.appendChild(childList);
+
+          // li に details を挿入
+          li.insertBefore(details, li.firstChild);
+        });
+      });
+
+      // ============================================================
+      // 折りたたみ状態の保存・復元
+      //
+      // sessionStorage を使用して、ブラウザの「戻る」操作時に
+      // 折りたたみ状態を復元します。
+      // 初回表示時は全て折りたたみ (デフォルト)、
+      // 「戻る」操作時のみ以前の状態を復元します。
+      // ============================================================
+
+      var storageKey = 'collapsible-state:' + window.location.pathname;
+      var allDetails = document.querySelectorAll('.collapsible-list details');
+
+      if (allDetails.length === 0) return;
+
+      // ナビゲーション種別の判定: back_forward のみ状態を復元
+      var isBackForward = false;
+      try {
+        var navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          isBackForward = navEntries[0].type === 'back_forward';
+        } else if (performance.navigation) {
+          // フォールバック (非推奨 API)
+          isBackForward = performance.navigation.type === 2;
+        }
+      } catch (e) {
+        // performance API が利用できない場合は復元しない
+      }
+
+      // 「戻る」操作時のみ状態を復元
+      if (isBackForward) {
+        try {
+          var savedState = sessionStorage.getItem(storageKey);
+          if (savedState) {
+            var state = JSON.parse(savedState);
+            allDetails.forEach(function(details, index) {
+              if (state[index]) {
+                details.open = true;
+              }
+            });
+          }
+        } catch (e) {
+          // sessionStorage の読み込みエラーは無視
+        }
+      }
+
+      // 状態変更時に sessionStorage へ保存
+      function saveState() {
+        try {
+          var state = {};
+          allDetails.forEach(function(details, index) {
+            if (details.open) {
+              state[index] = true;
+            }
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (e) {
+          // sessionStorage の書き込みエラーは無視
+        }
+      }
+
+      allDetails.forEach(function(details) {
+        details.addEventListener('toggle', saveState);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

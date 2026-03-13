@@ -1,0 +1,17 @@
+<map id="porter/libsrc/porter/infra/compress/compress_linux.c" name="porter/libsrc/porter/infra/compress/compress_linux.c">
+<area shape="rect" id="Node000001" title="Linux 向け圧縮・解凍モジュール (zlib)。" alt="" coords="95,5,269,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,71,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,62,72,103,69,99,136,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="95,108,178,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,61,152,97,147,95,166,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="202,108,255,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,59,218,95,213,97,194,61"/>
+<area shape="rect" id="Node000005" href="$compress_8h.html" title="データ圧縮・解凍モジュールの内部ヘッダー。" alt="" coords="279,108,370,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="228,58,293,98,291,103,225,62"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="198,181,267,207"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="310,136,262,174,258,170,307,131"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="292,181,357,207"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="327,133,327,167,322,167,322,133"/>
+<area shape="rect" id="Node000008" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="381,181,487,207"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="345,131,405,171,402,176,342,136"/>
+</map>

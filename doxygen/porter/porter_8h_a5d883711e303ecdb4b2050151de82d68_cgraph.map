@@ -1,0 +1,9 @@
+<map id="potrSend" name="potrSend">
+<area shape="rect" id="Node000001" title="メッセージを送信します。" alt="" coords="5,55,80,80"/>
+<area shape="rect" id="Node000002" href="$compress__linux_8c.html#ae3eac2a4f0aae5db6c833f63dbaae78b" title="データを圧縮します。" alt="" coords="167,5,275,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,53,127,39,157,32,158,37,129,45,81,58"/>
+<area shape="rect" id="Node000003" href="$potrSendQueue_8c.html#a79cf500ec000bd504ec76b9b2085812d" title=" " alt="" coords="128,55,315,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="80,65,115,65,115,70,80,70"/>
+<area shape="rect" id="Node000004" href="$potrSendQueue_8c.html#afff20ee110f71f775687505b8dda79f2" title=" " alt="" coords="146,105,297,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="81,77,147,98,145,103,79,82"/>
+</map>

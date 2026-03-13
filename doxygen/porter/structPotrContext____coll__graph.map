@@ -1,0 +1,17 @@
+<map id="PotrContext_" name="PotrContext_">
+<area shape="rect" id="Node000001" title="セッションコンテキスト構造体。PotrHandle の実体。" alt="" coords="295,717,442,983"/>
+<area shape="rect" id="Node000002" href="$structPotrServiceDef.html" title="サービス定義。" alt="" coords="5,301,127,627"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,608,140,625,173,668,210,708,284,779,281,783,206,712,169,671,136,628,125,611"/>
+<area shape="rect" id="Node000003" href="$structPotrGlobalConfig.html" title="グローバル設定。" alt="" coords="151,381,293,547"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="256,546,315,701,310,703,251,548"/>
+<area shape="rect" id="Node000004" href="$structPotrWindow.html" title="スライディングウィンドウ管理構造体。" alt="" coords="317,371,420,557"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="371,557,371,701,366,701,366,557"/>
+<area shape="rect" id="Node000005" href="$structPotrPacket.html" title="ネットワーク送受信用パケット構造体。" alt="" coords="307,5,431,231"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="371,231,371,355,366,355,366,231"/>
+<area shape="rect" id="Node000006" href="$structPotrNackDedupEntry.html" title="NACK 重複抑制バッファの 1 エントリ。" alt="" coords="445,411,581,517"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="510,517,497,602,485,649,470,694,452,732,448,729,465,692,480,647,491,601,505,517"/>
+<area shape="rect" id="Node000007" href="$structPotrSendQueue.html" title="非同期送信キュー。" alt="" coords="605,341,711,587"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="646,588,629,643,602,695,571,731,534,763,496,790,458,812,455,808,493,786,531,759,567,728,597,692,624,641,641,586"/>
+<area shape="rect" id="Node000008" href="$structPotrPayloadElem.html" title="送信キューの 1 エントリ。ペイロードエレメント 1 個分のデータを保持する。" alt="" coords="601,55,715,181"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="661,181,661,325,655,325,655,181"/>
+</map>

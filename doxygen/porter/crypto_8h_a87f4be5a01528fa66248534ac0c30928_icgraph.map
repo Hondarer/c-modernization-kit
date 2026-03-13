@@ -1,0 +1,11 @@
+<map id="potr_decrypt" name="potr_decrypt">
+<area shape="rect" id="Node000001" title="AES&#45;256&#45;GCM でデータを復号し、認証タグを検証します。" alt="" coords="656,5,751,31"/>
+<area shape="rect" id="Node000002" href="$potrRecvThread_8c.html#a300c2d6c99e3491d0ee4c7cb4de36146" title=" " alt="" coords="485,5,608,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="643,21,608,21,608,15,643,15"/>
+<area shape="rect" id="Node000003" href="$potrRecvThread_8c.html#a1006d5ccaf47db6c24908eb7ae366505" title="受信スレッドを起動します。" alt="" coords="271,5,437,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="472,21,437,21,437,15,472,15"/>
+<area shape="rect" id="Node000004" href="$potrOpenService_8c.html#a8ce1599677086e0c54400b696ed28680" title="設定ファイルから指定サービスを開きます。" alt="" coords="104,5,223,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="257,21,223,21,223,15,257,15"/>
+<area shape="rect" id="Node000005" href="$recv_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="メインエントリーポイント。" alt="" coords="5,5,56,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="91,21,56,21,56,15,91,15"/>
+</map>

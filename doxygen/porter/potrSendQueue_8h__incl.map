@@ -1,0 +1,15 @@
+<map id="porter/libsrc/porter/infra/potrSendQueue.h" name="porter/libsrc/porter/infra/potrSendQueue.h">
+<area shape="rect" id="Node000001" title="非同期送信キューの型定義と操作関数。" alt="" coords="97,5,253,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,167,75,192"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,48,101,68,73,95,57,124,47,154,42,152,52,122,69,92,97,64,129,43"/>
+<area shape="rect" id="Node000003" href="$porter__const_8h.html" title="通信ライブラリの定数ファイル。" alt="" coords="189,167,294,192"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,44,233,153,228,155,181,47"/>
+<area shape="rect" id="Node000004" href="$porter__type_8h.html" title="通信ライブラリの型定義ファイル。" alt="" coords="83,93,181,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="166,47,147,83,143,80,162,44"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="257,93,333,119"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="206,43,266,84,263,88,203,48"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="118,121,69,160,66,156,114,117"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="153,117,212,157,209,161,150,121"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="99,167,165,192"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="135,119,135,153,129,153,129,119"/>
+</map>
