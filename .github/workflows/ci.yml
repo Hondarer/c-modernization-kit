@@ -60,14 +60,14 @@ jobs:
           make test 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
 
       - name: Upload test results artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-test-results
           path: test/**/results/
           if-no-files-found: warn
 
       - name: Upload build and test logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-logs
           path: logs/
@@ -134,14 +134,14 @@ jobs:
         shell: pwsh
 
       - name: Upload test results artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-test-results
           path: test/**/results/
           if-no-files-found: warn
 
       - name: Upload build and test logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-logs
           path: logs/
@@ -194,70 +194,70 @@ jobs:
           done
 
       - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: documentation
           path: docs/
           if-no-files-found: warn
 
       - name: Upload html artifacts (doxygen)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-doxygen-${{ github.sha }}
           path: docs/doxygen/
           if-no-files-found: warn
 
       - name: Upload html artifacts (ja)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-ja-${{ github.sha }}
           path: docs/ja/html/
           if-no-files-found: warn
 
       - name: Upload html artifacts (en)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-en-${{ github.sha }}
           path: docs/en/html/
           if-no-files-found: warn
 
       - name: Upload html artifacts (ja-details)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-ja-details-${{ github.sha }}
           path: docs/ja-details/html/
           if-no-files-found: warn
 
       - name: Upload html artifacts (en-details)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-en-details-${{ github.sha }}
           path: docs/en-details/html/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (ja)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-ja-${{ github.sha }}
           path: docs/ja/docx/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (en)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-en-${{ github.sha }}
           path: docs/en/docx/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (ja-details)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-ja-details-${{ github.sha }}
           path: docs/ja-details/docx/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (en-details)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-en-details-${{ github.sha }}
           path: docs/en-details/docx/
