@@ -52,6 +52,7 @@
 #include "../protocol/packet.h"
 #include "../protocol/window.h"
 #include "../infra/potrLog.h"
+#include "../infra/crypto/crypto.h"
 
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t get_ms(void)
@@ -116,21 +117,82 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         return;
     }
 
-    window_send_push(&ctx->send_window, &outer_pkt);
+    if (ctx->service.encrypt_enabled)
+    {
+        /* 暗号化パス:
+         *   1. ENCRYPTED フラグを OR (outer_pkt.flags は既に NBO)
+         *   2. payload_len を packed_len + TAG_SIZE に更新
+         *   3. nonce = session_id(NBO,4B) + seq_num(NBO,4B) + 0x00*4
+         *   4. AAD  = outer_pkt ヘッダー 32B (NBO)
+         *   5. packed_buf → ctx->crypto_buf に暗号化
+         *   6. window_send_push には暗号化済みペイロードを登録
+         *   7. send_wire_buf に暗号化済みデータを組立て
+         */
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_len = ctx->crypto_buf_size;
+
+        outer_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        outer_pkt.payload_len = htons((uint16_t)(packed_len + POTR_CRYPTO_TAG_SIZE));
+
+        /* ノンス: session_id と seq_num は outer_pkt では NBO */
+        memcpy(nonce,     &outer_pkt.session_id, 4);
+        memcpy(nonce + 4, &outer_pkt.seq_num,    4);
+        memset(nonce + 8, 0,                     4);
+
+        if (potr_encrypt(ctx->crypto_buf, &enc_len,
+                         packed_buf, packed_len,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         (const uint8_t *)&outer_pkt, PACKET_HEADER_SIZE) != 0)
+        {
+#ifdef _WIN32
+            LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+            pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+            POTR_LOG(POTR_LOG_ERROR,
+                     "sender[service_id=%d]: encrypt failed seq=%u",
+                     ctx->service.service_id, (unsigned)seq);
+            return;
+        }
+
+        /* window には暗号化済みペイロードを格納して NACK 再送時に再暗号化不要にする */
+        outer_pkt.payload = ctx->crypto_buf;
+        window_send_push(&ctx->send_window, &outer_pkt);
 
 #ifdef _WIN32
-    LeaveCriticalSection(&ctx->send_window_mutex);
+        LeaveCriticalSection(&ctx->send_window_mutex);
 #else
-    pthread_mutex_unlock(&ctx->send_window_mutex);
+        pthread_mutex_unlock(&ctx->send_window_mutex);
 #endif
 
-    /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードは既に直後に配置済み) */
-    memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
-    wire_len = PACKET_HEADER_SIZE + packed_len;
+        /* wire 組立: NBO ヘッダー + 暗号文 + タグ */
+        memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
+        memcpy(ctx->send_wire_buf + PACKET_HEADER_SIZE, ctx->crypto_buf, enc_len);
+        wire_len = PACKET_HEADER_SIZE + enc_len;
 
-    POTR_LOG(POTR_LOG_TRACE,
-             "sender[service_id=%d]: DATA seq=%u packed_len=%zu",
-             ctx->service.service_id, (unsigned)seq, packed_len);
+        POTR_LOG(POTR_LOG_TRACE,
+                 "sender[service_id=%d]: DATA(enc) seq=%u packed_len=%zu enc_len=%zu",
+                 ctx->service.service_id, (unsigned)seq, packed_len, enc_len);
+    }
+    else
+    {
+        window_send_push(&ctx->send_window, &outer_pkt);
+
+#ifdef _WIN32
+        LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+        pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+
+        /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードは既に直後に配置済み) */
+        memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
+        wire_len = PACKET_HEADER_SIZE + packed_len;
+
+        POTR_LOG(POTR_LOG_TRACE,
+                 "sender[service_id=%d]: DATA seq=%u packed_len=%zu",
+                 ctx->service.service_id, (unsigned)seq, packed_len);
+    }
 
     {
         int i;
@@ -231,7 +293,9 @@ static void *send_thread_func(void *arg)
 
                         elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
 
-                        if (packed_len + elem_size > (size_t)ctx->global.max_payload)
+                        if (packed_len + elem_size > (size_t)ctx->global.max_payload
+                                                     - (ctx->service.encrypt_enabled
+                                                        ? POTR_CRYPTO_TAG_SIZE : 0U))
                         {
                             break; /* 容量満杯: 即時送信してタイマーリセット */
                         }
@@ -262,7 +326,9 @@ static void *send_thread_func(void *arg)
 
                         elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
 
-                        if (packed_len + elem_size > (size_t)ctx->global.max_payload)
+                        if (packed_len + elem_size > (size_t)ctx->global.max_payload
+                                                     - (ctx->service.encrypt_enabled
+                                                        ? POTR_CRYPTO_TAG_SIZE : 0U))
                         {
                             break;
                         }

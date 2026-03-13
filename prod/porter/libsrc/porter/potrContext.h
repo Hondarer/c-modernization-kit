@@ -21,6 +21,7 @@
 
 #include "protocol/window.h"
 #include "infra/compress/compress.h"
+#include "infra/crypto/crypto.h"
 #include "infra/potrSendQueue.h"
 
 #ifdef _WIN32
@@ -111,6 +112,8 @@ struct PotrContext_
     uint8_t         *frag_buf;          /**< フラグメント結合バッファ (動的確保。max_message_size バイト)。 */
     uint8_t         *compress_buf;      /**< 圧縮・解凍用一時バッファ (動的確保)。 */
     size_t           compress_buf_size; /**< compress_buf のサイズ (バイト)。 */
+    uint8_t         *crypto_buf;        /**< 暗号化・復号用一時バッファ (動的確保)。 */
+    size_t           crypto_buf_size;   /**< crypto_buf のサイズ (バイト)。 */
     uint8_t         *recv_buf;          /**< 受信バッファ / 再送 wire 組立バッファ (動的確保。PACKET_HEADER_SIZE + max_payload バイト)。 */
     uint8_t         *send_wire_buf;     /**< 送信 wire 組立バッファ (動的確保。PACKET_HEADER_SIZE + max_payload バイト)。送信スレッドのみ使用。 */
 

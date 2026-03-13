@@ -19,6 +19,7 @@
 #include <porter_const.h>
 #include <porter_type.h>
 
+#include "../infra/crypto/crypto.h"
 #include "../infra/potrLog.h"
 #include "config.h"
 
@@ -337,6 +338,80 @@ static void apply_service_kv(const char *key, const char *val,
     else if (strcmp(key, "pack_wait_ms") == 0)
     {
         current->pack_wait_ms = (uint32_t)atoi(val);
+    }
+    else if (strcmp(key, "encrypt_key") == 0)
+    {
+        size_t hex_len = strlen(val);
+        int    i;
+        int    is_hex  = 1;
+
+        /* 64 文字かつ全桁 hex 文字かを検査する */
+        if (hex_len == POTR_CRYPTO_KEY_SIZE * 2U)
+        {
+            for (i = 0; i < (int)(POTR_CRYPTO_KEY_SIZE * 2U); i++)
+            {
+                if (!isxdigit((unsigned char)val[i]))
+                {
+                    is_hex = 0;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            is_hex = 0;
+        }
+
+        if (is_hex)
+        {
+            /* 64 文字 hex 文字列 → 32 バイトバイナリキーに変換 */
+            for (i = 0; i < (int)POTR_CRYPTO_KEY_SIZE; i++)
+            {
+                char          byte_str[3];
+                char         *endp;
+                unsigned long byte_val;
+
+                byte_str[0] = val[i * 2];
+                byte_str[1] = val[i * 2 + 1];
+                byte_str[2] = '\0';
+
+                byte_val = strtoul(byte_str, &endp, 16);
+                current->encrypt_key[i] = (uint8_t)byte_val;
+            }
+            current->encrypt_enabled = 1;
+            POTR_LOG(POTR_LOG_INFO,
+                     "config: encrypt_key loaded as hex key (service_id=%d)",
+                     current->service_id);
+        }
+        else if (hex_len > 0)
+        {
+            /* パスフレーズ → SHA-256 で 32 バイトキーを導出する */
+            if (potr_passphrase_to_key(current->encrypt_key,
+                                       (const uint8_t *)val, hex_len) == 0)
+            {
+                current->encrypt_enabled = 1;
+                POTR_LOG(POTR_LOG_INFO,
+                         "config: encrypt_key treated as passphrase (SHA-256, service_id=%d)",
+                         current->service_id);
+            }
+            else
+            {
+                memset(current->encrypt_key, 0, sizeof(current->encrypt_key));
+                current->encrypt_enabled = 0;
+                POTR_LOG(POTR_LOG_WARN,
+                         "config: encrypt_key passphrase hashing failed (service_id=%d)",
+                         current->service_id);
+            }
+        }
+        else
+        {
+            /* 空文字列は無効 */
+            memset(current->encrypt_key, 0, sizeof(current->encrypt_key));
+            current->encrypt_enabled = 0;
+            POTR_LOG(POTR_LOG_WARN,
+                     "config: encrypt_key is empty, ignored (service_id=%d)",
+                     current->service_id);
+        }
     }
 }
 

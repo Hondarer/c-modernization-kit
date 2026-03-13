@@ -42,6 +42,11 @@
 #define POTR_FLAG_PING       0x0004U /**< ヘルスチェック要求パケットであることを示すフラグ。ペイロードなし。 */
 #define POTR_FLAG_REJECT     0x0008U /**< 再送不能通知パケットであることを示すフラグ。ack_num に再送不能な通番を格納する。 */
 #define POTR_FLAG_FIN        0x0010U /**< 正常終了通知パケットであることを示すフラグ。送信者が potrCloseService 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。 */
+#define POTR_FLAG_ENCRYPTED  0x0020U /**< ペイロードが AES-256-GCM で暗号化されていることを示す外側パケットフラグ。\n
+                                       *   POTR_FLAG_DATA と組み合わせて使用する。\n
+                                       *   [PotrPacket ヘッダー 32B: 平文] [暗号文: packed_len B] [GCM 認証タグ: 16B] の順で格納する。\n
+                                       *   ヘッダー全体 (32B) が AAD として認証される。\n
+                                       *   Nonce (12B) = session_id (4B NBO) + seq_num (4B NBO) + padding (4B 0x00)。 */
 /** @} */
 
 /** @defgroup POTR_ELEM_FLAG ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)
@@ -64,6 +69,16 @@
 #define POTR_DEFAULT_HEALTH_INTERVAL_MS    0U     /**< デフォルトヘルスチェック送信間隔 (ミリ秒)。0 = 無効。 */
 #define POTR_DEFAULT_HEALTH_TIMEOUT_MS     0U     /**< デフォルトヘルスチェックタイムアウト (ミリ秒)。0 = 無効。 */
 #define POTR_DEFAULT_PACK_WAIT_MS          0U     /**< デフォルトパッキング待ち時間 (ミリ秒)。0 = 即時送信。 */
+/** @} */
+
+/** @defgroup POTR_CRYPTO 暗号化定数 (AES-256-GCM)
+ *  @{
+ *  @details
+ *  POTR_FLAG_ENCRYPTED が設定されたパケットの暗号化・復号に使用する定数です。
+ */
+#define POTR_CRYPTO_KEY_SIZE   32U /**< AES-256-GCM 鍵サイズ (バイト)。設定ファイルの encrypt_key に 64 文字 hex で指定する。 */
+#define POTR_CRYPTO_NONCE_SIZE 12U /**< AES-256-GCM ノンスサイズ (バイト)。session_id (4B NBO) + seq_num (4B NBO) + padding (4B 0x00) で構成する。 */
+#define POTR_CRYPTO_TAG_SIZE   16U /**< AES-256-GCM 認証タグサイズ (バイト)。暗号文の直後に付加する。 */
 /** @} */
 
 /** @defgroup POTR_LIMIT 上限値・デフォルト値

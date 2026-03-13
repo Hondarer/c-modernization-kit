@@ -79,6 +79,11 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
     remaining   = len;
     /* ペイロードエレメントヘッダー (6B) を差し引いた実効フラグメントサイズ上限 */
     max_payload = ctx->global.max_payload - POTR_PAYLOAD_ELEM_HDR_SIZE;
+    /* 暗号化有効時は GCM 認証タグ (16B) 分をさらに差し引く */
+    if (ctx->service.encrypt_enabled)
+    {
+        max_payload -= POTR_CRYPTO_TAG_SIZE;
+    }
 
     /* ブロッキング送信: 先行キューの sendto が全完了するまで待機する */
     if ((flags & POTR_SEND_BLOCKING) != 0)
@@ -97,15 +102,15 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
         {
             chunk = remaining;
         }
-        int      more_frag = (remaining > chunk);
-        uint16_t flags     = base_flags;
+        int      more_frag  = (remaining > chunk);
+        uint16_t elem_flags = base_flags;
 
         if (more_frag)
         {
-            flags |= POTR_FLAG_MORE_FRAG;
+            elem_flags |= POTR_FLAG_MORE_FRAG;
         }
 
-        if (potr_send_queue_push_wait(&ctx->send_queue, flags, ptr, (uint16_t)chunk,
+        if (potr_send_queue_push_wait(&ctx->send_queue, elem_flags, ptr, (uint16_t)chunk,
                                       &ctx->send_thread_running)
             != POTR_SUCCESS)
         {

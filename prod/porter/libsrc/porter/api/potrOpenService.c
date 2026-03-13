@@ -294,6 +294,7 @@ static void ctx_cleanup(struct PotrContext_ *ctx)
     window_destroy(&ctx->recv_window);
     free(ctx->frag_buf);
     free(ctx->compress_buf);
+    free(ctx->crypto_buf);
     free(ctx->recv_buf);
     free(ctx->send_wire_buf);
     cleanup_sockets(ctx);
@@ -712,6 +713,14 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         return POTR_ERROR;
     }
 
+    ctx->crypto_buf_size = ctx->global.max_payload + POTR_CRYPTO_TAG_SIZE;
+    ctx->crypto_buf      = (uint8_t *)malloc(ctx->crypto_buf_size);
+    if (ctx->crypto_buf == NULL)
+    {
+        ctx_cleanup(ctx);
+        return POTR_ERROR;
+    }
+
     /* 受信者の場合は受信スレッドを起動 */
     if (role == POTR_ROLE_RECEIVER)
     {
@@ -769,8 +778,9 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
         role_str = "RECEIVER";
     }
     POTR_LOG(POTR_LOG_INFO,
-             "potrOpenService: service_id=%d role=%s opened successfully",
+             "potrOpenService: service_id=%d role=%s encrypt=%s opened successfully",
              service_id,
-             role_str);
+             role_str,
+             ctx->service.encrypt_enabled ? "ON" : "OFF");
     return POTR_SUCCESS;
 }

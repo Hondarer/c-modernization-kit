@@ -34,6 +34,7 @@
 #include "../potrContext.h"
 #include "potrRecvThread.h"
 #include "../infra/compress/compress.h"
+#include "../infra/crypto/crypto.h"
 #include "../infra/potrLog.h"
 
 /* 前方宣言: recv_deliver は後で定義 */
@@ -680,6 +681,42 @@ static void *recv_thread_func(void *arg)
                 continue;
             }
             if (!check_src_addr(ctx, &sender_addr)) continue;
+
+            /* 暗号化パケットを復号する
+             *   - POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED の組み合わせのみ対象
+             *   - 復号後 pkt.payload / pkt.payload_len を書き換えて以降の処理を透過させる
+             *   - 認証失敗 (タグ不一致) は即座に破棄する
+             */
+            if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+                == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+            {
+                uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
+                size_t  dec_len = ctx->crypto_buf_size;
+                /* pkt.session_id / pkt.seq_num は packet_parse 後はホストオーダー */
+                uint32_t sid_nbo = htonl(pkt.session_id);
+                uint32_t seq_nbo = htonl(pkt.seq_num);
+
+                memcpy(nonce,     &sid_nbo, 4);
+                memcpy(nonce + 4, &seq_nbo, 4);
+                memset(nonce + 8, 0,        4);
+
+                /* AAD = 受信 raw バイト先頭 32B (NBO、送信側と同一) */
+                if (potr_decrypt(ctx->crypto_buf, &dec_len,
+                                 pkt.payload, pkt.payload_len,
+                                 ctx->service.encrypt_key,
+                                 nonce,
+                                 buf, PACKET_HEADER_SIZE) != 0)
+                {
+                    POTR_LOG(POTR_LOG_TRACE,
+                             "recv[service_id=%d]: decrypt failed (auth) seq=%u",
+                             ctx->service.service_id, (unsigned)pkt.seq_num);
+                    continue;
+                }
+
+                pkt.payload     = ctx->crypto_buf;
+                pkt.payload_len = (uint16_t)dec_len;
+                pkt.flags      &= (uint16_t)(~POTR_FLAG_ENCRYPTED);
+            }
 
             /* ── 送信者ロール: NACK のみ処理 ── */
             if (ctx->role == POTR_ROLE_SENDER)

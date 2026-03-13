@@ -80,6 +80,11 @@ typedef struct
     /* マルチパス対応 (src_addr は全通信種別、dst_addr は unicast のみ有効) */
     char src_addr[POTR_MAX_PATH][POTR_MAX_ADDR_LEN]; /**< 送信元アドレス [0]=src_addr1 〜 [3]=src_addr4。送信者は bind / 送信インターフェース、受信者は送信元フィルタ。(全通信種別で必須) */
     char dst_addr[POTR_MAX_PATH][POTR_MAX_ADDR_LEN]; /**< 宛先アドレス [0]=dst_addr1 〜 [3]=dst_addr4。送信者は送信先、受信者は bind アドレス。(unicast のみ) */
+
+    /* 暗号化設定 (AES-256-GCM) */
+    uint8_t  encrypt_key[POTR_CRYPTO_KEY_SIZE]; /**< AES-256-GCM 事前共有鍵 (32 バイト)。encrypt_enabled が 0 の場合は未使用。 */
+    int      encrypt_enabled;                   /**< 非 0 のとき暗号化有効。設定ファイルに有効な encrypt_key が存在するときに 1 に設定される。 */
+    uint32_t _pad_encrypt;                      /**< パディング (PotrServiceDef + PotrGlobalConfig のバイト和を 8 バイト境界に揃える)。 */
 } PotrServiceDef;
 
 /**

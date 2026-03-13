@@ -76,7 +76,7 @@ int main(void) {
     potrOpenService("porter-services.conf", 1001, POTR_ROLE_SENDER, NULL, &handle);
 
     const char *msg = "Hello, porter!";
-    potrSend(handle, msg, strlen(msg), POTR_SEND_BLOCKING);  /* ブロッキング送信 */
+    potrSend(handle, msg, strlen(msg), POTR_SEND_BLOCKING);  /* 圧縮なし・ブロッキング送信 */
 
     potrCloseService(handle);
     return 0;

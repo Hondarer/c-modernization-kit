@@ -165,6 +165,7 @@ POTR_API int POTRAPI potrCloseService(PotrHandle handle)
     window_destroy(&ctx->recv_window);
     free(ctx->frag_buf);
     free(ctx->compress_buf);
+    free(ctx->crypto_buf);
     free(ctx->recv_buf);
     free(ctx->send_wire_buf);
 

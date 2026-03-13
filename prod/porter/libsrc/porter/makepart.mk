@@ -1,8 +1,8 @@
 ifneq ($(OS),Windows_NT)
-    LIBS += pthread z
+    LIBS += pthread z crypto
 endif
 ifeq ($(OS),Windows_NT)
-    LIBS += ws2_32 Cabinet
+    LIBS += ws2_32 Cabinet bcrypt
 endif
 
 ifeq ($(OS),Windows_NT)
