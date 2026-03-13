@@ -715,7 +715,7 @@ static void *recv_thread_func(void *arg)
 
                 pkt.payload     = ctx->crypto_buf;
                 pkt.payload_len = (uint16_t)dec_len;
-                pkt.flags      &= (uint16_t)(~POTR_FLAG_ENCRYPTED);
+                pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
             }
 
             /* ── 送信者ロール: NACK のみ処理 ── */

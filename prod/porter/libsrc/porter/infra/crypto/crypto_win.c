@@ -225,7 +225,4 @@ int potr_passphrase_to_key(uint8_t *key,
     return BCRYPT_SUCCESS(status) ? 0 : -1;
 }
 
-#else
-    /* suppress "empty translation unit" warning on non-Windows compilers */
-    typedef int potr_crypto_win_dummy_t;
 #endif /* _WIN32 */
