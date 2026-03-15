@@ -326,6 +326,27 @@
             "linux": {
                 "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
             }
+        },
+        {
+            "label": "style markdown (jp, current file)",
+            "type": "shell",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always", // Terminal パネルを必ず開く
+                "clear": true // 実行前に Terminal をクリア
+            },
+            "windows": {
+                "command": "if \"${fileExtname}\"==\".md\" (python \"${workspaceFolder}\\docsfw\\bin\\md_style_jp.py\" \"${file}\" --in-place) else (echo Not a Markdown file: ${file} 1>&2 & exit /b 1)",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "[ \"${fileExtname}\" = \".md\" ] && python3 \"${workspaceFolder}/docsfw/bin/md_style_jp.py\" \"${file}\" --in-place || { echo \"Not a Markdown file: ${file}\" >&2; exit 1; }"
+            }
         }
     ]
 }
