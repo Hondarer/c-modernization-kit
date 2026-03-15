@@ -210,7 +210,14 @@ RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
 RUDP -> RRT: DATA[seq=12] 受信
 
 RRT -> RRT: seq=11 の欠番を検出
-RRT -> SUDP: NACK[ack_num=11] 送信\n(全パスから送信者へユニキャスト)
+
+alt reorder_timeout_ms = 0 (即時・デフォルト)
+  RRT -> SUDP: NACK[ack_num=11] 送信\n(全パスから送信者へユニキャスト)
+else reorder_timeout_ms > 0 (リオーダー待機)
+  RRT -> RRT: タイマー開始\n(deadline = now + reorder_timeout_ms)\n→ 待機中に seq=11 が届けば NACK 不要
+  note over RRT, SUDP: タイムアウト後に check_reorder_timeout が NACK を送出\n(以下は NACK 送出後と同じフロー)
+  RRT -> SUDP: NACK[ack_num=11] 送信 (タイムアウト後)
+end
 
 note over ST: NACK 受信スレッドが受け取る
 
@@ -223,6 +230,84 @@ SUDP -> RUDP: DATA[seq=11] 到着
 
 RUDP -> RRT: DATA[seq=11] 受信\n受信ウィンドウから seq=11 取り出し
 RRT -> RRT: seq=11, 12 の順で整列
+
+@enduml
+```
+
+## リオーダーバッファ (reorder_timeout_ms > 0)
+
+`reorder_timeout_ms` を 0 より大きな値に設定すると、欠番検出後にただちに NACK や DISCONNECTED を発行せず、指定時間だけ待機します。待機中に欠落パケットが届いた場合は NACK/DISCONNECTED を発行せずに正常配信します。
+
+### 通常モード: 待機中に届いた場合 (NACK なし)
+
+```plantuml
+@startuml リオーダー - 通常モード 待機中に届いた場合
+caption リオーダー - 通常モード: 待機中に届いた場合 (NACK なし)
+
+participant "送信スレッド" as ST
+participant "UDP\n(送信側)" as SUDP
+participant "UDP\n(受信側)" as RUDP
+participant "受信スレッド" as RRT
+participant "アプリ\n(受信側)" as RAPP
+
+ST -> SUDP: DATA[seq=10] 送信
+ST -> SUDP: DATA[seq=11] 送信 (遅延)
+ST -> SUDP: DATA[seq=12] 送信
+
+SUDP -> RUDP: DATA[seq=10] 到着
+RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[10], len)
+
+SUDP -> RUDP: DATA[seq=12] 到着 (seq=11 より先に到達)
+
+RUDP -> RRT: DATA[seq=12] 受信
+RRT -> RRT: seq=11 の欠番を検出\nタイマー開始 (reorder_timeout_ms)
+note over RRT: deadline 内は NACK を保留
+
+SUDP -> RUDP: DATA[seq=11] 到着 (追い越し解消)
+RUDP -> RRT: DATA[seq=11] 受信\n欠番が埋まった → reorder_pending クリア
+RRT -> RRT: seq=11, 12 の順で取り出し
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[11], len)
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[12], len)
+
+note over RRT: NACK は送出されなかった
+
+@enduml
+```
+
+### RAW モード: 待機中に届いた場合 (DISCONNECTED なし)
+
+```plantuml
+@startuml リオーダー - RAW モード 待機中に届いた場合
+caption リオーダー - RAW モード: 待機中に届いた場合 (DISCONNECTED なし)
+
+participant "送信スレッド" as ST
+participant "UDP\n(送信側)" as SUDP
+participant "UDP\n(受信側)" as RUDP
+participant "受信スレッド" as RRT
+participant "アプリ\n(受信側)" as RAPP
+
+ST -> SUDP: DATA[seq=10] 送信
+ST -> SUDP: DATA[seq=11] 送信 (遅延)
+ST -> SUDP: DATA[seq=12] 送信
+
+SUDP -> RUDP: DATA[seq=10] 到着
+RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[10], len)
+
+SUDP -> RUDP: DATA[seq=12] 到着 (seq=11 より先に到達)
+
+RUDP -> RRT: DATA[seq=12] 受信
+RRT -> RRT: seq=11 の欠番を検出 (RAW)\nタイマー開始 (reorder_timeout_ms)
+note over RRT: deadline 内は DISCONNECTED を保留
+
+SUDP -> RUDP: DATA[seq=11] 到着 (追い越し解消)
+RUDP -> RRT: DATA[seq=11] 受信\n欠番が埋まった → reorder_pending クリア
+RRT -> RRT: seq=11, 12 の順で取り出し
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[11], len)
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[12], len)
+
+note over RRT: DISCONNECTED は発火しなかった
 
 @enduml
 ```
@@ -446,12 +531,17 @@ RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
 RUDP -> RRT: DATA[seq=12] 受信
 
 RRT -> RRT: seq=11 の欠番を検出\n(RAW: NACK は送らない)
-RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
-RRT -> RRT: recv_window を seq=12 でリセット
-RRT -> RRT: DATA[seq=12] をウィンドウから取り出し
 
-RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[seq=12], len)
+alt reorder_timeout_ms = 0 (即時・デフォルト)
+  RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+  RRT -> RRT: recv_window を seq=12 でリセット
+  RRT -> RRT: DATA[seq=12] をウィンドウから取り出し
+  RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+  RRT -> RAPP: callback(POTR_EVENT_DATA, data[seq=12], len)
+else reorder_timeout_ms > 0 (リオーダー待機)
+  RRT -> RRT: タイマー開始\n(deadline = now + reorder_timeout_ms)\n→ 待機中に seq=11 が届けば DISCONNECTED 不要
+  note over RRT: タイムアウト後に check_reorder_timeout で\nDISCONNECTED 発火・ウィンドウリセット
+end
 
 note over RRT: seq=11 は配信されない\n(欠落として確定)
 
@@ -480,9 +570,15 @@ HT -> UDP: PING[seq=13]\n(next_seq=13 を通知)
 UDP -> RRT: PING[seq=13] 受信
 
 RRT -> RRT: pkt.seq_num(13) != next_seq(10)\n→ ギャップあり (window内)
-RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
-RRT -> RRT: recv_window を seq=13 でリセット
-RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+
+alt reorder_timeout_ms = 0 (即時・デフォルト)
+  RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+  RRT -> RRT: recv_window を seq=13 でリセット
+  RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+else reorder_timeout_ms > 0 (リオーダー待機)
+  RRT -> RRT: タイマー開始 (next_seq=10 の欠番に対して)\n→ 待機中に seq=10〜12 が届けば DISCONNECTED 不要
+  note over RRT: タイムアウト後に check_reorder_timeout で\nDISCONNECTED 発火・ウィンドウリセット
+end
 
 note over RRT: seq=10〜12 は配信されない\nnext_seq = 13 に更新
 
@@ -513,6 +609,13 @@ caption 接続状態遷移 (受信者側 health_alive フラグ)
 note right of 疎通中
   health_timeout_ms = 0 の場合
   タイムアウトは発生しない
+end note
+
+note left of 疎通中
+  reorder_timeout_ms > 0 の場合:
+  ギャップ検出直後は NACK (通常モード) または
+  DISCONNECTED (RAW モード) を保留。
+  タイムアウト後または欠番充足で解消。
 end note
 
 @enduml

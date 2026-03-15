@@ -149,7 +149,14 @@ struct PotrContext_
     /* 送信者: NACK 重複抑制リングバッファ */
     PotrNackDedupEntry nack_dedup_buf[POTR_NACK_DEDUP_SLOTS]; /**< NACK 重複抑制エントリ配列。 */
     uint8_t            nack_dedup_next;                        /**< 次に書き込むスロットインデックス。 */
-    uint8_t            _pad_nack_dedup[7];                     /**< パディング (send_queue を 8 バイト境界に揃える)。 */
+    uint8_t            _pad_nack_dedup[7];                     /**< パディング (reorder フィールドを 4 バイト境界に揃える)。 */
+
+    /* 受信者: リオーダーバッファタイムアウト管理 (reorder_timeout_ms > 0 のときのみ使用) */
+    int      reorder_pending;        /**< リオーダー待機中か (1: 待機中、0: 待機なし)。 */
+    uint32_t reorder_nack_num;       /**< 待機中の欠番通番。 */
+    int64_t  reorder_deadline_sec;   /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
+    int32_t  reorder_deadline_nsec;  /**< タイムアウト期限 ナノ秒部。 */
+    uint32_t _pad_reorder;           /**< パディング (send_queue を 8 バイト境界に揃える)。 */
 
     PotrSendQueue  send_queue;          /**< 非同期送信キュー。 */
 };

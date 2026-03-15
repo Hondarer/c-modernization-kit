@@ -175,6 +175,7 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     global->max_payload        = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
     global->health_interval_ms = (uint32_t)POTR_DEFAULT_HEALTH_INTERVAL_MS;
     global->health_timeout_ms  = (uint32_t)POTR_DEFAULT_HEALTH_TIMEOUT_MS;
+    global->reorder_timeout_ms = 0U;
     global->max_message_size   = (uint32_t)POTR_MAX_MESSAGE_SIZE;
     global->send_queue_depth   = (uint32_t)POTR_SEND_QUEUE_DEPTH;
 
@@ -249,6 +250,10 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         {
             global->health_timeout_ms = (uint32_t)atoi(val);
         }
+        else if (strcmp(key, "reorder_timeout_ms") == 0)
+        {
+            global->reorder_timeout_ms = (uint32_t)atoi(val);
+        }
         else if (strcmp(key, "max_message_size") == 0)
         {
             global->max_message_size = (uint32_t)atoi(val);
@@ -262,10 +267,11 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     POTR_LOG(POTR_LOG_TRACE,
              "config loaded: window_size=%u max_payload=%u "
              "max_message_size=%u send_queue_depth=%u "
-             "health_interval_ms=%u health_timeout_ms=%u",
+             "health_interval_ms=%u health_timeout_ms=%u reorder_timeout_ms=%u",
              (unsigned)global->window_size, (unsigned)global->max_payload,
              (unsigned)global->max_message_size, (unsigned)global->send_queue_depth,
-             (unsigned)global->health_interval_ms, (unsigned)global->health_timeout_ms);
+             (unsigned)global->health_interval_ms, (unsigned)global->health_timeout_ms,
+             (unsigned)global->reorder_timeout_ms);
 
     fclose(fp);
     return POTR_SUCCESS;

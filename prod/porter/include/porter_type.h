@@ -113,6 +113,7 @@ typedef struct
     uint16_t max_payload;         /**< 最大ペイロード長 (バイト)。 */
     uint32_t health_interval_ms;  /**< ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。 */
     uint32_t health_timeout_ms;   /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なパケットが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
+    uint32_t reorder_timeout_ms;  /**< 受信ウィンドウ欠番検出後、NACK または切断を遅延する時間 (ミリ秒)。マルチパスや近距離 WAN での追い越し吸収用。0 = 即時 (デフォルト)。推奨値: LAN/マルチパス=10〜30 ms、遠距離 WAN=30〜100 ms。 */
     uint32_t max_message_size;    /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。デフォルト: POTR_MAX_MESSAGE_SIZE。 */
     uint32_t send_queue_depth;    /**< 非同期送信キューの最大エントリ数。デフォルト: POTR_SEND_QUEUE_DEPTH。 */
 } PotrGlobalConfig;

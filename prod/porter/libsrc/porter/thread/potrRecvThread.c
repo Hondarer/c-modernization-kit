@@ -37,9 +37,11 @@
 #include "../infra/crypto/crypto.h"
 #include "../infra/potrLog.h"
 
-/* 前方宣言: recv_deliver は後で定義 */
+/* 前方宣言: 後で定義される関数 */
 static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
                          size_t payload_len, int compressed);
+static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq);
+static void raw_session_disconnect(struct PotrContext_ *ctx);
 
 /* 送信元 IP が src_addr_resolved のいずれかと一致するか確認する。
    src_addr が未設定の場合は常に 1 (合格) を返す。 */
@@ -79,6 +81,7 @@ static int check_and_update_session(struct PotrContext_ *ctx,
         ctx->peer_session_tv_sec  = pkt->session_tv_sec;
         ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
         ctx->peer_session_known   = 1;
+        ctx->reorder_pending      = 0;
         POTR_LOG(POTR_LOG_TRACE,
                  "recv[service_id=%d]: new session (first contact), new_id=%u seq=%u",
                  ctx->service.service_id,
@@ -146,13 +149,14 @@ static int check_and_update_session(struct PotrContext_ *ctx,
         }
     }
 
-    /* 新セッション採用: コンテキストを更新しウィンドウをリセットする。
+    /* 新セッション採用: コンテキストを更新しウィンドウ・リオーダー状態をリセットする。
        最初に受信したパケットの seq_num で初期化することで、送信者が先行して
        送信済みの seq に直接同期し、不要な NACK/REJECT サイクルを発生させない。
        送信者を先に起動して受信者が後から参加した場合も同様に機能する。 */
     ctx->peer_session_id      = pkt->session_id;
     ctx->peer_session_tv_sec  = pkt->session_tv_sec;
     ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
+    ctx->reorder_pending      = 0;
     window_init(&ctx->recv_window, pkt->seq_num,
                 ctx->global.window_size, ctx->global.max_payload);
     return 1;
@@ -272,10 +276,98 @@ static void check_health_timeout(struct PotrContext_ *ctx)
                復帰した場合でも window_init を経由して受信ウィンドウを初期化し、
                前セッションの next_seq が gap スキャンに影響しないようにする。 */
             ctx->peer_session_known = 0;
+            ctx->reorder_pending    = 0;
             ctx->last_recv_tv_sec   = 0;
             window_init(&ctx->recv_window, 0,
                         ctx->global.window_size, ctx->global.max_payload);
         }
+    }
+}
+
+/* 欠番 nack_num に対してリオーダー待機が完了しているか確認する。
+   返値: 1 = 処理進行 (NACK/DISCONNECT を発行すべき)、0 = まだ待機中。
+   reorder_timeout_ms == 0 の場合は常に 1 を返す (即時)。
+   新しいギャップまたは欠番通番が変わった場合はタイマーをリセットして 0 を返す。
+   同一欠番でタイムアウト経過後は reorder_pending を 0 にクリアして 1 を返す。 */
+static int reorder_gap_ready(struct PotrContext_ *ctx, uint32_t nack_num)
+{
+    int64_t  now_sec;
+    int32_t  now_nsec;
+    uint32_t ms;
+
+    if (ctx->global.reorder_timeout_ms == 0U) return 1;
+
+    ms = ctx->global.reorder_timeout_ms;
+
+    /* 新しいギャップ、または欠番通番が変わった: タイマーをリセットして待機開始 */
+    if (!ctx->reorder_pending || ctx->reorder_nack_num != nack_num)
+    {
+        uint32_t effective_ms;
+        get_monotonic(&now_sec, &now_nsec);
+
+        /* マルチキャスト/ブロードキャスト通常モードでは NACK 送出タイミングを分散させる。
+           複数受信者が同一欠番を同時に NACK すると送信者側で輻輳が発生するため、
+           タイマー値を reorder_timeout_ms の 100%〜200% の範囲でジッタを付加する。
+           ジッタ源: now_nsec の下位ビット (外部 RNG 不要・移植性高)。
+           RAW 系は POTR_TYPE_MULTICAST_RAW / BROADCAST_RAW であり条件に該当しないため対象外。 */
+        effective_ms = ms;
+        if (ctx->service.type == POTR_TYPE_MULTICAST
+            || ctx->service.type == POTR_TYPE_BROADCAST)
+        {
+            effective_ms = ms + (uint32_t)((uint32_t)now_nsec % ms);
+        }
+
+        ctx->reorder_pending       = 1;
+        ctx->reorder_nack_num      = nack_num;
+        ctx->reorder_deadline_sec  = now_sec  + (int64_t)(effective_ms / 1000U);
+        ctx->reorder_deadline_nsec = now_nsec + (int32_t)((effective_ms % 1000U) * 1000000U);
+        if (ctx->reorder_deadline_nsec >= 1000000000L)
+        {
+            ctx->reorder_deadline_sec++;
+            ctx->reorder_deadline_nsec -= 1000000000L;
+        }
+        return 0; /* 待機開始 */
+    }
+
+    /* 同一欠番: タイムアウト確認 */
+    get_monotonic(&now_sec, &now_nsec);
+    if (now_sec > ctx->reorder_deadline_sec
+        || (now_sec == ctx->reorder_deadline_sec
+            && now_nsec >= ctx->reorder_deadline_nsec))
+    {
+        ctx->reorder_pending = 0;
+        return 1; /* タイムアウト: 処理進行 */
+    }
+
+    return 0; /* まだ待機中 */
+}
+
+/* select() タイムアウト時に、リオーダー待機中の欠番がタイムアウトしていれば処理する。
+   通常モード: NACK を送出する。
+   RAW モード: DISCONNECTED を発行してセッションをリセットし、次のパケットで再同期する。 */
+static void check_reorder_timeout(struct PotrContext_ *ctx)
+{
+    if (!ctx->reorder_pending) return;
+    if (!reorder_gap_ready(ctx, ctx->reorder_nack_num)) return;
+
+    /* reorder_gap_ready が 1 を返した時点で reorder_pending は既にクリア済み */
+    if (potr_is_raw_type(ctx->service.type))
+    {
+        /* RAW モード: DISCONNECTED を発行してセッション状態をリセットする。
+           次のパケット受信時に check_and_update_session で window_init が呼ばれ
+           自然に再同期する。 */
+        raw_session_disconnect(ctx);
+        ctx->peer_session_known = 0;
+        ctx->last_recv_tv_sec   = 0;
+        window_init(&ctx->recv_window, 0,
+                    ctx->global.window_size, ctx->global.max_payload);
+    }
+    else
+    {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "recv[service_id=%d]: NACK seq=%u (reorder timeout)",
+                 ctx->service.service_id, (unsigned)ctx->reorder_nack_num);
+        send_nack(ctx, ctx->reorder_nack_num);
     }
 }
 
@@ -592,27 +684,41 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
     {
         if (is_raw)
         {
-            /* ギャップ検出: DISCONNECTED を発行し、ウィンドウを到着パケットの通番でリセットして
-               再 push する。skip ループは push 済みパケットのスロットマッピングを壊すため使用しない。
-               ウィンドウ満杯時と同じ reset + 再 push パターンで統一する。 */
-            raw_session_disconnect(ctx);
-            window_recv_reset(&ctx->recv_window, pkt->seq_num);
-            if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
+            /* ギャップ検出: リオーダー待機を確認してから DISCONNECTED を発行する。
+               reorder_timeout_ms > 0 のとき、タイムアウト前はウィンドウに今のパケットを
+               残したまま待機する。タイムアウト後または即時モードでは reset + 再 push。
+               skip ループは push 済みパケットのスロットマッピングを壊すため使用しない。 */
+            if (reorder_gap_ready(ctx, nack_num))
             {
-                /* リセット直後の再投入失敗は想定外 */
-                POTR_LOG(POTR_LOG_ERROR,
-                         "recv[service_id=%d]: RAW gap re-push failed seq=%u (bug)",
-                         ctx->service.service_id, (unsigned)pkt->seq_num);
-                return;
+                raw_session_disconnect(ctx);
+                window_recv_reset(&ctx->recv_window, pkt->seq_num);
+                if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
+                {
+                    /* リセット直後の再投入失敗は想定外 */
+                    POTR_LOG(POTR_LOG_ERROR,
+                             "recv[service_id=%d]: RAW gap re-push failed seq=%u (bug)",
+                             ctx->service.service_id, (unsigned)pkt->seq_num);
+                    return;
+                }
             }
+            /* else: リオーダー待機中。パケットはウィンドウに push 済み。 */
         }
         else
         {
-            POTR_LOG(POTR_LOG_DEBUG,
-                     "recv[service_id=%d]: NACK seq=%u",
-                     ctx->service.service_id, (unsigned)nack_num);
-            send_nack(ctx, nack_num);
+            if (reorder_gap_ready(ctx, nack_num))
+            {
+                POTR_LOG(POTR_LOG_DEBUG,
+                         "recv[service_id=%d]: NACK seq=%u",
+                         ctx->service.service_id, (unsigned)nack_num);
+                send_nack(ctx, nack_num);
+            }
+            /* else: リオーダー待機中。NACK 送出を保留。 */
         }
+    }
+    else
+    {
+        /* 欠番なし: 待機中の欠番が埋まった (または元から欠番なし) */
+        ctx->reorder_pending = 0;
     }
 
     drain_recv_window(ctx);
@@ -620,14 +726,24 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
     /* drain 後に next_seq が前進した結果、新たな欠番が先頭に現れる場合は NACK を送る。
        例: seq=3,4 欠落・seq=5 着時、drain 前は NACK(3)、seq=3 再送着→ drain で pop 後
        next_seq=4 が欠番になるが次のパケット到着まで NACK(4) が遅延するのを防ぐ。
-       RAW モードでは reset + 再 push によりウィンドウにはパケット 1 つのみ残るため、
-       drain 後は必ずウィンドウ空となり、ここに到達することはない。 */
+       RAW モードで reorder_gap_ready が 1 を返した場合は reset + 再 push によりウィンドウに
+       パケット 1 つのみ残るため drain 後は空となりここに到達しない。
+       リオーダー待機中 (RAW/通常) は drain で前進しないため post-drain 欠番も保留のまま。 */
     if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
     {
-        POTR_LOG(POTR_LOG_DEBUG,
-                 "recv[service_id=%d]: NACK seq=%u (post-drain)",
-                 ctx->service.service_id, (unsigned)nack_num);
-        send_nack(ctx, nack_num);
+        if (!is_raw && reorder_gap_ready(ctx, nack_num))
+        {
+            POTR_LOG(POTR_LOG_DEBUG,
+                     "recv[service_id=%d]: NACK seq=%u (post-drain)",
+                     ctx->service.service_id, (unsigned)nack_num);
+            send_nack(ctx, nack_num);
+        }
+        /* RAW モードでは reset + 再 push 後は到達しない。リオーダー待機中は
+           check_reorder_timeout がタイムアウト処理を担う。 */
+    }
+    else
+    {
+        ctx->reorder_pending = 0;
     }
 }
 
@@ -652,6 +768,14 @@ static void *recv_thread_func(void *arg)
     else
     {
         poll_ms = 500U;
+    }
+    /* reorder_timeout_ms が有効な場合は poll 間隔を短縮してタイムアウト精度を確保する */
+    if (ctx->role == POTR_ROLE_RECEIVER && ctx->global.reorder_timeout_ms > 0U)
+    {
+        if (ctx->global.reorder_timeout_ms < poll_ms)
+        {
+            poll_ms = ctx->global.reorder_timeout_ms;
+        }
     }
 
     while (ctx->running)
@@ -696,7 +820,13 @@ static void *recv_thread_func(void *arg)
         if (ret == 0)
         {
             if (ctx->role == POTR_ROLE_RECEIVER)
+            {
                 check_health_timeout(ctx);
+                if (ctx->global.reorder_timeout_ms > 0U)
+                {
+                    check_reorder_timeout(ctx);
+                }
+            }
             continue;
         }
 
@@ -932,6 +1062,7 @@ static void *recv_thread_func(void *arg)
                 /* セッション状態をリセットして次の接続を受け入れ可能にする。
                    受信ウィンドウも初期化して前セッションの next_seq を残さない。 */
                 ctx->peer_session_known = 0;
+                ctx->reorder_pending    = 0;
                 ctx->last_recv_tv_sec   = 0;
                 window_init(&ctx->recv_window, 0,
                             ctx->global.window_size, ctx->global.max_payload);
@@ -972,6 +1103,7 @@ static void *recv_thread_func(void *arg)
                 }
 
                 /* 欠落外側パケットをスキップして recv_window を前進させる */
+                ctx->reorder_pending = 0;
                 window_recv_skip(&ctx->recv_window, pkt.ack_num);
 
                 /* 後続パケットを配信 (ウィンドウに溜まっていれば最初の pop で CONNECTED を発火) */
@@ -1021,14 +1153,23 @@ static void *recv_thread_func(void *arg)
                 {
                     /* pkt.seq_num が next_seq より前方にある (= ギャップあり) か判定する。
                        seqnum_in_window で window_size 以内の前方範囲のみを対象とし、
-                       古い PING (next_seq より後方) は無視する。 */
+                       古い PING (next_seq より後方) は無視する。
+                       reorder_timeout_ms > 0 のとき、タイムアウト前は DISCONNECTED を保留する。 */
                     if (pkt.seq_num != ctx->recv_window.next_seq
                         && seqnum_in_window(pkt.seq_num,
                                             ctx->recv_window.next_seq + 1U,
                                             ctx->recv_window.window_size))
                     {
-                        raw_session_disconnect(ctx);
-                        window_recv_reset(&ctx->recv_window, pkt.seq_num);
+                        if (reorder_gap_ready(ctx, ctx->recv_window.next_seq))
+                        {
+                            raw_session_disconnect(ctx);
+                            window_recv_reset(&ctx->recv_window, pkt.seq_num);
+                        }
+                        /* else: リオーダー待機中。次の PING/DATA 到着時に再判定する。 */
+                    }
+                    else
+                    {
+                        ctx->reorder_pending = 0; /* ギャップなし */
                     }
                     notify_health_alive(ctx);
                 }
@@ -1037,6 +1178,9 @@ static void *recv_thread_func(void *arg)
                     notify_health_alive(ctx);
 
                     {
+                        /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
+                           最初の欠番が待機中の場合はその後続の欠番も一括保留する。
+                           スキャン完了 (全有効または全 NACK 送出済み) 時にリオーダー状態をクリアする。 */
                         uint32_t scan_seq = ctx->recv_window.next_seq;
                         while (scan_seq != pkt.seq_num
                                && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
@@ -1046,12 +1190,24 @@ static void *recv_thread_func(void *arg)
                                                       % ctx->recv_window.window_size);
                             if (!ctx->recv_window.valid[idx])
                             {
-                                POTR_LOG(POTR_LOG_DEBUG,
-                                         "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
-                                         ctx->service.service_id, (unsigned)scan_seq);
-                                send_nack(ctx, scan_seq);
+                                if (reorder_gap_ready(ctx, scan_seq))
+                                {
+                                    POTR_LOG(POTR_LOG_DEBUG,
+                                             "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
+                                             ctx->service.service_id, (unsigned)scan_seq);
+                                    send_nack(ctx, scan_seq);
+                                }
+                                else
+                                {
+                                    break; /* リオーダー待機中: 後続欠番も保留 */
+                                }
                             }
                             scan_seq++;
+                        }
+                        /* スキャン完了: リオーダー状態をクリア */
+                        if (scan_seq == pkt.seq_num)
+                        {
+                            ctx->reorder_pending = 0;
                         }
                     }
                 }
