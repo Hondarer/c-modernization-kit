@@ -54,6 +54,7 @@ extern "C"
     extern int  window_recv_pop(PotrWindow *win, PotrPacket *packet);
     extern int  window_recv_needs_nack(const PotrWindow *win, uint32_t *nack_num);
     extern void window_recv_skip(PotrWindow *win, uint32_t seq_num);
+    extern void window_recv_reset(PotrWindow *win, uint32_t new_base_seq);
 
 #ifdef __cplusplus
 }

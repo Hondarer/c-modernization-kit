@@ -362,3 +362,27 @@ int window_recv_needs_nack(const PotrWindow *win, uint32_t *nack_num)
 
     return 0; /* ウィンドウが空 = 欠番なし */
 }
+
+/**
+ *******************************************************************************
+ *  @brief          受信ウィンドウを新しい基点通番でリセットします。
+ *  @param[in,out]  win          受信ウィンドウ構造体へのポインタ。
+ *  @param[in]      new_base_seq リセット後の基点通番 (次に期待する通番)。
+ *
+ *  @details
+ *  全スロットを無効化し、base_seq / next_seq を new_base_seq に設定します。\n
+ *  バッファの再確保は行いません。\n
+ *  RAW モードでギャップを検出してセッションをリセットする際に使用します。
+ *******************************************************************************
+ */
+void window_recv_reset(PotrWindow *win, uint32_t new_base_seq)
+{
+    if (win == NULL || win->valid == NULL)
+    {
+        return;
+    }
+
+    memset(win->valid, 0, (size_t)win->window_size);
+    win->base_seq = new_base_seq;
+    win->next_seq = new_base_seq;
+}

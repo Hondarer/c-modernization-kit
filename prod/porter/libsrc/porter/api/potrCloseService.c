@@ -124,7 +124,7 @@ POTR_API int POTRAPI potrCloseService(PotrHandle handle)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
 #ifdef _WIN32
-            if (ctx->service.type == POTR_TYPE_MULTICAST)
+            if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
             {
                 struct ip_mreq mreq;
                 memset(&mreq, 0, sizeof(mreq));
@@ -138,7 +138,7 @@ POTR_API int POTRAPI potrCloseService(PotrHandle handle)
             }
             closesocket(ctx->sock[i]);
 #else
-            if (ctx->service.type == POTR_TYPE_MULTICAST)
+            if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
             {
                 struct ip_mreq mreq;
                 memset(&mreq, 0, sizeof(mreq));

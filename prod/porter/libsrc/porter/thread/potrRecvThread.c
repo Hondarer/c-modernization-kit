@@ -507,25 +507,72 @@ static void drain_recv_window(struct PotrContext_ *ctx)
     }
 }
 
+/* RAW モード用: DISCONNECTED イベントを発行してセッション状態を部分的にリセットする。
+   ウィンドウリセットは呼び出し元が行う (新しい基点通番が確定してから呼ぶため)。
+   フラグメント組み立てバッファも破棄する。 */
+static void raw_session_disconnect(struct PotrContext_ *ctx)
+{
+    if (ctx->health_alive)
+    {
+        ctx->health_alive = 0;
+        POTR_LOG(POTR_LOG_WARN,
+                 "recv[service_id=%d]: RAW DISCONNECTED (gap detected)",
+                 ctx->service.service_id);
+        if (ctx->callback != NULL)
+        {
+            ctx->callback(ctx->service.service_id,
+                          POTR_EVENT_DISCONNECTED, NULL, 0);
+        }
+    }
+
+    /* フラグメント組み立て途中状態を破棄 */
+    ctx->frag_buf_len    = 0;
+    ctx->frag_compressed = 0;
+}
+
 /* 外側パケット (DATA / PING) を受信ウィンドウに投入し、順序整列済みパケットを配信する。
-   再送・順序整列の単位は外側パケットであり、NACK も外側パケットの seq_num を指定する。 */
+   再送・順序整列の単位は外側パケットであり、NACK も外側パケットの seq_num を指定する。
+   RAW モードでは NACK を送信せず、ギャップ検出時は DISCONNECTED を発行してウィンドウを
+   新しい基点通番でリセットする。 */
 static void process_outer_pkt(struct PotrContext_ *ctx,
                                const PotrPacket    *pkt)
 {
     uint32_t nack_num;
     uint32_t stretch;
+    int      is_raw = potr_is_raw_type(ctx->service.type);
 
     if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
     {
-        /* 通番がウィンドウ範囲外のためドロップ (受信ウィンドウ満杯、または古い重複パケット)。
-           受信者は next_seq を待ち続けるが、ヘルスチェックや後続パケット到着時に NACK が送られる。 */
-        POTR_LOG(POTR_LOG_ERROR,
-                 "recv[service_id=%d]: recv_window full (100%%), dropping seq=%u"
-                 " (base_seq=%u window_size=%u)",
-                 ctx->service.service_id, (unsigned)pkt->seq_num,
-                 (unsigned)ctx->recv_window.base_seq,
-                 (unsigned)ctx->recv_window.window_size);
-        return;
+        if (is_raw)
+        {
+            /* ウィンドウ満杯: DISCONNECTED を発行し、受信したパケットの通番でリセットしてから
+               再投入する。再投入は必ず成功する (空ウィンドウの先頭スロット)。 */
+            POTR_LOG(POTR_LOG_ERROR,
+                     "recv[service_id=%d]: RAW recv_window full, resetting to seq=%u",
+                     ctx->service.service_id, (unsigned)pkt->seq_num);
+            raw_session_disconnect(ctx);
+            window_recv_reset(&ctx->recv_window, pkt->seq_num);
+            if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
+            {
+                /* リセット直後の再投入失敗は想定外 */
+                POTR_LOG(POTR_LOG_ERROR,
+                         "recv[service_id=%d]: RAW window re-push failed seq=%u (bug)",
+                         ctx->service.service_id, (unsigned)pkt->seq_num);
+                return;
+            }
+        }
+        else
+        {
+            /* 通番がウィンドウ範囲外のためドロップ (受信ウィンドウ満杯、または古い重複パケット)。
+               受信者は next_seq を待ち続けるが、ヘルスチェックや後続パケット到着時に NACK が送られる。 */
+            POTR_LOG(POTR_LOG_ERROR,
+                     "recv[service_id=%d]: recv_window full (100%%), dropping seq=%u"
+                     " (base_seq=%u window_size=%u)",
+                     ctx->service.service_id, (unsigned)pkt->seq_num,
+                     (unsigned)ctx->recv_window.base_seq,
+                     (unsigned)ctx->recv_window.window_size);
+            return;
+        }
     }
 
     /* ウィンドウ利用率チェック: 今回のパケットが占める先頭からの距離で推定する。
@@ -543,17 +590,38 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
 
     if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
     {
-        POTR_LOG(POTR_LOG_DEBUG,
-                 "recv[service_id=%d]: NACK seq=%u",
-                 ctx->service.service_id, (unsigned)nack_num);
-        send_nack(ctx, nack_num);
+        if (is_raw)
+        {
+            /* ギャップ検出: DISCONNECTED を発行し、ウィンドウを到着パケットの通番でリセットして
+               再 push する。skip ループは push 済みパケットのスロットマッピングを壊すため使用しない。
+               ウィンドウ満杯時と同じ reset + 再 push パターンで統一する。 */
+            raw_session_disconnect(ctx);
+            window_recv_reset(&ctx->recv_window, pkt->seq_num);
+            if (window_recv_push(&ctx->recv_window, pkt) != POTR_SUCCESS)
+            {
+                /* リセット直後の再投入失敗は想定外 */
+                POTR_LOG(POTR_LOG_ERROR,
+                         "recv[service_id=%d]: RAW gap re-push failed seq=%u (bug)",
+                         ctx->service.service_id, (unsigned)pkt->seq_num);
+                return;
+            }
+        }
+        else
+        {
+            POTR_LOG(POTR_LOG_DEBUG,
+                     "recv[service_id=%d]: NACK seq=%u",
+                     ctx->service.service_id, (unsigned)nack_num);
+            send_nack(ctx, nack_num);
+        }
     }
 
     drain_recv_window(ctx);
 
     /* drain 後に next_seq が前進した結果、新たな欠番が先頭に現れる場合は NACK を送る。
        例: seq=3,4 欠落・seq=5 着時、drain 前は NACK(3)、seq=3 再送着→ drain で pop 後
-       next_seq=4 が欠番になるが次のパケット到着まで NACK(4) が遅延するのを防ぐ。 */
+       next_seq=4 が欠番になるが次のパケット到着まで NACK(4) が遅延するのを防ぐ。
+       RAW モードでは reset + 再 push によりウィンドウにはパケット 1 つのみ残るため、
+       drain 後は必ずウィンドウ空となり、ここに到達することはない。 */
     if (window_recv_needs_nack(&ctx->recv_window, &nack_num))
     {
         POTR_LOG(POTR_LOG_DEBUG,
@@ -721,6 +789,12 @@ static void *recv_thread_func(void *arg)
             /* ── 送信者ロール: NACK のみ処理 ── */
             if (ctx->role == POTR_ROLE_SENDER)
             {
+                /* RAW モードは再送バッファを持たないため NACK を無視する */
+                if (potr_is_raw_type(ctx->service.type))
+                {
+                    continue;
+                }
+
                 if (pkt.flags & POTR_FLAG_NACK)
                 {
                     int j;
@@ -867,6 +941,12 @@ static void *recv_thread_func(void *arg)
             /* REJECT: 欠落外側パケットをスキップして後続パケットを配信する */
             if (pkt.flags & POTR_FLAG_REJECT)
             {
+                /* RAW モードは REJECT を発生させない (念のため無視) */
+                if (potr_is_raw_type(ctx->service.type))
+                {
+                    continue;
+                }
+
                 if (!check_and_update_session(ctx, &pkt))
                 {
                     continue;
@@ -935,31 +1015,51 @@ static void *recv_thread_func(void *arg)
             {
                 /* PING はウィンドウ外: NACK・再送の対象外。
                    seq_num は送信側の next_seq (消費前) を示す。
-                   [recv_window.next_seq, seq_num) の範囲を全スキャンして欠番を一括 NACK する。 */
-                uint32_t scan_seq;
-
-                notify_health_alive(ctx);
-
-                scan_seq = ctx->recv_window.next_seq;
-                while (scan_seq != pkt.seq_num
-                       && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
-                                           ctx->recv_window.window_size))
+                   通常モード: [recv_window.next_seq, seq_num) の範囲を全スキャンして欠番を一括 NACK する。
+                   RAW モード: ギャップがあれば DISCONNECTED を発行してウィンドウを新基点にリセットする。 */
+                if (potr_is_raw_type(ctx->service.type))
                 {
-                    uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
-                                              % ctx->recv_window.window_size);
-                    if (!ctx->recv_window.valid[idx])
+                    /* pkt.seq_num が next_seq より前方にある (= ギャップあり) か判定する。
+                       seqnum_in_window で window_size 以内の前方範囲のみを対象とし、
+                       古い PING (next_seq より後方) は無視する。 */
+                    if (pkt.seq_num != ctx->recv_window.next_seq
+                        && seqnum_in_window(pkt.seq_num,
+                                            ctx->recv_window.next_seq + 1U,
+                                            ctx->recv_window.window_size))
                     {
-                        POTR_LOG(POTR_LOG_DEBUG,
-                                 "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
-                                 ctx->service.service_id, (unsigned)scan_seq);
-                        send_nack(ctx, scan_seq);
+                        raw_session_disconnect(ctx);
+                        window_recv_reset(&ctx->recv_window, pkt.seq_num);
                     }
-                    scan_seq++;
+                    notify_health_alive(ctx);
+                }
+                else
+                {
+                    notify_health_alive(ctx);
+
+                    {
+                        uint32_t scan_seq = ctx->recv_window.next_seq;
+                        while (scan_seq != pkt.seq_num
+                               && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
+                                                   ctx->recv_window.window_size))
+                        {
+                            uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
+                                                      % ctx->recv_window.window_size);
+                            if (!ctx->recv_window.valid[idx])
+                            {
+                                POTR_LOG(POTR_LOG_DEBUG,
+                                         "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
+                                         ctx->service.service_id, (unsigned)scan_seq);
+                                send_nack(ctx, scan_seq);
+                            }
+                            scan_seq++;
+                        }
+                    }
                 }
             }
             else
             {
-                /* DATA: ウィンドウ経由で順序整列・再送管理する */
+                /* DATA: ウィンドウ経由で順序整列・配信 (RAW モードも同じ経路。
+                   RAW モードではギャップ検出時に NACK の代わりに DISCONNECTED を発行する)。 */
                 process_outer_pkt(ctx, &pkt);
             }
         }

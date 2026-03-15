@@ -445,8 +445,8 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
              (unsigned)ctx->global.health_interval_ms,
              (unsigned)ctx->global.health_timeout_ms);
 
-    /* 通信種別に応じてソケットを作成 */
-    switch (ctx->service.type)
+    /* 通信種別に応じてソケットを作成 (RAW 型はベース型に正規化してから判定) */
+    switch (potr_raw_base_type(ctx->service.type))
     {
         case POTR_TYPE_UNICAST:
         {
@@ -607,12 +607,12 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
     ctx->callback = callback;
     ctx->role     = role;
 
-    /* 送信者: 送信先ソケットアドレスを設定 */
+    /* 送信者: 送信先ソケットアドレスを設定 (RAW 型はベース型に正規化してから判定) */
     if (role == POTR_ROLE_SENDER)
     {
         int i;
 
-        switch (ctx->service.type)
+        switch (potr_raw_base_type(ctx->service.type))
         {
             case POTR_TYPE_UNICAST:
                 for (i = 0; i < ctx->n_path; i++)

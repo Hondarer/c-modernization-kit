@@ -10,10 +10,10 @@ porter は UDP/IP を基盤とするクロスプラットフォーム (Linux / W
 |---|---|
 | トランスポート | UDP/IPv4 |
 | 通信モデル | ユニキャスト / マルチキャスト / ブロードキャスト |
-| 再送制御 | NACK ベース、スライディングウィンドウ (最大 256 スロット) |
+| 通信モード | **通常モード**: NACK ベース再送制御・スライディングウィンドウ (最大 256 スロット) <br>**RAW モード** (`*_raw`): 再送なし・ベストエフォート。ギャップ検出時に即 DISCONNECTED を発行 |
 | データ圧縮 | raw DEFLATE (Linux: zlib、Windows: Compression API) |
 | フラグメント化 | 最大 65,535 バイトのメッセージを自動分割・結合 |
-| ヘルスチェック | 定周期 PING による疎通確認と切断検知 |
+| ヘルスチェック | 定周期 PING による疎通確認と切断検知 (通常・RAW モード共通、設定に従う) |
 | マルチパス | 最大 4 経路の並列送信 |
 | プラットフォーム | Linux、Windows 両プラットフォーム対応 |
 
@@ -47,7 +47,7 @@ void on_event(int service_id, PotrEvent event, const void *data, size_t len) {
         /* 送信者からの最初のパケット到着 */
         break;
     case POTR_EVENT_DISCONNECTED:
-        /* タイムアウト / FIN / REJECT 受信 */
+        /* タイムアウト / FIN / REJECT 受信 / RAW モードのギャップ検出 */
         break;
     case POTR_EVENT_DATA:
         /* データ受信: data[0..len-1] に内容 */

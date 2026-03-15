@@ -43,6 +43,12 @@ POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
              "potrSend: service_id=%d len=%zu flags=0x%x",
              ctx->service.service_id, len, (unsigned)flags);
 
+    /* RAW モードは常にブロッキング送信 */
+    if (potr_is_raw_type(ctx->service.type))
+    {
+        flags |= POTR_SEND_BLOCKING;
+    }
+
     /* 圧縮が要求された場合はペイロード全体を圧縮する */
     if ((flags & POTR_SEND_COMPRESS) != 0)
     {

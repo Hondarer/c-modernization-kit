@@ -289,6 +289,18 @@ static void apply_service_kv(const char *key, const char *val,
         {
             current->type = POTR_TYPE_BROADCAST;
         }
+        else if (strcmp(val, "unicast_raw") == 0)
+        {
+            current->type = POTR_TYPE_UNICAST_RAW;
+        }
+        else if (strcmp(val, "multicast_raw") == 0)
+        {
+            current->type = POTR_TYPE_MULTICAST_RAW;
+        }
+        else if (strcmp(val, "broadcast_raw") == 0)
+        {
+            current->type = POTR_TYPE_BROADCAST_RAW;
+        }
     }
     else if (strcmp(key, "dst_port") == 0)
     {

@@ -420,6 +420,75 @@ deactivate CLOSE
 @enduml
 ```
 
+## RAW モード: ギャップ検出による切断と復帰 (DATA)
+
+DATA パケットの追い越し (欠落) を検出した場合のシーケンスです。
+
+```plantuml
+@startuml RAW モード - DATA ギャップ検出
+caption RAW モード - DATA ギャップ検出
+
+participant "送信スレッド" as ST
+participant "UDP\n(送信側)" as SUDP
+participant "UDP\n(受信側)" as RUDP
+participant "受信スレッド" as RRT
+participant "アプリ\n(受信側)" as RAPP
+
+ST -> SUDP: DATA[seq=10] 送信
+ST -> SUDP: DATA[seq=11] 送信 (ロスト)
+ST -> SUDP: DATA[seq=12] 送信
+
+SUDP -> RUDP: DATA[seq=10] 到着
+SUDP -[#red]> RUDP: DATA[seq=11] ロスト
+SUDP -> RUDP: DATA[seq=12] 到着
+
+RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
+RUDP -> RRT: DATA[seq=12] 受信
+
+RRT -> RRT: seq=11 の欠番を検出\n(RAW: NACK は送らない)
+RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+RRT -> RRT: recv_window を seq=12 でリセット
+RRT -> RRT: DATA[seq=12] をウィンドウから取り出し
+
+RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+RRT -> RAPP: callback(POTR_EVENT_DATA, data[seq=12], len)
+
+note over RRT: seq=11 は配信されない\n(欠落として確定)
+
+@enduml
+```
+
+## RAW モード: ギャップ検出による切断と復帰 (PING)
+
+PING の `seq_num` から欠落パケットを検出した場合のシーケンスです。
+
+```plantuml
+@startuml RAW モード - PING ギャップ検出
+caption RAW モード - PING ギャップ検出
+
+participant "ヘルスチェック\nスレッド (送信者)" as HT
+participant "UDP" as UDP
+participant "受信スレッド" as RRT
+participant "アプリ\n(受信側)" as RAPP
+
+note over RRT: recv_window.next_seq = 10
+
+HT -> UDP: DATA[seq=10..12] 送信 (ロスト)
+UDP -[#red]> RRT: DATA[seq=10..12] ロスト
+
+HT -> UDP: PING[seq=13]\n(next_seq=13 を通知)
+UDP -> RRT: PING[seq=13] 受信
+
+RRT -> RRT: pkt.seq_num(13) != next_seq(10)\n→ ギャップあり (window内)
+RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+RRT -> RRT: recv_window を seq=13 でリセット
+RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+
+note over RRT: seq=10〜12 は配信されない\nnext_seq = 13 に更新
+
+@enduml
+```
+
 ## 補足：接続状態の遷移
 
 ```plantuml
@@ -434,7 +503,9 @@ caption 接続状態遷移 (受信者側 health_alive フラグ)
 
 疎通中 --> 未接続 : FIN 受信\n→ POTR_EVENT_DISCONNECTED 発火
 
-疎通中 --> 未接続 : REJECT 受信\n→ POTR_EVENT_DISCONNECTED 発火
+疎通中 --> 未接続 : REJECT 受信 (通常モード)\n→ POTR_EVENT_DISCONNECTED 発火
+
+疎通中 --> 未接続 : ギャップ検出 (RAW モード)\n→ POTR_EVENT_DISCONNECTED 発火
 
 未接続 --> [*] : potrCloseService()\n (DISCONNECTED 発火なし)
 疎通中 --> [*] : potrCloseService()\n (DISCONNECTED 発火なし)

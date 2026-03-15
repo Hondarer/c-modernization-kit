@@ -42,6 +42,29 @@
     #define POTR_INVALID_SOCKET (-1)
 #endif
 
+/** RAW 系通信種別 (POTR_TYPE_*_RAW) か判定する。 */
+static inline int potr_is_raw_type(PotrType t)
+{
+    return t == POTR_TYPE_UNICAST_RAW   ||
+           t == POTR_TYPE_MULTICAST_RAW ||
+           t == POTR_TYPE_BROADCAST_RAW;
+}
+
+/** RAW 系通信種別をベース通信種別に変換する (非 RAW 型はそのまま返す)。 */
+static inline PotrType potr_raw_base_type(PotrType t)
+{
+    switch (t)
+    {
+        case POTR_TYPE_UNICAST_RAW:   return POTR_TYPE_UNICAST;
+        case POTR_TYPE_MULTICAST_RAW: return POTR_TYPE_MULTICAST;
+        case POTR_TYPE_BROADCAST_RAW: return POTR_TYPE_BROADCAST;
+        case POTR_TYPE_UNICAST:
+        case POTR_TYPE_MULTICAST:
+        case POTR_TYPE_BROADCAST:
+        default:                      return t;
+    }
+}
+
 /** NACK 重複抑制リングバッファのスロット数 (POTR_MAX_PATH × 2)。 */
 #define POTR_NACK_DEDUP_SLOTS 8U
 

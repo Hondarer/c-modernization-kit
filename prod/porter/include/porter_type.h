@@ -32,6 +32,18 @@ typedef enum
     POTR_TYPE_UNICAST   = 1, /**< 1:1 通信 (UDP ユニキャスト)。 */
     POTR_TYPE_MULTICAST = 2, /**< 1:N 通信 (UDP マルチキャスト)。 */
     POTR_TYPE_BROADCAST = 3, /**< 1:N 通信 (UDP ブロードキャスト)。 */
+
+    /**
+     *  RAW モード (再送なし、ベストエフォート)。\n
+     *  受信ウィンドウによる順序整列とセッション管理は有効。\n
+     *  ギャップ検出時は NACK の代わりに POTR_EVENT_DISCONNECTED を発行する。\n
+     *  通番は AES ノンス用にインクリメントするが、再送制御には使用しない。\n
+     *  potrSend は常にブロッキング送信。マルチパス対応。\n
+     *  PING ヘルスチェックは health_interval_ms / health_timeout_ms の設定に従う。
+     */
+    POTR_TYPE_UNICAST_RAW   = 4, /**< 1:1 通信 RAW モード (UDP ユニキャスト)。 */
+    POTR_TYPE_MULTICAST_RAW = 5, /**< 1:N 通信 RAW モード (UDP マルチキャスト)。 */
+    POTR_TYPE_BROADCAST_RAW = 6, /**< 1:N 通信 RAW モード (UDP ブロードキャスト)。 */
 } PotrType;
 
 /**
