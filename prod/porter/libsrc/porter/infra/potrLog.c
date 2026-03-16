@@ -191,7 +191,7 @@ static int level_to_syslog_priority(PotrLogLevel level)
 /* ── 公開 API ─────────────────────────────────────────────────────────── */
 
 /* doxygen コメントは porter.h に記載 */
-POTR_API int POTRAPI potrLogConfig(PotrLogLevel  level,
+POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
                                    const char   *log_file,
                                    int           console)
 {

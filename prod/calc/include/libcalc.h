@@ -19,10 +19,11 @@
 
 #include <libcalc_const.h>
 
+#ifdef DOXYGEN
+
 /**
- *  @def            CALC_API
+ *  @def            CALC_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
- *
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
  *  | 条件                                              | 値                       |
@@ -33,36 +34,42 @@
  *  | Windows / `CALC_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
  *  | Windows / `CALC_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
  */
+#define CALC_EXPORT
 
 /**
- *  @def            WINAPI
- *  @brief          Windows 呼び出し規約マクロ。
- *
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。
- *                  Linux (非 Windows) 環境では空に展開されます。
+ *  @def            CALC_API
+ *  @brief          呼び出し規約マクロ。
+ *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+ *                  Linux (非 Windows) 環境では空に展開されます。\n
  *                  既に定義済みの場合は再定義されません。
  */
+#define CALC_API
+
+#else /* DOXYGEN */
+
 #ifndef _WIN32
+    #define CALC_EXPORT
     #define CALC_API
-    #define WINAPI
 #else /* _WIN32 */
     #ifndef __INTELLISENSE__
         #ifndef CALC_STATIC
             #ifdef CALC_EXPORTS
-                #define CALC_API __declspec(dllexport)
+                #define CALC_EXPORT __declspec(dllexport)
             #else /* CALC_EXPORTS */
-                #define CALC_API __declspec(dllimport)
+                #define CALC_EXPORT __declspec(dllimport)
             #endif /* CALC_EXPORTS */
         #else      /* CALC_STATIC */
-            #define CALC_API
+            #define CALC_EXPORT
         #endif /* CALC_STATIC */
     #else      /* __INTELLISENSE__ */
-        #define CALC_API
+        #define CALC_EXPORT
     #endif /* __INTELLISENSE__ */
-    #ifndef WINAPI
-        #define WINAPI __stdcall
-    #endif /* WINAPI */
+    #ifndef CALC_API
+        #define CALC_API __stdcall
+    #endif /* CALC_API */
 #endif     /* _WIN32 */
+
+#endif /* DOXYGEN */
 
 #ifdef __cplusplus
 extern "C"
@@ -102,7 +109,7 @@ extern "C"
      *                  呼び出し側で戻り値のチェックを行ってください。
      *******************************************************************************
      */
-    CALC_API extern int WINAPI calcHandler(const int kind, const int a, const int b, int *result);
+    CALC_EXPORT extern int CALC_API calcHandler(const int kind, const int a, const int b, int *result);
 
 #ifdef __cplusplus
 }

@@ -302,7 +302,7 @@ static void ctx_cleanup(struct PotrContext_ *ctx)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-POTR_API int POTRAPI potrOpenService(const char       *config_path,
+POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                                      int               service_id,
                                      PotrRole          role,
                                      PotrRecvCallback  callback,

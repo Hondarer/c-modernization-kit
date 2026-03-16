@@ -14,10 +14,11 @@ typedef struct stat file_stat_t;
 typedef struct _stat64 file_stat_t;
 #endif /* _WIN32 */
 
+#ifdef DOXYGEN
+
 /**
- *  @def            FILE_UTIL_API
+ *  @def            FILE_UTIL_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
- *
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
  *  | 条件                                                   | 値                       |
@@ -28,36 +29,42 @@ typedef struct _stat64 file_stat_t;
  *  | Windows / `FILE_UTIL_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
  *  | Windows / `FILE_UTIL_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
  */
+#define FILE_UTIL_EXPORT
 
 /**
- *  @def            WINAPI
- *  @brief          Windows 呼び出し規約マクロ。
- *
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。
- *                  Linux (非 Windows) 環境では空に展開されます。
+ *  @def            FILE_UTIL_API
+ *  @brief          呼び出し規約マクロ。
+ *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+ *                  Linux (非 Windows) 環境では空に展開されます。\n
  *                  既に定義済みの場合は再定義されません。
  */
+#define FILE_UTIL_API
+
+#else /* DOXYGEN */
+
 #ifndef _WIN32
+    #define FILE_UTIL_EXPORT
     #define FILE_UTIL_API
-    #define WINAPI
 #else /* _WIN32 */
     #ifndef __INTELLISENSE__
         #ifndef FILE_UTIL_STATIC
             #ifdef FILE_UTIL_EXPORTS
-                #define FILE_UTIL_API __declspec(dllexport)
+                #define FILE_UTIL_EXPORT __declspec(dllexport)
             #else /* FILE_UTIL_EXPORTS */
-                #define FILE_UTIL_API __declspec(dllimport)
+                #define FILE_UTIL_EXPORT __declspec(dllimport)
             #endif /* FILE_UTIL_EXPORTS */
         #else      /* FILE_UTIL_STATIC */
-            #define FILE_UTIL_API
+            #define FILE_UTIL_EXPORT
         #endif /* FILE_UTIL_STATIC */
     #else      /* __INTELLISENSE__ */
-        #define FILE_UTIL_API
+        #define FILE_UTIL_EXPORT
     #endif /* __INTELLISENSE__ */
-    #ifndef WINAPI
-        #define WINAPI __stdcall
-    #endif /* WINAPI */
+    #ifndef FILE_UTIL_API
+        #define FILE_UTIL_API __stdcall
+    #endif /* FILE_UTIL_API */
 #endif     /* _WIN32 */
+
+#endif /* DOXYGEN */
 
 #ifdef __cplusplus
 extern "C"
@@ -108,7 +115,7 @@ extern "C"
         FILE *fp = fopen_printf("r", &err, "data_%d.txt", 123);
         @endcode
      */
-    FILE_UTIL_API FILE *WINAPI fopen_printf(const char *modes, int *errno_out, const char *format, ...)
+    FILE_UTIL_EXPORT FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 4)))
 #endif
@@ -136,7 +143,7 @@ extern "C"
      *                      - Windows には st_blksize, st_blocks フィールドがありません
      *                      - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
      */
-    FILE_UTIL_API int WINAPI stat_printf(file_stat_t *buf, const char *format, ...)
+    FILE_UTIL_EXPORT int FILE_UTIL_API stat_printf(file_stat_t *buf, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 3)))
 #endif

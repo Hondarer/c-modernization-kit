@@ -70,7 +70,7 @@ static void send_fin(struct PotrContext_ *ctx)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-POTR_API int POTRAPI potrCloseService(PotrHandle handle)
+POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)handle;
 

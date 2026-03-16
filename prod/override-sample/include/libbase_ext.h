@@ -17,10 +17,11 @@
 #ifndef LIBBASE_EXT_H
 #define LIBBASE_EXT_H
 
+#ifdef DOXYGEN
+
 /**
- *  @def            BASE_EXT_API
+ *  @def            BASE_EXT_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
- *
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
  *  | 条件                                                  | 値                       |
@@ -31,36 +32,42 @@
  *  | Windows / `BASE_EXT_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
  *  | Windows / `BASE_EXT_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
  */
+#define BASE_EXT_EXPORT
 
 /**
- *  @def            WINAPI
- *  @brief          Windows 呼び出し規約マクロ。
- *
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。
- *                  Linux (非 Windows) 環境では空に展開されます。
+ *  @def            BASE_EXT_API
+ *  @brief          呼び出し規約マクロ。
+ *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+ *                  Linux (非 Windows) 環境では空に展開されます。\n
  *                  既に定義済みの場合は再定義されません。
  */
+#define BASE_EXT_API
+
+#else /* DOXYGEN */
+
 #ifndef _WIN32
+    #define BASE_EXT_EXPORT
     #define BASE_EXT_API
-    #define WINAPI
 #else /* _WIN32 */
     #ifndef __INTELLISENSE__
         #ifndef BASE_EXT_STATIC
             #ifdef BASE_EXT_EXPORTS
-                #define BASE_EXT_API __declspec(dllexport)
+                #define BASE_EXT_EXPORT __declspec(dllexport)
             #else /* BASE_EXT_EXPORTS */
-                #define BASE_EXT_API __declspec(dllimport)
+                #define BASE_EXT_EXPORT __declspec(dllimport)
             #endif /* BASE_EXT_EXPORTS */
         #else      /* BASE_EXT_STATIC */
-            #define BASE_EXT_API
+            #define BASE_EXT_EXPORT
         #endif /* BASE_EXT_STATIC */
     #else      /* __INTELLISENSE__ */
-        #define BASE_EXT_API
+        #define BASE_EXT_EXPORT
     #endif /* __INTELLISENSE__ */
-    #ifndef WINAPI
-        #define WINAPI __stdcall
-    #endif /* WINAPI */
+    #ifndef BASE_EXT_API
+        #define BASE_EXT_API __stdcall
+    #endif /* BASE_EXT_API */
 #endif     /* _WIN32 */
+
+#endif /* DOXYGEN */
 
 #ifdef __cplusplus
 extern "C"
@@ -90,7 +97,7 @@ extern "C"
      *  @warning        result が NULL の場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_EXT_API extern int WINAPI override_func(const int a, const int b, int *result);
+    BASE_EXT_EXPORT extern int BASE_EXT_API override_func(const int a, const int b, int *result);
 
 #ifdef __cplusplus
 }

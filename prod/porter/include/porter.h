@@ -19,10 +19,11 @@
 
 #include <porter_type.h>
 
+#ifdef DOXYGEN
+
 /**
- *  @def            POTR_API
+ *  @def            POTR_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
- *
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
  *  | 条件                                                  | 値                       |
@@ -33,36 +34,42 @@
  *  | Windows / `POTR_EXPORTS` 定義時 (DLL ビルド)          | `__declspec(dllexport)`  |
  *  | Windows / `POTR_EXPORTS` 未定義時 (DLL 利用側)        | `__declspec(dllimport)`  |
  */
+#define POTR_EXPORT
 
 /**
- *  @def            POTRAPI
- *  @brief          Windows 呼び出し規約マクロ。
- *
+ *  @def            POTR_API
+ *  @brief          呼び出し規約マクロ。
  *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
  *                  Linux (非 Windows) 環境では空に展開されます。\n
  *                  既に定義済みの場合は再定義されません。
  */
+#define POTR_API
+
+#else /* DOXYGEN */
+
 #ifndef _WIN32
+    #define POTR_EXPORT
     #define POTR_API
-    #define POTRAPI
 #else /* _WIN32 */
     #ifndef __INTELLISENSE__
         #ifndef POTR_STATIC
             #ifdef POTR_EXPORTS
-                #define POTR_API __declspec(dllexport)
+                #define POTR_EXPORT __declspec(dllexport)
             #else /* POTR_EXPORTS */
-                #define POTR_API __declspec(dllimport)
+                #define POTR_EXPORT __declspec(dllimport)
             #endif /* POTR_EXPORTS */
         #else      /* POTR_STATIC */
-            #define POTR_API
+            #define POTR_EXPORT
         #endif /* POTR_STATIC */
     #else      /* __INTELLISENSE__ */
-        #define POTR_API
+        #define POTR_EXPORT
     #endif /* __INTELLISENSE__ */
-    #ifndef POTRAPI
-        #define POTRAPI __stdcall
-    #endif /* POTRAPI */
+    #ifndef POTR_API
+        #define POTR_API __stdcall
+    #endif /* POTR_API */
 #endif     /* _WIN32 */
+
+#endif /* DOXYGEN */
 
 #ifdef __cplusplus
 extern "C"
@@ -135,7 +142,7 @@ extern "C"
      *                  POTR_ROLE_SENDER かつ callback が NULL でない場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_API extern int POTRAPI potrOpenService(const char       *config_path,
+    POTR_EXPORT extern int POTR_API potrOpenService(const char       *config_path,
                                                 int               service_id,
                                                 PotrRole          role,
                                                 PotrRecvCallback  callback,
@@ -197,7 +204,7 @@ extern "C"
      *                  送信スレッドが停止している場合 (potrCloseService 呼び出し後など) は失敗を返します。
      *******************************************************************************
      */
-    POTR_API extern int POTRAPI potrSend(PotrHandle  handle,
+    POTR_EXPORT extern int POTR_API potrSend(PotrHandle  handle,
                                          const void *data,
                                          size_t      len,
                                          int         flags);
@@ -222,7 +229,7 @@ extern "C"
      *  @warning        handle が NULL の場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_API extern int POTRAPI potrCloseService(PotrHandle handle);
+    POTR_EXPORT extern int POTR_API potrCloseService(PotrHandle handle);
 
     /**
      *******************************************************************************
@@ -276,7 +283,7 @@ extern "C"
      *                  存在する場合でも安全に動作します (内部でミューテックスを使用)。
      *******************************************************************************
      */
-    POTR_API extern int POTRAPI potrLogConfig(PotrLogLevel  level,
+    POTR_EXPORT extern int POTR_API potrLogConfig(PotrLogLevel  level,
                                               const char   *log_file,
                                               int           console);
 

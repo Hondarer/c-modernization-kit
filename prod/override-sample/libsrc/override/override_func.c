@@ -18,7 +18,7 @@
 #include <stddef.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int WINAPI override_func(const int a, const int b, int *result)
+int BASE_EXT_API override_func(const int a, const int b, int *result)
 {
     if (result == NULL)
     {

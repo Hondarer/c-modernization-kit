@@ -31,10 +31,11 @@
     #include <windows.h>
 #endif /* _WIN32 */
 
+#ifdef DOXYGEN
+
 /**
- *  @def            BASE_API
+ *  @def            BASE_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
- *
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
  *  | 条件                                              | 値                       |
@@ -45,36 +46,42 @@
  *  | Windows / `BASE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
  *  | Windows / `BASE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
  */
+#define BASE_EXPORT
 
 /**
- *  @def            WINAPI
- *  @brief          Windows 呼び出し規約マクロ。
- *
+ *  @def            BASE_API
+ *  @brief          呼び出し規約マクロ。
  *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
  *                  Linux (非 Windows) 環境では空に展開されます。\n
  *                  既に定義済みの場合は再定義されません。
  */
+#define BASE_API
+
+#else /* DOXYGEN */
+
 #ifndef _WIN32
+    #define BASE_EXPORT
     #define BASE_API
-    #define WINAPI
 #else /* _WIN32 */
     #ifndef __INTELLISENSE__
         #ifndef BASE_STATIC
             #ifdef BASE_EXPORTS
-                #define BASE_API __declspec(dllexport)
+                #define BASE_EXPORT __declspec(dllexport)
             #else /* BASE_EXPORTS */
-                #define BASE_API __declspec(dllimport)
+                #define BASE_EXPORT __declspec(dllimport)
             #endif /* BASE_EXPORTS */
         #else      /* BASE_STATIC */
-            #define BASE_API
+            #define BASE_EXPORT
         #endif /* BASE_STATIC */
     #else      /* __INTELLISENSE__ */
-        #define BASE_API
+        #define BASE_EXPORT
     #endif /* __INTELLISENSE__ */
-    #ifndef WINAPI
-        #define WINAPI __stdcall
-    #endif /* WINAPI */
+    #ifndef BASE_API
+        #define BASE_API __stdcall
+    #endif /* BASE_API */
 #endif     /* _WIN32 */
+
+#endif /* DOXYGEN */
 
 #ifdef __cplusplus
 extern "C"
@@ -92,7 +99,7 @@ extern "C"
      *  @warning        result が NULL の場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_API extern int WINAPI sample_func(const int a, const int b, int *result);
+    BASE_EXPORT extern int BASE_API sample_func(const int a, const int b, int *result);
 
     /**
      *******************************************************************************
@@ -109,7 +116,7 @@ extern "C"
         @endcode
      *******************************************************************************
      */
-    BASE_API extern void WINAPI console_output(const char *format, ...);
+    BASE_EXPORT extern void BASE_API console_output(const char *format, ...);
 
     /**
      *******************************************************************************
@@ -121,7 +128,7 @@ extern "C"
      *  @return         関数が成功した場合、0 を返します。失敗した場合は 0 以外を返します。
      *******************************************************************************
      */
-    BASE_API extern int WINAPI get_lib_path(char *out_path, const size_t out_path_sz, const void *func_addr);
+    BASE_EXPORT extern int BASE_API get_lib_path(char *out_path, const size_t out_path_sz, const void *func_addr);
 
     /**
      *******************************************************************************
@@ -136,7 +143,7 @@ extern "C"
      *  @return         関数が成功した場合、0 を返します。失敗した場合は 0 以外を返します。
      *******************************************************************************
      */
-    BASE_API extern int WINAPI get_lib_basename(char *out_basename, const size_t out_basename_sz,
+    BASE_EXPORT extern int BASE_API get_lib_basename(char *out_basename, const size_t out_basename_sz,
                                                 const void *func_addr);
 
     /* --- funcman START ---*/
@@ -200,7 +207,7 @@ extern "C"
      *  @return         成功時 void * (関数ポインタ)、失敗時 NULL。
      *******************************************************************************
      */
-    BASE_API extern void *WINAPI _funcman_get_func(funcman_object *fobj);
+    BASE_EXPORT extern void *BASE_API _funcman_get_func(funcman_object *fobj);
 
 /**
  *  @def            funcman_get_func
@@ -222,7 +229,7 @@ extern "C"
      *  @return         明示的デフォルトの場合は 1、それ以外は 0。
      *******************************************************************************
      */
-    BASE_API extern int WINAPI funcman_is_declared_default(const funcman_object *fobj);
+    BASE_EXPORT extern int BASE_API funcman_is_declared_default(const funcman_object *fobj);
 
     /**
      *******************************************************************************
@@ -235,7 +242,7 @@ extern "C"
      *  @param[in]      configpath  定義ファイルのパス。
      *******************************************************************************
      */
-    BASE_API extern void WINAPI funcman_init(funcman_object *const *fobj_array, const size_t fobj_length,
+    BASE_EXPORT extern void BASE_API funcman_init(funcman_object *const *fobj_array, const size_t fobj_length,
                                              const char *configpath);
 
     /**
@@ -248,7 +255,7 @@ extern "C"
      *  @param[in]      fobj_length 配列の要素数。
      *******************************************************************************
      */
-    BASE_API extern void WINAPI funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length);
+    BASE_EXPORT extern void BASE_API funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length);
 
     /**
      *******************************************************************************
@@ -259,7 +266,7 @@ extern "C"
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_API extern int WINAPI funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
+    BASE_EXPORT extern int BASE_API funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
 
     /**
      *******************************************************************************
@@ -267,7 +274,7 @@ extern "C"
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_API extern int WINAPI funcman_info_libbase(void);
+    BASE_EXPORT extern int BASE_API funcman_info_libbase(void);
 
     /* --- funcman END ---*/
 

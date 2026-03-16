@@ -20,7 +20,7 @@
 #include "../infra/potrLog.h"
 
 /* doxygen コメントは、ヘッダに記載 */
-POTR_API int POTRAPI potrSend(PotrHandle handle, const void *data, size_t len,
+POTR_EXPORT int POTR_API potrSend(PotrHandle handle, const void *data, size_t len,
                               int flags)
 {
     struct PotrContext_ *ctx       = (struct PotrContext_ *)handle;
