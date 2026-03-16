@@ -96,7 +96,6 @@ typedef struct
     /* 暗号化設定 (AES-256-GCM) */
     uint8_t  encrypt_key[POTR_CRYPTO_KEY_SIZE]; /**< AES-256-GCM 事前共有鍵 (32 バイト)。encrypt_enabled が 0 の場合は未使用。 */
     int      encrypt_enabled;                   /**< 非 0 のとき暗号化有効。設定ファイルに有効な encrypt_key が存在するときに 1 に設定される。 */
-    uint32_t _pad_encrypt;                      /**< パディング (PotrServiceDef + PotrGlobalConfig のバイト和を 8 バイト境界に揃える)。 */
 } PotrServiceDef;
 
 /**

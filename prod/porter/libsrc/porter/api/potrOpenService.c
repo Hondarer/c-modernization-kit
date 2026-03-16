@@ -599,6 +599,11 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
             break;
         }
 
+        case POTR_TYPE_UNICAST_RAW:
+        case POTR_TYPE_MULTICAST_RAW:
+        case POTR_TYPE_BROADCAST_RAW:
+            /* potr_raw_base_type() は RAW 型をベース型に変換するため、ここには到達しない */
+            /* fall through */
         default:
             ctx_cleanup(ctx);
             return POTR_ERROR;
@@ -660,6 +665,11 @@ POTR_API int POTRAPI potrOpenService(const char       *config_path,
                 break;
             }
 
+            case POTR_TYPE_UNICAST_RAW:
+            case POTR_TYPE_MULTICAST_RAW:
+            case POTR_TYPE_BROADCAST_RAW:
+                /* potr_raw_base_type() は RAW 型をベース型に変換するため、ここには到達しない */
+                /* fall through */
             default:
                 break;
         }
