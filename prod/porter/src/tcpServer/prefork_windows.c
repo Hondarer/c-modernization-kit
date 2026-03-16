@@ -1,24 +1,24 @@
 /**
- * prefork_windows.c
+ *******************************************************************************
+ *  @file           prefork_windows.c
+ *  @brief          プリフォークモデル TCP サーバーのサンプル (Windows)。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/03/17
+ *  @version        1.0.0
  *
- * プリフォークモデル (Windows)
+ *  Windows には fork() がないため、起動時に CreateProcess() で
+ *  ワーカープロセスを生成し、名前付きパイプで通信する。
  *
- * 概要:
- *   Windows には fork() がないため、起動時に CreateProcess() で
- *   ワーカープロセスを生成し、名前付きパイプで通信する。
+ *  親プロセスが accept() で接続を受け付け、空きワーカーにソケットハンドルを渡す。
+ *  全ワーカーがビジーの場合はいずれかが空くまで待機する。
  *
- *   親プロセスが accept() で接続を受け付け、空きワーカーに
- *   ソケットハンドルを渡す。全ワーカーがビジーの場合は
- *   いずれかが空くまで待機する。
+ *  ビルド (Visual Studio Developer Command Prompt): `cl prefork_windows.c`\n
+ *  実行: `prefork_windows.exe`\n
+ *  テスト: `telnet localhost 8080`
  *
- * ビルド (Visual Studio Developer Command Prompt):
- *   cl prefork_windows.c
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
- * 実行:
- *   prefork_windows.exe
- *
- * テスト:
- *   telnet localhost 8080
+ *******************************************************************************
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -35,21 +35,29 @@
 #define BUFFER_SIZE 1024
 #define PIPE_NAME_FMT "\\\\.\\pipe\\worker_%d"
 
+/**
+ *******************************************************************************
+ *  @brief          ワーカープロセスの情報を管理する構造体。
+ *******************************************************************************
+ */
 typedef struct {
-    HANDLE pipe;      /* ワーカーとの通信用パイプ */
-    HANDLE process;   /* ワーカープロセスのハンドル */
-    BOOL busy;        /* ワーカーが処理中かどうか */
+    HANDLE pipe;      /**< ワーカーとの通信用パイプ。 */
+    HANDLE process;   /**< ワーカープロセスのハンドル。 */
+    BOOL busy;        /**< ワーカーが処理中かどうかを示すフラグ。 */
 } WorkerInfo;
 
-static WorkerInfo workers[NUM_WORKERS];
-static HANDLE worker_events[NUM_WORKERS];  /* ワーカーが空いたことを通知 */
+static WorkerInfo workers[NUM_WORKERS];           /**< ワーカー情報の配列。 */
+static HANDLE worker_events[NUM_WORKERS];         /**< ワーカーが空いたことを通知するイベント。 */
 
 /**
- * ワーカープロセスとして実行
+ *******************************************************************************
+ *  @brief          ワーカープロセスとして実行します。
+ *  @param[in]      pipe_name 親プロセスへ接続するパイプの名前。
  *
- * コマンドライン引数でパイプ名を受け取り、親プロセスと通信する。
- * 親からソケットハンドルを受け取り、クライアントと通信後、
- * 完了を通知して次のソケットを待つ。
+ *  コマンドライン引数でパイプ名を受け取り、親プロセスと通信する。
+ *  親からソケットハンドルを受け取り、クライアントと通信後、
+ *  完了を通知して次のソケットを待つ。
+ *******************************************************************************
  */
 void run_as_worker(const char* pipe_name) {
     char buffer[BUFFER_SIZE];
@@ -105,10 +113,14 @@ void run_as_worker(const char* pipe_name) {
 }
 
 /**
- * ワーカーの完了を監視するスレッド
+ *******************************************************************************
+ *  @brief          ワーカーの完了を監視するスレッド。
+ *  @param[in]      arg ワーカー ID (int) を void* にキャストした値。
+ *  @return         スレッド終了時は 0 を返します。
  *
- * 各ワーカーに対して1つのスレッドが割り当てられ、
- * ワーカーからの完了通知を待機する。
+ *  各ワーカーに対して 1 つのスレッドが割り当てられ、
+ *  ワーカーからの完了通知を待機する。
+ *******************************************************************************
  */
 unsigned __stdcall worker_monitor_thread(void* arg) {
     int worker_id = (int)(intptr_t)arg;
@@ -127,10 +139,13 @@ unsigned __stdcall worker_monitor_thread(void* arg) {
 }
 
 /**
- * 空きワーカーを探す
+ *******************************************************************************
+ *  @brief          空きワーカーのインデックスを返します。
+ *  @return         空きワーカーのインデックス (0 ～ NUM_WORKERS - 1)。
  *
- * 全ワーカーがビジーの場合は WaitForMultipleObjects で
- * いずれかが空くまで待機する。
+ *  全ワーカーがビジーの場合は WaitForMultipleObjects で
+ *  いずれかが空くまで待機する。
+ *******************************************************************************
  */
 int find_free_worker(void) {
     while (1) {
@@ -145,7 +160,14 @@ int find_free_worker(void) {
 }
 
 /**
- * ワーカープロセスの起動
+ *******************************************************************************
+ *  @brief          NUM_WORKERS 個のワーカープロセスを起動します。
+ *
+ *  各ワーカーに対して名前付きパイプと監視スレッドを作成し、
+ *  自分自身を `--worker <pipe_name>` 引数付きで再起動する。
+ *
+ *  @attention      パイプ作成またはプロセス起動に失敗した場合は exit() で終了します。
+ *******************************************************************************
  */
 void start_workers(void) {
     char pipe_name[64];
@@ -199,6 +221,18 @@ void start_workers(void) {
     }
 }
 
+/**
+ *******************************************************************************
+ *  @brief          メインエントリーポイント。
+ *  @param[in]      argc コマンドライン引数の数。
+ *  @param[in]      argv コマンドライン引数の配列。
+ *  @return         正常終了時は 0 を返します。
+ *
+ *  `--worker <pipe_name>` 引数付きで起動された場合はワーカーとして動作する。
+ *  引数なしで起動された場合は親プロセスとして NUM_WORKERS 個のワーカーを
+ *  起動し、accept ループで接続を受け付けて空きワーカーに振り分ける。
+ *******************************************************************************
+ */
 int main(int argc, char* argv[]) {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
