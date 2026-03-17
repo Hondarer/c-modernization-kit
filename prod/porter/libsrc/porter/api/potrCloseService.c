@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- *  @file           potrCloseServiceService.c
- *  @brief          potrCloseServiceService 関数の実装。
+ *  @file           potrCloseService.c
+ *  @brief          potrCloseService 関数の実装。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/04
  *  @version        1.0.0
