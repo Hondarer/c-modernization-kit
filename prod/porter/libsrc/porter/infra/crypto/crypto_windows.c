@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           crypto_win.c
+ *  @file           crypto_windows.c
  *  @brief          Windows 向け暗号化・復号モジュール (CNG AES-256-GCM)。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/12

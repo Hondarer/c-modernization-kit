@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           compress_win.c
+ *  @file           compress_windows.c
  *  @brief          Windows 向け圧縮・解凍モジュール (Compression API)。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/05
