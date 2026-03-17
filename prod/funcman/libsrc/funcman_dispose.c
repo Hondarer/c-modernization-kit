@@ -11,7 +11,7 @@
  *******************************************************************************
  */
 
-#include <libbase.h>
+#include <funcman.h>
 
 /* doxygen コメントは、ヘッダに記載 */
 void funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length)

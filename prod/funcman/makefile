@@ -1,11 +1,5 @@
 SUBDIRS = \
-	calc \
-	calc.net \
-	subfolder-sample \
-	util \
-	funcman \
-	override-sample \
-	porter
+	libsrc
 
 .DEFAULT_GOAL := default
 
@@ -14,9 +8,6 @@ default : $(SUBDIRS)
 
 .PHONY: clean
 clean : $(SUBDIRS)
-
-.PHONY: test
-test : $(SUBDIRS)
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :

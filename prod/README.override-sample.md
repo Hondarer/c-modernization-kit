@@ -6,6 +6,8 @@
 
 `libbase` が公開する `sample_func` 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。
 
+funcman 機構 (関数の動的呼び出しキャッシュ) は `prod/funcman/` として独立した静的ライブラリに分離されており、`libbase` はそれをリンクして利用します。
+
 | 設定ファイルの状態 | 動作 |
 |---|---|
 | 存在しない (または定義なし) | `libbase` 自身が処理を行う (`a + b`) |
@@ -18,23 +20,15 @@
 ```text
 prod/override-sample/
 +-- include/
-|   +-- libbase.h              # libbase ヘッダー (sample_func, console_output 等の宣言、funcman 型定義)
+|   +-- libbase.h              # libbase ヘッダー (sample_func, console_output 等の宣言)
 |   +-- libbase_ext.h          # liboverride ヘッダー (override_func の宣言)
-|   +-- dllmain.h              # 汎用 DLL ロード・アンロードフックヘッダー
 +-- libsrc/
 |   +-- base/
-|   |   +-- funcman/           # 関数ポインタキャッシュ管理 (funcman)
-|   |   |   +-- funcman_init.c          # 設定ファイルからの初期化
-|   |   |   +-- funcman_get_func.c      # 関数ポインタ取得 (スレッドセーフ)
-|   |   |   +-- funcman_is_declared_default.c  # 明示的デフォルト判定
-|   |   |   +-- funcman_dispose.c       # クリーンアップ処理
-|   |   |   +-- funcman_info.c          # 情報表示
 |   |   +-- funcman_libbase.h  # funcman オブジェクトの extern 宣言
 |   |   +-- funcman_libbase.c  # funcman オブジェクトの実体定義
 |   |   +-- sample_func.c      # sample_func の実装 (funcman 経由でオーバーライドを呼び出す)
 |   |   +-- console_output.c   # console_output の実装 (printf ラッパー)
 |   |   +-- dllmain_libbase.c  # onLoad / onUnload の実装
-|   |   +-- get_lib_info.c     # ライブラリパス取得ユーティリティ
 |   +-- override/
 |       +-- override_func.c    # override_func の実装 (libbase から dlopen で呼ばれる)
 +-- src/
@@ -45,6 +39,8 @@ prod/override-sample/
 +-- lib/                       # ビルド済みライブラリ (libbase.so / liboverride.so / libbase.dll / liboverride.dll)
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
+
+funcman 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `prod/funcman/` として独立した静的ライブラリ (`libfuncman.a`) に分離されています。
 
 ## ライブラリ
 
@@ -69,15 +65,6 @@ void WINAPI console_output(const char *format, ...);
 
 `printf` と同じ書式でコンソールに出力する関数です。  
 `liboverride` からも呼び出しています。これは、動的にロードされた拡張処理から基底ライブラリの関数を呼び出すことができることのサンプル実装です。
-
-#### get_lib_path / get_lib_basename
-
-```c
-int WINAPI get_lib_path(char *out_path, const size_t out_path_sz, const void *func_addr);
-int WINAPI get_lib_basename(char *out_basename, const size_t out_basename_sz, const void *func_addr);
-```
-
-指定した関数が所属する共有ライブラリの絶対パスまたは basename (パスなし・拡張子なし) を取得します。設定ファイルパスの構築に内部で使用しています。
 
 ### liboverride (動的ライブラリ)
 

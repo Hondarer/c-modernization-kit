@@ -1,7 +1,3 @@
-# makefile テンプレート
-# すべての最終階層 makefile で使用する標準テンプレート
-# 本ファイルの編集は禁止する。makepart.mk を作成して拡張・カスタマイズすること。
-
 # ワークスペースのディレクトリ
 find-up = \
     $(if $(wildcard $(1)/$(2)),$(1),\
@@ -16,5 +12,5 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+# C/C++ 静的ライブラリ用テンプレートを include
+include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc_c_cpp.mk

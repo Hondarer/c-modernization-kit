@@ -11,7 +11,7 @@
  *******************************************************************************
  */
 
-#include <libbase.h>
+#include <funcman.h>
 
 /* doxygen コメントは、ヘッダに記載 */
 int funcman_is_declared_default(const funcman_object *fobj)
