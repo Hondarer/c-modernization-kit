@@ -307,14 +307,7 @@ static void start_prefork_workers(WorkerInfo *workers, HANDLE *events, int n) {
  *  プラットフォームフック
  * ============================================================ */
 
-/**
- *******************************************************************************
- *  @brief          プラットフォーム初期化 (Windows: WSAStartup + g_session_fn の設定)。
- *  @param[in]      session_fn セッション処理関数。g_session_fn に保存されます。
- *
- *  @attention      WSAStartup に失敗した場合は exit() で終了します。
- *******************************************************************************
- */
+/* doxygen コメントは、ヘッダに記載 */
 void platform_init(ClientSessionFn session_fn) {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -324,27 +317,12 @@ void platform_init(ClientSessionFn session_fn) {
     g_session_fn = session_fn;
 }
 
-/**
- *******************************************************************************
- *  @brief          プラットフォーム後処理 (Windows: WSACleanup)。
- *******************************************************************************
- */
+/* doxygen コメントは、ヘッダに記載 */
 void platform_cleanup(void) {
     WSACleanup();
 }
 
-/**
- *******************************************************************************
- *  @brief          内部起動引数を処理します。
- *  @param[in]      argc コマンドライン引数の数。
- *  @param[in]      argv コマンドライン引数の配列。
- *  @return         内部起動引数を処理した場合は 1、通常起動の場合は 0 を返します。
- *
- *  `--child <handle>` を検出した場合は run_as_fork_child() を呼び出します
- *  (内部で ExitProcess() するため戻りません)。
- *  `--worker <pipe>` を検出した場合は worker_loop() を呼び出して 1 を返します。
- *******************************************************************************
- */
+/* doxygen コメントは、ヘッダに記載 */
 int dispatch_internal_args(int argc, char *argv[]) {
     for (int i = 1; i < argc - 1; i++) {
         if (strcmp(argv[i], "--child") == 0) {
@@ -364,15 +342,7 @@ int dispatch_internal_args(int argc, char *argv[]) {
  *  サーバー実装
  * ============================================================ */
 
-/**
- *******************************************************************************
- *  @brief          fork モードのサーバーを起動します。
- *  @param[in]      port 待ち受けポート番号。
- *
- *  接続を受け付けるたびに自分自身を `--child <handle>` で子プロセスとして再起動し、
- *  ソケットハンドルをコマンドライン引数で渡します。
- *******************************************************************************
- */
+/* doxygen コメントは、ヘッダに記載 */
 void run_fork_server(int port) {
     SOCKET listen_socket = create_listen_socket(port);
     char   exepath[MAX_PATH];
@@ -408,16 +378,7 @@ void run_fork_server(int port) {
     }
 }
 
-/**
- *******************************************************************************
- *  @brief          prefork モードのサーバーを起動します。
- *  @param[in]      port        待ち受けポート番号。
- *  @param[in]      num_workers 事前生成するワーカープロセス数。
- *
- *  num_workers 個のワーカーを起動後、accept ループで接続を受け付けて
- *  空きワーカーにソケットハンドルを振り分けます。
- *******************************************************************************
- */
+/* doxygen コメントは、ヘッダに記載 */
 void run_prefork_server(int port, int num_workers) {
     WorkerInfo *workers = (WorkerInfo *)malloc((size_t)num_workers * sizeof(WorkerInfo));
     HANDLE     *events  = (HANDLE *)malloc((size_t)num_workers * sizeof(HANDLE));

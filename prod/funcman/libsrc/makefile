@@ -1,16 +1,19 @@
-# ワークスペースのディレクトリ
-find-up = \
-    $(if $(wildcard $(1)/$(2)),$(1),\
-        $(if $(filter $(1),$(patsubst %/,%,$(dir $(1)))),,\
-            $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
-        )\
-    )
-WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+SUBDIRS = \
+	funcman
 
-# 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+.DEFAULT_GOAL := default
 
-##### makepart.mk の内容は、このタイミングで処理される #####
+.PHONY: default
+default : $(SUBDIRS)
 
-# C/C++ 静的ライブラリ用テンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makelibsrc_c_cpp.mk
+.PHONY: clean
+clean : $(SUBDIRS)
+
+.PHONY: $(SUBDIRS)
+$(SUBDIRS) :
+	@if [ -f $@/makefile ]; then \
+		echo $(MAKE) -C $@ $(MAKECMDGOALS); \
+		$(MAKE) -C $@ $(MAKECMDGOALS) || exit 1; \
+	else \
+		echo "Skipping directory '$@' (no makefile)"; \
+	fi
