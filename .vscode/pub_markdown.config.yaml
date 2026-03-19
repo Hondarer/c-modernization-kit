@@ -27,8 +27,7 @@
 # docx テンプレートの指定
 #docxTemplate: styles/docx/docx-style.dotx
 # docx の出力有無 (true / false)
-# デフォルト: false
-#docxOutput: false
+docxOutput: true
 # date 自動設定の有無 (false / true)
 #autoSetDate: true
 # author 自動設定の有無 (false / true)
