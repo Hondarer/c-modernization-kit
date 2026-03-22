@@ -46,9 +46,9 @@
  *******************************************************************************
  */
 typedef struct {
-    HANDLE pipe;      /**< ワーカーとの通信用パイプ。 */
-    HANDLE process;   /**< ワーカープロセスのハンドル。 */
-    BOOL   busy;      /**< ワーカーが処理中かどうかを示すフラグ。 */
+    HANDLE pipe;       /**< ワーカーとの通信用パイプ。 */
+    HANDLE process;    /**< ワーカープロセスのハンドル。 */
+    int    conn_count; /**< 現在処理中のアクティブ接続数。 */
 } WorkerInfo;
 
 /**
@@ -57,9 +57,10 @@ typedef struct {
  *******************************************************************************
  */
 typedef struct {
-    int          id;      /**< ワーカー ID。 */
-    WorkerInfo  *workers; /**< ワーカー情報配列へのポインタ。 */
-    HANDLE      *events;  /**< ワーカーイベント配列へのポインタ。 */
+    int          id;              /**< ワーカー ID。 */
+    WorkerInfo  *workers;         /**< ワーカー情報配列へのポインタ。 */
+    HANDLE      *events;          /**< ワーカーイベント配列へのポインタ。 */
+    int          conns_per_worker; /**< 1 ワーカーあたりの同時接続数上限。 */
 } WorkerMonitorArg;
 
 /* ============================================================
@@ -131,13 +132,19 @@ static void run_as_fork_child(SOCKET client_socket) {
 /**
  *******************************************************************************
  *  @brief          prefork モードのワーカープロセスとして起動された場合の処理。
- *  @param[in]      pipe_name `--worker` 引数で受け取ったパイプ名。
+ *  @param[in]      pipe_name        `--worker` 引数で受け取ったパイプ名。
+ *  @param[in]      conns_per_worker 同時接続数。1 の場合は逐次処理、2 以上は多重処理。
  *
- *  親プロセスへパイプ接続し、ソケットハンドルを受け取って g_session_fn() で処理します。
- *  処理完了後は完了通知を送信して次のソケットを待ちます。
+ *  conns_per_worker == 1 の場合:
+ *    パイプからソケットを受け取り g_session_fn() で処理し完了通知を返す従来の逐次処理。
+ *
+ *  conns_per_worker > 1 の場合:
+ *    PeekNamedPipe() でパイプを非ブロッキングチェックしながら、select() で
+ *    アクティブな複数ソケットを監視するイベントループ。接続が閉じるたびに親へ
+ *    完了通知 (done=1) を 1 バイト送信します。
  *******************************************************************************
  */
-static void worker_loop(const char *pipe_name) {
+static void worker_loop(const char *pipe_name, int conns_per_worker) {
     DWORD bytes_read, bytes_written;
 
     printf("[ワーカー PID %lu] 起動完了\n", GetCurrentProcessId());
@@ -153,22 +160,90 @@ static void worker_loop(const char *pipe_name) {
         return;
     }
 
-    while (1) {
-        SOCKET client_socket;
-        if (!ReadFile(pipe, &client_socket, sizeof(client_socket), &bytes_read, NULL)) {
-            break;
+    if (conns_per_worker == 1) {
+        /* --- 従来の逐次処理 --- */
+        while (1) {
+            SOCKET client_socket;
+            if (!ReadFile(pipe, &client_socket, sizeof(client_socket), &bytes_read, NULL)) {
+                break;
+            }
+            if (bytes_read != sizeof(client_socket)) {
+                break;
+            }
+
+            printf("[ワーカー PID %lu] クライアント接続\n", GetCurrentProcessId());
+            g_session_fn(client_socket);
+            printf("[ワーカー PID %lu] 次のソケット待機\n", GetCurrentProcessId());
+
+            /* 親に処理完了を通知 */
+            char done = 1;
+            WriteFile(pipe, &done, 1, &bytes_written, NULL);
         }
-        if (bytes_read != sizeof(client_socket)) {
-            break;
+    } else {
+        /* --- PeekNamedPipe + select による多重接続処理 --- */
+        SOCKET *active = (SOCKET *)malloc((size_t)conns_per_worker * sizeof(SOCKET));
+        if (!active) {
+            CloseHandle(pipe);
+            return;
         }
 
-        printf("[ワーカー PID %lu] クライアント接続\n", GetCurrentProcessId());
-        g_session_fn(client_socket);
-        printf("[ワーカー PID %lu] 次のソケット待機\n", GetCurrentProcessId());
+        int  active_count = 0;
+        char buf[BUFFER_SIZE];
 
-        /* 親に処理完了を通知 */
-        char done = 1;
-        WriteFile(pipe, &done, 1, &bytes_written, NULL);
+        while (1) {
+            /* パイプから新規ソケットを非ブロッキングチェック */
+            DWORD avail = 0;
+            if (!PeekNamedPipe(pipe, NULL, 0, NULL, &avail, NULL)) {
+                break; /* パイプ切断 */
+            }
+            if (avail >= sizeof(SOCKET)) {
+                SOCKET new_sock;
+                if (ReadFile(pipe, &new_sock, sizeof(new_sock), &bytes_read, NULL)
+                        && bytes_read == sizeof(new_sock)) {
+                    active[active_count++] = new_sock;
+                    printf("[ワーカー PID %lu] 新規接続 (計 %d 接続)\n",
+                           GetCurrentProcessId(), active_count);
+                }
+            }
+
+            if (active_count == 0) {
+                /* アクティブな接続がない場合は少し待ってパイプを再チェック */
+                Sleep(10);
+                continue;
+            }
+
+            /* select で全アクティブソケットを監視 (10ms タイムアウト) */
+            fd_set read_fds;
+            FD_ZERO(&read_fds);
+            for (int i = 0; i < active_count; i++) {
+                FD_SET(active[i], &read_fds);
+            }
+            struct timeval tv = {0, 10000}; /* 10ms */
+            /* Windows では select の第 1 引数は無視される */
+            select(0, &read_fds, NULL, NULL, &tv);
+
+            /* 末尾から走査して配列詰めを安全に行う */
+            for (int i = active_count - 1; i >= 0; i--) {
+                if (!FD_ISSET(active[i], &read_fds)) {
+                    continue;
+                }
+
+                int n = recv(active[i], buf, BUFFER_SIZE, 0);
+                if (n <= 0) {
+                    closesocket(active[i]);
+                    active[i] = active[--active_count]; /* 末尾と入れ替えて削除 */
+                    printf("[ワーカー PID %lu] 接続終了 (残 %d 接続)\n",
+                           GetCurrentProcessId(), active_count);
+                    /* 親に接続 1 本分の完了を通知 */
+                    char done = 1;
+                    WriteFile(pipe, &done, 1, &bytes_written, NULL);
+                } else {
+                    send(active[i], buf, n, 0);
+                }
+            }
+        }
+
+        free(active);
     }
 
     CloseHandle(pipe);
@@ -186,17 +261,21 @@ static void worker_loop(const char *pipe_name) {
  *******************************************************************************
  */
 static unsigned __stdcall worker_monitor_thread(void *arg) {
-    WorkerMonitorArg *ctx     = (WorkerMonitorArg *)arg;
-    int         id      = ctx->id;
-    WorkerInfo *workers = ctx->workers;
-    HANDLE     *events  = ctx->events;
-    char        done;
-    DWORD       bytes_read;
+    WorkerMonitorArg *ctx              = (WorkerMonitorArg *)arg;
+    int               id              = ctx->id;
+    WorkerInfo       *workers         = ctx->workers;
+    HANDLE           *events          = ctx->events;
+    int               conns_per_worker = ctx->conns_per_worker;
+    char              done;
+    DWORD             bytes_read;
 
     while (1) {
         if (ReadFile(workers[id].pipe, &done, 1, &bytes_read, NULL)) {
-            workers[id].busy = FALSE;
-            SetEvent(events[id]);
+            /* 接続 1 本分の完了通知 → conn_count を減らし、空きができたらイベントをシグナル */
+            workers[id].conn_count--;
+            if (workers[id].conn_count < conns_per_worker) {
+                SetEvent(events[id]);
+            }
         } else {
             break;
         }
@@ -206,19 +285,22 @@ static unsigned __stdcall worker_monitor_thread(void *arg) {
 
 /**
  *******************************************************************************
- *  @brief          空きワーカーのインデックスを返します。
- *  @param[in]      workers ワーカー情報配列。
- *  @param[in]      events  ワーカーイベント配列。
- *  @param[in]      n       ワーカー数。
+ *  @brief          接続を受け付けられるワーカーのインデックスを返します。
+ *  @param[in]      workers          ワーカー情報配列。
+ *  @param[in]      events           ワーカーイベント配列。
+ *  @param[in]      n                ワーカー数。
+ *  @param[in]      conns_per_worker 1 ワーカーあたりの同時接続数上限。
  *  @return         空きワーカーのインデックス (0 〜 n - 1)。
  *
- *  全ワーカーがビジーの場合は WaitForMultipleObjects でいずれかが空くまで待機します。
+ *  conn_count < conns_per_worker のワーカーを探します。
+ *  全ワーカーが満杯の場合は WaitForMultipleObjects でいずれかに空きが生じるまで待機します。
  *******************************************************************************
  */
-static int find_free_worker(WorkerInfo *workers, HANDLE *events, int n) {
+static int find_available_worker(WorkerInfo *workers, HANDLE *events, int n,
+                                 int conns_per_worker) {
     while (1) {
         for (int i = 0; i < n; i++) {
-            if (!workers[i].busy) {
+            if (workers[i].conn_count < conns_per_worker) {
                 return i;
             }
         }
@@ -239,7 +321,8 @@ static int find_free_worker(WorkerInfo *workers, HANDLE *events, int n) {
  *  @attention      パイプ作成またはプロセス起動に失敗した場合は exit() で終了します。
  *******************************************************************************
  */
-static void start_prefork_workers(WorkerInfo *workers, HANDLE *events, int n) {
+static void start_prefork_workers(WorkerInfo *workers, HANDLE *events, int n,
+                                  int conns_per_worker) {
     char pipe_name[64];
     char cmdline[MAX_PATH + 128];
     char exepath[MAX_PATH];
@@ -272,8 +355,9 @@ static void start_prefork_workers(WorkerInfo *workers, HANDLE *events, int n) {
         /* イベント作成 (初期状態: 空き) */
         events[i] = CreateEvent(NULL, FALSE, TRUE, NULL);
 
-        /* ワーカープロセス起動 */
-        sprintf_s(cmdline, sizeof(cmdline), "\"%s\" --worker %s", exepath, pipe_name);
+        /* ワーカープロセス起動 (--conns-per-worker を渡す) */
+        sprintf_s(cmdline, sizeof(cmdline), "\"%s\" --worker %s --conns-per-worker %d",
+                  exepath, pipe_name, conns_per_worker);
 
         STARTUPINFOA        si = {sizeof(si)};
         PROCESS_INFORMATION pi;
@@ -284,17 +368,18 @@ static void start_prefork_workers(WorkerInfo *workers, HANDLE *events, int n) {
             exit(1);
         }
 
-        workers[i].process = pi.hProcess;
-        workers[i].busy    = FALSE;
+        workers[i].process    = pi.hProcess;
+        workers[i].conn_count = 0;
         CloseHandle(pi.hThread);
 
         /* ワーカーがパイプに接続するのを待つ */
         ConnectNamedPipe(workers[i].pipe, NULL);
 
         /* 監視スレッド起動 */
-        args[i].id      = i;
-        args[i].workers = workers;
-        args[i].events  = events;
+        args[i].id               = i;
+        args[i].workers          = workers;
+        args[i].events           = events;
+        args[i].conns_per_worker = conns_per_worker;
         _beginthreadex(NULL, 0, worker_monitor_thread, (void *)&args[i], 0, NULL);
 
         printf("[親プロセス] ワーカー %d (PID %lu) 起動完了\n", i, pi.dwProcessId);
@@ -331,7 +416,15 @@ int dispatch_internal_args(int argc, char *argv[]) {
             return 1; /* ExitProcess() されるため到達しない */
         }
         if (strcmp(argv[i], "--worker") == 0) {
-            worker_loop(argv[i + 1]);
+            /* --conns-per-worker が続く場合は読み取る */
+            int conns_per_worker = DEFAULT_CONNS_PER_WORKER;
+            for (int j = i + 2; j < argc - 1; j++) {
+                if (strcmp(argv[j], "--conns-per-worker") == 0) {
+                    conns_per_worker = atoi(argv[j + 1]);
+                    break;
+                }
+            }
+            worker_loop(argv[i + 1], conns_per_worker);
             return 1;
         }
     }
@@ -379,7 +472,7 @@ void run_fork_server(int port) {
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-void run_prefork_server(int port, int num_workers) {
+void run_prefork_server(int port, int num_workers, int conns_per_worker) {
     WorkerInfo *workers = (WorkerInfo *)malloc((size_t)num_workers * sizeof(WorkerInfo));
     HANDLE     *events  = (HANDLE *)malloc((size_t)num_workers * sizeof(HANDLE));
 
@@ -389,9 +482,9 @@ void run_prefork_server(int port, int num_workers) {
     }
 
     SOCKET listen_socket = create_listen_socket(port);
-    printf("[親プロセス %lu] prefork モード、ワーカー %d 個を起動中...\n",
-           GetCurrentProcessId(), num_workers);
-    start_prefork_workers(workers, events, num_workers);
+    printf("[親プロセス %lu] prefork モード、ワーカー %d 個を起動中 (1 ワーカーあたり最大 %d 接続)...\n",
+           GetCurrentProcessId(), num_workers, conns_per_worker);
+    start_prefork_workers(workers, events, num_workers, conns_per_worker);
     printf("[親プロセス] ポート %d で待ち受け開始\n", port);
 
     while (1) {
@@ -403,11 +496,16 @@ void run_prefork_server(int port, int num_workers) {
         /* ソケットを継承可能に */
         SetHandleInformation((HANDLE)client_socket, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
 
-        int worker_id = find_free_worker(workers, events, num_workers);
-        workers[worker_id].busy = TRUE;
-        ResetEvent(events[worker_id]);
+        int worker_id = find_available_worker(workers, events, num_workers, conns_per_worker);
+        workers[worker_id].conn_count++;
 
-        printf("[親プロセス] ワーカー %d に接続を割り当て\n", worker_id);
+        /* 容量に達した場合はイベントを非シグナルにして次の割り当てを防ぐ */
+        if (workers[worker_id].conn_count >= conns_per_worker) {
+            ResetEvent(events[worker_id]);
+        }
+
+        printf("[親プロセス] ワーカー %d に接続を割り当て (接続数: %d/%d)\n",
+               worker_id, workers[worker_id].conn_count, conns_per_worker);
 
         DWORD bytes_written;
         WriteFile(workers[worker_id].pipe, &client_socket, sizeof(client_socket),

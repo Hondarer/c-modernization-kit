@@ -48,19 +48,22 @@ void handle_client_session(ClientFd fd) {
 /**
  *******************************************************************************
  *  @brief          コマンドライン引数を解析します。
- *  @param[in]      argc    引数の数。
- *  @param[in]      argv    引数の配列。
- *  @param[out]     mode    動作モード (MODE_FORK / MODE_PREFORK)。
- *  @param[out]     port    待ち受けポート番号。
- *  @param[out]     workers ワーカー数。
+ *  @param[in]      argc             引数の数。
+ *  @param[in]      argv             引数の配列。
+ *  @param[out]     mode             動作モード (MODE_FORK / MODE_PREFORK)。
+ *  @param[out]     port             待ち受けポート番号。
+ *  @param[out]     workers          ワーカー数。
+ *  @param[out]     conns_per_worker 1 ワーカーあたりの同時接続数。
  *
- *  `--mode fork|prefork` / `--port <num>` / `--workers <num>` を解析します。
+ *  `--mode fork|prefork` / `--port <num>` / `--workers <num>` /
+ *  `--conns-per-worker <num>` を解析します。
  *  内部起動引数 (`--child`, `--worker`) は dispatch_internal_args() で処理済みの
  *  ため、本関数では無視します。
  *******************************************************************************
  */
 static void parse_args(int argc, char *argv[],
-                       ServerMode *mode, int *port, int *workers) {
+                       ServerMode *mode, int *port, int *workers,
+                       int *conns_per_worker) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--mode") == 0 && i + 1 < argc) {
             i++;
@@ -73,6 +76,8 @@ static void parse_args(int argc, char *argv[],
             *port = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--workers") == 0 && i + 1 < argc) {
             *workers = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--conns-per-worker") == 0 && i + 1 < argc) {
+            *conns_per_worker = atoi(argv[++i]);
         }
     }
 }
@@ -99,16 +104,17 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    ServerMode mode    = MODE_PREFORK;
-    int        port    = DEFAULT_PORT;
-    int        workers = DEFAULT_WORKERS;
+    ServerMode mode             = MODE_PREFORK;
+    int        port             = DEFAULT_PORT;
+    int        workers          = DEFAULT_WORKERS;
+    int        conns_per_worker = DEFAULT_CONNS_PER_WORKER;
 
-    parse_args(argc, argv, &mode, &port, &workers);
+    parse_args(argc, argv, &mode, &port, &workers, &conns_per_worker);
 
     if (mode == MODE_FORK) {
         run_fork_server(port);
     } else {
-        run_prefork_server(port, workers);
+        run_prefork_server(port, workers, conns_per_worker);
     }
 
     platform_cleanup();

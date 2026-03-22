@@ -68,9 +68,11 @@
 /** デフォルト待ち受けポート番号。 */
 #define DEFAULT_PORT    8080
 /** デフォルト prefork ワーカー数。 */
-#define DEFAULT_WORKERS 4
+#define DEFAULT_WORKERS          4
+/** デフォルト 1 ワーカーあたりの同時接続数。 */
+#define DEFAULT_CONNS_PER_WORKER 1
 /** 送受信バッファサイズ (バイト)。 */
-#define BUFFER_SIZE     1024
+#define BUFFER_SIZE              1024
 
 /* ============================================================
  *  共通型定義
@@ -162,10 +164,13 @@ void run_fork_server(int port);
 /**
  *******************************************************************************
  *  @brief          prefork モードのサーバーを起動します。
- *  @param[in]      port        待ち受けポート番号。
- *  @param[in]      num_workers 事前生成するワーカープロセス数。
+ *  @param[in]      port             待ち受けポート番号。
+ *  @param[in]      num_workers      事前生成するワーカープロセス数。
+ *  @param[in]      conns_per_worker 1 ワーカーあたりの同時接続数。
+ *                                   1 の場合は従来の逐次処理。
+ *                                   2 以上の場合はイベント駆動型の多重接続処理。
  *******************************************************************************
  */
-void run_prefork_server(int port, int num_workers);
+void run_prefork_server(int port, int num_workers, int conns_per_worker);
 
 #endif /* TCPSERVER_H */
