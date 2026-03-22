@@ -52,7 +52,9 @@ typedef enum
      *  双方向 1:1 通信 (UDP ユニキャスト)。\n
      *  SENDER / RECEIVER ともに送受信・NACK・ヘルスチェックを独立して行う。\n
      *  両端それぞれが src_addr:src_port で bind し、相手の dst_addr:dst_port へ送信する。\n
-     *  src_port = 0 は使用不可。SENDER も callback が必須。
+     *  src_port = 0 を指定すると SENDER はエフェメラルポートで bind し、\n
+     *  RECEIVER は最初のパケット受信時に SENDER のポートを動的学習して返信する。\n
+     *  SENDER も callback が必須。
      */
     POTR_TYPE_UNICAST_BIDIR   = 9, /**< 双方向 1:1 通信 (UDP ユニキャスト)。 */
 } PotrType;

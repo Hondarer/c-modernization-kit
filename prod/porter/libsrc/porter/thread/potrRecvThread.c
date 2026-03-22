@@ -230,6 +230,14 @@ static void update_path_recv(struct PotrContext_      *ctx,
     get_monotonic(&ctx->path_last_recv_sec[path_idx],
                   &ctx->path_last_recv_nsec[path_idx]);
     ctx->peer_port[path_idx] = sender->sin_port; /* NBO のまま格納 */
+
+    /* unicast_bidir で相手ポートが未確定 (src_port=0 / 動的学習) の場合:
+       dest_addr がまだ 0 なら受信パケットの送信元ポートで更新する。 */
+    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR
+        && ctx->dest_addr[path_idx].sin_port == 0)
+    {
+        ctx->dest_addr[path_idx].sin_port = sender->sin_port; /* NBO */
+    }
 }
 
 /* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。
@@ -275,6 +283,12 @@ static void check_health_timeout(struct PotrContext_ *ctx)
         {
             ctx->peer_port[i]          = 0;
             ctx->path_last_recv_sec[i] = 0;
+            /* unicast_bidir で動的学習したエフェメラルポートもリセットする */
+            if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR
+                && ctx->service.src_port == 0)
+            {
+                ctx->dest_addr[i].sin_port = 0;
+            }
         }
     }
 

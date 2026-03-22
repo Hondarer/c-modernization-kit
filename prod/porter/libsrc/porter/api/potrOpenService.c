@@ -619,12 +619,12 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         {
             int i;
 
-            /* 両端ともに src_port の明示が必須 */
-            if (ctx->service.dst_port == 0 || ctx->service.src_port == 0)
+            /* dst_port は必須。src_port=0 はエフェメラル bind / 動的学習として許可する。 */
+            if (ctx->service.dst_port == 0)
             {
                 POTR_LOG(POTR_LOG_ERROR,
                          "potrOpenService: service_id=%d UNICAST_BIDIR requires"
-                         " both src_port and dst_port (non-zero)",
+                         " dst_port (non-zero)",
                          service_id);
                 ctx_cleanup(ctx);
                 return POTR_ERROR;
