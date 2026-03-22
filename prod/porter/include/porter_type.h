@@ -44,6 +44,17 @@ typedef enum
     POTR_TYPE_UNICAST_RAW   = 4, /**< 1:1 通信 RAW モード (UDP ユニキャスト)。 */
     POTR_TYPE_MULTICAST_RAW = 5, /**< 1:N 通信 RAW モード (UDP マルチキャスト)。 */
     POTR_TYPE_BROADCAST_RAW = 6, /**< 1:N 通信 RAW モード (UDP ブロードキャスト)。 */
+
+    POTR_TYPE_TCP             = 7, /**< TCP 通信 (将来拡張用、現在未実装)。 */
+    POTR_TYPE_TCP_BIDIR       = 8, /**< TCP 双方向通信 (将来拡張用、現在未実装)。 */
+
+    /**
+     *  双方向 1:1 通信 (UDP ユニキャスト)。\n
+     *  SENDER / RECEIVER ともに送受信・NACK・ヘルスチェックを独立して行う。\n
+     *  両端それぞれが src_addr:src_port で bind し、相手の dst_addr:dst_port へ送信する。\n
+     *  src_port = 0 は使用不可。SENDER も callback が必須。
+     */
+    POTR_TYPE_UNICAST_BIDIR   = 9, /**< 双方向 1:1 通信 (UDP ユニキャスト)。 */
 } PotrType;
 
 /**

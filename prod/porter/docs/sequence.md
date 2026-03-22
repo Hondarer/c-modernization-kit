@@ -620,3 +620,84 @@ end note
 
 @enduml
 ```
+
+## unicast_bidir 双方向通信
+
+`POTR_TYPE_UNICAST_BIDIR` における双方向データ通信のシーケンスです。
+両端が独立したセッションを持ち、それぞれがデータ送受信・NACK・ヘルスチェックを行います。
+
+```plantuml
+@startuml unicast_bidir 通信シーケンス
+title unicast_bidir 双方向通信シーケンス
+
+participant "Side A\n(POTR_ROLE_SENDER)" as A
+participant "Side B\n(POTR_ROLE_RECEIVER)" as B
+
+== サービス開始 ==
+
+note over A: potrOpenService()\nbind(src_addr=A, src_port=PA)
+note over B: potrOpenService()\nbind(src_addr=B, src_port=PB)
+
+== A → B データ送信 ==
+
+A -> B: DATA (session=S_A, seq=0)
+note over B: peer_session_known = false\n→ セッション S_A 採用\nPOTR_EVENT_CONNECTED 発火\nPOTR_EVENT_DATA
+
+A -> B: DATA (session=S_A, seq=1)
+note over B: POTR_EVENT_DATA
+
+== B → A データ送信 ==
+
+B -> A: DATA (session=S_B, seq=0)
+note over A: peer_session_known = false\n→ セッション S_B 採用\nPOTR_EVENT_CONNECTED 発火\nPOTR_EVENT_DATA
+
+== 双方向データ ==
+
+A -> B: DATA (session=S_A, seq=2)
+B -> A: DATA (session=S_B, seq=1)
+note over A,B: POTR_EVENT_DATA（各端で独立して発火）
+
+== パケット欠落と再送 ==
+
+A -> B: DATA (session=S_A, seq=3)
+A -[#red]x B: DATA (session=S_A, seq=4)  [lost]
+A -> B: DATA (session=S_A, seq=5)
+note over B: seq=4 の欠落検出
+B -> A: NACK (ack_num=4)
+A -> B: DATA (session=S_A, seq=4)  [retransmit]
+note over B: POTR_EVENT_DATA (seq=4, 5 の順)
+
+== ヘルスチェック（対称） ==
+
+A -> B: PING (session=S_A, ack_num=0, seq_num=N)
+B -> A: PING (session=S_A, ack_num=N, seq_num=M)
+note over A: PING 応答受信 → last_recv 更新
+
+B -> A: PING (session=S_B, ack_num=0, seq_num=P)
+A -> B: PING (session=S_B, ack_num=P, seq_num=Q)
+note over B: PING 応答受信 → last_recv 更新
+
+@enduml
+```
+
+## unicast_bidir ヘルスタイムアウトによる切断検知
+
+`POTR_TYPE_UNICAST_BIDIR` において、相手側が停止した場合の切断検知シーケンスです。
+両端がそれぞれ `last_recv_tv_sec` を監視し、`health_timeout_ms` 超過で切断を検知します。
+
+```plantuml
+@startuml unicast_bidir タイムアウト
+title unicast_bidir ヘルスタイムアウトによる切断検知
+
+participant "Side A" as A
+participant "Side B\n(停止)" as B
+
+note over A,B: 通信中
+
+A -> B: PING (ack_num=0, seq_num=N)
+note over B: アプリケーションが停止\n（パケットが一切届かなくなる）
+note over A: health_timeout_ms 経過\nlast_recv_tv_sec が更新されない\ncheck_health_timeout() → DISCONNECTED
+note over A: POTR_EVENT_DISCONNECTED 発火
+
+@enduml
+```

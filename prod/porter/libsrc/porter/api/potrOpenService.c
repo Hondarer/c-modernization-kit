@@ -332,7 +332,7 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         return POTR_ERROR;
     }
 
-    /* role と callback の整合性チェック */
+    /* role と callback の整合性チェック (設定読み込み前に確定できる部分のみ) */
     if (role == POTR_ROLE_RECEIVER && callback == NULL)
     {
         POTR_LOG(POTR_LOG_ERROR,
@@ -340,13 +340,8 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                  service_id);
         return POTR_ERROR;
     }
-    if (role == POTR_ROLE_SENDER && callback != NULL)
-    {
-        POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d SENDER role must not have callback",
-                 service_id);
-        return POTR_ERROR;
-    }
+    /* SENDER + callback の完全チェックは設定読み込み後に行う
+       (POTR_TYPE_UNICAST_BIDIR の SENDER は callback が必須のため) */
     if (role != POTR_ROLE_SENDER && role != POTR_ROLE_RECEIVER)
     {
         POTR_LOG(POTR_LOG_ERROR,
@@ -396,6 +391,27 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         POTR_LOG(POTR_LOG_ERROR,
                  "potrOpenService: service_id=%d not found in '%s'",
                  service_id, config_path);
+        free(ctx);
+        return POTR_ERROR;
+    }
+
+    /* SENDER + callback の整合性チェック (型が確定した後) */
+    if (role == POTR_ROLE_SENDER && callback != NULL
+        && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d SENDER role must not have callback"
+                 " (type=%d)",
+                 service_id, (int)ctx->service.type);
+        free(ctx);
+        return POTR_ERROR;
+    }
+    if (role == POTR_ROLE_SENDER && callback == NULL
+        && ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "potrOpenService: service_id=%d UNICAST_BIDIR SENDER role requires callback",
+                 service_id);
         free(ctx);
         return POTR_ERROR;
     }
@@ -599,6 +615,58 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
             break;
         }
 
+        case POTR_TYPE_UNICAST_BIDIR:
+        {
+            int i;
+
+            /* 両端ともに src_port の明示が必須 */
+            if (ctx->service.dst_port == 0 || ctx->service.src_port == 0)
+            {
+                POTR_LOG(POTR_LOG_ERROR,
+                         "potrOpenService: service_id=%d UNICAST_BIDIR requires"
+                         " both src_port and dst_port (non-zero)",
+                         service_id);
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
+            {
+                if (ctx->service.src_addr[i][0] == '\0' ||
+                    ctx->service.dst_addr[i][0] == '\0')
+                {
+                    break;
+                }
+
+                if (resolve_ipv4_addr(ctx->service.src_addr[i],
+                                      &ctx->src_addr_resolved[i]) != POTR_SUCCESS ||
+                    resolve_ipv4_addr(ctx->service.dst_addr[i],
+                                      &ctx->dst_addr_resolved[i]) != POTR_SUCCESS)
+                {
+                    ctx_cleanup(ctx);
+                    return POTR_ERROR;
+                }
+
+                /* 両端ともに src_addr:src_port で bind する */
+                ctx->sock[i] = open_socket_unicast(ctx->src_addr_resolved[i],
+                                                   ctx->service.src_port);
+                if (ctx->sock[i] == POTR_INVALID_SOCKET)
+                {
+                    ctx_cleanup(ctx);
+                    return POTR_ERROR;
+                }
+
+                ctx->n_path++;
+            }
+
+            if (ctx->n_path == 0)
+            {
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+            break;
+        }
+
         case POTR_TYPE_UNICAST_RAW:
         case POTR_TYPE_MULTICAST_RAW:
         case POTR_TYPE_BROADCAST_RAW:
@@ -612,13 +680,25 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
     ctx->callback = callback;
     ctx->role     = role;
 
-    /* 送信者: 送信先ソケットアドレスを設定 (RAW 型はベース型に正規化してから判定) */
-    if (role == POTR_ROLE_SENDER)
+    /* 送信先ソケットアドレスを設定 (RAW 型はベース型に正規化してから判定)
+       UNICAST_BIDIR は両端 (SENDER / RECEIVER) ともに dest_addr を設定する */
+    if (role == POTR_ROLE_SENDER
+        || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
     {
         int i;
 
         switch (potr_raw_base_type(ctx->service.type))
         {
+            case POTR_TYPE_UNICAST_BIDIR:
+                for (i = 0; i < ctx->n_path; i++)
+                {
+                    memset(&ctx->dest_addr[i], 0, sizeof(ctx->dest_addr[i]));
+                    ctx->dest_addr[i].sin_family = AF_INET;
+                    ctx->dest_addr[i].sin_addr   = ctx->dst_addr_resolved[i];
+                    ctx->dest_addr[i].sin_port   = htons(ctx->service.dst_port);
+                }
+                break;
+
             case POTR_TYPE_UNICAST:
                 for (i = 0; i < ctx->n_path; i++)
                 {
@@ -731,8 +811,10 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         return POTR_ERROR;
     }
 
-    /* 受信者の場合は受信スレッドを起動 */
-    if (role == POTR_ROLE_RECEIVER)
+    /* 受信者の場合は受信スレッドのみ起動
+       ただし UNICAST_BIDIR の RECEIVER は下の全スレッド起動ブロックで処理する */
+    if (role == POTR_ROLE_RECEIVER
+        && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
     {
         if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
         {
@@ -741,8 +823,10 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         }
     }
 
-    /* 送信者: 送信キュー・送信スレッド・ヘルスチェックスレッド・ACK/NACK 受信スレッドを起動 */
-    if (role == POTR_ROLE_SENDER)
+    /* 送信者 / UNICAST_BIDIR 受信者:
+       送信キュー・送信スレッド・ヘルスチェックスレッド・ACK/NACK 受信スレッドを起動 */
+    if (role == POTR_ROLE_SENDER
+        || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
     {
         if (potr_send_queue_init(&ctx->send_queue,
                                  (size_t)ctx->global.send_queue_depth,

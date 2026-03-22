@@ -41,14 +41,34 @@
 static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
                          size_t payload_len, int compressed);
 static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq);
+static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num);
 static void raw_session_disconnect(struct PotrContext_ *ctx);
 
-/* 送信元 IP が src_addr_resolved のいずれかと一致するか確認する。
-   src_addr が未設定の場合は常に 1 (合格) を返す。 */
+/* 送信元 IP が期待アドレスのいずれかと一致するか確認する。
+   UNICAST_BIDIR: 受信パケットの送信元は相手 (dst_addr_resolved) と照合する。
+   その他: src_addr_resolved と照合する。src_addr が未設定の場合は常に 1 (合格) を返す。 */
 static int check_src_addr(const struct PotrContext_ *ctx,
                            const struct sockaddr_in  *sender)
 {
     int i;
+
+    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+    {
+        /* UNICAST_BIDIR: 相手のアドレス (dst_addr_resolved) でフィルタ */
+        if (ctx->service.dst_addr[0][0] == '\0')
+        {
+            return 1;
+        }
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            if (sender->sin_addr.s_addr == ctx->dst_addr_resolved[i].s_addr)
+            {
+                return 1;
+            }
+        }
+        return 0;
+    }
+
     if (ctx->service.src_addr[0][0] == '\0')
     {
         return 1;
@@ -390,31 +410,107 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
 
     for (i = 0; i < ctx->n_path; i++)
     {
-        struct sockaddr_in dest;
-        uint16_t           port;
-
-        if (ctx->service.src_port != 0)
+        /* UNICAST_BIDIR: dest_addr[i] (dst_addr:dst_port) へ直接送信する。
+           通常 unicast: src_addr_resolved[i]:src_port または peer_port へ送信する。 */
+        if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
         {
-            port = htons(ctx->service.src_port);
+#ifdef _WIN32
+            sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#else
+            sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif
         }
         else
         {
-            port = ctx->peer_port[i]; /* NBO */
-        }
+            struct sockaddr_in dest;
+            uint16_t           port;
 
-        if (port == 0) continue; /* ポート未観測のパスは送れない */
+            if (ctx->service.src_port != 0)
+            {
+                port = htons(ctx->service.src_port);
+            }
+            else
+            {
+                port = ctx->peer_port[i]; /* NBO */
+            }
 
-        memset(&dest, 0, sizeof(dest));
-        dest.sin_family = AF_INET;
-        dest.sin_addr   = ctx->src_addr_resolved[i];
-        dest.sin_port   = port;
+            if (port == 0) continue; /* ポート未観測のパスは送れない */
+
+            memset(&dest, 0, sizeof(dest));
+            dest.sin_family = AF_INET;
+            dest.sin_addr   = ctx->src_addr_resolved[i];
+            dest.sin_port   = port;
 
 #ifdef _WIN32
-        sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&dest, sizeof(dest));
+            sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&dest, sizeof(dest));
 #else
-        sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
-               (const struct sockaddr *)&dest, sizeof(dest));
+            sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
+                   (const struct sockaddr *)&dest, sizeof(dest));
+#endif
+        }
+    }
+}
+
+/* UNICAST_BIDIR 専用: PING 応答パケットを全パスへ送信する。
+   req_seq_num: 受信した PING 要求の seq_num (ack_num フィールドに格納して返す)。 */
+static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
+{
+    PotrPacket           reply_pkt;
+    PotrPacketSessionHdr shdr;
+    uint32_t             my_next_seq;
+    size_t               wire_len;
+    int                  i;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+    shdr._pad            = 0;
+
+    /* send_window.next_seq を排他制御下で読み取る
+       (送信スレッド・ヘルスチェックスレッドと競合するため) */
+#ifdef _WIN32
+    EnterCriticalSection(&ctx->send_window_mutex);
+#else
+    pthread_mutex_lock(&ctx->send_window_mutex);
+#endif
+
+    my_next_seq = ctx->send_window.next_seq;
+
+#ifdef _WIN32
+    LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+    pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+
+    if (packet_build_ping(&reply_pkt, &shdr,
+                          my_next_seq, req_seq_num) != POTR_SUCCESS)
+    {
+        return;
+    }
+
+    POTR_LOG(POTR_LOG_TRACE,
+             "recv[service_id=%d]: PING reply sent (req_seq=%u my_next_seq=%u)",
+             ctx->service.service_id,
+             (unsigned)req_seq_num, (unsigned)my_next_seq);
+
+    wire_len = packet_wire_size(&reply_pkt);
+
+    for (i = 0; i < ctx->n_path; i++)
+    {
+#ifdef _WIN32
+        sendto(ctx->sock[i], (const char *)&reply_pkt, (int)wire_len, 0,
+               (const struct sockaddr *)&ctx->dest_addr[i],
+               sizeof(ctx->dest_addr[i]));
+#else
+        sendto(ctx->sock[i], &reply_pkt, wire_len, 0,
+               (const struct sockaddr *)&ctx->dest_addr[i],
+               sizeof(ctx->dest_addr[i]));
 #endif
     }
 }
@@ -760,7 +856,8 @@ static void *recv_thread_func(void *arg)
     struct sockaddr_in  sender_addr;
     uint32_t            poll_ms;
 
-    if (ctx->role == POTR_ROLE_RECEIVER && ctx->global.health_timeout_ms > 0U)
+    if ((ctx->role == POTR_ROLE_RECEIVER || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+        && ctx->global.health_timeout_ms > 0U)
     {
         poll_ms = ctx->global.health_timeout_ms / 3U;
         if (poll_ms < 100U) poll_ms = 100U;
@@ -770,7 +867,8 @@ static void *recv_thread_func(void *arg)
         poll_ms = 500U;
     }
     /* reorder_timeout_ms が有効な場合は poll 間隔を短縮してタイムアウト精度を確保する */
-    if (ctx->role == POTR_ROLE_RECEIVER && ctx->global.reorder_timeout_ms > 0U)
+    if ((ctx->role == POTR_ROLE_RECEIVER || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+        && ctx->global.reorder_timeout_ms > 0U)
     {
         if (ctx->global.reorder_timeout_ms < poll_ms)
         {
@@ -819,7 +917,8 @@ static void *recv_thread_func(void *arg)
 
         if (ret == 0)
         {
-            if (ctx->role == POTR_ROLE_RECEIVER)
+            if (ctx->role == POTR_ROLE_RECEIVER
+                || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
                 check_health_timeout(ctx);
                 if (ctx->global.reorder_timeout_ms > 0U)
@@ -1031,7 +1130,11 @@ static void *recv_thread_func(void *arg)
                     }
                 }
                 /* ACK・その他 (DATA/PING の反射など) は無視 */
-                continue;
+                if (ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
+                {
+                    continue;
+                }
+                /* UNICAST_BIDIR SENDER: フォールスルーして受信者処理 (FIN/REJECT/DATA/PING) へ */
             }
 
             /* ── 受信者ロール: FIN / REJECT / DATA / PING を処理 ── */
@@ -1177,37 +1280,50 @@ static void *recv_thread_func(void *arg)
                 {
                     notify_health_alive(ctx);
 
+                    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR && pkt.ack_num != 0)
                     {
-                        /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
-                           最初の欠番が待機中の場合はその後続の欠番も一括保留する。
-                           スキャン完了 (全有効または全 NACK 送出済み) 時にリオーダー状態をクリアする。 */
-                        uint32_t scan_seq = ctx->recv_window.next_seq;
-                        while (scan_seq != pkt.seq_num
-                               && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
-                                                   ctx->recv_window.window_size))
+                        /* PING 応答受信: ギャップスキャン不要 */
+                    }
+                    else
+                    {
                         {
-                            uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
-                                                      % ctx->recv_window.window_size);
-                            if (!ctx->recv_window.valid[idx])
+                            /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
+                               最初の欠番が待機中の場合はその後続の欠番も一括保留する。
+                               スキャン完了 (全有効または全 NACK 送出済み) 時にリオーダー状態をクリアする。 */
+                            uint32_t scan_seq = ctx->recv_window.next_seq;
+                            while (scan_seq != pkt.seq_num
+                                   && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
+                                                       ctx->recv_window.window_size))
                             {
-                                if (reorder_gap_ready(ctx, scan_seq))
+                                uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
+                                                          % ctx->recv_window.window_size);
+                                if (!ctx->recv_window.valid[idx])
                                 {
-                                    POTR_LOG(POTR_LOG_DEBUG,
-                                             "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
-                                             ctx->service.service_id, (unsigned)scan_seq);
-                                    send_nack(ctx, scan_seq);
+                                    if (reorder_gap_ready(ctx, scan_seq))
+                                    {
+                                        POTR_LOG(POTR_LOG_DEBUG,
+                                                 "recv[service_id=%d]: NACK seq=%u (PING gap scan)",
+                                                 ctx->service.service_id, (unsigned)scan_seq);
+                                        send_nack(ctx, scan_seq);
+                                    }
+                                    else
+                                    {
+                                        break; /* リオーダー待機中: 後続欠番も保留 */
+                                    }
                                 }
-                                else
-                                {
-                                    break; /* リオーダー待機中: 後続欠番も保留 */
-                                }
+                                scan_seq++;
                             }
-                            scan_seq++;
+                            /* スキャン完了: リオーダー状態をクリア */
+                            if (scan_seq == pkt.seq_num)
+                            {
+                                ctx->reorder_pending = 0;
+                            }
                         }
-                        /* スキャン完了: リオーダー状態をクリア */
-                        if (scan_seq == pkt.seq_num)
+
+                        /* UNICAST_BIDIR: PING 要求に対して PING 応答を返す */
+                        if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
                         {
-                            ctx->reorder_pending = 0;
+                            send_ping_reply(ctx, pkt.seq_num);
                         }
                     }
                 }

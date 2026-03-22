@@ -167,7 +167,7 @@ static void *health_thread_func(void *arg)
 
             /* next_seq を読み取る (PING は消費しない: window_send_push は呼ばない) */
             seq          = ctx->send_window.next_seq;
-            build_result = packet_build_ping(&ping_pkt, &shdr, seq);
+            build_result = packet_build_ping(&ping_pkt, &shdr, seq, 0U);
 
 #ifdef _WIN32
             LeaveCriticalSection(&ctx->send_window_mutex);
