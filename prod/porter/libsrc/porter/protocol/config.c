@@ -361,6 +361,14 @@ static void apply_service_kv(const char *key, const char *val,
     {
         current->pack_wait_ms = (uint32_t)atoi(val);
     }
+    else if (strcmp(key, "max_peers") == 0)
+    {
+        int v = atoi(val);
+        if (v > 0)
+        {
+            current->max_peers = (uint32_t)v;
+        }
+    }
     else if (strcmp(key, "encrypt_key") == 0)
     {
         size_t hex_len = strlen(val);
@@ -514,6 +522,7 @@ int config_load_service(const char *config_path, int service_id,
                     memset(def, 0, sizeof(*def));
                     def->ttl          = (uint8_t)POTR_DEFAULT_TTL;
                     def->pack_wait_ms = (uint32_t)POTR_DEFAULT_PACK_WAIT_MS;
+                    def->max_peers    = 1024U;  /* N:1 モードのデフォルト最大ピア数 */
                     def->service_id   = service_id;
                     in_target       = 1;
                     found           = 1;

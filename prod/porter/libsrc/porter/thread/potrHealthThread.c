@@ -34,8 +34,19 @@
 #include "../protocol/packet.h"
 #include "../protocol/window.h"
 #include "../potrContext.h"
+#include "../potrPeerTable.h"
 #include "potrHealthThread.h"
 #include "../infra/potrLog.h"
+
+#ifdef _WIN32
+    typedef CRITICAL_SECTION PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
+#else
+    typedef pthread_mutex_t PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
+#endif
 
 /* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする */
 static void health_sleep(struct PotrContext_ *ctx, uint32_t interval_ms)
@@ -88,11 +99,15 @@ static void *health_thread_func(void *arg)
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     PotrPacketSessionHdr shdr;
 
-    shdr.service_id      = ctx->service.service_id;
-    shdr.session_id      = ctx->session_id;
-    shdr.session_tv_sec  = ctx->session_tv_sec;
-    shdr.session_tv_nsec = ctx->session_tv_nsec;
-    shdr._pad            = 0;
+    shdr.service_id = ctx->service.service_id;
+    shdr._pad       = 0;
+    /* 1:1 モード: session はコンテキストから取得 (N:1 は後述のループで各ピアから取得) */
+    if (!ctx->is_multi_peer)
+    {
+        shdr.session_id      = ctx->session_id;
+        shdr.session_tv_sec  = ctx->session_tv_sec;
+        shdr.session_tv_nsec = ctx->session_tv_nsec;
+    }
 
     while (ctx->health_running)
     {
@@ -152,7 +167,70 @@ static void *health_thread_func(void *arg)
         }
 
         /* PING を送信する (ウィンドウには登録しない: NACK・再送の対象外) */
+        if (ctx->is_multi_peer)
         {
+            /* N:1 モード: アクティブ全ピアへ PING を送信する */
+            int i;
+
+            POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
+
+            for (i = 0; i < ctx->max_peers && ctx->health_running; i++)
+            {
+                PotrPacket           ping_pkt;
+                PotrPacketSessionHdr peer_shdr;
+                uint32_t             seq;
+                size_t               wire_len;
+                int                  k;
+
+                if (!ctx->peers[i].active) continue;
+
+                peer_shdr.service_id      = ctx->service.service_id;
+                peer_shdr.session_id      = ctx->peers[i].session_id;
+                peer_shdr.session_tv_sec  = ctx->peers[i].session_tv_sec;
+                peer_shdr.session_tv_nsec = ctx->peers[i].session_tv_nsec;
+                peer_shdr._pad            = 0;
+
+#ifdef _WIN32
+                EnterCriticalSection(&ctx->peers[i].send_window_mutex);
+#else
+                pthread_mutex_lock(&ctx->peers[i].send_window_mutex);
+#endif
+                seq = ctx->peers[i].send_window.next_seq;
+                packet_build_ping(&ping_pkt, &peer_shdr, seq, 0U);
+#ifdef _WIN32
+                LeaveCriticalSection(&ctx->peers[i].send_window_mutex);
+#else
+                pthread_mutex_unlock(&ctx->peers[i].send_window_mutex);
+#endif
+
+                wire_len = packet_wire_size(&ping_pkt);
+
+                for (k = 0; k < ctx->peers[i].n_paths; k++)
+                {
+#ifdef _WIN32
+                    sendto(ctx->sock[0], (const char *)&ping_pkt, (int)wire_len, 0,
+                           (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                           sizeof(ctx->peers[i].dest_addr[k]));
+#else
+                    sendto(ctx->sock[0], &ping_pkt, wire_len, 0,
+                           (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                           sizeof(ctx->peers[i].dest_addr[k]));
+#endif
+                }
+
+                POTR_LOG(POTR_LOG_TRACE,
+                         "health[service_id=%d]: PING peer=%u seq=%u",
+                         ctx->service.service_id,
+                         (unsigned)ctx->peers[i].peer_id, (unsigned)seq);
+            }
+
+            POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+
+            ctx->last_send_ms = health_get_ms();
+        }
+        else
+        {
+            /* 1:1 モード: 単一宛先へ PING を送信する */
             PotrPacket ping_pkt;
             uint32_t   seq;
             size_t     wire_len;
@@ -165,7 +243,6 @@ static void *health_thread_func(void *arg)
             pthread_mutex_lock(&ctx->send_window_mutex);
 #endif
 
-            /* next_seq を読み取る (PING は消費しない: window_send_push は呼ばない) */
             seq          = ctx->send_window.next_seq;
             build_result = packet_build_ping(&ping_pkt, &shdr, seq, 0U);
 

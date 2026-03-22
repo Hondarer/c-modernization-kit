@@ -1,0 +1,389 @@
+/**
+ *******************************************************************************
+ *  @file           potrPeerTable.c
+ *  @brief          N:1 モード用ピアテーブル管理の実装。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/03/23
+ *  @version        1.0.0
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #include <windows.h>
+#else
+    #include <arpa/inet.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <time.h>
+    #include <unistd.h>
+#endif
+
+#include <porter_const.h>
+#include <porter.h>
+
+#include "potrContext.h"
+#include "potrPeerTable.h"
+#include "protocol/packet.h"
+#include "protocol/window.h"
+#include "infra/potrLog.h"
+
+/* --------------------------------------------------------------------------
+ * プラットフォーム別 ミューテックスラッパー
+ * -------------------------------------------------------------------------- */
+#ifdef _WIN32
+    #define POTR_MUTEX_INIT(m)    InitializeCriticalSection(m)
+    #define POTR_MUTEX_DESTROY(m) DeleteCriticalSection(m)
+#else
+    #define POTR_MUTEX_INIT(m)    pthread_mutex_init((m), NULL)
+    #define POTR_MUTEX_DESTROY(m) pthread_mutex_destroy(m)
+#endif
+
+/* ピアのセッション識別子・開始時刻を生成して peer に格納する */
+static void peer_generate_session(PotrPeerContext *peer)
+{
+#ifdef _WIN32
+    FILETIME       ft;
+    ULARGE_INTEGER uli;
+
+    srand((unsigned)(GetTickCount() ^ GetCurrentProcessId()));
+    peer->session_id = (uint32_t)rand();
+
+    GetSystemTimeAsFileTime(&ft);
+    uli.LowPart  = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+    peer->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
+    peer->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
+#else
+    struct timespec ts;
+
+    srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
+    peer->session_id = (uint32_t)rand();
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+    peer->session_tv_sec  = (int64_t)ts.tv_sec;
+    peer->session_tv_nsec = (int32_t)ts.tv_nsec;
+#endif
+}
+
+/* 使用中でない peer_id を単調増加カウンタから生成する (peers_mutex 取得済みの文脈で呼ぶ) */
+static PotrPeerId allocate_peer_id(struct PotrContext_ *ctx)
+{
+    PotrPeerId candidate = ctx->next_peer_id;
+    int        i;
+    int        in_use;
+
+    for (;;)
+    {
+        /* 予約値をスキップ */
+        if (candidate == 0 || candidate == POTR_PEER_ALL)
+        {
+            candidate++;
+            continue;
+        }
+
+        /* 現在接続中ピアとの衝突チェック */
+        in_use = 0;
+        for (i = 0; i < ctx->max_peers; i++)
+        {
+            if (ctx->peers[i].active && ctx->peers[i].peer_id == candidate)
+            {
+                in_use = 1;
+                break;
+            }
+        }
+
+        if (!in_use)
+        {
+            break;
+        }
+        candidate++;
+    }
+
+    ctx->next_peer_id = candidate + 1;
+    return candidate;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    PotrPacket           fin_pkt;
+    PotrPacketSessionHdr shdr;
+    size_t               wire_len;
+    int                  i;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = peer->session_id;
+    shdr.session_tv_sec  = peer->session_tv_sec;
+    shdr.session_tv_nsec = peer->session_tv_nsec;
+
+    if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS)
+    {
+        return;
+    }
+
+    wire_len = packet_wire_size(&fin_pkt);
+
+    for (i = 0; i < peer->n_paths; i++)
+    {
+        if (ctx->sock[0] == POTR_INVALID_SOCKET)
+        {
+            continue;
+        }
+#ifdef _WIN32
+        sendto(ctx->sock[0], (const char *)&fin_pkt, (int)wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[i],
+               sizeof(peer->dest_addr[i]));
+#else
+        sendto(ctx->sock[0], &fin_pkt, wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[i],
+               sizeof(peer->dest_addr[i]));
+#endif
+    }
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+int peer_table_init(struct PotrContext_ *ctx)
+{
+    int i;
+
+    ctx->peers = (PotrPeerContext *)calloc((size_t)ctx->max_peers,
+                                           sizeof(PotrPeerContext));
+    if (ctx->peers == NULL)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "peer_table_init: service_id=%d calloc failed (max_peers=%d)",
+                 ctx->service.service_id, ctx->max_peers);
+        return POTR_ERROR;
+    }
+
+    for (i = 0; i < ctx->max_peers; i++)
+    {
+        ctx->peers[i].active = 0;
+    }
+
+    POTR_MUTEX_INIT(&ctx->peers_mutex);
+    ctx->n_peers      = 0;
+    ctx->next_peer_id = 1U;
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "peer_table_init: service_id=%d max_peers=%d",
+             ctx->service.service_id, ctx->max_peers);
+
+    return POTR_SUCCESS;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void peer_table_destroy(struct PotrContext_ *ctx)
+{
+    int i;
+
+    if (ctx->peers == NULL)
+    {
+        return;
+    }
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "peer_table_destroy: service_id=%d n_peers=%d",
+             ctx->service.service_id, ctx->n_peers);
+
+    for (i = 0; i < ctx->max_peers; i++)
+    {
+        if (!ctx->peers[i].active)
+        {
+            continue;
+        }
+
+        /* 各ピアへ FIN を送信 */
+        peer_send_fin(ctx, &ctx->peers[i]);
+
+        /* リソース解放 */
+        window_destroy(&ctx->peers[i].send_window);
+        window_destroy(&ctx->peers[i].recv_window);
+        POTR_MUTEX_DESTROY(&ctx->peers[i].send_window_mutex);
+        free(ctx->peers[i].frag_buf);
+        ctx->peers[i].frag_buf = NULL;
+        ctx->peers[i].active   = 0;
+    }
+
+    POTR_MUTEX_DESTROY(&ctx->peers_mutex);
+
+    free(ctx->peers);
+    ctx->peers   = NULL;
+    ctx->n_peers = 0;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+PotrPeerContext *peer_find_by_session(struct PotrContext_ *ctx,
+                                      uint32_t session_id,
+                                      int64_t  session_tv_sec,
+                                      int32_t  session_tv_nsec)
+{
+    int i;
+
+    for (i = 0; i < ctx->max_peers; i++)
+    {
+        if (!ctx->peers[i].active)
+        {
+            continue;
+        }
+        if (ctx->peers[i].peer_session_id      == session_id      &&
+            ctx->peers[i].peer_session_tv_sec  == session_tv_sec  &&
+            ctx->peers[i].peer_session_tv_nsec == session_tv_nsec)
+        {
+            return &ctx->peers[i];
+        }
+    }
+    return NULL;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+PotrPeerContext *peer_find_by_id(struct PotrContext_ *ctx, PotrPeerId peer_id)
+{
+    int i;
+
+    for (i = 0; i < ctx->max_peers; i++)
+    {
+        if (ctx->peers[i].active && ctx->peers[i].peer_id == peer_id)
+        {
+            return &ctx->peers[i];
+        }
+    }
+    return NULL;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+PotrPeerContext *peer_create(struct PotrContext_       *ctx,
+                              const struct sockaddr_in *sender_addr)
+{
+    int              i;
+    PotrPeerContext *peer = NULL;
+
+    /* max_peers 超過チェック */
+    if (ctx->n_peers >= ctx->max_peers)
+    {
+#ifdef _WIN32
+        char ip_str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &sender_addr->sin_addr, ip_str, sizeof(ip_str));
+#else
+        char ip_str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &sender_addr->sin_addr, ip_str, sizeof(ip_str));
+#endif
+        POTR_LOG(POTR_LOG_ERROR,
+                 "peer_create: service_id=%d max_peers=%d reached, "
+                 "rejecting new connection from %s:%u",
+                 ctx->service.service_id, ctx->max_peers,
+                 ip_str, (unsigned)ntohs(sender_addr->sin_port));
+        return NULL;
+    }
+
+    /* 空きスロットを確保 */
+    for (i = 0; i < ctx->max_peers; i++)
+    {
+        if (!ctx->peers[i].active)
+        {
+            peer = &ctx->peers[i];
+            break;
+        }
+    }
+
+    if (peer == NULL)
+    {
+        /* n_peers < max_peers のはずなのにスロットが見つからない (内部整合性エラー) */
+        POTR_LOG(POTR_LOG_ERROR,
+                 "peer_create: service_id=%d no free slot (internal error)",
+                 ctx->service.service_id);
+        return NULL;
+    }
+
+    /* スロットを初期化 */
+    memset(peer, 0, sizeof(*peer));
+
+    peer->peer_id = allocate_peer_id(ctx);
+    peer->active  = 1;
+
+    /* 自セッション生成 */
+    peer_generate_session(peer);
+
+    /* ウィンドウ初期化 */
+    if (window_init(&peer->send_window, 0,
+                    ctx->global.window_size, ctx->global.max_payload) != POTR_SUCCESS)
+    {
+        peer->active = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "peer_create: service_id=%d send_window init failed",
+                 ctx->service.service_id);
+        return NULL;
+    }
+
+    if (window_init(&peer->recv_window, 0,
+                    ctx->global.window_size, ctx->global.max_payload) != POTR_SUCCESS)
+    {
+        window_destroy(&peer->send_window);
+        peer->active = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "peer_create: service_id=%d recv_window init failed",
+                 ctx->service.service_id);
+        return NULL;
+    }
+
+    POTR_MUTEX_INIT(&peer->send_window_mutex);
+
+    /* フラグメント結合バッファ確保 */
+    peer->frag_buf = (uint8_t *)malloc(ctx->global.max_message_size);
+    if (peer->frag_buf == NULL)
+    {
+        window_destroy(&peer->recv_window);
+        window_destroy(&peer->send_window);
+        POTR_MUTEX_DESTROY(&peer->send_window_mutex);
+        peer->active = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "peer_create: service_id=%d frag_buf alloc failed",
+                 ctx->service.service_id);
+        return NULL;
+    }
+    peer->frag_buf_len    = 0;
+    peer->frag_compressed = 0;
+
+    /* 送信元アドレスを最初のパスとして記録 */
+    peer->dest_addr[0] = *sender_addr;
+    peer->n_paths      = 1;
+
+    ctx->n_peers++;
+
+    POTR_LOG(POTR_LOG_INFO,
+             "peer_create: service_id=%d peer_id=%u created (n_peers=%d)",
+             ctx->service.service_id, (unsigned)peer->peer_id, ctx->n_peers);
+
+    return peer;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void peer_free(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    if (peer == NULL || !peer->active)
+    {
+        return;
+    }
+
+    POTR_LOG(POTR_LOG_INFO,
+             "peer_free: service_id=%d peer_id=%u freed",
+             ctx->service.service_id, (unsigned)peer->peer_id);
+
+    window_destroy(&peer->send_window);
+    window_destroy(&peer->recv_window);
+    POTR_MUTEX_DESTROY(&peer->send_window_mutex);
+
+    free(peer->frag_buf);
+    peer->frag_buf = NULL;
+
+    peer->active = 0;
+    ctx->n_peers--;
+}

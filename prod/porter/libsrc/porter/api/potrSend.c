@@ -11,22 +11,84 @@
  *******************************************************************************
  */
 
+#include <stdlib.h>
+
 #include <porter_const.h>
 #include <porter.h>
 
 #include "../potrContext.h"
+#include "../potrPeerTable.h"
 #include "../infra/potrSendQueue.h"
 #include "../infra/compress/compress.h"
 #include "../infra/potrLog.h"
 
+#ifdef _WIN32
+    #include <winsock2.h>
+    typedef CRITICAL_SECTION PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
+#else
+    #include <pthread.h>
+    typedef pthread_mutex_t PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
+#endif
+
+/* N:1 モードで 1 ピアへ send を行う内部実装 (peers_mutex 取得不要・呼び出し元で検索済み) */
+static int send_to_peer(struct PotrContext_ *ctx, PotrPeerId peer_id,
+                        const uint8_t *ptr, size_t len, int flags,
+                        uint16_t base_flags)
+{
+    size_t   remaining  = len;
+    size_t   max_payload;
+
+    max_payload = ctx->global.max_payload - POTR_PAYLOAD_ELEM_HDR_SIZE;
+    if (ctx->service.encrypt_enabled)
+    {
+        max_payload -= POTR_CRYPTO_TAG_SIZE;
+    }
+
+    if ((flags & POTR_SEND_BLOCKING) != 0)
+    {
+        potr_send_queue_wait_drained(&ctx->send_queue);
+    }
+
+    while (remaining > 0)
+    {
+        size_t   chunk     = (remaining > max_payload) ? max_payload : remaining;
+        int      more_frag = (remaining > chunk);
+        uint16_t elem_flags = base_flags;
+
+        if (more_frag)
+        {
+            elem_flags |= POTR_FLAG_MORE_FRAG;
+        }
+
+        if (potr_send_queue_push_wait(&ctx->send_queue, peer_id,
+                                      elem_flags, ptr, (uint16_t)chunk,
+                                      &ctx->send_thread_running) != POTR_SUCCESS)
+        {
+            return POTR_ERROR;
+        }
+
+        ptr       += chunk;
+        remaining -= chunk;
+    }
+
+    if ((flags & POTR_SEND_BLOCKING) != 0)
+    {
+        potr_send_queue_wait_drained(&ctx->send_queue);
+    }
+
+    return POTR_SUCCESS;
+}
+
 /* doxygen コメントは、ヘッダに記載 */
-POTR_EXPORT int POTR_API potrSend(PotrHandle handle, const void *data, size_t len,
-                              int flags)
+POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
+                              const void *data, size_t len, int flags)
 {
     struct PotrContext_ *ctx       = (struct PotrContext_ *)handle;
     const uint8_t       *ptr      = (const uint8_t *)data;
-    size_t               remaining;
-    size_t               max_payload;
     uint16_t             base_flags = 0;
 
     if (ctx == NULL || data == NULL || len == 0
@@ -40,8 +102,8 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, const void *data, size_t le
     }
 
     POTR_LOG(POTR_LOG_TRACE,
-             "potrSend: service_id=%d len=%zu flags=0x%x",
-             ctx->service.service_id, len, (unsigned)flags);
+             "potrSend: service_id=%d peer_id=%u len=%zu flags=0x%x",
+             ctx->service.service_id, (unsigned)peer_id, len, (unsigned)flags);
 
     /* RAW モードは常にブロッキング送信 */
     if (potr_is_raw_type(ctx->service.type))
@@ -82,60 +144,73 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, const void *data, size_t le
         }
     }
 
-    remaining   = len;
-    /* ペイロードエレメントヘッダー (6B) を差し引いた実効フラグメントサイズ上限 */
-    max_payload = ctx->global.max_payload - POTR_PAYLOAD_ELEM_HDR_SIZE;
-    /* 暗号化有効時は GCM 認証タグ (16B) 分をさらに差し引く */
-    if (ctx->service.encrypt_enabled)
+    /* N:1 モード: peer_id に基づくルーティング */
+    if (ctx->is_multi_peer)
     {
-        max_payload -= POTR_CRYPTO_TAG_SIZE;
-    }
-
-    /* ブロッキング送信: 先行キューの sendto が全完了するまで待機する */
-    if ((flags & POTR_SEND_BLOCKING) != 0)
-    {
-        potr_send_queue_wait_drained(&ctx->send_queue);
-    }
-
-    while (remaining > 0)
-    {
-        size_t   chunk;
-        if (remaining > max_payload)
-        {
-            chunk = max_payload;
-        }
-        else
-        {
-            chunk = remaining;
-        }
-        int      more_frag  = (remaining > chunk);
-        uint16_t elem_flags = base_flags;
-
-        if (more_frag)
-        {
-            elem_flags |= POTR_FLAG_MORE_FRAG;
-        }
-
-        if (potr_send_queue_push_wait(&ctx->send_queue, elem_flags, ptr, (uint16_t)chunk,
-                                      &ctx->send_thread_running)
-            != POTR_SUCCESS)
+        if (peer_id == POTR_PEER_NA)
         {
             POTR_LOG(POTR_LOG_ERROR,
-                     "potrSend: service_id=%d send queue push failed"
-                     " (send_thread_running=%d)",
-                     ctx->service.service_id, ctx->send_thread_running);
+                     "potrSend: service_id=%d N:1 mode requires valid peer_id (got POTR_PEER_NA)",
+                     ctx->service.service_id);
             return POTR_ERROR;
         }
 
-        ptr       += chunk;
-        remaining -= chunk;
+        if (peer_id == POTR_PEER_ALL)
+        {
+            /* 全アクティブピアへ送信: peers_mutex を保持しない状態で送信するため
+             * まず peer_id リストを収集してからキューに積む */
+            PotrPeerId *ids;
+            int         n_ids = 0;
+            int         i;
+            int         result = POTR_SUCCESS;
+
+            ids = (PotrPeerId *)malloc((size_t)ctx->max_peers * sizeof(PotrPeerId));
+            if (ids == NULL)
+            {
+                POTR_LOG(POTR_LOG_ERROR,
+                         "potrSend: service_id=%d PEER_ALL malloc failed",
+                         ctx->service.service_id);
+                return POTR_ERROR;
+            }
+
+            POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
+            for (i = 0; i < ctx->max_peers; i++)
+            {
+                if (ctx->peers[i].active)
+                {
+                    ids[n_ids++] = ctx->peers[i].peer_id;
+                }
+            }
+            POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+
+            for (i = 0; i < n_ids; i++)
+            {
+                if (send_to_peer(ctx, ids[i], ptr, len, flags, base_flags) != POTR_SUCCESS)
+                {
+                    result = POTR_ERROR;
+                }
+            }
+            free(ids);
+            return result;
+        }
+        else
+        {
+            /* 指定ピアへ送信: 存在確認だけ mutex で保護し、送信は mutex 外で行う */
+            POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
+            if (peer_find_by_id(ctx, peer_id) == NULL)
+            {
+                POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                POTR_LOG(POTR_LOG_ERROR,
+                         "potrSend: service_id=%d peer_id=%u not found",
+                         ctx->service.service_id, (unsigned)peer_id);
+                return POTR_ERROR;
+            }
+            POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+
+            return send_to_peer(ctx, peer_id, ptr, len, flags, base_flags);
+        }
     }
 
-    /* ブロッキング送信: 自身のメッセージの sendto 完了まで待機する */
-    if ((flags & POTR_SEND_BLOCKING) != 0)
-    {
-        potr_send_queue_wait_drained(&ctx->send_queue);
-    }
-
-    return POTR_SUCCESS;
+    /* 1:1 モード: peer_id は無視 */
+    return send_to_peer(ctx, POTR_PEER_NA, ptr, len, flags, base_flags);
 }

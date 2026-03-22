@@ -77,17 +77,19 @@ static void sig_handler(int sig)
  *******************************************************************************
  *  @brief          受信コールバック関数 (unicast_bidir モード用)。
  *  @param[in]      service_id  サービスの ID。
+ *  @param[in]      peer_id     ピア識別子 (N:1 モード時は非ゼロ、1:1 モード時は 0)。
  *  @param[in]      event       イベント種別。
  *  @param[in]      data        受信データへのポインタ (POTR_EVENT_DATA 時のみ有効)。
  *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
  *******************************************************************************
  */
-static void on_recv(int service_id, PotrEvent event,
+static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
                     const void *data, size_t len)
 {
     char   buf[POTR_MAX_PAYLOAD + 1];
     size_t copy_len;
 
+    (void)peer_id;
     switch (event)
     {
         case POTR_EVENT_CONNECTED:
@@ -318,7 +320,7 @@ int main(int argc, char *argv[])
         }
         printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len, compress_label);
 
-        if (potrSend(handle, msg_buf, msg_len,
+        if (potrSend(handle, POTR_PEER_NA, msg_buf, msg_len,
                      (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING) != POTR_SUCCESS)
         {
             fprintf(stderr, "エラー: 送信に失敗しました。\n");

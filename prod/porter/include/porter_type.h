@@ -21,6 +21,18 @@
 
 /**
  *******************************************************************************
+ *  @brief          ピア識別子。
+ *
+ *  @details
+ *  N:1 モードで各クライアントを識別する ID です。\n
+ *  N:1 モードでは有効なピア ID は常に POTR_PEER_NA および POTR_PEER_ALL 以外の値です。\n
+ *  1:1 モードおよびその他の通信種別では peer_id は常に POTR_PEER_NA です。
+ *******************************************************************************
+ */
+typedef uint32_t PotrPeerId;
+
+/**
+ *******************************************************************************
  *  @brief          通信種別。
  *
  *  @details
@@ -109,6 +121,9 @@ typedef struct
     /* 暗号化設定 (AES-256-GCM) */
     uint8_t  encrypt_key[POTR_CRYPTO_KEY_SIZE]; /**< AES-256-GCM 事前共有鍵 (32 バイト)。encrypt_enabled が 0 の場合は未使用。 */
     int      encrypt_enabled;                   /**< 非 0 のとき暗号化有効。設定ファイルに有効な encrypt_key が存在するときに 1 に設定される。 */
+
+    /* N:1 モード設定 */
+    uint32_t max_peers; /**< N:1 モード時の最大同時接続ピア数。省略時: 1024。1:1 モードでは無視される。 */
 } PotrServiceDef;
 
 /**
@@ -168,6 +183,32 @@ typedef struct PotrContext_ *PotrHandle;
 
 /**
  *******************************************************************************
+ *  @brief          ピア識別子。
+ *
+ *  @details
+ *  N:1 通信モード (`POTR_TYPE_UNICAST_BIDIR` src 情報なし) で各接続ピアを識別する ID です。\n
+ *  1:1 通信モードおよびその他の通信種別では常に **`POTR_PEER_NA`** を使用します。\n
+ *  有効な N:1 ピア ID は常に `POTR_PEER_NA` および `POTR_PEER_ALL` 以外の値となります（ピア ID 生成ロジックにより保証）。\n
+ *  予約値については @ref POTR_PEER を参照してください。
+ *******************************************************************************
+ */
+typedef uint32_t PotrPeerId;
+
+/** @defgroup POTR_PEER ピア ID 予約値
+ *  @{
+ *  @details
+ *  `potrSend()` の `peer_id` 引数および `PotrRecvCallback` の `peer_id` 引数で使用する予約値です。
+ */
+#define POTR_PEER_NA  ((PotrPeerId)0U)        /**< ピア ID 未割当を示す予約値。
+                                                *   1:1 モードのコールバックで渡される (ピアの概念がない)。
+                                                *   `potrSend()` に N:1 モードで指定した場合はエラーを返す。 */
+#define POTR_PEER_ALL ((PotrPeerId)UINT32_MAX) /**< 全接続ピアへの一斉送信を指示する予約ピア ID。
+                                                *   N:1 モードでは全アクティブピアへユニキャスト送信する。
+                                                *   1:1 モードでは唯一のピアへの送信として動作する。 */
+/** @} */
+
+/**
+ *******************************************************************************
  *  @brief          受信イベント種別。
  *
  *  @details
@@ -192,7 +233,7 @@ typedef enum
 
 /**
  *******************************************************************************
- *  @brief          受信コールバック関数型。
+ *  @brief          受信コールバック関数型 (全通信種別共通)。
  *
  *  @details
  *  データ受信またはヘルスチェック状態変化時に、受信スレッドから呼び出されます。\n
@@ -200,13 +241,16 @@ typedef enum
  *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。
  *
  *  @param[in]      service_id  サービスの ID。
+ *  @param[in]      peer_id     ピア識別子。N:1 モード時は接続ピアの ID (`POTR_PEER_NA` / `POTR_PEER_ALL` 以外)。\n
+ *                              1:1 モードおよびその他の通信種別では常に POTR_PEER_NA。
  *  @param[in]      event       イベント種別 (PotrEvent)。
  *  @param[in]      data        受信データへのポインタ。POTR_EVENT_DATA 時のみ有効。
  *                              コールバック復帰後は無効になります。
  *  @param[in]      len         受信データのバイト数。POTR_EVENT_DATA 時のみ有効。
  *******************************************************************************
  */
-typedef void (*PotrRecvCallback)(int service_id, PotrEvent event,
+typedef void (*PotrRecvCallback)(int service_id, PotrPeerId peer_id,
+                                 PotrEvent event,
                                  const void *data, size_t len);
 
 /**

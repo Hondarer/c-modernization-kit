@@ -17,6 +17,8 @@
 #ifndef POTR_CONTEXT_H
 #define POTR_CONTEXT_H
 
+#include <stdint.h>
+
 #include <porter_type.h>
 
 #include "protocol/window.h"
@@ -61,6 +63,9 @@ static inline PotrType potr_raw_base_type(PotrType t)
         case POTR_TYPE_UNICAST:
         case POTR_TYPE_MULTICAST:
         case POTR_TYPE_BROADCAST:
+        case POTR_TYPE_TCP:
+        case POTR_TYPE_TCP_BIDIR:
+        case POTR_TYPE_UNICAST_BIDIR:
         default:                      return t;
     }
 }
@@ -77,6 +82,65 @@ typedef struct
 } PotrNackDedupEntry;
 
 /**
+ *  @brief  N:1 モードにおける個別ピアのコンテキスト。
+ *
+ *  @details
+ *  is_multi_peer == 1 のとき有効。ピアごとに独立した送受信状態を保持する。\n
+ *  ピアテーブル (PotrContext_::peers[]) に配置される。
+ */
+typedef struct PotrPeerContext_
+{
+    PotrPeerId  peer_id; /**< 外部公開用ピア識別子 (単調増加カウンタから付与)。 */
+    int         active;  /**< 1: 有効スロット, 0: 空き。 */
+
+    /* 自セッション (このピア宛の送信に使用) */
+    uint32_t session_id;        /**< 自セッション識別子 (乱数)。 */
+    uint32_t _pad_session;      /**< パディング (session_tv_sec を 8 バイト境界に揃える)。 */
+    int64_t  session_tv_sec;    /**< 自セッション開始時刻 秒部。 */
+    int32_t  session_tv_nsec;   /**< 自セッション開始時刻 ナノ秒部。 */
+
+    /* ピアセッション追跡 */
+    uint32_t peer_session_id;       /**< 追跡中のピアセッション識別子。 */
+    int64_t  peer_session_tv_sec;   /**< 追跡中のピアセッション開始時刻 秒部。 */
+    int32_t  peer_session_tv_nsec;  /**< 追跡中のピアセッション開始時刻 ナノ秒部。 */
+    int      peer_session_known;    /**< ピアセッションが初期化済みか (0: 未初期化)。 */
+
+    /* 送受信ウィンドウ (ピアごと独立) */
+    PotrWindow send_window;        /**< 送信ウィンドウ (NACK 再送用)。 */
+    PotrMutex  send_window_mutex;  /**< send_window 保護 (送信・受信・ヘルスチェックスレッド競合)。 */
+    PotrWindow recv_window;        /**< 受信ウィンドウ (順序整列)。 */
+
+    /* フラグメント結合 (ピアごと独立) */
+    uint8_t *frag_buf;       /**< フラグメント結合バッファ (動的確保)。 */
+    size_t   frag_buf_len;   /**< 現在のデータ長。 */
+    int      frag_compressed;/**< 圧縮フラグ (非 0: 圧縮あり)。 */
+
+    /* ヘルスチェック */
+    volatile int health_alive;      /**< 疎通状態 (1: alive, 0: dead/未接続)。 */
+    int64_t      last_recv_tv_sec;  /**< 最終受信時刻 秒部 (CLOCK_MONOTONIC)。0 = 未受信。 */
+    int32_t      last_recv_tv_nsec; /**< 最終受信時刻 ナノ秒部。 */
+    uint32_t     _pad_nack_dedup;   /**< パディング (nack_dedup_buf を 8 バイト境界に揃える)。 */
+
+    /* NACK 重複抑制 */
+    PotrNackDedupEntry nack_dedup_buf[POTR_NACK_DEDUP_SLOTS]; /**< NACK 重複抑制バッファ。 */
+    uint8_t            nack_dedup_next;                        /**< 次に書き込むスロット。 */
+    uint8_t            _pad_reorder[3];                        /**< パディング (reorder_pending を 4 バイト境界に揃える)。 */
+
+    /* リオーダーバッファタイムアウト管理 */
+    int      reorder_pending;       /**< リオーダー待機中 (1: 待機中, 0: 待機なし)。 */
+    uint32_t reorder_nack_num;      /**< 待機中の欠番通番。 */
+    uint32_t _pad_reorder_dl;       /**< パディング (reorder_deadline_sec を 8 バイト境界に揃える)。 */
+    int64_t  reorder_deadline_sec;  /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
+    int32_t  reorder_deadline_nsec; /**< タイムアウト期限 ナノ秒部。 */
+
+    /* マルチパス: ピアごとの送信先 (recvfrom で学習) */
+    struct sockaddr_in dest_addr[POTR_MAX_PATH];         /**< 送信先ソケットアドレス。 */
+    int                n_paths;                          /**< 学習済みパス数。 */
+    int64_t            path_last_recv_sec[POTR_MAX_PATH]; /**< パスごとの最終受信時刻 秒部。 */
+    int32_t            path_last_recv_nsec[POTR_MAX_PATH];/**< パスごとの最終受信時刻 ナノ秒部。 */
+} PotrPeerContext;
+
+/**
  *  @brief  セッションコンテキスト構造体。PotrHandle の実体。
  */
 struct PotrContext_
@@ -88,6 +152,7 @@ struct PotrContext_
     PotrCondVar      health_wakeup;   /**< ヘルスチェックスレッドを即時起床させる条件変数。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
+    uint32_t         _pad_global;  /**< パディング (send_window を 8 バイト境界に揃える)。 */
     PotrWindow       send_window;       /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
     PotrMutex        send_window_mutex; /**< send_window 保護用ミューテックス (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合するため)。 */
     PotrWindow       recv_window;       /**< 受信ウィンドウ (順序整列・欠番検出)。 */
@@ -159,6 +224,16 @@ struct PotrContext_
     uint32_t _pad_reorder;           /**< パディング (send_queue を 8 バイト境界に揃える)。 */
 
     PotrSendQueue  send_queue;          /**< 非同期送信キュー。 */
+
+    /* N:1 マルチピアモード専用フィールド (is_multi_peer == 1 のときのみ有効) */
+    int              is_multi_peer;    /**< 1: N:1 モード (src_addr/src_port 省略), 0: 1:1 モード。 */
+    uint32_t         _pad_multi_peer; /**< パディング (peers を 8 バイト境界に揃える)。 */
+    PotrPeerContext *peers;            /**< ピアテーブル (動的確保。max_peers エントリ)。 */
+    int              max_peers;      /**< ピアテーブルサイズ (service.max_peers から取得)。 */
+    int              n_peers;        /**< 現在の接続ピア数。 */
+    PotrMutex        peers_mutex;    /**< ピアテーブル保護用ミューテックス。 */
+    uint32_t         next_peer_id;   /**< 次に発行するピア ID (単調増加、初期値 1)。 */
+    uint32_t         _pad_ctx_end;   /**< パディング (構造体サイズを 8 バイト境界に揃える)。 */
 };
 
 #endif /* POTR_CONTEXT_H */

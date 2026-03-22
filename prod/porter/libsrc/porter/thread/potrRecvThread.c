@@ -32,6 +32,7 @@
 #include "../protocol/seqnum.h"
 #include "../protocol/window.h"
 #include "../potrContext.h"
+#include "../potrPeerTable.h"
 #include "potrRecvThread.h"
 #include "../infra/compress/compress.h"
 #include "../infra/crypto/crypto.h"
@@ -44,7 +45,467 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq);
 static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num);
 static void raw_session_disconnect(struct PotrContext_ *ctx);
 
+#ifdef _WIN32
+    typedef CRITICAL_SECTION PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
+#else
+    typedef pthread_mutex_t PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
+#endif
+
+/* ================================================================
+ * N:1 モード専用: ピアコンテキストを使ったパケット処理関数群
+ * ================================================================ */
+
+static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                         uint32_t nack_seq)
+{
+    PotrPacket           nack_pkt;
+    PotrPacketSessionHdr shdr;
+    size_t               wire_len;
+    int                  k;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = peer->session_id;
+    shdr.session_tv_sec  = peer->session_tv_sec;
+    shdr.session_tv_nsec = peer->session_tv_nsec;
+
+    if (packet_build_nack(&nack_pkt, &shdr, nack_seq) != POTR_SUCCESS) return;
+
+    wire_len = packet_wire_size(&nack_pkt);
+    for (k = 0; k < peer->n_paths; k++)
+    {
+#ifdef _WIN32
+        sendto(ctx->sock[0], (const char *)&nack_pkt, (int)wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[k],
+               sizeof(peer->dest_addr[k]));
+#else
+        sendto(ctx->sock[0], &nack_pkt, wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[k],
+               sizeof(peer->dest_addr[k]));
+#endif
+    }
+}
+
+static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                            uint32_t seq_num)
+{
+    PotrPacket           reject_pkt;
+    PotrPacketSessionHdr shdr;
+    size_t               wire_len;
+    int                  k;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = peer->session_id;
+    shdr.session_tv_sec  = peer->session_tv_sec;
+    shdr.session_tv_nsec = peer->session_tv_nsec;
+
+    if (packet_build_reject(&reject_pkt, &shdr, seq_num) != POTR_SUCCESS) return;
+
+    wire_len = packet_wire_size(&reject_pkt);
+    for (k = 0; k < peer->n_paths; k++)
+    {
+#ifdef _WIN32
+        sendto(ctx->sock[0], (const char *)&reject_pkt, (int)wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[k],
+               sizeof(peer->dest_addr[k]));
+#else
+        sendto(ctx->sock[0], &reject_pkt, wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[k],
+               sizeof(peer->dest_addr[k]));
+#endif
+    }
+}
+
+static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                                uint32_t req_seq_num)
+{
+    PotrPacket           reply_pkt;
+    PotrPacketSessionHdr shdr;
+    uint32_t             my_next_seq;
+    size_t               wire_len;
+    int                  k;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = peer->session_id;
+    shdr.session_tv_sec  = peer->session_tv_sec;
+    shdr.session_tv_nsec = peer->session_tv_nsec;
+    shdr._pad            = 0;
+
+#ifdef _WIN32
+    EnterCriticalSection(&peer->send_window_mutex);
+#else
+    pthread_mutex_lock(&peer->send_window_mutex);
+#endif
+    my_next_seq = peer->send_window.next_seq;
+#ifdef _WIN32
+    LeaveCriticalSection(&peer->send_window_mutex);
+#else
+    pthread_mutex_unlock(&peer->send_window_mutex);
+#endif
+
+    if (packet_build_ping(&reply_pkt, &shdr,
+                          my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
+    {
+        return;
+    }
+
+    wire_len = packet_wire_size(&reply_pkt);
+    for (k = 0; k < peer->n_paths; k++)
+    {
+#ifdef _WIN32
+        sendto(ctx->sock[0], (const char *)&reply_pkt, (int)wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[k],
+               sizeof(peer->dest_addr[k]));
+#else
+        sendto(ctx->sock[0], &reply_pkt, wire_len, 0,
+               (const struct sockaddr *)&peer->dest_addr[k],
+               sizeof(peer->dest_addr[k]));
+#endif
+    }
+}
+
+/* N:1: リオーダー待機判定 (ピアごとの reorder 状態を使用) */
+static int n1_reorder_gap_ready(PotrPeerContext *peer, uint32_t nack_num)
+{
+    int64_t  now_sec;
+    int32_t  now_nsec;
+    uint32_t ms = 0; /* peer には global.reorder_timeout_ms へのアクセスがないため ctx から渡さない */
+
+    /* シンプルな実装: 常に即時 (待機なし) */
+    (void)peer;
+    (void)nack_num;
+    (void)now_sec;
+    (void)now_nsec;
+    (void)ms;
+    return 1;
+}
+
+/* N:1: CONNECTED イベントを発火する (health_alive で重複防止) */
+static void n1_notify_health_alive(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    if (!peer->health_alive)
+    {
+        peer->health_alive = 1;
+        POTR_LOG(POTR_LOG_INFO,
+                 "recv[service_id=%d]: CONNECTED peer=%u",
+                 ctx->service.service_id, (unsigned)peer->peer_id);
+        if (ctx->callback != NULL)
+        {
+            ctx->callback(ctx->service.service_id, peer->peer_id,
+                          POTR_EVENT_CONNECTED, NULL, 0);
+        }
+    }
+}
+
+/* N:1: データを解凍してコールバックに渡す */
+static void n1_recv_deliver(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                             const uint8_t *payload, size_t payload_len,
+                             int compressed)
+{
+    if (compressed)
+    {
+        size_t dec_len = ctx->compress_buf_size;
+
+        if (potr_decompress(ctx->compress_buf, &dec_len,
+                            payload, payload_len) == 0)
+        {
+            ctx->callback(ctx->service.service_id, peer->peer_id,
+                          POTR_EVENT_DATA, ctx->compress_buf, dec_len);
+        }
+        else
+        {
+            POTR_LOG(POTR_LOG_ERROR,
+                     "recv[service_id=%d]: peer=%u decompress failed",
+                     ctx->service.service_id, (unsigned)peer->peer_id);
+        }
+    }
+    else
+    {
+        ctx->callback(ctx->service.service_id, peer->peer_id,
+                      POTR_EVENT_DATA, payload, payload_len);
+    }
+}
+
+/* N:1: ペイロードエレメントをフラグメント結合してコールバックに渡す */
+static void n1_deliver_payload_elem(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                                     const PotrPacket *elem)
+{
+    if (elem->flags & POTR_FLAG_MORE_FRAG)
+    {
+        if (peer->frag_buf_len + elem->payload_len <= ctx->global.max_message_size)
+        {
+            if (peer->frag_buf_len == 0)
+            {
+                peer->frag_compressed = (elem->flags & POTR_FLAG_COMPRESSED) ? 1 : 0;
+            }
+            memcpy(peer->frag_buf + peer->frag_buf_len,
+                   elem->payload, elem->payload_len);
+            peer->frag_buf_len += elem->payload_len;
+        }
+        else
+        {
+            peer->frag_buf_len    = 0;
+            peer->frag_compressed = 0;
+        }
+    }
+    else if (peer->frag_buf_len > 0)
+    {
+        if (peer->frag_buf_len + elem->payload_len <= ctx->global.max_message_size)
+        {
+            memcpy(peer->frag_buf + peer->frag_buf_len,
+                   elem->payload, elem->payload_len);
+            peer->frag_buf_len += elem->payload_len;
+
+            if (ctx->callback != NULL)
+            {
+                n1_recv_deliver(ctx, peer, peer->frag_buf,
+                                peer->frag_buf_len, peer->frag_compressed);
+            }
+        }
+        peer->frag_buf_len    = 0;
+        peer->frag_compressed = 0;
+    }
+    else
+    {
+        if (ctx->callback != NULL)
+        {
+            n1_recv_deliver(ctx, peer, elem->payload, (size_t)elem->payload_len,
+                            (elem->flags & POTR_FLAG_COMPRESSED) ? 1 : 0);
+        }
+    }
+}
+
+/* N:1: 受信ウィンドウからパケットを取り出して配信する */
+static void n1_drain_recv_window(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    PotrPacket pop_pkt;
+
+    while (window_recv_pop(&peer->recv_window, &pop_pkt) == POTR_SUCCESS)
+    {
+        n1_notify_health_alive(ctx, peer);
+
+        if (pop_pkt.flags & POTR_FLAG_PING) continue;
+
+        {
+            size_t     offset = 0;
+            PotrPacket elem;
+            while (packet_unpack_next(&pop_pkt, &offset, &elem) == POTR_SUCCESS)
+            {
+                n1_deliver_payload_elem(ctx, peer, &elem);
+            }
+        }
+    }
+}
+
+/* N:1: DATA/PING を recv_window に投入して NACK 処理を行う */
+static void n1_process_outer_pkt(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                                   const PotrPacket *pkt)
+{
+    uint32_t nack_num;
+    uint32_t stretch;
+
+    if (window_recv_push(&peer->recv_window, pkt) != POTR_SUCCESS)
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "recv[service_id=%d]: peer=%u recv_window full, dropping seq=%u",
+                 ctx->service.service_id, (unsigned)peer->peer_id,
+                 (unsigned)pkt->seq_num);
+        return;
+    }
+
+    stretch = (uint32_t)(pkt->seq_num - peer->recv_window.base_seq) + 1U;
+    if (stretch * 10U >= (uint32_t)peer->recv_window.window_size * 8U)
+    {
+        POTR_LOG(POTR_LOG_WARN,
+                 "recv[service_id=%d]: peer=%u recv_window utilization high (%u/%u)",
+                 ctx->service.service_id, (unsigned)peer->peer_id,
+                 (unsigned)stretch, (unsigned)peer->recv_window.window_size);
+    }
+
+    if (window_recv_needs_nack(&peer->recv_window, &nack_num))
+    {
+        if (n1_reorder_gap_ready(peer, nack_num))
+        {
+            POTR_LOG(POTR_LOG_DEBUG,
+                     "recv[service_id=%d]: peer=%u NACK seq=%u",
+                     ctx->service.service_id, (unsigned)peer->peer_id,
+                     (unsigned)nack_num);
+            n1_send_nack(ctx, peer, nack_num);
+        }
+    }
+    else
+    {
+        peer->reorder_pending = 0;
+    }
+
+    n1_drain_recv_window(ctx, peer);
+
+    if (window_recv_needs_nack(&peer->recv_window, &nack_num))
+    {
+        if (n1_reorder_gap_ready(peer, nack_num))
+        {
+            POTR_LOG(POTR_LOG_DEBUG,
+                     "recv[service_id=%d]: peer=%u NACK seq=%u (post-drain)",
+                     ctx->service.service_id, (unsigned)peer->peer_id,
+                     (unsigned)nack_num);
+            n1_send_nack(ctx, peer, nack_num);
+        }
+    }
+    else
+    {
+        peer->reorder_pending = 0;
+    }
+}
+
+/* N:1: セッション照合・更新 (ピアコンテキスト版) */
+static int n1_check_and_update_session(struct PotrContext_ *ctx,
+                                        PotrPeerContext     *peer,
+                                        const PotrPacket    *pkt)
+{
+    if (!peer->peer_session_known)
+    {
+        peer->peer_session_id      = pkt->session_id;
+        peer->peer_session_tv_sec  = pkt->session_tv_sec;
+        peer->peer_session_tv_nsec = pkt->session_tv_nsec;
+        peer->peer_session_known   = 1;
+        peer->reorder_pending      = 0;
+        window_init(&peer->recv_window, pkt->seq_num,
+                    ctx->global.window_size, ctx->global.max_payload);
+        return 1;
+    }
+
+    if (pkt->session_tv_sec > peer->peer_session_tv_sec)
+    {
+        /* 新セッション: フォールスルーして採用 */
+    }
+    else if (pkt->session_tv_sec < peer->peer_session_tv_sec)
+    {
+        return 0;
+    }
+    else if (pkt->session_tv_nsec > peer->peer_session_tv_nsec)
+    {
+        /* 新セッション: フォールスルーして採用 */
+    }
+    else if (pkt->session_tv_nsec < peer->peer_session_tv_nsec)
+    {
+        return 0;
+    }
+    else if (pkt->session_id > peer->peer_session_id)
+    {
+        /* 新セッション: フォールスルーして採用 */
+    }
+    else
+    {
+        return (pkt->session_id == peer->peer_session_id) ? 1 : 0;
+    }
+
+    peer->peer_session_id      = pkt->session_id;
+    peer->peer_session_tv_sec  = pkt->session_tv_sec;
+    peer->peer_session_tv_nsec = pkt->session_tv_nsec;
+    peer->reorder_pending      = 0;
+    window_init(&peer->recv_window, pkt->seq_num,
+                ctx->global.window_size, ctx->global.max_payload);
+    return 1;
+}
+
+/* N:1: 最終受信時刻を更新する */
+static void n1_update_path_recv(PotrPeerContext *peer,
+                                 const struct sockaddr_in *sender_addr)
+{
+#ifdef _WIN32
+    ULONGLONG ms;
+    int64_t   s;
+    int32_t   ns;
+    ms = GetTickCount64();
+    s  = (int64_t)(ms / 1000ULL);
+    ns = (int32_t)((ms % 1000ULL) * 1000000UL);
+#else
+    struct timespec ts;
+    int64_t         s;
+    int32_t         ns;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    s  = (int64_t)ts.tv_sec;
+    ns = (int32_t)ts.tv_nsec;
+#endif
+
+    peer->last_recv_tv_sec  = s;
+    peer->last_recv_tv_nsec = ns;
+
+    /* dest_addr[0] を受信元アドレスで更新 (ポート学習) */
+    if (peer->n_paths > 0)
+    {
+        peer->dest_addr[0].sin_port = sender_addr->sin_port;
+    }
+    (void)sender_addr;
+}
+
+/* N:1: select() タイムアウト時にヘルスタイムアウトを確認する */
+static void n1_check_health_timeout(struct PotrContext_ *ctx)
+{
+#ifdef _WIN32
+    ULONGLONG ms;
+    int64_t   now_sec;
+    int32_t   now_nsec;
+    ms      = GetTickCount64();
+    now_sec  = (int64_t)(ms / 1000ULL);
+    now_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
+#else
+    struct timespec ts;
+    int64_t         now_sec;
+    int32_t         now_nsec;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    now_sec  = (int64_t)ts.tv_sec;
+    now_nsec = (int32_t)ts.tv_nsec;
+#endif
+    int i;
+
+    if (ctx->global.health_timeout_ms == 0) return;
+
+    POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
+
+    for (i = 0; i < ctx->max_peers; i++)
+    {
+        int64_t elapsed_ms;
+
+        if (!ctx->peers[i].active) continue;
+        if (!ctx->peers[i].health_alive) continue;
+        if (ctx->peers[i].last_recv_tv_sec == 0) continue;
+
+        elapsed_ms = (now_sec  - ctx->peers[i].last_recv_tv_sec)  * 1000LL
+                   + (now_nsec - ctx->peers[i].last_recv_tv_nsec) / 1000000L;
+
+        if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
+        {
+            PotrPeerId dead_id = ctx->peers[i].peer_id;
+
+            ctx->peers[i].health_alive = 0;
+            POTR_LOG(POTR_LOG_WARN,
+                     "recv[service_id=%d]: peer=%u DISCONNECTED (timeout %lldms)",
+                     ctx->service.service_id, (unsigned)dead_id,
+                     (long long)elapsed_ms);
+
+            if (ctx->callback != NULL)
+            {
+                ctx->callback(ctx->service.service_id, dead_id,
+                              POTR_EVENT_DISCONNECTED, NULL, 0);
+            }
+
+            peer_free(ctx, &ctx->peers[i]);
+        }
+    }
+
+    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+}
+
+/* ================================================================
+ * N:1 モード専用ここまで
+ * ================================================================ */
+
 /* 送信元 IP が期待アドレスのいずれかと一致するか確認する。
+   N:1 モード: src_port 指定時は送信元ポートのみでフィルタリング。未指定時は全許可。
    UNICAST_BIDIR SENDER:   受信パケットの送信元は RECEIVER (dst_addr_resolved) と照合する。
    UNICAST_BIDIR RECEIVER: 受信パケットの送信元は SENDER   (src_addr_resolved) と照合する。
    その他: src_addr_resolved と照合する。src_addr が未設定の場合は常に 1 (合格) を返す。 */
@@ -52,6 +513,14 @@ static int check_src_addr(const struct PotrContext_ *ctx,
                            const struct sockaddr_in  *sender)
 {
     int i;
+
+    /* N:1 モード: src_port 指定時はポートのみでフィルタリング、未指定時は全許可 */
+    if (ctx->is_multi_peer)
+    {
+        if (ctx->service.src_port != 0)
+            return (ntohs(sender->sin_port) == ctx->service.src_port) ? 1 : 0;
+        return 1;
+    }
 
     if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
     {
@@ -252,7 +721,7 @@ static void notify_health_alive(struct PotrContext_ *ctx)
                  ctx->service.service_id);
         if (ctx->callback != NULL)
         {
-            ctx->callback(ctx->service.service_id,
+            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
                           POTR_EVENT_CONNECTED, NULL, 0);
         }
     }
@@ -310,7 +779,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
                      (unsigned)ctx->global.health_timeout_ms);
             if (ctx->callback != NULL)
             {
-                ctx->callback(ctx->service.service_id,
+                ctx->callback(ctx->service.service_id, POTR_PEER_NA,
                               POTR_EVENT_DISCONNECTED, NULL, 0);
             }
 
@@ -587,7 +1056,7 @@ static void recv_deliver(struct PotrContext_ *ctx,
             POTR_LOG(POTR_LOG_TRACE,
                      "recv[service_id=%d]: decompress %zu -> %zu bytes",
                      ctx->service.service_id, payload_len, dec_len);
-            ctx->callback(ctx->service.service_id,
+            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
                           POTR_EVENT_DATA,
                           ctx->compress_buf,
                           dec_len);
@@ -601,7 +1070,7 @@ static void recv_deliver(struct PotrContext_ *ctx,
     }
     else
     {
-        ctx->callback(ctx->service.service_id, POTR_EVENT_DATA,
+        ctx->callback(ctx->service.service_id, POTR_PEER_NA, POTR_EVENT_DATA,
                       payload, payload_len);
     }
 }
@@ -733,7 +1202,7 @@ static void raw_session_disconnect(struct PotrContext_ *ctx)
                  ctx->service.service_id);
         if (ctx->callback != NULL)
         {
-            ctx->callback(ctx->service.service_id,
+            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
                           POTR_EVENT_DISCONNECTED, NULL, 0);
         }
     }
@@ -942,8 +1411,12 @@ static void *recv_thread_func(void *arg)
 
         if (ret == 0)
         {
-            if (ctx->role == POTR_ROLE_RECEIVER
-                || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+            if (ctx->is_multi_peer)
+            {
+                n1_check_health_timeout(ctx);
+            }
+            else if (ctx->role == POTR_ROLE_RECEIVER
+                     || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
                 check_health_timeout(ctx);
                 if (ctx->global.reorder_timeout_ms > 0U)
@@ -1003,6 +1476,246 @@ static void *recv_thread_func(void *arg)
                 continue;
             }
             if (!check_src_addr(ctx, &sender_addr)) continue;
+
+            /* ── N:1 モード: ピアごとにディスパッチ ── */
+            if (ctx->is_multi_peer)
+            {
+                PotrPeerContext *peer = NULL;
+                int              is_new_peer = 0;
+
+                POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
+
+                /* session_triplet でピアを検索 */
+                peer = peer_find_by_session(ctx,
+                                            pkt.session_id,
+                                            pkt.session_tv_sec,
+                                            pkt.session_tv_nsec);
+
+                if (peer == NULL)
+                {
+                    /* 新規ピア: SYN (初回パケット) として扱い、ピアを作成する */
+                    if (!(pkt.flags & (POTR_FLAG_FIN | POTR_FLAG_NACK)))
+                    {
+                        peer = peer_create(ctx, &sender_addr);
+                        if (peer != NULL)
+                        {
+                            /* ピアのセッション情報を記録 */
+                            peer->peer_session_id      = pkt.session_id;
+                            peer->peer_session_tv_sec  = pkt.session_tv_sec;
+                            peer->peer_session_tv_nsec = pkt.session_tv_nsec;
+                            peer->peer_session_known   = 1;
+                            window_init(&peer->recv_window, pkt.seq_num,
+                                        ctx->global.window_size,
+                                        ctx->global.max_payload);
+                            is_new_peer = 1;
+                        }
+                    }
+                }
+
+                if (peer == NULL)
+                {
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue; /* max_peers 超過またはパース不可パケット */
+                }
+
+                /* 新規ピア: CONNECTED コールバックを発火 */
+                if (is_new_peer)
+                {
+                    peer->health_alive = 1;
+                    POTR_LOG(POTR_LOG_INFO,
+                             "recv[service_id=%d]: CONNECTED peer=%u from %u.%u.%u.%u:%u",
+                             ctx->service.service_id, (unsigned)peer->peer_id,
+                             (unsigned)((ntohl(sender_addr.sin_addr.s_addr) >> 24) & 0xFF),
+                             (unsigned)((ntohl(sender_addr.sin_addr.s_addr) >> 16) & 0xFF),
+                             (unsigned)((ntohl(sender_addr.sin_addr.s_addr) >>  8) & 0xFF),
+                             (unsigned)( ntohl(sender_addr.sin_addr.s_addr)        & 0xFF),
+                             (unsigned)ntohs(sender_addr.sin_port));
+                    if (ctx->callback != NULL)
+                    {
+                        ctx->callback(ctx->service.service_id, peer->peer_id,
+                                      POTR_EVENT_CONNECTED, NULL, 0);
+                    }
+                }
+
+                /* 暗号化パケットを復号 */
+                if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+                    == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+                {
+                    uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                    size_t   dec_len = ctx->crypto_buf_size;
+                    uint32_t sid_nbo = htonl(pkt.session_id);
+                    uint32_t seq_nbo = htonl(pkt.seq_num);
+
+                    memcpy(nonce,     &sid_nbo, 4);
+                    memcpy(nonce + 4, &seq_nbo, 4);
+                    memset(nonce + 8, 0,        4);
+
+                    if (potr_decrypt(ctx->crypto_buf, &dec_len,
+                                     pkt.payload, pkt.payload_len,
+                                     ctx->service.encrypt_key,
+                                     nonce,
+                                     buf, PACKET_HEADER_SIZE) != 0)
+                    {
+                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                        continue;
+                    }
+
+                    pkt.payload     = ctx->crypto_buf;
+                    pkt.payload_len = (uint16_t)dec_len;
+                    pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
+                }
+
+                /* FIN: ピアの正常終了通知 */
+                if (pkt.flags & POTR_FLAG_FIN)
+                {
+                    POTR_LOG(POTR_LOG_INFO,
+                             "recv[service_id=%d]: peer=%u FIN received -> DISCONNECTED",
+                             ctx->service.service_id, (unsigned)peer->peer_id);
+
+                    if (peer->health_alive && ctx->callback != NULL)
+                    {
+                        peer->health_alive = 0;
+                        ctx->callback(ctx->service.service_id, peer->peer_id,
+                                      POTR_EVENT_DISCONNECTED, NULL, 0);
+                    }
+
+                    peer_free(ctx, peer);
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue;
+                }
+
+                /* NACK: 送信ウィンドウから再送する */
+                if (pkt.flags & POTR_FLAG_NACK)
+                {
+                    PotrPacket resend_pkt;
+                    size_t     wire_len = 0;
+                    int        get_result;
+                    int        j;
+
+#ifdef _WIN32
+                    EnterCriticalSection(&peer->send_window_mutex);
+#else
+                    pthread_mutex_lock(&peer->send_window_mutex);
+#endif
+                    get_result = window_send_get(&peer->send_window,
+                                                 pkt.ack_num, &resend_pkt);
+                    if (get_result == POTR_SUCCESS)
+                    {
+                        wire_len = packet_wire_size(&resend_pkt);
+                        memcpy(ctx->recv_buf, &resend_pkt, PACKET_HEADER_SIZE);
+                        memcpy(ctx->recv_buf + PACKET_HEADER_SIZE,
+                               resend_pkt.payload,
+                               wire_len - PACKET_HEADER_SIZE);
+                    }
+#ifdef _WIN32
+                    LeaveCriticalSection(&peer->send_window_mutex);
+#else
+                    pthread_mutex_unlock(&peer->send_window_mutex);
+#endif
+
+                    if (get_result == POTR_SUCCESS)
+                    {
+                        POTR_LOG(POTR_LOG_DEBUG,
+                                 "recv[service_id=%d]: peer=%u NACK seq=%u -> retransmit",
+                                 ctx->service.service_id, (unsigned)peer->peer_id,
+                                 (unsigned)pkt.ack_num);
+                        for (j = 0; j < peer->n_paths; j++)
+                        {
+#ifdef _WIN32
+                            sendto(ctx->sock[0], (const char *)ctx->recv_buf,
+                                   (int)wire_len, 0,
+                                   (const struct sockaddr *)&peer->dest_addr[j],
+                                   sizeof(peer->dest_addr[j]));
+#else
+                            sendto(ctx->sock[0], ctx->recv_buf, wire_len, 0,
+                                   (const struct sockaddr *)&peer->dest_addr[j],
+                                   sizeof(peer->dest_addr[j]));
+#endif
+                        }
+                    }
+                    else
+                    {
+                        POTR_LOG(POTR_LOG_WARN,
+                                 "recv[service_id=%d]: peer=%u NACK seq=%u not in window -> REJECT",
+                                 ctx->service.service_id, (unsigned)peer->peer_id,
+                                 (unsigned)pkt.ack_num);
+                        n1_send_reject(ctx, peer, pkt.ack_num);
+                    }
+
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue;
+                }
+
+                /* REJECT */
+                if (pkt.flags & POTR_FLAG_REJECT)
+                {
+                    if (!n1_check_and_update_session(ctx, peer, &pkt))
+                    {
+                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                        continue;
+                    }
+                    n1_update_path_recv(peer, &sender_addr);
+
+                    if (peer->health_alive && ctx->callback != NULL)
+                    {
+                        peer->health_alive = 0;
+                        ctx->callback(ctx->service.service_id, peer->peer_id,
+                                      POTR_EVENT_DISCONNECTED, NULL, 0);
+                    }
+
+                    peer->reorder_pending = 0;
+                    window_recv_skip(&peer->recv_window, pkt.ack_num);
+                    n1_drain_recv_window(ctx, peer);
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue;
+                }
+
+                /* DATA / PING */
+                if (!(pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_PING)))
+                {
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue;
+                }
+
+                if (!n1_check_and_update_session(ctx, peer, &pkt))
+                {
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue;
+                }
+
+                n1_update_path_recv(peer, &sender_addr);
+
+                POTR_LOG(POTR_LOG_TRACE,
+                         "recv[service_id=%d]: peer=%u %s seq=%u",
+                         ctx->service.service_id, (unsigned)peer->peer_id,
+                         (pkt.flags & POTR_FLAG_PING) ? "PING" : "DATA",
+                         (unsigned)pkt.seq_num);
+
+                if (pkt.flags & POTR_FLAG_PING)
+                {
+                    if (pkt.seq_num != peer->recv_window.next_seq
+                        && seqnum_in_window(pkt.seq_num,
+                                            peer->recv_window.next_seq + 1U,
+                                            peer->recv_window.window_size))
+                    {
+                        if (n1_reorder_gap_ready(peer, peer->recv_window.next_seq))
+                        {
+                            n1_send_nack(ctx, peer, peer->recv_window.next_seq);
+                        }
+                    }
+                    else
+                    {
+                        n1_notify_health_alive(ctx, peer);
+                        n1_send_ping_reply(ctx, peer, pkt.seq_num);
+                    }
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    continue;
+                }
+
+                n1_process_outer_pkt(ctx, peer, &pkt);
+                POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                continue;
+            }
 
             /* 暗号化パケットを復号する
              *   - POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED の組み合わせのみ対象
@@ -1182,7 +1895,7 @@ static void *recv_thread_func(void *arg)
                     ctx->health_alive = 0;
                     if (ctx->callback != NULL)
                     {
-                        ctx->callback(ctx->service.service_id,
+                        ctx->callback(ctx->service.service_id, POTR_PEER_NA,
                                       POTR_EVENT_DISCONNECTED, NULL, 0);
                     }
                 }
@@ -1225,7 +1938,7 @@ static void *recv_thread_func(void *arg)
                     ctx->health_alive = 0;
                     if (ctx->callback != NULL)
                     {
-                        ctx->callback(ctx->service.service_id,
+                        ctx->callback(ctx->service.service_id, POTR_PEER_NA,
                                       POTR_EVENT_DISCONNECTED, NULL, 0);
                     }
                 }

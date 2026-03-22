@@ -69,6 +69,8 @@
 #define POTR_DEFAULT_HEALTH_INTERVAL_MS    0U     /**< デフォルトヘルスチェック送信間隔 (ミリ秒)。0 = 無効。 */
 #define POTR_DEFAULT_HEALTH_TIMEOUT_MS     0U     /**< デフォルトヘルスチェックタイムアウト (ミリ秒)。0 = 無効。 */
 #define POTR_DEFAULT_PACK_WAIT_MS          0U     /**< デフォルトパッキング待ち時間 (ミリ秒)。0 = 即時送信。 */
+#define POTR_DEFAULT_RECONNECT_INTERVAL_MS 5000U  /**< SENDER 自動再接続間隔のデフォルト (ミリ秒)。TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) のみ有効。 */
+#define POTR_DEFAULT_CONNECT_TIMEOUT_MS    10000U /**< SENDER TCP 接続タイムアウトのデフォルト (ミリ秒)。0 = OS デフォルト。TCP 通信種別のみ有効。 */
 /** @} */
 
 /** @defgroup POTR_CRYPTO 暗号化定数 (AES-256-GCM)

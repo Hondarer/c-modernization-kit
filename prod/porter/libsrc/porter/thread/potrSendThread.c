@@ -47,6 +47,7 @@
 #include <porter_const.h>
 
 #include "../potrContext.h"
+#include "../potrPeerTable.h"
 #include "../infra/potrSendQueue.h"
 #include "potrSendThread.h"
 #include "../protocol/packet.h"
@@ -228,6 +229,199 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     }
 }
 
+/* N:1 モード専用: ピアの send_window を使ってパックコンテナを構築して sendto する */
+static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
+                               size_t packed_len)
+{
+    PotrPacket           outer_pkt;
+    PotrPacketSessionHdr shdr;
+    uint32_t             seq;
+    size_t               wire_len;
+    uint8_t             *packed_buf = ctx->send_wire_buf + PACKET_HEADER_SIZE;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = peer->session_id;
+    shdr.session_tv_sec  = peer->session_tv_sec;
+    shdr.session_tv_nsec = peer->session_tv_nsec;
+    shdr._pad            = 0;
+
+#ifdef _WIN32
+    EnterCriticalSection(&peer->send_window_mutex);
+#else
+    pthread_mutex_lock(&peer->send_window_mutex);
+#endif
+
+    seq = peer->send_window.next_seq;
+
+    if (packet_build_packed(&outer_pkt, &shdr, seq, packed_buf, packed_len)
+        != POTR_SUCCESS)
+    {
+#ifdef _WIN32
+        LeaveCriticalSection(&peer->send_window_mutex);
+#else
+        pthread_mutex_unlock(&peer->send_window_mutex);
+#endif
+        return;
+    }
+
+    if (ctx->service.encrypt_enabled)
+    {
+        uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t  enc_len = ctx->crypto_buf_size;
+
+        outer_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        outer_pkt.payload_len = htons((uint16_t)(packed_len + POTR_CRYPTO_TAG_SIZE));
+
+        memcpy(nonce,     &outer_pkt.session_id, 4);
+        memcpy(nonce + 4, &outer_pkt.seq_num,    4);
+        memset(nonce + 8, 0,                     4);
+
+        if (potr_encrypt(ctx->crypto_buf, &enc_len,
+                         packed_buf, packed_len,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         (const uint8_t *)&outer_pkt, PACKET_HEADER_SIZE) != 0)
+        {
+#ifdef _WIN32
+            LeaveCriticalSection(&peer->send_window_mutex);
+#else
+            pthread_mutex_unlock(&peer->send_window_mutex);
+#endif
+            POTR_LOG(POTR_LOG_ERROR,
+                     "sender[service_id=%d]: peer=%u encrypt failed seq=%u",
+                     ctx->service.service_id, (unsigned)peer->peer_id, (unsigned)seq);
+            return;
+        }
+
+        outer_pkt.payload = ctx->crypto_buf;
+        window_send_push(&peer->send_window, &outer_pkt);
+
+#ifdef _WIN32
+        LeaveCriticalSection(&peer->send_window_mutex);
+#else
+        pthread_mutex_unlock(&peer->send_window_mutex);
+#endif
+
+        memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
+        memcpy(ctx->send_wire_buf + PACKET_HEADER_SIZE, ctx->crypto_buf, enc_len);
+        wire_len = PACKET_HEADER_SIZE + enc_len;
+
+        POTR_LOG(POTR_LOG_TRACE,
+                 "sender[service_id=%d]: peer=%u DATA(enc) seq=%u packed_len=%zu",
+                 ctx->service.service_id, (unsigned)peer->peer_id,
+                 (unsigned)seq, packed_len);
+    }
+    else
+    {
+        window_send_push(&peer->send_window, &outer_pkt);
+
+#ifdef _WIN32
+        LeaveCriticalSection(&peer->send_window_mutex);
+#else
+        pthread_mutex_unlock(&peer->send_window_mutex);
+#endif
+
+        memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
+        wire_len = PACKET_HEADER_SIZE + packed_len;
+
+        POTR_LOG(POTR_LOG_TRACE,
+                 "sender[service_id=%d]: peer=%u DATA seq=%u packed_len=%zu",
+                 ctx->service.service_id, (unsigned)peer->peer_id,
+                 (unsigned)seq, packed_len);
+    }
+
+    /* N:1 はソケット 1 本 (sock[0]) でピアの全パスへ送信する */
+    {
+        int k;
+        for (k = 0; k < peer->n_paths; k++)
+        {
+#ifdef _WIN32
+            sendto(ctx->sock[0], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#else
+            sendto(ctx->sock[0], ctx->send_wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif
+        }
+    }
+
+    ctx->last_send_ms = get_ms();
+}
+
+/* N:1 モード専用: キューからエントリを取り出してピアへパッキング送信する */
+static void send_packed_peer_mode(struct PotrContext_ *ctx, PotrPayloadElem *first)
+{
+    PotrPeerId       target_peer_id = first->peer_id;
+    PotrPeerContext *peer           = NULL;
+    uint8_t         *packed_buf    = ctx->send_wire_buf + PACKET_HEADER_SIZE;
+    size_t           packed_len    = 0;
+    int              n_dequeued    = 1;
+
+    /* ピアを検索 (peers_mutex は lookup だけ保護、送信中は解放する) */
+#ifdef _WIN32
+    EnterCriticalSection(&ctx->peers_mutex);
+#else
+    pthread_mutex_lock(&ctx->peers_mutex);
+#endif
+    peer = peer_find_by_id(ctx, target_peer_id);
+#ifdef _WIN32
+    LeaveCriticalSection(&ctx->peers_mutex);
+#else
+    pthread_mutex_unlock(&ctx->peers_mutex);
+#endif
+
+    if (peer == NULL)
+    {
+        /* 切断済みピア宛エントリ: 破棄 */
+        potr_send_queue_complete(&ctx->send_queue);
+        return;
+    }
+
+    append_payload_elem(packed_buf, &packed_len, first);
+
+    /* 同一ピア宛の追加エントリを即時パッキング (pack_wait なし) */
+    if (!(first->flags & POTR_FLAG_MORE_FRAG))
+    {
+        PotrPayloadElem next;
+
+        while (potr_send_queue_peek(&ctx->send_queue, &next) == POTR_SUCCESS)
+        {
+            size_t elem_size;
+
+            if (next.peer_id != target_peer_id) break;
+            if (next.flags & POTR_FLAG_MORE_FRAG) break;
+
+            elem_size = POTR_PAYLOAD_ELEM_HDR_SIZE + (size_t)next.payload_len;
+            if (packed_len + elem_size > (size_t)ctx->global.max_payload
+                                         - (ctx->service.encrypt_enabled
+                                            ? POTR_CRYPTO_TAG_SIZE : 0U))
+            {
+                break;
+            }
+
+            if (potr_send_queue_try_pop(&ctx->send_queue, &next) != POTR_SUCCESS)
+            {
+                break;
+            }
+
+            append_payload_elem(packed_buf, &packed_len, &next);
+            n_dequeued++;
+        }
+    }
+
+    flush_packed_peer(ctx, peer, packed_len);
+
+    {
+        int i;
+        for (i = 0; i < n_dequeued; i++)
+        {
+            potr_send_queue_complete(&ctx->send_queue);
+        }
+    }
+}
+
 /* 送信スレッド本体 */
 #ifdef _WIN32
 static DWORD WINAPI send_thread_func(LPVOID arg)
@@ -245,6 +439,13 @@ static void *send_thread_func(void *arg)
                                 &ctx->send_thread_running) != POTR_SUCCESS)
         {
             break;
+        }
+
+        /* N:1 モード: peer_id でルーティングして送信 */
+        if (ctx->is_multi_peer)
+        {
+            send_packed_peer_mode(ctx, &first);
+            continue;
         }
 
         /* パッキング試行 */

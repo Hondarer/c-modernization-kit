@@ -70,6 +70,7 @@ int potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload)
 
     for (i = 0; i < depth; i++)
     {
+        q->entries[i].peer_id     = POTR_PEER_NA;
         q->entries[i].flags       = 0;
         q->entries[i].payload_len = 0;
         q->entries[i].payload     = q->payload_pool + i * (size_t)max_payload;
@@ -96,7 +97,8 @@ void potr_send_queue_destroy(PotrSendQueue *q)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
+int potr_send_queue_push(PotrSendQueue *q, PotrPeerId peer_id,
+                         uint16_t flags,
                          const void *payload, uint16_t payload_len)
 {
     POTR_MUTEX_LOCK(&q->mutex);
@@ -107,6 +109,7 @@ int potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
         return POTR_ERROR;
     }
 
+    q->entries[q->tail].peer_id     = peer_id;
     q->entries[q->tail].flags       = flags;
     q->entries[q->tail].payload_len = payload_len;
     memcpy(q->entries[q->tail].payload, payload, payload_len);
@@ -120,7 +123,8 @@ int potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int potr_send_queue_push_wait(PotrSendQueue *q, uint16_t flags,
+int potr_send_queue_push_wait(PotrSendQueue *q, PotrPeerId peer_id,
+                              uint16_t flags,
                               const void *payload, uint16_t payload_len,
                               volatile int *running)
 {
@@ -138,6 +142,7 @@ int potr_send_queue_push_wait(PotrSendQueue *q, uint16_t flags,
         POTR_COND_WAIT(&q->not_full, &q->mutex);
     }
 
+    q->entries[q->tail].peer_id     = peer_id;
     q->entries[q->tail].flags       = flags;
     q->entries[q->tail].payload_len = payload_len;
     memcpy(q->entries[q->tail].payload, payload, payload_len);

@@ -28,6 +28,7 @@
 #include <porter.h>
 
 #include "../potrContext.h"
+#include "../potrPeerTable.h"
 #include "../thread/potrRecvThread.h"
 #include "../thread/potrHealthThread.h"
 #include "../infra/potrSendQueue.h"
@@ -100,7 +101,16 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
                  "potrCloseService: service_id=%d flushing send queue and sending FIN",
                  ctx->service.service_id);
         potr_send_queue_wait_drained(&ctx->send_queue);
-        send_fin(ctx);
+        if (ctx->is_multi_peer)
+        {
+            /* N:1: 全アクティブピアへ FIN を送信してピアテーブルを破棄 */
+            peer_table_destroy(ctx);
+        }
+        else
+        {
+            /* 1:1: 単一宛先へ FIN を送信 */
+            send_fin(ctx);
+        }
         potr_send_thread_stop(ctx);
         potr_send_queue_destroy(&ctx->send_queue);
     }
@@ -161,8 +171,18 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
 #endif
 
     /* 送受信ウィンドウと動的バッファを解放 */
-    window_destroy(&ctx->send_window);
-    window_destroy(&ctx->recv_window);
+    if (!ctx->is_multi_peer)
+    {
+        /* 1:1 モード: コンテキストレベルのウィンドウを解放する */
+        window_destroy(&ctx->send_window);
+        window_destroy(&ctx->recv_window);
+    }
+    else if (ctx->peers != NULL)
+    {
+        /* N:1 モード: 送信スレッド未起動の場合もピアテーブルを解放する
+           (既に peer_table_destroy 済みの場合は ctx->peers が NULL になっている) */
+        peer_table_destroy(ctx);
+    }
     free(ctx->frag_buf);
     free(ctx->compress_buf);
     free(ctx->crypto_buf);

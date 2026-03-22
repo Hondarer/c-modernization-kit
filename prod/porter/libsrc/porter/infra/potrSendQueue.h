@@ -44,14 +44,15 @@
  *  @details
  *  外側パケットの構築 (seq_num 付与・window_send_push・sendto) は送信スレッドが行う。\n
  *  本エントリはペイロードエレメントのデータのみを保持し、再送バッファには登録しない。\n
- *  payload はキュー初期化時に確保したプールスロットを指す。
+ *  payload はキュー初期化時に確保したプールスロットを指す。\n
+ *  N:1 モードでは peer_id が送信先ピアを示す。1:1 モードでは 0。
  */
 typedef struct
 {
-    uint16_t  flags;       /**< ペイロードエレメントフラグ (MORE_FRAG, COMPRESSED など)。 */
-    uint16_t  payload_len; /**< ペイロード長 (バイト)。 */
-    uint32_t  _pad;        /**< パディング (payload を 8 バイト境界に揃える)。 */
-    uint8_t  *payload;     /**< ペイロードデータへのポインタ (プールスロット内を指す)。 */
+    PotrPeerId peer_id;     /**< 送信先ピア識別子 (N:1 モード用。1:1 モードでは 0)。 */
+    uint16_t  flags;        /**< ペイロードエレメントフラグ (MORE_FRAG, COMPRESSED など)。 */
+    uint16_t  payload_len;  /**< ペイロード長 (バイト)。 */
+    uint8_t  *payload;      /**< ペイロードデータへのポインタ (プールスロット内を指す)。 */
 } PotrPayloadElem;
 
 /**
@@ -89,9 +90,11 @@ extern "C"
 
     extern int  potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload);
     extern void potr_send_queue_destroy(PotrSendQueue *q);
-    extern int  potr_send_queue_push(PotrSendQueue *q, uint16_t flags,
+    extern int  potr_send_queue_push(PotrSendQueue *q, PotrPeerId peer_id,
+                                     uint16_t flags,
                                      const void *payload, uint16_t payload_len);      /* 満杯時は即時 POTR_ERROR */
-    extern int  potr_send_queue_push_wait(PotrSendQueue *q, uint16_t flags,
+    extern int  potr_send_queue_push_wait(PotrSendQueue *q, PotrPeerId peer_id,
+                                          uint16_t flags,
                                           const void *payload, uint16_t payload_len,
                                           volatile int *running);                      /* 満杯時は空きを待機 */
     extern int  potr_send_queue_pop(PotrSendQueue *q, PotrPayloadElem *out,

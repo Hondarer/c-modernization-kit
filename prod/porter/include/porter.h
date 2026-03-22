@@ -84,7 +84,10 @@ extern "C"
      *  @param[in]      role        役割種別。POTR_ROLE_SENDER または POTR_ROLE_RECEIVER。
      *  @param[in]      callback    イベント発生時に呼び出されるコールバック関数 (PotrRecvCallback)。
      *                              POTR_ROLE_RECEIVER の場合は必須。データ受信・接続検知・切断検知を受け取る。
-     *                              POTR_ROLE_SENDER の場合は NULL を指定すること。
+     *                              POTR_ROLE_SENDER の場合は通常 NULL を指定すること。\n
+     *                              ただし POTR_TYPE_TCP_BIDIR および POTR_TYPE_UNICAST_BIDIR では
+     *                              SENDER にもコールバックが必須。これらの種別では POTR_ROLE_SENDER でも
+     *                              callback が NULL の場合は失敗を返します。
      *  @param[out]     handle      成功時にセッションハンドルを格納するポインタ。
      *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
      *
@@ -107,8 +110,9 @@ extern "C"
      *
      *  @par            使用例 (受信者)
      *  @code{.c}
-     *  void on_recv(int service_id, PotrEvent event,
-     *               const void *data, size_t len) {
+     *  void on_recv(int service_id, PotrPeerId peer_id,
+     *               PotrEvent event, const void *data, size_t len) {
+     *      (void)peer_id;  // 1:1 モードでは常に POTR_PEER_NA
      *      if (event == POTR_EVENT_CONNECTED)
      *          printf("service %d: connected\n", service_id);
      *      else if (event == POTR_EVENT_DISCONNECTED)
@@ -130,7 +134,7 @@ extern "C"
      *  PotrHandle handle;
      *  if (potrOpenService("porter-services.conf", 1001,
      *                      POTR_ROLE_SENDER, NULL, &handle) == POTR_SUCCESS) {
-     *      potrSend(handle, "hello", 5, 0);
+     *      potrSend(handle, POTR_PEER_NA, "hello", 5, 0);
      *      potrCloseService(handle);
      *  }
      *  @endcode
@@ -139,7 +143,9 @@ extern "C"
      *                  config_path が NULL または存在しない場合は失敗を返します。\n
      *                  指定した service_id が設定ファイルに存在しない場合は失敗を返します。\n
      *                  POTR_ROLE_RECEIVER かつ callback が NULL の場合は失敗を返します。\n
-     *                  POTR_ROLE_SENDER かつ callback が NULL でない場合は失敗を返します。
+     *                  POTR_ROLE_SENDER かつ callback が NULL でない場合は失敗を返します。\n
+     *                  ただし POTR_TYPE_TCP_BIDIR および POTR_TYPE_UNICAST_BIDIR では SENDER にも\n
+     *                  コールバックが必須であり、この場合 callback が NULL の場合は失敗を返します。
      *******************************************************************************
      */
     POTR_EXPORT extern int POTR_API potrOpenService(const char       *config_path,
@@ -152,6 +158,11 @@ extern "C"
      *******************************************************************************
      *  @brief          メッセージを送信します。
      *  @param[in]      handle      potrOpenService() で取得したセッションハンドル。
+     *  @param[in]      peer_id     送信先ピア識別子。\n
+     *                              N:1 モード: 有効なピア ID (`POTR_PEER_NA` / `POTR_PEER_ALL` 以外) を指定します。\n
+     *                              N:1 モード: POTR_PEER_ALL を指定すると全接続ピアへ一斉送信します。\n
+     *                              N:1 モード: POTR_PEER_NA を指定すると POTR_ERROR を返します。\n
+     *                              1:1 モードおよびその他の通信種別: POTR_PEER_NA または POTR_PEER_ALL を指定します (通常は POTR_PEER_NA を使用)。
      *  @param[in]      data        送信するメッセージへのポインタ。
      *  @param[in]      len         送信するメッセージのバイト数。
      *  @param[in]      flags       送信オプションフラグ。以下のフラグを論理和で組み合わせて指定します。
@@ -171,6 +182,7 @@ extern "C"
      *  | POTR_TYPE_UNICAST     | 接続相手の dst_port 宛にユニキャスト送信   |
      *  | POTR_TYPE_MULTICAST   | multicast_group:dst_port へ送信            |
      *  | POTR_TYPE_BROADCAST   | broadcast_addr:dst_port へ送信             |
+     *  | POTR_TYPE_UNICAST_BIDIR (N:1) | peer_id で指定したピアへ送信       |
      *
      *  compress に `POTR_SEND_COMPRESS` を指定した場合、内部で圧縮処理を行ってから送信します。\n
      *  圧縮後のサイズが元のサイズ以上になった場合は、自動的に非圧縮で送信します。\n
@@ -201,13 +213,39 @@ extern "C"
      *                  data が NULL の場合は失敗を返します。\n
      *                  len が 0 の場合は失敗を返します。\n
      *                  len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。\n
-     *                  送信スレッドが停止している場合 (potrCloseService 呼び出し後など) は失敗を返します。
+     *                  送信スレッドが停止している場合 (potrCloseService 呼び出し後など) は失敗を返します。\n
+     *                  N:1 モードで peer_id = POTR_PEER_NA (0) を指定した場合は失敗を返します。\n
+     *                  TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) で TCP 接続確立前に\n
+     *                  呼び出した場合は失敗を返します (connect スレッドが非同期に接続を試みている間)。
      *******************************************************************************
      */
     POTR_EXPORT extern int POTR_API potrSend(PotrHandle  handle,
+                                         PotrPeerId  peer_id,
                                          const void *data,
                                          size_t      len,
                                          int         flags);
+
+    /**
+     *******************************************************************************
+     *  @brief          指定ピアを切断します (N:1 モード専用)。
+     *  @param[in]      handle      potrOpenService() で取得したセッションハンドル。
+     *  @param[in]      peer_id     切断するピアの識別子 (POTR_PEER_NA および POTR_PEER_ALL 以外)。
+     *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+     *
+     *  @details
+     *  指定したピアへ FIN パケットを送信し、ピアのリソースを解放します。\n
+     *  切断完了後に POTR_EVENT_DISCONNECTED コールバックが発火します。\n
+     *  N:1 モード (unicast_bidir かつ src 情報省略) 専用です。\n
+     *  1:1 モードおよびその他の通信種別では POTR_ERROR を返します。
+     *
+     *  @warning        handle が NULL の場合は失敗を返します。\n
+     *                  peer_id = POTR_PEER_NA または POTR_PEER_ALL の場合は失敗を返します。\n
+     *                  指定した peer_id が存在しない場合は失敗を返します。\n
+     *                  1:1 モードまたは N:1 モード以外で呼び出した場合は失敗を返します。
+     *******************************************************************************
+     */
+    POTR_EXPORT extern int POTR_API potrDisconnectPeer(PotrHandle handle,
+                                                   PotrPeerId peer_id);
 
     /**
      *******************************************************************************
@@ -223,8 +261,9 @@ extern "C"
      *  @note
      *  本関数呼び出し時、POTR_EVENT_DISCONNECTED コールバックは発火しません。\n
      *  アプリケーション自身が明示的にサービスを閉じる操作は、接続状態変化イベントとして通知しない設計です。\n
-     *  送信者 (POTR_ROLE_SENDER) が本関数を呼び出した場合は、FIN パケットが送信されます。
-     *  FIN を受信した受信者側では POTR_EVENT_DISCONNECTED が発火します。
+     *  UDP 通信種別の送信者 (POTR_ROLE_SENDER) が本関数を呼び出した場合は、POTR_FLAG_FIN パケットが送信されます。\n
+     *  TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) では close() による TCP 切断が FIN 相当として機能します。\n
+     *  いずれの場合も、相手側では POTR_EVENT_DISCONNECTED が発火します。
      *
      *  @warning        handle が NULL の場合は失敗を返します。
      *******************************************************************************
