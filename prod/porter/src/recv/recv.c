@@ -336,10 +336,6 @@ int main(int argc, char *argv[])
     BidirThread  bidir_thread;
     int          bidir_started = 0;
 
-#ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
-#endif
-
     /* オプション解析 */
     for (i = 1; i < argc; i++)
     {

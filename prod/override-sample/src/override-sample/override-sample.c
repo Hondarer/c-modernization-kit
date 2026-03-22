@@ -31,10 +31,6 @@ int main(void)
     int rtc;
     char configpath[4096];
 
-#ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
-#endif
-
 #ifndef _WIN32
     snprintf(configpath, sizeof(configpath), "/tmp/libbase_extdef.txt");
 #else

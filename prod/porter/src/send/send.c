@@ -199,10 +199,6 @@ int main(int argc, char *argv[])
     int          is_bidir;
     PotrRecvCallback callback;
 
-#ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
-#endif
-
     /* オプション解析 */
     for (i = 1; i < argc; i++)
     {
