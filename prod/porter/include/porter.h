@@ -287,6 +287,40 @@ extern "C"
                                               const char   *log_file,
                                               int           console);
 
+    /**
+     *******************************************************************************
+     *  @brief          設定ファイルから指定サービスの通信種別を取得します。
+     *  @param[in]      config_path 設定ファイルのパス。
+     *  @param[in]      service_id  照会するサービスの ID。
+     *  @param[out]     type        成功時に通信種別 (PotrType) を格納するポインタ。
+     *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+     *
+     *  @details
+     *  設定ファイルを解析して指定サービスの通信種別を返します。\n
+     *  potrOpenService() の前に呼び出すことで、ロール・コールバックの要否を
+     *  アプリケーション側で判断できます。\n
+     *  本関数はソケットの作成や通信スレッドの起動を行いません。
+     *
+     *  @par            使用例
+     *  @code{.c}
+     *  PotrType type;
+     *  if (potrGetServiceType("porter-services.conf", 1031, &type) == POTR_SUCCESS) {
+     *      if (type == POTR_TYPE_UNICAST_BIDIR) {
+     *          // unicast_bidir: コールバックが必須
+     *          potrOpenService("porter-services.conf", 1031,
+     *                          POTR_ROLE_SENDER, on_recv, &handle);
+     *      }
+     *  }
+     *  @endcode
+     *
+     *  @warning        config_path または type が NULL の場合は失敗を返します。\n
+     *                  指定した service_id が設定ファイルに存在しない場合は失敗を返します。
+     *******************************************************************************
+     */
+    POTR_EXPORT extern int POTR_API potrGetServiceType(const char *config_path,
+                                                   int         service_id,
+                                                   PotrType   *type);
+
 #ifdef __cplusplus
 }
 #endif

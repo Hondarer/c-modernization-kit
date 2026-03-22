@@ -92,7 +92,8 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
  *  通番には送信側の next_seq（次に送出する DATA に割り当てる通番）を格納します。\n
  *  PING はウィンドウに登録されません（NACK・再送の対象外）。\n
  *  ack_num == 0 は PING 要求。受信者は seq_num を上限として欠番を一括 NACK します。\n
- *  ack_num != 0 は PING 応答 (unicast_bidir 専用)。受信者は gap スキャンを行いません。
+ *  ack_num != 0 は PING 応答 (unicast_bidir 専用)。受信者は gap スキャンを行いません。\n
+ *  応答時は ack_num = req_seq_num + 1 を指定することで、req_seq_num=0 でも ack_num=0 になりません。
  *******************************************************************************
  */
 int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,

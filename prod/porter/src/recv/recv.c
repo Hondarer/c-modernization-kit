@@ -3,12 +3,15 @@
  *  @file           recv.c
  *  @brief          受信テストコマンド。
  *  @author         c-modernization-kit sample team
- *  @date           2026/03/04
- *  @version        1.1.0
+ *  @date           2026/03/22
+ *  @version        1.2.0
  *
  *  @details
  *  指定サービスでデータを受信し続ける CLI テストコマンドです。\n
- *  Ctrl+C で終了します。
+ *  Ctrl+C で終了します。\n
+ *  \n
+ *  サービス種別が unicast_bidir の場合は双方向モードで動作します。\n
+ *  双方向モードでは受信待機中に標準入力からメッセージを送信できます (空行で送信終了)。
  *
  *  @par            使用方法
  *  @code{.sh}
@@ -26,7 +29,7 @@
  *  @code{.sh}
  *  recv porter-services.conf 10
  *  recv -l INFO porter-services.conf 10
- *  recv -l DEBUG porter-services.conf 10
+ *  recv -l DEBUG porter-services.conf 1031
  *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -41,7 +44,9 @@
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <process.h>
 #else
+    #include <pthread.h>
     #include <unistd.h>
 #endif
 
@@ -146,6 +151,169 @@ static int parse_log_level(const char *str, PotrLogLevel *out)
     return 0;
 }
 
+/* ============================================================ */
+/* unicast_bidir 送信スレッド                                     */
+/* ============================================================ */
+
+/** bidir 送信スレッドに渡すコンテキスト。 */
+typedef struct
+{
+    PotrHandle       handle;
+    volatile int    *running;
+} BidirSendCtx;
+
+/**
+ *******************************************************************************
+ *  @brief          標準入力から1行読み込み、末尾の改行を取り除く。
+ *  @param[out]     buf     読み込み先バッファ。
+ *  @param[in]      size    バッファサイズ (バイト)。
+ *  @return         入力があれば 1、EOF またはエラーなら 0 を返します。
+ *******************************************************************************
+ */
+static int read_line(char *buf, size_t size)
+{
+    if (fgets(buf, (int)size, stdin) == NULL)
+    {
+        return 0;
+    }
+    buf[strcspn(buf, "\n")] = '\0';
+    return 1;
+}
+
+#ifdef _WIN32
+typedef HANDLE BidirThread;
+
+/**
+ *******************************************************************************
+ *  @brief          bidir 送信スレッド関数 (Windows)。
+ *  @param[in]      arg BidirSendCtx へのポインタ。
+ *  @return         0
+ *******************************************************************************
+ */
+static unsigned __stdcall bidir_send_thread_func(void *arg)
+#else
+typedef pthread_t BidirThread;
+
+/**
+ *******************************************************************************
+ *  @brief          bidir 送信スレッド関数 (Linux)。
+ *  @param[in]      arg BidirSendCtx へのポインタ。
+ *  @return         NULL
+ *******************************************************************************
+ */
+static void *bidir_send_thread_func(void *arg)
+#endif
+{
+    BidirSendCtx *ctx = (BidirSendCtx *)arg;
+    char          msg_buf[POTR_MAX_MESSAGE_SIZE + 2U];
+    char          ans_buf[8];
+    size_t        msg_len;
+    int           compress;
+    const char   *compress_label;
+
+    while (*ctx->running)
+    {
+        printf("\nメッセージ> ");
+        fflush(stdout);
+
+        if (!read_line(msg_buf, sizeof(msg_buf)))
+        {
+            break; /* EOF またはシグナル割り込み */
+        }
+
+        msg_len = strlen(msg_buf);
+        if (msg_len == 0U)
+        {
+            break; /* 空行で送信終了 */
+        }
+
+        printf("圧縮送信しますか？ [y/N]> ");
+        fflush(stdout);
+
+        compress = 0;
+        if (read_line(ans_buf, sizeof(ans_buf)))
+        {
+            if (ans_buf[0] == 'y' || ans_buf[0] == 'Y')
+            {
+                compress = 1;
+            }
+        }
+
+        compress_label = compress ? " [圧縮あり]" : "";
+        printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len, compress_label);
+
+        if (potrSend(ctx->handle, msg_buf, msg_len,
+                     (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING) != POTR_SUCCESS)
+        {
+            fprintf(stderr, "エラー: 送信に失敗しました。\n");
+            break;
+        }
+
+        printf("送信完了。");
+
+        printf(" 続けて送信しますか？ [Y/n]> ");
+        fflush(stdout);
+
+        if (!read_line(ans_buf, sizeof(ans_buf)))
+        {
+            break;
+        }
+
+        if (ans_buf[0] == 'n' || ans_buf[0] == 'N')
+        {
+            break;
+        }
+    }
+
+    *ctx->running = 0; /* 送信終了時に受信ループも停止させる */
+
+#ifdef _WIN32
+    return 0U;
+#else
+    return NULL;
+#endif
+}
+
+/**
+ *******************************************************************************
+ *  @brief          bidir 送信スレッドを起動する。
+ *  @param[out]     thread  スレッドハンドルの格納先。
+ *  @param[in]      ctx     スレッドに渡すコンテキスト。
+ *  @return         成功時は 1、失敗時は 0 を返します。
+ *******************************************************************************
+ */
+static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
+{
+#ifdef _WIN32
+    uintptr_t h = _beginthreadex(NULL, 0U, bidir_send_thread_func, ctx, 0U, NULL);
+    if (h == 0U)
+    {
+        return 0;
+    }
+    *thread = (HANDLE)h;
+    return 1;
+#else
+    return pthread_create(thread, NULL, bidir_send_thread_func, ctx) == 0;
+#endif
+}
+
+/**
+ *******************************************************************************
+ *  @brief          bidir 送信スレッドの終了を待機して破棄する。
+ *  @param[in]      thread  スレッドハンドル。
+ *******************************************************************************
+ */
+static void join_bidir_send_thread(BidirThread thread)
+{
+#ifdef _WIN32
+    WaitForSingleObject(thread, INFINITE);
+    CloseHandle(thread);
+#else
+    pthread_cancel(thread); /* fgets でブロック中のスレッドを中断する */
+    pthread_join(thread, NULL);
+#endif
+}
+
 /**
  *******************************************************************************
  *  @brief          メインエントリーポイント。
@@ -162,6 +330,11 @@ int main(int argc, char *argv[])
     int          i;
     PotrLogLevel log_level     = POTR_LOG_OFF;
     int          log_level_set = 0;
+    PotrType     svc_type;
+    int          is_bidir;
+    BidirSendCtx bidir_ctx;
+    BidirThread  bidir_thread;
+    int          bidir_started = 0;
 
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
@@ -224,10 +397,34 @@ int main(int argc, char *argv[])
 
     printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
 
+    /* サービス種別を取得して unicast_bidir かどうか判定する */
+    is_bidir = 0;
+    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS
+        && svc_type == POTR_TYPE_UNICAST_BIDIR)
+    {
+        is_bidir = 1;
+    }
+
     if (potrOpenService(config_path, service_id, POTR_ROLE_RECEIVER, on_recv, &handle) != POTR_SUCCESS)
     {
         fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
         return EXIT_FAILURE;
+    }
+
+    if (is_bidir)
+    {
+        printf("双方向モード (unicast_bidir)。\n");
+        printf("メッセージを入力して送信できます (空行または Ctrl+D で送信終了)。\n");
+        bidir_ctx.handle  = handle;
+        bidir_ctx.running = &g_running;
+        if (start_bidir_send_thread(&bidir_thread, &bidir_ctx))
+        {
+            bidir_started = 1;
+        }
+        else
+        {
+            fprintf(stderr, "警告: 送信スレッドの起動に失敗しました。受信専用モードで動作します。\n");
+        }
     }
 
     printf("受信待機中... (Ctrl+C で終了)\n");
@@ -239,6 +436,11 @@ int main(int argc, char *argv[])
 #else
         usleep(100000);
 #endif
+    }
+
+    if (bidir_started)
+    {
+        join_bidir_send_thread(bidir_thread);
     }
 
     potrCloseService(handle);

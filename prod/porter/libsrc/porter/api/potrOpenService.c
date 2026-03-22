@@ -647,9 +647,18 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                     return POTR_ERROR;
                 }
 
-                /* 両端ともに src_addr:src_port で bind する */
-                ctx->sock[i] = open_socket_unicast(ctx->src_addr_resolved[i],
-                                                   ctx->service.src_port);
+                /* SENDER: src_addr:src_port で bind
+                   RECEIVER: dst_addr:dst_port で bind */
+                if (role == POTR_ROLE_SENDER)
+                {
+                    ctx->sock[i] = open_socket_unicast(ctx->src_addr_resolved[i],
+                                                       ctx->service.src_port);
+                }
+                else
+                {
+                    ctx->sock[i] = open_socket_unicast(ctx->dst_addr_resolved[i],
+                                                       ctx->service.dst_port);
+                }
                 if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 {
                     ctx_cleanup(ctx);
@@ -694,8 +703,18 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                 {
                     memset(&ctx->dest_addr[i], 0, sizeof(ctx->dest_addr[i]));
                     ctx->dest_addr[i].sin_family = AF_INET;
-                    ctx->dest_addr[i].sin_addr   = ctx->dst_addr_resolved[i];
-                    ctx->dest_addr[i].sin_port   = htons(ctx->service.dst_port);
+                    if (role == POTR_ROLE_SENDER)
+                    {
+                        /* SENDER: dst_addr:dst_port (RECEIVER の bind アドレス) へ送信 */
+                        ctx->dest_addr[i].sin_addr = ctx->dst_addr_resolved[i];
+                        ctx->dest_addr[i].sin_port = htons(ctx->service.dst_port);
+                    }
+                    else
+                    {
+                        /* RECEIVER: src_addr:src_port (SENDER の bind アドレス) へ送信 */
+                        ctx->dest_addr[i].sin_addr = ctx->src_addr_resolved[i];
+                        ctx->dest_addr[i].sin_port = htons(ctx->service.src_port);
+                    }
                 }
                 break;
 

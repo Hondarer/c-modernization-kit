@@ -45,7 +45,8 @@ static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num);
 static void raw_session_disconnect(struct PotrContext_ *ctx);
 
 /* 送信元 IP が期待アドレスのいずれかと一致するか確認する。
-   UNICAST_BIDIR: 受信パケットの送信元は相手 (dst_addr_resolved) と照合する。
+   UNICAST_BIDIR SENDER:   受信パケットの送信元は RECEIVER (dst_addr_resolved) と照合する。
+   UNICAST_BIDIR RECEIVER: 受信パケットの送信元は SENDER   (src_addr_resolved) と照合する。
    その他: src_addr_resolved と照合する。src_addr が未設定の場合は常に 1 (合格) を返す。 */
 static int check_src_addr(const struct PotrContext_ *ctx,
                            const struct sockaddr_in  *sender)
@@ -54,16 +55,24 @@ static int check_src_addr(const struct PotrContext_ *ctx,
 
     if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
     {
-        /* UNICAST_BIDIR: 相手のアドレス (dst_addr_resolved) でフィルタ */
-        if (ctx->service.dst_addr[0][0] == '\0')
+        if (ctx->role == POTR_ROLE_SENDER)
         {
-            return 1;
-        }
-        for (i = 0; i < ctx->n_path; i++)
-        {
-            if (sender->sin_addr.s_addr == ctx->dst_addr_resolved[i].s_addr)
+            /* SENDER が受け取るパケット: RECEIVER (dst_addr) から来る */
+            if (ctx->service.dst_addr[0][0] == '\0') return 1;
+            for (i = 0; i < ctx->n_path; i++)
             {
-                return 1;
+                if (sender->sin_addr.s_addr == ctx->dst_addr_resolved[i].s_addr)
+                    return 1;
+            }
+        }
+        else
+        {
+            /* RECEIVER が受け取るパケット: SENDER (src_addr) から来る */
+            if (ctx->service.src_addr[0][0] == '\0') return 1;
+            for (i = 0; i < ctx->n_path; i++)
+            {
+                if (sender->sin_addr.s_addr == ctx->src_addr_resolved[i].s_addr)
+                    return 1;
             }
         }
         return 0;
@@ -488,8 +497,10 @@ static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
     pthread_mutex_unlock(&ctx->send_window_mutex);
 #endif
 
+    /* ack_num=0 は PING 要求と区別できないため req_seq_num+1 を格納する。
+       受信側は ack_num != 0 で応答を判定するため値の厳密な一致は不要。 */
     if (packet_build_ping(&reply_pkt, &shdr,
-                          my_next_seq, req_seq_num) != POTR_SUCCESS)
+                          my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
     {
         return;
     }

@@ -3,13 +3,16 @@
  *  @file           send.c
  *  @brief          送信テストコマンド。
  *  @author         c-modernization-kit sample team
- *  @date           2026/03/04
- *  @version        1.2.0
+ *  @date           2026/03/22
+ *  @version        1.3.0
  *
  *  @details
  *  指定サービスへデータを対話式に送信する CLI テストコマンドです。\n
  *  1 回のセッション内でメッセージを連続して送信できます。\n
- *  各送信後に次のメッセージを送るか終了するかを選択できます。
+ *  各送信後に次のメッセージを送るか終了するかを選択できます。\n
+ *  \n
+ *  サービス種別が unicast_bidir の場合は双方向モードで動作します。\n
+ *  双方向モードでは相手から受信したメッセージも標準出力に表示します。
  *
  *  @par            使用方法
  *  @code{.sh}
@@ -27,7 +30,7 @@
  *  @code{.sh}
  *  send porter-services.conf 10
  *  send -l INFO porter-services.conf 10
- *  send -l DEBUG porter-services.conf 10
+ *  send -l DEBUG porter-services.conf 1031
  *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -35,6 +38,7 @@
  *******************************************************************************
  */
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,6 +53,67 @@
 
 /** 入力バッファサイズ。POTR_MAX_MESSAGE_SIZE + 改行 + NUL。 */
 #define INPUT_BUF_SIZE (POTR_MAX_MESSAGE_SIZE + 2U)
+
+/** 送信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
+static volatile int g_running = 1;
+
+/**
+ *******************************************************************************
+ *  @brief          SIGINT シグナルハンドラー。
+ *  @param[in]      sig シグナル番号。
+ *******************************************************************************
+ */
+static void sig_handler(int sig)
+{
+    (void)sig;
+    g_running = 0;
+    printf("\n終了中...\n");
+#ifndef _WIN32
+    close(STDIN_FILENO); /* fgets のブロックを解除する */
+#endif
+}
+
+/**
+ *******************************************************************************
+ *  @brief          受信コールバック関数 (unicast_bidir モード用)。
+ *  @param[in]      service_id  サービスの ID。
+ *  @param[in]      event       イベント種別。
+ *  @param[in]      data        受信データへのポインタ (POTR_EVENT_DATA 時のみ有効)。
+ *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
+ *******************************************************************************
+ */
+static void on_recv(int service_id, PotrEvent event,
+                    const void *data, size_t len)
+{
+    char   buf[POTR_MAX_PAYLOAD + 1];
+    size_t copy_len;
+
+    switch (event)
+    {
+        case POTR_EVENT_CONNECTED:
+            printf("\n[サービス %d] 接続確立\n", service_id);
+            break;
+
+        case POTR_EVENT_DISCONNECTED:
+            printf("\n[サービス %d] 切断検知\n", service_id);
+            break;
+
+        case POTR_EVENT_DATA:
+        default:
+            if (len < POTR_MAX_PAYLOAD)
+            {
+                copy_len = len;
+            }
+            else
+            {
+                copy_len = POTR_MAX_PAYLOAD;
+            }
+            memcpy(buf, data, copy_len);
+            buf[copy_len] = '\0';
+            printf("\n[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+            break;
+    }
+}
 
 /**
  *******************************************************************************
@@ -130,6 +195,9 @@ int main(int argc, char *argv[])
     int          i;
     PotrLogLevel log_level    = POTR_LOG_OFF;
     int          log_level_set = 0;
+    PotrType     svc_type;
+    int          is_bidir;
+    PotrRecvCallback callback;
 
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8); /* コンソールの出力コードページを utf-8 に設定する */
@@ -188,14 +256,31 @@ int main(int argc, char *argv[])
         }
     }
 
+    signal(SIGINT, sig_handler);
+
     printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
 
-    if (potrOpenService(config_path, service_id, POTR_ROLE_SENDER, NULL, &handle) != POTR_SUCCESS)
+    /* サービス種別を取得して unicast_bidir かどうか判定する */
+    is_bidir = 0;
+    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS
+        && svc_type == POTR_TYPE_UNICAST_BIDIR)
+    {
+        is_bidir = 1;
+    }
+
+    /* unicast_bidir の場合はコールバックが必須 */
+    callback = is_bidir ? on_recv : NULL;
+
+    if (potrOpenService(config_path, service_id, POTR_ROLE_SENDER, callback, &handle) != POTR_SUCCESS)
     {
         fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
         return EXIT_FAILURE;
     }
 
+    if (is_bidir)
+    {
+        printf("双方向モード (unicast_bidir)。相手からの受信メッセージも表示します。\n");
+    }
     printf("送信準備完了。空行入力またはCtrl+Dで終了します。\n");
 
     for (;;)
@@ -205,14 +290,12 @@ int main(int argc, char *argv[])
 
         if (!read_line(msg_buf, sizeof(msg_buf)))
         {
-            printf("\n終了します。\n");
             break;
         }
 
         msg_len = strlen(msg_buf);
         if (msg_len == 0)
         {
-            printf("終了します。\n");
             break;
         }
 
@@ -254,18 +337,17 @@ int main(int argc, char *argv[])
 
         if (!read_line(ans_buf, sizeof(ans_buf)))
         {
-            printf("\n終了します。\n");
             break;
         }
 
         if (ans_buf[0] == 'n' || ans_buf[0] == 'N')
         {
-            printf("終了します。\n");
             break;
         }
     }
 
     potrCloseService(handle);
+    printf("終了しました。\n");
     return ret;
 }
 
