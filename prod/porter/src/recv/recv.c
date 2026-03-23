@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
     PotrType     svc_type;
     int          is_bidir;
     BidirSendCtx bidir_ctx;
-    BidirThread  bidir_thread;
+    BidirThread  bidir_thread = 0;
     int          bidir_started = 0;
 
     /* オプション解析 */
@@ -445,4 +445,3 @@ int main(int argc, char *argv[])
     printf("終了しました。\n");
     return EXIT_SUCCESS;
 }
-

@@ -123,7 +123,7 @@ static SOCKET create_listen_socket(int port) {
  *  g_session_fn() で通信メインループを実行し、platform_cleanup() 後に ExitProcess() で終了します。
  *******************************************************************************
  */
-static void run_as_fork_child(SOCKET client_socket) {
+__declspec(noreturn) static void run_as_fork_child(SOCKET client_socket) {
     g_session_fn(client_socket);
     platform_cleanup();
     ExitProcess(0);
@@ -413,7 +413,6 @@ int dispatch_internal_args(int argc, char *argv[]) {
         if (strcmp(argv[i], "--child") == 0) {
             SOCKET sock = (SOCKET)_strtoui64(argv[i + 1], NULL, 10);
             run_as_fork_child(sock);
-            return 1; /* ExitProcess() されるため到達しない */
         }
         if (strcmp(argv[i], "--worker") == 0) {
             /* --conns-per-worker が続く場合は読み取る */
