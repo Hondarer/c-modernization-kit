@@ -123,7 +123,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         /* 暗号化パス:
          *   1. ENCRYPTED フラグを OR (outer_pkt.flags は既に NBO)
          *   2. payload_len を packed_len + TAG_SIZE に更新
-         *   3. nonce = session_id(NBO,4B) + seq_num(NBO,4B) + 0x00*4
+         *   3. nonce = session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
          *   4. AAD  = outer_pkt ヘッダー 32B (NBO)
          *   5. packed_buf → ctx->crypto_buf に暗号化
          *   6. window_send_push には暗号化済みペイロードを登録
@@ -135,10 +135,12 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         outer_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
         outer_pkt.payload_len = htons((uint16_t)(packed_len + POTR_CRYPTO_TAG_SIZE));
 
-        /* ノンス: session_id と seq_num は outer_pkt では NBO */
-        memcpy(nonce,     &outer_pkt.session_id, 4);
-        memcpy(nonce + 4, &outer_pkt.seq_num,    4);
-        memset(nonce + 8, 0,                     4);
+        /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
+         * outer_pkt の各フィールドは既に NBO */
+        memcpy(nonce,      &outer_pkt.session_id, 4);
+        memcpy(nonce + 4,  &outer_pkt.flags,      2);
+        memcpy(nonce + 6,  &outer_pkt.seq_num,    4);
+        memset(nonce + 10, 0,                     2);
 
         if (potr_encrypt(ctx->crypto_buf, &enc_len,
                          packed_buf, packed_len,
@@ -272,9 +274,12 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         outer_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
         outer_pkt.payload_len = htons((uint16_t)(packed_len + POTR_CRYPTO_TAG_SIZE));
 
-        memcpy(nonce,     &outer_pkt.session_id, 4);
-        memcpy(nonce + 4, &outer_pkt.seq_num,    4);
-        memset(nonce + 8, 0,                     4);
+        /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
+         * outer_pkt の各フィールドは既に NBO */
+        memcpy(nonce,      &outer_pkt.session_id, 4);
+        memcpy(nonce + 4,  &outer_pkt.flags,      2);
+        memcpy(nonce + 6,  &outer_pkt.seq_num,    4);
+        memset(nonce + 10, 0,                     2);
 
         if (potr_encrypt(ctx->crypto_buf, &enc_len,
                          packed_buf, packed_len,

@@ -37,6 +37,7 @@
 #include "../potrPeerTable.h"
 #include "potrHealthThread.h"
 #include "../infra/potrLog.h"
+#include "../infra/crypto/crypto.h"
 
 #ifdef _WIN32
     typedef CRITICAL_SECTION PotrMutexLocal;
@@ -203,19 +204,61 @@ static void *health_thread_func(void *arg)
                 pthread_mutex_unlock(&ctx->peers[i].send_window_mutex);
 #endif
 
-                wire_len = packet_wire_size(&ping_pkt);
-
-                for (k = 0; k < ctx->peers[i].n_paths; k++)
+                if (ctx->service.encrypt_enabled)
                 {
+                    uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+                    uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                    size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+                    ping_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+                    ping_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+                    /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
+                    memcpy(nonce,      &ping_pkt.session_id, 4);
+                    memcpy(nonce + 4,  &ping_pkt.flags,      2);
+                    memcpy(nonce + 6,  &ping_pkt.seq_num,    4);
+                    memset(nonce + 10, 0,                    2);
+
+                    memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
+                    if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                                     NULL, 0,
+                                     ctx->service.encrypt_key,
+                                     nonce,
+                                     wire_buf, PACKET_HEADER_SIZE) != 0)
+                    {
+                        continue;
+                    }
+                    wire_len = PACKET_HEADER_SIZE + enc_out;
+
+                    for (k = 0; k < ctx->peers[i].n_paths; k++)
+                    {
 #ifdef _WIN32
-                    sendto(ctx->sock[0], (const char *)&ping_pkt, (int)wire_len, 0,
-                           (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
-                           sizeof(ctx->peers[i].dest_addr[k]));
+                        sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                               sizeof(ctx->peers[i].dest_addr[k]));
 #else
-                    sendto(ctx->sock[0], &ping_pkt, wire_len, 0,
-                           (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
-                           sizeof(ctx->peers[i].dest_addr[k]));
+                        sendto(ctx->sock[0], wire_buf, wire_len, 0,
+                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                               sizeof(ctx->peers[i].dest_addr[k]));
 #endif
+                    }
+                }
+                else
+                {
+                    wire_len = packet_wire_size(&ping_pkt);
+
+                    for (k = 0; k < ctx->peers[i].n_paths; k++)
+                    {
+#ifdef _WIN32
+                        sendto(ctx->sock[0], (const char *)&ping_pkt, (int)wire_len, 0,
+                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                               sizeof(ctx->peers[i].dest_addr[k]));
+#else
+                        sendto(ctx->sock[0], &ping_pkt, wire_len, 0,
+                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                               sizeof(ctx->peers[i].dest_addr[k]));
+#endif
+                    }
                 }
 
                 POTR_LOG(POTR_LOG_TRACE,
@@ -261,10 +304,51 @@ static void *health_thread_func(void *arg)
                      "health[service_id=%d]: PING seq=%u",
                      ctx->service.service_id, (unsigned)seq);
 
-            wire_len = packet_wire_size(&ping_pkt);
+            if (ctx->service.encrypt_enabled)
+            {
+                uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+                uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+                int      k;
 
+                ping_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+                ping_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+                /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
+                memcpy(nonce,      &ping_pkt.session_id, 4);
+                memcpy(nonce + 4,  &ping_pkt.flags,      2);
+                memcpy(nonce + 6,  &ping_pkt.seq_num,    4);
+                memset(nonce + 10, 0,                    2);
+
+                memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
+                if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                                 NULL, 0,
+                                 ctx->service.encrypt_key,
+                                 nonce,
+                                 wire_buf, PACKET_HEADER_SIZE) != 0)
+                {
+                    continue;
+                }
+                wire_len = PACKET_HEADER_SIZE + enc_out;
+
+                for (k = 0; k < ctx->n_path; k++)
+                {
+#ifdef _WIN32
+                    sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
+                           (const struct sockaddr *)&ctx->dest_addr[k],
+                           sizeof(ctx->dest_addr[k]));
+#else
+                    sendto(ctx->sock[k], wire_buf, wire_len, 0,
+                           (const struct sockaddr *)&ctx->dest_addr[k],
+                           sizeof(ctx->dest_addr[k]));
+#endif
+                }
+            }
+            else
             {
                 int k;
+                wire_len = packet_wire_size(&ping_pkt);
+
                 for (k = 0; k < ctx->n_path; k++)
                 {
 #ifdef _WIN32

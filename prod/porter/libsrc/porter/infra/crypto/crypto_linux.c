@@ -36,7 +36,7 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
     int             outl;
     int             final_len;
 
-    if (dst == NULL || dst_len == NULL || src == NULL || src_len == 0
+    if (dst == NULL || dst_len == NULL || (src == NULL && src_len > 0)
         || key == NULL || nonce == NULL
         || *dst_len < src_len + POTR_CRYPTO_TAG_SIZE)
     {
@@ -79,11 +79,15 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
         }
     }
 
-    /* 平文を暗号化 (in-place 対応: dst == src 可) */
-    if (EVP_EncryptUpdate(ctx, dst, &outl, src, (int)src_len) != 1)
+    /* 平文を暗号化 (in-place 対応: dst == src 可)。平文 0B の場合はスキップ。 */
+    outl = 0;
+    if (src_len > 0)
     {
-        EVP_CIPHER_CTX_free(ctx);
-        return -1;
+        if (EVP_EncryptUpdate(ctx, dst, &outl, src, (int)src_len) != 1)
+        {
+            EVP_CIPHER_CTX_free(ctx);
+            return -1;
+        }
     }
 
     /* GCM では EncryptFinal は追加データを出力しない (final_len == 0) */
@@ -120,7 +124,7 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
     int             final_len;
 
     if (dst == NULL || dst_len == NULL || src == NULL
-        || src_len <= POTR_CRYPTO_TAG_SIZE
+        || src_len < POTR_CRYPTO_TAG_SIZE
         || key == NULL || nonce == NULL)
     {
         return -1;
@@ -128,7 +132,7 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
 
     plain_len = src_len - POTR_CRYPTO_TAG_SIZE;
 
-    if (*dst_len < plain_len)
+    if (plain_len > 0 && *dst_len < plain_len)
     {
         return -1;
     }
@@ -167,10 +171,15 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
         }
     }
 
-    if (EVP_DecryptUpdate(ctx, dst, &outl, src, (int)plain_len) != 1)
+    /* 平文 0B の場合はスキップ */
+    outl = 0;
+    if (plain_len > 0)
     {
-        EVP_CIPHER_CTX_free(ctx);
-        return -1;
+        if (EVP_DecryptUpdate(ctx, dst, &outl, src, (int)plain_len) != 1)
+        {
+            EVP_CIPHER_CTX_free(ctx);
+            return -1;
+        }
     }
 
     /* 認証タグを設定 (暗号文の末尾 POTR_CRYPTO_TAG_SIZE バイト)。

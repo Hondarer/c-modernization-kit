@@ -89,7 +89,7 @@ participant "UDP" as UDP
 participant "受信スレッド\n(受信者)" as RRT
 participant "アプリ\n(受信側)" as RAPP
 
-SAPP -> Q: potrSend(handle, data, len, 0)\n→ エレメントを push して即座に返る
+SAPP -> Q: potrSend(handle, POTR_PEER_NA, data, len, 0)\n→ エレメントを push して即座に返る
 SAPP <-- Q: POTR_SUCCESS
 
 note over Q, ST: 非同期に処理
@@ -102,10 +102,10 @@ UDP -> RRT: recvfrom → DATA パケット受信
 RRT -> RRT: service_id 照合\nセッション識別\n受信ウィンドウへ格納
 
 alt 初回受信 (health_alive = 0)
-  RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+  RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_CONNECTED, NULL, 0)
 end
 
-RRT -> RAPP: callback(POTR_EVENT_DATA, data, len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data, len)
 
 @enduml
 ```
@@ -124,7 +124,7 @@ participant "送信キュー" as Q
 participant "送信スレッド" as ST
 participant "UDP" as UDP
 
-SAPP -> Q: potrSend(handle, data, len, POTR_SEND_BLOCKING)
+SAPP -> Q: potrSend(handle, POTR_PEER_NA, data, len, POTR_SEND_BLOCKING)
 activate SAPP
 
 Q -> Q: (1) 既存キューが drained になるまで待機\n count == 0 && inflight == 0
@@ -161,7 +161,7 @@ participant "UDP" as UDP
 participant "受信スレッド\n(受信者)" as RRT
 participant "アプリ\n(受信側)" as RAPP
 
-SAPP -> Q: potrSend(data, len=max_payload×3)\nlen が max_payload を超えるためフラグメント化
+SAPP -> Q: potrSend(handle, POTR_PEER_NA, data, len=max_payload×3, 0)\nlen が max_payload を超えるためフラグメント化
 
 Q -> Q: フラグ MORE_FRAG のエレメント push (1/3)
 Q -> Q: フラグ MORE_FRAG のエレメント push (2/3)
@@ -180,7 +180,7 @@ RRT -> RRT: frag_buf に追加
 UDP -> RRT: DATA[seq=12] 受信
 RRT -> RRT: frag_buf に追加\nフラグメント結合完了
 
-RRT -> RAPP: callback(POTR_EVENT_DATA, 結合済みデータ, 全体 len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, 結合済みデータ, 全体 len)
 
 @enduml
 ```
@@ -256,7 +256,7 @@ ST -> SUDP: DATA[seq=12] 送信
 
 SUDP -> RUDP: DATA[seq=10] 到着
 RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[10], len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[10], len)
 
 SUDP -> RUDP: DATA[seq=12] 到着 (seq=11 より先に到達)
 
@@ -267,8 +267,8 @@ note over RRT: deadline 内は NACK を保留
 SUDP -> RUDP: DATA[seq=11] 到着 (追い越し解消)
 RUDP -> RRT: DATA[seq=11] 受信\n欠番が埋まった → reorder_pending クリア
 RRT -> RRT: seq=11, 12 の順で取り出し
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[11], len)
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[12], len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[11], len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[12], len)
 
 note over RRT: NACK は送出されなかった
 
@@ -293,7 +293,7 @@ ST -> SUDP: DATA[seq=12] 送信
 
 SUDP -> RUDP: DATA[seq=10] 到着
 RUDP -> RRT: DATA[seq=10] 受信 → 処理 OK
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[10], len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[10], len)
 
 SUDP -> RUDP: DATA[seq=12] 到着 (seq=11 より先に到達)
 
@@ -304,8 +304,8 @@ note over RRT: deadline 内は DISCONNECTED を保留
 SUDP -> RUDP: DATA[seq=11] 到着 (追い越し解消)
 RUDP -> RRT: DATA[seq=11] 受信\n欠番が埋まった → reorder_pending クリア
 RRT -> RRT: seq=11, 12 の順で取り出し
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[11], len)
-RRT -> RAPP: callback(POTR_EVENT_DATA, data[12], len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[11], len)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[12], len)
 
 note over RRT: DISCONNECTED は発火しなかった
 
@@ -343,14 +343,14 @@ ST -> UDP: REJECT[ack_num=0] 送信
 
 UDP -> RRT: REJECT[ack_num=0] 受信
 
-RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DISCONNECTED, NULL, 0)
 RRT -> RRT: 欠落 seq=0 をスキップ\n次の通番 seq=1 から再開
 
 note over RRT: 次のパケット到着で復帰
 
 UDP -> RRT: DATA[seq=17] 受信
-RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
-RRT -> RAPP: callback(POTR_EVENT_DATA, ...)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_CONNECTED, NULL, 0)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, ...)
 
 @enduml
 ```
@@ -408,7 +408,7 @@ participant "アプリ\n(受信側)" as RAPP
 
 S -> UDP: DATA 送信 (正常稼働中)
 UDP -> RRT: DATA 受信 → last_recv_tv 更新
-RRT -> RAPP: callback(POTR_EVENT_DATA, ...)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, ...)
 
 note over S, UDP: ここでネットワーク断が発生
 
@@ -419,7 +419,7 @@ note over RRT: health_timeout_ms = 10000ms
 
 RRT -> RRT: last_recv_tv から 10000ms 経過を検出
 
-RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DISCONNECTED, NULL, 0)
 RRT -> RRT: health_alive = 0\npeer_session_known = 0\nrecv_window リセット
 
 note over S, UDP: ネットワーク復旧
@@ -429,7 +429,7 @@ UDP -> RRT: パケット受信
 RRT -> RRT: セッション採用\nrecv_window を pkt.seq_num で初期化
 RRT -> RRT: health_alive = 1
 
-RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_CONNECTED, NULL, 0)
 
 @enduml
 ```
@@ -462,7 +462,7 @@ CLOSE -> HT: 停止シグナル
 CLOSE -> UDP: FIN パケット送信\n(全パス)
 
 UDP -> RRT: FIN 受信
-RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DISCONNECTED, NULL, 0)
 note over RAPP: 送信者が明示的に終了\nDISCONNECTED が発火する
 RRT -> RRT: peer_session_known = 0\nrecv_window リセット
 
@@ -533,11 +533,11 @@ RUDP -> RRT: DATA[seq=12] 受信
 RRT -> RRT: seq=11 の欠番を検出\n(RAW: NACK は送らない)
 
 alt reorder_timeout_ms = 0 (即時・デフォルト)
-  RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+  RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DISCONNECTED, NULL, 0)
   RRT -> RRT: recv_window を seq=12 でリセット
   RRT -> RRT: DATA[seq=12] をウィンドウから取り出し
-  RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
-  RRT -> RAPP: callback(POTR_EVENT_DATA, data[seq=12], len)
+  RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_CONNECTED, NULL, 0)
+  RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, data[seq=12], len)
 else reorder_timeout_ms > 0 (リオーダー待機)
   RRT -> RRT: タイマー開始\n(deadline = now + reorder_timeout_ms)\n→ 待機中に seq=11 が届けば DISCONNECTED 不要
   note over RRT: タイムアウト後に check_reorder_timeout で\nDISCONNECTED 発火・ウィンドウリセット
@@ -572,9 +572,9 @@ UDP -> RRT: PING[seq=13] 受信
 RRT -> RRT: pkt.seq_num(13) != next_seq(10)\n→ ギャップあり (window内)
 
 alt reorder_timeout_ms = 0 (即時・デフォルト)
-  RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED, NULL, 0)
+  RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DISCONNECTED, NULL, 0)
   RRT -> RRT: recv_window を seq=13 でリセット
-  RRT -> RAPP: callback(POTR_EVENT_CONNECTED, NULL, 0)
+  RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_CONNECTED, NULL, 0)
 else reorder_timeout_ms > 0 (リオーダー待機)
   RRT -> RRT: タイマー開始 (next_seq=10 の欠番に対して)\n→ 待機中に seq=10〜12 が届けば DISCONNECTED 不要
   note over RRT: タイムアウト後に check_reorder_timeout で\nDISCONNECTED 発火・ウィンドウリセット
@@ -621,14 +621,14 @@ end note
 @enduml
 ```
 
-## unicast_bidir 双方向通信
+## unicast_bidir 1:1 双方向通信
 
 `POTR_TYPE_UNICAST_BIDIR` における双方向データ通信のシーケンスです。
 両端が独立したセッションを持ち、それぞれがデータ送受信・NACK・ヘルスチェックを行います。
 
 ```plantuml
 @startuml unicast_bidir 通信シーケンス
-title unicast_bidir 双方向通信シーケンス
+title unicast_bidir 1:1 双方向通信シーケンス
 
 participant "Side A\n(POTR_ROLE_SENDER)" as A
 participant "Side B\n(POTR_ROLE_RECEIVER)" as B
@@ -680,10 +680,59 @@ note over B: PING 応答受信 → last_recv 更新
 @enduml
 ```
 
+## unicast_bidir N:1 サーバでの接続と送受信
+
+`POTR_TYPE_UNICAST_BIDIR` を N:1 モードで開いたサーバが、新規クライアントを受け付けて `peer_id` ごとに通信するシーケンスです。
+
+```plantuml
+@startuml unicast_bidir N1 接続
+title unicast_bidir N:1 サーバでの接続と送受信
+
+participant "Client A" as CA
+participant "Server\n(RECEIVER / N:1)" as S
+participant "アプリ" as APP
+
+note over S: potrOpenService()\nsrc_addr 省略 → N:1 モード\nbind(dst_addr, dst_port)
+
+CA -> S: DATA (client session=C_A, seq=0)
+S -> S: session triplet で未知ピア判定\npeer table に新規登録\npeer_id=1 を払い出し
+S -> APP: callback(service_id, 1, POTR_EVENT_CONNECTED, NULL, 0)
+S -> APP: callback(service_id, 1, POTR_EVENT_DATA, data, len)
+
+APP -> S: potrSend(handle, 1, reply, len, 0)
+S -> CA: DATA (server session=S_1, seq=0)
+
+APP -> S: potrSend(handle, POTR_PEER_ALL, notice, len, 0)
+S -> CA: DATA (peer_id=1 向け送信)
+@enduml
+```
+
+## unicast_bidir N:1 サーバでの切断
+
+サーバは FIN 受信、`potrDisconnectPeer()`、またはヘルスチェックタイムアウトによりピア単位で切断を処理します。
+
+```plantuml
+@startuml unicast_bidir N1 切断
+title unicast_bidir N:1 サーバでの切断
+
+participant "Client A" as CA
+participant "Server" as S
+participant "アプリ" as APP
+
+CA -> S: FIN
+S -> APP: callback(service_id, 1, POTR_EVENT_DISCONNECTED, NULL, 0)
+S -> S: peer table から peer_id=1 を削除
+
+APP -> S: potrDisconnectPeer(handle, 2)
+S -> CA: FIN
+S -> APP: callback(service_id, 2, POTR_EVENT_DISCONNECTED, NULL, 0)
+S -> S: peer table から peer_id=2 を削除
+@enduml
+```
+
 ## unicast_bidir ヘルスタイムアウトによる切断検知
 
-`POTR_TYPE_UNICAST_BIDIR` において、相手側が停止した場合の切断検知シーケンスです。
-両端がそれぞれ `last_recv_tv_sec` を監視し、`health_timeout_ms` 超過で切断を検知します。
+`POTR_TYPE_UNICAST_BIDIR` において、相手側が停止した場合の切断検知シーケンスです。1:1 モードでは相手端単位、N:1 モードでは各 `peer_id` 単位で `last_recv_tv_sec` を監視し、`health_timeout_ms` 超過で切断を検知します。
 
 ```plantuml
 @startuml unicast_bidir タイムアウト

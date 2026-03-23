@@ -74,18 +74,60 @@ static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
 
     if (packet_build_nack(&nack_pkt, &shdr, nack_seq) != POTR_SUCCESS) return;
 
-    wire_len = packet_wire_size(&nack_pkt);
-    for (k = 0; k < peer->n_paths; k++)
+    if (ctx->service.encrypt_enabled)
     {
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        nack_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        nack_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, NACK|ENCRYPTED NBO) + ack_num(4B NBO) + padding(2B) */
+        memcpy(nonce,      &nack_pkt.session_id, 4);
+        memcpy(nonce + 4,  &nack_pkt.flags,      2);
+        memcpy(nonce + 6,  &nack_pkt.ack_num,    4);
+        memset(nonce + 10, 0,                    2);
+
+        memcpy(wire_buf, &nack_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (k = 0; k < peer->n_paths; k++)
+        {
 #ifdef _WIN32
-        sendto(ctx->sock[0], (const char *)&nack_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[k],
-               sizeof(peer->dest_addr[k]));
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
 #else
-        sendto(ctx->sock[0], &nack_pkt, wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[k],
-               sizeof(peer->dest_addr[k]));
+            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
 #endif
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&nack_pkt);
+        for (k = 0; k < peer->n_paths; k++)
+        {
+#ifdef _WIN32
+            sendto(ctx->sock[0], (const char *)&nack_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#else
+            sendto(ctx->sock[0], &nack_pkt, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif
+        }
     }
 }
 
@@ -104,18 +146,60 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
 
     if (packet_build_reject(&reject_pkt, &shdr, seq_num) != POTR_SUCCESS) return;
 
-    wire_len = packet_wire_size(&reject_pkt);
-    for (k = 0; k < peer->n_paths; k++)
+    if (ctx->service.encrypt_enabled)
     {
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        reject_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        reject_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, REJECT|ENCRYPTED NBO) + ack_num(4B NBO) + padding(2B) */
+        memcpy(nonce,      &reject_pkt.session_id, 4);
+        memcpy(nonce + 4,  &reject_pkt.flags,      2);
+        memcpy(nonce + 6,  &reject_pkt.ack_num,    4);
+        memset(nonce + 10, 0,                      2);
+
+        memcpy(wire_buf, &reject_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (k = 0; k < peer->n_paths; k++)
+        {
 #ifdef _WIN32
-        sendto(ctx->sock[0], (const char *)&reject_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[k],
-               sizeof(peer->dest_addr[k]));
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
 #else
-        sendto(ctx->sock[0], &reject_pkt, wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[k],
-               sizeof(peer->dest_addr[k]));
+            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
 #endif
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&reject_pkt);
+        for (k = 0; k < peer->n_paths; k++)
+        {
+#ifdef _WIN32
+            sendto(ctx->sock[0], (const char *)&reject_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#else
+            sendto(ctx->sock[0], &reject_pkt, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif
+        }
     }
 }
 
@@ -152,18 +236,60 @@ static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
         return;
     }
 
-    wire_len = packet_wire_size(&reply_pkt);
-    for (k = 0; k < peer->n_paths; k++)
+    if (ctx->service.encrypt_enabled)
     {
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        reply_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        reply_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
+        memcpy(nonce,      &reply_pkt.session_id, 4);
+        memcpy(nonce + 4,  &reply_pkt.flags,      2);
+        memcpy(nonce + 6,  &reply_pkt.seq_num,    4);
+        memset(nonce + 10, 0,                     2);
+
+        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (k = 0; k < peer->n_paths; k++)
+        {
 #ifdef _WIN32
-        sendto(ctx->sock[0], (const char *)&reply_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[k],
-               sizeof(peer->dest_addr[k]));
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
 #else
-        sendto(ctx->sock[0], &reply_pkt, wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[k],
-               sizeof(peer->dest_addr[k]));
+            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
 #endif
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&reply_pkt);
+        for (k = 0; k < peer->n_paths; k++)
+        {
+#ifdef _WIN32
+            sendto(ctx->sock[0], (const char *)&reply_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#else
+            sendto(ctx->sock[0], &reply_pkt, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif
+        }
     }
 }
 
@@ -898,52 +1024,121 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
 
     if (packet_build_nack(&nack_pkt, &shdr, nack_seq) != POTR_SUCCESS) return;
 
-    wire_len = packet_wire_size(&nack_pkt);
-
-    for (i = 0; i < ctx->n_path; i++)
+    if (ctx->service.encrypt_enabled)
     {
-        /* UNICAST_BIDIR: dest_addr[i] (dst_addr:dst_port) へ直接送信する。
-           通常 unicast: src_addr_resolved[i]:src_port または peer_port へ送信する。 */
-        if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
-        {
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
-            sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#endif
-        }
-        else
-        {
-            struct sockaddr_in dest;
-            uint16_t           port;
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
 
-            if (ctx->service.src_port != 0)
+        nack_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        nack_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, NACK|ENCRYPTED NBO) + ack_num(4B NBO) + padding(2B) */
+        memcpy(nonce,      &nack_pkt.session_id, 4);
+        memcpy(nonce + 4,  &nack_pkt.flags,      2);
+        memcpy(nonce + 6,  &nack_pkt.ack_num,    4);
+        memset(nonce + 10, 0,                    2);
+
+        memcpy(wire_buf, &nack_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
-                port = htons(ctx->service.src_port);
+#ifdef _WIN32
+                sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                       (const struct sockaddr *)&ctx->dest_addr[i],
+                       sizeof(ctx->dest_addr[i]));
+#else
+                sendto(ctx->sock[i], wire_buf, wire_len, 0,
+                       (const struct sockaddr *)&ctx->dest_addr[i],
+                       sizeof(ctx->dest_addr[i]));
+#endif
             }
             else
             {
-                port = ctx->peer_port[i]; /* NBO */
+                struct sockaddr_in dest;
+                uint16_t           port;
+
+                if (ctx->service.src_port != 0)
+                    port = htons(ctx->service.src_port);
+                else
+                    port = ctx->peer_port[i];
+
+                if (port == 0) continue;
+
+                memset(&dest, 0, sizeof(dest));
+                dest.sin_family = AF_INET;
+                dest.sin_addr   = ctx->src_addr_resolved[i];
+                dest.sin_port   = port;
+#ifdef _WIN32
+                sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                       (const struct sockaddr *)&dest, sizeof(dest));
+#else
+                sendto(ctx->sock[i], wire_buf, wire_len, 0,
+                       (const struct sockaddr *)&dest, sizeof(dest));
+#endif
             }
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&nack_pkt);
 
-            if (port == 0) continue; /* ポート未観測のパスは送れない */
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            /* UNICAST_BIDIR: dest_addr[i] (dst_addr:dst_port) へ直接送信する。
+               通常 unicast: src_addr_resolved[i]:src_port または peer_port へ送信する。 */
+            if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+            {
+#ifdef _WIN32
+                sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
+                       (const struct sockaddr *)&ctx->dest_addr[i],
+                       sizeof(ctx->dest_addr[i]));
+#else
+                sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
+                       (const struct sockaddr *)&ctx->dest_addr[i],
+                       sizeof(ctx->dest_addr[i]));
+#endif
+            }
+            else
+            {
+                struct sockaddr_in dest;
+                uint16_t           port;
 
-            memset(&dest, 0, sizeof(dest));
-            dest.sin_family = AF_INET;
-            dest.sin_addr   = ctx->src_addr_resolved[i];
-            dest.sin_port   = port;
+                if (ctx->service.src_port != 0)
+                {
+                    port = htons(ctx->service.src_port);
+                }
+                else
+                {
+                    port = ctx->peer_port[i]; /* NBO */
+                }
+
+                if (port == 0) continue; /* ポート未観測のパスは送れない */
+
+                memset(&dest, 0, sizeof(dest));
+                dest.sin_family = AF_INET;
+                dest.sin_addr   = ctx->src_addr_resolved[i];
+                dest.sin_port   = port;
 
 #ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&dest, sizeof(dest));
+                sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
+                       (const struct sockaddr *)&dest, sizeof(dest));
 #else
-            sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
-                   (const struct sockaddr *)&dest, sizeof(dest));
+                sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
+                       (const struct sockaddr *)&dest, sizeof(dest));
 #endif
+            }
         }
     }
 }
@@ -993,19 +1188,61 @@ static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
              ctx->service.service_id,
              (unsigned)req_seq_num, (unsigned)my_next_seq);
 
-    wire_len = packet_wire_size(&reply_pkt);
-
-    for (i = 0; i < ctx->n_path; i++)
+    if (ctx->service.encrypt_enabled)
     {
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        reply_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        reply_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
+        memcpy(nonce,      &reply_pkt.session_id, 4);
+        memcpy(nonce + 4,  &reply_pkt.flags,      2);
+        memcpy(nonce + 6,  &reply_pkt.seq_num,    4);
+        memset(nonce + 10, 0,                     2);
+
+        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (i = 0; i < ctx->n_path; i++)
+        {
 #ifdef _WIN32
-        sendto(ctx->sock[i], (const char *)&reply_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&ctx->dest_addr[i],
-               sizeof(ctx->dest_addr[i]));
+            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
 #else
-        sendto(ctx->sock[i], &reply_pkt, wire_len, 0,
-               (const struct sockaddr *)&ctx->dest_addr[i],
-               sizeof(ctx->dest_addr[i]));
+            sendto(ctx->sock[i], wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
 #endif
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&reply_pkt);
+
+        for (i = 0; i < ctx->n_path; i++)
+        {
+#ifdef _WIN32
+            sendto(ctx->sock[i], (const char *)&reply_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#else
+            sendto(ctx->sock[i], &reply_pkt, wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif
+        }
     }
 }
 
@@ -1024,19 +1261,61 @@ static void send_reject(struct PotrContext_ *ctx, uint32_t seq_num)
 
     if (packet_build_reject(&reject_pkt, &shdr, seq_num) != POTR_SUCCESS) return;
 
-    wire_len = packet_wire_size(&reject_pkt);
-
-    for (i = 0; i < ctx->n_path; i++)
+    if (ctx->service.encrypt_enabled)
     {
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        reject_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        reject_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, REJECT|ENCRYPTED NBO) + ack_num(4B NBO) + padding(2B) */
+        memcpy(nonce,      &reject_pkt.session_id, 4);
+        memcpy(nonce + 4,  &reject_pkt.flags,      2);
+        memcpy(nonce + 6,  &reject_pkt.ack_num,    4);
+        memset(nonce + 10, 0,                      2);
+
+        memcpy(wire_buf, &reject_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (i = 0; i < ctx->n_path; i++)
+        {
 #ifdef _WIN32
-        sendto(ctx->sock[i], (const char *)&reject_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&ctx->dest_addr[i],
-               sizeof(ctx->dest_addr[i]));
+            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
 #else
-        sendto(ctx->sock[i], &reject_pkt, wire_len, 0,
-               (const struct sockaddr *)&ctx->dest_addr[i],
-               sizeof(ctx->dest_addr[i]));
+            sendto(ctx->sock[i], wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
 #endif
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&reject_pkt);
+
+        for (i = 0; i < ctx->n_path; i++)
+        {
+#ifdef _WIN32
+            sendto(ctx->sock[i], (const char *)&reject_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#else
+            sendto(ctx->sock[i], &reject_pkt, wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif
+        }
     }
 }
 
@@ -1543,12 +1822,15 @@ static void *recv_thread_func(void *arg)
                 {
                     uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
                     size_t   dec_len = ctx->crypto_buf_size;
-                    uint32_t sid_nbo = htonl(pkt.session_id);
-                    uint32_t seq_nbo = htonl(pkt.seq_num);
+                    uint32_t sid_nbo   = htonl(pkt.session_id);
+                    uint16_t flags_nbo = htons((uint16_t)pkt.flags);
+                    uint32_t seq_nbo   = htonl(pkt.seq_num);
 
-                    memcpy(nonce,     &sid_nbo, 4);
-                    memcpy(nonce + 4, &seq_nbo, 4);
-                    memset(nonce + 8, 0,        4);
+                    /* ノンス: session_id(4B) + flags(2B) + seq_num(4B) + padding(2B) */
+                    memcpy(nonce,      &sid_nbo,   4);
+                    memcpy(nonce + 4,  &flags_nbo, 2);
+                    memcpy(nonce + 6,  &seq_nbo,   4);
+                    memset(nonce + 10, 0,          2);
 
                     if (potr_decrypt(ctx->crypto_buf, &dec_len,
                                      pkt.payload, pkt.payload_len,
@@ -1563,6 +1845,47 @@ static void *recv_thread_func(void *arg)
                     pkt.payload     = ctx->crypto_buf;
                     pkt.payload_len = (uint16_t)dec_len;
                     pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
+                }
+                else if (pkt.flags & POTR_FLAG_ENCRYPTED)
+                {
+                    /* PING/NACK/REJECT/FIN の GCM 認証タグ検証 */
+                    if (pkt.payload_len != POTR_CRYPTO_TAG_SIZE)
+                    {
+                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                        continue;
+                    }
+                    {
+                        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                        uint8_t  dummy[1];
+                        size_t   dummy_len = sizeof(dummy);
+                        uint32_t val;
+                        uint32_t sid_nbo   = htonl(pkt.session_id);
+                        uint16_t flags_nbo = htons((uint16_t)pkt.flags);
+                        uint32_t val_nbo;
+
+                        /* NACK/REJECT は ack_num、その他 (PING/FIN) は seq_num */
+                        val = (pkt.flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT))
+                              ? pkt.ack_num : pkt.seq_num;
+                        val_nbo = htonl(val);
+
+                        memcpy(nonce,      &sid_nbo,   4);
+                        memcpy(nonce + 4,  &flags_nbo, 2);
+                        memcpy(nonce + 6,  &val_nbo,   4);
+                        memset(nonce + 10, 0,          2);
+
+                        if (potr_decrypt(dummy, &dummy_len,
+                                         pkt.payload, POTR_CRYPTO_TAG_SIZE,
+                                         ctx->service.encrypt_key,
+                                         nonce,
+                                         buf, PACKET_HEADER_SIZE) != 0)
+                        {
+                            POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                            continue;
+                        }
+                        pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
+                        pkt.payload_len = 0;
+                        pkt.payload     = NULL;
+                    }
                 }
 
                 /* FIN: ピアの正常終了通知 */
@@ -1718,22 +2041,26 @@ static void *recv_thread_func(void *arg)
             }
 
             /* 暗号化パケットを復号する
-             *   - POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED の組み合わせのみ対象
+             *   - POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED の組み合わせ: ペイロードを復号
+             *   - POTR_FLAG_ENCRYPTED 単独 (PING/NACK/REJECT/FIN): GCM タグのみ検証
              *   - 復号後 pkt.payload / pkt.payload_len を書き換えて以降の処理を透過させる
              *   - 認証失敗 (タグ不一致) は即座に破棄する
              */
             if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
                 == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
             {
-                uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
-                size_t  dec_len = ctx->crypto_buf_size;
+                uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                size_t   dec_len = ctx->crypto_buf_size;
                 /* pkt.session_id / pkt.seq_num は packet_parse 後はホストオーダー */
-                uint32_t sid_nbo = htonl(pkt.session_id);
-                uint32_t seq_nbo = htonl(pkt.seq_num);
+                uint32_t sid_nbo   = htonl(pkt.session_id);
+                uint16_t flags_nbo = htons((uint16_t)pkt.flags);
+                uint32_t seq_nbo   = htonl(pkt.seq_num);
 
-                memcpy(nonce,     &sid_nbo, 4);
-                memcpy(nonce + 4, &seq_nbo, 4);
-                memset(nonce + 8, 0,        4);
+                /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B) */
+                memcpy(nonce,      &sid_nbo,   4);
+                memcpy(nonce + 4,  &flags_nbo, 2);
+                memcpy(nonce + 6,  &seq_nbo,   4);
+                memset(nonce + 10, 0,          2);
 
                 /* AAD = 受信 raw バイト先頭 32B (NBO、送信側と同一) */
                 if (potr_decrypt(ctx->crypto_buf, &dec_len,
@@ -1751,6 +2078,54 @@ static void *recv_thread_func(void *arg)
                 pkt.payload     = ctx->crypto_buf;
                 pkt.payload_len = (uint16_t)dec_len;
                 pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
+            }
+            else if (pkt.flags & POTR_FLAG_ENCRYPTED)
+            {
+                /* ペイロードなしパケット (PING/NACK/REJECT/FIN) の GCM タグ検証 */
+                uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                uint8_t  dummy[1];
+                size_t   dummy_len = sizeof(dummy);
+                uint32_t val;
+                uint32_t sid_nbo   = htonl(pkt.session_id);
+                uint16_t flags_nbo = htons((uint16_t)pkt.flags);
+                uint32_t val_nbo;
+
+                if (pkt.payload_len != POTR_CRYPTO_TAG_SIZE)
+                {
+                    POTR_LOG(POTR_LOG_TRACE,
+                             "recv[service_id=%d]: encrypted no-payload pkt bad len=%u",
+                             ctx->service.service_id, (unsigned)pkt.payload_len);
+                    continue;
+                }
+
+                /* NACK/REJECT は ack_num、それ以外 (PING/FIN) は seq_num をノンスに使用 */
+                val = (pkt.flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT))
+                      ? pkt.ack_num : pkt.seq_num;
+                val_nbo = htonl(val);
+
+                /* ノンス: session_id(4B NBO) + flags(2B NBO) + val(4B NBO) + padding(2B) */
+                memcpy(nonce,      &sid_nbo,   4);
+                memcpy(nonce + 4,  &flags_nbo, 2);
+                memcpy(nonce + 6,  &val_nbo,   4);
+                memset(nonce + 10, 0,          2);
+
+                /* AAD = 受信 raw バイト先頭 32B (NBO、送信側と同一) */
+                if (potr_decrypt(dummy, &dummy_len,
+                                 pkt.payload, POTR_CRYPTO_TAG_SIZE,
+                                 ctx->service.encrypt_key,
+                                 nonce,
+                                 buf, PACKET_HEADER_SIZE) != 0)
+                {
+                    POTR_LOG(POTR_LOG_TRACE,
+                             "recv[service_id=%d]: tag verify failed flags=0x%04x",
+                             ctx->service.service_id, (unsigned)pkt.flags);
+                    continue;
+                }
+
+                /* 検証成功: ENCRYPTED フラグを除去して後続処理へ */
+                pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
+                pkt.payload_len = 0;
+                pkt.payload     = NULL;
             }
 
             /* ── 送信者ロール: NACK のみ処理 ── */

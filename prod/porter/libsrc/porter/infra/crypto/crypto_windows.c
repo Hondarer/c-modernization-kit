@@ -120,7 +120,7 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
     uint8_t tag[POTR_CRYPTO_TAG_SIZE];
     size_t  enc_len;
 
-    if (dst == NULL || dst_len == NULL || src == NULL || src_len == 0
+    if (dst == NULL || dst_len == NULL || (src == NULL && src_len > 0)
         || key == NULL || nonce == NULL
         || *dst_len < src_len + POTR_CRYPTO_TAG_SIZE)
     {
@@ -129,14 +129,20 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
 
     enc_len = src_len;
 
-    if (bcrypt_aes_gcm(TRUE,
-                       dst, &enc_len,
-                       src, src_len,
-                       key, nonce,
-                       aad, aad_len,
-                       tag, (ULONG)POTR_CRYPTO_TAG_SIZE) != 0)
     {
-        return -1;
+        /* BCrypt は src=NULL を受け付けないため、空バッファを用意する */
+        static const uint8_t empty_src[1] = { 0 };
+        const uint8_t *actual_src = (src != NULL) ? src : empty_src;
+
+        if (bcrypt_aes_gcm(TRUE,
+                           dst, &enc_len,
+                           actual_src, src_len,
+                           key, nonce,
+                           aad, aad_len,
+                           tag, (ULONG)POTR_CRYPTO_TAG_SIZE) != 0)
+        {
+            return -1;
+        }
     }
 
     /* タグ (16B) を暗号文の直後に付加する */
@@ -155,7 +161,7 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
     size_t plain_len;
 
     if (dst == NULL || dst_len == NULL || src == NULL
-        || src_len <= POTR_CRYPTO_TAG_SIZE
+        || src_len < POTR_CRYPTO_TAG_SIZE
         || key == NULL || nonce == NULL)
     {
         return -1;
@@ -163,7 +169,7 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
 
     plain_len = src_len - POTR_CRYPTO_TAG_SIZE;
 
-    if (*dst_len < plain_len)
+    if (plain_len > 0 && *dst_len < plain_len)
     {
         return -1;
     }

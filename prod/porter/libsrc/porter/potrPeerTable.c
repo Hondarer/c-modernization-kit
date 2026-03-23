@@ -34,6 +34,7 @@
 #include "protocol/packet.h"
 #include "protocol/window.h"
 #include "infra/potrLog.h"
+#include "infra/crypto/crypto.h"
 
 /* --------------------------------------------------------------------------
  * プラットフォーム別 ミューテックスラッパー
@@ -129,23 +130,66 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         return;
     }
 
-    wire_len = packet_wire_size(&fin_pkt);
-
-    for (i = 0; i < peer->n_paths; i++)
+    if (ctx->service.encrypt_enabled)
     {
-        if (ctx->sock[0] == POTR_INVALID_SOCKET)
+        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        fin_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        fin_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B) + flags(2B, FIN|ENCRYPTED NBO) + 0(4B) + padding(2B) */
+        memcpy(nonce,      &fin_pkt.session_id, 4);
+        memcpy(nonce + 4,  &fin_pkt.flags,      2);
+        memset(nonce + 6,  0,                   4);
+        memset(nonce + 10, 0,                   2);
+
+        memcpy(wire_buf, &fin_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
         {
-            continue;
+            return;
         }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        for (i = 0; i < peer->n_paths; i++)
+        {
+            if (ctx->sock[0] == POTR_INVALID_SOCKET) continue;
 #ifdef _WIN32
-        sendto(ctx->sock[0], (const char *)&fin_pkt, (int)wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[i],
-               sizeof(peer->dest_addr[i]));
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[i],
+                   sizeof(peer->dest_addr[i]));
 #else
-        sendto(ctx->sock[0], &fin_pkt, wire_len, 0,
-               (const struct sockaddr *)&peer->dest_addr[i],
-               sizeof(peer->dest_addr[i]));
+            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[i],
+                   sizeof(peer->dest_addr[i]));
 #endif
+        }
+    }
+    else
+    {
+        wire_len = packet_wire_size(&fin_pkt);
+
+        for (i = 0; i < peer->n_paths; i++)
+        {
+            if (ctx->sock[0] == POTR_INVALID_SOCKET)
+            {
+                continue;
+            }
+#ifdef _WIN32
+            sendto(ctx->sock[0], (const char *)&fin_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[i],
+                   sizeof(peer->dest_addr[i]));
+#else
+            sendto(ctx->sock[0], &fin_pkt, wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[i],
+                   sizeof(peer->dest_addr[i]));
+#endif
+        }
     }
 }
 
