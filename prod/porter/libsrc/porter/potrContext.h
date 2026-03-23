@@ -44,6 +44,12 @@
     #define POTR_INVALID_SOCKET (-1)
 #endif
 
+/** TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) か判定する。 */
+static inline int potr_is_tcp_type(PotrType t)
+{
+    return t == POTR_TYPE_TCP || t == POTR_TYPE_TCP_BIDIR;
+}
+
 /** RAW 系通信種別 (POTR_TYPE_*_RAW) か判定する。 */
 static inline int potr_is_raw_type(PotrType t)
 {
@@ -233,7 +239,25 @@ struct PotrContext_
     int              n_peers;        /**< 現在の接続ピア数。 */
     PotrMutex        peers_mutex;    /**< ピアテーブル保護用ミューテックス。 */
     uint32_t         next_peer_id;   /**< 次に発行するピア ID (単調増加、初期値 1)。 */
-    uint32_t         _pad_ctx_end;   /**< パディング (構造体サイズを 8 バイト境界に揃える)。 */
+
+    /* --- TCP 接続管理 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR のみ有効) --- */
+    PotrSocket         tcp_listen_sock;            /**< RECEIVER: listen ソケット。 */
+    PotrSocket         tcp_conn_fd[POTR_MAX_PATH]; /**< アクティブ TCP 接続 fd。v1 は [0] のみ使用。v2 以降でマルチパス対応。 */
+    volatile int       tcp_connected;              /**< 1 = TCP 接続確立済み。 */
+    uint32_t           _pad_tcp_connected;         /**< パディング (tcp_send_mutex を 8 バイト境界に揃える)。 */
+    PotrMutex          tcp_send_mutex;             /**< TCP send() 排他制御 (送信スレッド・ヘルスチェックスレッド・recv スレッド競合防止)。 */
+
+    /* connect/accept スレッド */
+    PotrThread         connect_thread;             /**< SENDER: connect スレッド。RECEIVER: accept スレッド。 */
+    volatile int       connect_thread_running;     /**< connect スレッド実行フラグ (1: 実行中, 0: 停止)。 */
+    uint32_t           _pad_connect_thread;        /**< パディング (tcp_state_mutex を 8 バイト境界に揃える)。 */
+
+    /* 切断通知 (recv/health スレッド → connect スレッドへの通知) */
+    PotrMutex          tcp_state_mutex;            /**< tcp_state_cv 保護用ミューテックス。 */
+    PotrCondVar        tcp_state_cv;               /**< 切断通知・reconnect sleep の中断用条件変数。 */
+
+    /* PING 応答追跡 (SENDER health スレッドが参照、TCP recv スレッドが更新) */
+    volatile uint64_t  tcp_last_ping_recv_ms;      /**< TCP PING 応答最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。接続確立時に現在時刻で初期化。 */
 };
 
 #endif /* POTR_CONTEXT_H */

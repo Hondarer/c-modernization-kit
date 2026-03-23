@@ -73,7 +73,6 @@ UDP データグラム 1 個が外側パケット 1 個に対応します。
 | `POTR_FLAG_REJECT` | 再送不能の通番 |
 | `POTR_FLAG_FIN` | `0`（固定） |
 
-`POTR_FLAG_PONG` は定義しません。`ack_num` の値で PING 要求と応答を区別します。
 `ack_num` の意味はパケット種別（`flags`）ごとに独立しているため、NACK / REJECT パケットでの `ack_num` 使用とは競合しません。
 
 ## ペイロードエレメント (パッキングコンテナ)

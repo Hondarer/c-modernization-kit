@@ -171,13 +171,15 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     }
 
     /* デフォルト値で初期化 */
-    global->window_size        = (uint16_t)POTR_DEFAULT_WINDOW_SIZE;
-    global->max_payload        = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
-    global->health_interval_ms = (uint32_t)POTR_DEFAULT_HEALTH_INTERVAL_MS;
-    global->health_timeout_ms  = (uint32_t)POTR_DEFAULT_HEALTH_TIMEOUT_MS;
-    global->reorder_timeout_ms = 0U;
-    global->max_message_size   = (uint32_t)POTR_MAX_MESSAGE_SIZE;
-    global->send_queue_depth   = (uint32_t)POTR_SEND_QUEUE_DEPTH;
+    global->window_size           = (uint16_t)POTR_DEFAULT_WINDOW_SIZE;
+    global->max_payload           = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
+    global->health_interval_ms    = (uint32_t)POTR_DEFAULT_HEALTH_INTERVAL_MS;
+    global->health_timeout_ms     = (uint32_t)POTR_DEFAULT_HEALTH_TIMEOUT_MS;
+    global->reorder_timeout_ms    = 0U;
+    global->max_message_size      = (uint32_t)POTR_MAX_MESSAGE_SIZE;
+    global->send_queue_depth      = (uint32_t)POTR_SEND_QUEUE_DEPTH;
+    global->tcp_health_interval_ms = 10000U;
+    global->tcp_health_timeout_ms  = 31000U;
 
     fp = open_config_file_read(config_path);
     if (fp == NULL)
@@ -242,13 +244,24 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         {
             global->max_payload = (uint16_t)atoi(val);
         }
-        else if (strcmp(key, "health_interval_ms") == 0)
+        else if (strcmp(key, "health_interval_ms") == 0 ||
+                 strcmp(key, "udp_health_interval_ms") == 0)
         {
+            /* 旧キー health_interval_ms は UDP 用として継続サポート */
             global->health_interval_ms = (uint32_t)atoi(val);
         }
-        else if (strcmp(key, "health_timeout_ms") == 0)
+        else if (strcmp(key, "health_timeout_ms") == 0 ||
+                 strcmp(key, "udp_health_timeout_ms") == 0)
         {
             global->health_timeout_ms = (uint32_t)atoi(val);
+        }
+        else if (strcmp(key, "tcp_health_interval_ms") == 0)
+        {
+            global->tcp_health_interval_ms = (uint32_t)atoi(val);
+        }
+        else if (strcmp(key, "tcp_health_timeout_ms") == 0)
+        {
+            global->tcp_health_timeout_ms = (uint32_t)atoi(val);
         }
         else if (strcmp(key, "reorder_timeout_ms") == 0)
         {
@@ -267,10 +280,11 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     POTR_LOG(POTR_LOG_TRACE,
              "config loaded: window_size=%u max_payload=%u "
              "max_message_size=%u send_queue_depth=%u "
-             "health_interval_ms=%u health_timeout_ms=%u reorder_timeout_ms=%u",
+             "udp_health=%u/%u tcp_health=%u/%u reorder_timeout_ms=%u",
              (unsigned)global->window_size, (unsigned)global->max_payload,
              (unsigned)global->max_message_size, (unsigned)global->send_queue_depth,
              (unsigned)global->health_interval_ms, (unsigned)global->health_timeout_ms,
+             (unsigned)global->tcp_health_interval_ms, (unsigned)global->tcp_health_timeout_ms,
              (unsigned)global->reorder_timeout_ms);
 
     fclose(fp);
@@ -310,6 +324,14 @@ static void apply_service_kv(const char *key, const char *val,
         else if (strcmp(val, "unicast_bidir") == 0)
         {
             current->type = POTR_TYPE_UNICAST_BIDIR;
+        }
+        else if (strcmp(val, "tcp") == 0)
+        {
+            current->type = POTR_TYPE_TCP;
+        }
+        else if (strcmp(val, "tcp_bidir") == 0)
+        {
+            current->type = POTR_TYPE_TCP_BIDIR;
         }
     }
     else if (strcmp(key, "dst_port") == 0)
@@ -367,6 +389,26 @@ static void apply_service_kv(const char *key, const char *val,
         if (v > 0)
         {
             current->max_peers = (uint32_t)v;
+        }
+    }
+    else if (strcmp(key, "health_interval_ms") == 0)
+    {
+        current->health_interval_ms = (uint32_t)atoi(val);
+    }
+    else if (strcmp(key, "health_timeout_ms") == 0)
+    {
+        current->health_timeout_ms = (uint32_t)atoi(val);
+    }
+    else if (strcmp(key, "reconnect_interval_ms") == 0)
+    {
+        current->reconnect_interval_ms = (uint32_t)atoi(val);
+    }
+    else if (strcmp(key, "connect_timeout_ms") == 0)
+    {
+        int v = atoi(val);
+        if (v >= 0)
+        {
+            current->connect_timeout_ms = (uint32_t)v;
         }
     }
     else if (strcmp(key, "encrypt_key") == 0)
@@ -520,10 +562,14 @@ int config_load_service(const char *config_path, int service_id,
                     atoi(section + 8) == service_id)
                 {
                     memset(def, 0, sizeof(*def));
-                    def->ttl          = (uint8_t)POTR_DEFAULT_TTL;
-                    def->pack_wait_ms = (uint32_t)POTR_DEFAULT_PACK_WAIT_MS;
-                    def->max_peers    = 1024U;  /* N:1 モードのデフォルト最大ピア数 */
-                    def->service_id   = service_id;
+                    def->ttl                  = (uint8_t)POTR_DEFAULT_TTL;
+                    def->pack_wait_ms         = (uint32_t)POTR_DEFAULT_PACK_WAIT_MS;
+                    def->max_peers            = 1024U;  /* N:1 モードのデフォルト最大ピア数 */
+                    def->service_id           = service_id;
+                    def->health_interval_ms   = 0U;     /* 0 = グローバル値を使用 */
+                    def->health_timeout_ms    = 0U;
+                    def->reconnect_interval_ms = (uint32_t)POTR_DEFAULT_RECONNECT_INTERVAL_MS;
+                    def->connect_timeout_ms    = (uint32_t)POTR_DEFAULT_CONNECT_TIMEOUT_MS;
                     in_target       = 1;
                     found           = 1;
                 }

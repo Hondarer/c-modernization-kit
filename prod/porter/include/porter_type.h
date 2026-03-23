@@ -57,8 +57,8 @@ typedef enum
     POTR_TYPE_MULTICAST_RAW = 5, /**< 1:N 通信 RAW モード (UDP マルチキャスト)。 */
     POTR_TYPE_BROADCAST_RAW = 6, /**< 1:N 通信 RAW モード (UDP ブロードキャスト)。 */
 
-    POTR_TYPE_TCP             = 7, /**< TCP 通信 (将来拡張用、現在未実装)。 */
-    POTR_TYPE_TCP_BIDIR       = 8, /**< TCP 双方向通信 (将来拡張用、現在未実装)。 */
+    POTR_TYPE_TCP             = 7, /**< TCP ユニキャスト通信 (単方向: SENDER のみ potrSend 可)。 */
+    POTR_TYPE_TCP_BIDIR       = 8, /**< TCP 双方向通信 (両端が potrSend 可)。 */
 
     /**
      *  双方向 1:1 通信 (UDP ユニキャスト)。\n
@@ -124,6 +124,14 @@ typedef struct
 
     /* N:1 モード設定 */
     uint32_t max_peers; /**< N:1 モード時の最大同時接続ピア数。省略時: 1024。1:1 モードでは無視される。 */
+
+    /* サービス単位のヘルスチェック上書き (0 = グローバル値を使用) */
+    uint32_t health_interval_ms; /**< グローバルの udp/tcp_health_interval_ms をサービス単位で上書きする。0 = グローバル値を使用。 */
+    uint32_t health_timeout_ms;  /**< グローバルの udp/tcp_health_timeout_ms をサービス単位で上書きする。0 = グローバル値を使用。 */
+
+    /* TCP 固有フィールド (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR 以外では無視) */
+    uint32_t reconnect_interval_ms; /**< SENDER 自動再接続間隔 (ms)。0 = 再接続なし。デフォルト: POTR_DEFAULT_RECONNECT_INTERVAL_MS。 */
+    uint32_t connect_timeout_ms;    /**< SENDER TCP 接続タイムアウト (ms)。0 = OS デフォルト。デフォルト: POTR_DEFAULT_CONNECT_TIMEOUT_MS。 */
 } PotrServiceDef;
 
 /**
@@ -136,13 +144,15 @@ typedef struct
  */
 typedef struct
 {
-    uint16_t window_size;         /**< スライディングウィンドウサイズ (パケット数)。 */
-    uint16_t max_payload;         /**< 最大ペイロード長 (バイト)。 */
-    uint32_t health_interval_ms;  /**< ヘルスチェック PING 送信間隔 (ミリ秒)。送信者が使用。0 = ヘルスチェック無効。 */
-    uint32_t health_timeout_ms;   /**< ヘルスチェックタイムアウト閾値 (ミリ秒)。この時間内に有効なパケットが受信できなければ切断と判断する。受信者が使用。0 = ヘルスチェック無効。 */
-    uint32_t reorder_timeout_ms;  /**< 受信ウィンドウ欠番検出後、NACK または切断を遅延する時間 (ミリ秒)。マルチパスや近距離 WAN での追い越し吸収用。0 = 即時 (デフォルト)。推奨値: LAN/マルチパス=10〜30 ms、遠距離 WAN=30〜100 ms。 */
-    uint32_t max_message_size;    /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。デフォルト: POTR_MAX_MESSAGE_SIZE。 */
-    uint32_t send_queue_depth;    /**< 非同期送信キューの最大エントリ数。デフォルト: POTR_SEND_QUEUE_DEPTH。 */
+    uint16_t window_size;             /**< スライディングウィンドウサイズ (パケット数)。 */
+    uint16_t max_payload;             /**< 最大ペイロード長 (バイト)。 */
+    uint32_t health_interval_ms;      /**< UDP 通信種別の PING 送信間隔 (ミリ秒)。最終 DATA/PING 送信から本値が経過したら PING 送信。0 = 無効。設定ファイルキー: udp_health_interval_ms。 */
+    uint32_t health_timeout_ms;       /**< UDP 通信種別の受信タイムアウト (ミリ秒)。RECEIVER 側で使用。0 = 無効。設定ファイルキー: udp_health_timeout_ms。 */
+    uint32_t reorder_timeout_ms;      /**< 受信ウィンドウ欠番検出後、NACK または切断を遅延する時間 (ミリ秒)。マルチパスや近距離 WAN での追い越し吸収用。0 = 即時 (デフォルト)。推奨値: LAN/マルチパス=10〜30 ms、遠距離 WAN=30〜100 ms。 */
+    uint32_t max_message_size;        /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。デフォルト: POTR_MAX_MESSAGE_SIZE。 */
+    uint32_t send_queue_depth;        /**< 非同期送信キューの最大エントリ数。デフォルト: POTR_SEND_QUEUE_DEPTH。 */
+    uint32_t tcp_health_interval_ms;  /**< TCP 通信種別の PING 送信間隔 (ミリ秒)。DATA 送信頻度に関わらず定期的に PING を送信。0 = 無効。設定ファイルキー: tcp_health_interval_ms。 */
+    uint32_t tcp_health_timeout_ms;   /**< TCP 通信種別の PING 応答待機タイムアウト (ミリ秒)。SENDER 側で使用。0 = 無効。設定ファイルキー: tcp_health_timeout_ms。 */
 } PotrGlobalConfig;
 
 /**

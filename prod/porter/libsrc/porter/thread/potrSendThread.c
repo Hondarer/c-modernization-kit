@@ -80,9 +80,40 @@ static void append_payload_elem(uint8_t *packed_buf, size_t *packed_len,
     *packed_len += entry->payload_len;
 }
 
+/* TCP 接続ソケットへ全バイトを確実に送信する。送信中は tcp_send_mutex を保持する。
+   戻り値: POTR_SUCCESS (全バイト送信成功) / POTR_ERROR (切断 or エラー)。 */
+static int tcp_send_all(PotrSocket fd, PotrMutex *mtx,
+                        const uint8_t *buf, size_t len)
+{
+    size_t sent = 0;
+    int    ret  = POTR_SUCCESS;
+
+#ifdef _WIN32
+    EnterCriticalSection(mtx);
+    while (sent < len)
+    {
+        int n = send(fd, (const char *)(buf + sent), (int)(len - sent), 0);
+        if (n <= 0) { ret = POTR_ERROR; break; }
+        sent += (size_t)n;
+    }
+    LeaveCriticalSection(mtx);
+#else
+    pthread_mutex_lock(mtx);
+    while (sent < len)
+    {
+        ssize_t n = send(fd, buf + sent, len - sent, 0);
+        if (n <= 0) { ret = POTR_ERROR; break; }
+        sent += (size_t)n;
+    }
+    pthread_mutex_unlock(mtx);
+#endif
+
+    return ret;
+}
+
 /* send_wire_buf の [PACKET_HEADER_SIZE .. PACKET_HEADER_SIZE+packed_len-1] に
-   詰め済みのペイロードから外側コンテナを構築して sendto する。
-   seq_num を付与し、再送バッファ (send_window) にも登録する。
+   詰め済みのペイロードから外側コンテナを構築して送信する。
+   seq_num を付与する。UDP では再送バッファ (send_window) にも登録する。
    send_wire_buf = [NBO ヘッダー 32B][packed_payload packed_len B] として組み立てる。 */
 static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
 {
@@ -91,6 +122,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     uint32_t             seq;
     size_t               wire_len;
     uint8_t             *packed_buf = ctx->send_wire_buf + PACKET_HEADER_SIZE;
+    int                  is_tcp     = potr_is_tcp_type(ctx->service.type);
 
     shdr.service_id      = ctx->service.service_id;
     shdr.session_id      = ctx->session_id;
@@ -126,7 +158,8 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
          *   3. nonce = session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
          *   4. AAD  = outer_pkt ヘッダー 32B (NBO)
          *   5. packed_buf → ctx->crypto_buf に暗号化
-         *   6. window_send_push には暗号化済みペイロードを登録
+         *   6. UDP: window_send_push に暗号化済みペイロードを登録
+         *      TCP: ウィンドウ登録不要 (再送は TCP 層が担保); next_seq のみインクリメント
          *   7. send_wire_buf に暗号化済みデータを組立て
          */
         uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
@@ -159,15 +192,27 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
             return;
         }
 
-        /* window には暗号化済みペイロードを格納して NACK 再送時に再暗号化不要にする */
-        outer_pkt.payload = ctx->crypto_buf;
-        window_send_push(&ctx->send_window, &outer_pkt);
-
+        if (is_tcp)
+        {
+            /* TCP: ウィンドウ登録不要。next_seq をインクリメントして mutex を解放 */
+            ctx->send_window.next_seq++;
 #ifdef _WIN32
-        LeaveCriticalSection(&ctx->send_window_mutex);
+            LeaveCriticalSection(&ctx->send_window_mutex);
 #else
-        pthread_mutex_unlock(&ctx->send_window_mutex);
+            pthread_mutex_unlock(&ctx->send_window_mutex);
 #endif
+        }
+        else
+        {
+            /* window には暗号化済みペイロードを格納して NACK 再送時に再暗号化不要にする */
+            outer_pkt.payload = ctx->crypto_buf;
+            window_send_push(&ctx->send_window, &outer_pkt);
+#ifdef _WIN32
+            LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+            pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+        }
 
         /* wire 組立: NBO ヘッダー + 暗号文 + タグ */
         memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
@@ -180,13 +225,25 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     }
     else
     {
-        window_send_push(&ctx->send_window, &outer_pkt);
-
+        if (is_tcp)
+        {
+            /* TCP: ウィンドウ登録不要。next_seq をインクリメントして mutex を解放 */
+            ctx->send_window.next_seq++;
 #ifdef _WIN32
-        LeaveCriticalSection(&ctx->send_window_mutex);
+            LeaveCriticalSection(&ctx->send_window_mutex);
 #else
-        pthread_mutex_unlock(&ctx->send_window_mutex);
+            pthread_mutex_unlock(&ctx->send_window_mutex);
 #endif
+        }
+        else
+        {
+            window_send_push(&ctx->send_window, &outer_pkt);
+#ifdef _WIN32
+            LeaveCriticalSection(&ctx->send_window_mutex);
+#else
+            pthread_mutex_unlock(&ctx->send_window_mutex);
+#endif
+        }
 
         /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードは既に直後に配置済み) */
         memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
@@ -197,6 +254,16 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                  ctx->service.service_id, (unsigned)seq, packed_len);
     }
 
+    if (is_tcp)
+    {
+        /* TCP: 単一 TCP 接続へ送信。接続断時はスキップ */
+        if (ctx->tcp_connected && ctx->tcp_conn_fd[0] != POTR_INVALID_SOCKET)
+        {
+            tcp_send_all(ctx->tcp_conn_fd[0], &ctx->tcp_send_mutex,
+                         ctx->send_wire_buf, wire_len);
+        }
+    }
+    else
     {
         int i;
         for (i = 0; i < ctx->n_path; i++)

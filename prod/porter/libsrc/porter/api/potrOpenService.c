@@ -35,6 +35,7 @@
 #include "../potrPeerTable.h"
 #include "../thread/potrRecvThread.h"
 #include "../thread/potrHealthThread.h"
+#include "../thread/potrConnectThread.h"
 #include "../infra/compress/compress.h"
 #include "../infra/potrSendQueue.h"
 #include "../thread/potrSendThread.h"
@@ -302,8 +303,115 @@ static void ctx_cleanup(struct PotrContext_ *ctx)
     {
         peer_table_destroy(ctx);
     }
+    /* TCP ソケットをクローズ */
+    if (ctx->tcp_listen_sock != POTR_INVALID_SOCKET)
+    {
+#ifdef _WIN32
+        closesocket(ctx->tcp_listen_sock);
+#else
+        close(ctx->tcp_listen_sock);
+#endif
+    }
+    {
+        int i;
+        for (i = 0; i < (int)POTR_MAX_PATH; i++)
+        {
+            if (ctx->tcp_conn_fd[i] != POTR_INVALID_SOCKET)
+            {
+#ifdef _WIN32
+                closesocket(ctx->tcp_conn_fd[i]);
+#else
+                close(ctx->tcp_conn_fd[i]);
+#endif
+            }
+        }
+    }
     cleanup_sockets(ctx);
     free(ctx);
+}
+
+/* TCP RECEIVER: SOCK_STREAM ソケットを作成して bind・listen する。
+   成功時は ctx->tcp_listen_sock に格納して POTR_SUCCESS を返す。 */
+static int open_socket_tcp_receiver(struct PotrContext_ *ctx)
+{
+    PotrSocket         sock;
+    struct sockaddr_in addr;
+    int                reuse = 1;
+    struct in_addr     bind_ip;
+
+    if (ctx->service.dst_addr[0][0] != '\0')
+    {
+        if (resolve_ipv4_addr(ctx->service.dst_addr[0], &bind_ip) != POTR_SUCCESS)
+        {
+            return POTR_ERROR;
+        }
+        ctx->dst_addr_resolved[0] = bind_ip;
+    }
+    else
+    {
+        bind_ip.s_addr = htonl(INADDR_ANY);
+    }
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == POTR_INVALID_SOCKET)
+    {
+        return POTR_ERROR;
+    }
+
+#ifdef _WIN32
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+               (const char *)&reuse, sizeof(reuse));
+#else
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+#endif
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family      = AF_INET;
+    addr.sin_addr        = bind_ip;
+    addr.sin_port        = htons(ctx->service.dst_port);
+
+    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+#ifdef _WIN32
+        closesocket(sock);
+#else
+        close(sock);
+#endif
+        return POTR_ERROR;
+    }
+
+    if (listen(sock, SOMAXCONN) < 0)
+    {
+#ifdef _WIN32
+        closesocket(sock);
+#else
+        close(sock);
+#endif
+        return POTR_ERROR;
+    }
+
+    ctx->tcp_listen_sock = sock;
+    return POTR_SUCCESS;
+}
+
+/* TCP SENDER: 接続先 dst_addr を解決して ctx->dst_addr_resolved[0] に格納する。
+   実際の TCP 接続は connect スレッドが行う。 */
+static int open_socket_tcp_sender(struct PotrContext_ *ctx)
+{
+    if (ctx->service.dst_addr[0][0] == '\0')
+    {
+        POTR_LOG(POTR_LOG_ERROR,
+                 "open_socket_tcp_sender: dst_addr[0] is empty");
+        return POTR_ERROR;
+    }
+
+    if (resolve_ipv4_addr(ctx->service.dst_addr[0],
+                           &ctx->dst_addr_resolved[0]) != POTR_SUCCESS)
+    {
+        return POTR_ERROR;
+    }
+
+    return POTR_SUCCESS;
 }
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -377,8 +485,10 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         int i;
         for (i = 0; i < (int)POTR_MAX_PATH; i++)
         {
-            ctx->sock[i] = POTR_INVALID_SOCKET;
+            ctx->sock[i]        = POTR_INVALID_SOCKET;
+            ctx->tcp_conn_fd[i] = POTR_INVALID_SOCKET;
         }
+        ctx->tcp_listen_sock = POTR_INVALID_SOCKET;
     }
 
     /* 設定ファイルを読み込む */
@@ -454,6 +564,22 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                  service_id, (unsigned)ctx->global.send_queue_depth);
         free(ctx);
         return POTR_ERROR;
+    }
+
+    /* TCP 型: グローバルヘルス設定を TCP 専用値で上書きする。
+       サービスレベル設定 (0 以外) はさらにそれを上書きする。 */
+    if (potr_is_tcp_type(ctx->service.type))
+    {
+        ctx->global.health_interval_ms = ctx->global.tcp_health_interval_ms;
+        ctx->global.health_timeout_ms  = ctx->global.tcp_health_timeout_ms;
+    }
+    if (ctx->service.health_interval_ms != 0U)
+    {
+        ctx->global.health_interval_ms = ctx->service.health_interval_ms;
+    }
+    if (ctx->service.health_timeout_ms != 0U)
+    {
+        ctx->global.health_timeout_ms = ctx->service.health_timeout_ms;
     }
 
     POTR_LOG(POTR_LOG_DEBUG,
@@ -743,8 +869,48 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
 
         case POTR_TYPE_TCP:
         case POTR_TYPE_TCP_BIDIR:
-            /* 未実装 */
-            /* fall through */
+        {
+            if (ctx->service.dst_port == 0)
+            {
+                POTR_LOG(POTR_LOG_ERROR,
+                         "potrOpenService: service_id=%d TCP requires dst_port",
+                         service_id);
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+
+            if (role == POTR_ROLE_RECEIVER)
+            {
+                if (open_socket_tcp_receiver(ctx) != POTR_SUCCESS)
+                {
+                    POTR_LOG(POTR_LOG_ERROR,
+                             "potrOpenService: service_id=%d TCP listen failed"
+                             " (dst_addr=%s dst_port=%u)",
+                             service_id,
+                             ctx->service.dst_addr[0][0] ? ctx->service.dst_addr[0] : "*",
+                             (unsigned)ctx->service.dst_port);
+                    ctx_cleanup(ctx);
+                    return POTR_ERROR;
+                }
+                POTR_LOG(POTR_LOG_INFO,
+                         "potrOpenService: service_id=%d TCP listening on port %u",
+                         service_id, (unsigned)ctx->service.dst_port);
+            }
+            else
+            {
+                if (open_socket_tcp_sender(ctx) != POTR_SUCCESS)
+                {
+                    POTR_LOG(POTR_LOG_ERROR,
+                             "potrOpenService: service_id=%d TCP sender"
+                             " dst_addr resolve failed (%s)",
+                             service_id, ctx->service.dst_addr[0]);
+                    ctx_cleanup(ctx);
+                    return POTR_ERROR;
+                }
+            }
+            break;
+        }
+
         case POTR_TYPE_UNICAST_RAW:
         case POTR_TYPE_MULTICAST_RAW:
         case POTR_TYPE_BROADCAST_RAW:
@@ -835,8 +1001,8 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
 
             case POTR_TYPE_TCP:
             case POTR_TYPE_TCP_BIDIR:
-                /* 未実装 */
-                /* fall through */
+                /* TCP 接続ソケットは connect スレッドが管理するため dest_addr 設定不要 */
+                break;
             case POTR_TYPE_UNICAST_RAW:
             case POTR_TYPE_MULTICAST_RAW:
             case POTR_TYPE_BROADCAST_RAW:
@@ -903,53 +1069,111 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
         return POTR_ERROR;
     }
 
-    /* 受信者の場合は受信スレッドのみ起動
-       ただし UNICAST_BIDIR の RECEIVER は下の全スレッド起動ブロックで処理する */
-    if (role == POTR_ROLE_RECEIVER
-        && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
+    /* TCP: 接続管理スレッドを起動する。
+       send/recv/health スレッドは接続確立後に connect スレッドが管理する。 */
+    if (potr_is_tcp_type(ctx->service.type))
     {
-        if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
+        /* tcp_state_mutex / tcp_state_cv / tcp_send_mutex を初期化 */
+#ifdef _WIN32
+        InitializeCriticalSection(&ctx->tcp_state_mutex);
+        InitializeConditionVariable(&ctx->tcp_state_cv);
+        InitializeCriticalSection(&ctx->tcp_send_mutex);
+#else
+        pthread_mutex_init(&ctx->tcp_state_mutex, NULL);
+        pthread_cond_init(&ctx->tcp_state_cv, NULL);
+        pthread_mutex_init(&ctx->tcp_send_mutex, NULL);
+#endif
+
+        /* SENDER または TCP_BIDIR: 送信キューを初期化 (connect スレッドが reconnect 時に destroy+init する) */
+        if (role == POTR_ROLE_SENDER
+            || ctx->service.type == POTR_TYPE_TCP_BIDIR)
         {
+            if (potr_send_queue_init(&ctx->send_queue,
+                                     (size_t)ctx->global.send_queue_depth,
+                                     ctx->global.max_payload) != POTR_SUCCESS)
+            {
+#ifdef _WIN32
+                DeleteCriticalSection(&ctx->tcp_state_mutex);
+                DeleteCriticalSection(&ctx->tcp_send_mutex);
+#else
+                pthread_mutex_destroy(&ctx->tcp_state_mutex);
+                pthread_cond_destroy(&ctx->tcp_state_cv);
+                pthread_mutex_destroy(&ctx->tcp_send_mutex);
+#endif
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+        }
+
+        if (potr_connect_thread_start(ctx) != POTR_SUCCESS)
+        {
+            if (role == POTR_ROLE_SENDER
+                || ctx->service.type == POTR_TYPE_TCP_BIDIR)
+            {
+                potr_send_queue_destroy(&ctx->send_queue);
+            }
+#ifdef _WIN32
+            DeleteCriticalSection(&ctx->tcp_state_mutex);
+            DeleteCriticalSection(&ctx->tcp_send_mutex);
+#else
+            pthread_mutex_destroy(&ctx->tcp_state_mutex);
+            pthread_cond_destroy(&ctx->tcp_state_cv);
+            pthread_mutex_destroy(&ctx->tcp_send_mutex);
+#endif
             ctx_cleanup(ctx);
             return POTR_ERROR;
         }
     }
-
-    /* 送信者 / UNICAST_BIDIR 受信者:
-       送信キュー・送信スレッド・ヘルスチェックスレッド・ACK/NACK 受信スレッドを起動 */
-    if (role == POTR_ROLE_SENDER
-        || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+    else
     {
-        if (potr_send_queue_init(&ctx->send_queue,
-                                 (size_t)ctx->global.send_queue_depth,
-                                 ctx->global.max_payload) != POTR_SUCCESS)
+        /* 非 TCP: 受信者の場合は受信スレッドのみ起動
+           ただし UNICAST_BIDIR の RECEIVER は下の全スレッド起動ブロックで処理する */
+        if (role == POTR_ROLE_RECEIVER
+            && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
         {
-            ctx_cleanup(ctx);
-            return POTR_ERROR;
+            if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
+            {
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
         }
 
-        if (potr_send_thread_start(ctx) != POTR_SUCCESS)
+        /* 非 TCP 送信者 / UNICAST_BIDIR 受信者:
+           送信キュー・送信スレッド・ヘルスチェックスレッド・受信スレッドを起動 */
+        if (role == POTR_ROLE_SENDER
+            || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
         {
-            potr_send_queue_destroy(&ctx->send_queue);
-            ctx_cleanup(ctx);
-            return POTR_ERROR;
-        }
+            if (potr_send_queue_init(&ctx->send_queue,
+                                     (size_t)ctx->global.send_queue_depth,
+                                     ctx->global.max_payload) != POTR_SUCCESS)
+            {
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
 
-        if (potr_health_thread_start(ctx) != POTR_SUCCESS)
-        {
-            potr_send_thread_stop(ctx);
-            potr_send_queue_destroy(&ctx->send_queue);
-            ctx_cleanup(ctx);
-            return POTR_ERROR;
-        }
+            if (potr_send_thread_start(ctx) != POTR_SUCCESS)
+            {
+                potr_send_queue_destroy(&ctx->send_queue);
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
 
-        if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
-        {
-            potr_health_thread_stop(ctx);
-            potr_send_thread_stop(ctx);
-            potr_send_queue_destroy(&ctx->send_queue);
-            ctx_cleanup(ctx);
-            return POTR_ERROR;
+            if (potr_health_thread_start(ctx) != POTR_SUCCESS)
+            {
+                potr_send_thread_stop(ctx);
+                potr_send_queue_destroy(&ctx->send_queue);
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+
+            if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
+            {
+                potr_health_thread_stop(ctx);
+                potr_send_thread_stop(ctx);
+                potr_send_queue_destroy(&ctx->send_queue);
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
         }
     }
 

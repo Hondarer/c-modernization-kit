@@ -31,6 +31,7 @@
 #include "../potrPeerTable.h"
 #include "../thread/potrRecvThread.h"
 #include "../thread/potrHealthThread.h"
+#include "../thread/potrConnectThread.h"
 #include "../infra/potrSendQueue.h"
 #include "../thread/potrSendThread.h"
 #include "../protocol/packet.h"
@@ -130,7 +131,52 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
              "potrCloseService: service_id=%d closing",
              ctx->service.service_id);
 
-    /* ヘルスチェックスレッドを停止 (送信者のみ) */
+    /* TCP: 接続管理スレッドを停止する (send/recv/health スレッドは connect スレッド内で停止) */
+    if (potr_is_tcp_type(ctx->service.type))
+    {
+        POTR_LOG(POTR_LOG_DEBUG,
+                 "potrCloseService: service_id=%d stopping connect thread (TCP)",
+                 ctx->service.service_id);
+        potr_connect_thread_stop(ctx);
+
+        /* 送信キューを破棄 (SENDER / TCP_BIDIR のみ) */
+        if (ctx->role == POTR_ROLE_SENDER
+            || ctx->service.type == POTR_TYPE_TCP_BIDIR)
+        {
+            potr_send_queue_destroy(&ctx->send_queue);
+        }
+
+        /* TCP mutex / condvar を解放 */
+#ifdef _WIN32
+        DeleteCriticalSection(&ctx->tcp_state_mutex);
+        /* Windows の CONDITION_VARIABLE は破棄不要 */
+        DeleteCriticalSection(&ctx->tcp_send_mutex);
+#else
+        pthread_mutex_destroy(&ctx->tcp_state_mutex);
+        pthread_cond_destroy(&ctx->tcp_state_cv);
+        pthread_mutex_destroy(&ctx->tcp_send_mutex);
+#endif
+
+        /* 送受信ウィンドウと動的バッファを解放 */
+        window_destroy(&ctx->send_window);
+        window_destroy(&ctx->recv_window);
+        free(ctx->frag_buf);
+        free(ctx->compress_buf);
+        free(ctx->crypto_buf);
+        free(ctx->recv_buf);
+        free(ctx->send_wire_buf);
+
+#ifdef _WIN32
+        WSACleanup();
+#endif
+
+        POTR_LOG(POTR_LOG_INFO,
+                 "potrCloseService: service closed (TCP)");
+        free(ctx);
+        return POTR_SUCCESS;
+    }
+
+    /* 非 TCP: ヘルスチェックスレッドを停止 (送信者のみ) */
     if (ctx->health_running)
     {
         POTR_LOG(POTR_LOG_DEBUG,

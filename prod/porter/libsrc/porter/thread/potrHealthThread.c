@@ -25,6 +25,7 @@
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
+    #include <unistd.h>
     #include <time.h>
 #endif
 
@@ -113,31 +114,41 @@ static void *health_thread_func(void *arg)
     while (ctx->health_running)
     {
         /* 最終送信 (データ or PING) から health_interval_ms 経過するまで待機する。
-           スリープ時間を動的に計算することで、直後にデータ送信があっても
-           health_interval_ms 周期が崩れないようにする。 */
+           TCP: データ送信に依存せず常に固定間隔でスリープする。
+           UDP: スリープ時間を動的に計算することで、直後にデータ送信があっても
+                health_interval_ms 周期が崩れないようにする。 */
         {
-            uint64_t last_send = ctx->last_send_ms; /* volatile 読み取り */
             uint32_t sleep_ms;
 
-            if (last_send == 0)
+            if (potr_is_tcp_type(ctx->service.type))
             {
-                /* 未送信: 通常の間隔でそのままスリープ */
+                /* TCP: 固定間隔でスリープ */
                 sleep_ms = ctx->global.health_interval_ms;
             }
             else
             {
-                uint64_t now     = health_get_ms();
-                uint64_t elapsed = now - last_send;
+                uint64_t last_send = ctx->last_send_ms; /* volatile 読み取り */
 
-                if (elapsed >= (uint64_t)ctx->global.health_interval_ms)
+                if (last_send == 0)
                 {
-                    /* 既に間隔を超過: 即時送信するため極短時間だけ待つ */
-                    sleep_ms = 1U;
+                    /* 未送信: 通常の間隔でそのままスリープ */
+                    sleep_ms = ctx->global.health_interval_ms;
                 }
                 else
                 {
-                    /* 残り時間だけスリープ */
-                    sleep_ms = (uint32_t)(ctx->global.health_interval_ms - elapsed);
+                    uint64_t now     = health_get_ms();
+                    uint64_t elapsed = now - last_send;
+
+                    if (elapsed >= (uint64_t)ctx->global.health_interval_ms)
+                    {
+                        /* 既に間隔を超過: 即時送信するため極短時間だけ待つ */
+                        sleep_ms = 1U;
+                    }
+                    else
+                    {
+                        /* 残り時間だけスリープ */
+                        sleep_ms = (uint32_t)(ctx->global.health_interval_ms - elapsed);
+                    }
                 }
             }
 
@@ -149,7 +160,9 @@ static void *health_thread_func(void *arg)
             break;
         }
 
-        /* データ送信によりタイマーがリセットされた場合は PING 不要 */
+        /* UDP: データ送信によりタイマーがリセットされた場合は PING 不要。
+           TCP: データ送信頻度に関わらず常に PING を送信するため、このチェックをスキップ。 */
+        if (!potr_is_tcp_type(ctx->service.type))
         {
             uint64_t last_send = ctx->last_send_ms; /* volatile 読み取り */
             if (last_send != 0)
@@ -279,6 +292,29 @@ static void *health_thread_func(void *arg)
             size_t     wire_len;
             int        build_result;
 
+            /* TCP: PING タイムアウト判定 (health_timeout_ms 超過でソケットをクローズ) */
+            if (potr_is_tcp_type(ctx->service.type) && ctx->global.health_timeout_ms > 0)
+            {
+                uint64_t last = ctx->tcp_last_ping_recv_ms;
+                if (last > 0
+                    && health_get_ms() - last > (uint64_t)ctx->global.health_timeout_ms)
+                {
+                    POTR_LOG(POTR_LOG_WARN,
+                             "health[service_id=%d]: TCP PING timeout"
+                             " (last_recv=%llu ms ago), closing connection",
+                             ctx->service.service_id,
+                             (unsigned long long)(health_get_ms() - last));
+                    /* ソケットをクローズ → recv スレッドが切断を検知して DISCONNECTED を発火 */
+#ifdef _WIN32
+                    closesocket(ctx->tcp_conn_fd[0]);
+#else
+                    close(ctx->tcp_conn_fd[0]);
+#endif
+                    ctx->tcp_conn_fd[0] = POTR_INVALID_SOCKET;
+                    continue; /* health スレッドは connect スレッドに停止されるまで継続 */
+                }
+            }
+
             /* send_window へのアクセスを排他制御する (next_seq の読み取りにのみ使用) */
 #ifdef _WIN32
             EnterCriticalSection(&ctx->send_window_mutex);
@@ -304,8 +340,84 @@ static void *health_thread_func(void *arg)
                      "health[service_id=%d]: PING seq=%u",
                      ctx->service.service_id, (unsigned)seq);
 
-            if (ctx->service.encrypt_enabled)
+            if (potr_is_tcp_type(ctx->service.type))
             {
+                /* TCP: tcp_conn_fd[0] へ直接送信 */
+                if (!ctx->tcp_connected || ctx->tcp_conn_fd[0] == POTR_INVALID_SOCKET)
+                {
+                    continue;
+                }
+
+                if (ctx->service.encrypt_enabled)
+                {
+                    uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+                    uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+                    size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
+
+                    ping_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+                    ping_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+                    /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
+                    memcpy(nonce,      &ping_pkt.session_id, 4);
+                    memcpy(nonce + 4,  &ping_pkt.flags,      2);
+                    memcpy(nonce + 6,  &ping_pkt.seq_num,    4);
+                    memset(nonce + 10, 0,                    2);
+
+                    memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
+                    if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                                     NULL, 0,
+                                     ctx->service.encrypt_key,
+                                     nonce,
+                                     wire_buf, PACKET_HEADER_SIZE) != 0)
+                    {
+                        continue;
+                    }
+                    wire_len = PACKET_HEADER_SIZE + enc_out;
+
+                    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex);
+#ifdef _WIN32
+                    send(ctx->tcp_conn_fd[0], (const char *)wire_buf, (int)wire_len, 0);
+#else
+                    {
+                        size_t       sent = 0;
+                        const uint8_t *p  = wire_buf;
+                        while (sent < wire_len)
+                        {
+                            ssize_t n = send(ctx->tcp_conn_fd[0], p + sent,
+                                             wire_len - sent, 0);
+                            if (n <= 0) break;
+                            sent += (size_t)n;
+                        }
+                    }
+#endif
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex);
+                }
+                else
+                {
+                    wire_len = packet_wire_size(&ping_pkt);
+
+                    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex);
+#ifdef _WIN32
+                    send(ctx->tcp_conn_fd[0], (const char *)&ping_pkt, (int)wire_len, 0);
+#else
+                    {
+                        size_t        sent = 0;
+                        const uint8_t *p   = (const uint8_t *)&ping_pkt;
+                        while (sent < wire_len)
+                        {
+                            ssize_t n = send(ctx->tcp_conn_fd[0], p + sent,
+                                             wire_len - sent, 0);
+                            if (n <= 0) break;
+                            sent += (size_t)n;
+                        }
+                    }
+#endif
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex);
+                }
+            }
+            else if (ctx->service.encrypt_enabled)
+            {
+                /* UDP 暗号化 PING */
                 uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
                 uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
                 size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
@@ -346,6 +458,7 @@ static void *health_thread_func(void *arg)
             }
             else
             {
+                /* UDP 非暗号化 PING */
                 int k;
                 wire_len = packet_wire_size(&ping_pkt);
 

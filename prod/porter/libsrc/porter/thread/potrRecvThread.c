@@ -38,6 +38,18 @@
 #include "../infra/crypto/crypto.h"
 #include "../infra/potrLog.h"
 
+/* 現在時刻をミリ秒単位で返す (単調増加クロック) */
+static uint64_t get_ms(void)
+{
+#ifdef _WIN32
+    return (uint64_t)GetTickCount64();
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
+#endif
+}
+
 /* 前方宣言: 後で定義される関数 */
 static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
                          size_t payload_len, int compressed);
@@ -2457,6 +2469,314 @@ static void *recv_thread_func(void *arg)
 #endif
 }
 
+/* ================================================================
+ * TCP ストリーム受信スレッド
+ * ================================================================ */
+
+/* TCP ソケットから正確に n バイト読み取る。
+ * 戻り値: 1 = 成功、0 = 切断 (recv が 0 を返した)、-1 = エラー。 */
+static int tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
+{
+    size_t received = 0;
+    while (received < n)
+    {
+        int r;
+#ifdef _WIN32
+        r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
+        if (r == SOCKET_ERROR) return -1;
+        if (r == 0)            return 0;
+#else
+        r = (int)recv(fd, buf + received, n - received, 0);
+        if (r < 0) return -1;
+        if (r == 0) return 0;
+#endif
+        received += (size_t)r;
+    }
+    return 1;
+}
+
+/* TCP ソケットに n バイト書き込む (tcp_send_mutex は呼び出し元が保持済み)。
+ * 戻り値: 0 = 成功、-1 = エラー。 */
+static int tcp_send_all_raw(PotrSocket fd, const uint8_t *buf, size_t n)
+{
+    size_t sent = 0;
+    while (sent < n)
+    {
+        int r;
+#ifdef _WIN32
+        r = send(fd, (const char *)(buf + sent), (int)(n - sent), 0);
+        if (r == SOCKET_ERROR) return -1;
+#else
+        r = (int)send(fd, buf + sent, n - sent, 0);
+        if (r <= 0) return -1;
+#endif
+        sent += (size_t)r;
+    }
+    return 0;
+}
+
+/* TCP 上で PING 応答パケットを送信する。tcp_send_mutex で送信を保護する。
+ * req_seq_num: 受信した PING 要求の seq_num (ホストオーダー)。 */
+static void tcp_send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
+{
+    PotrPacket           reply_pkt;
+    PotrPacketSessionHdr shdr;
+    uint32_t             my_next_seq;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+    shdr._pad            = 0;
+
+    POTR_MUTEX_LOCK_LOCAL(&ctx->send_window_mutex);
+    my_next_seq = ctx->send_window.next_seq;
+    POTR_MUTEX_UNLOCK_LOCAL(&ctx->send_window_mutex);
+
+    /* ack_num=0 は PING 要求と区別できないため req_seq_num+1 を格納する */
+    if (packet_build_ping(&reply_pkt, &shdr,
+                          my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
+    {
+        return;
+    }
+
+    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex);
+
+    if (ctx->tcp_conn_fd[0] == POTR_INVALID_SOCKET)
+    {
+        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex);
+        return;
+    }
+
+    if (ctx->service.encrypt_enabled)
+    {
+        uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+        uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t  enc_out = POTR_CRYPTO_TAG_SIZE;
+
+        reply_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        reply_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B) */
+        memcpy(nonce,      &reply_pkt.session_id, 4);
+        memcpy(nonce + 4,  &reply_pkt.flags,      2);
+        memcpy(nonce + 6,  &reply_pkt.seq_num,    4);
+        memset(nonce + 10, 0,                     2);
+
+        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) == 0)
+        {
+            (void)tcp_send_all_raw(ctx->tcp_conn_fd[0],
+                                   wire_buf, PACKET_HEADER_SIZE + enc_out);
+        }
+    }
+    else
+    {
+        uint8_t wire_buf[PACKET_HEADER_SIZE];
+        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
+        (void)tcp_send_all_raw(ctx->tcp_conn_fd[0], wire_buf, PACKET_HEADER_SIZE);
+    }
+
+    POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex);
+}
+
+/* TCP ストリーム受信スレッド本体 */
+#ifdef _WIN32
+static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
+#else
+static void *tcp_recv_thread_func(void *arg)
+#endif
+{
+    struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
+    uint8_t             *buf = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
+    PotrSocket           fd;
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "tcp_recv[service_id=%d]: starting",
+             ctx->service.service_id);
+
+    while (ctx->running)
+    {
+        PotrPacket pkt;
+        uint16_t   wire_payload_len;
+        int        r;
+
+        fd = ctx->tcp_conn_fd[0];
+        if (fd == POTR_INVALID_SOCKET)
+        {
+            break;
+        }
+
+        /* 1. ヘッダー 32B 読み取り */
+        r = tcp_read_all(fd, buf, PACKET_HEADER_SIZE);
+        if (r <= 0)
+        {
+            break; /* 切断 or エラー */
+        }
+
+        /* 2. ペイロード長を wire バイト列から抽出 (offset 30、NBO) */
+        {
+            uint16_t wpl;
+            memcpy(&wpl, buf + 30, sizeof(wpl));
+            wire_payload_len = ntohs(wpl);
+        }
+
+        /* 3. ペイロード長バリデーション */
+        if ((size_t)wire_payload_len > ctx->global.max_payload)
+        {
+            POTR_LOG(POTR_LOG_WARN,
+                     "tcp_recv[service_id=%d]: oversized payload %u > max %u,"
+                     " disconnecting",
+                     ctx->service.service_id,
+                     (unsigned)wire_payload_len,
+                     (unsigned)ctx->global.max_payload);
+            break;
+        }
+
+        /* 4. ペイロード読み取り */
+        if (wire_payload_len > 0)
+        {
+            r = tcp_read_all(fd, buf + PACKET_HEADER_SIZE, wire_payload_len);
+            if (r <= 0)
+            {
+                break;
+            }
+        }
+
+        /* 5. パケット解析 */
+        if (packet_parse(&pkt, buf,
+                         PACKET_HEADER_SIZE + wire_payload_len) != POTR_SUCCESS)
+        {
+            POTR_LOG(POTR_LOG_TRACE,
+                     "tcp_recv[service_id=%d]: packet_parse failed",
+                     ctx->service.service_id);
+            break;
+        }
+
+        /* 6. service_id チェック */
+        if (pkt.service_id != ctx->service.service_id)
+        {
+            POTR_LOG(POTR_LOG_TRACE,
+                     "tcp_recv[service_id=%d]: service_id mismatch (%d)",
+                     ctx->service.service_id, pkt.service_id);
+            continue;
+        }
+
+        /* 7. DATA 暗号化復号 (DATA+ENCRYPTED の組み合わせのみ) */
+        if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+            == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+        {
+            uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+            size_t   dec_len  = ctx->crypto_buf_size;
+            uint32_t sid_nbo  = htonl(pkt.session_id);
+            uint16_t flg_nbo  = htons((uint16_t)pkt.flags);
+            uint32_t seq_nbo  = htonl(pkt.seq_num);
+
+            memcpy(nonce,      &sid_nbo,  4);
+            memcpy(nonce + 4,  &flg_nbo,  2);
+            memcpy(nonce + 6,  &seq_nbo,  4);
+            memset(nonce + 10, 0,         2);
+
+            if (potr_decrypt(ctx->crypto_buf, &dec_len,
+                             pkt.payload, pkt.payload_len,
+                             ctx->service.encrypt_key,
+                             nonce,
+                             buf, PACKET_HEADER_SIZE) != 0)
+            {
+                POTR_LOG(POTR_LOG_TRACE,
+                         "tcp_recv[service_id=%d]: decrypt failed seq=%u",
+                         ctx->service.service_id, (unsigned)pkt.seq_num);
+                continue;
+            }
+
+            pkt.payload     = ctx->crypto_buf;
+            pkt.payload_len = (uint16_t)dec_len;
+        }
+
+        /* 8. パケット種別処理 */
+        if (pkt.flags & POTR_FLAG_PING)
+        {
+            if (pkt.ack_num == 0U)
+            {
+                /* PING 要求: 即応答を返す */
+                POTR_LOG(POTR_LOG_TRACE,
+                         "tcp_recv[service_id=%d]: PING req seq=%u -> reply",
+                         ctx->service.service_id, (unsigned)pkt.seq_num);
+                notify_health_alive(ctx);
+                tcp_send_ping_reply(ctx, pkt.seq_num);
+            }
+            else
+            {
+                /* PING 応答: 最終受信時刻を更新 */
+                ctx->tcp_last_ping_recv_ms = get_ms();
+                notify_health_alive(ctx);
+                POTR_LOG(POTR_LOG_TRACE,
+                         "tcp_recv[service_id=%d]: PING resp seq=%u ack=%u",
+                         ctx->service.service_id,
+                         (unsigned)pkt.seq_num, (unsigned)pkt.ack_num);
+            }
+        }
+        else if (pkt.flags & POTR_FLAG_DATA)
+        {
+            /* セッション照合 */
+            if (!check_and_update_session(ctx, &pkt))
+            {
+                POTR_LOG(POTR_LOG_TRACE,
+                         "tcp_recv[service_id=%d]: DATA session mismatch, ignored",
+                         ctx->service.service_id);
+                continue;
+            }
+
+            notify_health_alive(ctx);
+
+            POTR_LOG(POTR_LOG_TRACE,
+                     "tcp_recv[service_id=%d]: DATA seq=%u payload=%u",
+                     ctx->service.service_id,
+                     (unsigned)pkt.seq_num, (unsigned)pkt.payload_len);
+
+            /* ペイロードエレメントを展開して配信 */
+            {
+                size_t     offset = 0;
+                PotrPacket elem;
+                while (packet_unpack_next(&pkt, &offset, &elem) == POTR_SUCCESS)
+                {
+                    deliver_payload_elem(ctx, &elem);
+                }
+            }
+        }
+    }
+
+    /* 接続断処理 */
+    if (ctx->health_alive)
+    {
+        ctx->health_alive = 0;
+        POTR_LOG(POTR_LOG_INFO,
+                 "tcp_recv[service_id=%d]: DISCONNECTED",
+                 ctx->service.service_id);
+        if (ctx->callback != NULL)
+        {
+            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
+                          POTR_EVENT_DISCONNECTED, NULL, 0);
+        }
+    }
+
+    ctx->running = 0;
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "tcp_recv[service_id=%d]: exited",
+             ctx->service.service_id);
+
+#ifdef _WIN32
+    return 0;
+#else
+    return NULL;
+#endif
+}
+
 /**
  *******************************************************************************
  *  @brief          受信スレッドを起動します。
@@ -2478,7 +2798,14 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
              ctx->service.service_id);
 
 #ifdef _WIN32
-    ctx->recv_thread = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
+    if (potr_is_tcp_type(ctx->service.type))
+    {
+        ctx->recv_thread = CreateThread(NULL, 0, tcp_recv_thread_func, ctx, 0, NULL);
+    }
+    else
+    {
+        ctx->recv_thread = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
+    }
     if (ctx->recv_thread == NULL)
     {
         ctx->running = 0;
@@ -2488,13 +2815,24 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
         return POTR_ERROR;
     }
 #else
-    if (pthread_create(&ctx->recv_thread, NULL, recv_thread_func, ctx) != 0)
     {
-        ctx->running = 0;
-        POTR_LOG(POTR_LOG_ERROR,
-                 "recv_thread[service_id=%d]: pthread_create failed",
-                 ctx->service.service_id);
-        return POTR_ERROR;
+        int rc;
+        if (potr_is_tcp_type(ctx->service.type))
+        {
+            rc = pthread_create(&ctx->recv_thread, NULL, tcp_recv_thread_func, ctx);
+        }
+        else
+        {
+            rc = pthread_create(&ctx->recv_thread, NULL, recv_thread_func, ctx);
+        }
+        if (rc != 0)
+        {
+            ctx->running = 0;
+            POTR_LOG(POTR_LOG_ERROR,
+                     "recv_thread[service_id=%d]: pthread_create failed",
+                     ctx->service.service_id);
+            return POTR_ERROR;
+        }
     }
 #endif
 
