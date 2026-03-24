@@ -323,6 +323,119 @@ make doxy
 make docs
 ```
 
+## ドキュメントの静的サイト公開
+
+ビルドジョブで生成したドキュメント (`source/docs`) を、Jenkins の登録ユーザーのみ閲覧できる静的サイトとして公開する方法を示します。
+
+### 概要
+
+Jenkins の **HTML Publisher Plugin** を使うと、ジョブのワークスペース内にあるディレクトリを HTML として公開できます。  
+公開された URL へのアクセスには Jenkins へのログインが必要になるため、Jenkins に登録されたユーザーのみが閲覧できます。外部の Web サーバーは不要です。
+
+> **ジョブ名に関する注意**  
+> ジョブ名にスペースが含まれる場合 (例: `build test`)、URL は `build%20test` のようにエンコードされます。  
+> 運用上の混乱を避けるため、ジョブ名はスペースを使わない名前 (例: `build-test`) にすることを推奨します。
+
+### HTML Publisher Plugin のインストール
+
+1. Jenkins ダッシュボードで **Manage Jenkins** を選択する
+2. **Plugins** を選択する
+3. **Available plugins** タブを開く
+4. 検索欄に `HTML Publisher` と入力する
+5. **HTML Publisher** にチェックを入れて **Install** する
+6. インストール完了後、必要に応じて Jenkins を再起動する
+
+### ジョブへの設定追加
+
+既存のジョブ設定を開き、**Post-build Actions** に **Publish HTML reports** を追加します。
+
+| 項目 | 設定値 |
+|---|---|
+| HTML directory to archive | `source/docs` |
+| Index page(s) | `index.html` |
+| Report title | `Docs` (任意) |
+| Keep past HTML reports | チェックを入れると過去のビルドのレポートも保持される |
+
+設定を保存し、ジョブを実行します。ビルド完了後、ジョブのトップページに **Docs** リンクが表示されます。
+
+公開 URL のパターンは次のとおりです。
+
+```text
+http://<JENKINS_SERVER>:8080/job/<ジョブ名>/HTML_Report/
+```
+
+特定ビルドのレポートを参照する場合は次の URL になります。
+
+```text
+http://<JENKINS_SERVER>:8080/job/<ジョブ名>/<ビルド番号>/HTML_Report/
+```
+
+### Content Security Policy (CSP) の緩和
+
+Jenkins 2.x 以降は、デフォルトで厳格な Content Security Policy (CSP) が適用されており、公開した HTML 内の CSS や JavaScript が動作しない場合があります。  
+この問題が発生した場合は、CSP を緩和します。
+
+> **注意**  
+> CSP の緩和は、公開するコンテンツの信頼性を確認したうえで実施してください。  
+> 外部からの入力をそのまま HTML として出力するようなコンテンツには適用しないでください。
+
+**スクリプトコンソールからの一時的な適用**
+
+Jenkins 再起動まで有効な一時的な緩和は、**Manage Jenkins > Script Console** から次の Groovy スクリプトを実行します。
+
+```groovy
+System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+```
+
+**再起動後も有効にする設定**
+
+Jenkins 起動時に自動で適用されるよう、Init Script を使います。
+
+1. `/var/lib/jenkins/init.groovy.d/` ディレクトリを作成します (存在しない場合)。
+
+    ```bash
+    sudo mkdir -p /var/lib/jenkins/init.groovy.d
+    ```
+
+2. 次の内容のスクリプトファイルを作成します。
+
+    ```bash
+    sudo tee /var/lib/jenkins/init.groovy.d/disable-csp.groovy <<'EOF'
+    import jenkins.model.Jenkins
+
+    System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+    EOF
+    ```
+
+3. ファイルのオーナーを `jenkins` ユーザーに設定します。
+
+    ```bash
+    sudo chown jenkins:jenkins /var/lib/jenkins/init.groovy.d/disable-csp.groovy
+    ```
+
+4. Jenkins を再起動して設定を反映します。
+
+    ```bash
+    sudo systemctl restart jenkins
+    ```
+
+### アクセス制御の確認
+
+ドキュメントが Jenkins 登録ユーザーのみ閲覧できることを確認します。
+
+**匿名アクセスが無効になっていることを確認する**
+
+1. **Manage Jenkins > Security** を開く
+2. **Authorization** の設定を確認する
+3. 匿名ユーザー (Anonymous) に **Overall/Read** 権限が付与されていないことを確認する
+
+匿名ユーザーに Read 権限が付与されている場合、ログインなしでドキュメントにアクセスできてしまいます。
+
+**ブラウザで動作確認する**
+
+1. ログアウト状態でドキュメントの URL にアクセスし、ログイン画面にリダイレクトされることを確認する
+2. 登録済みユーザーでログインし、ドキュメントが正常に表示されることを確認する
+
 ## 関連リソース
 
 - [GitHub Actions CI/CD 仕様](github-actions.md)
