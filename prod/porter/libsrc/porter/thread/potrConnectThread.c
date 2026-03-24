@@ -491,9 +491,10 @@ static void sender_connect_loop(struct PotrContext_ *ctx)
                  "connect_thread[service_id=%d]: TCP connected",
                  ctx->service.service_id);
 
-        ctx->tcp_conn_fd[0]        = sock;
-        ctx->tcp_last_ping_recv_ms = connect_get_ms();
-        ctx->tcp_connected         = 1;
+        ctx->tcp_conn_fd[0]             = sock;
+        ctx->tcp_last_ping_recv_ms      = connect_get_ms();
+        ctx->tcp_last_ping_req_recv_ms  = connect_get_ms();
+        ctx->tcp_connected              = 1;
 
         reset_connection_state(ctx);
 
@@ -571,9 +572,10 @@ static void receiver_accept_loop(struct PotrContext_ *ctx)
                  "connect_thread[service_id=%d]: TCP accepted",
                  ctx->service.service_id);
 
-        ctx->tcp_conn_fd[0]        = conn;
-        ctx->tcp_last_ping_recv_ms = connect_get_ms();
-        ctx->tcp_connected         = 1;
+        ctx->tcp_conn_fd[0]             = conn;
+        ctx->tcp_last_ping_recv_ms      = connect_get_ms();
+        ctx->tcp_last_ping_req_recv_ms  = connect_get_ms();
+        ctx->tcp_connected              = 1;
 
         reset_connection_state(ctx);
 

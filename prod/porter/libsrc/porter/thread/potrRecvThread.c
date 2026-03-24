@@ -2473,6 +2473,34 @@ static void *recv_thread_func(void *arg)
  * TCP ストリーム受信スレッド
  * ================================================================ */
 
+/* TCP ソケットが読み取り可能になるまで最大 wait_ms ミリ秒待機する。
+ * 戻り値: 1 = データあり、0 = タイムアウト、-1 = エラー。 */
+static int tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
+{
+    int            ret;
+#ifdef _WIN32
+    fd_set         rfds;
+    struct timeval tv;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec  = (long)(wait_ms / 1000U);
+    tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
+    ret = select(0, &rfds, NULL, NULL, &tv);
+    if (ret == SOCKET_ERROR) return -1;
+#else
+    fd_set         rfds;
+    struct timeval tv;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec  = (time_t)(wait_ms / 1000U);
+    tv.tv_usec = (suseconds_t)((wait_ms % 1000U) * 1000U);
+    ret = select(fd + 1, &rfds, NULL, NULL, &tv);
+    if (ret < 0 && errno == EINTR) return 0; /* シグナル割り込み: タイムアウトとして扱う */
+    if (ret < 0) return -1;
+#endif
+    return (ret > 0) ? 1 : 0;
+}
+
 /* TCP ソケットから正確に n バイト読み取る。
  * 戻り値: 1 = 成功、0 = 切断 (recv が 0 を返した)、-1 = エラー。 */
 static int tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
@@ -2595,9 +2623,25 @@ static void *tcp_recv_thread_func(void *arg)
     uint8_t             *buf = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
     PotrSocket           fd;
 
+    /* PING 要求到着タイムアウト監視を使用するか判定する。
+     * - tcp RECEIVER: SENDER が PING を周期送信するため監視が必要。
+     * - tcp_bidir SENDER: RECEIVER も PING を周期送信するため、SENDER 側でも監視が必要。
+     * - tcp_bidir RECEIVER: 同上。
+     * - tcp SENDER: RECEIVER は PING を送信しないため監視不要。 */
+    int      use_ping_timeout = ((ctx->role == POTR_ROLE_RECEIVER
+                                  || ctx->service.type == POTR_TYPE_TCP_BIDIR)
+                                 && ctx->global.health_timeout_ms > 0);
+    /* ポーリング間隔: 1 秒単位でチェックし、health_timeout_ms を超えないようにする。 */
+    uint32_t poll_ms = use_ping_timeout
+                       ? (ctx->global.health_timeout_ms < 1000U
+                          ? ctx->global.health_timeout_ms
+                          : 1000U)
+                       : 0U;
+
     POTR_LOG(POTR_LOG_DEBUG,
-             "tcp_recv[service_id=%d]: starting",
-             ctx->service.service_id);
+             "tcp_recv[service_id=%d]: starting (ping_req_timeout=%s)",
+             ctx->service.service_id,
+             use_ping_timeout ? "enabled" : "disabled");
 
     while (ctx->running)
     {
@@ -2609,6 +2653,32 @@ static void *tcp_recv_thread_func(void *arg)
         if (fd == POTR_INVALID_SOCKET)
         {
             break;
+        }
+
+        /* RECEIVER: タイムアウト付きポーリングで PING 要求到着を監視する。
+         * データが届くまで poll_ms 待機し、タイムアウト時は PING 到着時刻を確認する。 */
+        if (use_ping_timeout)
+        {
+            int readable = tcp_wait_readable(fd, poll_ms);
+            if (!ctx->running) break;
+            if (readable < 0) break; /* エラー */
+            if (readable == 0)
+            {
+                /* ポーリングタイムアウト: PING 要求到着時刻を確認する */
+                uint64_t last    = ctx->tcp_last_ping_req_recv_ms;
+                uint64_t elapsed = get_ms() - last;
+                if (last > 0 && elapsed > (uint64_t)ctx->global.health_timeout_ms)
+                {
+                    POTR_LOG(POTR_LOG_WARN,
+                             "tcp_recv[service_id=%d]: PING req timeout"
+                             " (%llu ms), disconnecting",
+                             ctx->service.service_id,
+                             (unsigned long long)elapsed);
+                    break;
+                }
+                continue;
+            }
+            /* readable == 1: データあり。以降の tcp_read_all へ進む。 */
         }
 
         /* 1. ヘッダー 32B 読み取り */
@@ -2702,11 +2772,12 @@ static void *tcp_recv_thread_func(void *arg)
         {
             if (pkt.ack_num == 0U)
             {
-                /* PING 要求: 即応答を返す */
+                /* PING 要求: 即応答を返す。最終受信時刻を更新する。 */
                 POTR_LOG(POTR_LOG_TRACE,
                          "tcp_recv[service_id=%d]: PING req seq=%u -> reply",
                          ctx->service.service_id, (unsigned)pkt.seq_num);
                 notify_health_alive(ctx);
+                ctx->tcp_last_ping_req_recv_ms = get_ms();
                 tcp_send_ping_reply(ctx, pkt.seq_num);
             }
             else

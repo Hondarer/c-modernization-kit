@@ -258,6 +258,9 @@ struct PotrContext_
 
     /* PING 応答追跡 (SENDER health スレッドが参照、TCP recv スレッドが更新) */
     volatile uint64_t  tcp_last_ping_recv_ms;      /**< TCP PING 応答最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。接続確立時に現在時刻で初期化。 */
+
+    /* PING 要求到着追跡 (RECEIVER recv スレッドが参照・更新。RECEIVER 側 PING 到着タイムアウト監視に使用) */
+    volatile uint64_t  tcp_last_ping_req_recv_ms;  /**< TCP PING 要求最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。接続確立時に現在時刻で初期化。 */
 };
 
 #endif /* POTR_CONTEXT_H */

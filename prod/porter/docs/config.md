@@ -170,6 +170,27 @@ RAW モードでもスライディングウィンドウによる **順序整列*
 
 N:1 モードのサーバは `POTR_ROLE_RECEIVER` 側として開きます。クライアント側は従来どおり `src_addr` を持つ `unicast_bidir` の 1:1 設定を使用します。
 
+### tcp / tcp_bidir 専用フィールド
+
+| キー | 型 | 必須 | デフォルト | 説明 |
+|---|---|---|---|---|
+| `dst_addr` | 文字列 | 必須 | — | SENDER: 接続先アドレス（ホスト名可）。RECEIVER: bind アドレス |
+| `dst_port` | uint16 | 必須 | — | SENDER: 接続先ポート。RECEIVER: listen ポート |
+| `src_addr` | 文字列 | 省略可 | — | SENDER: ローカル bind アドレス（省略で `0.0.0.0`）。RECEIVER: 無視 |
+| `reconnect_interval_ms` | uint32 | 省略可 | 5,000 | SENDER の自動再接続間隔 (ms)。`0` で自動再接続なし。RECEIVER では無視 |
+| `connect_timeout_ms` | uint32 | 省略可 | 10,000 | SENDER の TCP 接続タイムアウト (ms)。`0` で OS デフォルト。RECEIVER では無視 |
+
+**tcp / tcp_bidir では使用しないフィールド（記述しても無視）**
+
+| フィールド | UDP での用途 |
+|---|---|
+| `src_port` | 送信元 bind ポート |
+| `multicast_group` | マルチキャストグループ |
+| `ttl` | マルチキャスト TTL |
+| `broadcast_addr` | ブロードキャスト宛先 |
+| `src_addr.1` 〜 `src_addr.3` | マルチパス経路 |
+| `dst_addr.1` 〜 `dst_addr.3` | マルチパス経路 |
+
 ### broadcast 専用フィールド
 
 | キー | 型 | 必須 | 説明 |
@@ -354,6 +375,31 @@ RA -> S: sendto(src_addr, src_port)\nNACK (全パスからユニキャスト)
 | 送信先 | `broadcast_addr:dst_port` | — |
 | 送信元フィルタ | — | `src_addr` |
 
+### tcp / tcp_bidir (TCP 接続)
+
+```plantuml
+@startuml
+title tcp のソケット connect / accept
+
+participant "SENDER\n(TCP クライアント)" as S
+participant "RECEIVER\n(TCP サーバー)" as R
+
+note over R: bind(dst_addr, dst_port)\nlisten()
+note over S: connect(dst_addr, dst_port)
+S -> R: TCP 3way handshake
+note over R: accept() → 接続ソケット取得
+@enduml
+```
+
+| | SENDER | RECEIVER |
+|---|---|---|
+| ソケット種別 | `SOCK_STREAM` | `SOCK_STREAM` |
+| 動作 | `connect(dst_addr, dst_port)` | `bind(dst_addr, dst_port)` → `listen()` → `accept()` |
+| listen ソケット | なし | あり（接続待機専用） |
+| 接続ソケット | `connect()` の fd | `accept()` の fd |
+
+RECEIVER が先に `potrOpenService()` を呼んで `listen()` に入っている必要があります。
+
 ## 送信元フィルタリング
 
 受信スレッドは通信種別とモードに応じて送信元を検査します。
@@ -506,4 +552,43 @@ src_port    = 9031
 dst_addr    = 192.168.1.20
 dst_port    = 9031
 encrypt_key = mysecretphrase
+
+; ---- TCP ユニキャスト ----
+
+; 基本設定（ループバック）
+[service.5001]
+type     = tcp
+dst_addr = 127.0.0.1
+dst_port = 9001
+
+; 再接続設定あり
+[service.5002]
+type                  = tcp
+dst_addr              = 192.168.1.100
+dst_port              = 9002
+reconnect_interval_ms = 5000    ; SENDER のみ有効
+connect_timeout_ms    = 10000   ; SENDER のみ有効
+
+; AES-256-GCM 暗号化
+[service.5003]
+type        = tcp
+dst_addr    = 192.168.1.100
+dst_port    = 9003
+encrypt_key = mysecretphrase
+
+; 再接続なし（切断後に自動復帰しない）
+[service.5004]
+type                  = tcp
+dst_addr              = 192.168.1.100
+dst_port              = 9004
+reconnect_interval_ms = 0
+
+; ---- TCP 双方向 ----
+
+[service.5010]
+type                  = tcp_bidir
+dst_addr              = 192.168.1.100
+dst_port              = 9010
+reconnect_interval_ms = 5000    ; SENDER のみ有効
+connect_timeout_ms    = 10000   ; SENDER のみ有効
 ```

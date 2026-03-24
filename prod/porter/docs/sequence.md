@@ -750,3 +750,191 @@ note over A: POTR_EVENT_DISCONNECTED 発火
 
 @enduml
 ```
+
+## TCP サービス開始 (SENDER)
+
+`potrOpenService()` を TCP SENDER として呼び出したときの内部処理です。
+`potrOpenService()` はすぐに返り、接続確立は connect スレッドが非同期に行います。
+
+```plantuml
+@startuml TCP サービス開始 (SENDER)
+caption TCP サービス開始 (SENDER)
+
+participant "アプリ" as APP
+participant "potrOpenService" as OPEN
+participant "connect スレッド" as CT
+participant "送信スレッド" as ST
+participant "受信スレッド" as RT
+participant "ヘルスチェックスレッド" as HT
+
+APP -> OPEN: potrOpenService(config, service_id, POTR_ROLE_SENDER, cb, &handle)
+activate OPEN
+OPEN -> OPEN: 設定ファイル解析・セッション識別子生成
+OPEN -> OPEN: 送信キュー / ウィンドウ初期化
+OPEN -> OPEN: tcp_state_mutex / tcp_state_cv 初期化
+
+OPEN -> CT**: connect スレッド起動
+OPEN --> APP: POTR_SUCCESS, *handle
+deactivate OPEN
+
+activate CT
+CT -> CT: connect(dst_addr, dst_port)\n（接続確立まで connect_timeout_ms 待機）
+CT -> ST**: 送信スレッド起動
+CT -> RT**: 受信スレッド起動
+CT -> HT**: ヘルスチェックスレッド起動
+
+note over CT: recv スレッドが切断を検知するまで待機
+
+@enduml
+```
+
+## TCP サービス開始 (RECEIVER)
+
+`potrOpenService()` を TCP RECEIVER として呼び出したときの内部処理です。
+
+```plantuml
+@startuml TCP サービス開始 (RECEIVER)
+caption TCP サービス開始 (RECEIVER)
+
+participant "アプリ" as APP
+participant "potrOpenService" as OPEN
+participant "accept スレッド" as AT
+participant "recv スレッド" as RT
+
+APP -> OPEN: potrOpenService(config, service_id, POTR_ROLE_RECEIVER, callback, &handle)
+activate OPEN
+OPEN -> OPEN: 設定ファイル解析
+OPEN -> OPEN: TCP listen ソケット作成\nbind(dst_addr, dst_port) → listen()
+
+OPEN -> AT**: accept スレッド起動
+OPEN --> APP: POTR_SUCCESS, *handle
+deactivate OPEN
+
+activate AT
+note over AT: accept() 待機中
+AT -> RT**: 接続確立後に recv スレッド起動
+
+activate RT
+note over RT: DATA / PING を待機するポーリングループ
+
+@enduml
+```
+
+## TCP 正常接続・通信・切断
+
+TCP SENDER / RECEIVER 間の正常な接続確立・データ送信・切断シーケンスです。
+
+```plantuml
+@startuml TCP 正常シーケンス
+caption TCP 正常シーケンス
+
+participant "SENDER\n(クライアント)" as S
+participant "RECEIVER\n(サーバー)" as R
+
+== サービス開始 ==
+
+note over R: potrOpenService()\nbind() → listen()
+note over S: potrOpenService()\nconnect() 開始
+S -> R: TCP 3way handshake
+note over S: 接続確立
+
+== データ送信 ==
+
+S -> R: DATA (seq_num=0, 最初のパケット)
+note over R: peer_session_known = false\n→ セッション採用\nPOTR_EVENT_CONNECTED 発火
+
+S -> R: DATA (seq_num=1)
+S -> R: DATA (seq_num=2)
+note over R: POTR_EVENT_DATA × 3
+
+== ヘルスチェック ==
+
+S -> R: PING (ack_num=0, seq_num=3, payload_len=0)
+R -> S: PING (ack_num=3, seq_num=M, payload_len=0)
+note over S: PING 応答受信 → alive 確認
+
+== 正常終了 ==
+
+note over S: potrCloseService()
+S -> R: TCP FIN (close)
+note over R: TCP 切断検知 → POTR_EVENT_DISCONNECTED 発火
+
+@enduml
+```
+
+## TCP SENDER 再起動・自動再接続
+
+SENDER プロセスが再起動した場合に自動再接続が行われるシーケンスです。
+
+```plantuml
+@startuml TCP 再接続シーケンス
+caption TCP SENDER 再起動・自動再接続
+
+participant "SENDER" as S
+participant "RECEIVER" as R
+
+note over S,R: 通信中（セッション A）
+
+== SENDER プロセス再起動 ==
+
+S -[#red]-> R: TCP 接続断
+note over R: TCP 切断検知\nPOTR_EVENT_DISCONNECTED 発火\npeer_session_known = false
+
+note over S: potrOpenService()\n新セッション識別子を生成
+S -> R: TCP 3way handshake（再接続）
+S -> R: DATA (セッション B の最初のパケット)
+
+note over R: セッション B を採用\nPOTR_EVENT_CONNECTED 発火
+
+@enduml
+```
+
+## TCP PING 応答タイムアウト
+
+RECEIVER のアプリケーション層がハングした場合に SENDER が切断を検知するシーケンスです。
+TCP 接続は OS レベルで生存していてもアプリ層の PING 応答が途絶えることで検知します。
+
+```plantuml
+@startuml TCP PING 応答タイムアウト
+caption TCP PING 応答タイムアウト
+
+participant "SENDER" as S
+participant "RECEIVER\n(応答なし)" as R
+
+note over S,R: 通信中
+
+S -> R: PING (ack_num=0, seq_num=N)
+note over R: アプリケーション層がハング\n（TCP 接続は生きているが PING 応答が返らない）
+note over S: tcp_health_timeout_ms 経過\nPING 応答（ack_num=N）未受信
+note over S: POTR_EVENT_DISCONNECTED 発火\nTCP 接続を切断
+
+note over S: reconnect_interval_ms 待機後\nconnect() 再試行
+
+@enduml
+```
+
+## TCP RECEIVER 側 PING タイムアウト
+
+SENDER のアプリケーション層がハングして PING 送信が停止した場合に RECEIVER が切断を検知するシーケンスです。
+TCP 接続は OS レベルで生存していても、PING 要求が届かなくなることで RECEIVER が検知します。
+
+```plantuml
+@startuml TCP RECEIVER PING タイムアウト
+caption TCP RECEIVER 側 PING タイムアウト
+
+participant "SENDER\n(PING 送信停止)" as S
+participant "RECEIVER" as R
+
+note over S,R: 通信中
+
+S -> R: PING (ack_num=0, seq_num=N)
+R -> S: PING (ack_num=N, seq_num=M)
+note over S: アプリケーション層がハング\n（TCP 接続は生きているが PING を送信できない）
+
+note over R: tcp_health_timeout_ms 経過\nPING 要求（ack_num=0）未着信
+note over R: POTR_EVENT_DISCONNECTED 発火\nTCP 接続を切断
+
+note over R: accept スレッドへ戻り\n次の接続を待機
+
+@enduml
+```
