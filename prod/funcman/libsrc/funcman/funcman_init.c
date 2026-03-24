@@ -44,7 +44,11 @@ void funcman_init(funcman_object *const *fobj_array, const size_t fobj_length, c
     char *comment;
     size_t fobj_index;
 
+#ifndef _WIN32
     fp = fopen(configpath, "r");
+#else  /* _WIN32 */
+    fopen_s(&fp, configpath, "r");
+#endif /* _WIN32 */
     if (fp == NULL)
     {
         return;
@@ -60,7 +64,14 @@ void funcman_init(funcman_object *const *fobj_array, const size_t fobj_length, c
         }
 
         /* func_key lib_name func_name の 3 フィールドを解析 */
+#ifndef _WIN32
         if (sscanf(line, "%255s %255s %255s", func_key, lib_name, func_name) != 3)
+#else  /* _WIN32 */
+        if (sscanf_s(line, "%255s %255s %255s",
+                     func_key, (unsigned)sizeof(func_key),
+                     lib_name, (unsigned)sizeof(lib_name),
+                     func_name, (unsigned)sizeof(func_name)) != 3)
+#endif /* _WIN32 */
         {
             /* 空行・コメント行・フィールドが不足している行はスキップ */
             continue;
@@ -75,10 +86,15 @@ void funcman_init(funcman_object *const *fobj_array, const size_t fobj_length, c
                 continue;
             }
 
+#ifndef _WIN32
             strncpy(cache->lib_name, lib_name, FUNCMAN_NAME_MAX - 1);
             cache->lib_name[FUNCMAN_NAME_MAX - 1] = '\0';
             strncpy(cache->func_name, func_name, FUNCMAN_NAME_MAX - 1);
             cache->func_name[FUNCMAN_NAME_MAX - 1] = '\0';
+#else  /* _WIN32 */
+            strncpy_s(cache->lib_name, FUNCMAN_NAME_MAX, lib_name, FUNCMAN_NAME_MAX - 1);
+            strncpy_s(cache->func_name, FUNCMAN_NAME_MAX, func_name, FUNCMAN_NAME_MAX - 1);
+#endif /* _WIN32 */
             break;
         }
     }

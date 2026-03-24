@@ -66,7 +66,12 @@ class override_sampleTest : public Test
     /** 指定した内容で定義ファイルを作成する。 */
     void createConfigFile(const string &content)
     {
+#ifndef _WIN32
         FILE *fp = fopen(config_path.c_str(), "w");
+#else  /* _WIN32 */
+        FILE *fp = nullptr;
+        fopen_s(&fp, config_path.c_str(), "w");
+#endif /* _WIN32 */
         ASSERT_NE(nullptr, fp) << "定義ファイルの作成に失敗しました: " << config_path;
         fputs(content.c_str(), fp);
         fclose(fp);

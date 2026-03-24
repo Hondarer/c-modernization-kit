@@ -63,8 +63,13 @@ void *_funcman_get_func(funcman_object *fobj)
             fobj->resolved = -2; /* resolved=-2: 名称長さオーバー */
             goto unlock;
         }
+#ifndef _WIN32
         strcpy(lib_with_ext, fobj->lib_name);
         strcat(lib_with_ext, ext);
+#else  /* _WIN32 */
+        strcpy_s(lib_with_ext, sizeof(lib_with_ext), fobj->lib_name);
+        strcat_s(lib_with_ext, sizeof(lib_with_ext), ext);
+#endif /* _WIN32 */
 
 #ifndef _WIN32
         fobj->handle = dlopen(lib_with_ext, RTLD_LAZY);
