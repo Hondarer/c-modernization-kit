@@ -124,7 +124,7 @@ extern "C"
      *  @return         明示的デフォルトの場合は 1、それ以外は 0。
      *******************************************************************************
      */
-    extern int funcman_is_declared_default(const funcman_object *fobj);
+    extern int funcman_is_declared_default(funcman_object *fobj);
 
     /**
      *******************************************************************************

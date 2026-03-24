@@ -14,7 +14,7 @@
 #include <funcman.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int funcman_is_declared_default(const funcman_object *fobj)
+int funcman_is_declared_default(funcman_object *fobj)
 {
     if (fobj->resolved == 0)
     {
