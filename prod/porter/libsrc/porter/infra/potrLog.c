@@ -10,14 +10,15 @@
  *  クロスプラットフォーム対応のロガーモジュールです。\n
  *  追加の OSS ライブラリを必要とせず、OS 標準 API のみを使用します。
  *
- *  | OS      | 出力先                                                                  |
- *  | ------- | ----------------------------------------------------------------------- |
- *  | Linux   | syslog (常時)、ログファイル (log_file 指定時)、stderr (console 指定時) |
- *  | Windows | ログファイル (log_file 指定時)、stderr (console 指定時)                 |
+ *  | OS      | 出力先                                                                                        |
+ *  | ------- | --------------------------------------------------------------------------------------------- |
+ *  | Linux   | syslog (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)                        |
+ *  | Windows | OutputDebugString (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)             |
  *
- *  スレッドセーフ:
- *  - Linux:   PTHREAD_MUTEX_INITIALIZER による静的初期化済みミューテックスを使用。
- *  - Windows: INIT_ONCE_STATIC_INIT + InitOnceExecuteOnce による遅延初期化。
+ *  @par            スレッド セーフティ
+ *  本モジュールはスレッドセーフです。\n
+ *  Linux では PTHREAD_MUTEX_INITIALIZER による静的初期化済みミューテックスを使用します。\n
+ *  Windows では INIT_ONCE_STATIC_INIT + InitOnceExecuteOnce による遅延初期化を使用します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -112,6 +113,11 @@ static char g_log_file_path[POTR_LOG_FILE_PATH_MAX];
 
 /** ログファイル FILE ポインタ (NULL = 未オープン)。 */
 static FILE *g_log_fp = NULL;
+
+#ifdef _WIN32
+/** OutputDebugString 出力フラグ (非 0: 有効)。 */
+static int g_debugout = 0;
+#endif
 
 /* ── ユーティリティ ────────────────────────────────────────────────────── */
 
@@ -237,6 +243,11 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
     g_log_console = console;
     g_log_fp      = new_fp;
 
+#ifdef _WIN32
+    /* level が POTR_LOG_OFF でない場合のみ OutputDebugString を有効にする。 */
+    g_debugout = (level != POTR_LOG_OFF) ? 1 : 0;
+#endif
+
     if (log_file != NULL && log_file[0] != '\0')
     {
         size_t len = strlen(log_file);
@@ -313,7 +324,11 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
 #endif
 
         /* ── ファイル / stderr: タイムスタンプ付きフォーマット ─────────── */
-        if (g_log_fp != NULL || g_log_console)
+        if (g_log_fp != NULL || g_log_console
+#ifdef _WIN32
+            || g_debugout
+#endif
+        )
         {
             log_timestamp(ts, sizeof(ts));
 
@@ -329,6 +344,17 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
                 (void)fprintf(stderr, "%s [%s] [%s:%d] %s\n",
                               ts, lstr, log_basename(file), line, msg);
             }
+
+#ifdef _WIN32
+            /* ── Windows: OutputDebugString ────────────────────────────── */
+            if (g_debugout)
+            {
+                char dbg_buf[640]; /* ts(96) + lstr(5) + file + line + msg(512) + margin */
+                (void)snprintf(dbg_buf, sizeof(dbg_buf), "%s [%s] [%s:%d] %s\n",
+                               ts, lstr, log_basename(file), line, msg);
+                OutputDebugStringA(dbg_buf);
+            }
+#endif
         }
     }
 
