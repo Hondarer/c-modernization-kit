@@ -658,6 +658,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         struct sockaddr_in peer_addr;
         socklen_t          peer_len = (socklen_t)sizeof(peer_addr);
         int                active_count;
+        char               peer_addr_str[INET_ADDRSTRLEN];
 
         conn = accept(ctx->tcp_listen_sock[path_idx],
                       (struct sockaddr *)&peer_addr, &peer_len);
@@ -671,6 +672,8 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                      ctx->service.service_id, path_idx);
             continue;
         }
+
+        inet_ntop(AF_INET, &peer_addr.sin_addr, peer_addr_str, sizeof(peer_addr_str));
 
         /* 接続元フィルタ: src_addr[path_idx] / src_port が指定されていれば一致確認 */
         {
@@ -696,7 +699,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                          "connect_thread[service_id=%d path=%d]: rejected connection"
                          " from %s:%u (src filter)",
                          ctx->service.service_id, path_idx,
-                         inet_ntoa(peer_addr.sin_addr),
+                         peer_addr_str,
                          (unsigned)ntohs(peer_addr.sin_port));
 #ifdef _WIN32
                 closesocket(conn);
@@ -710,7 +713,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         POTR_LOG(POTR_LOG_INFO,
                  "connect_thread[service_id=%d path=%d]: TCP accepted from %s:%u",
                  ctx->service.service_id, path_idx,
-                 inet_ntoa(peer_addr.sin_addr),
+                 peer_addr_str,
                  (unsigned)ntohs(peer_addr.sin_port));
 
         ctx->tcp_conn_fd[path_idx]               = conn;
