@@ -196,7 +196,7 @@ sudo -u jenkins -H bash -c 'cd ~ && podman run --rm docker.io/library/alpine:lat
 
 Jenkins では、ジョブ実行時にワークスペース内へリポジトリを clone し、その後 Podman で GitHub Actions と同じコンテナイメージを使ってビルドする構成にできます。
 
-この構成では、Jenkins の **Source Code Management** は使わず、**Build Steps** 内のシェルスクリプトで以下を実行します。
+この構成では、**Source Code Management** (ソースコード管理) は使わず、**Build Steps** (ビルド手順) 内のシェルスクリプトで以下を実行します。
 
 - CI と同じコンテナイメージを `podman pull` する
 - ワークスペース内へリポジトリを `git clone` する
@@ -243,20 +243,37 @@ podman pull hondarer/oracle-linux-10-dev:latest
 
 #### ジョブ作成
 
-1. Jenkins ダッシュボードで **New Item** を選択する
+1. Jenkins ダッシュボードで **New Item** (新規ジョブ作成) を選択する
 2. 任意のジョブ名を入力する
-3. **Freestyle project** を選択する
+3. **Freestyle project** (フリースタイル・プロジェクト) を選択する
 4. **OK** を押す
 
 #### ソースコード管理
 
-この例では、ジョブ内で `git clone` を実行するため、**Source Code Management** は **None** のままにします。
+この例では、ジョブ内で `git clone` を実行するため、**Source Code Management** (ソースコード管理) は **None** (なし) のままにします。
 
 リポジトリ URL や認証情報は、後述の **Execute shell** 内で使用します。
 
+#### 成果物の保持ポリシー
+
+ビルドが蓄積するとワークスペースとアーティファクトがディスクを圧迫します。**General** (全般) **> Discard Old Builds** (古いビルドの破棄) を有効にし、**Advanced...** (高度な設定) を開いて以下のように設定します。
+
+| 項目 | 設定例 | 説明 |
+|------|--------|------|
+| Max # of builds to keep | `10` | ビルド記録 (ログ・テスト結果) の最大保持件数 |
+| Max # of builds to keep with artifacts | `5` | アーティファクト (HTML ドキュメント・zip) を保持するビルドの最大件数 |
+
+この設定により、ビルド記録は直近 10 件、アーティファクトは直近 5 件 (≒ 5 世代) を保持します。
+古いビルドのアーティファクトは自動削除されますが、ビルドログは 10 件分残るため、過去の実行状況の確認が可能です。
+
+> **ヒント**
+> `Days to keep builds` / `Days to keep artifacts` との組み合わせも可能です。
+> たとえば `Days to keep builds = 90`、`Max # of builds to keep with artifacts = 5` とすると
+> 「直近 90 日のビルド記録を保持しつつ、アーティファクトは最新 5 件のみ保持」という運用になります。
+
 #### ビルド手順
 
-**Build Steps** に **Execute shell** を追加し、次のようなコマンドを設定します。
+**Build Steps** (ビルド手順) に **Execute shell** (シェルの実行) を追加し、次のようなコマンドを設定します。
 
 Oracle Linux 開発コンテナは既定の `ENTRYPOINT` で `entrypoint.sh` を実行し、最終的に `sshd -D` で待機します。  
 そのため Jenkins でワンショット実行する場合は、`--entrypoint /bin/bash` で既定エントリーポイントを上書きし、コンテナ内で `devcontainer-entrypoint.sh` を明示的に呼び出してからビルドを実行します。
@@ -334,11 +351,112 @@ su - "$HOST_USER" -c "OS_NAME='$OS_NAME' BUILD_DOCS='$BUILD_DOCS' bash -l -s" <<
     set -o pipefail
     make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 
+    # テスト結果とログのアーカイブ (GitHub Actions と同じ命名規則)
+    mkdir -p /workspace/docs/artifacts
+
+    if find /workspace/test -type d -name results 2>/dev/null | grep -q .; then
+        (cd /workspace && zip -r "docs/artifacts/linux-${OS_NAME}-test-results.zip" \
+            $(find test -type d -name results)) || true
+    fi
+
+    if [ -d "/workspace/logs" ]; then
+        (cd /workspace && zip -r "docs/artifacts/linux-${OS_NAME}-logs.zip" logs) || true
+    fi
+
     # ドキュメント生成
     if [ "${BUILD_DOCS}" = "1" ]; then
         make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
         make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
+
+        # HTML ドキュメントのアーカイブ (GitHub Actions と同じ命名規則)
+        if [ -d "/workspace/docs/doxygen" ]; then
+            (cd /workspace && zip -r docs/artifacts/docs-html-doxygen.zip docs/doxygen) || true
+        fi
+        find /workspace/docs -mindepth 2 -type d -name html | sort | while read -r html_dir; do
+            label=$(echo "$html_dir" | sed 's|^/workspace/docs/||;s|/html$||;s|/|-|g')
+            (cd /workspace && zip -r "docs/artifacts/docs-html-${label}.zip" "${html_dir#/workspace/}") || true
+        done
+
+        # DOCX ドキュメントのアーカイブ
+        find /workspace/docs -mindepth 2 -type d -name docx | sort | while read -r docx_dir; do
+            label=$(echo "$docx_dir" | sed 's|^/workspace/docs/||;s|/docx$||;s|/|-|g')
+            (cd /workspace && zip -r "docs/artifacts/docs-docx-${label}.zip" "${docx_dir#/workspace/}") || true
+        done
     fi
+
+    # docs/index.html の生成 (GitHub Actions と同じ構造, HTML Publisher Plugin のエントリーページ)
+    {
+        cat <<'INDEX_TOP'
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>c-modernization-kit ドキュメント</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; }
+    h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
+    h2 { border-bottom: 1px solid #ccc; margin-top: 1.5em; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { text-align: left; padding: 0.4em 0.8em; border: 1px solid #ddd; }
+    th { background: #f6f8fa; }
+    a { color: #0366d6; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>c-modernization-kit ドキュメント</h1>
+INDEX_TOP
+
+        if [ "${BUILD_DOCS}" = "1" ]; then
+
+            # Doxygen サブフォルダを自動探索してリンク生成
+            if [ -d "/workspace/docs/doxygen" ] && \
+               find /workspace/docs/doxygen -maxdepth 1 -mindepth 1 -type d | grep -q .; then
+                echo '  <h2>Doxygen ドキュメント</h2>'
+                echo '  <table>'
+                echo '    <tr><th>モジュール</th><th>リンク</th></tr>'
+                find /workspace/docs/doxygen -maxdepth 1 -mindepth 1 -type d | sort | while read -r subdir; do
+                    name=$(basename "$subdir")
+                    echo "    <tr><td>${name}</td><td><a href=\"doxygen/${name}/index.html\">${name} リファレンス</a></td></tr>"
+                done
+                echo '  </table>'
+            fi
+
+            # Markdown ドキュメント
+            if find /workspace/docs -maxdepth 2 -name html -type d | grep -q .; then
+                cat <<'LANG_TABLE'
+  <h2>Markdown ドキュメント</h2>
+  <table>
+    <tr><th>言語</th><th>種別</th><th>リンク</th></tr>
+    <tr><td>日本語</td><td>通常版</td><td><a href="ja/html/index.html">日本語ドキュメント</a></td></tr>
+    <tr><td>English</td><td>Standard</td><td><a href="en/html/index.html">English Documentation</a></td></tr>
+    <tr><td>日本語</td><td>詳細版</td><td><a href="ja-details/html/index.html">日本語ドキュメント (詳細)</a></td></tr>
+    <tr><td>English</td><td>Details</td><td><a href="en-details/html/index.html">English Documentation (Details)</a></td></tr>
+  </table>
+LANG_TABLE
+            fi
+
+        fi
+
+        # アーティファクト (BUILD_DOCS に関係なく常に表示、存在するものを列挙)
+        if [ -d "/workspace/docs/artifacts" ] && \
+           find /workspace/docs/artifacts -name "*.zip" | grep -q .; then
+            echo '  <h2>アーティファクト</h2>'
+            echo '  <table>'
+            echo '    <tr><th>ファイル名</th></tr>'
+            find /workspace/docs/artifacts -name "*.zip" | sort | while read -r zipfile; do
+                fname=$(basename "$zipfile")
+                echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
+            done
+            echo '  </table>'
+        fi
+
+        cat <<'INDEX_BOTTOM'
+</body>
+</html>
+INDEX_BOTTOM
+    } > /workspace/docs/index.html
 
 INNER_EOF
 EOF
@@ -356,7 +474,7 @@ EOF
 
 ### 動作確認
 
-ジョブ保存後に **Build Now** を実行し、以下を確認します。
+ジョブ保存後に **Build Now** (今すぐビルド) を実行し、以下を確認します。
 
 - リポジトリを正常に取得できる
 - `podman pull` で CI と同じイメージを取得できる
@@ -365,6 +483,9 @@ EOF
 - コンテナ内の `/workspace` でコマンドを実行できる
 - `make` が成功する
 - `make test` が成功する
+- `source/docs/artifacts/linux-ol8-test-results.zip` 等が生成される
+- `source/docs/index.html` が生成される
+- `BUILD_DOCS="1"` の場合は `source/docs/artifacts/docs-html-doxygen.zip` 等も生成される
 
 必要に応じて Console Output を確認し、環境変数や依存パッケージ不足を調整してください。
 
@@ -404,42 +525,43 @@ Jenkins の **HTML Publisher Plugin** を使うと、ジョブのワークスペ
 
 ### HTML Publisher Plugin のインストール
 
-1. Jenkins ダッシュボードで **Manage Jenkins** を選択する
-2. **Plugins** を選択する
-3. **Available plugins** タブを開く
+1. Jenkins ダッシュボードで **Manage Jenkins** (Jenkinsの管理) を選択する
+2. **Plugins** (プラグイン) を選択する
+3. **Available plugins** (利用可能なプラグイン) タブを開く
 4. 検索欄に `HTML Publisher` と入力する
-5. **HTML Publisher** にチェックを入れて **Install** する
+5. **HTML Publisher** にチェックを入れて **Install** (インストール) する
 6. インストール完了後、必要に応じて Jenkins を再起動する
 
 ### ジョブへの設定追加
 
-既存のジョブ設定を開き、**Post-build Actions** に **Publish HTML reports** を追加します。
+既存のジョブ設定を開き、**Post-build Actions** (ビルド後の処理) に **Publish HTML reports** (HTMLレポートの公開) を追加します。
 
 | 項目 | 設定値 |
 |---|---|
 | HTML directory to archive | `source/docs` |
 | Index page(s) | `index.html` |
-| Report title | `Docs` (任意) |
+| Report title | `docs-and-artifacts` (任意) |
 | Keep past HTML reports | チェックを入れると過去のビルドのレポートも保持される |
 
 設定を保存し、ジョブを実行します。ビルド完了後、ジョブのトップページに **Docs** リンクが表示されます。
 
+ビルドスクリプトにより `source/docs/index.html` が自動生成されるため、アクセス時に Doxygen API ドキュメント (モジュール別)・言語別ドキュメント・アーティファクトへのリンクをまとめたナビゲーションページが表示されます。
+
 公開 URL のパターンは次のとおりです。
 
 ```text
-http://<JENKINS_SERVER>:8080/job/<ジョブ名>/HTML_Report/
+http://<JENKINS_SERVER>:8080/job/<ジョブ名>/docs-and-artifacts/
 ```
 
 特定ビルドのレポートを参照する場合は次の URL になります。
 
 ```text
-http://<JENKINS_SERVER>:8080/job/<ジョブ名>/<ビルド番号>/HTML_Report/
+http://<JENKINS_SERVER>:8080/job/<ジョブ名>/<ビルド番号>/docs-and-artifacts/
 ```
 
 ### Content Security Policy (CSP) の緩和
 
-Jenkins 2.x 以降は、デフォルトで厳格な Content Security Policy (CSP) が適用されており、公開した HTML 内の CSS や JavaScript が動作しない場合があります。  
-この問題が発生した場合は、CSP を緩和します。
+Jenkins 2.x 以降は、デフォルトで厳格な Content Security Policy (CSP) が適用されており、公開した HTML 内の CSS や JavaScript は動作しません。Doxygen が生成するドキュメントもスクリプトが動作しないため、正常に閲覧するには　CSP の緩和が必要です。
 
 > **注意**  
 > CSP の緩和は、公開するコンテンツの信頼性を確認したうえで実施してください。  
@@ -447,7 +569,7 @@ Jenkins 2.x 以降は、デフォルトで厳格な Content Security Policy (CSP
 
 **スクリプトコンソールからの一時的な適用**
 
-Jenkins 再起動まで有効な一時的な緩和は、**Manage Jenkins > Script Console** から次の Groovy スクリプトを実行します。
+Jenkins 再起動まで有効な一時的な緩和は、**Manage Jenkins** (Jenkinsの管理) **> Script Console** から次の Groovy スクリプトを実行します。
 
 ```groovy
 System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
@@ -491,8 +613,8 @@ Jenkins 起動時に自動で適用されるよう、Init Script を使います
 
 **匿名アクセスが無効になっていることを確認する**
 
-1. **Manage Jenkins > Security** を開く
-2. **Authorization** の設定を確認する
+1. **Manage Jenkins** (Jenkinsの管理) **> Security** (セキュリティ) を開く
+2. **Authorization** (権限) の設定を確認する
 3. 匿名ユーザー (Anonymous) に **Overall/Read** 権限が付与されていないことを確認する
 
 匿名ユーザーに Read 権限が付与されている場合、ログインなしでドキュメントにアクセスできてしまいます。

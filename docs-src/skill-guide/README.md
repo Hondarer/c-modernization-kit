@@ -145,7 +145,7 @@ CI/CD によるビルド・テストの自動化と、.NET 連携および開発
 |-------------------|------------------------------|
 | [GitHub Actions](07-ci-cd/github-actions.md) | 自動ビルド・テスト・デプロイ |
 | [GitHub Pages](07-ci-cd/github-pages.md)     | 生成ドキュメントの公開       |
-| [Jenkins](07-ci-cd/jenkins.md)               | Oracle Linux 8 への Jenkins 導入とビルドジョブ構成 |
+| [Jenkins](07-ci-cd/jenkins.md)               | Oracle Linux 8 への Jenkins 導入、ビルドジョブ構成、ドキュメント公開 |
 | [Podman](07-ci-cd/podman.md)                 | rootless Podman と Oracle Linux 開発コンテナの利用 |
 
 Table: CI/CD スキルガイド一覧
