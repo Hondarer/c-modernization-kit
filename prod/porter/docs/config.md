@@ -176,7 +176,8 @@ N:1 モードのサーバは `POTR_ROLE_RECEIVER` 側として開きます。ク
 |---|---|---|---|---|
 | `dst_addr` | 文字列 | 必須 | — | SENDER: 接続先アドレス（ホスト名可）。RECEIVER: bind アドレス |
 | `dst_port` | uint16 | 必須 | — | SENDER: 接続先ポート。RECEIVER: listen ポート |
-| `src_addr` | 文字列 | 省略可 | — | SENDER: ローカル bind アドレス（省略で `0.0.0.0`）。RECEIVER: 無視 |
+| `src_addr` | 文字列 | 省略可 | — | SENDER: ローカル bind アドレス（省略で自動選択）。RECEIVER: 接続元 IP フィルタ（省略でフィルタなし） |
+| `src_port` | uint16 | 省略可 | 0 | SENDER: ローカル bind ポート（`0` または省略でエフェメラル）。RECEIVER: 接続元ポートフィルタ（`0` または省略でフィルタなし） |
 | `reconnect_interval_ms` | uint32 | 省略可 | 5,000 | SENDER の自動再接続間隔 (ms)。`0` で自動再接続なし。RECEIVER では無視 |
 | `connect_timeout_ms` | uint32 | 省略可 | 10,000 | SENDER の TCP 接続タイムアウト (ms)。`0` で OS デフォルト。RECEIVER では無視 |
 
@@ -184,7 +185,6 @@ N:1 モードのサーバは `POTR_ROLE_RECEIVER` 側として開きます。ク
 
 | フィールド | UDP での用途 |
 |---|---|
-| `src_port` | 送信元 bind ポート |
 | `multicast_group` | マルチキャストグループ |
 | `ttl` | マルチキャスト TTL |
 | `broadcast_addr` | ブロードキャスト宛先 |

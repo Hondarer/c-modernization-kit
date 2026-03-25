@@ -25,6 +25,7 @@
 #else
     #include <sys/socket.h>
     #include <netinet/in.h>
+    #include <arpa/inet.h>
     #include <unistd.h>
     #include <fcntl.h>
     #include <errno.h>
@@ -251,6 +252,39 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx)
 #else
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 #endif
+
+    if (ctx->service.src_addr[0][0] != '\0' || ctx->service.src_port != 0)
+    {
+        struct sockaddr_in bind_addr;
+        memset(&bind_addr, 0, sizeof(bind_addr));
+        bind_addr.sin_family = AF_INET;
+        if (ctx->service.src_addr[0][0] != '\0')
+        {
+            bind_addr.sin_addr = ctx->src_addr_resolved[0];
+        }
+        else
+        {
+            bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        }
+        bind_addr.sin_port = htons(ctx->service.src_port); /* 0 = エフェメラル */
+
+#ifdef _WIN32
+        if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) == SOCKET_ERROR)
+#else
+        if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0)
+#endif
+        {
+            POTR_LOG(POTR_LOG_ERROR,
+                     "connect_thread[service_id=%d]: bind() failed",
+                     ctx->service.service_id);
+#ifdef _WIN32
+            closesocket(sock);
+#else
+            close(sock);
+#endif
+            return POTR_INVALID_SOCKET;
+        }
+    }
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family      = AF_INET;
@@ -554,9 +588,12 @@ static void receiver_accept_loop(struct PotrContext_ *ctx)
 
     while (ctx->connect_thread_running)
     {
-        PotrSocket conn;
+        PotrSocket         conn;
+        struct sockaddr_in peer_addr;
+        socklen_t          peer_len = (socklen_t)sizeof(peer_addr);
 
-        conn = accept(ctx->tcp_listen_sock, NULL, NULL);
+        conn = accept(ctx->tcp_listen_sock,
+                      (struct sockaddr *)&peer_addr, &peer_len);
 
         if (conn == POTR_INVALID_SOCKET)
         {
@@ -566,6 +603,41 @@ static void receiver_accept_loop(struct PotrContext_ *ctx)
                      "connect_thread[service_id=%d]: accept() error, retrying",
                      ctx->service.service_id);
             continue;
+        }
+
+        /* 接続元フィルタ: src_addr / src_port が指定されていれば一致確認 */
+        {
+            int filtered = 0;
+            if (ctx->service.src_addr[0][0] != '\0')
+            {
+                if (peer_addr.sin_addr.s_addr !=
+                    ctx->src_addr_resolved[0].s_addr)
+                {
+                    filtered = 1;
+                }
+            }
+            if (!filtered && ctx->service.src_port != 0)
+            {
+                if (ntohs(peer_addr.sin_port) != ctx->service.src_port)
+                {
+                    filtered = 1;
+                }
+            }
+            if (filtered)
+            {
+                POTR_LOG(POTR_LOG_INFO,
+                         "connect_thread[service_id=%d]: rejected connection"
+                         " from %s:%u (src filter)",
+                         ctx->service.service_id,
+                         inet_ntoa(peer_addr.sin_addr),
+                         (unsigned)ntohs(peer_addr.sin_port));
+#ifdef _WIN32
+                closesocket(conn);
+#else
+                close(conn);
+#endif
+                continue;
+            }
         }
 
         POTR_LOG(POTR_LOG_INFO,

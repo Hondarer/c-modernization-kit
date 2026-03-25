@@ -331,6 +331,7 @@ static void ctx_cleanup(struct PotrContext_ *ctx)
 }
 
 /* TCP RECEIVER: SOCK_STREAM ソケットを作成して bind・listen する。
+   src_addr が指定されていれば ctx->src_addr_resolved[0] にも解決する（接続元フィルタ用）。
    成功時は ctx->tcp_listen_sock に格納して POTR_SUCCESS を返す。 */
 static int open_socket_tcp_receiver(struct PotrContext_ *ctx)
 {
@@ -350,6 +351,15 @@ static int open_socket_tcp_receiver(struct PotrContext_ *ctx)
     else
     {
         bind_ip.s_addr = htonl(INADDR_ANY);
+    }
+
+    if (ctx->service.src_addr[0][0] != '\0')
+    {
+        if (resolve_ipv4_addr(ctx->service.src_addr[0],
+                               &ctx->src_addr_resolved[0]) != POTR_SUCCESS)
+        {
+            return POTR_ERROR;
+        }
     }
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -395,6 +405,7 @@ static int open_socket_tcp_receiver(struct PotrContext_ *ctx)
 }
 
 /* TCP SENDER: 接続先 dst_addr を解決して ctx->dst_addr_resolved[0] に格納する。
+   src_addr が指定されていれば ctx->src_addr_resolved[0] にも解決する。
    実際の TCP 接続は connect スレッドが行う。 */
 static int open_socket_tcp_sender(struct PotrContext_ *ctx)
 {
@@ -409,6 +420,15 @@ static int open_socket_tcp_sender(struct PotrContext_ *ctx)
                            &ctx->dst_addr_resolved[0]) != POTR_SUCCESS)
     {
         return POTR_ERROR;
+    }
+
+    if (ctx->service.src_addr[0][0] != '\0')
+    {
+        if (resolve_ipv4_addr(ctx->service.src_addr[0],
+                               &ctx->src_addr_resolved[0]) != POTR_SUCCESS)
+        {
+            return POTR_ERROR;
+        }
     }
 
     return POTR_SUCCESS;
