@@ -1,15 +1,16 @@
 # porter
 
-porter は UDP/IP を基盤とするクロスプラットフォーム (Linux / Windows) 通信ライブラリです。
-1:1 (ユニキャスト) ・1:N (マルチキャスト・ブロードキャスト) 通信をサポートし、
+porter は UDP/IP および TCP/IP をサポートするクロスプラットフォーム (Linux / Windows) 通信ライブラリです。
+1:1 (ユニキャスト) ・1:N (マルチキャスト・ブロードキャスト) の UDP 通信に加え、
+TCP による信頼性の高い接続型通信 (1:1 および双方向) もサポートします。
 スライディングウィンドウによる NACK ベース再送制御、ヘルスチェック、データ圧縮を提供します。
 
 ## 特徴
 
 | 機能 | 詳細 |
 |---|---|
-| トランスポート | UDP/IPv4 |
-| 通信モデル | ユニキャスト / マルチキャスト / ブロードキャスト |
+| トランスポート | UDP/IPv4、TCP/IPv4 |
+| 通信モデル | ユニキャスト / マルチキャスト / ブロードキャスト (UDP) <br>TCP 接続型通信 (`tcp` / `tcp_bidir`)、双方向ユニキャスト (`unicast_bidir`) |
 | 通信モード | **通常モード**: NACK ベース再送制御・スライディングウィンドウ (最大 256 スロット) <br>**RAW モード** (`*_raw`): 再送なし・ベストエフォート。ギャップ検出時に DISCONNECTED を発行 |
 | リオーダー吸収 | `reorder_timeout_ms` でギャップ検出後の待機時間を設定。待機中に追い越しパケットが届けば NACK / DISCONNECT を発行しない (通常・RAW モード共通)。マルチキャスト/ブロードキャスト通常モードでは NACK 送出タイミングを 100%〜200% の範囲で自動ジッタ分散し NACK implosion を抑制 |
 | データ圧縮 | raw DEFLATE (Linux: zlib、Windows: Compression API) |
@@ -77,7 +78,7 @@ int main(void) {
     potrOpenService("porter-services.conf", 1001, POTR_ROLE_SENDER, NULL, &handle);
 
     const char *msg = "Hello, porter!";
-    potrSend(handle, msg, strlen(msg), POTR_SEND_BLOCKING);  /* 圧縮なし・ブロッキング送信 */
+    potrSend(handle, POTR_PEER_NA, msg, strlen(msg), POTR_SEND_BLOCKING);  /* 圧縮なし・ブロッキング送信。1:1 通信では peer_id に POTR_PEER_NA を指定 */
 
     potrCloseService(handle);
     return 0;
@@ -104,3 +105,5 @@ send -l TRACE ../sample-config/porter-services.conf 1001
 | [プロトコル仕様](docs/protocol.md) | パケット構造・再送制御・ウィンドウ・圧縮 |
 | [設定ファイル仕様](docs/config.md) | INI 形式設定・通信種別・マルチパス |
 | [シーケンス](docs/sequence.md) | 送受信・再送・ヘルスチェックのシーケンス図 |
+| [公開 API 仕様](docs/api.md) | API リファレンス・スレッドセーフティ |
+| [セキュリティレビュー](docs/security-review.md) | セキュリティレビュー結果と対処方針 |

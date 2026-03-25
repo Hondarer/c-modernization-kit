@@ -11,6 +11,16 @@
 - `POTR_PEER_ALL` を指定すると、N:1 モードでは全接続ピア宛の一斉送信になります
 - `potrDisconnectPeer()` は `unicast_bidir` の N:1 モード専用 API です
 
+### potrSend() の戻り値
+
+| 戻り値 | 定数 | 意味 |
+|---|---|---|
+| `0` | `POTR_SUCCESS` | 送信キューへの積み込み成功 |
+| `1` | `POTR_ERROR_DISCONNECTED` | TCP の全 path が切断中（`POTR_TYPE_TCP` / `POTR_TYPE_TCP_BIDIR` のみ）。全 path が再接続されるまで送信できない |
+| `-1` | `POTR_ERROR` | その他のエラー（NULL ハンドルなど） |
+
+`POTR_ERROR_DISCONNECTED` は TCP 通信種別専用です。UDP 通信種別では返りません。
+
 ヘッダ定義と引数条件の正本は `prod/porter/include/porter.h` および Doxygen 出力を参照してください。
 
 ## スレッド セーフティ

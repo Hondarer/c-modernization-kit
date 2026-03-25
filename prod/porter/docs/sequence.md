@@ -938,3 +938,98 @@ note over R: accept スレッドへ戻り\n次の接続を待機
 
 @enduml
 ```
+
+## TCP マルチパス
+
+### TCP マルチパス接続確立
+
+path 数 = 2 の例。RECEIVER が 2 つの listen ソケットを用意し、SENDER が各 path に接続します。
+最初の 1 本が接続した時点で `POTR_EVENT_CONNECTED` が発火します。
+
+```plantuml
+@startuml TCP マルチパス接続確立
+caption TCP マルチパス接続確立（path 数 = 2）
+
+participant "SENDER\n(connect スレッド #0)" as SC0
+participant "SENDER\n(connect スレッド #1)" as SC1
+participant "RECEIVER\n(accept スレッド #0)" as RA0
+participant "RECEIVER\n(accept スレッド #1)" as RA1
+participant "アプリ\n(受信側)" as RAPP
+
+note over RA0: bind(dst_addr[0]) → listen()
+note over RA1: bind(dst_addr[1]) → listen()
+
+SC0 -> RA0: TCP 3way handshake (path 0)
+RA0 -> RA0: tcp_conn_fd[0] = accept()\ntcp_active_paths 0→1
+RA0 -> RAPP: callback(POTR_EVENT_CONNECTED)
+note over RA0: recv スレッド #0 起動
+
+SC1 -> RA1: TCP 3way handshake (path 1)
+RA1 -> RA1: tcp_conn_fd[1] = accept()\ntcp_active_paths 1→2
+note over RA1: POTR_EVENT_CONNECTED は発火しない
+note over RA1: recv スレッド #1 起動
+
+note over SC0,RA1: 2 path で接続確立。同一 seq_num のパケットが両 path から届く
+@enduml
+```
+
+### 部分切断時の継続
+
+1 本の path が切断しても残りの path で通信を継続します。
+`POTR_EVENT_DISCONNECTED` は発火しません。
+
+```plantuml
+@startuml TCP 部分切断時の継続
+caption TCP 部分切断時の継続（path 0 切断）
+
+participant "SENDER\n(connect スレッド #0)" as SC0
+participant "SENDER\n(送信スレッド)" as ST
+participant "RECEIVER\n(accept スレッド #0)" as RA0
+participant "RECEIVER\n(recv スレッド #1)" as RR1
+participant "アプリ\n(受信側)" as RAPP
+
+note over SC0,RR1: path 0 / path 1 で通信中
+
+note over SC0,RA0: path 0 の TCP 接続断（ネットワーク障害など）
+RA0 -> RA0: tcp_active_paths 2→1
+note over RA0: POTR_EVENT_DISCONNECTED は発火しない\n(残り 1 path が存在するため)
+note over RA0: session_id / session_tv_* を保持
+
+note over ST: path 0 をスキップして path 1 のみ送信継続
+
+SC0 -> SC0: reconnect_interval_ms 待機後に\n再 connect()
+
+SC0 -> RA0: TCP 3way handshake (path 0 再接続)
+RA0 -> RA0: session triplet 照合 → 既存セッションに合流\ntcp_active_paths 1→2
+note over RA0: POTR_EVENT_CONNECTED は再発火しない
+
+note over SC0,RR1: 2 path で通信再開
+@enduml
+```
+
+### 全 path 切断
+
+全 path が切断した時点で `POTR_EVENT_DISCONNECTED` が発火します。
+
+```plantuml
+@startuml TCP 全 path 切断
+caption TCP 全 path 切断
+
+participant "RECEIVER\n(accept スレッド #0)" as RA0
+participant "RECEIVER\n(accept スレッド #1)" as RA1
+participant "アプリ\n(受信側)" as RAPP
+
+note over RA0,RA1: path 0 / path 1 で通信中
+
+note over RA0: path 0 の TCP 接続断
+RA0 -> RA0: tcp_active_paths 2→1
+note over RA0: POTR_EVENT_DISCONNECTED は発火しない
+
+note over RA1: path 1 の TCP 接続断
+RA1 -> RA1: tcp_active_paths 1→0
+RA1 -> RAPP: callback(POTR_EVENT_DISCONNECTED)
+note over RA1: session_tv_* をリセット\n次の接続は新セッションとして扱う
+
+note over RA0,RA1: 各 accept スレッドが次の接続を待機
+@enduml
+```

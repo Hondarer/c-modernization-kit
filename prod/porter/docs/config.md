@@ -188,8 +188,44 @@ N:1 モードのサーバは `POTR_ROLE_RECEIVER` 側として開きます。ク
 | `multicast_group` | マルチキャストグループ |
 | `ttl` | マルチキャスト TTL |
 | `broadcast_addr` | ブロードキャスト宛先 |
-| `src_addr.1` 〜 `src_addr.3` | マルチパス経路 |
-| `dst_addr.1` 〜 `dst_addr.3` | マルチパス経路 |
+
+### TCP マルチパス設定
+
+`dst_addr` 〜 `dst_addr.3`（最大 4 エントリ）に接続先アドレスを設定すると、
+各エントリに対して独立した TCP 接続（path）が確立されます。
+エントリが 1 つのみの場合は単一接続として動作します。
+
+```ini
+[service.1]
+type         = tcp
+dst_addr     = 192.168.1.10   # path 0
+dst_addr.1   = 192.168.2.10   # path 1
+dst_port     = 5000
+src_addr     = 192.168.1.20   # path 0 の bind アドレス
+src_addr.1   = 192.168.2.20   # path 1 の bind アドレス
+```
+
+#### SENDER の bind 動作（`src_addr` / `src_port` の組み合わせ）
+
+各 path[i] に独立して適用されます。
+
+| `src_addr` | `src_port` | `connect()` 前の `bind()` 動作 |
+|---|---|---|
+| 未指定 | `0` または省略 | `bind()` しない |
+| 未指定 | 指定 | `INADDR_ANY:src_port` で bind |
+| 指定 | `0` または省略 | `src_addr:0`（エフェメラルポート）で bind |
+| 指定 | 指定 | `src_addr:src_port` で bind |
+
+#### RECEIVER の接続フィルタ動作（`src_addr` / `src_port` の組み合わせ）
+
+各 path[i] の `accept()` 後に接続元を検証します。
+
+| `src_addr` | `src_port` | フィルタ動作 |
+|---|---|---|
+| 未指定 | `0` または省略 | 全接続を受け付ける |
+| 未指定 | 指定 | 接続元ポートが一致する接続のみ受け付ける |
+| 指定 | `0` または省略 | 接続元 IP が一致する接続のみ受け付ける |
+| 指定 | 指定 | 接続元 IP・ポート両方が一致する接続のみ受け付ける |
 
 ### broadcast 専用フィールド
 
