@@ -489,3 +489,120 @@ potrOpenService("config.conf", 4020, POTR_ROLE_RECEIVER, on_recv, &handle);
 | 自動再接続 | なし | ○（SENDER） | ○（SENDER） | なし |
 | マルチパス | ○（最大 4 経路） | × | × | ○（最大 4 経路） |
 | コールバック | RECEIVER 必須 | RECEIVER 必須（SENDER 任意） | 両端必須 | 両端必須（N:1 は `peer_id` 付き） |
+
+---
+
+## UDP / TCP 機能共有状況
+
+各機能ブロックが UDP・TCP v1・TCP v2 のどれで使われるかを示します。
+
+| 機能ブロック | UDP | TCP v1 | TCP v2 | 備考 |
+|---|---|---|---|---|
+| `flush_packed()` | ✅ | ✅ | ✅ | `is_tcp` フラグで送信部分を分岐済み |
+| `health_thread_func()` | ✅ | ✅ | ✅ | `potr_is_tcp_type()` で分岐済み |
+| `deliver_payload_elem()` | ✅ | ✅ | ✅ | 完全共有 |
+| `packet_parse()` | ✅ | ✅ | ✅ | 完全共有 |
+| `window_recv_push/pop()` | ✅ | ❌ | ✅ | TCP v2 で追加（重複排除・順序整列） |
+| `window_send_push()` | ✅ | ❌ | ❌ | NACK 再送バッファ用。TCP は不要 |
+| `recv_thread_func()` | ✅ | ❌ | ❌ | UDP 専用（`select` + `recvfrom`） |
+| `tcp_recv_thread_func()` | ❌ | ✅ | ✅ | TCP 専用。v2 では path 数分起動 |
+| `sender_connect_loop()` | ❌ | ✅ | ✅ | TCP SENDER 専用 |
+| `receiver_accept_loop()` | ❌ | ✅ | ✅ | TCP RECEIVER 専用 |
+
+### window の使用目的の違い
+
+| 目的 | UDP | TCP v2 |
+|---|---|---|
+| 重複排除 | ✅ | ✅ |
+| 順序整列 | ✅ | ✅ |
+| NACK 再送 | ✅ | ❌ |
+| `window_send_push()` | ✅ | ❌ |
+
+TCP は各接続でトランスポート層が再送を保証するため `window_send_push()` は不要。
+`window_recv_push/pop()` は重複排除・順序整列のみを目的として使用する。
+
+---
+
+## TCP 処理フロー
+
+### TCP 送信フロー
+
+```
+potrSend()
+  → フラグメント化 → send_queue.push()
+    → send_thread_func() → flush_packed()
+        ├─ UDP:    sock[i].sendto()             (全 path)
+        ├─ TCP v1: tcp_send_all(tcp_conn_fd[0]) ([0] のみ)
+        └─ TCP v2: tcp_send_all(tcp_conn_fd[i]) (全 path、send() 前に poll() でブロック回避)
+```
+
+### TCP v1 受信フロー
+
+```
+tcp_recv_thread_func()
+  → tcp_wait_readable(tcp_conn_fd[0])
+  → tcp_read_all()
+  → packet_parse()
+  → deliver_payload_elem()      ← window なし（単一接続で重複・順序乱れは発生しない）
+  → callback(POTR_EVENT_DATA)
+```
+
+### TCP v2 受信フロー
+
+```
+tcp_recv_thread_func(path_idx)  ← path ごとに 1 スレッド起動
+  → tcp_wait_readable(tcp_conn_fd[i])
+  → tcp_read_all()
+  → packet_parse()
+  → [recv_window_mutex lock]
+  → window_recv_push()          ← 重複排除 + 順序整列（NACK なし）
+  → window_recv_pop()
+  → deliver_payload_elem()
+  → callback(POTR_EVENT_DATA)
+  → [recv_window_mutex unlock]
+```
+
+---
+
+## スレッド起動タイミング
+
+| スレッド | UDP | TCP v1 | TCP v2 |
+|---|---|---|---|
+| connect / accept | なし | `potrOpenService()` 時に 1 本 | `potrOpenService()` 時に path 数分 |
+| recv | `potrOpenService()` 時に 1 本 | 接続確立後（`start_connected_threads()`） | path 接続ごとに 1 本 |
+| send | `potrOpenService()` 時に 1 本 | 接続確立後 | 最初の path 接続後（共有 1 本） |
+| health | `potrOpenService()` 時に 1 本 | 接続確立後 | path 接続ごとに 1 本 |
+
+UDP は `potrOpenService.c` が直接全スレッドを起動する。
+TCP は ConnectThread が接続確立後に `start_connected_threads()`（`potrConnectThread.c`）を呼んで
+recv/send/health の各スレッドを起動する。
+
+---
+
+## n_path 決定ロジック
+
+`potrOpenService.c` にて `dst_addr[i]` の非空エントリを先頭から順に確認し、
+最初の空エントリで打ち切る（最大 `POTR_MAX_PATH`）。
+N:1 モード（`max_peers > 1`）では `n_path = 1` に固定。
+
+---
+
+## CONNECTED / DISCONNECTED イベント管理
+
+| | UDP | TCP v1 | TCP v2 |
+|---|---|---|---|
+| `POTR_EVENT_CONNECTED` 発火条件 | 初受信時（recv thread） | `tcp_connected = 1` 時（connect thread） | アクティブ path 数が 0 → 1 になった時 |
+| `POTR_EVENT_DISCONNECTED` 発火条件 | health timeout | `tcp_connected = 0` 時 | アクティブ path 数が 1 → 0 になった時 |
+| 状態管理 | `health_alive` フラグ | `tcp_connected` 単一フラグ | `tcp_active_paths` カウンタ（v2 で追加） |
+
+---
+
+## RECEIVER 接続元フィルタ（TCP）
+
+`receiver_accept_loop()` にて `accept()` 直後に接続元アドレスを検証する。
+
+- RECEIVER が listen するアドレス: `dst_addr[i]`（SENDER から見た接続先）
+- `src_addr[i]`: listen アドレスではなく、accept 後の **接続元 IP フィルタ**
+- `src_port`: accept 後の **接続元ポートフィルタ**
+
+不一致の場合は即座に `close()` して棄却し、次の `accept()` に戻る。
