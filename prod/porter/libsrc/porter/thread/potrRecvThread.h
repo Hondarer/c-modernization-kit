@@ -21,8 +21,13 @@ extern "C"
 {
 #endif
 
+    /* 非 TCP 用受信スレッド (単一スレッド) */
     extern int comm_recv_thread_start(struct PotrContext_ *ctx);
     extern int comm_recv_thread_stop(struct PotrContext_ *ctx);
+
+    /* TCP 用受信スレッド (path ごと) */
+    extern int tcp_recv_thread_start(struct PotrContext_ *ctx, int path_idx);
+    extern int tcp_recv_thread_stop(struct PotrContext_ *ctx, int path_idx);
 
 #ifdef __cplusplus
 }

@@ -148,13 +148,30 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
 
         /* TCP mutex / condvar を解放 */
 #ifdef _WIN32
-        DeleteCriticalSection(&ctx->tcp_state_mutex);
-        /* Windows の CONDITION_VARIABLE は破棄不要 */
-        DeleteCriticalSection(&ctx->tcp_send_mutex);
+        {
+            int i;
+            DeleteCriticalSection(&ctx->tcp_state_mutex);
+            /* Windows の CONDITION_VARIABLE は破棄不要 */
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
+            {
+                DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
+                DeleteCriticalSection(&ctx->health_mutex[i]);
+            }
+            DeleteCriticalSection(&ctx->recv_window_mutex);
+        }
 #else
-        pthread_mutex_destroy(&ctx->tcp_state_mutex);
-        pthread_cond_destroy(&ctx->tcp_state_cv);
-        pthread_mutex_destroy(&ctx->tcp_send_mutex);
+        {
+            int i;
+            pthread_mutex_destroy(&ctx->tcp_state_mutex);
+            pthread_cond_destroy(&ctx->tcp_state_cv);
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
+            {
+                pthread_mutex_destroy(&ctx->tcp_send_mutex[i]);
+                pthread_mutex_destroy(&ctx->health_mutex[i]);
+                pthread_cond_destroy(&ctx->health_wakeup[i]);
+            }
+            pthread_mutex_destroy(&ctx->recv_window_mutex);
+        }
 #endif
 
         /* 送受信ウィンドウと動的バッファを解放 */

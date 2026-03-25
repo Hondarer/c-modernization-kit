@@ -27,8 +27,9 @@
 /** @defgroup POTR_RESULT 戻り値
  *  @{
  */
-#define POTR_SUCCESS  0  /**< 成功の戻り値を表す定数。 */
-#define POTR_ERROR   -1  /**< 失敗の戻り値を表す定数。 */
+#define POTR_SUCCESS              0  /**< 成功の戻り値を表す定数。 */
+#define POTR_ERROR               -1  /**< 失敗の戻り値を表す定数。 */
+#define POTR_ERROR_DISCONNECTED   1  /**< TCP 全 path 切断中に potrSend() を呼んだ場合の戻り値。 */
 /** @} */
 
 /** @defgroup POTR_OUTER_FLAG 外側パケットフラグ (PotrPacket.flags)

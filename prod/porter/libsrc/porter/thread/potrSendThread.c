@@ -40,6 +40,7 @@
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <time.h>
+    #include <poll.h>
 #endif
 
 #include <string.h>
@@ -256,11 +257,77 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
 
     if (is_tcp)
     {
-        /* TCP: 単一 TCP 接続へ送信。接続断時はスキップ */
-        if (ctx->tcp_connected && ctx->tcp_conn_fd[0] != POTR_INVALID_SOCKET)
+        /* TCP v2: アクティブな全 path にループ送信する */
+        if (ctx->tcp_active_paths > 0)
         {
-            tcp_send_all(ctx->tcp_conn_fd[0], &ctx->tcp_send_mutex,
-                         ctx->send_wire_buf, wire_len);
+            int i;
+            for (i = 0; i < ctx->n_path; i++)
+            {
+                int pr;
+
+                if (ctx->tcp_conn_fd[i] == POTR_INVALID_SOCKET) continue;
+
+                /* 送信バッファの空きを確認 (非ブロッキング) */
+#ifdef _WIN32
+                {
+                    WSAPOLLFD pfd;
+                    pfd.fd      = ctx->tcp_conn_fd[i];
+                    pfd.events  = POLLOUT;
+                    pfd.revents = 0;
+                    pr = WSAPoll(&pfd, 1, 0);
+                    if (pr > 0 && (pfd.revents & POLLOUT))
+                    {
+                        if (ctx->buf_full_suppress_cnt[i] > 0
+                            && ++ctx->buf_full_suppress_cnt[i] > 10)
+                        {
+                            ctx->buf_full_suppress_cnt[i] = 0;
+                        }
+                        tcp_send_all(ctx->tcp_conn_fd[i], &ctx->tcp_send_mutex[i],
+                                     ctx->send_wire_buf, wire_len);
+                    }
+                    else
+                    {
+                        if (ctx->buf_full_suppress_cnt[i] == 0)
+                        {
+                            POTR_LOG(POTR_LOG_ERROR,
+                                     "send_thread[service_id=%d]: path[%d]"
+                                     " send buffer full, packet skipped",
+                                     ctx->service.service_id, i);
+                            ctx->buf_full_suppress_cnt[i] = 1;
+                        }
+                    }
+                }
+#else
+                {
+                    struct pollfd pfd;
+                    pfd.fd      = ctx->tcp_conn_fd[i];
+                    pfd.events  = POLLOUT;
+                    pfd.revents = 0;
+                    pr = poll(&pfd, 1, 0);
+                    if (pr > 0 && (pfd.revents & POLLOUT))
+                    {
+                        if (ctx->buf_full_suppress_cnt[i] > 0
+                            && ++ctx->buf_full_suppress_cnt[i] > 10)
+                        {
+                            ctx->buf_full_suppress_cnt[i] = 0;
+                        }
+                        tcp_send_all(ctx->tcp_conn_fd[i], &ctx->tcp_send_mutex[i],
+                                     ctx->send_wire_buf, wire_len);
+                    }
+                    else
+                    {
+                        if (ctx->buf_full_suppress_cnt[i] == 0)
+                        {
+                            POTR_LOG(POTR_LOG_ERROR,
+                                     "send_thread[service_id=%d]: path[%d]"
+                                     " send buffer full, packet skipped",
+                                     ctx->service.service_id, i);
+                            ctx->buf_full_suppress_cnt[i] = 1;
+                        }
+                    }
+                }
+#endif
+            }
         }
     }
     else
@@ -284,16 +351,16 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
        スリープ中のヘルスチェックスレッドを起床させてタイマーをリセットする */
     ctx->last_send_ms = get_ms();
 
-    if (ctx->health_running)
+    if (ctx->health_running[0])
     {
 #ifdef _WIN32
-        EnterCriticalSection(&ctx->health_mutex);
-        WakeConditionVariable(&ctx->health_wakeup);
-        LeaveCriticalSection(&ctx->health_mutex);
+        EnterCriticalSection(&ctx->health_mutex[0]);
+        WakeConditionVariable(&ctx->health_wakeup[0]);
+        LeaveCriticalSection(&ctx->health_mutex[0]);
 #else
-        pthread_mutex_lock(&ctx->health_mutex);
-        pthread_cond_signal(&ctx->health_wakeup);
-        pthread_mutex_unlock(&ctx->health_mutex);
+        pthread_mutex_lock(&ctx->health_mutex[0]);
+        pthread_cond_signal(&ctx->health_wakeup[0]);
+        pthread_mutex_unlock(&ctx->health_mutex[0]);
 #endif
     }
 }

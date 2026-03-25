@@ -105,13 +105,13 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
              "potrSend: service_id=%d peer_id=%u len=%zu flags=0x%x",
              ctx->service.service_id, (unsigned)peer_id, len, (unsigned)flags);
 
-    /* TCP: 接続未確立の場合はエラーを返す */
-    if (potr_is_tcp_type(ctx->service.type) && !ctx->tcp_connected)
+    /* TCP: 全 path 切断中の場合は POTR_ERROR_DISCONNECTED を返す */
+    if (potr_is_tcp_type(ctx->service.type) && ctx->tcp_active_paths == 0)
     {
         POTR_LOG(POTR_LOG_DEBUG,
                  "potrSend: service_id=%d TCP not connected",
                  ctx->service.service_id);
-        return POTR_ERROR;
+        return POTR_ERROR_DISCONNECTED;
     }
 
     /* RAW モードは常にブロッキング送信 */

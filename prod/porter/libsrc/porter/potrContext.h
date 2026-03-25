@@ -151,11 +151,11 @@ typedef struct PotrPeerContext_
  */
 struct PotrContext_
 {
-    PotrRecvCallback callback;        /**< 受信コールバック。 */
-    PotrThread       recv_thread;     /**< 受信スレッドハンドル。 */
-    PotrThread       health_thread;   /**< ヘルスチェックスレッドハンドル (送信者のみ)。 */
-    PotrMutex        health_mutex;    /**< ヘルスチェックスレッド停止用ミューテックス。 */
-    PotrCondVar      health_wakeup;   /**< ヘルスチェックスレッドを即時起床させる条件変数。 */
+    PotrRecvCallback callback;                         /**< 受信コールバック。 */
+    PotrThread       recv_thread[POTR_MAX_PATH];       /**< 受信スレッドハンドル (path ごと)。 */
+    PotrThread       health_thread[POTR_MAX_PATH];     /**< ヘルスチェックスレッドハンドル (path ごと、送信者のみ)。 */
+    PotrMutex        health_mutex[POTR_MAX_PATH];      /**< ヘルスチェックスレッド停止用ミューテックス (path ごと)。 */
+    PotrCondVar      health_wakeup[POTR_MAX_PATH];     /**< ヘルスチェックスレッドを即時起床させる条件変数 (path ごと)。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
     uint32_t         _pad_global;  /**< パディング (send_window を 8 バイト境界に揃える)。 */
@@ -167,9 +167,9 @@ struct PotrContext_
     PotrSocket         sock[POTR_MAX_PATH];              /**< 各パスの UDP ソケット。 */
     int                n_path;                               /**< 有効パス数。 */
 
-    volatile int     running;         /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
-    volatile int     health_running;  /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。 */
-    volatile int     health_alive;    /**< 疎通状態 (1: alive, 0: dead/未接続)。受信者が管理。 */
+    volatile int     running[POTR_MAX_PATH];        /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
+    volatile int     health_running[POTR_MAX_PATH]; /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
+    volatile int     health_alive;                  /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
     PotrRole         role;            /**< 役割 (POTR_ROLE_SENDER / POTR_ROLE_RECEIVER)。 */
 
     /* 解決済みアドレス (各パス分) */
@@ -241,26 +241,31 @@ struct PotrContext_
     uint32_t         next_peer_id;   /**< 次に発行するピア ID (単調増加、初期値 1)。 */
 
     /* --- TCP 接続管理 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR のみ有効) --- */
-    PotrSocket         tcp_listen_sock;            /**< RECEIVER: listen ソケット。 */
-    PotrSocket         tcp_conn_fd[POTR_MAX_PATH]; /**< アクティブ TCP 接続 fd。v1 は [0] のみ使用。v2 以降でマルチパス対応。 */
-    volatile int       tcp_connected;              /**< 1 = TCP 接続確立済み。 */
-    uint32_t           _pad_tcp_connected;         /**< パディング (tcp_send_mutex を 8 バイト境界に揃える)。 */
-    PotrMutex          tcp_send_mutex;             /**< TCP send() 排他制御 (送信スレッド・ヘルスチェックスレッド・recv スレッド競合防止)。 */
+    PotrSocket         tcp_listen_sock[POTR_MAX_PATH]; /**< RECEIVER: listen ソケット (path ごと)。 */
+    PotrSocket         tcp_conn_fd[POTR_MAX_PATH];     /**< アクティブ TCP 接続 fd (path ごと)。 */
+    volatile int       tcp_active_paths;               /**< アクティブ TCP path 数 (0 = 全切断)。 */
+    uint32_t           _pad_tcp_connected[2];          /**< パディング (tcp_send_mutex を 8 バイト境界に揃える。8 バイト確保)。 */
+    PotrMutex          tcp_send_mutex[POTR_MAX_PATH];  /**< TCP send() 排他制御 (path ごと)。送信スレッド・ヘルスチェックスレッド・recv スレッド競合防止。 */
+
+    /* recv_window 保護 (TCP v2: 複数 recv スレッドが同一 recv_window にアクセスするため) */
+    PotrMutex          recv_window_mutex;              /**< recv_window 保護用ミューテックス。 */
 
     /* connect/accept スレッド */
-    PotrThread         connect_thread;             /**< SENDER: connect スレッド。RECEIVER: accept スレッド。 */
-    volatile int       connect_thread_running;     /**< connect スレッド実行フラグ (1: 実行中, 0: 停止)。 */
-    uint32_t           _pad_connect_thread;        /**< パディング (tcp_state_mutex を 8 バイト境界に揃える)。 */
+    PotrThread         connect_thread[POTR_MAX_PATH];         /**< SENDER: connect スレッド。RECEIVER: accept スレッド。path ごと。 */
+    volatile int       connect_thread_running[POTR_MAX_PATH]; /**< connect スレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
 
     /* 切断通知 (recv/health スレッド → connect スレッドへの通知) */
-    PotrMutex          tcp_state_mutex;            /**< tcp_state_cv 保護用ミューテックス。 */
+    PotrMutex          tcp_state_mutex;            /**< tcp_state_cv 保護用ミューテックス。tcp_active_paths のカウンタ更新も保護。 */
     PotrCondVar        tcp_state_cv;               /**< 切断通知・reconnect sleep の中断用条件変数。 */
 
     /* PING 応答追跡 (SENDER health スレッドが参照、TCP recv スレッドが更新) */
-    volatile uint64_t  tcp_last_ping_recv_ms;      /**< TCP PING 応答最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。接続確立時に現在時刻で初期化。 */
+    volatile uint64_t  tcp_last_ping_recv_ms[POTR_MAX_PATH];     /**< TCP PING 応答最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。path ごと。接続確立時に現在時刻で初期化。 */
 
     /* PING 要求到着追跡 (RECEIVER recv スレッドが参照・更新。RECEIVER 側 PING 到着タイムアウト監視に使用) */
-    volatile uint64_t  tcp_last_ping_req_recv_ms;  /**< TCP PING 要求最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。接続確立時に現在時刻で初期化。 */
+    volatile uint64_t  tcp_last_ping_req_recv_ms[POTR_MAX_PATH]; /**< TCP PING 要求最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。path ごと。接続確立時に現在時刻で初期化。 */
+
+    /* 送信バッファ満杯ログ抑制 (TCP v2 送信スレッド用) */
+    int                buf_full_suppress_cnt[POTR_MAX_PATH];     /**< path ごとの送信バッファ満杯ログ抑制カウンタ (0: 抑制なし、1-10: 抑制中)。 */
 };
 
 #endif /* POTR_CONTEXT_H */

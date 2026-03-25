@@ -24,8 +24,13 @@ extern "C"
 {
 #endif
 
+    /* 非 TCP 用ヘルスチェックスレッド (単一スレッド) */
     extern int potr_health_thread_start(struct PotrContext_ *ctx);
     extern int potr_health_thread_stop(struct PotrContext_ *ctx);
+
+    /* TCP 用ヘルスチェックスレッド (path ごと) */
+    extern int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx);
+    extern int potr_tcp_health_thread_stop(struct PotrContext_ *ctx, int path_idx);
 
 #ifdef __cplusplus
 }

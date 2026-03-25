@@ -1661,7 +1661,7 @@ static void *recv_thread_func(void *arg)
         }
     }
 
-    while (ctx->running)
+    while (ctx->running[0])
     {
         fd_set         readfds;
         struct timeval tv;
@@ -1696,7 +1696,7 @@ static void *recv_thread_func(void *arg)
 
         if (ret < 0)
         {
-            if (!ctx->running) break;
+            if (!ctx->running[0]) break;
             continue;
         }
 
@@ -1745,7 +1745,7 @@ static void *recv_thread_func(void *arg)
 #endif
             if (recv_len <= 0)
             {
-                if (!ctx->running) break; /* 正常終了: ソケットクローズによる割り込み */
+                if (!ctx->running[0]) break; /* 正常終了: ソケットクローズによる割り込み */
                 POTR_LOG(POTR_LOG_TRACE,
                          "recv[service_id=%d]: recvfrom returned %d",
                          ctx->service.service_id, recv_len);
@@ -2523,6 +2523,40 @@ static int tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
     return 1;
 }
 
+/* TCP 受信スレッドに渡す引数 (path ごと) */
+typedef struct
+{
+    struct PotrContext_ *ctx;
+    int                  path_idx;
+    int                  _pad;
+} TcpRecvArg;
+
+static TcpRecvArg s_tcp_recv_args[POTR_MAX_PATH];
+
+/* TCP 用 CONNECTED イベント: tcp_state_mutex で二重発火を防止する。
+   複数 path のスレッドが並行して呼び出し得るため mutex 保護が必要。 */
+static void notify_connected_tcp(struct PotrContext_ *ctx)
+{
+    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_state_mutex);
+    if (!ctx->health_alive)
+    {
+        ctx->health_alive = 1;
+        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_state_mutex);
+        POTR_LOG(POTR_LOG_INFO,
+                 "tcp_recv[service_id=%d]: CONNECTED",
+                 ctx->service.service_id);
+        if (ctx->callback != NULL)
+        {
+            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
+                          POTR_EVENT_CONNECTED, NULL, 0);
+        }
+    }
+    else
+    {
+        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_state_mutex);
+    }
+}
+
 /* TCP ソケットに n バイト書き込む (tcp_send_mutex は呼び出し元が保持済み)。
  * 戻り値: 0 = 成功、-1 = エラー。 */
 static int tcp_send_all_raw(PotrSocket fd, const uint8_t *buf, size_t n)
@@ -2543,9 +2577,10 @@ static int tcp_send_all_raw(PotrSocket fd, const uint8_t *buf, size_t n)
     return 0;
 }
 
-/* TCP 上で PING 応答パケットを送信する。tcp_send_mutex で送信を保護する。
+/* TCP 上で PING 応答パケットを送信する。tcp_send_mutex[path_idx] で送信を保護する。
  * req_seq_num: 受信した PING 要求の seq_num (ホストオーダー)。 */
-static void tcp_send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
+static void tcp_send_ping_reply(struct PotrContext_ *ctx, int path_idx,
+                                uint32_t req_seq_num)
 {
     PotrPacket           reply_pkt;
     PotrPacketSessionHdr shdr;
@@ -2568,11 +2603,11 @@ static void tcp_send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
         return;
     }
 
-    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex);
+    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
 
-    if (ctx->tcp_conn_fd[0] == POTR_INVALID_SOCKET)
+    if (ctx->tcp_conn_fd[path_idx] == POTR_INVALID_SOCKET)
     {
-        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex);
+        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
         return;
     }
 
@@ -2598,7 +2633,7 @@ static void tcp_send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
                          nonce,
                          wire_buf, PACKET_HEADER_SIZE) == 0)
         {
-            (void)tcp_send_all_raw(ctx->tcp_conn_fd[0],
+            (void)tcp_send_all_raw(ctx->tcp_conn_fd[path_idx],
                                    wire_buf, PACKET_HEADER_SIZE + enc_out);
         }
     }
@@ -2606,21 +2641,23 @@ static void tcp_send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
     {
         uint8_t wire_buf[PACKET_HEADER_SIZE];
         memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
-        (void)tcp_send_all_raw(ctx->tcp_conn_fd[0], wire_buf, PACKET_HEADER_SIZE);
+        (void)tcp_send_all_raw(ctx->tcp_conn_fd[path_idx], wire_buf, PACKET_HEADER_SIZE);
     }
 
-    POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex);
+    POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
 }
 
-/* TCP ストリーム受信スレッド本体 */
+/* TCP ストリーム受信スレッド本体 (path ごと) */
 #ifdef _WIN32
 static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
 #else
 static void *tcp_recv_thread_func(void *arg)
 #endif
 {
-    struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
-    uint8_t             *buf = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
+    TcpRecvArg          *rarg     = (TcpRecvArg *)arg;
+    struct PotrContext_ *ctx      = rarg->ctx;
+    int                  path_idx = rarg->path_idx;
+    uint8_t             *buf      = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
     PotrSocket           fd;
 
     /* PING 要求到着タイムアウト監視を使用するか判定する。
@@ -2639,17 +2676,17 @@ static void *tcp_recv_thread_func(void *arg)
                        : 0U;
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "tcp_recv[service_id=%d]: starting (ping_req_timeout=%s)",
-             ctx->service.service_id,
+             "tcp_recv[service_id=%d path=%d]: starting (ping_req_timeout=%s)",
+             ctx->service.service_id, path_idx,
              use_ping_timeout ? "enabled" : "disabled");
 
-    while (ctx->running)
+    while (ctx->running[path_idx])
     {
         PotrPacket pkt;
         uint16_t   wire_payload_len;
         int        r;
 
-        fd = ctx->tcp_conn_fd[0];
+        fd = ctx->tcp_conn_fd[path_idx];
         if (fd == POTR_INVALID_SOCKET)
         {
             break;
@@ -2660,19 +2697,19 @@ static void *tcp_recv_thread_func(void *arg)
         if (use_ping_timeout)
         {
             int readable = tcp_wait_readable(fd, poll_ms);
-            if (!ctx->running) break;
+            if (!ctx->running[path_idx]) break;
             if (readable < 0) break; /* エラー */
             if (readable == 0)
             {
                 /* ポーリングタイムアウト: PING 要求到着時刻を確認する */
-                uint64_t last    = ctx->tcp_last_ping_req_recv_ms;
+                uint64_t last    = ctx->tcp_last_ping_req_recv_ms[path_idx];
                 uint64_t elapsed = get_ms() - last;
                 if (last > 0 && elapsed > (uint64_t)ctx->global.health_timeout_ms)
                 {
                     POTR_LOG(POTR_LOG_WARN,
-                             "tcp_recv[service_id=%d]: PING req timeout"
+                             "tcp_recv[service_id=%d path=%d]: PING req timeout"
                              " (%llu ms), disconnecting",
-                             ctx->service.service_id,
+                             ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
                     break;
                 }
@@ -2774,72 +2811,84 @@ static void *tcp_recv_thread_func(void *arg)
             {
                 /* PING 要求: 即応答を返す。最終受信時刻を更新する。 */
                 POTR_LOG(POTR_LOG_TRACE,
-                         "tcp_recv[service_id=%d]: PING req seq=%u -> reply",
-                         ctx->service.service_id, (unsigned)pkt.seq_num);
-                notify_health_alive(ctx);
-                ctx->tcp_last_ping_req_recv_ms = get_ms();
-                tcp_send_ping_reply(ctx, pkt.seq_num);
+                         "tcp_recv[service_id=%d path=%d]: PING req seq=%u -> reply",
+                         ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
+                notify_connected_tcp(ctx);
+                ctx->tcp_last_ping_req_recv_ms[path_idx] = get_ms();
+                tcp_send_ping_reply(ctx, path_idx, pkt.seq_num);
             }
             else
             {
                 /* PING 応答: 最終受信時刻を更新 */
-                ctx->tcp_last_ping_recv_ms = get_ms();
-                notify_health_alive(ctx);
+                ctx->tcp_last_ping_recv_ms[path_idx] = get_ms();
+                notify_connected_tcp(ctx);
                 POTR_LOG(POTR_LOG_TRACE,
-                         "tcp_recv[service_id=%d]: PING resp seq=%u ack=%u",
-                         ctx->service.service_id,
+                         "tcp_recv[service_id=%d path=%d]: PING resp seq=%u ack=%u",
+                         ctx->service.service_id, path_idx,
                          (unsigned)pkt.seq_num, (unsigned)pkt.ack_num);
             }
         }
         else if (pkt.flags & POTR_FLAG_DATA)
         {
-            /* セッション照合 */
-            if (!check_and_update_session(ctx, &pkt))
+            /* セッション照合 + recv_window への投入 (recv_window_mutex で保護) */
             {
-                POTR_LOG(POTR_LOG_TRACE,
-                         "tcp_recv[service_id=%d]: DATA session mismatch, ignored",
-                         ctx->service.service_id);
-                continue;
-            }
+                int pushed;
 
-            notify_health_alive(ctx);
-
-            POTR_LOG(POTR_LOG_TRACE,
-                     "tcp_recv[service_id=%d]: DATA seq=%u payload=%u",
-                     ctx->service.service_id,
-                     (unsigned)pkt.seq_num, (unsigned)pkt.payload_len);
-
-            /* ペイロードエレメントを展開して配信 */
-            {
-                size_t     offset = 0;
-                PotrPacket elem;
-                while (packet_unpack_next(&pkt, &offset, &elem) == POTR_SUCCESS)
+                POTR_MUTEX_LOCK_LOCAL(&ctx->recv_window_mutex);
+                if (!check_and_update_session(ctx, &pkt))
                 {
-                    deliver_payload_elem(ctx, &elem);
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+                    POTR_LOG(POTR_LOG_TRACE,
+                             "tcp_recv[service_id=%d path=%d]: DATA session mismatch, ignored",
+                             ctx->service.service_id, path_idx);
+                    continue;
                 }
+                pushed = window_recv_push(&ctx->recv_window, &pkt);
+                POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+
+                if (pushed != POTR_SUCCESS)
+                {
+                    /* 重複パケット → スキップ */
+                    POTR_LOG(POTR_LOG_TRACE,
+                             "tcp_recv[service_id=%d path=%d]: DATA seq=%u duplicate, skipped",
+                             ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
+                    continue;
+                }
+
+                notify_connected_tcp(ctx);
+
+                POTR_LOG(POTR_LOG_TRACE,
+                         "tcp_recv[service_id=%d path=%d]: DATA seq=%u payload=%u",
+                         ctx->service.service_id, path_idx,
+                         (unsigned)pkt.seq_num, (unsigned)pkt.payload_len);
+
+                /* 順序整列済みパケットをポップして配信 */
+                POTR_MUTEX_LOCK_LOCAL(&ctx->recv_window_mutex);
+                {
+                    PotrPacket out;
+                    while (window_recv_pop(&ctx->recv_window, &out) == POTR_SUCCESS)
+                    {
+                        size_t     offset = 0;
+                        PotrPacket elem;
+                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+                        while (packet_unpack_next(&out, &offset, &elem) == POTR_SUCCESS)
+                        {
+                            deliver_payload_elem(ctx, &elem);
+                        }
+                        POTR_MUTEX_LOCK_LOCAL(&ctx->recv_window_mutex);
+                    }
+                }
+                POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
             }
         }
     }
 
-    /* 接続断処理 */
-    if (ctx->health_alive)
-    {
-        ctx->health_alive = 0;
-        POTR_LOG(POTR_LOG_INFO,
-                 "tcp_recv[service_id=%d]: DISCONNECTED",
-                 ctx->service.service_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_DISCONNECTED, NULL, 0);
-        }
-    }
-
-    ctx->running = 0;
+    /* 接続断処理: DISCONNECTED イベントは connect スレッドが tcp_active_paths == 0 時に発火する */
+    ctx->running[path_idx] = 0;
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "tcp_recv[service_id=%d]: exited",
-             ctx->service.service_id);
+             "tcp_recv[service_id=%d path=%d]: exited",
+             ctx->service.service_id, path_idx);
 
 #ifdef _WIN32
     return 0;
@@ -2850,7 +2899,7 @@ static void *tcp_recv_thread_func(void *arg)
 
 /**
  *******************************************************************************
- *  @brief          受信スレッドを起動します。
+ *  @brief          非 TCP 受信スレッドを起動します。
  *  @param[in,out]  ctx  セッションコンテキストへのポインタ。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *******************************************************************************
@@ -2862,24 +2911,17 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
         return POTR_ERROR;
     }
 
-    ctx->running = 1;
+    ctx->running[0] = 1;
 
     POTR_LOG(POTR_LOG_DEBUG,
              "recv_thread[service_id=%d]: starting",
              ctx->service.service_id);
 
 #ifdef _WIN32
-    if (potr_is_tcp_type(ctx->service.type))
+    ctx->recv_thread[0] = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
+    if (ctx->recv_thread[0] == NULL)
     {
-        ctx->recv_thread = CreateThread(NULL, 0, tcp_recv_thread_func, ctx, 0, NULL);
-    }
-    else
-    {
-        ctx->recv_thread = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
-    }
-    if (ctx->recv_thread == NULL)
-    {
-        ctx->running = 0;
+        ctx->running[0] = 0;
         POTR_LOG(POTR_LOG_ERROR,
                  "recv_thread[service_id=%d]: CreateThread failed",
                  ctx->service.service_id);
@@ -2887,18 +2929,10 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
     }
 #else
     {
-        int rc;
-        if (potr_is_tcp_type(ctx->service.type))
-        {
-            rc = pthread_create(&ctx->recv_thread, NULL, tcp_recv_thread_func, ctx);
-        }
-        else
-        {
-            rc = pthread_create(&ctx->recv_thread, NULL, recv_thread_func, ctx);
-        }
+        int rc = pthread_create(&ctx->recv_thread[0], NULL, recv_thread_func, ctx);
         if (rc != 0)
         {
-            ctx->running = 0;
+            ctx->running[0] = 0;
             POTR_LOG(POTR_LOG_ERROR,
                      "recv_thread[service_id=%d]: pthread_create failed",
                      ctx->service.service_id);
@@ -2912,7 +2946,7 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
 
 /**
  *******************************************************************************
- *  @brief          受信スレッドを停止します。
+ *  @brief          非 TCP 受信スレッドを停止します。
  *  @param[in,out]  ctx  セッションコンテキストへのポインタ。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *******************************************************************************
@@ -2924,7 +2958,7 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
         return POTR_ERROR;
     }
 
-    ctx->running = 0;
+    ctx->running[0] = 0;
 
 #ifdef _WIN32
     {
@@ -2937,11 +2971,11 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
                 ctx->sock[i] = POTR_INVALID_SOCKET;
             }
         }
-        if (ctx->recv_thread != NULL)
+        if (ctx->recv_thread[0] != NULL)
         {
-            WaitForSingleObject(ctx->recv_thread, 3000);
-            CloseHandle(ctx->recv_thread);
-            ctx->recv_thread = NULL;
+            WaitForSingleObject(ctx->recv_thread[0], 3000);
+            CloseHandle(ctx->recv_thread[0]);
+            ctx->recv_thread[0] = NULL;
         }
     }
 #else
@@ -2954,8 +2988,90 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
                 shutdown(ctx->sock[i], SHUT_RD);
             }
         }
-        pthread_join(ctx->recv_thread, NULL);
+        pthread_join(ctx->recv_thread[0], NULL);
     }
+#endif
+
+    return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          TCP 受信スレッドを path ごとに起動します。
+ *  @param[in,out]  ctx       セッションコンテキストへのポインタ。
+ *  @param[in]      path_idx  パスインデックス (0 ～ n_path-1)。
+ *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+ *******************************************************************************
+ */
+int tcp_recv_thread_start(struct PotrContext_ *ctx, int path_idx)
+{
+    if (ctx == NULL) { return POTR_ERROR; }
+
+    ctx->running[path_idx] = 1;
+
+    s_tcp_recv_args[path_idx].ctx      = ctx;
+    s_tcp_recv_args[path_idx].path_idx = path_idx;
+
+    POTR_LOG(POTR_LOG_DEBUG,
+             "tcp_recv_thread[service_id=%d path=%d]: starting",
+             ctx->service.service_id, path_idx);
+
+#ifdef _WIN32
+    ctx->recv_thread[path_idx] = CreateThread(NULL, 0,
+                                              tcp_recv_thread_func,
+                                              &s_tcp_recv_args[path_idx], 0, NULL);
+    if (ctx->recv_thread[path_idx] == NULL)
+    {
+        ctx->running[path_idx] = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "tcp_recv_thread[service_id=%d path=%d]: CreateThread failed",
+                 ctx->service.service_id, path_idx);
+        return POTR_ERROR;
+    }
+#else
+    {
+        int rc = pthread_create(&ctx->recv_thread[path_idx], NULL,
+                                tcp_recv_thread_func,
+                                &s_tcp_recv_args[path_idx]);
+        if (rc != 0)
+        {
+            ctx->running[path_idx] = 0;
+            POTR_LOG(POTR_LOG_ERROR,
+                     "tcp_recv_thread[service_id=%d path=%d]: pthread_create failed",
+                     ctx->service.service_id, path_idx);
+            return POTR_ERROR;
+        }
+    }
+#endif
+
+    return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          TCP 受信スレッドの終了を待機します。
+ *  @details        スレッドの停止はソケットクローズ (connect スレッド側) で行います。
+ *                  本関数は join のみを担当します。
+ *  @param[in,out]  ctx       セッションコンテキストへのポインタ。
+ *  @param[in]      path_idx  パスインデックス (0 ～ n_path-1)。
+ *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+ *******************************************************************************
+ */
+int tcp_recv_thread_stop(struct PotrContext_ *ctx, int path_idx)
+{
+    if (ctx == NULL) { return POTR_ERROR; }
+
+    ctx->running[path_idx] = 0;
+
+#ifdef _WIN32
+    if (ctx->recv_thread[path_idx] != NULL)
+    {
+        WaitForSingleObject(ctx->recv_thread[path_idx], INFINITE);
+        CloseHandle(ctx->recv_thread[path_idx]);
+        ctx->recv_thread[path_idx] = NULL;
+    }
+#else
+    pthread_join(ctx->recv_thread[path_idx], NULL);
 #endif
 
     return POTR_SUCCESS;
