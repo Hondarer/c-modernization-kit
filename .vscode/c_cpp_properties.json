@@ -10,9 +10,11 @@
                 "${workspaceFolder}/prod/funcman/include",
                 "${workspaceFolder}/prod/override-sample/include",
                 "${workspaceFolder}/prod/porter/include",
+                "${workspaceFolder}/prod/porter/libsrc/porter",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
-                "${workspaceFolder}/test/calc/include"
+                "${workspaceFolder}/test/calc/include",
+                "${workspaceFolder}/test/porter/include"
             ],
             "defines": [
                 "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
@@ -34,9 +36,11 @@
                 "${workspaceFolder}/prod/funcman/include",
                 "${workspaceFolder}/prod/override-sample/include",
                 "${workspaceFolder}/prod/porter/include",
+                "${workspaceFolder}/prod/porter/libsrc/porter",
                 "${workspaceFolder}/testfw/include",
                 "${workspaceFolder}/testfw/gtest/include",
-                "${workspaceFolder}/test/calc/include"
+                "${workspaceFolder}/test/calc/include",
+                "${workspaceFolder}/test/porter/include"
             ],
             "defines": [
                 // 安全のため、_CRT_SECURE_NO_WARNINGS は指定しない
