@@ -775,7 +775,7 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
 
         case POTR_TYPE_UNICAST_BIDIR:
         {
-            int is_multi_peer;
+            ctx->is_multi_peer = 0;
 
             /* dst_port は必須。 */
             if (ctx->service.dst_port == 0)
@@ -788,108 +788,84 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                 return POTR_ERROR;
             }
 
-            /* src_addr なし → N:1 モード (src_port の有無は問わない)
-               src_port 指定時はポートフィルタ付き N:1 として動作する */
-            is_multi_peer = (ctx->service.src_addr[0][0] == '\0') ? 1 : 0;
-            ctx->is_multi_peer = is_multi_peer;
-
-            if (is_multi_peer)
+            if (role == POTR_ROLE_RECEIVER && ctx->service.src_addr[0][0] == '\0')
             {
-                /* N:1 サーバ: dst_addr[i]:dst_port ごとにソケットを bind する。
-                   dst_addr が全て省略されている場合は INADDR_ANY で 1 ソケットのみ作成する。 */
-                int i;
+                /* 動的 1:1 RECEIVER: src_addr 省略 → dst_addr:dst_port に bind し、
+                   最初の受信パケットから SENDER のアドレスを動的学習する。 */
+                struct in_addr bind_addr;
 
                 if (ctx->service.dst_addr[0][0] == '\0')
                 {
-                    /* dst_addr 全て省略: INADDR_ANY で 1 ソケット */
-                    struct in_addr any_addr;
-                    any_addr.s_addr = htonl(INADDR_ANY);
-                    ctx->sock[0] = open_socket_unicast(any_addr, ctx->service.dst_port);
-                    if (ctx->sock[0] == POTR_INVALID_SOCKET)
+                    bind_addr.s_addr = htonl(INADDR_ANY);
+                }
+                else
+                {
+                    if (resolve_ipv4_addr(ctx->service.dst_addr[0],
+                                         &bind_addr) != POTR_SUCCESS)
                     {
                         ctx_cleanup(ctx);
                         return POTR_ERROR;
                     }
-                    ctx->n_path = 1;
+                    ctx->dst_addr_resolved[0] = bind_addr;
                 }
-                else
-                {
-                    /* dst_addr[i] を列挙してパスごとにソケットを作成する */
-                    for (i = 0; i < (int)POTR_MAX_PATH; i++)
-                    {
-                        struct in_addr bind_addr;
-
-                        if (ctx->service.dst_addr[i][0] == '\0') break;
-
-                        if (resolve_ipv4_addr(ctx->service.dst_addr[i],
-                                              &bind_addr) != POTR_SUCCESS)
-                        {
-                            ctx_cleanup(ctx);
-                            return POTR_ERROR;
-                        }
-                        ctx->dst_addr_resolved[i] = bind_addr;
-                        ctx->sock[i] = open_socket_unicast(bind_addr,
-                                                           ctx->service.dst_port);
-                        if (ctx->sock[i] == POTR_INVALID_SOCKET)
-                        {
-                            ctx_cleanup(ctx);
-                            return POTR_ERROR;
-                        }
-                        ctx->n_path = i + 1;
-                    }
-                }
-
-                /* ピアテーブル初期化 */
-                ctx->max_peers = (int)ctx->service.max_peers;
-                if (ctx->max_peers <= 0)
-                {
-                    ctx->max_peers = 1024;
-                }
-                if (peer_table_init(ctx) != POTR_SUCCESS)
+                ctx->sock[0] = open_socket_unicast(bind_addr, ctx->service.dst_port);
+                if (ctx->sock[0] == POTR_INVALID_SOCKET)
                 {
                     ctx_cleanup(ctx);
                     return POTR_ERROR;
                 }
-
+                ctx->n_path = 1;
                 POTR_LOG(POTR_LOG_INFO,
-                         "potrOpenService: service_id=%d UNICAST_BIDIR N:1 mode"
-                         " (max_peers=%d src_port_filter=%u) bind dst_port=%u n_path=%d",
-                         service_id, ctx->max_peers,
-                         (unsigned)ctx->service.src_port,
-                         (unsigned)ctx->service.dst_port,
-                         ctx->n_path);
+                         "potrOpenService: service_id=%d UNICAST_BIDIR 1:1 dynamic RECEIVER"
+                         " bind dst_port=%u",
+                         service_id, (unsigned)ctx->service.dst_port);
             }
             else
             {
-                /* 1:1 モード: 既存の src_addr/dst_addr ペアループ */
+                /* 1:1 モード: src_addr/dst_addr ペアループ。
+                   SENDER は src_addr 省略時に INADDR_ANY で bind する (OS がアダプタを自動選択)。
+                   RECEIVER はここには src_addr がある場合のみ到達する。 */
                 int i;
 
                 for (i = 0; i < (int)POTR_MAX_PATH; i++)
                 {
-                    if (ctx->service.src_addr[i][0] == '\0' ||
-                        ctx->service.dst_addr[i][0] == '\0')
+                    struct in_addr bind_addr;
+
+                    /* dst_addr が空 → パス終端。
+                       RECEIVER は src_addr も必要 (src_addr なし RECEIVER は上で処理済み)。 */
+                    if (ctx->service.dst_addr[i][0] == '\0') break;
+                    if (role == POTR_ROLE_RECEIVER
+                        && ctx->service.src_addr[i][0] == '\0') break;
+
+                    if (ctx->service.src_addr[i][0] != '\0')
                     {
-                        break;
+                        if (resolve_ipv4_addr(ctx->service.src_addr[i],
+                                              &ctx->src_addr_resolved[i]) != POTR_SUCCESS)
+                        {
+                            ctx_cleanup(ctx);
+                            return POTR_ERROR;
+                        }
                     }
 
-                    if (resolve_ipv4_addr(ctx->service.src_addr[i],
-                                          &ctx->src_addr_resolved[i]) != POTR_SUCCESS ||
-                        resolve_ipv4_addr(ctx->service.dst_addr[i],
+                    if (resolve_ipv4_addr(ctx->service.dst_addr[i],
                                           &ctx->dst_addr_resolved[i]) != POTR_SUCCESS)
                     {
                         ctx_cleanup(ctx);
                         return POTR_ERROR;
                     }
 
-                    /* SENDER: src_addr:src_port で bind
-                       RECEIVER: dst_addr:dst_port で bind */
                     if (role == POTR_ROLE_SENDER)
                     {
-                        ctx->sock[i] = open_socket_unicast(ctx->src_addr_resolved[i],
-                                                           ctx->service.src_port);
+                        /* src_addr 省略時は INADDR_ANY で bind し OS がアダプタを自動選択 */
+                        if (ctx->service.src_addr[i][0] != '\0')
+                            bind_addr = ctx->src_addr_resolved[i];
+                        else
+                            bind_addr.s_addr = htonl(INADDR_ANY);
+                        ctx->sock[i] = open_socket_unicast(bind_addr, ctx->service.src_port);
                     }
                     else
                     {
+                        /* RECEIVER: dst_addr:dst_port で bind */
                         ctx->sock[i] = open_socket_unicast(ctx->dst_addr_resolved[i],
                                                            ctx->service.dst_port);
                     }
@@ -908,6 +884,86 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
                     return POTR_ERROR;
                 }
             }
+            break;
+        }
+
+        case POTR_TYPE_UNICAST_BIDIR_N1:
+        {
+            /* N:1 サーバ: dst_addr[i]:dst_port ごとにソケットを bind する。
+               dst_addr が全て省略されている場合は INADDR_ANY で 1 ソケットのみ作成する。 */
+            int i;
+
+            ctx->is_multi_peer = 1;
+
+            /* dst_port は必須。 */
+            if (ctx->service.dst_port == 0)
+            {
+                POTR_LOG(POTR_LOG_ERROR,
+                         "potrOpenService: service_id=%d UNICAST_BIDIR_N1 requires"
+                         " dst_port (non-zero)",
+                         service_id);
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+
+            if (ctx->service.dst_addr[0][0] == '\0')
+            {
+                /* dst_addr 全て省略: INADDR_ANY で 1 ソケット */
+                struct in_addr any_addr;
+                any_addr.s_addr = htonl(INADDR_ANY);
+                ctx->sock[0] = open_socket_unicast(any_addr, ctx->service.dst_port);
+                if (ctx->sock[0] == POTR_INVALID_SOCKET)
+                {
+                    ctx_cleanup(ctx);
+                    return POTR_ERROR;
+                }
+                ctx->n_path = 1;
+            }
+            else
+            {
+                /* dst_addr[i] を列挙してパスごとにソケットを作成する */
+                for (i = 0; i < (int)POTR_MAX_PATH; i++)
+                {
+                    struct in_addr bind_addr;
+
+                    if (ctx->service.dst_addr[i][0] == '\0') break;
+
+                    if (resolve_ipv4_addr(ctx->service.dst_addr[i],
+                                          &bind_addr) != POTR_SUCCESS)
+                    {
+                        ctx_cleanup(ctx);
+                        return POTR_ERROR;
+                    }
+                    ctx->dst_addr_resolved[i] = bind_addr;
+                    ctx->sock[i] = open_socket_unicast(bind_addr, ctx->service.dst_port);
+                    if (ctx->sock[i] == POTR_INVALID_SOCKET)
+                    {
+                        ctx_cleanup(ctx);
+                        return POTR_ERROR;
+                    }
+                    ctx->n_path = i + 1;
+                }
+            }
+
+            /* ピアテーブル初期化 */
+            ctx->max_peers = (int)ctx->service.max_peers;
+            if (ctx->max_peers <= 0)
+            {
+                ctx->max_peers = 1024;
+            }
+            if (peer_table_init(ctx) != POTR_SUCCESS)
+            {
+                ctx_cleanup(ctx);
+                return POTR_ERROR;
+            }
+
+            POTR_LOG(POTR_LOG_INFO,
+                     "potrOpenService: service_id=%d UNICAST_BIDIR_N1"
+                     " (max_peers=%d src_port_filter=%u) bind dst_port=%u n_path=%d",
+                     service_id, ctx->max_peers,
+                     (unsigned)ctx->service.src_port,
+                     (unsigned)ctx->service.dst_port,
+                     ctx->n_path);
             break;
         }
 
@@ -1247,9 +1303,11 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
     else
     {
         /* 非 TCP: 受信者の場合は受信スレッドのみ起動
-           ただし UNICAST_BIDIR の RECEIVER は下の全スレッド起動ブロックで処理する */
+           ただし UNICAST_BIDIR / UNICAST_BIDIR_N1 の RECEIVER は
+           下の全スレッド起動ブロックで処理する */
         if (role == POTR_ROLE_RECEIVER
-            && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
+            && ctx->service.type != POTR_TYPE_UNICAST_BIDIR
+            && ctx->service.type != POTR_TYPE_UNICAST_BIDIR_N1)
         {
             if (comm_recv_thread_start(ctx) != POTR_SUCCESS)
             {
@@ -1258,10 +1316,11 @@ POTR_EXPORT int POTR_API potrOpenService(const char       *config_path,
             }
         }
 
-        /* 非 TCP 送信者 / UNICAST_BIDIR 受信者:
+        /* 非 TCP 送信者 / UNICAST_BIDIR / UNICAST_BIDIR_N1 受信者:
            送信キュー・送信スレッド・ヘルスチェックスレッド・受信スレッドを起動 */
         if (role == POTR_ROLE_SENDER
-            || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+            || ctx->service.type == POTR_TYPE_UNICAST_BIDIR
+            || ctx->service.type == POTR_TYPE_UNICAST_BIDIR_N1)
         {
             if (potr_send_queue_init(&ctx->send_queue,
                                      (size_t)ctx->global.send_queue_depth,

@@ -72,6 +72,7 @@ static inline PotrType potr_raw_base_type(PotrType t)
         case POTR_TYPE_TCP:
         case POTR_TYPE_TCP_BIDIR:
         case POTR_TYPE_UNICAST_BIDIR:
+        case POTR_TYPE_UNICAST_BIDIR_N1:
         default:                      return t;
     }
 }

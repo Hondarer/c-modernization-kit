@@ -877,12 +877,20 @@ static void update_path_recv(struct PotrContext_      *ctx,
                   &ctx->path_last_recv_nsec[path_idx]);
     ctx->peer_port[path_idx] = sender->sin_port; /* NBO のまま格納 */
 
-    /* unicast_bidir で相手ポートが未確定 (src_port=0 / 動的学習) の場合:
-       dest_addr がまだ 0 なら受信パケットの送信元ポートで更新する。 */
-    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR
-        && ctx->dest_addr[path_idx].sin_port == 0)
+    /* unicast_bidir で送信先アドレスが未確定の場合は受信パケットの送信元から動的学習する。
+       - src_addr 省略 (動的 1:1 RECEIVER): IP アドレスが 0 → 送信元 IP で更新
+       - src_port=0 (エフェメラルポート動的学習): ポートが 0 → 送信元ポートで更新 */
+    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
     {
-        ctx->dest_addr[path_idx].sin_port = sender->sin_port; /* NBO */
+        if (ctx->service.src_addr[0][0] == '\0'
+            && ctx->dest_addr[path_idx].sin_addr.s_addr == 0)
+        {
+            ctx->dest_addr[path_idx].sin_addr = sender->sin_addr; /* NBO */
+        }
+        if (ctx->dest_addr[path_idx].sin_port == 0)
+        {
+            ctx->dest_addr[path_idx].sin_port = sender->sin_port; /* NBO */
+        }
     }
 }
 
@@ -929,11 +937,19 @@ static void check_health_timeout(struct PotrContext_ *ctx)
         {
             ctx->peer_port[i]          = 0;
             ctx->path_last_recv_sec[i] = 0;
-            /* unicast_bidir で動的学習したエフェメラルポートもリセットする */
-            if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR
-                && ctx->service.src_port == 0)
+            /* unicast_bidir で動的学習したアドレス・ポートをリセットする (再接続を許可) */
+            if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
-                ctx->dest_addr[i].sin_port = 0;
+                if (ctx->service.src_addr[0][0] == '\0')
+                {
+                    /* 動的 1:1 RECEIVER: 学習した送信元 IP をリセット */
+                    ctx->dest_addr[i].sin_addr.s_addr = 0;
+                }
+                if (ctx->service.src_port == 0)
+                {
+                    /* エフェメラルポート動的学習: ポートをリセット */
+                    ctx->dest_addr[i].sin_port = 0;
+                }
             }
         }
     }

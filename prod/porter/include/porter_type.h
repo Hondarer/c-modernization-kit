@@ -66,9 +66,21 @@ typedef enum
      *  両端それぞれが src_addr:src_port で bind し、相手の dst_addr:dst_port へ送信する。\n
      *  src_port = 0 を指定すると SENDER はエフェメラルポートで bind し、\n
      *  RECEIVER は最初のパケット受信時に SENDER のポートを動的学習して返信する。\n
+     *  src_addr を省略した場合:\n
+     *    SENDER  : INADDR_ANY で bind し、OS がルーティングに基づきアダプタを自動選択する。\n
+     *    RECEIVER: 最初の受信パケットから SENDER のアドレスを動的学習する (1:1 通信を維持)。\n
      *  SENDER も callback が必須。
      */
-    POTR_TYPE_UNICAST_BIDIR   = 9, /**< 双方向 1:1 通信 (UDP ユニキャスト)。 */
+    POTR_TYPE_UNICAST_BIDIR    = 9, /**< 双方向 1:1 通信 (UDP ユニキャスト)。 */
+
+    /**
+     *  N:1 双方向通信 (UDP ユニキャスト)。\n
+     *  サーバ側は dst_addr:dst_port で bind し、複数クライアントを同時に受け入れる。\n
+     *  クライアントは POTR_TYPE_UNICAST_BIDIR (1:1) として接続する。\n
+     *  max_peers で最大同時接続数を制御 (省略時: 1024)。\n
+     *  src_addr は不要。src_port 指定でポートフィルタ付き N:1 になる。
+     */
+    POTR_TYPE_UNICAST_BIDIR_N1 = 10, /**< N:1 双方向通信 (UDP ユニキャスト)。 */
 } PotrType;
 
 /**

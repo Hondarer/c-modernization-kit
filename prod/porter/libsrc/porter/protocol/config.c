@@ -325,6 +325,10 @@ static void apply_service_kv(const char *key, const char *val,
         {
             current->type = POTR_TYPE_UNICAST_BIDIR;
         }
+        else if (strcmp(val, "unicast_bidir_n1") == 0)
+        {
+            current->type = POTR_TYPE_UNICAST_BIDIR_N1;
+        }
         else if (strcmp(val, "tcp") == 0)
         {
             current->type = POTR_TYPE_TCP;
