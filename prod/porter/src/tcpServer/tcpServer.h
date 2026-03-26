@@ -20,7 +20,27 @@
  *  プラットフォームを意識せずに使えるようにします。
  * ============================================================ */
 
-#ifdef _WIN32
+#ifndef _WIN32
+
+    #include <sys/types.h>
+    #include <unistd.h>
+
+    /** クライアントソケットの型。Linux では int、Windows では SOCKET。 */
+    typedef int     ClientFd;
+    /** プロセス ID の型。Linux では pid_t、Windows では DWORD。 */
+    typedef pid_t   PidType;
+
+    /** 現在のプロセス ID を取得する。 */
+    #define get_pid()                    ((PidType)getpid())
+    /** クライアントからデータを受信する。 */
+    #define client_recv(fd, buf, len)    read((fd), (buf), (len))
+    /** クライアントへデータを送信する。 */
+    #define client_send(fd, buf, len)    write((fd), (buf), (len))
+    /** クライアントソケットを閉じる。 */
+    #define client_close(fd)             close(fd)
+
+#else /* _WIN32 */
+
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
     #include <winsock2.h>
@@ -39,25 +59,6 @@
     #define client_send(fd, buf, len)    send((fd), (buf), (int)(len), 0)
     /** クライアントソケットを閉じる。 */
     #define client_close(fd)             closesocket(fd)
-
-#else /* Linux */
-
-    #include <sys/types.h>
-    #include <unistd.h>
-
-    /** クライアントソケットの型。Linux では int、Windows では SOCKET。 */
-    typedef int     ClientFd;
-    /** プロセス ID の型。Linux では pid_t、Windows では DWORD。 */
-    typedef pid_t   PidType;
-
-    /** 現在のプロセス ID を取得する。 */
-    #define get_pid()                    ((PidType)getpid())
-    /** クライアントからデータを受信する。 */
-    #define client_recv(fd, buf, len)    read((fd), (buf), (len))
-    /** クライアントへデータを送信する。 */
-    #define client_send(fd, buf, len)    write((fd), (buf), (len))
-    /** クライアントソケットを閉じる。 */
-    #define client_close(fd)             close(fd)
 
 #endif /* _WIN32 */
 

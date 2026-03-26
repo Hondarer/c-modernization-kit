@@ -25,13 +25,13 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     extern int  potr_send_thread_start(struct PotrContext_ *ctx);
     extern void potr_send_thread_stop(struct PotrContext_ *ctx);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_SEND_THREAD_H */

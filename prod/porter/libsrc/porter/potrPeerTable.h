@@ -26,7 +26,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *  @brief  ピアの全パスへ FIN パケットを送信する。
@@ -126,6 +126,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_PEER_TABLE_H */

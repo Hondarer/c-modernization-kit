@@ -31,7 +31,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
 /**
  *******************************************************************************
@@ -70,6 +70,6 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_LOG_H */

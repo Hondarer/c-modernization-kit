@@ -29,13 +29,13 @@
 #include <stdarg.h>
 #include <string.h>
 
-#ifdef _WIN32
-    #include <windows.h>
-#else
+#ifndef _WIN32
     #include <syslog.h>
     #include <pthread.h>
     #include <time.h>
-#endif
+#else /* _WIN32 */
+    #include <windows.h>
+#endif /* _WIN32 */
 
 #include <porter_const.h>
 #include <porter.h>
@@ -60,7 +60,23 @@ static const char * const s_level_str[] = {
 #define POTR_LOG_FILE_PATH_MAX 512
 
 /** 出力先ミューテックスおよびロガー設定。スレッド間で共有する。 */
-#ifdef _WIN32
+#ifndef _WIN32
+
+static pthread_mutex_t g_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int             g_syslog_open = 0; /**< openlog() 済みフラグ (1: 済み)。 */
+
+static void log_lock(void)
+{
+    pthread_mutex_lock(&g_log_mutex);
+}
+
+static void log_unlock(void)
+{
+    pthread_mutex_unlock(&g_log_mutex);
+}
+
+#else /* _WIN32 */
+
 static INIT_ONCE        g_log_init_once = INIT_ONCE_STATIC_INIT;
 static CRITICAL_SECTION g_log_mutex;
 
@@ -85,21 +101,6 @@ static void log_unlock(void)
     LeaveCriticalSection(&g_log_mutex);
 }
 
-#else /* Linux */
-
-static pthread_mutex_t g_log_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int             g_syslog_open = 0; /**< openlog() 済みフラグ (1: 済み)。 */
-
-static void log_lock(void)
-{
-    pthread_mutex_lock(&g_log_mutex);
-}
-
-static void log_unlock(void)
-{
-    pthread_mutex_unlock(&g_log_mutex);
-}
-
 #endif /* _WIN32 */
 
 /** 出力ログレベル (POTR_LOG_OFF = 無効)。 */
@@ -117,7 +118,7 @@ static FILE *g_log_fp = NULL;
 #ifdef _WIN32
 /** OutputDebugString 出力フラグ (非 0: 有効)。 */
 static int g_debugout = 0;
-#endif
+#endif /* _WIN32 */
 
 /* ── ユーティリティ ────────────────────────────────────────────────────── */
 
@@ -151,16 +152,7 @@ static const char *log_basename(const char *path)
  */
 static void log_timestamp(char *buf, size_t buflen)
 {
-#ifdef _WIN32
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    /* snprintf は _snprintf_s でなく標準の snprintf を使用 (C99 準拠)。 */
-    (void)snprintf(buf, buflen,
-                   "[%04d-%02d-%02d %02d:%02d:%02d.%03d]",
-                   (int)st.wYear, (int)st.wMonth,  (int)st.wDay,
-                   (int)st.wHour, (int)st.wMinute, (int)st.wSecond,
-                   (int)st.wMilliseconds);
-#else
+#ifndef _WIN32
     struct timespec ts;
     struct tm       tm_info;
 
@@ -171,7 +163,16 @@ static void log_timestamp(char *buf, size_t buflen)
                    tm_info.tm_year + 1900, tm_info.tm_mon + 1, tm_info.tm_mday,
                    tm_info.tm_hour, tm_info.tm_min, tm_info.tm_sec,
                    (int)(ts.tv_nsec / 1000000L));
-#endif
+#else /* _WIN32 */
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    /* snprintf は _snprintf_s でなく標準の snprintf を使用 (C99 準拠)。 */
+    (void)snprintf(buf, buflen,
+                   "[%04d-%02d-%02d %02d:%02d:%02d.%03d]",
+                   (int)st.wYear, (int)st.wMonth,  (int)st.wDay,
+                   (int)st.wHour, (int)st.wMinute, (int)st.wSecond,
+                   (int)st.wMilliseconds);
+#endif /* _WIN32 */
 }
 
 #ifndef _WIN32
@@ -192,7 +193,7 @@ static int level_to_syslog_priority(PotrLogLevel level)
         default:             return LOG_DEBUG;
     }
 }
-#endif /* !_WIN32 */
+#endif /* _WIN32 */
 
 /* ── 公開 API ─────────────────────────────────────────────────────────── */
 
@@ -206,14 +207,14 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
     /* log_file を事前にオープンしておく (ミューテックス外で実施し、ロック時間を短縮)。 */
     if (log_file != NULL && log_file[0] != '\0')
     {
-#ifdef _WIN32
+#ifndef _WIN32
+        new_fp = fopen(log_file, "a");
+#else /* _WIN32 */
         if (fopen_s(&new_fp, log_file, "a") != 0)
         {
             new_fp = NULL;
         }
-#else
-        new_fp = fopen(log_file, "a");
-#endif
+#endif /* _WIN32 */
         if (new_fp == NULL)
         {
             return POTR_ERROR;
@@ -236,7 +237,7 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
         closelog();
         g_syslog_open = 0;
     }
-#endif
+#endif /* _WIN32 */
 
     /* 設定を更新する。 */
     g_log_level   = (int)level;
@@ -246,7 +247,7 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
 #ifdef _WIN32
     /* level が POTR_LOG_OFF でない場合のみ OutputDebugString を有効にする。 */
     g_debugout = (level != POTR_LOG_OFF) ? 1 : 0;
-#endif
+#endif /* _WIN32 */
 
     if (log_file != NULL && log_file[0] != '\0')
     {
@@ -270,7 +271,7 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
         openlog("porter", LOG_PID | LOG_NDELAY, LOG_USER);
         g_syslog_open = 1;
     }
-#endif
+#endif /* _WIN32 */
 
     log_unlock();
 
@@ -321,13 +322,13 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
                    "[%s] [%s:%d] %s",
                    lstr, log_basename(file), line, msg);
         }
-#endif
+#endif /* _WIN32 */
 
         /* ── ファイル / stderr: タイムスタンプ付きフォーマット ─────────── */
         if (g_log_fp != NULL || g_log_console
 #ifdef _WIN32
             || g_debugout
-#endif
+#endif /* _WIN32 */
         )
         {
             log_timestamp(ts, sizeof(ts));
@@ -354,7 +355,7 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
                                ts, lstr, log_basename(file), line, msg);
                 OutputDebugStringA(dbg_buf);
             }
-#endif
+#endif /* _WIN32 */
         }
     }
 

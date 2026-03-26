@@ -42,13 +42,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-    #include <windows.h>
-    #include <process.h>
-#else
+#ifndef _WIN32
     #include <pthread.h>
     #include <unistd.h>
-#endif
+#else /* _WIN32 */
+    #include <windows.h>
+    #include <process.h>
+#endif /* _WIN32 */
 
 #include <porter.h>
 
@@ -182,18 +182,7 @@ static int read_line(char *buf, size_t size)
     return 1;
 }
 
-#ifdef _WIN32
-typedef HANDLE BidirThread;
-
-/**
- *******************************************************************************
- *  @brief          bidir 送信スレッド関数 (Windows)。
- *  @param[in]      arg BidirSendCtx へのポインタ。
- *  @return         0
- *******************************************************************************
- */
-static unsigned __stdcall bidir_send_thread_func(void *arg)
-#else
+#ifndef _WIN32
 typedef pthread_t BidirThread;
 
 /**
@@ -204,7 +193,18 @@ typedef pthread_t BidirThread;
  *******************************************************************************
  */
 static void *bidir_send_thread_func(void *arg)
-#endif
+#else /* _WIN32 */
+typedef HANDLE BidirThread;
+
+/**
+ *******************************************************************************
+ *  @brief          bidir 送信スレッド関数 (Windows)。
+ *  @param[in]      arg BidirSendCtx へのポインタ。
+ *  @return         0
+ *******************************************************************************
+ */
+static unsigned __stdcall bidir_send_thread_func(void *arg)
+#endif /* _WIN32 */
 {
     BidirSendCtx *ctx = (BidirSendCtx *)arg;
     char          msg_buf[POTR_MAX_MESSAGE_SIZE + 2U];
@@ -269,11 +269,11 @@ static void *bidir_send_thread_func(void *arg)
 
     *ctx->running = 0; /* 送信終了時に受信ループも停止させる */
 
-#ifdef _WIN32
-    return 0U;
-#else
+#ifndef _WIN32
     return NULL;
-#endif
+#else /* _WIN32 */
+    return 0U;
+#endif /* _WIN32 */
 }
 
 /**
@@ -286,7 +286,9 @@ static void *bidir_send_thread_func(void *arg)
  */
 static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
 {
-#ifdef _WIN32
+#ifndef _WIN32
+    return pthread_create(thread, NULL, bidir_send_thread_func, ctx) == 0;
+#else /* _WIN32 */
     uintptr_t h = _beginthreadex(NULL, 0U, bidir_send_thread_func, ctx, 0U, NULL);
     if (h == 0U)
     {
@@ -294,9 +296,7 @@ static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
     }
     *thread = (HANDLE)h;
     return 1;
-#else
-    return pthread_create(thread, NULL, bidir_send_thread_func, ctx) == 0;
-#endif
+#endif /* _WIN32 */
 }
 
 /**
@@ -307,13 +307,13 @@ static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
  */
 static void join_bidir_send_thread(BidirThread thread)
 {
-#ifdef _WIN32
-    WaitForSingleObject(thread, INFINITE);
-    CloseHandle(thread);
-#else
+#ifndef _WIN32
     pthread_cancel(thread); /* fgets でブロック中のスレッドを中断する */
     pthread_join(thread, NULL);
-#endif
+#else /* _WIN32 */
+    WaitForSingleObject(thread, INFINITE);
+    CloseHandle(thread);
+#endif /* _WIN32 */
 }
 
 /**
@@ -429,11 +429,11 @@ int main(int argc, char *argv[])
 
     while (g_running)
     {
-#ifdef _WIN32
-        Sleep(100);
-#else
+#ifndef _WIN32
         usleep(100000);
-#endif
+#else /* _WIN32 */
+        Sleep(100);
+#endif /* _WIN32 */
     }
 
     if (bidir_started)

@@ -14,11 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-    #include <winsock2.h>
-#else
+#ifndef _WIN32
     #include <arpa/inet.h>
-#endif
+#else /* _WIN32 */
+    #include <winsock2.h>
+#endif /* _WIN32 */
 
 #include <porter_const.h>
 

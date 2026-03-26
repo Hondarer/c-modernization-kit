@@ -22,17 +22,17 @@
 #include "../infra/compress/compress.h"
 #include "../infra/potrLog.h"
 
-#ifdef _WIN32
-    #include <winsock2.h>
-    typedef CRITICAL_SECTION PotrMutexLocal;
-    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
-    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
-#else
+#ifndef _WIN32
     #include <pthread.h>
     typedef pthread_mutex_t PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
-#endif
+#else /* _WIN32 */
+    #include <winsock2.h>
+    typedef CRITICAL_SECTION PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
+#endif /* _WIN32 */
 
 /* N:1 モードで 1 ピアへ send を行う内部実装 (peers_mutex 取得不要・呼び出し元で検索済み) */
 static int send_to_peer(struct PotrContext_ *ctx, PotrPeerId peer_id,

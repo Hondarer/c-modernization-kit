@@ -242,6 +242,6 @@ int potr_passphrase_to_key(uint8_t *key,
     return 0;
 }
 
-#else
+#else /* _WIN32 */
     #pragma warning(disable : 4206)
-#endif /* !_WIN32 */
+#endif /* _WIN32 */

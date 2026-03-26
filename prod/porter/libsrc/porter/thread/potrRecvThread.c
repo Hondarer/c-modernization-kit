@@ -13,10 +13,7 @@
 
 #include <string.h>
 
-#ifdef _WIN32
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-#else
+#ifndef _WIN32
     #include <sys/socket.h>
     #include <sys/select.h>
     #include <netinet/in.h>
@@ -24,7 +21,10 @@
     #include <unistd.h>
     #include <time.h>
     #include <errno.h>
-#endif
+#else /* _WIN32 */
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+#endif /* _WIN32 */
 
 #include <porter_const.h>
 
@@ -41,13 +41,13 @@
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t get_ms(void)
 {
-#ifdef _WIN32
-    return (uint64_t)GetTickCount64();
-#else
+#ifndef _WIN32
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#endif
+#else /* _WIN32 */
+    return (uint64_t)GetTickCount64();
+#endif /* _WIN32 */
 }
 
 /* 前方宣言: 後で定義される関数 */
@@ -57,15 +57,15 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq);
 static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num);
 static void raw_session_disconnect(struct PotrContext_ *ctx);
 
-#ifdef _WIN32
-    typedef CRITICAL_SECTION PotrMutexLocal;
-    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
-    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
-#else
+#ifndef _WIN32
     typedef pthread_mutex_t PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
-#endif
+#else /* _WIN32 */
+    typedef CRITICAL_SECTION PotrMutexLocal;
+    #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
+    #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
+#endif /* _WIN32 */
 
 /* ================================================================
  * N:1 モード専用: ピアコンテキストを使ったパケット処理関数群
@@ -114,15 +114,15 @@ static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
 
         for (k = 0; k < peer->n_paths; k++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -130,15 +130,15 @@ static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
         wire_len = packet_wire_size(&nack_pkt);
         for (k = 0; k < peer->n_paths; k++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)&nack_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], &nack_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)&nack_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -186,15 +186,15 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
 
         for (k = 0; k < peer->n_paths; k++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -202,15 +202,15 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
         wire_len = packet_wire_size(&reject_pkt);
         for (k = 0; k < peer->n_paths; k++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)&reject_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], &reject_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)&reject_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -230,17 +230,17 @@ static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
     shdr.session_tv_nsec = peer->session_tv_nsec;
     shdr._pad            = 0;
 
-#ifdef _WIN32
-    EnterCriticalSection(&peer->send_window_mutex);
-#else
+#ifndef _WIN32
     pthread_mutex_lock(&peer->send_window_mutex);
-#endif
+#else /* _WIN32 */
+    EnterCriticalSection(&peer->send_window_mutex);
+#endif /* _WIN32 */
     my_next_seq = peer->send_window.next_seq;
-#ifdef _WIN32
-    LeaveCriticalSection(&peer->send_window_mutex);
-#else
+#ifndef _WIN32
     pthread_mutex_unlock(&peer->send_window_mutex);
-#endif
+#else /* _WIN32 */
+    LeaveCriticalSection(&peer->send_window_mutex);
+#endif /* _WIN32 */
 
     if (packet_build_ping(&reply_pkt, &shdr,
                           my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
@@ -276,15 +276,15 @@ static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
 
         for (k = 0; k < peer->n_paths; k++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -292,15 +292,15 @@ static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
         wire_len = packet_wire_size(&reply_pkt);
         for (k = 0; k < peer->n_paths; k++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)&reply_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], &reply_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)&reply_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[k],
+                   sizeof(peer->dest_addr[k]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -553,21 +553,21 @@ static int n1_check_and_update_session(struct PotrContext_ *ctx,
 static void n1_update_path_recv(PotrPeerContext *peer,
                                  const struct sockaddr_in *sender_addr)
 {
-#ifdef _WIN32
-    ULONGLONG ms;
-    int64_t   s;
-    int32_t   ns;
-    ms = GetTickCount64();
-    s  = (int64_t)(ms / 1000ULL);
-    ns = (int32_t)((ms % 1000ULL) * 1000000UL);
-#else
+#ifndef _WIN32
     struct timespec ts;
     int64_t         s;
     int32_t         ns;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     s  = (int64_t)ts.tv_sec;
     ns = (int32_t)ts.tv_nsec;
-#endif
+#else /* _WIN32 */
+    ULONGLONG ms;
+    int64_t   s;
+    int32_t   ns;
+    ms = GetTickCount64();
+    s  = (int64_t)(ms / 1000ULL);
+    ns = (int32_t)((ms % 1000ULL) * 1000000UL);
+#endif /* _WIN32 */
 
     peer->last_recv_tv_sec  = s;
     peer->last_recv_tv_nsec = ns;
@@ -583,21 +583,21 @@ static void n1_update_path_recv(PotrPeerContext *peer,
 /* N:1: select() タイムアウト時にヘルスタイムアウトを確認する */
 static void n1_check_health_timeout(struct PotrContext_ *ctx)
 {
-#ifdef _WIN32
-    ULONGLONG ms;
-    int64_t   now_sec;
-    int32_t   now_nsec;
-    ms      = GetTickCount64();
-    now_sec  = (int64_t)(ms / 1000ULL);
-    now_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
-#else
+#ifndef _WIN32
     struct timespec ts;
     int64_t         now_sec;
     int32_t         now_nsec;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     now_sec  = (int64_t)ts.tv_sec;
     now_nsec = (int32_t)ts.tv_nsec;
-#endif
+#else /* _WIN32 */
+    ULONGLONG ms;
+    int64_t   now_sec;
+    int32_t   now_nsec;
+    ms      = GetTickCount64();
+    now_sec  = (int64_t)(ms / 1000ULL);
+    now_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
+#endif /* _WIN32 */
     int i;
 
     if (ctx->global.health_timeout_ms == 0) return;
@@ -804,28 +804,28 @@ static int check_and_update_session(struct PotrContext_ *ctx,
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t get_ms_mono(void)
 {
-#ifdef _WIN32
-    return (uint64_t)GetTickCount64();
-#else
+#ifndef _WIN32
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#endif
+#else /* _WIN32 */
+    return (uint64_t)GetTickCount64();
+#endif /* _WIN32 */
 }
 
 /* 現在の CLOCK_MONOTONIC 時刻を取得する */
 static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
 {
-#ifdef _WIN32
-    ULONGLONG ms = GetTickCount64();
-    *tv_sec  = (int64_t)(ms / 1000ULL);
-    *tv_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
-#else
+#ifndef _WIN32
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     *tv_sec  = (int64_t)ts.tv_sec;
     *tv_nsec = (int32_t)ts.tv_nsec;
-#endif
+#else /* _WIN32 */
+    ULONGLONG ms = GetTickCount64();
+    *tv_sec  = (int64_t)(ms / 1000ULL);
+    *tv_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
+#endif /* _WIN32 */
 }
 
 /* パスごとの最終受信時刻と peer_port を更新する */
@@ -1066,15 +1066,15 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
         {
             if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
-#ifdef _WIN32
-                sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                       (const struct sockaddr *)&ctx->dest_addr[i],
-                       sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
                 sendto(ctx->sock[i], wire_buf, wire_len, 0,
                        (const struct sockaddr *)&ctx->dest_addr[i],
                        sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+                sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                       (const struct sockaddr *)&ctx->dest_addr[i],
+                       sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
             }
             else
             {
@@ -1092,13 +1092,13 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
                 dest.sin_family = AF_INET;
                 dest.sin_addr   = ctx->src_addr_resolved[i];
                 dest.sin_port   = port;
-#ifdef _WIN32
-                sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                       (const struct sockaddr *)&dest, sizeof(dest));
-#else
+#ifndef _WIN32
                 sendto(ctx->sock[i], wire_buf, wire_len, 0,
                        (const struct sockaddr *)&dest, sizeof(dest));
-#endif
+#else /* _WIN32 */
+                sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                       (const struct sockaddr *)&dest, sizeof(dest));
+#endif /* _WIN32 */
             }
         }
     }
@@ -1112,15 +1112,15 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
                通常 unicast: src_addr_resolved[i]:src_port または peer_port へ送信する。 */
             if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
-#ifdef _WIN32
-                sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
-                       (const struct sockaddr *)&ctx->dest_addr[i],
-                       sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
                 sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
                        (const struct sockaddr *)&ctx->dest_addr[i],
                        sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+                sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
+                       (const struct sockaddr *)&ctx->dest_addr[i],
+                       sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
             }
             else
             {
@@ -1143,13 +1143,13 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
                 dest.sin_addr   = ctx->src_addr_resolved[i];
                 dest.sin_port   = port;
 
-#ifdef _WIN32
-                sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
-                       (const struct sockaddr *)&dest, sizeof(dest));
-#else
+#ifndef _WIN32
                 sendto(ctx->sock[i], &nack_pkt, wire_len, 0,
                        (const struct sockaddr *)&dest, sizeof(dest));
-#endif
+#else /* _WIN32 */
+                sendto(ctx->sock[i], (const char *)&nack_pkt, (int)wire_len, 0,
+                       (const struct sockaddr *)&dest, sizeof(dest));
+#endif /* _WIN32 */
             }
         }
     }
@@ -1173,19 +1173,19 @@ static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
 
     /* send_window.next_seq を排他制御下で読み取る
        (送信スレッド・ヘルスチェックスレッドと競合するため) */
-#ifdef _WIN32
-    EnterCriticalSection(&ctx->send_window_mutex);
-#else
+#ifndef _WIN32
     pthread_mutex_lock(&ctx->send_window_mutex);
-#endif
+#else /* _WIN32 */
+    EnterCriticalSection(&ctx->send_window_mutex);
+#endif /* _WIN32 */
 
     my_next_seq = ctx->send_window.next_seq;
 
-#ifdef _WIN32
-    LeaveCriticalSection(&ctx->send_window_mutex);
-#else
+#ifndef _WIN32
     pthread_mutex_unlock(&ctx->send_window_mutex);
-#endif
+#else /* _WIN32 */
+    LeaveCriticalSection(&ctx->send_window_mutex);
+#endif /* _WIN32 */
 
     /* ack_num=0 は PING 要求と区別できないため req_seq_num+1 を格納する。
        受信側は ack_num != 0 で応答を判定するため値の厳密な一致は不要。 */
@@ -1228,15 +1228,15 @@ static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
 
         for (i = 0; i < ctx->n_path; i++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[i], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -1245,15 +1245,15 @@ static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
 
         for (i = 0; i < ctx->n_path; i++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)&reply_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[i], &reply_pkt, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[i], (const char *)&reply_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -1301,15 +1301,15 @@ static void send_reject(struct PotrContext_ *ctx, uint32_t seq_num)
 
         for (i = 0; i < ctx->n_path; i++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[i], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -1318,15 +1318,15 @@ static void send_reject(struct PotrContext_ *ctx, uint32_t seq_num)
 
         for (i = 0; i < ctx->n_path; i++)
         {
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)&reject_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[i], &reject_pkt, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[i], (const char *)&reject_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -1629,11 +1629,11 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
 }
 
 /* 受信スレッド本体 */
-#ifdef _WIN32
-static DWORD WINAPI recv_thread_func(LPVOID arg)
-#else
+#ifndef _WIN32
 static void *recv_thread_func(void *arg)
-#endif
+#else /* _WIN32 */
+static DWORD WINAPI recv_thread_func(LPVOID arg)
+#endif /* _WIN32 */
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     uint8_t            *buf = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
@@ -1673,19 +1673,19 @@ static void *recv_thread_func(void *arg)
         for (i = 0; i < ctx->n_path; i++)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#ifdef _WIN32
-            FD_SET(ctx->sock[i], &readfds);
-            /* Windows では SOCKET は UINT_PTR。maxfd の代わりに n_path を使う */
-#else
+#ifndef _WIN32
             FD_SET(ctx->sock[i], &readfds);
             if (ctx->sock[i] > maxfd) maxfd = ctx->sock[i];
-#endif
+#else /* _WIN32 */
+            FD_SET(ctx->sock[i], &readfds);
+            /* Windows では SOCKET は UINT_PTR。maxfd の代わりに n_path を使う */
+#endif /* _WIN32 */
         }
 
 #ifdef _WIN32
         /* Windows: select の第1引数は無視されるが 0 でなく n_path を渡す */
         maxfd = ctx->n_path;
-#endif
+#endif /* _WIN32 */
 
         if (maxfd < 0) break;
 
@@ -1721,11 +1721,11 @@ static void *recv_thread_func(void *arg)
         for (i = 0; i < ctx->n_path; i++)
         {
             int recv_len;
-#ifdef _WIN32
-            int sender_len;
-#else
+#ifndef _WIN32
             socklen_t sender_len;
-#endif
+#else /* _WIN32 */
+            int sender_len;
+#endif /* _WIN32 */
 
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
             if (!FD_ISSET(ctx->sock[i], &readfds)) continue;
@@ -1733,16 +1733,16 @@ static void *recv_thread_func(void *arg)
             memset(&sender_addr, 0, sizeof(sender_addr));
             sender_len = sizeof(sender_addr);
 
-#ifdef _WIN32
-            recv_len = recvfrom(ctx->sock[i], (char *)buf,
-                                (int)(PACKET_HEADER_SIZE + ctx->global.max_payload),
-                                0, (struct sockaddr *)&sender_addr, &sender_len);
-#else
+#ifndef _WIN32
             recv_len = (int)recvfrom(ctx->sock[i], buf,
                                      PACKET_HEADER_SIZE + ctx->global.max_payload,
                                      0, (struct sockaddr *)&sender_addr,
                                      &sender_len);
-#endif
+#else /* _WIN32 */
+            recv_len = recvfrom(ctx->sock[i], (char *)buf,
+                                (int)(PACKET_HEADER_SIZE + ctx->global.max_payload),
+                                0, (struct sockaddr *)&sender_addr, &sender_len);
+#endif /* _WIN32 */
             if (recv_len <= 0)
             {
                 if (!ctx->running[0]) break; /* 正常終了: ソケットクローズによる割り込み */
@@ -1927,11 +1927,11 @@ static void *recv_thread_func(void *arg)
                     int        get_result;
                     int        j;
 
-#ifdef _WIN32
-                    EnterCriticalSection(&peer->send_window_mutex);
-#else
+#ifndef _WIN32
                     pthread_mutex_lock(&peer->send_window_mutex);
-#endif
+#else /* _WIN32 */
+                    EnterCriticalSection(&peer->send_window_mutex);
+#endif /* _WIN32 */
                     get_result = window_send_get(&peer->send_window,
                                                  pkt.ack_num, &resend_pkt);
                     if (get_result == POTR_SUCCESS)
@@ -1942,11 +1942,11 @@ static void *recv_thread_func(void *arg)
                                resend_pkt.payload,
                                wire_len - PACKET_HEADER_SIZE);
                     }
-#ifdef _WIN32
-                    LeaveCriticalSection(&peer->send_window_mutex);
-#else
+#ifndef _WIN32
                     pthread_mutex_unlock(&peer->send_window_mutex);
-#endif
+#else /* _WIN32 */
+                    LeaveCriticalSection(&peer->send_window_mutex);
+#endif /* _WIN32 */
 
                     if (get_result == POTR_SUCCESS)
                     {
@@ -1956,16 +1956,16 @@ static void *recv_thread_func(void *arg)
                                  (unsigned)pkt.ack_num);
                         for (j = 0; j < peer->n_paths; j++)
                         {
-#ifdef _WIN32
+#ifndef _WIN32
+                            sendto(ctx->sock[0], ctx->recv_buf, wire_len, 0,
+                                   (const struct sockaddr *)&peer->dest_addr[j],
+                                   sizeof(peer->dest_addr[j]));
+#else /* _WIN32 */
                             sendto(ctx->sock[0], (const char *)ctx->recv_buf,
                                    (int)wire_len, 0,
                                    (const struct sockaddr *)&peer->dest_addr[j],
                                    sizeof(peer->dest_addr[j]));
-#else
-                            sendto(ctx->sock[0], ctx->recv_buf, wire_len, 0,
-                                   (const struct sockaddr *)&peer->dest_addr[j],
-                                   sizeof(peer->dest_addr[j]));
-#endif
+#endif /* _WIN32 */
                         }
                     }
                     else
@@ -2197,11 +2197,11 @@ static void *recv_thread_func(void *arg)
                         /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッドと競合)。
                            ミューテックス保持中に recv_buf へ wire データを組み立て、
                            プールスロットが上書きされる前にコピーを完了させる。 */
-#ifdef _WIN32
-                        EnterCriticalSection(&ctx->send_window_mutex);
-#else
+#ifndef _WIN32
                         pthread_mutex_lock(&ctx->send_window_mutex);
-#endif
+#else /* _WIN32 */
+                        EnterCriticalSection(&ctx->send_window_mutex);
+#endif /* _WIN32 */
                         get_result = window_send_get(&ctx->send_window,
                                                      pkt.ack_num,
                                                      &resend_pkt);
@@ -2216,11 +2216,11 @@ static void *recv_thread_func(void *arg)
                                    wire_len - PACKET_HEADER_SIZE);
                         }
 
-#ifdef _WIN32
-                        LeaveCriticalSection(&ctx->send_window_mutex);
-#else
+#ifndef _WIN32
                         pthread_mutex_unlock(&ctx->send_window_mutex);
-#endif
+#else /* _WIN32 */
+                        LeaveCriticalSection(&ctx->send_window_mutex);
+#endif /* _WIN32 */
 
                         if (get_result == POTR_SUCCESS)
                         {
@@ -2231,16 +2231,16 @@ static void *recv_thread_func(void *arg)
                                      (unsigned)pkt.ack_num);
                             for (j = 0; j < ctx->n_path; j++)
                             {
-#ifdef _WIN32
+#ifndef _WIN32
+                                sendto(ctx->sock[j], ctx->recv_buf, wire_len, 0,
+                                       (const struct sockaddr *)&ctx->dest_addr[j],
+                                       sizeof(ctx->dest_addr[j]));
+#else /* _WIN32 */
                                 sendto(ctx->sock[j], (const char *)ctx->recv_buf,
                                        (int)wire_len, 0,
                                        (const struct sockaddr *)&ctx->dest_addr[j],
                                        sizeof(ctx->dest_addr[j]));
-#else
-                                sendto(ctx->sock[j], ctx->recv_buf, wire_len, 0,
-                                       (const struct sockaddr *)&ctx->dest_addr[j],
-                                       sizeof(ctx->dest_addr[j]));
-#endif
+#endif /* _WIN32 */
                             }
                         }
                         else
@@ -2462,11 +2462,11 @@ static void *recv_thread_func(void *arg)
         }
     }
 
-#ifdef _WIN32
-    return 0;
-#else
+#ifndef _WIN32
     return NULL;
-#endif
+#else /* _WIN32 */
+    return 0;
+#endif /* _WIN32 */
 }
 
 /* ================================================================
@@ -2478,16 +2478,7 @@ static void *recv_thread_func(void *arg)
 static int tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
 {
     int            ret;
-#ifdef _WIN32
-    fd_set         rfds;
-    struct timeval tv;
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    tv.tv_sec  = (long)(wait_ms / 1000U);
-    tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
-    ret = select(0, &rfds, NULL, NULL, &tv);
-    if (ret == SOCKET_ERROR) return -1;
-#else
+#ifndef _WIN32
     fd_set         rfds;
     struct timeval tv;
     FD_ZERO(&rfds);
@@ -2497,7 +2488,16 @@ static int tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
     ret = select(fd + 1, &rfds, NULL, NULL, &tv);
     if (ret < 0 && errno == EINTR) return 0; /* シグナル割り込み: タイムアウトとして扱う */
     if (ret < 0) return -1;
-#endif
+#else /* _WIN32 */
+    fd_set         rfds;
+    struct timeval tv;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec  = (long)(wait_ms / 1000U);
+    tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
+    ret = select(0, &rfds, NULL, NULL, &tv);
+    if (ret == SOCKET_ERROR) return -1;
+#endif /* _WIN32 */
     return (ret > 0) ? 1 : 0;
 }
 
@@ -2509,15 +2509,15 @@ static int tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
     while (received < n)
     {
         int r;
-#ifdef _WIN32
-        r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
-        if (r == SOCKET_ERROR) return -1;
-        if (r == 0)            return 0;
-#else
+#ifndef _WIN32
         r = (int)recv(fd, buf + received, n - received, 0);
         if (r < 0) return -1;
         if (r == 0) return 0;
-#endif
+#else /* _WIN32 */
+        r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
+        if (r == SOCKET_ERROR) return -1;
+        if (r == 0)            return 0;
+#endif /* _WIN32 */
         received += (size_t)r;
     }
     return 1;
@@ -2565,13 +2565,13 @@ static int tcp_send_all_raw(PotrSocket fd, const uint8_t *buf, size_t n)
     while (sent < n)
     {
         int r;
-#ifdef _WIN32
-        r = send(fd, (const char *)(buf + sent), (int)(n - sent), 0);
-        if (r == SOCKET_ERROR) return -1;
-#else
+#ifndef _WIN32
         r = (int)send(fd, buf + sent, n - sent, 0);
         if (r <= 0) return -1;
-#endif
+#else /* _WIN32 */
+        r = send(fd, (const char *)(buf + sent), (int)(n - sent), 0);
+        if (r == SOCKET_ERROR) return -1;
+#endif /* _WIN32 */
         sent += (size_t)r;
     }
     return 0;
@@ -2648,11 +2648,11 @@ static void tcp_send_ping_reply(struct PotrContext_ *ctx, int path_idx,
 }
 
 /* TCP ストリーム受信スレッド本体 (path ごと) */
-#ifdef _WIN32
-static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
-#else
+#ifndef _WIN32
 static void *tcp_recv_thread_func(void *arg)
-#endif
+#else /* _WIN32 */
+static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
+#endif /* _WIN32 */
 {
     TcpRecvArg          *rarg     = (TcpRecvArg *)arg;
     struct PotrContext_ *ctx      = rarg->ctx;
@@ -2890,11 +2890,11 @@ static void *tcp_recv_thread_func(void *arg)
              "tcp_recv[service_id=%d path=%d]: exited",
              ctx->service.service_id, path_idx);
 
-#ifdef _WIN32
-    return 0;
-#else
+#ifndef _WIN32
     return NULL;
-#endif
+#else /* _WIN32 */
+    return 0;
+#endif /* _WIN32 */
 }
 
 /**
@@ -2917,17 +2917,7 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
              "recv_thread[service_id=%d]: starting",
              ctx->service.service_id);
 
-#ifdef _WIN32
-    ctx->recv_thread[0] = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
-    if (ctx->recv_thread[0] == NULL)
-    {
-        ctx->running[0] = 0;
-        POTR_LOG(POTR_LOG_ERROR,
-                 "recv_thread[service_id=%d]: CreateThread failed",
-                 ctx->service.service_id);
-        return POTR_ERROR;
-    }
-#else
+#ifndef _WIN32
     {
         int rc = pthread_create(&ctx->recv_thread[0], NULL, recv_thread_func, ctx);
         if (rc != 0)
@@ -2939,7 +2929,17 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
             return POTR_ERROR;
         }
     }
-#endif
+#else /* _WIN32 */
+    ctx->recv_thread[0] = CreateThread(NULL, 0, recv_thread_func, ctx, 0, NULL);
+    if (ctx->recv_thread[0] == NULL)
+    {
+        ctx->running[0] = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "recv_thread[service_id=%d]: CreateThread failed",
+                 ctx->service.service_id);
+        return POTR_ERROR;
+    }
+#endif /* _WIN32 */
 
     return POTR_SUCCESS;
 }
@@ -2960,7 +2960,19 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
 
     ctx->running[0] = 0;
 
-#ifdef _WIN32
+#ifndef _WIN32
+    {
+        int i;
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            if (ctx->sock[i] != POTR_INVALID_SOCKET)
+            {
+                shutdown(ctx->sock[i], SHUT_RD);
+            }
+        }
+        pthread_join(ctx->recv_thread[0], NULL);
+    }
+#else /* _WIN32 */
     {
         int i;
         for (i = 0; i < ctx->n_path; i++)
@@ -2978,19 +2990,7 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
             ctx->recv_thread[0] = NULL;
         }
     }
-#else
-    {
-        int i;
-        for (i = 0; i < ctx->n_path; i++)
-        {
-            if (ctx->sock[i] != POTR_INVALID_SOCKET)
-            {
-                shutdown(ctx->sock[i], SHUT_RD);
-            }
-        }
-        pthread_join(ctx->recv_thread[0], NULL);
-    }
-#endif
+#endif /* _WIN32 */
 
     return POTR_SUCCESS;
 }
@@ -3016,19 +3016,7 @@ int tcp_recv_thread_start(struct PotrContext_ *ctx, int path_idx)
              "tcp_recv_thread[service_id=%d path=%d]: starting",
              ctx->service.service_id, path_idx);
 
-#ifdef _WIN32
-    ctx->recv_thread[path_idx] = CreateThread(NULL, 0,
-                                              tcp_recv_thread_func,
-                                              &s_tcp_recv_args[path_idx], 0, NULL);
-    if (ctx->recv_thread[path_idx] == NULL)
-    {
-        ctx->running[path_idx] = 0;
-        POTR_LOG(POTR_LOG_ERROR,
-                 "tcp_recv_thread[service_id=%d path=%d]: CreateThread failed",
-                 ctx->service.service_id, path_idx);
-        return POTR_ERROR;
-    }
-#else
+#ifndef _WIN32
     {
         int rc = pthread_create(&ctx->recv_thread[path_idx], NULL,
                                 tcp_recv_thread_func,
@@ -3042,7 +3030,19 @@ int tcp_recv_thread_start(struct PotrContext_ *ctx, int path_idx)
             return POTR_ERROR;
         }
     }
-#endif
+#else /* _WIN32 */
+    ctx->recv_thread[path_idx] = CreateThread(NULL, 0,
+                                              tcp_recv_thread_func,
+                                              &s_tcp_recv_args[path_idx], 0, NULL);
+    if (ctx->recv_thread[path_idx] == NULL)
+    {
+        ctx->running[path_idx] = 0;
+        POTR_LOG(POTR_LOG_ERROR,
+                 "tcp_recv_thread[service_id=%d path=%d]: CreateThread failed",
+                 ctx->service.service_id, path_idx);
+        return POTR_ERROR;
+    }
+#endif /* _WIN32 */
 
     return POTR_SUCCESS;
 }
@@ -3063,16 +3063,16 @@ int tcp_recv_thread_stop(struct PotrContext_ *ctx, int path_idx)
 
     ctx->running[path_idx] = 0;
 
-#ifdef _WIN32
+#ifndef _WIN32
+    pthread_join(ctx->recv_thread[path_idx], NULL);
+#else /* _WIN32 */
     if (ctx->recv_thread[path_idx] != NULL)
     {
         WaitForSingleObject(ctx->recv_thread[path_idx], INFINITE);
         CloseHandle(ctx->recv_thread[path_idx]);
         ctx->recv_thread[path_idx] = NULL;
     }
-#else
-    pthread_join(ctx->recv_thread[path_idx], NULL);
-#endif
+#endif /* _WIN32 */
 
     return POTR_SUCCESS;
 }

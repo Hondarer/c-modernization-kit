@@ -13,12 +13,12 @@
 
 #include <stddef.h>
 
-#ifdef _WIN32
-    #include <ws2tcpip.h>
-#else
+#ifndef _WIN32
     #include <netdb.h>
     #include <string.h>
-#endif
+#else /* _WIN32 */
+    #include <ws2tcpip.h>
+#endif /* _WIN32 */
 
 #include <porter_const.h>
 

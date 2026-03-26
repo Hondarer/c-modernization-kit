@@ -43,11 +43,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-    #include <windows.h>
-#else
+#ifndef _WIN32
     #include <unistd.h>
-#endif
+#else /* _WIN32 */
+    #include <windows.h>
+#endif /* _WIN32 */
 
 #include <porter.h>
 
@@ -70,7 +70,7 @@ static void sig_handler(int sig)
     printf("\n終了中...\n");
 #ifndef _WIN32
     close(STDIN_FILENO); /* fgets のブロックを解除する */
-#endif
+#endif /* _WIN32 */
 }
 
 /**

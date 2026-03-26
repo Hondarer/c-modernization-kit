@@ -19,7 +19,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     extern int config_load_global(const char *config_path, PotrGlobalConfig *global);
     extern int config_load_service(const char *config_path, int service_id,
@@ -29,6 +29,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* CONFIG_H */

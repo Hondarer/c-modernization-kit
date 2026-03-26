@@ -24,7 +24,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *  @brief  TCP 接続管理スレッドを起動します。
@@ -41,6 +41,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_CONNECT_THREAD_H */

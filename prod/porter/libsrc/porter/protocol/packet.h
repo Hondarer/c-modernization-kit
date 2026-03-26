@@ -39,7 +39,7 @@ typedef struct
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     extern int    packet_build_nack(PotrPacket *packet,
                                     const PotrPacketSessionHdr *shdr,
@@ -66,6 +66,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* PACKET_H */

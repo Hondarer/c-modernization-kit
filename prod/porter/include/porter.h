@@ -45,7 +45,7 @@
  */
 #define POTR_API
 
-#else /* DOXYGEN */
+#else /* !DOXYGEN */
 
 #ifndef _WIN32
     #define POTR_EXPORT
@@ -55,7 +55,7 @@
         #ifndef POTR_STATIC
             #ifdef POTR_EXPORTS
                 #define POTR_EXPORT __declspec(dllexport)
-            #else /* POTR_EXPORTS */
+            #else /* !POTR_EXPORTS */
                 #define POTR_EXPORT __declspec(dllimport)
             #endif /* POTR_EXPORTS */
         #else      /* POTR_STATIC */
@@ -74,7 +74,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *******************************************************************************
@@ -389,6 +389,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* PORTER_H */

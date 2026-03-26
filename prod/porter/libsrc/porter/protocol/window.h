@@ -41,7 +41,7 @@ typedef struct
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     extern int  window_init(PotrWindow *win, uint32_t initial_seq,
                             uint16_t window_size, uint16_t max_payload);
@@ -58,6 +58,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* WINDOW_H */

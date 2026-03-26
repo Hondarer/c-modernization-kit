@@ -44,7 +44,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
 /**
  *******************************************************************************
@@ -81,6 +81,6 @@ extern int potr_decompress(uint8_t       *dst,
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* COMPRESS_H */

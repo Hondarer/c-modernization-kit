@@ -22,7 +22,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /* 非 TCP 用ヘルスチェックスレッド (単一スレッド) */
     extern int potr_health_thread_start(struct PotrContext_ *ctx);
@@ -34,6 +34,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_HEALTH_THREAD_H */

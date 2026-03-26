@@ -14,15 +14,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-#else
+#ifndef _WIN32
     #include <arpa/inet.h>
     #include <netinet/in.h>
     #include <sys/socket.h>
     #include <unistd.h>
-#endif
+#else /* _WIN32 */
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+#endif /* _WIN32 */
 
 #include <porter_const.h>
 #include <porter.h>
@@ -85,15 +85,15 @@ static void send_fin(struct PotrContext_ *ctx)
         for (i = 0; i < ctx->n_path; i++)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[i], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -103,15 +103,15 @@ static void send_fin(struct PotrContext_ *ctx)
         for (i = 0; i < ctx->n_path; i++)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#ifdef _WIN32
-            sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[i], &fin_pkt, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&ctx->dest_addr[i],
+                   sizeof(ctx->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -147,19 +147,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         }
 
         /* TCP mutex / condvar を解放 */
-#ifdef _WIN32
-        {
-            int i;
-            DeleteCriticalSection(&ctx->tcp_state_mutex);
-            /* Windows の CONDITION_VARIABLE は破棄不要 */
-            for (i = 0; i < (int)POTR_MAX_PATH; i++)
-            {
-                DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
-                DeleteCriticalSection(&ctx->health_mutex[i]);
-            }
-            DeleteCriticalSection(&ctx->recv_window_mutex);
-        }
-#else
+#ifndef _WIN32
         {
             int i;
             pthread_mutex_destroy(&ctx->tcp_state_mutex);
@@ -172,7 +160,19 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
             }
             pthread_mutex_destroy(&ctx->recv_window_mutex);
         }
-#endif
+#else /* _WIN32 */
+        {
+            int i;
+            DeleteCriticalSection(&ctx->tcp_state_mutex);
+            /* Windows の CONDITION_VARIABLE は破棄不要 */
+            for (i = 0; i < (int)POTR_MAX_PATH; i++)
+            {
+                DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
+                DeleteCriticalSection(&ctx->health_mutex[i]);
+            }
+            DeleteCriticalSection(&ctx->recv_window_mutex);
+        }
+#endif /* _WIN32 */
 
         /* 送受信ウィンドウと動的バッファを解放 */
         window_destroy(&ctx->send_window);
@@ -185,7 +185,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
 
 #ifdef _WIN32
         WSACleanup();
-#endif
+#endif /* _WIN32 */
 
         POTR_LOG(POTR_LOG_INFO,
                  "potrCloseService: service closed (TCP)");
@@ -241,21 +241,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         for (i = 0; i < ctx->n_path; i++)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#ifdef _WIN32
-            if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
-            {
-                struct ip_mreq mreq;
-                memset(&mreq, 0, sizeof(mreq));
-                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
-                    == POTR_SUCCESS)
-                {
-                    mreq.imr_interface = ctx->src_addr_resolved[i];
-                    setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP,
-                               (const char *)&mreq, sizeof(mreq));
-                }
-            }
-            closesocket(ctx->sock[i]);
-#else
+#ifndef _WIN32
             if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
             {
                 struct ip_mreq mreq;
@@ -269,14 +255,28 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
                 }
             }
             close(ctx->sock[i]);
-#endif
+#else /* _WIN32 */
+            if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
+            {
+                struct ip_mreq mreq;
+                memset(&mreq, 0, sizeof(mreq));
+                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr)
+                    == POTR_SUCCESS)
+                {
+                    mreq.imr_interface = ctx->src_addr_resolved[i];
+                    setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                               (const char *)&mreq, sizeof(mreq));
+                }
+            }
+            closesocket(ctx->sock[i]);
+#endif /* _WIN32 */
             ctx->sock[i] = POTR_INVALID_SOCKET;
         }
     }
 
 #ifdef _WIN32
     WSACleanup();
-#endif
+#endif /* _WIN32 */
 
     /* 送受信ウィンドウと動的バッファを解放 */
     if (!ctx->is_multi_peer)

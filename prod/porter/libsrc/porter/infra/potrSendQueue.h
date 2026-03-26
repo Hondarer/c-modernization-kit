@@ -27,16 +27,16 @@
 #include <porter_const.h>
 #include <porter_type.h>
 
-#ifdef _WIN32
+#ifndef _WIN32
+    #include <pthread.h>
+    typedef pthread_mutex_t PotrMutex;
+    typedef pthread_cond_t  PotrCondVar;
+#else /* _WIN32 */
     #include <winsock2.h>
     #include <windows.h>
     typedef CRITICAL_SECTION   PotrMutex;
     typedef CONDITION_VARIABLE PotrCondVar;
-#else
-    #include <pthread.h>
-    typedef pthread_mutex_t PotrMutex;
-    typedef pthread_cond_t  PotrCondVar;
-#endif
+#endif /* _WIN32 */
 
 /**
  *  @brief  送信キューの 1 エントリ。ペイロードエレメント 1 個分のデータを保持する。
@@ -86,7 +86,7 @@ typedef struct
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     extern int  potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload);
     extern void potr_send_queue_destroy(PotrSendQueue *q);
@@ -109,6 +109,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_SEND_QUEUE_H */

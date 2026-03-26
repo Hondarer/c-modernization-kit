@@ -19,7 +19,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /* 非 TCP 用受信スレッド (単一スレッド) */
     extern int comm_recv_thread_start(struct PotrContext_ *ctx);
@@ -31,6 +31,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* POTR_RECV_THREAD_H */

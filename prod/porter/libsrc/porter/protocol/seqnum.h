@@ -19,7 +19,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     extern void     seqnum_init(uint32_t *seq, uint32_t initial);
     extern uint32_t seqnum_next(uint32_t *seq);
@@ -28,6 +28,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* SEQNUM_H */

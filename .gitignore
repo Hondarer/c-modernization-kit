@@ -54,5 +54,6 @@ __pycache__/
 ## 成果物
 lib
 bin
+!/bin
 *.exe
 *.pdb

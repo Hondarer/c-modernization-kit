@@ -43,7 +43,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
 /**
  *******************************************************************************
@@ -115,6 +115,6 @@ extern int potr_passphrase_to_key(uint8_t       *key,
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* CRYPTO_H */

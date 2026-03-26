@@ -14,17 +14,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-    #include <windows.h>
-#else
+#ifndef _WIN32
     #include <arpa/inet.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <time.h>
     #include <unistd.h>
-#endif
+#else /* _WIN32 */
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #include <windows.h>
+#endif /* _WIN32 */
 
 #include <porter_const.h>
 #include <porter.h>
@@ -39,18 +39,27 @@
 /* --------------------------------------------------------------------------
  * プラットフォーム別 ミューテックスラッパー
  * -------------------------------------------------------------------------- */
-#ifdef _WIN32
-    #define POTR_MUTEX_INIT(m)    InitializeCriticalSection(m)
-    #define POTR_MUTEX_DESTROY(m) DeleteCriticalSection(m)
-#else
+#ifndef _WIN32
     #define POTR_MUTEX_INIT(m)    pthread_mutex_init((m), NULL)
     #define POTR_MUTEX_DESTROY(m) pthread_mutex_destroy(m)
-#endif
+#else /* _WIN32 */
+    #define POTR_MUTEX_INIT(m)    InitializeCriticalSection(m)
+    #define POTR_MUTEX_DESTROY(m) DeleteCriticalSection(m)
+#endif /* _WIN32 */
 
 /* ピアのセッション識別子・開始時刻を生成して peer に格納する */
 static void peer_generate_session(PotrPeerContext *peer)
 {
-#ifdef _WIN32
+#ifndef _WIN32
+    struct timespec ts;
+
+    srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
+    peer->session_id = (uint32_t)rand();
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+    peer->session_tv_sec  = (int64_t)ts.tv_sec;
+    peer->session_tv_nsec = (int32_t)ts.tv_nsec;
+#else /* _WIN32 */
     FILETIME       ft;
     ULARGE_INTEGER uli;
 
@@ -62,16 +71,7 @@ static void peer_generate_session(PotrPeerContext *peer)
     uli.HighPart = ft.dwHighDateTime;
     peer->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
     peer->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
-#else
-    struct timespec ts;
-
-    srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
-    peer->session_id = (uint32_t)rand();
-
-    clock_gettime(CLOCK_REALTIME, &ts);
-    peer->session_tv_sec  = (int64_t)ts.tv_sec;
-    peer->session_tv_nsec = (int32_t)ts.tv_nsec;
-#endif
+#endif /* _WIN32 */
 }
 
 /* 使用中でない peer_id を単調増加カウンタから生成する (peers_mutex 取得済みの文脈で呼ぶ) */
@@ -159,15 +159,15 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         for (i = 0; i < peer->n_paths; i++)
         {
             if (ctx->sock[0] == POTR_INVALID_SOCKET) continue;
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[i],
-                   sizeof(peer->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[i],
+                   sizeof(peer->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
     else
@@ -180,15 +180,15 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
             {
                 continue;
             }
-#ifdef _WIN32
-            sendto(ctx->sock[0], (const char *)&fin_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[i],
-                   sizeof(peer->dest_addr[i]));
-#else
+#ifndef _WIN32
             sendto(ctx->sock[0], &fin_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
-#endif
+#else /* _WIN32 */
+            sendto(ctx->sock[0], (const char *)&fin_pkt, (int)wire_len, 0,
+                   (const struct sockaddr *)&peer->dest_addr[i],
+                   sizeof(peer->dest_addr[i]));
+#endif /* _WIN32 */
         }
     }
 }
@@ -313,13 +313,8 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
     /* max_peers 超過チェック */
     if (ctx->n_peers >= ctx->max_peers)
     {
-#ifdef _WIN32
         char ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &sender_addr->sin_addr, ip_str, sizeof(ip_str));
-#else
-        char ip_str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &sender_addr->sin_addr, ip_str, sizeof(ip_str));
-#endif
         POTR_LOG(POTR_LOG_ERROR,
                  "peer_create: service_id=%d max_peers=%d reached, "
                  "rejecting new connection from %s:%u",

@@ -45,14 +45,14 @@ static FILE *open_config_file_read(const char *path)
         return NULL;
     }
 
-#ifdef _WIN32
+#ifndef _WIN32
+    fp = fopen(path, "r");
+#else /* _WIN32 */
     if (fopen_s(&fp, path, "r") != 0)
     {
         return NULL;
     }
-#else
-    fp = fopen(path, "r");
-#endif
+#endif /* _WIN32 */
 
     return fp;
 }

@@ -14,13 +14,13 @@
 #ifndef POTR_IP_ADDR_H
 #define POTR_IP_ADDR_H
 
-#ifdef _WIN32
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-#else
+#ifndef _WIN32
     #include <arpa/inet.h>
     #include <netinet/in.h>
-#endif
+#else /* _WIN32 */
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+#endif /* _WIN32 */
 
 int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr);
 

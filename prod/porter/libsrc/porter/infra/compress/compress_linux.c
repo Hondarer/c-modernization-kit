@@ -116,6 +116,6 @@ int potr_decompress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t sr
     return 0;
 }
 
-#else
+#else /* _WIN32 */
     #pragma warning(disable : 4206)
-#endif /* !_WIN32 */
+#endif /* _WIN32 */

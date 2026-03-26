@@ -378,6 +378,6 @@ void run_prefork_server(int port, int num_workers, int conns_per_worker) {
     printf("[親プロセス] 終了\n");
 }
 
-#else
+#else /* _WIN32 */
     #pragma warning(disable : 4206)
-#endif /* !_WIN32 */
+#endif /* _WIN32 */
