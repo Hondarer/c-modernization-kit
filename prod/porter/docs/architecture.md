@@ -654,12 +654,26 @@ N:1 モード（`max_peers > 1`）では `n_path = 1` に固定。
 
 ---
 
-## RECEIVER 接続元フィルタ（TCP）
+## RECEIVER 接続元フィルタ・セッション識別（TCP）
 
-`receiver_accept_loop()` にて `accept()` 直後に接続元アドレスを検証する。
+`receiver_accept_loop()` にて `accept()` 直後に以下の 2 段階検証を行う。
+
+**① 接続元アドレスフィルタ**
 
 - RECEIVER が listen するアドレス: `dst_addr[i]`（SENDER から見た接続先）
 - `src_addr[i]`: listen アドレスではなく、accept 後の **接続元 IP フィルタ**
 - `src_port`: accept 後の **接続元ポートフィルタ**
 
 不一致の場合は即座に `close()` して棄却し、次の `accept()` に戻る。
+
+**② セッション識別（先読みパケットによる UDP との対称化）**
+
+アドレスフィルタ通過後、`tcp_read_first_packet()` で最初のアプリケーションパケットをタイムアウト付きで受信し、パケット内の session triplet (`session_id`, `session_tv_sec`, `session_tv_nsec`) を取得する。`session_establish_mutex` を取得した上で `tcp_session_compare()` を呼び、3 種類に分類して処理する。
+
+| 分類 | 意味 | 処置 |
+|---|---|---|
+| `TCP_SESSION_NEW` | 新セッション（または初回接続） | 全アクティブパスを切断し `reset_connection_state()` を呼ぶ。その後 recv スレッドを起動する。 |
+| `TCP_SESSION_SAME` | 既存セッションの追加パス | `reset_connection_state()` は呼ばずに recv スレッドを起動する。 |
+| `TCP_SESSION_OLD` | 期限切れセッション | `close()` して棄却し次の `accept()` に戻る。 |
+
+先読みしたパケットは `tcp_first_pkt_buf[path_idx]` に格納され、recv スレッドがループ開始時に優先的に処理する。これにより、UDP の `recvfrom()` が原子的に行うデータ受信・送信元識別・セッション識別を、TCP でもセッション層レベルで対称に実現する。

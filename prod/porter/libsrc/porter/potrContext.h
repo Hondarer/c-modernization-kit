@@ -268,6 +268,19 @@ struct PotrContext_
 
     /* 送信バッファ満杯ログ抑制 (TCP v2 送信スレッド用) */
     int                buf_full_suppress_cnt[POTR_MAX_PATH];     /**< path ごとの送信バッファ満杯ログ抑制カウンタ (0: 抑制なし、1-10: 抑制中)。 */
+
+    /* TCP セッション確立排他制御 (RECEIVER TCP のみ使用)。
+     * 複数 path の accept スレッドが並行して session_id 判定を行う際の競合を防ぐ。
+     * potr_connect_thread_start で初期化、potr_connect_thread_stop で破棄する。 */
+    PotrMutex          session_establish_mutex;
+
+    /* TCP 先読みバッファ (path ごと)。
+     * accept スレッドが session 判定のために読み取った最初の 1 パケット分のバイト列を
+     * recv スレッドに引き渡す。accept スレッドが書き込み後に recv スレッドを起動するため
+     * 書き込み→起動→読み出しの順序が保証され、mutex は不要。
+     * recv スレッドは起動直後に先読みパケットを処理し tcp_first_pkt_len[i] を 0 に戻す。 */
+    uint8_t           *tcp_first_pkt_buf[POTR_MAX_PATH]; /**< 先読みパケットバッファ (動的確保、PACKET_HEADER_SIZE + max_payload バイト)。 */
+    size_t             tcp_first_pkt_len[POTR_MAX_PATH];  /**< 先読みパケットのバイト数 (0: 先読みなし)。 */
 };
 
 #endif /* POTR_CONTEXT_H */

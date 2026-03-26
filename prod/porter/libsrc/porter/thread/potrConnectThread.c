@@ -17,10 +17,12 @@
  *******************************************************************************
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef _WIN32
     #include <sys/socket.h>
+    #include <sys/select.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
@@ -35,6 +37,7 @@
 #include <porter_const.h>
 
 #include "../potrContext.h"
+#include "../protocol/packet.h"
 #include "../infra/potrSendQueue.h"
 #include "../protocol/window.h"
 #include "../infra/potrLog.h"
@@ -111,6 +114,124 @@ static void reconnect_wait(struct PotrContext_ *ctx, int path_idx, uint32_t wait
     }
     LeaveCriticalSection(&ctx->tcp_state_mutex);
 #endif /* _WIN32 */
+}
+
+/* ================================================================
+ * TCP セッション識別ヘルパー (accept スレッド専用)
+ * ================================================================ */
+
+/* TCP ソケットから正確に n バイト読み取る。
+ * accept スレッド専用。potrRecvThread.c の tcp_read_all と同一実装。
+ * 戻り値: 1 = 成功、0 = 切断 (recv が 0)、-1 = エラー。 */
+static int accept_tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
+{
+    size_t received = 0;
+    while (received < n)
+    {
+        int r;
+#ifndef _WIN32
+        r = (int)recv(fd, (char *)(buf + received), n - received, 0);
+        if (r < 0) return -1;
+        if (r == 0) return 0;
+#else /* _WIN32 */
+        r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
+        if (r == SOCKET_ERROR) return -1;
+        if (r == 0)            return 0;
+#endif /* _WIN32 */
+        received += (size_t)r;
+    }
+    return 1;
+}
+
+/* TCP ソケットが読み取り可能になるまで最大 wait_ms ミリ秒待機する。
+ * accept スレッド専用。potrRecvThread.c の tcp_wait_readable と同一実装。
+ * 戻り値: 1 = データあり、0 = タイムアウト、-1 = エラー。 */
+static int accept_tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
+{
+    int ret;
+#ifndef _WIN32
+    fd_set         rfds;
+    struct timeval tv;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec  = (time_t)(wait_ms / 1000U);
+    tv.tv_usec = (suseconds_t)((wait_ms % 1000U) * 1000U);
+    ret = select(fd + 1, &rfds, NULL, NULL, &tv);
+    if (ret < 0 && errno == EINTR) return 0;
+    if (ret < 0) return -1;
+#else /* _WIN32 */
+    fd_set         rfds;
+    struct timeval tv;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec  = (long)(wait_ms / 1000U);
+    tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
+    ret = select(0, &rfds, NULL, NULL, &tv);
+    if (ret == SOCKET_ERROR) return -1;
+#endif /* _WIN32 */
+    return (ret > 0) ? 1 : 0;
+}
+
+/* accept 直後の TCP ソケットから 1 パケット分を buf に読み取る。
+ * buf は PACKET_HEADER_SIZE + max_payload バイト以上確保されていること。
+ * 戻り値: 1 = 成功 (*out_len にバイト数を格納)、0 = タイムアウト、-1 = EOF/エラー/不正。 */
+static int tcp_read_first_packet(PotrSocket fd, uint8_t *buf, size_t max_buf,
+                                  size_t *out_len, uint32_t timeout_ms)
+{
+    int      ready;
+    uint16_t wire_payload_len;
+    int      r;
+
+    /* タイムアウト付き待機 */
+    ready = accept_tcp_wait_readable(fd, timeout_ms);
+    if (ready == 0) return 0;  /* タイムアウト */
+    if (ready < 0)  return -1; /* エラー */
+
+    /* ヘッダー 32B 読み取り */
+    r = accept_tcp_read_all(fd, buf, PACKET_HEADER_SIZE);
+    if (r <= 0) return -1;
+
+    /* ペイロード長を NBO で取得 (offset 30) */
+    {
+        uint16_t wpl;
+        memcpy(&wpl, buf + 30, sizeof(wpl));
+        wire_payload_len = ntohs(wpl);
+    }
+
+    /* ペイロード長バリデーション */
+    if (PACKET_HEADER_SIZE + (size_t)wire_payload_len > max_buf) return -1;
+
+    /* ペイロード読み取り */
+    if (wire_payload_len > 0)
+    {
+        r = accept_tcp_read_all(fd, buf + PACKET_HEADER_SIZE, (size_t)wire_payload_len);
+        if (r <= 0) return -1;
+    }
+
+    *out_len = PACKET_HEADER_SIZE + (size_t)wire_payload_len;
+    return 1;
+}
+
+/* session triplet 比較の戻り値 */
+#define TCP_SESSION_NEW   ( 1)  /* 新セッション (または初回接続) */
+#define TCP_SESSION_SAME  ( 0)  /* 同一セッション                 */
+#define TCP_SESSION_OLD   (-1)  /* 旧セッション (破棄すべき)      */
+
+/* ctx に記録されている相手セッションと pkt のセッション triplet を比較する。
+ * peer_session_known == 0 の場合は TCP_SESSION_NEW を返す。
+ * 呼び出し前提: session_establish_mutex を取得済みであること。 */
+static int tcp_session_compare(const struct PotrContext_ *ctx,
+                                const PotrPacket          *pkt)
+{
+    if (!ctx->peer_session_known) return TCP_SESSION_NEW;
+
+    if      (pkt->session_tv_sec  > ctx->peer_session_tv_sec)  return TCP_SESSION_NEW;
+    else if (pkt->session_tv_sec  < ctx->peer_session_tv_sec)  return TCP_SESSION_OLD;
+    else if (pkt->session_tv_nsec > ctx->peer_session_tv_nsec) return TCP_SESSION_NEW;
+    else if (pkt->session_tv_nsec < ctx->peer_session_tv_nsec) return TCP_SESSION_OLD;
+    else if (pkt->session_id      > ctx->peer_session_id)      return TCP_SESSION_NEW;
+    else if (pkt->session_id      < ctx->peer_session_id)      return TCP_SESSION_OLD;
+    return TCP_SESSION_SAME;
 }
 
 /* recv スレッド [path_idx] の自然終了を待機してハンドルを解放する。
@@ -646,11 +767,27 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
     }
 }
 
-/* RECEIVER 用 accept ループ (path ごと) */
+/* RECEIVER 用 accept ループ (path ごと)
+ *
+ * [セッション層対称化]
+ * accept() 直後に最初の 1 パケットを先読みし session_id を取得する。
+ * session_establish_mutex 下で ctx の既知セッションと比較し、以下の 3 ケースを判別する。
+ *   TCP_SESSION_NEW  : 新セッション (初回 or SENDER 再起動)
+ *                      → 他 path の既存接続に切断シグナルを送ってから新規セッションを開始する。
+ *   TCP_SESSION_SAME : 同一セッションの追加パス (マルチパス)
+ *                      → reset_connection_state() を呼ばずにパスを追加する。
+ *   TCP_SESSION_OLD  : 旧セッション (再送や遅延パケット等)
+ *                      → コネクションを閉じてループ先頭へ戻る。
+ * 先読みパケットは tcp_first_pkt_buf/len に保存し、recv スレッドが起動直後に処理する。 */
 static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
 {
     int is_bidir     = (ctx->service.type == POTR_TYPE_TCP_BIDIR);
     int is_reconnect = 0;
+
+    /* 先読みタイムアウト: TCP ヘルスタイムアウトの 3 倍、未設定時は 30 秒 */
+    uint32_t first_pkt_timeout_ms = (ctx->global.tcp_health_timeout_ms > 0U)
+                                    ? ctx->global.tcp_health_timeout_ms * 3U
+                                    : 30000U;
 
     while (ctx->connect_thread_running[path_idx])
     {
@@ -659,6 +796,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         socklen_t          peer_len = (socklen_t)sizeof(peer_addr);
         int                active_count;
         char               peer_addr_str[INET_ADDRSTRLEN];
+        int                session_result;
 
         conn = accept(ctx->tcp_listen_sock[path_idx],
                       (struct sockaddr *)&peer_addr, &peer_len);
@@ -716,9 +854,107 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                  peer_addr_str,
                  (unsigned)ntohs(peer_addr.sin_port));
 
-        ctx->tcp_conn_fd[path_idx]               = conn;
-        ctx->tcp_last_ping_recv_ms[path_idx]     = connect_get_ms();
-        ctx->tcp_last_ping_req_recv_ms[path_idx] = connect_get_ms();
+        /* ── セッション判定: 最初の 1 パケットを先読みして session_id を取得する ── */
+        {
+            PotrPacket pkt;
+            size_t     pkt_len = 0;
+            int        r;
+
+            r = tcp_read_first_packet(conn,
+                                      ctx->tcp_first_pkt_buf[path_idx],
+                                      PACKET_HEADER_SIZE + ctx->global.max_payload,
+                                      &pkt_len,
+                                      first_pkt_timeout_ms);
+            if (r <= 0)
+            {
+                /* タイムアウトまたは EOF/エラー */
+                POTR_LOG(POTR_LOG_WARN,
+                         "connect_thread[service_id=%d path=%d]: "
+                         "first packet read failed (r=%d), closing",
+                         ctx->service.service_id, path_idx, r);
+#ifndef _WIN32
+                close(conn);
+#else /* _WIN32 */
+                closesocket(conn);
+#endif /* _WIN32 */
+                continue;
+            }
+
+            if (packet_parse(&pkt, ctx->tcp_first_pkt_buf[path_idx], pkt_len)
+                != POTR_SUCCESS)
+            {
+                POTR_LOG(POTR_LOG_WARN,
+                         "connect_thread[service_id=%d path=%d]: "
+                         "first packet parse failed, closing",
+                         ctx->service.service_id, path_idx);
+#ifndef _WIN32
+                close(conn);
+#else /* _WIN32 */
+                closesocket(conn);
+#endif /* _WIN32 */
+                continue;
+            }
+
+            /* session_establish_mutex 下でセッション判定と状態更新を行う */
+#ifndef _WIN32
+            pthread_mutex_lock(&ctx->session_establish_mutex);
+#else /* _WIN32 */
+            EnterCriticalSection(&ctx->session_establish_mutex);
+#endif /* _WIN32 */
+
+            session_result = tcp_session_compare(ctx, &pkt);
+
+            if (session_result == TCP_SESSION_OLD)
+            {
+                /* 旧セッション: 拒否 */
+#ifndef _WIN32
+                pthread_mutex_unlock(&ctx->session_establish_mutex);
+#else /* _WIN32 */
+                LeaveCriticalSection(&ctx->session_establish_mutex);
+#endif /* _WIN32 */
+                POTR_LOG(POTR_LOG_INFO,
+                         "connect_thread[service_id=%d path=%d]: "
+                         "old session rejected (known_id=%u pkt_id=%u)",
+                         ctx->service.service_id, path_idx,
+                         ctx->peer_session_id, pkt.session_id);
+#ifndef _WIN32
+                close(conn);
+#else /* _WIN32 */
+                closesocket(conn);
+#endif /* _WIN32 */
+                continue;
+            }
+
+            if (session_result == TCP_SESSION_NEW)
+            {
+                /* 新セッション: 他 path の既存接続に切断シグナルを送る。
+                 * cleanup は各 path の accept スレッドが自然に行う。 */
+                int k;
+                for (k = 0; k < ctx->n_path; k++)
+                {
+                    if (k == path_idx) continue;
+                    if (ctx->tcp_conn_fd[k] != POTR_INVALID_SOCKET)
+                    {
+                        ctx->running[k] = 0;
+                        close_tcp_conn(ctx, k); /* recv ブロックを解除 */
+                    }
+                }
+                reset_connection_state(ctx); /* peer_session_known = 0, frag_buf_len = 0 */
+            }
+            /* TCP_SESSION_SAME の場合は reset 不要 (セッション継続) */
+
+            ctx->tcp_conn_fd[path_idx]               = conn;
+            ctx->tcp_last_ping_recv_ms[path_idx]     = connect_get_ms();
+            ctx->tcp_last_ping_req_recv_ms[path_idx] = connect_get_ms();
+            ctx->tcp_first_pkt_len[path_idx]         = pkt_len; /* 先読みバッファ有効化 */
+
+#ifndef _WIN32
+            pthread_mutex_unlock(&ctx->session_establish_mutex);
+#else /* _WIN32 */
+            LeaveCriticalSection(&ctx->session_establish_mutex);
+#endif /* _WIN32 */
+        }
+        /* ── セッション判定ここまで ── */
 
         /* tcp_active_paths カウンタをインクリメント (tcp_state_mutex 保護) */
 #ifndef _WIN32
@@ -732,10 +968,8 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
 #endif /* _WIN32 */
         (void)active_count; /* CONNECTED イベントは recv スレッドが最初のパケット受信時に発火 */
 
-        reset_connection_state(ctx);
-
-        /* TCP_BIDIR 再接続時 (path[0] のみ): shutdown 済みのキューをリセット */
-        if (is_bidir && is_reconnect && path_idx == 0)
+        /* TCP_BIDIR 新セッション再接続時 (path[0] のみ): shutdown 済みのキューをリセット */
+        if (is_bidir && session_result == TCP_SESSION_NEW && is_reconnect && path_idx == 0)
         {
             reset_send_queue(ctx);
         }
@@ -755,6 +989,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             {
                 reset_all_paths_disconnected(ctx);
             }
+            ctx->tcp_first_pkt_len[path_idx] = 0; /* 先読みバッファを無効化 */
             close_tcp_conn(ctx, path_idx);
             is_reconnect = 1;
             continue;
@@ -768,6 +1003,9 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                  ctx->service.service_id, path_idx);
 
         stop_connected_threads(ctx, path_idx);
+
+        /* 先読みバッファをクリア (recv スレッドが未処理のまま終了した場合の安全策) */
+        ctx->tcp_first_pkt_len[path_idx] = 0;
 
         /* tcp_active_paths カウンタをデクリメント (tcp_state_mutex 保護) */
 #ifndef _WIN32
@@ -854,6 +1092,43 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
     POTR_LOG(POTR_LOG_DEBUG,
              "connect_thread[service_id=%d]: starting %d path(s)",
              ctx->service.service_id, ctx->n_path);
+
+    /* RECEIVER: session_establish_mutex と先読みバッファを初期化する */
+    if (ctx->role == POTR_ROLE_RECEIVER)
+    {
+#ifndef _WIN32
+        pthread_mutex_init(&ctx->session_establish_mutex, NULL);
+#else /* _WIN32 */
+        InitializeCriticalSection(&ctx->session_establish_mutex);
+#endif /* _WIN32 */
+
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            ctx->tcp_first_pkt_len[i] = 0;
+            ctx->tcp_first_pkt_buf[i] = (uint8_t *)malloc(
+                PACKET_HEADER_SIZE + ctx->global.max_payload);
+            if (ctx->tcp_first_pkt_buf[i] == NULL)
+            {
+                int j;
+                POTR_LOG(POTR_LOG_ERROR,
+                         "connect_thread[service_id=%d]: "
+                         "tcp_first_pkt_buf[%d] malloc failed",
+                         ctx->service.service_id, i);
+                /* 確保済み分を解放 */
+                for (j = 0; j < i; j++)
+                {
+                    free(ctx->tcp_first_pkt_buf[j]);
+                    ctx->tcp_first_pkt_buf[j] = NULL;
+                }
+#ifndef _WIN32
+                pthread_mutex_destroy(&ctx->session_establish_mutex);
+#else /* _WIN32 */
+                DeleteCriticalSection(&ctx->session_establish_mutex);
+#endif /* _WIN32 */
+                return POTR_ERROR;
+            }
+        }
+    }
 
     for (i = 0; i < ctx->n_path; i++)
     {
@@ -982,6 +1257,25 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
 
     /* 6. 送信スレッドを停止する (全 path join 後) */
     potr_send_thread_stop(ctx);
+
+    /* 7. RECEIVER: session_establish_mutex と先読みバッファを破棄する */
+    if (ctx->role == POTR_ROLE_RECEIVER)
+    {
+        for (i = 0; i < ctx->n_path; i++)
+        {
+            ctx->tcp_first_pkt_len[i] = 0;
+            if (ctx->tcp_first_pkt_buf[i] != NULL)
+            {
+                free(ctx->tcp_first_pkt_buf[i]);
+                ctx->tcp_first_pkt_buf[i] = NULL;
+            }
+        }
+#ifndef _WIN32
+        pthread_mutex_destroy(&ctx->session_establish_mutex);
+#else /* _WIN32 */
+        DeleteCriticalSection(&ctx->session_establish_mutex);
+#endif /* _WIN32 */
+    }
 
     POTR_LOG(POTR_LOG_DEBUG,
              "connect_thread[service_id=%d]: all paths stopped",

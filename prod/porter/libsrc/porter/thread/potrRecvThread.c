@@ -2732,6 +2732,24 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             break;
         }
 
+        /* ── 先読みバッファ処理 ──
+         * accept スレッドが session 判定のために読み取ったパケットが残っている場合、
+         * ソケットからの読み取りをスキップしてバッファの内容をそのまま使用する。
+         * accept スレッドは recv スレッド起動前に書き込みを完了しているため mutex 不要。 */
+        if (ctx->tcp_first_pkt_len[path_idx] > 0)
+        {
+            /* accept スレッドの先読みバッファを recv バッファにコピーする */
+            size_t first_len = ctx->tcp_first_pkt_len[path_idx];
+            memcpy(buf, ctx->tcp_first_pkt_buf[path_idx], first_len);
+            ctx->tcp_first_pkt_len[path_idx] = 0; /* 先読みバッファをクリア */
+            {
+                uint16_t wpl;
+                memcpy(&wpl, buf + 30, sizeof(wpl));
+                wire_payload_len = ntohs(wpl);
+            }
+        }
+        else
+        {
         /* RECEIVER: タイムアウト付きポーリングで PING 要求到着を監視する。
          * データが届くまで poll_ms 待機し、タイムアウト時は PING 到着時刻を確認する。 */
         if (use_ping_timeout)
@@ -2793,6 +2811,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                 break;
             }
         }
+        } /* else (先読みバッファなし) ここまで */
 
         /* 5. パケット解析 */
         if (packet_parse(&pkt, buf,
