@@ -156,15 +156,16 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         }
         wire_len = PACKET_HEADER_SIZE + enc_out;
 
-        for (i = 0; i < peer->n_paths; i++)
+        for (i = 0; i < (int)POTR_MAX_PATH; i++)
         {
-            if (ctx->sock[0] == POTR_INVALID_SOCKET) continue;
+            if (peer->dest_addr[i].sin_family == 0) continue;
+            if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+            sendto(ctx->sock[i], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
 #endif /* _WIN32 */
@@ -174,18 +175,16 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
     {
         wire_len = packet_wire_size(&fin_pkt);
 
-        for (i = 0; i < peer->n_paths; i++)
+        for (i = 0; i < (int)POTR_MAX_PATH; i++)
         {
-            if (ctx->sock[0] == POTR_INVALID_SOCKET)
-            {
-                continue;
-            }
+            if (peer->dest_addr[i].sin_family == 0) continue;
+            if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], &fin_pkt, wire_len, 0,
+            sendto(ctx->sock[i], &fin_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)&fin_pkt, (int)wire_len, 0,
+            sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
 #endif /* _WIN32 */
@@ -305,7 +304,8 @@ PotrPeerContext *peer_find_by_id(struct PotrContext_ *ctx, PotrPeerId peer_id)
 
 /* doxygen コメントは、ヘッダに記載 */
 PotrPeerContext *peer_create(struct PotrContext_       *ctx,
-                              const struct sockaddr_in *sender_addr)
+                              const struct sockaddr_in *sender_addr,
+                              int                       path_idx)
 {
     int              i;
     PotrPeerContext *peer = NULL;
@@ -391,9 +391,10 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
     peer->frag_buf_len    = 0;
     peer->frag_compressed = 0;
 
-    /* 送信元アドレスを最初のパスとして記録 */
-    peer->dest_addr[0] = *sender_addr;
-    peer->n_paths      = 1;
+    /* 送信元アドレスを最初のパスとして記録 (インデックス = path_idx = ctx->sock[] の添字) */
+    peer->dest_addr[path_idx]           = *sender_addr;
+    peer->path_last_recv_sec[path_idx]  = 0; /* n1_update_path_recv() で更新される */
+    peer->n_paths                       = 1;
 
     ctx->n_peers++;
 
@@ -402,6 +403,24 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
              ctx->service.service_id, (unsigned)peer->peer_id, ctx->n_peers);
 
     return peer;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void peer_path_clear(struct PotrContext_ *ctx, PotrPeerContext *peer, int path_idx)
+{
+    if (peer->dest_addr[path_idx].sin_family == 0)
+    {
+        return; /* 既に未使用スロット */
+    }
+
+    POTR_LOG(POTR_LOG_WARN,
+             "peer_path_clear: service_id=%d peer=%u path %d cleared",
+             ctx->service.service_id, (unsigned)peer->peer_id, path_idx);
+
+    memset(&peer->dest_addr[path_idx], 0, sizeof(peer->dest_addr[path_idx]));
+    peer->path_last_recv_sec[path_idx]  = 0;
+    peer->path_last_recv_nsec[path_idx] = 0;
+    peer->n_paths--;
 }
 
 /* doxygen コメントは、ヘッダに記載 */

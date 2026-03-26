@@ -112,14 +112,15 @@ static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
         }
         wire_len = PACKET_HEADER_SIZE + enc_out;
 
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+            sendto(ctx->sock[k], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */
@@ -128,14 +129,15 @@ static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
     else
     {
         wire_len = packet_wire_size(&nack_pkt);
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], &nack_pkt, wire_len, 0,
+            sendto(ctx->sock[k], &nack_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)&nack_pkt, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)&nack_pkt, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */
@@ -184,14 +186,15 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
         }
         wire_len = PACKET_HEADER_SIZE + enc_out;
 
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+            sendto(ctx->sock[k], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */
@@ -200,14 +203,15 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
     else
     {
         wire_len = packet_wire_size(&reject_pkt);
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], &reject_pkt, wire_len, 0,
+            sendto(ctx->sock[k], &reject_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)&reject_pkt, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)&reject_pkt, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */
@@ -274,14 +278,15 @@ static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
         }
         wire_len = PACKET_HEADER_SIZE + enc_out;
 
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], wire_buf, wire_len, 0,
+            sendto(ctx->sock[k], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */
@@ -290,14 +295,15 @@ static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
     else
     {
         wire_len = packet_wire_size(&reply_pkt);
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], &reply_pkt, wire_len, 0,
+            sendto(ctx->sock[k], &reply_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)&reply_pkt, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)&reply_pkt, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */
@@ -549,9 +555,10 @@ static int n1_check_and_update_session(struct PotrContext_ *ctx,
     return 1;
 }
 
-/* N:1: 最終受信時刻を更新する */
-static void n1_update_path_recv(PotrPeerContext *peer,
-                                 const struct sockaddr_in *sender_addr)
+/* N:1: パスごとの最終受信時刻を更新し、未知のパスを学習する */
+static void n1_update_path_recv(PotrPeerContext          *peer,
+                                 const struct sockaddr_in *sender_addr,
+                                 int                       path_idx)
 {
 #ifndef _WIN32
     struct timespec ts;
@@ -572,12 +579,24 @@ static void n1_update_path_recv(PotrPeerContext *peer,
     peer->last_recv_tv_sec  = s;
     peer->last_recv_tv_nsec = ns;
 
-    /* dest_addr[0] を受信元アドレスで更新 (ポート学習) */
-    if (peer->n_paths > 0)
+    if (peer->dest_addr[path_idx].sin_family == AF_INET)
     {
-        peer->dest_addr[0].sin_port = sender_addr->sin_port;
+        /* 既知パス: ポートと最終受信時刻を更新 */
+        peer->dest_addr[path_idx].sin_port   = sender_addr->sin_port;
+        peer->path_last_recv_sec[path_idx]   = s;
+        peer->path_last_recv_nsec[path_idx]  = ns;
     }
-    (void)sender_addr;
+    else
+    {
+        /* 新規パス: インデックス path_idx のスロットに直接記録 */
+        peer->dest_addr[path_idx]            = *sender_addr;
+        peer->path_last_recv_sec[path_idx]   = s;
+        peer->path_last_recv_nsec[path_idx]  = ns;
+        peer->n_paths++;
+        POTR_LOG(POTR_LOG_INFO,
+                 "n1_update_path_recv: peer=%u path %d learned",
+                 (unsigned)peer->peer_id, path_idx);
+    }
 }
 
 /* N:1: select() タイムアウト時にヘルスタイムアウトを確認する */
@@ -599,6 +618,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
     now_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
 #endif /* _WIN32 */
     int i;
+    int k;
 
     if (ctx->global.health_timeout_ms == 0) return;
 
@@ -610,6 +630,25 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
 
         if (!ctx->peers[i].active) continue;
         if (!ctx->peers[i].health_alive) continue;
+
+        /* パス単位のタイムアウト: 不通パスを dest_addr から削除する */
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
+        {
+            int64_t path_elapsed;
+
+            if (ctx->peers[i].dest_addr[k].sin_family == 0) continue; /* 未使用 */
+            if (ctx->peers[i].path_last_recv_sec[k]   == 0) continue; /* 初回受信前 */
+
+            path_elapsed = (now_sec  - ctx->peers[i].path_last_recv_sec[k])  * 1000LL
+                         + (now_nsec - ctx->peers[i].path_last_recv_nsec[k]) / 1000000L;
+
+            if (path_elapsed >= (int64_t)ctx->global.health_timeout_ms)
+            {
+                peer_path_clear(ctx, &ctx->peers[i], k);
+            }
+        }
+
+        /* ピア単位のタイムアウト: 全パス消滅、または最終受信から切断判定 */
         if (ctx->peers[i].last_recv_tv_sec == 0) continue;
 
         elapsed_ms = (now_sec  - ctx->peers[i].last_recv_tv_sec)  * 1000LL
@@ -1787,7 +1826,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                     /* 新規ピア: SYN (初回パケット) として扱い、ピアを作成する */
                     if (!(pkt.flags & (POTR_FLAG_FIN | POTR_FLAG_NACK)))
                     {
-                        peer = peer_create(ctx, &sender_addr);
+                        peer = peer_create(ctx, &sender_addr, i);
                         if (peer != NULL)
                         {
                             /* ピアのセッション情報を記録 */
@@ -1954,14 +1993,15 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                                  "recv[service_id=%d]: peer=%u NACK seq=%u -> retransmit",
                                  ctx->service.service_id, (unsigned)peer->peer_id,
                                  (unsigned)pkt.ack_num);
-                        for (j = 0; j < peer->n_paths; j++)
+                        for (j = 0; j < (int)POTR_MAX_PATH; j++)
                         {
+                            if (peer->dest_addr[j].sin_family == 0) continue;
 #ifndef _WIN32
-                            sendto(ctx->sock[0], ctx->recv_buf, wire_len, 0,
+                            sendto(ctx->sock[j], ctx->recv_buf, wire_len, 0,
                                    (const struct sockaddr *)&peer->dest_addr[j],
                                    sizeof(peer->dest_addr[j]));
 #else /* _WIN32 */
-                            sendto(ctx->sock[0], (const char *)ctx->recv_buf,
+                            sendto(ctx->sock[j], (const char *)ctx->recv_buf,
                                    (int)wire_len, 0,
                                    (const struct sockaddr *)&peer->dest_addr[j],
                                    sizeof(peer->dest_addr[j]));
@@ -1989,7 +2029,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                         POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
                         continue;
                     }
-                    n1_update_path_recv(peer, &sender_addr);
+                    n1_update_path_recv(peer, &sender_addr, i);
 
                     if (peer->health_alive && ctx->callback != NULL)
                     {
@@ -2018,7 +2058,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                     continue;
                 }
 
-                n1_update_path_recv(peer, &sender_addr);
+                n1_update_path_recv(peer, &sender_addr, i);
 
                 POTR_LOG(POTR_LOG_TRACE,
                          "recv[service_id=%d]: peer=%u %s seq=%u",

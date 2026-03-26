@@ -139,10 +139,12 @@ typedef struct PotrPeerContext_
     int64_t  reorder_deadline_sec;  /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
     int32_t  reorder_deadline_nsec; /**< タイムアウト期限 ナノ秒部。 */
 
-    /* マルチパス: ピアごとの送信先 (recvfrom で学習) */
-    struct sockaddr_in dest_addr[POTR_MAX_PATH];         /**< 送信先ソケットアドレス。 */
-    int                n_paths;                          /**< 学習済みパス数。 */
-    int64_t            path_last_recv_sec[POTR_MAX_PATH]; /**< パスごとの最終受信時刻 秒部。 */
+    /* マルチパス: ピアごとの送信先 (recvfrom で学習)
+     * インデックスは ctx->sock[] / src_addr[] と直接対応する。
+     * 未使用スロットは dest_addr[k].sin_family == 0 (AF_UNSPEC) で判定する。 */
+    struct sockaddr_in dest_addr[POTR_MAX_PATH];          /**< 送信先ソケットアドレス (インデックス = ctx->sock[] の添字)。未使用スロットは sin_family == 0。 */
+    int                n_paths;                           /**< アクティブパス数。ループ境界には使わず管理カウンタとして使用する。 */
+    int64_t            path_last_recv_sec[POTR_MAX_PATH]; /**< パスごとの最終受信時刻 秒部。未使用スロットは 0。 */
     int32_t            path_last_recv_nsec[POTR_MAX_PATH];/**< パスごとの最終受信時刻 ナノ秒部。 */
 } PotrPeerContext;
 

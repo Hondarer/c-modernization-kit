@@ -469,17 +469,18 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
                  (unsigned)seq, packed_len);
     }
 
-    /* N:1 はソケット 1 本 (sock[0]) でピアの全パスへ送信する */
+    /* N:1 はインデックス = ctx->sock[] の添字として全パスへ送信する */
     {
         int k;
-        for (k = 0; k < peer->n_paths; k++)
+        for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
+            if (peer->dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-            sendto(ctx->sock[0], ctx->send_wire_buf, wire_len, 0,
+            sendto(ctx->sock[k], ctx->send_wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #else /* _WIN32 */
-            sendto(ctx->sock[0], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
+            sendto(ctx->sock[k], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* _WIN32 */

@@ -222,14 +222,15 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                     }
                     wire_len = PACKET_HEADER_SIZE + enc_out;
 
-                    for (k = 0; k < ctx->peers[i].n_paths; k++)
+                    for (k = 0; k < (int)POTR_MAX_PATH; k++)
                     {
+                        if (ctx->peers[i].dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-                        sendto(ctx->sock[0], wire_buf, wire_len, 0,
+                        sendto(ctx->sock[k], wire_buf, wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
 #else /* _WIN32 */
-                        sendto(ctx->sock[0], (const char *)wire_buf, (int)wire_len, 0,
+                        sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
 #endif /* _WIN32 */
@@ -239,14 +240,15 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 {
                     wire_len = packet_wire_size(&ping_pkt);
 
-                    for (k = 0; k < ctx->peers[i].n_paths; k++)
+                    for (k = 0; k < (int)POTR_MAX_PATH; k++)
                     {
+                        if (ctx->peers[i].dest_addr[k].sin_family == 0) continue;
 #ifndef _WIN32
-                        sendto(ctx->sock[0], &ping_pkt, wire_len, 0,
+                        sendto(ctx->sock[k], &ping_pkt, wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
 #else /* _WIN32 */
-                        sendto(ctx->sock[0], (const char *)&ping_pkt, (int)wire_len, 0,
+                        sendto(ctx->sock[k], (const char *)&ping_pkt, (int)wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
 #endif /* _WIN32 */

@@ -100,16 +100,34 @@ extern "C"
      *
      *  @details
      *  空きスロットを確保し、session_id/session_tv を生成してウィンドウを初期化する。\n
-     *  送信元アドレスを dest_addr[0] に記録する。\n
+     *  送信元アドレスを dest_addr[path_idx] に記録し、n_paths を 1 に設定する。\n
+     *  dest_addr[] のインデックスは ctx->sock[] / src_addr[] と直接対応する。\n
+     *  path_last_recv_sec[path_idx] は後続の n1_update_path_recv() 呼び出しで設定される。\n
      *  max_peers 超過時はログエラー後 NULL を返す。\n
      *  呼び出し元は peers_mutex を取得してから呼び出すこと。
      *
      *  @param[in,out]  ctx         セッションコンテキスト。
      *  @param[in]      sender_addr ピアの送信元アドレス (recvfrom で取得したアドレス)。
+     *  @param[in]      path_idx    パケットを受信したサーバソケットのインデックス (ctx->sock[] の添字)。
      *  @return         成功時はピアコンテキストへのポインタ、失敗時は NULL。
      */
     extern PotrPeerContext *peer_create(struct PotrContext_ *ctx,
-                                        const struct sockaddr_in *sender_addr);
+                                        const struct sockaddr_in *sender_addr,
+                                        int path_idx);
+
+    /**
+     *  @brief  ピアの特定パスをクリアしてスロットを未使用に戻す。
+     *
+     *  @details
+     *  dest_addr[path_idx] をゼロクリアし、path_last_recv_sec/nsec をリセット後 n_paths を減算する。\n
+     *  タイムアウト・TCP FIN/RST などパス断の発生源によらず共通して呼び出す。\n
+     *  呼び出し元は peers_mutex を取得してから呼び出すこと。
+     *
+     *  @param[in,out]  ctx         セッションコンテキスト。
+     *  @param[in,out]  peer        対象ピアコンテキスト。
+     *  @param[in]      path_idx    クリアするパスのインデックス (ctx->sock[] の添字)。
+     */
+    extern void peer_path_clear(struct PotrContext_ *ctx, PotrPeerContext *peer, int path_idx);
 
     /**
      *  @brief  ピアリソースを解放してスロットをクリアする。
