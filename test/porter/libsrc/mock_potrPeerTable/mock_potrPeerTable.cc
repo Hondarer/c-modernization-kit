@@ -1,3 +1,6 @@
+#ifdef _WIN32
+    #define _HAS_STD_BYTE 0
+#endif
 #include <testfw.h>
 #include <mock_potrPeerTable.h>
 #include <potrContext.h>
