@@ -41,7 +41,7 @@
     }
 
     rectangle "ステップ5\n自動化・拡張" as P5 #FCE4EC {
-        rectangle "CI/CD\n(GitHub Actions / Pages)" as P5A
+        rectangle "CI/CD\n(GitHub Actions / Pages / Jenkins)" as P5A
         rectangle "開発環境・.NET連携\n(VS Code / WSL / C#)" as P5B
     }
 
