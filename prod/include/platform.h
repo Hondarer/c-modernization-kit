@@ -52,7 +52,7 @@
     #define PLATFORM_UNKNOWN     /**< 未知のプラットフォームの場合に定義されます。 */
     #define PLATFORM_NAME                                                                                              \
         "name" /**< プラットフォーム名の文字列 ("Windows", "Linux", "macOS", "Apple (non-macOS)", "Unknown")。 */
-#else
+#else /* !DOXYGEN */
     #if defined(_WIN32) || defined(_WIN64)
         #define PLATFORM_WINDOWS
         #define PLATFORM_NAME "Windows"
@@ -72,7 +72,7 @@
         #define PLATFORM_UNKNOWN
         #define PLATFORM_NAME "Unknown"
     #endif
-#endif
+#endif /* DOXYGEN */
 
 #ifdef DOXYGEN
     #define ARCH_X64            /**< x86_64 アーキテクチャの場合に定義されます。 */
@@ -81,7 +81,7 @@
     #define ARCH_ARM            /**< ARM (32bit) アーキテクチャの場合に定義されます。 */
     #define ARCH_UNKNOWN        /**< 未知のアーキテクチャの場合に定義されます。 */
     #define ARCH_NAME    "name" /**< アーキテクチャ名の文字列 ("x64", "x86", "ARM64", "ARM", "Unknown")。 */
-#else
+#else /* !DOXYGEN */
     #if defined(__x86_64__) || defined(_M_X64)
         #define ARCH_X64
         #define ARCH_NAME "x64"
@@ -98,6 +98,6 @@
         #define ARCH_UNKNOWN
         #define ARCH_NAME "Unknown"
     #endif
-#endif
+#endif /* DOXYGEN */
 
 #endif /* PLATFORM_H */

@@ -17,7 +17,7 @@
 #include <stdio.h>
 #ifdef _WIN32
     #include <windows.h>
-#endif
+#endif /* _WIN32 */
 
 /**
  *******************************************************************************
@@ -33,7 +33,7 @@ int main(void)
 
 #ifndef _WIN32
     snprintf(configpath, sizeof(configpath), "/tmp/libbase_extdef.txt");
-#else
+#else /* _WIN32 */
     {
         wchar_t tmpw[MAX_PATH] = L"";
         DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
@@ -46,16 +46,16 @@ int main(void)
                 snprintf(configpath, sizeof(configpath), "%slibbase_extdef.txt", tmpu8);
         }
     }
-#endif
+#endif /* _WIN32 */
 
     printf("configpath: %s\n", configpath);
     printf("Processing will be extended if defines.\n");
     printf(" e.g.  echo \"sample_func liboverride override_func\" > \"%s\"\n", configpath);
 #ifndef _WIN32
     printf("       rm \"%s\"\n\n", configpath);
-#else
+#else /* _WIN32 */
     printf("       del \"%s\"\n\n", configpath);
-#endif
+#endif /* _WIN32 */
 
     printf("--- funcman info ---\n");
     rtc = funcman_info_libbase();

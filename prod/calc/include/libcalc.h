@@ -45,7 +45,7 @@
  */
 #define CALC_API
 
-#else /* DOXYGEN */
+#else /* !DOXYGEN */
 
 #ifndef _WIN32
     #define CALC_EXPORT
@@ -55,7 +55,7 @@
         #ifndef CALC_STATIC
             #ifdef CALC_EXPORTS
                 #define CALC_EXPORT __declspec(dllexport)
-            #else /* CALC_EXPORTS */
+            #else /* !CALC_EXPORTS */
                 #define CALC_EXPORT __declspec(dllimport)
             #endif /* CALC_EXPORTS */
         #else      /* CALC_STATIC */
@@ -74,7 +74,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *******************************************************************************
@@ -113,6 +113,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* LIBCALC_H */

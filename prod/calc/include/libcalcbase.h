@@ -22,7 +22,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *******************************************************************************
@@ -129,6 +129,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* LIBCALCBASE_H */

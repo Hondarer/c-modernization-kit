@@ -43,7 +43,7 @@
  */
 #define BASE_EXT_API
 
-#else /* DOXYGEN */
+#else /* !DOXYGEN */
 
 #ifndef _WIN32
     #define BASE_EXT_EXPORT
@@ -53,7 +53,7 @@
         #ifndef BASE_EXT_STATIC
             #ifdef BASE_EXT_EXPORTS
                 #define BASE_EXT_EXPORT __declspec(dllexport)
-            #else /* BASE_EXT_EXPORTS */
+            #else /* !BASE_EXT_EXPORTS */
                 #define BASE_EXT_EXPORT __declspec(dllimport)
             #endif /* BASE_EXT_EXPORTS */
         #else      /* BASE_EXT_STATIC */
@@ -72,7 +72,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *******************************************************************************
@@ -101,6 +101,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* LIBBASE_EXT_H */

@@ -35,9 +35,9 @@ void funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length
 
 #ifndef _WIN32
         dlclose(cache->handle);
-#else
+#else /* _WIN32 */
         FreeLibrary(cache->handle);
-#endif
+#endif /* _WIN32 */
 
         cache->handle = NULL;
         cache->func_ptr = NULL;

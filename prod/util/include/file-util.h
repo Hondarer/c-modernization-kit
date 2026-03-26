@@ -40,7 +40,7 @@ typedef struct _stat64 file_stat_t;
  */
 #define FILE_UTIL_API
 
-#else /* DOXYGEN */
+#else /* !DOXYGEN */
 
 #ifndef _WIN32
     #define FILE_UTIL_EXPORT
@@ -50,7 +50,7 @@ typedef struct _stat64 file_stat_t;
         #ifndef FILE_UTIL_STATIC
             #ifdef FILE_UTIL_EXPORTS
                 #define FILE_UTIL_EXPORT __declspec(dllexport)
-            #else /* FILE_UTIL_EXPORTS */
+            #else /* !FILE_UTIL_EXPORTS */
                 #define FILE_UTIL_EXPORT __declspec(dllimport)
             #endif /* FILE_UTIL_EXPORTS */
         #else      /* FILE_UTIL_STATIC */
@@ -69,7 +69,7 @@ typedef struct _stat64 file_stat_t;
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを開きます。
@@ -118,7 +118,7 @@ extern "C"
     FILE_UTIL_EXPORT FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 4)))
-#endif
+#endif /* __GNUC__ */
         ;
 
     /**
@@ -146,11 +146,11 @@ extern "C"
     FILE_UTIL_EXPORT int FILE_UTIL_API stat_printf(file_stat_t *buf, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 3)))
-#endif
+#endif /* __GNUC__ */
         ;
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* FILE_UTIL_H */

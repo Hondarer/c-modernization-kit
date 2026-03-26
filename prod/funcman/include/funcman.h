@@ -26,8 +26,8 @@
 #ifndef _WIN32
     #ifndef _GNU_SOURCE
         #define _GNU_SOURCE
-    #endif
-#endif
+    #endif /* _GNU_SOURCE */
+#endif /* _WIN32 */
 
 #include <stddef.h>
 
@@ -41,7 +41,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
 /**
  *  @def            MODULE_HANDLE
@@ -193,6 +193,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* FUNCMAN_H */

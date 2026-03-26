@@ -65,7 +65,7 @@ FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *
         *errno_out = errno;
     }
     return fp;
-#else
+#else /* _WIN32 */
     FILE *fp = NULL;
     errno_t err = fopen_s(&fp, filename, modes);
     if (err != 0)
@@ -77,7 +77,7 @@ FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *
         return NULL;
     }
     return fp;
-#endif
+#endif /* _WIN32 */
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
@@ -113,8 +113,8 @@ int FILE_UTIL_API stat_printf(file_stat_t *buf, const char *format, ...)
     /* stat を呼び出してファイル情報を取得 */
 #ifndef _WIN32
     return stat(filename, buf);
-#else
+#else /* _WIN32 */
     /* Windows では _stat64 を使用（file_stat_t は struct _stat64 の typedef） */
     return _stat64(filename, buf);
-#endif
+#endif /* _WIN32 */
 }

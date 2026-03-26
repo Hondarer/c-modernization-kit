@@ -27,7 +27,7 @@
  */
 #define SUBFOLDER_SAMPLE_API
 
-#else /* DOXYGEN */
+#else /* !DOXYGEN */
 
 #ifndef _WIN32
     #define SUBFOLDER_SAMPLE_EXPORT
@@ -37,7 +37,7 @@
         #ifndef SUBFOLDER_SAMPLE_STATIC
             #ifdef SUBFOLDER_SAMPLE_EXPORTS
                 #define SUBFOLDER_SAMPLE_EXPORT __declspec(dllexport)
-            #else /* SUBFOLDER_SAMPLE_EXPORTS */
+            #else /* !SUBFOLDER_SAMPLE_EXPORTS */
                 #define SUBFOLDER_SAMPLE_EXPORT __declspec(dllimport)
             #endif /* SUBFOLDER_SAMPLE_EXPORTS */
         #else      /* SUBFOLDER_SAMPLE_STATIC */
@@ -56,7 +56,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     SUBFOLDER_SAMPLE_EXPORT extern int SUBFOLDER_SAMPLE_API func(void);
     SUBFOLDER_SAMPLE_EXPORT extern int SUBFOLDER_SAMPLE_API func_a(void);
@@ -64,6 +64,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* SUBFOLDER_SAMPLE_H */
