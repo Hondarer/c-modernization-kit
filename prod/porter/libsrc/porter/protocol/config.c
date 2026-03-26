@@ -297,19 +297,7 @@ static void apply_service_kv(const char *key, const char *val,
 {
     if (strcmp(key, "type") == 0)
     {
-        if (strcmp(val, "unicast") == 0)
-        {
-            current->type = POTR_TYPE_UNICAST;
-        }
-        else if (strcmp(val, "multicast") == 0)
-        {
-            current->type = POTR_TYPE_MULTICAST;
-        }
-        else if (strcmp(val, "broadcast") == 0)
-        {
-            current->type = POTR_TYPE_BROADCAST;
-        }
-        else if (strcmp(val, "unicast_raw") == 0)
+        if (strcmp(val, "unicast_raw") == 0)
         {
             current->type = POTR_TYPE_UNICAST_RAW;
         }
@@ -320,6 +308,18 @@ static void apply_service_kv(const char *key, const char *val,
         else if (strcmp(val, "broadcast_raw") == 0)
         {
             current->type = POTR_TYPE_BROADCAST_RAW;
+        }
+        else if (strcmp(val, "unicast") == 0)
+        {
+            current->type = POTR_TYPE_UNICAST;
+        }
+        else if (strcmp(val, "multicast") == 0)
+        {
+            current->type = POTR_TYPE_MULTICAST;
+        }
+        else if (strcmp(val, "broadcast") == 0)
+        {
+            current->type = POTR_TYPE_BROADCAST;
         }
         else if (strcmp(val, "unicast_bidir") == 0)
         {

@@ -41,10 +41,6 @@ typedef uint32_t PotrPeerId;
  */
 typedef enum
 {
-    POTR_TYPE_UNICAST   = 1, /**< 1:1 通信 (UDP ユニキャスト)。 */
-    POTR_TYPE_MULTICAST = 2, /**< 1:N 通信 (UDP マルチキャスト)。 */
-    POTR_TYPE_BROADCAST = 3, /**< 1:N 通信 (UDP ブロードキャスト)。 */
-
     /**
      *  RAW モード (再送なし、ベストエフォート)。\n
      *  受信ウィンドウによる順序整列とセッション管理は有効。\n
@@ -53,12 +49,21 @@ typedef enum
      *  potrSend は常にブロッキング送信。マルチパス対応。\n
      *  PING ヘルスチェックは health_interval_ms / health_timeout_ms の設定に従う。
      */
-    POTR_TYPE_UNICAST_RAW   = 4, /**< 1:1 通信 RAW モード (UDP ユニキャスト)。 */
-    POTR_TYPE_MULTICAST_RAW = 5, /**< 1:N 通信 RAW モード (UDP マルチキャスト)。 */
-    POTR_TYPE_BROADCAST_RAW = 6, /**< 1:N 通信 RAW モード (UDP ブロードキャスト)。 */
+    POTR_TYPE_UNICAST_RAW   = 1, /**< 1:1 通信 RAW モード (UDP ユニキャスト)。 */
+    POTR_TYPE_MULTICAST_RAW = 2, /**< 1:N 通信 RAW モード (UDP マルチキャスト)。 */
+    POTR_TYPE_BROADCAST_RAW = 3, /**< 1:N 通信 RAW モード (UDP ブロードキャスト)。 */
 
-    POTR_TYPE_TCP             = 7, /**< TCP ユニキャスト通信 (単方向: SENDER のみ potrSend 可)。 */
-    POTR_TYPE_TCP_BIDIR       = 8, /**< TCP 双方向通信 (両端が potrSend 可)。 */
+    /**
+     *  再送制御あり UDP モード。\n
+     *  NACK / 再送・スライディングウィンドウによる信頼性・順序保証。\n
+     *  ギャップ検出時は RECEIVER が SENDER に NACK を送信し再送を要求する。\n
+     *  再送不可能な場合は REJECT を送出し POTR_EVENT_DISCONNECTED を発行する。\n
+     *  potrSend は送信ウィンドウに空きがある場合は非同期、満杯の場合はブロッキング。\n
+     *  マルチパス対応。
+     */
+    POTR_TYPE_UNICAST   = 4, /**< 1:1 通信 (UDP ユニキャスト)。 */
+    POTR_TYPE_MULTICAST = 5, /**< 1:N 通信 (UDP マルチキャスト)。 */
+    POTR_TYPE_BROADCAST = 6, /**< 1:N 通信 (UDP ブロードキャスト)。 */
 
     /**
      *  双方向 1:1 通信 (UDP ユニキャスト)。\n
@@ -71,7 +76,7 @@ typedef enum
      *    RECEIVER: 最初の受信パケットから SENDER のアドレスを動的学習する (1:1 通信を維持)。\n
      *  SENDER も callback が必須。
      */
-    POTR_TYPE_UNICAST_BIDIR    = 9, /**< 双方向 1:1 通信 (UDP ユニキャスト)。 */
+    POTR_TYPE_UNICAST_BIDIR    = 7, /**< 双方向 1:1 通信 (UDP ユニキャスト)。 */
 
     /**
      *  N:1 双方向通信 (UDP ユニキャスト)。\n
@@ -80,7 +85,20 @@ typedef enum
      *  max_peers で最大同時接続数を制御 (省略時: 1024)。\n
      *  src_addr は不要。src_port 指定でポートフィルタ付き N:1 になる。
      */
-    POTR_TYPE_UNICAST_BIDIR_N1 = 10, /**< N:1 双方向通信 (UDP ユニキャスト)。 */
+    POTR_TYPE_UNICAST_BIDIR_N1 = 8, /**< N:1 双方向通信 (UDP ユニキャスト)。 */
+
+    /**
+     *  TCP ユニキャスト通信。\n
+     *  TCP 3way handshake による接続確立。SENDER が connect()、RECEIVER が accept()。\n
+     *  NACK / 再送なし (TCP 自体が信頼性・順序を保証)。\n
+     *  スライディングウィンドウなし (TCP のフロー制御に委ねる)。\n
+     *  SENDER 側は reconnect_interval_ms / connect_timeout_ms で再接続挙動を制御。\n
+     *  接続切断時は POTR_EVENT_DISCONNECTED を発行する。
+     */
+    POTR_TYPE_TCP             = 9,  /**< TCP ユニキャスト通信 (単方向: SENDER のみ potrSend 可)。 */
+    POTR_TYPE_TCP_BIDIR       = 10, /**< TCP 双方向通信 (両端が potrSend 可)。 */
+
+    /* POTR_TYPE_TCP_BIDIR_N1 = 11, */ /**< TCP 双方向 N:1 通信 (将来)。 */
 } PotrType;
 
 /**
