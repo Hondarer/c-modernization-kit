@@ -180,7 +180,7 @@ struct AsyncProcess {
     std::condition_variable buf_cv_;
     std::string         stdout_buf_;
     std::string         stderr_buf_;
-    bool                process_done_ = false;
+    bool                process_done_ = false;  // パイプ EOF 検知時に true
 };
 ```
 
@@ -198,6 +198,25 @@ struct AsyncProcess {
      reader_thread_ を起動 (read ループ → buf_cv_.notify_all())
      AsyncProcessHandle を返却
 ```
+
+### ReaderThread の終了シーケンス
+
+ReaderThread は stdout / stderr パイプの両方を `read()` (Linux) / `ReadFile()` (Windows) し、
+戻り値が 0 (EOF) またはエラーになるまでループします。
+プロセスが終了するとカーネルがパイプの書き込み端を自動的に閉じるため、
+読み込み端の `read()` は EOF を返し、スレッドは自然に終了します。
+
+```
+read() → EOF 検知
+  → buf_mutex_ ロック取得
+  → process_done_ = true
+  → buf_cv_.notify_all()   ← waitForOutput() のブロックを解除
+  → スレッド終了
+```
+
+`waitForOutput()` は `buf_cv_.wait()` から覚醒後に `process_done_` を確認し、
+パターンが見つからないまま EOF に達した場合は `std::runtime_error` を送出します。
+これにより、プロセスが予期せず死んだ際にテストが永久ブロックすることを防ぎます。
 
 ### Windows 実装
 
@@ -266,7 +285,8 @@ class PorterConfigBuilder {
         const std::string& host = "127.0.0.1");
 
     /**
-     * /tmp/ 以下に一時ファイルを書き出し、そのパスを返す。
+     * 一時ファイルを書き出し、そのパスを返す。
+     * Linux: /tmp/ 以下。Windows: GetTempPathW() で取得したパス以下。
      * 2 回目以降の呼び出しでは既存ファイルを上書きする。
      */
     std::string build();
@@ -293,6 +313,8 @@ class PorterConfigBuilder {
 class porterSendRecvTest : public Test {
   protected:
     string recv_path, send_path, lib_path;
+    // TearDown でのクリーンアップ用。テスト失敗時もプロセスリークを防ぐ。
+    AsyncProcessHandle recv_h_, send_h_;
 
     void SetUp() override {
         string ws = findWorkspaceRoot();
@@ -306,6 +328,12 @@ class porterSendRecvTest : public Test {
         send_path = ws + "\\prod\\porter\\bin\\send.exe";
         lib_path  = ws + "\\prod\\porter\\lib";
 #endif
+    }
+
+    void TearDown() override {
+        // ASSERT マクロ等でテストが中断された場合でも確実に終了させる。
+        if (send_h_) { killProcess(send_h_); waitProcess(send_h_, 1000); }
+        if (recv_h_) { killProcess(recv_h_); waitProcess(recv_h_, 1000); }
     }
 
     ProcessOptions makeOpts() {
@@ -332,36 +360,34 @@ TEST_F(porterSendRecvTest, send_single_message)
     string config_path = cfg.addUnicastService(10, 19010).build();
 
     // recv を先に起動してリスナー確立を待つ
-    AsyncProcessHandle recv_h =
-        startAsyncProcess(recv_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, recv_h);
-    ASSERT_NO_THROW(waitForOutput(recv_h, "受信待機中", 5000)); // [確認] - recv がリスニング状態になること。
+    recv_h_ = startAsyncProcess(recv_path, {config_path, "10"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000)); // [確認] - recv がリスニング状態になること。
 
     // send を起動して最初のプロンプトを待つ
-    AsyncProcessHandle send_h =
-        startAsyncProcess(send_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, send_h);
-    ASSERT_NO_THROW(waitForOutput(send_h, "メッセージ>", 5000));
+    send_h_ = startAsyncProcess(send_path, {config_path, "10"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 5000));
 
     // Act - 対話入力を順次送り込む
-    ASSERT_TRUE(writeStdin(send_h, "Hello Porter"));
-    ASSERT_NO_THROW(waitForOutput(send_h, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeStdin(send_h_, "Hello Porter"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
 
-    ASSERT_TRUE(writeStdin(send_h, "N")); // 圧縮なし
-    ASSERT_NO_THROW(waitForOutput(send_h, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeStdin(send_h_, "N")); // 圧縮なし
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
 
-    ASSERT_TRUE(writeStdin(send_h, "N")); // 送信終了
+    ASSERT_TRUE(writeStdin(send_h_, "N")); // 送信終了
 
-    int send_exit = waitProcess(send_h, 5000);
+    int send_exit = waitProcess(send_h_, 5000);
 
     // recv を停止して出力を回収する
-    interruptProcess(recv_h);
-    waitProcess(recv_h, 3000);
+    interruptProcess(recv_h_);
+    waitProcess(recv_h_, 3000);
 
     // Assert
     EXPECT_EQ(0, send_exit);                                                      // [確認] - send の終了コードが 0 であること。
-    EXPECT_NE(string::npos, getStdout(recv_h).find("Hello Porter"));              // [確認] - recv が "Hello Porter" を受信していること。
-    EXPECT_NE(string::npos, getStdout(recv_h).find("受信 (12 バイト)"));          // [確認] - 受信バイト数が正しいこと。
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("Hello Porter"));             // [確認] - recv が "Hello Porter" を受信していること。
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("受信 (12 バイト)"));         // [確認] - 受信バイト数が正しいこと。
 }
 
 /* ============================================================
@@ -374,33 +400,31 @@ TEST_F(porterSendRecvTest, send_multiple_messages)
     PorterConfigBuilder cfg;
     string config_path = cfg.addUnicastService(10, 19011).build();
 
-    AsyncProcessHandle recv_h =
-        startAsyncProcess(recv_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, recv_h);
-    ASSERT_NO_THROW(waitForOutput(recv_h, "受信待機中", 5000));
+    recv_h_ = startAsyncProcess(recv_path, {config_path, "10"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
 
-    AsyncProcessHandle send_h =
-        startAsyncProcess(send_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, send_h);
+    send_h_ = startAsyncProcess(send_path, {config_path, "10"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
 
     // Act - msg1 / msg2 / msg3 を連続送信
     const vector<string> messages = {"msg1", "msg2", "msg3"};
     for (size_t i = 0; i < messages.size(); i++) {
-        ASSERT_NO_THROW(waitForOutput(send_h, "メッセージ>", 3000));
-        ASSERT_TRUE(writeStdin(send_h, messages[i]));
-        ASSERT_NO_THROW(waitForOutput(send_h, "圧縮送信しますか", 3000));
-        ASSERT_TRUE(writeStdin(send_h, "N"));
-        ASSERT_NO_THROW(waitForOutput(send_h, "続けて送信しますか", 3000));
+        ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+        ASSERT_TRUE(writeStdin(send_h_, messages[i]));
+        ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+        ASSERT_TRUE(writeStdin(send_h_, "N"));
+        ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
         bool last = (i == messages.size() - 1);
-        ASSERT_TRUE(writeStdin(send_h, last ? "N" : "Y"));
+        ASSERT_TRUE(writeStdin(send_h_, last ? "N" : "Y"));
     }
 
-    waitProcess(send_h, 5000);
-    interruptProcess(recv_h);
-    waitProcess(recv_h, 3000);
+    waitProcess(send_h_, 5000);
+    interruptProcess(recv_h_);
+    waitProcess(recv_h_, 3000);
 
     // Assert
-    string recv_out = getStdout(recv_h);
+    string recv_out = getStdout(recv_h_);
     EXPECT_NE(string::npos, recv_out.find("msg1")); // [確認] - msg1 を受信していること。
     EXPECT_NE(string::npos, recv_out.find("msg2")); // [確認] - msg2 を受信していること。
     EXPECT_NE(string::npos, recv_out.find("msg3")); // [確認] - msg3 を受信していること。
@@ -416,18 +440,53 @@ TEST_F(porterSendRecvTest, recv_exits_cleanly_on_sigint)
     PorterConfigBuilder cfg;
     string config_path = cfg.addUnicastService(10, 19012).build();
 
-    AsyncProcessHandle recv_h =
-        startAsyncProcess(recv_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, recv_h);
-    ASSERT_NO_THROW(waitForOutput(recv_h, "受信待機中", 5000));
+    recv_h_ = startAsyncProcess(recv_path, {config_path, "10"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
 
     // Act
-    interruptProcess(recv_h);
-    int exit_code = waitProcess(recv_h, 3000);
+    interruptProcess(recv_h_);
+    int exit_code = waitProcess(recv_h_, 3000);
 
     // Assert
     EXPECT_EQ(0, exit_code);                                                       // [確認] - recv の終了コードが 0 であること。
-    EXPECT_NE(string::npos, getStdout(recv_h).find("終了しました"));               // [確認] - 正常終了メッセージが出力されること。
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("終了しました"));              // [確認] - 正常終了メッセージが出力されること。
+}
+
+/* ============================================================
+ * unicast_bidir 双方向通信テスト
+ * ============================================================ */
+
+TEST_F(porterSendRecvTest, bidir_echo)
+{
+    // Arrange - unicast_bidir サービスで双方向通信を確認する
+    PorterConfigBuilder cfg;
+    string config_path = cfg.addUnicastBidirService(20, 19020).build();
+
+    // recv (RECEIVER 側) を先に起動する
+    recv_h_ = startAsyncProcess(recv_path, {config_path, "20"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    // send (SENDER 側) を起動する。unicast_bidir なので受信コールバックも動作する。
+    send_h_ = startAsyncProcess(send_path, {config_path, "20"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));   // [確認] - bidir モードで起動されること。
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+
+    // Act - send 側からメッセージを送り、recv 側が受信することを確認する
+    ASSERT_TRUE(writeStdin(send_h_, "bidir-test"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeStdin(send_h_, "N"));
+
+    waitProcess(send_h_, 5000);
+    interruptProcess(recv_h_);
+    waitProcess(recv_h_, 3000);
+
+    // Assert
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("bidir-test")); // [確認] - recv 側が bidir-test を受信していること。
 }
 ```
 
@@ -439,10 +498,30 @@ TEST_F(porterSendRecvTest, recv_exits_cleanly_on_sigint)
 |---|---|
 | stdout パイプ下の stdio フルバッファリング | `send` / `recv` はプロンプト直後に `fflush(stdout)` 済みのため問題なし |
 | `waitForOutput` とデッドロック | ReaderThread が独立して読み取るため、`writeStdin` と同時呼び出し可 |
+| プロセス早期終了時の `waitForOutput` 永久ブロック | ReaderThread が EOF で `process_done_ = true` + `notify_all()` → `waitForOutput` が `runtime_error` を送出 |
 | Windows Ctrl+C | `CREATE_NEW_PROCESS_GROUP` + `GenerateConsoleCtrlEvent(CTRL_C_EVENT, pid)` |
-| テスト間のポート競合 | `PorterConfigBuilder` でテストごとに異なるポートを割り当てる |
-| recv 起動タイミング | `waitForOutput(recv_h, "受信待機中")` で LISTEN 完了を確認してから send を起動する |
-| プロセスリーク (テスト失敗時) | `TearDown()` 内で `killProcess()` + `waitProcess()` を呼ぶ |
+| テスト間のポート競合 (同一バイナリ) | `PorterConfigBuilder` でテストケースごとに異なるポートを割り当てる |
+| 並列テストバイナリ間のポート競合 (CI 等) | テストバイナリごとにポートレンジをずらす (例: バイナリ A は 19000 番台、B は 20000 番台) か、ポートをランダム選択して LISTEN 失敗時にリトライする |
+| recv 起動タイミング | `waitForOutput(recv_h_, "受信待機中")` で LISTEN 完了を確認してから send を起動する |
+| プロセスリーク (テスト失敗時) | `TearDown()` に `killProcess()` + `waitProcess()` を実装し、ASSERT 中断時でも確実に終了させる |
+| `PorterConfigBuilder` の一時ファイルパス (Windows) | `build()` 内で `GetTempPathW()` を使用し、Linux の `/tmp/` と同等の一時領域に書き出す |
+
+---
+
+## 結合テストのビルド設定 (makepart.mk)
+
+`test/porter/src/integration/porterSendRecvTest/makepart.mk` の内容例:
+
+```makefile
+# 結合テストはライブラリ本体をリンクしない。
+# send / recv バイナリ (外部プロセス) を実行するため、リンク対象は testfw のみ。
+TEST_SRCS :=
+LIBS      := process_async
+INCDIR    +=
+```
+
+`testfw` のビルドシステムが `process_async` ライブラリを
+`testfw/lib/$(TARGET_ARCH)/libprocess_async.a` としてビルド・配置することを前提とします。
 
 ---
 
