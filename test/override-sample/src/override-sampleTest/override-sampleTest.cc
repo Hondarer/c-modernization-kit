@@ -107,7 +107,7 @@ TEST_F(override_sampleTest, check_stdout_default)
     // Pre-Assert
 
     // Act
-    ProcessResult res = runProcess(binary_path, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
+    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
     cout << res.stdout_out;
 
     // Assert
@@ -134,7 +134,7 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     // Pre-Assert
 
     // Act
-    ProcessResult res = runProcess(binary_path, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
+    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
     cout << res.stdout_out;
 
     // Assert
@@ -168,7 +168,7 @@ TEST_F(override_sampleTest, onUnload_syslog)
 
     // Act
     ProcessResult res =
-        runProcess(binary_path, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString をキャプチャする。
+        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString をキャプチャする。
     cout << res.debug_log;
 
     // Assert

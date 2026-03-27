@@ -66,6 +66,7 @@ static void sig_handler(int sig)
     (void)sig;
     g_running = 0;
     printf("\n終了中...\n");
+    fflush(stdout);
 }
 
 /**
@@ -89,10 +90,12 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
     {
         case POTR_EVENT_CONNECTED:
             printf("[サービス %d] 接続確立\n", service_id);
+            fflush(stdout);
             break;
 
         case POTR_EVENT_DISCONNECTED:
             printf("[サービス %d] 切断検知\n", service_id);
+            fflush(stdout);
             break;
 
         case POTR_EVENT_DATA:
@@ -108,6 +111,7 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
             memcpy(buf, data, copy_len);
             buf[copy_len] = '\0';
             printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+            fflush(stdout);
             break;
     }
 }
@@ -394,6 +398,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, sig_handler);
 
     printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
+    fflush(stdout);
 
     /* サービス種別を取得して unicast_bidir かどうか判定する */
     is_bidir = 0;
@@ -413,6 +418,7 @@ int main(int argc, char *argv[])
     {
         printf("双方向モード (unicast_bidir)。\n");
         printf("メッセージを入力して送信できます (空行または Ctrl+D で送信終了)。\n");
+        fflush(stdout);
         bidir_ctx.handle  = handle;
         bidir_ctx.running = &g_running;
         if (start_bidir_send_thread(&bidir_thread, &bidir_ctx))
@@ -426,6 +432,7 @@ int main(int argc, char *argv[])
     }
 
     printf("受信待機中... (Ctrl+C で終了)\n");
+    fflush(stdout);
 
     while (g_running)
     {
@@ -443,5 +450,6 @@ int main(int argc, char *argv[])
 
     potrCloseService(handle);
     printf("終了しました。\n");
+    fflush(stdout);
     return EXIT_SUCCESS;
 }

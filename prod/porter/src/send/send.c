@@ -68,6 +68,7 @@ static void sig_handler(int sig)
     (void)sig;
     g_running = 0;
     printf("\n終了中...\n");
+    fflush(stdout);
 #ifndef _WIN32
     close(STDIN_FILENO); /* fgets のブロックを解除する */
 #endif /* _WIN32 */
@@ -94,10 +95,12 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
     {
         case POTR_EVENT_CONNECTED:
             printf("\n[サービス %d] 接続確立\n", service_id);
+            fflush(stdout);
             break;
 
         case POTR_EVENT_DISCONNECTED:
             printf("\n[サービス %d] 切断検知\n", service_id);
+            fflush(stdout);
             break;
 
         case POTR_EVENT_DATA:
@@ -113,6 +116,7 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
             memcpy(buf, data, copy_len);
             buf[copy_len] = '\0';
             printf("\n[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+            fflush(stdout);
             break;
     }
 }
@@ -257,6 +261,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, sig_handler);
 
     printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
+    fflush(stdout);
 
     /* サービス種別を取得して unicast_bidir かどうか判定する */
     is_bidir = 0;
@@ -278,8 +283,10 @@ int main(int argc, char *argv[])
     if (is_bidir)
     {
         printf("双方向モード (unicast_bidir)。相手からの受信メッセージも表示します。\n");
+        fflush(stdout);
     }
     printf("送信準備完了。空行入力またはCtrl+Dで終了します。\n");
+    fflush(stdout);
 
     for (;;)
     {
@@ -319,6 +326,7 @@ int main(int argc, char *argv[])
             compress_label = "";
         }
         printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len, compress_label);
+        fflush(stdout);
 
         if (potrSend(handle, POTR_PEER_NA, msg_buf, msg_len,
                      (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING) != POTR_SUCCESS)
@@ -346,6 +354,7 @@ int main(int argc, char *argv[])
 
     potrCloseService(handle);
     printf("終了しました。\n");
+    fflush(stdout);
     return ret;
 }
 
