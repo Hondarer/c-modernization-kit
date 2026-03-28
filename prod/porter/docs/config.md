@@ -5,8 +5,9 @@
 porter は INI 形式のテキストファイルでサービスを定義します。
 1 つの設定ファイルに定義できるサービス数に上限はありません (初期バッファ容量は 64 で、超過時は自動拡張されます)。
 
-`potrOpenService()` 呼び出し時にファイルを読み込み、指定した `service_id` のエントリを使用します。
+`potrOpenServiceFromConfig()` 呼び出し時にファイルを読み込み、指定した `service_id` のエントリを使用します。
 以後はファイルを参照しないため、起動後にファイルを変更しても動作に影響はありません。
+`potrOpenService()` を直接呼ぶ場合は設定ファイルを使用せず、`PotrGlobalConfig` / `PotrServiceDef` 構造体を直接渡します。
 
 ## ファイル形式
 
@@ -292,7 +293,7 @@ GCM ノンス (12 バイト) は以下の構成です。
 
 | 項目 | 仕様 |
 |---|---|
-| 解決タイミング | `potrOpenService()` 呼び出し時に 1 回のみ解決する |
+| 解決タイミング | `potrOpenServiceFromConfig()` / `potrOpenService()` 呼び出し時に 1 回のみ解決する |
 | 再解決 | プロセス生存中は再解決しない。DNS 更新後に接続できなくなった場合はプロセスを再起動する |
 | 複数アドレス返却時 | 仕様上未定義。実装上は先頭アドレスを採用する |
 | IPv6 | 非対応 |
@@ -442,7 +443,7 @@ note over R: accept() → 接続ソケット取得
 | listen ソケット | なし | あり（接続待機専用） |
 | 接続ソケット | `connect()` の fd | `accept()` の fd |
 
-RECEIVER が先に `potrOpenService()` を呼んで `listen()` に入っている必要があります。
+RECEIVER が先に `potrOpenServiceFromConfig()` / `potrOpenService()` を呼んで `listen()` に入っている必要があります。
 
 ## 送信元フィルタリング
 

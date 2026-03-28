@@ -29,15 +29,25 @@
 
 | API | スレッドセーフ | 備考 |
 |---|---|---|
-| `potrOpenService()` | はい | 複数スレッドから並行してハンドルを取得可 |
+| `potrOpenService()` | はい | 複数スレッドから並行してハンドルを取得可（低レベル API） |
+| `potrOpenServiceFromConfig()` | はい | 複数スレッドから並行してハンドルを取得可（高レベル API） |
 | `potrSend()` | **いいえ** | 同一ハンドルへの並行呼び出し不可 |
 | `potrCloseService()` | **いいえ** | 他の API と同一ハンドルへ並行して呼ばないこと |
 | `potrDisconnectPeer()` | はい（条件付き） | コールバック内からは呼ばないこと（デッドロック） |
 | `potrGetServiceType()` | はい | グローバル状態なし |
 | `potrLogConfig()` | はい | 内部でミューテックスを使用 |
 
+### サービスを開く API の使い分け
+
+| API | 入力 | 用途 |
+|---|---|---|
+| `potrOpenService()` | `PotrGlobalConfig` + `PotrServiceDef` 構造体 | テストやプログラム的な設定構築。設定ファイル不要 |
+| `potrOpenServiceFromConfig()` | 設定ファイルパス + service_id | 設定ファイルベースの既存フロー。後方互換 |
+
+`potrOpenServiceFromConfig()` の実装は設定ファイルを解析して構造体を構築し、`potrOpenService()` に委譲します。
+
 ### ハンドルとスレッドの対応
 
 - **ハンドルはスレッドセーフではありません。** 同一ハンドルへの操作（`potrSend` / `potrCloseService` など）は 1 スレッドから行ってください。
 - **ハンドルが異なれば、別スレッドから独立して使用できます。** スレッド A でサービス 1001 を、スレッド B でサービス 1002 を同時に運用することは問題ありません。
-- `potrOpenService()` でのハンドル作成スレッドと、その後 `potrSend()` を呼ぶスレッドが異なっていても構いません。ハンドル生成後はそのハンドルを操作するスレッドを 1 つに固定してください。
+- `potrOpenService()` / `potrOpenServiceFromConfig()` でのハンドル作成スレッドと、その後 `potrSend()` を呼ぶスレッドが異なっていても構いません。ハンドル生成後はそのハンドルを操作するスレッドを 1 つに固定してください。

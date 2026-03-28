@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
     /* unicast_bidir の場合はコールバックが必須 */
     callback = is_bidir ? on_recv : NULL;
 
-    if (potrOpenService(config_path, service_id, POTR_ROLE_SENDER, callback, &handle) != POTR_SUCCESS)
+    if (potrOpenServiceFromConfig(config_path, service_id, POTR_ROLE_SENDER, callback, &handle) != POTR_SUCCESS)
     {
         fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
         return EXIT_FAILURE;

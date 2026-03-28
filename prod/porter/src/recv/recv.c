@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
         is_bidir = 1;
     }
 
-    if (potrOpenService(config_path, service_id, POTR_ROLE_RECEIVER, on_recv, &handle) != POTR_SUCCESS)
+    if (potrOpenServiceFromConfig(config_path, service_id, POTR_ROLE_RECEIVER, on_recv, &handle) != POTR_SUCCESS)
     {
         fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
         return EXIT_FAILURE;

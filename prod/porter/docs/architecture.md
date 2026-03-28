@@ -3,7 +3,7 @@
 ## 概要
 
 porter は、アプリケーションと UDP ソケット層の間に抽象レイヤーを置き、非同期送受信・再送制御・ヘルスチェックを透過的に提供します。
-アプリケーションは `potrOpenService()` でサービスを開き、送信側は `potrSend(handle, peer_id, ...)` を呼び出すだけで、内部スレッドが送受信・再送・ヘルスチェックをすべて担います。1:1 モードおよび他通信種別では `peer_id` に `POTR_PEER_NA` を指定し、`unicast_bidir` の N:1 モードでは接続中ピアの `peer_id` を指定します。
+アプリケーションは `potrOpenService()` または `potrOpenServiceFromConfig()` でサービスを開き、送信側は `potrSend(handle, peer_id, ...)` を呼び出すだけで、内部スレッドが送受信・再送・ヘルスチェックをすべて担います。1:1 モードおよび他通信種別では `peer_id` に `POTR_PEER_NA` を指定し、`unicast_bidir` の N:1 モードでは接続中ピアの `peer_id` を指定します。
 
 ## 役割モデル
 
@@ -29,7 +29,7 @@ porter は通信の参加者を **送信者 (SENDER)** と **受信者 (RECEIVER
 | 1:1 | `POTR_ROLE_SENDER` は `src_addr:src_port` で bind し、`dst_addr:dst_port` へ送信する側。`POTR_ROLE_RECEIVER` は `dst_addr:dst_port` で bind し、必要に応じて送信元を学習して返信する側 |
 | N:1 | サーバは `POTR_ROLE_RECEIVER` として `dst_addr:dst_port` で待ち受ける。各クライアントは従来どおり `src_addr` を持つ `unicast_bidir` エンドポイントとして接続する |
 
-> UDP は無接続であるため、1:1 モードではどちらの端が先に `potrOpenService()` を呼んでも動作に違いはありません。N:1 モードではサーバが受信ソケットを先に開いて待ち受ける運用が自然です。
+> UDP は無接続であるため、1:1 モードではどちらの端が先に `potrOpenServiceFromConfig()` / `potrOpenService()` を呼んでも動作に違いはありません。N:1 モードではサーバが受信ソケットを先に開いて待ち受ける運用が自然です。
 
 ### TCP 通信種別における役割の解釈
 
@@ -40,7 +40,7 @@ porter は通信の参加者を **送信者 (SENDER)** と **受信者 (RECEIVER
 | `POTR_ROLE_SENDER` | TCP クライアント（`connect()`） | tcp: 送信のみ / tcp_bidir: 送受信 |
 | `POTR_ROLE_RECEIVER` | TCP サーバー（`listen()` → `accept()`） | tcp: 受信のみ / tcp_bidir: 送受信 |
 
-UDP は無接続のため先に開いた方が待機するだけですが、TCP では RECEIVER が先に `potrOpenService()` を呼んで `listen()` に入っている必要があります。
+UDP は無接続のため先に開いた方が待機するだけですが、TCP では RECEIVER が先に `potrOpenServiceFromConfig()` / `potrOpenService()` を呼んで `listen()` に入っている必要があります。
 
 ## スレッド構成
 
@@ -321,6 +321,7 @@ title porter コンポーネント構成
 
 package "api" {
   [potrOpenService]
+  [potrOpenServiceFromConfig]
   [potrSend]
   [potrCloseService]
 }
@@ -357,6 +358,7 @@ package "util" {
 database "PotrContext\n(セッション全状態)" as CTX
 
 [potrOpenService] --> CTX : 生成・初期化
+[potrOpenServiceFromConfig] --> [potrOpenService] : 委譲
 [potrSend] --> [potrSendQueue] : エレメント push
 [potrCloseService] --> CTX : スレッド停止・解放
 
@@ -532,16 +534,16 @@ PotrCondVar       health_wakeup;
 volatile uint64_t last_send_ms;
 ```
 
-### potrOpenService() のコールバック要件
+### コールバック要件
 
 `POTR_TYPE_UNICAST_BIDIR` では両端ともコールバックが必須です。
 
 ```c
-/* SENDER 側 */
-potrOpenService("config.conf", 4020, POTR_ROLE_SENDER, on_recv, &handle);
+/* SENDER 側 (設定ファイル使用) */
+potrOpenServiceFromConfig("config.conf", 4020, POTR_ROLE_SENDER, on_recv, &handle);
 
-/* RECEIVER 側 */
-potrOpenService("config.conf", 4020, POTR_ROLE_RECEIVER, on_recv, &handle);
+/* RECEIVER 側 (設定ファイル使用) */
+potrOpenServiceFromConfig("config.conf", 4020, POTR_ROLE_RECEIVER, on_recv, &handle);
 ```
 
 ## 通信種別の比較
