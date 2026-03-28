@@ -2,6 +2,7 @@ SUBDIRS = \
 	calc \
 	calc.net \
 	override-sample \
+	porter \
 	subfolder-sample \
 	tutorial \
 	util

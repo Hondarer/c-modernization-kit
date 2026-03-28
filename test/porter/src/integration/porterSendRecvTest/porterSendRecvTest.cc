@@ -4,7 +4,9 @@
 class porterSendRecvTest : public Test
 {
   protected:
+
     string recv_path, send_path, lib_path;
+    
     // TearDown でのクリーンアップ用。テスト失敗時もプロセスリークを防ぐ。
     AsyncProcessHandle recv_h_, send_h_;
 
@@ -63,38 +65,45 @@ TEST_F(porterSendRecvTest, send_single_message)
 {
     // Arrange - 設定ファイルを動的生成 (ポート 19010 を使用)
     PorterConfigBuilder cfg;
-    string config_path = cfg.addUnicastService(10, 19010).build();
+    string config_path =
+        cfg.addUnicastService(10, 19010)
+            .build(); // [状態] - 127.0.0.1 で ポート 19010 を送受信に利用する unicast サービスを定義する。
 
     // recv を先に起動してリスナー確立を待つ
-    recv_h_ = startProcessAsync(recv_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, recv_h_);
-    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000)); // [確認] - recv がリスニング状態になること。
+    recv_h_ = startProcessAsync(recv_path, {config_path, "10"}, makeOpts()); // [手順] - RECIEVER を起動する。
+    ASSERT_NE(nullptr, recv_h_);                                             // [確認] - RECIEVER が起動すること。
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "受信待機中", 5000)); // [手順] - RECIEVER が "受信待機中" を表示するまで待機する。
 
     // send を起動して最初のプロンプトを待つ
-    send_h_ = startProcessAsync(send_path, {config_path, "10"}, makeOpts());
-    ASSERT_NE(nullptr, send_h_);
-    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 5000));
+    send_h_ = startProcessAsync(send_path, {config_path, "10"}, makeOpts()); // [手順] - SENDER を起動する。
+    ASSERT_NE(nullptr, send_h_);                                             // [確認] - SENDER が起動すること。
+    ASSERT_NO_THROW(
+        waitForOutput(send_h_, "メッセージ>", 5000)); // [手順] - SENDER が "メッセージ>" を表示するまで待機する。
 
     // Act - 対話入力を順次送り込む
-    ASSERT_TRUE(writeLineStdin(send_h_, "Hello Porter"));
-    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "Hello Porter")); // [手順] - SENDER に "Hello Porter" を入力する。
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか",
+                                  3000)); // [手順] - SENDER が "圧縮送信しますか" を表示するまで待機する。
 
-    ASSERT_TRUE(writeLineStdin(send_h_, "N")); // 圧縮なし
-    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N")); // [手順] - SENDER に "N" を入力する。
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか",
+                                  3000)); // [手順] - SENDER が "続けて送信しますか" を表示するまで待機する。
 
-    ASSERT_TRUE(writeLineStdin(send_h_, "N")); // 送信終了
+    ASSERT_TRUE(writeLineStdin(send_h_, "N")); // [手順] - SENDER に "N" を入力する。
 
-    int send_exit = waitProcess(send_h_, 5000);
+    int send_exit = waitProcess(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
 
     // recv を停止して出力を回収する
-    interruptProcess(recv_h_);
-    waitProcess(recv_h_, 3000);
+    interruptProcess(recv_h_);  // [手順] - RECIEVER に Ctrl + C を入力する。
+    waitProcess(recv_h_, 3000); // [手順] - RECIEVER が終了するまで待機する。
 
     // Assert
-    EXPECT_EQ(0, send_exit); // [確認] - send の終了コードが 0 であること。
+    EXPECT_EQ(0, send_exit); // [確認] - SENDER の終了コードが 0 であること。
     EXPECT_NE(string::npos,
-              getStdout(recv_h_).find("Hello Porter")); // [確認] - recv が "Hello Porter" を受信していること。
-    EXPECT_NE(string::npos, getStdout(recv_h_).find("受信 (12 バイト)")); // [確認] - 受信バイト数が正しいこと。
+              getStdout(recv_h_).find("Hello Porter")); // [確認] - RECIEVER が "Hello Porter" を受信していること。
+    EXPECT_NE(string::npos,
+              getStdout(recv_h_).find("受信 (12 バイト)")); // [確認] - RECIEVER の受信バイト数が正しいこと。
 }
 
 // 複数メッセージ連続送信テスト
