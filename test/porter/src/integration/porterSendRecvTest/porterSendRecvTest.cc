@@ -21,10 +21,16 @@ class porterSendRecvTest : public Test
         send_path = ws + "\\prod\\porter\\bin\\send.exe";
         lib_path = ws + "\\prod\\porter\\lib";
 #endif
+        resetTraceLevel();
+        setTraceLevel("processController", TRACE_DETAIL);
     }
 
     void TearDown() override
     {
+        // 以降の killProcess, waitProcess 呼び出しでトレースが出力されることを防ぐため、
+        // processController のトレースを停止する
+        setTraceLevel("processController", TRACE_NONE);
+
         // ASSERT マクロ等でテストが中断された場合でも確実に終了させる。
         if (send_h_)
         {

@@ -45,6 +45,8 @@ class override_sampleTest : public Test
             config_path = string(tmpu8) + "libbase_extdef.txt";
         }
 #endif /* _WIN32 */
+        resetTraceLevel();
+        setTraceLevel("processController", TRACE_DETAIL);
     }
 
     void TearDown() override
@@ -94,10 +96,7 @@ class override_sampleTest : public Test
     }
 };
 
-/* ============================================================
- *  stdout 確認テスト
- * ============================================================ */
-
+// stdout 確認テスト (デフォルト動作)
 TEST_F(override_sampleTest, check_stdout_default)
 {
     // Arrange
@@ -108,7 +107,6 @@ TEST_F(override_sampleTest, check_stdout_default)
 
     // Act
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
-    cout << res.stdout_out;
 
     // Assert
     EXPECT_EQ(0, res.exit_code); // [確認] - override-sample の終了コードが 0 であること。
@@ -124,6 +122,7 @@ TEST_F(override_sampleTest, check_stdout_default)
             "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの移譲が行われないこと。
 }
 
+// stdout 確認テスト (定義ファイルあり)
 TEST_F(override_sampleTest, check_stdout_with_config)
 {
     // Arrange
@@ -135,7 +134,6 @@ TEST_F(override_sampleTest, check_stdout_with_config)
 
     // Act
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
-    cout << res.stdout_out;
 
     // Assert
     EXPECT_EQ(0, res.exit_code); // [確認] - override-sample の終了コードが 0 であること。
@@ -151,10 +149,7 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認] - result が 2 (1*2) であること。
 }
 
-/* ============================================================
- *  onUnload ログ確認テスト
- * ============================================================ */
-
+// onUnload ログ確認テスト
 TEST_F(override_sampleTest, onUnload_syslog)
 {
     // Arrange
@@ -169,7 +164,6 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Act
     ProcessResult res =
         startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString をキャプチャする。
-    cout << res.debug_log;
 
     // Assert
     ASSERT_EQ(0, res.exit_code); // [確認] - override-sample の終了コードが 0 であること。
