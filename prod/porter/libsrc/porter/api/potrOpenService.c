@@ -1045,6 +1045,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         switch (potr_raw_base_type(ctx->service.type))
         {
             case POTR_TYPE_UNICAST_BIDIR:
+            case POTR_TYPE_UNICAST_BIDIR_N1:
                 for (i = 0; i < ctx->n_path; i++)
                 {
                     memset(&ctx->dest_addr[i], 0, sizeof(ctx->dest_addr[i]));
