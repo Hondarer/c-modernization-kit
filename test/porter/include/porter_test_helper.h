@@ -78,7 +78,12 @@ public:
 #endif
         }
 
-        FILE* f = fopen(tmp_path_.c_str(), "w");
+        FILE* f = nullptr;
+#ifndef _WIN32
+        f = fopen(tmp_path_.c_str(), "w");
+#else
+        fopen_s(&f, tmp_path_.c_str(), "w");
+#endif
         if (f == nullptr) { return ""; }
 
         /* global セクション (テスト向けに短いタイムアウト) */

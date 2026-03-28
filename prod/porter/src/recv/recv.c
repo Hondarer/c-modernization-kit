@@ -46,8 +46,8 @@
     #include <pthread.h>
     #include <unistd.h>
 #else /* _WIN32 */
-    #include <windows.h>
     #include <process.h>
+    #include <windows.h>
 #endif /* _WIN32 */
 
 #include <porter.h>
@@ -55,9 +55,10 @@
 /** 受信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
 static volatile int g_running = 1;
 
+#ifndef _WIN32
 /**
  *******************************************************************************
- *  @brief          SIGINT シグナルハンドラー。
+ *  @brief          Linux SIGINT シグナルハンドラー。
  *  @param[in]      sig シグナル番号。
  *******************************************************************************
  */
@@ -68,6 +69,43 @@ static void sig_handler(int sig)
     printf("\n終了中...\n");
     fflush(stdout);
 }
+#else /* _WIN32 */
+/**
+ *******************************************************************************
+ *  @brief          Windows コンソール制御イベントハンドラー。
+ *  @param[in]      type    コンソール制御イベント種別。\n
+ *                          (CTRL_C_EVENT / CTRL_BREAK_EVENT / 
+ *                           CTRL_CLOSE_EVENT / CTRL_SHUTDOWN_EVENT など)
+ *  @return         イベントを処理した場合は TRUE を返します。
+ *                  TRUE を返すことで既定の強制終了処理を抑止します。
+ *
+ *  @details
+ *  GenerateConsoleCtrlEvent() や Ctrl+C / Ctrl+Break により送信される
+ *  コンソール制御イベントを受信します。\n
+ *  本ハンドラーでは受信ループ終了フラグをクリアし、
+ *  メインスレッドに正常終了を要求します。
+ *
+ *  TRUE を返さない場合、Windows の既定動作によりプロセスは
+ *  STATUS_CONTROL_C_EXIT (0xC000013A) で終了します。
+ *******************************************************************************
+ */
+static BOOL WINAPI console_ctrl_handler(DWORD type)
+{
+    switch (type)
+    {
+    case CTRL_C_EVENT:
+    case CTRL_BREAK_EVENT:
+    case CTRL_CLOSE_EVENT:
+    case CTRL_SHUTDOWN_EVENT:
+        g_running = 0;
+        printf("\n終了中...\n");
+        fflush(stdout);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+#endif /* _WIN32 */
 
 /**
  *******************************************************************************
@@ -79,40 +117,39 @@ static void sig_handler(int sig)
  *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
  *******************************************************************************
  */
-static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
-                    const void *data, size_t len)
+static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event, const void *data, size_t len)
 {
-    char   buf[POTR_MAX_PAYLOAD + 1];
+    char buf[POTR_MAX_PAYLOAD + 1];
     size_t copy_len;
 
     (void)peer_id;
     switch (event)
     {
-        case POTR_EVENT_CONNECTED:
-            printf("[サービス %d] 接続確立\n", service_id);
-            fflush(stdout);
-            break;
+    case POTR_EVENT_CONNECTED:
+        printf("[サービス %d] 接続確立\n", service_id);
+        fflush(stdout);
+        break;
 
-        case POTR_EVENT_DISCONNECTED:
-            printf("[サービス %d] 切断検知\n", service_id);
-            fflush(stdout);
-            break;
+    case POTR_EVENT_DISCONNECTED:
+        printf("[サービス %d] 切断検知\n", service_id);
+        fflush(stdout);
+        break;
 
-        case POTR_EVENT_DATA:
-        default:
-            if (len < POTR_MAX_PAYLOAD)
-            {
-                copy_len = len;
-            }
-            else
-            {
-                copy_len = POTR_MAX_PAYLOAD;
-            }
-            memcpy(buf, data, copy_len);
-            buf[copy_len] = '\0';
-            printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
-            fflush(stdout);
-            break;
+    case POTR_EVENT_DATA:
+    default:
+        if (len < POTR_MAX_PAYLOAD)
+        {
+            copy_len = len;
+        }
+        else
+        {
+            copy_len = POTR_MAX_PAYLOAD;
+        }
+        memcpy(buf, data, copy_len);
+        buf[copy_len] = '\0';
+        printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+        fflush(stdout);
+        break;
     }
 }
 
@@ -126,23 +163,22 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
  */
 static int parse_log_level(const char *str, PotrLogLevel *out)
 {
-    static const struct { const char *name; PotrLogLevel level; uint32_t _pad; } tbl[] = {
-        { "TRACE", POTR_LOG_TRACE, 0U },
-        { "DEBUG", POTR_LOG_DEBUG, 0U },
-        { "INFO",  POTR_LOG_INFO,  0U },
-        { "WARN",  POTR_LOG_WARN,  0U },
-        { "ERROR", POTR_LOG_ERROR, 0U },
-        { "FATAL", POTR_LOG_FATAL, 0U },
+    static const struct
+    {
+        const char *name;
+        PotrLogLevel level;
+        uint32_t _pad;
+    } tbl[] = {
+        {"TRACE", POTR_LOG_TRACE, 0U}, {"DEBUG", POTR_LOG_DEBUG, 0U}, {"INFO", POTR_LOG_INFO, 0U},
+        {"WARN", POTR_LOG_WARN, 0U},   {"ERROR", POTR_LOG_ERROR, 0U}, {"FATAL", POTR_LOG_FATAL, 0U},
     };
-    char   upper[16];
+    char upper[16];
     size_t i;
     size_t j;
 
     for (j = 0; j < sizeof(upper) - 1U && str[j] != '\0'; j++)
     {
-        upper[j] = (str[j] >= 'a' && str[j] <= 'z')
-                       ? (char)(str[j] - ('a' - 'A'))
-                       : str[j];
+        upper[j] = (str[j] >= 'a' && str[j] <= 'z') ? (char)(str[j] - ('a' - 'A')) : str[j];
     }
     upper[j] = '\0';
 
@@ -164,8 +200,8 @@ static int parse_log_level(const char *str, PotrLogLevel *out)
 /** bidir 送信スレッドに渡すコンテキスト。 */
 typedef struct
 {
-    PotrHandle       handle;
-    volatile int    *running;
+    PotrHandle handle;
+    volatile int *running;
 } BidirSendCtx;
 
 /**
@@ -197,7 +233,7 @@ typedef pthread_t BidirThread;
  *******************************************************************************
  */
 static void *bidir_send_thread_func(void *arg)
-#else /* _WIN32 */
+#else  /* _WIN32 */
 typedef HANDLE BidirThread;
 
 /**
@@ -211,11 +247,11 @@ static unsigned __stdcall bidir_send_thread_func(void *arg)
 #endif /* _WIN32 */
 {
     BidirSendCtx *ctx = (BidirSendCtx *)arg;
-    char          msg_buf[POTR_MAX_MESSAGE_SIZE + 2U];
-    char          ans_buf[8];
-    size_t        msg_len;
-    int           compress;
-    const char   *compress_label;
+    char msg_buf[POTR_MAX_MESSAGE_SIZE + 2U];
+    char ans_buf[8];
+    size_t msg_len;
+    int compress;
+    const char *compress_label;
 
     while (*ctx->running)
     {
@@ -275,7 +311,7 @@ static unsigned __stdcall bidir_send_thread_func(void *arg)
 
 #ifndef _WIN32
     return NULL;
-#else /* _WIN32 */
+#else  /* _WIN32 */
     return 0U;
 #endif /* _WIN32 */
 }
@@ -292,7 +328,7 @@ static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
 {
 #ifndef _WIN32
     return pthread_create(thread, NULL, bidir_send_thread_func, ctx) == 0;
-#else /* _WIN32 */
+#else  /* _WIN32 */
     uintptr_t h = _beginthreadex(NULL, 0U, bidir_send_thread_func, ctx, 0U, NULL);
     if (h == 0U)
     {
@@ -314,7 +350,7 @@ static void join_bidir_send_thread(BidirThread thread)
 #ifndef _WIN32
     pthread_cancel(thread); /* fgets でブロック中のスレッドを中断する */
     pthread_join(thread, NULL);
-#else /* _WIN32 */
+#else  /* _WIN32 */
     WaitForSingleObject(thread, INFINITE);
     CloseHandle(thread);
 #endif /* _WIN32 */
@@ -330,17 +366,17 @@ static void join_bidir_send_thread(BidirThread thread)
  */
 int main(int argc, char *argv[])
 {
-    const char  *config_path;
-    int          service_id;
-    PotrHandle   handle;
-    int          i;
-    PotrLogLevel log_level     = POTR_LOG_OFF;
-    int          log_level_set = 0;
-    PotrType     svc_type;
-    int          is_bidir;
+    const char *config_path;
+    int service_id;
+    PotrHandle handle;
+    int i;
+    PotrLogLevel log_level = POTR_LOG_OFF;
+    int log_level_set = 0;
+    PotrType svc_type;
+    int is_bidir;
     BidirSendCtx bidir_ctx;
-    BidirThread  bidir_thread = 0;
-    int          bidir_started = 0;
+    BidirThread bidir_thread = 0;
+    int bidir_started = 0;
 
     /* オプション解析 */
     for (i = 1; i < argc; i++)
@@ -350,8 +386,7 @@ int main(int argc, char *argv[])
             if (i + 1 >= argc)
             {
                 fprintf(stderr, "エラー: -l オプションにレベルを指定してください。\n");
-                fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
-                        argv[0]);
+                fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n", argv[0]);
                 return EXIT_FAILURE;
             }
             i++;
@@ -374,8 +409,7 @@ int main(int argc, char *argv[])
     /* positional 引数チェック */
     if (argc - i < 2)
     {
-        fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
-                argv[0]);
+        fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n", argv[0]);
         fprintf(stderr, "  -l <level>  ログレベル (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)\n");
         fprintf(stderr, "例: %s porter-services.conf 10\n", argv[0]);
         fprintf(stderr, "例: %s -l INFO porter-services.conf 10\n", argv[0]);
@@ -383,7 +417,7 @@ int main(int argc, char *argv[])
     }
 
     config_path = argv[i];
-    service_id  = atoi(argv[i + 1]);
+    service_id = atoi(argv[i + 1]);
 
     /* ロガー設定 (stderr 出力、ファイルなし) */
     if (log_level_set)
@@ -395,15 +429,18 @@ int main(int argc, char *argv[])
         }
     }
 
+#ifndef _WIN32
     signal(SIGINT, sig_handler);
+#else  /* _WIN32 */
+    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+#endif /* _WIN32 */
 
     printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
     fflush(stdout);
 
     /* サービス種別を取得して unicast_bidir かどうか判定する */
     is_bidir = 0;
-    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS
-        && svc_type == POTR_TYPE_UNICAST_BIDIR)
+    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS && svc_type == POTR_TYPE_UNICAST_BIDIR)
     {
         is_bidir = 1;
     }
@@ -419,7 +456,7 @@ int main(int argc, char *argv[])
         printf("双方向モード (unicast_bidir)。\n");
         printf("メッセージを入力して送信できます (空行または Ctrl+D で送信終了)。\n");
         fflush(stdout);
-        bidir_ctx.handle  = handle;
+        bidir_ctx.handle = handle;
         bidir_ctx.running = &g_running;
         if (start_bidir_send_thread(&bidir_thread, &bidir_ctx))
         {
@@ -438,7 +475,7 @@ int main(int argc, char *argv[])
     {
 #ifndef _WIN32
         usleep(100000);
-#else /* _WIN32 */
+#else  /* _WIN32 */
         Sleep(100);
 #endif /* _WIN32 */
     }
