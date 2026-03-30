@@ -26,11 +26,51 @@ typedef struct _stat64 file_stat_t;
     #ifndef _WIN32
         #include <limits.h>
         #include <sys/stat.h>
+        #include <fcntl.h>
+        #include <unistd.h>
         #define FILE_PATH_MAX PATH_MAX
     #else /* _WIN32 */
         #include <sys/stat.h>
         #include <windows.h>
+        #include <fcntl.h>
+        #include <io.h>
+        #include <direct.h>
         #define FILE_PATH_MAX MAX_PATH
+    #endif /* _WIN32 */
+#endif     /* DOXYGEN */
+
+/* accessf 用のモード定数 */
+
+#ifdef DOXYGEN
+    /**
+     *  @def            FMTIO_F_OK
+     *  @brief          ファイルの存在を確認するモード定数。
+     *  @details        accessf() の mode 引数に使用します。
+     */
+    #define FMTIO_F_OK 0
+
+    /**
+     *  @def            FMTIO_R_OK
+     *  @brief          ファイルの読み取り権限を確認するモード定数。
+     *  @details        accessf() の mode 引数に使用します。
+     */
+    #define FMTIO_R_OK 4
+
+    /**
+     *  @def            FMTIO_W_OK
+     *  @brief          ファイルの書き込み権限を確認するモード定数。
+     *  @details        accessf() の mode 引数に使用します。
+     */
+    #define FMTIO_W_OK 2
+#else /* !DOXYGEN */
+    #ifndef _WIN32
+        #define FMTIO_F_OK F_OK
+        #define FMTIO_R_OK R_OK
+        #define FMTIO_W_OK W_OK
+    #else /* _WIN32 */
+        #define FMTIO_F_OK 0
+        #define FMTIO_R_OK 4
+        #define FMTIO_W_OK 2
     #endif /* _WIN32 */
 #endif     /* DOXYGEN */
 
@@ -166,6 +206,293 @@ extern "C"
     FMTIO_UTIL_EXPORT int FMTIO_UTIL_API statf(file_stat_t *buf, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 3)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してファイルを開きます (va_list 版)。
+     *
+     *  fopenf() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  上位のラッパー関数やマクロから va_list を転送する場合に使用します。
+     *
+     *  @param[in]      modes
+     *                  ファイルのオープン モード ("r", "w", "a", "rb", "wb" など)。
+     *
+     *  @param[out]     errno_out
+     *                  エラー コードの格納先。NULL を指定した場合、エラー コードの取得は行いません。
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      args
+     *                  書式文字列に対応する可変引数リスト。
+     *
+     *  @return         成功した場合は FILE* を返します。失敗した場合は NULL を返します。
+     *
+     *  @see            fopenf
+     */
+    FMTIO_UTIL_EXPORT FILE *FMTIO_UTIL_API vfopenf(const char *modes, int *errno_out, const char *format, va_list args)
+#ifdef __GNUC__
+        __attribute__((format(printf, 3, 0)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定する stat ラッパー関数 (va_list 版)。
+     *
+     *  statf() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *
+     *  @param[out]     buf ファイル情報を格納する構造体へのポインタ (file_stat_t 型)
+     *  @param[in]      format ファイル名のフォーマット文字列 (printf 形式)
+     *  @param[in]      args フォーマット文字列に対応する可変引数リスト
+     *  @return         成功時は 0、失敗時は -1
+     *
+     *  @see            statf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API vstatf(file_stat_t *buf, const char *format, va_list args)
+#ifdef __GNUC__
+        __attribute__((format(printf, 2, 0)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してファイルを削除します。
+     *
+     *  本関数は、printf と同じ形式でファイル名を指定してファイルを削除するための
+     *  remove ラッパー関数です。
+     *
+     *  指定された書式文字列 (format) と可変引数 (...)
+     *  からファイル名を生成し、その結果を用いてファイルを削除します。
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      ...
+     *                  書式文字列に対応する可変引数。
+     *
+     *  @return         成功時は 0、失敗時は非ゼロ値を返します。
+     *
+     *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
+     *
+     *  @par            使用例
+        @code
+        int ret = removef("data_%d.txt", 123);
+        @endcode
+     *
+     *  @see            vremovef
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API removef(const char *format, ...)
+#ifdef __GNUC__
+        __attribute__((format(printf, 1, 2)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してファイルを削除します (va_list 版)。
+     *
+     *  removef() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      args
+     *                  書式文字列に対応する可変引数リスト。
+     *
+     *  @return         成功時は 0、失敗時は非ゼロ値を返します。
+     *
+     *  @see            removef
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API vremovef(const char *format, va_list args)
+#ifdef __GNUC__
+        __attribute__((format(printf, 1, 0)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してファイルを開きます (低レベル)。
+     *
+     *  本関数は、printf と同じ形式でファイル名を指定して低レベルファイルオープンを行うための
+     *  open ラッパー関数です。
+     *
+     *  Linux では open()、Windows では _open() を使用します。
+     *
+     *  @param[in]      flags
+     *                  ファイルオープンフラグ (O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_TRUNC, O_APPEND など)。
+     *
+     *  @param[in]      mode
+     *                  ファイル作成時のパーミッション (O_CREAT 指定時に使用)。
+     *                  Linux では 0644 など、Windows では _S_IREAD | _S_IWRITE など。
+     *                  O_CREAT を指定しない場合は 0 を渡してください。
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      ...
+     *                  書式文字列に対応する可変引数。
+     *
+     *  @return         成功時はファイルディスクリプタ (0 以上の整数)、失敗時は -1 を返します。
+     *
+     *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
+     *  @note           Windows の CreateFileA が提供する FILE_SHARE_DELETE や FILE_FLAG_WRITE_THROUGH 等の
+     *                  高度な機能は本関数ではサポートしません。
+     *
+     *  @par            使用例
+        @code
+        int fd = openf(O_WRONLY | O_CREAT | O_TRUNC, 0644, "log_%d.txt", pid);
+        @endcode
+     *
+     *  @see            vopenf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API openf(int flags, int mode, const char *format, ...)
+#ifdef __GNUC__
+        __attribute__((format(printf, 3, 4)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してファイルを開きます (低レベル、va_list 版)。
+     *
+     *  openf() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *
+     *  @param[in]      flags
+     *                  ファイルオープンフラグ。
+     *
+     *  @param[in]      mode
+     *                  ファイル作成時のパーミッション。
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      args
+     *                  書式文字列に対応する可変引数リスト。
+     *
+     *  @return         成功時はファイルディスクリプタ、失敗時は -1 を返します。
+     *
+     *  @see            openf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API vopenf(int flags, int mode, const char *format, va_list args)
+#ifdef __GNUC__
+        __attribute__((format(printf, 3, 0)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してアクセス可否を確認します。
+     *
+     *  本関数は、printf と同じ形式でファイル名を指定してファイルの存在や
+     *  アクセス権限を確認するための access ラッパー関数です。
+     *
+     *  Linux では access()、Windows では _access() を使用します。
+     *
+     *  @param[in]      mode
+     *                  確認するアクセスモード。以下の定数を使用してください。
+     *                  - FMTIO_F_OK: ファイルの存在を確認
+     *                  - FMTIO_R_OK: 読み取り権限を確認
+     *                  - FMTIO_W_OK: 書き込み権限を確認
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      ...
+     *                  書式文字列に対応する可変引数。
+     *
+     *  @return         アクセス可能な場合は 0、不可の場合は -1 を返します。
+     *
+     *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
+     *  @note           Windows の _access() は実行権限チェック (X_OK) をサポートしないため、
+     *                  FMTIO_X_OK は提供しません。
+     *
+     *  @par            使用例
+        @code
+        if (accessf(FMTIO_F_OK, "config_%d.txt", instance_id) == 0)
+        {
+            // ファイルが存在する
+        }
+        @endcode
+     *
+     *  @see            vaccessf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API accessf(int mode, const char *format, ...)
+#ifdef __GNUC__
+        __attribute__((format(printf, 2, 3)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でファイル名を指定してアクセス可否を確認します (va_list 版)。
+     *
+     *  accessf() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *
+     *  @param[in]      mode
+     *                  確認するアクセスモード (FMTIO_F_OK, FMTIO_R_OK, FMTIO_W_OK)。
+     *
+     *  @param[in]      format
+     *                  ファイル名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      args
+     *                  書式文字列に対応する可変引数リスト。
+     *
+     *  @return         アクセス可能な場合は 0、不可の場合は -1 を返します。
+     *
+     *  @see            accessf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API vaccessf(int mode, const char *format, va_list args)
+#ifdef __GNUC__
+        __attribute__((format(printf, 2, 0)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でディレクトリ名を指定してディレクトリを作成します。
+     *
+     *  本関数は、printf と同じ形式でディレクトリ名を指定してディレクトリを作成するための
+     *  mkdir ラッパー関数です。
+     *
+     *  Linux では mkdir() をパーミッション 0755 で呼び出します。
+     *  Windows では _mkdir() を呼び出します (パーミッション指定はありません)。
+     *
+     *  @param[in]      format
+     *                  ディレクトリ名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      ...
+     *                  書式文字列に対応する可変引数。
+     *
+     *  @return         成功時は 0、失敗時は -1 を返します。
+     *
+     *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
+     *  @note           親ディレクトリが存在しない場合は失敗します (再帰的なディレクトリ作成は行いません)。
+     *
+     *  @par            使用例
+        @code
+        int ret = mkdirf("logs_%04d", year);
+        @endcode
+     *
+     *  @see            vmkdirf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API mkdirf(const char *format, ...)
+#ifdef __GNUC__
+        __attribute__((format(printf, 1, 2)))
+#endif /* __GNUC__ */
+        ;
+
+    /**
+     *  @brief          printf 形式でディレクトリ名を指定してディレクトリを作成します (va_list 版)。
+     *
+     *  mkdirf() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *
+     *  @param[in]      format
+     *                  ディレクトリ名の書式文字列 (printf 形式)。
+     *
+     *  @param[in]      args
+     *                  書式文字列に対応する可変引数リスト。
+     *
+     *  @return         成功時は 0、失敗時は -1 を返します。
+     *
+     *  @see            mkdirf
+     */
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API vmkdirf(const char *format, va_list args)
+#ifdef __GNUC__
+        __attribute__((format(printf, 1, 0)))
 #endif /* __GNUC__ */
         ;
 
