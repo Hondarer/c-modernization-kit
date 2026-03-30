@@ -67,11 +67,11 @@ CRT の入力関数が UTF-8 を直接読み取る。
 
 ### 1. ライブラリ API
 
-- `int windows_console_init(void);`
-  - 戻り値 0 成功、非ゼロで失敗。パイプの作成、既存 stdout / stderr の複製、差し替え、バックグラウンドスレッドの起動を行う。stdin には触れない。
-- `void windows_console_dispose(void);`
-  - バックグラウンドスレッドを停止し、ハンドル / FD を元に戻す。
-- 追加オプション: `windows_console_set_flags(uint32_t flags)` などで挙動（stdout / stderr の個別有効化等）を変更可能にする。
+- `int console_init(void);`
+  - 戻り値 0 成功、非ゼロで失敗。パイプの作成、既存 stdout / stderr の複製、差し替え、バックグラウンドスレッドの起動を行う。stdin には触れない。Linux では no-op (0 を返す)。
+- `void console_dispose(void);`
+  - バックグラウンドスレッドを停止し、ハンドル / FD を元に戻す。Linux では no-op。
+- 追加オプション: `console_set_flags(uint32_t flags)` などで挙動（stdout / stderr の個別有効化等）を変更可能にする (将来対応)。
 
 ### 2. 出力方向の差し替えの流れ（stdout / stderr）
 
@@ -135,11 +135,11 @@ stderr も stdout と同様に独立した pipe / thread を用意する。
 
 | ファイル | 役割 |
 |---------|------|
-| `prod/util/include/windows_console.h` | 公開ヘッダー（API 宣言） |
-| `prod/util/libsrc/windows_console/windows_console.c` | コア実装（stdout / stderr 差し替え＋スレッド） |
-| `prod/util/libsrc/windows_console/makefile` | ビルド設定（既存の makepart.mk に統合） |
+| `prod/util/include/console-util.h` | 公開ヘッダー（API 宣言） |
+| `prod/util/libsrc/util/console-util.c` | コア実装（stdout / stderr 差し替え＋スレッド / Linux no-op） |
+| `prod/util/libsrc/util/makepart.mk` | `CONSOLE_UTIL_EXPORTS` フラグを追加（既存 makepart.mk に統合済み） |
 | `prod/util/docs/windows_console.md` | このファイル |
-| `test/util/src/windows_consoleTest/*` | テストコード |
+| `test/util/src/libutilTest/consoleTest/*` | テストコード |
 
 ---
 
@@ -158,14 +158,14 @@ stderr も stdout と同様に独立した pipe / thread を用意する。
 マニフェストは `makefw/docs-src/windows-utf8-console.md` によって埋め込まれている前提。
 
 ```c
-#include "windows_console.h"
+#include "console-util.h"
 
 int main(void) {
-    windows_console_init();        /* stdout / stderr を差し替え */
+    console_init();                /* stdout / stderr を差し替え (Linux では no-op) */
     printf("こんにちは\n");
     char buf[256];
     fgets(buf, sizeof(buf), stdin); /* UTF-8 マニフェストにより UTF-8 で読み取れる */
-    windows_console_dispose();
+    console_dispose();
     return 0;
 }
 ```
