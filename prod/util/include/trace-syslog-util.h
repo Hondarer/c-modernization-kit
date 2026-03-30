@@ -1,8 +1,8 @@
-#ifndef SYSLOG_UTIL_H
-#define SYSLOG_UTIL_H
+#ifndef TRACE_SYSLOG_UTIL_H
+#define TRACE_SYSLOG_UTIL_H
 
 /**
- *  @file           syslog-util.h
+ *  @file           trace-syslog-util.h
  *  @brief          syslog ヘルパーライブラリ。
  *  @details        Linux syslog (RFC5424 系実装) のラッパー関数群を提供します。\n
  *                  Linux 専用ライブラリです。呼び出し元は @c \#ifndef @c _WIN32 の
@@ -16,23 +16,23 @@
 #ifdef DOXYGEN
 
 /**
- *  @def            SYSLOG_UTIL_EXPORT
+ *  @def            TRACE_SYSLOG_UTIL_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
  *  @details        Linux 環境では常に空に展開されます。
  */
-#define SYSLOG_UTIL_EXPORT
+#define TRACE_SYSLOG_UTIL_EXPORT
 
 /**
- *  @def            SYSLOG_UTIL_API
+ *  @def            TRACE_SYSLOG_UTIL_API
  *  @brief          呼び出し規約マクロ。
  *  @details        Linux 環境では常に空に展開されます。
  */
-#define SYSLOG_UTIL_API
+#define TRACE_SYSLOG_UTIL_API
 
 #else /* !DOXYGEN */
 
-#define SYSLOG_UTIL_EXPORT
-#define SYSLOG_UTIL_API
+#define TRACE_SYSLOG_UTIL_EXPORT
+#define TRACE_SYSLOG_UTIL_API
 
 #endif /* DOXYGEN */
 
@@ -62,12 +62,12 @@ extern "C"
      *  @par            使用例
      *  @code
      *  #include <syslog.h>
-     *  #include <syslog-util.h>
+     *  #include <trace-syslog-util.h>
      *
      *  syslog_provider_t *h = syslog_provider_init("myapp", LOG_USER);
      *  @endcode
      */
-    SYSLOG_UTIL_EXPORT syslog_provider_t *SYSLOG_UTIL_API
+    TRACE_SYSLOG_UTIL_EXPORT syslog_provider_t *TRACE_SYSLOG_UTIL_API
         syslog_provider_init(const char *ident, int facility);
 
     /**
@@ -95,7 +95,7 @@ extern "C"
      *
      *  @return         成功 0 / 失敗 -1。
      */
-    SYSLOG_UTIL_EXPORT int SYSLOG_UTIL_API
+    TRACE_SYSLOG_UTIL_EXPORT int TRACE_SYSLOG_UTIL_API
         syslog_provider_write(syslog_provider_t *handle, int level, const char *message);
 
     /**
@@ -105,7 +105,7 @@ extern "C"
      *
      *  @param[in]      handle   syslog_provider_init の戻り値。
      */
-    SYSLOG_UTIL_EXPORT void SYSLOG_UTIL_API
+    TRACE_SYSLOG_UTIL_EXPORT void TRACE_SYSLOG_UTIL_API
         syslog_provider_dispose(syslog_provider_t *handle);
 
 #ifdef __cplusplus
@@ -114,4 +114,4 @@ extern "C"
 
 #endif /* !_WIN32 */
 
-#endif /* SYSLOG_UTIL_H */
+#endif /* TRACE_SYSLOG_UTIL_H */

@@ -1,7 +1,7 @@
 #ifndef _WIN32
 
 #include <syslog.h>
-#include <syslog-util.h>
+#include <trace-syslog-util.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,7 +14,7 @@ struct syslog_provider
     char *ident;
 };
 
-syslog_provider_t *SYSLOG_UTIL_API
+syslog_provider_t *TRACE_SYSLOG_UTIL_API
     syslog_provider_init(const char *ident, int facility)
 {
     syslog_provider_t *handle;
@@ -46,7 +46,7 @@ syslog_provider_t *SYSLOG_UTIL_API
     return handle;
 }
 
-int SYSLOG_UTIL_API
+int TRACE_SYSLOG_UTIL_API
     syslog_provider_write(syslog_provider_t *handle, int level, const char *message)
 {
     if (handle == NULL || message == NULL)
@@ -59,7 +59,7 @@ int SYSLOG_UTIL_API
     return 0;
 }
 
-void SYSLOG_UTIL_API
+void TRACE_SYSLOG_UTIL_API
     syslog_provider_dispose(syslog_provider_t *handle)
 {
     if (handle == NULL)

@@ -2,7 +2,7 @@
 
 #include <syslog.h>
 #include <testfw.h>
-#include <syslog-util.h>
+#include <trace-syslog-util.h>
 
 /* ===== テストクラス ===== */
 

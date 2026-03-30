@@ -1,17 +1,35 @@
-#include <log-util.h>
+#include <trace-util.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 
+/* ===== Windows: TraceLogging 直接使用 ===== */
+
+#ifdef _WIN32
+
+#include <windows.h>
+#include <TraceLoggingProvider.h>
+
+/* trace-util が管理するデフォルトプロバイダ定義 */
+TRACELOGGING_DEFINE_PROVIDER(
+    s_trace_provider,
+    TRACE_DEFAULT_PROVIDER_NAME,
+    TRACE_DEFAULT_PROVIDER_GUID);
+
+/** デフォルトプロバイダの参照カウント。 */
+static volatile LONG s_trace_ref = 0;
+
+#endif /* _WIN32 */
+
 /**
- *  @brief  ログプロバイダハンドル構造体 (内部定義)。
+ *  @brief  トレースプロバイダハンドル構造体 (内部定義)。
  */
-struct log_provider
+struct trace_provider
 {
 #ifdef _WIN32
-    /** ETW プロバイダハンドル (Windows)。 */
-    etw_provider_t *etw;
+    /** サービス名 (ETW "Trace" イベントの "Service" フィールド)。 */
+    char *service_name;
 #else /* !_WIN32 */
     /** syslog プロバイダハンドル (Linux)。 */
     syslog_provider_t *syslog_handle;
@@ -21,16 +39,16 @@ struct log_provider
 #ifdef _WIN32
 
 /**
- *  @brief  enum log_level を ETW Level (1-5) に変換する。
+ *  @brief  enum trace_level を ETW Level (1-5) に変換する。
  */
-static int to_etw_level(enum log_level lv)
+static int to_etw_level(enum trace_level lv)
 {
     switch (lv)
     {
-    case LOG_LV_CRITICAL: return 1;
-    case LOG_LV_ERROR:    return 2;
-    case LOG_LV_WARNING:  return 3;
-    case LOG_LV_INFO:     return 4;
+    case TRACE_LV_CRITICAL: return 1;
+    case TRACE_LV_ERROR:    return 2;
+    case TRACE_LV_WARNING:  return 3;
+    case TRACE_LV_INFO:     return 4;
     default:              return 5;
     }
 }
@@ -40,27 +58,53 @@ static int to_etw_level(enum log_level lv)
 #include <syslog.h>
 
 /**
- *  @brief  enum log_level を syslog severity に変換する。
+ *  @brief  enum trace_level を syslog severity に変換する。
  */
-static int to_syslog_level(enum log_level lv)
+static int to_syslog_level(enum trace_level lv)
 {
     switch (lv)
     {
-    case LOG_LV_CRITICAL: return LOG_CRIT;
-    case LOG_LV_ERROR:    return LOG_ERR;
-    case LOG_LV_WARNING:  return LOG_WARNING;
-    case LOG_LV_INFO:     return LOG_INFO;
+    case TRACE_LV_CRITICAL: return LOG_CRIT;
+    case TRACE_LV_ERROR:    return LOG_ERR;
+    case TRACE_LV_WARNING:  return LOG_WARNING;
+    case TRACE_LV_INFO:     return LOG_INFO;
     default:              return LOG_DEBUG;
     }
 }
 
 #endif /* _WIN32 */
 
-#ifndef _WIN32
-#include <unistd.h>
-
 /** プロセス名取得失敗時のフォールバック名。 */
 #define FALLBACK_NAME "unknown"
+
+#ifdef _WIN32
+
+/**
+ *  @brief  自プロセスの実行ファイル名 (ベースネーム) を取得する。
+ *  @param[out]  buf       パス格納バッファ。
+ *  @param[in]   buf_size  バッファサイズ。
+ *  @return      ベースネームへのポインタ (buf 内または FALLBACK_NAME)。
+ */
+static const char *get_process_basename(char *buf, size_t buf_size)
+{
+    DWORD len;
+    const char *sep;
+
+    len = GetModuleFileNameA(NULL, buf, (DWORD)buf_size);
+    if (len == 0 || len >= (DWORD)buf_size)
+    {
+        return FALLBACK_NAME;
+    }
+
+    sep = strrchr(buf, '\\');
+    if (sep == NULL)
+    {
+        sep = strrchr(buf, '/');
+    }
+    return sep ? sep + 1 : buf;
+}
+#else /* !_WIN32 */
+#include <unistd.h>
 
 /**
  *  @brief  自プロセスの実行ファイル名 (ベースネーム) を取得する。
@@ -83,14 +127,12 @@ static const char *get_process_basename(char *buf, size_t buf_size)
     slash = strrchr(buf, '/');
     return slash ? slash + 1 : buf;
 }
-#endif /* !_WIN32 */
+#endif /* _WIN32 */
 
-#ifndef _WIN32
-log_provider_t *LOG_UTIL_API
-    log_init_linux(const char *name)
+trace_provider_t *TRACE_UTIL_API
+    trace_init(const char *name)
 {
-    log_provider_t *handle;
-    syslog_provider_t *sp;
+    trace_provider_t *handle;
     char path_buf[256];
     const char *effective_name;
 
@@ -103,49 +145,63 @@ log_provider_t *LOG_UTIL_API
         effective_name = get_process_basename(path_buf, sizeof(path_buf));
     }
 
-    sp = syslog_provider_init(effective_name, LOG_USER);
-    if (sp == NULL)
+#ifdef _WIN32
     {
-        return NULL;
-    }
+        char *svc;
 
-    handle = (log_provider_t *)malloc(sizeof(log_provider_t));
-    if (handle == NULL)
+        svc = _strdup(effective_name);
+        if (svc == NULL)
+        {
+            return NULL;
+        }
+
+        handle = (trace_provider_t *)malloc(sizeof(trace_provider_t));
+        if (handle == NULL)
+        {
+            free(svc);
+            return NULL;
+        }
+
+        handle->service_name = svc;
+
+        if (InterlockedIncrement(&s_trace_ref) == 1)
+        {
+            TLG_STATUS status = TraceLoggingRegister(s_trace_provider);
+            if (status != S_OK)
+            {
+                InterlockedDecrement(&s_trace_ref);
+                free(handle->service_name);
+                free(handle);
+                return NULL;
+            }
+        }
+    }
+#else /* !_WIN32 */
     {
-        syslog_provider_dispose(sp);
-        return NULL;
+        syslog_provider_t *sp;
+
+        sp = syslog_provider_init(effective_name, LOG_USER);
+        if (sp == NULL)
+        {
+            return NULL;
+        }
+
+        handle = (trace_provider_t *)malloc(sizeof(trace_provider_t));
+        if (handle == NULL)
+        {
+            syslog_provider_dispose(sp);
+            return NULL;
+        }
+
+        handle->syslog_handle = sp;
     }
-
-    handle->syslog_handle = sp;
-    return handle;
-}
-#else /* _WIN32 */
-log_provider_t *LOG_UTIL_API
-    log_init_windows(etw_provider_ref_t provider_ref)
-{
-    log_provider_t *handle;
-    etw_provider_t *ep;
-
-    ep = etw_provider_init(provider_ref);
-    if (ep == NULL)
-    {
-        return NULL;
-    }
-
-    handle = (log_provider_t *)malloc(sizeof(log_provider_t));
-    if (handle == NULL)
-    {
-        etw_provider_dispose(ep);
-        return NULL;
-    }
-
-    handle->etw = ep;
-    return handle;
-}
 #endif /* _WIN32 */
 
+    return handle;
+}
+
 /** 切り詰め後の本文最大バイト数 (null 終端を除く)。 */
-#define MAX_BODY (LOG_MESSAGE_MAX_BYTES - 1)
+#define MAX_BODY (TRACE_MESSAGE_MAX_BYTES - 1)
 
 /**
  *  @brief  UTF-8 安全な切り詰め位置を返す。
@@ -163,11 +219,68 @@ static size_t utf8_safe_truncate(const char *s, size_t pos)
     return pos;
 }
 
-int LOG_UTIL_API
-    log_write(log_provider_t *handle, enum log_level level, const char *message)
+#ifdef _WIN32
+
+/**
+ *  @brief  "Trace" イベントを書き込む (Service + Message)。
+ */
+static void write_trace_event(int level, const char *service, const char *message)
+{
+    switch (level)
+    {
+    case 1:
+        TraceLoggingWrite(s_trace_provider, "Trace",
+            TraceLoggingLevel(1),
+            TraceLoggingString(service, "Service"),
+            TraceLoggingString(message, "Message"));
+        break;
+    case 2:
+        TraceLoggingWrite(s_trace_provider, "Trace",
+            TraceLoggingLevel(2),
+            TraceLoggingString(service, "Service"),
+            TraceLoggingString(message, "Message"));
+        break;
+    case 3:
+        TraceLoggingWrite(s_trace_provider, "Trace",
+            TraceLoggingLevel(3),
+            TraceLoggingString(service, "Service"),
+            TraceLoggingString(message, "Message"));
+        break;
+    case 4:
+        TraceLoggingWrite(s_trace_provider, "Trace",
+            TraceLoggingLevel(4),
+            TraceLoggingString(service, "Service"),
+            TraceLoggingString(message, "Message"));
+        break;
+    default:
+        TraceLoggingWrite(s_trace_provider, "Trace",
+            TraceLoggingLevel(5),
+            TraceLoggingString(service, "Service"),
+            TraceLoggingString(message, "Message"));
+        break;
+    }
+}
+
+#endif /* _WIN32 */
+
+/**
+ *  @brief  下層プロバイダに文字列を書き込む (内部ヘルパー)。
+ */
+static int write_to_provider(trace_provider_t *handle, enum trace_level level, const char *msg)
+{
+#ifdef _WIN32
+    write_trace_event(to_etw_level(level), handle->service_name, msg);
+    return 0;
+#else /* !_WIN32 */
+    return syslog_provider_write(handle->syslog_handle, to_syslog_level(level), msg);
+#endif /* _WIN32 */
+}
+
+int TRACE_UTIL_API
+    trace_write(trace_provider_t *handle, enum trace_level level, const char *message)
 {
     const char *msg;
-    char buf[LOG_MESSAGE_MAX_BYTES];
+    char buf[TRACE_MESSAGE_MAX_BYTES];
     size_t len;
 
     if (handle == NULL || message == NULL)
@@ -186,30 +299,14 @@ int LOG_UTIL_API
         msg = buf;
     }
 
-#ifdef _WIN32
-    return etw_provider_write(handle->etw, to_etw_level(level), msg);
-#else /* !_WIN32 */
-    return syslog_provider_write(handle->syslog_handle, to_syslog_level(level), msg);
-#endif /* _WIN32 */
+    return write_to_provider(handle, level, msg);
 }
 
-/**
- *  @brief  下層プロバイダに文字列を書き込む (内部ヘルパー)。
- */
-static int write_to_provider(log_provider_t *handle, enum log_level level, const char *msg)
-{
-#ifdef _WIN32
-    return etw_provider_write(handle->etw, to_etw_level(level), msg);
-#else /* !_WIN32 */
-    return syslog_provider_write(handle->syslog_handle, to_syslog_level(level), msg);
-#endif /* _WIN32 */
-}
-
-int LOG_UTIL_API
-    log_writef(log_provider_t *handle, enum log_level level, const char *format, ...)
+int TRACE_UTIL_API
+    trace_writef(trace_provider_t *handle, enum trace_level level, const char *format, ...)
 {
     va_list args;
-    char buf[LOG_MESSAGE_MAX_BYTES];
+    char buf[TRACE_MESSAGE_MAX_BYTES];
 
     if (handle == NULL || format == NULL)
     {
@@ -234,10 +331,10 @@ static const char hex_chars[] = "0123456789ABCDEF";
  *  @details  ラベルは呼び出し元で事前にフォーマット済みの文字列を受け取る。
  *            データが収まらない場合は切り詰めて "..." を付与する。
  */
-static int hex_write_impl(log_provider_t *handle, enum log_level level,
+static int hex_write_impl(trace_provider_t *handle, enum trace_level level,
                            const void *data, size_t size, const char *label)
 {
-    char buf[LOG_MESSAGE_MAX_BYTES];
+    char buf[TRACE_MESSAGE_MAX_BYTES];
     const unsigned char *bytes = (const unsigned char *)data;
     size_t pos = 0;
     size_t remaining;
@@ -324,18 +421,18 @@ static int hex_write_impl(log_provider_t *handle, enum log_level level,
     return write_to_provider(handle, level, buf);
 }
 
-int LOG_UTIL_API
-    log_hex_write(log_provider_t *handle, enum log_level level,
+int TRACE_UTIL_API
+    trace_hex_write(trace_provider_t *handle, enum trace_level level,
                   const void *data, size_t size, const char *message)
 {
     return hex_write_impl(handle, level, data, size, message);
 }
 
-int LOG_UTIL_API
-    log_hex_writef(log_provider_t *handle, enum log_level level,
+int TRACE_UTIL_API
+    trace_hex_writef(trace_provider_t *handle, enum trace_level level,
                    const void *data, size_t size, const char *format, ...)
 {
-    char label[LOG_MESSAGE_MAX_BYTES];
+    char label[TRACE_MESSAGE_MAX_BYTES];
 
     if (handle == NULL || data == NULL || size == 0)
     {
@@ -354,8 +451,8 @@ int LOG_UTIL_API
     return hex_write_impl(handle, level, data, size, NULL);
 }
 
-void LOG_UTIL_API
-    log_dispose(log_provider_t *handle)
+void TRACE_UTIL_API
+    trace_dispose(trace_provider_t *handle)
 {
     if (handle == NULL)
     {
@@ -363,7 +460,11 @@ void LOG_UTIL_API
     }
 
 #ifdef _WIN32
-    etw_provider_dispose(handle->etw);
+    if (InterlockedDecrement(&s_trace_ref) == 0)
+    {
+        TraceLoggingUnregister(s_trace_provider);
+    }
+    free(handle->service_name);
 #else /* !_WIN32 */
     syslog_provider_dispose(handle->syslog_handle);
 #endif /* _WIN32 */

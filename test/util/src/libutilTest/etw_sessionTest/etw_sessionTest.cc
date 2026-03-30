@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <TraceLoggingProvider.h>
 #include <testfw.h>
-#include <etw-util.h>
+#include <trace-etw-util.h>
 
 #include <mutex>
 #include <vector>
@@ -12,7 +12,7 @@
 #include <cstdio>
 
 /* テスト用プロバイダ定義 */
-ETW_UTIL_DEFINE_PROVIDER(
+TRACE_ETW_UTIL_DEFINE_PROVIDER(
     s_test_provider,
     "EtwSessionTest",
     // {0dfe6031-5678-4688-aee8-611340997caa}

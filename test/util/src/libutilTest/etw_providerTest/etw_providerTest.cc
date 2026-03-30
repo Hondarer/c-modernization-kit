@@ -3,10 +3,10 @@
 #include <windows.h>
 #include <TraceLoggingProvider.h>
 #include <testfw.h>
-#include <etw-util.h>
+#include <trace-etw-util.h>
 
 /* テスト用プロバイダ定義 */
-ETW_UTIL_DEFINE_PROVIDER(
+TRACE_ETW_UTIL_DEFINE_PROVIDER(
     s_test_provider,
     "EtwProviderTest",
     // {62ab1ccc-5fc6-4e1e-8260-9ea2772afe5e}

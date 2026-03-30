@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <evntrace.h>
 #include <evntcons.h>
-#include <etw-util.h>
+#include <trace-etw-util.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -165,7 +165,7 @@ static void set_status(int *out_status, int value)
     }
 }
 
-int ETW_UTIL_API
+int TRACE_ETW_UTIL_API
     etw_session_check_access(void)
 {
     static const wchar_t probe_name[] = L"EtwUtil_AccessProbe";
@@ -210,7 +210,7 @@ int ETW_UTIL_API
     return result;
 }
 
-etw_session_t *ETW_UTIL_API
+etw_session_t *TRACE_ETW_UTIL_API
     etw_session_start(const char *session_name,
                       const char *provider_guid_str,
                       etw_event_callback_t callback,
@@ -367,7 +367,7 @@ cleanup:
     return NULL;
 }
 
-void ETW_UTIL_API
+void TRACE_ETW_UTIL_API
     etw_session_stop(etw_session_t *session)
 {
     if (session == NULL)

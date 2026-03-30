@@ -1,8 +1,8 @@
-#ifndef ETW_UTIL_H
-#define ETW_UTIL_H
+#ifndef TRACE_ETW_UTIL_H
+#define TRACE_ETW_UTIL_H
 
 /**
- *  @file           etw-util.h
+ *  @file           trace-etw-util.h
  *  @brief          ETW (Event Tracing for Windows) ヘルパーライブラリ。
  *  @details        TraceLogging ベースの ETW プロバイダを簡易に操作するための
  *                  ヘルパー関数群を提供します。\n
@@ -17,45 +17,45 @@
 #ifdef DOXYGEN
 
 /**
- *  @def            ETW_UTIL_EXPORT
+ *  @def            TRACE_ETW_UTIL_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
  *  | 条件                                                   | 値                       |
  *  | ------------------------------------------------------ | ------------------------ |
  *  | `__INTELLISENSE__` 定義時                              | (空)                     |
- *  | `ETW_UTIL_STATIC` 定義時 (静的リンク)                  | (空)                     |
- *  | `ETW_UTIL_EXPORTS` 定義時 (DLL ビルド)                 | `__declspec(dllexport)`  |
- *  | `ETW_UTIL_EXPORTS` 未定義時 (DLL 利用側)               | `__declspec(dllimport)`  |
+ *  | `TRACE_ETW_UTIL_STATIC` 定義時 (静的リンク)                  | (空)                     |
+ *  | `TRACE_ETW_UTIL_EXPORTS` 定義時 (DLL ビルド)                 | `__declspec(dllexport)`  |
+ *  | `TRACE_ETW_UTIL_EXPORTS` 未定義時 (DLL 利用側)               | `__declspec(dllimport)`  |
  */
-#define ETW_UTIL_EXPORT
+#define TRACE_ETW_UTIL_EXPORT
 
 /**
- *  @def            ETW_UTIL_API
+ *  @def            TRACE_ETW_UTIL_API
  *  @brief          呼び出し規約マクロ。
  *  @details        `__stdcall` 呼び出し規約を指定します。\n
  *                  既に定義済みの場合は再定義されません。
  */
-#define ETW_UTIL_API
+#define TRACE_ETW_UTIL_API
 
 #else /* !DOXYGEN */
 
 #ifndef __INTELLISENSE__
-    #ifndef ETW_UTIL_STATIC
-        #ifdef ETW_UTIL_EXPORTS
-            #define ETW_UTIL_EXPORT __declspec(dllexport)
-        #else /* !ETW_UTIL_EXPORTS */
-            #define ETW_UTIL_EXPORT __declspec(dllimport)
-        #endif /* ETW_UTIL_EXPORTS */
-    #else      /* ETW_UTIL_STATIC */
-        #define ETW_UTIL_EXPORT
-    #endif /* ETW_UTIL_STATIC */
+    #ifndef TRACE_ETW_UTIL_STATIC
+        #ifdef TRACE_ETW_UTIL_EXPORTS
+            #define TRACE_ETW_UTIL_EXPORT __declspec(dllexport)
+        #else /* !TRACE_ETW_UTIL_EXPORTS */
+            #define TRACE_ETW_UTIL_EXPORT __declspec(dllimport)
+        #endif /* TRACE_ETW_UTIL_EXPORTS */
+    #else      /* TRACE_ETW_UTIL_STATIC */
+        #define TRACE_ETW_UTIL_EXPORT
+    #endif /* TRACE_ETW_UTIL_STATIC */
 #else      /* __INTELLISENSE__ */
-    #define ETW_UTIL_EXPORT
+    #define TRACE_ETW_UTIL_EXPORT
 #endif /* __INTELLISENSE__ */
-#ifndef ETW_UTIL_API
-    #define ETW_UTIL_API __stdcall
-#endif /* ETW_UTIL_API */
+#ifndef TRACE_ETW_UTIL_API
+    #define TRACE_ETW_UTIL_API __stdcall
+#endif /* TRACE_ETW_UTIL_API */
 
 #endif /* DOXYGEN */
 
@@ -72,7 +72,7 @@ typedef struct _tlgProvider_t const *etw_provider_ref_t;
 /* ===== プロバイダ定義マクロ ===== */
 
 /**
- *  @def            ETW_UTIL_DEFINE_PROVIDER(var, name, guid)
+ *  @def            TRACE_ETW_UTIL_DEFINE_PROVIDER(var, name, guid)
  *  @brief          ETW プロバイダを定義するマクロ。
  *  @details        呼び出し元の .c ファイルのファイルスコープに 1 回だけ記述します。\n
  *                  TRACELOGGING_DEFINE_PROVIDER(var, name, guid) に展開します。\n
@@ -87,15 +87,15 @@ typedef struct _tlgProvider_t const *etw_provider_ref_t;
  *  @code
  *  #include <windows.h>
  *  #include <TraceLoggingProvider.h>
- *  #include <etw-util.h>
+ *  #include <trace-etw-util.h>
  *
- *  ETW_UTIL_DEFINE_PROVIDER(
+ *  TRACE_ETW_UTIL_DEFINE_PROVIDER(
  *      s_my_provider,
  *      "MyProvider",
  *      (0x12345678, 0x1234, 0x1234, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67, 0x89));
  *  @endcode
  */
-#define ETW_UTIL_DEFINE_PROVIDER(var, name, guid) \
+#define TRACE_ETW_UTIL_DEFINE_PROVIDER(var, name, guid) \
     TRACELOGGING_DEFINE_PROVIDER(var, name, guid)
 
 /* ===== 不透明ハンドル型 ===== */
@@ -112,10 +112,10 @@ extern "C"
 
     /**
      *  @brief          ETW プロバイダを登録する。
-     *  @details        呼び出し元が ETW_UTIL_DEFINE_PROVIDER で定義したプロバイダ変数を渡します。
+     *  @details        呼び出し元が TRACE_ETW_UTIL_DEFINE_PROVIDER で定義したプロバイダ変数を渡します。
      *                  これにより、呼び出し元ごとに異なる GUID/プロバイダ名を使用できます。
      *
-     *  @param[in]      provider_ref  ETW_UTIL_DEFINE_PROVIDER で定義した変数。
+     *  @param[in]      provider_ref  TRACE_ETW_UTIL_DEFINE_PROVIDER で定義した変数。
      *  @return         成功時: ハンドル。失敗時: NULL。
      *
      *  @par            使用例
@@ -123,7 +123,7 @@ extern "C"
      *  etw_provider_t *h = etw_provider_init(s_my_provider);
      *  @endcode
      */
-    ETW_UTIL_EXPORT etw_provider_t *ETW_UTIL_API
+    TRACE_ETW_UTIL_EXPORT etw_provider_t *TRACE_ETW_UTIL_API
         etw_provider_init(etw_provider_ref_t provider_ref);
 
     /**
@@ -150,7 +150,7 @@ extern "C"
      *
      *  @return         成功 0 / 失敗 -1。
      */
-    ETW_UTIL_EXPORT int ETW_UTIL_API
+    TRACE_ETW_UTIL_EXPORT int TRACE_ETW_UTIL_API
         etw_provider_write(etw_provider_t *handle, int level, const char *message);
 
     /**
@@ -159,7 +159,7 @@ extern "C"
      *
      *  @param[in]      handle   etw_provider_init の戻り値。
      */
-    ETW_UTIL_EXPORT void ETW_UTIL_API
+    TRACE_ETW_UTIL_EXPORT void TRACE_ETW_UTIL_API
         etw_provider_dispose(etw_provider_t *handle);
 
     /* ===== セッション (Consumer) API ===== */
@@ -211,7 +211,7 @@ extern "C"
      *  }
      *  @endcode
      */
-    ETW_UTIL_EXPORT int ETW_UTIL_API
+    TRACE_ETW_UTIL_EXPORT int TRACE_ETW_UTIL_API
         etw_session_check_access(void);
 
     /**
@@ -242,7 +242,7 @@ extern "C"
      *  }
      *  @endcode
      */
-    ETW_UTIL_EXPORT etw_session_t *ETW_UTIL_API
+    TRACE_ETW_UTIL_EXPORT etw_session_t *TRACE_ETW_UTIL_API
         etw_session_start(const char *session_name,
                           const char *provider_guid_str,
                           etw_event_callback_t callback,
@@ -257,7 +257,7 @@ extern "C"
      *
      *  @param[in]      session  etw_session_start の戻り値。
      */
-    ETW_UTIL_EXPORT void ETW_UTIL_API
+    TRACE_ETW_UTIL_EXPORT void TRACE_ETW_UTIL_API
         etw_session_stop(etw_session_t *session);
 
 #ifdef __cplusplus
@@ -266,4 +266,4 @@ extern "C"
 
 #endif /* _WIN32 */
 
-#endif /* ETW_UTIL_H */
+#endif /* TRACE_ETW_UTIL_H */

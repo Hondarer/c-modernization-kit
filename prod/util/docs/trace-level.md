@@ -2,14 +2,14 @@
 
 ## 目的
 
-Windows と Linux の両環境で同一アプリケーションを運用する場合、OS 固有ログ機構に依存しない共通ログレベルを定義し、syslog と ETW へ安全にマッピングする。
+Windows と Linux の両環境で同一アプリケーションを運用する場合、OS 固有トレース機構に依存しない共通トレースレベルを定義し、syslog と ETW へ安全にマッピングする。
 
 本資料は以下を対象とする。
 
 - Linux: syslog (RFC5424 系実装)
 - Windows: Event Tracing for Windows (ETW)
 
-## 共通ログレベル定義
+## 共通トレースレベル定義
 
 アプリケーション内部では OS 非依存のレベルを使用する。
 
@@ -19,7 +19,7 @@ enum log_level {
     LOG_ERROR,
     LOG_WARNING,
     LOG_INFO,
-    LOG_VERBOSE
+    TRACE_VERBOSE
 };
 ````
 
@@ -29,7 +29,7 @@ enum log_level {
 - 実運用で使われる最小集合
 - OS 間で意味が崩れないことを優先
 
-## 各ログシステムの特性
+## 各トレースシステムの特性
 
 ### syslog の特徴
 
@@ -99,7 +99,7 @@ ETW Level (Windows SDK 定義):
 | LOG_ERROR    | Error(2)         | エラー   |
 | LOG_WARNING  | Warning(3)       | 警告     |
 | LOG_INFO     | Informational(4) | 通常運用 |
-| LOG_VERBOSE  | Verbose(5)       | 詳細     |
+| TRACE_VERBOSE  | Verbose(5)       | 詳細     |
 
 実装例:
 
@@ -124,7 +124,7 @@ static UCHAR to_etw_level(enum log_level lv)
 | LOG_ERROR    | LOG_ERR         | 一般エラー |
 | LOG_WARNING  | LOG_WARNING     | 一致       |
 | LOG_INFO     | LOG_INFO        | 一致       |
-| LOG_VERBOSE  | LOG_DEBUG       | 詳細ログ   |
+| TRACE_VERBOSE  | LOG_DEBUG       | 詳細トレース   |
 
 実装例:
 
@@ -151,7 +151,7 @@ alert
 crit
 ```
 
-しかしアプリケーションログでは:
+しかしアプリケーショントレースでは:
 
 - OS 全体停止を意味しない
 - kernel/panic 用途
@@ -193,7 +193,7 @@ warning 以上を保存。
 
 両者で同一運用が可能。
 
-## 推奨ログ運用モデル
+## 推奨トレース運用モデル
 
 実務上安定する構成:
 

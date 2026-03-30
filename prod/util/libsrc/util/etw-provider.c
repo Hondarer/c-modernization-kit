@@ -2,7 +2,7 @@
 
 #include <windows.h>
 #include <TraceLoggingProvider.h>
-#include <etw-util.h>
+#include <trace-etw-util.h>
 #include <stdlib.h>
 
 /**
@@ -14,7 +14,7 @@ struct etw_provider
     etw_provider_ref_t provider_ref;
 };
 
-etw_provider_t *ETW_UTIL_API
+etw_provider_t *TRACE_ETW_UTIL_API
     etw_provider_init(etw_provider_ref_t provider_ref)
 {
     etw_provider_t *handle;
@@ -43,7 +43,37 @@ etw_provider_t *ETW_UTIL_API
     return handle;
 }
 
-int ETW_UTIL_API
+/**
+ *  @brief  "Log" イベントを書き込む。
+ */
+static void write_trace_event(etw_provider_ref_t ref, int level, const char *message)
+{
+    switch (level)
+    {
+    case 1:
+        TraceLoggingWrite(ref, "Log",
+            TraceLoggingLevel(1), TraceLoggingString(message, "Message"));
+        break;
+    case 2:
+        TraceLoggingWrite(ref, "Log",
+            TraceLoggingLevel(2), TraceLoggingString(message, "Message"));
+        break;
+    case 3:
+        TraceLoggingWrite(ref, "Log",
+            TraceLoggingLevel(3), TraceLoggingString(message, "Message"));
+        break;
+    case 4:
+        TraceLoggingWrite(ref, "Log",
+            TraceLoggingLevel(4), TraceLoggingString(message, "Message"));
+        break;
+    default:
+        TraceLoggingWrite(ref, "Log",
+            TraceLoggingLevel(5), TraceLoggingString(message, "Message"));
+        break;
+    }
+}
+
+int TRACE_ETW_UTIL_API
     etw_provider_write(etw_provider_t *handle, int level, const char *message)
 {
     if (handle == NULL || message == NULL)
@@ -51,35 +81,12 @@ int ETW_UTIL_API
         return 0;
     }
 
-    /* TraceLoggingLevel はコンパイル時定数を要求するため switch で分岐する */
-    switch (level)
-    {
-    case 1: /* CRITICAL */
-        TraceLoggingWrite(handle->provider_ref, "Log",
-            TraceLoggingLevel(1), TraceLoggingString(message, "Message"));
-        break;
-    case 2: /* ERROR */
-        TraceLoggingWrite(handle->provider_ref, "Log",
-            TraceLoggingLevel(2), TraceLoggingString(message, "Message"));
-        break;
-    case 3: /* WARNING */
-        TraceLoggingWrite(handle->provider_ref, "Log",
-            TraceLoggingLevel(3), TraceLoggingString(message, "Message"));
-        break;
-    case 4: /* INFO */
-        TraceLoggingWrite(handle->provider_ref, "Log",
-            TraceLoggingLevel(4), TraceLoggingString(message, "Message"));
-        break;
-    default: /* VERBOSE (5) and others */
-        TraceLoggingWrite(handle->provider_ref, "Log",
-            TraceLoggingLevel(5), TraceLoggingString(message, "Message"));
-        break;
-    }
+    write_trace_event(handle->provider_ref, level, message);
 
     return 0;
 }
 
-void ETW_UTIL_API
+void TRACE_ETW_UTIL_API
     etw_provider_dispose(etw_provider_t *handle)
 {
     if (handle == NULL)
