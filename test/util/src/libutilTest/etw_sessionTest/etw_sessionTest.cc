@@ -125,7 +125,7 @@ TEST_F(etw_subscribeTest, test_subscribe_ascii)
 
     // Act
     Sleep(200);
-    etw_provider_write(handle, 4, "hello world"); // [手順] - ASCII メッセージを書き込む。
+    etw_provider_write(handle, 4, NULL, "hello world"); // [手順] - ASCII メッセージを書き込む。
 
     // Stop (flushes all events)
     etw_session_stop(session);
@@ -166,7 +166,7 @@ TEST_F(etw_subscribeTest, test_subscribe_utf8_japanese)
 
     // Act
     Sleep(200);
-    etw_provider_write(handle, 3, msg); // [手順] - 日本語 UTF-8 メッセージを書き込む。
+    etw_provider_write(handle, 3, NULL, msg); // [手順] - 日本語 UTF-8 メッセージを書き込む。
 
     // Stop
     etw_session_stop(session);
@@ -210,7 +210,7 @@ TEST_F(etw_subscribeTest, test_subscribe_utf8_mixed)
 
     // Act
     Sleep(200);
-    etw_provider_write(handle, 2, msg); // [手順] - 混在 UTF-8 メッセージを書き込む。
+    etw_provider_write(handle, 2, NULL, msg); // [手順] - 混在 UTF-8 メッセージを書き込む。
 
     // Stop
     etw_session_stop(session);
@@ -249,11 +249,11 @@ TEST_F(etw_subscribeTest, test_subscribe_multiple_levels)
 
     // Act - 全レベルでイベントを投入
     Sleep(200);
-    etw_provider_write(handle, 1, "critical_msg"); // [手順] - CRITICAL
-    etw_provider_write(handle, 2, "error_msg");    // [手順] - ERROR
-    etw_provider_write(handle, 3, "warning_msg");  // [手順] - WARNING
-    etw_provider_write(handle, 4, "info_msg");     // [手順] - INFO
-    etw_provider_write(handle, 5, "verbose_msg");  // [手順] - VERBOSE
+    etw_provider_write(handle, 1, NULL, "critical_msg"); // [手順] - CRITICAL
+    etw_provider_write(handle, 2, NULL, "error_msg");    // [手順] - ERROR
+    etw_provider_write(handle, 3, NULL, "warning_msg");  // [手順] - WARNING
+    etw_provider_write(handle, 4, NULL, "info_msg");     // [手順] - INFO
+    etw_provider_write(handle, 5, NULL, "verbose_msg");  // [手順] - VERBOSE
 
     // Stop
     etw_session_stop(session);
@@ -300,7 +300,7 @@ TEST_F(etw_subscribeTest, test_subscribe_empty_string)
 
     // Act
     Sleep(200);
-    etw_provider_write(handle, 5, ""); // [手順] - 空文字列を書き込む。
+    etw_provider_write(handle, 5, NULL, ""); // [手順] - 空文字列を書き込む。
 
     // Stop
     etw_session_stop(session);

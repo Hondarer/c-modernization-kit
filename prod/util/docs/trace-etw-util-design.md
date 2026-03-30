@@ -241,11 +241,14 @@ ETW_UTIL_EXPORT etw_provider_t *ETW_UTIL_API
  *  @param[in]  handle   etw_provider_init の戻り値。
  *  @param[in]  level    イベントレベル。
  *                       1=CRITICAL / 2=ERROR / 3=WARNING / 4=INFO / 5=VERBOSE
+ *  @param[in]  service  サービス名 (ETW "Trace" イベントの "Service" フィールド)。
+ *                       NULL の場合は Service フィールドなしで書き込む。
  *  @param[in]  message  UTF-8 文字列。
  *  @return     成功 0 / 失敗 -1。
  */
 ETW_UTIL_EXPORT int ETW_UTIL_API
-    etw_provider_write(etw_provider_t *handle, int level, const char *message);
+    etw_provider_write(etw_provider_t *handle, int level,
+                       const char *service, const char *message);
 
 /**
  *  ETW プロバイダの登録を解除する。
@@ -264,9 +267,9 @@ ETW_UTIL_EXPORT void ETW_UTIL_API
   - `TraceLoggingRegister(provider_ref)` を呼び、登録する。
   - GUID/プロバイダ名は呼び出し元でコンパイル時に定義済み（`etw-provider.c` は関知しない）。
 
-- `etw_provider_write(handle, level, message)`:
-  - `TraceLoggingWrite(handle->provider_ref, "Log", TraceLoggingLevel(level), TraceLoggingString(message, "Message"));`
-  - 必要なら level/file/line 等の追加フィールドを渡す。
+- `etw_provider_write(handle, level, service, message)`:
+  - `service` が非 NULL の場合: `TraceLoggingWrite(handle->provider_ref, "Trace", TraceLoggingLevel(level), TraceLoggingString(service, "Service"), TraceLoggingString(message, "Message"));`
+  - `service` が NULL の場合: `TraceLoggingWrite(handle->provider_ref, "Trace", TraceLoggingLevel(level), TraceLoggingString(message, "Message"));`
 
 - `etw_provider_dispose(handle)`:
   - `TraceLoggingUnregister(handle->provider_ref)` を呼ぶ。
@@ -328,7 +331,7 @@ static etw_provider_t *s_etw_provider = NULL;
 OutputDebugStringA(dbg_buf);
 // 変更後
 if (s_etw_provider != NULL) {
-    etw_provider_write(s_etw_provider, (int)level + 1, dbg_buf);
+    etw_provider_write(s_etw_provider, (int)level + 1, NULL, dbg_buf);
 }
 ```
 

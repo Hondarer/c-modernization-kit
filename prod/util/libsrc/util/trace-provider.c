@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-/* ===== Windows: TraceLogging 直接使用 ===== */
+/* ===== Windows: TraceLogging プロバイダ定義 ===== */
 
 #ifdef _WIN32
 
@@ -19,6 +19,9 @@ TRACELOGGING_DEFINE_PROVIDER(
 
 /** デフォルトプロバイダの参照カウント。 */
 static volatile LONG s_trace_ref = 0;
+
+/** デフォルトプロバイダの共有 ETW ハンドル。 */
+static etw_provider_t *s_etw_handle = NULL;
 
 #endif /* _WIN32 */
 
@@ -166,8 +169,8 @@ trace_provider_t *TRACE_UTIL_API
 
         if (InterlockedIncrement(&s_trace_ref) == 1)
         {
-            TLG_STATUS status = TraceLoggingRegister(s_trace_provider);
-            if (status != S_OK)
+            s_etw_handle = etw_provider_init(s_trace_provider);
+            if (s_etw_handle == NULL)
             {
                 InterlockedDecrement(&s_trace_ref);
                 free(handle->service_name);
@@ -219,58 +222,14 @@ static size_t utf8_safe_truncate(const char *s, size_t pos)
     return pos;
 }
 
-#ifdef _WIN32
-
-/**
- *  @brief  "Trace" イベントを書き込む (Service + Message)。
- */
-static void write_trace_event(int level, const char *service, const char *message)
-{
-    switch (level)
-    {
-    case 1:
-        TraceLoggingWrite(s_trace_provider, "Trace",
-            TraceLoggingLevel(1),
-            TraceLoggingString(service, "Service"),
-            TraceLoggingString(message, "Message"));
-        break;
-    case 2:
-        TraceLoggingWrite(s_trace_provider, "Trace",
-            TraceLoggingLevel(2),
-            TraceLoggingString(service, "Service"),
-            TraceLoggingString(message, "Message"));
-        break;
-    case 3:
-        TraceLoggingWrite(s_trace_provider, "Trace",
-            TraceLoggingLevel(3),
-            TraceLoggingString(service, "Service"),
-            TraceLoggingString(message, "Message"));
-        break;
-    case 4:
-        TraceLoggingWrite(s_trace_provider, "Trace",
-            TraceLoggingLevel(4),
-            TraceLoggingString(service, "Service"),
-            TraceLoggingString(message, "Message"));
-        break;
-    default:
-        TraceLoggingWrite(s_trace_provider, "Trace",
-            TraceLoggingLevel(5),
-            TraceLoggingString(service, "Service"),
-            TraceLoggingString(message, "Message"));
-        break;
-    }
-}
-
-#endif /* _WIN32 */
-
 /**
  *  @brief  下層プロバイダに文字列を書き込む (内部ヘルパー)。
  */
 static int write_to_provider(trace_provider_t *handle, enum trace_level level, const char *msg)
 {
 #ifdef _WIN32
-    write_trace_event(to_etw_level(level), handle->service_name, msg);
-    return 0;
+    return etw_provider_write(s_etw_handle, to_etw_level(level),
+                              handle->service_name, msg);
 #else /* !_WIN32 */
     return syslog_provider_write(handle->syslog_handle, to_syslog_level(level), msg);
 #endif /* _WIN32 */
@@ -462,7 +421,8 @@ void TRACE_UTIL_API
 #ifdef _WIN32
     if (InterlockedDecrement(&s_trace_ref) == 0)
     {
-        TraceLoggingUnregister(s_trace_provider);
+        etw_provider_dispose(s_etw_handle);
+        s_etw_handle = NULL;
     }
     free(handle->service_name);
 #else /* !_WIN32 */

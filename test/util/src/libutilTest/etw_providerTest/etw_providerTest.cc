@@ -41,7 +41,7 @@ TEST_F(etw_providerTest, test_write_returns_zero)
     ASSERT_NE((etw_provider_t *)NULL, handle);
 
     // Act
-    int result = etw_provider_write(handle, 4, "test message"); // [手順] - INFO レベルでメッセージを書き込む。
+    int result = etw_provider_write(handle, 4, NULL, "test message"); // [手順] - INFO レベルでメッセージを書き込む。
 
     // Assert
     EXPECT_EQ(0, result); // [確認_正常系] - 戻り値が 0 であること。
@@ -58,11 +58,11 @@ TEST_F(etw_providerTest, test_write_all_levels)
     ASSERT_NE((etw_provider_t *)NULL, handle);
 
     // Act & Assert
-    EXPECT_EQ(0, etw_provider_write(handle, 1, "critical")); // [確認_正常系] - CRITICAL レベルで書き込めること。
-    EXPECT_EQ(0, etw_provider_write(handle, 2, "error"));    // [確認_正常系] - ERROR レベルで書き込めること。
-    EXPECT_EQ(0, etw_provider_write(handle, 3, "warning"));  // [確認_正常系] - WARNING レベルで書き込めること。
-    EXPECT_EQ(0, etw_provider_write(handle, 4, "info"));     // [確認_正常系] - INFO レベルで書き込めること。
-    EXPECT_EQ(0, etw_provider_write(handle, 5, "verbose"));  // [確認_正常系] - VERBOSE レベルで書き込めること。
+    EXPECT_EQ(0, etw_provider_write(handle, 1, NULL, "critical")); // [確認_正常系] - CRITICAL レベルで書き込めること。
+    EXPECT_EQ(0, etw_provider_write(handle, 2, NULL, "error"));    // [確認_正常系] - ERROR レベルで書き込めること。
+    EXPECT_EQ(0, etw_provider_write(handle, 3, NULL, "warning"));  // [確認_正常系] - WARNING レベルで書き込めること。
+    EXPECT_EQ(0, etw_provider_write(handle, 4, NULL, "info"));     // [確認_正常系] - INFO レベルで書き込めること。
+    EXPECT_EQ(0, etw_provider_write(handle, 5, NULL, "verbose"));  // [確認_正常系] - VERBOSE レベルで書き込めること。
 
     // Cleanup
     etw_provider_dispose(handle);
@@ -82,7 +82,7 @@ TEST_F(etw_providerTest, test_init_null_provider_ref)
 TEST_F(etw_providerTest, test_write_with_null_handle)
 {
     // Act
-    int result = etw_provider_write(NULL, 4, "test message"); // [手順] - handle に NULL を渡す。
+    int result = etw_provider_write(NULL, 4, NULL, "test message"); // [手順] - handle に NULL を渡す。
 
     // Assert
     EXPECT_EQ(0, result); // [確認_異常系] - NULL ハンドルでも安全に 0 が返されること。
@@ -95,7 +95,7 @@ TEST_F(etw_providerTest, test_write_with_null_message)
     etw_provider_t *handle = etw_provider_init(s_test_provider);
 
     // Act
-    int result = etw_provider_write(handle, 4, NULL); // [手順] - message に NULL を渡す。
+    int result = etw_provider_write(handle, 4, NULL, NULL); // [手順] - message に NULL を渡す。
 
     // Assert
     EXPECT_EQ(0, result); // [確認_異常系] - NULL メッセージでも安全に 0 が返されること。

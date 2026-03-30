@@ -133,6 +133,8 @@ extern "C"
      *                           NULL の場合は何もせず 0 を返します。
      *  @param[in]      level    イベントレベル。
      *                           1=CRITICAL / 2=ERROR / 3=WARNING / 4=INFO / 5=VERBOSE
+     *  @param[in]      service  サービス名 (ETW "Trace" イベントの "Service" フィールド)。
+     *                           NULL の場合は Service フィールドなしで書き込みます。
      *  @param[in]      message  null 終端 UTF-8 文字列。NULL の場合は何もせず 0 を返します。
      *
      *  @par    長さ制限
@@ -151,7 +153,8 @@ extern "C"
      *  @return         成功 0 / 失敗 -1。
      */
     TRACE_ETW_UTIL_EXPORT int TRACE_ETW_UTIL_API
-        etw_provider_write(etw_provider_t *handle, int level, const char *message);
+        etw_provider_write(etw_provider_t *handle, int level,
+                           const char *service, const char *message);
 
     /**
      *  @brief          ETW プロバイダの登録を解除する。

@@ -44,44 +44,91 @@ etw_provider_t *TRACE_ETW_UTIL_API
 }
 
 /**
- *  @brief  "Log" イベントを書き込む。
+ *  @brief  "Trace" イベントを書き込む (Service + Message)。
+ *  @details  service が NULL の場合は Service フィールドを含めない。
  */
-static void write_trace_event(etw_provider_ref_t ref, int level, const char *message)
+static void write_trace_event(etw_provider_ref_t ref, int level,
+                               const char *service, const char *message)
 {
-    switch (level)
+    if (service != NULL)
     {
-    case 1:
-        TraceLoggingWrite(ref, "Log",
-            TraceLoggingLevel(1), TraceLoggingString(message, "Message"));
-        break;
-    case 2:
-        TraceLoggingWrite(ref, "Log",
-            TraceLoggingLevel(2), TraceLoggingString(message, "Message"));
-        break;
-    case 3:
-        TraceLoggingWrite(ref, "Log",
-            TraceLoggingLevel(3), TraceLoggingString(message, "Message"));
-        break;
-    case 4:
-        TraceLoggingWrite(ref, "Log",
-            TraceLoggingLevel(4), TraceLoggingString(message, "Message"));
-        break;
-    default:
-        TraceLoggingWrite(ref, "Log",
-            TraceLoggingLevel(5), TraceLoggingString(message, "Message"));
-        break;
+        switch (level)
+        {
+        case 1:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(1),
+                TraceLoggingString(service, "Service"),
+                TraceLoggingString(message, "Message"));
+            break;
+        case 2:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(2),
+                TraceLoggingString(service, "Service"),
+                TraceLoggingString(message, "Message"));
+            break;
+        case 3:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(3),
+                TraceLoggingString(service, "Service"),
+                TraceLoggingString(message, "Message"));
+            break;
+        case 4:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(4),
+                TraceLoggingString(service, "Service"),
+                TraceLoggingString(message, "Message"));
+            break;
+        default:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(5),
+                TraceLoggingString(service, "Service"),
+                TraceLoggingString(message, "Message"));
+            break;
+        }
+    }
+    else
+    {
+        switch (level)
+        {
+        case 1:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(1),
+                TraceLoggingString(message, "Message"));
+            break;
+        case 2:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(2),
+                TraceLoggingString(message, "Message"));
+            break;
+        case 3:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(3),
+                TraceLoggingString(message, "Message"));
+            break;
+        case 4:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(4),
+                TraceLoggingString(message, "Message"));
+            break;
+        default:
+            TraceLoggingWrite(ref, "Trace",
+                TraceLoggingLevel(5),
+                TraceLoggingString(message, "Message"));
+            break;
+        }
     }
 }
 
 int TRACE_ETW_UTIL_API
-    etw_provider_write(etw_provider_t *handle, int level, const char *message)
+    etw_provider_write(etw_provider_t *handle, int level,
+                       const char *service, const char *message)
 {
     if (handle == NULL || message == NULL)
     {
         return 0;
     }
 
-    write_trace_event(handle->provider_ref, level, message);
+    write_trace_event(handle->provider_ref, level, service, message);
 
     return 0;
 }
