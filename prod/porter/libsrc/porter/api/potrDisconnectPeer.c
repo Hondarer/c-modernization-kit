@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrDisconnectPeer.c
  *  @brief          potrDisconnectPeer 関数の実装。
@@ -11,6 +11,7 @@
  *******************************************************************************
  */
 
+#include <inttypes.h>
 #include <porter_const.h>
 #include <porter.h>
 
@@ -44,7 +45,7 @@ POTR_EXPORT int POTR_API potrDisconnectPeer(PotrHandle handle, PotrPeerId peer_i
     if (peer_id == POTR_PEER_NA || peer_id == POTR_PEER_ALL)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrDisconnectPeer: service_id=%d invalid peer_id=%u"
+                 "potrDisconnectPeer: service_id=%" PRId64 " invalid peer_id=%u"
                  " (POTR_PEER_NA or POTR_PEER_ALL not allowed)",
                  ctx != NULL ? ctx->service.service_id : 0, (unsigned)peer_id);
         return POTR_ERROR;
@@ -53,7 +54,7 @@ POTR_EXPORT int POTR_API potrDisconnectPeer(PotrHandle handle, PotrPeerId peer_i
     if (!ctx->is_multi_peer)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrDisconnectPeer: service_id=%d not in N:1 mode",
+                 "potrDisconnectPeer: service_id=%" PRId64 " not in N:1 mode",
                  ctx->service.service_id);
         return POTR_ERROR;
     }
@@ -67,13 +68,13 @@ POTR_EXPORT int POTR_API potrDisconnectPeer(PotrHandle handle, PotrPeerId peer_i
         {
             POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
             POTR_LOG(POTR_LOG_ERROR,
-                     "potrDisconnectPeer: service_id=%d peer_id=%u not found",
+                     "potrDisconnectPeer: service_id=%" PRId64 " peer_id=%u not found",
                      ctx->service.service_id, (unsigned)peer_id);
             return POTR_ERROR;
         }
 
         POTR_LOG(POTR_LOG_INFO,
-                 "potrDisconnectPeer: service_id=%d peer_id=%u disconnecting",
+                 "potrDisconnectPeer: service_id=%" PRId64 " peer_id=%u disconnecting",
                  ctx->service.service_id, (unsigned)peer_id);
 
         /* FIN を送信 */

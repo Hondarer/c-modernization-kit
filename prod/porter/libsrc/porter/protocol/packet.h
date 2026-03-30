@@ -29,11 +29,10 @@
  */
 typedef struct
 {
-    int32_t  service_id;     /**< サービス識別子。 */
-    uint32_t session_id;     /**< セッション識別子 (乱数)。 */
-    int64_t  session_tv_sec; /**< セッション開始時刻 秒部。 */
-    int32_t  session_tv_nsec;/**< セッション開始時刻 ナノ秒部。 */
-    uint32_t _pad;           /**< パディング (構造体サイズを 8 バイト境界に揃える)。 */
+    int64_t  service_id;      /**< サービス識別子。 */
+    int64_t  session_tv_sec;  /**< セッション開始時刻 秒部。 */
+    uint32_t session_id;      /**< セッション識別子 (乱数)。 */
+    int32_t  session_tv_nsec; /**< セッション開始時刻 ナノ秒部。 */
 } PotrPacketSessionHdr;
 
 #ifdef __cplusplus

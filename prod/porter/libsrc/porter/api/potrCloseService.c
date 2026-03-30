@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrCloseService.c
  *  @brief          potrCloseService 関数の実装。
@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #ifndef _WIN32
     #include <arpa/inet.h>
@@ -52,7 +53,6 @@ static void send_fin(struct PotrContext_ *ctx)
     shdr.session_id      = ctx->session_id;
     shdr.session_tv_sec  = ctx->session_tv_sec;
     shdr.session_tv_nsec = ctx->session_tv_nsec;
-    shdr._pad            = 0;
 
     if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS) return;
 
@@ -128,14 +128,14 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     }
 
     POTR_LOG(POTR_LOG_INFO,
-             "potrCloseService: service_id=%d closing",
+             "potrCloseService: service_id=%" PRId64 " closing",
              ctx->service.service_id);
 
     /* TCP: 接続管理スレッドを停止する (send/recv/health スレッドは connect スレッド内で停止) */
     if (potr_is_tcp_type(ctx->service.type))
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrCloseService: service_id=%d stopping connect thread (TCP)",
+                 "potrCloseService: service_id=%" PRId64 " stopping connect thread (TCP)",
                  ctx->service.service_id);
         potr_connect_thread_stop(ctx);
 
@@ -197,7 +197,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     if (ctx->health_running)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrCloseService: service_id=%d stopping health thread",
+                 "potrCloseService: service_id=%" PRId64 " stopping health thread",
                  ctx->service.service_id);
         potr_health_thread_stop(ctx);
     }
@@ -206,7 +206,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     if (ctx->send_thread_running)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrCloseService: service_id=%d flushing send queue and sending FIN",
+                 "potrCloseService: service_id=%" PRId64 " flushing send queue and sending FIN",
                  ctx->service.service_id);
         potr_send_queue_wait_drained(&ctx->send_queue);
         if (ctx->is_multi_peer)
@@ -227,7 +227,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     if (ctx->running)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrCloseService: service_id=%d stopping recv thread",
+                 "potrCloseService: service_id=%" PRId64 " stopping recv thread",
                  ctx->service.service_id);
         comm_recv_thread_stop(ctx);
     }

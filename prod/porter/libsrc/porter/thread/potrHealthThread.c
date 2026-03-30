@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrHealthThread.c
  *  @brief          ヘルスチェックスレッドモジュール。
@@ -17,6 +17,7 @@
  */
 
 #include <string.h>
+#include <inttypes.h>
 
 #ifndef _WIN32
     #include <sys/socket.h>
@@ -116,7 +117,6 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
     PotrPacketSessionHdr shdr;
 
     shdr.service_id = ctx->service.service_id;
-    shdr._pad       = 0;
     /* 1:1 モード: session はコンテキストから取得 (N:1 は後述のループで各ピアから取得) */
     if (!ctx->is_multi_peer)
     {
@@ -154,7 +154,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
             if (elapsed < (uint64_t)ctx->global.health_interval_ms)
             {
                 POTR_LOG(POTR_LOG_TRACE,
-                         "health[service_id=%d]: PING timer reset",
+                         "health[service_id=%" PRId64 "]: PING timer reset",
                          ctx->service.service_id);
                 continue;
             }
@@ -182,7 +182,6 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 peer_shdr.session_id      = ctx->peers[i].session_id;
                 peer_shdr.session_tv_sec  = ctx->peers[i].session_tv_sec;
                 peer_shdr.session_tv_nsec = ctx->peers[i].session_tv_nsec;
-                peer_shdr._pad            = 0;
 
 #ifndef _WIN32
                 pthread_mutex_lock(&ctx->peers[i].send_window_mutex);
@@ -256,7 +255,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 }
 
                 POTR_LOG(POTR_LOG_TRACE,
-                         "health[service_id=%d]: PING peer=%u seq=%u",
+                         "health[service_id=%" PRId64 "]: PING peer=%u seq=%u",
                          ctx->service.service_id,
                          (unsigned)ctx->peers[i].peer_id, (unsigned)seq);
             }
@@ -279,7 +278,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
             if (build_result != POTR_SUCCESS) { continue; }
 
             POTR_LOG(POTR_LOG_TRACE,
-                     "health[service_id=%d]: PING seq=%u",
+                     "health[service_id=%" PRId64 "]: PING seq=%u",
                      ctx->service.service_id, (unsigned)seq);
 
             if (ctx->service.encrypt_enabled)
@@ -366,10 +365,9 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
     shdr.session_id      = ctx->session_id;
     shdr.session_tv_sec  = ctx->session_tv_sec;
     shdr.session_tv_nsec = ctx->session_tv_nsec;
-    shdr._pad            = 0;
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "tcp_health[service_id=%d path=%d]: starting",
+             "tcp_health[service_id=%" PRId64 " path=%d]: starting",
              ctx->service.service_id, path_idx);
 
     while (ctx->health_running[path_idx])
@@ -392,7 +390,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
                 && health_get_ms() - last > (uint64_t)ctx->global.health_timeout_ms)
             {
                 POTR_LOG(POTR_LOG_WARN,
-                         "tcp_health[service_id=%d path=%d]: PING timeout"
+                         "tcp_health[service_id=%" PRId64 " path=%d]: PING timeout"
                          " (%llu ms), closing connection",
                          ctx->service.service_id, path_idx,
                          (unsigned long long)(health_get_ms() - last));
@@ -429,7 +427,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
         if (build_result != POTR_SUCCESS) { continue; }
 
         POTR_LOG(POTR_LOG_TRACE,
-                 "tcp_health[service_id=%d path=%d]: PING seq=%u",
+                 "tcp_health[service_id=%" PRId64 " path=%d]: PING seq=%u",
                  ctx->service.service_id, path_idx, (unsigned)seq);
 
         if (ctx->service.encrypt_enabled)
@@ -505,7 +503,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
     }
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "tcp_health[service_id=%d path=%d]: exited",
+             "tcp_health[service_id=%" PRId64 " path=%d]: exited",
              ctx->service.service_id, path_idx);
 
 #ifndef _WIN32
@@ -532,13 +530,13 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
     if (ctx->global.health_interval_ms == 0)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "health_thread[service_id=%d]: disabled (health_interval_ms=0)",
+                 "health_thread[service_id=%" PRId64 "]: disabled (health_interval_ms=0)",
                  ctx->service.service_id);
         return POTR_SUCCESS;
     }
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "health_thread[service_id=%d]: starting (interval=%ums)",
+             "health_thread[service_id=%" PRId64 "]: starting (interval=%ums)",
              ctx->service.service_id,
              (unsigned)ctx->global.health_interval_ms);
 
@@ -557,7 +555,7 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
     {
         ctx->health_running[0] = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "health_thread[service_id=%d]: pthread_create failed",
+                 "health_thread[service_id=%" PRId64 "]: pthread_create failed",
                  ctx->service.service_id);
         return POTR_ERROR;
     }
@@ -567,7 +565,7 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
     {
         ctx->health_running[0] = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "health_thread[service_id=%d]: CreateThread failed",
+                 "health_thread[service_id=%" PRId64 "]: CreateThread failed",
                  ctx->service.service_id);
         return POTR_ERROR;
     }
@@ -635,7 +633,7 @@ int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
     if (ctx->global.health_interval_ms == 0)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "tcp_health_thread[service_id=%d path=%d]: disabled",
+                 "tcp_health_thread[service_id=%" PRId64 " path=%d]: disabled",
                  ctx->service.service_id, path_idx);
         return POTR_SUCCESS;
     }
@@ -651,7 +649,7 @@ int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
     {
         ctx->health_running[path_idx] = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "tcp_health_thread[service_id=%d path=%d]: pthread_create failed",
+                 "tcp_health_thread[service_id=%" PRId64 " path=%d]: pthread_create failed",
                  ctx->service.service_id, path_idx);
         return POTR_ERROR;
     }
@@ -663,7 +661,7 @@ int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
     {
         ctx->health_running[path_idx] = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "tcp_health_thread[service_id=%d path=%d]: CreateThread failed",
+                 "tcp_health_thread[service_id=%" PRId64 " path=%d]: CreateThread failed",
                  ctx->service.service_id, path_idx);
         return POTR_ERROR;
     }

@@ -128,7 +128,7 @@ typedef enum
  */
 typedef struct
 {
-    int      service_id; /**< サービス ID。 */
+    int64_t  service_id; /**< サービス ID。 */
     PotrType type;       /**< 通信種別。 */
 
     /* POTR_TYPE_UNICAST */
@@ -193,16 +193,29 @@ typedef struct
  *  @details
  *  UDP で送受信される物理パケットのレイアウトです。\n
  *  各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納します。\n
- *  ヘッダー固定長: offsetof(PotrPacket, payload) = 32 バイト。\n
+ *  ヘッダー固定長: offsetof(PotrPacket, payload) = 36 バイト。\n
  *  payload フィールドはポインタであり、wire データとして直接 sendto に渡せません。\n
  *  送信時は PotrContext_ の send_wire_buf / recv_buf に wire データを組み立ててください。
+ *
+ *  ワイヤーフォーマット (バイトオフセット):
+ *  @code
+ *   0: service_id      (int64_t,  8 bytes)
+ *   8: session_tv_sec  (int64_t,  8 bytes)
+ *  16: session_id      (uint32_t, 4 bytes)
+ *  20: session_tv_nsec (int32_t,  4 bytes)
+ *  24: seq_num         (uint32_t, 4 bytes)
+ *  28: ack_num         (uint32_t, 4 bytes)
+ *  32: flags           (uint16_t, 2 bytes)
+ *  34: payload_len     (uint16_t, 2 bytes)
+ *  36: payload         (pointer)
+ *  @endcode
  *******************************************************************************
  */
 typedef struct
 {
-    int32_t  service_id;      /**< サービス識別子 (NBO)。受信時に照合する。 */
-    uint32_t session_id;      /**< セッション識別子 (NBO)。potrOpenService 時に決定する乱数。 */
+    int64_t  service_id;      /**< サービス識別子 (NBO)。受信時に照合する。 */
     int64_t  session_tv_sec;  /**< セッション開始時刻 秒部 (NBO)。struct timespec の tv_sec 相当。 */
+    uint32_t session_id;      /**< セッション識別子 (NBO)。potrOpenService 時に決定する乱数。 */
     int32_t  session_tv_nsec; /**< セッション開始時刻 ナノ秒部 (NBO)。struct timespec の tv_nsec 相当。 */
     uint32_t seq_num;         /**< 通番。送信側が付与する連番 (NBO)。 */
     uint32_t ack_num;         /**< 再送要求番号 / 再送不能通番 (NBO)。NACK では要求通番、REJECT では再送不能通番を格納する。 */
@@ -290,7 +303,7 @@ typedef enum
  *  @param[in]      len         受信データのバイト数。POTR_EVENT_DATA 時のみ有効。
  *******************************************************************************
  */
-typedef void (*PotrRecvCallback)(int service_id, PotrPeerId peer_id,
+typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,
                                  PotrEvent event,
                                  const void *data, size_t len);
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           porter.h
  *  @brief          通信ライブラリ (動的リンク用) のヘッダーファイル。
@@ -110,15 +110,15 @@ extern "C"
      *
      *  @par            使用例 (受信者)
      *  @code{.c}
-     *  void on_recv(int service_id, PotrPeerId peer_id,
+     *  void on_recv(int64_t service_id, PotrPeerId peer_id,
      *               PotrEvent event, const void *data, size_t len) {
      *      (void)peer_id;  // 1:1 モードでは常に POTR_PEER_NA
      *      if (event == POTR_EVENT_CONNECTED)
-     *          printf("service %d: connected\n", service_id);
+     *          printf("service %" PRId64 ": connected\n", service_id);
      *      else if (event == POTR_EVENT_DISCONNECTED)
-     *          printf("service %d: disconnected\n", service_id);
+     *          printf("service %" PRId64 ": disconnected\n", service_id);
      *      else
-     *          printf("service %d: received %zu bytes\n", service_id, len);
+     *          printf("service %" PRId64 ": received %zu bytes\n", service_id, len);
      *  }
      *
      *  PotrGlobalConfig global = {0};
@@ -220,15 +220,15 @@ extern "C"
      *
      *  @par            使用例 (受信者)
      *  @code{.c}
-     *  void on_recv(int service_id, PotrPeerId peer_id,
+     *  void on_recv(int64_t service_id, PotrPeerId peer_id,
      *               PotrEvent event, const void *data, size_t len) {
      *      (void)peer_id;  // 1:1 モードでは常に POTR_PEER_NA
      *      if (event == POTR_EVENT_CONNECTED)
-     *          printf("service %d: connected\n", service_id);
+     *          printf("service %" PRId64 ": connected\n", service_id);
      *      else if (event == POTR_EVENT_DISCONNECTED)
-     *          printf("service %d: disconnected\n", service_id);
+     *          printf("service %" PRId64 ": disconnected\n", service_id);
      *      else
-     *          printf("service %d: received %zu bytes\n", service_id, len);
+     *          printf("service %" PRId64 ": received %zu bytes\n", service_id, len);
      *  }
      *
      *  PotrHandle handle;
@@ -265,7 +265,7 @@ extern "C"
      *******************************************************************************
      */
     POTR_EXPORT extern int POTR_API potrOpenServiceFromConfig(const char       *config_path,
-                                                          int               service_id,
+                                                          int64_t           service_id,
                                                           PotrRole          role,
                                                           PotrRecvCallback  callback,
                                                           PotrHandle       *handle);
@@ -494,7 +494,7 @@ extern "C"
      *******************************************************************************
      */
     POTR_EXPORT extern int POTR_API potrGetServiceType(const char *config_path,
-                                                   int         service_id,
+                                                   int64_t     service_id,
                                                    PotrType   *type);
 
 #ifdef __cplusplus

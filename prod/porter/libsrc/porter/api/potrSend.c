@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrSend.c
  *  @brief          potrSend 関数の実装。
@@ -12,6 +12,7 @@
  */
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <porter_const.h>
 #include <porter.h>
@@ -102,14 +103,14 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
     }
 
     POTR_LOG(POTR_LOG_TRACE,
-             "potrSend: service_id=%d peer_id=%u len=%zu flags=0x%x",
+             "potrSend: service_id=%" PRId64 " peer_id=%u len=%zu flags=0x%x",
              ctx->service.service_id, (unsigned)peer_id, len, (unsigned)flags);
 
     /* TCP: 全 path 切断中の場合は POTR_ERROR_DISCONNECTED を返す */
     if (potr_is_tcp_type(ctx->service.type) && ctx->tcp_active_paths == 0)
     {
         POTR_LOG(POTR_LOG_DEBUG,
-                 "potrSend: service_id=%d TCP not connected",
+                 "potrSend: service_id=%" PRId64 " TCP not connected",
                  ctx->service.service_id);
         return POTR_ERROR_DISCONNECTED;
     }
@@ -129,7 +130,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
                           (const uint8_t *)data, len) != 0)
         {
             POTR_LOG(POTR_LOG_ERROR,
-                     "potrSend: service_id=%d compression failed (len=%zu)",
+                     "potrSend: service_id=%" PRId64 " compression failed (len=%zu)",
                      ctx->service.service_id, len);
             return POTR_ERROR;
         }
@@ -137,7 +138,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
         if (cmp_len < len)
         {
             POTR_LOG(POTR_LOG_TRACE,
-                     "potrSend: service_id=%d compress %zu -> %zu bytes",
+                     "potrSend: service_id=%" PRId64 " compress %zu -> %zu bytes",
                      ctx->service.service_id, len, cmp_len);
             ptr        = ctx->compress_buf;
             len        = cmp_len;
@@ -146,7 +147,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
         else
         {
             POTR_LOG(POTR_LOG_TRACE,
-                     "potrSend: service_id=%d compression skipped"
+                     "potrSend: service_id=%" PRId64 " compression skipped"
                      " (compressed %zu >= original %zu bytes), sending uncompressed",
                      ctx->service.service_id, cmp_len, len);
             /* 圧縮効果なし: 非圧縮のまま送信 (ptr, len, base_flags は初期値を維持) */
@@ -159,7 +160,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
         if (peer_id == POTR_PEER_NA)
         {
             POTR_LOG(POTR_LOG_ERROR,
-                     "potrSend: service_id=%d N:1 mode requires valid peer_id (got POTR_PEER_NA)",
+                     "potrSend: service_id=%" PRId64 " N:1 mode requires valid peer_id (got POTR_PEER_NA)",
                      ctx->service.service_id);
             return POTR_ERROR;
         }
@@ -177,7 +178,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
             if (ids == NULL)
             {
                 POTR_LOG(POTR_LOG_ERROR,
-                         "potrSend: service_id=%d PEER_ALL malloc failed",
+                         "potrSend: service_id=%" PRId64 " PEER_ALL malloc failed",
                          ctx->service.service_id);
                 return POTR_ERROR;
             }
@@ -210,7 +211,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
             {
                 POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
                 POTR_LOG(POTR_LOG_ERROR,
-                         "potrSend: service_id=%d peer_id=%u not found",
+                         "potrSend: service_id=%" PRId64 " peer_id=%u not found",
                          ctx->service.service_id, (unsigned)peer_id);
                 return POTR_ERROR;
             }

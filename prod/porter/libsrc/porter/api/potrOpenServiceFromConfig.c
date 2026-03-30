@@ -11,6 +11,7 @@
  *******************************************************************************
  */
 
+#include <inttypes.h>
 #include <porter_const.h>
 #include <porter.h>
 
@@ -19,7 +20,7 @@
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_EXPORT int POTR_API potrOpenServiceFromConfig(const char       *config_path,
-                                               int               service_id,
+                                               int64_t           service_id,
                                                PotrRole          role,
                                                PotrRecvCallback  callback,
                                                PotrHandle       *handle)
@@ -28,7 +29,7 @@ POTR_EXPORT int POTR_API potrOpenServiceFromConfig(const char       *config_path
     PotrServiceDef   service;
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "potrOpenServiceFromConfig: service_id=%d config=%s",
+             "potrOpenServiceFromConfig: service_id=%" PRId64 " config=%s",
              service_id,
              config_path != NULL ? config_path : "(null)");
 
@@ -44,7 +45,7 @@ POTR_EXPORT int POTR_API potrOpenServiceFromConfig(const char       *config_path
     if (config_load_global(config_path, &global) != POTR_SUCCESS)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenServiceFromConfig: service_id=%d"
+                 "potrOpenServiceFromConfig: service_id=%" PRId64
                  " failed to load global config from '%s'",
                  service_id, config_path);
         return POTR_ERROR;
@@ -53,7 +54,7 @@ POTR_EXPORT int POTR_API potrOpenServiceFromConfig(const char       *config_path
     if (config_load_service(config_path, service_id, &service) != POTR_SUCCESS)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenServiceFromConfig: service_id=%d not found in '%s'",
+                 "potrOpenServiceFromConfig: service_id=%" PRId64 " not found in '%s'",
                  service_id, config_path);
         return POTR_ERROR;
     }

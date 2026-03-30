@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrOpenService.c
  *  @brief          potrOpenService 関数の実装。
@@ -12,6 +12,7 @@
  */
 
 #include <stdlib.h>
+#include <inttypes.h>
 #include <string.h>
 
 #ifndef _WIN32
@@ -458,14 +459,14 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     }
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "potrOpenService: service_id=%d role=%d",
+             "potrOpenService: service_id=%" PRId64 " role=%d",
              service->service_id, (int)role);
 
     /* role と callback の整合性チェック (設定読み込み前に確定できる部分のみ) */
     if (role == POTR_ROLE_RECEIVER && callback == NULL)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d RECEIVER role requires callback",
+                 "potrOpenService: service_id=%" PRId64 " RECEIVER role requires callback",
                  service->service_id);
         return POTR_ERROR;
     }
@@ -474,7 +475,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     if (role != POTR_ROLE_SENDER && role != POTR_ROLE_RECEIVER)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d unknown role=%d",
+                 "potrOpenService: service_id=%" PRId64 " unknown role=%d",
                  service->service_id, (int)role);
         return POTR_ERROR;
     }
@@ -516,7 +517,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d SENDER role must not have callback"
+                 "potrOpenService: service_id=%" PRId64 " SENDER role must not have callback"
                  " (type=%d)",
                  ctx->service.service_id, (int)ctx->service.type);
         free(ctx);
@@ -526,7 +527,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         && ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d UNICAST_BIDIR SENDER role requires callback",
+                 "potrOpenService: service_id=%" PRId64 " UNICAST_BIDIR SENDER role requires callback",
                  ctx->service.service_id);
         free(ctx);
         return POTR_ERROR;
@@ -536,7 +537,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     if (ctx->global.max_payload < 64U || ctx->global.max_payload > POTR_MAX_PAYLOAD)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d invalid max_payload=%u (range: 64..%u)",
+                 "potrOpenService: service_id=%" PRId64 " invalid max_payload=%u (range: 64..%u)",
                  ctx->service.service_id, (unsigned)ctx->global.max_payload, (unsigned)POTR_MAX_PAYLOAD);
         free(ctx);
         return POTR_ERROR;
@@ -544,7 +545,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     if (ctx->global.window_size < 2U || ctx->global.window_size > POTR_MAX_WINDOW_SIZE)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d invalid window_size=%u (range: 2..%u)",
+                 "potrOpenService: service_id=%" PRId64 " invalid window_size=%u (range: 2..%u)",
                  ctx->service.service_id, (unsigned)ctx->global.window_size, (unsigned)POTR_MAX_WINDOW_SIZE);
         free(ctx);
         return POTR_ERROR;
@@ -552,7 +553,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     if (ctx->global.max_message_size < (uint32_t)ctx->global.max_payload)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d max_message_size=%u must be >= max_payload=%u",
+                 "potrOpenService: service_id=%" PRId64 " max_message_size=%u must be >= max_payload=%u",
                  ctx->service.service_id, (unsigned)ctx->global.max_message_size,
                  (unsigned)ctx->global.max_payload);
         free(ctx);
@@ -561,7 +562,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     if (ctx->global.send_queue_depth < 2U)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "potrOpenService: service_id=%d invalid send_queue_depth=%u (min: 2)",
+                 "potrOpenService: service_id=%" PRId64 " invalid send_queue_depth=%u (min: 2)",
                  ctx->service.service_id, (unsigned)ctx->global.send_queue_depth);
         free(ctx);
         return POTR_ERROR;
@@ -584,7 +585,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     }
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "potrOpenService: service_id=%d type=%d window=%u max_payload=%u"
+             "potrOpenService: service_id=%" PRId64 " type=%d window=%u max_payload=%u"
              " max_message_size=%u send_queue_depth=%u"
              " health_interval=%ums health_timeout=%ums",
              ctx->service.service_id, (int)ctx->service.type,
@@ -755,7 +756,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             if (ctx->service.dst_port == 0)
             {
                 POTR_LOG(POTR_LOG_ERROR,
-                         "potrOpenService: service_id=%d UNICAST_BIDIR requires"
+                         "potrOpenService: service_id=%" PRId64 " UNICAST_BIDIR requires"
                          " dst_port (non-zero)",
                          ctx->service.service_id);
                 ctx_cleanup(ctx);
@@ -790,7 +791,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 }
                 ctx->n_path = 1;
                 POTR_LOG(POTR_LOG_INFO,
-                         "potrOpenService: service_id=%d UNICAST_BIDIR 1:1 dynamic RECEIVER"
+                         "potrOpenService: service_id=%" PRId64 " UNICAST_BIDIR 1:1 dynamic RECEIVER"
                          " bind dst_port=%u",
                          ctx->service.service_id, (unsigned)ctx->service.dst_port);
             }
@@ -873,7 +874,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             if (ctx->service.dst_port == 0)
             {
                 POTR_LOG(POTR_LOG_ERROR,
-                         "potrOpenService: service_id=%d UNICAST_BIDIR_N1 requires"
+                         "potrOpenService: service_id=%" PRId64 " UNICAST_BIDIR_N1 requires"
                          " dst_port (non-zero)",
                          ctx->service.service_id);
                 ctx_cleanup(ctx);
@@ -932,7 +933,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             }
 
             POTR_LOG(POTR_LOG_INFO,
-                     "potrOpenService: service_id=%d UNICAST_BIDIR_N1"
+                     "potrOpenService: service_id=%" PRId64 " UNICAST_BIDIR_N1"
                      " (max_peers=%d src_port_filter=%u) bind dst_port=%u n_path=%d",
                      ctx->service.service_id, ctx->max_peers,
                      (unsigned)ctx->service.src_port,
@@ -947,7 +948,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             if (ctx->service.dst_port == 0)
             {
                 POTR_LOG(POTR_LOG_ERROR,
-                         "potrOpenService: service_id=%d TCP requires dst_port",
+                         "potrOpenService: service_id=%" PRId64 " TCP requires dst_port",
                          ctx->service.service_id);
                 ctx_cleanup(ctx);
                 return POTR_ERROR;
@@ -964,7 +965,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                     if (open_socket_tcp_receiver(ctx, i) != POTR_SUCCESS)
                     {
                         POTR_LOG(POTR_LOG_ERROR,
-                                 "potrOpenService: service_id=%d TCP listen failed"
+                                 "potrOpenService: service_id=%" PRId64 " TCP listen failed"
                                  " (path=%d dst_addr=%s dst_port=%u)",
                                  ctx->service.service_id, i,
                                  ctx->service.dst_addr[i][0] ? ctx->service.dst_addr[i] : "*",
@@ -973,7 +974,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                         return POTR_ERROR;
                     }
                     POTR_LOG(POTR_LOG_INFO,
-                             "potrOpenService: service_id=%d TCP path[%d] listening"
+                             "potrOpenService: service_id=%" PRId64 " TCP path[%d] listening"
                              " on %s:%u",
                              ctx->service.service_id, i,
                              ctx->service.dst_addr[i][0] ? ctx->service.dst_addr[i] : "*",
@@ -983,7 +984,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 if (ctx->n_path == 0)
                 {
                     POTR_LOG(POTR_LOG_ERROR,
-                             "potrOpenService: service_id=%d TCP RECEIVER requires"
+                             "potrOpenService: service_id=%" PRId64 " TCP RECEIVER requires"
                              " at least one dst_addr",
                              ctx->service.service_id);
                     ctx_cleanup(ctx);
@@ -1001,7 +1002,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                     if (open_socket_tcp_sender(ctx, i) != POTR_SUCCESS)
                     {
                         POTR_LOG(POTR_LOG_ERROR,
-                                 "potrOpenService: service_id=%d TCP sender"
+                                 "potrOpenService: service_id=%" PRId64 " TCP sender"
                                  " dst_addr resolve failed (path=%d %s)",
                                  ctx->service.service_id, i, ctx->service.dst_addr[i]);
                         ctx_cleanup(ctx);
@@ -1012,7 +1013,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 if (ctx->n_path == 0)
                 {
                     POTR_LOG(POTR_LOG_ERROR,
-                             "potrOpenService: service_id=%d TCP SENDER requires"
+                             "potrOpenService: service_id=%" PRId64 " TCP SENDER requires"
                              " at least one dst_addr",
                              ctx->service.service_id);
                     ctx_cleanup(ctx);
@@ -1342,7 +1343,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         role_str = "RECEIVER";
     }
     POTR_LOG(POTR_LOG_INFO,
-             "potrOpenService: service_id=%d role=%s encrypt=%s opened successfully",
+             "potrOpenService: service_id=%" PRId64 " role=%s encrypt=%s opened successfully",
              ctx->service.service_id,
              role_str,
              ctx->service.encrypt_enabled ? "ON" : "OFF");

@@ -13,7 +13,7 @@
  *
  *  使用方法:
  *  @code{.c}
- *  POTR_LOG(POTR_LOG_INFO,  "service_id=%d opened", service_id);
+ *  POTR_LOG(POTR_LOG_INFO,  "service_id=%" PRId64 " opened", service_id);
  *  POTR_LOG(POTR_LOG_ERROR, "socket bind failed: port=%u", port);
  *  POTR_LOG(POTR_LOG_TRACE, "PING sent: seq=%u", seq);
  *  @endcode
@@ -60,7 +60,7 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
  *
  *  @par            例
  *  @code{.c}
- *  POTR_LOG(POTR_LOG_INFO,  "potrOpenService: service_id=%d", service_id);
+ *  POTR_LOG(POTR_LOG_INFO,  "potrOpenService: service_id=%" PRId64 "", service_id);
  *  POTR_LOG(POTR_LOG_WARN,  "NACK received: seq=%u", seq);
  *  POTR_LOG(POTR_LOG_ERROR, "socket() failed");
  *  @endcode

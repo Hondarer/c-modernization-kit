@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrSendThread.c
  *  @brief          非同期送信スレッドの実装。
@@ -44,6 +44,7 @@
 #endif /* _WIN32 */
 
 #include <string.h>
+#include <inttypes.h>
 
 #include <porter_const.h>
 
@@ -129,7 +130,6 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     shdr.session_id      = ctx->session_id;
     shdr.session_tv_sec  = ctx->session_tv_sec;
     shdr.session_tv_nsec = ctx->session_tv_nsec;
-    shdr._pad            = 0;
 
     /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合) */
 #ifndef _WIN32
@@ -188,7 +188,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
             LeaveCriticalSection(&ctx->send_window_mutex);
 #endif /* _WIN32 */
             POTR_LOG(POTR_LOG_ERROR,
-                     "sender[service_id=%d]: encrypt failed seq=%u",
+                     "sender[service_id=%" PRId64 "]: encrypt failed seq=%u",
                      ctx->service.service_id, (unsigned)seq);
             return;
         }
@@ -221,7 +221,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         wire_len = PACKET_HEADER_SIZE + enc_len;
 
         POTR_LOG(POTR_LOG_TRACE,
-                 "sender[service_id=%d]: DATA(enc) seq=%u packed_len=%zu enc_len=%zu",
+                 "sender[service_id=%" PRId64 "]: DATA(enc) seq=%u packed_len=%zu enc_len=%zu",
                  ctx->service.service_id, (unsigned)seq, packed_len, enc_len);
     }
     else
@@ -251,7 +251,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         wire_len = PACKET_HEADER_SIZE + packed_len;
 
         POTR_LOG(POTR_LOG_TRACE,
-                 "sender[service_id=%d]: DATA seq=%u packed_len=%zu",
+                 "sender[service_id=%" PRId64 "]: DATA seq=%u packed_len=%zu",
                  ctx->service.service_id, (unsigned)seq, packed_len);
     }
 
@@ -290,7 +290,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                         if (ctx->buf_full_suppress_cnt[i] == 0)
                         {
                             POTR_LOG(POTR_LOG_ERROR,
-                                     "send_thread[service_id=%d]: path[%d]"
+                                     "send_thread[service_id=%" PRId64 "]: path[%d]"
                                      " send buffer full, packet skipped",
                                      ctx->service.service_id, i);
                             ctx->buf_full_suppress_cnt[i] = 1;
@@ -319,7 +319,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                         if (ctx->buf_full_suppress_cnt[i] == 0)
                         {
                             POTR_LOG(POTR_LOG_ERROR,
-                                     "send_thread[service_id=%d]: path[%d]"
+                                     "send_thread[service_id=%" PRId64 "]: path[%d]"
                                      " send buffer full, packet skipped",
                                      ctx->service.service_id, i);
                             ctx->buf_full_suppress_cnt[i] = 1;
@@ -379,7 +379,6 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
     shdr.session_id      = peer->session_id;
     shdr.session_tv_sec  = peer->session_tv_sec;
     shdr.session_tv_nsec = peer->session_tv_nsec;
-    shdr._pad            = 0;
 
 #ifndef _WIN32
     pthread_mutex_lock(&peer->send_window_mutex);
@@ -427,7 +426,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
             LeaveCriticalSection(&peer->send_window_mutex);
 #endif /* _WIN32 */
             POTR_LOG(POTR_LOG_ERROR,
-                     "sender[service_id=%d]: peer=%u encrypt failed seq=%u",
+                     "sender[service_id=%" PRId64 "]: peer=%u encrypt failed seq=%u",
                      ctx->service.service_id, (unsigned)peer->peer_id, (unsigned)seq);
             return;
         }
@@ -446,7 +445,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         wire_len = PACKET_HEADER_SIZE + enc_len;
 
         POTR_LOG(POTR_LOG_TRACE,
-                 "sender[service_id=%d]: peer=%u DATA(enc) seq=%u packed_len=%zu",
+                 "sender[service_id=%" PRId64 "]: peer=%u DATA(enc) seq=%u packed_len=%zu",
                  ctx->service.service_id, (unsigned)peer->peer_id,
                  (unsigned)seq, packed_len);
     }
@@ -464,7 +463,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         wire_len = PACKET_HEADER_SIZE + packed_len;
 
         POTR_LOG(POTR_LOG_TRACE,
-                 "sender[service_id=%d]: peer=%u DATA seq=%u packed_len=%zu",
+                 "sender[service_id=%" PRId64 "]: peer=%u DATA seq=%u packed_len=%zu",
                  ctx->service.service_id, (unsigned)peer->peer_id,
                  (unsigned)seq, packed_len);
     }

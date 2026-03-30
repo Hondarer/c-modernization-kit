@@ -20,14 +20,14 @@ using namespace testing;
 struct CallbackCapture
 {
     int        count;
-    int        service_id;
+    int64_t    service_id;
     PotrPeerId peer_id;
     PotrEvent  event;
 };
 
 static CallbackCapture g_cb;
 
-static void mock_callback(int service_id, PotrPeerId peer_id, PotrEvent event,
+static void mock_callback(int64_t service_id, PotrPeerId peer_id, PotrEvent event,
                            const void * /* data */, size_t /* len */)
 {
     g_cb.count++;

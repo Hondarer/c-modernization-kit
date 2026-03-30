@@ -1,4 +1,4 @@
-# パスイベント通知 設計ドキュメント
+﻿# パスイベント通知 設計ドキュメント
 
 本ドキュメントは、porter にパス単位のイベント通知機能 (`POTR_EVENT_PATH_CONNECTED` / `POTR_EVENT_PATH_DISCONNECTED`) を追加するための設計仕様を記述します。
 
@@ -48,10 +48,10 @@ FIXME: POTR_EVENT_PATH_CONNECTED, POTR_EVENT_PATH_DISCONNECTED ではなく、PO
 
 ### コールバックシグネチャ
 
-`PotrRecvCallback` のシグネチャは変更しません。既存のアプリケーションコードは変更不要です。
+`PotrRecvCallback` のシグネチャは以下のとおりです。
 
 ```c
-typedef void (*PotrRecvCallback)(int service_id, PotrPeerId peer_id,
+typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,
                                  PotrEvent event,
                                  const void *data, size_t len);
 ```
@@ -75,7 +75,7 @@ FIXME: `len` は、`sizeof(data)` が自然。
 `data` が指す配列には、コールバック呼び出し時点での全パスの疎通状態が格納されます。
 
 ```c
-void on_recv(int service_id, PotrPeerId peer_id,
+void on_recv(int64_t service_id, PotrPeerId peer_id,
              PotrEvent event, const void *data, size_t len)
 {
     if (event == POTR_EVENT_PATH_CONNECTED ||
@@ -327,7 +327,7 @@ static void fire_path_event(struct PotrContext_ *ctx,
     for (k = 0; k < (int)POTR_MAX_PATH; k++)
         path_states[k] = ctx->path_alive[k];
     POTR_LOG(POTR_LOG_INFO,
-             "recv[service_id=%d]: %s path=%d",
+             "recv[service_id=%" PRId64 "]: %s path=%d",
              ctx->service.service_id,
              (event == POTR_EVENT_PATH_CONNECTED) ? "PATH_CONNECTED" : "PATH_DISCONNECTED",
              path_idx);
@@ -357,7 +357,7 @@ static void n1_fire_path_event(struct PotrContext_ *ctx,
     for (k = 0; k < (int)POTR_MAX_PATH; k++)
         path_states[k] = (peer->dest_addr[k].sin_family == AF_INET) ? 1 : 0;
     POTR_LOG(POTR_LOG_INFO,
-             "recv[service_id=%d]: peer=%u %s path=%d",
+             "recv[service_id=%" PRId64 "]: peer=%u %s path=%d",
              ctx->service.service_id, (unsigned)peer->peer_id,
              (event == POTR_EVENT_PATH_CONNECTED) ? "PATH_CONNECTED" : "PATH_DISCONNECTED",
              path_idx);
@@ -386,7 +386,7 @@ static void tcp_fire_path_event(struct PotrContext_ *ctx,
     for (k = 0; k < (int)POTR_MAX_PATH; k++)
         path_states[k] = ctx->path_alive[k];
     POTR_LOG(POTR_LOG_INFO,
-             "connect_thread[service_id=%d]: %s path=%d",
+             "connect_thread[service_id=%" PRId64 "]: %s path=%d",
              ctx->service.service_id,
              (event == POTR_EVENT_PATH_CONNECTED) ? "PATH_CONNECTED" : "PATH_DISCONNECTED",
              path_idx);

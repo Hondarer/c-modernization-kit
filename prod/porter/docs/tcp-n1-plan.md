@@ -1,4 +1,4 @@
-# TCP N:1 サポート追加 設計ドキュメント
+﻿# TCP N:1 サポート追加 設計ドキュメント
 
 ## 1. 背景と目的
 
@@ -474,7 +474,7 @@ static void receiver_accept_n1_loop(struct PotrContext_ *ctx, int path_idx)
         /* 接続元フィルタ (既存 receiver_accept_loop と同一ロジック) */
         if (tcp_n1_is_src_filtered(ctx, path_idx, &peer_addr))
         {
-            POTR_LOG(POTR_LOG_INFO, "connect_thread[service_id=%d path=%d]: "
+            POTR_LOG(POTR_LOG_INFO, "connect_thread[service_id=%" PRId64 " path=%d]: "
                      "rejected (src filter) from %s:%u",
                      ctx->service.service_id, path_idx,
                      peer_addr_str, (unsigned)ntohs(peer_addr.sin_port));
@@ -482,7 +482,7 @@ static void receiver_accept_n1_loop(struct PotrContext_ *ctx, int path_idx)
             continue;
         }
 
-        POTR_LOG(POTR_LOG_INFO, "connect_thread[service_id=%d path=%d]: "
+        POTR_LOG(POTR_LOG_INFO, "connect_thread[service_id=%" PRId64 " path=%d]: "
                  "TCP N:1 accepted from %s:%u",
                  ctx->service.service_id, path_idx,
                  peer_addr_str, (unsigned)ntohs(peer_addr.sin_port));
@@ -494,7 +494,7 @@ static void receiver_accept_n1_loop(struct PotrContext_ *ctx, int path_idx)
 
         if (peer == NULL)
         {
-            POTR_LOG(POTR_LOG_WARN, "connect_thread[service_id=%d path=%d]: "
+            POTR_LOG(POTR_LOG_WARN, "connect_thread[service_id=%" PRId64 " path=%d]: "
                      "max_peers reached, rejected from %s:%u",
                      ctx->service.service_id, path_idx,
                      peer_addr_str, (unsigned)ntohs(peer_addr.sin_port));
@@ -502,7 +502,7 @@ static void receiver_accept_n1_loop(struct PotrContext_ *ctx, int path_idx)
             continue;
         }
 
-        POTR_LOG(POTR_LOG_DEBUG, "connect_thread[service_id=%d path=%d]: "
+        POTR_LOG(POTR_LOG_DEBUG, "connect_thread[service_id=%" PRId64 " path=%d]: "
                  "peer[%u] created",
                  ctx->service.service_id, path_idx, peer->peer_id);
 

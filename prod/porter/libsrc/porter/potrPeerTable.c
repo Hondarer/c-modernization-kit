@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           potrPeerTable.c
  *  @brief          N:1 モード用ピアテーブル管理の実装。
@@ -12,6 +12,7 @@
  */
 
 #include <stdlib.h>
+#include <inttypes.h>
 #include <string.h>
 
 #ifndef _WIN32
@@ -202,7 +203,7 @@ int peer_table_init(struct PotrContext_ *ctx)
     if (ctx->peers == NULL)
     {
         POTR_LOG(POTR_LOG_ERROR,
-                 "peer_table_init: service_id=%d calloc failed (max_peers=%d)",
+                 "peer_table_init: service_id=%" PRId64 " calloc failed (max_peers=%d)",
                  ctx->service.service_id, ctx->max_peers);
         return POTR_ERROR;
     }
@@ -217,7 +218,7 @@ int peer_table_init(struct PotrContext_ *ctx)
     ctx->next_peer_id = 1U;
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "peer_table_init: service_id=%d max_peers=%d",
+             "peer_table_init: service_id=%" PRId64 " max_peers=%d",
              ctx->service.service_id, ctx->max_peers);
 
     return POTR_SUCCESS;
@@ -234,7 +235,7 @@ void peer_table_destroy(struct PotrContext_ *ctx)
     }
 
     POTR_LOG(POTR_LOG_DEBUG,
-             "peer_table_destroy: service_id=%d n_peers=%d",
+             "peer_table_destroy: service_id=%" PRId64 " n_peers=%d",
              ctx->service.service_id, ctx->n_peers);
 
     for (i = 0; i < ctx->max_peers; i++)
@@ -316,7 +317,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
         char ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &sender_addr->sin_addr, ip_str, sizeof(ip_str));
         POTR_LOG(POTR_LOG_ERROR,
-                 "peer_create: service_id=%d max_peers=%d reached, "
+                 "peer_create: service_id=%" PRId64 " max_peers=%d reached, "
                  "rejecting new connection from %s:%u",
                  ctx->service.service_id, ctx->max_peers,
                  ip_str, (unsigned)ntohs(sender_addr->sin_port));
@@ -337,7 +338,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
     {
         /* n_peers < max_peers のはずなのにスロットが見つからない (内部整合性エラー) */
         POTR_LOG(POTR_LOG_ERROR,
-                 "peer_create: service_id=%d no free slot (internal error)",
+                 "peer_create: service_id=%" PRId64 " no free slot (internal error)",
                  ctx->service.service_id);
         return NULL;
     }
@@ -357,7 +358,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
     {
         peer->active = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "peer_create: service_id=%d send_window init failed",
+                 "peer_create: service_id=%" PRId64 " send_window init failed",
                  ctx->service.service_id);
         return NULL;
     }
@@ -368,7 +369,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
         window_destroy(&peer->send_window);
         peer->active = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "peer_create: service_id=%d recv_window init failed",
+                 "peer_create: service_id=%" PRId64 " recv_window init failed",
                  ctx->service.service_id);
         return NULL;
     }
@@ -384,7 +385,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
         POTR_MUTEX_DESTROY(&peer->send_window_mutex);
         peer->active = 0;
         POTR_LOG(POTR_LOG_ERROR,
-                 "peer_create: service_id=%d frag_buf alloc failed",
+                 "peer_create: service_id=%" PRId64 " frag_buf alloc failed",
                  ctx->service.service_id);
         return NULL;
     }
@@ -399,7 +400,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
     ctx->n_peers++;
 
     POTR_LOG(POTR_LOG_INFO,
-             "peer_create: service_id=%d peer_id=%u created (n_peers=%d)",
+             "peer_create: service_id=%" PRId64 " peer_id=%u created (n_peers=%d)",
              ctx->service.service_id, (unsigned)peer->peer_id, ctx->n_peers);
 
     return peer;
@@ -414,7 +415,7 @@ void peer_path_clear(struct PotrContext_ *ctx, PotrPeerContext *peer, int path_i
     }
 
     POTR_LOG(POTR_LOG_WARN,
-             "peer_path_clear: service_id=%d peer=%u path %d cleared",
+             "peer_path_clear: service_id=%" PRId64 " peer=%u path %d cleared",
              ctx->service.service_id, (unsigned)peer->peer_id, path_idx);
 
     memset(&peer->dest_addr[path_idx], 0, sizeof(peer->dest_addr[path_idx]));
@@ -432,7 +433,7 @@ void peer_free(struct PotrContext_ *ctx, PotrPeerContext *peer)
     }
 
     POTR_LOG(POTR_LOG_INFO,
-             "peer_free: service_id=%d peer_id=%u freed",
+             "peer_free: service_id=%" PRId64 " peer_id=%u freed",
              ctx->service.service_id, (unsigned)peer->peer_id);
 
     window_destroy(&peer->send_window);

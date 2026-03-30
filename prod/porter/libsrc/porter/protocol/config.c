@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           config.c
  *  @brief          設定ファイル (INI 形式) 解析モジュール。
@@ -12,6 +12,7 @@
  */
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -456,7 +457,7 @@ static void apply_service_kv(const char *key, const char *val,
             }
             current->encrypt_enabled = 1;
             POTR_LOG(POTR_LOG_INFO,
-                     "config: encrypt_key loaded as hex key (service_id=%d)",
+                     "config: encrypt_key loaded as hex key (service_id=%" PRId64 ")",
                      current->service_id);
         }
         else if (hex_len > 0)
@@ -467,7 +468,7 @@ static void apply_service_kv(const char *key, const char *val,
             {
                 current->encrypt_enabled = 1;
                 POTR_LOG(POTR_LOG_INFO,
-                         "config: encrypt_key treated as passphrase (SHA-256, service_id=%d)",
+                         "config: encrypt_key treated as passphrase (SHA-256, service_id=%" PRId64 ")",
                          current->service_id);
             }
             else
@@ -475,7 +476,7 @@ static void apply_service_kv(const char *key, const char *val,
                 memset(current->encrypt_key, 0, sizeof(current->encrypt_key));
                 current->encrypt_enabled = 0;
                 POTR_LOG(POTR_LOG_WARN,
-                         "config: encrypt_key passphrase hashing failed (service_id=%d)",
+                         "config: encrypt_key passphrase hashing failed (service_id=%" PRId64 ")",
                          current->service_id);
             }
         }
@@ -485,7 +486,7 @@ static void apply_service_kv(const char *key, const char *val,
             memset(current->encrypt_key, 0, sizeof(current->encrypt_key));
             current->encrypt_enabled = 0;
             POTR_LOG(POTR_LOG_WARN,
-                     "config: encrypt_key is empty, ignored (service_id=%d)",
+                     "config: encrypt_key is empty, ignored (service_id=%" PRId64 ")",
                      current->service_id);
         }
     }
@@ -504,7 +505,7 @@ static void apply_service_kv(const char *key, const char *val,
  *  サービスの識別子はセクション名の \<id\> であり、ポート番号とは無関係です。
  *******************************************************************************
  */
-int config_load_service(const char *config_path, int service_id,
+int config_load_service(const char *config_path, int64_t service_id,
                         PotrServiceDef *def)
 {
     FILE *fp;
@@ -563,7 +564,7 @@ int config_load_service(const char *config_path, int service_id,
 
                 /* [service.<id>] の <id> が service_id と一致するか判定 */
                 if (strncmp(section, "service.", 8) == 0 &&
-                    atoi(section + 8) == service_id)
+                    strtoll(section + 8, NULL, 10) == service_id)
                 {
                     memset(def, 0, sizeof(*def));
                     def->ttl                  = (uint8_t)POTR_DEFAULT_TTL;
@@ -598,7 +599,7 @@ int config_load_service(const char *config_path, int service_id,
     if (found)
     {
         POTR_LOG(POTR_LOG_TRACE,
-                 "service loaded: service_id=%d type=%d "
+                 "service loaded: service_id=%" PRId64 " type=%d "
                  "src_addr1=%s dst_addr1=%s dst_port=%u src_port=%u",
                  def->service_id, (int)def->type,
                  def->src_addr[0], def->dst_addr[0],
@@ -624,11 +625,11 @@ int config_load_service(const char *config_path, int service_id,
  *  初期容量 POTR_MAX_SERVICES で配列を確保し、超過時は realloc で 2 倍に拡張します。
  *******************************************************************************
  */
-int config_list_service_ids(const char *config_path, int **ids_out, int *count_out)
+int config_list_service_ids(const char *config_path, int64_t **ids_out, int *count_out)
 {
     FILE *fp;
     char  line[CONFIG_LINE_MAX];
-    int  *ids;
+    int64_t *ids;
     int   capacity;
     int   count;
 
@@ -645,7 +646,7 @@ int config_list_service_ids(const char *config_path, int **ids_out, int *count_o
 
     capacity = (int)POTR_MAX_SERVICES;
     count    = 0;
-    ids      = (int *)malloc((size_t)capacity * sizeof(int));
+    ids      = (int64_t *)malloc((size_t)capacity * sizeof(int64_t));
     if (ids == NULL)
     {
         fclose(fp);
@@ -687,7 +688,7 @@ int config_list_service_ids(const char *config_path, int **ids_out, int *count_o
             if (count >= capacity)
             {
                 int  new_cap = capacity * 2;
-                int *new_ids = (int *)realloc(ids, (size_t)new_cap * sizeof(int));
+                int64_t *new_ids = (int64_t *)realloc(ids, (size_t)new_cap * sizeof(int64_t));
                 if (new_ids == NULL)
                 {
                     free(ids);
@@ -698,7 +699,7 @@ int config_list_service_ids(const char *config_path, int **ids_out, int *count_o
                 capacity = new_cap;
             }
 
-            ids[count++] = atoi(section + 8);
+            ids[count++] = strtoll(section + 8, NULL, 10);
         }
     }
 

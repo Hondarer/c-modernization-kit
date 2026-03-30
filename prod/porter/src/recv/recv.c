@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           recv.c
  *  @brief          受信テストコマンド。
@@ -37,6 +37,7 @@
  *******************************************************************************
  */
 
+#include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,7 +118,7 @@ static BOOL WINAPI console_ctrl_handler(DWORD type)
  *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
  *******************************************************************************
  */
-static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event, const void *data, size_t len)
+static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event, const void *data, size_t len)
 {
     char buf[POTR_MAX_PAYLOAD + 1];
     size_t copy_len;
@@ -126,12 +127,12 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event, const v
     switch (event)
     {
     case POTR_EVENT_CONNECTED:
-        printf("[サービス %d] 接続確立\n", service_id);
+        printf("[サービス %" PRId64 "] 接続確立\n", service_id);
         fflush(stdout);
         break;
 
     case POTR_EVENT_DISCONNECTED:
-        printf("[サービス %d] 切断検知\n", service_id);
+        printf("[サービス %" PRId64 "] 切断検知\n", service_id);
         fflush(stdout);
         break;
 
@@ -147,7 +148,7 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event, const v
         }
         memcpy(buf, data, copy_len);
         buf[copy_len] = '\0';
-        printf("[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+        printf("[サービス %" PRId64 "] 受信 (%zu バイト): %s\n", service_id, len, buf);
         fflush(stdout);
         break;
     }
@@ -367,7 +368,7 @@ static void join_bidir_send_thread(BidirThread thread)
 int main(int argc, char *argv[])
 {
     const char *config_path;
-    int service_id;
+    int64_t service_id;
     PotrHandle handle;
     int i;
     PotrLogLevel log_level = POTR_LOG_OFF;
@@ -417,7 +418,7 @@ int main(int argc, char *argv[])
     }
 
     config_path = argv[i];
-    service_id = atoi(argv[i + 1]);
+    service_id = (int64_t)strtoll(argv[i + 1], NULL, 10);
 
     /* ロガー設定 (stderr 出力、ファイルなし) */
     if (log_level_set)
@@ -435,7 +436,7 @@ int main(int argc, char *argv[])
     SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
 #endif /* _WIN32 */
 
-    printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
+    printf("サービス %" PRId64 " を開いています... (設定: %s)\n", service_id, config_path);
     fflush(stdout);
 
     /* サービス種別を取得して unicast_bidir かどうか判定する */
@@ -447,7 +448,7 @@ int main(int argc, char *argv[])
 
     if (potrOpenServiceFromConfig(config_path, service_id, POTR_ROLE_RECEIVER, on_recv, &handle) != POTR_SUCCESS)
     {
-        fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
+        fprintf(stderr, "エラー: サービス %" PRId64 " を開けませんでした。\n", service_id);
         return EXIT_FAILURE;
     }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  *******************************************************************************
  *  @file           send.c
  *  @brief          送信テストコマンド。
@@ -38,6 +38,7 @@
  *******************************************************************************
  */
 
+#include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,9 +58,10 @@
 /** 送信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
 static volatile int g_running = 1;
 
+#ifndef _WIN32
 /**
  *******************************************************************************
- *  @brief          SIGINT シグナルハンドラー。
+ *  @brief          Linux SIGINT シグナルハンドラー。
  *  @param[in]      sig シグナル番号。
  *******************************************************************************
  */
@@ -69,10 +71,42 @@ static void sig_handler(int sig)
     g_running = 0;
     printf("\n終了中...\n");
     fflush(stdout);
-#ifndef _WIN32
     close(STDIN_FILENO); /* fgets のブロックを解除する */
-#endif /* _WIN32 */
 }
+#else /* _WIN32 */
+/**
+ *******************************************************************************
+ *  @brief          Windows コンソール制御イベントハンドラー。
+ *  @param[in]      type    コンソール制御イベント種別。\n
+ *                          (CTRL_C_EVENT / CTRL_BREAK_EVENT /
+ *                           CTRL_CLOSE_EVENT / CTRL_SHUTDOWN_EVENT など)
+ *  @return         イベントを処理した場合は TRUE を返します。
+ *                  TRUE を返すことで既定の強制終了処理を抑止します。
+ *
+ *  @details
+ *  GenerateConsoleCtrlEvent() や Ctrl+C / Ctrl+Break により送信される
+ *  コンソール制御イベントを受信します。\n
+ *  本ハンドラーでは送信ループ終了フラグをクリアし、
+ *  メインスレッドに正常終了を要求します。
+ *******************************************************************************
+ */
+static BOOL WINAPI console_ctrl_handler(DWORD type)
+{
+    switch (type)
+    {
+    case CTRL_C_EVENT:
+    case CTRL_BREAK_EVENT:
+    case CTRL_CLOSE_EVENT:
+    case CTRL_SHUTDOWN_EVENT:
+        g_running = 0;
+        printf("\n終了中...\n");
+        fflush(stdout);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+#endif /* _WIN32 */
 
 /**
  *******************************************************************************
@@ -84,7 +118,7 @@ static void sig_handler(int sig)
  *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
  *******************************************************************************
  */
-static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
+static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event,
                     const void *data, size_t len)
 {
     char   buf[POTR_MAX_PAYLOAD + 1];
@@ -94,12 +128,12 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
     switch (event)
     {
         case POTR_EVENT_CONNECTED:
-            printf("\n[サービス %d] 接続確立\n", service_id);
+            printf("\n[サービス %" PRId64 "] 接続確立\n", service_id);
             fflush(stdout);
             break;
 
         case POTR_EVENT_DISCONNECTED:
-            printf("\n[サービス %d] 切断検知\n", service_id);
+            printf("\n[サービス %" PRId64 "] 切断検知\n", service_id);
             fflush(stdout);
             break;
 
@@ -115,7 +149,7 @@ static void on_recv(int service_id, PotrPeerId peer_id, PotrEvent event,
             }
             memcpy(buf, data, copy_len);
             buf[copy_len] = '\0';
-            printf("\n[サービス %d] 受信 (%zu バイト): %s\n", service_id, len, buf);
+            printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): %s\n", service_id, len, buf);
             fflush(stdout);
             break;
     }
@@ -191,7 +225,7 @@ static int read_line(char *buf, size_t size)
 int main(int argc, char *argv[])
 {
     const char  *config_path;
-    int          service_id;
+    int64_t      service_id;
     PotrHandle   handle;
     char         msg_buf[INPUT_BUF_SIZE];
     char         ans_buf[8];
@@ -246,7 +280,7 @@ int main(int argc, char *argv[])
     }
 
     config_path = argv[i];
-    service_id  = atoi(argv[i + 1]);
+    service_id  = (int64_t)strtoll(argv[i + 1], NULL, 10);
 
     /* ロガー設定 (stderr 出力、ファイルなし) */
     if (log_level_set)
@@ -258,9 +292,13 @@ int main(int argc, char *argv[])
         }
     }
 
+#ifndef _WIN32
     signal(SIGINT, sig_handler);
+#else /* _WIN32 */
+    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+#endif /* _WIN32 */
 
-    printf("サービス %d を開いています... (設定: %s)\n", service_id, config_path);
+    printf("サービス %" PRId64 " を開いています... (設定: %s)\n", service_id, config_path);
     fflush(stdout);
 
     /* サービス種別を取得して unicast_bidir かどうか判定する */
@@ -276,7 +314,7 @@ int main(int argc, char *argv[])
 
     if (potrOpenServiceFromConfig(config_path, service_id, POTR_ROLE_SENDER, callback, &handle) != POTR_SUCCESS)
     {
-        fprintf(stderr, "エラー: サービス %d を開けませんでした。\n", service_id);
+        fprintf(stderr, "エラー: サービス %" PRId64 " を開けませんでした。\n", service_id);
         return EXIT_FAILURE;
     }
 

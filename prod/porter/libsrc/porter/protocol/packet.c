@@ -44,9 +44,9 @@ static uint64_t ntoh64(uint64_t v)
 /* セッションヘッダーフィールドをパケットに NBO で書き込む */
 static void fill_session_hdr(PotrPacket *packet, const PotrPacketSessionHdr *shdr)
 {
-    packet->service_id      = htonl((uint32_t)shdr->service_id);
-    packet->session_id      = htonl(shdr->session_id);
+    packet->service_id      = (int64_t)hton64((uint64_t)shdr->service_id);
     packet->session_tv_sec  = (int64_t)hton64((uint64_t)shdr->session_tv_sec);
+    packet->session_id      = htonl(shdr->session_id);
     packet->session_tv_nsec = htonl((uint32_t)shdr->session_tv_nsec);
 }
 
@@ -308,14 +308,14 @@ int packet_parse(PotrPacket *packet, const void *buf, size_t buf_len)
         return POTR_ERROR;
     }
 
-    memcpy(&tmp32, b +  0, 4); packet->service_id      = (int32_t)ntohl(tmp32);
-    memcpy(&tmp32, b +  4, 4); packet->session_id      = ntohl(tmp32);
+    memcpy(&tmp64, b +  0, 8); packet->service_id      = (int64_t)ntoh64(tmp64);
     memcpy(&tmp64, b +  8, 8); packet->session_tv_sec  = (int64_t)ntoh64(tmp64);
-    memcpy(&tmp32, b + 16, 4); packet->session_tv_nsec = (int32_t)ntohl(tmp32);
-    memcpy(&tmp32, b + 20, 4); packet->seq_num         = ntohl(tmp32);
-    memcpy(&tmp32, b + 24, 4); packet->ack_num         = ntohl(tmp32);
-    memcpy(&tmp16, b + 28, 2); packet->flags           = ntohs(tmp16);
-    memcpy(&tmp16, b + 30, 2); packet->payload_len     = ntohs(tmp16);
+    memcpy(&tmp32, b + 16, 4); packet->session_id      = ntohl(tmp32);
+    memcpy(&tmp32, b + 20, 4); packet->session_tv_nsec = (int32_t)ntohl(tmp32);
+    memcpy(&tmp32, b + 24, 4); packet->seq_num         = ntohl(tmp32);
+    memcpy(&tmp32, b + 28, 4); packet->ack_num         = ntohl(tmp32);
+    memcpy(&tmp16, b + 32, 2); packet->flags           = ntohs(tmp16);
+    memcpy(&tmp16, b + 34, 2); packet->payload_len     = ntohs(tmp16);
 
     if (packet->payload_len > POTR_MAX_PAYLOAD
         || (size_t)packet->payload_len + PACKET_HEADER_SIZE > buf_len)

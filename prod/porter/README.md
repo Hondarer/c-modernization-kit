@@ -43,7 +43,7 @@ dst_port = 5001
 ```c
 #include "porter.h"
 
-void on_event(int service_id, PotrEvent event, const void *data, size_t len) {
+void on_event(int64_t service_id, PotrEvent event, const void *data, size_t len) {
     switch (event) {
     case POTR_EVENT_CONNECTED:
         /* 送信者からの最初のパケット到着 */

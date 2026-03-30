@@ -28,7 +28,7 @@ public:
     PorterConfigBuilder() = default;
 
     /** unicast サービスエントリを追加する。 */
-    PorterConfigBuilder& addUnicastService(int service_id, int port,
+    PorterConfigBuilder& addUnicastService(int64_t service_id, int port,
                                            const std::string& host = "127.0.0.1")
     {
         lines_.push_back("[service." + std::to_string(service_id) + "]");
@@ -41,7 +41,7 @@ public:
     }
 
     /** unicast_bidir サービスエントリを追加する。 */
-    PorterConfigBuilder& addUnicastBidirService(int service_id, int port,
+    PorterConfigBuilder& addUnicastBidirService(int64_t service_id, int port,
                                                 const std::string& host = "127.0.0.1")
     {
         lines_.push_back("[service." + std::to_string(service_id) + "]");
