@@ -182,7 +182,7 @@ TEST_F(porterSendRecvTest, recv_exits_cleanly_on_sigint)
         cfg.addUnicastService(10, 19012)
             .build(); // [状態] - 127.0.0.1 で ポート 19012 を送受信に利用する unicast サービスを定義する。
 
-    // recv を先に起動してリスナー確立を待つ
+    // RECIEVER を先に起動してリスナー確立を待つ
     recv_h_ = startProcessAsync(recv_path, {config_path, "10"}, makeOpts()); // [手順] - RECIEVER を起動する。
     ASSERT_NE(nullptr, recv_h_);                                             // [確認] - RECIEVER が起動すること。
     ASSERT_NO_THROW(
@@ -241,7 +241,7 @@ TEST_F(porterSendRecvTest, bidir_echo)
 
     int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
 
-    // recv を停止して出力を回収する
+    // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
     waitForExit(recv_h_, 3000); // [手順] - RECIEVER が終了するまで待機する。
 
