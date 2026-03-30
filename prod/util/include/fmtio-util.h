@@ -31,11 +31,12 @@ typedef struct _stat64 file_stat_t;
         #define FILE_PATH_MAX PATH_MAX
     #else /* _WIN32 */
         #include <sys/stat.h>
-        #include <windows.h>
         #include <fcntl.h>
         #include <io.h>
         #include <direct.h>
-        #define FILE_PATH_MAX MAX_PATH
+        /* MAX_PATH (= 260) 相当。<windows.h> は C++17 の std::byte と
+           Windows SDK の byte typedef が衝突するためインクルードしない。 */
+        #define FILE_PATH_MAX 260
     #endif /* _WIN32 */
 #endif     /* DOXYGEN */
 
