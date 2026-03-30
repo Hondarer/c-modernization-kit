@@ -14,55 +14,75 @@ typedef struct stat file_stat_t;
 typedef struct _stat64 file_stat_t;
 #endif /* _WIN32 */
 
+/* OS 固有のパス最大長を定義 */
+
+#ifdef DOXYGEN
+    /**
+     *  @def            FILE_PATH_MAX
+     *  @brief          OS 固有のパス最大長。
+     *  @details        Linux では `limits.h` の `PATH_MAX`、Windows では `windows.h` の `MAX_PATH` に展開されます。
+     */
+#else /* !DOXYGEN */
+    #ifndef _WIN32
+        #include <limits.h>
+        #include <sys/stat.h>
+        #define FILE_PATH_MAX PATH_MAX
+    #else /* _WIN32 */
+        #include <sys/stat.h>
+        #include <windows.h>
+        #define FILE_PATH_MAX MAX_PATH
+    #endif /* _WIN32 */
+#endif     /* DOXYGEN */
+
 #ifdef DOXYGEN
 
-/**
- *  @def            FMTIO_UTIL_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                   | 値                       |
- *  | ------------------------------------------------------ | ------------------------ |
- *  | Linux (非 Windows)                                     | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                    | (空)                     |
- *  | Windows / `FMTIO_UTIL_STATIC` 定義時 (静的リンク)       | (空)                     |
- *  | Windows / `FMTIO_UTIL_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
- *  | Windows / `FMTIO_UTIL_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
- */
-#define FMTIO_UTIL_EXPORT
+    /**
+     *  @def            FMTIO_UTIL_EXPORT
+     *  @brief          DLL エクスポート/インポート制御マクロ。
+     *  @details        ビルド条件に応じて以下の値を取ります。
+     *
+     *  | 条件                                                   | 値                       |
+     *  | ------------------------------------------------------ | ------------------------ |
+     *  | Linux (非 Windows)                                     | (空)                     |
+     *  | Windows / `__INTELLISENSE__` 定義時                    | (空)                     |
+     *  | Windows / `FMTIO_UTIL_STATIC` 定義時 (静的リンク)       | (空)                     |
+     *  | Windows / `FMTIO_UTIL_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
+     *  | Windows / `FMTIO_UTIL_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+     */
+    #define FMTIO_UTIL_EXPORT
 
-/**
- *  @def            FMTIO_UTIL_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *                  Linux (非 Windows) 環境では空に展開されます。\n
- *                  既に定義済みの場合は再定義されません。
- */
-#define FMTIO_UTIL_API
+    /**
+     *  @def            FMTIO_UTIL_API
+     *  @brief          呼び出し規約マクロ。
+     *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+     *                  Linux (非 Windows) 環境では空に展開されます。\n
+     *                  既に定義済みの場合は再定義されません。
+     */
+    #define FMTIO_UTIL_API
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define FMTIO_UTIL_EXPORT
-    #define FMTIO_UTIL_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef FMTIO_UTIL_STATIC
-            #ifdef FMTIO_UTIL_EXPORTS
-                #define FMTIO_UTIL_EXPORT __declspec(dllexport)
-            #else /* !FMTIO_UTIL_EXPORTS */
-                #define FMTIO_UTIL_EXPORT __declspec(dllimport)
-            #endif /* FMTIO_UTIL_EXPORTS */
-        #else      /* FMTIO_UTIL_STATIC */
-            #define FMTIO_UTIL_EXPORT
-        #endif /* FMTIO_UTIL_STATIC */
-    #else      /* __INTELLISENSE__ */
+    #ifndef _WIN32
         #define FMTIO_UTIL_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef FMTIO_UTIL_API
-        #define FMTIO_UTIL_API __stdcall
-    #endif /* FMTIO_UTIL_API */
-#endif     /* _WIN32 */
+        #define FMTIO_UTIL_API
+    #else /* _WIN32 */
+        #ifndef __INTELLISENSE__
+            #ifndef FMTIO_UTIL_STATIC
+                #ifdef FMTIO_UTIL_EXPORTS
+                    #define FMTIO_UTIL_EXPORT __declspec(dllexport)
+                #else /* !FMTIO_UTIL_EXPORTS */
+                    #define FMTIO_UTIL_EXPORT __declspec(dllimport)
+                #endif /* FMTIO_UTIL_EXPORTS */
+            #else      /* FMTIO_UTIL_STATIC */
+                #define FMTIO_UTIL_EXPORT
+            #endif /* FMTIO_UTIL_STATIC */
+        #else      /* __INTELLISENSE__ */
+            #define FMTIO_UTIL_EXPORT
+        #endif /* __INTELLISENSE__ */
+        #ifndef FMTIO_UTIL_API
+            #define FMTIO_UTIL_API __stdcall
+        #endif /* FMTIO_UTIL_API */
+    #endif     /* _WIN32 */
 
 #endif /* DOXYGEN */
 

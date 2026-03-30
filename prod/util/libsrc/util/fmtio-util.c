@@ -3,17 +3,6 @@
 #include <string.h>
 #include <errno.h>
 
-/* OS 固有のパス最大長を定義 */
-#ifndef _WIN32
-#include <limits.h>
-#include <sys/stat.h>
-#define FILE_PATH_MAX PATH_MAX
-#else /* _WIN32 */
-#include <windows.h>
-#include <sys/stat.h>
-#define FILE_PATH_MAX MAX_PATH
-#endif /* _WIN32 */
-
 /* Doxygen コメントは、ヘッダに記載 */
 FILE *FMTIO_UTIL_API fopenf(const char *modes, int *errno_out, const char *format, ...)
 {
