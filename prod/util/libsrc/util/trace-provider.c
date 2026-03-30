@@ -71,7 +71,8 @@ static int to_syslog_level(enum trace_level lv)
     case TRACE_LV_ERROR:    return LOG_ERR;
     case TRACE_LV_WARNING:  return LOG_WARNING;
     case TRACE_LV_INFO:     return LOG_INFO;
-    default:              return LOG_DEBUG;
+    case TRACE_LV_VERBOSE:  return LOG_DEBUG;
+    default:                return LOG_DEBUG;
     }
 }
 

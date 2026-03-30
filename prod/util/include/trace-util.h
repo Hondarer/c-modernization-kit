@@ -41,6 +41,9 @@
  *  @endcode
  */
 
+/* size_t (trace_hex_write / trace_hex_writef で使用) */
+#include <stddef.h>
+
 /* 内部で使用するプラットフォーム固有ヘッダー */
 #ifdef _WIN32
 #include <trace-etw-util.h>
