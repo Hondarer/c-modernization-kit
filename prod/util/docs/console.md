@@ -59,4 +59,58 @@ Windows 用コンソールヘルパー設計ドキュメント
 
 // 省略: 実装時に console.c に詳細コードを追加
 
+---
+
+補足: マニフェスト設定時の printf の動作
+--------------------------------------------
+
+マニフェスト（`activeCodePage=UTF-8`）を設定済みのプログラムは、**追加の初期化なしに `printf` だけで UTF-8 コンソール出力が機能します**（Windows 10 1903 以降）。
+
+### 仕組み
+
+`activeCodePage=UTF-8` マニフェストを埋め込んで起動すると、Windows ローダーがプロセスの ACP (Active Code Page) を 65001 (UTF-8) に設定します。これに伴い、コンソール出力コードページ（`GetConsoleOutputCP()`）も自動的に 65001 に切り替わります。
+
+その結果：
+
+- `printf` が出力した UTF-8 バイト列を、コンソールが UTF-8 として正しく解釈・表示する
+- `SetConsoleOutputCP(CP_UTF8)` の明示的な呼び出しは不要になる（重複呼び出しになるが副作用はない）
+- `argv` のエンコーディングも UTF-8 になり、日本語ファイルパスなども正しく扱える
+
+### `util_console_init` が依然として有効なシナリオ
+
+マニフェストがあっても、以下の場面では `util_console_init`（WriteConsoleW 方式）が有効です。
+
+| シナリオ | 理由 |
+|:---------|:-----|
+| Windows 10 1903 未満をサポートする | マニフェストの `activeCodePage` は 1903 未満では無視される。コンソール出力の保証には `SetConsoleOutputCP(CP_UTF8)` または `util_console_init` が必要 |
+| stdout/stderr をパイプやファイルにリダイレクトする | CRT の `printf` はパイプへ UTF-8 バイト列をそのまま書くが、バッファリングや途中フラッシュで不完全なマルチバイト列が分断されることがある。`util_console_init` の読み取りスレッドは行単位でバッファリングしてこれを防ぐ |
+| WriteConsoleW による確実な Unicode 出力が必要 | コンソール CP が 65001 でも、CRT 経由の `printf` と `WriteConsoleW` では内部パスが異なる。`util_console_init` は直接 `WriteConsoleW` を呼ぶため、環境依存の文字化けを排除できる |
+| CRT バッファリング設定との干渉を避けたい | `setvbuf` や `_setmode` で独自設定している場合、マニフェスト方式だけでは出力の乱れが起きることがある |
+
+### 推奨パターン
+
+単純な UTF-8 テキスト出力のみのプログラムであれば、マニフェスト埋め込みと `printf` の組み合わせで十分です。
+
+```c
+/* マニフェスト (activeCodePage=UTF-8) を埋め込んでいる前提 */
+/* Win10 1903 以降では printf だけで UTF-8 コンソール出力が機能する */
+printf("こんにちは\n");
+```
+
+より広い互換性やパイプ出力の堅牢性が求められる場合は `util_console_init` を使用します。
+
+```c
+#include <console.h>
+
+int main(void) {
+    util_console_init();   /* stdout/stderr を差し替え、WriteConsoleW 経由に切り替える */
+    printf("こんにちは\n");
+    util_console_dispose();
+    return 0;
+}
+```
+
+詳細な比較（`SetConsoleOutputCP` / マニフェスト / 両方の使い分け）は  
+`makefw/docs-src/windows-utf8-console.md` を参照してください。
+
 
