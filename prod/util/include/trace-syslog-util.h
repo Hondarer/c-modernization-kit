@@ -99,6 +99,20 @@ extern "C"
         syslog_provider_write(syslog_provider_t *handle, int level, const char *message);
 
     /**
+     *  @brief          syslog プロバイダの識別子を変更する。
+     *  @details        closelog を呼び出した後、新しい識別子で openlog を
+     *                  再度呼び出します。ハンドル自体は再利用されます。
+     *
+     *  @param[in]      handle     syslog_provider_init の戻り値。
+     *                             NULL の場合は何もせず -1 を返します。
+     *  @param[in]      new_ident  新しい識別子文字列。
+     *                             NULL の場合は何もせず -1 を返します。
+     *  @return         成功 0 / 失敗 -1。
+     */
+    TRACE_SYSLOG_UTIL_EXPORT int TRACE_SYSLOG_UTIL_API
+        syslog_provider_rename(syslog_provider_t *handle, const char *new_ident);
+
+    /**
      *  @brief          syslog プロバイダを終了する。
      *  @details        closelog を呼び出し、リソースを解放します。\n
      *                  ハンドルが NULL の場合は何もしません。

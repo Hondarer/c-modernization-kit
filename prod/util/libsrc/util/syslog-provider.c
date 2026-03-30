@@ -72,4 +72,31 @@ void TRACE_SYSLOG_UTIL_API
     free(handle);
 }
 
+int TRACE_SYSLOG_UTIL_API
+    syslog_provider_rename(syslog_provider_t *handle, const char *new_ident)
+{
+    char *dup;
+    size_t len;
+
+    if (handle == NULL || new_ident == NULL)
+    {
+        return -1;
+    }
+
+    len = strlen(new_ident) + 1;
+    dup = (char *)malloc(len);
+    if (dup == NULL)
+    {
+        return -1;
+    }
+    memcpy(dup, new_ident, len);
+
+    closelog();
+    free(handle->ident);
+    handle->ident = dup;
+    openlog(handle->ident, LOG_NDELAY | LOG_PID, LOG_USER);
+
+    return 0;
+}
+
 #endif /* !_WIN32 */

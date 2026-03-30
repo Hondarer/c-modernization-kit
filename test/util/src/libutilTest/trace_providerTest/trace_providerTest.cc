@@ -448,3 +448,90 @@ TEST_F(trace_providerTest, test_hex_writef_truncated)
     // Cleanup
     trace_dispose(handle);
 }
+
+/* ===== trace_rename テスト ===== */
+
+// 名前変更後に書き込みが成功することの確認
+TEST_F(trace_providerTest, test_rename_basic)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("original_name");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int rename_result = trace_rename(handle, "new_name"); // [手順] - 名前を変更する。
+
+    // Assert
+    EXPECT_EQ(0, rename_result); // [確認_正常系] - 戻り値が 0 であること。
+
+    // 名前変更後も書き込みが正常に動作すること
+    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename"); // [手順] - 名前変更後にメッセージを書き込む。
+    EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// NULL ハンドルで trace_rename を呼んでも安全に -1 が返されることの確認
+TEST_F(trace_providerTest, test_rename_null_handle)
+{
+    // Act
+    int result = trace_rename(NULL, "new_name"); // [手順] - handle に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
+}
+
+// new_name に NULL を渡した場合にプロセス名で更新されることの確認
+TEST_F(trace_providerTest, test_rename_null_name)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("original_name");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int rename_result = trace_rename(handle, NULL); // [手順] - new_name に NULL を渡す。
+
+    // Assert (プロセス名で更新される)
+    EXPECT_EQ(0, rename_result); // [確認_正常系] - プロセス名で更新され 0 が返されること。
+
+    // 更新後も書き込みが正常に動作すること
+    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename to process name"); // [手順] - 更新後にメッセージを書き込む。
+    EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// 複数回の名前変更が正常に動作することの確認
+TEST_F(trace_providerTest, test_rename_multiple_times)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("name_v1");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act & Assert
+    EXPECT_EQ(0, trace_rename(handle, "name_v2")); // [確認_正常系] - 1 回目の名前変更が成功すること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "v2 message")); // [確認_正常系] - 1 回目の変更後に書き込めること。
+
+    EXPECT_EQ(0, trace_rename(handle, "name_v3")); // [確認_正常系] - 2 回目の名前変更が成功すること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "v3 message")); // [確認_正常系] - 2 回目の変更後に書き込めること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// 名前変更後の dispose が正常に完了することの確認
+TEST_F(trace_providerTest, test_rename_then_dispose)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("before_rename");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int result = trace_rename(handle, "after_rename"); // [手順] - 名前を変更する。
+    EXPECT_EQ(0, result); // [確認_正常系] - 名前変更が成功すること。
+
+    // Assert - dispose がクラッシュしないことを確認
+    trace_dispose(handle); // [手順] - 名前変更後に dispose を呼ぶ。安全に終了すること。
+}

@@ -431,3 +431,51 @@ void TRACE_UTIL_API
 
     free(handle);
 }
+
+int TRACE_UTIL_API
+    trace_rename(trace_provider_t *handle, const char *new_name)
+{
+    char path_buf[256];
+    const char *effective_name;
+
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    if (new_name != NULL)
+    {
+        effective_name = new_name;
+    }
+    else
+    {
+        effective_name = get_process_basename(path_buf, sizeof(path_buf));
+    }
+
+#ifdef _WIN32
+    {
+        char *svc;
+
+        svc = _strdup(effective_name);
+        if (svc == NULL)
+        {
+            return -1;
+        }
+
+        free(handle->service_name);
+        handle->service_name = svc;
+    }
+#else /* !_WIN32 */
+    {
+        int rc;
+
+        rc = syslog_provider_rename(handle->syslog_handle, effective_name);
+        if (rc != 0)
+        {
+            return -1;
+        }
+    }
+#endif /* _WIN32 */
+
+    return 0;
+}

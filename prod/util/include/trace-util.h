@@ -343,6 +343,39 @@ extern "C"
                        const void *data, size_t size, const char *format, ...);
 
     /**
+     *  @brief          トレースプロバイダの名前を変更する。
+     *  @details        初期化済みのハンドルを維持したまま、アプリケーション名を変更します。\n
+     *                  dispose して再 init する場合と異なり、以下の利点があります。
+     *                  - ハンドルが無効化されないため、呼び出し側でポインタを差し替える必要がない
+     *                  - Windows では ETW プロバイダの登録・解除を行わない
+     *                  - トレースが書き込めない空白期間が発生しない
+     *
+     *                  Linux 環境では内部で closelog / openlog が呼び出されます。\n
+     *                  Windows 環境では ETW イベントの "Service" フィールド値のみが変更されます。
+     *
+     *  @param[in]      handle     trace_init の戻り値。
+     *                             NULL の場合は何もせず -1 を返します。
+     *  @param[in]      new_name   新しいアプリケーション名。\n
+     *                             NULL の場合は自プロセスの実行ファイル名を使用します
+     *                             (trace_init に NULL を渡した場合と同じ動作)。
+     *  @return         成功 0 / 失敗 (メモリ確保失敗等) -1。
+     *
+     *  @par            使用例
+     *  @code
+     *  trace_provider_t *logger = trace_init("myapp");
+     *  // ... 後から名前を変更
+     *  trace_rename(logger, "myapp-worker");
+     *  trace_write(logger, TRACE_LV_INFO, "now running as worker");
+     *  trace_dispose(logger);
+     *  @endcode
+     *
+     *  @note           同一ハンドルに対する trace_rename と trace_write の
+     *                  同時呼び出しは未定義動作です。呼び出し側で排他制御してください。
+     */
+    TRACE_UTIL_EXPORT int TRACE_UTIL_API
+        trace_rename(trace_provider_t *handle, const char *new_name);
+
+    /**
      *  @brief          トレースプロバイダを終了し、リソースを解放する。
      *  @details        ハンドルが NULL の場合は何もしません。
      *
