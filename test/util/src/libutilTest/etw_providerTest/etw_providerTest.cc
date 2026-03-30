@@ -111,4 +111,14 @@ TEST_F(etw_providerTest, test_dispose_with_null_handle)
     etw_provider_dispose(NULL); // [手順] - NULL ハンドルで dispose を呼ぶ。安全に何もしないこと。
 }
 
+#else /* !_WIN32 */
+
+#include <testfw.h>
+
+// 非 Windows 環境ではテスト対象外
+TEST(etw_providerTest, not_supported)
+{
+    GTEST_SKIP() << "ETW is not supported on this platform";
+}
+
 #endif /* _WIN32 */

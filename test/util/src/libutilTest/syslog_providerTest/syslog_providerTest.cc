@@ -103,4 +103,14 @@ TEST_F(syslog_providerTest, test_dispose_with_null_handle)
     syslog_provider_dispose(NULL); // [手順] - NULL ハンドルで dispose を呼ぶ。安全に何もしないこと。
 }
 
+#else /* _WIN32 */
+
+#include <testfw.h>
+
+// Windows 環境ではテスト対象外
+TEST(syslog_providerTest, not_supported)
+{
+    GTEST_SKIP() << "syslog is not supported on this platform";
+}
+
 #endif /* !_WIN32 */

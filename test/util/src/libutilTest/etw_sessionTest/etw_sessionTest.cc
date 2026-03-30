@@ -322,4 +322,14 @@ TEST_F(etw_subscribeTest, test_subscribe_empty_string)
     etw_provider_dispose(handle);
 }
 
+#else /* !_WIN32 */
+
+#include <testfw.h>
+
+// 非 Windows 環境ではテスト対象外
+TEST(etw_sessionTest, not_supported)
+{
+    GTEST_SKIP() << "ETW is not supported on this platform";
+}
+
 #endif /* _WIN32 */
