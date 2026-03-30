@@ -1,4 +1,4 @@
-#include <file-util.h>
+#include <fmtio-util.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -15,7 +15,7 @@
 #endif /* _WIN32 */
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *format, ...)
+FILE *FMTIO_UTIL_API fopenf(const char *modes, int *errno_out, const char *format, ...)
 {
     va_list args;
     char filename[FILE_PATH_MAX] = {0};
@@ -81,7 +81,7 @@ FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int FILE_UTIL_API stat_printf(file_stat_t *buf, const char *format, ...)
+int FMTIO_UTIL_API statf(file_stat_t *buf, const char *format, ...)
 {
     va_list args;
     char filename[FILE_PATH_MAX] = {0};

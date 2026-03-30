@@ -1,5 +1,5 @@
-#ifndef FILE_UTIL_H
-#define FILE_UTIL_H
+#ifndef FMTIO_UTIL_H
+#define FMTIO_UTIL_H
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -17,7 +17,7 @@ typedef struct _stat64 file_stat_t;
 #ifdef DOXYGEN
 
 /**
- *  @def            FILE_UTIL_EXPORT
+ *  @def            FMTIO_UTIL_EXPORT
  *  @brief          DLL エクスポート/インポート制御マクロ。
  *  @details        ビルド条件に応じて以下の値を取ります。
  *
@@ -25,43 +25,43 @@ typedef struct _stat64 file_stat_t;
  *  | ------------------------------------------------------ | ------------------------ |
  *  | Linux (非 Windows)                                     | (空)                     |
  *  | Windows / `__INTELLISENSE__` 定義時                    | (空)                     |
- *  | Windows / `FILE_UTIL_STATIC` 定義時 (静的リンク)       | (空)                     |
- *  | Windows / `FILE_UTIL_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
- *  | Windows / `FILE_UTIL_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+ *  | Windows / `FMTIO_UTIL_STATIC` 定義時 (静的リンク)       | (空)                     |
+ *  | Windows / `FMTIO_UTIL_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
+ *  | Windows / `FMTIO_UTIL_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
  */
-#define FILE_UTIL_EXPORT
+#define FMTIO_UTIL_EXPORT
 
 /**
- *  @def            FILE_UTIL_API
+ *  @def            FMTIO_UTIL_API
  *  @brief          呼び出し規約マクロ。
  *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
  *                  Linux (非 Windows) 環境では空に展開されます。\n
  *                  既に定義済みの場合は再定義されません。
  */
-#define FILE_UTIL_API
+#define FMTIO_UTIL_API
 
 #else /* !DOXYGEN */
 
 #ifndef _WIN32
-    #define FILE_UTIL_EXPORT
-    #define FILE_UTIL_API
+    #define FMTIO_UTIL_EXPORT
+    #define FMTIO_UTIL_API
 #else /* _WIN32 */
     #ifndef __INTELLISENSE__
-        #ifndef FILE_UTIL_STATIC
-            #ifdef FILE_UTIL_EXPORTS
-                #define FILE_UTIL_EXPORT __declspec(dllexport)
-            #else /* !FILE_UTIL_EXPORTS */
-                #define FILE_UTIL_EXPORT __declspec(dllimport)
-            #endif /* FILE_UTIL_EXPORTS */
-        #else      /* FILE_UTIL_STATIC */
-            #define FILE_UTIL_EXPORT
-        #endif /* FILE_UTIL_STATIC */
+        #ifndef FMTIO_UTIL_STATIC
+            #ifdef FMTIO_UTIL_EXPORTS
+                #define FMTIO_UTIL_EXPORT __declspec(dllexport)
+            #else /* !FMTIO_UTIL_EXPORTS */
+                #define FMTIO_UTIL_EXPORT __declspec(dllimport)
+            #endif /* FMTIO_UTIL_EXPORTS */
+        #else      /* FMTIO_UTIL_STATIC */
+            #define FMTIO_UTIL_EXPORT
+        #endif /* FMTIO_UTIL_STATIC */
     #else      /* __INTELLISENSE__ */
-        #define FILE_UTIL_EXPORT
+        #define FMTIO_UTIL_EXPORT
     #endif /* __INTELLISENSE__ */
-    #ifndef FILE_UTIL_API
-        #define FILE_UTIL_API __stdcall
-    #endif /* FILE_UTIL_API */
+    #ifndef FMTIO_UTIL_API
+        #define FMTIO_UTIL_API __stdcall
+    #endif /* FMTIO_UTIL_API */
 #endif     /* _WIN32 */
 
 #endif /* DOXYGEN */
@@ -106,16 +106,16 @@ extern "C"
      *
      *  @par            使用例 (エラー コードの取得なし)
         @code
-        FILE *fp = fopen_printf("r", NULL, "data_%d.txt", 123);
+        FILE *fp = fopenf("r", NULL, "data_%d.txt", 123);
         @endcode
      *
      *  @par            使用例 (エラー コードの取得あり)
         @code
         int err;
-        FILE *fp = fopen_printf("r", &err, "data_%d.txt", 123);
+        FILE *fp = fopenf("r", &err, "data_%d.txt", 123);
         @endcode
      */
-    FILE_UTIL_EXPORT FILE *FILE_UTIL_API fopen_printf(const char *modes, int *errno_out, const char *format, ...)
+    FMTIO_UTIL_EXPORT FILE *FMTIO_UTIL_API fopenf(const char *modes, int *errno_out, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 4)))
 #endif /* __GNUC__ */
@@ -136,14 +136,14 @@ extern "C"
      *  @note           file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です
      *  @par            使用例
         @code
-        file_stat_t st; int ret = stat_printf(&st, "data_%d.txt", 123);
+        file_stat_t st; int ret = statf(&st, "data_%d.txt", 123);
         @endcode
      *  @note           Linux では stat()、Windows では _stat64() を使用します
      *  @warning        Linux と Windows では構造体のフィールドが異なるため、プラットフォーム固有のコードが必要です
      *                      - Windows には st_blksize, st_blocks フィールドがありません
      *                      - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
      */
-    FILE_UTIL_EXPORT int FILE_UTIL_API stat_printf(file_stat_t *buf, const char *format, ...)
+    FMTIO_UTIL_EXPORT int FMTIO_UTIL_API statf(file_stat_t *buf, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 3)))
 #endif /* __GNUC__ */
@@ -153,4 +153,4 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* FILE_UTIL_H */
+#endif /* FMTIO_UTIL_H */
