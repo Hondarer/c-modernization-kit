@@ -10,14 +10,11 @@ class consoleTest : public Test
 
 /* ===== 共通テスト (Windows / Linux 両方) ===== */
 
-// console_init が 0 を返すことの確認
-TEST_F(consoleTest, test_init_returns_zero)
+// console_init がクラッシュしないことの確認
+TEST_F(consoleTest, test_init_succeeds)
 {
-    // Act
-    int result = console_init(); // [手順] - コンソールヘルパーを初期化する。
-
-    // Assert
-    EXPECT_EQ(0, result); // [確認_正常系] - 戻り値が 0 であること。
+    // Act & Assert - クラッシュしないことを確認
+    console_init(); // [手順] - コンソールヘルパーを初期化する。
 
     // Cleanup
     console_dispose();
@@ -27,7 +24,7 @@ TEST_F(consoleTest, test_init_returns_zero)
 TEST_F(consoleTest, test_dispose_after_init)
 {
     // Arrange
-    ASSERT_EQ(0, console_init());
+    console_init();
 
     // Act & Assert - クラッシュしないことを確認
     console_dispose(); // [手順] - 正常に初期化した後で dispose を呼ぶ。
@@ -44,7 +41,7 @@ TEST_F(consoleTest, test_dispose_without_init)
 TEST_F(consoleTest, test_double_dispose)
 {
     // Arrange
-    ASSERT_EQ(0, console_init());
+    console_init();
 
     // Act & Assert - 2 回呼んでもクラッシュしないことを確認
     console_dispose(); // [手順] - 1 回目の dispose。
@@ -55,7 +52,7 @@ TEST_F(consoleTest, test_double_dispose)
 TEST_F(consoleTest, test_write_after_init)
 {
     // Arrange
-    ASSERT_EQ(0, console_init());
+    console_init();
 
     // Act & Assert - クラッシュしないことを確認
     printf("consoleTest: stdout\n");           // [手順] - stdout に書き込む。
@@ -80,7 +77,7 @@ TEST_F(consoleTest, test_nop_stdout_fd_unchanged)
     int fd_before = fileno(stdout); // [手順] - init 前の stdout FD を記録する。
 
     // Act
-    ASSERT_EQ(0, console_init());
+    console_init();
 
     // Assert
     EXPECT_EQ(fd_before, fileno(stdout)); // [確認_正常系] - no-op なので FD が変わっていないこと。
@@ -97,7 +94,7 @@ TEST_F(consoleTest, test_nop_stderr_fd_unchanged)
     int fd_before = fileno(stderr); // [手順] - init 前の stderr FD を記録する。
 
     // Act
-    ASSERT_EQ(0, console_init());
+    console_init();
 
     // Assert
     EXPECT_EQ(fd_before, fileno(stderr)); // [確認_正常系] - no-op なので FD が変わっていないこと。

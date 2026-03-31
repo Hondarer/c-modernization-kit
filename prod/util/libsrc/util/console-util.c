@@ -261,20 +261,23 @@ static void dispose_stream(stream_state_t *s, FILE *crt_stream)
 
 /* ===== 公開 API ===== */
 
-int CONSOLE_UTIL_API console_init(void)
+void CONSOLE_UTIL_API console_init(void)
 {
     /* 二重初期化を防ぐ (マルチスレッド安全ではないが init はシングルスレッドで呼ぶ想定) */
-    if (s_stdout_state.active) return 0;
+    if (s_stdout_state.active) return;
 
-    if (init_stream(&s_stdout_state, STD_OUTPUT_HANDLE, stdout) != 0) return -1;
+    if (init_stream(&s_stdout_state, STD_OUTPUT_HANDLE, stdout) != 0)
+    {
+        fprintf(stderr, "console_init: stdout の初期化に失敗しました。\n");
+        return;
+    }
 
     if (init_stream(&s_stderr_state, STD_ERROR_HANDLE, stderr) != 0) {
         /* stderr の初期化に失敗した場合は stdout の差し替えをロールバックする */
         dispose_stream(&s_stdout_state, stdout);
-        return -1;
+        fprintf(stderr, "console_init: stderr の初期化に失敗しました。\n");
+        return;
     }
-
-    return 0;
 }
 
 void CONSOLE_UTIL_API console_dispose(void)
@@ -288,7 +291,7 @@ void CONSOLE_UTIL_API console_dispose(void)
 
 /* ===== Linux / 非 Windows 実装 (no-op) ===== */
 
-int  CONSOLE_UTIL_API console_init(void)    { return 0; }
+void CONSOLE_UTIL_API console_init(void)    {}
 void CONSOLE_UTIL_API console_dispose(void) {}
 
 #endif /* _WIN32 */

@@ -94,16 +94,15 @@ extern "C"
      *                  スレッドはパイプから UTF-8 バイト列を受け取り、出力先がコンソール
      *                  (TTY) の場合は @c WriteConsoleW で UTF-16 として書き出します。
      *                  パイプやファイルへは UTF-8 バイト列をそのまま転送します。\n
-     *                  Linux 環境では何もせず 0 を返します。\n
+     *                  Linux 環境では何もしません。\n
      *                  stdin には触れません。\n
-     *                  本関数はプログラム開始時に一度だけ呼び出すことを想定しています。
-     *
-     *  @return         成功 0 / 失敗 -1。
+     *                  本関数はプログラム開始時に一度だけ呼び出すことを想定しています。\n
+     *                  初期化に失敗した場合は stderr に警告を出力し、何もせずに返ります。
      *
      *  @note           本関数を呼び出した後は @c console_dispose を呼び出して
      *                  リソースを解放してください。
      */
-    CONSOLE_UTIL_EXPORT int CONSOLE_UTIL_API console_init(void);
+    CONSOLE_UTIL_EXPORT void CONSOLE_UTIL_API console_init(void);
 
     /**
      *  @brief          コンソールヘルパーを終了し、リソースを解放する。
