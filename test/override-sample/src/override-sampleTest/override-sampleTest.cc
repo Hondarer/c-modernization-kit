@@ -28,12 +28,14 @@ class override_sampleTest : public Test
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
 #ifndef _WIN32
         binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
-        lib_path = workspace_root + "/prod/override-sample/lib";
+        lib_path = workspace_root + "/prod/override-sample/lib"
+                 + ":" + workspace_root + "/prod/util/lib";
         mock_lib_path = workspace_root + "/testfw/lib/" TARGET_ARCH "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.txt";
 #else  /* _WIN32 */
         binary_path = workspace_root + "\\prod\\override-sample\\bin\\override-sample.exe";
-        lib_path = workspace_root + "\\prod\\override-sample\\lib";
+        lib_path = workspace_root + "\\prod\\override-sample\\lib"
+                 + ";" + workspace_root + "\\prod\\util\\lib";
         {
             wchar_t tmpw[MAX_PATH] = L"";
             char tmpu8[MAX_PATH * 4] = {0};
