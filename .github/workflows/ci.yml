@@ -51,8 +51,13 @@ jobs:
           set -o pipefail
           make 2>&1 | tee logs/linux-${{ matrix.os-name }}-build.log
 
-      - name: Set library path for tests
-        run: echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+      - name: Set PATH and library path for tests
+        run: |
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$GITHUB_WORKSPACE/prod/override-sample/lib:$GITHUB_WORKSPACE/prod/porter/lib:$GITHUB_WORKSPACE/prod/util/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/prod/calc/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/prod/calc.net/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/prod/override-sample/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/prod/porter/bin" >> $GITHUB_PATH
 
       - name: Run tests
         run: |
@@ -119,14 +124,23 @@ jobs:
         run: make 2>&1 | Tee-Object -FilePath logs/windows-build.log
         shell: pwsh
 
-      - name: Set library path for tests
+      - name: Set PATH for tests
         run: |
-          $calcLibPath = "${{ github.workspace }}\prod\calc\lib"
-          $calcNetLibPath = "${{ github.workspace }}\prod\calc.net\lib"
-          Add-Content -Path $env:GITHUB_PATH -Value $calcLibPath
-          Add-Content -Path $env:GITHUB_PATH -Value $calcNetLibPath
-          Write-Host "Added $calcLibPath to PATH"
-          Write-Host "Added $calcNetLibPath to PATH"
+          $paths = @(
+            "${{ github.workspace }}\prod\calc\lib",
+            "${{ github.workspace }}\prod\calc\bin",
+            "${{ github.workspace }}\prod\calc.net\lib",
+            "${{ github.workspace }}\prod\calc.net\bin",
+            "${{ github.workspace }}\prod\override-sample\lib",
+            "${{ github.workspace }}\prod\override-sample\bin",
+            "${{ github.workspace }}\prod\porter\lib",
+            "${{ github.workspace }}\prod\porter\bin",
+            "${{ github.workspace }}\prod\util\lib"
+          )
+          foreach ($p in $paths) {
+            Add-Content -Path $env:GITHUB_PATH -Value $p
+            Write-Host "Added $p to PATH"
+          }
         shell: pwsh
 
       - name: Run tests
