@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 /* ===== Windows: TraceLogging プロバイダ定義 ===== */
 
@@ -33,6 +34,9 @@ static etw_provider_t *s_etw_handle = NULL;
  */
 struct trace_provider
 {
+    /** アプリケーション管理識別番号 (診断用)。0 = 識別番号なし。 */
+    int64_t identifier;
+
 #ifdef _WIN32
     /** サービス名 (ETW "Trace" イベントの "Service" フィールド)。 */
     char *service_name;
@@ -184,21 +188,55 @@ static void config_unlock(trace_provider_t *handle)
 #endif /* _WIN32 */
 }
 
+/**
+ *  @brief  name と identifier から有効識別名 (effective name) を生成する。
+ *  @details  name == NULL の場合はプロセスのベースネームを使用する。\n
+ *            identifier == 0 の場合は name をそのままコピーして返す。\n
+ *            identifier > 0 の場合は "<name>-<identifier>" を生成して返す。\n
+ *            戻り値はヒープ上に確保されるため、呼び出し元が free する必要がある。
+ *  @return  ヒープ上に確保された有効識別名。失敗時 NULL。
+ */
+static char *build_effective_name(const char *name, int64_t identifier)
+{
+    char path_buf[256];
+    const char *base;
+    char *result;
+
+    base = (name != NULL) ? name : get_process_basename(path_buf, sizeof(path_buf));
+
+    if (identifier == 0)
+    {
+#ifdef _WIN32
+        return _strdup(base);
+#else
+        return strdup(base);
+#endif
+    }
+
+    {
+        int id_len = snprintf(NULL, 0, "%" PRId64, identifier);
+        size_t base_len = strlen(base);
+        /* "<base>-<identifier>\0" */
+        size_t total = base_len + 1 /* '-' */ + (size_t)id_len + 1;
+
+        result = (char *)malloc(total);
+        if (result == NULL)
+        {
+            return NULL;
+        }
+        snprintf(result, total, "%s-%" PRId64, base, identifier);
+        return result;
+    }
+}
+
 trace_provider_t *TRACE_UTIL_API
-    trace_init(const char *name)
+    trace_init(void)
 {
     trace_provider_t *handle;
     char path_buf[256];
     const char *effective_name;
 
-    if (name != NULL)
-    {
-        effective_name = name;
-    }
-    else
-    {
-        effective_name = get_process_basename(path_buf, sizeof(path_buf));
-    }
+    effective_name = get_process_basename(path_buf, sizeof(path_buf));
 
 #ifdef _WIN32
     {
@@ -217,9 +255,10 @@ trace_provider_t *TRACE_UTIL_API
             return NULL;
         }
 
+        handle->identifier   = 0;
         handle->service_name = svc;
-        handle->os_level     = TRACE_LV_INFO;
-        handle->file_level   = TRACE_LV_ERROR;
+        handle->os_level     = TRACE_DEFAULT_OS_LEVEL;
+        handle->file_level   = TRACE_DEFAULT_FILE_LEVEL;
         handle->file_handle  = NULL;
         handle->running      = 0;
 
@@ -256,9 +295,10 @@ trace_provider_t *TRACE_UTIL_API
             return NULL;
         }
 
+        handle->identifier    = 0;
         handle->syslog_handle = sp;
-        handle->os_level      = TRACE_LV_INFO;
-        handle->file_level    = TRACE_LV_ERROR;
+        handle->os_level      = TRACE_DEFAULT_OS_LEVEL;
+        handle->file_level    = TRACE_DEFAULT_FILE_LEVEL;
         handle->file_handle   = NULL;
         handle->running       = 0;
 
@@ -629,12 +669,16 @@ void TRACE_UTIL_API
 }
 
 int TRACE_UTIL_API
-    trace_rename(trace_provider_t *handle, const char *new_name)
+    trace_modify_name(trace_provider_t *handle, const char *name, int64_t identifier)
 {
-    char path_buf[256];
-    const char *effective_name;
+    char *effective;
 
     if (handle == NULL)
+    {
+        return -1;
+    }
+
+    if (identifier < 0)
     {
         return -1;
     }
@@ -647,48 +691,37 @@ int TRACE_UTIL_API
         return -1;
     }
 
-    if (new_name != NULL)
+    effective = build_effective_name(name, identifier);
+    if (effective == NULL)
     {
-        effective_name = new_name;
-    }
-    else
-    {
-        effective_name = get_process_basename(path_buf, sizeof(path_buf));
+        config_unlock(handle);
+        return -1;
     }
 
 #ifdef _WIN32
-    {
-        char *svc;
-
-        svc = _strdup(effective_name);
-        if (svc == NULL)
-        {
-            config_unlock(handle);
-            return -1;
-        }
-
-        free(handle->service_name);
-        handle->service_name = svc;
-    }
+    free(handle->service_name);
+    handle->service_name = effective;
+    handle->identifier   = identifier;
+    config_unlock(handle);
+    return 0;
 #else /* !_WIN32 */
     {
-        int rc;
-
-        rc = syslog_provider_rename(handle->syslog_handle, effective_name);
+        int rc = syslog_provider_rename(handle->syslog_handle, effective);
+        free(effective);
         if (rc != 0)
         {
             config_unlock(handle);
             return -1;
         }
+        handle->identifier = identifier;
+        config_unlock(handle);
+        return 0;
     }
 #endif /* _WIN32 */
-
-    config_unlock(handle);
-    return 0;
 }
 
 int TRACE_UTIL_API
-    trace_set_os(trace_provider_t *handle, enum trace_level level)
+    trace_modify_ostrc(trace_provider_t *handle, enum trace_level level)
 {
     if (handle == NULL)
     {
@@ -709,8 +742,8 @@ int TRACE_UTIL_API
 }
 
 int TRACE_UTIL_API
-    trace_set_file(trace_provider_t *handle, const char *path,
-                   enum trace_level level, size_t max_bytes, int generations)
+    trace_modify_filetrc(trace_provider_t *handle, const char *path,
+                         enum trace_level level, size_t max_bytes, int generations)
 {
     int result = 0;
 

@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <evntrace.h>
 #include <evntcons.h>
+#pragma comment(lib, "Advapi32.lib")
 #include <trace-etw-util.h>
 #include <stdlib.h>
 #include <stdio.h>

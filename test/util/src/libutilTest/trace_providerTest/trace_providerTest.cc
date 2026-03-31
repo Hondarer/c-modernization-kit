@@ -15,7 +15,7 @@ class trace_providerTest : public Test
 TEST_F(trace_providerTest, test_init_and_dispose)
 {
     // Arrange & Act
-    trace_provider_t *handle = trace_init("trace_test"); // [手順] - プロバイダを初期化する。
+    trace_provider_t *handle = trace_init(); // [手順] - プロバイダを初期化する。
 
     // Assert
     EXPECT_NE((trace_provider_t *)NULL, handle); // [確認_正常系] - ハンドルが NULL でないこと。
@@ -30,7 +30,7 @@ TEST_F(trace_providerTest, test_init_and_dispose)
 TEST_F(trace_providerTest, test_write_returns_zero)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -48,7 +48,7 @@ TEST_F(trace_providerTest, test_write_returns_zero)
 TEST_F(trace_providerTest, test_write_all_levels)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -65,14 +65,14 @@ TEST_F(trace_providerTest, test_write_all_levels)
 
 /* ===== NULL 安全性テスト ===== */
 
-// name に NULL を渡した場合に自プロセス名で初期化されることの確認
-TEST_F(trace_providerTest, test_init_null_name)
+// trace_init() で初期化し、有効なハンドルが返されることの確認 (引数なし版)
+TEST_F(trace_providerTest, test_init_no_args)
 {
     // Act
-    trace_provider_t *handle = trace_init(NULL); // [手順] - NULL を渡す。
+    trace_provider_t *handle = trace_init(); // [手順] - 引数なしで初期化する。
 
-    // Assert (自プロセス名で初期化される)
-    EXPECT_NE((trace_provider_t *)NULL, handle); // [確認_正常系] - プロセス名でハンドルが返されること。
+    // Assert (自プロセス名でハンドルが返される)
+    EXPECT_NE((trace_provider_t *)NULL, handle); // [確認_正常系] - ハンドルが NULL でないこと。
 
     // Cleanup
     trace_dispose(handle);
@@ -92,7 +92,7 @@ TEST_F(trace_providerTest, test_write_with_null_handle)
 TEST_F(trace_providerTest, test_write_with_null_message)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
@@ -118,7 +118,7 @@ TEST_F(trace_providerTest, test_dispose_with_null_handle)
 TEST_F(trace_providerTest, test_write_max_length_message)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -141,7 +141,7 @@ TEST_F(trace_providerTest, test_write_max_length_message)
 TEST_F(trace_providerTest, test_write_oversized_message_truncated)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -164,7 +164,7 @@ TEST_F(trace_providerTest, test_write_oversized_message_truncated)
 TEST_F(trace_providerTest, test_write_truncate_utf8_boundary)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -194,7 +194,7 @@ TEST_F(trace_providerTest, test_write_truncate_utf8_boundary)
 TEST_F(trace_providerTest, test_writef_basic)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -222,7 +222,7 @@ TEST_F(trace_providerTest, test_writef_null_handle)
 TEST_F(trace_providerTest, test_writef_null_format)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
@@ -239,7 +239,7 @@ TEST_F(trace_providerTest, test_writef_null_format)
 TEST_F(trace_providerTest, test_writef_truncation)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -264,7 +264,7 @@ TEST_F(trace_providerTest, test_writef_truncation)
 TEST_F(trace_providerTest, test_hex_write_basic)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -284,7 +284,7 @@ TEST_F(trace_providerTest, test_hex_write_basic)
 TEST_F(trace_providerTest, test_hex_write_no_label)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -315,7 +315,7 @@ TEST_F(trace_providerTest, test_hex_write_null_handle)
 TEST_F(trace_providerTest, test_hex_write_null_data)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
@@ -332,7 +332,7 @@ TEST_F(trace_providerTest, test_hex_write_null_data)
 TEST_F(trace_providerTest, test_hex_write_zero_size)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     unsigned char data[] = {0x01};
@@ -351,7 +351,7 @@ TEST_F(trace_providerTest, test_hex_write_zero_size)
 TEST_F(trace_providerTest, test_hex_write_oversized_truncated)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -373,7 +373,7 @@ TEST_F(trace_providerTest, test_hex_write_oversized_truncated)
 TEST_F(trace_providerTest, test_hex_write_with_label_truncated)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -397,7 +397,7 @@ TEST_F(trace_providerTest, test_hex_write_with_label_truncated)
 TEST_F(trace_providerTest, test_hex_writef_basic)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -417,7 +417,7 @@ TEST_F(trace_providerTest, test_hex_writef_basic)
 TEST_F(trace_providerTest, test_hex_writef_null_format)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -448,7 +448,7 @@ TEST_F(trace_providerTest, test_hex_writef_null_handle)
 TEST_F(trace_providerTest, test_hex_writef_truncated)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -465,76 +465,78 @@ TEST_F(trace_providerTest, test_hex_writef_truncated)
     trace_dispose(handle);
 }
 
-/* ===== trace_rename テスト ===== */
+/* ===== trace_modify_name テスト ===== */
 
-// 名前変更後に書き込みが成功することの確認
-TEST_F(trace_providerTest, test_rename_basic)
+// 識別名変更後に書き込みが成功することの確認
+TEST_F(trace_providerTest, test_modify_name_basic)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("original_name");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_modify_name(handle, "original_name", 0);
 
     // Act
-    int rename_result = trace_rename(handle, "new_name"); // [手順] - 名前を変更する。
+    int result = trace_modify_name(handle, "new_name", 0); // [手順] - 識別名を変更する。
 
     // Assert
-    EXPECT_EQ(0, rename_result); // [確認_正常系] - 戻り値が 0 であること。
+    EXPECT_EQ(0, result); // [確認_正常系] - 戻り値が 0 であること。
 
-    // 名前変更後も書き込みが正常に動作すること
+    // 識別名変更後も書き込みが正常に動作すること
     trace_start(handle);
-    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename");// [手順] - 名前変更後にメッセージを書き込む。
+    int write_result = trace_write(handle, TRACE_LV_INFO, "after modify_name");// [手順] - 識別名変更後にメッセージを書き込む。
     EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
 
     // Cleanup
     trace_dispose(handle);
 }
 
-// NULL ハンドルで trace_rename を呼んでも安全に -1 が返されることの確認
-TEST_F(trace_providerTest, test_rename_null_handle)
+// NULL ハンドルで trace_modify_name を呼んでも安全に -1 が返されることの確認
+TEST_F(trace_providerTest, test_modify_name_null_handle)
 {
     // Act
-    int result = trace_rename(NULL, "new_name"); // [手順] - handle に NULL を渡す。
+    int result = trace_modify_name(NULL, "new_name", 0); // [手順] - handle に NULL を渡す。
 
     // Assert
     EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
 }
 
-// new_name に NULL を渡した場合にプロセス名で更新されることの確認
-TEST_F(trace_providerTest, test_rename_null_name)
+// name に NULL を渡した場合にプロセス名で更新されることの確認
+TEST_F(trace_providerTest, test_modify_name_null_name)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("original_name");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
-    int rename_result = trace_rename(handle, NULL); // [手順] - new_name に NULL を渡す。
+    int result = trace_modify_name(handle, NULL, 0); // [手順] - name に NULL を渡す。
 
     // Assert (プロセス名で更新される)
-    EXPECT_EQ(0, rename_result); // [確認_正常系] - プロセス名で更新され 0 が返されること。
+    EXPECT_EQ(0, result); // [確認_正常系] - プロセス名で更新され 0 が返されること。
 
     // 更新後も書き込みが正常に動作すること
     trace_start(handle);
-    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename to process name");// [手順] - 更新後にメッセージを書き込む。
+    int write_result = trace_write(handle, TRACE_LV_INFO, "after modify to process name");// [手順] - 更新後にメッセージを書き込む。
     EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
 
     // Cleanup
     trace_dispose(handle);
 }
 
-// 複数回の名前変更が正常に動作することの確認
-TEST_F(trace_providerTest, test_rename_multiple_times)
+// 複数回の識別名変更が正常に動作することの確認
+TEST_F(trace_providerTest, test_modify_name_multiple_times)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("name_v1");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_modify_name(handle, "name_v1", 0);
 
     // Act & Assert
-    EXPECT_EQ(0, trace_rename(handle, "name_v2")); // [確認_正常系] - 1 回目の名前変更が成功すること。
+    EXPECT_EQ(0, trace_modify_name(handle, "name_v2", 0)); // [確認_正常系] - 1 回目の変更が成功すること。
     trace_start(handle);
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "v2 message")); // [確認_正常系] - 1 回目の変更後に書き込めること。
     trace_stop(handle);
 
-    EXPECT_EQ(0, trace_rename(handle, "name_v3")); // [確認_正常系] - 2 回目の名前変更が成功すること。
+    EXPECT_EQ(0, trace_modify_name(handle, "name_v3", 0)); // [確認_正常系] - 2 回目の変更が成功すること。
     trace_start(handle);
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "v3 message")); // [確認_正常系] - 2 回目の変更後に書き込めること。
 
@@ -542,19 +544,75 @@ TEST_F(trace_providerTest, test_rename_multiple_times)
     trace_dispose(handle);
 }
 
-// 名前変更後の dispose が正常に完了することの確認
-TEST_F(trace_providerTest, test_rename_then_dispose)
+// 識別名変更後の dispose が正常に完了することの確認
+TEST_F(trace_providerTest, test_modify_name_then_dispose)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("before_rename");
+    trace_provider_t *handle = trace_init();
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_modify_name(handle, "before_modify", 0);
+
+    // Act
+    int result = trace_modify_name(handle, "after_modify", 0); // [手順] - 識別名を変更する。
+    EXPECT_EQ(0, result); // [確認_正常系] - 識別名変更が成功すること。
+
+    // Assert - dispose がクラッシュしないことを確認
+    trace_dispose(handle); // [手順] - 識別名変更後に dispose を呼ぶ。安全に終了すること。
+}
+
+// identifier > 0 の場合に "<name>-<id>" として設定されることの確認
+TEST_F(trace_providerTest, test_modify_name_with_identifier)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
-    int result = trace_rename(handle, "after_rename"); // [手順] - 名前を変更する。
-    EXPECT_EQ(0, result); // [確認_正常系] - 名前変更が成功すること。
+    int result = trace_modify_name(handle, "worker", 2); // [手順] - identifier = 2 で設定する。
 
-    // Assert - dispose がクラッシュしないことを確認
-    trace_dispose(handle); // [手順] - 名前変更後に dispose を呼ぶ。安全に終了すること。
+    // Assert - 内部識別名は "worker-2" になる。書き込みが成功すれば適用済み。
+    EXPECT_EQ(0, result); // [確認_正常系] - 戻り値が 0 であること。
+
+    trace_start(handle);
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "running as worker-2")); // [確認_正常系] - 書き込みが成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// identifier に負の値を渡すと -1 が返されることの確認
+TEST_F(trace_providerTest, test_modify_name_negative_identifier)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init();
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int result = trace_modify_name(handle, "app", -1); // [手順] - identifier に -1 を渡す。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - 負の identifier で -1 が返されること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// started 状態で trace_modify_name を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_modify_name_fails_when_started)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init();
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
+
+    // Act
+    int result = trace_modify_name(handle, "new_name", 0); // [手順] - started 中に modify_name を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - started 中に -1 が返されること。
+
+    // Cleanup
+    trace_dispose(handle);
 }
 
 /* ===== TRACE_LV_NONE テスト ===== */
@@ -563,11 +621,11 @@ TEST_F(trace_providerTest, test_rename_then_dispose)
 TEST_F(trace_providerTest, test_os_level_none_suppresses_output)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
-    int set_result = trace_set_os(handle, TRACE_LV_NONE); // [手順] - OS レベルを NONE に設定する。
+    int set_result = trace_modify_ostrc(handle, TRACE_LV_NONE); // [手順] - OS レベルを NONE に設定する (trace_modify_ostrc)。
     trace_start(handle);
     int write_result = trace_write(handle, TRACE_LV_CRITICAL, "should not output");// [手順] - CRITICAL でメッセージを書き込む。
 
@@ -585,11 +643,11 @@ TEST_F(trace_providerTest, test_os_level_none_suppresses_output)
 TEST_F(trace_providerTest, test_os_level_filters_below_threshold)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
-    trace_set_os(handle, TRACE_LV_ERROR); // [手順] - OS レベルを ERROR に設定する。
+    trace_modify_ostrc(handle, TRACE_LV_ERROR); // [手順] - OS レベルを ERROR に設定する (trace_modify_ostrc)。
     trace_start(handle);
 
     // Assert
@@ -603,11 +661,11 @@ TEST_F(trace_providerTest, test_os_level_filters_below_threshold)
     trace_dispose(handle);
 }
 
-// NULL ハンドルで trace_set_os を呼ぶと -1 が返されることの確認
-TEST_F(trace_providerTest, test_set_os_level_null_handle)
+// NULL ハンドルで trace_modify_ostrc を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_modify_ostrc_null_handle)
 {
     // Act
-    int result = trace_set_os(NULL, TRACE_LV_ERROR); // [手順] - handle に NULL を渡す。
+    int result = trace_modify_ostrc(NULL, TRACE_LV_ERROR); // [手順] - handle に NULL を渡す。
 
     // Assert
     EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
@@ -617,7 +675,7 @@ TEST_F(trace_providerTest, test_set_os_level_null_handle)
 TEST_F(trace_providerTest, test_default_os_level_is_info)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -633,18 +691,18 @@ TEST_F(trace_providerTest, test_default_os_level_is_info)
 /* ===== ファイルトレーステスト ===== */
 
 // ファイルトレースを有効化し、メッセージがファイルに書き込まれることの確認
-TEST_F(trace_providerTest, test_set_file_enables_file_trace)
+TEST_F(trace_providerTest, test_modify_filetrc_enables_file_trace)
 {
     // Arrange
     string ws = findWorkspaceRoot();
     string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_test.log";
     remove(path.c_str());
 
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
-    int set_result = trace_set_file(handle, path.c_str(), TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
+    int set_result = trace_modify_filetrc(handle, path.c_str(), TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを有効化する (trace_modify_filetrc)。
     EXPECT_EQ(0, set_result); // [確認_正常系] - 設定が成功すること。
 
     trace_start(handle);
@@ -671,11 +729,11 @@ TEST_F(trace_providerTest, test_file_level_filters_messages)
     string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_filter.log";
     remove(path.c_str());
 
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act - ファイルレベルを ERROR に設定
-    trace_set_file(handle, path.c_str(), TRACE_LV_ERROR, 0, 0); // [手順] - ファイルレベルを ERROR に設定する。
+    trace_modify_filetrc(handle, path.c_str(), TRACE_LV_ERROR, 0, 0); // [手順] - ファイルレベルを ERROR に設定する。
     trace_start(handle);
     trace_write(handle, TRACE_LV_ERROR,   "should be in file");// [手順] - ERROR メッセージを書き込む。
     trace_write(handle, TRACE_LV_WARNING, "should not be in file");  // [手順] - WARNING メッセージを書き込む。
@@ -690,23 +748,23 @@ TEST_F(trace_providerTest, test_file_level_filters_messages)
 }
 
 // path に NULL を渡してファイルトレースを無効化できることの確認
-TEST_F(trace_providerTest, test_set_file_null_path_disables)
+TEST_F(trace_providerTest, test_modify_filetrc_null_path_disables)
 {
     // Arrange
     string ws = findWorkspaceRoot();
     string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_disable.log";
     remove(path.c_str());
 
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act - ファイルトレースを有効化後、無効化
-    trace_set_file(handle, path.c_str(), TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
+    trace_modify_filetrc(handle, path.c_str(), TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
     trace_start(handle);
     trace_write(handle, TRACE_LV_ERROR, "before disable");       // [手順] - 無効化前にメッセージを書き込む。
     trace_stop(handle);
 
-    trace_set_file(handle, NULL, TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを無効化する。
+    trace_modify_filetrc(handle, NULL, TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを無効化する。
     trace_start(handle);
     trace_write(handle, TRACE_LV_ERROR, "after disable");// [手順] - 無効化後にメッセージを書き込む。
 
@@ -719,11 +777,11 @@ TEST_F(trace_providerTest, test_set_file_null_path_disables)
     remove(path.c_str());
 }
 
-// NULL ハンドルで trace_set_file を呼ぶと -1 が返されることの確認
-TEST_F(trace_providerTest, test_set_file_null_handle)
+// NULL ハンドルで trace_modify_filetrc を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_modify_filetrc_null_handle)
 {
     // Act
-    int result = trace_set_file(NULL, "test.log", TRACE_LV_ERROR, 0, 0); // [手順] - handle に NULL を渡す。
+    int result = trace_modify_filetrc(NULL, "test.log", TRACE_LV_ERROR, 0, 0); // [手順] - handle に NULL を渡す。
 
     // Assert
     EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
@@ -733,7 +791,7 @@ TEST_F(trace_providerTest, test_set_file_null_handle)
 TEST_F(trace_providerTest, test_no_file_output_without_path)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -756,12 +814,12 @@ TEST_F(trace_providerTest, test_dual_output_os_and_file)
     string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_dual.log";
     remove(path.c_str());
 
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
-    trace_set_os(handle, TRACE_LV_WARNING);                       // [手順] - OS レベルを WARNING に設定する。
-    trace_set_file(handle, path.c_str(), TRACE_LV_VERBOSE, 0, 0);      // [手順] - ファイルレベルを VERBOSE に設定する。
+    trace_modify_ostrc(handle, TRACE_LV_WARNING);                       // [手順] - OS レベルを WARNING に設定する。
+    trace_modify_filetrc(handle, path.c_str(), TRACE_LV_VERBOSE, 0, 0);      // [手順] - ファイルレベルを VERBOSE に設定する。
     trace_start(handle);
 
     trace_write(handle, TRACE_LV_ERROR,   "error msg");// [手順] - ERROR を書き込む (OS:✓ File:✓)。
@@ -786,7 +844,7 @@ TEST_F(trace_providerTest, test_dual_output_os_and_file)
 TEST_F(trace_providerTest, test_start_and_stop_basic)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
@@ -807,7 +865,7 @@ TEST_F(trace_providerTest, test_start_and_stop_basic)
 TEST_F(trace_providerTest, test_write_fails_when_stopped)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act (init 直後は stopped 状態)
@@ -832,7 +890,7 @@ TEST_F(trace_providerTest, test_write_fails_when_stopped)
 TEST_F(trace_providerTest, test_write_succeeds_when_started)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
 
@@ -850,19 +908,19 @@ TEST_F(trace_providerTest, test_write_succeeds_when_started)
 TEST_F(trace_providerTest, test_config_fails_when_started)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle); // [手順] - プロバイダを開始する。
 
     // Act
-    int rename_result   = trace_rename(handle, "new_name");                           // [手順] - started 中に rename を呼ぶ。
-    int set_os_result   = trace_set_os(handle, TRACE_LV_VERBOSE);                     // [手順] - started 中に set_os を呼ぶ。
-    int set_file_result = trace_set_file(handle, "test.log", TRACE_LV_ERROR, 0, 0);   // [手順] - started 中に set_file を呼ぶ。
+    int modify_name_result  = trace_modify_name(handle, "new_name", 0);                        // [手順] - started 中に modify_name を呼ぶ。
+    int set_os_result       = trace_modify_ostrc(handle, TRACE_LV_VERBOSE);                    // [手順] - started 中に modify_ostrc を呼ぶ。
+    int set_file_result     = trace_modify_filetrc(handle, "test.log", TRACE_LV_ERROR, 0, 0);  // [手順] - started 中に modify_filetrc を呼ぶ。
 
     // Assert
-    EXPECT_EQ(-1, rename_result);   // [確認_異常系] - started 中の rename が -1 を返すこと。
-    EXPECT_EQ(-1, set_os_result);   // [確認_異常系] - started 中の set_os が -1 を返すこと。
-    EXPECT_EQ(-1, set_file_result); // [確認_異常系] - started 中の set_file が -1 を返すこと。
+    EXPECT_EQ(-1, modify_name_result); // [確認_異常系] - started 中の modify_name が -1 を返すこと。
+    EXPECT_EQ(-1, set_os_result);      // [確認_異常系] - started 中の modify_ostrc が -1 を返すこと。
+    EXPECT_EQ(-1, set_file_result);    // [確認_異常系] - started 中の modify_filetrc が -1 を返すこと。
 
     // Cleanup
     trace_dispose(handle);
@@ -872,16 +930,16 @@ TEST_F(trace_providerTest, test_config_fails_when_started)
 TEST_F(trace_providerTest, test_config_succeeds_when_stopped)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act (init 直後は stopped 状態)
-    int rename_result = trace_rename(handle, "new_name");                     // [手順] - stopped 中に rename を呼ぶ。
-    int set_os_result = trace_set_os(handle, TRACE_LV_VERBOSE);               // [手順] - stopped 中に set_os を呼ぶ。
+    int modify_name_result = trace_modify_name(handle, "new_name", 0);  // [手順] - stopped 中に modify_name を呼ぶ。
+    int set_os_result      = trace_modify_ostrc(handle, TRACE_LV_VERBOSE); // [手順] - stopped 中に modify_ostrc を呼ぶ。
 
     // Assert
-    EXPECT_EQ(0, rename_result); // [確認_正常系] - stopped 中の rename が 0 を返すこと。
-    EXPECT_EQ(0, set_os_result); // [確認_正常系] - stopped 中の set_os が 0 を返すこと。
+    EXPECT_EQ(0, modify_name_result); // [確認_正常系] - stopped 中の modify_name が 0 を返すこと。
+    EXPECT_EQ(0, set_os_result);      // [確認_正常系] - stopped 中の modify_ostrc が 0 を返すこと。
 
     // Cleanup
     trace_dispose(handle);
@@ -891,7 +949,7 @@ TEST_F(trace_providerTest, test_config_succeeds_when_stopped)
 TEST_F(trace_providerTest, test_stop_then_reconfig_then_start)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act - 1回目: start → write → stop
@@ -900,8 +958,8 @@ TEST_F(trace_providerTest, test_stop_then_reconfig_then_start)
     trace_stop(handle);
 
     // 設定変更 (stopped 状態)
-    EXPECT_EQ(0, trace_rename(handle, "reconfigured")); // [確認_正常系] - 停止中の rename が成功すること。
-    EXPECT_EQ(0, trace_set_os(handle, TRACE_LV_VERBOSE)); // [確認_正常系] - 停止中の set_os が成功すること。
+    EXPECT_EQ(0, trace_modify_name(handle, "reconfigured", 0)); // [確認_正常系] - 停止中の modify_name が成功すること。
+    EXPECT_EQ(0, trace_modify_ostrc(handle, TRACE_LV_VERBOSE)); // [確認_正常系] - 停止中の modify_ostrc が成功すること。
 
     // Act - 2回目: start → write → stop
     trace_start(handle);
@@ -918,7 +976,7 @@ TEST_F(trace_providerTest, test_stop_then_reconfig_then_start)
 TEST_F(trace_providerTest, test_double_start_is_noop)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
 
     // Act
@@ -940,7 +998,7 @@ TEST_F(trace_providerTest, test_double_start_is_noop)
 TEST_F(trace_providerTest, test_double_stop_is_noop)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle);
     trace_stop(handle); // [手順] - 1 回目の stop を呼ぶ。
@@ -959,7 +1017,7 @@ TEST_F(trace_providerTest, test_double_stop_is_noop)
 TEST_F(trace_providerTest, test_dispose_while_started)
 {
     // Arrange
-    trace_provider_t *handle = trace_init("trace_test");
+    trace_provider_t *handle = trace_init();
     ASSERT_NE((trace_provider_t *)NULL, handle);
     trace_start(handle); // [手順] - プロバイダを開始する。
 

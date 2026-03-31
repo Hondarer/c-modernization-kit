@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <TraceLoggingProvider.h>
+#pragma comment(lib, "Advapi32.lib")
 #include <trace-etw-util.h>
 #include <stdlib.h>
 

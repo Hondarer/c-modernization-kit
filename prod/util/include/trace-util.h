@@ -26,7 +26,8 @@
  *  @code
  *  #include <trace-util.h>
  *
- *  trace_provider_t *logger = trace_init("myapp");
+ *  trace_provider_t *logger = trace_init();
+ *  trace_modify_name(logger, "myapp", 0);
  *  trace_start(logger);
  *  trace_write(logger, TRACE_LV_INFO, "application started");
  *  trace_stop(logger);
@@ -35,14 +36,15 @@
  *
  *  @par            使用例 (設定変更)
  *  @code
- *  trace_provider_t *logger = trace_init("myapp");
- *  trace_set_os(logger, TRACE_LV_VERBOSE);
+ *  trace_provider_t *logger = trace_init();
+ *  trace_modify_name(logger, "myapp", 0);
+ *  trace_modify_ostrc(logger, TRACE_LV_VERBOSE);
  *  trace_start(logger);
  *  trace_write(logger, TRACE_LV_INFO, "running as myapp");
  *  trace_stop(logger);
- *  trace_rename(logger, "myapp-worker");
+ *  trace_modify_name(logger, "myapp", 1); // "myapp-1" として再開
  *  trace_start(logger);
- *  trace_write(logger, TRACE_LV_INFO, "running as worker");
+ *  trace_write(logger, TRACE_LV_INFO, "running as myapp-1");
  *  trace_stop(logger);
  *  trace_dispose(logger);
  *  @endcode
@@ -50,6 +52,8 @@
 
 /* size_t (trace_hex_write / trace_hex_writef で使用) */
 #include <stddef.h>
+/* int64_t (trace_modify_name で使用) */
+#include <inttypes.h>
 
 /* 内部で使用するプラットフォーム固有ヘッダー */
 #ifdef _WIN32
@@ -172,13 +176,13 @@
  *  @details        OS 非依存のトレースレベルを定義します。重大度は上から下へ低下します。\n
  *                  内部で ETW Level (1-5) および syslog severity へマッピングされます。
  *
- *  | trace_level    | ETW Level        | syslog severity |
- *  | -------------- | ---------------- | --------------- |
- *  | TRACE_CRITICAL | Critical (1)     | LOG_CRIT (2)    |
- *  | TRACE_ERROR    | Error (2)        | LOG_ERR (3)     |
- *  | TRACE_WARNING  | Warning (3)      | LOG_WARNING (4) |
- *  | TRACE_INFO     | Informational (4)| LOG_INFO (6)    |
- *  | TRACE_VERBOSE  | Verbose (5)      | LOG_DEBUG (7)   |
+ *  | trace_level       | ETW Level        | syslog severity |
+ *  | ----------------- | ---------------- | --------------- |
+ *  | TRACE_LV_CRITICAL | Critical (1)     | LOG_CRIT (2)    |
+ *  | TRACE_LV_ERROR    | Error (2)        | LOG_ERR (3)     |
+ *  | TRACE_LV_WARNING  | Warning (3)      | LOG_WARNING (4) |
+ *  | TRACE_LV_INFO     | Informational (4)| LOG_INFO (6)    |
+ *  | TRACE_LV_VERBOSE  | Verbose (5)      | LOG_DEBUG (7)   |
  */
 enum trace_level
 {
@@ -189,6 +193,22 @@ enum trace_level
     TRACE_LV_VERBOSE  = 4, /**< 詳細 (デバッグ)。 */
     TRACE_LV_NONE     = 5  /**< 出力しない。 */
 };
+
+/* ===== デフォルトトレースレベル ===== */
+
+/**
+ *  @def            TRACE_DEFAULT_OS_LEVEL
+ *  @brief          trace_init() が設定する OS トレース (ETW / syslog) のデフォルトレベル。
+ *  @details        ユーザーが trace_modify_ostrc() で変更するまで有効な初期値です。
+ */
+#define TRACE_DEFAULT_OS_LEVEL   TRACE_LV_INFO
+
+/**
+ *  @def            TRACE_DEFAULT_FILE_LEVEL
+ *  @brief          trace_init() が設定するファイルトレースのデフォルトレベル。
+ *  @details        ユーザーが trace_modify_filetrc() で変更するまで有効な初期値です。
+ */
+#define TRACE_DEFAULT_FILE_LEVEL TRACE_LV_ERROR
 
 /* ===== 不透明ハンドル型 ===== */
 
@@ -204,29 +224,26 @@ extern "C"
 
     /**
      *  @brief          トレースプロバイダを初期化する。
-     *  @details        Linux 環境では syslog を @p name で初期化します
-     *                  (facility は LOG_USER)。\n
+     *  @details        自プロセスの実行ファイル名をデフォルト識別名として初期化します
+     *                  (例: Linux @c /usr/bin/myapp → @c "myapp",
+     *                  Windows @c C:\\bin\\myapp.exe → @c "myapp.exe")。\n
+     *                  プロセス名の取得に失敗した場合は @c "unknown" を使用します。\n
+     *                  Linux 環境では syslog を LOG_USER facility で初期化します。\n
      *                  Windows 環境ではライブラリ内蔵の ETW デフォルトプロバイダ
-     *                  (@c ETW_DEFAULT_PROVIDER_NAME) を使用し、@p name を
-     *                  ETW イベントの "Service" フィールドに記録します。
+     *                  (@c TRACE_DEFAULT_PROVIDER_NAME) を使用します。\n
+     *                  識別名を変更するには trace_modify_name を呼び出してください。
      *
-     *  @param[in]      name  アプリケーション名。\n
-     *                        Linux では syslog の ident に使用します。\n
-     *                        Windows では ETW イベントの "Service" フィールドに記録します。\n
-     *                        NULL の場合は自プロセスの実行ファイル名を使用します
-     *                        (例: Linux @c /usr/bin/myapp → @c "myapp",
-     *                        Windows @c C:\\bin\\myapp.exe → @c "myapp.exe")。\n
-     *                        プロセス名の取得に失敗した場合は @c "unknown" を使用します。
      *  @return         成功時: ハンドル (stopped 状態)。失敗時: NULL。
      *
      *  @post           戻り値のハンドルは stopped 状態です。
      *                  出力関数を使用するには trace_start を呼び出してください。\n
-     *                  stopped 状態では設定関数 (trace_rename, trace_set_os,
-     *                  trace_set_file) をスレッド安全に使用できます。
+     *                  stopped 状態では設定関数 (trace_modify_name, trace_modify_ostrc,
+     *                  trace_modify_filetrc) をスレッド安全に使用できます。
      *
      *  @par            使用例
      *  @code
-     *  trace_provider_t *logger = trace_init("myapp");
+     *  trace_provider_t *logger = trace_init();
+     *  trace_modify_name(logger, "myapp", 0);
      *  trace_start(logger);
      *  trace_write(logger, TRACE_LV_INFO, "application started");
      *  trace_stop(logger);
@@ -234,13 +251,13 @@ extern "C"
      *  @endcode
      */
     TRACE_UTIL_EXPORT trace_provider_t *TRACE_UTIL_API
-        trace_init(const char *name);
+        trace_init(void);
 
     /**
      *  @brief          トレースプロバイダを開始する。
      *  @details        ハンドルを実行中 (started) 状態に遷移させます。\n
      *                  started 状態では出力関数 (trace_write 等) が有効になり、
-     *                  設定関数 (trace_rename, trace_set_os, trace_set_file) は
+     *                  設定関数 (trace_modify_name, trace_modify_ostrc, trace_modify_filetrc) は
      *                  使用できなくなります (-1 を返します)。\n
      *                  既に started 状態の場合は何もせず 0 を返します (冪等)。
      *
@@ -257,7 +274,7 @@ extern "C"
      *  @brief          トレースプロバイダを停止する。
      *  @details        ハンドルを停止中 (stopped) 状態に遷移させます。\n
      *                  stopped 状態では出力関数 (trace_write 等) は -1 を返し、
-     *                  設定関数 (trace_rename, trace_set_os, trace_set_file) が
+     *                  設定関数 (trace_modify_name, trace_modify_ostrc, trace_modify_filetrc) が
      *                  スレッド安全に使用できるようになります。\n
      *                  既に stopped 状態の場合は何もせず 0 を返します (冪等)。
      *
@@ -406,29 +423,37 @@ extern "C"
                        const void *data, size_t size, const char *format, ...);
 
     /**
-     *  @brief          トレースプロバイダの名前を変更する。
-     *  @details        初期化済みのハンドルを維持したまま、アプリケーション名を変更します。\n
+     *  @brief          トレースプロバイダの識別名と識別番号を設定する。
+     *  @details        初期化済みのハンドルを維持したまま、識別名と識別番号を変更します。\n
      *                  dispose して再 init する場合と異なり、以下の利点があります。
      *                  - ハンドルが無効化されないため、呼び出し側でポインタを差し替える必要がない
      *                  - Windows では ETW プロバイダの登録・解除を行わない
      *                  - トレースが書き込めない空白期間が発生しない
      *
+     *                  内部識別名は @p name と @p identifier から以下のルールで生成します。\n
+     *                  - @p identifier @c == @c 0 : 識別名 = @p name そのもの\n
+     *                  - @p identifier @c > @c 0 : 識別名 = @c "<name>-<identifier>" (ハイフン区切り)\n
+     *                  - @p identifier @c < @c 0 : -1 を返す (無効値)\n
      *                  Linux 環境では内部で closelog / openlog が呼び出されます。\n
      *                  Windows 環境では ETW イベントの "Service" フィールド値のみが変更されます。
      *
-     *  @param[in]      handle     trace_init の戻り値。
-     *                             NULL の場合は何もせず -1 を返します。
-     *  @param[in]      new_name   新しいアプリケーション名。\n
-     *                             NULL の場合は自プロセスの実行ファイル名を使用します
-     *                             (trace_init に NULL を渡した場合と同じ動作)。
-     *  @return         成功 0 / 失敗 (メモリ確保失敗等) -1。
+     *  @param[in]      handle      trace_init の戻り値。
+     *                              NULL の場合は何もせず -1 を返します。
+     *  @param[in]      name        ベース識別名。\n
+     *                              NULL の場合は自プロセスの実行ファイル名を使用します
+     *                              (trace_init と同じ動作)。
+     *  @param[in]      identifier  アプリケーション管理識別番号 (0 以上)。\n
+     *                              0 の場合は @p name をそのまま使用します。\n
+     *                              正の値の場合は @c "<name>-<identifier>" を識別名とします。\n
+     *                              負の値の場合は -1 を返します。
+     *  @return         成功 0 / 失敗 (無効な引数・メモリ確保失敗等) -1。
      *
      *  @par            使用例
      *  @code
-     *  trace_provider_t *logger = trace_init("myapp");
-     *  // ... 後から名前を変更
-     *  trace_rename(logger, "myapp-worker");
-     *  trace_write(logger, TRACE_LV_INFO, "now running as worker");
+     *  trace_provider_t *logger = trace_init();
+     *  trace_modify_name(logger, "worker", 2); // 識別名 = "worker-2"
+     *  trace_start(logger);
+     *  trace_write(logger, TRACE_LV_INFO, "running as worker-2");
      *  trace_dispose(logger);
      *  @endcode
      *
@@ -437,14 +462,14 @@ extern "C"
      *                  stopped 状態ではスレッド安全です (内部で排他制御)。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
-        trace_rename(trace_provider_t *handle, const char *new_name);
+        trace_modify_name(trace_provider_t *handle, const char *name, int64_t identifier);
 
     /**
-     *  @brief          OS トレースのスレッショルドレベルを変更する。
+     *  @brief          OS トレースのスレッショルドレベルを設定する。
      *  @details        ETW (Windows) または syslog (Linux) に出力するメッセージの
      *                  最低重要度レベルを変更します。\n
-     *                  デフォルト値は TRACE_LV_INFO です。\n
-     *                  TRACE_LV_NONE を指定すると OS トレース出力を完全に抑止します。
+     *                  デフォルト値は @c TRACE_DEFAULT_OS_LEVEL (TRACE_LV_INFO) です。\n
+     *                  @c TRACE_LV_NONE を指定すると OS トレース出力を完全に抑止します。
      *
      *  @param[in]      handle   trace_init の戻り値。NULL の場合は -1 を返します。
      *  @param[in]      level    新しいスレッショルドレベル (enum trace_level)。
@@ -455,16 +480,17 @@ extern "C"
      *                  stopped 状態ではスレッド安全です (内部で排他制御)。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
-        trace_set_os(trace_provider_t *handle, enum trace_level level);
+        trace_modify_ostrc(trace_provider_t *handle, enum trace_level level);
 
     /**
      *  @brief          ファイルトレースの出力先と設定を変更する。
      *  @details        ファイルトレースを有効化または再構成します。\n
-     *                  path に NULL を指定するとファイルトレースを無効化します
+     *                  @p path に NULL を指定するとファイルトレースを無効化します
      *                  (既存のファイルプロバイダを解放して閉じます)。\n
      *                  既にファイルトレースが有効な場合は既存のプロバイダを解放してから
      *                  新しいプロバイダを初期化します。\n
-     *                  デフォルトのファイルトレースレベルは TRACE_LV_ERROR です。\n
+     *                  デフォルトのファイルトレースレベルは @c TRACE_DEFAULT_FILE_LEVEL
+     *                  (TRACE_LV_ERROR) です。\n
      *                  ファイルトレースは trace_init の直後は無効 (パス未指定) です。
      *
      *  @param[in]      handle       trace_init の戻り値。NULL の場合は -1 を返します。
@@ -481,8 +507,8 @@ extern "C"
      *                  stopped 状態ではスレッド安全です (内部で排他制御)。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
-        trace_set_file(trace_provider_t *handle, const char *path,
-                       enum trace_level level, size_t max_bytes, int generations);
+        trace_modify_filetrc(trace_provider_t *handle, const char *path,
+                             enum trace_level level, size_t max_bytes, int generations);
 
     /**
      *  @brief          トレースプロバイダを終了し、リソースを解放する。
