@@ -16,11 +16,13 @@ class porterSendRecvTest : public Test
 #ifndef _WIN32
         recv_path = ws + "/prod/porter/bin/recv";
         send_path = ws + "/prod/porter/bin/send";
-        lib_path = ws + "/prod/porter/lib";
+        lib_path = ws + "/prod/override-sample/lib"
+                 + ":" + ws + "/prod/util/lib";
 #else
         recv_path = ws + "\\prod\\porter\\bin\\recv.exe";
         send_path = ws + "\\prod\\porter\\bin\\send.exe";
-        lib_path = ws + "\\prod\\porter\\lib";
+        lib_path = ws + "\\prod\\override-sample\\lib"
+                 + ";" + ws + "\\prod\\util\\lib";
 #endif
         resetTraceLevel();
         setTraceLevel("processController", TRACE_DETAIL);
