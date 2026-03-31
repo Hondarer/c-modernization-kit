@@ -1,9 +1,9 @@
 SUBDIRS = \
+	util \
+	funcman \
 	calc \
 	calc.net \
 	subfolder-sample \
-	util \
-	funcman \
 	override-sample \
 	porter
 

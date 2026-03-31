@@ -14,6 +14,7 @@
  */
 
 #include <libbase.h>
+#include <console-util.h>
 #include <stdio.h>
 #ifdef _WIN32
     #include <windows.h>
@@ -27,6 +28,8 @@
  */
 int main(void)
 {
+    console_init();
+
     int result;
     int rtc;
     char configpath[4096];
@@ -72,5 +75,6 @@ int main(void)
         printf("result: %d\n", result);
     }
 
+    console_dispose();
     return 0;
 }

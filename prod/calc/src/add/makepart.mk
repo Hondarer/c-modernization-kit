@@ -1,3 +1,3 @@
 # ライブラリの指定
-# libcalcbase.a のみ
-LIBS += calcbase
+# libcalcbase.a と util のみ
+LIBS += calcbase util

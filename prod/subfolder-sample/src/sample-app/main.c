@@ -4,6 +4,7 @@
  */
 
 #include <stdio.h>
+#include <console-util.h>
 
 #include "sample-app.h"
 
@@ -13,6 +14,8 @@
  */
 int main(void)
 {
+    console_init();
+
     int a = 10;
     int b = 20;
 
@@ -21,5 +24,6 @@ int main(void)
     printf("helper_b(%d) = %d\n", b, helper_b(b));
     printf("helper_a(%d) + helper_b(%d) = %d\n", a, b, helper_a(a) + helper_b(b));
 
+    console_dispose();
     return 0;
 }

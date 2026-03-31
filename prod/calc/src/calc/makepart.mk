@@ -1,3 +1,3 @@
 # ライブラリの指定
-# libcalc.so のみ
-LIBS += calc
+# libcalc.so と util のみ
+LIBS += calc util

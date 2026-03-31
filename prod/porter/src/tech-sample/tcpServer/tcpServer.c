@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <console-util.h>
+
 #include "tcpServer.h"
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -97,10 +99,12 @@ static void parse_args(int argc, char *argv[],
  *******************************************************************************
  */
 int main(int argc, char *argv[]) {
+    console_init();
     platform_init(handle_client_session);
 
     if (dispatch_internal_args(argc, argv)) {
         platform_cleanup();
+        console_dispose();
         return 0;
     }
 
@@ -118,5 +122,6 @@ int main(int argc, char *argv[]) {
     }
 
     platform_cleanup();
+    console_dispose();
     return 0;
 }
