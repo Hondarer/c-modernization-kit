@@ -1,5 +1,7 @@
 #include <testfw.h>
 #include <trace-util.h>
+#include <trace-file-util.h>
+#include <filesystem>
 
 /* ===== テストクラス ===== */
 
@@ -30,9 +32,10 @@ TEST_F(trace_providerTest, test_write_returns_zero)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // Act
-    int result = trace_write(handle, TRACE_LV_INFO, "test message"); // [手順] - INFO レベルでメッセージを書き込む。
+    int result = trace_write(handle, TRACE_LV_INFO, "test message");// [手順] - INFO レベルでメッセージを書き込む。
 
     // Assert
     EXPECT_EQ(0, result); // [確認_正常系] - 戻り値が 0 であること。
@@ -47,9 +50,10 @@ TEST_F(trace_providerTest, test_write_all_levels)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // Act & Assert
-    EXPECT_EQ(0, trace_write(handle, TRACE_LV_CRITICAL, "critical")); // [確認_正常系] - CRITICAL レベルで書き込めること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_CRITICAL, "critical"));// [確認_正常系] - CRITICAL レベルで書き込めること。
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_ERROR,    "error"));    // [確認_正常系] - ERROR レベルで書き込めること。
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_WARNING,  "warning"));  // [確認_正常系] - WARNING レベルで書き込めること。
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO,     "info"));     // [確認_正常系] - INFO レベルで書き込めること。
@@ -116,8 +120,9 @@ TEST_F(trace_providerTest, test_write_max_length_message)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
-    // 1023 バイトの 'A' + null 終端 = ちょうど TRACE_MESSAGE_MAX_BYTES
+    // 1023 バイトの 'A'+ null 終端 = ちょうど TRACE_MESSAGE_MAX_BYTES
     char msg[TRACE_MESSAGE_MAX_BYTES];
     memset(msg, 'A', TRACE_MESSAGE_MAX_BYTES - 1);
     msg[TRACE_MESSAGE_MAX_BYTES - 1] = '\0';
@@ -138,6 +143,7 @@ TEST_F(trace_providerTest, test_write_oversized_message_truncated)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // 2048 バイトのメッセージ (上限を大幅に超過)
     char msg[2048 + 1];
@@ -160,15 +166,16 @@ TEST_F(trace_providerTest, test_write_truncate_utf8_boundary)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
-    // 1021 バイトの 'A' + 3 バイト UTF-8 文字 (例: 'あ' = 0xE3 0x81 0x82) = 1024 バイト
+    // 1021 バイトの 'A'+ 3 バイト UTF-8 文字 (例: 'あ' = 0xE3 0x81 0x82) = 1024 バイト
     // null 終端を含めると 1025 バイトとなり、切り詰め対象
     // 期待: UTF-8 文字の途中で切断せず、1021 バイト地点で切り詰め
     char msg[1025];
     memset(msg, 'A', 1021);
-    msg[1021] = (char)0xE3;  // 'あ' の 1 バイト目
-    msg[1022] = (char)0x81;  // 'あ' の 2 バイト目
-    msg[1023] = (char)0x82;  // 'あ' の 3 バイト目
+    /* UTF-8 'あ' (U+3042) = 0xE3 0x81 0x82 */
+    unsigned char utf8[] = { 0xE3, 0x81, 0x82 };
+    memcpy(&msg[1021], utf8, 3);
     msg[1024] = '\0';
 
     // Act
@@ -189,9 +196,10 @@ TEST_F(trace_providerTest, test_writef_basic)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // Act
-    int result = trace_writef(handle, TRACE_LV_INFO, "user=%s count=%d", "alice", 42); // [手順] - printf 形式でメッセージを書き込む。
+    int result = trace_writef(handle, TRACE_LV_INFO, "user=%s count=%d", "alice", 42);// [手順] - printf 形式でメッセージを書き込む。
 
     // Assert
     EXPECT_EQ(0, result); // [確認_正常系] - 戻り値が 0 であること。
@@ -233,6 +241,7 @@ TEST_F(trace_providerTest, test_writef_truncation)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // 2048 バイトの文字列を %s でフォーマット
     char longstr[2048 + 1];
@@ -257,6 +266,7 @@ TEST_F(trace_providerTest, test_hex_write_basic)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     unsigned char data[] = {0x48, 0x65, 0x6C, 0x6C, 0x6F}; // "Hello"
 
@@ -276,6 +286,7 @@ TEST_F(trace_providerTest, test_hex_write_no_label)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     unsigned char data[] = {0xFF, 0x00, 0xAB};
 
@@ -342,6 +353,7 @@ TEST_F(trace_providerTest, test_hex_write_oversized_truncated)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // 512 バイトのデータ (TRACE_HEX_MAX_DATA_BYTES=341 を超過)
     unsigned char data[512];
@@ -363,6 +375,7 @@ TEST_F(trace_providerTest, test_hex_write_with_label_truncated)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     // 512 バイトのデータ + ラベル
     unsigned char data[512];
@@ -386,6 +399,7 @@ TEST_F(trace_providerTest, test_hex_writef_basic)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     unsigned char data[] = {0x48, 0x65, 0x6C, 0x6C, 0x6F};
 
@@ -405,6 +419,7 @@ TEST_F(trace_providerTest, test_hex_writef_null_format)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     unsigned char data[] = {0x01, 0x02};
 
@@ -435,6 +450,7 @@ TEST_F(trace_providerTest, test_hex_writef_truncated)
     // Arrange
     trace_provider_t *handle = trace_init("trace_test");
     ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
 
     unsigned char data[512];
     memset(data, 0xDD, sizeof(data));
@@ -465,7 +481,8 @@ TEST_F(trace_providerTest, test_rename_basic)
     EXPECT_EQ(0, rename_result); // [確認_正常系] - 戻り値が 0 であること。
 
     // 名前変更後も書き込みが正常に動作すること
-    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename"); // [手順] - 名前変更後にメッセージを書き込む。
+    trace_start(handle);
+    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename");// [手順] - 名前変更後にメッセージを書き込む。
     EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
 
     // Cleanup
@@ -496,7 +513,8 @@ TEST_F(trace_providerTest, test_rename_null_name)
     EXPECT_EQ(0, rename_result); // [確認_正常系] - プロセス名で更新され 0 が返されること。
 
     // 更新後も書き込みが正常に動作すること
-    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename to process name"); // [手順] - 更新後にメッセージを書き込む。
+    trace_start(handle);
+    int write_result = trace_write(handle, TRACE_LV_INFO, "after rename to process name");// [手順] - 更新後にメッセージを書き込む。
     EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
 
     // Cleanup
@@ -512,9 +530,12 @@ TEST_F(trace_providerTest, test_rename_multiple_times)
 
     // Act & Assert
     EXPECT_EQ(0, trace_rename(handle, "name_v2")); // [確認_正常系] - 1 回目の名前変更が成功すること。
+    trace_start(handle);
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "v2 message")); // [確認_正常系] - 1 回目の変更後に書き込めること。
+    trace_stop(handle);
 
     EXPECT_EQ(0, trace_rename(handle, "name_v3")); // [確認_正常系] - 2 回目の名前変更が成功すること。
+    trace_start(handle);
     EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "v3 message")); // [確認_正常系] - 2 回目の変更後に書き込めること。
 
     // Cleanup
@@ -534,4 +555,434 @@ TEST_F(trace_providerTest, test_rename_then_dispose)
 
     // Assert - dispose がクラッシュしないことを確認
     trace_dispose(handle); // [手順] - 名前変更後に dispose を呼ぶ。安全に終了すること。
+}
+
+/* ===== TRACE_LV_NONE テスト ===== */
+
+// TRACE_LV_NONE を OS レベルに設定すると OS 出力が抑止されることの確認
+TEST_F(trace_providerTest, test_os_level_none_suppresses_output)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int set_result = trace_set_os(handle, TRACE_LV_NONE); // [手順] - OS レベルを NONE に設定する。
+    trace_start(handle);
+    int write_result = trace_write(handle, TRACE_LV_CRITICAL, "should not output");// [手順] - CRITICAL でメッセージを書き込む。
+
+    // Assert
+    EXPECT_EQ(0, set_result); // [確認_正常系] - 設定変更が成功すること。
+    EXPECT_EQ(0, write_result); // [確認_正常系] - 出力スキップもエラーではないこと。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+/* ===== OS トレースレベルフィルタリングテスト ===== */
+
+// OS レベルを ERROR に設定すると WARNING 以下が抑止されることの確認
+TEST_F(trace_providerTest, test_os_level_filters_below_threshold)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    trace_set_os(handle, TRACE_LV_ERROR); // [手順] - OS レベルを ERROR に設定する。
+    trace_start(handle);
+
+    // Assert
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_CRITICAL, "critical passes")); // [確認_正常系] - CRITICAL は出力されること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_ERROR,    "error passes"));    // [確認_正常系] - ERROR は出力されること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_WARNING,  "warning filtered")); // [確認_正常系] - WARNING はフィルタリングされること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO,     "info filtered"));    // [確認_正常系] - INFO はフィルタリングされること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_VERBOSE,  "verbose filtered")); // [確認_正常系] - VERBOSE はフィルタリングされること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// NULL ハンドルで trace_set_os を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_set_os_level_null_handle)
+{
+    // Act
+    int result = trace_set_os(NULL, TRACE_LV_ERROR); // [手順] - handle に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
+}
+
+// 初期化直後のデフォルト OS レベル (INFO) でフィルタリングが機能することの確認
+TEST_F(trace_providerTest, test_default_os_level_is_info)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
+
+    // Act & Assert
+    // デフォルト OS レベルは INFO なので、VERBOSE は OS に出力されない (戻り値は 0: エラーではなくフィルタリング)
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO,    "info passes"));     // [確認_正常系] - INFO はデフォルトで出力されること。
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_VERBOSE, "verbose filtered")); // [確認_正常系] - VERBOSE はデフォルトでフィルタリングされること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+/* ===== ファイルトレーステスト ===== */
+
+// ファイルトレースを有効化し、メッセージがファイルに書き込まれることの確認
+TEST_F(trace_providerTest, test_set_file_enables_file_trace)
+{
+    // Arrange
+    string ws = findWorkspaceRoot();
+    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_test.log";
+    remove(path.c_str());
+
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int set_result = trace_set_file(handle, path.c_str(), TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
+    EXPECT_EQ(0, set_result); // [確認_正常系] - 設定が成功すること。
+
+    trace_start(handle);
+    trace_write(handle, TRACE_LV_ERROR, "file error message");// [手順] - ERROR メッセージを書き込む。
+    trace_write(handle, TRACE_LV_INFO,  "file info message");  // [手順] - INFO メッセージを書き込む。
+
+    // Cleanup (dispose でファイルが閉じられる)
+    trace_dispose(handle);
+
+    // Assert
+    EXPECT_FILE_EXISTS(path);                          // [確認_正常系] - ファイルが存在すること。
+    EXPECT_FILE_CONTAINS(path, "file error message");  // [確認_正常系] - ERROR メッセージが含まれること。
+    EXPECT_FILE_CONTAINS(path, "file info message");   // [確認_正常系] - INFO メッセージが含まれること。
+
+    // Remove test file
+    remove(path.c_str());
+}
+
+// ファイルレベル以下のメッセージのみファイルに書き込まれることの確認
+TEST_F(trace_providerTest, test_file_level_filters_messages)
+{
+    // Arrange
+    string ws = findWorkspaceRoot();
+    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_filter.log";
+    remove(path.c_str());
+
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act - ファイルレベルを ERROR に設定
+    trace_set_file(handle, path.c_str(), TRACE_LV_ERROR, 0, 0); // [手順] - ファイルレベルを ERROR に設定する。
+    trace_start(handle);
+    trace_write(handle, TRACE_LV_ERROR,   "should be in file");// [手順] - ERROR メッセージを書き込む。
+    trace_write(handle, TRACE_LV_WARNING, "should not be in file");  // [手順] - WARNING メッセージを書き込む。
+
+    trace_dispose(handle);
+
+    // Assert
+    EXPECT_FILE_EXISTS(path);                              // [確認_正常系] - ファイルが存在すること。
+    EXPECT_FILE_CONTAINS(path, "should be in file");       // [確認_正常系] - ERROR メッセージが含まれること。
+
+    remove(path.c_str());
+}
+
+// path に NULL を渡してファイルトレースを無効化できることの確認
+TEST_F(trace_providerTest, test_set_file_null_path_disables)
+{
+    // Arrange
+    string ws = findWorkspaceRoot();
+    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_disable.log";
+    remove(path.c_str());
+
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act - ファイルトレースを有効化後、無効化
+    trace_set_file(handle, path.c_str(), TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
+    trace_start(handle);
+    trace_write(handle, TRACE_LV_ERROR, "before disable");       // [手順] - 無効化前にメッセージを書き込む。
+    trace_stop(handle);
+
+    trace_set_file(handle, NULL, TRACE_LV_INFO, 0, 0); // [手順] - ファイルトレースを無効化する。
+    trace_start(handle);
+    trace_write(handle, TRACE_LV_ERROR, "after disable");// [手順] - 無効化後にメッセージを書き込む。
+
+    trace_dispose(handle);
+
+    // Assert
+    EXPECT_FILE_EXISTS(path);                          // [確認_正常系] - ファイルが存在すること。
+    EXPECT_FILE_CONTAINS(path, "before disable");      // [確認_正常系] - 無効化前のメッセージが含まれること。
+
+    remove(path.c_str());
+}
+
+// NULL ハンドルで trace_set_file を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_set_file_null_handle)
+{
+    // Act
+    int result = trace_set_file(NULL, "test.log", TRACE_LV_ERROR, 0, 0); // [手順] - handle に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
+}
+
+// ファイルパスが指定されていない場合、レベルが合致してもファイル出力されないことの確認
+TEST_F(trace_providerTest, test_no_file_output_without_path)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
+
+    // Act & Assert
+    // デフォルトではファイルトレース無効(file_handle=NULL)
+    // レベルが合致 (CRITICAL ≤ ERROR) してもファイルには出力されない
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_CRITICAL, "no file output")); // [確認_正常系] - ファイル未指定でもエラーにならないこと。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+/* ===== OS + ファイル並列出力テスト ===== */
+
+// OS トレースとファイルトレースが同時に動作することの確認
+TEST_F(trace_providerTest, test_dual_output_os_and_file)
+{
+    // Arrange
+    string ws = findWorkspaceRoot();
+    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_dual.log";
+    remove(path.c_str());
+
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    trace_set_os(handle, TRACE_LV_WARNING);                       // [手順] - OS レベルを WARNING に設定する。
+    trace_set_file(handle, path.c_str(), TRACE_LV_VERBOSE, 0, 0);      // [手順] - ファイルレベルを VERBOSE に設定する。
+    trace_start(handle);
+
+    trace_write(handle, TRACE_LV_ERROR,   "error msg");// [手順] - ERROR を書き込む (OS:✓ File:✓)。
+    trace_write(handle, TRACE_LV_WARNING, "warning msg"); // [手順] - WARNING を書き込む (OS:✓ File:✓)。
+    trace_write(handle, TRACE_LV_INFO,    "info msg");    // [手順] - INFO を書き込む (OS:✗ File:✓)。
+    trace_write(handle, TRACE_LV_VERBOSE, "verbose msg"); // [手順] - VERBOSE を書き込む (OS:✗ File:✓)。
+
+    trace_dispose(handle);
+
+    // Assert
+    EXPECT_FILE_CONTAINS(path, "error msg");   // [確認_正常系] - ERROR がファイルに含まれること。
+    EXPECT_FILE_CONTAINS(path, "warning msg"); // [確認_正常系] - WARNING がファイルに含まれること。
+    EXPECT_FILE_CONTAINS(path, "info msg");    // [確認_正常系] - INFO がファイルに含まれること。
+    EXPECT_FILE_CONTAINS(path, "verbose msg"); // [確認_正常系] - VERBOSE がファイルに含まれること。
+
+    remove(path.c_str());
+}
+
+/* ===== trace_start / trace_stop テスト ===== */
+
+// 基本的な start → write → stop → dispose のライフサイクルの確認
+TEST_F(trace_providerTest, test_start_and_stop_basic)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int start_result = trace_start(handle); // [手順] - プロバイダを開始する。
+    int write_result = trace_write(handle, TRACE_LV_INFO, "started message"); // [手順] - メッセージを書き込む。
+    int stop_result  = trace_stop(handle);  // [手順] - プロバイダを停止する。
+
+    // Assert
+    EXPECT_EQ(0, start_result); // [確認_正常系] - start が成功すること。
+    EXPECT_EQ(0, write_result); // [確認_正常系] - 書き込みが成功すること。
+    EXPECT_EQ(0, stop_result);  // [確認_正常系] - stop が成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// stopped 状態で出力関数を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_write_fails_when_stopped)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act (init 直後は stopped 状態)
+    int write_result  = trace_write(handle, TRACE_LV_INFO, "stopped message");   // [手順] - stopped 状態で書き込む。
+    int writef_result = trace_writef(handle, TRACE_LV_INFO, "stopped %s", "msg"); // [手順] - stopped 状態で writef を呼ぶ。
+
+    unsigned char data[] = {0x01, 0x02};
+    int hex_result  = trace_hex_write(handle, TRACE_LV_INFO, data, sizeof(data), "hex");  // [手順] - stopped 状態で hex_write を呼ぶ。
+    int hexf_result = trace_hex_writef(handle, TRACE_LV_INFO, data, sizeof(data), "hex %d", 1); // [手順] - stopped 状態で hex_writef を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(-1, write_result);  // [確認_異常系] - stopped 状態で trace_write が -1 を返すこと。
+    EXPECT_EQ(-1, writef_result); // [確認_異常系] - stopped 状態で trace_writef が -1 を返すこと。
+    EXPECT_EQ(-1, hex_result);    // [確認_異常系] - stopped 状態で trace_hex_write が -1 を返すこと。
+    EXPECT_EQ(-1, hexf_result);   // [確認_異常系] - stopped 状態で trace_hex_writef が -1 を返すこと。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// started 状態で trace_write を呼ぶと 0 が返されることの確認
+TEST_F(trace_providerTest, test_write_succeeds_when_started)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
+
+    // Act
+    int result = trace_write(handle, TRACE_LV_INFO, "started message"); // [手順] - started 状態で書き込む。
+
+    // Assert
+    EXPECT_EQ(0, result); // [確認_正常系] - started 状態で書き込みが成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// started 状態で設定関数を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_config_fails_when_started)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle); // [手順] - プロバイダを開始する。
+
+    // Act
+    int rename_result   = trace_rename(handle, "new_name");                           // [手順] - started 中に rename を呼ぶ。
+    int set_os_result   = trace_set_os(handle, TRACE_LV_VERBOSE);                     // [手順] - started 中に set_os を呼ぶ。
+    int set_file_result = trace_set_file(handle, "test.log", TRACE_LV_ERROR, 0, 0);   // [手順] - started 中に set_file を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(-1, rename_result);   // [確認_異常系] - started 中の rename が -1 を返すこと。
+    EXPECT_EQ(-1, set_os_result);   // [確認_異常系] - started 中の set_os が -1 を返すこと。
+    EXPECT_EQ(-1, set_file_result); // [確認_異常系] - started 中の set_file が -1 を返すこと。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// stopped 状態で設定関数を呼ぶと 0 が返されることの確認
+TEST_F(trace_providerTest, test_config_succeeds_when_stopped)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act (init 直後は stopped 状態)
+    int rename_result = trace_rename(handle, "new_name");                     // [手順] - stopped 中に rename を呼ぶ。
+    int set_os_result = trace_set_os(handle, TRACE_LV_VERBOSE);               // [手順] - stopped 中に set_os を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(0, rename_result); // [確認_正常系] - stopped 中の rename が 0 を返すこと。
+    EXPECT_EQ(0, set_os_result); // [確認_正常系] - stopped 中の set_os が 0 を返すこと。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// stop → 設定変更 → start → write の一連のライフサイクルの確認
+TEST_F(trace_providerTest, test_stop_then_reconfig_then_start)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act - 1回目: start → write → stop
+    trace_start(handle);
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "first run")); // [確認_正常系] - 1 回目の書き込みが成功すること。
+    trace_stop(handle);
+
+    // 設定変更 (stopped 状態)
+    EXPECT_EQ(0, trace_rename(handle, "reconfigured")); // [確認_正常系] - 停止中の rename が成功すること。
+    EXPECT_EQ(0, trace_set_os(handle, TRACE_LV_VERBOSE)); // [確認_正常系] - 停止中の set_os が成功すること。
+
+    // Act - 2回目: start → write → stop
+    trace_start(handle);
+    int result = trace_write(handle, TRACE_LV_INFO, "second run"); // [手順] - 再設定後にメッセージを書き込む。
+
+    // Assert
+    EXPECT_EQ(0, result); // [確認_正常系] - 再設定後の書き込みが成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// trace_start の二重呼び出しが冪等であることの確認
+TEST_F(trace_providerTest, test_double_start_is_noop)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+
+    // Act
+    int first_result  = trace_start(handle); // [手順] - 1 回目の start を呼ぶ。
+    int second_result = trace_start(handle); // [手順] - 2 回目の start を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(0, first_result);  // [確認_正常系] - 1 回目の start が 0 を返すこと。
+    EXPECT_EQ(0, second_result); // [確認_正常系] - 2 回目の start も 0 を返すこと (冪等)。
+
+    // 出力が正常に動作すること
+    EXPECT_EQ(0, trace_write(handle, TRACE_LV_INFO, "after double start")); // [確認_正常系] - 書き込みが成功すること。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// trace_stop の二重呼び出しが冪等であることの確認
+TEST_F(trace_providerTest, test_double_stop_is_noop)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle);
+    trace_stop(handle); // [手順] - 1 回目の stop を呼ぶ。
+
+    // Act
+    int result = trace_stop(handle); // [手順] - 2 回目の stop を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(0, result); // [確認_正常系] - 2 回目の stop も 0 を返すこと (冪等)。
+
+    // Cleanup
+    trace_dispose(handle);
+}
+
+// started 状態で trace_dispose を呼んでも正常に完了することの確認
+TEST_F(trace_providerTest, test_dispose_while_started)
+{
+    // Arrange
+    trace_provider_t *handle = trace_init("trace_test");
+    ASSERT_NE((trace_provider_t *)NULL, handle);
+    trace_start(handle); // [手順] - プロバイダを開始する。
+
+    // Act & Assert - started 中の dispose がクラッシュしないことを確認
+    trace_dispose(handle); // [手順] - started 中に dispose を呼ぶ。安全に終了すること。
+}
+
+// NULL ハンドルで trace_start を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_start_null_handle)
+{
+    // Act
+    int result = trace_start(NULL); // [手順] - handle に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
+}
+
+// NULL ハンドルで trace_stop を呼ぶと -1 が返されることの確認
+TEST_F(trace_providerTest, test_stop_null_handle)
+{
+    // Act
+    int result = trace_stop(NULL); // [手順] - handle に NULL を渡す。
+
+    // Assert
+    EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
 }

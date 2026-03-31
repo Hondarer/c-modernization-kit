@@ -265,8 +265,7 @@ static void rotate_file(trace_file_provider_t *p)
         if (gen == 1)
         {
             /* old_path に path をコピー */
-            strncpy(old_path, p->path, sizeof(old_path) - 1);
-            old_path[sizeof(old_path) - 1] = '\0';
+            snprintf(old_path, sizeof(old_path), "%s", p->path);
         }
         else
         {

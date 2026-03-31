@@ -99,4 +99,6 @@ int TRACE_SYSLOG_UTIL_API
     return 0;
 }
 
-#endif /* !_WIN32 */
+#else /* _WIN32 */
+    #pragma warning(disable : 4206)
+#endif /* _WIN32 */

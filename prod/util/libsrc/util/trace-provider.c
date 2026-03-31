@@ -1,4 +1,5 @@
 #include <trace-util.h>
+#include <trace-file-util.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -23,6 +24,8 @@ static volatile LONG s_trace_ref = 0;
 /** デフォルトプロバイダの共有 ETW ハンドル。 */
 static etw_provider_t *s_etw_handle = NULL;
 
+#else /* !_WIN32 */
+#include <pthread.h>
 #endif /* _WIN32 */
 
 /**
@@ -36,6 +39,30 @@ struct trace_provider
 #else /* !_WIN32 */
     /** syslog プロバイダハンドル (Linux)。 */
     syslog_provider_t *syslog_handle;
+#endif /* _WIN32 */
+
+    /** OS トレース (ETW/syslog) のスレッショルドレベル。デフォルト: TRACE_LV_INFO。 */
+    enum trace_level os_level;
+
+    /** ファイルトレースのスレッショルドレベル。デフォルト: TRACE_LV_ERROR。 */
+    enum trace_level file_level;
+
+    /** ファイルトレースプロバイダハンドル。NULL = ファイルトレース無効。 */
+    trace_file_provider_t *file_handle;
+
+    /** 実行状態フラグ (0=停止中, 1=実行中)。 */
+    volatile int running;
+
+#ifdef _WIN32
+    /** 設定変更のスレッド安全のためのクリティカルセクション。 */
+    CRITICAL_SECTION config_cs;
+    /** config_cs が初期化済みかどうかのフラグ。 */
+    int              config_cs_initialized;
+#else /* !_WIN32 */
+    /** 設定変更のスレッド安全のための mutex。 */
+    pthread_mutex_t  config_mutex;
+    /** config_mutex が初期化済みかどうかのフラグ。 */
+    int              config_mutex_initialized;
 #endif /* _WIN32 */
 };
 
@@ -133,6 +160,30 @@ static const char *get_process_basename(char *buf, size_t buf_size)
 }
 #endif /* _WIN32 */
 
+/**
+ *  @brief  設定ミューテックスを取得する。
+ */
+static void config_lock(trace_provider_t *handle)
+{
+#ifdef _WIN32
+    EnterCriticalSection(&handle->config_cs);
+#else /* !_WIN32 */
+    pthread_mutex_lock(&handle->config_mutex);
+#endif /* _WIN32 */
+}
+
+/**
+ *  @brief  設定ミューテックスを解放する。
+ */
+static void config_unlock(trace_provider_t *handle)
+{
+#ifdef _WIN32
+    LeaveCriticalSection(&handle->config_cs);
+#else /* !_WIN32 */
+    pthread_mutex_unlock(&handle->config_mutex);
+#endif /* _WIN32 */
+}
+
 trace_provider_t *TRACE_UTIL_API
     trace_init(const char *name)
 {
@@ -167,6 +218,13 @@ trace_provider_t *TRACE_UTIL_API
         }
 
         handle->service_name = svc;
+        handle->os_level     = TRACE_LV_INFO;
+        handle->file_level   = TRACE_LV_ERROR;
+        handle->file_handle  = NULL;
+        handle->running      = 0;
+
+        InitializeCriticalSection(&handle->config_cs);
+        handle->config_cs_initialized = 1;
 
         if (InterlockedIncrement(&s_trace_ref) == 1)
         {
@@ -174,6 +232,7 @@ trace_provider_t *TRACE_UTIL_API
             if (s_etw_handle == NULL)
             {
                 InterlockedDecrement(&s_trace_ref);
+                DeleteCriticalSection(&handle->config_cs);
                 free(handle->service_name);
                 free(handle);
                 return NULL;
@@ -198,10 +257,64 @@ trace_provider_t *TRACE_UTIL_API
         }
 
         handle->syslog_handle = sp;
+        handle->os_level      = TRACE_LV_INFO;
+        handle->file_level    = TRACE_LV_ERROR;
+        handle->file_handle   = NULL;
+        handle->running       = 0;
+
+        if (pthread_mutex_init(&handle->config_mutex, NULL) != 0)
+        {
+            syslog_provider_dispose(sp);
+            free(handle);
+            return NULL;
+        }
+        handle->config_mutex_initialized = 1;
     }
 #endif /* _WIN32 */
 
     return handle;
+}
+
+int TRACE_UTIL_API
+    trace_start(trace_provider_t *handle)
+{
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    config_lock(handle);
+
+    if (handle->running)
+    {
+        config_unlock(handle);
+        return 0;
+    }
+
+    handle->running = 1;
+    config_unlock(handle);
+    return 0;
+}
+
+int TRACE_UTIL_API
+    trace_stop(trace_provider_t *handle)
+{
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    config_lock(handle);
+
+    if (!handle->running)
+    {
+        config_unlock(handle);
+        return 0;
+    }
+
+    handle->running = 0;
+    config_unlock(handle);
+    return 0;
 }
 
 /** 切り詰め後の本文最大バイト数 (null 終端を除く)。 */
@@ -236,6 +349,45 @@ static int write_to_provider(trace_provider_t *handle, enum trace_level level, c
 #endif /* _WIN32 */
 }
 
+/**
+ *  @brief  メッセージレベルがスレッショルド以内かを判定する。
+ *  @return 出力すべき場合は 1、そうでなければ 0。
+ */
+static int should_output(enum trace_level msg_level, enum trace_level threshold)
+{
+    if (threshold == TRACE_LV_NONE)
+    {
+        return 0;
+    }
+    return (int)msg_level <= (int)threshold;
+}
+
+/**
+ *  @brief  OS プロバイダとファイルプロバイダの両方へメッセージを書き込む。
+ *  @details レベルフィルタリングを行い、各出力先の条件に合致する場合のみ書き込む。
+ *           両方とも出力不要の場合は何もしない。
+ *  @return  成功 0 / いずれかの書き込み失敗 -1。
+ */
+static int write_dual(trace_provider_t *handle, enum trace_level level, const char *msg)
+{
+    int os_result   = 0;
+    int file_result = 0;
+
+    /* OS トレース出力 */
+    if (should_output(level, handle->os_level))
+    {
+        os_result = write_to_provider(handle, level, msg);
+    }
+
+    /* ファイルトレース出力 */
+    if (handle->file_handle != NULL && should_output(level, handle->file_level))
+    {
+        file_result = trace_file_provider_write(handle->file_handle, (int)level, msg);
+    }
+
+    return (os_result != 0 || file_result != 0) ? -1 : 0;
+}
+
 int TRACE_UTIL_API
     trace_write(trace_provider_t *handle, enum trace_level level, const char *message)
 {
@@ -246,6 +398,11 @@ int TRACE_UTIL_API
     if (handle == NULL || message == NULL)
     {
         return 0;
+    }
+
+    if (!handle->running)
+    {
+        return -1;
     }
 
     msg = message;
@@ -259,7 +416,7 @@ int TRACE_UTIL_API
         msg = buf;
     }
 
-    return write_to_provider(handle, level, msg);
+    return write_dual(handle, level, msg);
 }
 
 int TRACE_UTIL_API
@@ -273,11 +430,16 @@ int TRACE_UTIL_API
         return 0;
     }
 
+    if (!handle->running)
+    {
+        return -1;
+    }
+
     va_start(args, format);
     vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
 
-    return write_to_provider(handle, level, buf);
+    return write_dual(handle, level, buf);
 }
 
 /** HEX 変換用テーブル。 */
@@ -318,7 +480,7 @@ static int hex_write_impl(trace_provider_t *handle, enum trace_level level,
             size_t copy_len = lbl_len < MAX_BODY ? lbl_len : MAX_BODY;
             memcpy(buf, label, copy_len);
             buf[copy_len] = '\0';
-            return write_to_provider(handle, level, buf);
+            return write_dual(handle, level, buf);
         }
         memcpy(buf, label, lbl_len);
         buf[lbl_len] = ':';
@@ -343,7 +505,7 @@ static int hex_write_impl(trace_provider_t *handle, enum trace_level level,
         {
             /* "..." すら入らない */
             buf[pos] = '\0';
-            return write_to_provider(handle, level, buf);
+            return write_dual(handle, level, buf);
         }
         max_data_bytes = (remaining - ELLIPSIS_LEN) / 3;
         if (max_data_bytes == 0)
@@ -352,7 +514,7 @@ static int hex_write_impl(trace_provider_t *handle, enum trace_level level,
             memcpy(buf + pos, "...", ELLIPSIS_LEN);
             pos += ELLIPSIS_LEN;
             buf[pos] = '\0';
-            return write_to_provider(handle, level, buf);
+            return write_dual(handle, level, buf);
         }
         size = max_data_bytes;
     }
@@ -378,13 +540,23 @@ static int hex_write_impl(trace_provider_t *handle, enum trace_level level,
     }
     buf[pos] = '\0';
 
-    return write_to_provider(handle, level, buf);
+    return write_dual(handle, level, buf);
 }
 
 int TRACE_UTIL_API
     trace_hex_write(trace_provider_t *handle, enum trace_level level,
                   const void *data, size_t size, const char *message)
 {
+    if (handle == NULL || data == NULL || size == 0)
+    {
+        return 0;
+    }
+
+    if (!handle->running)
+    {
+        return -1;
+    }
+
     return hex_write_impl(handle, level, data, size, message);
 }
 
@@ -397,6 +569,11 @@ int TRACE_UTIL_API
     if (handle == NULL || data == NULL || size == 0)
     {
         return 0;
+    }
+
+    if (!handle->running)
+    {
+        return -1;
     }
 
     if (format != NULL)
@@ -419,6 +596,16 @@ void TRACE_UTIL_API
         return;
     }
 
+    /* started 中の場合は内部で停止する */
+    handle->running = 0;
+
+    /* ファイルトレースプロバイダの解放 */
+    if (handle->file_handle != NULL)
+    {
+        trace_file_provider_dispose(handle->file_handle);
+        handle->file_handle = NULL;
+    }
+
 #ifdef _WIN32
     if (InterlockedDecrement(&s_trace_ref) == 0)
     {
@@ -426,8 +613,16 @@ void TRACE_UTIL_API
         s_etw_handle = NULL;
     }
     free(handle->service_name);
+    if (handle->config_cs_initialized)
+    {
+        DeleteCriticalSection(&handle->config_cs);
+    }
 #else /* !_WIN32 */
     syslog_provider_dispose(handle->syslog_handle);
+    if (handle->config_mutex_initialized)
+    {
+        pthread_mutex_destroy(&handle->config_mutex);
+    }
 #endif /* _WIN32 */
 
     free(handle);
@@ -441,6 +636,14 @@ int TRACE_UTIL_API
 
     if (handle == NULL)
     {
+        return -1;
+    }
+
+    config_lock(handle);
+
+    if (handle->running)
+    {
+        config_unlock(handle);
         return -1;
     }
 
@@ -460,6 +663,7 @@ int TRACE_UTIL_API
         svc = _strdup(effective_name);
         if (svc == NULL)
         {
+            config_unlock(handle);
             return -1;
         }
 
@@ -473,10 +677,76 @@ int TRACE_UTIL_API
         rc = syslog_provider_rename(handle->syslog_handle, effective_name);
         if (rc != 0)
         {
+            config_unlock(handle);
             return -1;
         }
     }
 #endif /* _WIN32 */
 
+    config_unlock(handle);
     return 0;
+}
+
+int TRACE_UTIL_API
+    trace_set_os(trace_provider_t *handle, enum trace_level level)
+{
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    config_lock(handle);
+
+    if (handle->running)
+    {
+        config_unlock(handle);
+        return -1;
+    }
+
+    handle->os_level = level;
+    config_unlock(handle);
+    return 0;
+}
+
+int TRACE_UTIL_API
+    trace_set_file(trace_provider_t *handle, const char *path,
+                   enum trace_level level, size_t max_bytes, int generations)
+{
+    int result = 0;
+
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    config_lock(handle);
+
+    if (handle->running)
+    {
+        config_unlock(handle);
+        return -1;
+    }
+
+    /* 既存のファイルプロバイダを解放する */
+    if (handle->file_handle != NULL)
+    {
+        trace_file_provider_dispose(handle->file_handle);
+        handle->file_handle = NULL;
+    }
+
+    handle->file_level = level;
+
+    /* path が NULL の場合はファイルトレースを無効化して終了 */
+    if (path != NULL)
+    {
+        /* 新しいファイルプロバイダを初期化する */
+        handle->file_handle = trace_file_provider_init(path, max_bytes, generations);
+        if (handle->file_handle == NULL)
+        {
+            result = -1;
+        }
+    }
+
+    config_unlock(handle);
+    return result;
 }

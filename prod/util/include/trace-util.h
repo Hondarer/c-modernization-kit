@@ -16,27 +16,34 @@
  *        v
  *  trace-util.h (共通 API)
  *        |
- *  +-----+-----+
- *  |           |
- *  ETW        syslog
- *  (Windows)  (Linux)
+ *  +-----+-----+-----+
+ *  |           |     |
+ *  ETW        syslog File
+ *  (Windows)  (Linux) (両OS)
  *  @endcode
  *
- *  @par            使用例 (Linux)
+ *  @par            使用例 (共通)
  *  @code
  *  #include <trace-util.h>
  *
  *  trace_provider_t *logger = trace_init("myapp");
+ *  trace_start(logger);
  *  trace_write(logger, TRACE_LV_INFO, "application started");
+ *  trace_stop(logger);
  *  trace_dispose(logger);
  *  @endcode
  *
- *  @par            使用例 (Windows)
+ *  @par            使用例 (設定変更)
  *  @code
- *  #include <trace-util.h>
- *
  *  trace_provider_t *logger = trace_init("myapp");
- *  trace_write(logger, TRACE_LV_INFO, "application started");
+ *  trace_set_os(logger, TRACE_LV_VERBOSE);
+ *  trace_start(logger);
+ *  trace_write(logger, TRACE_LV_INFO, "running as myapp");
+ *  trace_stop(logger);
+ *  trace_rename(logger, "myapp-worker");
+ *  trace_start(logger);
+ *  trace_write(logger, TRACE_LV_INFO, "running as worker");
+ *  trace_stop(logger);
  *  trace_dispose(logger);
  *  @endcode
  */
@@ -179,7 +186,8 @@ enum trace_level
     TRACE_LV_ERROR    = 1, /**< エラー。 */
     TRACE_LV_WARNING  = 2, /**< 警告。 */
     TRACE_LV_INFO     = 3, /**< 情報。 */
-    TRACE_LV_VERBOSE  = 4  /**< 詳細 (デバッグ)。 */
+    TRACE_LV_VERBOSE  = 4, /**< 詳細 (デバッグ)。 */
+    TRACE_LV_NONE     = 5  /**< 出力しない。 */
 };
 
 /* ===== 不透明ハンドル型 ===== */
@@ -209,17 +217,58 @@ extern "C"
      *                        (例: Linux @c /usr/bin/myapp → @c "myapp",
      *                        Windows @c C:\\bin\\myapp.exe → @c "myapp.exe")。\n
      *                        プロセス名の取得に失敗した場合は @c "unknown" を使用します。
-     *  @return         成功時: ハンドル。失敗時: NULL。
+     *  @return         成功時: ハンドル (stopped 状態)。失敗時: NULL。
+     *
+     *  @post           戻り値のハンドルは stopped 状態です。
+     *                  出力関数を使用するには trace_start を呼び出してください。\n
+     *                  stopped 状態では設定関数 (trace_rename, trace_set_os,
+     *                  trace_set_file) をスレッド安全に使用できます。
      *
      *  @par            使用例
      *  @code
      *  trace_provider_t *logger = trace_init("myapp");
+     *  trace_start(logger);
      *  trace_write(logger, TRACE_LV_INFO, "application started");
+     *  trace_stop(logger);
      *  trace_dispose(logger);
      *  @endcode
      */
     TRACE_UTIL_EXPORT trace_provider_t *TRACE_UTIL_API
         trace_init(const char *name);
+
+    /**
+     *  @brief          トレースプロバイダを開始する。
+     *  @details        ハンドルを実行中 (started) 状態に遷移させます。\n
+     *                  started 状態では出力関数 (trace_write 等) が有効になり、
+     *                  設定関数 (trace_rename, trace_set_os, trace_set_file) は
+     *                  使用できなくなります (-1 を返します)。\n
+     *                  既に started 状態の場合は何もせず 0 を返します (冪等)。
+     *
+     *  @param[in]      handle   trace_init の戻り値。
+     *                           NULL の場合は -1 を返します。
+     *  @return         成功 0 / 失敗 -1。
+     *
+     *  @see            trace_stop
+     */
+    TRACE_UTIL_EXPORT int TRACE_UTIL_API
+        trace_start(trace_provider_t *handle);
+
+    /**
+     *  @brief          トレースプロバイダを停止する。
+     *  @details        ハンドルを停止中 (stopped) 状態に遷移させます。\n
+     *                  stopped 状態では出力関数 (trace_write 等) は -1 を返し、
+     *                  設定関数 (trace_rename, trace_set_os, trace_set_file) が
+     *                  スレッド安全に使用できるようになります。\n
+     *                  既に stopped 状態の場合は何もせず 0 を返します (冪等)。
+     *
+     *  @param[in]      handle   trace_init の戻り値。
+     *                           NULL の場合は -1 を返します。
+     *  @return         成功 0 / 失敗 -1。
+     *
+     *  @see            trace_start
+     */
+    TRACE_UTIL_EXPORT int TRACE_UTIL_API
+        trace_stop(trace_provider_t *handle);
 
     /**
      *  @brief          トレースメッセージを書き込む。
@@ -241,6 +290,9 @@ extern "C"
      *  1,024 バイト) の推奨値のうち小さい方に合わせています。
      *
      *  @return         成功 0 / 失敗 -1。
+     *
+     *  @pre            ハンドルが started 状態であること (trace_start 呼び出し済み)。
+     *                  stopped 状態では -1 を返します。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
         trace_write(trace_provider_t *handle, enum trace_level level, const char *message);
@@ -264,6 +316,9 @@ extern "C"
      *  @endcode
      *
      *  @return         成功 0 / 失敗 -1。
+     *
+     *  @pre            ハンドルが started 状態であること (trace_start 呼び出し済み)。
+     *                  stopped 状態では -1 を返します。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
         trace_writef(trace_provider_t *handle, enum trace_level level, const char *format, ...);
@@ -302,6 +357,9 @@ extern "C"
      *  データが収まらない場合は切り詰め、末尾に @c "..." を付与します。
      *
      *  @return         成功 0 / 失敗 -1。
+     *
+     *  @pre            ハンドルが started 状態であること (trace_start 呼び出し済み)。
+     *                  stopped 状態では -1 を返します。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
         trace_hex_write(trace_provider_t *handle, enum trace_level level,
@@ -339,6 +397,8 @@ extern "C"
      *
      *  @return         成功 0 / 失敗 -1。
      *
+     *  @pre            ハンドルが started 状態であること (trace_start 呼び出し済み)。
+     *                  stopped 状態では -1 を返します。
      *  @see            trace_hex_write
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
@@ -372,15 +432,63 @@ extern "C"
      *  trace_dispose(logger);
      *  @endcode
      *
-     *  @note           同一ハンドルに対する trace_rename と trace_write の
-     *                  同時呼び出しは未定義動作です。呼び出し側で排他制御してください。
+     *  @pre            ハンドルが stopped 状態であること。
+     *                  started 状態では -1 を返します。\n
+     *                  stopped 状態ではスレッド安全です (内部で排他制御)。
      */
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
         trace_rename(trace_provider_t *handle, const char *new_name);
 
     /**
+     *  @brief          OS トレースのスレッショルドレベルを変更する。
+     *  @details        ETW (Windows) または syslog (Linux) に出力するメッセージの
+     *                  最低重要度レベルを変更します。\n
+     *                  デフォルト値は TRACE_LV_INFO です。\n
+     *                  TRACE_LV_NONE を指定すると OS トレース出力を完全に抑止します。
+     *
+     *  @param[in]      handle   trace_init の戻り値。NULL の場合は -1 を返します。
+     *  @param[in]      level    新しいスレッショルドレベル (enum trace_level)。
+     *  @return         成功 0 / 失敗 -1。
+     *
+     *  @pre            ハンドルが stopped 状態であること。
+     *                  started 状態では -1 を返します。\n
+     *                  stopped 状態ではスレッド安全です (内部で排他制御)。
+     */
+    TRACE_UTIL_EXPORT int TRACE_UTIL_API
+        trace_set_os(trace_provider_t *handle, enum trace_level level);
+
+    /**
+     *  @brief          ファイルトレースの出力先と設定を変更する。
+     *  @details        ファイルトレースを有効化または再構成します。\n
+     *                  path に NULL を指定するとファイルトレースを無効化します
+     *                  (既存のファイルプロバイダを解放して閉じます)。\n
+     *                  既にファイルトレースが有効な場合は既存のプロバイダを解放してから
+     *                  新しいプロバイダを初期化します。\n
+     *                  デフォルトのファイルトレースレベルは TRACE_LV_ERROR です。\n
+     *                  ファイルトレースは trace_init の直後は無効 (パス未指定) です。
+     *
+     *  @param[in]      handle       trace_init の戻り値。NULL の場合は -1 を返します。
+     *  @param[in]      path         出力ファイルパス。NULL の場合はファイルトレースを無効化。
+     *  @param[in]      level        ファイルトレースのスレッショルドレベル (enum trace_level)。
+     *  @param[in]      max_bytes    1 ファイルあたりの最大バイト数。0 で既定値
+     *                               (TRACE_FILE_DEFAULT_MAX_BYTES = 10 MB) を使用。
+     *  @param[in]      generations  保持する旧世代数。0 以下で既定値
+     *                               (TRACE_FILE_DEFAULT_GENERATIONS = 5) を使用。
+     *  @return         成功 0 / 失敗 -1。
+     *
+     *  @pre            ハンドルが stopped 状態であること。
+     *                  started 状態では -1 を返します。\n
+     *                  stopped 状態ではスレッド安全です (内部で排他制御)。
+     */
+    TRACE_UTIL_EXPORT int TRACE_UTIL_API
+        trace_set_file(trace_provider_t *handle, const char *path,
+                       enum trace_level level, size_t max_bytes, int generations);
+
+    /**
      *  @brief          トレースプロバイダを終了し、リソースを解放する。
-     *  @details        ハンドルが NULL の場合は何もしません。
+     *  @details        ハンドルが NULL の場合は何もしません。\n
+     *                  started 状態のハンドルに対しても呼び出し可能です
+     *                  (内部で自動的に停止してから解放します)。
      *
      *  @param[in]      handle   trace_init の戻り値。
      */

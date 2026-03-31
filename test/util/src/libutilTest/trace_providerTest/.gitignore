@@ -1,2 +1,4 @@
+/etw-provider.c
+/file-provider.c
 /syslog-provider.c
 /trace-provider.c
