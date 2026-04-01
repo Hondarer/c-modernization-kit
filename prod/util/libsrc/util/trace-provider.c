@@ -58,15 +58,14 @@ struct trace_provider
     volatile int running;
 
 #ifdef _WIN32
-    /** 設定変更のスレッド安全のためのクリティカルセクション。 */
-    CRITICAL_SECTION config_cs;
-    /** config_cs が初期化済みかどうかのフラグ。 */
-    int              config_cs_initialized;
+    /** 読み書きロック。write 系は共有ロック、設定変更・stop・dispose は排他ロック。
+     *  SRWLOCK は初期化関数のみ必要で破棄関数は不要。 */
+    SRWLOCK config_rwlock;
 #else /* !_WIN32 */
-    /** 設定変更のスレッド安全のための mutex。 */
-    pthread_mutex_t  config_mutex;
-    /** config_mutex が初期化済みかどうかのフラグ。 */
-    int              config_mutex_initialized;
+    /** 読み書きロック。write 系は共有ロック、設定変更・stop・dispose は排他ロック。 */
+    pthread_rwlock_t config_rwlock;
+    /** config_rwlock が初期化済みかどうかのフラグ。 */
+    int              config_rwlock_initialized;
 #endif /* _WIN32 */
 };
 
@@ -165,26 +164,53 @@ static const char *get_process_basename(char *buf, size_t buf_size)
 #endif /* _WIN32 */
 
 /**
- *  @brief  設定ミューテックスを取得する。
+ *  @brief  設定・状態変更用の排他ロックを取得する。
+ *          trace_start / trace_stop / trace_modify_* / trace_dispose で使用する。
  */
-static void config_lock(trace_provider_t *handle)
+static void config_lock_exclusive(trace_provider_t *handle)
 {
 #ifdef _WIN32
-    EnterCriticalSection(&handle->config_cs);
+    AcquireSRWLockExclusive(&handle->config_rwlock);
 #else /* !_WIN32 */
-    pthread_mutex_lock(&handle->config_mutex);
+    pthread_rwlock_wrlock(&handle->config_rwlock);
 #endif /* _WIN32 */
 }
 
 /**
- *  @brief  設定ミューテックスを解放する。
+ *  @brief  排他ロックを解放する。
  */
-static void config_unlock(trace_provider_t *handle)
+static void config_unlock_exclusive(trace_provider_t *handle)
 {
 #ifdef _WIN32
-    LeaveCriticalSection(&handle->config_cs);
+    ReleaseSRWLockExclusive(&handle->config_rwlock);
 #else /* !_WIN32 */
-    pthread_mutex_unlock(&handle->config_mutex);
+    pthread_rwlock_wrunlock(&handle->config_rwlock);
+#endif /* _WIN32 */
+}
+
+/**
+ *  @brief  書き込み系 API 用の共有ロックを取得する。
+ *          複数スレッドが同時に取得できる。
+ *          排他ロック保持中はブロックする。
+ */
+static void config_lock_shared(trace_provider_t *handle)
+{
+#ifdef _WIN32
+    AcquireSRWLockShared(&handle->config_rwlock);
+#else /* !_WIN32 */
+    pthread_rwlock_rdlock(&handle->config_rwlock);
+#endif /* _WIN32 */
+}
+
+/**
+ *  @brief  共有ロックを解放する。
+ */
+static void config_unlock_shared(trace_provider_t *handle)
+{
+#ifdef _WIN32
+    ReleaseSRWLockShared(&handle->config_rwlock);
+#else /* !_WIN32 */
+    pthread_rwlock_rdunlock(&handle->config_rwlock);
 #endif /* _WIN32 */
 }
 
@@ -262,8 +288,7 @@ trace_provider_t *TRACE_UTIL_API
         handle->file_handle  = NULL;
         handle->running      = 0;
 
-        InitializeCriticalSection(&handle->config_cs);
-        handle->config_cs_initialized = 1;
+        InitializeSRWLock(&handle->config_rwlock);
 
         if (InterlockedIncrement(&s_trace_ref) == 1)
         {
@@ -271,7 +296,6 @@ trace_provider_t *TRACE_UTIL_API
             if (s_etw_handle == NULL)
             {
                 InterlockedDecrement(&s_trace_ref);
-                DeleteCriticalSection(&handle->config_cs);
                 free(handle->service_name);
                 free(handle);
                 return NULL;
@@ -302,13 +326,13 @@ trace_provider_t *TRACE_UTIL_API
         handle->file_handle   = NULL;
         handle->running       = 0;
 
-        if (pthread_mutex_init(&handle->config_mutex, NULL) != 0)
+        if (pthread_rwlock_init(&handle->config_rwlock, NULL) != 0)
         {
             syslog_provider_dispose(sp);
             free(handle);
             return NULL;
         }
-        handle->config_mutex_initialized = 1;
+        handle->config_rwlock_initialized = 1;
     }
 #endif /* _WIN32 */
 
@@ -323,16 +347,16 @@ int TRACE_UTIL_API
         return -1;
     }
 
-    config_lock(handle);
+    config_lock_exclusive(handle);
 
     if (handle->running)
     {
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return 0;
     }
 
     handle->running = 1;
-    config_unlock(handle);
+    config_unlock_exclusive(handle);
     return 0;
 }
 
@@ -344,16 +368,16 @@ int TRACE_UTIL_API
         return -1;
     }
 
-    config_lock(handle);
+    config_lock_exclusive(handle);
 
     if (!handle->running)
     {
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return 0;
     }
 
     handle->running = 0;
-    config_unlock(handle);
+    config_unlock_exclusive(handle);
     return 0;
 }
 
@@ -434,14 +458,18 @@ int TRACE_UTIL_API
     const char *msg;
     char buf[TRACE_MESSAGE_MAX_BYTES];
     size_t len;
+    int ret;
 
     if (handle == NULL || message == NULL)
     {
         return 0;
     }
 
+    config_lock_shared(handle);
+
     if (!handle->running)
     {
+        config_unlock_shared(handle);
         return -1;
     }
 
@@ -456,7 +484,9 @@ int TRACE_UTIL_API
         msg = buf;
     }
 
-    return write_dual(handle, level, msg);
+    ret = write_dual(handle, level, msg);
+    config_unlock_shared(handle);
+    return ret;
 }
 
 int TRACE_UTIL_API
@@ -464,14 +494,18 @@ int TRACE_UTIL_API
 {
     va_list args;
     char buf[TRACE_MESSAGE_MAX_BYTES];
+    int ret;
 
     if (handle == NULL || format == NULL)
     {
         return 0;
     }
 
+    config_lock_shared(handle);
+
     if (!handle->running)
     {
+        config_unlock_shared(handle);
         return -1;
     }
 
@@ -479,7 +513,9 @@ int TRACE_UTIL_API
     vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
 
-    return write_dual(handle, level, buf);
+    ret = write_dual(handle, level, buf);
+    config_unlock_shared(handle);
+    return ret;
 }
 
 /** HEX 変換用テーブル。 */
@@ -492,6 +528,7 @@ static const char hex_chars[] = "0123456789ABCDEF";
  *  @brief  HEX ダンプ出力の内部実装。
  *  @details  ラベルは呼び出し元で事前にフォーマット済みの文字列を受け取る。
  *            データが収まらない場合は切り詰めて "..." を付与する。
+ *            呼び出し元が共有ロックを保持した状態で呼ぶこと。
  */
 static int hex_write_impl(trace_provider_t *handle, enum trace_level level,
                            const void *data, size_t size, const char *label)
@@ -587,17 +624,24 @@ int TRACE_UTIL_API
     trace_hex_write(trace_provider_t *handle, enum trace_level level,
                   const void *data, size_t size, const char *message)
 {
+    int ret;
+
     if (handle == NULL || data == NULL || size == 0)
     {
         return 0;
     }
 
+    config_lock_shared(handle);
+
     if (!handle->running)
     {
+        config_unlock_shared(handle);
         return -1;
     }
 
-    return hex_write_impl(handle, level, data, size, message);
+    ret = hex_write_impl(handle, level, data, size, message);
+    config_unlock_shared(handle);
+    return ret;
 }
 
 int TRACE_UTIL_API
@@ -605,14 +649,18 @@ int TRACE_UTIL_API
                    const void *data, size_t size, const char *format, ...)
 {
     char label[TRACE_MESSAGE_MAX_BYTES];
+    int ret;
 
     if (handle == NULL || data == NULL || size == 0)
     {
         return 0;
     }
 
+    config_lock_shared(handle);
+
     if (!handle->running)
     {
+        config_unlock_shared(handle);
         return -1;
     }
 
@@ -622,10 +670,15 @@ int TRACE_UTIL_API
         va_start(args, format);
         vsnprintf(label, sizeof(label), format, args);
         va_end(args);
-        return hex_write_impl(handle, level, data, size, label);
+        ret = hex_write_impl(handle, level, data, size, label);
+    }
+    else
+    {
+        ret = hex_write_impl(handle, level, data, size, NULL);
     }
 
-    return hex_write_impl(handle, level, data, size, NULL);
+    config_unlock_shared(handle);
+    return ret;
 }
 
 void TRACE_UTIL_API
@@ -636,8 +689,9 @@ void TRACE_UTIL_API
         return;
     }
 
-    /* started 中の場合は内部で停止する */
-    handle->running = 0;
+    /* 排他ロックで running=0 をセットし、進行中の write 完了を待つ。
+     * trace_stop 返却後は新規 write は -1 を返し、write 中の処理は完了している。 */
+    trace_stop(handle);
 
     /* ファイルトレースプロバイダの解放 */
     if (handle->file_handle != NULL)
@@ -653,15 +707,12 @@ void TRACE_UTIL_API
         s_etw_handle = NULL;
     }
     free(handle->service_name);
-    if (handle->config_cs_initialized)
-    {
-        DeleteCriticalSection(&handle->config_cs);
-    }
+    /* SRWLOCK は破棄関数不要 */
 #else /* !_WIN32 */
     syslog_provider_dispose(handle->syslog_handle);
-    if (handle->config_mutex_initialized)
+    if (handle->config_rwlock_initialized)
     {
-        pthread_mutex_destroy(&handle->config_mutex);
+        pthread_rwlock_destroy(&handle->config_rwlock);
     }
 #endif /* _WIN32 */
 
@@ -683,18 +734,18 @@ int TRACE_UTIL_API
         return -1;
     }
 
-    config_lock(handle);
+    config_lock_exclusive(handle);
 
     if (handle->running)
     {
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return -1;
     }
 
     effective = build_effective_name(name, identifier);
     if (effective == NULL)
     {
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return -1;
     }
 
@@ -702,7 +753,7 @@ int TRACE_UTIL_API
     free(handle->service_name);
     handle->service_name = effective;
     handle->identifier   = identifier;
-    config_unlock(handle);
+    config_unlock_exclusive(handle);
     return 0;
 #else /* !_WIN32 */
     {
@@ -710,11 +761,11 @@ int TRACE_UTIL_API
         free(effective);
         if (rc != 0)
         {
-            config_unlock(handle);
+            config_unlock_exclusive(handle);
             return -1;
         }
         handle->identifier = identifier;
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return 0;
     }
 #endif /* _WIN32 */
@@ -728,16 +779,16 @@ int TRACE_UTIL_API
         return -1;
     }
 
-    config_lock(handle);
+    config_lock_exclusive(handle);
 
     if (handle->running)
     {
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return -1;
     }
 
     handle->os_level = level;
-    config_unlock(handle);
+    config_unlock_exclusive(handle);
     return 0;
 }
 
@@ -752,11 +803,11 @@ int TRACE_UTIL_API
         return -1;
     }
 
-    config_lock(handle);
+    config_lock_exclusive(handle);
 
     if (handle->running)
     {
-        config_unlock(handle);
+        config_unlock_exclusive(handle);
         return -1;
     }
 
@@ -780,6 +831,6 @@ int TRACE_UTIL_API
         }
     }
 
-    config_unlock(handle);
+    config_unlock_exclusive(handle);
     return result;
 }
