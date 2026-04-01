@@ -20,6 +20,9 @@
 /** 1 行分のスタックバッファサイズ。 */
 #define TRACE_FILE_LINE_BUF   1100
 
+/** ファイル書き込みロック取得のタイムアウト (ミリ秒)。 */
+#define FILE_LOCK_TIMEOUT_MS  100
+
 /** タイムスタンプ部分の文字数 ("YYYY-MM-DD HH:MM:SS.mmm" = 23 文字)。 */
 #define TRACE_FILE_TS_LEN     23
 
@@ -401,11 +404,34 @@ int TRACE_FILE_UTIL_API
         buf[len - 1] = '\n';
     }
 
-    /* ロック取得 */
+    /* ロック取得 (タイムアウト付き) */
 #ifdef _WIN32
-    EnterCriticalSection(&handle->cs);
+    {
+        DWORD deadline = GetTickCount() + (DWORD)FILE_LOCK_TIMEOUT_MS;
+        while (!TryEnterCriticalSection(&handle->cs))
+        {
+            if ((LONG)(GetTickCount() - deadline) >= 0)
+            {
+                return -1;
+            }
+            SwitchToThread();
+        }
+    }
 #else /* !_WIN32 */
-    pthread_mutex_lock(&handle->mutex);
+    {
+        struct timespec abs_timeout;
+        clock_gettime(CLOCK_REALTIME, &abs_timeout);
+        abs_timeout.tv_nsec += (long)FILE_LOCK_TIMEOUT_MS * 1000000L;
+        if (abs_timeout.tv_nsec >= 1000000000L)
+        {
+            abs_timeout.tv_sec  += 1;
+            abs_timeout.tv_nsec -= 1000000000L;
+        }
+        if (pthread_mutex_timedlock(&handle->mutex, &abs_timeout) != 0)
+        {
+            return -1;
+        }
+    }
 #endif /* _WIN32 */
 
     /* ファイルが未開の場合は書き込みをスキップする */

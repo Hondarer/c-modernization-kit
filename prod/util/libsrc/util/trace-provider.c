@@ -184,21 +184,43 @@ static void config_unlock_exclusive(trace_provider_t *handle)
 #ifdef _WIN32
     ReleaseSRWLockExclusive(&handle->config_rwlock);
 #else /* !_WIN32 */
-    pthread_rwlock_wrunlock(&handle->config_rwlock);
+    pthread_rwlock_unlock(&handle->config_rwlock);
 #endif /* _WIN32 */
 }
 
+/** 共有ロック取得のタイムアウト (ミリ秒)。 */
+#define LOCK_TIMEOUT_MS 100
+
 /**
- *  @brief  書き込み系 API 用の共有ロックを取得する。
+ *  @brief  書き込み系 API 用の共有ロックをタイムアウト付きで取得する。
  *          複数スレッドが同時に取得できる。
- *          排他ロック保持中はブロックする。
+ *          排他ロック保持中はブロックするが、LOCK_TIMEOUT_MS 経過で諦める。
+ *  @return 取得成功: 0 / タイムアウト: -1。
  */
-static void config_lock_shared(trace_provider_t *handle)
+static int config_lock_shared_timed(trace_provider_t *handle)
 {
 #ifdef _WIN32
-    AcquireSRWLockShared(&handle->config_rwlock);
+    /* SRWLOCK には timed 取得 API がないため spin + TryAcquireSRWLockShared で代替する */
+    DWORD deadline = GetTickCount() + (DWORD)LOCK_TIMEOUT_MS;
+    while (!TryAcquireSRWLockShared(&handle->config_rwlock))
+    {
+        if ((LONG)(GetTickCount() - deadline) >= 0)
+        {
+            return -1;
+        }
+        SwitchToThread();
+    }
+    return 0;
 #else /* !_WIN32 */
-    pthread_rwlock_rdlock(&handle->config_rwlock);
+    struct timespec abs_timeout;
+    clock_gettime(CLOCK_REALTIME, &abs_timeout);
+    abs_timeout.tv_nsec += (long)LOCK_TIMEOUT_MS * 1000000L;
+    if (abs_timeout.tv_nsec >= 1000000000L)
+    {
+        abs_timeout.tv_sec  += 1;
+        abs_timeout.tv_nsec -= 1000000000L;
+    }
+    return (pthread_rwlock_timedrdlock(&handle->config_rwlock, &abs_timeout) == 0) ? 0 : -1;
 #endif /* _WIN32 */
 }
 
@@ -210,7 +232,7 @@ static void config_unlock_shared(trace_provider_t *handle)
 #ifdef _WIN32
     ReleaseSRWLockShared(&handle->config_rwlock);
 #else /* !_WIN32 */
-    pthread_rwlock_rdunlock(&handle->config_rwlock);
+    pthread_rwlock_unlock(&handle->config_rwlock);
 #endif /* _WIN32 */
 }
 
@@ -465,7 +487,10 @@ int TRACE_UTIL_API
         return 0;
     }
 
-    config_lock_shared(handle);
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return -1;
+    }
 
     if (!handle->running)
     {
@@ -501,7 +526,10 @@ int TRACE_UTIL_API
         return 0;
     }
 
-    config_lock_shared(handle);
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return -1;
+    }
 
     if (!handle->running)
     {
@@ -631,7 +659,10 @@ int TRACE_UTIL_API
         return 0;
     }
 
-    config_lock_shared(handle);
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return -1;
+    }
 
     if (!handle->running)
     {
@@ -656,7 +687,10 @@ int TRACE_UTIL_API
         return 0;
     }
 
-    config_lock_shared(handle);
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return -1;
+    }
 
     if (!handle->running)
     {
