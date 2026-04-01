@@ -427,13 +427,13 @@ extern "C"
      *  @par            ログレベル一覧
      *  | レベル          | 値 | syslog priority | 出力内容                          |
      *  | --------------- | -- | --------------- | --------------------------------- |
-     *  | POTR_LOG_TRACE  |  0 | LOG_DEBUG       | パケット送受信・スレッド動作      |
-     *  | POTR_LOG_DEBUG  |  1 | LOG_DEBUG       | ソケット操作・設定値              |
-     *  | POTR_LOG_INFO   |  2 | LOG_INFO        | サービス開始・終了・接続状態変化  |
-     *  | POTR_LOG_WARN   |  3 | LOG_WARNING     | NACK・REJECT・回復可能な異常      |
-     *  | POTR_LOG_ERROR  |  4 | LOG_ERR         | 操作失敗                          |
-     *  | POTR_LOG_FATAL  |  5 | LOG_CRIT        | 致命的エラー                      |
-     *  | POTR_LOG_OFF    |  6 | -               | ログ無効 (デフォルト)             |
+     *  | POTR_LOG_FATAL  |  0 | LOG_CRIT        | 致命的エラー                      |
+     *  | POTR_LOG_ERROR  |  1 | LOG_ERR         | 操作失敗                          |
+     *  | POTR_LOG_WARN   |  2 | LOG_WARNING     | NACK・REJECT・回復可能な異常      |
+     *  | POTR_LOG_INFO   |  3 | LOG_INFO        | サービス開始・終了・接続状態変化  |
+     *  | POTR_LOG_DEBUG  |  4 | LOG_DEBUG       | ソケット操作・設定値              |
+     *  | POTR_LOG_TRACE  |  4 | LOG_DEBUG       | パケット送受信・スレッド動作 (DEBUG の別名) |
+     *  | POTR_LOG_OFF    |  5 | -               | ログ無効 (デフォルト)             |
      *
      *  @par            使用例
      *  @code{.c}

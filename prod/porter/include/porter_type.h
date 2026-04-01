@@ -313,18 +313,35 @@ typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,
  *
  *  @details
  *  potrLogConfig() の level 引数に指定するログ出力レベルです。\n
- *  指定したレベル以上のメッセージのみが出力されます。
+ *  数値が小さいほど重大度が高く、指定したレベル以下 (より重大) のメッセージのみが出力されます。\n
+ *  数値順序は trace-util の enum trace_level と対応しています。
+ *
+ *  | PotrLogLevel    | 値 | trace_level        | syslog priority |
+ *  | --------------- | -- | ------------------ | --------------- |
+ *  | POTR_LOG_FATAL  |  0 | TRACE_LV_CRITICAL  | LOG_CRIT        |
+ *  | POTR_LOG_ERROR  |  1 | TRACE_LV_ERROR     | LOG_ERR         |
+ *  | POTR_LOG_WARN   |  2 | TRACE_LV_WARNING   | LOG_WARNING     |
+ *  | POTR_LOG_INFO   |  3 | TRACE_LV_INFO      | LOG_INFO        |
+ *  | POTR_LOG_DEBUG  |  4 | TRACE_LV_VERBOSE   | LOG_DEBUG       |
+ *  | POTR_LOG_OFF    |  5 | TRACE_LV_NONE      | -               |
+ *
+ *  @note POTR_LOG_TRACE は POTR_LOG_DEBUG の別名マクロです。
  *******************************************************************************
  */
 typedef enum
 {
-    POTR_LOG_TRACE = 0, /**< トレース (最詳細)。 */
-    POTR_LOG_DEBUG = 1, /**< デバッグ情報。 */
-    POTR_LOG_INFO  = 2, /**< 情報。 */
-    POTR_LOG_WARN  = 3, /**< 警告。回復可能な異常を記録。 */
-    POTR_LOG_ERROR = 4, /**< エラー。操作の失敗を記録。 */
-    POTR_LOG_FATAL = 5, /**< 致命的エラー。回復不能な障害を記録。 */
-    POTR_LOG_OFF   = 6, /**< ログ出力無効。 */
+    POTR_LOG_FATAL = 0, /**< 致命的エラー。回復不能な障害を記録。TRACE_LV_CRITICAL (0) と同値。 */
+    POTR_LOG_ERROR = 1, /**< エラー。操作の失敗を記録。TRACE_LV_ERROR (1) と同値。 */
+    POTR_LOG_WARN  = 2, /**< 警告。回復可能な異常を記録。TRACE_LV_WARNING (2) と同値。 */
+    POTR_LOG_INFO  = 3, /**< 情報。TRACE_LV_INFO (3) と同値。 */
+    POTR_LOG_DEBUG = 4, /**< デバッグ情報。TRACE_LV_VERBOSE (4) と同値。 */
+    POTR_LOG_OFF   = 5, /**< ログ出力無効。TRACE_LV_NONE (5) と同値。 */
 } PotrLogLevel;
+
+/**
+ *  @def            POTR_LOG_TRACE
+ *  @brief          POTR_LOG_DEBUG の別名。trace-util に対応レベルがないため DEBUG (VERBOSE) に集約。
+ */
+#define POTR_LOG_TRACE POTR_LOG_DEBUG
 
 #endif /* PORTER_TYPE_H */

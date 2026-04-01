@@ -8,15 +8,19 @@
  *
  *  @details
  *  クロスプラットフォーム対応のロガーモジュールです。\n
- *  追加の OSS ライブラリを必要とせず、OS 標準 API のみを使用します。
+ *  OS レベルのトレース出力 (Linux: syslog、Windows: ETW) と
+ *  ファイルトレースは trace-util に委任します。\n
+ *  stderr 出力 (console フラグ) は本モジュールが直接行います。
  *
- *  | OS      | 出力先                                                                                        |
- *  | ------- | --------------------------------------------------------------------------------------------- |
- *  | Linux   | syslog (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)                        |
- *  | Windows | OutputDebugString (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)             |
+ *  | OS      | 出力先                                                                                          |
+ *  | ------- | ----------------------------------------------------------------------------------------------- |
+ *  | Linux   | syslog (trace-util 経由)、ログファイル (trace-util 経由)、stderr (console 指定時)               |
+ *  | Windows | ETW (trace-util 経由)、ログファイル (trace-util 経由)、stderr (console 指定時)                  |
  *
  *  @par            スレッド セーフティ
  *  本モジュールはスレッドセーフです。\n
+ *  OS / ファイルへの出力は trace-util が内部で排他制御を行います。\n
+ *  stderr への出力は本モジュールが mutex で排他制御します。\n
  *  Linux では PTHREAD_MUTEX_INITIALIZER による静的初期化済みミューテックスを使用します。\n
  *  Windows では INIT_ONCE_STATIC_INIT + InitOnceExecuteOnce による遅延初期化を使用します。
  *
@@ -30,12 +34,13 @@
 #include <string.h>
 
 #ifndef _WIN32
-    #include <syslog.h>
     #include <pthread.h>
     #include <time.h>
 #else /* _WIN32 */
     #include <windows.h>
 #endif /* _WIN32 */
+
+#include <trace-util.h>
 
 #include <porter_const.h>
 #include <porter.h>
@@ -44,80 +49,71 @@
 
 /* ── ログレベル文字列 ───────────────────────────────────────────────────── */
 
-/** ログレベル表示文字列テーブル (POTR_LOG_TRACE〜POTR_LOG_FATAL の 6 エントリ)。 */
+/**
+ *  ログレベル表示文字列テーブル (POTR_LOG_FATAL〜POTR_LOG_DEBUG の 5 エントリ)。
+ *  インデックスは PotrLogLevel の数値と一致する。
+ */
 static const char * const s_level_str[] = {
-    "TRACE", /* POTR_LOG_TRACE */
-    "DEBUG", /* POTR_LOG_DEBUG */
-    "INFO ", /* POTR_LOG_INFO  */
-    "WARN ", /* POTR_LOG_WARN  */
-    "ERROR", /* POTR_LOG_ERROR */
-    "FATAL", /* POTR_LOG_FATAL */
+    "FATAL", /* POTR_LOG_FATAL (0) */
+    "ERROR", /* POTR_LOG_ERROR (1) */
+    "WARN ", /* POTR_LOG_WARN  (2) */
+    "INFO ", /* POTR_LOG_INFO  (3) */
+    "DEBUG", /* POTR_LOG_DEBUG (4) */
 };
 
 /* ── グローバルロガー状態 ──────────────────────────────────────────────── */
 
-/** 出力ファイルパスの最大長 (終端 NUL を含む)。 */
-#define POTR_LOG_FILE_PATH_MAX 512
+/** トレースプロバイダハンドル。trace_init() で一度だけ初期化する。 */
+static trace_provider_t *s_trace = NULL;
 
-/** 出力先ミューテックスおよびロガー設定。スレッド間で共有する。 */
-#ifndef _WIN32
-
-static pthread_mutex_t g_log_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int             g_syslog_open = 0; /**< openlog() 済みフラグ (1: 済み)。 */
-
-static void log_lock(void)
-{
-    pthread_mutex_lock(&g_log_mutex);
-}
-
-static void log_unlock(void)
-{
-    pthread_mutex_unlock(&g_log_mutex);
-}
-
-#else /* _WIN32 */
-
-static INIT_ONCE        g_log_init_once = INIT_ONCE_STATIC_INIT;
-static CRITICAL_SECTION g_log_mutex;
-
-/** InitOnceExecuteOnce コールバック: CRITICAL_SECTION を初期化する。 */
-static BOOL CALLBACK log_init_mutex_func(PINIT_ONCE once, PVOID param, PVOID *ctx)
-{
-    (void)once;
-    (void)param;
-    (void)ctx;
-    InitializeCriticalSection(&g_log_mutex);
-    return TRUE;
-}
-
-static void log_lock(void)
-{
-    InitOnceExecuteOnce(&g_log_init_once, log_init_mutex_func, NULL, NULL);
-    EnterCriticalSection(&g_log_mutex);
-}
-
-static void log_unlock(void)
-{
-    LeaveCriticalSection(&g_log_mutex);
-}
-
-#endif /* _WIN32 */
-
-/** 出力ログレベル (POTR_LOG_OFF = 無効)。 */
-static volatile int g_log_level   = (int)POTR_LOG_OFF;
+/** 出力ログレベル (POTR_LOG_OFF = 無効)。高速パスでロックなし読み取りするため volatile。 */
+static volatile int g_log_level = (int)POTR_LOG_OFF;
 
 /** stderr 出力フラグ (非 0: 有効)。 */
 static int g_log_console = 0;
 
-/** ログファイルパス (空文字列 = 無効)。 */
-static char g_log_file_path[POTR_LOG_FILE_PATH_MAX];
+/* ── console (stderr) 専用 mutex ──────────────────────────────────────── */
 
-/** ログファイル FILE ポインタ (NULL = 未オープン)。 */
-static FILE *g_log_fp = NULL;
+#ifndef _WIN32
 
-#ifdef _WIN32
-/** OutputDebugString 出力フラグ (非 0: 有効)。 */
-static int g_debugout = 0;
+static pthread_mutex_t g_console_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void c_lock(void)
+{
+    pthread_mutex_lock(&g_console_mutex);
+}
+
+static void c_unlock(void)
+{
+    pthread_mutex_unlock(&g_console_mutex);
+}
+
+#else /* _WIN32 */
+
+static INIT_ONCE        g_console_init_once = INIT_ONCE_STATIC_INIT;
+static CRITICAL_SECTION g_console_mutex;
+
+/** InitOnceExecuteOnce コールバック: CRITICAL_SECTION を初期化する。 */
+static BOOL CALLBACK console_init_mutex_func(PINIT_ONCE once, PVOID param, PVOID *ctx)
+{
+    (void)once;
+    (void)param;
+    (void)ctx;
+    InitializeCriticalSection(&g_console_mutex);
+    return TRUE;
+}
+
+static void c_lock(void)
+{
+    InitOnceExecuteOnce(&g_console_init_once, console_init_mutex_func, NULL, NULL);
+    EnterCriticalSection(&g_console_mutex);
+}
+
+static void c_unlock(void)
+{
+    LeaveCriticalSection(&g_console_mutex);
+}
+
 #endif /* _WIN32 */
 
 /* ── ユーティリティ ────────────────────────────────────────────────────── */
@@ -175,26 +171,6 @@ static void log_timestamp(char *buf, size_t buflen)
 #endif /* _WIN32 */
 }
 
-#ifndef _WIN32
-/**
- *  @brief  PotrLogLevel を syslog の priority に変換する (Linux のみ)。
- */
-static int level_to_syslog_priority(PotrLogLevel level)
-{
-    switch (level)
-    {
-        case POTR_LOG_TRACE: return LOG_DEBUG;
-        case POTR_LOG_DEBUG: return LOG_DEBUG;
-        case POTR_LOG_INFO:  return LOG_INFO;
-        case POTR_LOG_WARN:  return LOG_WARNING;
-        case POTR_LOG_ERROR: return LOG_ERR;
-        case POTR_LOG_FATAL: return LOG_CRIT;
-        case POTR_LOG_OFF:   return LOG_DEBUG;
-        default:             return LOG_DEBUG;
-    }
-}
-#endif /* _WIN32 */
-
 /* ── 公開 API ─────────────────────────────────────────────────────────── */
 
 /* doxygen コメントは porter.h に記載 */
@@ -202,78 +178,55 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
                                    const char   *log_file,
                                    int           console)
 {
-    FILE *new_fp = NULL;
+    enum trace_level trc_level;
 
-    /* log_file を事前にオープンしておく (ミューテックス外で実施し、ロック時間を短縮)。 */
-    if (log_file != NULL && log_file[0] != '\0')
+    /* level の範囲チェック。PotrLogLevel と enum trace_level は値が一致するため直接キャストする。 */
+    if ((int)level < 0 || (int)level > (int)POTR_LOG_OFF)
     {
-#ifndef _WIN32
-        new_fp = fopen(log_file, "a");
-#else /* _WIN32 */
-        if (fopen_s(&new_fp, log_file, "a") != 0)
-        {
-            new_fp = NULL;
-        }
-#endif /* _WIN32 */
-        if (new_fp == NULL)
+        return POTR_ERROR;
+    }
+    trc_level = (enum trace_level)(int)level;
+
+    /* 初回呼び出し: トレースプロバイダを初期化する。 */
+    if (s_trace == NULL)
+    {
+        s_trace = trace_init();
+        if (s_trace == NULL)
         {
             return POTR_ERROR;
         }
-    }
-
-    log_lock();
-
-    /* 既存ファイルをクローズ。 */
-    if (g_log_fp != NULL)
-    {
-        fclose(g_log_fp);
-        g_log_fp = NULL;
-    }
-
-#ifndef _WIN32
-    /* 既存 syslog をクローズして再度 openlog する (ident は "porter" 固定)。 */
-    if (g_syslog_open)
-    {
-        closelog();
-        g_syslog_open = 0;
-    }
-#endif /* _WIN32 */
-
-    /* 設定を更新する。 */
-    g_log_level   = (int)level;
-    g_log_console = console;
-    g_log_fp      = new_fp;
-
-#ifdef _WIN32
-    /* level が POTR_LOG_OFF でない場合のみ OutputDebugString を有効にする。 */
-    g_debugout = (level != POTR_LOG_OFF) ? 1 : 0;
-#endif /* _WIN32 */
-
-    if (log_file != NULL && log_file[0] != '\0')
-    {
-        size_t len = strlen(log_file);
-        if (len >= POTR_LOG_FILE_PATH_MAX)
-        {
-            len = POTR_LOG_FILE_PATH_MAX - 1;
-        }
-        memcpy(g_log_file_path, log_file, len);
-        g_log_file_path[len] = '\0';
+        trace_modify_name(s_trace, "porter", 0);
     }
     else
     {
-        g_log_file_path[0] = '\0';
+        /* stopped 状態に遷移させる (冪等)。 */
+        trace_stop(s_trace);
     }
 
-#ifndef _WIN32
-    /* level が POTR_LOG_OFF でない場合のみ syslog を開く。 */
+    /* OS トレース (syslog / ETW) のしきい値レベルを設定する。 */
+    trace_modify_ostrc(s_trace, trc_level);
+
+    /* ファイルトレースを設定する。
+     * log_file が NULL または空文字列の場合は path=NULL を渡してファイルトレースを無効化する。
+     * max_bytes=0, generations=0 で既定値 (10 MB / 5 世代) を使用する。 */
+    if (trace_modify_filetrc(s_trace,
+                             (log_file != NULL && log_file[0] != '\0') ? log_file : NULL,
+                             trc_level, 0, 0) != 0)
+    {
+        return POTR_ERROR;
+    }
+
+    /* console フラグとログレベルを更新する。 */
+    c_lock();
+    g_log_console = console;
+    g_log_level   = (int)level;
+    c_unlock();
+
+    /* POTR_LOG_OFF でない場合のみ出力を開始する。 */
     if (level != POTR_LOG_OFF)
     {
-        openlog("porter", LOG_PID | LOG_NDELAY, LOG_USER);
-        g_syslog_open = 1;
+        trace_start(s_trace);
     }
-#endif /* _WIN32 */
-
-    log_unlock();
 
     return POTR_SUCCESS;
 }
@@ -283,13 +236,17 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
                     const char *fmt, ...)
 {
     char    msg[512];
-    char    ts[96];
     va_list ap;
     int     cur_level;
 
-    /* クイックチェック (ロックなし)。ほとんどの場合ここで早期リターンする。 */
+    /* クイックチェック (ロックなし)。ほとんどの場合ここで早期リターンする。
+     * level > cur_level: メッセージの重大度がしきい値より低い (数値が大きい) → 出力しない。 */
     cur_level = g_log_level;
-    if ((int)level < cur_level || cur_level >= (int)POTR_LOG_OFF)
+    if ((int)level > cur_level || cur_level >= (int)POTR_LOG_OFF)
+    {
+        return;
+    }
+    if (s_trace == NULL)
     {
         return;
     }
@@ -299,65 +256,33 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
     (void)vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
 
-    log_lock();
-
-    /* ロック後に再確認 (設定変更の競合を回避)。 */
-    cur_level = g_log_level;
-    if ((int)level < cur_level || cur_level >= (int)POTR_LOG_OFF)
     {
-        log_unlock();
-        return;
-    }
-
-    {
-        const char *lstr = ((int)level >= 0 && level <= POTR_LOG_FATAL)
+        const char *lstr = ((int)level >= 0 && (int)level < (int)POTR_LOG_OFF)
                                ? s_level_str[(int)level]
                                : "?????";
 
-#ifndef _WIN32
-        /* ── Linux: syslog ─────────────────────────────────────────────── */
-        if (g_syslog_open)
+        /* ── trace-util 経由で OS (syslog / ETW) + ファイルに出力 ────────
+         * trace_writef は内部でスレッドセーフのため、ロック不要。
+         * PotrLogLevel と enum trace_level は値が一致するため直接キャストする。
+         * メッセージに [LEVEL] [file:line] を含めてソース位置を記録する。 */
+        (void)trace_writef(s_trace, (enum trace_level)(int)level,
+                           "[%s] [%s:%d] %s",
+                           lstr, log_basename(file), line, msg);
+
+        /* ── stderr 出力: タイムスタンプ付きフォーマット ─────────────── */
+        if (g_log_console)
         {
-            syslog(level_to_syslog_priority(level),
-                   "[%s] [%s:%d] %s",
-                   lstr, log_basename(file), line, msg);
-        }
-#endif /* _WIN32 */
+            char ts[96];
 
-        /* ── ファイル / stderr: タイムスタンプ付きフォーマット ─────────── */
-        if (g_log_fp != NULL || g_log_console
-#ifdef _WIN32
-            || g_debugout
-#endif /* _WIN32 */
-        )
-        {
-            log_timestamp(ts, sizeof(ts));
-
-            if (g_log_fp != NULL)
-            {
-                (void)fprintf(g_log_fp, "%s [%s] [%s:%d] %s\n",
-                              ts, lstr, log_basename(file), line, msg);
-                (void)fflush(g_log_fp);
-            }
-
+            c_lock();
+            /* ロック後に再確認 (設定変更の競合を回避)。 */
             if (g_log_console)
             {
+                log_timestamp(ts, sizeof(ts));
                 (void)fprintf(stderr, "%s [%s] [%s:%d] %s\n",
                               ts, lstr, log_basename(file), line, msg);
             }
-
-#ifdef _WIN32
-            /* ── Windows: OutputDebugString ────────────────────────────── */
-            if (g_debugout)
-            {
-                char dbg_buf[640]; /* ts(96) + lstr(5) + file + line + msg(512) + margin */
-                (void)snprintf(dbg_buf, sizeof(dbg_buf), "%s [%s] [%s:%d] %s\n",
-                               ts, lstr, log_basename(file), line, msg);
-                OutputDebugStringA(dbg_buf);
-            }
-#endif /* _WIN32 */
+            c_unlock();
         }
     }
-
-    log_unlock();
 }
