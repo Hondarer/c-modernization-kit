@@ -368,6 +368,77 @@ jobs:
           find docs -type f | head -20
           echo "..."
 
+      - name: Create Pages root index.html
+        run: |
+          {
+            cat <<'INDEX_TOP'
+          <!DOCTYPE html>
+          <html lang="ja">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>c-modernization-kit ドキュメント</title>
+            <style>
+              body { font-family: sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; }
+              h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
+              h2 { border-bottom: 1px solid #ccc; margin-top: 1.5em; }
+              table { border-collapse: collapse; width: 100%; }
+              th, td { text-align: left; padding: 0.4em 0.8em; border: 1px solid #ddd; }
+              th { background: #f6f8fa; }
+              a { color: #0366d6; text-decoration: none; }
+              a:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>c-modernization-kit ドキュメント</h1>
+          INDEX_TOP
+
+            # Doxygen サブフォルダを自動探索してリンク生成
+            if [ -d "./docs/doxygen" ] && \
+               find ./docs/doxygen -maxdepth 1 -mindepth 1 -type d | grep -q .; then
+              echo '  <h2>Doxygen ドキュメント</h2>'
+              echo '  <table>'
+              echo '    <tr><th>モジュール</th><th>リンク</th></tr>'
+              find ./docs/doxygen -maxdepth 1 -mindepth 1 -type d | sort | while read -r subdir; do
+                name=$(basename "$subdir")
+                echo "    <tr><td>${name}</td><td><a href=\"doxygen/${name}/index.html\">${name} リファレンス</a></td></tr>"
+              done
+              echo '  </table>'
+            fi
+
+            # Markdown ドキュメント
+            if find ./docs -maxdepth 2 -name html -type d | grep -q .; then
+              cat <<'LANG_TABLE'
+            <h2>Markdown ドキュメント</h2>
+            <table>
+              <tr><th>言語</th><th>種別</th><th>リンク</th></tr>
+              <tr><td>日本語</td><td>通常版</td><td><a href="ja/html/index.html">日本語ドキュメント</a></td></tr>
+              <tr><td>English</td><td>Standard</td><td><a href="en/html/index.html">English Documentation</a></td></tr>
+              <tr><td>日本語</td><td>詳細版</td><td><a href="ja-details/html/index.html">日本語ドキュメント (詳細)</a></td></tr>
+              <tr><td>English</td><td>Details</td><td><a href="en-details/html/index.html">English Documentation (Details)</a></td></tr>
+            </table>
+          LANG_TABLE
+            fi
+
+            # アーティファクト (存在するものを列挙)
+            if [ -d "./docs/artifacts" ] && \
+               find ./docs/artifacts -name "*.zip" | grep -q .; then
+              echo '  <h2>アーティファクト</h2>'
+              echo '  <table>'
+              echo '    <tr><th>ファイル名</th></tr>'
+              find ./docs/artifacts -name "*.zip" | sort | while read -r zipfile; do
+                fname=$(basename "$zipfile")
+                echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
+              done
+              echo '  </table>'
+            fi
+
+            cat <<'INDEX_BOTTOM'
+          </body>
+          </html>
+          INDEX_BOTTOM
+          } > ./docs/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
