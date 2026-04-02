@@ -1,3 +1,5 @@
+LIBS += util
+
 ifneq ($(OS),Windows_NT)
     LIBS += pthread z crypto
 endif
