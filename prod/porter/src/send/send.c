@@ -167,12 +167,11 @@ static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event,
 static int parse_log_level(const char *str, PotrLogLevel *out)
 {
     static const struct { const char *name; PotrLogLevel level; uint32_t _pad; } tbl[] = {
-        { "TRACE", POTR_LOG_TRACE, 0U },
-        { "DEBUG", POTR_LOG_DEBUG, 0U },
-        { "INFO",  POTR_LOG_INFO,  0U },
-        { "WARN",  POTR_LOG_WARN,  0U },
-        { "ERROR", POTR_LOG_ERROR, 0U },
-        { "FATAL", POTR_LOG_FATAL, 0U },
+        { "DEBUG", POTR_TRACE_VERBOSE, 0U },
+        { "INFO",  POTR_TRACE_INFO,  0U },
+        { "WARN",  POTR_TRACE_WARNING,  0U },
+        { "ERROR", POTR_TRACE_ERROR, 0U },
+        { "FATAL", POTR_TRACE_CRITICAL, 0U },
     };
     char upper[16];
     size_t i;
@@ -234,7 +233,7 @@ int main(int argc, char *argv[])
     int          compress;
     int          ret   = EXIT_SUCCESS;
     int          i;
-    PotrLogLevel log_level    = POTR_LOG_OFF;
+    PotrLogLevel log_level    = POTR_TRACE_NONE;
     int          log_level_set = 0;
     PotrType     svc_type;
     int          is_bidir;

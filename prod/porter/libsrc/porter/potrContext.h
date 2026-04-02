@@ -161,7 +161,6 @@ struct PotrContext_
     PotrCondVar      health_wakeup[POTR_MAX_PATH];     /**< ヘルスチェックスレッドを即時起床させる条件変数 (path ごと)。 */
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< グローバル設定。 */
-    uint32_t         _pad_global;  /**< パディング (send_window を 8 バイト境界に揃える)。 */
     PotrWindow       send_window;       /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
     PotrMutex        send_window_mutex; /**< send_window 保護用ミューテックス (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合するため)。 */
     PotrWindow       recv_window;       /**< 受信ウィンドウ (順序整列・欠番検出)。 */

@@ -123,18 +123,18 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
 
     if (ctx == NULL)
     {
-        POTR_LOG(POTR_LOG_ERROR, "potrCloseService: handle is NULL");
+        POTR_LOG(POTR_TRACE_ERROR, "potrCloseService: handle is NULL");
         return POTR_ERROR;
     }
 
-    POTR_LOG(POTR_LOG_INFO,
+    POTR_LOG(POTR_TRACE_INFO,
              "potrCloseService: service_id=%" PRId64 " closing",
              ctx->service.service_id);
 
     /* TCP: 接続管理スレッドを停止する (send/recv/health スレッドは connect スレッド内で停止) */
     if (potr_is_tcp_type(ctx->service.type))
     {
-        POTR_LOG(POTR_LOG_DEBUG,
+        POTR_LOG(POTR_TRACE_VERBOSE,
                  "potrCloseService: service_id=%" PRId64 " stopping connect thread (TCP)",
                  ctx->service.service_id);
         potr_connect_thread_stop(ctx);
@@ -187,7 +187,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         WSACleanup();
 #endif /* _WIN32 */
 
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "potrCloseService: service closed (TCP)");
         free(ctx);
         return POTR_SUCCESS;
@@ -196,7 +196,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     /* 非 TCP: ヘルスチェックスレッドを停止 (送信者のみ) */
     if (ctx->health_running)
     {
-        POTR_LOG(POTR_LOG_DEBUG,
+        POTR_LOG(POTR_TRACE_VERBOSE,
                  "potrCloseService: service_id=%" PRId64 " stopping health thread",
                  ctx->service.service_id);
         potr_health_thread_stop(ctx);
@@ -205,7 +205,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     /* 送信スレッドを停止してキューを破棄 (送信者のみ) */
     if (ctx->send_thread_running)
     {
-        POTR_LOG(POTR_LOG_DEBUG,
+        POTR_LOG(POTR_TRACE_VERBOSE,
                  "potrCloseService: service_id=%" PRId64 " flushing send queue and sending FIN",
                  ctx->service.service_id);
         potr_send_queue_wait_drained(&ctx->send_queue);
@@ -226,7 +226,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     /* 受信スレッドを停止する */
     if (ctx->running)
     {
-        POTR_LOG(POTR_LOG_DEBUG,
+        POTR_LOG(POTR_TRACE_VERBOSE,
                  "potrCloseService: service_id=%" PRId64 " stopping recv thread",
                  ctx->service.service_id);
         comm_recv_thread_stop(ctx);
@@ -297,7 +297,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     free(ctx->recv_buf);
     free(ctx->send_wire_buf);
 
-    POTR_LOG(POTR_LOG_INFO,
+    POTR_LOG(POTR_TRACE_INFO,
              "potrCloseService: service closed");
 
     free(ctx);

@@ -50,10 +50,10 @@ struct trace_file_provider
     char   *path;
     /** ファイル 1 世代あたりの最大バイト数。 */
     size_t  max_bytes;
-    /** 保持する旧世代数。 */
-    int     generations;
     /** 現ファイルへの書き込み済みバイト数 (インメモリ追跡)。 */
     size_t  current_bytes;
+    /** 保持する旧世代数。 */
+    int     generations;
 
 #ifdef _WIN32
     /** ファイルハンドル。INVALID_HANDLE_VALUE = 未開。 */
@@ -69,6 +69,8 @@ struct trace_file_provider
     pthread_mutex_t  mutex;
     /** mutex が初期化済みかどうかのフラグ。 */
     int              mutex_initialized;
+    /** パディング (構造体サイズを 8 バイト境界に揃える)。 */
+    int              _pad_end;
 #endif /* _WIN32 */
 };
 
@@ -109,11 +111,18 @@ static void format_timestamp(char *buf, int buf_size)
     struct tm       tm_val;
     clock_gettime(CLOCK_REALTIME, &ts);
     gmtime_r(&ts.tv_sec, &tm_val);
+    /* -Wformat-truncation の抑制: gmtime_r() が返す tm 構造体の各フィールドは POSIX で
+     * 範囲が保証されており (tm_mon: 0-11, tm_mday: 1-31 等)、出力は常に 23 文字以内に
+     * 収まる。GCC は int 型の理論上の最大範囲 [-2147483648, 2147483647] を使って静的
+     * 検証するため false positive が発生する。pragma はその誤報を局所的に抑制する。 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(buf, (size_t)buf_size,
              "%04d-%02d-%02d %02d:%02d:%02d.%03d",
              tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
              tm_val.tm_hour,        tm_val.tm_min,      tm_val.tm_sec,
              (int)(ts.tv_nsec / 1000000));
+#pragma GCC diagnostic pop
 #endif /* _WIN32 */
 }
 

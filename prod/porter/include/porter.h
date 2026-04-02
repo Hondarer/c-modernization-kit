@@ -404,7 +404,7 @@ extern "C"
     /**
      *******************************************************************************
      *  @brief          ロガーを設定します。
-     *  @param[in]      level       出力する最低ログレベル。POTR_LOG_OFF でログ無効 (デフォルト)。
+     *  @param[in]      level       出力する最低ログレベル。POTR_TRACE_NONE でログ無効 (デフォルト)。
      *  @param[in]      log_file    ログファイルのパス。NULL または空文字列を指定するとファイル出力なし。
      *  @param[in]      console     0 以外を指定すると標準エラー出力 (stderr) にも出力します。
      *  @return         成功時は POTR_SUCCESS、log_file が開けない場合は POTR_ERROR を返します。
@@ -414,42 +414,46 @@ extern "C"
      *  複数回呼び出した場合は最後の設定が有効になります。
      *
      *  @par            出力先
-     *  | OS      | 出力先                                                                    |
-     *  | ------- | ------------------------------------------------------------------------- |
-     *  | Linux   | syslog (常時)、ログファイル (log_file 指定時)、stderr (console 指定時)   |
-     *  | Windows | ログファイル (log_file 指定時)、stderr (console 指定時)                   |
+     *  | OS      | 出力先                                                                                                   |
+     *  | ------- | -------------------------------------------------------------------------------------------------------- |
+     *  | Linux   | syslog (trace-util 経由)、ログファイル (trace-util 経由、log_file 指定時)、stderr (trace-util 経由、console 指定時) |
+     *  | Windows | ETW (trace-util 経由)、ログファイル (trace-util 経由、log_file 指定時)、stderr (trace-util 経由、console 指定時)    |
      *
-     *  @par            ログフォーマット (ファイル / stderr)
+     *  @par            ログフォーマット
+     *  OS トレース (syslog / ETW) およびファイルへの出力フォーマット:
      *  @code
-     *  [YYYY-MM-DD HH:MM:SS.mmm] [LEVEL] [file.c:line] message
+     *  [file.c:line] message
+     *  @endcode
+     *  stderr への出力フォーマット (タイムスタンプは UTC、L はレベル文字):
+     *  @code
+     *  YYYY-MM-DD HH:MM:SS.mmm L [file.c:line] message
      *  @endcode
      *
      *  @par            ログレベル一覧
-     *  | レベル          | 値 | syslog priority | 出力内容                          |
-     *  | --------------- | -- | --------------- | --------------------------------- |
-     *  | POTR_LOG_FATAL  |  0 | LOG_CRIT        | 致命的エラー                      |
-     *  | POTR_LOG_ERROR  |  1 | LOG_ERR         | 操作失敗                          |
-     *  | POTR_LOG_WARN   |  2 | LOG_WARNING     | NACK・REJECT・回復可能な異常      |
-     *  | POTR_LOG_INFO   |  3 | LOG_INFO        | サービス開始・終了・接続状態変化  |
-     *  | POTR_LOG_DEBUG  |  4 | LOG_DEBUG       | ソケット操作・設定値              |
-     *  | POTR_LOG_TRACE  |  4 | LOG_DEBUG       | パケット送受信・スレッド動作 (DEBUG の別名) |
-     *  | POTR_LOG_OFF    |  5 | -               | ログ無効 (デフォルト)             |
+     *  | レベル               | 値 | 出力内容                                        |
+     *  | -------------------- | -- | ----------------------------------------------- |
+     *  | POTR_TRACE_CRITICAL  |  0 | 致命的エラー                                    |
+     *  | POTR_TRACE_ERROR     |  1 | 操作失敗                                        |
+     *  | POTR_TRACE_WARNING   |  2 | NACK・REJECT・回復可能な異常                    |
+     *  | POTR_TRACE_INFO      |  3 | サービス開始・終了・接続状態変化                |
+     *  | POTR_TRACE_VERBOSE   |  4 | ソケット操作・設定値・パケット送受信・スレッド動作 |
+     *  | POTR_TRACE_NONE      |  5 | ログ無効 (デフォルト)                           |
      *
      *  @par            使用例
      *  @code{.c}
      *  // INFO 以上をファイルと stderr に出力
-     *  potrLogConfig(POTR_LOG_INFO, "/var/log/porter.log", 1);
+     *  potrLogConfig(POTR_TRACE_INFO, "/var/log/porter.log", 1);
      *
-     *  // DEBUG 以上をファイルのみに出力 (Linux では syslog にも出力)
-     *  potrLogConfig(POTR_LOG_DEBUG, "/tmp/porter.log", 0);
+     *  // VERBOSE 以上をファイルのみに出力
+     *  potrLogConfig(POTR_TRACE_VERBOSE, "/tmp/porter.log", 0);
      *
      *  // ログを無効化
-     *  potrLogConfig(POTR_LOG_OFF, NULL, 0);
+     *  potrLogConfig(POTR_TRACE_NONE, NULL, 0);
      *  @endcode
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n
-     *  内部でミューテックスを使用しているため、ログを出力中のスレッドが存在する場合でも
+     *  出力制御は trace-util が内部で排他制御を行うため、ログを出力中のスレッドが存在する場合でも
      *  安全に設定を変更できます。
      *
      *  @warning        log_file に指定したパスが書き込み不可の場合は POTR_ERROR を返します。

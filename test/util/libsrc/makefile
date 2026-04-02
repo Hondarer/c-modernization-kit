@@ -1,6 +1,4 @@
-SUBDIRS = \
-	libsrc \
-	src
+SUBDIRS = $(wildcard */)
 
 .DEFAULT_GOAL := default
 

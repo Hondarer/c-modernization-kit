@@ -193,7 +193,7 @@ typedef struct
  *  @details
  *  UDP で送受信される物理パケットのレイアウトです。\n
  *  各フィールドはネットワークバイトオーダー (ビッグエンディアン) で格納します。\n
- *  ヘッダー固定長: offsetof(PotrPacket, payload) = 36 バイト。\n
+ *  ヘッダー固定長: offsetof(PotrPacket, payload) = 40 バイト (64 ビット環境)。\n
  *  payload フィールドはポインタであり、wire データとして直接 sendto に渡せません。\n
  *  送信時は PotrContext_ の send_wire_buf / recv_buf に wire データを組み立ててください。
  *
@@ -207,7 +207,8 @@ typedef struct
  *  28: ack_num         (uint32_t, 4 bytes)
  *  32: flags           (uint16_t, 2 bytes)
  *  34: payload_len     (uint16_t, 2 bytes)
- *  36: payload         (pointer)
+ *  36: _reserved       (uint32_t, 4 bytes, padding)
+ *  40: payload         (pointer)
  *  @endcode
  *******************************************************************************
  */
@@ -221,6 +222,7 @@ typedef struct
     uint32_t ack_num;         /**< 再送要求番号 / 再送不能通番 (NBO)。NACK では要求通番、REJECT では再送不能通番を格納する。 */
     uint16_t flags;           /**< パケット種別フラグ (POTR_FLAG_*) (NBO)。 */
     uint16_t payload_len;     /**< ペイロード長 (バイト) (NBO)。 */
+    uint32_t _reserved;       /**< パディング (payload ポインタを 8 バイト境界に揃える)。 */
     const uint8_t *payload;   /**< ペイロードデータへのポインタ (読み取り専用)。ウィンドウプールまたは受信バッファ内を指す。 */
 } PotrPacket;
 
@@ -316,32 +318,25 @@ typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,
  *  数値が小さいほど重大度が高く、指定したレベル以下 (より重大) のメッセージのみが出力されます。\n
  *  数値順序は trace-util の enum trace_level と対応しています。
  *
- *  | PotrLogLevel    | 値 | trace_level        | syslog priority |
- *  | --------------- | -- | ------------------ | --------------- |
- *  | POTR_LOG_FATAL  |  0 | TRACE_LV_CRITICAL  | LOG_CRIT        |
- *  | POTR_LOG_ERROR  |  1 | TRACE_LV_ERROR     | LOG_ERR         |
- *  | POTR_LOG_WARN   |  2 | TRACE_LV_WARNING   | LOG_WARNING     |
- *  | POTR_LOG_INFO   |  3 | TRACE_LV_INFO      | LOG_INFO        |
- *  | POTR_LOG_DEBUG  |  4 | TRACE_LV_VERBOSE   | LOG_DEBUG       |
- *  | POTR_LOG_OFF    |  5 | TRACE_LV_NONE      | -               |
+ *  | PotrLogLevel       | 値 | trace_level        | syslog priority |
+ *  | ------------------ | -- | ------------------ | --------------- |
+ *  | POTR_TRACE_CRITICAL |  0 | TRACE_LV_CRITICAL  | LOG_CRIT        |
+ *  | POTR_TRACE_ERROR    |  1 | TRACE_LV_ERROR     | LOG_ERR         |
+ *  | POTR_TRACE_WARNING  |  2 | TRACE_LV_WARNING   | LOG_WARNING     |
+ *  | POTR_TRACE_INFO     |  3 | TRACE_LV_INFO      | LOG_INFO        |
+ *  | POTR_TRACE_VERBOSE  |  4 | TRACE_LV_VERBOSE   | LOG_DEBUG       |
+ *  | POTR_TRACE_NONE     |  5 | TRACE_LV_NONE      | -               |
  *
- *  @note POTR_LOG_TRACE は POTR_LOG_DEBUG の別名マクロです。
  *******************************************************************************
  */
 typedef enum
 {
-    POTR_LOG_FATAL = 0, /**< 致命的エラー。回復不能な障害を記録。TRACE_LV_CRITICAL (0) と同値。 */
-    POTR_LOG_ERROR = 1, /**< エラー。操作の失敗を記録。TRACE_LV_ERROR (1) と同値。 */
-    POTR_LOG_WARN  = 2, /**< 警告。回復可能な異常を記録。TRACE_LV_WARNING (2) と同値。 */
-    POTR_LOG_INFO  = 3, /**< 情報。TRACE_LV_INFO (3) と同値。 */
-    POTR_LOG_DEBUG = 4, /**< デバッグ情報。TRACE_LV_VERBOSE (4) と同値。 */
-    POTR_LOG_OFF   = 5, /**< ログ出力無効。TRACE_LV_NONE (5) と同値。 */
+    POTR_TRACE_CRITICAL = 0, /**< 致命的エラー。回復不能な障害を記録。TRACE_LV_CRITICAL (0) と同値。 */
+    POTR_TRACE_ERROR    = 1, /**< エラー。操作の失敗を記録。TRACE_LV_ERROR (1) と同値。 */
+    POTR_TRACE_WARNING  = 2, /**< 警告。回復可能な異常を記録。TRACE_LV_WARNING (2) と同値。 */
+    POTR_TRACE_INFO     = 3, /**< 情報。TRACE_LV_INFO (3) と同値。 */
+    POTR_TRACE_VERBOSE  = 4, /**< 詳細情報 (デバッグ)。TRACE_LV_VERBOSE (4) と同値。 */
+    POTR_TRACE_NONE     = 5, /**< ログ出力無効。TRACE_LV_NONE (5) と同値。 */
 } PotrLogLevel;
-
-/**
- *  @def            POTR_LOG_TRACE
- *  @brief          POTR_LOG_DEBUG の別名。trace-util に対応レベルがないため DEBUG (VERBOSE) に集約。
- */
-#define POTR_LOG_TRACE POTR_LOG_DEBUG
 
 #endif /* PORTER_TYPE_H */

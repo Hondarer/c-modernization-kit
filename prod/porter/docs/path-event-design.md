@@ -326,7 +326,7 @@ static void fire_path_event(struct PotrContext_ *ctx,
     int k;
     for (k = 0; k < (int)POTR_MAX_PATH; k++)
         path_states[k] = ctx->path_alive[k];
-    POTR_LOG(POTR_LOG_INFO,
+    POTR_LOG(POTR_TRACE_INFO,
              "recv[service_id=%" PRId64 "]: %s path=%d",
              ctx->service.service_id,
              (event == POTR_EVENT_PATH_CONNECTED) ? "PATH_CONNECTED" : "PATH_DISCONNECTED",
@@ -356,7 +356,7 @@ static void n1_fire_path_event(struct PotrContext_ *ctx,
     int k;
     for (k = 0; k < (int)POTR_MAX_PATH; k++)
         path_states[k] = (peer->dest_addr[k].sin_family == AF_INET) ? 1 : 0;
-    POTR_LOG(POTR_LOG_INFO,
+    POTR_LOG(POTR_TRACE_INFO,
              "recv[service_id=%" PRId64 "]: peer=%u %s path=%d",
              ctx->service.service_id, (unsigned)peer->peer_id,
              (event == POTR_EVENT_PATH_CONNECTED) ? "PATH_CONNECTED" : "PATH_DISCONNECTED",
@@ -385,7 +385,7 @@ static void tcp_fire_path_event(struct PotrContext_ *ctx,
     int k;
     for (k = 0; k < (int)POTR_MAX_PATH; k++)
         path_states[k] = ctx->path_alive[k];
-    POTR_LOG(POTR_LOG_INFO,
+    POTR_LOG(POTR_TRACE_INFO,
              "connect_thread[service_id=%" PRId64 "]: %s path=%d",
              ctx->service.service_id,
              (event == POTR_EVENT_PATH_CONNECTED) ? "PATH_CONNECTED" : "PATH_DISCONNECTED",

@@ -19,10 +19,11 @@ using namespace testing;
 /* コールバックキャプチャ */
 struct CallbackCapture
 {
-    int        count;
     int64_t    service_id;
     PotrPeerId peer_id;
     PotrEvent  event;
+    int        count;
+    int        _pad_end;
 };
 
 static CallbackCapture g_cb;
@@ -78,7 +79,7 @@ TEST_F(potrDisconnectPeerTest, handle_null)
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_LOG_ERROR,
+    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
                                     EndsWith("potrDisconnectPeer.c"), _,
                                     HasSubstr("handle is NULL")))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "handle is NULL" が含まれること。
@@ -98,7 +99,7 @@ TEST_F(potrDisconnectPeerTest, peer_id_na)
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_LOG_ERROR,
+    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
                                     EndsWith("potrDisconnectPeer.c"), _,
                                     HasSubstr("invalid peer_id")))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "invalid peer_id" が含まれること。
@@ -118,7 +119,7 @@ TEST_F(potrDisconnectPeerTest, peer_id_all)
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_LOG_ERROR,
+    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
                                     EndsWith("potrDisconnectPeer.c"), _,
                                     HasSubstr("invalid peer_id")))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "invalid peer_id" が含まれること。
@@ -139,7 +140,7 @@ TEST_F(potrDisconnectPeerTest, not_multi_peer)
     ctx.is_multi_peer = 0; // [状態] - N:1 モードでない (is_multi_peer=0) に設定する。
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_LOG_ERROR,
+    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
                                     EndsWith("potrDisconnectPeer.c"), _,
                                     HasSubstr("not in N:1 mode")))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "not in N:1 mode" が含まれること。
@@ -162,7 +163,7 @@ TEST_F(potrDisconnectPeerTest, peer_not_found)
     EXPECT_CALL(mock_peer_table, peer_find_by_id(&ctx, (PotrPeerId)99))
         .WillOnce(Return(nullptr)); // [Pre-Assert確認_異常系] - peer_find_by_id が nullptr を返すこと。
 
-    EXPECT_CALL(mock_log, log_write(POTR_LOG_ERROR,
+    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
                                     EndsWith("potrDisconnectPeer.c"), _,
                                     HasSubstr("not found")))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "not found" が含まれること。
@@ -189,7 +190,7 @@ TEST_F(potrDisconnectPeerTest, normal_with_callback)
     EXPECT_CALL(mock_peer_table, peer_find_by_id(&ctx, (PotrPeerId)1))
         .WillOnce(Return(&peer_ctx)); // [Pre-Assert確認_正常系] - peer_find_by_id がピアコンテキストを返すこと。
 
-    EXPECT_CALL(mock_log, log_write(POTR_LOG_INFO,
+    EXPECT_CALL(mock_log, log_write(POTR_TRACE_INFO,
                                     EndsWith("potrDisconnectPeer.c"), _,
                                     HasSubstr("disconnecting")))
         .Times(1); // [Pre-Assert確認_正常系] - INFO ログに "disconnecting" が含まれること。

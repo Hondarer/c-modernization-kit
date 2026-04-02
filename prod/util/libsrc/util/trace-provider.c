@@ -26,6 +26,7 @@ static volatile LONG s_trace_ref = 0;
 static etw_provider_t *s_etw_handle = NULL;
 
 #else /* !_WIN32 */
+#include <time.h>
 #include <pthread.h>
 #endif /* _WIN32 */
 
@@ -54,6 +55,9 @@ struct trace_provider
     /** ファイルトレースプロバイダハンドル。NULL = ファイルトレース無効。 */
     trace_file_provider_t *file_handle;
 
+    /** stderr トレースのスレッショルドレベル。デフォルト: TRACE_LV_NONE。 */
+    enum trace_level stderr_level;
+
     /** 実行状態フラグ (0=停止中, 1=実行中)。 */
     volatile int running;
 
@@ -66,6 +70,8 @@ struct trace_provider
     pthread_rwlock_t config_rwlock;
     /** config_rwlock が初期化済みかどうかのフラグ。 */
     int              config_rwlock_initialized;
+    /** パディング (構造体サイズを 8 バイト境界に揃える)。 */
+    int              _pad_end;
 #endif /* _WIN32 */
 };
 
@@ -102,6 +108,7 @@ static int to_syslog_level(enum trace_level lv)
     case TRACE_LV_WARNING:  return LOG_WARNING;
     case TRACE_LV_INFO:     return LOG_INFO;
     case TRACE_LV_VERBOSE:  return LOG_DEBUG;
+    case TRACE_LV_NONE:     /* fall through */
     default:                return LOG_DEBUG;
     }
 }
@@ -303,12 +310,13 @@ trace_provider_t *TRACE_UTIL_API
             return NULL;
         }
 
-        handle->identifier   = 0;
-        handle->service_name = svc;
-        handle->os_level     = TRACE_DEFAULT_OS_LEVEL;
-        handle->file_level   = TRACE_DEFAULT_FILE_LEVEL;
-        handle->file_handle  = NULL;
-        handle->running      = 0;
+        handle->identifier    = 0;
+        handle->service_name  = svc;
+        handle->os_level      = TRACE_DEFAULT_OS_LEVEL;
+        handle->file_level    = TRACE_DEFAULT_FILE_LEVEL;
+        handle->file_handle   = NULL;
+        handle->stderr_level  = TRACE_DEFAULT_STDERR_LEVEL;
+        handle->running       = 0;
 
         InitializeSRWLock(&handle->config_rwlock);
 
@@ -346,6 +354,7 @@ trace_provider_t *TRACE_UTIL_API
         handle->os_level      = TRACE_DEFAULT_OS_LEVEL;
         handle->file_level    = TRACE_DEFAULT_FILE_LEVEL;
         handle->file_handle   = NULL;
+        handle->stderr_level  = TRACE_DEFAULT_STDERR_LEVEL;
         handle->running       = 0;
 
         if (pthread_rwlock_init(&handle->config_rwlock, NULL) != 0)
@@ -448,6 +457,51 @@ static int should_output(enum trace_level msg_level, enum trace_level threshold)
     return (int)msg_level <= (int)threshold;
 }
 
+/** stderr タイムスタンプバッファサイズ ("YYYY-MM-DD HH:MM:SS.mmm\0" = 24)。 */
+#define STDERR_TS_BUF_SIZE 24
+
+/**
+ *  @brief  stderr にタイムスタンプ + レベル文字 + メッセージを 1 行書き込む。
+ *  @details  ファイルトレースと同一フォーマット: "YYYY-MM-DD HH:MM:SS.mmm L msg\n"\n
+ *            タイムスタンプは UTC。fprintf(stderr) は MT-Safe のため追加ロック不要。
+ */
+static void write_stderr_entry(enum trace_level level, const char *msg)
+{
+    char ts[STDERR_TS_BUF_SIZE];
+    static const char lc_table[] = {'C', 'E', 'W', 'I', 'V'};
+    char lc;
+
+#ifdef _WIN32
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    snprintf(ts, sizeof(ts),
+             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+             (int)st.wYear,  (int)st.wMonth,  (int)st.wDay,
+             (int)st.wHour,  (int)st.wMinute, (int)st.wSecond,
+             (int)st.wMilliseconds);
+#else /* !_WIN32 */
+    struct timespec tsp;
+    struct tm       tm_val;
+    clock_gettime(CLOCK_REALTIME, &tsp);
+    gmtime_r(&tsp.tv_sec, &tm_val);
+    /* -Wformat-truncation の抑制: gmtime_r() が返す tm 構造体の各フィールドは POSIX で
+     * 範囲が保証されており (tm_mon: 0-11, tm_mday: 1-31 等)、出力は常に 23 文字以内に
+     * 収まる。GCC は int 型の理論上の最大範囲 [-2147483648, 2147483647] を使って静的
+     * 検証するため false positive が発生する。pragma はその誤報を局所的に抑制する。 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+    snprintf(ts, sizeof(ts),
+             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+             tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
+             tm_val.tm_hour,        tm_val.tm_min,      tm_val.tm_sec,
+             (int)(tsp.tv_nsec / 1000000));
+#pragma GCC diagnostic pop
+#endif /* _WIN32 */
+
+    lc = ((int)level < (int)TRACE_LV_NONE) ? lc_table[(int)level] : 'V';
+    fprintf(stderr, "%s %c %s\n", ts, lc, msg);
+}
+
 /**
  *  @brief  OS プロバイダとファイルプロバイダの両方へメッセージを書き込む。
  *  @details レベルフィルタリングを行い、各出力先の条件に合致する場合のみ書き込む。
@@ -469,6 +523,12 @@ static int write_dual(trace_provider_t *handle, enum trace_level level, const ch
     if (handle->file_handle != NULL && should_output(level, handle->file_level))
     {
         file_result = trace_file_provider_write(handle->file_handle, (int)level, msg);
+    }
+
+    /* stderr 出力 */
+    if (should_output(level, handle->stderr_level))
+    {
+        write_stderr_entry(level, msg);
     }
 
     return (os_result != 0 || file_result != 0) ? -1 : 0;
@@ -867,4 +927,79 @@ int TRACE_UTIL_API
 
     config_unlock_exclusive(handle);
     return result;
+}
+
+int TRACE_UTIL_API
+    trace_modify_stderrtrc(trace_provider_t *handle, enum trace_level level)
+{
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    config_lock_exclusive(handle);
+
+    if (handle->running)
+    {
+        config_unlock_exclusive(handle);
+        return -1;
+    }
+
+    handle->stderr_level = level;
+    config_unlock_exclusive(handle);
+    return 0;
+}
+
+enum trace_level TRACE_UTIL_API
+    trace_get_ostrc(trace_provider_t *handle)
+{
+    enum trace_level lv;
+
+    if (handle == NULL)
+    {
+        return TRACE_LV_NONE;
+    }
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return TRACE_LV_NONE;
+    }
+    lv = handle->os_level;
+    config_unlock_shared(handle);
+    return lv;
+}
+
+enum trace_level TRACE_UTIL_API
+    trace_get_filetrc(trace_provider_t *handle)
+{
+    enum trace_level lv;
+
+    if (handle == NULL)
+    {
+        return TRACE_LV_NONE;
+    }
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return TRACE_LV_NONE;
+    }
+    lv = handle->file_level;
+    config_unlock_shared(handle);
+    return lv;
+}
+
+enum trace_level TRACE_UTIL_API
+    trace_get_stderrtrc(trace_provider_t *handle)
+{
+    enum trace_level lv;
+
+    if (handle == NULL)
+    {
+        return TRACE_LV_NONE;
+    }
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return TRACE_LV_NONE;
+    }
+    lv = handle->stderr_level;
+    config_unlock_shared(handle);
+    return lv;
 }

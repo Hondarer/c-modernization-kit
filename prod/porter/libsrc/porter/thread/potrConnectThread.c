@@ -279,7 +279,7 @@ static void reset_all_paths_disconnected(struct PotrContext_ *ctx)
     if (ctx->health_alive)
     {
         ctx->health_alive = 0;
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 "]: DISCONNECTED (all paths down)",
                  ctx->service.service_id);
         if (ctx->callback != NULL)
@@ -315,7 +315,7 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
     {
         if (potr_send_thread_start(ctx) != POTR_SUCCESS)
         {
-            POTR_LOG(POTR_LOG_ERROR,
+            POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 "]: send_thread_start failed",
                      ctx->service.service_id);
             return POTR_ERROR;
@@ -325,7 +325,7 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
     /* recv スレッドを path ごとに起動 */
     if (tcp_recv_thread_start(ctx, path_idx) != POTR_SUCCESS)
     {
-        POTR_LOG(POTR_LOG_ERROR,
+        POTR_LOG(POTR_TRACE_ERROR,
                  "connect_thread[service_id=%" PRId64 "]: tcp_recv_thread_start failed"
                  " (path=%d)",
                  ctx->service.service_id, path_idx);
@@ -342,7 +342,7 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
     {
         if (potr_tcp_health_thread_start(ctx, path_idx) != POTR_SUCCESS)
         {
-            POTR_LOG(POTR_LOG_ERROR,
+            POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 "]: tcp_health_thread_start failed"
                      " (path=%d)",
                      ctx->service.service_id, path_idx);
@@ -388,7 +388,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == POTR_INVALID_SOCKET)
     {
-        POTR_LOG(POTR_LOG_ERROR,
+        POTR_LOG(POTR_TRACE_ERROR,
                  "connect_thread[service_id=%" PRId64 "]: socket() failed",
                  ctx->service.service_id);
         return POTR_INVALID_SOCKET;
@@ -422,7 +422,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) == SOCKET_ERROR)
 #endif /* _WIN32 */
         {
-            POTR_LOG(POTR_LOG_ERROR,
+            POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 "]: bind() failed",
                      ctx->service.service_id);
 #ifndef _WIN32
@@ -444,7 +444,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         /* ブロッキング接続 */
         if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
-            POTR_LOG(POTR_LOG_DEBUG,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 "]: connect() failed (blocking)",
                      ctx->service.service_id);
 #ifndef _WIN32
@@ -478,7 +478,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         }
         if (errno != EINPROGRESS)
         {
-            POTR_LOG(POTR_LOG_DEBUG,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 "]: connect() failed (errno=%d)",
                      ctx->service.service_id, errno);
             close(sock);
@@ -520,7 +520,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
 
             if (!ready)
             {
-                POTR_LOG(POTR_LOG_DEBUG,
+                POTR_LOG(POTR_TRACE_VERBOSE,
                          "connect_thread[service_id=%" PRId64 "]: connect() timed out",
                          ctx->service.service_id);
                 close(sock);
@@ -532,7 +532,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &errlen);
         if (error != 0)
         {
-            POTR_LOG(POTR_LOG_DEBUG,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 "]: connect() SO_ERROR=%d",
                      ctx->service.service_id, error);
             close(sock);
@@ -562,7 +562,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         }
         if (WSAGetLastError() != WSAEWOULDBLOCK)
         {
-            POTR_LOG(POTR_LOG_DEBUG,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 "]: connect() failed (WSA error)",
                      ctx->service.service_id);
             closesocket(sock);
@@ -603,7 +603,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
 
             if (!ready)
             {
-                POTR_LOG(POTR_LOG_DEBUG,
+                POTR_LOG(POTR_TRACE_VERBOSE,
                          "connect_thread[service_id=%" PRId64 "]: connect() timed out",
                          ctx->service.service_id);
                 closesocket(sock);
@@ -615,7 +615,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *)&error, &errlen);
         if (error != 0)
         {
-            POTR_LOG(POTR_LOG_DEBUG,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 "]: connect() SO_ERROR=%d",
                      ctx->service.service_id, error);
             closesocket(sock);
@@ -640,7 +640,7 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         PotrSocket sock;
         int        active_count;
 
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: connecting to %s:%u ...",
                  ctx->service.service_id, path_idx,
                  ctx->service.dst_addr[path_idx],
@@ -654,14 +654,14 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
 
             if (ctx->service.reconnect_interval_ms == 0U)
             {
-                POTR_LOG(POTR_LOG_INFO,
+                POTR_LOG(POTR_TRACE_INFO,
                          "connect_thread[service_id=%" PRId64 " path=%d]: connect failed, "
                          "no reconnect (reconnect_interval_ms=0)",
                          ctx->service.service_id, path_idx);
                 break;
             }
 
-            POTR_LOG(POTR_LOG_DEBUG,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 " path=%d]: connect failed, "
                      "retrying in %ums",
                      ctx->service.service_id, path_idx,
@@ -670,7 +670,7 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
             continue;
         }
 
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP connected",
                  ctx->service.service_id, path_idx);
 
@@ -726,7 +726,7 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         /* recv スレッドが接続断を検知して自然終了するまで待機する */
         join_recv_thread(ctx, path_idx);
 
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP disconnected",
                  ctx->service.service_id, path_idx);
 
@@ -752,14 +752,14 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         if (!ctx->connect_thread_running[path_idx]) break;
         if (ctx->service.reconnect_interval_ms == 0U)
         {
-            POTR_LOG(POTR_LOG_INFO,
+            POTR_LOG(POTR_TRACE_INFO,
                      "connect_thread[service_id=%" PRId64 " path=%d]: no reconnect "
                      "(reconnect_interval_ms=0)",
                      ctx->service.service_id, path_idx);
             break;
         }
 
-        POTR_LOG(POTR_LOG_DEBUG,
+        POTR_LOG(POTR_TRACE_VERBOSE,
                  "connect_thread[service_id=%" PRId64 " path=%d]: waiting %ums before reconnect",
                  ctx->service.service_id, path_idx,
                  (unsigned)ctx->service.reconnect_interval_ms);
@@ -806,7 +806,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         {
             if (!ctx->connect_thread_running[path_idx]) break;
             /* 一時的なエラー: ループ継続 */
-            POTR_LOG(POTR_LOG_TRACE,
+            POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 " path=%d]: accept() error, retrying",
                      ctx->service.service_id, path_idx);
             continue;
@@ -834,7 +834,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             }
             if (filtered)
             {
-                POTR_LOG(POTR_LOG_INFO,
+                POTR_LOG(POTR_TRACE_INFO,
                          "connect_thread[service_id=%" PRId64 " path=%d]: rejected connection"
                          " from %s:%u (src filter)",
                          ctx->service.service_id, path_idx,
@@ -849,7 +849,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             }
         }
 
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP accepted from %s:%u",
                  ctx->service.service_id, path_idx,
                  peer_addr_str,
@@ -869,7 +869,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             if (r <= 0)
             {
                 /* タイムアウトまたは EOF/エラー */
-                POTR_LOG(POTR_LOG_WARN,
+                POTR_LOG(POTR_TRACE_WARNING,
                          "connect_thread[service_id=%" PRId64 " path=%d]: "
                          "first packet read failed (r=%d), closing",
                          ctx->service.service_id, path_idx, r);
@@ -884,7 +884,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             if (packet_parse(&pkt, ctx->tcp_first_pkt_buf[path_idx], pkt_len)
                 != POTR_SUCCESS)
             {
-                POTR_LOG(POTR_LOG_WARN,
+                POTR_LOG(POTR_TRACE_WARNING,
                          "connect_thread[service_id=%" PRId64 " path=%d]: "
                          "first packet parse failed, closing",
                          ctx->service.service_id, path_idx);
@@ -913,7 +913,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
 #else /* _WIN32 */
                 LeaveCriticalSection(&ctx->session_establish_mutex);
 #endif /* _WIN32 */
-                POTR_LOG(POTR_LOG_INFO,
+                POTR_LOG(POTR_TRACE_INFO,
                          "connect_thread[service_id=%" PRId64 " path=%d]: "
                          "old session rejected (known_id=%u pkt_id=%u)",
                          ctx->service.service_id, path_idx,
@@ -999,7 +999,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         /* recv スレッドが接続断を検知して自然終了するまで待機する */
         join_recv_thread(ctx, path_idx);
 
-        POTR_LOG(POTR_LOG_INFO,
+        POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP connection closed",
                  ctx->service.service_id, path_idx);
 
@@ -1040,7 +1040,7 @@ static DWORD WINAPI connect_thread_func(LPVOID arg)
     struct PotrContext_ *ctx      = carg->ctx;
     int                  path_idx = carg->path_idx;
 
-    POTR_LOG(POTR_LOG_DEBUG,
+    POTR_LOG(POTR_TRACE_VERBOSE,
              "connect_thread[service_id=%" PRId64 " path=%d]: started (role=%s type=%s)",
              ctx->service.service_id, path_idx,
              (ctx->role == POTR_ROLE_SENDER) ? "SENDER" : "RECEIVER",
@@ -1057,7 +1057,7 @@ static DWORD WINAPI connect_thread_func(LPVOID arg)
 
     ctx->connect_thread_running[path_idx] = 0;
 
-    POTR_LOG(POTR_LOG_DEBUG,
+    POTR_LOG(POTR_TRACE_VERBOSE,
              "connect_thread[service_id=%" PRId64 " path=%d]: exited",
              ctx->service.service_id, path_idx);
 
@@ -1090,7 +1090,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
         return POTR_ERROR;
     }
 
-    POTR_LOG(POTR_LOG_DEBUG,
+    POTR_LOG(POTR_TRACE_VERBOSE,
              "connect_thread[service_id=%" PRId64 "]: starting %d path(s)",
              ctx->service.service_id, ctx->n_path);
 
@@ -1111,7 +1111,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
             if (ctx->tcp_first_pkt_buf[i] == NULL)
             {
                 int j;
-                POTR_LOG(POTR_LOG_ERROR,
+                POTR_LOG(POTR_TRACE_ERROR,
                          "connect_thread[service_id=%" PRId64 "]: "
                          "tcp_first_pkt_buf[%d] malloc failed",
                          ctx->service.service_id, i);
@@ -1142,7 +1142,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
                            connect_thread_func, &s_connect_args[i]) != 0)
         {
             ctx->connect_thread_running[i] = 0;
-            POTR_LOG(POTR_LOG_ERROR,
+            POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 " path=%d]: pthread_create failed",
                      ctx->service.service_id, i);
             return POTR_ERROR;
@@ -1153,7 +1153,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
         if (ctx->connect_thread[i] == NULL)
         {
             ctx->connect_thread_running[i] = 0;
-            POTR_LOG(POTR_LOG_ERROR,
+            POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 " path=%d]: CreateThread failed",
                      ctx->service.service_id, i);
             /* 起動済み path のスレッドは potr_connect_thread_stop で停止する */
@@ -1278,7 +1278,7 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
 #endif /* _WIN32 */
     }
 
-    POTR_LOG(POTR_LOG_DEBUG,
+    POTR_LOG(POTR_TRACE_VERBOSE,
              "connect_thread[service_id=%" PRId64 "]: all paths stopped",
              ctx->service.service_id);
 }

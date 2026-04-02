@@ -18,10 +18,10 @@
           v
     trace-util.h (共通 API)
           |
-    +-----+-----+-----+
-    |           |     |
-    ETW        syslog File
-    (Windows)  (Linux) (両OS)
+    +-----+-----+------+--------+
+    |           |      |        |
+    ETW        syslog File    stderr
+    (Windows)  (Linux) (両OS)  (両OS)
     @endcode
  *
  *  @par            使用例 (共通)
@@ -228,6 +228,15 @@ enum trace_level
  */
 #define TRACE_DEFAULT_FILE_LEVEL TRACE_LV_ERROR
 
+/**
+ *  @def            TRACE_DEFAULT_STDERR_LEVEL
+ *  @brief          trace_init() が設定する stderr トレースのデフォルトレベル。
+ *
+ *  ユーザーが trace_modify_stderrtrc() で変更するまで有効な初期値です。\n
+ *  デフォルトは TRACE_LV_NONE (無効) です。
+ */
+#define TRACE_DEFAULT_STDERR_LEVEL TRACE_LV_NONE
+
 /* ===== 不透明ハンドル型 ===== */
 
 /** トレースプロバイダハンドル (不透明型)。 */
@@ -258,7 +267,7 @@ extern "C"
      *  @post           戻り値のハンドルは stopped 状態です。
      *                  出力関数を使用するには trace_start を呼び出してください。\n
      *                  stopped 状態では設定関数 (trace_modify_name, trace_modify_ostrc,
-     *                  trace_modify_filetrc) をスレッド安全に使用できます。
+     *                  trace_modify_filetrc, trace_modify_stderrtrc) をスレッド安全に使用できます。
      *
      *  @par            使用例
         @code{.c}
@@ -284,8 +293,8 @@ extern "C"
      *
      *  ハンドルを実行中 (started) 状態に遷移させます。\n
      *  started 状態では出力関数 (trace_write 等) が有効になり、
-     *  設定関数 (trace_modify_name, trace_modify_ostrc, trace_modify_filetrc) は
-     *  使用できなくなります (-1 を返します)。\n
+     *  設定関数 (trace_modify_name, trace_modify_ostrc, trace_modify_filetrc,
+     *  trace_modify_stderrtrc) は使用できなくなります (-1 を返します)。\n
      *  既に started 状態の場合は何もせず 0 を返します (冪等)。
      *
      *  @param[in]      handle   trace_init の戻り値。
@@ -309,8 +318,8 @@ extern "C"
      *
      *  ハンドルを停止中 (stopped) 状態に遷移させます。\n
      *  stopped 状態では出力関数 (trace_write 等) は -1 を返し、
-     *  設定関数 (trace_modify_name, trace_modify_ostrc, trace_modify_filetrc) が
-     *  スレッド安全に使用できるようになります。\n
+     *  設定関数 (trace_modify_name, trace_modify_ostrc, trace_modify_filetrc,
+     *  trace_modify_stderrtrc) がスレッド安全に使用できるようになります。\n
      *  既に stopped 状態の場合は何もせず 0 を返します (冪等)。
      *
      *  @param[in]      handle   trace_init の戻り値。
@@ -607,6 +616,85 @@ extern "C"
     TRACE_UTIL_EXPORT int TRACE_UTIL_API
         trace_modify_filetrc(trace_provider_t *handle, const char *path,
                              enum trace_level level, size_t max_bytes, int generations);
+
+    /**
+     *******************************************************************************
+     *  @brief          stderr トレースのスレッショルドレベルを設定する。
+     *
+     *  標準エラー出力 (stderr) に出力するメッセージの最低重要度レベルを変更します。\n
+     *  出力フォーマットはファイルトレースと同一です。\n
+     *  @code
+     *  2026-04-02 12:34:56.789 I メッセージテキスト
+     *  @endcode
+     *  タイムスタンプは UTC です。\n
+     *  デフォルト値は @c TRACE_DEFAULT_STDERR_LEVEL (TRACE_LV_NONE: 無効) です。\n
+     *  @c TRACE_LV_NONE を指定すると stderr 出力を完全に抑止します。
+     *
+     *  @param[in]      handle   trace_init の戻り値。
+     *  @param[in]      level    新しいスレッショルドレベル (enum trace_level)。
+     *  @return         成功 0 / 失敗 -1。
+     *
+     *  @pre            ハンドルが stopped 状態であること。
+     *                  started 状態では -1 を返します。
+     *
+     *  @par            スレッド セーフティ
+     *  stopped 状態ではスレッドセーフです。\n
+     *  内部で排他制御を行います。
+     *
+     *  @warning        handle が NULL の場合は -1 を返します。\n
+     *                  started 状態では -1 を返します。
+     *******************************************************************************
+     */
+    TRACE_UTIL_EXPORT int TRACE_UTIL_API
+        trace_modify_stderrtrc(trace_provider_t *handle, enum trace_level level);
+
+    /**
+     *******************************************************************************
+     *  @brief          OS トレースの現在のスレッショルドレベルを取得する。
+     *
+     *  @param[in]      handle   trace_init の戻り値。
+     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
+     *                  @c TRACE_LV_NONE を返す。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  started / stopped どちらの状態でも呼び出し可能です。
+     *******************************************************************************
+     */
+    TRACE_UTIL_EXPORT enum trace_level TRACE_UTIL_API
+        trace_get_ostrc(trace_provider_t *handle);
+
+    /**
+     *******************************************************************************
+     *  @brief          ファイルトレースの現在のスレッショルドレベルを取得する。
+     *
+     *  @param[in]      handle   trace_init の戻り値。
+     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
+     *                  @c TRACE_LV_NONE を返す。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  started / stopped どちらの状態でも呼び出し可能です。
+     *******************************************************************************
+     */
+    TRACE_UTIL_EXPORT enum trace_level TRACE_UTIL_API
+        trace_get_filetrc(trace_provider_t *handle);
+
+    /**
+     *******************************************************************************
+     *  @brief          stderr トレースの現在のスレッショルドレベルを取得する。
+     *
+     *  @param[in]      handle   trace_init の戻り値。
+     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
+     *                  @c TRACE_LV_NONE を返す。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  started / stopped どちらの状態でも呼び出し可能です。
+     *******************************************************************************
+     */
+    TRACE_UTIL_EXPORT enum trace_level TRACE_UTIL_API
+        trace_get_stderrtrc(trace_provider_t *handle);
 
     /**
      *******************************************************************************

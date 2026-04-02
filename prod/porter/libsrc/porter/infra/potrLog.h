@@ -13,9 +13,9 @@
  *
  *  使用方法:
  *  @code{.c}
- *  POTR_LOG(POTR_LOG_INFO,  "service_id=%" PRId64 " opened", service_id);
- *  POTR_LOG(POTR_LOG_ERROR, "socket bind failed: port=%u", port);
- *  POTR_LOG(POTR_LOG_TRACE, "PING sent: seq=%u", seq);
+ *  POTR_LOG(POTR_TRACE_INFO,  "service_id=%" PRId64 " opened", service_id);
+ *  POTR_LOG(POTR_TRACE_ERROR, "socket bind failed: port=%u", port);
+ *  POTR_LOG(POTR_TRACE_VERBOSE, "PING sent: seq=%u", seq);
  *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -60,9 +60,9 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
  *
  *  @par            例
  *  @code{.c}
- *  POTR_LOG(POTR_LOG_INFO,  "potrOpenService: service_id=%" PRId64 "", service_id);
- *  POTR_LOG(POTR_LOG_WARN,  "NACK received: seq=%u", seq);
- *  POTR_LOG(POTR_LOG_ERROR, "socket() failed");
+ *  POTR_LOG(POTR_TRACE_INFO,  "potrOpenService: service_id=%" PRId64 "", service_id);
+ *  POTR_LOG(POTR_TRACE_WARNING,  "NACK received: seq=%u", seq);
+ *  POTR_LOG(POTR_TRACE_ERROR, "socket() failed");
  *  @endcode
  */
 #define POTR_LOG(level, ...) \
