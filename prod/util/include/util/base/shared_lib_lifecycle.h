@@ -37,20 +37,56 @@
      *                  使用できる API が制限されるため、このマクロは制約下でも比較的
      *                  安全な最小限の出力経路を提供します。\n
      *                  Linux では `syslog(LOG_INFO, ...)`、Windows では
-     *                  `OutputDebugStringA(...)` を使用します。
+     *                  `MultiByteToWideChar` で UTF-8 変換後に
+     *                  `OutputDebugStringW(...)` を使用します。
      *
-     *  @param[in]      msg 出力する null 終端文字列リテラル。
+     *  @param[in]      msg 出力する null 終端 UTF-8 文字列。
      *
-     *  @warning        Windows では UTF-8 やマルチバイト文字列を渡さないでください。
-     *                  文字化けや意図しない変換を避けるため、`msg` は英数字と
-     *                  記号のみからなる ASCII リテラルを使用してください。
+     *  @warning        Windows では変換後のワイド文字列が 1024 文字を超える場合、
+     *                  1019 文字で切り捨てて末尾に `" ..."` を付与して出力します。
      */
     #define DLLMAIN_UTIL_INFO_MSG(msg)
 #else /* !DOXYGEN */
     #ifndef _WIN32
         #define DLLMAIN_UTIL_INFO_MSG(msg) syslog(LOG_INFO, (msg))
     #else /* _WIN32 */
-        #define DLLMAIN_UTIL_INFO_MSG(msg) OutputDebugStringA(msg)
+        static void dllmain_output_debug_msg__(const char *msg)
+        {
+            wchar_t buf[1024];
+            int len = MultiByteToWideChar(CP_UTF8, 0, msg, -1, NULL, 0);
+            if (len <= 0) return;
+            if (len <= 1024)
+            {
+                /* バッファに収まる: そのまま変換 */
+                MultiByteToWideChar(CP_UTF8, 0, msg, -1, buf, 1024);
+            }
+            else
+            {
+                /* 切り捨て: UTF-8 バイト列を走査して 1019 wchar 分のバイト数を求める */
+                /* (残り 4 wchar + null で " ..." を付与するため)              */
+                int byte_pos  = 0;
+                int wc_count  = 0;
+                int written;
+                while (msg[byte_pos] != '\0')
+                {
+                    unsigned char c  = (unsigned char)msg[byte_pos];
+                    int cb = (c < 0x80u) ? 1 : (c < 0xE0u) ? 2 : (c < 0xF0u) ? 3 : 4;
+                    int cw = (cb == 4)   ? 2 : 1; /* U+10000 以上はサロゲートペアで 2 wchar */
+                    if (wc_count + cw > 1019) break;
+                    wc_count += cw;
+                    byte_pos += cb;
+                }
+                written = MultiByteToWideChar(CP_UTF8, 0, msg, byte_pos, buf, 1019);
+                if (written <= 0) return;
+                buf[written]     = L' ';
+                buf[written + 1] = L'.';
+                buf[written + 2] = L'.';
+                buf[written + 3] = L'.';
+                buf[written + 4] = L'\0';
+            }
+            OutputDebugStringW(buf);
+        }
+        #define DLLMAIN_UTIL_INFO_MSG(msg) dllmain_output_debug_msg__(msg)
     #endif /* _WIN32 */
 #endif     /* DOXYGEN */
 
@@ -81,7 +117,9 @@ static void onUnload(int process_terminating);
  */
 __attribute__((constructor)) static void dllmain_on_load__(void)
 {
+    DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onLoad enter");
     onLoad();
+    DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onLoad leave");
 }
 
 /**
@@ -91,7 +129,9 @@ __attribute__((constructor)) static void dllmain_on_load__(void)
  */
 __attribute__((destructor)) static void dllmain_on_unload__(void)
 {
+    DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onUnload enter");
     onUnload(0);
+    DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onUnload leave");
 }
 
 #else /* _WIN32 */
@@ -111,10 +151,14 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
+        DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onLoad enter");
         onLoad();
+        DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onLoad leave");
         break;
     case DLL_PROCESS_DETACH:
+        DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onUnload enter");
         onUnload((lpvReserved != NULL) ? 1 : 0);
+        DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onUnload leave");
         break;
     default:
         break;
