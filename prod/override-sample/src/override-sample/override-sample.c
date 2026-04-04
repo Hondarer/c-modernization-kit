@@ -60,8 +60,8 @@ int main(void)
     printf("       del \"%s\"\n\n", configpath);
 #endif /* _WIN32 */
 
-    printf("--- funcman info ---\n");
-    rtc = funcman_info_libbase();
+    printf("--- symbol_loader info ---\n");
+    rtc = symbol_loader_info_libbase();
     printf("rtc: %d\n\n", rtc);
 
     rtc = sample_func(1, 2, &result);

@@ -13,7 +13,7 @@
  *******************************************************************************
  */
 
-#include "funcman_libbase.h"
+#include "symbol_loader_libbase.h"
 #include <libbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */

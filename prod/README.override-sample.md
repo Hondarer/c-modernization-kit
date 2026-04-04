@@ -6,7 +6,7 @@
 
 `libbase` が公開する `sample_func` 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。
 
-funcman 機構 (関数の動的呼び出しキャッシュ) は `prod/util/` の `libutil` に統合されており、`libbase` はそれをリンクして利用します。
+symbol_loader 機構 (関数の動的呼び出しキャッシュ) は `prod/util/` の `libutil` に統合されており、`libbase` はそれをリンクして利用します。
 
 | 設定ファイルの状態 | 動作 |
 |---|---|
@@ -24,9 +24,9 @@ prod/override-sample/
 |   +-- libbase_ext.h          # liboverride ヘッダー (override_func の宣言)
 +-- libsrc/
 |   +-- base/
-|   |   +-- funcman_libbase.h  # funcman オブジェクトの extern 宣言
-|   |   +-- funcman_libbase.c  # funcman オブジェクトの実体定義
-|   |   +-- sample_func.c      # sample_func の実装 (funcman 経由でオーバーライドを呼び出す)
+|   |   +-- symbol_loader_libbase.h  # symbol_loader エントリの extern 宣言
+|   |   +-- symbol_loader_libbase.c  # symbol_loader エントリの実体定義
+|   |   +-- sample_func.c      # sample_func の実装 (symbol_loader 経由でオーバーライドを呼び出す)
 |   |   +-- console_output.c   # console_output の実装 (printf ラッパー)
 |   |   +-- dllmain_libbase.c  # onLoad / onUnload の実装
 |   +-- override/
@@ -40,7 +40,7 @@ prod/override-sample/
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
-funcman 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `prod/util/` の `libutil` (`libutil.so` / `libutil.dll`) に統合されています。
+symbol_loader 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `prod/util/` の `libutil` (`libutil.so` / `libutil.dll`) に統合されています。
 
 ## ライブラリ
 
@@ -117,13 +117,13 @@ override-sample (実行ファイル)
     | sample_func(1, 2, &result)
     +---> libbase.so / libbase.dll
               |
-              funcman が解決済み関数ポインタを確認
+              symbol_loader が解決済み関数ポインタを確認
               |
               [設定ファイルなし / 定義なし → デフォルト動作]
               |  *result = 1 + 2 = 3
               |
               [設定ファイルで liboverride / override_func を定義 → オーバーライド動作]
-              |  funcman が liboverride.so / liboverride.dll を dlopen / LoadLibrary
+              |  symbol_loader が liboverride.so / liboverride.dll を dlopen / LoadLibrary
               |  override_func に処理を委譲
               +---> liboverride.so / liboverride.dll (実行時ロード)
                         *result = 1 * 2 = 2

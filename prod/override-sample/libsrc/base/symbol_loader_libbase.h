@@ -1,21 +1,21 @@
 /**
  *******************************************************************************
- *  @file           funcman_libbase.h
- *  @brief          funcman が管理する関数ポインタの extern 定義。
+ *  @file           symbol_loader_libbase.h
+ *  @brief          symbol_loader が管理する関数ポインタの extern 定義。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
  *  libbase 内の機能拡張対応関数の型定義および変数の extern 宣言を提供します。
- *  関数を追加する場合は、funcman_libbase.h, funcman_libbase.c をメンテナンスします。
+ *  関数を追加する場合は、symbol_loader_libbase.h, symbol_loader_libbase.c をメンテナンスします。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
  *******************************************************************************
  */
 
-#ifndef FUNCMAN_LIBBASE_H
-#define FUNCMAN_LIBBASE_H
+#ifndef SYMBOL_LOADER_LIBBASE_H
+#define SYMBOL_LOADER_LIBBASE_H
 
 #include <libbase.h>
 
@@ -24,22 +24,22 @@
 
 /** sample_func に対応する関数ポインタの型定義。 */
 typedef int (*sample_func_t)(const int, const int, int *);
-/** sample_func に対応する funcman オブジェクトへのポインタ。 */
+/** sample_func に対応する symbol_loader エントリへのポインタ。 */
 extern symbol_loader_entry_t *const pfo_sample_func;
 
 /* typedef any (*func_name_t)(...); */            /* 将来追加 */
 /* extern symbol_loader_entry_t *const pfo_func_name; */ /* 将来追加 */
 
-/** funcman に設定するポインタ配列。 */
+/** symbol_loader に設定するポインタ配列。 */
 extern symbol_loader_entry_t *const fobj_array_libbase[];
 
-/** funcman に設定するポインタ配列の要素数 */
+/** symbol_loader に設定するポインタ配列の要素数 */
 extern const size_t fobj_length_libbase;
 
-/** funcman 設定ファイルのパス長 (終端 '\0' を含む) */
-#define FUNCMAN_CONFIG_PATH_MAX 1024
+/** symbol_loader 設定ファイルのパス長 (終端 '\0' を含む) */
+#define SYMBOL_LOADER_CONFIG_PATH_MAX 1024
 
-/** funcman 設定ファイルのパス */
-extern char funcman_configpath[FUNCMAN_CONFIG_PATH_MAX];
+/** symbol_loader 設定ファイルのパス */
+extern char symbol_loader_configpath[SYMBOL_LOADER_CONFIG_PATH_MAX];
 
-#endif /* FUNCMAN_LIBBASE_H */
+#endif /* SYMBOL_LOADER_LIBBASE_H */

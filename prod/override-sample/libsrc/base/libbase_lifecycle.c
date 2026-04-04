@@ -16,7 +16,7 @@
  *******************************************************************************
  */
 
-#include "funcman_libbase.h"
+#include "symbol_loader_libbase.h"
 #include <util/base/shared_lib_lifecycle.h>
 #include <util/runtime/module_info.h>
 #include <stdio.h>
@@ -36,7 +36,7 @@ void onLoad(void)
     {
 #ifndef _WIN32
         /* Linux: 定義ファイルを /tmp から読み込み */
-        snprintf(funcman_configpath, sizeof(funcman_configpath), "/tmp/%s_extdef.txt", basename);
+        snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "/tmp/%s_extdef.txt", basename);
 #else  /* _WIN32 */
         /* Windows: 定義ファイルを %TEMP% から読み込み */
         wchar_t tmpw[MAX_PATH] = L"";
@@ -49,13 +49,13 @@ void onLoad(void)
             if (m > 0)
             {
                 /* GetTempPathW は通常末尾に '\' を付けて返す */
-                snprintf(funcman_configpath, sizeof(funcman_configpath), "%s%s_extdef.txt", tmpu8, basename);
+                snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "%s%s_extdef.txt", tmpu8, basename);
             }
         }
 #endif /* _WIN32 */
     }
 
-    symbol_loader_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath);
+    symbol_loader_init(fobj_array_libbase, fobj_length_libbase, symbol_loader_configpath);
 }
 
 /**

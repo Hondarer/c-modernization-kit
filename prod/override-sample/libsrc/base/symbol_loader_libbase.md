@@ -1,35 +1,35 @@
-# funcman_libbase の概要
+# symbol_loader_libbase の概要
 
 ## 役割
 
-`funcman_libbase.h` / `funcman_libbase.c` は、`libbase` ライブラリが管理するオーバーライド対応関数の **symbol_loader_entry_t 実体と、それに紐付く型・変数の宣言** を提供します。
+`symbol_loader_libbase.h` / `symbol_loader_libbase.c` は、`libbase` ライブラリが管理するオーバーライド対応関数の **symbol_loader_entry_t 実体と、それに紐付く型・変数の宣言** を提供します。
 
-`funcman` の汎用機能 (`symbol_loader_init`, `symbol_loader_resolve`, `symbol_loader_dispose` など) は `libbase.h` で定義されています。`funcman_libbase.h` / `funcman_libbase.c` はそれを `libbase` 固有の関数群に接続する「接着剤」の役割を担います。
+`symbol_loader` の汎用機能 (`symbol_loader_init`, `symbol_loader_resolve`, `symbol_loader_dispose` など) は `libbase.h` で定義されています。`symbol_loader_libbase.h` / `symbol_loader_libbase.c` はそれを `libbase` 固有の関数群に接続する「接着剤」の役割を担います。
 
 ## ファイルの責務
 
 | ファイル | 責務 |
 |---|---|
-| `funcman_libbase.h` | 関数ポインタ型の `typedef`、`symbol_loader_entry_t` ポインタ・配列・設定ファイルパスの `extern` 宣言 |
-| `funcman_libbase.c` | `symbol_loader_entry_t` 実体の定義、配列・要素数・設定ファイルパスの実体定義、`funcman_info_libbase()` の実装 |
+| `symbol_loader_libbase.h` | 関数ポインタ型の `typedef`、`symbol_loader_entry_t` ポインタ・配列・設定ファイルパスの `extern` 宣言 |
+| `symbol_loader_libbase.c` | `symbol_loader_entry_t` 実体の定義、配列・要素数・設定ファイルパスの実体定義、`symbol_loader_info_libbase()` の実装 |
 
-`symbol_loader_entry_t` の実体は `funcman_libbase.c` 内で `static` 変数として定義します。外部からのアクセスは `symbol_loader_entry_t *const` ポインタ経由に限定することで、直接書き換えを防いでいます。
+`symbol_loader_entry_t` の実体は `symbol_loader_libbase.c` 内で `static` 変数として定義します。外部からのアクセスは `symbol_loader_entry_t *const` ポインタ経由に限定することで、直接書き換えを防いでいます。
 
 ## 利用側との関係
 
 ```text
 sample_func.c  (呼び出し元)
     |  symbol_loader_resolve_as(pfo_sample_func, sample_func_t)
-    +---> funcman_libbase.h の extern 宣言 (pfo_sample_func)
+    +---> symbol_loader_libbase.h の extern 宣言 (pfo_sample_func)
               |
-              funcman_libbase.c の実体 (sfo_sample_func)
+              symbol_loader_libbase.c の実体 (sfo_sample_func)
 
 dllmain_libbase.c  (初期化・解放)
-    |  symbol_loader_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath)
+    |  symbol_loader_init(fobj_array_libbase, fobj_length_libbase, symbol_loader_configpath)
     |  symbol_loader_dispose(fobj_array_libbase, fobj_length_libbase)
-    +---> funcman_libbase.h の extern 宣言 (fobj_array_libbase, fobj_length_libbase, funcman_configpath)
+    +---> symbol_loader_libbase.h の extern 宣言 (fobj_array_libbase, fobj_length_libbase, symbol_loader_configpath)
               |
-              funcman_libbase.c の実体
+              symbol_loader_libbase.c の実体
 ```
 
 ---
@@ -38,14 +38,14 @@ dllmain_libbase.c  (初期化・解放)
 
 `sample_func` に相当する新しい関数 `new_func` を追加する場合の手順です。
 
-### 1. `funcman_libbase.h` への追加
+### 1. `symbol_loader_libbase.h` への追加
 
 以下の 2 点を追記します。
 
 - `new_func` に対応する関数ポインタ型の `typedef`
 - その symbol_loader_entry_t へのポインタの `extern` 宣言
 
-### 2. `funcman_libbase.c` への追加
+### 2. `symbol_loader_libbase.c` への追加
 
 以下の 2 点を追記します。
 
@@ -79,9 +79,9 @@ dllmain_libbase.c  (初期化・解放)
 
 | ファイル | 作業 |
 |---|---|
-| `funcman_libbase.h` | 型定義・extern 宣言を追加 |
-| `funcman_libbase.c` | 実体定義・配列エントリを追加 |
-| `libsrc/base/new_func.c` (新規) | funcman を使ったオーバーライド対応の実装 |
+| `symbol_loader_libbase.h` | 型定義・extern 宣言を追加 |
+| `symbol_loader_libbase.c` | 実体定義・配列エントリを追加 |
+| `libsrc/base/new_func.c` (新規) | symbol_loader を使ったオーバーライド対応の実装 |
 | `libsrc/override/new_override_func.c` (新規) | オーバーライド実装 |
 | `include/libbase.h` | `new_func` のエクスポート宣言を追加 |
 | `include/libbase_ext.h` | オーバーライド関数のエクスポート宣言を追加 |

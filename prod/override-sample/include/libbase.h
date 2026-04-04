@@ -112,7 +112,7 @@ extern "C"
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_EXPORT extern int BASE_API funcman_info_libbase(void);
+    BASE_EXPORT extern int BASE_API symbol_loader_info_libbase(void);
 
 #ifdef __cplusplus
 }
