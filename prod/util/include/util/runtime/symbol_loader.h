@@ -1,0 +1,187 @@
+/**
+ *******************************************************************************
+ *  @file           symbol_loader.h
+ *  @brief          関数動的解決機構 (symbol loader) の公開 API ヘッダー。
+ *  @author         c-modenization-kit sample team
+ *  @date           2026/03/17
+ *  @version        1.0.0
+ *
+ *  symbol loader は、テキスト設定ファイルから関数シンボルとライブラリ名を読み込み、
+ *  実行時に動的リンクで関数を解決するキャッシュ機構です。
+ *
+ *  使用方法:
+ *  1. symbol_loader_entry_t を SYMBOL_LOADER_ENTRY_INIT マクロで静的初期化する。
+ *  2. symbol_loader_init() でテキスト設定ファイルを読み込む (DllMain/constructor から呼ぶ)。
+ *  3. symbol_loader_resolve_as() で関数ポインタを取得して呼び出す。
+ *  4. symbol_loader_dispose() でリソースを解放する (DllMain/destructor から呼ぶ)。
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
+#ifndef SYMBOL_LOADER_H
+#define SYMBOL_LOADER_H
+
+#ifndef _WIN32
+    #ifndef _GNU_SOURCE
+        #define _GNU_SOURCE
+    #endif /* _GNU_SOURCE */
+#endif /* _WIN32 */
+
+#include <stddef.h>
+
+#ifndef _WIN32
+    #include <dlfcn.h>
+    #include <pthread.h>
+#else /* _WIN32 */
+    #include <windows.h>
+#endif /* _WIN32 */
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+/**
+ *  @def            SYMBOL_LOADER_API
+ *  @brief          Windows DLL エクスポート/インポート修飾子。
+ *
+ *  libutil をビルドする側 (SYMBOL_LOADER_EXPORTS が定義された状態) では dllexport、
+ *  利用する側では dllimport として解決されます。Linux では空になります。
+ */
+#if defined(_WIN32)
+    #ifdef SYMBOL_LOADER_EXPORTS
+        #define SYMBOL_LOADER_API __declspec(dllexport)
+    #else
+        #define SYMBOL_LOADER_API __declspec(dllimport)
+    #endif
+#else
+    #define SYMBOL_LOADER_API
+#endif
+
+/**
+ *  @def            MODULE_HANDLE
+ *  @brief          Linux/Windows 共通のモジュールハンドル型。
+ */
+#ifndef _WIN32
+    #define MODULE_HANDLE void *
+#else /* _WIN32 */
+    #define MODULE_HANDLE HMODULE
+#endif /* _WIN32 */
+
+#define SYMBOL_LOADER_NAME_MAX 256 /**< lib_name / func_name 配列の最大長 (終端 '\0' を含む)。 */
+
+    /**
+     *******************************************************************************
+     *  @brief          関数ポインタキャッシュエントリ。
+     *
+     *  @details        ライブラリ名・関数名・ハンドル・関数ポインタおよび排他制御用ロックを管理します。\n
+     *                  静的変数として定義する場合は SYMBOL_LOADER_ENTRY_INIT マクロで初期化してください。\n
+     *******************************************************************************
+     */
+    typedef struct
+    {
+        const char *func_key;             /**< この関数インスタンスの識別キー。 */
+        char lib_name[SYMBOL_LOADER_NAME_MAX];  /**< 拡張子なしライブラリ名。[0]=='\0' = 未設定。 */
+        char func_name[SYMBOL_LOADER_NAME_MAX]; /**< 関数シンボル名。[0]=='\0' = 未設定。 */
+        MODULE_HANDLE handle;             /**< キャッシュ済みハンドル (NULL = 未ロード)。 */
+        void *func_ptr;                   /**< キャッシュ済み関数ポインタ (NULL = 未取得)。 */
+        int resolved;                     /**< 解決済フラグ (0 = 未解決)。 */
+        int padding;                      /**< パディング。 */
+#ifndef _WIN32
+        pthread_mutex_t mutex; /**< ロード処理を保護する mutex (Linux)。 */
+#else                          /* _WIN32 */
+    SRWLOCK lock; /**< ロード処理を保護する SRW ロック (Windows)。 */
+#endif                         /* _WIN32 */
+    } symbol_loader_entry_t;
+
+/**
+ *  @def            SYMBOL_LOADER_ENTRY_INIT
+ *  @brief          symbol_loader_entry_t 静的変数の初期化マクロ。
+ *
+ *  @param[in]      key     この関数インスタンスの識別キー (文字列リテラル)。
+ *  @param[in]      type    格納する関数ポインタの型 (例: sample_func_t)。
+ */
+#ifndef _WIN32
+    #define SYMBOL_LOADER_ENTRY_INIT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, PTHREAD_MUTEX_INITIALIZER}
+#else /* _WIN32 */
+    #define SYMBOL_LOADER_ENTRY_INIT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, SRWLOCK_INIT}
+#endif /* _WIN32 */
+
+    /**
+     *******************************************************************************
+     *  @brief          拡張関数ポインタを返します。この関数は内部用です。
+     *
+     *  @details        既にロード済みの場合は即座に格納済みの関数ポインタを返します。
+     *
+     *  @param[in,out]  fobj symbol_loader_entry_t へのポインタ。
+     *  @return         成功時 void * (関数ポインタ)、失敗時 NULL。
+     *******************************************************************************
+     */
+    extern SYMBOL_LOADER_API void *symbol_loader_resolve(symbol_loader_entry_t *fobj);
+
+/**
+ *  @def            symbol_loader_resolve_as
+ *  @brief          拡張関数ポインタを返します。
+ *
+ *  @param[in]      fobj symbol_loader_entry_t へのポインタ。
+ *  @param[in]      type SYMBOL_LOADER_ENTRY_INIT で指定したものと同じ関数ポインタ型。
+ */
+#define symbol_loader_resolve_as(fobj, type) ((type)symbol_loader_resolve(fobj))
+
+    /**
+     *******************************************************************************
+     *  @brief          symbol_loader_entry_t が明示的デフォルトかどうかを返します。
+     *
+     *  @details        lib_name と func_name がともに定義ファイルで default に設定されている場合に 1 を返します。\n
+     *                  それ以外の場合は 0 を返します。
+     *
+     *  @param[in]      fobj symbol_loader_entry_t へのポインタ。
+     *  @return         明示的デフォルトの場合は 1、それ以外は 0。
+     *******************************************************************************
+     */
+    extern SYMBOL_LOADER_API int symbol_loader_is_default(symbol_loader_entry_t *fobj);
+
+    /**
+     *******************************************************************************
+     *  @brief          symbol_loader_entry_t ポインタ配列を初期化します。
+     *
+     *  @details        必ず、constructor / DllMain コンテキストから呼ぶようにしてください。
+     *
+     *  @param[in]      fobj_array  symbol_loader_entry_t ポインタ配列。
+     *  @param[in]      fobj_length 配列の要素数。
+     *  @param[in]      configpath  定義ファイルのパス。
+     *******************************************************************************
+     */
+    extern SYMBOL_LOADER_API void symbol_loader_init(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length,
+                             const char *configpath);
+
+    /**
+     *******************************************************************************
+     *  @brief          symbol_loader_entry_t ポインタ配列を解放します。
+     *
+     *  @details        必ず、destructor / DllMain コンテキストから呼ぶようにしてください。
+     *
+     *  @param[in]      fobj_array  symbol_loader_entry_t ポインタ配列。
+     *  @param[in]      fobj_length 配列の要素数。
+     *******************************************************************************
+     */
+    extern SYMBOL_LOADER_API void symbol_loader_dispose(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length);
+
+    /**
+     *******************************************************************************
+     *  @brief          symbol_loader_entry_t ポインタ配列の内容を標準出力に表示します。
+     *
+     *  @param[in]      fobj_array      symbol_loader_entry_t ポインタ配列。
+     *  @param[in]      fobj_length     配列の要素数。
+     *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
+     *******************************************************************************
+     */
+    extern SYMBOL_LOADER_API int symbol_loader_info(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* SYMBOL_LOADER_H */

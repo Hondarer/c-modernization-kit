@@ -1,15 +1,15 @@
 #include <testfw.h>
 #include <mock_trace_util.h>
 
-WEAK_ATR int trace_modify_filetrc(trace_provider_t *handle, const char *path,
-                                  enum trace_level level, size_t max_bytes,
+WEAK_ATR int trace_logger_set_file_sink(trace_logger_t *handle, const char *path,
+                                  trace_level_t level, size_t max_bytes,
                                   int generations)
 {
     int rtc = 0;
 
     if (_mock_trace_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_modify_filetrc(handle, path, level, max_bytes,
+        rtc = _mock_trace_util->trace_logger_set_file_sink(handle, path, level, max_bytes,
                                                      generations);
     }
 

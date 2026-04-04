@@ -17,7 +17,8 @@
  */
 
 #include "funcman_libbase.h"
-#include <dllmain-util.h>
+#include <util/base/shared_lib_lifecycle.h>
+#include <util/runtime/module_info.h>
 #include <stdio.h>
 
 /**
@@ -27,11 +28,11 @@
  */
 void onLoad(void)
 {
-    char basename[FUNCMAN_NAME_MAX] = {0};
+    char basename[SYMBOL_LOADER_NAME_MAX] = {0};
 
     DLLMAIN_UTIL_INFO_MSG("base: onLoad called");
 
-    if (get_lib_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
+    if (module_info_get_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
     {
 #ifndef _WIN32
         /* Linux: 定義ファイルを /tmp から読み込み */
@@ -54,7 +55,7 @@ void onLoad(void)
 #endif /* _WIN32 */
     }
 
-    funcman_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath);
+    symbol_loader_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath);
 }
 
 /**
@@ -67,5 +68,5 @@ void onUnload(int process_terminating)
 {
     (void)process_terminating;
     DLLMAIN_UTIL_INFO_MSG("base: onUnload called");
-    funcman_dispose(fobj_array_libbase, fobj_length_libbase);
+    symbol_loader_dispose(fobj_array_libbase, fobj_length_libbase);
 }

@@ -1,6 +1,6 @@
 #include <testfw.h>
 #include <mock_stdio.h>
-#include <fmtio-util.h>
+#include <util/fs/path_format.h>
 #include <string.h>
 #include <errno.h>
 #include <stdint.h>
@@ -20,10 +20,10 @@ TEST_F(fopenfTest, test_null_modes)
         .Times(0); // [Pre-Assert確認_異常系] - fopen が呼び出されないこと。
 
     // Act
-    FILE *fp = fopenf(NULL, NULL, "test_%d.txt", 1); // [手順] - modes に NULL を渡す。
+    FILE *fp = pathf_fopen(NULL, NULL, "test_%d.txt", 1); // [手順] - modes に NULL を渡す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #else
 TEST_F(fopenfTest, test_null_modes)
@@ -36,10 +36,10 @@ TEST_F(fopenfTest, test_null_modes)
         .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
 
     // Act
-    FILE *fp = fopenf(NULL, NULL, "test_%d.txt", 1); // [手順] - modes に NULL を渡す。
+    FILE *fp = pathf_fopen(NULL, NULL, "test_%d.txt", 1); // [手順] - modes に NULL を渡す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #endif
 
@@ -54,10 +54,10 @@ TEST_F(fopenfTest, test_null_format)
         .Times(0); // [Pre-Assert確認_異常系] - fopen が呼び出されないこと。
 
     // Act
-    FILE *fp = fopenf("r", NULL, NULL); // [手順] - format に NULL を渡す。
+    FILE *fp = pathf_fopen("r", NULL, NULL); // [手順] - format に NULL を渡す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #else
 TEST_F(fopenfTest, test_null_format)
@@ -70,10 +70,10 @@ TEST_F(fopenfTest, test_null_format)
         .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
 
     // Act
-    FILE *fp = fopenf("r", NULL, NULL); // [手順] - format に NULL を渡す。
+    FILE *fp = pathf_fopen("r", NULL, NULL); // [手順] - format に NULL を渡す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #endif
 
@@ -92,10 +92,10 @@ TEST_F(fopenfTest, test_buffer_overflow)
         .Times(0); // [Pre-Assert確認_異常系] - fopen が呼び出されないこと。
 
     // Act
-    FILE *fp = fopenf("w", NULL, "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
+    FILE *fp = pathf_fopen("w", NULL, "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #else
 TEST_F(fopenfTest, test_buffer_overflow)
@@ -112,10 +112,10 @@ TEST_F(fopenfTest, test_buffer_overflow)
         .Times(0); // [Pre-Assert確認_異常系] - fopen_s が呼び出されないこと。
 
     // Act
-    FILE *fp = fopenf("w", NULL, "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
+    FILE *fp = pathf_fopen("w", NULL, "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #endif
 
@@ -131,10 +131,10 @@ TEST_F(fopenfTest, test_successful_call_with_format)
         .WillOnce(Return(expected_fp)); // [Pre-Assert確認_正常系] - fopen が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    FILE *fp = fopenf("r", NULL, "test_%d.txt", 123); // [手順] - fopenf にフォーマット文字列でファイル名を指定する。
+    FILE *fp = pathf_fopen("r", NULL, "test_%d.txt", 123); // [手順] - pathf_fopen にフォーマット文字列でファイル名を指定する。
 
     // Assert
-    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopenf から fp が返されること。
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - pathf_fopen から fp が返されること。
 }
 #else
 TEST_F(fopenfTest, test_successful_call_with_format)
@@ -148,10 +148,10 @@ TEST_F(fopenfTest, test_successful_call_with_format)
         .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    FILE *fp = fopenf("r", NULL, "test_%d.txt", 123); // [手順] - fopenf にフォーマット文字列でファイル名を指定する。
+    FILE *fp = pathf_fopen("r", NULL, "test_%d.txt", 123); // [手順] - pathf_fopen にフォーマット文字列でファイル名を指定する。
 
     // Assert
-    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopenf から fp が返されること。
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - pathf_fopen から fp が返されること。
 }
 #endif
 
@@ -167,10 +167,10 @@ TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
         .WillOnce(Return(expected_fp)); // [Pre-Assert確認_正常系] - fopen が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    FILE *fp = fopenf("w", NULL, "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - fopenf に複数のフォーマットパラメータを指定する。
+    FILE *fp = pathf_fopen("w", NULL, "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - pathf_fopen に複数のフォーマットパラメータを指定する。
 
     // Assert
-    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopenf から fp が返されること。
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - pathf_fopen から fp が返されること。
 }
 #else
 TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
@@ -184,10 +184,10 @@ TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
         .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    FILE *fp = fopenf("w", NULL, "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - fopenf に複数のフォーマットパラメータを指定する。
+    FILE *fp = pathf_fopen("w", NULL, "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - pathf_fopen に複数のフォーマットパラメータを指定する。
 
     // Assert
-    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopenf から fp が返されること。
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - pathf_fopen から fp が返されること。
 }
 #endif
 
@@ -203,10 +203,10 @@ TEST_F(fopenfTest, test_fopen_returns_null)
                                          // [Pre-Assert手順_異常系] - fopen から NULL を返す。
 
     // Act
-    FILE *fp = fopenf("r", NULL, "nonexistent.txt"); // [手順] - fopenf を呼び出す。
+    FILE *fp = pathf_fopen("r", NULL, "nonexistent.txt"); // [手順] - pathf_fopen を呼び出す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #else
 TEST_F(fopenfTest, test_fopen_returns_null)
@@ -220,10 +220,10 @@ TEST_F(fopenfTest, test_fopen_returns_null)
                                    // [Pre-Assert手順_異常系] - fopen_s からエラーコードを返す。
 
     // Act
-    FILE *fp = fopenf("r", NULL, "nonexistent.txt"); // [手順] - fopenf を呼び出す。
+    FILE *fp = pathf_fopen("r", NULL, "nonexistent.txt"); // [手順] - pathf_fopen を呼び出す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 
 TEST_F(fopenfTest, test_fopen_s_access_denied)
@@ -237,10 +237,10 @@ TEST_F(fopenfTest, test_fopen_s_access_denied)
                                    // [Pre-Assert手順_異常系] - fopen_s からアクセス拒否エラーを返す。
 
     // Act
-    FILE *fp = fopenf("w", NULL, "protected.txt"); // [手順] - fopenf を呼び出す。
+    FILE *fp = pathf_fopen("w", NULL, "protected.txt"); // [手順] - pathf_fopen を呼び出す。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - pathf_fopen から NULL が返されること。
 }
 #endif
 
@@ -260,10 +260,10 @@ TEST_F(fopenfTest, test_fopen_returns_null_with_errno)
                                 // [Pre-Assert手順_異常系] - fopen から NULL を返し、errno に ENOENT を設定する。
 
     // Act
-    FILE *fp = fopenf("r", &error_code, "nonexistent.txt"); // [手順] - fopenf を呼び出し、エラーコードを取得する。
+    FILE *fp = pathf_fopen("r", &error_code, "nonexistent.txt"); // [手順] - pathf_fopen を呼び出し、エラーコードを取得する。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp);   // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp);   // [確認_異常系] - pathf_fopen から NULL が返されること。
     EXPECT_EQ(ENOENT, error_code); // [確認_異常系] - errno に ENOENT が設定されること。
 }
 #else
@@ -279,10 +279,10 @@ TEST_F(fopenfTest, test_fopen_s_returns_error_with_errno)
                                    // [Pre-Assert手順_異常系] - fopen_s からエラーコードを返す。
 
     // Act
-    FILE *fp = fopenf("r", &error_code, "nonexistent.txt"); // [手順] - fopenf を呼び出し、エラーコードを取得する。
+    FILE *fp = pathf_fopen("r", &error_code, "nonexistent.txt"); // [手順] - pathf_fopen を呼び出し、エラーコードを取得する。
 
     // Assert
-    EXPECT_EQ((FILE *)NULL, fp);   // [確認_異常系] - fopenf から NULL が返されること。
+    EXPECT_EQ((FILE *)NULL, fp);   // [確認_異常系] - pathf_fopen から NULL が返されること。
     EXPECT_EQ(ENOENT, error_code); // [確認_異常系] - error_code に ENOENT が設定されること。
 }
 #endif
@@ -300,10 +300,10 @@ TEST_F(fopenfTest, test_fopen_success_errno_not_set)
         .WillOnce(Return(expected_fp)); // [Pre-Assert確認_正常系] - fopen が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    FILE *fp = fopenf("r", &error_code, "success.txt"); // [手順] - fopenf を呼び出し、エラーコードポインタを渡す。
+    FILE *fp = pathf_fopen("r", &error_code, "success.txt"); // [手順] - pathf_fopen を呼び出し、エラーコードポインタを渡す。
 
     // Assert
-    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopenf から fp が返されること。
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - pathf_fopen から fp が返されること。
     EXPECT_EQ(999, error_code); // [確認_正常系] - 成功時は error_code が変更されないこと。
 }
 #else
@@ -319,10 +319,10 @@ TEST_F(fopenfTest, test_fopen_s_success_errno_not_set)
         .WillOnce(DoAll(SetArgPointee<3>(expected_fp), Return(0))); // [Pre-Assert確認_正常系] - fopen_s が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    FILE *fp = fopenf("r", &error_code, "success.txt"); // [手順] - fopenf を呼び出し、エラーコードポインタを渡す。
+    FILE *fp = pathf_fopen("r", &error_code, "success.txt"); // [手順] - pathf_fopen を呼び出し、エラーコードポインタを渡す。
 
     // Assert
-    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopenf から fp が返されること。
+    EXPECT_EQ(expected_fp, fp); // [確認_正常系] - pathf_fopen から fp が返されること。
     EXPECT_EQ(999, error_code); // [確認_正常系] - 成功時は error_code が変更されないこと。
 }
 #endif

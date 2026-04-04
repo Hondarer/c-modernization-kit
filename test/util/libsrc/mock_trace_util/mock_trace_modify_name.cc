@@ -2,14 +2,14 @@
 #include <testfw.h>
 #include <mock_trace_util.h>
 
-WEAK_ATR int trace_modify_name(trace_provider_t *handle, const char *name,
+WEAK_ATR int trace_logger_set_name(trace_logger_t *handle, const char *name,
                                int64_t identifier)
 {
     int rtc = 0;
 
     if (_mock_trace_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_modify_name(handle, name, identifier);
+        rtc = _mock_trace_util->trace_logger_set_name(handle, name, identifier);
     }
 
     if (getTraceLevel() > TRACE_NONE)

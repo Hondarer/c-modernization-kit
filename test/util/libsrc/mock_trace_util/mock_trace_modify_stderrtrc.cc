@@ -1,13 +1,13 @@
 #include <testfw.h>
 #include <mock_trace_util.h>
 
-WEAK_ATR int trace_modify_stderrtrc(trace_provider_t *handle, enum trace_level level)
+WEAK_ATR int trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level)
 {
     int rtc = 0;
 
     if (_mock_trace_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_modify_stderrtrc(handle, level);
+        rtc = _mock_trace_util->trace_logger_set_stderr_level(handle, level);
     }
 
     if (getTraceLevel() > TRACE_NONE)

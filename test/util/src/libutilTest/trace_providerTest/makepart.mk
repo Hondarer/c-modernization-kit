@@ -1,11 +1,19 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/trace-provider.c \
-	$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/file-provider.c \
-    $(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/syslog-provider.c \
-    $(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/etw-provider.c
+	$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/trace.c \
+	$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/file/trace_file.c \
+    $(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog/trace_syslog.c \
+    $(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/etw/trace_etw.c
 
 CFLAGS   += -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace
+CFLAGS   += \
+    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/file \
+    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog \
+    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/etw
 CXXFLAGS += -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace
+CXXFLAGS += \
+    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/file \
+    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog \
+    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/etw
 
 LIBS += mock_libc

@@ -52,7 +52,7 @@
 #endif /* _WIN32 */
 
 #include <porter.h>
-#include <console-util.h>
+#include <util/console/console.h>
 
 /** 受信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
 static volatile int g_running = 1;

@@ -1,6 +1,6 @@
 #include <testfw.h>
-#include <console-util.h>
-#include "console-util-internal.h"
+#include <util/console/console.h>
+#include "console_internal.h"
 #include <stdio.h>
 
 /* ===== テストクラス ===== */

@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <trace-util.h>
+#include <util/trace/trace.h>
 
 #include <porter_const.h>
 #include <porter.h>
@@ -38,8 +38,8 @@
 
 /* ── グローバルロガー状態 ──────────────────────────────────────────────── */
 
-/** トレースプロバイダハンドル。trace_init() で一度だけ初期化する。 */
-static trace_provider_t *s_trace = NULL;
+/** トレースプロバイダハンドル。trace_logger_create() で一度だけ初期化する。 */
+static trace_logger_t *s_trace = NULL;
 
 /* ── ユーティリティ ────────────────────────────────────────────────────── */
 
@@ -73,38 +73,38 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
                                    const char   *log_file,
                                    int           console)
 {
-    enum trace_level trc_level;
+    trace_level_t trc_level;
 
-    /* level の範囲チェック。PotrLogLevel と enum trace_level は値が一致するため直接キャストする。 */
+    /* level の範囲チェック。PotrLogLevel と trace_level_t は値が一致するため直接キャストする。 */
     if ((int)level < 0 || (int)level > (int)POTR_TRACE_NONE)
     {
         return POTR_ERROR;
     }
-    trc_level = (enum trace_level)(int)level;
+    trc_level = (trace_level_t)(int)level;
 
     /* 初回呼び出し: トレースプロバイダを初期化する。 */
     if (s_trace == NULL)
     {
-        s_trace = trace_init();
+        s_trace = trace_logger_create();
         if (s_trace == NULL)
         {
             return POTR_ERROR;
         }
-        trace_modify_name(s_trace, "porter", 0);
+        trace_logger_set_name(s_trace, "porter", 0);
     }
     else
     {
         /* stopped 状態に遷移させる (冪等)。 */
-        trace_stop(s_trace);
+        trace_logger_stop(s_trace);
     }
 
     /* OS トレース (syslog / ETW) のしきい値レベルを設定する。 */
-    trace_modify_ostrc(s_trace, trc_level);
+    trace_logger_set_os_level(s_trace, trc_level);
 
     /* ファイルトレースを設定する。
      * log_file が NULL または空文字列の場合は path=NULL を渡してファイルトレースを無効化する。
      * max_bytes=0, generations=0 で既定値 (10 MB / 5 世代) を使用する。 */
-    if (trace_modify_filetrc(s_trace,
+    if (trace_logger_set_file_sink(s_trace,
                              (log_file != NULL && log_file[0] != '\0') ? log_file : NULL,
                              trc_level, 0, 0) != 0)
     {
@@ -113,12 +113,12 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
 
     /* stderr: console フラグに応じて trace-util のスレッショルドを設定する。
      * console != 0 の場合は trc_level 以上を出力、0 の場合は完全に抑止する。 */
-    trace_modify_stderrtrc(s_trace, console ? trc_level : TRACE_LV_NONE);
+    trace_logger_set_stderr_level(s_trace, console ? trc_level : TRACE_LEVEL_NONE);
 
     /* POTR_TRACE_NONE でない場合のみ出力を開始する。 */
     if (level != POTR_TRACE_NONE)
     {
-        trace_start(s_trace);
+        trace_logger_start(s_trace);
     }
 
     return POTR_SUCCESS;
@@ -130,8 +130,8 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
 {
     char             msg[512];
     va_list          ap;
-    enum trace_level min_lv;
-    enum trace_level lv;
+    trace_level_t min_lv;
+    trace_level_t lv;
 
     if (s_trace == NULL)
     {
@@ -140,14 +140,14 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
 
     /* 3 出力先のうち最も緩いスレッショルドより重大度が低ければ早期リターンする。
      * (数値が大きい = 重大度が低い)
-     * trace_writef 内部でも同等のチェックが行われるが、vsnprintf の実行を
+     * trace_logger_writef 内部でも同等のチェックが行われるが、vsnprintf の実行を
      * 省くためにここで確認する。 */
-    min_lv = trace_get_ostrc(s_trace);
-    lv     = trace_get_filetrc(s_trace);
+    min_lv = trace_logger_get_os_level(s_trace);
+    lv     = trace_logger_get_file_level(s_trace);
     if ((int)lv < (int)min_lv) { min_lv = lv; }
-    lv     = trace_get_stderrtrc(s_trace);
+    lv     = trace_logger_get_stderr_level(s_trace);
     if ((int)lv < (int)min_lv) { min_lv = lv; }
-    if ((int)level > (int)min_lv || (int)min_lv >= (int)TRACE_LV_NONE)
+    if ((int)level > (int)min_lv || (int)min_lv >= (int)TRACE_LEVEL_NONE)
     {
         return;
     }
@@ -158,10 +158,10 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
     va_end(ap);
 
     /* trace-util 経由で OS (syslog / ETW)、ファイル、stderr に出力する。
-     * trace_writef は内部でスレッドセーフのため、ロック不要。
-     * PotrLogLevel と enum trace_level は値が一致するため直接キャストする。
+     * trace_logger_writef は内部でスレッドセーフのため、ロック不要。
+     * PotrLogLevel と trace_level_t は値が一致するため直接キャストする。
      * メッセージに [file:line] を含めてソース位置を記録する。 */
-    (void)trace_writef(s_trace, (enum trace_level)(int)level,
+    (void)trace_logger_writef(s_trace, (trace_level_t)(int)level,
                        "[%s:%d] %s",
                        log_basename(file), line, msg);
 }

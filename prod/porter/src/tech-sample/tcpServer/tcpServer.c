@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <console-util.h>
+#include <util/console/console.h>
 
 #include "tcpServer.h"
 

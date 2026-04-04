@@ -1,11 +1,11 @@
 #include <testfw.h>
 #include <mock_trace_util.h>
 
-WEAK_ATR void trace_dispose(trace_provider_t *handle)
+WEAK_ATR void trace_logger_destroy(trace_logger_t *handle)
 {
     if (_mock_trace_util != nullptr)
     {
-        _mock_trace_util->trace_dispose(handle);
+        _mock_trace_util->trace_logger_destroy(handle);
     }
 
     if (getTraceLevel() > TRACE_NONE)

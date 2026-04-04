@@ -1,13 +1,13 @@
 #include <testfw.h>
 #include <mock_trace_util.h>
 
-WEAK_ATR int trace_stop(trace_provider_t *handle)
+WEAK_ATR int trace_logger_stop(trace_logger_t *handle)
 {
     int rtc = 0;
 
     if (_mock_trace_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_stop(handle);
+        rtc = _mock_trace_util->trace_logger_stop(handle);
     }
 
     if (getTraceLevel() > TRACE_NONE)

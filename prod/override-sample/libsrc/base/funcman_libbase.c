@@ -24,18 +24,18 @@ char funcman_configpath[FUNCMAN_CONFIG_PATH_MAX] = {0};
 /* --- 対応関数を追加した場合、以下に追加が必要です。                       --- */
 
 /** sample_func 用の funcman オブジェクト実体。 */
-static funcman_object sfo_sample_func = NEW_FUNCMAN_OBJECT("sample_func", sample_func_t);
+static symbol_loader_entry_t sfo_sample_func = SYMBOL_LOADER_ENTRY_INIT("sample_func", sample_func_t);
 /* doxygen コメントは、ヘッダに記載 */
-funcman_object *const pfo_sample_func = &sfo_sample_func;
+symbol_loader_entry_t *const pfo_sample_func = &sfo_sample_func;
 
-/* static funcman_object sfo_func_name = NEW_FUNCMAN_OBJECT("func_name", func_name_t); */ /* 将来追加 */
-/* funcman_object *const pfo_func_name = &sfo_func_name; */                               /* 将来追加 */
+/* static symbol_loader_entry_t sfo_func_name = SYMBOL_LOADER_ENTRY_INIT("func_name", func_name_t); */ /* 将来追加 */
+/* symbol_loader_entry_t *const pfo_func_name = &sfo_func_name; */                               /* 将来追加 */
 
 /* --- funcman に渡すポインタ配列                     --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。 --- */
 
 /* doxygen コメントは、ヘッダに記載 */
-funcman_object *const fobj_array_libbase[] = {
+symbol_loader_entry_t *const fobj_array_libbase[] = {
     &sfo_sample_func,
     /* &sfo_func_name, */ /* 将来追加 */
 };
@@ -47,5 +47,5 @@ const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_arra
 int funcman_info_libbase()
 {
     printf("- congigpath: %s\n", funcman_configpath);
-    return funcman_info(fobj_array_libbase, fobj_length_libbase);
+    return symbol_loader_info(fobj_array_libbase, fobj_length_libbase);
 }

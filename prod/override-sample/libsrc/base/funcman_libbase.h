@@ -25,13 +25,13 @@
 /** sample_func に対応する関数ポインタの型定義。 */
 typedef int (*sample_func_t)(const int, const int, int *);
 /** sample_func に対応する funcman オブジェクトへのポインタ。 */
-extern funcman_object *const pfo_sample_func;
+extern symbol_loader_entry_t *const pfo_sample_func;
 
 /* typedef any (*func_name_t)(...); */            /* 将来追加 */
-/* extern funcman_object *const pfo_func_name; */ /* 将来追加 */
+/* extern symbol_loader_entry_t *const pfo_func_name; */ /* 将来追加 */
 
 /** funcman に設定するポインタ配列。 */
-extern funcman_object *const fobj_array_libbase[];
+extern symbol_loader_entry_t *const fobj_array_libbase[];
 
 /** funcman に設定するポインタ配列の要素数 */
 extern const size_t fobj_length_libbase;

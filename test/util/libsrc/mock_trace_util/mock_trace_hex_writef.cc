@@ -3,7 +3,7 @@
 #include <testfw.h>
 #include <mock_trace_util.h>
 
-WEAK_ATR int trace_hex_writef(trace_provider_t *handle, enum trace_level level,
+WEAK_ATR int trace_logger_write_hexf(trace_logger_t *handle, trace_level_t level,
                               const void *data, size_t size,
                               const char *format, ...)
 {
@@ -17,7 +17,7 @@ WEAK_ATR int trace_hex_writef(trace_provider_t *handle, enum trace_level level,
 
     if (_mock_trace_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_hex_writef(
+        rtc = _mock_trace_util->trace_logger_write_hexf(
             handle, level, data, size, label);
     }
 

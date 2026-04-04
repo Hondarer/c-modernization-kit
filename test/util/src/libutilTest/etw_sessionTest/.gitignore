@@ -1,2 +1,2 @@
-/etw-provider.c
-/etw-session.c
+/trace_etw.c
+/trace_etw_session.c

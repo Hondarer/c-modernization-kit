@@ -51,7 +51,7 @@
 #endif /* _WIN32 */
 
 #include <porter.h>
-#include <console-util.h>
+#include <util/console/console.h>
 
 /** 入力バッファサイズ。POTR_MAX_MESSAGE_SIZE + 改行 + NUL。 */
 #define INPUT_BUF_SIZE (POTR_MAX_MESSAGE_SIZE + 2U)

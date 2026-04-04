@@ -17,7 +17,7 @@
 #define LIBBASE_H
 
 #include <stddef.h>
-#include <funcman.h>
+#include <util/runtime/symbol_loader.h>
 
 #ifdef DOXYGEN
 
@@ -108,7 +108,7 @@ extern "C"
 
     /**
      *******************************************************************************
-     *  @brief          libbase が管理する funcman_object ポインタ配列の内容を標準出力に表示します。
+     *  @brief          libbase が管理する symbol_loader_entry_t ポインタ配列の内容を標準出力に表示します。
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
