@@ -47,14 +47,12 @@ int main(int argc, char *argv[])
     if (argc != 4)
     {
         fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);
-        console_dispose();
         return 1;
     }
 
     if (argv[2][0] == 0x00 || argv[2][1] != 0x00)
     {
         fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);
-        console_dispose();
         return 1;
     }
 
@@ -79,7 +77,6 @@ int main(int argc, char *argv[])
         break;
     default:
         fprintf(stderr, "Usage: %s <num1> <+|-|x|/> <num2>\n", argv[0]);
-        console_dispose();
         return 1;
         break;
     }
@@ -87,12 +84,10 @@ int main(int argc, char *argv[])
     if (calcHandler(kind, arg1, arg3, &result) != 0)
     {
         fprintf(stderr, "Error: calcHandler failed\n");
-        console_dispose();
         return 1;
     }
 
     printf("%d\n", result);
 
-    console_dispose();
     return 0;
 }

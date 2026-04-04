@@ -99,8 +99,8 @@ extern "C"
      *                  本関数はプログラム開始時に一度だけ呼び出すことを想定しています。\n
      *                  初期化に失敗した場合は stderr に警告を出力し、何もせずに返ります。
      *
-     *  @note           本関数を呼び出した後は @c console_dispose を呼び出して
-     *                  リソースを解放してください。
+     *  @note           リソースはライブラリアンロード時に自動解放されます。
+     *                  明示的に解放する場合は @c console_dispose を呼び出してください。
      */
     CONSOLE_UTIL_EXPORT void CONSOLE_UTIL_API console_init(void);
 

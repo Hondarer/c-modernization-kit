@@ -252,7 +252,6 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "エラー: -l オプションにレベルを指定してください。\n");
                 fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
                         argv[0]);
-                console_dispose();
                 return EXIT_FAILURE;
             }
             i++;
@@ -262,7 +261,6 @@ int main(int argc, char *argv[])
                         "エラー: 不明なログレベル \"%s\"。"
                         "TRACE/DEBUG/INFO/WARN/ERROR/FATAL のいずれかを指定してください。\n",
                         argv[i]);
-                console_dispose();
                 return EXIT_FAILURE;
             }
             log_level_set = 1;
@@ -281,7 +279,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "  -l <level>  ログレベル (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)\n");
         fprintf(stderr, "例: %s porter-services.conf 10\n", argv[0]);
         fprintf(stderr, "例: %s -l INFO porter-services.conf 10\n", argv[0]);
-        console_dispose();
         return EXIT_FAILURE;
     }
 
@@ -294,7 +291,6 @@ int main(int argc, char *argv[])
         if (potrLogConfig(log_level, NULL, 1) != POTR_SUCCESS)
         {
             fprintf(stderr, "エラー: ロガーの設定に失敗しました。\n");
-            console_dispose();
             return EXIT_FAILURE;
         }
     }
@@ -322,7 +318,6 @@ int main(int argc, char *argv[])
     if (potrOpenServiceFromConfig(config_path, service_id, POTR_ROLE_SENDER, callback, &handle) != POTR_SUCCESS)
     {
         fprintf(stderr, "エラー: サービス %" PRId64 " を開けませんでした。\n", service_id);
-        console_dispose();
         return EXIT_FAILURE;
     }
 
@@ -401,7 +396,6 @@ int main(int argc, char *argv[])
     potrCloseService(handle);
     printf("終了しました。\n");
     fflush(stdout);
-    console_dispose();
     return ret;
 }
 

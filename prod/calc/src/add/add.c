@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     if (argc != 3)
     {
         fprintf(stderr, "Usage: %s <arg1> <arg2>\n", argv[0]);
-        console_dispose();
         return 1;
     }
 
@@ -55,12 +54,10 @@ int main(int argc, char *argv[])
     if (add(arg1, arg2, &result) != 0)
     {
         fprintf(stderr, "Error: add failed\n");
-        console_dispose();
         return 1;
     }
 
     printf("%d\n", result);
 
-    console_dispose();
     return 0;
 }

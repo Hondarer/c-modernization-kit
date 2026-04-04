@@ -75,6 +75,5 @@ int main(void)
         printf("result: %d\n", result);
     }
 
-    console_dispose();
     return 0;
 }

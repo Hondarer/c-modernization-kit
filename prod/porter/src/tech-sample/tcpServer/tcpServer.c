@@ -104,7 +104,6 @@ int main(int argc, char *argv[]) {
 
     if (dispatch_internal_args(argc, argv)) {
         platform_cleanup();
-        console_dispose();
         return 0;
     }
 
@@ -122,6 +121,5 @@ int main(int argc, char *argv[]) {
     }
 
     platform_cleanup();
-    console_dispose();
     return 0;
 }

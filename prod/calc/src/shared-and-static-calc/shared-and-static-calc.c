@@ -46,14 +46,12 @@ int main(int argc, char *argv[])
     if (argc != 4)
     {
         fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);
-        console_dispose();
         return 1;
     }
 
     if (argv[2][0] == 0x00 || argv[2][1] != 0x00)
     {
         fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);
-        console_dispose();
         return 1;
     }
 
@@ -68,7 +66,6 @@ int main(int argc, char *argv[])
         if (calcHandler(CALC_KIND_ADD, arg1, arg3, &result_shared) != 0)
         {
             fprintf(stderr, "Error: calcHandler failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_shared: %d\n", result_shared);
@@ -77,7 +74,6 @@ int main(int argc, char *argv[])
         if (add(arg1, arg3, &result_static) != 0)
         {
             fprintf(stderr, "Error: add failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_static: %d\n", result_static);
@@ -90,7 +86,6 @@ int main(int argc, char *argv[])
         if (calcHandler(CALC_KIND_SUBTRACT, arg1, arg3, &result_shared) != 0)
         {
             fprintf(stderr, "Error: calcHandler failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_shared: %d\n", result_shared);
@@ -99,7 +94,6 @@ int main(int argc, char *argv[])
         if (subtract(arg1, arg3, &result_static) != 0)
         {
             fprintf(stderr, "Error: subtract failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_static: %d\n", result_static);
@@ -112,7 +106,6 @@ int main(int argc, char *argv[])
         if (calcHandler(CALC_KIND_MULTIPLY, arg1, arg3, &result_shared) != 0)
         {
             fprintf(stderr, "Error: calcHandler failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_shared: %d\n", result_shared);
@@ -121,7 +114,6 @@ int main(int argc, char *argv[])
         if (multiply(arg1, arg3, &result_static) != 0)
         {
             fprintf(stderr, "Error: multiply failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_static: %d\n", result_static);
@@ -134,7 +126,6 @@ int main(int argc, char *argv[])
         if (calcHandler(CALC_KIND_DIVIDE, arg1, arg3, &result_shared) != 0)
         {
             fprintf(stderr, "Error: calcHandler failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_shared: %d\n", result_shared);
@@ -143,7 +134,6 @@ int main(int argc, char *argv[])
         if (divide(arg1, arg3, &result_static) != 0)
         {
             fprintf(stderr, "Error: divide failed\n");
-            console_dispose();
             return 1;
         }
         printf("result_static: %d\n", result_static);
@@ -152,11 +142,9 @@ int main(int argc, char *argv[])
     }
     default:
         fprintf(stderr, "Usage: %s <arg1> <arg2> <arg3>\n", argv[0]);
-        console_dispose();
         return 1;
         break;
     }
 
-    console_dispose();
     return 0;
 }

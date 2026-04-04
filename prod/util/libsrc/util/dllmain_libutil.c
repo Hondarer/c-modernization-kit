@@ -16,7 +16,8 @@
 
 #include <dllmain-util.h>
 
-#include "trace-provider-internal.h"
+#include "console/console-util-internal.h"
+#include "trace/trace-provider-internal.h"
 
 /**
  *******************************************************************************
@@ -35,5 +36,6 @@ static void onLoad(void)
  */
 static void onUnload(int process_terminating)
 {
+    console_dispose_on_unload(process_terminating);
     trace_registry_dispose_all_on_unload(process_terminating);
 }

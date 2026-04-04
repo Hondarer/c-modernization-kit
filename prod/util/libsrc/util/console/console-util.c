@@ -8,6 +8,7 @@
  */
 
 #include <console-util.h>
+#include "console-util-internal.h"
 
 /* ===== Windows 実装 ===== */
 
@@ -259,6 +260,35 @@ static void dispose_stream(stream_state_t *s, FILE *crt_stream)
     s->thread      = NULL;
 }
 
+/*
+ * DLL アンロードコンテキスト向けのストリーム解放関数。
+ * dispose_stream との違い: WaitForSingleObject のタイムアウトを 500ms に短縮。
+ * プロセス終了時 (process_terminating=1) は呼び出し元がスキップするため不要。
+ *
+ * パイプ閉鎖後に reader スレッドが ReadFile から返るまでの時間は通常ごく短い。
+ * reader_thread_proc は LoadLibrary 等ローダーロックを要求する操作を行わないため、
+ * DllMain コンテキストでも 500ms 待機によるデッドロックリスクはない。
+ */
+static void dispose_stream_on_unload(stream_state_t *s, FILE *crt_stream)
+{
+    if (!InterlockedCompareExchange(&s->active, 0, 1)) return;
+
+    fflush(crt_stream);
+    _dup2(s->orig_crt_fd, _fileno(crt_stream));
+    _close(s->orig_crt_fd);
+
+    WaitForSingleObject(s->thread, 500);
+
+    CloseHandle(s->pipe_read);
+    CloseHandle(s->orig_handle);
+    CloseHandle(s->thread);
+
+    s->orig_crt_fd = -1;
+    s->pipe_read   = NULL;
+    s->orig_handle = NULL;
+    s->thread      = NULL;
+}
+
 /* ===== 公開 API ===== */
 
 void CONSOLE_UTIL_API console_init(void)
@@ -287,11 +317,22 @@ void CONSOLE_UTIL_API console_dispose(void)
     dispose_stream(&s_stdout_state, stdout);
 }
 
+void console_dispose_on_unload(int process_terminating)
+{
+    /* プロセス終了時は OS がスレッドを自動終了・リソースを回収する。
+     * ローダーロック保持中のスレッド待機はデッドロックになりうるため何もしない。 */
+    if (process_terminating) return;
+    /* stderr → stdout の順で解放する */
+    dispose_stream_on_unload(&s_stderr_state, stderr);
+    dispose_stream_on_unload(&s_stdout_state, stdout);
+}
+
 #else /* !_WIN32 */
 
 /* ===== Linux / 非 Windows 実装 (no-op) ===== */
 
 void CONSOLE_UTIL_API console_init(void)    {}
 void CONSOLE_UTIL_API console_dispose(void) {}
+void console_dispose_on_unload(int process_terminating) { (void)process_terminating; }
 
 #endif /* _WIN32 */

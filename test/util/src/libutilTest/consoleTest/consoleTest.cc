@@ -1,5 +1,6 @@
 #include <testfw.h>
 #include <console-util.h>
+#include "console-util-internal.h"
 #include <stdio.h>
 
 /* ===== テストクラス ===== */
@@ -15,37 +16,47 @@ TEST_F(consoleTest, test_init_succeeds)
 {
     // Act & Assert - クラッシュしないことを確認
     console_init(); // [手順] - コンソールヘルパーを初期化する。
-
-    // Cleanup
-    console_dispose();
 }
 
-// init → dispose がクラッシュしないことの確認
-TEST_F(consoleTest, test_dispose_after_init)
+// init 後に dispose_on_unload(0) がクラッシュしないことの確認
+TEST_F(consoleTest, test_dispose_on_unload_after_init)
 {
     // Arrange
     console_init();
 
     // Act & Assert - クラッシュしないことを確認
-    console_dispose(); // [手順] - 正常に初期化した後で dispose を呼ぶ。
+    console_dispose_on_unload(0); // [手順] - 正常に初期化した後で dispose_on_unload(0) を呼ぶ。
 }
 
-// init なしで dispose を呼んでも安全なことの確認
-TEST_F(consoleTest, test_dispose_without_init)
+// init なしで dispose_on_unload(0) を呼んでも安全なことの確認
+TEST_F(consoleTest, test_dispose_on_unload_without_init)
 {
     // Act & Assert - クラッシュしないことを確認
-    console_dispose(); // [手順] - init を呼ばずに dispose を呼ぶ。安全に何もしないこと。
+    console_dispose_on_unload(0); // [手順] - init を呼ばずに dispose_on_unload(0) を呼ぶ。安全に何もしないこと。
 }
 
-// dispose を 2 回呼んでも安全なことの確認
-TEST_F(consoleTest, test_double_dispose)
+// dispose_on_unload(0) を 2 回呼んでも安全なことの確認
+TEST_F(consoleTest, test_double_dispose_on_unload)
 {
     // Arrange
     console_init();
 
     // Act & Assert - 2 回呼んでもクラッシュしないことを確認
-    console_dispose(); // [手順] - 1 回目の dispose。
-    console_dispose(); // [手順] - 2 回目の dispose。安全に何もしないこと。
+    console_dispose_on_unload(0); // [手順] - 1 回目の dispose_on_unload(0)。
+    console_dispose_on_unload(0); // [手順] - 2 回目の dispose_on_unload(0)。安全に何もしないこと。
+}
+
+// init 後に dispose_on_unload(1) が安全に何もしないことの確認
+TEST_F(consoleTest, test_dispose_on_unload_process_terminating)
+{
+    // Arrange
+    console_init();
+
+    // Act & Assert - process_terminating=1 は何もしないこと (クラッシュしないことを確認)
+    console_dispose_on_unload(1); // [手順] - プロセス終了を模擬。何もしないこと。
+
+    // Cleanup - init 状態を解放する (process_terminating=0 で明示的にクリーンアップ)
+    console_dispose_on_unload(0);
 }
 
 // init 後に printf / fprintf を呼んでもクラッシュしないことの確認
@@ -57,9 +68,6 @@ TEST_F(consoleTest, test_write_after_init)
     // Act & Assert - クラッシュしないことを確認
     printf("consoleTest: stdout\n");           // [手順] - stdout に書き込む。
     fprintf(stderr, "consoleTest: stderr\n");  // [手順] - stderr に書き込む。
-
-    // Cleanup
-    console_dispose();
 }
 
 /* ===== Linux NOP テスト ===== */
@@ -82,8 +90,6 @@ TEST_F(consoleTest, test_nop_stdout_fd_unchanged)
     // Assert
     EXPECT_EQ(fd_before, fileno(stdout)); // [確認_正常系] - no-op なので FD が変わっていないこと。
 
-    console_dispose();
-
     EXPECT_EQ(fd_before, fileno(stdout)); // [確認_正常系] - dispose 後も FD が変わっていないこと。
 }
 
@@ -98,8 +104,6 @@ TEST_F(consoleTest, test_nop_stderr_fd_unchanged)
 
     // Assert
     EXPECT_EQ(fd_before, fileno(stderr)); // [確認_正常系] - no-op なので FD が変わっていないこと。
-
-    console_dispose();
 
     EXPECT_EQ(fd_before, fileno(stderr)); // [確認_正常系] - dispose 後も FD が変わっていないこと。
 }

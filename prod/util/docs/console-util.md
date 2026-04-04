@@ -67,7 +67,7 @@ CONSOLE_UTIL_EXPORT void CONSOLE_UTIL_API console_init(void);
 | Windows 動作 | stdout と stderr を内部パイプに差し替え、バックグラウンドスレッドを起動する。スレッドはパイプから UTF-8 バイト列を受け取り、出力先がコンソール (TTY) の場合は `WriteConsoleW` で UTF-16 として書き出す。パイプやファイルへは UTF-8 バイト列をそのまま転送する。stdin には触れない。初期化に失敗した場合は stderr に警告を出力し、何もせずに返る。 |
 | Linux 動作 | 何もしない (no-op)。 |
 | 呼び出し制約 | プログラム開始時に一度だけ呼び出すことを想定。二重呼び出し時は何もしない。 |
-| 後処理 | 呼び出し後は `console_dispose` でリソースを解放すること。 |
+| 後処理 | リソースはライブラリアンロード時に自動解放される。明示的に解放する場合は `console_dispose` を呼び出すこと。 |
 
 #### `console_dispose`
 
@@ -82,6 +82,7 @@ CONSOLE_UTIL_EXPORT void CONSOLE_UTIL_API console_dispose(void);
 | Windows 動作 | バックグラウンドスレッドを停止し、stdout / stderr を元のハンドルに戻す。stderr → stdout の順で解放する。 |
 | Linux 動作 | 何もしない (no-op)。 |
 | 安全性 | `console_init` を呼び出していない場合も安全に呼び出せる。複数回呼び出しても安全。 |
+| 備考 | 通常は呼び出し不要。ライブラリアンロード時に `console_dispose_on_unload` が自動的に解放を行う。 |
 
 ### DLL エクスポート / インポート制御マクロ
 
@@ -184,6 +185,30 @@ UTF-8 エンコーディング:
 6. ハンドル (`pipe_read`, `orig_handle`, `thread`) を `CloseHandle` で解放
 7. 状態をクリア
 
+### DLL アンロードコンテキスト向け解放フロー (`dispose_stream_on_unload` / `console_dispose_on_unload`)
+
+`console_dispose_on_unload(int process_terminating)` は `dllmain_libutil.c` の `onUnload` から
+自動的に呼び出される内部関数である。`console-util-internal.h` に宣言される。
+
+**`process_terminating = 1` (プロセス終了)**:
+- 何もしない。OS がすべてのスレッドを自動終了させ、リソースを回収するため不要。
+- ローダーロック保持中にスレッド待機を行うとデッドロックになりうるため、安全のためスキップする。
+
+**`process_terminating = 0` (明示的アンロード)**:
+`dispose_stream_on_unload` を stderr → stdout の順で呼び出す。
+`dispose_stream` との唯一の違いは `WaitForSingleObject` のタイムアウト値:
+
+| 関数 | タイムアウト | 用途 |
+|------|------------|------|
+| `dispose_stream` | 5000ms | 通常の終了 (`console_dispose`) |
+| `dispose_stream_on_unload` | 500ms | DLL アンロードコンテキスト |
+
+タイムアウトを短縮する理由:
+- `reader_thread_proc` は `ReadFile` / `WriteConsoleW` / `WriteFile` のみを使用し、
+  `LoadLibrary` 等ローダーロックを要求する操作を行わないため、デッドロックリスクは実質ない。
+- パイプ閉鎖後に `ReadFile` が `ERROR_BROKEN_PIPE` で返るまでの時間は通常ごく短い。
+- 安全マージンとして 500ms を設定している。
+
 ### 入力方向 (stdin)
 
 stdin はライブラリの差し替え対象外とする。
@@ -213,8 +238,8 @@ Linux (非 Windows) 環境では `console_init` / `console_dispose` はいずれ
 int main(void) {
     console_init();   /* Windows: stdout/stderr 差し替え、Linux: no-op */
     /* ... アプリケーションロジック ... */
-    console_dispose();
     return 0;
+    /* console_dispose() 呼び出し不要: ライブラリアンロード時に自動解放される */
 }
 ```
 
@@ -246,7 +271,8 @@ int main(void) {
 | ファイル | 役割 |
 |---------|------|
 | `prod/util/include/console-util.h` | 公開ヘッダー (API 宣言、DLL エクスポート / インポートマクロ) |
-| `prod/util/libsrc/util/console-util.c` | コア実装 (stdout / stderr 差し替え + スレッド / Linux no-op) |
+| `prod/util/libsrc/util/console/console-util.c` | コア実装 (stdout / stderr 差し替え + スレッド / Linux no-op) |
+| `prod/util/libsrc/util/console/console-util-internal.h` | 内部ヘッダー (`console_dispose_on_unload` 宣言) |
 | `prod/util/libsrc/util/makepart.mk` | `CONSOLE_UTIL_EXPORTS` フラグを追加 (他の util モジュールと統合) |
 | `prod/util/docs/console-util.md` | このファイル |
 | `test/util/src/libutilTest/consoleTest/consoleTest.cc` | テストコード |
@@ -273,7 +299,7 @@ int main(void) {
     fprintf(stderr, "警告\n");
     char buf[256];
     fgets(buf, sizeof(buf), stdin); /* UTF-8 マニフェストにより UTF-8 で読み取れる */
-    console_dispose();
     return 0;
+    /* console_dispose() 呼び出し不要: ライブラリアンロード時に自動解放される */
 }
 ```
