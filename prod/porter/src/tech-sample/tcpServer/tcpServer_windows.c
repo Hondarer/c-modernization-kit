@@ -27,6 +27,7 @@
 #ifdef _WIN32
 
 #include "tcpServer.h"   /* WIN32_LEAN_AND_MEAN / windows.h / winsock2.h / ws2tcpip.h を内包 */
+#include <util/fs/path_max.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -324,10 +325,10 @@ static int find_available_worker(WorkerInfo *workers, HANDLE *events, int n,
 static void start_prefork_workers(WorkerInfo *workers, HANDLE *events, int n,
                                   int conns_per_worker) {
     char pipe_name[64];
-    char cmdline[MAX_PATH + 128];
-    char exepath[MAX_PATH];
+    char cmdline[PLATFORM_PATH_MAX + 128];
+    char exepath[PLATFORM_PATH_MAX];
 
-    GetModuleFileNameA(NULL, exepath, MAX_PATH);
+    GetModuleFileNameA(NULL, exepath, PLATFORM_PATH_MAX);
 
     /* 監視スレッド引数はプロセス終了まで有効である必要があるため heap 確保 */
     WorkerMonitorArg *args = (WorkerMonitorArg *)malloc((size_t)n * sizeof(WorkerMonitorArg));
@@ -437,8 +438,8 @@ int dispatch_internal_args(int argc, char *argv[]) {
 /* doxygen コメントは、ヘッダに記載 */
 void run_fork_server(int port) {
     SOCKET listen_socket = create_listen_socket(port);
-    char   exepath[MAX_PATH];
-    GetModuleFileNameA(NULL, exepath, MAX_PATH);
+    char   exepath[PLATFORM_PATH_MAX];
+    GetModuleFileNameA(NULL, exepath, PLATFORM_PATH_MAX);
 
     printf("[親プロセス %lu] fork モード、ポート %d で待ち受け開始\n",
            GetCurrentProcessId(), port);
@@ -454,7 +455,7 @@ void run_fork_server(int port) {
         /* ソケットハンドルを継承可能に設定 */
         SetHandleInformation((HANDLE)client_socket, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
 
-        char cmdline[MAX_PATH + 64];
+        char cmdline[PLATFORM_PATH_MAX + 64];
         sprintf_s(cmdline, sizeof(cmdline), "\"%s\" --child %llu",
                   exepath, (unsigned long long)client_socket);
 

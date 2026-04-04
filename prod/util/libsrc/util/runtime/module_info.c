@@ -21,13 +21,12 @@
  */
 
 #include <util/runtime/module_info.h>
+#include <util/fs/path_max.h>
 #if defined(_WIN32)
-    #define WIN32_LEAN_AND_MEAN
     #include <stddef.h>
     #include <stdint.h>
     #include <stdio.h>
     #include <string.h>
-    #include <windows.h>
 #else
     #include <dlfcn.h>
     #include <limits.h>
@@ -202,7 +201,7 @@ static get_lib_info_status_t narrow_utf8(const wchar_t *w, char *out_u8, size_t 
 static get_lib_info_status_t get_self_path_w(wchar_t *out_w, size_t out_w_cap, const void *func_addr)
 {
     HMODULE hm = NULL;
-    wchar_t buf[MAX_PATH];
+    wchar_t buf[PLATFORM_PATH_MAX];
     DWORD n;
 
     if (!out_w || out_w_cap == 0 || !func_addr)
@@ -224,7 +223,7 @@ static get_lib_info_status_t get_self_path_w(wchar_t *out_w, size_t out_w_cap, c
     /* GetModuleFileNameW は通常フルパスを返しますが、念のため GetFullPathNameW で正規化します。 */
     /* (失敗した場合は buf をそのまま返す) */
     {
-        wchar_t full[MAX_PATH];
+        wchar_t full[PLATFORM_PATH_MAX];
         DWORD m = GetFullPathNameW(buf, (DWORD)(sizeof(full) / sizeof(full[0])), full, NULL);
         if (m == 0 || m >= (DWORD)(sizeof(full) / sizeof(full[0])))
         {
@@ -259,7 +258,7 @@ static get_lib_info_status_t get_self_path_posix(char *out_path, size_t out_path
 {
     Dl_info info;
     const char *p;
-    char resolved[PATH_MAX];
+    char resolved[PLATFORM_PATH_MAX];
 
     if (!out_path || out_path_sz == 0 || !func_addr)
         return MYLIB_EINVAL;
@@ -289,8 +288,8 @@ static get_lib_info_status_t get_self_path_posix(char *out_path, size_t out_path
 
     /* 相対パスなら CWD と結合して絶対化を試みる */
     {
-        char cwd[PATH_MAX];
-        char joined[PATH_MAX];
+        char cwd[PLATFORM_PATH_MAX];
+        char joined[PLATFORM_PATH_MAX];
 
         if (getcwd(cwd, sizeof(cwd)) == NULL)
             return MYLIB_EFAIL;
@@ -313,7 +312,7 @@ static get_lib_info_status_t get_self_path_posix(char *out_path, size_t out_path
 int module_info_get_path(char *out_path, const size_t out_path_sz, const void *func_addr)
 {
 #if defined(_WIN32)
-    wchar_t wpath[MAX_PATH];
+    wchar_t wpath[PLATFORM_PATH_MAX];
     get_lib_info_status_t st = get_self_path_w(wpath, (size_t)(sizeof(wpath) / sizeof(wpath[0])), func_addr);
     if (st != MYLIB_OK)
     {

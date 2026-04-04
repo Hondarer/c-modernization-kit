@@ -2,14 +2,10 @@
 #include <string>
 #include <testfw.h>
 
+#include <util/fs/path_max.h>
+
 #ifndef _WIN32
     #include <unistd.h>
-#else /* _WIN32 */
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-    #ifdef byte
-        #undef byte /* std::byte と windows.h の byte 型の競合を解消する */
-    #endif
 #endif /* _WIN32 */
 
 class override_sampleTest : public Test
@@ -37,8 +33,8 @@ class override_sampleTest : public Test
         lib_path = workspace_root + "\\prod\\override-sample\\lib"
                  + ";" + workspace_root + "\\prod\\util\\lib";
         {
-            wchar_t tmpw[MAX_PATH] = L"";
-            char tmpu8[MAX_PATH * 4] = {0};
+            wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
+            char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
             DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
             if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
             {

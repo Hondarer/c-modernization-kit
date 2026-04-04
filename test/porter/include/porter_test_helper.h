@@ -5,14 +5,10 @@
 #include <string>
 #include <vector>
 
+#include <util/fs/path_max.h>
+
 #ifndef _WIN32
 #include <unistd.h>
-#else
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#ifdef byte
-#undef byte
-#endif
 #endif
 
 /**
@@ -67,9 +63,9 @@ public:
             close(fd);
             tmp_path_ = tmpl;
 #else
-            char tmp_dir[MAX_PATH] = {};
+            char tmp_dir[PLATFORM_PATH_MAX] = {};
             GetTempPathA(sizeof(tmp_dir), tmp_dir);
-            char tmp_file[MAX_PATH] = {};
+            char tmp_file[PLATFORM_PATH_MAX] = {};
             GetTempFileNameA(tmp_dir, "ptr", 0, tmp_file);
             /* .conf 拡張子に変更 */
             tmp_path_ = std::string(tmp_file) + ".conf";

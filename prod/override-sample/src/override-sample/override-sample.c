@@ -15,10 +15,8 @@
 
 #include <libbase.h>
 #include <util/console/console.h>
+#include <util/fs/path_max.h>
 #include <stdio.h>
-#ifdef _WIN32
-    #include <windows.h>
-#endif /* _WIN32 */
 
 /**
  *******************************************************************************
@@ -38,12 +36,12 @@ int main(void)
     snprintf(configpath, sizeof(configpath), "/tmp/libbase_extdef.txt");
 #else /* _WIN32 */
     {
-        wchar_t tmpw[MAX_PATH] = L"";
+        wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
         DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
         configpath[0] = '\0';
         if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
         {
-            char tmpu8[MAX_PATH * 4] = {0};
+            char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
             int m = WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
             if (m > 0)
                 snprintf(configpath, sizeof(configpath), "%slibbase_extdef.txt", tmpu8);

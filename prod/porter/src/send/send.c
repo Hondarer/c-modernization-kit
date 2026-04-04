@@ -45,11 +45,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <util/fs/path_max.h>
 
 #ifndef _WIN32
     #include <unistd.h>
-#else /* _WIN32 */
-    #include <windows.h>
 #endif /* _WIN32 */
 
 #include <porter.h>
@@ -134,7 +133,7 @@ static int save_to_temp_file(const void *data, size_t len,
     }
     return 0;
 #else  /* _WIN32 */
-    char tmp_dir[MAX_PATH];
+    char tmp_dir[PLATFORM_PATH_MAX];
     FILE *fp = NULL;
     size_t written;
 

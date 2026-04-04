@@ -16,29 +16,28 @@ typedef struct _stat64 util_file_stat_t;
 
 /* OS 固有のパス最大長を定義 */
 
+#include <util/fs/path_max.h>
+
+#ifndef _WIN32
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+#else /* _WIN32 */
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <io.h>
+    #include <direct.h>
+#endif /* _WIN32 */
+
 #ifdef DOXYGEN
     /**
      *  @def            PATH_FORMAT_PATH_MAX
      *  @brief          OS 固有のパス最大長。
-     *  @details        Linux では `limits.h` の `PATH_MAX`、Windows では `windows.h` の `MAX_PATH` に展開されます。
+     *  @details        @ref PLATFORM_PATH_MAX の alias です。
+     *                  Linux では `limits.h` の `PATH_MAX`、Windows では `windows.h` の `MAX_PATH` に展開されます。
      */
-#else /* !DOXYGEN */
-    #ifndef _WIN32
-        #include <limits.h>
-        #include <sys/stat.h>
-        #include <fcntl.h>
-        #include <unistd.h>
-        #define PATH_FORMAT_PATH_MAX PATH_MAX
-    #else /* _WIN32 */
-        #include <sys/stat.h>
-        #include <fcntl.h>
-        #include <io.h>
-        #include <direct.h>
-        /* MAX_PATH (= 260) 相当。<windows.h> は C++17 の std::byte と
-           Windows SDK の byte typedef が衝突するためインクルードしない。 */
-        #define PATH_FORMAT_PATH_MAX 260
-    #endif /* _WIN32 */
-#endif     /* DOXYGEN */
+#endif /* DOXYGEN */
+#define PATH_FORMAT_PATH_MAX PLATFORM_PATH_MAX
 
 /* access_fmt 用のモード定数 */
 

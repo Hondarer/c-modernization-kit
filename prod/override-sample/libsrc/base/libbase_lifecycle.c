@@ -19,6 +19,7 @@
 #include "symbol_loader_libbase.h"
 #include <util/base/shared_lib_lifecycle.h>
 #include <util/runtime/module_info.h>
+#include <util/fs/path_max.h>
 #include <stdio.h>
 
 /**
@@ -39,12 +40,12 @@ void onLoad(void)
         snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "/tmp/%s_extdef.txt", basename);
 #else  /* _WIN32 */
         /* Windows: 定義ファイルを %TEMP% から読み込み */
-        wchar_t tmpw[MAX_PATH] = L"";
+        wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
         DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
         if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
         {
             /* UTF-16 -> UTF-8 変換 */
-            char tmpu8[MAX_PATH * 4] = {0};
+            char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
             int m = WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
             if (m > 0)
             {

@@ -14,15 +14,14 @@
  */
 
 #include <util/trace/trace_file.h>
+#include <util/fs/path_max.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include <trace_file_internal.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#else /* !_WIN32 */
+#ifndef _WIN32
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -46,15 +45,8 @@
 /** ローテーションパスのサフィックス最大長 (".999\0" = 5 文字)。 */
 #define TRACE_FILE_SUFFIX_MAX 5
 
-/* プラットフォームごとのパス長上限 */
-#ifdef _WIN32
-#define TRACE_FILE_PATH_MAX   MAX_PATH
-#else /* !_WIN32 */
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif /* PATH_MAX */
-#define TRACE_FILE_PATH_MAX   PATH_MAX
-#endif /* _WIN32 */
+/** パス長上限。 */
+#define TRACE_FILE_PATH_MAX   PLATFORM_PATH_MAX
 
 /* ===== 内部構造体 ===== */
 

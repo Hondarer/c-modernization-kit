@@ -1,7 +1,5 @@
 #include <porter_test_helper.h>
-#include <testfw.h>
-
-/**
+#include <testfw.h>/**
  * テスト用の一時バイナリファイルを作成するヘルパー。
  * デストラクタでファイルを削除する。
  */
@@ -27,9 +25,9 @@ class TempBinaryFile
         }
         path_ = tmpl;
 #else
-        char tmp_dir[MAX_PATH] = {};
+        char tmp_dir[PLATFORM_PATH_MAX] = {};
         GetTempPathA(sizeof(tmp_dir), tmp_dir);
-        char tmp_file[MAX_PATH] = {};
+        char tmp_file[PLATFORM_PATH_MAX] = {};
         GetTempFileNameA(tmp_dir, "ptb", 0, tmp_file);
         path_ = tmp_file;
         FILE *fp = nullptr;
