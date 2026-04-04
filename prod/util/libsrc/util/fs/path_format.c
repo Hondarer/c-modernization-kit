@@ -28,10 +28,10 @@
         return (fail_return);                            \
     }
 
-/* ===== pathf_vfopen / pathf_fopen ===== */
+/* ===== vfopen_fmt / fopen_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE *PATH_FORMAT_API pathf_vfopen(const char *modes, int *errno_out, const char *format, va_list args)
+FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 {
     char filename[PATH_FORMAT_PATH_MAX] = {0};
     int written;
@@ -94,22 +94,22 @@ FILE *PATH_FORMAT_API pathf_vfopen(const char *modes, int *errno_out, const char
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE *PATH_FORMAT_API pathf_fopen(const char *modes, int *errno_out, const char *format, ...)
+FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 {
     FILE *result;
     va_list args;
 
     va_start(args, format);
-    result = pathf_vfopen(modes, errno_out, format, args);
+    result = vfopen_fmt(modes, errno_out, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== pathf_vstat / pathf_stat ===== */
+/* ===== vstat_fmt / stat_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_vstat(util_file_stat_t *buf, const char *format, va_list args)
+int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -129,22 +129,22 @@ int PATH_FORMAT_API pathf_vstat(util_file_stat_t *buf, const char *format, va_li
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_stat(util_file_stat_t *buf, const char *format, ...)
+int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = pathf_vstat(buf, format, args);
+    result = vstat_fmt(buf, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== pathf_vremove / pathf_remove ===== */
+/* ===== vremove_fmt / remove_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_vremove(const char *format, va_list args)
+int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -152,22 +152,22 @@ int PATH_FORMAT_API pathf_vremove(const char *format, va_list args)
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_remove(const char *format, ...)
+int PATH_FORMAT_API remove_fmt(const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = pathf_vremove(format, args);
+    result = vremove_fmt(format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== pathf_vopen / pathf_open ===== */
+/* ===== vopen_fmt / open_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_vopen(int flags, int mode, const char *format, va_list args)
+int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -179,22 +179,22 @@ int PATH_FORMAT_API pathf_vopen(int flags, int mode, const char *format, va_list
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_open(int flags, int mode, const char *format, ...)
+int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = pathf_vopen(flags, mode, format, args);
+    result = vopen_fmt(flags, mode, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== pathf_vaccess / pathf_access ===== */
+/* ===== vaccess_fmt / access_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_vaccess(int mode, const char *format, va_list args)
+int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -206,22 +206,22 @@ int PATH_FORMAT_API pathf_vaccess(int mode, const char *format, va_list args)
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_access(int mode, const char *format, ...)
+int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = pathf_vaccess(mode, format, args);
+    result = vaccess_fmt(mode, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== pathf_vmkdir / pathf_mkdir ===== */
+/* ===== vmkdir_fmt / mkdir_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_vmkdir(const char *format, va_list args)
+int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -233,13 +233,13 @@ int PATH_FORMAT_API pathf_vmkdir(const char *format, va_list args)
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API pathf_mkdir(const char *format, ...)
+int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = pathf_vmkdir(format, args);
+    result = vmkdir_fmt(format, args);
     va_end(args);
 
     return result;

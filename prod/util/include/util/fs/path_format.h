@@ -40,38 +40,38 @@ typedef struct _stat64 util_file_stat_t;
     #endif /* _WIN32 */
 #endif     /* DOXYGEN */
 
-/* pathf_access 用のモード定数 */
+/* access_fmt 用のモード定数 */
 
 #ifdef DOXYGEN
     /**
-     *  @def            PATHF_F_OK
+     *  @def            ACCESS_FMT_F_OK
      *  @brief          ファイルの存在を確認するモード定数。
-     *  @details        pathf_access() の mode 引数に使用します。
+     *  @details        access_fmt() の mode 引数に使用します。
      */
-    #define PATHF_F_OK 0
+    #define ACCESS_FMT_F_OK 0
 
     /**
-     *  @def            PATHF_R_OK
+     *  @def            ACCESS_FMT_R_OK
      *  @brief          ファイルの読み取り権限を確認するモード定数。
-     *  @details        pathf_access() の mode 引数に使用します。
+     *  @details        access_fmt() の mode 引数に使用します。
      */
-    #define PATHF_R_OK 4
+    #define ACCESS_FMT_R_OK 4
 
     /**
-     *  @def            PATHF_W_OK
+     *  @def            ACCESS_FMT_W_OK
      *  @brief          ファイルの書き込み権限を確認するモード定数。
-     *  @details        pathf_access() の mode 引数に使用します。
+     *  @details        access_fmt() の mode 引数に使用します。
      */
-    #define PATHF_W_OK 2
+    #define ACCESS_FMT_W_OK 2
 #else /* !DOXYGEN */
     #ifndef _WIN32
-        #define PATHF_F_OK F_OK
-        #define PATHF_R_OK R_OK
-        #define PATHF_W_OK W_OK
+        #define ACCESS_FMT_F_OK F_OK
+        #define ACCESS_FMT_R_OK R_OK
+        #define ACCESS_FMT_W_OK W_OK
     #else /* _WIN32 */
-        #define PATHF_F_OK 0
-        #define PATHF_R_OK 4
-        #define PATHF_W_OK 2
+        #define ACCESS_FMT_F_OK 0
+        #define ACCESS_FMT_R_OK 4
+        #define ACCESS_FMT_W_OK 2
     #endif /* _WIN32 */
 #endif     /* DOXYGEN */
 
@@ -167,16 +167,16 @@ extern "C"
      *
      *  @par            使用例 (エラー コードの取得なし)
         @code
-        FILE *fp = pathf_fopen("r", NULL, "data_%d.txt", 123);
+        FILE *fp = fopen_fmt("r", NULL, "data_%d.txt", 123);
         @endcode
      *
      *  @par            使用例 (エラー コードの取得あり)
         @code
         int err;
-        FILE *fp = pathf_fopen("r", &err, "data_%d.txt", 123);
+        FILE *fp = fopen_fmt("r", &err, "data_%d.txt", 123);
         @endcode
      */
-    PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API pathf_fopen(const char *modes, int *errno_out, const char *format, ...)
+    PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 4)))
 #endif /* __GNUC__ */
@@ -197,14 +197,14 @@ extern "C"
      *  @note           util_file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です
      *  @par            使用例
         @code
-        util_file_stat_t st; int ret = pathf_stat(&st, "data_%d.txt", 123);
+        util_file_stat_t st; int ret = stat_fmt(&st, "data_%d.txt", 123);
         @endcode
      *  @note           Linux では stat()、Windows では _stat64() を使用します
      *  @warning        Linux と Windows では構造体のフィールドが異なるため、プラットフォーム固有のコードが必要です
      *                      - Windows には st_blksize, st_blocks フィールドがありません
      *                      - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_stat(util_file_stat_t *buf, const char *format, ...)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 3)))
 #endif /* __GNUC__ */
@@ -213,7 +213,7 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを開きます (va_list 版)。
      *
-     *  pathf_fopen() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  fopen_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *  上位のラッパー関数やマクロから va_list を転送する場合に使用します。
      *
      *  @param[in]      modes
@@ -230,9 +230,9 @@ extern "C"
      *
      *  @return         成功した場合は FILE* を返します。失敗した場合は NULL を返します。
      *
-     *  @see            pathf_fopen
+     *  @see            fopen_fmt
      */
-    PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API pathf_vfopen(const char *modes, int *errno_out, const char *format, va_list args)
+    PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 0)))
 #endif /* __GNUC__ */
@@ -241,16 +241,16 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定する stat ラッパー関数 (va_list 版)。
      *
-     *  pathf_stat() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  stat_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[out]     buf ファイル情報を格納する構造体へのポインタ (util_file_stat_t 型)
      *  @param[in]      format ファイル名のフォーマット文字列 (printf 形式)
      *  @param[in]      args フォーマット文字列に対応する可変引数リスト
      *  @return         成功時は 0、失敗時は -1
      *
-     *  @see            pathf_stat
+     *  @see            stat_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_vstat(util_file_stat_t *buf, const char *format, va_list args)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 0)))
 #endif /* __GNUC__ */
@@ -277,12 +277,12 @@ extern "C"
      *
      *  @par            使用例
         @code
-        int ret = pathf_remove("data_%d.txt", 123);
+        int ret = remove_fmt("data_%d.txt", 123);
         @endcode
      *
-     *  @see            pathf_vremove
+     *  @see            vremove_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_remove(const char *format, ...)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API remove_fmt(const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 1, 2)))
 #endif /* __GNUC__ */
@@ -291,7 +291,7 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを削除します (va_list 版)。
      *
-     *  pathf_remove() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  remove_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      format
      *                  ファイル名の書式文字列 (printf 形式)。
@@ -301,9 +301,9 @@ extern "C"
      *
      *  @return         成功時は 0、失敗時は非ゼロ値を返します。
      *
-     *  @see            pathf_remove
+     *  @see            remove_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_vremove(const char *format, va_list args)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
 #ifdef __GNUC__
         __attribute__((format(printf, 1, 0)))
 #endif /* __GNUC__ */
@@ -339,12 +339,12 @@ extern "C"
      *
      *  @par            使用例
         @code
-        int fd = pathf_open(O_WRONLY | O_CREAT | O_TRUNC, 0644, "log_%d.txt", pid);
+        int fd = open_fmt(O_WRONLY | O_CREAT | O_TRUNC, 0644, "log_%d.txt", pid);
         @endcode
      *
-     *  @see            pathf_vopen
+     *  @see            vopen_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_open(int flags, int mode, const char *format, ...)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 4)))
 #endif /* __GNUC__ */
@@ -353,7 +353,7 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを開きます (低レベル、va_list 版)。
      *
-     *  pathf_open() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  open_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      flags
      *                  ファイルオープンフラグ。
@@ -369,9 +369,9 @@ extern "C"
      *
      *  @return         成功時はファイルディスクリプタ、失敗時は -1 を返します。
      *
-     *  @see            pathf_open
+     *  @see            open_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_vopen(int flags, int mode, const char *format, va_list args)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
 #ifdef __GNUC__
         __attribute__((format(printf, 3, 0)))
 #endif /* __GNUC__ */
@@ -387,9 +387,9 @@ extern "C"
      *
      *  @param[in]      mode
      *                  確認するアクセスモード。以下の定数を使用してください。
-     *                  - PATHF_F_OK: ファイルの存在を確認
-     *                  - PATHF_R_OK: 読み取り権限を確認
-     *                  - PATHF_W_OK: 書き込み権限を確認
+     *                  - ACCESS_FMT_F_OK: ファイルの存在を確認
+     *                  - ACCESS_FMT_R_OK: 読み取り権限を確認
+     *                  - ACCESS_FMT_W_OK: 書き込み権限を確認
      *
      *  @param[in]      format
      *                  ファイル名の書式文字列 (printf 形式)。
@@ -405,15 +405,15 @@ extern "C"
      *
      *  @par            使用例
         @code
-        if (pathf_access(PATHF_F_OK, "config_%d.txt", instance_id) == 0)
+        if (access_fmt(ACCESS_FMT_F_OK, "config_%d.txt", instance_id) == 0)
         {
             // ファイルが存在する
         }
         @endcode
      *
-     *  @see            pathf_vaccess
+     *  @see            vaccess_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_access(int mode, const char *format, ...)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 3)))
 #endif /* __GNUC__ */
@@ -422,10 +422,10 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してアクセス可否を確認します (va_list 版)。
      *
-     *  pathf_access() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  access_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      mode
-     *                  確認するアクセスモード (PATHF_F_OK, PATHF_R_OK, PATHF_W_OK)。
+     *                  確認するアクセスモード (ACCESS_FMT_F_OK, ACCESS_FMT_R_OK, ACCESS_FMT_W_OK)。
      *
      *  @param[in]      format
      *                  ファイル名の書式文字列 (printf 形式)。
@@ -435,9 +435,9 @@ extern "C"
      *
      *  @return         アクセス可能な場合は 0、不可の場合は -1 を返します。
      *
-     *  @see            pathf_access
+     *  @see            access_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_vaccess(int mode, const char *format, va_list args)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
 #ifdef __GNUC__
         __attribute__((format(printf, 2, 0)))
 #endif /* __GNUC__ */
@@ -465,12 +465,12 @@ extern "C"
      *
      *  @par            使用例
         @code
-        int ret = pathf_mkdir("logs_%04d", year);
+        int ret = mkdir_fmt("logs_%04d", year);
         @endcode
      *
-     *  @see            pathf_vmkdir
+     *  @see            vmkdir_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_mkdir(const char *format, ...)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
 #ifdef __GNUC__
         __attribute__((format(printf, 1, 2)))
 #endif /* __GNUC__ */
@@ -479,7 +479,7 @@ extern "C"
     /**
      *  @brief          printf 形式でディレクトリ名を指定してディレクトリを作成します (va_list 版)。
      *
-     *  pathf_mkdir() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  mkdir_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      format
      *                  ディレクトリ名の書式文字列 (printf 形式)。
@@ -489,9 +489,9 @@ extern "C"
      *
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
-     *  @see            pathf_mkdir
+     *  @see            mkdir_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API pathf_vmkdir(const char *format, va_list args)
+    PATH_FORMAT_EXPORT int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
 #ifdef __GNUC__
         __attribute__((format(printf, 1, 0)))
 #endif /* __GNUC__ */

@@ -1,9 +1,9 @@
 #include <testfw.h>
-#include <mock_trace_util.h>
+#include <mock_util.h>
 
-Mock_trace_util *_mock_trace_util = nullptr;
+Mock_util *_mock_util = nullptr;
 
-Mock_trace_util::Mock_trace_util()
+Mock_util::Mock_util()
 {
     ON_CALL(*this, trace_logger_create())
         .WillByDefault(Return(nullptr)); // 一般的にはモックの既定の挙動は NOP にしておき、テストプログラムで具体的な挙動を決める
@@ -36,10 +36,10 @@ Mock_trace_util::Mock_trace_util()
     ON_CALL(*this, trace_logger_get_stderr_level(_))
         .WillByDefault(Return(TRACE_LEVEL_NONE));
 
-    _mock_trace_util = this;
+    _mock_util = this;
 }
 
-Mock_trace_util::~Mock_trace_util()
+Mock_util::~Mock_util()
 {
-    _mock_trace_util = nullptr;
+    _mock_util = nullptr;
 }

@@ -1,13 +1,13 @@
 #include <testfw.h>
-#include <mock_trace_util.h>
+#include <mock_util.h>
 
-WEAK_ATR int trace_logger_start(trace_logger_t *handle)
+WEAK_ATR trace_level_t trace_logger_get_file_level(trace_logger_t *handle)
 {
-    int rtc = 0;
+    trace_level_t rtc = TRACE_LEVEL_NONE;
 
-    if (_mock_trace_util != nullptr)
+    if (_mock_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_logger_start(handle);
+        rtc = _mock_util->trace_logger_get_file_level(handle);
     }
 
     if (getTraceLevel() > TRACE_NONE)
@@ -15,7 +15,7 @@ WEAK_ATR int trace_logger_start(trace_logger_t *handle)
         printf("  > %s 0x%p", __func__, (void *)handle);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
-            printf(" -> %d\n", rtc);
+            printf(" -> %d\n", (int)rtc);
         }
         else
         {

@@ -1,14 +1,14 @@
 #include <testfw.h>
-#include <mock_trace_util.h>
+#include <mock_util.h>
 
 WEAK_ATR int trace_logger_write_hex(trace_logger_t *handle, trace_level_t level,
                              const void *data, size_t size, const char *message)
 {
     int rtc = 0;
 
-    if (_mock_trace_util != nullptr)
+    if (_mock_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_logger_write_hex(handle, level, data, size, message);
+        rtc = _mock_util->trace_logger_write_hex(handle, level, data, size, message);
     }
 
     if (getTraceLevel() > TRACE_NONE)

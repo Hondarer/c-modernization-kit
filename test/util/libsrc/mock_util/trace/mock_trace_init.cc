@@ -1,13 +1,13 @@
 #include <testfw.h>
-#include <mock_trace_util.h>
+#include <mock_util.h>
 
 WEAK_ATR trace_logger_t *trace_logger_create(void)
 {
     trace_logger_t *handle = nullptr;
 
-    if (_mock_trace_util != nullptr)
+    if (_mock_util != nullptr)
     {
-        handle = _mock_trace_util->trace_logger_create();
+        handle = _mock_util->trace_logger_create();
     }
 
     if (getTraceLevel() > TRACE_NONE)

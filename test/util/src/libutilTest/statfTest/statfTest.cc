@@ -25,10 +25,10 @@ TEST_F(statfTest, test_null_buf)
         .Times(0); // [Pre-Assert確認_異常系] - stat が呼び出されないこと。
 
     // Act
-    int ret = pathf_stat(NULL, "test_%d.txt", 1); // [手順] - buf に NULL を渡す。
+    int ret = stat_fmt(NULL, "test_%d.txt", 1); // [手順] - buf に NULL を渡す。
 
     // Assert
-    EXPECT_EQ(-1, ret); // [確認_異常系] - pathf_stat から -1 が返されること。
+    EXPECT_EQ(-1, ret); // [確認_異常系] - stat_fmt から -1 が返されること。
 }
 
 TEST_F(statfTest, test_null_format)
@@ -42,10 +42,10 @@ TEST_F(statfTest, test_null_format)
         .Times(0); // [Pre-Assert確認_異常系] - stat が呼び出されないこと。
 
     // Act
-    int ret = pathf_stat(&st, NULL); // [手順] - format に NULL を渡す。
+    int ret = stat_fmt(&st, NULL); // [手順] - format に NULL を渡す。
 
     // Assert
-    EXPECT_EQ(-1, ret); // [確認_異常系] - pathf_stat から -1 が返されること。
+    EXPECT_EQ(-1, ret); // [確認_異常系] - stat_fmt から -1 が返されること。
 }
 
 TEST_F(statfTest, test_buffer_overflow)
@@ -63,10 +63,10 @@ TEST_F(statfTest, test_buffer_overflow)
         .Times(0); // [Pre-Assert確認_異常系] - stat が呼び出されないこと。
 
     // Act
-    int ret = pathf_stat(&st, "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
+    int ret = stat_fmt(&st, "%s.txt", long_string); // [手順] - バッファサイズを超えるファイル名を指定する。
 
     // Assert
-    EXPECT_EQ(-1, ret); // [確認_異常系] - pathf_stat から -1 が返されること。
+    EXPECT_EQ(-1, ret); // [確認_異常系] - stat_fmt から -1 が返されること。
 }
 
 TEST_F(statfTest, test_successful_call_with_format)
@@ -80,10 +80,10 @@ TEST_F(statfTest, test_successful_call_with_format)
         .WillOnce(Return(0)); // [Pre-Assert確認_正常系] - stat が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    int ret = pathf_stat(&st, "test_%d.txt", 123); // [手順] - pathf_stat にフォーマット文字列でファイル名を指定する。
+    int ret = stat_fmt(&st, "test_%d.txt", 123); // [手順] - stat_fmt にフォーマット文字列でファイル名を指定する。
 
     // Assert
-    EXPECT_EQ(0, ret); // [確認_正常系] - pathf_stat から 0 が返されること。
+    EXPECT_EQ(0, ret); // [確認_正常系] - stat_fmt から 0 が返されること。
 }
 
 TEST_F(statfTest, test_successful_call_with_multiple_parameters)
@@ -97,10 +97,10 @@ TEST_F(statfTest, test_successful_call_with_multiple_parameters)
         .WillOnce(Return(0)); // [Pre-Assert確認_正常系] - stat が正しくフォーマットされたファイル名で呼ばれること。
 
     // Act
-    int ret = pathf_stat(&st, "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - pathf_stat に複数のフォーマットパラメータを指定する。
+    int ret = stat_fmt(&st, "output_%d_%d_%d.txt", 1, 2, 3); // [手順] - stat_fmt に複数のフォーマットパラメータを指定する。
 
     // Assert
-    EXPECT_EQ(0, ret); // [確認_正常系] - pathf_stat から 0 が返されること。
+    EXPECT_EQ(0, ret); // [確認_正常系] - stat_fmt から 0 が返されること。
 }
 
 TEST_F(statfTest, test_stat_returns_error)
@@ -115,8 +115,8 @@ TEST_F(statfTest, test_stat_returns_error)
                                // [Pre-Assert手順_異常系] - stat から -1 を返す。
 
     // Act
-    int ret = pathf_stat(&st, "nonexistent.txt"); // [手順] - pathf_stat を呼び出す。
+    int ret = stat_fmt(&st, "nonexistent.txt"); // [手順] - stat_fmt を呼び出す。
 
     // Assert
-    EXPECT_EQ(-1, ret); // [確認_異常系] - pathf_stat から -1 が返されること。
+    EXPECT_EQ(-1, ret); // [確認_異常系] - stat_fmt から -1 が返されること。
 }

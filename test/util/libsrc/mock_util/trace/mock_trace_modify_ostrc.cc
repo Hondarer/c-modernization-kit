@@ -1,18 +1,18 @@
 #include <testfw.h>
-#include <mock_trace_util.h>
+#include <mock_util.h>
 
-WEAK_ATR int trace_logger_stop(trace_logger_t *handle)
+WEAK_ATR int trace_logger_set_os_level(trace_logger_t *handle, trace_level_t level)
 {
     int rtc = 0;
 
-    if (_mock_trace_util != nullptr)
+    if (_mock_util != nullptr)
     {
-        rtc = _mock_trace_util->trace_logger_stop(handle);
+        rtc = _mock_util->trace_logger_set_os_level(handle, level);
     }
 
     if (getTraceLevel() > TRACE_NONE)
     {
-        printf("  > %s 0x%p", __func__, (void *)handle);
+        printf("  > %s 0x%p, %d", __func__, (void *)handle, (int)level);
         if (getTraceLevel() >= TRACE_DETAIL)
         {
             printf(" -> %d\n", rtc);

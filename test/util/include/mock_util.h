@@ -1,10 +1,10 @@
-#ifndef _MOCK_TRACE_UTIL_H
-#define _MOCK_TRACE_UTIL_H
+#ifndef _MOCK_UTIL_H
+#define _MOCK_UTIL_H
 
 #include <testfw.h>
 #include <util/trace/trace.h>
 
-class Mock_trace_util
+class Mock_util
 {
 public:
     // 初期化・終了
@@ -38,10 +38,10 @@ public:
     MOCK_METHOD(trace_level_t, trace_logger_get_file_level, (trace_logger_t *));
     MOCK_METHOD(trace_level_t, trace_logger_get_stderr_level, (trace_logger_t *));
 
-    Mock_trace_util();
-    ~Mock_trace_util();
+    Mock_util();
+    ~Mock_util();
 };
 
-extern Mock_trace_util *_mock_trace_util;
+extern Mock_util *_mock_util;
 
-#endif // _MOCK_TRACE_UTIL_H
+#endif // _MOCK_UTIL_H
