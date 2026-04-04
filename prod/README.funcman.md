@@ -12,7 +12,7 @@
 | `funcman_init` | 設定ファイルを読み込み、`funcman_object` 配列を初期化する |
 | `funcman_get_func` | キャッシュから関数ポインタを取得する (スレッドセーフ) |
 | `funcman_dispose` | ロードしたライブラリをすべて解放する |
-| `dllmain.h` | Linux/Windows 共通の DLL ロード・アンロードフックヘッダー |
+| `dllmain-util.h` | Linux/Windows 共通の DLL ロード・アンロードフックヘッダー |
 
 設定ファイルを置くだけで動的ライブラリのオーバーライドが可能となり、メインプログラムを変更せずにライブラリの実装を差し替えることができます。
 
@@ -22,7 +22,7 @@
 prod/funcman/
 +-- include/
 |   +-- funcman.h              # funcman 公開 API ヘッダー
-|   +-- dllmain.h              # 汎用 DLL ロード・アンロードフックヘッダー
+|   +-- dllmain-util.h         # 汎用 DLL ロード・アンロードフックヘッダー
 +-- libsrc/
 |   +-- funcman_init.c         # 設定ファイルからの初期化
 |   +-- funcman_get_func.c     # 関数ポインタ取得 (スレッドセーフ)
@@ -130,15 +130,15 @@ int get_lib_basename(char *out_basename, size_t out_basename_sz, const void *fun
 指定した関数が所属する共有ライブラリの絶対パスまたは basename (パスなし・拡張子なし) を取得します。
 設定ファイルパスの動的構築などに使用します。
 
-## dllmain.h
+## dllmain-util.h
 
-`dllmain.h` をインクルードした `.c` ファイルに、プラットフォーム別の DLL ロード・アンロードフックを提供します。
+`dllmain-util.h` をインクルードした `.c` ファイルに、プラットフォーム別の DLL ロード・アンロードフックを提供します。
 
 インクルード元の `.c` ファイルは以下の 2 関数を定義する必要があります。
 
 ```c
 static void onLoad(void);    // ライブラリロード時に呼び出される
-static void onUnload(void);  // ライブラリアンロード時に呼び出される
+static void onUnload(int process_terminating);  // ライブラリアンロード時に呼び出される
 ```
 
 | プラットフォーム | フックの仕組み |
@@ -174,13 +174,14 @@ static const size_t fobj_length = sizeof(fobj_array) / sizeof(fobj_array[0]);
 ### 3. DllMain / constructor での初期化
 
 ```c
-#include <dllmain.h>
+#include <dllmain-util.h>
 
 static void onLoad(void) {
     funcman_init(fobj_array, fobj_length, "/tmp/libfoo_extdef.txt");
 }
 
-static void onUnload(void) {
+static void onUnload(int process_terminating) {
+    (void)process_terminating;
     funcman_dispose(fobj_array, fobj_length);
 }
 ```

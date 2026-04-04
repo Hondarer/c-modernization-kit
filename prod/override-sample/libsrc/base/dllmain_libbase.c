@@ -9,7 +9,7 @@
  *  base.so / base.dll のロード時およびアンロード時に処理を行います。
  *
  *  プラットフォームごとのフック (Linux constructor/destructor, Windows DllMain)
- *  は dllmain.h が提供します。このファイルは onLoad / onUnload を定義します。
+ *  は dllmain-util.h が提供します。このファイルは onLoad / onUnload を定義します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -17,15 +17,19 @@
  */
 
 #include "funcman_libbase.h"
-#include <dllmain.h>
+#include <dllmain-util.h>
 #include <stdio.h>
 
-/* doxygen コメントは、ヘッダに記載 */
+/**
+ *******************************************************************************
+ *  @brief          ライブラリロード時に呼び出されます。
+ *******************************************************************************
+ */
 void onLoad(void)
 {
     char basename[FUNCMAN_NAME_MAX] = {0};
 
-    DLLMAIN_INFO_MSG("base: onLoad called");
+    DLLMAIN_UTIL_INFO_MSG("base: onLoad called");
 
     if (get_lib_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
     {
@@ -53,9 +57,15 @@ void onLoad(void)
     funcman_init(fobj_array_libbase, fobj_length_libbase, funcman_configpath);
 }
 
-/* doxygen コメントは、ヘッダに記載 */
-void onUnload(void)
+/**
+ *******************************************************************************
+ *  @brief          ライブラリアンロード時に呼び出されます。
+ *  @param[in]      process_terminating プロセス終了時は 1、明示的アンロード時は 0。
+ *******************************************************************************
+ */
+void onUnload(int process_terminating)
 {
-    DLLMAIN_INFO_MSG("base: onUnload called");
+    (void)process_terminating;
+    DLLMAIN_UTIL_INFO_MSG("base: onUnload called");
     funcman_dispose(fobj_array_libbase, fobj_length_libbase);
 }

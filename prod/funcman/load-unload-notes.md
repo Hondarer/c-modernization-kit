@@ -145,31 +145,32 @@ return fobj->func_ptr;
 ## base.so / base.dll アンロード時の処理
 
 `handle` に保持したハンドルは、`base.so` / `base.dll` がアンロードされるタイミングで自動的に解放されます。
-アンロード処理は `dllmain_libbase.c` に分離しており、`funcman_libbase.h` の `extern` 宣言で変数を共有します。プラットフォームごとのフックは `dllmain.h` が提供します。
+アンロード処理は `dllmain_libbase.c` に分離しており、`funcman_libbase.h` の `extern` 宣言で変数を共有します。プラットフォームごとのフックは `dllmain-util.h` が提供します。
 
 ### 共通ヘルパー: `onUnload()` (`dllmain_libbase.c`)
 
-Linux / Windows 共通のクリーンアップ処理を `onUnload()` にまとめています。Linux / Windows それぞれのエントリーポイント (`dllmain.h` が提供) からこの関数を呼び出します。
+Linux / Windows 共通のクリーンアップ処理を `onUnload()` にまとめています。Linux / Windows それぞれのエントリーポイント (`dllmain-util.h` が提供) からこの関数を呼び出します。
 
 ```c
-void onUnload(void)
+void onUnload(int process_terminating)
 {
-    DLLMAIN_INFO_MSG("base: onUnload called");
+    (void)process_terminating;
+    DLLMAIN_UTIL_INFO_MSG("base: onUnload called");
     funcman_dispose(fobj_array_libbase, fobj_length_libbase);
 }
 ```
 
-`DLLMAIN_INFO_MSG` は DLL アンロードコンテキストの API 制約に合わせたログ出力マクロです。Linux では `syslog()`、Windows では `OutputDebugStringA()` を使用します。
+`DLLMAIN_UTIL_INFO_MSG` は DLL アンロードコンテキストの API 制約に合わせたログ出力マクロです。Linux では `syslog()`、Windows では `OutputDebugStringA()` を使用します。
 
 `funcman_dispose()` はすべての `funcman_object` を走査し、`handle != NULL` のものに対して `dlclose` / `FreeLibrary` を呼び出します。
 
-### Linux: `__attribute__((constructor/destructor))` (`dllmain.h`)
+### Linux: `__attribute__((constructor/destructor))` (`dllmain-util.h`)
 
-`dllmain.h` が以下のフックを提供します。
+`dllmain-util.h` が以下のフックを提供します。
 
 ```c
 __attribute__((constructor)) static void dllmain_on_load__(void)   { onLoad(); }
-__attribute__((destructor))  static void dllmain_on_unload__(void) { onUnload(); }
+__attribute__((destructor))  static void dllmain_on_unload__(void) { onUnload(0); }
 ```
 
 `__attribute__((constructor/destructor))` を付与した関数は、以下のタイミングで呼ばれます。
@@ -181,22 +182,21 @@ __attribute__((destructor))  static void dllmain_on_unload__(void) { onUnload();
 | プロセス正常終了 (`return` / `exit()`) | `atexit` コールバックの後、OS へ制御が返る前 |
 | `_exit()` / `abort()` による強制終了 | **呼ばれない** |
 
-### Windows: `DllMain` (`dllmain.h`)
+### Windows: `DllMain` (`dllmain-util.h`)
 
-`dllmain.h` が以下の `DllMain` を提供します。
+`dllmain-util.h` が以下の `DllMain` を提供します。
 
 ```c
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     (void)hinstDLL;
-    (void)lpvReserved;
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
         onLoad();
         break;
     case DLL_PROCESS_DETACH:
-        onUnload();
+        onUnload((lpvReserved != NULL) ? 1 : 0);
         break;
     default:
         break;

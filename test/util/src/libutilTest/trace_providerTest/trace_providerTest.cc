@@ -2,6 +2,11 @@
 #include <trace-util.h>
 #include <trace-file-util.h>
 #include <filesystem>
+#include <vector>
+
+extern "C" {
+#include "trace-provider-internal.h"
+}
 
 /* ===== テストクラス ===== */
 
@@ -110,6 +115,52 @@ TEST_F(trace_providerTest, test_dispose_with_null_handle)
 {
     // Act & Assert - クラッシュしないことを確認
     trace_dispose(NULL); // [手順] - NULL ハンドルで dispose を呼ぶ。安全に何もしないこと。
+}
+
+// registry が複数ハンドルを追跡し、dispose で減算されることの確認
+TEST_F(trace_providerTest, test_registry_tracks_live_handles)
+{
+    trace_provider_t *h1 = trace_init();
+    trace_provider_t *h2 = trace_init();
+    trace_provider_t *h3 = trace_init();
+
+    ASSERT_NE((trace_provider_t *)NULL, h1);
+    ASSERT_NE((trace_provider_t *)NULL, h2);
+    ASSERT_NE((trace_provider_t *)NULL, h3);
+    EXPECT_EQ((size_t)3, trace_registry_count());
+
+    trace_dispose(h2);
+    EXPECT_EQ((size_t)2, trace_registry_count());
+
+    trace_dispose(h1);
+    trace_dispose(h3);
+    EXPECT_EQ((size_t)0, trace_registry_count());
+}
+
+// registry 容量が不足した場合に自動拡張されることの確認
+TEST_F(trace_providerTest, test_registry_auto_expands)
+{
+    std::vector<trace_provider_t *> handles;
+    const size_t initial_capacity = trace_registry_capacity();
+    const size_t create_count =
+        (initial_capacity > 0 ? initial_capacity : (size_t)8) + (size_t)4;
+
+    handles.reserve(create_count);
+    for (size_t i = 0; i < create_count; i++)
+    {
+        trace_provider_t *handle = trace_init();
+        ASSERT_NE((trace_provider_t *)NULL, handle);
+        handles.push_back(handle);
+    }
+
+    EXPECT_EQ(create_count, trace_registry_count());
+    EXPECT_GE(trace_registry_capacity(), create_count);
+
+    for (trace_provider_t *handle : handles)
+    {
+        trace_dispose(handle);
+    }
+    EXPECT_EQ((size_t)0, trace_registry_count());
 }
 
 /* ===== メッセージ切り詰めテスト ===== */

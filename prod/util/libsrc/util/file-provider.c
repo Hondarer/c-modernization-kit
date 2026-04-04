@@ -1,7 +1,24 @@
+/**
+ *******************************************************************************
+ *  @file           file-provider.c
+ *  @brief          ファイルトレースプロバイダ実装ファイル。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/04/03
+ *  @version        1.0.0
+ *
+ *  ファイルへのトレースログ書き込みプロバイダを提供します。
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
 #include <trace-file-util.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include "file-provider-internal.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -305,6 +322,7 @@ static void rotate_file(trace_file_provider_t *p)
 
 /* ===== 公開 API ===== */
 
+/* doxygen コメントは、ヘッダに記載 */
 trace_file_provider_t *TRACE_FILE_UTIL_API
     trace_file_provider_init(const char *path, size_t max_bytes, int generations)
 {
@@ -383,6 +401,7 @@ trace_file_provider_t *TRACE_FILE_UTIL_API
     return handle;
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 int TRACE_FILE_UTIL_API
     trace_file_provider_write(trace_file_provider_t *handle, int level,
                               const char *message)
@@ -504,6 +523,7 @@ int TRACE_FILE_UTIL_API
     return ret;
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 void TRACE_FILE_UTIL_API
     trace_file_provider_dispose(trace_file_provider_t *handle)
 {
@@ -528,6 +548,19 @@ void TRACE_FILE_UTIL_API
     }
 #endif /* _WIN32 */
 
+    free(handle->path);
+    free(handle);
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void trace_file_provider_dispose_on_unload(trace_file_provider_t *handle)
+{
+    if (handle == NULL)
+    {
+        return;
+    }
+
+    close_file(handle);
     free(handle->path);
     free(handle);
 }

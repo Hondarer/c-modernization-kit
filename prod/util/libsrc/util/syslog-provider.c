@@ -1,9 +1,26 @@
+/**
+ *******************************************************************************
+ *  @file           syslog-provider.c
+ *  @brief          syslog プロバイダ実装ファイル。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/04/03
+ *  @version        1.0.0
+ *
+ *  Linux syslog ベースのトレースプロバイダを提供します。
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
 #ifndef _WIN32
 
 #include <syslog.h>
 #include <trace-syslog-util.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "syslog-provider-internal.h"
 
 /**
  *  @brief  syslog プロバイダハンドル構造体 (内部定義)。
@@ -14,6 +31,7 @@ struct syslog_provider
     char *ident;
 };
 
+/* doxygen コメントは、ヘッダに記載 */
 syslog_provider_t *TRACE_SYSLOG_UTIL_API
     syslog_provider_init(const char *ident, int facility)
 {
@@ -46,6 +64,7 @@ syslog_provider_t *TRACE_SYSLOG_UTIL_API
     return handle;
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 int TRACE_SYSLOG_UTIL_API
     syslog_provider_write(syslog_provider_t *handle, int level, const char *message)
 {
@@ -59,6 +78,7 @@ int TRACE_SYSLOG_UTIL_API
     return 0;
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 void TRACE_SYSLOG_UTIL_API
     syslog_provider_dispose(syslog_provider_t *handle)
 {
@@ -72,6 +92,7 @@ void TRACE_SYSLOG_UTIL_API
     free(handle);
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 int TRACE_SYSLOG_UTIL_API
     syslog_provider_rename(syslog_provider_t *handle, const char *new_ident)
 {
@@ -97,6 +118,19 @@ int TRACE_SYSLOG_UTIL_API
     openlog(handle->ident, LOG_NDELAY | LOG_PID, LOG_USER);
 
     return 0;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void syslog_provider_dispose_on_unload(syslog_provider_t *handle)
+{
+    if (handle == NULL)
+    {
+        return;
+    }
+
+    closelog();
+    free(handle->ident);
+    free(handle);
 }
 
 #else /* _WIN32 */

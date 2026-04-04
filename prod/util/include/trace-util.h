@@ -63,6 +63,8 @@
 #include <stddef.h>
 /* int64_t (trace_modify_name で使用) */
 #include <inttypes.h>
+/* strrchr (_TRACE_UTIL_BASENAME マクロで使用) */
+#include <string.h>
 
 /* 内部で使用するプラットフォーム固有ヘッダー */
 #ifdef _WIN32
@@ -704,6 +706,10 @@ extern "C"
      *  started 状態のハンドルに対しても呼び出し可能です
      *  (内部で自動的に停止してから解放します)。
      *
+     *  @details        通常は本関数で明示解放してください。\n
+     *                  shared library アンロード時には、未解放ハンドルは
+     *                  trace-util 内部 registry により自動回収されます。
+     *
      *  @param[in]      handle   trace_init の戻り値。
      *
      *  @par            スレッド セーフティ
@@ -719,5 +725,116 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/* ===== ソース位置自動付与マクロ ===== */
+
+/**
+ *  @def            _TRACE_UTIL_BASENAME(f)
+ *  @brief          ファイルパスからベースネームを取り出す内部ヘルパーマクロ。
+ *                  Windows (\\) と Linux (/) の両パス区切り文字に対応します。
+ *  @internal
+ */
+#define _TRACE_UTIL_BASENAME(f) \
+    (strrchr((f), '/') ? strrchr((f), '/') + 1 : \
+     (strrchr((f), '\\') ? strrchr((f), '\\') + 1 : (f)))
+
+/**
+ *  @def            TRACE_WRITE(handle, level, message)
+ *  @brief          ソースファイル名と行番号を自動付与する trace_write ラッパーマクロ。
+ *
+ *  呼び出しサイトの @c __FILE__ (バスネーム) と @c __LINE__ を
+ *  @c "[filename.c:42] " 形式でメッセージ先頭に付加して trace_writef を呼び出します。
+ *
+ *  @param[in]      handle   trace_init の戻り値。
+ *  @param[in]      level    トレースレベル (enum trace_level)。
+ *  @param[in]      message  null 終端 UTF-8 文字列。NULL 不可。
+ *  @return         成功 0 / 失敗 -1 (@see trace_writef)。
+ *
+ *  @par            出力例
+ *  @code{.c}
+ *  TRACE_WRITE(logger, TRACE_LV_INFO, "started");
+ *  // → "[add.c:42] started"
+ *  @endcode
+ */
+#define TRACE_WRITE(handle, level, message) \
+    trace_writef((handle), (level), "[%s:%d] %s", \
+                 _TRACE_UTIL_BASENAME(__FILE__), __LINE__, (message))
+
+/**
+ *  @def            TRACE_WRITEF(handle, level, fmt, ...)
+ *  @brief          ソースファイル名と行番号を自動付与する trace_writef ラッパーマクロ。
+ *
+ *  @c "[filename.c:42] " プレフィックスと @p fmt を文字列リテラル結合して
+ *  trace_writef を呼び出します。
+ *
+ *  @param[in]      handle   trace_init の戻り値。
+ *  @param[in]      level    トレースレベル (enum trace_level)。
+ *  @param[in]      fmt      printf 形式のフォーマット文字列 (文字列リテラル限定)。
+ *  @param[in]      ...      フォーマット文字列に対応する可変長引数。
+ *  @return         成功 0 / 失敗 -1 (@see trace_writef)。
+ *
+ *  @par            出力例
+ *  @code{.c}
+ *  TRACE_WRITEF(logger, TRACE_LV_INFO, "user=%s count=%d", username, count);
+ *  // → "[calc.c:88] user=alice count=3"
+ *  @endcode
+ */
+#define TRACE_WRITEF(handle, level, fmt, ...) \
+    trace_writef((handle), (level), "[%s:%d] " fmt, \
+                 _TRACE_UTIL_BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
+
+/**
+ *  @def            TRACE_HEX_WRITE(handle, level, data, size, message)
+ *  @brief          ソースファイル名と行番号を自動付与する trace_hex_write ラッパーマクロ。
+ *
+ *  @c "[filename.c:42]" (または @c "[filename.c:42] <message>") をラベルとして
+ *  trace_hex_writef を呼び出します。
+ *  @p message が NULL の場合も安全に動作します。
+ *
+ *  @param[in]      handle   trace_init の戻り値。
+ *  @param[in]      level    トレースレベル (enum trace_level)。
+ *  @param[in]      data     バイナリデータへのポインタ。
+ *  @param[in]      size     バイナリデータのバイト数。
+ *  @param[in]      message  HEX データの手前に付与するラベル文字列。NULL 可。
+ *  @return         成功 0 / 失敗 -1 (@see trace_hex_writef)。
+ *
+ *  @par            出力例
+ *  @code{.c}
+ *  TRACE_HEX_WRITE(logger, TRACE_LV_INFO, buf, len, "Received data");
+ *  // → "[recv.c:77] Received data: 48 65 6C 6C 6F"
+ *  TRACE_HEX_WRITE(logger, TRACE_LV_INFO, buf, len, NULL);
+ *  // → "[recv.c:77]: 48 65 6C 6C 6F"
+ *  @endcode
+ */
+#define TRACE_HEX_WRITE(handle, level, data, size, message) \
+    trace_hex_writef((handle), (level), (data), (size), "[%s:%d]%s%s", \
+                     _TRACE_UTIL_BASENAME(__FILE__), __LINE__, \
+                     (message) ? " " : "", \
+                     (message) ? (message) : "")
+
+/**
+ *  @def            TRACE_HEX_WRITEF(handle, level, data, size, fmt, ...)
+ *  @brief          ソースファイル名と行番号を自動付与する trace_hex_writef ラッパーマクロ。
+ *
+ *  @c "[filename.c:42] " プレフィックスと @p fmt を文字列リテラル結合して
+ *  trace_hex_writef を呼び出します。
+ *
+ *  @param[in]      handle   trace_init の戻り値。
+ *  @param[in]      level    トレースレベル (enum trace_level)。
+ *  @param[in]      data     バイナリデータへのポインタ。
+ *  @param[in]      size     バイナリデータのバイト数。
+ *  @param[in]      fmt      printf 形式のフォーマット文字列 (文字列リテラル限定)。
+ *  @param[in]      ...      フォーマット文字列に対応する可変長引数。
+ *  @return         成功 0 / 失敗 -1 (@see trace_hex_writef)。
+ *
+ *  @par            出力例
+ *  @code{.c}
+ *  TRACE_HEX_WRITEF(logger, TRACE_LV_INFO, data, len, "packet[%d]", index);
+ *  // → "[recv.c:99] packet[3]: 48 65 6C 6C 6F"
+ *  @endcode
+ */
+#define TRACE_HEX_WRITEF(handle, level, data, size, fmt, ...) \
+    trace_hex_writef((handle), (level), (data), (size), "[%s:%d] " fmt, \
+                     _TRACE_UTIL_BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
 
 #endif /* TRACE_UTIL_H */

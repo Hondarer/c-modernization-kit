@@ -5,4 +5,7 @@ TEST_SRCS := \
     $(WORKSPACE_FOLDER)/prod/util/libsrc/util/syslog-provider.c \
     $(WORKSPACE_FOLDER)/prod/util/libsrc/util/etw-provider.c
 
+CFLAGS   += -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util
+CXXFLAGS += -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util
+
 LIBS += mock_libc

@@ -1,3 +1,18 @@
+/**
+ *******************************************************************************
+ *  @file           etw-provider.c
+ *  @brief          ETW プロバイダ実装ファイル。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/04/03
+ *  @version        1.0.0
+ *
+ *  Windows TraceLogging ベースの ETW プロバイダを提供します。
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
 #ifdef _WIN32
 
 #include <windows.h>
@@ -5,6 +20,8 @@
 #pragma comment(lib, "Advapi32.lib")
 #include <trace-etw-util.h>
 #include <stdlib.h>
+
+#include "etw-provider-internal.h"
 
 /**
  *  @brief  ETW プロバイダハンドル構造体 (内部定義)。
@@ -15,6 +32,7 @@ struct etw_provider
     etw_provider_ref_t provider_ref;
 };
 
+/* doxygen コメントは、ヘッダに記載 */
 etw_provider_t *TRACE_ETW_UTIL_API
     etw_provider_init(etw_provider_ref_t provider_ref)
 {
@@ -45,8 +63,14 @@ etw_provider_t *TRACE_ETW_UTIL_API
 }
 
 /**
- *  @brief  "Trace" イベントを書き込む (Service + Message)。
- *  @details  service が NULL の場合は Service フィールドを含めない。
+ *******************************************************************************
+ *  @brief          ETW イベントを書き込む内部関数。
+ *  @details        service が NULL の場合は Service フィールドを含めない。
+ *  @param[in]      ref     TraceLogging プロバイダ参照。
+ *  @param[in]      level   トレースレベル (1=Critical 〜 5=Verbose)。
+ *  @param[in]      service サービス名 (NULL 可)。NULL の場合 Service フィールドを省略。
+ *  @param[in]      message メッセージ文字列。
+ *******************************************************************************
  */
 static void write_trace_event(etw_provider_ref_t ref, int level,
                                const char *service, const char *message)
@@ -120,6 +144,7 @@ static void write_trace_event(etw_provider_ref_t ref, int level,
     }
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 int TRACE_ETW_UTIL_API
     etw_provider_write(etw_provider_t *handle, int level,
                        const char *service, const char *message)
@@ -134,6 +159,7 @@ int TRACE_ETW_UTIL_API
     return 0;
 }
 
+/* doxygen コメントは、ヘッダに記載 */
 void TRACE_ETW_UTIL_API
     etw_provider_dispose(etw_provider_t *handle)
 {
@@ -143,6 +169,21 @@ void TRACE_ETW_UTIL_API
     }
 
     TraceLoggingUnregister(handle->provider_ref);
+    free(handle);
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+void etw_provider_dispose_on_unload(etw_provider_t *handle, int process_terminating)
+{
+    if (handle == NULL)
+    {
+        return;
+    }
+
+    if (!process_terminating)
+    {
+        TraceLoggingUnregister(handle->provider_ref);
+    }
     free(handle);
 }
 

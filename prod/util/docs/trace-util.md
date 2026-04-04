@@ -96,7 +96,8 @@ trace_provider_t *trace_init(void);
 void trace_dispose(trace_provider_t *handle);
 ```
 
-トレースプロバイダを終了し、リソースを解放する。
+トレースプロバイダを終了し、リソースを解放する。通常は明示的に本関数を呼ぶ。  
+shared library アンロード時には、未解放ハンドルは trace-util 内部 registry により自動回収される。
 
 | 項目 | 説明 |
 |------|------|
@@ -104,6 +105,13 @@ void trace_dispose(trace_provider_t *handle);
 | started 状態 | 内部で自動的に停止してから解放する |
 | スレッド安全性 | スレッドセーフ。進行中の `trace_write` 等が完了するまで待機してから解放する。|
 | 呼び出し後 | handle は無効となる |
+
+### 内部 registry とアンロード時回収
+
+- `trace_init()` が返したハンドルは trace-util 内部 registry に登録される。
+- `trace_dispose()` は registry から対象ハンドルを除去して通常解放を行う。
+- shared library のアンロード時には、registry に残っている未解放ハンドルのみを縮退 cleanup 手順で自動回収する。
+- アンロード時 cleanup は `DllMain` / destructor 制約を守るため、通常 `trace_dispose()` と同一実装ではない。
 
 ### `trace_start` / `trace_stop`
 
