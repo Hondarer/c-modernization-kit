@@ -19,7 +19,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <trace_file_internal.h>
+#include "trace_file_internal.h"
 
 #ifndef _WIN32
 #include <fcntl.h>

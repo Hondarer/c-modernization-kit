@@ -6,15 +6,6 @@ ifeq ($(OS),Windows_NT)
     CXXFLAGS += /DPATH_FORMAT_EXPORTS /DTRACE_ETW_EXPORTS /DTRACE_LOGGER_EXPORTS /DTRACE_FILE_EXPORTS /DCONSOLE_EXPORTS /DSYMBOL_LOADER_EXPORTS /DMODULE_INFO_EXPORTS
 endif
 
-CFLAGS += \
-    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/file \
-    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog \
-    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/etw
-CXXFLAGS += \
-    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/file \
-    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog \
-    -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/etw
-
 # 生成されるライブラリを動的ライブラリ (shared) とする
 # 未指定の場合 (デフォルト) は static
 LIB_TYPE = shared

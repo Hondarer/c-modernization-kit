@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <trace_syslog_internal.h>
+#include "trace_syslog_internal.h"
 
 /**
  *  @brief  syslog プロバイダハンドル構造体 (内部定義)。

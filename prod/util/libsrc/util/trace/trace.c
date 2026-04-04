@@ -22,12 +22,12 @@
 #include <inttypes.h>
 
 #include "trace_internal.h"
-#include <trace_file_internal.h>
+#include "backends/file/trace_file_internal.h"
 
 #ifdef _WIN32
-#include <trace_etw_internal.h>
+#include "backends/etw/trace_etw_internal.h"
 #else /* !_WIN32 */
-#include <trace_syslog_internal.h>
+#include "backends/syslog/trace_syslog_internal.h"
 #endif /* _WIN32 */
 
 /* ===== Windows: TraceLogging プロバイダ定義 ===== */

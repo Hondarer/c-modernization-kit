@@ -21,7 +21,7 @@
 #include <util/trace/trace_etw.h>
 #include <stdlib.h>
 
-#include <trace_etw_internal.h>
+#include "trace_etw_internal.h"
 
 /**
  *  @brief  ETW プロバイダハンドル構造体 (内部定義)。
