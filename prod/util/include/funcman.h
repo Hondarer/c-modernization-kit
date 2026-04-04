@@ -44,6 +44,23 @@ extern "C"
 #endif /* __cplusplus */
 
 /**
+ *  @def            FUNCMAN_API
+ *  @brief          Windows DLL エクスポート/インポート修飾子。
+ *
+ *  libutil をビルドする側 (FUNCMAN_UTIL_EXPORTS が定義された状態) では dllexport、
+ *  利用する側では dllimport として解決されます。Linux では空になります。
+ */
+#if defined(_WIN32)
+    #ifdef FUNCMAN_UTIL_EXPORTS
+        #define FUNCMAN_API __declspec(dllexport)
+    #else
+        #define FUNCMAN_API __declspec(dllimport)
+    #endif
+#else
+    #define FUNCMAN_API
+#endif
+
+/**
  *  @def            MODULE_HANDLE
  *  @brief          Linux/Windows 共通のモジュールハンドル型。
  */
@@ -102,7 +119,7 @@ extern "C"
      *  @return         成功時 void * (関数ポインタ)、失敗時 NULL。
      *******************************************************************************
      */
-    extern void *_funcman_get_func(funcman_object *fobj);
+    extern FUNCMAN_API void *_funcman_get_func(funcman_object *fobj);
 
 /**
  *  @def            funcman_get_func
@@ -124,7 +141,7 @@ extern "C"
      *  @return         明示的デフォルトの場合は 1、それ以外は 0。
      *******************************************************************************
      */
-    extern int funcman_is_declared_default(funcman_object *fobj);
+    extern FUNCMAN_API int funcman_is_declared_default(funcman_object *fobj);
 
     /**
      *******************************************************************************
@@ -137,7 +154,7 @@ extern "C"
      *  @param[in]      configpath  定義ファイルのパス。
      *******************************************************************************
      */
-    extern void funcman_init(funcman_object *const *fobj_array, const size_t fobj_length,
+    extern FUNCMAN_API void funcman_init(funcman_object *const *fobj_array, const size_t fobj_length,
                              const char *configpath);
 
     /**
@@ -150,7 +167,7 @@ extern "C"
      *  @param[in]      fobj_length 配列の要素数。
      *******************************************************************************
      */
-    extern void funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length);
+    extern FUNCMAN_API void funcman_dispose(funcman_object *const *fobj_array, const size_t fobj_length);
 
     /**
      *******************************************************************************
@@ -161,7 +178,7 @@ extern "C"
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
-    extern int funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
+    extern FUNCMAN_API int funcman_info(funcman_object *const *fobj_array, const size_t fobj_length);
 
     /**
      *******************************************************************************
@@ -173,7 +190,7 @@ extern "C"
      *  @return         関数が成功した場合、0 を返します。失敗した場合は 0 以外を返します。
      *******************************************************************************
      */
-    extern int get_lib_path(char *out_path, const size_t out_path_sz, const void *func_addr);
+    extern FUNCMAN_API int get_lib_path(char *out_path, const size_t out_path_sz, const void *func_addr);
 
     /**
      *******************************************************************************
@@ -188,7 +205,7 @@ extern "C"
      *  @return         関数が成功した場合、0 を返します。失敗した場合は 0 以外を返します。
      *******************************************************************************
      */
-    extern int get_lib_basename(char *out_basename, const size_t out_basename_sz,
+    extern FUNCMAN_API int get_lib_basename(char *out_basename, const size_t out_basename_sz,
                                 const void *func_addr);
 
 #ifdef __cplusplus

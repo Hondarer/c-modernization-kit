@@ -6,7 +6,7 @@
 
 `libbase` が公開する `sample_func` 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。
 
-funcman 機構 (関数の動的呼び出しキャッシュ) は `prod/funcman/` として独立した静的ライブラリに分離されており、`libbase` はそれをリンクして利用します。
+funcman 機構 (関数の動的呼び出しキャッシュ) は `prod/util/` の `libutil` に統合されており、`libbase` はそれをリンクして利用します。
 
 | 設定ファイルの状態 | 動作 |
 |---|---|
@@ -40,7 +40,7 @@ prod/override-sample/
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
-funcman 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `prod/funcman/` として独立した静的ライブラリ (`libfuncman.a`) に分離されています。
+funcman 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `prod/util/` の `libutil` (`libutil.so` / `libutil.dll`) に統合されています。
 
 ## ライブラリ
 

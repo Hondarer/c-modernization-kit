@@ -1,6 +1,5 @@
 SUBDIRS = \
 	util \
-	funcman \
 	calc \
 	calc.net \
 	subfolder-sample \

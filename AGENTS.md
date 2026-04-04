@@ -125,7 +125,6 @@ c-modernization-kit/                          # このプロジェクト
 |   +-- README.md                         # フレームワーク詳細ドキュメント
 +-- Doxyfile.part.calc                     # C プロジェクト用 Doxygen 設定
 +-- Doxyfile.part.calc.net                 # .NET プロジェクト用 Doxygen 設定
-+-- Doxyfile.part.funcman                  # funcman ライブラリ用 Doxygen 設定
 +-- c-modernization-kit.sln                # Visual Studio ソリューションファイル
 +-- Directory.Build.props                  # .NET プロジェクト共通設定
 +-- makefile                               # トップレベル makefile
@@ -164,18 +163,6 @@ c-modernization-kit/                          # このプロジェクト
 |   |   |   +-- ModuleInitializer.cs     # モジュール初期化
 |   |   +-- lib/                          # ビルド済みライブラリ
 |   |   +-- bin/                          # ビルド済み実行ファイル
-|   +-- funcman/                          # funcman 静的ライブラリ (関数動的呼び出し機構)
-|   |   +-- include/
-|   |   |   +-- funcman.h                # funcman 公開 API ヘッダー
-|   |   |   +-- dllmain.h               # 汎用 DLL ロード・アンロードフックヘッダー
-|   |   +-- libsrc/                      # ライブラリ実装
-|   |   |   +-- funcman_init.c          # 設定ファイルからの初期化
-|   |   |   +-- funcman_get_func.c      # 関数ポインタ取得 (スレッドセーフ)
-|   |   |   +-- funcman_dispose.c       # クリーンアップ処理
-|   |   |   +-- funcman_info.c          # 情報表示
-|   |   |   +-- funcman_is_declared_default.c  # 明示的デフォルト判定
-|   |   |   +-- get_lib_info.c          # ライブラリパス取得ユーティリティ
-|   |   +-- lib/                         # ビルド済みライブラリ (libfuncman.a)
 |   +-- tutorial/                         # チュートリアル用サンプル
 |       +-- include/                      # ヘッダーファイル
 |       +-- libsrc/samplestatic/          # サンプル静的ライブラリ

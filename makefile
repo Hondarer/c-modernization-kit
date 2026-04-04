@@ -6,7 +6,6 @@ DOXY_CATEGORIES = \
 	calc \
 	calc.net \
 	util \
-	funcman \
 	override-sample \
 	doxygen-sample \
 	porter
