@@ -4,15 +4,17 @@
  *  @brief          送信テストコマンド。
  *  @author         c-modernization-kit sample team
  *  @date           2026/03/22
- *  @version        1.3.0
+ *  @version        1.4.0
  *
  *  @details
  *  指定サービスへデータを対話式に送信する CLI テストコマンドです。\n
  *  1 回のセッション内でメッセージを連続して送信できます。\n
+ *  各送信ごとにテキストメッセージまたはファイル (バイナリ) を選択できます。\n
  *  各送信後に次のメッセージを送るか終了するかを選択できます。\n
  *  \n
  *  サービス種別が unicast_bidir の場合は双方向モードで動作します。\n
- *  双方向モードでは相手から受信したメッセージも標準出力に表示します。
+ *  双方向モードでは相手から受信したメッセージも標準出力に表示します。\n
+ *  受信データがバイナリと判定された場合は一時ファイルに保存してパスを表示します。
  *
  *  @par            使用方法
  *  @code{.sh}
@@ -58,6 +60,105 @@
 
 /** 送信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
 static volatile int g_running = 1;
+
+/**
+ *******************************************************************************
+ *  @brief          データがテキストかバイナリかを判定する。
+ *  @param[in]      data    判定対象のデータ。
+ *  @param[in]      len     データのバイト数。
+ *  @return         テキストと判定した場合は 1、バイナリと判定した場合は 0 を返します。
+ *
+ *  @details
+ *  全バイトを走査し、NUL (0x00)、\\t / \\n / \\r 以外の C0 制御文字
+ *  (0x01-0x08, 0x0B, 0x0C, 0x0E-0x1F)、DEL (0x7F)、
+ *  UTF-8 で無効な 0xFE / 0xFF のいずれかが含まれる場合にバイナリと判定します。
+ *******************************************************************************
+ */
+static int is_text_data(const void *data, size_t len)
+{
+    const unsigned char *p = (const unsigned char *)data;
+    size_t i;
+
+    for (i = 0; i < len; i++)
+    {
+        unsigned char c = p[i];
+
+        if (c == 0x00)
+        {
+            return 0; /* NUL */
+        }
+        if (c < 0x20 && c != '\t' && c != '\n' && c != '\r')
+        {
+            return 0; /* C0 制御文字 (タブ/改行/復帰以外) */
+        }
+        if (c == 0x7F)
+        {
+            return 0; /* DEL */
+        }
+        if (c == 0xFE || c == 0xFF)
+        {
+            return 0; /* UTF-8 無効バイト */
+        }
+    }
+    return 1;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          バイナリデータを一時ファイルに保存する。
+ *  @param[in]      data        保存するデータ。
+ *  @param[in]      len         データのバイト数。
+ *  @param[out]     path_out    保存先パスの格納先バッファ。
+ *  @param[in]      path_size   path_out バッファのサイズ (バイト)。
+ *  @return         成功時は 0、失敗時は -1 を返します。
+ *******************************************************************************
+ */
+static int save_to_temp_file(const void *data, size_t len,
+                             char *path_out, size_t path_size)
+{
+#ifndef _WIN32
+    int fd;
+    ssize_t written;
+
+    snprintf(path_out, path_size, "/tmp/porter_recv_XXXXXX");
+    fd = mkstemp(path_out);
+    if (fd == -1)
+    {
+        return -1;
+    }
+    written = write(fd, data, len);
+    close(fd);
+    if (written < 0 || (size_t)written != len)
+    {
+        return -1;
+    }
+    return 0;
+#else  /* _WIN32 */
+    char tmp_dir[MAX_PATH];
+    FILE *fp = NULL;
+    size_t written;
+
+    if (GetTempPathA(sizeof(tmp_dir), tmp_dir) == 0)
+    {
+        return -1;
+    }
+    if (GetTempFileNameA(tmp_dir, "ptr", 0, path_out) == 0)
+    {
+        return -1;
+    }
+    if (fopen_s(&fp, path_out, "wb") != 0 || fp == NULL)
+    {
+        return -1;
+    }
+    written = fwrite(data, 1, len, fp);
+    fclose(fp);
+    if (written != len)
+    {
+        return -1;
+    }
+    return 0;
+#endif /* _WIN32 */
+}
 
 #ifndef _WIN32
 /**
@@ -140,17 +241,34 @@ static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event,
 
         case POTR_EVENT_DATA:
         default:
-            if (len < POTR_MAX_PAYLOAD)
+            if (is_text_data(data, len))
             {
-                copy_len = len;
+                if (len < POTR_MAX_PAYLOAD)
+                {
+                    copy_len = len;
+                }
+                else
+                {
+                    copy_len = POTR_MAX_PAYLOAD;
+                }
+                memcpy(buf, data, copy_len);
+                buf[copy_len] = '\0';
+                printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): %s\n", service_id, len, buf);
             }
             else
             {
-                copy_len = POTR_MAX_PAYLOAD;
+                char tmp_path[4096];
+                if (save_to_temp_file(data, len, tmp_path, sizeof(tmp_path)) == 0)
+                {
+                    printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): バイナリデータを保存しました: %s\n",
+                           service_id, len, tmp_path);
+                }
+                else
+                {
+                    fprintf(stderr, "\n[サービス %" PRId64 "] 受信 (%zu バイト): バイナリデータの保存に失敗しました。\n",
+                            service_id, len);
+                }
             }
-            memcpy(buf, data, copy_len);
-            buf[copy_len] = '\0';
-            printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): %s\n", service_id, len, buf);
             fflush(stdout);
             break;
     }
@@ -212,6 +330,89 @@ static int read_line(char *buf, size_t size)
     }
     buf[strcspn(buf, "\n")] = '\0';
     return 1;
+}
+
+/**
+ *******************************************************************************
+ *  @brief          ファイルをバイナリモードで読み込む。
+ *  @param[in]      path        ファイルパス。
+ *  @param[out]     out_data    読み込んだデータの格納先 (malloc 確保、呼び出し元が free する)。
+ *  @param[out]     out_len     読み込んだデータのバイト数の格納先。
+ *  @return         成功時は 0、失敗時は -1 を返します。
+ *                  失敗時はエラーメッセージを stderr に出力します。
+ *******************************************************************************
+ */
+static int read_file_data(const char *path, unsigned char **out_data, size_t *out_len)
+{
+    FILE *fp = NULL;
+    long file_size;
+    unsigned char *buf;
+    size_t read_count;
+
+#ifndef _WIN32
+    fp = fopen(path, "rb");
+#else  /* _WIN32 */
+    fopen_s(&fp, path, "rb");
+#endif /* _WIN32 */
+
+    if (fp == NULL)
+    {
+        fprintf(stderr, "エラー: ファイル \"%s\" を開けませんでした。\n", path);
+        return -1;
+    }
+
+    if (fseek(fp, 0, SEEK_END) != 0)
+    {
+        fprintf(stderr, "エラー: ファイルの読み込みに失敗しました。\n");
+        fclose(fp);
+        return -1;
+    }
+
+    file_size = ftell(fp);
+    if (file_size < 0)
+    {
+        fprintf(stderr, "エラー: ファイルの読み込みに失敗しました。\n");
+        fclose(fp);
+        return -1;
+    }
+
+    if (file_size == 0)
+    {
+        fprintf(stderr, "エラー: ファイルが空です。\n");
+        fclose(fp);
+        return -1;
+    }
+
+    if ((unsigned long)file_size > POTR_MAX_MESSAGE_SIZE)
+    {
+        fprintf(stderr, "エラー: ファイルサイズ (%ld バイト) が最大送信サイズ (%u バイト) を超えています。\n",
+                file_size, (unsigned)POTR_MAX_MESSAGE_SIZE);
+        fclose(fp);
+        return -1;
+    }
+
+    buf = (unsigned char *)malloc((size_t)file_size);
+    if (buf == NULL)
+    {
+        fprintf(stderr, "エラー: メモリ確保に失敗しました。\n");
+        fclose(fp);
+        return -1;
+    }
+
+    rewind(fp);
+    read_count = fread(buf, 1, (size_t)file_size, fp);
+    fclose(fp);
+
+    if (read_count != (size_t)file_size)
+    {
+        fprintf(stderr, "エラー: ファイルの読み込みに失敗しました。\n");
+        free(buf);
+        return -1;
+    }
+
+    *out_data = buf;
+    *out_len  = (size_t)file_size;
+    return 0;
 }
 
 /**
@@ -326,23 +527,72 @@ int main(int argc, char *argv[])
         printf("双方向モード (unicast_bidir)。相手からの受信メッセージも表示します。\n");
         fflush(stdout);
     }
-    printf("送信準備完了。空行入力またはCtrl+Dで終了します。\n");
+    printf("送信準備完了。Ctrl+C または Ctrl+D で終了します。\n");
     fflush(stdout);
 
     for (;;)
     {
-        printf("\nメッセージ> ");
+        unsigned char *file_data = NULL;
+        size_t         file_len  = 0;
+        const void    *send_data;
+        size_t         send_len;
+        int            is_file   = 0;
+        const char    *compress_label;
+
+        printf("\n送信方法を選択してください [T: テキスト / f: ファイル]> ");
         fflush(stdout);
 
-        if (!read_line(msg_buf, sizeof(msg_buf)))
+        if (!read_line(ans_buf, sizeof(ans_buf)))
         {
             break;
         }
 
-        msg_len = strlen(msg_buf);
-        if (msg_len == 0)
+        if (ans_buf[0] == 'f' || ans_buf[0] == 'F')
         {
-            break;
+            /* ファイル送信モード */
+            is_file = 1;
+
+            printf("ファイルパス> ");
+            fflush(stdout);
+
+            if (!read_line(msg_buf, sizeof(msg_buf)))
+            {
+                break;
+            }
+
+            if (strlen(msg_buf) == 0)
+            {
+                break;
+            }
+
+            if (read_file_data(msg_buf, &file_data, &file_len) != 0)
+            {
+                /* エラーメッセージは read_file_data 内で出力済み */
+                goto ask_continue;
+            }
+
+            send_data = file_data;
+            send_len  = file_len;
+        }
+        else
+        {
+            /* テキスト送信モード */
+            printf("メッセージ> ");
+            fflush(stdout);
+
+            if (!read_line(msg_buf, sizeof(msg_buf)))
+            {
+                break;
+            }
+
+            msg_len = strlen(msg_buf);
+            if (msg_len == 0)
+            {
+                break;
+            }
+
+            send_data = msg_buf;
+            send_len  = msg_len;
         }
 
         printf("圧縮送信しますか？ [y/N]> ");
@@ -357,28 +607,39 @@ int main(int argc, char *argv[])
             }
         }
 
-        const char *compress_label;
-        if (compress)
+        compress_label = compress ? " [圧縮あり]" : "";
+
+        if (is_file)
         {
-            compress_label = " [圧縮あり]";
+            printf("ファイル送信中: \"%s\" (%zu バイト)%s\n", msg_buf, send_len, compress_label);
         }
         else
         {
-            compress_label = "";
+            printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, send_len, compress_label);
         }
-        printf("送信中: \"%s\" (%zu バイト)%s\n", msg_buf, msg_len, compress_label);
         fflush(stdout);
 
-        if (potrSend(handle, POTR_PEER_NA, msg_buf, msg_len,
+        if (potrSend(handle, POTR_PEER_NA, send_data, send_len,
                      (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING) != POTR_SUCCESS)
         {
             fprintf(stderr, "エラー: 送信に失敗しました。\n");
+            free(file_data);
             ret = EXIT_FAILURE;
             break;
         }
 
-        printf("送信完了。");
+        if (is_file)
+        {
+            printf("ファイル送信完了: \"%s\" (%zu バイト)\n", msg_buf, send_len);
+        }
+        else
+        {
+            printf("送信完了。");
+        }
 
+        free(file_data);
+
+ask_continue:
         printf(" 続けて送信しますか？ [Y/n]> ");
         fflush(stdout);
 
