@@ -6,7 +6,17 @@
  *  @date           2026/04/03
  *  @version        1.0.0
  *
- *  Linux syslog ベースのトレースプロバイダを提供します。
+ *  Linux syslog ベースのトレースプロバイダを提供します。\n
+ *  /dev/log への UNIX ドメイン SOCK_DGRAM 送信で実装しています。
+ *  send(MSG_DONTWAIT) を使用するため、ソケットが詰まっていても
+ *  アプリケーションをブロックしません。送信失敗時はメッセージを
+ *  drop し、低頻度バックオフでのみ再接続を試みます。
+ *
+ *  @par            スレッドセーフティ
+ *  本モジュールはスレッドセーフです。\n
+ *  fd・next_connect・backoff_sec の読み書きはすべて reconnect_lock で
+ *  保護しています。sendto() は MSG_DONTWAIT で即時返るため、
+ *  ロック保持中に実行しても問題ありません。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -15,21 +25,116 @@
 
 #ifndef _WIN32
 
-#include <syslog.h>
-#include <util/trace/trace_syslog.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <time.h>
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
+#include <util/trace/trace_syslog.h>
 #include "trace_syslog_internal.h"
+
+/** /dev/log への UNIX ドメインソケットパス。 */
+#define DEVLOG_PATH      "/dev/log"
+
+/** 初回バックオフ間隔 (秒)。 */
+#define BACKOFF_INIT_SEC  5
+
+/** バックオフ最大間隔 (秒)。 */
+#define BACKOFF_MAX_SEC  60
+
+/** メッセージバッファサイズ (RFC 3164 推奨最大長)。 */
+#define SYSLOG_BUF_SIZE  2048
 
 /**
  *  @brief  syslog プロバイダハンドル構造体 (内部定義)。
  */
 struct trace_syslog_sink
 {
-    /** openlog に渡した識別子文字列 (複製を保持)。 */
+    /** openlog に相当する識別子文字列 (複製を保持)。 */
     char *ident;
+
+    /** syslog facility 値 (例: LOG_USER = 8)。 */
+    int facility;
+
+    /**
+     *  fd・next_connect・backoff_sec を保護する mutex。
+     *  sendto() は MSG_DONTWAIT で即時返るため、ロック保持中に実行する。
+     */
+    pthread_mutex_t reconnect_lock;
+
+    /** mutex が初期化済みであることを示すフラグ。 */
+    int lock_initialized;
+
+    /** UNIX ドメインソケット fd。未接続時は -1。reconnect_lock で保護。 */
+    int fd;
+
+    /** 次回接続試行を許可する最早時刻 (time_t)。reconnect_lock で保護。 */
+    time_t next_connect;
+
+    /** 現在のバックオフ間隔 (秒)。reconnect_lock で保護。 */
+    int backoff_sec;
 };
+
+/**
+ *******************************************************************************
+ *  @brief  バックオフ値を次段階に進める。ロック保持中に呼ぶこと。
+ *******************************************************************************
+ */
+static void advance_backoff(trace_syslog_sink_t *h)
+{
+    int next = h->backoff_sec * 2;
+
+    h->backoff_sec = (next > BACKOFF_MAX_SEC) ? BACKOFF_MAX_SEC : next;
+}
+
+/**
+ *******************************************************************************
+ *  @brief  fd を閉じてバックオフを進める。ロック保持中に呼ぶこと。
+ *******************************************************************************
+ */
+static void close_and_backoff_locked(trace_syslog_sink_t *h)
+{
+    if (h->fd >= 0)
+    {
+        close(h->fd);
+        h->fd = -1;
+    }
+    h->next_connect = time(NULL) + h->backoff_sec;
+    advance_backoff(h);
+}
+
+/**
+ *******************************************************************************
+ *  @brief  バックオフ期間を経過していればソケットを開く試みを行う。
+ *          ロック保持中に呼ぶこと。
+ *******************************************************************************
+ */
+static void try_open_socket_locked(trace_syslog_sink_t *h)
+{
+    time_t now = time(NULL);
+    int fd;
+
+    if (now < h->next_connect)
+    {
+        return; /* バックオフ期間中 */
+    }
+
+    fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    if (fd < 0)
+    {
+        h->next_connect = now + h->backoff_sec;
+        advance_backoff(h);
+        return;
+    }
+
+    h->fd = fd;
+    /* バックオフは送信成功時にリセットする */
+}
 
 /* doxygen コメントは、ヘッダに記載 */
 trace_syslog_sink_t *TRACE_SYSLOG_API
@@ -49,7 +154,6 @@ trace_syslog_sink_t *TRACE_SYSLOG_API
         return NULL;
     }
 
-    /* ident 文字列を複製して保持 (openlog はポインタを保持するため) */
     len = strlen(ident) + 1;
     handle->ident = (char *)malloc(len);
     if (handle->ident == NULL)
@@ -59,7 +163,24 @@ trace_syslog_sink_t *TRACE_SYSLOG_API
     }
     memcpy(handle->ident, ident, len);
 
-    openlog(handle->ident, LOG_NDELAY | LOG_PID, facility);
+    handle->facility         = facility;
+    handle->fd               = -1;
+    handle->next_connect     = 0;
+    handle->backoff_sec      = BACKOFF_INIT_SEC;
+    handle->lock_initialized = 0;
+
+    if (pthread_mutex_init(&handle->reconnect_lock, NULL) != 0)
+    {
+        free(handle->ident);
+        free(handle);
+        return NULL;
+    }
+    handle->lock_initialized = 1;
+
+    /* 初回接続を試みる (失敗しても構わない) */
+    pthread_mutex_lock(&handle->reconnect_lock);
+    try_open_socket_locked(handle);
+    pthread_mutex_unlock(&handle->reconnect_lock);
 
     return handle;
 }
@@ -68,13 +189,72 @@ trace_syslog_sink_t *TRACE_SYSLOG_API
 int TRACE_SYSLOG_API
     trace_syslog_sink_write(trace_syslog_sink_t *handle, int level, const char *message)
 {
+    char buf[SYSLOG_BUF_SIZE];
+    int prio;
+    int n;
+    struct sockaddr_un sa;
+    ssize_t sent;
+
     if (handle == NULL || message == NULL)
     {
         return 0;
     }
 
-    syslog(level, "%s", message);
+    /* syslog priority = (facility & ~7) | (severity & 7) */
+    prio = (handle->facility & ~7) | (level & 7);
 
+    /* RFC 3164 形式: <PRI>TAG[PID]: MSG */
+    n = snprintf(buf, sizeof(buf), "<%d>%s[%d]: %s",
+                 prio, handle->ident, (int)getpid(), message);
+    if (n < 0)
+    {
+        return 0;
+    }
+    if ((size_t)n >= sizeof(buf))
+    {
+        n = (int)(sizeof(buf) - 1);
+    }
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sun_family = AF_UNIX;
+    strncpy(sa.sun_path, DEVLOG_PATH, sizeof(sa.sun_path) - 1);
+
+    pthread_mutex_lock(&handle->reconnect_lock);
+
+    /* ソケットが無ければ低頻度で再接続を試みる */
+    if (handle->fd < 0)
+    {
+        try_open_socket_locked(handle);
+        if (handle->fd < 0)
+        {
+            pthread_mutex_unlock(&handle->reconnect_lock);
+            return 0; /* drop */
+        }
+    }
+
+    /* sendto は MSG_DONTWAIT で即時返るため、ロック保持中に実行する */
+    sent = sendto(handle->fd, buf, (size_t)n, MSG_DONTWAIT,
+                  (struct sockaddr *)&sa,
+                  (socklen_t)sizeof(sa));
+
+    if (sent < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            /* 送信バッファ満杯: drop のみ、再接続不要 */
+            pthread_mutex_unlock(&handle->reconnect_lock);
+            return 0;
+        }
+        /* その他エラー (ENOENT, ECONNREFUSED 等): ソケットを閉じてバックオフ */
+        close_and_backoff_locked(handle);
+        pthread_mutex_unlock(&handle->reconnect_lock);
+        return 0; /* drop */
+    }
+
+    /* 送信成功: バックオフをリセット */
+    handle->backoff_sec = BACKOFF_INIT_SEC;
+
+    pthread_mutex_unlock(&handle->reconnect_lock);
     return 0;
 }
 
@@ -87,7 +267,14 @@ void TRACE_SYSLOG_API
         return;
     }
 
-    closelog();
+    if (handle->fd >= 0)
+    {
+        close(handle->fd);
+    }
+    if (handle->lock_initialized)
+    {
+        pthread_mutex_destroy(&handle->reconnect_lock);
+    }
     free(handle->ident);
     free(handle);
 }
@@ -112,10 +299,8 @@ int TRACE_SYSLOG_API
     }
     memcpy(dup, new_ident, len);
 
-    closelog();
     free(handle->ident);
     handle->ident = dup;
-    openlog(handle->ident, LOG_NDELAY | LOG_PID, LOG_USER);
 
     return 0;
 }
@@ -128,7 +313,14 @@ void trace_syslog_sink_destroy_on_unload(trace_syslog_sink_t *handle)
         return;
     }
 
-    closelog();
+    if (handle->fd >= 0)
+    {
+        close(handle->fd);
+    }
+    if (handle->lock_initialized)
+    {
+        pthread_mutex_destroy(&handle->reconnect_lock);
+    }
     free(handle->ident);
     free(handle);
 }

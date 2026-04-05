@@ -24,7 +24,11 @@
 #define SHARED_LIB_LIFECYCLE_H
 
 #ifndef _WIN32
-    #include <syslog.h>
+    #include <sys/socket.h>
+    #include <sys/un.h>
+    #include <unistd.h>
+    #include <stdio.h>
+    #include <string.h>
 #else /* _WIN32 */
     #include <windows.h>
 #endif /* _WIN32 */
@@ -36,8 +40,10 @@
      *  @details        `DllMain` および constructor / destructor コンテキストでは
      *                  使用できる API が制限されるため、このマクロは制約下でも比較的
      *                  安全な最小限の出力経路を提供します。\n
-     *                  Linux では `syslog(LOG_INFO, ...)`、Windows では
-     *                  `MultiByteToWideChar` で UTF-8 変換後に
+     *                  Linux では `/dev/log` へ UNIX ドメイン SOCK_DGRAM で
+     *                  RFC 3164 形式のメッセージを `MSG_DONTWAIT` で送信します。
+     *                  送信に失敗した場合はメッセージを drop します。\n
+     *                  Windows では `MultiByteToWideChar` で UTF-8 変換後に
      *                  `OutputDebugStringW(...)` を使用します。
      *
      *  @param[in]      msg 出力する null 終端 UTF-8 文字列。
@@ -48,7 +54,47 @@
     #define DLLMAIN_UTIL_INFO_MSG(msg)
 #else /* !DOXYGEN */
     #ifndef _WIN32
-        #define DLLMAIN_UTIL_INFO_MSG(msg) syslog(LOG_INFO, (msg))
+        /**
+         *  @brief  /dev/log へ RFC 3164 形式の INFO メッセージを非ブロッキングで送信する。
+         *  @details
+         *  constructor / destructor コンテキストでも安全に使用できるよう、
+         *  syslog() API は使用しない。毎回ソケットを開いて即時送信し、
+         *  失敗時は drop する。priority = LOG_USER(8) | LOG_INFO(6) = 14。
+         */
+        static void dllmain_syslog_send__(const char *msg)
+        {
+            char buf[512];
+            struct sockaddr_un sa;
+            int fd;
+            int n;
+
+            fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+            if (fd < 0)
+            {
+                return;
+            }
+
+            /* priority 14 = facility LOG_USER(1<<3) | severity LOG_INFO(6) */
+            n = snprintf(buf, sizeof(buf), "<14>util[%d]: %s", (int)getpid(), msg);
+            if (n <= 0)
+            {
+                close(fd);
+                return;
+            }
+            if ((size_t)n >= sizeof(buf))
+            {
+                n = (int)(sizeof(buf) - 1);
+            }
+
+            memset(&sa, 0, sizeof(sa));
+            sa.sun_family = AF_UNIX;
+            strncpy(sa.sun_path, "/dev/log", sizeof(sa.sun_path) - 1);
+
+            (void)sendto(fd, buf, (size_t)n, MSG_DONTWAIT,
+                         (struct sockaddr *)&sa, (socklen_t)sizeof(sa));
+            close(fd);
+        }
+        #define DLLMAIN_UTIL_INFO_MSG(msg) dllmain_syslog_send__(msg)
     #else /* _WIN32 */
         static void dllmain_output_debug_msg__(const char *msg)
         {
