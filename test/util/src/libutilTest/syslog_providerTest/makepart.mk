@@ -6,3 +6,6 @@ CFLAGS   += \
     -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog
 CXXFLAGS += \
     -I$(WORKSPACE_FOLDER)/prod/util/libsrc/util/trace/backends/syslog
+
+# memset が mock_libc のモック対象であるためリンクが必要
+LIBS += mock_libc

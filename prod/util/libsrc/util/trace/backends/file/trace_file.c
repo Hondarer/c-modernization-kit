@@ -550,6 +550,19 @@ void trace_file_sink_destroy_on_unload(trace_file_sink_t *handle)
     }
 
     close_file(handle);
+
+#ifdef _WIN32
+    if (handle->cs_initialized)
+    {
+        DeleteCriticalSection(&handle->cs);
+    }
+#else /* !_WIN32 */
+    if (handle->mutex_initialized)
+    {
+        pthread_mutex_destroy(&handle->mutex);
+    }
+#endif /* _WIN32 */
+
     free(handle->path);
     free(handle);
 }

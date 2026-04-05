@@ -24,6 +24,14 @@
  *******************************************************************************
  *  @brief          ライブラリアンロード時に syslog プロバイダハンドルを解放します。
  *  @param[in]      handle 解放する syslog プロバイダハンドル。
+ *
+ *  @par            DLL ロード/アンロードコンテキスト
+ *  本関数は constructor/destructor から呼び出し可能です。\n
+ *  reconnect_lock を取得せずにソケットを閉じてハンドルを解放します。
+ *  呼び出し時点で trace_syslog_sink_write() を実行中のスレッドが存在する場合は
+ *  未定義動作になります。
+ *  通常は trace_registry_dispose_all_on_unload() 経由で呼ばれるため、
+ *  呼び出し側がスレッドの静止を保証します。
  *******************************************************************************
  */
 void trace_syslog_sink_destroy_on_unload(trace_syslog_sink_t *handle);

@@ -24,6 +24,14 @@
  *  @brief          ライブラリアンロード時に全トレースハンドルを解放します。
  *  @param[in]      process_terminating プロセス終了による呼び出しの場合は 1、
  *                  明示的なアンロードの場合は 0 を指定します。
+ *
+ *  @par            DLL ロード/アンロードコンテキスト
+ *  本関数は DllMain および constructor/destructor から呼び出し可能です。\n
+ *  内部でレジストリロックを取得しません。
+ *  呼び出し前に、すべてのスレッドが trace API
+ *  (trace_logger_create / trace_logger_destroy / trace_logger_write 等) の
+ *  呼び出しを完了している必要があります。
+ *  並行してトレース API が呼ばれた場合は未定義動作になります。
  *******************************************************************************
  */
 void trace_registry_dispose_all_on_unload(int process_terminating);

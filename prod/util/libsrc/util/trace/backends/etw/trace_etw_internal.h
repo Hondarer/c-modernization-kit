@@ -26,6 +26,15 @@
  *  @param[in]      handle 解放する ETW プロバイダハンドル。
  *  @param[in]      process_terminating プロセス終了による呼び出しの場合は 1、
  *                  明示的なアンロードの場合は 0 を指定します。
+ *
+ *  @par            DLL ロード/アンロードコンテキスト
+ *  本関数は DllMain から呼び出し可能です。\n
+ *  **process_terminating=1**: free() のみ実行するため常に安全です。\n
+ *  **process_terminating=0**: TraceLoggingUnregister() を呼び出します。
+ *  呼び出し時点で trace_etw_provider_write() を実行中のスレッドが存在する場合は
+ *  未定義動作になります。
+ *  通常は trace_registry_dispose_all_on_unload() 経由で呼ばれるため、
+ *  呼び出し側がスレッドの静止を保証します。
  *******************************************************************************
  */
 void trace_etw_provider_destroy_on_unload(trace_etw_provider_t *handle, int process_terminating);

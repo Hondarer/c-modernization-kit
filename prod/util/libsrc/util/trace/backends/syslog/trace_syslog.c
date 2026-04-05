@@ -58,23 +58,23 @@ struct trace_syslog_sink
     /** openlog に相当する識別子文字列 (複製を保持)。 */
     char *ident;
 
-    /** syslog facility 値 (例: LOG_USER = 8)。 */
-    int facility;
-
     /**
      *  fd・next_connect・backoff_sec を保護する mutex。
      *  sendto() は MSG_DONTWAIT で即時返るため、ロック保持中に実行する。
      */
     pthread_mutex_t reconnect_lock;
 
+    /** 次回接続試行を許可する最早時刻 (time_t)。reconnect_lock で保護。 */
+    time_t next_connect;
+
+    /** syslog facility 値 (例: LOG_USER = 8)。 */
+    int facility;
+
     /** mutex が初期化済みであることを示すフラグ。 */
     int lock_initialized;
 
     /** UNIX ドメインソケット fd。未接続時は -1。reconnect_lock で保護。 */
     int fd;
-
-    /** 次回接続試行を許可する最早時刻 (time_t)。reconnect_lock で保護。 */
-    time_t next_connect;
 
     /** 現在のバックオフ間隔 (秒)。reconnect_lock で保護。 */
     int backoff_sec;
@@ -190,9 +190,9 @@ int TRACE_SYSLOG_API
     trace_syslog_sink_write(trace_syslog_sink_t *handle, int level, const char *message)
 {
     char buf[SYSLOG_BUF_SIZE];
+    struct sockaddr_un sa;
     int prio;
     int n;
-    struct sockaddr_un sa;
     ssize_t sent;
 
     if (handle == NULL || message == NULL)
@@ -299,8 +299,10 @@ int TRACE_SYSLOG_API
     }
     memcpy(dup, new_ident, len);
 
+    pthread_mutex_lock(&handle->reconnect_lock);
     free(handle->ident);
     handle->ident = dup;
+    pthread_mutex_unlock(&handle->reconnect_lock);
 
     return 0;
 }

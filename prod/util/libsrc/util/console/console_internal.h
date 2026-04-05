@@ -27,6 +27,15 @@ extern "C"
  *  @brief          ライブラリアンロード時にコンソールヘルパーを解放します。
  *  @param[in]      process_terminating プロセス終了による呼び出しの場合は 1、
  *                  明示的なアンロードの場合は 0 を指定します。
+ *
+ *  @par            DLL ロード/アンロードコンテキスト
+ *  本関数は DllMain および constructor/destructor から呼び出し可能です。\n
+ *  **Linux**: no-op のため常に安全です。\n
+ *  **Windows / process_terminating=1**: 即座に返るため安全です。\n
+ *  **Windows / process_terminating=0**: 内部で WaitForSingleObject (最大 500ms) を
+ *  呼び出してリーダースレッドの終了を待ちます。
+ *  リーダースレッドはローダーロックを取得する操作を行わないため
+ *  デッドロックは発生しません。
  *******************************************************************************
  */
 void console_dispose_on_unload(int process_terminating);
