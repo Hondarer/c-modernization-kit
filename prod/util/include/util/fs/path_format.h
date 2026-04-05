@@ -29,16 +29,6 @@ typedef struct _stat64 util_file_stat_t;
     #include <direct.h>
 #endif /* _WIN32 */
 
-#ifdef DOXYGEN
-    /**
-     *  @def            PATH_FORMAT_PATH_MAX
-     *  @brief          OS 固有のパス最大長。
-     *  @details        @ref PLATFORM_PATH_MAX の alias です。
-     *                  Linux では `limits.h` の `PATH_MAX`、Windows では `windows.h` の `MAX_PATH` に展開されます。
-     */
-#endif /* DOXYGEN */
-#define PATH_FORMAT_PATH_MAX PLATFORM_PATH_MAX
-
 /* access_fmt 用のモード定数 */
 
 #ifdef DOXYGEN

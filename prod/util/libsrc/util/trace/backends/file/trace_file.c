@@ -45,9 +45,6 @@
 /** ローテーションパスのサフィックス最大長 (".999\0" = 5 文字)。 */
 #define TRACE_FILE_SUFFIX_MAX 5
 
-/** パス長上限。 */
-#define TRACE_FILE_PATH_MAX   PLATFORM_PATH_MAX
-
 /* ===== 内部構造体 ===== */
 
 /**
@@ -262,8 +259,8 @@ static void close_file(trace_file_sink_t *p)
 static void rotate_file(trace_file_sink_t *p)
 {
     /* パス構築用スタックバッファ */
-    char old_path[TRACE_FILE_PATH_MAX];
-    char new_path[TRACE_FILE_PATH_MAX];
+    char old_path[PLATFORM_PATH_MAX];
+    char new_path[PLATFORM_PATH_MAX];
     int  gen;
 
     close_file(p);
@@ -329,7 +326,7 @@ trace_file_sink_t *TRACE_FILE_API
     path_len = strlen(path);
 
     /* パスが長すぎてローテーションサフィックスを付加できない場合は拒否する */
-    if (path_len + TRACE_FILE_SUFFIX_MAX >= (size_t)TRACE_FILE_PATH_MAX)
+    if (path_len + TRACE_FILE_SUFFIX_MAX >= (size_t)PLATFORM_PATH_MAX)
     {
         return NULL;
     }

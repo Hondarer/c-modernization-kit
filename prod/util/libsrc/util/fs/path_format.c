@@ -7,12 +7,12 @@
 
 /**
  *  ファイル名フォーマットの共通処理。
- *  va_list から PATH_FORMAT_PATH_MAX バッファにファイル名を展開し、
+ *  va_list から PLATFORM_PATH_MAX バッファにファイル名を展開し、
  *  失敗時は指定された値を返す。
  *  成功時は filename[] に結果が格納される。
  */
 #define FMTIO_FORMAT_FILENAME(format, args, fail_return) \
-    char filename[PATH_FORMAT_PATH_MAX] = {0};                  \
+    char filename[PLATFORM_PATH_MAX] = {0};                  \
     int written;                                         \
     if (format == NULL)                                  \
     {                                                    \
@@ -33,7 +33,7 @@
 /* Doxygen コメントは、ヘッダに記載 */
 FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 {
-    char filename[PATH_FORMAT_PATH_MAX] = {0};
+    char filename[PLATFORM_PATH_MAX] = {0};
     int written;
 
     /* 引数チェック */
