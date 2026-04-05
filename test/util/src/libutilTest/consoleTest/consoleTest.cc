@@ -108,4 +108,18 @@ TEST_F(consoleTest, test_nop_stderr_fd_unchanged)
     EXPECT_EQ(fd_before, fileno(stderr)); // [確認_正常系] - dispose 後も FD が変わっていないこと。
 }
 
+// Linux: dispose を呼んでも stdout の FD が変わらないことの確認
+TEST_F(consoleTest, test_nop_dispose_stdout_fd_unchanged)
+{
+    // Arrange
+    int fd_before = fileno(stdout); // [手順] - init 前の stdout FD を記録する。
+    console_init();
+
+    // Act
+    console_dispose(); // [手順] - no-op の dispose を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(fd_before, fileno(stdout)); // [確認_正常系] - dispose を呼んでも FD が変わらないこと。
+}
+
 #endif /* !_WIN32 */
