@@ -10,7 +10,9 @@
  *  /dev/log への UNIX ドメイン SOCK_DGRAM 送信で実装しています。
  *  send(MSG_DONTWAIT) を使用するため、ソケットが詰まっていても
  *  アプリケーションをブロックしません。送信失敗時はメッセージを
- *  drop し、低頻度バックオフでのみ再接続を試みます。
+ *  drop し、低頻度バックオフでのみ再接続を試みます。\n
+ *  環境変数 `SYSLOG_TEST_FD` が設定されている場合は /dev/log の代わりに
+ *  その FD に RFC 3164 形式のメッセージを書き込みます (テスト用途)。
  *
  *  @par            スレッドセーフティ
  *  本モジュールはスレッドセーフです。\n
@@ -37,6 +39,7 @@
 
 #include <util/trace/trace_syslog.h>
 #include "trace_syslog_internal.h"
+#include <util/test/syslog_test.h>
 
 /** /dev/log への UNIX ドメインソケットパス。 */
 #define DEVLOG_PATH      "/dev/log"
@@ -213,6 +216,13 @@ int TRACE_SYSLOG_API
     if ((size_t)n >= sizeof(buf))
     {
         n = (int)(sizeof(buf) - 1);
+    }
+
+    /* SYSLOG_TEST_FD が設定されていればテスト用 FD に送信し、/dev/log へは送信しない */
+    buf[n] = '\n';
+    if (syslog_test_fd_write__(buf, (size_t)(n + 1)))
+    {
+        return 0;
     }
 
     memset(&sa, 0, sizeof(sa));

@@ -42,3 +42,16 @@ Linux では OS トレース先が syslog になります。
 - Linux サービスを既存の syslog 運用へ統合したい場合
 - journald / rsyslog 側で集約・転送したい場合
 - ファイル出力よりも OS 標準のログ経路を優先したい場合
+
+## テスト用途: SYSLOG_TEST_FD
+
+環境変数 `SYSLOG_TEST_FD` にパイプの書き込み端 FD 番号を設定すると、
+`/dev/log` への送信を行わず、その FD に RFC 3164 形式のメッセージを書き込みます。
+
+これにより、実際の syslog デーモンなしで送信内容をテストプロセスが受け取れます。
+`testfw` の `processController` が `preload_lib` オプションと組み合わせてこの仕組みを使用します。
+
+```c
+/* テストプロセス側でパイプを作成し、書き込み端の FD 番号を環境変数に設定する */
+setenv("SYSLOG_TEST_FD", "<fd_number>", 1);
+```

@@ -29,6 +29,7 @@
     #include <unistd.h>
     #include <stdio.h>
     #include <string.h>
+    #include <util/test/syslog_test.h>
 #else /* _WIN32 */
     #include <windows.h>
 #endif /* _WIN32 */
@@ -40,7 +41,9 @@
      *  @details        `DllMain` および constructor / destructor コンテキストでは
      *                  使用できる API が制限されるため、このマクロは制約下でも比較的
      *                  安全な最小限の出力経路を提供します。\n
-     *                  Linux では `/dev/log` へ UNIX ドメイン SOCK_DGRAM で
+     *                  Linux では、環境変数 `SYSLOG_TEST_FD` が設定されていれば
+     *                  その FD に RFC 3164 形式のメッセージを書き込みます。
+     *                  設定されていない場合は `/dev/log` へ UNIX ドメイン SOCK_DGRAM で
      *                  RFC 3164 形式のメッセージを `MSG_DONTWAIT` で送信します。
      *                  送信に失敗した場合はメッセージを drop します。\n
      *                  Windows では `MultiByteToWideChar` で UTF-8 変換後に
@@ -68,22 +71,28 @@
             int fd;
             int n;
 
-            fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
-            if (fd < 0)
-            {
-                return;
-            }
-
             /* priority 14 = facility LOG_USER(1<<3) | severity LOG_INFO(6) */
             n = snprintf(buf, sizeof(buf), "<14>util[%d]: %s", (int)getpid(), msg);
             if (n <= 0)
             {
-                close(fd);
                 return;
             }
             if ((size_t)n >= sizeof(buf))
             {
                 n = (int)(sizeof(buf) - 1);
+            }
+
+            /* SYSLOG_TEST_FD が設定されていればテスト用 FD に送信し、/dev/log へは送信しない */
+            buf[n] = '\n';
+            if (syslog_test_fd_write__(buf, (size_t)(n + 1)))
+            {
+                return;
+            }
+
+            fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+            if (fd < 0)
+            {
+                return;
             }
 
             memset(&sa, 0, sizeof(sa));
