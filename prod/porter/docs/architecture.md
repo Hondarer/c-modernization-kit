@@ -209,7 +209,9 @@ RTN <-- SN : recv (PING 応答)
 RT0 --> HT0 : 応答通知
 RTN --> HTN : 応答通知
 
-note over RT0, RTN: DATA 受信は POTR_TYPE_TCP_BIDIR 時のみ
+note "DATA 受信は POTR_TYPE_TCP_BIDIR 時のみ" as NOTE
+RT0 .. NOTE
+RTN .. NOTE
 @enduml
 ```
 

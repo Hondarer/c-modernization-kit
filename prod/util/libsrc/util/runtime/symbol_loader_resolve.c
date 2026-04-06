@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           symbol_loader_resolve_as.c
+ *  @file           symbol_loader_resolve.c
  *  @brief          拡張可能な関数の動的ロードを行い、関数アドレスを返却します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/23

@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           get_lib_info.c
+ *  @file           module_info.c
  *  @brief          共有ライブラリ自身 (.so/.dll) の絶対パスと basename
  *                  (パスなし・拡張子なし) を取得します。
  *  @author         c-modenization-kit sample team

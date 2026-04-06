@@ -28,14 +28,12 @@ extern "C"
 
     /**
      *  @brief  TCP 接続管理スレッドを起動します。
-     *  @param[in,out]  ctx  セッションコンテキストへのポインタ。
      *  @return  成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
      */
     extern int  potr_connect_thread_start(struct PotrContext_ *ctx);
 
     /**
      *  @brief  TCP 接続管理スレッドを停止します。
-     *  @param[in,out]  ctx  セッションコンテキストへのポインタ。
      */
     extern void potr_connect_thread_stop(struct PotrContext_ *ctx);
 
