@@ -296,6 +296,17 @@ void CONSOLE_API console_init(void)
     /* 二重初期化を防ぐ (マルチスレッド安全ではないが init はシングルスレッドで呼ぶ想定) */
     if (s_stdout_state.active) return;
 
+    /* stdout がコンソール (TTY) でなければ内部パイプへの差し替えは不要。
+     * パイプ/ファイル出力時は UTF-8 バイト列をそのまま転送できる。
+     * 差し替えを行うと console_dispose() を呼ばずに return した場合に
+     * リーダースレッドが ExitProcess() で強制終了されデータが失われる。 */
+    {
+        HANDLE h    = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD  mode = 0;
+        if (GetFileType(h) != FILE_TYPE_CHAR || !GetConsoleMode(h, &mode))
+            return;
+    }
+
     if (init_stream(&s_stdout_state, STD_OUTPUT_HANDLE, stdout) != 0)
     {
         fprintf(stderr, "console_init: stdout の初期化に失敗しました。\n");
