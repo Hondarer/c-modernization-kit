@@ -213,7 +213,7 @@ TEST_F(potrDisconnectPeerTest, normal_with_callback)
     EXPECT_EQ(0, peer_ctx.health_alive);                 // [確認_正常系] - health_alive が 0 にクリアされること。
 }
 
-/* ---------- 準正常系 ---------- */
+/* ---------- 正常系（切断済みピア） ---------- */
 
 // ピアが存在し health_alive=0 の場合に切断処理のみ行われコールバックが発火しないことの確認
 TEST_F(potrDisconnectPeerTest, normal_health_dead)
@@ -226,18 +226,18 @@ TEST_F(potrDisconnectPeerTest, normal_health_dead)
     peer_ctx.health_alive = 0;             // [状態] - ピアを切断済み状態 (health_alive=0) に設定する。
 
     EXPECT_CALL(mock_peer_table, peer_find_by_id(&ctx, (PotrPeerId)1))
-        .WillOnce(Return(&peer_ctx)); // [Pre-Assert確認_準正常系] - peer_find_by_id がピアコンテキストを返すこと。
+        .WillOnce(Return(&peer_ctx)); // [Pre-Assert確認_正常系] - peer_find_by_id がピアコンテキストを返すこと。
 
     EXPECT_CALL(mock_peer_table, peer_send_fin(&ctx, &peer_ctx))
-        .Times(1); // [Pre-Assert確認_準正常系] - peer_send_fin が 1 回呼ばれること。
+        .Times(1); // [Pre-Assert確認_正常系] - peer_send_fin が 1 回呼ばれること。
 
     EXPECT_CALL(mock_peer_table, peer_free(&ctx, &peer_ctx))
-        .Times(1); // [Pre-Assert確認_準正常系] - peer_free が 1 回呼ばれること。
+        .Times(1); // [Pre-Assert確認_正常系] - peer_free が 1 回呼ばれること。
 
     // Act
     int rtc = potrDisconnectPeer(&ctx, 1); // [手順] - health_alive=0 の状態で potrDisconnectPeer を呼び出す。
 
     // Assert
-    EXPECT_EQ(POTR_SUCCESS, rtc);   // [確認_準正常系] - 戻り値が POTR_SUCCESS であること。
-    EXPECT_EQ(0, g_cb.count);       // [確認_準正常系] - health_alive=0 のためコールバックが呼ばれないこと。
+    EXPECT_EQ(POTR_SUCCESS, rtc);   // [確認_正常系] - 戻り値が POTR_SUCCESS であること。
+    EXPECT_EQ(0, g_cb.count);       // [確認_正常系] - health_alive=0 のためコールバックが呼ばれないこと。
 }
