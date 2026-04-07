@@ -60,7 +60,7 @@
     #define COMPILER_UNKNOWN        /**< 未知のコンパイラの場合に定義されます。 */
     #define COMPILER_NAME    "name" /**< コンパイラ名の文字列 ("MSVC", "Clang", "GCC", "Unknown")。 */
     #define COMPILER_VERSION 0      /**< コンパイラバージョンの数値。 */
-#else /* !DOXYGEN */
+#else                               /* !DOXYGEN */
     #if defined(_MSC_VER)
         #define COMPILER_MSVC
         #define COMPILER_NAME    "MSVC"
@@ -83,7 +83,7 @@
 #ifdef DOXYGEN
     #define FORCE_INLINE /**< インライン展開を強制します。コンパイラに応じた属性に展開されます。 */
     #define NO_INLINE    /**< インライン展開を抑制します。コンパイラに応じた属性に展開されます。 */
-#else /* !DOXYGEN */
+#else                    /* !DOXYGEN */
     #if defined(COMPILER_MSVC)
         #define FORCE_INLINE __forceinline
         #define NO_INLINE    __declspec(noinline)
