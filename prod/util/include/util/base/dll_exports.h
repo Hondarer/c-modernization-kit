@@ -34,12 +34,14 @@
     #error "UTIL_DLL_EXPORT_PREFIX must be defined before including <util/base/dll_exports.h>"
 #endif /* UTIL_DLL_EXPORT_PREFIX */
 
-#ifndef UTIL_DLL_PP_CAT_IMPL__
-    #define UTIL_DLL_PP_CAT_IMPL__(a, b) a##b
-#endif /* UTIL_DLL_PP_CAT_IMPL__ */
-#ifndef UTIL_DLL_PP_CAT__
-    #define UTIL_DLL_PP_CAT__(a, b) UTIL_DLL_PP_CAT_IMPL__(a, b)
-#endif /* UTIL_DLL_PP_CAT__ */
+#ifndef DOXYGEN
+    #ifndef UTIL_DLL_PP_CAT_IMPL__
+        #define UTIL_DLL_PP_CAT_IMPL__(a, b) a##b
+    #endif /* UTIL_DLL_PP_CAT_IMPL__ */
+    #ifndef UTIL_DLL_PP_CAT__
+        #define UTIL_DLL_PP_CAT__(a, b) UTIL_DLL_PP_CAT_IMPL__(a, b)
+    #endif /* UTIL_DLL_PP_CAT__ */
+#endif     /* !DOXYGEN */
 
 #ifdef DOXYGEN
     /**
