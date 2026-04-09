@@ -110,7 +110,7 @@ extern "C"
      *  @return         成功時: ハンドル。失敗時: NULL。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         trace_file_sink_t *h = trace_file_sink_create(
             "C:\\logs\\myapp.log", 0, 0);
         @endcode

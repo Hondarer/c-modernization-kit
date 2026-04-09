@@ -74,7 +74,7 @@ typedef struct _tlgProvider_t const *trace_etw_provider_ref_t;
  *  @param          guid  GUID (TraceLogging 形式の括弧付き定数タプル)
  *
  *  @par            使用例
-    @code
+    @code{.c}
     #include <windows.h>
     #include <TraceLoggingProvider.h>
     #include <util/trace/trace_etw.h>
@@ -109,7 +109,7 @@ extern "C"
      *  @return         成功時: ハンドル。失敗時: NULL。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         trace_etw_provider_t *h = trace_etw_provider_create(s_my_provider);
         @endcode
      */
@@ -197,7 +197,7 @@ extern "C"
      *                  @c TRACE_ETW_SESSION_ERR_SYSTEM その他のシステムエラー。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         int status = trace_etw_session_check_access();
         if (status == TRACE_ETW_SESSION_ERR_ACCESS) {
             fprintf(stderr, "Run: net localgroup \"Performance Log Users\" %%USERNAME%% /add\n");
@@ -224,7 +224,7 @@ extern "C"
      *  @return         成功: セッションハンドル / 失敗: NULL。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         int status;
         trace_etw_session_t *s = trace_etw_session_start(
             "MySession",

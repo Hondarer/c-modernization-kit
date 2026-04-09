@@ -139,12 +139,12 @@ extern "C"
      *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
      *
      *  @par            使用例 (エラー コードの取得なし)
-        @code
+        @code{.c}
         FILE *fp = fopen_fmt("r", NULL, "data_%d.txt", 123);
         @endcode
      *
      *  @par            使用例 (エラー コードの取得あり)
-        @code
+        @code{.c}
         int err;
         FILE *fp = fopen_fmt("r", &err, "data_%d.txt", 123);
         @endcode
@@ -169,7 +169,7 @@ extern "C"
      *  @note           ファイル名の最大長は OS の規定値です (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)
      *  @note           util_file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です
      *  @par            使用例
-        @code
+        @code{.c}
         util_file_stat_t st; int ret = stat_fmt(&st, "data_%d.txt", 123);
         @endcode
      *  @note           Linux では stat()、Windows では _stat64() を使用します
@@ -249,7 +249,7 @@ extern "C"
      *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         int ret = remove_fmt("data_%d.txt", 123);
         @endcode
      *
@@ -311,7 +311,7 @@ extern "C"
      *                  高度な機能は本関数ではサポートしません。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         int fd = open_fmt(O_WRONLY | O_CREAT | O_TRUNC, 0644, "log_%d.txt", pid);
         @endcode
      *
@@ -377,7 +377,7 @@ extern "C"
      *                  FMTIO_X_OK は提供しません。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         if (access_fmt(ACCESS_FMT_F_OK, "config_%d.txt", instance_id) == 0)
         {
             // ファイルが存在する
@@ -437,7 +437,7 @@ extern "C"
      *  @note           親ディレクトリが存在しない場合は失敗します (再帰的なディレクトリ作成は行いません)。
      *
      *  @par            使用例
-        @code
+        @code{.c}
         int ret = mkdir_fmt("logs_%04d", year);
         @endcode
      *

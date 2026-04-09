@@ -14,7 +14,7 @@
  *                  使用できます。
  *
  *  @par            使用例
-    @code
+    @code{.c}
     #include <util/console/console.h>
     #include <stdio.h>
 
