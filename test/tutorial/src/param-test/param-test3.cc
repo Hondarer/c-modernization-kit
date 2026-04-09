@@ -1,4 +1,4 @@
-#include <util/base/compiler.h>
+#include <util/base/platform.h>
 #include <testfw.h>
 
 class ParamTest3
