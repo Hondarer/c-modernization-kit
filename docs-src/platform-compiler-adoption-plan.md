@@ -34,7 +34,7 @@
     - `#if defined(COMPILER_MSVC)` ~ `#endif`
 - コンパイラ分岐・属性:
   Clang は利用していないため、興味としては GCC/G++ と MSVC のみでよい。
-  `#ifdef __GNUC__` や `#if defined(__GNUC__) || defined(__clang__)` を `COMPILER_GCC` / `COMPILER_CLANG` へ置換し、`format(printf, ...)` などは、チェック構文付きと構文無しを `#if defined(COMPILER_GCC)` ~ `#else` ~ `#endif` で分岐する。GCC側を優先とする。
+  `#ifdef __GNUC__` や `#if defined(__GNUC__) || defined(__clang__)` は GCC と MSVC を基準に整理し、Clang は `COMPILER_UNKNOWN` 扱いとする。`format(printf, ...)` などは、チェック構文付きと構文無しを `#if defined(COMPILER_GCC)` ~ `#else` ~ `#endif` で分岐する。GCC側を優先とする。
 - 公開 API の export / calling convention:
   `CALC_EXPORT`、`POTR_EXPORT`、`TRACE_LOGGER_EXPORT` など既存の公開マクロ名は維持し、その定義内部だけを `PLATFORM_WINDOWS` / `COMPILER_MSVC` ベースへ置換する。利用側コードの互換性は変えない。
 - 直接 include する OS ヘッダーは残してよいが、include ガード条件は `PLATFORM_*` ベースに寄せる。
@@ -42,8 +42,8 @@
 ### 3. 実装順序を固定する
 
 1. 基盤ヘッダー整備
-- `platform.h` / `compiler.h` は変更しない。
-  `compiler.h` には Clang を意図した分岐はあるが、prod, test は gcc/msvc でのコンパイルを前提にしているため、利用されることはない。
+- `platform.h` は変更しない。
+- `compiler.h` は GCC / MSVC / Unknown の3系統に整理し、Clang 専用分岐は削除する。
 
 2. 公開ヘッダーの置換
 - `prod/calc/include/libcalc.h`
