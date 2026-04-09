@@ -1,16 +1,18 @@
 #ifndef TRACE_ETW_H
 #define TRACE_ETW_H
 
+#include <util/base/platform.h>
+
 /**
  *  @file           trace_etw.h
  *  @brief          ETW (Event Tracing for Windows) ヘルパーライブラリ。
  *  @details        TraceLogging ベースの ETW プロバイダを簡易に操作するための
  *                  ヘルパー関数群を提供します。\n
- *                  Windows 専用ライブラリです。呼び出し元は @c \#ifdef @c _WIN32 の
+ *                  Windows 専用ライブラリです。呼び出し元は @c \#if defined(PLATFORM_WINDOWS) の
  *                  中でのみ使用してください。
  */
 
-#ifdef _WIN32
+#if defined(PLATFORM_WINDOWS)
 
 /* ===== DLL エクスポート / インポート制御マクロ ===== */
 
@@ -40,22 +42,10 @@
 
 #else /* !DOXYGEN */
 
-#ifndef __INTELLISENSE__
-    #ifndef TRACE_ETW_STATIC
-        #ifdef TRACE_ETW_EXPORTS
-            #define TRACE_ETW_EXPORT __declspec(dllexport)
-        #else /* !TRACE_ETW_EXPORTS */
-            #define TRACE_ETW_EXPORT __declspec(dllimport)
-        #endif /* TRACE_ETW_EXPORTS */
-    #else      /* TRACE_ETW_STATIC */
-        #define TRACE_ETW_EXPORT
-    #endif /* TRACE_ETW_STATIC */
-#else      /* __INTELLISENSE__ */
-    #define TRACE_ETW_EXPORT
-#endif /* __INTELLISENSE__ */
-#ifndef TRACE_ETW_API
-    #define TRACE_ETW_API __stdcall
-#endif /* TRACE_ETW_API */
+    #define UTIL_DLL_EXPORT_PREFIX TRACE_ETW
+    #include <util/base/dll_exports.h>
+    #define TRACE_ETW_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define TRACE_ETW_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 
@@ -267,6 +257,6 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */
 
 #endif /* TRACE_ETW_H */

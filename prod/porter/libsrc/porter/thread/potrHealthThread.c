@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           potrHealthThread.c
  *  @brief          ヘルスチェックスレッドモジュール。
@@ -16,19 +16,20 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <string.h>
 #include <inttypes.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
     #include <time.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter_const.h>
 #include <porter.h>
@@ -41,15 +42,15 @@
 #include "../infra/potrLog.h"
 #include "../infra/crypto/crypto.h"
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     typedef pthread_mutex_t PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     typedef CRITICAL_SECTION PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* TCP health スレッドに渡す引数 (path ごと) */
 typedef struct
@@ -64,7 +65,7 @@ static HealthArg s_health_args[POTR_MAX_PATH];
 /* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする (path_idx 版) */
 static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interval_ms)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec abs_ts;
     clock_gettime(CLOCK_REALTIME, &abs_ts);
     abs_ts.tv_sec  += (time_t)(interval_ms / 1000U);
@@ -81,7 +82,7 @@ static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interv
                                &ctx->health_mutex[path_idx], &abs_ts);
     }
     pthread_mutex_unlock(&ctx->health_mutex[path_idx]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(&ctx->health_mutex[path_idx]);
     if (ctx->health_running[path_idx])
     {
@@ -89,29 +90,29 @@ static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interv
                                   &ctx->health_mutex[path_idx], (DWORD)interval_ms);
     }
     LeaveCriticalSection(&ctx->health_mutex[path_idx]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t health_get_ms(void)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return (uint64_t)GetTickCount64();
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* ====================================================================
  * 非 TCP (UDP/マルチキャスト) 用ヘルスチェックスレッド本体
  * ==================================================================== */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 static void *health_thread_func(void *arg)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 static DWORD WINAPI health_thread_func(LPVOID arg)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     PotrPacketSessionHdr shdr;
@@ -183,18 +184,18 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 peer_shdr.session_tv_sec  = ctx->peers[i].session_tv_sec;
                 peer_shdr.session_tv_nsec = ctx->peers[i].session_tv_nsec;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 pthread_mutex_lock(&ctx->peers[i].send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 EnterCriticalSection(&ctx->peers[i].send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 seq = ctx->peers[i].send_window.next_seq;
                 packet_build_ping(&ping_pkt, &peer_shdr, seq, 0U);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 pthread_mutex_unlock(&ctx->peers[i].send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 LeaveCriticalSection(&ctx->peers[i].send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
                 if (ctx->service.encrypt_enabled)
                 {
@@ -224,15 +225,15 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                     for (k = 0; k < (int)POTR_MAX_PATH; k++)
                     {
                         if (ctx->peers[i].dest_addr[k].sin_family == 0) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                         sendto(ctx->sock[k], wire_buf, wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                         sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                     }
                 }
                 else
@@ -242,15 +243,15 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                     for (k = 0; k < (int)POTR_MAX_PATH; k++)
                     {
                         if (ctx->peers[i].dest_addr[k].sin_family == 0) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                         sendto(ctx->sock[k], &ping_pkt, wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                         sendto(ctx->sock[k], (const char *)&ping_pkt, (int)wire_len, 0,
                                (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
                                sizeof(ctx->peers[i].dest_addr[k]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                     }
                 }
 
@@ -306,15 +307,15 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
                 for (k = 0; k < ctx->n_path; k++)
                 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                     sendto(ctx->sock[k], wire_buf, wire_len, 0,
                            (const struct sockaddr *)&ctx->dest_addr[k],
                            sizeof(ctx->dest_addr[k]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                     sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
                            (const struct sockaddr *)&ctx->dest_addr[k],
                            sizeof(ctx->dest_addr[k]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 }
             }
             else
@@ -324,15 +325,15 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
                 for (k = 0; k < ctx->n_path; k++)
                 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                     sendto(ctx->sock[k], &ping_pkt, wire_len, 0,
                            (const struct sockaddr *)&ctx->dest_addr[k],
                            sizeof(ctx->dest_addr[k]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                     sendto(ctx->sock[k], (const char *)&ping_pkt, (int)wire_len, 0,
                            (const struct sockaddr *)&ctx->dest_addr[k],
                            sizeof(ctx->dest_addr[k]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 }
             }
         }
@@ -340,21 +341,21 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
         ctx->last_send_ms = health_get_ms();
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return NULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* ====================================================================
  * TCP 用ヘルスチェックスレッド本体 (path ごと)
  * ==================================================================== */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 static void *tcp_health_thread_func(void *arg)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 {
     HealthArg           *harg     = (HealthArg *)arg;
     struct PotrContext_ *ctx      = harg->ctx;
@@ -395,13 +396,13 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
                          ctx->service.service_id, path_idx,
                          (unsigned long long)(health_get_ms() - last));
                 /* ソケットをクローズ → recv スレッドが切断を検知する */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 shutdown(ctx->tcp_conn_fd[path_idx], SHUT_RDWR);
                 close(ctx->tcp_conn_fd[path_idx]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 shutdown(ctx->tcp_conn_fd[path_idx], SD_BOTH);
                 closesocket(ctx->tcp_conn_fd[path_idx]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 ctx->tcp_conn_fd[path_idx] = POTR_INVALID_SOCKET;
                 continue; /* connect スレッドに停止されるまで継続 */
             }
@@ -455,7 +456,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
             POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
             if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
             {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 {
                     size_t        sent = 0;
                     const uint8_t *p   = wire_buf;
@@ -467,10 +468,10 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
                         sent += (size_t)n;
                     }
                 }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 send(ctx->tcp_conn_fd[path_idx],
                      (const char *)wire_buf, (int)wire_len, 0);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             }
             POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
         }
@@ -481,7 +482,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
             POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
             if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
             {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 {
                     size_t        sent = 0;
                     const uint8_t *p   = (const uint8_t *)&ping_pkt;
@@ -493,10 +494,10 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
                         sent += (size_t)n;
                     }
                 }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 send(ctx->tcp_conn_fd[path_idx],
                      (const char *)&ping_pkt, (int)wire_len, 0);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             }
             POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
         }
@@ -506,11 +507,11 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
              "tcp_health[service_id=%" PRId64 " path=%d]: exited",
              ctx->service.service_id, path_idx);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return NULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -540,17 +541,17 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
              ctx->service.service_id,
              (unsigned)ctx->global.health_interval_ms);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_init(&ctx->health_mutex[0], NULL);
     pthread_cond_init(&ctx->health_wakeup[0], NULL);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     InitializeCriticalSection(&ctx->health_mutex[0]);
     InitializeConditionVariable(&ctx->health_wakeup[0]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     ctx->health_running[0] = 1;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     if (pthread_create(&ctx->health_thread[0], NULL, health_thread_func, ctx) != 0)
     {
         ctx->health_running[0] = 0;
@@ -559,7 +560,7 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
                  ctx->service.service_id);
         return POTR_ERROR;
     }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     ctx->health_thread[0] = CreateThread(NULL, 0, health_thread_func, ctx, 0, NULL);
     if (ctx->health_thread[0] == NULL)
     {
@@ -569,7 +570,7 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
                  ctx->service.service_id);
         return POTR_ERROR;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return POTR_SUCCESS;
 }
@@ -588,7 +589,7 @@ int potr_health_thread_stop(struct PotrContext_ *ctx)
 
     ctx->health_running[0] = 0;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&ctx->health_mutex[0]);
     pthread_cond_signal(&ctx->health_wakeup[0]);
     pthread_mutex_unlock(&ctx->health_mutex[0]);
@@ -597,7 +598,7 @@ int potr_health_thread_stop(struct PotrContext_ *ctx)
 
     pthread_cond_destroy(&ctx->health_wakeup[0]);
     pthread_mutex_destroy(&ctx->health_mutex[0]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     if (ctx->health_thread[0] != NULL)
     {
         EnterCriticalSection(&ctx->health_mutex[0]);
@@ -610,7 +611,7 @@ int potr_health_thread_stop(struct PotrContext_ *ctx)
     }
     DeleteCriticalSection(&ctx->health_mutex[0]);
     /* Windows の CONDITION_VARIABLE は破棄不要 */
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return POTR_SUCCESS;
 }
@@ -643,7 +644,7 @@ int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
 
     ctx->health_running[path_idx] = 1;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     if (pthread_create(&ctx->health_thread[path_idx], NULL,
                        tcp_health_thread_func, &s_health_args[path_idx]) != 0)
     {
@@ -653,7 +654,7 @@ int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
                  ctx->service.service_id, path_idx);
         return POTR_ERROR;
     }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     ctx->health_thread[path_idx] = CreateThread(NULL, 0,
                                                 tcp_health_thread_func,
                                                 &s_health_args[path_idx], 0, NULL);
@@ -665,7 +666,7 @@ int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
                  ctx->service.service_id, path_idx);
         return POTR_ERROR;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return POTR_SUCCESS;
 }
@@ -685,13 +686,13 @@ int potr_tcp_health_thread_stop(struct PotrContext_ *ctx, int path_idx)
 
     ctx->health_running[path_idx] = 0;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&ctx->health_mutex[path_idx]);
     pthread_cond_signal(&ctx->health_wakeup[path_idx]);
     pthread_mutex_unlock(&ctx->health_mutex[path_idx]);
 
     pthread_join(ctx->health_thread[path_idx], NULL);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     if (ctx->health_thread[path_idx] != NULL)
     {
         EnterCriticalSection(&ctx->health_mutex[path_idx]);
@@ -702,7 +703,7 @@ int potr_tcp_health_thread_stop(struct PotrContext_ *ctx, int path_idx)
         CloseHandle(ctx->health_thread[path_idx]);
         ctx->health_thread[path_idx] = NULL;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return POTR_SUCCESS;
 }

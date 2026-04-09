@@ -11,14 +11,15 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <stddef.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <netdb.h>
     #include <string.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <ws2tcpip.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter_const.h>
 

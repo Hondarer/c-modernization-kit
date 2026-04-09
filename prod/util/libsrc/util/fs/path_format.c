@@ -31,7 +31,7 @@
 /* ===== vfopen_fmt / fopen_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
+PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 {
     char filename[PLATFORM_PATH_MAX] = {0};
     int written;
@@ -70,7 +70,7 @@ FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *
     }
 
     /* fopen を呼び出してファイルを開く */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     errno = 0;
     FILE *fp = fopen(filename, modes);
     if (fp == NULL && errno_out != NULL)
@@ -78,7 +78,7 @@ FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *
         *errno_out = errno;
     }
     return fp;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     FILE *fp = NULL;
     errno_t err = fopen_s(&fp, filename, modes);
     if (err != 0)
@@ -90,11 +90,11 @@ FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *
         return NULL;
     }
     return fp;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
+PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 {
     FILE *result;
     va_list args;
@@ -109,7 +109,7 @@ FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *f
 /* ===== vstat_fmt / stat_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -120,16 +120,16 @@ int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list
     }
 
     /* stat を呼び出してファイル情報を取得 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return stat(filename, buf);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     /* Windows では _stat64 を使用（util_file_stat_t は struct _stat64 の typedef） */
     return _stat64(filename, buf);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
 {
     int result;
     va_list args;
@@ -144,7 +144,7 @@ int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
 /* ===== vremove_fmt / remove_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -152,7 +152,7 @@ int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API remove_fmt(const char *format, ...)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API remove_fmt(const char *format, ...)
 {
     int result;
     va_list args;
@@ -167,19 +167,19 @@ int PATH_FORMAT_API remove_fmt(const char *format, ...)
 /* ===== vopen_fmt / open_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return open(filename, flags, mode);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return _open(filename, flags, mode);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
 {
     int result;
     va_list args;
@@ -194,19 +194,19 @@ int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
 /* ===== vaccess_fmt / access_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return access(filename, mode);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return _access(filename, mode);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
 {
     int result;
     va_list args;
@@ -221,19 +221,19 @@ int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
 /* ===== vmkdir_fmt / mkdir_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return mkdir(filename, 0755);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return _mkdir(filename);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
+PATH_FORMAT_EXPORT int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
 {
     int result;
     va_list args;

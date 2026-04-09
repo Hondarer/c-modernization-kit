@@ -12,7 +12,7 @@
 
 /* ===== Windows 実装 ===== */
 
-#ifdef _WIN32
+#if defined(PLATFORM_WINDOWS)
 
 #include <windows.h>
 #include <io.h>      /* _open_osfhandle, _dup, _dup2, _close, _fileno */
@@ -291,7 +291,7 @@ static void dispose_stream_on_unload(stream_state_t *s, FILE *crt_stream)
 
 /* ===== 公開 API ===== */
 
-void CONSOLE_API console_init(void)
+CONSOLE_EXPORT void CONSOLE_API console_init(void)
 {
     /* 二重初期化を防ぐ (マルチスレッド安全ではないが init はシングルスレッドで呼ぶ想定) */
     if (s_stdout_state.active) return;
@@ -321,7 +321,7 @@ void CONSOLE_API console_init(void)
     }
 }
 
-void CONSOLE_API console_dispose(void)
+CONSOLE_EXPORT void CONSOLE_API console_dispose(void)
 {
     /* stderr → stdout の順で解放する */
     dispose_stream(&s_stderr_state, stderr);
@@ -338,12 +338,12 @@ void console_dispose_on_unload(int process_terminating)
     dispose_stream_on_unload(&s_stdout_state, stdout);
 }
 
-#else /* !_WIN32 */
+#elif defined(PLATFORM_LINUX)
 
-/* ===== Linux / 非 Windows 実装 (no-op) ===== */
+/* ===== Linux 実装 (no-op) ===== */
 
-void CONSOLE_API console_init(void)    {}
-void CONSOLE_API console_dispose(void) {}
+CONSOLE_EXPORT void CONSOLE_API console_init(void)    {}
+CONSOLE_EXPORT void CONSOLE_API console_dispose(void) {}
 void console_dispose_on_unload(int process_terminating) { (void)process_terminating; }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */

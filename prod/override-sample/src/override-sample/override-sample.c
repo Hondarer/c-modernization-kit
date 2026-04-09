@@ -32,9 +32,9 @@ int main(void)
     int rtc;
     char configpath[4096];
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     snprintf(configpath, sizeof(configpath), "/tmp/libbase_extdef.txt");
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     {
         wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
         DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
@@ -47,16 +47,16 @@ int main(void)
                 snprintf(configpath, sizeof(configpath), "%slibbase_extdef.txt", tmpu8);
         }
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     printf("configpath: %s\n", configpath);
     printf("Processing will be extended if defines.\n");
     printf(" e.g.  echo \"sample_func liboverride override_func\" > \"%s\"\n", configpath);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     printf("       rm \"%s\"\n\n", configpath);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     printf("       del \"%s\"\n\n", configpath);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     printf("--- symbol_loader info ---\n");
     rtc = symbol_loader_info_libbase();

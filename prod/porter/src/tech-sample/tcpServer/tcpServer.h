@@ -14,13 +14,15 @@
 #ifndef TCPSERVER_H
 #define TCPSERVER_H
 
+#include <util/base/platform.h>
+
 /* ============================================================
  *  プラットフォーム抽象化
  *  handle_client_session() が ClientFd / get_pid() / client_recv() 等を
  *  プラットフォームを意識せずに使えるようにします。
  * ============================================================ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 
     #include <sys/types.h>
     #include <unistd.h>
@@ -39,7 +41,7 @@
     /** クライアントソケットを閉じる。 */
     #define client_close(fd)             close(fd)
 
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
@@ -60,7 +62,7 @@
     /** クライアントソケットを閉じる。 */
     #define client_close(fd)             closesocket(fd)
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* ============================================================
  *  共通定数

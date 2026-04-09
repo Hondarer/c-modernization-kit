@@ -1,6 +1,8 @@
 #ifndef SUBFOLDER_SAMPLE_H
 #define SUBFOLDER_SAMPLE_H
 
+#include <util/base/platform.h>
+
 #ifdef DOXYGEN
 
 /**
@@ -29,27 +31,10 @@
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define SUBFOLDER_SAMPLE_EXPORT
-    #define SUBFOLDER_SAMPLE_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef SUBFOLDER_SAMPLE_STATIC
-            #ifdef SUBFOLDER_SAMPLE_EXPORTS
-                #define SUBFOLDER_SAMPLE_EXPORT __declspec(dllexport)
-            #else /* !SUBFOLDER_SAMPLE_EXPORTS */
-                #define SUBFOLDER_SAMPLE_EXPORT __declspec(dllimport)
-            #endif /* SUBFOLDER_SAMPLE_EXPORTS */
-        #else      /* SUBFOLDER_SAMPLE_STATIC */
-            #define SUBFOLDER_SAMPLE_EXPORT
-        #endif /* SUBFOLDER_SAMPLE_STATIC */
-    #else      /* __INTELLISENSE__ */
-        #define SUBFOLDER_SAMPLE_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef SUBFOLDER_SAMPLE_API
-        #define SUBFOLDER_SAMPLE_API __stdcall
-    #endif /* SUBFOLDER_SAMPLE_API */
-#endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX SUBFOLDER_SAMPLE
+    #include <util/base/dll_exports.h>
+    #define SUBFOLDER_SAMPLE_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define SUBFOLDER_SAMPLE_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

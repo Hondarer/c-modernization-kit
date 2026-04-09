@@ -13,7 +13,7 @@
  *  fast path (ロックなし) の resolved 読み取りには acquire セマンティクスを使用します。
  *  これにより、weakly-ordered アーキテクチャ (ARM64 等) においても
  *  resolved != 0 が見えた時点で func_ptr の書き込みも可視であることが保証されます。\n
- *  GCC/Clang では __atomic_load_n / __atomic_store_n を使用します。\n
+ *  GCC では __atomic_load_n / __atomic_store_n を使用します。\n
  *  MSVC (x86_64) では TSO により load が acquire-ordered のため変更不要です。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -25,42 +25,42 @@
 #include <string.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-void *symbol_loader_resolve(symbol_loader_entry_t *fobj)
+SYMBOL_LOADER_EXPORT void *SYMBOL_LOADER_API symbol_loader_resolve(symbol_loader_entry_t *fobj)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     const char *ext = ".so";
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     const char *ext = ".dll";
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     char lib_with_ext[SYMBOL_LOADER_NAME_MAX];
 
     /* ロード完了後は resolved が 0 以外になる。早期リターンで判定する。
      * ARM64 など weakly-ordered アーキテクチャでのメモリ可視性を保証するため
-     * GCC/Clang では acquire ロードを使用する。
+     * GCC では acquire ロードを使用する。
      * MSVC (x86_64/TSO) では plain load で acquire 相当の保証が得られる。 */
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
     if (__atomic_load_n(&fobj->resolved, __ATOMIC_ACQUIRE) != 0)
     {
         return __atomic_load_n(&fobj->func_ptr, __ATOMIC_RELAXED);
     }
-#else
+#else /* !COMPILER_GCC */
     if (fobj->resolved != 0)
     {
         return fobj->func_ptr;
     }
-#endif
+#endif /* COMPILER_GCC */
 
     /* ロード処理を排他制御する。
      * ロック取得後に再度 resolved を確認し、他スレッドが先にロードを
      * 完了していた場合は処理をスキップする (double-checked locking)。 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     if (pthread_mutex_lock(&fobj->mutex) != 0)
     {
         return NULL;
     }
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     AcquireSRWLockExclusive(&fobj->lock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     if (fobj->resolved == 0)
     {
@@ -68,71 +68,71 @@ void *symbol_loader_resolve(symbol_loader_entry_t *fobj)
         {
             /* resolved=2: 明示的デフォルト。func_ptr は NULL のまま。
              * func_ptr への書き込みなし → release store のみ必要。 */
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
             __atomic_store_n(&fobj->resolved, 2, __ATOMIC_RELEASE);
-#else
+#else /* !COMPILER_GCC */
             fobj->resolved = 2;
-#endif
+#endif /* COMPILER_GCC */
             goto unlock;
         }
         if (fobj->lib_name[0] == '\0' || fobj->func_name[0] == '\0')
         {
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
             __atomic_store_n(&fobj->resolved, -1, __ATOMIC_RELEASE);
-#else
+#else /* !COMPILER_GCC */
             fobj->resolved = -1; /* resolved=-1: 定義なし (定義ファイル不存在、定義行が不存在) */
-#endif
+#endif /* COMPILER_GCC */
             goto unlock;
         }
         if (strlen(fobj->lib_name) + strlen(ext) >= SYMBOL_LOADER_NAME_MAX)
         {
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
             __atomic_store_n(&fobj->resolved, -2, __ATOMIC_RELEASE);
-#else
+#else /* !COMPILER_GCC */
             fobj->resolved = -2; /* resolved=-2: 名称長さオーバー */
-#endif
+#endif /* COMPILER_GCC */
             goto unlock;
         }
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         strcpy(lib_with_ext, fobj->lib_name);
         strcat(lib_with_ext, ext);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         strcpy_s(lib_with_ext, sizeof(lib_with_ext), fobj->lib_name);
         strcat_s(lib_with_ext, sizeof(lib_with_ext), ext);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         fobj->handle = dlopen(lib_with_ext, RTLD_LAZY);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         fobj->handle = LoadLibrary(lib_with_ext);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         if (fobj->handle == NULL)
         {
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
             __atomic_store_n(&fobj->resolved, -3, __ATOMIC_RELEASE);
-#else
+#else /* !COMPILER_GCC */
             fobj->resolved = -3; /* resolved=-3: ライブラリオープンエラー */
-#endif
+#endif /* COMPILER_GCC */
             goto unlock;
         }
 
         /* func_ptr を書き込んでから resolved を release-store する。
          * fast path の acquire ロードと対になり、func_ptr の可視性を保証する。 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         {
             void *ptr = dlsym(fobj->handle, fobj->func_name);
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
             __atomic_store_n(&fobj->func_ptr, ptr, __ATOMIC_RELAXED);
-#else
+#else /* !COMPILER_GCC */
             fobj->func_ptr = ptr;
-#endif
+#endif /* COMPILER_GCC */
             if (ptr == NULL)
             {
                 dlclose(fobj->handle);
                 fobj->handle = NULL;
             }
         }
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         {
             void *ptr = (void *)GetProcAddress(fobj->handle, fobj->func_name);
             fobj->func_ptr = ptr; /* MSVC x86_64: TSO により release-ordered */
@@ -142,21 +142,21 @@ void *symbol_loader_resolve(symbol_loader_entry_t *fobj)
                 fobj->handle = NULL;
             }
         }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(COMPILER_GCC)
         __atomic_store_n(&fobj->resolved, 1, __ATOMIC_RELEASE); /* resolved=1: 解決済 */
-#else
+#else /* !COMPILER_GCC */
         fobj->resolved = 1; /* resolved=1: 解決済 */
-#endif
+#endif /* COMPILER_GCC */
     }
 
 unlock:
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_unlock(&fobj->mutex);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     ReleaseSRWLockExclusive(&fobj->lock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return fobj->func_ptr;
 }

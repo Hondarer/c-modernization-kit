@@ -4,7 +4,7 @@
 // テストプログラムからテスト対象ソースの static メンバーにアクセスできる
 #ifndef _IN_TEST_SRC
 #include "samplestatic.c"
-#endif // _IN_TEST_SRC
+#endif /* _IN_TEST_SRC */
 
 #include "samplestatic.inject.h"
 

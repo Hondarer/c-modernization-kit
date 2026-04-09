@@ -21,7 +21,7 @@
 
 #include "trace_file_internal.h"
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -29,7 +29,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <limits.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_LINUX */
 
 /* ===== 内部定数 ===== */
 
@@ -61,14 +61,7 @@ struct trace_file_sink
     /** 保持する旧世代数。 */
     int     generations;
 
-#ifdef _WIN32
-    /** ファイルハンドル。INVALID_HANDLE_VALUE = 未開。 */
-    HANDLE           fh;
-    /** スレッド安全のためのクリティカルセクション。 */
-    CRITICAL_SECTION cs;
-    /** cs が初期化済みかどうかのフラグ。 */
-    int              cs_initialized;
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     /** ファイルディスクリプタ。-1 = 未開。 */
     int              fd;
     /** スレッド安全のための mutex。 */
@@ -77,7 +70,14 @@ struct trace_file_sink
     int              mutex_initialized;
     /** パディング (構造体サイズを 8 バイト境界に揃える)。 */
     int              _pad_end;
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    /** ファイルハンドル。INVALID_HANDLE_VALUE = 未開。 */
+    HANDLE           fh;
+    /** スレッド安全のためのクリティカルセクション。 */
+    CRITICAL_SECTION cs;
+    /** cs が初期化済みかどうかのフラグ。 */
+    int              cs_initialized;
+#endif /* PLATFORM_ */
 };
 
 /* ===== 内部ヘルパー関数 ===== */
@@ -104,15 +104,7 @@ static char level_char(int level)
  */
 static void format_timestamp(char *buf, int buf_size)
 {
-#ifdef _WIN32
-    SYSTEMTIME st;
-    GetSystemTime(&st);
-    snprintf(buf, (size_t)buf_size,
-             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-             (int)st.wYear,         (int)st.wMonth,  (int)st.wDay,
-             (int)st.wHour,         (int)st.wMinute, (int)st.wSecond,
-             (int)st.wMilliseconds);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     struct timespec ts;
     struct tm       tm_val;
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -121,15 +113,27 @@ static void format_timestamp(char *buf, int buf_size)
      * 範囲が保証されており (tm_mon: 0-11, tm_mday: 1-31 等)、出力は常に 23 文字以内に
      * 収まる。GCC は int 型の理論上の最大範囲 [-2147483648, 2147483647] を使って静的
      * 検証するため false positive が発生する。pragma はその誤報を局所的に抑制する。 */
+#if defined(COMPILER_GCC)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif /* COMPILER_GCC */
     snprintf(buf, (size_t)buf_size,
              "%04d-%02d-%02d %02d:%02d:%02d.%03d",
              tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
              tm_val.tm_hour,        tm_val.tm_min,      tm_val.tm_sec,
              (int)(ts.tv_nsec / 1000000));
+#if defined(COMPILER_GCC)
 #pragma GCC diagnostic pop
-#endif /* _WIN32 */
+#endif /* COMPILER_GCC */
+#elif defined(PLATFORM_WINDOWS)
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    snprintf(buf, (size_t)buf_size,
+             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+             (int)st.wYear,         (int)st.wMonth,  (int)st.wDay,
+             (int)st.wHour,         (int)st.wMinute, (int)st.wSecond,
+             (int)st.wMilliseconds);
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -138,7 +142,31 @@ static void format_timestamp(char *buf, int buf_size)
  */
 static int open_file(trace_file_sink_t *p)
 {
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    struct stat st;
+
+    p->fd = open(p->path,
+                 O_WRONLY | O_APPEND | O_CREAT | O_DSYNC,
+                 0644);
+
+    if (p->fd == -1)
+    {
+        p->current_bytes = 0;
+        return -1;
+    }
+
+    /* 既存ファイルサイズを取得してインメモリカウンタを初期化する */
+    if (fstat(p->fd, &st) == 0)
+    {
+        p->current_bytes = (size_t)st.st_size;
+    }
+    else
+    {
+        p->current_bytes = 0;
+    }
+
+    return 0;
+#elif defined(PLATFORM_WINDOWS)
     LARGE_INTEGER pos;
     LARGE_INTEGER size;
 
@@ -172,32 +200,7 @@ static int open_file(trace_file_sink_t *p)
     }
 
     return 0;
-
-#else /* !_WIN32 */
-    struct stat st;
-
-    p->fd = open(p->path,
-                 O_WRONLY | O_APPEND | O_CREAT | O_DSYNC,
-                 0644);
-
-    if (p->fd == -1)
-    {
-        p->current_bytes = 0;
-        return -1;
-    }
-
-    /* 既存ファイルサイズを取得してインメモリカウンタを初期化する */
-    if (fstat(p->fd, &st) == 0)
-    {
-        p->current_bytes = (size_t)st.st_size;
-    }
-    else
-    {
-        p->current_bytes = 0;
-    }
-
-    return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -209,7 +212,13 @@ static int open_file_truncate(trace_file_sink_t *p)
 {
     p->current_bytes = 0;
 
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    p->fd = open(p->path,
+                 O_WRONLY | O_APPEND | O_CREAT | O_TRUNC | O_DSYNC,
+                 0644);
+
+    return (p->fd != -1) ? 0 : -1;
+#elif defined(PLATFORM_WINDOWS)
     p->fh = CreateFileA(
         p->path,
         GENERIC_WRITE,
@@ -220,14 +229,7 @@ static int open_file_truncate(trace_file_sink_t *p)
         NULL);
 
     return (p->fh != INVALID_HANDLE_VALUE) ? 0 : -1;
-
-#else /* !_WIN32 */
-    p->fd = open(p->path,
-                 O_WRONLY | O_APPEND | O_CREAT | O_TRUNC | O_DSYNC,
-                 0644);
-
-    return (p->fd != -1) ? 0 : -1;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -235,19 +237,19 @@ static int open_file_truncate(trace_file_sink_t *p)
  */
 static void close_file(trace_file_sink_t *p)
 {
-#ifdef _WIN32
-    if (p->fh != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(p->fh);
-        p->fh = INVALID_HANDLE_VALUE;
-    }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     if (p->fd != -1)
     {
         close(p->fd);
         p->fd = -1;
     }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    if (p->fh != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(p->fh);
+        p->fh = INVALID_HANDLE_VALUE;
+    }
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -267,11 +269,11 @@ static void rotate_file(trace_file_sink_t *p)
 
     /* 最老世代のファイルを削除する (失敗は無視) */
     snprintf(new_path, sizeof(new_path), "%s.%d", p->path, p->generations);
-#ifdef _WIN32
-    DeleteFileA(new_path);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     unlink(new_path);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    DeleteFileA(new_path);
+#endif /* PLATFORM_ */
 
     /* path.(gen-1) → path.gen のカスケードリネーム */
     for (gen = p->generations; gen >= 1; gen--)
@@ -290,19 +292,19 @@ static void rotate_file(trace_file_sink_t *p)
             snprintf(old_path, sizeof(old_path), "%s.%d", p->path, gen - 1);
         }
 
-#ifdef _WIN32
-        if (!MoveFileExA(old_path, new_path, MOVEFILE_REPLACE_EXISTING))
-        {
-            /* リネーム失敗: カスケードをここで打ち切る */
-            break;
-        }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
         if (rename(old_path, new_path) != 0)
         {
             /* リネーム失敗: カスケードをここで打ち切る */
             break;
         }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+        if (!MoveFileExA(old_path, new_path, MOVEFILE_REPLACE_EXISTING))
+        {
+            /* リネーム失敗: カスケードをここで打ち切る */
+            break;
+        }
+#endif /* PLATFORM_ */
     }
 
     /* 新規ファイルを作成して開く (失敗しても fh=INVALID/fd=-1 のまま続行) */
@@ -312,7 +314,7 @@ static void rotate_file(trace_file_sink_t *p)
 /* ===== 公開 API ===== */
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_file_sink_t *TRACE_FILE_API
+TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
     trace_file_sink_create(const char *path, size_t max_bytes, int generations)
 {
     trace_file_sink_t *handle;
@@ -351,12 +353,7 @@ trace_file_sink_t *TRACE_FILE_API
     handle->current_bytes = 0;
 
     /* プラットフォームごとの同期プリミティブを初期化する */
-#ifdef _WIN32
-    handle->fh             = INVALID_HANDLE_VALUE;
-    handle->cs_initialized = 0;
-    InitializeCriticalSectionAndSpinCount(&handle->cs, 1000);
-    handle->cs_initialized = 1;
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     handle->fd                  = -1;
     handle->mutex_initialized   = 0;
     if (pthread_mutex_init(&handle->mutex, NULL) != 0)
@@ -366,22 +363,27 @@ trace_file_sink_t *TRACE_FILE_API
         return NULL;
     }
     handle->mutex_initialized = 1;
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    handle->fh             = INVALID_HANDLE_VALUE;
+    handle->cs_initialized = 0;
+    InitializeCriticalSectionAndSpinCount(&handle->cs, 1000);
+    handle->cs_initialized = 1;
+#endif /* PLATFORM_ */
 
     /* ファイルを開く; 失敗したらリソースを解放して NULL を返す */
     if (open_file(handle) != 0)
     {
-#ifdef _WIN32
-        if (handle->cs_initialized)
-        {
-            DeleteCriticalSection(&handle->cs);
-        }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
         if (handle->mutex_initialized)
         {
             pthread_mutex_destroy(&handle->mutex);
         }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+        if (handle->cs_initialized)
+        {
+            DeleteCriticalSection(&handle->cs);
+        }
+#endif /* PLATFORM_ */
         free(handle->path);
         free(handle);
         return NULL;
@@ -391,7 +393,7 @@ trace_file_sink_t *TRACE_FILE_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_FILE_API
+TRACE_FILE_EXPORT int TRACE_FILE_API
     trace_file_sink_write(trace_file_sink_t *handle, int level,
                               const char *message)
 {
@@ -422,19 +424,7 @@ int TRACE_FILE_API
     }
 
     /* ロック取得 (タイムアウト付き) */
-#ifdef _WIN32
-    {
-        DWORD deadline = GetTickCount() + (DWORD)FILE_LOCK_TIMEOUT_MS;
-        while (!TryEnterCriticalSection(&handle->cs))
-        {
-            if ((LONG)(GetTickCount() - deadline) >= 0)
-            {
-                return -1;
-            }
-            SwitchToThread();
-        }
-    }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     {
         struct timespec abs_timeout;
         clock_gettime(CLOCK_REALTIME, &abs_timeout);
@@ -449,26 +439,46 @@ int TRACE_FILE_API
             return -1;
         }
     }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    {
+        DWORD deadline = GetTickCount() + (DWORD)FILE_LOCK_TIMEOUT_MS;
+        while (!TryEnterCriticalSection(&handle->cs))
+        {
+            if ((LONG)(GetTickCount() - deadline) >= 0)
+            {
+                return -1;
+            }
+            SwitchToThread();
+        }
+    }
+#endif /* PLATFORM_ */
 
     /* ファイルが未開の場合は書き込みをスキップする */
-#ifdef _WIN32
-    if (handle->fh == INVALID_HANDLE_VALUE)
-    {
-        LeaveCriticalSection(&handle->cs);
-        return -1;
-    }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     if (handle->fd == -1)
     {
         pthread_mutex_unlock(&handle->mutex);
         return -1;
     }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    if (handle->fh == INVALID_HANDLE_VALUE)
+    {
+        LeaveCriticalSection(&handle->cs);
+        return -1;
+    }
+#endif /* PLATFORM_ */
 
     /* ファイルへ書き込む (FILE_FLAG_WRITE_THROUGH / O_DSYNC により自動フラッシュ) */
     ret = -1;
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    {
+        ssize_t written = write(handle->fd, buf, (size_t)len);
+        if (written == (ssize_t)len)
+        {
+            ret = 0;
+        }
+    }
+#elif defined(PLATFORM_WINDOWS)
     {
         DWORD written = 0;
         if (WriteFile(handle->fh, buf, (DWORD)len, &written, NULL)
@@ -477,15 +487,7 @@ int TRACE_FILE_API
             ret = 0;
         }
     }
-#else /* !_WIN32 */
-    {
-        ssize_t written = write(handle->fd, buf, (size_t)len);
-        if (written == (ssize_t)len)
-        {
-            ret = 0;
-        }
-    }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     /* 書き込み成功時: サイズを追跡しローテーション閾値を確認する */
     if (ret == 0)
@@ -503,17 +505,17 @@ int TRACE_FILE_API
     }
 
     /* ロック解放 */
-#ifdef _WIN32
-    LeaveCriticalSection(&handle->cs);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_mutex_unlock(&handle->mutex);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    LeaveCriticalSection(&handle->cs);
+#endif /* PLATFORM_ */
 
     return ret;
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-void TRACE_FILE_API
+TRACE_FILE_EXPORT void TRACE_FILE_API
     trace_file_sink_destroy(trace_file_sink_t *handle)
 {
     if (handle == NULL)
@@ -523,19 +525,19 @@ void TRACE_FILE_API
 
     close_file(handle);
 
-#ifdef _WIN32
-    if (handle->cs_initialized)
-    {
-        DeleteCriticalSection(&handle->cs);
-        handle->cs_initialized = 0;
-    }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     if (handle->mutex_initialized)
     {
         pthread_mutex_destroy(&handle->mutex);
         handle->mutex_initialized = 0;
     }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    if (handle->cs_initialized)
+    {
+        DeleteCriticalSection(&handle->cs);
+        handle->cs_initialized = 0;
+    }
+#endif /* PLATFORM_ */
 
     free(handle->path);
     free(handle);
@@ -551,17 +553,17 @@ void trace_file_sink_destroy_on_unload(trace_file_sink_t *handle)
 
     close_file(handle);
 
-#ifdef _WIN32
-    if (handle->cs_initialized)
-    {
-        DeleteCriticalSection(&handle->cs);
-    }
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     if (handle->mutex_initialized)
     {
         pthread_mutex_destroy(&handle->mutex);
     }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    if (handle->cs_initialized)
+    {
+        DeleteCriticalSection(&handle->cs);
+    }
+#endif /* PLATFORM_ */
 
     free(handle->path);
     free(handle);

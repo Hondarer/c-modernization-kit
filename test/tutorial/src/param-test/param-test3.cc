@@ -1,3 +1,4 @@
+#include <util/base/compiler.h>
 #include <testfw.h>
 
 class ParamTest3
@@ -14,10 +15,10 @@ public:
 };
 
 // see https://kkayataka.hatenablog.com/entry/2020/07/26/115813
-#ifndef _WIN32
+#if defined(COMPILER_GCC)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpadded"
-#endif // _WIN32
+#endif /* COMPILER_GCC */
 struct ParamTest3TestParam
 {
     string desc;
@@ -36,9 +37,9 @@ struct ParamTest3TestParam
     {
     }
 };
-#ifndef _WIN32
+#if defined(COMPILER_GCC)
 #pragma GCC diagnostic pop
-#endif // _WIN32
+#endif /* COMPILER_GCC */
 
 ostream &operator<<(ostream &, const ParamTest3TestParam &);
 ostream &operator<<(ostream &stream, const ParamTest3TestParam &p)

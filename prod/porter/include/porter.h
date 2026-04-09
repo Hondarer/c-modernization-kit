@@ -18,56 +18,40 @@
 #define PORTER_H
 
 #include <porter_type.h>
+#include <util/base/platform.h>
 
 #ifdef DOXYGEN
 
-/**
- *  @def            POTR_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                  | 値                       |
- *  | ----------------------------------------------------- | ------------------------ |
- *  | Linux (非 Windows)                                    | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                   | (空)                     |
- *  | Windows / `POTR_STATIC` 定義時 (静的リンク)           | (空)                     |
- *  | Windows / `POTR_EXPORTS` 定義時 (DLL ビルド)          | `__declspec(dllexport)`  |
- *  | Windows / `POTR_EXPORTS` 未定義時 (DLL 利用側)        | `__declspec(dllimport)`  |
- */
-#define POTR_EXPORT
+    /**
+     *  @def            POTR_EXPORT
+     *  @brief          DLL エクスポート/インポート制御マクロ。
+     *  @details        ビルド条件に応じて以下の値を取ります。
+     *
+     *  | 条件                                                  | 値                       |
+     *  | ----------------------------------------------------- | ------------------------ |
+     *  | Linux (非 Windows)                                    | (空)                     |
+     *  | Windows / `__INTELLISENSE__` 定義時                   | (空)                     |
+     *  | Windows / `POTR_STATIC` 定義時 (静的リンク)           | (空)                     |
+     *  | Windows / `POTR_EXPORTS` 定義時 (DLL ビルド)          | `__declspec(dllexport)`  |
+     *  | Windows / `POTR_EXPORTS` 未定義時 (DLL 利用側)        | `__declspec(dllimport)`  |
+     */
+    #define POTR_EXPORT
 
-/**
- *  @def            POTR_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *                  Linux (非 Windows) 環境では空に展開されます。\n
- *                  既に定義済みの場合は再定義されません。
- */
-#define POTR_API
+    /**
+     *  @def            POTR_API
+     *  @brief          呼び出し規約マクロ。
+     *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+     *                  Linux (非 Windows) 環境では空に展開されます。\n
+     *                  既に定義済みの場合は再定義されません。
+     */
+    #define POTR_API
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define POTR_EXPORT
-    #define POTR_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef POTR_STATIC
-            #ifdef POTR_EXPORTS
-                #define POTR_EXPORT __declspec(dllexport)
-            #else /* !POTR_EXPORTS */
-                #define POTR_EXPORT __declspec(dllimport)
-            #endif /* POTR_EXPORTS */
-        #else      /* POTR_STATIC */
-            #define POTR_EXPORT
-        #endif /* POTR_STATIC */
-    #else      /* __INTELLISENSE__ */
-        #define POTR_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef POTR_API
-        #define POTR_API __stdcall
-    #endif /* POTR_API */
-#endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX POTR
+    #include <util/base/dll_exports.h>
+    #define POTR_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define POTR_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 
@@ -180,11 +164,8 @@ extern "C"
      *                  コールバックが必須であり、この場合 callback が NULL の場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrOpenService(const PotrGlobalConfig *global,
-                                                const PotrServiceDef   *service,
-                                                PotrRole                role,
-                                                PotrRecvCallback        callback,
-                                                PotrHandle             *handle);
+    POTR_EXPORT extern int POTR_API potrOpenService(const PotrGlobalConfig *global, const PotrServiceDef *service,
+                                                    PotrRole role, PotrRecvCallback callback, PotrHandle *handle);
 
     /**
      *******************************************************************************
@@ -264,11 +245,9 @@ extern "C"
      *                  コールバックが必須であり、この場合 callback が NULL の場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrOpenServiceFromConfig(const char       *config_path,
-                                                          int64_t           service_id,
-                                                          PotrRole          role,
-                                                          PotrRecvCallback  callback,
-                                                          PotrHandle       *handle);
+    POTR_EXPORT extern int POTR_API potrOpenServiceFromConfig(const char *config_path, int64_t service_id,
+                                                              PotrRole role, PotrRecvCallback callback,
+                                                              PotrHandle *handle);
 
     /**
      *******************************************************************************
@@ -339,11 +318,8 @@ extern "C"
      *                  (connect スレッドが非同期に接続を試みている間)。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrSend(PotrHandle  handle,
-                                         PotrPeerId  peer_id,
-                                         const void *data,
-                                         size_t      len,
-                                         int         flags);
+    POTR_EXPORT extern int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id, const void *data, size_t len,
+                                             int flags);
 
     /**
      *******************************************************************************
@@ -370,8 +346,7 @@ extern "C"
      *                  1:1 モードまたは N:1 モード以外で呼び出した場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrDisconnectPeer(PotrHandle handle,
-                                                   PotrPeerId peer_id);
+    POTR_EXPORT extern int POTR_API potrDisconnectPeer(PotrHandle handle, PotrPeerId peer_id);
 
     /**
      *******************************************************************************
@@ -459,9 +434,7 @@ extern "C"
      *  @warning        log_file に指定したパスが書き込み不可の場合は POTR_ERROR を返します。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrLogConfig(PotrLogLevel  level,
-                                              const char   *log_file,
-                                              int           console);
+    POTR_EXPORT extern int POTR_API potrLogConfig(PotrLogLevel level, const char *log_file, int console);
 
     /**
      *******************************************************************************
@@ -497,9 +470,7 @@ extern "C"
      *                  指定した service_id が設定ファイルに存在しない場合は失敗を返します。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrGetServiceType(const char *config_path,
-                                                   int64_t     service_id,
-                                                   PotrType   *type);
+    POTR_EXPORT extern int POTR_API potrGetServiceType(const char *config_path, int64_t service_id, PotrType *type);
 
 #ifdef __cplusplus
 }

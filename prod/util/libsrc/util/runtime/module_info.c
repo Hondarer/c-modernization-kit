@@ -22,12 +22,7 @@
 
 #include <util/runtime/module_info.h>
 #include <util/fs/path_max.h>
-#if defined(_WIN32)
-    #include <stddef.h>
-    #include <stdint.h>
-    #include <stdio.h>
-    #include <string.h>
-#else
+#if defined(PLATFORM_LINUX)
     #include <dlfcn.h>
     #include <limits.h>
     #include <stddef.h>
@@ -36,7 +31,12 @@
     #include <stdlib.h>
     #include <string.h>
     #include <unistd.h>
-#endif
+#elif defined(PLATFORM_WINDOWS)
+    #include <stddef.h>
+    #include <stdint.h>
+    #include <stdio.h>
+    #include <string.h>
+#endif /* PLATFORM_ */
 
 /**
  *******************************************************************************
@@ -123,7 +123,7 @@ static void strip_extension_inplace(char *s)
     if (!s)
         return;
 
-#if !defined(_WIN32)
+#if defined(PLATFORM_LINUX)
     {
         char *so_ver = strstr(s, ".so.");
         if (so_ver)
@@ -150,7 +150,7 @@ static void strip_extension_inplace(char *s)
             }
         }
     }
-#endif
+#endif /* PLATFORM_LINUX */
 
     dot = strrchr(s, '.');
     if (dot && dot != s)
@@ -159,7 +159,74 @@ static void strip_extension_inplace(char *s)
     }
 }
 
-#if defined(_WIN32)
+#if defined(PLATFORM_LINUX)
+
+/**
+ *******************************************************************************
+ *  @brief          .so 自身の絶対パスを取得します (Linux/Unix)。
+ *
+ *  dladdr() に指定された関数アドレスを渡して所属共有オブジェクトを取得し、\n
+ *  realpath() で可能な限り絶対化・正規化します。
+ *
+ *  @param[out]     out_path    出力 (UTF-8、NULL 終端)。
+ *  @param[in]      out_path_sz 出力バッファサイズ[byte]。
+ *  @param[in]      func_addr   所属モジュールを特定するための関数アドレス。
+ *  @return         get_lib_info_status_t
+ *******************************************************************************
+ */
+static get_lib_info_status_t get_self_path_posix(char *out_path, size_t out_path_sz, const void *func_addr)
+{
+    Dl_info info;
+    const char *p;
+    char resolved[PLATFORM_PATH_MAX];
+
+    if (!out_path || out_path_sz == 0 || !func_addr)
+        return MYLIB_EINVAL;
+
+    memset(&info, 0, sizeof(info));
+    if (dladdr(func_addr, &info) == 0)
+    {
+        return MYLIB_EFAIL;
+    }
+
+    p = info.dli_fname ? info.dli_fname : "";
+    if (p[0] == '\0')
+        return MYLIB_EFAIL;
+
+    /* realpath() は symlink 解決と絶対化を行います。 */
+    /* ロード後にファイルが移動/削除される等で失敗する場合があるため、その場合はフォールバックします。 */
+    if (realpath(p, resolved) != NULL)
+    {
+        return copy_str(out_path, out_path_sz, resolved);
+    }
+
+    /* すでに絶対パスならそのまま返す (正規化はできない) */
+    if (p[0] == '/')
+    {
+        return copy_str(out_path, out_path_sz, p);
+    }
+
+    /* 相対パスなら CWD と結合して絶対化を試みる */
+    {
+        char cwd[PLATFORM_PATH_MAX];
+        char joined[PLATFORM_PATH_MAX];
+
+        if (getcwd(cwd, sizeof(cwd)) == NULL)
+            return MYLIB_EFAIL;
+        if (snprintf(joined, sizeof(joined), "%s/%s", cwd, p) <= 0)
+            return MYLIB_EFAIL;
+
+        if (realpath(joined, resolved) != NULL)
+        {
+            return copy_str(out_path, out_path_sz, resolved);
+        }
+
+        /* 最後の手段: 結合した絶対パス文字列 (正規化なし) */
+        return copy_str(out_path, out_path_sz, joined);
+    }
+}
+
+#elif defined(PLATFORM_WINDOWS)
 
 /**
  *******************************************************************************
@@ -239,79 +306,14 @@ static get_lib_info_status_t get_self_path_w(wchar_t *out_w, size_t out_w_cap, c
     }
 }
 
-#else /* Linux/Unix */
-
-/**
- *******************************************************************************
- *  @brief          .so 自身の絶対パスを取得します (Linux/Unix)。
- *
- *  dladdr() に指定された関数アドレスを渡して所属共有オブジェクトを取得し、\n
- *  realpath() で可能な限り絶対化・正規化します。
- *
- *  @param[out]     out_path    出力 (UTF-8、NULL 終端)。
- *  @param[in]      out_path_sz 出力バッファサイズ[byte]。
- *  @param[in]      func_addr   所属モジュールを特定するための関数アドレス。
- *  @return         get_lib_info_status_t
- *******************************************************************************
- */
-static get_lib_info_status_t get_self_path_posix(char *out_path, size_t out_path_sz, const void *func_addr)
-{
-    Dl_info info;
-    const char *p;
-    char resolved[PLATFORM_PATH_MAX];
-
-    if (!out_path || out_path_sz == 0 || !func_addr)
-        return MYLIB_EINVAL;
-
-    memset(&info, 0, sizeof(info));
-    if (dladdr(func_addr, &info) == 0)
-    {
-        return MYLIB_EFAIL;
-    }
-
-    p = info.dli_fname ? info.dli_fname : "";
-    if (p[0] == '\0')
-        return MYLIB_EFAIL;
-
-    /* realpath() は symlink 解決と絶対化を行います。 */
-    /* ロード後にファイルが移動/削除される等で失敗する場合があるため、その場合はフォールバックします。 */
-    if (realpath(p, resolved) != NULL)
-    {
-        return copy_str(out_path, out_path_sz, resolved);
-    }
-
-    /* すでに絶対パスならそのまま返す (正規化はできない) */
-    if (p[0] == '/')
-    {
-        return copy_str(out_path, out_path_sz, p);
-    }
-
-    /* 相対パスなら CWD と結合して絶対化を試みる */
-    {
-        char cwd[PLATFORM_PATH_MAX];
-        char joined[PLATFORM_PATH_MAX];
-
-        if (getcwd(cwd, sizeof(cwd)) == NULL)
-            return MYLIB_EFAIL;
-        if (snprintf(joined, sizeof(joined), "%s/%s", cwd, p) <= 0)
-            return MYLIB_EFAIL;
-
-        if (realpath(joined, resolved) != NULL)
-        {
-            return copy_str(out_path, out_path_sz, resolved);
-        }
-
-        /* 最後の手段: 結合した絶対パス文字列 (正規化なし) */
-        return copy_str(out_path, out_path_sz, joined);
-    }
-}
-
-#endif
+#endif /* PLATFORM_ */
 
 /* doxygen コメントは、ヘッダに記載 */
-int module_info_get_path(char *out_path, const size_t out_path_sz, const void *func_addr)
+MODULE_INFO_EXPORT int MODULE_INFO_API module_info_get_path(char *out_path, const size_t out_path_sz, const void *func_addr)
 {
-#if defined(_WIN32)
+#if defined(PLATFORM_LINUX)
+    return (int)get_self_path_posix(out_path, out_path_sz, func_addr);
+#elif defined(PLATFORM_WINDOWS)
     wchar_t wpath[PLATFORM_PATH_MAX];
     get_lib_info_status_t st = get_self_path_w(wpath, (size_t)(sizeof(wpath) / sizeof(wpath[0])), func_addr);
     if (st != MYLIB_OK)
@@ -321,13 +323,11 @@ int module_info_get_path(char *out_path, const size_t out_path_sz, const void *f
         return st;
     }
     return (int)narrow_utf8(wpath, out_path, out_path_sz);
-#else
-    return (int)get_self_path_posix(out_path, out_path_sz, func_addr);
-#endif
+#endif /* PLATFORM_ */
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int module_info_get_basename(char *out_basename, const size_t out_basename_sz, const void *func_addr)
+MODULE_INFO_EXPORT int MODULE_INFO_API module_info_get_basename(char *out_basename, const size_t out_basename_sz, const void *func_addr)
 {
     get_lib_info_status_t st;
     char path_buf[4096];

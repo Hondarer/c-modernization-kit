@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           potrDisconnectPeer.c
  *  @brief          potrDisconnectPeer 関数の実装。
@@ -11,6 +11,7 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <inttypes.h>
 #include <porter_const.h>
 #include <porter.h>
@@ -19,17 +20,17 @@
 #include "../potrPeerTable.h"
 #include "../infra/potrLog.h"
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <pthread.h>
     typedef pthread_mutex_t PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   pthread_mutex_lock(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     typedef CRITICAL_SECTION PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* doxygen コメントは、ヘッダに記載 */
 POTR_EXPORT int POTR_API potrDisconnectPeer(PotrHandle handle, PotrPeerId peer_id)

@@ -60,6 +60,6 @@
 #else /* !PLATFORM_LINUX && !PLATFORM_WINDOWS */
     #define UTIL_DLL_EXPORT_VALUE
     #define UTIL_DLL_API_VALUE
-#endif
+#endif /* PLATFORM_ */
 
 #undef UTIL_DLL_EXPORT_PREFIX

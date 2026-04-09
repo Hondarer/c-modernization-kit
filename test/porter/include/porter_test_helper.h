@@ -1,15 +1,16 @@
-#ifndef _PORTER_TEST_HELPER_H
-#define _PORTER_TEST_HELPER_H
+#ifndef PORTER_TEST_HELPER_H
+#define PORTER_TEST_HELPER_H
 
+#include <util/base/platform.h>
 #include <cstdio>
 #include <string>
 #include <vector>
 
 #include <util/fs/path_max.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 #include <unistd.h>
-#endif
+#endif /* PLATFORM_LINUX */
 
 /**
  * テスト用 porter サービス定義を一時ファイルに書き出すビルダー。
@@ -56,13 +57,13 @@ public:
     std::string build()
     {
         if (tmp_path_.empty()) {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             char tmpl[] = "/tmp/porter_test_XXXXXX.conf";
             int fd = mkstemps(tmpl, 5); /* ".conf" = 5 文字 */
             if (fd == -1) { return ""; }
             close(fd);
             tmp_path_ = tmpl;
-#else
+#elif defined(PLATFORM_WINDOWS)
             char tmp_dir[PLATFORM_PATH_MAX] = {};
             GetTempPathA(sizeof(tmp_dir), tmp_dir);
             char tmp_file[PLATFORM_PATH_MAX] = {};
@@ -71,15 +72,15 @@ public:
             tmp_path_ = std::string(tmp_file) + ".conf";
             /* GetTempFileName が作成した元ファイルを削除して .conf で作り直す */
             DeleteFileA(tmp_file);
-#endif
+#endif /* PLATFORM_ */
         }
 
         FILE* f = nullptr;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         f = fopen(tmp_path_.c_str(), "w");
-#else
+#elif defined(PLATFORM_WINDOWS)
         fopen_s(&f, tmp_path_.c_str(), "w");
-#endif
+#endif /* PLATFORM_ */
         if (f == nullptr) { return ""; }
 
         /* global セクション (テスト向けに短いタイムアウト) */
@@ -101,11 +102,11 @@ public:
     ~PorterConfigBuilder()
     {
         if (!tmp_path_.empty()) {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             unlink(tmp_path_.c_str());
-#else
+#elif defined(PLATFORM_WINDOWS)
             DeleteFileA(tmp_path_.c_str());
-#endif
+#endif /* PLATFORM_ */
         }
     }
 
@@ -118,4 +119,4 @@ private:
     std::string              tmp_path_;
 };
 
-#endif // _PORTER_TEST_HELPER_H
+#endif /* PORTER_TEST_HELPER_H */

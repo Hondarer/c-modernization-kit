@@ -34,7 +34,9 @@
 #define CONFIG_LINE_MAX 1024
 
 /* doxygen コメントは、ヘッダに記載 */
-void symbol_loader_init(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length, const char *configpath)
+SYMBOL_LOADER_EXPORT void SYMBOL_LOADER_API symbol_loader_init(symbol_loader_entry_t *const *fobj_array,
+                                                               const size_t                  fobj_length,
+                                                               const char                   *configpath)
 {
     FILE *fp;
     char line[CONFIG_LINE_MAX];
@@ -44,11 +46,11 @@ void symbol_loader_init(symbol_loader_entry_t *const *fobj_array, const size_t f
     char *comment;
     size_t fobj_index;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     fp = fopen(configpath, "r");
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     fopen_s(&fp, configpath, "r");
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     if (fp == NULL)
     {
         return;
@@ -64,14 +66,14 @@ void symbol_loader_init(symbol_loader_entry_t *const *fobj_array, const size_t f
         }
 
         /* func_key lib_name func_name の 3 フィールドを解析 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         if (sscanf(line, "%255s %255s %255s", func_key, lib_name, func_name) != 3)
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         if (sscanf_s(line, "%255s %255s %255s",
                      func_key, (unsigned)sizeof(func_key),
                      lib_name, (unsigned)sizeof(lib_name),
                      func_name, (unsigned)sizeof(func_name)) != 3)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         {
             /* 空行・コメント行・フィールドが不足している行はスキップ */
             continue;
@@ -86,15 +88,15 @@ void symbol_loader_init(symbol_loader_entry_t *const *fobj_array, const size_t f
                 continue;
             }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             strncpy(cache->lib_name, lib_name, SYMBOL_LOADER_NAME_MAX - 1);
             cache->lib_name[SYMBOL_LOADER_NAME_MAX - 1] = '\0';
             strncpy(cache->func_name, func_name, SYMBOL_LOADER_NAME_MAX - 1);
             cache->func_name[SYMBOL_LOADER_NAME_MAX - 1] = '\0';
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             strncpy_s(cache->lib_name, SYMBOL_LOADER_NAME_MAX, lib_name, SYMBOL_LOADER_NAME_MAX - 1);
             strncpy_s(cache->func_name, SYMBOL_LOADER_NAME_MAX, func_name, SYMBOL_LOADER_NAME_MAX - 1);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             break;
         }
     }

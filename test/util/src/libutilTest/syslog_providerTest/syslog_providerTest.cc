@@ -1,4 +1,6 @@
-#ifndef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
 
 #include <syslog.h>
 #include <testfw.h>
@@ -103,7 +105,7 @@ TEST_F(syslog_providerTest, test_dispose_with_null_handle)
     trace_syslog_sink_destroy(NULL); // [手順] - NULL ハンドルで dispose を呼ぶ。安全に何もしないこと。
 }
 
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 
 #include <testfw.h>
 
@@ -113,4 +115,4 @@ TEST(syslog_providerTest, not_supported)
     GTEST_SKIP() << "syslog is not supported on this platform";
 }
 
-#endif /* !_WIN32 */
+#endif /* PLATFORM_ */

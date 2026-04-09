@@ -1,6 +1,6 @@
 #include <subfolder-sample.h>
 
-int SUBFOLDER_SAMPLE_API func(void)
+SUBFOLDER_SAMPLE_EXPORT int SUBFOLDER_SAMPLE_API func(void)
 {
     return 0;
 }

@@ -64,17 +64,18 @@
 #include <inttypes.h>
 /* strrchr (_TRACE_LOGGER_BASENAME マクロで使用) */
 #include <string.h>
+#include <util/base/platform.h>
 
 /* 内部で使用するプラットフォーム固有ヘッダー */
-#ifdef _WIN32
-#include <util/trace/trace_etw.h>
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
 #include <util/trace/trace_syslog.h>
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+#include <util/trace/trace_etw.h>
+#endif /* PLATFORM_ */
 
 /* ===== デフォルトプロバイダ定義 (Windows) ===== */
 
-#ifdef _WIN32
+#if defined(PLATFORM_WINDOWS)
 
 /**
  *  @def            TRACE_LOGGER_DEFAULT_PROVIDER_NAME
@@ -101,7 +102,7 @@
 #define TRACE_LOGGER_DEFAULT_PROVIDER_GUID_STR \
     "c3a7b5d1-4e2f-4a89-96c8-d7e9f1a2b3c4"
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */
 
 /* ===== DLL エクスポート / インポート制御マクロ ===== */
 
@@ -135,27 +136,10 @@
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define TRACE_LOGGER_EXPORT
-    #define TRACE_LOGGER_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef TRACE_LOGGER_STATIC
-            #ifdef TRACE_LOGGER_EXPORTS
-                #define TRACE_LOGGER_EXPORT __declspec(dllexport)
-            #else /* !TRACE_LOGGER_EXPORTS */
-                #define TRACE_LOGGER_EXPORT __declspec(dllimport)
-            #endif /* TRACE_LOGGER_EXPORTS */
-        #else      /* TRACE_LOGGER_STATIC */
-            #define TRACE_LOGGER_EXPORT
-        #endif /* TRACE_LOGGER_STATIC */
-    #else      /* __INTELLISENSE__ */
-        #define TRACE_LOGGER_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef TRACE_LOGGER_API
-        #define TRACE_LOGGER_API __stdcall
-    #endif /* TRACE_LOGGER_API */
-#endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX TRACE_LOGGER
+    #include <util/base/dll_exports.h>
+    #define TRACE_LOGGER_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define TRACE_LOGGER_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

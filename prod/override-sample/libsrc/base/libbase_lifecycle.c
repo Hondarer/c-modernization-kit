@@ -35,10 +35,10 @@ void onLoad(void)
 
     if (module_info_get_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         /* Linux: 定義ファイルを /tmp から読み込み */
         snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "/tmp/%s_extdef.txt", basename);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         /* Windows: 定義ファイルを %TEMP% から読み込み */
         wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
         DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
@@ -53,7 +53,7 @@ void onLoad(void)
                 snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "%s%s_extdef.txt", tmpu8, basename);
             }
         }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     symbol_loader_init(fobj_array_libbase, fobj_length_libbase, symbol_loader_configpath);

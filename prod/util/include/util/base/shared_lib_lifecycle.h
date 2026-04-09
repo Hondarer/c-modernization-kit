@@ -23,16 +23,18 @@
 #ifndef SHARED_LIB_LIFECYCLE_H
 #define SHARED_LIB_LIFECYCLE_H
 
-#ifndef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
+    #include <stdio.h>
+    #include <string.h>
     #include <sys/socket.h>
     #include <sys/un.h>
     #include <unistd.h>
-    #include <stdio.h>
-    #include <string.h>
     #include <util/test/syslog_test.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <windows.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #ifdef DOXYGEN
     /**
@@ -56,93 +58,95 @@
      */
     #define DLLMAIN_UTIL_INFO_MSG(msg)
 #else /* !DOXYGEN */
-    #ifndef _WIN32
-        /**
-         *  @brief  /dev/log へ RFC 3164 形式の INFO メッセージを非ブロッキングで送信する。
-         *  @details
-         *  constructor / destructor コンテキストでも安全に使用できるよう、
-         *  syslog() API は使用しない。毎回ソケットを開いて即時送信し、
-         *  失敗時は drop する。priority = LOG_USER(8) | LOG_INFO(6) = 14。
-         */
-        static void dllmain_syslog_send__(const char *msg)
-        {
-            char buf[512];
-            struct sockaddr_un sa;
-            int fd;
-            int n;
+    #if defined(PLATFORM_LINUX)
+/**
+ *  @brief  /dev/log へ RFC 3164 形式の INFO メッセージを非ブロッキングで送信する。
+ *  @details
+ *  constructor / destructor コンテキストでも安全に使用できるよう、
+ *  syslog() API は使用しない。毎回ソケットを開いて即時送信し、
+ *  失敗時は drop する。priority = LOG_USER(8) | LOG_INFO(6) = 14。
+ */
+static void dllmain_syslog_send__(const char *msg)
+{
+    char buf[512];
+    struct sockaddr_un sa;
+    int fd;
+    int n;
 
-            /* priority 14 = facility LOG_USER(1<<3) | severity LOG_INFO(6) */
-            n = snprintf(buf, sizeof(buf), "<14>util[%d]: %s", (int)getpid(), msg);
-            if (n <= 0)
-            {
-                return;
-            }
-            if ((size_t)n >= sizeof(buf))
-            {
-                n = (int)(sizeof(buf) - 1);
-            }
+    /* priority 14 = facility LOG_USER(1<<3) | severity LOG_INFO(6) */
+    n = snprintf(buf, sizeof(buf), "<14>util[%d]: %s", (int)getpid(), msg);
+    if (n <= 0)
+    {
+        return;
+    }
+    if ((size_t)n >= sizeof(buf))
+    {
+        n = (int)(sizeof(buf) - 1);
+    }
 
-            /* SYSLOG_TEST_FD が設定されていればテスト用 FD に送信し、/dev/log へは送信しない */
-            buf[n] = '\n';
-            if (syslog_test_fd_write__(buf, (size_t)(n + 1)))
-            {
-                return;
-            }
+    /* SYSLOG_TEST_FD が設定されていればテスト用 FD に送信し、/dev/log へは送信しない */
+    buf[n] = '\n';
+    if (syslog_test_fd_write__(buf, (size_t)(n + 1)))
+    {
+        return;
+    }
 
-            fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
-            if (fd < 0)
-            {
-                return;
-            }
+    fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    if (fd < 0)
+    {
+        return;
+    }
 
-            memset(&sa, 0, sizeof(sa));
-            sa.sun_family = AF_UNIX;
-            strncpy(sa.sun_path, "/dev/log", sizeof(sa.sun_path) - 1);
+    memset(&sa, 0, sizeof(sa));
+    sa.sun_family = AF_UNIX;
+    strncpy(sa.sun_path, "/dev/log", sizeof(sa.sun_path) - 1);
 
-            (void)sendto(fd, buf, (size_t)n, MSG_DONTWAIT,
-                         (struct sockaddr *)&sa, (socklen_t)sizeof(sa));
-            close(fd);
-        }
+    (void)sendto(fd, buf, (size_t)n, MSG_DONTWAIT, (struct sockaddr *)&sa, (socklen_t)sizeof(sa));
+    close(fd);
+}
         #define DLLMAIN_UTIL_INFO_MSG(msg) dllmain_syslog_send__(msg)
-    #else /* _WIN32 */
-        static void dllmain_output_debug_msg__(const char *msg)
+    #elif defined(PLATFORM_WINDOWS)
+static void dllmain_output_debug_msg__(const char *msg)
+{
+    wchar_t buf[1024];
+    int len = MultiByteToWideChar(CP_UTF8, 0, msg, -1, NULL, 0);
+    if (len <= 0)
+        return;
+    if (len <= 1024)
+    {
+        /* バッファに収まる: そのまま変換 */
+        MultiByteToWideChar(CP_UTF8, 0, msg, -1, buf, 1024);
+    }
+    else
+    {
+        /* 切り捨て: UTF-8 バイト列を走査して 1019 wchar 分のバイト数を求める */
+        /* (残り 4 wchar + null で " ..." を付与するため)              */
+        int byte_pos = 0;
+        int wc_count = 0;
+        int written;
+        while (msg[byte_pos] != '\0')
         {
-            wchar_t buf[1024];
-            int len = MultiByteToWideChar(CP_UTF8, 0, msg, -1, NULL, 0);
-            if (len <= 0) return;
-            if (len <= 1024)
-            {
-                /* バッファに収まる: そのまま変換 */
-                MultiByteToWideChar(CP_UTF8, 0, msg, -1, buf, 1024);
-            }
-            else
-            {
-                /* 切り捨て: UTF-8 バイト列を走査して 1019 wchar 分のバイト数を求める */
-                /* (残り 4 wchar + null で " ..." を付与するため)              */
-                int byte_pos  = 0;
-                int wc_count  = 0;
-                int written;
-                while (msg[byte_pos] != '\0')
-                {
-                    unsigned char c  = (unsigned char)msg[byte_pos];
-                    int cb = (c < 0x80u) ? 1 : (c < 0xE0u) ? 2 : (c < 0xF0u) ? 3 : 4;
-                    int cw = (cb == 4)   ? 2 : 1; /* U+10000 以上はサロゲートペアで 2 wchar */
-                    if (wc_count + cw > 1019) break;
-                    wc_count += cw;
-                    byte_pos += cb;
-                }
-                written = MultiByteToWideChar(CP_UTF8, 0, msg, byte_pos, buf, 1019);
-                if (written <= 0) return;
-                buf[written]     = L' ';
-                buf[written + 1] = L'.';
-                buf[written + 2] = L'.';
-                buf[written + 3] = L'.';
-                buf[written + 4] = L'\0';
-            }
-            OutputDebugStringW(buf);
+            unsigned char c = (unsigned char)msg[byte_pos];
+            int cb = (c < 0x80u) ? 1 : (c < 0xE0u) ? 2 : (c < 0xF0u) ? 3 : 4;
+            int cw = (cb == 4) ? 2 : 1; /* U+10000 以上はサロゲートペアで 2 wchar */
+            if (wc_count + cw > 1019)
+                break;
+            wc_count += cw;
+            byte_pos += cb;
         }
+        written = MultiByteToWideChar(CP_UTF8, 0, msg, byte_pos, buf, 1019);
+        if (written <= 0)
+            return;
+        buf[written] = L' ';
+        buf[written + 1] = L'.';
+        buf[written + 2] = L'.';
+        buf[written + 3] = L'.';
+        buf[written + 4] = L'\0';
+    }
+    OutputDebugStringW(buf);
+}
         #define DLLMAIN_UTIL_INFO_MSG(msg) dllmain_output_debug_msg__(msg)
-    #endif /* _WIN32 */
+    #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */
 
 /**
@@ -163,7 +167,7 @@ static void onLoad(void);
  */
 static void onUnload(int process_terminating);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 
 /**
  *******************************************************************************
@@ -189,7 +193,7 @@ __attribute__((destructor)) static void dllmain_on_unload__(void)
     DLLMAIN_UTIL_INFO_MSG("shared_lib_lifecycle: onUnload leave");
 }
 
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 
 /**
  *******************************************************************************
@@ -221,6 +225,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     return TRUE;
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #endif /* SHARED_LIB_LIFECYCLE_H */

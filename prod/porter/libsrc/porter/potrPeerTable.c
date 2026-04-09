@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           potrPeerTable.c
  *  @brief          N:1 モード用ピアテーブル管理の実装。
@@ -11,21 +11,22 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <arpa/inet.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <time.h>
     #include <unistd.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #include <windows.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter_const.h>
 #include <porter.h>
@@ -40,18 +41,18 @@
 /* --------------------------------------------------------------------------
  * プラットフォーム別 ミューテックスラッパー
  * -------------------------------------------------------------------------- */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #define POTR_MUTEX_INIT(m)    pthread_mutex_init((m), NULL)
     #define POTR_MUTEX_DESTROY(m) pthread_mutex_destroy(m)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #define POTR_MUTEX_INIT(m)    InitializeCriticalSection(m)
     #define POTR_MUTEX_DESTROY(m) DeleteCriticalSection(m)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* ピアのセッション識別子・開始時刻を生成して peer に格納する */
 static void peer_generate_session(PotrPeerContext *peer)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec ts;
 
     srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
@@ -60,7 +61,7 @@ static void peer_generate_session(PotrPeerContext *peer)
     clock_gettime(CLOCK_REALTIME, &ts);
     peer->session_tv_sec  = (int64_t)ts.tv_sec;
     peer->session_tv_nsec = (int32_t)ts.tv_nsec;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     FILETIME       ft;
     ULARGE_INTEGER uli;
 
@@ -72,7 +73,7 @@ static void peer_generate_session(PotrPeerContext *peer)
     uli.HighPart = ft.dwHighDateTime;
     peer->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
     peer->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* 使用中でない peer_id を単調増加カウンタから生成する (peers_mutex 取得済みの文脈で呼ぶ) */
@@ -161,15 +162,15 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         {
             if (peer->dest_addr[i].sin_family == 0) continue;
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             sendto(ctx->sock[i], wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
     }
     else
@@ -180,15 +181,15 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         {
             if (peer->dest_addr[i].sin_family == 0) continue;
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             sendto(ctx->sock[i], &fin_pkt, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[i],
                    sizeof(peer->dest_addr[i]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
     }
 }

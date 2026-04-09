@@ -1,5 +1,5 @@
-#ifndef _MOCK_CALCBASE_H
-#define _MOCK_CALCBASE_H
+#ifndef MOCK_CALCBASE_H
+#define MOCK_CALCBASE_H
 
 #include <testfw.h>
 #include <libcalcbase.h>
@@ -18,4 +18,4 @@ public:
 
 extern Mock_calcbase *_mock_calcbase;
 
-#endif // _MOCK_CALCBASE_H
+#endif /* MOCK_CALCBASE_H */

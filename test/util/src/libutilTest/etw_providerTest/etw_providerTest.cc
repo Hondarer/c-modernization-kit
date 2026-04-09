@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
 
 #include <windows.h>
 #include <TraceLoggingProvider.h>
@@ -111,14 +113,14 @@ TEST_F(etw_providerTest, test_dispose_with_null_handle)
     trace_etw_provider_destroy(NULL); // [手順] - NULL ハンドルで dispose を呼ぶ。安全に何もしないこと。
 }
 
-#else /* !_WIN32 */
+#elif defined(PLATFORM_LINUX)
 
 #include <testfw.h>
 
-// 非 Windows 環境ではテスト対象外
+// Linux 環境ではテスト対象外
 TEST(etw_providerTest, not_supported)
 {
     GTEST_SKIP() << "ETW is not supported on this platform";
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */

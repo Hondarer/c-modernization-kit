@@ -14,13 +14,13 @@
  *******************************************************************************
  */
 
-#ifndef _SAMPLESTATIC_H
-#define _SAMPLESTATIC_H
+#ifndef SAMPLESTATIC_H
+#define SAMPLESTATIC_H
 
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif /* __cplusplus */
 
     /**
      *******************************************************************************
@@ -47,6 +47,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
-#endif // _SAMPLESTATIC_H
+#endif /* SAMPLESTATIC_H */

@@ -1,5 +1,5 @@
-#ifndef _MOCK_UTIL_H
-#define _MOCK_UTIL_H
+#ifndef MOCK_UTIL_H
+#define MOCK_UTIL_H
 
 #include <testfw.h>
 #include <util/trace/trace.h>
@@ -44,4 +44,4 @@ public:
 
 extern Mock_util *_mock_util;
 
-#endif // _MOCK_UTIL_H
+#endif /* MOCK_UTIL_H */

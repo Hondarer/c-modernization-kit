@@ -1,6 +1,8 @@
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
     #define _HAS_STD_BYTE 0
-#endif
+#endif /* PLATFORM_WINDOWS */
 #include <testfw.h>
 #include <mock_potrPeerTable.h>
 

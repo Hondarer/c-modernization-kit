@@ -21,7 +21,9 @@
  *******************************************************************************
  */
 
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
 
 #include <string.h>
 
@@ -159,4 +161,4 @@ int potr_decompress(uint8_t       *dst,
     return 0;
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */

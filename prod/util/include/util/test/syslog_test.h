@@ -18,7 +18,9 @@
 #ifndef SYSLOG_TEST_H
 #define SYSLOG_TEST_H
 
-#ifndef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -52,6 +54,6 @@ static int syslog_test_fd_write__(const char *buf, size_t nbytes)
     return 1;
 }
 
-#endif /* !_WIN32 */
+#endif /* PLATFORM_LINUX */
 
 #endif /* SYSLOG_TEST_H */

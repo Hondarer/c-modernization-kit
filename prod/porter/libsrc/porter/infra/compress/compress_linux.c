@@ -16,7 +16,9 @@
  *******************************************************************************
  */
 
-#ifndef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
 
     #include <string.h>
 
@@ -116,6 +118,6 @@ int potr_decompress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t sr
     return 0;
 }
 
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)
     #pragma warning(disable : 4206)
-#endif /* _WIN32 */
+#endif

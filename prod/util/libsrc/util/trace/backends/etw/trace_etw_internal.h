@@ -17,8 +17,10 @@
 #ifndef TRACE_ETW_PROVIDER_INTERNAL_H
 #define TRACE_ETW_PROVIDER_INTERNAL_H
 
-#ifdef _WIN32
-#include <util/trace/trace_etw.h>
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
+    #include <util/trace/trace_etw.h>
 
 /**
  *******************************************************************************
@@ -39,6 +41,6 @@
  */
 void trace_etw_provider_destroy_on_unload(trace_etw_provider_t *handle, int process_terminating);
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */
 
 #endif /* TRACE_ETW_PROVIDER_INTERNAL_H */

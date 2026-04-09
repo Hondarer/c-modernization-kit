@@ -13,7 +13,9 @@
  *******************************************************************************
  */
 
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
 
 #include <windows.h>
 #include <TraceLoggingProvider.h>
@@ -33,7 +35,7 @@ struct trace_etw_provider
 };
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_etw_provider_t *TRACE_ETW_API
+TRACE_ETW_EXPORT trace_etw_provider_t *TRACE_ETW_API
     trace_etw_provider_create(trace_etw_provider_ref_t provider_ref)
 {
     trace_etw_provider_t *handle;
@@ -145,7 +147,7 @@ static void write_trace_event(trace_etw_provider_ref_t ref, int level,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_ETW_API
+TRACE_ETW_EXPORT int TRACE_ETW_API
     trace_etw_provider_write(trace_etw_provider_t *handle, int level,
                        const char *service, const char *message)
 {
@@ -160,7 +162,7 @@ int TRACE_ETW_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-void TRACE_ETW_API
+TRACE_ETW_EXPORT void TRACE_ETW_API
     trace_etw_provider_destroy(trace_etw_provider_t *handle)
 {
     if (handle == NULL)
@@ -187,4 +189,4 @@ void trace_etw_provider_destroy_on_unload(trace_etw_provider_t *handle, int proc
     free(handle);
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */

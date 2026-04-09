@@ -9,7 +9,7 @@ class fopenfTest : public Test
 {
 };
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_null_modes)
 {
     // Arrange
@@ -25,7 +25,7 @@ TEST_F(fopenfTest, test_null_modes)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_null_modes)
 {
     // Arrange
@@ -41,9 +41,9 @@ TEST_F(fopenfTest, test_null_modes)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_null_format)
 {
     // Arrange
@@ -59,7 +59,7 @@ TEST_F(fopenfTest, test_null_format)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_null_format)
 {
     // Arrange
@@ -75,9 +75,9 @@ TEST_F(fopenfTest, test_null_format)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_buffer_overflow)
 {
     // Arrange
@@ -97,7 +97,7 @@ TEST_F(fopenfTest, test_buffer_overflow)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_buffer_overflow)
 {
     // Arrange
@@ -117,9 +117,9 @@ TEST_F(fopenfTest, test_buffer_overflow)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_successful_call_with_format)
 {
     // Arrange
@@ -136,7 +136,7 @@ TEST_F(fopenfTest, test_successful_call_with_format)
     // Assert
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_fmt から fp が返されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_successful_call_with_format)
 {
     // Arrange
@@ -153,9 +153,9 @@ TEST_F(fopenfTest, test_successful_call_with_format)
     // Assert
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_fmt から fp が返されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
 {
     // Arrange
@@ -172,7 +172,7 @@ TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
     // Assert
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_fmt から fp が返されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
 {
     // Arrange
@@ -189,9 +189,9 @@ TEST_F(fopenfTest, test_successful_call_with_multiple_parameters)
     // Assert
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_fmt から fp が返されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_fopen_returns_null)
 {
     // Arrange
@@ -208,7 +208,7 @@ TEST_F(fopenfTest, test_fopen_returns_null)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_fopen_returns_null)
 {
     // Arrange
@@ -242,9 +242,9 @@ TEST_F(fopenfTest, test_fopen_s_access_denied)
     // Assert
     EXPECT_EQ((FILE *)NULL, fp); // [確認_異常系] - fopen_fmt から NULL が返されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_fopen_returns_null_with_errno)
 {
     // Arrange
@@ -266,7 +266,7 @@ TEST_F(fopenfTest, test_fopen_returns_null_with_errno)
     EXPECT_EQ((FILE *)NULL, fp);   // [確認_異常系] - fopen_fmt から NULL が返されること。
     EXPECT_EQ(ENOENT, error_code); // [確認_異常系] - errno に ENOENT が設定されること。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_fopen_s_returns_error_with_errno)
 {
     // Arrange
@@ -285,9 +285,9 @@ TEST_F(fopenfTest, test_fopen_s_returns_error_with_errno)
     EXPECT_EQ((FILE *)NULL, fp);   // [確認_異常系] - fopen_fmt から NULL が返されること。
     EXPECT_EQ(ENOENT, error_code); // [確認_異常系] - error_code に ENOENT が設定されること。
 }
-#endif
+#endif /* PLATFORM_ */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 TEST_F(fopenfTest, test_fopen_success_errno_not_set)
 {
     // Arrange
@@ -306,7 +306,7 @@ TEST_F(fopenfTest, test_fopen_success_errno_not_set)
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_fmt から fp が返されること。
     EXPECT_EQ(999, error_code); // [確認_正常系] - 成功時は error_code が変更されないこと。
 }
-#else
+#elif defined(PLATFORM_WINDOWS)
 TEST_F(fopenfTest, test_fopen_s_success_errno_not_set)
 {
     // Arrange
@@ -325,4 +325,4 @@ TEST_F(fopenfTest, test_fopen_s_success_errno_not_set)
     EXPECT_EQ(expected_fp, fp); // [確認_正常系] - fopen_fmt から fp が返されること。
     EXPECT_EQ(999, error_code); // [確認_正常系] - 成功時は error_code が変更されないこと。
 }
-#endif
+#endif /* PLATFORM_ */

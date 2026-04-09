@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+#include <util/base/platform.h>
 #include <porter_type.h>
 
 #include "protocol/window.h"
@@ -26,7 +27,7 @@
 #include "infra/crypto/crypto.h"
 #include "infra/potrSendQueue.h"
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <pthread.h>
     #include <netinet/in.h>
     typedef int                PotrSocket;
@@ -34,7 +35,7 @@
     typedef pthread_mutex_t    PotrMutex;
     typedef pthread_cond_t     PotrCondVar;
     #define POTR_INVALID_SOCKET (-1)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
     typedef SOCKET             PotrSocket;
@@ -42,7 +43,7 @@
     typedef CRITICAL_SECTION   PotrMutex;
     typedef CONDITION_VARIABLE PotrCondVar;
     #define POTR_INVALID_SOCKET INVALID_SOCKET
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /** TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) か判定する。 */
 static inline int potr_is_tcp_type(PotrType t)

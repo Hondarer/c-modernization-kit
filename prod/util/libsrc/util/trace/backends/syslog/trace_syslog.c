@@ -25,7 +25,9 @@
  *******************************************************************************
  */
 
-#ifndef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -140,7 +142,7 @@ static void try_open_socket_locked(trace_syslog_sink_t *h)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_syslog_sink_t *TRACE_SYSLOG_API
+TRACE_SYSLOG_EXPORT trace_syslog_sink_t *TRACE_SYSLOG_API
     trace_syslog_sink_create(const char *ident, int facility)
 {
     trace_syslog_sink_t *handle;
@@ -189,7 +191,7 @@ trace_syslog_sink_t *TRACE_SYSLOG_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_SYSLOG_API
+TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
     trace_syslog_sink_write(trace_syslog_sink_t *handle, int level, const char *message)
 {
     char buf[SYSLOG_BUF_SIZE];
@@ -269,7 +271,7 @@ int TRACE_SYSLOG_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-void TRACE_SYSLOG_API
+TRACE_SYSLOG_EXPORT void TRACE_SYSLOG_API
     trace_syslog_sink_destroy(trace_syslog_sink_t *handle)
 {
     if (handle == NULL)
@@ -290,7 +292,7 @@ void TRACE_SYSLOG_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_SYSLOG_API
+TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
     trace_syslog_sink_rename(trace_syslog_sink_t *handle, const char *new_ident)
 {
     char *dup;
@@ -337,6 +339,6 @@ void trace_syslog_sink_destroy_on_unload(trace_syslog_sink_t *handle)
     free(handle);
 }
 
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)
     #pragma warning(disable : 4206)
-#endif /* _WIN32 */
+#endif

@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           potrSendThread.c
  *  @brief          非同期送信スレッドの実装。
@@ -32,16 +32,18 @@
  *******************************************************************************
  */
 
-#ifndef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
     #include <pthread.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <time.h>
     #include <poll.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <windows.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <string.h>
 #include <inttypes.h>
@@ -60,13 +62,13 @@
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t get_ms(void)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return (uint64_t)GetTickCount64();
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* ペイロードエレメントを packed_buf に追記する */
@@ -90,7 +92,7 @@ static int tcp_send_all(PotrSocket fd, PotrMutex *mtx,
     size_t sent = 0;
     int    ret  = POTR_SUCCESS;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(mtx);
     while (sent < len)
     {
@@ -99,7 +101,7 @@ static int tcp_send_all(PotrSocket fd, PotrMutex *mtx,
         sent += (size_t)n;
     }
     pthread_mutex_unlock(mtx);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(mtx);
     while (sent < len)
     {
@@ -108,7 +110,7 @@ static int tcp_send_all(PotrSocket fd, PotrMutex *mtx,
         sent += (size_t)n;
     }
     LeaveCriticalSection(mtx);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return ret;
 }
@@ -132,22 +134,22 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     shdr.session_tv_nsec = ctx->session_tv_nsec;
 
     /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     seq = ctx->send_window.next_seq;
 
     if (packet_build_packed(&outer_pkt, &shdr, seq, packed_buf, packed_len)
         != POTR_SUCCESS)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_unlock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return;
     }
 
@@ -182,11 +184,11 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                          nonce,
                          (const uint8_t *)&outer_pkt, PACKET_HEADER_SIZE) != 0)
         {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             POTR_LOG(POTR_TRACE_ERROR,
                      "sender[service_id=%" PRId64 "]: encrypt failed seq=%u",
                      ctx->service.service_id, (unsigned)seq);
@@ -197,22 +199,22 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         {
             /* TCP: ウィンドウ登録不要。next_seq をインクリメントして mutex を解放 */
             ctx->send_window.next_seq++;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
         else
         {
             /* window には暗号化済みペイロードを格納して NACK 再送時に再暗号化不要にする */
             outer_pkt.payload = ctx->crypto_buf;
             window_send_push(&ctx->send_window, &outer_pkt);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
 
         /* wire 組立: NBO ヘッダー + 暗号文 + タグ */
@@ -230,20 +232,20 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         {
             /* TCP: ウィンドウ登録不要。next_seq をインクリメントして mutex を解放 */
             ctx->send_window.next_seq++;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
         else
         {
             window_send_push(&ctx->send_window, &outer_pkt);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
 
         /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードは既に直後に配置済み) */
@@ -268,7 +270,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                 if (ctx->tcp_conn_fd[i] == POTR_INVALID_SOCKET) continue;
 
                 /* 送信バッファの空きを確認 (非ブロッキング) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 {
                     struct pollfd pfd;
                     pfd.fd      = ctx->tcp_conn_fd[i];
@@ -297,7 +299,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                         }
                     }
                 }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 {
                     WSAPOLLFD pfd;
                     pfd.fd      = ctx->tcp_conn_fd[i];
@@ -326,7 +328,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
                         }
                     }
                 }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             }
         }
     }
@@ -335,15 +337,15 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         int i;
         for (i = 0; i < ctx->n_path; i++)
         {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             sendto(ctx->sock[i], ctx->send_wire_buf, wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             sendto(ctx->sock[i], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&ctx->dest_addr[i],
                    sizeof(ctx->dest_addr[i]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
     }
 
@@ -353,15 +355,15 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
 
     if (ctx->health_running[0])
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_lock(&ctx->health_mutex[0]);
         pthread_cond_signal(&ctx->health_wakeup[0]);
         pthread_mutex_unlock(&ctx->health_mutex[0]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         EnterCriticalSection(&ctx->health_mutex[0]);
         WakeConditionVariable(&ctx->health_wakeup[0]);
         LeaveCriticalSection(&ctx->health_mutex[0]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 }
 
@@ -380,22 +382,22 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
     shdr.session_tv_sec  = peer->session_tv_sec;
     shdr.session_tv_nsec = peer->session_tv_nsec;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&peer->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(&peer->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     seq = peer->send_window.next_seq;
 
     if (packet_build_packed(&outer_pkt, &shdr, seq, packed_buf, packed_len)
         != POTR_SUCCESS)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_unlock(&peer->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return;
     }
 
@@ -420,11 +422,11 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
                          nonce,
                          (const uint8_t *)&outer_pkt, PACKET_HEADER_SIZE) != 0)
         {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&peer->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             POTR_LOG(POTR_TRACE_ERROR,
                      "sender[service_id=%" PRId64 "]: peer=%u encrypt failed seq=%u",
                      ctx->service.service_id, (unsigned)peer->peer_id, (unsigned)seq);
@@ -434,11 +436,11 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         outer_pkt.payload = ctx->crypto_buf;
         window_send_push(&peer->send_window, &outer_pkt);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_unlock(&peer->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
         memcpy(ctx->send_wire_buf + PACKET_HEADER_SIZE, ctx->crypto_buf, enc_len);
@@ -453,11 +455,11 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
     {
         window_send_push(&peer->send_window, &outer_pkt);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_unlock(&peer->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
         wire_len = PACKET_HEADER_SIZE + packed_len;
@@ -474,15 +476,15 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         for (k = 0; k < (int)POTR_MAX_PATH; k++)
         {
             if (peer->dest_addr[k].sin_family == 0) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             sendto(ctx->sock[k], ctx->send_wire_buf, wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             sendto(ctx->sock[k], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
     }
 
@@ -499,17 +501,17 @@ static void send_packed_peer_mode(struct PotrContext_ *ctx, PotrPayloadElem *fir
     int              n_dequeued    = 1;
 
     /* ピアを検索 (peers_mutex は lookup だけ保護、送信中は解放する) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&ctx->peers_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(&ctx->peers_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     peer = peer_find_by_id(ctx, target_peer_id);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_unlock(&ctx->peers_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     LeaveCriticalSection(&ctx->peers_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     if (peer == NULL)
     {
@@ -562,11 +564,11 @@ static void send_packed_peer_mode(struct PotrContext_ *ctx, PotrPayloadElem *fir
 }
 
 /* 送信スレッド本体 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 static void *send_thread_func(void *arg)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 static DWORD WINAPI send_thread_func(LPVOID arg)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     PotrPayloadElem        first;
@@ -699,11 +701,11 @@ static DWORD WINAPI send_thread_func(LPVOID arg)
         }
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return NULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -711,7 +713,7 @@ int potr_send_thread_start(struct PotrContext_ *ctx)
 {
     ctx->send_thread_running = 1;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_init(&ctx->send_window_mutex, NULL);
     if (pthread_create(&ctx->send_thread, NULL, send_thread_func, ctx) != 0)
     {
@@ -719,7 +721,7 @@ int potr_send_thread_start(struct PotrContext_ *ctx)
         pthread_mutex_destroy(&ctx->send_window_mutex);
         return POTR_ERROR;
     }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     InitializeCriticalSection(&ctx->send_window_mutex);
     ctx->send_thread = CreateThread(NULL, 0, send_thread_func, ctx, 0, NULL);
     if (ctx->send_thread == NULL)
@@ -728,7 +730,7 @@ int potr_send_thread_start(struct PotrContext_ *ctx)
         DeleteCriticalSection(&ctx->send_window_mutex);
         return POTR_ERROR;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return POTR_SUCCESS;
 }
@@ -739,12 +741,12 @@ void potr_send_thread_stop(struct PotrContext_ *ctx)
     ctx->send_thread_running = 0;
     potr_send_queue_shutdown(&ctx->send_queue);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_join(ctx->send_thread, NULL);
     pthread_mutex_destroy(&ctx->send_window_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     WaitForSingleObject(ctx->send_thread, INFINITE);
     CloseHandle(ctx->send_thread);
     DeleteCriticalSection(&ctx->send_window_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }

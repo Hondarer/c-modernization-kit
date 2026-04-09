@@ -14,7 +14,8 @@
 #include <util/runtime/symbol_loader.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-void symbol_loader_dispose(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length)
+SYMBOL_LOADER_EXPORT void SYMBOL_LOADER_API
+    symbol_loader_dispose(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length)
 {
     size_t fobj_index;
 
@@ -33,11 +34,11 @@ void symbol_loader_dispose(symbol_loader_entry_t *const *fobj_array, const size_
             continue;
         }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         dlclose(cache->handle);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         FreeLibrary(cache->handle);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         cache->handle = NULL;
         cache->func_ptr = NULL;

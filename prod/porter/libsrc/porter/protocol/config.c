@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           config.c
  *  @brief          設定ファイル (INI 形式) 解析モジュール。
@@ -11,6 +11,7 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -46,14 +47,14 @@ static FILE *open_config_file_read(const char *path)
         return NULL;
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     fp = fopen(path, "r");
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     if (fopen_s(&fp, path, "r") != 0)
     {
         return NULL;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     return fp;
 }

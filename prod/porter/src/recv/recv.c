@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           recv.c
  *  @brief          受信テストコマンド。
@@ -40,6 +40,7 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
@@ -47,12 +48,12 @@
 #include <string.h>
 #include <util/fs/path_max.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <pthread.h>
     #include <unistd.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <process.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter.h>
 #include <util/console/console.h>
@@ -115,7 +116,7 @@ static int is_text_data(const void *data, size_t len)
 static int save_to_temp_file(const void *data, size_t len,
                              char *path_out, size_t path_size)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     int fd;
     ssize_t written;
 
@@ -132,7 +133,7 @@ static int save_to_temp_file(const void *data, size_t len,
         return -1;
     }
     return 0;
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     char tmp_dir[PLATFORM_PATH_MAX];
     FILE *fp = NULL;
     size_t written;
@@ -156,10 +157,10 @@ static int save_to_temp_file(const void *data, size_t len,
         return -1;
     }
     return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 /**
  *******************************************************************************
  *  @brief          Linux SIGINT シグナルハンドラー。
@@ -173,7 +174,7 @@ static void sig_handler(int sig)
     printf("\n終了中...\n");
     fflush(stdout);
 }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 /**
  *******************************************************************************
  *  @brief          Windows コンソール制御イベントハンドラー。
@@ -209,7 +210,7 @@ static BOOL WINAPI console_ctrl_handler(DWORD type)
 
     return FALSE;
 }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /**
  *******************************************************************************
@@ -360,11 +361,11 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
     unsigned char *buf;
     size_t read_count;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     fp = fopen(path, "rb");
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     fopen_s(&fp, path, "rb");
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     if (fp == NULL)
     {
@@ -426,7 +427,7 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
     return 0;
 }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 typedef pthread_t BidirThread;
 
 /**
@@ -437,7 +438,7 @@ typedef pthread_t BidirThread;
  *******************************************************************************
  */
 static void *bidir_send_thread_func(void *arg)
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 typedef HANDLE BidirThread;
 
 /**
@@ -448,7 +449,7 @@ typedef HANDLE BidirThread;
  *******************************************************************************
  */
 static unsigned __stdcall bidir_send_thread_func(void *arg)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 {
     BidirSendCtx *ctx = (BidirSendCtx *)arg;
     char msg_buf[POTR_MAX_MESSAGE_SIZE + 2U];
@@ -579,11 +580,11 @@ bidir_ask_continue:
 
     *ctx->running = 0; /* 送信終了時に受信ループも停止させる */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return NULL;
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return 0U;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -596,9 +597,9 @@ bidir_ask_continue:
  */
 static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return pthread_create(thread, NULL, bidir_send_thread_func, ctx) == 0;
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     uintptr_t h = _beginthreadex(NULL, 0U, bidir_send_thread_func, ctx, 0U, NULL);
     if (h == 0U)
     {
@@ -606,7 +607,7 @@ static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
     }
     *thread = (HANDLE)h;
     return 1;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -617,13 +618,13 @@ static int start_bidir_send_thread(BidirThread *thread, BidirSendCtx *ctx)
  */
 static void join_bidir_send_thread(BidirThread thread)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_cancel(thread); /* fgets でブロック中のスレッドを中断する */
     pthread_join(thread, NULL);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     WaitForSingleObject(thread, INFINITE);
     CloseHandle(thread);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -702,11 +703,11 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     signal(SIGINT, sig_handler);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     printf("サービス %" PRId64 " を開いています... (設定: %s)\n", service_id, config_path);
     fflush(stdout);
@@ -746,11 +747,11 @@ int main(int argc, char *argv[])
 
     while (g_running)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         usleep(100000);
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         Sleep(100);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     if (bidir_started)

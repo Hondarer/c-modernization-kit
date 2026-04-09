@@ -1,6 +1,8 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
+#include <util/base/platform.h>
+
 /**
  *  @file           console.h
  *  @brief          コンソール UTF-8 ヘルパー API。
@@ -56,27 +58,10 @@
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define CONSOLE_EXPORT
-    #define CONSOLE_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef CONSOLE_STATIC
-            #ifdef CONSOLE_EXPORTS
-                #define CONSOLE_EXPORT __declspec(dllexport)
-            #else /* !CONSOLE_EXPORTS */
-                #define CONSOLE_EXPORT __declspec(dllimport)
-            #endif /* CONSOLE_EXPORTS */
-        #else      /* CONSOLE_STATIC */
-            #define CONSOLE_EXPORT
-        #endif /* CONSOLE_STATIC */
-    #else      /* __INTELLISENSE__ */
-        #define CONSOLE_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef CONSOLE_API
-        #define CONSOLE_API __stdcall
-    #endif /* CONSOLE_API */
-#endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX CONSOLE
+    #include <util/base/dll_exports.h>
+    #define CONSOLE_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define CONSOLE_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

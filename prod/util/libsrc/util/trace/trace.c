@@ -24,15 +24,15 @@
 #include "trace_internal.h"
 #include "backends/file/trace_file_internal.h"
 
-#ifdef _WIN32
-#include "backends/etw/trace_etw_internal.h"
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
 #include "backends/syslog/trace_syslog_internal.h"
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+#include "backends/etw/trace_etw_internal.h"
+#endif /* PLATFORM_ */
 
 /* ===== Windows: TraceLogging プロバイダ定義 ===== */
 
-#ifdef _WIN32
+#if defined(PLATFORM_WINDOWS)
 
 #include <windows.h>
 #include <TraceLoggingProvider.h>
@@ -46,7 +46,7 @@ static volatile LONG s_trace_ref = 0;
 static trace_etw_provider_t *s_etw_handle = NULL;
 static SRWLOCK s_registry_lock = SRWLOCK_INIT;
 
-#else /* !_WIN32 */
+#elif defined(PLATFORM_LINUX)
 
 #include <time.h>
 #include <pthread.h>
@@ -55,7 +55,7 @@ static SRWLOCK s_registry_lock = SRWLOCK_INIT;
 
 static pthread_mutex_t s_registry_lock = PTHREAD_MUTEX_INITIALIZER;
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /** プロセス名取得失敗時のフォールバック名。 */
 #define FALLBACK_NAME "unknown"
@@ -77,19 +77,19 @@ struct trace_logger
 {
     int64_t identifier;
 
-#ifdef _WIN32
-    char *service_name;
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     trace_syslog_sink_t *syslog_handle;
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    char *service_name;
+#endif /* PLATFORM_ */
 
     trace_file_sink_t *file_handle;
 
-#ifdef _WIN32
-    SRWLOCK config_rwlock;
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_rwlock_t config_rwlock;
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    SRWLOCK config_rwlock;
+#endif /* PLATFORM_ */
 
     trace_level_t os_level;
     trace_level_t file_level;
@@ -97,9 +97,9 @@ struct trace_logger
     volatile int running;
     volatile int lifecycle_state;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     int config_rwlock_initialized;
-#endif /* !_WIN32 */
+#endif /* PLATFORM_LINUX */
 };
 
 struct trace_registry
@@ -119,11 +119,11 @@ static struct trace_registry s_trace_registry = {0};
  */
 static void registry_lock(void)
 {
-#ifdef _WIN32
-    AcquireSRWLockExclusive(&s_registry_lock);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&s_registry_lock);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    AcquireSRWLockExclusive(&s_registry_lock);
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -133,11 +133,11 @@ static void registry_lock(void)
  */
 static void registry_unlock(void)
 {
-#ifdef _WIN32
-    ReleaseSRWLockExclusive(&s_registry_lock);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_mutex_unlock(&s_registry_lock);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    ReleaseSRWLockExclusive(&s_registry_lock);
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -279,28 +279,7 @@ static int begin_dispose(trace_logger_t *handle)
     return 0;
 }
 
-#ifdef _WIN32
-
-/**
- *******************************************************************************
- *  @brief          トレースレベルを ETW レベルに変換する。
- *  @param[in]      lv  変換元のトレースレベル。
- *  @return         対応する ETW レベル値。
- *******************************************************************************
- */
-static int to_etw_level(trace_level_t lv)
-{
-    switch (lv)
-    {
-    case TRACE_LEVEL_CRITICAL: return 1;
-    case TRACE_LEVEL_ERROR:    return 2;
-    case TRACE_LEVEL_WARNING:  return 3;
-    case TRACE_LEVEL_INFO:     return 4;
-    default:                return 5;
-    }
-}
-
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
 
 /**
  *******************************************************************************
@@ -323,9 +302,56 @@ static int to_syslog_level(trace_level_t lv)
     }
 }
 
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 
-#ifdef _WIN32
+/**
+ *******************************************************************************
+ *  @brief          トレースレベルを ETW レベルに変換する。
+ *  @param[in]      lv  変換元のトレースレベル。
+ *  @return         対応する ETW レベル値。
+ *******************************************************************************
+ */
+static int to_etw_level(trace_level_t lv)
+{
+    switch (lv)
+    {
+    case TRACE_LEVEL_CRITICAL: return 1;
+    case TRACE_LEVEL_ERROR:    return 2;
+    case TRACE_LEVEL_WARNING:  return 3;
+    case TRACE_LEVEL_INFO:     return 4;
+    default:                return 5;
+    }
+}
+
+#endif /* PLATFORM_ */
+
+#if defined(PLATFORM_LINUX)
+
+/**
+ *******************************************************************************
+ *  @brief          プロセスの実行ファイルパスからベース名を取得する。
+ *  @param[in,out]  buf       パス文字列を格納するバッファ。
+ *  @param[in]      buf_size  バッファのバイト数。
+ *  @return         ベース名へのポインタ。失敗時は FALLBACK_NAME。
+ *******************************************************************************
+ */
+static const char *get_process_basename(char *buf, size_t buf_size)
+{
+    ssize_t len;
+    const char *slash;
+
+    len = readlink("/proc/self/exe", buf, buf_size - 1);
+    if (len <= 0)
+    {
+        return FALLBACK_NAME;
+    }
+    buf[len] = '\0';
+
+    slash = strrchr(buf, '/');
+    return slash ? slash + 1 : buf;
+}
+
+#elif defined(PLATFORM_WINDOWS)
 
 /**
  *******************************************************************************
@@ -354,33 +380,7 @@ static const char *get_process_basename(char *buf, size_t buf_size)
     return sep ? sep + 1 : buf;
 }
 
-#else /* !_WIN32 */
-
-/**
- *******************************************************************************
- *  @brief          プロセスの実行ファイルパスからベース名を取得する。
- *  @param[in,out]  buf       パス文字列を格納するバッファ。
- *  @param[in]      buf_size  バッファのバイト数。
- *  @return         ベース名へのポインタ。失敗時は FALLBACK_NAME。
- *******************************************************************************
- */
-static const char *get_process_basename(char *buf, size_t buf_size)
-{
-    ssize_t len;
-    const char *slash;
-
-    len = readlink("/proc/self/exe", buf, buf_size - 1);
-    if (len <= 0)
-    {
-        return FALLBACK_NAME;
-    }
-    buf[len] = '\0';
-
-    slash = strrchr(buf, '/');
-    return slash ? slash + 1 : buf;
-}
-
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /**
  *******************************************************************************
@@ -390,11 +390,11 @@ static const char *get_process_basename(char *buf, size_t buf_size)
  */
 static void config_lock_exclusive(trace_logger_t *handle)
 {
-#ifdef _WIN32
-    AcquireSRWLockExclusive(&handle->config_rwlock);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_rwlock_wrlock(&handle->config_rwlock);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    AcquireSRWLockExclusive(&handle->config_rwlock);
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -405,11 +405,11 @@ static void config_lock_exclusive(trace_logger_t *handle)
  */
 static void config_unlock_exclusive(trace_logger_t *handle)
 {
-#ifdef _WIN32
-    ReleaseSRWLockExclusive(&handle->config_rwlock);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_rwlock_unlock(&handle->config_rwlock);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    ReleaseSRWLockExclusive(&handle->config_rwlock);
+#endif /* PLATFORM_ */
 }
 
 #define LOCK_TIMEOUT_MS 100
@@ -423,7 +423,17 @@ static void config_unlock_exclusive(trace_logger_t *handle)
  */
 static int config_lock_shared_timed(trace_logger_t *handle)
 {
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    struct timespec abs_timeout;
+    clock_gettime(CLOCK_REALTIME, &abs_timeout);
+    abs_timeout.tv_nsec += (long)LOCK_TIMEOUT_MS * 1000000L;
+    if (abs_timeout.tv_nsec >= 1000000000L)
+    {
+        abs_timeout.tv_sec++;
+        abs_timeout.tv_nsec -= 1000000000L;
+    }
+    return (pthread_rwlock_timedrdlock(&handle->config_rwlock, &abs_timeout) == 0) ? 0 : -1;
+#elif defined(PLATFORM_WINDOWS)
     DWORD deadline = GetTickCount() + (DWORD)LOCK_TIMEOUT_MS;
     while (!TryAcquireSRWLockShared(&handle->config_rwlock))
     {
@@ -434,17 +444,7 @@ static int config_lock_shared_timed(trace_logger_t *handle)
         SwitchToThread();
     }
     return 0;
-#else /* !_WIN32 */
-    struct timespec abs_timeout;
-    clock_gettime(CLOCK_REALTIME, &abs_timeout);
-    abs_timeout.tv_nsec += (long)LOCK_TIMEOUT_MS * 1000000L;
-    if (abs_timeout.tv_nsec >= 1000000000L)
-    {
-        abs_timeout.tv_sec++;
-        abs_timeout.tv_nsec -= 1000000000L;
-    }
-    return (pthread_rwlock_timedrdlock(&handle->config_rwlock, &abs_timeout) == 0) ? 0 : -1;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -455,11 +455,11 @@ static int config_lock_shared_timed(trace_logger_t *handle)
  */
 static void config_unlock_shared(trace_logger_t *handle)
 {
-#ifdef _WIN32
-    ReleaseSRWLockShared(&handle->config_rwlock);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     pthread_rwlock_unlock(&handle->config_rwlock);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    ReleaseSRWLockShared(&handle->config_rwlock);
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -481,11 +481,11 @@ static char *build_effective_name(const char *name, int64_t identifier)
 
     if (identifier == 0)
     {
-#ifdef _WIN32
-        return _strdup(base);
-#else
+#if defined(PLATFORM_LINUX)
         return strdup(base);
-#endif
+#elif defined(PLATFORM_WINDOWS)
+        return _strdup(base);
+#endif /* PLATFORM_ */
     }
 
     {
@@ -538,20 +538,20 @@ static void trace_handle_release_normal(trace_logger_t *handle)
         handle->file_handle = NULL;
     }
 
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    trace_syslog_sink_destroy(handle->syslog_handle);
+    if (handle->config_rwlock_initialized)
+    {
+        pthread_rwlock_destroy(&handle->config_rwlock);
+    }
+#elif defined(PLATFORM_WINDOWS)
     if (InterlockedDecrement(&s_trace_ref) == 0)
     {
         trace_etw_provider_destroy(s_etw_handle);
         s_etw_handle = NULL;
     }
     free(handle->service_name);
-#else /* !_WIN32 */
-    trace_syslog_sink_destroy(handle->syslog_handle);
-    if (handle->config_rwlock_initialized)
-    {
-        pthread_rwlock_destroy(&handle->config_rwlock);
-    }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     handle->lifecycle_state = TRACE_HANDLE_DISPOSED;
     free(handle);
@@ -571,18 +571,18 @@ static void trace_handle_release_on_unload(trace_logger_t *handle)
         handle->file_handle = NULL;
     }
 
-#ifdef _WIN32
-    free(handle->service_name);
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     trace_syslog_sink_destroy_on_unload(handle->syslog_handle);
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    free(handle->service_name);
+#endif /* PLATFORM_ */
 
     handle->lifecycle_state = TRACE_HANDLE_DISPOSED;
     free(handle);
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_logger_t *TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT trace_logger_t *TRACE_LOGGER_API
     trace_logger_create(void)
 {
     trace_logger_t *handle;
@@ -596,7 +596,42 @@ trace_logger_t *TRACE_LOGGER_API
 
     effective_name = get_process_basename(path_buf, sizeof(path_buf));
 
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    {
+        trace_syslog_sink_t *sp;
+
+        sp = trace_syslog_sink_create(effective_name, LOG_USER);
+        if (sp == NULL)
+        {
+            return NULL;
+        }
+
+        handle = (trace_logger_t *)malloc(sizeof(trace_logger_t));
+        if (handle == NULL)
+        {
+            trace_syslog_sink_destroy(sp);
+            return NULL;
+        }
+
+        handle->identifier                = 0;
+        handle->syslog_handle             = sp;
+        handle->os_level                  = TRACE_LOGGER_DEFAULT_OS_LEVEL;
+        handle->file_level                = TRACE_LOGGER_DEFAULT_FILE_LEVEL;
+        handle->file_handle               = NULL;
+        handle->stderr_level              = TRACE_LOGGER_DEFAULT_STDERR_LEVEL;
+        handle->running                   = 0;
+        handle->lifecycle_state           = TRACE_HANDLE_ACTIVE;
+        handle->config_rwlock_initialized = 0;
+
+        if (pthread_rwlock_init(&handle->config_rwlock, NULL) != 0)
+        {
+            trace_syslog_sink_destroy(sp);
+            free(handle);
+            return NULL;
+        }
+        handle->config_rwlock_initialized = 1;
+    }
+#elif defined(PLATFORM_WINDOWS)
     {
         char *svc;
 
@@ -636,56 +671,21 @@ trace_logger_t *TRACE_LOGGER_API
             }
         }
     }
-#else /* !_WIN32 */
-    {
-        trace_syslog_sink_t *sp;
-
-        sp = trace_syslog_sink_create(effective_name, LOG_USER);
-        if (sp == NULL)
-        {
-            return NULL;
-        }
-
-        handle = (trace_logger_t *)malloc(sizeof(trace_logger_t));
-        if (handle == NULL)
-        {
-            trace_syslog_sink_destroy(sp);
-            return NULL;
-        }
-
-        handle->identifier                = 0;
-        handle->syslog_handle             = sp;
-        handle->os_level                  = TRACE_LOGGER_DEFAULT_OS_LEVEL;
-        handle->file_level                = TRACE_LOGGER_DEFAULT_FILE_LEVEL;
-        handle->file_handle               = NULL;
-        handle->stderr_level              = TRACE_LOGGER_DEFAULT_STDERR_LEVEL;
-        handle->running                   = 0;
-        handle->lifecycle_state           = TRACE_HANDLE_ACTIVE;
-        handle->config_rwlock_initialized = 0;
-
-        if (pthread_rwlock_init(&handle->config_rwlock, NULL) != 0)
-        {
-            trace_syslog_sink_destroy(sp);
-            free(handle);
-            return NULL;
-        }
-        handle->config_rwlock_initialized = 1;
-    }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     if (registry_register_handle(handle) != 0)
     {
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+        trace_syslog_sink_destroy(handle->syslog_handle);
+        pthread_rwlock_destroy(&handle->config_rwlock);
+#elif defined(PLATFORM_WINDOWS)
         if (InterlockedDecrement(&s_trace_ref) == 0)
         {
             trace_etw_provider_destroy(s_etw_handle);
             s_etw_handle = NULL;
         }
         free(handle->service_name);
-#else /* !_WIN32 */
-        trace_syslog_sink_destroy(handle->syslog_handle);
-        pthread_rwlock_destroy(&handle->config_rwlock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         free(handle);
         return NULL;
     }
@@ -694,7 +694,7 @@ trace_logger_t *TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_start(trace_logger_t *handle)
 {
     if (!handle_is_active(handle))
@@ -720,7 +720,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_stop(trace_logger_t *handle)
 {
     if (!handle_is_active(handle))
@@ -761,12 +761,12 @@ static size_t utf8_safe_truncate(const char *s, size_t pos)
  */
 static int write_to_provider(trace_logger_t *handle, trace_level_t level, const char *msg)
 {
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    return trace_syslog_sink_write(handle->syslog_handle, to_syslog_level(level), msg);
+#elif defined(PLATFORM_WINDOWS)
     return trace_etw_provider_write(s_etw_handle, to_etw_level(level),
                               handle->service_name, msg);
-#else /* !_WIN32 */
-    return trace_syslog_sink_write(handle->syslog_handle, to_syslog_level(level), msg);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -801,7 +801,24 @@ static void write_stderr_entry(trace_level_t level, const char *msg)
     static const char lc_table[] = {'C', 'E', 'W', 'I', 'V'};
     char lc;
 
-#ifdef _WIN32
+#if defined(PLATFORM_LINUX)
+    struct timespec tsp;
+    struct tm tm_val;
+    clock_gettime(CLOCK_REALTIME, &tsp);
+    gmtime_r(&tsp.tv_sec, &tm_val);
+#if defined(COMPILER_GCC)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif /* COMPILER_GCC */
+    snprintf(ts, sizeof(ts),
+             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+             tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
+             tm_val.tm_hour, tm_val.tm_min, tm_val.tm_sec,
+             (int)(tsp.tv_nsec / 1000000));
+#if defined(COMPILER_GCC)
+#pragma GCC diagnostic pop
+#endif /* COMPILER_GCC */
+#elif defined(PLATFORM_WINDOWS)
     SYSTEMTIME st;
     GetSystemTime(&st);
     snprintf(ts, sizeof(ts),
@@ -809,20 +826,7 @@ static void write_stderr_entry(trace_level_t level, const char *msg)
              (int)st.wYear, (int)st.wMonth, (int)st.wDay,
              (int)st.wHour, (int)st.wMinute, (int)st.wSecond,
              (int)st.wMilliseconds);
-#else /* !_WIN32 */
-    struct timespec tsp;
-    struct tm tm_val;
-    clock_gettime(CLOCK_REALTIME, &tsp);
-    gmtime_r(&tsp.tv_sec, &tm_val);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-    snprintf(ts, sizeof(ts),
-             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-             tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
-             tm_val.tm_hour, tm_val.tm_min, tm_val.tm_sec,
-             (int)(tsp.tv_nsec / 1000000));
-#pragma GCC diagnostic pop
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     lc = ((int)level < (int)TRACE_LEVEL_NONE) ? lc_table[(int)level] : 'V';
     fprintf(stderr, "%s %c %s\n", ts, lc, msg);
@@ -861,7 +865,7 @@ static int write_dual(trace_logger_t *handle, trace_level_t level, const char *m
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_write(trace_logger_t *handle, trace_level_t level, const char *message)
 {
     const char *msg;
@@ -903,7 +907,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_writef(trace_logger_t *handle, trace_level_t level, const char *format, ...)
 {
     va_list args;
@@ -1028,7 +1032,7 @@ static int hex_write_impl(trace_logger_t *handle, trace_level_t level,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_write_hex(trace_logger_t *handle, trace_level_t level,
                     const void *data, size_t size, const char *message)
 {
@@ -1058,7 +1062,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_write_hexf(trace_logger_t *handle, trace_level_t level,
                      const void *data, size_t size, const char *format, ...)
 {
@@ -1101,7 +1105,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-void TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT void TRACE_LOGGER_API
     trace_logger_destroy(trace_logger_t *handle)
 {
     if (handle == NULL)
@@ -1119,7 +1123,7 @@ void TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_set_name(trace_logger_t *handle, const char *name, int64_t identifier)
 {
     char *effective;
@@ -1147,13 +1151,7 @@ int TRACE_LOGGER_API
         return -1;
     }
 
-#ifdef _WIN32
-    free(handle->service_name);
-    handle->service_name = effective;
-    handle->identifier   = identifier;
-    config_unlock_exclusive(handle);
-    return 0;
-#else /* !_WIN32 */
+#if defined(PLATFORM_LINUX)
     {
         int rc = trace_syslog_sink_rename(handle->syslog_handle, effective);
         free(effective);
@@ -1166,11 +1164,17 @@ int TRACE_LOGGER_API
         config_unlock_exclusive(handle);
         return 0;
     }
-#endif /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
+    free(handle->service_name);
+    handle->service_name = effective;
+    handle->identifier   = identifier;
+    config_unlock_exclusive(handle);
+    return 0;
+#endif /* PLATFORM_ */
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_set_os_level(trace_logger_t *handle, trace_level_t level)
 {
     if (!handle_is_active(handle))
@@ -1191,7 +1195,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_set_file_sink(trace_logger_t *handle, const char *path,
                          trace_level_t level, size_t max_bytes, int generations)
 {
@@ -1230,7 +1234,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-int TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level)
 {
     if (!handle_is_active(handle))
@@ -1251,7 +1255,7 @@ int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_level_t TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
     trace_logger_get_os_level(trace_logger_t *handle)
 {
     trace_level_t lv;
@@ -1275,7 +1279,7 @@ trace_level_t TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_level_t TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
     trace_logger_get_file_level(trace_logger_t *handle)
 {
     trace_level_t lv;
@@ -1299,7 +1303,7 @@ trace_level_t TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-trace_level_t TRACE_LOGGER_API
+TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
     trace_logger_get_stderr_level(trace_logger_t *handle)
 {
     trace_level_t lv;
@@ -1328,9 +1332,9 @@ void trace_registry_dispose_all_on_unload(int process_terminating)
     size_t count;
     size_t i;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     (void)process_terminating;
-#endif /* !_WIN32 */
+#endif /* PLATFORM_LINUX */
 
     if (s_trace_registry.shutdown_started)
     {
@@ -1359,14 +1363,14 @@ void trace_registry_dispose_all_on_unload(int process_terminating)
         trace_handle_release_on_unload(handle);
     }
 
-#ifdef _WIN32
+#if defined(PLATFORM_WINDOWS)
     if (s_etw_handle != NULL)
     {
         trace_etw_provider_destroy_on_unload(s_etw_handle, process_terminating);
         s_etw_handle = NULL;
     }
     s_trace_ref = 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */
 
     free(items);
 }

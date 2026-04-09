@@ -14,7 +14,7 @@
 #include <util/runtime/symbol_loader.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int symbol_loader_is_default(symbol_loader_entry_t *fobj)
+SYMBOL_LOADER_EXPORT int SYMBOL_LOADER_API symbol_loader_is_default(symbol_loader_entry_t *fobj)
 {
     if (fobj->resolved == 0)
     {

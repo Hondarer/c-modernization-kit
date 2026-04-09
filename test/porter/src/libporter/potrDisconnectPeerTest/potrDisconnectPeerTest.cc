@@ -1,6 +1,8 @@
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
     #define _HAS_STD_BYTE 0
-#endif
+#endif /* PLATFORM_WINDOWS */
 #include <testfw.h>
 #include <mock_potrLog.h>
 #include <mock_potrPeerTable.h>
@@ -9,9 +11,9 @@
 #include <porter.h>
 #include <potrContext.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <pthread.h>
-#endif
+#endif /* PLATFORM_LINUX */
 #include <string.h>
 
 using namespace testing;
@@ -43,11 +45,11 @@ protected:
     void SetUp() override
     {
         memset(&ctx, 0, sizeof(ctx));
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_init(&ctx.peers_mutex, nullptr);
-#else
+#elif defined(PLATFORM_WINDOWS)
         InitializeCriticalSection(&ctx.peers_mutex);
-#endif
+#endif /* PLATFORM_ */
         ctx.service.service_id = 42;
 
         memset(&peer_ctx, 0, sizeof(peer_ctx));
@@ -58,11 +60,11 @@ protected:
 
     void TearDown() override
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_destroy(&ctx.peers_mutex);
-#else
+#elif defined(PLATFORM_WINDOWS)
         DeleteCriticalSection(&ctx.peers_mutex);
-#endif
+#endif /* PLATFORM_ */
     }
 
     struct PotrContext_ ctx;

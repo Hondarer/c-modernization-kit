@@ -18,7 +18,9 @@
  *******************************************************************************
  */
 
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
 
     #include <windows.h>
     #include <bcrypt.h>
@@ -231,4 +233,4 @@ int potr_passphrase_to_key(uint8_t *key,
     return BCRYPT_SUCCESS(status) ? 0 : -1;
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */

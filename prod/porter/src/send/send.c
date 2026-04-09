@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           send.c
  *  @brief          送信テストコマンド。
@@ -40,6 +40,7 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
@@ -47,9 +48,9 @@
 #include <string.h>
 #include <util/fs/path_max.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <unistd.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_LINUX */
 
 #include <porter.h>
 #include <util/console/console.h>
@@ -115,7 +116,7 @@ static int is_text_data(const void *data, size_t len)
 static int save_to_temp_file(const void *data, size_t len,
                              char *path_out, size_t path_size)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     int fd;
     ssize_t written;
 
@@ -132,7 +133,7 @@ static int save_to_temp_file(const void *data, size_t len,
         return -1;
     }
     return 0;
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     char tmp_dir[PLATFORM_PATH_MAX];
     FILE *fp = NULL;
     size_t written;
@@ -156,10 +157,10 @@ static int save_to_temp_file(const void *data, size_t len,
         return -1;
     }
     return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 /**
  *******************************************************************************
  *  @brief          Linux SIGINT シグナルハンドラー。
@@ -174,7 +175,7 @@ static void sig_handler(int sig)
     fflush(stdout);
     close(STDIN_FILENO); /* fgets のブロックを解除する */
 }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 /**
  *******************************************************************************
  *  @brief          Windows コンソール制御イベントハンドラー。
@@ -207,7 +208,7 @@ static BOOL WINAPI console_ctrl_handler(DWORD type)
 
     return FALSE;
 }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /**
  *******************************************************************************
@@ -348,11 +349,11 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
     unsigned char *buf;
     size_t read_count;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     fp = fopen(path, "rb");
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     fopen_s(&fp, path, "rb");
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     if (fp == NULL)
     {
@@ -495,11 +496,11 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     signal(SIGINT, sig_handler);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     printf("サービス %" PRId64 " を開いています... (設定: %s)\n", service_id, config_path);
     fflush(stdout);

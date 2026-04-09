@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
 
 #include <windows.h>
 #include <evntrace.h>
@@ -10,7 +12,7 @@
 
 #ifndef INVALID_PROCESSTRACE_HANDLE
 #define INVALID_PROCESSTRACE_HANDLE ((TRACEHANDLE)INVALID_HANDLE_VALUE)
-#endif
+#endif /* INVALID_PROCESSTRACE_HANDLE */
 
 /**
  *  @brief  ETW セッション構造体 (内部定義)。
@@ -166,7 +168,7 @@ static void set_status(int *out_status, int value)
     }
 }
 
-int TRACE_ETW_API
+TRACE_ETW_EXPORT int TRACE_ETW_API
     trace_etw_session_check_access(void)
 {
     static const wchar_t probe_name[] = L"EtwUtil_AccessProbe";
@@ -211,7 +213,7 @@ int TRACE_ETW_API
     return result;
 }
 
-trace_etw_session_t *TRACE_ETW_API
+TRACE_ETW_EXPORT trace_etw_session_t *TRACE_ETW_API
     trace_etw_session_start(const char *session_name,
                       const char *provider_guid_str,
                       trace_etw_event_callback_t callback,
@@ -368,7 +370,7 @@ cleanup:
     return NULL;
 }
 
-void TRACE_ETW_API
+TRACE_ETW_EXPORT void TRACE_ETW_API
     trace_etw_session_stop(trace_etw_session_t *session)
 {
     if (session == NULL)
@@ -401,4 +403,4 @@ void TRACE_ETW_API
     free(session);
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */

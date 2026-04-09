@@ -11,12 +11,13 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <time.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_LINUX */
 
 #include <porter_const.h>
 
@@ -25,7 +26,7 @@
 /* --------------------------------------------------------------------------
  * プラットフォーム別 ミューテックス・条件変数 ラッパーマクロ
  * -------------------------------------------------------------------------- */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #define POTR_MUTEX_INIT(m)     pthread_mutex_init((m), NULL)
     #define POTR_MUTEX_LOCK(m)     pthread_mutex_lock(m)
     #define POTR_MUTEX_UNLOCK(m)   pthread_mutex_unlock(m)
@@ -35,7 +36,7 @@
     #define POTR_COND_SIGNAL(c)    pthread_cond_signal(c)
     #define POTR_COND_BROADCAST(c) pthread_cond_broadcast(c)
     #define POTR_COND_DESTROY(c)   pthread_cond_destroy(c)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #define POTR_MUTEX_INIT(m)     InitializeCriticalSection(m)
     #define POTR_MUTEX_LOCK(m)     EnterCriticalSection(m)
     #define POTR_MUTEX_UNLOCK(m)   LeaveCriticalSection(m)
@@ -45,7 +46,7 @@
     #define POTR_COND_SIGNAL(c)    WakeConditionVariable(c)
     #define POTR_COND_BROADCAST(c) WakeAllConditionVariable(c)
     #define POTR_COND_DESTROY(c)   ((void)0) /* Windows は破棄不要 */
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* doxygen コメントは、ヘッダに記載 */
 int potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload)
@@ -206,7 +207,7 @@ int potr_send_queue_peek_timed(PotrSendQueue *q, PotrPayloadElem *out,
 
     if (q->count == 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         struct timespec abs_ts;
         clock_gettime(CLOCK_REALTIME, &abs_ts);
         abs_ts.tv_sec  += (time_t)(timeout_ms / 1000U);
@@ -217,9 +218,9 @@ int potr_send_queue_peek_timed(PotrSendQueue *q, PotrPayloadElem *out,
             abs_ts.tv_nsec -= 1000000000L;
         }
         pthread_cond_timedwait(&q->not_empty, &q->mutex, &abs_ts);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         SleepConditionVariableCS(&q->not_empty, &q->mutex, (DWORD)timeout_ms);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     if (q->count == 0)

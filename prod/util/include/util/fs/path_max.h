@@ -23,6 +23,8 @@
 #ifndef PATH_MAX_H
 #define PATH_MAX_H
 
+#include <util/base/platform.h>
+
 #ifdef DOXYGEN
     /**
      *  @def            PLATFORM_PATH_MAX
@@ -32,19 +34,19 @@
      */
     #define PLATFORM_PATH_MAX 4096
 #else /* !DOXYGEN */
-    #ifndef _WIN32
+    #if defined(PLATFORM_LINUX)
         #include <limits.h>
         #define PLATFORM_PATH_MAX PATH_MAX
-    #else /* _WIN32 */
+    #elif defined(PLATFORM_WINDOWS)
         #ifndef WIN32_LEAN_AND_MEAN
             #define WIN32_LEAN_AND_MEAN
-        #endif
+        #endif /* WIN32_LEAN_AND_MEAN */
         #include <windows.h>
         #ifdef byte
             #undef byte /* C++17 std::byte と Windows SDK byte typedef の競合を解消 */
-        #endif
+        #endif /* byte */
         #define PLATFORM_PATH_MAX MAX_PATH
-    #endif /* _WIN32 */
+    #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */
 
 #endif /* PATH_MAX_H */

@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           potrOpenService.c
  *  @brief          potrOpenService 関数の実装。
@@ -11,20 +11,21 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
     #include <time.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter_const.h>
 #include <porter.h>
@@ -56,12 +57,12 @@ static PotrSocket open_socket_unicast(struct in_addr bind_addr, uint16_t port)
         return POTR_INVALID_SOCKET;
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                (const char *)&reuse, sizeof(reuse));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family      = AF_INET;
@@ -70,11 +71,11 @@ static PotrSocket open_socket_unicast(struct in_addr bind_addr, uint16_t port)
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return POTR_INVALID_SOCKET;
     }
 
@@ -84,7 +85,7 @@ static PotrSocket open_socket_unicast(struct in_addr bind_addr, uint16_t port)
 /* セッション識別子と開始時刻を生成してコンテキストに格納する。 */
 static void generate_session(struct PotrContext_ *ctx)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec ts;
 
     srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
@@ -93,7 +94,7 @@ static void generate_session(struct PotrContext_ *ctx)
     clock_gettime(CLOCK_REALTIME, &ts);
     ctx->session_tv_sec  = (int64_t)ts.tv_sec;
     ctx->session_tv_nsec = (int32_t)ts.tv_nsec;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     FILETIME       ft;
     ULARGE_INTEGER uli;
 
@@ -106,7 +107,7 @@ static void generate_session(struct PotrContext_ *ctx)
     /* FILETIME: 100ns 単位、1601-01-01 起点。Unix エポックとの差: 11644473600 秒 */
     ctx->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
     ctx->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* マルチキャストソケットを作成して bind・グループ参加する。
@@ -137,12 +138,12 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def,
         return POTR_INVALID_SOCKET;
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                (const char *)&reuse, sizeof(reuse));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family      = AF_INET;
@@ -151,11 +152,11 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def,
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return POTR_INVALID_SOCKET;
     }
 
@@ -163,41 +164,41 @@ static PotrSocket open_socket_multicast(const PotrServiceDef *def,
     memset(&mreq, 0, sizeof(mreq));
     if (parse_ipv4_addr(def->multicast_group, &mreq.imr_multiaddr) != POTR_SUCCESS)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return POTR_INVALID_SOCKET;
     }
     mreq.imr_interface = src_if;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
                    &mreq, sizeof(mreq)) < 0)
     {
         close(sock);
         return POTR_INVALID_SOCKET;
     }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
                    (const char *)&mreq, sizeof(mreq)) < 0)
     {
         closesocket(sock);
         return POTR_INVALID_SOCKET;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     /* 送信者: マルチキャスト送信インターフェースを設定する */
     if (!is_receiver)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
                    &src_if, sizeof(src_if));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF,
                    (const char *)&src_if, sizeof(src_if));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     return sock;
@@ -234,15 +235,15 @@ static PotrSocket open_socket_broadcast(uint16_t       src_port,
         return POTR_INVALID_SOCKET;
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &bcast, sizeof(bcast));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                (const char *)&reuse, sizeof(reuse));
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST,
                (const char *)&bcast, sizeof(bcast));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -259,11 +260,11 @@ static PotrSocket open_socket_broadcast(uint16_t       src_port,
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return POTR_INVALID_SOCKET;
     }
 
@@ -278,11 +279,11 @@ static void cleanup_sockets(struct PotrContext_ *ctx)
     {
         if (ctx->sock[i] != POTR_INVALID_SOCKET)
         {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             close(ctx->sock[i]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             closesocket(ctx->sock[i]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             ctx->sock[i] = POTR_INVALID_SOCKET;
         }
     }
@@ -310,11 +311,11 @@ static void ctx_cleanup(struct PotrContext_ *ctx)
         {
             if (ctx->tcp_listen_sock[i] != POTR_INVALID_SOCKET)
             {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 close(ctx->tcp_listen_sock[i]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 closesocket(ctx->tcp_listen_sock[i]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             }
         }
     }
@@ -324,11 +325,11 @@ static void ctx_cleanup(struct PotrContext_ *ctx)
         {
             if (ctx->tcp_conn_fd[i] != POTR_INVALID_SOCKET)
             {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 close(ctx->tcp_conn_fd[i]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 closesocket(ctx->tcp_conn_fd[i]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             }
         }
     }
@@ -375,12 +376,12 @@ static int open_socket_tcp_receiver(struct PotrContext_ *ctx, int path_idx)
         return POTR_ERROR;
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                (const char *)&reuse, sizeof(reuse));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family      = AF_INET;
@@ -389,21 +390,21 @@ static int open_socket_tcp_receiver(struct PotrContext_ *ctx, int path_idx)
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return POTR_ERROR;
     }
 
     if (listen(sock, SOMAXCONN) < 0)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return POTR_ERROR;
     }
 
@@ -480,7 +481,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         return POTR_ERROR;
     }
 
-#ifdef _WIN32
+#if defined(PLATFORM_WINDOWS)
     {
         WSADATA wsa;
         if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -488,7 +489,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             return POTR_ERROR;
         }
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */
 
     ctx = (struct PotrContext_ *)malloc(sizeof(struct PotrContext_));
     if (ctx == NULL)
@@ -1188,7 +1189,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     {
         /* tcp_state_mutex / tcp_state_cv / tcp_send_mutex[] / recv_window_mutex /
            health_mutex[] / health_wakeup[] を初期化 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         {
             int i;
             pthread_mutex_init(&ctx->tcp_state_mutex, NULL);
@@ -1201,7 +1202,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             }
             pthread_mutex_init(&ctx->recv_window_mutex, NULL);
         }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         {
             int i;
             InitializeCriticalSection(&ctx->tcp_state_mutex);
@@ -1214,7 +1215,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             }
             InitializeCriticalSection(&ctx->recv_window_mutex);
         }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         /* SENDER または TCP_BIDIR: 送信キューを初期化 (connect スレッドが reconnect 時に destroy+init する) */
         if (role == POTR_ROLE_SENDER
@@ -1224,7 +1225,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                                      (size_t)ctx->global.send_queue_depth,
                                      ctx->global.max_payload) != POTR_SUCCESS)
             {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 {
                     int i;
                     pthread_mutex_destroy(&ctx->tcp_state_mutex);
@@ -1233,7 +1234,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                         pthread_mutex_destroy(&ctx->tcp_send_mutex[i]);
                     pthread_mutex_destroy(&ctx->recv_window_mutex);
                 }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 {
                     int i;
                     DeleteCriticalSection(&ctx->tcp_state_mutex);
@@ -1241,7 +1242,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                         DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
                     DeleteCriticalSection(&ctx->recv_window_mutex);
                 }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
@@ -1254,7 +1255,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             {
                 potr_send_queue_destroy(&ctx->send_queue);
             }
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             {
                 int i;
                 pthread_mutex_destroy(&ctx->tcp_state_mutex);
@@ -1263,7 +1264,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                     pthread_mutex_destroy(&ctx->tcp_send_mutex[i]);
                 pthread_mutex_destroy(&ctx->recv_window_mutex);
             }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             {
                 int i;
                 DeleteCriticalSection(&ctx->tcp_state_mutex);
@@ -1271,7 +1272,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                     DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
                 DeleteCriticalSection(&ctx->recv_window_mutex);
             }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             ctx_cleanup(ctx);
             return POTR_ERROR;
         }

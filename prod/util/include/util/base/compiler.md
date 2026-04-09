@@ -1,7 +1,7 @@
 # compiler - コンパイラ差異の吸収
 
 `compiler.h` は、コンパイラごとの差異を 1 か所に集約するための基盤ヘッダーです。  
-呼び出し側が `_MSC_VER` や `__clang__` のような処理系依存マクロを各所で直接判定しなくても、共通マクロ経由で安全に分岐できるようにします。
+呼び出し側が `__GNUC__` や `_MSC_VER` のような処理系依存マクロを各所で直接判定しなくても、共通マクロ経由で安全に分岐できるようにします。
 
 ## 目的
 
@@ -20,9 +20,8 @@
 
 ### コンパイラ判定
 
-- `COMPILER_MSVC`
-- `COMPILER_CLANG`
 - `COMPILER_GCC`
+- `COMPILER_MSVC`
 - `COMPILER_UNKNOWN`
 - `COMPILER_NAME`
 - `COMPILER_VERSION`
@@ -44,7 +43,7 @@
 - 呼び出し側は共通マクロを見る
 - 処理系固有の属性は共通マクロへ包む
 
-特に Clang は GCC 互換のマクロも定義するため、判定順序には意味があります。  
+Clang はサポート対象外として `COMPILER_UNKNOWN` に分類します。  
 新しい分岐を追加する場合も、呼び出し側で直接 `__GNUC__` などを増やすのではなく、まず `compiler.h` に寄せる方が安全です。
 
 また、`FORCE_INLINE` は「強制命令」ではなく、コンパイラへの強いヒントです。  
@@ -59,15 +58,13 @@
 
 void print_build_compiler(void)
 {
-#if defined(COMPILER_MSVC)
-    /* MSVC 向け処理 */
-#elif defined(COMPILER_CLANG)
-    /* Clang 向け処理 */
-#elif defined(COMPILER_GCC)
+#if defined(COMPILER_GCC)
     /* GCC 向け処理 */
-#else
+#elif defined(COMPILER_MSVC)
+    /* MSVC 向け処理 */
+#else /* !COMPILER_GCC && !COMPILER_MSVC */
     /* 未対応処理系向けの保守的な処理 */
-#endif
+#endif /* COMPILER_ */
 }
 ```
 

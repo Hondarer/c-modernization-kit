@@ -24,7 +24,9 @@
  *******************************************************************************
  */
 
-#ifdef _WIN32
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_WINDOWS)
 
 #include "tcpServer.h"   /* WIN32_LEAN_AND_MEAN / windows.h / winsock2.h / ws2tcpip.h を内包 */
 #include <util/fs/path_max.h>
@@ -519,4 +521,4 @@ void run_prefork_server(int port, int num_workers, int conns_per_worker) {
     free(events);
 }
 
-#endif /* _WIN32 */
+#endif /* PLATFORM_WINDOWS */

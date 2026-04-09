@@ -4,9 +4,9 @@
 
 #include <util/fs/path_max.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <unistd.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_LINUX */
 
 class override_sampleTest : public Test
 {
@@ -14,21 +14,21 @@ class override_sampleTest : public Test
     string binary_path;
     string lib_path;
     string config_path;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     string mock_lib_path;
-#endif /* _WIN32 */
+#endif /* PLATFORM_LINUX */
 
     void SetUp() override
     {
         string workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
         lib_path = workspace_root + "/prod/override-sample/lib"
                  + ":" + workspace_root + "/prod/util/lib";
         mock_lib_path = workspace_root + "/testfw/lib/" TARGET_ARCH "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.txt";
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\prod\\override-sample\\bin\\override-sample.exe";
         lib_path = workspace_root + "\\prod\\override-sample\\lib"
                  + ";" + workspace_root + "\\prod\\util\\lib";
@@ -42,7 +42,7 @@ class override_sampleTest : public Test
             }
             config_path = string(tmpu8) + "libbase_extdef.txt";
         }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         resetTraceLevel();
         setTraceLevel("processController", TRACE_DETAIL);
     }
@@ -56,22 +56,22 @@ class override_sampleTest : public Test
     /** 定義ファイルを削除する。存在しない場合は無視する。 */
     void removeConfigFile()
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         unlink(config_path.c_str());
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         DeleteFileA(config_path.c_str());
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     /** 指定した内容で定義ファイルを作成する。 */
     void createConfigFile(const string &content)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         FILE *fp = fopen(config_path.c_str(), "w");
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         FILE *fp = nullptr;
         fopen_s(&fp, config_path.c_str(), "w");
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         ASSERT_NE(nullptr, fp) << "定義ファイルの作成に失敗しました: " << config_path;
         fputs(content.c_str(), fp);
         fclose(fp);
@@ -83,13 +83,13 @@ class override_sampleTest : public Test
     ProcessOptions makeOpts()
     {
         ProcessOptions opts;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         opts.env_set["LD_LIBRARY_PATH"] = lib_path;
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         char cur_path[32768] = {0};
         GetEnvironmentVariableA("PATH", cur_path, sizeof(cur_path));
         opts.env_set["PATH"] = lib_path + ";" + string(cur_path);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         return opts;
     }
 };
@@ -153,9 +153,9 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Arrange
     removeConfigFile(); // [手順] - 定義ファイルを削除してデフォルト状態を保証する。
     ProcessOptions opts = makeOpts();
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     opts.preload_lib = mock_lib_path; // [手順] - LD_PRELOAD で syslog_mock.so を挿入する。
-#endif                                /* _WIN32 */
+#endif /* PLATFORM_LINUX */
 
     // Pre-Assert
 

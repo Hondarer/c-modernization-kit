@@ -44,7 +44,7 @@ symbol_loader_entry_t *const fobj_array_libbase[] = {
 const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_array_libbase[0]);
 
 /* doxygen コメントは、ヘッダに記載 */
-int symbol_loader_info_libbase()
+BASE_EXPORT int BASE_API symbol_loader_info_libbase()
 {
     printf("- congigpath: %s\n", symbol_loader_configpath);
     return symbol_loader_info(fobj_array_libbase, fobj_length_libbase);

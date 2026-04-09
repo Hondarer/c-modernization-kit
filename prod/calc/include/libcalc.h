@@ -21,53 +21,35 @@
 
 #ifdef DOXYGEN
 
-/**
- *  @def            CALC_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                              | 値                       |
- *  | ------------------------------------------------- | ------------------------ |
- *  | Linux (非 Windows)                                | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時               | (空)                     |
- *  | Windows / `CALC_STATIC` 定義時 (静的リンク)       | (空)                     |
- *  | Windows / `CALC_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
- *  | Windows / `CALC_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
- */
-#define CALC_EXPORT
+    /**
+     *  @def            CALC_EXPORT
+     *  @brief          DLL エクスポート/インポート制御マクロ。
+     *  @details        ビルド条件に応じて以下の値を取ります。
+     *
+     *  | 条件                                              | 値                       |
+     *  | ------------------------------------------------- | ------------------------ |
+     *  | Linux (非 Windows)                                | (空)                     |
+     *  | Windows / `__INTELLISENSE__` 定義時               | (空)                     |
+     *  | Windows / `CALC_STATIC` 定義時 (静的リンク)       | (空)                     |
+     *  | Windows / `CALC_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
+     *  | Windows / `CALC_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+     */
+    #define CALC_EXPORT
 
-/**
- *  @def            CALC_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *                  Linux (非 Windows) 環境では空に展開されます。\n
- *                  既に定義済みの場合は再定義されません。
- */
-#define CALC_API
+    /**
+     *  @def            CALC_API
+     *  @brief          呼び出し規約マクロ。
+     *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+     *                  Linux (非 Windows) 環境では空に展開されます。
+     */
+    #define CALC_API
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define CALC_EXPORT
-    #define CALC_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef CALC_STATIC
-            #ifdef CALC_EXPORTS
-                #define CALC_EXPORT __declspec(dllexport)
-            #else /* !CALC_EXPORTS */
-                #define CALC_EXPORT __declspec(dllimport)
-            #endif /* CALC_EXPORTS */
-        #else      /* CALC_STATIC */
-            #define CALC_EXPORT
-        #endif /* CALC_STATIC */
-    #else      /* __INTELLISENSE__ */
-        #define CALC_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef CALC_API
-        #define CALC_API __stdcall
-    #endif /* CALC_API */
-#endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX CALC
+    #include <util/base/dll_exports.h>
+    #define CALC_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define CALC_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

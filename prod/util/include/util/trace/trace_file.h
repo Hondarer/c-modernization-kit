@@ -17,6 +17,7 @@
  */
 
 #include <stddef.h>
+#include <util/base/platform.h>
 #include <util/trace/trace.h>
 
 /* ===== DLL エクスポート / インポート制御マクロ ===== */
@@ -49,27 +50,10 @@
 
 #else /* !DOXYGEN */
 
-#ifndef _WIN32
-    #define TRACE_FILE_EXPORT
-    #define TRACE_FILE_API
-#else /* _WIN32 */
-    #ifndef __INTELLISENSE__
-        #ifndef TRACE_FILE_STATIC
-            #ifdef TRACE_FILE_EXPORTS
-                #define TRACE_FILE_EXPORT __declspec(dllexport)
-            #else /* !TRACE_FILE_EXPORTS */
-                #define TRACE_FILE_EXPORT __declspec(dllimport)
-            #endif /* TRACE_FILE_EXPORTS */
-        #else      /* TRACE_FILE_STATIC */
-            #define TRACE_FILE_EXPORT
-        #endif /* TRACE_FILE_STATIC */
-    #else      /* __INTELLISENSE__ */
-        #define TRACE_FILE_EXPORT
-    #endif /* __INTELLISENSE__ */
-    #ifndef TRACE_FILE_API
-        #define TRACE_FILE_API __stdcall
-    #endif /* TRACE_FILE_API */
-#endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX TRACE_FILE
+    #include <util/base/dll_exports.h>
+    #define TRACE_FILE_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define TRACE_FILE_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

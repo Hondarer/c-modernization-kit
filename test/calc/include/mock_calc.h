@@ -1,5 +1,5 @@
-#ifndef _MOCK_CALC_H
-#define _MOCK_CALC_H
+#ifndef MOCK_CALC_H
+#define MOCK_CALC_H
 
 #include <testfw.h>
 #include <libcalc.h>
@@ -15,4 +15,4 @@ public:
 
 extern Mock_calc *_mock_calc;
 
-#endif // _MOCK_CALC_H
+#endif /* MOCK_CALC_H */

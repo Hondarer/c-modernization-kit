@@ -5,11 +5,11 @@
 #include <string.h>
 
 /* プラットフォームに応じたモックメソッド名を定義 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 #define STAT_MOCK_METHOD stat
-#else
+#elif defined(PLATFORM_WINDOWS)
 #define STAT_MOCK_METHOD stat64
-#endif
+#endif /* PLATFORM_ */
 
 class statfTest : public Test
 {

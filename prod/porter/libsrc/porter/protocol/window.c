@@ -11,14 +11,15 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <arpa/inet.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter_const.h>
 

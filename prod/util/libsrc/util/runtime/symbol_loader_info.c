@@ -18,7 +18,8 @@
 #include <stdio.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int symbol_loader_info(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length)
+SYMBOL_LOADER_EXPORT int SYMBOL_LOADER_API
+    symbol_loader_info(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length)
 {
     int rtc = 0;
     size_t fobj_index;

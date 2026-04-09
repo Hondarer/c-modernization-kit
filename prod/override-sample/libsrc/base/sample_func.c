@@ -17,7 +17,7 @@
 #include <libbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-int BASE_API sample_func(const int a, const int b, int *result)
+BASE_EXPORT int BASE_API sample_func(const int a, const int b, int *result)
 {
     if (result == NULL)
     {

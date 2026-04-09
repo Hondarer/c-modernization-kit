@@ -1,5 +1,8 @@
+#include <util/base/platform.h>
 #include <porter_test_helper.h>
-#include <testfw.h>/**
+#include <testfw.h>
+
+/**
  * テスト用の一時バイナリファイルを作成するヘルパー。
  * デストラクタでファイルを削除する。
  */
@@ -10,7 +13,7 @@ class TempBinaryFile
 
     string create(const vector<uint8_t> &content)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         char tmpl[] = "/tmp/porter_test_bin_XXXXXX";
         int fd = mkstemp(tmpl);
         if (fd == -1)
@@ -24,7 +27,7 @@ class TempBinaryFile
             return "";
         }
         path_ = tmpl;
-#else
+#elif defined(PLATFORM_WINDOWS)
         char tmp_dir[PLATFORM_PATH_MAX] = {};
         GetTempPathA(sizeof(tmp_dir), tmp_dir);
         char tmp_file[PLATFORM_PATH_MAX] = {};
@@ -38,7 +41,7 @@ class TempBinaryFile
         }
         fwrite(content.data(), 1, content.size(), fp);
         fclose(fp);
-#endif
+#endif /* PLATFORM_ */
         return path_;
     }
 
@@ -46,11 +49,11 @@ class TempBinaryFile
     {
         if (!path_.empty())
         {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             unlink(path_.c_str());
-#else
+#elif defined(PLATFORM_WINDOWS)
             DeleteFileA(path_.c_str());
-#endif
+#endif /* PLATFORM_ */
         }
     }
 
@@ -73,17 +76,17 @@ class porterSendRecvTest : public Test
     {
         string ws = findWorkspaceRoot();
         ASSERT_FALSE(ws.empty());
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         recv_path = ws + "/prod/porter/bin/recv";
         send_path = ws + "/prod/porter/bin/send";
         lib_path = ws + "/prod/porter/lib"
                  + ":" + ws + "/prod/util/lib";
-#else
+#elif defined(PLATFORM_WINDOWS)
         recv_path = ws + "\\prod\\porter\\bin\\recv.exe";
         send_path = ws + "\\prod\\porter\\bin\\send.exe";
         lib_path = ws + "\\prod\\porter\\lib"
                  + ";" + ws + "\\prod\\util\\lib";
-#endif
+#endif /* PLATFORM_ */
         resetTraceLevel();
         setTraceLevel("processController", TRACE_DETAIL);
     }
@@ -110,13 +113,13 @@ class porterSendRecvTest : public Test
     ProcessOptions makeOpts()
     {
         ProcessOptions opts;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         opts.env_set["LD_LIBRARY_PATH"] = lib_path;
-#else
+#elif defined(PLATFORM_WINDOWS)
         char cur[32768] = {0};
         GetEnvironmentVariableA("PATH", cur, sizeof(cur));
         opts.env_set["PATH"] = lib_path + ";" + string(cur);
-#endif
+#endif /* PLATFORM_ */
         return opts;
     }
 };

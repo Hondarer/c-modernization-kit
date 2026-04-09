@@ -6,28 +6,29 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <util/base/platform.h>
 
 /* プラットフォーム固有の stat 構造体の typedef */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 typedef struct stat util_file_stat_t;
-#else  /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 typedef struct _stat64 util_file_stat_t;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* OS 固有のパス最大長を定義 */
 
 #include <util/fs/path_max.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <sys/stat.h>
     #include <fcntl.h>
     #include <unistd.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <sys/stat.h>
     #include <fcntl.h>
     #include <io.h>
     #include <direct.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 /* access_fmt 用のモード定数 */
 
@@ -53,15 +54,15 @@ typedef struct _stat64 util_file_stat_t;
      */
     #define ACCESS_FMT_W_OK 2
 #else /* !DOXYGEN */
-    #ifndef _WIN32
+    #if defined(PLATFORM_LINUX)
         #define ACCESS_FMT_F_OK F_OK
         #define ACCESS_FMT_R_OK R_OK
         #define ACCESS_FMT_W_OK W_OK
-    #else /* _WIN32 */
+    #elif defined(PLATFORM_WINDOWS)
         #define ACCESS_FMT_F_OK 0
         #define ACCESS_FMT_R_OK 4
         #define ACCESS_FMT_W_OK 2
-    #endif /* _WIN32 */
+    #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */
 
 #ifdef DOXYGEN
@@ -92,27 +93,10 @@ typedef struct _stat64 util_file_stat_t;
 
 #else /* !DOXYGEN */
 
-    #ifndef _WIN32
-        #define PATH_FORMAT_EXPORT
-        #define PATH_FORMAT_API
-    #else /* _WIN32 */
-        #ifndef __INTELLISENSE__
-            #ifndef PATH_FORMAT_STATIC
-                #ifdef PATH_FORMAT_EXPORTS
-                    #define PATH_FORMAT_EXPORT __declspec(dllexport)
-                #else /* !PATH_FORMAT_EXPORTS */
-                    #define PATH_FORMAT_EXPORT __declspec(dllimport)
-                #endif /* PATH_FORMAT_EXPORTS */
-            #else      /* PATH_FORMAT_STATIC */
-                #define PATH_FORMAT_EXPORT
-            #endif /* PATH_FORMAT_STATIC */
-        #else      /* __INTELLISENSE__ */
-            #define PATH_FORMAT_EXPORT
-        #endif /* __INTELLISENSE__ */
-        #ifndef PATH_FORMAT_API
-            #define PATH_FORMAT_API __stdcall
-        #endif /* PATH_FORMAT_API */
-    #endif     /* _WIN32 */
+    #define UTIL_DLL_EXPORT_PREFIX PATH_FORMAT
+    #include <util/base/dll_exports.h>
+    #define PATH_FORMAT_EXPORT UTIL_DLL_EXPORT_VALUE
+    #define PATH_FORMAT_API    UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 
@@ -166,9 +150,9 @@ extern "C"
         @endcode
      */
     PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 4)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -194,9 +178,9 @@ extern "C"
      *                      - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 3)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -222,9 +206,9 @@ extern "C"
      *  @see            fopen_fmt
      */
     PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 0)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -240,9 +224,9 @@ extern "C"
      *  @see            stat_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 0)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -272,9 +256,9 @@ extern "C"
      *  @see            vremove_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API remove_fmt(const char *format, ...)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 2)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -293,9 +277,9 @@ extern "C"
      *  @see            remove_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 0)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -334,9 +318,9 @@ extern "C"
      *  @see            vopen_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 4)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -361,9 +345,9 @@ extern "C"
      *  @see            open_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 0)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -403,9 +387,9 @@ extern "C"
      *  @see            vaccess_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 3)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -427,9 +411,9 @@ extern "C"
      *  @see            access_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 0)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -460,9 +444,9 @@ extern "C"
      *  @see            vmkdir_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 2)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
     /**
@@ -481,9 +465,9 @@ extern "C"
      *  @see            mkdir_fmt
      */
     PATH_FORMAT_EXPORT int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
-#ifdef __GNUC__
+#if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 0)))
-#endif /* __GNUC__ */
+#endif /* COMPILER_GCC */
         ;
 
 #ifdef __cplusplus

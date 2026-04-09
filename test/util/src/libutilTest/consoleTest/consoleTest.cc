@@ -76,7 +76,7 @@ TEST_F(consoleTest, test_write_after_init)
  * 以下のテストは、no-op 実装が stdout / stderr に一切影響を与えないことを確認する。
  */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 
 // Linux: init 前後で stdout の FD が変わらないことの確認
 TEST_F(consoleTest, test_nop_stdout_fd_unchanged)
@@ -122,4 +122,4 @@ TEST_F(consoleTest, test_nop_dispose_stdout_fd_unchanged)
     EXPECT_EQ(fd_before, fileno(stdout)); // [確認_正常系] - dispose を呼んでも FD が変わらないこと。
 }
 
-#endif /* !_WIN32 */
+#endif /* PLATFORM_LINUX */

@@ -17,8 +17,10 @@
 #ifndef TRACE_SYSLOG_PROVIDER_INTERNAL_H
 #define TRACE_SYSLOG_PROVIDER_INTERNAL_H
 
-#ifndef _WIN32
-#include <util/trace/trace_syslog.h>
+#include <util/base/platform.h>
+
+#if defined(PLATFORM_LINUX)
+    #include <util/trace/trace_syslog.h>
 
 /**
  *******************************************************************************
@@ -36,6 +38,6 @@
  */
 void trace_syslog_sink_destroy_on_unload(trace_syslog_sink_t *handle);
 
-#endif /* !_WIN32 */
+#endif /* PLATFORM_LINUX */
 
 #endif /* TRACE_SYSLOG_PROVIDER_INTERNAL_H */

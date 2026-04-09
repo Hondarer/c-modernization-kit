@@ -1,15 +1,17 @@
 #ifndef TRACE_SYSLOG_H
 #define TRACE_SYSLOG_H
 
+#include <util/base/platform.h>
+
 /**
  *  @file           trace_syslog.h
  *  @brief          syslog ヘルパーライブラリ。
  *  @details        Linux syslog (RFC5424 系実装) のラッパー関数群を提供します。\n
- *                  Linux 専用ライブラリです。呼び出し元は @c \#ifndef @c _WIN32 の
+ *                  Linux 専用ライブラリです。呼び出し元は @c \#if defined(PLATFORM_LINUX) の
  *                  中でのみ使用してください。
  */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 
 /* ===== エクスポート / 呼び出し規約マクロ ===== */
 
@@ -126,6 +128,6 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* !_WIN32 */
+#endif /* PLATFORM_LINUX */
 
 #endif /* TRACE_SYSLOG_H */

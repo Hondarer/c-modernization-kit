@@ -1,5 +1,5 @@
-#ifndef _MOCK_POTR_PEER_TABLE_H
-#define _MOCK_POTR_PEER_TABLE_H
+#ifndef MOCK_POTR_PEER_TABLE_H
+#define MOCK_POTR_PEER_TABLE_H
 
 #include <testfw.h>
 #include <porter_type.h>
@@ -24,4 +24,4 @@ public:
 
 extern Mock_potrPeerTable *_mock_potrPeerTable;
 
-#endif // _MOCK_POTR_PEER_TABLE_H
+#endif /* MOCK_POTR_PEER_TABLE_H */

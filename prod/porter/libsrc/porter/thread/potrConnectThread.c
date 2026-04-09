@@ -1,4 +1,4 @@
-﻿/**
+/**
  *******************************************************************************
  *  @file           potrConnectThread.c
  *  @brief          TCP 接続管理スレッドモジュール。
@@ -17,11 +17,12 @@
  *******************************************************************************
  */
 
+#include <util/base/platform.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     #include <sys/socket.h>
     #include <sys/select.h>
     #include <netinet/in.h>
@@ -30,10 +31,10 @@
     #include <fcntl.h>
     #include <errno.h>
     #include <time.h>
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
 #include <porter_const.h>
 
@@ -61,13 +62,13 @@ static ConnectArg s_connect_args[POTR_MAX_PATH];
 /* 現在時刻をミリ秒単位で返す (単調増加クロック) */
 static uint64_t connect_get_ms(void)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return (uint64_t)GetTickCount64();
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* TCP 接続ソケット [path_idx] をシャットダウン・クローズして INVALID にする */
@@ -75,13 +76,13 @@ static void close_tcp_conn(struct PotrContext_ *ctx, int path_idx)
 {
     if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         shutdown(ctx->tcp_conn_fd[path_idx], SHUT_RDWR);
         close(ctx->tcp_conn_fd[path_idx]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         shutdown(ctx->tcp_conn_fd[path_idx], SD_BOTH);
         closesocket(ctx->tcp_conn_fd[path_idx]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         ctx->tcp_conn_fd[path_idx] = POTR_INVALID_SOCKET;
     }
 }
@@ -89,7 +90,7 @@ static void close_tcp_conn(struct PotrContext_ *ctx, int path_idx)
 /* 再接続待機: reconnect_interval_ms 経過または停止シグナルまでスリープする */
 static void reconnect_wait(struct PotrContext_ *ctx, int path_idx, uint32_t wait_ms)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     struct timespec abs_ts;
     clock_gettime(CLOCK_REALTIME, &abs_ts);
     abs_ts.tv_sec  += (time_t)(wait_ms / 1000U);
@@ -105,7 +106,7 @@ static void reconnect_wait(struct PotrContext_ *ctx, int path_idx, uint32_t wait
         pthread_cond_timedwait(&ctx->tcp_state_cv, &ctx->tcp_state_mutex, &abs_ts);
     }
     pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(&ctx->tcp_state_mutex);
     if (ctx->connect_thread_running[path_idx])
     {
@@ -114,7 +115,7 @@ static void reconnect_wait(struct PotrContext_ *ctx, int path_idx, uint32_t wait
                                   (DWORD)wait_ms);
     }
     LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* ================================================================
@@ -130,15 +131,15 @@ static int accept_tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
     while (received < n)
     {
         int r;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         r = (int)recv(fd, (char *)(buf + received), n - received, 0);
         if (r < 0) return -1;
         if (r == 0) return 0;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
         if (r == SOCKET_ERROR) return -1;
         if (r == 0)            return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         received += (size_t)r;
     }
     return 1;
@@ -150,7 +151,7 @@ static int accept_tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
 static int accept_tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
 {
     int ret;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     fd_set         rfds;
     struct timeval tv;
     FD_ZERO(&rfds);
@@ -160,7 +161,7 @@ static int accept_tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
     ret = select(fd + 1, &rfds, NULL, NULL, &tv);
     if (ret < 0 && errno == EINTR) return 0;
     if (ret < 0) return -1;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     fd_set         rfds;
     struct timeval tv;
     FD_ZERO(&rfds);
@@ -169,7 +170,7 @@ static int accept_tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
     tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
     ret = select(0, &rfds, NULL, NULL, &tv);
     if (ret == SOCKET_ERROR) return -1;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     return (ret > 0) ? 1 : 0;
 }
 
@@ -239,16 +240,16 @@ static int tcp_session_compare(const struct PotrContext_ *ctx,
    TCP 接続断後 recv スレッドが自然終了する設計のため、ソケットはクローズしない。 */
 static void join_recv_thread(struct PotrContext_ *ctx, int path_idx)
 {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_join(ctx->recv_thread[path_idx], NULL);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     if (ctx->recv_thread[path_idx] != NULL)
     {
         WaitForSingleObject(ctx->recv_thread[path_idx], INFINITE);
         CloseHandle(ctx->recv_thread[path_idx]);
         ctx->recv_thread[path_idx] = NULL;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* 接続確立前のコンテキスト状態をリセットする。
@@ -394,12 +395,12 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         return POTR_INVALID_SOCKET;
     }
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                (const char *)&reuse, sizeof(reuse));
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     if (ctx->service.src_addr[path_idx][0] != '\0' || ctx->service.src_port != 0)
     {
@@ -416,20 +417,20 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         }
         bind_addr.sin_port = htons(ctx->service.src_port); /* 0 = エフェメラル */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) == SOCKET_ERROR)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         {
             POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 "]: bind() failed",
                      ctx->service.service_id);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             return POTR_INVALID_SOCKET;
         }
     }
@@ -447,11 +448,11 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "connect_thread[service_id=%" PRId64 "]: connect() failed (blocking)",
                      ctx->service.service_id);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             close(sock);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             closesocket(sock);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             return POTR_INVALID_SOCKET;
         }
         return sock;
@@ -459,7 +460,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
 
     /* タイムアウト付き接続: ノンブロッキングモードで select を使う。
        停止シグナルに素早く応答するため 100ms 単位でポーリングする。 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     {
         int       flags;
         int       ret;
@@ -543,7 +544,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         fcntl(sock, F_SETFL, flags);
         return sock;
     }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     {
         u_long mode  = 1;
         int    ret;
@@ -627,7 +628,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         ioctlsocket(sock, FIONBIO, &mode);
         return sock;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /* SENDER 用接続ループ (path ごと) */
@@ -679,15 +680,15 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         ctx->tcp_last_ping_req_recv_ms[path_idx] = connect_get_ms();
 
         /* tcp_active_paths カウンタをインクリメント (tcp_state_mutex 保護) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_lock(&ctx->tcp_state_mutex);
         active_count = ++ctx->tcp_active_paths;
         pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         EnterCriticalSection(&ctx->tcp_state_mutex);
         active_count = ++ctx->tcp_active_paths;
         LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         (void)active_count; /* CONNECTED イベントは recv スレッドが最初のパケット受信時に発火 */
 
         reset_connection_state(ctx);
@@ -701,15 +702,15 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         if (start_connected_threads(ctx, path_idx) != POTR_SUCCESS)
         {
             /* スレッド起動失敗: カウンタを戻す */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_lock(&ctx->tcp_state_mutex);
             active_count = --ctx->tcp_active_paths;
             pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             EnterCriticalSection(&ctx->tcp_state_mutex);
             active_count = --ctx->tcp_active_paths;
             LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             if (active_count == 0)
             {
                 reset_all_paths_disconnected(ctx);
@@ -733,15 +734,15 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         stop_connected_threads(ctx, path_idx);
 
         /* tcp_active_paths カウンタをデクリメント (tcp_state_mutex 保護) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_lock(&ctx->tcp_state_mutex);
         active_count = --ctx->tcp_active_paths;
         pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         EnterCriticalSection(&ctx->tcp_state_mutex);
         active_count = --ctx->tcp_active_paths;
         LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         if (active_count == 0)
         {
@@ -840,11 +841,11 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                          ctx->service.service_id, path_idx,
                          peer_addr_str,
                          (unsigned)ntohs(peer_addr.sin_port));
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 close(conn);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 closesocket(conn);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 continue;
             }
         }
@@ -873,11 +874,11 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                          "connect_thread[service_id=%" PRId64 " path=%d]: "
                          "first packet read failed (r=%d), closing",
                          ctx->service.service_id, path_idx, r);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 close(conn);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 closesocket(conn);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 continue;
             }
 
@@ -888,41 +889,41 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
                          "connect_thread[service_id=%" PRId64 " path=%d]: "
                          "first packet parse failed, closing",
                          ctx->service.service_id, path_idx);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 close(conn);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 closesocket(conn);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 continue;
             }
 
             /* session_establish_mutex 下でセッション判定と状態更新を行う */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_lock(&ctx->session_establish_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             EnterCriticalSection(&ctx->session_establish_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
             session_result = tcp_session_compare(ctx, &pkt);
 
             if (session_result == TCP_SESSION_OLD)
             {
                 /* 旧セッション: 拒否 */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 pthread_mutex_unlock(&ctx->session_establish_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 LeaveCriticalSection(&ctx->session_establish_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 POTR_LOG(POTR_TRACE_INFO,
                          "connect_thread[service_id=%" PRId64 " path=%d]: "
                          "old session rejected (known_id=%u pkt_id=%u)",
                          ctx->service.service_id, path_idx,
                          ctx->peer_session_id, pkt.session_id);
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 close(conn);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 closesocket(conn);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 continue;
             }
 
@@ -949,24 +950,24 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             ctx->tcp_last_ping_req_recv_ms[path_idx] = connect_get_ms();
             ctx->tcp_first_pkt_len[path_idx]         = pkt_len; /* 先読みバッファ有効化 */
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->session_establish_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             LeaveCriticalSection(&ctx->session_establish_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         }
         /* ── セッション判定ここまで ── */
 
         /* tcp_active_paths カウンタをインクリメント (tcp_state_mutex 保護) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_lock(&ctx->tcp_state_mutex);
         active_count = ++ctx->tcp_active_paths;
         pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         EnterCriticalSection(&ctx->tcp_state_mutex);
         active_count = ++ctx->tcp_active_paths;
         LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         (void)active_count; /* CONNECTED イベントは recv スレッドが最初のパケット受信時に発火 */
 
         /* TCP_BIDIR 新セッション再接続時 (path[0] のみ): shutdown 済みのキューをリセット */
@@ -977,15 +978,15 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
 
         if (start_connected_threads(ctx, path_idx) != POTR_SUCCESS)
         {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             pthread_mutex_lock(&ctx->tcp_state_mutex);
             active_count = --ctx->tcp_active_paths;
             pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             EnterCriticalSection(&ctx->tcp_state_mutex);
             active_count = --ctx->tcp_active_paths;
             LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             if (active_count == 0)
             {
                 reset_all_paths_disconnected(ctx);
@@ -1009,15 +1010,15 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         ctx->tcp_first_pkt_len[path_idx] = 0;
 
         /* tcp_active_paths カウンタをデクリメント (tcp_state_mutex 保護) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_lock(&ctx->tcp_state_mutex);
         active_count = --ctx->tcp_active_paths;
         pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         EnterCriticalSection(&ctx->tcp_state_mutex);
         active_count = --ctx->tcp_active_paths;
         LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         if (active_count == 0)
         {
@@ -1030,11 +1031,11 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
 }
 
 /* 接続管理スレッド本体 (ConnectArg* を受け取り、path ごとに動作) */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
 static void *connect_thread_func(void *arg)
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
 static DWORD WINAPI connect_thread_func(LPVOID arg)
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 {
     ConnectArg          *carg     = (ConnectArg *)arg;
     struct PotrContext_ *ctx      = carg->ctx;
@@ -1061,11 +1062,11 @@ static DWORD WINAPI connect_thread_func(LPVOID arg)
              "connect_thread[service_id=%" PRId64 " path=%d]: exited",
              ctx->service.service_id, path_idx);
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     return NULL;
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     return 0;
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 }
 
 /**
@@ -1097,11 +1098,11 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
     /* RECEIVER: session_establish_mutex と先読みバッファを初期化する */
     if (ctx->role == POTR_ROLE_RECEIVER)
     {
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_init(&ctx->session_establish_mutex, NULL);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         InitializeCriticalSection(&ctx->session_establish_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
         for (i = 0; i < ctx->n_path; i++)
         {
@@ -1121,11 +1122,11 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
                     free(ctx->tcp_first_pkt_buf[j]);
                     ctx->tcp_first_pkt_buf[j] = NULL;
                 }
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
                 pthread_mutex_destroy(&ctx->session_establish_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
                 DeleteCriticalSection(&ctx->session_establish_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
                 return POTR_ERROR;
             }
         }
@@ -1137,7 +1138,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
         s_connect_args[i].ctx      = ctx;
         s_connect_args[i].path_idx = i;
 
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         if (pthread_create(&ctx->connect_thread[i], NULL,
                            connect_thread_func, &s_connect_args[i]) != 0)
         {
@@ -1147,7 +1148,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
                      ctx->service.service_id, i);
             return POTR_ERROR;
         }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         ctx->connect_thread[i] = CreateThread(NULL, 0, connect_thread_func,
                                                &s_connect_args[i], 0, NULL);
         if (ctx->connect_thread[i] == NULL)
@@ -1159,7 +1160,7 @@ int potr_connect_thread_start(struct PotrContext_ *ctx)
             /* 起動済み path のスレッドは potr_connect_thread_stop で停止する */
             return POTR_ERROR;
         }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     return POTR_SUCCESS;
@@ -1200,15 +1201,15 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
     }
 
     /* 2. reconnect_wait 中の全スレッドを起床させる */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     pthread_mutex_lock(&ctx->tcp_state_mutex);
     pthread_cond_broadcast(&ctx->tcp_state_cv);
     pthread_mutex_unlock(&ctx->tcp_state_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     EnterCriticalSection(&ctx->tcp_state_mutex);
     WakeAllConditionVariable(&ctx->tcp_state_cv);
     LeaveCriticalSection(&ctx->tcp_state_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     /* 3. RECEIVER: 全 path の listen ソケットをクローズして accept をアンブロック */
     if (ctx->role == POTR_ROLE_RECEIVER)
@@ -1216,12 +1217,12 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
         for (i = 0; i < ctx->n_path; i++)
         {
             if (ctx->tcp_listen_sock[i] == POTR_INVALID_SOCKET) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
             shutdown(ctx->tcp_listen_sock[i], SHUT_RDWR);
             close(ctx->tcp_listen_sock[i]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
             closesocket(ctx->tcp_listen_sock[i]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
             ctx->tcp_listen_sock[i] = POTR_INVALID_SOCKET;
         }
     }
@@ -1230,23 +1231,23 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
     for (i = 0; i < ctx->n_path; i++)
     {
         if (ctx->tcp_conn_fd[i] == POTR_INVALID_SOCKET) continue;
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         shutdown(ctx->tcp_conn_fd[i], SHUT_RDWR);
         close(ctx->tcp_conn_fd[i]);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         shutdown(ctx->tcp_conn_fd[i], SD_BOTH);
         closesocket(ctx->tcp_conn_fd[i]);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
         ctx->tcp_conn_fd[i] = POTR_INVALID_SOCKET;
     }
 
     /* 5. 全 connect スレッドの終了を待機する */
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
     for (i = 0; i < ctx->n_path; i++)
     {
         pthread_join(ctx->connect_thread[i], NULL);
     }
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
     for (i = 0; i < ctx->n_path; i++)
     {
         if (ctx->connect_thread[i] == NULL) continue;
@@ -1254,7 +1255,7 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
         CloseHandle(ctx->connect_thread[i]);
         ctx->connect_thread[i] = NULL;
     }
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
 
     /* 6. 送信スレッドを停止する (全 path join 後) */
     potr_send_thread_stop(ctx);
@@ -1271,11 +1272,11 @@ void potr_connect_thread_stop(struct PotrContext_ *ctx)
                 ctx->tcp_first_pkt_buf[i] = NULL;
             }
         }
-#ifndef _WIN32
+#if defined(PLATFORM_LINUX)
         pthread_mutex_destroy(&ctx->session_establish_mutex);
-#else /* _WIN32 */
+#elif defined(PLATFORM_WINDOWS)
         DeleteCriticalSection(&ctx->session_establish_mutex);
-#endif /* _WIN32 */
+#endif /* PLATFORM_ */
     }
 
     POTR_LOG(POTR_TRACE_VERBOSE,
