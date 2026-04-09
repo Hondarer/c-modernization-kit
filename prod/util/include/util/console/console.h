@@ -14,18 +14,18 @@
  *                  使用できます。
  *
  *  @par            使用例
- *  @code
- *  #include <util/console/console.h>
- *  #include <stdio.h>
- *
- *  int main(void) {
- *      console_init();              // stdout / stderr を差し替え
- *      printf("こんにちは\n");       // コンソールでは WriteConsoleW、パイプでは UTF-8
- *      fprintf(stderr, "警告\n");
- *      console_dispose();
- *      return 0;
- *  }
- *  @endcode
+    @code
+    #include <util/console/console.h>
+    #include <stdio.h>
+
+    int main(void) {
+        console_init();              // stdout / stderr を差し替え
+        printf("こんにちは\n");       // コンソールでは WriteConsoleW、パイプでは UTF-8
+        fprintf(stderr, "警告\n");
+        console_dispose();
+        return 0;
+    }
+    @endcode
  */
 
 /* ===== DLL エクスポート / インポート制御マクロ ===== */

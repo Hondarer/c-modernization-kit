@@ -15,14 +15,14 @@
  *  | Windows | CNG (BCrypt) BCRYPT_AES_ALGORITHM / BCRYPT_SHA256_ALGORITHM | AES-256-GCM / SHA-256 |
  *
  *  暗号化ペイロードのフォーマット:
- *  @code
- *  [暗号文: src_len バイト] [GCM 認証タグ: POTR_CRYPTO_TAG_SIZE バイト]
- *  @endcode
+    @code
+    [暗号文: src_len バイト] [GCM 認証タグ: POTR_CRYPTO_TAG_SIZE バイト]
+    @endcode
  *
  *  ノンス構成 (12 バイト):
- *  @code
- *  [session_id: 4B NBO] [seq_num: 4B NBO] [padding: 4B 0x00]
- *  @endcode
+    @code
+    [session_id: 4B NBO] [seq_num: 4B NBO] [padding: 4B 0x00]
+    @endcode
  *
  *  追加認証データ (AAD): PotrPacket ヘッダー 32 バイト (NBO ワイヤーフォーマット)。
  *  ヘッダーの改ざんも認証タグで検知される。

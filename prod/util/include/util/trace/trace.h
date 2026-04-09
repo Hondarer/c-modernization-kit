@@ -608,9 +608,9 @@ extern "C"
      *
      *  標準エラー出力 (stderr) に出力するメッセージの最低重要度レベルを変更します。\n
      *  出力フォーマットはファイルトレースと同一です。\n
-     *  @code
-     *  2026-04-02 12:34:56.789 I メッセージテキスト
-     *  @endcode
+        @code
+        2026-04-02 12:34:56.789 I メッセージテキスト
+        @endcode
      *  タイムスタンプは UTC です。\n
      *  デフォルト値は @c TRACE_LOGGER_DEFAULT_STDERR_LEVEL (TRACE_LEVEL_NONE: 無効) です。\n
      *  @c TRACE_LEVEL_NONE を指定すると stderr 出力を完全に抑止します。
@@ -734,10 +734,10 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_writef)。
  *
  *  @par            出力例
- *  @code{.c}
- *  TRACE_LOGGER_WRITE(logger, TRACE_LEVEL_INFO, "started");
- *  // → "[add.c:42] started"
- *  @endcode
+    @code{.c}
+    TRACE_LOGGER_WRITE(logger, TRACE_LEVEL_INFO, "started");
+    // → "[add.c:42] started"
+    @endcode
  */
 #define TRACE_LOGGER_WRITE(handle, level, message) \
     trace_logger_writef((handle), (level), "[%s:%d] %s", \
@@ -757,10 +757,10 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_writef)。
  *
  *  @par            出力例
- *  @code{.c}
- *  TRACE_LOGGER_WRITEF(logger, TRACE_LEVEL_INFO, "user=%s count=%d", username, count);
- *  // → "[calc.c:88] user=alice count=3"
- *  @endcode
+    @code{.c}
+    TRACE_LOGGER_WRITEF(logger, TRACE_LEVEL_INFO, "user=%s count=%d", username, count);
+    // → "[calc.c:88] user=alice count=3"
+    @endcode
  */
 #define TRACE_LOGGER_WRITEF(handle, level, fmt, ...) \
     trace_logger_writef((handle), (level), "[%s:%d] " fmt, \
@@ -782,12 +782,12 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_write_hexf)。
  *
  *  @par            出力例
- *  @code{.c}
- *  TRACE_LOGGER_WRITE_HEX(logger, TRACE_LEVEL_INFO, buf, len, "Received data");
- *  // → "[recv.c:77] Received data: 48 65 6C 6C 6F"
- *  TRACE_LOGGER_WRITE_HEX(logger, TRACE_LEVEL_INFO, buf, len, NULL);
- *  // → "[recv.c:77]: 48 65 6C 6C 6F"
- *  @endcode
+    @code{.c}
+    TRACE_LOGGER_WRITE_HEX(logger, TRACE_LEVEL_INFO, buf, len, "Received data");
+    // → "[recv.c:77] Received data: 48 65 6C 6C 6F"
+    TRACE_LOGGER_WRITE_HEX(logger, TRACE_LEVEL_INFO, buf, len, NULL);
+    // → "[recv.c:77]: 48 65 6C 6C 6F"
+    @endcode
  */
 #define TRACE_LOGGER_WRITE_HEX(handle, level, data, size, message) \
     trace_logger_write_hexf((handle), (level), (data), (size), "[%s:%d]%s%s", \
@@ -811,10 +811,10 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_write_hexf)。
  *
  *  @par            出力例
- *  @code{.c}
- *  TRACE_LOGGER_WRITE_HEXF(logger, TRACE_LEVEL_INFO, data, len, "packet[%d]", index);
- *  // → "[recv.c:99] packet[3]: 48 65 6C 6C 6F"
- *  @endcode
+    @code{.c}
+    TRACE_LOGGER_WRITE_HEXF(logger, TRACE_LEVEL_INFO, data, len, "packet[%d]", index);
+    // → "[recv.c:99] packet[3]: 48 65 6C 6C 6F"
+    @endcode
  */
 #define TRACE_LOGGER_WRITE_HEXF(handle, level, data, size, fmt, ...) \
     trace_logger_write_hexf((handle), (level), (data), (size), "[%s:%d] " fmt, \

@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           dllmain_libbase.c
+ *  @file           libbase_lifecycle.c
  *  @brief          base.so / base.dll のロード・アンロード時処理。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21

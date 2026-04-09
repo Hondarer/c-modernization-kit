@@ -82,12 +82,19 @@ extern "C"
 /**
  *  @def            MODULE_HANDLE
  *  @brief          Linux/Windows 共通のモジュールハンドル型。
+ *  @details        symbol loader が内部で保持する動的ロード済みモジュールの不透明ハンドルです。\n
+ *                  Linux では `dlopen()` が返す `void *`、Windows では `LoadLibrary()` 系が返す
+ *                  `HMODULE` を表します。\n
+ *                  Doxygen ではプラットフォーム非依存の説明のため、不透明ハンドルとして `void *`
+ *                  で表記します。
  */
-#if defined(PLATFORM_LINUX)
+#ifdef DOXYGEN
+    #define MODULE_HANDLE void *
+#elif defined(PLATFORM_LINUX)
     #define MODULE_HANDLE void *
 #elif defined(PLATFORM_WINDOWS)
     #define MODULE_HANDLE HMODULE
-#endif /* PLATFORM_ */
+#endif
 
 #define SYMBOL_LOADER_NAME_MAX 256 /**< lib_name / func_name 配列の最大長 (終端 '\0' を含む)。 */
 
@@ -97,6 +104,8 @@ extern "C"
      *
      *  @details        ライブラリ名・関数名・ハンドル・関数ポインタおよび排他制御用ロックを管理します。\n
      *                  静的変数として定義する場合は SYMBOL_LOADER_ENTRY_INIT マクロで初期化してください。\n
+     *                  排他制御オブジェクトは Linux では `pthread_mutex_t`、Windows では `SRWLOCK`
+     *                  を使用します。Doxygen では共通説明のため不透明ポインタとして表記します。\n
      *******************************************************************************
      */
     typedef struct
@@ -108,7 +117,9 @@ extern "C"
         void *func_ptr;                   /**< キャッシュ済み関数ポインタ (NULL = 未取得)。 */
         int resolved;                     /**< 解決済フラグ (0 = 未解決)。 */
         int padding;                      /**< パディング。 */
-#if defined(PLATFORM_LINUX)
+#ifdef DOXYGEN
+        void *lock_obj; /**< ロード処理を保護する排他制御オブジェクト。Linux は mutex、Windows は SRW ロック。 */
+#elif defined(PLATFORM_LINUX)
         pthread_mutex_t mutex; /**< ロード処理を保護する mutex (Linux)。 */
 #elif defined(PLATFORM_WINDOWS)
         SRWLOCK lock; /**< ロード処理を保護する SRW ロック (Windows)。 */
@@ -118,15 +129,23 @@ extern "C"
 /**
  *  @def            SYMBOL_LOADER_ENTRY_INIT
  *  @brief          symbol_loader_entry_t 静的変数の初期化マクロ。
+ *  @details        `func_key` を設定し、ライブラリ名・関数名・ハンドル・関数ポインタ・解決状態を
+ *                  未初期化状態にそろえます。\n
+ *                  Linux では末尾に `PTHREAD_MUTEX_INITIALIZER`、Windows では `SRWLOCK_INIT`
+ *                  を設定します。\n
+ *                  Doxygen ではプラットフォーム共通の表現として、末尾の排他制御オブジェクトを
+ *                  `NULL` 相当の未初期化値で表記します。
  *
  *  @param[in]      key     この関数インスタンスの識別キー (文字列リテラル)。
  *  @param[in]      type    格納する関数ポインタの型 (例: sample_func_t)。
  */
-#if defined(PLATFORM_LINUX)
+#ifdef DOXYGEN
+    #define SYMBOL_LOADER_ENTRY_INIT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, NULL}
+#elif defined(PLATFORM_LINUX)
     #define SYMBOL_LOADER_ENTRY_INIT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, PTHREAD_MUTEX_INITIALIZER}
 #elif defined(PLATFORM_WINDOWS)
     #define SYMBOL_LOADER_ENTRY_INIT(key, type) {(key), {0}, {0}, NULL, NULL, 0, 0, SRWLOCK_INIT}
-#endif /* PLATFORM_ */
+#endif
 
     /**
      *******************************************************************************

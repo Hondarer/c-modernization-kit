@@ -17,9 +17,9 @@
  *  受信データがバイナリと判定された場合は一時ファイルに保存してパスを表示します。
  *
  *  @par            使用方法
- *  @code{.sh}
- *  send [-l <level>] <config_path> <service_id>
- *  @endcode
+    @code{.sh}
+    send [-l <level>] <config_path> <service_id>
+    @endcode
  *
  *  @par            オプション
  *  | オプション       | 説明                                                        |
@@ -29,11 +29,11 @@
  *  level に指定可能な値: TRACE, DEBUG, INFO, WARN, ERROR, FATAL (大文字小文字不問)
  *
  *  @par            使用例
- *  @code{.sh}
- *  send porter-services.conf 10
- *  send -l INFO porter-services.conf 10
- *  send -l DEBUG porter-services.conf 1031
- *  @endcode
+    @code{.sh}
+    send porter-services.conf 10
+    send -l INFO porter-services.conf 10
+    send -l DEBUG porter-services.conf 1031
+    @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -659,4 +659,3 @@ ask_continue:
     fflush(stdout);
     return ret;
 }
-
