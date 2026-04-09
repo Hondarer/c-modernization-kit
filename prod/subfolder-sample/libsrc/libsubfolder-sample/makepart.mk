@@ -1,5 +1,4 @@
-ifeq ($(OS),Windows_NT)
-    # Windows
+ifdef PLATFORM_WINDOWS
     # DLL エクスポート定義
     # DLL export definition
     CFLAGS   += /DSUBFOLDER_SAMPLE_EXPORTS

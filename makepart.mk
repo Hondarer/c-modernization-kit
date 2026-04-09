@@ -34,8 +34,7 @@ WIN32_MANIFEST = utf8
 # console_dispose() はライブラリアンロード時に自動的に呼ばれるため不要。
 LIBSDIR += $(WORKSPACE_FOLDER)/prod/util/lib
 
-# console-util でマルチスレッドを利用するため、レポジトリ全体に -lpthread を指定しておく
-# -lxxx は通常は強制リンクではなく、未使用ならリンクされない
-ifneq ($(OS),Windows_NT)
-    LDFLAGS += -lpthread
+# マルチスレッドを利用するため、レポジトリ全体に pthread を指定しておく
+ifdef PLATFORM_LINUX
+    LIBS += pthread
 endif

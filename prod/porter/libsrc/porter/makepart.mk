@@ -1,17 +1,18 @@
+# ライブラリの指定
 LIBS += util
-
-ifneq ($(OS),Windows_NT)
+ifdef PLATFORM_LINUX
     LIBS += pthread z crypto
 endif
-ifeq ($(OS),Windows_NT)
+ifdef PLATFORM_WINDOWS
     LIBS += ws2_32 Cabinet bcrypt
 endif
 
-ifeq ($(OS),Windows_NT)
+ifdef PLATFORM_WINDOWS
     # DLL エクスポート定義
     CFLAGS   += /DPOTR_EXPORTS
     CXXFLAGS += /DPOTR_EXPORTS
 endif
 
-# 動的ライブラリとしてビルド
+# 生成されるライブラリを動的ライブラリ (shared) とする
+# 未指定の場合 (デフォルト) は static
 LIB_TYPE = shared

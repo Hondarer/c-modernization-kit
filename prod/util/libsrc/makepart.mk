@@ -1,4 +1,7 @@
+# 出力ディレクトリ
 OUTPUT_DIR := $(WORKSPACE_FOLDER)/prod/util/lib
-ifneq ($(OS),Windows_NT)
-    LDFLAGS += -ldl -lpthread
+
+# ライブラリの指定
+ifdef PLATFORM_LINUX
+    LIBS += dl
 endif

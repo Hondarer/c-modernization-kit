@@ -1,6 +1,5 @@
-# テスト関連ライブラリは、すべて静的リンクとする
-ifeq ($(OS),Windows_NT)
-    # Windows
+ifdef PLATFORM_WINDOWS
+    # 外部関数の static 定義
     CFLAGS   += /DSUBFOLDER_SAMPLE_STATIC
     CXXFLAGS += /DSUBFOLDER_SAMPLE_STATIC
 endif

@@ -1,8 +1,7 @@
 # ライブラリの指定
 LIBS += base
 
-ifeq ($(OS),Windows_NT)
-    # Windows
+ifdef PLATFORM_WINDOWS
     # DLL エクスポート定義
     # DLL export definition
     CFLAGS   += /DBASE_EXT_EXPORTS

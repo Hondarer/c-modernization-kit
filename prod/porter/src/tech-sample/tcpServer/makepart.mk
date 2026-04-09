@@ -1,7 +1,6 @@
-# 依存ライブラリ
+# ライブラリの指定
 LIBS += util
-
-# Windows では Winsock ライブラリをリンクする
-ifeq ($(OS),Windows_NT)
+ifdef PLATFORM_WINDOWS
+    # Windows では Winsock ライブラリをリンクする
     LIBS += ws2_32
 endif

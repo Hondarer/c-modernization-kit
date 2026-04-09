@@ -1,10 +1,8 @@
-# 依存ライブラリの検索パス
-LIBSDIR += \
-    $(WORKSPACE_FOLDER)/prod/porter/lib
+# ライブラリの検索パス
+LIBSDIR += $(WORKSPACE_FOLDER)/prod/porter/lib
 
-# 依存ライブラリ
+# ライブラリの指定
 LIBS += util porter
-
-ifneq ($(OS),Windows_NT)
+ifdef PLATFORM_LINUX
     LIBS += pthread
 endif
