@@ -32,6 +32,8 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 _RE_IF = re.compile(r'^(\s*)#\s*(ifdef|ifndef)\s+(\w+)\s*(?:/\*.*\*/)?\s*$')
+_RE_IF_DEFINED  = re.compile(r'^(\s*)#\s*if\s+defined\s*\(\s*(\w+)\s*\)\s*(?:/\*.*\*/)?\s*$')
+_RE_ELIF_DEFINED = re.compile(r'^(\s*)#\s*elif\s+defined\s*\(\s*(\w+)\s*\)\s*(?:/\*.*\*/)?\s*$')
 _RE_IF_GENERIC = re.compile(r'^(\s*)#\s*if\b')
 _RE_ELSE = re.compile(r'^(\s*)#\s*else\b(.*)')
 _RE_ENDIF = re.compile(r'^(\s*)#\s*endif\b(.*)')
@@ -50,11 +52,14 @@ def analyze(lines):
     Returns:
         fixes: dict { line_index: new_line_string }
     """
-    # スタック要素: {'kind': 'ifdef'/'ifndef'/'if', 'macro': str, 'has_else': bool}
+    # スタック要素:
+    #   ifdef/ifndef : {'kind': 'ifdef'/'ifndef', 'macro': str, 'macros': [], 'has_else': bool}
+    #   if defined() : {'kind': 'if_defined', 'macro': '', 'macros': [str, ...], 'has_else': bool}
+    #   #if EXPR     : {'kind': 'if', 'macro': '', 'macros': [], 'has_else': bool}
     stack = []
-    # else_info[i]  = (kind, macro)
+    # else_info[i]  = (kind, macro, macros)
     else_info = {}
-    # endif_info[i] = (kind, macro, has_else)
+    # endif_info[i] = (kind, macro, has_else, macros)
     endif_info = {}
 
     for i, line in enumerate(lines):
@@ -63,12 +68,27 @@ def analyze(lines):
         if m:
             kind = m.group(2)   # 'ifdef' or 'ifndef'
             macro = m.group(3)
-            stack.append({'kind': kind, 'macro': macro, 'has_else': False})
+            stack.append({'kind': kind, 'macro': macro, 'macros': [], 'has_else': False})
+            continue
+
+        # --- #if defined(MACRO) ---
+        m = _RE_IF_DEFINED.match(line)
+        if m:
+            macro = m.group(2)
+            stack.append({'kind': 'if_defined', 'macro': '', 'macros': [macro], 'has_else': False})
             continue
 
         # --- #if EXPR（複雑式、スタックに積むが修正しない） ---
-        if _RE_IF_GENERIC.match(line) and not _RE_IF.match(line):
-            stack.append({'kind': 'if', 'macro': '', 'has_else': False})
+        if _RE_IF_GENERIC.match(line) and not _RE_IF.match(line) and not _RE_IF_DEFINED.match(line):
+            stack.append({'kind': 'if', 'macro': '', 'macros': [], 'has_else': False})
+            continue
+
+        # --- #elif defined(MACRO) ---
+        m = _RE_ELIF_DEFINED.match(line)
+        if m and stack:
+            top = stack[-1]
+            if top['kind'] == 'if_defined':
+                top['macros'].append(m.group(2))
             continue
 
         # --- #else ---
@@ -76,44 +96,50 @@ def analyze(lines):
         if m and stack:
             top = stack[-1]
             top['has_else'] = True
-            else_info[i] = (top['kind'], top['macro'])
+            else_info[i] = (top['kind'], top['macro'], top['macros'])
             continue
 
         # --- #endif ---
         m = _RE_ENDIF.match(line)
         if m and stack:
             top = stack.pop()
-            endif_info[i] = (top['kind'], top['macro'], top['has_else'])
+            endif_info[i] = (top['kind'], top['macro'], top['has_else'], top['macros'])
             continue
 
     # --- 修正箇所の収集 ---
     fixes = {}
 
-    for i, (kind, macro) in else_info.items():
-        if kind not in ('ifdef', 'ifndef'):
-            continue
+    for i, (kind, macro, macros) in else_info.items():
         line = lines[i]
         m = _RE_ELSE.match(line)
         indent = m.group(1)
         tail = m.group(2)
         current_comment = _strip_comment(tail)
 
-        expected = macro if kind == 'ifndef' else '!' + macro
-        if current_comment != expected:
-            fixes[i] = f'{indent}#else /* {expected} */\n'
+        if kind in ('ifdef', 'ifndef'):
+            expected = macro if kind == 'ifndef' else '!' + macro
+            if current_comment != expected:
+                fixes[i] = f'{indent}#else /* {expected} */\n'
+        elif kind == 'if_defined':
+            expected = ' && '.join('!' + mac for mac in macros)
+            if current_comment != expected:
+                fixes[i] = f'{indent}#else /* {expected} */\n'
 
-    for i, (kind, macro, has_else) in endif_info.items():
-        if kind not in ('ifdef', 'ifndef'):
-            continue
+    for i, (kind, macro, has_else, macros) in endif_info.items():
         line = lines[i]
         m = _RE_ENDIF.match(line)
         indent = m.group(1)
         tail = m.group(2)
         current_comment = _strip_comment(tail)
 
-        expected = macro  # #endif は常に ! なし
-        if current_comment != expected:
-            fixes[i] = f'{indent}#endif /* {expected} */\n'
+        if kind in ('ifdef', 'ifndef'):
+            expected = macro  # #endif は常に ! なし
+            if current_comment != expected:
+                fixes[i] = f'{indent}#endif /* {expected} */\n'
+        elif kind == 'if_defined':
+            # #if defined() チェーンの #endif はコメントなし
+            if current_comment is not None:
+                fixes[i] = f'{indent}#endif\n'
 
     return fixes
 
