@@ -41,25 +41,53 @@
     #define UTIL_DLL_PP_CAT__(a, b) UTIL_DLL_PP_CAT_IMPL__(a, b)
 #endif /* UTIL_DLL_PP_CAT__ */
 
-#if defined(PLATFORM_LINUX)
+#ifdef DOXYGEN
+    /**
+     *  @brief          DLL エクスポート/インポート修飾子。
+     *
+     *  プラットフォームとビルド構成に応じて展開されます。
+     *
+     *  | 条件                                              | 展開値                    |
+     *  | ------------------------------------------------- | ------------------------- |
+     *  | Linux                                             | (空)                      |
+     *  | Windows / 静的リンク (`PREFIX_STATIC` 定義あり)   | (空)                      |
+     *  | Windows / DLL ビルド (`PREFIX_EXPORTS` 定義あり)  | `__declspec(dllexport)`   |
+     *  | Windows / DLL 利用側                              | `__declspec(dllimport)`   |
+     */
     #define UTIL_DLL_EXPORT_VALUE
+
+    /**
+     *  @brief          呼び出し規約修飾子。
+     *
+     *  プラットフォームに応じて展開されます。
+     *
+     *  | 条件    | 展開値        |
+     *  | ------- | ------------- |
+     *  | Linux   | (空)          |
+     *  | Windows | `__stdcall`   |
+     */
     #define UTIL_DLL_API_VALUE
-#elif defined(PLATFORM_WINDOWS)
-    #ifndef __INTELLISENSE__
-        #if UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _STATIC)
-            #define UTIL_DLL_EXPORT_VALUE
-        #elif UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _EXPORTS)
-            #define UTIL_DLL_EXPORT_VALUE __declspec(dllexport)
-        #else /* !UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _EXPORTS) */
-            #define UTIL_DLL_EXPORT_VALUE __declspec(dllimport)
-        #endif /* UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _STATIC) */
-    #else      /* __INTELLISENSE__ */
+#else /* !DOXYGEN */
+    #if defined(PLATFORM_LINUX)
         #define UTIL_DLL_EXPORT_VALUE
-    #endif /* __INTELLISENSE__ */
-    #define UTIL_DLL_API_VALUE __stdcall
-#else /* !PLATFORM_LINUX && !PLATFORM_WINDOWS */
-    #define UTIL_DLL_EXPORT_VALUE
-    #define UTIL_DLL_API_VALUE
-#endif /* PLATFORM_ */
+        #define UTIL_DLL_API_VALUE
+    #elif defined(PLATFORM_WINDOWS)
+        #ifndef __INTELLISENSE__
+            #if UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _STATIC)
+                #define UTIL_DLL_EXPORT_VALUE
+            #elif UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _EXPORTS)
+                #define UTIL_DLL_EXPORT_VALUE __declspec(dllexport)
+            #else /* !UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _EXPORTS) */
+                #define UTIL_DLL_EXPORT_VALUE __declspec(dllimport)
+            #endif /* UTIL_DLL_PP_CAT__(UTIL_DLL_EXPORT_PREFIX, _STATIC) */
+        #else      /* __INTELLISENSE__ */
+            #define UTIL_DLL_EXPORT_VALUE
+        #endif /* __INTELLISENSE__ */
+        #define UTIL_DLL_API_VALUE __stdcall
+    #else /* !PLATFORM_LINUX && !PLATFORM_WINDOWS */
+        #define UTIL_DLL_EXPORT_VALUE
+        #define UTIL_DLL_API_VALUE
+    #endif /* PLATFORM_ */
+#endif     /* DOXYGEN */
 
 #undef UTIL_DLL_EXPORT_PREFIX
