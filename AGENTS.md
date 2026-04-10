@@ -20,7 +20,7 @@
 - `prod/calc/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
 - `prod/calc.net/` - .NET ラッパーとアプリケーション (C ライブラリの .NET からの呼び出し例)
 - `test/` - テストコード (Google Test ベース)
-- `doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール)
+- `framework/doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール、論理名: `doxyfw`)
 - `framework/docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール、論理名: `docsfw`)
 - `testfw/` - テストフレームワーク (git サブモジュール)
 - `makefw/` - Make ビルドフレームワーク (git サブモジュール)
@@ -44,7 +44,7 @@ Doxygen ドキュメント生成機能を提供するフレームワークです
 - XML 前処理・後処理スクリプト
 - 日本語ドキュメント出力用のカスタムテンプレート
 
-詳細な使用方法や設定については、`doxyfw/CLAUDE.md` を参照してください。
+詳細な使用方法や設定については、`framework/doxyfw/CLAUDE.md` を参照してください。
 
 ### docsfw
 
@@ -90,32 +90,32 @@ Make ビルドシステムのフレームワークです。
 ### ドキュメント生成
 
 ```bash
-cd doxyfw && make docs
+make doxy
 ```
 
 ### クリーンアップ
 
 ```bash
-cd doxyfw && make clean
+cd framework/doxyfw && make clean
 ```
 
 ## プロジェクト構造
 
 ```text
 c-modernization-kit/                          # このプロジェクト
-+-- doxyfw/                                # Doxygen フレームワーク (git submodule)
-|   +-- Doxyfile                          # Doxygen 基本設定
-|   +-- doxybook2-config.json             # Doxybook2 設定
-|   +-- templates/                        # カスタムテンプレート群
-|   +-- docs-src/                         # フレームワーク技術ドキュメント
-|   +-- makefile                          # ドキュメント生成用 makefile
-|   +-- CLAUDE.md                         # フレームワーク詳細ドキュメント
 +-- framework/
-|   +-- docsfw/                          # Markdown 発行フレームワーク (git submodule)
-|       +-- bin/                         # Pandoc 実行スクリプト
-|       +-- lib/                         # フィルタ・変換ライブラリ
-|       +-- styles/                      # カスタムスタイル
-|       +-- README.md                    # フレームワーク詳細ドキュメント
+|   +-- doxyfw/                         # Doxygen フレームワーク (git submodule)
+|   |   +-- Doxyfile                    # Doxygen 基本設定
+|   |   +-- doxybook2-config.json       # Doxybook2 設定
+|   |   +-- templates/                  # カスタムテンプレート群
+|   |   +-- docs-src/                   # フレームワーク技術ドキュメント
+|   |   +-- makefile                    # ドキュメント生成用 makefile
+|   |   +-- CLAUDE.md                   # フレームワーク詳細ドキュメント
+|   +-- docsfw/                         # Markdown 発行フレームワーク (git submodule)
+|       +-- bin/                        # Pandoc 実行スクリプト
+|       +-- lib/                        # フィルタ・変換ライブラリ
+|       +-- styles/                     # カスタムスタイル
+|       +-- README.md                   # フレームワーク詳細ドキュメント
 +-- testfw/                                # テストフレームワーク (git submodule)
 |   +-- cmnd/                             # テスト実行スクリプト群
 |   +-- include/                          # テスト用ヘッダーファイル

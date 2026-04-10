@@ -74,22 +74,22 @@ test : submodule
 # 例: make doxy CATEGORY=porter
 .PHONY: doxy
 doxy : submodule
-	@if [ -d doxyfw ] && [ -f doxyfw/makefile ]; then \
+	@if [ -d framework/doxyfw ] && [ -f framework/doxyfw/makefile ]; then \
 		set -e; \
 		if [ -n "$(CATEGORY)" ]; then \
-			echo $(MAKE) -C doxyfw CATEGORY=$(CATEGORY); \
-			$(MAKE) -C doxyfw CATEGORY=$(CATEGORY); \
+			echo $(MAKE) -C framework/doxyfw CATEGORY=$(CATEGORY); \
+			$(MAKE) -C framework/doxyfw CATEGORY=$(CATEGORY); \
 		elif [ -z "$(DOXY_CATEGORIES)" ]; then \
-			echo $(MAKE) -C doxyfw; \
-			$(MAKE) -C doxyfw; \
+			echo $(MAKE) -C framework/doxyfw; \
+			$(MAKE) -C framework/doxyfw; \
 		else \
 			for cat in $(DOXY_CATEGORIES); do \
-				echo $(MAKE) -C doxyfw CATEGORY=$$cat; \
-				$(MAKE) -C doxyfw CATEGORY=$$cat; \
+				echo $(MAKE) -C framework/doxyfw CATEGORY=$$cat; \
+				$(MAKE) -C framework/doxyfw CATEGORY=$$cat; \
 			done; \
 		fi; \
 	else \
-		echo "INFO: doxyfw directory not found, skipping."; \
+		echo "INFO: framework/doxyfw directory not found, skipping."; \
 	fi
 
 .PHONY: docs

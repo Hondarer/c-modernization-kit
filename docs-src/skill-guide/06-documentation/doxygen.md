@@ -6,7 +6,7 @@ Doxygen は、C/C++・Java・C# などのソースコード中のコメントを
 
 Doxygen コメント形式は、通常のコメントに少し記法を加えるだけで利用でき、既存のコーディングスタイルを大きく変えずに導入できます。
 
-このリポジトリの `doxyfw/` サブモジュールが Doxygen ベースのドキュメント生成フレームワークを提供しています。`prod/calc/` の C ソースコードに書かれた Doxygen コメントから XML を生成し、Doxybook2 で Markdown に変換して、最終的に HTML/docx として公開しています。`Doxyfile.part.calc`(C プロジェクト用)と `Doxyfile.part.calc.net`(.NET プロジェクト用)が Doxygen の設定ファイルです。
+このリポジトリの `framework/doxyfw/` サブモジュールが Doxygen ベースのドキュメント生成フレームワークを提供しています。`prod/calc/` の C ソースコードに書かれた Doxygen コメントから XML を生成し、Doxybook2 で Markdown に変換して、最終的に HTML/docx として公開しています。`Doxyfile.part.calc` (C プロジェクト用) と `Doxyfile.part.calc.net` (.NET プロジェクト用) が Doxygen の設定ファイルです。
 
 Doxygen コメントの書き方を習得することで、コードの変更に合わせてドキュメントを自動更新できるようになります。
 
@@ -54,13 +54,13 @@ int add(int a, int b, int *result);
 ドキュメント生成コマンド:
 
 ```bash
-# doxyfw ディレクトリからドキュメントを生成
-cd doxyfw && make docs
+# ルートディレクトリから Doxygen / Doxybook2 を実行
+make doxy
 
 # 生成されたファイルの場所
 # XML:      xml/
 # Markdown: docs-src/doxybook2/
-# HTML:     docs/ja/html/ および docs/en/html/
+# HTML:     docs/doxygen/
 ```
 
 設定ファイル:
@@ -69,14 +69,14 @@ cd doxyfw && make docs
 |---------|------|
 | `Doxyfile.part.calc` | C プロジェクト用 Doxygen 設定 |
 | `Doxyfile.part.calc.net` | .NET プロジェクト用 Doxygen 設定 |
-| `doxyfw/Doxyfile` | 基本設定ファイル |
-| `doxyfw/doxybook2-config.json` | Doxybook2 の設定 |
-| `doxyfw/templates/` | カスタム出力テンプレート |
+| `framework/doxyfw/Doxyfile` | 基本設定ファイル |
+| `framework/doxyfw/doxybook2-config.json` | Doxybook2 の設定 |
+| `framework/doxyfw/templates/` | カスタム出力テンプレート |
 
 Table: Doxygen 設定ファイル一覧
 
 ### 関連ドキュメント
 
-- [doxyfw/CLAUDE.md](../../doxyfw/CLAUDE.md) - doxyfw フレームワークの詳細ドキュメント
+- [framework/doxyfw/CLAUDE.md](../../framework/doxyfw/CLAUDE.md) - doxyfw フレームワークの詳細ドキュメント
 - [Markdown(スキルガイド)](markdown.md) - 生成後の Markdown の基礎知識
 - [Pandoc(スキルガイド)](pandoc.md) - Markdown から HTML/docx への変換

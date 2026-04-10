@@ -41,7 +41,7 @@ Markdown を使用しているファイル:
 | `docs-src/*.md` | 設計・実装ドキュメント |
 | `docs-src/skill-guide/*.md` | このスキルガイド |
 | `docs-src/doxybook2/` | Doxybook2 が生成する API ドキュメント |
-| `doxyfw/docs-src/*.md` | フレームワーク技術ドキュメント |
+| `framework/doxyfw/docs-src/*.md` | フレームワーク技術ドキュメント |
 | `CLAUDE.md` | Claude Code への指針 |
 | `*/README.md` | 各サブモジュールの説明 |
 
