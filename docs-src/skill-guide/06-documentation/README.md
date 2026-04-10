@@ -32,7 +32,7 @@ Table: 図ツールの選択基準
 ## このリポジトリとの関連
 
 - `doxyfw/` - Doxygen ドキュメント生成フレームワーク (サブモジュール)
-- `docsfw/` - Markdown 発行フレームワーク (サブモジュール)
+- `framework/docsfw/` - Markdown 発行フレームワーク (サブモジュール、論理名: `docsfw`)
 - `Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
 - `docs-src/` - ドキュメントソース (Markdown ファイル群)
 - `docs/` - 生成済みドキュメント (HTML)

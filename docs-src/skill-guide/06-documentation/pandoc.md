@@ -4,9 +4,9 @@
 
 Pandoc は「ドキュメント変換のスイスアーミーナイフ」と呼ばれる汎用ドキュメント変換ツールです。Markdown・HTML・LaTeX・docx・PDF など多数のフォーマット間で変換ができます。カスタムテンプレートやフィルタ (Lua スクリプト) を使用して出力をカスタマイズすることも可能です。
 
-このリポジトリの `docsfw/` サブモジュールが Pandoc を使用した Markdown から HTML/docx への変換フレームワークを提供しています。Doxygen → Doxybook2 → Markdown という流れで生成された API ドキュメントを、Pandoc を使って最終的な HTML や Word ドキュメントに変換します。PlantUML 図の統合や日本語ドキュメントの対応も含まれています。
+このリポジトリでは `docsfw` サブモジュールを `framework/docsfw/` に配置し、Pandoc を使用した Markdown から HTML/docx への変換フレームワークとして利用しています。Doxygen → Doxybook2 → Markdown という流れで生成された API ドキュメントを、Pandoc を使って最終的な HTML や Word ドキュメントに変換します。PlantUML 図の統合や日本語ドキュメントの対応も含まれています。
 
-`docsfw/bin/` のスクリプトが Pandoc の実行をラップしており、`docsfw/styles/` のカスタムスタイルが適用されます。
+`framework/docsfw/bin/` のスクリプトが Pandoc の実行をラップしており、`framework/docsfw/styles/` のカスタムスタイルが適用されます。
 
 ## 習得目標
 
@@ -39,14 +39,14 @@ C ソースコード (Doxygen コメント)
 XML ファイル (xml/)
     ↓ doxybook2
 Markdown (docs-src/doxybook2/)
-    ↓ pandoc (docsfw/)
+    ↓ pandoc (framework/docsfw/)
 HTML / docx (docs/ja/html/ など)
 ```
 
-`docsfw/` の構成:
+`framework/docsfw/` の構成:
 
 ```text
-docsfw/
+framework/docsfw/
 +-- bin/        # Pandoc 実行スクリプト
 +-- lib/        # フィルタ・変換ライブラリ (Lua フィルタなど)
 +-- styles/     # カスタム CSS・Word スタイル
@@ -58,13 +58,13 @@ docsfw/
 # Markdown → HTML
 pandoc docs-src/testing-tutorial.md \
     -o docs/ja/html/testing-tutorial.html \
-    --template docsfw/templates/html.html \
-    --css docsfw/styles/style.css
+    --template framework/docsfw/templates/html.html \
+    --css framework/docsfw/styles/style.css
 
 # Markdown → Word docx
 pandoc docs-src/testing-tutorial.md \
     -o testing-tutorial.docx \
-    --reference-doc docsfw/styles/reference.docx
+    --reference-doc framework/docsfw/styles/reference.docx
 ```
 
 ### 関連ドキュメント

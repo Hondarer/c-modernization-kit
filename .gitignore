@@ -14,10 +14,10 @@
 !makefile
 
 ## サブモジュール
-!/docsfw
 !/doxyfw
 !/makefw
 !/testfw
+!/framework/docsfw
 
 # 以下は管理対象外
 

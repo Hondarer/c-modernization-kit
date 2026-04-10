@@ -210,7 +210,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
+                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -219,7 +219,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\""
+                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\""
             }
         },
         {
@@ -231,7 +231,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\"",
+                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\"",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -240,7 +240,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\""
+                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\""
             }
         },
         {
@@ -252,7 +252,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\"",
+                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\"",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -261,7 +261,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\""
+                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\""
             }
         },
         {
@@ -273,7 +273,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /details:true",
+                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /details:true",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -282,7 +282,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --details=true"
+                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --details=true"
             }
         },
         {
@@ -294,7 +294,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\" /details:true",
+                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\" /details:true",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -303,7 +303,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true"
+                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true"
             }
         },
         {
@@ -315,7 +315,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\" /details:true",
+                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\" /details:true",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -324,7 +324,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
+                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
             }
         },
         {
@@ -336,7 +336,7 @@
                 "clear": true // 実行前に Terminal をクリア
             },
             "windows": {
-                "command": "if \"${fileExtname}\"==\".md\" (python \"${workspaceFolder}\\docsfw\\bin\\md_style_jp.py\" \"${file}\" --in-place) else (echo Not a Markdown file: ${file} 1>&2 & exit /b 1)",
+                "command": "if \"${fileExtname}\"==\".md\" (python \"${workspaceFolder}\\framework\\docsfw\\bin\\md_style_jp.py\" \"${file}\" --in-place) else (echo Not a Markdown file: ${file} 1>&2 & exit /b 1)",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -345,7 +345,7 @@
                 }
             },
             "linux": {
-                "command": "[ \"${fileExtname}\" = \".md\" ] && python3 \"${workspaceFolder}/docsfw/bin/md_style_jp.py\" \"${file}\" --in-place || { echo \"Not a Markdown file: ${file}\" >&2; exit 1; }"
+                "command": "[ \"${fileExtname}\" = \".md\" ] && python3 \"${workspaceFolder}/framework/docsfw/bin/md_style_jp.py\" \"${file}\" --in-place || { echo \"Not a Markdown file: ${file}\" >&2; exit 1; }"
             }
         }
     ]

@@ -4,7 +4,7 @@
 
 PlantUML はテキスト形式で UML 図 (シーケンス図・クラス図・アクティビティ図など) を記述し、画像として出力するツールです。コードとして管理できるため、Git での差分管理が可能で、Markdown ドキュメントに図を埋め込むのに適しています。
 
-このリポジトリでは PlantUML をドキュメント内の図表作成に使用しています。`docsfw/` サブモジュールが PlantUML の統合機能を提供しており、Markdown ドキュメント内に埋め込んだ PlantUML 記述を Pandoc のフィルタが画像に変換します。このスキルガイドの `README.md` でも学習ステップの概要図に PlantUML を使用しています。
+このリポジトリでは PlantUML をドキュメント内の図表作成に使用しています。`docsfw` サブモジュールは `framework/docsfw/` に配置され、PlantUML の統合機能を提供しています。Markdown ドキュメント内に埋め込んだ PlantUML 記述を Pandoc のフィルタが画像に変換します。このスキルガイドの `README.md` でも学習ステップの概要図に PlantUML を使用しています。
 
 本フレームワークでは PlantUML・Mermaid・draw.io の 3 種類の図ツールを使用できます。意味論を明確に表現しやすいことから PlantUML を第 1 選択としており、次いで Mermaid、任意のレイアウトの図が必要な場合にのみ draw.io を使用します。
 
@@ -95,7 +95,7 @@ caption 図の見出し
 ```
 ````
 
-Pandoc での変換時、`docsfw/lib/` の Lua フィルタが PlantUML コードブロックを検出して画像に変換します。
+Pandoc での変換時、`framework/docsfw/lib/` の Lua フィルタが PlantUML コードブロックを検出して画像に変換します。
 
 ### 関連ドキュメント
 

@@ -94,8 +94,8 @@ doxy : submodule
 
 .PHONY: docs
 docs : submodule
-	@if [ -d docsfw ] && [ -f docsfw/bin/pub_markdown_core.sh ]; then \
-		$(BASH) docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true; \
+	@if [ -d framework/docsfw ] && [ -f framework/docsfw/bin/pub_markdown_core.sh ]; then \
+		$(BASH) framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true; \
 	else \
-		echo "INFO: docsfw directory not found, skipping."; \
+		echo "INFO: framework/docsfw directory not found, skipping."; \
 	fi

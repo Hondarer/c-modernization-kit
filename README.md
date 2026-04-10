@@ -114,6 +114,8 @@ git submodule update --init --recursive
 - `makefw` - Make ビルドフレームワーク ([https://github.com/Hondarer/make-framework](https://github.com/Hondarer/make-framework))
 - `testfw` - Google Test ベースのテストフレームワーク ([https://github.com/Hondarer/googletest-c-framework](https://github.com/Hondarer/googletest-c-framework))
 
+現時点では `docsfw` サブモジュールの実配置は `framework/docsfw/` です。論理名は従来どおり `docsfw` を使用します。
+
 ## ライセンス
 
 [LICENSE](./LICENSE) を参照してください。

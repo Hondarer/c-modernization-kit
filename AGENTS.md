@@ -21,7 +21,7 @@
 - `prod/calc.net/` - .NET ラッパーとアプリケーション (C ライブラリの .NET からの呼び出し例)
 - `test/` - テストコード (Google Test ベース)
 - `doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール)
-- `docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール)
+- `framework/docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール、論理名: `docsfw`)
 - `testfw/` - テストフレームワーク (git サブモジュール)
 - `makefw/` - Make ビルドフレームワーク (git サブモジュール)
 - `Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
@@ -57,7 +57,7 @@ Markdown から HTML や docx を Pandoc で生成するためのフレームワ
 - 多言語ドキュメント対応
 - カスタムスタイルとテンプレート
 
-詳細な使用方法については、`docsfw/README.md` を参照してください。
+詳細な使用方法については、`framework/docsfw/README.md` を参照してください。
 
 ### testfw
 
@@ -110,11 +110,12 @@ c-modernization-kit/                          # このプロジェクト
 |   +-- docs-src/                         # フレームワーク技術ドキュメント
 |   +-- makefile                          # ドキュメント生成用 makefile
 |   +-- CLAUDE.md                         # フレームワーク詳細ドキュメント
-+-- docsfw/                                # Markdown 発行フレームワーク (git submodule)
-|   +-- bin/                              # Pandoc 実行スクリプト
-|   +-- lib/                              # フィルタ・変換ライブラリ
-|   +-- styles/                           # カスタムスタイル
-|   +-- README.md                         # フレームワーク詳細ドキュメント
++-- framework/
+|   +-- docsfw/                          # Markdown 発行フレームワーク (git submodule)
+|       +-- bin/                         # Pandoc 実行スクリプト
+|       +-- lib/                         # フィルタ・変換ライブラリ
+|       +-- styles/                      # カスタムスタイル
+|       +-- README.md                    # フレームワーク詳細ドキュメント
 +-- testfw/                                # テストフレームワーク (git submodule)
 |   +-- cmnd/                             # テスト実行スクリプト群
 |   +-- include/                          # テスト用ヘッダーファイル
