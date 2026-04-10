@@ -17,7 +17,7 @@ ifeq ($(OS),Windows_NT)
     ifeq ($(findstring /,$(SHELL)),)
         $(info )
         $(info ERROR: Build environment is not configured correctly.)
-        $(info Please launch VS Code via Start-VSCode-With-Env.ps1 to set up the environment.)
+        $(info Please launch VS Code via Start-VSCode-With-Env to set up the environment.)
         $(info )
         $(error Aborted.)
     endif
