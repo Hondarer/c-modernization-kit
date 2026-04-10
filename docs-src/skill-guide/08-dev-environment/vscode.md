@@ -67,7 +67,7 @@ C/C++ インテリセンス設定 (`.vscode/c_cpp_properties.json`):
       "name": "Linux",
       "includePath": [
         "${workspaceFolder}/prod/calc/include",
-        "${workspaceFolder}/testfw/include"
+        "${workspaceFolder}/framework/testfw/include"
       ],
       "compilerPath": "/usr/bin/gcc",
       "cStandard": "c11"

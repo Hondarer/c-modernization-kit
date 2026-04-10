@@ -35,4 +35,4 @@ docxOutput: true
 # サブモジュール mdRoot マージ機能
 # マージ対象のサブモジュールをスペース区切りで指定
 # 空または未指定の場合は機能無効
-mergeSubmoduleDocs: doxyfw=framework/doxyfw makefw testfw testfw/gtest docsfw=framework/docsfw
+mergeSubmoduleDocs: doxyfw=framework/doxyfw makefw testfw=framework/testfw testfw/gtest=framework/testfw/gtest docsfw=framework/docsfw

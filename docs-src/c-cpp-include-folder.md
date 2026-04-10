@@ -16,8 +16,8 @@ VS Code の C/C++ 拡張機能でインテリセンス (コード補完、定義
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/prod/calc/include",
-                "${workspaceFolder}/testfw/include",
-                "${workspaceFolder}/testfw/gtest/include",
+                "${workspaceFolder}/framework/testfw/include",
+                "${workspaceFolder}/framework/testfw/gtest/include",
                 "${workspaceFolder}/test/include"
             ],
             ...

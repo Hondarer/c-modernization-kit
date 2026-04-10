@@ -18,7 +18,7 @@ Table: スキルガイド一覧
 - `test/` - テストコードのルートディレクトリ
 - `test/src/calc/libcalcbaseTest/` - `libcalcbase` ライブラリの単体テスト
 - `test/libsrc/mock_calcbase/` - モック実装 (Google Mock 使用例)
-- `testfw/` - テストフレームワーク (サブモジュール)
+- `framework/testfw/` - テストフレームワーク (サブモジュール、論理名: `testfw`)
 
 ## 次のステップ
 

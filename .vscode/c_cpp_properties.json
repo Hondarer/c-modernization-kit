@@ -9,8 +9,8 @@
                 "${workspaceFolder}/prod/override-sample/include",
                 "${workspaceFolder}/prod/porter/include",
                 "${workspaceFolder}/prod/porter/libsrc/porter",
-                "${workspaceFolder}/testfw/include",
-                "${workspaceFolder}/testfw/gtest/include",
+                "${workspaceFolder}/framework/testfw/include",
+                "${workspaceFolder}/framework/testfw/gtest/include",
                 "${workspaceFolder}/test/calc/include",
                 "${workspaceFolder}/test/porter/include",
                 "${workspaceFolder}/test/util/include"
@@ -34,8 +34,8 @@
                 "${workspaceFolder}/prod/override-sample/include",
                 "${workspaceFolder}/prod/porter/include",
                 "${workspaceFolder}/prod/porter/libsrc/porter",
-                "${workspaceFolder}/testfw/include",
-                "${workspaceFolder}/testfw/gtest/include",
+                "${workspaceFolder}/framework/testfw/include",
+                "${workspaceFolder}/framework/testfw/gtest/include",
                 "${workspaceFolder}/test/calc/include",
                 "${workspaceFolder}/test/porter/include",
                 "${workspaceFolder}/test/util/include"

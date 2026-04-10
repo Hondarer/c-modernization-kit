@@ -15,9 +15,9 @@
 
 ## サブモジュール
 !/makefw
-!/testfw
 !/framework/doxyfw
 !/framework/docsfw
+!/framework/testfw
 
 # 以下は管理対象外
 

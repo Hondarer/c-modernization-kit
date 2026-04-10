@@ -76,7 +76,7 @@ gcc -o prod/calc/bin/calc \
     -Wl,-rpath,'$$ORIGIN/../lib'
 ```
 
-カバレッジ計測用のコンパイルオプション (`testfw/` で使用):
+カバレッジ計測用のコンパイルオプション (`framework/testfw/` で使用):
 
 ```bash
 gcc -c --coverage -fprofile-arcs -ftest-coverage ...

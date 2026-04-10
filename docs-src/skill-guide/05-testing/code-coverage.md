@@ -6,7 +6,7 @@
 
 Linux 環境では gcov (GCC 付属のカバレッジツール) と lcov (gcov の結果を HTML レポートに変換するツール) または gcovr を組み合わせて使用します。Windows 環境では OpenCppCoverage が利用できます。
 
-このリポジトリの `testfw/` サブモジュールはカバレッジ計測とレポート生成の機能を提供しています。テストをカバレッジ計測付きでビルドするには、コンパイル時に `--coverage` (または `-fprofile-arcs -ftest-coverage`) フラグが必要です。
+このリポジトリの `framework/testfw/` サブモジュール (論理名: `testfw`) はカバレッジ計測とレポート生成の機能を提供しています。テストをカバレッジ計測付きでビルドするには、コンパイル時に `--coverage` (または `-fprofile-arcs -ftest-coverage`) フラグが必要です。
 
 ## 習得目標
 
@@ -50,7 +50,7 @@ lcov --capture --directory . --output-file coverage.info
 genhtml coverage.info --output-directory coverage-report/
 ```
 
-`testfw/` が提供するカバレッジ機能:
+`framework/testfw/` が提供するカバレッジ機能:
 - テスト実行後の自動カバレッジ計測
 - レポートの HTML 生成
 - GitHub Actions との統合

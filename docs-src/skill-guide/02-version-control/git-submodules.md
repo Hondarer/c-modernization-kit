@@ -38,7 +38,7 @@ Git サブモジュールは、ひとつの Git リポジトリの中に別の G
 |----------------|-----------|----------------------------------------|
 | `doxyfw`       | `framework/doxyfw/` | Doxygen ドキュメント生成フレームワーク |
 | `docsfw`       | `framework/docsfw/` | Markdown 発行フレームワーク (Pandoc)   |
-| `testfw`       | `testfw/` | Google Test テストフレームワーク       |
+| `testfw`       | `framework/testfw/` | Google Test テストフレームワーク       |
 | `makefw`       | `makefw/` | Make ビルドフレームワーク              |
 
 Table: サブモジュール一覧

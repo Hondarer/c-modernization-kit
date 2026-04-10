@@ -4,9 +4,9 @@
 
 Google Test (gtest) は C/C++ 用の単体テストフレームワークです。テストケースを `TEST()` マクロで定義し、`EXPECT_EQ`・`ASSERT_EQ` などのアサーションマクロで期待値を検証します。Google Mock (gmock) は gtest と組み合わせて使うモックライブラリで、依存関係を持つコードのテストを可能にします。
 
-このリポジトリの `test/` ディレクトリには Google Test を使用したテストコードが含まれています。`testfw/` サブモジュールが Google Test のラッパーと実行支援スクリプトを提供しており、`add`・`subtract`・`multiply`・`divide` の各関数と `calcHandler` に対するテストが実装されています。標準 C ライブラリ関数のモックも `test/libsrc/mock_calcbase/` と `test/libsrc/mock_calc/` で提供されています。
+このリポジトリの `test/` ディレクトリには Google Test を使用したテストコードが含まれています。`framework/testfw/` サブモジュール (論理名: `testfw`) が Google Test のラッパーと実行支援スクリプトを提供しており、`add`・`subtract`・`multiply`・`divide` の各関数と `calcHandler` に対するテストが実装されています。標準 C ライブラリ関数のモックも `test/libsrc/mock_calcbase/` と `test/libsrc/mock_calc/` で提供されています。
 
-C 言語のコードを Google Test でテストするには C++ でテストコードを書く必要があります。`testfw/` の仕組みを理解することで、新たなテストケースを追加できるようになります。
+C 言語のコードを Google Test でテストするには C++ でテストコードを書く必要があります。`framework/testfw/` の仕組みを理解することで、新たなテストケースを追加できるようになります。
 
 ## 習得目標
 
@@ -28,7 +28,7 @@ C 言語のコードを Google Test でテストするには C++ でテストコ
 
 ### チュートリアル・入門
 
-- [testfw README](../../testfw/README.md) - このリポジトリで使用するテストフレームワークの説明
+- [testfw README](../../../framework/testfw/README.md) - このリポジトリで使用するテストフレームワークの説明
 
 ## このリポジトリとの関連
 

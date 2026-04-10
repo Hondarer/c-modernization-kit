@@ -83,23 +83,23 @@ make
 
 ### テストのビルドと実行
 
-testfw/ ディレクトリおよび test/ ディレクトリでテストをビルド・実行します:
+framework/testfw/ ディレクトリおよび test/ ディレクトリでテストをビルド・実行します:
 
 Windows:
 
 ```cmd
-cd testfw
+cd framework\testfw
 make
-cd ..\test
+cd ..\..\test
 make
 ```
 
 Linux:
 
 ```bash
-cd testfw
+cd framework/testfw
 make
-cd ../test
+cd ../../test
 make
 ```
 
@@ -285,10 +285,10 @@ endif
 # テストフレームワークのライブラリ参照を追加する
 ifneq ($(OS),Windows_NT)
     # Linux: TARGET_ARCH (e.g., linux-el8-x64)
-    LIBSDIR += $(WORKSPACE_FOLDER)/testfw/lib/$(TARGET_ARCH)
+    LIBSDIR += $(WORKSPACE_FOLDER)/framework/testfw/lib/$(TARGET_ARCH)
 else
     # Windows: TARGET_ARCH/MSVC_CRT_SUBDIR (e.g., windows-x64/md)
-    LIBSDIR += $(WORKSPACE_FOLDER)/testfw/lib/$(TARGET_ARCH)/$(MSVC_CRT_SUBDIR)
+    LIBSDIR += $(WORKSPACE_FOLDER)/framework/testfw/lib/$(TARGET_ARCH)/$(MSVC_CRT_SUBDIR)
 endif
 LIBSDIR += \
     $(WORKSPACE_FOLDER)/test/lib

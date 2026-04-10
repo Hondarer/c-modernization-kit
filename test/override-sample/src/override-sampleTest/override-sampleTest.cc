@@ -26,7 +26,7 @@ class override_sampleTest : public Test
         binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
         lib_path = workspace_root + "/prod/override-sample/lib"
                  + ":" + workspace_root + "/prod/util/lib";
-        mock_lib_path = workspace_root + "/testfw/lib/" TARGET_ARCH "/libmock_syslog.so";
+        mock_lib_path = workspace_root + "/framework/testfw/lib/" TARGET_ARCH "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.txt";
 #elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\prod\\override-sample\\bin\\override-sample.exe";

@@ -19,7 +19,7 @@ clean : $(SUBDIRS)
 .PHONY: test
 test : $(SUBDIRS)
     # このフォルダ以下の coverage.xml をマージする
-	python ../testfw/cmnd/cobertura_merge.py . 1> /dev/null 2>&1
+	python ../framework/testfw/cmnd/cobertura_merge.py . 1> /dev/null 2>&1
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :

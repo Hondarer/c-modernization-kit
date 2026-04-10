@@ -122,6 +122,6 @@ make test
 
 ## 参考
 
-- testfw フレームワークの詳細: `testfw/README.md`
+- testfw フレームワークの詳細: `../../../../framework/testfw/README.md`
 - テスト対象ソース: `sample-static-lib/samplestatic.c`
 - テスト対象ヘッダー: `prod/tutorial/include/samplestatic.h`
