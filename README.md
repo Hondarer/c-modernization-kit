@@ -17,7 +17,7 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
 
 ### 公開される成果物
 
-注: Markdown 側で多言語対応や詳細化対応の記載を行っていないので、現段階で以下の言語別、詳細別ページは目立った作用を発揮していません。また、Doxygen の出力は単一言語で Japanese-en 固定です。
+注: Markdown 側で多言語対応を行っていないので、現段階で以下の言語別ページは目立った作用を発揮していません。また、Doxygen の出力は単一言語で Japanese-en 固定です。
 
 - GitHub Pages
     - [ja](https://hondarer.github.io/c-modernization-kit/ja/html/index.html)
@@ -48,50 +48,6 @@ C 言語のソースコードを対象として Linux/Windows 両対応のコー
     - [docx ja-details (docs-docx-ja-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-ja-details.zip)
     - [docx en-details (docs-docx-en-details.zip)](https://hondarer.github.io/c-modernization-kit/artifacts/docs-docx-en-details.zip)
 
-## サンプルコード
-
-- [prod/calc/include/](prod/calc/include/) - ヘッダーファイル (libcalc.h, libcalcbase.h, libcalc_const.h)
-- [prod/calc/libsrc/calc/](prod/calc/libsrc/calc/) - 計算ハンドラー実装 (calcHandler.c)
-- [prod/calc/libsrc/calcbase/](prod/calc/libsrc/calcbase/) - 基本演算実装 (add.c, subtract.c, multiply.c, divide.c)
-- [prod/calc/src/](prod/calc/src/) - メインプログラム (add/, calc/, shared-and-static-calc/)
-
-### .NET プロジェクト
-
-C ライブラリを .NET から利用するための実装例です。
-
-- [prod/calc.net/libsrc/CalcLib/](prod/calc.net/libsrc/CalcLib/) - .NET ラッパーライブラリ (CalcLibrary.cs, CalcKind.cs, CalcResult.cs, CalcException.cs, Internal/NativeMethods.cs)
-- [prod/calc.net/src/CalcApp/](prod/calc.net/src/CalcApp/) - サンプルアプリケーション (Program.cs, ModuleInitializer.cs)
-
-## サンプルコードに対応するテストコード
-
-### C プロジェクト (calc) のテスト
-
-#### メインプログラムのテスト
-
-- [test/src/calc/main/addTest/](test/src/calc/main/addTest/) - add コマンドのテスト
-- [test/src/calc/main/calcTest/](test/src/calc/main/calcTest/) - calc コマンドのテスト
-- [test/src/calc/main/shared-and-static-calcTest/](test/src/calc/main/shared-and-static-calcTest/) - shared-and-static-calc コマンドのテスト
-
-### libcalcbase ライブラリのテスト
-
-- [test/src/calc/libcalcbaseTest/addTest/](test/src/calc/libcalcbaseTest/addTest/) - add 関数のテスト
-- [test/src/calc/libcalcbaseTest/subtractTest/](test/src/calc/libcalcbaseTest/subtractTest/) - subtract 関数のテスト
-- [test/src/calc/libcalcbaseTest/multiplyTest/](test/src/calc/libcalcbaseTest/multiplyTest/) - multiply 関数のテスト
-- [test/src/calc/libcalcbaseTest/divideTest/](test/src/calc/libcalcbaseTest/divideTest/) - divide 関数のテスト
-
-#### モック
-
-- [test/libsrc/mock_calcbase/](test/libsrc/mock_calcbase/) - calcbase ライブラリのモック実装
-- [test/libsrc/mock_calc/](test/libsrc/mock_calc/) - calc ライブラリのモック実装
-
-### .NET プロジェクト (calc.net) のテスト
-
-- [test/src/calc.net/CalcLib.Tests/](test/src/calc.net/CalcLib.Tests/) - CalcLib ライブラリのテスト
-
-## 詳細ドキュメント
-
-プロジェクト構造、設定方法については [CLAUDE.md](./CLAUDE.md) をご覧ください。
-
 ## Windows 環境における注意事項
 
 Windows では、`Start-VSCode-With-Env.cmd` を使用して VS Code を起動してください。MinGW PATH と VSBT 環境変数を自動設定し、VS Code を起動します。
@@ -114,7 +70,7 @@ git submodule update --init --recursive
 - `makefw` - Make ビルドフレームワーク ([https://github.com/Hondarer/make-framework](https://github.com/Hondarer/make-framework))
 - `testfw` - Google Test ベースのテストフレームワーク ([https://github.com/Hondarer/googletest-c-framework](https://github.com/Hondarer/googletest-c-framework))
 
-`docsfw`・`doxyfw`・`makefw`・`testfw` サブモジュールの実配置は `framework/docsfw/`・`framework/doxyfw/`・`framework/makefw/`・`framework/testfw/` です。論理名は `docsfw`・`doxyfw`・`makefw`・`testfw` を使用します。
+`docsfw`・`doxyfw`・`makefw`・`testfw` サブモジュールの実配置は `framework/docsfw/`・`framework/doxyfw/`・`framework/makefw/`・`framework/testfw/` です。
 
 ## ライセンス
 
