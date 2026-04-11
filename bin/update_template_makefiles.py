@@ -3,7 +3,7 @@
 update_template_makefiles.py - テンプレート由来の makefile を最新版に更新する。
 
 【対象】
-  prod/ と test/ 配下の makefile で、先頭行が
+  ワークスペース配下の makefile で、先頭行が
   "# makefile テンプレート" で始まるファイル。
 
   先頭行がそれ以外のファイル (手書き makefile 等) は対象外。
@@ -21,7 +21,6 @@ from pathlib import Path
 
 TEMPLATE_HEADER = "# makefile テンプレート"
 TEMPLATE_REL_PATH = "framework/makefw/makefiles/__template.mk"
-SEARCH_DIRS = ["prod", "test"]
 
 
 def find_workspace_root(start: Path) -> Path:
@@ -44,6 +43,13 @@ def is_template_makefile(path: Path) -> bool:
         return first_line.startswith(TEMPLATE_HEADER)
     except (OSError, UnicodeDecodeError):
         return False
+
+
+def iter_template_makefiles(workspace: Path):
+    """ワークスペース配下のテンプレート由来 makefile を列挙する。"""
+    for makefile in sorted(workspace.rglob("makefile")):
+        if is_template_makefile(makefile):
+            yield makefile
 
 
 def main():
@@ -70,25 +76,19 @@ def main():
     updated = 0
     skipped = 0
 
-    for search_dir_name in SEARCH_DIRS:
-        search_dir = workspace / search_dir_name
-        if not search_dir.is_dir():
-            continue
-        for makefile in sorted(search_dir.rglob("makefile")):
-            if not is_template_makefile(makefile):
-                continue
-            rel = makefile.relative_to(workspace)
-            current_content = makefile.read_text(encoding="utf-8")
-            if current_content == template_content:
-                print(f"[スキップ] {rel} (既に最新)")
-                skipped += 1
+    for makefile in iter_template_makefiles(workspace):
+        rel = makefile.relative_to(workspace)
+        current_content = makefile.read_text(encoding="utf-8")
+        if current_content == template_content:
+            print(f"[スキップ] {rel} (既に最新)")
+            skipped += 1
+        else:
+            if args.dry_run:
+                print(f"[対象]     {rel}")
             else:
-                if args.dry_run:
-                    print(f"[対象]     {rel}")
-                else:
-                    makefile.write_text(template_content, encoding="utf-8")
-                    print(f"[更新]     {rel}")
-                updated += 1
+                makefile.write_text(template_content, encoding="utf-8")
+                print(f"[更新]     {rel}")
+            updated += 1
 
     if args.dry_run:
         print(f"\n合計: {updated} 件が更新対象, {skipped} 件はスキップ予定 (--dry-run モード)")

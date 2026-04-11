@@ -32,7 +32,7 @@ include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 
 ### 2 種類の makefile
 
-`prod/` と `test/` 配下には、用途の異なる 2 種類の `makefile` が存在する。
+ワークスペース配下には、用途の異なる 2 種類の `makefile` が存在する。
 
 | 種別 | 特徴 | 例 |
 |------|------|----|
@@ -45,7 +45,7 @@ include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ### テンプレートのドリフト問題
 
 `makefw` サブモジュールが更新されると `__template.mk` の内容が変わる。
-しかし `prod/` および `test/` 配下の各 `makefile` は個別ファイルとして管理されているため、
+しかしテンプレート由来の各 `makefile` は個別ファイルとして管理されているため、
 手動で更新しなければ古いまま残り続ける (テンプレートのドリフト)。
 
 Linux ではシンボリック リンクを利用すればよいが、このレポジトリは Windows との相互運用も行うため、
@@ -78,7 +78,7 @@ def is_template_makefile(path: Path) -> bool:
 1. スクリプトファイルの場所から上方向に `.workspaceRoot` を探し、
    ワークスペースルートを特定する。
 2. `framework/makefw/makefiles/__template.mk` の内容を読み込む。
-3. `prod/` と `test/` 配下の `makefile` を再帰的に列挙し、アルファベット順に処理する。
+3. ワークスペース配下の `makefile` を再帰的に列挙し、アルファベット順に処理する。
 4. 各 `makefile` について先頭行を検査し、テンプレートでなければスキップ。
 5. テンプレートであれば現在の内容と `__template.mk` を比較する。
    - **同一** → `[スキップ]` と表示して次へ。
