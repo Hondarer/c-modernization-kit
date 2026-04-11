@@ -285,6 +285,7 @@ podman pull hondarer/oracle-linux-10-dev:latest
 - `LD_LIBRARY_PATH`: `prod/calc/lib`, `prod/calc.net/lib`, `prod/override-sample/lib`, `prod/porter/lib`, `prod/util/lib`
 - `PATH`: 各モジュールの `bin/` ディレクトリ
 - ビルド警告 (`.warn`) の収集と ZIP アーカイブ
+  `.warn` は集約せず、C/C++ はソースファイル横と最終生成物横に残る
 - ドキュメント・アーティファクトの出力先: `pages/`
 
 #### ビルド手順
