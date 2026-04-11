@@ -746,7 +746,7 @@ TEST_F(trace_providerTest, test_modify_filetrc_enables_file_trace)
 {
     // Arrange
     string ws = findWorkspaceRoot();
-    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_test.log";
+    string path = ws + "/app/util/test/src/libutilTest/trace_providerTest/results/trace_test.log";
     remove(path.c_str());
 
     trace_logger_t *handle = trace_logger_create();
@@ -777,7 +777,7 @@ TEST_F(trace_providerTest, test_file_level_filters_messages)
 {
     // Arrange
     string ws = findWorkspaceRoot();
-    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_filter.log";
+    string path = ws + "/app/util/test/src/libutilTest/trace_providerTest/results/trace_filter.log";
     remove(path.c_str());
 
     trace_logger_t *handle = trace_logger_create();
@@ -803,7 +803,7 @@ TEST_F(trace_providerTest, test_modify_filetrc_null_path_disables)
 {
     // Arrange
     string ws = findWorkspaceRoot();
-    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_disable.log";
+    string path = ws + "/app/util/test/src/libutilTest/trace_providerTest/results/trace_disable.log";
     remove(path.c_str());
 
     trace_logger_t *handle = trace_logger_create();
@@ -862,7 +862,7 @@ TEST_F(trace_providerTest, test_dual_output_os_and_file)
 {
     // Arrange
     string ws = findWorkspaceRoot();
-    string path = ws + "/test/util/src/libutilTest/trace_providerTest/results/trace_dual.log";
+    string path = ws + "/app/util/test/src/libutilTest/trace_providerTest/results/trace_dual.log";
     remove(path.c_str());
 
     trace_logger_t *handle = trace_logger_create();
