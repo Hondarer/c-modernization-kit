@@ -33,7 +33,7 @@
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "Document of c-modernization-kit (com_util)"
+PROJECT_NAME           = "Document of c-modernization-kit (override-sample)"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -51,7 +51,7 @@ PROJECT_NUMBER         = "1.0.0"
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ./prod/include \
+INPUT                  = ./README.md \
                          ./prod
 
 # If the USE_MDFILE_AS_MAINPAGE tag refers to the name of a markdown file that
@@ -59,7 +59,7 @@ INPUT                  = ./prod/include \
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the Doxygen output.
 
-USE_MDFILE_AS_MAINPAGE =
+USE_MDFILE_AS_MAINPAGE = ./README.md
 
 # The IMAGE_PATH tag can be used to specify one or more files or directories
 # that contain images that are to be included in the documentation (see the

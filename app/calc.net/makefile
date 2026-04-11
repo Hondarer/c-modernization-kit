@@ -1,6 +1,5 @@
 SUBDIRS = $(wildcard */)
 APP_NAME = $(notdir $(CURDIR))
-DOXYFILE_PART = Doxyfile.part.$(APP_NAME)
 DOXYFW_DIR = ../../framework/doxyfw
 
 .DEFAULT_GOAL := default
@@ -16,7 +15,7 @@ test : $(SUBDIRS)
 
 .PHONY: doxy
 doxy :
-	@if [ -f $(DOXYFILE_PART) ]; then \
+	@if [ -f Doxyfile.part ]; then \
 		if [ -d $(DOXYFW_DIR) ] && [ -f $(DOXYFW_DIR)/makefile ]; then \
 			echo $(MAKE) -C $(DOXYFW_DIR) CATEGORY=$(APP_NAME); \
 			$(MAKE) -C $(DOXYFW_DIR) CATEGORY=$(APP_NAME) || exit 1; \
