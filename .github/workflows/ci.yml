@@ -71,6 +71,15 @@ jobs:
           path: test/**/results/
           if-no-files-found: warn
 
+      - name: Upload build warnings
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.os-name }}-warns
+          path: |
+            prod/**/*.warn
+            test/**/*.warn
+          if-no-files-found: ignore
+
       - name: Upload build and test logs
         uses: actions/upload-artifact@v7
         with:
@@ -153,6 +162,15 @@ jobs:
           name: windows-test-results
           path: test/**/results/
           if-no-files-found: warn
+
+      - name: Upload build warnings
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-warns
+          path: |
+            prod/**/*.warn
+            test/**/*.warn
+          if-no-files-found: ignore
 
       - name: Upload build and test logs
         uses: actions/upload-artifact@v7
@@ -328,6 +346,27 @@ jobs:
           name: windows-logs
           path: logs/windows
 
+      - name: Download Linux OL8 build warnings
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: linux-ol8-warns
+          path: warns/linux-ol8
+
+      - name: Download Linux OL10 build warnings
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: linux-ol10-warns
+          path: warns/linux-ol10
+
+      - name: Download Windows build warnings
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: windows-warns
+          path: warns/windows
+
       - name: Organize artifacts for Pages
         run: |
           # テスト結果とログをアーカイブ化
@@ -362,6 +401,15 @@ jobs:
             zip -r pages/artifacts/windows-logs.zip logs/windows
             echo "Created windows-logs.zip"
           fi
+
+          # ビルド警告を ZIP 化して pages/artifacts/ に配置し、元ディレクトリを削除
+          for os in linux-ol8 linux-ol10 windows; do
+            if [ -d "warns/${os}" ]; then
+              zip -r "pages/artifacts/${os}-warns.zip" "warns/${os}"
+              rm -rf "warns/${os}"
+              echo "Created ${os}-warns.zip"
+            fi
+          done
 
           # ディレクトリ構造を確認
           echo "=== Pages directory structure ==="
