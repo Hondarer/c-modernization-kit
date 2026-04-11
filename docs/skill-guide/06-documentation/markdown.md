@@ -4,7 +4,7 @@
 
 Markdown は、プレーンテキストで構造化されたドキュメントを書くための軽量マークアップ言語です。`#` で見出し、`-` で箇条書き、`` ` `` でインラインコードなどを表現します。GitHub・GitLab・各種 Wiki で一般的に使われており、HTML に変換して表示されます。
 
-このリポジトリのドキュメント(`docs-src/*.md`・このスキルガイド)はすべて Markdown で記述されています。Doxygen によって生成されるドキュメントも Doxybook2 を経由して Markdown 形式になり、最終的に Pandoc で HTML・docx に変換されます。また、GitHub 上でのリポジトリの説明(README.md)、PR の説明、Issues のコメントもすべて Markdown で書きます。
+このリポジトリのドキュメント(`docs/*.md`・このスキルガイド)はすべて Markdown で記述されています。Doxygen によって生成されるドキュメントも Doxybook2 を経由して Markdown 形式になり、最終的に Pandoc で HTML・docx に変換されます。また、GitHub 上でのリポジトリの説明(README.md)、PR の説明、Issues のコメントもすべて Markdown で書きます。
 
 Word ドキュメントとは異なり、Markdown はプレーンテキストのため Git での差分管理が容易で、レビューやバージョン管理に適しています。
 
@@ -38,10 +38,10 @@ Markdown を使用しているファイル:
 
 | ファイル/ディレクトリ | 用途 |
 |--------------------|------|
-| `docs-src/*.md` | 設計・実装ドキュメント |
-| `docs-src/skill-guide/*.md` | このスキルガイド |
-| `docs-src/doxybook2/` | Doxybook2 が生成する API ドキュメント |
-| `framework/doxyfw/docs-src/*.md` | フレームワーク技術ドキュメント |
+| `docs/*.md` | 設計・実装ドキュメント |
+| `docs/skill-guide/*.md` | このスキルガイド |
+| `docs/doxybook2/` | Doxybook2 が生成する API ドキュメント |
+| `framework/doxyfw/docs/*.md` | フレームワーク技術ドキュメント |
 | `CLAUDE.md` | Claude Code への指針 |
 | `*/README.md` | 各サブモジュールの説明 |
 

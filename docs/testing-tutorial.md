@@ -55,7 +55,7 @@ c-modernization-kit/
 |   +-- include/                     # フレームワーク提供のモック (stdio等)
 |   +-- include_override/            # オーバーライド用ヘッダー
 |   +-- libsrc/                      # フレームワーク提供のモック実装
-|   +-- docs-src/                    # テストフレームワークドキュメント
+|   +-- docs/                        # テストフレームワークドキュメント
 +-- framework/makefw/                           # Make ビルドフレームワーク (サブモジュール)
 |   +-- makefiles/                   # makefile テンプレート
 |       +-- prepare.mk              # 準備処理
@@ -1226,11 +1226,11 @@ LIBS += mock_calcbase  # OK
 - [GoogleTest User's Guide](https://google.github.io/googletest/)
 - [GoogleMock for Dummies](https://github.com/google/googletest/blob/main/docs/gmock_for_dummies.md)
 - testfw サブモジュール内のドキュメント:
-  - `framework/testfw/docs-src/how-to-mock.md`
-  - `framework/testfw/docs-src/how-to-test.md`
-  - `framework/testfw/docs-src/about-test-phase.md`
-  - `framework/testfw/docs-src/how-to-expect.md`
-  - `framework/testfw/docs-src/how-to-extern.md`
+  - `framework/testfw/docs/how-to-mock.md`
+  - `framework/testfw/docs/how-to-test.md`
+  - `framework/testfw/docs/about-test-phase.md`
+  - `framework/testfw/docs/how-to-expect.md`
+  - `framework/testfw/docs/how-to-extern.md`
 
 ---
 

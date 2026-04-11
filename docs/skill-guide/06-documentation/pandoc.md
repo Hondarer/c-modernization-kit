@@ -38,7 +38,7 @@ C ソースコード (Doxygen コメント)
     ↓ doxygen
 XML ファイル (xml/)
     ↓ doxybook2
-Markdown (docs-src/doxybook2/)
+Markdown (docs/doxybook2/)
     ↓ pandoc (framework/docsfw/)
 HTML / docx (docs/ja/html/ など)
 ```
@@ -56,13 +56,13 @@ framework/docsfw/
 
 ```bash
 # Markdown → HTML
-pandoc docs-src/testing-tutorial.md \
+pandoc docs/testing-tutorial.md \
     -o docs/ja/html/testing-tutorial.html \
     --template framework/docsfw/templates/html.html \
     --css framework/docsfw/styles/style.css
 
 # Markdown → Word docx
-pandoc docs-src/testing-tutorial.md \
+pandoc docs/testing-tutorial.md \
     -o testing-tutorial.docx \
     --reference-doc framework/docsfw/styles/reference.docx
 ```

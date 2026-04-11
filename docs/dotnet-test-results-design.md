@@ -677,7 +677,7 @@ results/
 
 4. **フェーズ3: ドキュメント** (推奨)
    - [x] framework/testfw/README.md への追記
-   - [ ] docs-src/testing-tutorial.md の更新
+   - [ ] docs/testing-tutorial.md の更新
    - [ ] サンプルの追加
 
 ## 参考

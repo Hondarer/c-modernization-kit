@@ -136,7 +136,7 @@ c-modernization-kit/
 |   |   +-- makesrc.mk                  # 実行ファイルビルド用共通テンプレート
 |   |   +-- prepare.mk                  # 準備処理
 |   |   +-- _*.mk                       # 内部処理用ファイル
-|   +-- docs-src/                       # フレームワーク技術ドキュメント
+|   +-- docs/                           # フレームワーク技術ドキュメント
 +-- prod/calc/
 |   +-- makefile                        # トップレベル makefile (再帰ビルド)
 |   +-- lib/                            # ビルド済みライブラリ

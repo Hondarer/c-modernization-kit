@@ -18,7 +18,7 @@ Table: スキルガイド一覧
 
 - `.github/workflows/` - GitHub Actions ワークフロー定義ファイル
 - `docs/` - GitHub Pages で公開されるドキュメント出力先
-- `docs-src/github-actions.md` - このリポジトリの CI/CD 設定の詳細解説
+- `docs/github-actions.md` - このリポジトリの CI/CD 設定の詳細解説
 
 ## 次のステップ
 

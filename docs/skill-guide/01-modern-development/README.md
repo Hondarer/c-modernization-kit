@@ -15,7 +15,7 @@ Table: スキルガイド一覧
 ## このリポジトリとの関連
 
 - このリポジトリ全体が「X as Code」および「GitOps」の実践例として構成されている
-- `docs-src/` - Documentation as Code / Design as Code の実践
+- `docs/` - Documentation as Code / Design as Code の実践
 - サブモジュール (`doxyfw` / `docsfw` / `testfw` / `makefw`) - Pipeline as Code / Infrastructure as Code の実践
 - 生成 AI へのコンテキスト提供を意識したドキュメント管理
 

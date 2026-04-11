@@ -59,7 +59,7 @@ make doxy
 
 # 生成されたファイルの場所
 # XML:      xml/
-# Markdown: docs-src/doxybook2/
+# Markdown: docs/doxybook2/
 # HTML:     docs/doxygen/
 ```
 
