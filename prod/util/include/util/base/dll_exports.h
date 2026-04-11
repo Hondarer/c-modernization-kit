@@ -43,6 +43,14 @@
     #endif /* UTIL_DLL_PP_CAT__ */
 #endif     /* !DOXYGEN */
 
+#ifdef UTIL_DLL_EXPORT_VALUE
+    #undef UTIL_DLL_EXPORT_VALUE
+#endif /* UTIL_DLL_EXPORT_VALUE */
+
+#ifdef UTIL_DLL_API_VALUE
+    #undef UTIL_DLL_API_VALUE
+#endif /* UTIL_DLL_API_VALUE */
+
 #ifdef DOXYGEN
     /**
      *  @brief          DLL エクスポート/インポート修飾子。
