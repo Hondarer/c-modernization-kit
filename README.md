@@ -94,10 +94,10 @@ C ライブラリを .NET から利用するための実装例です。
 
 ## Windows 環境における注意事項
 
-Windows では、`Start-VSCode-With-Env.ps1` を使用して VS Code を起動してください。MinGW PATH と VSBT 環境変数を自動設定し、VS Code を起動します。
+Windows では、`Start-VSCode-With-Env.cmd` を使用して VS Code を起動してください。MinGW PATH と VSBT 環境変数を自動設定し、VS Code を起動します。
 
 ```powershell
-.\Start-VSCode-With-Env.ps1
+.\Start-VSCode-With-Env.cmd
 ```
 
 ## サブモジュール
@@ -114,7 +114,7 @@ git submodule update --init --recursive
 - `makefw` - Make ビルドフレームワーク ([https://github.com/Hondarer/make-framework](https://github.com/Hondarer/make-framework))
 - `testfw` - Google Test ベースのテストフレームワーク ([https://github.com/Hondarer/googletest-c-framework](https://github.com/Hondarer/googletest-c-framework))
 
-現時点では `docsfw`・`doxyfw`・`makefw`・`testfw` サブモジュールの実配置は `framework/docsfw/`・`framework/doxyfw/`・`framework/makefw/`・`framework/testfw/` です。論理名は従来どおり `docsfw`・`doxyfw`・`makefw`・`testfw` を使用します。
+`docsfw`・`doxyfw`・`makefw`・`testfw` サブモジュールの実配置は `framework/docsfw/`・`framework/doxyfw/`・`framework/makefw/`・`framework/testfw/` です。論理名は `docsfw`・`doxyfw`・`makefw`・`testfw` を使用します。
 
 ## ライセンス
 
