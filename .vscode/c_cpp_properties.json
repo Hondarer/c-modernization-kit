@@ -3,17 +3,17 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/prod/calc/include",
-                "${workspaceFolder}/prod/subfolder-sample/include",
-                "${workspaceFolder}/prod/util/include",
-                "${workspaceFolder}/prod/override-sample/include",
-                "${workspaceFolder}/prod/porter/include",
-                "${workspaceFolder}/prod/porter/libsrc/porter",
+                "${workspaceFolder}/app/calc/prod/include",
+                "${workspaceFolder}/app/subfolder-sample/prod/include",
+                "${workspaceFolder}/app/util/prod/include",
+                "${workspaceFolder}/app/override-sample/prod/include",
+                "${workspaceFolder}/app/porter/prod/include",
+                "${workspaceFolder}/app/porter/prod/libsrc/porter",
                 "${workspaceFolder}/framework/testfw/include",
                 "${workspaceFolder}/framework/testfw/gtest/include",
-                "${workspaceFolder}/test/calc/include",
-                "${workspaceFolder}/test/porter/include",
-                "${workspaceFolder}/test/util/include"
+                "${workspaceFolder}/app/calc/test/include",
+                "${workspaceFolder}/app/porter/test/include",
+                "${workspaceFolder}/app/util/test/include"
             ],
             "defines": [
                 "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
@@ -28,17 +28,17 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/prod/calc/include",
-                "${workspaceFolder}/prod/subfolder-sample/include",
-                "${workspaceFolder}/prod/util/include",
-                "${workspaceFolder}/prod/override-sample/include",
-                "${workspaceFolder}/prod/porter/include",
-                "${workspaceFolder}/prod/porter/libsrc/porter",
+                "${workspaceFolder}/app/calc/prod/include",
+                "${workspaceFolder}/app/subfolder-sample/prod/include",
+                "${workspaceFolder}/app/util/prod/include",
+                "${workspaceFolder}/app/override-sample/prod/include",
+                "${workspaceFolder}/app/porter/prod/include",
+                "${workspaceFolder}/app/porter/prod/libsrc/porter",
                 "${workspaceFolder}/framework/testfw/include",
                 "${workspaceFolder}/framework/testfw/gtest/include",
-                "${workspaceFolder}/test/calc/include",
-                "${workspaceFolder}/test/porter/include",
-                "${workspaceFolder}/test/util/include"
+                "${workspaceFolder}/app/calc/test/include",
+                "${workspaceFolder}/app/porter/test/include",
+                "${workspaceFolder}/app/util/test/include"
             ],
             "defines": [
                 // 安全のため、_CRT_SECURE_NO_WARNINGS は指定しない
