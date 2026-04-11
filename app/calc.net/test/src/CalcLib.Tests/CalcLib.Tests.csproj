@@ -35,7 +35,7 @@
   <!-- Reference the calc.net library (assembly reference) -->
   <ItemGroup>
     <Reference Include="CalcLib">
-      <HintPath>../../../../prod/lib/CalcLib.dll</HintPath>
+      <HintPath>../../../prod/lib/CalcLib.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
