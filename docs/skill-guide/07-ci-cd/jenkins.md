@@ -271,198 +271,57 @@ podman pull hondarer/oracle-linux-10-dev:latest
 > たとえば `Days to keep builds = 90`、`Max # of builds to keep with artifacts = 5` とすると
 > 「直近 90 日のビルド記録を保持しつつ、アーティファクトは最新 5 件のみ保持」という運用になります。
 
+#### ビルドスクリプト
+
+本リポジトリの `.jenkins/` ディレクトリにビルドスクリプトが収録されています。
+
+| ファイル | 役割 |
+|---|---|
+| `.jenkins/build.sh` | ホスト (Oracle Linux) 側で実行。Podman でコンテナを起動して `inner-build.sh` を呼び出す |
+| `.jenkins/inner-build.sh` | コンテナ内でユーザー権限で実行。make, テスト, アーティファクト生成, ドキュメント生成を行う |
+
+`inner-build.sh` は `.github/workflows/ci.yml` の Linux ジョブに準拠しており、以下の設定を反映しています。
+
+- `LD_LIBRARY_PATH`: `prod/calc/lib`, `prod/calc.net/lib`, `prod/override-sample/lib`, `prod/porter/lib`, `prod/util/lib`
+- `PATH`: 各モジュールの `bin/` ディレクトリ
+- ビルド警告 (`.warn`) の収集と ZIP アーカイブ
+- ドキュメント・アーティファクトの出力先: `pages/`
+
 #### ビルド手順
 
 **Build Steps** (ビルド手順) に **Execute shell** (シェルの実行) を追加し、次のようなコマンドを設定します。
 
 Oracle Linux 開発コンテナは既定の `ENTRYPOINT` で `entrypoint.sh` を実行し、最終的に `sshd -D` で待機します。  
-そのため Jenkins でワンショット実行する場合は、`--entrypoint /bin/bash` で既定エントリーポイントを上書きし、コンテナ内で `devcontainer-entrypoint.sh` を明示的に呼び出してからビルドを実行します。
+そのため Jenkins でワンショット実行する場合は、`--entrypoint /bin/bash` で既定エントリーポイントを上書きし、コンテナ内で `devcontainer-entrypoint.sh` を明示的に呼び出してからビルドを実行します。この処理は `.jenkins/build.sh` が行います。
 
 この例では、Jenkins ワークスペース内に `source` ディレクトリを作成し、そこへ clone した内容を `/workspace` にマウントしてビルドします。  
 `REPO_URL` は、適宜変更してください。  
-また、この例は `.github/workflows/ci.yml` の Linux ジョブに合わせて、Oracle Linux 8 イメージ、ログ出力、`LD_LIBRARY_PATH` の設定方針を反映しています。  
-GitHub Actions では `HOST_UID=1001`、`HOST_GID=127` の固定値を使っていますが、Jenkins では実行ユーザーの UID/GID が環境依存のため、以下の例では動的に取得して渡します。  
+GitHub Actions では `HOST_UID=1001`、`HOST_GID=127` の固定値を使っていますが、Jenkins では実行ユーザーの UID/GID が環境依存のため、`build.sh` が動的に取得して渡します。
 
 ```bash
-set -eu
-
 # Jenkins 側で調整する変数
-REPO_URL="https://github.com/Hondarer/c-modernization-kit.git"
 # イメージは ghcr.io または Docker Hub のどちらかを選択する
 # ghcr.io (GitHub Container Registry) を使う場合:
-#   IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
-#   IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest"
+#   export IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
+#   export IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest"
 # Docker Hub を使う場合:
-#   IMAGE="hondarer/oracle-linux-8-dev:latest"
-#   IMAGE="hondarer/oracle-linux-10-dev:latest"
-IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
-WORKDIR="$PWD/source"
-OS_NAME="ol8"
-BUILD_DOCS="1"
-
-# Jenkins 実行ユーザーの情報を動的に取得
-HOST_USER="$(id -un)"
-HOST_UID="$(id -u)"
-HOST_GID="$(id -g)"
+#   export IMAGE="hondarer/oracle-linux-8-dev:latest"
+#   export IMAGE="hondarer/oracle-linux-10-dev:latest"
+export REPO_URL="https://github.com/Hondarer/c-modernization-kit.git"
+export IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
+export OS_NAME="ol8"    # ol8 または ol10
+export BUILD_DOCS="1"   # 1: ドキュメント生成あり / 0: なし
 
 # ワークスペースを毎回作り直す
-rm -rf "$WORKDIR"
-mkdir -p "$WORKDIR"
+rm -rf source
+git clone --recurse-submodules "$REPO_URL" source
 
-# CI と同じコンテナイメージを取得
-podman pull "$IMAGE"
-
-# ジョブ内でリポジトリを clone
-git clone --recurse-submodules "$REPO_URL" "$WORKDIR"
-
-# 既定 ENTRYPOINT を上書きし、標準入力のスクリプトを渡してワンショット実行する
-podman run --rm -i \
-    --user root \
-    --userns=keep-id \
-    --entrypoint /bin/bash \
-    -e HOST_USER="$HOST_USER" \
-    -e HOST_UID="$HOST_UID" \
-    -e HOST_GID="$HOST_GID" \
-    -e OS_NAME="$OS_NAME" \
-    -e BUILD_DOCS="$BUILD_DOCS" \
-    -v "$WORKDIR:/workspace:Z" \
-    "$IMAGE" \
-    -s <<'EOF'
-
-# sshd 常駐用 entrypoint ではなく、ワンショット初期化スクリプトを実行
-/usr/local/bin/devcontainer-entrypoint.sh
-
-# 初期化後に、作成された一般ユーザーへ切り替え、必要な変数を渡してログインシェルでビルドを実行
-su - "$HOST_USER" -c "OS_NAME='$OS_NAME' BUILD_DOCS='$BUILD_DOCS' bash -l -s" <<'INNER_EOF'
-
-    git config --global --add safe.directory /workspace
-
-    cd /workspace
-    mkdir -p logs
-
-    # ビルドログを保存しながら make を実行
-    set -o pipefail
-    make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
-
-    # テスト実行時に必要な共有ライブラリ検索パスを設定
-    export LD_LIBRARY_PATH="/workspace/prod/calc/lib:/workspace/prod/calc.net/lib:${LD_LIBRARY_PATH:-}"
-
-    # テストログを保存しながら make test を実行
-    set -o pipefail
-    make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
-
-    # テスト結果とログのアーカイブ (GitHub Actions と同じ命名規則)
-    mkdir -p /workspace/docs/artifacts
-
-    if find /workspace/test -type d -name results 2>/dev/null | grep -q .; then
-        (cd /workspace && zip -r "docs/artifacts/linux-${OS_NAME}-test-results.zip" \
-            $(find test -type d -name results)) || true
-    fi
-
-    if [ -d "/workspace/logs" ]; then
-        (cd /workspace && zip -r "docs/artifacts/linux-${OS_NAME}-logs.zip" logs) || true
-    fi
-
-    # ドキュメント生成
-    if [ "${BUILD_DOCS}" = "1" ]; then
-        make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
-        make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
-
-        # HTML ドキュメントのアーカイブ (GitHub Actions と同じ命名規則)
-        if [ -d "/workspace/docs/doxygen" ]; then
-            (cd /workspace && zip -r docs/artifacts/docs-html-doxygen.zip docs/doxygen) || true
-        fi
-        find /workspace/docs -mindepth 2 -type d -name html | sort | while read -r html_dir; do
-            label=$(echo "$html_dir" | sed 's|^/workspace/docs/||;s|/html$||;s|/|-|g')
-            (cd /workspace && zip -r "docs/artifacts/docs-html-${label}.zip" "${html_dir#/workspace/}") || true
-        done
-
-        # DOCX ドキュメントのアーカイブ
-        find /workspace/docs -mindepth 2 -type d -name docx | sort | while read -r docx_dir; do
-            label=$(echo "$docx_dir" | sed 's|^/workspace/docs/||;s|/docx$||;s|/|-|g')
-            (cd /workspace && zip -r "docs/artifacts/docs-docx-${label}.zip" "${docx_dir#/workspace/}") || true
-        done
-    fi
-
-    # docs/index.html の生成 (GitHub Actions と同じ構造, HTML Publisher Plugin のエントリーページ)
-    {
-        cat <<'INDEX_TOP'
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>c-modernization-kit ドキュメント</title>
-  <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; }
-    h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
-    h2 { border-bottom: 1px solid #ccc; margin-top: 1.5em; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { text-align: left; padding: 0.4em 0.8em; border: 1px solid #ddd; }
-    th { background: #f6f8fa; }
-    a { color: #0366d6; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
-  <h1>c-modernization-kit ドキュメント</h1>
-INDEX_TOP
-
-        if [ "${BUILD_DOCS}" = "1" ]; then
-
-            # Doxygen サブフォルダを自動探索してリンク生成
-            if [ -d "/workspace/docs/doxygen" ] && \
-               find /workspace/docs/doxygen -maxdepth 1 -mindepth 1 -type d | grep -q .; then
-                echo '  <h2>Doxygen ドキュメント</h2>'
-                echo '  <table>'
-                echo '    <tr><th>モジュール</th><th>リンク</th></tr>'
-                find /workspace/docs/doxygen -maxdepth 1 -mindepth 1 -type d | sort | while read -r subdir; do
-                    name=$(basename "$subdir")
-                    echo "    <tr><td>${name}</td><td><a href=\"doxygen/${name}/index.html\">${name} リファレンス</a></td></tr>"
-                done
-                echo '  </table>'
-            fi
-
-            # Markdown ドキュメント
-            if find /workspace/docs -maxdepth 2 -name html -type d | grep -q .; then
-                cat <<'LANG_TABLE'
-  <h2>Markdown ドキュメント</h2>
-  <table>
-    <tr><th>言語</th><th>種別</th><th>リンク</th></tr>
-    <tr><td>日本語</td><td>通常版</td><td><a href="ja/html/index.html">日本語ドキュメント</a></td></tr>
-    <tr><td>English</td><td>Standard</td><td><a href="en/html/index.html">English Documentation</a></td></tr>
-    <tr><td>日本語</td><td>詳細版</td><td><a href="ja-details/html/index.html">日本語ドキュメント (詳細)</a></td></tr>
-    <tr><td>English</td><td>Details</td><td><a href="en-details/html/index.html">English Documentation (Details)</a></td></tr>
-  </table>
-LANG_TABLE
-            fi
-
-        fi
-
-        # アーティファクト (BUILD_DOCS に関係なく常に表示、存在するものを列挙)
-        if [ -d "/workspace/docs/artifacts" ] && \
-           find /workspace/docs/artifacts -name "*.zip" | grep -q .; then
-            echo '  <h2>アーティファクト</h2>'
-            echo '  <table>'
-            echo '    <tr><th>ファイル名</th></tr>'
-            find /workspace/docs/artifacts -name "*.zip" | sort | while read -r zipfile; do
-                fname=$(basename "$zipfile")
-                echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
-            done
-            echo '  </table>'
-        fi
-
-        cat <<'INDEX_BOTTOM'
-</body>
-</html>
-INDEX_BOTTOM
-    } > /workspace/docs/index.html
-
-INNER_EOF
-EOF
+# リポジトリ内のビルドスクリプトを実行
+bash source/.jenkins/build.sh
 ```
 
 ドキュメント生成を実施しない場合は、`BUILD_DOCS="0"` に変更してください。
+Oracle Linux 10 イメージでビルドする場合は `IMAGE` と `OS_NAME` を変更してください。
 
 この構成では、コンテナ内でまず `devcontainer-entrypoint.sh` が実行され、`HOST_USER` / `HOST_UID` / `HOST_GID` に基づいてユーザーとホームディレクトリが初期化されます。その後、作成済みユーザー権限で `make` などを実行します。
 
@@ -483,9 +342,10 @@ EOF
 - コンテナ内の `/workspace` でコマンドを実行できる
 - `make` が成功する
 - `make test` が成功する
-- `source/docs/artifacts/linux-ol8-test-results.zip` 等が生成される
-- `source/docs/index.html` が生成される
-- `BUILD_DOCS="1"` の場合は `source/docs/artifacts/docs-html-doxygen.zip` 等も生成される
+- `source/pages/artifacts/linux-ol8-test-results.zip` 等が生成される
+- ビルド警告がある場合は `source/pages/artifacts/linux-ol8-warns.zip` が生成される
+- `source/pages/index.html` が生成される
+- `BUILD_DOCS="1"` の場合は `source/pages/artifacts/docs-html-doxygen.zip` 等も生成される
 
 必要に応じて Console Output を確認し、環境変数や依存パッケージ不足を調整してください。
 
@@ -538,14 +398,14 @@ Jenkins の **HTML Publisher Plugin** を使うと、ジョブのワークスペ
 
 | 項目 | 設定値 |
 |---|---|
-| HTML directory to archive | `source/docs` |
+| HTML directory to archive | `source/pages` |
 | Index page(s) | `index.html` |
 | Report title | `docs-and-artifacts` (任意) |
 | Keep past HTML reports | チェックを入れると過去のビルドのレポートも保持される |
 
 設定を保存し、ジョブを実行します。ビルド完了後、ジョブのトップページに **Docs** リンクが表示されます。
 
-ビルドスクリプトにより `source/docs/index.html` が自動生成されるため、アクセス時に Doxygen API ドキュメント (モジュール別)・言語別ドキュメント・アーティファクトへのリンクをまとめたナビゲーションページが表示されます。
+ビルドスクリプトにより `source/pages/index.html` が自動生成されるため、アクセス時に Doxygen API ドキュメント (モジュール別)・言語別ドキュメント・アーティファクトへのリンクをまとめたナビゲーションページが表示されます。
 
 公開 URL のパターンは次のとおりです。
 
