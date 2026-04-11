@@ -36,16 +36,16 @@ clean : submodule $(SUBDIRS)
 
 .PHONY: test
 test : submodule
-    # 全プロダクトをビルド (デフォルトターゲット)
-	$(MAKE) $(MFLAGS) $(SUBDIRS)
-    # テスト実行
+	# 全プロダクトをビルド (default ターゲット)
+	$(MAKE) $(MFLAGS) default
+	# テスト実行
 	@for dir in $(SUBDIRS); do \
 		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
 			echo $(MAKE) -C $$dir test; \
 			$(MAKE) -C $$dir test || exit 1; \
 		fi; \
 	done
-    # このフォルダ以下の coverage.xml をマージする
+	# このフォルダ以下の coverage.xml をマージする
 	python ../framework/testfw/bin/cobertura_merge.py . 1> /dev/null 2>&1
 
 # NOTE: 単一カテゴリを指定して Doxygen を実行可能。
@@ -73,8 +73,8 @@ doxy : submodule
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :
 	@if [ -f $@/makefile ]; then \
-		echo $(MAKE) -C $@ $(MAKECMDGOALS); \
-		$(MAKE) -C $@ $(MAKECMDGOALS) || exit 1; \
+		echo $(MAKE) -C $@ $(filter-out $(SUBDIRS),$(MAKECMDGOALS)); \
+		$(MAKE) -C $@ $(filter-out $(SUBDIRS),$(MAKECMDGOALS)) || exit 1; \
 	else \
 		echo "INFO: $@/makefile not found, skipping."; \
 	fi
