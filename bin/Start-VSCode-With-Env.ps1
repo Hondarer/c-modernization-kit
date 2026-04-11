@@ -4,6 +4,7 @@
 
 .DESCRIPTION
     MinGW PATH と VSBT 環境変数を現在のセッションに設定し、VS Code を起動します。
+    既定では、起動元のファイルシステムのカレントディレクトリを VS Code で開きます。
     このテンプレートを任意のユーザーフォルダにコピーし、カスタマイズして利用してください。
 
     各設定値が空文字 ("") の場合、候補ディレクトリを自動走査して検出します。
@@ -90,9 +91,11 @@ $windowsSDKPath     = ""
 # 例:                 "10.0.26100.0"
 $windowsSDKVersion  = ""
 
-# VS Code 起動対象のレポジトリのパス
-# このスクリプトを個人フォルダにコピーして利用する場合に変更してください
-$vscodeTargetPath   = Join-Path $scriptDir "."
+# VS Code 起動対象のパス
+# 空文字 ("") の場合、起動元のファイルシステムのカレントディレクトリを優先し、
+# 取得できない場合はこのスクリプトがある bin の親ディレクトリを使用します
+# 固定したい場合は絶対パスを設定してください
+$vscodeTargetPath   = ""
 
 # ---- ユーザー設定値 END ------------------------------------------------------------------------------
 
@@ -429,6 +432,15 @@ public class Win32MessageBox {
     [System.Media.SystemSounds]::Exclamation.Play()
     [Win32MessageBox]::MessageBox($ownerHwnd, $message, $scriptName, 0x0) | Out-Null
     exit 1
+}
+
+if (-not $vscodeTargetPath) {
+    $currentLocation = Get-Location
+    if ($currentLocation.Provider.Name -eq "FileSystem") {
+        $vscodeTargetPath = $currentLocation.ProviderPath
+    } else {
+        $vscodeTargetPath = Split-Path -Parent $scriptDir
+    }
 }
 
 if (-not (Test-Path $vscodeTargetPath)) {
