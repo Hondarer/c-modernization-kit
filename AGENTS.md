@@ -108,7 +108,7 @@ c-modernization-kit/                          # このプロジェクト
 |   |   +-- Doxyfile                    # Doxygen 基本設定
 |   |   +-- doxybook2-config.json       # Doxybook2 設定
 |   |   +-- templates/                  # カスタムテンプレート群
-|   |   +-- docs-src/                   # フレームワーク技術ドキュメント
+|   |   +-- docs/                       # フレームワーク技術ドキュメント
 |   |   +-- makefile                    # ドキュメント生成用 makefile
 |   |   +-- CLAUDE.md                   # フレームワーク詳細ドキュメント
 |   +-- docsfw/                         # Markdown 発行フレームワーク (git submodule)
@@ -184,11 +184,11 @@ c-modernization-kit/                          # このプロジェクト
 |   +-- libsrc/                           # テスト用モック実装
 |       +-- mock_calcbase/                # calcbase ライブラリのモック
 |       +-- mock_calc/                    # calc ライブラリのモック
-+-- docs/                                  # 生成されるドキュメント
++-- pages/                                 # 生成されるドキュメント
 |   +-- doxygen/                          # HTML ドキュメント (Doxygen)
 |   +-- ja/html/                          # 日本語版 HTML
 |   +-- en/html/                          # 英語版 HTML
-+-- docs-src/                              # ドキュメントソース
++-- docs/                                  # ドキュメントソース
 |   +-- doxybook2/                        # 生成される Markdown (Doxybook2)
 |   |   +-- calc/                         # C プロジェクトのドキュメント
 |   |   +-- calc.net/                     # .NET プロジェクトのドキュメント

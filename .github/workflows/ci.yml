@@ -192,89 +192,89 @@ jobs:
 
       - name: Create artifact archives
         run: |
-          mkdir -p docs/artifacts
+          mkdir -p pages/artifacts
           # HTML ドキュメント (サブディレクトリごとに分割)
-          if [ -d "docs/doxygen" ]; then
-            zip -r docs/artifacts/docs-html-doxygen.zip docs/doxygen || true
+          if [ -d "pages/doxygen" ]; then
+            zip -r pages/artifacts/docs-html-doxygen.zip pages/doxygen || true
           fi
-          find docs -type d -name html | while read -r html_dir; do
-            label=$(echo "$html_dir" | sed 's|^docs/||;s|/html$||;s|/|-|g')
-            zip -r "docs/artifacts/docs-html-${label}.zip" "$html_dir" || true
+          find pages -type d -name html | while read -r html_dir; do
+            label=$(echo "$html_dir" | sed 's|^pages/||;s|/html$||;s|/|-|g')
+            zip -r "pages/artifacts/docs-html-${label}.zip" "$html_dir" || true
           done
           # DOCX ドキュメント (サブディレクトリごとに分割)
-          find docs -type d -name docx | while read -r docx_dir; do
-            label=$(echo "$docx_dir" | sed 's|^docs/||;s|/docx$||;s|/|-|g')
-            zip -r "docs/artifacts/docs-docx-${label}.zip" "$docx_dir" || true
+          find pages -type d -name docx | while read -r docx_dir; do
+            label=$(echo "$docx_dir" | sed 's|^pages/||;s|/docx$||;s|/|-|g')
+            zip -r "pages/artifacts/docs-docx-${label}.zip" "$docx_dir" || true
           done
 
       - name: Upload documentation artifacts
         uses: actions/upload-artifact@v7
         with:
           name: documentation
-          path: docs/
+          path: pages/
           if-no-files-found: warn
 
       - name: Upload html artifacts (doxygen)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-doxygen-${{ github.sha }}
-          path: docs/doxygen/
+          path: pages/doxygen/
           if-no-files-found: warn
 
       - name: Upload html artifacts (ja)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-ja-${{ github.sha }}
-          path: docs/ja/html/
+          path: pages/ja/html/
           if-no-files-found: warn
 
       - name: Upload html artifacts (en)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-en-${{ github.sha }}
-          path: docs/en/html/
+          path: pages/en/html/
           if-no-files-found: warn
 
       - name: Upload html artifacts (ja-details)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-ja-details-${{ github.sha }}
-          path: docs/ja-details/html/
+          path: pages/ja-details/html/
           if-no-files-found: warn
 
       - name: Upload html artifacts (en-details)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-html-en-details-${{ github.sha }}
-          path: docs/en-details/html/
+          path: pages/en-details/html/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (ja)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-ja-${{ github.sha }}
-          path: docs/ja/docx/
+          path: pages/ja/docx/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (en)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-en-${{ github.sha }}
-          path: docs/en/docx/
+          path: pages/en/docx/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (ja-details)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-ja-details-${{ github.sha }}
-          path: docs/ja-details/docx/
+          path: pages/ja-details/docx/
           if-no-files-found: warn
 
       - name: Upload docx artifacts (en-details)
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-docs-docx-en-details-${{ github.sha }}
-          path: docs/en-details/docx/
+          path: pages/en-details/docx/
           if-no-files-found: warn
 
   deploy-pages:
@@ -308,7 +308,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: documentation
-          path: docs
+          path: pages
 
       - name: Download Linux OL8 logs
         uses: actions/download-artifact@v8
@@ -331,41 +331,41 @@ jobs:
       - name: Organize artifacts for Pages
         run: |
           # テスト結果とログをアーカイブ化
-          mkdir -p docs/artifacts
+          mkdir -p pages/artifacts
 
           if [ -d "test-results/linux-ol8" ]; then
-            zip -r docs/artifacts/linux-ol8-test-results.zip test-results/linux-ol8
+            zip -r pages/artifacts/linux-ol8-test-results.zip test-results/linux-ol8
             echo "Created linux-ol8-test-results.zip"
           fi
 
           if [ -d "test-results/linux-ol10" ]; then
-            zip -r docs/artifacts/linux-ol10-test-results.zip test-results/linux-ol10
+            zip -r pages/artifacts/linux-ol10-test-results.zip test-results/linux-ol10
             echo "Created linux-ol10-test-results.zip"
           fi
 
           if [ -d "test-results/windows" ]; then
-            zip -r docs/artifacts/windows-test-results.zip test-results/windows
+            zip -r pages/artifacts/windows-test-results.zip test-results/windows
             echo "Created windows-test-results.zip"
           fi
 
           if [ -d "logs/linux-ol8" ]; then
-            zip -r docs/artifacts/linux-ol8-logs.zip logs/linux-ol8
+            zip -r pages/artifacts/linux-ol8-logs.zip logs/linux-ol8
             echo "Created linux-ol8-logs.zip"
           fi
 
           if [ -d "logs/linux-ol10" ]; then
-            zip -r docs/artifacts/linux-ol10-logs.zip logs/linux-ol10
+            zip -r pages/artifacts/linux-ol10-logs.zip logs/linux-ol10
             echo "Created linux-ol10-logs.zip"
           fi
 
           if [ -d "logs/windows" ]; then
-            zip -r docs/artifacts/windows-logs.zip logs/windows
+            zip -r pages/artifacts/windows-logs.zip logs/windows
             echo "Created windows-logs.zip"
           fi
 
           # ディレクトリ構造を確認
           echo "=== Pages directory structure ==="
-          find docs -type f | head -20
+          find pages -type f | head -20
           echo "..."
 
       - name: Create Pages root index.html
@@ -394,12 +394,12 @@ jobs:
           INDEX_TOP
 
             # Doxygen サブフォルダを自動探索してリンク生成
-            if [ -d "./docs/doxygen" ] && \
-               find ./docs/doxygen -maxdepth 1 -mindepth 1 -type d | grep -q .; then
+            if [ -d "./pages/doxygen" ] && \
+               find ./pages/doxygen -maxdepth 1 -mindepth 1 -type d | grep -q .; then
               echo '  <h2>Doxygen ドキュメント</h2>'
               echo '  <table>'
               echo '    <tr><th>モジュール</th><th>リンク</th></tr>'
-              find ./docs/doxygen -maxdepth 1 -mindepth 1 -type d | sort | while read -r subdir; do
+              find ./pages/doxygen -maxdepth 1 -mindepth 1 -type d | sort | while read -r subdir; do
                 name=$(basename "$subdir")
                 echo "    <tr><td>${name}</td><td><a href=\"doxygen/${name}/index.html\">${name} リファレンス</a></td></tr>"
               done
@@ -407,7 +407,7 @@ jobs:
             fi
 
             # Markdown ドキュメント
-            if find ./docs -maxdepth 2 -name html -type d | grep -q .; then
+            if find ./pages -maxdepth 2 -name html -type d | grep -q .; then
               cat <<'LANG_TABLE'
             <h2>Markdown ドキュメント</h2>
             <table>
@@ -421,12 +421,12 @@ jobs:
             fi
 
             # アーティファクト (存在するものを列挙)
-            if [ -d "./docs/artifacts" ] && \
-               find ./docs/artifacts -name "*.zip" | grep -q .; then
+            if [ -d "./pages/artifacts" ] && \
+               find ./pages/artifacts -name "*.zip" | grep -q .; then
               echo '  <h2>アーティファクト</h2>'
               echo '  <table>'
               echo '    <tr><th>ファイル名</th></tr>'
-              find ./docs/artifacts -name "*.zip" | sort | while read -r zipfile; do
+              find ./pages/artifacts -name "*.zip" | sort | while read -r zipfile; do
                 fname=$(basename "$zipfile")
                 echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
               done
@@ -437,12 +437,12 @@ jobs:
           </body>
           </html>
           INDEX_BOTTOM
-          } > ./docs/index.html
+          } > ./pages/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./docs
+          path: ./pages
 
       - name: Deploy to GitHub Pages
         id: deployment

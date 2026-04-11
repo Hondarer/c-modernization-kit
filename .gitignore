@@ -48,10 +48,10 @@ idir
 __pycache__/
 
 ## doxybook2 によって生成される Markdown
-/docs-src/doxybook2/
+/docs/doxybook2/
 
 ## 生成ドキュメント (gh-pages で公開)
-/docs/
+/pages/
 
 ## 成果物
 lib
