@@ -127,7 +127,7 @@ dotnet test --filter "FullyQualifiedName=CalcLib.Tests.CalcLibraryTests.Add_Shou
 
 ### 1. テストコード抽出スクリプト
 
-**ファイル名**: `framework/testfw/cmnd/get_test_code_dotnet.py`
+**ファイル名**: `framework/testfw/bin/get_test_code_dotnet.py`
 
 **機能**:
 - .NET テストファイル (.cs) から特定のテストメソッドを抽出
@@ -235,7 +235,7 @@ if __name__ == '__main__':
 
 ### 2. サマリ生成スクリプト
 
-**ファイル名**: `framework/testfw/cmnd/insert_summary_dotnet.py`
+**ファイル名**: `framework/testfw/bin/insert_summary_dotnet.py`
 
 **機能**:
 - `insert_summary.awk` の Python 移植
@@ -645,9 +645,9 @@ results/
    - C テストフレームワークと同様のディレクトリ構造を実現
 
    **生成されたファイル**:
-   - `framework/testfw/cmnd/get_test_code_dotnet.py` (211行)
-   - `framework/testfw/cmnd/insert_summary_dotnet.py` (155行)
-   - `framework/testfw/cmnd/exec_test_dotnet.sh` (237行、既存のバックアップも保存)
+   - `framework/testfw/bin/get_test_code_dotnet.py` (211行)
+   - `framework/testfw/bin/insert_summary_dotnet.py` (155行)
+   - `framework/testfw/bin/exec_test_dotnet.sh` (237行、既存のバックアップも保存)
 
 2. **フェーズ1.5: 一括実行への最適化** ✅ **完了** (2026-02-17)
    - [x] `parse_trx_results.py` の新規作成 (TRX XML パーサー)
@@ -667,8 +667,8 @@ results/
    - テストコード、サマリ、テスト結果行 (成功/失敗) は同一
 
    **追加されたファイル**:
-   - `framework/testfw/cmnd/parse_trx_results.py` (TRX XML パーサー)
-   - `framework/testfw/cmnd/extract_dotnet_output.py` (バッチ出力抽出)
+   - `framework/testfw/bin/parse_trx_results.py` (TRX XML パーサー)
+   - `framework/testfw/bin/extract_dotnet_output.py` (バッチ出力抽出)
 
 3. **フェーズ2: 機能拡張** (オプション)
    - [ ] Theory テストの個別パラメータログ生成 (必要性を再評価)
@@ -684,14 +684,14 @@ results/
 
 ### C テストフレームワークの関連ファイル
 
-- `framework/testfw/cmnd/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
-- `framework/testfw/cmnd/get_test_code_c_cpp.awk` - テストコード抽出 (AWK)
-- `framework/testfw/cmnd/insert_summary_c_cpp.awk` - サマリ生成 (AWK)
-- `framework/testfw/cmnd/exec_test_dotnet.sh` - .NET テスト実行スクリプト (一括実行)
-- `framework/testfw/cmnd/get_test_code_dotnet.py` - .NET テストコード抽出
-- `framework/testfw/cmnd/insert_summary_dotnet.py` - .NET サマリ生成
-- `framework/testfw/cmnd/parse_trx_results.py` - TRX XML パーサー
-- `framework/testfw/cmnd/extract_dotnet_output.py` - バッチ出力から個別テスト結果を抽出
+- `framework/testfw/bin/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
+- `framework/testfw/bin/get_test_code_c_cpp.awk` - テストコード抽出 (AWK)
+- `framework/testfw/bin/insert_summary_c_cpp.awk` - サマリ生成 (AWK)
+- `framework/testfw/bin/exec_test_dotnet.sh` - .NET テスト実行スクリプト (一括実行)
+- `framework/testfw/bin/get_test_code_dotnet.py` - .NET テストコード抽出
+- `framework/testfw/bin/insert_summary_dotnet.py` - .NET サマリ生成
+- `framework/testfw/bin/parse_trx_results.py` - TRX XML パーサー
+- `framework/testfw/bin/extract_dotnet_output.py` - バッチ出力から個別テスト結果を抽出
 
 ### .NET テストプロジェクト
 
