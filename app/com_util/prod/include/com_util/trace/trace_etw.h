@@ -74,7 +74,7 @@ typedef struct _tlgProvider_t const *trace_etw_provider_ref_t;
  *  @param          guid  GUID (TraceLogging 形式の括弧付き定数タプル)
  *
  *  @par            使用例
-    @code{.c}
+ *  @code{.c}
     #include <windows.h>
     #include <TraceLoggingProvider.h>
     #include <com_util/trace/trace_etw.h>
@@ -83,7 +83,7 @@ typedef struct _tlgProvider_t const *trace_etw_provider_ref_t;
         s_my_provider,
         "MyProvider",
         (0x12345678, 0x1234, 0x1234, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67, 0x89));
-    @endcode
+ *  @endcode
  */
 #define TRACE_ETW_DEFINE_PROVIDER(var, name, guid) \
     TRACELOGGING_DEFINE_PROVIDER(var, name, guid)
@@ -109,9 +109,9 @@ extern "C"
      *  @return         成功時: ハンドル。失敗時: NULL。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         trace_etw_provider_t *h = trace_etw_provider_create(s_my_provider);
-        @endcode
+     *  @endcode
      */
     TRACE_ETW_EXPORT trace_etw_provider_t *TRACE_ETW_API
         trace_etw_provider_create(trace_etw_provider_ref_t provider_ref);
@@ -197,12 +197,12 @@ extern "C"
      *                  @c TRACE_ETW_SESSION_ERR_SYSTEM その他のシステムエラー。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         int status = trace_etw_session_check_access();
         if (status == TRACE_ETW_SESSION_ERR_ACCESS) {
             fprintf(stderr, "Run: net localgroup \"Performance Log Users\" %%USERNAME%% /add\n");
         }
-        @endcode
+     *  @endcode
      */
     TRACE_ETW_EXPORT int TRACE_ETW_API
         trace_etw_session_check_access(void);
@@ -224,7 +224,7 @@ extern "C"
      *  @return         成功: セッションハンドル / 失敗: NULL。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         int status;
         trace_etw_session_t *s = trace_etw_session_start(
             "MySession",
@@ -233,7 +233,7 @@ extern "C"
         if (s == NULL && status == TRACE_ETW_SESSION_ERR_ACCESS) {
             fprintf(stderr, "Run: net localgroup \"Performance Log Users\" %%USERNAME%% /add\n");
         }
-        @endcode
+     *  @endcode
      */
     TRACE_ETW_EXPORT trace_etw_session_t *TRACE_ETW_API
         trace_etw_session_start(const char *session_name,

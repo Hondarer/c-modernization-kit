@@ -14,7 +14,7 @@
  *                  使用できます。
  *
  *  @par            使用例
-    @code{.c}
+ *  @code{.c}
     #include <com_util/console/console.h>
     #include <stdio.h>
 
@@ -25,7 +25,7 @@
         console_dispose();
         return 0;
     }
-    @endcode
+ *  @endcode
  */
 
 /* ===== DLL エクスポート / インポート制御マクロ ===== */

@@ -62,12 +62,12 @@ extern "C"
      *  @return         成功時: ハンドル。失敗時: NULL。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         #include <syslog.h>
         #include <com_util/trace/trace_syslog.h>
 
         trace_syslog_sink_t *h = trace_syslog_sink_create("myapp", LOG_USER);
-        @endcode
+     *  @endcode
      */
     TRACE_SYSLOG_EXPORT trace_syslog_sink_t *TRACE_SYSLOG_API
         trace_syslog_sink_create(const char *ident, int facility);

@@ -198,7 +198,7 @@ typedef struct
  *  送信時は PotrContext_ の send_wire_buf / recv_buf に wire データを組み立ててください。
  *
  *  ワイヤーフォーマット (バイトオフセット):
-    @code
+ *  @code
      0: service_id      (int64_t,  8 bytes)
      8: session_tv_sec  (int64_t,  8 bytes)
     16: session_id      (uint32_t, 4 bytes)
@@ -209,7 +209,7 @@ typedef struct
     34: payload_len     (uint16_t, 2 bytes)
     36: _reserved       (uint32_t, 4 bytes, padding)
     40: payload         (pointer)
-    @endcode
+ *  @endcode
  *******************************************************************************
  */
 typedef struct

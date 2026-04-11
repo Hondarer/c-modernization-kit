@@ -12,7 +12,7 @@
  *  使用します。
  *
  *  @par            アーキテクチャ
-    @code
+ *  @code
     Application
           |
           v           trace.h (共通 API)
@@ -21,10 +21,10 @@
     |           |      |        |
     ETW        syslog File    stderr
     (Windows)  (Linux) (両OS)  (両OS)
-    @endcode
+ *  @endcode
  *
  *  @par            使用例 (共通)
-    @code{.c}
+ *  @code{.c}
     #include <com_util/trace/trace.h>
 
     trace_logger_t *logger = trace_logger_create();
@@ -33,10 +33,10 @@
     trace_logger_write(logger, TRACE_LEVEL_INFO, "application started");
     trace_logger_stop(logger);
     trace_logger_destroy(logger);
-    @endcode
+ *  @endcode
  *
  *  @par            使用例 (設定変更)
-    @code{.c}
+ *  @code{.c}
     trace_logger_t *logger = trace_logger_create();
     trace_logger_set_name(logger, "myapp", 0);
     trace_logger_set_os_level(logger, TRACE_LEVEL_VERBOSE);
@@ -48,7 +48,7 @@
     trace_logger_write(logger, TRACE_LEVEL_INFO, "running as myapp-1");
     trace_logger_stop(logger);
     trace_logger_destroy(logger);
-    @endcode
+ *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -255,14 +255,14 @@ extern "C"
      *                  trace_logger_set_file_sink, trace_logger_set_stderr_level) をスレッド安全に使用できます。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         trace_logger_t *logger = trace_logger_create();
         trace_logger_set_name(logger, "myapp", 0);
         trace_logger_start(logger);
         trace_logger_write(logger, TRACE_LEVEL_INFO, "application started");
         trace_logger_stop(logger);
         trace_logger_destroy(logger);
-        @endcode
+     *  @endcode
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n
@@ -374,9 +374,9 @@ extern "C"
      *  @return         成功 0 / 失敗 -1。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         trace_logger_writef(logger, TRACE_LEVEL_INFO, "user=%s count=%d", username, count);
-        @endcode
+     *  @endcode
      *
      *  @pre            ハンドルが started 状態であること (trace_logger_start 呼び出し済み)。
      *                  stopped 状態では -1 を返します。
@@ -414,7 +414,7 @@ extern "C"
      *  @return         成功 0 / 失敗 -1。
      *
      *  @par            出力フォーマット
-        @code
+     *  @code
         // message 指定あり (全データ表示):
         "Received data: 48 65 6C 6C 6F"
 
@@ -423,7 +423,7 @@ extern "C"
 
         // データが収まらない場合 (切り詰め):
         "Received data: 48 65 6C ..."
-        @endcode
+     *  @endcode
      *
      *  @pre            ハンドルが started 状態であること (trace_logger_start 呼び出し済み)。
      *                  stopped 状態では -1 を返します。
@@ -459,18 +459,18 @@ extern "C"
      *  @return         成功 0 / 失敗 -1。
      *
      *  @par            出力フォーマット
-        @code
+     *  @code
         // フォーマット済みラベル付き:
         "packet[3]: 48 65 6C 6C 6F"
 
         // データが収まらない場合:
         "packet[3]: 48 65 6C ..."
-        @endcode
+     *  @endcode
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         trace_logger_write_hexf(logger, TRACE_LEVEL_INFO, data, len, "packet[%d]", index);
-        @endcode
+     *  @endcode
      *
      *  @pre            ハンドルが started 状態であること (trace_logger_start 呼び出し済み)。
      *                  stopped 状態では -1 を返します。
@@ -514,13 +514,13 @@ extern "C"
      *  @return         成功 0 / 失敗 (無効な引数・メモリ確保失敗等) -1。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         trace_logger_t *logger = trace_logger_create();
         trace_logger_set_name(logger, "worker", 2); // 識別名 = "worker-2"
         trace_logger_start(logger);
         trace_logger_write(logger, TRACE_LEVEL_INFO, "running as worker-2");
         trace_logger_destroy(logger);
-        @endcode
+     *  @endcode
      *
      *  @pre            ハンドルが stopped 状態であること。
      *                  started 状態では -1 を返します。
@@ -608,9 +608,9 @@ extern "C"
      *
      *  標準エラー出力 (stderr) に出力するメッセージの最低重要度レベルを変更します。\n
      *  出力フォーマットはファイルトレースと同一です。\n
-        @code
+     *  @code
         2026-04-02 12:34:56.789 I メッセージテキスト
-        @endcode
+     *  @endcode
      *  タイムスタンプは UTC です。\n
      *  デフォルト値は @c TRACE_LOGGER_DEFAULT_STDERR_LEVEL (TRACE_LEVEL_NONE: 無効) です。\n
      *  @c TRACE_LEVEL_NONE を指定すると stderr 出力を完全に抑止します。
@@ -734,10 +734,10 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_writef)。
  *
  *  @par            出力例
-    @code{.c}
+ *  @code{.c}
     TRACE_LOGGER_WRITE(logger, TRACE_LEVEL_INFO, "started");
     // → "[add.c:42] started"
-    @endcode
+ *  @endcode
  */
 #define TRACE_LOGGER_WRITE(handle, level, message) \
     trace_logger_writef((handle), (level), "[%s:%d] %s", \
@@ -757,10 +757,10 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_writef)。
  *
  *  @par            出力例
-    @code{.c}
+ *  @code{.c}
     TRACE_LOGGER_WRITEF(logger, TRACE_LEVEL_INFO, "user=%s count=%d", username, count);
     // → "[calc.c:88] user=alice count=3"
-    @endcode
+ *  @endcode
  */
 #define TRACE_LOGGER_WRITEF(handle, level, fmt, ...) \
     trace_logger_writef((handle), (level), "[%s:%d] " fmt, \
@@ -782,12 +782,12 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_write_hexf)。
  *
  *  @par            出力例
-    @code{.c}
+ *  @code{.c}
     TRACE_LOGGER_WRITE_HEX(logger, TRACE_LEVEL_INFO, buf, len, "Received data");
     // → "[recv.c:77] Received data: 48 65 6C 6C 6F"
     TRACE_LOGGER_WRITE_HEX(logger, TRACE_LEVEL_INFO, buf, len, NULL);
     // → "[recv.c:77]: 48 65 6C 6C 6F"
-    @endcode
+ *  @endcode
  */
 #define TRACE_LOGGER_WRITE_HEX(handle, level, data, size, message) \
     trace_logger_write_hexf((handle), (level), (data), (size), "[%s:%d]%s%s", \
@@ -811,10 +811,10 @@ extern "C"
  *  @return         成功 0 / 失敗 -1 (@see trace_logger_write_hexf)。
  *
  *  @par            出力例
-    @code{.c}
+ *  @code{.c}
     TRACE_LOGGER_WRITE_HEXF(logger, TRACE_LEVEL_INFO, data, len, "packet[%d]", index);
     // → "[recv.c:99] packet[3]: 48 65 6C 6C 6F"
-    @endcode
+ *  @endcode
  */
 #define TRACE_LOGGER_WRITE_HEXF(handle, level, data, size, fmt, ...) \
     trace_logger_write_hexf((handle), (level), (data), (size), "[%s:%d] " fmt, \

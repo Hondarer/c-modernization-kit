@@ -17,9 +17,9 @@
  *  双方向モードでは受信待機中に標準入力からメッセージまたはファイルを送信できます。
  *
  *  @par            使用方法
-    @code{.sh}
+ *  @code{.sh}
     recv [-l <level>] <config_path> <service_id>
-    @endcode
+ *  @endcode
  *
  *  @par            オプション
  *  | オプション       | 説明                                                        |
@@ -29,11 +29,11 @@
  *  level に指定可能な値: TRACE, DEBUG, INFO, WARN, ERROR, FATAL (大文字小文字不問)
  *
  *  @par            使用例
-    @code{.sh}
+ *  @code{.sh}
     recv porter-services.conf 10
     recv -l INFO porter-services.conf 10
     recv -l DEBUG porter-services.conf 1031
-    @endcode
+ *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *

@@ -84,9 +84,9 @@ extern "C"
      *                  動的ライブラリ内から呼び出し元プロセスのコンソールに出力します。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         console_output("result: %d\n", 42);  // 出力: result: 42
-        @endcode
+     *  @endcode
      *******************************************************************************
      */
     BASE_EXPORT extern void BASE_API console_output(const char *format, ...);

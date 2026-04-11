@@ -93,7 +93,7 @@ extern "C"
      *  POTR_ROLE_RECEIVER の場合、内部で受信スレッドを起動します。
      *
      *  @par            使用例 (受信者)
-        @code{.c}
+     *  @code{.c}
         void on_recv(int64_t service_id, PotrPeerId peer_id,
                      PotrEvent event, const void *data, size_t len) {
             (void)peer_id;  // 1:1 モードでは常に POTR_PEER_NA
@@ -124,10 +124,10 @@ extern "C"
             // 受信待機中 (受信スレッドが動作)
             potrCloseService(handle);
         }
-        @endcode
+     *  @endcode
      *
      *  @par            使用例 (送信者)
-        @code{.c}
+     *  @code{.c}
         PotrGlobalConfig global = {0};
         global.window_size        = 16;
         global.max_payload        = 1400;
@@ -147,7 +147,7 @@ extern "C"
             potrSend(handle, POTR_PEER_NA, "hello", 5, 0);
             potrCloseService(handle);
         }
-        @endcode
+     *  @endcode
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n
@@ -200,7 +200,7 @@ extern "C"
      *  POTR_ROLE_RECEIVER の場合、内部で受信スレッドを起動します。
      *
      *  @par            使用例 (受信者)
-        @code{.c}
+     *  @code{.c}
         void on_recv(int64_t service_id, PotrPeerId peer_id,
                      PotrEvent event, const void *data, size_t len) {
             (void)peer_id;  // 1:1 モードでは常に POTR_PEER_NA
@@ -218,17 +218,17 @@ extern "C"
             // 受信待機中 (受信スレッドが動作)
             potrCloseService(handle);
         }
-        @endcode
+     *  @endcode
      *
      *  @par            使用例 (送信者)
-        @code{.c}
+     *  @code{.c}
         PotrHandle handle;
         if (potrOpenServiceFromConfig("porter-services.conf", 1001,
                                       POTR_ROLE_SENDER, NULL, &handle) == POTR_SUCCESS) {
             potrSend(handle, POTR_PEER_NA, "hello", 5, 0);
             potrCloseService(handle);
         }
-        @endcode
+     *  @endcode
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n
@@ -396,13 +396,13 @@ extern "C"
      *
      *  @par            ログフォーマット
      *  OS トレース (syslog / ETW) およびファイルへの出力フォーマット:
-        @code
+     *  @code
         [file.c:line] message
-        @endcode
+     *  @endcode
      *  stderr への出力フォーマット (タイムスタンプは UTC、L はレベル文字):
-        @code
+     *  @code
         YYYY-MM-DD HH:MM:SS.mmm L [file.c:line] message
-        @endcode
+     *  @endcode
      *
      *  @par            ログレベル一覧
      *  | レベル               | 値 | 出力内容                                        |
@@ -415,7 +415,7 @@ extern "C"
      *  | POTR_TRACE_NONE      |  5 | ログ無効 (デフォルト)                           |
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         // INFO 以上をファイルと stderr に出力
         potrLogConfig(POTR_TRACE_INFO, "/var/log/porter.log", 1);
 
@@ -424,7 +424,7 @@ extern "C"
 
         // ログを無効化
         potrLogConfig(POTR_TRACE_NONE, NULL, 0);
-        @endcode
+     *  @endcode
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n
@@ -451,7 +451,7 @@ extern "C"
      *  本関数はソケットの作成や通信スレッドの起動を行いません。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         PotrType type;
         if (potrGetServiceType("porter-services.conf", 1031, &type) == POTR_SUCCESS) {
             if (type == POTR_TYPE_UNICAST_BIDIR) {
@@ -460,7 +460,7 @@ extern "C"
                                 POTR_ROLE_SENDER, on_recv, &handle);
             }
         }
-        @endcode
+     *  @endcode
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n

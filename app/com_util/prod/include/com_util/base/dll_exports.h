@@ -10,10 +10,10 @@
  *  このヘッダーをインクルードしてください。
  *
  *  例:
-    @code{.c}
+ *  @code{.c}
     #define COM_UTIL_DLL_EXPORT_PREFIX CALC
     #include <com_util/base/dll_exports.h>
-    @endcode
+ *  @endcode
  *
  *  上記の例では以下の公開マクロを定義します。
  *  - CALC_EXPORT

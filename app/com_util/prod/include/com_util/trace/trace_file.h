@@ -10,9 +10,9 @@
  *                  同じ init / write / dispose インターフェースを提供します。
  *
  *  @par            出力フォーマット
-    @code
+ *  @code
     2026-03-31 12:34:56.789 I メッセージテキスト
-    @endcode
+ *  @endcode
  *  レベル文字: C=CRITICAL / E=ERROR / W=WARNING / I=INFO / V=VERBOSE
  */
 
@@ -96,12 +96,12 @@ extern "C"
      *
      *  @par            ローテーション動作
      *                  書き込み後にファイルサイズが max_bytes に達すると、以下の名前でファイルを保持します。
-        @code
+     *  @code
         path     ... 現在のトレースファイル (新規作成)
         path.1   ... 直前の世代
         path.2   ... 2 世代前
         path.N   ... N 世代前 (N = generations)
-        @endcode
+     *  @endcode
      *                  generations 世代を超えた古いファイルは削除されます。
      *
      *  @param[in]      path         出力ファイルパス。NULL の場合は NULL を返します。
@@ -110,10 +110,10 @@ extern "C"
      *  @return         成功時: ハンドル。失敗時: NULL。
      *
      *  @par            使用例
-        @code{.c}
+     *  @code{.c}
         trace_file_sink_t *h = trace_file_sink_create(
             "C:\\logs\\myapp.log", 0, 0);
-        @endcode
+     *  @endcode
      */
     TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
         trace_file_sink_create(const char *path, size_t max_bytes, int generations);

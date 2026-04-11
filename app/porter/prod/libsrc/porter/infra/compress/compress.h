@@ -18,9 +18,9 @@
  *  通信が可能です。
  *
  *  圧縮ペイロードのフォーマット:
-    @code
+ *  @code
     [元サイズ: uint32_t (ネットワークバイトオーダー)] [raw DEFLATE データ]
-    @endcode
+ *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *

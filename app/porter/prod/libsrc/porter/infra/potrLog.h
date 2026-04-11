@@ -12,11 +12,11 @@
  *  公開 API は porter.h の potrLogConfig() を参照してください。
  *
  *  使用方法:
-    @code{.c}
+ *  @code{.c}
     POTR_LOG(POTR_TRACE_INFO,  "service_id=%" PRId64 " opened", service_id);
     POTR_LOG(POTR_TRACE_ERROR, "socket bind failed: port=%u", port);
     POTR_LOG(POTR_TRACE_VERBOSE, "PING sent: seq=%u", seq);
-    @endcode
+ *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -59,11 +59,11 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
  *  設定レベルより低いメッセージは potr_log_write() 冒頭で早期リターンします。
  *
  *  @par            例
-    @code{.c}
+ *  @code{.c}
     POTR_LOG(POTR_TRACE_INFO,  "potrOpenService: service_id=%" PRId64 "", service_id);
     POTR_LOG(POTR_TRACE_WARNING,  "NACK received: seq=%u", seq);
     POTR_LOG(POTR_TRACE_ERROR, "socket() failed");
-    @endcode
+ *  @endcode
  */
 #define POTR_LOG(level, ...) \
     potr_log_write((level), __FILE__, __LINE__, __VA_ARGS__)
