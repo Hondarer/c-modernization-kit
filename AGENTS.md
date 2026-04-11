@@ -17,16 +17,17 @@
 
 ### 主要コンポーネント
 
-- `prod/calc/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
-- `prod/calc.net/` - .NET ラッパーとアプリケーション (C ライブラリの .NET からの呼び出し例)
-- `test/` - テストコード (Google Test ベース)
+- `app/calc/prod/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
+- `app/calc/test/` - 計算ライブラリのテストコード (Google Test ベース)
+- `app/calc.net/prod/` - .NET ラッパーとアプリケーション (C ライブラリの .NET からの呼び出し例)
+- `app/calc.net/test/` - .NET プロジェクトのテストコード
+- `app/calc/Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
+- `app/calc.net/Doxyfile.part.calc.net` - .NET プロジェクト用 Doxygen 設定
+- `app/calc.net/c-modernization-kit.sln` - Visual Studio ソリューションファイル
 - `framework/doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール、論理名: `doxyfw`)
 - `framework/docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール、論理名: `docsfw`)
 - `framework/testfw/` - テストフレームワーク (git サブモジュール、論理名: `testfw`)
 - `framework/makefw/` - Make ビルドフレームワーク (git サブモジュール)
-- `Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
-- `Doxyfile.part.calc.net` - .NET プロジェクト用 Doxygen 設定
-- `c-modernization-kit.sln` - Visual Studio ソリューションファイル
 - `Directory.Build.props` - .NET プロジェクト共通設定
 
 ## サブモジュール
@@ -121,83 +122,84 @@ c-modernization-kit/                          # このプロジェクト
 |       +-- include/                    # テスト用ヘッダーファイル
 |       +-- libsrc/                     # テスト用ライブラリソース
 |       +-- README.md                   # テストフレームワーク詳細ドキュメント
-+-- framework/makefw/                                # Make ビルドフレームワーク (git submodule)
-|   +-- makefiles/                        # ビルド用テンプレート
-|   +-- README.md                         # フレームワーク詳細ドキュメント
-+-- Doxyfile.part.calc                     # C プロジェクト用 Doxygen 設定
-+-- Doxyfile.part.calc.net                 # .NET プロジェクト用 Doxygen 設定
-+-- c-modernization-kit.sln                # Visual Studio ソリューションファイル
-+-- Directory.Build.props                  # .NET プロジェクト共通設定
-+-- makefile                               # トップレベル makefile
-+-- prod/                                  # プロダクションコード
-|   +-- calc/                             # サンプル C プロジェクト
-|   |   +-- include/                      # ライブラリヘッダー
-|   |   |   +-- libcalc.h                # 動的リンク用ヘッダー (calcHandler 関数)
-|   |   |   +-- libcalcbase.h            # 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
-|   |   |   +-- libcalc_const.h          # 定数定義 (CALC_KIND_ADD など)
-|   |   +-- libsrc/                       # ライブラリ実装
-|   |   |   +-- calcbase/                # 基本計算関数 (静的ライブラリ)
-|   |   |   |   +-- add.c               # add 関数の実装
-|   |   |   |   +-- subtract.c          # subtract 関数の実装
-|   |   |   |   +-- multiply.c          # multiply 関数の実装
-|   |   |   |   +-- divide.c            # divide 関数の実装
-|   |   |   +-- calc/                    # 計算ハンドラー (動的ライブラリ)
-|   |   |       +-- calcHandler.c        # calcHandler 関数の実装
-|   |   +-- src/                          # メインプログラム
-|   |   |   +-- add/add.c                # add コマンド (calcbase を静的リンク)
-|   |   |   +-- calc/calc.c              # calc コマンド (calc を動的リンク)
-|   |   |   +-- shared-and-static-calc/  # 動的・静的両方をリンクする例
-|   |   |       +-- shared-and-static-calc.c
-|   |   +-- lib/                          # ビルド済みライブラリ
-|   |   +-- bin/                          # ビルド済み実行ファイル
-|   +-- calc.net/                         # .NET プロジェクト
-|   |   +-- libsrc/CalcLib/               # C ライブラリの .NET ラッパー
-|   |   |   +-- CalcLib.csproj           # ライブラリプロジェクト
-|   |   |   +-- CalcLibrary.cs           # メインライブラリクラス
-|   |   |   +-- CalcKind.cs              # 列挙型定義
-|   |   |   +-- CalcResult.cs            # 結果クラス
-|   |   |   +-- CalcException.cs         # 例外クラス
-|   |   |   +-- Internal/NativeMethods.cs   # P/Invoke 定義
-|   |   +-- src/CalcApp/                  # サンプルアプリケーション
-|   |   |   +-- CalcApp.csproj           # アプリケーションプロジェクト
-|   |   |   +-- Program.cs               # メインプログラム
-|   |   |   +-- ModuleInitializer.cs     # モジュール初期化
-|   |   +-- lib/                          # ビルド済みライブラリ
-|   |   +-- bin/                          # ビルド済み実行ファイル
-|   +-- tutorial/                         # チュートリアル用サンプル
-|       +-- include/                      # ヘッダーファイル
-|       +-- libsrc/samplestatic/          # サンプル静的ライブラリ
-|       +-- lib/                          # ビルド済みライブラリ
-+-- test/                                  # テストコード
-|   +-- src/
-|   |   +-- calc/                         # 計算ライブラリのテスト
-|   |   |   +-- main/                     # メインプログラムのテスト
-|   |   |   |   +-- addTest/             # add コマンドのテスト
-|   |   |   |   +-- calcTest/            # calc コマンドのテスト
-|   |   |   |   +-- shared-and-static-calcTest/   # shared-and-static-calc コマンドのテスト
-|   |   |   +-- libcalcbaseTest/         # libcalcbase ライブラリのテスト
-|   |   |       +-- addTest/             # add 関数のテスト
-|   |   |       +-- subtractTest/        # subtract 関数のテスト
-|   |   |       +-- multiplyTest/        # multiply 関数のテスト
-|   |   |       +-- divideTest/          # divide 関数のテスト
-|   |   +-- tutorial/                     # テストのチュートリアル
-|   +-- libsrc/                           # テスト用モック実装
-|       +-- mock_calcbase/                # calcbase ライブラリのモック
-|       +-- mock_calc/                    # calc ライブラリのモック
-+-- pages/                                 # 生成されるドキュメント
-|   +-- doxygen/                          # HTML ドキュメント (Doxygen)
-|   +-- ja/html/                          # 日本語版 HTML
-|   +-- en/html/                          # 英語版 HTML
-+-- docs/                                  # ドキュメントソース
-|   +-- doxybook2/                        # 生成される Markdown (Doxybook2)
-|   |   +-- calc/                         # C プロジェクトのドキュメント
-|   |   +-- calc.net/                     # .NET プロジェクトのドキュメント
-|   +-- *.md                              # 追加ドキュメント
-|       +-- github-actions.md             # GitHub Actions 設定
-|       +-- dotnet-relwithdebinfo.md      # .NET RelWithDebInfo ビルド
-|       +-- testing-tutorial.md           # テストチュートリアル
-|       +-- vscode-variables.md           # VS Code 変数リファレンス
-+-- xml/                                   # Doxygen XML 中間ファイル
++-- framework/makefw/                   # Make ビルドフレームワーク (git submodule)
+|   +-- makefiles/                      # ビルド用テンプレート
+|   +-- README.md                       # フレームワーク詳細ドキュメント
++-- Directory.Build.props               # .NET プロジェクト共通設定
++-- makefile                            # トップレベル makefile
++-- app/                                # プロダクト群 (prod + test + ドキュメント設定)
+|   +-- calc/                           # サンプル C プロジェクト
+|   |   +-- prod/                       # プロダクションコード
+|   |   |   +-- include/                # ライブラリヘッダー
+|   |   |   |   +-- libcalc.h          # 動的リンク用ヘッダー (calcHandler 関数)
+|   |   |   |   +-- libcalcbase.h      # 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
+|   |   |   |   +-- libcalc_const.h    # 定数定義 (CALC_KIND_ADD など)
+|   |   |   +-- libsrc/                 # ライブラリ実装
+|   |   |   |   +-- calcbase/          # 基本計算関数 (静的ライブラリ)
+|   |   |   |   |   +-- add.c         # add 関数の実装
+|   |   |   |   |   +-- subtract.c    # subtract 関数の実装
+|   |   |   |   |   +-- multiply.c    # multiply 関数の実装
+|   |   |   |   |   +-- divide.c      # divide 関数の実装
+|   |   |   |   +-- calc/              # 計算ハンドラー (動的ライブラリ)
+|   |   |   |       +-- calcHandler.c  # calcHandler 関数の実装
+|   |   |   +-- src/                    # メインプログラム
+|   |   |   |   +-- add/add.c          # add コマンド (calcbase を静的リンク)
+|   |   |   |   +-- calc/calc.c        # calc コマンド (calc を動的リンク)
+|   |   |   |   +-- shared-and-static-calc/  # 動的・静的両方をリンクする例
+|   |   |   |       +-- shared-and-static-calc.c
+|   |   |   +-- lib/                    # ビルド済みライブラリ
+|   |   |   +-- bin/                    # ビルド済み実行ファイル
+|   |   +-- test/                       # テストコード
+|   |   |   +-- src/                    # テストソース
+|   |   |   |   +-- main/              # メインプログラムのテスト
+|   |   |   |   |   +-- addTest/       # add コマンドのテスト
+|   |   |   |   |   +-- calcTest/      # calc コマンドのテスト
+|   |   |   |   |   +-- shared-and-static-calcTest/
+|   |   |   |   +-- libcalcbaseTest/   # libcalcbase ライブラリのテスト
+|   |   |   |       +-- addTest/       # add 関数のテスト
+|   |   |   |       +-- subtractTest/  # subtract 関数のテスト
+|   |   |   |       +-- multiplyTest/  # multiply 関数のテスト
+|   |   |   |       +-- divideTest/    # divide 関数のテスト
+|   |   |   +-- libsrc/                # テスト用モック実装
+|   |   |       +-- mock_calcbase/     # calcbase ライブラリのモック
+|   |   |       +-- mock_calc/         # calc ライブラリのモック
+|   |   +-- README.calc.md             # calc プロジェクトの説明
+|   |   +-- Doxyfile.part.calc         # C プロジェクト用 Doxygen 設定
+|   +-- calc.net/                      # .NET プロジェクト
+|   |   +-- prod/                      # プロダクションコード
+|   |   |   +-- libsrc/CalcLib/        # C ライブラリの .NET ラッパー
+|   |   |   |   +-- CalcLib.csproj    # ライブラリプロジェクト
+|   |   |   |   +-- CalcLibrary.cs    # メインライブラリクラス
+|   |   |   |   +-- CalcKind.cs       # 列挙型定義
+|   |   |   |   +-- CalcResult.cs     # 結果クラス
+|   |   |   |   +-- CalcException.cs  # 例外クラス
+|   |   |   |   +-- Internal/NativeMethods.cs  # P/Invoke 定義
+|   |   |   +-- src/CalcApp/           # サンプルアプリケーション
+|   |   |   |   +-- CalcApp.csproj    # アプリケーションプロジェクト
+|   |   |   |   +-- Program.cs        # メインプログラム
+|   |   |   |   +-- ModuleInitializer.cs  # モジュール初期化
+|   |   |   +-- lib/                   # ビルド済みライブラリ
+|   |   |   +-- bin/                   # ビルド済み実行ファイル
+|   |   +-- test/                      # テストコード
+|   |   |   +-- src/CalcLib.Tests/     # .NET テストプロジェクト
+|   |   +-- README.calc.net.md         # calc.net プロジェクトの説明
+|   |   +-- Doxyfile.part.calc.net     # .NET プロジェクト用 Doxygen 設定
+|   |   +-- c-modernization-kit.sln    # Visual Studio ソリューションファイル
+|   +-- (その他プロダクト: override-sample, porter, subfolder-sample, doxygen-sample, util, tutorial)
++-- pages/                              # 生成されるドキュメント
+|   +-- doxygen/                        # HTML ドキュメント (Doxygen)
+|   +-- ja/html/                        # 日本語版 HTML
+|   +-- en/html/                        # 英語版 HTML
++-- docs/                               # ドキュメントソース
+|   +-- doxybook2/                      # 生成される Markdown (Doxybook2)
+|   |   +-- calc/                       # C プロジェクトのドキュメント
+|   |   +-- calc.net/                   # .NET プロジェクトのドキュメント
+|   +-- *.md                            # 追加ドキュメント
+|       +-- github-actions.md           # GitHub Actions 設定
+|       +-- dotnet-relwithdebinfo.md    # .NET RelWithDebInfo ビルド
+|       +-- testing-tutorial.md         # テストチュートリアル
+|       +-- vscode-variables.md         # VS Code 変数リファレンス
++-- xml/                                # Doxygen XML 中間ファイル
 ```
 
 ## サンプルソースコード
@@ -208,28 +210,28 @@ c-modernization-kit/                          # このプロジェクト
 
 #### ヘッダーファイル
 
-- `prod/calc/include/libcalc_const.h` - 定数定義 (CALC_SUCCESS, CALC_KIND_ADD など)
-- `prod/calc/include/libcalcbase.h` - 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
-- `prod/calc/include/libcalc.h` - 動的リンク用ヘッダー (calcHandler 関数)
+- `app/calc/prod/include/libcalc_const.h` - 定数定義 (CALC_SUCCESS, CALC_KIND_ADD など)
+- `app/calc/prod/include/libcalcbase.h` - 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
+- `app/calc/prod/include/libcalc.h` - 動的リンク用ヘッダー (calcHandler 関数)
 
 #### libcalcbase (静的ライブラリ)
 
-- `prod/calc/libsrc/calcbase/add.c` - add 関数の実装 (2つの整数を加算)
-- `prod/calc/libsrc/calcbase/subtract.c` - subtract 関数の実装 (2つの整数を減算)
-- `prod/calc/libsrc/calcbase/multiply.c` - multiply 関数の実装 (2つの整数を乗算)
-- `prod/calc/libsrc/calcbase/divide.c` - divide 関数の実装 (2つの整数を除算)
+- `app/calc/prod/libsrc/calcbase/add.c` - add 関数の実装 (2つの整数を加算)
+- `app/calc/prod/libsrc/calcbase/subtract.c` - subtract 関数の実装 (2つの整数を減算)
+- `app/calc/prod/libsrc/calcbase/multiply.c` - multiply 関数の実装 (2つの整数を乗算)
+- `app/calc/prod/libsrc/calcbase/divide.c` - divide 関数の実装 (2つの整数を除算)
 
 #### libcalc (動的ライブラリ)
 
-- `prod/calc/libsrc/calc/calcHandler.c` - calcHandler 関数の実装 (演算種別に基づく計算ハンドラー)
+- `app/calc/prod/libsrc/calc/calcHandler.c` - calcHandler 関数の実装 (演算種別に基づく計算ハンドラー)
 
 ### メインプログラム
 
 ライブラリを使用するサンプルプログラムです。
 
-- `prod/calc/src/add/add.c` - add コマンド (calcbase を静的リンク)
-- `prod/calc/src/calc/calc.c` - calc コマンド (calc を動的リンク)
-- `prod/calc/src/shared-and-static-calc/shared-and-static-calc.c` - 動的・静的両方をリンクする例
+- `app/calc/prod/src/add/add.c` - add コマンド (calcbase を静的リンク)
+- `app/calc/prod/src/calc/calc.c` - calc コマンド (calc を動的リンク)
+- `app/calc/prod/src/shared-and-static-calc/shared-and-static-calc.c` - 動的・静的両方をリンクする例
 
 ### .NET プロジェクト
 
@@ -237,16 +239,16 @@ C ライブラリを .NET から利用するための実装例です。
 
 #### CalcLib (.NET ラッパーライブラリ)
 
-- `prod/calc.net/libsrc/CalcLib/CalcLibrary.cs` - メインライブラリクラス (C ライブラリへの .NET インターフェース)
-- `prod/calc.net/libsrc/CalcLib/CalcKind.cs` - 計算種別の列挙型定義
-- `prod/calc.net/libsrc/CalcLib/CalcResult.cs` - 計算結果を格納するクラス
-- `prod/calc.net/libsrc/CalcLib/CalcException.cs` - 計算エラー用の例外クラス
-- `prod/calc.net/libsrc/CalcLib/Internal/NativeMethods.cs` - P/Invoke による C ライブラリの呼び出し定義
+- `app/calc.net/prod/libsrc/CalcLib/CalcLibrary.cs` - メインライブラリクラス (C ライブラリへの .NET インターフェース)
+- `app/calc.net/prod/libsrc/CalcLib/CalcKind.cs` - 計算種別の列挙型定義
+- `app/calc.net/prod/libsrc/CalcLib/CalcResult.cs` - 計算結果を格納するクラス
+- `app/calc.net/prod/libsrc/CalcLib/CalcException.cs` - 計算エラー用の例外クラス
+- `app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs` - P/Invoke による C ライブラリの呼び出し定義
 
 #### CalcApp (.NET アプリケーション)
 
-- `prod/calc.net/src/CalcApp/Program.cs` - メインプログラム (CalcLib を使用した計算アプリケーション)
-- `prod/calc.net/src/CalcApp/ModuleInitializer.cs` - モジュール初期化処理 (ネイティブライブラリのロード設定)
+- `app/calc.net/prod/src/CalcApp/Program.cs` - メインプログラム (CalcLib を使用した計算アプリケーション)
+- `app/calc.net/prod/src/CalcApp/ModuleInitializer.cs` - モジュール初期化処理 (ネイティブライブラリのロード設定)
 
 ## Claude Code 起動時の重要事項
 

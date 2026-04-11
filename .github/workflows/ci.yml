@@ -53,11 +53,11 @@ jobs:
 
       - name: Set PATH and library path for tests
         run: |
-          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/prod/calc/lib:$GITHUB_WORKSPACE/prod/calc.net/lib:$GITHUB_WORKSPACE/prod/override-sample/lib:$GITHUB_WORKSPACE/prod/porter/lib:$GITHUB_WORKSPACE/prod/util/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "$GITHUB_WORKSPACE/prod/calc/bin" >> $GITHUB_PATH
-          echo "$GITHUB_WORKSPACE/prod/calc.net/bin" >> $GITHUB_PATH
-          echo "$GITHUB_WORKSPACE/prod/override-sample/bin" >> $GITHUB_PATH
-          echo "$GITHUB_WORKSPACE/prod/porter/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/app/calc/prod/lib:$GITHUB_WORKSPACE/app/calc.net/prod/lib:$GITHUB_WORKSPACE/app/override-sample/prod/lib:$GITHUB_WORKSPACE/app/porter/prod/lib:$GITHUB_WORKSPACE/app/util/prod/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/app/calc/prod/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/app/calc.net/prod/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/app/override-sample/prod/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/app/porter/prod/bin" >> $GITHUB_PATH
 
       - name: Run tests
         run: |
@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-test-results
-          path: test/**/results/
+          path: app/**/results/
           if-no-files-found: warn
 
       - name: Upload build warnings
@@ -76,8 +76,8 @@ jobs:
         with:
           name: linux-${{ matrix.os-name }}-warns
           path: |
-            prod/**/*.warn
-            test/**/*.warn
+            app/**/prod/**/*.warn
+            app/**/test/**/*.warn
           if-no-files-found: ignore
 
       - name: Upload build and test logs
@@ -136,15 +136,15 @@ jobs:
       - name: Set PATH for tests
         run: |
           $paths = @(
-            "${{ github.workspace }}\prod\calc\lib",
-            "${{ github.workspace }}\prod\calc\bin",
-            "${{ github.workspace }}\prod\calc.net\lib",
-            "${{ github.workspace }}\prod\calc.net\bin",
-            "${{ github.workspace }}\prod\override-sample\lib",
-            "${{ github.workspace }}\prod\override-sample\bin",
-            "${{ github.workspace }}\prod\porter\lib",
-            "${{ github.workspace }}\prod\porter\bin",
-            "${{ github.workspace }}\prod\util\lib"
+            "${{ github.workspace }}\app\calc\prod\lib",
+            "${{ github.workspace }}\app\calc\prod\bin",
+            "${{ github.workspace }}\app\calc.net\prod\lib",
+            "${{ github.workspace }}\app\calc.net\prod\bin",
+            "${{ github.workspace }}\app\override-sample\prod\lib",
+            "${{ github.workspace }}\app\override-sample\prod\bin",
+            "${{ github.workspace }}\app\porter\prod\lib",
+            "${{ github.workspace }}\app\porter\prod\bin",
+            "${{ github.workspace }}\app\util\prod\lib"
           )
           foreach ($p in $paths) {
             Add-Content -Path $env:GITHUB_PATH -Value $p
@@ -160,7 +160,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: windows-test-results
-          path: test/**/results/
+          path: app/**/results/
           if-no-files-found: warn
 
       - name: Upload build warnings
@@ -168,8 +168,8 @@ jobs:
         with:
           name: windows-warns
           path: |
-            prod/**/*.warn
-            test/**/*.warn
+            app/**/prod/**/*.warn
+            app/**/test/**/*.warn
           if-no-files-found: ignore
 
       - name: Upload build and test logs

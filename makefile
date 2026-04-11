@@ -1,6 +1,5 @@
 SUBDIRS = \
-	prod \
-	test
+	app
 
 DOXY_CATEGORIES = \
 	calc \
@@ -57,17 +56,11 @@ clean : submodule
 
 .PHONY: test
 test : submodule
-    # prod ディレクトリで make (引数なし、デフォルトターゲット)
-	@if [ -d prod ] && [ -f prod/makefile ]; then \
-		$(MAKE) -C prod || exit 1; \
+    # app ディレクトリで make test (ビルド + テスト実行)
+	@if [ -d app ] && [ -f app/makefile ]; then \
+		$(MAKE) -C app test || exit 1; \
 	else \
-		echo "INFO: prod directory not found, skipping."; \
-	fi
-    # test ディレクトリで make test
-	@if [ -d test ] && [ -f test/makefile ]; then \
-		$(MAKE) -C test test || exit 1; \
-	else \
-		echo "INFO: test directory not found, skipping."; \
+		echo "INFO: app directory not found, skipping."; \
 	fi
 
 # NOTE: 単一カテゴリを指定して Doxygen を実行可能。
