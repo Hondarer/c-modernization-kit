@@ -60,3 +60,9 @@ INPUT                  = ./README.calc.net.md \
 # and want to reuse the introduction page also for the Doxygen output.
 
 USE_MDFILE_AS_MAINPAGE = ./README.calc.net.md
+
+# The IMAGE_PATH tag can be used to specify one or more files or directories
+# that contain images that are to be included in the documentation (see the
+# \image command).
+
+IMAGE_PATH             = ./prod
