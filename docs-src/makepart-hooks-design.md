@@ -2,7 +2,7 @@
 
 ## 概要
 
-本ドキュメントは、`makefw/makefiles/makemain.mk` および関連テンプレートファイルに追加する、フック機能の説明ドキュメントです。
+本ドキュメントは、`framework/makefw/makefiles/makemain.mk` および関連テンプレートファイルに追加する、フック機能の説明ドキュメントです。
 
 ### 目的
 

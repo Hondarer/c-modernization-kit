@@ -4,7 +4,7 @@
 
 C 言語のコンパイルには、ソースファイル (`.c`) を機械語 (`.o`) に変換するコンパイラと、オブジェクトファイルを実行ファイルやライブラリに結合するリンカが必要です。Linux では GCC (GNU Compiler Collection) が広く使われ、Windows では MSVC (Microsoft Visual C++)  が標準的です。
 
-このリポジトリは GCC (Linux 環境) と MSVC (Windows 環境) の両方をサポートしています。`makefw/` サブモジュールのビルドテンプレートが環境に応じたコンパイラコマンドを選択します。Linux 環境 (WSL を含む) では `gcc`・`g++`・`ar` コマンドを使用し、Windows 環境では `cl.exe`・`link.exe`・`lib.exe` を使用します。
+このリポジトリは GCC (Linux 環境) と MSVC (Windows 環境) の両方をサポートしています。`framework/makefw/` サブモジュールのビルドテンプレートが環境に応じたコンパイラコマンドを選択します。Linux 環境 (WSL を含む) では `gcc`・`g++`・`ar` コマンドを使用し、Windows 環境では `cl.exe`・`link.exe`・`lib.exe` を使用します。
 
 コンパイラのオプション (デバッグ情報・最適化・警告設定) とリンカのオプション (ライブラリパス・ライブラリ名) を理解することで、ビルドエラーの原因特定と Makefile のカスタマイズができるようになります。
 

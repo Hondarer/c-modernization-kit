@@ -5,7 +5,7 @@
 	path = framework/testfw
 	url = https://github.com/Hondarer/googletest-c-framework.git
 [submodule "makefw"]
-	path = makefw
+	path = framework/makefw
 	url = https://github.com/Hondarer/make-framework.git
 [submodule "docsfw"]
 	path = framework/docsfw

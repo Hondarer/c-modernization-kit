@@ -56,7 +56,7 @@ c-modernization-kit/
 |   +-- include_override/            # オーバーライド用ヘッダー
 |   +-- libsrc/                      # フレームワーク提供のモック実装
 |   +-- docs-src/                    # テストフレームワークドキュメント
-+-- makefw/                           # Make ビルドフレームワーク (サブモジュール)
++-- framework/makefw/                           # Make ビルドフレームワーク (サブモジュール)
 |   +-- makefiles/                   # makefile テンプレート
 |       +-- prepare.mk              # 準備処理
 |       +-- makemain.mk             # ビルドルール生成
@@ -348,12 +348,12 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
 # ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### makepart.mk (プロジェクト固有の設定)
@@ -578,12 +578,12 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
 # ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### makepart.mk (プロジェクト固有の設定)
@@ -617,12 +617,12 @@ find-up = \
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
 # ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### makepart.mk (プロジェクト固有の設定)
@@ -670,12 +670,12 @@ WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 ```makefile
 # 1. prepare.mk を先に読み込む
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
 
 # 2. makepart.mk の内容が処理される (変数設定など)
 
 # 3. makemain.mk を最後に読み込む
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### main関数のラップ
@@ -1061,8 +1061,8 @@ makefile と makepart.mk を分離:
 
 共通処理はフレームワークに集約:
 
-- `makefw/makefiles/prepare.mk`: 準備処理
-- `makefw/makefiles/makemain.mk`: ビルドルール生成
+- `framework/makefw/makefiles/prepare.mk`: 準備処理
+- `framework/makefw/makefiles/makemain.mk`: ビルドルール生成
 
 この分離により、ビルドシステムの更新が容易になり、保守性が向上します。
 

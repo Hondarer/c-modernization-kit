@@ -20,7 +20,7 @@ from pathlib import Path
 
 
 TEMPLATE_HEADER = "# makefile テンプレート"
-TEMPLATE_REL_PATH = "makefw/makefiles/__template.mk"
+TEMPLATE_REL_PATH = "framework/makefw/makefiles/__template.mk"
 SEARCH_DIRS = ["prod", "test"]
 
 

@@ -6,7 +6,7 @@
 
 本プロジェクトは `makefw` サブモジュールを利用したビルドシステムを採用している。
 ビルド対象 (ライブラリ・実行ファイル・テスト) が置かれた **最終階層ディレクトリ** には、
-`makefw/makefiles/__template.mk` と同一内容の `makefile` を配置する規則になっている。
+`framework/makefw/makefiles/__template.mk` と同一内容の `makefile` を配置する規則になっている。
 
 ```makefile
 # makefile テンプレート
@@ -18,11 +18,11 @@ find-up = \
     ...
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```
 
 テンプレート自体にビルドロジックは含まない。
@@ -40,7 +40,7 @@ include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
 | **手書き (SUBDIRS 形式)** | `SUBDIRS = \` または `SUBDIRS = $(wildcard */)` で始まる。中間ディレクトリに配置。再帰 make でサブディレクトリを呼び出す。 | `prod/calc/makefile` |
 
 テンプレート由来の makefile は内容を変更してはならず、
-`makefw/makefiles/__template.mk` と常に同一であるべきである。
+`framework/makefw/makefiles/__template.mk` と常に同一であるべきである。
 
 ### テンプレートのドリフト問題
 
@@ -77,7 +77,7 @@ def is_template_makefile(path: Path) -> bool:
 
 1. スクリプトファイルの場所から上方向に `.workspaceRoot` を探し、
    ワークスペースルートを特定する。
-2. `makefw/makefiles/__template.mk` の内容を読み込む。
+2. `framework/makefw/makefiles/__template.mk` の内容を読み込む。
 3. `prod/` と `test/` 配下の `makefile` を再帰的に列挙し、アルファベット順に処理する。
 4. 各 `makefile` について先頭行を検査し、テンプレートでなければスキップ。
 5. テンプレートであれば現在の内容と `__template.mk` を比較する。

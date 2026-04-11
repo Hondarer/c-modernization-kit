@@ -14,7 +14,7 @@
 !makefile
 
 ## サブモジュール
-!/makefw
+!/framework/makefw
 !/framework/doxyfw
 !/framework/docsfw
 !/framework/testfw

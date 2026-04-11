@@ -23,7 +23,7 @@
 - `framework/doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール、論理名: `doxyfw`)
 - `framework/docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール、論理名: `docsfw`)
 - `framework/testfw/` - テストフレームワーク (git サブモジュール、論理名: `testfw`)
-- `makefw/` - Make ビルドフレームワーク (git サブモジュール)
+- `framework/makefw/` - Make ビルドフレームワーク (git サブモジュール)
 - `Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
 - `Doxyfile.part.calc.net` - .NET プロジェクト用 Doxygen 設定
 - `c-modernization-kit.sln` - Visual Studio ソリューションファイル
@@ -83,7 +83,7 @@ Make ビルドシステムのフレームワークです。
 - クロスプラットフォームビルド (Linux, Windows)
 - makepart.mk によるカスタマイズ機構
 
-詳細な使用方法については、`makefw/README.md` を参照してください。
+詳細な使用方法については、`framework/makefw/README.md` を参照してください。
 
 ## 主要コマンド
 
@@ -121,7 +121,7 @@ c-modernization-kit/                          # このプロジェクト
 |       +-- include/                    # テスト用ヘッダーファイル
 |       +-- libsrc/                     # テスト用ライブラリソース
 |       +-- README.md                   # テストフレームワーク詳細ドキュメント
-+-- makefw/                                # Make ビルドフレームワーク (git submodule)
++-- framework/makefw/                                # Make ビルドフレームワーク (git submodule)
 |   +-- makefiles/                        # ビルド用テンプレート
 |   +-- README.md                         # フレームワーク詳細ドキュメント
 +-- Doxyfile.part.calc                     # C プロジェクト用 Doxygen 設定

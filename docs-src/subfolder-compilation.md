@@ -504,9 +504,9 @@ find-up = \
     )
 WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-include $(WORKSPACE_FOLDER)/makefw/makefiles/prepare.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
 
-include $(WORKSPACE_FOLDER)/makefw/makefiles/makemain.mk
+include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```
 
 ### 2. makechild.mk での NO_LINK 設定

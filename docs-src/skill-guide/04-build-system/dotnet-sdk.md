@@ -6,7 +6,7 @@
 
 現代の .NET (Windows 専用であった .NET Framework とは異なる統合プラットフォーム) は、クロスプラットフォームを前提として設計されています。同一のソースコードから、Linux / Windows / macOS 向けに同等の機能を持つ実行体を生成できる点が大きな特徴です。これにより、OS ごとの差異を最小限に抑えた開発・ビルド・テストが可能になります。
 
-このリポジトリの `prod/calc.net/` は C ライブラリ (`libcalc`) を .NET から利用するためのラッパーライブラリとサンプルアプリケーションです。`CalcLib` が C ライブラリへの .NET インターフェースを提供し、`CalcApp` がそれを利用するサンプルアプリです。ビルドは `makefw/` が提供する makefile テンプレートで `dotnet build` コマンドとして実行され、Linux と Windows で同一機能を提供します。
+このリポジトリの `prod/calc.net/` は C ライブラリ (`libcalc`) を .NET から利用するためのラッパーライブラリとサンプルアプリケーションです。`CalcLib` が C ライブラリへの .NET インターフェースを提供し、`CalcApp` がそれを利用するサンプルアプリです。ビルドは `framework/makefw/` が提供する makefile テンプレートで `dotnet build` コマンドとして実行され、Linux と Windows で同一機能を提供します。
 
 `Directory.Build.props` (リポジトリルートに配置) により、複数の .NET プロジェクトに共通のビルド設定を適用しています。また、`RelWithDebInfo` (Release with Debug Information) ビルド設定を使用した最適化とデバッグ情報の共存についても理解が必要です。
 

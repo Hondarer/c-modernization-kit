@@ -16,7 +16,7 @@ Table: スキルガイド一覧
 ## このリポジトリとの関連
 
 - `makefile` (トップレベル) - 全体ビルドのエントリポイント
-- `makefw/` - Make ビルドフレームワーク (サブモジュール)
+- `framework/makefw/` - Make ビルドフレームワーク (サブモジュール)
 - `prod/calc/` - C プロジェクトのビルド対象
 - `prod/calc.net/` - .NET プロジェクトのビルド対象 (`dotnet build`)
 

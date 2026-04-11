@@ -44,7 +44,7 @@ default : submodule
 
 .PHONY: submodule
 submodule :
-	@if [ ! -d makefw ] || [ ! -f makefw/.git ]; then \
+	@if [ ! -d framework/makefw ] || [ ! -f framework/makefw/.git ]; then \
 		echo "ERROR: makefw submodule is not initialized."; \
 		echo "Please run the following command to initialize submodules:"; \
 		echo "  git submodule update --init --recursive"; \
