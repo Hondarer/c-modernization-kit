@@ -30,10 +30,10 @@ endif
 WIN32_MANIFEST = utf8
 
 # あわせて、コンソールでの UTF-8 文字化けを防ぐために、
-# #include <util/console/console.h> (LIBSDIR += $(WORKSPACE_FOLDER)/app/util/prod/lib) のうえで
+# #include <com_util/console/console.h> (LIBSDIR += $(WORKSPACE_FOLDER)/app/com_util/prod/lib) のうえで
 # console_init() を組み込む必要がある。
 # console_dispose() はライブラリアンロード時に自動的に呼ばれるため不要。
-LIBSDIR += $(WORKSPACE_FOLDER)/app/util/prod/lib
+LIBSDIR += $(WORKSPACE_FOLDER)/app/com_util/prod/lib
 
 # マルチスレッドを利用するため、レポジトリ全体に pthread を指定しておく
 ifdef PLATFORM_LINUX

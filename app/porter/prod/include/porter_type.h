@@ -316,7 +316,7 @@ typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,
  *  @details
  *  potrLogConfig() の level 引数に指定するログ出力レベルです。\n
  *  数値が小さいほど重大度が高く、指定したレベル以下 (より重大) のメッセージのみが出力されます。\n
- *  数値順序は trace-util の trace_level_t と対応しています。
+ *  数値順序は trace-com_util の trace_level_t と対応しています。
  *
  *  | PotrLogLevel       | 値 | trace_level        | syslog priority |
  *  | ------------------ | -- | ------------------ | --------------- |

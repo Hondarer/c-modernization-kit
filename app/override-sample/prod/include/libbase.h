@@ -16,10 +16,10 @@
 #ifndef LIBBASE_H
 #define LIBBASE_H
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #include <stddef.h>
-#include <util/runtime/symbol_loader.h>
+#include <com_util/runtime/symbol_loader.h>
 
 #ifdef DOXYGEN
 
@@ -49,10 +49,10 @@
 
 #else /* !DOXYGEN */
 
-    #define UTIL_DLL_EXPORT_PREFIX BASE
-    #include <util/base/dll_exports.h>
-    #define BASE_EXPORT UTIL_DLL_EXPORT_VALUE
-    #define BASE_API    UTIL_DLL_API_VALUE
+    #define COM_UTIL_DLL_EXPORT_PREFIX BASE
+    #include <com_util/base/dll_exports.h>
+    #define BASE_EXPORT COM_UTIL_DLL_EXPORT_VALUE
+    #define BASE_API    COM_UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

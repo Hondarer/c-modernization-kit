@@ -1,4 +1,4 @@
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #if defined(PLATFORM_WINDOWS)
     #define _HAS_STD_BYTE 0

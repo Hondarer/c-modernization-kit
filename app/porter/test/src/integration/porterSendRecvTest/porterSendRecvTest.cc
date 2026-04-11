@@ -1,4 +1,4 @@
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <porter_test_helper.h>
 #include <testfw.h>
 
@@ -77,15 +77,15 @@ class porterSendRecvTest : public Test
         string ws = findWorkspaceRoot();
         ASSERT_FALSE(ws.empty());
 #if defined(PLATFORM_LINUX)
-        recv_path = ws + "/prod/porter/bin/recv";
-        send_path = ws + "/prod/porter/bin/send";
-        lib_path = ws + "/prod/porter/lib"
-                 + ":" + ws + "/prod/util/lib";
+        recv_path = ws + "/app/porter/prod/bin/recv";
+        send_path = ws + "/app/porter/prod/bin/send";
+        lib_path = ws + "/app/porter/prod/lib"
+                 + ":" + ws + "/app/com_util/prod/lib";
 #elif defined(PLATFORM_WINDOWS)
-        recv_path = ws + "\\prod\\porter\\bin\\recv.exe";
-        send_path = ws + "\\prod\\porter\\bin\\send.exe";
-        lib_path = ws + "\\prod\\porter\\lib"
-                 + ";" + ws + "\\prod\\util\\lib";
+        recv_path = ws + "\\app\\porter\\prod\\bin\\recv.exe";
+        send_path = ws + "\\app\\porter\\prod\\bin\\send.exe";
+        lib_path = ws + "\\app\\porter\\prod\\lib"
+                 + ";" + ws + "\\app\\com_util\\prod\\lib";
 #endif /* PLATFORM_ */
         resetTraceLevel();
         setTraceLevel("processController", TRACE_DETAIL);

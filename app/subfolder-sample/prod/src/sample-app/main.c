@@ -4,7 +4,7 @@
  */
 
 #include <stdio.h>
-#include <util/console/console.h>
+#include <com_util/console/console.h>
 
 #include "sample-app.h"
 

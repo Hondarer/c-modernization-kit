@@ -40,13 +40,13 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <util/fs/path_max.h>
+#include <com_util/fs/path_max.h>
 
 #if defined(PLATFORM_LINUX)
     #include <pthread.h>
@@ -56,7 +56,7 @@
 #endif /* PLATFORM_ */
 
 #include <porter.h>
-#include <util/console/console.h>
+#include <com_util/console/console.h>
 
 /** 受信ループ継続フラグ。シグナルハンドラーで 0 に設定される。 */
 static volatile int g_running = 1;

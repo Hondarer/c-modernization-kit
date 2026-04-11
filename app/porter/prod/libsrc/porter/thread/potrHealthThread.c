@@ -16,7 +16,7 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <string.h>
 #include <inttypes.h>
 

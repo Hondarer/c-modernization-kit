@@ -353,7 +353,7 @@ package "infra" {
   }
 }
 
-package "util" {
+package "com_util" {
   [potrIpAddr\n(名前解決)]
 }
 
@@ -379,7 +379,7 @@ database "PotrContext\n(セッション全状態)" as CTX
 api -[hidden]--thread
 thread -[hidden]-- infra
 api -[hidden]----- protocol
-protocol -[hidden]--util
+protocol -[hidden]--com_util
 
 @enduml
 ```

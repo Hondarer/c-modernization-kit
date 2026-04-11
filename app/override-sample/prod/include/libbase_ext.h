@@ -17,7 +17,7 @@
 #ifndef LIBBASE_EXT_H
 #define LIBBASE_EXT_H
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #ifdef DOXYGEN
 
@@ -47,10 +47,10 @@
 
 #else /* !DOXYGEN */
 
-    #define UTIL_DLL_EXPORT_PREFIX BASE_EXT
-    #include <util/base/dll_exports.h>
-    #define BASE_EXT_EXPORT UTIL_DLL_EXPORT_VALUE
-    #define BASE_EXT_API    UTIL_DLL_API_VALUE
+    #define COM_UTIL_DLL_EXPORT_PREFIX BASE_EXT
+    #include <com_util/base/dll_exports.h>
+    #define BASE_EXT_EXPORT COM_UTIL_DLL_EXPORT_VALUE
+    #define BASE_EXT_API    COM_UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 

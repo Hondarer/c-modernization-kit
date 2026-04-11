@@ -2,7 +2,7 @@
 #include <string>
 #include <testfw.h>
 
-#include <util/fs/path_max.h>
+#include <com_util/fs/path_max.h>
 
 #if defined(PLATFORM_LINUX)
     #include <unistd.h>
@@ -23,15 +23,15 @@ class override_sampleTest : public Test
         string workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
 #if defined(PLATFORM_LINUX)
-        binary_path = workspace_root + "/prod/override-sample/bin/override-sample";
-        lib_path = workspace_root + "/prod/override-sample/lib"
-                 + ":" + workspace_root + "/prod/util/lib";
+        binary_path = workspace_root + "/app/override-sample/prod/bin/override-sample";
+        lib_path = workspace_root + "/app/override-sample/prod/lib"
+                 + ":" + workspace_root + "/app/com_util/prod/lib";
         mock_lib_path = workspace_root + "/framework/testfw/lib/" TARGET_ARCH "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.txt";
 #elif defined(PLATFORM_WINDOWS)
-        binary_path = workspace_root + "\\prod\\override-sample\\bin\\override-sample.exe";
-        lib_path = workspace_root + "\\prod\\override-sample\\lib"
-                 + ";" + workspace_root + "\\prod\\util\\lib";
+        binary_path = workspace_root + "\\app\\override-sample\\prod\\bin\\override-sample.exe";
+        lib_path = workspace_root + "\\app\\override-sample\\prod\\lib"
+                 + ";" + workspace_root + "\\app\\com_util\\prod\\lib";
         {
             wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
             char tmpu8[PLATFORM_PATH_MAX * 4] = {0};

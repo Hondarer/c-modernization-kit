@@ -17,7 +17,7 @@
 
 #include <libcalc.h>
 #include <libcalcbase.h>
-#include <util/console/console.h>
+#include <com_util/console/console.h>
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -1,2 +1,2 @@
 # 依存ライブラリ
-LIBS += util
+LIBS += com_util

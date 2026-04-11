@@ -14,7 +14,7 @@
 #ifndef POTR_IP_ADDR_H
 #define POTR_IP_ADDR_H
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #if defined(PLATFORM_LINUX)
     #include <arpa/inet.h>

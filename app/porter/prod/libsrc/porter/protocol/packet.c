@@ -11,7 +11,7 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <stddef.h>
 #include <string.h>
 

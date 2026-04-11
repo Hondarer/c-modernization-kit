@@ -1,12 +1,12 @@
 #ifndef PORTER_TEST_HELPER_H
 #define PORTER_TEST_HELPER_H
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <cstdio>
 #include <string>
 #include <vector>
 
-#include <util/fs/path_max.h>
+#include <com_util/fs/path_max.h>
 
 #if defined(PLATFORM_LINUX)
 #include <unistd.h>

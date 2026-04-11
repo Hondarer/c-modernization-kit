@@ -117,7 +117,7 @@ make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 
 ```bash
 export LD_LIBRARY_PATH="/workspace/prod/calc/lib:/workspace/prod/calc.net/lib:\
-/workspace/prod/override-sample/lib:/workspace/prod/porter/lib:/workspace/prod/util/lib:\
+/workspace/prod/override-sample/lib:/workspace/prod/porter/lib:/workspace/prod/com_util/lib:\
 ${LD_LIBRARY_PATH:-}"
 
 export PATH="/workspace/prod/calc/bin:/workspace/prod/calc.net/bin:\

@@ -10,8 +10,8 @@
                 "${workspaceFolder}/app/porter/prod/libsrc/porter",
                 "${workspaceFolder}/app/porter/test/include",
                 "${workspaceFolder}/app/subfolder-sample/prod/include",
-                "${workspaceFolder}/app/util/prod/include",
-                "${workspaceFolder}/app/util/test/include",
+                "${workspaceFolder}/app/com_util/prod/include",
+                "${workspaceFolder}/app/com_util/test/include",
                 "${workspaceFolder}/framework/testfw/gtest/include",
                 "${workspaceFolder}/framework/testfw/include"
             ],
@@ -35,8 +35,8 @@
                 "${workspaceFolder}/app/porter/prod/libsrc/porter",
                 "${workspaceFolder}/app/porter/test/include",
                 "${workspaceFolder}/app/subfolder-sample/prod/include",
-                "${workspaceFolder}/app/util/prod/include",
-                "${workspaceFolder}/app/util/test/include",
+                "${workspaceFolder}/app/com_util/prod/include",
+                "${workspaceFolder}/app/com_util/test/include",
                 "${workspaceFolder}/framework/testfw/gtest/include",
                 "${workspaceFolder}/framework/testfw/include"
             ],

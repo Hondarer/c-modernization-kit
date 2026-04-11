@@ -8,4 +8,4 @@ TEST_SRCS := \
 USE_WRAP_MAIN := 1
 
 # ライブラリの指定
-LIBS += mock_calcbase mock_libc util
+LIBS += mock_calcbase mock_libc com_util

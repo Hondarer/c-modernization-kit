@@ -24,7 +24,7 @@
 
 #include <stddef.h>
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <porter_const.h>
 #include <porter_type.h>
 

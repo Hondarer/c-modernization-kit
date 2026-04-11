@@ -18,7 +18,7 @@
 #define PORTER_H
 
 #include <porter_type.h>
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #ifdef DOXYGEN
 
@@ -48,10 +48,10 @@
 
 #else /* !DOXYGEN */
 
-    #define UTIL_DLL_EXPORT_PREFIX POTR
-    #include <util/base/dll_exports.h>
-    #define POTR_EXPORT UTIL_DLL_EXPORT_VALUE
-    #define POTR_API    UTIL_DLL_API_VALUE
+    #define COM_UTIL_DLL_EXPORT_PREFIX POTR
+    #include <com_util/base/dll_exports.h>
+    #define POTR_EXPORT COM_UTIL_DLL_EXPORT_VALUE
+    #define POTR_API    COM_UTIL_DLL_API_VALUE
 
 #endif /* DOXYGEN */
 
@@ -391,8 +391,8 @@ extern "C"
      *  @par            出力先
      *  | OS      | 出力先                                                                                                   |
      *  | ------- | -------------------------------------------------------------------------------------------------------- |
-     *  | Linux   | syslog (trace-util 経由)、ログファイル (trace-util 経由、log_file 指定時)、stderr (trace-util 経由、console 指定時) |
-     *  | Windows | ETW (trace-util 経由)、ログファイル (trace-util 経由、log_file 指定時)、stderr (trace-util 経由、console 指定時)    |
+     *  | Linux   | syslog (trace-com_util 経由)、ログファイル (trace-com_util 経由、log_file 指定時)、stderr (trace-com_util 経由、console 指定時) |
+     *  | Windows | ETW (trace-com_util 経由)、ログファイル (trace-com_util 経由、log_file 指定時)、stderr (trace-com_util 経由、console 指定時)    |
      *
      *  @par            ログフォーマット
      *  OS トレース (syslog / ETW) およびファイルへの出力フォーマット:
@@ -428,7 +428,7 @@ extern "C"
      *
      *  @par            スレッド セーフティ
      *  本関数はスレッドセーフです。\n
-     *  出力制御は trace-util が内部で排他制御を行うため、ログを出力中のスレッドが存在する場合でも
+     *  出力制御は trace-com_util が内部で排他制御を行うため、ログを出力中のスレッドが存在する場合でも
      *  安全に設定を変更できます。
      *
      *  @warning        log_file に指定したパスが書き込み不可の場合は POTR_ERROR を返します。

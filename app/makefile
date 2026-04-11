@@ -1,5 +1,5 @@
 SUBDIRS = \
-	util \
+	com_util \
 	calc \
 	calc.net \
 	subfolder-sample \
@@ -11,7 +11,7 @@ SUBDIRS = \
 DOXY_CATEGORIES = \
 	calc \
 	calc.net \
-	util \
+	com_util \
 	override-sample \
 	doxygen-sample \
 	porter

@@ -9,7 +9,7 @@
  *  base.so / base.dll のロード時およびアンロード時に処理を行います。
  *
  *  プラットフォームごとのフック (Linux constructor/destructor, Windows DllMain)
- *  は dllmain-util.h が提供します。このファイルは onLoad / onUnload を定義します。
+ *  は shared_lib_lifecycle.h が提供します。このファイルは onLoad / onUnload を定義します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -17,9 +17,9 @@
  */
 
 #include "symbol_loader_libbase.h"
-#include <util/base/shared_lib_lifecycle.h>
-#include <util/runtime/module_info.h>
-#include <util/fs/path_max.h>
+#include <com_util/base/shared_lib_lifecycle.h>
+#include <com_util/runtime/module_info.h>
+#include <com_util/fs/path_max.h>
 #include <stdio.h>
 
 /**
@@ -31,7 +31,7 @@ void onLoad(void)
 {
     char basename[SYMBOL_LOADER_NAME_MAX] = {0};
 
-    DLLMAIN_UTIL_INFO_MSG("base: onLoad called");
+    DLLMAIN_COM_UTIL_INFO_MSG("base: onLoad called");
 
     if (module_info_get_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
     {
@@ -68,6 +68,6 @@ void onLoad(void)
 void onUnload(int process_terminating)
 {
     (void)process_terminating;
-    DLLMAIN_UTIL_INFO_MSG("base: onUnload called");
+    DLLMAIN_COM_UTIL_INFO_MSG("base: onUnload called");
     symbol_loader_dispose(fobj_array_libbase, fobj_length_libbase);
 }

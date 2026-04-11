@@ -24,12 +24,12 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #if defined(PLATFORM_WINDOWS)
 
 #include "tcpServer.h"   /* WIN32_LEAN_AND_MEAN / windows.h / winsock2.h / ws2tcpip.h を内包 */
-#include <util/fs/path_max.h>
+#include <com_util/fs/path_max.h>
 
 #include <stdio.h>
 #include <stdlib.h>

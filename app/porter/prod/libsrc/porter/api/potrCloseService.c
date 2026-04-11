@@ -14,7 +14,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 #if defined(PLATFORM_LINUX)
     #include <arpa/inet.h>

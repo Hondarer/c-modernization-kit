@@ -11,7 +11,7 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <stddef.h>
 
 #if defined(PLATFORM_LINUX)

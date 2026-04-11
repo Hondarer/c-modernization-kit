@@ -14,8 +14,8 @@
  */
 
 #include <libbase.h>
-#include <util/console/console.h>
-#include <util/fs/path_max.h>
+#include <com_util/console/console.h>
+#include <com_util/fs/path_max.h>
 #include <stdio.h>
 
 /**

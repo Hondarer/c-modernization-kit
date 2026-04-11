@@ -282,7 +282,7 @@ podman pull hondarer/oracle-linux-10-dev:latest
 
 `inner-build.sh` は `.github/workflows/ci.yml` の Linux ジョブに準拠しており、以下の設定を反映しています。
 
-- `LD_LIBRARY_PATH`: `prod/calc/lib`, `prod/calc.net/lib`, `prod/override-sample/lib`, `prod/porter/lib`, `prod/util/lib`
+- `LD_LIBRARY_PATH`: `prod/calc/lib`, `prod/calc.net/lib`, `prod/override-sample/lib`, `prod/porter/lib`, `prod/com_util/lib`
 - `PATH`: 各モジュールの `bin/` ディレクトリ
 - ビルド警告 (`.warn`) の収集と ZIP アーカイブ
   `.warn` は集約せず、C/C++ はソースファイル横と最終生成物横に残る

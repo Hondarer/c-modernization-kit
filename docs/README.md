@@ -5,7 +5,7 @@
 - [calc](../../doxygen/calc/index.html)
 - [calc dotnet wrapper](../../doxygen/calc.net/index.html)
 - [porter](../../doxygen/porter/index.html)
-- [util](../../doxygen/util/index.html)
+- [com_util](../../doxygen/com_util/index.html)
 - [override-sample](../../doxygen/override-sample/index.html)
 - [doxygen-sample](../../doxygen/doxygen-sample/index.html)
 
@@ -21,8 +21,8 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
     - [クラスの一覧](doxybook2/calc.net/index_classes.md)
 - porter
     - [ファイルとページの一覧](doxybook2/porter/index_files_and_pages.md)
-- util
-    - [ファイルとページの一覧](doxybook2/util/index_files_and_pages.md)
+- com_util
+    - [ファイルとページの一覧](doxybook2/com_util/index_files_and_pages.md)
 - override-sample
     - [ファイルとページの一覧](doxybook2/override-sample/index_files_and_pages.md)
 - doxygen-sample

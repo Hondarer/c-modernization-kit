@@ -14,7 +14,7 @@
 #ifndef TCPSERVER_H
 #define TCPSERVER_H
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 
 /* ============================================================
  *  プラットフォーム抽象化

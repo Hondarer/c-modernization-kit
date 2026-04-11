@@ -19,7 +19,7 @@ mkdir -p logs
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 
 # テスト実行時に必要な共有ライブラリ検索パスを設定 (.github/workflows/ci.yml に準拠)
-export LD_LIBRARY_PATH="/workspace/prod/calc/lib:/workspace/prod/calc.net/lib:/workspace/prod/override-sample/lib:/workspace/prod/porter/lib:/workspace/prod/util/lib:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="/workspace/prod/calc/lib:/workspace/prod/calc.net/lib:/workspace/prod/override-sample/lib:/workspace/prod/porter/lib:/workspace/prod/com_util/lib:${LD_LIBRARY_PATH:-}"
 
 # テスト実行時に必要なコマンド検索パスを設定 (.github/workflows/ci.yml に準拠)
 export PATH="/workspace/prod/calc/bin:/workspace/prod/calc.net/bin:/workspace/prod/override-sample/bin:/workspace/prod/porter/bin:${PATH}"

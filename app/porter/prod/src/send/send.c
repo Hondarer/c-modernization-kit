@@ -40,20 +40,20 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <util/fs/path_max.h>
+#include <com_util/fs/path_max.h>
 
 #if defined(PLATFORM_LINUX)
     #include <unistd.h>
 #endif /* PLATFORM_LINUX */
 
 #include <porter.h>
-#include <util/console/console.h>
+#include <com_util/console/console.h>
 
 /** 入力バッファサイズ。POTR_MAX_MESSAGE_SIZE + 改行 + NUL。 */
 #define INPUT_BUF_SIZE (POTR_MAX_MESSAGE_SIZE + 2U)

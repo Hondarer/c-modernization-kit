@@ -1,5 +1,5 @@
 # ライブラリの指定
-LIBS += util
+LIBS += com_util
 ifdef PLATFORM_WINDOWS
     # Windows では Winsock ライブラリをリンクする
     LIBS += ws2_32

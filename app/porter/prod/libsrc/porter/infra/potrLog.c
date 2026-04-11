@@ -7,18 +7,18 @@
  *  @version        1.0.0
  *
  *  @details
- *  trace-util のプロキシモジュールです。\n
+ *  trace-com_util のプロキシモジュールです。\n
  *  OS レベルのトレース出力 (Linux: syslog、Windows: ETW)、
- *  ファイルトレース、stderr 出力のすべてを trace-util に委任します。
+ *  ファイルトレース、stderr 出力のすべてを trace-com_util に委任します。
  *
  *  | OS      | 出力先                                                                                          |
  *  | ------- | ----------------------------------------------------------------------------------------------- |
- *  | Linux   | syslog (trace-util 経由)、ログファイル (trace-util 経由)、stderr (trace-util 経由、console 指定時) |
- *  | Windows | ETW (trace-util 経由)、ログファイル (trace-util 経由)、stderr (trace-util 経由、console 指定時)    |
+ *  | Linux   | syslog (trace-com_util 経由)、ログファイル (trace-com_util 経由)、stderr (trace-com_util 経由、console 指定時) |
+ *  | Windows | ETW (trace-com_util 経由)、ログファイル (trace-com_util 経由)、stderr (trace-com_util 経由、console 指定時)    |
  *
  *  @par            スレッド セーフティ
  *  本モジュールはスレッドセーフです。\n
- *  すべての出力制御は trace-util が内部で排他制御を行います。
+ *  すべての出力制御は trace-com_util が内部で排他制御を行います。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <util/trace/trace.h>
+#include <com_util/trace/trace.h>
 
 #include <porter_const.h>
 #include <porter.h>
@@ -111,7 +111,7 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
         return POTR_ERROR;
     }
 
-    /* stderr: console フラグに応じて trace-util のスレッショルドを設定する。
+    /* stderr: console フラグに応じて trace-com_util のスレッショルドを設定する。
      * console != 0 の場合は trc_level 以上を出力、0 の場合は完全に抑止する。 */
     trace_logger_set_stderr_level(s_trace, console ? trc_level : TRACE_LEVEL_NONE);
 
@@ -157,7 +157,7 @@ void potr_log_write(PotrLogLevel level, const char *file, int line,
     (void)vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
 
-    /* trace-util 経由で OS (syslog / ETW)、ファイル、stderr に出力する。
+    /* trace-com_util 経由で OS (syslog / ETW)、ファイル、stderr に出力する。
      * trace_logger_writef は内部でスレッドセーフのため、ロック不要。
      * PotrLogLevel と trace_level_t は値が一致するため直接キャストする。
      * メッセージに [file:line] を含めてソース位置を記録する。 */

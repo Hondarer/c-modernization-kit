@@ -1,5 +1,5 @@
 # ライブラリの指定
-LIBS += util
+LIBS += com_util
 ifdef PLATFORM_LINUX
     LIBS += pthread z crypto
 endif

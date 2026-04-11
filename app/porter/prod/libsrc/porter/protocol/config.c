@@ -11,7 +11,7 @@
  *******************************************************************************
  */
 
-#include <util/base/platform.h>
+#include <com_util/base/platform.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
