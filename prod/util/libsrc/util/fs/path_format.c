@@ -3,6 +3,10 @@
 #include <string.h>
 #include <errno.h>
 
+#if defined(PLATFORM_WINDOWS)
+    #include <share.h>
+#endif /* PLATFORM_WINDOWS */
+
 /* ===== 内部ヘルパーマクロ ===== */
 
 /**
@@ -174,7 +178,16 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char
 #if defined(PLATFORM_LINUX)
     return open(filename, flags, mode);
 #elif defined(PLATFORM_WINDOWS)
-    return _open(filename, flags, mode);
+    int fd = -1;
+    errno_t open_result;
+
+    open_result = _sopen_s(&fd, filename, flags, _SH_DENYNO, mode);
+    if (open_result != 0)
+    {
+        return -1;
+    }
+
+    return fd;
 #endif /* PLATFORM_ */
 }
 
