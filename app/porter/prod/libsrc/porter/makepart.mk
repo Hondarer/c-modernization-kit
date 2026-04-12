@@ -1,9 +1,8 @@
 # ライブラリの指定
 LIBS += com_util
 ifdef PLATFORM_LINUX
-    LIBS += pthread z crypto
-endif
-ifdef PLATFORM_WINDOWS
+    LIBS += z crypto
+else ifdef PLATFORM_WINDOWS
     LIBS += ws2_32 Cabinet bcrypt
 endif
 

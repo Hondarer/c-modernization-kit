@@ -598,6 +598,12 @@ OBJS = obj/calcHandler.obj
    - macOS サポート
    - その他のコンパイラサポート (Clang など)
 
+4. **app 単位のサブモジュール化**
+   - `MYAPP_FOLDER` により、app 内の設定は自 app のルートを基準に記述されている
+   - `$(MYAPP_FOLDER)/prod/include` や `$(MYAPP_FOLDER)/../com_util/prod/include` のような app 起点記法を使用
+   - 将来 `app/<name>` を独立した Git サブモジュールに分離する際、app 内の `makepart.mk` の記述を変更せずに済む
+   - 内部では `realpath -m` で絶対パスに正規化されるため、`..` を含む cross-app 参照もクリーンなパスとしてコンパイラに渡される
+
 ## 実装のベストプラクティスと重要なノート
 
 このセクションでは、クロスプラットフォーム対応の実装で得られた重要な知見とベストプラクティスを説明します。

@@ -1,1 +1,2 @@
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/app/subfolder-sample/prod/bin
+# 出力ディレクトリ
+OUTPUT_DIR := $(MYAPP_FOLDER)/prod/bin

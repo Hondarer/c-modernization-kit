@@ -1,2 +1,3 @@
+# インクルードパス
 INCDIR += \
-	$(WORKSPACE_FOLDER)/app/doxygen-sample/prod/include
+	$(MYAPP_FOLDER)/prod/include

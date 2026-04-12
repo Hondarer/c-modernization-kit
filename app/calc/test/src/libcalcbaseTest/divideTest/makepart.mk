@@ -1,3 +1,3 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/app/calc/prod/libsrc/calcbase/divide.c
+	$(MYAPP_FOLDER)/prod/libsrc/calcbase/divide.c

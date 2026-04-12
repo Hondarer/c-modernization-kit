@@ -1,19 +1,16 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/trace.c \
-	$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/file/trace_file.c \
-    $(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/syslog/trace_syslog.c \
-    $(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/etw/trace_etw.c
+	$(MYAPP_FOLDER)/prod/libsrc/com_util/trace/trace.c \
+	$(MYAPP_FOLDER)/prod/libsrc/com_util/trace/backends/file/trace_file.c \
+    $(MYAPP_FOLDER)/prod/libsrc/com_util/trace/backends/syslog/trace_syslog.c \
+    $(MYAPP_FOLDER)/prod/libsrc/com_util/trace/backends/etw/trace_etw.c
 
-CFLAGS   += -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace
-CFLAGS   += \
-    -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/file \
-    -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/syslog \
-    -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/etw
-CXXFLAGS += -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace
-CXXFLAGS += \
-    -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/file \
-    -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/syslog \
-    -I$(WORKSPACE_FOLDER)/app/com_util/prod/libsrc/com_util/trace/backends/etw
+# TEST_SRCS の相対インクルード解決
+INCDIR += \
+    $(MYAPP_FOLDER)/prod/libsrc/com_util/trace \
+    $(MYAPP_FOLDER)/prod/libsrc/com_util/trace/backends/file \
+    $(MYAPP_FOLDER)/prod/libsrc/com_util/trace/backends/syslog \
+    $(MYAPP_FOLDER)/prod/libsrc/com_util/trace/backends/etw
 
+# ライブラリの指定
 LIBS += mock_libc

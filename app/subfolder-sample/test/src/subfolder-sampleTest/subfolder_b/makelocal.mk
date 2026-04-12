@@ -1,3 +1,3 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/app/subfolder-sample/prod/libsrc/libsubfolder-sample/subfolder_b/func_b.c
+	$(MYAPP_FOLDER)/prod/libsrc/libsubfolder-sample/subfolder_b/func_b.c

@@ -1,1 +1,2 @@
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/app/calc/test/lib
+# 出力ディレクトリ
+OUTPUT_DIR := $(MYAPP_FOLDER)/test/lib

@@ -1,6 +1,2 @@
-# 依存ライブラリの検索パス
-LIBSDIR += \
-    $(WORKSPACE_FOLDER)/app/porter/prod/lib
-
-# 依存ライブラリ
+# ライブラリの指定
 LIBS += com_util porter

@@ -1,2 +1,4 @@
-LIBSDIR += $(WORKSPACE_FOLDER)/app/override-sample/prod/lib
-LIBSDIR += $(WORKSPACE_FOLDER)/app/com_util/prod/lib
+# ライブラリの指定
+LIBSDIR += \
+	$(MYAPP_FOLDER)/prod/lib \
+	$(MYAPP_FOLDER)/../com_util/prod/lib

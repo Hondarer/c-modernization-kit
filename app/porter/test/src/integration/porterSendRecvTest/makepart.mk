@@ -2,4 +2,4 @@
 # send / recv バイナリ (外部プロセス) を実行するため、リンク対象は testfw のみ。
 TEST_SRCS :=
 LIBS      :=
-INCDIR    += $(WORKSPACE_FOLDER)/app/porter/test/include
+INCDIR    += $(MYAPP_FOLDER)/test/include

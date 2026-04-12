@@ -1,1 +1,2 @@
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/app/calc.net/prod/lib
+# 出力ディレクトリ
+OUTPUT_DIR := $(MYAPP_FOLDER)/prod/lib

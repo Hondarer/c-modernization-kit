@@ -1,5 +1,5 @@
 # ライブラリの検索パス
-LIBSDIR += $(WORKSPACE_FOLDER)/app/calc/test/lib
+LIBSDIR += $(MYAPP_FOLDER)/test/lib
 
 ifdef PLATFORM_WINDOWS
     # 外部関数の static 定義
