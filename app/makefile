@@ -9,6 +9,8 @@ SUBDIRS = \
 	doxygen-sample \
 	tutorial
 
+TESTFW_BANNER = ../framework/testfw/bin/banner.sh
+
 .DEFAULT_GOAL := default
 
 .PHONY: submodule
@@ -25,7 +27,7 @@ default : submodule $(SUBDIRS)
 	@warn_files=$$(find . -type f -name '*.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
-		bash ../framework/testfw/bin/banner.sh WARNING "\e[33m"; \
+		bash "$(TESTFW_BANNER)" WARNING "\e[33m"; \
 		printf '\n'; \
 		first_warn=1; \
 		for warn_file in $$warn_files; do \
