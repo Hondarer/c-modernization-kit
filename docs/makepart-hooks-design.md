@@ -79,7 +79,7 @@ endif
 .PHONY: pre-build
 pre-build:
 	@echo "Generating code..."
-	python $(WORKSPACE_FOLDER)/tools/codegen.py
+	python $(WORKSPACE_DIR)/tools/codegen.py
 ```
 
 ### 例2: ビルド後にファイルをコピーする
@@ -90,7 +90,7 @@ pre-build:
 .PHONY: post-build
 post-build:
 	@echo "Copying configuration files..."
-	cp -r $(WORKSPACE_FOLDER)/config/* $(OUTPUT_DIR)/
+	cp -r $(WORKSPACE_DIR)/config/* $(OUTPUT_DIR)/
 ```
 
 ### 例3: install ターゲットを定義する

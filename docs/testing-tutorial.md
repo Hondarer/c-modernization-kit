@@ -345,15 +345,15 @@ find-up = \
             $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
         )\
     )
-WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
 # ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### makepart.mk (プロジェクト固有の設定)
@@ -362,7 +362,7 @@ include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 
 ```makefile
 # 出力先ディレクトリ (ライブラリの場合のみ必要)
-OUTPUT_DIR := $(WORKSPACE_FOLDER)/test/lib
+OUTPUT_DIR := $(WORKSPACE_DIR)/test/lib
 
 # ソースファイル (必要に応じて追加)
 SRCS := \
@@ -575,15 +575,15 @@ find-up = \
             $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
         )\
     )
-WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
 # ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### makepart.mk (プロジェクト固有の設定)
@@ -593,7 +593,7 @@ include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c
+	$(WORKSPACE_DIR)/prod/calc/libsrc/calcbase/add.c
 ```
 
 ### main関数テスト用 makefile
@@ -614,15 +614,15 @@ find-up = \
             $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
         )\
     )
-WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
 # 準備処理 (ビルドテンプレートより前に include)
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
 # ビルドテンプレートを include
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### makepart.mk (プロジェクト固有の設定)
@@ -632,7 +632,7 @@ include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/calc/src/add/add.c
+	$(WORKSPACE_DIR)/prod/calc/src/add/add.c
 
 # エントリーポイントの変更
 # テスト対象のソースファイルにある main() は直接実行されず、
@@ -663,19 +663,19 @@ find-up = \
             $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
         )\
     )
-WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 ```
 
 #### テンプレートの読み込み順序
 
 ```makefile
 # 1. prepare.mk を先に読み込む
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 # 2. makepart.mk の内容が処理される (変数設定など)
 
 # 3. makemain.mk を最後に読み込む
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
 #### main関数のラップ
@@ -857,7 +857,7 @@ TEST_F(calcTest, normal)
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/calc/src/calc/calc.c
+	$(WORKSPACE_DIR)/prod/calc/src/calc/calc.c
 
 # エントリーポイントの変更
 USE_WRAP_MAIN := 1
@@ -1194,7 +1194,7 @@ USE_WRAP_MAIN := 1
 
 ```makefile
 # モックを使う場合は実体のソースを含めない
-# TEST_SRCS := $(WORKSPACE_FOLDER)/prod/calc/libsrc/calcbase/add.c  # NG
+# TEST_SRCS := $(WORKSPACE_DIR)/prod/calc/libsrc/calcbase/add.c  # NG
 
 # モックライブラリをリンク (プレフィックス -l なし)
 LIBS += mock_calcbase  # OK

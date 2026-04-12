@@ -1,6 +1,6 @@
 # 出力ディレクトリ
-OUTPUT_DIR := $(MYAPP_FOLDER)/prod/bin
+OUTPUT_DIR := $(MYAPP_DIR)/prod/bin
 
 # ライブラリの検索パス
 LIBSDIR += \
-    $(MYAPP_FOLDER)/prod/lib
+    $(MYAPP_DIR)/prod/lib

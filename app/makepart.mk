@@ -30,10 +30,10 @@ endif
 WIN32_MANIFEST = utf8
 
 # あわせて、コンソールでの UTF-8 文字化けを防ぐために、
-# #include <com_util/console/console.h> (LIBSDIR += $(WORKSPACE_FOLDER)/app/com_util/prod/lib) のうえで
+# #include <com_util/console/console.h> (LIBSDIR += $(WORKSPACE_DIR)/app/com_util/prod/lib) のうえで
 # console_init() を組み込む必要がある。
 # console_dispose() はライブラリアンロード時に自動的に呼ばれるため不要。
-LIBSDIR += $(WORKSPACE_FOLDER)/app/com_util/prod/lib
+LIBSDIR += $(WORKSPACE_DIR)/app/com_util/prod/lib
 
 # マルチスレッドを利用するため、レポジトリ全体に pthread を指定しておく
 ifdef PLATFORM_LINUX
@@ -44,10 +44,10 @@ endif
 ifneq (,$(findstring /test/,$(CURDIR)))
     ifdef PLATFORM_LINUX
         # Linux: TARGET_ARCH (e.g., linux-el8-x64)
-        LIBSDIR += $(WORKSPACE_FOLDER)/framework/testfw/lib/$(TARGET_ARCH)
+        LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)
     else ifdef PLATFORM_WINDOWS
         # Windows: TARGET_ARCH/MSVC_CRT_SUBDIR (e.g., windows-x64/md)
-        LIBSDIR += $(WORKSPACE_FOLDER)/framework/testfw/lib/$(TARGET_ARCH)/$(MSVC_CRT_SUBDIR)
+        LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)/$(MSVC_CRT_SUBDIR)
     endif
 
     # テストフレームワークをリンクする
@@ -56,7 +56,7 @@ endif
 
 # calc のライブラリ検索パス (全プロダクト共通)
 LIBSDIR += \
-	$(WORKSPACE_FOLDER)/app/calc/prod/lib
+	$(WORKSPACE_DIR)/app/calc/prod/lib
 
 # レポジトリ全体に効かせる INCDIR はここに記載
 #INCDIR += 

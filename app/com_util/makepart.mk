@@ -1,6 +1,6 @@
 # インクルードパス
 INCDIR += \
-	$(MYAPP_FOLDER)/prod/include \
-	$(MYAPP_FOLDER)/test/include \
+	$(MYAPP_DIR)/prod/include \
+	$(MYAPP_DIR)/test/include \
 	$(TESTFW_DIR)/gtest/include \
 	$(TESTFW_DIR)/include

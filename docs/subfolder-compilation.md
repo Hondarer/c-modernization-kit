@@ -287,7 +287,7 @@ test/src/subfolder-sample/
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/subfolder-sample/libsrc/libsubfolder-sample/func.c
+	$(WORKSPACE_DIR)/prod/subfolder-sample/libsrc/libsubfolder-sample/func.c
 ```
 
 **subfolder-sampleTest/makechild.mk (起点ディレクトリ):**
@@ -303,7 +303,7 @@ NO_LINK = 1
 # テスト対象のソースファイル
 # NOTE: 上位フォルダで TEST_SRCS を指定している場合、テスト対象ソースが重複しないように留意すること。
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/func_a.c
+	$(WORKSPACE_DIR)/prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/func_a.c
 ```
 
 テストでは、`NO_LINK = 1` は起点ディレクトリの `makechild.mk` に、`TEST_SRCS` は各サブディレクトリの `makelocal.mk` にそれぞれ分離して定義します。
@@ -361,7 +361,7 @@ if [ -z "$TEST_SRCS" ]; then
     for makepart in $(find . -mindepth 2 -name "makepart.mk" 2>/dev/null); do
         subdir_test_srcs=$(grep -A10 "^TEST_SRCS" "$makepart" 2>/dev/null | \
             grep -v "^TEST_SRCS" | grep -v "^#" | grep -v "^--$" | \
-            sed "s|\\\$(WORKSPACE_FOLDER)|$WORKSPACE_FOLDER|g" | \
+            sed "s|\\\$(WORKSPACE_DIR)|$WORKSPACE_DIR|g" | \
             xargs 2>/dev/null)
         TEST_SRCS="$TEST_SRCS $subdir_test_srcs"
     done
@@ -502,11 +502,11 @@ find-up = \
             $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
         )\
     )
-WORKSPACE_FOLDER := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/prepare.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
-include $(WORKSPACE_FOLDER)/framework/makefw/makefiles/makemain.mk
+include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
 ### 2. makechild.mk での NO_LINK 設定
@@ -526,7 +526,7 @@ NO_LINK = 1
 # サブディレクトリの makelocal.mk
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_FOLDER)/prod/.../subfolder_a/func_a.c
+	$(WORKSPACE_DIR)/prod/.../subfolder_a/func_a.c
 ```
 
 ### 3. TEST_SRCS の重複回避
@@ -544,7 +544,7 @@ TEST_SRCS := \
 または、`makepart.mk` で `INCDIR` を設定します。
 
 ```makefile
-INCDIR += $(WORKSPACE_FOLDER)/prod/subfolder-sample/src/sample-app
+INCDIR += $(WORKSPACE_DIR)/prod/subfolder-sample/src/sample-app
 ```
 
 ## まとめ

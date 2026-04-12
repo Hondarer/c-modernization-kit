@@ -1,3 +1,3 @@
 # インクルードパス
 INCDIR += \
-	$(MYAPP_FOLDER)/prod/include
+	$(MYAPP_DIR)/prod/include

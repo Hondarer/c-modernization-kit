@@ -1,2 +1,2 @@
 # 出力ディレクトリ
-OUTPUT_DIR := $(MYAPP_FOLDER)/test/lib
+OUTPUT_DIR := $(MYAPP_DIR)/test/lib

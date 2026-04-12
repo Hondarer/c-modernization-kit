@@ -1,3 +1,3 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(MYAPP_FOLDER)/prod/libsrc/calcbase/multiply.c
+	$(MYAPP_DIR)/prod/libsrc/calcbase/multiply.c
