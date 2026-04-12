@@ -186,7 +186,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     }
 
     /* 非 TCP: ヘルスチェックスレッドを停止 (送信者のみ) */
-    if (ctx->health_running)
+    if (ctx->health_running[0])
     {
         POTR_LOG(POTR_TRACE_VERBOSE, "potrCloseService: service_id=%" PRId64 " stopping health thread",
                  ctx->service.service_id);
@@ -214,7 +214,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     }
 
     /* 受信スレッドを停止する */
-    if (ctx->running)
+    if (ctx->running[0])
     {
         POTR_LOG(POTR_TRACE_VERBOSE, "potrCloseService: service_id=%" PRId64 " stopping recv thread",
                  ctx->service.service_id);

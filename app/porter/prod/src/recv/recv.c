@@ -138,6 +138,10 @@ static int save_to_temp_file(const void *data, size_t len,
     FILE *fp = NULL;
     size_t written;
 
+    if (path_out == NULL || path_size < PLATFORM_PATH_MAX)
+    {
+        return -1;
+    }
     if (GetTempPathA(sizeof(tmp_dir), tmp_dir) == 0)
     {
         return -1;
