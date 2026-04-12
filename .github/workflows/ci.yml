@@ -31,6 +31,7 @@ jobs:
         HOST_USER: user
         HOST_UID: 1001
         HOST_GID: 127
+        TZ: Asia/Tokyo
 
     steps:
       - name: Checkout repository
@@ -91,6 +92,8 @@ jobs:
 
   build-and-test-windows:
     runs-on: windows-2025
+    env:
+      TZ: JST-9
 
     steps:
       - name: Checkout repository
