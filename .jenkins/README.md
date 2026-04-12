@@ -139,14 +139,14 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 | `linux-${OS_NAME}-test-results.zip` | `app/**/results/` 以下のテスト結果 | `results/` ディレクトリが存在する場合 |
 | `linux-${OS_NAME}-logs.zip` | `logs/` 以下のビルド・テストログ | 常に生成 |
 | `linux-${OS_NAME}-warns.zip` | `app/**/prod/**/*.warn`, `app/**/test/**/*.warn` | ビルド・テスト警告が存在する場合 |
-| `docs-warns.zip` | `app/**/doxy.warn` | `BUILD_DOCS=1` かつ Doxygen 警告ファイルが存在する場合 |
+| `docs-warns.zip` | `docs.warn`, `app/**/doxy.warn` | `BUILD_DOCS=1` かつドキュメント警告ファイルが存在する場合 |
 | `docs-html-doxygen.zip` | `pages/doxygen/` 以下の Doxygen HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-html-{lang}.zip` | `pages/{lang}/html/` 以下の Markdown HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-docx-{lang}.zip` | `pages/{lang}/docx/` 以下の DOCX | `BUILD_DOCS=1` かつ生成済みの場合 |
 
 `.warn` ファイルはコンパイル・リンク時に生成されるビルド警告ファイルです。`makefw` が各ターゲットの `lib/` または `bin/` に `${TARGET}.warn` として出力します。
-`doxy.warn` は Doxygen 実行時の警告ファイルで、各アプリ配下に出力されます。
-ビルド・テスト警告が無い場合は `linux-${OS_NAME}-warns.zip` は生成されません。Doxygen 警告が無い場合は `docs-warns.zip` も生成されません。
+`doxy.warn` は Doxygen 実行時の警告ファイルで、各アプリ配下に出力されます。`docs.warn` は `make docs` 実行時の警告ファイルで、ワークスペース直下に出力されます。
+ビルド・テスト警告が無い場合は `linux-${OS_NAME}-warns.zip` は生成されません。ドキュメント警告が無い場合は `docs-warns.zip` も生成されません。
 
 #### ドキュメント生成 (`BUILD_DOCS=1` 時)
 
@@ -156,7 +156,7 @@ make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 ```
 
 `make doxy` は `pages/doxygen/` へ、`make docs` は `pages/{lang}/html/` および `pages/{lang}/docx/` へ出力します。
-また、`app/**/doxy.warn` が存在する場合は `pages/artifacts/docs-warns.zip` を生成します。
+また、`docs.warn` または `app/**/doxy.warn` が存在する場合は `pages/artifacts/docs-warns.zip` を生成します。
 
 #### ナビゲーションページ生成
 
@@ -167,7 +167,7 @@ make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 - `pages/doxygen/` 配下のサブディレクトリを自動探索してリンクを生成します
 - `pages/` 配下の `html` ディレクトリを検出した場合に言語別ドキュメントのリンクを出力します
 - `pages/artifacts/*.zip` を自動探索してリンクを生成します
-- `*-warns.zip` は通常アーティファクト一覧とは別に「ビルド時の警告内容詳細」として表示します
+- `*-warns.zip` は通常アーティファクト一覧とは別に「ビルド・ドキュメント警告詳細」として表示します
 
 ## Jenkins ジョブの Execute shell 設定例
 
@@ -215,6 +215,7 @@ export IMAGE="hondarer/oracle-linux-8-dev:latest"
 
 ```
 source/
+├── docs.warn                         (make docs で警告が出た場合のみ)
 ├── logs/
 │   ├── linux-${OS_NAME}-build.log
 │   ├── linux-${OS_NAME}-test.log
@@ -229,13 +230,23 @@ source/
         ├── linux-${OS_NAME}-test-results.zip
         ├── linux-${OS_NAME}-logs.zip
         ├── linux-${OS_NAME}-warns.zip (ビルド・テスト警告がある場合のみ)
-        ├── docs-warns.zip             (BUILD_DOCS=1 かつ Doxygen 警告がある場合のみ)
+        ├── docs-warns.zip             (BUILD_DOCS=1 かつドキュメント警告がある場合のみ)
         ├── docs-html-doxygen.zip      (BUILD_DOCS=1 時)
         ├── docs-html-{lang}.zip       (BUILD_DOCS=1 時)
         └── docs-docx-{lang}.zip       (BUILD_DOCS=1 時)
 ```
 
 Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクトリとして設定します。
+
+raw の warning file も Jenkins のビルド成果物として残したい場合は、**Post-build Actions** に **Archive the artifacts** を追加し、次を指定します。
+
+```text
+source/pages/artifacts/*.zip,
+source/docs.warn,
+source/app/**/doxy.warn,
+source/app/**/prod/**/*.warn,
+source/app/**/test/**/*.warn
+```
 
 ## .github/workflows/ci.yml との対応
 
@@ -247,7 +258,7 @@ Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクト
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` |
 | `upload-artifact: linux-*-warns` | `linux-${OS_NAME}-warns.zip` |
-| `Upload documentation warnings` | `docs-warns.zip` |
+| `Upload documentation warnings` | `docs-warns.zip` (`docs.warn` + `app/**/doxy.warn`) |
 | `publish-docs`: `make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
 | `deploy-pages`: `index.html` 生成 | `inner-build.sh` の `pages/index.html` 生成 |
 

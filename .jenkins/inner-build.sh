@@ -52,11 +52,16 @@ if [ "${BUILD_DOCS}" = "1" ]; then
     make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
     make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 
-    # Doxygen 警告 (doxy.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
-    if find /workspace/app -type f -name "doxy.warn" 2>/dev/null | grep -q .; then
-        (cd /workspace && zip -r "pages/artifacts/docs-warns.zip" \
-            $(find app -type f -name "doxy.warn" | sort)) || true
+    # ドキュメント警告 (docs.warn, doxy.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
+    docs_warn_list=$(mktemp)
+    {
+        [ -f /workspace/docs.warn ] && printf '%s\n' docs.warn
+        find /workspace/app -type f -name "doxy.warn" 2>/dev/null | sed 's#^/workspace/##' | sort
+    } > "$docs_warn_list"
+    if [ -s "$docs_warn_list" ]; then
+        (cd /workspace && zip -r "pages/artifacts/docs-warns.zip" -@ < "$docs_warn_list") || true
     fi
+    rm -f "$docs_warn_list"
 
     # Doxygen HTML のアーカイブ
     if [ -d "/workspace/pages/doxygen" ]; then
@@ -144,10 +149,10 @@ LANG_TABLE
         echo '  </table>'
     fi
 
-    # ビルド時の警告内容詳細 (存在する場合のみ列挙)
+    # ビルド・ドキュメント警告詳細 (存在する場合のみ列挙)
     if [ -d "/workspace/pages/artifacts" ] && \
        find /workspace/pages/artifacts -name "*-warns.zip" | grep -q .; then
-        echo '  <h2>ビルド時の警告内容詳細</h2>'
+        echo '  <h2>ビルド・ドキュメント警告詳細</h2>'
         echo '  <table>'
         echo '    <tr><th>ファイル名</th></tr>'
         find /workspace/pages/artifacts -name "*-warns.zip" | sort | while read -r zipfile; do

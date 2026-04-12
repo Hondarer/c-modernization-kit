@@ -1,3 +1,9 @@
+BASH ?= bash
+DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown_core.sh
+DOCS_WARN_FILE := $(CURDIR)/docs.warn
+EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin/extract_docs_warnings.sh
+TESTFW_BANNER = framework/testfw/bin/banner.sh
+
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
 # bash がなく cmd.exe へフォールバックしている場合は SHELL = "sh" (スラッシュなし) のままになる。
@@ -13,18 +19,50 @@ endif
 
 .DEFAULT_GOAL := default
 
-.PHONY: default clean test doxy
-default clean test doxy :
+.PHONY: default test doxy
+default test doxy :
 	@if [ -n "$(MAKECMDGOALS)" ]; then \
 		$(MAKE) -C app $@; \
 	else \
 		$(MAKE) -C app; \
 	fi
 
+.PHONY: clean
+clean :
+	@$(MAKE) -C app clean
+	@rm -f "$(DOCS_WARN_FILE)"
+
 .PHONY: docs
 docs :
-	@if [ -d framework/docsfw ] && [ -f framework/docsfw/bin/pub_markdown_core.sh ]; then \
-		$(BASH) framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder="$(CURDIR)" --details=both --docx=true; \
+	@if [ -d framework/docsfw ] && [ -f "$(DOCSFW_SCRIPT)" ]; then \
+		DOCS_LOGFILE=$$(mktemp); \
+		DOCS_PIPE="$$DOCS_LOGFILE.pipe"; \
+		rm -f "$(DOCS_WARN_FILE)"; \
+		mkfifo "$$DOCS_PIPE"; \
+		tee "$$DOCS_LOGFILE" < "$$DOCS_PIPE" & \
+		TEE_PID=$$!; \
+		if "$(BASH)" "$(DOCSFW_SCRIPT)" --workspaceFolder="$(CURDIR)" --details=both --docx=true > "$$DOCS_PIPE" 2>&1; then \
+			DOCS_EXIT=0; \
+		else \
+			DOCS_EXIT=$$?; \
+		fi; \
+		wait $$TEE_PID; \
+		rm -f "$$DOCS_PIPE"; \
+		if [ -x "$(EXTRACT_DOCS_WARNINGS)" ]; then \
+			"$(EXTRACT_DOCS_WARNINGS)" "$$DOCS_LOGFILE" "$(DOCS_WARN_FILE)"; \
+		fi; \
+		if [ -s "$(DOCS_WARN_FILE)" ]; then \
+			printf '\n'; \
+			"$(BASH)" "$(TESTFW_BANNER)" WARNING "\e[33m"; \
+			printf '\n'; \
+			printf '\033[33m===== %s =====\033[0m\n' "$(DOCS_WARN_FILE)"; \
+			while IFS= read -r line || [ -n "$$line" ]; do \
+				clean_line=$$(printf '%s' "$$line" | tr -d '\r'); \
+				printf '\033[33m%s\033[0m\n' "$$clean_line"; \
+			done < "$(DOCS_WARN_FILE)"; \
+		fi; \
+		rm -f "$$DOCS_LOGFILE"; \
+		exit $$DOCS_EXIT; \
 	else \
 		echo "INFO: framework/docsfw directory not found, skipping."; \
 	fi

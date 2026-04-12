@@ -216,9 +216,15 @@ jobs:
           if [ -d "pages/doxygen" ]; then
             zip -r pages/artifacts/docs-html-doxygen.zip pages/doxygen || true
           fi
-          if find app -type f -name "doxy.warn" | grep -q .; then
-            zip -r pages/artifacts/docs-warns.zip $(find app -type f -name "doxy.warn" | sort) || true
+          docs_warn_list=$(mktemp)
+          {
+            [ -f docs.warn ] && printf '%s\n' docs.warn
+            find app -type f -name "doxy.warn" | sort
+          } > "$docs_warn_list"
+          if [ -s "$docs_warn_list" ]; then
+            zip -r pages/artifacts/docs-warns.zip -@ < "$docs_warn_list" || true
           fi
+          rm -f "$docs_warn_list"
           find pages -type d -name html | while read -r html_dir; do
             label=$(echo "$html_dir" | sed 's|^pages/||;s|/html$||;s|/|-|g')
             zip -r "pages/artifacts/docs-html-${label}.zip" "$html_dir" || true
@@ -240,7 +246,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: docs-warns
-          path: app/**/doxy.warn
+          path: |
+            docs.warn
+            app/**/doxy.warn
           if-no-files-found: ignore
 
       - name: Upload html artifacts (doxygen)
@@ -512,10 +520,10 @@ jobs:
               echo '  </table>'
             fi
 
-            # 警告内容詳細 (存在する場合のみ列挙)
+            # ビルド・ドキュメント警告詳細 (存在する場合のみ列挙)
             if [ -d "./pages/artifacts" ] && \
                find ./pages/artifacts -name "*-warns.zip" | grep -q .; then
-              echo '  <h2>警告内容詳細</h2>'
+              echo '  <h2>ビルド・ドキュメント警告詳細</h2>'
               echo '  <table>'
               echo '    <tr><th>ファイル名</th></tr>'
               find ./pages/artifacts -name "*-warns.zip" | sort | while read -r zipfile; do
