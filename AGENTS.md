@@ -5,281 +5,38 @@
 - 自動ステージング、コミット禁止。指示があるまでステージング、コミットは行わないこと。
 - 思考の断片は英語でもよいが、ユーザーに気づきを与えたり報告する際は日本語を用いること。
 
-## プロジェクト概要
+## リポジトリ概要
 
-レガシー C コードのモダナイゼーションのための統合フレームワークです。C 言語のサンプルソースコードから高品質なドキュメントを生成し、自動テストを実行し、.NET からの呼び出しをサポートするための設定とコードの例を提供します。
+レガシー C コードのモダナイゼーションを題材に、ビルド、テスト、Doxygen、Markdown 発行、.NET 呼び出し例をまとめた統合ワークスペースです。
 
-主要なフレームワーク機能はサブモジュールとして統合されています:
-- `doxyfw` - Doxygen ドキュメント生成フレームワーク
-- `docsfw` - Markdown ドキュメント発行フレームワーク
-- `testfw` - Google Test ベースのテストフレームワーク
-- `makefw` - Make ビルドフレームワーク
+主要な git ルートは以下です。
 
-### 主要コンポーネント
+- `framework/doxyfw` - Doxygen と Doxybook2 を使うドキュメント生成フレームワーク
+- `framework/docsfw` - Pandoc ベースの Markdown 発行フレームワーク
+- `framework/testfw` - Google Test ベースのテストフレームワーク
+- `framework/makefw` - C/C++ と .NET 向けの Make テンプレート群
 
-- `app/calc/prod/` - サンプル C ソースコード (計算ライブラリとメインプログラム)
-- `app/calc/test/` - 計算ライブラリのテストコード (Google Test ベース)
-- `app/calc.net/prod/` - .NET ラッパーとアプリケーション (C ライブラリの .NET からの呼び出し例)
-- `app/calc.net/test/` - .NET プロジェクトのテストコード
-- `app/calc/Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
-- `app/calc.net/Doxyfile.part.calc.net` - .NET プロジェクト用 Doxygen 設定
-- `app/calc.net/c-modernization-kit.sln` - Visual Studio ソリューションファイル
-- `framework/doxyfw/` - Doxygen ドキュメント生成フレームワーク (git サブモジュール、論理名: `doxyfw`)
-- `framework/docsfw/` - Markdown ドキュメント発行フレームワーク (git サブモジュール、論理名: `docsfw`)
-- `framework/testfw/` - テストフレームワーク (git サブモジュール、論理名: `testfw`)
-- `framework/makefw/` - Make ビルドフレームワーク (git サブモジュール)
-- `Directory.Build.props` - .NET プロジェクト共通設定
+## 作業時の入口
 
-## サブモジュール
-
-本プロジェクトは、以下のサブモジュールを使用しています。
-
-### doxyfw
-
-Doxygen ドキュメント生成機能を提供するフレームワークです。
-
-`doxyfw` サブモジュールは以下の機能を提供します:
-
-- Doxygen 基本設定ファイル
-- Markdown 変換用の Doxybook2 設定・テンプレート
-- XML 前処理・後処理スクリプト
-- 日本語ドキュメント出力用のカスタムテンプレート
-
-詳細な使用方法や設定については、`framework/doxyfw/CLAUDE.md` を参照してください。
-
-### docsfw
-
-Markdown から HTML や docx を Pandoc で生成するためのフレームワークです。
-
-`docsfw` サブモジュールは以下の機能を提供します。
-
-- Pandoc を使用した Markdown から HTML/docx への変換
-- PlantUML 図の統合
-- 多言語ドキュメント対応
-- カスタムスタイルとテンプレート
-
-詳細な使用方法については、`framework/docsfw/README.md` を参照してください。
-
-### testfw
-
-Google Test を使用した C コードのテストフレームワークです。
-
-`testfw` サブモジュールは以下の機能を提供します:
-
-- テスト実行支援スクリプト
-- モック機能 (標準 C ライブラリのモック)
-- Google Test ラッパー
-- テストレポート生成機能
-
-詳細な使用方法については、`framework/testfw/README.md` を参照してください。
-
-### makefw
-
-Make ビルドシステムのフレームワークです。
-
-`makefw` サブモジュールは以下の機能を提供します:
-
-- テンプレート自動選択機能 (パスと言語に基づく)
-- C/C++ および .NET プロジェクトのビルドサポート
-- クロスプラットフォームビルド (Linux, Windows)
-- makepart.mk によるカスタマイズ機構
-
-詳細な使用方法については、`framework/makefw/README.md` を参照してください。
+- `makefile` - ルートの入口。`make`、`make test`、`make doxy`、`make docs`、`make clean` を提供する
+- `app/calc/` - C のサンプルアプリ、ライブラリ、テスト、Doxygen 設定
+- `app/calc.net/` - .NET ラッパー、アプリ、テスト、ソリューション
+- `Directory.Build.props` - .NET 共通設定
+- `framework/*` - 各フレームワークの独立した git ルート。変更前に各ルートの `AGENTS.md` と `README.md` を確認する
+- `Start-VSCode-With-Env.cmd` - Windows で GNU Make と MSVC の環境を整えて VS Code を起動する
 
 ## 主要コマンド
 
-### ドキュメント生成
-
 ```bash
+make
+make test
 make doxy
+make docs
+make clean
 ```
 
-### クリーンアップ
+## 注意点
 
-```bash
-cd framework/doxyfw && make clean
-```
-
-## プロジェクト構造
-
-```text
-c-modernization-kit/                          # このプロジェクト
-+-- framework/
-|   +-- doxyfw/                         # Doxygen フレームワーク (git submodule)
-|   |   +-- Doxyfile                    # Doxygen 基本設定
-|   |   +-- doxybook2-config.json       # Doxybook2 設定
-|   |   +-- templates/                  # カスタムテンプレート群
-|   |   +-- docs/                       # フレームワーク技術ドキュメント
-|   |   +-- makefile                    # ドキュメント生成用 makefile
-|   |   +-- CLAUDE.md                   # フレームワーク詳細ドキュメント
-|   +-- docsfw/                         # Markdown 発行フレームワーク (git submodule)
-|   |   +-- bin/                        # Pandoc 実行スクリプト
-|   |   +-- lib/                        # フィルタ・変換ライブラリ
-|   |   +-- styles/                     # カスタムスタイル
-|   |   +-- README.md                   # フレームワーク詳細ドキュメント
-|   +-- testfw/                         # テストフレームワーク (git submodule)
-|       +-- bin/                        # テスト実行スクリプト群
-|       +-- include/                    # テスト用ヘッダーファイル
-|       +-- libsrc/                     # テスト用ライブラリソース
-|       +-- README.md                   # テストフレームワーク詳細ドキュメント
-+-- framework/makefw/                   # Make ビルドフレームワーク (git submodule)
-|   +-- makefiles/                      # ビルド用テンプレート
-|   +-- README.md                       # フレームワーク詳細ドキュメント
-+-- Directory.Build.props               # .NET プロジェクト共通設定
-+-- makefile                            # トップレベル makefile
-+-- app/                                # プロダクト群 (prod + test + ドキュメント設定)
-|   +-- calc/                           # サンプル C プロジェクト
-|   |   +-- prod/                       # プロダクションコード
-|   |   |   +-- include/                # ライブラリヘッダー
-|   |   |   |   +-- libcalc.h          # 動的リンク用ヘッダー (calcHandler 関数)
-|   |   |   |   +-- libcalcbase.h      # 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
-|   |   |   |   +-- libcalc_const.h    # 定数定義 (CALC_KIND_ADD など)
-|   |   |   +-- libsrc/                 # ライブラリ実装
-|   |   |   |   +-- calcbase/          # 基本計算関数 (静的ライブラリ)
-|   |   |   |   |   +-- add.c         # add 関数の実装
-|   |   |   |   |   +-- subtract.c    # subtract 関数の実装
-|   |   |   |   |   +-- multiply.c    # multiply 関数の実装
-|   |   |   |   |   +-- divide.c      # divide 関数の実装
-|   |   |   |   +-- calc/              # 計算ハンドラー (動的ライブラリ)
-|   |   |   |       +-- calcHandler.c  # calcHandler 関数の実装
-|   |   |   +-- src/                    # メインプログラム
-|   |   |   |   +-- add/add.c          # add コマンド (calcbase を静的リンク)
-|   |   |   |   +-- calc/calc.c        # calc コマンド (calc を動的リンク)
-|   |   |   |   +-- shared-and-static-calc/  # 動的・静的両方をリンクする例
-|   |   |   |       +-- shared-and-static-calc.c
-|   |   |   +-- lib/                    # ビルド済みライブラリ
-|   |   |   +-- bin/                    # ビルド済み実行ファイル
-|   |   +-- test/                       # テストコード
-|   |   |   +-- src/                    # テストソース
-|   |   |   |   +-- main/              # メインプログラムのテスト
-|   |   |   |   |   +-- addTest/       # add コマンドのテスト
-|   |   |   |   |   +-- calcTest/      # calc コマンドのテスト
-|   |   |   |   |   +-- shared-and-static-calcTest/
-|   |   |   |   +-- libcalcbaseTest/   # libcalcbase ライブラリのテスト
-|   |   |   |       +-- addTest/       # add 関数のテスト
-|   |   |   |       +-- subtractTest/  # subtract 関数のテスト
-|   |   |   |       +-- multiplyTest/  # multiply 関数のテスト
-|   |   |   |       +-- divideTest/    # divide 関数のテスト
-|   |   |   +-- libsrc/                # テスト用モック実装
-|   |   |       +-- mock_calcbase/     # calcbase ライブラリのモック
-|   |   |       +-- mock_calc/         # calc ライブラリのモック
-|   |   +-- README.calc.md             # calc プロジェクトの説明
-|   |   +-- Doxyfile.part.calc         # C プロジェクト用 Doxygen 設定
-|   +-- calc.net/                      # .NET プロジェクト
-|   |   +-- prod/                      # プロダクションコード
-|   |   |   +-- libsrc/CalcLib/        # C ライブラリの .NET ラッパー
-|   |   |   |   +-- CalcLib.csproj    # ライブラリプロジェクト
-|   |   |   |   +-- CalcLibrary.cs    # メインライブラリクラス
-|   |   |   |   +-- CalcKind.cs       # 列挙型定義
-|   |   |   |   +-- CalcResult.cs     # 結果クラス
-|   |   |   |   +-- CalcException.cs  # 例外クラス
-|   |   |   |   +-- Internal/NativeMethods.cs  # P/Invoke 定義
-|   |   |   +-- src/CalcApp/           # サンプルアプリケーション
-|   |   |   |   +-- CalcApp.csproj    # アプリケーションプロジェクト
-|   |   |   |   +-- Program.cs        # メインプログラム
-|   |   |   |   +-- ModuleInitializer.cs  # モジュール初期化
-|   |   |   +-- lib/                   # ビルド済みライブラリ
-|   |   |   +-- bin/                   # ビルド済み実行ファイル
-|   |   +-- test/                      # テストコード
-|   |   |   +-- src/CalcLib.Tests/     # .NET テストプロジェクト
-|   |   +-- README.calc.net.md         # calc.net プロジェクトの説明
-|   |   +-- Doxyfile.part.calc.net     # .NET プロジェクト用 Doxygen 設定
-|   |   +-- c-modernization-kit.sln    # Visual Studio ソリューションファイル
-|   +-- (その他プロダクト: override-sample, porter, subfolder-sample, doxygen-sample, util, tutorial)
-+-- pages/                              # 生成されるドキュメント
-|   +-- doxygen/                        # HTML ドキュメント (Doxygen)
-|   +-- ja/html/                        # 日本語版 HTML
-|   +-- en/html/                        # 英語版 HTML
-+-- docs/                               # ドキュメントソース
-|   +-- doxybook2/                      # 生成される Markdown (Doxybook2)
-|   |   +-- calc/                       # C プロジェクトのドキュメント
-|   |   +-- calc.net/                   # .NET プロジェクトのドキュメント
-|   +-- *.md                            # 追加ドキュメント
-|       +-- github-actions.md           # GitHub Actions 設定
-|       +-- dotnet-relwithdebinfo.md    # .NET RelWithDebInfo ビルド
-|       +-- testing-tutorial.md         # テストチュートリアル
-|       +-- vscode-variables.md         # VS Code 変数リファレンス
-+-- xml/                                # Doxygen XML 中間ファイル
-```
-
-## サンプルソースコード
-
-### 計算ライブラリ
-
-基本的な整数演算を提供するライブラリのサンプルです。
-
-#### ヘッダーファイル
-
-- `app/calc/prod/include/libcalc_const.h` - 定数定義 (CALC_SUCCESS, CALC_KIND_ADD など)
-- `app/calc/prod/include/libcalcbase.h` - 静的リンク用ヘッダー (add, subtract, multiply, divide 関数)
-- `app/calc/prod/include/libcalc.h` - 動的リンク用ヘッダー (calcHandler 関数)
-
-#### libcalcbase (静的ライブラリ)
-
-- `app/calc/prod/libsrc/calcbase/add.c` - add 関数の実装 (2つの整数を加算)
-- `app/calc/prod/libsrc/calcbase/subtract.c` - subtract 関数の実装 (2つの整数を減算)
-- `app/calc/prod/libsrc/calcbase/multiply.c` - multiply 関数の実装 (2つの整数を乗算)
-- `app/calc/prod/libsrc/calcbase/divide.c` - divide 関数の実装 (2つの整数を除算)
-
-#### libcalc (動的ライブラリ)
-
-- `app/calc/prod/libsrc/calc/calcHandler.c` - calcHandler 関数の実装 (演算種別に基づく計算ハンドラー)
-
-### メインプログラム
-
-ライブラリを使用するサンプルプログラムです。
-
-- `app/calc/prod/src/add/add.c` - add コマンド (calcbase を静的リンク)
-- `app/calc/prod/src/calc/calc.c` - calc コマンド (calc を動的リンク)
-- `app/calc/prod/src/shared-and-static-calc/shared-and-static-calc.c` - 動的・静的両方をリンクする例
-
-### .NET プロジェクト
-
-C ライブラリを .NET から利用するための実装例です。
-
-#### CalcLib (.NET ラッパーライブラリ)
-
-- `app/calc.net/prod/libsrc/CalcLib/CalcLibrary.cs` - メインライブラリクラス (C ライブラリへの .NET インターフェース)
-- `app/calc.net/prod/libsrc/CalcLib/CalcKind.cs` - 計算種別の列挙型定義
-- `app/calc.net/prod/libsrc/CalcLib/CalcResult.cs` - 計算結果を格納するクラス
-- `app/calc.net/prod/libsrc/CalcLib/CalcException.cs` - 計算エラー用の例外クラス
-- `app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs` - P/Invoke による C ライブラリの呼び出し定義
-
-#### CalcApp (.NET アプリケーション)
-
-- `app/calc.net/prod/src/CalcApp/Program.cs` - メインプログラム (CalcLib を使用した計算アプリケーション)
-- `app/calc.net/prod/src/CalcApp/ModuleInitializer.cs` - モジュール初期化処理 (ネイティブライブラリのロード設定)
-
-## Claude Code 起動時の重要事項
-
-Claude Code 起動時、OS が Linux か Windows かを強く意識するようにしてください。  
-このレポジトリはクロスプラットフォーム対応であり、環境の違いを意識する必要があります。
-
-### Windows にてあらかじめ実施しなくてはいけない作業
-
-Claude Code が Windows 対応を進めるにあたり、以下の前提を把握しておいてください。  
-現段階では、make コマンドを実施するにあたって、Claude Code は以下に留意する必要があります。
-
-#### GNU Make
-
-GNU Make (make.exe) へのパスはすでに通っています。
-
-#### 開発環境のセットアップ
-
-ポータブル版 Visual Studio Build Tools と Git for Windows はあらかじめインストールされています。
-MinGW PATH と VSBT 環境変数を設定するには、`Start-VSCode-With-Env.ps1` を利用します。
-
-環境変数の設定のみを行う場合は、`-EnvOnly` パラメータを指定してドットソースで実行します。
-
-```powershell
-. .\Start-VSCode-With-Env.ps1 -EnvOnly
-```
-
-VS Code を起動する場合は、パラメータなしで実行します。VS Code は子プロセスとして起動するため、設定した環境変数を継承します。
-
-```powershell
-.\Start-VSCode-With-Env.ps1
-```
-
-各種パス (Git for Windows, MSVC ToolSet, Windows SDK など) は候補ディレクトリを自動走査して検出されます。  
-明示的にパスを設定する場合は、スクリプト内のユーザー設定値セクションを編集してください。
+- Windows では GNU Make が POSIX シェルで動く前提です。必要に応じて `Start-VSCode-With-Env.cmd` から環境を整えること。
+- ドキュメント生成と公開は `framework/doxyfw` と `framework/docsfw` の連携で成り立つため、出力パスやスクリプト名を変更する際は両方を確認すること。
+- テスト関連の変更では `framework/testfw` とその配下の `gtest` サブモジュールの役割を混同しないこと。
