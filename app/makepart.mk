@@ -57,3 +57,9 @@ endif
 # calc のライブラリ検索パス (全プロダクト共通)
 LIBSDIR += \
 	$(WORKSPACE_FOLDER)/app/calc/prod/lib
+
+# レポジトリ全体に効かせる INCDIR はここに記載
+#INCDIR += 
+
+# レポジトリ全体に効かせる DEFINE はここに記載
+#DEFINES += 

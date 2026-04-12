@@ -3,18 +3,18 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/app/com_util/prod/include",
-                "${workspaceFolder}/app/com_util/test/include",
-                "${workspaceFolder}/framework/testfw/gtest/include",
-                "${workspaceFolder}/framework/testfw/include",
                 "${workspaceFolder}/app/calc/prod/include",
                 "${workspaceFolder}/app/calc/test/include",
-                "${workspaceFolder}/app/subfolder-sample/prod/include",
+                "${workspaceFolder}/app/com_util/prod/include",
+                "${workspaceFolder}/app/com_util/test/include",
+                "${workspaceFolder}/app/doxygen-sample/prod/include",
                 "${workspaceFolder}/app/override-sample/prod/include",
                 "${workspaceFolder}/app/porter/prod/include",
                 "${workspaceFolder}/app/porter/prod/libsrc/porter",
                 "${workspaceFolder}/app/porter/test/include",
-                "${workspaceFolder}/app/doxygen-sample/prod/include"
+                "${workspaceFolder}/app/subfolder-sample/prod/include",
+                "${workspaceFolder}/framework/testfw/gtest/include",
+                "${workspaceFolder}/framework/testfw/include"
             ],
             "defines": [
                 "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
@@ -28,18 +28,18 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/app/com_util/prod/include",
-                "${workspaceFolder}/app/com_util/test/include",
-                "${workspaceFolder}/framework/testfw/gtest/include",
-                "${workspaceFolder}/framework/testfw/include",
                 "${workspaceFolder}/app/calc/prod/include",
                 "${workspaceFolder}/app/calc/test/include",
-                "${workspaceFolder}/app/subfolder-sample/prod/include",
+                "${workspaceFolder}/app/com_util/prod/include",
+                "${workspaceFolder}/app/com_util/test/include",
+                "${workspaceFolder}/app/doxygen-sample/prod/include",
                 "${workspaceFolder}/app/override-sample/prod/include",
                 "${workspaceFolder}/app/porter/prod/include",
                 "${workspaceFolder}/app/porter/prod/libsrc/porter",
                 "${workspaceFolder}/app/porter/test/include",
-                "${workspaceFolder}/app/doxygen-sample/prod/include"
+                "${workspaceFolder}/app/subfolder-sample/prod/include",
+                "${workspaceFolder}/framework/testfw/gtest/include",
+                "${workspaceFolder}/framework/testfw/include"
             ],
             "defines": [
                 "TARGET_ARCH=\"\"" // framework/makefw/makefiles/prepare.mk で定義される TARGET_ARCH をインテリセンスで模擬するため (コンパイル時には環境に応じて適切な値が渡される)
