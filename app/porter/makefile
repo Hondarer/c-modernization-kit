@@ -42,8 +42,13 @@ doxy :
 $(SUBDIR_TARGETS) :
 	@dir=$(patsubst __subdir__%,%,$@); \
 	if [ -f $$dir/makefile ]; then \
-		echo $(MAKE) -C $$dir $(SUBDIR_GOAL); \
-		$(MAKE) -C $$dir $(SUBDIR_GOAL) || exit 1; \
+		if [ "$(SUBDIR_GOAL)" = "default" ]; then \
+			echo $(MAKE) -C $$dir; \
+			$(MAKE) -C $$dir || exit 1; \
+		else \
+			echo $(MAKE) -C $$dir $(SUBDIR_GOAL); \
+			$(MAKE) -C $$dir $(SUBDIR_GOAL) || exit 1; \
+		fi; \
 	else \
 		:; # echo "Skipping directory '$$dir' (no makefile)"; \
 	fi

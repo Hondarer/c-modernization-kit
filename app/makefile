@@ -47,7 +47,7 @@ clean : submodule $(SUBDIRS)
 .PHONY: test
 test : submodule
     # 全プロダクトをビルド (default ターゲット)
-	$(MAKE) $(MFLAGS) default
+	$(MAKE) $(MFLAGS)
     # テスト実行
 	@for dir in $(SUBDIRS); do \
 		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
@@ -64,8 +64,13 @@ doxy : submodule $(SUBDIRS)
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :
 	@if [ -f $@/makefile ]; then \
-		echo $(MAKE) -C $@ $(filter-out $(SUBDIRS),$(MAKECMDGOALS)); \
-		$(MAKE) -C $@ $(filter-out $(SUBDIRS),$(MAKECMDGOALS)) || exit 1; \
+		if [ -n "$(filter-out $(SUBDIRS),$(MAKECMDGOALS))" ]; then \
+			echo $(MAKE) -C $@ $(filter-out $(SUBDIRS),$(MAKECMDGOALS)); \
+			$(MAKE) -C $@ $(filter-out $(SUBDIRS),$(MAKECMDGOALS)) || exit 1; \
+		else \
+			echo $(MAKE) -C $@; \
+			$(MAKE) -C $@ || exit 1; \
+		fi; \
 	else \
 		:; # echo "Skipping directory '$@' (no makefile)"; \
 	fi

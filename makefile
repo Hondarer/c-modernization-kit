@@ -15,7 +15,11 @@ endif
 
 .PHONY: default clean test doxy
 default clean test doxy :
-	$(MAKE) -C app $@
+	@if [ -n "$(MAKECMDGOALS)" ]; then \
+		$(MAKE) -C app $@; \
+	else \
+		$(MAKE) -C app; \
+	fi
 
 .PHONY: docs
 docs :
