@@ -42,10 +42,16 @@ if [ -d "/workspace/logs" ]; then
 fi
 
 # ビルド・テスト警告 (.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
-if find /workspace/app -type f -name '*.warn' \( -path '*/prod/*' -o -path '*/test/*' \) 2>/dev/null | grep -q .; then
+warn_list=$(mktemp)
+{
+    [ -f /workspace/app/c_cpp_properties.warn ] && printf '%s\n' app/c_cpp_properties.warn
+    find /workspace/app -type f -name '*.warn' \( -path '*/prod/*' -o -path '*/test/*' \) 2>/dev/null | sed 's#^/workspace/##' | sort
+} > "$warn_list"
+if [ -s "$warn_list" ]; then
     (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-warns.zip" \
-        $(find app -type f -name '*.warn' \( -path '*/prod/*' -o -path '*/test/*' \) 2>/dev/null | sort)) || true
+        -@ < "$warn_list") || true
 fi
+rm -f "$warn_list"
 
 # ドキュメント生成
 if [ "${BUILD_DOCS}" = "1" ]; then

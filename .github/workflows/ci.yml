@@ -77,6 +77,7 @@ jobs:
         with:
           name: linux-${{ matrix.os-name }}-warns
           path: |
+            app/c_cpp_properties.warn
             app/**/prod/**/*.warn
             app/**/test/**/*.warn
           if-no-files-found: ignore
@@ -169,6 +170,7 @@ jobs:
         with:
           name: windows-warns
           path: |
+            app/c_cpp_properties.warn
             app/**/prod/**/*.warn
             app/**/test/**/*.warn
           if-no-files-found: ignore

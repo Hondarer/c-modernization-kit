@@ -1,6 +1,60 @@
-# VS Code における環境変数の扱いと保守手順
+# VS Code における環境変数と `c_cpp_properties.json` の保守手順
 
 本ドキュメントは、VS Code で環境変数がどこに効くかを説明したうえで、このリポジトリでアプリ追加・削除・改名が発生した際に、どのファイルをどう見直すべきかをまとめた手引きです。
+
+## `c_cpp_properties.json` の正本
+
+`-I` と `-D` の正本は `.vscode/c_cpp_properties.json` ではありません。  
+各 C/C++ app の `app/<name>/makepart.mk` にある `INCDIR` / `DEFINES` が正本であり、`.vscode/c_cpp_properties.json` はその派生物です。
+
+### 基本ルール
+
+- app 共通の IntelliSense 向け include / define は `app/<name>/makepart.mk` に書く
+- 個別ターゲットだけが必要とする追加 `INCDIR` は、従来どおり下位の `makepart.mk` で上乗せする
+- `.vscode/c_cpp_properties.json` を直接編集しても make のビルド設定には反映されない
+- Linux の `_DEFAULT_SOURCE` は app 正本には書かず、`.vscode/c_cpp_properties.json` へ同期するときだけ補う
+- `TARGET_ARCH` は app 側の実値を `.vscode` へ持ち込まず、Linux / Win32 ともに `TARGET_ARCH=\"\"` を同期スクリプトが補う
+
+### 同期の流れ
+
+`make -C app` のデフォルトビルド後には、`app/*/makepart.mk` と `.vscode/c_cpp_properties.json` の dry-run 比較が自動で走ります。  
+差異がある場合は `app/c_cpp_properties.warn` が生成され、既存の WARNING 表示と warn artifact 収集にそのまま乗ります。
+
+警告が出たら、ワークスペースルートで次を実行して `.vscode/c_cpp_properties.json` を更新します。
+
+```bash
+bash framework/makefw/bin/sync_c_cpp_properties.sh --write
+```
+
+差異確認だけを手動で行いたい場合は次を使います。
+
+```bash
+bash framework/makefw/bin/sync_c_cpp_properties.sh --check
+```
+
+この同期スクリプトは `.vscode/c_cpp_properties.json` の `defines` に必要なコメントも復元します。
+
+### `c_cpp_properties.json` を見直すタイミング
+
+- `app/<name>/makepart.mk` の `INCDIR` / `DEFINES` を変更したとき
+- C/C++ app を追加・削除・改名したとき
+- `app/c_cpp_properties.warn` が出たとき
+
+### `.vscode` 側の特殊条件
+
+`.vscode/c_cpp_properties.json` の `defines` は、app 正本の単純な mirror ではありません。
+
+- Linux だけ `_DEFAULT_SOURCE` を追加する
+- `TARGET_ARCH` は app 側の実値を無視し、常に `TARGET_ARCH=\"\"` を使う
+
+これは IntelliSense 用の互換条件であり、make の build 用 define とは分離されています。
+
+### 再チェック
+
+```bash
+make -C app
+test ! -f app/c_cpp_properties.warn
+```
 
 ## 概要
 

@@ -2,35 +2,41 @@
 
 C/C++ のヘッダーファイルについての注意事項を以下に示します。
 
-## VS Code でのインテリセンス設定
+## 正本の置き場所
 
-VS Code の C/C++ 拡張機能でインテリセンス (コード補完、定義へのジャンプなど) を有効にするには、  
-`.vscode/c_cpp_properties.json` の `includePath` にフォルダのパスを記載する必要があります。
+新しい include フォルダを追加したとき、最初に更新するのは `.vscode/c_cpp_properties.json` ではありません。  
+各 C/C++ app の `app/<name>/makepart.mk` にある `INCDIR` が正本です。
 
-### 設定例
-
-```json
-{
-    "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/prod/calc/include",
-                "${workspaceFolder}/framework/testfw/include",
-                "${workspaceFolder}/framework/testfw/gtest/include",
-                "${workspaceFolder}/test/include"
-            ],
-            ...
-        }
-    ]
-}
+```makefile
+# app/calc/makepart.mk
+INCDIR += \
+    $(WORKSPACE_FOLDER)/app/calc/prod/include \
+    $(WORKSPACE_FOLDER)/app/com_util/prod/include
 ```
 
-### 設定の確認方法
+個別ターゲットだけが必要な追加 include は、対象ディレクトリ配下の `makepart.mk` で上乗せします。
 
-1. VS Code でプロジェクトを開く
-2. `.vscode/c_cpp_properties.json` を確認
-3. 各プラットフォーム設定 (Linux, Win32) の `includePath` にこのフォルダが含まれているか確認
+`DEFINES` も app 側が正本ですが、`.vscode/c_cpp_properties.json` には同期時の特殊条件があります。
+
+- Linux の `_DEFAULT_SOURCE` は `.vscode` にだけ入る
+- `TARGET_ARCH` は app 側の実値を使わず、`.vscode` では常に `TARGET_ARCH=\"\"` になる
+
+## VS Code への反映方法
+
+`.vscode/c_cpp_properties.json` は派生物です。  
+`app/<name>/makepart.mk` を更新したら、ワークスペースルートで次を実行して反映します。
+
+```bash
+bash framework/makefw/bin/sync_c_cpp_properties.sh --write
+```
+
+差異確認だけをしたい場合は次です。
+
+```bash
+bash framework/makefw/bin/sync_c_cpp_properties.sh --check
+```
+
+`make -C app` のデフォルトビルド後にも dry-run が走り、差異があれば `app/c_cpp_properties.warn` に出ます。
 
 ### パスが設定されていない場合
 
@@ -41,5 +47,8 @@ VS Code の C/C++ 拡張機能でインテリセンス (コード補完、定義
 - コード補完が機能しない
 - 型情報が表示されない
 
-新しい include フォルダを追加した場合は、  
-`.vscode/c_cpp_properties.json` の `includePath` に必ずパスを追加してください。
+## 最低限の確認
+
+1. `app/<name>/makepart.mk` の `INCDIR` を更新する
+2. `bash framework/makefw/bin/sync_c_cpp_properties.sh --write` を実行する
+3. `.vscode/c_cpp_properties.json` の `includePath` と `defines` を確認する

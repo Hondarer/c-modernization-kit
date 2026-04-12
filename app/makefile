@@ -10,6 +10,7 @@ SUBDIRS = \
 	tutorial
 
 TESTFW_BANNER = ../framework/testfw/bin/banner.sh
+CPP_PROPERTIES_SYNC = ../framework/makefw/bin/sync_c_cpp_properties.sh
 
 .DEFAULT_GOAL := default
 
@@ -24,6 +25,7 @@ submodule :
 
 .PHONY: default
 default : submodule $(SUBDIRS)
+	@bash "$(CPP_PROPERTIES_SYNC)" --check || true
 	@warn_files=$$(find . -type f -name '*.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
@@ -45,6 +47,7 @@ default : submodule $(SUBDIRS)
 .PHONY: clean
 clean : submodule $(SUBDIRS)
 	-find . -name "coverage.xml" -delete
+	rm -f c_cpp_properties.warn
 
 .PHONY: test
 test : submodule
