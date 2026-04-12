@@ -1,3 +1,4 @@
+# 依存関係に留意して順番を定義
 SUBDIRS = \
 	com_util \
 	calc \
@@ -28,16 +29,16 @@ clean : submodule $(SUBDIRS)
 
 .PHONY: test
 test : submodule
-	# 全プロダクトをビルド (default ターゲット)
+    # 全プロダクトをビルド (default ターゲット)
 	$(MAKE) $(MFLAGS) default
-	# テスト実行
+    # テスト実行
 	@for dir in $(SUBDIRS); do \
 		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
 			echo $(MAKE) -C $$dir test; \
 			$(MAKE) -C $$dir test || exit 1; \
 		fi; \
 	done
-	# このフォルダ以下の coverage.xml をマージする
+    # このフォルダ以下の coverage.xml をマージする
 	python ../framework/testfw/bin/cobertura_merge.py . 1> /dev/null 2>&1
 
 .PHONY: doxy
