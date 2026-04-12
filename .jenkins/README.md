@@ -35,9 +35,9 @@ Jenkins Execute shell
                                   ├─ export LD_LIBRARY_PATH     # テスト用ライブラリパス設定
                                   ├─ export PATH                # テスト用コマンドパス設定
                                   ├─ make test                  # テスト実行
-                                  ├─ pages/artifacts/*.zip      # テスト結果・ログ・warn 収集
+                                  ├─ pages/artifacts/*.zip      # テスト結果・ログ・ビルド警告収集
                                   ├─ make doxy && make docs     # ドキュメント生成 (BUILD_DOCS=1 時)
-                                  ├─ pages/artifacts/*.zip      # ドキュメント収集
+                                  ├─ pages/artifacts/*.zip      # ドキュメント・Doxygen警告収集
                                   └─ pages/index.html           # ナビゲーションページ生成
 ```
 
@@ -138,13 +138,15 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 |---|---|---|
 | `linux-${OS_NAME}-test-results.zip` | `app/**/results/` 以下のテスト結果 | `results/` ディレクトリが存在する場合 |
 | `linux-${OS_NAME}-logs.zip` | `logs/` 以下のビルド・テストログ | 常に生成 |
-| `linux-${OS_NAME}-warns.zip` | `app/**` 以下の `*.warn` ファイル | `.warn` ファイルが存在する場合 |
+| `linux-${OS_NAME}-warns.zip` | `app/**/prod/**/*.warn`, `app/**/test/**/*.warn` | ビルド・テスト警告が存在する場合 |
+| `docs-warns.zip` | `app/**/doxy.warn` | `BUILD_DOCS=1` かつ Doxygen 警告ファイルが存在する場合 |
 | `docs-html-doxygen.zip` | `pages/doxygen/` 以下の Doxygen HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-html-{lang}.zip` | `pages/{lang}/html/` 以下の Markdown HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-docx-{lang}.zip` | `pages/{lang}/docx/` 以下の DOCX | `BUILD_DOCS=1` かつ生成済みの場合 |
 
 `.warn` ファイルはコンパイル・リンク時に生成されるビルド警告ファイルです。`makefw` が各ターゲットの `lib/` または `bin/` に `${TARGET}.warn` として出力します。
-警告が無い場合は `.warn` ファイルも `linux-${OS_NAME}-warns.zip` も生成されません。
+`doxy.warn` は Doxygen 実行時の警告ファイルで、各アプリ配下に出力されます。
+ビルド・テスト警告が無い場合は `linux-${OS_NAME}-warns.zip` は生成されません。Doxygen 警告が無い場合は `docs-warns.zip` も生成されません。
 
 #### ドキュメント生成 (`BUILD_DOCS=1` 時)
 
@@ -154,6 +156,7 @@ make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 ```
 
 `make doxy` は `pages/doxygen/` へ、`make docs` は `pages/{lang}/html/` および `pages/{lang}/docx/` へ出力します。
+また、`app/**/doxy.warn` が存在する場合は `pages/artifacts/docs-warns.zip` を生成します。
 
 #### ナビゲーションページ生成
 
@@ -225,7 +228,8 @@ source/
     └── artifacts/
         ├── linux-${OS_NAME}-test-results.zip
         ├── linux-${OS_NAME}-logs.zip
-        ├── linux-${OS_NAME}-warns.zip (警告がある場合のみ)
+        ├── linux-${OS_NAME}-warns.zip (ビルド・テスト警告がある場合のみ)
+        ├── docs-warns.zip             (BUILD_DOCS=1 かつ Doxygen 警告がある場合のみ)
         ├── docs-html-doxygen.zip      (BUILD_DOCS=1 時)
         ├── docs-html-{lang}.zip       (BUILD_DOCS=1 時)
         └── docs-docx-{lang}.zip       (BUILD_DOCS=1 時)
@@ -243,6 +247,7 @@ Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクト
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` |
 | `upload-artifact: linux-*-warns` | `linux-${OS_NAME}-warns.zip` |
+| `Upload documentation warnings` | `docs-warns.zip` |
 | `publish-docs`: `make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
 | `deploy-pages`: `index.html` 生成 | `inner-build.sh` の `pages/index.html` 生成 |
 

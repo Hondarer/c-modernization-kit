@@ -41,16 +41,22 @@ if [ -d "/workspace/logs" ]; then
     (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-logs.zip" logs) || true
 fi
 
-# ビルド警告 (.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
-if find /workspace/app -name '*.warn' -size +0 2>/dev/null | grep -q .; then
+# ビルド・テスト警告 (.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
+if find /workspace/app -type f -name '*.warn' \( -path '*/prod/*' -o -path '*/test/*' \) 2>/dev/null | grep -q .; then
     (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-warns.zip" \
-        $(find app -name '*.warn' -size +0 2>/dev/null)) || true
+        $(find app -type f -name '*.warn' \( -path '*/prod/*' -o -path '*/test/*' \) 2>/dev/null | sort)) || true
 fi
 
 # ドキュメント生成
 if [ "${BUILD_DOCS}" = "1" ]; then
     make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
     make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
+
+    # Doxygen 警告 (doxy.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
+    if find /workspace/app -type f -name "doxy.warn" 2>/dev/null | grep -q .; then
+        (cd /workspace && zip -r "pages/artifacts/docs-warns.zip" \
+            $(find app -type f -name "doxy.warn" | sort)) || true
+    fi
 
     # Doxygen HTML のアーカイブ
     if [ -d "/workspace/pages/doxygen" ]; then
