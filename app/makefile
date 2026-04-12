@@ -22,6 +22,19 @@ submodule :
 
 .PHONY: default
 default : submodule $(SUBDIRS)
+	@warn_files=$$(find . -type f -name '*.warn' -size +0 | sort); \
+	if [ -n "$$warn_files" ]; then \
+		echo ""; \
+		bash ../framework/testfw/bin/banner.sh WARNING "\e[33m"; \
+		echo ""; \
+		printf '\033[33m'; \
+		for warn_file in $$warn_files; do \
+			printf '===== %s =====\n' "$$warn_file"; \
+			cat "$$warn_file"; \
+			printf '\n\n'; \
+		done; \
+		printf '\033[0m'; \
+	fi
 
 .PHONY: clean
 clean : submodule $(SUBDIRS)
