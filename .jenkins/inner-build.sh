@@ -19,10 +19,10 @@ mkdir -p logs
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 
 # テスト実行時に必要な共有ライブラリ検索パスを設定 (.github/workflows/ci.yml に準拠)
-export LD_LIBRARY_PATH="/workspace/prod/calc/lib:/workspace/prod/calc.net/lib:/workspace/prod/override-sample/lib:/workspace/prod/porter/lib:/workspace/prod/com_util/lib:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="/workspace/app/calc/prod/lib:/workspace/app/calc.net/prod/lib:/workspace/app/override-sample/prod/lib:/workspace/app/porter/prod/lib:/workspace/app/com_util/prod/lib:${LD_LIBRARY_PATH:-}"
 
 # テスト実行時に必要なコマンド検索パスを設定 (.github/workflows/ci.yml に準拠)
-export PATH="/workspace/prod/calc/bin:/workspace/prod/calc.net/bin:/workspace/prod/override-sample/bin:/workspace/prod/porter/bin:${PATH}"
+export PATH="/workspace/app/calc/prod/bin:/workspace/app/calc.net/prod/bin:/workspace/app/override-sample/prod/bin:/workspace/app/porter/prod/bin:${PATH}"
 
 # テストログを保存しながら make test を実行
 make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
@@ -31,9 +31,9 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 mkdir -p /workspace/pages/artifacts
 
 # テスト結果のアーカイブ
-if find /workspace/test -type d -name results 2>/dev/null | grep -q .; then
+if find /workspace/app -type d -name results 2>/dev/null | grep -q .; then
     (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-test-results.zip" \
-        $(find test -type d -name results 2>/dev/null)) || true
+        $(find app -type d -name results 2>/dev/null)) || true
 fi
 
 # ビルドログのアーカイブ
@@ -42,9 +42,9 @@ if [ -d "/workspace/logs" ]; then
 fi
 
 # ビルド警告 (.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
-if find /workspace/prod /workspace/test -name '*.warn' -size +0 2>/dev/null | grep -q .; then
+if find /workspace/app -name '*.warn' -size +0 2>/dev/null | grep -q .; then
     (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-warns.zip" \
-        $(find prod test -name '*.warn' -size +0 2>/dev/null)) || true
+        $(find app -name '*.warn' -size +0 2>/dev/null)) || true
 fi
 
 # ドキュメント生成

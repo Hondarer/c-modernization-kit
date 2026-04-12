@@ -8,11 +8,11 @@
         "Doxyfile.part.*": "shellscript"
     },
     "terminal.integrated.env.linux": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/prod/calc/lib:${workspaceFolder}/prod/calc.net/lib:${workspaceFolder}/prod/override-sample/lib:${workspaceFolder}/prod/porter/lib:${workspaceFolder}/prod/com_util/lib:${env:LD_LIBRARY_PATH}",
-        "PATH": "${workspaceFolder}/prod/calc/bin:${workspaceFolder}/prod/calc.net/bin:${workspaceFolder}/prod/override-sample/bin:${workspaceFolder}/prod/porter/bin:${env:PATH}"
+        "LD_LIBRARY_PATH": "${workspaceFolder}/app/calc/prod/lib:${workspaceFolder}/app/calc.net/prod/lib:${workspaceFolder}/app/override-sample/prod/lib:${workspaceFolder}/app/porter/prod/lib:${workspaceFolder}/app/com_util/prod/lib:${env:LD_LIBRARY_PATH}",
+        "PATH": "${workspaceFolder}/app/calc/prod/bin:${workspaceFolder}/app/calc.net/prod/bin:${workspaceFolder}/app/override-sample/prod/bin:${workspaceFolder}/app/porter/prod/bin:${env:PATH}"
     },
     "terminal.integrated.env.windows": {
-        "PATH": "${workspaceFolder}\\prod\\calc\\lib;${workspaceFolder}\\prod\\calc\\bin;${workspaceFolder}\\prod\\calc.net\\lib;${workspaceFolder}\\prod\\calc.net\\bin;${workspaceFolder}\\prod\\override-sample\\lib;${workspaceFolder}\\prod\\override-sample\\bin;${workspaceFolder}\\prod\\porter\\lib;${workspaceFolder}\\prod\\porter\\bin;${workspaceFolder}\\prod\\com_util\\lib;${env:PATH}"
+        "PATH": "${workspaceFolder}\\app\\calc\\prod\\lib;${workspaceFolder}\\app\\calc\\prod\\bin;${workspaceFolder}\\app\\calc.net\\prod\\lib;${workspaceFolder}\\app\\calc.net\\prod\\bin;${workspaceFolder}\\app\\override-sample\\prod\\lib;${workspaceFolder}\\app\\override-sample\\prod\\bin;${workspaceFolder}\\app\\porter\\prod\\lib;${workspaceFolder}\\app\\porter\\prod\\bin;${workspaceFolder}\\app\\com_util\\prod\\lib;${env:PATH}"
     },
     "dotnet.defaultSolution": "disable",
     "C_Cpp.formatting": "clangFormat",

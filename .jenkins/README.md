@@ -116,12 +116,12 @@ make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 `.github/workflows/ci.yml` の `Set PATH and library path for tests` ステップに準拠しています。
 
 ```bash
-export LD_LIBRARY_PATH="/workspace/prod/calc/lib:/workspace/prod/calc.net/lib:\
-/workspace/prod/override-sample/lib:/workspace/prod/porter/lib:/workspace/prod/com_util/lib:\
+export LD_LIBRARY_PATH="/workspace/app/calc/prod/lib:/workspace/app/calc.net/prod/lib:\
+/workspace/app/override-sample/prod/lib:/workspace/app/porter/prod/lib:/workspace/app/com_util/prod/lib:\
 ${LD_LIBRARY_PATH:-}"
 
-export PATH="/workspace/prod/calc/bin:/workspace/prod/calc.net/bin:\
-/workspace/prod/override-sample/bin:/workspace/prod/porter/bin:${PATH}"
+export PATH="/workspace/app/calc/prod/bin:/workspace/app/calc.net/prod/bin:\
+/workspace/app/override-sample/prod/bin:/workspace/app/porter/prod/bin:${PATH}"
 ```
 
 #### テスト実行
@@ -136,9 +136,9 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 
 | ファイル | 内容 | 生成条件 |
 |---|---|---|
-| `linux-${OS_NAME}-test-results.zip` | `test/**/results/` 以下のテスト結果 | `results/` ディレクトリが存在する場合 |
+| `linux-${OS_NAME}-test-results.zip` | `app/**/results/` 以下のテスト結果 | `results/` ディレクトリが存在する場合 |
 | `linux-${OS_NAME}-logs.zip` | `logs/` 以下のビルド・テストログ | 常に生成 |
-| `linux-${OS_NAME}-warns.zip` | `prod/` および `test/` 以下の `*.warn` ファイル | `.warn` ファイルが存在する場合 |
+| `linux-${OS_NAME}-warns.zip` | `app/**` 以下の `*.warn` ファイル | `.warn` ファイルが存在する場合 |
 | `docs-html-doxygen.zip` | `pages/doxygen/` 以下の Doxygen HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-html-{lang}.zip` | `pages/{lang}/html/` 以下の Markdown HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-docx-{lang}.zip` | `pages/{lang}/docx/` 以下の DOCX | `BUILD_DOCS=1` かつ生成済みの場合 |
@@ -248,5 +248,6 @@ Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクト
 
 ## 関連ドキュメント
 
+- [VS Code と CI の環境変数メンテナンス手順](../docs/vscode-variables.md)
 - [Jenkins セットアップ手順 (スキルガイド)](../docs/skill-guide/07-ci-cd/jenkins.md)
 - [GitHub Actions CI/CD 仕様](../docs/github-actions.md)

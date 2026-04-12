@@ -170,14 +170,15 @@ Error loading native library
 
 1. ネイティブライブラリがビルドされていることを確認:
    ```bash
-   cd prod/calc/libsrc/calc
+   cd app/calc/prod/libsrc/calc
    make build
    ```
-2. ライブラリが `prod/calc/lib/` に存在することを確認
+2. ライブラリが `app/calc/prod/lib/` に存在することを確認
 3. Linux では `LD_LIBRARY_PATH` を設定:
    ```bash
-   export LD_LIBRARY_PATH=/path/to/c-modernization-kit/prod/calc/lib:$LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=/path/to/c-modernization-kit/app/calc/prod/lib:$LD_LIBRARY_PATH
    ```
+4. VS Code / GitHub Actions / Jenkins の環境変数メンテナンス箇所は [docs/vscode-variables.md](../../../../../docs/vscode-variables.md) を参照
 
 ### アプリケーションのビルドが失敗する
 
@@ -191,12 +192,12 @@ Project reference not found
 
 1. 最初に CalcLib ライブラリをビルド:
    ```bash
-   cd prod/calc.net/libsrc/CalcLib
+   cd app/calc.net/prod/libsrc/CalcLib
    make build
    ```
 2. 次に CalcApp をビルド:
    ```bash
-   cd prod/calc.net/src/CalcApp
+   cd app/calc.net/prod/src/CalcApp
    make build
    ```
 

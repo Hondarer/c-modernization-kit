@@ -521,6 +521,7 @@ make test
 
 ## 関連ドキュメント
 
+- [VS Code と CI の環境変数メンテナンス手順](vscode-variables.md) - `app` 配下の構成と依存関係から更新対象を判断する手引き
 - [テストチュートリアル](testing-tutorial.md) - テストの書き方
 - [ビルド設計](build-design.md) - makefile の構成
 - [Oracle Linux コンテナ](https://github.com/Hondarer/oracle-linux-container) - 開発コンテナの詳細
