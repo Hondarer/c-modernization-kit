@@ -144,6 +144,7 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 | `docs-docx-{lang}.zip` | `pages/{lang}/docx/` 以下の DOCX | `BUILD_DOCS=1` かつ生成済みの場合 |
 
 `.warn` ファイルはコンパイル・リンク時に生成されるビルド警告ファイルです。`makefw` が各ターゲットの `lib/` または `bin/` に `${TARGET}.warn` として出力します。
+警告が無い場合は `.warn` ファイルも `linux-${OS_NAME}-warns.zip` も生成されません。
 
 #### ドキュメント生成 (`BUILD_DOCS=1` 時)
 
@@ -163,6 +164,7 @@ make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 - `pages/doxygen/` 配下のサブディレクトリを自動探索してリンクを生成します
 - `pages/` 配下の `html` ディレクトリを検出した場合に言語別ドキュメントのリンクを出力します
 - `pages/artifacts/*.zip` を自動探索してリンクを生成します
+- `*-warns.zip` は通常アーティファクト一覧とは別に「ビルド時の警告内容詳細」として表示します
 
 ## Jenkins ジョブの Execute shell 設定例
 
@@ -245,6 +247,7 @@ Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクト
 | `deploy-pages`: `index.html` 生成 | `inner-build.sh` の `pages/index.html` 生成 |
 
 `build-and-test-windows` および `deploy-pages` (GitHub Pages デプロイ) に対応する Jenkins スクリプトは存在しません。
+ただし `pages/index.html` の一覧構成は GitHub Actions の Pages 出力とそろえており、warn ZIP がある場合だけ専用セクションを表示します。
 
 ## 関連ドキュメント
 

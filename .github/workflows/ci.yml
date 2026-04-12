@@ -7,6 +7,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: read
   contents: write
   pages: write
   id-token: write
@@ -346,23 +347,43 @@ jobs:
           name: windows-logs
           path: logs/windows
 
+      - name: Detect optional build warning artifacts
+        id: warning_artifacts
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              }
+            );
+            const artifactNames = new Set(artifacts.map((artifact) => artifact.name));
+            core.info(`Artifacts in run: ${Array.from(artifactNames).sort().join(', ')}`);
+            core.setOutput('linux_ol8', String(artifactNames.has('linux-ol8-warns')));
+            core.setOutput('linux_ol10', String(artifactNames.has('linux-ol10-warns')));
+            core.setOutput('windows', String(artifactNames.has('windows-warns')));
+
       - name: Download Linux OL8 build warnings
+        if: steps.warning_artifacts.outputs.linux_ol8 == 'true'
         uses: actions/download-artifact@v8
-        continue-on-error: true
         with:
           name: linux-ol8-warns
           path: warns/linux-ol8
 
       - name: Download Linux OL10 build warnings
+        if: steps.warning_artifacts.outputs.linux_ol10 == 'true'
         uses: actions/download-artifact@v8
-        continue-on-error: true
         with:
           name: linux-ol10-warns
           path: warns/linux-ol10
 
       - name: Download Windows build warnings
+        if: steps.warning_artifacts.outputs.windows == 'true'
         uses: actions/download-artifact@v8
-        continue-on-error: true
         with:
           name: windows-warns
           path: warns/windows
@@ -470,11 +491,24 @@ jobs:
 
             # アーティファクト (存在するものを列挙)
             if [ -d "./pages/artifacts" ] && \
-               find ./pages/artifacts -name "*.zip" | grep -q .; then
+               find ./pages/artifacts -name "*.zip" ! -name "*-warns.zip" | grep -q .; then
               echo '  <h2>アーティファクト</h2>'
               echo '  <table>'
               echo '    <tr><th>ファイル名</th></tr>'
-              find ./pages/artifacts -name "*.zip" | sort | while read -r zipfile; do
+              find ./pages/artifacts -name "*.zip" ! -name "*-warns.zip" | sort | while read -r zipfile; do
+                fname=$(basename "$zipfile")
+                echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
+              done
+              echo '  </table>'
+            fi
+
+            # ビルド時の警告内容詳細 (存在する場合のみ列挙)
+            if [ -d "./pages/artifacts" ] && \
+               find ./pages/artifacts -name "*-warns.zip" | grep -q .; then
+              echo '  <h2>ビルド時の警告内容詳細</h2>'
+              echo '  <table>'
+              echo '    <tr><th>ファイル名</th></tr>'
+              find ./pages/artifacts -name "*-warns.zip" | sort | while read -r zipfile; do
                 fname=$(basename "$zipfile")
                 echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
               done

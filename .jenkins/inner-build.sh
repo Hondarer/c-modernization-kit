@@ -127,11 +127,24 @@ LANG_TABLE
 
     # アーティファクト (BUILD_DOCS に関係なく常に表示、存在するものを列挙)
     if [ -d "/workspace/pages/artifacts" ] && \
-       find /workspace/pages/artifacts -name "*.zip" | grep -q .; then
+       find /workspace/pages/artifacts -name "*.zip" ! -name "*-warns.zip" | grep -q .; then
         echo '  <h2>アーティファクト</h2>'
         echo '  <table>'
         echo '    <tr><th>ファイル名</th></tr>'
-        find /workspace/pages/artifacts -name "*.zip" | sort | while read -r zipfile; do
+        find /workspace/pages/artifacts -name "*.zip" ! -name "*-warns.zip" | sort | while read -r zipfile; do
+            fname=$(basename "$zipfile")
+            echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
+        done
+        echo '  </table>'
+    fi
+
+    # ビルド時の警告内容詳細 (存在する場合のみ列挙)
+    if [ -d "/workspace/pages/artifacts" ] && \
+       find /workspace/pages/artifacts -name "*-warns.zip" | grep -q .; then
+        echo '  <h2>ビルド時の警告内容詳細</h2>'
+        echo '  <table>'
+        echo '    <tr><th>ファイル名</th></tr>'
+        find /workspace/pages/artifacts -name "*-warns.zip" | sort | while read -r zipfile; do
             fname=$(basename "$zipfile")
             echo "    <tr><td><a href=\"artifacts/${fname}\">${fname}</a></td></tr>"
         done
