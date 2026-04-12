@@ -8,9 +8,10 @@ Jenkins でこのリポジトリをビルドするためのスクリプト群で
 
 ```
 .jenkins/
-├── build.sh        # Jenkins の Execute shell から呼び出すホスト側スクリプト
-├── inner-build.sh  # コンテナ内でユーザー権限で実行されるビルドスクリプト
-└── README.md       # このファイル
+├── build.sh            # Jenkins の Execute shell から呼び出すホスト側スクリプト
+├── inner-build.sh      # コンテナ内でユーザー権限で実行されるビルドスクリプト
+├── report-warnings.sh  # warning ZIP を検知して Jenkins コンソールに通知
+└── README.md           # このファイル
 ```
 
 ## 実行フロー
@@ -39,13 +40,15 @@ Jenkins Execute shell
                                   ├─ make doxy && make docs     # ドキュメント生成 (BUILD_DOCS=1 時)
                                   ├─ pages/artifacts/*.zip      # ドキュメント・Doxygen警告収集
                                   └─ pages/index.html           # ナビゲーションページ生成
+            └─ report-warnings.sh
+                 └─ Jenkins コンソールに warning ZIP 検知結果を表示 (exit 0)
 ```
 
 ## build.sh
 
 ### 役割
 
-ホスト (Oracle Linux) 上で実行されるスクリプトです。Podman でコンテナを起動し、`inner-build.sh` を実行します。
+ホスト (Oracle Linux) 上で実行されるスクリプトです。Podman でコンテナを起動し、`inner-build.sh` を実行した後、`report-warnings.sh` で warning ZIP の有無を Jenkins コンソールへ通知します。
 
 ### 環境変数
 
@@ -85,6 +88,8 @@ Jenkins の Execute shell が `bash source/.jenkins/build.sh` で呼び出す場
 コンテナ起動直後に `/usr/local/bin/devcontainer-entrypoint.sh` を実行します。このスクリプトは Oracle Linux 開発コンテナが提供するもので、`HOST_USER`, `HOST_UID`, `HOST_GID` の各環境変数に基づいてコンテナ内にユーザーとホームディレクトリを作成します。
 
 初期化完了後、`su - "$HOST_USER"` でそのユーザーへ切り替え、`inner-build.sh` をログインシェルで実行します。
+
+コンテナ処理の完了後は、ホスト側で `report-warnings.sh` を呼び出し、`pages/artifacts/*-warns.zip` があればコンソールに一覧を表示します。通知専用のため、警告があっても終了コードは変わりません。
 
 ## inner-build.sh
 
@@ -169,6 +174,17 @@ make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 - `pages/artifacts/*.zip` を自動探索してリンクを生成します
 - `*-warns.zip` は通常アーティファクト一覧とは別に「ビルド・ドキュメント警告詳細」として表示します
 
+## report-warnings.sh
+
+### 役割
+
+`pages/artifacts/*-warns.zip` を検出し、Jenkins の Console Output で目立つバナーを出す補助スクリプトです。通知専用のため、警告の有無にかかわらず `exit 0` で終了します。
+
+### 入力
+
+- 第1引数 (省略可): warning ZIP を検索するディレクトリ
+- 省略時はリポジトリ直下の `pages/artifacts` を使用
+
 ## Jenkins ジョブの Execute shell 設定例
 
 ### Oracle Linux 8 でのビルド (ドキュメント生成あり)
@@ -236,7 +252,7 @@ source/
         └── docs-docx-{lang}.zip       (BUILD_DOCS=1 時)
 ```
 
-Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクトリとして設定します。
+Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクトリとして設定します。warning ZIP がある場合は Console Output にも通知されますが、ビルド結果は SUCCESS のまま維持されます。
 
 raw の warning file も Jenkins のビルド成果物として残したい場合は、**Post-build Actions** に **Archive the artifacts** を追加し、次を指定します。
 

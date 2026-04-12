@@ -316,6 +316,58 @@ jobs:
           path: pages/en-details/docx/
           if-no-files-found: warn
 
+  warnings-summary:
+    runs-on: ubuntu-latest
+    needs: [build-and-test-linux, build-and-test-windows, publish-docs]
+    if: ${{ always() }}
+
+    steps:
+      - name: Summarize warning artifacts
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const trackedArtifacts = [
+              'linux-ol8-warns',
+              'linux-ol10-warns',
+              'windows-warns',
+              'docs-warns',
+            ];
+
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              }
+            );
+
+            const artifactNames = new Set(artifacts.map((artifact) => artifact.name));
+            const detectedNames = trackedArtifacts.filter((artifactName) => artifactNames.has(artifactName));
+
+            core.info(`Artifacts in run: ${Array.from(artifactNames).sort().join(', ')}`);
+
+            if (detectedNames.length > 0) {
+              core.warning(`Warning artifacts detected: ${detectedNames.join(', ')}`);
+
+              const list = detectedNames
+                .map((artifactName) => `- \`${artifactName}\``)
+                .join('\n');
+
+              await core.summary
+                .addHeading('Warning artifacts detected', 2)
+                .addRaw('The workflow completed and warning artifacts were uploaded.\n\n')
+                .addRaw(`${list}\n\n`)
+                .addRaw('Review the Artifacts section of this run for details.\n')
+                .write();
+            } else {
+              await core.summary
+                .addHeading('Warning artifacts', 2)
+                .addRaw('No warning artifacts were uploaded in this run.\n')
+                .write();
+            }
+
   deploy-pages:
     needs: [build-and-test-linux, build-and-test-windows, publish-docs]
     runs-on: ubuntu-latest

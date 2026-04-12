@@ -49,3 +49,5 @@ podman run --rm -i \
 # 初期化後に、作成された一般ユーザーへ切り替え、必要な変数を渡してビルドスクリプトを実行
 su - "$HOST_USER" -c "OS_NAME='$OS_NAME' BUILD_DOCS='$BUILD_DOCS' bash -l /workspace/.jenkins/inner-build.sh"
 CONTAINER_EOF
+
+bash "$WORKDIR/.jenkins/report-warnings.sh" "$WORKDIR/pages/artifacts"
