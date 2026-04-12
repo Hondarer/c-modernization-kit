@@ -135,8 +135,10 @@ jobs:
         shell: pwsh
 
       - name: Build
-        run: make 2>&1 | Tee-Object -FilePath logs/windows-build.log
-        shell: pwsh
+        run: |
+          set -o pipefail
+          make 2>&1 | tee logs/windows-build.log
+        shell: bash
 
       - name: Set PATH for tests
         run: |
@@ -158,8 +160,10 @@ jobs:
         shell: pwsh
 
       - name: Run tests
-        run: make test 2>&1 | Tee-Object -FilePath logs/windows-test.log
-        shell: pwsh
+        run: |
+          set -o pipefail
+          make test 2>&1 | tee logs/windows-test.log
+        shell: bash
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v7
