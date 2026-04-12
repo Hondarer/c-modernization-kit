@@ -62,4 +62,7 @@ LIBSDIR += \
 #INCDIR += 
 
 # レポジトリ全体に効かせる DEFINE はここに記載
-#DEFINES += 
+ifdef PLATFORM_LINUX
+    # glibc の拡張定義を公開し、PATH_MAX などを strict C モードでも利用可能にする
+    DEFINES += _DEFAULT_SOURCE
+endif

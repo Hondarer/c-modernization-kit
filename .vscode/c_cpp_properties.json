@@ -17,8 +17,8 @@
                 "${workspaceFolder}/framework/testfw/include"
             ],
             "defines": [
-                "_DEFAULT_SOURCE", // __USE_MISC を有効にしてインテリセンスを効かせるため
-                "TARGET_ARCH=\"\"" // framework/makefw/makefiles/prepare.mk で定義される TARGET_ARCH をインテリセンスで模擬するため (コンパイル時には環境に応じて適切な値が渡される)
+                "TARGET_ARCH=\"\"", // framework/makefw/makefiles/prepare.mk で定義される TARGET_ARCH をインテリセンスで模擬するため (コンパイル時には環境に応じて適切な値が渡される)
+                "_DEFAULT_SOURCE"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
