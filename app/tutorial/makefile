@@ -22,7 +22,7 @@ test :
 		echo $(MAKE) -C test test; \
 		$(MAKE) -C test test || exit 1; \
 	else \
-		echo "Skipping directory 'test' (no makefile)"; \
+		:; # echo "Skipping directory 'test' (no makefile)"; \
 	fi
 
 .PHONY: doxy
@@ -32,10 +32,10 @@ doxy :
 			echo $(MAKE) -C $(DOXYFW_DIR) CATEGORY=$(APP_NAME); \
 			$(MAKE) -C $(DOXYFW_DIR) CATEGORY=$(APP_NAME) || exit 1; \
 		else \
-			echo "INFO: $(DOXYFW_DIR) directory not found, skipping."; \
+			:; # echo "INFO: $(DOXYFW_DIR) directory not found, skipping."; \
 		fi; \
 	else \
-		echo "INFO: Doxygen is not configured for $(APP_NAME), skipping."; \
+		:; # echo "INFO: Doxygen is not configured for $(APP_NAME), skipping."; \
 	fi
 
 .PHONY: $(SUBDIR_TARGETS)
@@ -45,5 +45,5 @@ $(SUBDIR_TARGETS) :
 		echo $(MAKE) -C $$dir $(SUBDIR_GOAL); \
 		$(MAKE) -C $$dir $(SUBDIR_GOAL) || exit 1; \
 	else \
-		echo "Skipping directory '$$dir' (no makefile)"; \
+		:; # echo "Skipping directory '$$dir' (no makefile)"; \
 	fi

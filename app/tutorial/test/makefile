@@ -18,5 +18,5 @@ $(SUBDIRS) :
 		echo $(MAKE) -C $@ $(MAKECMDGOALS); \
 		$(MAKE) -C $@ $(MAKECMDGOALS) || exit 1; \
 	else \
-		echo "Skipping directory '$@' (no makefile)"; \
+		:; # echo "Skipping directory '$@' (no makefile)"; \
 	fi
