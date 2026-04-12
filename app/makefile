@@ -24,16 +24,20 @@ submodule :
 default : submodule $(SUBDIRS)
 	@warn_files=$$(find . -type f -name '*.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
-		echo ""; \
+		printf '\n'; \
 		bash ../framework/testfw/bin/banner.sh WARNING "\e[33m"; \
-		echo ""; \
-		printf '\033[33m'; \
+		printf '\n'; \
+		first_warn=1; \
 		for warn_file in $$warn_files; do \
-			printf '===== %s =====\n' "$$warn_file"; \
-			cat "$$warn_file"; \
-			printf '\n\n'; \
+			if [ $$first_warn -eq 0 ]; then \
+				printf '\n'; \
+			fi; \
+			first_warn=0; \
+			printf '\033[33m===== %s =====\033[0m\n' "$$warn_file"; \
+			while IFS= read -r line || [ -n "$$line" ]; do \
+				printf '\033[33m%s\033[0m\n' "$$line"; \
+			done < "$$warn_file"; \
 		done; \
-		printf '\033[0m'; \
 	fi
 
 .PHONY: clean
