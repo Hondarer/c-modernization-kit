@@ -156,51 +156,6 @@ cd prod/calc.net/src/CalcApp
 make build
 ```
 
-## トラブルシューティング
-
-### ネイティブライブラリが見つからない
-
-**エラー:**
-
-```text
-Error loading native library
-```
-
-**解決方法:**
-
-1. ネイティブライブラリがビルドされていることを確認:
-   ```bash
-   cd app/calc/prod/libsrc/calc
-   make build
-   ```
-2. ライブラリが `app/calc/prod/lib/` に存在することを確認
-3. Linux では `LD_LIBRARY_PATH` を設定:
-   ```bash
-   export LD_LIBRARY_PATH=/path/to/c-modernization-kit/app/calc/prod/lib:$LD_LIBRARY_PATH
-   ```
-4. VS Code / GitHub Actions / Jenkins の環境変数メンテナンス箇所は [docs/vscode-variables.md](../../../../../docs/vscode-variables.md) を参照
-
-### アプリケーションのビルドが失敗する
-
-**エラー:**
-
-```text
-Project reference not found
-```
-
-**解決方法:**
-
-1. 最初に CalcLib ライブラリをビルド:
-   ```bash
-   cd app/calc.net/prod/libsrc/CalcLib
-   make build
-   ```
-2. 次に CalcApp をビルド:
-   ```bash
-   cd app/calc.net/prod/src/CalcApp
-   make build
-   ```
-
 ## ファイル
 
 - `Program.cs` - メインアプリケーションロジック
