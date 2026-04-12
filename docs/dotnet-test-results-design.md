@@ -456,7 +456,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests.Add_ShouldReturnCorrec
 **検証対象**: `test/src/calc.net/CalcLib.Tests/CalcLibraryTests.cs`
 
 **確認事項**:
-- ✅ `[手順]` と `[確認]` のタグが既に適切に記述されている
+- ✅ `[手順]` と `[確認]` のタグがすでに適切に記述されている
 - ✅ コメントの書き方が統一されている
 - ✅ 設計書の例と実際のコードが一致している
 

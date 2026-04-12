@@ -1056,7 +1056,7 @@ static void check_reorder_timeout(struct PotrContext_ *ctx)
     if (!ctx->reorder_pending) return;
     if (!reorder_gap_ready(ctx, ctx->reorder_nack_num)) return;
 
-    /* reorder_gap_ready が 1 を返した時点で reorder_pending は既にクリア済み */
+    /* reorder_gap_ready が 1 を返した時点で reorder_pending はすでにクリア済み */
     if (potr_is_raw_type(ctx->service.type))
     {
         /* RAW モード: DISCONNECTED を発行してセッション状態をリセットする。

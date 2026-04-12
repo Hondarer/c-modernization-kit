@@ -110,8 +110,8 @@ void on_recv(int64_t service_id, PotrPeerId peer_id,
 ### 注意事項
 
 - `data` はコールバック復帰後に無効になります（スタック変数のポインタ）。保存が必要な場合は配列ごとコピーしてください。
-- `event == POTR_EVENT_PATH_CONNECTED` の時点では、`path_states[(int)len]` は既に `1` に更新されています。
-- `event == POTR_EVENT_PATH_DISCONNECTED` の時点では、`path_states[(int)len]` は既に `0` に更新されています（N:1 UDP は `peer_path_clear()` 呼び出し前の状態を渡します）。
+- `event == POTR_EVENT_PATH_CONNECTED` の時点では、`path_states[(int)len]` はすでに `1` に更新されています。
+- `event == POTR_EVENT_PATH_DISCONNECTED` の時点では、`path_states[(int)len]` はすでに `0` に更新されています（N:1 UDP は `peer_path_clear()` 呼び出し前の状態を渡します）。
 - コールバック内でブロッキング処理を行わないでください（既存の注意事項と同様）。
 
 ## 内部設計変更
@@ -233,7 +233,7 @@ else
 }
 ```
 
-`n1_fire_path_event()` の内部では `peer->dest_addr[k].sin_family` でパス状態を取得するため、既に `AF_INET` に設定済みの状態 (= このパスが alive) で path_states が構築されます。
+`n1_fire_path_event()` の内部では `peer->dest_addr[k].sin_family` でパス状態を取得するため、すでに `AF_INET` に設定済みの状態 (= このパスが alive) で path_states が構築されます。
 
 #### PATH_DISCONNECTED
 

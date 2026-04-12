@@ -43,7 +43,7 @@
      *  @brief          呼び出し規約マクロ。
      *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
      *                  Linux (非 Windows) 環境では空に展開されます。\n
-     *                  既に定義済みの場合は再定義されません。
+     *                  すでに定義済みの場合は再定義されません。
      */
     #define BASE_API
 

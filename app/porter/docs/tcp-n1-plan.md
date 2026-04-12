@@ -558,7 +558,7 @@ static void *connect_thread_func(void *arg)
 
 **ファイル**: `prod/porter/libsrc/porter/thread/potrSendThread.c`
 
-`PotrPayloadElem` には既に `peer_id` フィールドが存在するため、
+`PotrPayloadElem` にはすでに `peer_id` フィールドが存在するため、
 送信先ルーティングの変更のみで対応できる。
 
 ```c
@@ -847,7 +847,7 @@ send スレッド:      1
 UDP では `recvfrom()` がデータ受信・送信元アドレス取得・セッション ID 識別を原子的に行うため、同一 SENDER の再接続や追加パス接続を自然にセッション層で識別できる。
 一方 TCP の `accept()` はソケット fd のみを返し、アプリケーション層のセッション識別子 (`session_id`, `session_tv_sec`, `session_tv_nsec`) は最初のパケットを受信するまで不明である。
 
-このため、従来実装では `accept()` 直後に無条件で `reset_connection_state()` を呼んでいた。この関数は `peer_session_known = 0` をリセットするが、他の path の recv スレッドが既にセッションデータを処理中である可能性があり、データ競合が発生していた。さらに、新セッションの接続なのか同一セッションの再接続・追加パスなのかを区別できなかった。
+このため、従来実装では `accept()` 直後に無条件で `reset_connection_state()` を呼んでいた。この関数は `peer_session_known = 0` をリセットするが、他の path の recv スレッドがすでにセッションデータを処理中である可能性があり、データ競合が発生していた。さらに、新セッションの接続なのか同一セッションの再接続・追加パスなのかを区別できなかった。
 
 #### 6.5.2 実装済みの修正: セッション層での対称化
 

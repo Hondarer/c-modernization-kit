@@ -274,7 +274,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     else if (ctx->peers != NULL)
     {
         /* N:1 モード: 送信スレッド未起動の場合もピアテーブルを解放する
-           (既に peer_table_destroy 済みの場合は ctx->peers が NULL になっている) */
+           (すでに peer_table_destroy 済みの場合は ctx->peers が NULL になっている) */
         peer_table_destroy(ctx);
     }
     free(ctx->frag_buf);

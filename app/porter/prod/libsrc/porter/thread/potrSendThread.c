@@ -156,7 +156,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     if (ctx->service.encrypt_enabled)
     {
         /* 暗号化パス:
-         *   1. ENCRYPTED フラグを OR (outer_pkt.flags は既に NBO)
+         *   1. ENCRYPTED フラグを OR (outer_pkt.flags はすでに NBO)
          *   2. payload_len を packed_len + TAG_SIZE に更新
          *   3. nonce = session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
          *   4. AAD  = outer_pkt ヘッダー 32B (NBO)
@@ -172,7 +172,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         outer_pkt.payload_len = htons((uint16_t)(packed_len + POTR_CRYPTO_TAG_SIZE));
 
         /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
-         * outer_pkt の各フィールドは既に NBO */
+         * outer_pkt の各フィールドはすでに NBO */
         memcpy(nonce,      &outer_pkt.session_id, 4);
         memcpy(nonce + 4,  &outer_pkt.flags,      2);
         memcpy(nonce + 6,  &outer_pkt.seq_num,    4);
@@ -248,7 +248,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
 #endif /* PLATFORM_ */
         }
 
-        /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードは既に直後に配置済み) */
+        /* NBO ヘッダー (32B) を send_wire_buf 先頭に書き込む (ペイロードはすでに直後に配置済み) */
         memcpy(ctx->send_wire_buf, &outer_pkt, PACKET_HEADER_SIZE);
         wire_len = PACKET_HEADER_SIZE + packed_len;
 
@@ -410,7 +410,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         outer_pkt.payload_len = htons((uint16_t)(packed_len + POTR_CRYPTO_TAG_SIZE));
 
         /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B)
-         * outer_pkt の各フィールドは既に NBO */
+         * outer_pkt の各フィールドはすでに NBO */
         memcpy(nonce,      &outer_pkt.session_id, 4);
         memcpy(nonce + 4,  &outer_pkt.flags,      2);
         memcpy(nonce + 6,  &outer_pkt.seq_num,    4);

@@ -130,7 +130,7 @@
  *
  *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
  *  Linux (非 Windows) 環境では空に展開されます。\n
- *  既に定義済みの場合は再定義されません。
+ *  すでに定義済みの場合は再定義されません。
  */
 #define TRACE_LOGGER_API
 
@@ -280,7 +280,7 @@ extern "C"
      *  started 状態では出力関数 (trace_logger_write 等) が有効になり、
      *  設定関数 (trace_logger_set_name, trace_logger_set_os_level, trace_logger_set_file_sink,
      *  trace_logger_set_stderr_level) は使用できなくなります (-1 を返します)。\n
-     *  既に started 状態の場合は何もせず 0 を返します (冪等)。
+     *  すでに started 状態の場合は何もせず 0 を返します (冪等)。
      *
      *  @param[in]      handle   trace_logger_create の戻り値。
      *  @return         成功 0 / 失敗 -1。
@@ -305,7 +305,7 @@ extern "C"
      *  stopped 状態では出力関数 (trace_logger_write 等) は -1 を返し、
      *  設定関数 (trace_logger_set_name, trace_logger_set_os_level, trace_logger_set_file_sink,
      *  trace_logger_set_stderr_level) がスレッド安全に使用できるようになります。\n
-     *  既に stopped 状態の場合は何もせず 0 を返します (冪等)。
+     *  すでに stopped 状態の場合は何もせず 0 を返します (冪等)。
      *
      *  @param[in]      handle   trace_logger_create の戻り値。
      *  @return         成功 0 / 失敗 -1。
@@ -571,7 +571,7 @@ extern "C"
      *  ファイルトレースを有効化または再構成します。\n
      *  @p path に NULL を指定するとファイルトレースを無効化します
      *  (既存のファイルプロバイダを解放して閉じます)。\n
-     *  既にファイルトレースが有効な場合は既存のプロバイダを解放してから
+     *  すでにファイルトレースが有効な場合は既存のプロバイダを解放してから
      *  新しいプロバイダを初期化します。\n
      *  デフォルトのファイルトレースレベルは @c TRACE_LOGGER_DEFAULT_FILE_LEVEL
      *  (TRACE_LEVEL_ERROR) です。\n

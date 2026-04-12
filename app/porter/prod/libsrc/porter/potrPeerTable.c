@@ -412,7 +412,7 @@ void peer_path_clear(struct PotrContext_ *ctx, PotrPeerContext *peer, int path_i
 {
     if (peer->dest_addr[path_idx].sin_family == 0)
     {
-        return; /* 既に未使用スロット */
+        return; /* すでに未使用スロット */
     }
 
     POTR_LOG(POTR_TRACE_WARNING,

@@ -36,7 +36,7 @@
  *  @def            TRACE_ETW_API
  *  @brief          呼び出し規約マクロ。
  *  @details        `__stdcall` 呼び出し規約を指定します。\n
- *                  既に定義済みの場合は再定義されません。
+ *                  すでに定義済みの場合は再定義されません。
  */
 #define TRACE_ETW_API
 
