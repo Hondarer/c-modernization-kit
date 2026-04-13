@@ -7,9 +7,9 @@
  *  @version        1.0.0
  *
  *  @details
- *  送信者側で動作する定周期 PING 送信スレッドです。\n
+ *  非 TCP 通信種別で動作する定周期 PING 送信スレッドです。\n
  *  health_interval_ms 周期で PING パケットを送信します。\n
- *  受信者側から送信者へのヘルスチェックは行いません (一方向ヘルスチェック)。
+ *  一方向通信では送信のみ、双方向通信では request/reply 形式の PING 送信を担います。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -128,38 +128,9 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
     while (ctx->health_running[0])
     {
-        uint32_t sleep_ms;
-        uint64_t last_send = ctx->last_send_ms;
-
-        if (last_send == 0)
-        {
-            sleep_ms = ctx->global.health_interval_ms;
-        }
-        else
-        {
-            uint64_t elapsed = health_get_ms() - last_send;
-            sleep_ms = (elapsed >= (uint64_t)ctx->global.health_interval_ms)
-                       ? 1U
-                       : (uint32_t)(ctx->global.health_interval_ms - elapsed);
-        }
-
-        health_sleep(ctx, 0, sleep_ms);
+        health_sleep(ctx, 0, ctx->global.health_interval_ms);
 
         if (!ctx->health_running[0]) break;
-
-        /* データ送信によりタイマーがリセットされた場合は PING 不要 */
-        last_send = ctx->last_send_ms;
-        if (last_send != 0)
-        {
-            uint64_t elapsed = health_get_ms() - last_send;
-            if (elapsed < (uint64_t)ctx->global.health_interval_ms)
-            {
-                POTR_LOG(POTR_TRACE_VERBOSE,
-                         "health[service_id=%" PRId64 "]: PING timer reset",
-                         ctx->service.service_id);
-                continue;
-            }
-        }
 
         /* PING を送信する */
         if (ctx->is_multi_peer)
@@ -337,8 +308,6 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 }
             }
         }
-
-        ctx->last_send_ms = health_get_ms();
     }
 
 #if defined(PLATFORM_LINUX)

@@ -364,16 +364,14 @@ RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, ...)
 caption ヘルスチェック (正常疎通)
 
 participant "ヘルスチェック\nスレッド" as HT
-participant "送信スレッド" as ST
 participant "UDP" as UDP
 participant "受信スレッド\n(受信者)" as RRT
 
 note over HT: health_interval_ms = 3000ms
 
-HT -> HT: last_send_ms から 3000ms 経過を確認
+HT -> HT: 3000ms 待機
 note over HT: send_window.next_seq を読み取る\n(ウィンドウには登録しない)
 HT -> UDP: PING[seq=N] 送信 (全パス)
-HT -> HT: last_send_ms を更新
 
 UDP -> RRT: PING[seq=N] 受信
 RRT -> RRT: last_recv_tv を更新\n(タイムアウトカウンタリセット)
@@ -383,12 +381,7 @@ note over RRT: 欠番なければ返信なし
 
 HT -> HT: 3000ms 待機
 
-note over ST: データ送信が発生した場合
-
-ST -> UDP: DATA[seq=M] 送信
-ST -> HT: last_send_ms 更新
-
-HT -> HT: last_send_ms から 3000ms 未経過を確認\n→ PING タイマーをリセット (送信見送り) \n→ 残り時間を再計算してスリープし直す
+note over HT, UDP: データ送信が発生しても PING 周期は変わらない
 
 @enduml
 ```

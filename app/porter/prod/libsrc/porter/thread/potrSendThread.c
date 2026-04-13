@@ -349,22 +349,6 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         }
     }
 
-    /* ヘルスチェックスレッドが参照する最終送信時刻を更新し、
-       スリープ中のヘルスチェックスレッドを起床させてタイマーをリセットする */
-    ctx->last_send_ms = get_ms();
-
-    if (ctx->health_running[0])
-    {
-#if defined(PLATFORM_LINUX)
-        pthread_mutex_lock(&ctx->health_mutex[0]);
-        pthread_cond_signal(&ctx->health_wakeup[0]);
-        pthread_mutex_unlock(&ctx->health_mutex[0]);
-#elif defined(PLATFORM_WINDOWS)
-        EnterCriticalSection(&ctx->health_mutex[0]);
-        WakeConditionVariable(&ctx->health_wakeup[0]);
-        LeaveCriticalSection(&ctx->health_mutex[0]);
-#endif /* PLATFORM_ */
-    }
 }
 
 /* N:1 モード専用: ピアの send_window を使ってパックコンテナを構築して sendto する */
@@ -487,8 +471,6 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
 #endif /* PLATFORM_ */
         }
     }
-
-    ctx->last_send_ms = get_ms();
 }
 
 /* N:1 モード専用: キューからエントリを取り出してピアへパッキング送信する */

@@ -217,8 +217,7 @@ struct PotrContext_
     /* 非同期送信 (POTR_ROLE_SENDER のみ使用) */
     PotrThread        send_thread;          /**< 送信スレッドハンドル。 */
     volatile int      send_thread_running;  /**< 送信スレッド実行フラグ (1: 実行中, 0: 停止)。 */
-    uint32_t          _pad_send_thread;     /**< パディング (last_send_ms を 8 バイト境界に揃える)。 */
-    volatile uint64_t last_send_ms;         /**< 最終パケット送信時刻 (データ or PING、ms、単調増加)。0 = 未送信。 */
+    uint32_t          _pad_send_thread;     /**< パディング (nack_dedup_buf を 8 バイト境界に揃える)。 */
 
     /* 送信者: NACK 重複抑制リングバッファ */
     PotrNackDedupEntry nack_dedup_buf[POTR_NACK_DEDUP_SLOTS]; /**< NACK 重複抑制エントリ配列。 */

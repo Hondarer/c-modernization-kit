@@ -163,7 +163,7 @@ HT --> SOCK : PING 要求送信 / タイムアウト監視
 |---|---|
 | 送信スレッド | 共有送信キューから `peer_id` 付きエレメントを取り出し、対応するピアの送信先へ `sendto` する。`POTR_PEER_ALL` は `potrSend()` 呼び出し時点で全ピア分に展開される |
 | 受信スレッド | `recvfrom` の送信元と session triplet (`session_id` + `session_tv_sec` + `session_tv_nsec`) からピアを特定し、必要に応じて新規ピアを作成する。DATA / NACK / REJECT / PING をピアごとに独立処理する |
-| ヘルスチェックスレッド | 接続中の各ピアについて最終送受信時刻を監視し、`health_interval_ms` に従って PING を送信し、`health_timeout_ms` 超過で個別に切断を検知する |
+| ヘルスチェックスレッド | 接続中の各ピアについて最終受信時刻を監視し、`health_interval_ms` に従って PING を送信し、`health_timeout_ms` 超過で個別に切断を検知する |
 
 ### TCP / TCP_BIDIR のスレッド構成
 
@@ -533,7 +533,6 @@ PotrThread        send_thread;      /* 送信スレッド */
 PotrThread        health_thread;    /* ヘルスチェックスレッド */
 PotrMutex         health_mutex;
 PotrCondVar       health_wakeup;
-volatile uint64_t last_send_ms;
 ```
 
 ### コールバック要件
