@@ -250,6 +250,7 @@ src_addr.1   = 192.168.2.20   # path 1 の bind アドレス
 | 認証タグ (DATA) | 16 バイトの GCM 認証タグを暗号文末尾に付与する。実効ペイロードが `max_payload - 16` バイトに減少する |
 | 認証タグ (その他) | PING / NACK / REJECT / FIN は平文ペイロードが 0 バイトだが、AAD (ヘッダー 36B) に対して 16 バイトの GCM 認証タグのみを付与する。ヘッダー改ざんを検知できる |
 | 双方一致 | 送信者・受信者ともに同一の `encrypt_key` を設定すること |
+| 受信要件 | `encrypt_key` を設定した受信側は `POTR_FLAG_ENCRYPTED` 付きパケットのみ受理する。平文パケット、およびタグ検証失敗パケットは破棄する |
 | マルチキャスト | 受信者全員が同一の `encrypt_key` を持っていれば動作する |
 
 #### ノンス構成
@@ -376,6 +377,8 @@ S -> CB: sendto(recvfrom で学習した送信元)\nDATA / PING / NACK / REJECT
 | 送信先 | `recvfrom` で学習した各ピアの送信元 | `dst_addr:dst_port` |
 | 送信元フィルタ | `src_port` 指定時のみポートで照合 | — |
 | 最大接続数 | `max_peers` | — |
+
+`encrypt_key` を設定した N:1 サーバは、`POTR_FLAG_ENCRYPTED` の確認と GCM タグ検証を新規 peer 確保より前に行います。認証失敗パケットは `max_peers` を消費しません。
 
 ### multicast (1:N 通信)
 

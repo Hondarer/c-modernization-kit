@@ -682,6 +682,145 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
  * N:1 モード専用ここまで
  * ================================================================ */
 
+/* 受信パケットの暗号化要件と GCM 認証を検証する。
+   encrypt_enabled 時は ENCRYPTED フラグを必須とし、成功時のみ後続処理へ進める。 */
+static int recv_authenticate_packet(struct PotrContext_ *ctx,
+                                    PotrPacket          *pkt,
+                                    const uint8_t       *wire_hdr,
+                                    const char          *log_prefix,
+                                    int                  path_idx)
+{
+    if (!(pkt->flags & POTR_FLAG_ENCRYPTED))
+    {
+        if (!ctx->service.encrypt_enabled)
+        {
+            return 1;
+        }
+
+        if (path_idx >= 0)
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "%s[service_id=%" PRId64 " path=%d]: missing ENCRYPTED flag, dropping flags=0x%04x",
+                     log_prefix, ctx->service.service_id, path_idx,
+                     (unsigned)pkt->flags);
+        }
+        else
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "%s[service_id=%" PRId64 "]: missing ENCRYPTED flag, dropping flags=0x%04x",
+                     log_prefix, ctx->service.service_id, (unsigned)pkt->flags);
+        }
+        return 0;
+    }
+
+    if ((pkt->flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+        == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+    {
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t   dec_len = ctx->crypto_buf_size;
+        uint32_t sid_nbo   = htonl(pkt->session_id);
+        uint16_t flags_nbo = htons((uint16_t)pkt->flags);
+        uint32_t seq_nbo   = htonl(pkt->seq_num);
+
+        memcpy(nonce,      &sid_nbo,   4);
+        memcpy(nonce + 4,  &flags_nbo, 2);
+        memcpy(nonce + 6,  &seq_nbo,   4);
+        memset(nonce + 10, 0,          2);
+
+        if (potr_decrypt(ctx->crypto_buf, &dec_len,
+                         pkt->payload, pkt->payload_len,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_hdr, PACKET_HEADER_SIZE) != 0)
+        {
+            if (path_idx >= 0)
+            {
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "%s[service_id=%" PRId64 " path=%d]: decrypt failed (auth) seq=%u",
+                         log_prefix, ctx->service.service_id, path_idx,
+                         (unsigned)pkt->seq_num);
+            }
+            else
+            {
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "%s[service_id=%" PRId64 "]: decrypt failed (auth) seq=%u",
+                         log_prefix, ctx->service.service_id, (unsigned)pkt->seq_num);
+            }
+            return 0;
+        }
+
+        pkt->payload     = ctx->crypto_buf;
+        pkt->payload_len = (uint16_t)dec_len;
+        pkt->flags       = (uint16_t)(pkt->flags & ~POTR_FLAG_ENCRYPTED);
+        return 1;
+    }
+
+    if (pkt->payload_len != POTR_CRYPTO_TAG_SIZE)
+    {
+        if (path_idx >= 0)
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "%s[service_id=%" PRId64 " path=%d]: encrypted control pkt bad len=%u flags=0x%04x",
+                     log_prefix, ctx->service.service_id, path_idx,
+                     (unsigned)pkt->payload_len, (unsigned)pkt->flags);
+        }
+        else
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "%s[service_id=%" PRId64 "]: encrypted control pkt bad len=%u flags=0x%04x",
+                     log_prefix, ctx->service.service_id,
+                     (unsigned)pkt->payload_len, (unsigned)pkt->flags);
+        }
+        return 0;
+    }
+
+    {
+        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
+        uint8_t  dummy[1];
+        size_t   dummy_len = sizeof(dummy);
+        uint32_t val;
+        uint32_t sid_nbo   = htonl(pkt->session_id);
+        uint16_t flags_nbo = htons((uint16_t)pkt->flags);
+        uint32_t val_nbo;
+
+        val = (pkt->flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT))
+              ? pkt->ack_num : pkt->seq_num;
+        val_nbo = htonl(val);
+
+        memcpy(nonce,      &sid_nbo,   4);
+        memcpy(nonce + 4,  &flags_nbo, 2);
+        memcpy(nonce + 6,  &val_nbo,   4);
+        memset(nonce + 10, 0,          2);
+
+        if (potr_decrypt(dummy, &dummy_len,
+                         pkt->payload, POTR_CRYPTO_TAG_SIZE,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_hdr, PACKET_HEADER_SIZE) != 0)
+        {
+            if (path_idx >= 0)
+            {
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "%s[service_id=%" PRId64 " path=%d]: tag verify failed flags=0x%04x",
+                         log_prefix, ctx->service.service_id, path_idx,
+                         (unsigned)pkt->flags);
+            }
+            else
+            {
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "%s[service_id=%" PRId64 "]: tag verify failed flags=0x%04x",
+                         log_prefix, ctx->service.service_id, (unsigned)pkt->flags);
+            }
+            return 0;
+        }
+    }
+
+    pkt->flags       = (uint16_t)(pkt->flags & ~POTR_FLAG_ENCRYPTED);
+    pkt->payload_len = 0;
+    pkt->payload     = NULL;
+    return 1;
+}
+
 /* 送信元 IP が期待アドレスのいずれかと一致するか確認する。
    N:1 モード: src_port 指定時は送信元ポートのみでフィルタリング。未指定時は全許可。
    UNICAST_BIDIR SENDER:   受信パケットの送信元は RECEIVER (dst_addr_resolved) と照合する。
@@ -1829,6 +1968,11 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 PotrPeerContext *peer = NULL;
                 int              is_new_peer = 0;
 
+                if (!recv_authenticate_packet(ctx, &pkt, buf, "recv", -1))
+                {
+                    continue;
+                }
+
                 POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
 
                 /* session_triplet でピアを検索 */
@@ -1839,13 +1983,11 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                 if (peer == NULL)
                 {
-                    /* 新規ピア: SYN (初回パケット) として扱い、ピアを作成する */
-                    if (!(pkt.flags & (POTR_FLAG_FIN | POTR_FLAG_NACK)))
+                    if (pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_PING))
                     {
                         peer = peer_create(ctx, &sender_addr, i);
                         if (peer != NULL)
                         {
-                            /* ピアのセッション情報を記録 */
                             peer->peer_session_id      = pkt.session_id;
                             peer->peer_session_tv_sec  = pkt.session_tv_sec;
                             peer->peer_session_tv_nsec = pkt.session_tv_nsec;
@@ -1861,10 +2003,9 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 if (peer == NULL)
                 {
                     POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
-                    continue; /* max_peers 超過またはパース不可パケット */
+                    continue; /* max_peers 超過または初回受理対象外 */
                 }
 
-                /* 新規ピア: CONNECTED コールバックを発火 */
                 if (is_new_peer)
                 {
                     peer->health_alive = 1;
@@ -1880,78 +2021,6 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                     {
                         ctx->callback(ctx->service.service_id, peer->peer_id,
                                       POTR_EVENT_CONNECTED, NULL, 0);
-                    }
-                }
-
-                /* 暗号化パケットを復号 */
-                if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-                    == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-                {
-                    uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-                    size_t   dec_len = ctx->crypto_buf_size;
-                    uint32_t sid_nbo   = htonl(pkt.session_id);
-                    uint16_t flags_nbo = htons((uint16_t)pkt.flags);
-                    uint32_t seq_nbo   = htonl(pkt.seq_num);
-
-                    /* ノンス: session_id(4B) + flags(2B) + seq_num(4B) + padding(2B) */
-                    memcpy(nonce,      &sid_nbo,   4);
-                    memcpy(nonce + 4,  &flags_nbo, 2);
-                    memcpy(nonce + 6,  &seq_nbo,   4);
-                    memset(nonce + 10, 0,          2);
-
-                    if (potr_decrypt(ctx->crypto_buf, &dec_len,
-                                     pkt.payload, pkt.payload_len,
-                                     ctx->service.encrypt_key,
-                                     nonce,
-                                     buf, PACKET_HEADER_SIZE) != 0)
-                    {
-                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
-                        continue;
-                    }
-
-                    pkt.payload     = ctx->crypto_buf;
-                    pkt.payload_len = (uint16_t)dec_len;
-                    pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
-                }
-                else if (pkt.flags & POTR_FLAG_ENCRYPTED)
-                {
-                    /* PING/NACK/REJECT/FIN の GCM 認証タグ検証 */
-                    if (pkt.payload_len != POTR_CRYPTO_TAG_SIZE)
-                    {
-                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
-                        continue;
-                    }
-                    {
-                        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-                        uint8_t  dummy[1];
-                        size_t   dummy_len = sizeof(dummy);
-                        uint32_t val;
-                        uint32_t sid_nbo   = htonl(pkt.session_id);
-                        uint16_t flags_nbo = htons((uint16_t)pkt.flags);
-                        uint32_t val_nbo;
-
-                        /* NACK/REJECT は ack_num、その他 (PING/FIN) は seq_num */
-                        val = (pkt.flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT))
-                              ? pkt.ack_num : pkt.seq_num;
-                        val_nbo = htonl(val);
-
-                        memcpy(nonce,      &sid_nbo,   4);
-                        memcpy(nonce + 4,  &flags_nbo, 2);
-                        memcpy(nonce + 6,  &val_nbo,   4);
-                        memset(nonce + 10, 0,          2);
-
-                        if (potr_decrypt(dummy, &dummy_len,
-                                         pkt.payload, POTR_CRYPTO_TAG_SIZE,
-                                         ctx->service.encrypt_key,
-                                         nonce,
-                                         buf, PACKET_HEADER_SIZE) != 0)
-                        {
-                            POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
-                            continue;
-                        }
-                        pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
-                        pkt.payload_len = 0;
-                        pkt.payload     = NULL;
                     }
                 }
 
@@ -2108,93 +2177,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 continue;
             }
 
-            /* 暗号化パケットを復号する
-             *   - POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED の組み合わせ: ペイロードを復号
-             *   - POTR_FLAG_ENCRYPTED 単独 (PING/NACK/REJECT/FIN): GCM タグのみ検証
-             *   - 復号後 pkt.payload / pkt.payload_len を書き換えて以降の処理を透過させる
-             *   - 認証失敗 (タグ不一致) は即座に破棄する
-             */
-            if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-                == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-            {
-                uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-                size_t   dec_len = ctx->crypto_buf_size;
-                /* pkt.session_id / pkt.seq_num は packet_parse 後はホストオーダー */
-                uint32_t sid_nbo   = htonl(pkt.session_id);
-                uint16_t flags_nbo = htons((uint16_t)pkt.flags);
-                uint32_t seq_nbo   = htonl(pkt.seq_num);
-
-                /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B) */
-                memcpy(nonce,      &sid_nbo,   4);
-                memcpy(nonce + 4,  &flags_nbo, 2);
-                memcpy(nonce + 6,  &seq_nbo,   4);
-                memset(nonce + 10, 0,          2);
-
-                /* AAD = 受信 raw バイト先頭 32B (NBO、送信側と同一) */
-                if (potr_decrypt(ctx->crypto_buf, &dec_len,
-                                 pkt.payload, pkt.payload_len,
-                                 ctx->service.encrypt_key,
-                                 nonce,
-                                 buf, PACKET_HEADER_SIZE) != 0)
-                {
-                    POTR_LOG(POTR_TRACE_VERBOSE,
-                             "recv[service_id=%" PRId64 "]: decrypt failed (auth) seq=%u",
-                             ctx->service.service_id, (unsigned)pkt.seq_num);
-                    continue;
-                }
-
-                pkt.payload     = ctx->crypto_buf;
-                pkt.payload_len = (uint16_t)dec_len;
-                pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
-            }
-            else if (pkt.flags & POTR_FLAG_ENCRYPTED)
-            {
-                /* ペイロードなしパケット (PING/NACK/REJECT/FIN) の GCM タグ検証 */
-                uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-                uint8_t  dummy[1];
-                size_t   dummy_len = sizeof(dummy);
-                uint32_t val;
-                uint32_t sid_nbo   = htonl(pkt.session_id);
-                uint16_t flags_nbo = htons((uint16_t)pkt.flags);
-                uint32_t val_nbo;
-
-                if (pkt.payload_len != POTR_CRYPTO_TAG_SIZE)
-                {
-                    POTR_LOG(POTR_TRACE_VERBOSE,
-                             "recv[service_id=%" PRId64 "]: encrypted no-payload pkt bad len=%u",
-                             ctx->service.service_id, (unsigned)pkt.payload_len);
-                    continue;
-                }
-
-                /* NACK/REJECT は ack_num、それ以外 (PING/FIN) は seq_num をノンスに使用 */
-                val = (pkt.flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT))
-                      ? pkt.ack_num : pkt.seq_num;
-                val_nbo = htonl(val);
-
-                /* ノンス: session_id(4B NBO) + flags(2B NBO) + val(4B NBO) + padding(2B) */
-                memcpy(nonce,      &sid_nbo,   4);
-                memcpy(nonce + 4,  &flags_nbo, 2);
-                memcpy(nonce + 6,  &val_nbo,   4);
-                memset(nonce + 10, 0,          2);
-
-                /* AAD = 受信 raw バイト先頭 32B (NBO、送信側と同一) */
-                if (potr_decrypt(dummy, &dummy_len,
-                                 pkt.payload, POTR_CRYPTO_TAG_SIZE,
-                                 ctx->service.encrypt_key,
-                                 nonce,
-                                 buf, PACKET_HEADER_SIZE) != 0)
-                {
-                    POTR_LOG(POTR_TRACE_VERBOSE,
-                             "recv[service_id=%" PRId64 "]: tag verify failed flags=0x%04x",
-                             ctx->service.service_id, (unsigned)pkt.flags);
-                    continue;
-                }
-
-                /* 検証成功: ENCRYPTED フラグを除去して後続処理へ */
-                pkt.flags       = (uint16_t)(pkt.flags & ~POTR_FLAG_ENCRYPTED);
-                pkt.payload_len = 0;
-                pkt.payload     = NULL;
-            }
+            if (!recv_authenticate_packet(ctx, &pkt, buf, "recv", -1)) continue;
 
             /* ── 送信者ロール: NACK のみ処理 ── */
             if (ctx->role == POTR_ROLE_SENDER)
@@ -2264,7 +2247,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                         if (get_result == POTR_SUCCESS)
                         {
-                            /* [NBO ヘッダー 32B][ペイロード] を recv_buf に組み立てる */
+                            /* [NBO ヘッダー 36B][ペイロード] を recv_buf に組み立てる */
                             wire_len = packet_wire_size(&resend_pkt);
                             memcpy(ctx->recv_buf, &resend_pkt, PACKET_HEADER_SIZE);
                             memcpy(ctx->recv_buf + PACKET_HEADER_SIZE,
@@ -2759,7 +2742,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             ctx->tcp_first_pkt_len[path_idx] = 0; /* 先読みバッファをクリア */
             {
                 uint16_t wpl;
-                memcpy(&wpl, buf + 30, sizeof(wpl));
+                memcpy(&wpl, buf + 34, sizeof(wpl));
                 wire_payload_len = ntohs(wpl);
             }
         }
@@ -2791,17 +2774,17 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             /* readable == 1: データあり。以降の tcp_read_all へ進む。 */
         }
 
-        /* 1. ヘッダー 32B 読み取り */
+        /* 1. 固定長ヘッダー読み取り */
         r = tcp_read_all(fd, buf, PACKET_HEADER_SIZE);
         if (r <= 0)
         {
             break; /* 切断 or エラー */
         }
 
-        /* 2. ペイロード長を wire バイト列から抽出 (offset 30、NBO) */
+        /* 2. payload_len をヘッダー末尾の offset 34 から抽出する */
         {
             uint16_t wpl;
-            memcpy(&wpl, buf + 30, sizeof(wpl));
+            memcpy(&wpl, buf + 34, sizeof(wpl));
             wire_payload_len = ntohs(wpl);
         }
 
@@ -2847,36 +2830,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             continue;
         }
 
-        /* 7. DATA 暗号化復号 (DATA+ENCRYPTED の組み合わせのみ) */
-        if ((pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-            == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-        {
-            uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-            size_t   dec_len  = ctx->crypto_buf_size;
-            uint32_t sid_nbo  = htonl(pkt.session_id);
-            uint16_t flg_nbo  = htons((uint16_t)pkt.flags);
-            uint32_t seq_nbo  = htonl(pkt.seq_num);
-
-            memcpy(nonce,      &sid_nbo,  4);
-            memcpy(nonce + 4,  &flg_nbo,  2);
-            memcpy(nonce + 6,  &seq_nbo,  4);
-            memset(nonce + 10, 0,         2);
-
-            if (potr_decrypt(ctx->crypto_buf, &dec_len,
-                             pkt.payload, pkt.payload_len,
-                             ctx->service.encrypt_key,
-                             nonce,
-                             buf, PACKET_HEADER_SIZE) != 0)
-            {
-                POTR_LOG(POTR_TRACE_VERBOSE,
-                         "tcp_recv[service_id=%" PRId64 "]: decrypt failed seq=%u",
-                         ctx->service.service_id, (unsigned)pkt.seq_num);
-                continue;
-            }
-
-            pkt.payload     = ctx->crypto_buf;
-            pkt.payload_len = (uint16_t)dec_len;
-        }
+        if (!recv_authenticate_packet(ctx, &pkt, buf, "tcp_recv", path_idx)) continue;
 
         /* 8. パケット種別処理 */
         if (pkt.flags & POTR_FLAG_PING)

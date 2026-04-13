@@ -189,14 +189,14 @@ static int tcp_read_first_packet(PotrSocket fd, uint8_t *buf, size_t max_buf,
     if (ready == 0) return 0;  /* タイムアウト */
     if (ready < 0)  return -1; /* エラー */
 
-    /* ヘッダー 32B 読み取り */
+    /* 固定長ヘッダー読み取り */
     r = accept_tcp_read_all(fd, buf, PACKET_HEADER_SIZE);
     if (r <= 0) return -1;
 
-    /* ペイロード長を NBO で取得 (offset 30) */
+    /* payload_len は固定長ヘッダー末尾の offset 34 に格納される */
     {
         uint16_t wpl;
-        memcpy(&wpl, buf + 30, sizeof(wpl));
+        memcpy(&wpl, buf + 34, sizeof(wpl));
         wire_payload_len = ntohs(wpl);
     }
 

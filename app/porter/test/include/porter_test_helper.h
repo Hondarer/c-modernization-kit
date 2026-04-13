@@ -26,26 +26,68 @@ public:
 
     /** unicast サービスエントリを追加する。 */
     PorterConfigBuilder& addUnicastService(int64_t service_id, int port,
-                                           const std::string& host = "127.0.0.1")
+                                           const std::string& host = "127.0.0.1",
+                                           const std::string& encrypt_key = "")
     {
         lines_.push_back("[service." + std::to_string(service_id) + "]");
         lines_.push_back("type      = unicast");
         lines_.push_back("src_addr1 = " + host);
         lines_.push_back("dst_addr1 = " + host);
         lines_.push_back("dst_port  = " + std::to_string(port));
+        if (!encrypt_key.empty()) {
+            lines_.push_back("encrypt_key = " + encrypt_key);
+        }
         lines_.push_back("");
         return *this;
     }
 
     /** unicast_bidir サービスエントリを追加する。 */
     PorterConfigBuilder& addUnicastBidirService(int64_t service_id, int port,
-                                                const std::string& host = "127.0.0.1")
+                                                const std::string& host = "127.0.0.1",
+                                                const std::string& encrypt_key = "")
     {
         lines_.push_back("[service." + std::to_string(service_id) + "]");
         lines_.push_back("type      = unicast_bidir");
         lines_.push_back("src_addr1 = " + host);
         lines_.push_back("dst_addr1 = " + host);
         lines_.push_back("dst_port  = " + std::to_string(port));
+        if (!encrypt_key.empty()) {
+            lines_.push_back("encrypt_key = " + encrypt_key);
+        }
+        lines_.push_back("");
+        return *this;
+    }
+
+    /** unicast_bidir_n1 サービスエントリを追加する。 */
+    PorterConfigBuilder& addUnicastBidirN1Service(int64_t service_id, int port,
+                                                  int max_peers,
+                                                  const std::string& bind_addr = "0.0.0.0",
+                                                  const std::string& encrypt_key = "")
+    {
+        lines_.push_back("[service." + std::to_string(service_id) + "]");
+        lines_.push_back("type      = unicast_bidir_n1");
+        lines_.push_back("dst_addr1 = " + bind_addr);
+        lines_.push_back("dst_port  = " + std::to_string(port));
+        lines_.push_back("max_peers = " + std::to_string(max_peers));
+        if (!encrypt_key.empty()) {
+            lines_.push_back("encrypt_key = " + encrypt_key);
+        }
+        lines_.push_back("");
+        return *this;
+    }
+
+    /** tcp_bidir サービスエントリを追加する。 */
+    PorterConfigBuilder& addTcpBidirService(int64_t service_id, int port,
+                                            const std::string& host = "127.0.0.1",
+                                            const std::string& encrypt_key = "")
+    {
+        lines_.push_back("[service." + std::to_string(service_id) + "]");
+        lines_.push_back("type      = tcp_bidir");
+        lines_.push_back("dst_addr1 = " + host);
+        lines_.push_back("dst_port  = " + std::to_string(port));
+        if (!encrypt_key.empty()) {
+            lines_.push_back("encrypt_key = " + encrypt_key);
+        }
         lines_.push_back("");
         return *this;
     }
