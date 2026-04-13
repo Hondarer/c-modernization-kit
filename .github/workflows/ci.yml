@@ -70,7 +70,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-test-results
-          path: app/**/results/
+          path: |
+            app/**/results/
+            logs/linux-${{ matrix.os-name }}-test.log
           if-no-files-found: warn
 
       - name: Upload build warnings
@@ -83,11 +85,11 @@ jobs:
             app/**/test/**/*.warn
           if-no-files-found: ignore
 
-      - name: Upload build and test logs
+      - name: Upload build logs
         uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-logs
-          path: logs/
+          path: logs/linux-${{ matrix.os-name }}-build.log
           if-no-files-found: warn
 
   build-and-test-windows:
@@ -169,7 +171,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: windows-test-results
-          path: app/**/results/
+          path: |
+            app/**/results/
+            logs/windows-test.log
           if-no-files-found: warn
 
       - name: Upload build warnings
@@ -182,11 +186,11 @@ jobs:
             app/**/test/**/*.warn
           if-no-files-found: ignore
 
-      - name: Upload build and test logs
+      - name: Upload build logs
         uses: actions/upload-artifact@v7
         with:
           name: windows-logs
-          path: logs/
+          path: logs/windows-build.log
           if-no-files-found: warn
 
   publish-docs:
@@ -469,7 +473,7 @@ jobs:
 
       - name: Organize artifacts for Pages
         run: |
-          # テスト結果とログをアーカイブ化
+          # テスト結果とビルドログをアーカイブ化
           mkdir -p pages/artifacts
 
           if [ -d "test-results/linux-ol8" ]; then

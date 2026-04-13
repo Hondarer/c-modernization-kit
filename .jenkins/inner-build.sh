@@ -30,16 +30,26 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 # アーティファクトの出力先 (.github/workflows/ci.yml と同じ pages/ を使用)
 mkdir -p /workspace/pages/artifacts
 
-# テスト結果のアーカイブ
-if find /workspace/app -type d -name results 2>/dev/null | grep -q .; then
+# テスト結果と make test ログのアーカイブ
+test_results_list=$(mktemp)
+{
+    find /workspace/app -type d -name results 2>/dev/null | sed 's#^/workspace/##' | sort
+    [ -f "/workspace/logs/linux-${OS_NAME}-test.log" ] && printf '%s\n' "logs/linux-${OS_NAME}-test.log"
+} > "$test_results_list"
+if [ -s "$test_results_list" ]; then
     (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-test-results.zip" \
-        $(find app -type d -name results 2>/dev/null)) || true
+        -@ < "$test_results_list") || true
 fi
+rm -f "$test_results_list"
 
-# ビルドログのアーカイブ
-if [ -d "/workspace/logs" ]; then
-    (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-logs.zip" logs) || true
+# ビルドログのアーカイブ (テストログは test-results 側へ含める)
+build_logs_list=$(mktemp)
+find /workspace/logs -type f ! -name '*-test.log' 2>/dev/null | sed 's#^/workspace/##' | sort > "$build_logs_list"
+if [ -s "$build_logs_list" ]; then
+    (cd /workspace && zip -r "pages/artifacts/linux-${OS_NAME}-logs.zip" \
+        -@ < "$build_logs_list") || true
 fi
+rm -f "$build_logs_list"
 
 # ビルド・テスト警告 (.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
 warn_list=$(mktemp)

@@ -141,8 +141,8 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 
 | ファイル | 内容 | 生成条件 |
 |---|---|---|
-| `linux-${OS_NAME}-test-results.zip` | `app/**/results/` 以下のテスト結果 | `results/` ディレクトリが存在する場合 |
-| `linux-${OS_NAME}-logs.zip` | `logs/` 以下のビルド・テストログ | 常に生成 |
+| `linux-${OS_NAME}-test-results.zip` | `app/**/results/` 以下のテスト結果 + `logs/linux-${OS_NAME}-test.log` | テスト結果またはテストログが存在する場合 |
+| `linux-${OS_NAME}-logs.zip` | `logs/` 以下のビルドログ (`*-test.log` を除く) | ビルドログまたは docs ログが存在する場合 |
 | `linux-${OS_NAME}-warns.zip` | `app/c_cpp_properties.warn`, `app/**/prod/**/*.warn`, `app/**/test/**/*.warn` | ビルド・テスト警告が存在する場合 |
 | `docs-warns.zip` | `docs.warn`, `app/**/doxy.warn` | `BUILD_DOCS=1` かつドキュメント警告ファイルが存在する場合 |
 | `docs-html-doxygen.zip` | `pages/doxygen/` 以下の Doxygen HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
@@ -273,7 +273,7 @@ source/app/**/test/**/*.warn
 | `build-and-test-linux` (コンテナ起動) | `build.sh` |
 | `Set PATH and library path for tests` | `inner-build.sh` の `LD_LIBRARY_PATH`, `PATH` 設定 |
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
-| `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` |
+| `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |
 | `upload-artifact: linux-*-warns` | `linux-${OS_NAME}-warns.zip` |
 | `Upload documentation warnings` | `docs-warns.zip` (`docs.warn` + `app/**/doxy.warn`) |
 | `publish-docs`: `make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
