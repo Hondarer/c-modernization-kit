@@ -19,6 +19,7 @@
     #include <string.h>
 #elif defined(PLATFORM_WINDOWS)
     #include <ws2tcpip.h>
+    #pragma comment(lib, "ws2_32.lib")
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>

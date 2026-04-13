@@ -2,8 +2,6 @@
 LIBS += com_util
 ifdef PLATFORM_LINUX
     LIBS += z crypto
-else ifdef PLATFORM_WINDOWS
-    LIBS += ws2_32 Cabinet bcrypt
 endif
 
 ifdef PLATFORM_WINDOWS

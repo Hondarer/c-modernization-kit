@@ -42,6 +42,7 @@
     #include <poll.h>
 #elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
+    #pragma comment(lib, "ws2_32.lib")
     #include <windows.h>
 #endif /* PLATFORM_ */
 

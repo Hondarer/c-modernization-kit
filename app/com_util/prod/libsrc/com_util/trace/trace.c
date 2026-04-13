@@ -36,6 +36,7 @@
 
 #include <windows.h>
 #include <TraceLoggingProvider.h>
+#pragma comment(lib, "Advapi32.lib")
 
 TRACELOGGING_DEFINE_PROVIDER(
     s_trace_provider_ref,

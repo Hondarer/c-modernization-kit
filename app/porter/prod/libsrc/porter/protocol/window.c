@@ -19,6 +19,7 @@
     #include <arpa/inet.h>
 #elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
+    #pragma comment(lib, "ws2_32.lib")
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>

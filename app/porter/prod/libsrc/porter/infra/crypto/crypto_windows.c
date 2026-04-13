@@ -24,6 +24,7 @@
 
     #include <windows.h>
     #include <bcrypt.h>
+    #pragma comment(lib, "bcrypt.lib")
     #include <string.h>
 
     #include "crypto.h"

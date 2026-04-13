@@ -27,6 +27,7 @@
     #define POTR_MUTEX_UNLOCK_LOCAL(m) pthread_mutex_unlock(m)
 #elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
+    #pragma comment(lib, "ws2_32.lib")
     typedef CRITICAL_SECTION PotrMutexLocal;
     #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
