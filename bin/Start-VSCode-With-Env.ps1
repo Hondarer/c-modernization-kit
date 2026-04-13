@@ -448,5 +448,11 @@ if (-not (Test-Path $vscodeTargetPath)) {
     exit 1
 }
 Write-Host "Starting new VS Code window with configured environment..."
-code --new-window "$vscodeTargetPath"
+$codeCommand = Get-Command code -ErrorAction SilentlyContinue
+if (-not $codeCommand) {
+    Write-Error "VS Code command 'code' not found in PATH."
+    exit 1
+}
+
+Start-Process -FilePath $codeCommand.Source -ArgumentList @("--new-window", $vscodeTargetPath) | Out-Null
 exit
