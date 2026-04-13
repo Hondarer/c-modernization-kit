@@ -2,6 +2,11 @@
 #include <string>
 #include <testfw.h>
 
+// TARGET_ARCH は識別子として定義される。文字列化には TOSTRING を使う
+// TARGET_ARCH is defined as an identifier token; use TOSTRING to stringify it
+#define _STRINGIFY(x) #x
+#define TOSTRING(x) _STRINGIFY(x)
+
 #include <com_util/fs/path_max.h>
 
 #if defined(PLATFORM_LINUX)
@@ -26,7 +31,7 @@ class override_sampleTest : public Test
         binary_path = workspace_root + "/app/override-sample/prod/bin/override-sample";
         lib_path = workspace_root + "/app/override-sample/prod/lib"
                  + ":" + workspace_root + "/app/com_util/prod/lib";
-        mock_lib_path = workspace_root + "/framework/testfw/lib/" TARGET_ARCH "/libmock_syslog.so";
+        mock_lib_path = workspace_root + "/framework/testfw/lib/" TOSTRING(TARGET_ARCH) "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.txt";
 #elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\app\\override-sample\\prod\\bin\\override-sample.exe";
