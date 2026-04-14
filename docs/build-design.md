@@ -284,7 +284,7 @@ endif
 
 # テストフレームワークのライブラリ参照を追加する
 ifneq ($(OS),Windows_NT)
-    # Linux: TARGET_ARCH (e.g., linux-el8-x64)
+    # Linux: TARGET_ARCH (e.g., linux_el8_x64)
     LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)
 else
     # Windows: TARGET_ARCH/MSVC_CRT_SUBDIR (e.g., windows-x64/md)

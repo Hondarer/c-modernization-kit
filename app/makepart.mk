@@ -43,7 +43,7 @@ endif
 # テストフレームワークのライブラリ検索パス (/test/ パスの場合のみ有効)
 ifneq (,$(findstring /test/,$(CURDIR)))
     ifdef PLATFORM_LINUX
-        # Linux: TARGET_ARCH (e.g., linux-el8-x64)
+        # Linux: TARGET_ARCH (e.g., linux_el8_x64)
         LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)
     else ifdef PLATFORM_WINDOWS
         # Windows: TARGET_ARCH/MSVC_CRT_SUBDIR (e.g., windows-x64/md)
