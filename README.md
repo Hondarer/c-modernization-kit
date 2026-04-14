@@ -72,6 +72,28 @@ git submodule update --init --recursive
 
 `docsfw`・`doxyfw`・`makefw`・`testfw` サブモジュールの実配置は `framework/docsfw/`・`framework/doxyfw/`・`framework/makefw/`・`framework/testfw/` です。
 
+### サブモジュールの依存関係
+
+```plantuml
+@startuml サブモジュールの依存関係
+    caption サブモジュールの依存関係
+    component "framework/testfw/gtest\ngoogletest-lib" as gtest
+    component "framework/testfw\ngoogletest-c-framework" as testfw
+    component "framework/makefw\nmake-framework" as makefw
+    component "framework/doxyfw\ndoxygen-framework" as doxyfw
+    component "framework/docsfw\npub_markdown" as docsfw
+    component "親レポジトリ" as this
+
+    testfw --> gtest
+    testfw ..> makefw : (CI 時に参照)
+    this --> doxyfw
+    this --> docsfw
+    this --> makefw
+    this --> testfw : (テスト時に参照)
+
+@enduml
+```
+
 ## ライセンス
 
 [LICENSE](./LICENSE) を参照してください。
