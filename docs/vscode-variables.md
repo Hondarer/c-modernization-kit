@@ -14,7 +14,7 @@
 - 個別ターゲットだけが必要とする追加 `INCDIR` は、従来どおり下位の `makepart.mk` で上乗せする
 - `.vscode/c_cpp_properties.json` を直接編集しても make のビルド設定には反映されない
 - Linux の `_DEFAULT_SOURCE` のように実ビルドでも必要な define は `app/makepart.mk` などの正本側へ書く
-- `TARGET_ARCH` は app 側の実値を `.vscode` へ持ち込まず、Linux / Win32 ともに `TARGET_ARCH=\"\"` を同期スクリプトが補う
+- `TARGET_ARCH` は app 側の実値を `.vscode` へ持ち込まず、Linux / Win32 ともに `TARGET_ARCH=target_arch` を同期スクリプトが補う
 - `.vscode/c_cpp_properties.json` の配列は、特殊項目を先頭に固定し、それ以外をソートして同期する
 
 ### 同期の流れ
@@ -47,8 +47,8 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 `.vscode/c_cpp_properties.json` の `defines` は、app 正本の単純な mirror ではありません。
 
 - `_DEFAULT_SOURCE` のような通常 define は `makepart.mk` / `app/makepart.mk` 側の正本からそのまま反映する
-- `TARGET_ARCH` は app 側の実値を無視し、常に `TARGET_ARCH=\"\"` を使う
-- `TARGET_ARCH=\"\"` を先頭に置き、それ以外の項目はソートして並べる
+- `TARGET_ARCH` は app 側の実値を無視し、常に `TARGET_ARCH=target_arch` を使う
+- `TARGET_ARCH=target_arch` を先頭に置き、それ以外の項目はソートして並べる
 
 これは IntelliSense 用の互換条件ですが、通常の define 自体は make の build 設定と分離しません。
 

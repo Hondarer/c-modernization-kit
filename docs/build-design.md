@@ -287,7 +287,7 @@ ifneq ($(OS),Windows_NT)
     # Linux: TARGET_ARCH (e.g., linux_el8_x64)
     LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)
 else
-    # Windows: TARGET_ARCH/MSVC_CRT_SUBDIR (e.g., windows-x64/md)
+    # Windows: TARGET_ARCH/MSVC_CRT_SUBDIR (e.g., windows_x64/md)
     LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)/$(MSVC_CRT_SUBDIR)
 endif
 LIBSDIR += \

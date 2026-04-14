@@ -25,8 +25,8 @@ INCDIR += \
 `DEFINES` も同じ合成結果が正本ですが、`.vscode/c_cpp_properties.json` には同期時の特殊条件があります。
 
 - `_DEFAULT_SOURCE` のように実ビルドでも必要な define は `makepart.mk` / `app/makepart.mk` に置く
-- `TARGET_ARCH` は app 側の実値を使わず、`.vscode` では常に `TARGET_ARCH=\"\"` になる
-- `TARGET_ARCH=\"\"` を先頭に置き、それ以外の項目はソートして並べる
+- `TARGET_ARCH` は app 側の実値を使わず、`.vscode` では常に `TARGET_ARCH=target_arch` になる
+- `TARGET_ARCH=target_arch"` を先頭に置き、それ以外の項目はソートして並べる
 
 ## VS Code への反映方法
 
