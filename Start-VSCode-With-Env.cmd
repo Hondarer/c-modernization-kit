@@ -10,4 +10,4 @@ set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 powershell.exe -NoProfile -Command ^
   "$s = 5; while ($s -gt 0) { Write-Host -NoNewline \"`rThis window will close in $s seconds...\"; Start-Sleep -Seconds 1; $s-- }; Write-Host"
-exit /b %EXIT_CODE%
+exit %EXIT_CODE%
