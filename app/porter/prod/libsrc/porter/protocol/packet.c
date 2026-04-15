@@ -86,20 +86,17 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
  *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
  *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
  *  @param[in]      seq_num     通番 (ウィンドウ管理に使用)。
- *  @param[in]      ack_num     PING 要求では 0、PING 応答では要求の seq_num を指定する。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *
  *  @details
  *  ヘルスチェックパケットです。ペイロードなし (payload_len=0)。\n
  *  通番には送信側の next_seq（次に送出する DATA に割り当てる通番）を格納します。\n
  *  PING はウィンドウに登録されません（NACK・再送の対象外）。\n
- *  ack_num == 0 は PING 要求。受信者は seq_num を上限として欠番を一括 NACK します。\n
- *  ack_num != 0 は PING 応答 (unicast_bidir 専用)。受信者は gap スキャンを行いません。\n
- *  応答時は ack_num = req_seq_num + 1 を指定することで、req_seq_num=0 でも ack_num=0 になりません。
+ *  ack_num は常に 0。受信者は seq_num を上限として欠番を一括 NACK します。
  *******************************************************************************
  */
 int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
-                      uint32_t seq_num, uint32_t ack_num)
+                      uint32_t seq_num)
 {
     if (packet == NULL || shdr == NULL)
     {
@@ -110,7 +107,7 @@ int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
     packet->payload     = NULL;
     fill_session_hdr(packet, shdr);
     packet->seq_num     = htonl(seq_num);
-    packet->ack_num     = htonl(ack_num);
+    packet->ack_num     = 0;
     packet->flags       = htons(POTR_FLAG_PING);
     packet->payload_len = 0;
 

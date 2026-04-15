@@ -45,8 +45,7 @@ extern "C"
                                     uint32_t nack_num);
     extern int    packet_build_ping(PotrPacket *packet,
                                     const PotrPacketSessionHdr *shdr,
-                                    uint32_t seq_num,
-                                    uint32_t ack_num);
+                                    uint32_t seq_num);
     extern int    packet_build_reject(PotrPacket *packet,
                                       const PotrPacketSessionHdr *shdr,
                                       uint32_t seq_num);

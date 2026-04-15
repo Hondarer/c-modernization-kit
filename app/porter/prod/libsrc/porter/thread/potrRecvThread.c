@@ -57,7 +57,6 @@ static uint64_t get_ms(void)
 static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
                          size_t payload_len, int compressed);
 static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq);
-static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num);
 static void raw_session_disconnect(struct PotrContext_ *ctx);
 
 #if defined(PLATFORM_LINUX)
@@ -215,97 +214,6 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
                    sizeof(peer->dest_addr[k]));
 #elif defined(PLATFORM_WINDOWS)
             sendto(ctx->sock[k], (const char *)&reject_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#endif /* PLATFORM_ */
-        }
-    }
-}
-
-static void n1_send_ping_reply(struct PotrContext_ *ctx, PotrPeerContext *peer,
-                                uint32_t req_seq_num)
-{
-    PotrPacket           reply_pkt;
-    PotrPacketSessionHdr shdr;
-    uint32_t             my_next_seq;
-    size_t               wire_len;
-    int                  k;
-
-    shdr.service_id      = ctx->service.service_id;
-    shdr.session_id      = peer->session_id;
-    shdr.session_tv_sec  = peer->session_tv_sec;
-    shdr.session_tv_nsec = peer->session_tv_nsec;
-
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&peer->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&peer->send_window_mutex);
-#endif /* PLATFORM_ */
-    my_next_seq = peer->send_window.next_seq;
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&peer->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* PLATFORM_ */
-
-    if (packet_build_ping(&reply_pkt, &shdr,
-                          my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
-    {
-        return;
-    }
-
-    if (ctx->service.encrypt_enabled)
-    {
-        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
-        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
-
-        reply_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
-        reply_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
-
-        /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
-        memcpy(nonce,      &reply_pkt.session_id, 4);
-        memcpy(nonce + 4,  &reply_pkt.flags,      2);
-        memcpy(nonce + 6,  &reply_pkt.seq_num,    4);
-        memset(nonce + 10, 0,                     2);
-
-        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
-                         NULL, 0,
-                         ctx->service.encrypt_key,
-                         nonce,
-                         wire_buf, PACKET_HEADER_SIZE) != 0)
-        {
-            return;
-        }
-        wire_len = PACKET_HEADER_SIZE + enc_out;
-
-        for (k = 0; k < (int)POTR_MAX_PATH; k++)
-        {
-            if (peer->dest_addr[k].sin_family == 0) continue;
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[k], wire_buf, wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#endif /* PLATFORM_ */
-        }
-    }
-    else
-    {
-        wire_len = packet_wire_size(&reply_pkt);
-        for (k = 0; k < (int)POTR_MAX_PATH; k++)
-        {
-            if (peer->dest_addr[k].sin_family == 0) continue;
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[k], &reply_pkt, wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[k],
-                   sizeof(peer->dest_addr[k]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[k], (const char *)&reply_pkt, (int)wire_len, 0,
                    (const struct sockaddr *)&peer->dest_addr[k],
                    sizeof(peer->dest_addr[k]));
 #endif /* PLATFORM_ */
@@ -1351,108 +1259,6 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
     }
 }
 
-/* UNICAST_BIDIR 専用: PING 応答パケットを全パスへ送信する。
-   req_seq_num: 受信した PING 要求の seq_num (ack_num フィールドに格納して返す)。 */
-static void send_ping_reply(struct PotrContext_ *ctx, uint32_t req_seq_num)
-{
-    PotrPacket           reply_pkt;
-    PotrPacketSessionHdr shdr;
-    uint32_t             my_next_seq;
-    size_t               wire_len;
-    int                  i;
-
-    shdr.service_id      = ctx->service.service_id;
-    shdr.session_id      = ctx->session_id;
-    shdr.session_tv_sec  = ctx->session_tv_sec;
-    shdr.session_tv_nsec = ctx->session_tv_nsec;
-
-    /* send_window.next_seq を排他制御下で読み取る
-       (送信スレッド・ヘルスチェックスレッドと競合するため) */
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&ctx->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&ctx->send_window_mutex);
-#endif /* PLATFORM_ */
-
-    my_next_seq = ctx->send_window.next_seq;
-
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&ctx->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* PLATFORM_ */
-
-    /* ack_num=0 は PING 要求と区別できないため req_seq_num+1 を格納する。
-       受信側は ack_num != 0 で応答を判定するため値の厳密な一致は不要。 */
-    if (packet_build_ping(&reply_pkt, &shdr,
-                          my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
-    {
-        return;
-    }
-
-    POTR_LOG(POTR_TRACE_VERBOSE,
-             "recv[service_id=%" PRId64 "]: PING reply sent (req_seq=%u my_next_seq=%u)",
-             ctx->service.service_id,
-             (unsigned)req_seq_num, (unsigned)my_next_seq);
-
-    if (ctx->service.encrypt_enabled)
-    {
-        uint8_t  wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
-        uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
-        size_t   enc_out = POTR_CRYPTO_TAG_SIZE;
-
-        reply_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
-        reply_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
-
-        /* ノンス: session_id(4B) + flags(2B, PING|ENCRYPTED NBO) + seq_num(4B) + padding(2B) */
-        memcpy(nonce,      &reply_pkt.session_id, 4);
-        memcpy(nonce + 4,  &reply_pkt.flags,      2);
-        memcpy(nonce + 6,  &reply_pkt.seq_num,    4);
-        memset(nonce + 10, 0,                     2);
-
-        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
-                         NULL, 0,
-                         ctx->service.encrypt_key,
-                         nonce,
-                         wire_buf, PACKET_HEADER_SIZE) != 0)
-        {
-            return;
-        }
-        wire_len = PACKET_HEADER_SIZE + enc_out;
-
-        for (i = 0; i < ctx->n_path; i++)
-        {
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], wire_buf, wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#endif /* PLATFORM_ */
-        }
-    }
-    else
-    {
-        wire_len = packet_wire_size(&reply_pkt);
-
-        for (i = 0; i < ctx->n_path; i++)
-        {
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], &reply_pkt, wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)&reply_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#endif /* PLATFORM_ */
-        }
-    }
-}
-
 /* REJECT パケットを全パスへ送信する */
 static void send_reject(struct PotrContext_ *ctx, uint32_t seq_num)
 {
@@ -2167,7 +1973,6 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                     else
                     {
                         n1_notify_health_alive(ctx, peer);
-                        n1_send_ping_reply(ctx, peer, pkt.seq_num);
                     }
                     POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
                     continue;
@@ -2445,50 +2250,37 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 {
                     notify_health_alive(ctx);
 
-                    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR && pkt.ack_num != 0)
                     {
-                        /* PING 応答受信: ギャップスキャン不要 */
-                    }
-                    else
-                    {
+                        /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
+                           最初の欠番が待機中の場合はその後続の欠番も一括保留する。
+                           スキャン完了 (全有効または全 NACK 送出済み) 時にリオーダー状態をクリアする。 */
+                        uint32_t scan_seq = ctx->recv_window.next_seq;
+                        while (scan_seq != pkt.seq_num
+                               && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
+                                                   ctx->recv_window.window_size))
                         {
-                            /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
-                               最初の欠番が待機中の場合はその後続の欠番も一括保留する。
-                               スキャン完了 (全有効または全 NACK 送出済み) 時にリオーダー状態をクリアする。 */
-                            uint32_t scan_seq = ctx->recv_window.next_seq;
-                            while (scan_seq != pkt.seq_num
-                                   && seqnum_in_window(scan_seq, ctx->recv_window.base_seq,
-                                                       ctx->recv_window.window_size))
+                            uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
+                                                      % ctx->recv_window.window_size);
+                            if (!ctx->recv_window.valid[idx])
                             {
-                                uint16_t idx = (uint16_t)((scan_seq - ctx->recv_window.base_seq)
-                                                          % ctx->recv_window.window_size);
-                                if (!ctx->recv_window.valid[idx])
+                                if (reorder_gap_ready(ctx, scan_seq))
                                 {
-                                    if (reorder_gap_ready(ctx, scan_seq))
-                                    {
-                                        POTR_LOG(POTR_TRACE_VERBOSE,
-                                                 "recv[service_id=%" PRId64 "]: NACK seq=%u (PING gap scan)",
-                                                 ctx->service.service_id, (unsigned)scan_seq);
-                                        send_nack(ctx, scan_seq);
-                                    }
-                                    else
-                                    {
-                                        break; /* リオーダー待機中: 後続欠番も保留 */
-                                    }
+                                    POTR_LOG(POTR_TRACE_VERBOSE,
+                                             "recv[service_id=%" PRId64 "]: NACK seq=%u (PING gap scan)",
+                                             ctx->service.service_id, (unsigned)scan_seq);
+                                    send_nack(ctx, scan_seq);
                                 }
-                                scan_seq++;
+                                else
+                                {
+                                    break; /* リオーダー待機中: 後続欠番も保留 */
+                                }
                             }
-                            /* スキャン完了: リオーダー状態をクリア */
-                            if (scan_seq == pkt.seq_num)
-                            {
-                                ctx->reorder_pending = 0;
-                            }
+                            scan_seq++;
                         }
-
-                        /* UNICAST_BIDIR: PING 要求に対して PING 応答を返す */
-                        if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+                        /* スキャン完了: リオーダー状態をクリア */
+                        if (scan_seq == pkt.seq_num)
                         {
-                            send_ping_reply(ctx, pkt.seq_num);
+                            ctx->reorder_pending = 0;
                         }
                     }
                 }
@@ -2617,75 +2409,6 @@ static int tcp_send_all_raw(PotrSocket fd, const uint8_t *buf, size_t n)
     return 0;
 }
 
-/* TCP 上で PING 応答パケットを送信する。tcp_send_mutex[path_idx] で送信を保護する。
- * req_seq_num: 受信した PING 要求の seq_num (ホストオーダー)。 */
-static void tcp_send_ping_reply(struct PotrContext_ *ctx, int path_idx,
-                                uint32_t req_seq_num)
-{
-    PotrPacket           reply_pkt;
-    PotrPacketSessionHdr shdr;
-    uint32_t             my_next_seq;
-
-    shdr.service_id      = ctx->service.service_id;
-    shdr.session_id      = ctx->session_id;
-    shdr.session_tv_sec  = ctx->session_tv_sec;
-    shdr.session_tv_nsec = ctx->session_tv_nsec;
-
-    POTR_MUTEX_LOCK_LOCAL(&ctx->send_window_mutex);
-    my_next_seq = ctx->send_window.next_seq;
-    POTR_MUTEX_UNLOCK_LOCAL(&ctx->send_window_mutex);
-
-    /* ack_num=0 は PING 要求と区別できないため req_seq_num+1 を格納する */
-    if (packet_build_ping(&reply_pkt, &shdr,
-                          my_next_seq, req_seq_num + 1U) != POTR_SUCCESS)
-    {
-        return;
-    }
-
-    POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-
-    if (ctx->tcp_conn_fd[path_idx] == POTR_INVALID_SOCKET)
-    {
-        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-        return;
-    }
-
-    if (ctx->service.encrypt_enabled)
-    {
-        uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
-        uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
-        size_t  enc_out = POTR_CRYPTO_TAG_SIZE;
-
-        reply_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
-        reply_pkt.payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
-
-        /* ノンス: session_id(4B NBO) + flags(2B NBO) + seq_num(4B NBO) + padding(2B) */
-        memcpy(nonce,      &reply_pkt.session_id, 4);
-        memcpy(nonce + 4,  &reply_pkt.flags,      2);
-        memcpy(nonce + 6,  &reply_pkt.seq_num,    4);
-        memset(nonce + 10, 0,                     2);
-
-        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
-                         NULL, 0,
-                         ctx->service.encrypt_key,
-                         nonce,
-                         wire_buf, PACKET_HEADER_SIZE) == 0)
-        {
-            (void)tcp_send_all_raw(ctx->tcp_conn_fd[path_idx],
-                                   wire_buf, PACKET_HEADER_SIZE + enc_out);
-        }
-    }
-    else
-    {
-        uint8_t wire_buf[PACKET_HEADER_SIZE];
-        memcpy(wire_buf, &reply_pkt, PACKET_HEADER_SIZE);
-        (void)tcp_send_all_raw(ctx->tcp_conn_fd[path_idx], wire_buf, PACKET_HEADER_SIZE);
-    }
-
-    POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-}
-
 /* TCP ストリーム受信スレッド本体 (path ごと) */
 #if defined(PLATFORM_LINUX)
 static void *tcp_recv_thread_func(void *arg)
@@ -2699,25 +2422,21 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
     uint8_t             *buf      = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
     PotrSocket           fd;
 
-    /* PING 要求到着タイムアウト監視を使用するか判定する。
-     * - tcp RECEIVER: SENDER が PING を周期送信するため監視が必要。
-     * - tcp_bidir SENDER: RECEIVER も PING を周期送信するため、SENDER 側でも監視が必要。
-     * - tcp_bidir RECEIVER: 同上。
-     * - tcp SENDER: RECEIVER は PING を送信しないため監視不要。 */
-    int      use_ping_timeout = ((ctx->role == POTR_ROLE_RECEIVER
-                                  || ctx->service.type == POTR_TYPE_TCP_BIDIR)
-                                 && ctx->global.health_timeout_ms > 0);
+    /* PING 受信タイムアウト監視を使用するか判定する。
+     * 全ロール (SENDER / RECEIVER / BIDIR) で両端が PING を送信するため、
+     * health_timeout_ms が設定されていれば常に監視する。 */
+    int      use_recv_timeout = (ctx->global.health_timeout_ms > 0);
     /* ポーリング間隔: 1 秒単位でチェックし、health_timeout_ms を超えないようにする。 */
-    uint32_t poll_ms = use_ping_timeout
+    uint32_t poll_ms = use_recv_timeout
                        ? (ctx->global.health_timeout_ms < 1000U
                           ? ctx->global.health_timeout_ms
                           : 1000U)
                        : 0U;
 
     POTR_LOG(POTR_TRACE_VERBOSE,
-             "tcp_recv[service_id=%" PRId64 " path=%d]: starting (ping_req_timeout=%s)",
+             "tcp_recv[service_id=%" PRId64 " path=%d]: starting (recv_timeout=%s)",
              ctx->service.service_id, path_idx,
-             use_ping_timeout ? "enabled" : "disabled");
+             use_recv_timeout ? "enabled" : "disabled");
 
     while (ctx->running[path_idx])
     {
@@ -2749,22 +2468,22 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
         }
         else
         {
-        /* RECEIVER: タイムアウト付きポーリングで PING 要求到着を監視する。
-         * データが届くまで poll_ms 待機し、タイムアウト時は PING 到着時刻を確認する。 */
-        if (use_ping_timeout)
+        /* タイムアウト付きポーリングで PING 受信を監視する。
+         * データが届くまで poll_ms 待機し、タイムアウト時は PING 受信時刻を確認する。 */
+        if (use_recv_timeout)
         {
             int readable = tcp_wait_readable(fd, poll_ms);
             if (!ctx->running[path_idx]) break;
             if (readable < 0) break; /* エラー */
             if (readable == 0)
             {
-                /* ポーリングタイムアウト: PING 要求到着時刻を確認する */
-                uint64_t last    = ctx->tcp_last_ping_req_recv_ms[path_idx];
+                /* ポーリングタイムアウト: PING 受信時刻を確認する */
+                uint64_t last    = ctx->tcp_last_ping_recv_ms[path_idx];
                 uint64_t elapsed = get_ms() - last;
                 if (last > 0 && elapsed > (uint64_t)ctx->global.health_timeout_ms)
                 {
                     POTR_LOG(POTR_TRACE_WARNING,
-                             "tcp_recv[service_id=%" PRId64 " path=%d]: PING req timeout"
+                             "tcp_recv[service_id=%" PRId64 " path=%d]: PING timeout"
                              " (%llu ms), disconnecting",
                              ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
@@ -2836,26 +2555,12 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
         /* 8. パケット種別処理 */
         if (pkt.flags & POTR_FLAG_PING)
         {
-            if (pkt.ack_num == 0U)
-            {
-                /* PING 要求: 即応答を返す。最終受信時刻を更新する。 */
-                POTR_LOG(POTR_TRACE_VERBOSE,
-                         "tcp_recv[service_id=%" PRId64 " path=%d]: PING req seq=%u -> reply",
-                         ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
-                notify_connected_tcp(ctx);
-                ctx->tcp_last_ping_req_recv_ms[path_idx] = get_ms();
-                tcp_send_ping_reply(ctx, path_idx, pkt.seq_num);
-            }
-            else
-            {
-                /* PING 応答: 最終受信時刻を更新 */
-                ctx->tcp_last_ping_recv_ms[path_idx] = get_ms();
-                notify_connected_tcp(ctx);
-                POTR_LOG(POTR_TRACE_VERBOSE,
-                         "tcp_recv[service_id=%" PRId64 " path=%d]: PING resp seq=%u ack=%u",
-                         ctx->service.service_id, path_idx,
-                         (unsigned)pkt.seq_num, (unsigned)pkt.ack_num);
-            }
+            /* PING 受信: 最終受信時刻を更新する。*/
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
+                     ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
+            notify_connected_tcp(ctx);
+            ctx->tcp_last_ping_recv_ms[path_idx] = get_ms();
         }
         else if (pkt.flags & POTR_FLAG_DATA)
         {

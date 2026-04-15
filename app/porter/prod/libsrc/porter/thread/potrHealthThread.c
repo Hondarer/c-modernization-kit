@@ -162,7 +162,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 EnterCriticalSection(&ctx->peers[i].send_window_mutex);
 #endif /* PLATFORM_ */
                 seq = ctx->peers[i].send_window.next_seq;
-                packet_build_ping(&ping_pkt, &peer_shdr, seq, 0U);
+                packet_build_ping(&ping_pkt, &peer_shdr, seq);
 #if defined(PLATFORM_LINUX)
                 pthread_mutex_unlock(&ctx->peers[i].send_window_mutex);
 #elif defined(PLATFORM_WINDOWS)
@@ -245,7 +245,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
             POTR_MUTEX_LOCK_LOCAL(&ctx->send_window_mutex);
             seq          = ctx->send_window.next_seq;
-            build_result = packet_build_ping(&ping_pkt, &shdr, seq, 0U);
+            build_result = packet_build_ping(&ping_pkt, &shdr, seq);
             POTR_MUTEX_UNLOCK_LOCAL(&ctx->send_window_mutex);
 
             if (build_result != POTR_SUCCESS) { continue; }
@@ -353,31 +353,6 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
 
         if (!ctx->health_running[path_idx]) break;
 
-        /* PING タイムアウト判定 (health_timeout_ms 超過でソケットをクローズ) */
-        if (ctx->global.health_timeout_ms > 0)
-        {
-            uint64_t last = ctx->tcp_last_ping_recv_ms[path_idx];
-            if (last > 0
-                && health_get_ms() - last > (uint64_t)ctx->global.health_timeout_ms)
-            {
-                POTR_LOG(POTR_TRACE_WARNING,
-                         "tcp_health[service_id=%" PRId64 " path=%d]: PING timeout"
-                         " (%llu ms), closing connection",
-                         ctx->service.service_id, path_idx,
-                         (unsigned long long)(health_get_ms() - last));
-                /* ソケットをクローズ → recv スレッドが切断を検知する */
-#if defined(PLATFORM_LINUX)
-                shutdown(ctx->tcp_conn_fd[path_idx], SHUT_RDWR);
-                close(ctx->tcp_conn_fd[path_idx]);
-#elif defined(PLATFORM_WINDOWS)
-                shutdown(ctx->tcp_conn_fd[path_idx], SD_BOTH);
-                closesocket(ctx->tcp_conn_fd[path_idx]);
-#endif /* PLATFORM_ */
-                ctx->tcp_conn_fd[path_idx] = POTR_INVALID_SOCKET;
-                continue; /* connect スレッドに停止されるまで継続 */
-            }
-        }
-
         /* 接続中でなければ PING をスキップ */
         if (ctx->tcp_active_paths == 0
             || ctx->tcp_conn_fd[path_idx] == POTR_INVALID_SOCKET)
@@ -392,7 +367,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
         shdr.session_tv_sec  = ctx->session_tv_sec;
         shdr.session_tv_nsec = ctx->session_tv_nsec;
         seq          = ctx->send_window.next_seq;
-        build_result = packet_build_ping(&ping_pkt, &shdr, seq, 0U);
+        build_result = packet_build_ping(&ping_pkt, &shdr, seq);
         POTR_MUTEX_UNLOCK_LOCAL(&ctx->send_window_mutex);
 
         if (build_result != POTR_SUCCESS) { continue; }

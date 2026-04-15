@@ -304,8 +304,7 @@ static void reset_send_queue(struct PotrContext_ *ctx)
 
 /* 接続確立後に依存スレッドを起動する (path ごと)。
    SENDER および TCP_BIDIR RECEIVER: path_idx==0 の初回のみ send スレッドを起動する。
-   各 path で recv スレッドと health スレッドを起動。
-   TCP RECEIVER: recv スレッドのみ起動。
+   各 path で recv スレッドと health スレッドを起動 (全ロール共通)。
    失敗時は起動済みスレッドをすべて停止してから POTR_ERROR を返す。 */
 static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
 {
@@ -339,21 +338,18 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
         return POTR_ERROR;
     }
 
-    /* SENDER または TCP_BIDIR RECEIVER: health スレッドを path ごとに起動 */
-    if (is_sender || is_bidir)
+    /* health スレッドを path ごとに起動 (全ロール共通) */
+    if (potr_tcp_health_thread_start(ctx, path_idx) != POTR_SUCCESS)
     {
-        if (potr_tcp_health_thread_start(ctx, path_idx) != POTR_SUCCESS)
-        {
-            POTR_LOG(POTR_TRACE_ERROR,
-                     "connect_thread[service_id=%" PRId64 "]: tcp_health_thread_start failed"
-                     " (path=%d)",
-                     ctx->service.service_id, path_idx);
-            /* recv スレッドをソケットクローズで自然終了させる */
-            ctx->running[path_idx] = 0;
-            close_tcp_conn(ctx, path_idx);
-            join_recv_thread(ctx, path_idx);
-            return POTR_ERROR;
-        }
+        POTR_LOG(POTR_TRACE_ERROR,
+                 "connect_thread[service_id=%" PRId64 "]: tcp_health_thread_start failed"
+                 " (path=%d)",
+                 ctx->service.service_id, path_idx);
+        /* recv スレッドをソケットクローズで自然終了させる */
+        ctx->running[path_idx] = 0;
+        close_tcp_conn(ctx, path_idx);
+        join_recv_thread(ctx, path_idx);
+        return POTR_ERROR;
     }
 
     return POTR_SUCCESS;
@@ -364,14 +360,8 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
    注意: 送信スレッドは共有のため、potr_connect_thread_stop で全 path join 後に停止する。 */
 static void stop_connected_threads(struct PotrContext_ *ctx, int path_idx)
 {
-    int is_bidir  = (ctx->service.type == POTR_TYPE_TCP_BIDIR);
-    int is_sender = (ctx->role == POTR_ROLE_SENDER);
-
-    if (is_sender || is_bidir)
-    {
-        /* health スレッドを先に停止 (PING 送信が tcp_conn_fd を参照するため) */
-        potr_tcp_health_thread_stop(ctx, path_idx);
-    }
+    /* health スレッドを先に停止 (PING 送信が tcp_conn_fd を参照するため) */
+    potr_tcp_health_thread_stop(ctx, path_idx);
 
     /* 接続ソケットをクローズ */
     close_tcp_conn(ctx, path_idx);
@@ -676,9 +666,8 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP connected",
                  ctx->service.service_id, path_idx);
 
-        ctx->tcp_conn_fd[path_idx]               = sock;
-        ctx->tcp_last_ping_recv_ms[path_idx]     = connect_get_ms();
-        ctx->tcp_last_ping_req_recv_ms[path_idx] = connect_get_ms();
+        ctx->tcp_conn_fd[path_idx]           = sock;
+        ctx->tcp_last_ping_recv_ms[path_idx] = connect_get_ms();
 
         /* tcp_active_paths カウンタをインクリメント (tcp_state_mutex 保護) */
 #if defined(PLATFORM_LINUX)
@@ -946,9 +935,8 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
             }
             /* TCP_SESSION_SAME の場合は reset 不要 (セッション継続) */
 
-            ctx->tcp_conn_fd[path_idx]               = conn;
-            ctx->tcp_last_ping_recv_ms[path_idx]     = connect_get_ms();
-            ctx->tcp_last_ping_req_recv_ms[path_idx] = connect_get_ms();
+            ctx->tcp_conn_fd[path_idx]           = conn;
+            ctx->tcp_last_ping_recv_ms[path_idx] = connect_get_ms();
             ctx->tcp_first_pkt_len[path_idx]         = pkt_len; /* 先読みバッファ有効化 */
 
 #if defined(PLATFORM_LINUX)
