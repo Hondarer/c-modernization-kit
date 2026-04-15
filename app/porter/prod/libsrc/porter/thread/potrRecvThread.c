@@ -465,10 +465,29 @@ static int n1_check_and_update_session(struct PotrContext_ *ctx,
     return 1;
 }
 
-/* N:1: パスごとの最終受信時刻を更新し、未知のパスを学習する */
+/* N:1: 送信元アドレスを記録し、未知のパスを学習する */
 static void n1_update_path_recv(PotrPeerContext          *peer,
                                  const struct sockaddr_in *sender_addr,
                                  int                       path_idx)
+{
+    if (peer->dest_addr[path_idx].sin_family == AF_INET)
+    {
+        /* 既知パス: ポートを更新 */
+        peer->dest_addr[path_idx].sin_port = sender_addr->sin_port;
+    }
+    else
+    {
+        /* 新規パス: インデックス path_idx のスロットに直接記録 */
+        peer->dest_addr[path_idx] = *sender_addr;
+        peer->n_paths++;
+        POTR_LOG(POTR_TRACE_INFO,
+                 "n1_update_path_recv: peer=%u path %d learned",
+                 (unsigned)peer->peer_id, path_idx);
+    }
+}
+
+/* N:1: パスごとのヘルスチェックタイムアウト用受信時刻を更新する。PING 受信時のみ呼ぶこと。 */
+static void n1_update_path_health(PotrPeerContext *peer, int path_idx)
 {
 #if defined(PLATFORM_LINUX)
     struct timespec ts;
@@ -485,28 +504,10 @@ static void n1_update_path_recv(PotrPeerContext          *peer,
     s  = (int64_t)(ms / 1000ULL);
     ns = (int32_t)((ms % 1000ULL) * 1000000UL);
 #endif /* PLATFORM_ */
-
-    peer->last_recv_tv_sec  = s;
-    peer->last_recv_tv_nsec = ns;
-
-    if (peer->dest_addr[path_idx].sin_family == AF_INET)
-    {
-        /* 既知パス: ポートと最終受信時刻を更新 */
-        peer->dest_addr[path_idx].sin_port   = sender_addr->sin_port;
-        peer->path_last_recv_sec[path_idx]   = s;
-        peer->path_last_recv_nsec[path_idx]  = ns;
-    }
-    else
-    {
-        /* 新規パス: インデックス path_idx のスロットに直接記録 */
-        peer->dest_addr[path_idx]            = *sender_addr;
-        peer->path_last_recv_sec[path_idx]   = s;
-        peer->path_last_recv_nsec[path_idx]  = ns;
-        peer->n_paths++;
-        POTR_LOG(POTR_TRACE_INFO,
-                 "n1_update_path_recv: peer=%u path %d learned",
-                 (unsigned)peer->peer_id, path_idx);
-    }
+    peer->last_recv_tv_sec               = s;
+    peer->last_recv_tv_nsec              = ns;
+    peer->path_last_recv_sec[path_idx]   = s;
+    peer->path_last_recv_nsec[path_idx]  = ns;
 }
 
 /* N:1: select() タイムアウト時にヘルスタイムアウトを確認する */
@@ -916,14 +917,11 @@ static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
 #endif /* PLATFORM_ */
 }
 
-/* パスごとの最終受信時刻と peer_port を更新する */
+/* パスごとの peer_port と送信元アドレスを更新する */
 static void update_path_recv(struct PotrContext_      *ctx,
                               int                       path_idx,
                               const struct sockaddr_in *sender)
 {
-    get_monotonic(&ctx->last_recv_tv_sec, &ctx->last_recv_tv_nsec);
-    get_monotonic(&ctx->path_last_recv_sec[path_idx],
-                  &ctx->path_last_recv_nsec[path_idx]);
     ctx->peer_port[path_idx] = sender->sin_port; /* NBO のまま格納 */
 
     /* unicast_bidir で送信先アドレスが未確定の場合は受信パケットの送信元から動的学習する。
@@ -941,6 +939,14 @@ static void update_path_recv(struct PotrContext_      *ctx,
             ctx->dest_addr[path_idx].sin_port = sender->sin_port; /* NBO */
         }
     }
+}
+
+/* パスごとのヘルスチェックタイムアウト用受信時刻を更新する。PING 受信時のみ呼ぶこと。 */
+static void update_path_health(struct PotrContext_ *ctx, int path_idx)
+{
+    get_monotonic(&ctx->last_recv_tv_sec, &ctx->last_recv_tv_nsec);
+    get_monotonic(&ctx->path_last_recv_sec[path_idx],
+                  &ctx->path_last_recv_nsec[path_idx]);
 }
 
 /* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。
@@ -1960,6 +1966,9 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                 if (pkt.flags & POTR_FLAG_PING)
                 {
+                    /* ヘルスチェックタイムアウト用受信時刻を更新する (PING 限定) */
+                    n1_update_path_health(peer, i);
+
                     if (pkt.seq_num != peer->recv_window.next_seq
                         && seqnum_in_window(pkt.seq_num,
                                             peer->recv_window.next_seq + 1U,
@@ -2196,7 +2205,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 continue;
             }
 
-            /* 受信時刻とパスポートを更新 (健全性タイムアウト計算用) */
+            /* peer_port と送信元アドレスを更新 */
             update_path_recv(ctx, i, &sender_addr);
 
             {
@@ -2218,6 +2227,9 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
             if (pkt.flags & POTR_FLAG_PING)
             {
+                /* ヘルスチェックタイムアウト用受信時刻を更新する (PING 限定) */
+                update_path_health(ctx, i);
+
                 /* PING はウィンドウ外: NACK・再送の対象外。
                    seq_num は送信側の next_seq (消費前) を示す。
                    通常モード: [recv_window.next_seq, seq_num) の範囲を全スキャンして欠番を一括 NACK する。

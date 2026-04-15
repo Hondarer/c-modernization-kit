@@ -73,7 +73,7 @@ RAW 系 (type 1, 2, 3) のギャップ検出時は NACK を送らず `POTR_EVENT
 
 タイムアウト判定は CLOCK_MONOTONIC を使用する。
 
-UDP 系はすべて「最後に任意のパケットを受け取った時刻」をタイムアウトの根拠とする。RAW 系も非 RAW 系も同じ `last_recv_tv_sec` / `path_last_recv_sec` を参照する点は共通である。
+porter ではプロトコル種別にかかわらず、すべて「最後に PING パケットを受け取った時刻」をタイムアウトの根拠とする。DATA パケットの受信はタイムアウト時刻をリセットしない。RAW 系も非 RAW 系も同じ `last_recv_tv_sec` / `path_last_recv_sec` を参照する点は共通である。
 
 1:1 モード:
 
