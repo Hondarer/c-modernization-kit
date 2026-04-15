@@ -381,56 +381,10 @@ if ($makeVersionOutput -notmatch "^GNU Make") {
 # https://github.com/microsoft/vscode/issues/236981
 $codeProcess = Get-Process -Name "Code" -ErrorAction SilentlyContinue
 if ($codeProcess) {
-    Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-
-public class Win32MessageBox {
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetTopWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
-
-    [DllImport("user32.dll")]
-    public static extern bool IsWindowVisible(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
-
-    public const uint GW_HWNDNEXT = 2;
-}
-"@
-
-    $codeProcessIds = @($codeProcess) | ForEach-Object { $_.Id }
-
-    # トップレベルウィンドウを Z-order 順に走査し、最初の可視 Code.exe ウィンドウを探す
-    # スクリプト起動時はショートカットやコンソールが最前面にあるため、
-    # Code.exe のウィンドウはその下に位置する
-    $ownerHwnd = [IntPtr]::Zero
-    $hWnd = [Win32MessageBox]::GetTopWindow([IntPtr]::Zero)
-    while ($hWnd -ne [IntPtr]::Zero) {
-        if ([Win32MessageBox]::IsWindowVisible($hWnd)) {
-            $wndPid = [uint32]0
-            [Win32MessageBox]::GetWindowThreadProcessId($hWnd, [ref]$wndPid) | Out-Null
-            if ($codeProcessIds -contains $wndPid) {
-                $ownerHwnd = $hWnd
-                break
-            }
-        }
-        $hWnd = [Win32MessageBox]::GetWindow($hWnd, [Win32MessageBox]::GW_HWNDNEXT)
-    }
-
-    # MB_OK = 0x0
     $message = "VS Code がすでに起動しています。`n`n" +
                "既存のインスタンスが存在する場合、スクリプトで設定した環境変数は反映されません。`n" +
                "すべての VS Code ウィンドウを閉じてから、再度実行してください。"
     Write-Error $message
-    [System.Media.SystemSounds]::Exclamation.Play()
-    [Win32MessageBox]::MessageBox($ownerHwnd, $message, $scriptName, 0x0) | Out-Null
     exit 1
 }
 
@@ -454,5 +408,24 @@ if (-not $codeCommand) {
     exit 1
 }
 
-Start-Process -FilePath $codeCommand.Source -ArgumentList @("--new-window", $vscodeTargetPath) | Out-Null
+$codeCommandPath = $codeCommand.Source
+$codeExePath = $null
+
+if ([System.IO.Path]::GetExtension($codeCommandPath).ToLowerInvariant() -eq ".cmd") {
+    $codeBinDir = Split-Path -Parent $codeCommandPath
+    $codeInstallDir = Split-Path -Parent $codeBinDir
+    $candidateCodeExe = Join-Path $codeInstallDir "Code.exe"
+    if (Test-Path $candidateCodeExe) {
+        $codeExePath = $candidateCodeExe
+    }
+} elseif (Test-Path $codeCommandPath) {
+    $codeExePath = $codeCommandPath
+}
+
+if (-not $codeExePath) {
+    Write-Error "VS Code executable 'Code.exe' could not be resolved from: $codeCommandPath"
+    exit 1
+}
+
+Start-Process -FilePath $codeExePath -ArgumentList @("--new-window", $vscodeTargetPath) | Out-Null
 exit
