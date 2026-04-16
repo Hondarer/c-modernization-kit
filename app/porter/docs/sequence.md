@@ -586,7 +586,7 @@ caption 接続状態遷移 (受信者側 health_alive フラグ)
 
 [*] -r-> 未接続 : サービス開始直後\n(health_alive = 0)
 
-未接続 ---> 疎通中 : 有効なパケットを受信\n→ POTR_EVENT_CONNECTED 発火\n(health_alive = 1)
+未接続 ---> 疎通中 : 接続成立条件を満たす PING を受信\n→ POTR_EVENT_CONNECTED 発火\n(health_alive = 1)
 
 疎通中 ---> 未接続 : タイムアウト検知\n (health_timeout_ms 経過) \n→ POTR_EVENT_DISCONNECTED 発火
 

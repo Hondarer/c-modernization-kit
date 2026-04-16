@@ -2,6 +2,7 @@
 #define PORTER_TEST_HELPER_H
 
 #include <com_util/base/platform.h>
+#include <cstdint>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -23,6 +24,30 @@
 class PorterConfigBuilder {
 public:
     PorterConfigBuilder() = default;
+
+    PorterConfigBuilder& setUdpHealthIntervalMs(uint32_t value)
+    {
+        udp_health_interval_ms_ = value;
+        return *this;
+    }
+
+    PorterConfigBuilder& setUdpHealthTimeoutMs(uint32_t value)
+    {
+        udp_health_timeout_ms_ = value;
+        return *this;
+    }
+
+    PorterConfigBuilder& setTcpHealthIntervalMs(uint32_t value)
+    {
+        tcp_health_interval_ms_ = value;
+        return *this;
+    }
+
+    PorterConfigBuilder& setTcpHealthTimeoutMs(uint32_t value)
+    {
+        tcp_health_timeout_ms_ = value;
+        return *this;
+    }
 
     /** unicast サービスエントリを追加する。 */
     PorterConfigBuilder& addUnicastService(int64_t service_id, int port,
@@ -129,10 +154,10 @@ public:
         fprintf(f, "[global]\n");
         fprintf(f, "window_size             = 16\n");
         fprintf(f, "max_payload             = 1400\n");
-        fprintf(f, "health_interval_ms      = 1000\n");
-        fprintf(f, "health_timeout_ms       = 3000\n");
-        fprintf(f, "tcp_health_interval_ms  = 1000\n");
-        fprintf(f, "tcp_health_timeout_ms   = 3000\n");
+        fprintf(f, "health_interval_ms      = %u\n", udp_health_interval_ms_);
+        fprintf(f, "health_timeout_ms       = %u\n", udp_health_timeout_ms_);
+        fprintf(f, "tcp_health_interval_ms  = %u\n", tcp_health_interval_ms_);
+        fprintf(f, "tcp_health_timeout_ms   = %u\n", tcp_health_timeout_ms_);
         fprintf(f, "\n");
 
         for (const auto& line : lines_) {
@@ -159,6 +184,10 @@ public:
     PorterConfigBuilder& operator=(const PorterConfigBuilder&) = delete;
 
 private:
+    uint32_t                 udp_health_interval_ms_ = 1000U;
+    uint32_t                 udp_health_timeout_ms_ = 3000U;
+    uint32_t                 tcp_health_interval_ms_ = 1000U;
+    uint32_t                 tcp_health_timeout_ms_ = 3000U;
     std::vector<std::string> lines_;
     std::string              tmp_path_;
 };

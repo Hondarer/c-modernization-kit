@@ -313,9 +313,13 @@ extern "C"
      *                  len が POTR_MAX_MESSAGE_SIZE を超える場合は失敗を返します。\n
      *                  送信スレッドが停止している場合 (potrCloseService 呼び出し後など) は失敗を返します。\n
      *                  N:1 モードで peer_id = POTR_PEER_NA (0) を指定した場合は失敗を返します。\n
-     *                  TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) で全 TCP path が切断中に\n
-     *                  呼び出した場合は POTR_ERROR_DISCONNECTED (1) を返します\n
-     *                  (connect スレッドが非同期に接続を試みている間)。
+     *                  `unicast_bidir` で CONNECTED 前に呼び出した場合は\n
+     *                  POTR_ERROR_DISCONNECTED (1) を返します。\n
+     *                  N:1 モードでは未接続 peer への送信、および `POTR_PEER_ALL` 指定時に\n
+     *                  接続済み peer が 0 件のとき POTR_ERROR_DISCONNECTED (1) を返します。\n
+     *                  TCP 通信種別 (`POTR_TYPE_TCP` / `POTR_TYPE_TCP_BIDIR`) では、\n
+     *                  物理 TCP 接続済みでも CONNECTED 前または全 path 切断中は\n
+     *                  POTR_ERROR_DISCONNECTED (1) を返します。
      *******************************************************************************
      */
     POTR_EXPORT extern int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id, const void *data, size_t len,

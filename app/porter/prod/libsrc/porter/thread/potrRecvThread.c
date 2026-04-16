@@ -1878,7 +1878,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                 if (peer == NULL)
                 {
-                    if (pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_PING))
+                    if (pkt.flags & POTR_FLAG_PING)
                     {
                         peer = peer_create(ctx, &sender_addr, i);
                         if (peer != NULL)
@@ -1892,6 +1892,13 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                                         ctx->global.max_payload);
                             is_new_peer = 1;
                         }
+                    }
+                    else if (pkt.flags & POTR_FLAG_DATA)
+                    {
+                        POTR_LOG(POTR_TRACE_VERBOSE,
+                                 "recv[service_id=%" PRId64 "]: drop initial DATA"
+                                 " from unknown peer session=%u",
+                                 ctx->service.service_id, pkt.session_id);
                     }
                 }
 

@@ -273,7 +273,10 @@ typedef uint32_t PotrPeerId;
  *  @note
  *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
  *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。\n
- *  ヘルスチェックの有効/無効に関わらず、初回パケット受信時に CONNECTED が発火し、接続状態を管理します。\n
+ *  CONNECTED は、受信スレッドが接続成立条件を満たした時点で発火します。\n
+ *  片方向通信では `PING` の初回受信、双方向通信では相手 `PING` ペイロード内で\n
+ *  自端送信 `PING` の到達 (`POTR_PING_STATE_NORMAL`) を確認した時点が基準です。\n
+ *  未接続中に受信した `DATA` は破棄され、`POTR_EVENT_DATA` は発火しません。\n
  *  DISCONNECTED の発火条件:\n
  *  - ヘルスチェック有効時 (health_timeout_ms > 0): タイムアウト / FIN 受信 / REJECT 受信\n
  *  - ヘルスチェック無効時 (health_timeout_ms = 0): FIN 受信 / REJECT 受信\n

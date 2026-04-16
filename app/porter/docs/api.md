@@ -16,10 +16,11 @@
 | 戻り値 | 定数 | 意味 |
 |---|---|---|
 | `0` | `POTR_SUCCESS` | 送信キューへの積み込み成功 |
-| `1` | `POTR_ERROR_DISCONNECTED` | TCP の全 path が切断中（`POTR_TYPE_TCP` / `POTR_TYPE_TCP_BIDIR` のみ）。全 path が再接続されるまで送信できない |
+| `1` | `POTR_ERROR_DISCONNECTED` | 論理 CONNECTED 前または切断中。`unicast_bidir`、`unicast_bidir_n1` の未接続 peer、`POTR_PEER_ALL` で接続済み peer 0 件、`tcp` / `tcp_bidir` の CONNECTED 前または全 path 切断中が該当 |
 | `-1` | `POTR_ERROR` | その他のエラー（NULL ハンドルなど） |
 
-`POTR_ERROR_DISCONNECTED` は TCP 通信種別専用です。UDP 通信種別では返りません。
+`POTR_ERROR_DISCONNECTED` は「送信先が論理的に CONNECTED していない」ことを示します。
+片方向 type 1-6 は送信側が CONNECTED を観測できないため、現状実装ではこの戻り値の対象外です。
 
 ヘッダ定義と引数条件の正本は `prod/porter/include/porter.h` および Doxygen 出力を参照してください。
 

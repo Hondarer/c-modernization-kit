@@ -623,13 +623,25 @@ int main(int argc, char *argv[])
         }
         fflush(stdout);
 
-        if (potrSend(handle, POTR_PEER_NA, send_data, send_len,
-                     (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING) != POTR_SUCCESS)
         {
-            fprintf(stderr, "エラー: 送信に失敗しました。\n");
-            free(file_data);
-            ret = EXIT_FAILURE;
-            break;
+            int send_rtc =
+                potrSend(handle, POTR_PEER_NA, send_data, send_len,
+                         (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING);
+
+            if (send_rtc != POTR_SUCCESS)
+            {
+                if (send_rtc == POTR_ERROR_DISCONNECTED)
+                {
+                    fprintf(stderr, "エラー: 未接続のため送信できません。\n");
+                }
+                else
+                {
+                    fprintf(stderr, "エラー: 送信に失敗しました。\n");
+                }
+                free(file_data);
+                ret = EXIT_FAILURE;
+                break;
+            }
         }
 
         if (is_file)

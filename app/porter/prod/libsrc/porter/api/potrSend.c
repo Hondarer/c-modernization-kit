@@ -108,12 +108,16 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
              "potrSend: service_id=%" PRId64 " peer_id=%u len=%zu flags=0x%x",
              ctx->service.service_id, (unsigned)peer_id, len, (unsigned)flags);
 
-    /* TCP: 全 path 切断中の場合は POTR_ERROR_DISCONNECTED を返す */
-    if (potr_is_tcp_type(ctx->service.type) && ctx->tcp_active_paths == 0)
+    /* TCP: 物理 path 未接続、または PING 交換による論理 CONNECTED 前は
+       POTR_ERROR_DISCONNECTED を返す */
+    if (potr_is_tcp_type(ctx->service.type)
+        && (ctx->tcp_active_paths == 0 || !ctx->health_alive))
     {
         POTR_LOG(POTR_TRACE_VERBOSE,
-                 "potrSend: service_id=%" PRId64 " TCP not connected",
-                 ctx->service.service_id);
+                 "potrSend: service_id=%" PRId64 " TCP not connected"
+                 " (active_paths=%d health_alive=%d)",
+                 ctx->service.service_id,
+                 (int)ctx->tcp_active_paths, (int)ctx->health_alive);
         return POTR_ERROR_DISCONNECTED;
     }
 
@@ -203,6 +207,15 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
                 }
             }
             POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+
+            if (n_ids == 0)
+            {
+                free(ids);
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "potrSend: service_id=%" PRId64 " PEER_ALL not connected",
+                         ctx->service.service_id);
+                return POTR_ERROR_DISCONNECTED;
+            }
 
             for (i = 0; i < n_ids; i++)
             {

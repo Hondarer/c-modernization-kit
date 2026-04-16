@@ -5,6 +5,7 @@
 #include <testfw.h>
 
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 
 #if defined(PLATFORM_LINUX)
@@ -584,6 +585,57 @@ TEST_F(porterSendRecvTest, encrypted_n1_bad_tag_does_not_consume_peer_slot)
     }
 }
 
+// N:1 で未知 peer の初回 DATA が peer slot を消費せず破棄されることを確認する
+TEST_F(porterSendRecvTest, n1_initial_plain_data_does_not_consume_peer_slot)
+{
+    PorterConfigBuilder server_cfg;
+    PorterConfigBuilder client_cfg;
+    string server_config_path =
+        server_cfg.addUnicastBidirN1Service(52, 19052, 1, "0.0.0.0")
+            .build();
+    string client_config_path =
+        client_cfg.addUnicastBidirService(52, 19052)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {server_config_path, "52"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(52, 0x3001U, 3234, 7678, 0U, "plain-n1-drop"),
+                     19052));
+    sleep_ms(300);
+
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("接続確立"));
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("plain-n1-drop"));
+
+    send_h_ = startProcessAsync(send_path, {client_config_path, "52"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 2800));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "n1-after-ping-ok"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_EQ(string::npos, recv_out.find("plain-n1-drop"));
+        EXPECT_NE(string::npos, recv_out.find("n1-after-ping-ok"));
+    }
+}
+
 // 暗号化有効 N:1 双方向通信でクライアント側も CONNECTED になってから送信できることを確認する
 TEST_F(porterSendRecvTest, encrypted_n1_client_reaches_connected_before_send)
 {
@@ -665,6 +717,40 @@ TEST_F(porterSendRecvTest, encrypted_tcp_bidir_stays_healthy_and_receives)
         EXPECT_NE(string::npos, recv_out.find("接続確立"));
         EXPECT_NE(string::npos, recv_out.find("tcp-encrypted-ok"));
     }
+}
+
+// tcp_bidir で CONNECTED 前は送信 API が未接続エラーを返すことを確認する
+TEST_F(porterSendRecvTest, tcp_bidir_send_fails_before_connected)
+{
+    PorterConfigBuilder cfg;
+    string config_path =
+        cfg.setTcpHealthIntervalMs(0)
+            .setTcpHealthTimeoutMs(0)
+            .addTcpBidirService(61, 19061)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "61"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {config_path, "61"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "tcp-before-connected"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+
+    EXPECT_EQ(EXIT_FAILURE, waitForExit(send_h_, 5000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    EXPECT_NE(string::npos, getStderr(send_h_).find("未接続のため送信できません"));
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("接続確立"));
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("tcp-before-connected"));
 }
 
 // バイナリファイル送信テスト: 受信側で一時ファイルに保存されることを確認する
