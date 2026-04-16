@@ -54,7 +54,7 @@ Doxygen 成果物の単一ファイル版ドキュメントです。
     - [docx en (docs-docx-en.zip)](../../artifacts/docs-docx-en.zip)
     - [docx ja-details (docs-docx-ja-details.zip)](../../artifacts/docs-docx-ja-details.zip)
     - [docx en-details (docs-docx-en-details.zip)](../../artifacts/docs-docx-en-details.zip)
-- 警告詳細
+- 警告詳細 ※ File not found は、警告がないことを表します。警告がある場合のみファイルが存在します。
     - [Linux OL8 (linux-ol8-warns.zip)](../../artifacts/linux-ol8-warns.zip)
     - [Linux OL10 (linux-ol10-warns.zip)](../../artifacts/linux-ol10-warns.zip)
     - [Windows (windows-warns.zip)](../../artifacts/windows-warns.zip)
