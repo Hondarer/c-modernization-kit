@@ -1043,7 +1043,9 @@ static void check_health_timeout(struct PotrContext_ *ctx)
             ctx->reorder_pending    = 0;
             ctx->last_recv_tv_sec   = 0;
             /* 次の接続到来まで受信状態を不定に戻す */
-            memset((void *)ctx->path_ping_state, POTR_PING_STATE_UNDEFINED, POTR_MAX_PATH);
+            potr_fill_path_ping_state(ctx->path_ping_state,
+                                      POTR_PING_STATE_UNDEFINED,
+                                      POTR_MAX_PATH);
             window_init(&ctx->recv_window, 0,
                         ctx->global.window_size, ctx->global.max_payload);
         }
@@ -2417,26 +2419,6 @@ static void notify_connected_tcp(struct PotrContext_ *ctx)
     {
         POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_state_mutex);
     }
-}
-
-/* TCP ソケットに n バイト書き込む (tcp_send_mutex は呼び出し元が保持済み)。
- * 戻り値: 0 = 成功、-1 = エラー。 */
-static int tcp_send_all_raw(PotrSocket fd, const uint8_t *buf, size_t n)
-{
-    size_t sent = 0;
-    while (sent < n)
-    {
-        int r;
-#if defined(PLATFORM_LINUX)
-        r = (int)send(fd, buf + sent, n - sent, 0);
-        if (r <= 0) return -1;
-#elif defined(PLATFORM_WINDOWS)
-        r = send(fd, (const char *)(buf + sent), (int)(n - sent), 0);
-        if (r == SOCKET_ERROR) return -1;
-#endif /* PLATFORM_ */
-        sent += (size_t)r;
-    }
-    return 0;
 }
 
 /* TCP ストリーム受信スレッド本体 (path ごと) */

@@ -94,18 +94,6 @@ static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interv
 #endif /* PLATFORM_ */
 }
 
-/* 現在時刻をミリ秒単位で返す (単調増加クロック) */
-static uint64_t health_get_ms(void)
-{
-#if defined(PLATFORM_LINUX)
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#elif defined(PLATFORM_WINDOWS)
-    return (uint64_t)GetTickCount64();
-#endif /* PLATFORM_ */
-}
-
 /* ====================================================================
  * 非 TCP (UDP/マルチキャスト) 用ヘルスチェックスレッド本体
  * ==================================================================== */
@@ -165,7 +153,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 /* N:1 (UNICAST_BIDIR_N1) は双方向 PING。ピアごとの自端パス受信状態をペイロードに設定する。 */
                 {
                     uint8_t hs[POTR_MAX_PATH];
-                    memcpy(hs, (const void *)ctx->peers[i].path_ping_state, POTR_MAX_PATH);
+                    potr_copy_path_ping_state(hs, ctx->peers[i].path_ping_state, POTR_MAX_PATH);
                     packet_build_ping(&ping_pkt, &peer_shdr, seq, hs, (uint16_t)POTR_MAX_PATH);
                 }
 #if defined(PLATFORM_LINUX)
@@ -258,7 +246,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                それ以外 (UNICAST/MULTICAST/BROADCAST/RAW 系) は PING を受信しないため UNDEFINED を設定する。 */
             if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
             {
-                memcpy(health_states, (const void *)ctx->path_ping_state, POTR_MAX_PATH);
+                potr_copy_path_ping_state(health_states, ctx->path_ping_state, POTR_MAX_PATH);
             }
             else
             {
@@ -389,7 +377,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
         /* TCP / TCP_BIDIR は双方向 PING。自端のパス受信状態をペイロードに設定する。 */
         {
             uint8_t health_states[POTR_MAX_PATH];
-            memcpy(health_states, (const void *)ctx->path_ping_state, POTR_MAX_PATH);
+            potr_copy_path_ping_state(health_states, ctx->path_ping_state, POTR_MAX_PATH);
 
             POTR_MUTEX_LOCK_LOCAL(&ctx->send_window_mutex);
             /* session 情報を最新に更新 (再接続時に変わっている可能性がある) */

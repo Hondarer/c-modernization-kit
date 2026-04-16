@@ -17,6 +17,7 @@
 #ifndef POTR_CONTEXT_H
 #define POTR_CONTEXT_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include <com_util/base/platform.h>
@@ -75,6 +76,32 @@ static inline PotrType potr_raw_base_type(PotrType t)
         case POTR_TYPE_TCP:
         case POTR_TYPE_TCP_BIDIR:
         default:                      return t;
+    }
+}
+
+/** volatile な path_ping_state 配列を通常配列へコピーする。 */
+static inline void potr_copy_path_ping_state(uint8_t *dst,
+                                             const volatile uint8_t *src,
+                                             size_t count)
+{
+    size_t i;
+
+    for (i = 0; i < count; i++)
+    {
+        dst[i] = src[i];
+    }
+}
+
+/** volatile な path_ping_state 配列を同一値で初期化する。 */
+static inline void potr_fill_path_ping_state(volatile uint8_t *dst,
+                                             uint8_t value,
+                                             size_t count)
+{
+    size_t i;
+
+    for (i = 0; i < count; i++)
+    {
+        dst[i] = value;
     }
 }
 
