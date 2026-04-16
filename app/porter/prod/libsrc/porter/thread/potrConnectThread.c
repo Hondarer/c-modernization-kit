@@ -72,6 +72,19 @@ static uint64_t connect_get_ms(void)
 #endif /* PLATFORM_ */
 }
 
+static void set_tcp_path_ping_state(struct PotrContext_ *ctx,
+                                    int                  path_idx,
+                                    uint8_t              next_state)
+{
+    if (ctx->path_ping_state[path_idx] == next_state)
+    {
+        return;
+    }
+
+    ctx->path_ping_state[path_idx] = next_state;
+    potr_tcp_health_thread_wake_all(ctx);
+}
+
 /* TCP 接続ソケット [path_idx] をシャットダウン・クローズして INVALID にする */
 static void close_tcp_conn(struct PotrContext_ *ctx, int path_idx)
 {
@@ -353,7 +366,7 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
     }
 
     /* 接続確立: このパスのパス受信状態を不定に初期化する */
-    ctx->path_ping_state[path_idx] = POTR_PING_STATE_UNDEFINED;
+    set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
 
     return POTR_SUCCESS;
 }
@@ -720,7 +733,7 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         /* recv スレッドが接続断を検知して自然終了するまで待機する */
         join_recv_thread(ctx, path_idx);
 
-        ctx->path_ping_state[path_idx] = POTR_PING_STATE_UNDEFINED;
+        set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
 
         POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP disconnected",
@@ -994,7 +1007,7 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         /* recv スレッドが接続断を検知して自然終了するまで待機する */
         join_recv_thread(ctx, path_idx);
 
-        ctx->path_ping_state[path_idx] = POTR_PING_STATE_UNDEFINED;
+        set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
 
         POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP connection closed",

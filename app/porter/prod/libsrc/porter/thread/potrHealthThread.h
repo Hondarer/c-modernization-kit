@@ -27,10 +27,13 @@ extern "C"
     /* 非 TCP 用ヘルスチェックスレッド (単一スレッド) */
     extern int potr_health_thread_start(struct PotrContext_ *ctx);
     extern int potr_health_thread_stop(struct PotrContext_ *ctx);
+    extern void potr_health_thread_wake(struct PotrContext_ *ctx);
 
     /* TCP 用ヘルスチェックスレッド (path ごと) */
     extern int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx);
     extern int potr_tcp_health_thread_stop(struct PotrContext_ *ctx, int path_idx);
+    extern void potr_tcp_health_thread_wake(struct PotrContext_ *ctx, int path_idx);
+    extern void potr_tcp_health_thread_wake_all(struct PotrContext_ *ctx);
 
 #ifdef __cplusplus
 }

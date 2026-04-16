@@ -63,6 +63,33 @@ typedef struct
 
 static HealthArg s_health_args[POTR_MAX_PATH];
 
+static void signal_health_thread(struct PotrContext_ *ctx, int path_idx)
+{
+    if (ctx == NULL
+        || path_idx < 0
+        || path_idx >= (int)POTR_MAX_PATH
+        || !ctx->health_running[path_idx])
+    {
+        return;
+    }
+
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_lock(&ctx->health_mutex[path_idx]);
+    if (ctx->health_running[path_idx])
+    {
+        pthread_cond_signal(&ctx->health_wakeup[path_idx]);
+    }
+    pthread_mutex_unlock(&ctx->health_mutex[path_idx]);
+#elif defined(PLATFORM_WINDOWS)
+    EnterCriticalSection(&ctx->health_mutex[path_idx]);
+    if (ctx->health_running[path_idx])
+    {
+        WakeConditionVariable(&ctx->health_wakeup[path_idx]);
+    }
+    LeaveCriticalSection(&ctx->health_mutex[path_idx]);
+#endif /* PLATFORM_ */
+}
+
 /* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする (path_idx 版) */
 static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interval_ms)
 {
@@ -585,6 +612,11 @@ int potr_health_thread_stop(struct PotrContext_ *ctx)
     return POTR_SUCCESS;
 }
 
+void potr_health_thread_wake(struct PotrContext_ *ctx)
+{
+    signal_health_thread(ctx, 0);
+}
+
 /**
  *******************************************************************************
  *  @brief          TCP ヘルスチェックスレッドを path ごとに起動します。
@@ -675,4 +707,24 @@ int potr_tcp_health_thread_stop(struct PotrContext_ *ctx, int path_idx)
 #endif /* PLATFORM_ */
 
     return POTR_SUCCESS;
+}
+
+void potr_tcp_health_thread_wake(struct PotrContext_ *ctx, int path_idx)
+{
+    signal_health_thread(ctx, path_idx);
+}
+
+void potr_tcp_health_thread_wake_all(struct PotrContext_ *ctx)
+{
+    int i;
+
+    if (ctx == NULL)
+    {
+        return;
+    }
+
+    for (i = 0; i < ctx->n_path; i++)
+    {
+        signal_health_thread(ctx, i);
+    }
 }

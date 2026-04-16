@@ -447,6 +447,8 @@ TEST_F(porterSendRecvTest, bidir_echo)
     ASSERT_NO_THROW(
         waitForOutput(send_h_, "送信方法を選択してください", 3000)); // [手順] - SENDER が送信方法選択プロンプトを出力するまで待機する。
     // [確認] - SENDER が "送信方法を選択してください" を出力すること。
+    /* TCP は接続確立の完了後に最初の PING 周期へ入るため、UDP より少し余裕を持たせる。 */
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
 
     // Act
     // テキスト送信を選択する
@@ -555,9 +557,9 @@ TEST_F(porterSendRecvTest, encrypted_n1_bad_tag_does_not_consume_peer_slot)
     ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
 
-    /* 双方向 CONNECTED 発火には PING+NORMAL ハンドシェイク (health_interval_ms * 2 以上) が必要。
-       データ送信前にクライアントが生存したまま 2 サイクル分待機する。 */
-    sleep_ms(2500);
+    /* 状態変化時の割り込み PING により、双方向 CONNECTED が 2 周期未満で成立することを確認する。 */
+    /* TCP は接続確立の完了後に最初の PING 周期へ入るため、UDP より少し余裕を持たせる。 */
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -595,7 +597,8 @@ TEST_F(porterSendRecvTest, encrypted_tcp_bidir_stays_healthy_and_receives)
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
 
-    sleep_ms(3500);
+    /* TCP は接続確立の完了後に最初の PING 周期へ入るため、UDP より少し余裕を持たせる。 */
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));

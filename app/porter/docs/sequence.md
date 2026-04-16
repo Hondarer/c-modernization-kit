@@ -357,7 +357,7 @@ RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, ...)
 
 ## ヘルスチェック (正常疎通)
 
-ヘルスチェックが有効な場合の定周期 PING 送信です。
+ヘルスチェックが有効な場合の定周期 PING 送信です。双方向系では `path_ping_state[]` 変化時に割り込み PING も送出されます。
 
 ```plantuml
 @startuml ヘルスチェック (正常疎通)
@@ -381,7 +381,7 @@ note over RRT: 欠番なければ返信なし
 
 HT -> HT: 3000ms 待機
 
-note over HT, UDP: データ送信が発生しても PING 周期は変わらない
+note over HT, UDP: データ送信が発生しても PING 周期は変わらない\n双方向系は path_ping_state 変化時のみ割り込み送信
 
 @enduml
 ```
@@ -662,13 +662,15 @@ note over B: POTR_EVENT_DATA (seq=4, 5 の順)
 
 == ヘルスチェック（対称） ==
 
-A -> B: PING (session=S_A, ack_num=0, seq_num=N)
-B -> A: PING (session=S_A, ack_num=N, seq_num=M)
-note over A: PING 応答受信 → last_recv 更新
+A -> B: 定周期 PING (session=S_A, seq_num=N,\npayload=UNDEFINED)
+note over B: path_ping_state を NORMAL に更新
+B -> A: 割り込み PING (session=S_B, seq_num=M,\npayload に NORMAL を含む)
+note over A: remote_path_ping_state に NORMAL を確認\n→ CONNECTED を早期発火
 
-B -> A: PING (session=S_B, ack_num=0, seq_num=P)
-A -> B: PING (session=S_B, ack_num=P, seq_num=Q)
-note over B: PING 応答受信 → last_recv 更新
+B -> A: 定周期 PING (session=S_B, seq_num=P)
+note over A: path_ping_state を NORMAL に更新
+A -> B: 割り込み PING (session=S_A, seq_num=Q,\npayload に NORMAL を含む)
+note over B: remote_path_ping_state に NORMAL を確認
 
 @enduml
 ```
@@ -842,9 +844,10 @@ note over R: POTR_EVENT_DATA × 3
 
 == ヘルスチェック ==
 
-S -> R: PING (ack_num=0, seq_num=3, payload_len=0)
-R -> S: PING (ack_num=3, seq_num=M, payload_len=0)
-note over S: PING 応答受信 → alive 確認
+S -> R: 定周期 PING (seq_num=3, payload=UNDEFINED)
+note over R: path_ping_state を NORMAL に更新
+R -> S: 割り込み PING (seq_num=M,\npayload に NORMAL を含む)
+note over S: remote_path_ping_state に NORMAL を確認\n→ CONNECTED / alive 確認
 
 == 正常終了 ==
 
@@ -920,8 +923,8 @@ participant "RECEIVER" as R
 
 note over S,R: 通信中
 
-S -> R: PING (ack_num=0, seq_num=N)
-R -> S: PING (ack_num=N, seq_num=M)
+S -> R: 定周期 PING (seq_num=N, payload=UNDEFINED)
+R -> S: 割り込み PING (seq_num=M,\npayload に NORMAL を含む)
 note over S: アプリケーション層がハング\n（TCP 接続は生きているが PING を送信できない）
 
 note over R: tcp_health_timeout_ms 経過\nPING 要求（ack_num=0）未着信

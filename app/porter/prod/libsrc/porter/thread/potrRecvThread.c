@@ -36,6 +36,7 @@
 #include "../protocol/window.h"
 #include "../potrContext.h"
 #include "../potrPeerTable.h"
+#include "potrHealthThread.h"
 #include "potrRecvThread.h"
 #include "../infra/compress/compress.h"
 #include "../infra/crypto/crypto.h"
@@ -58,6 +59,12 @@ static void recv_deliver(struct PotrContext_ *ctx, const uint8_t *payload,
                          size_t payload_len, int compressed);
 static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq);
 static void raw_session_disconnect(struct PotrContext_ *ctx);
+static int set_path_ping_state(volatile uint8_t *state, uint8_t next_state);
+static int set_all_path_ping_states(volatile uint8_t *states,
+                                    size_t            count,
+                                    uint8_t           next_state);
+static void wake_udp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed);
+static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed);
 
 #if defined(PLATFORM_LINUX)
     typedef pthread_mutex_t PotrMutexLocal;
@@ -485,7 +492,7 @@ static void n1_update_path_recv(PotrPeerContext          *peer,
 }
 
 /* N:1: パスごとのヘルスチェックタイムアウト用受信時刻を更新する。PING 受信時のみ呼ぶこと。 */
-static void n1_update_path_health(PotrPeerContext *peer, int path_idx)
+static int n1_update_path_health(PotrPeerContext *peer, int path_idx)
 {
 #if defined(PLATFORM_LINUX)
     struct timespec ts;
@@ -506,7 +513,8 @@ static void n1_update_path_health(PotrPeerContext *peer, int path_idx)
     peer->last_recv_tv_nsec              = ns;
     peer->path_last_recv_sec[path_idx]   = s;
     peer->path_last_recv_nsec[path_idx]  = ns;
-    peer->path_ping_state[path_idx]      = POTR_PING_STATE_NORMAL;
+    return set_path_ping_state(&peer->path_ping_state[path_idx],
+                               POTR_PING_STATE_NORMAL);
 }
 
 /* N:1: select() タイムアウト時にヘルスタイムアウトを確認する */
@@ -529,6 +537,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
 #endif /* PLATFORM_ */
     int i;
     int k;
+    int should_wake_health = 0;
 
     if (ctx->global.health_timeout_ms == 0) return;
 
@@ -554,7 +563,8 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
 
             if (path_elapsed >= (int64_t)ctx->global.health_timeout_ms)
             {
-                ctx->peers[i].path_ping_state[k] = POTR_PING_STATE_ABNORMAL;
+                should_wake_health |= set_path_ping_state(&ctx->peers[i].path_ping_state[k],
+                                                          POTR_PING_STATE_ABNORMAL);
                 peer_path_clear(ctx, &ctx->peers[i], k);
             }
         }
@@ -586,6 +596,11 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
     }
 
     POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+
+    if (should_wake_health)
+    {
+        potr_health_thread_wake(ctx);
+    }
 }
 
 /* ================================================================
@@ -917,6 +932,57 @@ static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
 #endif /* PLATFORM_ */
 }
 
+static int set_path_ping_state(volatile uint8_t *state, uint8_t next_state)
+{
+    if (*state == next_state)
+    {
+        return 0;
+    }
+
+    *state = next_state;
+    return 1;
+}
+
+static int set_all_path_ping_states(volatile uint8_t *states,
+                                    size_t            count,
+                                    uint8_t           next_state)
+{
+    size_t i;
+    int    changed = 0;
+
+    for (i = 0; i < count; i++)
+    {
+        if (states[i] != next_state)
+        {
+            states[i] = next_state;
+            changed   = 1;
+        }
+    }
+
+    return changed;
+}
+
+static void wake_udp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed)
+{
+    if (state_changed && ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+    {
+        potr_health_thread_wake(ctx);
+    }
+}
+
+static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed)
+{
+    if (state_changed && potr_is_tcp_type(ctx->service.type))
+    {
+        /*
+         * TCP は path ごとに health スレッドを持つが、PING ペイロードは全 path の
+         * 受信状態ベクトルを運ぶ。変化した path 自身が送れない場合でも別 path から
+         * 更新済みベクトルを伝播できるよう、全 health スレッドを即時起床させる。
+         */
+        potr_tcp_health_thread_wake_all(ctx);
+    }
+}
+
 /* パスごとの peer_port と送信元アドレスを更新する */
 static void update_path_recv(struct PotrContext_      *ctx,
                               int                       path_idx,
@@ -942,12 +1008,13 @@ static void update_path_recv(struct PotrContext_      *ctx,
 }
 
 /* パスごとのヘルスチェックタイムアウト用受信時刻を更新する。PING 受信時のみ呼ぶこと。 */
-static void update_path_health(struct PotrContext_ *ctx, int path_idx)
+static int update_path_health(struct PotrContext_ *ctx, int path_idx)
 {
     get_monotonic(&ctx->last_recv_tv_sec, &ctx->last_recv_tv_nsec);
     get_monotonic(&ctx->path_last_recv_sec[path_idx],
                   &ctx->path_last_recv_nsec[path_idx]);
-    ctx->path_ping_state[path_idx] = POTR_PING_STATE_NORMAL;
+    return set_path_ping_state(&ctx->path_ping_state[path_idx],
+                               POTR_PING_STATE_NORMAL);
 }
 
 /* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。
@@ -974,6 +1041,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
     int64_t now_sec;
     int32_t now_nsec;
     int     i;
+    int     should_wake_health = 0;
 
     if (ctx->global.health_timeout_ms == 0) return;
 
@@ -991,7 +1059,8 @@ static void check_health_timeout(struct PotrContext_ *ctx)
 
         if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
         {
-            ctx->path_ping_state[i]    = POTR_PING_STATE_ABNORMAL;
+            should_wake_health |= set_path_ping_state(&ctx->path_ping_state[i],
+                                                      POTR_PING_STATE_ABNORMAL);
             ctx->peer_port[i]          = 0;
             ctx->path_last_recv_sec[i] = 0;
             /* unicast_bidir で動的学習したアドレス・ポートをリセットする (再接続を許可) */
@@ -1041,13 +1110,15 @@ static void check_health_timeout(struct PotrContext_ *ctx)
             ctx->reorder_pending    = 0;
             ctx->last_recv_tv_sec   = 0;
             /* 次の接続到来まで受信状態を不定に戻す */
-            potr_fill_path_ping_state(ctx->path_ping_state,
-                                      POTR_PING_STATE_UNDEFINED,
-                                      POTR_MAX_PATH);
+            should_wake_health |= set_all_path_ping_states(ctx->path_ping_state,
+                                                           POTR_MAX_PATH,
+                                                           POTR_PING_STATE_UNDEFINED);
             window_init(&ctx->recv_window, 0,
                         ctx->global.window_size, ctx->global.max_payload);
         }
     }
+
+    wake_udp_interrupt_ping_if_needed(ctx, should_wake_health);
 }
 
 /* 欠番 nack_num に対してリオーダー待機が完了しているか確認する。
@@ -1964,8 +2035,10 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                 if (pkt.flags & POTR_FLAG_PING)
                 {
+                    int ping_state_changed;
+
                     /* ヘルスチェックタイムアウト用受信時刻と受信状態を更新する (PING 限定) */
-                    n1_update_path_health(peer, i);
+                    ping_state_changed = n1_update_path_health(peer, i);
 
                     /* PING ペイロード (相手端のパス受信状態) を格納する */
                     if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
@@ -1997,6 +2070,10 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                         }
                     }
                     POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    if (ping_state_changed)
+                    {
+                        potr_health_thread_wake(ctx);
+                    }
                     continue;
                 }
 
@@ -2240,8 +2317,10 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
             if (pkt.flags & POTR_FLAG_PING)
             {
+                int ping_state_changed;
+
                 /* ヘルスチェックタイムアウト用受信時刻と受信状態を更新する (PING 限定) */
-                update_path_health(ctx, i);
+                ping_state_changed = update_path_health(ctx, i);
 
                 /* PING ペイロード (相手端のパス受信状態) を格納する */
                 if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
@@ -2281,6 +2360,8 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 {
                     if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
                     {
+                        wake_udp_interrupt_ping_if_needed(ctx, ping_state_changed);
+
                         /* 双方向 (type 7): remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
                         unsigned int k;
                         for (k = 0; k < POTR_MAX_PATH; k++)
@@ -2514,7 +2595,10 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                              " (%llu ms), disconnecting",
                              ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
-                    ctx->path_ping_state[path_idx] = POTR_PING_STATE_ABNORMAL;
+                    wake_tcp_interrupt_ping_if_needed(
+                        ctx,
+                        set_path_ping_state(&ctx->path_ping_state[path_idx],
+                                            POTR_PING_STATE_ABNORMAL));
                     break;
                 }
                 continue;
@@ -2583,17 +2667,21 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
         /* 8. パケット種別処理 */
         if (pkt.flags & POTR_FLAG_PING)
         {
+            int ping_state_changed;
+
             /* PING 受信: 最終受信時刻と受信状態を更新する。*/
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
                      ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
             ctx->tcp_last_ping_recv_ms[path_idx] = get_ms();
-            ctx->path_ping_state[path_idx]       = POTR_PING_STATE_NORMAL;
+            ping_state_changed = set_path_ping_state(&ctx->path_ping_state[path_idx],
+                                                     POTR_PING_STATE_NORMAL);
             /* PING ペイロード (相手端のパス受信状態) を格納する */
             if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
             {
                 memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
             }
+            wake_tcp_interrupt_ping_if_needed(ctx, ping_state_changed);
             /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
             {
                 unsigned int k;
