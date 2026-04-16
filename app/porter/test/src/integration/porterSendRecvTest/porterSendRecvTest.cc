@@ -1,8 +1,10 @@
 #include <com_util/base/platform.h>
 #include <porter_const.h>
+#include <porter_type.h>
 #include <porter_test_helper.h>
 #include <testfw.h>
 
+#include <cstddef>
 #include <cstring>
 
 #if defined(PLATFORM_LINUX)
@@ -78,7 +80,7 @@ class TempBinaryFile
     string path_;
 };
 
-static constexpr size_t kPacketHeaderSize = 36U;
+static constexpr size_t kPacketHeaderSize = offsetof(PotrPacket, payload);
 
 static uint64_t hton64_test(uint64_t v)
 {
@@ -560,6 +562,7 @@ TEST_F(porterSendRecvTest, encrypted_n1_bad_tag_does_not_consume_peer_slot)
     /* 状態変化時の割り込み PING により、双方向 CONNECTED が 2 周期未満で成立することを確認する。 */
     /* TCP は接続確立の完了後に最初の PING 周期へ入るため、UDP より少し余裕を持たせる。 */
     ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 2800));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -578,6 +581,50 @@ TEST_F(porterSendRecvTest, encrypted_n1_bad_tag_does_not_consume_peer_slot)
         string recv_out = getStdout(recv_h_);
         EXPECT_NE(string::npos, recv_out.find("接続確立"));
         EXPECT_NE(string::npos, recv_out.find("n1-secure-ok"));
+    }
+}
+
+// 暗号化有効 N:1 双方向通信でクライアント側も CONNECTED になってから送信できることを確認する
+TEST_F(porterSendRecvTest, encrypted_n1_client_reaches_connected_before_send)
+{
+    PorterConfigBuilder server_cfg;
+    PorterConfigBuilder client_cfg;
+    string server_config_path =
+        server_cfg.addUnicastBidirN1Service(51, 19051, 1, "0.0.0.0", "mysecretphrase")
+            .build();
+    string client_config_path =
+        client_cfg.addUnicastBidirService(51, 19051, "127.0.0.1", "mysecretphrase")
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {server_config_path, "51"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {client_config_path, "51"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
+
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 2800));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "n1-connected-ok"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_NE(string::npos, recv_out.find("接続確立"));
+        EXPECT_NE(string::npos, recv_out.find("n1-connected-ok"));
     }
 }
 

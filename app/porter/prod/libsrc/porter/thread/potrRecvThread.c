@@ -294,6 +294,9 @@ static void n1_recv_deliver(struct PotrContext_ *ctx, PotrPeerContext *peer,
 static void n1_deliver_payload_elem(struct PotrContext_ *ctx, PotrPeerContext *peer,
                                      const PotrPacket *elem)
 {
+    /* 未接続ピアの DATA は破棄する */
+    if (!peer->health_alive) return;
+
     if (elem->flags & POTR_FLAG_MORE_FRAG)
     {
         if (peer->frag_buf_len + elem->payload_len <= ctx->global.max_message_size)
@@ -1455,6 +1458,10 @@ static void recv_deliver(struct PotrContext_ *ctx,
    各ペイロードエレメントに対して呼び出す。 */
 static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *elem)
 {
+    /* 未接続状態では DATA を破棄する。接続確立前/DISCONNECTED 後の DATA が
+       アプリに届かないようにする。CONNECTED 発火は health_alive=1 への遷移で行う。 */
+    if (!ctx->health_alive) return;
+
     if (elem->flags & POTR_FLAG_MORE_FRAG)
     {
         /* 中間フラグメント: バッファに追記 */

@@ -117,6 +117,15 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
         return POTR_ERROR_DISCONNECTED;
     }
 
+    /* UDP 1:1 双方向: PING 交換による接続確立前は POTR_ERROR_DISCONNECTED を返す */
+    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR && !ctx->health_alive)
+    {
+        POTR_LOG(POTR_TRACE_VERBOSE,
+                 "potrSend: service_id=%" PRId64 " UDP bidir not connected",
+                 ctx->service.service_id);
+        return POTR_ERROR_DISCONNECTED;
+    }
+
     /* RAW モードは常にブロッキング送信 */
     if (potr_is_raw_type(ctx->service.type))
     {
@@ -188,7 +197,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
             POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
             for (i = 0; i < ctx->max_peers; i++)
             {
-                if (ctx->peers[i].active)
+                if (ctx->peers[i].active && ctx->peers[i].health_alive)
                 {
                     ids[n_ids++] = ctx->peers[i].peer_id;
                 }
@@ -207,17 +216,30 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
         }
         else
         {
-            /* 指定ピアへ送信: 存在確認だけ mutex で保護し、送信は mutex 外で行う */
+            /* 指定ピアへ送信: 存在確認・接続確認だけ mutex で保護し、送信は mutex 外で行う */
+            int peer_alive;
             POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
-            if (peer_find_by_id(ctx, peer_id) == NULL)
             {
-                POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
-                POTR_LOG(POTR_TRACE_ERROR,
-                         "potrSend: service_id=%" PRId64 " peer_id=%u not found",
-                         ctx->service.service_id, (unsigned)peer_id);
-                return POTR_ERROR;
+                PotrPeerContext *peer = peer_find_by_id(ctx, peer_id);
+                if (peer == NULL)
+                {
+                    POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                    POTR_LOG(POTR_TRACE_ERROR,
+                             "potrSend: service_id=%" PRId64 " peer_id=%u not found",
+                             ctx->service.service_id, (unsigned)peer_id);
+                    return POTR_ERROR;
+                }
+                peer_alive = peer->health_alive;
             }
             POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+
+            if (!peer_alive)
+            {
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "potrSend: service_id=%" PRId64 " peer_id=%u N:1 not connected",
+                         ctx->service.service_id, (unsigned)peer_id);
+                return POTR_ERROR_DISCONNECTED;
+            }
 
             return send_to_peer(ctx, peer_id, ptr, len, flags, base_flags);
         }

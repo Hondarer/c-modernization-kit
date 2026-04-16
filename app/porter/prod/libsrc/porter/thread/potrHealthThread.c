@@ -169,6 +169,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 PotrPacketSessionHdr peer_shdr;
                 uint32_t             seq;
                 size_t               wire_len;
+                uint8_t              health_states[POTR_MAX_PATH];
                 int                  k;
 
                 if (!ctx->peers[i].active) continue;
@@ -185,11 +186,10 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 #endif /* PLATFORM_ */
                 seq = ctx->peers[i].send_window.next_seq;
                 /* N:1 (UNICAST_BIDIR_N1) は双方向 PING。ピアごとの自端パス受信状態をペイロードに設定する。 */
-                {
-                    uint8_t hs[POTR_MAX_PATH];
-                    potr_copy_path_ping_state(hs, ctx->peers[i].path_ping_state, POTR_MAX_PATH);
-                    packet_build_ping(&ping_pkt, &peer_shdr, seq, hs, (uint16_t)POTR_MAX_PATH);
-                }
+                potr_copy_path_ping_state(health_states, ctx->peers[i].path_ping_state,
+                                          POTR_MAX_PATH);
+                packet_build_ping(&ping_pkt, &peer_shdr, seq, health_states,
+                                  (uint16_t)POTR_MAX_PATH);
 #if defined(PLATFORM_LINUX)
                 pthread_mutex_unlock(&ctx->peers[i].send_window_mutex);
 #elif defined(PLATFORM_WINDOWS)
@@ -211,7 +211,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                     memset(nonce + 10, 0,                    2);
 
                     memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
-                    memcpy(wire_buf + PACKET_HEADER_SIZE, ping_pkt.payload, POTR_MAX_PATH);
+                    memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
                     if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                                      wire_buf + PACKET_HEADER_SIZE, POTR_MAX_PATH,
                                      ctx->service.encrypt_key,
@@ -240,7 +240,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
                 {
                     uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_MAX_PATH];
                     memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
-                    memcpy(wire_buf + PACKET_HEADER_SIZE, ping_pkt.payload, POTR_MAX_PATH);
+                    memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
                     wire_len = PACKET_HEADER_SIZE + POTR_MAX_PATH;
 
                     for (k = 0; k < (int)POTR_MAX_PATH; k++)
