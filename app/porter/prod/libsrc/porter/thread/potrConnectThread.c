@@ -45,6 +45,7 @@
 #include "../protocol/window.h"
 #include "../infra/potrLog.h"
 #include "potrConnectThread.h"
+#include "potrConnectedThreads.h"
 #include "potrRecvThread.h"
 #include "potrSendThread.h"
 #include "potrHealthThread.h"
@@ -321,55 +322,18 @@ static void reset_send_queue(struct PotrContext_ *ctx)
    失敗時は起動済みスレッドをすべて停止してから POTR_ERROR を返す。 */
 static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
 {
-    int is_bidir  = (ctx->service.type == POTR_TYPE_TCP_BIDIR);
-    int is_sender = (ctx->role == POTR_ROLE_SENDER);
-
-    /* SENDER または TCP_BIDIR RECEIVER: path[0] の初回接続時のみ送信スレッドを起動 */
-    if ((is_sender || is_bidir) && path_idx == 0 && !ctx->send_thread_running)
+    const PotrConnectedThreadsOps ops =
     {
-        if (potr_send_thread_start(ctx) != POTR_SUCCESS)
-        {
-            POTR_LOG(POTR_TRACE_ERROR,
-                     "connect_thread[service_id=%" PRId64 "]: send_thread_start failed",
-                     ctx->service.service_id);
-            return POTR_ERROR;
-        }
-    }
+        potr_send_thread_start,
+        potr_send_thread_stop,
+        tcp_recv_thread_start,
+        potr_tcp_health_thread_start,
+        close_tcp_conn,
+        join_recv_thread,
+        set_tcp_path_ping_state
+    };
 
-    /* recv スレッドを path ごとに起動 */
-    if (tcp_recv_thread_start(ctx, path_idx) != POTR_SUCCESS)
-    {
-        POTR_LOG(POTR_TRACE_ERROR,
-                 "connect_thread[service_id=%" PRId64 "]: tcp_recv_thread_start failed"
-                 " (path=%d)",
-                 ctx->service.service_id, path_idx);
-        if ((is_sender || is_bidir) && path_idx == 0 && !ctx->send_thread_running)
-        {
-            close_tcp_conn(ctx, path_idx);
-            potr_send_thread_stop(ctx);
-        }
-        return POTR_ERROR;
-    }
-
-    /* health スレッドを path ごとに起動 (全ロール共通) */
-    ctx->health_send_immediate[path_idx] = 1;
-    if (potr_tcp_health_thread_start(ctx, path_idx) != POTR_SUCCESS)
-    {
-        POTR_LOG(POTR_TRACE_ERROR,
-                 "connect_thread[service_id=%" PRId64 "]: tcp_health_thread_start failed"
-                 " (path=%d)",
-                 ctx->service.service_id, path_idx);
-        /* recv スレッドをソケットクローズで自然終了させる */
-        ctx->running[path_idx] = 0;
-        close_tcp_conn(ctx, path_idx);
-        join_recv_thread(ctx, path_idx);
-        return POTR_ERROR;
-    }
-
-    /* 接続確立: このパスのパス受信状態を不定に初期化する */
-    set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
-
-    return POTR_SUCCESS;
+    return potr_start_connected_threads(ctx, path_idx, &ops);
 }
 
 /* 接続断後に依存スレッドを停止する (path ごと)。
