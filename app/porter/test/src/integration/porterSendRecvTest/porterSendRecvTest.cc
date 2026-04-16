@@ -555,6 +555,10 @@ TEST_F(porterSendRecvTest, encrypted_n1_bad_tag_does_not_consume_peer_slot)
     ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
 
+    /* 双方向 CONNECTED 発火には PING+NORMAL ハンドシェイク (health_interval_ms * 2 以上) が必要。
+       データ送信前にクライアントが生存したまま 2 サイクル分待機する。 */
+    sleep_ms(2500);
+
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
     ASSERT_TRUE(writeLineStdin(send_h_, "n1-secure-ok"));

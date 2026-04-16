@@ -127,10 +127,12 @@ public:
 
         /* global セクション (テスト向けに短いタイムアウト) */
         fprintf(f, "[global]\n");
-        fprintf(f, "window_size        = 16\n");
-        fprintf(f, "max_payload        = 1400\n");
-        fprintf(f, "health_interval_ms = 1000\n");
-        fprintf(f, "health_timeout_ms  = 3000\n");
+        fprintf(f, "window_size             = 16\n");
+        fprintf(f, "max_payload             = 1400\n");
+        fprintf(f, "health_interval_ms      = 1000\n");
+        fprintf(f, "health_timeout_ms       = 3000\n");
+        fprintf(f, "tcp_health_interval_ms  = 1000\n");
+        fprintf(f, "tcp_health_timeout_ms   = 3000\n");
         fprintf(f, "\n");
 
         for (const auto& line : lines_) {
