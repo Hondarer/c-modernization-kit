@@ -91,6 +91,77 @@ PING ヘルスチェックが無効 (`health_interval_ms = 0` または `tcp_hea
 
 実装箇所: `thread/potrRecvThread.c` の `notify_health_alive()` (UDP 1:1)、`n1_notify_health_alive()` (UDP N:1)、`notify_connected_tcp()` (TCP)。
 
+## 接続状態別の期待値・現状・イベント整合性
+
+本節では、各通信種別について「パス接続前」「CONNECTED 後」の期待値を以下で統一して整理する。
+
+- 接続前の期待値: `PING` は送信可、`DATA` は送信 API が未接続エラーを返す、受信 `DATA` は破棄する、`POTR_EVENT_DATA` は発火しない
+- 接続後の期待値: `DATA` は送信可、受信 `DATA` は配送可、`POTR_EVENT_CONNECTED` 後にのみ `POTR_EVENT_DATA` が発火する
+- CONNECTED の定義: 片方向 (type 1-6) はいずれかのパスで `PING` を受信した時点、双方向 (type 7-10) は受信 `PING` ペイロード内の `remote_path_ping_state[]` に `POTR_PING_STATE_NORMAL` を確認した時点
+
+### type 1-6: `UNICAST_RAW` / `MULTICAST_RAW` / `BROADCAST_RAW` / `UNICAST` / `MULTICAST` / `BROADCAST`
+
+| 観点 | 内容 |
+|---|---|
+| CONNECTED 前の期待値 | `PING` は送信可。`potrSend()` は未接続エラーを返す。受信 `DATA` は破棄し、`POTR_EVENT_DATA` は発火しない。 |
+| 現状実装 | `PING` は health スレッドが送信する。`potrSend()` には接続前ガードがなく、`DATA` は送信キューに積まれる。受信側は `health_alive == 0` の間 `deliver_payload_elem()` で `DATA` を配送しない。 |
+| イベント整合性 | アプリには `POTR_EVENT_CONNECTED` 前の `POTR_EVENT_DATA` は届かない。未接続中に受信した `DATA` は最終配送段で破棄される。 |
+| 確認できている問題点 | API 契約が期待値と不一致で、送信側は未接続を返さず `DATA` を出してしまう。実態は「送らない」ではなく「送って相手で捨てる」。 |
+| 対策方針 | 片方向種別でも送信側に論理接続状態判定を持たせ、CONNECTED 前の `DATA` を `POTR_ERROR_DISCONNECTED` で拒否する。受信側の `DATA` 破棄とイベント順序性の制御は維持する。 |
+
+### type 7: `UNICAST_BIDIR`
+
+| 観点 | 内容 |
+|---|---|
+| CONNECTED 前の期待値 | `PING` は送信可。返送 `PING` により CONNECTED が成立するまでは `potrSend()` は未接続エラーを返す。受信 `DATA` は破棄し、`POTR_EVENT_DATA` は発火しない。 |
+| 現状実装 | `PING` は両端が送信する。`potrSend()` は `health_alive == 0` の間 `POTR_ERROR_DISCONNECTED` を返す。受信側も `health_alive == 0` の間 `DATA` を配送しない。 |
+| イベント整合性 | `POTR_EVENT_DATA` は `POTR_EVENT_CONNECTED` 前に発火しない。接続前 `DATA` は配送段で破棄される。 |
+| 確認できている問題点 | 接続前の送信 API・受信破棄・イベント順序の観点では、期待値との差分は確認できていない。 |
+| 対策方針 | 現状維持。接続前制御の基準実装として扱う。 |
+
+### type 8: `UNICAST_BIDIR_N1`
+
+| 観点 | 内容 |
+|---|---|
+| CONNECTED 前の期待値 | `PING` は送信可。各 `peer_id` への `DATA` は CONNECTED 前なら未接続エラー。受信 `DATA` は破棄し、`POTR_EVENT_DATA` は発火しない。 |
+| 現状実装 | `peer_id` 指定送信は `peer->health_alive == 0` の間 `POTR_ERROR_DISCONNECTED` を返す。受信側も `peer->health_alive == 0` の間 `n1_deliver_payload_elem()` で `DATA` を配送しない。一方で `POTR_PEER_ALL` は未接続 peer を除外するだけで成功扱いになる。さらに初回 `DATA` でも `peer_create()` に到達し、peer slot と session 状態が作られる。 |
+| イベント整合性 | アプリには `POTR_EVENT_CONNECTED` 前の `POTR_EVENT_DATA` は届かない。ただし未接続中 `DATA` でも peer table / session 状態は前進し得る。 |
+| 確認できている問題点 | `POTR_PEER_ALL` が送達対象 0 件でも未接続エラーにならない。未接続 `DATA` が内部状態を進めるため、「破棄」がアプリ配送停止に留まっている。 |
+| 対策方針 | `POTR_PEER_ALL` でも送達対象 0 件時は未接続エラーに統一する。初回 `DATA` では peer を接続済み扱いの前段階に留める、または `PING` 起点でのみ peer 作成・接続成立へ進める設計に整理する。 |
+
+### type 9-10: `TCP` / `TCP_BIDIR`
+
+| 観点 | 内容 |
+|---|---|
+| CONNECTED 前の期待値 | `PING` は送信可。TCP 物理接続完了後でも、返送 `PING` で CONNECTED が成立するまでは `potrSend()` は未接続エラーを返す。受信 `DATA` は破棄し、`POTR_EVENT_DATA` は発火しない。 |
+| 現状実装 | `PING` は各 path の tcp_health スレッドが送信する。`potrSend()` は `tcp_active_paths > 0` なら成功し、返送 `PING` 確認前でも `DATA` を送れてしまう。受信側は `health_alive == 0` の間 `deliver_payload_elem()` で `DATA` を配送しない。 |
+| イベント整合性 | アプリには `POTR_EVENT_CONNECTED` 前の `POTR_EVENT_DATA` は届かない。未接続中に到着した `DATA` は配送段で破棄される。 |
+| 確認できている問題点 | 論理接続前でも送信 API が成功し、期待値の「返送 `PING` 確認まで未接続エラー」と不一致。物理 path 接続 (`tcp_active_paths`) と論理 CONNECTED (`health_alive`) が混在している。 |
+| 対策方針 | TCP の送信可否判定を `tcp_active_paths` ではなく `health_alive` 基準へ寄せる。`tcp_active_paths` は物理 path 存在管理専用とし、API 契約は論理 CONNECTED と一致させる。 |
+
+## PotrEvent 順序性の現状評価
+
+現状実装を確認した範囲では、全通信種別で未接続中の `DATA` は最終配送段の `health_alive` または `peer->health_alive` 判定で遮断される。そのため、アプリコールバックとして `POTR_EVENT_CONNECTED` 前に `POTR_EVENT_DATA` が入る経路は確認できていない。
+
+- type 1-7, 9-10: `deliver_payload_elem()` が `health_alive == 0` の間 `DATA` を破棄する
+- type 8: `n1_deliver_payload_elem()` が `peer->health_alive == 0` の間 `DATA` を破棄する
+- したがって、イベント順序性の観点では「未接続の間に `POTR_EVENT_DATA` が来ない」は概ね守られている
+
+ただし、送信 API 側は通信種別ごとに未接続判定の厳しさが異なるため、イベント順序性が守られていても API 契約は期待値とずれている。特に type 1-6 と type 9-10 は「送信 API は成功するが、相手で破棄されてイベント化されない」という状態であり、利用者から見ると不透明である。
+
+また、`health_interval_ms = 0` または `tcp_health_interval_ms = 0` の場合は CONNECTED が成立しないため、イベント順序性の観点では `POTR_EVENT_DATA` は抑止される一方、通信自体が成立しない構成になり得る点に注意が必要である。
+
+## 関連ドキュメントとの差分メモ
+
+今回の整理は現状実装を正本としている。これに対し、以下の文書には初回 `DATA` 受信で `CONNECTED` や `DATA` が発火するように読める記述が残っている。
+
+- `prod/include/porter_type.h`: 「初回パケット受信時に CONNECTED」が現在の `PING` 基準実装と一致しない
+- `docs/sequence.md`: `unicast_bidir` / `unicast_bidir N:1` / TCP 系の一部シーケンスが、初回 `DATA` 到着で `CONNECTED` → `DATA` と読める
+- `docs/path-event-design.md`: `DATA` 受信で `notify_health_alive()` に進む図があり、現在の `PING` 基準と整合していない
+- `docs/api.md`: `POTR_ERROR_DISCONNECTED` を TCP 専用としているが、実装は `UNICAST_BIDIR` および `UNICAST_BIDIR_N1` (`peer_id` 指定) でも返す
+
+これらは別途、`health-check.md` の整理結果に合わせて追随更新する必要がある。
+
 ## UDP 系ヘルスチェック
 
 ### PING 送出 (health スレッド)
