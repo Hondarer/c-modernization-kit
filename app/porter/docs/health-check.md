@@ -62,6 +62,33 @@ PING パケットのペイロードには自端の各パス PING 受信状態を
 - TCP PING タイムアウト時: `POTR_PING_STATE_ABNORMAL` に設定する
 - セッション DISCONNECTED 発火時 / TCP 切断時: 全パスを `POTR_PING_STATE_UNDEFINED` にリセットする
 
+## 回線確立 (CONNECTED) 検出
+
+`POTR_EVENT_CONNECTED` の発火条件は通信形態によって異なる。
+
+| 通信形態 | CONNECTED の発火条件 |
+|---|---|
+| 片方向 (type 1-6) | いずれかのパスで PING を受信したとき |
+| 双方向 UDP (type 7, 8) | 受信した PING ペイロードのいずれかのパスが `POTR_PING_STATE_NORMAL` のとき |
+| TCP (type 9, 10) | 受信した PING ペイロードのいずれかのパスが `POTR_PING_STATE_NORMAL` のとき |
+
+双方向通信では `remote_path_ping_state[k] == POTR_PING_STATE_NORMAL` が一つ以上存在するときに CONNECTED を発火する。これは「相手端が自端からの PING を正常受信済みである」ことを意味し、往復疎通が確認できた時点で CONNECTED となる。
+
+TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED を発火しない。PING の受信と内容確認を経て初めて CONNECTED となる。
+
+PING ヘルスチェックが無効 (`health_interval_ms = 0` または `tcp_health_interval_ms = 0`) の場合、PING が送出されないため CONNECTED が発火しない。
+
+双方向通信では、以下の順序でハンドシェイクが完了して CONNECTED が発火する。
+
+1. 自端が PING 送出を開始する (ペイロードは全パス `UNDEFINED`)。
+2. 相手端が自端の PING を受信し、`path_ping_state` を `NORMAL` に更新する。
+3. 相手端が次の PING を送出する (ペイロードに `NORMAL` を含む)。
+4. 自端がその PING を受信し、ペイロードに `NORMAL` を確認して CONNECTED を発火する。
+
+片方向通信では手順 2-3 に相当する往復が不要で、PING 受信で即 CONNECTED となる。
+
+実装箇所: `thread/potrRecvThread.c` の `notify_health_alive()` (UDP 1:1)、`n1_notify_health_alive()` (UDP N:1)、`notify_connected_tcp()` (TCP)。
+
 ## UDP 系ヘルスチェック
 
 ### PING 送出 (health スレッド)

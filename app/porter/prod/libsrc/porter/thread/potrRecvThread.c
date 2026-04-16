@@ -339,8 +339,6 @@ static void n1_drain_recv_window(struct PotrContext_ *ctx, PotrPeerContext *peer
 
     while (window_recv_pop(&peer->recv_window, &pop_pkt) == POTR_SUCCESS)
     {
-        n1_notify_health_alive(ctx, peer);
-
         if (pop_pkt.flags & POTR_FLAG_PING) continue;
 
         {
@@ -1460,8 +1458,6 @@ static void drain_recv_window(struct PotrContext_ *ctx)
 
     while (window_recv_pop(&ctx->recv_window, &pop_pkt) == POTR_SUCCESS)
     {
-        notify_health_alive(ctx);
-
         const char *pkt_type_str;
         if (pop_pkt.flags & POTR_FLAG_PING)
         {
@@ -1829,20 +1825,14 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                 if (is_new_peer)
                 {
-                    peer->health_alive = 1;
                     POTR_LOG(POTR_TRACE_INFO,
-                             "recv[service_id=%" PRId64 "]: CONNECTED peer=%u from %u.%u.%u.%u:%u",
+                             "recv[service_id=%" PRId64 "]: new peer=%u from %u.%u.%u.%u:%u (CONNECTED pending PING+NORMAL)",
                              ctx->service.service_id, (unsigned)peer->peer_id,
                              (unsigned)((ntohl(sender_addr.sin_addr.s_addr) >> 24) & 0xFF),
                              (unsigned)((ntohl(sender_addr.sin_addr.s_addr) >> 16) & 0xFF),
                              (unsigned)((ntohl(sender_addr.sin_addr.s_addr) >>  8) & 0xFF),
                              (unsigned)( ntohl(sender_addr.sin_addr.s_addr)        & 0xFF),
                              (unsigned)ntohs(sender_addr.sin_port));
-                    if (ctx->callback != NULL)
-                    {
-                        ctx->callback(ctx->service.service_id, peer->peer_id,
-                                      POTR_EVENT_CONNECTED, NULL, 0);
-                    }
                 }
 
                 /* FIN: ピアの正常終了通知 */
@@ -1983,6 +1973,19 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                         memcpy(peer->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
                     }
 
+                    /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
+                    {
+                        int k;
+                        for (k = 0; k < POTR_MAX_PATH; k++)
+                        {
+                            if (peer->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
+                            {
+                                n1_notify_health_alive(ctx, peer);
+                                break;
+                            }
+                        }
+                    }
+
                     if (pkt.seq_num != peer->recv_window.next_seq
                         && seqnum_in_window(pkt.seq_num,
                                             peer->recv_window.next_seq + 1U,
@@ -1992,10 +1995,6 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                         {
                             n1_send_nack(ctx, peer, peer->recv_window.next_seq);
                         }
-                    }
-                    else
-                    {
-                        n1_notify_health_alive(ctx, peer);
                     }
                     POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
                     continue;
@@ -2280,7 +2279,23 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 }
                 else
                 {
-                    notify_health_alive(ctx);
+                    if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+                    {
+                        /* 双方向 (type 7): remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
+                        int k;
+                        for (k = 0; k < POTR_MAX_PATH; k++)
+                        {
+                            if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
+                            {
+                                notify_health_alive(ctx);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        notify_health_alive(ctx); /* 片方向 (type 4-6): PING 受信で即 CONNECTED */
+                    }
 
                     {
                         /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
@@ -2572,13 +2587,24 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
                      ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
-            notify_connected_tcp(ctx);
             ctx->tcp_last_ping_recv_ms[path_idx] = get_ms();
             ctx->path_ping_state[path_idx]       = POTR_PING_STATE_NORMAL;
             /* PING ペイロード (相手端のパス受信状態) を格納する */
             if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
             {
                 memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
+            }
+            /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
+            {
+                int k;
+                for (k = 0; k < POTR_MAX_PATH; k++)
+                {
+                    if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
+                    {
+                        notify_connected_tcp(ctx);
+                        break;
+                    }
+                }
             }
         }
         else if (pkt.flags & POTR_FLAG_DATA)
@@ -2607,8 +2633,6 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                              ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
                     continue;
                 }
-
-                notify_connected_tcp(ctx);
 
                 POTR_LOG(POTR_TRACE_VERBOSE,
                          "tcp_recv[service_id=%" PRId64 " path=%d]: DATA seq=%u payload=%u",
