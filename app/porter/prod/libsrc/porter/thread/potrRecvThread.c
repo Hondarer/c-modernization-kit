@@ -1975,7 +1975,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                     /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
                     {
-                        int k;
+                        unsigned int k;
                         for (k = 0; k < POTR_MAX_PATH; k++)
                         {
                             if (peer->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
@@ -2282,7 +2282,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                     if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
                     {
                         /* 双方向 (type 7): remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
-                        int k;
+                        unsigned int k;
                         for (k = 0; k < POTR_MAX_PATH; k++)
                         {
                             if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
@@ -2596,7 +2596,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             }
             /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
             {
-                int k;
+                unsigned int k;
                 for (k = 0; k < POTR_MAX_PATH; k++)
                 {
                     if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
