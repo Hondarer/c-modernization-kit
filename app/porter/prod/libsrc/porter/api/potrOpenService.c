@@ -1315,6 +1315,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 return POTR_ERROR;
             }
 
+            ctx->health_send_immediate[0] = 1;
             if (potr_health_thread_start(ctx) != POTR_SUCCESS)
             {
                 potr_send_thread_stop(ctx);

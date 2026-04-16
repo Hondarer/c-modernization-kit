@@ -201,6 +201,7 @@ struct PotrContext_
 
     volatile int     running[POTR_MAX_PATH];        /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
     volatile int     health_running[POTR_MAX_PATH]; /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
+    volatile int     health_send_immediate[POTR_MAX_PATH]; /**< オープン時割り込み PING フラグ。health_sleep() 冒頭でチェック・クリア。 */
     volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
     volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
     uint8_t          remote_path_ping_state[POTR_MAX_PATH];/**< 相手端から PING ペイロードで受信した各パス受信状態 (POTR_PING_STATE_*)。 */

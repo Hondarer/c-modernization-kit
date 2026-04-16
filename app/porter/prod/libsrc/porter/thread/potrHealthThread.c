@@ -93,6 +93,13 @@ static void signal_health_thread(struct PotrContext_ *ctx, int path_idx)
 /* health_interval_ms ミリ秒、または停止シグナルが来るまでスリープする (path_idx 版) */
 static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interval_ms)
 {
+    /* オープン時割り込み PING フラグが立っていれば即リターン (初回スリープをスキップ) */
+    if (ctx->health_send_immediate[path_idx])
+    {
+        ctx->health_send_immediate[path_idx] = 0;
+        return;
+    }
+
 #if defined(PLATFORM_LINUX)
     struct timespec abs_ts;
     clock_gettime(CLOCK_REALTIME, &abs_ts);

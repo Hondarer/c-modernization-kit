@@ -4,7 +4,7 @@ porter フレームワークにおける PotrType ごとの PING 送出ロジッ
 
 ## 概要
 
-ヘルスチェックは PING パケット (`POTR_FLAG_PING`) の定周期送出、双方向系におけるパス受信状態変化時の割り込み送出、およびタイムアウト超過時の切断検出から成る。PotrType によって送出側と検出側の担当が異なる。
+ヘルスチェックは PING パケット (`POTR_FLAG_PING`) の定周期送出、通信経路オープン時の割り込み送出、双方向系におけるパス受信状態変化時の割り込み送出、およびタイムアウト超過時の切断検出から成る。PotrType によって送出側と検出側の担当が異なる。
 
 ## PotrType ごとの振る舞い
 
@@ -82,7 +82,7 @@ PING ヘルスチェックが無効 (`health_interval_ms = 0` または `tcp_hea
 
 双方向通信では、以下の順序でハンドシェイクが完了して CONNECTED が発火する。
 
-1. 自端が PING 送出を開始する (ペイロードは全パス `UNDEFINED`)。
+1. 自端が PING 送出を開始する (ペイロードは全パス `UNDEFINED`)。通信経路オープン時は最初のスリープをスキップして即座に送出するため、最大 `health_interval_ms` を待たずに相手端へ PING が届く。
 2. 相手端が自端の PING を受信し、`path_ping_state` を `NORMAL` に更新する。
 3. 相手端が `path_ping_state` 変化に反応して割り込み PING を送出する (変化がなければ次の定周期 PING まで待つ)。
 4. 自端がその PING を受信し、ペイロードに `NORMAL` を確認して CONNECTED を発火する。
@@ -95,7 +95,7 @@ PING ヘルスチェックが無効 (`health_interval_ms = 0` または `tcp_hea
 
 ### PING 送出 (health スレッド)
 
-`potrHealthThread.c` の `health_thread_func()` が `health_interval_ms` 周期で起動する。双方向 UDP (`UNICAST_BIDIR`, `UNICAST_BIDIR_N1`) では、`path_ping_state[]` が変化した場合にも条件変数 wakeup により即時送出される。
+`potrHealthThread.c` の `health_thread_func()` が `health_interval_ms` 周期で起動する。`potrOpenService()` 完了直後にヘルススレッドが起動するとき、最初のスリープをスキップして即座に PING を送出する。双方向 UDP (`UNICAST_BIDIR`, `UNICAST_BIDIR_N1`) では、`path_ping_state[]` が変化した場合にも条件変数 wakeup により即時送出される。
 
 非 N:1 モード (UNICAST_RAW / MULTICAST_RAW / BROADCAST_RAW / UNICAST / MULTICAST / BROADCAST / UNICAST_BIDIR):
 
@@ -141,7 +141,7 @@ N:1 モード:
 
 ### PING 送出 (tcp_health スレッド)
 
-`potrHealthThread.c` の `tcp_health_thread_func()` がパスごと (`path_idx`) に独立して起動する。TCP では SENDER / RECEIVER を問わず全ロールで起動する。`path_ping_state[]` が変化した場合は全 tcp_health スレッドを即時起床させ、到達可能な path から更新済み状態ベクトルを通知する。
+`potrHealthThread.c` の `tcp_health_thread_func()` がパスごと (`path_idx`) に独立して起動する。TCP では SENDER / RECEIVER を問わず全ロールで起動する。TCP 接続確立直後にヘルススレッドが起動するとき、最初のスリープをスキップして即座に PING を送出する。`path_ping_state[]` が変化した場合は全 tcp_health スレッドを即時起床させ、到達可能な path から更新済み状態ベクトルを通知する。
 
 1. `tcp_conn_fd[path_idx]` で接続を確認してから PING パケットを送信する。
 2. `global.health_interval_ms` 周期で送信する (サービスオープン時に `tcp_health_interval_ms` からコピー済み)。

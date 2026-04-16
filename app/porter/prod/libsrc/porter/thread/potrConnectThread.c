@@ -352,6 +352,7 @@ static int start_connected_threads(struct PotrContext_ *ctx, int path_idx)
     }
 
     /* health スレッドを path ごとに起動 (全ロール共通) */
+    ctx->health_send_immediate[path_idx] = 1;
     if (potr_tcp_health_thread_start(ctx, path_idx) != POTR_SUCCESS)
     {
         POTR_LOG(POTR_TRACE_ERROR,
