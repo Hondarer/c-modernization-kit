@@ -83,20 +83,26 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
 /**
  *******************************************************************************
  *  @brief          PING パケットを構築します。
- *  @param[out]     packet      構築結果を格納するパケット構造体へのポインタ。
- *  @param[in]      shdr        セッション識別ヘッダーへのポインタ。
- *  @param[in]      seq_num     通番 (ウィンドウ管理に使用)。
+ *  @param[out]     packet             構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr               セッション識別ヘッダーへのポインタ。
+ *  @param[in]      seq_num            通番 (ウィンドウ管理に使用)。
+ *  @param[in]      health_payload     パス PING 受信状態ペイロードへのポインタ (POTR_PING_STATE_* 値の配列)。
+ *                                     NULL の場合はペイロードなし (payload_len=0)。
+ *  @param[in]      health_payload_len ペイロード長 (バイト)。通常 POTR_MAX_PATH。health_payload が NULL の場合は無視。
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *
  *  @details
- *  ヘルスチェックパケットです。ペイロードなし (payload_len=0)。\n
+ *  ヘルスチェックパケットです。\n
  *  通番には送信側の next_seq（次に送出する DATA に割り当てる通番）を格納します。\n
  *  PING はウィンドウに登録されません（NACK・再送の対象外）。\n
- *  ack_num は常に 0。受信者は seq_num を上限として欠番を一括 NACK します。
+ *  ack_num は常に 0。受信者は seq_num を上限として欠番を一括 NACK します。\n
+ *  ペイロードには POTR_MAX_PATH バイトのパス受信状態 (POTR_PING_STATE_*) を格納します。\n
+ *  暗号化時はヘルススレッドが wire_buf にコピー後に potr_encrypt を適用します。
  *******************************************************************************
  */
 int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
-                      uint32_t seq_num)
+                      uint32_t seq_num,
+                      const uint8_t *health_payload, uint16_t health_payload_len)
 {
     if (packet == NULL || shdr == NULL)
     {
@@ -104,12 +110,21 @@ int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
     }
 
     memset(packet, 0, PACKET_HEADER_SIZE);
-    packet->payload     = NULL;
     fill_session_hdr(packet, shdr);
     packet->seq_num     = htonl(seq_num);
     packet->ack_num     = 0;
     packet->flags       = htons(POTR_FLAG_PING);
-    packet->payload_len = 0;
+
+    if (health_payload != NULL)
+    {
+        packet->payload     = health_payload;
+        packet->payload_len = htons(health_payload_len);
+    }
+    else
+    {
+        packet->payload     = NULL;
+        packet->payload_len = 0;
+    }
 
     return POTR_SUCCESS;
 }

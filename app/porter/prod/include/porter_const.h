@@ -40,14 +40,14 @@
  */
 #define POTR_FLAG_DATA       0x0001U /**< データパケット (パックコンテナ) であることを示すフラグ。常に設定される。 */
 #define POTR_FLAG_NACK       0x0002U /**< 再送要求パケットであることを示すフラグ。ack_num に要求通番を格納する。 */
-#define POTR_FLAG_PING       0x0004U /**< ヘルスチェック要求パケットであることを示すフラグ。ペイロードなし。 */
+#define POTR_FLAG_PING       0x0004U /**< ヘルスチェックパケットであることを示すフラグ。ペイロードには POTR_MAX_PATH バイトのパス受信状態 (POTR_PING_STATE_*) を格納する。 */
 #define POTR_FLAG_REJECT     0x0008U /**< 再送不能通知パケットであることを示すフラグ。ack_num に再送不能な通番を格納する。 */
 #define POTR_FLAG_FIN        0x0010U /**< 正常終了通知パケットであることを示すフラグ。送信者が potrCloseService 時に送出し、受信者は即座に DISCONNECTED へ遷移する。ペイロードなし。 */
 #define POTR_FLAG_ENCRYPTED  0x0020U /**< AES-256-GCM 認証タグが付与されていることを示す外側パケットフラグ。\n
-                                       *   POTR_FLAG_DATA と組み合わせる場合: [ヘッダー 32B][暗号文: packed_len B][GCM 認証タグ: 16B]。\n
-                                       *   単独で使用する場合 (PING/NACK/REJECT/FIN): ペイロードなし (平文 0B) の\n
-                                       *   GCM 認証タグのみ (16B) を格納する。[ヘッダー 32B][GCM 認証タグ: 16B]。\n
-                                       *   いずれの場合もヘッダー全体 (32B) が AAD として認証される。\n
+                                       *   POTR_FLAG_DATA と組み合わせる場合: [ヘッダー][暗号文: packed_len B][GCM 認証タグ: 16B]。\n
+                                       *   POTR_FLAG_PING と組み合わせる場合: [ヘッダー][暗号文: POTR_MAX_PATH B][GCM 認証タグ: 16B]。\n
+                                       *   その他 (NACK/REJECT/FIN): ペイロードなし (平文 0B) の GCM 認証タグのみ (16B)。\n
+                                       *   いずれの場合もヘッダー全体が AAD として認証される。\n
                                        *   Nonce (12B) = session_id (4B NBO) + flags (2B NBO) + seq_or_ack_num (4B NBO) + padding (2B 0x00)。\n
                                        *   flags には本フラグを含んだ実際の送信フラグ値を使用する。\n
                                        *   seq_or_ack_num は DATA/PING/FIN の場合 seq_num、NACK/REJECT の場合 ack_num。 */
@@ -98,6 +98,18 @@
 #define POTR_SEND_QUEUE_DEPTH    1024U  /**< 非同期送信キューの最大エントリ数のデフォルト値。設定ファイルの send_queue_depth で変更可能。メッセージがフラグメント化される場合、1 メッセージが複数エントリを占有する。 */
 #define POTR_PAYLOAD_ELEM_HDR_SIZE  6U  /**< パックコンテナ内ペイロードエレメントのヘッダーサイズ (バイト)。flags (2): POTR_FLAG_MORE_FRAG / POTR_FLAG_COMPRESSED を格納 + payload_len (4): uint32_t (NBO)。通番は外側パケットで管理するためペイロードエレメントには含まない。 */
 #define POTR_MAX_PATH  4U    /**< マルチパスの最大パス数。 */
+/** @} */
+
+/** @defgroup POTR_PING_STATE PING 受信状態 (PING ペイロードの各パスフィールド値)
+ *  @{
+ *  @details
+ *  PING パケットのペイロードに格納するパスごとの PING 受信状態です。\n
+ *  双方向 PING 形態 (UNICAST_BIDIR / UNICAST_BIDIR_N1 / TCP / TCP_BIDIR) では実際の状態を格納します。\n
+ *  片方向 PING 形態 (UNICAST / MULTICAST / BROADCAST / RAW 系) では常に UNDEFINED を格納します。
+ */
+#define POTR_PING_STATE_UNDEFINED  0U /**< 不定: 片方向のため PING を受信しない、またはまだ一度も PING を受信していない。 */
+#define POTR_PING_STATE_NORMAL     1U /**< 正常: 定周期で PING を受信中。 */
+#define POTR_PING_STATE_ABNORMAL   2U /**< 異常: PING タイムアウト (途絶)。 */
 /** @} */
 
 #endif /* PORTER_CONST_H */

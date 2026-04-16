@@ -124,7 +124,9 @@ typedef struct PotrPeerContext_
     int      frag_compressed;/**< 圧縮フラグ (非 0: 圧縮あり)。 */
 
     /* ヘルスチェック */
-    volatile int health_alive;      /**< 疎通状態 (1: alive, 0: dead/未接続)。 */
+    volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。 */
+    volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
+    uint8_t          remote_path_ping_state[POTR_MAX_PATH];/**< 相手端から PING ペイロードで受信した各パス受信状態 (POTR_PING_STATE_*)。 */
     int64_t      last_recv_tv_sec;  /**< 最終受信時刻 秒部 (CLOCK_MONOTONIC)。0 = 未受信。 */
     int32_t      last_recv_tv_nsec; /**< 最終受信時刻 ナノ秒部。 */
     uint32_t     _pad_nack_dedup;   /**< パディング (nack_dedup_buf を 8 バイト境界に揃える)。 */
@@ -172,7 +174,9 @@ struct PotrContext_
 
     volatile int     running[POTR_MAX_PATH];        /**< 受信スレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
     volatile int     health_running[POTR_MAX_PATH]; /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
-    volatile int     health_alive;                  /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
+    volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
+    volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
+    uint8_t          remote_path_ping_state[POTR_MAX_PATH];/**< 相手端から PING ペイロードで受信した各パス受信状態 (POTR_PING_STATE_*)。 */
     PotrRole         role;            /**< 役割 (POTR_ROLE_SENDER / POTR_ROLE_RECEIVER)。 */
 
     /* 解決済みアドレス (各パス分) */

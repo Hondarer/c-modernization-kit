@@ -508,6 +508,7 @@ static void n1_update_path_health(PotrPeerContext *peer, int path_idx)
     peer->last_recv_tv_nsec              = ns;
     peer->path_last_recv_sec[path_idx]   = s;
     peer->path_last_recv_nsec[path_idx]  = ns;
+    peer->path_ping_state[path_idx]      = POTR_PING_STATE_NORMAL;
 }
 
 /* N:1: select() タイムアウト時にヘルスタイムアウトを確認する */
@@ -555,6 +556,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
 
             if (path_elapsed >= (int64_t)ctx->global.health_timeout_ms)
             {
+                ctx->peers[i].path_ping_state[k] = POTR_PING_STATE_ABNORMAL;
                 peer_path_clear(ctx, &ctx->peers[i], k);
             }
         }
@@ -623,8 +625,8 @@ static int recv_authenticate_packet(struct PotrContext_ *ctx,
         return 0;
     }
 
-    if ((pkt->flags & (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
-        == (POTR_FLAG_DATA | POTR_FLAG_ENCRYPTED))
+    if ((pkt->flags & POTR_FLAG_ENCRYPTED)
+        && (pkt->flags & (POTR_FLAG_DATA | POTR_FLAG_PING)))
     {
         uint8_t  nonce[POTR_CRYPTO_NONCE_SIZE];
         size_t   dec_len = ctx->crypto_buf_size;
@@ -947,6 +949,7 @@ static void update_path_health(struct PotrContext_ *ctx, int path_idx)
     get_monotonic(&ctx->last_recv_tv_sec, &ctx->last_recv_tv_nsec);
     get_monotonic(&ctx->path_last_recv_sec[path_idx],
                   &ctx->path_last_recv_nsec[path_idx]);
+    ctx->path_ping_state[path_idx] = POTR_PING_STATE_NORMAL;
 }
 
 /* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。
@@ -990,6 +993,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
 
         if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
         {
+            ctx->path_ping_state[i]    = POTR_PING_STATE_ABNORMAL;
             ctx->peer_port[i]          = 0;
             ctx->path_last_recv_sec[i] = 0;
             /* unicast_bidir で動的学習したアドレス・ポートをリセットする (再接続を許可) */
@@ -1038,6 +1042,8 @@ static void check_health_timeout(struct PotrContext_ *ctx)
             ctx->peer_session_known = 0;
             ctx->reorder_pending    = 0;
             ctx->last_recv_tv_sec   = 0;
+            /* 次の接続到来まで受信状態を不定に戻す */
+            memset((void *)ctx->path_ping_state, POTR_PING_STATE_UNDEFINED, POTR_MAX_PATH);
             window_init(&ctx->recv_window, 0,
                         ctx->global.window_size, ctx->global.max_payload);
         }
@@ -1966,8 +1972,14 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
                 if (pkt.flags & POTR_FLAG_PING)
                 {
-                    /* ヘルスチェックタイムアウト用受信時刻を更新する (PING 限定) */
+                    /* ヘルスチェックタイムアウト用受信時刻と受信状態を更新する (PING 限定) */
                     n1_update_path_health(peer, i);
+
+                    /* PING ペイロード (相手端のパス受信状態) を格納する */
+                    if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
+                    {
+                        memcpy(peer->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
+                    }
 
                     if (pkt.seq_num != peer->recv_window.next_seq
                         && seqnum_in_window(pkt.seq_num,
@@ -2227,8 +2239,14 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
             if (pkt.flags & POTR_FLAG_PING)
             {
-                /* ヘルスチェックタイムアウト用受信時刻を更新する (PING 限定) */
+                /* ヘルスチェックタイムアウト用受信時刻と受信状態を更新する (PING 限定) */
                 update_path_health(ctx, i);
+
+                /* PING ペイロード (相手端のパス受信状態) を格納する */
+                if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
+                {
+                    memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
+                }
 
                 /* PING はウィンドウ外: NACK・再送の対象外。
                    seq_num は送信側の next_seq (消費前) を示す。
@@ -2499,6 +2517,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                              " (%llu ms), disconnecting",
                              ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
+                    ctx->path_ping_state[path_idx] = POTR_PING_STATE_ABNORMAL;
                     break;
                 }
                 continue;
@@ -2567,12 +2586,18 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
         /* 8. パケット種別処理 */
         if (pkt.flags & POTR_FLAG_PING)
         {
-            /* PING 受信: 最終受信時刻を更新する。*/
+            /* PING 受信: 最終受信時刻と受信状態を更新する。*/
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
                      ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
             notify_connected_tcp(ctx);
             ctx->tcp_last_ping_recv_ms[path_idx] = get_ms();
+            ctx->path_ping_state[path_idx]       = POTR_PING_STATE_NORMAL;
+            /* PING ペイロード (相手端のパス受信状態) を格納する */
+            if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
+            {
+                memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
+            }
         }
         else if (pkt.flags & POTR_FLAG_DATA)
         {
