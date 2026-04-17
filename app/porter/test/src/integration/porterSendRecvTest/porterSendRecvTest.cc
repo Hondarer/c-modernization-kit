@@ -214,6 +214,81 @@ static void sleep_ms(unsigned int ms)
 #endif /* PLATFORM_ */
 }
 
+static int pick_free_udp_port()
+{
+#if defined(PLATFORM_LINUX)
+    int                sockfd;
+    struct sockaddr_in addr;
+    socklen_t          addr_len = sizeof(addr);
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0)
+    {
+        return -1;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family      = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port        = htons(0);
+
+    if (::bind(sockfd, (const struct sockaddr *)&addr, sizeof(addr)) != 0)
+    {
+        close(sockfd);
+        return -1;
+    }
+    if (getsockname(sockfd, (struct sockaddr *)&addr, &addr_len) != 0)
+    {
+        close(sockfd);
+        return -1;
+    }
+
+    close(sockfd);
+    return (int)ntohs(addr.sin_port);
+#elif defined(PLATFORM_WINDOWS)
+    WSADATA            wsa;
+    SOCKET             sockfd;
+    struct sockaddr_in addr;
+    int                addr_len = (int)sizeof(addr);
+    int                port;
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
+        return -1;
+    }
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sockfd == INVALID_SOCKET)
+    {
+        WSACleanup();
+        return -1;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family      = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port        = htons(0);
+
+    if (::bind(sockfd, (const struct sockaddr *)&addr, sizeof(addr)) != 0)
+    {
+        closesocket(sockfd);
+        WSACleanup();
+        return -1;
+    }
+    if (getsockname(sockfd, (struct sockaddr *)&addr, &addr_len) != 0)
+    {
+        closesocket(sockfd);
+        WSACleanup();
+        return -1;
+    }
+
+    port = (int)ntohs(addr.sin_port);
+    closesocket(sockfd);
+    WSACleanup();
+    return port;
+#endif /* PLATFORM_ */
+}
+
 class porterSendRecvTest : public Test
 {
   protected:
@@ -280,8 +355,10 @@ TEST_F(porterSendRecvTest, send_single_message)
     // Arrange
     // 設定ファイルを動的生成 (ポート 19010 を使用)
     PorterConfigBuilder cfg;
+    int                 port = pick_free_udp_port();
+    ASSERT_GT(port, 0);
     string config_path =
-        cfg.addUnicastService(10, 19010)
+        cfg.addUnicastService(10, port)
             .build(); // [状態] - 127.0.0.1 で ポート 19010 を送受信に利用する unicast サービスを定義する。
 
     // RECIEVER を先に起動してリスナー確立を待つ
@@ -316,14 +393,14 @@ TEST_F(porterSendRecvTest, send_single_message)
                                   3000)); // [手順] - SENDER が "続けて送信しますか" を出力するまで待機する。
     // [確認] - SENDER が "続けて送信しますか" を出力すること。
 
-    writeLineStdin(send_h_, "N"); // [手順] - SENDER に "N" を入力する。
-
-    int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
-
     ASSERT_NO_THROW(
         waitForOutput(recv_h_, "Hello Porter", 3000)); // [手順] - RECIEVER が "Hello Porter" を出力するまで待機する。
     ASSERT_NO_THROW(
         waitForOutput(recv_h_, "受信 (12 バイト)", 3000)); // [手順] - RECIEVER が受信バイト数を出力するまで待機する。
+
+    writeLineStdin(send_h_, "N"); // [手順] - SENDER に "N" を入力する。
+
+    int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
 
     // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
@@ -844,8 +921,10 @@ TEST_F(porterSendRecvTest, send_binary_file_and_recv_saves)
 {
     // Arrange
     PorterConfigBuilder cfg;
+    int                 port = pick_free_udp_port();
+    ASSERT_GT(port, 0);
     string config_path =
-        cfg.addUnicastService(10, 19013)
+        cfg.addUnicastService(10, port)
             .build(); // [状態] - 127.0.0.1 で ポート 19013 を送受信に利用する unicast サービスを定義する。
 
     // バイナリファイルを作成する (NUL バイトを含むデータ)
@@ -889,12 +968,12 @@ TEST_F(porterSendRecvTest, send_binary_file_and_recv_saves)
     ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか",
                                   3000)); // [手順] - SENDER が "続けて送信しますか" を出力するまで待機する。
 
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "バイナリデータを保存しました", 3000)); // [手順] - RECIEVER が保存メッセージを出力するまで待機する。
+
     writeLineStdin(send_h_, "N"); // [手順] - SENDER に "N" を入力する。
 
     int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
-
-    ASSERT_NO_THROW(
-        waitForOutput(recv_h_, "バイナリデータを保存しました", 3000)); // [手順] - RECIEVER が保存メッセージを出力するまで待機する。
 
     // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
@@ -914,8 +993,10 @@ TEST_F(porterSendRecvTest, send_text_still_displays_as_text)
 {
     // Arrange
     PorterConfigBuilder cfg;
+    int                 port = pick_free_udp_port();
+    ASSERT_GT(port, 0);
     string config_path =
-        cfg.addUnicastService(10, 19014)
+        cfg.addUnicastService(10, port)
             .build(); // [状態] - 127.0.0.1 で ポート 19014 を送受信に利用する unicast サービスを定義する。
 
     // RECIEVER を先に起動してリスナー確立を待つ
@@ -947,12 +1028,12 @@ TEST_F(porterSendRecvTest, send_text_still_displays_as_text)
     ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか",
                                   3000)); // [手順] - SENDER が "続けて送信しますか" を出力するまで待機する。
 
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "Hello Text", 3000)); // [手順] - RECIEVER が "Hello Text" を出力するまで待機する。
+
     writeLineStdin(send_h_, "N"); // [手順] - SENDER に "N" を入力する。
 
     int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
-
-    ASSERT_NO_THROW(
-        waitForOutput(recv_h_, "Hello Text", 3000)); // [手順] - RECIEVER が "Hello Text" を出力するまで待機する。
 
     // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
