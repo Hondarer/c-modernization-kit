@@ -430,6 +430,81 @@ TEST_F(porterSendRecvTest, recv_exits_cleanly_on_sigint)
               getStdout(recv_h_).find("終了しました")); // [確認] - RECIEVER が "終了しました" を出力していること。
 }
 
+// 片方向 unicast で PING 無効でも初回 DATA 受信で CONNECTED と DATA 配信が成立することを確認する
+TEST_F(porterSendRecvTest, unicast_initial_data_establishes_connected_without_ping)
+{
+    PorterConfigBuilder cfg;
+    string config_path =
+        cfg.setUdpHealthIntervalMs(0)
+            .setUdpHealthTimeoutMs(1200)
+            .addUnicastService(11, 19016)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "11"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(11, 0x4101U, 1200, 3400, 0U, "data-connect-ok"),
+                     19016));
+
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "data-connect-ok", 3000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_NE(string::npos, recv_out.find("接続確立"));
+        EXPECT_NE(string::npos, recv_out.find("data-connect-ok"));
+    }
+}
+
+// 片方向 unicast で PING 無効時も有効 DATA の継続受信で health timeout が延長されることを確認する
+TEST_F(porterSendRecvTest, unicast_data_resets_health_timeout_without_ping)
+{
+    PorterConfigBuilder cfg;
+    string config_path =
+        cfg.setUdpHealthIntervalMs(0)
+            .setUdpHealthTimeoutMs(900)
+            .addUnicastService(12, 19017)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "12"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(12, 0x4102U, 2200, 4500, 0U, "timeout-reset-1"),
+                     19017));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "timeout-reset-1", 3000));
+
+    sleep_ms(450);
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("切断検知"));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(12, 0x4102U, 2200, 4500, 1U, "timeout-reset-2"),
+                     19017));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "timeout-reset-2", 3000));
+
+    sleep_ms(550);
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("切断検知"));
+
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "切断検知", 2000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_NE(string::npos, recv_out.find("接続確立"));
+        EXPECT_NE(string::npos, recv_out.find("timeout-reset-1"));
+        EXPECT_NE(string::npos, recv_out.find("timeout-reset-2"));
+        EXPECT_NE(string::npos, recv_out.find("切断検知"));
+    }
+}
+
 // unicast_bidir 双方向通信テスト
 TEST_F(porterSendRecvTest, bidir_echo)
 {

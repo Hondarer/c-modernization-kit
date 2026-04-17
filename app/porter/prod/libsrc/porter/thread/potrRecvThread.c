@@ -65,6 +65,7 @@ static int set_all_path_ping_states(volatile uint8_t *states,
                                     uint8_t           next_state);
 static void wake_udp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed);
 static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed);
+static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
 
 #if defined(PLATFORM_LINUX)
     typedef pthread_mutex_t PotrMutexLocal;
@@ -494,24 +495,14 @@ static void n1_update_path_recv(PotrPeerContext          *peer,
     }
 }
 
-/* N:1: パスごとのヘルスチェックタイムアウト用受信時刻を更新する。PING 受信時のみ呼ぶこと。 */
+/* N:1: パスごとのヘルスチェック受信時刻と受信状態を更新する。
+   type 8 では PING のみをヘルス信号として扱うため、PING 受信時のみ呼ぶこと。 */
 static int n1_update_path_health(PotrPeerContext *peer, int path_idx)
 {
-#if defined(PLATFORM_LINUX)
-    struct timespec ts;
-    int64_t         s;
-    int32_t         ns;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    s  = (int64_t)ts.tv_sec;
-    ns = (int32_t)ts.tv_nsec;
-#elif defined(PLATFORM_WINDOWS)
-    ULONGLONG ms;
-    int64_t   s;
-    int32_t   ns;
-    ms = GetTickCount64();
-    s  = (int64_t)(ms / 1000ULL);
-    ns = (int32_t)((ms % 1000ULL) * 1000000UL);
-#endif /* PLATFORM_ */
+    int64_t s;
+    int32_t ns;
+
+    get_monotonic(&s, &ns);
     peer->last_recv_tv_sec               = s;
     peer->last_recv_tv_nsec              = ns;
     peer->path_last_recv_sec[path_idx]   = s;
@@ -1010,7 +1001,8 @@ static void update_path_recv(struct PotrContext_      *ctx,
     }
 }
 
-/* パスごとのヘルスチェックタイムアウト用受信時刻を更新する。PING 受信時のみ呼ぶこと。 */
+/* パスごとのヘルスチェック受信時刻と受信状態を更新する。
+   片方向 type 1-6 では PING / 有効 DATA、双方向 type 7 では PING 受信時のみ呼ぶこと。 */
 static int update_path_health(struct PotrContext_ *ctx, int path_idx)
 {
     get_monotonic(&ctx->last_recv_tv_sec, &ctx->last_recv_tv_nsec);
@@ -1460,7 +1452,13 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
 {
     /* 未接続状態では DATA を破棄する。接続確立前/DISCONNECTED 後の DATA が
        アプリに届かないようにする。CONNECTED 発火は health_alive=1 への遷移で行う。 */
-    if (!ctx->health_alive) return;
+    if (!ctx->health_alive)
+    {
+        POTR_LOG(POTR_TRACE_VERBOSE,
+                 "recv[service_id=%" PRId64 "]: drop DATA elem while health_alive=0",
+                 ctx->service.service_id);
+        return;
+    }
 
     if (elem->flags & POTR_FLAG_MORE_FRAG)
     {
@@ -1597,7 +1595,8 @@ static void raw_session_disconnect(struct PotrContext_ *ctx)
    RAW モードでは NACK を送信せず、ギャップ検出時は DISCONNECTED を発行してウィンドウを
    新しい基点通番でリセットする。 */
 static void process_outer_pkt(struct PotrContext_ *ctx,
-                               const PotrPacket    *pkt)
+                              const PotrPacket    *pkt,
+                              int                  path_idx)
 {
     uint32_t nack_num;
     uint32_t stretch;
@@ -1689,6 +1688,18 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
     {
         /* 欠番なし: 待機中の欠番が埋まった (または元から欠番なし) */
         ctx->reorder_pending = 0;
+    }
+
+    /* 片方向 type 1-6 では、有効な DATA を PING と同等のヘルス信号として扱う。
+       push 成功後に更新することで、重複・範囲外 DATA は health に反映しない。 */
+    if ((pkt->flags & POTR_FLAG_DATA)
+        && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
+    {
+        POTR_LOG(POTR_TRACE_VERBOSE,
+                 "recv[service_id=%" PRId64 "]: DATA seq=%u updates health on path=%d",
+                 ctx->service.service_id, (unsigned)pkt->seq_num, path_idx);
+        update_path_health(ctx, path_idx);
+        notify_health_alive(ctx);
     }
 
     drain_recv_window(ctx);
@@ -2431,7 +2442,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
             {
                 /* DATA: ウィンドウ経由で順序整列・配信 (RAW モードも同じ経路。
                    RAW モードではギャップ検出時に NACK の代わりに DISCONNECTED を発行する)。 */
-                process_outer_pkt(ctx, &pkt);
+                process_outer_pkt(ctx, &pkt, i);
             }
         }
     }

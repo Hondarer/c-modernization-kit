@@ -20,7 +20,7 @@
 | `-1` | `POTR_ERROR` | その他のエラー（NULL ハンドルなど） |
 
 `POTR_ERROR_DISCONNECTED` は「送信先が論理的に CONNECTED していない」ことを示します。
-片方向 type 1-6 は送信側が CONNECTED を観測できないため、現状実装ではこの戻り値の対象外です。
+片方向 type 1-6 は受信側が有効な `PING` または `DATA` を契機に CONNECTED しますが、送信側はその状態を観測できないため、本戻り値の対象外です。
 
 ヘッダ定義と引数条件の正本は `prod/porter/include/porter.h` および Doxygen 出力を参照してください。
 
