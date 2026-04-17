@@ -6,4 +6,4 @@ TEST_SRCS := \
 INCDIR += $(MYAPP_DIR)/prod/libsrc/porter/protocol
 
 # ライブラリの指定
-LIBS += mock_potrLog mock_libc
+LIBS += mock_porter mock_libc

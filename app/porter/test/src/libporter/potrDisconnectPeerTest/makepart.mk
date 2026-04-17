@@ -6,4 +6,4 @@ TEST_SRCS := \
 INCDIR += $(MYAPP_DIR)/prod/libsrc/porter/api
 
 # ライブラリの指定
-LIBS += mock_potrLog mock_potrPeerTable
+LIBS += mock_porter

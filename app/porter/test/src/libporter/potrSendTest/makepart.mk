@@ -9,4 +9,4 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/libsrc/porter/infra
 
 # ライブラリの指定
-LIBS += mock_potrLog mock_potrPeerTable mock_libc
+LIBS += mock_porter mock_libc
