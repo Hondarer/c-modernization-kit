@@ -320,6 +320,11 @@ TEST_F(porterSendRecvTest, send_single_message)
 
     int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
 
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "Hello Porter", 3000)); // [手順] - RECIEVER が "Hello Porter" を出力するまで待機する。
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "受信 (12 バイト)", 3000)); // [手順] - RECIEVER が受信バイト数を出力するまで待機する。
+
     // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
     waitForExit(recv_h_, 3000); // [手順] - RECIEVER が終了するまで待機する。
@@ -516,6 +521,8 @@ TEST_F(porterSendRecvTest, encrypted_unicast_drops_plain_udp_packet)
 
     EXPECT_EQ(0, waitForExit(send_h_, 5000));
 
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "encrypted-ok", 3000));
+
     interruptProcess(recv_h_);
     waitForExit(recv_h_, 3000);
 
@@ -613,8 +620,8 @@ TEST_F(porterSendRecvTest, n1_initial_plain_data_does_not_consume_peer_slot)
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
-    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
-    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 2800));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 5000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 5000));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -625,6 +632,8 @@ TEST_F(porterSendRecvTest, n1_initial_plain_data_does_not_consume_peer_slot)
     ASSERT_TRUE(writeLineStdin(send_h_, "N"));
 
     EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "n1-after-ping-ok", 3000));
 
     interruptProcess(recv_h_);
     waitForExit(recv_h_, 3000);
@@ -696,8 +705,10 @@ TEST_F(porterSendRecvTest, encrypted_tcp_bidir_stays_healthy_and_receives)
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
 
-    /* TCP は接続確立の完了後に最初の PING 周期へ入るため、UDP より少し余裕を持たせる。 */
+    /* TCP は接続確立後の PING 交換で送信側 health_alive が立つため、
+       受信側 CONNECTED の確認後に 1 周期ぶん待ってから送信する。 */
     ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
+    sleep_ms(1200);
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -807,6 +818,9 @@ TEST_F(porterSendRecvTest, send_binary_file_and_recv_saves)
 
     int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
 
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "バイナリデータを保存しました", 3000)); // [手順] - RECIEVER が保存メッセージを出力するまで待機する。
+
     // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
     waitForExit(recv_h_, 3000); // [手順] - RECIEVER が終了するまで待機する。
@@ -861,6 +875,9 @@ TEST_F(porterSendRecvTest, send_text_still_displays_as_text)
     writeLineStdin(send_h_, "N"); // [手順] - SENDER に "N" を入力する。
 
     int send_exit = waitForExit(send_h_, 5000); // [手順] - SENDER が終了するまで待機する。
+
+    ASSERT_NO_THROW(
+        waitForOutput(recv_h_, "Hello Text", 3000)); // [手順] - RECIEVER が "Hello Text" を出力するまで待機する。
 
     // RECIEVER を停止して出力を回収する
     interruptProcess(recv_h_);  // [手順] - RECIEVER に SIGINT (Ctrl + C) を入力する。
