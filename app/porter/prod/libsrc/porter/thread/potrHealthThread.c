@@ -151,7 +151,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
     while (ctx->health_running[0])
     {
-        health_sleep(ctx, 0, ctx->global.health_interval_ms);
+        health_sleep(ctx, 0, ctx->health_interval_ms);
 
         if (!ctx->health_running[0]) break;
 
@@ -396,7 +396,7 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
         int        build_result;
 
         /* 固定間隔でスリープ */
-        health_sleep(ctx, path_idx, ctx->global.health_interval_ms);
+        health_sleep(ctx, path_idx, ctx->health_interval_ms);
 
         if (!ctx->health_running[path_idx]) break;
 
@@ -524,14 +524,14 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *
  *  @details
- *  ctx->global.health_interval_ms が 0 の場合は起動しません (POTR_SUCCESS を返します)。
+ *  ctx->health_interval_ms が 0 の場合は起動しません (POTR_SUCCESS を返します)。
  *******************************************************************************
  */
 int potr_health_thread_start(struct PotrContext_ *ctx)
 {
     if (ctx == NULL) { return POTR_ERROR; }
 
-    if (ctx->global.health_interval_ms == 0)
+    if (ctx->health_interval_ms == 0)
     {
         POTR_LOG(POTR_TRACE_VERBOSE,
                  "health_thread[service_id=%" PRId64 "]: disabled (health_interval_ms=0)",
@@ -542,7 +542,7 @@ int potr_health_thread_start(struct PotrContext_ *ctx)
     POTR_LOG(POTR_TRACE_VERBOSE,
              "health_thread[service_id=%" PRId64 "]: starting (interval=%ums)",
              ctx->service.service_id,
-             (unsigned)ctx->global.health_interval_ms);
+             (unsigned)ctx->health_interval_ms);
 
 #if defined(PLATFORM_LINUX)
     pthread_mutex_init(&ctx->health_mutex[0], NULL);
@@ -632,14 +632,14 @@ void potr_health_thread_wake(struct PotrContext_ *ctx)
  *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
  *
  *  @details
- *  ctx->global.health_interval_ms が 0 の場合は起動しません (POTR_SUCCESS を返します)。
+ *  ctx->health_interval_ms が 0 の場合は起動しません (POTR_SUCCESS を返します)。
  *******************************************************************************
  */
 int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx)
 {
     if (ctx == NULL) { return POTR_ERROR; }
 
-    if (ctx->global.health_interval_ms == 0)
+    if (ctx->health_interval_ms == 0)
     {
         POTR_LOG(POTR_TRACE_VERBOSE,
                  "tcp_health_thread[service_id=%" PRId64 " path=%d]: disabled",

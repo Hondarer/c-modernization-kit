@@ -177,13 +177,13 @@ typedef struct
 {
     uint16_t window_size;             /**< スライディングウィンドウサイズ (パケット数)。 */
     uint16_t max_payload;             /**< 最大ペイロード長 (バイト)。 */
-    uint32_t health_interval_ms;      /**< UDP 通信種別の PING 送信間隔 (ミリ秒)。設定周期ごとに PING を送信する。0 = 無効。設定ファイルキー: udp_health_interval_ms。 */
-    uint32_t health_timeout_ms;       /**< UDP 通信種別の受信タイムアウト (ミリ秒)。RECEIVER 側で使用。0 = 無効。設定ファイルキー: udp_health_timeout_ms。 */
     uint32_t reorder_timeout_ms;      /**< 受信ウィンドウ欠番検出後、NACK または切断を遅延する時間 (ミリ秒)。マルチパスや近距離 WAN での追い越し吸収用。0 = 即時 (デフォルト)。推奨値: LAN/マルチパス=10〜30 ms、遠距離 WAN=30〜100 ms。 */
     uint32_t max_message_size;        /**< 1 回の potrSend で送信できる最大メッセージ長 (バイト)。デフォルト: POTR_MAX_MESSAGE_SIZE。 */
     uint32_t send_queue_depth;        /**< 非同期送信キューの最大エントリ数。デフォルト: POTR_SEND_QUEUE_DEPTH。 */
-    uint32_t tcp_health_interval_ms;  /**< TCP 通信種別の PING 送信間隔 (ミリ秒)。設定周期ごとに PING を送信する。0 = 無効。設定ファイルキー: tcp_health_interval_ms。 */
-    uint32_t tcp_health_timeout_ms;   /**< TCP 通信種別の PING 応答待機タイムアウト (ミリ秒)。SENDER 側で使用。0 = 無効。設定ファイルキー: tcp_health_timeout_ms。 */
+    uint32_t udp_health_interval_ms;  /**< UDP 通信種別の既定 PING 送信間隔 (ミリ秒)。設定周期ごとに PING を送信する。0 = 無効。設定ファイルキー: udp_health_interval_ms。 */
+    uint32_t udp_health_timeout_ms;   /**< UDP 通信種別の既定 PING 応答待機タイムアウト (ミリ秒)。0 = 無効。設定ファイルキー: udp_health_timeout_ms。 */
+    uint32_t tcp_health_interval_ms;  /**< TCP 通信種別の既定 PING 送信間隔 (ミリ秒)。設定周期ごとに PING を送信する。0 = 無効。設定ファイルキー: tcp_health_interval_ms。 */
+    uint32_t tcp_health_timeout_ms;   /**< TCP 通信種別の既定 PING 応答待機タイムアウト (ミリ秒)。0 = 無効。設定ファイルキー: tcp_health_timeout_ms。 */
 } PotrGlobalConfig;
 
 /**

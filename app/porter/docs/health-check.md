@@ -26,8 +26,8 @@ porter フレームワークにおける PotrType ごとの PING 送出ロジッ
 ## 設定パラメータ
 
 ```text
-health_interval_ms     : UDP 系 PING 送信間隔 (ms)。0 = 無効。
-health_timeout_ms      : UDP 系タイムアウト (ms)。RECEIVER 側で判定。0 = 無効。
+udp_health_interval_ms : UDP 系 PING 送信間隔 (ms)。0 = 無効。
+udp_health_timeout_ms  : UDP 系タイムアウト (ms)。RECEIVER 側で判定。0 = 無効。
 tcp_health_interval_ms : TCP 系 PING 送信間隔 (ms)。0 = 無効。
 tcp_health_timeout_ms  : TCP 系 PING 受信タイムアウト (ms)。両端で判定。0 = 無効。
 ```
@@ -78,7 +78,7 @@ PING パケットのペイロードには自端の各パス PING 受信状態を
 
 TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED を発火しない。PING の受信と内容確認を経て初めて CONNECTED となる。
 
-PING ヘルスチェックが無効 (`health_interval_ms = 0` または `tcp_health_interval_ms = 0`) の場合、PING が送出されないため CONNECTED が発火しない。
+PING ヘルスチェックが無効 (通信種別とサービス上書きを解決した最終的な `health_interval_ms = 0`) の場合、PING が送出されないため CONNECTED が発火しない。
 
 双方向通信では、以下の順序でハンドシェイクが完了して CONNECTED が発火する。
 
@@ -143,7 +143,7 @@ PING ヘルスチェックが無効 (`health_interval_ms = 0` または `tcp_hea
 - type 8: `n1_deliver_payload_elem()` が `peer->health_alive == 0` の間 `DATA` を破棄する
 - したがって、アプリコールバックとして `POTR_EVENT_CONNECTED` 前に `POTR_EVENT_DATA` は発火しない
 
-`health_interval_ms = 0` または `tcp_health_interval_ms = 0` の場合は CONNECTED が成立しないため、`POTR_EVENT_DATA` も発火しない。
+通信種別とサービス上書きを解決した最終的な `health_interval_ms = 0` の場合は CONNECTED が成立しないため、`POTR_EVENT_DATA` も発火しない。
 
 ## UDP 系ヘルスチェック
 
@@ -198,7 +198,7 @@ N:1 モード:
 `potrHealthThread.c` の `tcp_health_thread_func()` がパスごと (`path_idx`) に独立して起動する。TCP では SENDER / RECEIVER を問わず全ロールで起動する。TCP 接続確立直後にヘルススレッドが起動するとき、最初のスリープをスキップして即座に PING を送出する。`path_ping_state[]` が変化した場合は全 tcp_health スレッドを即時起床させ、到達可能な path から更新済み状態ベクトルを通知する。
 
 1. `tcp_conn_fd[path_idx]` で接続を確認してから PING パケットを送信する。
-2. `global.health_interval_ms` 周期で送信する (サービスオープン時に `tcp_health_interval_ms` からコピー済み)。
+2. `ctx->health_interval_ms` 周期で送信する。
 
 ### タイムアウト検出 (recv スレッド)
 
@@ -206,7 +206,7 @@ UDP 系と同様に受信スレッドが判定する。TCP の両端がそれぞ
 
 1. 受信ループは `tcp_wait_readable()` で最大 `min(health_timeout_ms, 1000)` ms 待機する。
 2. PING を受信するたびに `tcp_last_ping_recv_ms[path_idx]` を現在時刻で更新する。
-3. `get_ms() - tcp_last_ping_recv_ms[path_idx] > global.health_timeout_ms` を超過するとタイムアウトと判定する。
+3. `get_ms() - tcp_last_ping_recv_ms[path_idx] > ctx->health_timeout_ms` を超過するとタイムアウトと判定する。
 4. タイムアウト時はそのパスのソケットを `shutdown()` / `close()` し、`tcp_conn_fd[path_idx]` を `POTR_INVALID_SOCKET` にする。
 5. connect スレッド (`potrConnectThread.c`) が `tcp_active_paths` をデクリメントして再接続ループに入る。
 

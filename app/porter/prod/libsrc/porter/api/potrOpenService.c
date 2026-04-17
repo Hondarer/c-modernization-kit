@@ -570,20 +570,25 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         return POTR_ERROR;
     }
 
-    /* TCP 型: グローバルヘルス設定を TCP 専用値で上書きする。
-       サービスレベル設定 (0 以外) はさらにそれを上書きする。 */
+    /* 通信種別ごとのグローバル既定値を選び、サービス単位設定で実効値を上書きする。 */
     if (potr_is_tcp_type(ctx->service.type))
     {
-        ctx->global.health_interval_ms = ctx->global.tcp_health_interval_ms;
-        ctx->global.health_timeout_ms  = ctx->global.tcp_health_timeout_ms;
+        ctx->health_interval_ms = ctx->global.tcp_health_interval_ms;
+        ctx->health_timeout_ms  = ctx->global.tcp_health_timeout_ms;
     }
+    else
+    {
+        ctx->health_interval_ms = ctx->global.udp_health_interval_ms;
+        ctx->health_timeout_ms  = ctx->global.udp_health_timeout_ms;
+    }
+
     if (ctx->service.health_interval_ms != 0U)
     {
-        ctx->global.health_interval_ms = ctx->service.health_interval_ms;
+        ctx->health_interval_ms = ctx->service.health_interval_ms;
     }
     if (ctx->service.health_timeout_ms != 0U)
     {
-        ctx->global.health_timeout_ms = ctx->service.health_timeout_ms;
+        ctx->health_timeout_ms = ctx->service.health_timeout_ms;
     }
 
     POTR_LOG(POTR_TRACE_VERBOSE,
@@ -593,8 +598,8 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
              ctx->service.service_id, (int)ctx->service.type,
              (unsigned)ctx->global.window_size, (unsigned)ctx->global.max_payload,
              (unsigned)ctx->global.max_message_size, (unsigned)ctx->global.send_queue_depth,
-             (unsigned)ctx->global.health_interval_ms,
-             (unsigned)ctx->global.health_timeout_ms);
+             (unsigned)ctx->health_interval_ms,
+             (unsigned)ctx->health_timeout_ms);
 
     /* 通信種別に応じてソケットを作成 (RAW 型はベース型に正規化してから判定) */
     switch (potr_raw_base_type(ctx->service.type))

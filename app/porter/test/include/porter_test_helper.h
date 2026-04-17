@@ -154,8 +154,8 @@ public:
         fprintf(f, "[global]\n");
         fprintf(f, "window_size             = 16\n");
         fprintf(f, "max_payload             = 1400\n");
-        fprintf(f, "health_interval_ms      = %u\n", udp_health_interval_ms_);
-        fprintf(f, "health_timeout_ms       = %u\n", udp_health_timeout_ms_);
+        fprintf(f, "udp_health_interval_ms  = %u\n", udp_health_interval_ms_);
+        fprintf(f, "udp_health_timeout_ms   = %u\n", udp_health_timeout_ms_);
         fprintf(f, "tcp_health_interval_ms  = %u\n", tcp_health_interval_ms_);
         fprintf(f, "tcp_health_timeout_ms   = %u\n", tcp_health_timeout_ms_);
         fprintf(f, "\n");

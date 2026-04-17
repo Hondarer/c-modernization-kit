@@ -108,6 +108,10 @@ extern "C"
         PotrGlobalConfig global = {0};
         global.window_size        = 16;
         global.max_payload        = 1400;
+        global.udp_health_interval_ms = 3000;
+        global.udp_health_timeout_ms  = 10000;
+        global.tcp_health_interval_ms = 10000;
+        global.tcp_health_timeout_ms  = 31000;
         global.max_message_size   = 65535;
         global.send_queue_depth   = 64;
 
@@ -131,6 +135,10 @@ extern "C"
         PotrGlobalConfig global = {0};
         global.window_size        = 16;
         global.max_payload        = 1400;
+        global.udp_health_interval_ms = 3000;
+        global.udp_health_timeout_ms  = 10000;
+        global.tcp_health_interval_ms = 10000;
+        global.tcp_health_timeout_ms  = 31000;
         global.max_message_size   = 65535;
         global.send_queue_depth   = 64;
 

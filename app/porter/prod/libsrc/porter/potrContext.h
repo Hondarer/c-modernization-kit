@@ -190,7 +190,9 @@ struct PotrContext_
     PotrMutex        health_mutex[POTR_MAX_PATH];      /**< ヘルスチェックスレッド停止用ミューテックス (path ごと)。 */
     PotrCondVar      health_wakeup[POTR_MAX_PATH];     /**< ヘルスチェックスレッドを即時起床させる条件変数 (path ごと)。 */
     PotrServiceDef   service;      /**< サービス定義。 */
-    PotrGlobalConfig global;       /**< グローバル設定。 */
+    PotrGlobalConfig global;       /**< プロトコル別のグローバル既定値。 */
+    uint32_t         health_interval_ms; /**< 通信種別とサービス上書きを解決した実効 PING 送信間隔。 */
+    uint32_t         health_timeout_ms;  /**< 通信種別とサービス上書きを解決した実効受信タイムアウト。 */
     PotrWindow       send_window;       /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
     PotrMutex        send_window_mutex; /**< send_window 保護用ミューテックス (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合するため)。 */
     PotrWindow       recv_window;       /**< 受信ウィンドウ (順序整列・欠番検出)。 */

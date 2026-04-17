@@ -542,7 +542,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
     int k;
     int should_wake_health = 0;
 
-    if (ctx->global.health_timeout_ms == 0) return;
+    if (ctx->health_timeout_ms == 0) return;
 
     POTR_MUTEX_LOCK_LOCAL(&ctx->peers_mutex);
 
@@ -564,7 +564,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
             path_elapsed = (now_sec  - ctx->peers[i].path_last_recv_sec[k])  * 1000LL
                          + (now_nsec - ctx->peers[i].path_last_recv_nsec[k]) / 1000000L;
 
-            if (path_elapsed >= (int64_t)ctx->global.health_timeout_ms)
+            if (path_elapsed >= (int64_t)ctx->health_timeout_ms)
             {
                 should_wake_health |= set_path_ping_state(&ctx->peers[i].path_ping_state[k],
                                                           POTR_PING_STATE_ABNORMAL);
@@ -578,7 +578,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
         elapsed_ms = (now_sec  - ctx->peers[i].last_recv_tv_sec)  * 1000LL
                    + (now_nsec - ctx->peers[i].last_recv_tv_nsec) / 1000000L;
 
-        if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
+        if (elapsed_ms >= (int64_t)ctx->health_timeout_ms)
         {
             PotrPeerId dead_id = ctx->peers[i].peer_id;
 
@@ -1046,7 +1046,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
     int     i;
     int     should_wake_health = 0;
 
-    if (ctx->global.health_timeout_ms == 0) return;
+    if (ctx->health_timeout_ms == 0) return;
 
     get_monotonic(&now_sec, &now_nsec);
 
@@ -1060,7 +1060,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
         elapsed_ms = (now_sec  - ctx->path_last_recv_sec[i])  * 1000LL
                    + (now_nsec - ctx->path_last_recv_nsec[i]) / 1000000L;
 
-        if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
+        if (elapsed_ms >= (int64_t)ctx->health_timeout_ms)
         {
             should_wake_health |= set_path_ping_state(&ctx->path_ping_state[i],
                                                       POTR_PING_STATE_ABNORMAL);
@@ -1091,14 +1091,14 @@ static void check_health_timeout(struct PotrContext_ *ctx)
         elapsed_ms = (now_sec  - ctx->last_recv_tv_sec)  * 1000LL
                    + (now_nsec - ctx->last_recv_tv_nsec) / 1000000L;
 
-        if (elapsed_ms >= (int64_t)ctx->global.health_timeout_ms)
+        if (elapsed_ms >= (int64_t)ctx->health_timeout_ms)
         {
             ctx->health_alive = 0;
             POTR_LOG(POTR_TRACE_WARNING,
                      "recv[service_id=%" PRId64 "]: DISCONNECTED (timeout %lldms >= %ums)",
                      ctx->service.service_id,
                      (long long)elapsed_ms,
-                     (unsigned)ctx->global.health_timeout_ms);
+                     (unsigned)ctx->health_timeout_ms);
             if (ctx->callback != NULL)
             {
                 ctx->callback(ctx->service.service_id, POTR_PEER_NA,
@@ -1731,9 +1731,9 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
     uint32_t            poll_ms;
 
     if ((ctx->role == POTR_ROLE_RECEIVER || ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
-        && ctx->global.health_timeout_ms > 0U)
+        && ctx->health_timeout_ms > 0U)
     {
-        poll_ms = ctx->global.health_timeout_ms / 3U;
+        poll_ms = ctx->health_timeout_ms / 3U;
         if (poll_ms < 100U) poll_ms = 100U;
     }
     else
@@ -2547,11 +2547,11 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
     /* PING 受信タイムアウト監視を使用するか判定する。
      * 全ロール (SENDER / RECEIVER / BIDIR) で両端が PING を送信するため、
      * health_timeout_ms が設定されていれば常に監視する。 */
-    int      use_recv_timeout = (ctx->global.health_timeout_ms > 0);
+    int      use_recv_timeout = (ctx->health_timeout_ms > 0);
     /* ポーリング間隔: 1 秒単位でチェックし、health_timeout_ms を超えないようにする。 */
     uint32_t poll_ms = use_recv_timeout
-                       ? (ctx->global.health_timeout_ms < 1000U
-                          ? ctx->global.health_timeout_ms
+                       ? (ctx->health_timeout_ms < 1000U
+                          ? ctx->health_timeout_ms
                           : 1000U)
                        : 0U;
 
@@ -2602,7 +2602,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                 /* ポーリングタイムアウト: PING 受信時刻を確認する */
                 uint64_t last    = ctx->tcp_last_ping_recv_ms[path_idx];
                 uint64_t elapsed = get_ms() - last;
-                if (last > 0 && elapsed > (uint64_t)ctx->global.health_timeout_ms)
+                if (last > 0 && elapsed > (uint64_t)ctx->health_timeout_ms)
                 {
                     POTR_LOG(POTR_TRACE_WARNING,
                              "tcp_recv[service_id=%" PRId64 " path=%d]: PING timeout"

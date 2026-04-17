@@ -175,13 +175,13 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     /* デフォルト値で初期化 */
     global->window_size           = (uint16_t)POTR_DEFAULT_WINDOW_SIZE;
     global->max_payload           = (uint16_t)POTR_DEFAULT_MAX_PAYLOAD;
-    global->health_interval_ms    = (uint32_t)POTR_DEFAULT_HEALTH_INTERVAL_MS;
-    global->health_timeout_ms     = (uint32_t)POTR_DEFAULT_HEALTH_TIMEOUT_MS;
     global->reorder_timeout_ms    = 0U;
     global->max_message_size      = (uint32_t)POTR_MAX_MESSAGE_SIZE;
     global->send_queue_depth      = (uint32_t)POTR_SEND_QUEUE_DEPTH;
-    global->tcp_health_interval_ms = 10000U;
-    global->tcp_health_timeout_ms  = 31000U;
+    global->udp_health_interval_ms = (uint32_t)POTR_DEFAULT_UDP_HEALTH_INTERVAL_MS;
+    global->udp_health_timeout_ms  = (uint32_t)POTR_DEFAULT_UDP_HEALTH_TIMEOUT_MS;
+    global->tcp_health_interval_ms = (uint32_t)POTR_DEFAULT_TCP_HEALTH_INTERVAL_MS;
+    global->tcp_health_timeout_ms  = (uint32_t)POTR_DEFAULT_TCP_HEALTH_TIMEOUT_MS;
 
     fp = open_config_file_read(config_path);
     if (fp == NULL)
@@ -246,16 +246,13 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         {
             global->max_payload = (uint16_t)atoi(val);
         }
-        else if (strcmp(key, "health_interval_ms") == 0 ||
-                 strcmp(key, "udp_health_interval_ms") == 0)
+        else if (strcmp(key, "udp_health_interval_ms") == 0)
         {
-            /* 旧キー health_interval_ms は UDP 用として継続サポート */
-            global->health_interval_ms = (uint32_t)atoi(val);
+            global->udp_health_interval_ms = (uint32_t)atoi(val);
         }
-        else if (strcmp(key, "health_timeout_ms") == 0 ||
-                 strcmp(key, "udp_health_timeout_ms") == 0)
+        else if (strcmp(key, "udp_health_timeout_ms") == 0)
         {
-            global->health_timeout_ms = (uint32_t)atoi(val);
+            global->udp_health_timeout_ms = (uint32_t)atoi(val);
         }
         else if (strcmp(key, "tcp_health_interval_ms") == 0)
         {
@@ -285,7 +282,7 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
              "udp_health=%u/%u tcp_health=%u/%u reorder_timeout_ms=%u",
              (unsigned)global->window_size, (unsigned)global->max_payload,
              (unsigned)global->max_message_size, (unsigned)global->send_queue_depth,
-             (unsigned)global->health_interval_ms, (unsigned)global->health_timeout_ms,
+             (unsigned)global->udp_health_interval_ms, (unsigned)global->udp_health_timeout_ms,
              (unsigned)global->tcp_health_interval_ms, (unsigned)global->tcp_health_timeout_ms,
              (unsigned)global->reorder_timeout_ms);
 
