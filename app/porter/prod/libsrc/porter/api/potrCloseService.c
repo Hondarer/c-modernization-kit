@@ -210,11 +210,19 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
             /* 1:1: 単一宛先へ FIN を送信 */
             send_fin(ctx);
         }
+        /* recv_thread は NACK 処理で send_window_mutex を参照する。
+         * send_thread_stop() が send_window_mutex を破棄する前に停止する必要がある。 */
+        if (ctx->running[0])
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE, "potrCloseService: service_id=%" PRId64 " stopping recv thread",
+                     ctx->service.service_id);
+            comm_recv_thread_stop(ctx);
+        }
         potr_send_thread_stop(ctx);
         potr_send_queue_destroy(&ctx->send_queue);
     }
 
-    /* 受信スレッドを停止する */
+    /* 送信スレッド未起動の受信専用サービスではここで受信スレッドを停止する */
     if (ctx->running[0])
     {
         POTR_LOG(POTR_TRACE_VERBOSE, "potrCloseService: service_id=%" PRId64 " stopping recv thread",
@@ -283,7 +291,6 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     free(ctx->crypto_buf);
     free(ctx->recv_buf);
     free(ctx->send_wire_buf);
-
     POTR_LOG(POTR_TRACE_INFO, "potrCloseService: service closed");
 
     free(ctx);
