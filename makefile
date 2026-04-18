@@ -29,8 +29,11 @@ default test doxy :
 
 .PHONY: clean
 clean :
-	@$(MAKE) -C app clean
-	@rm -f "$(DOCS_WARN_FILE)"
+    # Windows PowerShell + recursive GNU Make では、子 make から戻った直後に
+    # カーソル列だけが 0 に戻らず、続く "Leaving directory" やプロンプトが崩れることがある。
+    # そのため、最後の clean コマンド後に CR を流して親 make の次行出力開始位置を補正する。
+	@$(MAKE) -C app clean; printf '\r'
+	@rm -f "$(DOCS_WARN_FILE)"; printf '\r'
 
 .PHONY: docs
 docs :
