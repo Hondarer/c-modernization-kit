@@ -37,44 +37,15 @@
 #include "protocol/packet.h"
 #include "protocol/window.h"
 #include "infra/potrLog.h"
+#include "infra/potrPlatform.h"
 #include "infra/crypto/crypto.h"
-
-/* --------------------------------------------------------------------------
- * プラットフォーム別 ミューテックスラッパー
- * -------------------------------------------------------------------------- */
-#if defined(PLATFORM_LINUX)
-    #define POTR_MUTEX_INIT(m)    pthread_mutex_init((m), NULL)
-    #define POTR_MUTEX_DESTROY(m) pthread_mutex_destroy(m)
-#elif defined(PLATFORM_WINDOWS)
-    #define POTR_MUTEX_INIT(m)    InitializeCriticalSection(m)
-    #define POTR_MUTEX_DESTROY(m) DeleteCriticalSection(m)
-#endif /* PLATFORM_ */
 
 /* ピアのセッション識別子・開始時刻を生成して peer に格納する */
 static void peer_generate_session(PotrPeerContext *peer)
 {
-#if defined(PLATFORM_LINUX)
-    struct timespec ts;
-
-    srand((unsigned)((unsigned long)time(NULL) ^ (unsigned long)getpid()));
+    srand((unsigned int)potr_get_ms());
     peer->session_id = (uint32_t)rand();
-
-    clock_gettime(CLOCK_REALTIME, &ts);
-    peer->session_tv_sec  = (int64_t)ts.tv_sec;
-    peer->session_tv_nsec = (int32_t)ts.tv_nsec;
-#elif defined(PLATFORM_WINDOWS)
-    FILETIME       ft;
-    ULARGE_INTEGER uli;
-
-    srand((unsigned)(GetTickCount() ^ GetCurrentProcessId()));
-    peer->session_id = (uint32_t)rand();
-
-    GetSystemTimeAsFileTime(&ft);
-    uli.LowPart  = ft.dwLowDateTime;
-    uli.HighPart = ft.dwHighDateTime;
-    peer->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
-    peer->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
-#endif /* PLATFORM_ */
+    potr_get_realtime(&peer->session_tv_sec, &peer->session_tv_nsec);
 }
 
 /* 使用中でない peer_id を単調増加カウンタから生成する (peers_mutex 取得済みの文脈で呼ぶ) */

@@ -15,38 +15,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(PLATFORM_LINUX)
-    #include <time.h>
-#endif /* PLATFORM_LINUX */
-
 #include <porter_const.h>
 
 #include "potrSendQueue.h"
-
-/* --------------------------------------------------------------------------
- * プラットフォーム別 ミューテックス・条件変数 ラッパーマクロ
- * -------------------------------------------------------------------------- */
-#if defined(PLATFORM_LINUX)
-    #define POTR_MUTEX_INIT(m)     pthread_mutex_init((m), NULL)
-    #define POTR_MUTEX_LOCK(m)     pthread_mutex_lock(m)
-    #define POTR_MUTEX_UNLOCK(m)   pthread_mutex_unlock(m)
-    #define POTR_MUTEX_DESTROY(m)  pthread_mutex_destroy(m)
-    #define POTR_COND_INIT(c)      pthread_cond_init((c), NULL)
-    #define POTR_COND_WAIT(c, m)   pthread_cond_wait((c), (m))
-    #define POTR_COND_SIGNAL(c)    pthread_cond_signal(c)
-    #define POTR_COND_BROADCAST(c) pthread_cond_broadcast(c)
-    #define POTR_COND_DESTROY(c)   pthread_cond_destroy(c)
-#elif defined(PLATFORM_WINDOWS)
-    #define POTR_MUTEX_INIT(m)     InitializeCriticalSection(m)
-    #define POTR_MUTEX_LOCK(m)     EnterCriticalSection(m)
-    #define POTR_MUTEX_UNLOCK(m)   LeaveCriticalSection(m)
-    #define POTR_MUTEX_DESTROY(m)  DeleteCriticalSection(m)
-    #define POTR_COND_INIT(c)      InitializeConditionVariable(c)
-    #define POTR_COND_WAIT(c, m)   SleepConditionVariableCS((c), (m), INFINITE)
-    #define POTR_COND_SIGNAL(c)    WakeConditionVariable(c)
-    #define POTR_COND_BROADCAST(c) WakeAllConditionVariable(c)
-    #define POTR_COND_DESTROY(c)   ((void)0) /* Windows は破棄不要 */
-#endif /* PLATFORM_ */
+#include "potrPlatform.h"
 
 /* doxygen コメントは、ヘッダに記載 */
 int potr_send_queue_init(PotrSendQueue *q, size_t depth, uint16_t max_payload)
@@ -207,20 +179,7 @@ int potr_send_queue_peek_timed(PotrSendQueue *q, PotrPayloadElem *out,
 
     if (q->count == 0)
     {
-#if defined(PLATFORM_LINUX)
-        struct timespec abs_ts;
-        clock_gettime(CLOCK_REALTIME, &abs_ts);
-        abs_ts.tv_sec  += (time_t)(timeout_ms / 1000U);
-        abs_ts.tv_nsec += (long)((timeout_ms % 1000U) * 1000000UL);
-        if (abs_ts.tv_nsec >= 1000000000L)
-        {
-            abs_ts.tv_sec++;
-            abs_ts.tv_nsec -= 1000000000L;
-        }
-        pthread_cond_timedwait(&q->not_empty, &q->mutex, &abs_ts);
-#elif defined(PLATFORM_WINDOWS)
-        SleepConditionVariableCS(&q->not_empty, &q->mutex, (DWORD)timeout_ms);
-#endif /* PLATFORM_ */
+        potr_condvar_timedwait(&q->not_empty, &q->mutex, timeout_ms);
     }
 
     if (q->count == 0)

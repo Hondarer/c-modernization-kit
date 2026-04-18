@@ -28,16 +28,7 @@
 #include <porter_const.h>
 #include <porter_type.h>
 
-#if defined(PLATFORM_LINUX)
-    #include <pthread.h>
-    typedef pthread_mutex_t PotrMutex;
-    typedef pthread_cond_t  PotrCondVar;
-#elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
-    #include <windows.h>
-    typedef CRITICAL_SECTION   PotrMutex;
-    typedef CONDITION_VARIABLE PotrCondVar;
-#endif /* PLATFORM_ */
+#include "potrPlatform.h"
 
 /**
  *  @brief  送信キューの 1 エントリ。ペイロードエレメント 1 個分のデータを保持する。
