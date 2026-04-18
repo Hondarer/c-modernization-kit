@@ -51,8 +51,8 @@ default : submodule $(SUBDIRS)
 
 .PHONY: clean
 clean : submodule $(SUBDIRS)
-	-@find . -name "coverage.xml" -delete 1> /dev/null 2>&1
-	@rm -f c_cpp_properties.warn
+	-find . -name "coverage.xml" -delete
+	rm -f c_cpp_properties.warn
 
 .PHONY: test
 test : submodule

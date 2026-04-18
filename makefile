@@ -29,8 +29,8 @@ default test doxy :
 
 .PHONY: clean
 clean :
-	@$(MAKE) -C app clean
-	@rm -f "$(DOCS_WARN_FILE)"
+	$(MAKE) -C app clean
+	rm -f "$(DOCS_WARN_FILE)"
 
 .PHONY: docs
 docs :
