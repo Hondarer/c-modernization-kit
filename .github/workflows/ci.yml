@@ -105,7 +105,24 @@ jobs:
 
       - name: Install OpenCppCoverage
         run: |
-          choco install opencppcoverage -y
+          $maxRetry = 3
+          $retryCount = 0
+          $installed = $false
+          while (-not $installed -and $retryCount -lt $maxRetry) {
+              $retryCount++
+              Write-Host "choco install opencppcoverage (attempt $retryCount/$maxRetry)..."
+              choco install opencppcoverage -y
+              if ($LASTEXITCODE -eq 0) {
+                  $installed = $true
+              } elseif ($retryCount -lt $maxRetry) {
+                  Write-Host "Installation failed (exit code $LASTEXITCODE). Retrying in 10 seconds..."
+                  Start-Sleep -Seconds 10
+              }
+          }
+          if (-not $installed) {
+              Write-Host "ERROR: choco install opencppcoverage failed after $maxRetry attempts."
+              exit 1
+          }
 
           # PATH に追加 (GitHub Actions の永続化メカニズムを使用)
           $opencppPath = "C:\Program Files\OpenCppCoverage"
