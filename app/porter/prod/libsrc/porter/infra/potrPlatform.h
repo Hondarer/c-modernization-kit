@@ -97,10 +97,11 @@
  * ============================================================ */
 
 /**
- *  @brief  現在時刻をミリ秒単位で返す (単調増加クロック)。
+ *  @brief  単調増加クロックの現在時刻をミリ秒単位で返す。
+ *          タイムアウト判定や差分計算など ms 精度で十分な用途に使用する。
  *  @return ミリ秒値 (起動時からの経過)。
  */
-static inline uint64_t potr_get_ms(void)
+static inline uint64_t potr_get_monotonic_ms(void)
 {
 #if defined(PLATFORM_LINUX)
     struct timespec ts;
@@ -108,25 +109,6 @@ static inline uint64_t potr_get_ms(void)
     return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
 #elif defined(PLATFORM_WINDOWS)
     return (uint64_t)GetTickCount64();
-#endif /* PLATFORM_ */
-}
-
-/**
- *  @brief  CLOCK_MONOTONIC の現在時刻を秒・ナノ秒で返す。
- *  @param[out]  tv_sec   秒部。
- *  @param[out]  tv_nsec  ナノ秒部。
- */
-static inline void potr_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
-{
-#if defined(PLATFORM_LINUX)
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    *tv_sec  = (int64_t)ts.tv_sec;
-    *tv_nsec = (int32_t)ts.tv_nsec;
-#elif defined(PLATFORM_WINDOWS)
-    ULONGLONG ms = GetTickCount64();
-    *tv_sec  = (int64_t)(ms / 1000ULL);
-    *tv_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
 #endif /* PLATFORM_ */
 }
 
@@ -165,7 +147,16 @@ extern "C"
 #endif /* __cplusplus */
 
 /**
- *  @brief  CLOCK_REALTIME の現在時刻を秒・ナノ秒で返す。
+ *  @brief  単調増加クロックの現在時刻を秒・ナノ秒で返す。
+ *          高精度な経過時間測定や受信タイムスタンプの記録に使用する。
+ *  @param[out]  tv_sec   秒部。
+ *  @param[out]  tv_nsec  ナノ秒部。
+ */
+extern void potr_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
+
+/**
+ *  @brief  現在時刻を秒・ナノ秒で返す。
+ *          セッション開始時刻など実時刻の刻印が必要な用途に使用する。
  *  @param[out]  tv_sec   秒部。
  *  @param[out]  tv_nsec  ナノ秒部。
  */

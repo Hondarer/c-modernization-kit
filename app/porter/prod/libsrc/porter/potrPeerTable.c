@@ -43,7 +43,7 @@
 /* ピアのセッション識別子・開始時刻を生成して peer に格納する */
 static void peer_generate_session(PotrPeerContext *peer)
 {
-    srand((unsigned int)potr_get_ms());
+    srand((unsigned int)potr_get_monotonic_ms());
     peer->session_id = (uint32_t)rand();
     potr_get_realtime(&peer->session_tv_sec, &peer->session_tv_nsec);
 }

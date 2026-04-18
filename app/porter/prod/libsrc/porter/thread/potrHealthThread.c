@@ -97,7 +97,7 @@ static int wait_oneway_udp_ping_due(struct PotrContext_ *ctx,
 {
     while (ctx->health_running[0])
     {
-        uint64_t now      = potr_get_ms();
+        uint64_t now      = potr_get_monotonic_ms();
         uint64_t last_ping = ctx->last_ping_send_ms;
         uint64_t last_data = ctx->last_valid_data_send_ms;
         uint64_t due_ms;
@@ -233,7 +233,7 @@ POTR_THREAD_FUNC(health_thread_func)
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     PotrPacketSessionHdr shdr;
     int                  is_oneway_udp = potr_is_oneway_udp_type(ctx->service.type);
-    uint64_t             initial_ping_due_ms = potr_get_ms() + (uint64_t)ctx->health_interval_ms;
+    uint64_t             initial_ping_due_ms = potr_get_monotonic_ms() + (uint64_t)ctx->health_interval_ms;
     uint64_t             last_logged_data_ms = 0U;
 
     shdr.service_id = ctx->service.service_id;
@@ -463,7 +463,7 @@ POTR_THREAD_FUNC(health_thread_func)
 
             if (is_oneway_udp && sent_any)
             {
-                ctx->last_ping_send_ms = potr_get_ms();
+                ctx->last_ping_send_ms = potr_get_monotonic_ms();
                 last_logged_data_ms    = 0U;
             }
         }

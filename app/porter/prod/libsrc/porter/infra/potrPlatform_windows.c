@@ -20,6 +20,14 @@
     #include "potrPlatform.h"
 
 /* doxygen コメントはヘッダに記載 */
+void potr_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
+{
+    ULONGLONG ms = GetTickCount64();
+    *tv_sec  = (int64_t)(ms / 1000ULL);
+    *tv_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
+}
+
+/* doxygen コメントはヘッダに記載 */
 void potr_get_realtime(int64_t *tv_sec, int32_t *tv_nsec)
 {
     FILETIME       ft;

@@ -2205,7 +2205,7 @@ POTR_THREAD_FUNC(recv_thread_func)
 
                     /* 同一 ack_num の NACK が POTR_NACK_DEDUP_MS 以内に届いた場合は破棄 */
                     {
-                        uint64_t now_ms    = potr_get_ms();
+                        uint64_t now_ms    = potr_get_monotonic_ms();
                         int      dedup_idx;
                         int      is_dup    = 0;
 
@@ -2683,7 +2683,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             {
                 /* ポーリングタイムアウト: PING 受信時刻を確認する */
                 uint64_t last    = ctx->tcp_last_ping_recv_ms[path_idx];
-                uint64_t elapsed = potr_get_ms() - last;
+                uint64_t elapsed = potr_get_monotonic_ms() - last;
                 if (last > 0 && elapsed > (uint64_t)ctx->health_timeout_ms)
                 {
                     POTR_LOG(POTR_TRACE_WARNING,
@@ -2818,7 +2818,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
                      ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
-            ctx->tcp_last_ping_recv_ms[path_idx] = potr_get_ms();
+            ctx->tcp_last_ping_recv_ms[path_idx] = potr_get_monotonic_ms();
             ping_state_changed = set_path_ping_state(&ctx->path_ping_state[path_idx],
                                                      POTR_PING_STATE_NORMAL);
             /* PING ペイロード (相手端のパス受信状態) を格納する */
