@@ -184,6 +184,7 @@ typedef struct
     uint32_t udp_health_timeout_ms;   /**< UDP 通信種別の既定 PING 応答待機タイムアウト (ミリ秒)。0 = 無効。設定ファイルキー: udp_health_timeout_ms。 */
     uint32_t tcp_health_interval_ms;  /**< TCP 通信種別の既定 PING 送信間隔 (ミリ秒)。設定周期ごとに PING を送信する。0 = 無効。設定ファイルキー: tcp_health_interval_ms。 */
     uint32_t tcp_health_timeout_ms;   /**< TCP 通信種別の既定 PING 応答待機タイムアウト (ミリ秒)。0 = 無効。設定ファイルキー: tcp_health_timeout_ms。 */
+    uint32_t tcp_close_timeout_ms;    /**< TCP 通信種別の close 完了待機タイムアウト (ミリ秒)。設定ファイルキー: tcp_close_timeout_ms。0 = 待機なし。 */
 } PotrGlobalConfig;
 
 /**

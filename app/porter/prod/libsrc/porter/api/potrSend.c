@@ -108,6 +108,14 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
              "potrSend: service_id=%" PRId64 " peer_id=%u len=%zu flags=0x%x",
              ctx->service.service_id, (unsigned)peer_id, len, (unsigned)flags);
 
+    if (ctx->close_requested)
+    {
+        POTR_LOG(POTR_TRACE_VERBOSE,
+                 "potrSend: service_id=%" PRId64 " rejected because close is in progress",
+                 ctx->service.service_id);
+        return POTR_ERROR;
+    }
+
     /* TCP: 物理 path 未接続、または PING 交換による論理 CONNECTED 前は
        POTR_ERROR_DISCONNECTED を返す */
     if (potr_is_tcp_type(ctx->service.type)

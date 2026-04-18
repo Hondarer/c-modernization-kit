@@ -214,10 +214,10 @@ struct PotrContext_
     PotrServiceDef   service;      /**< サービス定義。 */
     PotrGlobalConfig global;       /**< プロトコル別のグローバル既定値。 */
     uint32_t         health_interval_ms; /**< 通信種別とサービス上書きを解決した実効 PING 送信間隔。 */
-    uint32_t         health_timeout_ms;  /**< 通信種別とサービス上書きを解決した実効受信タイムアウト。 */
     PotrWindow       send_window;       /**< 送信バッファ (過去 N パケット保持。NACK 再送・REJECT 判定に使用)。 */
     PotrMutex        send_window_mutex; /**< send_window 保護用ミューテックス (送信スレッド・ヘルスチェックスレッド・受信スレッドが競合するため)。 */
     PotrWindow       recv_window;       /**< 受信ウィンドウ (順序整列・欠番検出)。 */
+    uint32_t         health_timeout_ms;  /**< 通信種別とサービス上書きを解決した実効受信タイムアウト。 */
 
     /* マルチパス: ソケット配列 */
     PotrSocket         sock[POTR_MAX_PATH];              /**< 各パスの UDP ソケット。 */
@@ -227,9 +227,9 @@ struct PotrContext_
     volatile int     health_running[POTR_MAX_PATH]; /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
     volatile int     health_send_immediate[POTR_MAX_PATH]; /**< オープン時割り込み PING フラグ。health_sleep() 冒頭でチェック・クリア。 */
     volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
+    volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
     volatile uint64_t last_ping_send_ms;                  /**< 送信側 health 用 PING 最終送信時刻 (ms, CLOCK_MONOTONIC)。type 1-6 のみ使用。0 = 未送信。 */
     volatile uint64_t last_valid_data_send_ms;            /**< 送信側 health 用有効 DATA 最終送信時刻 (ms, CLOCK_MONOTONIC)。type 1-6 のみ使用。0 = 未送信。 */
-    volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
     uint8_t          remote_path_ping_state[POTR_MAX_PATH];/**< 相手端から PING ペイロードで受信した各パス受信状態 (POTR_PING_STATE_*)。 */
     PotrRole         role;            /**< 役割 (POTR_ROLE_SENDER / POTR_ROLE_RECEIVER)。 */
 
@@ -239,13 +239,13 @@ struct PotrContext_
     struct sockaddr_in dest_addr[POTR_MAX_PATH];         /**< 送信先ソケットアドレス (送信者が sendto に使用)。 */
 
     /* 自セッション識別子 (potrOpenService 時に決定) */
-    uint32_t         session_id;        /**< 自セッション識別子 (乱数)。 */
     int64_t          session_tv_sec;    /**< 自セッション開始時刻 秒部。 */
+    uint32_t         session_id;        /**< 自セッション識別子 (乱数)。 */
     int32_t          session_tv_nsec;   /**< 自セッション開始時刻 ナノ秒部。 */
 
     /* 相手セッション追跡 (受信者が使用) */
-    uint32_t         peer_session_id;      /**< 追跡中の相手セッション識別子。 */
     int64_t          peer_session_tv_sec;  /**< 追跡中の相手セッション開始時刻 秒部。 */
+    uint32_t         peer_session_id;      /**< 追跡中の相手セッション識別子。 */
     int32_t          peer_session_tv_nsec; /**< 追跡中の相手セッション開始時刻 ナノ秒部。 */
     int              peer_session_known;   /**< 相手セッションが初期化済みか (0: 未初期化)。 */
 
@@ -254,7 +254,6 @@ struct PotrContext_
 
     /* ヘルスチェック: 最終受信時刻 (受信者が使用。CLOCK_MONOTONIC 基準)。 */
     int32_t          last_recv_tv_nsec;   /**< 最終受信時刻 ナノ秒部。 */
-    uint32_t         _pad_lastrecv;       /**< パディング (last_recv_tv_sec を 8 バイト境界に揃える)。 */
     int64_t          last_recv_tv_sec;    /**< 最終受信時刻 秒部。0 = 未受信。 */
 
     /* 受信者: パスごとの最終受信時刻 (パス単位の peer_port クリア用。CLOCK_MONOTONIC 基準)。 */
@@ -282,11 +281,15 @@ struct PotrContext_
     uint8_t            nack_dedup_next;                        /**< 次に書き込むスロットインデックス。 */
     uint8_t            _pad_nack_dedup[7];                     /**< パディング (reorder フィールドを 4 バイト境界に揃える)。 */
     int                send_has_data;                          /**< 現セッションで DATA を 1 件以上送信済みか (1: 送信済み, 0: 未送信)。 */
+    volatile int       close_requested;                       /**< potrCloseService 開始後の新規送信禁止フラグ。 */
+    volatile int       tcp_close_waiting_ack;                 /**< TCP close が FIN_ACK 待機中か。 */
+    volatile int       tcp_close_ack_received;                /**< 期待する FIN_ACK を受信済みか。 */
+    uint32_t           tcp_close_wait_target_seq;             /**< 待機中の FIN target 通番。 */
+    uint32_t           tcp_close_ack_seq;                     /**< 受信済み FIN_ACK の ack_num。 */
 
     /* 受信者: リオーダーバッファタイムアウト管理 (reorder_timeout_ms > 0 のときのみ使用) */
     int      reorder_pending;        /**< リオーダー待機中か (1: 待機中、0: 待機なし)。 */
     uint32_t reorder_nack_num;       /**< 待機中の欠番通番。 */
-    uint32_t _pad_reorder_deadline;  /**< パディング (reorder_deadline_sec を 8 バイト境界に揃える)。 */
     int64_t  reorder_deadline_sec;   /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
     int32_t  reorder_deadline_nsec;  /**< タイムアウト期限 ナノ秒部。 */
 
@@ -324,6 +327,8 @@ struct PotrContext_
     /* 切断通知 (recv/health スレッド → connect スレッドへの通知) */
     PotrMutex          tcp_state_mutex;            /**< tcp_state_cv 保護用ミューテックス。tcp_active_paths のカウンタ更新も保護。 */
     PotrCondVar        tcp_state_cv;               /**< 切断通知・reconnect sleep の中断用条件変数。 */
+    PotrMutex          tcp_close_mutex;            /**< tcp_close_cv 保護用ミューテックス。 */
+    PotrCondVar        tcp_close_cv;               /**< FIN_ACK 待機解除用条件変数。 */
 
     /* PING 受信追跡 (TCP recv スレッドが参照・更新。両端 PING 受信タイムアウト監視に使用) */
     volatile uint64_t  tcp_last_ping_recv_ms[POTR_MAX_PATH]; /**< TCP PING 最終受信時刻 (ms, CLOCK_MONOTONIC 基準)。path ごと。接続確立時に現在時刻で初期化。受信タイムアウト判定に使用。 */

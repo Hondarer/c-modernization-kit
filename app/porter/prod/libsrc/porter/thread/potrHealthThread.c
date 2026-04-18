@@ -205,6 +205,7 @@ static int tcp_send_ping_packet(struct PotrContext_ *ctx, int path_idx)
     if (ctx == NULL
         || path_idx < 0
         || path_idx >= (int)POTR_MAX_PATH
+        || ctx->close_requested
         || ctx->tcp_active_paths == 0
         || ctx->tcp_conn_fd[path_idx] == POTR_INVALID_SOCKET)
     {

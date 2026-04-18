@@ -375,7 +375,10 @@ extern "C"
      *  本関数呼び出し時、POTR_EVENT_DISCONNECTED コールバックは発火しません。\n
      *  アプリケーション自身が明示的にサービスを閉じる操作は、接続状態変化イベントとして通知しない設計です。\n
      *  UDP 通信種別の送信者 (POTR_ROLE_SENDER) が本関数を呼び出した場合は、POTR_FLAG_FIN パケットが送信されます。\n
-     *  TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) では close() による TCP 切断が FIN 相当として機能します。\n
+     *  TCP 通信種別 (POTR_TYPE_TCP / POTR_TYPE_TCP_BIDIR) では、送信キューの drain 完了後に
+     *  protocol-level の POTR_FLAG_FIN / POTR_FLAG_FIN_ACK を交換してからソケットを閉じます。\n
+     *  TCP close 待機は global 設定 tcp_close_timeout_ms の範囲で行い、タイムアウト時は強制 close して
+     *  POTR_ERROR を返します。\n
      *  いずれの場合も、相手側では POTR_EVENT_DISCONNECTED が発火します。
      *
      *  @par            スレッド セーフティ

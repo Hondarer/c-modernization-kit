@@ -53,6 +53,9 @@ extern "C"
                                       uint32_t seq_num);
     extern int    packet_build_fin(PotrPacket *packet,
                                    const PotrPacketSessionHdr *shdr);
+    extern int    packet_build_fin_ack(PotrPacket *packet,
+                                       const PotrPacketSessionHdr *shdr,
+                                       uint32_t fin_target_seq);
     extern int    packet_build_packed(PotrPacket *out,
                                       const PotrPacketSessionHdr *shdr,
                                       uint32_t seq_num,

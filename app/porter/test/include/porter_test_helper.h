@@ -49,6 +49,12 @@ public:
         return *this;
     }
 
+    PorterConfigBuilder& setTcpCloseTimeoutMs(uint32_t value)
+    {
+        tcp_close_timeout_ms_ = value;
+        return *this;
+    }
+
     /** unicast サービスエントリを追加する。 */
     PorterConfigBuilder& addUnicastService(int64_t service_id, int port,
                                            const std::string& host = "127.0.0.1",
@@ -158,6 +164,7 @@ public:
         fprintf(f, "udp_health_timeout_ms   = %u\n", udp_health_timeout_ms_);
         fprintf(f, "tcp_health_interval_ms  = %u\n", tcp_health_interval_ms_);
         fprintf(f, "tcp_health_timeout_ms   = %u\n", tcp_health_timeout_ms_);
+        fprintf(f, "tcp_close_timeout_ms    = %u\n", tcp_close_timeout_ms_);
         fprintf(f, "\n");
 
         for (const auto& line : lines_) {
@@ -190,6 +197,8 @@ private:
     uint32_t                 tcp_health_timeout_ms_ = 3000U;
     std::vector<std::string> lines_;
     std::string              tmp_path_;
+    uint32_t                 tcp_close_timeout_ms_ = 5000U;
+    uint32_t                 _pad_tcp_close_timeout_ = 0U;
 };
 
 #endif /* PORTER_TEST_HELPER_H */

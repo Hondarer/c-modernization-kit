@@ -51,13 +51,15 @@
     0x0020U /**< AES-256-GCM 認証タグが付与されていることを示す外側パケットフラグ。\n
                                        *   POTR_FLAG_DATA と組み合わせる場合: [ヘッダー][暗号文: packed_len B][GCM 認証タグ: 16B]。\n
                                        *   POTR_FLAG_PING と組み合わせる場合: [ヘッダー][暗号文: POTR_MAX_PATH B][GCM 認証タグ: 16B]。\n
-                                       *   その他 (NACK/REJECT/FIN): ペイロードなし (平文 0B) の GCM 認証タグのみ (16B)。\n
+                                       *   その他 (NACK/REJECT/FIN/FIN_ACK): ペイロードなし (平文 0B) の GCM 認証タグのみ (16B)。\n
                                        *   いずれの場合もヘッダー全体が AAD として認証される。\n
                                        *   Nonce (12B) = session_id (4B NBO) + flags (2B NBO) + seq_or_ack_num (4B NBO) + padding (2B 0x00)。\n
                                        *   flags には本フラグを含んだ実際の送信フラグ値を使用する。\n
-                                       *   seq_or_ack_num は DATA/PING/FIN の場合 seq_num、NACK/REJECT の場合 ack_num。 */
+                                       *   seq_or_ack_num は DATA/PING/FIN の場合 seq_num、NACK/REJECT/FIN_ACK の場合 ack_num。 */
 #define POTR_FLAG_FIN_TARGET_VALID                                                                                     \
     0x0040U /**< FIN の ack_num が有効な受信完了目標 next_seq を表すことを示すフラグ。未設定時の FIN は no-data FIN として扱い、ack_num は無視する。 */
+#define POTR_FLAG_FIN_ACK                                                                                              \
+    0x0080U /**< FIN 処理完了応答パケットであることを示すフラグ。ack_num に完了した fin_target_seq を格納する。 */
 /** @} */
 
 /** @defgroup POTR_ELEM_FLAG ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)
@@ -92,6 +94,8 @@
     10000U /**< TCP 通信種別に適用する既定ヘルスチェック送信間隔 (ミリ秒)。0 = 無効。 */
 #define POTR_DEFAULT_TCP_HEALTH_TIMEOUT_MS                                                                             \
     31000U /**< TCP 通信種別に適用する既定ヘルスチェックタイムアウト (ミリ秒)。0 = 無効。 */
+#define POTR_DEFAULT_TCP_CLOSE_TIMEOUT_MS                                                                              \
+    5000U /**< TCP 通信種別に適用する close 完了待機タイムアウト (ミリ秒)。0 = 待機なし。 */
 /** @} */
 
 /** @defgroup POTR_CRYPTO 暗号化定数 (AES-256-GCM)
