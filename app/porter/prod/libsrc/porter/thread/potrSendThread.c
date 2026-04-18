@@ -55,6 +55,7 @@
 #include "../potrPeerTable.h"
 #include "../infra/potrSendQueue.h"
 #include "potrSendThread.h"
+#include "potrHealthThread.h"
 #include "../protocol/packet.h"
 #include "../protocol/window.h"
 #include "../infra/potrLog.h"
@@ -70,6 +71,13 @@ static uint64_t get_ms(void)
 #elif defined(PLATFORM_WINDOWS)
     return (uint64_t)GetTickCount64();
 #endif /* PLATFORM_ */
+}
+
+static int should_track_valid_data_send_time(const struct PotrContext_ *ctx)
+{
+    return ctx != NULL
+        && !ctx->is_multi_peer
+        && potr_is_oneway_udp_type(ctx->service.type);
 }
 
 /* ペイロードエレメントを packed_buf に追記する */
@@ -336,17 +344,29 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
     else
     {
         int i;
+        int sent_any = 0;
         for (i = 0; i < ctx->n_path; i++)
         {
+            int sent_len;
 #if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], ctx->send_wire_buf, wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
+            sent_len = (int)sendto(ctx->sock[i], ctx->send_wire_buf, wire_len, 0,
+                                   (const struct sockaddr *)&ctx->dest_addr[i],
+                                   sizeof(ctx->dest_addr[i]));
 #elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
+            sent_len = sendto(ctx->sock[i], (const char *)ctx->send_wire_buf, (int)wire_len, 0,
+                              (const struct sockaddr *)&ctx->dest_addr[i],
+                              sizeof(ctx->dest_addr[i]));
 #endif /* PLATFORM_ */
+            if (sent_len == (int)wire_len)
+            {
+                sent_any = 1;
+            }
+        }
+
+        if (sent_any && should_track_valid_data_send_time(ctx))
+        {
+            ctx->last_valid_data_send_ms = get_ms();
+            potr_health_thread_wake(ctx);
         }
     }
 

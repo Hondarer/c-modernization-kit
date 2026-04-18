@@ -67,7 +67,7 @@ Q --> ST : pop → パケット構築
 ST --> SOCK : sendto\n(DATA / PING / 再送)
 RT <-- SOCK : recvfrom\n(NACK / REJECT / FIN)
 RT --> ST : 再送要求・REJECT 通知
-HT --> SOCK : sendto (PING)\n一定間隔で送信
+HT --> SOCK : sendto (PING)\n片方向は最後の PING / DATA 基準\n双方向は一定間隔で送信
 @enduml
 ```
 
@@ -75,7 +75,7 @@ HT --> SOCK : sendto (PING)\n一定間隔で送信
 |---|---|
 | 送信スレッド | 送信キューからエレメントを取り出し、DATA パケットを構築して全パスへ sendto する |
 | 受信スレッド | NACK / REJECT / FIN パケットを受信し、再送処理または DISCONNECTED 発火を行う |
-| ヘルスチェックスレッド | 最終送信時刻を監視し、一定間隔が経過したら PING パケットを送信する |
+| ヘルスチェックスレッド | 非 TCP は 1 サービス 1 本。片方向 type 1-6 は最後の PING / 有効 DATA 送信時刻を監視して期限到達時だけ PING を送信し、双方向系は一定間隔で PING を送信する |
 
 ### 受信者のスレッド
 
@@ -163,7 +163,7 @@ HT --> SOCK : PING 要求送信 / タイムアウト監視
 |---|---|
 | 送信スレッド | 共有送信キューから `peer_id` 付きエレメントを取り出し、対応するピアの送信先へ `sendto` する。`POTR_PEER_ALL` は `potrSend()` 呼び出し時点で全ピア分に展開される |
 | 受信スレッド | `recvfrom` 後に暗号化必須判定と GCM 認証を行い、成功したパケットだけを session triplet (`session_id` + `session_tv_sec` + `session_tv_nsec`) でピア特定する。未知セッションは DATA / PING のみ新規ピア作成対象とする |
-| ヘルスチェックスレッド | 接続中の各ピアについて最終受信時刻を監視し、`health_interval_ms` に従って PING を送信し、`health_timeout_ms` 超過で個別に切断を検知する |
+| ヘルスチェックスレッド | 非 TCP の共有 1 本が接続中の各ピアを巡回し、`health_interval_ms` に従って PING を送信し、`health_timeout_ms` 超過で個別に切断を検知する |
 
 ### TCP / TCP_BIDIR のスレッド構成
 

@@ -79,6 +79,22 @@ static inline PotrType potr_raw_base_type(PotrType t)
     }
 }
 
+/** 片方向 UDP 系通信種別 (type 1-6) か判定する。 */
+static inline int potr_is_oneway_udp_type(PotrType t)
+{
+    PotrType base = potr_raw_base_type(t);
+
+    return base == POTR_TYPE_UNICAST
+        || base == POTR_TYPE_MULTICAST
+        || base == POTR_TYPE_BROADCAST;
+}
+
+/** open 直後の即時 PING を使う通信種別か判定する。 */
+static inline int potr_type_uses_immediate_health_ping(PotrType t)
+{
+    return !potr_is_oneway_udp_type(t);
+}
+
 /** volatile な path_ping_state 配列を通常配列へコピーする。 */
 static inline void potr_copy_path_ping_state(uint8_t *dst,
                                              const volatile uint8_t *src,
@@ -205,6 +221,8 @@ struct PotrContext_
     volatile int     health_running[POTR_MAX_PATH]; /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
     volatile int     health_send_immediate[POTR_MAX_PATH]; /**< オープン時割り込み PING フラグ。health_sleep() 冒頭でチェック・クリア。 */
     volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
+    volatile uint64_t last_ping_send_ms;                  /**< 送信側 health 用 PING 最終送信時刻 (ms, CLOCK_MONOTONIC)。type 1-6 のみ使用。0 = 未送信。 */
+    volatile uint64_t last_valid_data_send_ms;            /**< 送信側 health 用有効 DATA 最終送信時刻 (ms, CLOCK_MONOTONIC)。type 1-6 のみ使用。0 = 未送信。 */
     volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
     uint8_t          remote_path_ping_state[POTR_MAX_PATH];/**< 相手端から PING ペイロードで受信した各パス受信状態 (POTR_PING_STATE_*)。 */
     PotrRole         role;            /**< 役割 (POTR_ROLE_SENDER / POTR_ROLE_RECEIVER)。 */

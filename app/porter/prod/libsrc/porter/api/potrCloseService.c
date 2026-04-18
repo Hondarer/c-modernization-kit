@@ -194,6 +194,9 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         potr_health_thread_stop(ctx);
     }
 
+    ctx->last_ping_send_ms       = 0U;
+    ctx->last_valid_data_send_ms = 0U;
+
     /* 送信スレッドを停止してキューを破棄 (送信者のみ) */
     if (ctx->send_thread_running)
     {

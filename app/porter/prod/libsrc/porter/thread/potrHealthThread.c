@@ -63,6 +63,26 @@ typedef struct
 
 static HealthArg s_health_args[POTR_MAX_PATH];
 
+/* 現在時刻をミリ秒単位で返す (単調増加クロック) */
+static uint64_t get_ms(void)
+{
+#if defined(PLATFORM_LINUX)
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
+#elif defined(PLATFORM_WINDOWS)
+    return (uint64_t)GetTickCount64();
+#endif /* PLATFORM_ */
+}
+
+static uint64_t get_last_health_signal_send_ms(const struct PotrContext_ *ctx)
+{
+    uint64_t last_ping = ctx->last_ping_send_ms;
+    uint64_t last_data = ctx->last_valid_data_send_ms;
+
+    return (last_ping > last_data) ? last_ping : last_data;
+}
+
 static void signal_health_thread(struct PotrContext_ *ctx, int path_idx)
 {
     if (ctx == NULL
@@ -128,6 +148,50 @@ static void health_sleep(struct PotrContext_ *ctx, int path_idx, uint32_t interv
 #endif /* PLATFORM_ */
 }
 
+static int wait_oneway_udp_ping_due(struct PotrContext_ *ctx,
+                                    uint64_t             initial_ping_due_ms,
+                                    uint64_t            *last_logged_data_ms)
+{
+    while (ctx->health_running[0])
+    {
+        uint64_t now      = get_ms();
+        uint64_t last_ping = ctx->last_ping_send_ms;
+        uint64_t last_data = ctx->last_valid_data_send_ms;
+        uint64_t due_ms;
+
+        if (last_ping == 0U && last_data == 0U)
+        {
+            due_ms = initial_ping_due_ms;
+        }
+        else
+        {
+            due_ms = get_last_health_signal_send_ms(ctx)
+                   + (uint64_t)ctx->health_interval_ms;
+        }
+
+        if (now >= due_ms)
+        {
+            return 1;
+        }
+
+        if (last_data != 0U
+            && last_data >= last_ping
+            && last_data != *last_logged_data_ms)
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "health[service_id=%" PRId64 "]: suppress PING due to recent DATA"
+                     " (remaining=%" PRIu64 "ms)",
+                     ctx->service.service_id,
+                     due_ms - now);
+            *last_logged_data_ms = last_data;
+        }
+
+        health_sleep(ctx, 0, (uint32_t)(due_ms - now));
+    }
+
+    return 0;
+}
+
 /* ====================================================================
  * 非 TCP (UDP/マルチキャスト) 用ヘルスチェックスレッド本体
  * ==================================================================== */
@@ -139,6 +203,9 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     PotrPacketSessionHdr shdr;
+    int                  is_oneway_udp = potr_is_oneway_udp_type(ctx->service.type);
+    uint64_t             initial_ping_due_ms = get_ms() + (uint64_t)ctx->health_interval_ms;
+    uint64_t             last_logged_data_ms = 0U;
 
     shdr.service_id = ctx->service.service_id;
     /* 1:1 モード: session はコンテキストから取得 (N:1 は後述のループで各ピアから取得) */
@@ -151,9 +218,19 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
     while (ctx->health_running[0])
     {
-        health_sleep(ctx, 0, ctx->health_interval_ms);
+        if (is_oneway_udp)
+        {
+            if (!wait_oneway_udp_ping_due(ctx, initial_ping_due_ms, &last_logged_data_ms))
+            {
+                break;
+            }
+        }
+        else
+        {
+            health_sleep(ctx, 0, ctx->health_interval_ms);
 
-        if (!ctx->health_running[0]) break;
+            if (!ctx->health_running[0]) break;
+        }
 
         /* PING を送信する */
         if (ctx->is_multi_peer)
@@ -273,6 +350,7 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
             uint32_t   seq;
             size_t     wire_len;
             int        build_result;
+            int        sent_any = 0;
             uint8_t    health_states[POTR_MAX_PATH];
             int        k;
 
@@ -324,15 +402,20 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
                 for (k = 0; k < ctx->n_path; k++)
                 {
+                    int sent_len;
 #if defined(PLATFORM_LINUX)
-                    sendto(ctx->sock[k], wire_buf, wire_len, 0,
-                           (const struct sockaddr *)&ctx->dest_addr[k],
-                           sizeof(ctx->dest_addr[k]));
+                    sent_len = (int)sendto(ctx->sock[k], wire_buf, wire_len, 0,
+                                           (const struct sockaddr *)&ctx->dest_addr[k],
+                                           sizeof(ctx->dest_addr[k]));
 #elif defined(PLATFORM_WINDOWS)
-                    sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
-                           (const struct sockaddr *)&ctx->dest_addr[k],
-                           sizeof(ctx->dest_addr[k]));
+                    sent_len = sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
+                                      (const struct sockaddr *)&ctx->dest_addr[k],
+                                      sizeof(ctx->dest_addr[k]));
 #endif /* PLATFORM_ */
+                    if (sent_len == (int)wire_len)
+                    {
+                        sent_any = 1;
+                    }
                 }
             }
             else
@@ -344,16 +427,27 @@ static DWORD WINAPI health_thread_func(LPVOID arg)
 
                 for (k = 0; k < ctx->n_path; k++)
                 {
+                    int sent_len;
 #if defined(PLATFORM_LINUX)
-                    sendto(ctx->sock[k], wire_buf, wire_len, 0,
-                           (const struct sockaddr *)&ctx->dest_addr[k],
-                           sizeof(ctx->dest_addr[k]));
+                    sent_len = (int)sendto(ctx->sock[k], wire_buf, wire_len, 0,
+                                           (const struct sockaddr *)&ctx->dest_addr[k],
+                                           sizeof(ctx->dest_addr[k]));
 #elif defined(PLATFORM_WINDOWS)
-                    sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
-                           (const struct sockaddr *)&ctx->dest_addr[k],
-                           sizeof(ctx->dest_addr[k]));
+                    sent_len = sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
+                                      (const struct sockaddr *)&ctx->dest_addr[k],
+                                      sizeof(ctx->dest_addr[k]));
 #endif /* PLATFORM_ */
+                    if (sent_len == (int)wire_len)
+                    {
+                        sent_any = 1;
+                    }
                 }
+            }
+
+            if (is_oneway_udp && sent_any)
+            {
+                ctx->last_ping_send_ms = get_ms();
+                last_logged_data_ms    = 0U;
             }
         }
     }

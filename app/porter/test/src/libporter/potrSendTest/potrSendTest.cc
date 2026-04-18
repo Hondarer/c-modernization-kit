@@ -156,3 +156,33 @@ TEST_F(potrSendTest, unicast_sender_path_still_sends_without_connected_state)
         EXPECT_EQ(0, memcmp(elem.payload, payload, strlen(payload)));
     }
 }
+
+TEST_F(potrSendTest, data_based_health_ping_suppression_applies_only_to_type_1_to_6)
+{
+    EXPECT_TRUE(potr_is_oneway_udp_type(POTR_TYPE_UNICAST_RAW));
+    EXPECT_TRUE(potr_is_oneway_udp_type(POTR_TYPE_MULTICAST_RAW));
+    EXPECT_TRUE(potr_is_oneway_udp_type(POTR_TYPE_BROADCAST_RAW));
+    EXPECT_TRUE(potr_is_oneway_udp_type(POTR_TYPE_UNICAST));
+    EXPECT_TRUE(potr_is_oneway_udp_type(POTR_TYPE_MULTICAST));
+    EXPECT_TRUE(potr_is_oneway_udp_type(POTR_TYPE_BROADCAST));
+
+    EXPECT_FALSE(potr_is_oneway_udp_type(POTR_TYPE_UNICAST_BIDIR));
+    EXPECT_FALSE(potr_is_oneway_udp_type(POTR_TYPE_UNICAST_BIDIR_N1));
+    EXPECT_FALSE(potr_is_oneway_udp_type(POTR_TYPE_TCP));
+    EXPECT_FALSE(potr_is_oneway_udp_type(POTR_TYPE_TCP_BIDIR));
+}
+
+TEST_F(potrSendTest, immediate_health_ping_is_disabled_only_for_type_1_to_6)
+{
+    EXPECT_FALSE(potr_type_uses_immediate_health_ping(POTR_TYPE_UNICAST_RAW));
+    EXPECT_FALSE(potr_type_uses_immediate_health_ping(POTR_TYPE_MULTICAST_RAW));
+    EXPECT_FALSE(potr_type_uses_immediate_health_ping(POTR_TYPE_BROADCAST_RAW));
+    EXPECT_FALSE(potr_type_uses_immediate_health_ping(POTR_TYPE_UNICAST));
+    EXPECT_FALSE(potr_type_uses_immediate_health_ping(POTR_TYPE_MULTICAST));
+    EXPECT_FALSE(potr_type_uses_immediate_health_ping(POTR_TYPE_BROADCAST));
+
+    EXPECT_TRUE(potr_type_uses_immediate_health_ping(POTR_TYPE_UNICAST_BIDIR));
+    EXPECT_TRUE(potr_type_uses_immediate_health_ping(POTR_TYPE_UNICAST_BIDIR_N1));
+    EXPECT_TRUE(potr_type_uses_immediate_health_ping(POTR_TYPE_TCP));
+    EXPECT_TRUE(potr_type_uses_immediate_health_ping(POTR_TYPE_TCP_BIDIR));
+}

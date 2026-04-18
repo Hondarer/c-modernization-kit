@@ -461,6 +461,36 @@ TEST_F(porterSendRecvTest, unicast_initial_data_establishes_connected_without_pi
     }
 }
 
+// 片方向 unicast 送信者 open 直後は immediate PING を送らず、receiver が即 CONNECTED しないことを確認する
+TEST_F(porterSendRecvTest, unicast_sender_open_does_not_trigger_immediate_ping)
+{
+    PorterConfigBuilder cfg;
+    string config_path =
+        cfg.setUdpHealthIntervalMs(1000)
+            .setUdpHealthTimeoutMs(1500)
+            .addUnicastService(13, 19018)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "13"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {config_path, "13"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
+
+    sleep_ms(250);
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("接続確立"));
+
+    interruptProcess(send_h_);
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("接続確立"));
+}
+
 // 片方向 unicast で PING 無効時も有効 DATA の継続受信で health timeout が延長されることを確認する
 TEST_F(porterSendRecvTest, unicast_data_resets_health_timeout_without_ping)
 {
@@ -502,6 +532,68 @@ TEST_F(porterSendRecvTest, unicast_data_resets_health_timeout_without_ping)
         EXPECT_NE(string::npos, recv_out.find("timeout-reset-1"));
         EXPECT_NE(string::npos, recv_out.find("timeout-reset-2"));
         EXPECT_NE(string::npos, recv_out.find("切断検知"));
+    }
+}
+
+// 片方向 unicast で recent DATA により periodic PING が抑止され、最後の DATA 基準で再開することを確認する
+TEST_F(porterSendRecvTest, unicast_recent_data_defers_ping_until_last_data_interval)
+{
+    PorterConfigBuilder cfg;
+    string config_path =
+        cfg.setUdpHealthIntervalMs(500)
+            .setUdpHealthTimeoutMs(1500)
+            .addUnicastService(14, 19019)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "14"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {"-l", "VERBOSE", config_path, "14"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "ping-delay-1"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "ping-delay-1", 3000));
+
+    sleep_ms(250);
+    ASSERT_TRUE(writeLineStdin(send_h_, "Y"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "ping-delay-2"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "ping-delay-2", 3000));
+
+    sleep_ms(250);
+    {
+        string send_err = getStderr(send_h_);
+        EXPECT_NE(string::npos, send_err.find("suppress PING due to recent DATA"));
+        EXPECT_EQ(string::npos, send_err.find("health[service_id=14]: PING seq="));
+    }
+
+    sleep_ms(400);
+    EXPECT_NE(string::npos,
+              getStderr(send_h_).find("health[service_id=14]: PING seq="));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_NE(string::npos, recv_out.find("接続確立"));
+        EXPECT_NE(string::npos, recv_out.find("ping-delay-1"));
+        EXPECT_NE(string::npos, recv_out.find("ping-delay-2"));
     }
 }
 

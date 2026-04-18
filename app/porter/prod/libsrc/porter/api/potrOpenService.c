@@ -109,6 +109,9 @@ static void generate_session(struct PotrContext_ *ctx)
     ctx->session_tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
     ctx->session_tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
 #endif /* PLATFORM_ */
+
+    ctx->last_ping_send_ms       = 0U;
+    ctx->last_valid_data_send_ms = 0U;
 }
 
 /* マルチキャストソケットを作成して bind・グループ参加する。
@@ -1320,7 +1323,8 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 return POTR_ERROR;
             }
 
-            ctx->health_send_immediate[0] = 1;
+            ctx->health_send_immediate[0] =
+                potr_type_uses_immediate_health_ping(ctx->service.type) ? 1 : 0;
             if (potr_health_thread_start(ctx) != POTR_SUCCESS)
             {
                 potr_send_thread_stop(ctx);
