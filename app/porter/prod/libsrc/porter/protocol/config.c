@@ -182,6 +182,7 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     global->udp_health_timeout_ms  = (uint32_t)POTR_DEFAULT_UDP_HEALTH_TIMEOUT_MS;
     global->tcp_health_interval_ms = (uint32_t)POTR_DEFAULT_TCP_HEALTH_INTERVAL_MS;
     global->tcp_health_timeout_ms  = (uint32_t)POTR_DEFAULT_TCP_HEALTH_TIMEOUT_MS;
+    global->tcp_close_timeout_ms   = (uint32_t)POTR_DEFAULT_TCP_CLOSE_TIMEOUT_MS;
 
     fp = open_config_file_read(config_path);
     if (fp == NULL)
@@ -262,6 +263,10 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         {
             global->tcp_health_timeout_ms = (uint32_t)atoi(val);
         }
+        else if (strcmp(key, "tcp_close_timeout_ms") == 0)
+        {
+            global->tcp_close_timeout_ms = (uint32_t)atoi(val);
+        }
         else if (strcmp(key, "reorder_timeout_ms") == 0)
         {
             global->reorder_timeout_ms = (uint32_t)atoi(val);
@@ -279,11 +284,12 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     POTR_LOG(POTR_TRACE_VERBOSE,
              "config loaded: window_size=%u max_payload=%u "
              "max_message_size=%u send_queue_depth=%u "
-             "udp_health=%u/%u tcp_health=%u/%u reorder_timeout_ms=%u",
+             "udp_health=%u/%u tcp_health=%u/%u tcp_close_timeout_ms=%u reorder_timeout_ms=%u",
              (unsigned)global->window_size, (unsigned)global->max_payload,
              (unsigned)global->max_message_size, (unsigned)global->send_queue_depth,
              (unsigned)global->udp_health_interval_ms, (unsigned)global->udp_health_timeout_ms,
              (unsigned)global->tcp_health_interval_ms, (unsigned)global->tcp_health_timeout_ms,
+             (unsigned)global->tcp_close_timeout_ms,
              (unsigned)global->reorder_timeout_ms);
 
     fclose(fp);

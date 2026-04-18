@@ -888,9 +888,13 @@ note over S: 初回の認証済み PING を受信\n→ CONNECTED / alive 確認
 
 == 正常終了 ==
 
-note over S: potrCloseService()
-S -> R: TCP FIN (close)
-note over R: TCP 切断検知 → POTR_EVENT_DISCONNECTED 発火
+note over S: potrCloseService()\nclose_requested=1\nsend_queue drain 待機
+S -> R: FIN[target_valid, ack_num=3]
+note over R: recv_window.next_seq が 3 に追い付くまで\n必要なら pending_fin
+note over R: 最後の DATA callback 完了
+R -> S: FIN_ACK[ack_num=3]
+note over R: POTR_EVENT_DISCONNECTED 発火\ncurrent session をリセット
+note over S: FIN_ACK 受信後に socket teardown
 
 @enduml
 ```

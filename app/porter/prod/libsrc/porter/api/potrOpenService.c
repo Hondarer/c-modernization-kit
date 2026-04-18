@@ -597,12 +597,13 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
     POTR_LOG(POTR_TRACE_VERBOSE,
              "potrOpenService: service_id=%" PRId64 " type=%d window=%u max_payload=%u"
              " max_message_size=%u send_queue_depth=%u"
-             " health_interval=%ums health_timeout=%ums",
+             " health_interval=%ums health_timeout=%ums tcp_close_timeout=%ums",
              ctx->service.service_id, (int)ctx->service.type,
              (unsigned)ctx->global.window_size, (unsigned)ctx->global.max_payload,
              (unsigned)ctx->global.max_message_size, (unsigned)ctx->global.send_queue_depth,
              (unsigned)ctx->health_interval_ms,
-             (unsigned)ctx->health_timeout_ms);
+             (unsigned)ctx->health_timeout_ms,
+             (unsigned)ctx->global.tcp_close_timeout_ms);
 
     /* 通信種別に応じてソケットを作成 (RAW 型はベース型に正規化してから判定) */
     switch (potr_raw_base_type(ctx->service.type))
@@ -1197,13 +1198,16 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
        send/recv/health スレッドは接続確立後に connect スレッドが管理する。 */
     if (potr_is_tcp_type(ctx->service.type))
     {
-        /* tcp_state_mutex / tcp_state_cv / tcp_send_mutex[] / recv_window_mutex /
+        /* tcp_state_mutex / tcp_state_cv / tcp_close_mutex / tcp_close_cv /
+           tcp_send_mutex[] / recv_window_mutex /
            health_mutex[] / health_wakeup[] を初期化 */
 #if defined(PLATFORM_LINUX)
         {
             int i;
             pthread_mutex_init(&ctx->tcp_state_mutex, NULL);
             pthread_cond_init(&ctx->tcp_state_cv, NULL);
+            pthread_mutex_init(&ctx->tcp_close_mutex, NULL);
+            pthread_cond_init(&ctx->tcp_close_cv, NULL);
             for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
                 pthread_mutex_init(&ctx->tcp_send_mutex[i], NULL);
@@ -1217,6 +1221,8 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             int i;
             InitializeCriticalSection(&ctx->tcp_state_mutex);
             InitializeConditionVariable(&ctx->tcp_state_cv);
+            InitializeCriticalSection(&ctx->tcp_close_mutex);
+            InitializeConditionVariable(&ctx->tcp_close_cv);
             for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
                 InitializeCriticalSection(&ctx->tcp_send_mutex[i]);
@@ -1240,6 +1246,8 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                     int i;
                     pthread_mutex_destroy(&ctx->tcp_state_mutex);
                     pthread_cond_destroy(&ctx->tcp_state_cv);
+                    pthread_mutex_destroy(&ctx->tcp_close_mutex);
+                    pthread_cond_destroy(&ctx->tcp_close_cv);
                     for (i = 0; i < (int)POTR_MAX_PATH; i++)
                         pthread_mutex_destroy(&ctx->tcp_send_mutex[i]);
                     pthread_mutex_destroy(&ctx->recv_window_mutex);
@@ -1248,6 +1256,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 {
                     int i;
                     DeleteCriticalSection(&ctx->tcp_state_mutex);
+                    DeleteCriticalSection(&ctx->tcp_close_mutex);
                     for (i = 0; i < (int)POTR_MAX_PATH; i++)
                         DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
                     DeleteCriticalSection(&ctx->recv_window_mutex);
@@ -1270,6 +1279,8 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                 int i;
                 pthread_mutex_destroy(&ctx->tcp_state_mutex);
                 pthread_cond_destroy(&ctx->tcp_state_cv);
+                pthread_mutex_destroy(&ctx->tcp_close_mutex);
+                pthread_cond_destroy(&ctx->tcp_close_cv);
                 for (i = 0; i < (int)POTR_MAX_PATH; i++)
                     pthread_mutex_destroy(&ctx->tcp_send_mutex[i]);
                 pthread_mutex_destroy(&ctx->recv_window_mutex);
@@ -1278,6 +1289,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
             {
                 int i;
                 DeleteCriticalSection(&ctx->tcp_state_mutex);
+                DeleteCriticalSection(&ctx->tcp_close_mutex);
                 for (i = 0; i < (int)POTR_MAX_PATH; i++)
                     DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
                 DeleteCriticalSection(&ctx->recv_window_mutex);

@@ -135,7 +135,7 @@ TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED
 |---|---|
 | CONNECTED 前 | TCP 接続確立後に各 path が bootstrap PING を送信し、その応答 `PING` の `remote_path_ping_state[]` に `POTR_PING_STATE_NORMAL` が載ると論理 CONNECTED へ遷移する。`health_interval_ms > 0` の場合のみ tcp_health スレッドが定周期 `PING` を送る。`potrSend()` は `tcp_active_paths == 0` または `health_alive == 0` の間 `POTR_ERROR_DISCONNECTED` を返す。受信側は `health_alive == 0` の間 `deliver_payload_elem()` で `DATA` を破棄する。 |
 | CONNECTED 後 | `health_alive == 1` になり、`potrSend()` が成功する。受信側も `DATA` を配送する。 |
-| CONNECTED 解除 | path ごとの PING タイムアウトや TCP 切断で `tcp_active_paths` が減少し、全 path が失われると connect スレッドが `health_alive == 0` に戻して `POTR_EVENT_DISCONNECTED` を発火する。以後は再び CONNECTED 前と同じ扱いになり、再接続後に `PING` 交換で CONNECTED へ戻る。 |
+| CONNECTED 解除 | path ごとの PING タイムアウトや TCP 切断で `tcp_active_paths` が減少し、全 path が失われると connect スレッドが `health_alive == 0` に戻して `POTR_EVENT_DISCONNECTED` を発火する。加えて正常 close では、recv スレッドが protocol-level `FIN` を受信して最後の DATA 配送完了後に `FIN_ACK` を返し、その直後に `POTR_EVENT_DISCONNECTED` を発火する。以後は再び CONNECTED 前と同じ扱いになり、再接続後に `PING` 交換で CONNECTED へ戻る。 |
 | PotrEvent 順序 | `POTR_EVENT_CONNECTED` 前に `POTR_EVENT_DATA` は発火しない。 |
 
 ## PotrEvent 順序

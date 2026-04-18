@@ -196,6 +196,34 @@ int packet_build_fin(PotrPacket *packet, const PotrPacketSessionHdr *shdr)
 
 /**
  *******************************************************************************
+ *  @brief          FIN 完了応答 (FIN_ACK) パケットを構築します。
+ *  @param[out]     packet          構築結果を格納するパケット構造体へのポインタ。
+ *  @param[in]      shdr            セッション識別ヘッダーへのポインタ。
+ *  @param[in]      fin_target_seq  完了した FIN target 通番。
+ *  @return         成功時は POTR_SUCCESS、失敗時は POTR_ERROR を返します。
+ *******************************************************************************
+ */
+int packet_build_fin_ack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
+                         uint32_t fin_target_seq)
+{
+    if (packet == NULL || shdr == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    memset(packet, 0, PACKET_HEADER_SIZE);
+    packet->payload     = NULL;
+    fill_session_hdr(packet, shdr);
+    packet->seq_num     = 0;
+    packet->ack_num     = htonl(fin_target_seq);
+    packet->flags       = htons(POTR_FLAG_FIN_ACK);
+    packet->payload_len = 0;
+
+    return POTR_SUCCESS;
+}
+
+/**
+ *******************************************************************************
  *  @brief          データパケット (パックコンテナ) を構築します。
  *  @param[out]     out             構築結果を格納するパケット構造体へのポインタ。
  *  @param[in]      shdr            セッション識別ヘッダーへのポインタ。

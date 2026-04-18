@@ -68,6 +68,7 @@ static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx,
                                               int                  path_idx,
                                               int                  state_changed);
 static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
+static int send_tcp_fin_ack(struct PotrContext_ *ctx, uint32_t fin_target_seq);
 
 #if defined(PLATFORM_LINUX)
     typedef pthread_mutex_t PotrMutexLocal;
@@ -78,6 +79,151 @@ static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
     #define POTR_MUTEX_LOCK_LOCAL(m)   EnterCriticalSection(m)
     #define POTR_MUTEX_UNLOCK_LOCAL(m) LeaveCriticalSection(m)
 #endif /* PLATFORM_ */
+
+static int tcp_send_all_with_mutex(PotrSocket fd, PotrMutexLocal *mtx,
+                                   const uint8_t *buf, size_t len)
+{
+    size_t sent = 0;
+
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_lock(mtx);
+    while (sent < len)
+    {
+        ssize_t n = send(fd, buf + sent, len - sent, 0);
+        if (n <= 0)
+        {
+            pthread_mutex_unlock(mtx);
+            return POTR_ERROR;
+        }
+        sent += (size_t)n;
+    }
+    pthread_mutex_unlock(mtx);
+#elif defined(PLATFORM_WINDOWS)
+    EnterCriticalSection(mtx);
+    while (sent < len)
+    {
+        int n = send(fd, (const char *)(buf + sent), (int)(len - sent), 0);
+        if (n <= 0)
+        {
+            LeaveCriticalSection(mtx);
+            return POTR_ERROR;
+        }
+        sent += (size_t)n;
+    }
+    LeaveCriticalSection(mtx);
+#endif /* PLATFORM_ */
+
+    return POTR_SUCCESS;
+}
+
+static int send_tcp_control_packet(struct PotrContext_ *ctx, PotrPacket *pkt,
+                                   uint32_t nonce_val)
+{
+    uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_CRYPTO_TAG_SIZE];
+    size_t  wire_len;
+    int     sent_any = 0;
+    int     i;
+
+    if (ctx == NULL || pkt == NULL)
+    {
+        return POTR_ERROR;
+    }
+
+    if (ctx->service.encrypt_enabled)
+    {
+        uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t  enc_out = POTR_CRYPTO_TAG_SIZE;
+        uint32_t nonce_nbo = htonl(nonce_val);
+
+        pkt->flags      |= htons(POTR_FLAG_ENCRYPTED);
+        pkt->payload_len = htons((uint16_t)POTR_CRYPTO_TAG_SIZE);
+
+        memcpy(nonce,      &pkt->session_id, 4);
+        memcpy(nonce + 4,  &pkt->flags,      2);
+        memcpy(nonce + 6,  &nonce_nbo,       4);
+        memset(nonce + 10, 0,                2);
+
+        memcpy(wire_buf, pkt, PACKET_HEADER_SIZE);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         NULL, 0,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return POTR_ERROR;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+    }
+    else
+    {
+        memcpy(wire_buf, pkt, PACKET_HEADER_SIZE);
+        wire_len = PACKET_HEADER_SIZE;
+    }
+
+    for (i = 0; i < ctx->n_path; i++)
+    {
+        if (ctx->tcp_conn_fd[i] == POTR_INVALID_SOCKET)
+        {
+            continue;
+        }
+        if (tcp_send_all_with_mutex(ctx->tcp_conn_fd[i], &ctx->tcp_send_mutex[i],
+                                    wire_buf, wire_len) == POTR_SUCCESS)
+        {
+            sent_any = 1;
+        }
+    }
+
+    return sent_any ? POTR_SUCCESS : POTR_ERROR;
+}
+
+static void notify_tcp_close_ack_received(struct PotrContext_ *ctx, uint32_t fin_target_seq)
+{
+    if (ctx == NULL)
+    {
+        return;
+    }
+
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_lock(&ctx->tcp_close_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    EnterCriticalSection(&ctx->tcp_close_mutex);
+#endif /* PLATFORM_ */
+    if (ctx->tcp_close_waiting_ack
+        && ctx->tcp_close_wait_target_seq == fin_target_seq
+        && !ctx->tcp_close_ack_received)
+    {
+        ctx->tcp_close_ack_received = 1;
+        ctx->tcp_close_ack_seq      = fin_target_seq;
+#if defined(PLATFORM_LINUX)
+        pthread_cond_signal(&ctx->tcp_close_cv);
+#elif defined(PLATFORM_WINDOWS)
+        WakeConditionVariable(&ctx->tcp_close_cv);
+#endif /* PLATFORM_ */
+    }
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_unlock(&ctx->tcp_close_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    LeaveCriticalSection(&ctx->tcp_close_mutex);
+#endif /* PLATFORM_ */
+}
+
+static int send_tcp_fin_ack(struct PotrContext_ *ctx, uint32_t fin_target_seq)
+{
+    PotrPacket           fin_ack_pkt;
+    PotrPacketSessionHdr shdr;
+
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+
+    if (packet_build_fin_ack(&fin_ack_pkt, &shdr, fin_target_seq) != POTR_SUCCESS)
+    {
+        return POTR_ERROR;
+    }
+
+    return send_tcp_control_packet(ctx, &fin_ack_pkt, fin_target_seq);
+}
 
 /* ================================================================
  * N:1 モード専用: ピアコンテキストを使ったパケット処理関数群
@@ -753,7 +899,7 @@ static int recv_authenticate_packet(struct PotrContext_ *ctx,
         uint16_t flags_nbo = htons((uint16_t)pkt->flags);
         uint32_t val_nbo;
 
-        val = (pkt->flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT))
+        val = (pkt->flags & (POTR_FLAG_NACK | POTR_FLAG_REJECT | POTR_FLAG_FIN_ACK))
               ? pkt->ack_num : pkt->seq_num;
         val_nbo = htonl(val);
 
@@ -1591,8 +1737,25 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
 
 /* FIN 受信時の DISCONNECTED 発火とセッションリセットを行う。
    pending_fin の即時解消パスと drain_recv_window() 経由の遅延解消パスの両方から呼ぶ。 */
-static void fire_disconnected_by_fin(struct PotrContext_ *ctx)
+static void fire_disconnected_by_fin(struct PotrContext_ *ctx, uint32_t fin_target_seq)
 {
+    if (ctx->service.type == POTR_TYPE_TCP
+        || ctx->service.type == POTR_TYPE_TCP_BIDIR)
+    {
+        if (send_tcp_fin_ack(ctx, fin_target_seq) == POTR_SUCCESS)
+        {
+            POTR_LOG(POTR_TRACE_INFO,
+                     "tcp_recv[service_id=%" PRId64 "]: FIN_ACK sent ack=%u",
+                     ctx->service.service_id, (unsigned)fin_target_seq);
+        }
+        else
+        {
+            POTR_LOG(POTR_TRACE_WARNING,
+                     "tcp_recv[service_id=%" PRId64 "]: FIN_ACK send failed ack=%u",
+                     ctx->service.service_id, (unsigned)fin_target_seq);
+        }
+    }
+
     if (ctx->health_alive)
     {
         ctx->health_alive = 0;
@@ -1609,8 +1772,18 @@ static void fire_disconnected_by_fin(struct PotrContext_ *ctx)
     ctx->peer_session_known = 0;
     ctx->reorder_pending    = 0;
     ctx->last_recv_tv_sec   = 0;
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_lock(&ctx->recv_window_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    EnterCriticalSection(&ctx->recv_window_mutex);
+#endif /* PLATFORM_ */
     window_init(&ctx->recv_window, 0,
                 ctx->global.window_size, ctx->global.max_payload);
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_unlock(&ctx->recv_window_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    LeaveCriticalSection(&ctx->recv_window_mutex);
+#endif /* PLATFORM_ */
 }
 
 /* recv_window から順序整列済みの外側パケットを取り出してペイロードエレメントを配信する。
@@ -1657,7 +1830,7 @@ static void drain_recv_window(struct PotrContext_ *ctx)
     if (ctx->pending_fin
         && recv_window_reached_fin_target(ctx->recv_window.next_seq, ctx->fin_target_seq))
     {
-        fire_disconnected_by_fin(ctx);
+        fire_disconnected_by_fin(ctx, ctx->fin_target_seq);
     }
 }
 
@@ -2366,7 +2539,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 }
 
                 /* 即時: no-data FIN またはウィンドウ追い付き済み。 */
-                fire_disconnected_by_fin(ctx);
+                fire_disconnected_by_fin(ctx, pkt.ack_num);
                 continue;
             }
 
@@ -2808,7 +2981,56 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
         if (!recv_authenticate_packet(ctx, &pkt, buf, "tcp_recv", path_idx)) continue;
 
         /* 8. パケット種別処理 */
-        if (pkt.flags & POTR_FLAG_PING)
+        if (pkt.flags & POTR_FLAG_FIN_ACK)
+        {
+            POTR_LOG(POTR_TRACE_INFO,
+                     "tcp_recv[service_id=%" PRId64 " path=%d]: FIN_ACK ack=%u",
+                     ctx->service.service_id, path_idx, (unsigned)pkt.ack_num);
+            notify_tcp_close_ack_received(ctx, pkt.ack_num);
+            continue;
+        }
+        else if (pkt.flags & POTR_FLAG_FIN)
+        {
+            uint32_t fin_target_seq = pkt.ack_num;
+            int      should_fire_fin = 0;
+
+            POTR_MUTEX_LOCK_LOCAL(&ctx->recv_window_mutex);
+            if (!check_and_update_session(ctx, &pkt))
+            {
+                POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+                POTR_LOG(POTR_TRACE_VERBOSE,
+                         "tcp_recv[service_id=%" PRId64 " path=%d]: FIN session mismatch, ignored",
+                         ctx->service.service_id, path_idx);
+                continue;
+            }
+
+            POTR_LOG(POTR_TRACE_INFO,
+                     "tcp_recv[service_id=%" PRId64 " path=%d]: FIN received (fin_target_seq=%u recv_next=%u)",
+                     ctx->service.service_id, path_idx,
+                     (unsigned)fin_target_seq, (unsigned)ctx->recv_window.next_seq);
+
+            if (fin_packet_has_target(&pkt)
+                && !recv_window_reached_fin_target(ctx->recv_window.next_seq, fin_target_seq))
+            {
+                ctx->pending_fin    = 1;
+                ctx->fin_target_seq = fin_target_seq;
+                POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+                POTR_LOG(POTR_TRACE_INFO,
+                         "tcp_recv[service_id=%" PRId64 " path=%d]: FIN pending (waiting for seq=%u)",
+                         ctx->service.service_id, path_idx, (unsigned)fin_target_seq);
+                continue;
+            }
+
+            should_fire_fin = 1;
+            POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+
+            if (should_fire_fin)
+            {
+                fire_disconnected_by_fin(ctx, fin_target_seq);
+            }
+            continue;
+        }
+        else if (pkt.flags & POTR_FLAG_PING)
         {
             int ping_state_changed;
 
@@ -2836,6 +3058,8 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
         {
             /* セッション照合 + recv_window への投入 (recv_window_mutex で保護) */
             {
+                uint32_t fin_target_seq = 0U;
+                int      should_fire_fin = 0;
                 int pushed;
 
                 POTR_MUTEX_LOCK_LOCAL(&ctx->recv_window_mutex);
@@ -2879,8 +3103,21 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                         }
                         POTR_MUTEX_LOCK_LOCAL(&ctx->recv_window_mutex);
                     }
+
+                    if (ctx->pending_fin
+                        && recv_window_reached_fin_target(ctx->recv_window.next_seq,
+                                                          ctx->fin_target_seq))
+                    {
+                        fin_target_seq  = ctx->fin_target_seq;
+                        should_fire_fin = 1;
+                    }
                 }
                 POTR_MUTEX_UNLOCK_LOCAL(&ctx->recv_window_mutex);
+
+                if (should_fire_fin)
+                {
+                    fire_disconnected_by_fin(ctx, fin_target_seq);
+                }
             }
         }
     }
