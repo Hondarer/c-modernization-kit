@@ -64,7 +64,9 @@ static int set_all_path_ping_states(volatile uint8_t *states,
                                     size_t            count,
                                     uint8_t           next_state);
 static void wake_udp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed);
-static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed);
+static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx,
+                                              int                  path_idx,
+                                              int                  state_changed);
 static void get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
 
 #if defined(PLATFORM_LINUX)
@@ -1015,16 +1017,25 @@ static void wake_udp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int stat
     }
 }
 
-static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx, int state_changed)
+static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx,
+                                              int                  path_idx,
+                                              int                  state_changed)
 {
     if (state_changed && potr_is_tcp_type(ctx->service.type))
     {
-        /*
-         * TCP は path ごとに health スレッドを持つが、PING ペイロードは全 path の
-         * 受信状態ベクトルを運ぶ。変化した path 自身が送れない場合でも別 path から
-         * 更新済みベクトルを伝播できるよう、全 health スレッドを即時起床させる。
-         */
-        potr_tcp_health_thread_wake_all(ctx);
+        if (ctx->health_interval_ms > 0 && ctx->health_running[path_idx])
+        {
+            /*
+             * TCP は path ごとに health スレッドを持つが、PING ペイロードは全 path の
+             * 受信状態ベクトルを運ぶ。変化した path 自身が送れない場合でも別 path から
+             * 更新済みベクトルを伝播できるよう、全 health スレッドを即時起床させる。
+             */
+            potr_tcp_health_thread_wake_all(ctx);
+        }
+        else
+        {
+            (void)potr_tcp_send_ping_now(ctx, path_idx);
+        }
     }
 }
 
@@ -2635,6 +2646,20 @@ static void notify_connected_tcp(struct PotrContext_ *ctx)
     }
 }
 
+static int tcp_remote_any_path_normal(const struct PotrContext_ *ctx)
+{
+    int k;
+
+    for (k = 0; k < (int)POTR_MAX_PATH; k++)
+    {
+        if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* TCP ストリーム受信スレッド本体 (path ごと) */
 #if defined(PLATFORM_LINUX)
 static void *tcp_recv_thread_func(void *arg)
@@ -2649,9 +2674,9 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
     PotrSocket           fd;
 
     /* PING 受信タイムアウト監視を使用するか判定する。
-     * 全ロール (SENDER / RECEIVER / BIDIR) で両端が PING を送信するため、
-     * health_timeout_ms が設定されていれば常に監視する。 */
-    int      use_recv_timeout = (ctx->health_timeout_ms > 0);
+     * TCP は bootstrap PING 往復だけでも CONNECTED できるが、受信タイムアウト監視は
+     * 定周期 PING を送る構成でのみ有効とする。 */
+    int      use_recv_timeout = (ctx->health_interval_ms > 0 && ctx->health_timeout_ms > 0);
     /* ポーリング間隔: 1 秒単位でチェックし、health_timeout_ms を超えないようにする。 */
     uint32_t poll_ms = use_recv_timeout
                        ? (ctx->health_timeout_ms < 1000U
@@ -2714,7 +2739,7 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
                              ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
                     wake_tcp_interrupt_ping_if_needed(
-                        ctx,
+                        ctx, path_idx,
                         set_path_ping_state(&ctx->path_ping_state[path_idx],
                                             POTR_PING_STATE_ABNORMAL));
                     break;
@@ -2799,18 +2824,12 @@ static DWORD WINAPI tcp_recv_thread_func(LPVOID arg)
             {
                 memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
             }
-            wake_tcp_interrupt_ping_if_needed(ctx, ping_state_changed);
-            /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
+            wake_tcp_interrupt_ping_if_needed(ctx, path_idx, ping_state_changed);
+            /* TCP の CONNECTED は、相手が自端の PING を受信して NORMAL を返した
+               応答 PING を受け取った時点で発火する。 */
+            if (tcp_remote_any_path_normal(ctx))
             {
-                unsigned int k;
-                for (k = 0; k < POTR_MAX_PATH; k++)
-                {
-                    if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
-                    {
-                        notify_connected_tcp(ctx);
-                        break;
-                    }
-                }
+                notify_connected_tcp(ctx);
             }
         }
         else if (pkt.flags & POTR_FLAG_DATA)

@@ -884,7 +884,7 @@ note over R: POTR_EVENT_DATA × 3
 S -> R: 定周期 PING (seq_num=3, payload=UNDEFINED)
 note over R: path_ping_state を NORMAL に更新
 R -> S: 割り込み PING (seq_num=M,\npayload に NORMAL を含む)
-note over S: remote_path_ping_state に NORMAL を確認\n→ CONNECTED / alive 確認
+note over S: 初回の認証済み PING を受信\n→ CONNECTED / alive 確認
 
 == 正常終了 ==
 

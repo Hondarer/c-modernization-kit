@@ -18,13 +18,16 @@ struct ConnectedThreadsCallState
     int send_start_calls;
     int send_stop_calls;
     int recv_start_calls;
+    int tcp_send_ping_calls;
     int health_start_calls;
     int close_conn_calls;
     int join_recv_calls;
     int set_ping_state_calls;
     int last_set_ping_path;
     int last_set_ping_state;
+    int last_tcp_send_ping_path;
     int recv_start_result;
+    int tcp_send_ping_result;
     int health_start_result;
 };
 
@@ -51,6 +54,14 @@ static int fake_recv_start(struct PotrContext_ *ctx, int path_idx)
         ctx->running[path_idx] = 1;
     }
     return g_calls.recv_start_result;
+}
+
+extern "C" int potr_tcp_send_ping_now(struct PotrContext_ *ctx, int path_idx)
+{
+    (void)ctx;
+    g_calls.tcp_send_ping_calls++;
+    g_calls.last_tcp_send_ping_path = path_idx;
+    return g_calls.tcp_send_ping_result;
 }
 
 static int fake_health_start(struct PotrContext_ *ctx, int path_idx)
@@ -99,6 +110,7 @@ class potrConnectedThreadsTest : public Test
         ctx.tcp_conn_fd[1]     = 456;
 
         g_calls.recv_start_result   = POTR_SUCCESS;
+        g_calls.tcp_send_ping_result = POTR_SUCCESS;
         g_calls.health_start_result = POTR_SUCCESS;
     }
 
@@ -133,6 +145,7 @@ TEST_F(potrConnectedThreadsTest, recv_failure_stops_send_started_by_this_call)
     EXPECT_EQ(1, g_calls.send_stop_calls);
     EXPECT_EQ(1, g_calls.close_conn_calls);
     EXPECT_EQ(0, g_calls.join_recv_calls);
+    EXPECT_EQ(0, g_calls.tcp_send_ping_calls);
     EXPECT_EQ(0, g_calls.health_start_calls);
     EXPECT_EQ(POTR_INVALID_SOCKET, ctx.tcp_conn_fd[0]);
 }
@@ -150,6 +163,26 @@ TEST_F(potrConnectedThreadsTest, recv_failure_keeps_preexisting_send_thread_runn
     EXPECT_EQ(1, g_calls.recv_start_calls);
     EXPECT_EQ(0, g_calls.send_stop_calls);
     EXPECT_EQ(1, g_calls.close_conn_calls);
+    EXPECT_EQ(0, g_calls.tcp_send_ping_calls);
+}
+
+TEST_F(potrConnectedThreadsTest, bootstrap_ping_failure_rolls_back_recv_and_new_send_thread)
+{
+    PotrConnectedThreadsOps ops = make_ops();
+    g_calls.tcp_send_ping_result = POTR_ERROR;
+
+    int rtc = potr_start_connected_threads(&ctx, 0, &ops);
+
+    EXPECT_EQ(POTR_ERROR, rtc);
+    EXPECT_EQ(1, g_calls.send_start_calls);
+    EXPECT_EQ(1, g_calls.recv_start_calls);
+    EXPECT_EQ(1, g_calls.tcp_send_ping_calls);
+    EXPECT_EQ(0, g_calls.health_start_calls);
+    EXPECT_EQ(1, g_calls.close_conn_calls);
+    EXPECT_EQ(1, g_calls.join_recv_calls);
+    EXPECT_EQ(1, g_calls.send_stop_calls);
+    EXPECT_EQ(0, ctx.running[0]);
+    EXPECT_EQ(POTR_INVALID_SOCKET, ctx.tcp_conn_fd[0]);
 }
 
 TEST_F(potrConnectedThreadsTest, health_failure_rolls_back_recv_and_new_send_thread)
@@ -162,6 +195,7 @@ TEST_F(potrConnectedThreadsTest, health_failure_rolls_back_recv_and_new_send_thr
     EXPECT_EQ(POTR_ERROR, rtc);
     EXPECT_EQ(1, g_calls.send_start_calls);
     EXPECT_EQ(1, g_calls.recv_start_calls);
+    EXPECT_EQ(1, g_calls.tcp_send_ping_calls);
     EXPECT_EQ(1, g_calls.health_start_calls);
     EXPECT_EQ(1, g_calls.close_conn_calls);
     EXPECT_EQ(1, g_calls.join_recv_calls);
@@ -181,6 +215,7 @@ TEST_F(potrConnectedThreadsTest, health_failure_keeps_preexisting_send_thread_ru
     EXPECT_EQ(POTR_ERROR, rtc);
     EXPECT_EQ(0, g_calls.send_start_calls);
     EXPECT_EQ(1, g_calls.recv_start_calls);
+    EXPECT_EQ(1, g_calls.tcp_send_ping_calls);
     EXPECT_EQ(1, g_calls.health_start_calls);
     EXPECT_EQ(1, g_calls.close_conn_calls);
     EXPECT_EQ(1, g_calls.join_recv_calls);
@@ -199,6 +234,7 @@ TEST_F(potrConnectedThreadsTest, non_primary_path_does_not_touch_send_thread)
     EXPECT_EQ(1, g_calls.recv_start_calls);
     EXPECT_EQ(0, g_calls.send_stop_calls);
     EXPECT_EQ(1, g_calls.close_conn_calls);
+    EXPECT_EQ(0, g_calls.tcp_send_ping_calls);
     EXPECT_EQ(POTR_INVALID_SOCKET, ctx.tcp_conn_fd[1]);
 }
 
@@ -211,6 +247,8 @@ TEST_F(potrConnectedThreadsTest, success_sets_ping_state_without_rollback)
     EXPECT_EQ(POTR_SUCCESS, rtc);
     EXPECT_EQ(1, g_calls.send_start_calls);
     EXPECT_EQ(1, g_calls.recv_start_calls);
+    EXPECT_EQ(1, g_calls.tcp_send_ping_calls);
+    EXPECT_EQ(0, g_calls.last_tcp_send_ping_path);
     EXPECT_EQ(1, g_calls.health_start_calls);
     EXPECT_EQ(0, g_calls.close_conn_calls);
     EXPECT_EQ(0, g_calls.join_recv_calls);

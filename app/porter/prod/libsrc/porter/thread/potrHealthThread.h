@@ -29,7 +29,8 @@ extern "C"
     extern int potr_health_thread_stop(struct PotrContext_ *ctx);
     extern void potr_health_thread_wake(struct PotrContext_ *ctx);
 
-    /* TCP 用ヘルスチェックスレッド (path ごと) */
+    /* TCP 用ヘルスチェックスレッド / PING 送信 helper (path ごと) */
+    extern int potr_tcp_send_ping_now(struct PotrContext_ *ctx, int path_idx);
     extern int potr_tcp_health_thread_start(struct PotrContext_ *ctx, int path_idx);
     extern int potr_tcp_health_thread_stop(struct PotrContext_ *ctx, int path_idx);
     extern void potr_tcp_health_thread_wake(struct PotrContext_ *ctx, int path_idx);

@@ -192,6 +192,119 @@ static int wait_oneway_udp_ping_due(struct PotrContext_ *ctx,
     return 0;
 }
 
+static int tcp_send_ping_packet(struct PotrContext_ *ctx, int path_idx)
+{
+    PotrPacket           ping_pkt;
+    PotrPacketSessionHdr shdr;
+    uint8_t              health_states[POTR_MAX_PATH];
+    uint32_t             seq;
+    size_t               wire_len;
+    int                  build_result;
+    int                  send_ok = 0;
+
+    if (ctx == NULL
+        || path_idx < 0
+        || path_idx >= (int)POTR_MAX_PATH
+        || ctx->tcp_active_paths == 0
+        || ctx->tcp_conn_fd[path_idx] == POTR_INVALID_SOCKET)
+    {
+        return POTR_ERROR;
+    }
+
+    potr_copy_path_ping_state(health_states, ctx->path_ping_state, POTR_MAX_PATH);
+
+    POTR_MUTEX_LOCK_LOCAL(&ctx->send_window_mutex);
+    shdr.service_id      = ctx->service.service_id;
+    shdr.session_id      = ctx->session_id;
+    shdr.session_tv_sec  = ctx->session_tv_sec;
+    shdr.session_tv_nsec = ctx->session_tv_nsec;
+    seq                  = ctx->send_window.next_seq;
+    build_result = packet_build_ping(&ping_pkt, &shdr, seq,
+                                     health_states, (uint16_t)POTR_MAX_PATH);
+    POTR_MUTEX_UNLOCK_LOCAL(&ctx->send_window_mutex);
+
+    if (build_result != POTR_SUCCESS)
+    {
+        return POTR_ERROR;
+    }
+
+    if (ctx->service.encrypt_enabled)
+    {
+        uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_MAX_PATH + POTR_CRYPTO_TAG_SIZE];
+        uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
+        size_t  enc_out = POTR_MAX_PATH + POTR_CRYPTO_TAG_SIZE;
+
+        ping_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
+        ping_pkt.payload_len = htons((uint16_t)(POTR_MAX_PATH + POTR_CRYPTO_TAG_SIZE));
+
+        memcpy(nonce,      &ping_pkt.session_id, 4);
+        memcpy(nonce + 4,  &ping_pkt.flags,      2);
+        memcpy(nonce + 6,  &ping_pkt.seq_num,    4);
+        memset(nonce + 10, 0,                    2);
+
+        memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
+        memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
+        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                         wire_buf + PACKET_HEADER_SIZE, POTR_MAX_PATH,
+                         ctx->service.encrypt_key,
+                         nonce,
+                         wire_buf, PACKET_HEADER_SIZE) != 0)
+        {
+            return POTR_ERROR;
+        }
+        wire_len = PACKET_HEADER_SIZE + enc_out;
+
+        POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
+        if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
+        {
+#if defined(PLATFORM_LINUX)
+            size_t        sent = 0;
+            const uint8_t *p   = wire_buf;
+            while (sent < wire_len)
+            {
+                ssize_t n = send(ctx->tcp_conn_fd[path_idx], p + sent, wire_len - sent, 0);
+                if (n <= 0) break;
+                sent += (size_t)n;
+            }
+            send_ok = (sent == wire_len);
+#elif defined(PLATFORM_WINDOWS)
+            int sent = send(ctx->tcp_conn_fd[path_idx], (const char *)wire_buf, (int)wire_len, 0);
+            send_ok  = (sent == (int)wire_len);
+#endif /* PLATFORM_ */
+        }
+        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
+    }
+    else
+    {
+        uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_MAX_PATH];
+        memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
+        memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
+        wire_len = PACKET_HEADER_SIZE + POTR_MAX_PATH;
+
+        POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
+        if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
+        {
+#if defined(PLATFORM_LINUX)
+            size_t        sent = 0;
+            const uint8_t *p   = wire_buf;
+            while (sent < wire_len)
+            {
+                ssize_t n = send(ctx->tcp_conn_fd[path_idx], p + sent, wire_len - sent, 0);
+                if (n <= 0) break;
+                sent += (size_t)n;
+            }
+            send_ok = (sent == wire_len);
+#elif defined(PLATFORM_WINDOWS)
+            int sent = send(ctx->tcp_conn_fd[path_idx], (const char *)wire_buf, (int)wire_len, 0);
+            send_ok  = (sent == (int)wire_len);
+#endif /* PLATFORM_ */
+        }
+        POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
+    }
+
+    return send_ok ? POTR_SUCCESS : POTR_ERROR;
+}
+
 /* ====================================================================
  * 非 TCP (UDP/マルチキャスト) 用ヘルスチェックスレッド本体
  * ==================================================================== */
@@ -471,12 +584,6 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
     HealthArg           *harg     = (HealthArg *)arg;
     struct PotrContext_ *ctx      = harg->ctx;
     int                  path_idx = harg->path_idx;
-    PotrPacketSessionHdr shdr;
-
-    shdr.service_id      = ctx->service.service_id;
-    shdr.session_id      = ctx->session_id;
-    shdr.session_tv_sec  = ctx->session_tv_sec;
-    shdr.session_tv_nsec = ctx->session_tv_nsec;
 
     POTR_LOG(POTR_TRACE_VERBOSE,
              "tcp_health[service_id=%" PRId64 " path=%d]: starting",
@@ -484,120 +591,11 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
 
     while (ctx->health_running[path_idx])
     {
-        PotrPacket ping_pkt;
-        uint32_t   seq;
-        size_t     wire_len;
-        int        build_result;
-
         /* 固定間隔でスリープ */
         health_sleep(ctx, path_idx, ctx->health_interval_ms);
 
         if (!ctx->health_running[path_idx]) break;
-
-        /* 接続中でなければ PING をスキップ */
-        if (ctx->tcp_active_paths == 0
-            || ctx->tcp_conn_fd[path_idx] == POTR_INVALID_SOCKET)
-        {
-            continue;
-        }
-
-        /* PING パケットを構築する */
-        /* TCP / TCP_BIDIR は双方向 PING。自端のパス受信状態をペイロードに設定する。 */
-        {
-            uint8_t health_states[POTR_MAX_PATH];
-            potr_copy_path_ping_state(health_states, ctx->path_ping_state, POTR_MAX_PATH);
-
-            POTR_MUTEX_LOCK_LOCAL(&ctx->send_window_mutex);
-            /* session 情報を最新に更新 (再接続時に変わっている可能性がある) */
-            shdr.session_id      = ctx->session_id;
-            shdr.session_tv_sec  = ctx->session_tv_sec;
-            shdr.session_tv_nsec = ctx->session_tv_nsec;
-            seq          = ctx->send_window.next_seq;
-            build_result = packet_build_ping(&ping_pkt, &shdr, seq,
-                                             health_states, (uint16_t)POTR_MAX_PATH);
-            POTR_MUTEX_UNLOCK_LOCAL(&ctx->send_window_mutex);
-
-            if (build_result != POTR_SUCCESS) { continue; }
-
-            POTR_LOG(POTR_TRACE_VERBOSE,
-                     "tcp_health[service_id=%" PRId64 " path=%d]: PING seq=%u",
-                     ctx->service.service_id, path_idx, (unsigned)seq);
-
-            if (ctx->service.encrypt_enabled)
-            {
-                uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_MAX_PATH + POTR_CRYPTO_TAG_SIZE];
-                uint8_t nonce[POTR_CRYPTO_NONCE_SIZE];
-                size_t  enc_out = POTR_MAX_PATH + POTR_CRYPTO_TAG_SIZE;
-
-                ping_pkt.flags      |= htons(POTR_FLAG_ENCRYPTED);
-                ping_pkt.payload_len = htons((uint16_t)(POTR_MAX_PATH + POTR_CRYPTO_TAG_SIZE));
-
-                memcpy(nonce,      &ping_pkt.session_id, 4);
-                memcpy(nonce + 4,  &ping_pkt.flags,      2);
-                memcpy(nonce + 6,  &ping_pkt.seq_num,    4);
-                memset(nonce + 10, 0,                    2);
-
-                memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
-                memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
-                if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
-                                 wire_buf + PACKET_HEADER_SIZE, POTR_MAX_PATH,
-                                 ctx->service.encrypt_key,
-                                 nonce,
-                                 wire_buf, PACKET_HEADER_SIZE) != 0) { continue; }
-                wire_len = PACKET_HEADER_SIZE + enc_out;
-
-                POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-                if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
-                {
-#if defined(PLATFORM_LINUX)
-                    {
-                        size_t        sent = 0;
-                        const uint8_t *p   = wire_buf;
-                        while (sent < wire_len)
-                        {
-                            ssize_t n = send(ctx->tcp_conn_fd[path_idx],
-                                             p + sent, wire_len - sent, 0);
-                            if (n <= 0) break;
-                            sent += (size_t)n;
-                        }
-                    }
-#elif defined(PLATFORM_WINDOWS)
-                    send(ctx->tcp_conn_fd[path_idx],
-                         (const char *)wire_buf, (int)wire_len, 0);
-#endif /* PLATFORM_ */
-                }
-                POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-            }
-            else
-            {
-                uint8_t wire_buf[PACKET_HEADER_SIZE + POTR_MAX_PATH];
-                memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
-                memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
-                wire_len = PACKET_HEADER_SIZE + POTR_MAX_PATH;
-
-                POTR_MUTEX_LOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-                if (ctx->tcp_conn_fd[path_idx] != POTR_INVALID_SOCKET)
-                {
-#if defined(PLATFORM_LINUX)
-                    {
-                        size_t        sent = 0;
-                        const uint8_t *p   = wire_buf;
-                        while (sent < wire_len)
-                        {
-                            ssize_t n = send(ctx->tcp_conn_fd[path_idx],
-                                             p + sent, wire_len - sent, 0);
-                            if (n <= 0) break;
-                            sent += (size_t)n;
-                        }
-                    }
-#elif defined(PLATFORM_WINDOWS)
-                    send(ctx->tcp_conn_fd[path_idx],
-                         (const char *)wire_buf, (int)wire_len, 0);
-#endif /* PLATFORM_ */
-                }
-                POTR_MUTEX_UNLOCK_LOCAL(&ctx->tcp_send_mutex[path_idx]);
-            }
-        }
+        (void)tcp_send_ping_packet(ctx, path_idx);
     }
 
     POTR_LOG(POTR_TRACE_VERBOSE,
@@ -609,6 +607,11 @@ static DWORD WINAPI tcp_health_thread_func(LPVOID arg)
 #elif defined(PLATFORM_WINDOWS)
     return 0;
 #endif /* PLATFORM_ */
+}
+
+int potr_tcp_send_ping_now(struct PotrContext_ *ctx, int path_idx)
+{
+    return tcp_send_ping_packet(ctx, path_idx);
 }
 
 /**

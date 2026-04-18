@@ -7,8 +7,8 @@
  *  @version        1.0.0
  *
  *  @details
- *  send / recv / health スレッドの起動順序と、途中失敗時の rollback を
- *  所有権ベースで制御します。
+ *  send / recv / health スレッドの起動順序、bootstrap PING 送信、
+ *  途中失敗時の rollback を所有権ベースで制御します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -20,6 +20,7 @@
 #include <porter_const.h>
 
 #include "../infra/potrLog.h"
+#include "potrHealthThread.h"
 #include "potrConnectedThreads.h"
 
 int potr_start_connected_threads(struct PotrContext_           *ctx,
@@ -64,7 +65,24 @@ int potr_start_connected_threads(struct PotrContext_           *ctx,
         return POTR_ERROR;
     }
 
-    ctx->health_send_immediate[path_idx] = 1;
+    ops->set_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
+
+    if (potr_tcp_send_ping_now(ctx, path_idx) != POTR_SUCCESS)
+    {
+        POTR_LOG(POTR_TRACE_ERROR,
+                 "connect_thread[service_id=%" PRId64 "]: bootstrap TCP PING failed"
+                 " (path=%d)",
+                 ctx->service.service_id, path_idx);
+        ctx->running[path_idx] = 0;
+        ops->close_conn(ctx, path_idx);
+        ops->join_recv(ctx, path_idx);
+        if (started_send_thread)
+        {
+            ops->send_stop(ctx);
+        }
+        return POTR_ERROR;
+    }
+
     if (ops->health_start(ctx, path_idx) != POTR_SUCCESS)
     {
         POTR_LOG(POTR_TRACE_ERROR,
@@ -81,6 +99,5 @@ int potr_start_connected_threads(struct PotrContext_           *ctx,
         return POTR_ERROR;
     }
 
-    ops->set_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
     return POTR_SUCCESS;
 }

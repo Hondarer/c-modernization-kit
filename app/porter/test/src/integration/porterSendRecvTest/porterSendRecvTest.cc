@@ -260,6 +260,26 @@ static void sleep_ms(unsigned int ms)
 #endif /* PLATFORM_ */
 }
 
+static void waitForStderrContains(AsyncProcessHandle &handle,
+                                  const string       &pattern,
+                                  int                 timeout_ms)
+{
+    int waited_ms = 0;
+
+    while (waited_ms < timeout_ms)
+    {
+        if (getStderr(handle).find(pattern) != string::npos)
+        {
+            return;
+        }
+
+        sleep_ms(10);
+        waited_ms += 10;
+    }
+
+    throw runtime_error("waitForStderrContains: timeout before pattern: \"" + pattern + "\"");
+}
+
 static size_t count_occurrences(const string &text, const string &needle)
 {
     size_t count = 0;
@@ -1134,14 +1154,12 @@ TEST_F(porterSendRecvTest, encrypted_tcp_bidir_stays_healthy_and_receives)
     ASSERT_NE(nullptr, recv_h_);
     ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
 
-    send_h_ = startProcessAsync(send_path, {config_path, "60"}, makeOpts());
+    send_h_ = startProcessAsync(send_path, {"-l", "VERBOSE", config_path, "60"}, makeOpts());
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
 
-    /* TCP は接続確立後の PING 交換で送信側 health_alive が立つため、
-       受信側 CONNECTED の確認後に 1 周期ぶん待ってから送信する。 */
     ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
-    sleep_ms(1200);
+    ASSERT_NO_THROW(waitForStderrContains(send_h_, "tcp_recv[service_id=60]: CONNECTED", 2800));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -1163,8 +1181,8 @@ TEST_F(porterSendRecvTest, encrypted_tcp_bidir_stays_healthy_and_receives)
     }
 }
 
-// tcp_bidir で CONNECTED 前は送信 API が未接続エラーを返すことを確認する
-TEST_F(porterSendRecvTest, tcp_bidir_send_fails_before_connected)
+// tcp_bidir は定周期 health PING 無効でも bootstrap PING だけで接続確立できることを確認する
+TEST_F(porterSendRecvTest, tcp_bidir_connects_without_periodic_health_ping)
 {
     PorterConfigBuilder cfg;
     string config_path =
@@ -1177,24 +1195,68 @@ TEST_F(porterSendRecvTest, tcp_bidir_send_fails_before_connected)
     ASSERT_NE(nullptr, recv_h_);
     ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
 
-    send_h_ = startProcessAsync(send_path, {config_path, "61"}, makeOpts());
+    send_h_ = startProcessAsync(send_path, {"-l", "VERBOSE", config_path, "61"}, makeOpts());
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
+    ASSERT_NO_THROW(waitForStderrContains(send_h_, "tcp_recv[service_id=61]: CONNECTED", 3000));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
     ASSERT_TRUE(writeLineStdin(send_h_, "tcp-before-connected"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
     ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
 
-    EXPECT_EQ(EXIT_FAILURE, waitForExit(send_h_, 5000));
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
 
     interruptProcess(recv_h_);
     waitForExit(recv_h_, 3000);
 
-    EXPECT_NE(string::npos, getStderr(send_h_).find("未接続のため送信できません"));
-    EXPECT_EQ(string::npos, getStdout(recv_h_).find("接続確立"));
-    EXPECT_EQ(string::npos, getStdout(recv_h_).find("tcp-before-connected"));
+    EXPECT_EQ(string::npos, getStderr(send_h_).find("未接続のため送信できません"));
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("接続確立"));
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("tcp-before-connected"));
+}
+
+// tcp_bidir で定周期 health PING 無効時は tcp_health_timeout_ms を無視して接続維持できることを確認する
+TEST_F(porterSendRecvTest, tcp_bidir_without_periodic_health_ping_ignores_timeout)
+{
+    PorterConfigBuilder cfg;
+    string config_path =
+        cfg.setTcpHealthIntervalMs(0)
+            .setTcpHealthTimeoutMs(500)
+            .addTcpBidirService(62, 19062)
+            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "62"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {"-l", "VERBOSE", config_path, "62"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
+    ASSERT_NO_THROW(waitForStderrContains(send_h_, "tcp_recv[service_id=62]: CONNECTED", 3000));
+
+    sleep_ms(1200);
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "tcp-timeout-ignored"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    EXPECT_EQ(string::npos, getStderr(send_h_).find("PING timeout"));
+    EXPECT_EQ(string::npos, getStderr(recv_h_).find("PING timeout"));
+    EXPECT_NE(string::npos, getStdout(recv_h_).find("tcp-timeout-ignored"));
 }
 
 // バイナリファイル送信テスト: 受信側で一時ファイルに保存されることを確認する
