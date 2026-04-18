@@ -177,13 +177,13 @@
  *  OS 非依存のトレースレベルを定義します。重大度は上から下へ低下します。\n
  *  内部で ETW Level (1-5) および syslog severity へマッピングされます。
  *
- *  | trace_level       | ETW Level        | syslog severity |
- *  | ----------------- | ---------------- | --------------- |
- *  | TRACE_LEVEL_CRITICAL | Critical (1)     | LOG_CRIT (2)    |
- *  | TRACE_LEVEL_ERROR    | Error (2)        | LOG_ERR (3)     |
- *  | TRACE_LEVEL_WARNING  | Warning (3)      | LOG_WARNING (4) |
- *  | TRACE_LEVEL_INFO     | Informational (4)| LOG_INFO (6)    |
- *  | TRACE_LEVEL_VERBOSE  | Verbose (5)      | LOG_DEBUG (7)   |
+ *  | trace_level          | ETW Level         | syslog severity |
+ *  | -------------------- | ----------------- | --------------- |
+ *  | TRACE_LEVEL_CRITICAL | Critical (1)      | LOG_CRIT (2)    |
+ *  | TRACE_LEVEL_ERROR    | Error (2)         | LOG_ERR (3)     |
+ *  | TRACE_LEVEL_WARNING  | Warning (3)       | LOG_WARNING (4) |
+ *  | TRACE_LEVEL_INFO     | Informational (4) | LOG_INFO (6)    |
+ *  | TRACE_LEVEL_VERBOSE  | Verbose (5)       | LOG_DEBUG (7)   |
  */
 typedef enum trace_level_t
 {

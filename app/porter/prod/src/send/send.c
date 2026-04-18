@@ -26,13 +26,13 @@
  *  | ---------------- | ----------------------------------------------------------- |
  *  | -l \<level\>     | ログレベルを指定します。指定がない場合はログ出力なし。      |
  *
- *  level に指定可能な値: TRACE, DEBUG, INFO, WARN, ERROR, FATAL (大文字小文字不問)
+ *  level に指定可能な値: VERBOSE, INFO, WARNING, ERROR, CRITICAL (大文字小文字不問)
  *
  *  @par            使用例
  *  @code{.sh}
     send porter-services.conf 10
     send -l INFO porter-services.conf 10
-    send -l DEBUG porter-services.conf 1031
+    send -l VERBOSE porter-services.conf 1031
  *  @endcode
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
@@ -41,19 +41,19 @@
  */
 
 #include <com_util/base/platform.h>
+#include <com_util/fs/path_max.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <com_util/fs/path_max.h>
 
 #if defined(PLATFORM_LINUX)
     #include <unistd.h>
 #endif /* PLATFORM_LINUX */
 
-#include <porter.h>
 #include <com_util/console/console.h>
+#include <porter.h>
 
 /** 入力バッファサイズ。POTR_MAX_MESSAGE_SIZE + 改行 + NUL。 */
 #define INPUT_BUF_SIZE (POTR_MAX_MESSAGE_SIZE + 2U)
@@ -113,8 +113,7 @@ static int is_text_data(const void *data, size_t len)
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-static int save_to_temp_file(const void *data, size_t len,
-                             char *path_out, size_t path_size)
+static int save_to_temp_file(const void *data, size_t len, char *path_out, size_t path_size)
 {
 #if defined(PLATFORM_LINUX)
     int fd;
@@ -224,76 +223,77 @@ static BOOL WINAPI console_ctrl_handler(DWORD type)
  *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
  *******************************************************************************
  */
-static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event,
-                    const void *data, size_t len)
+static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event, const void *data, size_t len)
 {
-    char   buf[POTR_MAX_PAYLOAD + 1];
+    char buf[POTR_MAX_PAYLOAD + 1];
     size_t copy_len;
 
     (void)peer_id;
     switch (event)
     {
-        case POTR_EVENT_CONNECTED:
-            printf("\n[サービス %" PRId64 "] 接続確立\n", service_id);
-            fflush(stdout);
-            break;
+    case POTR_EVENT_CONNECTED:
+        printf("\n[サービス %" PRId64 "] 接続確立\n", service_id);
+        fflush(stdout);
+        break;
 
-        case POTR_EVENT_DISCONNECTED:
-            printf("\n[サービス %" PRId64 "] 切断検知\n", service_id);
-            fflush(stdout);
-            break;
+    case POTR_EVENT_DISCONNECTED:
+        printf("\n[サービス %" PRId64 "] 切断検知\n", service_id);
+        fflush(stdout);
+        break;
 
-        case POTR_EVENT_DATA:
-        default:
-            if (is_text_data(data, len))
+    case POTR_EVENT_DATA:
+    default:
+        if (is_text_data(data, len))
+        {
+            if (len < POTR_MAX_PAYLOAD)
             {
-                if (len < POTR_MAX_PAYLOAD)
-                {
-                    copy_len = len;
-                }
-                else
-                {
-                    copy_len = POTR_MAX_PAYLOAD;
-                }
-                memcpy(buf, data, copy_len);
-                buf[copy_len] = '\0';
-                printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): %s\n", service_id, len, buf);
+                copy_len = len;
             }
             else
             {
-                char tmp_path[4096];
-                if (save_to_temp_file(data, len, tmp_path, sizeof(tmp_path)) == 0)
-                {
-                    printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): バイナリデータを保存しました: %s\n",
-                           service_id, len, tmp_path);
-                }
-                else
-                {
-                    fprintf(stderr, "\n[サービス %" PRId64 "] 受信 (%zu バイト): バイナリデータの保存に失敗しました。\n",
-                            service_id, len);
-                }
+                copy_len = POTR_MAX_PAYLOAD;
             }
-            fflush(stdout);
-            break;
+            memcpy(buf, data, copy_len);
+            buf[copy_len] = '\0';
+            printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): %s\n", service_id, len, buf);
+        }
+        else
+        {
+            char tmp_path[4096];
+            if (save_to_temp_file(data, len, tmp_path, sizeof(tmp_path)) == 0)
+            {
+                printf("\n[サービス %" PRId64 "] 受信 (%zu バイト): バイナリデータを保存しました: %s\n", service_id,
+                       len, tmp_path);
+            }
+            else
+            {
+                fprintf(stderr, "\n[サービス %" PRId64 "] 受信 (%zu バイト): バイナリデータの保存に失敗しました。\n",
+                        service_id, len);
+            }
+        }
+        fflush(stdout);
+        break;
     }
 }
 
 /**
  *******************************************************************************
  *  @brief          ログレベル文字列を PotrLogLevel に変換する。
- *  @param[in]      str     レベル文字列 (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)。
+ *  @param[in]      str     レベル文字列 (VERBOSE/INFO/WARNING/ERROR/CRITICAL)。
  *  @param[out]     out     変換結果の格納先。
  *  @return         変換に成功した場合は 1、未知の文字列の場合は 0 を返します。
  *******************************************************************************
  */
 static int parse_log_level(const char *str, PotrLogLevel *out)
 {
-    static const struct { const char *name; PotrLogLevel level; uint32_t _pad; } tbl[] = {
-        { "DEBUG", POTR_TRACE_VERBOSE, 0U },
-        { "INFO",  POTR_TRACE_INFO,  0U },
-        { "WARN",  POTR_TRACE_WARNING,  0U },
-        { "ERROR", POTR_TRACE_ERROR, 0U },
-        { "FATAL", POTR_TRACE_CRITICAL, 0U },
+    static const struct
+    {
+        const char *name;
+        PotrLogLevel level;
+        uint32_t _pad;
+    } tbl[] = {
+        {"VERBOSE", POTR_TRACE_VERBOSE, 0U}, {"INFO", POTR_TRACE_INFO, 0U},         {"WARNING", POTR_TRACE_WARNING, 0U},
+        {"ERROR", POTR_TRACE_ERROR, 0U},     {"CRITICAL", POTR_TRACE_CRITICAL, 0U},
     };
     char upper[16];
     size_t i;
@@ -301,9 +301,7 @@ static int parse_log_level(const char *str, PotrLogLevel *out)
 
     for (j = 0; j < sizeof(upper) - 1U && str[j] != '\0'; j++)
     {
-        upper[j] = (str[j] >= 'a' && str[j] <= 'z')
-                       ? (char)(str[j] - ('a' - 'A'))
-                       : str[j];
+        upper[j] = (str[j] >= 'a' && str[j] <= 'z') ? (char)(str[j] - ('a' - 'A')) : str[j];
     }
     upper[j] = '\0';
 
@@ -415,7 +413,7 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
     }
 
     *out_data = buf;
-    *out_len  = (size_t)file_size;
+    *out_len = (size_t)file_size;
     return 0;
 }
 
@@ -429,19 +427,19 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
  */
 int main(int argc, char *argv[])
 {
-    const char  *config_path;
-    int64_t      service_id;
-    PotrHandle   handle;
-    char         msg_buf[INPUT_BUF_SIZE];
-    char         ans_buf[8];
-    size_t       msg_len;
-    int          compress;
-    int          ret   = EXIT_SUCCESS;
-    int          i;
-    PotrLogLevel log_level    = POTR_TRACE_NONE;
-    int          log_level_set = 0;
-    PotrType     svc_type;
-    int          is_bidir;
+    const char *config_path;
+    int64_t service_id;
+    PotrHandle handle;
+    char msg_buf[INPUT_BUF_SIZE];
+    char ans_buf[8];
+    size_t msg_len;
+    int compress;
+    int ret = EXIT_SUCCESS;
+    int i;
+    PotrLogLevel log_level = POTR_TRACE_NONE;
+    int log_level_set = 0;
+    PotrType svc_type;
+    int is_bidir;
     PotrRecvCallback callback;
 
     /* コンソール UTF-8 ヘルパーを初期化する */
@@ -455,8 +453,7 @@ int main(int argc, char *argv[])
             if (i + 1 >= argc)
             {
                 fprintf(stderr, "エラー: -l オプションにレベルを指定してください。\n");
-                fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
-                        argv[0]);
+                fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n", argv[0]);
                 return EXIT_FAILURE;
             }
             i++;
@@ -464,7 +461,7 @@ int main(int argc, char *argv[])
             {
                 fprintf(stderr,
                         "エラー: 不明なログレベル \"%s\"。"
-                        "TRACE/DEBUG/INFO/WARN/ERROR/FATAL のいずれかを指定してください。\n",
+                        "VERBOSE/INFO/WARNING/ERROR/CRITICAL のいずれかを指定してください。\n",
                         argv[i]);
                 return EXIT_FAILURE;
             }
@@ -479,16 +476,15 @@ int main(int argc, char *argv[])
     /* positional 引数チェック */
     if (argc - i < 2)
     {
-        fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n",
-                argv[0]);
-        fprintf(stderr, "  -l <level>  ログレベル (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)\n");
+        fprintf(stderr, "使用方法: %s [-l <level>] <config_path> <service_id>\n", argv[0]);
+        fprintf(stderr, "  -l <level>  ログレベル (VERBOSE/INFO/WARNING/ERROR/CRITICAL)\n");
         fprintf(stderr, "例: %s porter-services.conf 10\n", argv[0]);
         fprintf(stderr, "例: %s -l INFO porter-services.conf 10\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     config_path = argv[i];
-    service_id  = (int64_t)strtoll(argv[i + 1], NULL, 10);
+    service_id = (int64_t)strtoll(argv[i + 1], NULL, 10);
 
     /* ロガー設定 (stderr 出力、ファイルなし) */
     if (log_level_set)
@@ -511,8 +507,7 @@ int main(int argc, char *argv[])
 
     /* サービス種別を取得して unicast_bidir かどうか判定する */
     is_bidir = 0;
-    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS
-        && svc_type == POTR_TYPE_UNICAST_BIDIR)
+    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS && svc_type == POTR_TYPE_UNICAST_BIDIR)
     {
         is_bidir = 1;
     }
@@ -537,11 +532,11 @@ int main(int argc, char *argv[])
     for (;;)
     {
         unsigned char *file_data = NULL;
-        size_t         file_len  = 0;
-        const void    *send_data;
-        size_t         send_len;
-        int            is_file   = 0;
-        const char    *compress_label;
+        size_t file_len = 0;
+        const void *send_data;
+        size_t send_len;
+        int is_file = 0;
+        const char *compress_label;
 
         printf("\n送信方法を選択してください [T: テキスト / f: ファイル]> ");
         fflush(stdout);
@@ -576,7 +571,7 @@ int main(int argc, char *argv[])
             }
 
             send_data = file_data;
-            send_len  = file_len;
+            send_len = file_len;
         }
         else
         {
@@ -596,7 +591,7 @@ int main(int argc, char *argv[])
             }
 
             send_data = msg_buf;
-            send_len  = msg_len;
+            send_len = msg_len;
         }
 
         printf("圧縮送信しますか？ [y/N]> ");
@@ -624,9 +619,8 @@ int main(int argc, char *argv[])
         fflush(stdout);
 
         {
-            int send_rtc =
-                potrSend(handle, POTR_PEER_NA, send_data, send_len,
-                         (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING);
+            int send_rtc = potrSend(handle, POTR_PEER_NA, send_data, send_len,
+                                    (compress ? POTR_SEND_COMPRESS : 0) | POTR_SEND_BLOCKING);
 
             if (send_rtc != POTR_SUCCESS)
             {
@@ -655,7 +649,7 @@ int main(int argc, char *argv[])
 
         free(file_data);
 
-ask_continue:
+    ask_continue:
         printf(" 続けて送信しますか？ [Y/n]> ");
         fflush(stdout);
 
