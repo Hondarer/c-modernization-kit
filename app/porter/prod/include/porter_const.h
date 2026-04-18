@@ -56,6 +56,8 @@
                                        *   Nonce (12B) = session_id (4B NBO) + flags (2B NBO) + seq_or_ack_num (4B NBO) + padding (2B 0x00)。\n
                                        *   flags には本フラグを含んだ実際の送信フラグ値を使用する。\n
                                        *   seq_or_ack_num は DATA/PING/FIN の場合 seq_num、NACK/REJECT の場合 ack_num。 */
+#define POTR_FLAG_FIN_TARGET_VALID                                                                                     \
+    0x0040U /**< FIN の ack_num が有効な受信完了目標 next_seq を表すことを示すフラグ。未設定時の FIN は no-data FIN として扱い、ack_num は無視する。 */
 /** @} */
 
 /** @defgroup POTR_ELEM_FLAG ペイロードエレメントフラグ (パックコンテナ内エレメントヘッダー.flags)

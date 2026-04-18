@@ -105,5 +105,6 @@ send -l TRACE ../sample-config/porter-services.conf 1001
 | [プロトコル仕様](docs/protocol.md) | パケット構造・再送制御・ウィンドウ・圧縮 |
 | [設定ファイル仕様](docs/config.md) | INI 形式設定・通信種別・マルチパス |
 | [シーケンス](docs/sequence.md) | 送受信・再送・ヘルスチェックのシーケンス図 |
+| [FIN 待ち合わせ仕様](docs/fin-ordering.md) | FIN/DATA 順序保証の仕組みとエッジケース |
 | [公開 API 仕様](docs/api.md) | API リファレンス・スレッドセーフティ |
 | [セキュリティレビュー](docs/security-review.md) | セキュリティレビュー結果と対処方針 |

@@ -208,6 +208,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         {
             /* TCP: ウィンドウ登録不要。next_seq をインクリメントして mutex を解放 */
             ctx->send_window.next_seq++;
+            ctx->send_has_data = 1;
 #if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
 #elif defined(PLATFORM_WINDOWS)
@@ -219,6 +220,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
             /* window には暗号化済みペイロードを格納して NACK 再送時に再暗号化不要にする */
             outer_pkt.payload = ctx->crypto_buf;
             window_send_push(&ctx->send_window, &outer_pkt);
+            ctx->send_has_data = 1;
 #if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
 #elif defined(PLATFORM_WINDOWS)
@@ -241,6 +243,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         {
             /* TCP: ウィンドウ登録不要。next_seq をインクリメントして mutex を解放 */
             ctx->send_window.next_seq++;
+            ctx->send_has_data = 1;
 #if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
 #elif defined(PLATFORM_WINDOWS)
@@ -250,6 +253,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         else
         {
             window_send_push(&ctx->send_window, &outer_pkt);
+            ctx->send_has_data = 1;
 #if defined(PLATFORM_LINUX)
             pthread_mutex_unlock(&ctx->send_window_mutex);
 #elif defined(PLATFORM_WINDOWS)
@@ -440,6 +444,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
 
         outer_pkt.payload = ctx->crypto_buf;
         window_send_push(&peer->send_window, &outer_pkt);
+        peer->send_has_data = 1;
 
 #if defined(PLATFORM_LINUX)
         pthread_mutex_unlock(&peer->send_window_mutex);
@@ -459,6 +464,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
     else
     {
         window_send_push(&peer->send_window, &outer_pkt);
+        peer->send_has_data = 1;
 
 #if defined(PLATFORM_LINUX)
         pthread_mutex_unlock(&peer->send_window_mutex);

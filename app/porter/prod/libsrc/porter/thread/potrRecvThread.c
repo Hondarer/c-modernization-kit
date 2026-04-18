@@ -343,6 +343,47 @@ static void n1_deliver_payload_elem(struct PotrContext_ *ctx, PotrPeerContext *p
     }
 }
 
+static int recv_window_reached_fin_target(uint32_t next_seq, uint32_t fin_target_seq)
+{
+    return next_seq == fin_target_seq;
+}
+
+static int fin_packet_has_target(const PotrPacket *pkt)
+{
+    return (pkt->flags & POTR_FLAG_FIN_TARGET_VALID) != 0;
+}
+
+static void clear_pending_fin_peer(PotrPeerContext *peer)
+{
+    peer->pending_fin    = 0;
+    peer->fin_target_seq = 0;
+}
+
+static void clear_pending_fin_ctx(struct PotrContext_ *ctx)
+{
+    ctx->pending_fin    = 0;
+    ctx->fin_target_seq = 0;
+}
+
+/* N:1: FIN による DISCONNECTED 発火とピア解放を行う。peers_mutex 保護下で呼ぶこと。 */
+static void n1_fire_disconnected_by_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    if (peer->health_alive)
+    {
+        peer->health_alive = 0;
+        POTR_LOG(POTR_TRACE_INFO,
+                 "recv[service_id=%" PRId64 "]: peer=%u FIN -> DISCONNECTED",
+                 ctx->service.service_id, (unsigned)peer->peer_id);
+        if (ctx->callback != NULL)
+        {
+            ctx->callback(ctx->service.service_id, peer->peer_id,
+                          POTR_EVENT_DISCONNECTED, NULL, 0);
+        }
+    }
+    clear_pending_fin_peer(peer);
+    peer_free(ctx, peer);
+}
+
 /* N:1: 受信ウィンドウからパケットを取り出して配信する */
 static void n1_drain_recv_window(struct PotrContext_ *ctx, PotrPeerContext *peer)
 {
@@ -360,6 +401,12 @@ static void n1_drain_recv_window(struct PotrContext_ *ctx, PotrPeerContext *peer
                 n1_deliver_payload_elem(ctx, peer, &elem);
             }
         }
+    }
+
+    if (peer->pending_fin
+        && recv_window_reached_fin_target(peer->recv_window.next_seq, peer->fin_target_seq))
+    {
+        n1_fire_disconnected_by_fin(ctx, peer);
     }
 }
 
@@ -435,6 +482,7 @@ static int n1_check_and_update_session(struct PotrContext_ *ctx,
         peer->peer_session_tv_nsec = pkt->session_tv_nsec;
         peer->peer_session_known   = 1;
         peer->reorder_pending      = 0;
+        clear_pending_fin_peer(peer);
         window_init(&peer->recv_window, pkt->seq_num,
                     ctx->global.window_size, ctx->global.max_payload);
         return 1;
@@ -469,6 +517,7 @@ static int n1_check_and_update_session(struct PotrContext_ *ctx,
     peer->peer_session_tv_sec  = pkt->session_tv_sec;
     peer->peer_session_tv_nsec = pkt->session_tv_nsec;
     peer->reorder_pending      = 0;
+    clear_pending_fin_peer(peer);
     window_init(&peer->recv_window, pkt->seq_num,
                 ctx->global.window_size, ctx->global.max_payload);
     return 1;
@@ -816,6 +865,7 @@ static int check_and_update_session(struct PotrContext_ *ctx,
         ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
         ctx->peer_session_known   = 1;
         ctx->reorder_pending      = 0;
+        clear_pending_fin_ctx(ctx);
         POTR_LOG(POTR_TRACE_VERBOSE,
                  "recv[service_id=%" PRId64 "]: new session (first contact), new_id=%u seq=%u",
                  ctx->service.service_id,
@@ -891,6 +941,7 @@ static int check_and_update_session(struct PotrContext_ *ctx,
     ctx->peer_session_tv_sec  = pkt->session_tv_sec;
     ctx->peer_session_tv_nsec = pkt->session_tv_nsec;
     ctx->reorder_pending      = 0;
+    clear_pending_fin_ctx(ctx);
     window_init(&ctx->recv_window, pkt->seq_num,
                 ctx->global.window_size, ctx->global.max_payload);
     return 1;
@@ -1101,6 +1152,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
                peer_session_known をクリアすることで、送信者が同一セッションのまま
                復帰した場合でも window_init を経由して受信ウィンドウを初期化し、
                前セッションの next_seq が gap スキャンに影響しないようにする。 */
+            clear_pending_fin_ctx(ctx);
             ctx->peer_session_known = 0;
             ctx->reorder_pending    = 0;
             ctx->last_recv_tv_sec   = 0;
@@ -1526,6 +1578,30 @@ static void deliver_payload_elem(struct PotrContext_ *ctx, const PotrPacket *ele
     }
 }
 
+/* FIN 受信時の DISCONNECTED 発火とセッションリセットを行う。
+   pending_fin の即時解消パスと drain_recv_window() 経由の遅延解消パスの両方から呼ぶ。 */
+static void fire_disconnected_by_fin(struct PotrContext_ *ctx)
+{
+    if (ctx->health_alive)
+    {
+        ctx->health_alive = 0;
+        POTR_LOG(POTR_TRACE_INFO,
+                 "recv[service_id=%" PRId64 "]: FIN -> DISCONNECTED",
+                 ctx->service.service_id);
+        if (ctx->callback != NULL)
+        {
+            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
+                          POTR_EVENT_DISCONNECTED, NULL, 0);
+        }
+    }
+    clear_pending_fin_ctx(ctx);
+    ctx->peer_session_known = 0;
+    ctx->reorder_pending    = 0;
+    ctx->last_recv_tv_sec   = 0;
+    window_init(&ctx->recv_window, 0,
+                ctx->global.window_size, ctx->global.max_payload);
+}
+
 /* recv_window から順序整列済みの外側パケットを取り出してペイロードエレメントを配信する。
    REJECT 処理後と通常受信処理の両方から呼び出す。 */
 static void drain_recv_window(struct PotrContext_ *ctx)
@@ -1565,6 +1641,13 @@ static void drain_recv_window(struct PotrContext_ *ctx)
             }
         }
     }
+
+    /* pending FIN: recv_window.next_seq が FIN の目標値に到達したら DISCONNECTED を発火する。 */
+    if (ctx->pending_fin
+        && recv_window_reached_fin_target(ctx->recv_window.next_seq, ctx->fin_target_seq))
+    {
+        fire_disconnected_by_fin(ctx);
+    }
 }
 
 /* RAW モード用: DISCONNECTED イベントを発行してセッション状態を部分的にリセットする。
@@ -1585,7 +1668,8 @@ static void raw_session_disconnect(struct PotrContext_ *ctx)
         }
     }
 
-    /* フラグメント組み立て途中状態を破棄 */
+    /* フラグメント組み立て途中状態と pending FIN を破棄 */
+    clear_pending_fin_ctx(ctx);
     ctx->frag_buf_len    = 0;
     ctx->frag_compressed = 0;
 }
@@ -1935,17 +2019,27 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 if (pkt.flags & POTR_FLAG_FIN)
                 {
                     POTR_LOG(POTR_TRACE_INFO,
-                             "recv[service_id=%" PRId64 "]: peer=%u FIN received -> DISCONNECTED",
-                             ctx->service.service_id, (unsigned)peer->peer_id);
+                             "recv[service_id=%" PRId64 "]: peer=%u FIN received"
+                             " (fin_target_seq=%u recv_next=%u)",
+                             ctx->service.service_id, (unsigned)peer->peer_id,
+                             (unsigned)pkt.ack_num, (unsigned)peer->recv_window.next_seq);
 
-                    if (peer->health_alive && ctx->callback != NULL)
+                    /* target 付き FIN かつ recv_window.next_seq が未到達: FIN をペンディング。 */
+                    if (fin_packet_has_target(&pkt)
+                        && !recv_window_reached_fin_target(peer->recv_window.next_seq, pkt.ack_num))
                     {
-                        peer->health_alive = 0;
-                        ctx->callback(ctx->service.service_id, peer->peer_id,
-                                      POTR_EVENT_DISCONNECTED, NULL, 0);
+                        peer->pending_fin   = 1;
+                        peer->fin_target_seq = pkt.ack_num;
+                        POTR_LOG(POTR_TRACE_INFO,
+                                 "recv[service_id=%" PRId64 "]: peer=%u FIN pending (waiting for seq=%u)",
+                                 ctx->service.service_id, (unsigned)peer->peer_id,
+                                 (unsigned)pkt.ack_num);
+                        POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
+                        continue;
                     }
 
-                    peer_free(ctx, peer);
+                    /* 即時: no-data FIN またはウィンドウ追い付き済み。 */
+                    n1_fire_disconnected_by_fin(ctx, peer);
                     POTR_MUTEX_UNLOCK_LOCAL(&ctx->peers_mutex);
                     continue;
                 }
@@ -2233,7 +2327,7 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
 
             /* ── 受信者ロール: FIN / REJECT / DATA / PING を処理 ── */
 
-            /* FIN: 送信者からの正常終了通知 → 即座に DISCONNECTED へ遷移 */
+            /* FIN: 送信者からの正常終了通知 */
             if (pkt.flags & POTR_FLAG_FIN)
             {
                 if (!check_and_update_session(ctx, &pkt))
@@ -2242,27 +2336,26 @@ static DWORD WINAPI recv_thread_func(LPVOID arg)
                 }
 
                 POTR_LOG(POTR_TRACE_INFO,
-                         "recv[service_id=%" PRId64 "]: FIN received -> DISCONNECTED",
-                         ctx->service.service_id);
+                         "recv[service_id=%" PRId64 "]: FIN received (fin_target_seq=%u recv_next=%u)",
+                         ctx->service.service_id,
+                         (unsigned)pkt.ack_num, (unsigned)ctx->recv_window.next_seq);
 
-                /* health_alive で重複発火を防止する (ヘルスチェック有無によらず接続済み状態のみ) */
-                if (ctx->health_alive)
+                /* target 付き FIN かつ recv_window.next_seq が目標値に未到達: FIN をペンディング。
+                 * 後着の DATA がウィンドウを満たした時点で fire_disconnected_by_fin() が呼ばれる。
+                 * セッションリセットを遅延することで後着 DATA を引き続き受け入れ可能にする。 */
+                if (fin_packet_has_target(&pkt)
+                    && !recv_window_reached_fin_target(ctx->recv_window.next_seq, pkt.ack_num))
                 {
-                    ctx->health_alive = 0;
-                    if (ctx->callback != NULL)
-                    {
-                        ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                                      POTR_EVENT_DISCONNECTED, NULL, 0);
-                    }
+                    ctx->pending_fin    = 1;
+                    ctx->fin_target_seq = pkt.ack_num;
+                    POTR_LOG(POTR_TRACE_INFO,
+                             "recv[service_id=%" PRId64 "]: FIN pending (waiting for seq=%u)",
+                             ctx->service.service_id, (unsigned)pkt.ack_num);
+                    continue;
                 }
 
-                /* セッション状態をリセットして次の接続を受け入れ可能にする。
-                   受信ウィンドウも初期化して前セッションの next_seq を残さない。 */
-                ctx->peer_session_known = 0;
-                ctx->reorder_pending    = 0;
-                ctx->last_recv_tv_sec   = 0;
-                window_init(&ctx->recv_window, 0,
-                            ctx->global.window_size, ctx->global.max_payload);
+                /* 即時: no-data FIN またはウィンドウ追い付き済み。 */
+                fire_disconnected_by_fin(ctx);
                 continue;
             }
 

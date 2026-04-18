@@ -431,7 +431,7 @@ RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_CONNECTED, NULL, 0)
 
 `potrCloseService()` による正常終了シーケンスです。
 
-### 送信者側の終了
+### 送信者側の終了 (DATA/FIN が順序通りに届く場合)
 
 ```plantuml
 @startuml 正常終了 (送信者側)
@@ -449,14 +449,16 @@ participant "アプリ\n(受信側)" as RAPP
 SAPP -> CLOSE: potrCloseService(handle)
 activate CLOSE
 
-CLOSE -> ST: 停止シグナル
 CLOSE -> HT: 停止シグナル
+CLOSE -> CLOSE: 送信キュー drain 完了待機
 
-CLOSE -> UDP: FIN パケット送信\n(全パス)
+CLOSE -> UDP: FIN パケット送信\n(全パス, DATA送信済みなら FIN_TARGET_VALID + ack_num=send_window.next_seq)
 
-UDP -> RRT: FIN 受信
-RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DISCONNECTED, NULL, 0)
-note over RAPP: 送信者が明示的に終了\nDISCONNECTED が発火する
+note over UDP: DATA と FIN が順序通りに届く場合
+UDP -> RRT: DATA[seq=N] 受信 → 配信
+UDP -> RRT: FIN[target_valid, ack_num=N+1] 受信
+RRT -> RRT: recv_window.next_seq == N+1\n(追い付き済み)
+RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED)
 RRT -> RRT: peer_session_known = 0\nrecv_window リセット
 
 CLOSE -> RT: 停止シグナル
@@ -468,6 +470,41 @@ CLOSE --> SAPP: POTR_SUCCESS
 deactivate CLOSE
 
 note over SAPP: handle は以後使用不可
+
+@enduml
+```
+
+### 送信者側の終了 (FIN が DATA より先に届く場合)
+
+UDP の到達順序は保証されないため、FIN が最後の DATA より先に受信側へ届く場合があります。
+受信側は `FIN.ack_num` を参照して DATA の到着を待機します。
+
+```plantuml
+@startuml 正常終了 FIN pending
+caption 正常終了 (FIN が DATA より先に届く場合)
+
+participant "送信スレッド" as ST
+participant "UDP\n(送信側)" as SUDP
+participant "UDP\n(受信側)" as RUDP
+participant "受信スレッド\n(受信者)" as RRT
+participant "アプリ\n(受信側)" as RAPP
+
+ST -> SUDP: DATA[seq=N] 送信
+ST -> SUDP: FIN[target_valid, ack_num=N+1] 送信
+
+note over RUDP: UDP の到着順が逆転
+
+SUDP -> RUDP: FIN[target_valid, ack_num=N+1] 先着
+RRT -> RRT: recv_window.next_seq != N+1\n→ pending_fin = true\n  fin_target_seq = N+1
+
+SUDP -> RUDP: DATA[seq=N] 後着
+RRT -> RRT: window_recv_push(seq=N)\n→ window_recv_pop()\n→ 配信
+RRT -> RAPP: callback(POTR_EVENT_DATA, ...)
+RRT -> RRT: recv_window.next_seq == N+1\n→ pending_fin 解消
+RRT -> RAPP: callback(POTR_EVENT_DISCONNECTED)
+RRT -> RRT: peer_session_known = 0\nrecv_window リセット
+
+note over ST,RRT: wrap 後は FIN[target_valid, ack_num=0] も通常の有効 target
 
 @enduml
 ```

@@ -133,6 +133,52 @@ static vector<uint8_t> make_plain_data_packet(int64_t service_id,
     return packet;
 }
 
+static vector<uint8_t> make_plain_ping_packet(int64_t service_id,
+                                              uint32_t session_id,
+                                              int64_t session_tv_sec,
+                                              int32_t session_tv_nsec,
+                                              uint32_t seq_num,
+                                              uint8_t  ping_state)
+{
+    vector<uint8_t> packet(kPacketHeaderSize + POTR_MAX_PATH, ping_state);
+
+    write_i64_be(packet, 0, service_id);
+    write_i64_be(packet, 8, session_tv_sec);
+    write_u32_be(packet, 16, session_id);
+    write_u32_be(packet, 20, (uint32_t)session_tv_nsec);
+    write_u32_be(packet, 24, seq_num);
+    write_u32_be(packet, 28, 0U);
+    write_u16_be(packet, 32, POTR_FLAG_PING);
+    write_u16_be(packet, 34, POTR_MAX_PATH);
+    return packet;
+}
+
+static vector<uint8_t> make_plain_fin_packet(int64_t service_id,
+                                             uint32_t session_id,
+                                             int64_t session_tv_sec,
+                                             int32_t session_tv_nsec,
+                                             uint32_t ack_num,
+                                             bool     fin_target_valid)
+{
+    vector<uint8_t> packet(kPacketHeaderSize, 0);
+    uint16_t        flags = POTR_FLAG_FIN;
+
+    if (fin_target_valid)
+    {
+        flags = (uint16_t)(flags | POTR_FLAG_FIN_TARGET_VALID);
+    }
+
+    write_i64_be(packet, 0, service_id);
+    write_i64_be(packet, 8, session_tv_sec);
+    write_u32_be(packet, 16, session_id);
+    write_u32_be(packet, 20, (uint32_t)session_tv_nsec);
+    write_u32_be(packet, 24, 0U);
+    write_u32_be(packet, 28, ack_num);
+    write_u16_be(packet, 32, flags);
+    write_u16_be(packet, 34, 0U);
+    return packet;
+}
+
 static vector<uint8_t> make_invalid_encrypted_ping_packet(int64_t service_id,
                                                           uint32_t session_id,
                                                           int64_t session_tv_sec,
@@ -212,6 +258,19 @@ static void sleep_ms(unsigned int ms)
 #elif defined(PLATFORM_WINDOWS)
     Sleep(ms);
 #endif /* PLATFORM_ */
+}
+
+static size_t count_occurrences(const string &text, const string &needle)
+{
+    size_t count = 0;
+    size_t pos   = 0;
+
+    while ((pos = text.find(needle, pos)) != string::npos)
+    {
+        count++;
+        pos += needle.size();
+    }
+    return count;
 }
 
 class porterSendRecvTest : public Test
@@ -532,6 +591,213 @@ TEST_F(porterSendRecvTest, unicast_data_resets_health_timeout_without_ping)
         EXPECT_NE(string::npos, recv_out.find("timeout-reset-1"));
         EXPECT_NE(string::npos, recv_out.find("timeout-reset-2"));
         EXPECT_NE(string::npos, recv_out.find("切断検知"));
+    }
+}
+
+// 単発送信の直後に close しても、最終 DATA が切断前に配信されることを確認する
+TEST_F(porterSendRecvTest, unicast_close_after_single_send_delivers_before_disconnect)
+{
+    const string payload = "fin-pending-ok";
+    PorterConfigBuilder cfg;
+    string config_path = cfg.addUnicastService(53, 19053).build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "53"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {config_path, "53"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, payload));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+
+    /* sender 側は追加送信せず即 close する。 */
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+
+    ASSERT_NO_THROW(waitForOutput(recv_h_, payload, 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "切断検知", 3000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        size_t data_pos = recv_out.find(payload);
+        size_t disc_pos = recv_out.find("切断検知");
+        EXPECT_NE(string::npos, data_pos);
+        EXPECT_NE(string::npos, disc_pos);
+        EXPECT_LT(data_pos, disc_pos);
+    }
+}
+
+// no-data FIN は FIN target フラグなしで即時切断されることを確認する
+TEST_F(porterSendRecvTest, fin_without_target_flag_disconnects_immediately)
+{
+    PorterConfigBuilder cfg;
+    string config_path = cfg.addUnicastService(56, 19056).build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "56"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_ping_packet(56, 0x5601U, 4234, 8678, 0U,
+                                            POTR_PING_STATE_UNDEFINED),
+                     19056));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_fin_packet(56, 0x5601U, 4234, 8678, 0U, false),
+                     19056));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "切断検知", 3000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_EQ((size_t)1, count_occurrences(recv_out, "接続確立"));
+        EXPECT_EQ((size_t)1, count_occurrences(recv_out, "切断検知"));
+    }
+}
+
+// FIN target が 0 に wrap する場合でも、flag により pending FIN が正しく解消されることを確認する
+TEST_F(porterSendRecvTest, fin_target_zero_wrap_is_handled_by_flag)
+{
+    PorterConfigBuilder cfg;
+    const string payload = "wrap-fin-target-zero";
+    string config_path = cfg.addUnicastService(57, 19057).build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "57"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_ping_packet(57, 0x5701U, 5234, 9678, UINT32_MAX,
+                                            POTR_PING_STATE_UNDEFINED),
+                     19057));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_fin_packet(57, 0x5701U, 5234, 9678, 0U, true),
+                     19057));
+    sleep_ms(150);
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("切断検知"));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(57, 0x5701U, 5234, 9678, UINT32_MAX,
+                                            payload),
+                     19057));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, payload, 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "切断検知", 3000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        size_t data_pos = recv_out.find(payload);
+        size_t disc_pos = recv_out.find("切断検知");
+        EXPECT_NE(string::npos, data_pos);
+        EXPECT_NE(string::npos, disc_pos);
+        EXPECT_LT(data_pos, disc_pos);
+    }
+}
+
+// N:1 で単発送信の直後に close しても、最終 DATA が peer 解放前に配信されることを確認する
+TEST_F(porterSendRecvTest, n1_close_after_single_send_delivers_before_disconnect)
+{
+    const string payload = "n1-fin-pending-ok";
+    PorterConfigBuilder server_cfg;
+    PorterConfigBuilder client_cfg;
+    string server_config_path =
+        server_cfg.addUnicastBidirN1Service(54, 19054, 1, "0.0.0.0").build();
+    string client_config_path =
+        client_cfg.addUnicastBidirService(54, 19054).build();
+
+    recv_h_ = startProcessAsync(recv_path, {server_config_path, "54"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    send_h_ = startProcessAsync(send_path, {client_config_path, "54"}, makeOpts());
+    ASSERT_NE(nullptr, send_h_);
+    ASSERT_NO_THROW(waitForOutput(send_h_, "双方向モード", 5000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 3000));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "T"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, payload));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "圧縮送信しますか", 3000));
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "続けて送信しますか", 3000));
+
+    ASSERT_TRUE(writeLineStdin(send_h_, "N"));
+    EXPECT_EQ(0, waitForExit(send_h_, 5000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, payload, 3000));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "切断検知", 3000));
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        size_t data_pos = recv_out.find(payload);
+        size_t disc_pos = recv_out.find("切断検知");
+        EXPECT_NE(string::npos, data_pos);
+        EXPECT_NE(string::npos, disc_pos);
+        EXPECT_LT(data_pos, disc_pos);
+    }
+}
+
+// pending FIN のまま health timeout した後、新セッション受理で stale 状態が再発しないことを確認する
+TEST_F(porterSendRecvTest, health_timeout_clears_pending_fin_before_new_session)
+{
+    PorterConfigBuilder cfg;
+    const string payload = "after-timeout-ok";
+    const string first_payload = "before-timeout-pending";
+    string config_path = cfg.setUdpHealthTimeoutMs(300)
+                            .addUnicastService(55, 19055)
+                            .build();
+
+    recv_h_ = startProcessAsync(recv_path, {config_path, "55"}, makeOpts());
+    ASSERT_NE(nullptr, recv_h_);
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "受信待機中", 5000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(55, 0x5501U, 3234, 7678, 0U,
+                                            first_payload),
+                     19055));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, first_payload, 3000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_fin_packet(55, 0x5501U, 3234, 7678, 2U, true),
+                     19055));
+    sleep_ms(150);
+    EXPECT_EQ(string::npos, getStdout(recv_h_).find("切断検知"));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, "切断検知", 2000));
+
+    ASSERT_EQ(0, send_udp_packet(
+                     make_plain_data_packet(55, 0x5502U, 3235, 7679, 0U, payload),
+                     19055));
+    ASSERT_NO_THROW(waitForOutput(recv_h_, payload, 3000));
+    sleep_ms(150);
+
+    interruptProcess(recv_h_);
+    waitForExit(recv_h_, 3000);
+
+    {
+        string recv_out = getStdout(recv_h_);
+        EXPECT_NE(string::npos, recv_out.find(first_payload));
+        EXPECT_NE(string::npos, recv_out.find(payload));
+        EXPECT_EQ((size_t)1, count_occurrences(recv_out, "切断検知"));
     }
 }
 

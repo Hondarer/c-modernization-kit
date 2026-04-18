@@ -160,6 +160,8 @@ typedef struct PotrPeerContext_
     PotrWindow send_window;        /**< 送信ウィンドウ (NACK 再送用)。 */
     PotrMutex  send_window_mutex;  /**< send_window 保護 (送信・受信・ヘルスチェックスレッド競合)。 */
     PotrWindow recv_window;        /**< 受信ウィンドウ (順序整列)。 */
+    int        send_has_data;      /**< 現セッションで DATA を 1 件以上送信済みか (1: 送信済み, 0: 未送信)。 */
+    uint32_t   _pad_send_has_data; /**< パディング。 */
 
     /* フラグメント結合 (ピアごと独立) */
     uint8_t *frag_buf;       /**< フラグメント結合バッファ (動的確保)。 */
@@ -185,6 +187,10 @@ typedef struct PotrPeerContext_
     uint32_t _pad_reorder_dl;       /**< パディング (reorder_deadline_sec を 8 バイト境界に揃える)。 */
     int64_t  reorder_deadline_sec;  /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
     int32_t  reorder_deadline_nsec; /**< タイムアウト期限 ナノ秒部。 */
+
+    /* pending FIN 管理 (FIN を先受信したが受信ウィンドウが未追い付きの場合) */
+    int      pending_fin;    /**< FIN 受信ペンディング中 (1: 待機中, 0: なし)。 */
+    uint32_t fin_target_seq; /**< FIN の ack_num に埋め込まれた受信完了目標 next_seq。 */
 
     /* マルチパス: ピアごとの送信先 (recvfrom で学習)
      * インデックスは ctx->sock[] / src_addr[] と直接対応する。
@@ -275,12 +281,18 @@ struct PotrContext_
     PotrNackDedupEntry nack_dedup_buf[POTR_NACK_DEDUP_SLOTS]; /**< NACK 重複抑制エントリ配列。 */
     uint8_t            nack_dedup_next;                        /**< 次に書き込むスロットインデックス。 */
     uint8_t            _pad_nack_dedup[7];                     /**< パディング (reorder フィールドを 4 バイト境界に揃える)。 */
+    int                send_has_data;                          /**< 現セッションで DATA を 1 件以上送信済みか (1: 送信済み, 0: 未送信)。 */
 
     /* 受信者: リオーダーバッファタイムアウト管理 (reorder_timeout_ms > 0 のときのみ使用) */
     int      reorder_pending;        /**< リオーダー待機中か (1: 待機中、0: 待機なし)。 */
     uint32_t reorder_nack_num;       /**< 待機中の欠番通番。 */
     int64_t  reorder_deadline_sec;   /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
     int32_t  reorder_deadline_nsec;  /**< タイムアウト期限 ナノ秒部。 */
+
+    /* pending FIN 管理 (FIN を先受信したが受信ウィンドウが未追い付きの場合) */
+    int      pending_fin;    /**< FIN 受信ペンディング中 (1: 待機中, 0: なし)。 */
+    uint32_t fin_target_seq; /**< FIN の ack_num に埋め込まれた受信完了目標 next_seq。 */
+
     uint32_t _pad_reorder;           /**< パディング (send_queue を 8 バイト境界に揃える)。 */
 
     PotrSendQueue  send_queue;          /**< 非同期送信キュー。 */

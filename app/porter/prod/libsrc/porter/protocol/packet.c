@@ -171,7 +171,9 @@ int packet_build_reject(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
  *
  *  @details
  *  送信者が potrCloseService 時に送出する終了通知パケットです。ペイロードなし。\n
- *  受信者はこのパケットを受け取ると即座に POTR_EVENT_DISCONNECTED を発火します。
+ *  `POTR_FLAG_FIN_TARGET_VALID` と `ack_num` の設定は呼び出し側が行います。\n
+ *  受信者は target 付き FIN の場合のみ `ack_num` を参照して
+ *  受信ウィンドウ追い付き後まで DISCONNECTED を遅延できます。
  *******************************************************************************
  */
 int packet_build_fin(PotrPacket *packet, const PotrPacketSessionHdr *shdr)

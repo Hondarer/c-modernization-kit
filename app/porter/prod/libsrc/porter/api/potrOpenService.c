@@ -1146,6 +1146,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         ctx_cleanup(ctx);
         return POTR_ERROR;
     }
+    ctx->send_has_data = 0;
     if (window_init(&ctx->recv_window, 0,
                     ctx->global.window_size, ctx->global.max_payload) != POTR_SUCCESS)
     {

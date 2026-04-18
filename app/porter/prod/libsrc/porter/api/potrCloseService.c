@@ -48,6 +48,8 @@ static void send_fin(struct PotrContext_ *ctx)
 {
     PotrPacket fin_pkt;
     PotrPacketSessionHdr shdr;
+    uint32_t wire_target_seq = 0U;
+    int has_data = 0;
     size_t wire_len;
     int i;
 
@@ -58,6 +60,27 @@ static void send_fin(struct PotrContext_ *ctx)
 
     if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS)
         return;
+
+    /* 現セッションで DATA を送っている場合のみ FIN target を有効化する。
+     * ack_num は send_window.next_seq をそのまま運び、0 も通常値として扱う。 */
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_lock(&ctx->send_window_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    EnterCriticalSection(&ctx->send_window_mutex);
+#endif /* PLATFORM_ */
+    wire_target_seq = ctx->send_window.next_seq;
+    has_data        = ctx->send_has_data;
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_unlock(&ctx->send_window_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    LeaveCriticalSection(&ctx->send_window_mutex);
+#endif /* PLATFORM_ */
+
+    if (has_data)
+    {
+        fin_pkt.flags  |= htons(POTR_FLAG_FIN_TARGET_VALID);
+        fin_pkt.ack_num = htonl(wire_target_seq);
+    }
 
     if (ctx->service.encrypt_enabled)
     {

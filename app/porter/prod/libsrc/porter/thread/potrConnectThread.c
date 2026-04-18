@@ -287,6 +287,7 @@ static void reset_all_paths_disconnected(struct PotrContext_ *ctx)
     ctx->frag_buf_len         = 0;
     ctx->send_window.next_seq = 0U;
     ctx->send_window.base_seq = 0U;
+    ctx->send_has_data        = 0;
     if (ctx->send_window.valid != NULL)
     {
         memset(ctx->send_window.valid, 0,

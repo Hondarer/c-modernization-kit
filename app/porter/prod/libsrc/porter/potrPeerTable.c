@@ -120,6 +120,8 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
 {
     PotrPacket           fin_pkt;
     PotrPacketSessionHdr shdr;
+    uint32_t             wire_target_seq = 0U;
+    int                  has_data = 0;
     size_t               wire_len;
     int                  i;
 
@@ -131,6 +133,26 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
     if (packet_build_fin(&fin_pkt, &shdr) != POTR_SUCCESS)
     {
         return;
+    }
+
+    /* 現セッションで DATA を送っている場合のみ FIN target を有効化する。 */
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_lock(&peer->send_window_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    EnterCriticalSection(&peer->send_window_mutex);
+#endif /* PLATFORM_ */
+    wire_target_seq = peer->send_window.next_seq;
+    has_data        = peer->send_has_data;
+#if defined(PLATFORM_LINUX)
+    pthread_mutex_unlock(&peer->send_window_mutex);
+#elif defined(PLATFORM_WINDOWS)
+    LeaveCriticalSection(&peer->send_window_mutex);
+#endif /* PLATFORM_ */
+
+    if (has_data)
+    {
+        fin_pkt.flags  |= htons(POTR_FLAG_FIN_TARGET_VALID);
+        fin_pkt.ack_num = htonl(wire_target_seq);
     }
 
     if (ctx->service.encrypt_enabled)
@@ -353,6 +375,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
 
     /* 自セッション生成 */
     peer_generate_session(peer);
+    peer->send_has_data = 0;
 
     /* ウィンドウ初期化 */
     if (window_init(&peer->send_window, 0,
