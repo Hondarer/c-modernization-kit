@@ -20,27 +20,6 @@
     #include "potrPlatform.h"
 
 /* doxygen コメントはヘッダに記載 */
-void potr_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
-{
-    ULONGLONG ms = GetTickCount64();
-    *tv_sec  = (int64_t)(ms / 1000ULL);
-    *tv_nsec = (int32_t)((ms % 1000ULL) * 1000000UL);
-}
-
-/* doxygen コメントはヘッダに記載 */
-void potr_get_realtime(int64_t *tv_sec, int32_t *tv_nsec)
-{
-    FILETIME       ft;
-    ULARGE_INTEGER uli;
-    GetSystemTimeAsFileTime(&ft);
-    uli.LowPart  = ft.dwLowDateTime;
-    uli.HighPart = ft.dwHighDateTime;
-    /* FILETIME は 100ns 単位、1601-01-01 起算。Unix epoch (1970-01-01) との差は 11644473600 秒。 */
-    *tv_sec  = (int64_t)(uli.QuadPart / 10000000ULL) - 11644473600LL;
-    *tv_nsec = (int32_t)((uli.QuadPart % 10000000ULL) * 100ULL);
-}
-
-/* doxygen コメントはヘッダに記載 */
 int potr_condvar_timedwait(PotrCondVar *cv, PotrMutex *mtx, uint32_t timeout_ms)
 {
     return SleepConditionVariableCS(cv, mtx, (DWORD)timeout_ms) ? 0 : -1;

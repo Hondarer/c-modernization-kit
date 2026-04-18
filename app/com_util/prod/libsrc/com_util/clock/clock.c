@@ -1,0 +1,74 @@
+/**
+ *******************************************************************************
+ *  @file           clock.c
+ *  @brief          プラットフォーム抽象クロック取得ユーティリティー実装。
+ *  @author         c-modernization-kit sample team
+ *  @date           2026/04/19
+ *  @version        1.0.0
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
+#include <com_util/base/platform.h>
+#include <com_util/clock/clock.h>
+
+#if defined(PLATFORM_LINUX)
+    #include <time.h>
+#elif defined(PLATFORM_WINDOWS)
+    #include <windows.h>
+#endif /* PLATFORM_ */
+
+/* 変換定数 */
+#define MSEC_PER_SEC              (1000ULL)       /* ミリ秒 / 秒 */
+#define NSEC_PER_MSEC             (1000000ULL)    /* ナノ秒 / ミリ秒 */
+#define FILETIME_UNITS_PER_SEC    (10000000ULL)   /* FILETIME 単位 (100ns) / 秒 */
+#define NSEC_PER_FILETIME_UNIT    (100ULL)        /* ナノ秒 / FILETIME 単位 */
+#define FILETIME_EPOCH_OFFSET_SEC (11644473600LL) /* 1601-01-01 → 1970-01-01 の差 (秒) */
+
+/* doxygen コメントはヘッダに記載 */
+uint64_t clock_get_monotonic_ms(void)
+{
+#if defined(PLATFORM_LINUX)
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * MSEC_PER_SEC + (uint64_t)ts.tv_nsec / NSEC_PER_MSEC;
+#elif defined(PLATFORM_WINDOWS)
+    return (uint64_t)GetTickCount64();
+#endif /* PLATFORM_ */
+}
+
+/* doxygen コメントはヘッダに記載 */
+void clock_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec)
+{
+#if defined(PLATFORM_LINUX)
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    *tv_sec = (int64_t)ts.tv_sec;
+    *tv_nsec = (int32_t)ts.tv_nsec;
+#elif defined(PLATFORM_WINDOWS)
+    ULONGLONG ms = GetTickCount64();
+    *tv_sec = (int64_t)(ms / MSEC_PER_SEC);
+    *tv_nsec = (int32_t)((ms % MSEC_PER_SEC) * NSEC_PER_MSEC);
+#endif /* PLATFORM_ */
+}
+
+/* doxygen コメントはヘッダに記載 */
+void clock_get_realtime(int64_t *tv_sec, int32_t *tv_nsec)
+{
+#if defined(PLATFORM_LINUX)
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    *tv_sec = (int64_t)ts.tv_sec;
+    *tv_nsec = (int32_t)ts.tv_nsec;
+#elif defined(PLATFORM_WINDOWS)
+    FILETIME ft;
+    ULARGE_INTEGER uli;
+    GetSystemTimeAsFileTime(&ft);
+    uli.LowPart = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+    *tv_sec = (int64_t)(uli.QuadPart / FILETIME_UNITS_PER_SEC) - FILETIME_EPOCH_OFFSET_SEC;
+    *tv_nsec = (int32_t)((uli.QuadPart % FILETIME_UNITS_PER_SEC) * NSEC_PER_FILETIME_UNIT);
+#endif /* PLATFORM_ */
+}

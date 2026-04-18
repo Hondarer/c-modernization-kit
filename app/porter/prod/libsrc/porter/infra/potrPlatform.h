@@ -21,6 +21,7 @@
 #include <stdint.h>
 
 #include <com_util/base/platform.h>
+#include <com_util/clock/clock.h>
 
 /* ============================================================
  * 型定義 (PotrSocket / PotrThread / PotrMutex / PotrCondVar)
@@ -97,22 +98,6 @@
  * ============================================================ */
 
 /**
- *  @brief  単調増加クロックの現在時刻をミリ秒単位で返す。
- *          タイムアウト判定や差分計算など ms 精度で十分な用途に使用する。
- *  @return ミリ秒値 (起動時からの経過)。
- */
-static inline uint64_t potr_get_monotonic_ms(void)
-{
-#if defined(PLATFORM_LINUX)
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#elif defined(PLATFORM_WINDOWS)
-    return (uint64_t)GetTickCount64();
-#endif /* PLATFORM_ */
-}
-
-/**
  *  @brief  ソケットを閉じる。
  *  @param[in]  fd  閉じるソケット。
  */
@@ -145,22 +130,6 @@ static inline void potr_shutdown_socket(PotrSocket fd)
 extern "C"
 {
 #endif /* __cplusplus */
-
-/**
- *  @brief  単調増加クロックの現在時刻を秒・ナノ秒で返す。
- *          高精度な経過時間測定や受信タイムスタンプの記録に使用する。
- *  @param[out]  tv_sec   秒部。
- *  @param[out]  tv_nsec  ナノ秒部。
- */
-extern void potr_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
-
-/**
- *  @brief  現在時刻を秒・ナノ秒で返す。
- *          セッション開始時刻など実時刻の刻印が必要な用途に使用する。
- *  @param[out]  tv_sec   秒部。
- *  @param[out]  tv_nsec  ナノ秒部。
- */
-extern void potr_get_realtime(int64_t *tv_sec, int32_t *tv_nsec);
 
 /**
  *  @brief  タイムアウト付き条件変数待機。
