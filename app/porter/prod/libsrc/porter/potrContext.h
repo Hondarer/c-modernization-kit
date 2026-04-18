@@ -286,6 +286,7 @@ struct PotrContext_
     /* 受信者: リオーダーバッファタイムアウト管理 (reorder_timeout_ms > 0 のときのみ使用) */
     int      reorder_pending;        /**< リオーダー待機中か (1: 待機中、0: 待機なし)。 */
     uint32_t reorder_nack_num;       /**< 待機中の欠番通番。 */
+    uint32_t _pad_reorder_deadline;  /**< パディング (reorder_deadline_sec を 8 バイト境界に揃える)。 */
     int64_t  reorder_deadline_sec;   /**< タイムアウト期限 秒部 (CLOCK_MONOTONIC)。 */
     int32_t  reorder_deadline_nsec;  /**< タイムアウト期限 ナノ秒部。 */
 
