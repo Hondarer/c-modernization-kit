@@ -79,14 +79,16 @@ PING パケットのペイロードには自端の各パス PING 受信状態を
 
 TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED を発火しない。PING の受信と内容確認を経て初めて CONNECTED となる。
 
-片方向 type 1-6 では、PING ヘルスチェックが無効 (最終的な `health_interval_ms = 0`) でも有効な `DATA` を受信すれば CONNECTED が発火する。open 直後の即時 PING は送らないため、初回 CONNECTED は「最初の有効 DATA」または「最初の通常 PING」受信時に成立する。双方向 type 7-10 は PING が送出されないと CONNECTED が発火しない。
+片方向 type 1-6 では、PING ヘルスチェックが無効 (最終的な `health_interval_ms = 0`) でも有効な `DATA` を受信すれば CONNECTED が発火する。open 直後の即時 PING は送らないため、初回 CONNECTED は「最初の有効 DATA」または「最初の通常 PING」受信時に成立する。双方向 UDP (type 7, 8) は PING が送出されないと CONNECTED が発火しない。
 
-双方向通信では、以下の順序でハンドシェイクが完了して CONNECTED が発火する。
+双方向 UDP では、以下の順序でハンドシェイクが完了して CONNECTED が発火する。
 
 1. 自端が PING 送出を開始する (ペイロードは全パス `UNDEFINED`)。通信経路オープン時は最初のスリープをスキップして即座に送出するため、最大 `health_interval_ms` を待たずに相手端へ PING が届く。
 2. 相手端が自端の PING を受信し、`path_ping_state` を `NORMAL` に更新する。
 3. 相手端が `path_ping_state` 変化に反応して割り込み PING を送出する (変化がなければ次の定周期 PING まで待つ)。
 4. 自端がその PING を受信し、ペイロードに `NORMAL` を確認して CONNECTED を発火する。
+
+双方向 UDP では、この往復 PING が接続確立そのものです。実効 `health_interval_ms = 0`、または `udp_health_interval_ms = 0` かつサービス側で `health_interval_ms` を上書きしない構成では初回 PING が送られないため、CONNECTED は成立しません。
 
 片方向通信では手順 2-3 に相当する往復が不要で、有効な `PING` または `DATA` の受信で即 CONNECTED となる。
 
@@ -144,13 +146,13 @@ TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED
 - type 8: `n1_deliver_payload_elem()` が `peer->health_alive == 0` の間 `DATA` を破棄する
 - したがって、アプリコールバックとして `POTR_EVENT_CONNECTED` 前に `POTR_EVENT_DATA` は発火しない
 
-通信種別とサービス上書きを解決した最終的な `health_interval_ms = 0` の場合は CONNECTED が成立しないため、`POTR_EVENT_DATA` も発火しない。
+双方向 UDP (type 7, 8) では、通信種別とサービス上書きを解決した最終的な `health_interval_ms = 0` の場合は CONNECTED が成立しないため、`POTR_EVENT_DATA` も発火しない。
 
 ## UDP 系ヘルスチェック
 
 ### PING 送出 (health スレッド)
 
-`potrHealthThread.c` の `health_thread_func()` が非 TCP 用の共有 health スレッドとして動作する。片方向 type 1-6 は open 直後の即時 PING を行わず、最初の PING も `health_interval_ms` 経過後に送る。有効 DATA がその前に送られた場合は、次回期限を「最後の DATA 送信時刻 + health_interval_ms」へ後ろ倒しする。双方向 UDP (`UNICAST_BIDIR`, `UNICAST_BIDIR_N1`) では従来どおり `health_interval_ms` 周期で送信し、`path_ping_state[]` が変化した場合にも条件変数 wakeup により即時送出される。
+`potrHealthThread.c` の `health_thread_func()` が非 TCP 用の共有 health スレッドとして動作する。片方向 type 1-6 は open 直後の即時 PING を行わず、最初の PING も `health_interval_ms` 経過後に送る。有効 DATA がその前に送られた場合は、次回期限を「最後の DATA 送信時刻 + health_interval_ms」へ後ろ倒しする。双方向 UDP (`UNICAST_BIDIR`, `UNICAST_BIDIR_N1`) では従来どおり `health_interval_ms` 周期で送信し、`path_ping_state[]` が変化した場合にも条件変数 wakeup により即時送出される。ここで `health_interval_ms = 0` になると health スレッド自体が起動しないため、双方向 UDP の初回 CONNECTED に必要な PING 送信も始まりません。
 
 非 N:1 モード (UNICAST_RAW / MULTICAST_RAW / BROADCAST_RAW / UNICAST / MULTICAST / BROADCAST / UNICAST_BIDIR):
 
