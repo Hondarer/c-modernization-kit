@@ -1,10 +1,10 @@
 # PING ヘルスチェック設計まとめ
 
-porter フレームワークにおける PotrType ごとの PING 送出ロジック、マルチパスごとの振る舞い、タイムアウト検出方式を整理する。PONG (PING 応答) は存在しない。片方向 type 1-6 は有効な `PING` / `DATA` 受信をヘルス信号として扱い、双方向 type 7-10 は現行どおり PING 受信タイムアウトを用いてヘルスチェックを行う。
+porter フレームワークにおける PotrType ごとの PING 送出ロジック、マルチパスごとの振る舞い、タイムアウト検出方式を整理する。PONG (PING 応答) は存在しない。片方向 type 1-6 は有効な `PING` / `DATA` 受信をヘルス信号として扱い、送信側は「最後の PING または有効 DATA 送信」から `health_interval_ms` 経過時だけ PING を送る。双方向 type 7-10 は現行どおり PING 受信タイムアウトを用いてヘルスチェックを行う。
 
 ## 概要
 
-ヘルスチェックは PING パケット (`POTR_FLAG_PING`) の定周期送出、通信経路オープン時の割り込み送出、双方向系におけるパス受信状態変化時の割り込み送出、およびタイムアウト超過時の切断検出から成る。PotrType によって送出側と検出側の担当が異なる。
+ヘルスチェックは PING パケット (`POTR_FLAG_PING`) の送出、双方向系における通信経路オープン時の割り込み送出、双方向系におけるパス受信状態変化時の割り込み送出、およびタイムアウト超過時の切断検出から成る。非 TCP は 1 サービスにつき 1 本の health スレッドを使い、type 8 はその 1 本が全 peer を順に処理する。TCP は path ごとに 1 本の tcp_health スレッドを使う。PotrType によって送出側と検出側の担当が異なる。
 
 ## PotrType ごとの振る舞い
 
@@ -79,7 +79,7 @@ PING パケットのペイロードには自端の各パス PING 受信状態を
 
 TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED を発火しない。PING の受信と内容確認を経て初めて CONNECTED となる。
 
-片方向 type 1-6 では、PING ヘルスチェックが無効 (最終的な `health_interval_ms = 0`) でも有効な `DATA` を受信すれば CONNECTED が発火する。双方向 type 7-10 は PING が送出されないと CONNECTED が発火しない。
+片方向 type 1-6 では、PING ヘルスチェックが無効 (最終的な `health_interval_ms = 0`) でも有効な `DATA` を受信すれば CONNECTED が発火する。open 直後の即時 PING は送らないため、初回 CONNECTED は「最初の有効 DATA」または「最初の通常 PING」受信時に成立する。双方向 type 7-10 は PING が送出されないと CONNECTED が発火しない。
 
 双方向通信では、以下の順序でハンドシェイクが完了して CONNECTED が発火する。
 
@@ -104,7 +104,7 @@ TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED
 
 | 状態 | 実装 |
 |---|---|
-| CONNECTED 前 | `PING` は health スレッドが送信する。`potrSend()` は通常どおり `DATA` を送信キューへ積む。受信側は最初の有効な `PING` または `DATA` を受理した時点で `health_alive == 1` になり、`POTR_EVENT_CONNECTED` を発火する。 |
+| CONNECTED 前 | `PING` は health スレッドが「最後の PING または有効 DATA 送信」から `health_interval_ms` 経過したときだけ送信する。open 直後の即時 PING はない。`potrSend()` は通常どおり `DATA` を送信キューへ積む。受信側は最初の有効な `PING` または `DATA` を受理した時点で `health_alive == 1` になり、`POTR_EVENT_CONNECTED` を発火する。 |
 | CONNECTED 後 | 受信側が `health_alive == 1` を維持して `DATA` を配送する。 |
 | CONNECTED 解除 | `health_timeout_ms` 超過、`FIN` 受信、`REJECT` 受信、RAW 系のギャップ検出で `health_alive == 0` に戻り、以後は再び CONNECTED 前と同じ扱いになる。 |
 | PotrEvent 順序 | 初回の有効 `DATA` を受理した場合も、先に `POTR_EVENT_CONNECTED` を発火してから `POTR_EVENT_DATA` を配送する。 |
@@ -150,14 +150,17 @@ TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED
 
 ### PING 送出 (health スレッド)
 
-`potrHealthThread.c` の `health_thread_func()` が `health_interval_ms` 周期で起動する。`potrOpenService()` 完了直後にヘルススレッドが起動するとき、最初のスリープをスキップして即座に PING を送出する。双方向 UDP (`UNICAST_BIDIR`, `UNICAST_BIDIR_N1`) では、`path_ping_state[]` が変化した場合にも条件変数 wakeup により即時送出される。
+`potrHealthThread.c` の `health_thread_func()` が非 TCP 用の共有 health スレッドとして動作する。片方向 type 1-6 は open 直後の即時 PING を行わず、最初の PING も `health_interval_ms` 経過後に送る。有効 DATA がその前に送られた場合は、次回期限を「最後の DATA 送信時刻 + health_interval_ms」へ後ろ倒しする。双方向 UDP (`UNICAST_BIDIR`, `UNICAST_BIDIR_N1`) では従来どおり `health_interval_ms` 周期で送信し、`path_ping_state[]` が変化した場合にも条件変数 wakeup により即時送出される。
 
 非 N:1 モード (UNICAST_RAW / MULTICAST_RAW / BROADCAST_RAW / UNICAST / MULTICAST / BROADCAST / UNICAST_BIDIR):
 
-1. 送信ウィンドウから `next_seq` を取得する。
-2. `packet_build_ping()` で PING パケットを構築する。
-3. `ctx->n_path` 分のパスそれぞれで `sendto()` を実行する。
-4. 暗号化有効時は `POTR_FLAG_ENCRYPTED` を付与して GCM 認証タグを追加する。
+1. 片方向 type 1-6 は `max(last_ping_send_ms, last_valid_data_send_ms) + health_interval_ms`、双方向 type 7 は定周期 `health_interval_ms` を送信期限として評価する。
+2. 送信ウィンドウから `next_seq` を取得する。
+3. `packet_build_ping()` で PING パケットを構築する。
+4. `ctx->n_path` 分のパスそれぞれで `sendto()` を実行する。
+5. 暗号化有効時は `POTR_FLAG_ENCRYPTED` を付与して GCM 認証タグを追加する。
+
+片方向 type 1-6 では send スレッドが外側 DATA パケットを実送出した時点で `last_valid_data_send_ms` を更新する。`potrSend()` の API 成功時ではない。1 つの外側 DATA パケットを全 path に fan-out したあと 1 回だけ更新し、その時点から次の PING 期限を再計算する。
 
 N:1 モード (UNICAST_BIDIR_N1 のサーバ側):
 

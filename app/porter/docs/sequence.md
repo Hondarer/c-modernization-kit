@@ -357,7 +357,7 @@ RRT -> RAPP: callback(service_id, POTR_PEER_NA, POTR_EVENT_DATA, ...)
 
 ## ヘルスチェック (正常疎通)
 
-ヘルスチェックが有効な場合の定周期 PING 送信です。片方向 type 1-6 では有効な `DATA` 受信でも同じ `last_recv_tv` / `path_ping_state[]` を更新します。双方向系では `path_ping_state[]` 変化時に割り込み PING も送出されます。
+ヘルスチェックが有効な場合の PING 送信です。片方向 type 1-6 は open 直後の即時 PING を行わず、最後の `PING` または有効 `DATA` 送信から `health_interval_ms` 経過したときだけ PING を送ります。双方向系では従来どおり定周期 PING と、`path_ping_state[]` 変化時の割り込み PING を送出します。
 
 ```plantuml
 @startuml ヘルスチェック (正常疎通)
@@ -367,9 +367,9 @@ participant "ヘルスチェック\nスレッド" as HT
 participant "UDP" as UDP
 participant "受信スレッド\n(受信者)" as RRT
 
-note over HT: health_interval_ms = 3000ms
+note over HT: health_interval_ms = 3000ms\n片方向は初回も 3000ms 待機
 
-HT -> HT: 3000ms 待機
+HT -> HT: 最後の PING / DATA 送信から\n3000ms 待機
 note over HT: send_window.next_seq を読み取る\n(ウィンドウには登録しない)
 HT -> UDP: PING[seq=N] 送信 (全パス)
 
@@ -379,9 +379,9 @@ RRT -> RRT: notify_health_alive()\n(health_alive=0 のとき CONNECTED 発火)
 RRT -> RRT: next_seq〜N-1 を全スキャン\n欠番を一括 NACK する
 note over RRT: 欠番なければ返信なし
 
-HT -> HT: 3000ms 待機
+HT -> HT: DATA が送られたら期限を後ろへずらす\n送信が止まったら 3000ms 後に PING
 
-note over HT, UDP: データ送信が発生しても PING 周期は変わらない\n双方向系は path_ping_state 変化時のみ割り込み送信
+note over HT, UDP: 片方向は recent DATA により PING を抑止する\n双方向系は従来どおり定周期 + 割り込み送信
 
 @enduml
 ```
