@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrTrace.c
  *  @brief          porter グローバルロガー管理。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/19
  *  @version        1.0.0
  *
@@ -18,7 +18,7 @@
  *  potr_trace_get() の lazy create はプロセス起動直後の単一スレッド期間に
  *  完了することを前提とします。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

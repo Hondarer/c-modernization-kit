@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           tcpServer_windows.c
  *  @brief          TCP サーバーサンプル Windows 実装。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/17
  *  @version        1.0.0
  *
@@ -19,7 +19,7 @@
  *  - `tcpServer --child <socket_handle>` : fork 版の子プロセス
  *  - `tcpServer --worker <pipe_name>`    : prefork 版のワーカープロセス
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

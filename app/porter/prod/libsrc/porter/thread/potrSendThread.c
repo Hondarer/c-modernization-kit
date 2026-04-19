@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrSendThread.c
  *  @brief          非同期送信スレッドの実装。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/08
  *  @version        1.0.0
  *
@@ -27,7 +27,7 @@
  *  - MORE_FRAG フラグが付いているエントリ (フラグメント化メッセージの途中)
  *  - キューに追加エントリが存在しない場合
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

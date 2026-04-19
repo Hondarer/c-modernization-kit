@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           compress_windows.c
  *  @brief          Windows 向け圧縮・解凍モジュール (Compression API)。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/05
  *  @version        1.0.0
  *
@@ -16,7 +16,7 @@
  *
  *  @note           Cabinet.lib のリンクが必要です。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrSendThread.h
  *  @brief          非同期送信スレッドの内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/08
  *  @version        1.0.0
  *
@@ -12,7 +12,7 @@
  *  送信スレッドは送信キュー (PotrSendQueue) からペイロードエレメントを取り出して
  *  外側パケットを構築し sendto を呼び出します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

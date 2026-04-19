@@ -2,11 +2,11 @@
  *******************************************************************************
  *  @file           potrPlatform_linux.c
  *  @brief          Linux 向けプラットフォーム抽象レイヤー実装。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/18
  *  @version        1.0.0
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

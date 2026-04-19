@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           send.c
  *  @brief          送信テストコマンド。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/22
  *  @version        1.4.0
  *
@@ -35,7 +35,7 @@
     send -l VERBOSE porter-services.conf 1031
  *  @endcode
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

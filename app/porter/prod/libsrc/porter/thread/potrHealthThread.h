@@ -2,14 +2,14 @@
  *******************************************************************************
  *  @file           potrHealthThread.h
  *  @brief          ヘルスチェックスレッド内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/08
  *  @version        1.0.0
  *
  *  @details
  *  送信者が定周期で PING パケットを送信するスレッドの起動・停止 API。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

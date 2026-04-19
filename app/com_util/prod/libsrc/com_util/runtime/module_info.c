@@ -15,7 +15,7 @@
  *                    が失敗する場合、可能な範囲で絶対化した文字列を返します。
  *                  - Windows は基本的にフルパスが得られますが、古い環境では MAX_PATH 制約が残る場合があります。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

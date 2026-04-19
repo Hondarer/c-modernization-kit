@@ -21,7 +21,7 @@
  *  - func_key が一致するキャッシュエントリの lib_name / func_name 配列に
  *    strncpy で書き込む。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

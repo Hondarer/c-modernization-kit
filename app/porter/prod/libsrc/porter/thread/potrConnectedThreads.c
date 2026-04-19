@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrConnectedThreads.c
  *  @brief          接続確立後スレッド起動 helper の実装。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/17
  *  @version        1.0.0
  *
@@ -10,7 +10,7 @@
  *  send / recv / health スレッドの起動順序、bootstrap PING 送信、
  *  途中失敗時の rollback を所有権ベースで制御します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

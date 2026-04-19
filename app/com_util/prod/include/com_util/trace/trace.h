@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           trace.h
  *  @brief          クロスプラットフォーム トレーシング API。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/05
  *  @version        1.0.0
  *
@@ -50,7 +50,7 @@
     trace_logger_destroy(logger);
  *  @endcode
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

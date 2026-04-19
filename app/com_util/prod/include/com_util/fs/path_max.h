@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           path_max.h
  *  @brief          OS 固有のパス最大長マクロのヘッダーファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/04
  *
  *  プラットフォームに依存せず、OS のパス最大長を表す定数 @ref PLATFORM_PATH_MAX
@@ -15,7 +15,7 @@
  *  | Linux / macOS    | `<limits.h>` の `PATH_MAX`（通常 4096）    |
  *  | Windows          | `<windows.h>` の `MAX_PATH`（= 260）       |
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

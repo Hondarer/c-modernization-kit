@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           compress_linux.c
  *  @brief          Linux 向け圧縮・解凍モジュール (zlib)。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/05
  *  @version        1.0.0
  *
@@ -11,7 +11,7 @@
  *  Windows 実装 (MSZIP | COMPRESS_RAW) と同一フォーマットを出力するため、
  *  クロスプラットフォーム通信に対応します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

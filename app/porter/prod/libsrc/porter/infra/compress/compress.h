@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           compress.h
  *  @brief          データ圧縮・解凍モジュールの内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/05
  *  @version        1.0.0
  *
@@ -22,7 +22,7 @@
     [元サイズ: uint32_t (ネットワークバイトオーダー)] [raw DEFLATE データ]
  *  @endcode
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

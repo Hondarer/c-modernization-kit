@@ -2,14 +2,14 @@
  *******************************************************************************
  *  @file           porter.h
  *  @brief          通信ライブラリ (動的リンク用) のヘッダーファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/04
  *  @version        1.0.0
  *
  *  このライブラリは UDP/IP を用いたプラットフォーム間通信を提供します。\n
  *  Linux / Windows クロスプラットフォーム対応の DLL として提供されます。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

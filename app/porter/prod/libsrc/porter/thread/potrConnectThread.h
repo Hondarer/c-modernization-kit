@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrConnectThread.h
  *  @brief          TCP 接続管理スレッドの内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/23
  *  @version        1.0.0
  *
@@ -11,7 +11,7 @@
  *  RECEIVER: TCP accept ループを管理するスレッドです。\n
  *  接続確立後、送受信・ヘルスチェックスレッドを起動します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

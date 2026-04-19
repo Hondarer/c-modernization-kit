@@ -16,7 +16,7 @@
  *  GCC では __atomic_load_n / __atomic_store_n を使用します。\n
  *  MSVC (x86_64) では TSO により load が acquire-ordered のため変更不要です。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

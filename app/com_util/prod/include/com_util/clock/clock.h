@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           clock.h
  *  @brief          プラットフォーム抽象クロック取得ユーティリティー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/19
  *  @version        1.0.0
  *
@@ -31,7 +31,7 @@
  *  - **実時刻を記録・外部と共有する** → clock_get_realtime() を使用する。\n
  *    セッション開始時刻・ログのタイムスタンプなど、カレンダー時刻として意味を持つ場合に限定する。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

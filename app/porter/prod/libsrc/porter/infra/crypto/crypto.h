@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           crypto.h
  *  @brief          データ暗号化・復号モジュールの内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/12
  *  @version        1.0.0
  *
@@ -27,7 +27,7 @@
  *  追加認証データ (AAD): PotrPacket ヘッダー 32 バイト (NBO ワイヤーフォーマット)。
  *  ヘッダーの改ざんも認証タグで検知される。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

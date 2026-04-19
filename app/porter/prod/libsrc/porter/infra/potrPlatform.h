@@ -2,14 +2,14 @@
  *******************************************************************************
  *  @file           potrPlatform.h
  *  @brief          プラットフォーム抽象レイヤー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/18
  *  @version        1.0.0
  *
  *  @details
  *  OS ごとに異なるスレッド・同期・ソケット・時刻 API を共通インターフェースで抽象化します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

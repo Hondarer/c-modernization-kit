@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrConnectedThreads.h
  *  @brief          接続確立後スレッド起動 helper の内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/17
  *  @version        1.0.0
  *
@@ -10,7 +10,7 @@
  *  TCP 接続確立後に send / recv / health スレッドを起動し、
  *  途中失敗時の rollback を統一的に扱う内部 helper です。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

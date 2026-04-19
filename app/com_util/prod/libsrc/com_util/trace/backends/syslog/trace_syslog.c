@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           trace_syslog.c
  *  @brief          syslog プロバイダ実装ファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/03
  *  @version        1.0.0
  *
@@ -20,7 +20,7 @@
  *  保護しています。sendto() は MSG_DONTWAIT で即時返るため、
  *  ロック保持中に実行しても問題ありません。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

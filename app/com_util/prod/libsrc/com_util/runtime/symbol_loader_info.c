@@ -9,7 +9,7 @@
  *  各エントリを表示し、未解決のエントリがあれば解決を試みます。\n
  *  1 つでも解決失敗した場合は -1 を返します。\n
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

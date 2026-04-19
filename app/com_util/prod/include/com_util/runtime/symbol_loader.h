@@ -15,7 +15,7 @@
  *  3. symbol_loader_resolve_as() で関数ポインタを取得して呼び出す。
  *  4. symbol_loader_dispose() でリソースを解放する (DllMain/destructor から呼ぶ)。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

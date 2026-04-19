@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrSendQueue.h
  *  @brief          非同期送信キューの型定義と操作関数。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/08
  *  @version        1.0.0
  *
@@ -14,7 +14,7 @@
  *  ブロッキング送信は potr_send_queue_wait_drained() で先行キューの
  *  sendto 完了を待ってから直接送信します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

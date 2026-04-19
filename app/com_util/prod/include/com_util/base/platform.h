@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           platform.h
  *  @brief          プラットフォームおよびアーキテクチャ検出マクロのヘッダーファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2025/11/22
  *
  *  ビルド対象の OS とプロセッサアーキテクチャを検出し、統一的なマクロを定義します。
@@ -27,7 +27,7 @@
  *  | x86 (32bit)    | ARCH_X86     | "x86"     |
  *  | その他         | ARCH_UNKNOWN | "Unknown" |
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2025-2026. All rights reserved.
  *
  *******************************************************************************
  */

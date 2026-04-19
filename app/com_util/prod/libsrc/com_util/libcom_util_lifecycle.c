@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           libcom_util_lifecycle.c
  *  @brief          libcom_util.so / com_util.dll のロード・アンロード時処理。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/03
  *  @version        1.0.0
  *
@@ -10,7 +10,7 @@
  *  は shared_lib_lifecycle が提供します。
  *  このファイルは libcom_util における onLoad / onUnload の実装を定義します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

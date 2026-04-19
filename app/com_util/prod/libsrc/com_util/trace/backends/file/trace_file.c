@@ -2,13 +2,13 @@
  *******************************************************************************
  *  @file           trace_file.c
  *  @brief          ファイルトレースプロバイダ実装ファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/03
  *  @version        1.0.0
  *
  *  ファイルへのトレースログ書き込みプロバイダを提供します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

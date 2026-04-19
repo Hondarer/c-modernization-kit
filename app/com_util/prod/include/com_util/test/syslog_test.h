@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           syslog_test.h
  *  @brief          syslog テスト用ヘルパーヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/05
  *  @version        1.0.0
  *
@@ -10,7 +10,7 @@
  *  syslog 経路のメッセージをその FD に書き込みます。\n
  *  `shared_lib_lifecycle.h` および `trace_syslog.c` からインクルードして使用します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

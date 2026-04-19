@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrTrace.h
  *  @brief          porter 内部ログマクロ定義ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/19
  *  @version        1.0.0
  *
@@ -18,7 +18,7 @@
     POTR_LOG(TRACE_LEVEL_VERBOSE, "PING sent: seq=%u", seq);
  *  @endcode
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

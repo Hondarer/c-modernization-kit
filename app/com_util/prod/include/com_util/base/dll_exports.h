@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           dll_exports.h
  *  @brief          Windows DLL エクスポート/呼び出し規約マクロの共通テンプレート。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/09
  *  @version        1.0.0
  *
@@ -35,7 +35,7 @@
  *  - CALC_STATIC
  *  - CALC_EXPORTS
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

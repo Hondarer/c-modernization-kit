@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrHealthThread.c
  *  @brief          ヘルスチェックスレッドモジュール。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/08
  *  @version        1.0.0
  *
@@ -11,7 +11,7 @@
  *  health_interval_ms 周期で PING パケットを送信します。\n
  *  一方向通信では送信のみ、双方向通信では request/reply 形式の PING 送信を担います。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

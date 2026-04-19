@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrConnectThread.c
  *  @brief          TCP 接続管理スレッドモジュール。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/23
  *  @version        1.0.0
  *
@@ -12,7 +12,7 @@
  *  接続確立後、送受信・ヘルスチェックスレッドを起動し、\n
  *  recv スレッドが切断を検知して終了するまで待機してから再接続サイクルへ移行します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

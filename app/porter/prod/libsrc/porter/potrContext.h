@@ -2,14 +2,14 @@
  *******************************************************************************
  *  @file           potrContext.h
  *  @brief          セッションコンテキスト内部定義ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/04
  *  @version        1.0.0
  *
  *  @details
  *  PotrHandle の実体定義。ライブラリ外部には公開しない。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

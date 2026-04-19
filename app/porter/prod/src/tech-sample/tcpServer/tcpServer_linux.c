@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           tcpServer_linux.c
  *  @brief          TCP サーバーサンプル Linux 実装。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/17
  *  @version        1.0.0
  *
@@ -15,7 +15,7 @@
  *  main() / handle_client_session() / parse_args() は tcpServer.c に実装します。
  *  g_session_fn の実体は tcpServer_common.c に定義されます。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

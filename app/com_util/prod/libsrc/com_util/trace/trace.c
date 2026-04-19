@@ -2,14 +2,14 @@
  *******************************************************************************
  *  @file           trace.c
  *  @brief          トレースプロバイダ実装ファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/03
  *  @version        1.0.0
  *
  *  trace_logger_create / trace_logger_destroy / trace_logger_start / trace_logger_stop / trace_logger_write など
  *  公開 API の実装と、内部レジストリ管理機能を提供します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

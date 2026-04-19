@@ -2,14 +2,14 @@
  *******************************************************************************
  *  @file           trace_syslog_internal.h
  *  @brief          syslog プロバイダ内部管理関数のヘッダーファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/03
  *  @version        1.0.0
  *
  *  trace_syslog.c が公開する内部関数を宣言します。
  *  このヘッダーはモジュール内部でのみ使用します。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           shared_lib_lifecycle.h
  *  @brief          共有ライブラリのロード・アンロードフック共通ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/04/03
  *  @version        1.1.0
  *
@@ -15,7 +15,7 @@
  *      process_terminating = 0: 明示アンロードまたは通常の destructor
  *      process_terminating = 1: Windows のプロセス終了による DETACH
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

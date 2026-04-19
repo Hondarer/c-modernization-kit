@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           potrPeerTable.h
  *  @brief          N:1 モード用ピアテーブル管理モジュールの内部ヘッダー。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/03/23
  *  @version        1.0.0
  *
@@ -11,7 +11,7 @@
  *  複数クライアントピアの状態を管理するユーティリティです。\n
  *  is_multi_peer == 1 のときのみ有効。
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */

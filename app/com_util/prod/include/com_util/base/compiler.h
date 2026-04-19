@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           compiler.h
  *  @brief          コンパイラ検出および抽象化マクロのヘッダーファイル。
- *  @author         c-modernization-kit sample team
+ *  @author         Tetsuo Honda
  *  @date           2026/02/06
  *
  *  コンパイラの種類とバージョンを検出し、統一的なマクロを定義します。\n
@@ -42,7 +42,7 @@
     }
  *  @endcode
  *
- *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
  *******************************************************************************
  */
