@@ -12,8 +12,8 @@
  *  各送信ごとにテキストメッセージまたはファイル (バイナリ) を選択できます。\n
  *  各送信後に次のメッセージを送るか終了するかを選択できます。\n
  *  \n
- *  サービス種別が unicast_bidir の場合は双方向モードで動作します。\n
- *  双方向モードでは相手から受信したメッセージも標準出力に表示します。\n
+ *  サービス種別が unicast_bidir または tcp_bidir の場合は双方向モードで動作します。\n
+ *  双方向モードでは相手から受信したメッセージと接続状態を標準出力に表示します。\n
  *  受信データがバイナリと判定された場合は一時ファイルに保存してパスを表示します。
  *
  *  @par            使用方法
@@ -215,18 +215,20 @@ static BOOL WINAPI console_ctrl_handler(DWORD type)
 
 /**
  *******************************************************************************
- *  @brief          受信コールバック関数 (unicast_bidir モード用)。
+ *  @brief          受信コールバック関数 (双方向サービス用)。
  *  @param[in]      service_id  サービスの ID。
  *  @param[in]      peer_id     ピア識別子 (N:1 モード時は非ゼロ、1:1 モード時は 0)。
  *  @param[in]      event       イベント種別。
- *  @param[in]      data        受信データへのポインタ (POTR_EVENT_DATA 時のみ有効)。
- *  @param[in]      len         受信データのバイト数 (POTR_EVENT_DATA 時のみ有効)。
+ *  @param[in]      data        受信データまたは path 状態配列。
+ *  @param[in]      len         受信データ長または path index。
  *******************************************************************************
  */
 static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event, const void *data, size_t len)
 {
     char buf[POTR_MAX_PAYLOAD + 1];
     size_t copy_len;
+    const int *path_states;
+    int        path_idx;
 
     (void)peer_id;
     switch (event)
@@ -238,6 +240,21 @@ static void on_recv(int64_t service_id, PotrPeerId peer_id, PotrEvent event, con
 
     case POTR_EVENT_DISCONNECTED:
         printf("\n[サービス %" PRId64 "] 切断検知\n", service_id);
+        fflush(stdout);
+        break;
+
+    case POTR_EVENT_PATH_CONNECTED:
+    case POTR_EVENT_PATH_DISCONNECTED:
+        path_states = (const int *)data;
+        path_idx    = (int)len;
+        printf("\n[サービス %" PRId64 "] path[%d] %s states={%d,%d,%d,%d}\n",
+               service_id,
+               path_idx,
+               (event == POTR_EVENT_PATH_CONNECTED) ? "CONNECTED" : "DISCONNECTED",
+               path_states != NULL ? path_states[0] : 0,
+               path_states != NULL ? path_states[1] : 0,
+               path_states != NULL ? path_states[2] : 0,
+               path_states != NULL ? path_states[3] : 0);
         fflush(stdout);
         break;
 
@@ -505,14 +522,15 @@ int main(int argc, char *argv[])
     printf("サービス %" PRId64 " を開いています... (設定: %s)\n", service_id, config_path);
     fflush(stdout);
 
-    /* サービス種別を取得して unicast_bidir かどうか判定する */
+    /* サービス種別を取得して双方向サービスかどうか判定する */
     is_bidir = 0;
-    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS && svc_type == POTR_TYPE_UNICAST_BIDIR)
+    if (potrGetServiceType(config_path, service_id, &svc_type) == POTR_SUCCESS
+        && (svc_type == POTR_TYPE_UNICAST_BIDIR || svc_type == POTR_TYPE_TCP_BIDIR))
     {
         is_bidir = 1;
     }
 
-    /* unicast_bidir の場合はコールバックが必須 */
+    /* 双方向サービスの場合は接続状態と受信データ表示のためコールバックを設定する */
     callback = is_bidir ? on_recv : NULL;
 
     if (potrOpenServiceFromConfig(config_path, service_id, POTR_ROLE_SENDER, callback, &handle) != POTR_SUCCESS)
@@ -523,7 +541,7 @@ int main(int argc, char *argv[])
 
     if (is_bidir)
     {
-        printf("双方向モード (unicast_bidir)。相手からの受信メッセージも表示します。\n");
+        printf("双方向モード。相手からの受信メッセージと接続状態も表示します。\n");
         fflush(stdout);
     }
     printf("送信準備完了。Ctrl+C または Ctrl+D で終了します。\n");

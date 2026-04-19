@@ -260,26 +260,6 @@ static void sleep_ms(unsigned int ms)
 #endif /* PLATFORM_ */
 }
 
-static void waitForStderrContains(AsyncProcessHandle &handle,
-                                  const string       &pattern,
-                                  int                 timeout_ms)
-{
-    int waited_ms = 0;
-
-    while (waited_ms < timeout_ms)
-    {
-        if (getStderr(handle).find(pattern) != string::npos)
-        {
-            return;
-        }
-
-        sleep_ms(10);
-        waited_ms += 10;
-    }
-
-    throw runtime_error("waitForStderrContains: timeout before pattern: \"" + pattern + "\"");
-}
-
 static size_t count_occurrences(const string &text, const string &needle)
 {
     size_t count = 0;
@@ -1159,7 +1139,7 @@ TEST_F(porterSendRecvTest, encrypted_tcp_bidir_stays_healthy_and_receives)
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
 
     ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 2800));
-    ASSERT_NO_THROW(waitForStderrContains(send_h_, "tcp_recv[service_id=60]: CONNECTED", 2800));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 2800));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -1199,7 +1179,7 @@ TEST_F(porterSendRecvTest, tcp_bidir_connects_without_periodic_health_ping)
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
     ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
-    ASSERT_NO_THROW(waitForStderrContains(send_h_, "tcp_recv[service_id=61]: CONNECTED", 3000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 3000));
 
     ASSERT_TRUE(writeLineStdin(send_h_, "T"));
     ASSERT_NO_THROW(waitForOutput(send_h_, "メッセージ>", 3000));
@@ -1237,7 +1217,7 @@ TEST_F(porterSendRecvTest, tcp_bidir_without_periodic_health_ping_ignores_timeou
     ASSERT_NE(nullptr, send_h_);
     ASSERT_NO_THROW(waitForOutput(send_h_, "送信方法を選択してください", 5000));
     ASSERT_NO_THROW(waitForOutput(recv_h_, "接続確立", 3000));
-    ASSERT_NO_THROW(waitForStderrContains(send_h_, "tcp_recv[service_id=62]: CONNECTED", 3000));
+    ASSERT_NO_THROW(waitForOutput(send_h_, "接続確立", 3000));
 
     sleep_ms(1200);
 

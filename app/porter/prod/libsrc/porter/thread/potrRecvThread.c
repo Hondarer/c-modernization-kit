@@ -27,6 +27,7 @@
 #include "../protocol/seqnum.h"
 #include "../protocol/window.h"
 #include "../potrContext.h"
+#include "../potrPathEvent.h"
 #include "../potrPeerTable.h"
 #include "potrHealthThread.h"
 #include "potrRecvThread.h"
@@ -49,6 +50,66 @@ static void wake_tcp_interrupt_ping_if_needed(struct PotrContext_ *ctx,
                                               int                  path_idx,
                                               int                  state_changed);
 static int send_tcp_fin_ack(struct PotrContext_ *ctx, uint32_t fin_target_seq);
+
+static void sync_service_path_state(struct PotrContext_ *ctx)
+{
+    int                    next_states[POTR_MAX_PATH];
+    PotrPreparedPathEvents prepared;
+
+    if (potr_is_tcp_type(ctx->service.type))
+    {
+        potr_copy_tcp_path_states(ctx, next_states);
+    }
+    else if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+    {
+        potr_copy_bidir_udp_path_states(ctx, next_states);
+    }
+    else
+    {
+        potr_copy_oneway_path_states(ctx, next_states);
+    }
+
+    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    potr_sync_service_path_state_locked(ctx, next_states, &prepared);
+    potr_emit_service_path_events_locked(ctx, &prepared);
+    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+}
+
+static void disconnect_service_all_paths(struct PotrContext_ *ctx)
+{
+    int                    next_states[POTR_MAX_PATH];
+    PotrPreparedPathEvents prepared;
+
+    potr_zero_path_states(next_states);
+    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    potr_sync_service_path_state_locked(ctx, next_states, &prepared);
+    potr_emit_service_path_events_locked(ctx, &prepared);
+    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+}
+
+static void sync_peer_path_state(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    int                    next_states[POTR_MAX_PATH];
+    PotrPreparedPathEvents prepared;
+
+    potr_copy_bidir_n1_path_states(peer, next_states);
+    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    potr_sync_peer_path_state_locked(peer, next_states, &prepared);
+    potr_emit_peer_path_events_locked(ctx, peer, &prepared);
+    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+}
+
+static void disconnect_peer_all_paths(struct PotrContext_ *ctx, PotrPeerContext *peer)
+{
+    int                    next_states[POTR_MAX_PATH];
+    PotrPreparedPathEvents prepared;
+
+    potr_zero_path_states(next_states);
+    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    potr_sync_peer_path_state_locked(peer, next_states, &prepared);
+    potr_emit_peer_path_events_locked(ctx, peer, &prepared);
+    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+}
 
 static int tcp_send_all_with_mutex(PotrSocket fd, PotrMutex *mtx,
                                    const uint8_t *buf, size_t len)
@@ -301,23 +362,6 @@ static int n1_reorder_gap_ready(PotrPeerContext *peer, uint32_t nack_num)
     return 1;
 }
 
-/* N:1: CONNECTED イベントを発火する (health_alive で重複防止) */
-static void n1_notify_health_alive(struct PotrContext_ *ctx, PotrPeerContext *peer)
-{
-    if (!peer->health_alive)
-    {
-        peer->health_alive = 1;
-        POTR_LOG(POTR_TRACE_INFO,
-                 "recv[service_id=%" PRId64 "]: CONNECTED peer=%u",
-                 ctx->service.service_id, (unsigned)peer->peer_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, peer->peer_id,
-                          POTR_EVENT_CONNECTED, NULL, 0);
-        }
-    }
-}
-
 /* N:1: データを解凍してコールバックに渡す */
 static void n1_recv_deliver(struct PotrContext_ *ctx, PotrPeerContext *peer,
                              const uint8_t *payload, size_t payload_len,
@@ -330,8 +374,8 @@ static void n1_recv_deliver(struct PotrContext_ *ctx, PotrPeerContext *peer,
         if (potr_decompress(ctx->compress_buf, &dec_len,
                             payload, payload_len) == 0)
         {
-            ctx->callback(ctx->service.service_id, peer->peer_id,
-                          POTR_EVENT_DATA, ctx->compress_buf, dec_len);
+            potr_callback_emit(ctx, peer->peer_id,
+                               POTR_EVENT_DATA, ctx->compress_buf, dec_len);
         }
         else
         {
@@ -342,8 +386,8 @@ static void n1_recv_deliver(struct PotrContext_ *ctx, PotrPeerContext *peer,
     }
     else
     {
-        ctx->callback(ctx->service.service_id, peer->peer_id,
-                      POTR_EVENT_DATA, payload, payload_len);
+        potr_callback_emit(ctx, peer->peer_id,
+                           POTR_EVENT_DATA, payload, payload_len);
     }
 }
 
@@ -424,18 +468,7 @@ static void clear_pending_fin_ctx(struct PotrContext_ *ctx)
 /* N:1: FIN による DISCONNECTED 発火とピア解放を行う。peers_mutex 保護下で呼ぶこと。 */
 static void n1_fire_disconnected_by_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
 {
-    if (peer->health_alive)
-    {
-        peer->health_alive = 0;
-        POTR_LOG(POTR_TRACE_INFO,
-                 "recv[service_id=%" PRId64 "]: peer=%u FIN -> DISCONNECTED",
-                 ctx->service.service_id, (unsigned)peer->peer_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, peer->peer_id,
-                          POTR_EVENT_DISCONNECTED, NULL, 0);
-        }
-    }
+    disconnect_peer_all_paths(ctx, peer);
     clear_pending_fin_peer(peer);
     peer_free(ctx, peer);
 }
@@ -634,6 +667,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
     for (i = 0; i < ctx->max_peers; i++)
     {
         int64_t elapsed_ms;
+        int     path_state_changed = 0;
 
         if (!ctx->peers[i].active) continue;
         if (!ctx->peers[i].health_alive) continue;
@@ -651,10 +685,18 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
 
             if (path_elapsed >= (int64_t)ctx->health_timeout_ms)
             {
-                should_wake_health |= set_path_ping_state(&ctx->peers[i].path_ping_state[k],
-                                                          POTR_PING_STATE_ABNORMAL);
+                int state_changed =
+                    set_path_ping_state(&ctx->peers[i].path_ping_state[k],
+                                        POTR_PING_STATE_ABNORMAL);
+                should_wake_health |= state_changed;
+                path_state_changed |= state_changed;
                 peer_path_clear(ctx, &ctx->peers[i], k);
             }
+        }
+
+        if (path_state_changed)
+        {
+            sync_peer_path_state(ctx, &ctx->peers[i]);
         }
 
         /* ピア単位のタイムアウト: 全パス消滅、または最終受信から切断判定 */
@@ -667,18 +709,14 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
         {
             PotrPeerId dead_id = ctx->peers[i].peer_id;
 
-            ctx->peers[i].health_alive = 0;
             POTR_LOG(POTR_TRACE_WARNING,
                      "recv[service_id=%" PRId64 "]: peer=%u DISCONNECTED (timeout %lldms)",
                      ctx->service.service_id, (unsigned)dead_id,
                      (long long)elapsed_ms);
 
-            if (ctx->callback != NULL)
-            {
-                ctx->callback(ctx->service.service_id, dead_id,
-                              POTR_EVENT_DISCONNECTED, NULL, 0);
-            }
-
+            memset((void *)ctx->peers[i].remote_path_ping_state, 0,
+                   sizeof(ctx->peers[i].remote_path_ping_state));
+            disconnect_peer_all_paths(ctx, &ctx->peers[i]);
             peer_free(ctx, &ctx->peers[i]);
         }
     }
@@ -1090,24 +1128,6 @@ static int update_path_health(struct PotrContext_ *ctx, int path_idx)
                                POTR_PING_STATE_NORMAL);
 }
 
-/* health_alive が dead → alive になった場合に CONNECTED イベントを発火する。
-   ヘルスチェック有効/無効に関わらず health_alive フラグで接続状態を統一管理する。 */
-static void notify_health_alive(struct PotrContext_ *ctx)
-{
-    if (!ctx->health_alive)
-    {
-        ctx->health_alive = 1;
-        POTR_LOG(POTR_TRACE_INFO,
-                 "recv[service_id=%" PRId64 "]: CONNECTED",
-                 ctx->service.service_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_CONNECTED, NULL, 0);
-        }
-    }
-}
-
 /* タイムアウト時に経過時間を確認し、必要なら peer_port クリアと DISCONNECTED イベントを発火する */
 static void check_health_timeout(struct PotrContext_ *ctx)
 {
@@ -1115,6 +1135,7 @@ static void check_health_timeout(struct PotrContext_ *ctx)
     int32_t now_nsec;
     int     i;
     int     should_wake_health = 0;
+    int     path_state_changed = 0;
 
     if (ctx->health_timeout_ms == 0) return;
 
@@ -1132,8 +1153,10 @@ static void check_health_timeout(struct PotrContext_ *ctx)
 
         if (elapsed_ms >= (int64_t)ctx->health_timeout_ms)
         {
-            should_wake_health |= set_path_ping_state(&ctx->path_ping_state[i],
-                                                      POTR_PING_STATE_ABNORMAL);
+            int state_changed = set_path_ping_state(&ctx->path_ping_state[i],
+                                                    POTR_PING_STATE_ABNORMAL);
+            should_wake_health |= state_changed;
+            path_state_changed |= state_changed;
             ctx->peer_port[i]          = 0;
             ctx->path_last_recv_sec[i] = 0;
             /* unicast_bidir で動的学習したアドレス・ポートをリセットする (再接続を許可) */
@@ -1153,6 +1176,11 @@ static void check_health_timeout(struct PotrContext_ *ctx)
         }
     }
 
+    if (path_state_changed)
+    {
+        sync_service_path_state(ctx);
+    }
+
     /* 全体の health_alive 判定 */
     if (!ctx->health_alive || ctx->last_recv_tv_sec == 0) return;
 
@@ -1163,18 +1191,11 @@ static void check_health_timeout(struct PotrContext_ *ctx)
 
         if (elapsed_ms >= (int64_t)ctx->health_timeout_ms)
         {
-            ctx->health_alive = 0;
             POTR_LOG(POTR_TRACE_WARNING,
                      "recv[service_id=%" PRId64 "]: DISCONNECTED (timeout %lldms >= %ums)",
                      ctx->service.service_id,
                      (long long)elapsed_ms,
                      (unsigned)ctx->health_timeout_ms);
-            if (ctx->callback != NULL)
-            {
-                ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                              POTR_EVENT_DISCONNECTED, NULL, 0);
-            }
-
             /* FIN と同様にセッション状態をリセットして次の接続を受け入れ可能にする。
                peer_session_known をクリアすることで、送信者が同一セッションのまま
                復帰した場合でも window_init を経由して受信ウィンドウを初期化し、
@@ -1187,6 +1208,8 @@ static void check_health_timeout(struct PotrContext_ *ctx)
             should_wake_health |= set_all_path_ping_states(ctx->path_ping_state,
                                                            POTR_MAX_PATH,
                                                            POTR_PING_STATE_UNDEFINED);
+            memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
+            disconnect_service_all_paths(ctx);
             window_init(&ctx->recv_window, 0,
                         ctx->global.window_size, ctx->global.max_payload);
         }
@@ -1471,10 +1494,10 @@ static void recv_deliver(struct PotrContext_ *ctx,
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "recv[service_id=%" PRId64 "]: decompress %zu -> %zu bytes",
                      ctx->service.service_id, payload_len, dec_len);
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_DATA,
-                          ctx->compress_buf,
-                          dec_len);
+            potr_callback_emit(ctx, POTR_PEER_NA,
+                               POTR_EVENT_DATA,
+                               ctx->compress_buf,
+                               dec_len);
         }
         else
         {
@@ -1485,8 +1508,8 @@ static void recv_deliver(struct PotrContext_ *ctx,
     }
     else
     {
-        ctx->callback(ctx->service.service_id, POTR_PEER_NA, POTR_EVENT_DATA,
-                      payload, payload_len);
+        potr_callback_emit(ctx, POTR_PEER_NA, POTR_EVENT_DATA,
+                           payload, payload_len);
     }
 }
 
@@ -1592,17 +1615,19 @@ static void fire_disconnected_by_fin(struct PotrContext_ *ctx, uint32_t fin_targ
         }
     }
 
-    if (ctx->health_alive)
+    if (potr_is_tcp_type(ctx->service.type))
     {
-        ctx->health_alive = 0;
-        POTR_LOG(POTR_TRACE_INFO,
-                 "recv[service_id=%" PRId64 "]: FIN -> DISCONNECTED",
-                 ctx->service.service_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_DISCONNECTED, NULL, 0);
-        }
+        POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+        set_all_path_ping_states(ctx->path_ping_state, POTR_MAX_PATH, POTR_PING_STATE_UNDEFINED);
+        memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
+        disconnect_service_all_paths(ctx);
+        POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
+    }
+    else
+    {
+        set_all_path_ping_states(ctx->path_ping_state, POTR_MAX_PATH, POTR_PING_STATE_UNDEFINED);
+        memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
+        disconnect_service_all_paths(ctx);
     }
     clear_pending_fin_ctx(ctx);
     ctx->peer_session_known = 0;
@@ -1667,18 +1692,9 @@ static void drain_recv_window(struct PotrContext_ *ctx)
    フラグメント組み立てバッファも破棄する。 */
 static void raw_session_disconnect(struct PotrContext_ *ctx)
 {
-    if (ctx->health_alive)
-    {
-        ctx->health_alive = 0;
-        POTR_LOG(POTR_TRACE_WARNING,
-                 "recv[service_id=%" PRId64 "]: RAW DISCONNECTED (gap detected)",
-                 ctx->service.service_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_DISCONNECTED, NULL, 0);
-        }
-    }
+    set_all_path_ping_states(ctx->path_ping_state, POTR_MAX_PATH, POTR_PING_STATE_UNDEFINED);
+    memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
+    disconnect_service_all_paths(ctx);
 
     /* フラグメント組み立て途中状態と pending FIN を破棄 */
     clear_pending_fin_ctx(ctx);
@@ -1795,7 +1811,7 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
                  "recv[service_id=%" PRId64 "]: DATA seq=%u updates health on path=%d",
                  ctx->service.service_id, (unsigned)pkt->seq_num, path_idx);
         update_path_health(ctx, path_idx);
-        notify_health_alive(ctx);
+        sync_service_path_state(ctx);
     }
 
     drain_recv_window(ctx);
@@ -2100,13 +2116,12 @@ POTR_THREAD_FUNC(recv_thread_func)
                     }
                     n1_update_path_recv(peer, &sender_addr, i);
 
-                    if (peer->health_alive && ctx->callback != NULL)
-                    {
-                        peer->health_alive = 0;
-                        ctx->callback(ctx->service.service_id, peer->peer_id,
-                                      POTR_EVENT_DISCONNECTED, NULL, 0);
-                    }
-
+                    set_all_path_ping_states(peer->path_ping_state,
+                                             POTR_MAX_PATH,
+                                             POTR_PING_STATE_UNDEFINED);
+                    memset((void *)peer->remote_path_ping_state, 0,
+                           sizeof(peer->remote_path_ping_state));
+                    disconnect_peer_all_paths(ctx, peer);
                     peer->reorder_pending = 0;
                     window_recv_skip(&peer->recv_window, pkt.ack_num);
                     n1_drain_recv_window(ctx, peer);
@@ -2148,18 +2163,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                         memcpy(peer->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
                     }
 
-                    /* 双方向 CONNECTED 判定: remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
-                    {
-                        unsigned int k;
-                        for (k = 0; k < POTR_MAX_PATH; k++)
-                        {
-                            if (peer->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
-                            {
-                                n1_notify_health_alive(ctx, peer);
-                                break;
-                            }
-                        }
-                    }
+                    sync_peer_path_state(ctx, peer);
 
                     if (pkt.seq_num != peer->recv_window.next_seq
                         && seqnum_in_window(pkt.seq_num,
@@ -2349,16 +2353,11 @@ POTR_THREAD_FUNC(recv_thread_func)
                          " (packet unrecoverable)",
                          ctx->service.service_id, (unsigned)pkt.ack_num);
 
-                /* DISCONNECTED イベント発火 (接続済みのときのみ。連続 REJECT で重複しない) */
-                if (ctx->health_alive)
-                {
-                    ctx->health_alive = 0;
-                    if (ctx->callback != NULL)
-                    {
-                        ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                                      POTR_EVENT_DISCONNECTED, NULL, 0);
-                    }
-                }
+                set_all_path_ping_states(ctx->path_ping_state,
+                                         POTR_MAX_PATH,
+                                         POTR_PING_STATE_UNDEFINED);
+                memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
+                disconnect_service_all_paths(ctx);
 
                 /* 欠落外側パケットをスキップして recv_window を前進させる */
                 ctx->reorder_pending = 0;
@@ -2440,29 +2439,15 @@ POTR_THREAD_FUNC(recv_thread_func)
                     {
                         ctx->reorder_pending = 0; /* ギャップなし */
                     }
-                    notify_health_alive(ctx);
+                    sync_service_path_state(ctx);
                 }
                 else
                 {
                     if (ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
                     {
                         wake_udp_interrupt_ping_if_needed(ctx, ping_state_changed);
-
-                        /* 双方向 (type 7): remote_path_ping_state にいずれか NORMAL があれば CONNECTED */
-                        unsigned int k;
-                        for (k = 0; k < POTR_MAX_PATH; k++)
-                        {
-                            if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
-                            {
-                                notify_health_alive(ctx);
-                                break;
-                            }
-                        }
                     }
-                    else
-                    {
-                        notify_health_alive(ctx); /* 片方向 (type 4-6): PING 受信で即 CONNECTED */
-                    }
+                    sync_service_path_state(ctx);
 
                     {
                         /* 先頭欠番のリオーダー待機を確認してから NACK スキャンを行う。
@@ -2539,44 +2524,6 @@ typedef struct
 
 static TcpRecvArg s_tcp_recv_args[POTR_MAX_PATH];
 
-/* TCP 用 CONNECTED イベント: tcp_state_mutex で二重発火を防止する。
-   複数 path のスレッドが並行して呼び出し得るため mutex 保護が必要。 */
-static void notify_connected_tcp(struct PotrContext_ *ctx)
-{
-    POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
-    if (!ctx->health_alive)
-    {
-        ctx->health_alive = 1;
-        POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
-        POTR_LOG(POTR_TRACE_INFO,
-                 "tcp_recv[service_id=%" PRId64 "]: CONNECTED",
-                 ctx->service.service_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_CONNECTED, NULL, 0);
-        }
-    }
-    else
-    {
-        POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
-    }
-}
-
-static int tcp_remote_any_path_normal(const struct PotrContext_ *ctx)
-{
-    int k;
-
-    for (k = 0; k < (int)POTR_MAX_PATH; k++)
-    {
-        if (ctx->remote_path_ping_state[k] == POTR_PING_STATE_NORMAL)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 /* TCP ストリーム受信スレッド本体 (path ごと) */
 POTR_THREAD_FUNC(tcp_recv_thread_func)
 {
@@ -2646,15 +2593,19 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
                 uint64_t elapsed = clock_get_monotonic_ms() - last;
                 if (last > 0 && elapsed > (uint64_t)ctx->health_timeout_ms)
                 {
+                    int ping_state_changed;
+
                     POTR_LOG(POTR_TRACE_WARNING,
                              "tcp_recv[service_id=%" PRId64 " path=%d]: PING timeout"
                              " (%llu ms), disconnecting",
                              ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
-                    wake_tcp_interrupt_ping_if_needed(
-                        ctx, path_idx,
-                        set_path_ping_state(&ctx->path_ping_state[path_idx],
-                                            POTR_PING_STATE_ABNORMAL));
+                    POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+                    ping_state_changed = set_path_ping_state(&ctx->path_ping_state[path_idx],
+                                                             POTR_PING_STATE_ABNORMAL);
+                    sync_service_path_state(ctx);
+                    POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
+                    wake_tcp_interrupt_ping_if_needed(ctx, path_idx, ping_state_changed);
                     break;
                 }
                 continue;
@@ -2778,21 +2729,17 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             POTR_LOG(POTR_TRACE_VERBOSE,
                      "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
                      ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
+            POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
             ctx->tcp_last_ping_recv_ms[path_idx] = clock_get_monotonic_ms();
             ping_state_changed = set_path_ping_state(&ctx->path_ping_state[path_idx],
                                                      POTR_PING_STATE_NORMAL);
-            /* PING ペイロード (相手端のパス受信状態) を格納する */
             if (pkt.payload_len >= POTR_MAX_PATH && pkt.payload != NULL)
             {
                 memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
             }
+            sync_service_path_state(ctx);
+            POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
             wake_tcp_interrupt_ping_if_needed(ctx, path_idx, ping_state_changed);
-            /* TCP の CONNECTED は、相手が自端の PING を受信して NORMAL を返した
-               応答 PING を受け取った時点で発火する。 */
-            if (tcp_remote_any_path_normal(ctx))
-            {
-                notify_connected_tcp(ctx);
-            }
         }
         else if (pkt.flags & POTR_FLAG_DATA)
         {

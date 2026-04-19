@@ -1,6 +1,6 @@
 # PING ヘルスチェック設計まとめ
 
-porter フレームワークにおける PotrType ごとの PING 送出ロジック、マルチパスごとの振る舞い、タイムアウト検出方式を整理する。PONG (PING 応答) は存在しない。片方向 type 1-6 は有効な `PING` / `DATA` 受信をヘルス信号として扱い、送信側は「最後の PING または有効 DATA 送信」から `health_interval_ms` 経過時だけ PING を送る。双方向 type 7-10 は現行どおり PING 受信タイムアウトを用いてヘルスチェックを行う。
+porter フレームワークにおける PotrType ごとの PING 送出ロジック、マルチパスごとの振る舞い、タイムアウト検出方式を整理する。PONG (PING 応答) は存在しない。片方向 type 1-6 は有効な `PING` / `DATA` 受信をヘルス信号として扱い、送信側は「最後の PING または有効 DATA 送信」から `health_interval_ms` 経過時だけ PING を送る。双方向 type 7-10 は PING 応答ベースで path logical を判定し、service / peer の `CONNECTED` はその OR で決まる。
 
 ## 概要
 
@@ -71,9 +71,9 @@ PING パケットのペイロードには自端の各パス PING 受信状態を
 
 | 通信形態 | CONNECTED の発火条件 |
 |---|---|
-| 片方向 (type 1-6) | いずれかのパスで有効な `PING` または `DATA` を受信したとき |
-| 双方向 UDP (type 7, 8) | 受信した PING ペイロードのいずれかのパスが `POTR_PING_STATE_NORMAL` のとき |
-| TCP (type 9, 10) | 接続直後の bootstrap PING を含む、最初の認証済み `PING` を受信したとき |
+| 片方向 (type 1-6) | いずれかの path logical が 0->1 になったとき |
+| 双方向 UDP (type 7, 8) | `path_ping_state[k] == NORMAL` かつ `remote_path_ping_state[k] == NORMAL` の path が 1 本以上になったとき |
+| TCP (type 9, 10) | `tcp_conn_fd[k]` 有効かつ `path_ping_state[k] == NORMAL` かつ `remote_path_ping_state[k] == NORMAL` の path が 1 本以上になったとき |
 
 双方向 UDP では `remote_path_ping_state[k] == POTR_PING_STATE_NORMAL` が一つ以上存在するときに CONNECTED を発火する。これは「相手端が自端からの PING を正常受信済みである」ことを意味し、往復疎通が確認できた時点で CONNECTED となる。
 
@@ -92,7 +92,7 @@ TCP はコネクション確立 (accept / connect 完了) だけでは CONNECTED
 
 片方向通信では手順 2-3 に相当する往復が不要で、有効な `PING` または `DATA` の受信で即 CONNECTED となる。
 
-実装箇所: `thread/potrRecvThread.c` の `notify_health_alive()` (UDP 1:1)、`n1_notify_health_alive()` (UDP N:1)、`notify_connected_tcp()` (TCP)。
+実装箇所: `thread/potrRecvThread.c` / `thread/potrConnectThread.c` の path logical 同期処理、および `potrPathEvent.c`。
 
 ## 接続状態別の実装
 

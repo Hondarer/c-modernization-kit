@@ -22,6 +22,7 @@
 #include "../protocol/packet.h"
 #include "../protocol/window.h"
 #include "../potrContext.h"
+#include "../potrPathEvent.h"
 #include "../potrPeerTable.h"
 #include "../thread/potrRecvThread.h"
 #include "../thread/potrHealthThread.h"
@@ -214,6 +215,7 @@ static void cleanup_sockets(struct PotrContext_ *ctx)
    memset(ctx, 0, ...) 後であれば、未初期化ポインタ (NULL) に対しても安全に呼び出せる。 */
 static void ctx_cleanup(struct PotrContext_ *ctx)
 {
+    potr_callback_mutex_destroy(ctx);
     window_destroy(&ctx->send_window);
     window_destroy(&ctx->recv_window);
     free(ctx->frag_buf);
@@ -392,6 +394,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         return POTR_ERROR;
     }
     memset(ctx, 0, sizeof(*ctx));
+    potr_callback_mutex_init(ctx);
 
     /* 全ソケットを INVALID で初期化 */
     {
@@ -410,22 +413,25 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
 
     /* SENDER + callback の整合性チェック (型が確定した後) */
     if (role == POTR_ROLE_SENDER && callback != NULL
-        && ctx->service.type != POTR_TYPE_UNICAST_BIDIR)
+        && ctx->service.type != POTR_TYPE_UNICAST_BIDIR
+        && ctx->service.type != POTR_TYPE_TCP_BIDIR)
     {
         POTR_LOG(POTR_TRACE_ERROR,
                  "potrOpenService: service_id=%" PRId64 " SENDER role must not have callback"
                  " (type=%d)",
                  ctx->service.service_id, (int)ctx->service.type);
-        free(ctx);
+        ctx_cleanup(ctx);
         return POTR_ERROR;
     }
     if (role == POTR_ROLE_SENDER && callback == NULL
-        && ctx->service.type == POTR_TYPE_UNICAST_BIDIR)
+        && (ctx->service.type == POTR_TYPE_UNICAST_BIDIR
+            || ctx->service.type == POTR_TYPE_TCP_BIDIR))
     {
         POTR_LOG(POTR_TRACE_ERROR,
-                 "potrOpenService: service_id=%" PRId64 " UNICAST_BIDIR SENDER role requires callback",
-                 ctx->service.service_id);
-        free(ctx);
+                 "potrOpenService: service_id=%" PRId64 " bidirectional SENDER role requires callback"
+                 " (type=%d)",
+                 ctx->service.service_id, (int)ctx->service.type);
+        ctx_cleanup(ctx);
         return POTR_ERROR;
     }
 
@@ -435,7 +441,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         POTR_LOG(POTR_TRACE_ERROR,
                  "potrOpenService: service_id=%" PRId64 " invalid max_payload=%u (range: 64..%u)",
                  ctx->service.service_id, (unsigned)ctx->global.max_payload, (unsigned)POTR_MAX_PAYLOAD);
-        free(ctx);
+        ctx_cleanup(ctx);
         return POTR_ERROR;
     }
     if (ctx->global.window_size < 2U || ctx->global.window_size > POTR_MAX_WINDOW_SIZE)
@@ -443,7 +449,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         POTR_LOG(POTR_TRACE_ERROR,
                  "potrOpenService: service_id=%" PRId64 " invalid window_size=%u (range: 2..%u)",
                  ctx->service.service_id, (unsigned)ctx->global.window_size, (unsigned)POTR_MAX_WINDOW_SIZE);
-        free(ctx);
+        ctx_cleanup(ctx);
         return POTR_ERROR;
     }
     if (ctx->global.max_message_size < (uint32_t)ctx->global.max_payload)
@@ -452,7 +458,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
                  "potrOpenService: service_id=%" PRId64 " max_message_size=%u must be >= max_payload=%u",
                  ctx->service.service_id, (unsigned)ctx->global.max_message_size,
                  (unsigned)ctx->global.max_payload);
-        free(ctx);
+        ctx_cleanup(ctx);
         return POTR_ERROR;
     }
     if (ctx->global.send_queue_depth < 2U)
@@ -460,7 +466,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         POTR_LOG(POTR_TRACE_ERROR,
                  "potrOpenService: service_id=%" PRId64 " invalid send_queue_depth=%u (min: 2)",
                  ctx->service.service_id, (unsigned)ctx->global.send_queue_depth);
-        free(ctx);
+        ctx_cleanup(ctx);
         return POTR_ERROR;
     }
 
@@ -505,7 +511,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
 
             if (ctx->service.dst_port == 0)
             {
-                free(ctx);
+                ctx_cleanup(ctx);
                 return POTR_ERROR;
             }
 

@@ -17,6 +17,7 @@
 #include <porter.h>
 
 #include "../potrContext.h"
+#include "../potrPathEvent.h"
 #include "../potrPeerTable.h"
 #include "../infra/potrLog.h"
 
@@ -70,12 +71,16 @@ POTR_EXPORT int POTR_API potrDisconnectPeer(PotrHandle handle, PotrPeerId peer_i
         /* FIN を送信 */
         peer_send_fin(ctx, peer);
 
-        /* 接続済み状態のみ DISCONNECTED コールバックを発火 */
-        if (peer->health_alive && ctx->callback != NULL)
+        /* 論理接続 path をすべて落としてから DISCONNECTED を発火する */
         {
-            peer->health_alive = 0;
-            ctx->callback(ctx->service.service_id, peer->peer_id,
-                          POTR_EVENT_DISCONNECTED, NULL, 0);
+            int                    next_states[POTR_MAX_PATH];
+            PotrPreparedPathEvents prepared;
+
+            potr_zero_path_states(next_states);
+            POTR_MUTEX_LOCK(&ctx->callback_mutex);
+            potr_sync_peer_path_state_locked(peer, next_states, &prepared);
+            potr_emit_peer_path_events_locked(ctx, peer, &prepared);
+            POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
         }
 
         /* ピアリソースを解放 */

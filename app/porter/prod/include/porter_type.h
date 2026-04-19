@@ -273,10 +273,17 @@ typedef uint32_t PotrPeerId;
  *
  *  @note
  *  POTR_EVENT_CONNECTED / POTR_EVENT_DISCONNECTED は、data=NULL, len=0 で呼び出されます。\n
- *  すべてのイベントは受信スレッドから直列に呼び出されるため、順序性が保証されます。\n
- *  CONNECTED は、受信スレッドが接続成立条件を満たした時点で発火します。\n
- *  片方向通信では `PING` の初回受信、双方向通信では相手 `PING` ペイロード内で\n
- *  自端送信 `PING` の到達 (`POTR_PING_STATE_NORMAL`) を確認した時点が基準です。\n
+ *  POTR_EVENT_PATH_CONNECTED / POTR_EVENT_PATH_DISCONNECTED は、data に `const int*` の
+ *  path 状態配列、len に対象 path index を渡します。\n
+ *  すべてのイベントは内部で直列化されるため、順序性が保証されます。\n
+ *  `CONNECTED` / `DISCONNECTED` は path 論理接続状態の OR が 0->1 / 1->0 に変化した時点で
+ *  発火します。\n
+ *  `PATH_CONNECTED` / `PATH_DISCONNECTED` は対象 path の論理接続状態が
+ *  0->1 / 1->0 に変化した時点で発火します。\n
+ *  path 論理接続状態の意味:\n
+ *  - type 1-6: 有効な `PING` または `DATA` をその path で受理済み\n
+ *  - type 7-10: ローカル path が有効、かつ相手 `PING` ペイロード内で当該 path が
+ *    `POTR_PING_STATE_NORMAL`\n
  *  未接続中に受信した `DATA` は破棄され、`POTR_EVENT_DATA` は発火しません。\n
  *  DISCONNECTED の発火条件:\n
  *  - ヘルスチェック有効時 (health_timeout_ms > 0): タイムアウト / FIN 受信 / REJECT 受信\n
@@ -286,9 +293,11 @@ typedef uint32_t PotrPeerId;
  */
 typedef enum
 {
-    POTR_EVENT_DATA         = 0, /**< データ受信。data/len に内容が格納される。 */
-    POTR_EVENT_CONNECTED    = 1, /**< 送信者からの疎通を初検知 or 復帰。data=NULL, len=0。 */
-    POTR_EVENT_DISCONNECTED = 2, /**< 切断を検知 (タイムアウト / FIN 受信 / REJECT 受信)。data=NULL, len=0。 */
+    POTR_EVENT_DATA              = 0, /**< データ受信。data/len に内容が格納される。 */
+    POTR_EVENT_CONNECTED         = 1, /**< 論理接続中の path が 1 本以上になった。data=NULL, len=0。 */
+    POTR_EVENT_DISCONNECTED      = 2, /**< 論理接続中の path が 0 本になった。data=NULL, len=0。 */
+    POTR_EVENT_PATH_CONNECTED    = 3, /**< path 論理接続が 0->1。data=path_states, len=path_idx。 */
+    POTR_EVENT_PATH_DISCONNECTED = 4, /**< path 論理接続が 1->0。data=path_states, len=path_idx。 */
 } PotrEvent;
 
 /**
@@ -304,9 +313,11 @@ typedef enum
  *  @param[in]      peer_id     ピア識別子。N:1 モード時は接続ピアの ID (`POTR_PEER_NA` / `POTR_PEER_ALL` 以外)。\n
  *                              1:1 モードおよびその他の通信種別では常に POTR_PEER_NA。
  *  @param[in]      event       イベント種別 (PotrEvent)。
- *  @param[in]      data        受信データへのポインタ。POTR_EVENT_DATA 時のみ有効。
- *                              コールバック復帰後は無効になります。
- *  @param[in]      len         受信データのバイト数。POTR_EVENT_DATA 時のみ有効。
+ *  @param[in]      data        `POTR_EVENT_DATA` 時は受信データ、`POTR_EVENT_PATH_*` 時は
+ *                              path 論理接続状態配列 (`const int[POTR_MAX_PATH]`) を指します。
+ *                              それ以外のイベントでは NULL です。コールバック復帰後は無効になります。
+ *  @param[in]      len         `POTR_EVENT_DATA` 時は受信データ長、`POTR_EVENT_PATH_*` 時は
+ *                              対象 path index です。それ以外のイベントでは 0 です。
  *******************************************************************************
  */
 typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,

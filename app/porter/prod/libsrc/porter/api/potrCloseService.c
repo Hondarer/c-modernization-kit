@@ -23,6 +23,7 @@
 #include "../infra/potrLog.h"
 #include "../infra/potrSendQueue.h"
 #include "../potrContext.h"
+#include "../potrPathEvent.h"
 #include "../potrPeerTable.h"
 #include "../protocol/packet.h"
 #include "../protocol/window.h"
@@ -389,6 +390,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     potr_socket_lib_cleanup();
 
         POTR_LOG(POTR_TRACE_INFO, "potrCloseService: service closed (TCP)");
+        potr_callback_mutex_destroy(ctx);
         free(ctx);
         return ret;
     }
@@ -487,6 +489,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
     free(ctx->send_wire_buf);
     POTR_LOG(POTR_TRACE_INFO, "potrCloseService: service closed");
 
+    potr_callback_mutex_destroy(ctx);
     free(ctx);
     return POTR_SUCCESS;
 }

@@ -30,6 +30,7 @@
 #include <porter_const.h>
 
 #include "../potrContext.h"
+#include "../potrPathEvent.h"
 #include "../protocol/packet.h"
 #include "../infra/potrSendQueue.h"
 #include "../protocol/window.h"
@@ -51,6 +52,18 @@ typedef struct
 
 /* 静的に確保した引数バッファ (path 数分) */
 static ConnectArg s_connect_args[POTR_MAX_PATH];
+
+static void sync_tcp_service_path_state_locked(struct PotrContext_ *ctx)
+{
+    int                    next_states[POTR_MAX_PATH];
+    PotrPreparedPathEvents prepared;
+
+    potr_copy_tcp_path_states(ctx, next_states);
+    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    potr_sync_service_path_state_locked(ctx, next_states, &prepared);
+    potr_emit_service_path_events_locked(ctx, &prepared);
+    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+}
 
 static void set_tcp_path_ping_state(struct PotrContext_ *ctx,
                                     int                  path_idx,
@@ -187,18 +200,9 @@ static void reset_all_paths_disconnected(struct PotrContext_ *ctx)
         memset(ctx->send_window.valid, 0,
                (size_t)ctx->send_window.window_size * sizeof(uint8_t));
     }
-    if (ctx->health_alive)
-    {
-        ctx->health_alive = 0;
-        POTR_LOG(POTR_TRACE_INFO,
-                 "connect_thread[service_id=%" PRId64 "]: DISCONNECTED (all paths down)",
-                 ctx->service.service_id);
-        if (ctx->callback != NULL)
-        {
-            ctx->callback(ctx->service.service_id, POTR_PEER_NA,
-                          POTR_EVENT_DISCONNECTED, NULL, 0);
-        }
-    }
+    memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
+    memset((void *)ctx->path_logical_alive, 0, sizeof(ctx->path_logical_alive));
+    ctx->health_alive = 0;
 }
 
 /* 送信キューを再初期化する (reconnect 時に shutdown 済みのキューをリセットする)。
@@ -467,13 +471,16 @@ static void sender_connect_loop(struct PotrContext_ *ctx, int path_idx)
         /* recv スレッドが接続断を検知して自然終了するまで待機する */
         join_recv_thread(ctx, path_idx);
 
-        set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
-
         POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP disconnected",
                  ctx->service.service_id, path_idx);
 
         stop_connected_threads(ctx, path_idx);
+
+        POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+        set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
+        sync_tcp_service_path_state_locked(ctx);
+        POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
 
         /* tcp_active_paths カウンタをデクリメント (tcp_state_mutex 保護) */
         POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
@@ -695,13 +702,16 @@ static void receiver_accept_loop(struct PotrContext_ *ctx, int path_idx)
         /* recv スレッドが接続断を検知して自然終了するまで待機する */
         join_recv_thread(ctx, path_idx);
 
-        set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
-
         POTR_LOG(POTR_TRACE_INFO,
                  "connect_thread[service_id=%" PRId64 " path=%d]: TCP connection closed",
                  ctx->service.service_id, path_idx);
 
         stop_connected_threads(ctx, path_idx);
+
+        POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+        set_tcp_path_ping_state(ctx, path_idx, POTR_PING_STATE_UNDEFINED);
+        sync_tcp_service_path_state_locked(ctx);
+        POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
 
         /* 先読みバッファをクリア (recv スレッドが未処理のまま終了した場合の安全策) */
         ctx->tcp_first_pkt_len[path_idx] = 0;

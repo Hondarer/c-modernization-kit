@@ -5,11 +5,25 @@
 ## 現行実装で押さえるべき要点
 
 - `PotrRecvCallback` は全通信種別共通で `peer_id` 引数を持ちます
+- `PotrRecvCallback` には `POTR_EVENT_PATH_CONNECTED` / `POTR_EVENT_PATH_DISCONNECTED` が追加されています
 - `potrSend()` は `potrSend(handle, peer_id, data, len, flags)` の形です
 - 1:1 モードおよび `unicast` / `multicast` / `broadcast` では `peer_id` に `POTR_PEER_NA` を使用します
 - `unicast_bidir` の N:1 モードでは、受信コールバックで渡された `peer_id` を `potrSend()` に指定して返信できます
 - `POTR_PEER_ALL` を指定すると、N:1 モードでは全接続ピア宛の一斉送信になります
 - `potrDisconnectPeer()` は `unicast_bidir` の N:1 モード専用 API です
+
+### PotrRecvCallback の PATH イベント
+
+`POTR_EVENT_PATH_CONNECTED` / `POTR_EVENT_PATH_DISCONNECTED` のときは、引数の意味が次のように変わります。
+
+| 引数 | 意味 |
+|---|---|
+| `peer_id` | N:1 モードでは対象 peer の ID。1:1 モードでは `POTR_PEER_NA` |
+| `data` | `const int[POTR_MAX_PATH]` の path 論理接続状態スナップショット |
+| `len` | 状態が変化した path index |
+
+`path_states` は常にイベント発火後の状態です。`PATH_DISCONNECTED` のときも対象 path は 0 です。
+`CONNECTED` / `DISCONNECTED` は path 論理接続状態の OR が 0->1 / 1->0 に変化したときのみ発火します。
 
 ### potrSend() の戻り値
 

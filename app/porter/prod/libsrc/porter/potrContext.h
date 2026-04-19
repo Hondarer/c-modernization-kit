@@ -153,6 +153,7 @@ typedef struct PotrPeerContext_
 
     /* ヘルスチェック */
     volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。 */
+    int              path_logical_alive[POTR_MAX_PATH];   /**< パスごとの論理接続状態 (1: connected, 0: disconnected)。 */
     volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
     uint8_t          remote_path_ping_state[POTR_MAX_PATH];/**< 相手端から PING ペイロードで受信した各パス受信状態 (POTR_PING_STATE_*)。 */
     int64_t      last_recv_tv_sec;  /**< 最終受信時刻 秒部 (CLOCK_MONOTONIC)。0 = 未受信。 */
@@ -190,6 +191,7 @@ typedef struct PotrPeerContext_
 struct PotrContext_
 {
     PotrRecvCallback callback;                         /**< 受信コールバック。 */
+    PotrMutex        callback_mutex;                   /**< コールバック直列化用ミューテックス。 */
     PotrThread       recv_thread[POTR_MAX_PATH];       /**< 受信スレッドハンドル (path ごと)。 */
     PotrThread       health_thread[POTR_MAX_PATH];     /**< ヘルスチェックスレッドハンドル (path ごと、TCP: 全ロール)。 */
     PotrMutex        health_mutex[POTR_MAX_PATH];      /**< ヘルスチェックスレッド停止用ミューテックス (path ごと)。 */
@@ -210,6 +212,7 @@ struct PotrContext_
     volatile int     health_running[POTR_MAX_PATH]; /**< ヘルスチェックスレッド実行フラグ (1: 実行中, 0: 停止)。path ごと。 */
     volatile int     health_send_immediate[POTR_MAX_PATH]; /**< オープン時割り込み PING フラグ。health_sleep() 冒頭でチェック・クリア。 */
     volatile int     health_alive;                         /**< 疎通状態 (1: alive, 0: dead/未接続)。UDP 用。受信者が管理。 */
+    int              path_logical_alive[POTR_MAX_PATH];    /**< パスごとの論理接続状態 (1: connected, 0: disconnected)。 */
     volatile uint8_t path_ping_state[POTR_MAX_PATH];       /**< 自端の各パス PING 受信状態 (POTR_PING_STATE_*)。受信スレッドが更新、ヘルススレッドが読む。 */
     volatile uint64_t last_ping_send_ms;                  /**< 送信側 health 用 PING 最終送信時刻 (ms, CLOCK_MONOTONIC)。type 1-6 のみ使用。0 = 未送信。 */
     volatile uint64_t last_valid_data_send_ms;            /**< 送信側 health 用有効 DATA 最終送信時刻 (ms, CLOCK_MONOTONIC)。type 1-6 のみ使用。0 = 未送信。 */
