@@ -16,18 +16,6 @@
 #include <string.h>
 #include <com_util/base/platform.h>
 
-#if defined(PLATFORM_LINUX)
-    #include <arpa/inet.h>
-    #include <netinet/in.h>
-    #include <sys/socket.h>
-    #include <time.h>
-    #include <unistd.h>
-#elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-    #pragma comment(lib, "ws2_32.lib")
-#endif /* PLATFORM_ */
-
 #include <porter.h>
 #include <porter_const.h>
 
@@ -64,18 +52,10 @@ static void send_fin(struct PotrContext_ *ctx)
 
     /* 現セッションで DATA を送っている場合のみ FIN target を有効化する。
      * ack_num は send_window.next_seq をそのまま運び、0 も通常値として扱う。 */
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&ctx->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&ctx->send_window_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_LOCK(&ctx->send_window_mutex);
     wire_target_seq = ctx->send_window.next_seq;
     has_data        = ctx->send_has_data;
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&ctx->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_UNLOCK(&ctx->send_window_mutex);
 
     if (has_data)
     {
@@ -110,13 +90,9 @@ static void send_fin(struct PotrContext_ *ctx)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 continue;
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], wire_buf, wire_len, 0, (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0, (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#endif /* PLATFORM_ */
+            potr_sendto(ctx->sock[i], wire_buf, wire_len, 0,
+                        (const struct sockaddr *)&ctx->dest_addr[i],
+                        (int)sizeof(ctx->dest_addr[i]));
         }
     }
     else
@@ -127,13 +103,9 @@ static void send_fin(struct PotrContext_ *ctx)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 continue;
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], &fin_pkt, wire_len, 0, (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0, (const struct sockaddr *)&ctx->dest_addr[i],
-                   sizeof(ctx->dest_addr[i]));
-#endif /* PLATFORM_ */
+            potr_sendto(ctx->sock[i], (const uint8_t *)&fin_pkt, wire_len, 0,
+                        (const struct sockaddr *)&ctx->dest_addr[i],
+                        (int)sizeof(ctx->dest_addr[i]));
         }
     }
 }
@@ -142,21 +114,13 @@ static uint32_t get_fin_target_seq(struct PotrContext_ *ctx, int *has_data)
 {
     uint32_t wire_target_seq;
 
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&ctx->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&ctx->send_window_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_LOCK(&ctx->send_window_mutex);
     wire_target_seq = ctx->send_window.next_seq;
     if (has_data != NULL)
     {
         *has_data = ctx->send_has_data;
     }
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&ctx->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&ctx->send_window_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_UNLOCK(&ctx->send_window_mutex);
 
     return wire_target_seq;
 }
@@ -164,37 +128,13 @@ static uint32_t get_fin_target_seq(struct PotrContext_ *ctx, int *has_data)
 static int tcp_send_all_locked(PotrSocket fd, PotrMutex *mtx,
                                const uint8_t *buf, size_t len)
 {
-    size_t sent = 0;
+    int result;
 
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(mtx);
-    while (sent < len)
-    {
-        ssize_t n = send(fd, buf + sent, len - sent, 0);
-        if (n <= 0)
-        {
-            pthread_mutex_unlock(mtx);
-            return POTR_ERROR;
-        }
-        sent += (size_t)n;
-    }
-    pthread_mutex_unlock(mtx);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(mtx);
-    while (sent < len)
-    {
-        int n = send(fd, (const char *)(buf + sent), (int)(len - sent), 0);
-        if (n <= 0)
-        {
-            LeaveCriticalSection(mtx);
-            return POTR_ERROR;
-        }
-        sent += (size_t)n;
-    }
-    LeaveCriticalSection(mtx);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_LOCK(mtx);
+    result = potr_tcp_send(fd, buf, len);
+    POTR_MUTEX_UNLOCK(mtx);
 
-    return POTR_SUCCESS;
+    return (result == 0) ? POTR_SUCCESS : POTR_ERROR;
 }
 
 static int send_tcp_control_packet(struct PotrContext_ *ctx, PotrPacket *pkt, uint32_t nonce_val)
@@ -279,38 +219,22 @@ static int send_tcp_fin(struct PotrContext_ *ctx, uint32_t fin_target_seq)
 
 static void reset_tcp_close_wait(struct PotrContext_ *ctx)
 {
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&ctx->tcp_close_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&ctx->tcp_close_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
     ctx->tcp_close_waiting_ack   = 0;
     ctx->tcp_close_ack_received  = 0;
     ctx->tcp_close_wait_target_seq = 0U;
     ctx->tcp_close_ack_seq       = 0U;
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&ctx->tcp_close_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&ctx->tcp_close_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 }
 
 static void begin_tcp_close_wait(struct PotrContext_ *ctx, uint32_t fin_target_seq)
 {
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&ctx->tcp_close_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&ctx->tcp_close_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
     ctx->tcp_close_waiting_ack    = 1;
     ctx->tcp_close_ack_received   = 0;
     ctx->tcp_close_wait_target_seq = fin_target_seq;
     ctx->tcp_close_ack_seq        = 0U;
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&ctx->tcp_close_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&ctx->tcp_close_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 }
 
 static int wait_for_tcp_close_ack(struct PotrContext_ *ctx, uint32_t timeout_ms)
@@ -323,43 +247,10 @@ static int wait_for_tcp_close_ack(struct PotrContext_ *ctx, uint32_t timeout_ms)
         return POTR_SUCCESS;
     }
 
-#if defined(PLATFORM_LINUX)
-    {
-        struct timespec abs_ts;
-
-        clock_gettime(CLOCK_REALTIME, &abs_ts);
-        abs_ts.tv_sec  += (time_t)(timeout_ms / 1000U);
-        abs_ts.tv_nsec += (long)((timeout_ms % 1000U) * 1000000UL);
-        if (abs_ts.tv_nsec >= 1000000000L)
-        {
-            abs_ts.tv_sec++;
-            abs_ts.tv_nsec -= 1000000000L;
-        }
-
-        pthread_mutex_lock(&ctx->tcp_close_mutex);
-        while (ctx->tcp_close_waiting_ack && !ctx->tcp_close_ack_received)
-        {
-            if (pthread_cond_timedwait(&ctx->tcp_close_cv, &ctx->tcp_close_mutex, &abs_ts) != 0)
-            {
-                result = POTR_ERROR;
-                break;
-            }
-        }
-        if (ctx->tcp_close_waiting_ack && !ctx->tcp_close_ack_received)
-        {
-            result = POTR_ERROR;
-        }
-        ctx->tcp_close_waiting_ack   = 0;
-        ctx->tcp_close_ack_received  = 0;
-        ctx->tcp_close_wait_target_seq = 0U;
-        ctx->tcp_close_ack_seq       = 0U;
-        pthread_mutex_unlock(&ctx->tcp_close_mutex);
-    }
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&ctx->tcp_close_mutex);
+    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
     while (ctx->tcp_close_waiting_ack && !ctx->tcp_close_ack_received)
     {
-        if (!SleepConditionVariableCS(&ctx->tcp_close_cv, &ctx->tcp_close_mutex, (DWORD)timeout_ms))
+        if (potr_condvar_timedwait(&ctx->tcp_close_cv, &ctx->tcp_close_mutex, timeout_ms) != 0)
         {
             result = POTR_ERROR;
             break;
@@ -373,8 +264,7 @@ static int wait_for_tcp_close_ack(struct PotrContext_ *ctx, uint32_t timeout_ms)
     ctx->tcp_close_ack_received  = 0;
     ctx->tcp_close_wait_target_seq = 0U;
     ctx->tcp_close_ack_seq       = 0U;
-    LeaveCriticalSection(&ctx->tcp_close_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 
     return result;
 }
@@ -472,35 +362,20 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         }
 
         /* TCP mutex / condvar を解放 */
-#if defined(PLATFORM_LINUX)
         {
             int i;
-            pthread_mutex_destroy(&ctx->tcp_state_mutex);
-            pthread_cond_destroy(&ctx->tcp_state_cv);
-            pthread_mutex_destroy(&ctx->tcp_close_mutex);
-            pthread_cond_destroy(&ctx->tcp_close_cv);
+            POTR_MUTEX_DESTROY(&ctx->tcp_state_mutex);
+            POTR_COND_DESTROY(&ctx->tcp_state_cv);
+            POTR_MUTEX_DESTROY(&ctx->tcp_close_mutex);
+            POTR_COND_DESTROY(&ctx->tcp_close_cv);
             for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
-                pthread_mutex_destroy(&ctx->tcp_send_mutex[i]);
-                pthread_mutex_destroy(&ctx->health_mutex[i]);
-                pthread_cond_destroy(&ctx->health_wakeup[i]);
+                POTR_MUTEX_DESTROY(&ctx->tcp_send_mutex[i]);
+                POTR_MUTEX_DESTROY(&ctx->health_mutex[i]);
+                POTR_COND_DESTROY(&ctx->health_wakeup[i]);
             }
-            pthread_mutex_destroy(&ctx->recv_window_mutex);
+            POTR_MUTEX_DESTROY(&ctx->recv_window_mutex);
         }
-#elif defined(PLATFORM_WINDOWS)
-        {
-            int i;
-            DeleteCriticalSection(&ctx->tcp_state_mutex);
-            DeleteCriticalSection(&ctx->tcp_close_mutex);
-            /* Windows の CONDITION_VARIABLE は破棄不要 */
-            for (i = 0; i < (int)POTR_MAX_PATH; i++)
-            {
-                DeleteCriticalSection(&ctx->tcp_send_mutex[i]);
-                DeleteCriticalSection(&ctx->health_mutex[i]);
-            }
-            DeleteCriticalSection(&ctx->recv_window_mutex);
-        }
-#endif /* PLATFORM_ */
 
         /* 送受信ウィンドウと動的バッファを解放 */
         window_destroy(&ctx->send_window);
@@ -511,9 +386,7 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         free(ctx->recv_buf);
         free(ctx->send_wire_buf);
 
-#if defined(PLATFORM_WINDOWS)
-        WSACleanup();
-#endif /* PLATFORM_WINDOWS */
+    potr_socket_lib_cleanup();
 
         POTR_LOG(POTR_TRACE_INFO, "potrCloseService: service closed (TCP)");
         free(ctx);
@@ -577,7 +450,6 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         {
             if (ctx->sock[i] == POTR_INVALID_SOCKET)
                 continue;
-#if defined(PLATFORM_LINUX)
             if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
             {
                 struct ip_mreq mreq;
@@ -585,30 +457,15 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
                 if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr) == POTR_SUCCESS)
                 {
                     mreq.imr_interface = ctx->src_addr_resolved[i];
-                    setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
+                    potr_setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
                 }
             }
-            close(ctx->sock[i]);
-#elif defined(PLATFORM_WINDOWS)
-            if (potr_raw_base_type(ctx->service.type) == POTR_TYPE_MULTICAST)
-            {
-                struct ip_mreq mreq;
-                memset(&mreq, 0, sizeof(mreq));
-                if (parse_ipv4_addr(ctx->service.multicast_group, &mreq.imr_multiaddr) == POTR_SUCCESS)
-                {
-                    mreq.imr_interface = ctx->src_addr_resolved[i];
-                    setsockopt(ctx->sock[i], IPPROTO_IP, IP_DROP_MEMBERSHIP, (const char *)&mreq, sizeof(mreq));
-                }
-            }
-            closesocket(ctx->sock[i]);
-#endif /* PLATFORM_ */
+            potr_close_socket(ctx->sock[i]);
             ctx->sock[i] = POTR_INVALID_SOCKET;
         }
     }
 
-#if defined(PLATFORM_WINDOWS)
-    WSACleanup();
-#endif /* PLATFORM_WINDOWS */
+    potr_socket_lib_cleanup();
 
     /* 送受信ウィンドウと動的バッファを解放 */
     if (!ctx->is_multi_peer)

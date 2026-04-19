@@ -21,10 +21,6 @@
     #include <sys/select.h>
 #endif /* PLATFORM_LINUX */
 
-#if defined(PLATFORM_WINDOWS)
-    #pragma comment(lib, "ws2_32.lib")
-#endif /* PLATFORM_WINDOWS */
-
 #include <porter_const.h>
 
 #include "../protocol/packet.h"
@@ -2523,50 +2519,14 @@ POTR_THREAD_FUNC(recv_thread_func)
  * 戻り値: 1 = データあり、0 = タイムアウト、-1 = エラー。 */
 static int tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
 {
-    int            ret;
-#if defined(PLATFORM_LINUX)
-    fd_set         rfds;
-    struct timeval tv;
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    tv.tv_sec  = (time_t)(wait_ms / 1000U);
-    tv.tv_usec = (suseconds_t)((wait_ms % 1000U) * 1000U);
-    ret = select(fd + 1, &rfds, NULL, NULL, &tv);
-    if (ret < 0 && errno == EINTR) return 0; /* シグナル割り込み: タイムアウトとして扱う */
-    if (ret < 0) return -1;
-#elif defined(PLATFORM_WINDOWS)
-    fd_set         rfds;
-    struct timeval tv;
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    tv.tv_sec  = (long)(wait_ms / 1000U);
-    tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
-    ret = select(0, &rfds, NULL, NULL, &tv);
-    if (ret == SOCKET_ERROR) return -1;
-#endif /* PLATFORM_ */
-    return (ret > 0) ? 1 : 0;
+    return potr_poll_readable(fd, (int)wait_ms);
 }
 
 /* TCP ソケットから正確に n バイト読み取る。
  * 戻り値: 1 = 成功、0 = 切断 (recv が 0 を返した)、-1 = エラー。 */
 static int tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
 {
-    size_t received = 0;
-    while (received < n)
-    {
-        int r;
-#if defined(PLATFORM_LINUX)
-        r = (int)recv(fd, buf + received, n - received, 0);
-        if (r < 0) return -1;
-        if (r == 0) return 0;
-#elif defined(PLATFORM_WINDOWS)
-        r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
-        if (r == SOCKET_ERROR) return -1;
-        if (r == 0)            return 0;
-#endif /* PLATFORM_ */
-        received += (size_t)r;
-    }
-    return 1;
+    return potr_tcp_recv_all(fd, buf, n);
 }
 
 /* TCP 受信スレッドに渡す引数 (path ごと) */

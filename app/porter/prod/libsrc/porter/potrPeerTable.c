@@ -25,7 +25,6 @@
 #elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
-    #pragma comment(lib, "ws2_32.lib")
     #include <windows.h>
 #endif /* PLATFORM_ */
 
@@ -107,18 +106,10 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
     }
 
     /* 現セッションで DATA を送っている場合のみ FIN target を有効化する。 */
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_lock(&peer->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    EnterCriticalSection(&peer->send_window_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_LOCK(&peer->send_window_mutex);
     wire_target_seq = peer->send_window.next_seq;
     has_data        = peer->send_has_data;
-#if defined(PLATFORM_LINUX)
-    pthread_mutex_unlock(&peer->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-    LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* PLATFORM_ */
+    POTR_MUTEX_UNLOCK(&peer->send_window_mutex);
 
     if (has_data)
     {
@@ -156,15 +147,9 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         {
             if (peer->dest_addr[i].sin_family == 0) continue;
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], wire_buf, wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[i],
-                   sizeof(peer->dest_addr[i]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)wire_buf, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[i],
-                   sizeof(peer->dest_addr[i]));
-#endif /* PLATFORM_ */
+            potr_sendto(ctx->sock[i], wire_buf, wire_len, 0,
+                        (const struct sockaddr *)&peer->dest_addr[i],
+                        (int)sizeof(peer->dest_addr[i]));
         }
     }
     else
@@ -175,15 +160,9 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         {
             if (peer->dest_addr[i].sin_family == 0) continue;
             if (ctx->sock[i] == POTR_INVALID_SOCKET) continue;
-#if defined(PLATFORM_LINUX)
-            sendto(ctx->sock[i], &fin_pkt, wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[i],
-                   sizeof(peer->dest_addr[i]));
-#elif defined(PLATFORM_WINDOWS)
-            sendto(ctx->sock[i], (const char *)&fin_pkt, (int)wire_len, 0,
-                   (const struct sockaddr *)&peer->dest_addr[i],
-                   sizeof(peer->dest_addr[i]));
-#endif /* PLATFORM_ */
+            potr_sendto(ctx->sock[i], (const uint8_t *)&fin_pkt, wire_len, 0,
+                        (const struct sockaddr *)&peer->dest_addr[i],
+                        (int)sizeof(peer->dest_addr[i]));
         }
     }
 }

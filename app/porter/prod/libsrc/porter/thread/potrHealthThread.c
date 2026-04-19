@@ -20,10 +20,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-#if defined(PLATFORM_WINDOWS)
-    #pragma comment(lib, "ws2_32.lib")
-#endif /* PLATFORM_WINDOWS */
-
 #include <porter_const.h>
 #include <porter.h>
 
@@ -285,22 +281,14 @@ POTR_THREAD_FUNC(health_thread_func)
                 peer_shdr.session_tv_sec  = ctx->peers[i].session_tv_sec;
                 peer_shdr.session_tv_nsec = ctx->peers[i].session_tv_nsec;
 
-#if defined(PLATFORM_LINUX)
-                pthread_mutex_lock(&ctx->peers[i].send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-                EnterCriticalSection(&ctx->peers[i].send_window_mutex);
-#endif /* PLATFORM_ */
+                POTR_MUTEX_LOCK(&ctx->peers[i].send_window_mutex);
                 seq = ctx->peers[i].send_window.next_seq;
                 /* N:1 (UNICAST_BIDIR_N1) は双方向 PING。ピアごとの自端パス受信状態をペイロードに設定する。 */
                 potr_copy_path_ping_state(health_states, ctx->peers[i].path_ping_state,
                                           POTR_MAX_PATH);
                 packet_build_ping(&ping_pkt, &peer_shdr, seq, health_states,
                                   (uint16_t)POTR_MAX_PATH);
-#if defined(PLATFORM_LINUX)
-                pthread_mutex_unlock(&ctx->peers[i].send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-                LeaveCriticalSection(&ctx->peers[i].send_window_mutex);
-#endif /* PLATFORM_ */
+                POTR_MUTEX_UNLOCK(&ctx->peers[i].send_window_mutex);
 
                 if (ctx->service.encrypt_enabled)
                 {
@@ -331,15 +319,9 @@ POTR_THREAD_FUNC(health_thread_func)
                     for (k = 0; k < (int)POTR_MAX_PATH; k++)
                     {
                         if (ctx->peers[i].dest_addr[k].sin_family == 0) continue;
-#if defined(PLATFORM_LINUX)
-                        sendto(ctx->sock[k], wire_buf, wire_len, 0,
-                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
-                               sizeof(ctx->peers[i].dest_addr[k]));
-#elif defined(PLATFORM_WINDOWS)
-                        sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
-                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
-                               sizeof(ctx->peers[i].dest_addr[k]));
-#endif /* PLATFORM_ */
+                        potr_sendto(ctx->sock[k], wire_buf, wire_len, 0,
+                                    (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                                    (int)sizeof(ctx->peers[i].dest_addr[k]));
                     }
                 }
                 else
@@ -352,15 +334,9 @@ POTR_THREAD_FUNC(health_thread_func)
                     for (k = 0; k < (int)POTR_MAX_PATH; k++)
                     {
                         if (ctx->peers[i].dest_addr[k].sin_family == 0) continue;
-#if defined(PLATFORM_LINUX)
-                        sendto(ctx->sock[k], wire_buf, wire_len, 0,
-                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
-                               sizeof(ctx->peers[i].dest_addr[k]));
-#elif defined(PLATFORM_WINDOWS)
-                        sendto(ctx->sock[k], (const char *)wire_buf, (int)wire_len, 0,
-                               (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
-                               sizeof(ctx->peers[i].dest_addr[k]));
-#endif /* PLATFORM_ */
+                        potr_sendto(ctx->sock[k], wire_buf, wire_len, 0,
+                                    (const struct sockaddr *)&ctx->peers[i].dest_addr[k],
+                                    (int)sizeof(ctx->peers[i].dest_addr[k]));
                     }
                 }
 

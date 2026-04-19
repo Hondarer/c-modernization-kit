@@ -34,10 +34,6 @@
 
 #include <com_util/base/platform.h>
 
-#if defined(PLATFORM_WINDOWS)
-    #pragma comment(lib, "ws2_32.lib")
-#endif /* PLATFORM_WINDOWS */
-
 #include <string.h>
 #include <inttypes.h>
 
@@ -304,11 +300,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
                          nonce,
                          (const uint8_t *)&outer_pkt, PACKET_HEADER_SIZE) != 0)
         {
-#if defined(PLATFORM_LINUX)
-            pthread_mutex_unlock(&peer->send_window_mutex);
-#elif defined(PLATFORM_WINDOWS)
-            LeaveCriticalSection(&peer->send_window_mutex);
-#endif /* PLATFORM_ */
+            POTR_MUTEX_UNLOCK(&peer->send_window_mutex);
             POTR_LOG(POTR_TRACE_ERROR,
                      "sender[service_id=%" PRId64 "]: peer=%u encrypt failed seq=%u",
                      ctx->service.service_id, (unsigned)peer->peer_id, (unsigned)seq);

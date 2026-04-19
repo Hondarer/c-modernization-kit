@@ -123,6 +123,25 @@ static inline void potr_shutdown_socket(PotrSocket fd)
 #endif /* PLATFORM_ */
 }
 
+/**
+ *  @brief  ソケットオプションを設定する。
+ *  @param[in]  sock     対象ソケット。
+ *  @param[in]  level    プロトコルレベル (SOL_SOCKET, IPPROTO_IP 等)。
+ *  @param[in]  optname  オプション名。
+ *  @param[in]  optval   オプション値へのポインタ。
+ *  @param[in]  optlen   オプション値のバイト数。
+ *  @return  0: 成功、-1: 失敗。
+ */
+static inline int potr_setsockopt(PotrSocket sock, int level, int optname,
+                                   const void *optval, int optlen)
+{
+#if defined(PLATFORM_LINUX)
+    return setsockopt(sock, level, optname, optval, (socklen_t)optlen);
+#elif defined(PLATFORM_WINDOWS)
+    return setsockopt(sock, level, optname, (const char *)optval, optlen);
+#endif /* PLATFORM_ */
+}
+
 /* ============================================================
  * extern 関数宣言 (.c で実装)
  * ============================================================ */
@@ -179,6 +198,14 @@ extern int potr_recvfrom(PotrSocket sock, uint8_t *buf, size_t len,
 extern int potr_poll_writable(PotrSocket fd, int timeout_ms);
 
 /**
+ *  @brief  ソケットが読み取り可能か確認する (poll/WSAPoll)。
+ *  @param[in]  fd         対象ソケット。
+ *  @param[in]  timeout_ms タイムアウト (ミリ秒、0 = 即時)。
+ *  @return  1: 読み取り可能、0: タイムアウト、-1: エラー。
+ */
+extern int potr_poll_readable(PotrSocket fd, int timeout_ms);
+
+/**
  *  @brief  スレッドを生成する。
  *  @param[out]  thread  生成したスレッドハンドルの格納先。
  *  @param[in]   func    スレッド関数。
@@ -203,6 +230,26 @@ extern void potr_thread_join(PotrThread *thread);
  *  @note    呼び出し前に送信ミューテックスを取得しておく必要がある。
  */
 extern int potr_tcp_send(PotrSocket fd, const uint8_t *buf, size_t len);
+
+/**
+ *  @brief  TCP ソケットから正確に n バイト読み取る。
+ *  @param[in]   fd   受信ソケット。
+ *  @param[out]  buf  受信バッファ (n バイト以上)。
+ *  @param[in]   n    受信バイト数。
+ *  @return  1: 成功、0: 切断 (recv が 0 を返した)、-1: エラー。
+ */
+extern int potr_tcp_recv_all(PotrSocket fd, uint8_t *buf, size_t n);
+
+/**
+ *  @brief  ソケットライブラリを初期化する (Windows: WSAStartup、Linux: no-op)。
+ *  @return  0: 成功、-1: 失敗。
+ */
+extern int potr_socket_lib_init(void);
+
+/**
+ *  @brief  ソケットライブラリを終了する (Windows: WSACleanup、Linux: no-op)。
+ */
+extern void potr_socket_lib_cleanup(void);
 
 /**
  *  @brief  ソケットをノンブロッキングモードに設定する。

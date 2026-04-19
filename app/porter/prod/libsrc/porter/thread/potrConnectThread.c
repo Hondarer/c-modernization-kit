@@ -24,7 +24,6 @@
 
 #if defined(PLATFORM_LINUX)
     #include <sys/socket.h>
-    #include <sys/select.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
@@ -34,7 +33,6 @@
 #elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
-    #pragma comment(lib, "ws2_32.lib")
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>
@@ -101,57 +99,6 @@ static void reconnect_wait(struct PotrContext_ *ctx, int path_idx, uint32_t wait
  * TCP セッション識別ヘルパー (accept スレッド専用)
  * ================================================================ */
 
-/* TCP ソケットから正確に n バイト読み取る。
- * accept スレッド専用。potrRecvThread.c の tcp_read_all と同一実装。
- * 戻り値: 1 = 成功、0 = 切断 (recv が 0)、-1 = エラー。 */
-static int accept_tcp_read_all(PotrSocket fd, uint8_t *buf, size_t n)
-{
-    size_t received = 0;
-    while (received < n)
-    {
-        int r;
-#if defined(PLATFORM_LINUX)
-        r = (int)recv(fd, (char *)(buf + received), n - received, 0);
-        if (r < 0) return -1;
-        if (r == 0) return 0;
-#elif defined(PLATFORM_WINDOWS)
-        r = recv(fd, (char *)(buf + received), (int)(n - received), 0);
-        if (r == SOCKET_ERROR) return -1;
-        if (r == 0)            return 0;
-#endif /* PLATFORM_ */
-        received += (size_t)r;
-    }
-    return 1;
-}
-
-/* TCP ソケットが読み取り可能になるまで最大 wait_ms ミリ秒待機する。
- * accept スレッド専用。potrRecvThread.c の tcp_wait_readable と同一実装。
- * 戻り値: 1 = データあり、0 = タイムアウト、-1 = エラー。 */
-static int accept_tcp_wait_readable(PotrSocket fd, uint32_t wait_ms)
-{
-    int ret;
-#if defined(PLATFORM_LINUX)
-    fd_set         rfds;
-    struct timeval tv;
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    tv.tv_sec  = (time_t)(wait_ms / 1000U);
-    tv.tv_usec = (suseconds_t)((wait_ms % 1000U) * 1000U);
-    ret = select(fd + 1, &rfds, NULL, NULL, &tv);
-    if (ret < 0 && errno == EINTR) return 0;
-    if (ret < 0) return -1;
-#elif defined(PLATFORM_WINDOWS)
-    fd_set         rfds;
-    struct timeval tv;
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    tv.tv_sec  = (long)(wait_ms / 1000U);
-    tv.tv_usec = (long)((wait_ms % 1000U) * 1000U);
-    ret = select(0, &rfds, NULL, NULL, &tv);
-    if (ret == SOCKET_ERROR) return -1;
-#endif /* PLATFORM_ */
-    return (ret > 0) ? 1 : 0;
-}
 
 /* accept 直後の TCP ソケットから 1 パケット分を buf に読み取る。
  * buf は PACKET_HEADER_SIZE + max_payload バイト以上確保されていること。
@@ -164,12 +111,12 @@ static int tcp_read_first_packet(PotrSocket fd, uint8_t *buf, size_t max_buf,
     int      r;
 
     /* タイムアウト付き待機 */
-    ready = accept_tcp_wait_readable(fd, timeout_ms);
+    ready = potr_poll_readable(fd, (int)timeout_ms);
     if (ready == 0) return 0;  /* タイムアウト */
     if (ready < 0)  return -1; /* エラー */
 
     /* 固定長ヘッダー読み取り */
-    r = accept_tcp_read_all(fd, buf, PACKET_HEADER_SIZE);
+    r = potr_tcp_recv_all(fd, buf, PACKET_HEADER_SIZE);
     if (r <= 0) return -1;
 
     /* payload_len は固定長ヘッダー末尾の offset 34 に格納される */
@@ -185,7 +132,7 @@ static int tcp_read_first_packet(PotrSocket fd, uint8_t *buf, size_t max_buf,
     /* ペイロード読み取り */
     if (wire_payload_len > 0)
     {
-        r = accept_tcp_read_all(fd, buf + PACKET_HEADER_SIZE, (size_t)wire_payload_len);
+        r = potr_tcp_recv_all(fd, buf + PACKET_HEADER_SIZE, (size_t)wire_payload_len);
         if (r <= 0) return -1;
     }
 
@@ -323,12 +270,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         return POTR_INVALID_SOCKET;
     }
 
-#if defined(PLATFORM_LINUX)
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-#elif defined(PLATFORM_WINDOWS)
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-               (const char *)&reuse, sizeof(reuse));
-#endif /* PLATFORM_ */
+    potr_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
     if (ctx->service.src_addr[path_idx][0] != '\0' || ctx->service.src_port != 0)
     {
@@ -345,11 +287,7 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         }
         bind_addr.sin_port = htons(ctx->service.src_port); /* 0 = エフェメラル */
 
-#if defined(PLATFORM_LINUX)
         if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0)
-#elif defined(PLATFORM_WINDOWS)
-        if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) == SOCKET_ERROR)
-#endif /* PLATFORM_ */
         {
             POTR_LOG(POTR_TRACE_ERROR,
                      "connect_thread[service_id=%" PRId64 "]: bind() failed",
@@ -378,158 +316,68 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
         return sock;
     }
 
-    /* タイムアウト付き接続: ノンブロッキングモードで select を使う。
+    /* タイムアウト付き接続: ノンブロッキングモードで writable ポーリングを使う。
        停止シグナルに素早く応答するため 100ms 単位でポーリングする。 */
+    potr_set_nonblocking(sock);
+    {
+        int ret_conn = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+        if (ret_conn == 0)
+        {
+            /* 即座に接続成功 */
+            potr_set_blocking(sock);
+            return sock;
+        }
+        /* EINPROGRESS / WSAEWOULDBLOCK 以外はエラー */
 #if defined(PLATFORM_LINUX)
-    {
-        int       ret;
-        int       error  = 0;
-        socklen_t errlen;
-
-        potr_set_nonblocking(sock);
-
-        ret = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
-        if (ret == 0)
-        {
-            /* 即座に接続成功 */
-            potr_set_blocking(sock);
-            return sock;
-        }
         if (errno != EINPROGRESS)
-        {
-            POTR_LOG(POTR_TRACE_VERBOSE,
-                     "connect_thread[service_id=%" PRId64 "]: connect() failed (errno=%d)",
-                     ctx->service.service_id, errno);
-            potr_close_socket(sock);
-            return POTR_INVALID_SOCKET;
-        }
-
-        /* select ループ (100ms ポーリング) */
-        {
-            uint32_t elapsed_ms = 0U;
-            int      ready      = 0;
-
-            while (elapsed_ms < timeout_ms && ctx->connect_thread_running[path_idx])
-            {
-                fd_set         writefds;
-                struct timeval tv;
-                uint32_t       poll_ms;
-
-                poll_ms = timeout_ms - elapsed_ms;
-                if (poll_ms > 100U) poll_ms = 100U;
-
-                FD_ZERO(&writefds);
-                FD_SET(sock, &writefds);
-                tv.tv_sec  = (long)(poll_ms / 1000U);
-                tv.tv_usec = (long)((poll_ms % 1000U) * 1000L);
-
-                ret = select(sock + 1, NULL, &writefds, NULL, &tv);
-                if (ret < 0)
-                {
-                    if (errno == EINTR) { elapsed_ms += poll_ms; continue; }
-                    break;
-                }
-                if (ret > 0)
-                {
-                    ready = 1;
-                    break;
-                }
-                elapsed_ms += poll_ms;
-            }
-
-            if (!ready)
-            {
-                POTR_LOG(POTR_TRACE_VERBOSE,
-                         "connect_thread[service_id=%" PRId64 "]: connect() timed out",
-                         ctx->service.service_id);
-                potr_close_socket(sock);
-                return POTR_INVALID_SOCKET;
-            }
-        }
-
-        errlen = (socklen_t)sizeof(error);
-        getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &errlen);
-        if (error != 0)
-        {
-            POTR_LOG(POTR_TRACE_VERBOSE,
-                     "connect_thread[service_id=%" PRId64 "]: connect() SO_ERROR=%d",
-                     ctx->service.service_id, error);
-            potr_close_socket(sock);
-            return POTR_INVALID_SOCKET;
-        }
-
-        /* ブロッキングモードに戻す */
-        potr_set_blocking(sock);
-        return sock;
-    }
 #elif defined(PLATFORM_WINDOWS)
-    {
-        int    ret;
-        int    error = 0;
-        int    errlen;
-
-        potr_set_nonblocking(sock);
-
-        ret = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
-        if (ret == 0)
-        {
-            /* 即座に接続成功 */
-            potr_set_blocking(sock);
-            return sock;
-        }
         if (WSAGetLastError() != WSAEWOULDBLOCK)
+#endif /* PLATFORM_ */
         {
             POTR_LOG(POTR_TRACE_VERBOSE,
-                     "connect_thread[service_id=%" PRId64 "]: connect() failed (WSA error)",
+                     "connect_thread[service_id=%" PRId64 "]: connect() failed",
                      ctx->service.service_id);
             potr_close_socket(sock);
             return POTR_INVALID_SOCKET;
         }
+    }
 
-        /* select ループ (100ms ポーリング) */
+    /* writable ポーリングループ (共通) */
+    {
+        uint32_t elapsed_ms = 0U;
+        int      ready      = 0;
+
+        while (elapsed_ms < timeout_ms && ctx->connect_thread_running[path_idx])
         {
-            uint32_t elapsed_ms = 0U;
-            int      ready      = 0;
-
-            while (elapsed_ms < timeout_ms && ctx->connect_thread_running[path_idx])
-            {
-                fd_set         writefds;
-                struct timeval tv;
-                uint32_t       poll_ms;
-
-                poll_ms = timeout_ms - elapsed_ms;
-                if (poll_ms > 100U) poll_ms = 100U;
-
-                FD_ZERO(&writefds);
-                FD_SET(sock, &writefds);
-                tv.tv_sec  = (long)(poll_ms / 1000U);
-                tv.tv_usec = (long)((poll_ms % 1000U) * 1000L);
-
-                ret = select(0, NULL, &writefds, NULL, &tv);
-                if (ret < 0)
-                {
-                    break;
-                }
-                if (ret > 0 && FD_ISSET(sock, &writefds))
-                {
-                    ready = 1;
-                    break;
-                }
-                elapsed_ms += poll_ms;
-            }
-
-            if (!ready)
-            {
-                POTR_LOG(POTR_TRACE_VERBOSE,
-                         "connect_thread[service_id=%" PRId64 "]: connect() timed out",
-                         ctx->service.service_id);
-                potr_close_socket(sock);
-                return POTR_INVALID_SOCKET;
-            }
+            uint32_t poll_ms = timeout_ms - elapsed_ms;
+            int      pr;
+            if (poll_ms > 100U) poll_ms = 100U;
+            pr = potr_poll_writable(sock, (int)poll_ms);
+            if (pr < 0) break;
+            if (pr > 0) { ready = 1; break; }
+            elapsed_ms += poll_ms;
         }
 
-        errlen = (int)sizeof(error);
+        if (!ready)
+        {
+            POTR_LOG(POTR_TRACE_VERBOSE,
+                     "connect_thread[service_id=%" PRId64 "]: connect() timed out",
+                     ctx->service.service_id);
+            potr_close_socket(sock);
+            return POTR_INVALID_SOCKET;
+        }
+    }
+
+    /* SO_ERROR で接続成否を確認 (errlen の型差分のみ #ifdef) */
+    {
+        int error = 0;
+#if defined(PLATFORM_LINUX)
+        socklen_t errlen = (socklen_t)sizeof(error);
+        getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &errlen);
+#elif defined(PLATFORM_WINDOWS)
+        int errlen = (int)sizeof(error);
         getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *)&error, &errlen);
+#endif /* PLATFORM_ */
         if (error != 0)
         {
             POTR_LOG(POTR_TRACE_VERBOSE,
@@ -538,12 +386,10 @@ static PotrSocket tcp_connect_with_timeout(struct PotrContext_ *ctx, int path_id
             potr_close_socket(sock);
             return POTR_INVALID_SOCKET;
         }
-
-        /* ブロッキングモードに戻す */
-        potr_set_blocking(sock);
-        return sock;
     }
-#endif /* PLATFORM_ */
+
+    potr_set_blocking(sock);
+    return sock;
 }
 
 /* SENDER 用接続ループ (path ごと) */
