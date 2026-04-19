@@ -4,7 +4,7 @@
     #define _HAS_STD_BYTE 0
 #endif /* PLATFORM_WINDOWS */
 #include <testfw.h>
-#include <mock_potrLog.h>
+#include <mock_com_util.h>
 #include <mock_potrPeerTable.h>
 
 #include <porter_const.h>
@@ -70,6 +70,9 @@ protected:
         peer_ctx.peer_id = 1;
 
         memset(&g_cb, 0, sizeof(g_cb));
+
+        resetTraceLevel();
+        setTraceLevel("trace_logger_writef", TRACE_INFO);
     }
 
     void TearDown() override
@@ -93,13 +96,13 @@ protected:
 TEST_F(potrDisconnectPeerTest, handle_null)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
-                                    EndsWith("potrDisconnectPeer.c"), _,
-                                    HasSubstr("handle is NULL")))
+    EXPECT_CALL(mock_log, trace_logger_writef(_, TRACE_LEVEL_ERROR,
+                                       AllOf(HasSubstr("potrDisconnectPeer.c"),
+                                             HasSubstr("handle is NULL"))))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "handle is NULL" が含まれること。
 
     // Act
@@ -113,13 +116,13 @@ TEST_F(potrDisconnectPeerTest, handle_null)
 TEST_F(potrDisconnectPeerTest, peer_id_na)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
-                                    EndsWith("potrDisconnectPeer.c"), _,
-                                    HasSubstr("invalid peer_id")))
+    EXPECT_CALL(mock_log, trace_logger_writef(_, TRACE_LEVEL_ERROR,
+                                       AllOf(HasSubstr("potrDisconnectPeer.c"),
+                                             HasSubstr("invalid peer_id"))))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "invalid peer_id" が含まれること。
 
     // Act
@@ -133,13 +136,13 @@ TEST_F(potrDisconnectPeerTest, peer_id_na)
 TEST_F(potrDisconnectPeerTest, peer_id_all)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
-                                    EndsWith("potrDisconnectPeer.c"), _,
-                                    HasSubstr("invalid peer_id")))
+    EXPECT_CALL(mock_log, trace_logger_writef(_, TRACE_LEVEL_ERROR,
+                                       AllOf(HasSubstr("potrDisconnectPeer.c"),
+                                             HasSubstr("invalid peer_id"))))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "invalid peer_id" が含まれること。
 
     // Act
@@ -153,14 +156,14 @@ TEST_F(potrDisconnectPeerTest, peer_id_all)
 TEST_F(potrDisconnectPeerTest, not_multi_peer)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
     ctx.is_multi_peer = 0; // [状態] - N:1 モードでない (is_multi_peer=0) に設定する。
 
     // Pre-Assert
-    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
-                                    EndsWith("potrDisconnectPeer.c"), _,
-                                    HasSubstr("not in N:1 mode")))
+    EXPECT_CALL(mock_log, trace_logger_writef(_, TRACE_LEVEL_ERROR,
+                                       AllOf(HasSubstr("potrDisconnectPeer.c"),
+                                             HasSubstr("not in N:1 mode"))))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "not in N:1 mode" が含まれること。
 
     // Act
@@ -174,16 +177,16 @@ TEST_F(potrDisconnectPeerTest, not_multi_peer)
 TEST_F(potrDisconnectPeerTest, peer_not_found)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
     ctx.is_multi_peer = 1; // [状態] - N:1 モードに設定する。
 
     EXPECT_CALL(mock_peer_table, peer_find_by_id(&ctx, (PotrPeerId)99))
         .WillOnce(Return(nullptr)); // [Pre-Assert確認_異常系] - peer_find_by_id が nullptr を返すこと。
 
-    EXPECT_CALL(mock_log, log_write(POTR_TRACE_ERROR,
-                                    EndsWith("potrDisconnectPeer.c"), _,
-                                    HasSubstr("not found")))
+    EXPECT_CALL(mock_log, trace_logger_writef(_, TRACE_LEVEL_ERROR,
+                                       AllOf(HasSubstr("potrDisconnectPeer.c"),
+                                             HasSubstr("not found"))))
         .Times(1); // [Pre-Assert確認_異常系] - ERROR ログに "not found" が含まれること。
 
     // Act
@@ -199,7 +202,7 @@ TEST_F(potrDisconnectPeerTest, peer_not_found)
 TEST_F(potrDisconnectPeerTest, normal_with_callback)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
     ctx.is_multi_peer         = 1;               // [状態] - N:1 モードに設定する。
     ctx.callback              = mock_callback;   // [状態] - 受信コールバックを設定する。
@@ -210,9 +213,9 @@ TEST_F(potrDisconnectPeerTest, normal_with_callback)
     EXPECT_CALL(mock_peer_table, peer_find_by_id(&ctx, (PotrPeerId)1))
         .WillOnce(Return(&peer_ctx)); // [Pre-Assert確認_正常系] - peer_find_by_id がピアコンテキストを返すこと。
 
-    EXPECT_CALL(mock_log, log_write(POTR_TRACE_INFO,
-                                    EndsWith("potrDisconnectPeer.c"), _,
-                                    HasSubstr("disconnecting")))
+    EXPECT_CALL(mock_log, trace_logger_writef(_, TRACE_LEVEL_INFO,
+                                       AllOf(HasSubstr("potrDisconnectPeer.c"),
+                                             HasSubstr("disconnecting"))))
         .Times(1); // [Pre-Assert確認_正常系] - INFO ログに "disconnecting" が含まれること。
 
     EXPECT_CALL(mock_peer_table, peer_send_fin(&ctx, &peer_ctx))
@@ -254,7 +257,7 @@ TEST_F(potrDisconnectPeerTest, normal_with_callback)
 TEST_F(potrDisconnectPeerTest, normal_health_dead)
 {
     // Arrange
-    NiceMock<Mock_potrLog>        mock_log;
+    NiceMock<Mock_com_util>        mock_log;
     NiceMock<Mock_potrPeerTable>  mock_peer_table;
     ctx.is_multi_peer   = 1;               // [状態] - N:1 モードに設定する。
     ctx.callback        = mock_callback;   // [状態] - 受信コールバックを設定する。

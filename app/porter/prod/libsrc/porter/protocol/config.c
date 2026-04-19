@@ -22,7 +22,7 @@
 #include <porter_type.h>
 
 #include "../infra/crypto/crypto.h"
-#include "../infra/potrLog.h"
+#include "../infra/potrTrace.h"
 #include "config.h"
 
 /** 設定ファイル 1 行の最大長。 */
@@ -281,7 +281,7 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
         }
     }
 
-    POTR_LOG(POTR_TRACE_VERBOSE,
+    POTR_LOG(TRACE_LEVEL_VERBOSE,
              "config loaded: window_size=%u max_payload=%u "
              "max_message_size=%u send_queue_depth=%u "
              "udp_health=%u/%u tcp_health=%u/%u tcp_close_timeout_ms=%u reorder_timeout_ms=%u",
@@ -460,7 +460,7 @@ static void apply_service_kv(const char *key, const char *val,
                 current->encrypt_key[i] = (uint8_t)byte_val;
             }
             current->encrypt_enabled = 1;
-            POTR_LOG(POTR_TRACE_INFO,
+            POTR_LOG(TRACE_LEVEL_INFO,
                      "config: encrypt_key loaded as hex key (service_id=%" PRId64 ")",
                      current->service_id);
         }
@@ -471,7 +471,7 @@ static void apply_service_kv(const char *key, const char *val,
                                        (const uint8_t *)val, hex_len) == 0)
             {
                 current->encrypt_enabled = 1;
-                POTR_LOG(POTR_TRACE_INFO,
+                POTR_LOG(TRACE_LEVEL_INFO,
                          "config: encrypt_key treated as passphrase (SHA-256, service_id=%" PRId64 ")",
                          current->service_id);
             }
@@ -479,7 +479,7 @@ static void apply_service_kv(const char *key, const char *val,
             {
                 memset(current->encrypt_key, 0, sizeof(current->encrypt_key));
                 current->encrypt_enabled = 0;
-                POTR_LOG(POTR_TRACE_WARNING,
+                POTR_LOG(TRACE_LEVEL_WARNING,
                          "config: encrypt_key passphrase hashing failed (service_id=%" PRId64 ")",
                          current->service_id);
             }
@@ -489,7 +489,7 @@ static void apply_service_kv(const char *key, const char *val,
             /* 空文字列は無効 */
             memset(current->encrypt_key, 0, sizeof(current->encrypt_key));
             current->encrypt_enabled = 0;
-            POTR_LOG(POTR_TRACE_WARNING,
+            POTR_LOG(TRACE_LEVEL_WARNING,
                      "config: encrypt_key is empty, ignored (service_id=%" PRId64 ")",
                      current->service_id);
         }
@@ -602,7 +602,7 @@ int config_load_service(const char *config_path, int64_t service_id,
     fclose(fp);
     if (found)
     {
-        POTR_LOG(POTR_TRACE_VERBOSE,
+        POTR_LOG(TRACE_LEVEL_VERBOSE,
                  "service loaded: service_id=%" PRId64 " type=%d "
                  "src_addr1=%s dst_addr1=%s dst_port=%u src_port=%u",
                  def->service_id, (int)def->type,

@@ -19,6 +19,7 @@
 
 #include <porter_type.h>
 #include <com_util/base/platform.h>
+#include <com_util/trace/trace.h>
 
 #ifdef DOXYGEN
 
@@ -398,63 +399,33 @@ extern "C"
 
     /**
      *******************************************************************************
-     *  @brief          ロガーを設定します。
-     *  @param[in]      level       出力する最低ログレベル。POTR_TRACE_NONE でログ無効 (デフォルト)。
-     *  @param[in]      log_file    ログファイルのパス。NULL または空文字列を指定するとファイル出力なし。
-     *  @param[in]      console     0 以外を指定すると標準エラー出力 (stderr) にも出力します。
-     *  @return         成功時は POTR_SUCCESS、log_file が開けない場合は POTR_ERROR を返します。
+     *  @brief          porter 内部ロガーハンドルを返します。
+     *  @return         trace_logger_t ハンドル。
      *
      *  @details
-     *  本関数は potrOpenService() の前に呼び出してください。\n
-     *  複数回呼び出した場合は最後の設定が有効になります。
+     *  porter ライブラリが内部で使用する trace_logger_t ハンドルを返します。\n
+     *  本関数は potrOpenService() の前に呼び出すことができます。\n
+     *  取得したハンドルに対して trace_logger_set_stderr_level() と
+     *  trace_logger_start() を呼び出すことで、stderr へのログ出力を有効化できます。
      *
-     *  @par            出力先
-     *  | OS      | 出力先                                                                                                   |
-     *  | ------- | -------------------------------------------------------------------------------------------------------- |
-     *  | Linux   | syslog (trace-com_util 経由)、ログファイル (trace-com_util 経由、log_file 指定時)、stderr (trace-com_util 経由、console 指定時) |
-     *  | Windows | ETW (trace-com_util 経由)、ログファイル (trace-com_util 経由、log_file 指定時)、stderr (trace-com_util 経由、console 指定時)    |
-     *
-     *  @par            ログフォーマット
-     *  OS トレース (syslog / ETW) およびファイルへの出力フォーマット:
-     *  @code
-        [file.c:line] message
+     *  @par            stderr 出力を有効にする例
+     *  @code{.c}
+        trace_logger_t *logger = potrGetLogger();
+        trace_logger_set_stderr_level(logger, TRACE_LEVEL_INFO);
+        trace_logger_start(logger);
      *  @endcode
-     *  stderr への出力フォーマット (タイムスタンプは UTC、L はレベル文字):
+     *
+     *  @par            ログフォーマット (stderr)
      *  @code
         YYYY-MM-DD HH:MM:SS.mmm L [file.c:line] message
      *  @endcode
-     *
-     *  @par            ログレベル一覧
-     *  | レベル               | 値 | 出力内容                                        |
-     *  | -------------------- | -- | ----------------------------------------------- |
-     *  | POTR_TRACE_CRITICAL  |  0 | 致命的エラー                                    |
-     *  | POTR_TRACE_ERROR     |  1 | 操作失敗                                        |
-     *  | POTR_TRACE_WARNING   |  2 | NACK・REJECT・回復可能な異常                    |
-     *  | POTR_TRACE_INFO      |  3 | サービス開始・終了・接続状態変化                |
-     *  | POTR_TRACE_VERBOSE   |  4 | ソケット操作・設定値・パケット送受信・スレッド動作 |
-     *  | POTR_TRACE_NONE      |  5 | ログ無効 (デフォルト)                           |
-     *
-     *  @par            使用例
-     *  @code{.c}
-        // INFO 以上をファイルと stderr に出力
-        potrLogConfig(POTR_TRACE_INFO, "/var/log/porter.log", 1);
-
-        // VERBOSE 以上をファイルのみに出力
-        potrLogConfig(POTR_TRACE_VERBOSE, "/tmp/porter.log", 0);
-
-        // ログを無効化
-        potrLogConfig(POTR_TRACE_NONE, NULL, 0);
-     *  @endcode
+     *  タイムスタンプは UTC。L はレベル文字 (C/E/W/I/V)。
      *
      *  @par            スレッド セーフティ
-     *  本関数はスレッドセーフです。\n
-     *  出力制御は trace-com_util が内部で排他制御を行うため、ログを出力中のスレッドが存在する場合でも
-     *  安全に設定を変更できます。
-     *
-     *  @warning        log_file に指定したパスが書き込み不可の場合は POTR_ERROR を返します。
+     *  本関数はスレッドセーフです。
      *******************************************************************************
      */
-    POTR_EXPORT extern int POTR_API potrLogConfig(PotrLogLevel level, const char *log_file, int console);
+    POTR_EXPORT trace_logger_t * POTR_API potrGetLogger(void);
 
     /**
      *******************************************************************************

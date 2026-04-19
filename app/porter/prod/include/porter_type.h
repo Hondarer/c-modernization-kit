@@ -324,34 +324,4 @@ typedef void (*PotrRecvCallback)(int64_t service_id, PotrPeerId peer_id,
                                  PotrEvent event,
                                  const void *data, size_t len);
 
-/**
- *******************************************************************************
- *  @brief          ログレベル。
- *
- *  @details
- *  potrLogConfig() の level 引数に指定するログ出力レベルです。\n
- *  数値が小さいほど重大度が高く、指定したレベル以下 (より重大) のメッセージのみが出力されます。\n
- *  数値順序は trace-com_util の trace_level_t と対応しています。
- *
- *  | PotrLogLevel       | 値 | trace_level        | syslog priority |
- *  | ------------------ | -- | ------------------ | --------------- |
- *  | POTR_TRACE_CRITICAL |  0 | TRACE_LEVEL_CRITICAL  | LOG_CRIT        |
- *  | POTR_TRACE_ERROR    |  1 | TRACE_LEVEL_ERROR     | LOG_ERR         |
- *  | POTR_TRACE_WARNING  |  2 | TRACE_LEVEL_WARNING   | LOG_WARNING     |
- *  | POTR_TRACE_INFO     |  3 | TRACE_LEVEL_INFO      | LOG_INFO        |
- *  | POTR_TRACE_VERBOSE  |  4 | TRACE_LEVEL_VERBOSE   | LOG_DEBUG       |
- *  | POTR_TRACE_NONE     |  5 | TRACE_LEVEL_NONE      | -               |
- *
- *******************************************************************************
- */
-typedef enum
-{
-    POTR_TRACE_CRITICAL = 0, /**< 致命的エラー。回復不能な障害を記録。TRACE_LEVEL_CRITICAL (0) と同値。 */
-    POTR_TRACE_ERROR    = 1, /**< エラー。操作の失敗を記録。TRACE_LEVEL_ERROR (1) と同値。 */
-    POTR_TRACE_WARNING  = 2, /**< 警告。回復可能な異常を記録。TRACE_LEVEL_WARNING (2) と同値。 */
-    POTR_TRACE_INFO     = 3, /**< 情報。TRACE_LEVEL_INFO (3) と同値。 */
-    POTR_TRACE_VERBOSE  = 4, /**< 詳細情報 (デバッグ)。TRACE_LEVEL_VERBOSE (4) と同値。 */
-    POTR_TRACE_NONE     = 5, /**< ログ出力無効。TRACE_LEVEL_NONE (5) と同値。 */
-} PotrLogLevel;
-
 #endif /* PORTER_TYPE_H */
