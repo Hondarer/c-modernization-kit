@@ -38,13 +38,7 @@
         #include <limits.h>
         #define PLATFORM_PATH_MAX PATH_MAX
     #elif defined(PLATFORM_WINDOWS)
-        #ifndef WIN32_LEAN_AND_MEAN
-            #define WIN32_LEAN_AND_MEAN
-        #endif /* WIN32_LEAN_AND_MEAN */
-        #include <windows.h>
-        #ifdef byte
-            #undef byte /* C++17 std::byte と Windows SDK byte typedef の競合を解消 */
-        #endif /* byte */
+        #include <com_util/base/windows_sdk.h>
         #define PLATFORM_PATH_MAX MAX_PATH
     #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */

@@ -33,7 +33,7 @@
     #include <unistd.h>
     #include <com_util/test/syslog_test.h>
 #elif defined(PLATFORM_WINDOWS)
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
 #endif /* PLATFORM_ */
 
 #ifdef DOXYGEN

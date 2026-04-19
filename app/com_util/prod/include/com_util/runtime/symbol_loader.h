@@ -37,7 +37,7 @@
     #include <dlfcn.h>
     #include <pthread.h>
 #elif defined(PLATFORM_WINDOWS)
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
 #endif /* PLATFORM_ */
 
 #ifdef __cplusplus

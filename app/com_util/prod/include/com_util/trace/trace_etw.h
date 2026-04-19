@@ -14,6 +14,8 @@
 
 #if defined(PLATFORM_WINDOWS)
 
+#include <com_util/base/windows_sdk.h>
+
 /* ===== DLL エクスポート / インポート制御マクロ ===== */
 
 #ifdef DOXYGEN

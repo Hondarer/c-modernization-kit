@@ -69,7 +69,7 @@
     /** スレッド関数ポインタ型。 */
     typedef void *(*com_util_thread_func_t)(void *);
 #elif defined(PLATFORM_WINDOWS)
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
     /** ミューテックス型。 */
     typedef CRITICAL_SECTION   com_util_mutex_t;
     /** 条件変数型。 */
