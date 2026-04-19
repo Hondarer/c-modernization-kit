@@ -73,7 +73,7 @@ typedef struct _tlgProvider_t const *trace_etw_provider_ref_t;
  *  @brief          ETW プロバイダを定義するマクロ。
  *  @details        呼び出し元の .c ファイルのファイルスコープに 1 回だけ記述します。\n
  *                  TRACELOGGING_DEFINE_PROVIDER(var, name, guid) に展開します。\n
- *                  呼び出し元は本マクロ使用前に windows.h と TraceLoggingProvider.h を
+ *                  呼び出し元は本マクロ使用前に windows_sdk.h と TraceLoggingProvider.h を
  *                  インクルードする必要があります。
  *
  *  @param          var   プロバイダ変数名 (trace_etw_provider_ref_t 型)
@@ -82,7 +82,7 @@ typedef struct _tlgProvider_t const *trace_etw_provider_ref_t;
  *
  *  @par            使用例
  *  @code{.c}
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
     #include <TraceLoggingProvider.h>
     #include <com_util/trace/trace_etw.h>
 

@@ -14,7 +14,7 @@
 
 #if defined(PLATFORM_WINDOWS)
 
-#include <windows.h>
+#include <com_util/base/windows_sdk.h>
 #include <io.h>      /* _open_osfhandle, _dup, _dup2, _close, _fileno */
 #include <fcntl.h>   /* _O_WRONLY, _O_BINARY */
 #include <stdio.h>   /* FILE, setvbuf, fflush, stdout, stderr */

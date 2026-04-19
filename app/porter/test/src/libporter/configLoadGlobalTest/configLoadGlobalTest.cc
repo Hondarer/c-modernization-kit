@@ -15,7 +15,7 @@
 #if defined(PLATFORM_LINUX)
     #include <unistd.h>
 #elif defined(PLATFORM_WINDOWS)
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
 #endif /* PLATFORM_ */
 
 using namespace testing;

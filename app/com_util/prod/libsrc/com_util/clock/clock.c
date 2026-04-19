@@ -18,7 +18,7 @@
 #if defined(PLATFORM_LINUX)
     #include <time.h>
 #elif defined(PLATFORM_WINDOWS)
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
 #endif /* PLATFORM_ */
 
 /* 変換定数 */

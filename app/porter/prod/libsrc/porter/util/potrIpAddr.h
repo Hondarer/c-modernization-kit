@@ -20,8 +20,7 @@
     #include <arpa/inet.h>
     #include <netinet/in.h>
 #elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
+    #include <com_util/base/windows_sdk.h>
 #endif /* PLATFORM_ */
 
 int parse_ipv4_addr(const char *ip_str, struct in_addr *out_addr);

@@ -35,7 +35,7 @@
 
 #if defined(PLATFORM_WINDOWS)
 
-#include <windows.h>
+#include <com_util/base/windows_sdk.h>
 #include <TraceLoggingProvider.h>
 #pragma comment(lib, "Advapi32.lib")
 

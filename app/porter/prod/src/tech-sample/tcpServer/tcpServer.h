@@ -43,10 +43,7 @@
 
 #elif defined(PLATFORM_WINDOWS)
 
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
+    #include <com_util/base/windows_sdk.h>
     #pragma comment(lib, "ws2_32.lib")
 
     /** クライアントソケットの型。Linux では int、Windows では SOCKET。 */

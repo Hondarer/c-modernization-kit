@@ -27,9 +27,8 @@
 
 #include <string.h>
 
-#include <winsock2.h>
+#include <com_util/base/windows_sdk.h>
 #pragma comment(lib, "ws2_32.lib")
-#include <windows.h>
 #include <compressapi.h>
 #pragma comment(lib, "Cabinet.lib")
 

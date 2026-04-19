@@ -18,7 +18,7 @@
 #if defined(PLATFORM_LINUX)
     #include <arpa/inet.h>
 #elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
+    #include <com_util/base/windows_sdk.h>
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>

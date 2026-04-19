@@ -35,9 +35,7 @@
     typedef int    PotrSocket;
     #define POTR_INVALID_SOCKET (-1)
 #elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-    #include <windows.h>
+    #include <com_util/base/windows_sdk.h>
     typedef SOCKET PotrSocket;
     #define POTR_INVALID_SOCKET INVALID_SOCKET
 #endif /* PLATFORM_ */

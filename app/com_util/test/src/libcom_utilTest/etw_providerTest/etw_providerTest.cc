@@ -2,7 +2,7 @@
 
 #if defined(PLATFORM_WINDOWS)
 
-#include <windows.h>
+#include <com_util/base/windows_sdk.h>
 #include <TraceLoggingProvider.h>
 #include <testfw.h>
 #include <com_util/trace/trace_etw.h>
