@@ -104,7 +104,7 @@ POTR_EXPORT int POTR_API potrLogConfig(PotrLogLevel  level,
     /* ファイルトレースを設定する。
      * log_file が NULL または空文字列の場合は path=NULL を渡してファイルトレースを無効化する。
      * max_bytes=0, generations=0 で既定値 (10 MB / 5 世代) を使用する。 */
-    if (trace_logger_set_file_sink(s_trace,
+    if (trace_logger_set_file_level(s_trace,
                              (log_file != NULL && log_file[0] != '\0') ? log_file : NULL,
                              trc_level, 0, 0) != 0)
     {

@@ -753,7 +753,7 @@ TEST_F(trace_providerTest, test_modify_filetrc_enables_file_trace)
     ASSERT_NE((trace_logger_t *)NULL, handle);
 
     // Act
-    int set_result = trace_logger_set_file_sink(handle, path.c_str(), TRACE_LEVEL_INFO, 0, 0); // [手順] - ファイルトレースを有効化する (trace_logger_set_file_sink)。
+    int set_result = trace_logger_set_file_level(handle, path.c_str(), TRACE_LEVEL_INFO, 0, 0); // [手順] - ファイルトレースを有効化する (trace_logger_set_file_level)。
     EXPECT_EQ(0, set_result); // [確認_正常系] - 設定が成功すること。
 
     trace_logger_start(handle);
@@ -784,7 +784,7 @@ TEST_F(trace_providerTest, test_file_level_filters_messages)
     ASSERT_NE((trace_logger_t *)NULL, handle);
 
     // Act - ファイルレベルを ERROR に設定
-    trace_logger_set_file_sink(handle, path.c_str(), TRACE_LEVEL_ERROR, 0, 0); // [手順] - ファイルレベルを ERROR に設定する。
+    trace_logger_set_file_level(handle, path.c_str(), TRACE_LEVEL_ERROR, 0, 0); // [手順] - ファイルレベルを ERROR に設定する。
     trace_logger_start(handle);
     trace_logger_write(handle, TRACE_LEVEL_ERROR,   "should be in file");// [手順] - ERROR メッセージを書き込む。
     trace_logger_write(handle, TRACE_LEVEL_WARNING, "should not be in file");  // [手順] - WARNING メッセージを書き込む。
@@ -810,12 +810,12 @@ TEST_F(trace_providerTest, test_modify_filetrc_null_path_disables)
     ASSERT_NE((trace_logger_t *)NULL, handle);
 
     // Act - ファイルトレースを有効化後、無効化
-    trace_logger_set_file_sink(handle, path.c_str(), TRACE_LEVEL_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
+    trace_logger_set_file_level(handle, path.c_str(), TRACE_LEVEL_INFO, 0, 0); // [手順] - ファイルトレースを有効化する。
     trace_logger_start(handle);
     trace_logger_write(handle, TRACE_LEVEL_ERROR, "before disable");       // [手順] - 無効化前にメッセージを書き込む。
     trace_logger_stop(handle);
 
-    trace_logger_set_file_sink(handle, NULL, TRACE_LEVEL_INFO, 0, 0); // [手順] - ファイルトレースを無効化する。
+    trace_logger_set_file_level(handle, NULL, TRACE_LEVEL_INFO, 0, 0); // [手順] - ファイルトレースを無効化する。
     trace_logger_start(handle);
     trace_logger_write(handle, TRACE_LEVEL_ERROR, "after disable");// [手順] - 無効化後にメッセージを書き込む。
 
@@ -828,11 +828,11 @@ TEST_F(trace_providerTest, test_modify_filetrc_null_path_disables)
     remove(path.c_str());
 }
 
-// NULL ハンドルで trace_logger_set_file_sink を呼ぶと -1 が返されることの確認
+// NULL ハンドルで trace_logger_set_file_level を呼ぶと -1 が返されることの確認
 TEST_F(trace_providerTest, test_modify_filetrc_null_handle)
 {
     // Act
-    int result = trace_logger_set_file_sink(NULL, "test.log", TRACE_LEVEL_ERROR, 0, 0); // [手順] - handle に NULL を渡す。
+    int result = trace_logger_set_file_level(NULL, "test.log", TRACE_LEVEL_ERROR, 0, 0); // [手順] - handle に NULL を渡す。
 
     // Assert
     EXPECT_EQ(-1, result); // [確認_異常系] - NULL ハンドルで -1 が返されること。
@@ -870,7 +870,7 @@ TEST_F(trace_providerTest, test_dual_output_os_and_file)
 
     // Act
     trace_logger_set_os_level(handle, TRACE_LEVEL_WARNING);                       // [手順] - OS レベルを WARNING に設定する。
-    trace_logger_set_file_sink(handle, path.c_str(), TRACE_LEVEL_VERBOSE, 0, 0);      // [手順] - ファイルレベルを VERBOSE に設定する。
+    trace_logger_set_file_level(handle, path.c_str(), TRACE_LEVEL_VERBOSE, 0, 0);      // [手順] - ファイルレベルを VERBOSE に設定する。
     trace_logger_start(handle);
 
     trace_logger_write(handle, TRACE_LEVEL_ERROR,   "error msg");// [手順] - ERROR を書き込む (OS:✓ File:✓)。
@@ -966,7 +966,7 @@ TEST_F(trace_providerTest, test_config_fails_when_started)
     // Act
     int modify_name_result  = trace_logger_set_name(handle, "new_name", 0);                        // [手順] - started 中に modify_name を呼ぶ。
     int set_os_result       = trace_logger_set_os_level(handle, TRACE_LEVEL_VERBOSE);                    // [手順] - started 中に modify_ostrc を呼ぶ。
-    int set_file_result     = trace_logger_set_file_sink(handle, "test.log", TRACE_LEVEL_ERROR, 0, 0);  // [手順] - started 中に modify_filetrc を呼ぶ。
+    int set_file_result     = trace_logger_set_file_level(handle, "test.log", TRACE_LEVEL_ERROR, 0, 0);  // [手順] - started 中に modify_filetrc を呼ぶ。
 
     // Assert
     EXPECT_EQ(-1, modify_name_result); // [確認_異常系] - started 中の modify_name が -1 を返すこと。

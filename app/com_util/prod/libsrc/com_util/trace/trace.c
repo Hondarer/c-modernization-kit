@@ -1197,7 +1197,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 
 /* doxygen コメントは、ヘッダに記載 */
 TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
-    trace_logger_set_file_sink(trace_logger_t *handle, const char *path,
+    trace_logger_set_file_level(trace_logger_t *handle, const char *path,
                          trace_level_t level, size_t max_bytes, int generations)
 {
     int result = 0;

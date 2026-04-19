@@ -48,7 +48,7 @@ started 中は設定変更できず、設定を変える場合は一度 `trace_l
 - `stderr`: `TRACE_LEVEL_NONE`
 
 ただし、ファイル出力はパス未設定のままでは有効になりません。  
-ファイルを使う場合は `trace_logger_set_file_sink()` で出力先パスを設定します。
+ファイルを使う場合は `trace_logger_set_file_level()` で出力先パスを設定します。
 
 ## 出力先
 
@@ -92,7 +92,7 @@ UTC タイムスタンプ付きの 1 行テキストで出力されます。
 
 OS トレースのしきい値を設定します。
 
-### `trace_logger_set_file_sink`
+### `trace_logger_set_file_level`
 
 ファイル出力先、ファイル用しきい値、最大サイズ、世代数を設定します。  
 ファイル出力を使う場合の入口です。
@@ -150,7 +150,7 @@ trace_logger_t *logger = trace_logger_create();
 
 trace_logger_set_name(logger, "myapp", 0);
 trace_logger_set_os_level(logger, TRACE_LEVEL_WARNING);
-trace_logger_set_file_sink(logger, "./logs/myapp.log",
+trace_logger_set_file_level(logger, "./logs/myapp.log",
                            TRACE_LEVEL_INFO, 0, 0);
 trace_logger_set_stderr_level(logger, TRACE_LEVEL_CRITICAL);
 trace_logger_start(logger);

@@ -214,7 +214,7 @@ typedef enum trace_level_t
  *  @def            TRACE_LOGGER_DEFAULT_FILE_LEVEL
  *  @brief          trace_logger_create() が設定するファイルトレースのデフォルトレベル。
  *
- *  ユーザーが trace_logger_set_file_sink() で変更するまで有効な初期値です。
+ *  ユーザーが trace_logger_set_file_level() で変更するまで有効な初期値です。
  */
 #define TRACE_LOGGER_DEFAULT_FILE_LEVEL TRACE_LEVEL_ERROR
 
@@ -257,7 +257,7 @@ extern "C"
      *  @post           戻り値のハンドルは stopped 状態です。
      *                  出力関数を使用するには trace_logger_start を呼び出してください。\n
      *                  stopped 状態では設定関数 (trace_logger_set_name, trace_logger_set_os_level,
-     *                  trace_logger_set_file_sink, trace_logger_set_stderr_level) をスレッド安全に使用できます。
+     *                  trace_logger_set_file_level, trace_logger_set_stderr_level) をスレッド安全に使用できます。
      *
      *  @par            使用例
      *  @code{.c}
@@ -283,7 +283,7 @@ extern "C"
      *
      *  ハンドルを実行中 (started) 状態に遷移させます。\n
      *  started 状態では出力関数 (trace_logger_write 等) が有効になり、
-     *  設定関数 (trace_logger_set_name, trace_logger_set_os_level, trace_logger_set_file_sink,
+     *  設定関数 (trace_logger_set_name, trace_logger_set_os_level, trace_logger_set_file_level,
      *  trace_logger_set_stderr_level) は使用できなくなります (-1 を返します)。\n
      *  すでに started 状態の場合は何もせず 0 を返します (冪等)。
      *
@@ -308,7 +308,7 @@ extern "C"
      *
      *  ハンドルを停止中 (stopped) 状態に遷移させます。\n
      *  stopped 状態では出力関数 (trace_logger_write 等) は -1 を返し、
-     *  設定関数 (trace_logger_set_name, trace_logger_set_os_level, trace_logger_set_file_sink,
+     *  設定関数 (trace_logger_set_name, trace_logger_set_os_level, trace_logger_set_file_level,
      *  trace_logger_set_stderr_level) がスレッド安全に使用できるようになります。\n
      *  すでに stopped 状態の場合は何もせず 0 を返します (冪等)。
      *
@@ -604,7 +604,7 @@ extern "C"
      *******************************************************************************
      */
     TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
-        trace_logger_set_file_sink(trace_logger_t *handle, const char *path,
+        trace_logger_set_file_level(trace_logger_t *handle, const char *path,
                              trace_level_t level, size_t max_bytes, int generations);
 
     /**

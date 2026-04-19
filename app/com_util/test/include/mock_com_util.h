@@ -29,7 +29,7 @@ public:
     // 設定
     MOCK_METHOD(int, trace_logger_set_name, (trace_logger_t *, const char *, int64_t));
     MOCK_METHOD(int, trace_logger_set_os_level, (trace_logger_t *, trace_level_t));
-    MOCK_METHOD(int, trace_logger_set_file_sink,
+    MOCK_METHOD(int, trace_logger_set_file_level,
                 (trace_logger_t *, const char *, trace_level_t, size_t, int));
     MOCK_METHOD(int, trace_logger_set_stderr_level, (trace_logger_t *, trace_level_t));
 

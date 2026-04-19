@@ -25,7 +25,7 @@ Mock_com_util::Mock_com_util()
         .WillByDefault(Return(0));
     ON_CALL(*this, trace_logger_set_os_level(_, _))
         .WillByDefault(Return(0));
-    ON_CALL(*this, trace_logger_set_file_sink(_, _, _, _, _))
+    ON_CALL(*this, trace_logger_set_file_level(_, _, _, _, _))
         .WillByDefault(Return(0));
     ON_CALL(*this, trace_logger_set_stderr_level(_, _))
         .WillByDefault(Return(0));
