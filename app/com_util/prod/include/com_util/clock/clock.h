@@ -69,10 +69,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX CLOCK
+    #ifndef CLOCK_STATIC
+        #define CLOCK_STATIC 0
+    #endif /* CLOCK_STATIC */
+    #ifndef CLOCK_EXPORTS
+        #define CLOCK_EXPORTS 0
+    #endif /* CLOCK_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define CLOCK_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define CLOCK_API    COM_UTIL_DLL_API_VALUE
+    #define CLOCK_EXPORT COM_UTIL_DLL_EXPORT(CLOCK)
+    #define CLOCK_API    COM_UTIL_DLL_API(CLOCK)
 
 #endif /* DOXYGEN */
 

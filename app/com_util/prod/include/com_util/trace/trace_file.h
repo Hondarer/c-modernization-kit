@@ -50,10 +50,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX TRACE_FILE
+    #ifndef TRACE_FILE_STATIC
+        #define TRACE_FILE_STATIC 0
+    #endif /* TRACE_FILE_STATIC */
+    #ifndef TRACE_FILE_EXPORTS
+        #define TRACE_FILE_EXPORTS 0
+    #endif /* TRACE_FILE_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define TRACE_FILE_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define TRACE_FILE_API    COM_UTIL_DLL_API_VALUE
+    #define TRACE_FILE_EXPORT COM_UTIL_DLL_EXPORT(TRACE_FILE)
+    #define TRACE_FILE_API    COM_UTIL_DLL_API(TRACE_FILE)
 
 #endif /* DOXYGEN */
 

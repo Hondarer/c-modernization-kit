@@ -48,10 +48,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX POTR
+    #ifndef POTR_STATIC
+        #define POTR_STATIC 0
+    #endif /* POTR_STATIC */
+    #ifndef POTR_EXPORTS
+        #define POTR_EXPORTS 0
+    #endif /* POTR_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define POTR_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define POTR_API    COM_UTIL_DLL_API_VALUE
+    #define POTR_EXPORT COM_UTIL_DLL_EXPORT(POTR)
+    #define POTR_API    COM_UTIL_DLL_API(POTR)
 
 #endif /* DOXYGEN */
 

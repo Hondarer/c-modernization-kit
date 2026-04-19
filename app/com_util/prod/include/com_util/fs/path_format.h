@@ -93,10 +93,15 @@ typedef struct _stat64 util_file_stat_t;
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX PATH_FORMAT
+    #ifndef PATH_FORMAT_STATIC
+        #define PATH_FORMAT_STATIC 0
+    #endif /* PATH_FORMAT_STATIC */
+    #ifndef PATH_FORMAT_EXPORTS
+        #define PATH_FORMAT_EXPORTS 0
+    #endif /* PATH_FORMAT_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define PATH_FORMAT_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define PATH_FORMAT_API    COM_UTIL_DLL_API_VALUE
+    #define PATH_FORMAT_EXPORT COM_UTIL_DLL_EXPORT(PATH_FORMAT)
+    #define PATH_FORMAT_API    COM_UTIL_DLL_API(PATH_FORMAT)
 
 #endif /* DOXYGEN */
 

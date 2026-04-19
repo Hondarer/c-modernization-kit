@@ -42,10 +42,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX TRACE_ETW
+    #ifndef TRACE_ETW_STATIC
+        #define TRACE_ETW_STATIC 0
+    #endif /* TRACE_ETW_STATIC */
+    #ifndef TRACE_ETW_EXPORTS
+        #define TRACE_ETW_EXPORTS 0
+    #endif /* TRACE_ETW_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define TRACE_ETW_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define TRACE_ETW_API    COM_UTIL_DLL_API_VALUE
+    #define TRACE_ETW_EXPORT COM_UTIL_DLL_EXPORT(TRACE_ETW)
+    #define TRACE_ETW_API    COM_UTIL_DLL_API(TRACE_ETW)
 
 #endif /* DOXYGEN */
 

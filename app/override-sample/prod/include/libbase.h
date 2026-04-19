@@ -49,10 +49,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX BASE
+    #ifndef BASE_STATIC
+        #define BASE_STATIC 0
+    #endif /* BASE_STATIC */
+    #ifndef BASE_EXPORTS
+        #define BASE_EXPORTS 0
+    #endif /* BASE_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define BASE_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define BASE_API    COM_UTIL_DLL_API_VALUE
+    #define BASE_EXPORT COM_UTIL_DLL_EXPORT(BASE)
+    #define BASE_API    COM_UTIL_DLL_API(BASE)
 
 #endif /* DOXYGEN */
 

@@ -58,10 +58,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX CONSOLE
+    #ifndef CONSOLE_STATIC
+        #define CONSOLE_STATIC 0
+    #endif /* CONSOLE_STATIC */
+    #ifndef CONSOLE_EXPORTS
+        #define CONSOLE_EXPORTS 0
+    #endif /* CONSOLE_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define CONSOLE_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define CONSOLE_API    COM_UTIL_DLL_API_VALUE
+    #define CONSOLE_EXPORT COM_UTIL_DLL_EXPORT(CONSOLE)
+    #define CONSOLE_API    COM_UTIL_DLL_API(CONSOLE)
 
 #endif /* DOXYGEN */
 

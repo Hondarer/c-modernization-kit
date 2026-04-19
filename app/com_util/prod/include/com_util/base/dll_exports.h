@@ -6,20 +6,32 @@
  *  @date           2026/04/09
  *  @version        1.0.0
  *
- *  呼び出し側は `COM_UTIL_DLL_EXPORT_PREFIX` にプレフィックスを定義してから
- *  このヘッダーをインクルードしてください。
+ *  呼び出し側はプレフィックスごとの `PREFIX_STATIC` / `PREFIX_EXPORTS`
+ *  を定義してから、このヘッダーをインクルードしてください。
+ *
+ *  ソースコード中で定義する場合は `0` または `1` を明示してください。
+ *  makefile などからコンパイラオプション (`-DNAME` / `/DNAME`) で値なし定義
+ *  する場合は、対応コンパイラが暗黙に `1` を与える前提で扱います。
  *
  *  例:
  *  @code{.c}
-    #define COM_UTIL_DLL_EXPORT_PREFIX CALC
+    #ifndef CALC_STATIC
+        #define CALC_STATIC 0
+    #endif
+    #ifndef CALC_EXPORTS
+        #define CALC_EXPORTS 0
+    #endif
     #include <com_util/base/dll_exports.h>
+    #define CALC_EXPORT COM_UTIL_DLL_EXPORT(CALC)
+    #define CALC_API    COM_UTIL_DLL_API(CALC)
  *  @endcode
  *
- *  上記の例では以下の公開マクロを定義します。
- *  - CALC_EXPORT
- *  - CALC_API
+ *  makefile から渡す場合の例:
+ *  @code{.mk}
+    CFLAGS += /DCALC_EXPORTS
+ *  @endcode
  *
- *  判定には以下のプレフィックス派生マクロを利用します。
+ *  上記の例では判定に以下のプレフィックス派生マクロを参照します。
  *  - CALC_STATIC
  *  - CALC_EXPORTS
  *
@@ -30,10 +42,6 @@
 
 #include <com_util/base/platform.h>
 
-#ifndef COM_UTIL_DLL_EXPORT_PREFIX
-    #error "COM_UTIL_DLL_EXPORT_PREFIX must be defined before including <com_util/base/dll_exports.h>"
-#endif /* COM_UTIL_DLL_EXPORT_PREFIX */
-
 #ifndef DOXYGEN
     #ifndef COM_UTIL_DLL_PP_CAT_IMPL__
         #define COM_UTIL_DLL_PP_CAT_IMPL__(a, b) a##b
@@ -41,15 +49,16 @@
     #ifndef COM_UTIL_DLL_PP_CAT__
         #define COM_UTIL_DLL_PP_CAT__(a, b) COM_UTIL_DLL_PP_CAT_IMPL__(a, b)
     #endif /* COM_UTIL_DLL_PP_CAT__ */
+    #ifndef COM_UTIL_DLL_IF_0
+        #define COM_UTIL_DLL_IF_0(true_branch, false_branch) false_branch
+    #endif /* COM_UTIL_DLL_IF_0 */
+    #ifndef COM_UTIL_DLL_IF_1
+        #define COM_UTIL_DLL_IF_1(true_branch, false_branch) true_branch
+    #endif /* COM_UTIL_DLL_IF_1 */
+    #ifndef COM_UTIL_DLL_IF__
+        #define COM_UTIL_DLL_IF__(cond) COM_UTIL_DLL_PP_CAT__(COM_UTIL_DLL_IF_, cond)
+    #endif /* COM_UTIL_DLL_IF__ */
 #endif     /* !DOXYGEN */
-
-#ifdef COM_UTIL_DLL_EXPORT_VALUE
-    #undef COM_UTIL_DLL_EXPORT_VALUE
-#endif /* COM_UTIL_DLL_EXPORT_VALUE */
-
-#ifdef COM_UTIL_DLL_API_VALUE
-    #undef COM_UTIL_DLL_API_VALUE
-#endif /* COM_UTIL_DLL_API_VALUE */
 
 #ifdef DOXYGEN
     /**
@@ -64,7 +73,7 @@
      *  | Windows / DLL ビルド (`PREFIX_EXPORTS` 定義あり)  | `__declspec(dllexport)`   |
      *  | Windows / DLL 利用側                              | `__declspec(dllimport)`   |
      */
-    #define COM_UTIL_DLL_EXPORT_VALUE
+    #define COM_UTIL_DLL_EXPORT(prefix)
 
     /**
      *  @brief          呼び出し規約修飾子。
@@ -76,28 +85,26 @@
      *  | Linux   | (空)          |
      *  | Windows | `__stdcall`   |
      */
-    #define COM_UTIL_DLL_API_VALUE
+    #define COM_UTIL_DLL_API(prefix)
 #else /* !DOXYGEN */
     #if defined(PLATFORM_LINUX)
-        #define COM_UTIL_DLL_EXPORT_VALUE
-        #define COM_UTIL_DLL_API_VALUE
+        #define COM_UTIL_DLL_EXPORT(prefix)
+        #define COM_UTIL_DLL_API(prefix)
     #elif defined(PLATFORM_WINDOWS)
         #ifndef __INTELLISENSE__
-            #if COM_UTIL_DLL_PP_CAT__(COM_UTIL_DLL_EXPORT_PREFIX, _STATIC)
-                #define COM_UTIL_DLL_EXPORT_VALUE
-            #elif COM_UTIL_DLL_PP_CAT__(COM_UTIL_DLL_EXPORT_PREFIX, _EXPORTS)
-                #define COM_UTIL_DLL_EXPORT_VALUE __declspec(dllexport)
-            #else /* !COM_UTIL_DLL_PP_CAT__(COM_UTIL_DLL_EXPORT_PREFIX, _EXPORTS) */
-                #define COM_UTIL_DLL_EXPORT_VALUE __declspec(dllimport)
-            #endif /* COM_UTIL_DLL_PP_CAT__(COM_UTIL_DLL_EXPORT_PREFIX, _STATIC) */
+            #define COM_UTIL_DLL_EXPORT(prefix)                                                                 \
+                COM_UTIL_DLL_IF__(COM_UTIL_DLL_PP_CAT__(prefix, _STATIC))                                      \
+                (                                                                                              \
+                    ,                                                                                          \
+                    COM_UTIL_DLL_IF__(COM_UTIL_DLL_PP_CAT__(prefix, _EXPORTS))(__declspec(dllexport),         \
+                                                                                __declspec(dllimport))         \
+                )
         #else      /* __INTELLISENSE__ */
-            #define COM_UTIL_DLL_EXPORT_VALUE
+            #define COM_UTIL_DLL_EXPORT(prefix)
         #endif /* __INTELLISENSE__ */
-        #define COM_UTIL_DLL_API_VALUE __stdcall
+        #define COM_UTIL_DLL_API(prefix) __stdcall
     #else /* !PLATFORM_LINUX && !PLATFORM_WINDOWS */
-        #define COM_UTIL_DLL_EXPORT_VALUE
-        #define COM_UTIL_DLL_API_VALUE
+        #define COM_UTIL_DLL_EXPORT(prefix)
+        #define COM_UTIL_DLL_API(prefix)
     #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */
-
-#undef COM_UTIL_DLL_EXPORT_PREFIX

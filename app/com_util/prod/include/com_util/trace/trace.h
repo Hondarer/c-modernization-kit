@@ -136,10 +136,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX TRACE_LOGGER
+    #ifndef TRACE_LOGGER_STATIC
+        #define TRACE_LOGGER_STATIC 0
+    #endif /* TRACE_LOGGER_STATIC */
+    #ifndef TRACE_LOGGER_EXPORTS
+        #define TRACE_LOGGER_EXPORTS 0
+    #endif /* TRACE_LOGGER_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define TRACE_LOGGER_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define TRACE_LOGGER_API    COM_UTIL_DLL_API_VALUE
+    #define TRACE_LOGGER_EXPORT COM_UTIL_DLL_EXPORT(TRACE_LOGGER)
+    #define TRACE_LOGGER_API    COM_UTIL_DLL_API(TRACE_LOGGER)
 
 #endif /* DOXYGEN */
 

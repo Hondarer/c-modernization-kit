@@ -72,10 +72,15 @@ extern "C"
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX SYMBOL_LOADER
+    #ifndef SYMBOL_LOADER_STATIC
+        #define SYMBOL_LOADER_STATIC 0
+    #endif /* SYMBOL_LOADER_STATIC */
+    #ifndef SYMBOL_LOADER_EXPORTS
+        #define SYMBOL_LOADER_EXPORTS 0
+    #endif /* SYMBOL_LOADER_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define SYMBOL_LOADER_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define SYMBOL_LOADER_API    COM_UTIL_DLL_API_VALUE
+    #define SYMBOL_LOADER_EXPORT COM_UTIL_DLL_EXPORT(SYMBOL_LOADER)
+    #define SYMBOL_LOADER_API    COM_UTIL_DLL_API(SYMBOL_LOADER)
 
 #endif /* DOXYGEN */
 

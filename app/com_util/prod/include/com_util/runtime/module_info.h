@@ -43,10 +43,15 @@ extern "C"
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX MODULE_INFO
+    #ifndef MODULE_INFO_STATIC
+        #define MODULE_INFO_STATIC 0
+    #endif /* MODULE_INFO_STATIC */
+    #ifndef MODULE_INFO_EXPORTS
+        #define MODULE_INFO_EXPORTS 0
+    #endif /* MODULE_INFO_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define MODULE_INFO_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define MODULE_INFO_API    COM_UTIL_DLL_API_VALUE
+    #define MODULE_INFO_EXPORT COM_UTIL_DLL_EXPORT(MODULE_INFO)
+    #define MODULE_INFO_API    COM_UTIL_DLL_API(MODULE_INFO)
 
 #endif /* DOXYGEN */
 

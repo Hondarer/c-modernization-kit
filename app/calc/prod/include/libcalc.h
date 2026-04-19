@@ -46,10 +46,15 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX CALC
+    #ifndef CALC_STATIC
+        #define CALC_STATIC 0
+    #endif /* CALC_STATIC */
+    #ifndef CALC_EXPORTS
+        #define CALC_EXPORTS 0
+    #endif /* CALC_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define CALC_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define CALC_API    COM_UTIL_DLL_API_VALUE
+    #define CALC_EXPORT COM_UTIL_DLL_EXPORT(CALC)
+    #define CALC_API    COM_UTIL_DLL_API(CALC)
 
 #endif /* DOXYGEN */
 
