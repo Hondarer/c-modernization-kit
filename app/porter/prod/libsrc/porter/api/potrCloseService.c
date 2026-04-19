@@ -53,10 +53,10 @@ static void send_fin(struct PotrContext_ *ctx)
 
     /* 現セッションで DATA を送っている場合のみ FIN target を有効化する。
      * ack_num は send_window.next_seq をそのまま運び、0 も通常値として扱う。 */
-    POTR_MUTEX_LOCK(&ctx->send_window_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->send_window_mutex);
     wire_target_seq = ctx->send_window.next_seq;
     has_data        = ctx->send_has_data;
-    POTR_MUTEX_UNLOCK(&ctx->send_window_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->send_window_mutex);
 
     if (has_data)
     {
@@ -115,25 +115,25 @@ static uint32_t get_fin_target_seq(struct PotrContext_ *ctx, int *has_data)
 {
     uint32_t wire_target_seq;
 
-    POTR_MUTEX_LOCK(&ctx->send_window_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->send_window_mutex);
     wire_target_seq = ctx->send_window.next_seq;
     if (has_data != NULL)
     {
         *has_data = ctx->send_has_data;
     }
-    POTR_MUTEX_UNLOCK(&ctx->send_window_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->send_window_mutex);
 
     return wire_target_seq;
 }
 
-static int tcp_send_all_locked(PotrSocket fd, PotrMutex *mtx,
+static int tcp_send_all_locked(PotrSocket fd, com_util_mutex_t *mtx,
                                const uint8_t *buf, size_t len)
 {
     int result;
 
-    POTR_MUTEX_LOCK(mtx);
+    COM_UTIL_MUTEX_LOCK(mtx);
     result = potr_tcp_send(fd, buf, len);
-    POTR_MUTEX_UNLOCK(mtx);
+    COM_UTIL_MUTEX_UNLOCK(mtx);
 
     return (result == 0) ? POTR_SUCCESS : POTR_ERROR;
 }
@@ -220,22 +220,22 @@ static int send_tcp_fin(struct PotrContext_ *ctx, uint32_t fin_target_seq)
 
 static void reset_tcp_close_wait(struct PotrContext_ *ctx)
 {
-    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->tcp_close_mutex);
     ctx->tcp_close_waiting_ack   = 0;
     ctx->tcp_close_ack_received  = 0;
     ctx->tcp_close_wait_target_seq = 0U;
     ctx->tcp_close_ack_seq       = 0U;
-    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 }
 
 static void begin_tcp_close_wait(struct PotrContext_ *ctx, uint32_t fin_target_seq)
 {
-    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->tcp_close_mutex);
     ctx->tcp_close_waiting_ack    = 1;
     ctx->tcp_close_ack_received   = 0;
     ctx->tcp_close_wait_target_seq = fin_target_seq;
     ctx->tcp_close_ack_seq        = 0U;
-    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 }
 
 static int wait_for_tcp_close_ack(struct PotrContext_ *ctx, uint32_t timeout_ms)
@@ -248,10 +248,10 @@ static int wait_for_tcp_close_ack(struct PotrContext_ *ctx, uint32_t timeout_ms)
         return POTR_SUCCESS;
     }
 
-    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->tcp_close_mutex);
     while (ctx->tcp_close_waiting_ack && !ctx->tcp_close_ack_received)
     {
-        if (potr_condvar_timedwait(&ctx->tcp_close_cv, &ctx->tcp_close_mutex, timeout_ms) != 0)
+        if (com_util_condvar_timedwait(&ctx->tcp_close_cv, &ctx->tcp_close_mutex, timeout_ms) != 0)
         {
             result = POTR_ERROR;
             break;
@@ -265,7 +265,7 @@ static int wait_for_tcp_close_ack(struct PotrContext_ *ctx, uint32_t timeout_ms)
     ctx->tcp_close_ack_received  = 0;
     ctx->tcp_close_wait_target_seq = 0U;
     ctx->tcp_close_ack_seq       = 0U;
-    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 
     return result;
 }
@@ -365,17 +365,17 @@ POTR_EXPORT int POTR_API potrCloseService(PotrHandle handle)
         /* TCP mutex / condvar を解放 */
         {
             int i;
-            POTR_MUTEX_DESTROY(&ctx->tcp_state_mutex);
-            POTR_COND_DESTROY(&ctx->tcp_state_cv);
-            POTR_MUTEX_DESTROY(&ctx->tcp_close_mutex);
-            POTR_COND_DESTROY(&ctx->tcp_close_cv);
+            COM_UTIL_MUTEX_DESTROY(&ctx->tcp_state_mutex);
+            COM_UTIL_COND_DESTROY(&ctx->tcp_state_cv);
+            COM_UTIL_MUTEX_DESTROY(&ctx->tcp_close_mutex);
+            COM_UTIL_COND_DESTROY(&ctx->tcp_close_cv);
             for (i = 0; i < (int)POTR_MAX_PATH; i++)
             {
-                POTR_MUTEX_DESTROY(&ctx->tcp_send_mutex[i]);
-                POTR_MUTEX_DESTROY(&ctx->health_mutex[i]);
-                POTR_COND_DESTROY(&ctx->health_wakeup[i]);
+                COM_UTIL_MUTEX_DESTROY(&ctx->tcp_send_mutex[i]);
+                COM_UTIL_MUTEX_DESTROY(&ctx->health_mutex[i]);
+                COM_UTIL_COND_DESTROY(&ctx->health_wakeup[i]);
             }
-            POTR_MUTEX_DESTROY(&ctx->recv_window_mutex);
+            COM_UTIL_MUTEX_DESTROY(&ctx->recv_window_mutex);
         }
 
         /* 送受信ウィンドウと動的バッファを解放 */

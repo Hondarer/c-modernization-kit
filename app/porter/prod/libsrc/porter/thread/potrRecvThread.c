@@ -69,10 +69,10 @@ static void sync_service_path_state(struct PotrContext_ *ctx)
         potr_copy_oneway_path_states(ctx, next_states);
     }
 
-    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->callback_mutex);
     potr_sync_service_path_state_locked(ctx, next_states, &prepared);
     potr_emit_service_path_events_locked(ctx, &prepared);
-    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->callback_mutex);
 }
 
 static void disconnect_service_all_paths(struct PotrContext_ *ctx)
@@ -81,10 +81,10 @@ static void disconnect_service_all_paths(struct PotrContext_ *ctx)
     PotrPreparedPathEvents prepared;
 
     potr_zero_path_states(next_states);
-    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->callback_mutex);
     potr_sync_service_path_state_locked(ctx, next_states, &prepared);
     potr_emit_service_path_events_locked(ctx, &prepared);
-    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->callback_mutex);
 }
 
 static void sync_peer_path_state(struct PotrContext_ *ctx, PotrPeerContext *peer)
@@ -93,10 +93,10 @@ static void sync_peer_path_state(struct PotrContext_ *ctx, PotrPeerContext *peer
     PotrPreparedPathEvents prepared;
 
     potr_copy_bidir_n1_path_states(peer, next_states);
-    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->callback_mutex);
     potr_sync_peer_path_state_locked(peer, next_states, &prepared);
     potr_emit_peer_path_events_locked(ctx, peer, &prepared);
-    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->callback_mutex);
 }
 
 static void disconnect_peer_all_paths(struct PotrContext_ *ctx, PotrPeerContext *peer)
@@ -105,19 +105,19 @@ static void disconnect_peer_all_paths(struct PotrContext_ *ctx, PotrPeerContext 
     PotrPreparedPathEvents prepared;
 
     potr_zero_path_states(next_states);
-    POTR_MUTEX_LOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->callback_mutex);
     potr_sync_peer_path_state_locked(peer, next_states, &prepared);
     potr_emit_peer_path_events_locked(ctx, peer, &prepared);
-    POTR_MUTEX_UNLOCK(&ctx->callback_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->callback_mutex);
 }
 
-static int tcp_send_all_with_mutex(PotrSocket fd, PotrMutex *mtx,
+static int tcp_send_all_with_mutex(PotrSocket fd, com_util_mutex_t *mtx,
                                    const uint8_t *buf, size_t len)
 {
     int ret;
-    POTR_MUTEX_LOCK(mtx);
+    COM_UTIL_MUTEX_LOCK(mtx);
     ret = potr_tcp_send(fd, buf, len);
-    POTR_MUTEX_UNLOCK(mtx);
+    COM_UTIL_MUTEX_UNLOCK(mtx);
     return ret;
 }
 
@@ -188,16 +188,16 @@ static void notify_tcp_close_ack_received(struct PotrContext_ *ctx, uint32_t fin
         return;
     }
 
-    POTR_MUTEX_LOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->tcp_close_mutex);
     if (ctx->tcp_close_waiting_ack
         && ctx->tcp_close_wait_target_seq == fin_target_seq
         && !ctx->tcp_close_ack_received)
     {
         ctx->tcp_close_ack_received = 1;
         ctx->tcp_close_ack_seq      = fin_target_seq;
-        POTR_COND_SIGNAL(&ctx->tcp_close_cv);
+        COM_UTIL_COND_SIGNAL(&ctx->tcp_close_cv);
     }
-    POTR_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_close_mutex);
 }
 
 static int send_tcp_fin_ack(struct PotrContext_ *ctx, uint32_t fin_target_seq)
@@ -662,7 +662,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
 
     if (ctx->health_timeout_ms == 0) return;
 
-    POTR_MUTEX_LOCK(&ctx->peers_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->peers_mutex);
 
     for (i = 0; i < ctx->max_peers; i++)
     {
@@ -721,7 +721,7 @@ static void n1_check_health_timeout(struct PotrContext_ *ctx)
         }
     }
 
-    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
 
     if (should_wake_health)
     {
@@ -1617,11 +1617,11 @@ static void fire_disconnected_by_fin(struct PotrContext_ *ctx, uint32_t fin_targ
 
     if (potr_is_tcp_type(ctx->service.type))
     {
-        POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+        COM_UTIL_MUTEX_LOCK(&ctx->tcp_state_mutex);
         set_all_path_ping_states(ctx->path_ping_state, POTR_MAX_PATH, POTR_PING_STATE_UNDEFINED);
         memset((void *)ctx->remote_path_ping_state, 0, sizeof(ctx->remote_path_ping_state));
         disconnect_service_all_paths(ctx);
-        POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
+        COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
     }
     else
     {
@@ -1633,10 +1633,10 @@ static void fire_disconnected_by_fin(struct PotrContext_ *ctx, uint32_t fin_targ
     ctx->peer_session_known = 0;
     ctx->reorder_pending    = 0;
     ctx->last_recv_tv_sec   = 0;
-    POTR_MUTEX_LOCK(&ctx->recv_window_mutex);
+    COM_UTIL_MUTEX_LOCK(&ctx->recv_window_mutex);
     window_init(&ctx->recv_window, 0,
                 ctx->global.window_size, ctx->global.max_payload);
-    POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
 }
 
 /* recv_window から順序整列済みの外側パケットを取り出してペイロードエレメントを配信する。
@@ -1841,7 +1841,7 @@ static void process_outer_pkt(struct PotrContext_ *ctx,
 }
 
 /* 受信スレッド本体 */
-POTR_THREAD_FUNC(recv_thread_func)
+COM_UTIL_THREAD_FUNC(recv_thread_func)
 {
     struct PotrContext_ *ctx = (struct PotrContext_ *)arg;
     uint8_t            *buf = ctx->recv_buf; /* PACKET_HEADER_SIZE + max_payload バイト */
@@ -1977,7 +1977,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                     continue;
                 }
 
-                POTR_MUTEX_LOCK(&ctx->peers_mutex);
+                COM_UTIL_MUTEX_LOCK(&ctx->peers_mutex);
 
                 /* session_triplet でピアを検索 */
                 peer = peer_find_by_session(ctx,
@@ -2013,7 +2013,7 @@ POTR_THREAD_FUNC(recv_thread_func)
 
                 if (peer == NULL)
                 {
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     continue; /* max_peers 超過または初回受理対象外 */
                 }
 
@@ -2048,13 +2048,13 @@ POTR_THREAD_FUNC(recv_thread_func)
                                  "recv[service_id=%" PRId64 "]: peer=%u FIN pending (waiting for seq=%u)",
                                  ctx->service.service_id, (unsigned)peer->peer_id,
                                  (unsigned)pkt.ack_num);
-                        POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                        COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                         continue;
                     }
 
                     /* 即時: no-data FIN またはウィンドウ追い付き済み。 */
                     n1_fire_disconnected_by_fin(ctx, peer);
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     continue;
                 }
 
@@ -2066,7 +2066,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                     int        get_result;
                     int        j;
 
-                    POTR_MUTEX_LOCK(&peer->send_window_mutex);
+                    COM_UTIL_MUTEX_LOCK(&peer->send_window_mutex);
                     get_result = window_send_get(&peer->send_window,
                                                  pkt.ack_num, &resend_pkt);
                     if (get_result == POTR_SUCCESS)
@@ -2077,7 +2077,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                                resend_pkt.payload,
                                wire_len - PACKET_HEADER_SIZE);
                     }
-                    POTR_MUTEX_UNLOCK(&peer->send_window_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&peer->send_window_mutex);
 
                     if (get_result == POTR_SUCCESS)
                     {
@@ -2102,7 +2102,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                         n1_send_reject(ctx, peer, pkt.ack_num);
                     }
 
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     continue;
                 }
 
@@ -2111,7 +2111,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                 {
                     if (!n1_check_and_update_session(ctx, peer, &pkt))
                     {
-                        POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                        COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                         continue;
                     }
                     n1_update_path_recv(peer, &sender_addr, i);
@@ -2125,20 +2125,20 @@ POTR_THREAD_FUNC(recv_thread_func)
                     peer->reorder_pending = 0;
                     window_recv_skip(&peer->recv_window, pkt.ack_num);
                     n1_drain_recv_window(ctx, peer);
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     continue;
                 }
 
                 /* DATA / PING */
                 if (!(pkt.flags & (POTR_FLAG_DATA | POTR_FLAG_PING)))
                 {
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     continue;
                 }
 
                 if (!n1_check_and_update_session(ctx, peer, &pkt))
                 {
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     continue;
                 }
 
@@ -2175,7 +2175,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                             n1_send_nack(ctx, peer, peer->recv_window.next_seq);
                         }
                     }
-                    POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                     if (ping_state_changed)
                     {
                         potr_health_thread_wake(ctx);
@@ -2184,7 +2184,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                 }
 
                 n1_process_outer_pkt(ctx, peer, &pkt);
-                POTR_MUTEX_UNLOCK(&ctx->peers_mutex);
+                COM_UTIL_MUTEX_UNLOCK(&ctx->peers_mutex);
                 continue;
             }
 
@@ -2247,7 +2247,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                         /* send_window へのアクセスを排他制御する (送信スレッド・ヘルスチェックスレッドと競合)。
                            ミューテックス保持中に recv_buf へ wire データを組み立て、
                            プールスロットが上書きされる前にコピーを完了させる。 */
-                        POTR_MUTEX_LOCK(&ctx->send_window_mutex);
+                        COM_UTIL_MUTEX_LOCK(&ctx->send_window_mutex);
                         get_result = window_send_get(&ctx->send_window,
                                                      pkt.ack_num,
                                                      &resend_pkt);
@@ -2262,7 +2262,7 @@ POTR_THREAD_FUNC(recv_thread_func)
                                    wire_len - PACKET_HEADER_SIZE);
                         }
 
-                        POTR_MUTEX_UNLOCK(&ctx->send_window_mutex);
+                        COM_UTIL_MUTEX_UNLOCK(&ctx->send_window_mutex);
 
                         if (get_result == POTR_SUCCESS)
                         {
@@ -2493,7 +2493,7 @@ POTR_THREAD_FUNC(recv_thread_func)
         }
     }
 
-    POTR_THREAD_RETURN;
+    COM_UTIL_THREAD_RETURN;
 }
 
 /* ================================================================
@@ -2525,7 +2525,7 @@ typedef struct
 static TcpRecvArg s_tcp_recv_args[POTR_MAX_PATH];
 
 /* TCP ストリーム受信スレッド本体 (path ごと) */
-POTR_THREAD_FUNC(tcp_recv_thread_func)
+COM_UTIL_THREAD_FUNC(tcp_recv_thread_func)
 {
     TcpRecvArg          *rarg     = (TcpRecvArg *)arg;
     struct PotrContext_ *ctx      = rarg->ctx;
@@ -2600,11 +2600,11 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
                              " (%llu ms), disconnecting",
                              ctx->service.service_id, path_idx,
                              (unsigned long long)elapsed);
-                    POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+                    COM_UTIL_MUTEX_LOCK(&ctx->tcp_state_mutex);
                     ping_state_changed = set_path_ping_state(&ctx->path_ping_state[path_idx],
                                                              POTR_PING_STATE_ABNORMAL);
                     sync_service_path_state(ctx);
-                    POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
                     wake_tcp_interrupt_ping_if_needed(ctx, path_idx, ping_state_changed);
                     break;
                 }
@@ -2685,10 +2685,10 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             uint32_t fin_target_seq = pkt.ack_num;
             int      should_fire_fin = 0;
 
-            POTR_MUTEX_LOCK(&ctx->recv_window_mutex);
+            COM_UTIL_MUTEX_LOCK(&ctx->recv_window_mutex);
             if (!check_and_update_session(ctx, &pkt))
             {
-                POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+                COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
                 POTR_LOG(TRACE_LEVEL_VERBOSE,
                          "tcp_recv[service_id=%" PRId64 " path=%d]: FIN session mismatch, ignored",
                          ctx->service.service_id, path_idx);
@@ -2705,7 +2705,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             {
                 ctx->pending_fin    = 1;
                 ctx->fin_target_seq = fin_target_seq;
-                POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+                COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
                 POTR_LOG(TRACE_LEVEL_INFO,
                          "tcp_recv[service_id=%" PRId64 " path=%d]: FIN pending (waiting for seq=%u)",
                          ctx->service.service_id, path_idx, (unsigned)fin_target_seq);
@@ -2713,7 +2713,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             }
 
             should_fire_fin = 1;
-            POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+            COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
 
             if (should_fire_fin)
             {
@@ -2729,7 +2729,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
             POTR_LOG(TRACE_LEVEL_VERBOSE,
                      "tcp_recv[service_id=%" PRId64 " path=%d]: PING seq=%u",
                      ctx->service.service_id, path_idx, (unsigned)pkt.seq_num);
-            POTR_MUTEX_LOCK(&ctx->tcp_state_mutex);
+            COM_UTIL_MUTEX_LOCK(&ctx->tcp_state_mutex);
             ctx->tcp_last_ping_recv_ms[path_idx] = clock_get_monotonic_ms();
             ping_state_changed = set_path_ping_state(&ctx->path_ping_state[path_idx],
                                                      POTR_PING_STATE_NORMAL);
@@ -2738,7 +2738,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
                 memcpy(ctx->remote_path_ping_state, pkt.payload, POTR_MAX_PATH);
             }
             sync_service_path_state(ctx);
-            POTR_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
+            COM_UTIL_MUTEX_UNLOCK(&ctx->tcp_state_mutex);
             wake_tcp_interrupt_ping_if_needed(ctx, path_idx, ping_state_changed);
         }
         else if (pkt.flags & POTR_FLAG_DATA)
@@ -2749,17 +2749,17 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
                 int      should_fire_fin = 0;
                 int pushed;
 
-                POTR_MUTEX_LOCK(&ctx->recv_window_mutex);
+                COM_UTIL_MUTEX_LOCK(&ctx->recv_window_mutex);
                 if (!check_and_update_session(ctx, &pkt))
                 {
-                    POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+                    COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
                     POTR_LOG(TRACE_LEVEL_VERBOSE,
                              "tcp_recv[service_id=%" PRId64 " path=%d]: DATA session mismatch, ignored",
                              ctx->service.service_id, path_idx);
                     continue;
                 }
                 pushed = window_recv_push(&ctx->recv_window, &pkt);
-                POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+                COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
 
                 if (pushed != POTR_SUCCESS)
                 {
@@ -2776,19 +2776,19 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
                          (unsigned)pkt.seq_num, (unsigned)pkt.payload_len);
 
                 /* 順序整列済みパケットをポップして配信 */
-                POTR_MUTEX_LOCK(&ctx->recv_window_mutex);
+                COM_UTIL_MUTEX_LOCK(&ctx->recv_window_mutex);
                 {
                     PotrPacket out;
                     while (window_recv_pop(&ctx->recv_window, &out) == POTR_SUCCESS)
                     {
                         size_t     offset = 0;
                         PotrPacket elem;
-                        POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+                        COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
                         while (packet_unpack_next(&out, &offset, &elem) == POTR_SUCCESS)
                         {
                             deliver_payload_elem(ctx, &elem);
                         }
-                        POTR_MUTEX_LOCK(&ctx->recv_window_mutex);
+                        COM_UTIL_MUTEX_LOCK(&ctx->recv_window_mutex);
                     }
 
                     if (ctx->pending_fin
@@ -2799,7 +2799,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
                         should_fire_fin = 1;
                     }
                 }
-                POTR_MUTEX_UNLOCK(&ctx->recv_window_mutex);
+                COM_UTIL_MUTEX_UNLOCK(&ctx->recv_window_mutex);
 
                 if (should_fire_fin)
                 {
@@ -2816,7 +2816,7 @@ POTR_THREAD_FUNC(tcp_recv_thread_func)
              "tcp_recv[service_id=%" PRId64 " path=%d]: exited",
              ctx->service.service_id, path_idx);
 
-    POTR_THREAD_RETURN;
+    COM_UTIL_THREAD_RETURN;
 }
 
 /**
@@ -2839,7 +2839,7 @@ int comm_recv_thread_start(struct PotrContext_ *ctx)
              "recv_thread[service_id=%" PRId64 "]: starting",
              ctx->service.service_id);
 
-    if (potr_thread_create(&ctx->recv_thread[0], recv_thread_func, ctx) != 0)
+    if (com_util_thread_create(&ctx->recv_thread[0], recv_thread_func, ctx) != 0)
     {
         ctx->running[0] = 0;
         POTR_LOG(TRACE_LEVEL_ERROR,
@@ -2883,7 +2883,7 @@ int comm_recv_thread_stop(struct PotrContext_ *ctx)
         }
     }
 
-    potr_thread_join(&ctx->recv_thread[0]);
+    com_util_thread_join(&ctx->recv_thread[0]);
 
     return POTR_SUCCESS;
 }
@@ -2909,7 +2909,7 @@ int tcp_recv_thread_start(struct PotrContext_ *ctx, int path_idx)
              "tcp_recv_thread[service_id=%" PRId64 " path=%d]: starting",
              ctx->service.service_id, path_idx);
 
-    if (potr_thread_create(&ctx->recv_thread[path_idx], tcp_recv_thread_func,
+    if (com_util_thread_create(&ctx->recv_thread[path_idx], tcp_recv_thread_func,
                            &s_tcp_recv_args[path_idx]) != 0)
     {
         ctx->running[path_idx] = 0;
@@ -2938,7 +2938,7 @@ int tcp_recv_thread_stop(struct PotrContext_ *ctx, int path_idx)
 
     ctx->running[path_idx] = 0;
 
-    potr_thread_join(&ctx->recv_thread[path_idx]);
+    com_util_thread_join(&ctx->recv_thread[path_idx]);
 
     return POTR_SUCCESS;
 }

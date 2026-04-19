@@ -20,12 +20,6 @@
     #include "potrPlatform.h"
 
 /* doxygen コメントはヘッダに記載 */
-int potr_condvar_timedwait(PotrCondVar *cv, PotrMutex *mtx, uint32_t timeout_ms)
-{
-    return SleepConditionVariableCS(cv, mtx, (DWORD)timeout_ms) ? 0 : -1;
-}
-
-/* doxygen コメントはヘッダに記載 */
 int potr_sendto(PotrSocket sock, const uint8_t *buf, size_t len, int flags, const struct sockaddr *dest, int dest_len)
 {
     return sendto(sock, (const char *)buf, (int)len, flags, dest, dest_len);
@@ -67,24 +61,6 @@ int potr_poll_readable(PotrSocket fd, int timeout_ms)
     if (r == 0)
         return 0;
     return -1;
-}
-
-/* doxygen コメントはヘッダに記載 */
-int potr_thread_create(PotrThread *thread, PotrThreadFunc func, void *arg)
-{
-    *thread = CreateThread(NULL, 0, func, arg, 0, NULL);
-    return (*thread == NULL) ? -1 : 0;
-}
-
-/* doxygen コメントはヘッダに記載 */
-void potr_thread_join(PotrThread *thread)
-{
-    if (*thread != NULL)
-    {
-        WaitForSingleObject(*thread, INFINITE);
-        CloseHandle(*thread);
-        *thread = NULL;
-    }
 }
 
 /* doxygen コメントはヘッダに記載 */
@@ -144,7 +120,4 @@ int potr_set_blocking(PotrSocket fd)
     return ioctlsocket(fd, FIONBIO, &mode) == 0 ? 0 : -1;
 }
 
-#elif defined(PLATFORM_LINUX)
-/* Linux では potrPlatform_linux.c が使用される */
-typedef int potr_platform_windows_dummy_t;
-#endif /* PLATFORM_ */
+#endif /* PLATFORM_WINDOWS */

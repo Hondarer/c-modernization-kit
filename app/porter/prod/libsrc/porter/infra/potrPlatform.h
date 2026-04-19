@@ -22,75 +22,24 @@
 
 #include <com_util/base/platform.h>
 #include <com_util/clock/clock.h>
+#include <com_util/sync/sync.h>
 
 /* ============================================================
- * 型定義 (PotrSocket / PotrThread / PotrMutex / PotrCondVar)
+ * 型定義 (PotrSocket)
  * ============================================================ */
 #if defined(PLATFORM_LINUX)
-    #include <pthread.h>
     #include <netinet/in.h>
     #include <unistd.h>
     #include <sys/socket.h>
     #include <poll.h>
-    #include <time.h>
-    typedef int                PotrSocket;
-    typedef pthread_t          PotrThread;
-    typedef pthread_mutex_t    PotrMutex;
-    typedef pthread_cond_t     PotrCondVar;
+    typedef int    PotrSocket;
     #define POTR_INVALID_SOCKET (-1)
 #elif defined(PLATFORM_WINDOWS)
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #include <windows.h>
-    typedef SOCKET             PotrSocket;
-    typedef HANDLE             PotrThread;
-    typedef CRITICAL_SECTION   PotrMutex;
-    typedef CONDITION_VARIABLE PotrCondVar;
+    typedef SOCKET PotrSocket;
     #define POTR_INVALID_SOCKET INVALID_SOCKET
-#endif /* PLATFORM_ */
-
-/* ============================================================
- * ミューテックス / 条件変数 マクロ
- * ============================================================ */
-#if defined(PLATFORM_LINUX)
-    #define POTR_MUTEX_INIT(m)     pthread_mutex_init((m), NULL)
-    #define POTR_MUTEX_LOCK(m)     pthread_mutex_lock(m)
-    #define POTR_MUTEX_UNLOCK(m)   pthread_mutex_unlock(m)
-    #define POTR_MUTEX_DESTROY(m)  pthread_mutex_destroy(m)
-    #define POTR_COND_INIT(c)      pthread_cond_init((c), NULL)
-    #define POTR_COND_WAIT(c, m)   pthread_cond_wait((c), (m))
-    #define POTR_COND_SIGNAL(c)    pthread_cond_signal(c)
-    #define POTR_COND_BROADCAST(c) pthread_cond_broadcast(c)
-    #define POTR_COND_DESTROY(c)   pthread_cond_destroy(c)
-#elif defined(PLATFORM_WINDOWS)
-    #define POTR_MUTEX_INIT(m)     InitializeCriticalSection(m)
-    #define POTR_MUTEX_LOCK(m)     EnterCriticalSection(m)
-    #define POTR_MUTEX_UNLOCK(m)   LeaveCriticalSection(m)
-    #define POTR_MUTEX_DESTROY(m)  DeleteCriticalSection(m)
-    #define POTR_COND_INIT(c)      InitializeConditionVariable(c)
-    #define POTR_COND_WAIT(c, m)   SleepConditionVariableCS((c), (m), INFINITE)
-    #define POTR_COND_SIGNAL(c)    WakeConditionVariable(c)
-    #define POTR_COND_BROADCAST(c) WakeAllConditionVariable(c)
-    #define POTR_COND_DESTROY(c)   ((void)0) /* Windows は破棄不要 */
-#endif /* PLATFORM_ */
-
-/* ============================================================
- * スレッド関数マクロ / PotrThreadFunc 型
- * ============================================================ */
-#if defined(PLATFORM_LINUX)
-    /** スレッド関数定義マクロ (static void *name(void *arg) に展開)。 */
-    #define POTR_THREAD_FUNC(name) static void *name(void *arg)
-    /** スレッド関数末尾の return 文マクロ。 */
-    #define POTR_THREAD_RETURN     return NULL
-    /** スレッド関数ポインタ型。 */
-    typedef void *(*PotrThreadFunc)(void *);
-#elif defined(PLATFORM_WINDOWS)
-    /** スレッド関数定義マクロ (static DWORD WINAPI name(LPVOID arg) に展開)。 */
-    #define POTR_THREAD_FUNC(name) static DWORD WINAPI name(LPVOID arg)
-    /** スレッド関数末尾の return 文マクロ。 */
-    #define POTR_THREAD_RETURN     return 0
-    /** スレッド関数ポインタ型。 */
-    typedef DWORD (WINAPI *PotrThreadFunc)(LPVOID);
 #endif /* PLATFORM_ */
 
 /* ============================================================
@@ -151,17 +100,6 @@ extern "C"
 #endif /* __cplusplus */
 
 /**
- *  @brief  タイムアウト付き条件変数待機。
- *          呼び出し前にミューテックスを取得しておく必要がある。
- *  @param[in]  cv         条件変数。
- *  @param[in]  mtx        保護ミューテックス (取得済みであること)。
- *  @param[in]  timeout_ms タイムアウト (ミリ秒)。
- *  @return     0 (シグナル受信またはタイムアウト)。
- */
-extern int potr_condvar_timedwait(PotrCondVar *cv, PotrMutex *mtx,
-                                  uint32_t timeout_ms);
-
-/**
  *  @brief  UDP データグラムを送信する。
  *  @param[in]  sock      送信ソケット。
  *  @param[in]  buf       送信データ。
@@ -204,22 +142,6 @@ extern int potr_poll_writable(PotrSocket fd, int timeout_ms);
  *  @return  1: 読み取り可能、0: タイムアウト、-1: エラー。
  */
 extern int potr_poll_readable(PotrSocket fd, int timeout_ms);
-
-/**
- *  @brief  スレッドを生成する。
- *  @param[out]  thread  生成したスレッドハンドルの格納先。
- *  @param[in]   func    スレッド関数。
- *  @param[in]   arg     スレッド関数に渡す引数。
- *  @return  0: 成功、非 0: 失敗。
- */
-extern int potr_thread_create(PotrThread *thread, PotrThreadFunc func, void *arg);
-
-/**
- *  @brief  スレッドの終了を待機し、ハンドルを解放する。
- *  @param[in,out]  thread  スレッドハンドルへのポインタ。
- *                          Windows では解放後に NULL を書き込む。
- */
-extern void potr_thread_join(PotrThread *thread);
 
 /**
  *  @brief  TCP ソケットへ全バイトを確実に送信する。

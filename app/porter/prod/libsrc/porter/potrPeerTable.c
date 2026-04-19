@@ -98,10 +98,10 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
     }
 
     /* 現セッションで DATA を送っている場合のみ FIN target を有効化する。 */
-    POTR_MUTEX_LOCK(&peer->send_window_mutex);
+    COM_UTIL_MUTEX_LOCK(&peer->send_window_mutex);
     wire_target_seq = peer->send_window.next_seq;
     has_data        = peer->send_has_data;
-    POTR_MUTEX_UNLOCK(&peer->send_window_mutex);
+    COM_UTIL_MUTEX_UNLOCK(&peer->send_window_mutex);
 
     if (has_data)
     {
@@ -179,7 +179,7 @@ int peer_table_init(struct PotrContext_ *ctx)
         ctx->peers[i].active = 0;
     }
 
-    POTR_MUTEX_INIT(&ctx->peers_mutex);
+    COM_UTIL_MUTEX_INIT(&ctx->peers_mutex);
     ctx->n_peers      = 0;
     ctx->next_peer_id = 1U;
 
@@ -217,13 +217,13 @@ void peer_table_destroy(struct PotrContext_ *ctx)
         /* リソース解放 */
         window_destroy(&ctx->peers[i].send_window);
         window_destroy(&ctx->peers[i].recv_window);
-        POTR_MUTEX_DESTROY(&ctx->peers[i].send_window_mutex);
+        COM_UTIL_MUTEX_DESTROY(&ctx->peers[i].send_window_mutex);
         free(ctx->peers[i].frag_buf);
         ctx->peers[i].frag_buf = NULL;
         ctx->peers[i].active   = 0;
     }
 
-    POTR_MUTEX_DESTROY(&ctx->peers_mutex);
+    COM_UTIL_MUTEX_DESTROY(&ctx->peers_mutex);
 
     free(ctx->peers);
     ctx->peers   = NULL;
@@ -341,7 +341,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
         return NULL;
     }
 
-    POTR_MUTEX_INIT(&peer->send_window_mutex);
+    COM_UTIL_MUTEX_INIT(&peer->send_window_mutex);
 
     /* フラグメント結合バッファ確保 */
     peer->frag_buf = (uint8_t *)malloc(ctx->global.max_message_size);
@@ -349,7 +349,7 @@ PotrPeerContext *peer_create(struct PotrContext_       *ctx,
     {
         window_destroy(&peer->recv_window);
         window_destroy(&peer->send_window);
-        POTR_MUTEX_DESTROY(&peer->send_window_mutex);
+        COM_UTIL_MUTEX_DESTROY(&peer->send_window_mutex);
         peer->active = 0;
         POTR_LOG(TRACE_LEVEL_ERROR,
                  "peer_create: service_id=%" PRId64 " frag_buf alloc failed",
@@ -405,7 +405,7 @@ void peer_free(struct PotrContext_ *ctx, PotrPeerContext *peer)
 
     window_destroy(&peer->send_window);
     window_destroy(&peer->recv_window);
-    POTR_MUTEX_DESTROY(&peer->send_window_mutex);
+    COM_UTIL_MUTEX_DESTROY(&peer->send_window_mutex);
 
     free(peer->frag_buf);
     peer->frag_buf = NULL;

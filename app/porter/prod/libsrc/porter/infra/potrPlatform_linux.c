@@ -21,21 +21,6 @@
     #include "potrPlatform.h"
 
 /* doxygen コメントはヘッダに記載 */
-int potr_condvar_timedwait(PotrCondVar *cv, PotrMutex *mtx, uint32_t timeout_ms)
-{
-    struct timespec abs_ts;
-    clock_gettime(CLOCK_REALTIME, &abs_ts);
-    abs_ts.tv_sec += (time_t)(timeout_ms / 1000U);
-    abs_ts.tv_nsec += (long)((timeout_ms % 1000U) * 1000000UL);
-    if (abs_ts.tv_nsec >= 1000000000L)
-    {
-        abs_ts.tv_sec++;
-        abs_ts.tv_nsec -= 1000000000L;
-    }
-    return pthread_cond_timedwait(cv, mtx, &abs_ts);
-}
-
-/* doxygen コメントはヘッダに記載 */
 int potr_sendto(PotrSocket sock, const uint8_t *buf, size_t len, int flags, const struct sockaddr *dest, int dest_len)
 {
     return (int)sendto(sock, buf, len, flags, dest, (socklen_t)dest_len);
@@ -80,18 +65,6 @@ int potr_poll_readable(PotrSocket fd, int timeout_ms)
     if (r == 0 || (r < 0 && errno == EINTR))
         return 0;
     return -1;
-}
-
-/* doxygen コメントはヘッダに記載 */
-int potr_thread_create(PotrThread *thread, PotrThreadFunc func, void *arg)
-{
-    return pthread_create(thread, NULL, func, arg);
-}
-
-/* doxygen コメントはヘッダに記載 */
-void potr_thread_join(PotrThread *thread)
-{
-    pthread_join(*thread, NULL);
 }
 
 /* doxygen コメントはヘッダに記載 */
