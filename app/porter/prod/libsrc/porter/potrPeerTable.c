@@ -18,14 +18,6 @@
 
 #if defined(PLATFORM_LINUX)
     #include <arpa/inet.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <time.h>
-    #include <unistd.h>
-#elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-    #include <windows.h>
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>

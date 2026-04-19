@@ -23,16 +23,8 @@
 #include <string.h>
 
 #if defined(PLATFORM_LINUX)
-    #include <sys/socket.h>
-    #include <netinet/in.h>
     #include <arpa/inet.h>
-    #include <unistd.h>
-    #include <fcntl.h>
     #include <errno.h>
-    #include <time.h>
-#elif defined(PLATFORM_WINDOWS)
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>

@@ -13,12 +13,10 @@
 
 #include <com_util/base/platform.h>
 #include <stddef.h>
+#include <string.h>
 
 #if defined(PLATFORM_LINUX)
     #include <netdb.h>
-    #include <string.h>
-#elif defined(PLATFORM_WINDOWS)
-    #include <ws2tcpip.h>
 #endif /* PLATFORM_ */
 
 #include <porter_const.h>
