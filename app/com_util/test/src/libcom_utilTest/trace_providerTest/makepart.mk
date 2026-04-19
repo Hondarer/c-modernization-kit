@@ -12,5 +12,10 @@ INCDIR += \
     $(MYAPP_DIR)/prod/libsrc/com_util/trace/backends/syslog \
     $(MYAPP_DIR)/prod/libsrc/com_util/trace/backends/etw
 
+# ライブラリ検索パス
+LIBSDIR += \
+    $(MYAPP_DIR)/prod/lib \
+    $(MYAPP_DIR)/test/lib
+
 # ライブラリの指定
-LIBS += mock_libc mock_com_util
+LIBS += mock_libc mock_com_util clock com_util

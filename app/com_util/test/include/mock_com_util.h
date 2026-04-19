@@ -2,7 +2,8 @@
 #define MOCK_UTIL_H
 
 #include <testfw.h>
-#include <com_util/clock/clock.h>
+#include <stdint.h>
+#include <time.h>
 #include <com_util/compress/compress.h>
 #include <com_util/crypto/crypto.h>
 #include <com_util/trace/trace.h>

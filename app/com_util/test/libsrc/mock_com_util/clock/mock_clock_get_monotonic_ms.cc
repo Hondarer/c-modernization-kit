@@ -1,13 +1,13 @@
-#include <testfw.h>
 #include <mock_com_util.h>
+#include <com_util/clock/clock.h>
+#include <com_util/clock/mock_clock.h>
 
-#if defined(PLATFORM_LINUX)
-    #include <time.h>
-#elif defined(PLATFORM_WINDOWS)
-    #include <windows.h>
-#endif /* PLATFORM_ */
+uint64_t delegate_real_clock_get_monotonic_ms(void)
+{
+    return clock_get_monotonic_ms();
+}
 
-WEAK_ATR uint64_t clock_get_monotonic_ms(void)
+uint64_t mock_clock_get_monotonic_ms(void)
 {
     uint64_t rtc = 0;
 
@@ -17,13 +17,7 @@ WEAK_ATR uint64_t clock_get_monotonic_ms(void)
     }
     else
     {
-#if defined(PLATFORM_LINUX)
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        rtc = (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)ts.tv_nsec / 1000000ULL;
-#elif defined(PLATFORM_WINDOWS)
-        rtc = (uint64_t)GetTickCount64();
-#endif /* PLATFORM_ */
+        rtc = delegate_real_clock_get_monotonic_ms();
     }
 
     return rtc;
