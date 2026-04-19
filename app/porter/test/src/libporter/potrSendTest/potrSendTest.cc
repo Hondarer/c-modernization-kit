@@ -21,16 +21,6 @@
 
 using namespace testing;
 
-extern "C" int potr_compress(uint8_t *dst, size_t *dst_len,
-                             const uint8_t *src, size_t src_len)
-{
-    (void)dst;
-    (void)dst_len;
-    (void)src;
-    (void)src_len;
-    return -1;
-}
-
 class potrSendTest : public Test
 {
   protected:

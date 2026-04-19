@@ -27,7 +27,6 @@
 #include "../thread/potrRecvThread.h"
 #include "../thread/potrHealthThread.h"
 #include "../thread/potrConnectThread.h"
-#include "../infra/compress/compress.h"
 #include "../infra/potrSendQueue.h"
 #include "../thread/potrSendThread.h"
 #include "../util/potrIpAddr.h"
@@ -1060,7 +1059,7 @@ POTR_EXPORT int POTR_API potrOpenService(const PotrGlobalConfig *global,
         return POTR_ERROR;
     }
 
-    ctx->compress_buf_size = POTR_COMPRESS_HEADER_SIZE
+    ctx->compress_buf_size = COM_UTIL_COMPRESS_HEADER_SIZE
                              + (size_t)ctx->global.max_message_size + 64U;
     ctx->compress_buf = (uint8_t *)malloc(ctx->compress_buf_size);
     if (ctx->compress_buf == NULL)

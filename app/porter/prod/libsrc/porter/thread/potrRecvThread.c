@@ -31,8 +31,8 @@
 #include "../potrPeerTable.h"
 #include "potrHealthThread.h"
 #include "potrRecvThread.h"
-#include "../infra/compress/compress.h"
-#include "../infra/crypto/crypto.h"
+#include <com_util/compress/compress.h>
+#include <com_util/crypto/crypto.h>
 #include "../infra/potrTrace.h"
 #include "../infra/potrPlatform.h"
 
@@ -149,7 +149,7 @@ static int send_tcp_control_packet(struct PotrContext_ *ctx, PotrPacket *pkt,
         memset(nonce + 10, 0,                2);
 
         memcpy(wire_buf, pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,
@@ -253,7 +253,7 @@ static void n1_send_nack(struct PotrContext_ *ctx, PotrPeerContext *peer,
         memset(nonce + 10, 0,                    2);
 
         memcpy(wire_buf, &nack_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,
@@ -315,7 +315,7 @@ static void n1_send_reject(struct PotrContext_ *ctx, PotrPeerContext *peer,
         memset(nonce + 10, 0,                      2);
 
         memcpy(wire_buf, &reject_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,
@@ -371,7 +371,7 @@ static void n1_recv_deliver(struct PotrContext_ *ctx, PotrPeerContext *peer,
     {
         size_t dec_len = ctx->compress_buf_size;
 
-        if (potr_decompress(ctx->compress_buf, &dec_len,
+        if (com_util_decompress(ctx->compress_buf, &dec_len,
                             payload, payload_len) == 0)
         {
             potr_callback_emit(ctx, peer->peer_id,
@@ -778,7 +778,7 @@ static int recv_authenticate_packet(struct PotrContext_ *ctx,
         memcpy(nonce + 6,  &seq_nbo,   4);
         memset(nonce + 10, 0,          2);
 
-        if (potr_decrypt(ctx->crypto_buf, &dec_len,
+        if (com_util_decrypt(ctx->crypto_buf, &dec_len,
                          pkt->payload, pkt->payload_len,
                          ctx->service.encrypt_key,
                          nonce,
@@ -843,7 +843,7 @@ static int recv_authenticate_packet(struct PotrContext_ *ctx,
         memcpy(nonce + 6,  &val_nbo,   4);
         memset(nonce + 10, 0,          2);
 
-        if (potr_decrypt(dummy, &dummy_len,
+        if (com_util_decrypt(dummy, &dummy_len,
                          pkt->payload, POTR_CRYPTO_TAG_SIZE,
                          ctx->service.encrypt_key,
                          nonce,
@@ -1336,7 +1336,7 @@ static void send_nack(struct PotrContext_ *ctx, uint32_t nack_seq)
         memset(nonce + 10, 0,                    2);
 
         memcpy(wire_buf, &nack_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,
@@ -1448,7 +1448,7 @@ static void send_reject(struct PotrContext_ *ctx, uint32_t seq_num)
         memset(nonce + 10, 0,                      2);
 
         memcpy(wire_buf, &reject_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,
@@ -1488,7 +1488,7 @@ static void recv_deliver(struct PotrContext_ *ctx,
     {
         size_t dec_len = ctx->compress_buf_size;
 
-        if (potr_decompress(ctx->compress_buf, &dec_len,
+        if (com_util_decompress(ctx->compress_buf, &dec_len,
                             payload, payload_len) == 0)
         {
             POTR_LOG(TRACE_LEVEL_VERBOSE,

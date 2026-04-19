@@ -25,10 +25,10 @@
     #include <arpa/inet.h>
     #include <zlib.h>
 
-    #include "compress.h"
+    #include <com_util/compress/compress.h>
 
 /* doxygen コメントはヘッダに記載 */
-int potr_compress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t src_len)
+int com_util_compress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t src_len)
 {
     uint32_t orig_len_nbo;
     z_stream z;
@@ -39,21 +39,21 @@ int potr_compress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t src_
         return -1;
     }
 
-    if (*dst_len < POTR_COMPRESS_HEADER_SIZE + 1U)
+    if (*dst_len < COM_UTIL_COMPRESS_HEADER_SIZE + 1U)
     {
         return -1;
     }
 
     /* 先頭 4 バイトに元サイズ (NBO) を書く */
     orig_len_nbo = htonl((uint32_t)src_len);
-    memcpy(dst, &orig_len_nbo, POTR_COMPRESS_HEADER_SIZE);
+    memcpy(dst, &orig_len_nbo, COM_UTIL_COMPRESS_HEADER_SIZE);
 
     /* raw DEFLATE (windowBits = -15) で圧縮 */
     memset(&z, 0, sizeof(z));
     z.next_in = (Bytef *)(uintptr_t)src;
     z.avail_in = (uInt)src_len;
-    z.next_out = dst + POTR_COMPRESS_HEADER_SIZE;
-    z.avail_out = (uInt)(*dst_len - POTR_COMPRESS_HEADER_SIZE);
+    z.next_out = dst + COM_UTIL_COMPRESS_HEADER_SIZE;
+    z.avail_out = (uInt)(*dst_len - COM_UTIL_COMPRESS_HEADER_SIZE);
 
     if (deflateInit2(&z, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY) != Z_OK)
     {
@@ -68,25 +68,25 @@ int potr_compress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t src_
         return -1;
     }
 
-    *dst_len = POTR_COMPRESS_HEADER_SIZE + (size_t)z.total_out;
+    *dst_len = COM_UTIL_COMPRESS_HEADER_SIZE + (size_t)z.total_out;
     return 0;
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_decompress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t src_len)
+int com_util_decompress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t src_len)
 {
     uint32_t orig_len_nbo;
     uint32_t orig_len;
     z_stream z;
     int ret;
 
-    if (dst == NULL || dst_len == NULL || src == NULL || src_len <= POTR_COMPRESS_HEADER_SIZE)
+    if (dst == NULL || dst_len == NULL || src == NULL || src_len <= COM_UTIL_COMPRESS_HEADER_SIZE)
     {
         return -1;
     }
 
     /* 先頭 4 バイトから元サイズを取得 */
-    memcpy(&orig_len_nbo, src, POTR_COMPRESS_HEADER_SIZE);
+    memcpy(&orig_len_nbo, src, COM_UTIL_COMPRESS_HEADER_SIZE);
     orig_len = ntohl(orig_len_nbo);
 
     if (*dst_len < (size_t)orig_len)
@@ -96,8 +96,8 @@ int potr_decompress(uint8_t *dst, size_t *dst_len, const uint8_t *src, size_t sr
 
     /* raw DEFLATE を解凍 */
     memset(&z, 0, sizeof(z));
-    z.next_in = (Bytef *)(uintptr_t)(src + POTR_COMPRESS_HEADER_SIZE);
-    z.avail_in = (uInt)(src_len - POTR_COMPRESS_HEADER_SIZE);
+    z.next_in = (Bytef *)(uintptr_t)(src + COM_UTIL_COMPRESS_HEADER_SIZE);
+    z.avail_in = (uInt)(src_len - COM_UTIL_COMPRESS_HEADER_SIZE);
     z.next_out = (Bytef *)dst;
     z.avail_out = (uInt)*dst_len;
 

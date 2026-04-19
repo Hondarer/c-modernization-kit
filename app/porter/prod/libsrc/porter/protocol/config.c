@@ -21,7 +21,7 @@
 #include <porter_const.h>
 #include <porter_type.h>
 
-#include "../infra/crypto/crypto.h"
+#include <com_util/crypto/crypto.h>
 #include "../infra/potrTrace.h"
 #include "config.h"
 
@@ -467,7 +467,7 @@ static void apply_service_kv(const char *key, const char *val,
         else if (hex_len > 0)
         {
             /* パスフレーズ → SHA-256 で 32 バイトキーを導出する */
-            if (potr_passphrase_to_key(current->encrypt_key,
+            if (com_util_passphrase_to_key(current->encrypt_key,
                                        (const uint8_t *)val, hex_len) == 0)
             {
                 current->encrypt_enabled = 1;

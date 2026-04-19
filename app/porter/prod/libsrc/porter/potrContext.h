@@ -24,8 +24,8 @@
 #include <porter_type.h>
 
 #include "protocol/window.h"
-#include "infra/compress/compress.h"
-#include "infra/crypto/crypto.h"
+#include <com_util/compress/compress.h>
+#include <com_util/crypto/crypto.h>
 #include "infra/potrSendQueue.h"
 #include "infra/potrPlatform.h"
 

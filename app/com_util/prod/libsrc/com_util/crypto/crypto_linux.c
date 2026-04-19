@@ -25,10 +25,10 @@
 
     #include <openssl/evp.h>
 
-    #include "crypto.h"
+    #include <com_util/crypto/crypto.h>
 
 /* doxygen コメントはヘッダに記載 */
-int potr_encrypt(uint8_t *dst, size_t *dst_len,
+int com_util_encrypt(uint8_t *dst, size_t *dst_len,
                  const uint8_t *src, size_t src_len,
                  const uint8_t *key,
                  const uint8_t *nonce,
@@ -40,7 +40,7 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
 
     if (dst == NULL || dst_len == NULL || (src == NULL && src_len > 0)
         || key == NULL || nonce == NULL
-        || *dst_len < src_len + POTR_CRYPTO_TAG_SIZE)
+        || *dst_len < src_len + COM_UTIL_CRYPTO_TAG_SIZE)
     {
         return -1;
     }
@@ -59,7 +59,7 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
 
     /* ノンス長を 12 バイトに設定 (デフォルトと同一だが明示する) */
     if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-                            (int)POTR_CRYPTO_NONCE_SIZE, NULL) != 1)
+                            (int)COM_UTIL_CRYPTO_NONCE_SIZE, NULL) != 1)
     {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
@@ -101,21 +101,21 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
 
     /* GCM 認証タグ (16 バイト) を暗号文の直後に書き込む */
     if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG,
-                            (int)POTR_CRYPTO_TAG_SIZE,
+                            (int)COM_UTIL_CRYPTO_TAG_SIZE,
                             dst + src_len) != 1)
     {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
 
-    *dst_len = src_len + POTR_CRYPTO_TAG_SIZE;
+    *dst_len = src_len + COM_UTIL_CRYPTO_TAG_SIZE;
 
     EVP_CIPHER_CTX_free(ctx);
     return 0;
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_decrypt(uint8_t *dst, size_t *dst_len,
+int com_util_decrypt(uint8_t *dst, size_t *dst_len,
                  const uint8_t *src, size_t src_len,
                  const uint8_t *key,
                  const uint8_t *nonce,
@@ -126,13 +126,13 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
     int             final_len;
 
     if (dst == NULL || dst_len == NULL || src == NULL
-        || src_len < POTR_CRYPTO_TAG_SIZE
+        || src_len < COM_UTIL_CRYPTO_TAG_SIZE
         || key == NULL || nonce == NULL)
     {
         return -1;
     }
 
-    plain_len = src_len - POTR_CRYPTO_TAG_SIZE;
+    plain_len = src_len - COM_UTIL_CRYPTO_TAG_SIZE;
 
     if (plain_len > 0 && *dst_len < plain_len)
     {
@@ -152,7 +152,7 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
     }
 
     if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-                            (int)POTR_CRYPTO_NONCE_SIZE, NULL) != 1)
+                            (int)COM_UTIL_CRYPTO_NONCE_SIZE, NULL) != 1)
     {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
@@ -184,14 +184,14 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
         }
     }
 
-    /* 認証タグを設定 (暗号文の末尾 POTR_CRYPTO_TAG_SIZE バイト)。
+    /* 認証タグを設定 (暗号文の末尾 COM_UTIL_CRYPTO_TAG_SIZE バイト)。
        EVP_CIPHER_CTX_ctrl は void * を要求するため const を外すために
        ローカルバッファにコピーしてから渡す (-Wcast-qual 回避)。 */
     {
-        uint8_t tag_buf[POTR_CRYPTO_TAG_SIZE];
-        memcpy(tag_buf, src + plain_len, POTR_CRYPTO_TAG_SIZE);
+        uint8_t tag_buf[COM_UTIL_CRYPTO_TAG_SIZE];
+        memcpy(tag_buf, src + plain_len, COM_UTIL_CRYPTO_TAG_SIZE);
         if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG,
-                                (int)POTR_CRYPTO_TAG_SIZE, tag_buf) != 1)
+                                (int)COM_UTIL_CRYPTO_TAG_SIZE, tag_buf) != 1)
         {
             EVP_CIPHER_CTX_free(ctx);
             return -1;
@@ -212,12 +212,12 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_passphrase_to_key(uint8_t *key,
+int com_util_passphrase_to_key(uint8_t *key,
                            const uint8_t *passphrase,
                            size_t passphrase_len)
 {
     EVP_MD_CTX  *ctx;
-    unsigned int out_len = POTR_CRYPTO_KEY_SIZE;
+    unsigned int out_len = COM_UTIL_CRYPTO_KEY_SIZE;
 
     if (key == NULL || (passphrase == NULL && passphrase_len > 0))
     {

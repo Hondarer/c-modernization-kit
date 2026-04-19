@@ -33,13 +33,13 @@
 #include <compressapi.h>
 #pragma comment(lib, "Cabinet.lib")
 
-#include "compress.h"
+#include <com_util/compress/compress.h>
 
 /* doxygen コメントはヘッダに記載 */
-int potr_compress(uint8_t       *dst,
-                  size_t        *dst_len,
-                  const uint8_t *src,
-                  size_t         src_len)
+int com_util_compress(uint8_t       *dst,
+                      size_t        *dst_len,
+                      const uint8_t *src,
+                      size_t         src_len)
 {
     COMPRESSOR_HANDLE h;
     uint32_t          orig_len_nbo;
@@ -52,14 +52,14 @@ int potr_compress(uint8_t       *dst,
         return -1;
     }
 
-    if (*dst_len < POTR_COMPRESS_HEADER_SIZE + 1U)
+    if (*dst_len < COM_UTIL_COMPRESS_HEADER_SIZE + 1U)
     {
         return -1;
     }
 
     /* 先頭 4 バイトに元サイズ (NBO) を書く */
     orig_len_nbo = htonl((uint32_t)src_len);
-    memcpy(dst, &orig_len_nbo, POTR_COMPRESS_HEADER_SIZE);
+    memcpy(dst, &orig_len_nbo, COM_UTIL_COMPRESS_HEADER_SIZE);
 
     /* MSZIP Block Mode (COMPRESS_RAW) で raw DEFLATE を生成 */
     if (!CreateCompressor(COMPRESS_ALGORITHM_MSZIP | COMPRESS_RAW, NULL, &h))
@@ -84,8 +84,8 @@ int potr_compress(uint8_t       *dst,
     ok = Compress(h,
                   src,
                   (SIZE_T)src_len,
-                  dst + POTR_COMPRESS_HEADER_SIZE,
-                  (SIZE_T)(*dst_len - POTR_COMPRESS_HEADER_SIZE),
+                  dst + COM_UTIL_COMPRESS_HEADER_SIZE,
+                  (SIZE_T)(*dst_len - COM_UTIL_COMPRESS_HEADER_SIZE),
                   &cmp_len);
     CloseCompressor(h);
 
@@ -94,15 +94,15 @@ int potr_compress(uint8_t       *dst,
         return -1;
     }
 
-    *dst_len = POTR_COMPRESS_HEADER_SIZE + (size_t)cmp_len;
+    *dst_len = COM_UTIL_COMPRESS_HEADER_SIZE + (size_t)cmp_len;
     return 0;
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_decompress(uint8_t       *dst,
-                    size_t        *dst_len,
-                    const uint8_t *src,
-                    size_t         src_len)
+int com_util_decompress(uint8_t       *dst,
+                        size_t        *dst_len,
+                        const uint8_t *src,
+                        size_t         src_len)
 {
     DECOMPRESSOR_HANDLE h;
     uint32_t            orig_len_nbo;
@@ -112,13 +112,13 @@ int potr_decompress(uint8_t       *dst,
     BOOL                ok;
 
     if (dst == NULL || dst_len == NULL || src == NULL
-        || src_len <= POTR_COMPRESS_HEADER_SIZE)
+        || src_len <= COM_UTIL_COMPRESS_HEADER_SIZE)
     {
         return -1;
     }
 
     /* 先頭 4 バイトから元サイズを取得 */
-    memcpy(&orig_len_nbo, src, POTR_COMPRESS_HEADER_SIZE);
+    memcpy(&orig_len_nbo, src, COM_UTIL_COMPRESS_HEADER_SIZE);
     orig_len = ntohl(orig_len_nbo);
 
     if (*dst_len < (size_t)orig_len)
@@ -147,8 +147,8 @@ int potr_decompress(uint8_t       *dst,
                                      sizeof(block_size));
 
     ok = Decompress(h,
-                    src + POTR_COMPRESS_HEADER_SIZE,
-                    (SIZE_T)(src_len - POTR_COMPRESS_HEADER_SIZE),
+                    src + COM_UTIL_COMPRESS_HEADER_SIZE,
+                    (SIZE_T)(src_len - COM_UTIL_COMPRESS_HEADER_SIZE),
                     dst,
                     (SIZE_T)*dst_len,
                     &out_len);

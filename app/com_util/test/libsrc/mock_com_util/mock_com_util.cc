@@ -5,6 +5,16 @@ Mock_com_util *_mock_com_util = nullptr;
 
 Mock_com_util::Mock_com_util()
 {
+    ON_CALL(*this, com_util_compress(_, _, _, _))
+        .WillByDefault(Return(-1));
+    ON_CALL(*this, com_util_decompress(_, _, _, _))
+        .WillByDefault(Return(-1));
+    ON_CALL(*this, com_util_encrypt(_, _, _, _, _, _, _, _))
+        .WillByDefault(Return(-1));
+    ON_CALL(*this, com_util_decrypt(_, _, _, _, _, _, _, _))
+        .WillByDefault(Return(-1));
+    ON_CALL(*this, com_util_passphrase_to_key(_, _, _))
+        .WillByDefault(Return(-1));
     ON_CALL(*this, trace_logger_create())
         .WillByDefault(Return(nullptr)); // 一般的にはモックの既定の挙動は NOP にしておき、テストプログラムで具体的な挙動を決める
     ON_CALL(*this, trace_logger_destroy(_))

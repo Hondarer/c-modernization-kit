@@ -96,7 +96,7 @@ int packet_build_nack(PotrPacket *packet, const PotrPacketSessionHdr *shdr,
  *  PING はウィンドウに登録されません（NACK・再送の対象外）。\n
  *  ack_num は常に 0。受信者は seq_num を上限として欠番を一括 NACK します。\n
  *  ペイロードには POTR_MAX_PATH バイトのパス受信状態 (POTR_PING_STATE_*) を格納します。\n
- *  暗号化時はヘルススレッドが wire_buf にコピー後に potr_encrypt を適用します。
+ *  暗号化時はヘルススレッドが wire_buf にコピー後に com_util_encrypt を適用します。
  *******************************************************************************
  */
 int packet_build_ping(PotrPacket *packet, const PotrPacketSessionHdr *shdr,

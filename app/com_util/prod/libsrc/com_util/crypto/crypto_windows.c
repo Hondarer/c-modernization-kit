@@ -27,7 +27,7 @@
     #pragma comment(lib, "bcrypt.lib")
     #include <string.h>
 
-    #include "crypto.h"
+    #include <com_util/crypto/crypto.h>
 
 /* BCrypt を使用した AES-256-GCM 暗号化の共通実装。
    is_encrypt: TRUE = 暗号化、FALSE = 復号 (タグ検証含む)。
@@ -67,7 +67,7 @@ static int bcrypt_aes_gcm(BOOL           is_encrypt,
     }
 
     status = BCryptGenerateSymmetricKey(h_alg, &h_key, NULL, 0,
-                                        (PUCHAR)key, (ULONG)POTR_CRYPTO_KEY_SIZE, 0);
+                                        (PUCHAR)key, (ULONG)COM_UTIL_CRYPTO_KEY_SIZE, 0);
     if (!BCRYPT_SUCCESS(status))
     {
         BCryptCloseAlgorithmProvider(h_alg, 0);
@@ -76,7 +76,7 @@ static int bcrypt_aes_gcm(BOOL           is_encrypt,
 
     BCRYPT_INIT_AUTH_MODE_INFO(auth_info);
     auth_info.pbNonce    = (PUCHAR)nonce;
-    auth_info.cbNonce    = (ULONG)POTR_CRYPTO_NONCE_SIZE;
+    auth_info.cbNonce    = (ULONG)COM_UTIL_CRYPTO_NONCE_SIZE;
     auth_info.pbAuthData = (PUCHAR)aad;
     auth_info.cbAuthData = (aad != NULL) ? (ULONG)aad_len : 0U;
     auth_info.pbTag      = (PUCHAR)tag;
@@ -114,18 +114,18 @@ static int bcrypt_aes_gcm(BOOL           is_encrypt,
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_encrypt(uint8_t *dst, size_t *dst_len,
+int com_util_encrypt(uint8_t *dst, size_t *dst_len,
                  const uint8_t *src, size_t src_len,
                  const uint8_t *key,
                  const uint8_t *nonce,
                  const uint8_t *aad, size_t aad_len)
 {
-    uint8_t tag[POTR_CRYPTO_TAG_SIZE];
+    uint8_t tag[COM_UTIL_CRYPTO_TAG_SIZE];
     size_t  enc_len;
 
     if (dst == NULL || dst_len == NULL || (src == NULL && src_len > 0)
         || key == NULL || nonce == NULL
-        || *dst_len < src_len + POTR_CRYPTO_TAG_SIZE)
+        || *dst_len < src_len + COM_UTIL_CRYPTO_TAG_SIZE)
     {
         return -1;
     }
@@ -142,20 +142,20 @@ int potr_encrypt(uint8_t *dst, size_t *dst_len,
                            actual_src, src_len,
                            key, nonce,
                            aad, aad_len,
-                           tag, (ULONG)POTR_CRYPTO_TAG_SIZE) != 0)
+                           tag, (ULONG)COM_UTIL_CRYPTO_TAG_SIZE) != 0)
         {
             return -1;
         }
     }
 
     /* タグ (16B) を暗号文の直後に付加する */
-    memcpy(dst + enc_len, tag, POTR_CRYPTO_TAG_SIZE);
-    *dst_len = enc_len + POTR_CRYPTO_TAG_SIZE;
+    memcpy(dst + enc_len, tag, COM_UTIL_CRYPTO_TAG_SIZE);
+    *dst_len = enc_len + COM_UTIL_CRYPTO_TAG_SIZE;
     return 0;
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_decrypt(uint8_t *dst, size_t *dst_len,
+int com_util_decrypt(uint8_t *dst, size_t *dst_len,
                  const uint8_t *src, size_t src_len,
                  const uint8_t *key,
                  const uint8_t *nonce,
@@ -164,20 +164,20 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
     size_t plain_len;
 
     if (dst == NULL || dst_len == NULL || src == NULL
-        || src_len < POTR_CRYPTO_TAG_SIZE
+        || src_len < COM_UTIL_CRYPTO_TAG_SIZE
         || key == NULL || nonce == NULL)
     {
         return -1;
     }
 
-    plain_len = src_len - POTR_CRYPTO_TAG_SIZE;
+    plain_len = src_len - COM_UTIL_CRYPTO_TAG_SIZE;
 
     if (plain_len > 0 && *dst_len < plain_len)
     {
         return -1;
     }
 
-    /* タグは暗号文の末尾 POTR_CRYPTO_TAG_SIZE バイト。BCrypt がタグ検証を行う。
+    /* タグは暗号文の末尾 COM_UTIL_CRYPTO_TAG_SIZE バイト。BCrypt がタグ検証を行う。
        STATUS_AUTH_TAG_MISMATCH 時は bcrypt_aes_gcm が -1 を返す。 */
     return bcrypt_aes_gcm(FALSE,
                           dst, dst_len,
@@ -185,11 +185,11 @@ int potr_decrypt(uint8_t *dst, size_t *dst_len,
                           key, nonce,
                           aad, aad_len,
                           (uint8_t *)(src + plain_len),
-                          (ULONG)POTR_CRYPTO_TAG_SIZE);
+                          (ULONG)COM_UTIL_CRYPTO_TAG_SIZE);
 }
 
 /* doxygen コメントはヘッダに記載 */
-int potr_passphrase_to_key(uint8_t *key,
+int com_util_passphrase_to_key(uint8_t *key,
                            const uint8_t *passphrase,
                            size_t passphrase_len)
 {
@@ -226,7 +226,7 @@ int potr_passphrase_to_key(uint8_t *key,
         return -1;
     }
 
-    status = BCryptFinishHash(h_hash, (PUCHAR)key, (ULONG)POTR_CRYPTO_KEY_SIZE, 0);
+    status = BCryptFinishHash(h_hash, (PUCHAR)key, (ULONG)COM_UTIL_CRYPTO_KEY_SIZE, 0);
 
     BCryptDestroyHash(h_hash);
     BCryptCloseAlgorithmProvider(h_alg, 0);

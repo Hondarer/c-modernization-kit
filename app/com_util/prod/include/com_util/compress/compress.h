@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           compress.h
- *  @brief          データ圧縮・解凍モジュールの内部ヘッダー。
+ *  @brief          データ圧縮・解凍モジュールのヘッダー。
  *  @author         Tetsuo Honda
  *  @date           2026/03/05
  *  @version        1.0.0
@@ -33,13 +33,36 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <porter_const.h>
+#ifdef DOXYGEN
+
+    /**
+     *  @def            COMPRESS_EXPORT
+     *  @brief          DLL エクスポート/インポート制御マクロ。
+     */
+    #define COMPRESS_EXPORT
+
+    /**
+     *  @def            COMPRESS_API
+     *  @brief          呼び出し規約マクロ。
+     */
+    #define COMPRESS_API
+
+#else /* !DOXYGEN */
+
+    #ifndef COMPRESS_STATIC
+        #define COMPRESS_STATIC 0
+    #endif /* COMPRESS_STATIC */
+    #ifndef COMPRESS_EXPORTS
+        #define COMPRESS_EXPORTS 0
+    #endif /* COMPRESS_EXPORTS */
+    #include <com_util/base/dll_exports.h>
+    #define COMPRESS_EXPORT COM_UTIL_DLL_EXPORT(COMPRESS)
+    #define COMPRESS_API    COM_UTIL_DLL_API(COMPRESS)
+
+#endif /* DOXYGEN */
 
 /** 圧縮ペイロード先頭に付加する元サイズフィールドのバイト数。 */
-#define POTR_COMPRESS_HEADER_SIZE 4U
-
-/** 圧縮後の最大バッファサイズ (元データ + ヘッダー + DEFLATE オーバーヘッド)。 */
-#define POTR_COMPRESS_BUF_SIZE (POTR_COMPRESS_HEADER_SIZE + POTR_MAX_MESSAGE_SIZE + 64U)
+#define COM_UTIL_COMPRESS_HEADER_SIZE 4U
 
 #ifdef __cplusplus
 extern "C"
@@ -58,10 +81,10 @@ extern "C"
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-extern int potr_compress(uint8_t       *dst,
-                         size_t        *dst_len,
-                         const uint8_t *src,
-                         size_t         src_len);
+COMPRESS_EXPORT int COMPRESS_API com_util_compress(uint8_t       *dst,
+                                                   size_t        *dst_len,
+                                                   const uint8_t *src,
+                                                   size_t         src_len);
 
 /**
  *******************************************************************************
@@ -74,10 +97,10 @@ extern int potr_compress(uint8_t       *dst,
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-extern int potr_decompress(uint8_t       *dst,
-                           size_t        *dst_len,
-                           const uint8_t *src,
-                           size_t         src_len);
+COMPRESS_EXPORT int COMPRESS_API com_util_decompress(uint8_t       *dst,
+                                                     size_t        *dst_len,
+                                                     const uint8_t *src,
+                                                     size_t         src_len);
 
 #ifdef __cplusplus
 }

@@ -30,7 +30,7 @@
 #include "potrHealthThread.h"
 #include "../infra/potrTrace.h"
 #include "../infra/potrPlatform.h"
-#include "../infra/crypto/crypto.h"
+#include <com_util/crypto/crypto.h>
 
 /* TCP health スレッドに渡す引数 (path ごと) */
 typedef struct
@@ -184,7 +184,7 @@ static int tcp_send_ping_packet(struct PotrContext_ *ctx, int path_idx)
 
         memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
         memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          wire_buf + PACKET_HEADER_SIZE, POTR_MAX_PATH,
                          ctx->service.encrypt_key,
                          nonce,
@@ -306,7 +306,7 @@ POTR_THREAD_FUNC(health_thread_func)
 
                     memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
                     memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
-                    if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                    if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                                      wire_buf + PACKET_HEADER_SIZE, POTR_MAX_PATH,
                                      ctx->service.encrypt_key,
                                      nonce,
@@ -398,7 +398,7 @@ POTR_THREAD_FUNC(health_thread_func)
 
                 memcpy(wire_buf, &ping_pkt, PACKET_HEADER_SIZE);
                 memcpy(wire_buf + PACKET_HEADER_SIZE, health_states, POTR_MAX_PATH);
-                if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+                if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                                  wire_buf + PACKET_HEADER_SIZE, POTR_MAX_PATH,
                                  ctx->service.encrypt_key,
                                  nonce,

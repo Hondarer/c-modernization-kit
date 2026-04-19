@@ -3,5 +3,5 @@ OUTPUT_DIR := $(MYAPP_DIR)/prod/lib
 
 # ライブラリの指定
 ifdef PLATFORM_LINUX
-    LIBS += dl
+    LIBS += z crypto dl
 endif

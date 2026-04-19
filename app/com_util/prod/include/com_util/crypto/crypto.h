@@ -1,0 +1,152 @@
+/**
+ *******************************************************************************
+ *  @file           crypto.h
+ *  @brief          データ暗号化・復号モジュールのヘッダー。
+ *  @author         Tetsuo Honda
+ *  @date           2026/03/12
+ *  @version        1.0.0
+ *
+ *  @details
+ *  プラットフォームごとに異なる暗号 API を共通インターフェースで抽象化します。\n
+ *
+ *  | OS      | 使用ライブラリ                                           | アルゴリズム    |
+ *  | ------- | -------------------------------------------------------- | --------------- |
+ *  | Linux   | OpenSSL (libcrypto) EVP_aes_256_gcm() / EVP_sha256()     | AES-256-GCM / SHA-256 |
+ *  | Windows | CNG (BCrypt) BCRYPT_AES_ALGORITHM / BCRYPT_SHA256_ALGORITHM | AES-256-GCM / SHA-256 |
+ *
+ *  暗号化ペイロードのフォーマット:
+ *  @code
+    [暗号文: src_len バイト] [GCM 認証タグ: COM_UTIL_CRYPTO_TAG_SIZE バイト]
+ *  @endcode
+ *
+ *  ノンス構成 (12 バイト):
+ *  @code
+    [session_id: 4B NBO] [seq_num: 4B NBO] [padding: 4B 0x00]
+ *  @endcode
+ *
+ *  追加認証データ (AAD): 呼び出し元が任意のバイト列を指定可能。
+ *
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
+#ifndef CRYPTO_H
+#define CRYPTO_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+#ifdef DOXYGEN
+
+    /**
+     *  @def            CRYPTO_EXPORT
+     *  @brief          DLL エクスポート/インポート制御マクロ。
+     */
+    #define CRYPTO_EXPORT
+
+    /**
+     *  @def            CRYPTO_API
+     *  @brief          呼び出し規約マクロ。
+     */
+    #define CRYPTO_API
+
+#else /* !DOXYGEN */
+
+    #ifndef CRYPTO_STATIC
+        #define CRYPTO_STATIC 0
+    #endif /* CRYPTO_STATIC */
+    #ifndef CRYPTO_EXPORTS
+        #define CRYPTO_EXPORTS 0
+    #endif /* CRYPTO_EXPORTS */
+    #include <com_util/base/dll_exports.h>
+    #define CRYPTO_EXPORT COM_UTIL_DLL_EXPORT(CRYPTO)
+    #define CRYPTO_API    COM_UTIL_DLL_API(CRYPTO)
+
+#endif /* DOXYGEN */
+
+/** @defgroup COM_UTIL_CRYPTO 暗号化定数 (AES-256-GCM)
+ *  @{
+ */
+#define COM_UTIL_CRYPTO_KEY_SIZE   32U /**< AES-256-GCM 鍵サイズ (バイト)。 */
+#define COM_UTIL_CRYPTO_NONCE_SIZE 12U /**< AES-256-GCM ノンスサイズ (バイト)。 */
+#define COM_UTIL_CRYPTO_TAG_SIZE   16U /**< AES-256-GCM 認証タグサイズ (バイト)。暗号文の直後に付加する。 */
+/** @} */
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+/**
+ *******************************************************************************
+ *  @brief          AES-256-GCM でデータを暗号化します。
+ *  @param[out]     dst      暗号化後データを格納するバッファ。\n
+ *                           内容: [暗号文: src_len バイト][GCM タグ: COM_UTIL_CRYPTO_TAG_SIZE バイト]\n
+ *                           dst == src の in-place 暗号化も可能。
+ *  @param[in,out]  dst_len  入力: dst のバッファサイズ (>= src_len + COM_UTIL_CRYPTO_TAG_SIZE)。\n
+ *                           出力: 書き込んだバイト数 (= src_len + COM_UTIL_CRYPTO_TAG_SIZE)。
+ *  @param[in]      src      平文データへのポインタ。
+ *  @param[in]      src_len  平文データのバイト数。
+ *  @param[in]      key      AES-256 鍵 (COM_UTIL_CRYPTO_KEY_SIZE バイト)。
+ *  @param[in]      nonce    ノンス (COM_UTIL_CRYPTO_NONCE_SIZE バイト)。
+ *  @param[in]      aad      追加認証データへのポインタ。NULL の場合は AAD なし。
+ *  @param[in]      aad_len  AAD のバイト数。
+ *  @return         成功時は 0、失敗時は -1 を返します。
+ *******************************************************************************
+ */
+CRYPTO_EXPORT int CRYPTO_API com_util_encrypt(uint8_t       *dst,
+                                              size_t        *dst_len,
+                                              const uint8_t *src,
+                                              size_t         src_len,
+                                              const uint8_t *key,
+                                              const uint8_t *nonce,
+                                              const uint8_t *aad,
+                                              size_t         aad_len);
+
+/**
+ *******************************************************************************
+ *  @brief          AES-256-GCM でデータを復号し、認証タグを検証します。
+ *  @param[out]     dst      復号後データを格納するバッファ。
+ *  @param[in,out]  dst_len  入力: dst のバッファサイズ (>= src_len - COM_UTIL_CRYPTO_TAG_SIZE)。\n
+ *                           出力: 書き込んだバイト数 (= src_len - COM_UTIL_CRYPTO_TAG_SIZE)。
+ *  @param[in]      src      暗号化データへのポインタ。\n
+ *                           内容: [暗号文: src_len - COM_UTIL_CRYPTO_TAG_SIZE バイト][GCM タグ: COM_UTIL_CRYPTO_TAG_SIZE バイト]
+ *  @param[in]      src_len  暗号化データのバイト数 (タグを含む)。>= COM_UTIL_CRYPTO_TAG_SIZE。
+ *  @param[in]      key      AES-256 鍵 (COM_UTIL_CRYPTO_KEY_SIZE バイト)。
+ *  @param[in]      nonce    ノンス (COM_UTIL_CRYPTO_NONCE_SIZE バイト)。
+ *  @param[in]      aad      追加認証データへのポインタ。NULL の場合は AAD なし。
+ *  @param[in]      aad_len  AAD のバイト数。
+ *  @return         成功 (認証タグ検証 OK) 時は 0、失敗 (認証タグ不一致含む) 時は -1 を返します。
+ *******************************************************************************
+ */
+CRYPTO_EXPORT int CRYPTO_API com_util_decrypt(uint8_t       *dst,
+                                              size_t        *dst_len,
+                                              const uint8_t *src,
+                                              size_t         src_len,
+                                              const uint8_t *key,
+                                              const uint8_t *nonce,
+                                              const uint8_t *aad,
+                                              size_t         aad_len);
+
+/**
+ *******************************************************************************
+ *  @brief          任意のパスフレーズを SHA-256 ハッシュにより AES-256 鍵に変換します。
+ *  @details
+ *  入力バイト列の SHA-256 ダイジェストをそのまま鍵として使用します。\n
+ *  送受信の双方で同一のパスフレーズを指定すれば、同一の鍵が導出されます。
+ *  @param[out]     key             出力鍵バッファ (COM_UTIL_CRYPTO_KEY_SIZE = 32 バイト)。
+ *  @param[in]      passphrase      パスフレーズへのポインタ (任意のバイト列)。
+ *  @param[in]      passphrase_len  パスフレーズの長さ (バイト)。0 の場合も有効。
+ *  @return         成功時は 0、失敗時は -1 を返します。
+ *******************************************************************************
+ */
+CRYPTO_EXPORT int CRYPTO_API com_util_passphrase_to_key(uint8_t       *key,
+                                                        const uint8_t *passphrase,
+                                                        size_t         passphrase_len);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* CRYPTO_H */

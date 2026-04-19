@@ -20,14 +20,6 @@
 
 using namespace testing;
 
-extern "C" int potr_passphrase_to_key(uint8_t *key, const uint8_t *passphrase, size_t passphrase_len)
-{
-    (void)key;
-    (void)passphrase;
-    (void)passphrase_len;
-    return -1;
-}
-
 namespace
 {
 class TempConfigFile

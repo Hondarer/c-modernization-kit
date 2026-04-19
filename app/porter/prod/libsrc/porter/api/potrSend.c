@@ -21,7 +21,7 @@
 #include "../potrContext.h"
 #include "../potrPeerTable.h"
 #include "../infra/potrSendQueue.h"
-#include "../infra/compress/compress.h"
+#include <com_util/compress/compress.h>
 #include "../infra/potrTrace.h"
 
 
@@ -137,7 +137,7 @@ POTR_EXPORT int POTR_API potrSend(PotrHandle handle, PotrPeerId peer_id,
     {
         size_t cmp_len = ctx->compress_buf_size;
 
-        if (potr_compress(ctx->compress_buf, &cmp_len,
+        if (com_util_compress(ctx->compress_buf, &cmp_len,
                           (const uint8_t *)data, len) != 0)
         {
             POTR_LOG(TRACE_LEVEL_ERROR,

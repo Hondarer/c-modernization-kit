@@ -29,7 +29,7 @@
 #include "protocol/window.h"
 #include "infra/potrTrace.h"
 #include "infra/potrPlatform.h"
-#include "infra/crypto/crypto.h"
+#include <com_util/crypto/crypto.h>
 
 /* ピアのセッション識別子・開始時刻を生成して peer に格納する */
 static void peer_generate_session(PotrPeerContext *peer)
@@ -125,7 +125,7 @@ void peer_send_fin(struct PotrContext_ *ctx, PotrPeerContext *peer)
         memset(nonce + 10, 0,                   2);
 
         memcpy(wire_buf, &fin_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,

@@ -48,7 +48,7 @@
 #include "../protocol/packet.h"
 #include "../protocol/window.h"
 #include "../infra/potrTrace.h"
-#include "../infra/crypto/crypto.h"
+#include <com_util/crypto/crypto.h>
 
 static int should_track_valid_data_send_time(const struct PotrContext_ *ctx)
 {
@@ -126,7 +126,7 @@ static void flush_packed(struct PotrContext_ *ctx, size_t packed_len)
         memcpy(nonce + 6,  &outer_pkt.seq_num,    4);
         memset(nonce + 10, 0,                     2);
 
-        if (potr_encrypt(ctx->crypto_buf, &enc_len,
+        if (com_util_encrypt(ctx->crypto_buf, &enc_len,
                          packed_buf, packed_len,
                          ctx->service.encrypt_key,
                          nonce,
@@ -294,7 +294,7 @@ static void flush_packed_peer(struct PotrContext_ *ctx, PotrPeerContext *peer,
         memcpy(nonce + 6,  &outer_pkt.seq_num,    4);
         memset(nonce + 10, 0,                     2);
 
-        if (potr_encrypt(ctx->crypto_buf, &enc_len,
+        if (com_util_encrypt(ctx->crypto_buf, &enc_len,
                          packed_buf, packed_len,
                          ctx->service.encrypt_key,
                          nonce,

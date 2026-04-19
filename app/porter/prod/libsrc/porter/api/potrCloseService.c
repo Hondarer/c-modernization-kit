@@ -19,7 +19,7 @@
 #include <porter.h>
 #include <porter_const.h>
 
-#include "../infra/crypto/crypto.h"
+#include <com_util/crypto/crypto.h>
 #include "../infra/potrTrace.h"
 #include "../infra/potrSendQueue.h"
 #include "../potrContext.h"
@@ -80,7 +80,7 @@ static void send_fin(struct PotrContext_ *ctx)
         memset(nonce + 10, 0, 2);
 
         memcpy(wire_buf, &fin_pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out, NULL, 0, ctx->service.encrypt_key, nonce, wire_buf,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out, NULL, 0, ctx->service.encrypt_key, nonce, wire_buf,
                          PACKET_HEADER_SIZE) != 0)
         {
             return;
@@ -165,7 +165,7 @@ static int send_tcp_control_packet(struct PotrContext_ *ctx, PotrPacket *pkt, ui
         memset(nonce + 10, 0,                2);
 
         memcpy(wire_buf, pkt, PACKET_HEADER_SIZE);
-        if (potr_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
+        if (com_util_encrypt(wire_buf + PACKET_HEADER_SIZE, &enc_out,
                          NULL, 0,
                          ctx->service.encrypt_key,
                          nonce,

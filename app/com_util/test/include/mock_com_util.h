@@ -2,11 +2,26 @@
 #define MOCK_UTIL_H
 
 #include <testfw.h>
+#include <com_util/compress/compress.h>
+#include <com_util/crypto/crypto.h>
 #include <com_util/trace/trace.h>
 
 class Mock_com_util
 {
 public:
+    // compress
+    MOCK_METHOD(int, com_util_compress,   (uint8_t *, size_t *, const uint8_t *, size_t));
+    MOCK_METHOD(int, com_util_decompress, (uint8_t *, size_t *, const uint8_t *, size_t));
+
+    // crypto
+    MOCK_METHOD(int, com_util_encrypt,
+                (uint8_t *, size_t *, const uint8_t *, size_t,
+                 const uint8_t *, const uint8_t *, const uint8_t *, size_t));
+    MOCK_METHOD(int, com_util_decrypt,
+                (uint8_t *, size_t *, const uint8_t *, size_t,
+                 const uint8_t *, const uint8_t *, const uint8_t *, size_t));
+    MOCK_METHOD(int, com_util_passphrase_to_key, (uint8_t *, const uint8_t *, size_t));
+
     // 初期化・終了
     MOCK_METHOD(trace_logger_t *, trace_logger_create, ());
     MOCK_METHOD(void, trace_logger_destroy, (trace_logger_t *));

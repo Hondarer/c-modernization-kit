@@ -1,8 +1,5 @@
 # ライブラリの指定
 LIBS += com_util
-ifdef PLATFORM_LINUX
-    LIBS += z crypto
-endif
 
 ifdef PLATFORM_WINDOWS
     # DLL エクスポート定義
