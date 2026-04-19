@@ -48,10 +48,26 @@
 
 #else /* !DOXYGEN */
 
-    #define COM_UTIL_DLL_EXPORT_PREFIX POTR
-    #include <com_util/base/dll_exports.h>
-    #define POTR_EXPORT COM_UTIL_DLL_EXPORT_VALUE
-    #define POTR_API    COM_UTIL_DLL_API_VALUE
+    #if defined(PLATFORM_LINUX)
+        #define POTR_EXPORT
+        #define POTR_API
+    #elif defined(PLATFORM_WINDOWS)
+        #ifndef __INTELLISENSE__
+            #if defined(POTR_STATIC)
+                #define POTR_EXPORT
+            #elif defined(POTR_EXPORTS)
+                #define POTR_EXPORT __declspec(dllexport)
+            #else /* !POTR_STATIC && !POTR_EXPORTS */
+                #define POTR_EXPORT __declspec(dllimport)
+            #endif /* POTR_STATIC */
+        #else /* __INTELLISENSE__ */
+            #define POTR_EXPORT
+        #endif /* __INTELLISENSE__ */
+        #define POTR_API __stdcall
+    #else /* !PLATFORM_LINUX && !PLATFORM_WINDOWS */
+        #define POTR_EXPORT
+        #define POTR_API
+    #endif /* PLATFORM_ */
 
 #endif /* DOXYGEN */
 

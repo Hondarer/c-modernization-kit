@@ -23,6 +23,21 @@
  *  - CALC_STATIC
  *  - CALC_EXPORTS
  *
+ *  @warning        **設計上の制約: 遅延参照による汚染に注意**\n
+ *                  このヘッダーが定義する `COM_UTIL_DLL_EXPORT_VALUE` および
+ *                  `COM_UTIL_DLL_API_VALUE` は共有中間マクロです。\n
+ *                  インクルード後に別のライブラリの公開ヘッダー (例: `clock.h`) が
+ *                  再び本ヘッダーをインクルードすると、これらの値が上書きされます。\n
+ *                  呼び出し側が `{PREFIX}_EXPORT = COM_UTIL_DLL_EXPORT_VALUE` のように
+ *                  遅延参照として定義している場合、その後のインクルードで値が変化し
+ *                  誤った展開 (例: `__declspec(dllimport)` への誤展開) が生じます。\n
+ *                  \n
+ *                  **回避策**: 公開ヘッダー内での `{PREFIX}_EXPORT` 定義には、
+ *                  `COM_UTIL_DLL_EXPORT_VALUE` への参照を避け、
+ *                  プレフィックス固有の `#if defined({PREFIX}_STATIC)` /
+ *                  `#elif defined({PREFIX}_EXPORTS)` / `#else` チェーンを
+ *                  直接インラインで記述してください。
+ *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
  *******************************************************************************
