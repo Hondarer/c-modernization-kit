@@ -8,7 +8,7 @@
  *
  *  @details
  *  OS ごとに異なるクロック API を共通インターフェースで抽象化します。\n
- *  2 種類のクロックを提供します。用途に応じて使い分けてください。
+ *  単調増加クロック、実時刻クロック、UTC 分解、絶対 deadline 生成を提供します。
  *
  *  @section        clock_comparison クロックの比較
  *
@@ -30,6 +30,10 @@
  *    実時刻クロックは NTP 補正でジャンプするため、差分計算が正しく行えない場合がある。
  *  - **実時刻を記録・外部と共有する** → clock_get_realtime() を使用する。\n
  *    セッション開始時刻・ログのタイムスタンプなど、カレンダー時刻として意味を持つ場合に限定する。
+ *  - **現在の UTC を分解済みで扱う** → clock_get_realtime_utc() を使用する。\n
+ *    ログのタイムスタンプ書式化など、年月日時分秒に分解して扱う用途に使用する。
+ *  - **実時刻 deadline を作る** → clock_get_realtime_deadline_ms() を使用する。\n
+ *    `pthread_mutex_timedlock()` など絶対時刻 deadline を要求する API へ渡す値を生成する。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -41,6 +45,7 @@
 
 #include <com_util/base/platform.h>
 #include <stdint.h>
+#include <time.h>
 
 #ifdef DOXYGEN
 
@@ -226,6 +231,63 @@ extern "C"
      *******************************************************************************
      */
     CLOCK_EXPORT void CLOCK_API clock_get_realtime(int64_t *tv_sec, int32_t *tv_nsec);
+
+    /**
+     *******************************************************************************
+     *  @brief          現在時刻を UTC の分解済み時刻とナノ秒で返します。
+     *  @param[out]     utc_tm  UTC の年月日時分秒を受け取る `struct tm`。
+     *  @param[out]     tv_nsec ナノ秒部 (0 以上 999,999,999 以下)。
+     *
+     *  @details
+     *  現在の実時刻を取得し、UTC の分解済み時刻へ変換して返します。\n
+     *  ログのタイムスタンプ生成など、カレンダー時刻を文字列化する用途を想定します。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  実装はスレッドセーフな UTC 変換 API (`gmtime_r` / `gmtime_s`) を使用します。
+     *
+     *  @note           `utc_tm` は UTC であり、ローカルタイムではありません。
+     *
+     *  使用例:
+     *  @code{.c}
+        struct tm utc_tm;
+        int32_t   nsec;
+
+        clock_get_realtime_utc(&utc_tm, &nsec);
+        // utc_tm と nsec を使って "YYYY-MM-DD HH:MM:SS.mmm" を組み立てる
+     *  @endcode
+     *******************************************************************************
+     */
+    CLOCK_EXPORT void CLOCK_API clock_get_realtime_utc(struct tm *utc_tm, int32_t *tv_nsec);
+
+    /**
+     *******************************************************************************
+     *  @brief          現在時刻から指定ミリ秒後の absolute deadline を返します。
+     *  @param[in]      timeout_ms  現在時刻へ加算するタイムアウト値 (ミリ秒)。
+     *  @param[out]     abs_timeout absolute deadline を受け取る `struct timespec`。
+     *
+     *  @details
+     *  現在の実時刻を取得し、指定ミリ秒を加算した absolute deadline を返します。\n
+     *  `pthread_mutex_timedlock()` や `pthread_rwlock_timedrdlock()` など、
+     *  絶対時刻を要求する API の入力生成に使用します。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。
+     *
+     *  @warning        返す値は実時刻ベースです。\n
+     *                  NTP 補正や管理者による時刻変更の影響を受けるため、
+     *                  差分計算には使用しないでください。
+     *
+     *  使用例:
+     *  @code{.c}
+        struct timespec deadline;
+
+        clock_get_realtime_deadline_ms(100, &deadline);
+        pthread_mutex_timedlock(&mutex, &deadline);
+     *  @endcode
+     *******************************************************************************
+     */
+    CLOCK_EXPORT void CLOCK_API clock_get_realtime_deadline_ms(uint64_t timeout_ms, struct timespec *abs_timeout);
 
 #ifdef __cplusplus
 }

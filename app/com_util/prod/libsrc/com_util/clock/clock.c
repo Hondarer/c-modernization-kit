@@ -13,6 +13,7 @@
 
 #include <com_util/base/platform.h>
 #include <com_util/clock/clock.h>
+#include <string.h>
 
 #if defined(PLATFORM_LINUX)
     #include <time.h>
@@ -22,10 +23,17 @@
 
 /* 変換定数 */
 #define MSEC_PER_SEC              (1000ULL)       /* ミリ秒 / 秒 */
+#define NSEC_PER_SEC              (1000000000LL)  /* ナノ秒 / 秒 */
 #define NSEC_PER_MSEC             (1000000ULL)    /* ナノ秒 / ミリ秒 */
 #define FILETIME_UNITS_PER_SEC    (10000000ULL)   /* FILETIME 単位 (100ns) / 秒 */
 #define NSEC_PER_FILETIME_UNIT    (100ULL)        /* ナノ秒 / FILETIME 単位 */
 #define FILETIME_EPOCH_OFFSET_SEC (11644473600LL) /* 1601-01-01 → 1970-01-01 の差 (秒) */
+
+static void clock_fill_timespec(struct timespec *ts, int64_t tv_sec, int32_t tv_nsec)
+{
+    ts->tv_sec = (time_t)tv_sec;
+    ts->tv_nsec = (long)tv_nsec;
+}
 
 /* doxygen コメントはヘッダに記載 */
 uint64_t clock_get_monotonic_ms(void)
@@ -71,4 +79,50 @@ void clock_get_realtime(int64_t *tv_sec, int32_t *tv_nsec)
     *tv_sec = (int64_t)(uli.QuadPart / FILETIME_UNITS_PER_SEC) - FILETIME_EPOCH_OFFSET_SEC;
     *tv_nsec = (int32_t)((uli.QuadPart % FILETIME_UNITS_PER_SEC) * NSEC_PER_FILETIME_UNIT);
 #endif /* PLATFORM_ */
+}
+
+/* doxygen コメントはヘッダに記載 */
+void clock_get_realtime_utc(struct tm *utc_tm, int32_t *tv_nsec)
+{
+    int64_t realtime_sec;
+
+    clock_get_realtime(&realtime_sec, tv_nsec);
+
+#if defined(PLATFORM_LINUX)
+    {
+        time_t realtime_time = (time_t)realtime_sec;
+        if (gmtime_r(&realtime_time, utc_tm) == NULL)
+        {
+            memset(utc_tm, 0, sizeof(*utc_tm));
+        }
+    }
+#elif defined(PLATFORM_WINDOWS)
+    {
+        time_t realtime_time = (time_t)realtime_sec;
+        if (gmtime_s(utc_tm, &realtime_time) != 0)
+        {
+            memset(utc_tm, 0, sizeof(*utc_tm));
+        }
+    }
+#endif /* PLATFORM_ */
+}
+
+/* doxygen コメントはヘッダに記載 */
+void clock_get_realtime_deadline_ms(uint64_t timeout_ms, struct timespec *abs_timeout)
+{
+    int64_t deadline_sec;
+    int32_t deadline_nsec;
+
+    clock_get_realtime(&deadline_sec, &deadline_nsec);
+
+    deadline_sec += (int64_t)(timeout_ms / MSEC_PER_SEC);
+    deadline_nsec += (int32_t)((timeout_ms % MSEC_PER_SEC) * NSEC_PER_MSEC);
+
+    if (deadline_nsec >= NSEC_PER_SEC)
+    {
+        deadline_sec += 1;
+        deadline_nsec -= (int32_t)NSEC_PER_SEC;
+    }
+
+    clock_fill_timespec(abs_timeout, deadline_sec, deadline_nsec);
 }

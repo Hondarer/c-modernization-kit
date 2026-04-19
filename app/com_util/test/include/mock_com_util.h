@@ -2,6 +2,7 @@
 #define MOCK_UTIL_H
 
 #include <testfw.h>
+#include <com_util/clock/clock.h>
 #include <com_util/compress/compress.h>
 #include <com_util/crypto/crypto.h>
 #include <com_util/trace/trace.h>
@@ -52,6 +53,11 @@ public:
     MOCK_METHOD(trace_level_t, trace_logger_get_os_level, (trace_logger_t *));
     MOCK_METHOD(trace_level_t, trace_logger_get_file_level, (trace_logger_t *));
     MOCK_METHOD(trace_level_t, trace_logger_get_stderr_level, (trace_logger_t *));
+
+    // clock
+    MOCK_METHOD(uint64_t, clock_get_monotonic_ms, ());
+    MOCK_METHOD(void, clock_get_realtime_utc, (struct tm *, int32_t *));
+    MOCK_METHOD(void, clock_get_realtime_deadline_ms, (uint64_t, struct timespec *));
 
     Mock_com_util();
     ~Mock_com_util();

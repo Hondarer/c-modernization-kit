@@ -13,6 +13,7 @@
  *******************************************************************************
  */
 
+#include <com_util/clock/clock.h>
 #include <com_util/fs/path_max.h>
 #include <com_util/trace/trace_file.h>
 #include <stdio.h>
@@ -27,7 +28,6 @@
     #include <pthread.h>
     #include <sys/stat.h>
     #include <sys/types.h>
-    #include <time.h>
     #include <unistd.h>
 #endif /* PLATFORM_LINUX */
 
@@ -111,30 +111,25 @@ static char level_char(int level)
  */
 static void format_timestamp(char *buf, int buf_size)
 {
-#if defined(PLATFORM_LINUX)
-    struct timespec ts;
-    struct tm tm_val;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    gmtime_r(&ts.tv_sec, &tm_val);
-    /* -Wformat-truncation の抑制: gmtime_r() が返す tm 構造体の各フィールドは POSIX で
-     * 範囲が保証されており (tm_mon: 0-11, tm_mday: 1-31 等)、出力は常に 23 文字以内に
-     * 収まる。GCC は int 型の理論上の最大範囲 [-2147483648, 2147483647] を使って静的
-     * 検証するため false positive が発生する。pragma はその誤報を局所的に抑制する。 */
+    struct tm utc_tm;
+    int32_t tv_nsec;
+
+    clock_get_realtime_utc(&utc_tm, &tv_nsec);
+
+    /* -Wformat-truncation の抑制: clock_get_realtime_utc() が返す tm 構造体の各フィールドは
+     * UTC 分解済みの正規化値であり (tm_mon: 0-11, tm_mday: 1-31 等)、出力は常に
+     * 23 文字以内に収まる。GCC は int 型の理論上の最大範囲 [-2147483648, 2147483647]
+     * を使って静的検証するため false positive が発生する。pragma はその誤報を局所的に
+     * 抑制する。 */
     #if defined(COMPILER_GCC)
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wformat-truncation"
     #endif /* COMPILER_GCC */
-    snprintf(buf, (size_t)buf_size, "%04d-%02d-%02d %02d:%02d:%02d.%03d", tm_val.tm_year + 1900, tm_val.tm_mon + 1,
-             tm_val.tm_mday, tm_val.tm_hour, tm_val.tm_min, tm_val.tm_sec, (int)(ts.tv_nsec / 1000000));
+    snprintf(buf, (size_t)buf_size, "%04d-%02d-%02d %02d:%02d:%02d.%03d", utc_tm.tm_year + 1900, utc_tm.tm_mon + 1,
+             utc_tm.tm_mday, utc_tm.tm_hour, utc_tm.tm_min, utc_tm.tm_sec, (int)(tv_nsec / 1000000));
     #if defined(COMPILER_GCC)
         #pragma GCC diagnostic pop
     #endif /* COMPILER_GCC */
-#elif defined(PLATFORM_WINDOWS)
-    SYSTEMTIME st;
-    GetSystemTime(&st);
-    snprintf(buf, (size_t)buf_size, "%04d-%02d-%02d %02d:%02d:%02d.%03d", (int)st.wYear, (int)st.wMonth, (int)st.wDay,
-             (int)st.wHour, (int)st.wMinute, (int)st.wSecond, (int)st.wMilliseconds);
-#endif /* PLATFORM_ */
 }
 
 /**
@@ -410,13 +405,7 @@ TRACE_FILE_EXPORT int TRACE_FILE_API trace_file_sink_write(trace_file_sink_t *ha
 #if defined(PLATFORM_LINUX)
     {
         struct timespec abs_timeout;
-        clock_gettime(CLOCK_REALTIME, &abs_timeout);
-        abs_timeout.tv_nsec += (long)FILE_LOCK_TIMEOUT_MS * 1000000L;
-        if (abs_timeout.tv_nsec >= 1000000000L)
-        {
-            abs_timeout.tv_sec += 1;
-            abs_timeout.tv_nsec -= 1000000000L;
-        }
+        clock_get_realtime_deadline_ms(FILE_LOCK_TIMEOUT_MS, &abs_timeout);
         if (pthread_mutex_timedlock(&handle->mutex, &abs_timeout) != 0)
         {
             return -1;
@@ -424,10 +413,10 @@ TRACE_FILE_EXPORT int TRACE_FILE_API trace_file_sink_write(trace_file_sink_t *ha
     }
 #elif defined(PLATFORM_WINDOWS)
     {
-        DWORD deadline = GetTickCount() + (DWORD)FILE_LOCK_TIMEOUT_MS;
+        uint64_t deadline = clock_get_monotonic_ms() + (uint64_t)FILE_LOCK_TIMEOUT_MS;
         while (!TryEnterCriticalSection(&handle->cs))
         {
-            if ((LONG)(GetTickCount() - deadline) >= 0)
+            if (clock_get_monotonic_ms() >= deadline)
             {
                 return -1;
             }

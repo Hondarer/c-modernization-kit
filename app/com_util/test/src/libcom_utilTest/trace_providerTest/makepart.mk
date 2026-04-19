@@ -13,4 +13,4 @@ INCDIR += \
     $(MYAPP_DIR)/prod/libsrc/com_util/trace/backends/etw
 
 # ライブラリの指定
-LIBS += mock_libc
+LIBS += mock_libc mock_com_util

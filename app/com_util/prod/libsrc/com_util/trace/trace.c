@@ -13,6 +13,7 @@
  *
  *******************************************************************************
  */
+#include <com_util/clock/clock.h>
 #include <com_util/trace/trace.h>
 #include <com_util/trace/trace_file.h>
 #include <stdlib.h>
@@ -49,7 +50,6 @@ static SRWLOCK s_registry_lock = SRWLOCK_INIT;
 
 #elif defined(PLATFORM_LINUX)
 
-#include <time.h>
 #include <pthread.h>
 #include <syslog.h>
 #include <unistd.h>
@@ -429,19 +429,13 @@ static int config_lock_shared_timed(trace_logger_t *handle)
 {
 #if defined(PLATFORM_LINUX)
     struct timespec abs_timeout;
-    clock_gettime(CLOCK_REALTIME, &abs_timeout);
-    abs_timeout.tv_nsec += (long)LOCK_TIMEOUT_MS * 1000000L;
-    if (abs_timeout.tv_nsec >= 1000000000L)
-    {
-        abs_timeout.tv_sec++;
-        abs_timeout.tv_nsec -= 1000000000L;
-    }
+    clock_get_realtime_deadline_ms(LOCK_TIMEOUT_MS, &abs_timeout);
     return (pthread_rwlock_timedrdlock(&handle->config_rwlock, &abs_timeout) == 0) ? 0 : -1;
 #elif defined(PLATFORM_WINDOWS)
-    DWORD deadline = GetTickCount() + (DWORD)LOCK_TIMEOUT_MS;
+    uint64_t deadline = clock_get_monotonic_ms() + (uint64_t)LOCK_TIMEOUT_MS;
     while (!TryAcquireSRWLockShared(&handle->config_rwlock))
     {
-        if ((LONG)(GetTickCount() - deadline) >= 0)
+        if (clock_get_monotonic_ms() >= deadline)
         {
             return -1;
         }
@@ -804,33 +798,23 @@ static void write_stderr_entry(trace_level_t level, const char *msg)
     char ts[STDERR_TS_BUF_SIZE];
     static const char lc_table[] = {'C', 'E', 'W', 'I', 'V', 'D'};
     char lc;
+    struct tm utc_tm;
+    int32_t tv_nsec;
 
-#if defined(PLATFORM_LINUX)
-    struct timespec tsp;
-    struct tm tm_val;
-    clock_gettime(CLOCK_REALTIME, &tsp);
-    gmtime_r(&tsp.tv_sec, &tm_val);
+    clock_get_realtime_utc(&utc_tm, &tv_nsec);
+
 #if defined(COMPILER_GCC)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 #endif /* COMPILER_GCC */
     snprintf(ts, sizeof(ts),
              "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-             tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
-             tm_val.tm_hour, tm_val.tm_min, tm_val.tm_sec,
-             (int)(tsp.tv_nsec / 1000000));
+             utc_tm.tm_year + 1900, utc_tm.tm_mon + 1, utc_tm.tm_mday,
+             utc_tm.tm_hour, utc_tm.tm_min, utc_tm.tm_sec,
+             (int)(tv_nsec / 1000000));
 #if defined(COMPILER_GCC)
 #pragma GCC diagnostic pop
 #endif /* COMPILER_GCC */
-#elif defined(PLATFORM_WINDOWS)
-    SYSTEMTIME st;
-    GetSystemTime(&st);
-    snprintf(ts, sizeof(ts),
-             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-             (int)st.wYear, (int)st.wMonth, (int)st.wDay,
-             (int)st.wHour, (int)st.wMinute, (int)st.wSecond,
-             (int)st.wMilliseconds);
-#endif /* PLATFORM_ */
 
     lc = ((int)level >= 0 && (int)level < (int)TRACE_LEVEL_NONE) ? lc_table[(int)level] : 'D';
     fprintf(stderr, "%s %c %s\n", ts, lc, msg);
