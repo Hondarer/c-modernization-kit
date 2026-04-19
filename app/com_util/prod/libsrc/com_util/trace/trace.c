@@ -1106,24 +1106,6 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT void TRACE_LOGGER_API
-    trace_logger_destroy(trace_logger_t *handle)
-{
-    if (handle == NULL)
-    {
-        return;
-    }
-    if (begin_dispose(handle) != 0)
-    {
-        return;
-    }
-
-    registry_unregister_handle(handle);
-    stop_handle_for_cleanup(handle);
-    trace_handle_release_normal(handle);
-}
-
-/* doxygen コメントは、ヘッダに記載 */
 TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_set_name(trace_logger_t *handle, const char *name, int64_t identifier)
 {
@@ -1175,6 +1157,30 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
+TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    trace_logger_get_os_level(trace_logger_t *handle)
+{
+    trace_level_t lv;
+
+    if (!handle_is_active(handle))
+    {
+        return TRACE_LEVEL_NONE;
+    }
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return TRACE_LEVEL_NONE;
+    }
+    if (handle->lifecycle_state != TRACE_HANDLE_ACTIVE)
+    {
+        config_unlock_shared(handle);
+        return TRACE_LEVEL_NONE;
+    }
+    lv = handle->os_level;
+    config_unlock_shared(handle);
+    return lv;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
 TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     trace_logger_set_os_level(trace_logger_t *handle, trace_level_t level)
 {
@@ -1193,6 +1199,30 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
     handle->os_level = level;
     config_unlock_exclusive(handle);
     return 0;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    trace_logger_get_file_level(trace_logger_t *handle)
+{
+    trace_level_t lv;
+
+    if (!handle_is_active(handle))
+    {
+        return TRACE_LEVEL_NONE;
+    }
+    if (config_lock_shared_timed(handle) != 0)
+    {
+        return TRACE_LEVEL_NONE;
+    }
+    if (handle->lifecycle_state != TRACE_HANDLE_ACTIVE)
+    {
+        config_unlock_shared(handle);
+        return TRACE_LEVEL_NONE;
+    }
+    lv = handle->file_level;
+    config_unlock_shared(handle);
+    return lv;
 }
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -1235,75 +1265,6 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
-    trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level)
-{
-    if (!handle_is_active(handle))
-    {
-        return -1;
-    }
-
-    config_lock_exclusive(handle);
-    if (handle->lifecycle_state != TRACE_HANDLE_ACTIVE || handle->running)
-    {
-        config_unlock_exclusive(handle);
-        return -1;
-    }
-
-    handle->stderr_level = level;
-    config_unlock_exclusive(handle);
-    return 0;
-}
-
-/* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
-    trace_logger_get_os_level(trace_logger_t *handle)
-{
-    trace_level_t lv;
-
-    if (!handle_is_active(handle))
-    {
-        return TRACE_LEVEL_NONE;
-    }
-    if (config_lock_shared_timed(handle) != 0)
-    {
-        return TRACE_LEVEL_NONE;
-    }
-    if (handle->lifecycle_state != TRACE_HANDLE_ACTIVE)
-    {
-        config_unlock_shared(handle);
-        return TRACE_LEVEL_NONE;
-    }
-    lv = handle->os_level;
-    config_unlock_shared(handle);
-    return lv;
-}
-
-/* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
-    trace_logger_get_file_level(trace_logger_t *handle)
-{
-    trace_level_t lv;
-
-    if (!handle_is_active(handle))
-    {
-        return TRACE_LEVEL_NONE;
-    }
-    if (config_lock_shared_timed(handle) != 0)
-    {
-        return TRACE_LEVEL_NONE;
-    }
-    if (handle->lifecycle_state != TRACE_HANDLE_ACTIVE)
-    {
-        config_unlock_shared(handle);
-        return TRACE_LEVEL_NONE;
-    }
-    lv = handle->file_level;
-    config_unlock_shared(handle);
-    return lv;
-}
-
-/* doxygen コメントは、ヘッダに記載 */
 TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
     trace_logger_get_stderr_level(trace_logger_t *handle)
 {
@@ -1325,6 +1286,45 @@ TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
     lv = handle->stderr_level;
     config_unlock_shared(handle);
     return lv;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level)
+{
+    if (!handle_is_active(handle))
+    {
+        return -1;
+    }
+
+    config_lock_exclusive(handle);
+    if (handle->lifecycle_state != TRACE_HANDLE_ACTIVE || handle->running)
+    {
+        config_unlock_exclusive(handle);
+        return -1;
+    }
+
+    handle->stderr_level = level;
+    config_unlock_exclusive(handle);
+    return 0;
+}
+
+/* doxygen コメントは、ヘッダに記載 */
+TRACE_LOGGER_EXPORT void TRACE_LOGGER_API
+    trace_logger_destroy(trace_logger_t *handle)
+{
+    if (handle == NULL)
+    {
+        return;
+    }
+    if (begin_dispose(handle) != 0)
+    {
+        return;
+    }
+
+    registry_unregister_handle(handle);
+    stop_handle_for_cleanup(handle);
+    trace_handle_release_normal(handle);
 }
 
 void trace_registry_dispose_all_on_unload(int process_terminating)

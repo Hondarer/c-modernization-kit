@@ -544,6 +544,22 @@ extern "C"
 
     /**
      *******************************************************************************
+     *  @brief          OS トレースの現在のスレッショルドレベルを取得する。
+     *
+     *  @param[in]      handle   trace_logger_create の戻り値。
+     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
+     *                  @c TRACE_LEVEL_NONE を返す。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  started / stopped どちらの状態でも呼び出し可能です。
+     *******************************************************************************
+     */
+    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+        trace_logger_get_os_level(trace_logger_t *handle);
+
+    /**
+     *******************************************************************************
      *  @brief          OS トレースのスレッショルドレベルを設定する。
      *
      *  ETW (Windows) または syslog (Linux) に出力するメッセージの
@@ -568,6 +584,22 @@ extern "C"
      */
     TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
         trace_logger_set_os_level(trace_logger_t *handle, trace_level_t level);
+
+    /**
+     *******************************************************************************
+     *  @brief          ファイルトレースの現在のスレッショルドレベルを取得する。
+     *
+     *  @param[in]      handle   trace_logger_create の戻り値。
+     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
+     *                  @c TRACE_LEVEL_NONE を返す。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  started / stopped どちらの状態でも呼び出し可能です。
+     *******************************************************************************
+     */
+    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+        trace_logger_get_file_level(trace_logger_t *handle);
 
     /**
      *******************************************************************************
@@ -609,6 +641,22 @@ extern "C"
 
     /**
      *******************************************************************************
+     *  @brief          stderr トレースの現在のスレッショルドレベルを取得する。
+     *
+     *  @param[in]      handle   trace_logger_create の戻り値。
+     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
+     *                  @c TRACE_LEVEL_NONE を返す。
+     *
+     *  @par            スレッド セーフティ
+     *  本関数はスレッドセーフです。\n
+     *  started / stopped どちらの状態でも呼び出し可能です。
+     *******************************************************************************
+     */
+    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+        trace_logger_get_stderr_level(trace_logger_t *handle);
+
+    /**
+     *******************************************************************************
      *  @brief          stderr トレースのスレッショルドレベルを設定する。
      *
      *  標準エラー出力 (stderr) に出力するメッセージの最低重要度レベルを変更します。\n
@@ -637,55 +685,6 @@ extern "C"
      */
     TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
         trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level);
-
-    /**
-     *******************************************************************************
-     *  @brief          OS トレースの現在のスレッショルドレベルを取得する。
-     *
-     *  @param[in]      handle   trace_logger_create の戻り値。
-     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
-     *                  @c TRACE_LEVEL_NONE を返す。
-     *
-     *  @par            スレッド セーフティ
-     *  本関数はスレッドセーフです。\n
-     *  started / stopped どちらの状態でも呼び出し可能です。
-     *******************************************************************************
-     */
-    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
-        trace_logger_get_os_level(trace_logger_t *handle);
-
-    /**
-     *******************************************************************************
-     *  @brief          ファイルトレースの現在のスレッショルドレベルを取得する。
-     *
-     *  @param[in]      handle   trace_logger_create の戻り値。
-     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
-     *                  @c TRACE_LEVEL_NONE を返す。
-     *
-     *  @par            スレッド セーフティ
-     *  本関数はスレッドセーフです。\n
-     *  started / stopped どちらの状態でも呼び出し可能です。
-     *******************************************************************************
-     */
-    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
-        trace_logger_get_file_level(trace_logger_t *handle);
-
-    /**
-     *******************************************************************************
-     *  @brief          stderr トレースの現在のスレッショルドレベルを取得する。
-     *
-     *  @param[in]      handle   trace_logger_create の戻り値。
-     *  @return         現在のスレッショルドレベル。handle が NULL またはロック取得失敗時は
-     *                  @c TRACE_LEVEL_NONE を返す。
-     *
-     *  @par            スレッド セーフティ
-     *  本関数はスレッドセーフです。\n
-     *  started / stopped どちらの状態でも呼び出し可能です。
-     *******************************************************************************
-     */
-    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
-        trace_logger_get_stderr_level(trace_logger_t *handle);
-
     /**
      *******************************************************************************
      *  @brief          トレースプロバイダを終了し、リソースを解放する。
