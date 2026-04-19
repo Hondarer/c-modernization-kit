@@ -298,6 +298,7 @@ static int to_syslog_level(trace_level_t lv)
     case TRACE_LEVEL_WARNING:  return LOG_WARNING;
     case TRACE_LEVEL_INFO:     return LOG_INFO;
     case TRACE_LEVEL_VERBOSE:  return LOG_DEBUG;
+    case TRACE_LEVEL_DEBUG:    return LOG_DEBUG;
     case TRACE_LEVEL_NONE:
     default:                return LOG_DEBUG;
     }
@@ -320,6 +321,8 @@ static int to_etw_level(trace_level_t lv)
     case TRACE_LEVEL_ERROR:    return 2;
     case TRACE_LEVEL_WARNING:  return 3;
     case TRACE_LEVEL_INFO:     return 4;
+    case TRACE_LEVEL_VERBOSE:  return 5;
+    case TRACE_LEVEL_DEBUG:    return 5;
     default:                return 5;
     }
 }
@@ -799,7 +802,7 @@ static int should_output(trace_level_t msg_level, trace_level_t threshold)
 static void write_stderr_entry(trace_level_t level, const char *msg)
 {
     char ts[STDERR_TS_BUF_SIZE];
-    static const char lc_table[] = {'C', 'E', 'W', 'I', 'V'};
+    static const char lc_table[] = {'C', 'E', 'W', 'I', 'V', 'D'};
     char lc;
 
 #if defined(PLATFORM_LINUX)
@@ -829,7 +832,7 @@ static void write_stderr_entry(trace_level_t level, const char *msg)
              (int)st.wMilliseconds);
 #endif /* PLATFORM_ */
 
-    lc = ((int)level < (int)TRACE_LEVEL_NONE) ? lc_table[(int)level] : 'V';
+    lc = ((int)level >= 0 && (int)level < (int)TRACE_LEVEL_NONE) ? lc_table[(int)level] : 'D';
     fprintf(stderr, "%s %c %s\n", ts, lc, msg);
 }
 

@@ -19,6 +19,7 @@ Windows でトレースを OS 標準のイベント基盤へ流し、外部の E
 - `trace` 上位では OS トレースの出力先として利用される
 - Windows では複数の `trace_logger_t` があっても、ETW プロバイダ登録は共有される
 - 通常のメッセージ出力は `trace_logger_write()` 系から透過的に ETW へ流れる
+- `TRACE_LEVEL_VERBOSE` と `TRACE_LEVEL_DEBUG` はどちらも ETW Level 5 として扱われる
 
 ## 代表的な使いどころ
 

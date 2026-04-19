@@ -180,7 +180,8 @@
  *  @brief          アプリケーション共通トレースレベル。
  *
  *  OS 非依存のトレースレベルを定義します。重大度は上から下へ低下します。\n
- *  内部で ETW Level (1-5) および syslog severity へマッピングされます。
+ *  内部で ETW Level (1-5) および syslog severity へマッピングされます。\n
+ *  TRACE_LEVEL_DEBUG は ETW / syslog では TRACE_LEVEL_VERBOSE と同じ詳細度で扱われます。
  *
  *  | trace_level          | ETW Level         | syslog severity |
  *  | -------------------- | ----------------- | --------------- |
@@ -189,6 +190,7 @@
  *  | TRACE_LEVEL_WARNING  | Warning (3)       | LOG_WARNING (4) |
  *  | TRACE_LEVEL_INFO     | Informational (4) | LOG_INFO (6)    |
  *  | TRACE_LEVEL_VERBOSE  | Verbose (5)       | LOG_DEBUG (7)   |
+ *  | TRACE_LEVEL_DEBUG    | Verbose (5)       | LOG_DEBUG (7)   |
  */
 typedef enum trace_level_t
 {
@@ -196,8 +198,9 @@ typedef enum trace_level_t
     TRACE_LEVEL_ERROR    = 1, /**< エラー。 */
     TRACE_LEVEL_WARNING  = 2, /**< 警告。 */
     TRACE_LEVEL_INFO     = 3, /**< 情報。 */
-    TRACE_LEVEL_VERBOSE  = 4, /**< 詳細 (デバッグ)。 */
-    TRACE_LEVEL_NONE     = 5  /**< 出力しない。 */
+    TRACE_LEVEL_VERBOSE  = 4, /**< 詳細な診断情報。 */
+    TRACE_LEVEL_DEBUG    = 5, /**< 最も詳細な診断情報。 */
+    TRACE_LEVEL_NONE     = 6  /**< 出力しない。 */
 } trace_level_t;
 
 /* ===== デフォルトトレースレベル ===== */

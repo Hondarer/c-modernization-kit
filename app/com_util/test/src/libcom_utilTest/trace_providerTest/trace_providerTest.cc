@@ -1,6 +1,7 @@
 #include <testfw.h>
 #include <com_util/trace/trace.h>
 #include <com_util/trace/trace_file.h>
+#include <gtest/internal/gtest-port.h>
 #include <filesystem>
 #include <vector>
 
@@ -49,7 +50,7 @@ TEST_F(trace_providerTest, test_write_returns_zero)
     trace_logger_destroy(handle);
 }
 
-// 全レベル (CRITICAL〜VERBOSE) で書き込みが成功することの確認
+// 全レベル (CRITICAL〜DEBUG) で書き込みが成功することの確認
 TEST_F(trace_providerTest, test_write_all_levels)
 {
     // Arrange
@@ -63,6 +64,7 @@ TEST_F(trace_providerTest, test_write_all_levels)
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_WARNING,  "warning"));  // [確認_正常系] - WARNING レベルで書き込めること。
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_INFO,     "info"));     // [確認_正常系] - INFO レベルで書き込めること。
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_VERBOSE,  "verbose"));  // [確認_正常系] - VERBOSE レベルで書き込めること。
+    EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_DEBUG,    "debug"));    // [確認_正常系] - DEBUG レベルで書き込めること。
 
     // Cleanup
     trace_logger_destroy(handle);
@@ -707,6 +709,7 @@ TEST_F(trace_providerTest, test_os_level_filters_below_threshold)
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_WARNING,  "warning filtered")); // [確認_正常系] - WARNING はフィルタリングされること。
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_INFO,     "info filtered"));    // [確認_正常系] - INFO はフィルタリングされること。
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_VERBOSE,  "verbose filtered")); // [確認_正常系] - VERBOSE はフィルタリングされること。
+    EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_DEBUG,    "debug filtered"));   // [確認_正常系] - DEBUG はフィルタリングされること。
 
     // Cleanup
     trace_logger_destroy(handle);
@@ -731,9 +734,10 @@ TEST_F(trace_providerTest, test_default_os_level_is_info)
     trace_logger_start(handle);
 
     // Act & Assert
-    // デフォルト OS レベルは INFO なので、VERBOSE は OS に出力されない (戻り値は 0: エラーではなくフィルタリング)
+    // デフォルト OS レベルは INFO なので、VERBOSE/DEBUG は OS に出力されない (戻り値は 0: エラーではなくフィルタリング)
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_INFO,    "info passes"));     // [確認_正常系] - INFO はデフォルトで出力されること。
     EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_VERBOSE, "verbose filtered")); // [確認_正常系] - VERBOSE はデフォルトでフィルタリングされること。
+    EXPECT_EQ(0, trace_logger_write(handle, TRACE_LEVEL_DEBUG,   "debug filtered"));   // [確認_正常系] - DEBUG はデフォルトでフィルタリングされること。
 
     // Cleanup
     trace_logger_destroy(handle);
@@ -798,6 +802,58 @@ TEST_F(trace_providerTest, test_file_level_filters_messages)
     remove(path.c_str());
 }
 
+// ファイルレベルを VERBOSE に設定すると DEBUG のみ抑止されることの確認
+TEST_F(trace_providerTest, test_file_level_verbose_filters_debug_only)
+{
+    // Arrange
+    string ws = findWorkspaceRoot();
+    string path = ws + "/app/com_util/test/src/libcom_utilTest/trace_providerTest/results/trace_verbose_filter.log";
+    remove(path.c_str());
+
+    trace_logger_t *handle = trace_logger_create();
+    ASSERT_NE((trace_logger_t *)NULL, handle);
+
+    // Act
+    trace_logger_set_file_level(handle, path.c_str(), TRACE_LEVEL_VERBOSE, 0, 0); // [手順] - ファイルレベルを VERBOSE に設定する。
+    trace_logger_start(handle);
+    trace_logger_write(handle, TRACE_LEVEL_VERBOSE, "verbose in file"); // [手順] - VERBOSE を書き込む。
+    trace_logger_write(handle, TRACE_LEVEL_DEBUG,   "debug filtered");  // [手順] - DEBUG を書き込む。
+    trace_logger_destroy(handle);
+
+    // Assert
+    EXPECT_FILE_EXISTS(path);                         // [確認_正常系] - ファイルが存在すること。
+    EXPECT_FILE_CONTAINS(path, " V verbose in file"); // [確認_正常系] - VERBOSE はファイルに含まれること。
+    EXPECT_FALSE(testing::FileContains(path, "debug filtered")); // [確認_正常系] - DEBUG はファイルに含まれないこと。
+
+    remove(path.c_str());
+}
+
+// ファイルレベルを DEBUG に設定すると DEBUG が D で出力されることの確認
+TEST_F(trace_providerTest, test_file_level_debug_outputs_d_marker)
+{
+    // Arrange
+    string ws = findWorkspaceRoot();
+    string path = ws + "/app/com_util/test/src/libcom_utilTest/trace_providerTest/results/trace_debug.log";
+    remove(path.c_str());
+
+    trace_logger_t *handle = trace_logger_create();
+    ASSERT_NE((trace_logger_t *)NULL, handle);
+
+    // Act
+    trace_logger_set_file_level(handle, path.c_str(), TRACE_LEVEL_DEBUG, 0, 0); // [手順] - ファイルレベルを DEBUG に設定する。
+    trace_logger_start(handle);
+    trace_logger_write(handle, TRACE_LEVEL_VERBOSE, "verbose in debug file"); // [手順] - VERBOSE を書き込む。
+    trace_logger_write(handle, TRACE_LEVEL_DEBUG,   "debug in debug file");   // [手順] - DEBUG を書き込む。
+    trace_logger_destroy(handle);
+
+    // Assert
+    EXPECT_FILE_EXISTS(path);                              // [確認_正常系] - ファイルが存在すること。
+    EXPECT_FILE_CONTAINS(path, " V verbose in debug file"); // [確認_正常系] - VERBOSE が V で出力されること。
+    EXPECT_FILE_CONTAINS(path, " D debug in debug file");   // [確認_正常系] - DEBUG が D で出力されること。
+
+    remove(path.c_str());
+}
+
 // path に NULL を渡してファイルトレースを無効化できることの確認
 TEST_F(trace_providerTest, test_modify_filetrc_null_path_disables)
 {
@@ -857,7 +913,7 @@ TEST_F(trace_providerTest, test_no_file_output_without_path)
 
 /* ===== OS + ファイル並列出力テスト ===== */
 
-// OS トレースとファイルトレースが同時に動作することの確認
+// OS トレースとファイルトレースが同時に動作し、VERBOSE しきい値では DEBUG が抑止されることの確認
 TEST_F(trace_providerTest, test_dual_output_os_and_file)
 {
     // Arrange
@@ -877,6 +933,7 @@ TEST_F(trace_providerTest, test_dual_output_os_and_file)
     trace_logger_write(handle, TRACE_LEVEL_WARNING, "warning msg"); // [手順] - WARNING を書き込む (OS:✓ File:✓)。
     trace_logger_write(handle, TRACE_LEVEL_INFO,    "info msg");    // [手順] - INFO を書き込む (OS:✗ File:✓)。
     trace_logger_write(handle, TRACE_LEVEL_VERBOSE, "verbose msg"); // [手順] - VERBOSE を書き込む (OS:✗ File:✓)。
+    trace_logger_write(handle, TRACE_LEVEL_DEBUG,   "debug msg");   // [手順] - DEBUG を書き込む (OS:✗ File:✗)。
 
     trace_logger_destroy(handle);
 
@@ -885,8 +942,32 @@ TEST_F(trace_providerTest, test_dual_output_os_and_file)
     EXPECT_FILE_CONTAINS(path, "warning msg"); // [確認_正常系] - WARNING がファイルに含まれること。
     EXPECT_FILE_CONTAINS(path, "info msg");    // [確認_正常系] - INFO がファイルに含まれること。
     EXPECT_FILE_CONTAINS(path, "verbose msg"); // [確認_正常系] - VERBOSE がファイルに含まれること。
+    EXPECT_FALSE(testing::FileContains(path, "debug msg")); // [確認_正常系] - DEBUG はファイルに含まれないこと。
 
     remove(path.c_str());
+}
+
+// stderr レベルを DEBUG に設定すると DEBUG が D で出力されることの確認
+TEST_F(trace_providerTest, test_stderr_level_debug_outputs_d_marker)
+{
+    // Arrange
+    trace_logger_t *handle = trace_logger_create();
+    ASSERT_NE((trace_logger_t *)NULL, handle);
+    ASSERT_EQ(0, trace_logger_set_stderr_level(handle, TRACE_LEVEL_DEBUG)); // [手順] - stderr レベルを DEBUG に設定する。
+    trace_logger_start(handle);
+
+    // Act
+    testing::internal::CaptureStderr();
+    trace_logger_write(handle, TRACE_LEVEL_VERBOSE, "verbose to stderr"); // [手順] - VERBOSE を stderr に出力する。
+    trace_logger_write(handle, TRACE_LEVEL_DEBUG,   "debug to stderr");   // [手順] - DEBUG を stderr に出力する。
+    string captured = testing::internal::GetCapturedStderr();
+
+    // Cleanup
+    trace_logger_destroy(handle);
+
+    // Assert
+    EXPECT_NE(string::npos, captured.find(" V verbose to stderr")); // [確認_正常系] - VERBOSE が V で出力されること。
+    EXPECT_NE(string::npos, captured.find(" D debug to stderr"));   // [確認_正常系] - DEBUG が D で出力されること。
 }
 
 /* ===== trace_logger_start / trace_logger_stop テスト ===== */

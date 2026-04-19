@@ -315,7 +315,7 @@ TRACE_ETW_EXPORT trace_etw_session_t *TRACE_ETW_API
     status = EnableTraceEx2(session->session_handle,
                             &provider_guid,
                             EVENT_CONTROL_CODE_ENABLE_PROVIDER,
-                            TRACE_LEVEL_VERBOSE,
+                            5,
                             0xFFFFFFFFFFFFFFFF, 0, 0, &etp);
     if (status != ERROR_SUCCESS)
     {

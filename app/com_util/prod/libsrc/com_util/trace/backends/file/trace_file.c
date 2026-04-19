@@ -13,34 +13,34 @@
  *******************************************************************************
  */
 
-#include <com_util/trace/trace_file.h>
 #include <com_util/fs/path_max.h>
+#include <com_util/trace/trace_file.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "trace_file_internal.h"
 
 #if defined(PLATFORM_LINUX)
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <time.h>
-#include <limits.h>
+    #include <fcntl.h>
+    #include <limits.h>
+    #include <pthread.h>
+    #include <sys/stat.h>
+    #include <sys/types.h>
+    #include <time.h>
+    #include <unistd.h>
 #endif /* PLATFORM_LINUX */
 
 /* ===== 内部定数 ===== */
 
 /** 1 行分のスタックバッファサイズ。 */
-#define TRACE_FILE_LINE_BUF   1100
+#define TRACE_FILE_LINE_BUF 1100
 
 /** ファイル書き込みロック取得のタイムアウト (ミリ秒)。 */
-#define FILE_LOCK_TIMEOUT_MS  100
+#define FILE_LOCK_TIMEOUT_MS 100
 
 /** タイムスタンプ部分の文字数 ("YYYY-MM-DD HH:MM:SS.mmm" = 23 文字)。 */
-#define TRACE_FILE_TS_LEN     23
+#define TRACE_FILE_TS_LEN 23
 
 /** ローテーションパスのサフィックス最大長 (".999\0" = 5 文字)。 */
 #define TRACE_FILE_SUFFIX_MAX 5
@@ -53,30 +53,30 @@
 struct trace_file_sink
 {
     /** ヒープ確保済みファイルパス文字列。 */
-    char   *path;
+    char *path;
     /** ファイル 1 世代あたりの最大バイト数。 */
-    size_t  max_bytes;
+    size_t max_bytes;
     /** 現ファイルへの書き込み済みバイト数 (インメモリ追跡)。 */
-    size_t  current_bytes;
+    size_t current_bytes;
     /** 保持する旧世代数。 */
-    int     generations;
+    int generations;
 
 #if defined(PLATFORM_LINUX)
     /** ファイルディスクリプタ。-1 = 未開。 */
-    int              fd;
+    int fd;
     /** スレッド安全のための mutex。 */
-    pthread_mutex_t  mutex;
+    pthread_mutex_t mutex;
     /** mutex が初期化済みかどうかのフラグ。 */
-    int              mutex_initialized;
+    int mutex_initialized;
     /** パディング (構造体サイズを 8 バイト境界に揃える)。 */
-    int              _pad_end;
+    int _pad_end;
 #elif defined(PLATFORM_WINDOWS)
     /** ファイルハンドル。INVALID_HANDLE_VALUE = 未開。 */
-    HANDLE           fh;
+    HANDLE fh;
     /** スレッド安全のためのクリティカルセクション。 */
     CRITICAL_SECTION cs;
     /** cs が初期化済みかどうかのフラグ。 */
-    int              cs_initialized;
+    int cs_initialized;
 #endif /* PLATFORM_ */
 };
 
@@ -89,11 +89,18 @@ static char level_char(int level)
 {
     switch (level)
     {
-    case TRACE_LEVEL_CRITICAL: return 'C';
-    case TRACE_LEVEL_ERROR:    return 'E';
-    case TRACE_LEVEL_WARNING:  return 'W';
-    case TRACE_LEVEL_INFO:     return 'I';
-    default:                     return 'V';
+    case TRACE_LEVEL_CRITICAL:
+        return 'C';
+    case TRACE_LEVEL_ERROR:
+        return 'E';
+    case TRACE_LEVEL_WARNING:
+        return 'W';
+    case TRACE_LEVEL_INFO:
+        return 'I';
+    case TRACE_LEVEL_VERBOSE:
+        return 'V';
+    default:
+        return 'D';
     }
 }
 
@@ -106,33 +113,27 @@ static void format_timestamp(char *buf, int buf_size)
 {
 #if defined(PLATFORM_LINUX)
     struct timespec ts;
-    struct tm       tm_val;
+    struct tm tm_val;
     clock_gettime(CLOCK_REALTIME, &ts);
     gmtime_r(&ts.tv_sec, &tm_val);
     /* -Wformat-truncation の抑制: gmtime_r() が返す tm 構造体の各フィールドは POSIX で
      * 範囲が保証されており (tm_mon: 0-11, tm_mday: 1-31 等)、出力は常に 23 文字以内に
      * 収まる。GCC は int 型の理論上の最大範囲 [-2147483648, 2147483647] を使って静的
      * 検証するため false positive が発生する。pragma はその誤報を局所的に抑制する。 */
-#if defined(COMPILER_GCC)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-#endif /* COMPILER_GCC */
-    snprintf(buf, (size_t)buf_size,
-             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-             tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
-             tm_val.tm_hour,        tm_val.tm_min,      tm_val.tm_sec,
-             (int)(ts.tv_nsec / 1000000));
-#if defined(COMPILER_GCC)
-#pragma GCC diagnostic pop
-#endif /* COMPILER_GCC */
+    #if defined(COMPILER_GCC)
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wformat-truncation"
+    #endif /* COMPILER_GCC */
+    snprintf(buf, (size_t)buf_size, "%04d-%02d-%02d %02d:%02d:%02d.%03d", tm_val.tm_year + 1900, tm_val.tm_mon + 1,
+             tm_val.tm_mday, tm_val.tm_hour, tm_val.tm_min, tm_val.tm_sec, (int)(ts.tv_nsec / 1000000));
+    #if defined(COMPILER_GCC)
+        #pragma GCC diagnostic pop
+    #endif /* COMPILER_GCC */
 #elif defined(PLATFORM_WINDOWS)
     SYSTEMTIME st;
     GetSystemTime(&st);
-    snprintf(buf, (size_t)buf_size,
-             "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-             (int)st.wYear,         (int)st.wMonth,  (int)st.wDay,
-             (int)st.wHour,         (int)st.wMinute, (int)st.wSecond,
-             (int)st.wMilliseconds);
+    snprintf(buf, (size_t)buf_size, "%04d-%02d-%02d %02d:%02d:%02d.%03d", (int)st.wYear, (int)st.wMonth, (int)st.wDay,
+             (int)st.wHour, (int)st.wMinute, (int)st.wSecond, (int)st.wMilliseconds);
 #endif /* PLATFORM_ */
 }
 
@@ -145,9 +146,7 @@ static int open_file(trace_file_sink_t *p)
 #if defined(PLATFORM_LINUX)
     struct stat st;
 
-    p->fd = open(p->path,
-                 O_WRONLY | O_APPEND | O_CREAT | O_DSYNC,
-                 0644);
+    p->fd = open(p->path, O_WRONLY | O_APPEND | O_CREAT | O_DSYNC, 0644);
 
     if (p->fd == -1)
     {
@@ -170,14 +169,8 @@ static int open_file(trace_file_sink_t *p)
     LARGE_INTEGER pos;
     LARGE_INTEGER size;
 
-    p->fh = CreateFileA(
-        p->path,
-        GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_DELETE,
-        NULL,
-        OPEN_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
-        NULL);
+    p->fh = CreateFileA(p->path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, NULL);
 
     if (p->fh == INVALID_HANDLE_VALUE)
     {
@@ -213,20 +206,12 @@ static int open_file_truncate(trace_file_sink_t *p)
     p->current_bytes = 0;
 
 #if defined(PLATFORM_LINUX)
-    p->fd = open(p->path,
-                 O_WRONLY | O_APPEND | O_CREAT | O_TRUNC | O_DSYNC,
-                 0644);
+    p->fd = open(p->path, O_WRONLY | O_APPEND | O_CREAT | O_TRUNC | O_DSYNC, 0644);
 
     return (p->fd != -1) ? 0 : -1;
 #elif defined(PLATFORM_WINDOWS)
-    p->fh = CreateFileA(
-        p->path,
-        GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_DELETE,
-        NULL,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
-        NULL);
+    p->fh = CreateFileA(p->path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, CREATE_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, NULL);
 
     return (p->fh != INVALID_HANDLE_VALUE) ? 0 : -1;
 #endif /* PLATFORM_ */
@@ -263,7 +248,7 @@ static void rotate_file(trace_file_sink_t *p)
     /* パス構築用スタックバッファ */
     char old_path[PLATFORM_PATH_MAX];
     char new_path[PLATFORM_PATH_MAX];
-    int  gen;
+    int gen;
 
     close_file(p);
 
@@ -314,8 +299,8 @@ static void rotate_file(trace_file_sink_t *p)
 /* ===== 公開 API ===== */
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
-    trace_file_sink_create(const char *path, size_t max_bytes, int generations)
+TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API trace_file_sink_create(const char *path, size_t max_bytes,
+                                                                           int generations)
 {
     trace_file_sink_t *handle;
     size_t path_len;
@@ -348,14 +333,14 @@ TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
     }
     memcpy(handle->path, path, path_len + 1);
 
-    handle->max_bytes    = (max_bytes > 0)    ? max_bytes    : TRACE_FILE_SINK_DEFAULT_MAX_BYTES;
-    handle->generations  = (generations > 0)  ? generations  : TRACE_FILE_SINK_DEFAULT_GENERATIONS;
+    handle->max_bytes = (max_bytes > 0) ? max_bytes : TRACE_FILE_SINK_DEFAULT_MAX_BYTES;
+    handle->generations = (generations > 0) ? generations : TRACE_FILE_SINK_DEFAULT_GENERATIONS;
     handle->current_bytes = 0;
 
     /* プラットフォームごとの同期プリミティブを初期化する */
 #if defined(PLATFORM_LINUX)
-    handle->fd                  = -1;
-    handle->mutex_initialized   = 0;
+    handle->fd = -1;
+    handle->mutex_initialized = 0;
     if (pthread_mutex_init(&handle->mutex, NULL) != 0)
     {
         free(handle->path);
@@ -364,7 +349,7 @@ TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
     }
     handle->mutex_initialized = 1;
 #elif defined(PLATFORM_WINDOWS)
-    handle->fh             = INVALID_HANDLE_VALUE;
+    handle->fh = INVALID_HANDLE_VALUE;
     handle->cs_initialized = 0;
     InitializeCriticalSectionAndSpinCount(&handle->cs, 1000);
     handle->cs_initialized = 1;
@@ -393,14 +378,12 @@ TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_FILE_EXPORT int TRACE_FILE_API
-    trace_file_sink_write(trace_file_sink_t *handle, int level,
-                              const char *message)
+TRACE_FILE_EXPORT int TRACE_FILE_API trace_file_sink_write(trace_file_sink_t *handle, int level, const char *message)
 {
     char ts[TRACE_FILE_TS_LEN + 1];
     char buf[TRACE_FILE_LINE_BUF];
-    int  len;
-    int  ret;
+    int len;
+    int ret;
 
     if (handle == NULL || message == NULL)
     {
@@ -431,7 +414,7 @@ TRACE_FILE_EXPORT int TRACE_FILE_API
         abs_timeout.tv_nsec += (long)FILE_LOCK_TIMEOUT_MS * 1000000L;
         if (abs_timeout.tv_nsec >= 1000000000L)
         {
-            abs_timeout.tv_sec  += 1;
+            abs_timeout.tv_sec += 1;
             abs_timeout.tv_nsec -= 1000000000L;
         }
         if (pthread_mutex_timedlock(&handle->mutex, &abs_timeout) != 0)
@@ -481,8 +464,7 @@ TRACE_FILE_EXPORT int TRACE_FILE_API
 #elif defined(PLATFORM_WINDOWS)
     {
         DWORD written = 0;
-        if (WriteFile(handle->fh, buf, (DWORD)len, &written, NULL)
-            && (DWORD)written == (DWORD)len)
+        if (WriteFile(handle->fh, buf, (DWORD)len, &written, NULL) && (DWORD)written == (DWORD)len)
         {
             ret = 0;
         }
@@ -515,8 +497,7 @@ TRACE_FILE_EXPORT int TRACE_FILE_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_FILE_EXPORT void TRACE_FILE_API
-    trace_file_sink_destroy(trace_file_sink_t *handle)
+TRACE_FILE_EXPORT void TRACE_FILE_API trace_file_sink_destroy(trace_file_sink_t *handle)
 {
     if (handle == NULL)
     {

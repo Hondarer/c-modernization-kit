@@ -10,7 +10,7 @@
 
 - OS ごとのトレース API 差異を吸収する
 - OS トレース / ファイル / `stderr` を同じハンドルで管理する
-- 出力先ごとに `CRITICAL` から `VERBOSE` までのしきい値を分けられる
+- 出力先ごとに `CRITICAL` から `DEBUG` までのしきい値を分けられる
 - 呼び出し側は `trace.h` だけを見ればよい
 
 ## 設計の要点
@@ -28,14 +28,19 @@ started 中は設定変更できず、設定を変える場合は一度 `trace_l
 
 ## トレースレベル
 
-共通レベルは `TRACE_LEVEL_CRITICAL` から `TRACE_LEVEL_VERBOSE` までの 5 段階で、`TRACE_LEVEL_NONE` はその出力先を無効化します。
+共通レベルは `TRACE_LEVEL_CRITICAL` から `TRACE_LEVEL_DEBUG` までの 6 段階で、`TRACE_LEVEL_NONE` はその出力先を無効化します。
 
 - `TRACE_LEVEL_CRITICAL`: 致命的エラー
 - `TRACE_LEVEL_ERROR`: エラー
 - `TRACE_LEVEL_WARNING`: 警告
 - `TRACE_LEVEL_INFO`: 通常の運用情報
 - `TRACE_LEVEL_VERBOSE`: 詳細な診断情報
+- `TRACE_LEVEL_DEBUG`: 最も詳細な診断情報
 - `TRACE_LEVEL_NONE`: 出力しない
+
+Windows ETW と Linux syslog には `VERBOSE` より細かい標準レベルがないため、`TRACE_LEVEL_DEBUG` は
+OS トレースでは `TRACE_LEVEL_VERBOSE` と同じ詳細度として扱われます。  
+一方でファイルと `stderr` では `DEBUG` を独立したレベル文字で区別します。
 
 各出力先は「設定レベル以上に重大なメッセージだけを出す」動作です。
 
@@ -73,7 +78,7 @@ UTC タイムスタンプ付きの 1 行テキストで出力されます。
 
 ```text
 2026-04-02 12:34:56.789 I application started
-2026-04-02 12:34:56.790 E connection failed
+2026-04-02 12:34:56.790 D polling state dump
 ```
 
 ## 代表 API
