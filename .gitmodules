@@ -10,3 +10,9 @@
 [submodule "docsfw"]
 	path = framework/docsfw
 	url = https://github.com/Hondarer/pub_markdown.git
+[submodule "app/com_util"]
+	path = app/com_util
+	url = https://github.com/Hondarer/app_com_util.git
+[submodule "app/porter"]
+	path = app/porter
+	url = https://github.com/Hondarer/app_porter.git
