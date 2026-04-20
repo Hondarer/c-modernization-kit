@@ -35,7 +35,7 @@
 /* ===== vfopen_fmt / fopen_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
+COM_UTIL_EXPORT FILE *COM_UTIL_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 {
     char filename[PLATFORM_PATH_MAX] = {0};
     int written;
@@ -98,7 +98,7 @@ PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errn
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
+COM_UTIL_EXPORT FILE *COM_UTIL_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 {
     FILE *result;
     va_list args;
@@ -113,7 +113,7 @@ PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno
 /* ===== vstat_fmt / stat_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -133,7 +133,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const ch
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
 {
     int result;
     va_list args;
@@ -148,7 +148,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const cha
 /* ===== vremove_fmt / remove_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API vremove_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -156,7 +156,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API vremove_fmt(const char *format, va_list a
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API remove_fmt(const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API remove_fmt(const char *format, ...)
 {
     int result;
     va_list args;
@@ -171,7 +171,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API remove_fmt(const char *format, ...)
 /* ===== vopen_fmt / open_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API vopen_fmt(int flags, int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -192,7 +192,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API open_fmt(int flags, int mode, const char *format, ...)
 {
     int result;
     va_list args;
@@ -207,7 +207,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API open_fmt(int flags, int mode, const char 
 /* ===== vaccess_fmt / access_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API vaccess_fmt(int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -219,7 +219,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API vaccess_fmt(int mode, const char *format,
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API access_fmt(int mode, const char *format, ...)
 {
     int result;
     va_list args;
@@ -234,7 +234,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API access_fmt(int mode, const char *format, 
 /* ===== vmkdir_fmt / mkdir_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API vmkdir_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -246,7 +246,7 @@ PATH_FORMAT_EXPORT int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list ar
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-PATH_FORMAT_EXPORT int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API mkdir_fmt(const char *format, ...)
 {
     int result;
     va_list args;

@@ -30,36 +30,9 @@
 #ifndef COMPRESS_H
 #define COMPRESS_H
 
+#include <com_util_export.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#ifdef DOXYGEN
-
-    /**
-     *  @def            COMPRESS_EXPORT
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     */
-    #define COMPRESS_EXPORT
-
-    /**
-     *  @def            COMPRESS_API
-     *  @brief          呼び出し規約マクロ。
-     */
-    #define COMPRESS_API
-
-#else /* !DOXYGEN */
-
-    #ifndef COMPRESS_STATIC
-        #define COMPRESS_STATIC 0
-    #endif /* COMPRESS_STATIC */
-    #ifndef COMPRESS_EXPORTS
-        #define COMPRESS_EXPORTS 0
-    #endif /* COMPRESS_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define COMPRESS_EXPORT COM_UTIL_DLL_EXPORT(COMPRESS)
-    #define COMPRESS_API    COM_UTIL_DLL_API(COMPRESS)
-
-#endif /* DOXYGEN */
 
 /** 圧縮ペイロード先頭に付加する元サイズフィールドのバイト数。 */
 #define COM_UTIL_COMPRESS_HEADER_SIZE 4U
@@ -81,7 +54,7 @@ extern "C"
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-COMPRESS_EXPORT int COMPRESS_API com_util_compress(uint8_t       *dst,
+COM_UTIL_EXPORT int COM_UTIL_API com_util_compress(uint8_t       *dst,
                                                    size_t        *dst_len,
                                                    const uint8_t *src,
                                                    size_t         src_len);
@@ -97,7 +70,7 @@ COMPRESS_EXPORT int COMPRESS_API com_util_compress(uint8_t       *dst,
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-COMPRESS_EXPORT int COMPRESS_API com_util_decompress(uint8_t       *dst,
+COM_UTIL_EXPORT int COM_UTIL_API com_util_decompress(uint8_t       *dst,
                                                      size_t        *dst_len,
                                                      const uint8_t *src,
                                                      size_t         src_len);

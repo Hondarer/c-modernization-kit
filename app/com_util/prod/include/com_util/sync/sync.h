@@ -26,34 +26,7 @@
 #include <stdint.h>
 
 #include <com_util/base/platform.h>
-
-#ifdef DOXYGEN
-
-    /**
-     *  @def            SYNC_EXPORT
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     */
-    #define SYNC_EXPORT
-
-    /**
-     *  @def            SYNC_API
-     *  @brief          呼び出し規約マクロ。
-     */
-    #define SYNC_API
-
-#else /* !DOXYGEN */
-
-    #ifndef SYNC_STATIC
-        #define SYNC_STATIC 0
-    #endif /* SYNC_STATIC */
-    #ifndef SYNC_EXPORTS
-        #define SYNC_EXPORTS 0
-    #endif /* SYNC_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define SYNC_EXPORT COM_UTIL_DLL_EXPORT(SYNC)
-    #define SYNC_API    COM_UTIL_DLL_API(SYNC)
-
-#endif /* DOXYGEN */
+#include <com_util_export.h>
 
 /* ============================================================
  * 型定義
@@ -152,9 +125,9 @@ extern "C"
  *  @param[in]  timeout_ms タイムアウト (ミリ秒)。
  *  @return     0 (シグナル受信またはタイムアウト)。
  */
-SYNC_EXPORT int SYNC_API com_util_condvar_timedwait(com_util_condvar_t *cv,
-                                                    com_util_mutex_t   *mtx,
-                                                    uint32_t            timeout_ms);
+COM_UTIL_EXPORT int COM_UTIL_API com_util_condvar_timedwait(com_util_condvar_t *cv,
+                                                            com_util_mutex_t   *mtx,
+                                                            uint32_t            timeout_ms);
 
 /**
  *  @brief  スレッドを生成する。
@@ -163,16 +136,16 @@ SYNC_EXPORT int SYNC_API com_util_condvar_timedwait(com_util_condvar_t *cv,
  *  @param[in]   arg     スレッド関数に渡す引数。
  *  @return  0: 成功、非 0: 失敗。
  */
-SYNC_EXPORT int SYNC_API com_util_thread_create(com_util_thread_t     *thread,
-                                                com_util_thread_func_t func,
-                                                void                  *arg);
+COM_UTIL_EXPORT int COM_UTIL_API com_util_thread_create(com_util_thread_t     *thread,
+                                                        com_util_thread_func_t func,
+                                                        void                  *arg);
 
 /**
  *  @brief  スレッドの終了を待機し、ハンドルを解放する。
  *  @param[in,out]  thread  スレッドハンドルへのポインタ。
  *                          Windows では解放後に NULL を書き込む。
  */
-SYNC_EXPORT void SYNC_API com_util_thread_join(com_util_thread_t *thread);
+COM_UTIL_EXPORT void COM_UTIL_API com_util_thread_join(com_util_thread_t *thread);
 
 #ifdef __cplusplus
 }

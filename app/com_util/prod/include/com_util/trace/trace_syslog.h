@@ -2,6 +2,7 @@
 #define TRACE_SYSLOG_H
 
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 
 /**
  *  @file           trace_syslog.h
@@ -12,31 +13,6 @@
  */
 
 #if defined(PLATFORM_LINUX)
-
-/* ===== エクスポート / 呼び出し規約マクロ ===== */
-
-#ifdef DOXYGEN
-
-/**
- *  @def            TRACE_SYSLOG_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        Linux 環境では常に空に展開されます。
- */
-#define TRACE_SYSLOG_EXPORT
-
-/**
- *  @def            TRACE_SYSLOG_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Linux 環境では常に空に展開されます。
- */
-#define TRACE_SYSLOG_API
-
-#else /* !DOXYGEN */
-
-#define TRACE_SYSLOG_EXPORT
-#define TRACE_SYSLOG_API
-
-#endif /* DOXYGEN */
 
 /* ===== 不透明ハンドル型 ===== */
 
@@ -69,7 +45,7 @@ extern "C"
         trace_syslog_sink_t *h = trace_syslog_sink_create("myapp", LOG_USER);
      *  @endcode
      */
-    TRACE_SYSLOG_EXPORT trace_syslog_sink_t *TRACE_SYSLOG_API
+    COM_UTIL_EXPORT trace_syslog_sink_t *COM_UTIL_API
         trace_syslog_sink_create(const char *ident, int facility);
 
     /**
@@ -97,7 +73,7 @@ extern "C"
      *
      *  @return         成功 0 / 失敗 -1。
      */
-    TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_syslog_sink_write(trace_syslog_sink_t *handle, int level, const char *message);
 
     /**
@@ -111,7 +87,7 @@ extern "C"
      *                             NULL の場合は何もせず -1 を返します。
      *  @return         成功 0 / 失敗 -1。
      */
-    TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_syslog_sink_rename(trace_syslog_sink_t *handle, const char *new_ident);
 
     /**
@@ -121,7 +97,7 @@ extern "C"
      *
      *  @param[in]      handle   trace_syslog_sink_create の戻り値。
      */
-    TRACE_SYSLOG_EXPORT void TRACE_SYSLOG_API
+    COM_UTIL_EXPORT void COM_UTIL_API
         trace_syslog_sink_destroy(trace_syslog_sink_t *handle);
 
 #ifdef __cplusplus

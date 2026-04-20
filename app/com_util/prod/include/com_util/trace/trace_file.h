@@ -18,49 +18,8 @@
 
 #include <stddef.h>
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 #include <com_util/trace/trace.h>
-
-/* ===== DLL エクスポート / インポート制御マクロ ===== */
-
-#ifdef DOXYGEN
-
-/**
- *  @def            TRACE_FILE_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                          | 値                       |
- *  | ------------------------------------------------------------- | ------------------------ |
- *  | Linux (非 Windows)                                            | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                           | (空)                     |
- *  | Windows / `TRACE_FILE_STATIC` 定義時 (静的リンク)         | (空)                     |
- *  | Windows / `TRACE_FILE_EXPORTS` 定義時 (DLL ビルド)        | `__declspec(dllexport)`  |
- *  | Windows / `TRACE_FILE_EXPORTS` 未定義時 (DLL 利用側)      | `__declspec(dllimport)`  |
- */
-#define TRACE_FILE_EXPORT
-
-/**
- *  @def            TRACE_FILE_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *                  Linux (非 Windows) 環境では空に展開されます。\n
- *                  すでに定義済みの場合は再定義されません。
- */
-#define TRACE_FILE_API
-
-#else /* !DOXYGEN */
-
-    #ifndef TRACE_FILE_STATIC
-        #define TRACE_FILE_STATIC 0
-    #endif /* TRACE_FILE_STATIC */
-    #ifndef TRACE_FILE_EXPORTS
-        #define TRACE_FILE_EXPORTS 0
-    #endif /* TRACE_FILE_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define TRACE_FILE_EXPORT COM_UTIL_DLL_EXPORT(TRACE_FILE)
-    #define TRACE_FILE_API    COM_UTIL_DLL_API(TRACE_FILE)
-
-#endif /* DOXYGEN */
 
 /* ===== 設定定数 ===== */
 
@@ -120,7 +79,7 @@ extern "C"
             "C:\\logs\\myapp.log", 0, 0);
      *  @endcode
      */
-    TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API
+    COM_UTIL_EXPORT trace_file_sink_t *COM_UTIL_API
         trace_file_sink_create(const char *path, size_t max_bytes, int generations);
 
     /**
@@ -135,7 +94,7 @@ extern "C"
      *  @param[in]      message  null 終端 UTF-8 文字列。NULL は無視。
      *  @return         成功 0 / 失敗 -1。
      */
-    TRACE_FILE_EXPORT int TRACE_FILE_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_file_sink_write(trace_file_sink_t *handle, int level,
                                   const char *message);
 
@@ -146,7 +105,7 @@ extern "C"
      *
      *  @param[in]      handle   trace_file_sink_create の戻り値。
      */
-    TRACE_FILE_EXPORT void TRACE_FILE_API
+    COM_UTIL_EXPORT void COM_UTIL_API
         trace_file_sink_destroy(trace_file_sink_t *handle);
 
 #ifdef __cplusplus

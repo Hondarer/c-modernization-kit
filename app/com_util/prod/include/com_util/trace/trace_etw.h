@@ -2,6 +2,7 @@
 #define TRACE_ETW_H
 
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 
 /**
  *  @file           trace_etw.h
@@ -15,46 +16,6 @@
 #if defined(PLATFORM_WINDOWS)
 
 #include <com_util/base/windows_sdk.h>
-
-/* ===== DLL エクスポート / インポート制御マクロ ===== */
-
-#ifdef DOXYGEN
-
-/**
- *  @def            TRACE_ETW_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                   | 値                       |
- *  | ------------------------------------------------------ | ------------------------ |
- *  | `__INTELLISENSE__` 定義時                              | (空)                     |
- *  | `TRACE_ETW_STATIC` 定義時 (静的リンク)                  | (空)                     |
- *  | `TRACE_ETW_EXPORTS` 定義時 (DLL ビルド)                 | `__declspec(dllexport)`  |
- *  | `TRACE_ETW_EXPORTS` 未定義時 (DLL 利用側)               | `__declspec(dllimport)`  |
- */
-#define TRACE_ETW_EXPORT
-
-/**
- *  @def            TRACE_ETW_API
- *  @brief          呼び出し規約マクロ。
- *  @details        `__stdcall` 呼び出し規約を指定します。\n
- *                  すでに定義済みの場合は再定義されません。
- */
-#define TRACE_ETW_API
-
-#else /* !DOXYGEN */
-
-    #ifndef TRACE_ETW_STATIC
-        #define TRACE_ETW_STATIC 0
-    #endif /* TRACE_ETW_STATIC */
-    #ifndef TRACE_ETW_EXPORTS
-        #define TRACE_ETW_EXPORTS 0
-    #endif /* TRACE_ETW_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define TRACE_ETW_EXPORT COM_UTIL_DLL_EXPORT(TRACE_ETW)
-    #define TRACE_ETW_API    COM_UTIL_DLL_API(TRACE_ETW)
-
-#endif /* DOXYGEN */
 
 /* ===== プロバイダ参照型 ===== */
 
@@ -120,7 +81,7 @@ extern "C"
         trace_etw_provider_t *h = trace_etw_provider_create(s_my_provider);
      *  @endcode
      */
-    TRACE_ETW_EXPORT trace_etw_provider_t *TRACE_ETW_API
+    COM_UTIL_EXPORT trace_etw_provider_t *COM_UTIL_API
         trace_etw_provider_create(trace_etw_provider_ref_t provider_ref);
 
     /**
@@ -149,7 +110,7 @@ extern "C"
      *
      *  @return         成功 0 / 失敗 -1。
      */
-    TRACE_ETW_EXPORT int TRACE_ETW_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_etw_provider_write(trace_etw_provider_t *handle, int level,
                            const char *service, const char *message);
 
@@ -159,7 +120,7 @@ extern "C"
      *
      *  @param[in]      handle   trace_etw_provider_create の戻り値。
      */
-    TRACE_ETW_EXPORT void TRACE_ETW_API
+    COM_UTIL_EXPORT void COM_UTIL_API
         trace_etw_provider_destroy(trace_etw_provider_t *handle);
 
     /* ===== セッション (Consumer) API ===== */
@@ -211,7 +172,7 @@ extern "C"
         }
      *  @endcode
      */
-    TRACE_ETW_EXPORT int TRACE_ETW_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_etw_session_check_access(void);
 
     /**
@@ -242,7 +203,7 @@ extern "C"
         }
      *  @endcode
      */
-    TRACE_ETW_EXPORT trace_etw_session_t *TRACE_ETW_API
+    COM_UTIL_EXPORT trace_etw_session_t *COM_UTIL_API
         trace_etw_session_start(const char *session_name,
                           const char *provider_guid_str,
                           trace_etw_event_callback_t callback,
@@ -257,7 +218,7 @@ extern "C"
      *
      *  @param[in]      session  trace_etw_session_start の戻り値。
      */
-    TRACE_ETW_EXPORT void TRACE_ETW_API
+    COM_UTIL_EXPORT void COM_UTIL_API
         trace_etw_session_stop(trace_etw_session_t *session);
 
 #ifdef __cplusplus

@@ -14,7 +14,7 @@
 #include <com_util/runtime/symbol_loader.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-SYMBOL_LOADER_EXPORT void SYMBOL_LOADER_API
+COM_UTIL_EXPORT void COM_UTIL_API
     symbol_loader_dispose(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length)
 {
     size_t fobj_index;

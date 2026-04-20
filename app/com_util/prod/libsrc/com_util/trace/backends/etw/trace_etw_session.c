@@ -168,7 +168,7 @@ static void set_status(int *out_status, int value)
     }
 }
 
-TRACE_ETW_EXPORT int TRACE_ETW_API
+COM_UTIL_EXPORT int COM_UTIL_API
     trace_etw_session_check_access(void)
 {
     static const wchar_t probe_name[] = L"EtwUtil_AccessProbe";
@@ -213,7 +213,7 @@ TRACE_ETW_EXPORT int TRACE_ETW_API
     return result;
 }
 
-TRACE_ETW_EXPORT trace_etw_session_t *TRACE_ETW_API
+COM_UTIL_EXPORT trace_etw_session_t *COM_UTIL_API
     trace_etw_session_start(const char *session_name,
                       const char *provider_guid_str,
                       trace_etw_event_callback_t callback,
@@ -370,7 +370,7 @@ cleanup:
     return NULL;
 }
 
-TRACE_ETW_EXPORT void TRACE_ETW_API
+COM_UTIL_EXPORT void COM_UTIL_API
     trace_etw_session_stop(trace_etw_session_t *session)
 {
     if (session == NULL)

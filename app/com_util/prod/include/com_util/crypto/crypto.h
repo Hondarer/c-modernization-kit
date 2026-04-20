@@ -34,36 +34,9 @@
 #ifndef CRYPTO_H
 #define CRYPTO_H
 
+#include <com_util_export.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#ifdef DOXYGEN
-
-    /**
-     *  @def            CRYPTO_EXPORT
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     */
-    #define CRYPTO_EXPORT
-
-    /**
-     *  @def            CRYPTO_API
-     *  @brief          呼び出し規約マクロ。
-     */
-    #define CRYPTO_API
-
-#else /* !DOXYGEN */
-
-    #ifndef CRYPTO_STATIC
-        #define CRYPTO_STATIC 0
-    #endif /* CRYPTO_STATIC */
-    #ifndef CRYPTO_EXPORTS
-        #define CRYPTO_EXPORTS 0
-    #endif /* CRYPTO_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define CRYPTO_EXPORT COM_UTIL_DLL_EXPORT(CRYPTO)
-    #define CRYPTO_API    COM_UTIL_DLL_API(CRYPTO)
-
-#endif /* DOXYGEN */
 
 /** @defgroup COM_UTIL_CRYPTO 暗号化定数 (AES-256-GCM)
  *  @{
@@ -95,7 +68,7 @@ extern "C"
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-CRYPTO_EXPORT int CRYPTO_API com_util_encrypt(uint8_t       *dst,
+COM_UTIL_EXPORT int COM_UTIL_API com_util_encrypt(uint8_t       *dst,
                                               size_t        *dst_len,
                                               const uint8_t *src,
                                               size_t         src_len,
@@ -120,7 +93,7 @@ CRYPTO_EXPORT int CRYPTO_API com_util_encrypt(uint8_t       *dst,
  *  @return         成功 (認証タグ検証 OK) 時は 0、失敗 (認証タグ不一致含む) 時は -1 を返します。
  *******************************************************************************
  */
-CRYPTO_EXPORT int CRYPTO_API com_util_decrypt(uint8_t       *dst,
+COM_UTIL_EXPORT int COM_UTIL_API com_util_decrypt(uint8_t       *dst,
                                               size_t        *dst_len,
                                               const uint8_t *src,
                                               size_t         src_len,
@@ -141,7 +114,7 @@ CRYPTO_EXPORT int CRYPTO_API com_util_decrypt(uint8_t       *dst,
  *  @return         成功時は 0、失敗時は -1 を返します。
  *******************************************************************************
  */
-CRYPTO_EXPORT int CRYPTO_API com_util_passphrase_to_key(uint8_t       *key,
+COM_UTIL_EXPORT int COM_UTIL_API com_util_passphrase_to_key(uint8_t       *key,
                                                         const uint8_t *passphrase,
                                                         size_t         passphrase_len);
 

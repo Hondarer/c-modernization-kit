@@ -44,47 +44,9 @@
 #define CLOCK_H
 
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 #include <stdint.h>
 #include <time.h>
-
-#ifdef DOXYGEN
-
-    /**
-     *  @def            CLOCK_EXPORT
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     *  @details        ビルド条件に応じて以下の値を取ります。
-     *
-     *  | 条件                                            | 値                      |
-     *  | ----------------------------------------------- | ----------------------- |
-     *  | Linux (非 Windows)                              | (空)                    |
-     *  | Windows / `__INTELLISENSE__` 定義時             | (空)                    |
-     *  | Windows / `CLOCK_STATIC` 定義時 (静的リンク)    | (空)                    |
-     *  | Windows / `CLOCK_EXPORTS` 定義時 (DLL ビルド)   | `__declspec(dllexport)` |
-     *  | Windows / `CLOCK_EXPORTS` 未定義時 (DLL 利用側) | `__declspec(dllimport)` |
-     */
-    #define CLOCK_EXPORT
-
-    /**
-     *  @def            CLOCK_API
-     *  @brief          呼び出し規約マクロ。
-     *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
-     *                  Linux (非 Windows) 環境では空に展開されます。
-     */
-    #define CLOCK_API
-
-#else /* !DOXYGEN */
-
-    #ifndef CLOCK_STATIC
-        #define CLOCK_STATIC 0
-    #endif /* CLOCK_STATIC */
-    #ifndef CLOCK_EXPORTS
-        #define CLOCK_EXPORTS 0
-    #endif /* CLOCK_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define CLOCK_EXPORT COM_UTIL_DLL_EXPORT(CLOCK)
-    #define CLOCK_API    COM_UTIL_DLL_API(CLOCK)
-
-#endif /* DOXYGEN */
 
 #ifdef __cplusplus
 extern "C"
@@ -132,7 +94,7 @@ extern "C"
      *  @endcode
      *******************************************************************************
      */
-    CLOCK_EXPORT uint64_t CLOCK_API clock_get_monotonic_ms(void);
+    COM_UTIL_EXPORT uint64_t COM_UTIL_API clock_get_monotonic_ms(void);
 
     /**
      *******************************************************************************
@@ -181,7 +143,7 @@ extern "C"
      *  @endcode
      *******************************************************************************
      */
-    CLOCK_EXPORT void CLOCK_API clock_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
+    COM_UTIL_EXPORT void COM_UTIL_API clock_get_monotonic(int64_t *tv_sec, int32_t *tv_nsec);
 
     /**
      *******************************************************************************
@@ -230,7 +192,7 @@ extern "C"
      *  @endcode
      *******************************************************************************
      */
-    CLOCK_EXPORT void CLOCK_API clock_get_realtime(int64_t *tv_sec, int32_t *tv_nsec);
+    COM_UTIL_EXPORT void COM_UTIL_API clock_get_realtime(int64_t *tv_sec, int32_t *tv_nsec);
 
     /**
      *******************************************************************************
@@ -258,7 +220,7 @@ extern "C"
      *  @endcode
      *******************************************************************************
      */
-    CLOCK_EXPORT void CLOCK_API clock_get_realtime_utc(struct tm *utc_tm, int32_t *tv_nsec);
+    COM_UTIL_EXPORT void COM_UTIL_API clock_get_realtime_utc(struct tm *utc_tm, int32_t *tv_nsec);
 
     /**
      *******************************************************************************
@@ -287,7 +249,7 @@ extern "C"
      *  @endcode
      *******************************************************************************
      */
-    CLOCK_EXPORT void CLOCK_API clock_get_realtime_deadline_ms(uint64_t timeout_ms, struct timespec *abs_timeout);
+    COM_UTIL_EXPORT void COM_UTIL_API clock_get_realtime_deadline_ms(uint64_t timeout_ms, struct timespec *abs_timeout);
 
 #ifdef __cplusplus
 }

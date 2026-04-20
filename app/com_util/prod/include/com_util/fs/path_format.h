@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 
 /* プラットフォーム固有の stat 構造体の typedef */
 #if defined(PLATFORM_LINUX)
@@ -65,46 +66,6 @@ typedef struct _stat64 util_file_stat_t;
     #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */
 
-#ifdef DOXYGEN
-
-    /**
-     *  @def            PATH_FORMAT_EXPORT
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     *  @details        ビルド条件に応じて以下の値を取ります。
-     *
-     *  | 条件                                                   | 値                       |
-     *  | ------------------------------------------------------ | ------------------------ |
-     *  | Linux (非 Windows)                                     | (空)                     |
-     *  | Windows / `__INTELLISENSE__` 定義時                    | (空)                     |
-     *  | Windows / `PATH_FORMAT_STATIC` 定義時 (静的リンク)       | (空)                     |
-     *  | Windows / `PATH_FORMAT_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
-     *  | Windows / `PATH_FORMAT_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
-     */
-    #define PATH_FORMAT_EXPORT
-
-    /**
-     *  @def            PATH_FORMAT_API
-     *  @brief          呼び出し規約マクロ。
-     *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
-     *                  Linux (非 Windows) 環境では空に展開されます。\n
-     *                  すでに定義済みの場合は再定義されません。
-     */
-    #define PATH_FORMAT_API
-
-#else /* !DOXYGEN */
-
-    #ifndef PATH_FORMAT_STATIC
-        #define PATH_FORMAT_STATIC 0
-    #endif /* PATH_FORMAT_STATIC */
-    #ifndef PATH_FORMAT_EXPORTS
-        #define PATH_FORMAT_EXPORTS 0
-    #endif /* PATH_FORMAT_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define PATH_FORMAT_EXPORT COM_UTIL_DLL_EXPORT(PATH_FORMAT)
-    #define PATH_FORMAT_API    COM_UTIL_DLL_API(PATH_FORMAT)
-
-#endif /* DOXYGEN */
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -154,7 +115,7 @@ extern "C"
         FILE *fp = fopen_fmt("r", &err, "data_%d.txt", 123);
      *  @endcode
      */
-    PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
+    COM_UTIL_EXPORT FILE *COM_UTIL_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 4)))
 #endif /* COMPILER_GCC */
@@ -182,7 +143,7 @@ extern "C"
      *                      - Windows には st_blksize, st_blocks フィールドがありません
      *                      - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 3)))
 #endif /* COMPILER_GCC */
@@ -210,7 +171,7 @@ extern "C"
      *
      *  @see            fopen_fmt
      */
-    PATH_FORMAT_EXPORT FILE *PATH_FORMAT_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
+    COM_UTIL_EXPORT FILE *COM_UTIL_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 0)))
 #endif /* COMPILER_GCC */
@@ -228,7 +189,7 @@ extern "C"
      *
      *  @see            stat_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 0)))
 #endif /* COMPILER_GCC */
@@ -260,7 +221,7 @@ extern "C"
      *
      *  @see            vremove_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API remove_fmt(const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API remove_fmt(const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 2)))
 #endif /* COMPILER_GCC */
@@ -281,7 +242,7 @@ extern "C"
      *
      *  @see            remove_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API vremove_fmt(const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API vremove_fmt(const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 0)))
 #endif /* COMPILER_GCC */
@@ -322,7 +283,7 @@ extern "C"
      *
      *  @see            vopen_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API open_fmt(int flags, int mode, const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API open_fmt(int flags, int mode, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 4)))
 #endif /* COMPILER_GCC */
@@ -349,7 +310,7 @@ extern "C"
      *
      *  @see            open_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API vopen_fmt(int flags, int mode, const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API vopen_fmt(int flags, int mode, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 0)))
 #endif /* COMPILER_GCC */
@@ -391,7 +352,7 @@ extern "C"
      *
      *  @see            vaccess_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API access_fmt(int mode, const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API access_fmt(int mode, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 3)))
 #endif /* COMPILER_GCC */
@@ -415,7 +376,7 @@ extern "C"
      *
      *  @see            access_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API vaccess_fmt(int mode, const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API vaccess_fmt(int mode, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 0)))
 #endif /* COMPILER_GCC */
@@ -448,7 +409,7 @@ extern "C"
      *
      *  @see            vmkdir_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API mkdir_fmt(const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API mkdir_fmt(const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 2)))
 #endif /* COMPILER_GCC */
@@ -469,7 +430,7 @@ extern "C"
      *
      *  @see            mkdir_fmt
      */
-    PATH_FORMAT_EXPORT int PATH_FORMAT_API vmkdir_fmt(const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API vmkdir_fmt(const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 0)))
 #endif /* COMPILER_GCC */

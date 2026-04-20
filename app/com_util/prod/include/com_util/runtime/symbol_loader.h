@@ -24,6 +24,7 @@
 #define SYMBOL_LOADER_H
 
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 
 #if defined(PLATFORM_LINUX)
     #ifndef _GNU_SOURCE
@@ -44,45 +45,6 @@
 extern "C"
 {
 #endif /* __cplusplus */
-
-#ifdef DOXYGEN
-
-/**
- *  @def            SYMBOL_LOADER_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                        | 値                       |
- *  | ----------------------------------------------------------- | ------------------------ |
- *  | Linux (非 Windows)                                          | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                         | (空)                     |
- *  | Windows / `SYMBOL_LOADER_STATIC` 定義時 (静的リンク)        | (空)                     |
- *  | Windows / `SYMBOL_LOADER_EXPORTS` 定義時 (DLL ビルド)       | `__declspec(dllexport)`  |
- *  | Windows / `SYMBOL_LOADER_EXPORTS` 未定義時 (DLL 利用側)     | `__declspec(dllimport)`  |
- */
-#define SYMBOL_LOADER_EXPORT
-
-/**
- *  @def            SYMBOL_LOADER_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *                  Linux (非 Windows) 環境では空に展開されます。
- */
-#define SYMBOL_LOADER_API
-
-#else /* !DOXYGEN */
-
-    #ifndef SYMBOL_LOADER_STATIC
-        #define SYMBOL_LOADER_STATIC 0
-    #endif /* SYMBOL_LOADER_STATIC */
-    #ifndef SYMBOL_LOADER_EXPORTS
-        #define SYMBOL_LOADER_EXPORTS 0
-    #endif /* SYMBOL_LOADER_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define SYMBOL_LOADER_EXPORT COM_UTIL_DLL_EXPORT(SYMBOL_LOADER)
-    #define SYMBOL_LOADER_API    COM_UTIL_DLL_API(SYMBOL_LOADER)
-
-#endif /* DOXYGEN */
 
 /**
  *  @def            MODULE_HANDLE
@@ -162,7 +124,7 @@ extern "C"
      *  @return         成功時 void * (関数ポインタ)、失敗時 NULL。
      *******************************************************************************
      */
-    SYMBOL_LOADER_EXPORT void *SYMBOL_LOADER_API symbol_loader_resolve(symbol_loader_entry_t *fobj);
+    COM_UTIL_EXPORT void *COM_UTIL_API symbol_loader_resolve(symbol_loader_entry_t *fobj);
 
 /**
  *  @def            symbol_loader_resolve_as
@@ -184,7 +146,7 @@ extern "C"
      *  @return         明示的デフォルトの場合は 1、それ以外は 0。
      *******************************************************************************
      */
-    SYMBOL_LOADER_EXPORT int SYMBOL_LOADER_API symbol_loader_is_default(symbol_loader_entry_t *fobj);
+    COM_UTIL_EXPORT int COM_UTIL_API symbol_loader_is_default(symbol_loader_entry_t *fobj);
 
     /**
      *******************************************************************************
@@ -197,9 +159,9 @@ extern "C"
      *  @param[in]      configpath  定義ファイルのパス。
      *******************************************************************************
      */
-    SYMBOL_LOADER_EXPORT void SYMBOL_LOADER_API symbol_loader_init(symbol_loader_entry_t *const *fobj_array,
-                                                                   const size_t fobj_length,
-                                                                   const char *configpath);
+    COM_UTIL_EXPORT void COM_UTIL_API symbol_loader_init(symbol_loader_entry_t *const *fobj_array,
+                                                         const size_t fobj_length,
+                                                         const char *configpath);
 
     /**
      *******************************************************************************
@@ -211,7 +173,7 @@ extern "C"
      *  @param[in]      fobj_length 配列の要素数。
      *******************************************************************************
      */
-    SYMBOL_LOADER_EXPORT void SYMBOL_LOADER_API
+    COM_UTIL_EXPORT void COM_UTIL_API
         symbol_loader_dispose(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length);
 
     /**
@@ -223,7 +185,7 @@ extern "C"
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
-    SYMBOL_LOADER_EXPORT int SYMBOL_LOADER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         symbol_loader_info(symbol_loader_entry_t *const *fobj_array, const size_t fobj_length);
 
 #ifdef __cplusplus

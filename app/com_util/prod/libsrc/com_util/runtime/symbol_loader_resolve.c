@@ -25,7 +25,7 @@
 #include <string.h>
 
 /* doxygen コメントは、ヘッダに記載 */
-SYMBOL_LOADER_EXPORT void *SYMBOL_LOADER_API symbol_loader_resolve(symbol_loader_entry_t *fobj)
+COM_UTIL_EXPORT void *COM_UTIL_API symbol_loader_resolve(symbol_loader_entry_t *fobj)
 {
 #if defined(PLATFORM_LINUX)
     const char *ext = ".so";

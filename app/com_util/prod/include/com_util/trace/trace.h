@@ -65,6 +65,7 @@
 /* strrchr (_TRACE_LOGGER_BASENAME マクロで使用) */
 #include <string.h>
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 
 /* 内部で使用するプラットフォーム固有ヘッダー */
 #if defined(PLATFORM_LINUX)
@@ -103,50 +104,6 @@
     "c3a7b5d1-4e2f-4a89-96c8-d7e9f1a2b3c4"
 
 #endif /* PLATFORM_WINDOWS */
-
-/* ===== DLL エクスポート / インポート制御マクロ ===== */
-
-#ifdef DOXYGEN
-
-/**
- *  @def            TRACE_LOGGER_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *
- *  ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                   | 値                       |
- *  | ------------------------------------------------------ | ------------------------ |
- *  | Linux (非 Windows)                                     | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                    | (空)                     |
- *  | Windows / `TRACE_LOGGER_STATIC` 定義時 (静的リンク)      | (空)                     |
- *  | Windows / `TRACE_LOGGER_EXPORTS` 定義時 (DLL ビルド)     | `__declspec(dllexport)`  |
- *  | Windows / `TRACE_LOGGER_EXPORTS` 未定義時 (DLL 利用側)   | `__declspec(dllimport)`  |
- */
-#define TRACE_LOGGER_EXPORT
-
-/**
- *  @def            TRACE_LOGGER_API
- *  @brief          呼び出し規約マクロ。
- *
- *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *  Linux (非 Windows) 環境では空に展開されます。\n
- *  すでに定義済みの場合は再定義されません。
- */
-#define TRACE_LOGGER_API
-
-#else /* !DOXYGEN */
-
-    #ifndef TRACE_LOGGER_STATIC
-        #define TRACE_LOGGER_STATIC 0
-    #endif /* TRACE_LOGGER_STATIC */
-    #ifndef TRACE_LOGGER_EXPORTS
-        #define TRACE_LOGGER_EXPORTS 0
-    #endif /* TRACE_LOGGER_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define TRACE_LOGGER_EXPORT COM_UTIL_DLL_EXPORT(TRACE_LOGGER)
-    #define TRACE_LOGGER_API    COM_UTIL_DLL_API(TRACE_LOGGER)
-
-#endif /* DOXYGEN */
 
 /* ===== メッセージ長制限 ===== */
 
@@ -277,7 +234,7 @@ extern "C"
      *  複数スレッドから独立したハンドルを取得するために並行して呼び出すことができます。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT trace_logger_t *TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_logger_t *COM_UTIL_API
         trace_logger_create(void);
 
     /**
@@ -302,7 +259,7 @@ extern "C"
      *  @see            trace_logger_stop
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_start(trace_logger_t *handle);
 
     /**
@@ -327,7 +284,7 @@ extern "C"
      *  @see            trace_logger_start
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_stop(trace_logger_t *handle);
 
     /**
@@ -364,7 +321,7 @@ extern "C"
      *                  stopped 状態では -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_write(trace_logger_t *handle, trace_level_t level, const char *message);
 
     /**
@@ -398,7 +355,7 @@ extern "C"
      *                  stopped 状態では -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_writef(trace_logger_t *handle, trace_level_t level, const char *format, ...);
 
     /**
@@ -446,9 +403,9 @@ extern "C"
      *                  stopped 状態では -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_write_hex(trace_logger_t *handle, trace_level_t level,
-                      const void *data, size_t size, const char *message);
+                               const void *data, size_t size, const char *message);
 
     /**
      *******************************************************************************
@@ -495,7 +452,7 @@ extern "C"
      *  @see            trace_logger_write_hex
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_write_hexf(trace_logger_t *handle, trace_level_t level,
                        const void *data, size_t size, const char *format, ...);
 
@@ -542,7 +499,7 @@ extern "C"
      *                  started 状態では -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_set_name(trace_logger_t *handle, const char *name, int64_t identifier);
 
     /**
@@ -558,7 +515,7 @@ extern "C"
      *  started / stopped どちらの状態でも呼び出し可能です。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_level_t COM_UTIL_API
         trace_logger_get_os_level(trace_logger_t *handle);
 
     /**
@@ -585,7 +542,7 @@ extern "C"
      *                  started 状態では -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_set_os_level(trace_logger_t *handle, trace_level_t level);
 
     /**
@@ -601,7 +558,7 @@ extern "C"
      *  started / stopped どちらの状態でも呼び出し可能です。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_level_t COM_UTIL_API
         trace_logger_get_file_level(trace_logger_t *handle);
 
     /**
@@ -638,7 +595,7 @@ extern "C"
      *                  path に指定したファイルが書き込み不可の場合は -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_set_file_level(trace_logger_t *handle, const char *path,
                              trace_level_t level, size_t max_bytes, int generations);
 
@@ -655,7 +612,7 @@ extern "C"
      *  started / stopped どちらの状態でも呼び出し可能です。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_level_t COM_UTIL_API
         trace_logger_get_stderr_level(trace_logger_t *handle);
 
     /**
@@ -686,7 +643,7 @@ extern "C"
      *                  started 状態では -1 を返します。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
         trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level);
     /**
      *******************************************************************************
@@ -709,7 +666,7 @@ extern "C"
      *  本関数呼び出し後、handle は無効となります。
      *******************************************************************************
      */
-    TRACE_LOGGER_EXPORT void TRACE_LOGGER_API
+    COM_UTIL_EXPORT void COM_UTIL_API
         trace_logger_destroy(trace_logger_t *handle);
 
 #ifdef __cplusplus

@@ -2,6 +2,7 @@
 #define CONSOLE_H
 
 #include <com_util/base/platform.h>
+#include <com_util_export.h>
 
 /**
  *  @file           console.h
@@ -28,48 +29,6 @@
  *  @endcode
  */
 
-/* ===== DLL エクスポート / インポート制御マクロ ===== */
-
-#ifdef DOXYGEN
-
-/**
- *  @def            CONSOLE_EXPORT
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *  @details        ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                     | 値                       |
- *  | -------------------------------------------------------- | ------------------------ |
- *  | Linux (非 Windows)                                       | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                      | (空)                     |
- *  | Windows / `CONSOLE_STATIC` 定義時 (静的リンク)      | (空)                     |
- *  | Windows / `CONSOLE_EXPORTS` 定義時 (DLL ビルド)     | `__declspec(dllexport)`  |
- *  | Windows / `CONSOLE_EXPORTS` 未定義時 (DLL 利用側)   | `__declspec(dllimport)`  |
- */
-#define CONSOLE_EXPORT
-
-/**
- *  @def            CONSOLE_API
- *  @brief          呼び出し規約マクロ。
- *  @details        Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *                  Linux (非 Windows) 環境では空に展開されます。\n
- *                  すでに定義済みの場合は再定義されません。
- */
-#define CONSOLE_API
-
-#else /* !DOXYGEN */
-
-    #ifndef CONSOLE_STATIC
-        #define CONSOLE_STATIC 0
-    #endif /* CONSOLE_STATIC */
-    #ifndef CONSOLE_EXPORTS
-        #define CONSOLE_EXPORTS 0
-    #endif /* CONSOLE_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define CONSOLE_EXPORT COM_UTIL_DLL_EXPORT(CONSOLE)
-    #define CONSOLE_API    COM_UTIL_DLL_API(CONSOLE)
-
-#endif /* DOXYGEN */
-
 /* ===== API 関数 ===== */
 
 #ifdef __cplusplus
@@ -92,7 +51,7 @@ extern "C"
      *  @note           リソースはライブラリアンロード時に自動解放されます。
      *                  明示的に解放する場合は @c console_dispose を呼び出してください。
      */
-    CONSOLE_EXPORT void CONSOLE_API console_init(void);
+    COM_UTIL_EXPORT void COM_UTIL_API console_init(void);
 
     /**
      *  @brief          コンソールヘルパーを終了し、リソースを解放する。
@@ -101,7 +60,7 @@ extern "C"
      *                  Linux 環境では何もしません。\n
      *                  @c console_init を呼び出していない場合も安全に呼び出せます。
      */
-    CONSOLE_EXPORT void CONSOLE_API console_dispose(void);
+    COM_UTIL_EXPORT void COM_UTIL_API console_dispose(void);
 
 #ifdef __cplusplus
 }

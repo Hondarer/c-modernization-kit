@@ -580,7 +580,7 @@ static void trace_handle_release_on_unload(trace_logger_t *handle)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT trace_logger_t *TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_logger_t *COM_UTIL_API
     trace_logger_create(void)
 {
     trace_logger_t *handle;
@@ -692,7 +692,7 @@ TRACE_LOGGER_EXPORT trace_logger_t *TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_start(trace_logger_t *handle)
 {
     if (!handle_is_active(handle))
@@ -718,7 +718,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_stop(trace_logger_t *handle)
 {
     if (!handle_is_active(handle))
@@ -853,7 +853,7 @@ static int write_dual(trace_logger_t *handle, trace_level_t level, const char *m
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_write(trace_logger_t *handle, trace_level_t level, const char *message)
 {
     const char *msg;
@@ -895,7 +895,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_writef(trace_logger_t *handle, trace_level_t level, const char *format, ...)
 {
     va_list args;
@@ -1020,7 +1020,7 @@ static int hex_write_impl(trace_logger_t *handle, trace_level_t level,
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_write_hex(trace_logger_t *handle, trace_level_t level,
                     const void *data, size_t size, const char *message)
 {
@@ -1050,7 +1050,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_write_hexf(trace_logger_t *handle, trace_level_t level,
                      const void *data, size_t size, const char *format, ...)
 {
@@ -1093,7 +1093,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_set_name(trace_logger_t *handle, const char *name, int64_t identifier)
 {
     char *effective;
@@ -1144,7 +1144,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_level_t COM_UTIL_API
     trace_logger_get_os_level(trace_logger_t *handle)
 {
     trace_level_t lv;
@@ -1168,7 +1168,7 @@ TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_set_os_level(trace_logger_t *handle, trace_level_t level)
 {
     if (!handle_is_active(handle))
@@ -1189,7 +1189,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_level_t COM_UTIL_API
     trace_logger_get_file_level(trace_logger_t *handle)
 {
     trace_level_t lv;
@@ -1213,7 +1213,7 @@ TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_set_file_level(trace_logger_t *handle, const char *path,
                          trace_level_t level, size_t max_bytes, int generations)
 {
@@ -1252,7 +1252,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
+    COM_UTIL_EXPORT trace_level_t COM_UTIL_API
     trace_logger_get_stderr_level(trace_logger_t *handle)
 {
     trace_level_t lv;
@@ -1276,7 +1276,7 @@ TRACE_LOGGER_EXPORT trace_level_t TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
+    COM_UTIL_EXPORT int COM_UTIL_API
     trace_logger_set_stderr_level(trace_logger_t *handle, trace_level_t level)
 {
     if (!handle_is_active(handle))
@@ -1297,7 +1297,7 @@ TRACE_LOGGER_EXPORT int TRACE_LOGGER_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_LOGGER_EXPORT void TRACE_LOGGER_API
+    COM_UTIL_EXPORT void COM_UTIL_API
     trace_logger_destroy(trace_logger_t *handle)
 {
     if (handle == NULL)

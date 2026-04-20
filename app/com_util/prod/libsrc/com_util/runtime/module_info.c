@@ -309,7 +309,7 @@ static get_lib_info_status_t get_self_path_w(wchar_t *out_w, size_t out_w_cap, c
 #endif /* PLATFORM_ */
 
 /* doxygen コメントは、ヘッダに記載 */
-MODULE_INFO_EXPORT int MODULE_INFO_API module_info_get_path(char *out_path, const size_t out_path_sz, const void *func_addr)
+COM_UTIL_EXPORT int COM_UTIL_API module_info_get_path(char *out_path, const size_t out_path_sz, const void *func_addr)
 {
 #if defined(PLATFORM_LINUX)
     return (int)get_self_path_posix(out_path, out_path_sz, func_addr);
@@ -327,7 +327,7 @@ MODULE_INFO_EXPORT int MODULE_INFO_API module_info_get_path(char *out_path, cons
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-MODULE_INFO_EXPORT int MODULE_INFO_API module_info_get_basename(char *out_basename, const size_t out_basename_sz, const void *func_addr)
+COM_UTIL_EXPORT int COM_UTIL_API module_info_get_basename(char *out_basename, const size_t out_basename_sz, const void *func_addr)
 {
     get_lib_info_status_t st;
     char path_buf[4096];

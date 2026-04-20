@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           com_uti_export.h
+ *  @file           com_util_export.h
  *  @brief          com_util の Windows DLL エクスポート/呼び出し規約マクロ。
  *  @author         Tetsuo Honda
  *  @date           2026/04/21
@@ -48,8 +48,8 @@
         #define COM_UTIL_EXPORTS 0
     #endif /* COM_UTIL_EXPORTS */
     #include <com_util/base/dll_exports.h>
-    #define COM_UTIL_EXPORT COM_UTIL_DLL_EXPORT(CLOCK)
-    #define COM_UTIL_API    COM_UTIL_DLL_API(CLOCK)
+    #define COM_UTIL_EXPORT COM_UTIL_DLL_EXPORT(COM_UTIL)
+    #define COM_UTIL_API    COM_UTIL_DLL_API(COM_UTIL)
 
 #endif /* DOXYGEN */
 

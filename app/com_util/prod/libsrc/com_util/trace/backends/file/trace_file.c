@@ -294,7 +294,7 @@ static void rotate_file(trace_file_sink_t *p)
 /* ===== 公開 API ===== */
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API trace_file_sink_create(const char *path, size_t max_bytes,
+COM_UTIL_EXPORT trace_file_sink_t *COM_UTIL_API trace_file_sink_create(const char *path, size_t max_bytes,
                                                                            int generations)
 {
     trace_file_sink_t *handle;
@@ -373,7 +373,7 @@ TRACE_FILE_EXPORT trace_file_sink_t *TRACE_FILE_API trace_file_sink_create(const
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_FILE_EXPORT int TRACE_FILE_API trace_file_sink_write(trace_file_sink_t *handle, int level, const char *message)
+COM_UTIL_EXPORT int COM_UTIL_API trace_file_sink_write(trace_file_sink_t *handle, int level, const char *message)
 {
     char ts[TRACE_FILE_TS_LEN + 1];
     char buf[TRACE_FILE_LINE_BUF];
@@ -486,7 +486,7 @@ TRACE_FILE_EXPORT int TRACE_FILE_API trace_file_sink_write(trace_file_sink_t *ha
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_FILE_EXPORT void TRACE_FILE_API trace_file_sink_destroy(trace_file_sink_t *handle)
+COM_UTIL_EXPORT void COM_UTIL_API trace_file_sink_destroy(trace_file_sink_t *handle)
 {
     if (handle == NULL)
     {
