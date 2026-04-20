@@ -142,7 +142,7 @@ static void try_open_socket_locked(trace_syslog_sink_t *h)
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_SYSLOG_EXPORT trace_syslog_sink_t *TRACE_SYSLOG_API
+COM_UTIL_EXPORT trace_syslog_sink_t *COM_UTIL_API
     trace_syslog_sink_create(const char *ident, int facility)
 {
     trace_syslog_sink_t *handle;
@@ -191,7 +191,7 @@ TRACE_SYSLOG_EXPORT trace_syslog_sink_t *TRACE_SYSLOG_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
+COM_UTIL_EXPORT int COM_UTIL_API
     trace_syslog_sink_write(trace_syslog_sink_t *handle, int level, const char *message)
 {
     char buf[SYSLOG_BUF_SIZE];
@@ -271,7 +271,7 @@ TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_SYSLOG_EXPORT void TRACE_SYSLOG_API
+COM_UTIL_EXPORT void COM_UTIL_API
     trace_syslog_sink_destroy(trace_syslog_sink_t *handle)
 {
     if (handle == NULL)
@@ -292,7 +292,7 @@ TRACE_SYSLOG_EXPORT void TRACE_SYSLOG_API
 }
 
 /* doxygen コメントは、ヘッダに記載 */
-TRACE_SYSLOG_EXPORT int TRACE_SYSLOG_API
+COM_UTIL_EXPORT int COM_UTIL_API
     trace_syslog_sink_rename(trace_syslog_sink_t *handle, const char *new_ident)
 {
     char *dup;
