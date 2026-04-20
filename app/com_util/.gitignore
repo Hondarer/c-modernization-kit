@@ -16,12 +16,6 @@
 !Makefile
 !makefile
 
-## サブモジュール
-!/framework/makefw
-!/framework/doxyfw
-!/framework/docsfw
-!/framework/testfw
-
 # 以下は管理対象外
 
 ## Claude Code
@@ -52,12 +46,6 @@ idir
 
 ## Python cache
 __pycache__/
-
-## doxybook2 によって生成される Markdown
-/docs/doxybook2/
-
-## 生成ドキュメント (gh-pages で公開)
-/pages/
 
 ## 成果物
 lib
