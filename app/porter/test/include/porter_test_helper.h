@@ -2,6 +2,7 @@
 #define PORTER_TEST_HELPER_H
 
 #include <com_util/base/platform.h>
+#include <com_util/fs/file_io.h>
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -148,29 +149,24 @@ public:
 #endif /* PLATFORM_ */
         }
 
-        FILE* f = nullptr;
-#if defined(PLATFORM_LINUX)
-        f = fopen(tmp_path_.c_str(), "w");
-#elif defined(PLATFORM_WINDOWS)
-        fopen_s(&f, tmp_path_.c_str(), "w");
-#endif /* PLATFORM_ */
+        FILE* f = com_util_fopen(tmp_path_.c_str(), "w", nullptr);
         if (f == nullptr) { return ""; }
 
         /* global セクション (テスト向けに短いタイムアウト) */
-        fprintf(f, "[global]\n");
-        fprintf(f, "window_size             = 16\n");
-        fprintf(f, "max_payload             = 1400\n");
-        fprintf(f, "udp_health_interval_ms  = %u\n", udp_health_interval_ms_);
-        fprintf(f, "udp_health_timeout_ms   = %u\n", udp_health_timeout_ms_);
-        fprintf(f, "tcp_health_interval_ms  = %u\n", tcp_health_interval_ms_);
-        fprintf(f, "tcp_health_timeout_ms   = %u\n", tcp_health_timeout_ms_);
-        fprintf(f, "tcp_close_timeout_ms    = %u\n", tcp_close_timeout_ms_);
-        fprintf(f, "\n");
+        com_util_fprintf(f, "[global]\n");
+        com_util_fprintf(f, "window_size             = 16\n");
+        com_util_fprintf(f, "max_payload             = 1400\n");
+        com_util_fprintf(f, "udp_health_interval_ms  = %u\n", udp_health_interval_ms_);
+        com_util_fprintf(f, "udp_health_timeout_ms   = %u\n", udp_health_timeout_ms_);
+        com_util_fprintf(f, "tcp_health_interval_ms  = %u\n", tcp_health_interval_ms_);
+        com_util_fprintf(f, "tcp_health_timeout_ms   = %u\n", tcp_health_timeout_ms_);
+        com_util_fprintf(f, "tcp_close_timeout_ms    = %u\n", tcp_close_timeout_ms_);
+        com_util_fprintf(f, "\n");
 
         for (const auto& line : lines_) {
-            fprintf(f, "%s\n", line.c_str());
+            com_util_fprintf(f, "%s\n", line.c_str());
         }
-        fclose(f);
+        com_util_fclose(f);
 
         return tmp_path_;
     }

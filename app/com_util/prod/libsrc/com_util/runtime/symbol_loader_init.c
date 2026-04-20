@@ -27,6 +27,7 @@
  */
 
 #include <com_util/runtime/symbol_loader.h>
+#include <com_util/fs/file_io.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -46,17 +47,13 @@ COM_UTIL_EXPORT void COM_UTIL_API symbol_loader_init(symbol_loader_entry_t *cons
     char *comment;
     size_t fobj_index;
 
-#if defined(PLATFORM_LINUX)
-    fp = fopen(configpath, "r");
-#elif defined(PLATFORM_WINDOWS)
-    fopen_s(&fp, configpath, "r");
-#endif /* PLATFORM_ */
+    fp = com_util_fopen(configpath, "r", NULL);
     if (fp == NULL)
     {
         return;
     }
 
-    while (fgets(line, sizeof(line), fp) != NULL)
+    while (com_util_fgets(line, sizeof(line), fp) != NULL)
     {
         /* '#' 以降をコメントとして切り捨てる (行頭 '#' も同様に処理される) */
         comment = strchr(line, '#');
@@ -101,6 +98,6 @@ COM_UTIL_EXPORT void COM_UTIL_API symbol_loader_init(symbol_loader_entry_t *cons
         }
     }
 
-    fclose(fp);
+    com_util_fclose(fp);
     return;
 }

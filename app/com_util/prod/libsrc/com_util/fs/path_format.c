@@ -1,4 +1,5 @@
 #include <com_util/fs/path_format.h>
+#include <com_util/fs/file_io.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -32,10 +33,10 @@
         return (fail_return);                            \
     }
 
-/* ===== vfopen_fmt / fopen_fmt ===== */
+/* ===== com_util_vfopen_fmt / com_util_fopen_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT FILE *COM_UTIL_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
+COM_UTIL_EXPORT FILE *COM_UTIL_API com_util_vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 {
     char filename[PLATFORM_PATH_MAX] = {0};
     int written;
@@ -73,47 +74,27 @@ COM_UTIL_EXPORT FILE *COM_UTIL_API vfopen_fmt(const char *modes, int *errno_out,
         return NULL;
     }
 
-    /* fopen を呼び出してファイルを開く */
-#if defined(PLATFORM_LINUX)
-    errno = 0;
-    FILE *fp = fopen(filename, modes);
-    if (fp == NULL && errno_out != NULL)
-    {
-        *errno_out = errno;
-    }
-    return fp;
-#elif defined(PLATFORM_WINDOWS)
-    FILE *fp = NULL;
-    errno_t err = fopen_s(&fp, filename, modes);
-    if (err != 0)
-    {
-        if (errno_out != NULL)
-        {
-            *errno_out = err;
-        }
-        return NULL;
-    }
-    return fp;
-#endif /* PLATFORM_ */
+    /* パスを com_util_fopen 経由で開く（UTF-8 対応・プラットフォーム差異吸収） */
+    return com_util_fopen(filename, modes, errno_out);
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT FILE *COM_UTIL_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
+COM_UTIL_EXPORT FILE *COM_UTIL_API com_util_fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 {
     FILE *result;
     va_list args;
 
     va_start(args, format);
-    result = vfopen_fmt(modes, errno_out, format, args);
+    result = com_util_vfopen_fmt(modes, errno_out, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== vstat_fmt / stat_fmt ===== */
+/* ===== com_util_vstat_fmt / com_util_stat_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -133,45 +114,45 @@ COM_UTIL_EXPORT int COM_UTIL_API vstat_fmt(util_file_stat_t *buf, const char *fo
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_stat_fmt(util_file_stat_t *buf, const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = vstat_fmt(buf, format, args);
+    result = com_util_vstat_fmt(buf, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== vremove_fmt / remove_fmt ===== */
+/* ===== com_util_vremove_fmt / com_util_remove_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API vremove_fmt(const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_vremove_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
-    return remove(filename);
+    return com_util_remove(filename);
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API remove_fmt(const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_remove_fmt(const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = vremove_fmt(format, args);
+    result = com_util_vremove_fmt(format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== vopen_fmt / open_fmt ===== */
+/* ===== com_util_vopen_fmt / com_util_open_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API vopen_fmt(int flags, int mode, const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_vopen_fmt(int flags, int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -192,22 +173,22 @@ COM_UTIL_EXPORT int COM_UTIL_API vopen_fmt(int flags, int mode, const char *form
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API open_fmt(int flags, int mode, const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_open_fmt(int flags, int mode, const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = vopen_fmt(flags, mode, format, args);
+    result = com_util_vopen_fmt(flags, mode, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== vaccess_fmt / access_fmt ===== */
+/* ===== com_util_vaccess_fmt / com_util_access_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API vaccess_fmt(int mode, const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_vaccess_fmt(int mode, const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -219,22 +200,22 @@ COM_UTIL_EXPORT int COM_UTIL_API vaccess_fmt(int mode, const char *format, va_li
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API access_fmt(int mode, const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_access_fmt(int mode, const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = vaccess_fmt(mode, format, args);
+    result = com_util_vaccess_fmt(mode, format, args);
     va_end(args);
 
     return result;
 }
 
-/* ===== vmkdir_fmt / mkdir_fmt ===== */
+/* ===== com_util_vmkdir_fmt / com_util_mkdir_fmt ===== */
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API vmkdir_fmt(const char *format, va_list args)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_vmkdir_fmt(const char *format, va_list args)
 {
     FMTIO_FORMAT_FILENAME(format, args, -1)
 
@@ -246,13 +227,13 @@ COM_UTIL_EXPORT int COM_UTIL_API vmkdir_fmt(const char *format, va_list args)
 }
 
 /* Doxygen コメントは、ヘッダに記載 */
-COM_UTIL_EXPORT int COM_UTIL_API mkdir_fmt(const char *format, ...)
+COM_UTIL_EXPORT int COM_UTIL_API com_util_mkdir_fmt(const char *format, ...)
 {
     int result;
     va_list args;
 
     va_start(args, format);
-    result = vmkdir_fmt(format, args);
+    result = com_util_vmkdir_fmt(format, args);
     va_end(args);
 
     return result;

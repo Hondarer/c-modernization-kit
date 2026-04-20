@@ -12,6 +12,7 @@
  */
 
 #include <com_util/base/platform.h>
+#include <com_util/fs/file_io.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -47,14 +48,7 @@ static FILE *open_config_file_read(const char *path)
         return NULL;
     }
 
-#if defined(PLATFORM_LINUX)
-    fp = fopen(path, "r");
-#elif defined(PLATFORM_WINDOWS)
-    if (fopen_s(&fp, path, "r") != 0)
-    {
-        return NULL;
-    }
-#endif /* PLATFORM_ */
+    fp = com_util_fopen(path, "r", NULL);
 
     return fp;
 }
@@ -193,7 +187,7 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
     section[0] = '\0';
     in_global  = 0;
 
-    while (fgets(line, sizeof(line), fp) != NULL)
+    while (com_util_fgets(line, sizeof(line), fp) != NULL)
     {
         char trimmed[CONFIG_LINE_MAX];
         trim(line, trimmed, sizeof(trimmed));
@@ -292,7 +286,7 @@ int config_load_global(const char *config_path, PotrGlobalConfig *global)
              (unsigned)global->tcp_close_timeout_ms,
              (unsigned)global->reorder_timeout_ms);
 
-    fclose(fp);
+    com_util_fclose(fp);
     return POTR_SUCCESS;
 }
 
@@ -533,7 +527,7 @@ int config_load_service(const char *config_path, int64_t service_id,
     in_target = 0;
     found     = 0;
 
-    while (fgets(line, sizeof(line), fp) != NULL)
+    while (com_util_fgets(line, sizeof(line), fp) != NULL)
     {
         char trimmed[CONFIG_LINE_MAX];
         trim(line, trimmed, sizeof(trimmed));
@@ -599,7 +593,7 @@ int config_load_service(const char *config_path, int64_t service_id,
         apply_service_kv(key, val, def);
     }
 
-    fclose(fp);
+    com_util_fclose(fp);
     if (found)
     {
         POTR_LOG(TRACE_LEVEL_VERBOSE,
@@ -653,11 +647,11 @@ int config_list_service_ids(const char *config_path, int64_t **ids_out, int *cou
     ids      = (int64_t *)malloc((size_t)capacity * sizeof(int64_t));
     if (ids == NULL)
     {
-        fclose(fp);
+        com_util_fclose(fp);
         return POTR_ERROR;
     }
 
-    while (fgets(line, sizeof(line), fp) != NULL)
+    while (com_util_fgets(line, sizeof(line), fp) != NULL)
     {
         char trimmed[CONFIG_LINE_MAX];
         trim(line, trimmed, sizeof(trimmed));
@@ -696,7 +690,7 @@ int config_list_service_ids(const char *config_path, int64_t **ids_out, int *cou
                 if (new_ids == NULL)
                 {
                     free(ids);
-                    fclose(fp);
+                    com_util_fclose(fp);
                     return POTR_ERROR;
                 }
                 ids      = new_ids;
@@ -707,7 +701,7 @@ int config_list_service_ids(const char *config_path, int64_t **ids_out, int *cou
         }
     }
 
-    fclose(fp);
+    com_util_fclose(fp);
     *ids_out   = ids;
     *count_out = count;
     return POTR_SUCCESS;

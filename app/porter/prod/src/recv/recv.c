@@ -41,6 +41,7 @@
  */
 
 #include <com_util/base/platform.h>
+#include <com_util/fs/file_io.h>
 #include <com_util/fs/path_max.h>
 #include <inttypes.h>
 #include <signal.h>
@@ -149,12 +150,13 @@ static int save_to_temp_file(const void *data, size_t len, char *path_out, size_
     {
         return -1;
     }
-    if (fopen_s(&fp, path_out, "wb") != 0 || fp == NULL)
+    fp = com_util_fopen(path_out, "wb", NULL);
+    if (fp == NULL)
     {
         return -1;
     }
-    written = fwrite(data, 1, len, fp);
-    fclose(fp);
+    written = com_util_fwrite(data, 1, len, fp);
+    com_util_fclose(fp);
     if (written != len)
     {
         return -1;
@@ -377,15 +379,11 @@ static int read_line(char *buf, size_t size)
 static int read_file_data(const char *path, unsigned char **out_data, size_t *out_len)
 {
     FILE *fp = NULL;
-    long file_size;
+    int64_t file_size;
     unsigned char *buf;
     size_t read_count;
 
-#if defined(PLATFORM_LINUX)
-    fp = fopen(path, "rb");
-#elif defined(PLATFORM_WINDOWS)
-    fopen_s(&fp, path, "rb");
-#endif /* PLATFORM_ */
+    fp = com_util_fopen(path, "rb", NULL);
 
     if (fp == NULL)
     {
@@ -393,33 +391,33 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
         return -1;
     }
 
-    if (fseek(fp, 0, SEEK_END) != 0)
+    if (com_util_fseek(fp, 0, SEEK_END) != 0)
     {
         fprintf(stderr, "エラー: ファイルの読み込みに失敗しました。\n");
-        fclose(fp);
+        com_util_fclose(fp);
         return -1;
     }
 
-    file_size = ftell(fp);
+    file_size = com_util_ftell(fp);
     if (file_size < 0)
     {
         fprintf(stderr, "エラー: ファイルの読み込みに失敗しました。\n");
-        fclose(fp);
+        com_util_fclose(fp);
         return -1;
     }
 
     if (file_size == 0)
     {
         fprintf(stderr, "エラー: ファイルが空です。\n");
-        fclose(fp);
+        com_util_fclose(fp);
         return -1;
     }
 
-    if ((unsigned long)file_size > POTR_MAX_MESSAGE_SIZE)
+    if ((uint64_t)file_size > POTR_MAX_MESSAGE_SIZE)
     {
-        fprintf(stderr, "エラー: ファイルサイズ (%ld バイト) が最大送信サイズ (%u バイト) を超えています。\n",
+        fprintf(stderr, "エラー: ファイルサイズ (%" PRId64 " バイト) が最大送信サイズ (%u バイト) を超えています。\n",
                 file_size, (unsigned)POTR_MAX_MESSAGE_SIZE);
-        fclose(fp);
+        com_util_fclose(fp);
         return -1;
     }
 
@@ -427,13 +425,13 @@ static int read_file_data(const char *path, unsigned char **out_data, size_t *ou
     if (buf == NULL)
     {
         fprintf(stderr, "エラー: メモリ確保に失敗しました。\n");
-        fclose(fp);
+        com_util_fclose(fp);
         return -1;
     }
 
-    rewind(fp);
-    read_count = fread(buf, 1, (size_t)file_size, fp);
-    fclose(fp);
+    com_util_rewind(fp);
+    read_count = com_util_fread(buf, 1, (size_t)file_size, fp);
+    com_util_fclose(fp);
 
     if (read_count != (size_t)file_size)
     {

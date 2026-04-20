@@ -14,6 +14,7 @@
  */
 
 #include <com_util/clock/clock.h>
+#include <com_util/fs/file_io.h>
 #include <com_util/fs/path_max.h>
 #include <com_util/trace/trace_file.h>
 #include <stdio.h>
@@ -272,19 +273,11 @@ static void rotate_file(trace_file_sink_t *p)
             snprintf(old_path, sizeof(old_path), "%s.%d", p->path, gen - 1);
         }
 
-#if defined(PLATFORM_LINUX)
-        if (rename(old_path, new_path) != 0)
+        if (com_util_rename(old_path, new_path) != 0)
         {
             /* リネーム失敗: カスケードをここで打ち切る */
             break;
         }
-#elif defined(PLATFORM_WINDOWS)
-        if (!MoveFileExA(old_path, new_path, MOVEFILE_REPLACE_EXISTING))
-        {
-            /* リネーム失敗: カスケードをここで打ち切る */
-            break;
-        }
-#endif /* PLATFORM_ */
     }
 
     /* 新規ファイルを作成して開く (失敗しても fh=INVALID/fd=-1 のまま続行) */

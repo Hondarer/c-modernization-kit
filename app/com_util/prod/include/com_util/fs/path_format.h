@@ -1,5 +1,18 @@
-#ifndef PATH_FORMAT_H
-#define PATH_FORMAT_H
+/**
+ *******************************************************************************
+ *  @file           path_format.h
+ *  @brief          printf 形式でファイルパスを指定するファイルシステム操作ユーティリティー。
+ *  @author         Tetsuo Honda
+ *  @date           2026/04/19
+ *  @version        1.0.0
+ *
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
+ *
+ *******************************************************************************
+ */
+
+#ifndef COM_UTIL_PATH_FORMAT_H
+#define COM_UTIL_PATH_FORMAT_H
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -31,38 +44,38 @@ typedef struct _stat64 util_file_stat_t;
     #include <direct.h>
 #endif /* PLATFORM_ */
 
-/* access_fmt 用のモード定数 */
+/* com_util_access_fmt 用のモード定数 */
 
 #ifdef DOXYGEN
     /**
-     *  @def            ACCESS_FMT_F_OK
+     *  @def            COM_UTIL_ACCESS_FMT_F_OK
      *  @brief          ファイルの存在を確認するモード定数。
-     *  @details        access_fmt() の mode 引数に使用します。
+     *  @details        com_util_access_fmt() の mode 引数に使用します。
      */
-    #define ACCESS_FMT_F_OK 0
+    #define COM_UTIL_ACCESS_FMT_F_OK 0
 
     /**
-     *  @def            ACCESS_FMT_R_OK
+     *  @def            COM_UTIL_ACCESS_FMT_R_OK
      *  @brief          ファイルの読み取り権限を確認するモード定数。
-     *  @details        access_fmt() の mode 引数に使用します。
+     *  @details        com_util_access_fmt() の mode 引数に使用します。
      */
-    #define ACCESS_FMT_R_OK 4
+    #define COM_UTIL_ACCESS_FMT_R_OK 4
 
     /**
-     *  @def            ACCESS_FMT_W_OK
+     *  @def            COM_UTIL_ACCESS_FMT_W_OK
      *  @brief          ファイルの書き込み権限を確認するモード定数。
-     *  @details        access_fmt() の mode 引数に使用します。
+     *  @details        com_util_access_fmt() の mode 引数に使用します。
      */
-    #define ACCESS_FMT_W_OK 2
+    #define COM_UTIL_ACCESS_FMT_W_OK 2
 #else /* !DOXYGEN */
     #if defined(PLATFORM_LINUX)
-        #define ACCESS_FMT_F_OK F_OK
-        #define ACCESS_FMT_R_OK R_OK
-        #define ACCESS_FMT_W_OK W_OK
+        #define COM_UTIL_ACCESS_FMT_F_OK F_OK
+        #define COM_UTIL_ACCESS_FMT_R_OK R_OK
+        #define COM_UTIL_ACCESS_FMT_W_OK W_OK
     #elif defined(PLATFORM_WINDOWS)
-        #define ACCESS_FMT_F_OK 0
-        #define ACCESS_FMT_R_OK 4
-        #define ACCESS_FMT_W_OK 2
+        #define COM_UTIL_ACCESS_FMT_F_OK 0
+        #define COM_UTIL_ACCESS_FMT_R_OK 4
+        #define COM_UTIL_ACCESS_FMT_W_OK 2
     #endif /* PLATFORM_ */
 #endif     /* DOXYGEN */
 
@@ -106,16 +119,16 @@ extern "C"
      *
      *  @par            使用例 (エラー コードの取得なし)
      *  @code{.c}
-        FILE *fp = fopen_fmt("r", NULL, "data_%d.txt", 123);
+        FILE *fp = com_util_fopen_fmt("r", NULL, "data_%d.txt", 123);
      *  @endcode
      *
      *  @par            使用例 (エラー コードの取得あり)
      *  @code{.c}
         int err;
-        FILE *fp = fopen_fmt("r", &err, "data_%d.txt", 123);
+        FILE *fp = com_util_fopen_fmt("r", &err, "data_%d.txt", 123);
      *  @endcode
      */
-    COM_UTIL_EXPORT FILE *COM_UTIL_API fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
+    COM_UTIL_EXPORT FILE *COM_UTIL_API com_util_fopen_fmt(const char *modes, int *errno_out, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 4)))
 #endif /* COMPILER_GCC */
@@ -136,14 +149,14 @@ extern "C"
      *  @note           util_file_stat_t は、Linux では struct stat、Windows では struct _stat64 の typedef です
      *  @par            使用例
      *  @code{.c}
-        util_file_stat_t st; int ret = stat_fmt(&st, "data_%d.txt", 123);
+        util_file_stat_t st; int ret = com_util_stat_fmt(&st, "data_%d.txt", 123);
      *  @endcode
      *  @note           Linux では stat()、Windows では _stat64() を使用します
      *  @warning        Linux と Windows では構造体のフィールドが異なるため、プラットフォーム固有のコードが必要です
      *                      - Windows には st_blksize, st_blocks フィールドがありません
      *                      - st_ctime は Linux ではメタデータ変更時刻、Windows では作成時刻を表します
      */
-    COM_UTIL_EXPORT int COM_UTIL_API stat_fmt(util_file_stat_t *buf, const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_stat_fmt(util_file_stat_t *buf, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 3)))
 #endif /* COMPILER_GCC */
@@ -152,7 +165,7 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを開きます (va_list 版)。
      *
-     *  fopen_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  com_util_fopen_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *  上位のラッパー関数やマクロから va_list を転送する場合に使用します。
      *
      *  @param[in]      modes
@@ -169,9 +182,9 @@ extern "C"
      *
      *  @return         成功した場合は FILE* を返します。失敗した場合は NULL を返します。
      *
-     *  @see            fopen_fmt
+     *  @see            com_util_fopen_fmt
      */
-    COM_UTIL_EXPORT FILE *COM_UTIL_API vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
+    COM_UTIL_EXPORT FILE *COM_UTIL_API com_util_vfopen_fmt(const char *modes, int *errno_out, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 0)))
 #endif /* COMPILER_GCC */
@@ -180,16 +193,16 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定する stat ラッパー関数 (va_list 版)。
      *
-     *  stat_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  com_util_stat_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[out]     buf ファイル情報を格納する構造体へのポインタ (util_file_stat_t 型)
      *  @param[in]      format ファイル名のフォーマット文字列 (printf 形式)
      *  @param[in]      args フォーマット文字列に対応する可変引数リスト
      *  @return         成功時は 0、失敗時は -1
      *
-     *  @see            stat_fmt
+     *  @see            com_util_stat_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_vstat_fmt(util_file_stat_t *buf, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 0)))
 #endif /* COMPILER_GCC */
@@ -216,12 +229,12 @@ extern "C"
      *
      *  @par            使用例
      *  @code{.c}
-        int ret = remove_fmt("data_%d.txt", 123);
+        int ret = com_util_remove_fmt("data_%d.txt", 123);
      *  @endcode
      *
-     *  @see            vremove_fmt
+     *  @see            com_util_vremove_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API remove_fmt(const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_remove_fmt(const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 2)))
 #endif /* COMPILER_GCC */
@@ -230,7 +243,7 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを削除します (va_list 版)。
      *
-     *  remove_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  com_util_remove_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      format
      *                  ファイル名の書式文字列 (printf 形式)。
@@ -240,9 +253,9 @@ extern "C"
      *
      *  @return         成功時は 0、失敗時は非ゼロ値を返します。
      *
-     *  @see            remove_fmt
+     *  @see            com_util_remove_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API vremove_fmt(const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_vremove_fmt(const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 0)))
 #endif /* COMPILER_GCC */
@@ -278,12 +291,12 @@ extern "C"
      *
      *  @par            使用例
      *  @code{.c}
-        int fd = open_fmt(O_WRONLY | O_CREAT | O_TRUNC, 0644, "log_%d.txt", pid);
+        int fd = com_util_open_fmt(O_WRONLY | O_CREAT | O_TRUNC, 0644, "log_%d.txt", pid);
      *  @endcode
      *
-     *  @see            vopen_fmt
+     *  @see            com_util_vopen_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API open_fmt(int flags, int mode, const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_open_fmt(int flags, int mode, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 4)))
 #endif /* COMPILER_GCC */
@@ -292,7 +305,7 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してファイルを開きます (低レベル、va_list 版)。
      *
-     *  open_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  com_util_open_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      flags
      *                  ファイルオープンフラグ。
@@ -308,9 +321,9 @@ extern "C"
      *
      *  @return         成功時はファイルディスクリプタ、失敗時は -1 を返します。
      *
-     *  @see            open_fmt
+     *  @see            com_util_open_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API vopen_fmt(int flags, int mode, const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_vopen_fmt(int flags, int mode, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 3, 0)))
 #endif /* COMPILER_GCC */
@@ -326,9 +339,9 @@ extern "C"
      *
      *  @param[in]      mode
      *                  確認するアクセスモード。以下の定数を使用してください。
-     *                  - ACCESS_FMT_F_OK: ファイルの存在を確認
-     *                  - ACCESS_FMT_R_OK: 読み取り権限を確認
-     *                  - ACCESS_FMT_W_OK: 書き込み権限を確認
+     *                  - COM_UTIL_ACCESS_FMT_F_OK: ファイルの存在を確認
+     *                  - COM_UTIL_ACCESS_FMT_R_OK: 読み取り権限を確認
+     *                  - COM_UTIL_ACCESS_FMT_W_OK: 書き込み権限を確認
      *
      *  @param[in]      format
      *                  ファイル名の書式文字列 (printf 形式)。
@@ -340,19 +353,19 @@ extern "C"
      *
      *  @note           ファイル名の最大長は OS の制限に従います (Windows: MAX_PATH=260, Linux: PATH_MAX=通常4096)。
      *  @note           Windows の _access() は実行権限チェック (X_OK) をサポートしないため、
-     *                  FMTIO_X_OK は提供しません。
+     *                  X_OK に対応する定数は提供しません。
      *
      *  @par            使用例
      *  @code{.c}
-        if (access_fmt(ACCESS_FMT_F_OK, "config_%d.txt", instance_id) == 0)
+        if (com_util_access_fmt(COM_UTIL_ACCESS_FMT_F_OK, "config_%d.txt", instance_id) == 0)
         {
             // ファイルが存在する
         }
      *  @endcode
      *
-     *  @see            vaccess_fmt
+     *  @see            com_util_vaccess_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API access_fmt(int mode, const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_access_fmt(int mode, const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 3)))
 #endif /* COMPILER_GCC */
@@ -361,10 +374,11 @@ extern "C"
     /**
      *  @brief          printf 形式でファイル名を指定してアクセス可否を確認します (va_list 版)。
      *
-     *  access_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  com_util_access_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      mode
-     *                  確認するアクセスモード (ACCESS_FMT_F_OK, ACCESS_FMT_R_OK, ACCESS_FMT_W_OK)。
+     *                  確認するアクセスモード (COM_UTIL_ACCESS_FMT_F_OK, COM_UTIL_ACCESS_FMT_R_OK,
+     *                  COM_UTIL_ACCESS_FMT_W_OK)。
      *
      *  @param[in]      format
      *                  ファイル名の書式文字列 (printf 形式)。
@@ -374,9 +388,9 @@ extern "C"
      *
      *  @return         アクセス可能な場合は 0、不可の場合は -1 を返します。
      *
-     *  @see            access_fmt
+     *  @see            com_util_access_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API vaccess_fmt(int mode, const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_vaccess_fmt(int mode, const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 2, 0)))
 #endif /* COMPILER_GCC */
@@ -404,12 +418,12 @@ extern "C"
      *
      *  @par            使用例
      *  @code{.c}
-        int ret = mkdir_fmt("logs_%04d", year);
+        int ret = com_util_mkdir_fmt("logs_%04d", year);
      *  @endcode
      *
-     *  @see            vmkdir_fmt
+     *  @see            com_util_vmkdir_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API mkdir_fmt(const char *format, ...)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_mkdir_fmt(const char *format, ...)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 2)))
 #endif /* COMPILER_GCC */
@@ -418,7 +432,7 @@ extern "C"
     /**
      *  @brief          printf 形式でディレクトリ名を指定してディレクトリを作成します (va_list 版)。
      *
-     *  mkdir_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
+     *  com_util_mkdir_fmt() と同等ですが、可変引数リストの代わりに va_list を受け取ります。
      *
      *  @param[in]      format
      *                  ディレクトリ名の書式文字列 (printf 形式)。
@@ -428,9 +442,9 @@ extern "C"
      *
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
-     *  @see            mkdir_fmt
+     *  @see            com_util_mkdir_fmt
      */
-    COM_UTIL_EXPORT int COM_UTIL_API vmkdir_fmt(const char *format, va_list args)
+    COM_UTIL_EXPORT int COM_UTIL_API com_util_vmkdir_fmt(const char *format, va_list args)
 #if defined(COMPILER_GCC)
         __attribute__((format(printf, 1, 0)))
 #endif /* COMPILER_GCC */
@@ -440,4 +454,4 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* PATH_FORMAT_H */
+#endif /* COM_UTIL_PATH_FORMAT_H */
