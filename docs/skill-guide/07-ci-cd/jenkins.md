@@ -292,26 +292,86 @@ podman pull hondarer/oracle-linux-10-dev:latest
 
 #### ビルド手順
 
-**Build Steps** (ビルド手順) に **Execute shell** (シェルの実行) を追加し、次のようなコマンドを設定します。
+**Build Steps** (ビルド手順) に **Execute shell** (シェルの実行) を追加します。
 
 Oracle Linux 開発コンテナは既定の `ENTRYPOINT` で `entrypoint.sh` を実行し、最終的に `sshd -D` で待機します。  
 そのため Jenkins でワンショット実行する場合は、`--entrypoint /bin/bash` で既定エントリーポイントを上書きし、コンテナ内で `devcontainer-entrypoint.sh` を明示的に呼び出してからビルドを実行します。この処理は `.jenkins/build.sh` が行います。
 
-この例では、Jenkins ワークスペース内に `source` ディレクトリを作成し、そこへ clone した内容を `/workspace` にマウントしてビルドします。  
+まずは clone や `make` を実行せず、Jenkins から CI 用コンテナを起動し、コンテナ内の一般ユーザーでコマンドを実行できることを確認します。次のスクリプトを **Execute shell** に設定して、ジョブを実行してください。
+
+```bash
+set -eu
+
+# イメージは ghcr.io または Docker Hub のどちらかを選択する
+# 他のコンテナレポジトリから pull する場合は、そのイメージパスを記載
+# ghcr.io (GitHub Container Registry) を使う場合:
+#   IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
+#   IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest"
+# Docker Hub を使う場合:
+#   IMAGE="hondarer/oracle-linux-8-dev:latest"
+#   IMAGE="hondarer/oracle-linux-10-dev:latest"
+IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
+WORKDIR="$PWD/source"
+OS_NAME="ol8"
+BUILD_DOCS="1"
+
+# Jenkins 実行ユーザーの情報を動的に取得
+HOST_USER="$(id -un)"
+HOST_UID="$(id -u)"
+HOST_GID="$(id -g)"
+
+# ワークスペースを毎回作り直す
+rm -rf "$WORKDIR"
+mkdir -p "$WORKDIR"
+
+# CI と同じコンテナイメージを取得
+podman pull "$IMAGE"
+
+# 既定 ENTRYPOINT を上書きし、標準入力のスクリプトを渡してワンショット実行する
+podman run --rm -i \
+    --user root \
+    --userns=keep-id \
+    --entrypoint /bin/bash \
+    -e HOST_USER="$HOST_USER" \
+    -e HOST_UID="$HOST_UID" \
+    -e HOST_GID="$HOST_GID" \
+    -e OS_NAME="$OS_NAME" \
+    -e BUILD_DOCS="$BUILD_DOCS" \
+    -v "$WORKDIR:/workspace:Z" \
+    "$IMAGE" \
+    -s <<'EOF'
+
+# sshd 常駐用 entrypoint ではなく、ワンショット初期化スクリプトを実行
+/usr/local/bin/devcontainer-entrypoint.sh
+
+# 初期化後に、作成された一般ユーザーへ切り替え、必要な変数を渡してログインシェルでビルドを実行
+su - "$HOST_USER" -c "OS_NAME='$OS_NAME' BUILD_DOCS='$BUILD_DOCS' bash -l -s" <<'INNER_EOF'
+
+    # コンテナ内で動作する echo
+    echo "Hello, Jenkins!"
+
+INNER_EOF
+EOF
+```
+
+Console Output に `Hello, Jenkins!` が表示されれば、Jenkins 実行ユーザーの rootless Podman、コンテナイメージ取得、`devcontainer-entrypoint.sh` によるユーザー初期化、`/workspace` のマウントが動作しています。
+
+上記を確認したあと、実際のビルドに進みます。次の例では、Jenkins ワークスペース内に `source` ディレクトリを作成し、そこへ clone した内容を `/workspace` にマウントしてビルドします。
 `REPO_URL` は、適宜変更してください。  
 GitHub Actions では `HOST_UID=1001`、`HOST_GID=127` の固定値を使っていますが、Jenkins では実行ユーザーの UID/GID が環境依存のため、`build.sh` が動的に取得して渡します。
 
 ```bash
 # Jenkins 側で調整する変数
 # イメージは ghcr.io または Docker Hub のどちらかを選択する
+# 他のコンテナレポジトリから pull する場合は、そのイメージパスを記載
 # ghcr.io (GitHub Container Registry) を使う場合:
 #   export IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
 #   export IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest"
 # Docker Hub を使う場合:
 #   export IMAGE="hondarer/oracle-linux-8-dev:latest"
 #   export IMAGE="hondarer/oracle-linux-10-dev:latest"
-export REPO_URL="https://github.com/Hondarer/c-modernization-kit.git"
 export IMAGE="ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest"
+export REPO_URL="https://github.com/Hondarer/c-modernization-kit.git"
 export OS_NAME="ol8"    # ol8 または ol10
 export BUILD_DOCS="1"   # 1: ドキュメント生成あり / 0: なし
 
