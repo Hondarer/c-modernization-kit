@@ -7,7 +7,7 @@
 #define _STRINGIFY(x) #x
 #define TOSTRING(x) _STRINGIFY(x)
 
-#include <com_util/fs/path_max.h>
+#include <com_util/crt/path.h>
 
 #if defined(PLATFORM_LINUX)
     #include <unistd.h>

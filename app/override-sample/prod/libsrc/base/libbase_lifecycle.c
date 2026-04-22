@@ -19,7 +19,7 @@
 #include "symbol_loader_libbase.h"
 #include <com_util/base/shared_lib_lifecycle.h>
 #include <com_util/runtime/module_info.h>
-#include <com_util/fs/path_max.h>
+#include <com_util/crt/path.h>
 #include <stdio.h>
 
 /**
