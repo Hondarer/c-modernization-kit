@@ -23,12 +23,18 @@
  */
 int main(int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
-
     console_init();
 
     printf("✨ Hello, c-modernization-kit! ✨\n");
+
+    if (argc >= 2)
+    {
+        printf("echo: %s\n", argv[1]);
+    }
+    else
+    {
+        printf("🫠 Please set arg.\n");
+    }
 
     return 0;
 }
