@@ -27,7 +27,8 @@
 # 以下は管理対象外
 
 ## Claude Code
-/.claude
+/.claude/*
+!/.claude/skills
 ## Codex
 /.codex
 ## GitHub Copilot
