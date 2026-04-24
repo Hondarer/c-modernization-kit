@@ -32,7 +32,7 @@ docxOutput: true
 #autoSetDate: true
 # author 自動設定の有無 (false / true)
 #autoSetAuthor: true
-# サブモジュール mdRoot マージ機能
-# マージ対象のサブモジュールをスペース区切りで指定
+# サブモジュールドキュメントマージ機能
+# alias=path 形式でマージ対象のドキュメントルートをスペース区切りで指定
 # 空または未指定の場合は機能無効
-mergeSubmoduleDocs: doxyfw=framework/doxyfw makefw=framework/makefw testfw=framework/testfw testfw/gtest=framework/testfw/gtest docsfw=framework/docsfw
+mergeSubmoduleDocs: doxyfw=framework/doxyfw/docs makefw=framework/makefw/docs testfw=framework/testfw/docs testfw/gtest=framework/testfw/gtest/docs docsfw=framework/docsfw/docs skills=.claude/skills
