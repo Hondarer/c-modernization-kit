@@ -31,3 +31,6 @@ ReflowComments: false
 
 # エスケープされた改行文字を揃えない
 AlignEscapedNewlines: DontAlign
+
+# include の並べ替えを行わない
+SortIncludes: false
