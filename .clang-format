@@ -28,3 +28,6 @@ BinPackParameters: true
 
 # コメントの自動折り返しを無効化: 長いコメントへの改行挿入を禁止する
 ReflowComments: false
+
+# エスケープされた改行文字を揃えない
+AlignEscapedNewlines: DontAlign
