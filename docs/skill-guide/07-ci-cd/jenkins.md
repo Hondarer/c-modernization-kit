@@ -432,6 +432,7 @@ make
 make test
 
 # ドキュメント生成
+make skills
 make doxy
 make docs
 ```

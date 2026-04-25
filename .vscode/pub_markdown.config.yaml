@@ -35,4 +35,4 @@ docxOutput: true
 # サブモジュールドキュメントマージ機能
 # alias=path 形式でマージ対象のドキュメントルートをスペース区切りで指定
 # 空または未指定の場合は機能無効
-mergeSubmoduleDocs: doxyfw=framework/doxyfw/docs makefw=framework/makefw/docs testfw=framework/testfw/docs testfw/gtest=framework/testfw/gtest/docs docsfw=framework/docsfw/docs skills=.claude/skills
+mergeSubmoduleDocs: doxyfw=framework/doxyfw/docs makefw=framework/makefw/docs testfw=framework/testfw/docs testfw/gtest=framework/testfw/gtest/docs docsfw=framework/docsfw/docs skills=.agents/skills

@@ -37,6 +37,7 @@ Jenkins Execute shell
                                   ├─ export PATH                # テスト用コマンドパス設定
                                   ├─ make test                  # テスト実行
                                   ├─ pages/artifacts/*.zip      # テスト結果・ログ・ビルド警告収集
+                                  ├─ make skills                # skill 同期 (BUILD_DOCS=1 時)
                                   ├─ make doxy && make docs     # ドキュメント生成 (BUILD_DOCS=1 時)
                                   ├─ pages/artifacts/*.zip      # ドキュメント・Doxygen警告収集
                                   └─ pages/index.html           # ナビゲーションページ生成
@@ -156,11 +157,12 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 #### ドキュメント生成 (`BUILD_DOCS=1` 時)
 
 ```bash
+make skills 2>&1 | tee "logs/linux-${OS_NAME}-skills.log"
 make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
 make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 ```
 
-`make doxy` は `pages/doxygen/` へ、`make docs` は `pages/{lang}/html/` および `pages/{lang}/docx/` へ出力します。
+`make skills` は `.agents/skills` と `.claude/skills` を再構成し、skill ドキュメントを `make docs` の対象に含めます。`make doxy` は `pages/doxygen/` へ、`make docs` は `pages/{lang}/html/` および `pages/{lang}/docx/` へ出力します。
 また、`docs.warn` または `app/**/doxy.warn` が存在する場合は `pages/artifacts/docs-warns.zip` を生成します。
 
 #### ナビゲーションページ生成
@@ -276,7 +278,7 @@ source/app/**/test/**/*.warn
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |
 | `upload-artifact: linux-*-warns` | `linux-${OS_NAME}-warns.zip` |
 | `Upload documentation warnings` | `docs-warns.zip` (`docs.warn` + `app/**/doxy.warn`) |
-| `publish-docs`: `make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
+| `publish-docs`: `make skills && make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
 | `deploy-pages`: `index.html` 生成 | `inner-build.sh` の `pages/index.html` 生成 |
 
 `build-and-test-windows` および `deploy-pages` (GitHub Pages デプロイ) に対応する Jenkins スクリプトは存在しません。

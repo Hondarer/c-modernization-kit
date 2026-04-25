@@ -236,6 +236,9 @@ jobs:
       - name: Initialize submodules (shallow)
         run: git submodule update --init --recursive --depth 1
 
+      - name: Sync skills
+        run: make skills
+
       - name: Generate and publish documentation
         run: make doxy && make docs
 

@@ -65,6 +65,7 @@ rm -f "$warn_list"
 
 # ドキュメント生成
 if [ "${BUILD_DOCS}" = "1" ]; then
+    make skills 2>&1 | tee "logs/linux-${OS_NAME}-skills.log"
     make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
     make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 

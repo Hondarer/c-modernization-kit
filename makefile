@@ -19,13 +19,17 @@ endif
 
 .DEFAULT_GOAL := default
 
-.PHONY: default test doxy
+.PHONY: default test doxy skills
 default test doxy :
 	@if [ -n "$(MAKECMDGOALS)" ]; then \
 		$(MAKE) -C app $@; \
 	else \
 		$(MAKE) -C app; \
 	fi
+
+.PHONY: skills
+skills :
+	"$(BASH)" "$(CURDIR)/bin/sync_skills.sh"
 
 .PHONY: clean
 clean :
