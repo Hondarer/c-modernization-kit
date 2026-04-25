@@ -28,7 +28,6 @@
 
 ## Claude Code
 /.claude/*
-!/.claude/skills
 ## Codex
 /.codex
 ## GitHub Copilot
