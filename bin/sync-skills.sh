@@ -62,15 +62,7 @@ create_root_skill_entry() {
 
     rm -rf "$dst_dir"
 
-    if [ "$IS_WINDOWS" -eq 1 ]; then
-        cp -R "$src_dir" "$dst_dir"
-    else
-        rel_src="../../${src_dir#$ROOT_DIR/}"
-        (
-            cd "$ROOT_SKILLS_DIR"
-            ln -s "$rel_src" "$skill_name"
-        )
-    fi
+    cp -R "$src_dir" "$dst_dir"
 }
 
 recreate_claude_skills() {
