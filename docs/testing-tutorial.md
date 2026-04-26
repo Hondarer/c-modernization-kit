@@ -60,7 +60,7 @@ c-modernization-kit/
 |   +-- makefiles/                   # makefile テンプレート
 |       +-- prepare.mk              # 準備処理
 |       +-- makemain.mk             # ビルドルール生成
-+-- test/                             # テストコード (本プロジェクト固有)
++-- app/calc/test/                    # テストコード (本プロジェクト固有)
 |   +-- include/                     # プロジェクト固有のモックヘッダー
 |   |   +-- mock_calc.h             # calcHandlerのモック
 |   |   +-- mock_calcbase.h         # add, subtract, multiply, divide のモック
@@ -79,38 +79,36 @@ c-modernization-kit/
 |   |       +-- mock_multiply.cc
 |   |       +-- mock_divide.cc
 |   +-- src/                         # テストコード
-|       +-- calc/
-|           +-- libcalcbaseTest/    # ライブラリ関数のテスト
-|           |   +-- addTest/
-|           |       +-- makefile    # 標準テンプレート
-|           |       +-- makepart.mk # プロジェクト固有の設定
-|           |       +-- addTest.cc
-|           +-- main/                # main関数を含むプログラムのテスト
-|               +-- addTest/
-|               |   +-- makefile    # 標準テンプレート
-|               |   +-- makepart.mk # プロジェクト固有の設定
-|               |   +-- addTest.cc
-|               +-- calcTest/
-|                   +-- makefile    # 標準テンプレート
-|                   +-- makepart.mk # プロジェクト固有の設定
-|                   +-- calcTest.cc
-+-- prod/                             # テスト対象のソースコード
-    +-- calc/
-        +-- include/
-        |   +-- libcalcbase.h       # 静的リンク用API
-        |   +-- libcalc.h           # 動的リンク用API
-        |   +-- libcalc_const.h     # 定数定義
-        +-- libsrc/
-        |   +-- calcbase/
-        |       +-- add.c           # add関数の実装
-        |       +-- subtract.c      # subtract関数の実装
-        |       +-- multiply.c      # multiply関数の実装
-        |       +-- divide.c        # divide関数の実装
-        +-- src/
-            +-- add/
-            |   +-- add.c           # addコマンドのmain関数
-            +-- calc/
-                +-- calc.c          # calcコマンドのmain関数
+|   |   +-- libcalcbaseTest/         # ライブラリ関数のテスト
+|   |   |   +-- addTest/
+|   |   |       +-- makefile         # 標準テンプレート
+|   |   |       +-- makepart.mk      # プロジェクト固有の設定
+|   |   |       +-- addTest.cc
+|   |   +-- main/                    # main関数を含むプログラムのテスト
+|   |       +-- addTest/
+|   |       |   +-- makefile         # 標準テンプレート
+|   |       |   +-- makepart.mk      # プロジェクト固有の設定
+|   |       |   +-- addTest.cc
+|   |       +-- calcTest/
+|   |           +-- makefile         # 標準テンプレート
+|   |           +-- makepart.mk      # プロジェクト固有の設定
+|   |           +-- calcTest.cc
++-- app/calc/prod/                    # テスト対象のソースコード
+    +-- include/
+    |   +-- libcalcbase.h            # 静的リンク用API
+    |   +-- libcalc.h                # 動的リンク用API
+    |   +-- libcalc_const.h          # 定数定義
+    +-- libsrc/
+    |   +-- calcbase/
+    |       +-- add.c                # add関数の実装
+    |       +-- subtract.c           # subtract関数の実装
+    |       +-- multiply.c           # multiply関数の実装
+    |       +-- divide.c             # divide関数の実装
+    +-- src/
+        +-- add/
+        |   +-- add.c                # addコマンドのmain関数
+        +-- calc/
+            +-- calc.c               # calcコマンドのmain関数
 ```
 
 ---
@@ -194,7 +192,7 @@ type nul > .workspaceRoot
 
 ### ステップ1: モックヘッダーファイルの作成
 
-`test/include/mock_xxxxx.h` にモックヘッダーを作成します。
+`app/calc/test/include/mock_xxxxx.h` にモックヘッダーを作成します。
 
 #### 例: mock_calcbase.h
 
@@ -237,7 +235,7 @@ extern Mock_calcbase *_mock_calcbase;
 
 ### ステップ2: モッククラスの実装
 
-`test/libsrc/mock_xxxxx/mock_xxxxx.cc` にモッククラスの実装を作成します。
+`app/calc/test/libsrc/mock_xxxxx/mock_xxxxx.cc` にモッククラスの実装を作成します。
 
 #### 例: mock_calcbase.cc
 
@@ -279,7 +277,7 @@ Mock_calcbase::~Mock_calcbase()
 
 ### ステップ3: モック関数の実装
 
-`test/libsrc/mock_xxxxx/mock_関数名.cc` にC言語関数のモック実装を作成します。
+`app/calc/test/libsrc/mock_xxxxx/mock_関数名.cc` にC言語関数のモック実装を作成します。
 
 #### 例: mock_add.cc
 
@@ -327,11 +325,11 @@ WEAK_ATR int add(int a, int b, int *result)
 
 ### モックライブラリの makefile
 
-`test/libsrc/mock_xxxxx/` ディレクトリに以下のファイルを作成します。
+`app/calc/test/libsrc/mock_xxxxx/` ディレクトリに以下のファイルを作成します。
 
 #### makefile (標準テンプレート)
 
-`test/libsrc/mock_xxxxx/makefile` は標準テンプレートをそのまま使用します。
+`app/calc/test/libsrc/mock_xxxxx/makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
 # makefile テンプレート
@@ -358,11 +356,11 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 
 #### makepart.mk (プロジェクト固有の設定)
 
-`test/libsrc/mock_xxxxx/makepart.mk` にプロジェクト固有の設定を記述します。
+`app/calc/test/libsrc/mock_xxxxx/makepart.mk` にプロジェクト固有の設定を記述します。
 
 ```makefile
 # 出力先ディレクトリ (ライブラリの場合のみ必要)
-OUTPUT_DIR := $(WORKSPACE_DIR)/test/lib
+OUTPUT_DIR := $(WORKSPACE_DIR)/app/calc/test/lib
 
 # ソースファイル (必要に応じて追加)
 SRCS := \
@@ -411,7 +409,7 @@ TEST_F(addTest, test_1_add_2)
 
 ### 実践例: add関数のテスト
 
-`test/src/calc/libcalcbaseTest/addTest/addTest.cc`
+`app/calc/test/src/libcalcbaseTest/addTest/addTest.cc`
 
 ```cpp
 #include <testfw.h>
@@ -561,7 +559,7 @@ NiceMock<Mock_stdio> mock_stdio;
 
 #### makefile (標準テンプレート)
 
-`test/src/calc/libcalcbaseTest/addTest/makefile` は標準テンプレートをそのまま使用します。
+`app/calc/test/src/libcalcbaseTest/addTest/makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
 # makefile テンプレート
@@ -588,19 +586,19 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 
 #### makepart.mk (プロジェクト固有の設定)
 
-`test/src/calc/libcalcbaseTest/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
+`app/calc/test/src/libcalcbaseTest/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
 
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_DIR)/prod/calc/libsrc/calcbase/add.c
+	$(WORKSPACE_DIR)/app/calc/prod/libsrc/calcbase/add.c
 ```
 
 ### main関数テスト用 makefile
 
 #### makefile (標準テンプレート)
 
-`test/src/calc/main/addTest/makefile` は標準テンプレートをそのまま使用します。
+`app/calc/test/src/main/addTest/makefile` は標準テンプレートをそのまま使用します。
 
 ```makefile
 # makefile テンプレート
@@ -627,12 +625,12 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 
 #### makepart.mk (プロジェクト固有の設定)
 
-`test/src/calc/main/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
+`app/calc/test/src/main/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
 
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_DIR)/prod/calc/src/add/add.c
+	$(WORKSPACE_DIR)/app/calc/prod/src/add/add.c
 
 # エントリーポイントの変更
 # テスト対象のソースファイルにある main() は直接実行されず、
@@ -719,7 +717,7 @@ make test     # テスト実行
 
 ```bash
 # Linux / Windows 共通
-cd test/src/calc/libcalcbaseTest/addTest
+cd app/calc/test/src/libcalcbaseTest/addTest
 make test
 ```
 
@@ -797,7 +795,7 @@ gcovr --exclude-unreachable-branches
 
 ### 例1: calcHandler 関数のモックを使用したテスト
 
-`test/src/calc/main/calcTest/calcTest.cc`
+`app/calc/test/src/main/calcTest/calcTest.cc`
 
 ```cpp
 #include <testfw.h>
@@ -857,7 +855,7 @@ TEST_F(calcTest, normal)
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_DIR)/prod/calc/src/calc/calc.c
+	$(WORKSPACE_DIR)/app/calc/prod/src/calc/calc.c
 
 # エントリーポイントの変更
 USE_WRAP_MAIN := 1
@@ -1194,7 +1192,7 @@ USE_WRAP_MAIN := 1
 
 ```makefile
 # モックを使う場合は実体のソースを含めない
-# TEST_SRCS := $(WORKSPACE_DIR)/prod/calc/libsrc/calcbase/add.c  # NG
+# TEST_SRCS := $(WORKSPACE_DIR)/app/calc/prod/libsrc/calcbase/add.c  # NG
 
 # モックライブラリをリンク (プレフィックス -l なし)
 LIBS += mock_calcbase  # OK

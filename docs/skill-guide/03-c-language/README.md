@@ -14,9 +14,9 @@ Table: スキルガイド一覧
 
 ## このリポジトリとの関連
 
-- `prod/calc/libsrc/calcbase/` - 静的ライブラリ (`libcalcbase`) の実装例
-- `prod/calc/libsrc/calc/` - 動的ライブラリ (`libcalc`) の実装例
-- `prod/calc/include/libcalc.h` - 動的ライブラリ用エクスポート宣言 (`CALC_API` マクロ)
+- `app/calc/prod/libsrc/calcbase/` - 静的ライブラリ (`libcalcbase`) の実装例
+- `app/calc/prod/libsrc/calc/` - 動的ライブラリ (`libcalc`) の実装例
+- `app/calc/prod/include/libcalc.h` - 動的ライブラリ用エクスポート宣言 (`CALC_API` マクロ)
 
 ## 次のステップ
 

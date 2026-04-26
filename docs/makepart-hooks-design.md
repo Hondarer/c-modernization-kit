@@ -74,7 +74,7 @@ endif
 ### 例1: ビルド前にコード生成を行う
 
 ```makefile
-# prod/myapp/libsrc/generated/makelocal.mk
+# app/myapp/prod/libsrc/generated/makelocal.mk
 
 .PHONY: pre-build
 pre-build:
@@ -85,7 +85,7 @@ pre-build:
 ### 例2: ビルド後にファイルをコピーする
 
 ```makefile
-# prod/myapp/src/myapp/makelocal.mk
+# app/myapp/prod/src/myapp/makelocal.mk
 
 .PHONY: post-build
 post-build:
@@ -96,7 +96,7 @@ post-build:
 ### 例3: install ターゲットを定義する
 
 ```makefile
-# prod/myapp/src/myapp/makelocal.mk
+# app/myapp/prod/src/myapp/makelocal.mk
 
 INSTALL_DIR ?= /usr/local/bin
 
@@ -110,7 +110,7 @@ install: $(OUTPUT_DIR)/$(TARGET)
 ### 例4: 複数のフックを組み合わせる
 
 ```makefile
-# prod/myapp/src/myapp/makelocal.mk
+# app/myapp/prod/src/myapp/makelocal.mk
 
 .PHONY: pre-build post-build install
 

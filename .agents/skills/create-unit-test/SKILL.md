@@ -16,12 +16,12 @@ mock を新規追加する作業は `create-mock` を使い、この文書では
 
 ## テストの種類と単体テストの位置付け
 
-`test/` 配下には目的の異なる複数の種類のテストが含まれます。
+`app/<name>/test/` 配下には目的の異なる複数の種類のテストが含まれます。
 
 | 種類 | 定義 | 配置先 |
 |------|------|--------|
-| **関数単体テスト** | テスト対象のソース ファイル 1 本のカバレッジを、依存関数の mock によって充足するテスト | `test/src/lib<lib>Test/<name>Test/` |
-|  └ **`main()` テスト** | `main()` を対象とする関数単体テストの一形態 | `test/src/.../<name>Test/` |
+| **関数単体テスト** | テスト対象のソース ファイル 1 本のカバレッジを、依存関数の mock によって充足するテスト | `app/<name>/test/src/lib<lib>Test/<name>Test/` |
+|  └ **`main()` テスト** | `main()` を対象とする関数単体テストの一形態 | `app/<name>/test/src/.../<name>Test/` |
 | **組み合わせテスト・総合テスト** | 複数のコンポーネントを実際にリンクして動作を検証するテスト | 対象に特化したディレクトリ |
 
 **単体テストの核心**: mock が依存関数を差し替えるため、`subtract.c` のテストで `add.c` の実装は不要です。`makepart.mk` の `TEST_SRCS` に対象ファイル 1 本だけを指定し、依存する関数を `LIBS += mock_<lib>` で差し替えます。
@@ -45,8 +45,8 @@ mock を新規追加する作業は `create-mock` を使い、この文書では
 
 ## 配置の決め方
 
-- 関数単体テストは `test/src/lib<lib>Test/<name>Test/` を優先します
-- `main()` テストは `test/src/main/<name>Test/` を使います
+- 関数単体テストは `app/<name>/test/src/lib<lib>Test/<name>Test/` を優先します
+- `main()` テストは `app/<name>/test/src/main/<name>Test/` を使います
 - `makefile` は近い既存テストからそのまま揃え、差分は `makepart.mk` だけに入れます
 
 `app/calc` の規範例:

@@ -60,7 +60,7 @@ C テストフレームワークは以下の仕組みで results を生成して
 ### ディレクトリ構造
 
 ```
-test/src/calc.net/CalcLib.Tests/
+app/calc.net/test/src/CalcLib.Tests/
 ├── results/
 │   ├── all_tests/
 │   │   └── summary.log                 # 全体サマリ
@@ -453,7 +453,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests.Add_ShouldReturnCorrec
 
 #### 3. 既存テストコードの適合性
 
-**検証対象**: `test/src/calc.net/CalcLib.Tests/CalcLibraryTests.cs`
+**検証対象**: `app/calc.net/test/src/CalcLib.Tests/CalcLibraryTests.cs`
 
 **確認事項**:
 - ✅ `[手順]` と `[確認]` のタグがすでに適切に記述されている
@@ -695,8 +695,8 @@ results/
 
 ### .NET テストプロジェクト
 
-- `test/src/calc.net/CalcLib.Tests/CalcLibraryTests.cs` - サンプルテスト
-- `test/src/calc.net/CalcLib.Tests/results/summary.log` - 現状の全体サマリ
+- `app/calc.net/test/src/CalcLib.Tests/CalcLibraryTests.cs` - サンプルテスト
+- `app/calc.net/test/src/CalcLib.Tests/results/summary.log` - 現状の全体サマリ
 
 ### 既存のタグ規則
 

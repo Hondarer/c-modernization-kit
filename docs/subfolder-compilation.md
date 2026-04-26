@@ -63,13 +63,18 @@ OBJS += $(SUBDIR_OBJS)
 
 ```makefile
 # サブディレクトリの検出 (GNUmakefile/makefile/Makefile を含むディレクトリのみ)
-SUBDIRS := $(sort $(dir $(wildcard */GNUmakefile */makefile */Makefile)))
+# makelocal.mk で SUBDIRS を上書きした場合はその設定を尊重する
+SUBDIRS ?= $(sort $(dir $(wildcard */GNUmakefile */makefile */Makefile)))
 
 # サブディレクトリの再帰的make処理
 ifneq ($(SUBDIRS),)
     .PHONY: $(SUBDIRS)
     $(SUBDIRS):
-	@$(MAKE) -C $@ $(MAKECMDGOALS)
+	@if [ -n "$(MAKECMDGOALS)" ]; then \
+		$(MAKE) -C $@ $(MAKECMDGOALS); \
+	else \
+		$(MAKE) -C $@; \
+	fi
 
     # 主要なターゲットにサブディレクトリ依存を追加 (サブディレクトリを先に処理)
     default build clean test run restore rebuild: $(SUBDIRS)
@@ -81,12 +86,13 @@ endif
 ### ディレクトリ構造
 
 ```text
-prod/subfolder-sample/
+app/subfolder-sample/prod/
 +-- lib/                                    # ビルド済みライブラリ出力先
 |   +-- liblibsubfolder-sample.so
 +-- libsrc/
     +-- makefile                            # 再帰ビルド用
     +-- makepart.mk
+    +-- makechild.mk                        # MAKEFW_BUILD := 1 (子ディレクトリでビルド実行)
     +-- libsubfolder-sample/
         +-- makefile                        # ライブラリ本体 (リンク実行)
         +-- makepart.mk                     # LIB_TYPE = shared 設定
@@ -141,7 +147,7 @@ NO_LINK = 1
 **生成されるライブラリ:**
 
 ```text
-prod/subfolder-sample/lib/liblibsubfolder-sample.so
+app/subfolder-sample/prod/lib/liblibsubfolder-sample.so
 ```
 
 このライブラリには、`func.o`、`func_a.o`、`func_b.o` が含まれます。
@@ -151,12 +157,13 @@ prod/subfolder-sample/lib/liblibsubfolder-sample.so
 ### ディレクトリ構造
 
 ```text
-prod/subfolder-sample/
+app/subfolder-sample/prod/
 +-- bin/                                    # ビルド済み実行ファイル出力先
 |   +-- sample-app
 +-- src/
     +-- makefile                            # 再帰ビルド用
     +-- makepart.mk
+    +-- makechild.mk                        # MAKEFW_BUILD := 1 (子ディレクトリでビルド実行)
     +-- sample-app/
         +-- makefile                        # 実行ファイル本体 (リンク実行)
         +-- makechild.mk                    # NO_LINK = 1 (サブフォルダはコンパイルのみ)
@@ -227,7 +234,7 @@ NO_LINK = 1
 **生成される実行ファイル:**
 
 ```text
-prod/subfolder-sample/bin/sample-app
+app/subfolder-sample/prod/bin/sample-app
 ```
 
 ## テストのサブディレクトリ対応
@@ -235,9 +242,9 @@ prod/subfolder-sample/bin/sample-app
 ### ディレクトリ構造
 
 ```text
-test/src/subfolder-sample/
+app/subfolder-sample/test/src/
 +-- makefile                                # 再帰ビルド用
-+-- makepart.mk
++-- makechild.mk                            # MAKEFW_BUILD := 1 (子ディレクトリでビルド実行)
 +-- subfolder-sampleTest/
     +-- makefile                            # テスト本体 (リンク・テスト実行)
     +-- makepart.mk                         # TEST_SRCS 設定 (ルートのテスト対象)
@@ -287,7 +294,7 @@ test/src/subfolder-sample/
 ```makefile
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_DIR)/prod/subfolder-sample/libsrc/libsubfolder-sample/func.c
+	$(MYAPP_DIR)/prod/libsrc/libsubfolder-sample/func.c
 ```
 
 **subfolder-sampleTest/makechild.mk (起点ディレクトリ):**
@@ -303,7 +310,7 @@ NO_LINK = 1
 # テスト対象のソースファイル
 # NOTE: 上位フォルダで TEST_SRCS を指定している場合、テスト対象ソースが重複しないように留意すること。
 TEST_SRCS := \
-	$(WORKSPACE_DIR)/prod/subfolder-sample/libsrc/libsubfolder-sample/subfolder_a/func_a.c
+	$(MYAPP_DIR)/prod/libsrc/libsubfolder-sample/subfolder_a/func_a.c
 ```
 
 テストでは、`NO_LINK = 1` は起点ディレクトリの `makechild.mk` に、`TEST_SRCS` は各サブディレクトリの `makelocal.mk` にそれぞれ分離して定義します。
@@ -396,7 +403,7 @@ results/
 Test start on Sat Jan 24 07:55:31 JST 2026.
 ----
 MD5 checksums of files in TEST_SRCS:
-8c18e38566df7a9630b40ca18881a5d4  prod/subfolder-sample/libsrc/libsubfolder-sample/func.c
+8c18e38566df7a9630b40ca18881a5d4  app/subfolder-sample/prod/libsrc/libsubfolder-sample/func.c
 ----
 subfolder_sampleTest_a.test_func_a	PASSED
 subfolder_sampleTest_b.test_func_b	PASSED
@@ -502,7 +509,13 @@ find-up = \
             $(call find-up,$(patsubst %/,%,$(dir $(1))),$(2))\
         )\
     )
-WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+
+ifeq ($(origin MAKEFW_WORKSPACE_DIR), undefined)
+    MAKEFW_WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
+endif
+export MAKEFW_WORKSPACE_DIR
+
+WORKSPACE_DIR := $(MAKEFW_WORKSPACE_DIR)
 
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
@@ -526,7 +539,7 @@ NO_LINK = 1
 # サブディレクトリの makelocal.mk
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(WORKSPACE_DIR)/prod/.../subfolder_a/func_a.c
+	$(MYAPP_DIR)/prod/libsrc/.../subfolder_a/func_a.c
 ```
 
 ### 3. TEST_SRCS の重複回避
@@ -544,7 +557,7 @@ TEST_SRCS := \
 または、`makepart.mk` で `INCDIR` を設定します。
 
 ```makefile
-INCDIR += $(WORKSPACE_DIR)/prod/subfolder-sample/src/sample-app
+INCDIR += $(MYAPP_DIR)/prod/src/sample-app
 ```
 
 ## まとめ

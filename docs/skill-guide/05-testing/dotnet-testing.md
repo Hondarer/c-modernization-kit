@@ -4,7 +4,7 @@
 
 xUnit.net は .NET 向けの単体テストフレームワークです。`[Fact]` 属性でテストメソッドを定義し、`Assert` クラスのメソッドで期待値を検証します。`dotnet test` コマンドでテストを実行でき、GitHub Actions などの CI 環境とも容易に統合できます。
 
-このリポジトリの `.NET` プロジェクト (`prod/calc.net/`) に対するテストは、xUnit を使用して実装します。`CalcLib` が内部で呼び出す C ライブラリ (P/Invoke 経由) の動作を .NET レイヤーから検証することが目的です。
+このリポジトリの `.NET` プロジェクト (`app/calc.net/prod/`) に対するテストは、xUnit を使用して実装します。`CalcLib` が内部で呼び出す C ライブラリ (P/Invoke 経由) の動作を .NET レイヤーから検証することが目的です。
 
 .NET テストを理解することで、C ライブラリの .NET ラッパーが正しく動作しているかを自動的に確認できるようになります。テスト結果は GitHub Actions で自動実行され、PR のマージ判断に活用されます。
 
@@ -72,7 +72,7 @@ public class CalcLibraryTests
 
 ```bash
 # テストを実行
-dotnet test prod/calc.net/test/CalcLibTest/CalcLibTest.csproj
+dotnet test app/calc.net/prod/test/CalcLibTest/CalcLibTest.csproj
 ```
 
 `.csproj` でのテストプロジェクト設定:

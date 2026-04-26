@@ -52,27 +52,27 @@ Linux (GCC) での代表的なビルドコマンド:
 ```bash
 # オブジェクトファイルのコンパイル
 gcc -c -Wall -Wextra -g -fPIC \
-    -I prod/calc/include \
-    prod/calc/libsrc/calcbase/add.c \
+    -I app/calc/prod/include \
+    app/calc/prod/libsrc/calcbase/add.c \
     -o add.o
 
 # 静的ライブラリの作成
-ar rcs prod/calc/lib/libcalcbase.a add.o subtract.o multiply.o divide.o
+ar rcs app/calc/prod/lib/libcalcbase.a add.o subtract.o multiply.o divide.o
 
 # 動的ライブラリの作成
 gcc -shared -fPIC \
-    -o prod/calc/lib/libcalc.so \
+    -o app/calc/prod/lib/libcalc.so \
     calcHandler.o
 
 # 静的リンクで実行ファイルをビルド
-gcc -o prod/calc/bin/add \
-    prod/calc/src/add/add.o \
-    -L prod/calc/lib -lcalcbase
+gcc -o app/calc/prod/bin/add \
+    app/calc/prod/src/add/add.o \
+    -L app/calc/prod/lib -lcalcbase
 
 # 動的リンクで実行ファイルをビルド
-gcc -o prod/calc/bin/calc \
-    prod/calc/src/calc/calc.o \
-    -L prod/calc/lib -lcalc \
+gcc -o app/calc/prod/bin/calc \
+    app/calc/prod/src/calc/calc.o \
+    -L app/calc/prod/lib -lcalc \
     -Wl,-rpath,'$$ORIGIN/../lib'
 ```
 

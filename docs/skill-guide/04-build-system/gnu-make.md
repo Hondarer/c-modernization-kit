@@ -4,7 +4,7 @@
 
 GNU Make はビルドプロセスを自動化するツールです。`makefile` にビルドルールを記述することで、ソースファイルの変更を検出し必要な部分だけを再コンパイルできます。C プロジェクトのビルド自動化として長年広く使われています。
 
-このリポジトリは GNU Make をビルドシステムの中核として使用しています。トップレベルの `makefile` から `prod/calc/`・`prod/calc.net/`・`test/` 配下の各 `makefile` を呼び出す階層構造になっており、`framework/makefw/` サブモジュールが提供するテンプレート makefile を各サブディレクトリから利用しています。`make` コマンド一つでライブラリ・実行ファイル・テストのビルドをまとめて実行できます。
+このリポジトリは GNU Make をビルドシステムの中核として使用しています。トップレベルの `makefile` から `app/calc/prod/`・`app/calc.net/prod/`・`app/calc/test/` 配下の各 `makefile` を呼び出す階層構造になっており、`framework/makefw/` サブモジュールが提供するテンプレート makefile を各サブディレクトリから利用しています。`make` コマンド一つでライブラリ・実行ファイル・テストのビルドをまとめて実行できます。
 
 `framework/makefw/` サブモジュールは、パスと言語に基づいてテンプレートを自動選択する仕組みを持ち、Linux / Windows の差異を吸収します。`makepart.mk` ファイルによるカスタマイズも可能です。
 
@@ -54,10 +54,10 @@ make docs
 | ファイル                                         | 役割                               |
 |--------------------------------------------------|------------------------------------|
 | `makefile` (トップレベル)                        | 全体のビルド制御                   |
-| `prod/calc/libsrc/calcbase/makefile`             | libcalcbase 静的ライブラリのビルド |
-| `prod/calc/libsrc/calc/makefile`                 | libcalc 動的ライブラリのビルド     |
-| `prod/calc/src/add/makefile`                     | add 実行ファイルのビルド           |
-| `test/src/calc/libcalcbaseTest/addTest/makefile` | add テストのビルド                 |
+| `app/calc/prod/libsrc/calcbase/makefile`             | libcalcbase 静的ライブラリのビルド |
+| `app/calc/prod/libsrc/calc/makefile`                 | libcalc 動的ライブラリのビルド     |
+| `app/calc/prod/src/add/makefile`                     | add 実行ファイルのビルド           |
+| `app/calc/test/src/libcalcbaseTest/addTest/makefile` | add テストのビルド                 |
 | `framework/makefw/makefiles/`                              | テンプレート makefile 群           |
 
 Table: makefile ファイル構成一覧

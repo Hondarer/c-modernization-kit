@@ -27,7 +27,7 @@ CalcLib は、ネイティブ calc ライブラリ (Linux では libcalc.so、Wi
 
 ```bash
 # ライブラリをビルド
-cd prod/calc.net/libsrc/CalcLib
+cd app/calc.net/prod/libsrc/CalcLib
 make build
 
 # ビルド成果物をクリーン
@@ -37,7 +37,7 @@ make clean
 make restore
 ```
 
-コンパイルされたライブラリは `prod/calc.net/lib/CalcLib.dll` に配置されます。
+コンパイルされたライブラリは `app/calc.net/prod/lib/CalcLib.dll` に配置されます。
 
 ## 使用方法
 

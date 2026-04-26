@@ -113,18 +113,18 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 
 ### 基本ルール
 
-- `prod/lib` を持つアプリ
+- `app/<name>/prod/lib` を持つアプリ
   - Linux では `LD_LIBRARY_PATH` 候補
   - Windows では `PATH` 候補
-- `prod/bin` を持つアプリ
+- `app/<name>/prod/bin` を持つアプリ
   - Linux / Windows ともに `PATH` 候補
 - ただし、`lib` や `bin` が存在しても、現在のテスト・デバッグ・実行で使わないなら追加しません
 
 ### 現在の代表例
 
-現時点で `prod/lib` / `prod/bin` を持つ主なアプリは以下です。
+現時点で `app/<name>/prod/lib` / `app/<name>/prod/bin` を持つ主なアプリは以下です。
 
-| アプリ | `prod/lib` | `prod/bin` | 現在の環境変数設定に含める理由 |
+| アプリ | `app/<name>/prod/lib` | `app/<name>/prod/bin` | 現在の環境変数設定に含める理由 |
 |---|---|---|---|
 | `calc` | あり | あり | C テスト、サンプル実行、.NET 呼び出しで使用 |
 | `calc.net` | あり | あり | .NET テスト、サンプル実行で使用 |
@@ -153,7 +153,7 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 
 ### 1. 追加・削除・改名の対象を確認する
 
-まず、対象アプリに `prod/lib` と `prod/bin` があるかを確認します。
+まず、対象アプリに `app/<name>/prod/lib` と `app/<name>/prod/bin` があるかを確認します。
 
 ```bash
 find app -maxdepth 3 \( -path '*/prod/lib' -o -path '*/prod/bin' \) | sort
@@ -173,10 +173,10 @@ find app -maxdepth 3 \( -path '*/prod/lib' -o -path '*/prod/bin' \) | sort
 統合ターミナルで新しいライブラリや実行ファイルが見つかるようにします。
 
 - Linux
-  - `prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
-  - `prod/bin` が必要なら `PATH` に追加
+  - `app/<name>/prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
+  - `app/<name>/prod/bin` が必要なら `PATH` に追加
 - Windows
-  - `prod/lib` / `prod/bin` が必要なら `PATH` に追加
+  - `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
 
 #### `.vscode/tasks.json`
 
@@ -219,7 +219,7 @@ Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更
 
 ### 5. 個別 README の実行例を更新する
 
-利用者向けの README に、古い `prod/...` パスや手動 `LD_LIBRARY_PATH` 設定例が残っていないかを確認します。  
+利用者向けの README に、古い `app/<name>/prod/...` パスや手動 `LD_LIBRARY_PATH` 設定例が残っていないかを確認します。
 特に、アプリ固有 README のトラブルシュート節は見落としやすい箇所です。
 
 ## 再チェック用チェックリスト
@@ -232,7 +232,7 @@ Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更
 - `.github/workflows/ci.yml` の Linux / Windows を更新した
 - Jenkins を使う場合は `.jenkins/inner-build.sh` と `.jenkins/README.md` を更新した
 - 個別 README の実行例やトラブルシュートを更新した
-- 旧 `prod/...` 構成が残っていないことを確認した
+- 旧 `app/<name>/prod/...` 構成が残っていないことを確認した
 - 代表的なテストまたは実行例でライブラリ解決エラーが出ないことを確認した
 
 ## 確認コマンド例

@@ -18,7 +18,7 @@ CalcLib ライブラリの包括的な単体テスト。
 
 ```bash
 # すべてのテストを実行
-cd test/src/calc.net/CalcLib.Tests
+cd app/calc.net/test/src/CalcLib.Tests
 make test
 
 # 実行せずにテストをビルド

@@ -4,16 +4,16 @@
 
 C 言語では、コードを再利用するためにライブラリとしてまとめる方法が 2 種類あります。静的ライブラリ (Linux: `.a`、Windows: `.lib`) は実行ファイルにリンク時に組み込まれ、動的ライブラリ  (Linux: `.so`、Windows: `.dll`) は実行時に読み込まれます。それぞれにメリット・デメリットがあり、用途に応じて使い分けます。
 
-このリポジトリの `prod/calc/` はこの 2 種類のライブラリを意図的に使い分けています。`libcalcbase` (add / subtract / multiply / divide) は静的ライブラリとして提供され、`libcalc` (calcHandler) は動的ライブラリとして提供されます。`libcalc` は `libcalcbase` に依存しており、ライブラリの生成時に参照されます。`src/shared-and-static-calc/` は両方を同時にリンクするサンプルです。
+このリポジトリの `app/calc/prod/` はこの 2 種類のライブラリを意図的に使い分けています。`libcalcbase` (add / subtract / multiply / divide) は静的ライブラリとして提供され、`libcalc` (calcHandler) は動的ライブラリとして提供されます。`libcalc` は `libcalcbase` に依存しており、ライブラリの生成時に参照されます。`src/shared-and-static-calc/` は両方を同時にリンクするサンプルです。
 
-また、.NET 連携においては `libcalc.dll` (Windows) または `libcalc.so` (Linux) を P/Invoke で呼び出す実装が `prod/calc.net/` に含まれています。ライブラリの種類と動作の違いを理解することは、このリポジトリのビルド構成を理解するための重要なステップです。
+また、.NET 連携においては `libcalc.dll` (Windows) または `libcalc.so` (Linux) を P/Invoke で呼び出す実装が `app/calc.net/prod/` に含まれています。ライブラリの種類と動作の違いを理解することは、このリポジトリのビルド構成を理解するための重要なステップです。
 
 ## 習得目標
 
 ### プラットフォーム共通
 
 - [ ] 静的ライブラリと動的ライブラリの違いを説明できる
-- [ ] `prod/calc/` のライブラリ構成を読み取ることができる
+- [ ] `app/calc/prod/` のライブラリ構成を読み取ることができる
 
 ### Linux
 
@@ -50,8 +50,8 @@ C 言語では、コードを再利用するためにライブラリとしてま
 
 | ライブラリ    | 種別 | Linux           | Windows           | 実装ファイル                 |
 |---------------|------|-----------------|-------------------|------------------------------|
-| `libcalcbase` | 静的 | `libcalcbase.a` | `libcalcbase.lib` | `prod/calc/libsrc/calcbase/` |
-| `libcalc`     | 動的 | `libcalc.so`    | `libcalc.dll`     | `prod/calc/libsrc/calc/`     |
+| `libcalcbase` | 静的 | `libcalcbase.a` | `libcalcbase.lib` | `app/calc/prod/libsrc/calcbase/` |
+| `libcalc`     | 動的 | `libcalc.so`    | `libcalc.dll`     | `app/calc/prod/libsrc/calc/`     |
 
 Table: ライブラリ構成一覧
 
@@ -59,17 +59,17 @@ Table: ライブラリ構成一覧
 
 | プログラム               | リンク                     | ソース                                  |
 |--------------------------|----------------------------|-----------------------------------------|
-| `add`                    | `libcalcbase` を静的リンク | `prod/calc/src/add/add.c`               |
-| `calc`                   | `libcalc` を動的リンク     | `prod/calc/src/calc/calc.c`             |
-| `shared-and-static-calc` | 両方をリンク               | `prod/calc/src/shared-and-static-calc/` |
+| `add`                    | `libcalcbase` を静的リンク | `app/calc/prod/src/add/add.c`               |
+| `calc`                   | `libcalc` を動的リンク     | `app/calc/prod/src/calc/calc.c`             |
+| `shared-and-static-calc` | 両方をリンク               | `app/calc/prod/src/shared-and-static-calc/` |
 
 Table: 各プログラムのリンク方式
 
 ヘッダーファイル:
 
-- `prod/calc/include/libcalc_const.h` - 定数定義 (`CALC_SUCCESS` など)
-- `prod/calc/include/libcalcbase.h` - 静的ライブラリ用ヘッダー
-- `prod/calc/include/libcalc.h` - 動的ライブラリ用ヘッダー
+- `app/calc/prod/include/libcalc_const.h` - 定数定義 (`CALC_SUCCESS` など)
+- `app/calc/prod/include/libcalcbase.h` - 静的ライブラリ用ヘッダー
+- `app/calc/prod/include/libcalc.h` - 動的ライブラリ用ヘッダー
 
 ### 関連ドキュメント
 

@@ -17,8 +17,8 @@ Table: スキルガイド一覧
 
 - `makefile` (トップレベル) - 全体ビルドのエントリポイント
 - `framework/makefw/` - Make ビルドフレームワーク (サブモジュール)
-- `prod/calc/` - C プロジェクトのビルド対象
-- `prod/calc.net/` - .NET プロジェクトのビルド対象 (`dotnet build`)
+- `app/calc/prod/` - C プロジェクトのビルド対象
+- `app/calc.net/prod/` - .NET プロジェクトのビルド対象 (`dotnet build`)
 
 ## 次のステップ
 

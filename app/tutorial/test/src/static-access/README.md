@@ -116,7 +116,7 @@ TEST_SRCS := \
 
 ```bash
 # テストのビルドと実行
-cd test/src/tutorial/static-access
+cd app/tutorial/test/src/static-access
 make test
 ```
 
@@ -124,4 +124,4 @@ make test
 
 - testfw フレームワークの詳細: `../../../../framework/testfw/README.md`
 - テスト対象ソース: `sample-static-lib/samplestatic.c`
-- テスト対象ヘッダー: `prod/tutorial/include/samplestatic.h`
+- テスト対象ヘッダー: `app/tutorial/prod/include/samplestatic.h`

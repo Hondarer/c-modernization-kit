@@ -15,8 +15,8 @@ Table: スキルガイド一覧
 
 ## このリポジトリとの関連
 
-- `prod/calc.net/libsrc/CalcLib/Internal/NativeMethods.cs` - P/Invoke による C ライブラリ呼び出し定義
-- `prod/calc.net/src/CalcApp/ModuleInitializer.cs` - ネイティブライブラリのロード設定
+- `app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs` - P/Invoke による C ライブラリ呼び出し定義
+- `app/calc.net/prod/src/CalcApp/ModuleInitializer.cs` - ネイティブライブラリのロード設定
 - `c-modernization-kit.sln` - Visual Studio ソリューションファイル
 - `Start-VSCode-With-Env.ps1` - Windows 環境変数セットアップスクリプト
 

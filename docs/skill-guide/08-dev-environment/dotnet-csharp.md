@@ -4,7 +4,7 @@
 
 C# (シーシャープ) は .NET 環境で動作するオブジェクト指向言語です。型安全で例外処理が充実しており、Java に似た構文を持ちます。P/Invoke (Platform Invocation Services) は .NET アプリケーションから C/C++ などで書かれたネイティブコード (DLL) を呼び出す仕組みです。
 
-このリポジトリの `prod/calc.net/` は C ライブラリ(`libcalc`)を .NET から利用するための実装例です。`prod/calc.net/libsrc/CalcLib/Internal/NativeMethods.cs` で `[DllImport]` 属性を使った P/Invoke 定義を行い、`CalcLibrary.cs` がこれをラップして .NET らしいインターフェース (例外・型安全・`CalcResult` クラス) を提供します。`CalcApp` がこのライブラリを使うサンプルアプリです。
+このリポジトリの `app/calc.net/prod/` は C ライブラリ(`libcalc`)を .NET から利用するための実装例です。`app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs` で `[DllImport]` 属性を使った P/Invoke 定義を行い、`CalcLibrary.cs` がこれをラップして .NET らしいインターフェース (例外・型安全・`CalcResult` クラス) を提供します。`CalcApp` がこのライブラリを使うサンプルアプリです。
 
 C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて P/Invoke の仕組みを習得することが重要です。
 
@@ -33,7 +33,7 @@ C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて
 
 ### 使用箇所 (具体的なファイル・コマンド)
 
-P/Invoke 定義 (`prod/calc.net/libsrc/CalcLib/Internal/NativeMethods.cs`) の概要:
+P/Invoke 定義 (`app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs`) の概要:
 
 ```csharp
 using System.Runtime.InteropServices;
@@ -48,7 +48,7 @@ internal static class NativeMethods
 }
 ```
 
-C# ラッパー (`prod/calc.net/libsrc/CalcLib/CalcLibrary.cs`) の概要:
+C# ラッパー (`app/calc.net/prod/libsrc/CalcLib/CalcLibrary.cs`) の概要:
 
 ```csharp
 namespace CalcLib;
@@ -70,7 +70,7 @@ public class CalcLibrary
 }
 ```
 
-ネイティブライブラリのロード設定 (`prod/calc.net/src/CalcApp/ModuleInitializer.cs`):
+ネイティブライブラリのロード設定 (`app/calc.net/prod/src/CalcApp/ModuleInitializer.cs`):
 
 ```csharp
 using System.Runtime.CompilerServices;
@@ -95,7 +95,7 @@ internal static class ModuleInitializer
 CalcLib のファイル構成:
 
 ```text
-prod/calc.net/libsrc/CalcLib/
+app/calc.net/prod/libsrc/CalcLib/
 +-- CalcLibrary.cs          # メインライブラリクラス
 +-- CalcKind.cs             # 計算種別の列挙型
 +-- CalcResult.cs           # 計算結果クラス

@@ -31,7 +31,7 @@ calc コマンドライン電卓の .NET 版です。このアプリケーショ
 
 ```bash
 # アプリケーションをビルド
-cd prod/calc.net/src/CalcApp
+cd app/calc.net/prod/src/CalcApp
 make build
 
 # ビルド成果物をクリーン
@@ -148,11 +148,11 @@ libcalc.so / libcalc.dll (ネイティブライブラリ)
 
 ```bash
 # プロジェクトルートからビルド
-cd prod/calc.net/src
+cd app/calc.net/prod/src
 make  # CalcApp を含むすべてのアプリケーションをビルド
 
 # CalcApp のみをビルド
-cd prod/calc.net/src/CalcApp
+cd app/calc.net/prod/src/CalcApp
 make build
 ```
 

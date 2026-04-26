@@ -4,7 +4,7 @@
 
 このディレクトリには、static 変数へのテストアクセス手法を示すためのサンプルライブラリソースコードが含まれています。
 
-親ディレクトリ (`test/src/tutorial/static-access`) は、testfw の inject 機能を使用して C 言語の static 変数をテストする方法を実践的に説明するチュートリアルです。  
+親ディレクトリ (`app/tutorial/test/src/static-access`) は、testfw の inject 機能を使用して C 言語の static 変数をテストする方法を実践的に説明するチュートリアルです。
 本ディレクトリはそのテスト対象となるライブラリを提供します。
 
 ## ファイル構成

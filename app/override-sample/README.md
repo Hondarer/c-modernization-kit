@@ -6,7 +6,7 @@
 
 `libbase` が公開する `sample_func` 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。
 
-symbol_loader 機構 (関数の動的呼び出しキャッシュ) は `prod/com_util/` の `libcom_util` に統合されており、`libbase` はそれをリンクして利用します。
+symbol_loader 機構 (関数の動的呼び出しキャッシュ) は `app/com_util/prod/` の `libcom_util` に統合されており、`libbase` はそれをリンクして利用します。
 
 | 設定ファイルの状態 | 動作 |
 |---|---|
@@ -18,7 +18,7 @@ symbol_loader 機構 (関数の動的呼び出しキャッシュ) は `prod/com_
 ## ファイル構成
 
 ```text
-prod/override-sample/
+app/override-sample/prod/
 +-- include/
 |   +-- libbase.h              # libbase ヘッダー (sample_func, console_output 等の宣言)
 |   +-- libbase_ext.h          # liboverride ヘッダー (override_func の宣言)
@@ -40,7 +40,7 @@ prod/override-sample/
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
-symbol_loader 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `prod/com_util/` の `libcom_util` (`libcom_util.so` / `libcom_util.dll`) に統合されています。
+symbol_loader 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `app/com_util/prod/` の `libcom_util` (`libcom_util.so` / `libcom_util.dll`) に統合されています。
 
 ## ライブラリ
 
@@ -132,7 +132,7 @@ override-sample (実行ファイル)
 ## ビルド
 
 ```bash
-cd prod/override-sample
+cd app/override-sample/prod
 make
 ```
 
@@ -160,7 +160,7 @@ make clean && make
 #### デフォルト動作 (設定ファイルなし)
 
 ```bash
-cd prod/override-sample/bin
+cd app/override-sample/prod/bin
 LD_LIBRARY_PATH=../lib ./override-sample
 ```
 
@@ -176,10 +176,10 @@ result: 3
 `sample-config/libbase_extdef.txt` を `/tmp` にコピーし、オーバーライド行のコメントを外して配置します。
 
 ```bash
-cp prod/override-sample/sample-config/libbase_extdef.txt /tmp/libbase_extdef.txt
+cp app/override-sample/prod/sample-config/libbase_extdef.txt /tmp/libbase_extdef.txt
 # エディタで /tmp/libbase_extdef.txt を編集し、以下の行のコメントを外す
 # sample_func  liboverride  override_func
-cd prod/override-sample/bin
+cd app/override-sample/prod/bin
 LD_LIBRARY_PATH=../lib ./override-sample
 ```
 
@@ -187,7 +187,7 @@ LD_LIBRARY_PATH=../lib ./override-sample
 
 ```bash
 echo "sample_func liboverride override_func" > /tmp/libbase_extdef.txt
-cd prod/override-sample/bin
+cd app/override-sample/prod/bin
 LD_LIBRARY_PATH=../lib ./override-sample
 ```
 

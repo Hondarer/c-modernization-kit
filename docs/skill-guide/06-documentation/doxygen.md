@@ -6,7 +6,7 @@ Doxygen は、C/C++・Java・C# などのソースコード中のコメントを
 
 Doxygen コメント形式は、通常のコメントに少し記法を加えるだけで利用でき、既存のコーディングスタイルを大きく変えずに導入できます。
 
-このリポジトリの `framework/doxyfw/` サブモジュールが Doxygen ベースのドキュメント生成フレームワークを提供しています。`prod/calc/` の C ソースコードに書かれた Doxygen コメントから XML を生成し、Doxybook2 で Markdown に変換して、最終的に HTML/docx として公開しています。`Doxyfile.part.calc` (C プロジェクト用) と `Doxyfile.part.calc.net` (.NET プロジェクト用) が Doxygen の設定ファイルです。
+このリポジトリの `framework/doxyfw/` サブモジュールが Doxygen ベースのドキュメント生成フレームワークを提供しています。`app/calc/prod/` の C ソースコードに書かれた Doxygen コメントから XML を生成し、Doxybook2 で Markdown に変換して、最終的に HTML/docx として公開しています。`Doxyfile.part.calc` (C プロジェクト用) と `Doxyfile.part.calc.net` (.NET プロジェクト用) が Doxygen の設定ファイルです。
 
 Doxygen コメントの書き方を習得することで、コードの変更に合わせてドキュメントを自動更新できるようになります。
 
@@ -17,7 +17,7 @@ Doxygen コメントの書き方を習得することで、コードの変更に
 - [ ] `Doxyfile` の基本的な設定項目を理解できる
 - [ ] `doxygen Doxyfile` コマンドでドキュメントを生成できる
 - [ ] XML 出力から Doxybook2 を経由して Markdown を生成する流れを理解できる
-- [ ] `prod/calc/` の既存コメントを読んで Doxygen スタイルを把握できる
+- [ ] `app/calc/prod/` の既存コメントを読んで Doxygen スタイルを把握できる
 
 ## 学習マテリアル
 
@@ -36,7 +36,7 @@ Doxygen コメントの書き方を習得することで、コードの変更に
 
 ### 使用箇所(具体的なファイル・コマンド)
 
-Doxygen コメントの例 (`prod/calc/libsrc/calcbase/add.c` スタイル):
+Doxygen コメントの例 (`app/calc/prod/libsrc/calcbase/add.c` スタイル):
 
 ```c
 /**
