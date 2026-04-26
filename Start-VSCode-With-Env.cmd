@@ -8,6 +8,10 @@ powershell.exe -ExecutionPolicy Bypass -File "%SCRIPT_DIR%\bin\Start-VSCode-With
 set "EXIT_CODE=%ERRORLEVEL%"
 
 echo.
-powershell.exe -NoProfile -Command ^
-  "$s = 5; while ($s -gt 0) { Write-Host -NoNewline \"`rThis window will close in $s seconds...\"; Start-Sleep -Seconds 1; $s-- }; Write-Host"
+if %EXIT_CODE% neq 0 (
+    pause
+) else (
+    powershell.exe -NoProfile -Command ^
+      "$s = 5; while ($s -gt 0) { Write-Host -NoNewline \"`rThis window will close in $s seconds...\"; Start-Sleep -Seconds 1; $s-- }; Write-Host"
+)
 exit %EXIT_CODE%
