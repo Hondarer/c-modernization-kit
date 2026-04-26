@@ -34,9 +34,9 @@
     VS Code はスクリプトの子プロセスとして起動するため、環境変数を継承します。
 
     自動走査の対象:
-    - Git for Windows: "C:\Program Files\Git", "C:\ProgramData\devbin-win\bin\git"
-    - Visual Studio: "C:\Program Files\Microsoft Visual Studio\*\*", "C:\ProgramData\devbin-win\bin\vsbt"
-    - Windows SDK: "C:\Program Files (x86)\Windows Kits\10", "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+    - Git for Windows: "C:\Program Files\Git", "C:\ProgramData\<username>\devbin-win\bin\git"
+    - Visual Studio: "C:\Program Files\Microsoft Visual Studio\*\*", "C:\ProgramData\<username>\devbin-win\bin\vsbt"
+    - Windows SDK: "C:\Program Files (x86)\Windows Kits\10", "C:\ProgramData\<username>\devbin-win\bin\vsbt\Windows Kits\10"
     - MSVC / Windows SDK のバージョンは、最新のものが自動選択されます。
 #>
 
@@ -60,19 +60,19 @@ $scriptDir = Split-Path -Parent $scriptPath
 
 # Git for Windows ディレクトリ
 # 例:                 "C:\Program Files\Git"
-#                     "C:\ProgramData\devbin-win\bin\git"
+#                     "C:\ProgramData\<username>\devbin-win\bin\git"
 $gitProgramPath     = ""
 
 # VS Debug Interface Access SDK ディレクトリ
 # 例:                 "C:\Program Files\Microsoft Visual Studio\2022\Professional\DIA SDK"
 #                     "C:\Program Files\Microsoft Visual Studio\18\Professional\DIA SDK"
-#                     "C:\ProgramData\devbin-win\bin\vsbt\DIA SDK"
+#                     "C:\ProgramData\<username>\devbin-win\bin\vsbt\DIA SDK"
 $diaSDKPath         = ""
 
 # MSVC ツールセット ディレクトリ
 # 例:                 "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC"
 #                     "C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC"
-#                     "C:\ProgramData\devbin-win\bin\vsbt\VC\Tools\MSVC"
+#                     "C:\ProgramData\<username>\devbin-win\bin\vsbt\VC\Tools\MSVC"
 $msvcToolSetPath    = ""
 
 # MSVC ツールセット バージョン
@@ -83,7 +83,7 @@ $msvcToolSetVersion = ""
 
 # Windows SDK ディレクトリ
 # 例:                 "C:\Program Files (x86)\Windows Kits\10"
-#                     "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+#                     "C:\ProgramData\<username>\devbin-win\bin\vsbt\Windows Kits\10"
 $windowsSDKPath     = ""
 
 # Windows SDK バージョン
@@ -98,6 +98,10 @@ $windowsSDKVersion  = ""
 $vscodeTargetPath   = ""
 
 # ---- ユーザー設定値 END ------------------------------------------------------------------------------
+
+# ---- devbin-win ベースパス ----
+
+$devbinBase = "C:\ProgramData\$env:USERNAME\devbin-win"
 
 # ---- プラットフォームチェック ----
 
@@ -163,13 +167,13 @@ if (Test-Path $vsProgramFiles) {
         }
     }
 }
-$vsBaseCandidates += "C:\ProgramData\devbin-win\bin\vsbt"
+$vsBaseCandidates += "$devbinBase\bin\vsbt"
 
 # Git for Windows の自動検出
 if (-not $gitProgramPath) {
     $gitCandidates = @(
         "C:\Program Files\Git",
-        "C:\ProgramData\devbin-win\bin\git"
+        "$devbinBase\bin\git"
     )
     $gitProgramPath = Find-FirstValidPath $gitCandidates
     if ($gitProgramPath) {
@@ -230,7 +234,7 @@ if (-not $msvcToolSetVersion) {
 if (-not $windowsSDKPath) {
     $sdkCandidates = @(
         "C:\Program Files (x86)\Windows Kits\10",
-        "C:\ProgramData\devbin-win\bin\vsbt\Windows Kits\10"
+        "$devbinBase\bin\vsbt\Windows Kits\10"
     )
     $windowsSDKPath = Find-FirstValidPath $sdkCandidates
     if ($windowsSDKPath) {
