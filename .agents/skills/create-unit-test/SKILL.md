@@ -143,7 +143,7 @@ app 向けテストで OS 分岐が必要な場合は、`_WIN32` を直接使わ
 #endif
 ```
 
-- Linux / Windows の二択は `#if defined(PLATFORM_LINUX)` と `#elif defined(PLATFORM_WINDOWS)` を基本にします
+- Linux / Windows の二択は `#if defined(PLATFORM_LINUX)` と `#elif defined(PLATFORM_WINDOWS)` を基本にし、Linux 側を先に記載します
 - `#ifdef _WIN32` や `#ifndef _WIN32` を app test に持ち込まないようにします
 - 既存テストに統一マクロの例がある場合は、その書き方に合わせます
 - `results.log` 用のタグ付きコメントは、`#if` / `#elif` / `#else` の内側へ重複配置しません。共通化できる `[状態]` / `[Pre-Assert確認]` / `[Pre-Assert手順]` / `[確認]` は分岐の外に置きます
