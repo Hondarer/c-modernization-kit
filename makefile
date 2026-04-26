@@ -29,7 +29,7 @@ default test doxy :
 
 .PHONY: skills
 skills :
-	"$(BASH)" "$(CURDIR)/bin/sync_skills.sh"
+	"$(BASH)" "$(CURDIR)/bin/sync-skills.sh"
 
 .PHONY: clean
 clean :
