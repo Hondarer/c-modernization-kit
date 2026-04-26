@@ -14,6 +14,20 @@ when_to_use: |
 このスキルは `app/<name>/test/` 配下の mock を対象にします。
 共通ルールは `framework/testfw/docs/how-to-mock.md` を参照し、この文書では app 固有の判断基準と実装形を扱います。
 
+## mock の目的
+
+prod の各関数に対応する mock を test 側に作成し、単体テストが対象ファイル 1 本だけをコンパイル・リンクして動作を検証できるようにします。
+依存先の関数を mock で差し替えることで、テスト対象のソースファイル 1 本のカバレッジを他の実装に依存せず充足します。
+
+mock の実装は `app/<name>/test/libsrc/mock_<lib>/` に配置します。
+
+## app mock と testfw mock の区別
+
+app 向け mock はアプリケーション層の関数（`calcHandler`, `add` 等）を対象にします。
+`printf`, `fopen`, `malloc` などの標準ライブラリ関数のモックは testfw 配下に整備されており、app mock とは明確に異なります。
+
+標準ライブラリのモックが不足している場合は `create-testfw-mock` スキルを使い、`framework/testfw/libsrc/` 配下にモックを追加します。
+
 ## 方針
 
 - app 向け mock は完全 mock 方針です。mock 未注入時は本物へ委譲せず、関数ごとの失敗値を返します。

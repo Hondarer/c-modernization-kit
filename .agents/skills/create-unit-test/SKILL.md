@@ -1,5 +1,5 @@
 ---
-name: create-test
+name: create-unit-test
 description: |
   app 配下の C テストを新規作成するときに使うスキルです。
   関数単体テストと main() を含むテストの作り分け、
@@ -14,11 +14,27 @@ when_to_use: |
 このスキルは `app/<name>/test/` 配下の Google Test 作成を対象にします。
 mock を新規追加する作業は `create-mock` を使い、この文書ではテストコードと `makepart.mk` の作り方に絞ります。
 
+## テストの種類と単体テストの位置付け
+
+`test/` 配下には目的の異なる複数の種類のテストが含まれます。
+
+| 種類 | 定義 | 配置先 |
+|------|------|--------|
+| **関数単体テスト** | テスト対象のソース ファイル 1 本のカバレッジを、依存関数の mock によって充足するテスト | `test/src/lib<lib>Test/<name>Test/` |
+|  └ **`main()` テスト** | `main()` を対象とする関数単体テストの一形態 | `test/src/.../<name>Test/` |
+| **組み合わせテスト・総合テスト** | 複数のコンポーネントを実際にリンクして動作を検証するテスト | 対象に特化したディレクトリ |
+
+**単体テストの核心**: mock が依存関数を差し替えるため、`subtract.c` のテストで `add.c` の実装は不要です。`makepart.mk` の `TEST_SRCS` に対象ファイル 1 本だけを指定し、依存する関数を `LIBS += mock_<lib>` で差し替えます。
+
+組み合わせテスト・総合テストは、単体テストとは別に対象に特化したテストとして個別に用意します。このスキルが扱う主な対象は関数単体テストです。`main()` を対象とする場合も関数単体テストですが、`main()` という性質上の追加手続きがあります。
+
 先に次を確認します。
 
-- 対象が関数単体テストか、`main()` を含む実行ファイルテストか
+- 対象の関数が `main()` かどうか (`main()` の場合は関数単体テストに追加の手続きが必要)
 - 既存の近いテスト配置があるか
-- 依存関数の mock が既にあるか。なければ `create-mock` を使う
+- 依存する関数の mock がすでにあるか
+  - アプリケーション関数 (`calcHandler`, `add` 等) の mock が不足する場合は `create-mock` を使う
+  - 標準ライブラリ関数 (`printf`, `fopen` 等) の mock が不足する場合は `create-testfw-mock` を使い、`framework/testfw/libsrc/` 配下にモックを追加する
 
 参照先:
 
@@ -62,14 +78,16 @@ TEST_SRCS := \
 
 ## `main()` テスト
 
+`main()` テストは関数単体テストの一形態です。`makepart.mk` や `EXPECT_CALL` の基本方針は関数単体テストと同じです。`main()` である以上、テストコードから直接 `main()` を呼び出せないため、以下の追加の手続きが必要です。
+
 規範例は `app/calc/test/src/main/addTest/addTest.cc` を正とします。
 
-方針:
+追加の手続き:
 
-- `#include <testfw.h>` に加え、出力確認があるときは `#include <mock_stdio.h>` を使います
-- `main()` の依存先は対応する `Mock_<lib>` を生成して `EXPECT_CALL` で制御します
+- `USE_WRAP_MAIN := 1` を `makepart.mk` に指定し、`main()` を `__real_main()` として再公開します
 - `argv` を組み立て、Act では `__real_main(argc, (char **)&argv)` を呼びます
 - Assert では `main()` の戻り値を確認し、必要なら `printf` などの出力も検証します
+- 出力確認があるときは `#include <mock_stdio.h>` を追加します
 - `Mock_stdio` は未設定呼び出しを許容したいので `NiceMock<Mock_stdio>` を基本にします
 
 `makepart.mk` の基本形:
@@ -135,7 +153,7 @@ app 向けテストで OS 分岐が必要な場合は、`_WIN32` を直接使わ
 
 `framework/testfw/docs/about-test-phase.md` のフェーズ分割に従います。
 コメントはテストエビデンス生成の入力になるため、既存例に合わせて各フェーズを明示します。
-各テストケースでは、フェーズごとに `// Arrange`、`// Pre-Assert`、`// Act`、`// Assert` のコメントを挿入します。
+各テスト ケースでは、フェーズごとに `// Arrange`、`// Pre-Assert`、`// Act`、`// Assert` のコメントを挿入します。
 
 - Arrange フェーズの準備値には `[状態]`
 - Pre-Assert フェーズの期待には `[Pre-Assert確認]` または `[Pre-Assert確認_正常系]` / `[Pre-Assert確認_異常系]`
