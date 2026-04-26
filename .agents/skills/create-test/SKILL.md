@@ -96,6 +96,7 @@ LIBS += mock_calcbase mock_libc com_util
 - 戻り値だけでなく、出力引数を書き換える必要があるときは `WillOnce([](...) { ... })` を使います
 - 文字列出力の確認は `StrEq("...\n")` を使います
 - 呼び出し回数だけを厳密に見たい場合は `Times(n)` を付けます
+- 1 回しか使わない期待値は、不要に `expected_*` 変数へ切り出さず `EXPECT_EQ(...)` へ即値で書きます。プラットフォームごとに値が違う場合は Assert 側を分岐します
 - 共通の説明は `framework/testfw/docs/how-to-expect.md` を参照します
 
 例:
@@ -110,6 +111,25 @@ EXPECT_CALL(mock_calcbase, add(1, 2, _))
 EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
     .WillOnce(DoDefault());
 ```
+
+## プラットフォーム分岐
+
+app 向けテストで OS 分岐が必要な場合は、`_WIN32` を直接使わず `app/<name>/prod/include/.../platform.h` の統一マクロを使います。
+被テストヘッダーが `platform.h` を読んでいない場合だけ、テストコード側で明示的に include します。
+
+```c
+#if defined(PLATFORM_LINUX)
+    /* Linux 向けテスト */
+#elif defined(PLATFORM_WINDOWS)
+    /* Windows 向けテスト */
+#endif
+```
+
+- Linux / Windows の二択は `#if defined(PLATFORM_LINUX)` と `#elif defined(PLATFORM_WINDOWS)` を基本にします
+- `#ifdef _WIN32` や `#ifndef _WIN32` を app test に持ち込まないようにします
+- 既存テストに統一マクロの例がある場合は、その書き方に合わせます
+- `results.log` 用のタグ付きコメントは、`#if` / `#elif` / `#else` の内側へ重複配置しません。共通化できる `[状態]` / `[Pre-Assert確認]` / `[Pre-Assert手順]` / `[確認]` は分岐の外に置きます
+- 分岐内にタグ付きコメントを書くと、非アクティブ側の枝にある説明も evidence 生成で拾われ、多重に出力される場合があります
 
 ## コメントの書き方
 
@@ -127,6 +147,9 @@ EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
 
 - タグの直後に ` - 説明文` を続けます
 - `results.log` の要約に出したい文は、箇条書きとして読める簡潔な説明にします
+- プラットフォーム分岐がある場合、tag 付きコメントは原則として分岐の外へ置きます。分岐内には tag なしの補足コメントだけを置くか、tag 文言を共通化して外へ寄せます
+- `[状態]` / `[Pre-Assert確認]` / `[Pre-Assert手順]` / `[手順]` / `[確認]` が実際に存在しないフェーズは、`results.log` 上で空欄になって構いません
+- ただしフェーズ見出しそのものは省略せず、処理がなくても `// Arrange` `// Pre-Assert` `// Act` `// Assert` を順に記載します
 - 正常系と異常系を分けたいときだけサフィックス付きタグを使います。迷う場合はサフィックスなしで構いません
 - フェーズ見出しは `// Arrange` `// Pre-Assert` `// Act` `// Assert` の形で統一します
 
