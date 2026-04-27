@@ -30,7 +30,7 @@ int main(void)
 
     int result;
     int rtc;
-    char configpath[4096];
+    char configpath[PLATFORM_PATH_MAX];
 
     {
         char tmpdir[PLATFORM_PATH_MAX];
