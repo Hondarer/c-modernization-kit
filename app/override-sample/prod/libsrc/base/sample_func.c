@@ -13,7 +13,7 @@
  *******************************************************************************
  */
 
-#include "symbol_loader_libbase.h"
+#include "sym_loader_libbase.h"
 #include <libbase.h>
 
 /* doxygen コメントは、ヘッダに記載 */
@@ -24,7 +24,7 @@ BASE_EXPORT int BASE_API sample_func(const int a, const int b, int *result)
         return -1;
     }
 
-    sample_func_t fp = symbol_loader_resolve_as(pfo_sample_func, sample_func_t);
+    sample_func_t fp = com_util_sym_loader_resolve_as(pfo_sample_func, sample_func_t);
     if (fp != NULL)
     {
         /* 拡張 (オーバーライド) 処理 */

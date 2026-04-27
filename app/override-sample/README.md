@@ -6,7 +6,7 @@
 
 `libbase` が公開する `sample_func` 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。
 
-symbol_loader 機構 (関数の動的呼び出しキャッシュ) は `app/com_util/prod/` の `libcom_util` に統合されており、`libbase` はそれをリンクして利用します。
+sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/com_util/prod/` の `libcom_util` に統合されており、`libbase` はそれをリンクして利用します。
 
 | 設定ファイルの状態 | 動作 |
 |---|---|
@@ -24,9 +24,9 @@ app/override-sample/prod/
 |   +-- libbase_ext.h          # liboverride ヘッダー (override_func の宣言)
 +-- libsrc/
 |   +-- base/
-|   |   +-- symbol_loader_libbase.h  # symbol_loader エントリの extern 宣言
-|   |   +-- symbol_loader_libbase.c  # symbol_loader エントリの実体定義
-|   |   +-- sample_func.c      # sample_func の実装 (symbol_loader 経由でオーバーライドを呼び出す)
+|   |   +-- sym_loader_libbase.h  # sym_loader エントリの extern 宣言
+|   |   +-- sym_loader_libbase.c  # sym_loader エントリの実体定義
+|   |   +-- sample_func.c      # sample_func の実装 (sym_loader 経由でオーバーライドを呼び出す)
 |   |   +-- console_output.c   # console_output の実装 (printf ラッパー)
 |   |   +-- dllmain_libbase.c  # onLoad / onUnload の実装
 |   +-- override/
@@ -40,7 +40,7 @@ app/override-sample/prod/
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
-symbol_loader 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `app/com_util/prod/` の `libcom_util` (`libcom_util.so` / `libcom_util.dll`) に統合されています。
+sym_loader 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `app/com_util/prod/` の `libcom_util` (`libcom_util.so` / `libcom_util.dll`) に統合されています。
 
 ## ライブラリ
 
@@ -117,13 +117,13 @@ override-sample (実行ファイル)
     | sample_func(1, 2, &result)
     +---> libbase.so / libbase.dll
               |
-              symbol_loader が解決済み関数ポインタを確認
+              sym_loader が解決済み関数ポインタを確認
               |
               [設定ファイルなし / 定義なし → デフォルト動作]
               |  *result = 1 + 2 = 3
               |
               [設定ファイルで liboverride / override_func を定義 → オーバーライド動作]
-              |  symbol_loader が liboverride.so / liboverride.dll を dlopen / LoadLibrary
+              |  sym_loader が liboverride.so / liboverride.dll を dlopen / LoadLibrary
               |  override_func に処理を委譲
               +---> liboverride.so / liboverride.dll (実行時ロード)
                         *result = 1 * 2 = 2

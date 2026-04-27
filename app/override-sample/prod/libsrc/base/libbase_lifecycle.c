@@ -16,10 +16,11 @@
  *******************************************************************************
  */
 
-#include "symbol_loader_libbase.h"
+#include "sym_loader_libbase.h"
 #include <com_util/base/shared_lib_lifecycle.h>
-#include <com_util/runtime/module_info.h>
+#include <com_util/runtime/module.h>
 #include <com_util/crt/path.h>
+#include <errno.h>
 #include <stdio.h>
 
 /**
@@ -29,23 +30,40 @@
  */
 void onLoad(void)
 {
-    char basename[SYMBOL_LOADER_NAME_MAX] = {0};
+    char basename[COM_UTIL_SYM_LOADER_NAME_MAX] = {0};
+    char leafname[COM_UTIL_SYM_LOADER_NAME_MAX + sizeof("_extdef.txt")] = {0};
+    int err = 0;
 
     DLLMAIN_COM_UTIL_INFO_MSG("base: onLoad called");
 
-    if (module_info_get_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
+    if (com_util_module_get_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
     {
+        if (com_util_path_concat(leafname, sizeof(leafname), &err, basename, "_extdef.txt") != 0)
+        {
+            sym_loader_configpath[0] = '\0';
+            DLLMAIN_COM_UTIL_INFO_MSG("base: config path too long; override disabled");
+        }
+        else
         {
             char tmpdir[PLATFORM_PATH_MAX];
-            if (com_util_get_temp_dir(tmpdir, sizeof(tmpdir), NULL) == 0)
+            if (com_util_get_temp_dir(tmpdir, sizeof(tmpdir), &err) == 0)
             {
-                snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath),
-                         "%s" PLATFORM_PATH_SEP "%s_extdef.txt", tmpdir, basename);
+                if (com_util_path_concat(sym_loader_configpath, sizeof(sym_loader_configpath), &err,
+                                         tmpdir, PLATFORM_PATH_SEP, leafname) != 0)
+                {
+                    sym_loader_configpath[0] = '\0';
+                    DLLMAIN_COM_UTIL_INFO_MSG("base: config path too long; override disabled");
+                }
+            }
+            else if (err == ENAMETOOLONG)
+            {
+                sym_loader_configpath[0] = '\0';
+                DLLMAIN_COM_UTIL_INFO_MSG("base: config path too long; override disabled");
             }
         }
     }
 
-    symbol_loader_init(fobj_array_libbase, fobj_length_libbase, symbol_loader_configpath);
+    com_util_sym_loader_init(fobj_array_libbase, fobj_length_libbase, sym_loader_configpath);
 }
 
 /**
@@ -58,5 +76,5 @@ void onUnload(int process_terminating)
 {
     (void)process_terminating;
     DLLMAIN_COM_UTIL_INFO_MSG("base: onUnload called");
-    symbol_loader_dispose(fobj_array_libbase, fobj_length_libbase);
+    com_util_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase);
 }

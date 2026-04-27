@@ -19,7 +19,7 @@
 #include <com_util/base/platform.h>
 
 #include <stddef.h>
-#include <com_util/runtime/symbol_loader.h>
+#include <com_util/runtime/sym_loader.h>
 
 #ifdef DOXYGEN
 
@@ -98,11 +98,11 @@ extern "C"
 
     /**
      *******************************************************************************
-     *  @brief          libbase が管理する symbol_loader_entry_t ポインタ配列の内容を標準出力に表示します。
+     *  @brief          libbase が管理する com_util_sym_loader_entry_t ポインタ配列の内容を標準出力に表示します。
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      *******************************************************************************
      */
-    BASE_EXPORT extern int BASE_API symbol_loader_info_libbase(void);
+    BASE_EXPORT extern int BASE_API sym_loader_info_libbase(void);
 
 #ifdef __cplusplus
 }

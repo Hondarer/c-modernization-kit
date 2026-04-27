@@ -173,3 +173,26 @@ TEST_F(override_sampleTest, onUnload_syslog)
     EXPECT_NE(string::npos,
               res.debug_log.find("base: onUnload called")); // [確認] - debug_log に onUnload の記録があること。
 }
+
+#if defined(PLATFORM_LINUX)
+TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
+{
+    // Arrange
+    removeConfigFile(); // [手順] - 定義ファイルを削除して他要因を除く。
+    ProcessOptions opts = makeOpts();
+    opts.preload_lib = mock_lib_path; // [手順] - debug_log を取得するため syslog_mock.so を挿入する。
+    opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [手順] - 一時ディレクトリを上限超過長にする。
+
+    // Act
+    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - 上限超過環境で override-sample を実行する。
+
+    // Assert
+    EXPECT_EQ(1, res.exit_code); // [確認] - 設定ファイルパス構築失敗で終了コード 1 を返すこと。
+    EXPECT_NE(string::npos,
+              res.stderr_out.find("failed to build config path"))
+        << res.stderr_out; // [確認] - 標準エラーに失敗理由が出力されること。
+    EXPECT_NE(string::npos,
+              res.debug_log.find("base: config path too long; override disabled"))
+        << res.debug_log; // [確認] - ライブラリ側ではオーバーライド無効化ログが残ること。
+}
+#endif /* PLATFORM_LINUX */

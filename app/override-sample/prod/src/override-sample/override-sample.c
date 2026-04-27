@@ -16,6 +16,7 @@
 #include <libbase.h>
 #include <com_util/console/console.h>
 #include <com_util/crt/path.h>
+#include <errno.h>
 #include <stdio.h>
 
 /**
@@ -26,18 +27,28 @@
  */
 int main(void)
 {
-    console_init();
+    com_util_console_init();
 
+    int err = 0;
     int result;
     int rtc;
     char configpath[PLATFORM_PATH_MAX];
 
     {
         char tmpdir[PLATFORM_PATH_MAX];
-        if (com_util_get_temp_dir(tmpdir, sizeof(tmpdir), NULL) == 0)
+        if (com_util_get_temp_dir(tmpdir, sizeof(tmpdir), &err) == 0)
         {
-            snprintf(configpath, sizeof(configpath),
-                     "%s" PLATFORM_PATH_SEP "libbase_extdef.txt", tmpdir);
+            if (com_util_path_concat(configpath, sizeof(configpath), &err,
+                                     tmpdir, PLATFORM_PATH_SEP, "libbase_extdef.txt") != 0)
+            {
+                fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
+                return 1;
+            }
+        }
+        else if (err == ENAMETOOLONG)
+        {
+            fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
+            return 1;
         }
         else
         {
@@ -54,8 +65,8 @@ int main(void)
     printf("       del \"%s\"\n\n", configpath);
 #endif /* PLATFORM_ */
 
-    printf("--- symbol_loader info ---\n");
-    rtc = symbol_loader_info_libbase();
+    printf("--- sym_loader info ---\n");
+    rtc = sym_loader_info_libbase();
     printf("rtc: %d\n\n", rtc);
 
     rtc = sample_func(1, 2, &result);

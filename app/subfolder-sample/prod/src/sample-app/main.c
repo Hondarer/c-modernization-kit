@@ -14,7 +14,7 @@
  */
 int main(void)
 {
-    console_init();
+    com_util_console_init();
 
     int a = 10;
     int b = 20;

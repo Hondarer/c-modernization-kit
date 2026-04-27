@@ -23,7 +23,7 @@
  */
 int main(int argc, char *argv[])
 {
-    console_init();
+    com_util_console_init();
 
     printf("✨ Hello, c-modernization-kit! ✨\n");
 
