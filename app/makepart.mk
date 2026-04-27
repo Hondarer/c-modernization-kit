@@ -19,8 +19,11 @@ ifneq ($(OS),Windows_NT)
     LDFLAGS     =
 else
     # Windows
+    # /Zc:preprocessor: MSVC 準拠プリプロセッサを有効にする。
+    # 旧プリプロセッサでは __VA_ARGS__ が別マクロへ渡される際に単一トークン扱いになり、
+    # 可変長引数カウントマクロ等が正しく展開されない問題を回避するために指定する。
     CFLAGS      =
-    CXXFLAGS    =
+    CXXFLAGS    = /Zc:preprocessor
     LDFLAGS     =
 endif
 
