@@ -328,7 +328,7 @@
             }
         },
         {
-            "label": "style markdown (jp, current file)",
+            "label": "style text",
             "type": "shell",
             "problemMatcher": [],
             "presentation": {
@@ -336,7 +336,7 @@
                 "clear": true // 実行前に Terminal をクリア
             },
             "windows": {
-                "command": "if \"${fileExtname}\"==\".md\" (python \"${workspaceFolder}\\framework\\docsfw\\bin\\md_style_jp.py\" \"${file}\" --in-place) else (echo Not a Markdown file: ${file} 1>&2 & exit /b 1)",
+                "command": "python3 \"${workspaceFolder}\\framework\\docsfw\\bin\\text_style_jp.py\" \"${file}\" --mode auto --in-place",
                 "options": {
                     "shell": {
                         "executable": "cmd.exe",
@@ -345,7 +345,7 @@
                 }
             },
             "linux": {
-                "command": "[ \"${fileExtname}\" = \".md\" ] && python3 \"${workspaceFolder}/framework/docsfw/bin/md_style_jp.py\" \"${file}\" --in-place || { echo \"Not a Markdown file: ${file}\" >&2; exit 1; }"
+                "command": "python3 \"${workspaceFolder}/framework/docsfw/bin/text_style_jp.py\" \"${file}\" --mode auto --in-place"
             }
         }
     ]
