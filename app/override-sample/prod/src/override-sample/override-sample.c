@@ -32,22 +32,18 @@ int main(void)
     int rtc;
     char configpath[4096];
 
-#if defined(PLATFORM_LINUX)
-    snprintf(configpath, sizeof(configpath), "/tmp/libbase_extdef.txt");
-#elif defined(PLATFORM_WINDOWS)
     {
-        wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
-        DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
-        configpath[0] = '\0';
-        if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
+        char tmpdir[PLATFORM_PATH_MAX];
+        if (com_util_get_temp_dir(tmpdir, sizeof(tmpdir), NULL) == 0)
         {
-            char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
-            int m = WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
-            if (m > 0)
-                snprintf(configpath, sizeof(configpath), "%slibbase_extdef.txt", tmpu8);
+            snprintf(configpath, sizeof(configpath),
+                     "%s" PLATFORM_PATH_SEP "libbase_extdef.txt", tmpdir);
+        }
+        else
+        {
+            configpath[0] = '\0';
         }
     }
-#endif /* PLATFORM_ */
 
     printf("configpath: %s\n", configpath);
     printf("Processing will be extended if defines.\n");

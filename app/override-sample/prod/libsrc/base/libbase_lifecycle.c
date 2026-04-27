@@ -35,25 +35,14 @@ void onLoad(void)
 
     if (module_info_get_basename(basename, sizeof(basename), (const void *)onLoad) == 0)
     {
-#if defined(PLATFORM_LINUX)
-        /* Linux: 定義ファイルを /tmp から読み込み */
-        snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "/tmp/%s_extdef.txt", basename);
-#elif defined(PLATFORM_WINDOWS)
-        /* Windows: 定義ファイルを %TEMP% から読み込み */
-        wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
-        DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
-        if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
         {
-            /* UTF-16 -> UTF-8 変換 */
-            char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
-            int m = WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
-            if (m > 0)
+            char tmpdir[PLATFORM_PATH_MAX];
+            if (com_util_get_temp_dir(tmpdir, sizeof(tmpdir), NULL) == 0)
             {
-                /* GetTempPathW は通常末尾に '\' を付けて返す */
-                snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath), "%s%s_extdef.txt", tmpu8, basename);
+                snprintf(symbol_loader_configpath, sizeof(symbol_loader_configpath),
+                         "%s" PLATFORM_PATH_SEP "%s_extdef.txt", tmpdir, basename);
             }
         }
-#endif /* PLATFORM_ */
     }
 
     symbol_loader_init(fobj_array_libbase, fobj_length_libbase, symbol_loader_configpath);
