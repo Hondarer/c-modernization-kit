@@ -108,30 +108,49 @@ jobs:
           $maxRetry = 3
           $retryCount = 0
           $installed = $false
+          $opencppPath = "C:\Program Files\OpenCppCoverage"
+          $opencppExe = Join-Path $opencppPath "OpenCppCoverage.exe"
+          $chocoLogPath = "C:\ProgramData\chocolatey\logs\chocolatey.log"
           while (-not $installed -and $retryCount -lt $maxRetry) {
               $retryCount++
               Write-Host "choco install opencppcoverage (attempt $retryCount/$maxRetry)..."
               choco install opencppcoverage -y
-              if ($LASTEXITCODE -eq 0) {
+              $chocoExitCode = $LASTEXITCODE
+              $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
+              if ((Test-Path $opencppExe) -or $null -ne $resolvedCommand) {
                   $installed = $true
+                  Write-Host "OpenCppCoverage is available."
               } elseif ($retryCount -lt $maxRetry) {
-                  Write-Host "Installation failed (exit code $LASTEXITCODE). Retrying in 10 seconds..."
+                  Write-Host "OpenCppCoverage is not available yet (choco exit code $chocoExitCode). Retrying in 10 seconds..."
                   Start-Sleep -Seconds 10
               }
           }
           if (-not $installed) {
               Write-Host "ERROR: choco install opencppcoverage failed after $maxRetry attempts."
+              if (Test-Path $chocoLogPath) {
+                  Write-Host "Last 50 lines of $chocoLogPath:"
+                  Get-Content $chocoLogPath -Tail 50
+              } else {
+                  Write-Host "Chocolatey log not found at $chocoLogPath"
+              }
               exit 1
           }
 
           # PATH に追加 (GitHub Actions の永続化メカニズムを使用)
-          $opencppPath = "C:\Program Files\OpenCppCoverage"
+          $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
           if (Test-Path $opencppPath) {
-              Write-Host "`nAdding OpenCppCoverage to PATH..."
-              Add-Content -Path $env:GITHUB_PATH -Value $opencppPath
+              $opencppBinPath = $opencppPath
+          } elseif ($null -ne $resolvedCommand) {
+              $opencppBinPath = Split-Path -Parent $resolvedCommand.Source
+          } else {
+              $opencppBinPath = $null
+          }
+          if ($null -ne $opencppBinPath) {
+              Write-Host "`nAdding OpenCppCoverage to PATH from $opencppBinPath..."
+              Add-Content -Path $env:GITHUB_PATH -Value $opencppBinPath
               Write-Host "PATH addition completed."
           } else {
-              Write-Host "ERROR: OpenCppCoverage installation directory not found at $opencppPath"
+              Write-Host "ERROR: OpenCppCoverage executable not found after installation."
               exit 1
           }
         shell: pwsh
