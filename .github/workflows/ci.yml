@@ -128,7 +128,7 @@ jobs:
           if (-not $installed) {
               Write-Host "ERROR: choco install opencppcoverage failed after $maxRetry attempts."
               if (Test-Path $chocoLogPath) {
-                  Write-Host "Last 50 lines of $chocoLogPath:"
+                  Write-Host "Last 50 lines of ${chocoLogPath}:"
                   Get-Content $chocoLogPath -Tail 50
               } else {
                   Write-Host "Chocolatey log not found at $chocoLogPath"
