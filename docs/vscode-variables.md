@@ -5,13 +5,15 @@
 ## `c_cpp_properties.json` の正本
 
 `-I` と `-D` の正本は `.vscode/c_cpp_properties.json` ではありません。  
-`makepart.mk`、`app/makepart.mk`、各 C/C++ app の `app/<name>/makepart.mk` にある `INCDIR` / `DEFINES` の合成結果が正本であり、`.vscode/c_cpp_properties.json` はその派生物です。
+`INCDIR` は `makepart.mk`、`app/makepart.mk`、各 C/C++ app の `app/<name>` 配下にあるすべての `makepart.mk` の合成結果が正本です。  
+`DEFINES` は `makepart.mk`、`app/makepart.mk`、各 C/C++ app の `app/<name>/makepart.mk` の合成結果が正本であり、`.vscode/c_cpp_properties.json` はその派生物です。
 
 ### 基本ルール
 
 - リポジトリ全体に効かせる IntelliSense 向け include / define は `makepart.mk` または `app/makepart.mk` に書く
 - app 共通の IntelliSense 向け include / define は `app/<name>/makepart.mk` に書く
-- 個別ターゲットだけが必要とする追加 `INCDIR` は、従来どおり下位の `makepart.mk` で上乗せする
+- 個別ターゲットだけが必要とする追加 `INCDIR` は、対象ディレクトリ配下の `makepart.mk` に書くと `.vscode/c_cpp_properties.json` にも反映される
+- 個別ターゲットだけが必要な `DEFINES` は、必要なら `.vscode` へは反映されない前提で下位の `makepart.mk` に書く
 - `.vscode/c_cpp_properties.json` を直接編集しても make のビルド設定には反映されない
 - Linux の `_DEFAULT_SOURCE` のように実ビルドでも必要な define は `app/makepart.mk` などの正本側へ書く
 - `TARGET_ARCH` は app 側の実値を `.vscode` へ持ち込まず、Linux / Win32 ともに `TARGET_ARCH=target_arch` を同期スクリプトが補う
@@ -19,7 +21,7 @@
 
 ### 同期の流れ
 
-`make -C app` のデフォルトビルド後には、`makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の dry-run 比較が自動で走ります。  
+`make -C app` のデフォルトビルド後には、`INCDIR` は `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` は `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の dry-run 比較が自動で走ります。  
 差異がある場合は `app/c_cpp_properties.warn` が生成され、既存の WARNING 表示と warn artifact 収集にそのまま乗ります。
 
 警告が出たら、ワークスペースルートで次を実行して `.vscode/c_cpp_properties.json` を更新します。
@@ -38,7 +40,10 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 
 ### `c_cpp_properties.json` を見直すタイミング
 
-- `makepart.mk`、`app/makepart.mk`、`app/<name>/makepart.mk` の `INCDIR` / `DEFINES` を変更したとき
+- `INCDIR` を変更したとき
+  `makepart.mk`、`app/makepart.mk`、または `app/<name>` 配下の任意の `makepart.mk`
+- `DEFINES` を変更したとき
+  `makepart.mk`、`app/makepart.mk`、または `app/<name>/makepart.mk`
 - C/C++ app を追加・削除・改名したとき
 - `app/c_cpp_properties.warn` が出たとき
 
