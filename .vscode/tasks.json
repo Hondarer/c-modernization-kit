@@ -56,14 +56,15 @@
             "linux": {
                 "options": {
                     "env": {
-                        "LD_LIBRARY_PATH": "${workspaceFolder}/app/calc/prod/lib:${workspaceFolder}/app/calc.net/prod/lib:${workspaceFolder}/app/override-sample/prod/lib:${workspaceFolder}/app/porter/prod/lib:${workspaceFolder}/app/com_util/prod/lib:${env:LD_LIBRARY_PATH}"
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/app/calc/prod/lib:${workspaceFolder}/app/calc.net/prod/lib:${workspaceFolder}/app/override-sample/prod/lib:${workspaceFolder}/app/porter/prod/lib:${workspaceFolder}/app/com_util/prod/lib:${env:LD_LIBRARY_PATH}",
+                        "PATH": "${workspaceFolder}/app/calc/prod/bin:${workspaceFolder}/app/calc.net/prod/bin:${workspaceFolder}/app/override-sample/prod/bin:${workspaceFolder}/app/porter/prod/bin:${workspaceFolder}/app/com_util/prod/bin:${env:PATH}"
                     }
                 }
             },
             "windows": {
                 "options": {
                     "env": {
-                        "PATH": "${workspaceFolder}\\app\\calc\\prod\\lib;${workspaceFolder}\\app\\calc\\prod\\bin;${workspaceFolder}\\app\\calc.net\\prod\\lib;${workspaceFolder}\\app\\calc.net\\prod\\bin;${workspaceFolder}\\app\\override-sample\\prod\\lib;${workspaceFolder}\\app\\override-sample\\prod\\bin;${workspaceFolder}\\app\\porter\\prod\\lib;${workspaceFolder}\\app\\porter\\prod\\bin;${workspaceFolder}\\app\\com_util\\prod\\lib;${env:PATH}"
+                        "PATH": "${workspaceFolder}\\app\\calc\\prod\\lib;${workspaceFolder}\\app\\calc\\prod\\bin;${workspaceFolder}\\app\\calc.net\\prod\\lib;${workspaceFolder}\\app\\calc.net\\prod\\bin;${workspaceFolder}\\app\\override-sample\\prod\\lib;${workspaceFolder}\\app\\override-sample\\prod\\bin;${workspaceFolder}\\app\\porter\\prod\\lib;${workspaceFolder}\\app\\porter\\prod\\bin;${workspaceFolder}\\app\\com_util\\prod\\lib;${workspaceFolder}\\app\\com_util\\prod\\bin;${env:PATH}"
                     }
                 }
             },
@@ -178,14 +179,15 @@
             "linux": {
                 "options": {
                     "env": {
-                        "LD_LIBRARY_PATH": "${workspaceFolder}/app/calc/prod/lib:${workspaceFolder}/app/calc.net/prod/lib:${workspaceFolder}/app/override-sample/prod/lib:${workspaceFolder}/app/porter/prod/lib:${workspaceFolder}/app/com_util/prod/lib:${env:LD_LIBRARY_PATH}"
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/app/calc/prod/lib:${workspaceFolder}/app/calc.net/prod/lib:${workspaceFolder}/app/override-sample/prod/lib:${workspaceFolder}/app/porter/prod/lib:${workspaceFolder}/app/com_util/prod/lib:${env:LD_LIBRARY_PATH}",
+                        "PATH": "${workspaceFolder}/app/calc/prod/bin:${workspaceFolder}/app/calc.net/prod/bin:${workspaceFolder}/app/override-sample/prod/bin:${workspaceFolder}/app/porter/prod/bin:${workspaceFolder}/app/com_util/prod/bin:${env:PATH}"
                     }
                 }
             },
             "windows": {
                 "options": {
                     "env": {
-                        "PATH": "${workspaceFolder}\\app\\calc\\prod\\lib;${workspaceFolder}\\app\\calc\\prod\\bin;${workspaceFolder}\\app\\calc.net\\prod\\lib;${workspaceFolder}\\app\\calc.net\\prod\\bin;${workspaceFolder}\\app\\override-sample\\prod\\lib;${workspaceFolder}\\app\\override-sample\\prod\\bin;${workspaceFolder}\\app\\porter\\prod\\lib;${workspaceFolder}\\app\\porter\\prod\\bin;${workspaceFolder}\\app\\com_util\\prod\\lib;${env:PATH}"
+                        "PATH": "${workspaceFolder}\\app\\calc\\prod\\lib;${workspaceFolder}\\app\\calc\\prod\\bin;${workspaceFolder}\\app\\calc.net\\prod\\lib;${workspaceFolder}\\app\\calc.net\\prod\\bin;${workspaceFolder}\\app\\override-sample\\prod\\lib;${workspaceFolder}\\app\\override-sample\\prod\\bin;${workspaceFolder}\\app\\porter\\prod\\lib;${workspaceFolder}\\app\\porter\\prod\\bin;${workspaceFolder}\\app\\com_util\\prod\\lib;${workspaceFolder}\\app\\com_util\\prod\\bin;${env:PATH}"
                     }
                 }
             },
