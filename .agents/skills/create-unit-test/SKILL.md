@@ -114,7 +114,7 @@ LIBS += mock_calcbase mock_libc com_util
 - 戻り値だけでなく、出力引数を書き換える必要があるときは `WillOnce([](...) { ... })` を使います
 - 文字列出力の確認は `StrEq("...\n")` を使います
 - 呼び出し回数だけを厳密に見たい場合は `Times(n)` を付けます
-- 1 回しか使わない期待値は、不要に `expected_*` 変数へ切り出さず `EXPECT_EQ(...)` へ即値で書きます。プラットフォームごとに値が違う場合は Assert 側を分岐します
+- 1 回しか使わない期待値は、不要に Arrange フェーズにて変数へ切り出さず `EXPECT_EQ(...)` へ即値で書きます。プラットフォームごとに値が違う場合は Assert 側を分岐します
 - 共通の説明は `framework/testfw/docs/how-to-expect.md` を参照します
 
 例:
