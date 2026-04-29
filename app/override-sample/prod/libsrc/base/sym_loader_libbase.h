@@ -25,6 +25,12 @@
 
 /** sample_func に対応する関数ポインタの型定義。 */
 typedef int (*sample_func_t)(const int, const int, int *);
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
 /** sample_func に対応する sym_loader エントリへのポインタ。 */
 extern com_util_sym_loader_entry_t *const pfo_sample_func;
 
@@ -42,5 +48,9 @@ extern const size_t fobj_length_libbase;
 
 /** sym_loader 設定ファイルのパス */
 extern char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX];
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* SYM_LOADER_LIBBASE_H */
