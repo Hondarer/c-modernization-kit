@@ -4,4 +4,4 @@ TEST_SRCS := \
 
 # 追加のインクルードディレクトリ
 INCDIR += \
-	sample-static-lib
+	$(MYAPP_DIR)/test/src/static-access/sample-static-lib
