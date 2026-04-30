@@ -158,6 +158,7 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Arrange
     removeConfigFile(); // [手順] - 定義ファイルを削除してデフォルト状態を保証する。
     ProcessOptions opts = makeOpts();
+    opts.env_set["ENABLE_DLLMAIN_COM_UTIL_INFO_MSG"] = "1"; // [手順] - DLLMain 診断ログ出力を有効化する。
 #if defined(PLATFORM_LINUX)
     opts.preload_lib = mock_lib_path; // [手順] - LD_PRELOAD で syslog_mock.so を挿入する。
 #endif /* PLATFORM_LINUX */
@@ -174,6 +175,26 @@ TEST_F(override_sampleTest, onUnload_syslog)
               res.debug_log.find("base: onUnload called")); // [確認] - debug_log に onUnload の記録があること。
 }
 
+// デフォルトでは DLLMain 診断ログを出力しないことの確認
+TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
+{
+    // Arrange
+    removeConfigFile(); // [手順] - 定義ファイルを削除してデフォルト状態を保証する。
+    ProcessOptions opts = makeOpts();
+#if defined(PLATFORM_LINUX)
+    opts.preload_lib = mock_lib_path; // [手順] - debug_log を観測できるよう syslog_mock.so を挿入する。
+#endif /* PLATFORM_LINUX */
+
+    // Act
+    ProcessResult res =
+        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、診断ログを確認する。
+
+    // Assert
+    ASSERT_EQ(0, res.exit_code); // [確認] - override-sample の終了コードが 0 であること。
+    EXPECT_EQ(string::npos,
+              res.debug_log.find("base: onUnload called")); // [確認] - デフォルトでは onUnload 診断ログが出力されないこと。
+}
+
 #if defined(PLATFORM_LINUX)
 TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
 {
@@ -181,6 +202,7 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     removeConfigFile(); // [手順] - 定義ファイルを削除して他要因を除く。
     ProcessOptions opts = makeOpts();
     opts.preload_lib = mock_lib_path; // [手順] - debug_log を取得するため syslog_mock.so を挿入する。
+    opts.env_set["ENABLE_DLLMAIN_COM_UTIL_INFO_MSG"] = "1"; // [手順] - DLLMain 診断ログ出力を有効化する。
     opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [手順] - 一時ディレクトリを上限超過長にする。
 
     // Act
