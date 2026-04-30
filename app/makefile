@@ -11,6 +11,7 @@ SUBDIRS = \
 
 TESTFW_BANNER = ../framework/testfw/bin/banner.sh
 CPP_PROPERTIES_SYNC = ../framework/makefw/bin/sync_c_cpp_properties.sh
+DOXY_WARN_FILES = $(addsuffix /doxy.warn,$(SUBDIRS))
 
 .DEFAULT_GOAL := default
 
@@ -69,7 +70,35 @@ test : submodule
 	python ../framework/testfw/bin/cobertura_merge.py . 1> /dev/null 2>&1
 
 .PHONY: doxy
-doxy : submodule $(SUBDIRS)
+doxy : submodule
+	@for warn_file in $(DOXY_WARN_FILES); do \
+		rm -f "$$warn_file"; \
+	done
+	@doxy_status=0; \
+	for dir in $(SUBDIRS); do \
+		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
+			echo $(MAKE) -C $$dir doxy; \
+			SUPPRESS_DOXY_WARN_PRINT=1 $(MAKE) -C $$dir doxy || { doxy_status=$$?; break; }; \
+		fi; \
+	done; \
+	warn_files=$$(find . -mindepth 2 -maxdepth 2 -type f -name 'doxy.warn' -size +0 | sort); \
+	if [ -n "$$warn_files" ]; then \
+		printf '\n'; \
+		bash "$(TESTFW_BANNER)" WARNING "\e[33m"; \
+		printf '\n'; \
+		first_warn=1; \
+		for warn_file in $$warn_files; do \
+			if [ $$first_warn -eq 0 ]; then \
+				printf '\n'; \
+			fi; \
+			first_warn=0; \
+			printf '\033[33m===== %s =====\033[0m\n' "$$warn_file"; \
+			while IFS= read -r line || [ -n "$$line" ]; do \
+				printf '\033[33m%s\033[0m\n' "$$line"; \
+			done < "$$warn_file"; \
+		done; \
+	fi; \
+	exit $$doxy_status
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS) :
