@@ -54,9 +54,8 @@ ifneq (,$(findstring /test/,$(CURDIR)))
     LINK_TEST = 1
 endif
 
-# calc のライブラリ検索パス (全プロダクト共通)
-LIBSDIR += \
-	$(WORKSPACE_DIR)/app/calc/prod/lib
+# レポジトリ全体に効かせる LIBSDIR はここに記載
+#LIBSDIR += 
 
 # レポジトリ全体に効かせる INCDIR はここに記載
 #INCDIR += 

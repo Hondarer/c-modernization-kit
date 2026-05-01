@@ -60,6 +60,7 @@ make clean
 
 ## 注意点
 
+- 作成するファイルは Linux (GCC)、Windows (MSVC) のクロスプラットフォームで動作することを念頭に置いて作業すること。
 - Windows では GNU Make が POSIX シェルで動く前提です。必要に応じて `Start-VSCode-With-Env.cmd` から環境を整えること。
 - ドキュメント生成と公開は `framework/doxyfw` と `framework/docsfw` の連携で成り立つため、出力パスやスクリプト名を変更する際は両方を確認すること。
 - テスト関連の変更では `framework/testfw` とその配下の `gtest` サブモジュールの役割を混同しないこと。
