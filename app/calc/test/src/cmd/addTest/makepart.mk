@@ -1,6 +1,6 @@
 # テスト対象のソースファイル
 TEST_SRCS := \
-	$(MYAPP_DIR)/prod/src/add/add.c
+	$(MYAPP_DIR)/prod/src/cmd/add/add.c
 
 # エントリーポイントの変更
 # テスト対象のソースファイルにある main() は直接実行されず、
