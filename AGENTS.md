@@ -38,6 +38,26 @@ make docs
 make clean
 ```
 
+## app/ ライブラリのインクルード規則
+
+`app/` 配下の C ライブラリ（`com_util`、`porter` など）は、以下の 3 層構造でヘッダーを管理する。
+
+| ディレクトリ | 用途 | インクルード形式 |
+|---|---|---|
+| `prod/include/` | 公開 API（ライブラリ利用者向け） | `<lib/file.h>` |
+| `prod/include_internal/` | ライブラリ内部共有ヘッダー（`.c` をまたいで参照） | `<lib/subdir/file.h>` |
+| `prod/libsrc/` | ソースファイル（`.c`）のみ。ヘッダーは置かない | — |
+
+### `_internal` サフィックスの付与ルール
+
+- 同名の公開ヘッダーが存在する場合のみ `_internal` を付与する（例: `console.h` が公開にあるため `console_internal.h`）
+- 対応する公開ヘッダーが存在しない場合はサフィックスなし（例: `path_format.h`）
+
+### `makepart.mk` の INCDIR ルール
+
+- `INCDIR` に追加するのは `include/` と `include_internal/` のみとする
+- `libsrc/` のサブディレクトリは `INCDIR` に追加しない
+
 ## 注意点
 
 - Windows では GNU Make が POSIX シェルで動く前提です。必要に応じて `Start-VSCode-With-Env.cmd` から環境を整えること。
