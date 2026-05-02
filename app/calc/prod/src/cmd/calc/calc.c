@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           src/calc/calc.c
+ *  @file           src/cmd/calc/calc.c
  *  @brief          calc 関数の呼び出しコマンド。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22

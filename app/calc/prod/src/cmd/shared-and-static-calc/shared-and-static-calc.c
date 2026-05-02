@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           src/shared-and-static-calc/shared-and-static-calc.c
+ *  @file           src/cmd/shared-and-static-calc/shared-and-static-calc.c
  *  @brief          動的リンク、静的リンクを使った関数の呼び出しコマンド。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
