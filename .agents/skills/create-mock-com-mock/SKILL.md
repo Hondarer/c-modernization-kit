@@ -42,6 +42,53 @@ when_to_use: |
 - 実関数の weak wrapper は、未注入時に `delegate_real_<func>` を呼び、mock 注入時は Mock クラスの指定を優先します。
 - Mock クラス側で個別指定がない場合は `ON_CALL` の既定動作により再び `delegate_real_<func>` が使われます。
 
+## `v*` 系関数（va_list 版）の ON_CALL 設定
+
+`com_util_vaccess_fmt` などの `v*` 関数は、実際の API では `va_list` を受け取りますが、
+MOCK_METHOD は対応する非 `v` 版と同じシグネチャ（`va_list` なしの整形済み文字列）で定義されています。
+
+```cpp
+// 実 API
+int com_util_vaccess_fmt(int mode, const char *format, va_list args);
+
+// MOCK_METHOD — va_list なし（整形済み文字列を受け取る）
+MOCK_METHOD(int, com_util_vaccess_fmt, (int, const char *));
+```
+
+これは、`.cc` ラッパーが `vsnprintf` で事前整形した `buf` を MOCK_METHOD に渡す設計だからです。
+
+この設計により、`delegate_real_com_util_vaccess_fmt` は `(int, const char*, va_list)` を要求するため、
+`Invoke(delegate_real_com_util_vaccess_fmt)` は MOCK_METHOD の型 `int(int, const char*)` と不一致になります。
+
+**ON_CALL には対応する非 `v` 版の `delegate_real_` を使います：**
+
+```cpp
+// NG: va_list が必要なため型エラー
+ON_CALL(*this, com_util_vaccess_fmt(_, _))
+    .WillByDefault(Invoke(delegate_real_com_util_vaccess_fmt));
+
+// OK: 非 v 版は (int, const char*, ...) — 整形済み文字列を "%s" で実関数に渡す
+ON_CALL(*this, com_util_vaccess_fmt(_, _))
+    .WillByDefault(Invoke(delegate_real_com_util_access_fmt));
+```
+
+`delegate_real_com_util_access_fmt` の内部は `real_fn(mode, "%s", format)` で整形済み文字列をそのまま渡すため、
+動作は等価です。
+
+対象関数と対応する非 `v` 版 `delegate_real_` の一覧：
+
+| v* 関数 | ON_CALL で使う delegate_real_ |
+|---|---|
+| `com_util_vaccess_fmt` | `delegate_real_com_util_access_fmt` |
+| `com_util_vopen_fmt` | `delegate_real_com_util_open_fmt` |
+| `com_util_vfprintf` | `delegate_real_com_util_fprintf` |
+| `com_util_vfopen_fmt` | `delegate_real_com_util_fopen_fmt` |
+| `com_util_vmkdir_fmt` | `delegate_real_com_util_mkdir_fmt` |
+| `com_util_vremove_fmt` | `delegate_real_com_util_remove_fmt` |
+| `com_util_vstat_fmt` | `delegate_real_com_util_stat_fmt` |
+
+なお `com_util_vsscanf` は MOCK_METHOD に `va_list` が含まれるため `Invoke(delegate_real_com_util_vsscanf)` を使います。
+
 ## テスト
 
 - 本物への移譲確認は `app/com_util/test/src/libcom_utilTest/` 配下のテストで行います。
