@@ -4,6 +4,9 @@
 # ベーススタイル: LLVM
 BasedOnStyle: LLVM
 
+# LF 改行を尊重する
+UseCRLF: false
+
 # プリプロセッサディレクティブを # ごとインデントする
 IndentPPDirectives: BeforeHash
 
