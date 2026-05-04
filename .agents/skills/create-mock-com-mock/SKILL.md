@@ -89,6 +89,20 @@ ON_CALL(*this, com_util_vaccess_fmt(_, _))
 
 なお `com_util_vsscanf` は MOCK_METHOD に `va_list` が含まれるため `Invoke(delegate_real_com_util_vsscanf)` を使います。
 
+## モックの弱参照対応 (`MOCK_WEAK_IMPL`)
+
+モックにはデフォルトで全関数を定義しておき、テストで必要なソースファイルはテストの際に個別に `TEST_SRCS` で与えます。
+この際、Linux, Windows のそれぞれで弱参照を実現する必要があるため、`MOCK_WEAK_IMPL` マクロでプラットフォーム別の弱参照を抽象化しています。
+
+```cpp
+MOCK_WEAK_IMPL(com_util_tracer_t *, com_util_tracer_create, void)
+{
+    // 本体
+}
+```
+
+`MOCK_WEAK_IMPL` は `framework/testfw/include/testfw.h` に定義されており、`#include <testfw.h>` で利用できます。
+
 ## テスト
 
 - 本物への移譲確認は `app/com_util/test/src/libcom_utilTest/` 配下のテストで行います。

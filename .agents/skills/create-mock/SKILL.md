@@ -120,7 +120,7 @@ ON_CALL(*this, com_util_sscanf(_, _, _))
 #include <testfw.h>
 #include <mock_<lib>.h>
 
-WEAK_ATR <rettype> <func>(<args>)
+MOCK_WEAK_IMPL(<rettype>, <func>, <args>)
 {
     <rettype> rtc = <default>;
 
@@ -155,6 +155,20 @@ WEAK_ATR <rettype> <func>(<args>)
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_stat.cc`
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_fopen.cc`
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_gmtime.cc`
+
+#### モックの弱参照対応 (`MOCK_WEAK_IMPL`)
+
+モックにはデフォルトで全関数を定義しておき、テストで必要なソースファイルはテストの際に個別に `TEST_SRCS` で与えます。
+この際、Linux, Windows のそれぞれで弱参照を実現する必要があるため、`MOCK_WEAK_IMPL` マクロでプラットフォーム別の弱参照を抽象化しています。
+
+```cpp
+MOCK_WEAK_IMPL(com_util_tracer_t *, com_util_tracer_create, void)
+{
+    // 本体
+}
+```
+
+`MOCK_WEAK_IMPL` は `framework/testfw/include/testfw.h` に定義されており、`#include <testfw.h>` で利用できます。
 
 ### `sscanf` 系
 
@@ -214,7 +228,7 @@ app 向けで OS 分岐が必要な場合は、`_WIN32` を直接使わず `app/
     /* Linux 向け処理 */
 #elif defined(PLATFORM_WINDOWS)
     /* Windows 向け処理 */
-#endif
+#endif /* PLATFORM_ */
 ```
 
 ## テストでの利用
@@ -239,7 +253,7 @@ TEST_F(MyTest, example)
 
 - 追加した関数が `Mock_<lib>` に登録されていること
 - `ON_CALL` の既定値が失敗側になっていること
-- 関数本体に `WEAK_ATR` が付いていること
+- 関数本体に `MOCK_WEAK_IMPL` を使っていること
 - 未注入時に本物へ委譲していないこと
 - `sscanf` 系で `va_start` / `va_end` の範囲が正しいこと
 - `testfw` 向けの `file`, `line`, `func` や `delegate_real_` を混在させていないこと
