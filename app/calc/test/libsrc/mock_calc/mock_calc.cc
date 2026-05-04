@@ -1,5 +1,10 @@
+#include <com_util/base/compiler.h>
 #include <testfw.h>
 #include <mock_calc.h>
+
+#if defined(COMPILER_MSVC)
+#pragma comment(linker, "/INCLUDE:_mock_impl_calcHandler")
+#endif /* COMPILER_MSVC */
 
 Mock_calc *_mock_calc = nullptr;
 

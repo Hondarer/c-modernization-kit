@@ -1,7 +1,7 @@
 #include <testfw.h>
 #include <mock_calc.h>
 
-WEAK_ATR int CALC_API calcHandler(int kind, int a, int b, int *result)
+MOCK_WEAK_IMPL(int, calcHandler, int kind, int a, int b, int *result)
 {
     int rtc = 0;
 

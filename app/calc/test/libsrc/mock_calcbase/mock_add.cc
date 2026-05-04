@@ -1,7 +1,7 @@
 #include <testfw.h>
 #include <mock_calcbase.h>
 
-WEAK_ATR int add(int a, int b, int *result)
+MOCK_WEAK_IMPL(int, add, int a, int b, int *result)
 {
     int rtc = 0;
 
