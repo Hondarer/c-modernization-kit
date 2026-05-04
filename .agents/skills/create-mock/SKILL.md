@@ -170,6 +170,27 @@ MOCK_WEAK_IMPL(com_util_tracer_t *, com_util_tracer_create, void)
 
 `MOCK_WEAK_IMPL` は `framework/testfw/include/testfw.h` に定義されており、`#include <testfw.h>` で利用できます。
 
+#### Windows MSVC でのリンク補完
+
+Windows MSVC では、静的ライブラリ内の obj ファイルはリンカーが未解決シンボルを解決するために必要と判断したものだけを取り込みます。
+`MOCK_WEAK_IMPL` が生成する `_mock_impl_<func>` シンボルは `/ALTERNATENAME` 経由でのみ参照されるため、直接参照がなければ obj が取り込まれず `/ALTERNATENAME` が無効になります。
+
+回避策として、`mock_<lib>.cc` のメインクラスファイルに `/INCLUDE` pragma を列挙します。
+`mock_<lib>.cc` はテストコードが `Mock_<lib>` を直接参照するため必ず取り込まれ、その pragma も処理されます。
+
+```cpp
+#include <com_util/base/platform.h>
+...
+
+#if defined(COMPILER_MSVC)
+#pragma comment(linker, "/INCLUDE:_mock_impl_<func1>")
+#pragma comment(linker, "/INCLUDE:_mock_impl_<func2>")
+#endif /* COMPILER_MSVC */
+```
+
+適用条件: `mock_<lib>.cc` のコンストラクターが対象関数の `delegate_real_` を参照していない場合。
+`delegate_real_` を `ON_CALL` で参照している場合はその参照が obj の取り込みを引き起こすため、`/INCLUDE` は不要です。
+
 ### `sscanf` 系
 
 可変長引数入力系は `va_list` をそのまま Mock クラスへ渡します。
@@ -257,6 +278,7 @@ TEST_F(MyTest, example)
 - 未注入時に本物へ委譲していないこと
 - `sscanf` 系で `va_start` / `va_end` の範囲が正しいこと
 - `testfw` 向けの `file`, `line`, `func` や `delegate_real_` を混在させていないこと
+- Windows MSVC 向けに `mock_<lib>.cc` で `/INCLUDE` pragma を列挙しているか、または `ON_CALL` 内の `delegate_real_` 参照で obj の取り込みを代替できているか
 
 `mock_com_util` だけは上記確認項目のうち既定値と未注入時動作が異なり、
 全関数で real delegate を持つことを前提に `create-mock-com-mock` の確認項目を使います。

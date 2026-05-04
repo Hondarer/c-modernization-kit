@@ -89,6 +89,28 @@ ON_CALL(*this, com_util_vaccess_fmt(_, _))
 
 なお `com_util_vsscanf` は MOCK_METHOD に `va_list` が含まれるため `Invoke(delegate_real_com_util_vsscanf)` を使います。
 
+#### Windows MSVC でのリンク補完
+
+上記の v* 関数は ON_CALL で非 v* の `delegate_real_` を参照するため、v* 関数自身の obj ファイル (`mock_com_util_v*.obj`) が Windows MSVC のリンカーに取り込まれません。
+`_mock_impl_com_util_v*` が取り込まれなければ `/ALTERNATENAME` も機能せず、本番コードが v* 関数を呼び出すテストで未解決シンボルエラーが発生します。
+
+`mock_com_util.cc` に以下の `/INCLUDE` pragma を追加して補完します。
+
+```cpp
+#include <com_util/base/platform.h>
+...
+
+#if defined(COMPILER_MSVC)
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vfprintf")
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vfopen_fmt")
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vaccess_fmt")
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vopen_fmt")
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vremove_fmt")
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vmkdir_fmt")
+#pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vstat_fmt")
+#endif /* COMPILER_MSVC */
+```
+
 ## モックの弱参照対応 (`MOCK_WEAK_IMPL`)
 
 モックにはデフォルトで全関数を定義しておき、テストで必要なソースファイルはテストの際に個別に `TEST_SRCS` で与えます。
