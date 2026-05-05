@@ -22,12 +22,22 @@
 ## 作業時の入口
 
 - `makefile` - ルートの入口。`make`、`make test`、`make doxy`、`make docs`、`make clean` を提供する
-  full make には時間がかかる。そのため、make コマンドの呼び出しは修正箇所に対して最小限の実施で確認し、問題が外部にあると判断した場合に限り、ユーザーに問い合わせのうえで全体の make clean, make, make test を行うこと。
 - `app/calc/` - C のサンプルアプリ、ライブラリ、テスト、Doxygen 設定
 - `app/calc.net/` - .NET ラッパー、アプリ、テスト、ソリューション
 - `Directory.Build.props` - .NET 共通設定
 - `framework/*` - 各フレームワークの独立した git ルート。変更前に各ルートの `AGENTS.md` と `README.md` を確認する
 - `Start-VSCode-With-Env.cmd` - Windows で GNU Make と MSVC の環境を整えて VS Code を起動する
+
+## make コマンド実行の指針
+
+**フルビルドは時間がかかるため、以下の指針に従うこと：**
+
+1. **修正箇所の特定** - どのモジュール（`app/` 配下のサブディレクトリ）を変更したかを明確にする
+2. **局所的なテスト** - 変更したモジュール配下で `cd app/MODULE && make test` を実行し、そのモジュールのみビルド・テストする
+3. **全体テストが必要な場合** - 以下の場合は全体テストをユーザーに相談してから実行する：
+   - ローカルテストで外部依存エラーが検出された場合
+   - 複数モジュールにまたがる変更をした場合
+   - ライブラリ層（framework/）を変更した場合
 
 ## 主要コマンド
 
