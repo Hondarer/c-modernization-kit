@@ -2,13 +2,6 @@
 #include <testfw.h>
 #include <mock_calcbase.h>
 
-#if defined(COMPILER_MSVC)
-#pragma comment(linker, "/INCLUDE:_mock_impl_add")
-#pragma comment(linker, "/INCLUDE:_mock_impl_subtract")
-#pragma comment(linker, "/INCLUDE:_mock_impl_multiply")
-#pragma comment(linker, "/INCLUDE:_mock_impl_divide")
-#endif /* COMPILER_MSVC */
-
 Mock_calcbase *_mock_calcbase = nullptr;
 
 Mock_calcbase::Mock_calcbase()

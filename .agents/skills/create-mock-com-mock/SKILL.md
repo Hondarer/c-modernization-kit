@@ -94,11 +94,17 @@ ON_CALL(*this, com_util_vaccess_fmt(_, _))
 上記の v* 関数は ON_CALL で非 v* の `delegate_real_` を参照するため、v* 関数自身の obj ファイル (`mock_com_util_v*.obj`) が Windows MSVC のリンカーに取り込まれません。
 `_mock_impl_com_util_v*` が取り込まれなければ `/ALTERNATENAME` も機能せず、本番コードが v* 関数を呼び出すテストで未解決シンボルエラーが発生します。
 
-`mock_com_util.cc` に以下の `/INCLUDE` pragma を追加して補完します。
+**リンク補完の配置先：**
+`/INCLUDE` pragma は `mock_com_util.h` ヘッダーに記述します。
 
 ```cpp
+// mock_com_util.h
+#ifndef MOCK_UTIL_H
+#define MOCK_UTIL_H
+
 #include <com_util/base/platform.h>
-...
+#include <testfw.h>
+// ... その他のインクルード
 
 #if defined(COMPILER_MSVC)
 #pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vfprintf")
@@ -109,7 +115,15 @@ ON_CALL(*this, com_util_vaccess_fmt(_, _))
 #pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vmkdir_fmt")
 #pragma comment(linker, "/INCLUDE:_mock_impl_com_util_vstat_fmt")
 #endif /* COMPILER_MSVC */
+
+class Mock_com_util
+{
+    // ...
+};
 ```
+
+これにより、テストコードが `mock_com_util.h` をインクルードする時点でリンカーへの指示が確定し、
+実ファイルから v* 関数が呼び出される統合テストや実装テストでもリンク成功が保証されます。
 
 ## モックの弱参照対応 (`MOCK_WEAK_IMPL`)
 

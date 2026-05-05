@@ -1,8 +1,16 @@
 #ifndef MOCK_CALCBASE_H
 #define MOCK_CALCBASE_H
 
+#include <com_util/base/compiler.h>
 #include <testfw.h>
 #include <libcalcbase.h>
+
+#if defined(COMPILER_MSVC)
+#pragma comment(linker, "/INCLUDE:_mock_impl_add")
+#pragma comment(linker, "/INCLUDE:_mock_impl_subtract")
+#pragma comment(linker, "/INCLUDE:_mock_impl_multiply")
+#pragma comment(linker, "/INCLUDE:_mock_impl_divide")
+#endif /* COMPILER_MSVC */
 
 class Mock_calcbase
 {

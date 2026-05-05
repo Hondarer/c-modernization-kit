@@ -175,21 +175,33 @@ MOCK_WEAK_IMPL(com_util_tracer_t *, com_util_tracer_create, void)
 Windows MSVC では、静的ライブラリ内の obj ファイルはリンカーが未解決シンボルを解決するために必要と判断したものだけを取り込みます。
 `MOCK_WEAK_IMPL` が生成する `_mock_impl_<func>` シンボルは `/ALTERNATENAME` 経由でのみ参照されるため、直接参照がなければ obj が取り込まれず `/ALTERNATENAME` が無効になります。
 
-回避策として、`mock_<lib>.cc` のメインクラスファイルに `/INCLUDE` pragma を列挙します。
-`mock_<lib>.cc` はテストコードが `Mock_<lib>` を直接参照するため必ず取り込まれ、その pragma も処理されます。
+**リンク補完の配置先：**
+`/INCLUDE` pragma は `mock_<lib>.h` ヘッダーに記述します。
 
 ```cpp
+// mock_<lib>.h
+#ifndef MOCK_<LIB>_H
+#define MOCK_<LIB>_H
+
 #include <com_util/base/platform.h>
-...
+#include <testfw.h>
+// ... その他のインクルード
 
 #if defined(COMPILER_MSVC)
 #pragma comment(linker, "/INCLUDE:_mock_impl_<func1>")
 #pragma comment(linker, "/INCLUDE:_mock_impl_<func2>")
 #endif /* COMPILER_MSVC */
+
+class Mock_<lib>
+{
+    // ...
+};
 ```
 
-適用条件: `mock_<lib>.cc` のコンストラクターが対象関数の `delegate_real_` を参照していない場合。
-`delegate_real_` を `ON_CALL` で参照している場合はその参照が obj の取り込みを引き起こすため、`/INCLUDE` は不要です。
+**適用条件：**
+- コンストラクターが対象関数の `delegate_real_` を参照していない場合に記述します。
+- `delegate_real_` を `ON_CALL` で参照している場合、その参照が obj の取り込みを引き起こすため `/INCLUDE` は不要です。
+- 可変長引数の v* 関数（`va_list` 版）など、上位関数から呼び出されるが `ON_CALL` では参照されない関数が対象になります。
 
 ### `sscanf` 系
 
