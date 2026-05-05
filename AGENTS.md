@@ -22,6 +22,7 @@
 ## 作業時の入口
 
 - `makefile` - ルートの入口。`make`、`make test`、`make doxy`、`make docs`、`make clean` を提供する
+  full make には時間がかかる。そのため、make コマンドの呼び出しは修正箇所に対して最小限の実施で確認し、問題が外部にあると判断した場合に限り、ユーザーに問い合わせのうえで全体の make clean, make, make test を行うこと。
 - `app/calc/` - C のサンプルアプリ、ライブラリ、テスト、Doxygen 設定
 - `app/calc.net/` - .NET ラッパー、アプリ、テスト、ソリューション
 - `Directory.Build.props` - .NET 共通設定
@@ -64,4 +65,3 @@ make clean
 - Windows では GNU Make が POSIX シェルで動く前提です。必要に応じて `Start-VSCode-With-Env.cmd` から環境を整えること。
 - ドキュメント生成と公開は `framework/doxyfw` と `framework/docsfw` の連携で成り立つため、出力パスやスクリプト名を変更する際は両方を確認すること。
 - テスト関連の変更では `framework/testfw` とその配下の `gtest` サブモジュールの役割を理解し区別すること。
-- full make には時間がかかる。そのため、make は修正箇所に対して最小限の実施で確認し、問題が外部にあると判断した場合に限り、ユーザーに問い合わせのうえで全体の make clean, make を行うこと。
