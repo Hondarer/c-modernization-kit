@@ -28,10 +28,12 @@ submodule :
 default : submodule $(SUBDIRS)
     # c_cpp_properties の差分 warning (exit 3) は継続し、内部エラーのみ失敗させる
 	@cpp_sync_status=0; \
+	printf 'INFO: Checking c_cpp_properties.json sync...\n'; \
 	bash "$(CPP_PROPERTIES_SYNC)" --check || cpp_sync_status=$$?; \
 	if [ $$cpp_sync_status -ne 0 ] && [ $$cpp_sync_status -ne 3 ]; then \
 		exit $$cpp_sync_status; \
-	fi
+	fi; \
+	printf 'INFO: c_cpp_properties.json sync check completed.\n'
 	@warn_files=$$(find . -type f -name '*.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
