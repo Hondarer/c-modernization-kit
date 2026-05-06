@@ -88,8 +88,8 @@ test ! -f app/c_cpp_properties.warn
 
 ### `.vscode/tasks.json`
 
-`tasks.json` の `options.env` は、タスク実行時の環境変数です。  
-このリポジトリの `make test` タスクでは、OS ごとに必要な実行時パスを明示的に設定しています。
+`tasks.json` の `options.envFile` は、タスク実行時の環境変数を外部ファイルから読み込みます。  
+このリポジトリの `make test` タスクでは、OS ごとに `.vscode/.env.linux` または `.vscode/.env.windows` を参照しています。
 
 特に、テスト失敗時に
 
@@ -102,10 +102,17 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 ### `.vscode/launch.json`
 
 デバッグ構成は統合ターミナルの環境変数をそのまま使うわけではありません。  
-必要な環境変数は、各デバッグ構成の `environment` または `env` に明示的に書く必要があります。
+必要な環境変数は、各デバッグ構成の `envFile` で外部ファイルを参照します。
 
-- `cppdbg` / `cppvsdbg` は `environment`
-- `coreclr` は `env`
+- Linux 構成は `.vscode/.env.linux` を参照
+- Windows 構成は `.vscode/.env.windows` を参照
+
+### `.vscode/.env.linux` / `.vscode/.env.windows`
+
+`launch.json` と `tasks.json` が共通で参照する環境変数定義ファイルです。  
+新しいモジュールを追加する際は、これらのファイルに PATH を追加します。
+
+`settings.json` の `terminal.integrated.env.*` は `envFile` をサポートしないため、ターミナル用の PATH は別途 `settings.json` にも追加が必要です。
 
 ## このリポジトリで何を根拠に判断するか
 
@@ -146,8 +153,8 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 | 対象 | ファイル | 何を更新するか |
 |---|---|---|
 | 統合ターミナル | `.vscode/settings.json` | Linux の `LD_LIBRARY_PATH` / `PATH`、Windows の `PATH` |
-| VS Code テストタスク | `.vscode/tasks.json` | `make test` と `make test (current dir)` の OS 別環境変数 |
-| VS Code デバッグ | `.vscode/launch.json` | Linux / Windows の各デバッグ構成の環境変数 |
+| VS Code テストタスク / デバッグ (Linux) | `.vscode/.env.linux` | `PATH` と `LD_LIBRARY_PATH` |
+| VS Code テストタスク / デバッグ (Windows) | `.vscode/.env.windows` | `PATH` |
 | GitHub Actions Linux | `.github/workflows/ci.yml` | `$GITHUB_ENV` と `$GITHUB_PATH` |
 | GitHub Actions Windows | `.github/workflows/ci.yml` | `$GITHUB_PATH` に追加するパス配列 |
 | Jenkins 実装 | `.jenkins/inner-build.sh` | `LD_LIBRARY_PATH`、`PATH`、成果物収集パス |
@@ -171,31 +178,30 @@ find app -maxdepth 3 \( -path '*/prod/lib' -o -path '*/prod/bin' \) | sort
 - テストコードや README の実行例
 - `.NET` 側の P/Invoke やネイティブライブラリ読み込み
 
-### 2. VS Code の 3 ファイルを更新する
+### 2. VS Code の環境変数ファイルを更新する
+
+#### `.vscode/.env.linux`
+
+Linux 向けの `PATH` と `LD_LIBRARY_PATH` を更新します。
+
+- `app/<name>/prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
+- `app/<name>/prod/bin` が必要なら `PATH` に追加
+
+#### `.vscode/.env.windows`
+
+Windows 向けの `PATH` を更新します。
+
+- `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
 
 #### `.vscode/settings.json`
 
-統合ターミナルで新しいライブラリや実行ファイルが見つかるようにします。
+統合ターミナル用の環境変数は `envFile` をサポートしないため、別途更新が必要です。
 
 - Linux
   - `app/<name>/prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
   - `app/<name>/prod/bin` が必要なら `PATH` に追加
 - Windows
   - `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
-
-#### `.vscode/tasks.json`
-
-`make test` と `make test (current dir)` の両方を更新します。  
-どちらか片方だけ更新すると、再チェック時に漏れになります。
-
-#### `.vscode/launch.json`
-
-少なくとも以下の構成を更新対象として確認します。
-
-- `(Linux gdb) Debug current directory`
-- `(Windows vsdbg) Debug current directory`
-- `(Linux coreclr) Debug current directory`
-- `(Windows coreclr) Debug current directory`
 
 ### 3. GitHub Actions を更新する
 
@@ -231,9 +237,9 @@ Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更
 
 - `app/<name>/prod/lib` と `app/<name>/prod/bin` の有無を確認した
 - 依存関係上、本当に環境変数へ入れる必要があるか判断した
-- `.vscode/settings.json` を更新した
-- `.vscode/tasks.json` の `make test` と `make test (current dir)` を両方更新した
-- `.vscode/launch.json` の Linux / Windows 構成を更新した
+- `.vscode/.env.linux` を更新した
+- `.vscode/.env.windows` を更新した
+- `.vscode/settings.json` の `terminal.integrated.env.*` を更新した
 - `.github/workflows/ci.yml` の Linux / Windows を更新した
 - Jenkins を使う場合は `.jenkins/inner-build.sh` と `.jenkins/README.md` を更新した
 - 個別 README の実行例やトラブルシュートを更新した
@@ -281,9 +287,9 @@ LD_LIBRARY_PATH=$PWD/app/calc/prod/lib:$PWD/app/calc.net/prod/lib:$PWD/app/overr
 
 日常的な保守では、次のファイルをあわせて確認してください。
 
+- `.vscode/.env.linux`
+- `.vscode/.env.windows`
 - `.vscode/settings.json`
-- `.vscode/tasks.json`
-- `.vscode/launch.json`
 - `.github/workflows/ci.yml`
 - `.jenkins/inner-build.sh`
 
