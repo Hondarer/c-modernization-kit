@@ -19,12 +19,13 @@ endif
 
 .DEFAULT_GOAL := default
 
-.PHONY: default test doxy skills
+.PHONY: default test doxy
 default test doxy :
 	@if [ -n "$(MAKECMDGOALS)" ]; then \
 		$(MAKE) -C app $@; \
 	else \
 		$(MAKE) -C app; \
+		$(MAKE) skills; \
 	fi
 
 .PHONY: skills
