@@ -1,7 +1,7 @@
 # 出力ディレクトリ
 OUTPUT_DIR := $(MYAPP_DIR)/prod/bin
 
-# ライブラリの指定
+# ライブラリの指定 (static library を利用してポータビリティーを高める)
 LIBS += com_util_static
 
 ifdef PLATFORM_WINDOWS
