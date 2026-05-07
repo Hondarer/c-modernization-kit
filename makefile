@@ -30,7 +30,9 @@ default test doxy :
 
 .PHONY: skills
 skills :
-	"$(BASH)" "$(CURDIR)/bin/sync-skills.sh"
+	@printf 'INFO: Checking skills sync...\n'
+	@"$(BASH)" "$(CURDIR)/bin/sync-skills.sh"
+	@printf 'INFO: skills sync completed.\n'
 
 .PHONY: clean
 clean :
