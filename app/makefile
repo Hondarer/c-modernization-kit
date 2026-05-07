@@ -1,13 +1,5 @@
-# 依存関係に留意して順番を定義
-SUBDIRS = \
-	com_util \
-	calc \
-	calc.net \
-	subfolder-sample \
-	override-sample \
-	porter \
-	doxygen-sample \
-	tutorial
+APP_ORDER_RESOLVER = ../framework/makefw/bin/resolve_app_deps.sh
+SUBDIRS := $(shell bash "$(APP_ORDER_RESOLVER)" --app-order)
 
 TESTFW_BANNER = ../framework/testfw/bin/banner.sh
 CPP_PROPERTIES_SYNC = ../framework/makefw/bin/sync_c_cpp_properties.sh
