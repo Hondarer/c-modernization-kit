@@ -30,6 +30,7 @@
 /.claude/*
 ## Codex
 /.codex
+/.codex_tmp
 ## GitHub Copilot
 /.copilot-artifacts
 
