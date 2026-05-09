@@ -28,6 +28,11 @@
 - `framework/*` - 各フレームワークの独立した git ルート。変更前に各ルートの `AGENTS.md` と `README.md` を確認する
 - `Start-VSCode-With-Env.cmd` - Windows で GNU Make と MSVC の環境を整えて VS Code を起動する
 
+## make ファイル関連の指針
+
+- makepart.mk, makechild.mk, makelocal.mk など、make ファイルの断片については、空ファイルは不要。
+  see: `framework/makefw/docs/makeparts.md`
+
 ## make コマンド実行の指針
 
 **フルビルドは時間がかかる。以下の指針に従うこと：**
