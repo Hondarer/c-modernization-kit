@@ -202,8 +202,9 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\"",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\"",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -211,7 +212,10 @@
                 }
             },
             "linux": {
-                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\""
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\"",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         },
         {
@@ -223,8 +227,9 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\"",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\"",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -232,7 +237,10 @@
                 }
             },
             "linux": {
-                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\""
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\"",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         },
         {
@@ -244,8 +252,9 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\"",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -253,7 +262,10 @@
                 }
             },
             "linux": {
-                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\""
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         },
         {
@@ -265,8 +277,9 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /details:true",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --details=true",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -274,7 +287,10 @@
                 }
             },
             "linux": {
-                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --details=true"
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --details=true",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         },
         {
@@ -286,8 +302,9 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFile}\" /details:true",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -295,7 +312,10 @@
                 }
             },
             "linux": {
-                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true"
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         },
         {
@@ -307,8 +327,9 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "framework\\docsfw\\bin\\pub_markdown.cmd /workspaceFolder:\"${workspaceFolder}\" /relativeFile:\"${relativeFileDirname}\" /details:true",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -316,7 +337,10 @@
                 }
             },
             "linux": {
-                "command": "bash -i framework/docsfw/bin/pub_markdown_core.sh --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true"
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         },
         {
@@ -328,8 +352,9 @@
                 "clear": true // 実行前に Terminal をクリア
             },
             "windows": {
-                "command": "python3 \"${workspaceFolder}\\framework\\docsfw\\bin\\text_style_jp.py\" \"${file}\" --mode auto --in-place",
+                "command": "python3 \"%DOCSFW_HOME%/bin/text_style_jp.py\" \"${file}\" --mode auto --in-place",
                 "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
                         "executable": "cmd.exe",
                         "args": ["/c"]
@@ -337,7 +362,10 @@
                 }
             },
             "linux": {
-                "command": "python3 \"${workspaceFolder}/framework/docsfw/bin/text_style_jp.py\" \"${file}\" --mode auto --in-place"
+                "command": "python3 \"$DOCSFW_HOME/bin/text_style_jp.py\" \"${file}\" --mode auto --in-place",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
             }
         }
     ]
