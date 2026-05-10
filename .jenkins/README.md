@@ -107,6 +107,11 @@ Jenkins の Execute shell が `bash source/.jenkins/build.sh` で呼び出す場
 |---|---|
 | `OS_NAME` | ビルドログ・アーティファクトのファイル名に使用する OS 識別子 |
 | `BUILD_DOCS` | ドキュメント生成の有無。`1`=あり、`0`=なし |
+| `DOCSFW_HOME` | Markdown 発行フレームワークの場所。未設定時は `/workspace/framework/docsfw` |
+| `DOXYFW_HOME` | Doxygen 生成フレームワークの場所。未設定時は `/workspace/framework/doxyfw` |
+
+`DOCSFW_HOME` と `DOXYFW_HOME` は `inner-build.sh` が `/workspace` 基準の既定値を設定します。
+Jenkins ジョブ側で別の framework 配置を使う場合は、コンテナ内で参照できるパスを指定してください。
 
 ### 処理内容
 
@@ -276,6 +281,7 @@ source/app/**/test/**/*.warn
 |---|---|
 | `build-and-test-linux` (コンテナ内) | `inner-build.sh` |
 | `build-and-test-linux` (コンテナ起動) | `build.sh` |
+| workflow-wide `env`: `DOCSFW_HOME`, `DOXYFW_HOME` | `inner-build.sh` の `/workspace` 基準 export |
 | `Set PATH and library path for tests` | `inner-build.sh` の `LD_LIBRARY_PATH`, `PATH` 設定 |
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |

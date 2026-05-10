@@ -114,6 +114,7 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 
 `DOXYFW_HOME` と `DOCSFW_HOME` もここで定義します。
 `DOXYFW_HOME` は Doxygen 生成フレームワークの場所を表し、`make doxy` はこの値を使って doxyfw を呼び出します。
+`DOCSFW_HOME` は Markdown 発行フレームワークの場所を表し、VS Code の Markdown 発行タスクと `make docs` が参照します。
 
 `settings.json` の `terminal.integrated.env.*` は `envFile` をサポートしないため、ターミナル用の PATH は別途 `settings.json` にも追加が必要です。
 
@@ -164,6 +165,17 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 | Jenkins 説明 | `.jenkins/README.md` | 実装に対応する説明と例 |
 | 個別ドキュメント | 各 README / docs | 実行例やトラブルシュートの古いパス |
 
+`DOCSFW_HOME` / `DOXYFW_HOME` のような framework home 系の環境変数を変更する場合は、PATH 系とは別に以下も確認します。
+
+| 対象 | ファイル | 何を更新するか |
+|---|---|---|
+| VS Code タスク / デバッグ | `.vscode/.env.linux`, `.vscode/.env.windows` | `DOCSFW_HOME`, `DOXYFW_HOME` |
+| VS Code 統合ターミナル | `.vscode/settings.json` | `DOCSFW_HOME`, `DOXYFW_HOME` |
+| GitHub Actions 全ジョブ | `.github/workflows/ci.yml` | workflow-wide `env` の `DOCSFW_HOME`, `DOXYFW_HOME` |
+| Jenkins コンテナ内ビルド | `.jenkins/inner-build.sh` | `/workspace` 基準の `DOCSFW_HOME`, `DOXYFW_HOME` |
+| Jenkins 説明 | `.jenkins/README.md`, `docs/c-modernization-kit/skill-guide/07-ci-cd/jenkins.md` | Jenkins 上の既定値と上書き方法 |
+| CI 詳細説明 | `docs/c-modernization-kit/github-actions.md` | GitHub Actions 上の既定値と `publish-docs` での利用 |
+
 ## 具体的な更新手順
 
 ### 1. 追加・削除・改名の対象を確認する
@@ -210,6 +222,9 @@ Windows 向けの `PATH` を更新します。
 
 `ci.yml` の Linux / Windows で更新箇所が異なります。
 
+`DOCSFW_HOME` / `DOXYFW_HOME` は Linux / Windows / ドキュメント生成ジョブで共通に使うため、workflow-wide `env` で設定します。
+`DOCSFW_HOME` は `framework/docsfw`、`DOXYFW_HOME` は `framework/doxyfw` を指します。
+
 #### Linux
 
 - `LD_LIBRARY_PATH` は `$GITHUB_ENV` に書く
@@ -225,6 +240,8 @@ Windows 向けの `PATH` を更新します。
 Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更新します。
 
 - `.jenkins/inner-build.sh`
+  - `DOCSFW_HOME`
+  - `DOXYFW_HOME`
   - Linux の `LD_LIBRARY_PATH`
   - Linux の `PATH`
   - `results` / `warn` の収集対象パス
