@@ -32,6 +32,7 @@ Jenkins Execute shell
                         │    HOST_USER/UID/GID でユーザーとホームディレクトリを初期化
                         └─ su - "$HOST_USER" -c "bash -l /workspace/.jenkins/inner-build.sh"
                                   │
+                                  ├─ export DOCSFW_HOME / DOXYFW_HOME
                                   ├─ make                       # ビルド
                                   ├─ export LD_LIBRARY_PATH     # テスト用ライブラリパス設定
                                   ├─ export PATH                # テスト用コマンドパス設定
@@ -114,6 +115,8 @@ Jenkins の Execute shell が `bash source/.jenkins/build.sh` で呼び出す場
 ```bash
 git config --global --add safe.directory /workspace
 cd /workspace && mkdir -p logs
+export DOCSFW_HOME="${DOCSFW_HOME:-/workspace/framework/docsfw}"
+export DOXYFW_HOME="${DOXYFW_HOME:-/workspace/framework/doxyfw}"
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 ```
 

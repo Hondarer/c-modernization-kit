@@ -15,6 +15,9 @@ git config --global --add safe.directory /workspace
 cd /workspace
 mkdir -p logs
 
+export DOCSFW_HOME="${DOCSFW_HOME:-/workspace/framework/docsfw}"
+export DOXYFW_HOME="${DOXYFW_HOME:-/workspace/framework/doxyfw}"
+
 # ビルドログを保存しながら make を実行
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 
