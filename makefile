@@ -1,8 +1,13 @@
 BASH ?= bash
+WORKSPACE_DIR ?= $(CURDIR)
+DOXYFW_HOME ?= $(WORKSPACE_DIR)/framework/doxyfw
 DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown_core.sh
 DOCS_WARN_FILE := $(CURDIR)/docs.warn
 EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin/extract_docs_warnings.sh
 TESTFW_BANNER = framework/testfw/bin/banner.sh
+
+export WORKSPACE_DIR
+export DOXYFW_HOME
 
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。

@@ -85,6 +85,16 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+            "linux": {
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
+            },
+            "windows": {
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows"
+                }
+            },
             "group": {
                 "kind": "build",
                 "isDefault": false

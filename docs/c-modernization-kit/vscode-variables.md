@@ -112,6 +112,9 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 `launch.json` と `tasks.json` が共通で参照する環境変数定義ファイルです。  
 新しいモジュールを追加する際は、これらのファイルに PATH を追加します。
 
+`DOXYFW_HOME` と `DOCSFW_HOME` もここで定義します。
+`DOXYFW_HOME` は Doxygen 生成フレームワークの場所を表し、`make doxy` はこの値を使って doxyfw を呼び出します。
+
 `settings.json` の `terminal.integrated.env.*` は `envFile` をサポートしないため、ターミナル用の PATH は別途 `settings.json` にも追加が必要です。
 
 ## このリポジトリで何を根拠に判断するか
