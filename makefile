@@ -1,13 +1,15 @@
 BASH ?= bash
 WORKSPACE_DIR ?= $(CURDIR)
 DOXYFW_HOME ?= $(WORKSPACE_DIR)/framework/doxyfw
+TESTFW_HOME ?= $(WORKSPACE_DIR)/framework/testfw
 DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown_core.sh
 DOCS_WARN_FILE := $(CURDIR)/docs.warn
 EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin/extract_docs_warnings.sh
-TESTFW_BANNER = framework/testfw/bin/banner.sh
+TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
 
 export WORKSPACE_DIR
 export DOXYFW_HOME
+export TESTFW_HOME
 
 # Windows 環境チェック: SHELL が POSIX シェル (bash/sh) かどうかを確認
 # bash が PATH に通っていれば GNU Make は SHELL を /bin/sh (スラッシュあり) にセットする。
@@ -24,14 +26,20 @@ endif
 
 .DEFAULT_GOAL := default
 
-.PHONY: default test doxy
-default test doxy :
-	@if [ -n "$(MAKECMDGOALS)" ]; then \
-		$(MAKE) -C app $@; \
-	else \
-		$(MAKE) -C app; \
-		$(MAKE) skills; \
-	fi
+.PHONY: default
+default :
+	$(MAKE) -C $(TESTFW_HOME)
+	$(MAKE) -C app
+	$(MAKE) skills
+
+.PHONY: test
+test :
+	$(MAKE) -C $(TESTFW_HOME)
+	$(MAKE) -C app test
+
+.PHONY: doxy
+doxy :
+	$(MAKE) -C app doxy
 
 .PHONY: skills
 skills :
@@ -41,6 +49,7 @@ skills :
 
 .PHONY: clean
 clean :
+	$(MAKE) -C $(TESTFW_HOME) clean
 	$(MAKE) -C app clean
 	rm -f "$(DOCS_WARN_FILE)"
 

@@ -1,7 +1,7 @@
 APP_ORDER_RESOLVER = ../framework/makefw/bin/resolve_app_deps.sh
 SUBDIRS := $(shell bash "$(APP_ORDER_RESOLVER)" --app-order)
 
-TESTFW_BANNER = ../framework/testfw/bin/banner.sh
+TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
 CPP_PROPERTIES_SYNC = ../framework/makefw/bin/sync_c_cpp_properties.sh
 DOXY_WARN_FILES = $(addsuffix /doxy.warn,$(SUBDIRS))
 
@@ -61,7 +61,7 @@ test : submodule
 		fi; \
 	done
     # このフォルダ以下の coverage.xml をマージする
-	python ../framework/testfw/bin/cobertura_merge.py . 1> /dev/null 2>&1
+	python $(TESTFW_HOME)/bin/cobertura_merge.py . 1> /dev/null 2>&1
 
 .PHONY: doxy
 doxy : submodule

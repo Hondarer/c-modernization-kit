@@ -74,8 +74,8 @@ jobs:
         run: make test
 ```
 
-このリポジトリの実ワークフローでは、全ジョブ共通の `env` で `DOCSFW_HOME` と `DOXYFW_HOME` を設定します。
-`make docs` は `DOCSFW_HOME`、`make doxy` は `DOXYFW_HOME` を参照します。
+このリポジトリの実ワークフローでは、全ジョブ共通の `env` で `DOCSFW_HOME`、`DOXYFW_HOME`、`TESTFW_HOME` を設定します。
+`make docs` は `DOCSFW_HOME`、`make doxy` は `DOXYFW_HOME`、`make` / `make test` は `TESTFW_HOME` を参照します。
 詳細は [GitHub Actions 設定](../../github-actions.md) を確認してください。
 
 ### 関連ドキュメント

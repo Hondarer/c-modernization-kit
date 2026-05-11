@@ -15,6 +15,7 @@ permissions:
 env:
   DOCSFW_HOME: ${{ github.workspace }}/framework/docsfw
   DOXYFW_HOME: ${{ github.workspace }}/framework/doxyfw
+  TESTFW_HOME: ${{ github.workspace }}/framework/testfw
 
 jobs:
   build-and-test-linux:
