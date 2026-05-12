@@ -1,2 +1,0 @@
-# このファイルは、サブディレクトリの makefile がワークスペースのルートディレクトリを特定するために使用されます。
-# This file is used by the makefile in subdirectories to locate the root directory of the workspace.

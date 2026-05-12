@@ -1,15 +1,21 @@
-APP_ORDER_RESOLVER = ../framework/makefw/bin/resolve_app_deps.sh
+MAKEFW_HOME := $(strip $(MAKEFW_HOME))
+ifeq ($(MAKEFW_HOME),)
+    $(error MAKEFW_HOME is required. Export MAKEFW_HOME before running make)
+endif
+
+APP_ORDER_RESOLVER = $(MAKEFW_HOME)/bin/resolve_app_deps.sh
 SUBDIRS := $(shell bash "$(APP_ORDER_RESOLVER)" --app-order)
 
 TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
-CPP_PROPERTIES_SYNC = ../framework/makefw/bin/sync_c_cpp_properties.sh
+CPP_PROPERTIES_SYNC = $(MAKEFW_HOME)/bin/sync_c_cpp_properties.sh
 DOXY_WARN_FILES = $(addsuffix /doxy.warn,$(SUBDIRS))
+export MAKEFW_HOME
 
 .DEFAULT_GOAL := default
 
 .PHONY: submodule
 submodule :
-	@if [ ! -d ../framework/makefw ] || [ ! -f ../framework/makefw/.git ]; then \
+	@if [ ! -d "$(MAKEFW_HOME)" ] || [ ! -f "$(MAKEFW_HOME)/.git" ]; then \
 		echo "ERROR: makefw submodule is not initialized."; \
 		echo "Please run the following command to initialize submodules:"; \
 		echo "  git submodule update --init --recursive"; \

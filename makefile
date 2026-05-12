@@ -1,5 +1,9 @@
 BASH ?= bash
 WORKSPACE_DIR ?= $(CURDIR)
+MAKEFW_HOME := $(strip $(MAKEFW_HOME))
+ifeq ($(MAKEFW_HOME),)
+    $(error MAKEFW_HOME is required. Export MAKEFW_HOME before running make)
+endif
 DOXYFW_HOME ?= $(WORKSPACE_DIR)/framework/doxyfw
 TESTFW_HOME ?= $(WORKSPACE_DIR)/framework/testfw
 DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown_core.sh
@@ -8,6 +12,7 @@ EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin/extract_docs_warnings.sh
 TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
 
 export WORKSPACE_DIR
+export MAKEFW_HOME
 export DOXYFW_HOME
 export TESTFW_HOME
 

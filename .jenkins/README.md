@@ -32,7 +32,7 @@ Jenkins Execute shell
                         │    HOST_USER/UID/GID でユーザーとホームディレクトリを初期化
                         └─ su - "$HOST_USER" -c "bash -l /workspace/.jenkins/inner-build.sh"
                                   │
-                                  ├─ export DOCSFW_HOME / DOXYFW_HOME / TESTFW_HOME
+                                  ├─ MAKEFW_HOME を有効化 (必須) / export DOCSFW_HOME / DOXYFW_HOME / TESTFW_HOME
                                   ├─ make                       # ビルド
                                   ├─ export LD_LIBRARY_PATH     # テスト用ライブラリパス設定
                                   ├─ export PATH                # テスト用コマンドパス設定
@@ -107,11 +107,12 @@ Jenkins の Execute shell が `bash source/.jenkins/build.sh` で呼び出す場
 |---|---|
 | `OS_NAME` | ビルドログ・アーティファクトのファイル名に使用する OS 識別子 |
 | `BUILD_DOCS` | ドキュメント生成の有無。`1`=あり、`0`=なし |
+| `MAKEFW_HOME` | make テンプレート群の場所。`make` 系ターゲットで必須 (`/workspace/framework/makefw`) |
 | `DOCSFW_HOME` | Markdown 発行フレームワークの場所。未設定時は `/workspace/framework/docsfw` |
 | `DOXYFW_HOME` | Doxygen 生成フレームワークの場所。未設定時は `/workspace/framework/doxyfw` |
 | `TESTFW_HOME` | テストフレームワークの場所。未設定時は `/workspace/framework/testfw` |
 
-`DOCSFW_HOME`、`DOXYFW_HOME`、`TESTFW_HOME` は `inner-build.sh` が `/workspace` 基準の既定値を設定します。
+`DOCSFW_HOME`、`DOXYFW_HOME`、`TESTFW_HOME` は `inner-build.sh` が `/workspace` 基準の既定値を設定します。`MAKEFW_HOME` は root `makefile` で必須のため、`/workspace/framework/makefw` を参照するよう Jenkins 側で必ず有効にしてください。
 Jenkins ジョブ側で別の framework 配置を使う場合は、コンテナ内で参照できるパスを指定してください。
 
 ### 処理内容
@@ -282,7 +283,7 @@ source/app/**/test/**/*.warn
 |---|---|
 | `build-and-test-linux` (コンテナ内) | `inner-build.sh` |
 | `build-and-test-linux` (コンテナ起動) | `build.sh` |
-| workflow-wide `env`: `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` | `inner-build.sh` の `/workspace` 基準 export |
+| workflow-wide `env`: `MAKEFW_HOME`, `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` | Jenkins では `MAKEFW_HOME` を明示設定し、`inner-build.sh` は `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME` を `/workspace` 基準で export |
 | `Set PATH and library path for tests` | `inner-build.sh` の `LD_LIBRARY_PATH`, `PATH` 設定 |
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |

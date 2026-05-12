@@ -15,6 +15,7 @@ git config --global --add safe.directory /workspace
 cd /workspace
 mkdir -p logs
 
+export MAKEFW_HOME="${MAKEFW_HOME:-/workspace/framework/makefw}"
 export DOCSFW_HOME="${DOCSFW_HOME:-/workspace/framework/docsfw}"
 export DOXYFW_HOME="${DOXYFW_HOME:-/workspace/framework/doxyfw}"
 export TESTFW_HOME="${TESTFW_HOME:-/workspace/framework/testfw}"

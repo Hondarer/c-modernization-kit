@@ -8,6 +8,7 @@
         "Doxyfile.part.*": "shellscript"
     },
     "terminal.integrated.env.linux": {
+        "MAKEFW_HOME": "${workspaceFolder}/framework/makefw",
         "DOXYFW_HOME": "${workspaceFolder}/framework/doxyfw",
         "TESTFW_HOME": "${workspaceFolder}/framework/testfw",
         "DOCSFW_HOME": "${workspaceFolder}/framework/docsfw",
@@ -15,6 +16,7 @@
         "PATH": "${workspaceFolder}/app/calc/prod/bin:${workspaceFolder}/app/calc.net/prod/bin:${workspaceFolder}/app/override-sample/prod/bin:${workspaceFolder}/app/porter/prod/bin:${workspaceFolder}/app/com_util/prod/bin:${workspaceFolder}/app/tutorial/prod/bin:${env:PATH}"
     },
     "terminal.integrated.env.windows": {
+        "MAKEFW_HOME": "${workspaceFolder}/framework/makefw",
         "DOXYFW_HOME": "${workspaceFolder}/framework/doxyfw",
         "TESTFW_HOME": "${workspaceFolder}/framework/testfw",
         "DOCSFW_HOME": "${workspaceFolder}/framework/docsfw",
