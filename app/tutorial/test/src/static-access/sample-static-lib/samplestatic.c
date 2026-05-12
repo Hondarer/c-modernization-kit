@@ -24,7 +24,7 @@
  */
 static int static_int;
 
-/* doxygen コメントは、ヘッダに記載 */
+/* doxygen コメントは、ヘッダーに記載 */
 int samplestatic(void)
 {
     return static_int;

@@ -17,7 +17,7 @@
 #include <libbase_ext.h>
 #include <stddef.h>
 
-/* doxygen コメントは、ヘッダに記載 */
+/* doxygen コメントは、ヘッダーに記載 */
 BASE_EXT_EXPORT int BASE_EXT_API override_func(const int a, const int b, int *result)
 {
     if (result == NULL)

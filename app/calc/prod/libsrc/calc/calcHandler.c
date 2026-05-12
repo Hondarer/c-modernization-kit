@@ -17,7 +17,7 @@
 #include <libcalcbase.h>
 #include <stddef.h>
 
-/* doxygen コメントは、ヘッダに記載 */
+/* doxygen コメントは、ヘッダーに記載 */
 CALC_EXPORT int CALC_API calcHandler(const int kind, const int a, const int b, int *result)
 {
     if (result == NULL)

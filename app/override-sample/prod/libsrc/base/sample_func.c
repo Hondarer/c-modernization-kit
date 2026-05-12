@@ -16,7 +16,7 @@
 #include "sym_loader_libbase.h"
 #include <libbase.h>
 
-/* doxygen コメントは、ヘッダに記載 */
+/* doxygen コメントは、ヘッダーに記載 */
 BASE_EXPORT int BASE_API sample_func(const int a, const int b, int *result)
 {
     if (result == NULL)
