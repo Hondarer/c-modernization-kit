@@ -67,7 +67,7 @@ test : submodule
 		fi; \
 	done
     # このフォルダ以下の coverage.xml をマージする
-	python $(TESTFW_HOME)/bin/cobertura_merge.py . 1> /dev/null 2>&1
+	-python "$(TESTFW_HOME)/bin/cobertura_merge.py" . > /dev/null
 
 .PHONY: doxy
 doxy : submodule
