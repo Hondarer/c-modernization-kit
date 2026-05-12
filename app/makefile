@@ -26,7 +26,7 @@ default : submodule $(SUBDIRS)
 		exit $$cpp_sync_status; \
 	fi; \
 	printf 'INFO: c_cpp_properties.json sync check completed.\n'
-	@warn_files=$$(find . -type f -name '*.warn' -size +0 | sort); \
+	@warn_files=$$(find . -type f -name '*.warn' ! -name 'doxy.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
 		bash "$(TESTFW_BANNER)" WARNING "\e[33m"; \
