@@ -89,3 +89,10 @@ make clean
 - Windows では GNU Make が POSIX シェルで動く前提です。必要に応じて `Start-VSCode-With-Env.cmd` から環境を整えること。
 - ドキュメント生成と公開は `framework/doxyfw` と `framework/docsfw` の連携で成り立つため、出力パスやスクリプト名を変更する際は両方を確認すること。
 - テスト関連の変更では `framework/testfw` とその配下の `gtest` サブモジュールの役割を理解し区別すること。
+- `bin/` 配下の Python スクリプトで日本語を出力するときは、モジュールレベルに以下を追加すること。
+  Windows のデフォルト `sys.stdout.encoding` は `cp932` であり、出力が文字化けする。
+
+  ```python
+  sys.stdout.reconfigure(encoding="utf-8")
+  sys.stderr.reconfigure(encoding="utf-8")
+  ```

@@ -36,6 +36,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
 
 _RE_IF = re.compile(r'^(\s*)#\s*(ifdef|ifndef)\s+(\w+)\s*(?:/\*.*\*/)?\s*$')
 _RE_IF_DEFINED = re.compile(r'^(\s*)#\s*if\s+defined\s*\(\s*(\w+)\s*\)\s*(?:/\*.*\*/)?\s*$')
