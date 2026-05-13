@@ -11,28 +11,15 @@ CPP_PROPERTIES_SYNC = $(MAKEFW_HOME)/bin/sync_c_cpp_properties.sh
 DOXY_WARN_FILES = $(addsuffix /doxy.warn,$(SUBDIRS))
 export MAKEFW_HOME
 
-.DEFAULT_GOAL := default
-
-.PHONY: submodule
-submodule :
-	@if [ ! -d "$(MAKEFW_HOME)" ] || [ ! -f "$(MAKEFW_HOME)/.git" ]; then \
-		echo "ERROR: makefw submodule is not initialized."; \
-		echo "Please run the following command to initialize submodules:"; \
-		echo "  git submodule update --init --recursive"; \
-		exit 1; \
-	fi
-
-.PHONY: default
-default : submodule $(SUBDIRS)
-    # c_cpp_properties の差分 warning (exit 3) は継続し、内部エラーのみ失敗させる
-	@cpp_sync_status=0; \
+define APP_POST_BUILD_CHECKS
+	cpp_sync_status=0; \
 	printf 'INFO: Checking c_cpp_properties.json sync...\n'; \
 	bash "$(CPP_PROPERTIES_SYNC)" --check || cpp_sync_status=$$?; \
 	if [ $$cpp_sync_status -ne 0 ] && [ $$cpp_sync_status -ne 3 ]; then \
 		exit $$cpp_sync_status; \
 	fi; \
-	printf 'INFO: c_cpp_properties.json sync check completed.\n'
-	@warn_files=$$(find . -type f -name '*.warn' ! -name 'doxy.warn' -size +0 | sort); \
+	printf 'INFO: c_cpp_properties.json sync check completed.\n'; \
+	warn_files=$$(find . -type f -name '*.warn' ! -name 'doxy.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
 		bash "$(TESTFW_BANNER)" WARNING "\e[33m"; \
@@ -49,11 +36,43 @@ default : submodule $(SUBDIRS)
 			done < "$$warn_file"; \
 		done; \
 	fi
+endef
+
+.DEFAULT_GOAL := default
+
+.PHONY: submodule
+submodule :
+	@if [ ! -d "$(MAKEFW_HOME)" ] || [ ! -f "$(MAKEFW_HOME)/.git" ]; then \
+		echo "ERROR: makefw submodule is not initialized."; \
+		echo "Please run the following command to initialize submodules:"; \
+		echo "  git submodule update --init --recursive"; \
+		exit 1; \
+	fi
+
+.PHONY: default
+default : submodule $(SUBDIRS)
+	@$(APP_POST_BUILD_CHECKS)
+
+.PHONY: with-cov
+with-cov : submodule
+	@for dir in $(SUBDIRS); do \
+		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
+			if [ -f "$$dir/coverity.mk" ]; then \
+				echo $(MAKE) -C $$dir with-cov; \
+				$(MAKE) -C $$dir with-cov || exit 1; \
+			else \
+				echo $(MAKE) -C $$dir; \
+				$(MAKE) -C $$dir || exit 1; \
+			fi; \
+		fi; \
+	done
+	@$(APP_POST_BUILD_CHECKS)
 
 .PHONY: clean
 clean : submodule $(SUBDIRS)
 	-find . -name "coverage.xml" -delete
 	rm -f c_cpp_properties.warn
+	rm -rf idir
 
 .PHONY: test
 test : submodule

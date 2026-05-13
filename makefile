@@ -37,6 +37,12 @@ default :
 	$(MAKE) -C app
 	$(MAKE) skills
 
+.PHONY: with-cov
+with-cov :
+	$(MAKE) -C $(TESTFW_HOME)
+	$(MAKE) -C app with-cov
+	$(MAKE) skills
+
 .PHONY: test
 test :
 	$(MAKE) -C $(TESTFW_HOME)
