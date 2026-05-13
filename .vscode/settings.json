@@ -24,6 +24,9 @@
     },
     "dotnet.defaultSolution": "disable",
     "C_Cpp.formatting": "clangFormat",
+    "debugParams.defaults": {
+        "program": "${shell:make show-exepath}"
+    },
     "todohighlight.keywords": [
         {
             "text": "@todo",
