@@ -31,7 +31,8 @@
 
 .NOTES
     VS Code の起動のみが目的の場合、ドットソースは不要です。
-    VS Code はスクリプトの子プロセスとして起動するため、環境変数を継承します。
+    VS Code は環境変数を設定したプロセスから起動されるため、設定内容を継承します。
+    起動後は親コンソールから独立して動作します。
 
     自動走査の対象:
     - Git for Windows: "C:\Program Files\Git", "C:\ProgramData\<username>\devbin-win\bin\git"
@@ -431,5 +432,18 @@ if (-not $codeExePath) {
     exit 1
 }
 
-Start-Process -FilePath $codeExePath -ArgumentList @("--new-window", $vscodeTargetPath) | Out-Null
+$startArguments = @(
+    "--new-window",
+    $vscodeTargetPath
+)
+
+try {
+    # Start-Process already launches VS Code as a separate process while preserving
+    # the environment variables configured in this script.
+    Start-Process -FilePath $codeExePath -ArgumentList $startArguments | Out-Null
+} catch {
+    Write-Error "Failed to launch VS Code: $($_.Exception.Message)"
+    exit 1
+}
+
 exit
