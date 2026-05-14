@@ -32,7 +32,7 @@ docxOutput: true
 #autoSetDate: true
 # author 自動設定の有無 (false / true)
 #autoSetAuthor: true
-# サブモジュールドキュメントマージ機能
-# alias=path 形式でマージ対象のドキュメントルートをスペース区切りで指定
+# 追加ドキュメントサブフォルダー機能
+# alias=path 形式で追加ドキュメントサブフォルダーをスペース区切りで指定
 # 空または未指定の場合は機能無効、値には $VAR または ${VAR} 形式の環境変数を使用可能
-mergeSubmoduleDocs: doxyfw=framework/doxyfw/docs makefw=framework/makefw/docs testfw=framework/testfw/docs testfw/gtest=framework/testfw/gtest/docs docsfw=${DOCSFW_HOME}/docs skills=.agents/skills
+mergeSubfolderDocs: doxyfw=${DOXYFW_HOME}/docs makefw=${MAKEFW_HOME}/docs testfw=${TESTFW_HOME}/docs testfw/gtest=${TESTFW_HOME}/gtest/docs docsfw=${DOCSFW_HOME}/docs skills=.agents/skills
