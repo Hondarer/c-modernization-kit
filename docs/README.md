@@ -1,46 +1,24 @@
 # Document of c-modernization-kit
 
-## Doxygen
+## 各機能ごとのドキュメント
 
-- [calc](../../doxygen/calc/index.html)
-- [calc dotnet wrapper](../../doxygen/calc.net/index.html)
-- [porter](../../doxygen/porter/index.html)
-- [com_util](../../doxygen/com_util/index.html)
-- [override-sample](../../doxygen/override-sample/index.html)
-- [doxygen-sample](../../doxygen/doxygen-sample/index.html)
-
-## 単一ファイル版ドキュメント
-
-Doxygen 成果物の単一ファイル版ドキュメントです。
-
-- [calc](doxybook2/calc/Pages/README.md)
-    - [ファイルとページの一覧](doxybook2/calc/index_files_and_pages.md)
-- [calc dotnet wrapper](doxybook2/calc.net/README.md)
-    - [ファイルとページの一覧](doxybook2/calc.net/index_files_and_pages.md)
-    - [名前空間の一覧](doxybook2/calc.net/index_namespaces.md)
-    - [クラスの一覧](doxybook2/calc.net/index_classes.md)
-- [porter](doxybook2/porter/Pages/README.md)
-    - [ファイルとページの一覧](doxybook2/porter/index_files_and_pages.md)
-- [com_util](doxybook2/com_util/Pages/README.md)
-    - [ファイルとページの一覧](doxybook2/com_util/index_files_and_pages.md)
-- [override-sample](doxybook2/override-sample/Pages/README.md)
-    - [ファイルとページの一覧](doxybook2/override-sample/index_files_and_pages.md)
-- [doxygen-sample](doxybook2/doxygen-sample/Pages/README.md)
-    - [ファイルとページの一覧](doxybook2/doxygen-sample/index_files_and_pages.md)
-
-## 関連ドキュメント
-
-\toc depth=-1 exclude-basedir=true exclude="doxybook2/*"
+- [c-modernization-kit](c-modernization-kit/README.md)
+- [calc](calc/README.md)
+- [calc.net](calc.net/README.md)
+- [com_util](com_util/README.md)
+- [doxygen-sample](doxygen-sample/README.md)
+- [override-sample](override-sample/README.md)
+- [porter](porter/README.md)
 
 ## アーティファクト
 
-ビルドログ、テスト結果 (`make test` ログを含む)、およびドキュメントを圧縮した zip ファイルです。
+ビルドログ、テスト結果、およびドキュメントを圧縮した zip ファイルです。
 
 - ビルドログ
     - [Linux OL8 (linux-ol8-logs.zip)](../../artifacts/linux-ol8-logs.zip)
     - [Linux OL10 (linux-ol10-logs.zip)](../../artifacts/linux-ol10-logs.zip)
     - [Windows (windows-logs.zip)](../../artifacts/windows-logs.zip)
-- テスト結果 (`make test` ログを含む)
+- テスト結果
     - [Linux OL8 (linux-ol8-test-results.zip)](../../artifacts/linux-ol8-test-results.zip)
     - [Linux OL10 (linux-ol10-test-results.zip)](../../artifacts/linux-ol10-test-results.zip)
     - [Windows (windows-test-results.zip)](../../artifacts/windows-test-results.zip)

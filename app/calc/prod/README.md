@@ -1,9 +1,5 @@
-# サンプル計算機能
+# c-modernization-kit サンプル (calc)
 
-これは、Markdown のサンプルです。
+これは、c-modernization-kit を利用した計算機能の API 仕様書・モジュール仕様書のサンプルです。
 
-```plantuml
-@startuml
-Alice->Bob: Hello
-@enduml
-```
+このファイルは Doxygen のホームに表示されます。

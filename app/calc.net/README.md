@@ -1,3 +1,8 @@
-# c-modernization-kit サンプル (calc dotnet wrapper)
+# calc.net
 
-これは、c-modernization-kit を利用したソースドキュメントのサンプルです。
+この Markdown は、機能の入り口としての Markdown で、ドキュメント化対象外です。  
+開発者に対してフォルダの説明やショートカットを配置し、案内することが目的です。
+
+発行ドキュメントの目次は、[docs/README.md](docs/README.md) です。
+
+Doxygen の目次は、[prod/README.md](prod/README.md) です。
