@@ -100,3 +100,5 @@ make clean
   sys.stdout.reconfigure(encoding="utf-8")
   sys.stderr.reconfigure(encoding="utf-8")
   ```
+- `TEST_SRCS` / `ADD_SRCS` に指定したソースファイルは、`make test` 時にビルドディレクトリへシンボリックリンクまたはコピーとして取り込まれる。ビルドディレクトリ内のファイルを直接変更しても次回 `make test` で上書きされるため、`prod/` の実体ファイルを変更すること。
+  see: `framework/makefw/docs/makeparts.md` の「TEST_SRCS / ADD_SRCS の留意事項」
