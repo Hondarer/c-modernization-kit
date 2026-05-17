@@ -6,7 +6,8 @@ c-modernization-kit を利用した計算機能の .NET 実装サンプルです
 
 ## Doxygen (API 仕様書、モジュール仕様書)
 
-- [doxygen](../../../pages/doxygen/calc.net/index.html)
+<!-- docsfw の仕上がりパスに対する相対リンク。この Markdown からの相対パスではないことに注意 -->
+../../../doxygen/calc.net/index.html)
 
 ## 単一ファイル版 Doxygen (API 仕様書、モジュール仕様書)
 
