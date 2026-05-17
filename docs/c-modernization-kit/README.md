@@ -1,3 +1,3 @@
-# C 言語 モダナイゼーションキット
+# c-modernization-kit
 
-\toc depth=-1
+\toc depth=-1 exclude-basedir=true
