@@ -55,6 +55,29 @@ collect_submodule_skill_dirs() {
         done
 }
 
+collect_non_submodule_app_skill_dirs() {
+    find "$ROOT_DIR/app" -mindepth 1 -maxdepth 1 -type d | sort \
+        | while IFS= read -r app_dir; do
+            [ -n "$app_dir" ] || continue
+
+            if [ "$(git -C "$app_dir" rev-parse --show-toplevel 2>/dev/null || true)" != "$ROOT_DIR" ]; then
+                continue
+            fi
+
+            skill_root="$app_dir/.agents/skills"
+            if [ ! -d "$skill_root" ]; then
+                continue
+            fi
+
+            find "$skill_root" -mindepth 1 -maxdepth 1 -type d | sort
+        done
+}
+
+collect_skill_dirs() {
+    collect_submodule_skill_dirs
+    collect_non_submodule_app_skill_dirs
+}
+
 create_root_skill_entry() {
     src_dir="$1"
     skill_name="$2"
@@ -95,14 +118,14 @@ while IFS= read -r skill_dir; do
 
     skill_name="$(basename "$skill_dir")"
     if [ -n "${skill_sources[$skill_name]:-}" ]; then
-        printf 'ERROR: duplicate submodule skill name: %s\n' "$skill_name" >&2
+        printf 'ERROR: duplicate collected skill name: %s\n' "$skill_name" >&2
         printf '  %s\n' "${skill_sources[$skill_name]}" >&2
         printf '  %s\n' "$skill_dir" >&2
         exit 1
     fi
 
     skill_sources["$skill_name"]="$skill_dir"
-done < <(collect_submodule_skill_dirs)
+done < <(collect_skill_dirs)
 
 for skill_name in "${!skill_sources[@]}"; do
     create_root_skill_entry "${skill_sources[$skill_name]}" "$skill_name"
