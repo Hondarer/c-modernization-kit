@@ -1,0 +1,30 @@
+# EditorConfig: https://editorconfig.org
+# .gitattributes と .clang-format の方針に合わせる。
+
+root = true
+
+[*]
+charset = utf-8
+# .gitattributes の `* text=auto eol=lf`、.clang-format の `UseCRLF: false` と整合させる。
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+# C/C++ では .clang-format の `IndentWidth: 4` と整合させる。
+indent_style = space
+indent_size = 4
+
+# Markdown は行末スペース 2 個が改行を意味するため除去しない。
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefile はタブ必須。
+[{Makefile,makefile,*.mk}]
+indent_style = tab
+
+# Windows 専用スクリプトは CRLF (.gitattributes の `*.bat` / `*.cmd text eol=crlf` と整合)。
+[*.{bat,cmd}]
+end_of_line = crlf
+
+# PowerShell は UTF-8 BOM 付き。
+[*.ps1]
+charset = utf-8-bom

@@ -4,7 +4,7 @@
 # ベーススタイル: LLVM
 BasedOnStyle: LLVM
 
-# LF 改行を尊重する
+# LF 改行を尊重する (.gitattributes の `* text=auto eol=lf`、.editorconfig の `end_of_line = lf` と整合)
 UseCRLF: false
 
 # プリプロセッサディレクティブを # ごとインデントする
@@ -13,7 +13,7 @@ IndentPPDirectives: BeforeHash
 # 折り返しカラム: 120 文字
 ColumnLimit: 120
 
-# インデント幅: 4 スペース
+# インデント幅: 4 スペース (.editorconfig の `indent_style = space` / `indent_size = 4` と整合)
 IndentWidth: 4
 
 # 連続するマクロ定義の値を揃える

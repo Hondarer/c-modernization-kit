@@ -1,7 +1,9 @@
 # Repository-wide line ending policy
+# .editorconfig の `end_of_line = lf`、.clang-format の `UseCRLF: false` と整合させる。
 * text=auto eol=lf
 
 # Windows executable scripts
+# .editorconfig の `[*.{bat,cmd}] end_of_line = crlf` と整合させる。
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
