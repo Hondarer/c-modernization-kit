@@ -16,21 +16,26 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応な
 
 C / C++ コードで整数値を表す型は、次の方針で選択します。
 
-- 32bit 幅の整数値は `int` / `unsigned int` を用います。`int32_t` / `uint32_t` は使用しません。
+- 8bit 幅の整数値は `signed char` / `unsigned char` を用います。
+- 16bit 幅の整数値は `short` / `unsigned short` を用います。
+- 32bit 幅の整数値は `int` / `unsigned int` を用います。
 - 64bit 幅の整数値は `int64_t` / `uint64_t` を用います。
-- 8bit / 16bit 幅は固定幅型 (`uint8_t`、`uint16_t` 等) の使用を許容します。
 
-> int / unsigned int は、ほとんどの現代的な Linux (GCC)・Windows (MSVC) 環境で 32bit 幅です。
+`int8_t` / `uint8_t` / `int16_t` / `uint16_t` / `int32_t` / `uint32_t` は使用しません。
+`char` は処理系で符号付き / 符号なしが分かれるため、整数値として扱う場合は `signed char` / `unsigned char` を明示してください (文字列の要素として扱う場合は `char` を用います)。
+
+> 現代的な Linux (GCC)・Windows (MSVC) 環境では、`signed char` / `unsigned char` が 8bit、`short` / `unsigned short` が 16bit、`int` / `unsigned int` が 32bit となります。
 > LP64 (Linux x86_64 など) でも int は 32bit、long が 64bit です。
 > LLP64 (Windows x64) でも int は 32bit、long は 32bit、long long が 64bit です。
 
 ### 例外として固定幅型を維持する用途
 
-次の用途では、32bit 固定幅型 (`uint32_t` / `int32_t`) を例外として維持します。
+次の用途では、固定幅型 (`uint8_t` / `int8_t` / `uint16_t` / `int16_t` / `uint32_t` / `int32_t`) を例外として維持します。
 
 - バイト列入出力 (`uint8_t *` バッファ、ヘッダーや任意長データのポインタ)
-- ネットワーク バイト順序の値 (`htonl` / `ntohl` の周辺、4 バイト固定の通信フィールド)
-- CRC-32 等、アルゴリズム規格上 32bit 値が定義されている計算
+- ネットワーク バイト順序の値 (`htons` / `htonl` / `ntohs` / `ntohl` の周辺、固定長の通信フィールド)
+- ワイヤ プロトコル / 通信パケットの構造体メンバ (`payload_len`、`flags`、`session_id`、`seq_num` 等の幅が仕様で決まっているフィールド)
+- アルゴリズム規格上、幅が定義されている計算値 (CRC、暗号鍵長など)
 - OS API 境界で固定幅が要請される箇所
   - Windows `DWORD` を経由する API (`Sleep`、`WriteFile`、`GetCurrentProcessId` 等)
   - POSIX `struct timespec::tv_nsec` (long) との境界キャスト
