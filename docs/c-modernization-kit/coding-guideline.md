@@ -2,11 +2,11 @@
 
 ## 概要
 
-C / C++ コードでの整数型の選択、関数引数の異常入力対応など、コーディング規範を本書に集約します。
+C / C++ コードでの整数型の選択、関数引数の異常入力対応、変数宣言位置の扱いなど、コーディング規範を本書に集約します。
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は今後、命名規則、エラー処理、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。
-初版では「整数型の選択」「関数引数の異常入力対応」を記載します。
+現版では「整数型の選択」「関数引数の異常入力対応」「変数宣言位置と命令文の関係」を記載します。
 
 関連する既存ガイドラインは [参照](#参照) を参照してください。
 
@@ -91,6 +91,86 @@ void com_util_sleep_ms(int ms)
         return;
     }
     /* ... */
+}
+```
+
+## 変数宣言位置と命令文の関係
+
+### 基本ルール
+
+関数内の変数宣言は C17 スタイルを採用し、ブロック途中の宣言を許容します。
+変数宣言はスコープを必要最小限にし、誤認を防ぐため利用箇所に近い位置へ置きます。
+
+一方で、可読性のため次の配置を推奨します。
+
+- 同一ブロック内で早い段階に使う変数は、ブロック先頭付近に集めて宣言する
+- 命令文の後でしか初期値が確定しない変数は、その直後に宣言する
+
+### `for` ループ変数
+
+ループ変数を `for` の初期化式で宣言する記法を許容します。
+`for (int i = 0; ... )` のように記述し、ループ変数の有効範囲をループ内へ限定してください。
+
+### 例
+
+```c
+int process_items(const item_t *items, int count)
+{
+    int result = 0;
+
+    if ((items == NULL) || (count <= 0))
+    {
+        return -1;
+    }
+
+    for (int i = 0; i < count; ++i)
+    {
+        result += items[i].value;
+    }
+
+    return result;
+}
+```
+
+```c
+int load_and_apply(config_handle_t *handle, const char *path)
+{
+    int rc = read_config_file(path);
+    if (rc != 0)
+    {
+        return rc;
+    }
+
+    /* read_config_file の結果を見てから宣言したほうが意図を読み取りやすい */
+    config_t cfg = {0};
+    rc = parse_config(path, &cfg);
+    if (rc != 0)
+    {
+        return rc;
+    }
+
+    return apply_config(handle, &cfg);
+}
+```
+
+```c
+/* 非推奨例: 宣言が後半へ散在し、変数の役割を追いにくい */
+int calculate_total(const int *values, int count)
+{
+    if ((values == NULL) || (count <= 0))
+    {
+        return -1;
+    }
+
+    int total = 0;
+    for (int i = 0; i < count; ++i)
+    {
+        total += values[i];
+    }
+
+    /* 利用箇所が離れており読み手に負荷をかける */
+    int average = total / count;
+    return average * count;
 }
 ```
 
