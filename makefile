@@ -33,15 +33,15 @@ endif
 
 .PHONY: default
 default :
+	$(MAKE) skills
 	$(MAKE) -C $(TESTFW_HOME)
 	$(MAKE) -C app
-	$(MAKE) skills
 
 .PHONY: with-cov
 with-cov :
+	$(MAKE) skills
 	$(MAKE) -C $(TESTFW_HOME)
 	$(MAKE) -C app with-cov
-	$(MAKE) skills
 
 .PHONY: test
 test :
