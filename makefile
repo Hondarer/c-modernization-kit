@@ -73,7 +73,7 @@ docs :
 		mkfifo "$$DOCS_PIPE"; \
 		tee "$$DOCS_LOGFILE" < "$$DOCS_PIPE" & \
 		TEE_PID=$$!; \
-		if "$(BASH)" "$(DOCSFW_SCRIPT)" --workspaceFolder="$(CURDIR)" --details=both --docx=true > "$$DOCS_PIPE" 2>&1; then \
+		if "$(BASH)" "$(DOCSFW_SCRIPT)" --workspaceFolder="$(CURDIR)" > "$$DOCS_PIPE" 2>&1; then \
 			DOCS_EXIT=0; \
 		else \
 			DOCS_EXIT=$$?; \
