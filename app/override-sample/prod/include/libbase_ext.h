@@ -63,7 +63,6 @@ extern "C"
 #endif /* __cplusplus */
 
     /**
-     *******************************************************************************
      *  @brief          sample_func のオーバーライド実装。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
@@ -83,7 +82,6 @@ extern "C"
      *  @endcode
      *
      *  @warning        result が NULL の場合は -1 を返します。
-     *******************************************************************************
      */
     BASE_EXT_EXPORT extern int BASE_EXT_API override_func(const int a, const int b, int *result);
 

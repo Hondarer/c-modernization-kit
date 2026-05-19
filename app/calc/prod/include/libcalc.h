@@ -62,7 +62,6 @@ extern "C"
 #endif /* __cplusplus */
 
     /**
-     *******************************************************************************
      *  @brief          指定された演算種別に基づいて計算を実行します。
      *  @param[in]      kind 演算の種別 (CALC_KIND_ADD など)。
      *  @param[in]      a 第一オペランド。
@@ -92,7 +91,6 @@ extern "C"
      *  @warning        無効な kind を指定した場合、ゼロ除算の場合、
      *                  または result が NULL の場合は失敗を返します。
      *                  呼び出し側で戻り値のチェックを行ってください。
-     *******************************************************************************
      */
     CALC_EXPORT extern int CALC_API calcHandler(const int kind, const int a, const int b, int *result);
 
