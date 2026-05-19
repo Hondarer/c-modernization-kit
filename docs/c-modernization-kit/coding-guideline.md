@@ -6,7 +6,7 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応、
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は今後、命名規則、エラー処理、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。
-現版では「整数型の選択」「関数引数の異常入力対応」「変数宣言位置と命令文の関係」を記載します。
+現版では「整数型の選択」「関数引数の異常入力対応」「変数宣言位置と命令文の関係」「関数引数の const 付与と Doxygen 方向タグ」を記載します。
 
 関連する既存ガイドラインは [参照](#参照) を参照してください。
 
@@ -173,6 +173,191 @@ int calculate_total(const int *values, int count)
     return average * count;
 }
 ```
+
+## 関数引数の const 付与と Doxygen 方向タグ
+
+本リポジトリのすべての C コード (`app/` 配下) で、関数引数には次のルールで `const` を付与し、
+Doxygen の `@param[in/out/in,out]` を厳密化します。新規関数だけでなく、既存関数の変更時にも適用します。
+
+### 1. 引数の分類
+
+各引数は **意味的方向 (Doxygen タグ)** と **物理的種別 (型)** の 2 軸で分類します。
+
+| 意味的方向 | 説明 |
+| --- | --- |
+| `[in]` | 関数は値を読むだけで、関数復帰後の中身は呼び出し元視点で変わらない |
+| `[out]` | 関数復帰後に初めて意味のある値が書き込まれる (初期化前の値は見ない) |
+| `[in,out]` | 関数復帰前後の両方で意味があり、関数が書き換えうる |
+
+| 物理的種別 | 例 |
+| --- | --- |
+| ポインタ引数 | `T *p`, `const T *p`, `T **pp`, 配列 `T arr[]` |
+| 値渡し引数 (リテラル) | `int n`, `size_t len`, `enum E e` |
+
+不透明 handle (`tracer_t *`, `prompt_t *` 等) は **論理的振る舞いで** 判定します。
+
+- 状態取得 / 値出力のみ (例: `tracer_get_state`) → `[in]`
+- 設定変更 / 操作実行 / 解放 (例: `tracer_start`, `tracer_dispose`) → `[in,out]`
+
+物理的な mutex 取得は `@par スレッド セーフ` の note で言及し、`[in/out]` には反映しません。
+
+### 2. ポインタ引数の const 付与判定
+
+**手順** (ヘッダー宣言と impl 定義の両方に const を付ける):
+
+1. 引数の意味的方向を決定します。`[out]` または `[in,out]` ならば const は付けません。
+2. `[in]` の場合、impl (Linux/Windows 両方) を読み、次のいずれかに該当するか確認します。
+
+   | 項目 | 該当時 |
+   | --- | --- |
+   | `*p = ...` または `p->member = ...` の代入がある | const **不可** |
+   | `p` または `&p->member` を書き換え系 OS API に渡す (`fstat` の出力先など) | const **不可** |
+   | `p` を内部 mutex / rwlock / condvar の取得対象として渡す (`pthread_mutex_lock`、`EnterCriticalSection`、`com_util_local_(mutex|rwlock|condvar)_*` 等) | const **不可** (mutable 扱い) |
+   | 上記いずれにも該当しない | const **可** |
+
+3. const 可と判定したら、**ヘッダー宣言と impl 定義の両方** に `const T *` を付けます。
+
+**例外**:
+
+- `FILE *` 引数には慣習として `const` を付けません (C 標準 stdio に合わせる)。
+  Doxygen タグは挙動に応じて選びます (`fread`/`fwrite`/`fflush` 等は `[in,out]`、`feof`/`ferror`/`ftell` は `[in]`)。
+- 不透明 handle で内部 mutex/rwlock を取得する関数は、論理的には read-only でも const を付けません。`-Wcast-qual` と整合させるためです。
+
+**機械的フィルタの grep 例** (`<arg>` は引数名、`<dir>` は対象ディレクトリ):
+
+```bash
+# ポインタ引数の書き換え検査
+grep -nE '(\*[[:space:]]*<arg>[[:space:]]*=|<arg>->[a-z_]+[[:space:]]*=|\&<arg>->[a-z_]+)' <dir>/*.c
+
+# 内部 lock 取得検査
+grep -nE '(pthread_mutex_lock|EnterCriticalSection|com_util_local_(mutex|rwlock|condvar)_)' <dir>/*.c
+```
+
+grep は補助です。最終判定は手読みで行います。
+
+### 3. 値渡し引数 (リテラル) の const 付与判定
+
+値渡し引数は **impl 側 (定義) のみ** に `const` を付けます。ヘッダー宣言には付けません。
+
+```c
+/* ヘッダー (宣言) */
+int foo(int n);
+
+/* impl (定義) */
+int foo(const int n)
+{
+    return n * 2;
+}
+```
+
+C 言語では top-level の値渡し const は ABI に影響せず、宣言と定義の互換性に影響しません。
+慣習に従い宣言側はシンプルに保ち、impl 内の不慮書き換え防止のためにのみ定義側に const を付けます。
+これにより mock や呼び出し側コードは影響を受けません。
+
+**手順**:
+
+1. 引数の意味的方向を決定します。値渡しで `[in,out]` 相当が必要ならポインタ化を検討します (ABI 変更を伴うため別 commit 推奨)。
+2. 関数本体で引数を読むだけなら、impl 側に `const` を付けます。
+3. 再代入 (`n = ...`、`n++`、`n--`、`n += ...` 等) があれば、§4 に従って impl を整理してから const を付けます。
+
+**機械的フィルタの grep 例**:
+
+```bash
+grep -nE '\b<arg>[[:space:]]*(\+\+|--|=|\+=|-=|\*=|/=|%=)' <dir>/*.c
+```
+
+### 4. [in] 引数は関数内部で更新しないことを原則とする
+
+意味的に `[in]` の引数は関数内部で更新しません。再代入やループ カウンタとして使い回しているコードは
+可読性の問題でもあるため、const 化対応の一環として impl を整理します。
+
+```c
+/* 望ましくない: in 引数 n を使い回し */
+int foo(int n)
+{
+    while (n > 0)
+    {
+        process(n);
+        n--;
+    }
+    return 0;
+}
+
+/* 望ましい: ローカル変数で作業し、引数は const */
+int foo(const int n)
+{
+    int remaining = n;
+
+    while (remaining > 0)
+    {
+        process(remaining);
+        remaining--;
+    }
+
+    return 0;
+}
+```
+
+「真に書き換えが必要」と判定された場合は Doxygen を `[in,out]` に修正します。
+値渡しで `[in,out]` の場合はポインタ化を検討します (ABI 変更を伴うため別 commit にします)。
+
+### 5. Doxygen `@param[in/out/in,out]` の厳密化
+
+const 付与とセットで、Doxygen タグも impl の挙動に合わせて見直します。
+
+**典型的な誤りパターン**:
+
+| 実際の挙動 | 誤り | 正しいタグ |
+| --- | --- | --- |
+| 解放/設定変更系 (`_dispose`, `_start`, `set_*`) | `[in]` のみ | `[in,out]` |
+| 出力バッファ (初期化前の値を見ない) | `[in]` が付いている | `[out]` |
+| in-place 編集 | `[in]` のみ | `[in,out]` |
+
+### 6. 適用範囲と作業の進め方
+
+- 新規関数では本ルールに従って最初から const と Doxygen タグを正しく付けます。
+- 既存関数を変更する際は、変更ファイル内の関数全てに本ルールを適用します。
+- 大規模な const 化リファクタリングを行う際は、**1 commit = 1 ヘッダー (カテゴリ)** 単位で進めます。
+  ヘッダー変更・impl 変更・対応する mock 追従・Doxygen タグ修正を同 commit にまとめると、
+  `-Wcast-qual` 警告の発生箇所が局所化されてレビューが容易になります。
+
+### 7. 検証
+
+各 commit / PR で次を確認します。
+
+```bash
+# Linux ビルド (-Wcast-qual で警告 0 を確認)
+cd <module-dir> && make 2>&1 | grep -E 'warning|error'
+
+# 局所テスト
+cd <module-dir> && make test
+
+# Doxygen 警告チェック (該当ターゲットがあれば)
+cd <module-dir> && make doxy 2>&1 | grep -i warning
+```
+
+全体リファクタリング完了後は、リポジトリ ルートでも `make` / `make test` を実行し、
+他モジュールへの影響がないことを確認します (非 const → const 化は呼び出し側で暗黙変換可なため、通常は影響なし)。
+
+### 8. 既存の模範例
+
+本リポジトリで既に本ルールに沿っているヘッダー (新規実装時の参考):
+
+- `app/com_util/prod/include/com_util/compress/compress.h` — データ系 `[in]` が const
+- `app/com_util/prod/include/com_util/crypto/crypto.h` — データ系 `[in]` が const
+- `app/com_util/prod/include/com_util/runtime/module.h` — `func_addr` が `const void *`
+- `app/com_util/prod/include/com_util/runtime/shutdown.h` — `event` が `const com_util_shutdown_event_t *`
+- `app/com_util/prod/include/com_util/sync/sync.h` の `interprocess_*_export_descriptor` — `lock` が `const ..._t *`
+
+### 9. mock 追従 (test 配下を持つモジュールの場合)
+
+ヘッダーの const 化 / Doxygen 変更を行う commit には、対応する mock のシグネチャ追従を必ず含めます。
+
+`delegate_real_*` 宣言、`MOCK_METHOD(...)` 宣言、および `MOCK_WEAK_IMPL(...)` の引数型を
+ヘッダー宣言と完全一致させます。
+`ON_CALL(...).WillByDefault(Invoke(delegate_real_*))` および `EXPECT_CALL(...)` の matcher は
+型推論で追従するため、通常は無修正で OK です。
+ただし `Matcher<T*>` のように明示型指定している箇所がある場合は併せて修正します。
 
 ## 参照
 
