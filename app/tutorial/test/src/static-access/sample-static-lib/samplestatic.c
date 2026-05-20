@@ -25,6 +25,7 @@
 static int static_int;
 
 /* doxygen コメントは、ヘッダーに記載 */
+
 int samplestatic(void)
 {
     return static_int;

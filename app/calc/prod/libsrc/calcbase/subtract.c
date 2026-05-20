@@ -17,6 +17,7 @@
 #include <stddef.h>
 
 /* doxygen コメントは、ヘッダーに記載 */
+
 int subtract(const int a, const int b, int *result)
 {
     return add(a, -1 * b, result); /* 再帰的な関数呼び出しの実装例として add を呼ぶ */

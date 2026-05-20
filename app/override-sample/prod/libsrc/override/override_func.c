@@ -18,6 +18,7 @@
 #include <stddef.h>
 
 /* doxygen コメントは、ヘッダーに記載 */
+
 BASE_EXT_EXPORT int BASE_EXT_API override_func(const int a, const int b, int *result)
 {
     if (result == NULL)
