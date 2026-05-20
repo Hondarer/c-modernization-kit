@@ -60,4 +60,4 @@ docxOutput: true
 # 追加ドキュメント サブフォルダー機能
 # alias=path 形式で追加ドキュメント サブフォルダーをスペース区切りで指定
 # 空または未指定の場合は機能無効、値には $VAR または ${VAR} 形式の環境変数を使用可能
-mergeSubfolderDocs: calc=app/calc/docs calc.net=app/calc.net/docs com_util=app/com_util/docs doxygen-sample=app/doxygen-sample/docs override-sample=app/override-sample/docs porter=app/porter/docs skills=.agents/skills docsfw=${DOCSFW_HOME}/docs doxyfw=${DOXYFW_HOME}/docs makefw=${MAKEFW_HOME}/docs testfw=${TESTFW_HOME}/docs
+mergeSubfolderDocs: c-modernization-kit=app/c-modernization-kit/docs calc=app/calc/docs calc.net=app/calc.net/docs com_util=app/com_util/docs doxygen-sample=app/doxygen-sample/docs override-sample=app/override-sample/docs porter=app/porter/docs skills=.agents/skills docsfw=${DOCSFW_HOME}/docs doxyfw=${DOXYFW_HOME}/docs makefw=${MAKEFW_HOME}/docs testfw=${TESTFW_HOME}/docs
