@@ -17,7 +17,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 BASE_EXPORT void BASE_API console_output(const char *format, ...)
 {

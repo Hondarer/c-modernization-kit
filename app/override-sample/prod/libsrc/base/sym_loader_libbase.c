@@ -17,7 +17,7 @@
 #include "sym_loader_libbase.h"
 #include <stdio.h>
 
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
@@ -26,7 +26,7 @@ char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
 /** sample_func 用の sym_loader エントリ実体。 */
 static com_util_sym_loader_entry_t sfo_sample_func = COM_UTIL_SYM_LOADER_ENTRY_INIT("sample_func", sample_func_t);
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 com_util_sym_loader_entry_t *const pfo_sample_func = &sfo_sample_func;
 
@@ -36,18 +36,18 @@ com_util_sym_loader_entry_t *const pfo_sample_func = &sfo_sample_func;
 /* --- sym_loader に渡すポインタ配列                     --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。 --- */
 
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 com_util_sym_loader_entry_t *const fobj_array_libbase[] = {
     &sfo_sample_func,
     /* &sfo_func_name, */ /* 将来追加 */
 };
 
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_array_libbase[0]);
 
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 BASE_EXPORT int BASE_API sym_loader_info_libbase()
 {

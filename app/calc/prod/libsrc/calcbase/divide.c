@@ -16,7 +16,7 @@
 #include <libcalcbase.h>
 #include <stddef.h>
 
-/* doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 int divide(const int a, const int b, int *result)
 {
