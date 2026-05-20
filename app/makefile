@@ -8,7 +8,7 @@ SUBDIRS := $(shell bash "$(APP_ORDER_RESOLVER)" --app-order)
 
 TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
 CPP_PROPERTIES_SYNC = $(MAKEFW_HOME)/bin/sync_c_cpp_properties.sh
-DOXY_WARN_FILES = $(addsuffix /doxy.warn,$(SUBDIRS))
+DOXY_WARN_FILES = $(addsuffix /doxy.warn,$(SUBDIRS)) $(foreach d,$(SUBDIRS),$(wildcard $(d)/doxy_*.warn))
 export MAKEFW_HOME
 
 define APP_POST_BUILD_CHECKS
@@ -19,7 +19,7 @@ define APP_POST_BUILD_CHECKS
 		exit $$cpp_sync_status; \
 	fi; \
 	printf 'INFO: c_cpp_properties.json sync check completed.\n'; \
-	warn_files=$$(find . -type f -name '*.warn' ! -name 'doxy.warn' -size +0 | sort); \
+	warn_files=$$(find . -type f -name '*.warn' ! -name 'doxy.warn' ! -name 'doxy_*.warn' -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
 		bash "$(TESTFW_BANNER)" WARNING "\e[33m"; \
@@ -100,7 +100,7 @@ doxy : submodule
 			SUPPRESS_DOXY_WARN_PRINT=1 $(MAKE) -C $$dir doxy || { doxy_status=$$?; break; }; \
 		fi; \
 	done; \
-	warn_files=$$(find . -mindepth 2 -maxdepth 2 -type f -name 'doxy.warn' -size +0 | sort); \
+	warn_files=$$(find . -mindepth 2 -maxdepth 2 -type f \( -name 'doxy.warn' -o -name 'doxy_*.warn' \) -size +0 | sort); \
 	if [ -n "$$warn_files" ]; then \
 		printf '\n'; \
 		bash "$(TESTFW_BANNER)" WARNING "\e[33m"; \
