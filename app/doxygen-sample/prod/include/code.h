@@ -1,7 +1,8 @@
 /**
  *  @brief          文字列を反転します。
  *  @param[in,out]  str 反転する文字列。
- *  @details        以下は使用例です。
+ *
+ *  以下は使用例です。
  *  @code{.c}
     char text[] = "Hello";
     reverseString(text);

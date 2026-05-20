@@ -31,7 +31,6 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインタ。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
-     *  @details
      *  この関数は 2 つの整数を受け取り、その合計を result に格納します。
      *
      *  @par            使用例
@@ -55,7 +54,6 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインタ。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
-     *  @details
      *  この関数は 2 つの整数を受け取り、その差を result に格納します。
      *
      *  @par            使用例
@@ -79,7 +77,6 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインタ。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
-     *  @details
      *  この関数は 2 つの整数を受け取り、その積を result に格納します。
      *
      *  @par            使用例
@@ -103,7 +100,6 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインタ。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
-     *  @details
      *  この関数は 2 つの整数を受け取り、その商を result に格納します。
      *  整数除算のため、小数点以下は切り捨てられます。
      *
