@@ -15,7 +15,7 @@ Table: スキルガイド一覧
 
 ## このリポジトリとの関連
 
-- `.gitmodules` - サブモジュール構成 (`doxyfw` / `docsfw` / `testfw` / `makefw`)
+- `.gitmodules` - サブモジュール構成 (`app/com_util` / `app/porter` / `doxyfw` / `docsfw` / `testfw` / `makefw`)
 - `git submodule update --init --recursive` - サブモジュールの初期化
 
 ## 次のステップ
