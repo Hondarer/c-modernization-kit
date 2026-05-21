@@ -76,9 +76,7 @@ clean : submodule $(SUBDIRS)
 
 .PHONY: test
 test : submodule
-    # 全プロダクトをビルド (default ターゲット)
-	$(MAKE) $(MFLAGS)
-    # テスト実行
+    # テスト実行 (各 app の test ターゲットが内部で prod 最新化を担保する)
 	@for dir in $(SUBDIRS); do \
 		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
 			echo $(MAKE) -C $$dir test; \
