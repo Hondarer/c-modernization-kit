@@ -238,6 +238,7 @@ jobs:
   publish-docs:
     runs-on: ubuntu-latest
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/framework/docsfw/.cache/puppeteer
     container:
       image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
@@ -261,7 +262,7 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Restore docsfw npm and puppeteer cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             framework/docsfw/bin/node_modules
