@@ -3,7 +3,7 @@
 
 #include <com_util/base/compiler.h>
 #include <testfw.h>
-#include <libcalcbase.h>
+#include <calcbase/calcbase_spec.h>
 
 #if defined(COMPILER_MSVC)
 #pragma comment(linker, "/INCLUDE:_mock_impl_add")

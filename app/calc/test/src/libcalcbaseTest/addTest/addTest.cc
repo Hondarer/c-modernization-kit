@@ -1,6 +1,6 @@
 #include <testfw.h>
 #include <mock_stdio.h>
-#include <libcalcbase.h>
+#include <calcbase/calcbase_spec.h>
 
 class addTest : public Test
 {

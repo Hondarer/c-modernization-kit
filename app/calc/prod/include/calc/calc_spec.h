@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- *  @file           libcalc.h
- *  @brief          計算ライブラリ (動的リンク用) のヘッダーファイル。
+ *  @file           calc_spec.h
+ *  @brief          calc ライブラリ (動的リンク用) のヘッダーファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
@@ -14,49 +14,11 @@
  *******************************************************************************
  */
 
-#ifndef LIBCALC_H
-#define LIBCALC_H
+#ifndef CALC_SPEC_H
+#define CALC_SPEC_H
 
-#include <libcalc_const.h>
-
-#ifdef DOXYGEN
-
-    /**
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     *
-     *  ビルド条件に応じて以下の値を取ります。
-     *
-     *  | 条件                                              | 値                       |
-     *  | ------------------------------------------------- | ------------------------ |
-     *  | Linux (非 Windows)                                | (空)                     |
-     *  | Windows / `__INTELLISENSE__` 定義時               | (空)                     |
-     *  | Windows / `CALC_STATIC` 定義時 (静的リンク)       | (空)                     |
-     *  | Windows / `CALC_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
-     *  | Windows / `CALC_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
-     */
-    #define CALC_EXPORT
-
-    /**
-     *  @brief          呼び出し規約マクロ。
-     *
-     *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
-     *  Linux (非 Windows) 環境では空に展開されます。
-     */
-    #define CALC_API
-
-#else /* !DOXYGEN */
-
-    #ifndef CALC_STATIC
-        #define CALC_STATIC 0
-    #endif /* CALC_STATIC */
-    #ifndef CALC_EXPORTS
-        #define CALC_EXPORTS 0
-    #endif /* CALC_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define CALC_EXPORT COM_UTIL_DLL_EXPORT(CALC)
-    #define CALC_API    COM_UTIL_DLL_API(CALC)
-
-#endif /* DOXYGEN */
+#include <calc/calc_const.h>
+#include <calc/calc_export.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -99,4 +61,4 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* LIBCALC_H */
+#endif /* CALC_SPEC_H */

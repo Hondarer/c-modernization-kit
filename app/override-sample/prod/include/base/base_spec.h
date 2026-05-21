@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- *  @file           libbase.h
- *  @brief          ベースライブラリ (動的リンク用) のヘッダーファイル。
+ *  @file           base_spec.h
+ *  @brief          base ライブラリ (動的リンク用) のヘッダーファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
@@ -13,53 +13,14 @@
  *******************************************************************************
  */
 
-#ifndef LIBBASE_H
-#define LIBBASE_H
+#ifndef BASE_SPEC_H
+#define BASE_SPEC_H
 
 #include <com_util/base/platform.h>
-
-#include <stddef.h>
 #include <com_util/runtime/sym_loader.h>
+#include <stddef.h>
 
-#ifdef DOXYGEN
-
-    /**
-     *  @brief          DLL エクスポート/インポート制御マクロ。
-     *
-     *  ビルド条件に応じて以下の値を取ります。
-     *
-     *  | 条件                                              | 値                       |
-     *  | ------------------------------------------------- | ------------------------ |
-     *  | Linux (非 Windows)                                | (空)                     |
-     *  | Windows / `__INTELLISENSE__` 定義時               | (空)                     |
-     *  | Windows / `BASE_STATIC` 定義時 (静的リンク)       | (空)                     |
-     *  | Windows / `BASE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
-     *  | Windows / `BASE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
-     */
-    #define BASE_EXPORT
-
-    /**
-     *  @brief          呼び出し規約マクロ。
-     *
-     *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
-     *  Linux (非 Windows) 環境では空に展開されます。\n
-     *  すでに定義済みの場合は再定義されません。
-     */
-    #define BASE_API
-
-#else /* !DOXYGEN */
-
-    #ifndef BASE_STATIC
-        #define BASE_STATIC 0
-    #endif /* BASE_STATIC */
-    #ifndef BASE_EXPORTS
-        #define BASE_EXPORTS 0
-    #endif /* BASE_EXPORTS */
-    #include <com_util/base/dll_exports.h>
-    #define BASE_EXPORT COM_UTIL_DLL_EXPORT(BASE)
-    #define BASE_API    COM_UTIL_DLL_API(BASE)
-
-#endif /* DOXYGEN */
+#include <base/base_export.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -87,7 +48,7 @@ extern "C"
      *
      *  @par            使用例
      *  @code{.c}
-        console_output("result: %d\n", 42);  // 出力: result: 42
+         console_output("result: %d\n", 42);  // 出力: result: 42
      *  @endcode
      */
     BASE_EXPORT extern void BASE_API console_output(const char *format, ...);
@@ -102,4 +63,4 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* LIBBASE_H */
+#endif /* BASE_SPEC_H */

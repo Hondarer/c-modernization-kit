@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- *  @file           libcalcbase.h
- *  @brief          計算ライブラリ (静的リンク用) のヘッダーファイル。
+ *  @file           calcbase_spec.h
+ *  @brief          calcbase ライブラリ (静的リンク用) のヘッダーファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
@@ -14,10 +14,10 @@
  *******************************************************************************
  */
 
-#ifndef LIBCALCBASE_H
-#define LIBCALCBASE_H
+#ifndef CALCBASE_SPEC_H
+#define CALCBASE_SPEC_H
 
-#include <libcalc_const.h>
+#include <calc/calc_const.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -119,4 +119,4 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#endif /* LIBCALCBASE_H */
+#endif /* CALCBASE_SPEC_H */

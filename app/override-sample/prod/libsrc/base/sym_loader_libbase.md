@@ -2,9 +2,9 @@
 
 ## 役割
 
-`sym_loader_libbase.h` / `sym_loader_libbase.c` は、`libbase` ライブラリが管理するオーバーライド対応関数の **com_util_sym_loader_entry_t 実体と、それに紐付く型・変数の宣言** を提供します。
+`sym_loader_libbase.h` / `sym_loader_libbase.c` は、`base` ライブラリが管理するオーバーライド対応関数の **com_util_sym_loader_entry_t 実体と、それに紐付く型・変数の宣言** を提供します。
 
-`sym_loader` の汎用機能 (`com_util_sym_loader_init`, `com_util_sym_loader_resolve`, `com_util_sym_loader_dispose` など) は `libbase.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `libbase` 固有の関数群に接続する「接着剤」の役割を担います。
+`sym_loader` の汎用機能 (`com_util_sym_loader_init`, `com_util_sym_loader_resolve`, `com_util_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群に接続する「接着剤」の役割を担います。
 
 ## ファイルの責務
 
@@ -83,5 +83,5 @@ dllmain_libbase.c  (初期化・解放)
 | `sym_loader_libbase.c` | 実体定義・配列エントリを追加 |
 | `libsrc/base/new_func.c` (新規) | sym_loader を使ったオーバーライド対応の実装 |
 | `libsrc/override/new_override_func.c` (新規) | オーバーライド実装 |
-| `include/libbase.h` | `new_func` のエクスポート宣言を追加 |
-| `include/libbase_ext.h` | オーバーライド関数のエクスポート宣言を追加 |
+| `include/base/base_spec.h` | `new_func` のエクスポート宣言を追加 |
+| `include/override/override_spec.h` | オーバーライド関数のエクスポート宣言を追加 |

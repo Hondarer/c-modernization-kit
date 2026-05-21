@@ -13,8 +13,8 @@
  *******************************************************************************
  */
 
-#include <libbase.h>
-#include <libbase_ext.h>
+#include <base/base_spec.h>
+#include <override/override_spec.h>
 #include <stddef.h>
 
 /* Doxygen コメントは、ヘッダーに記載 */

@@ -14,7 +14,7 @@
  *******************************************************************************
  */
 
-#include <libcalc.h>
+#include <calc/calc_spec.h>
 #include <com_util/console/console.h>
 #include <stdio.h>
 #include <stdlib.h>

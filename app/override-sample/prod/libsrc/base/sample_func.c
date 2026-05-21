@@ -14,7 +14,7 @@
  */
 
 #include "sym_loader_libbase.h"
-#include <libbase.h>
+#include <base/base_spec.h>
 
 /* Doxygen コメントは、ヘッダーに記載 */
 

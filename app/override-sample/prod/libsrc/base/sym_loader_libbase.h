@@ -17,7 +17,7 @@
 #ifndef SYM_LOADER_LIBBASE_H
 #define SYM_LOADER_LIBBASE_H
 
-#include <libbase.h>
+#include <base/base_spec.h>
 #include <com_util/crt/path.h>
 
 /* --- 拡張可能な各関数のポインタ型とアクセス用のオブジェクトへのポインタ --- */

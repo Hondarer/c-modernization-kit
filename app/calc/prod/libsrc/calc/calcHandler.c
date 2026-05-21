@@ -13,8 +13,8 @@
  *******************************************************************************
  */
 
-#include <libcalc.h>
-#include <libcalcbase.h>
+#include <calc/calc_spec.h>
+#include <calcbase/calcbase_spec.h>
 #include <stddef.h>
 
 /* Doxygen コメントは、ヘッダーに記載 */

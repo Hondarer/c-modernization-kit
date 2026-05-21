@@ -20,8 +20,12 @@ sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/com_util
 ```text
 app/override-sample/prod/
 +-- include/
-|   +-- libbase.h              # libbase ヘッダー (sample_func, console_output 等の宣言)
-|   +-- libbase_ext.h          # liboverride ヘッダー (override_func の宣言)
+|   +-- base/
+|   |   +-- base_export.h      # base の DLL エクスポートマクロ
+|   |   +-- base_spec.h        # base ヘッダー (sample_func, console_output 等の宣言)
+|   +-- override/
+|   |   +-- override_export.h  # override の DLL エクスポートマクロ
+|   |   +-- override_spec.h    # override ヘッダー (override_func の宣言)
 +-- libsrc/
 |   +-- base/
 |   |   +-- sym_loader_libbase.h  # sym_loader エントリの extern 宣言
