@@ -3,7 +3,7 @@
 
 #include <com_util/base/compiler.h>
 #include <testfw.h>
-#include <calc/calc_spec.h>
+#include <calc.h>
 
 #if defined(COMPILER_MSVC)
 #pragma comment(linker, "/INCLUDE:_mock_impl_calcHandler")
