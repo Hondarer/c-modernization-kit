@@ -261,6 +261,9 @@ jobs:
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Initialize submodules (shallow)
+        run: git submodule update --init --recursive --depth 1
+
       - name: Restore docsfw npm and puppeteer cache
         uses: actions/cache@v5
         with:
@@ -268,9 +271,6 @@ jobs:
             framework/docsfw/bin/node_modules
             framework/docsfw/.cache/puppeteer
           key: docsfw-cache-ol8-${{ hashFiles('framework/docsfw/bin/package-lock.json') }}
-
-      - name: Initialize submodules (shallow)
-        run: git submodule update --init --recursive --depth 1
 
       - name: Sync skills
         run: make skills
