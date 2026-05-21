@@ -85,7 +85,7 @@ docs :
 		fi; \
 		if [ -s "$(DOCS_WARN_FILE)" ]; then \
 			printf '\n'; \
-			"$(BASH)" "$(TESTFW_BANNER)" WARNING "\e[33m"; \
+			"$(BASH)" "$(TESTFW_BANNER)" "DOCS ISSUES" "\e[33m"; \
 			printf '\n'; \
 			printf '\033[33m===== %s =====\033[0m\n' "$(DOCS_WARN_FILE)"; \
 			while IFS= read -r line || [ -n "$$line" ]; do \
