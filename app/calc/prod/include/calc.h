@@ -1,13 +1,16 @@
 /**
  *******************************************************************************
  *  @file           calc.h
- *  @brief          calc ライブラリの傘ヘッダー (公開 API ひとまとめ)。
+ *  @brief          calc ライブラリのアンブレラ ヘッダー。
  *  @author         c-modenization-kit sample team
  *  @date           2026/05/21
  *  @version        1.0.0
  *
- *  calc ライブラリの公開ヘッダーを 1 つにまとめます。\n
- *  利用者は `<calc.h>` 1 行で本ライブラリの全公開 API にアクセスできます。
+ *  calc ライブラリの公開ヘッダーを 1 つにまとめたヘッダーです。\n
+ *  利用者は `#include <calc.h>` で本ライブラリの全公開 API にアクセスできます。
+ *
+ *  アンブレラ ヘッダーは利便性と引き換えにコンパイル時間がかかります。\n
+ *  個別ヘッダーを利用するか、アンブレラ ヘッダーを利用するかは利用者にて選択してください。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -17,7 +20,6 @@
 #ifndef CALC_H
 #define CALC_H
 
-#include <calc/calc_export.h>
 #include <calc/calc_const.h>
 #include <calc/calc_spec.h>
 
