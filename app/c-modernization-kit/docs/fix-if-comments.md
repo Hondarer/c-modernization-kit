@@ -106,5 +106,5 @@ python bin/fix-if-comments.py src/foo.c include/bar.h
 
 ## makefw との関係
 
-makefile 側の OS 分岐ルールは [platform-h-using-guideline](platform-h-using-guideline) に従います。  
+makefile 側の OS 分岐ルールは [platform-h-using-guideline](../com_util/platform-h-using-guideline.md) に従います。
 `fix-if-comments.py` は、その C/C++ 側に相当する保守補助コマンドとして位置づけます。
