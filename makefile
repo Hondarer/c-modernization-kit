@@ -62,6 +62,13 @@ skills :
 clean :
 	$(MAKE) -C $(TESTFW_HOME) clean
 	$(MAKE) -C app clean
+	$(MAKE) cleandocs
+
+.PHONY: cleandocs
+cleandocs :
+	@if [ -d pages ]; then \
+		find pages/ -mindepth 1 -maxdepth 1 ! -name 'doxygen' -exec rm -rf {} +; \
+	fi
 	rm -f "$(DOCS_WARN_FILE)"
 
 .PHONY: docs
