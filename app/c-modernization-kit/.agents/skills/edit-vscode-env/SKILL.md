@@ -34,20 +34,20 @@ VS Code の環境変数設定は envFile 方式で一元管理しています。
 
 `app/<name>/prod/bin` や `app/<name>/prod/lib` を PATH に追加する場合、以下の 4 箇所を編集します。
 
-### `.vscode/.env.linux`
+### .vscode/.env.linux
 
 ```text
 PATH=${workspaceFolder}/app/<name>/prod/bin:...(既存)...
 LD_LIBRARY_PATH=${workspaceFolder}/app/<name>/prod/lib:...(既存)...
 ```
 
-### `.vscode/.env.windows`
+### .vscode/.env.windows
 
 ```text
 PATH=${workspaceFolder}\app\<name>\prod\lib;${workspaceFolder}\app\<name>\prod\bin;...(既存)...
 ```
 
-### `.vscode/settings.json` の `terminal.integrated.env.linux`
+### .vscode/settings.json の terminal.integrated.env.linux
 
 ```json
 "terminal.integrated.env.linux": {
@@ -56,7 +56,7 @@ PATH=${workspaceFolder}\app\<name>\prod\lib;${workspaceFolder}\app\<name>\prod\b
 }
 ```
 
-### `.vscode/settings.json` の `terminal.integrated.env.windows`
+### .vscode/settings.json の terminal.integrated.env.windows
 
 ```json
 "terminal.integrated.env.windows": {

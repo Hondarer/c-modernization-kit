@@ -1,8 +1,8 @@
-# VS Code における環境変数と `c_cpp_properties.json` の保守手順
+# VS Code における環境変数と c_cpp_properties.json の保守手順
 
 本ドキュメントは、VS Code で環境変数がどこに効くかを説明したうえで、このリポジトリでアプリ追加・削除・改名が発生した際に、どのファイルをどう見直すべきかをまとめた手引きです。
 
-## `c_cpp_properties.json` の正本
+## c_cpp_properties.json の正本
 
 `-I` と `-D` の正本は `.vscode/c_cpp_properties.json` ではありません。  
 `INCDIR` は `makepart.mk`、`app/makepart.mk`、各 C/C++ app の `app/<name>` 配下にあるすべての `makepart.mk` の合成結果が正本です。  
@@ -38,7 +38,7 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 
 この同期スクリプトは `.vscode/c_cpp_properties.json` の `defines` に必要なコメントも復元します。
 
-### `c_cpp_properties.json` を見直すタイミング
+### c_cpp_properties.json を見直すタイミング
 
 - `INCDIR` を変更したとき
   `makepart.mk`、`app/makepart.mk`、または `app/<name>` 配下の任意の `makepart.mk`
@@ -47,7 +47,7 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 - C/C++ app を追加・削除・改名したとき
 - `app/c_cpp_properties.warn` が出たとき
 
-### `.vscode` 側の特殊条件
+### .vscode 側の特殊条件
 
 `.vscode/c_cpp_properties.json` の `defines` は、app 正本の単純な mirror ではありません。
 
@@ -79,14 +79,14 @@ test ! -f app/c_cpp_properties.warn
 
 ## VS Code で環境変数が効く場所
 
-### `.vscode/settings.json`
+### .vscode/settings.json
 
 `terminal.integrated.env.*` は、VS Code の統合ターミナルにだけ反映されます。  
 新しく開いたターミナルには反映されますが、既存のターミナルには反映されません。
 
 このリポジトリでは、Linux では `LD_LIBRARY_PATH` と `PATH`、Windows では `PATH` を設定しています。
 
-### `.vscode/tasks.json`
+### .vscode/tasks.json
 
 `tasks.json` の `options.envFile` は、タスク実行時の環境変数を外部ファイルから読み込みます。  
 このリポジトリの `make test` タスクでは、OS ごとに `.vscode/.env.linux` または `.vscode/.env.windows` を参照しています。
@@ -99,7 +99,7 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 
 のようなエラーが出た場合は、まず `tasks.json` の Linux 側 `LD_LIBRARY_PATH` を疑います。
 
-### `.vscode/launch.json`
+### .vscode/launch.json
 
 デバッグ構成は統合ターミナルの環境変数をそのまま使うわけではありません。  
 必要な環境変数は、各デバッグ構成の `envFile` で外部ファイルを参照します。
@@ -107,7 +107,7 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 - Linux 構成は `.vscode/.env.linux` を参照
 - Windows 構成は `.vscode/.env.windows` を参照
 
-### `.vscode/.env.linux` / `.vscode/.env.windows`
+### .vscode/.env.linux / .vscode/.env.windows
 
 `launch.json` と `tasks.json` が共通で参照する環境変数定義ファイルです。  
 新しいモジュールを追加する際は、これらのファイルに PATH を追加します。
@@ -197,20 +197,20 @@ find app -maxdepth 3 \( -path '*/prod/lib' -o -path '*/prod/bin' \) | sort
 
 ### 2. VS Code の環境変数ファイルを更新する
 
-#### `.vscode/.env.linux`
+#### .vscode/.env.linux
 
 Linux 向けの `PATH` と `LD_LIBRARY_PATH` を更新します。
 
 - `app/<name>/prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
 - `app/<name>/prod/bin` が必要なら `PATH` に追加
 
-#### `.vscode/.env.windows`
+#### .vscode/.env.windows
 
 Windows 向けの `PATH` を更新します。
 
 - `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
 
-#### `.vscode/settings.json`
+#### .vscode/settings.json
 
 統合ターミナル用の環境変数は `envFile` をサポートしないため、別途更新が必要です。
 
@@ -272,7 +272,7 @@ Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更
 
 ## 確認コマンド例
 
-### 実在する `lib` / `bin` の確認
+### 実在する lib / bin の確認
 
 ```bash
 find app -maxdepth 3 \( -path '*/prod/lib' -o -path '*/prod/bin' \) | sort

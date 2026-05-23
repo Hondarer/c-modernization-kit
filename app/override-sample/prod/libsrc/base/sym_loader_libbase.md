@@ -38,14 +38,14 @@ dllmain_libbase.c  (初期化・解放)
 
 `sample_func` に相当する新しい関数 `new_func` を追加する場合の手順です。
 
-### 1. `sym_loader_libbase.h` への追加
+### 1. sym_loader_libbase.h への追加
 
 以下の 2 点を追記します。
 
 - `new_func` に対応する関数ポインタ型の `typedef`
 - その com_util_sym_loader_entry_t へのポインタの `extern` 宣言
 
-### 2. `sym_loader_libbase.c` への追加
+### 2. sym_loader_libbase.c への追加
 
 以下の 2 点を追記します。
 

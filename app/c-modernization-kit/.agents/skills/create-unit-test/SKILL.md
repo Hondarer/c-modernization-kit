@@ -76,7 +76,7 @@ TEST_SRCS := \
 - `USE_WRAP_MAIN := 1` は入れません
 - `LIBS += ...` は mock や補助ライブラリが必要なときだけ追加します
 
-## `main()` テスト
+## main() テスト
 
 `main()` テストは関数単体テストの一形態です。`makepart.mk` や `EXPECT_CALL` の基本方針は関数単体テストと同じです。`main()` である以上、テストコードから直接 `main()` を呼び出せないため、以下の追加の手続きが必要です。
 
@@ -109,7 +109,7 @@ LIBS += mock_calcbase mock_libc com_util
 - `mock_libc` は `mock_stdio.h` を使うなら通常必要です
 - `__real_main` は `framework/testfw/include/wrapmain.h` から利用されます
 
-## `EXPECT_CALL` の書き方
+## EXPECT_CALL の書き方
 
 - 戻り値だけでなく、出力引数を書き換える必要があるときは `WillOnce([](...) { ... })` を使います
 - 文字列出力の確認は `StrEq("...\n")` を使います

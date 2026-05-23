@@ -156,7 +156,7 @@ MOCK_WEAK_IMPL(<rettype>, <func>, <args>)
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_fopen.cc`
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_gmtime.cc`
 
-#### モックの弱参照対応 (`MOCK_WEAK_IMPL`)
+#### モックの弱参照対応 (MOCK_WEAK_IMPL)
 
 モックにはデフォルトで全関数を定義しておき、テストで必要なソースファイルはテストの際に個別に `TEST_SRCS` で与えます。
 この際、Linux, Windows のそれぞれで弱参照を実現する必要があるため、`MOCK_WEAK_IMPL` マクロでプラットフォーム別の弱参照を抽象化しています。
@@ -203,7 +203,7 @@ class Mock_<lib>
 - `delegate_real_` を `ON_CALL` で参照している場合、その参照が obj の取り込みを引き起こすため `/INCLUDE` は不要です。
 - 可変長引数の v* 関数（`va_list` 版）など、上位関数から呼び出されるが `ON_CALL` では参照されない関数が対象になります。
 
-### `sscanf` 系
+### sscanf 系
 
 可変長引数入力系は `va_list` をそのまま Mock クラスへ渡します。
 

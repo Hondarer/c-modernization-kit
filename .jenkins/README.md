@@ -164,7 +164,7 @@ make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 `doxy.warn` は Doxygen 実行時の警告ファイルで、各アプリ配下に出力されます。`docs.warn` は `make docs` 実行時の警告ファイルで、ワークスペース直下に出力されます。
 ビルド・テスト警告が無い場合は `linux-${OS_NAME}-warns.zip` は生成されません。ドキュメント警告が無い場合は `docs-warns.zip` も生成されません。
 
-#### ドキュメント生成 (`BUILD_DOCS=1` 時)
+#### ドキュメント生成 (BUILD_DOCS=1 時)
 
 ```bash
 make skills 2>&1 | tee "logs/linux-${OS_NAME}-skills.log"

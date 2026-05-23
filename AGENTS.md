@@ -80,12 +80,12 @@ make clean
 | `prod/include_internal/` | ライブラリ内部共有ヘッダー (`.c` をまたいで参照) | `<lib/subdir/file.h>` |
 | `prod/libsrc/` | ソース ファイル (`.c`) のみ。ヘッダーは置かない | — |
 
-### `_internal` サフィックスの付与ルール
+### _internal サフィックスの付与ルール
 
 - 同名の公開ヘッダーが存在する場合のみ `_internal` を付与する (例: `console.h` が公開にあるため `console_internal.h`)
 - 対応する公開ヘッダーが存在しない場合はサフィックスなし (例: `path_format.h`)
 
-### `makepart.mk` の INCDIR ルール
+### makepart.mk の INCDIR ルール
 
 - `INCDIR` に追加するのは `include/` と `include_internal/` のみとする
 - `libsrc/` のサブディレクトリは `INCDIR` に追加しない

@@ -22,7 +22,7 @@ makefile の `ifdef` / `else ifdef` 整形は対象に含めません。
 
 ## 採用ルール
 
-### `#ifdef` / `#ifndef`
+### #ifdef / #ifndef
 
 ```c
 #ifndef MACRO
@@ -38,7 +38,7 @@ makefile の `ifdef` / `else ifdef` 整形は対象に含めません。
 #endif /* MACRO */
 ```
 
-### 単一マクロの `#if defined(MACRO)`
+### 単一マクロの #if defined(MACRO)
 
 ```c
 #if defined(MACRO)
@@ -48,7 +48,7 @@ makefile の `ifdef` / `else ifdef` 整形は対象に含めません。
 #endif /* MACRO */
 ```
 
-### 単純な `#if defined()` / `#elif defined()` チェーン
+### 単純な #if defined() / #elif defined() チェーン
 
 ```c
 #if defined(COMPILER_GCC)

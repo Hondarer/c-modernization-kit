@@ -31,7 +31,7 @@ when_to_use: |
 
 ## 警告別の修正方針
 
-### `-Wpadded` (padding struct / padding struct size)
+### -Wpadded (padding struct / padding struct size)
 
 `#pragma GCC diagnostic ignored "-Wpadded"` は原則使用しない。
 変数宣言の順序変更や明示的なパディングメンバー追加によって暗黙パディングを排除すること。
