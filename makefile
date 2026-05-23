@@ -66,6 +66,7 @@ clean :
 
 .PHONY: docs
 docs :
+	$(MAKE) skills
 	@if [ -d framework/docsfw ] && [ -f "$(DOCSFW_SCRIPT)" ]; then \
 		DOCS_LOGFILE=$$(mktemp); \
 		DOCS_PIPE="$$DOCS_LOGFILE.pipe"; \
