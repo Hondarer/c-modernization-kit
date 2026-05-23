@@ -371,4 +371,4 @@ cd <module-dir> && make doxy 2>&1 | grep -i warning
 
 - [`source-style-guideline.md`](source-style-guideline.md) - `.gitattributes` / `.editorconfig` / `.clang-format` によるソース スタイル維持
 - [`include-guard-guideline.md`](include-guard-guideline.md) - インクルード ガード命名規則
-- [`platform-h-using-guideline.md`](../com_util/platform-h-using-guideline.md) - `platform.h` / `compiler.h` 利用規則
+- [`platform-abstraction-guideline.md`](../com_util/platform-abstraction-guideline.md) - `platform.h` / `compiler.h` 利用規則

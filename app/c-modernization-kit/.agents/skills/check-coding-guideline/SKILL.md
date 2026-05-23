@@ -27,7 +27,7 @@ when_to_use: |
 - `AGENTS.md` (`app/` 配下の `goto` / 三項演算子の禁止)
 - `docs/c-modernization-kit/source-style-guideline.md`
 - `docs/c-modernization-kit/include-guard-guideline.md`
-- `docs/com_util/platform-h-using-guideline.md`
+- `docs/com_util/platform-abstraction-guideline.md`
 - `maintain-doxygen-comment` skill (Doxygen タグ運用の正本)
 
 ## 適用範囲
