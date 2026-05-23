@@ -1,4 +1,4 @@
-# Document of c-modernization-kit
+# Documentation Home
 
 \toc depth=0 exclude-basedir=true
 
