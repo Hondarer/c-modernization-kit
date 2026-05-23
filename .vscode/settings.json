@@ -1,10 +1,12 @@
 {
     "editor.renderWhitespace": "all",
+    "explorer.compactFolders": false,
     "terminal.integrated.scrollback": 20000,
     "makefile.configureOnOpen": false,
     "files.associations": {
         "c_cpp_properties.json": "jsonc",
         ".debug-params.json": "jsonc",
+        "**/.text_style_jp/*.json": "jsonc",
         "Doxyfile.part": "shellscript",
         "Doxyfile.part.*": "shellscript"
     },
@@ -35,5 +37,8 @@
             "backgroundColor": "#ffbd2a",
             "overviewRulerColor": "rgba(255,189,42,0.8)"
         },
-    ] // https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight
+    ], // https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight
+    // oracle-linux-container および devbin-win によってセットアップされた環境では、
+    // PLANTUML_HOME が利用可能
+    "markdown-preview-enhanced.plantumlJarPath": "${env:PLANTUML_HOME}/plantuml.jar",
 }
