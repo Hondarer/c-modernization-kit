@@ -1,5 +1,8 @@
 # Document of c-modernization-kit
 
+\toc depth=0 exclude-basedir=true
+
+<!--
 ## 各機能ごとのドキュメント
 
 ### アプリケーション
@@ -21,3 +24,4 @@
 - [doxyfw](doxyfw/README.md)
 - [makefw](makefw/README.md)
 - [testfw](testfw/README.md)
+-->
