@@ -20,6 +20,13 @@
 #include <calc/calc_const.h>
 #include <calc/calc_export.h>
 
+/**
+ *  @defgroup       CALC_FUNC 関数
+ *  @ingroup        CALC_PUBLIC_API
+ *  @brief          calc ライブラリの公開関数です。
+ *  @{
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -60,5 +67,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @} */
 
 #endif /* CALC_SPEC_H */

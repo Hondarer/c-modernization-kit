@@ -17,6 +17,11 @@
  *******************************************************************************
  */
 
+/**
+ *  @defgroup       CALC_PUBLIC_API 公開 API
+ *  @brief          calc ライブラリの公開 API です。
+ */
+
 #ifndef CALC_H
 #define CALC_H
 

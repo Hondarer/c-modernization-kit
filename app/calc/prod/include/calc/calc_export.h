@@ -14,6 +14,13 @@
 #ifndef CALC_EXPORT_H
 #define CALC_EXPORT_H
 
+/**
+ *  @defgroup       CALC_EXPORT_MACRO DLL エクスポート/インポート制御マクロ
+ *  @ingroup        CALC_PUBLIC_API
+ *  @brief          DLL エクスポート/インポートと呼び出し規約を制御するマクロです。
+ *  @{
+ */
+
 #ifdef DOXYGEN
 
     /**
@@ -52,5 +59,7 @@
     #define CALC_API    COM_UTIL_DLL_API(CALC)
 
 #endif /* DOXYGEN */
+
+/** @} */
 
 #endif /* CALC_EXPORT_H */
