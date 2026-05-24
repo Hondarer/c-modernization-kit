@@ -204,31 +204,6 @@
             ]
         },
         {
-            "label": "exec pandoc",
-            "type": "shell",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "windows": {
-                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\"",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": ["/c"]
-                    }
-                }
-            },
-            "linux": {
-                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\"",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
-                }
-            }
-        },
-        {
             "label": "exec pandoc (current file)",
             "type": "shell",
             "problemMatcher": [],
@@ -273,81 +248,6 @@
             },
             "linux": {
                 "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
-                }
-            }
-        },
-        {
-            "label": "exec pandoc (details)",
-            "type": "shell",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "windows": {
-                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --details=true",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": ["/c"]
-                    }
-                }
-            },
-            "linux": {
-                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --details=true",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
-                }
-            }
-        },
-        {
-            "label": "exec pandoc (current file, details)",
-            "type": "shell",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "windows": {
-                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": ["/c"]
-                    }
-                }
-            },
-            "linux": {
-                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\" --details=true",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
-                }
-            }
-        },
-        {
-            "label": "exec pandoc (current folder, details)",
-            "type": "shell",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "windows": {
-                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true",
-                "options": {
-                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": ["/c"]
-                    }
-                }
-            },
-            "linux": {
-                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\" --details=true",
                 "options": {
                     "envFile": "${workspaceFolder}/.vscode/.env.linux"
                 }
