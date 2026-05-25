@@ -57,7 +57,7 @@ default : submodule $(SUBDIRS)
 with-cov : submodule
 	@for dir in $(SUBDIRS); do \
 		if [ -d $$dir ] && [ -f $$dir/makefile ]; then \
-			if [ -f "$$dir/coverity.mk" ]; then \
+			if [ -f "$$dir/prod/coverity.mk" ]; then \
 				echo $(MAKE) -C $$dir with-cov; \
 				$(MAKE) -C $$dir with-cov || exit 1; \
 			else \
