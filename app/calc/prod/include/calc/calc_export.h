@@ -15,9 +15,7 @@
 #define CALC_EXPORT_H
 
 /**
- *  @defgroup       CALC_EXPORT_MACRO DLL エクスポート/インポート制御マクロ
  *  @ingroup        CALC_PUBLIC_API
- *  @brief          DLL エクスポート/インポートと呼び出し規約を制御するマクロです。
  *  @{
  */
 

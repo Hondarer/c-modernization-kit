@@ -9,12 +9,12 @@ c-modernization-kit を利用した計算機能のサンプルです。
 ### Doxygen
 
 <!-- docsfw の仕上がりパスに対する相対リンク。この Markdown からの相対パスではないことに注意 -->
-- [doxygen](../../../doxygen/calc_public/index.html)
+- [doxygen](../../../doxygen/calc_public/group__CALC__PUBLIC__API.html)
 
 ### 単一ファイル版
 
 - [calc (public)](doxybook2_public/Pages/README.md)
-    - [ファイルとページの一覧](doxybook2_public/index_files_and_pages.md)
+    - [公開 API](doxybook2_public/Modules/group__CALC__PUBLIC__API.md)
 
 ## モジュール仕様書
 

@@ -15,9 +15,7 @@
 #define CALC_CONST_H
 
 /**
- *  @defgroup       CALC_CONST 定数
  *  @ingroup        CALC_PUBLIC_API
- *  @brief          calc ライブラリで使用する定数です。
  *  @{
  */
 
