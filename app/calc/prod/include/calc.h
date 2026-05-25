@@ -18,7 +18,7 @@
  */
 
 /**
- *  @defgroup       CALC_PUBLIC_API 公開 API
+ *  @defgroup       CALC_PUBLIC_API 公開 API (calc)
  *  @brief          calc ライブラリの公開 API です。
  */
 

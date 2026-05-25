@@ -19,6 +19,11 @@
 
 #include <calc/calc_const.h>
 
+/**
+ *  @ingroup        CALCBASE_PUBLIC_API
+ *  @{
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -118,5 +123,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @} */
 
 #endif /* CALCBASE_SPEC_H */
