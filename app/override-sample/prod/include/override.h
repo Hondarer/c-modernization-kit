@@ -17,6 +17,11 @@
  *******************************************************************************
  */
 
+/**
+ *  @defgroup       OVERRIDE_PUBLIC_API 公開 API (override)
+ *  @brief          override ライブラリの公開 API です。
+ */
+
 #ifndef OVERRIDE_H
 #define OVERRIDE_H
 

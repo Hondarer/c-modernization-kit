@@ -17,6 +17,11 @@
  *******************************************************************************
  */
 
+/**
+ *  @defgroup       BASE_PUBLIC_API 公開 API (base)
+ *  @brief          base ライブラリの公開 API です。
+ */
+
 #ifndef BASE_H
 #define BASE_H
 

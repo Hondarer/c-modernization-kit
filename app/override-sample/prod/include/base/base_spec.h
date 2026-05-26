@@ -22,6 +22,11 @@
 
 #include <base/base_export.h>
 
+/**
+ *  @ingroup        BASE_PUBLIC_API
+ *  @{
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -62,5 +67,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @} */
 
 #endif /* BASE_SPEC_H */

@@ -14,6 +14,11 @@
 #ifndef OVERRIDE_EXPORT_H
 #define OVERRIDE_EXPORT_H
 
+/**
+ *  @ingroup        OVERRIDE_PUBLIC_API
+ *  @{
+ */
+
 #ifdef DOXYGEN
 
     /**
@@ -53,5 +58,7 @@
     #define BASE_EXT_API    COM_UTIL_DLL_API(BASE_EXT)
 
 #endif /* DOXYGEN */
+
+/** @} */
 
 #endif /* OVERRIDE_EXPORT_H */

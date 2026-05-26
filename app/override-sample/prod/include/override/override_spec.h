@@ -19,6 +19,11 @@
 
 #include <override/override_export.h>
 
+/**
+ *  @ingroup        OVERRIDE_PUBLIC_API
+ *  @{
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -49,5 +54,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @} */
 
 #endif /* OVERRIDE_SPEC_H */

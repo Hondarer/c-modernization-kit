@@ -31,6 +31,7 @@ c-modernization-kit を利用した計算機能のサンプルです。
 
 - [calc (internal)](doxybook2_internal/Pages/README.md)
     - [ファイルとページの一覧](doxybook2_internal/index_files_and_pages.md)
+    - [カテゴリの一覧](doxybook2_internal/index_groups.md)
 
 ## 関連ドキュメント
 

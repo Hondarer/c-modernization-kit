@@ -14,6 +14,11 @@
 #ifndef BASE_EXPORT_H
 #define BASE_EXPORT_H
 
+/**
+ *  @ingroup        BASE_PUBLIC_API
+ *  @{
+ */
+
 #ifdef DOXYGEN
 
     /**
@@ -53,5 +58,7 @@
     #define BASE_API    COM_UTIL_DLL_API(BASE)
 
 #endif /* DOXYGEN */
+
+/** @} */
 
 #endif /* BASE_EXPORT_H */
