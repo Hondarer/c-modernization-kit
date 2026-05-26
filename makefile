@@ -67,7 +67,10 @@ clean :
 .PHONY: cleandocs
 cleandocs :
 	@if [ -d pages ]; then \
-		find pages/ -mindepth 1 -maxdepth 1 ! -name 'doxygen' -exec rm -rf {} +; \
+		find pages/ -mindepth 1 -maxdepth 1 ! -name 'doxygen' -print | while IFS= read -r path; do \
+			printf 'rm -rf "%s"\n' "$$path"; \
+			rm -rf "$$path"; \
+		done; \
 	fi
 	rm -f "$(DOCS_WARN_FILE)"
 
