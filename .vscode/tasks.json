@@ -277,6 +277,31 @@
                     "envFile": "${workspaceFolder}/.vscode/.env.linux"
                 }
             }
+        },
+        {
+            "label": "style text (dry-run)",
+            "type": "shell",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always", // Terminal パネルを必ず開く
+                "clear": true // 実行前に Terminal をクリア
+            },
+            "windows": {
+                "command": "python3 \"%DOCSFW_HOME%/bin/text_style_jp.py\" \"${file}\" --mode auto --dry-run",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.windows",
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "python3 \"$DOCSFW_HOME/bin/text_style_jp.py\" \"${file}\" --mode auto --dry-run",
+                "options": {
+                    "envFile": "${workspaceFolder}/.vscode/.env.linux"
+                }
+            }
         }
     ]
 }
