@@ -59,8 +59,10 @@
 make
 make test
 make doxy
+make cleandocs
 make docs
 make clean
+make skills
 ```
 
 ## ソースファイル作成時の注意点
