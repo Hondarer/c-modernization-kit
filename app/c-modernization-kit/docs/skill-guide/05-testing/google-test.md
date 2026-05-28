@@ -2,20 +2,20 @@
 
 ## 概要
 
-Google Test (gtest) は C/C++ 用の単体テストフレームワークです。テストケースを `TEST()` マクロで定義し、`EXPECT_EQ`・`ASSERT_EQ` などのアサーションマクロで期待値を検証します。Google Mock (gmock) は gtest と組み合わせて使うモックライブラリで、依存関係を持つコードのテストを可能にします。
+Google Test (gtest) は C/C++ 用の単体テスト フレームワークです。テスト ケースを `TEST()` マクロで定義し、`EXPECT_EQ`・`ASSERT_EQ` などのアサーション マクロで期待値を検証します。Google Mock (gmock) は gtest と組み合わせて使うモック ライブラリで、依存関係を持つコードのテストを可能にします。
 
-このリポジトリの `app/calc/test/` ディレクトリには Google Test を使用したテストコードが含まれています。`framework/testfw/` サブモジュール (論理名: `testfw`) が Google Test のラッパーと実行支援スクリプトを提供しており、`add`・`subtract`・`multiply`・`divide` の各関数と `calcHandler` に対するテストが実装されています。標準 C ライブラリ関数のモックも `app/calc/test/libsrc/mock_calcbase/` と `app/calc/test/libsrc/mock_calc/` で提供されています。
+このリポジトリの `app/calc/test/` ディレクトリには Google Test を使用したテスト コードが含まれています。`framework/testfw/` サブモジュール (論理名: `testfw`) が Google Test のラッパーと実行支援スクリプトを提供しており、`add`・`subtract`・`multiply`・`divide` の各関数と `calcHandler` に対するテストが実装されています。標準 C ライブラリ関数のモックも `app/calc/test/libsrc/mock_calcbase/` と `app/calc/test/libsrc/mock_calc/` で提供されています。
 
-C 言語のコードを Google Test でテストするには C++ でテストコードを書く必要があります。`framework/testfw/` の仕組みを理解することで、新たなテストケースを追加できるようになります。
+C 言語のコードを Google Test でテストするには C++ でテスト コードを書く必要があります。`framework/testfw/` の仕組みを理解することで、新たなテスト ケースを追加できるようになります。
 
 ## 習得目標
 
-- [ ] `TEST()`・`TEST_F()` マクロでテストケースを定義できる
+- [ ] `TEST()`・`TEST_F()` マクロでテスト ケースを定義できる
 - [ ] `EXPECT_EQ`・`EXPECT_NE`・`EXPECT_TRUE`・`EXPECT_FALSE` を使用できる
 - [ ] `ASSERT_*` と `EXPECT_*` の違いを説明できる
-- [ ] テストフィクスチャ(`::testing::Test` の派生クラス)を作成できる
+- [ ] テスト フィクスチャ (`::testing::Test` の派生クラス) を作成できる
 - [ ] テストを実行し、結果レポートを確認できる
-- [ ] `app/calc/test/src/libcalcbaseTest/addTest/` のテストコードを読み取れる
+- [ ] `app/calc/test/src/libcalcbaseTest/addTest/` のテスト コードを読み取れる
 
 ## 学習マテリアル
 
@@ -28,13 +28,13 @@ C 言語のコードを Google Test でテストするには C++ でテストコ
 
 ### チュートリアル・入門
 
-- [testfw README](../../../framework/testfw/README.md) - このリポジトリで使用するテストフレームワークの説明
+- [testfw README](../../../framework/testfw/README.md) - このリポジトリで使用するテスト フレームワークの説明
 
 ## このリポジトリとの関連
 
 ### 使用箇所 (具体的なファイル・コマンド)
 
-テストコードの構成:
+テスト コードの構成:
 
 ```text
 app/calc/test/
@@ -53,7 +53,7 @@ app/calc/test/
 |   +-- mock_calc/             # calc モック実装
 ```
 
-テストコードの基本パターン (C 関数のテスト例):
+テスト コードの基本パターン (C 関数のテスト例):
 
 ```cpp
 #include <testfw.h>
@@ -83,5 +83,5 @@ make test
 
 ### 関連ドキュメント
 
-- [テストチュートリアル](../../testing-tutorial.md) - このリポジトリでのテスト実践ガイド
-- [コードカバレッジ(スキルガイド)](code-coverage.md) - テストカバレッジの計測
+- [テスト チュートリアル](../../testing-tutorial.md) - このリポジトリでのテスト実践ガイド
+- [コード カバレッジ (スキル ガイド)](code-coverage.md) - テスト カバレッジの計測

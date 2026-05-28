@@ -2,9 +2,9 @@
 
 ## 概要
 
-GNU Make はビルドプロセスを自動化するツールです。`makefile` にビルドルールを記述することで、ソースファイルの変更を検出し必要な部分だけを再コンパイルできます。C プロジェクトのビルド自動化として長年広く使われています。
+GNU Make はビルド プロセスを自動化するツールです。`makefile` にビルド ルールを記述することで、ソース ファイルの変更を検出し必要な部分だけを再コンパイルできます。C プロジェクトのビルド自動化として長年広く使われています。
 
-このリポジトリは GNU Make をビルドシステムの中核として使用しています。トップレベルの `makefile` から `app/calc/prod/`・`app/calc.net/prod/`・`app/calc/test/` 配下の各 `makefile` を呼び出す階層構造になっており、`framework/makefw/` サブモジュールが提供するテンプレート makefile を各サブディレクトリから利用しています。`make` コマンド一つでライブラリ・実行ファイル・テストのビルドをまとめて実行できます。
+このリポジトリは GNU Make をビルド システムの中核として使用しています。トップレベルの `makefile` から `app/calc/prod/`・`app/calc.net/prod/`・`app/calc/test/` 配下の各 `makefile` を呼び出す階層構造になっており、`framework/makefw/` サブモジュールが提供するテンプレート makefile を各サブディレクトリから利用しています。`make` コマンド一つでライブラリ・実行ファイル・テストのビルドをまとめて実行できます。
 
 `framework/makefw/` サブモジュールは、パスと言語に基づいてテンプレートを自動選択する仕組みを持ち、Linux / Windows の差異を吸収します。`makepart.mk` ファイルによるカスタマイズも可能です。
 
@@ -13,7 +13,7 @@ GNU Make はビルドプロセスを自動化するツールです。`makefile` 
 - [ ] `makefile` のルール構文 (ターゲット・依存関係・レシピ) を理解できる
 - [ ] `make`・`make clean`・`make all` などの基本コマンドを実行できる
 - [ ] 変数定義 (`CC`・`CFLAGS`・`LDFLAGS` など) を読み取れる
-- [ ] パターンルール (`%.o: %.c`) の意味を理解できる
+- [ ] パターン ルール (`%.o: %.c`) の意味を理解できる
 - [ ] 自動変数 (`$@`・`$<`・`$^`) の意味を理解できる
 - [ ] `ifeq`・`ifdef` などの条件分岐を読み取れる
 - [ ] このリポジトリのトップレベル `makefile` から各サブ makefile の呼び出し構造を読み取れる
@@ -25,11 +25,11 @@ GNU Make はビルドプロセスを自動化するツールです。`makefile` 
 - [GNU Make マニュアル](https://www.gnu.org/software/make/manual/make.html) - GNU Make の公式マニュアル (英語)
   - [ルールの書き方](https://www.gnu.org/software/make/manual/make.html#Rules) - ターゲット・依存関係・レシピの基本
   - [変数の使い方](https://www.gnu.org/software/make/manual/make.html#Using-Variables) - 変数定義と展開
-  - [パターンルール](https://www.gnu.org/software/make/manual/make.html#Pattern-Rules) - `%.o: %.c` の説明
+  - [パターン ルール](https://www.gnu.org/software/make/manual/make.html#Pattern-Rules) - `%.o: %.c` の説明
 
 ### チュートリアル・入門
 
-- [サルでも分かるGit入門 - makefile 入門](https://www.backlog.com/ja/git-tutorial/) - 関連する日本語コンテンツ (参考)
+- [サルでも分かる Git 入門 - makefile 入門](https://www.backlog.com/ja/git-tutorial/) - 関連する日本語コンテンツ (参考)
 
 ## このリポジトリとの関連
 
@@ -62,11 +62,11 @@ make docs
 
 Table: makefile ファイル構成一覧
 
-カスタマイズ:
+カスタマイズ:  
 各サブディレクトリに `makepart.mk` を配置することで、テンプレートの動作をカスタマイズできます。
 
 ### 関連ドキュメント
 
 - [ビルド設計](../../build-design.md) - このリポジトリのビルド構成の詳細
 - [makepart.mk フックの設計](../../makepart-hooks-design.md) - `makepart.mk` カスタマイズ機構の詳細
-- [GCC / MSVC ツールチェイン (スキルガイド)](gcc-toolchain.md) - コンパイラとリンカのオプション
+- [GCC / MSVC ツール チェーン (スキル ガイド)](gcc-toolchain.md) - コンパイラとリンカーのオプション

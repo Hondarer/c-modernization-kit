@@ -21,10 +21,10 @@
 
 ### 同期の流れ
 
-`make -C app` のデフォルトビルド後には、`INCDIR` は `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` は `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の dry-run 比較が自動で走ります。  
+`make -C app` のデフォルト ビルド後には、`INCDIR` は `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` は `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の dry-run 比較が自動で走ります。  
 差異がある場合は `app/c_cpp_properties.warn` が生成され、既存の WARNING 表示と warn artifact 収集にそのまま乗ります。
 
-警告が出たら、ワークスペースルートで次を実行して `.vscode/c_cpp_properties.json` を更新します。
+警告が出たら、ワークスペース ルートで次を実行して `.vscode/c_cpp_properties.json` を更新します。
 
 ```bash
 bash framework/makefw/bin/sync_c_cpp_properties.sh --write
@@ -40,9 +40,9 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 
 ### c_cpp_properties.json を見直すタイミング
 
-- `INCDIR` を変更したとき
+- `INCDIR` を変更したとき  
   `makepart.mk`、`app/makepart.mk`、または `app/<name>` 配下の任意の `makepart.mk`
-- `DEFINES` を変更したとき
+- `DEFINES` を変更したとき  
   `makepart.mk`、`app/makepart.mk`、または `app/<name>/makepart.mk`
 - C/C++ app を追加・削除・改名したとき
 - `app/c_cpp_properties.warn` が出たとき
@@ -112,10 +112,10 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 `launch.json` と `tasks.json` が共通で参照する環境変数定義ファイルです。  
 新しいモジュールを追加する際は、これらのファイルに PATH を追加します。
 
-`MAKEFW_HOME`、`DOXYFW_HOME`、`TESTFW_HOME`、`DOCSFW_HOME` もここで定義します。
-`MAKEFW_HOME` は make テンプレート群 (`framework/makefw`) の場所を表し、`make` / `make test` / `make doxy` などの実行で必須です。未設定だと `MAKEFW_HOME is required. Export MAKEFW_HOME before running make` で停止します。
-`DOXYFW_HOME` は Doxygen 生成フレームワークの場所を表し、`make doxy` はこの値を使って doxyfw を呼び出します。
-`TESTFW_HOME` はテストフレームワークの場所を表し、`make` / `make test` はこの値を使って testfw をビルドし、テスト実行スクリプトやライブラリを参照します。
+`MAKEFW_HOME`、`DOXYFW_HOME`、`TESTFW_HOME`、`DOCSFW_HOME` もここで定義します。  
+`MAKEFW_HOME` は make テンプレート群 (`framework/makefw`) の場所を表し、`make` / `make test` / `make doxy` などの実行で必須です。未設定だと `MAKEFW_HOME is required. Export MAKEFW_HOME before running make` で停止します。  
+`DOXYFW_HOME` は Doxygen 生成フレームワークの場所を表し、`make doxy` はこの値を使って doxyfw を呼び出します。  
+`TESTFW_HOME` はテスト フレームワークの場所を表し、`make` / `make test` はこの値を使って testfw をビルドし、テスト実行スクリプトやライブラリを参照します。  
 `DOCSFW_HOME` は Markdown 発行フレームワークの場所を表し、VS Code の Markdown 発行タスクと `make docs` が参照します。
 
 `settings.json` の `terminal.integrated.env.*` は `envFile` をサポートしないため、ターミナル用の PATH は別途 `settings.json` にも追加が必要です。
@@ -159,8 +159,8 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 | 対象 | ファイル | 何を更新するか |
 |---|---|---|
 | 統合ターミナル | `.vscode/settings.json` | Linux の `LD_LIBRARY_PATH` / `PATH`、Windows の `PATH` |
-| VS Code テストタスク / デバッグ (Linux) | `.vscode/.env.linux` | `PATH` と `LD_LIBRARY_PATH` |
-| VS Code テストタスク / デバッグ (Windows) | `.vscode/.env.windows` | `PATH` |
+| VS Code テスト タスク / デバッグ (Linux) | `.vscode/.env.linux` | `PATH` と `LD_LIBRARY_PATH` |
+| VS Code テスト タスク / デバッグ (Windows) | `.vscode/.env.windows` | `PATH` |
 | GitHub Actions Linux | `.github/workflows/ci.yml` | `$GITHUB_ENV` と `$GITHUB_PATH` |
 | GitHub Actions Windows | `.github/workflows/ci.yml` | `$GITHUB_PATH` に追加するパス配列 |
 | Jenkins 実装 | `.jenkins/inner-build.sh` | `LD_LIBRARY_PATH`、`PATH`、成果物収集パス |
@@ -174,13 +174,13 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 | VS Code タスク / デバッグ | `.vscode/.env.linux`, `.vscode/.env.windows` | `MAKEFW_HOME`, `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` |
 | VS Code 統合ターミナル | `.vscode/settings.json` | `MAKEFW_HOME`, `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` |
 | GitHub Actions 全ジョブ | `.github/workflows/ci.yml` | workflow-wide `env` の `MAKEFW_HOME`, `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` |
-| Jenkins コンテナ内ビルド | `.jenkins/inner-build.sh` | `/workspace` 基準の framework home 変数。特に `MAKEFW_HOME` は `make` 実行で必須 |
+| Jenkins コンテナー内ビルド | `.jenkins/inner-build.sh` | `/workspace` 基準の framework home 変数。特に `MAKEFW_HOME` は `make` 実行で必須 |
 | Jenkins 説明 | `.jenkins/README.md`, `docs/c-modernization-kit/skill-guide/07-ci-cd/jenkins.md` | Jenkins 上の既定値と上書き方法 |
 | CI 詳細説明 | `docs/c-modernization-kit/github-actions.md` | GitHub Actions 上の既定値と `publish-docs` での利用 |
 
 ## 具体的な更新手順
 
-### 1. 追加・削除・改名の対象を確認する
+### 追加・削除・改名の対象を確認する
 
 まず、対象アプリに `app/<name>/prod/lib` と `app/<name>/prod/bin` があるかを確認します。
 
@@ -192,10 +192,10 @@ find app -maxdepth 3 \( -path '*/prod/lib' -o -path '*/prod/bin' \) | sort
 
 - `makepart.mk` の `LIBS += ...`
 - `LIBSDIR += ...`
-- テストコードや README の実行例
-- `.NET` 側の P/Invoke やネイティブライブラリ読み込み
+- テスト コードや README の実行例
+- `.NET` 側の P/Invoke やネイティブ ライブラリ読み込み
 
-### 2. VS Code の環境変数ファイルを更新する
+### VS Code の環境変数ファイルを更新する
 
 #### .vscode/.env.linux
 
@@ -220,11 +220,11 @@ Windows 向けの `PATH` を更新します。
 - Windows
   - `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
 
-### 3. GitHub Actions を更新する
+### GitHub Actions を更新する
 
 `ci.yml` の Linux / Windows で更新箇所が異なります。
 
-`MAKEFW_HOME` / `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME` は Linux / Windows / ドキュメント生成ジョブで共通に使うため、workflow-wide `env` で設定します。
+`MAKEFW_HOME` / `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME` は Linux / Windows / ドキュメント生成ジョブで共通に使うため、workflow-wide `env` で設定します。  
 `MAKEFW_HOME` は `framework/makefw`、`DOCSFW_HOME` は `framework/docsfw`、`DOXYFW_HOME` は `framework/doxyfw`、`TESTFW_HOME` は `framework/testfw` を指します。
 
 #### Linux
@@ -237,7 +237,7 @@ Windows 向けの `PATH` を更新します。
 - `PATH` に追加するパス配列へ `lib` / `bin` を入れる
 - `com_util` のように `lib` だけ必要なアプリは `lib` のみ追加する
 
-### 4. Jenkins を更新する
+### Jenkins を更新する
 
 Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更新します。
 
@@ -252,9 +252,9 @@ Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更
 - `.jenkins/README.md`
   - 実装に合わせた説明
 
-### 5. 個別 README の実行例を更新する
+### 個別 README の実行例を更新する
 
-利用者向けの README に、古い `app/<name>/prod/...` パスや手動 `LD_LIBRARY_PATH` 設定例が残っていないかを確認します。
+利用者向けの README に、古い `app/<name>/prod/...` パスや手動 `LD_LIBRARY_PATH` 設定例が残っていないかを確認します。  
 特に、アプリ固有 README のトラブルシュート節は見落としやすい箇所です。
 
 ## 再チェック用チェックリスト

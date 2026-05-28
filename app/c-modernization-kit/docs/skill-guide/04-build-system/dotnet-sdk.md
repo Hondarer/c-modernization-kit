@@ -2,13 +2,13 @@
 
 ## 概要
 
-.NET SDK は、C# などの言語でアプリケーションやライブラリを開発するためのツールセットです。`dotnet` コマンドによりビルド・テスト・公開などの操作を行います。Visual Studio がなくてもコマンドラインを用いて開発できます。
+.NET SDK は、C# などの言語でアプリケーションやライブラリを開発するためのツールセットです。`dotnet` コマンドによりビルド・テスト・公開などの操作を行います。Visual Studio がなくてもコマンド ラインを用いて開発できます。
 
-現代の .NET (Windows 専用であった .NET Framework とは異なる統合プラットフォーム) は、クロスプラットフォームを前提として設計されています。同一のソースコードから、Linux / Windows / macOS 向けに同等の機能を持つ実行体を生成できる点が大きな特徴です。これにより、OS ごとの差異を最小限に抑えた開発・ビルド・テストが可能になります。
+現代の .NET (Windows 専用であった .NET Framework とは異なる統合プラットフォーム) は、クロスプラットフォームを前提として設計されています。同一のソース コードから、Linux / Windows / macOS 向けに同等の機能を持つ実行体を生成できる点が大きな特徴です。これにより、OS ごとの差異を最小限に抑えた開発・ビルド・テストが可能になります。
 
-このリポジトリの `app/calc.net/prod/` は C ライブラリ (`libcalc`) を .NET から利用するためのラッパーライブラリとサンプルアプリケーションです。`CalcLib` が C ライブラリへの .NET インターフェースを提供し、`CalcApp` がそれを利用するサンプルアプリです。ビルドは `framework/makefw/` が提供する makefile テンプレートで `dotnet build` コマンドとして実行され、Linux と Windows で同一機能を提供します。
+このリポジトリの `app/calc.net/prod/` は C ライブラリ (`libcalc`) を .NET から利用するためのラッパーライブラリとサンプル アプリケーションです。`CalcLib` が C ライブラリへの .NET インターフェースを提供し、`CalcApp` がそれを利用するサンプル アプリです。ビルドは `framework/makefw/` が提供する makefile テンプレートで `dotnet build` コマンドとして実行され、Linux と Windows で同一機能を提供します。
 
-`Directory.Build.props` (リポジトリルートに配置) により、複数の .NET プロジェクトに共通のビルド設定を適用しています。また、`RelWithDebInfo` (Release with Debug Information) ビルド設定を使用した最適化とデバッグ情報の共存についても理解が必要です。
+`Directory.Build.props` (リポジトリ ルートに配置) により、複数の .NET プロジェクトに共通のビルド設定を適用しています。また、`RelWithDebInfo` (Release with Debug Information) ビルド設定を使用した最適化とデバッグ情報の共存についても理解が必要です。
 
 なお、.NET に関する内容は、本リポジトリにおいて C と .NET の相互運用 (interop) を理解するための学習資料として位置付けています。C のみを用いた開発を対象とする場合、これらの章は参考情報として扱って問題ありません。
 
@@ -25,8 +25,8 @@
 
 ### 公式ドキュメント
 
-- [dotnet コマンドリファレンス](https://learn.microsoft.com/ja-jp/dotnet/core/tools/) - `dotnet build`・`dotnet run`・`dotnet test` などのリファレンス (日本語)
-- [Directory.Build.props の使用](https://learn.microsoft.com/ja-jp/visualstudio/msbuild/customize-by-directory) - 共通ビルドプロパティのカスタマイズ (日本語)
+- [dotnet コマンド リファレンス](https://learn.microsoft.com/ja-jp/dotnet/core/tools/) - `dotnet build`・`dotnet run`・`dotnet test` などのリファレンス (日本語)
+- [Directory.Build.props の使用](https://learn.microsoft.com/ja-jp/visualstudio/msbuild/customize-by-directory) - 共通ビルド プロパティのカスタマイズ (日本語)
 - [.NET Standard の概要](https://learn.microsoft.com/ja-jp/dotnet/standard/net-standard) - .NET バージョンと互換性 (日本語)
 
 ### チュートリアル・入門
@@ -58,7 +58,7 @@ app/calc.net/prod/
 </Project>
 ```
 
-基本的なビルドコマンド:
+基本的なビルド コマンド:
 
 ```bash
 # CalcLib をビルド
@@ -74,5 +74,5 @@ dotnet run --project app/calc.net/prod/src/CalcApp/CalcApp.csproj
 ### 関連ドキュメント
 
 - [.NET RelWithDebInfo ビルド](../../dotnet-relwithdebinfo.md) - RelWithDebInfo 設定の詳細
-- [C# / P/Invoke (スキルガイド)](../08-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す実装
-- [.NET テスト (スキルガイド)](../05-testing/dotnet-testing.md) - xUnit による .NET テスト
+- [C# / P/Invoke (スキル ガイド)](../08-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す実装
+- [.NET テスト (スキル ガイド)](../05-testing/dotnet-testing.md) - xUnit による .NET テスト

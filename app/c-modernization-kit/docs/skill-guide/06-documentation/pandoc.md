@@ -2,30 +2,30 @@
 
 ## 概要
 
-Pandoc は「ドキュメント変換のスイスアーミーナイフ」と呼ばれる汎用ドキュメント変換ツールです。Markdown・HTML・LaTeX・docx・PDF など多数のフォーマット間で変換ができます。カスタムテンプレートやフィルタ (Lua スクリプト) を使用して出力をカスタマイズすることも可能です。
+Pandoc は「ドキュメント変換のスイス アーミーナイフ」と呼ばれる汎用ドキュメント変換ツールです。Markdown・HTML・LaTeX・docx・PDF など多数のフォーマット間で変換ができます。カスタム テンプレートやフィルター (Lua スクリプト) を使用して出力をカスタマイズすることも可能です。
 
 このリポジトリでは `docsfw` サブモジュールを `framework/docsfw/` に配置し、Pandoc を使用した Markdown から HTML/docx への変換フレームワークとして利用しています。Doxygen → Doxybook2 → Markdown という流れで生成された API ドキュメントを、Pandoc を使って最終的な HTML や Word ドキュメントに変換します。PlantUML 図の統合や日本語ドキュメントの対応も含まれています。
 
-`framework/docsfw/bin/` のスクリプトが Pandoc の実行をラップしており、`framework/docsfw/styles/` のカスタムスタイルが適用されます。
+`framework/docsfw/bin/` のスクリプトが Pandoc の実行をラップしており、`framework/docsfw/styles/` のカスタム スタイルが適用されます。
 
 ## 習得目標
 
 - [ ] `pandoc input.md -o output.html` で基本的な変換ができる
-- [ ] `--template` オプションでカスタムテンプレートを適用できる
-- [ ] `--css` オプションでスタイルシートを指定できる
+- [ ] `--template` オプションでカスタム テンプレートを適用できる
+- [ ] `--css` オプションでスタイル シートを指定できる
 - [ ] `pandoc input.md -o output.docx` で Word ドキュメントを生成できる
-- [ ] `--lua-filter` オプションで Lua フィルタを適用できる
-- [ ] Pandoc Markdown の拡張記法 (メタデータブロックなど) を理解できる
+- [ ] `--lua-filter` オプションで Lua フィルターを適用できる
+- [ ] Pandoc Markdown の拡張記法 (メタデータ ブロックなど) を理解できる
 
 ## 学習マテリアル
 
 ### 公式ドキュメント
 
-- [Pandoc 公式サイト](https://pandoc.org/) - Pandoc のホームページ (英語)
-- [Pandoc ユーザーガイド](https://pandoc.org/MANUAL.html) - 完全なコマンドラインリファレンス (英語)
+- [Pandoc 公式サイト](https://pandoc.org/) - Pandoc のホーム ページ (英語)
+- [Pandoc ユーザーガイド](https://pandoc.org/MANUAL.html) - 完全なコマンド ライン リファレンス (英語)
   - [オプション一覧](https://pandoc.org/MANUAL.html#options) - 全オプションの説明
-  - [テンプレート](https://pandoc.org/MANUAL.html#templates) - カスタムテンプレートの書き方
-  - [Lua フィルタ](https://pandoc.org/MANUAL.html#lua-filters) - 変換処理のカスタマイズ
+  - [テンプレート](https://pandoc.org/MANUAL.html#templates) - カスタム テンプレートの書き方
+  - [Lua フィルター](https://pandoc.org/MANUAL.html#lua-filters) - 変換処理のカスタマイズ
 
 ## このリポジトリとの関連
 
@@ -69,6 +69,6 @@ pandoc docs/testing-tutorial.md \
 
 ### 関連ドキュメント
 
-- [Markdown(スキルガイド)](markdown.md) - Pandoc の入力となる Markdown の基礎
-- [Doxygen(スキルガイド)](doxygen.md) - Pandoc の前段となるドキュメント生成
-- [PlantUML(スキルガイド)](plantuml.md) - Pandoc と統合して使う図表ツール
+- [Markdown (スキル ガイド)](markdown.md) - Pandoc の入力となる Markdown の基礎
+- [Doxygen (スキル ガイド)](doxygen.md) - Pandoc の前段となるドキュメント生成
+- [PlantUML (スキル ガイド)](plantuml.md) - Pandoc と統合して使う図表ツール

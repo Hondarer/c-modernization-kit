@@ -2,11 +2,11 @@
 
 ## 概要
 
-本ドキュメントは、`framework/makefw/makefiles/makemain.mk` および関連テンプレートファイルに追加する、フック機能の説明ドキュメントです。
+本ドキュメントは、`framework/makefw/makefiles/makemain.mk` および関連テンプレート ファイルに追加する、フック機能の説明ドキュメントです。
 
 ### 目的
 
-各ディレクトリの `makelocal.mk` で定義されたカスタムターゲットを、ビルドプロセスの適切なタイミングで自動的に呼び出す仕組みを提供します。
+各ディレクトリの `makelocal.mk` で定義されたカスタム ターゲットを、ビルド プロセスの適切なタイミングで自動的に呼び出す仕組みを提供します。
 
 ### 対象フック
 
@@ -41,7 +41,7 @@ HAS_INSTALL := $(shell grep -qE '^install[[:space:]]*:' $(MAKELOCAL_MK) 2>/dev/n
 
 ### フック呼び出しの条件分岐
 
-テンプレートファイル内で、検出結果に基づいて条件分岐します:
+テンプレート ファイル内で、検出結果に基づいて条件分岐します:
 
 ```makefile
 # 自動検出された HAS_* 変数を使用
@@ -55,7 +55,7 @@ endif
 
 ### install ターゲットのデフォルト定義
 
-`install` ターゲットは、検出されない場合に無処理のデフォルトターゲットとして定義します:
+`install` ターゲットは、検出されない場合に無処理のデフォルト ターゲットとして定義します:
 
 ```makefile
 ifdef HAS_INSTALL
@@ -71,7 +71,7 @@ endif
 
 フック機能は grep による自動検出を採用しているため、ユーザーは `makelocal.mk` にターゲットを定義するだけで有効になります。
 
-### 例1: ビルド前にコード生成を行う
+### 例 1: ビルド前にコード生成を行う
 
 ```makefile
 # app/myapp/prod/libsrc/generated/makelocal.mk
@@ -82,7 +82,7 @@ pre-build:
 	python $(WORKSPACE_DIR)/tools/codegen.py
 ```
 
-### 例2: ビルド後にファイルをコピーする
+### 例 2: ビルド後にファイルをコピーする
 
 ```makefile
 # app/myapp/prod/src/myapp/makelocal.mk
@@ -93,7 +93,7 @@ post-build:
 	cp -r $(WORKSPACE_DIR)/config/* $(OUTPUT_DIR)/
 ```
 
-### 例3: install ターゲットを定義する
+### 例 3: install ターゲットを定義する
 
 ```makefile
 # app/myapp/prod/src/myapp/makelocal.mk
@@ -107,7 +107,7 @@ install: $(OUTPUT_DIR)/$(TARGET)
 	cp $(OUTPUT_DIR)/$(TARGET) $(INSTALL_DIR)/
 ```
 
-### 例4: 複数のフックを組み合わせる
+### 例 4: 複数のフックを組み合わせる
 
 ```makefile
 # app/myapp/prod/src/myapp/makelocal.mk
@@ -127,9 +127,9 @@ install: $(OUTPUT_DIR)/$(TARGET)
 	cp $(OUTPUT_DIR)/$(TARGET) /usr/local/bin/
 ```
 
-### 例5: エラーの無視
+### 例 5: エラーの無視
 
-フックターゲット内でエラーが発生した場合、ビルド全体が停止します。エラーを無視したい場合は:
+フック ターゲット内でエラーが発生した場合、ビルド全体が停止します。エラーを無視したい場合は:
 
 ```makefile
 .PHONY: post-build

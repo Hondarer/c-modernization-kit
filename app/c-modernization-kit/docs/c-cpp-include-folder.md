@@ -1,10 +1,10 @@
-# include フォルダについて
+# include フォルダーについて
 
-C/C++ のヘッダーファイルについての注意事項を以下に示します。
+C/C++ のヘッダー ファイルについての注意事項を以下に示します。
 
 ## 正本の置き場所
 
-新しい include フォルダを追加したとき、最初に更新するのは `.vscode/c_cpp_properties.json` ではありません。  
+新しい include フォルダーを追加したとき、最初に更新するのは `.vscode/c_cpp_properties.json` ではありません。  
 `makepart.mk`、`app/makepart.mk`、各 C/C++ app の `app/<name>` 配下にあるすべての `makepart.mk` にある `INCDIR` の合成結果が正本です。
 
 ```makefile
@@ -14,16 +14,16 @@ INCDIR += \
     $(MYAPP_DIR)/../com_util/prod/include
 ```
 
-`app/<name>/` 配下の `makepart.mk` では `$(MYAPP_DIR)` を使用します。
-自 app 内のパスは `$(MYAPP_DIR)/...`、他 app のパスは `$(MYAPP_DIR)/../{otherapp}/...` と記述します。
+`app/<name>/` 配下の `makepart.mk` では `$(MYAPP_DIR)` を使用します。  
+自 app 内のパスは `$(MYAPP_DIR)/...`、他 app のパスは `$(MYAPP_DIR)/../{otherapp}/...` と記述します。  
 `$(MYAPP_DIR)` の詳細は [makeparts.md](../framework/makefw/docs/makeparts.md) を参照してください。
 
-`app/makepart.mk` (app/ 直下) やワークスペースルートの `makepart.mk` では、従来どおり `$(WORKSPACE_DIR)` を使用します。
+`app/makepart.mk` (app/ 直下) やワークスペース ルートの `makepart.mk` では、従来どおり `$(WORKSPACE_DIR)` を使用します。
 
 個別ターゲットだけが必要な追加 include は、対象ディレクトリ配下の `makepart.mk` で上乗せします。  
 この追加分も `sync_c_cpp_properties.sh` の同期対象に含まれます。
 
-`DEFINES` も同じ合成結果が正本ですが、`.vscode/c_cpp_properties.json` には同期時の特殊条件があります。
+`DEFINES` も同じ合成結果が正本ですが、`.vscode/c_cpp_properties.json` には同期時の特殊条件があります。  
 ただし `DEFINES` の同期対象は `makepart.mk`、`app/makepart.mk`、`app/<name>/makepart.mk` までです。
 
 - `_DEFAULT_SOURCE` のように実ビルドでも必要な define は `makepart.mk` / `app/makepart.mk` に置く
@@ -33,7 +33,7 @@ INCDIR += \
 ## VS Code への反映方法
 
 `.vscode/c_cpp_properties.json` は派生物です。  
-`INCDIR` を更新したら、ワークスペースルートで次を実行して反映します。  
+`INCDIR` を更新したら、ワークスペース ルートで次を実行して反映します。  
 対象は `makepart.mk`、`app/makepart.mk`、`app/<name>` 配下の任意の `makepart.mk` です。
 
 ```bash
@@ -46,13 +46,13 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --write
 bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 ```
 
-`make -C app` のデフォルトビルド後にも dry-run が走り、差異があれば `app/c_cpp_properties.warn` に出ます。
+`make -C app` のデフォルト ビルド後にも dry-run が走り、差異があれば `app/c_cpp_properties.warn` に出ます。
 
 ### パスが設定されていない場合
 
 インテリセンスが正しく動作せず、以下のような問題が発生します。
 
-- ヘッダーファイルが見つからないエラー表示
+- ヘッダー ファイルが見つからないエラー表示
 - 関数や変数の定義へジャンプできない
 - コード補完が機能しない
 - 型情報が表示されない

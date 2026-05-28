@@ -2,9 +2,9 @@
 
 ## 概要
 
-C# (シーシャープ) は .NET 環境で動作するオブジェクト指向言語です。型安全で例外処理が充実しており、Java に似た構文を持ちます。P/Invoke (Platform Invocation Services) は .NET アプリケーションから C/C++ などで書かれたネイティブコード (DLL) を呼び出す仕組みです。
+C# (シーシャープ) は .NET 環境で動作するオブジェクト指向言語です。型安全で例外処理が充実しており、Java に似た構文を持ちます。P/Invoke (Platform Invocation Services) は .NET アプリケーションから C/C++ などで書かれたネイティブ コード (DLL) を呼び出す仕組みです。
 
-このリポジトリの `app/calc.net/prod/` は C ライブラリ(`libcalc`)を .NET から利用するための実装例です。`app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs` で `[DllImport]` 属性を使った P/Invoke 定義を行い、`CalcLibrary.cs` がこれをラップして .NET らしいインターフェース (例外・型安全・`CalcResult` クラス) を提供します。`CalcApp` がこのライブラリを使うサンプルアプリです。
+このリポジトリの `app/calc.net/prod/` は C ライブラリ (`libcalc`) を .NET から利用するための実装例です。`app/calc.net/prod/libsrc/CalcLib/Internal/NativeMethods.cs` で `[DllImport]` 属性を使った P/Invoke 定義を行い、`CalcLibrary.cs` がこれをラップして .NET らしいインターフェース (例外・型安全・`CalcResult` クラス) を提供します。`CalcApp` がこのライブラリを使うサンプル アプリです。
 
 C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて P/Invoke の仕組みを習得することが重要です。
 
@@ -12,20 +12,20 @@ C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて
 
 - [ ] C# の基本構文 (クラス・メソッド・プロパティ・例外処理) を理解できる
 - [ ] `[DllImport]` 属性の基本的な書き方を理解できる
-- [ ] C の型と C# の型の対応(`int` → `int`・`char*` → `string`・ポインタ → `ref`/`out`)を理解できる
+- [ ] C の型と C# の型の対応 (`int` → `int`・`char*` → `string`・ポインタ → `ref`/`out`) を理解できる
 - [ ] `NativeMethods.cs` の P/Invoke 定義を読み取れる
 - [ ] `CalcLibrary.cs` のラッパー実装を読み取れる
 - [ ] `CalcException` のような C# カスタム例外を理解できる
-- [ ] `ModuleInitializer.cs` によるネイティブライブラリのロード設定を理解できる
+- [ ] `ModuleInitializer.cs` によるネイティブ ライブラリのロード設定を理解できる
 
 ## 学習マテリアル
 
 ### 公式ドキュメント
 
-- [C# ドキュメント(Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/csharp/) - C# の公式ドキュメント (日本語)
+- [C# ドキュメント (Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/csharp/) - C# の公式ドキュメント (日本語)
   - [C# 入門](https://learn.microsoft.com/ja-jp/dotnet/csharp/tour-of-csharp/) - C# 言語のツアー
   - [例外処理](https://learn.microsoft.com/ja-jp/dotnet/csharp/fundamentals/exceptions/) - try/catch の使い方
-- [P/Invoke の概要(Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/pinvoke) - P/Invoke の詳細説明 (日本語)
+- [P/Invoke の概要 (Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/pinvoke) - P/Invoke の詳細説明 (日本語)
   - [型のマーシャリング](https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/type-marshalling) - C と C# の型変換
 - [.NET Standard の概要](https://learn.microsoft.com/ja-jp/dotnet/standard/net-standard) - .NET バージョン互換性 (日本語)
 
@@ -70,7 +70,7 @@ public class CalcLibrary
 }
 ```
 
-ネイティブライブラリのロード設定 (`app/calc.net/prod/src/CalcApp/ModuleInitializer.cs`):
+ネイティブ ライブラリのロード設定 (`app/calc.net/prod/src/CalcApp/ModuleInitializer.cs`):
 
 ```csharp
 using System.Runtime.CompilerServices;
@@ -107,6 +107,6 @@ app/calc.net/prod/libsrc/CalcLib/
 ### 関連ドキュメント
 
 - [.NET RelWithDebInfo ビルド](../../dotnet-relwithdebinfo.md) - .NET ビルド設定の詳細
-- [.NET SDK(スキルガイド)](../04-build-system/dotnet-sdk.md) - dotnet コマンドとプロジェクト構造
-- [.NET テスト(スキルガイド)](../05-testing/dotnet-testing.md) - .NET ラッパーの単体テスト
-- [C ライブラリの種類(スキルガイド)](../03-c-language/c-library-types.md) - P/Invoke で呼び出す DLL の仕組み
+- [.NET SDK (スキル ガイド)](../04-build-system/dotnet-sdk.md) - dotnet コマンドとプロジェクト構造
+- [.NET テスト (スキル ガイド)](../05-testing/dotnet-testing.md) - .NET ラッパーの単体テスト
+- [C ライブラリの種類 (スキル ガイド)](../03-c-language/c-library-types.md) - P/Invoke で呼び出す DLL の仕組み

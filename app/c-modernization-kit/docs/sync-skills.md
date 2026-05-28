@@ -4,7 +4,7 @@
 
 この文書は、`make skills` の導入と、それを GitHub Actions / Jenkins のドキュメント生成へ組み込んだ変更内容を説明します。
 
-今回の変更の主目的は、サブモジュール配下と非サブモジュール app 配下にある skill をプロジェクトルートへ集約し、Codex、Claude など複数の AI エージェントから同じ skill を確実に呼び出せるようにすることです。  
+今回の変更の主目的は、サブモジュール配下と非サブモジュール app 配下にある skill をプロジェクト ルートへ集約し、Codex、Claude Code など複数の AI エージェントから同じ skill を確実に呼び出せるようにすることです。
 
 対象となる主なファイル:
 
@@ -127,7 +127,7 @@ GitHub Actions では `publish-docs` ジョブのドキュメント生成前に 
   run: make doxy && make docs
 ```
 
-これにより、CI 上でも `.agents/skills` と `.claude/skills` が最新状態になってから Markdown 発行が走ります。  
+これにより、CI 上でも `.agents/skills` と `.claude/skills` が最新状態になってから Markdown 発行が走ります。
 
 ## Jenkins への反映
 

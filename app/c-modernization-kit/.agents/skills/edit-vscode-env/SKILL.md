@@ -12,7 +12,7 @@ when_to_use: |
 
 # VS Code 環境変数の編集
 
-このスキルは `.vscode/` 配下の環境変数設定を対象にします。
+このスキルは `.vscode/` 配下の環境変数設定を対象にします。  
 詳細なドキュメントは `docs/vscode-variables.md` を参照してください。
 
 ## 構造
@@ -27,7 +27,7 @@ VS Code の環境変数設定は envFile 方式で一元管理しています。
 | `.vscode/launch.json` | デバッグ構成 (envFile 参照) | 対応 |
 | `.vscode/tasks.json` | タスク (envFile 参照) | 対応 |
 
-`launch.json` と `tasks.json` は `.env.linux` / `.env.windows` を参照するため、直接編集は不要です。
+`launch.json` と `tasks.json` は `.env.linux` / `.env.windows` を参照するため、直接編集は不要です。  
 `settings.json` の `terminal.integrated.env.*` は envFile をサポートしないため、別途編集が必要です。
 
 ## 新しいモジュール追加時の編集箇所
@@ -73,7 +73,7 @@ PATH=値1:値2:${env:PATH}
 LD_LIBRARY_PATH=値1:値2:${env:LD_LIBRARY_PATH}
 ```
 
-- `${workspaceFolder}` でワークスペースルートを参照
+- `${workspaceFolder}` でワークスペース ルートを参照
 - `${env:PATH}` で既存の PATH を末尾に追加
 - Linux は `:` 区切り、パス区切りは `/`
 - Windows は `;` 区切り、パス区切りは `\`

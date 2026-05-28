@@ -2,7 +2,7 @@
 
 ## 概要
 
-xUnit.net は .NET 向けの単体テストフレームワークです。`[Fact]` 属性でテストメソッドを定義し、`Assert` クラスのメソッドで期待値を検証します。`dotnet test` コマンドでテストを実行でき、GitHub Actions などの CI 環境とも容易に統合できます。
+xUnit.net は .NET 向けの単体テスト フレームワークです。`[Fact]` 属性でテスト メソッドを定義し、`Assert` クラスのメソッドで期待値を検証します。`dotnet test` コマンドでテストを実行でき、GitHub Actions などの CI 環境とも容易に統合できます。
 
 このリポジトリの `.NET` プロジェクト (`app/calc.net/prod/`) に対するテストは、xUnit を使用して実装します。`CalcLib` が内部で呼び出す C ライブラリ (P/Invoke 経由) の動作を .NET レイヤーから検証することが目的です。
 
@@ -10,29 +10,29 @@ xUnit.net は .NET 向けの単体テストフレームワークです。`[Fact]
 
 ## 習得目標
 
-- [ ] xUnit のテストプロジェクト (`.csproj`) を作成できる
-- [ ] `[Fact]` でテストメソッドを定義できる
+- [ ] xUnit のテスト プロジェクト (`.csproj`) を作成できる
+- [ ] `[Fact]` でテスト メソッドを定義できる
 - [ ] `Assert.Equal`・`Assert.True`・`Assert.Throws` を使用できる
-- [ ] `[Theory]` と `[InlineData]` でパラメータ化テストを書ける
+- [ ] `[Theory]` と `[InlineData]` でパラメーター化テストを書ける
 - [ ] `dotnet test` でテストを実行し結果を確認できる
 
 ## 学習マテリアル
 
 ### 公式ドキュメント
 
-- [dotnet test による単体テスト(Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/core/testing/unit-testing-with-dotnet-test) - xUnit と dotnet test の入門 (日本語)
-- [xUnit 公式ドキュメント](https://xunit.net/docs/getting-started/netcore/cmdline) - xUnit のスタートガイド (英語)
-- [dotnet test コマンドリファレンス](https://learn.microsoft.com/ja-jp/dotnet/core/tools/dotnet-test) - テスト実行コマンドの詳細 (日本語)
+- [dotnet test による単体テスト (Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/core/testing/unit-testing-with-dotnet-test) - xUnit と dotnet test の入門 (日本語)
+- [xUnit 公式ドキュメント](https://xunit.net/docs/getting-started/netcore/cmdline) - xUnit のスタート ガイド (英語)
+- [dotnet test コマンド リファレンス](https://learn.microsoft.com/ja-jp/dotnet/core/tools/dotnet-test) - テスト実行コマンドの詳細 (日本語)
 
 ### 日本語コンテンツ
 
-- [.NET テストのドキュメント(Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/core/testing/) - .NET テスト全般の日本語ドキュメント
+- [.NET テストのドキュメント (Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/core/testing/) - .NET テスト全般の日本語ドキュメント
 
 ## このリポジトリとの関連
 
 ### 使用箇所 (具体的なファイル・コマンド)
 
-CalcLib のテストコード例:
+CalcLib のテスト コード例:
 
 ```csharp
 using Xunit;
@@ -75,7 +75,7 @@ public class CalcLibraryTests
 dotnet test app/calc.net/prod/test/CalcLibTest/CalcLibTest.csproj
 ```
 
-`.csproj` でのテストプロジェクト設定:
+`.csproj` でのテスト プロジェクト設定:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -97,5 +97,5 @@ dotnet test app/calc.net/prod/test/CalcLibTest/CalcLibTest.csproj
 ### 関連ドキュメント
 
 - [.NET テスト結果設計](../../dotnet-test-results-design.md) - このリポジトリのテスト結果管理
-- [.NET SDK(スキルガイド)](../04-build-system/dotnet-sdk.md) - dotnet コマンドの基礎
-- [C# / P/Invoke(スキルガイド)](../08-dev-environment/dotnet-csharp.md) - テスト対象の実装詳細
+- [.NET SDK (スキル ガイド)](../04-build-system/dotnet-sdk.md) - dotnet コマンドの基礎
+- [C# / P/Invoke (スキル ガイド)](../08-dev-environment/dotnet-csharp.md) - テスト対象の実装詳細

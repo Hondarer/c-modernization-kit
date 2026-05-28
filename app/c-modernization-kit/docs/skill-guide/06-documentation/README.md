@@ -1,20 +1,20 @@
 # ドキュメント自動化 (ステップ 4 - 品質向上)
 
-Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソースコードから高品質なドキュメントを自動生成する方法を学びます。
+Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソース コードから高品質なドキュメントを自動生成する方法を学びます。  
 ドキュメントをコードと同じリポジトリで管理することで、常に最新の状態を維持できます。
 
-## スキルガイド一覧
+## スキル ガイド一覧
 
-| スキルガイド | 内容                                     |
+| スキル ガイド | 内容                                     |
 |--------------|------------------------------------------|
 | [Markdown](markdown.md) | ドキュメント記法の基礎                    |
-| [Doxygen](doxygen.md)   | C/C++ ソースコードからのドキュメント生成  |
+| [Doxygen](doxygen.md)   | C/C++ ソース コードからのドキュメント生成  |
 | [Pandoc](pandoc.md)     | Markdown から HTML/docx への変換          |
 | [PlantUML](plantuml.md) | テキストベースの UML 図表作成 (第 1 選択) |
 | [Mermaid](mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
 | [draw.io](drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
 
-Table: スキルガイド一覧
+Table: スキル ガイド一覧
 
 ## 図ツールの選択基準
 
@@ -34,7 +34,7 @@ Table: 図ツールの選択基準
 - `framework/doxyfw/` - Doxygen ドキュメント生成フレームワーク (サブモジュール、論理名: `doxyfw`)
 - `framework/docsfw/` - Markdown 発行フレームワーク (サブモジュール、論理名: `docsfw`)
 - `Doxyfile.part.calc` - C プロジェクト用 Doxygen 設定
-- `docs/` - ドキュメントソース (Markdown ファイル群)
+- `docs/` - ドキュメント ソース (Markdown ファイル群)
 - `docs/` - 生成済みドキュメント (HTML)
 
 ## 次のステップ

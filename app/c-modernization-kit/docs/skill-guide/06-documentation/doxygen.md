@@ -2,11 +2,11 @@
 
 ## 概要
 
-Doxygen は、C/C++・Java・C# などのソースコード中のコメントを活用して、HTML や PDF などのドキュメントを自動生成するツールです。
+Doxygen は、C/C++・Java・C# などのソース コード中のコメントを活用して、HTML や PDF などのドキュメントを自動生成するツールです。
 
-Doxygen コメント形式は、通常のコメントに少し記法を加えるだけで利用でき、既存のコーディングスタイルを大きく変えずに導入できます。
+Doxygen コメント形式は、通常のコメントに少し記法を加えるだけで利用でき、既存のコーディング スタイルを大きく変えずに導入できます。
 
-このリポジトリの `framework/doxyfw/` サブモジュールが Doxygen ベースのドキュメント生成フレームワークを提供しています。`app/calc/prod/` の C ソースコードに書かれた Doxygen コメントから XML を生成し、Doxybook2 で Markdown に変換して、最終的に HTML/docx として公開しています。`Doxyfile.part.calc` (C プロジェクト用) と `Doxyfile.part.calc.net` (.NET プロジェクト用) が Doxygen の設定ファイルです。
+このリポジトリの `framework/doxyfw/` サブモジュールが Doxygen ベースのドキュメント生成フレームワークを提供しています。`app/calc/prod/` の C ソース コードに書かれた Doxygen コメントから XML を生成し、Doxybook2 で Markdown に変換して、最終的に HTML/docx として公開しています。`Doxyfile.part.calc` (C プロジェクト用) と `Doxyfile.part.calc.net` (.NET プロジェクト用) が Doxygen の設定ファイルです。
 
 Doxygen コメントの書き方を習得することで、コードの変更に合わせてドキュメントを自動更新できるようになります。
 
@@ -24,9 +24,9 @@ Doxygen コメントの書き方を習得することで、コードの変更に
 ### 公式ドキュメント
 
 - [Doxygen マニュアル](https://www.doxygen.nl/manual/index.html) - Doxygen の公式マニュアル (英語)
-  - [コメントの書き方](https://www.doxygen.nl/manual/docblocks.html) - ドキュメントコメントの記述方法
-  - [コマンドリスト](https://www.doxygen.nl/manual/commands.html) - `@brief`・`@param` などのコマンド一覧
-  - [設定ファイルリファレンス](https://www.doxygen.nl/manual/config.html) - `Doxyfile` の設定項目
+  - [コメントの書き方](https://www.doxygen.nl/manual/docblocks.html) - ドキュメント コメントの記述方法
+  - [コマンド リスト](https://www.doxygen.nl/manual/commands.html) - `@brief`・`@param` などのコマンド一覧
+  - [設定ファイル リファレンス](https://www.doxygen.nl/manual/config.html) - `Doxyfile` の設定項目
 
 ### チュートリアル・入門
 
@@ -34,7 +34,7 @@ Doxygen コメントの書き方を習得することで、コードの変更に
 
 ## このリポジトリとの関連
 
-### 使用箇所(具体的なファイル・コマンド)
+### 使用箇所 (具体的なファイル・コマンド)
 
 Doxygen コメントの例 (`app/calc/prod/libsrc/calcbase/add.c` スタイル):
 
@@ -78,5 +78,5 @@ Table: Doxygen 設定ファイル一覧
 ### 関連ドキュメント
 
 - [framework/doxyfw/CLAUDE.md](../../framework/doxyfw/CLAUDE.md) - doxyfw フレームワークの詳細ドキュメント
-- [Markdown(スキルガイド)](markdown.md) - 生成後の Markdown の基礎知識
-- [Pandoc(スキルガイド)](pandoc.md) - Markdown から HTML/docx への変換
+- [Markdown (スキル ガイド)](markdown.md) - 生成後の Markdown の基礎知識
+- [Pandoc (スキル ガイド)](pandoc.md) - Markdown から HTML/docx への変換

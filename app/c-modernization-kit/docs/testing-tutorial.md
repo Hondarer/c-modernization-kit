@@ -1,43 +1,43 @@
-# C言語テスト実践チュートリアル
+# C 言語テスト実践チュートリアル
 
-このチュートリアルでは、Linux/Windows クロスプラットフォーム環境において、Google Test フレームワークを使用して C言語プログラムをテストする方法を詳しく説明します。
+このチュートリアルでは、Linux/Windows クロスプラットフォーム環境において、Google Test フレームワークを使用して C 言語プログラムをテストする方法を詳しく説明します。
 
 ## 目次
 
-1. [テストフレームワークの概要](#テストフレームワークの概要)
+1. [テスト フレームワークの概要](#テスト フレームワークの概要)
 2. [プロジェクト構造](#プロジェクト構造)
 3. [環境構築](#環境構築)
    - [Linux 環境](#linux-環境)
    - [Windows 環境](#windows-環境)
 4. [モックの作成方法](#モックの作成方法)
 5. [関数のテスト方法](#関数のテスト方法)
-6. [main関数を含むプログラムのテスト](#main関数を含むプログラムのテスト)
-7. [makefileの作成](#makefileの作成)
+6. [main 関数を含むプログラムのテスト](#main 関数を含むプログラムのテスト)
+7. [makefile の作成](#makefile の作成)
 8. [テストの実行](#テストの実行)
 9. [実践例](#実践例)
-10. [ベストプラクティス](#ベストプラクティス)
+10. [ベスト プラクティス](#ベスト プラクティス)
 11. [トラブルシューティング](#トラブルシューティング)
     - [共通の問題](#共通の問題)
     - [Windows 固有の問題](#windows-固有の問題)
 
 ---
 
-## テストフレームワークの概要
+## テスト フレームワークの概要
 
-本プロジェクトでは、Google Test (gtest/gmock) を使用してC言語プログラムのユニットテストを行います。
+本プロジェクトでは、Google Test (gtest/gmock) を使用して C 言語プログラムのユニット テストを行います。  
 Linux では GCC、Windows では MSVC を使用したクロスプラットフォーム開発環境をサポートしています。
 
 ### 主な特徴
 
 - **クロスプラットフォーム対応**: Linux (GCC) と Windows (MSVC) の両方でシームレスに動作
-- **C言語とC++の統合**: C言語で書かれたコードをC++ (Google Test) でテスト
-- **モックフレームワーク**: Google Mock を使用した依存関係のモック化
-- **リンカラップ機能**: Linux では `-Wl,--wrap`、Windows では適切なリンカオプションを使用した関数の置き換え
-- **テストフェーズの明確化**: Arrange, Pre-Assert, Act, Assert の4フェーズでテストを構造化
+- **C 言語と C++の統合**: C 言語で書かれたコードを C++ (Google Test) でテスト
+- **モック フレームワーク**: Google Mock を使用した依存関係のモック化
+- **リンカー ラップ機能**: Linux では `-Wl,--wrap`、Windows では適切なリンカー オプションを使用した関数の置き換え
+- **テスト フェーズの明確化**: Arrange, Pre-Assert, Act, Assert の 4 フェーズでテストを構造化
 
-### テストの4フェーズ
+### テストの 4 フェーズ
 
-本フレームワークでは、テストコードを以下の4つのフェーズに分けて記述します:
+本フレームワークでは、テスト コードを以下の 4 つのフェーズに分けて記述します:
 
 1. **Arrange [状態]**: テストの初期状態を設定
 2. **Pre-Assert [Pre-Assert確認] [Pre-Assert手順]**: モックの期待動作を設定
@@ -146,10 +146,10 @@ sudo pip3 install gcovr
 
 #### 必要なツール
 
-- **Visual Studio Build Tools** (または Visual Studio) - MSVC コンパイラとリンカ
-- **GNU Make** - Make ビルドシステム (make.exe)
+- **Visual Studio Build Tools** (または Visual Studio) - MSVC コンパイラとリンカー
+- **GNU Make** - Make ビルド システム (make.exe)
 - **Git for Windows** - MinGW ツールチェーンを含む
-- **Google Test/Mock** - テストフレームワーク
+- **Google Test/Mock** - テスト フレームワーク
 
 #### 環境設定スクリプト
 
@@ -167,9 +167,9 @@ cd /path/to/c-modernization-kit
 git submodule update --init --recursive
 ```
 
-### ワークスペースルートの設定
+### ワークスペース ルートの設定
 
-プロジェクトのルートディレクトリに `.workspaceRoot` ファイルを作成します:
+プロジェクトのルート ディレクトリに `.workspaceRoot` ファイルを作成します:
 
 ```bash
 # Linux
@@ -182,7 +182,7 @@ New-Item .workspaceRoot -ItemType File
 type nul > .workspaceRoot
 ```
 
-このファイルにより、makefile がプロジェクトルートを自動検出できます。
+このファイルにより、makefile がプロジェクト ルートを自動検出できます。
 
 ---
 
@@ -190,9 +190,9 @@ type nul > .workspaceRoot
 
 モックを作成することで、テスト対象のコードが依存する関数の動作を制御できます。
 
-### ステップ1: モックヘッダーファイルの作成
+### ステップ 1: モック ヘッダー ファイルの作成
 
-`app/calc/test/include/mock_xxxxx.h` にモックヘッダーを作成します。
+`app/calc/test/include/mock_xxxxx.h` にモック ヘッダーを作成します。
 
 #### 例: mock_calcbase.h
 
@@ -230,12 +230,12 @@ extern Mock_calcbase *_mock_calcbase;
 #### ポイント
 
 - **MOCK_METHOD マクロ**: Google Mock の機能で、関数のシグネチャを定義します
-- **extern宣言**: モックインスタンスをグローバルに共有するための宣言
-- **C++クラス**: C言語の関数をC++のモッククラスでラップします
+- **extern 宣言**: モック インスタンスをグローバルに共有するための宣言
+- **C++クラス**: C 言語の関数を C++のモック クラスでラップします
 
-### ステップ2: モッククラスの実装
+### ステップ 2: モック クラスの実装
 
-`app/calc/test/libsrc/mock_xxxxx/mock_xxxxx.cc` にモッククラスの実装を作成します。
+`app/calc/test/libsrc/mock_xxxxx/mock_xxxxx.cc` にモック クラスの実装を作成します。
 
 #### 例: mock_calcbase.cc
 
@@ -275,9 +275,9 @@ Mock_calcbase::~Mock_calcbase()
 }
 ```
 
-### ステップ3: モック関数の実装
+### ステップ 3: モック関数の実装
 
-`app/calc/test/libsrc/mock_xxxxx/mock_関数名.cc` にC言語関数のモック実装を作成します。
+`app/calc/test/libsrc/mock_xxxxx/mock_関数名.cc` に C 言語関数のモック実装を作成します。
 
 #### 例: mock_add.cc
 
@@ -319,11 +319,11 @@ WEAK_ATR int add(int a, int b, int *result)
 #### ポイント
 
 - **WEAK_ATR 属性**: リンク時に弱いシンボルとして扱われ、実装がない場合にモック関数が使用される
-- **C言語関数**: `extern "C"` は不要 (`.cc` ファイルでも関数名が C++ にならない)
-- **モックインスタンスチェック**: `_mock_calcbase != nullptr` でモックの有無を確認
+- **C 言語関数**: `extern "C"` は不要 (`.cc` ファイルでも関数名が C++ にならない)
+- **モック インスタンス チェック**: `_mock_calcbase != nullptr` でモックの有無を確認
 - **トレース機能**: デバッグ時に関数呼び出しを確認できる
 
-### モックライブラリの makefile
+### モック ライブラリの makefile
 
 `app/calc/test/libsrc/mock_xxxxx/` ディレクトリに以下のファイルを作成します。
 
@@ -377,7 +377,7 @@ SRCS := \
 
 通常の関数 (main を含まない) のテスト方法を説明します。
 
-### テストコードの基本構造
+### テスト コードの基本構造
 
 ```cpp
 #include <testfw.h>
@@ -407,7 +407,7 @@ TEST_F(addTest, test_1_add_2)
 }
 ```
 
-### 実践例: add関数のテスト
+### 実践例: add 関数のテスト
 
 `app/calc/test/src/libcalcbaseTest/addTest/addTest.cc`
 
@@ -469,19 +469,19 @@ TEST_F(addTest, test_null_result)
 
 ---
 
-## main関数を含むプログラムのテスト
+## main 関数を含むプログラムのテスト
 
-main関数を含むプログラムをテストするには、リンカラップ機能を使用します。
+main 関数を含むプログラムをテストするには、リンカー ラップ機能を使用します。
 
-### リンカラップ機能とは
+### リンカー ラップ機能とは
 
-GCCの `-Wl,--wrap=main` オプションを使用すると:
+GCC の `-Wl,--wrap=main` オプションを使用すると:
 
 - `main` 関数は `__wrap_main` として定義される
 - 元の `main` 関数は `__real_main` として参照可能になる
 - `gtest_wrapmain` ライブラリが `__wrap_main` を提供し、Google Test を起動
 
-### テストコードの構造
+### テスト コードの構造
 
 ```cpp
 #include <testfw.h>
@@ -551,11 +551,11 @@ NiceMock<Mock_stdio> mock_stdio;
 
 ---
 
-## makefileの作成
+## makefile の作成
 
-### テストコード用 makefile
+### テスト コード用 makefile
 
-テストディレクトリに以下のファイルを作成します。
+テスト ディレクトリに以下のファイルを作成します。
 
 #### makefile (標準テンプレート)
 
@@ -594,7 +594,7 @@ TEST_SRCS := \
 	$(WORKSPACE_DIR)/app/calc/prod/libsrc/calcbase/add.c
 ```
 
-### main関数テスト用 makefile
+### main 関数テスト用 makefile
 
 #### makefile (標準テンプレート)
 
@@ -645,14 +645,14 @@ LIBS += mock_calcbase mock_libc
 
 #### makefile と makepart.mk の分離
 
-- **makefile**: 標準テンプレート（すべてのテストディレクトリで共通）
+- **makefile**: 標準テンプレート (すべてのテスト ディレクトリで共通)
 - **makepart.mk**: プロジェクト固有の設定を記述
 
-この分離により、ビルドシステムの更新が容易になり、保守性が向上します。
+この分離により、ビルド システムの更新が容易になり、保守性が向上します。
 
-#### ワークスペースフォルダの検出
+#### ワークスペース フォルダーの検出
 
-makefile テンプレート内で `find-up` 関数を使用して `.workspaceRoot` ファイルを検出し、プロジェクトルートを特定します。
+makefile テンプレート内で `find-up` 関数を使用して `.workspaceRoot` ファイルを検出し、プロジェクト ルートを特定します。
 
 ```makefile
 find-up = \
@@ -676,30 +676,29 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
-#### main関数のラップ
+#### main 関数のラップ
 
-- `USE_WRAP_MAIN := 1`: main関数をラップして `__real_main` として呼び出し可能にする
+- `USE_WRAP_MAIN := 1`: main 関数をラップして `__real_main` として呼び出し可能にする
   - Linux では `-Wl,--wrap=main` オプションが自動的に設定される
-  - Windows では適切なリンカオプションが自動的に設定される
+  - Windows では適切なリンカー オプションが自動的に設定される
 
 #### ライブラリの指定
 
 - `LIBS`: リンクするライブラリ (プレフィックス `-l` なしで指定)
-  - `mock_xxxxx`: モックライブラリ
-  - `mock_libc`: 標準C関数のモック (stdio等)
+  - `mock_xxxxx`: モック ライブラリ
+  - `mock_libc`: 標準 C 関数のモック (stdio 等)
 
 例:
+
 ```makefile
 LIBS += mock_calcbase mock_libc
 ```
-
----
 
 ## テストの実行
 
 ### 全テストの実行
 
-プロジェクトルートから:
+プロジェクト ルートから:
 
 ```bash
 # Linux / Windows 共通
@@ -709,11 +708,11 @@ make          # ビルド
 make test     # テスト実行
 ```
 
-> **Windows の注意**: コマンドプロンプトで環境設定スクリプトを実行してから make を実行してください。
+> **Windows の注意**: コマンド プロンプトで環境設定スクリプトを実行してから make を実行してください。
 
 ### 個別テストの実行
 
-特定のテストディレクトリで:
+特定のテスト ディレクトリで:
 
 ```bash
 # Linux / Windows 共通
@@ -721,7 +720,7 @@ cd app/calc/test/src/libcalcbaseTest/addTest
 make test
 ```
 
-### 特定のテストケースのみ実行
+### 特定のテスト ケースのみ実行
 
 フィルター機能を使用:
 
@@ -758,7 +757,7 @@ Remove-Item Env:\GTEST_FILTER
 make test GTEST_FILTER=*test_1_add_2*
 ```
 
-### カバレッジレポートの生成
+### カバレッジ レポートの生成
 
 ```bash
 # Linux
@@ -769,8 +768,8 @@ make test  # テスト実行 (カバレッジデータ収集)
 gcovr --exclude-unreachable-branches
 ```
 
-> **注意**: Windows でのコードカバレッジ取得は、使用するツールによって手順が異なります。
-> MSVC 環境では、Visual Studio のコードカバレッジツールまたはサードパーティツールの使用を検討してください。
+> **注意**: Windows でのコード カバレッジ取得は、使用するツールによって手順が異なります。
+> MSVC 環境では、Visual Studio のコード カバレッジ ツールまたはサード パーティー ツールの使用を検討してください。
 
 ### テスト出力例
 
@@ -793,7 +792,7 @@ gcovr --exclude-unreachable-branches
 
 ## 実践例
 
-### 例1: calcHandler 関数のモックを使用したテスト
+### 例 1: calcHandler 関数のモックを使用したテスト
 
 `app/calc/test/src/main/calcTest/calcTest.cc`
 
@@ -864,7 +863,7 @@ USE_WRAP_MAIN := 1
 LIBS += mock_calc mock_libc
 ```
 
-### 例2: モックの高度な使い方
+### 例 2: モックの高度な使い方
 
 #### 呼び出し回数の検証
 
@@ -937,11 +936,11 @@ TEST_F(MyTest, multiple_returns)
 
 ---
 
-## ベストプラクティス
+## ベスト プラクティス
 
-### 1. テストコードの構造化
+### テスト コードの構造化
 
-4つのフェーズを明確にコメントで記述:
+4 つのフェーズを明確にコメントで記述:
 
 ```cpp
 TEST_F(MyTest, test_case)
@@ -960,17 +959,17 @@ TEST_F(MyTest, test_case)
 }
 ```
 
-### 2. テストケースの命名規則
+### テスト ケースの命名規則
 
-テストケース名は具体的かつ分かりやすく:
+テスト ケース名は具体的かつ分かりやすく:
 
 - **Good**: `test_add_positive_numbers`
 - **Good**: `test_main_with_insufficient_args`
 - **Bad**: `test1`, `test_normal`
 
-### 3. モックのスコープ
+### モックのスコープ
 
-モックオブジェクトはテストケース内で宣言:
+モック オブジェクトはテスト ケース内で宣言:
 
 ```cpp
 TEST_F(MyTest, test_case)
@@ -983,9 +982,9 @@ TEST_F(MyTest, test_case)
 // スコープを抜けるとモックが破棄される
 ```
 
-### 4. NiceMock の活用
+### NiceMock の活用
 
-複雑なモック (stdio等) は NiceMock を使用:
+複雑なモック (stdio 等) は NiceMock を使用:
 
 ```cpp
 // 多数の関数を持つモックは NiceMock で簡潔に
@@ -996,11 +995,11 @@ EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("result\n")))
     .WillOnce(DoDefault());
 ```
 
-### 5. テストの独立性
+### テストの独立性
 
-各テストケースは独立して実行可能にする:
+各テスト ケースは独立して実行可能にする:
 
-- テストケース間で状態を共有しない
+- テスト ケース間で状態を共有しない
 - グローバル変数の使用は最小限に
 - SetUp/TearDown を活用
 
@@ -1020,7 +1019,7 @@ protected:
 };
 ```
 
-### 6. エラーケースのテスト
+### エラー ケースのテスト
 
 正常系だけでなく異常系もテスト:
 
@@ -1031,14 +1030,14 @@ TEST_F(MyTest, normal_case) { /* ... */ }
 // 境界値
 TEST_F(MyTest, boundary_case) { /* ... */ }
 
-// エラーケース
+// エラー ケース
 TEST_F(MyTest, error_case) { /* ... */ }
 
 // NULL ポインタ
 TEST_F(MyTest, null_pointer_case) { /* ... */ }
 ```
 
-### 7. コメントの活用
+### コメントの活用
 
 テストの意図を日本語コメントで明確に:
 
@@ -1050,21 +1049,21 @@ int rtc = add(1, 2); // [手順] - add(1, 2) を呼び出す。
 EXPECT_EQ(3, rtc); // [確認] - 戻り値が 3 であること。
 ```
 
-### 8. makefileの保守性
+### makefile の保守性
 
 makefile と makepart.mk を分離:
 
-- **makefile**: 標準テンプレート（すべてのディレクトリで共通、編集禁止）
-- **makepart.mk**: プロジェクト固有の設定（TEST_SRCS, LIBS, USE_WRAP_MAIN など）
+- **makefile**: 標準テンプレート (すべてのディレクトリで共通、編集禁止)
+- **makepart.mk**: プロジェクト固有の設定 (TEST_SRCS, LIBS, USE_WRAP_MAIN など)
 
 共通処理はフレームワークに集約:
 
 - `framework/makefw/makefiles/prepare.mk`: 準備処理
-- `framework/makefw/makefiles/makemain.mk`: ビルドルール生成
+- `framework/makefw/makefiles/makemain.mk`: ビルド ルール生成
 
-この分離により、ビルドシステムの更新が容易になり、保守性が向上します。
+この分離により、ビルド システムの更新が容易になり、保守性が向上します。
 
-### 9. カバレッジの確認
+### カバレッジの確認
 
 定期的にカバレッジを確認:
 
@@ -1073,7 +1072,7 @@ make test
 gcovr --exclude-unreachable-branches --html --html-details -o coverage.html
 ```
 
-### 10. CI/CD への統合
+### CI/CD への統合
 
 テストを自動化:
 
@@ -1111,13 +1110,13 @@ if %ERRORLEVEL% neq 0 (
 echo All tests passed!
 ```
 
-### 11. クロスプラットフォーム開発のヒント
+### クロスプラットフォーム開発のヒント
 
-異なるプラットフォームでコードを保守する際のベストプラクティス:
+異なるプラットフォームでコードを保守する際のベスト プラクティス:
 
 #### プラットフォーム固有のコードを最小限に
 
-- できるだけ標準C言語の機能のみを使用
+- できるだけ標準 C 言語の機能のみを使用
 - プラットフォーム固有の処理は条件付きコンパイルで分離
 
 ```c
@@ -1128,13 +1127,13 @@ echo All tests passed!
 #endif
 ```
 
-#### ビルドシステムの活用
+#### ビルド システムの活用
 
 - makefw サブモジュールがプラットフォーム検出を自動化
-- 各プラットフォームに適したコンパイラオプションを自動設定
+- 各プラットフォームに適したコンパイラ オプションを自動設定
 - makefile は共通のテンプレートを使用
 
-#### 定期的なクロスプラットフォームテスト
+#### 定期的なクロスプラットフォーム テスト
 
 - 両方のプラットフォームで定期的にテストを実行
 - CI/CD パイプラインで両環境をテスト
@@ -1152,7 +1151,7 @@ echo All tests passed!
 
 ### 共通の問題
 
-#### リンクエラー: undefined reference
+#### リンク エラー: undefined reference
 
 **原因**: 必要なライブラリがリンクされていない
 
@@ -1167,6 +1166,7 @@ LIBS += -lmock_calcbase -ltest_com
 **原因**: 同じシンボルが複数回定義されている
 
 **解決策**:
+
 - モック関数の実装ファイルを確認
 - `TEST_SRCS` に同じソースを重複して追加していないか確認
 
@@ -1180,14 +1180,15 @@ LIBS += -lmock_calcbase -ltest_com
 USE_WRAP_MAIN := 1
 ```
 
-これにより、ビルドシステムが自動的にプラットフォームに応じた適切なリンカオプションを設定します。
+これにより、ビルド システムが自動的にプラットフォームに応じた適切なリンカー オプションを設定します。
 
 #### モックが呼ばれない
 
 **原因**: リンク順序の問題
 
 **解決策**:
-1. モックライブラリを makepart.mk の LIBS に追加
+
+1. モック ライブラリを makepart.mk の LIBS に追加
 2. `TEST_SRCS` に実体のソースを含めない
 
 ```makefile
@@ -1210,12 +1211,12 @@ LIBS += mock_calcbase  # OK
 . .\Start-VSCode-With-Env.ps1 -EnvOnly
 ```
 
-#### ビルドエラー: コンパイラオプションの違い
+#### ビルド エラー: コンパイラ オプションの違い
 
-**原因**: GCC と MSVC ではコンパイラオプションが異なる
+**原因**: GCC と MSVC ではコンパイラ オプションが異なる
 
-**解決策**: makefw サブモジュールのビルドフレームワークが自動的にプラットフォームを検出し、
-適切なコンパイラオプションを設定します。makefile の設定を確認してください。
+**解決策**: makefw サブモジュールのビルド フレームワークが自動的にプラットフォームを検出し、  
+適切なコンパイラ オプションを設定します。makefile の設定を確認してください。
 
 ---
 
@@ -1238,18 +1239,18 @@ LIBS += mock_calcbase  # OK
 
 1. **クロスプラットフォーム対応**: Linux (GCC) と Windows (MSVC) の両方でシームレスに動作するテスト環境
 2. **環境構築**: Linux と Windows それぞれの環境設定手順
-3. **テストフレームワークの構造**: Google Test を使用した C言語のテスト環境
-4. **モックの作成**: ヘッダー、クラス、関数の3段階でのモック実装
+3. **テスト フレームワークの構造**: Google Test を使用した C 言語のテスト環境
+4. **モックの作成**: ヘッダー、クラス、関数の 3 段階でのモック実装
    - WEAK_ATR 属性を使用したモック関数の実装
    - ON_CALL を使用したデフォルト動作の設定
-5. **関数のテスト**: 通常の関数のユニットテスト方法
-   - ステータスコードとポインタ経由の結果取得パターン
-6. **main関数のテスト**: リンカラップ機能を使用した main関数のテスト
+5. **関数のテスト**: 通常の関数のユニット テスト方法
+   - ステータス コードとポインター経由の結果取得パターン
+6. **main 関数のテスト**: リンカー ラップ機能を使用した main 関数のテスト
    - `USE_WRAP_MAIN := 1` による自動設定
-7. **makefileの作成**: makefile と makepart.mk の分離による保守性の向上
-   - 標準テンプレート（makefile）とプロジェクト固有の設定（makepart.mk）の分離
+7. **makefile の作成**: makefile と makepart.mk の分離による保守性の向上
+   - 標準テンプレート (makefile) とプロジェクト固有の設定 (makepart.mk) の分離
    - makefw サブモジュールによるクロスプラットフォーム対応
 8. **実践例**: 実際のコードを使った具体的なテスト例
 9. **トラブルシューティング**: プラットフォーム固有の問題と解決方法
 
-これらの知識を活用して、Linux/Windows 両対応の堅牢で保守性の高いテストコードを作成してください。
+これらの知識を活用して、Linux/Windows 両対応の堅牢で保守性の高いテスト コードを作成してください。

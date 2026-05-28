@@ -4,12 +4,12 @@ CalcLib ライブラリの包括的な単体テスト。
 
 ## 概要
 
-このテストスイートは、xUnit を使用して CalcLib ラッパーライブラリの機能を検証します。すべての計算操作、エラー処理、例外動作、クロスプラットフォーム互換性のテストが含まれます。
+このテスト スイートは、xUnit を使用して CalcLib ラッパーライブラリの機能を検証します。すべての計算操作、エラー処理、例外動作、クロスプラットフォーム互換性のテストが含まれます。
 
 ## 要件
 
 - .NET SDK 9.0 以降
-- xUnit テストフレームワーク
+- xUnit テスト フレームワーク
 - ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では libcalc.dll)
 
 ## テストの実行
@@ -48,9 +48,9 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 
 ### CalcLibraryTests.cs
 
-`CalcLibrary` クラスのメインテストスイート。
+`CalcLibrary` クラスのメイン テスト スイート。
 
-#### テストカテゴリ
+#### テスト カテゴリ
 
 1. **加算テスト**
    - 正の数
@@ -77,7 +77,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
    - 成功する操作
    - エラー時の例外スロー
 
-6. **エッジケース**
+6. **エッジ ケース**
    - 極端な値 (int.MaxValue、int.MinValue)
    - ゼロ操作
    - 同じ値の操作
@@ -98,11 +98,11 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 - プラットフォーム検出
 - ライブラリ名の解決
 - 現在のプラットフォームでの P/Invoke 機能
-- ネイティブライブラリのアクセス可能性
+- ネイティブ ライブラリのアクセス可能性
 
-## テストカバレッジ
+## テスト カバレッジ
 
-テストスイートは以下の包括的なカバレッジを目指しています。
+テスト スイートは以下の包括的なカバレッジを目指しています。
 
 - すべての公開 API メソッド
 - すべての計算操作
@@ -119,7 +119,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 - ゼロ除算エラー処理
 - 例外のスローとキャッチ
 - プラットフォーム検出
-- クロスプラットフォームライブラリローディング
+- クロスプラットフォーム ライブラリ ローディング
 
 ## トラブルシューティング
 
@@ -140,12 +140,12 @@ make build
 
 **Linux:**
 
-- `libcalc.so` がライブラリパスに存在することを確認
+- `libcalc.so` がライブラリ パスに存在することを確認
 - .csproj ファイルが自動的に DLL を出力ディレクトリにコピー
 
 **Windows:**
 
-- `libcalc.dll` がライブラリパスに存在することを確認
+- `libcalc.dll` がライブラリ パスに存在することを確認
 - .csproj ファイルが自動的に DLL を出力ディレクトリにコピー
 
 ## 新しいテストの追加

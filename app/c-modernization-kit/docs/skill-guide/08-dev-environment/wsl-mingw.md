@@ -2,17 +2,17 @@
 
 ## 概要
 
-Windows で Linux 向け C コードをビルドするには、Linux 互換の開発環境が必要です。主な選択肢として、WSL (Windows Subsystem for Linux) と MinGW (Minimalist GNU for Windows) があります。WSL は Windows 上で Linux カーネルを動作させる仕組みで、実際の Linux 環境とほぼ同じ開発体験が得られます。MinGW は Windows ネイティブで動作する GCC ツールチェインを提供します。
+Windows で Linux 向け C コードをビルドするには、Linux 互換の開発環境が必要です。主な選択肢として、WSL (Windows Subsystem for Linux) と MinGW (Minimalist GNU for Windows) があります。WSL は Windows 上で Linux カーネルを動作させる仕組みで、実際の Linux 環境とほぼ同じ開発体験が得られます。MinGW は Windows ネイティブで動作する GCC ツール チェーンを提供します。
 
 このリポジトリは Linux (GCC/WSL) と Windows (MSVC/MinGW) のクロスプラットフォーム開発をサポートしています。Windows での開発には、あらかじめインストールされている Visual Studio Build Tools (VSBT) と Git for Windows を使用します。`Start-VSCode-With-Env.ps1` スクリプトがこれらの環境変数を自動設定して VS Code を起動します。
 
-WSL を使う場合は Linux 環境と同様の手順でビルドでき、MinGW (Git for Windows 付属) を使う場合は Windows ネイティブバイナリのビルドが可能です。
+WSL を使う場合は Linux 環境と同様の手順でビルドでき、MinGW (Git for Windows 付属) を使う場合は Windows ネイティブ バイナリのビルドが可能です。
 
 ## 習得目標
 
 - [ ] WSL のインストールと基本的な Linux コマンドの実行ができる
 - [ ] WSL から VS Code を起動し、C コードを編集・ビルドできる
-- [ ] Git for Windows の Git Bash でシェルコマンドを実行できる
+- [ ] Git for Windows の Git Bash でシェル コマンドを実行できる
 - [ ] `Start-VSCode-With-Env.ps1` の役割と使い方を理解できる
 - [ ] Windows と Linux での実行ファイル・ライブラリのファイル名の違いを説明できる
 - [ ] `make` コマンドが Windows で動作するよう環境が設定されていることを確認できる
@@ -21,7 +21,7 @@ WSL を使う場合は Linux 環境と同様の手順でビルドでき、MinGW 
 
 ### 公式ドキュメント
 
-- [WSL インストールガイド(Microsoft Learn)](https://learn.microsoft.com/ja-jp/windows/wsl/install) - WSL のインストール手順 (日本語)
+- [WSL インストール ガイド (Microsoft Learn)](https://learn.microsoft.com/ja-jp/windows/wsl/install) - WSL のインストール手順 (日本語)
   - WSL 2 の有効化と Linux ディストリビューションのインストール
 - [VS Code + WSL の設定](https://code.visualstudio.com/docs/remote/wsl) - VS Code Remote - WSL 拡張機能の使い方 (英語)
 - [Git for Windows](https://gitforwindows.org/) - Git for Windows の公式サイト (英語)
@@ -44,9 +44,9 @@ Windows での環境セットアップ (PowerShell):
 
 | 環境変数  | 内容                                         |
 |-----------|----------------------------------------------|
-| `PATH`    | Git for Windows (MinGW) のバイナリパスを追加 |
-| `INCLUDE` | Visual Studio Build Tools のインクルードパス |
-| `LIB`     | Visual Studio Build Tools のライブラリパス   |
+| `PATH`    | Git for Windows (MinGW) のバイナリ パスを追加 |
+| `INCLUDE` | Visual Studio Build Tools のインクルード パス |
+| `LIB`     | Visual Studio Build Tools のライブラリ パス   |
 
 Table: Start-VSCode-With-Env.ps1 が設定する環境変数一覧
 
@@ -71,6 +71,6 @@ Table: OS による出力ファイルの違い
 
 ### 関連ドキュメント
 
-- [VS Code(スキルガイド)](vscode.md) - VS Code の設定と拡張機能
-- [GCC / MSVC ツールチェイン(スキルガイド)](../04-build-system/gcc-toolchain.md) - コンパイラのオプション
-- [クロスプラットフォーム対応(スキルガイド)](../03-c-language/c-cross-platform.md) - OS 差異の吸収方法
+- [VS Code (スキル ガイド)](vscode.md) - VS Code の設定と拡張機能
+- [GCC / MSVC ツール チェーン (スキル ガイド)](../04-build-system/gcc-toolchain.md) - コンパイラのオプション
+- [クロスプラットフォーム対応 (スキル ガイド)](../03-c-language/c-cross-platform.md) - OS 差異の吸収方法

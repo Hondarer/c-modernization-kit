@@ -11,8 +11,8 @@ when_to_use: |
 
 # app 向け C テスト作成
 
-このスキルは `app/<name>/test/` 配下の Google Test 作成を対象にします。
-mock を新規追加する作業は `create-mock` を使い、この文書ではテストコードと `makepart.mk` の作り方に絞ります。
+このスキルは `app/<name>/test/` 配下の Google Test 作成を対象にします。  
+mock を新規追加する作業は `create-mock` を使い、この文書ではテスト コードと `makepart.mk` の作り方に絞ります。
 
 ## テストの種類と単体テストの位置付け
 
@@ -78,7 +78,7 @@ TEST_SRCS := \
 
 ## main() テスト
 
-`main()` テストは関数単体テストの一形態です。`makepart.mk` や `EXPECT_CALL` の基本方針は関数単体テストと同じです。`main()` である以上、テストコードから直接 `main()` を呼び出せないため、以下の追加の手続きが必要です。
+`main()` テストは関数単体テストの一形態です。`makepart.mk` や `EXPECT_CALL` の基本方針は関数単体テストと同じです。`main()` である以上、テスト コードから直接 `main()` を呼び出せないため、以下の追加の手続きが必要です。
 
 規範例は `app/calc/test/src/main/addTest/addTest.cc` を正とします。
 
@@ -132,8 +132,8 @@ EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
 
 ## プラットフォーム分岐
 
-app 向けテストで OS 分岐が必要な場合は、`_WIN32` を直接使わず `app/<name>/prod/include/.../platform.h` の統一マクロを使います。
-被テストヘッダーが `platform.h` を読んでいない場合だけ、テストコード側で明示的に include します。
+app 向けテストで OS 分岐が必要な場合は、`_WIN32` を直接使わず `app/<name>/prod/include/.../platform.h` の統一マクロを使います。  
+被テスト ヘッダーが `platform.h` を読んでいない場合だけ、テスト コード側で明示的に include します。
 
 ```c
 #if defined(PLATFORM_LINUX)
@@ -151,8 +151,8 @@ app 向けテストで OS 分岐が必要な場合は、`_WIN32` を直接使わ
 
 ## コメントの書き方
 
-`framework/testfw/docs/about-test-phase.md` のフェーズ分割に従います。
-コメントはテストエビデンス生成の入力になるため、既存例に合わせて各フェーズを明示します。
+`framework/testfw/docs/about-test-phase.md` のフェーズ分割に従います。  
+コメントはテスト エビデンス生成の入力になるため、既存例に合わせて各フェーズを明示します。  
 各テスト ケースでは、フェーズごとに `// Arrange`、`// Pre-Assert`、`// Act`、`// Assert` のコメントを挿入します。
 
 - Arrange フェーズの準備値には `[状態]`

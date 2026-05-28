@@ -2,7 +2,7 @@
 
 ## 概要
 
-`fix-if-comments.py` は、C/C++ ソースコード中のプリプロセッサ条件分岐について、
+`fix-if-comments.py` は、C/C++ ソース コード中のプリプロセッサ条件分岐について、  
 `#else` / `#endif` コメントと Linux/Windows 二択分岐の書式を機械的に標準化する保守コマンドです。
 
 本コマンドは **C/C++ 用** です。  
@@ -11,7 +11,7 @@ makefile の `ifdef` / `else ifdef` 整形は対象に含めません。
 ## 目的
 
 深い条件分岐では、`#endif` がどの条件に対応するかを即座に読めることが重要です。  
-また、クロスプラットフォームコードでは Linux と Windows の分岐条件を明示的に揃えておくと、保守時の判断ミスを減らせます。
+また、クロスプラットフォーム コードでは Linux と Windows の分岐条件を明示的に揃えておくと、保守時の判断ミスを減らせます。
 
 このコマンドは、makefw ワークスペースで推奨する以下のルールを C/C++ 側へ適用します。
 
@@ -38,7 +38,7 @@ makefile の `ifdef` / `else ifdef` 整形は対象に含めません。
 #endif /* MACRO */
 ```
 
-### 単一マクロの #if defined(MACRO)
+### 単一マクロの #if defined (MACRO)
 
 ```c
 #if defined(MACRO)
@@ -106,5 +106,5 @@ python bin/fix-if-comments.py src/foo.c include/bar.h
 
 ## プラットフォーム分岐との関係
 
-C/C++ 側の OS / コンパイラ分岐ルールは [platform-abstraction-guideline](../com_util/platform-abstraction-guideline.md) に従います。
+C/C++ 側の OS / コンパイラ分岐ルールは [platform-abstraction-guideline](../com_util/platform-abstraction-guideline.md) に従います。  
 `fix-if-comments.py` は、その分岐コメントを保守する補助コマンドとして位置づけます。

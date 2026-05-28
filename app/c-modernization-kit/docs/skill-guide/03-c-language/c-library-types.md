@@ -2,7 +2,7 @@
 
 ## 概要
 
-C 言語では、コードを再利用するためにライブラリとしてまとめる方法が 2 種類あります。静的ライブラリ (Linux: `.a`、Windows: `.lib`) は実行ファイルにリンク時に組み込まれ、動的ライブラリ  (Linux: `.so`、Windows: `.dll`) は実行時に読み込まれます。それぞれにメリット・デメリットがあり、用途に応じて使い分けます。
+C 言語では、コードを再利用するためにライブラリとしてまとめる方法が 2 種類あります。静的ライブラリ (Linux: `.a`、Windows: `.lib`) は実行ファイルにリンク時に組み込まれ、動的ライブラリ (Linux: `.so`、Windows: `.dll`) は実行時に読み込まれます。それぞれにメリット・デメリットがあり、用途に応じて使い分けます。
 
 このリポジトリの `app/calc/prod/` はこの 2 種類のライブラリを意図的に使い分けています。`libcalcbase` (add / subtract / multiply / divide) は静的ライブラリとして提供され、`libcalc` (calcHandler) は動的ライブラリとして提供されます。`libcalc` は `libcalcbase` に依存しており、ライブラリの生成時に参照されます。`src/shared-and-static-calc/` は両方を同時にリンクするサンプルです。
 
@@ -34,7 +34,7 @@ C 言語では、コードを再利用するためにライブラリとしてま
 
 ### 公式ドキュメント
 
-- [GCC リンクオプション](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html) - `-l`・`-L`・`-shared`・`-fPIC` などのオプション説明 (英語)
+- [GCC リンク オプション](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html) - `-l`・`-L`・`-shared`・`-fPIC` などのオプション説明 (英語)
 - [DLL の作成と使用 (Microsoft Learn)](https://learn.microsoft.com/ja-jp/cpp/build/walkthrough-creating-and-using-a-dynamic-link-library-cpp) - Windows DLL の作成チュートリアル (日本語)
 - [cppreference - C 言語](https://ja.cppreference.com/w/c) - C 言語リファレンス (日本語)
 
@@ -65,7 +65,7 @@ Table: ライブラリ構成一覧
 
 Table: 各プログラムのリンク方式
 
-ヘッダーファイル:
+ヘッダー ファイル:
 
 - `app/calc/prod/include/libcalc_const.h` - 定数定義 (`CALC_SUCCESS` など)
 - `app/calc/prod/include/libcalcbase.h` - 静的ライブラリ用ヘッダー
@@ -74,5 +74,5 @@ Table: 各プログラムのリンク方式
 ### 関連ドキュメント
 
 - [ビルド設計](../../build-design.md) - このリポジトリのビルド構成の詳細
-- [GNU Make (スキルガイド)](../04-build-system/gnu-make.md) - makefile によるビルド自動化
-- [C# / P/Invoke (スキルガイド)](../08-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す
+- [GNU Make (スキル ガイド)](../04-build-system/gnu-make.md) - makefile によるビルド自動化
+- [C# / P/Invoke (スキル ガイド)](../08-dev-environment/dotnet-csharp.md) - .NET から C ライブラリを呼び出す

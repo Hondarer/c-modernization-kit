@@ -13,7 +13,7 @@ sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/com_util
 | 存在しない (または定義なし) | `libbase` 自身が処理を行う (`a + b`) |
 | `sample_func liboverride override_func` を定義 | `dlopen` / `LoadLibrary` で `liboverride` を実行時にロードし、`override_func` に処理を委譲する (`a * b`) |
 
-オーバーライドの切り替えは `libbase` がロードされるタイミング (constructor / `DllMain`) で行われます。メインプログラムを変更せずに、設定ファイルを置くだけでライブラリの実装を差し替えられることを示します。
+オーバーライドの切り替えは `libbase` がロードされるタイミング (constructor / `DllMain`) で行われます。メイン プログラムを変更せずに、設定ファイルを置くだけでライブラリの実装を差し替えられることを示します。
 
 ## ファイル構成
 
@@ -44,7 +44,7 @@ app/override-sample/prod/
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
-sym_loader 機構・DllMain ヘルパー・ライブラリパス取得ユーティリティは `app/com_util/prod/` の `libcom_util` (`libcom_util.so` / `libcom_util.dll`) に統合されています。
+sym_loader 機構・DllMain ヘルパー・ライブラリ パス取得ユーティリティは `app/com_util/prod/` の `libcom_util` (`libcom_util.so` / `libcom_util.dll`) に統合されています。
 
 ## ライブラリ
 
@@ -88,7 +88,7 @@ int WINAPI override_func(const int a, const int b, int *result);
 
 `libbase` はロード時 (constructor / `DllMain(DLL_PROCESS_ATTACH)`) に設定ファイルを読み込みます。
 
-| プラットフォーム | 設定ファイルパス |
+| プラットフォーム | 設定ファイル パス |
 |---|---|
 | Linux | `/tmp/libbase_extdef.txt` |
 | Windows | `%TEMP%\libbase_extdef.txt` |
@@ -105,7 +105,7 @@ func_key  lib_name  func_name
 | ともに `default` | 明示的デフォルト。設定ファイルなしと同様にデフォルト処理を行う |
 | ライブラリ名 / 関数名 | 指定したライブラリを動的ロードし、関数に処理を委譲する |
 
-`sample-config/libbase_extdef.txt` に設定ファイルのサンプルがあります。初期状態では `default default` (明示的デフォルト) が設定されており、オーバーライドする行はコメントアウトされています。
+`sample-config/libbase_extdef.txt` に設定ファイルのサンプルがあります。初期状態では `default default` (明示的デフォルト) が設定されており、オーバーライドする行はコメント アウトされています。
 
 `sample_func` をオーバーライドする場合は以下の行を記述します。
 
@@ -144,14 +144,14 @@ make
 
 | ファイル | 説明 |
 |---|---|
-| `lib/libbase.so` | ベースライブラリ (Linux) |
-| `lib/liboverride.so` | オーバーライドライブラリ (Linux) |
-| `bin/override-sample` | メインプログラム (Linux) |
-| `lib/libbase.dll` | ベースライブラリ (Windows) |
-| `lib/liboverride.dll` | オーバーライドライブラリ (Windows) |
-| `bin/override-sample.exe` | メインプログラム (Windows) |
+| `lib/libbase.so` | ベース ライブラリ (Linux) |
+| `lib/liboverride.so` | オーバーライド ライブラリ (Linux) |
+| `bin/override-sample` | メイン プログラム (Linux) |
+| `lib/libbase.dll` | ベース ライブラリ (Windows) |
+| `lib/liboverride.dll` | オーバーライド ライブラリ (Windows) |
+| `bin/override-sample.exe` | メイン プログラム (Windows) |
 
-クリーンビルドを行う場合は以下のとおりです。
+クリーン ビルドを行う場合は以下のとおりです。
 
 ```bash
 make clean && make

@@ -1,18 +1,18 @@
 # CI/CD (ステップ 5 - 自動化・拡張)
 
-CI/CD ツールを使ったビルド・テスト・ドキュメント生成の自動化と、静的サイトへのドキュメント公開を学びます。
+CI/CD ツールを使ったビルド・テスト・ドキュメント生成の自動化と、静的サイトへのドキュメント公開を学びます。  
 GitHub Actions によるクラウド CI/CD から、Jenkins を使ったオンプレミス構成まで、環境に応じた自動化手法を習得します。
 
-## スキルガイド一覧
+## スキル ガイド一覧
 
-| スキルガイド     | 内容                                           |
+| スキル ガイド     | 内容                                           |
 |------------------|------------------------------------------------|
 | [GitHub Actions](github-actions.md) | 自動ビルド・テスト・デプロイのワークフロー定義 |
 | [GitHub Pages](github-pages.md)     | 生成ドキュメントの静的サイト公開               |
-| [Jenkins](jenkins.md)               | Oracle Linux 8 への Jenkins 導入、ビルドジョブ構成、ドキュメント公開 |
-| [Podman](podman.md)                 | rootless Podman と Oracle Linux 開発コンテナの利用 |
+| [Jenkins](jenkins.md)               | Oracle Linux 8 への Jenkins 導入、ビルド ジョブ構成、ドキュメント公開 |
+| [Podman](podman.md)                 | rootless Podman と Oracle Linux 開発コンテナーの利用 |
 
-Table: スキルガイド一覧
+Table: スキル ガイド一覧
 
 ## このリポジトリとの関連
 

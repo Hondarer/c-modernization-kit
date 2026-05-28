@@ -2,18 +2,18 @@
 
 ## 概要
 
-Visual Studio Code (VS Code) は Microsoft が提供する無料・オープンソースのコードエディタです。豊富な拡張機能によって C/C++・C#・Python など多様な言語に対応し、Git 統合・デバッガ・タスクランナーなどの機能を持ちます。軽量でありながら IDE に近い機能を持つため、クロスプラットフォーム開発に広く使われています。
+Visual Studio Code (VS Code) は Microsoft が提供する無料・オープンソースのコード エディターです。豊富な拡張機能によって C/C++・C#・Python など多様な言語に対応し、Git 統合・デバッガ・タスク ランナーなどの機能を持ちます。軽量でありながら IDE に近い機能を持つため、クロスプラットフォーム開発に広く使われています。
 
-このリポジトリの開発環境として VS Code を使用することで、C ソースコードのインテリセンス (補完・定義ジャンプ)、デバッグ、makefile タスクの実行、Git 操作をひとつのエディタで行えます。Windows 環境では `Start-VSCode-With-Env.ps1` スクリプトが MinGW / VSBT の環境変数を設定した状態で VS Code を起動するため、ターミナルから直接 `gcc` や `make` コマンドを利用できます。
+このリポジトリの開発環境として VS Code を使用することで、C ソース コードのインテリセンス (補完・定義ジャンプ)、デバッグ、makefile タスクの実行、Git 操作をひとつのエディターで行えます。Windows 環境では `Start-VSCode-With-Env.ps1` スクリプトが MinGW / VSBT の環境変数を設定した状態で VS Code を起動するため、ターミナルから直接 `gcc` や `make` コマンドを利用できます。
 
 `.vscode/` ディレクトリに `settings.json`・`tasks.json`・`launch.json`・`c_cpp_properties.json` を配置することで、チームで共通の開発環境設定を共有できます。
 
 ## 習得目標
 
 - [ ] VS Code をインストールし、C/C++ 拡張機能を導入できる
-- [ ] `c_cpp_properties.json` でインクルードパスを設定してインテリセンスを有効にできる
+- [ ] `c_cpp_properties.json` でインクルード パスを設定してインテリセンスを有効にできる
 - [ ] `tasks.json` で `make` コマンドをタスクとして登録できる
-- [ ] `launch.json` でデバッガを設定し、ブレークポイントでデバッグできる
+- [ ] `launch.json` でデバッガーを設定し、ブレークポイントでデバッグできる
 - [ ] VS Code の統合ターミナルから Git コマンドを実行できる
 - [ ] VS Code 内の変数 (`${workspaceFolder}` など) の意味を理解できる
 
@@ -87,5 +87,5 @@ Windows での VS Code 起動 (環境変数設定込み):
 ### 関連ドキュメント
 
 - [VS Code 変数リファレンス](../../vscode-variables.md) - `${workspaceFolder}` などの変数説明
-- [C/C++ インクルードフォルダ設定](../../c-cpp-include-folder.md) - インテリセンスのパス設定
-- [WSL / MinGW 環境(スキルガイド)](wsl-mingw.md) - Windows でのビルド環境
+- [C/C++ インクルード フォルダー設定](../../c-cpp-include-folder.md) - インテリセンスのパス設定
+- [WSL / MinGW 環境 (スキル ガイド)](wsl-mingw.md) - Windows でのビルド環境
