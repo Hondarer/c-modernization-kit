@@ -437,10 +437,30 @@ $startArguments = @(
     $vscodeTargetPath
 )
 
+function ConvertTo-CmdQuotedArgument {
+    param([string]$Argument)
+
+    if ($Argument.Contains('"')) {
+        throw "Command argument contains an unsupported double quote: $Argument"
+    }
+    return '"' + $Argument + '"'
+}
+
 try {
-    # Start-Process already launches VS Code as a separate process while preserving
+    $cmdExePath = $env:ComSpec
+    if (-not $cmdExePath) {
+        $cmdExePath = "cmd.exe"
+    }
+
+    $quotedCodeExePath = ConvertTo-CmdQuotedArgument $codeExePath
+    $quotedStartArguments = $startArguments | ForEach-Object {
+        ConvertTo-CmdQuotedArgument $_
+    }
+    $cmdStartArguments = '/d /c start "" ' + $quotedCodeExePath + ' ' + ($quotedStartArguments -join ' ')
+
+    # Use cmd.exe start to detach Code.exe from this console while preserving
     # the environment variables configured in this script.
-    Start-Process -FilePath $codeExePath -ArgumentList $startArguments | Out-Null
+    Start-Process -FilePath $cmdExePath -ArgumentList $cmdStartArguments -WindowStyle Hidden | Out-Null
 } catch {
     Write-Error "Failed to launch VS Code: $($_.Exception.Message)"
     exit 1
