@@ -68,9 +68,9 @@ dllmain_libbase.c  (初期化・解放)
 >
 > ```text
 > new_func (libbase)
-> └─ com_util_sym_loader_resolve_as でオーバーライド関数を取得
-> └─ new_override_func (liboverride) を呼び出す
-> └─ new_func (libbase) を呼び出す ← 無限再帰
+> +- com_util_sym_loader_resolve_as でオーバーライド関数を取得
+> +- new_override_func (liboverride) を呼び出す
+> +- new_func (libbase) を呼び出す <- 無限再帰
 > ```
 >
 > オーバーライド実装はオーバーライド元の関数を呼ばないよう設計してください。同様に、複数の関数をオーバーライドする場合、A のオーバーライドが B を呼び、B のオーバーライドが A を呼ぶような間接的な循環にも注意が必要です。関数を追加する際は、呼び出し経路全体を把握したうえで設計してください。

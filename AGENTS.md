@@ -70,6 +70,19 @@ make skills
 ドキュメント (`.md`) 内でファイル ツリーや階層構造を記述するとき、罫線文字 (`└` `├` `─` など、Unicode Ambiguous) は使用しない。日本語フォントはこれらに全角グリフを割り当てるため、コンソールやプレビューでインデントがずれる。ツリー構造には ASCII 記号 (`+` `-` `|`) を使うこと。  
 背景: [east-asian-ambiguous-width.md](framework/docsfw/docs/east-asian-ambiguous-width.md)
 
+Markdown 文書を作成または変更した場合は、`framework/docsfw/bin/text_style_jp.py` を使って日本語スタイル チェックを実施し、指摘された項目をすべて対処した上で文書を確定すること。
+
+```bash
+# 変更箇所の確認 (ルール名と差分を表示)
+python framework/docsfw/bin/text_style_jp.py <対象ファイル> --dry-run
+# 問題がなければ直接上書きで適用する
+python framework/docsfw/bin/text_style_jp.py <対象ファイル> --in-place
+```
+
+**`--dry-run` を必ず使用すること。** `--check` は日本語スタイルの自動補正の有無しか判定しないため、補正を伴わない `box-drawing` ルール (全角罫線文字の検出) は `--check` では報告されない。全角罫線の混入を検出するには `--dry-run` が必要。
+
+スタイル チェックの結果、日本語として不自然な変換 (変換すべきでない語の置換、文脈上不自然な表記統一、カタカナ語の不自然な分割など) がツールから提案された場合は、その変換を適用せず、ユーザーに辞書またはアルゴリズムの更新案を提示すること。
+
 ## ソース ファイル作成時の注意点
 
 新規ファイル作成時は `clang-format`、変更時は `git-clang-format` を利用してソースの整形を行うこと。  
@@ -85,7 +98,7 @@ make skills
 |---|---|---|
 | `prod/include/` | 公開 API (ライブラリ利用者向け) | `<lib/file.h>` |
 | `prod/include_internal/` | ライブラリ内部共有ヘッダー (`.c` をまたいで参照) | `<lib/subdir/file.h>` |
-| `prod/libsrc/` | ソース ファイル (`.c`) のみ。ヘッダーは置かない | — |
+| `prod/libsrc/` | ソース ファイル (`.c`) のみ。ヘッダーは置かない | - |
 
 ### _internal サフィックスの付与ルール
 

@@ -8,42 +8,42 @@ Jenkins でこのリポジトリをビルドするためのスクリプト群で
 
 ```
 .jenkins/
-├── build.sh            # Jenkins の Execute shell から呼び出すホスト側スクリプト
-├── inner-build.sh      # コンテナ内でユーザー権限で実行されるビルドスクリプト
-├── report-warnings.sh  # warning ZIP を検知して Jenkins コンソールに通知
-└── README.md           # このファイル
++-- build.sh            # Jenkins の Execute shell から呼び出すホスト側スクリプト
++-- inner-build.sh      # コンテナ内でユーザー権限で実行されるビルドスクリプト
++-- report-warnings.sh  # warning ZIP を検知して Jenkins コンソールに通知
++-- README.md           # このファイル
 ```
 
 ## 実行フロー
 
 ```
 Jenkins Execute shell
-  │  変数設定 (REPO_URL, IMAGE, OS_NAME, BUILD_DOCS)
-  │  git clone --recurse-submodules "$REPO_URL" source
-  └─ bash source/.jenkins/build.sh
-            │
-            ├─ podman pull "$IMAGE"
-            └─ podman run --rm -i \
+  |  変数設定 (REPO_URL, IMAGE, OS_NAME, BUILD_DOCS)
+  |  git clone --recurse-submodules "$REPO_URL" source
+  +- bash source/.jenkins/build.sh
+            |
+            +- podman pull "$IMAGE"
+            +- podman run --rm -i \
                    --user root --userns=keep-id \
                    -v "$WORKDIR:/workspace:Z" \
                    "$IMAGE" -s <<CONTAINER_EOF
-                        │
-                        ├─ /usr/local/bin/devcontainer-entrypoint.sh
-                        │    HOST_USER/UID/GID でユーザーとホームディレクトリを初期化
-                        └─ su - "$HOST_USER" -c "bash -l /workspace/.jenkins/inner-build.sh"
-                                  │
-                                  ├─ MAKEFW_HOME を有効化 (必須) / export DOCSFW_HOME / DOXYFW_HOME / TESTFW_HOME
-                                  ├─ make                       # ビルド
-                                  ├─ export LD_LIBRARY_PATH     # テスト用ライブラリパス設定
-                                  ├─ export PATH                # テスト用コマンドパス設定
-                                  ├─ make test                  # テスト実行
-                                  ├─ pages/artifacts/*.zip      # テスト結果・ログ・ビルド警告収集
-                                  ├─ make skills                # skill 同期 (BUILD_DOCS=1 時)
-                                  ├─ make doxy && make docs     # ドキュメント生成 (BUILD_DOCS=1 時)
-                                  ├─ pages/artifacts/*.zip      # ドキュメント・Doxygen警告収集
-                                  └─ pages/index.html           # ナビゲーションページ生成
-            └─ report-warnings.sh
-                 └─ Jenkins コンソールに warning ZIP 検知結果を表示 (exit 0)
+                        |
+                        +- /usr/local/bin/devcontainer-entrypoint.sh
+                        |    HOST_USER/UID/GID でユーザーとホームディレクトリを初期化
+                        +- su - "$HOST_USER" -c "bash -l /workspace/.jenkins/inner-build.sh"
+                                  |
+                                  +- MAKEFW_HOME を有効化 (必須) / export DOCSFW_HOME / DOXYFW_HOME / TESTFW_HOME
+                                  +- make                       # ビルド
+                                  +- export LD_LIBRARY_PATH     # テスト用ライブラリパス設定
+                                  +- export PATH                # テスト用コマンドパス設定
+                                  +- make test                  # テスト実行
+                                  +- pages/artifacts/*.zip      # テスト結果・ログ・ビルド警告収集
+                                  +- make skills                # skill 同期 (BUILD_DOCS=1 時)
+                                  +- make doxy && make docs     # ドキュメント生成 (BUILD_DOCS=1 時)
+                                  +- pages/artifacts/*.zip      # ドキュメント・Doxygen警告収集
+                                  +- pages/index.html           # ナビゲーションページ生成
+            +- report-warnings.sh
+                 +- Jenkins コンソールに warning ZIP 検知結果を表示 (exit 0)
 ```
 
 ## build.sh
@@ -243,25 +243,25 @@ export IMAGE="hondarer/oracle-linux-8-dev:latest"
 
 ```
 source/
-├── docs.warn                         (make docs で警告が出た場合のみ)
-├── logs/
-│   ├── linux-${OS_NAME}-build.log
-│   ├── linux-${OS_NAME}-test.log
-│   ├── linux-${OS_NAME}-doxy.log     (BUILD_DOCS=1 時)
-│   └── linux-${OS_NAME}-docs.log     (BUILD_DOCS=1 時)
-└── pages/
-    ├── index.html                     (HTML Publisher Plugin のエントリーページ)
-    ├── doxygen/                       (Doxygen HTML, BUILD_DOCS=1 時)
-    ├── {lang}/html/                   (Markdown HTML, BUILD_DOCS=1 時)
-    ├── {lang}/docx/                   (DOCX, BUILD_DOCS=1 時)
-    └── artifacts/
-        ├── linux-${OS_NAME}-test-results.zip
-        ├── linux-${OS_NAME}-logs.zip
-        ├── linux-${OS_NAME}-warns.zip (ビルド・テスト警告がある場合のみ)
-        ├── docs-warns.zip             (BUILD_DOCS=1 かつドキュメント警告がある場合のみ)
-        ├── docs-html-doxygen.zip      (BUILD_DOCS=1 時)
-        ├── docs-html-{lang}.zip       (BUILD_DOCS=1 時)
-        └── docs-docx-{lang}.zip       (BUILD_DOCS=1 時)
++-- docs.warn                          (make docs で警告が出た場合のみ)
++-- logs/
+|   +-- linux-${OS_NAME}-build.log
+|   +-- linux-${OS_NAME}-test.log
+|   +-- linux-${OS_NAME}-doxy.log      (BUILD_DOCS=1 時)
+|   +-- linux-${OS_NAME}-docs.log      (BUILD_DOCS=1 時)
++-- pages/
+    +-- index.html                     (HTML Publisher Plugin のエントリーページ)
+    +-- doxygen/                       (Doxygen HTML, BUILD_DOCS=1 時)
+    +-- {lang}/html/                   (Markdown HTML, BUILD_DOCS=1 時)
+    +-- {lang}/docx/                   (DOCX, BUILD_DOCS=1 時)
+    +-- artifacts/
+        +-- linux-${OS_NAME}-test-results.zip
+        +-- linux-${OS_NAME}-logs.zip
+        +-- linux-${OS_NAME}-warns.zip (ビルド・テスト警告がある場合のみ)
+        +-- docs-warns.zip             (BUILD_DOCS=1 かつドキュメント警告がある場合のみ)
+        +-- docs-html-doxygen.zip      (BUILD_DOCS=1 時)
+        +-- docs-html-{lang}.zip       (BUILD_DOCS=1 時)
+        +-- docs-docx-{lang}.zip       (BUILD_DOCS=1 時)
 ```
 
 Jenkins の HTML Publisher Plugin には `source/pages` を公開ディレクトリとして設定します。warning ZIP がある場合は Console Output にも通知されますが、ビルド結果は SUCCESS のまま維持されます。
