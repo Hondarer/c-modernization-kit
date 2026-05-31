@@ -65,6 +65,11 @@ make clean
 make skills
 ```
 
+## Markdown 記述の注意点
+
+ドキュメント (`.md`) 内でファイル ツリーや階層構造を記述するとき、罫線文字 (`└` `├` `─` など、Unicode Ambiguous) は使用しない。日本語フォントはこれらに全角グリフを割り当てるため、コンソールやプレビューでインデントがずれる。ツリー構造には ASCII 記号 (`+` `-` `|`) を使うこと。  
+背景: [east-asian-ambiguous-width.md](framework/docsfw/docs/east-asian-ambiguous-width.md)
+
 ## ソース ファイル作成時の注意点
 
 新規ファイル作成時は `clang-format`、変更時は `git-clang-format` を利用してソースの整形を行うこと。  
