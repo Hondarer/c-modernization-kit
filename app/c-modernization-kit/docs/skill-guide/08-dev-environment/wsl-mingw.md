@@ -2,7 +2,7 @@
 
 ## 概要
 
-Windows で Linux 向け C コードをビルドするには、Linux 互換の開発環境が必要です。主な選択肢として、WSL (Windows Subsystem for Linux) と MinGW (Minimalist GNU for Windows) があります。WSL は Windows 上で Linux カーネルを動作させる仕組みで、実際の Linux 環境とほぼ同じ開発体験が得られます。MinGW は Windows ネイティブで動作する GCC ツール チェーンを提供します。
+Windows で Linux 向け C コードをビルドするには、Linux 互換の開発環境が必要です。主な選択肢として、WSL (Windows Subsystem for Linux) と MinGW (Minimalist GNU for Windows) があります。WSL は Windows 上で Linux カーネルを動作させる仕組みで、実際の Linux 環境とほぼ同じ開発体験が得られます。MinGW は Windows ネイティブで動作する GCC ツールチェーンを提供します。
 
 このリポジトリは Linux (GCC/WSL) と Windows (MSVC/MinGW) のクロスプラットフォーム開発をサポートしています。Windows での開発には、あらかじめインストールされている Visual Studio Build Tools (VSBT) と Git for Windows を使用します。`Start-VSCode-With-Env.ps1` スクリプトがこれらの環境変数を自動設定して VS Code を起動します。
 
@@ -72,5 +72,5 @@ Table: OS による出力ファイルの違い
 ### 関連ドキュメント
 
 - [VS Code (スキル ガイド)](vscode.md) - VS Code の設定と拡張機能
-- [GCC / MSVC ツール チェーン (スキル ガイド)](../04-build-system/gcc-toolchain.md) - コンパイラのオプション
+- [GCC / MSVC ツールチェーン (スキル ガイド)](../04-build-system/gcc-toolchain.md) - コンパイラのオプション
 - [クロスプラットフォーム対応 (スキル ガイド)](../03-c-language/c-cross-platform.md) - OS 差異の吸収方法

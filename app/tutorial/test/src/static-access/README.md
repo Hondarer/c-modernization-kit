@@ -74,6 +74,7 @@ TEST_SRCS := \
    - inject ソース (samplestatic.inject.c) - ソースの末尾に結合
 
 2. 結合後のイメージ:
+
    ```c
    // samplestatic.inject.h の内容が挿入される
 

@@ -69,4 +69,4 @@ Table: makefile ファイル構成一覧
 
 - [ビルド設計](../../build-design.md) - このリポジトリのビルド構成の詳細
 - [makepart.mk フックの設計](../../makepart-hooks-design.md) - `makepart.mk` カスタマイズ機構の詳細
-- [GCC / MSVC ツール チェーン (スキル ガイド)](gcc-toolchain.md) - コンパイラとリンカーのオプション
+- [GCC / MSVC ツールチェーン (スキル ガイド)](gcc-toolchain.md) - コンパイラとリンカーのオプション

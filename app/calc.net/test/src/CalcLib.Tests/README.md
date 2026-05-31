@@ -71,7 +71,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 4. **除算テスト**
    - 標準的な除算
    - 整数除算 (切り捨て)
-   - ゼロ除算 (エラーケース)
+   - ゼロ除算 (エラー ケース)
 
 5. **CalculateOrThrow テスト**
    - 成功する操作

@@ -85,6 +85,7 @@ MOCK_METHOD(int, com_util_sscanf, (const char *, const char *, va_list));
 - 可変長引数そのものは `MOCK_METHOD` に書かず、`va_list` を受け取る形へ変換します。
 
 参照先:
+
 - `app/com_util/test/include/mock_com_util.h`
 
 ## ON_CALL の既定値
@@ -110,6 +111,7 @@ ON_CALL(*this, com_util_sscanf(_, _, _))
 - `void`: `Return()`
 
 参照先:
+
 - `app/com_util/test/libsrc/mock_com_util/mock_com_util.cc`
 
 ## 関数本体の実装
@@ -151,6 +153,7 @@ MOCK_WEAK_IMPL(<rettype>, <func>, <args>)
 - トレースは `__func__` を先頭に出します。
 
 参照先:
+
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_access.cc`
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_stat.cc`
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_fopen.cc`
@@ -175,7 +178,8 @@ MOCK_WEAK_IMPL(com_util_tracer_t *, com_util_tracer_create, void)
 Windows MSVC では、静的ライブラリ内の obj ファイルはリンカーが未解決シンボルを解決するために必要と判断したものだけを取り込みます。  
 `MOCK_WEAK_IMPL` が生成する `_mock_impl_<func>` シンボルは `/ALTERNATENAME` 経由でのみ参照されるため、直接参照がなければ obj が取り込まれず `/ALTERNATENAME` が無効になります。
 
-**リンク補完の配置先：**  
+**リンク補完の配置先:**
+
 `/INCLUDE` pragma は `mock_<lib>.h` ヘッダーに記述します。
 
 ```cpp
@@ -198,7 +202,8 @@ class Mock_<lib>
 };
 ```
 
-**適用条件：**
+**適用条件:**
+
 - コンストラクターが対象関数の `delegate_real_` を参照していない場合に記述します。
 - `delegate_real_` を `ON_CALL` で参照している場合、その参照が obj の取り込みを引き起こすため `/INCLUDE` は不要です。
 - 可変長引数の v* 関数 (`va_list` 版) など、上位関数から呼び出されるが `ON_CALL` では参照されない関数が対象になります。
@@ -242,6 +247,7 @@ WEAK_ATR int <func>(const char *buffer, const char *format, ...)
 `vsscanf` 版は `va_list` を引数で直接受け取ります。
 
 参照先:
+
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_sscanf.cc`
 - `app/com_util/test/libsrc/mock_com_util/crt/mock_com_util_vsscanf.cc`
 

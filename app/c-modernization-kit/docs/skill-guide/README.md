@@ -103,7 +103,7 @@ Table: C 言語発展トピック スキル ガイド一覧
 | スキル ガイド                | 内容                                    |
 |-----------------------------|-----------------------------------------|
 | [GNU Make](04-build-system/gnu-make.md)                       | makefile の基礎と階層ビルド構造         |
-| [GCC / MSVC ツール チェーン](04-build-system/gcc-toolchain.md) | コンパイラとリンカーのオプション          |
+| [GCC / MSVC ツールチェーン](04-build-system/gcc-toolchain.md) | コンパイラとリンカーのオプション          |
 | [.NET SDK](04-build-system/dotnet-sdk.md)                     | dotnet コマンドと .NET プロジェクト構造 |
 
 Table: ビルド システム スキル ガイド一覧

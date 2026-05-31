@@ -51,6 +51,7 @@ genhtml coverage.info --output-directory coverage-report/
 ```
 
 `framework/testfw/` が提供するカバレッジ機能:
+
 - テスト実行後の自動カバレッジ計測
 - レポートの HTML 生成
 - GitHub Actions との統合

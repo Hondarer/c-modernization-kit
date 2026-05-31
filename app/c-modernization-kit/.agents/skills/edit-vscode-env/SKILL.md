@@ -107,11 +107,13 @@ LD_LIBRARY_PATH=値1:値2:${env:LD_LIBRARY_PATH}
 すべての `app/<name>/prod/bin` や `app/<name>/prod/lib` を PATH に追加するわけではありません。
 
 追加が必要な場合:
+
 - テスト実行時に DLL/SO が必要
 - デバッグ実行時に実行ファイルや DLL/SO が必要
 - 他のモジュールから実行時に参照される
 
 追加が不要な場合:
+
 - ビルド時のみ必要で実行時には不要
 - 現在の VS Code タスク / デバッグ対象に含まれていない
 
