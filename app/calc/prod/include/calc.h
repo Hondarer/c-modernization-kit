@@ -13,17 +13,22 @@
  *  個別ヘッダーを利用するか、アンブレラ ヘッダーを利用するかは利用者にて選択してください。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
- *
- *******************************************************************************
- */
+ *
+ *  @hideincludedbygraph
+ *
+ *******************************************************************************
+ */
+
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
+
+#ifndef CALC_H
+#define CALC_H
 
 /**
  *  @defgroup       CALC_PUBLIC_API 公開 API (calc)
  *  @brief          calc ライブラリの公開 API です。
  */
-
-#ifndef CALC_H
-#define CALC_H
 
 #include <calc/calc_const.h>
 #include <calc/calc_spec.h>

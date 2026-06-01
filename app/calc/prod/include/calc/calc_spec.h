@@ -10,9 +10,14 @@
  *  動的リンクによる機能外提供用の API を模しています。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
- *
- *******************************************************************************
- */
+ *
+ *  @hideincludedbygraph
+ *
+ *******************************************************************************
+ */
+
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
 
 #ifndef CALC_SPEC_H
 #define CALC_SPEC_H

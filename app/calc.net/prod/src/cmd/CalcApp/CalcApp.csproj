@@ -20,7 +20,7 @@
   <!-- Reference the Calc library (assembly reference) -->
   <ItemGroup>
     <Reference Include="CalcLib">
-      <HintPath>../../lib/CalcLib.dll</HintPath>
+      <HintPath>../../../lib/CalcLib.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

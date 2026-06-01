@@ -17,13 +17,13 @@
  *******************************************************************************
  */
 
+#ifndef CALCBASE_H
+#define CALCBASE_H
+
 /**
  *  @defgroup       CALCBASE_PUBLIC_API 公開 API (calcbase)
  *  @brief          calcbase ライブラリの公開 API です。
  */
-
-#ifndef CALCBASE_H
-#define CALCBASE_H
 
 #include <calcbase/calcbase_spec.h>
 

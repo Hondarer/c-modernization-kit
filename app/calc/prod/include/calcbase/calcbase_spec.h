@@ -10,9 +10,14 @@
  *  静的リンクによる機能の内部関数を模しています。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
- *
- *******************************************************************************
- */
+ *
+ *  @hideincludedbygraph
+ *
+ *******************************************************************************
+ */
+
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
 
 #ifndef CALCBASE_SPEC_H
 #define CALCBASE_SPEC_H
