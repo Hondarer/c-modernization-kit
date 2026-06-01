@@ -25,14 +25,14 @@ else
 endif
 
 # Windows EXE に activeCodePage=UTF-8 マニフェストを埋め込む
-# argv を含むプロセス全体の文字エンコードを UTF-8 に統一する（Win10 1903+）
-# この宣言によって、SetConsoleOutputCP(CP_UTF8) が不要となる。
+# argv、CRT narrow API、Win32 -A API が参照するプロセス ACP を
+# UTF-8 にする (Windows 10 1903 以降)。
 WIN32_MANIFEST = utf8
 
-# あわせて、コンソールでの UTF-8 文字化けを防ぐために、
+# あわせて、接続先コンソールの入出力コードページと VT 処理を設定するために、
 # #include <com_util/console/console.h> (LIBSDIR += $(WORKSPACE_DIR)/app/com_util/prod/lib) のうえで
-# console_init() を組み込む必要がある。
-# console_dispose() はライブラリアンロード時に自動的に呼ばれるため不要。
+# com_util_console_init() を組み込む必要がある。
+# com_util_console_dispose() はライブラリアンロード時に自動的に呼ばれるため不要。
 LIBSDIR += $(WORKSPACE_DIR)/app/com_util/prod/lib
 
 # マルチスレッドを利用するため、レポジトリ全体に pthread を指定しておく
