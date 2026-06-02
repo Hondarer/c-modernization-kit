@@ -30,8 +30,8 @@
 ### 単一ファイル版
 
 - [override-sample (internal)](doxybook2_internal/README.md)
-    - [ファイルの一覧](doxybook2_internal/index_files.md)
-    - [カテゴリの一覧](doxybook2_internal/index_groups.md)
+    - [ファイルの一覧](doxybook2_internal/Files/README.md)
+    - [カテゴリの一覧](doxybook2_internal/Modules/README.md)
 
 ## 関連ドキュメント
 
