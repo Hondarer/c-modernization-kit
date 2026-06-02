@@ -16,7 +16,7 @@ c-modernization-kit を利用した計算機能のサンプルです。
 
 ### 単一ファイル版
 
-- [calc (public)](doxybook2_public/Files/README.md)
+- [calc (public)](doxybook2_public/README.md)
     - [公開 API (calc)](doxybook2_public/Modules/group__CALC__PUBLIC__API.md)
     - [公開 API (calcbase)](doxybook2_public/Modules/group__CALCBASE__PUBLIC__API.md)
 
@@ -31,7 +31,7 @@ c-modernization-kit を利用した計算機能のサンプルです。
 
 ### 単一ファイル版
 
-- [calc (internal)](doxybook2_internal/Files/README.md)
+- [calc (internal)](doxybook2_internal/README.md)
     - [ファイルの一覧](doxybook2_internal/index_files.md)
     - [カテゴリの一覧](doxybook2_internal/index_groups.md)
 

@@ -14,7 +14,7 @@
 
 ### 単一ファイル版
 
-- [override-sample (public)](doxybook2_public/Files/README.md)
+- [override-sample (public)](doxybook2_public/README.md)
     - [公開 API (base)](doxybook2_public/Modules/group__BASE__PUBLIC__API.md)
     - [公開 API (override)](doxybook2_public/Modules/group__OVERRIDE__PUBLIC__API.md)
 
@@ -29,7 +29,7 @@
 
 ### 単一ファイル版
 
-- [override-sample (internal)](doxybook2_internal/Files/README.md)
+- [override-sample (internal)](doxybook2_internal/README.md)
     - [ファイルの一覧](doxybook2_internal/index_files.md)
     - [カテゴリの一覧](doxybook2_internal/index_groups.md)
 
