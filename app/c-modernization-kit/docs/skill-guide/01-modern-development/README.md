@@ -9,6 +9,7 @@
 |-------------------------------------------------|----------------------------------------------------------------|
 | [レガシ C コードにモダン手法を適用する全体像](about-modern-development.md) | Docs as Code・自動テスト・CI/CD を組み合わせた全体ワークフロー |
 | [生成 AI 時代のソース コード管理 (X as Code)](x_as_code.md)                   | X as Code・GitOps・生成 AI 活用の DevOps 進化論                |
+| [ADR (Architecture Decision Record)](adr.md)                              | 設計判断の背景・根拠・影響を短い文書で残す方法                 |
 
 Table: スキル ガイド一覧
 
@@ -18,6 +19,7 @@ Table: スキル ガイド一覧
 - `docs/` - Documentation as Code / Design as Code の実践
 - サブモジュール (`app/com_util` / `app/porter` / `doxyfw` / `docsfw` / `testfw` / `makefw`) - Pipeline as Code / Infrastructure as Code の実践
 - 生成 AI へのコンテキスト提供を意識したドキュメント管理
+- 重要な設計判断は ADR の考え方で記録し、変更理由を後から追えるようにできる
 
 ## 次のステップ
 

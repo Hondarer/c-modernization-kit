@@ -70,6 +70,7 @@ Table: 学習ステップ一覧
 |------------|------|
 | [レガシ C コードにモダン手法を適用する全体像](01-modern-development/about-modern-development.md) | Docs as Code・自動テスト・CI/CD を組み合わせた全体ワークフロー |
 | [生成 AI 時代のソース コード管理 (X as Code)](01-modern-development/x_as_code.md) | X as Code・GitOps・生成 AI 活用の DevOps 進化論 |
+| [ADR (Architecture Decision Record)](01-modern-development/adr.md) | 設計判断の背景・根拠・影響を短い文書で残す方法 |
 
 Table: ステップ 1 ドキュメント一覧
 
