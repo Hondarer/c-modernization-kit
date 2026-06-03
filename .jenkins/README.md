@@ -284,6 +284,7 @@ source/app/**/test/**/*.warn
 | `build-and-test-linux` (コンテナー内) | `inner-build.sh` |
 | `build-and-test-linux` (コンテナー起動) | `build.sh` |
 | workflow-wide `env`: `MAKEFW_HOME`, `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` | Jenkins では `MAKEFW_HOME` を明示設定し、`inner-build.sh` は `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME` を `/workspace` 基準で export |
+| `Check NBSP` | `inner-build.sh` の `python3 /workspace/bin/check-nbsp.py --force` |
 | `Set PATH and library path for tests` | `inner-build.sh` の `LD_LIBRARY_PATH`, `PATH` 設定 |
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |

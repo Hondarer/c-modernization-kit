@@ -58,6 +58,10 @@ skills :
 	@"$(BASH)" "$(CURDIR)/bin/sync-skills.sh"
 	@printf 'INFO: skills sync completed.\n'
 
+.PHONY: check-nbsp
+check-nbsp :
+	python3 "$(CURDIR)/bin/check-nbsp.py"
+
 .PHONY: clean
 clean :
 	$(MAKE) -C $(TESTFW_HOME) clean
