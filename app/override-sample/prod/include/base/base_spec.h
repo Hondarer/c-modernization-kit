@@ -59,7 +59,7 @@ extern "C"
     BASE_EXPORT extern void BASE_API console_output(const char *format, ...);
 
     /**
-     *  @brief          libbase が管理する com_util_sym_loader_entry_t ポインタ配列の内容を標準出力に表示します。
+     *  @brief          libbase が管理する com_util_sym_loader_entry ポインタ配列の内容を標準出力に表示します。
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      */
     BASE_EXPORT extern int BASE_API sym_loader_info_libbase(void);

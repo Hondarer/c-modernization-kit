@@ -6,9 +6,61 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応、
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は今後、命名規則、エラー処理、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。  
-現版では「整数型の選択」「関数引数の異常入力対応」「変数宣言位置と命令文の関係」「式の括弧」「関数引数の const 付与と Doxygen 方向タグ」を記載します。
+現版では「typedef struct の命名規則」「整数型の選択」「関数引数の異常入力対応」「変数宣言位置と命令文の関係」「式の括弧」「関数引数の const 付与と Doxygen 方向タグ」を記載します。
 
 関連する既存ガイドラインは [参照](#参照) を参照してください。
+
+## typedef struct の命名規則
+
+### 基本ルール
+
+`typedef struct` は、構造体タグ名と typedef 名を同一にします。  
+typedef 名には `_t` サフィックスを付けません。
+
+完全定義は次の形式で記述します。
+
+```c
+typedef struct sample_context
+{
+    int value;
+} sample_context;
+```
+
+不透明型は次の形式で宣言します。
+
+```c
+typedef struct sample_context sample_context;
+```
+
+API の引数や戻り値でポインターを扱う場合は、型名に `*` を付けて明示します。  
+ポインターを typedef 名に隠しません。
+
+```c
+sample_context *sample_context_create(void);
+void sample_context_destroy(sample_context *context);
+```
+
+### 禁止する形式
+
+次のように、ポインターを typedef で隠す形式は禁止します。
+
+```c
+typedef struct sample_context *sample_handle;
+```
+
+匿名 struct typedef も使用しません。
+
+```c
+typedef struct
+{
+    int value;
+} sample_context;
+```
+
+### 対象外
+
+このルールは `typedef struct` を対象とします。  
+`typedef enum`、関数ポインター typedef、固定幅整数型、標準ライブラリ型、外部 ABI / OS / SDK 由来型の alias は対象外です。
 
 ## 整数型の選択
 
@@ -71,7 +123,7 @@ Sleep(timeout_dword);
  *  @param[in]      timeout_ms タイムアウト (ms)。負値は @ref COM_UTIL_SYNC_INVALID_ARGUMENT を返します。
  *  @return         結果コード。
  */
-com_util_sync_result_t com_util_local_lock_lock(com_util_local_lock_t *mtx, int timeout_ms)
+com_util_sync_result_t com_util_local_lock_lock(com_util_local_lock *mtx, int timeout_ms)
 {
     if (timeout_ms < 0)
     {
@@ -376,7 +428,7 @@ cd <module-dir> && make doxy 2>&1 | grep -i warning
 - `app/com_util/prod/include/com_util/compress/compress.h` — データ系 `[in]` が const
 - `app/com_util/prod/include/com_util/crypto/crypto.h` — データ系 `[in]` が const
 - `app/com_util/prod/include/com_util/runtime/module.h` — `func_addr` が `const void *`
-- `app/com_util/prod/include/com_util/runtime/shutdown.h` — `event` が `const com_util_shutdown_event_t *`
+- `app/com_util/prod/include/com_util/runtime/shutdown.h` — `event` が `const com_util_shutdown_event *`
 - `app/com_util/prod/include/com_util/sync/sync.h` の `interprocess_*_export_descriptor` — `lock` が `const ..._t *`
 
 ### mock 追従 (test 配下を持つモジュールの場合)

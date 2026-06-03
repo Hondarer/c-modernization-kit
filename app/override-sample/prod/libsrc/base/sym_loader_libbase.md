@@ -2,7 +2,7 @@
 
 ## 役割
 
-`sym_loader_libbase.h` / `sym_loader_libbase.c` は、`base` ライブラリが管理するオーバーライド対応関数の **com_util_sym_loader_entry_t 実体と、それに紐付く型・変数の宣言** を提供します。
+`sym_loader_libbase.h` / `sym_loader_libbase.c` は、`base` ライブラリが管理するオーバーライド対応関数の **com_util_sym_loader_entry 実体と、それに紐付く型・変数の宣言** を提供します。
 
 `sym_loader` の汎用機能 (`com_util_sym_loader_init`, `com_util_sym_loader_resolve`, `com_util_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群に接続する「接着剤」の役割を担います。
 
@@ -10,10 +10,10 @@
 
 | ファイル | 責務 |
 |---|---|
-| `sym_loader_libbase.h` | 関数ポインター型の `typedef`、`com_util_sym_loader_entry_t` ポインタ・配列・設定ファイル パスの `extern` 宣言 |
-| `sym_loader_libbase.c` | `com_util_sym_loader_entry_t` 実体の定義、配列・要素数・設定ファイル パスの実体定義、`sym_loader_info_libbase()` の実装 |
+| `sym_loader_libbase.h` | 関数ポインター型の `typedef`、`com_util_sym_loader_entry` ポインタ・配列・設定ファイル パスの `extern` 宣言 |
+| `sym_loader_libbase.c` | `com_util_sym_loader_entry` 実体の定義、配列・要素数・設定ファイル パスの実体定義、`sym_loader_info_libbase()` の実装 |
 
-`com_util_sym_loader_entry_t` の実体は `sym_loader_libbase.c` 内で `static` 変数として定義します。外部からのアクセスは `com_util_sym_loader_entry_t *const` ポインター経由に限定することで、直接書き換えを防いでいます。
+`com_util_sym_loader_entry` の実体は `sym_loader_libbase.c` 内で `static` 変数として定義します。外部からのアクセスは `com_util_sym_loader_entry *const` ポインター経由に限定することで、直接書き換えを防いでいます。
 
 ## 利用側との関係
 
@@ -43,13 +43,13 @@ dllmain_libbase.c  (初期化・解放)
 以下の 2 点を追記します。
 
 - `new_func` に対応する関数ポインター型の `typedef`
-- その com_util_sym_loader_entry_t へのポインターの `extern` 宣言
+- その com_util_sym_loader_entry へのポインターの `extern` 宣言
 
 ### sym_loader_libbase.c への追加
 
 以下の 2 点を追記します。
 
-- `COM_UTIL_SYM_LOADER_ENTRY_INIT` マクロで com_util_sym_loader_entry_t の `static` 実体を定義し、対応する `const` ポインターを定義
+- `COM_UTIL_SYM_LOADER_ENTRY_INIT` マクロで com_util_sym_loader_entry の `static` 実体を定義し、対応する `const` ポインターを定義
 - `fobj_array_libbase` 配列に新しい実体のアドレスを追加
 
 `fobj_length_libbase` は配列サイズから自動計算されるため変更不要です。

@@ -31,23 +31,23 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/** sample_func に対応する sym_loader エントリへのポインタ。 */
-extern com_util_sym_loader_entry_t *const pfo_sample_func;
+    /** sample_func に対応する sym_loader エントリへのポインタ。 */
+    extern com_util_sym_loader_entry *const pfo_sample_func;
 
-/* typedef any (*func_name_t)(...); */            /* 将来追加 */
-/* extern com_util_sym_loader_entry_t *const pfo_func_name; */ /* 将来追加 */
+    /* typedef any (*func_name_t)(...); */                       /* 将来追加 */
+    /* extern com_util_sym_loader_entry *const pfo_func_name; */ /* 将来追加 */
 
-/** sym_loader に設定するポインタ配列。 */
-extern com_util_sym_loader_entry_t *const fobj_array_libbase[];
+    /** sym_loader に設定するポインタ配列。 */
+    extern com_util_sym_loader_entry *const fobj_array_libbase[];
 
-/** sym_loader に設定するポインタ配列の要素数 */
-extern const size_t fobj_length_libbase;
+    /** sym_loader に設定するポインタ配列の要素数 */
+    extern const size_t fobj_length_libbase;
 
 /** sym_loader 設定ファイルのパス長 (終端 '\0' を含む) */
 #define SYM_LOADER_CONFIG_PATH_MAX PLATFORM_PATH_MAX
 
-/** sym_loader 設定ファイルのパス */
-extern char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX];
+    /** sym_loader 設定ファイルのパス */
+    extern char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX];
 
 #ifdef __cplusplus
 }

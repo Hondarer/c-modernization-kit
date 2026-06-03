@@ -25,20 +25,20 @@ char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 /* --- 対応関数を追加した場合、以下に追加が必要です。                       --- */
 
 /** sample_func 用の sym_loader エントリ実体。 */
-static com_util_sym_loader_entry_t sfo_sample_func = COM_UTIL_SYM_LOADER_ENTRY_INIT("sample_func", sample_func_t);
+static com_util_sym_loader_entry sfo_sample_func = COM_UTIL_SYM_LOADER_ENTRY_INIT("sample_func", sample_func_t);
 /* Doxygen コメントは、ヘッダーに記載 */
 
-com_util_sym_loader_entry_t *const pfo_sample_func = &sfo_sample_func;
+com_util_sym_loader_entry *const pfo_sample_func = &sfo_sample_func;
 
-/* static com_util_sym_loader_entry_t sfo_func_name = COM_UTIL_SYM_LOADER_ENTRY_INIT("func_name", func_name_t); */ /* 将来追加 */
-/* com_util_sym_loader_entry_t *const pfo_func_name = &sfo_func_name; */                               /* 将来追加 */
+/* static com_util_sym_loader_entry sfo_func_name = COM_UTIL_SYM_LOADER_ENTRY_INIT("func_name", func_name_t); */ /* 将来追加 */
+/* com_util_sym_loader_entry *const pfo_func_name = &sfo_func_name; */ /* 将来追加 */
 
 /* --- sym_loader に渡すポインタ配列                     --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。 --- */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-com_util_sym_loader_entry_t *const fobj_array_libbase[] = {
+com_util_sym_loader_entry *const fobj_array_libbase[] = {
     &sfo_sample_func,
     /* &sfo_func_name, */ /* 将来追加 */
 };
