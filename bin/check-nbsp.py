@@ -60,7 +60,7 @@ def git_root(cwd):
 def git_submodule_paths(repo_root):
     """Return recursive submodule roots under repo_root."""
     output = run_git(
-        ["submodule", "foreach", "--quiet", "--recursive", "printf '%s\\0' \"$sm_path\""],
+        ["submodule", "foreach", "--quiet", "--recursive", "printf '%s\\0' \"$PWD\""],
         repo_root,
     )
     if output is None or not output:
@@ -70,8 +70,8 @@ def git_submodule_paths(repo_root):
     for raw_path in output.split(b"\0"):
         if not raw_path:
             continue
-        rel_path = raw_path.decode("utf-8", errors="replace")
-        paths.append(repo_root / rel_path)
+        path = raw_path.decode("utf-8", errors="replace")
+        paths.append(Path(path))
     return paths
 
 
@@ -125,6 +125,42 @@ def force_git_paths(repo_root):
     return [path.decode("utf-8", errors="replace") for path in output.split(b"\0") if path]
 
 
+def git_text_attrs(repo_root, rel_paths):
+    """Return git text attributes for rel_paths."""
+    if not rel_paths:
+        return {}
+
+    input_data = b"\0".join(path.encode("utf-8") for path in rel_paths) + b"\0"
+    try:
+        result = subprocess.run(
+            ["git", "check-attr", "-z", "--stdin", "text"],
+            cwd=repo_root,
+            check=True,
+            input=input_data,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return {}
+
+    attrs = {}
+    parts = result.stdout.split(b"\0")
+    for index in range(0, len(parts) - 2, 3):
+        raw_path = parts[index]
+        raw_value = parts[index + 2]
+        if not raw_path:
+            continue
+        path = raw_path.decode("utf-8", errors="replace")
+        value = raw_value.decode("utf-8", errors="replace")
+        attrs[path] = value
+    return attrs
+
+
+def is_git_attr_binary(text_attr):
+    """Return True when git attributes explicitly mark the path binary."""
+    return text_attr == "unset"
+
+
 def force_filesystem_paths(root):
     """Yield files under root outside git."""
     for current_root, dirnames, filenames in os.walk(root):
@@ -162,15 +198,15 @@ def line_column(data, byte_index):
 
 
 def check_file(display_path, path):
-    """Check one file and return the number of NBSP occurrences."""
+    """Check one file and return the number of NBSP occurrences and binary state."""
     try:
         data = path.read_bytes()
     except OSError as error:
         print(f"{display_path}: read failed: {error}", file=sys.stderr)
-        return 1
+        return 1, False
 
     if is_binary(data):
-        return 0
+        return 0, True
 
     count = 0
     start = 0
@@ -183,17 +219,20 @@ def check_file(display_path, path):
         count += 1
         start = index + len(NBSP_BYTES)
 
-    return count
+    return count, False
 
 
 def check_git(root, force):
     """Check files in root git repository and its submodules."""
     total = 0
+    checked_count = 0
+    skipped_binaries = []
     for repo_root in iter_repositories(root):
         if force:
             rel_paths = force_git_paths(repo_root)
         else:
             rel_paths = normal_git_paths(repo_root)
+        text_attrs = git_text_attrs(repo_root, rel_paths)
 
         for rel_path in rel_paths:
             path = repo_root / rel_path
@@ -203,18 +242,45 @@ def check_git(root, force):
                 display_path = path.relative_to(root).as_posix()
             except ValueError:
                 display_path = path.as_posix()
-            total += check_file(display_path, path)
-    return total
+            if is_git_attr_binary(text_attrs.get(rel_path)):
+                skipped_binaries.append((display_path, "git attributes"))
+                continue
+            count, is_binary_file = check_file(display_path, path)
+            total += count
+            if is_binary_file:
+                skipped_binaries.append((display_path, "NUL byte"))
+            else:
+                checked_count += 1
+    return total, checked_count, skipped_binaries
 
 
 def check_filesystem(root):
     """Check files under root outside git."""
     total = 0
+    checked_count = 0
+    skipped_binaries = []
     for rel_path in force_filesystem_paths(root):
         path = root / rel_path
         if path.is_file():
-            total += check_file(rel_path, path)
-    return total
+            count, is_binary_file = check_file(rel_path, path)
+            total += count
+            if is_binary_file:
+                skipped_binaries.append((rel_path, "NUL byte"))
+            else:
+                checked_count += 1
+    return total, checked_count, skipped_binaries
+
+
+def print_force_summary(checked_count, skipped_binaries):
+    """Print force mode scan summary."""
+    git_attr_count = sum(1 for _, reason in skipped_binaries if reason == "git attributes")
+    nul_byte_count = sum(1 for _, reason in skipped_binaries if reason == "NUL byte")
+    print(f"INFO: Checked text files: {checked_count}")
+    print(f"INFO: Skipped binary files: {len(skipped_binaries)}")
+    print(f"INFO: Skipped by git attributes: {git_attr_count}")
+    print(f"INFO: Skipped by NUL byte: {nul_byte_count}")
+    for path, reason in skipped_binaries:
+        print(f"INFO: Skipped binary file: {path} ({reason})")
 
 
 def main():
@@ -235,15 +301,18 @@ def main():
             print("INFO: Git 管理下ではないため、NBSP チェックをスキップします。")
             return 0
         root = cwd
-        count = check_filesystem(root)
+        count, checked_count, skipped_binaries = check_filesystem(root)
     else:
-        count = check_git(root, args.force)
+        count, checked_count, skipped_binaries = check_git(root, args.force)
+
+    if args.force:
+        print_force_summary(checked_count, skipped_binaries)
 
     if count > 0:
         print(f"ERROR: NBSP (U+00A0) が {count} 件見つかりました。", file=sys.stderr)
         return 1
 
-    print("INFO: NBSP チェックは成功しました。")
+    print("INFO: NBSP が混入したテキスト ファイルは存在しませんでした。")
     return 0
 
 
