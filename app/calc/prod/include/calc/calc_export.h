@@ -7,14 +7,14 @@
  *  @version        1.0.0
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
- *
- *  @hideincludedbygraph
- *
- *******************************************************************************
- */
+ *
+ *  @hideincludedbygraph
+ *
+ *******************************************************************************
+ */
 
-/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
-/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
 
 #ifndef CALC_EXPORT_H
 #define CALC_EXPORT_H

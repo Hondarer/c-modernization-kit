@@ -13,14 +13,14 @@
  *  個別ヘッダーを利用するか、アンブレラ ヘッダーを利用するかは利用者にて選択してください。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
- *
- *  @hideincludedbygraph
- *
- *******************************************************************************
- */
+ *
+ *  @hideincludedbygraph
+ *
+ *******************************************************************************
+ */
 
-/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
-/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
 
 #ifndef CALC_H
 #define CALC_H
