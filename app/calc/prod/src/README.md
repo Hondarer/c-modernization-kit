@@ -1,3 +1,7 @@
+---
+short-title: "src"
+---
+
 # calc src
 
 calc コマンド群のソース コードです。

@@ -1,3 +1,7 @@
+---
+short-title: "CalcLib"
+---
+
 # CalcLib - calc ライブラリ用 .NET ラッパー
 
 CalcLib は、ネイティブ calc ライブラリ (Linux では libcalc.so、Windows では libcalc.dll) 用の .NET Standard 2.0 ラッパーです。基本的な整数演算を実行するための、クリーンで慣用的な C# API を提供します。

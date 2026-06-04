@@ -1,3 +1,7 @@
+---
+short-title: "CalcApp"
+---
+
 # CalcApp - .NET 電卓コマンド
 
 calc コマンド ライン電卓の .NET 版です。このアプリケーションは、CalcLib ライブラリ ラッパーを使用して基本的な整数演算を実行します。

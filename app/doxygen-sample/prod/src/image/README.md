@@ -1,3 +1,7 @@
+---
+short-title: "image"
+---
+
 # イメージを含む Doxygen Markdown
 
 イメージを含む Doxygen Markdown のサンプルです。
