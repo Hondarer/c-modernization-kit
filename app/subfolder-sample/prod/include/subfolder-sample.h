@@ -1,3 +1,16 @@
+/**
+ *******************************************************************************
+ *  @file           subfolder-sample.h
+ *  @brief          subfolder-sample.h ヘッダー。
+ *
+ *  @hideincludedbygraph
+ *
+ *******************************************************************************
+ */
+
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
+
 #ifndef SUBFOLDER_SAMPLE_H
 #define SUBFOLDER_SAMPLE_H
 

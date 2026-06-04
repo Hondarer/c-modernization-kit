@@ -11,8 +11,14 @@
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
+ *
+ *  @hideincludedbygraph
+ *
  *******************************************************************************
  */
+
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
 
 #ifndef OVERRIDE_SPEC_H
 #define OVERRIDE_SPEC_H

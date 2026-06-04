@@ -10,8 +10,14 @@
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
+ *
+ *  @hideincludedbygraph
+ *
  *******************************************************************************
  */
+
+/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
+/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
 
 #ifndef BASE_SPEC_H
 #define BASE_SPEC_H
