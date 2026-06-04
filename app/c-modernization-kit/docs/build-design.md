@@ -20,12 +20,12 @@
 注: 環境変数は VS Code 起動時に自動設定済みの前提です。以下の環境が利用可能である必要があります:
 
 1. ポータブル版 Visual Studio Build Tools
-   - MSVC コンパイラ (`cl.exe`)
-   - MSVC リンカー (`link.exe`)
+    - MSVC コンパイラ (`cl.exe`)
+    - MSVC リンカー (`link.exe`)
 
 2. Git for Windows (MinGW)
-   - GNU Make (`make.exe`)
-   - 各種 Unix コマンド
+    - GNU Make (`make.exe`)
+    - 各種 Unix コマンド
 
 3. 環境設定の実行 (手動設定時のみ)
 
@@ -60,7 +60,7 @@ make
 | ライブラリ | Windows | Linux | 説明 |
 |-----------|---------|-------|------|
 | libcalcbase | `app/calc/prod/lib/libcalcbase.lib` | `app/calc/prod/lib/libcalcbase.a` | 基本計算関数ライブラリ (静的ライブラリ) |
-| libcalc | `app/calc/prod/lib/libcalc.dll` + `libcalc.lib` | `app/calc/prod/lib/libcalc.so` | 計算ハンドラーライブラリ (動的ライブラリ、calcbase を内部に静的リンク) |
+| libcalc | `app/calc/prod/lib/libcalc.dll` + `libcalc.lib` | `app/calc/prod/lib/libcalc.so` | 計算ハンドラー ライブラリ (動的ライブラリ、calcbase を内部に静的リンク) |
 
 コマンド / Commands:
 
@@ -335,8 +335,8 @@ LIB_TYPE = shared
 **動作:**
 
 - `LIBS` に指定された `calcbase` をライブラリ検索パスから検索
-  - Windows: `libcalcbase.lib` を検索
-  - Linux: `libcalcbase.a` を検索
+    - Windows: `libcalcbase.lib` を検索
+    - Linux: `libcalcbase.a` を検索
 - 静的ライブラリが見つかった場合は DLL/.so に静的リンク
 - 見つからない場合は動的リンク フラグとして保持
 
@@ -572,38 +572,38 @@ OBJS = obj/calcHandler.obj
 ## 現在の制限事項
 
 1. **ライブラリ構成の固定**
-   - libcalcbase は静的ライブラリとして実装 (makepart.mk で変更可能だが、依存関係上推奨しない)
-   - libcalc は動的ライブラリとして実装 (makepart.mk で `LIB_TYPE = shared` 設定済み)
+    - libcalcbase は静的ライブラリとして実装 (makepart.mk で変更可能だが、依存関係上推奨しない)
+    - libcalc は動的ライブラリとして実装 (makepart.mk で `LIB_TYPE = shared` 設定済み)
 
 2. **testfw 機能との分離**
-   - makefw はビルド システムのみを提供
-   - テスト機能 (inject, filter, モック) は testfw が提供
+    - makefw はビルド システムのみを提供
+    - テスト機能 (inject, filter, モック) は testfw が提供
 
 3. **ライブラリ検索パス**
-   - `LIBSDIR` で指定されたパスから検索
-   - prepare.mk により、以下のデフォルト パスが設定されます:
-     - `$(WORKSPACE_DIR)/app/calc/prod/lib`
-     - `$(WORKSPACE_DIR)/app/calc/test/lib`
+    - `LIBSDIR` で指定されたパスから検索
+    - prepare.mk により、以下のデフォルト パスが設定されます:
+        - `$(WORKSPACE_DIR)/app/calc/prod/lib`
+        - `$(WORKSPACE_DIR)/app/calc/test/lib`
 
 ## 今後の拡張可能性
 
 1. **より高度な依存関係解決**
-   - `-L` オプションの追加サポート
-   - システム ライブラリ パスの自動検索
+    - `-L` オプションの追加サポート
+    - システム ライブラリ パスの自動検索
 
 2. **ビルド最適化**
-   - 並列ビルドのさらなる最適化
-   - インク リ メンタル ビルドの改善
+    - 並列ビルドのさらなる最適化
+    - インク リ メンタル ビルドの改善
 
 3. **プラットフォーム拡張**
-   - macOS サポート
-   - その他のコンパイラ サポート (Clang など)
+    - macOS サポート
+    - その他のコンパイラ サポート (Clang など)
 
 4. **app 単位のサブモジュール化**
-   - `MYAPP_DIR` により、app 内の設定は自 app のルートを基準に記述されている
-   - `$(MYAPP_DIR)/prod/include` や `$(MYAPP_DIR)/../com_util/prod/include` のような app 起点記法を使用
-   - 将来 `app/<name>` を独立した Git サブモジュールに分離する際、app 内の `makepart.mk` の記述を変更せずに済む
-   - 内部では `realpath -m` で絶対パスに正規化されるため、`..` を含む cross-app 参照もクリーンなパスとしてコンパイラに渡される
+    - `MYAPP_DIR` により、app 内の設定は自 app のルートを基準に記述されている
+    - `$(MYAPP_DIR)/prod/include` や `$(MYAPP_DIR)/../com_util/prod/include` のような app 起点記法を使用
+    - 将来 `app/<name>` を独立した Git サブモジュールに分離する際、app 内の `makepart.mk` の記述を変更せずに済む
+    - 内部では `realpath -m` で絶対パスに正規化されるため、`..` を含む cross-app 参照もクリーンなパスとしてコンパイラに渡される
 
 ## 実装のベスト プラクティスと重要なノート
 

@@ -89,9 +89,9 @@ C / C++ コードで整数値を表す型は、次の方針で選択します。
 - ワイヤ プロトコル / 通信パケットの構造体メンバー (`payload_len`、`flags`、`session_id`、`seq_num` 等の幅が仕様で決まっているフィールド)
 - アルゴリズム規格上、幅が定義されている計算値 (CRC、暗号鍵長など)
 - OS API 境界で固定幅が要請される箇所
-  - Windows `DWORD` を経由する API (`Sleep`、`WriteFile`、`GetCurrentProcessId` 等)
-  - POSIX `struct timespec::tv_nsec` (long) との境界キャスト
-  - atomic 操作の state 変数 (例: `__atomic_compare_exchange_n` の引数)
+    - Windows `DWORD` を経由する API (`Sleep`、`WriteFile`、`GetCurrentProcessId` 等)
+    - POSIX `struct timespec::tv_nsec` (long) との境界キャスト
+    - atomic 操作の state 変数 (例: `__atomic_compare_exchange_n` の引数)
 
 例外を採用する場合は、当該ヘッダー / コードに「なぜ固定幅を維持するか」を簡潔に記載してください。
 
