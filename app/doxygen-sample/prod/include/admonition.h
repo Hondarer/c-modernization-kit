@@ -10,7 +10,7 @@
  *  @attention      attention タグのテスト。必須の制約条件・使用条件を記述します。
  *  @important      important タグのテスト。特に重要な情報を記述します。
  *  @note           note タグのテスト。技術的な背景や実装の注釈を記述します。
- *  @remarks        remarks タグのテスト。使用上のヒントや補足情報を記述します。
+ *  @remark         remark タグのテスト。使用上のヒントや補足情報を記述します。
  *  @warning        warning タグのテスト。重大なエラーや危険の回避のための警告を記述します。
  */
 void admonition_func();
