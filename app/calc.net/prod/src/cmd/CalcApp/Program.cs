@@ -27,7 +27,7 @@ namespace CalcApp
     public class Program
     {
         /// <summary>
-        /// プログラムのエントリーポイント。
+        /// プログラムのエントリ ポイント。
         /// </summary>
         /// <param name="args">コマンドライン引数の配列。</param>
         /// <returns>成功時は 0、失敗時は 1 を返します。</returns>

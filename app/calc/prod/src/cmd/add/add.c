@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 /**
- *  @brief          プログラムのエントリーポイント。
+ *  @brief          プログラムのエントリ ポイント。
  *  @param[in]      argc コマンドライン引数の数。
  *  @param[in]      argv コマンドライン引数の配列。
  *  @return         成功時は 0、失敗時は 0 以外の値を返します。

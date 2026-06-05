@@ -120,7 +120,7 @@ c-modernization-kit/
 #### 必要なパッケージ
 
 ```bash
-# Debian/Ubuntu系
+# Debian/Ubuntu 系
 sudo apt-get install -y \
     build-essential \
     g++ \
@@ -130,7 +130,7 @@ sudo apt-get install -y \
     gcovr \
     lcov
 
-# Red Hat/CentOS系
+# Red Hat/CentOS 系
 sudo dnf install -y \
     gcc \
     g++ \
@@ -178,7 +178,7 @@ touch .workspaceRoot
 # Windows (PowerShell)
 New-Item .workspaceRoot -ItemType File
 
-# Windows (コマンドプロンプト)
+# Windows (コマンド プロンプト)
 type nul > .workspaceRoot
 ```
 
@@ -206,7 +206,7 @@ type nul > .workspaceRoot
 // テスト対象のヘッダーをインクルード
 #include <libcalcbase.h>
 
-// モッククラスの定義
+// モック クラスの定義
 class Mock_calcbase
 {
 public:
@@ -221,7 +221,7 @@ public:
     ~Mock_calcbase();
 };
 
-// グローバルなモックインスタンスへのポインタ
+// グローバルなモック インスタンスへのポインター
 extern Mock_calcbase *_mock_calcbase;
 
 #endif // _MOCK_CALCBASE_H
@@ -243,10 +243,10 @@ extern Mock_calcbase *_mock_calcbase;
 #include <testfw.h>
 #include <mock_calcbase.h>
 
-// グローバルインスタンスの実体
+// グローバル インスタンスの実体
 Mock_calcbase *_mock_calcbase = nullptr;
 
-// コンストラクタ: デフォルト動作を設定
+// コンストラクター: デフォルト動作を設定
 Mock_calcbase::Mock_calcbase()
 {
     // デフォルト動作を設定 (オプション)
@@ -257,7 +257,7 @@ Mock_calcbase::Mock_calcbase()
         })); // モックの既定の挙動を定義する例
 
     ON_CALL(*this, subtract(_, _, _))
-        .WillByDefault(Return(CALC_SUCCESS)); // 一般的にはモックの既定の挙動は NOP にしておき、テストプログラムで具体的な挙動を決める
+        .WillByDefault(Return(CALC_SUCCESS)); // 一般的にはモックの既定の挙動は NOP にしておき、テスト プログラムで具体的な挙動を決める
 
     ON_CALL(*this, multiply(_, _, _))
         .WillByDefault(Return(CALC_SUCCESS));
@@ -268,7 +268,7 @@ Mock_calcbase::Mock_calcbase()
     _mock_calcbase = this;
 }
 
-// デストラクタ: グローバルポインタをクリア
+// デストラクター: グローバル ポインターをクリア
 Mock_calcbase::~Mock_calcbase()
 {
     _mock_calcbase = nullptr;
@@ -285,14 +285,14 @@ Mock_calcbase::~Mock_calcbase()
 #include <testfw.h>
 #include <mock_calcbase.h>
 
-// C言語の関数として実装
+// C 言語の関数として実装
 // この関数がテスト時に本物の add() 関数の代わりに呼ばれます
 // WEAK_ATR 属性により、リンク時に弱いシンボルとして扱われる
 WEAK_ATR int add(int a, int b, int *result)
 {
     int rtc = 0;
 
-    // モックインスタンスが存在する場合はモックを呼び出す
+    // モック インスタンスが存在する場合はモックを呼び出す
     if (_mock_calcbase != nullptr)
     {
         rtc = _mock_calcbase->add(a, b, result);
@@ -345,12 +345,12 @@ find-up = \
     )
 WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# 準備処理 (ビルドテンプレートより前に include)
+# 準備処理 (ビルド テンプレートより前に include)
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ビルドテンプレートを include
+# ビルド テンプレートを include
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
@@ -362,7 +362,7 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 # 出力先ディレクトリ (ライブラリの場合のみ必要)
 OUTPUT_DIR := $(WORKSPACE_DIR)/app/calc/test/lib
 
-# ソースファイル (必要に応じて追加)
+# ソース ファイル (必要に応じて追加)
 SRCS := \
 	mock_calcbase.cc \
 	mock_add.cc \
@@ -384,12 +384,12 @@ SRCS := \
 #include <mock_stdio.h>
 #include <libcalcbase.h>
 
-// テストフィクスチャクラス
+// テスト フィクスチャ クラス
 class addTest : public Test
 {
 };
 
-// テストケース
+// テスト ケース
 TEST_F(addTest, test_1_add_2)
 {
     // Arrange (状態設定)
@@ -452,7 +452,7 @@ TEST_F(addTest, test_2_add_1)
     EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること。
 }
 
-// NULLポインタのテスト
+// NULL ポインターのテスト
 TEST_F(addTest, test_null_result)
 {
     // Arrange
@@ -544,7 +544,7 @@ TEST_F(addTest, normal)
 
 ```cpp
 // 例: stdio のモックは多数の関数があるため、
-// 全てを EXPECT_CALL で設定するのは煩雑
+// すべてを EXPECT_CALL で設定するのは煩雑
 // NiceMock を使うことで、必要な呼び出しだけを検証できる
 NiceMock<Mock_stdio> mock_stdio;
 ```
@@ -575,12 +575,12 @@ find-up = \
     )
 WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# 準備処理 (ビルドテンプレートより前に include)
+# 準備処理 (ビルド テンプレートより前に include)
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ビルドテンプレートを include
+# ビルド テンプレートを include
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
@@ -589,7 +589,7 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 `app/calc/test/src/libcalcbaseTest/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(WORKSPACE_DIR)/app/calc/prod/libsrc/calcbase/add.c
 ```
@@ -614,12 +614,12 @@ find-up = \
     )
 WORKSPACE_DIR := $(strip $(call find-up,$(CURDIR),.workspaceRoot))
 
-# 準備処理 (ビルドテンプレートより前に include)
+# 準備処理 (ビルド テンプレートより前に include)
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ビルドテンプレートを include
+# ビルド テンプレートを include
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
@@ -628,13 +628,13 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 `app/calc/test/src/main/addTest/makepart.mk` にプロジェクト固有の設定を記述します。
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(WORKSPACE_DIR)/app/calc/prod/src/add/add.c
 
-# エントリーポイントの変更
-# テスト対象のソースファイルにある main() は直接実行されず、
-# テストコード内から __real_main() 経由で実行される
+# エントリ ポイントの変更
+# テスト対象のソース ファイルにある main() は直接実行されず、
+# テスト コード内から __real_main() 経由で実行される
 USE_WRAP_MAIN := 1
 
 # ライブラリの指定
@@ -703,7 +703,7 @@ LIBS += mock_calcbase mock_libc
 ```bash
 # Linux / Windows 共通
 cd test
-make clean    # クリーンビルド
+make clean    # クリーン ビルド
 make          # ビルド
 make test     # テスト実行
 ```
@@ -726,12 +726,12 @@ make test
 
 ```bash
 # Linux
-# 方法1: 環境変数で指定
+# 方法 1: 環境変数で指定
 export GTEST_FILTER=*test_1_add_2*
 make test
 export -n GTEST_FILTER  # フィルターを解除
 
-# 方法2: makeコマンドに指定
+# 方法 2: make コマンドに指定
 make test GTEST_FILTER=*test_1_add_2*
 ```
 
@@ -762,9 +762,9 @@ make test GTEST_FILTER=*test_1_add_2*
 ```bash
 # Linux
 cd test
-make test  # テスト実行 (カバレッジデータ収集)
+make test  # テスト実行 (カバレッジ データ収集)
 
-# gcovr でカバレッジレポート生成
+# gcovr でカバレッジ レポート生成
 gcovr --exclude-unreachable-branches
 ```
 
@@ -852,11 +852,11 @@ TEST_F(calcTest, normal)
 このテストの makepart.mk:
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(WORKSPACE_DIR)/app/calc/prod/src/calc/calc.c
 
-# エントリーポイントの変更
+# エントリ ポイントの変更
 USE_WRAP_MAIN := 1
 
 # ライブラリの指定
@@ -908,7 +908,7 @@ TEST_F(MyTest, argument_check)
 {
     Mock_stdio mock_stdio;
 
-    // 第4引数が "Hello" という文字列であることを検証
+    // 第 4 引数が "Hello" という文字列であることを検証
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("Hello\n")))
         .Times(1);
 
@@ -924,13 +924,13 @@ TEST_F(MyTest, multiple_returns)
     Mock_calcbase mock;
 
     EXPECT_CALL(mock, add(_, _))
-        .WillOnce(Return(10))      // 1回目は 10
-        .WillOnce(Return(20))      // 2回目は 20
-        .WillRepeatedly(Return(0)); // 3回目以降は 0
+        .WillOnce(Return(10))       // 1 回目は 10
+        .WillOnce(Return(20))       // 2 回目は 20
+        .WillRepeatedly(Return(0)); // 3 回目以降は 0
 
-    EXPECT_EQ(10, add(1, 2));  // 1回目
-    EXPECT_EQ(20, add(3, 4));  // 2回目
-    EXPECT_EQ(0, add(5, 6));   // 3回目以降
+    EXPECT_EQ(10, add(1, 2));  // 1 回目
+    EXPECT_EQ(20, add(3, 4));  // 2 回目
+    EXPECT_EQ(0, add(5, 6));   // 3 回目以降
 }
 ```
 
@@ -946,7 +946,7 @@ TEST_F(MyTest, multiple_returns)
 TEST_F(MyTest, test_case)
 {
     // Arrange
-    // - テストデータの準備
+    // - テスト データの準備
 
     // Pre-Assert
     // - モックの期待動作設定
@@ -977,7 +977,7 @@ TEST_F(MyTest, test_case)
     // このスコープ内でモックが有効
     Mock_calcbase mock;
 
-    // テストコード
+    // テスト コード
 }
 // スコープを抜けるとモックが破棄される
 ```
@@ -1009,12 +1009,12 @@ class MyTest : public Test
 protected:
     void SetUp() override
     {
-        // 各テストケース実行前の初期化
+        // 各テスト ケース実行前の初期化
     }
 
     void TearDown() override
     {
-        // 各テストケース実行後のクリーンアップ
+        // 各テスト ケース実行後のクリーンアップ
     }
 };
 ```
@@ -1033,7 +1033,7 @@ TEST_F(MyTest, boundary_case) { /* ... */ }
 // エラー ケース
 TEST_F(MyTest, error_case) { /* ... */ }
 
-// NULL ポインタ
+// NULL ポインター
 TEST_F(MyTest, null_pointer_case) { /* ... */ }
 ```
 
@@ -1195,7 +1195,7 @@ USE_WRAP_MAIN := 1
 # モックを使う場合は実体のソースを含めない
 # TEST_SRCS := $(WORKSPACE_DIR)/app/calc/prod/libsrc/calcbase/add.c  # NG
 
-# モックライブラリをリンク (プレフィックス -l なし)
+# モック ライブラリをリンク (プレフィックス -l なし)
 LIBS += mock_calcbase  # OK
 ```
 

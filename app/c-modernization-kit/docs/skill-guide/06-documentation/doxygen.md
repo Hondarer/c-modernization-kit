@@ -40,11 +40,11 @@ Doxygen コメントの例 (`app/calc/prod/libsrc/calcbase/add.c` スタイル):
 
 ```c
 /**
- * @brief 2つの整数を加算する
+ * @brief 2 つの整数を加算する
  *
- * @param[in]  a      加算する値1
- * @param[in]  b      加算する値2
- * @param[out] result 加算結果を格納するポインタ
+ * @param[in]  a      加算する値 1
+ * @param[in]  b      加算する値 2
+ * @param[out] result 加算結果を格納するポインター
  * @return CALC_SUCCESS 成功
  * @return CALC_ERR_NULL_POINTER result が NULL の場合
  */
@@ -54,7 +54,7 @@ int add(int a, int b, int *result);
 ドキュメント生成コマンド:
 
 ```bash
-# ルートディレクトリから Doxygen / Doxybook2 を実行
+# ルート ディレクトリから Doxygen / Doxybook2 を実行
 make doxy
 
 # 生成されたファイルの場所

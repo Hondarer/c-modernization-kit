@@ -181,7 +181,7 @@ result: 3
 
 ```bash
 cp app/override-sample/prod/sample-config/libbase_extdef.txt /tmp/libbase_extdef.txt
-# エディタで /tmp/libbase_extdef.txt を編集し、以下の行のコメントを外す
+# エディターで /tmp/libbase_extdef.txt を編集し、以下の行のコメントを外す
 # sample_func  liboverride  override_func
 cd app/override-sample/prod/bin
 LD_LIBRARY_PATH=../lib ./override-sample
