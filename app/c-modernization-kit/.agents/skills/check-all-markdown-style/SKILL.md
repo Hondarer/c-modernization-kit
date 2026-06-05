@@ -23,7 +23,7 @@ when_to_use: |
 ## 開始前チェック
 
 作業開始時に、ルートと全サブモジュールの Git 状態がクリーンであることを確認する。  
-出力が 1 行でもある場合は、`text_style_jp.py` を実行せず、ユーザーへ状態を報告して停止する。
+出力が 1 行でもある場合は、`text_style_jp.py` を実行せず、ユーザーへ状態を報告して継続可否を仰ぐ。
 
 ```bash
 git status --porcelain=v1 --ignore-submodules=none
