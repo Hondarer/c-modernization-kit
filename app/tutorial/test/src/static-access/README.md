@@ -9,8 +9,8 @@
 ## テスト対象
 
 - sample-static-lib/samplestatic.c
-  - `static int static_int` - ファイル スコープの static 変数
-  - `int samplestatic(void)` - static 変数の値を返す関数
+    - `static int static_int` - ファイル スコープの static 変数
+    - `int samplestatic(void)` - static 変数の値を返す関数
 
 ## テスト プログラムの構成
 
@@ -69,9 +69,9 @@ TEST_SRCS := \
 ## inject 機能の仕組み
 
 1. ビルド時の処理:
-   - テスト対象ソース ファイル (samplestatic.c)
-   - inject ヘッダー (samplestatic.inject.h) - ソースの先頭に結合
-   - inject ソース (samplestatic.inject.c) - ソースの末尾に結合
+    - テスト対象ソース ファイル (samplestatic.c)
+    - inject ヘッダー (samplestatic.inject.h) - ソースの先頭に結合
+    - inject ソース (samplestatic.inject.c) - ソースの末尾に結合
 
 2. 結合後のイメージ:
 
@@ -95,9 +95,9 @@ TEST_SRCS := \
    ```
 
 3. テスト コードからの利用:
-   - テスト コードは `samplestatic.inject.h` をインクルード
-   - `set_static_int()` 関数を呼び出して static 変数を操作
-   - `samplestatic()` 関数を呼び出して結果を検証
+    - テスト コードは `samplestatic.inject.h` をインクルード
+    - `set_static_int()` 関数を呼び出して static 変数を操作
+    - `samplestatic()` 関数を呼び出して結果を検証
 
 ## テストの実行内容
 

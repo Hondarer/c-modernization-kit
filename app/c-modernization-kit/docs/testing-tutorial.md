@@ -7,8 +7,8 @@
 1. [テスト フレームワークの概要](#テスト フレームワークの概要)
 2. [プロジェクト構造](#プロジェクト構造)
 3. [環境構築](#環境構築)
-   - [Linux 環境](#linux-環境)
-   - [Windows 環境](#windows-環境)
+    - [Linux 環境](#linux-環境)
+    - [Windows 環境](#windows-環境)
 4. [モックの作成方法](#モックの作成方法)
 5. [関数のテスト方法](#関数のテスト方法)
 6. [main 関数を含むプログラムのテスト](#main 関数を含むプログラムのテスト)
@@ -679,14 +679,14 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 #### main 関数のラップ
 
 - `USE_WRAP_MAIN := 1`: main 関数をラップして `__real_main` として呼び出し可能にする
-  - Linux では `-Wl,--wrap=main` オプションが自動的に設定される
-  - Windows では適切なリンカー オプションが自動的に設定される
+    - Linux では `-Wl,--wrap=main` オプションが自動的に設定される
+    - Windows では適切なリンカー オプションが自動的に設定される
 
 #### ライブラリの指定
 
 - `LIBS`: リンクするライブラリ (プレフィックス `-l` なしで指定)
-  - `mock_xxxxx`: モック ライブラリ
-  - `mock_libc`: 標準 C 関数のモック (stdio 等)
+    - `mock_xxxxx`: モック ライブラリ
+    - `mock_libc`: 標準 C 関数のモック (stdio 等)
 
 例:
 
@@ -1225,11 +1225,11 @@ LIBS += mock_calcbase  # OK
 - [GoogleTest User's Guide](https://google.github.io/googletest/)
 - [GoogleMock for Dummies](https://github.com/google/googletest/blob/main/docs/gmock_for_dummies.md)
 - testfw サブモジュール内のドキュメント:
-  - `framework/testfw/docs/how-to-mock.md`
-  - `framework/testfw/docs/how-to-test.md`
-  - `framework/testfw/docs/about-test-phase.md`
-  - `framework/testfw/docs/how-to-expect.md`
-  - `framework/testfw/docs/how-to-extern.md`
+    - `framework/testfw/docs/how-to-mock.md`
+    - `framework/testfw/docs/how-to-test.md`
+    - `framework/testfw/docs/about-test-phase.md`
+    - `framework/testfw/docs/how-to-expect.md`
+    - `framework/testfw/docs/how-to-extern.md`
 
 ---
 
@@ -1241,15 +1241,15 @@ LIBS += mock_calcbase  # OK
 2. **環境構築**: Linux と Windows それぞれの環境設定手順
 3. **テスト フレームワークの構造**: Google Test を使用した C 言語のテスト環境
 4. **モックの作成**: ヘッダー、クラス、関数の 3 段階でのモック実装
-   - WEAK_ATR 属性を使用したモック関数の実装
-   - ON_CALL を使用したデフォルト動作の設定
+    - WEAK_ATR 属性を使用したモック関数の実装
+    - ON_CALL を使用したデフォルト動作の設定
 5. **関数のテスト**: 通常の関数のユニット テスト方法
-   - ステータス コードとポインター経由の結果取得パターン
+    - ステータス コードとポインター経由の結果取得パターン
 6. **main 関数のテスト**: リンカー ラップ機能を使用した main 関数のテスト
-   - `USE_WRAP_MAIN := 1` による自動設定
+    - `USE_WRAP_MAIN := 1` による自動設定
 7. **makefile の作成**: makefile と makepart.mk の分離による保守性の向上
-   - 標準テンプレート (makefile) とプロジェクト固有の設定 (makepart.mk) の分離
-   - makefw サブモジュールによるクロスプラットフォーム対応
+    - 標準テンプレート (makefile) とプロジェクト固有の設定 (makepart.mk) の分離
+    - makefw サブモジュールによるクロスプラットフォーム対応
 8. **実践例**: 実際のコードを使った具体的なテスト例
 9. **トラブルシューティング**: プラットフォーム固有の問題と解決方法
 

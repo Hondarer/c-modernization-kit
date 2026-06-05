@@ -23,9 +23,9 @@ GNU Make はビルド プロセスを自動化するツールです。`makefile`
 ### 公式ドキュメント
 
 - [GNU Make マニュアル](https://www.gnu.org/software/make/manual/make.html) - GNU Make の公式マニュアル (英語)
-  - [ルールの書き方](https://www.gnu.org/software/make/manual/make.html#Rules) - ターゲット・依存関係・レシピの基本
-  - [変数の使い方](https://www.gnu.org/software/make/manual/make.html#Using-Variables) - 変数定義と展開
-  - [パターン ルール](https://www.gnu.org/software/make/manual/make.html#Pattern-Rules) - `%.o: %.c` の説明
+    - [ルールの書き方](https://www.gnu.org/software/make/manual/make.html#Rules) - ターゲット・依存関係・レシピの基本
+    - [変数の使い方](https://www.gnu.org/software/make/manual/make.html#Using-Variables) - 変数定義と展開
+    - [パターン ルール](https://www.gnu.org/software/make/manual/make.html#Pattern-Rules) - `%.o: %.c` の説明
 
 ### チュートリアル・入門
 

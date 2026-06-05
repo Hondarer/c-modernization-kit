@@ -22,7 +22,7 @@ WSL を使う場合は Linux 環境と同様の手順でビルドでき、MinGW 
 ### 公式ドキュメント
 
 - [WSL インストール ガイド (Microsoft Learn)](https://learn.microsoft.com/ja-jp/windows/wsl/install) - WSL のインストール手順 (日本語)
-  - WSL 2 の有効化と Linux ディストリビューションのインストール
+    - WSL 2 の有効化と Linux ディストリビューションのインストール
 - [VS Code + WSL の設定](https://code.visualstudio.com/docs/remote/wsl) - VS Code Remote - WSL 拡張機能の使い方 (英語)
 - [Git for Windows](https://gitforwindows.org/) - Git for Windows の公式サイト (英語)
 

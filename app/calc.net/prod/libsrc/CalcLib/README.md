@@ -98,12 +98,12 @@ var divResult = CalcLibrary.Divide(20, 5);    // 4
 #### メソッド
 
 - `CalcResult Calculate(CalcKind kind, int a, int b)`
-  - 計算を実行し、結果オブジェクトを返す
-  - 失敗時に例外をスローしない
+    - 計算を実行し、結果オブジェクトを返す
+    - 失敗時に例外をスローしない
 
 - `int CalculateOrThrow(CalcKind kind, int a, int b)`
-  - 計算を実行し、結果を返す
-  - 失敗時に `CalcException` をスロー
+    - 計算を実行し、結果を返す
+    - 失敗時に `CalcException` をスロー
 
 - `CalcResult Add(int a, int b)` - 加算 (a + b)
 - `CalcResult Subtract(int a, int b)` - 減算 (a - b)

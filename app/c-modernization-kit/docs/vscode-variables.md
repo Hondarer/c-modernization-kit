@@ -132,10 +132,10 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 ### 基本ルール
 
 - `app/<name>/prod/lib` を持つアプリ
-  - Linux では `LD_LIBRARY_PATH` 候補
-  - Windows では `PATH` 候補
+    - Linux では `LD_LIBRARY_PATH` 候補
+    - Windows では `PATH` 候補
 - `app/<name>/prod/bin` を持つアプリ
-  - Linux / Windows ともに `PATH` 候補
+    - Linux / Windows ともに `PATH` 候補
 - ただし、`lib` や `bin` が存在しても、現在のテスト・デバッグ・実行で使わないなら追加しません
 
 ### 現在の代表例
@@ -215,10 +215,10 @@ Windows 向けの `PATH` を更新します。
 統合ターミナル用の環境変数は `envFile` をサポートしないため、別途更新が必要です。
 
 - Linux
-  - `app/<name>/prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
-  - `app/<name>/prod/bin` が必要なら `PATH` に追加
+    - `app/<name>/prod/lib` が必要なら `LD_LIBRARY_PATH` に追加
+    - `app/<name>/prod/bin` が必要なら `PATH` に追加
 - Windows
-  - `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
+    - `app/<name>/prod/lib` / `app/<name>/prod/bin` が必要なら `PATH` に追加
 
 ### GitHub Actions を更新する
 
@@ -242,15 +242,15 @@ Windows 向けの `PATH` を更新します。
 Jenkins を利用する場合は、GitHub Actions と同じ観点で以下を更新します。
 
 - `.jenkins/inner-build.sh`
-  - `MAKEFW_HOME` (未設定だと `make` が即時失敗)
-  - `DOCSFW_HOME`
-  - `DOXYFW_HOME`
-  - `TESTFW_HOME`
-  - Linux の `LD_LIBRARY_PATH`
-  - Linux の `PATH`
-  - `results` / `warn` の収集対象パス
+    - `MAKEFW_HOME` (未設定だと `make` が即時失敗)
+    - `DOCSFW_HOME`
+    - `DOXYFW_HOME`
+    - `TESTFW_HOME`
+    - Linux の `LD_LIBRARY_PATH`
+    - Linux の `PATH`
+    - `results` / `warn` の収集対象パス
 - `.jenkins/README.md`
-  - 実装に合わせた説明
+    - 実装に合わせた説明
 
 ### 個別 README の実行例を更新する
 

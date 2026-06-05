@@ -19,9 +19,9 @@ Mermaid はテキスト形式でフローチャート・シーケンス図・ガ
 ### 公式ドキュメント
 
 - [Mermaid 公式サイト](https://mermaid.js.org/) - Mermaid のドキュメント (英語)
-  - [フローチャート](https://mermaid.js.org/syntax/flowchart.html) - 基本的なフロー図の記法
-  - [シーケンス図](https://mermaid.js.org/syntax/sequenceDiagram.html) - シーケンス図の記法
-  - [Mermaid Live Editor](https://mermaid.live/) - ブラウザーで即試せるエディター
+    - [フローチャート](https://mermaid.js.org/syntax/flowchart.html) - 基本的なフロー図の記法
+    - [シーケンス図](https://mermaid.js.org/syntax/sequenceDiagram.html) - シーケンス図の記法
+    - [Mermaid Live Editor](https://mermaid.live/) - ブラウザーで即試せるエディター
 - [GitHub - 図の作成](https://docs.github.com/ja/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams) - GitHub での Mermaid 利用方法 (日本語)
 
 ## このリポジトリとの関連

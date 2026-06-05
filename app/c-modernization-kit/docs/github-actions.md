@@ -165,54 +165,54 @@ end note
 ### build-and-test-linux ジョブ
 
 1. **リポジトリのチェックアウト**
-   - サブモジュールを含めて再帰的にチェックアウト
+    - サブモジュールを含めて再帰的にチェックアウト
 
 2. **Git safe directory 設定**
-   - コンテナー内での Git 操作を許可
+    - コンテナー内での Git 操作を許可
 
 3. **ビルド**
-   - `make` を実行してプロジェクトをビルド
-   - ビルド ログを `logs/linux-build.log` に保存
+    - `make` を実行してプロジェクトをビルド
+    - ビルド ログを `logs/linux-build.log` に保存
 
 4. **テストの実行**
-   - `make test` を実行
-   - testfw および test ディレクトリ配下のテストを実行
-   - テスト ログを `logs/linux-test.log` に保存
+    - `make test` を実行
+    - testfw および test ディレクトリ配下のテストを実行
+    - テスト ログを `logs/linux-test.log` に保存
 
 5. **テスト結果アーティファクトのアップロード**
-   - テスト結果 (`app/**/results/`) と `make test` ログを同じ artifact に保存
+    - テスト結果 (`app/**/results/`) と `make test` ログを同じ artifact に保存
 
 6. **ビルド ログ アーティファクトのアップロード**
-   - ビルド ログのみを保存
+    - ビルド ログのみを保存
 
 ### build-and-test-windows ジョブ
 
 1. **リポジトリのチェックアウト**
-   - サブモジュールを含めて再帰的にチェックアウト
+    - サブモジュールを含めて再帰的にチェックアウト
 
 2. **OpenCppCoverage のインストール**
-   - Chocolatey を使用してインストール
-   - PATH に追加
+    - Chocolatey を使用してインストール
+    - PATH に追加
 
 3. **ReportGenerator のインストール**
-   - .NET Global Tool としてインストール
+    - .NET Global Tool としてインストール
 
 4. **MSVC 環境のセットアップ**
-   - カスタム スクリプト (`Add-VSBT-Env-x64.ps1`) で環境変数を設定
+    - カスタム スクリプト (`Add-VSBT-Env-x64.ps1`) で環境変数を設定
 
 5. **ビルド**
-   - `make` を実行してプロジェクトをビルド
-   - ビルド ログを `logs/windows-build.log` に保存
+    - `make` を実行してプロジェクトをビルド
+    - ビルド ログを `logs/windows-build.log` に保存
 
 6. **テストの実行**
-   - `make test` を実行
-   - テスト ログを `logs/windows-test.log` に保存
+    - `make test` を実行
+    - テスト ログを `logs/windows-test.log` に保存
 
 7. **テスト結果アーティファクトのアップロード**
-   - テスト結果 (`app/**/results/`) と `make test` ログを同じ artifact に保存
+    - テスト結果 (`app/**/results/`) と `make test` ログを同じ artifact に保存
 
 8. **ビルド ログ アーティファクトのアップロード**
-   - ビルド ログのみを保存
+    - ビルド ログのみを保存
 
 ### publish-docs ジョブ
 
@@ -226,29 +226,29 @@ end note
 **処理フロー**:
 
 1. **リポジトリのチェックアウト**
-   - `fetch-depth: 0` で全履歴を取得 (Markdown 処理時の author/date 取得用)
+    - `fetch-depth: 0` で全履歴を取得 (Markdown 処理時の author/date 取得用)
 
 2. **Git safe directory 設定**
-   - コンテナー内での Git 操作を許可
+    - コンテナー内での Git 操作を許可
 
 3. **サブモジュール初期化**
-   - `git submodule update --init --recursive --depth 1` で浅いクローン
+    - `git submodule update --init --recursive --depth 1` で浅いクローン
 
 4. **ドキュメント生成**
-   - `make doxy && make docs` を実行
-   - Doxygen および Pandoc でドキュメントを生成
-   - `make` 系ターゲットは `MAKEFW_HOME` を必須で参照し、`make doxy` は `DOXYFW_HOME`、`make docs` は `DOCSFW_HOME` を参照
+    - `make doxy && make docs` を実行
+    - Doxygen および Pandoc でドキュメントを生成
+    - `make` 系ターゲットは `MAKEFW_HOME` を必須で参照し、`make doxy` は `DOXYFW_HOME`、`make docs` は `DOCSFW_HOME` を参照
 
 5. **gh-pages 用アーティファクト アーカイブの作成**
-   - main ブランチへの push 時のみ実行
-   - HTML と docx ファイルを zip 形式でアーカイブ
+    - main ブランチへの push 時のみ実行
+    - HTML と docx ファイルを zip 形式でアーカイブ
 
 6. **GitHub Pages へのデプロイ**
-   - main ブランチへの push 時のみ実行
-   - gh-pages ブランチに公開
+    - main ブランチへの push 時のみ実行
+    - gh-pages ブランチに公開
 
 7. **アーティファクトのアップロード**
-   - HTML ドキュメント、docx ファイルを保存
+    - HTML ドキュメント、docx ファイルを保存
 
 ### warnings-summary ジョブ
 
@@ -279,28 +279,28 @@ end note
 **処理フロー**:
 
 1. **アーティファクトのダウンロード**
-   - Linux OL8 テスト結果アーティファクト (`linux-ol8-test-results`) をダウンロード
-   - Linux OL10 テスト結果アーティファクト (`linux-ol10-test-results`) をダウンロード
-   - Windows テスト結果アーティファクト (`windows-test-results`) をダウンロード
-   - ドキュメント アーティファクト (`documentation`) をダウンロード
-   - Linux OL8 ログ アーティファクト (`linux-ol8-logs`) をダウンロード
-   - Linux OL10 ログ アーティファクト (`linux-ol10-logs`) をダウンロード
-   - Windows ログ アーティファクト (`windows-logs`) をダウンロード
-   - ビルド警告アーティファクト (`linux-ol8-warns` / `linux-ol10-warns` / `windows-warns`) は、存在する場合のみダウンロード
+    - Linux OL8 テスト結果アーティファクト (`linux-ol8-test-results`) をダウンロード
+    - Linux OL10 テスト結果アーティファクト (`linux-ol10-test-results`) をダウンロード
+    - Windows テスト結果アーティファクト (`windows-test-results`) をダウンロード
+    - ドキュメント アーティファクト (`documentation`) をダウンロード
+    - Linux OL8 ログ アーティファクト (`linux-ol8-logs`) をダウンロード
+    - Linux OL10 ログ アーティファクト (`linux-ol10-logs`) をダウンロード
+    - Windows ログ アーティファクト (`windows-logs`) をダウンロード
+    - ビルド警告アーティファクト (`linux-ol8-warns` / `linux-ol10-warns` / `windows-warns`) は、存在する場合のみダウンロード
 
 2. **アーティファクトの整理と統合**
-   - Linux OL8 テスト結果と `make test` ログを `linux-ol8-test-results.zip` にアーカイブ
-   - Linux OL10 テスト結果と `make test` ログを `linux-ol10-test-results.zip` にアーカイブ
-   - Windows テスト結果と `make test` ログを `windows-test-results.zip` にアーカイブ
-   - Linux OL8 ビルド ログを `linux-ol8-logs.zip` にアーカイブ
-   - Linux OL10 ビルド ログを `linux-ol10-logs.zip` にアーカイブ
-   - Windows ビルド ログを `windows-logs.zip` にアーカイブ
-   - ビルド警告は、存在する OS のみ `linux-ol8-warns.zip` / `linux-ol10-warns.zip` / `windows-warns.zip` にアーカイブ
-   - アーカイブを `pages/artifacts/` に配置
-   - `pages/` 配下のドキュメントと統合
+    - Linux OL8 テスト結果と `make test` ログを `linux-ol8-test-results.zip` にアーカイブ
+    - Linux OL10 テスト結果と `make test` ログを `linux-ol10-test-results.zip` にアーカイブ
+    - Windows テスト結果と `make test` ログを `windows-test-results.zip` にアーカイブ
+    - Linux OL8 ビルド ログを `linux-ol8-logs.zip` にアーカイブ
+    - Linux OL10 ビルド ログを `linux-ol10-logs.zip` にアーカイブ
+    - Windows ビルド ログを `windows-logs.zip` にアーカイブ
+    - ビルド警告は、存在する OS のみ `linux-ol8-warns.zip` / `linux-ol10-warns.zip` / `windows-warns.zip` にアーカイブ
+    - アーカイブを `pages/artifacts/` に配置
+    - `pages/` 配下のドキュメントと統合
 
 3. **GitHub Pages へのデプロイ**
-   - 統合された `pages/` ディレクトリを GitHub Pages artifact として公開
+    - 統合された `pages/` ディレクトリを GitHub Pages artifact として公開
 
 **アーティファクト ストレージの役割**:
 

@@ -62,5 +62,5 @@ ADR の基本的な考え方と書き方は [ADR (Architecture Decision Record)]
 
 - [Speaker Deck - 発表スライド](https://speakerdeck.com/yuriemori/sheng-cheng-aishi-dai-nososukodoguan-li-wokao-eru-x-as-codekaragitopshenodevopsjin-hua-lun) - 発表者: 森友梨映 (Yurie Mori)、Microsoft MVP for Developer Technologies
 - 発表イベント:
-  - [Burikaigi 2025 (2025 年 1 月 31 日)](https://x.com/1115_lilium/status/1885534108799164522)
-  - [DevOps Days Tokyo 2025 Day2 (2025 年 4 月 16 日)](https://x.com/1115_lilium/status/1912383966323306915)
+    - [Burikaigi 2025 (2025 年 1 月 31 日)](https://x.com/1115_lilium/status/1885534108799164522)
+    - [DevOps Days Tokyo 2025 Day2 (2025 年 4 月 16 日)](https://x.com/1115_lilium/status/1912383966323306915)

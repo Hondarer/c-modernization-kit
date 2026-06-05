@@ -35,8 +35,8 @@ C 言語のコンパイルには、ソース ファイル (`.c`) を機械語 (`
 ### 公式ドキュメント
 
 - [GCC 公式ドキュメント](https://gcc.gnu.org/onlinedocs/) - GCC の完全なドキュメント (英語)
-  - [GCC コンパイル オプション](https://gcc.gnu.org/onlinedocs/gcc/Invoking-GCC.html) - コマンド ライン オプション一覧
-  - [GCC リンク オプション](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html) - リンカー関連オプション
+    - [GCC コンパイル オプション](https://gcc.gnu.org/onlinedocs/gcc/Invoking-GCC.html) - コマンド ライン オプション一覧
+    - [GCC リンク オプション](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html) - リンカー関連オプション
 - [MSVC コンパイラ リファレンス](https://learn.microsoft.com/ja-jp/cpp/build/reference/compiler-command-line-syntax) - MSVC コンパイラの構文 (日本語)
 
 ### チュートリアル・入門

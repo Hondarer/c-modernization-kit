@@ -24,9 +24,9 @@ Doxygen コメントの書き方を習得することで、コードの変更に
 ### 公式ドキュメント
 
 - [Doxygen マニュアル](https://www.doxygen.nl/manual/index.html) - Doxygen の公式マニュアル (英語)
-  - [コメントの書き方](https://www.doxygen.nl/manual/docblocks.html) - ドキュメント コメントの記述方法
-  - [コマンド リスト](https://www.doxygen.nl/manual/commands.html) - `@brief`・`@param` などのコマンド一覧
-  - [設定ファイル リファレンス](https://www.doxygen.nl/manual/config.html) - `Doxyfile` の設定項目
+    - [コメントの書き方](https://www.doxygen.nl/manual/docblocks.html) - ドキュメント コメントの記述方法
+    - [コマンド リスト](https://www.doxygen.nl/manual/commands.html) - `@brief`・`@param` などのコマンド一覧
+    - [設定ファイル リファレンス](https://www.doxygen.nl/manual/config.html) - `Doxyfile` の設定項目
 
 ### チュートリアル・入門
 

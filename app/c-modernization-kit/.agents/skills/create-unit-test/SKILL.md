@@ -33,8 +33,8 @@ mock を新規追加する作業は `create-mock` を使い、この文書では
 - 対象の関数が `main()` かどうか (`main()` の場合は関数単体テストに追加の手続きが必要)
 - 既存の近いテスト配置があるか
 - 依存する関数の mock がすでにあるか
-  - アプリケーション関数 (`calcHandler`, `add` 等) の mock が不足する場合は `create-mock` を使う
-  - 標準ライブラリ関数 (`printf`, `fopen` 等) の mock が不足する場合は `create-testfw-mock` を使い、`framework/testfw/libsrc/` 配下にモックを追加する
+    - アプリケーション関数 (`calcHandler`, `add` 等) の mock が不足する場合は `create-mock` を使う
+    - 標準ライブラリ関数 (`printf`, `fopen` 等) の mock が不足する場合は `create-testfw-mock` を使い、`framework/testfw/libsrc/` 配下にモックを追加する
 
 参照先:
 

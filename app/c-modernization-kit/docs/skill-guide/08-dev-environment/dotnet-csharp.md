@@ -23,10 +23,10 @@ C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて
 ### 公式ドキュメント
 
 - [C# ドキュメント (Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/csharp/) - C# の公式ドキュメント (日本語)
-  - [C# 入門](https://learn.microsoft.com/ja-jp/dotnet/csharp/tour-of-csharp/) - C# 言語のツアー
-  - [例外処理](https://learn.microsoft.com/ja-jp/dotnet/csharp/fundamentals/exceptions/) - try/catch の使い方
+    - [C# 入門](https://learn.microsoft.com/ja-jp/dotnet/csharp/tour-of-csharp/) - C# 言語のツアー
+    - [例外処理](https://learn.microsoft.com/ja-jp/dotnet/csharp/fundamentals/exceptions/) - try/catch の使い方
 - [P/Invoke の概要 (Microsoft Learn)](https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/pinvoke) - P/Invoke の詳細説明 (日本語)
-  - [型のマーシャリング](https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/type-marshalling) - C と C# の型変換
+    - [型のマーシャリング](https://learn.microsoft.com/ja-jp/dotnet/standard/native-interop/type-marshalling) - C と C# の型変換
 - [.NET Standard の概要](https://learn.microsoft.com/ja-jp/dotnet/standard/net-standard) - .NET バージョン互換性 (日本語)
 
 ## このリポジトリとの関連
