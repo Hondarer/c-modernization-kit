@@ -68,7 +68,7 @@ mock を新規追加する作業は `create-mock` を使い、この文書では
 `makepart.mk` の基本形:
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/libsrc/calcbase/add.c
 ```
@@ -93,12 +93,12 @@ TEST_SRCS := \
 `makepart.mk` の基本形:
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/src/add/add.c
 
-# テスト対象のソースファイルにある main() は直接実行されず、
-# テストコード内から __real_main() 経由で実行される
+# テスト対象のソース ファイルにある main() は直接実行されず、
+# テスト コード内から __real_main() 経由で実行される
 USE_WRAP_MAIN := 1
 
 # ライブラリの指定

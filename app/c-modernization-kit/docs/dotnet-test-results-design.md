@@ -170,7 +170,7 @@ def extract_test_code(file_path, class_name, method_name):
     in_method = False
     # 括弧のカウント
     brace_count = 0
-    # バッファ (コメント用)
+    # バッファー (コメント用)
     buffer = []
     # 出力フラグ
     output_started = False
@@ -184,18 +184,18 @@ def extract_test_code(file_path, class_name, method_name):
         if not in_class:
             continue
 
-        # コメント行をバッファに追加
+        # コメント行をバッファーに追加
         if re.match(r'^\s*(//|/\*|\*)', line):
             buffer.append(line)
             continue
 
-        # 空行でバッファをクリア (メソッド検出前のみ)
+        # 空行でバッファーをクリア (メソッド検出前のみ)
         if re.match(r'^\s*$', line):
             if not in_method:
                 buffer = []
             continue
 
-        # 属性行をバッファに追加
+        # 属性行をバッファーに追加
         if re.match(r'^\s*\[', line):
             buffer.append(line)
             continue
@@ -204,7 +204,7 @@ def extract_test_code(file_path, class_name, method_name):
         if re.search(rf'\s+{re.escape(method_name)}\s*\(', line):
             in_method = True
             output_started = True
-            # バッファの内容を出力
+            # バッファーの内容を出力
             for buf_line in buffer:
                 sys.stdout.write(buf_line)
             buffer = []
@@ -221,7 +221,7 @@ def extract_test_code(file_path, class_name, method_name):
             if brace_count <= 0:
                 break
         else:
-            # メソッド外はバッファをクリア
+            # メソッド外はバッファーをクリア
             buffer = []
 
     if not output_started:
@@ -329,10 +329,10 @@ def insert_summary():
                     check_count += 1
             continue
 
-    # サマリ項目が存在するかチェック
+    # サマリー項目が存在するかチェック
     has_summary = len(state) > 0 or len(act) > 0 or len(pre_step) > 0 or len(pre_chk) > 0 or len(asrt_chk) > 0
 
-    # サマリを出力
+    # サマリーを出力
     if has_summary:
         print("## テスト項目")
 
@@ -394,10 +394,10 @@ function list_tests() {
 
 # テストを一括実行して結果をパース
 function run_all_tests_batch() {
-    # 1. テスト一覧取得 (パラメータ付きテストは重複除去)
+    # 1. テスト一覧取得 (パラメーター付きテストは重複除去)
     local tests=$(list_tests | sed 's/(.*//' | sort -u)
 
-    # 2. dotnet test を1回だけ実行 (TRX ロガー付き)
+    # 2. dotnet test を 1 回だけ実行 (TRX ロガー付き)
     dotnet test --no-build -c "$CONFIG" -o "$OUTPUT_DIR" \
         --verbosity normal \
         --logger "trx;LogFileName=results.trx" \
@@ -407,7 +407,7 @@ function run_all_tests_batch() {
     python3 "$SCRIPT_DIR/parse_trx_results.py" "$trx_file" > "$trx_results"
 
     # 4. 各テストについてループ:
-    #    - テストコード抽出 + サマリ生成
+    #    - テスト コード抽出 + サマリー生成
     #    - バッチ出力から該当テスト分を抽出
     #    - results.log に保存
     for test in $tests; do
@@ -629,13 +629,13 @@ if re.match(r'^\s*#pragma', line):
 # テストを一括実行して結果をパース
 function run_all_tests_batch() {
     # 1. テスト一覧取得
-    # 2. dotnet test を1回だけ一括実行 (TRX ロガー付き)
+    # 2. dotnet test を 1 回だけ一括実行 (TRX ロガー付き)
     # 3. parse_trx_results.py で TRX を解析
     # 4. 各テストについて:
-    #    - テストコード抽出 + サマリ生成
+    #    - テスト コード抽出 + サマリー生成
     #    - extract_dotnet_output.py でバッチ出力から該当テスト分を抽出
     #    - results.log に保存
-    # 5. サマリ表示 + バナー
+    # 5. サマリー表示 + バナー
 }
 ```
 

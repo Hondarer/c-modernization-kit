@@ -1,9 +1,9 @@
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/src/cmd/shared-and-static-calc/shared-and-static-calc.c
 
-# エントリーポイントの変更
-# テスト対象のソースファイルにある main() は直接実行されず、
+# エントリ ポイントの変更
+# テスト対象のソース ファイルにある main() は直接実行されず、
 # テストコード内から __real_main() 経由で実行される
 USE_WRAP_MAIN := 1
 

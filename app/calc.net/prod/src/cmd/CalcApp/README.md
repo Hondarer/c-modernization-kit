@@ -81,7 +81,7 @@ CalcApp <num1> <operator> <num2>
 ./CalcApp 10 / 3
 # 出力: 3
 
-# エラーケース - ゼロ除算
+# エラー ケース - ゼロ除算
 ./CalcApp 10 / 0
 # 出力: Error: calcHandler failed
 # 終了コード: 1
@@ -151,7 +151,7 @@ libcalc.so / libcalc.dll (ネイティブライブラリ)
 アプリケーションは既存の makefile ビルド システムに統合されています。
 
 ```bash
-# プロジェクトルートからビルド
+# プロジェクト ルートからビルド
 cd app/calc.net/prod/src
 make  # CalcApp を含むすべてのアプリケーションをビルド
 

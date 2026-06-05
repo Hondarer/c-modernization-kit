@@ -59,7 +59,7 @@ void set_static_int(int set_value)
 ### makefile
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
     sample-static-lib/samplestatic.c
 ```

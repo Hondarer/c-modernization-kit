@@ -50,7 +50,7 @@ C 言語のコンパイルには、ソース ファイル (`.c`) を機械語 (`
 Linux (GCC) での代表的なビルド コマンド:
 
 ```bash
-# オブジェクトファイルのコンパイル
+# オブジェクト ファイルのコンパイル
 gcc -c -Wall -Wextra -g -fPIC \
     -I app/calc/prod/include \
     app/calc/prod/libsrc/calcbase/add.c \

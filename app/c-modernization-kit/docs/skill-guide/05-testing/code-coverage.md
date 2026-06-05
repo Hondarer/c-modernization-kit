@@ -42,7 +42,7 @@ gcc -c --coverage -fprofile-arcs -ftest-coverage \
 # 2. テストを実行 (.gcda ファイルが生成される)
 ./addTest
 
-# 3. カバレッジレポートを生成 (gcovr 使用)
+# 3. カバレッジ レポートを生成 (gcovr 使用)
 gcovr --html --html-details -o coverage.html
 
 # または lcov + genhtml 使用

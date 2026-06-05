@@ -1,4 +1,4 @@
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	sample-static-lib/samplestatic.c
 

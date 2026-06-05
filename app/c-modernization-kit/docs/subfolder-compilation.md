@@ -16,7 +16,7 @@
 ### NO_LINK 変数
 
 ```makefile
-# サブフォルダはコンパイルのみ
+# サブフォルダーはコンパイルのみ
 NO_LINK = 1
 ```
 
@@ -33,7 +33,7 @@ NO_LINK = 1
 
 ```makefile
 # libsubfolder-sample/makechild.mk (起点ディレクトリ)
-# サブフォルダはコンパイルのみ
+# サブフォルダーはコンパイルのみ
 NO_LINK = 1
 ```
 
@@ -46,7 +46,7 @@ NO_LINK = 1
 **makelibsrc_c_cpp.mk / makesrc_c_cpp.mk より:**
 
 ```makefile
-# サブディレクトリの obj ディレクトリを再帰的に検索して、オブジェクトファイルを収集
+# サブディレクトリの obj ディレクトリを再帰的に検索して、オブジェクト ファイルを収集
 ifeq ($(OS),Windows_NT)
     SUBDIR_OBJS := $(shell find . -type d -name obj -not -path "./obj" -exec find {} -maxdepth 1 -type f -name "*.obj" \; 2>/dev/null)
 else
@@ -66,7 +66,7 @@ OBJS += $(SUBDIR_OBJS)
 # makelocal.mk で SUBDIRS を上書きした場合はその設定を尊重する
 SUBDIRS ?= $(sort $(dir $(wildcard */GNUmakefile */makefile */Makefile)))
 
-# サブディレクトリの再帰的make処理
+# サブディレクトリの再帰的 make 処理
 ifneq ($(SUBDIRS),)
     .PHONY: $(SUBDIRS)
     $(SUBDIRS):
@@ -130,7 +130,7 @@ LIB_TYPE = shared
 **libsubfolder-sample/makechild.mk (起点ディレクトリ):**
 
 ```makefile
-# サブフォルダはコンパイルのみ
+# サブフォルダーはコンパイルのみ
 NO_LINK = 1
 ```
 
@@ -221,7 +221,7 @@ int helper_a(int value)
 **sample-app/makechild.mk (起点ディレクトリ):**
 
 ```makefile
-# サブフォルダはコンパイルのみ
+# サブフォルダーはコンパイルのみ
 NO_LINK = 1
 ```
 
@@ -292,7 +292,7 @@ app/subfolder-sample/test/src/
 **subfolder-sampleTest/makepart.mk (起点ディレクトリ):**
 
 ```makefile
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/libsrc/libsubfolder-sample/func.c
 ```
@@ -300,15 +300,15 @@ TEST_SRCS := \
 **subfolder-sampleTest/makechild.mk (起点ディレクトリ):**
 
 ```makefile
-# サブフォルダはコンパイルのみ
+# サブフォルダーはコンパイルのみ
 NO_LINK = 1
 ```
 
 **subfolder_a/makelocal.mk (サブディレクトリ):**
 
 ```makefile
-# テスト対象のソースファイル
-# NOTE: 上位フォルダで TEST_SRCS を指定している場合、テスト対象ソースが重複しないように留意すること。
+# テスト対象のソース ファイル
+# NOTE: 上位フォルダーで TEST_SRCS を指定している場合、テスト対象ソースが重複しないように留意すること。
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/libsrc/libsubfolder-sample/subfolder_a/func_a.c
 ```
@@ -363,7 +363,7 @@ TEST_F(subfolder_sampleTest_a, test_func_a)
 テスト実行スクリプト (`exec_test_c_cpp.sh`) は、サブディレクトリの `makepart.mk` から `TEST_SRCS` を自動的に収集します。
 
 ```bash
-# TEST_SRCS が空の場合、サブフォルダの makepart.mk から TEST_SRCS を収集
+# TEST_SRCS が空の場合、サブフォルダーの makepart.mk から TEST_SRCS を収集
 if [ -z "$TEST_SRCS" ]; then
     for makepart in $(find . -mindepth 2 -name "makepart.mk" 2>/dev/null); do
         subdir_test_srcs=$(grep -A10 "^TEST_SRCS" "$makepart" 2>/dev/null | \
@@ -530,7 +530,7 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 
 ```makefile
 # 起点ディレクトリの makechild.mk
-# サブフォルダはコンパイルのみ
+# サブフォルダーはコンパイルのみ
 NO_LINK = 1
 ```
 
@@ -538,7 +538,7 @@ NO_LINK = 1
 
 ```makefile
 # サブディレクトリの makelocal.mk
-# テスト対象のソースファイル
+# テスト対象のソース ファイル
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/libsrc/.../subfolder_a/func_a.c
 ```

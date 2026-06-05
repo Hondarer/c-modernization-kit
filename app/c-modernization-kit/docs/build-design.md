@@ -219,7 +219,7 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/prepare.mk
 
 ##### makepart.mk の内容は、このタイミングで処理される #####
 
-# ビルドテンプレートを include (ディレクトリパスに基づいて自動選択)
+# ビルド テンプレートを include (ディレクトリ パスに基づいて自動選択)
 include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 ```
 
@@ -283,7 +283,7 @@ else
     LDFLAGS     =
 endif
 
-# テストフレームワークのライブラリ参照を追加する
+# テスト フレームワークのライブラリ参照を追加する
 ifneq ($(OS),Windows_NT)
     # Linux: TARGET_ARCH (e.g., linux_el8_x64)
     LIBSDIR += $(WORKSPACE_DIR)/framework/testfw/lib/$(TARGET_ARCH)
@@ -294,7 +294,7 @@ endif
 LIBSDIR += \
     $(WORKSPACE_DIR)/app/calc/test/lib
 
-# テストフレームワークをリンクする
+# テスト フレームワークをリンクする
 LINK_TEST = 1
 
 # テスト関連ライブラリは、すべて静的リンクとする

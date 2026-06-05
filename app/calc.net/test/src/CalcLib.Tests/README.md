@@ -40,7 +40,7 @@ dotnet test CalcLib.Tests.csproj
 # 詳細出力で実行
 dotnet test CalcLib.Tests.csproj --verbosity detailed
 
-# 特定のテストクラスを実行
+# 特定のテスト クラスを実行
 dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 ```
 
