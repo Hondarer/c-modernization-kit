@@ -92,7 +92,6 @@ app/subfolder-sample/prod/
 +-- libsrc/
     +-- makefile                            # 再帰ビルド用
     +-- makepart.mk
-    +-- makechild.mk                        # MAKEFW_BUILD := 1 (子ディレクトリでビルド実行)
     +-- libsubfolder-sample/
         +-- makefile                        # ライブラリ本体 (リンク実行)
         +-- makepart.mk                     # LIB_TYPE = shared 設定
@@ -163,7 +162,6 @@ app/subfolder-sample/prod/
 +-- src/
     +-- makefile                            # 再帰ビルド用
     +-- makepart.mk
-    +-- makechild.mk                        # MAKEFW_BUILD := 1 (子ディレクトリでビルド実行)
     +-- sample-app/
         +-- makefile                        # 実行ファイル本体 (リンク実行)
         +-- makechild.mk                    # NO_LINK = 1 (サブフォルダはコンパイルのみ)
@@ -244,7 +242,6 @@ app/subfolder-sample/prod/bin/sample-app
 ```text
 app/subfolder-sample/test/src/
 +-- makefile                                # 再帰ビルド用
-+-- makechild.mk                            # MAKEFW_BUILD := 1 (子ディレクトリでビルド実行)
 +-- subfolder-sampleTest/
     +-- makefile                            # テスト本体 (リンク・テスト実行)
     +-- makepart.mk                         # TEST_SRCS 設定 (ルートのテスト対象)
