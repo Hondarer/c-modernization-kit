@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           hello.c
- *  @brief          サンプルアプリケーション。
+ *  @brief          サンプル アプリケーション。
  *  @author         Tetsuo Honda
  *  @date           2026/04/23
  *  @version        1.0.0
@@ -15,10 +15,10 @@
 #include <stdio.h>
 
 /**
- *  @brief          アプリケーションのエントリポイント。
+ *  @brief          アプリケーションのエントリ ポイント。
  *
- *  @param[in]      argc コマンドライン引数の個数。
- *  @param[in]      argv コマンドライン引数の文字列の配列。
+ *  @param[in]      argc コマンド ライン引数の個数。
+ *  @param[in]      argv コマンド ライン引数の文字列の配列。
  *  @return         常に 0 を返します。
  */
 int main(int argc, char *argv[])

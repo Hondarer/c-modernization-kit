@@ -1,13 +1,13 @@
 /**
  *******************************************************************************
  *  @file           samplestatic.h
- *  @brief          static 変数アクセスのサンプルライブラリヘッダーファイル。
+ *  @brief          static 変数アクセスのサンプル ライブラリ ヘッダー ファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/25
  *  @version        1.0.0
  *
  *  このライブラリは static 変数へのアクセス方法を示すサンプルです。\n
- *  テストフレームワークでの static 変数のテスト手法を説明します。
+ *  テスト フレームワークでの static 変数のテスト手法を説明します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
@@ -28,7 +28,7 @@ extern "C"
      *
      *  @details
      *  この関数は内部の static 変数の値を返します。\n
-     *  テストフレームワークでは、inject ファイルを使用して static 変数を
+     *  テスト フレームワークでは、inject ファイルを使用して static 変数を
      *  直接操作することができます。
      *
      *  使用例:
