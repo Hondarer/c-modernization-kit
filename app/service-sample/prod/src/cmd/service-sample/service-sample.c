@@ -25,12 +25,100 @@
 #include <string.h>
 
 #include <com_util/console/console.h>
+#include <com_util/crt/path.h>
+#include <com_util/crt/sys/stat.h>
+#include <com_util/runtime/process.h>
 #include <com_util/runtime/shutdown.h>
 #include <com_util/sync/sync.h>
 
 #include "service-sample.h"
 
 /* Doxygen コメントは、ヘッダーに記載 */
+
+/* ============================================================
+ *  tracer (プロセス共通)
+ * ============================================================ */
+
+/** プロセス共通の tracer ハンドル。svc_main が open / close する。 */
+static com_util_tracer *g_tracer = NULL;
+
+com_util_tracer *svc_get_tracer(void)
+{
+    return g_tracer;
+}
+
+/**
+ *  @brief          tracer を生成・設定してプロバイダーを開始します。
+ *  @param[in]      def            サービス定義。NULL を渡してはなりません。
+ *  @param[in]      enable_stderr  stderr バックエンドを有効にする場合は 0 以外を渡します。
+ *  @return         成功時は 0、失敗時は -1 を返します。
+ *
+ *  失敗時は g_tracer = NULL のまま返します。呼び出し元は失敗時も処理を継続し、
+ *  tracer 出力が無効化されるだけの状態として扱ってください。
+ */
+static int svc_tracer_open(const svc_definition *def, const int enable_stderr)
+{
+    char exe_path[PLATFORM_PATH_MAX];
+    char log_dir[PLATFORM_PATH_MAX];
+    char log_path[PLATFORM_PATH_MAX];
+    com_util_trace_level_t stderr_level;
+    char *sep;
+
+    g_tracer = com_util_tracer_create();
+    if (g_tracer == NULL)
+    {
+        return -1;
+    }
+
+    com_util_tracer_set_name(g_tracer, def->name, 0);
+    com_util_tracer_set_os_level(g_tracer, COM_UTIL_TRACE_LEVEL_NONE);
+
+    if (enable_stderr != 0)
+    {
+        stderr_level = COM_UTIL_TRACE_LEVEL_INFO;
+    }
+    else
+    {
+        stderr_level = COM_UTIL_TRACE_LEVEL_NONE;
+    }
+    com_util_tracer_set_stderr_level(g_tracer, stderr_level);
+
+    /* 実行ファイルと同じディレクトリの log/ サブディレクトリにファイル出力する */
+    if (com_util_process_get_executable_path(exe_path, sizeof(exe_path)) == 0)
+    {
+        sep = strrchr(exe_path, PLATFORM_PATH_SEP_CHR);
+        if (sep != NULL)
+        {
+            *sep = '\0'; /* バッファーをディレクトリ部分のみに切り詰める */
+            if (com_util_path_concat(log_dir, sizeof(log_dir), NULL, exe_path, PLATFORM_PATH_SEP, "log") == 0)
+            {
+                com_util_mkdir(log_dir); /* 既存の場合は -1 だが無視してよい */
+                if (com_util_path_concat(log_path, sizeof(log_path), NULL, log_dir, PLATFORM_PATH_SEP, def->name,
+                                         ".log") == 0)
+                {
+                    com_util_tracer_set_file_level(g_tracer, log_path, COM_UTIL_TRACE_LEVEL_VERBOSE, 0, 0);
+                }
+            }
+        }
+    }
+
+    return com_util_tracer_start(g_tracer);
+}
+
+/**
+ *  @brief  tracer を停止・解放します。
+ *
+ *  g_tracer が NULL の場合は何もしません。
+ */
+static void svc_tracer_close(void)
+{
+    if (g_tracer != NULL)
+    {
+        com_util_tracer_stop(g_tracer);
+        com_util_tracer_dispose(g_tracer);
+        g_tracer = NULL;
+    }
+}
 
 /* ============================================================
  *  停止イベント抽象 (内部状態)
@@ -157,13 +245,15 @@ int svc_run_lifecycle(const svc_definition *def)
  */
 static void print_usage(const char *prog_name)
 {
-    fprintf(stderr, "使い方: %s <コマンド>\n", prog_name);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "コマンド:\n");
-    fprintf(stderr, "  install    OS にサービスを登録します\n");
-    fprintf(stderr, "  uninstall  OS からサービスを解除します\n");
-    fprintf(stderr, "  run        サービスとして常駐起動します (SCM/systemd から呼ばれます)\n");
-    fprintf(stderr, "  console    フォアグラウンドで実行します (デバッグ用)\n");
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "使い方: %s <コマンド>", prog_name);
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "コマンド:");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "  install    OS にサービスを登録します");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                          "  uninstall  OS からサービスを解除します");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                          "  run        サービスとして常駐起動します (SCM/systemd から呼ばれます)");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                          "  console    フォアグラウンドで実行します (デバッグ用)");
 }
 
 /* ============================================================
@@ -173,18 +263,26 @@ static void print_usage(const char *prog_name)
 int svc_main(const int argc, char *argv[], const svc_definition *def)
 {
     int rc;
+    int is_service_mode;
+
+    /* run コマンドのみサービス モード: SCM/systemd 起動のため stderr は無効化する */
+    is_service_mode = (argc >= 2 && strcmp(argv[1], "run") == 0);
+    svc_tracer_open(def, !is_service_mode); /* 失敗しても g_tracer=NULL で継続 */
 
     /* 停止イベント抽象の初期化 */
     if (com_util_local_lock_create(&g_stop_lock) != COM_UTIL_SYNC_OK)
     {
-        fprintf(stderr, "エラー: ミューテックスの生成に失敗しました。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "ミューテックスの生成に失敗しました。");
+        svc_tracer_close();
         return EXIT_FAILURE;
     }
     if (com_util_condvar_create(&g_stop_cv) != COM_UTIL_SYNC_OK)
     {
-        fprintf(stderr, "エラー: 条件変数の生成に失敗しました。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "条件変数の生成に失敗しました。");
         com_util_local_lock_destroy(g_stop_lock);
         g_stop_lock = NULL;
+        svc_tracer_close();
         return EXIT_FAILURE;
     }
 
@@ -212,7 +310,7 @@ int svc_main(const int argc, char *argv[], const svc_definition *def)
     }
     else
     {
-        fprintf(stderr, "エラー: 不明なコマンド '%s'\n\n", argv[1]);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "不明なコマンド '%s'", argv[1]);
         print_usage(argv[0]);
     }
 
@@ -221,6 +319,7 @@ int svc_main(const int argc, char *argv[], const svc_definition *def)
     com_util_local_lock_destroy(g_stop_lock);
     g_stop_lock = NULL;
 
+    svc_tracer_close();
     return rc;
 }
 
@@ -236,7 +335,7 @@ int svc_main(const int argc, char *argv[], const svc_definition *def)
 static int on_start(void *user_data)
 {
     (void)user_data;
-    printf("[service-sample] 起動しました。\n");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "起動しました。");
     /* TODO: ここに初期化処理を書く */
     return 0;
 }
@@ -250,12 +349,13 @@ static int on_start(void *user_data)
 static void on_run(void *user_data)
 {
     (void)user_data;
-    printf("[service-sample] 動作中です。Ctrl+C または停止コマンドで終了します。\n");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                          "動作中です。Ctrl+C または停止コマンドで終了します。");
 
     while (svc_wait_for_stop(1000) == 0)
     {
         /* TODO: ここに周期処理を書く (現状は何もしない雛形) */
-        printf("[service-sample] 動作中...\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
     }
 }
 
@@ -266,7 +366,7 @@ static void on_run(void *user_data)
 static void on_stop(void *user_data)
 {
     (void)user_data;
-    printf("[service-sample] 停止しました。\n");
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "停止しました。");
     /* TODO: ここに後処理を書く */
 }
 

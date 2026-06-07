@@ -34,6 +34,7 @@
 #define SERVICE_SAMPLE_H
 
 #include <com_util/base/platform.h>
+#include <com_util/trace/tracer.h>
 
 /**
  *  @defgroup       SERVICE_SAMPLE_PUBLIC_API 公開 API (service-sample)
@@ -231,6 +232,17 @@ extern "C"
      *  on_start → on_run → on_stop の順でライフサイクルを駆動します。
      */
     int svc_run_lifecycle(const svc_definition *def);
+
+    /**
+     *  @brief          サービス共通の tracer ハンドルを取得します (内部共有関数)。
+     *  @return         process-global の tracer ハンドル。\n
+     *                  未初期化または初期化失敗時は NULL を返します。
+     *
+     *  各プラットフォーム ファイル (svc_os_install / svc_os_uninstall 等) が
+     *  診断トレースを出力するために使用します。\n
+     *  NULL を tracer 出力マクロに渡しても安全 (出力されないだけ) です。
+     */
+    com_util_tracer *svc_get_tracer(void);
 
 #ifdef __cplusplus
 }

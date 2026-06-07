@@ -71,3 +71,6 @@ bin
 *.exe
 *.pdb
 *.warn
+
+## トレース
+log/

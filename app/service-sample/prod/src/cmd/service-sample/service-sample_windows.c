@@ -187,13 +187,16 @@ int svc_os_run_service(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
         {
-            fprintf(stderr, "エラー: SCM への接続に失敗しました。\n");
-            fprintf(stderr, "       サービスとして登録された後、SCM から 'run' 引数で起動してください。\n");
-            fprintf(stderr, "       コンソールで実行するには 'console' コマンドを使用してください。\n");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "SCM への接続に失敗しました。");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "サービスとして登録された後、SCM から 'run' 引数で起動してください。");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "コンソールで実行するには 'console' コマンドを使用してください。");
         }
         else
         {
-            fprintf(stderr, "エラー: StartServiceCtrlDispatcher が失敗しました (エラー コード: %lu)。\n", err);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "StartServiceCtrlDispatcher が失敗しました (エラー コード: %lu)。", err);
         }
         return EXIT_FAILURE;
     }
@@ -212,14 +215,15 @@ int svc_os_install(const svc_definition *def)
     /* 実行ファイルの絶対パスを取得する */
     if (com_util_process_get_executable_path(exe_path, sizeof(exe_path)) != 0)
     {
-        fprintf(stderr, "エラー: 実行ファイルのパスを取得できませんでした。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "実行ファイルのパスを取得できませんでした。");
         return EXIT_FAILURE;
     }
 
     /* binPath は "\"<パス>\" run" 形式にする (パスにスペースが含まれる場合の対策) */
     if (snprintf(bin_path, sizeof(bin_path), "\"%s\" run", exe_path) < 0)
     {
-        fprintf(stderr, "エラー: パスの生成に失敗しました。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "パスの生成に失敗しました。");
         return EXIT_FAILURE;
     }
 
@@ -230,11 +234,13 @@ int svc_os_install(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_ACCESS_DENIED)
         {
-            fprintf(stderr, "エラー: SCM へのアクセスが拒否されました。管理者として実行してください。\n");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "SCM へのアクセスが拒否されました。管理者として実行してください。");
         }
         else
         {
-            fprintf(stderr, "エラー: OpenSCManager が失敗しました (エラー コード: %lu)。\n", err);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "OpenSCManager が失敗しました (エラー コード: %lu)。", err);
         }
         return EXIT_FAILURE;
     }
@@ -255,15 +261,18 @@ int svc_os_install(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_SERVICE_EXISTS)
         {
-            fprintf(stderr, "エラー: サービス '%s' は既に登録されています。\n", def->name);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "サービス '%s' は既に登録されています。", def->name);
         }
         else if (err == ERROR_ACCESS_DENIED)
         {
-            fprintf(stderr, "エラー: サービスの登録が拒否されました。管理者として実行してください。\n");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "サービスの登録が拒否されました。管理者として実行してください。");
         }
         else
         {
-            fprintf(stderr, "エラー: CreateService が失敗しました (エラー コード: %lu)。\n", err);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "CreateService が失敗しました (エラー コード: %lu)。", err);
         }
     }
     else
@@ -272,9 +281,11 @@ int svc_os_install(const svc_definition *def)
         desc.lpDescription = (LPSTR)def->description;
         ChangeServiceConfig2(svc, SERVICE_CONFIG_DESCRIPTION, &desc);
 
-        printf("サービス '%s' を登録しました。\n", def->name);
-        printf("実行ファイル: %s\n", bin_path);
-        printf("開始するには: sc start %s\n", def->name);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
+                               def->name);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "実行ファイル: %s", bin_path);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "開始するには: sc start %s",
+                               def->name);
         CloseServiceHandle(svc);
         rc = 0;
     }
@@ -297,11 +308,13 @@ int svc_os_uninstall(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_ACCESS_DENIED)
         {
-            fprintf(stderr, "エラー: SCM へのアクセスが拒否されました。管理者として実行してください。\n");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "SCM へのアクセスが拒否されました。管理者として実行してください。");
         }
         else
         {
-            fprintf(stderr, "エラー: OpenSCManager が失敗しました (エラー コード: %lu)。\n", err);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "OpenSCManager が失敗しました (エラー コード: %lu)。", err);
         }
         return EXIT_FAILURE;
     }
@@ -314,15 +327,18 @@ int svc_os_uninstall(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_SERVICE_DOES_NOT_EXIST)
         {
-            fprintf(stderr, "エラー: サービス '%s' は登録されていません。\n", def->name);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "サービス '%s' は登録されていません。", def->name);
         }
         else if (err == ERROR_ACCESS_DENIED)
         {
-            fprintf(stderr, "エラー: サービスへのアクセスが拒否されました。管理者として実行してください。\n");
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "サービスへのアクセスが拒否されました。管理者として実行してください。");
         }
         else
         {
-            fprintf(stderr, "エラー: OpenService が失敗しました (エラー コード: %lu)。\n", err);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "OpenService が失敗しました (エラー コード: %lu)。", err);
         }
     }
     else
@@ -330,7 +346,8 @@ int svc_os_uninstall(const svc_definition *def)
         /* 動作中の場合は停止する */
         if (ControlService(svc, SERVICE_CONTROL_STOP, &status))
         {
-            printf("サービス '%s' を停止しています...\n", def->name);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                                   "サービス '%s' を停止しています...", def->name);
             Sleep(1000);
         }
 
@@ -338,11 +355,13 @@ int svc_os_uninstall(const svc_definition *def)
         if (!DeleteService(svc))
         {
             DWORD err = GetLastError();
-            fprintf(stderr, "エラー: DeleteService が失敗しました (エラー コード: %lu)。\n", err);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "DeleteService が失敗しました (エラー コード: %lu)。", err);
         }
         else
         {
-            printf("サービス '%s' を解除しました。\n", def->name);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を解除しました。",
+                                   def->name);
             rc = 0;
         }
 

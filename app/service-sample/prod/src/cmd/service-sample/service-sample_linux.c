@@ -64,13 +64,14 @@ static int run_command(char *const argv[])
     pid = fork();
     if (pid < 0)
     {
-        fprintf(stderr, "エラー: fork() が失敗しました: %s\n", strerror(errno));
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "fork() が失敗しました: %s",
+                               strerror(errno));
         return -1;
     }
 
     if (pid == 0)
     {
-        /* 子プロセス */
+        /* 子プロセス: fork 後のため tracer は使用せず stderr へ直接書く */
         execvp(argv[0], argv);
         fprintf(stderr, "エラー: execvp(\"%s\") が失敗しました: %s\n", argv[0], strerror(errno));
         _exit(127);
@@ -79,7 +80,8 @@ static int run_command(char *const argv[])
     /* 親プロセス: 子の終了を待つ */
     if (waitpid(pid, &status, 0) < 0)
     {
-        fprintf(stderr, "エラー: waitpid() が失敗しました: %s\n", strerror(errno));
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "waitpid() が失敗しました: %s",
+                               strerror(errno));
         return -1;
     }
 
@@ -100,7 +102,8 @@ static int check_root(const char *operation_name)
 {
     if (geteuid() != 0)
     {
-        fprintf(stderr, "エラー: %s には root 権限 (sudo) が必要です。\n", operation_name);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                               "%s には root 権限 (sudo) が必要です。", operation_name);
         return -1;
     }
     return 0;
@@ -143,7 +146,8 @@ int svc_os_install(const svc_definition *def)
 
     if (com_util_process_get_executable_path(exec_path, sizeof(exec_path)) != 0)
     {
-        fprintf(stderr, "エラー: 実行ファイルのパスを取得できませんでした。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "実行ファイルのパスを取得できませんでした。");
         return EXIT_FAILURE;
     }
 
@@ -151,7 +155,8 @@ int svc_os_install(const svc_definition *def)
     written = snprintf(unit_path, sizeof(unit_path), "%s/%s.service", SYSTEMD_UNIT_DIR, def->name);
     if (written < 0 || (size_t)written >= sizeof(unit_path))
     {
-        fprintf(stderr, "エラー: ユニット ファイルのパスが長すぎます。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "ユニット ファイルのパスが長すぎます。");
         return EXIT_FAILURE;
     }
 
@@ -172,7 +177,8 @@ int svc_os_install(const svc_definition *def)
                        def->description, exec_path);
     if (written < 0 || (size_t)written >= sizeof(unit_content))
     {
-        fprintf(stderr, "エラー: ユニット ファイルの内容が長すぎます。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "ユニット ファイルの内容が長すぎます。");
         return EXIT_FAILURE;
     }
 
@@ -180,23 +186,27 @@ int svc_os_install(const svc_definition *def)
     fp = fopen(unit_path, "w");
     if (fp == NULL)
     {
-        fprintf(stderr, "エラー: %s を開けませんでした: %s\n", unit_path, strerror(errno));
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "%s を開けませんでした: %s",
+                               unit_path, strerror(errno));
         return EXIT_FAILURE;
     }
     if (fputs(unit_content, fp) == EOF)
     {
-        fprintf(stderr, "エラー: %s への書き込みに失敗しました: %s\n", unit_path, strerror(errno));
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "%s への書き込みに失敗しました: %s",
+                               unit_path, strerror(errno));
         fclose(fp);
         return EXIT_FAILURE;
     }
     fclose(fp);
-    printf("ユニット ファイルを書き込みました: %s\n", unit_path);
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "ユニット ファイルを書き込みました: %s",
+                           unit_path);
 
     /* systemctl daemon-reload を実行する */
     rc = run_command(argv_daemon_reload);
     if (rc != 0)
     {
-        fprintf(stderr, "エラー: systemctl daemon-reload が失敗しました (終了コード %d)。\n", rc);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                               "systemctl daemon-reload が失敗しました (終了コード %d)。", rc);
         return EXIT_FAILURE;
     }
 
@@ -204,12 +214,15 @@ int svc_os_install(const svc_definition *def)
     rc = run_command(argv_enable);
     if (rc != 0)
     {
-        fprintf(stderr, "エラー: systemctl enable %s が失敗しました (終了コード %d)。\n", def->name, rc);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                               "systemctl enable %s が失敗しました (終了コード %d)。", def->name, rc);
         return EXIT_FAILURE;
     }
 
-    printf("サービス '%s' を登録しました。\n", def->name);
-    printf("開始するには: sudo systemctl start %s\n", def->name);
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
+                           def->name);
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "開始するには: sudo systemctl start %s",
+                           def->name);
     return 0;
 }
 
@@ -242,7 +255,8 @@ int svc_os_uninstall(const svc_definition *def)
     written = snprintf(unit_path, sizeof(unit_path), "%s/%s.service", SYSTEMD_UNIT_DIR, def->name);
     if (written < 0 || (size_t)written >= sizeof(unit_path))
     {
-        fprintf(stderr, "エラー: ユニット ファイルのパスが長すぎます。\n");
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "ユニット ファイルのパスが長すぎます。");
         return EXIT_FAILURE;
     }
 
@@ -253,25 +267,30 @@ int svc_os_uninstall(const svc_definition *def)
     rc = run_command(argv_disable);
     if (rc != 0)
     {
-        fprintf(stderr, "警告: systemctl disable %s が失敗しました (終了コード %d)。\n", def->name, rc);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                               "systemctl disable %s が失敗しました (終了コード %d)。", def->name, rc);
     }
 
     /* ユニット ファイルを削除する */
     if (remove(unit_path) != 0 && errno != ENOENT)
     {
-        fprintf(stderr, "エラー: %s の削除に失敗しました: %s\n", unit_path, strerror(errno));
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "%s の削除に失敗しました: %s",
+                               unit_path, strerror(errno));
         return EXIT_FAILURE;
     }
-    printf("ユニット ファイルを削除しました: %s\n", unit_path);
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "ユニット ファイルを削除しました: %s",
+                           unit_path);
 
     /* systemctl daemon-reload を実行する */
     rc = run_command(argv_daemon_reload);
     if (rc != 0)
     {
-        fprintf(stderr, "警告: systemctl daemon-reload が失敗しました (終了コード %d)。\n", rc);
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                               "systemctl daemon-reload が失敗しました (終了コード %d)。", rc);
     }
 
-    printf("サービス '%s' を解除しました。\n", def->name);
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を解除しました。",
+                           def->name);
     return 0;
 }
 
