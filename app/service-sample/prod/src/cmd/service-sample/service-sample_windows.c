@@ -33,6 +33,8 @@
     #include <stdlib.h>
     #include <string.h>
 
+    #include <com_util/runtime/process.h>
+
     #include "service-sample.h"
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -202,17 +204,15 @@ int svc_os_install(const svc_definition *def)
 {
     SC_HANDLE scm = NULL;
     SC_HANDLE svc = NULL;
-    char bin_path[MAX_PATH + 16]; /* パスに " run" を付加する分を余裕として確保 */
-    char exe_path[MAX_PATH];
-    DWORD len;
+    char bin_path[4096 + 16]; /* パスに "\"<path>\" run" を格納するための十分なサイズ */
+    char exe_path[4096];
     SERVICE_DESCRIPTION desc;
     int rc;
 
     /* 実行ファイルの絶対パスを取得する */
-    len = GetModuleFileNameA(NULL, exe_path, MAX_PATH);
-    if (len == 0 || len >= MAX_PATH)
+    if (com_util_process_get_executable_path(exe_path, sizeof(exe_path)) != 0)
     {
-        fprintf(stderr, "エラー: GetModuleFileName が失敗しました (エラー コード: %lu)。\n", GetLastError());
+        fprintf(stderr, "エラー: 実行ファイルのパスを取得できませんでした。\n");
         return EXIT_FAILURE;
     }
 

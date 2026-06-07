@@ -30,6 +30,8 @@
     #include <sys/wait.h>
     #include <unistd.h>
 
+    #include <com_util/runtime/process.h>
+
     #include "service-sample.h"
 
     /* Doxygen コメントは、ヘッダーに記載 */
@@ -47,26 +49,6 @@
 /* ============================================================
  *  内部ヘルパー
  * ============================================================ */
-
-/**
- *  @brief          実行中バイナリの絶対パスを取得します。
- *  @param[out]     buf     パスを格納するバッファー。
- *  @param[in]      bufsiz  バッファーのサイズ (バイト)。
- *  @return         成功時は 0、失敗時は -1 を返します。
- */
-static int get_exec_path(char *buf, const size_t bufsiz)
-{
-    ssize_t len;
-
-    len = readlink("/proc/self/exe", buf, bufsiz - 1);
-    if (len < 0)
-    {
-        fprintf(stderr, "エラー: readlink(\"/proc/self/exe\") が失敗しました: %s\n", strerror(errno));
-        return -1;
-    }
-    buf[len] = '\0';
-    return 0;
-}
 
 /**
  *  @brief          外部コマンドを fork + execvp で実行します。
@@ -159,8 +141,9 @@ int svc_os_install(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
-    if (get_exec_path(exec_path, sizeof(exec_path)) != 0)
+    if (com_util_process_get_executable_path(exec_path, sizeof(exec_path)) != 0)
     {
+        fprintf(stderr, "エラー: 実行ファイルのパスを取得できませんでした。\n");
         return EXIT_FAILURE;
     }
 
