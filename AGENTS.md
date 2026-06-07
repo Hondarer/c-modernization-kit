@@ -68,6 +68,8 @@ make skills
 
 ## Markdown 記述の注意点
 
+Markdown の本文段落では、1 文の途中に表示幅調整目的の改行を入れないこと。原則として 1 文を 1 行に書き、改行は文末または Markdown の構造上必要な箇所に限ること。
+
 ドキュメント (`.md`) 内でファイル ツリーや階層構造を記述するとき、罫線文字 (`└` `├` `─` など、Unicode Ambiguous) は使用しない。日本語フォントはこれらに全角グリフを割り当てるため、コンソールやプレビューでインデントがずれる。ツリー構造には ASCII 記号 (`+` `-` `|`) を使うこと。  
 背景: [east-asian-ambiguous-width.md](framework/docsfw/docs/east-asian-ambiguous-width.md)
 

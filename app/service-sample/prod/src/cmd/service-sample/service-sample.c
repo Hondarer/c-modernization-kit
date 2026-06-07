@@ -26,7 +26,6 @@
 
 #include <com_util/console/console.h>
 #include <com_util/crt/path.h>
-#include <com_util/crt/sys/stat.h>
 #include <com_util/runtime/process.h>
 #include <com_util/runtime/shutdown.h>
 #include <com_util/sync/sync.h>
@@ -92,7 +91,7 @@ static int svc_tracer_open(const svc_definition *def, const int enable_stderr)
             *sep = '\0'; /* バッファーをディレクトリ部分のみに切り詰める */
             if (com_util_path_concat(log_dir, sizeof(log_dir), NULL, exe_path, PLATFORM_PATH_SEP, "log") == 0)
             {
-                com_util_mkdir(log_dir); /* 既存の場合は -1 だが無視してよい */
+                /* ディレクトリ生成は com_util_trace_file_sink_create が自動実行する */
                 if (com_util_path_concat(log_path, sizeof(log_path), NULL, log_dir, PLATFORM_PATH_SEP, def->name,
                                          ".log") == 0)
                 {
@@ -376,7 +375,7 @@ static void on_stop(void *user_data)
 
 /** サービス定義。 */
 static const svc_definition g_service_def = {"service-sample",
-                                             "C Modernization Service Sample",
+                                             "C Modernization-kit Service Sample",
                                              "c-modernization-kit のクロスプラットフォーム サービス サンプルです。",
                                              on_start,
                                              on_run,

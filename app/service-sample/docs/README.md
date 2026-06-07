@@ -1,15 +1,21 @@
 # service-sample ドキュメント
 
-クロスプラットフォーム サービス (デーモン) サンプルのドキュメント一覧です。
+クロスプラットフォーム サービス (デーモン) サンプルです。
 
-## API 仕様書 (public)
+## モジュール仕様書
 
-Doxygen で生成した公開 API の仕様書です。
+### Doxygen
 
-## モジュール仕様書 (internal)
+<!-- docsfw の仕上がりパスに対する相対リンク。この Markdown からの相対パスではないことに注意 -->
 
-Doxygen で生成した内部モジュールの仕様書です。
+- [calc (internal)](../../../doxygen/service-sample/index.html)
+    - [ファイルの一覧](../../../doxygen/service-sample/files.html)
 
----
+### 単一ファイル版
 
-\toc depth=-1 exclude-basedir=true
+- [calc (internal)](doxybook2_internal/README.md)
+    - [ファイルの一覧](doxybook2_internal/Files/README.md)
+
+## 関連ドキュメント
+
+\toc depth=-1 exclude-basedir=true exclude="doxybook2_internal/*"
