@@ -61,11 +61,10 @@ namespace CalcLib.Tests
             Assert.Equal(25, divideResult.Value); // [確認] - 除算の結果が 25 であること。
         }
 
-
         [Fact]
         public void NativeLibrary_ShouldBeAccessible()
         {
-            // このテストは、ネイティブライブラリにアクセスでき、
+            // このテストは、ネイティブ ライブラリにアクセスでき、
             // 現在のプラットフォームで P/Invoke が正しく機能することを検証します。
 
             var exception = Record.Exception(() => // [手順] - CalcLibrary.Add(1, 1) を呼び出し、例外をキャプチャする。

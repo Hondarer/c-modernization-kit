@@ -1,6 +1,6 @@
 /**
  * @file main.c
- * @brief サブフォルダ make 検証用メインプログラム
+ * @brief サブフォルダー make 検証用メイン プログラム
  */
 
 #include <stdio.h>

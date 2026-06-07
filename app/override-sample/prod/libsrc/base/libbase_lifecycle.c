@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 /**
- *  @brief          ライブラリロード時に呼び出されます。
+ *  @brief          ライブラリ ロード時に呼び出されます。
  */
 void onLoad(void)
 {
@@ -65,7 +65,7 @@ void onLoad(void)
 }
 
 /**
- *  @brief          ライブラリアンロード時に呼び出されます。
+ *  @brief          ライブラリ アンロード時に呼び出されます。
  *  @param[in]      process_terminating プロセス終了時は 1、明示的アンロード時は 0。
  */
 void onUnload(int process_terminating)

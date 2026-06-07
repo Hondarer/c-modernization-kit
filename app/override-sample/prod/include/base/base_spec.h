@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           base_spec.h
- *  @brief          base ライブラリ (動的リンク用) のヘッダーファイル。
+ *  @brief          base ライブラリ (動的リンク用) のヘッダー ファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
@@ -42,7 +42,7 @@ extern "C"
      *  @brief          計算処理を行います。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
      *  @warning        result が NULL の場合は -1 を返します。
@@ -65,7 +65,7 @@ extern "C"
     BASE_EXPORT extern void BASE_API console_output(const char *format, ...);
 
     /**
-     *  @brief          libbase が管理する com_util_sym_loader_entry ポインタ配列の内容を標準出力に表示します。
+     *  @brief          libbase が管理する com_util_sym_loader_entry ポインター配列の内容を標準出力に表示します。
      *  @return         すべてのエントリが正常に解決されている場合は 0、1 つでも失敗している場合は -1 を返します。
      */
     BASE_EXPORT extern int BASE_API sym_loader_info_libbase(void);

@@ -33,7 +33,7 @@ TEST_F(divideTest, test_10_divide_3)
 
     // Assert
     EXPECT_EQ(CALC_SUCCESS, rtc); // [確認] - 戻り値が CALC_SUCCESS であること。
-    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること（整数除算）。
+    EXPECT_EQ(3, result);         // [確認] - 結果が 3 であること (整数除算)。
 }
 
 TEST_F(divideTest, test_divide_by_zero)

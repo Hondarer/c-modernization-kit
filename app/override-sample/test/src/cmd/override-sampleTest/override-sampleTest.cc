@@ -209,7 +209,7 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - 上限超過環境で override-sample を実行する。
 
     // Assert
-    EXPECT_EQ(1, res.exit_code); // [確認] - 設定ファイルパス構築失敗で終了コード 1 を返すこと。
+    EXPECT_EQ(1, res.exit_code); // [確認] - 設定ファイル パス構築失敗で終了コード 1 を返すこと。
     EXPECT_NE(string::npos,
               res.stderr_out.find("failed to build config path"))
         << res.stderr_out; // [確認] - 標準エラーに失敗理由が出力されること。

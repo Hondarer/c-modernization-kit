@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace CalcLib.Tests
 {
     /// <summary>
-    /// モジュール初期化クラス。アセンブリ解決ハンドラを最初に登録します。
+    /// モジュール初期化クラス。アセンブリ解決ハンドラーを最初に登録します。
     /// </summary>
     internal static class ModuleInitializer
     {
@@ -20,7 +20,7 @@ namespace CalcLib.Tests
         }
 
         /// <summary>
-        /// アセンブリ解決のカスタムハンドラ。
+        /// アセンブリ解決のカスタム ハンドラー。
         /// LD_LIBRARY_PATH (Linux) または PATH (Windows) からアセンブリを探索します。
         /// </summary>
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)

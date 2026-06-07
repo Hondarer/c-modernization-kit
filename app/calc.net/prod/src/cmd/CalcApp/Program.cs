@@ -7,7 +7,7 @@
  *  @date           2025/12/20
  *  @version        1.0.0
  *
- *  コマンドライン引数から 2 つの整数と演算子を受け取り、Calc ライブラリを
+ *  コマンド ライン引数から 2 つの整数と演算子を受け取り、Calc ライブラリを
  *  使用して計算結果を標準出力に出力します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
@@ -22,14 +22,14 @@ using CalcLib;
 namespace CalcApp
 {
     /// <summary>
-    /// calc コマンドのメインクラス。
+    /// calc コマンドのメ インク ラス。
     /// </summary>
     public class Program
     {
         /// <summary>
         /// プログラムのエントリ ポイント。
         /// </summary>
-        /// <param name="args">コマンドライン引数の配列。</param>
+        /// <param name="args">コマンド ライン引数の配列。</param>
         /// <returns>成功時は 0、失敗時は 1 を返します。</returns>
         ///
         /// <example>
@@ -57,7 +57,7 @@ namespace CalcApp
                 return 1;
             }
 
-            // オペレーターが1文字であることをチェック
+            // オペレーターが 1 文字であることをチェック
             if (string.IsNullOrEmpty(args[1]) || args[1].Length != 1)
             {
                 Console.Error.WriteLine("Usage: CalcApp <arg1> <arg2> <arg3>");

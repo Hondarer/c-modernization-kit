@@ -7,9 +7,9 @@
  *  @date           2025/12/23
  *  @version        1.0.0
  *
- *  アセンブリ解決のカスタムハンドラを登録し、LD_LIBRARY_PATH (Linux) または
+ *  アセンブリ解決のカスタム ハンドラーを登録し、LD_LIBRARY_PATH (Linux) または
  *  PATH (Windows) からアセンブリを動的に読み込みます。
- *  これにより、C のネイティブライブラリと同じ挙動でアセンブリを解決できます。
+ *  これにより、C のネイティブ ライブラリと同じ挙動でアセンブリを解決できます。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
@@ -25,7 +25,7 @@ using System.Runtime.CompilerServices;
 namespace CalcApp
 {
     /// <summary>
-    /// モジュール初期化クラス。アセンブリ解決ハンドラを最初に登録します。
+    /// モジュール初期化クラス。アセンブリ解決ハンドラーを最初に登録します。
     /// </summary>
     internal static class ModuleInitializer
     {
@@ -39,7 +39,7 @@ namespace CalcApp
         }
 
         /// <summary>
-        /// アセンブリ解決のカスタムハンドラ。
+        /// アセンブリ解決のカスタム ハンドラー。
         /// LD_LIBRARY_PATH (Linux) または PATH (Windows) からアセンブリを探索します。
         /// </summary>
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)

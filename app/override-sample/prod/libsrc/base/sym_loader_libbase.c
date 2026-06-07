@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           sym_loader_libbase.c
- *  @brief          sym_loader が管理する関数ポインタの実定義。
+ *  @brief          sym_loader が管理する関数ポインターの実定義。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/23
  *  @version        1.0.0
@@ -21,8 +21,8 @@
 
 char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
-/* --- 拡張可能な各関数のアクセス用のオブジェクトとアクセス用のポインタ設定 --- */
-/* --- 対応関数を追加した場合、以下に追加が必要です。                       --- */
+/* --- 拡張可能な各関数のアクセス用のオブジェクトとアクセス用のポインター設定 --- */
+/* --- 対応関数を追加した場合、以下に追加が必要です。                         --- */
 
 /** sample_func 用の sym_loader エントリ実体。 */
 static com_util_sym_loader_entry sfo_sample_func = COM_UTIL_SYM_LOADER_ENTRY_INIT("sample_func", sample_func_t);
@@ -33,7 +33,7 @@ com_util_sym_loader_entry *const pfo_sample_func = &sfo_sample_func;
 /* static com_util_sym_loader_entry sfo_func_name = COM_UTIL_SYM_LOADER_ENTRY_INIT("func_name", func_name_t); */ /* 将来追加 */
 /* com_util_sym_loader_entry *const pfo_func_name = &sfo_func_name; */ /* 将来追加 */
 
-/* --- sym_loader に渡すポインタ配列                     --- */
+/* --- sym_loader に渡すポインター配列                --- */
 /* --- 対応関数を追加した場合、以下に追加が必要です。 --- */
 
 /* Doxygen コメントは、ヘッダーに記載 */

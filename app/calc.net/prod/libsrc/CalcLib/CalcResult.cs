@@ -8,7 +8,7 @@
  *  @version        1.0.0
  *
  *  計算演算の結果クラスを定義します。
- *  成功ステータス、結果値、エラーコードを含みます。
+ *  成功ステータス、結果値、エラー コードを含みます。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
@@ -35,7 +35,7 @@ namespace CalcLib
         public int Value { get; }
 
         /// <summary>
-        /// 演算が失敗した場合のエラーコードを取得します。
+        /// 演算が失敗した場合のエラー コードを取得します。
         /// 0 (CALC_SUCCESS) は成功を、-1 (CALC_ERROR) は失敗を示します。
         /// </summary>
         public int ErrorCode { get; }
@@ -45,7 +45,7 @@ namespace CalcLib
         /// </summary>
         /// <param name="isSuccess">演算が成功したかどうかを示します。</param>
         /// <param name="value">計算結果の値。</param>
-        /// <param name="errorCode">ネイティブライブラリから返されたエラーコード。</param>
+        /// <param name="errorCode">ネイティブ ライブラリから返されたエラー コード。</param>
         internal CalcResult(bool isSuccess, int value, int errorCode)
         {
             IsSuccess = isSuccess;

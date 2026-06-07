@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calcbase_spec.h
- *  @brief          calcbase ライブラリ (静的リンク用) のヘッダーファイル。
+ *  @brief          calcbase ライブラリ (静的リンク用) のヘッダー ファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
@@ -38,7 +38,7 @@ extern "C"
      *  @brief          2 つの整数を加算します。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
      *  この関数は 2 つの整数を受け取り、その合計を result に格納します。
@@ -61,7 +61,7 @@ extern "C"
      *  @brief          2 つの整数を減算します。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
      *  この関数は 2 つの整数を受け取り、その差を result に格納します。
@@ -84,7 +84,7 @@ extern "C"
      *  @brief          2 つの整数を乗算します。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
      *  この関数は 2 つの整数を受け取り、その積を result に格納します。
@@ -107,7 +107,7 @@ extern "C"
      *  @brief          2 つの整数を除算します。
      *  @param[in]      a 被除数。
      *  @param[in]      b 除数。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
      *  この関数は 2 つの整数を受け取り、その商を result に格納します。

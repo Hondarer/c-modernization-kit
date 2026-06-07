@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calc_spec.h
- *  @brief          calc ライブラリ (動的リンク用) のヘッダーファイル。
+ *  @brief          calc ライブラリ (動的リンク用) のヘッダー ファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
@@ -40,7 +40,7 @@ extern "C"
      *  @param[in]      kind 演算の種別 (CALC_KIND_ADD など)。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は CALC_SUCCESS、失敗時は CALC_SUCCESS 以外の値を返します。
      *
      *  この関数は演算種別を受け取り、対応する計算関数を呼び出します。

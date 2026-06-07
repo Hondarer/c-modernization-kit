@@ -26,15 +26,15 @@ namespace CalcLib
     public class CalcException : Exception
     {
         /// <summary>
-        /// ネイティブライブラリから返されたエラーコードを取得します。
+        /// ネイティブ ライブラリから返されたエラー コードを取得します。
         /// </summary>
         public int ErrorCode { get; }
 
         /// <summary>
         /// <see cref="CalcException"/> クラスの新しいインスタンスを初期化します。
         /// </summary>
-        /// <param name="errorCode">ネイティブライブラリから返されたエラーコード。</param>
-        /// <param name="message">失敗を説明するエラーメッセージ。</param>
+        /// <param name="errorCode">ネイティブ ライブラリから返されたエラー コード。</param>
+        /// <param name="message">失敗を説明するエラー メッセージ。</param>
         public CalcException(int errorCode, string message)
             : base(message)
         {
@@ -44,8 +44,8 @@ namespace CalcLib
         /// <summary>
         /// <see cref="CalcException"/> クラスの新しいインスタンスを初期化します。
         /// </summary>
-        /// <param name="errorCode">ネイティブライブラリから返されたエラーコード。</param>
-        /// <param name="message">失敗を説明するエラーメッセージ。</param>
+        /// <param name="errorCode">ネイティブ ライブラリから返されたエラー コード。</param>
+        /// <param name="message">失敗を説明するエラー メッセージ。</param>
         /// <param name="innerException">この例外の原因となった例外。</param>
         public CalcException(int errorCode, string message, Exception innerException)
             : base(message, innerException)

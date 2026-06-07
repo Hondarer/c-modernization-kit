@@ -40,7 +40,7 @@ namespace CalcLib.Tests
 
             Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。
             Assert.Equal(expected, result.Value); // [確認] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認] - エラーコードが 0 であること。
+            Assert.Equal(0, result.ErrorCode); // [確認] - エラー コードが 0 であること。
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace CalcLib.Tests
 
             Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。
             Assert.Equal(expected, result.Value); // [確認] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認] - エラーコードが 0 であること。
+            Assert.Equal(0, result.ErrorCode); // [確認] - エラー コードが 0 であること。
         }
 
         #endregion
@@ -87,7 +87,7 @@ namespace CalcLib.Tests
 
             Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。
             Assert.Equal(expected, result.Value); // [確認] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認] - エラーコードが 0 であること。
+            Assert.Equal(0, result.ErrorCode); // [確認] - エラー コードが 0 であること。
         }
 
         #endregion
@@ -106,7 +106,7 @@ namespace CalcLib.Tests
 
             Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。
             Assert.Equal(expected, result.Value); // [確認] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認] - エラーコードが 0 であること。
+            Assert.Equal(0, result.ErrorCode); // [確認] - エラー コードが 0 であること。
         }
 
         [Fact]
@@ -115,7 +115,7 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Divide(10, 0); // [手順] - CalcLibrary.Divide(10, 0) を呼び出す (ゼロ除算)。
 
             Assert.False(result.IsSuccess); // [確認] - 結果が失敗であること。
-            Assert.Equal(-1, result.ErrorCode); // [確認] - エラーコードが -1 であること。
+            Assert.Equal(-1, result.ErrorCode); // [確認] - エラー コードが -1 であること。
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Divide(0, 0); // [手順] - CalcLibrary.Divide(0, 0) を呼び出す (ゼロ除算)。
 
             Assert.False(result.IsSuccess); // [確認] - 結果が失敗であること。
-            Assert.Equal(-1, result.ErrorCode); // [確認] - エラーコードが -1 であること。
+            Assert.Equal(-1, result.ErrorCode); // [確認] - エラー コードが -1 であること。
         }
 
         #endregion
@@ -169,7 +169,7 @@ namespace CalcLib.Tests
             var exception = Assert.Throws<CalcException>(() => // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す (ゼロ除算)。
                 CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0)); // [確認] - CalcException が発生すること。
 
-            Assert.Equal(-1, exception.ErrorCode); // [確認] - 例外のエラーコードが -1 であること。
+            Assert.Equal(-1, exception.ErrorCode); // [確認] - 例外のエラー コードが -1 であること。
             Assert.Contains("Calculation failed", exception.Message); // [確認] - メッセージに "Calculation failed" が含まれること。
             Assert.Contains("kind=Divide", exception.Message); // [確認] - メッセージに "kind=Divide" が含まれること。
             Assert.Contains("a=10", exception.Message); // [確認] - メッセージに "a=10" が含まれること。

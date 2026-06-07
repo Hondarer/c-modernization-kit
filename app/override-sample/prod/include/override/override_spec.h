@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           override_spec.h
- *  @brief          override ライブラリ (動的リンク用) のヘッダーファイル。
+ *  @brief          override ライブラリ (動的リンク用) のヘッダー ファイル。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
@@ -39,7 +39,7 @@ extern "C"
      *  @brief          sample_func のオーバーライド実装。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
-     *  @param[out]     result 計算結果を格納するポインタ。
+     *  @param[out]     result 計算結果を格納するポインター。
      *  @return         成功時は 0、失敗時は -1 を返します。
      *
      *                  libbase の sample_func から動的にロードされ呼び出されます。\n

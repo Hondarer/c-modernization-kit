@@ -83,7 +83,7 @@ test : submodule
 			$(MAKE) -C $$dir test || exit 1; \
 		fi; \
 	done
-    # このフォルダ以下の coverage.xml をマージする
+    # このフォルダー以下の coverage.xml をマージする
 	-python "$(TESTFW_HOME)/bin/cobertura_merge.py" . > /dev/null
 
 .PHONY: doxy

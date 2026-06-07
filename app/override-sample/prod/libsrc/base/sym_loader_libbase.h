@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           sym_loader_libbase.h
- *  @brief          sym_loader が管理する関数ポインタの extern 定義。
+ *  @brief          sym_loader が管理する関数ポインターの extern 定義。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
@@ -20,10 +20,10 @@
 #include <base/base_spec.h>
 #include <com_util/crt/path.h>
 
-/* --- 拡張可能な各関数のポインタ型とアクセス用のオブジェクトへのポインタ --- */
-/* --- 対応関数を追加した場合、以下に追加が必要です。                     --- */
+/* --- 拡張可能な各関数のポインター型とアクセス用のオブジェクトへのポインター --- */
+/* --- 対応関数を追加した場合、以下に追加が必要です。                         --- */
 
-/** sample_func に対応する関数ポインタの型定義。 */
+/** sample_func に対応する関数ポインターの型定義。 */
 typedef int (*sample_func_t)(const int, const int, int *);
 
 #ifdef __cplusplus
@@ -31,16 +31,16 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-    /** sample_func に対応する sym_loader エントリへのポインタ。 */
+    /** sample_func に対応する sym_loader エントリへのポインター。 */
     extern com_util_sym_loader_entry *const pfo_sample_func;
 
     /* typedef any (*func_name_t)(...); */                       /* 将来追加 */
     /* extern com_util_sym_loader_entry *const pfo_func_name; */ /* 将来追加 */
 
-    /** sym_loader に設定するポインタ配列。 */
+    /** sym_loader に設定するポインター配列。 */
     extern com_util_sym_loader_entry *const fobj_array_libbase[];
 
-    /** sym_loader に設定するポインタ配列の要素数 */
+    /** sym_loader に設定するポインター配列の要素数 */
     extern const size_t fobj_length_libbase;
 
 /** sym_loader 設定ファイルのパス長 (終端 '\0' を含む) */

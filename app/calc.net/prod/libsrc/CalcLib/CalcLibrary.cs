@@ -2,7 +2,7 @@
 /**
  *******************************************************************************
  *  @file           CalcLibrary.cs
- *  @brief          calc ライブラリラッパーのメイン公開 API。
+ *  @brief          calc ライブラリ ラッパーのメイン公開 API。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
@@ -27,12 +27,12 @@ namespace CalcLib
     public static class CalcLibrary
     {
         /// <summary>
-        /// ネイティブライブラリからの成功戻り値コード。
+        /// ネイティブ ライブラリからの成功戻り値コード。
         /// </summary>
         private const int CALC_SUCCESS = 0;
 
         /// <summary>
-        /// ネイティブライブラリからのエラー戻り値コード。
+        /// ネイティブ ライブラリからのエラー戻り値コード。
         /// </summary>
         private const int CALC_ERROR = -1;
 

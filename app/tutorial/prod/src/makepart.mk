@@ -1,4 +1,4 @@
-# ライブラリの指定 (static library を利用してポータビリティーを高める)
+# ライブラリの指定 (static library を利用)
 LIBS += com_util_static
 
 ifdef PLATFORM_WINDOWS

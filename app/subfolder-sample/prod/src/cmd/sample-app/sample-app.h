@@ -6,7 +6,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/* サブフォルダの関数宣言 */
+/* サブフォルダーの関数宣言 */
 extern int helper_a(int value);
 extern int helper_b(int value);
 

@@ -6,7 +6,7 @@
  *  @date           2025/11/22
  *  @version        1.0.0
  *
- *  コマンドライン引数から 2 つの整数と演算子を受け取り、calcHandler 関数を使用して
+ *  コマンド ライン引数から 2 つの整数と演算子を受け取り、calcHandler 関数を使用して
  *  計算結果を標準出力に出力します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
@@ -21,8 +21,8 @@
 
 /**
  *  @brief          プログラムのエントリ ポイント。
- *  @param[in]      argc コマンドライン引数の数。
- *  @param[in]      argv コマンドライン引数の配列。
+ *  @param[in]      argc コマンド ライン引数の数。
+ *  @param[in]      argv コマンド ライン引数の配列。
  *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  *
  *  使用例:

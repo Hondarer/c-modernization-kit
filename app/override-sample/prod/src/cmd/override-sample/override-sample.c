@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
  *  @file           override-sample.c
- *  @brief          override-sample メインプログラム。
+ *  @brief          override-sample メイン プログラム。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
- *  libbase の func を呼び出し、オーバーライド機能を示すサンプルプログラムです。
+ *  libbase の func を呼び出し、オーバーライド機能を示すサンプル プログラムです。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -20,7 +20,7 @@
 #include <stdio.h>
 
 /**
- *  @brief          メインエントリポイント。
+ *  @brief          メイン エントリ ポイント。
  *  @return         正常終了時は 0 を返します。
  */
 int main(void)
