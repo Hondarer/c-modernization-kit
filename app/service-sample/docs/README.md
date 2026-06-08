@@ -13,9 +13,9 @@
 
 ### 単一ファイル版
 
-- [calc (internal)](doxybook2_internal/README.md)
-    - [ファイルの一覧](doxybook2_internal/Files/README.md)
+- [calc (internal)](doxybook2/README.md)
+    - [ファイルの一覧](doxybook2/Files/README.md)
 
 ## 関連ドキュメント
 
-\toc depth=-1 exclude-basedir=true exclude="doxybook2_internal/*"
+\toc depth=-1 exclude-basedir=true exclude="doxybook2/*"

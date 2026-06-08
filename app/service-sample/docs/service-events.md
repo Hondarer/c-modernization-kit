@@ -93,7 +93,7 @@ systemd では、Windows SCM のような制御コード列挙ではなく、uni
 
 ```ini
 [Service]
-Type=simple
+Type=notify
 ExecStart=<service-sample の絶対パス> run
 Restart=on-failure
 RestartSec=5
@@ -104,10 +104,11 @@ RestartSec=5
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
 | 起動処理 | 対応 | systemd が `ExecStart=... run` でプロセスを起動する。 |
-| 起動完了判定 | 一部対応 | `Type=simple` のため、systemd はプロセス起動直後に起動済みとみなす。 |
+| 起動完了判定 | 対応 | `Type=notify` のため、`on_start` 成功後に `READY=1` を送信し、systemd が起動完了とみなす。 |
+| 停止開始通知 | 対応 | `on_run` 復帰後、`on_stop` 呼び出し前に `STOPPING=1` を送信する。 |
 | 停止要求 | 対応 | `systemctl stop` などで送られる `SIGTERM` を `shutdown.h` が補足し、`svc_request_stop()` を呼ぶ。 |
 | コンソール停止 | 対応 | `console` 実行時の `SIGINT` も同じ停止要求として扱う。 |
-| 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び、プロセス終了で systemd へ停止完了を伝える。 |
+| 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝える。 |
 | 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動される。 |
 
 次の systemd タイミングは、unit ファイルに設定がないため現行実装では使いません。
@@ -130,24 +131,112 @@ RestartSec=5
 | 種別 | 扱える内容 |
 |---|---|
 | 起動 | `ExecStart=` でプロセスを起動する。 |
+| 起動完了通知 | `NOTIFY_SOCKET` へ `AF_UNIX/SOCK_DGRAM` で直接送信し、`READY=1` を通知する。 |
 | 停止 | `SIGTERM`、`SIGINT` など補足可能なシグナルを処理する。 |
+| 停止開始通知 | `NOTIFY_SOCKET` へ直接送信し、`STOPPING=1` を通知する。 |
 | 終了結果 | プロセスの終了コードで成功または失敗を systemd に伝える。 |
 | 再起動 | `Restart=`、`RestartSec=` で systemd 側に再起動を任せる。 |
 | 起動前後の処理 | `ExecStartPre=`、`ExecStartPost=` を unit ファイルに定義する。 |
 | 停止前後の処理 | `ExecStop=`、`ExecStopPost=` を unit ファイルに定義する。 |
 | リロード | `ExecReload=` と任意のシグナル処理を組み合わせる。 |
 
-一方で、`sd_notify()` が必要な次の通知は扱えません。
+一方で、`sd_notify()` が必要な次の通知は `libsystemd` なしでは扱えません。
 
 | 通知 | `systemd-devel` なしの扱い |
 |---|---|
-| `READY=1` | サービス自身から起動完了を明示通知できない。 |
 | `RELOADING=1` | reload 開始を systemd に明示通知できない。 |
 | `WATCHDOG=1` | systemd watchdog へ定期応答できない。 |
 | `STATUS=` | `systemctl status` に任意の進行状況メッセージを通知できない。 |
-| `STOPPING=1` | 停止処理開始を明示通知できない。 |
 | `EXTEND_TIMEOUT_USEC=` | 起動、停止、reload のタイムアウト延長を要求できない。 |
 | `MAINPID=` | サービス側から main PID を明示通知できない。 |
 
-`service-sample` は `Type=simple` を採用しているため、起動完了は「プロセスが起動したこと」として扱われます。  
-`on_start` の初期化完了を systemd の起動完了と一致させたい場合は、`Type=notify` と `sd_notify("READY=1")` を使う設計に変更する必要があります。
+`READY=1` と `STOPPING=1` は `NOTIFY_SOCKET` へ直接書き込むことで `libsystemd` なしに送信できます。
+`service-sample` はこの方式を採用し、`Type=notify` と組み合わせることで `on_start` の初期化完了を systemd の起動完了と一致させています。
+
+## 起動完了・停止開始の通知抽象
+
+`service-sample` のフレームワークは、ライフサイクルの 2 つの遷移点で OS へ自動通知します。
+この通知は OS フック (`svc_os_notify_ready` / `svc_os_notify_stopping`) として抽象化されており、コールバック (on_start / on_run / on_stop) の契約は変わりません。
+
+| 概念 | タイミング | Windows (SCM) | Linux (systemd) |
+|---|---|---|---|
+| 起動完了 | `on_start` 成功直後 | `SERVICE_RUNNING` を SCM に通知する | `READY=1` を `NOTIFY_SOCKET` へ送信する |
+| 停止開始 | `on_run` 復帰直後 | `SERVICE_STOP_PENDING` を SCM に通知する | `STOPPING=1` を `NOTIFY_SOCKET` へ送信する |
+
+```plantuml
+@startuml 起動完了・停止開始の通知抽象
+    caption 起動完了・停止開始の通知抽象
+    [*] --> Starting
+    Starting --> Running : svc_os_notify_ready()\nWin: SERVICE_RUNNING / Linux: READY=1
+    Running --> Stopping : svc_os_notify_stopping()\nWin: SERVICE_STOP_PENDING / Linux: STOPPING=1
+    Stopping --> Stopped
+    Stopped --> [*]
+
+    Starting : on_start 実行中
+    Running : on_run 実行中
+    Stopping : on_stop 実行中
+@enduml
+```
+
+コンソール モード (`console` コマンド) や `NOTIFY_SOCKET` が未設定の環境では、各フックが no-op になります。
+
+## サービス再起動のイベント
+
+サービスの再起動は、停止と起動の連続として実現されます。  
+再起動専用のコールバックやプロセス内再初期化のコード パスは存在せず、プロセスが終了した後にサービス マネージャー (SCM / systemd) が新しいプロセスを起動します。  
+そのため再起動のたびに新しいプロセスで `on_start` → `on_run` → `on_stop` が再度巡回します。
+
+一時停止 (`SERVICE_CONTROL_PAUSE`) と再開 (`SERVICE_CONTROL_CONTINUE`) は同一プロセスを維持したまま動作を中断・再開する操作であり、プロセスを終了させる再起動とは異なります。  
+`service-sample` はこれらを受け付けていないため、詳細は [service-sample の Windows 対応範囲](#service-sample-の-windows-対応範囲) を参照してください。
+
+```plantuml
+@startuml サービス再起動時のイベント順序 (手動再起動)
+    caption サービス再起動時のイベント順序 (手動再起動)
+    participant "サービス マネージャー\n(SCM / systemd)" as MGR
+    participant "旧プロセス" as OLD
+    participant "新プロセス" as NEW
+
+    MGR -> OLD : 停止要求\n(SERVICE_CONTROL_STOP / SIGTERM)
+    activate OLD
+    OLD -> OLD : svc_request_stop()
+    OLD -> OLD : on_run が戻る
+    OLD -> OLD : on_stop()
+    OLD --> MGR : 停止完了\n(SERVICE_STOPPED / プロセス終了)
+    deactivate OLD
+
+    MGR -> NEW : 起動\n(ServiceMain / ExecStart=... run)
+    activate NEW
+    NEW -> NEW : on_start()
+    NEW -> NEW : on_run()\n(停止要求まで常駐)
+    NEW --> MGR : 起動完了\n(SERVICE_RUNNING / Type=notify)
+    deactivate NEW
+@enduml
+```
+
+### 手動再起動の手段
+
+| プラットフォーム | 手段 | 内部の流れ |
+|---|---|---|
+| Linux | `systemctl restart {name}` | SIGTERM で停止後、systemd が新プロセスを `ExecStart=... run` で起動する。 |
+| Windows | `sc stop {name}` + `sc start {name}`、またはサービス管理画面の再起動 | `SERVICE_CONTROL_STOP` で停止後、SCM が新プロセスを起動し `ServiceMain` を再呼び出しする。 |
+
+### 自動再起動の対応状況
+
+| 観点 | Linux | Windows |
+|---|---|---|
+| 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動する。 | 未設定。failure actions を登録していないため自動再起動しない。 |
+| 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 (現状は説明文のみ設定) |
+
+Linux は `Restart=on-failure` をすでに持つため追加設定は不要です。
+
+Windows で自動再起動を有効化するには、次のいずれかの方法を使います。
+
+install 処理の `svc_os_install` 内で `ChangeServiceConfig2` に `SERVICE_CONFIG_FAILURE_ACTIONS` (`SERVICE_FAILURE_ACTIONS` 構造体) を渡し、`SC_ACTION_RESTART` と遅延ミリ秒を指定します。
+
+登録済みのサービスに対しては、次のコマンドでも設定できます。
+
+```cmd
+sc failure {name} reset= 86400 actions= restart/5000
+```
+
+`reset=` はカウンターのリセット間隔 (秒)、`actions=` は失敗時のアクションと遅延 (ミリ秒) の組み合わせです。

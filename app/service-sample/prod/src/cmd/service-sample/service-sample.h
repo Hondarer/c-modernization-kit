@@ -78,7 +78,7 @@ extern "C"
     typedef void (*svc_on_run_fn)(void *user_data);
 
     /**
-     *  @brief          サービス後処理コールバックの型。
+     *  @brief          サービス停止処理コールバックの型。
      *
      *  on_run() が戻った後に必ず呼ばれます。\n
      *  on_start() が失敗した場合は呼ばれません。
@@ -115,7 +115,7 @@ extern "C"
         const char *description;  /**< 説明文。Windows SCM / systemd unit の Description に設定される。 */
         svc_on_start_fn on_start; /**< 初期化コールバック。NULL 可。 */
         svc_on_run_fn on_run;     /**< メインループ コールバック。NULL 不可。 */
-        svc_on_stop_fn on_stop;   /**< 後処理コールバック。NULL 可。 */
+        svc_on_stop_fn on_stop;   /**< 停止処理コールバック。NULL 可。 */
         void *user_data;          /**< 各コールバックに渡す任意ポインター。 */
     } svc_definition;
 
@@ -213,10 +213,32 @@ extern "C"
      *  @return         成功時は 0、失敗時は 0 以外を返します。
      *
      *  SCM/systemd から "run" 引数付きで起動されたときに呼ばれます。\n
-     *  - Linux  : Type=simple のため fork せずそのまま常駐し、SIGTERM で停止します。\n
+     *  - Linux  : Type=notify のため fork せずそのまま常駐し、SIGTERM で停止します。\n
      *  - Windows: StartServiceCtrlDispatcher でサービス ディスパッチャーに接続します。
      */
     int svc_os_run_service(const svc_definition *def);
+
+    /**
+     *  @brief          起動完了を OS に通知します (内部共有関数)。
+     *
+     *  on_start() 成功直後に svc_run_lifecycle() から呼ばれます。\n
+     *  - Linux  : NOTIFY_SOCKET へ "READY=1" を送信します (sd_notify 相当)。\n
+     *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
+     *  - Windows: SCM に SERVICE_RUNNING を通知します。\n
+     *             コンソール モード (SCM 未接続) の場合は何もしません。
+     */
+    void svc_os_notify_ready(void);
+
+    /**
+     *  @brief          停止開始を OS に通知します (内部共有関数)。
+     *
+     *  on_run() 復帰直後、on_stop() 呼び出し前に svc_run_lifecycle() から呼ばれます。\n
+     *  - Linux  : NOTIFY_SOCKET へ "STOPPING=1" を送信します (sd_notify 相当)。\n
+     *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
+     *  - Windows: SCM に SERVICE_STOP_PENDING を通知します。\n
+     *             コンソール モード (SCM 未接続) の場合は何もしません。
+     */
+    void svc_os_notify_stopping(void);
 
     /* ============================================================
      *  内部共有関数 (プラットフォーム ファイルからアクセスするために公開)

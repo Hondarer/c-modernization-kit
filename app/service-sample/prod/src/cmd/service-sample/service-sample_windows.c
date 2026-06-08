@@ -73,6 +73,63 @@ static void set_service_status(const DWORD state, const DWORD controls, const DW
     SetServiceStatus(g_status_handle, &g_status);
 }
 
+/**
+ *  @brief          管理者権限を保証します。
+ *  @param[in]      command         昇格再実行するサブコマンド。
+ *  @param[in]      operation_name  操作名 (エラーメッセージ用)。
+ *  @param[out]     handled         別プロセスで処理済みの場合は 0 以外を格納します。
+ *  @return         継続可能な場合は 0、失敗時または別プロセスの終了コードを返します。
+ */
+static int ensure_elevated_for_operation(const char *command, const char *operation_name, int *handled)
+{
+    int exit_code;
+    int rc;
+
+    if (handled == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+
+    exit_code = EXIT_FAILURE;
+    rc = com_util_process_run_elevated_if_needed(command, &exit_code, handled);
+    if (rc != 0)
+    {
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "%s には管理者権限が必要です。",
+                               operation_name);
+        return EXIT_FAILURE;
+    }
+
+    if (*handled != 0)
+    {
+        return exit_code;
+    }
+    return 0;
+}
+
+/* ============================================================
+ *  OS フック実装 (通知)
+ * ============================================================ */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_os_notify_ready(void)
+{
+    if (g_status_handle == NULL)
+    {
+        return;
+    }
+    set_service_status(SERVICE_RUNNING, SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN, 0, 0);
+}
+
+void svc_os_notify_stopping(void)
+{
+    if (g_status_handle == NULL)
+    {
+        return;
+    }
+    set_service_status(SERVICE_STOP_PENDING, 0, 1, 3000);
+}
+
 /* ============================================================
  *  サービス コントロール ハンドラー
  * ============================================================ */
@@ -147,14 +204,14 @@ static VOID WINAPI service_main(DWORD argc, LPTSTR *argv)
         }
     }
 
-    /* 起動完了を通知する */
-    set_service_status(SERVICE_RUNNING, SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN, 0, 0);
+    /* 起動完了を通知する (svc_os_notify_ready で SERVICE_RUNNING を通知) */
+    svc_os_notify_ready();
 
     /* on_run を呼ぶ (停止要求まで戻らない) */
     g_def->on_run(g_def->user_data);
 
-    /* 停止中を通知する */
-    set_service_status(SERVICE_STOP_PENDING, 0, 1, 3000);
+    /* 停止中を通知する (svc_os_notify_stopping で SERVICE_STOP_PENDING を通知) */
+    svc_os_notify_stopping();
 
     /* on_stop を呼ぶ */
     if (g_def->on_stop != NULL)
@@ -211,6 +268,13 @@ int svc_os_install(const svc_definition *def)
     char exe_path[4096];
     SERVICE_DESCRIPTION desc;
     int rc;
+    int handled;
+
+    rc = ensure_elevated_for_operation("install", "install", &handled);
+    if (rc != 0 || handled != 0)
+    {
+        return rc;
+    }
 
     /* 実行ファイルの絶対パスを取得する */
     if (com_util_process_get_executable_path(exe_path, sizeof(exe_path)) != 0)
@@ -300,6 +364,13 @@ int svc_os_uninstall(const svc_definition *def)
     SC_HANDLE svc = NULL;
     SERVICE_STATUS status;
     int rc;
+    int handled;
+
+    rc = ensure_elevated_for_operation("uninstall", "uninstall", &handled);
+    if (rc != 0 || handled != 0)
+    {
+        return rc;
+    }
 
     /* SCM に接続する */
     scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);

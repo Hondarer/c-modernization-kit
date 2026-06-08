@@ -10,7 +10,7 @@
  *  - 停止イベント抽象 (svc_request_stop / svc_wait_for_stop / svc_stop_requested)
  *  - ライフサイクル駆動 (svc_run_lifecycle)
  *  - 引数ディスパッチ (svc_main)
- *  - サービス定義・コールバック雛形・エントリ ポイント
+ *  - エントリ ポイント
  *
  *  プラットフォーム差異は各プラットフォーム ファイルが実装するフック関数
  *  (svc_os_install / svc_os_uninstall / svc_os_run_service) で吸収します。
@@ -216,7 +216,11 @@ int svc_run_lifecycle(const svc_definition *def)
 
     if (rc == 0)
     {
+        svc_os_notify_ready();
+
         def->on_run(def->user_data);
+
+        svc_os_notify_stopping();
 
         if (def->on_stop != NULL)
         {
@@ -316,64 +320,11 @@ int svc_main(const int argc, char *argv[], const svc_definition *def)
 }
 
 /* ============================================================
- *  サービス コールバック雛形
- * ============================================================ */
-
-/**
- *  @brief          サービス初期化処理の雛形。
- *  @param[in]      user_data 未使用。
- *  @return         常に 0 (成功) を返します。
- */
-static int on_start(void *user_data)
-{
-    (void)user_data;
-    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "起動しました。");
-    /* TODO: ここに初期化処理を書く */
-    return 0;
-}
-
-/**
- *  @brief          サービス メインループの雛形。
- *  @param[in]      user_data 未使用。
- *
- *  1 秒ごとに動作ログを出力し、停止要求を受け取るとループを抜けます。
- */
-static void on_run(void *user_data)
-{
-    (void)user_data;
-    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
-                          "動作中です。Ctrl+C または停止コマンドで終了します。");
-
-    while (svc_wait_for_stop(1000) == 0)
-    {
-        /* TODO: ここに周期処理を書く (現状は何もしない雛形) */
-        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
-    }
-}
-
-/**
- *  @brief          サービス後処理の雛形。
- *  @param[in]      user_data 未使用。
- */
-static void on_stop(void *user_data)
-{
-    (void)user_data;
-    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "停止しました。");
-    /* TODO: ここに後処理を書く */
-}
-
-/* ============================================================
- *  サービス定義・エントリ ポイント
+ *  エントリ ポイント
  * ============================================================ */
 
 /** サービス定義。 */
-static const svc_definition g_service_def = {"service-sample",
-                                             "C Modernization-kit Service Sample",
-                                             "c-modernization-kit のクロスプラットフォーム サービス サンプルです。",
-                                             on_start,
-                                             on_run,
-                                             on_stop,
-                                             NULL};
+extern const svc_definition g_service_def;
 
 /**
  *  @brief          メイン エントリ ポイント。
@@ -383,5 +334,7 @@ static const svc_definition g_service_def = {"service-sample",
  */
 int main(int argc, char *argv[])
 {
+    com_util_console_init();
+
     return svc_main(argc, argv, &g_service_def);
 }

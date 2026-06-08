@@ -24,12 +24,16 @@
 #if defined(PLATFORM_LINUX)
 
     #include <errno.h>
+    #include <stddef.h>
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+    #include <sys/socket.h>
+    #include <sys/un.h>
     #include <sys/wait.h>
     #include <unistd.h>
 
+    #include <com_util/crt/stdlib.h>
     #include <com_util/runtime/process.h>
 
     #include "service-sample.h"
@@ -94,19 +98,129 @@ static int run_command(char *const argv[])
 }
 
 /**
- *  @brief          root 権限を確認します。
+ *  @brief          root 権限を保証します。
+ *  @param[in]      command         昇格再実行するサブコマンド。
  *  @param[in]      operation_name  操作名 (エラーメッセージ用)。
- *  @return         root の場合は 0、そうでない場合は -1 を返します。
+ *  @param[out]     handled         別プロセスで処理済みの場合は 0 以外を格納します。
+ *  @return         継続可能な場合は 0、失敗時または別プロセスの終了コードを返します。
  */
-static int check_root(const char *operation_name)
+static int ensure_elevated_for_operation(const char *command, const char *operation_name, int *handled)
 {
-    if (geteuid() != 0)
+    int exit_code;
+    int rc;
+
+    if (handled == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+
+    exit_code = EXIT_FAILURE;
+    rc = com_util_process_run_elevated_if_needed(command, &exit_code, handled);
+    if (rc != 0)
     {
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
                                "%s には root 権限 (sudo) が必要です。", operation_name);
-        return -1;
+        return EXIT_FAILURE;
+    }
+
+    if (*handled != 0)
+    {
+        return exit_code;
     }
     return 0;
+}
+
+/* ============================================================
+ *  sd_notify ヘルパー (libsystemd 非依存)
+ * ============================================================ */
+
+/**
+ *  @brief          NOTIFY_SOCKET へメッセージを送信します。
+ *  @param[in]      message  送信するメッセージ文字列 (例: "READY=1")。
+ *
+ *  環境変数 NOTIFY_SOCKET が設定されていない場合は何もしません。\n
+ *  abstract socket (先頭が '@') と通常のファイルパスの両方に対応します。\n
+ *  送信失敗時はトレースに WARNING を出力するだけで処理を継続します。
+ */
+static void sd_notify_send(const char *message)
+{
+    char sock_path[108]; /* sockaddr_un.sun_path のサイズに合わせる */
+    struct sockaddr_un addr;
+    socklen_t addrlen;
+    size_t path_len;
+    int fd;
+    int rc;
+
+    rc = com_util_getenv("NOTIFY_SOCKET", sock_path, sizeof(sock_path));
+    if (rc != 0)
+    {
+        /* NOTIFY_SOCKET 未設定: コンソール モードや Type=notify 以外では通常の状態 */
+        return;
+    }
+
+    fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    if (fd < 0)
+    {
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                               "sd_notify: socket() が失敗しました: %s", strerror(errno));
+        return;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+
+    if (sock_path[0] == '@')
+    {
+        /* abstract socket: 先頭の '@' を NUL バイトに置き換える */
+        addr.sun_path[0] = '\0';
+        path_len = strlen(sock_path); /* '@' を含む長さをそのまま使う */
+        if (path_len >= sizeof(addr.sun_path))
+        {
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                                  "sd_notify: NOTIFY_SOCKET のパスが長すぎます。");
+            close(fd);
+            return;
+        }
+        memcpy(addr.sun_path + 1, sock_path + 1, path_len - 1);
+        addrlen = (socklen_t)(offsetof(struct sockaddr_un, sun_path) + path_len);
+    }
+    else
+    {
+        path_len = strlen(sock_path) + 1; /* NUL 終端を含む長さ */
+        if (path_len > sizeof(addr.sun_path))
+        {
+            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                                  "sd_notify: NOTIFY_SOCKET のパスが長すぎます。");
+            close(fd);
+            return;
+        }
+        memcpy(addr.sun_path, sock_path, path_len);
+        addrlen = (socklen_t)sizeof(addr);
+    }
+
+    if (sendto(fd, message, strlen(message), MSG_NOSIGNAL, (struct sockaddr *)&addr, addrlen) < 0)
+    {
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                               "sd_notify: sendto() が失敗しました: %s", strerror(errno));
+    }
+
+    close(fd);
+}
+
+/* ============================================================
+ *  OS フック実装 (通知)
+ * ============================================================ */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_os_notify_ready(void)
+{
+    sd_notify_send("READY=1");
+}
+
+void svc_os_notify_stopping(void)
+{
+    sd_notify_send("STOPPING=1");
 }
 
 /* ============================================================
@@ -132,6 +246,7 @@ int svc_os_install(const svc_definition *def)
     char *argv_daemon_reload[] = {"systemctl", "daemon-reload", NULL};
     char *argv_enable[4];
     int rc;
+    int handled;
 
     snprintf(svc_name_buf, sizeof(svc_name_buf), "%s", def->name);
     argv_enable[0] = "systemctl";
@@ -139,9 +254,10 @@ int svc_os_install(const svc_definition *def)
     argv_enable[2] = svc_name_buf;
     argv_enable[3] = NULL;
 
-    if (check_root("install") != 0)
+    rc = ensure_elevated_for_operation("install", "install", &handled);
+    if (rc != 0 || handled != 0)
     {
-        return EXIT_FAILURE;
+        return rc;
     }
 
     if (com_util_process_get_executable_path(exec_path, sizeof(exec_path)) != 0)
@@ -167,7 +283,7 @@ int svc_os_install(const svc_definition *def)
                        "After=network.target\n"
                        "\n"
                        "[Service]\n"
-                       "Type=simple\n"
+                       "Type=notify\n"
                        "ExecStart=%s run\n"
                        "Restart=on-failure\n"
                        "RestartSec=5\n"
@@ -236,6 +352,7 @@ int svc_os_uninstall(const svc_definition *def)
     char *argv_disable[4];
     char *argv_daemon_reload[] = {"systemctl", "daemon-reload", NULL};
     int rc;
+    int handled;
 
     snprintf(svc_name_buf, sizeof(svc_name_buf), "%s", def->name);
     argv_stop[0] = "systemctl";
@@ -247,9 +364,10 @@ int svc_os_uninstall(const svc_definition *def)
     argv_disable[2] = svc_name_buf;
     argv_disable[3] = NULL;
 
-    if (check_root("uninstall") != 0)
+    rc = ensure_elevated_for_operation("uninstall", "uninstall", &handled);
+    if (rc != 0 || handled != 0)
     {
-        return EXIT_FAILURE;
+        return rc;
     }
 
     written = snprintf(unit_path, sizeof(unit_path), "%s/%s.service", SYSTEMD_UNIT_DIR, def->name);

@@ -1,6 +1,5 @@
 # ライブラリの指定 (static library を利用)
 LIBS += com_util_static
-
 ifdef PLATFORM_WINDOWS
     CFLAGS   += /DCOM_UTIL_STATIC
     CXXFLAGS += /DCOM_UTIL_STATIC
