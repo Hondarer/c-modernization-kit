@@ -199,15 +199,8 @@ static void svc_shutdown_request_callback(const com_util_shutdown_event *event, 
  *  ライフサイクル駆動 (console モードと Linux run モードが共用)
  * ============================================================ */
 
-/**
- *  @brief          ライフサイクル コールバックを駆動します。
- *  @param[in]      def サービス定義。
- *  @return         成功時は 0、on_start が失敗した場合はその戻り値を返します。
- *
- *  console モードおよび Linux run モード (Type=simple) の共通実装です。\n
- *  shutdown.h の request callback を登録して SIGINT/SIGTERM を補足し、
- *  on_start → on_run → on_stop の順でライフサイクルを駆動します。
- */
+/* Doxygen コメントは、ヘッダーに記載 */
+
 int svc_run_lifecycle(const svc_definition *def)
 {
     int rc;

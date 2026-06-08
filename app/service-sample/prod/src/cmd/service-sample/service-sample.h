@@ -189,7 +189,7 @@ extern "C"
      *  @param[in]      def     サービス定義。NULL を渡してはなりません。
      *  @return         成功時は 0、失敗時は 0 以外を返します。
      *
-     *  - Linux  : /etc/systemd/system/<name>.service を生成し、systemctl enable を実行します。\n
+     *  - Linux  : /etc/systemd/system/{name}.service を生成し、systemctl enable を実行します。\n
      *             root 権限が必要です。\n
      *  - Windows: SCM に CreateService で登録します。管理者権限が必要です。
      */
@@ -224,7 +224,7 @@ extern "C"
 
     /**
      *  @brief          ライフサイクル コールバックを駆動します (内部共有関数)。
-     *  @param[in]      def サービス定義。NULL を渡してはなりません。
+     *  @param[in]      def     サービス定義。NULL を渡してはなりません。
      *  @return         成功時は 0、on_start が失敗した場合はその戻り値を返します。
      *
      *  console モードおよび Linux run モード (Type=simple) が使用します。\n
