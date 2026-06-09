@@ -7,8 +7,8 @@
  *  @version        1.0.0
  *
  *  Linux 固有のサービス処理を実装します。
- *  - svc_os_run_service : Type=simple で常駐 (fork 不要)
- *  - svc_os_install     : systemd ユニット ファイル生成と登録
+ *  - svc_os_run_service : Type=notify で常駐 (fork 不要)
+ *  - svc_os_install     : systemd ユニット ファイル生成、OOM killer 対策、登録
  *  - svc_os_uninstall   : systemd サービスの解除と削除
  *
  *  共通処理 (svc_run_lifecycle / svc_main / コールバック雛形) は
@@ -49,6 +49,9 @@
     /** readlink で取得するバイナリ パスの最大長。 */
     #define EXEC_PATH_MAX 4096
 
+    /** ManagedOOMPreference= が導入された systemd のバージョン。 */
+    #define SYSTEMD_MANAGED_OOM_PREFERENCE_VERSION 248
+
 /* ============================================================
  *  内部ヘルパー
  * ============================================================ */
@@ -75,6 +78,79 @@ static int run_command(char *const argv[])
         return -1;
     }
     return exit_code;
+}
+
+/**
+ *  @brief          "systemd 248" 形式のバージョン行から major version を取得します。
+ *  @param[in]      version_line  systemctl --version の 1 行目。NULL を渡してはなりません。
+ *  @return         取得できた major version。失敗時は -1 を返します。
+ */
+static int parse_systemd_major_version(const char *version_line)
+{
+    const char prefix[] = "systemd ";
+    size_t index;
+    int version;
+    int has_digit;
+
+    index = 0;
+    while (prefix[index] != '\0')
+    {
+        if (version_line[index] != prefix[index])
+        {
+            return -1;
+        }
+        index++;
+    }
+
+    version = 0;
+    has_digit = 0;
+    while (version_line[index] >= '0' && version_line[index] <= '9')
+    {
+        has_digit = 1;
+        version = (version * 10) + (version_line[index] - '0');
+        index++;
+    }
+
+    if (has_digit == 0)
+    {
+        return -1;
+    }
+    return version;
+}
+
+/**
+ *  @brief          systemd の major version を取得します。
+ *  @return         取得できた major version。失敗時は -1 を返します。
+ */
+static int get_systemd_major_version(void)
+{
+    char line[128];
+    FILE *pipe;
+    int version;
+
+    pipe = popen("systemctl --version", "r");
+    if (pipe == NULL)
+    {
+        return -1;
+    }
+
+    if (fgets(line, sizeof(line), pipe) == NULL)
+    {
+        pclose(pipe);
+        return -1;
+    }
+
+    if (pclose(pipe) == -1)
+    {
+        return -1;
+    }
+
+    version = parse_systemd_major_version(line);
+    if (version < 0)
+    {
+        return -1;
+    }
+    return version;
 }
 
 /**
@@ -209,7 +285,7 @@ void svc_os_notify_stopping(void)
 
 int svc_os_run_service(const svc_definition *def)
 {
-    /* Type=simple のため fork 不要。フォアグラウンドのまま常駐する。
+    /* Type=notify のため fork せず、フォアグラウンドのまま常駐する。
        shutdown.h が SIGTERM / SIGINT を補足して svc_request_stop() を呼ぶ。 */
     return svc_run_lifecycle(def);
 }
@@ -218,8 +294,9 @@ int svc_os_install(const svc_definition *def)
 {
     char exec_path[EXEC_PATH_MAX];
     char unit_path[EXEC_PATH_MAX + 64];
-    char unit_content[EXEC_PATH_MAX + 512];
+    char unit_content[EXEC_PATH_MAX + 1024];
     char svc_name_buf[256];
+    const char *managed_oom_preference_line;
     FILE *fp;
     int written;
     /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う */
@@ -227,6 +304,7 @@ int svc_os_install(const svc_definition *def)
     char *argv_enable[4];
     int rc;
     int handled;
+    int systemd_major_version;
 
     snprintf(svc_name_buf, sizeof(svc_name_buf), "%s", def->name);
     argv_enable[0] = "systemctl";
@@ -245,6 +323,25 @@ int svc_os_install(const svc_definition *def)
         com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
                               "実行ファイルのパスを取得できませんでした。");
         return EXIT_FAILURE;
+    }
+
+    managed_oom_preference_line = "";
+    systemd_major_version = get_systemd_major_version();
+    if (systemd_major_version >= SYSTEMD_MANAGED_OOM_PREFERENCE_VERSION)
+    {
+        managed_oom_preference_line = "ManagedOOMPreference=omit\n";
+    }
+    else if (systemd_major_version < 0)
+    {
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                              "systemd のバージョンを取得できないため ManagedOOMPreference=omit は設定しません。");
+    }
+    else
+    {
+        com_util_tracer_writef(
+            svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+            "systemd %d は ManagedOOMPreference= に未対応のため ManagedOOMPreference=omit は設定しません。",
+            systemd_major_version);
     }
 
     /* ユニット ファイルのパスを生成する */
@@ -267,10 +364,12 @@ int svc_os_install(const svc_definition *def)
                        "ExecStart=%s run\n"
                        "Restart=on-failure\n"
                        "RestartSec=5\n"
+                       "OOMScoreAdjust=-1000\n"
+                       "%s"
                        "\n"
                        "[Install]\n"
                        "WantedBy=multi-user.target\n",
-                       def->description, exec_path);
+                       def->description, exec_path, managed_oom_preference_line);
     if (written < 0 || (size_t)written >= sizeof(unit_content))
     {
         com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,

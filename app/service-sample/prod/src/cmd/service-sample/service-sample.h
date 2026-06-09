@@ -249,7 +249,7 @@ extern "C"
      *  @param[in]      def     サービス定義。NULL を渡してはなりません。
      *  @return         成功時は 0、on_start が失敗した場合はその戻り値を返します。
      *
-     *  console モードおよび Linux run モード (Type=simple) が使用します。\n
+     *  console モードおよび Linux run モード (Type=notify) が使用します。\n
      *  shutdown.h の request callback を登録して SIGINT/SIGTERM を補足し、
      *  on_start → on_run → on_stop の順でライフサイクルを駆動します。
      */
