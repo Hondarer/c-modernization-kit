@@ -1,4 +1,4 @@
-# service-sample ドキュメント
+# service-sample
 
 クロスプラットフォーム サービス (デーモン) サンプルです。
 
