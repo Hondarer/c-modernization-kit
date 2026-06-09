@@ -33,6 +33,7 @@
     #include <stdlib.h>
     #include <string.h>
 
+    #include <com_util/crt/wchar_conv.h>
     #include <com_util/runtime/process.h>
 
     #include "service-sample.h"
@@ -49,6 +50,8 @@ static const svc_definition *g_def = NULL;
 static SERVICE_STATUS_HANDLE g_status_handle = NULL;
 /** 現在のサービス ステータス。 */
 static SERVICE_STATUS g_status = {0};
+/** サービス名 (W 版 API 用)。svc_os_run_service で設定される。 */
+static wchar_t g_service_name_w[256];
 
 /* ============================================================
  *  内部ヘルパー
@@ -71,6 +74,45 @@ static void set_service_status(const DWORD state, const DWORD controls, const DW
     g_status.dwCheckPoint = checkpoint;
     g_status.dwWaitHint = wait_hint;
     SetServiceStatus(g_status_handle, &g_status);
+}
+
+/**
+ *  @brief          SCM 接続失敗時の診断を出力します。
+ *  @param[in]      err 失敗した Windows エラー コード。
+ */
+static void write_dispatcher_error(const DWORD err)
+{
+    com_util_tracer *tracer;
+
+    tracer = svc_get_tracer();
+    if (err == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
+    {
+        if (tracer != NULL)
+        {
+            com_util_tracer_write(tracer, COM_UTIL_TRACE_LEVEL_ERROR, NULL, "SCM への接続に失敗しました。");
+            com_util_tracer_write(tracer, COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "サービスとして登録された後、SCM から 'run' 引数で起動してください。");
+            com_util_tracer_write(tracer, COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                  "コンソールで実行するには 'console' コマンドを使用してください。");
+        }
+        else
+        {
+            fprintf(stderr, "SCM への接続に失敗しました。\n");
+            fprintf(stderr, "サービスとして登録された後、SCM から 'run' 引数で起動してください。\n");
+            fprintf(stderr, "コンソールで実行するには 'console' コマンドを使用してください。\n");
+        }
+        return;
+    }
+
+    if (tracer != NULL)
+    {
+        com_util_tracer_writef(tracer, COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                               "StartServiceCtrlDispatcherW が失敗しました (エラー コード: %lu)。", err);
+    }
+    else
+    {
+        fprintf(stderr, "StartServiceCtrlDispatcherW が失敗しました (エラー コード: %lu)。\n", err);
+    }
 }
 
 /**
@@ -172,7 +214,7 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
  *  @param[in]      argc    サービス引数の数。
  *  @param[in]      argv    サービス引数の配列。
  */
-static VOID WINAPI service_main(DWORD argc, LPTSTR *argv)
+static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 {
     (void)argc;
     (void)argv;
@@ -182,8 +224,8 @@ static VOID WINAPI service_main(DWORD argc, LPTSTR *argv)
         return;
     }
 
-    /* コントロール ハンドラーを登録する */
-    g_status_handle = RegisterServiceCtrlHandlerEx(g_def->name, service_ctrl_handler, NULL);
+    /* コントロール ハンドラーを登録する (W 版を明示使用) */
+    g_status_handle = RegisterServiceCtrlHandlerExW(g_service_name_w, service_ctrl_handler, NULL);
     if (g_status_handle == NULL)
     {
         return;
@@ -229,35 +271,35 @@ static VOID WINAPI service_main(DWORD argc, LPTSTR *argv)
 
 int svc_os_run_service(const svc_definition *def)
 {
-    SERVICE_TABLE_ENTRY dispatch_table[2];
+    SERVICE_TABLE_ENTRYW dispatch_table[2];
+    int rc;
 
     /* def をファイル static に退避する (ServiceMain は固定シグネチャのため直接渡せない) */
     g_def = def;
 
-    dispatch_table[0].lpServiceName = (LPTSTR)def->name;
+    /* サービス名を W 版 API 用のバッファーに変換する */
+    if (com_util_utf8_to_wpath(g_service_name_w, sizeof(g_service_name_w) / sizeof(g_service_name_w[0]), def->name) <=
+        0)
+    {
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "サービス名のワイド文字列変換に失敗しました。");
+        return EXIT_FAILURE;
+    }
+
+    dispatch_table[0].lpServiceName = g_service_name_w;
     dispatch_table[0].lpServiceProc = service_main;
     dispatch_table[1].lpServiceName = NULL;
     dispatch_table[1].lpServiceProc = NULL;
 
-    if (!StartServiceCtrlDispatcher(dispatch_table))
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
+
+    rc = StartServiceCtrlDispatcherW(dispatch_table) ? 0 : EXIT_FAILURE;
+    if (rc != 0)
     {
         DWORD err = GetLastError();
-        if (err == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-        {
-            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "SCM への接続に失敗しました。");
-            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
-                                  "サービスとして登録された後、SCM から 'run' 引数で起動してください。");
-            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
-                                  "コンソールで実行するには 'console' コマンドを使用してください。");
-        }
-        else
-        {
-            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
-                                   "StartServiceCtrlDispatcher が失敗しました (エラー コード: %lu)。", err);
-        }
-        return EXIT_FAILURE;
+        write_dispatcher_error(err);
     }
-    return 0;
+    return rc;
 }
 
 int svc_os_install(const svc_definition *def)
@@ -266,7 +308,11 @@ int svc_os_install(const svc_definition *def)
     SC_HANDLE svc = NULL;
     char bin_path[4096 + 16]; /* パスに "\"<path>\" run" を格納するための十分なサイズ */
     char exe_path[4096];
-    SERVICE_DESCRIPTION desc;
+    SERVICE_DESCRIPTIONW desc_w;
+    wchar_t *w_name = NULL;
+    wchar_t *w_display_name = NULL;
+    wchar_t *w_description = NULL;
+    wchar_t *w_bin_path = NULL;
     int rc;
     int handled;
 
@@ -291,6 +337,24 @@ int svc_os_install(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
+    /* SCM API は W 版を使うため、UTF-8 文字列をまとめてワイド文字列へ変換する。 */
+    /* free(NULL) は安全なので、変換失敗後の一括解放にそのまま使える。           */
+    w_name = com_util_utf8_to_wstr_alloc(def->name);
+    w_display_name = com_util_utf8_to_wstr_alloc(def->display_name);
+    w_description = com_util_utf8_to_wstr_alloc(def->description);
+    w_bin_path = com_util_utf8_to_wstr_alloc(bin_path);
+
+    if (w_name == NULL || w_display_name == NULL || w_description == NULL || w_bin_path == NULL)
+    {
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "ワイド文字列への変換に失敗しました。");
+        free(w_name);
+        free(w_display_name);
+        free(w_description);
+        free(w_bin_path);
+        return EXIT_FAILURE;
+    }
+
     /* SCM に接続する */
     scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
     if (scm == NULL)
@@ -306,18 +370,22 @@ int svc_os_install(const svc_definition *def)
             com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
                                    "OpenSCManager が失敗しました (エラー コード: %lu)。", err);
         }
+        free(w_name);
+        free(w_display_name);
+        free(w_description);
+        free(w_bin_path);
         return EXIT_FAILURE;
     }
 
     rc = EXIT_FAILURE;
 
-    /* サービスを登録する */
-    svc = CreateServiceA(scm, def->name, def->display_name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                         SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, bin_path, NULL, /* ロード オーダー グループなし */
-                         NULL,                                                     /* タグ ID なし */
-                         NULL,                                                     /* 依存サービスなし */
-                         NULL,                                                     /* LocalSystem アカウント */
-                         NULL                                                      /* パスワードなし */
+    /* サービスを登録する (W 版で UTF-16 文字列を直接渡す) */
+    svc = CreateServiceW(scm, w_name, w_display_name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START,
+                         SERVICE_ERROR_NORMAL, w_bin_path, NULL, /* ロード オーダー グループなし */
+                         NULL,                                   /* タグ ID なし */
+                         NULL,                                   /* 依存サービスなし */
+                         NULL,                                   /* LocalSystem アカウント */
+                         NULL                                    /* パスワードなし */
     );
 
     if (svc == NULL)
@@ -333,6 +401,12 @@ int svc_os_install(const svc_definition *def)
             com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
                                   "サービスの登録が拒否されました。管理者として実行してください。");
         }
+        else if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                                   "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。",
+                                   def->name);
+        }
         else
         {
             com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
@@ -341,9 +415,9 @@ int svc_os_install(const svc_definition *def)
     }
     else
     {
-        /* 説明文を設定する */
-        desc.lpDescription = (LPSTR)def->description;
-        ChangeServiceConfig2(svc, SERVICE_CONFIG_DESCRIPTION, &desc);
+        /* 説明文を設定する (W 版で UTF-16 文字列を直接渡す) */
+        desc_w.lpDescription = w_description;
+        ChangeServiceConfig2W(svc, SERVICE_CONFIG_DESCRIPTION, &desc_w);
 
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
                                def->name);
@@ -355,6 +429,10 @@ int svc_os_install(const svc_definition *def)
     }
 
     CloseServiceHandle(scm);
+    free(w_name);
+    free(w_display_name);
+    free(w_description);
+    free(w_bin_path);
     return rc;
 }
 
@@ -363,6 +441,7 @@ int svc_os_uninstall(const svc_definition *def)
     SC_HANDLE scm = NULL;
     SC_HANDLE svc = NULL;
     SERVICE_STATUS status;
+    wchar_t *w_name = NULL;
     int rc;
     int handled;
 
@@ -370,6 +449,14 @@ int svc_os_uninstall(const svc_definition *def)
     if (rc != 0 || handled != 0)
     {
         return rc;
+    }
+
+    w_name = com_util_utf8_to_wstr_alloc(def->name);
+    if (w_name == NULL)
+    {
+        com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                              "ワイド文字列への変換に失敗しました。");
+        return EXIT_FAILURE;
     }
 
     /* SCM に接続する */
@@ -387,12 +474,13 @@ int svc_os_uninstall(const svc_definition *def)
             com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
                                    "OpenSCManager が失敗しました (エラー コード: %lu)。", err);
         }
+        free(w_name);
         return EXIT_FAILURE;
     }
 
     rc = EXIT_FAILURE;
 
-    svc = OpenServiceA(scm, def->name, SERVICE_STOP | DELETE | SERVICE_QUERY_STATUS);
+    svc = OpenServiceW(scm, w_name, SERVICE_STOP | DELETE | SERVICE_QUERY_STATUS);
     if (svc == NULL)
     {
         DWORD err = GetLastError();
@@ -426,8 +514,17 @@ int svc_os_uninstall(const svc_definition *def)
         if (!DeleteService(svc))
         {
             DWORD err = GetLastError();
-            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
-                                   "DeleteService が失敗しました (エラー コード: %lu)。", err);
+            if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
+            {
+                com_util_tracer_writef(
+                    svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
+                    "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
+            }
+            else
+            {
+                com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                       "DeleteService が失敗しました (エラー コード: %lu)。", err);
+            }
         }
         else
         {
@@ -440,6 +537,7 @@ int svc_os_uninstall(const svc_definition *def)
     }
 
     CloseServiceHandle(scm);
+    free(w_name);
     return rc;
 }
 
