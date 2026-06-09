@@ -29,6 +29,7 @@
 #include <com_util/runtime/process.h>
 #include <com_util/runtime/shutdown.h>
 #include <com_util/sync/sync.h>
+#include <com_util/trace/trace_file.h>
 
 #include "service-sample.h"
 
@@ -95,7 +96,9 @@ static int svc_tracer_open(const svc_definition *def, const int enable_stderr)
                 if (com_util_path_concat(log_path, sizeof(log_path), NULL, log_dir, PLATFORM_PATH_SEP, def->name,
                                          ".log") == 0)
                 {
-                    com_util_tracer_set_file_level(g_tracer, log_path, COM_UTIL_TRACE_LEVEL_VERBOSE, 0, 0);
+                    /* サービスとコンソールの複数プロセスが同一ログへ書き込むため共有モードにする */
+                    com_util_tracer_set_file_level(g_tracer, log_path, COM_UTIL_TRACE_LEVEL_VERBOSE, 0, 0,
+                                                   COM_UTIL_TRACE_FILE_SINK_SHARED);
                 }
             }
         }
