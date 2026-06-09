@@ -30,7 +30,6 @@
     #include <string.h>
     #include <sys/socket.h>
     #include <sys/un.h>
-    #include <sys/wait.h>
     #include <unistd.h>
 
     #include <com_util/crt/stdlib.h>
@@ -61,38 +60,19 @@
  */
 static int run_command(char *const argv[])
 {
-    pid_t pid;
-    int status;
     int exit_code;
+    com_util_process_options_t options;
+    com_util_process_result_t result;
 
-    pid = fork();
-    if (pid < 0)
+    memset(&options, 0, sizeof(options));
+    options.argv = argv;
+
+    result = com_util_process_run_sync(&options, COM_UTIL_PROCESS_WAIT_FOREVER, &exit_code);
+    if (result != COM_UTIL_PROCESS_OK)
     {
-        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "fork() が失敗しました: %s",
-                               strerror(errno));
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                               "外部コマンドの実行に失敗しました: %s", argv[0]);
         return -1;
-    }
-
-    if (pid == 0)
-    {
-        /* 子プロセス: fork 後のため tracer は使用せず stderr へ直接書く */
-        execvp(argv[0], argv);
-        fprintf(stderr, "エラー: execvp(\"%s\") が失敗しました: %s\n", argv[0], strerror(errno));
-        _exit(127);
-    }
-
-    /* 親プロセス: 子の終了を待つ */
-    if (waitpid(pid, &status, 0) < 0)
-    {
-        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "waitpid() が失敗しました: %s",
-                               strerror(errno));
-        return -1;
-    }
-
-    exit_code = -1;
-    if (WIFEXITED(status))
-    {
-        exit_code = WEXITSTATUS(status);
     }
     return exit_code;
 }
