@@ -62,6 +62,41 @@ typedef struct
 このルールは `typedef struct` を対象とします。  
 `typedef enum`、関数ポインター typedef、固定幅整数型、標準ライブラリ型、外部 ABI / OS / SDK 由来型の alias は対象外です。
 
+## 構造体パディングの扱い
+
+### 基本ルール
+
+`-Wpadded` が指摘する暗黙パディングは、`#pragma GCC diagnostic ignored "-Wpadded"` で抑止せず、構造体定義を見直して解消します。
+
+ただし、**大きいアライメント順への積極的な並び替えよりも、メンバーの意味上のまとまりと可読性を優先** します。  
+意味の近いメンバーを保ったままでは暗黙パディングを避けられない場合は、明示的なパディング メンバーを追加してください。
+
+### 明示的なパディング メンバー
+
+明示的なパディングを追加するときは、次のルールに従います。
+
+- メンバー名は `pad`、複数必要な場合は `pad1`、`pad2`、... とする
+- コメントで「どの環境 / どの後続メンバーのためのパディングか」を簡潔に説明する
+- 幅は不足分だけに留める
+
+```c
+typedef struct sample_record
+{
+    int mode;
+#if defined(ARCH_X64)
+    unsigned int pad; /* x64 で native_handle のアラインメントを明示する */
+#endif
+    intptr_t native_handle;
+} sample_record;
+```
+
+### プラットフォーム依存の条件付きパディング
+
+プラットフォームやアーキテクチャーごとにパディング有無を切り替える場合は、`#if defined(ARCH_X64)` や `#if defined(PLATFORM_WINDOWS)` のように、`platform.h` の共通マクロを使います。  
+`__x86_64__` や `_WIN32` を利用側で直接判定しません。
+
+`platform.h` の利用規則は [`platform-abstraction-guideline.md`](../com_util/platform-abstraction-guideline.md) を参照してください。
+
 ## 整数型の選択
 
 ### 基本ルール
