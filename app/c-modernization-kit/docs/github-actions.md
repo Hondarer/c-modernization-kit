@@ -91,10 +91,10 @@ container:
 
 ### Windows 環境
 
-Windows 環境では Windows Server 2025 ランナーを使用しています。
+Windows 環境では Windows Server 2025 (VS 2026 イメージ) ランナーを使用しています。
 
 ```yaml
-runs-on: windows-2025
+runs-on: windows-2025-vs2026
 ```
 
 Windows 環境では以下のツールを動的にセットアップしています:
