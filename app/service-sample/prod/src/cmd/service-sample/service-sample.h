@@ -15,7 +15,12 @@
  *  \n
  *  サービスの停止要求は 3 経路 (SIGINT/SIGTERM、SetConsoleCtrlHandler、
  *  Windows SCM の SERVICE_CONTROL_STOP) を svc_request_stop() に集約します。
- *  on_run の実装は svc_wait_for_stop() を呼ぶだけで停止を検知できます。
+ *  on_run の実装は svc_wait_for_stop() を呼ぶだけで停止を検知できます。\n
+ *  \n
+ *  任意で on_event (電源・セッション・シャットダウン前イベント) と
+ *  on_reload (設定再読込) のコールバックを設定できます。\n
+ *  Windows は SCM のコントロール通知、Linux は systemd-logind (D-Bus) と
+ *  SIGHUP を共通のイベントに対応付けます。
  *
  *  @par            使用方法 (コマンド ライン)
  *  @code{.sh}
@@ -88,6 +93,70 @@ extern "C"
     typedef void (*svc_on_stop_fn)(void *user_data);
 
     /* ============================================================
+     *  OS イベント定義
+     * ============================================================ */
+
+    /**
+     *  @brief          OS イベントの種別。
+     *
+     *  Windows SCM のコントロール通知と Linux systemd-logind のシグナルを
+     *  共通のイベント種別に対応付けます。
+     */
+    typedef enum svc_event_type
+    {
+        SVC_EVENT_POWER_SUSPEND = 1, /**< サスペンド開始。Windows: PBT_APMSUSPEND / Linux: PrepareForSleep(true)。 */
+        SVC_EVENT_POWER_RESUME = 2,  /**< サスペンドからの復帰。Windows: PBT_APMRESUMEAUTOMATIC,
+                                          PBT_APMRESUMESUSPEND / Linux: PrepareForSleep(false)。 */
+        SVC_EVENT_SESSION_LOGON = 3, /**< セッションのログオン。Windows: WTS_SESSION_LOGON / Linux: SessionNew。 */
+        SVC_EVENT_SESSION_LOGOFF =
+            4,                    /**< セッションのログオフ。Windows: WTS_SESSION_LOGOFF / Linux: SessionRemoved。 */
+        SVC_EVENT_PRESHUTDOWN = 5 /**< システム シャットダウン前の猶予通知。Windows: SERVICE_CONTROL_PRESHUTDOWN /
+                                       Linux: PrepareForShutdown(true)。 */
+    } svc_event_type;
+
+    /**
+     *  @brief          OS イベントの付加情報。
+     */
+    typedef struct svc_event_info
+    {
+        svc_event_type type; /**< イベント種別。 */
+        unsigned int pad;    /**< x64 環境で後続の session_id のアラインメントを明示するパディング。未使用。 */
+        const char *session_id; /**< セッション ID。SVC_EVENT_SESSION_LOGON / SVC_EVENT_SESSION_LOGOFF のときのみ
+                                     有効で、それ以外のイベントでは NULL です。\n
+                                     Windows: dwSessionId の 10 進文字列 / Linux: logind のセッション ID。\n
+                                     コールバックから戻った後は無効になるため、保持する場合は複製してください。 */
+    } svc_event_info;
+
+    /**
+     *  @brief          OS イベント コールバックの型。
+     *
+     *  電源・セッション・シャットダウン前のイベント発生時に呼ばれます。\n
+     *  on_run() とは別のスレッド (Windows: SCM ハンドラー スレッド、
+     *  Linux: イベント監視スレッド) から呼ばれるため、共有データへの
+     *  アクセスには同期が必要です。\n
+     *  OS 側の応答期限 (Linux のサスペンド猶予は logind の InhibitDelayMaxSec、
+     *  既定 5 秒) があるため、短時間で戻るように実装してください。
+     *
+     *  @param[in]      info        イベントの付加情報。NULL は渡されません。
+     *  @param[in]      user_data   svc_definition に登録した任意ポインター。
+     */
+    typedef void (*svc_on_event_fn)(const svc_event_info *info, void *user_data);
+
+    /**
+     *  @brief          設定再読込コールバックの型。
+     *
+     *  Windows: SERVICE_CONTROL_PARAMCHANGE、Linux: SIGHUP (systemctl reload)
+     *  を受けると呼ばれます。\n
+     *  Linux では呼び出しの前後で RELOADING=1 / READY=1 の通知を
+     *  フレームワーク側が自動で行います。\n
+     *  on_run() とは別のスレッドから呼ばれるため、共有データへの
+     *  アクセスには同期が必要です。短時間で戻るように実装してください。
+     *
+     *  @param[in]      user_data   svc_definition に登録した任意ポインター。
+     */
+    typedef void (*svc_on_reload_fn)(void *user_data);
+
+    /* ============================================================
      *  サービス定義構造体
      * ============================================================ */
 
@@ -103,7 +172,9 @@ extern "C"
             on_start,
             on_run,
             on_stop,
-            NULL
+            NULL,
+            on_event,
+            on_reload
         };
         int main(int argc, char *argv[]) { return svc_main(argc, argv, &g_service_def); }
      *  @endcode
@@ -117,6 +188,9 @@ extern "C"
         svc_on_run_fn on_run;     /**< メインループ コールバック。NULL 不可。 */
         svc_on_stop_fn on_stop;   /**< 停止処理コールバック。NULL 可。 */
         void *user_data;          /**< 各コールバックに渡す任意ポインター。 */
+        svc_on_event_fn on_event; /**< OS イベント コールバック。NULL 可 (NULL の場合は電源・セッション・
+                                       シャットダウン前イベントの監視を行わない)。 */
+        svc_on_reload_fn on_reload; /**< 設定再読込コールバック。NULL 可 (NULL の場合は再読込要求を受け付けない)。 */
     } svc_definition;
 
     /* ============================================================
@@ -160,6 +234,21 @@ extern "C"
      *  複数回呼んでも安全 (冪等) です。
      */
     void svc_request_stop(void);
+
+    /* ============================================================
+     *  状態通知 API
+     * ============================================================ */
+
+    /**
+     *  @brief          サービスの状態テキストを OS に通知します。
+     *  @param[in]      text    状態テキスト (例: "処理中 (10 件完了)")。\n
+     *                          NULL を指定した場合は何もしません。
+     *
+     *  - Linux  : sd_notify の "STATUS=" として送信し、systemctl status に表示されます。\n
+     *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
+     *  - Windows: SCM に等価な機能がないため、トレース出力のみ行います。
+     */
+    void svc_set_status_text(const char *text);
 
     /* ============================================================
      *  エントリ ポイント
@@ -240,6 +329,27 @@ extern "C"
      */
     void svc_os_notify_stopping(void);
 
+    /**
+     *  @brief          設定再読込の開始を OS に通知します (内部共有関数)。
+     *
+     *  svc_dispatch_reload() が on_reload() 呼び出し前に呼びます。\n
+     *  - Linux  : NOTIFY_SOCKET へ "RELOADING=1" を送信します。\n
+     *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
+     *  - Windows: SCM に等価な通知がないため何もしません。
+     */
+    void svc_os_notify_reloading(void);
+
+    /**
+     *  @brief          状態テキストを OS に通知します (内部共有関数)。
+     *  @param[in]      text    状態テキスト。NULL を渡してはなりません。
+     *
+     *  svc_set_status_text() から呼ばれます。\n
+     *  - Linux  : NOTIFY_SOCKET へ "STATUS=<text>" を送信します。\n
+     *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
+     *  - Windows: SCM に等価な通知がないため何もしません。
+     */
+    void svc_os_notify_status(const char *text);
+
     /* ============================================================
      *  内部共有関数 (プラットフォーム ファイルからアクセスするために公開)
      * ============================================================ */
@@ -254,6 +364,27 @@ extern "C"
      *  on_start → on_run → on_stop の順でライフサイクルを駆動します。
      */
     int svc_run_lifecycle(const svc_definition *def);
+
+    /**
+     *  @brief          OS イベントを on_event コールバックに配送します (内部共有関数)。
+     *  @param[in]      def     サービス定義。NULL の場合は何もしません。
+     *  @param[in]      info    イベントの付加情報。NULL の場合は何もしません。
+     *
+     *  各プラットフォーム ファイルが OS イベントを検出したときに呼びます。\n
+     *  def->on_event が NULL の場合は何もしません。
+     */
+    void svc_dispatch_event(const svc_definition *def, const svc_event_info *info);
+
+    /**
+     *  @brief          設定再読込要求を on_reload コールバックに配送します (内部共有関数)。
+     *  @param[in]      def     サービス定義。NULL の場合は何もしません。
+     *
+     *  各プラットフォーム ファイルが再読込要求を検出したときに呼びます。\n
+     *  def->on_reload が NULL の場合は何もしません。\n
+     *  svc_os_notify_reloading() → on_reload() → svc_os_notify_ready() の順に
+     *  呼び出し、Type=notify の reload 契約 (RELOADING=1 → READY=1) を満たします。
+     */
+    void svc_dispatch_reload(const svc_definition *def);
 
     /**
      *  @brief          サービス共通の tracer ハンドルを取得します (内部共有関数)。

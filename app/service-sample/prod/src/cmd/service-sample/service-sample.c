@@ -179,6 +179,51 @@ int svc_wait_for_stop(const int timeout_ms)
 }
 
 /* ============================================================
+ *  状態通知 API
+ * ============================================================ */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_set_status_text(const char *text)
+{
+    if (text == NULL)
+    {
+        return;
+    }
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_VERBOSE, NULL, "状態テキスト: %s", text);
+    svc_os_notify_status(text);
+}
+
+/* ============================================================
+ *  OS イベント配送 (プラットフォーム ファイルから呼ばれる)
+ * ============================================================ */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_dispatch_event(const svc_definition *def, const svc_event_info *info)
+{
+    if (def == NULL || info == NULL || def->on_event == NULL)
+    {
+        return;
+    }
+    com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "OS イベントを配送します (種別: %d)。",
+                           (int)info->type);
+    def->on_event(info, def->user_data);
+}
+
+void svc_dispatch_reload(const svc_definition *def)
+{
+    if (def == NULL || def->on_reload == NULL)
+    {
+        return;
+    }
+    com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "設定再読込要求を配送します。");
+    svc_os_notify_reloading();
+    def->on_reload(def->user_data);
+    svc_os_notify_ready();
+}
+
+/* ============================================================
  *  停止要求 callback (shutdown.h 経由で呼ばれる)
  * ============================================================ */
 

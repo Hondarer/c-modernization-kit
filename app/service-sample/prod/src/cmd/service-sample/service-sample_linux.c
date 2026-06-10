@@ -7,9 +7,13 @@
  *  @version        1.0.0
  *
  *  Linux 固有のサービス処理を実装します。
- *  - svc_os_run_service : Type=notify で常駐 (fork 不要)
+ *  - svc_os_run_service : Type=notify で常駐 (fork 不要)、イベント監視スレッドの起動と停止
  *  - svc_os_install     : systemd ユニット ファイル生成、OOM killer 対策、登録
  *  - svc_os_uninstall   : systemd サービスの解除と削除
+ *  - sd_notify 通知     : libsystemd の sd_notify(3) による READY / STOPPING / RELOADING / STATUS 送信
+ *
+ *  電源・セッション・シャットダウン前イベントの監視 (D-Bus) は
+ *  service-sample_linux_events.c に実装します。
  *
  *  共通処理 (svc_run_lifecycle / svc_main / コールバック雛形) は
  *  service-sample.c に実装します。
@@ -28,14 +32,13 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include <sys/socket.h>
-    #include <sys/un.h>
-    #include <unistd.h>
 
-    #include <com_util/crt/stdlib.h>
+    #include <systemd/sd-daemon.h>
+
     #include <com_util/runtime/process.h>
 
     #include "service-sample.h"
+    #include "service-sample_linux_events.h"
 
     /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -187,80 +190,28 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
 }
 
 /* ============================================================
- *  sd_notify ヘルパー (libsystemd 非依存)
+ *  sd_notify ヘルパー
  * ============================================================ */
 
 /**
  *  @brief          NOTIFY_SOCKET へメッセージを送信します。
  *  @param[in]      message  送信するメッセージ文字列 (例: "READY=1")。
  *
+ *  libsystemd の sd_notify(3) の薄いラッパーです。\n
  *  環境変数 NOTIFY_SOCKET が設定されていない場合は何もしません。\n
- *  abstract socket (先頭が '@') と通常のファイルパスの両方に対応します。\n
  *  送信失敗時はトレースに WARNING を出力するだけで処理を継続します。
  */
 static void sd_notify_send(const char *message)
 {
-    char sock_path[108]; /* sockaddr_un.sun_path のサイズに合わせる */
-    struct sockaddr_un addr;
-    socklen_t addrlen;
-    size_t path_len;
-    int fd;
     int rc;
 
-    rc = com_util_getenv("NOTIFY_SOCKET", sock_path, sizeof(sock_path));
-    if (rc != 0)
-    {
-        /* NOTIFY_SOCKET 未設定: コンソール モードや Type=notify 以外では通常の状態 */
-        return;
-    }
-
-    fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
-    if (fd < 0)
+    rc = sd_notify(0, message);
+    if (rc < 0)
     {
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
-                               "sd_notify: socket() が失敗しました: %s", strerror(errno));
-        return;
+                               "sd_notify: 送信に失敗しました: %s", strerror(-rc));
     }
-
-    memset(&addr, 0, sizeof(addr));
-    addr.sun_family = AF_UNIX;
-
-    if (sock_path[0] == '@')
-    {
-        /* abstract socket: 先頭の '@' を NUL バイトに置き換える */
-        addr.sun_path[0] = '\0';
-        path_len = strlen(sock_path); /* '@' を含む長さをそのまま使う */
-        if (path_len >= sizeof(addr.sun_path))
-        {
-            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
-                                  "sd_notify: NOTIFY_SOCKET のパスが長すぎます。");
-            close(fd);
-            return;
-        }
-        memcpy(addr.sun_path + 1, sock_path + 1, path_len - 1);
-        addrlen = (socklen_t)(offsetof(struct sockaddr_un, sun_path) + path_len);
-    }
-    else
-    {
-        path_len = strlen(sock_path) + 1; /* NUL 終端を含む長さ */
-        if (path_len > sizeof(addr.sun_path))
-        {
-            com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
-                                  "sd_notify: NOTIFY_SOCKET のパスが長すぎます。");
-            close(fd);
-            return;
-        }
-        memcpy(addr.sun_path, sock_path, path_len);
-        addrlen = (socklen_t)sizeof(addr);
-    }
-
-    if (sendto(fd, message, strlen(message), MSG_NOSIGNAL, (struct sockaddr *)&addr, addrlen) < 0)
-    {
-        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
-                               "sd_notify: sendto() が失敗しました: %s", strerror(errno));
-    }
-
-    close(fd);
+    /* rc == 0 は NOTIFY_SOCKET 未設定 (コンソール モードなどでは通常の状態) */
 }
 
 /* ============================================================
@@ -279,15 +230,43 @@ void svc_os_notify_stopping(void)
     sd_notify_send("STOPPING=1");
 }
 
+void svc_os_notify_reloading(void)
+{
+    sd_notify_send("RELOADING=1");
+}
+
+void svc_os_notify_status(const char *text)
+{
+    char message[512];
+
+    if (text == NULL)
+    {
+        return;
+    }
+    /* 長すぎる場合は切り詰めを許容する */
+    snprintf(message, sizeof(message), "STATUS=%s", text);
+    sd_notify_send(message);
+}
+
 /* ============================================================
  *  OS フック実装
  * ============================================================ */
 
 int svc_os_run_service(const svc_definition *def)
 {
+    int rc;
+
+    /* 電源・セッション イベント (D-Bus)、SIGHUP reload、watchdog 応答を
+       担当するイベント監視スレッドを起動する。失敗しても該当機能が
+       無効になるだけで、サービス本体は継続する。 */
+    svc_linux_events_start(def);
+
     /* Type=notify のため fork せず、フォアグラウンドのまま常駐する。
        shutdown.h が SIGTERM / SIGINT を補足して svc_request_stop() を呼ぶ。 */
-    return svc_run_lifecycle(def);
+    rc = svc_run_lifecycle(def);
+
+    svc_linux_events_stop();
+    return rc;
 }
 
 int svc_os_install(const svc_definition *def)
@@ -362,8 +341,10 @@ int svc_os_install(const svc_definition *def)
                        "[Service]\n"
                        "Type=notify\n"
                        "ExecStart=%s run\n"
+                       "ExecReload=/bin/kill -HUP $MAINPID\n"
                        "Restart=on-failure\n"
                        "RestartSec=5\n"
+                       "WatchdogSec=30\n"
                        "OOMScoreAdjust=-1000\n"
                        "%s"
                        "\n"

@@ -41,6 +41,13 @@
 /* Doxygen コメントは、ヘッダーに記載 */
 
 /* ============================================================
+ *  内部定数
+ * ============================================================ */
+
+    /** PRESHUTDOWN 通知から強制停止までの猶予 (ミリ秒)。 */
+    #define SVC_PRESHUTDOWN_TIMEOUT_MS 30000
+
+/* ============================================================
  *  内部状態 (SCM ディスパッチャーへの受け渡し)
  * ============================================================ */
 
@@ -72,6 +79,31 @@ static void set_service_status(const DWORD state, const DWORD controls, const DW
     g_status.dwCheckPoint = checkpoint;
     g_status.dwWaitHint = wait_hint;
     SetServiceStatus(g_status_handle, &g_status);
+}
+
+/**
+ *  @brief          受け付けるコントロールのビット集合を算出します。
+ *  @return         dwControlsAccepted に設定する値。
+ *
+ *  STOP / SHUTDOWN は常に受け付けます。\n
+ *  g_def の on_event が設定されている場合は電源・セッション・
+ *  シャットダウン前のコントロールを、on_reload が設定されている場合は
+ *  PARAMCHANGE を追加で受け付けます。
+ */
+static DWORD accepted_controls(void)
+{
+    DWORD controls;
+
+    controls = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
+    if (g_def != NULL && g_def->on_event != NULL)
+    {
+        controls |= SERVICE_ACCEPT_POWEREVENT | SERVICE_ACCEPT_SESSIONCHANGE | SERVICE_ACCEPT_PRESHUTDOWN;
+    }
+    if (g_def != NULL && g_def->on_reload != NULL)
+    {
+        controls |= SERVICE_ACCEPT_PARAMCHANGE;
+    }
+    return controls;
 }
 
 /**
@@ -158,7 +190,7 @@ void svc_os_notify_ready(void)
     {
         return;
     }
-    set_service_status(SERVICE_RUNNING, SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN, 0, 0);
+    set_service_status(SERVICE_RUNNING, accepted_controls(), 0, 0);
 }
 
 void svc_os_notify_stopping(void)
@@ -170,22 +202,94 @@ void svc_os_notify_stopping(void)
     set_service_status(SERVICE_STOP_PENDING, 0, 1, 3000);
 }
 
+void svc_os_notify_reloading(void)
+{
+    /* SCM には reload 開始を通知する仕組みがないため何もしない */
+}
+
+void svc_os_notify_status(const char *text)
+{
+    /* SCM には状態テキストを表示する仕組みがないため何もしない
+       (共通層がトレース出力済み) */
+    (void)text;
+}
+
 /* ============================================================
  *  サービス コントロール ハンドラー
  * ============================================================ */
 
 /**
+ *  @brief          電源イベントを共通イベントに変換して配送します。
+ *  @param[in]      ev_type 電源イベント種別 (PBT_APMSUSPEND など)。
+ *
+ *  サスペンドと復帰のみ配送し、他の PBT_* は無視します。
+ */
+static void handle_power_event(const DWORD ev_type)
+{
+    svc_event_info info;
+
+    info.session_id = NULL;
+    if (ev_type == PBT_APMSUSPEND)
+    {
+        info.type = SVC_EVENT_POWER_SUSPEND;
+        svc_dispatch_event(g_def, &info);
+    }
+    else if (ev_type == PBT_APMRESUMEAUTOMATIC || ev_type == PBT_APMRESUMESUSPEND)
+    {
+        info.type = SVC_EVENT_POWER_RESUME;
+        svc_dispatch_event(g_def, &info);
+    }
+}
+
+/**
+ *  @brief          セッション変更イベントを共通イベントに変換して配送します。
+ *  @param[in]      ev_type セッション イベント種別 (WTS_SESSION_LOGON など)。
+ *  @param[in]      ev_data WTSSESSION_NOTIFICATION へのポインター。NULL の場合は何もしません。
+ *
+ *  ログオンとログオフのみ配送し、他の WTS_* は無視します。
+ */
+static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
+{
+    const WTSSESSION_NOTIFICATION *notification;
+    char session_id_buf[16];
+    svc_event_info info;
+
+    if (ev_data == NULL)
+    {
+        return;
+    }
+    if (ev_type != WTS_SESSION_LOGON && ev_type != WTS_SESSION_LOGOFF)
+    {
+        return;
+    }
+
+    notification = (const WTSSESSION_NOTIFICATION *)ev_data;
+    snprintf(session_id_buf, sizeof(session_id_buf), "%lu", (unsigned long)notification->dwSessionId);
+
+    if (ev_type == WTS_SESSION_LOGON)
+    {
+        info.type = SVC_EVENT_SESSION_LOGON;
+    }
+    else
+    {
+        info.type = SVC_EVENT_SESSION_LOGOFF;
+    }
+    info.session_id = session_id_buf;
+    svc_dispatch_event(g_def, &info);
+}
+
+/**
  *  @brief          SCM からのコントロール要求を処理します。
  *  @param[in]      ctrl    コントロール コード (SERVICE_CONTROL_STOP など)。
- *  @param[in]      ev_type イベント種別 (通常は 0)。
- *  @param[in]      ev_data イベント データ (通常は NULL)。
+ *  @param[in]      ev_type イベント種別 (POWEREVENT / SESSIONCHANGE のときのみ有効)。
+ *  @param[in]      ev_data イベント データ (SESSIONCHANGE のときのみ有効)。
  *  @param[in]      context 未使用。
  *  @return         常に NO_ERROR を返します。
  */
 static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_data, LPVOID context)
 {
-    (void)ev_type;
-    (void)ev_data;
+    svc_event_info info;
+
     (void)context;
 
     if (ctrl == SERVICE_CONTROL_STOP || ctrl == SERVICE_CONTROL_SHUTDOWN)
@@ -193,6 +297,27 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
         set_service_status(SERVICE_STOP_PENDING, 0, 1, 5000);
         /* 停止要求を on_run のメインループに伝える */
         svc_request_stop();
+    }
+    else if (ctrl == SERVICE_CONTROL_PRESHUTDOWN)
+    {
+        /* シャットダウン前の猶予通知を配送してから停止経路に入る */
+        info.type = SVC_EVENT_PRESHUTDOWN;
+        info.session_id = NULL;
+        svc_dispatch_event(g_def, &info);
+        set_service_status(SERVICE_STOP_PENDING, 0, 1, 5000);
+        svc_request_stop();
+    }
+    else if (ctrl == SERVICE_CONTROL_POWEREVENT)
+    {
+        handle_power_event(ev_type);
+    }
+    else if (ctrl == SERVICE_CONTROL_SESSIONCHANGE)
+    {
+        handle_session_change(ev_type, ev_data);
+    }
+    else if (ctrl == SERVICE_CONTROL_PARAMCHANGE)
+    {
+        svc_dispatch_reload(g_def);
     }
     else if (ctrl == SERVICE_CONTROL_INTERROGATE)
     {
@@ -270,7 +395,6 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 int svc_os_run_service(const svc_definition *def)
 {
     com_util_service_entry_u dispatch_table[2];
-    int rc;
 
     /* def をファイル static に退避する (ServiceMain は固定シグネチャのため直接渡せない) */
     g_def = def;
@@ -282,13 +406,13 @@ int svc_os_run_service(const svc_definition *def)
 
     com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
 
-    rc = StartServiceCtrlDispatcherU(dispatch_table) ? 0 : EXIT_FAILURE;
-    if (rc != 0)
+    if (!StartServiceCtrlDispatcherU(dispatch_table))
     {
         DWORD err = GetLastError();
         write_dispatcher_error(err);
+        return EXIT_FAILURE;
     }
-    return rc;
+    return 0;
 }
 
 int svc_os_install(const svc_definition *def)
@@ -377,8 +501,18 @@ int svc_os_install(const svc_definition *def)
     }
     else
     {
+        SERVICE_PRESHUTDOWN_INFO preshutdown_info;
+
         /* 説明文を設定する */
         ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, def->description);
+
+        /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため W 版を直接使う) */
+        preshutdown_info.dwPreshutdownTimeout = SVC_PRESHUTDOWN_TIMEOUT_MS;
+        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_PRESHUTDOWN_INFO, &preshutdown_info))
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                                   "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+        }
 
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
                                def->name);

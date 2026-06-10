@@ -97,19 +97,43 @@ Table: `systemd-devel` なしで扱える systemd イベント
 Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 
 `READY=1` と `STOPPING=1` は `NOTIFY_SOCKET` へ直接書き込むことで `libsystemd` なしに送信できます。  
-`service-sample` はこの方式を採用し、`Type=notify` と組み合わせることで `on_start` の初期化完了を systemd の起動完了と一致させています。
+かつての `service-sample` はこの方式 (libsystemd 非依存の自前実装) を採用していましたが、現在は電源・セッション イベントの D-Bus 連携 (sd_bus) のために `libsystemd` へ直接リンクしており、通知も `sd_notify(3)` で送信します。  
+`Type=notify` と組み合わせることで `on_start` の初期化完了を systemd の起動完了と一致させる点は変わりません。
 
 ## service-sample における抽象化範囲
 
-`service-sample` のフレームワークは、ライフサイクルの 2 つの遷移点で OS へ自動通知します。  
-この通知は OS フック (`svc_os_notify_ready` / `svc_os_notify_stopping`) として抽象化されており、コールバック (on_start / on_run / on_stop) の契約は変わりません。
+`service-sample` のフレームワークは、ライフサイクルの遷移点と再読込の前後で OS へ自動通知します。  
+この通知は OS フック (`svc_os_notify_ready` / `svc_os_notify_stopping` / `svc_os_notify_reloading` / `svc_os_notify_status`) として抽象化されており、コールバック (on_start / on_run / on_stop) の契約は変わりません。
 
 | 概念 | タイミング | Windows (SCM) | Linux (systemd) |
 |---|---|---|---|
-| 起動完了 | `on_start` 成功直後 | `SERVICE_RUNNING` を SCM に通知する | `READY=1` を `NOTIFY_SOCKET` へ送信する |
-| 停止開始 | `on_run` 復帰直後 | `SERVICE_STOP_PENDING` を SCM に通知する | `STOPPING=1` を `NOTIFY_SOCKET` へ送信する |
+| 起動完了 | `on_start` 成功直後 | `SERVICE_RUNNING` を SCM に通知する | `READY=1` を送信する |
+| 停止開始 | `on_run` 復帰直後 | `SERVICE_STOP_PENDING` を SCM に通知する | `STOPPING=1` を送信する |
+| 再読込開始 | `on_reload` 呼び出し直前 | 何もしない (SCM に等価通知なし) | `RELOADING=1` を送信する |
+| 再読込完了 | `on_reload` 復帰直後 | 何もしない (SCM に等価通知なし) | `READY=1` を再送信する |
+| 状態テキスト | `svc_set_status_text()` 呼び出し時 | トレース出力のみ (SCM に等価機能なし) | `STATUS=` を送信する |
 
-Table: `service-sample` の起動完了・停止開始の通知抽象
+Table: `service-sample` の通知抽象
+
+さらに、OS イベントを共通のイベント種別 (`svc_event_type`) に対応付け、任意のコールバック `on_event` へ配送します。
+
+| 共通イベント | Windows (SCM) | Linux (systemd-logind) |
+|---|---|---|
+| `SVC_EVENT_POWER_SUSPEND` | `SERVICE_CONTROL_POWEREVENT` + `PBT_APMSUSPEND` | `PrepareForSleep(true)` |
+| `SVC_EVENT_POWER_RESUME` | `SERVICE_CONTROL_POWEREVENT` + `PBT_APMRESUMEAUTOMATIC` / `PBT_APMRESUMESUSPEND` | `PrepareForSleep(false)` |
+| `SVC_EVENT_SESSION_LOGON` | `SERVICE_CONTROL_SESSIONCHANGE` + `WTS_SESSION_LOGON` | `SessionNew` |
+| `SVC_EVENT_SESSION_LOGOFF` | `SERVICE_CONTROL_SESSIONCHANGE` + `WTS_SESSION_LOGOFF` | `SessionRemoved` |
+| `SVC_EVENT_PRESHUTDOWN` | `SERVICE_CONTROL_PRESHUTDOWN` | `PrepareForShutdown(true)` |
+
+Table: `service-sample` の OS イベント抽象
+
+設定再読込は `on_reload` コールバックとして抽象化されており、Windows は `SERVICE_CONTROL_PARAMCHANGE`、Linux は `SIGHUP` (`systemctl reload`) が同じコールバックに対応付けられます。
+
+`on_event` と `on_reload` には次の契約があります。
+
+- 両 OS とも `on_run` とは別のスレッド (Windows: SCM ハンドラー スレッド、Linux: イベント監視スレッド) から呼ばれるため、共有データへのアクセスには同期が必要です。
+- OS 側の応答期限があるため、短時間で戻る必要があります。Linux のサスペンド・シャットダウン前の猶予は logind の delay inhibitor lock によるもので、上限は `InhibitDelayMaxSec` (既定 5 秒) です。Windows の pre-shutdown 猶予は install 時に 30 秒で登録します。
+- `svc_definition` の `on_event` / `on_reload` を NULL にした場合、該当イベントの受け付け自体を行いません (Windows は `SERVICE_ACCEPT_*` を宣言せず、Linux は監視を構築しません)。
 
 ```plantuml
 @startuml 起動完了・停止開始の通知抽象
@@ -130,7 +154,7 @@ Table: `service-sample` の起動完了・停止開始の通知抽象
 
 ## service-sample の Windows 対応範囲
 
-`service-sample_windows.c` は `RegisterServiceCtrlHandlerExW` でコントロール ハンドラーを登録し、次の制御だけを扱います。
+`service-sample_windows.c` は `RegisterServiceCtrlHandlerExW` でコントロール ハンドラーを登録し、次の制御を扱います。
 
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
@@ -138,17 +162,20 @@ Table: `service-sample` の起動完了・停止開始の通知抽象
 | 起動完了 | 対応 | `on_start` 成功後に `SERVICE_RUNNING` を通知し、`on_run` を呼ぶ。 |
 | 停止要求 | 対応 | `SERVICE_CONTROL_STOP` で `SERVICE_STOP_PENDING` を通知し、`svc_request_stop()` を呼ぶ。 |
 | OS シャットダウン | 対応 | `SERVICE_CONTROL_SHUTDOWN` を停止要求と同じ扱いにする。 |
+| OS シャットダウン前 | 対応 | `SERVICE_CONTROL_PRESHUTDOWN` で `SVC_EVENT_PRESHUTDOWN` を配送した後、停止要求と同じ扱いにする。猶予は install 時に 30 秒で登録する。 |
+| 電源状態変更 | 対応 | `SERVICE_CONTROL_POWEREVENT` のサスペンド・復帰を `SVC_EVENT_POWER_SUSPEND` / `SVC_EVENT_POWER_RESUME` として配送する。 |
+| セッション変更 | 対応 | `SERVICE_CONTROL_SESSIONCHANGE` のログオン・ログオフを `SVC_EVENT_SESSION_LOGON` / `SVC_EVENT_SESSION_LOGOFF` として配送する。 |
+| 設定再読込 | 対応 | `SERVICE_CONTROL_PARAMCHANGE` で `on_reload` を呼ぶ。 |
 | 状態照会 | 対応 | `SERVICE_CONTROL_INTERROGATE` で現在の `SERVICE_STATUS` を再通知する。 |
 | 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び、`SERVICE_STOPPED` を通知する。 |
 
 Table: `service-sample` の Windows 対応範囲
 
+pre-shutdown、電源状態変更、セッション変更は `svc_definition` の `on_event` が設定されている場合のみ、設定再読込は `on_reload` が設定されている場合のみ、`dwControlsAccepted` で受け付けを宣言します。
+
 次のイベントは、現行実装では受け付けを宣言していないため扱いません。
 
 - 一時停止、再開
-- pre-shutdown
-- 電源状態変更
-- セッション変更
 - デバイス変更
 - ハードウェア プロファイル変更
 - 時刻変更
@@ -156,19 +183,24 @@ Table: `service-sample` の Windows 対応範囲
 - 独自制御コード
 
 これらを扱う場合は、`dwControlsAccepted` に対応する `SERVICE_ACCEPT_*` を指定し、`service_ctrl_handler()` に分岐を追加します。  
-一時停止や再開を扱う場合は、`SERVICE_PAUSED` などの状態遷移も SCM に通知する必要があります。
+一時停止や再開を扱う場合は、`SERVICE_PAUSED` などの状態遷移も SCM に通知する必要があります。なお、一時停止と再開には systemd 側に対応する概念がないため、クロスプラットフォームの共通イベントとしては抽象化できません。
 
 ## service-sample の Linux 対応範囲
 
-`service-sample_linux.c` は、インストール時に次の unit を生成します。
+`service-sample_linux.c` は、インストール時に次の unit を生成します (OOM killer 対策の設定は省略)。
 
 ```ini
 [Service]
 Type=notify
 ExecStart=<service-sample の絶対パス> run
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5
+WatchdogSec=30
 ```
+
+また、`svc_os_run_service()` はライフサイクル実行の前後でイベント監視スレッド (`service-sample_linux_events.c`) を起動・停止します。  
+このスレッドは sd_bus による systemd-logind の監視、SIGHUP による設定再読込、systemd watchdog への自動応答を担当します。
 
 このため、`service-sample` の Linux 実装で扱うタイミングは次の範囲です。
 
@@ -181,18 +213,28 @@ RestartSec=5
 | コンソール停止 | 対応 | `console` 実行時の `SIGINT` も同じ停止要求として扱う。 |
 | 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝える。 |
 | 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動される。 |
+| 設定再読込 | 対応 | `ExecReload=` 経由の `SIGHUP` をイベント監視スレッドが受け、`RELOADING=1` 送信、`on_reload` 呼び出し、`READY=1` 再送信の順で処理する。 |
+| watchdog | 対応 | `WatchdogSec=30` に対し、イベント監視スレッドの `sd_event_set_watchdog()` が `WATCHDOG_USEC` から算出した間隔で `WATCHDOG=1` を自動応答する。 |
+| サスペンド・復帰 | 対応 | systemd-logind の `PrepareForSleep` を購読し、`SVC_EVENT_POWER_SUSPEND` / `SVC_EVENT_POWER_RESUME` として配送する。 |
+| シャットダウン前 | 対応 | systemd-logind の `PrepareForShutdown(true)` を `SVC_EVENT_PRESHUTDOWN` として配送する。 |
+| セッション変更 | 対応 | systemd-logind の `SessionNew` / `SessionRemoved` を `SVC_EVENT_SESSION_LOGON` / `SVC_EVENT_SESSION_LOGOFF` として配送する。 |
+| 状態テキスト | 対応 | `svc_set_status_text()` で `STATUS=` を送信する。 |
 
 Table: `service-sample` の Linux 対応範囲
+
+サスペンドとシャットダウンの直前イベントは、logind の delay inhibitor lock を保持することで `on_event` の完了まで遅延させます。  
+猶予の上限は logind 側の `InhibitDelayMaxSec` (既定 5 秒) です。
+
+`svc_definition` の `on_event` が NULL の場合は D-Bus の監視自体を構築せず、`on_reload` が NULL の場合は SIGHUP の監視を構築しません。  
+また、D-Bus に接続できない環境 (コンテナーなど) では該当イベントのみ無効化し、サービス本体は継続します。
 
 次の systemd タイミングは、unit ファイルに設定がないため現行実装では使いません。
 
 - `ExecCondition=`
 - `ExecStartPre=`
 - `ExecStartPost=`
-- `ExecReload=`
 - `ExecStop=`
 - `ExecStopPost=`
-- `WatchdogSec=`
 
 必要であれば unit 生成内容を変更することで、これらのタイミングは `systemd-devel` なしでも利用できます。
 
@@ -243,7 +285,7 @@ Table: `service-sample` の手動再起動の手段
 | 観点 | Linux | Windows |
 |---|---|---|
 | 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動する。 | 未設定。failure actions を登録していないため自動再起動しない。 |
-| 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 (現状は説明文のみ設定) |
+| 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 (現状は説明文と pre-shutdown 猶予のみ設定) |
 
 Table: `service-sample` の自動再起動の対応状況
 
