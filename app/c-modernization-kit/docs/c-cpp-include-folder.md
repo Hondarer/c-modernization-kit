@@ -30,6 +30,12 @@ INCDIR += \
 - `TARGET_ARCH` は app 側の実値を使わず、`.vscode` では常に `TARGET_ARCH=target_arch` になる
 - `TARGET_ARCH=target_arch"` を先頭に置き、それ以外の項目はソートして並べる
 
+### 同期評価時の注意 (MAKEFW_SYNC_EVAL)
+
+`sync_c_cpp_properties.sh` は、ホスト OS に関係なく Linux 構成と Win32 構成の両方で各 `makepart.mk` を評価します。
+この同期評価では `MAKEFW_SYNC_EVAL := 1` が定義されるため、`makepart.mk` でホスト環境のプローブ (`pkg-config` など) と `$(error)` を組み合わせる場合は `ifndef MAKEFW_SYNC_EVAL` でガードしてください。
+詳細は [makeparts.md](../framework/makefw/docs/makeparts.md) の「ホスト環境プローブと同期評価」を参照してください。
+
 ## VS Code への反映方法
 
 `.vscode/c_cpp_properties.json` は派生物です。  

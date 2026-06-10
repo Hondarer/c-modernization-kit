@@ -19,6 +19,10 @@ static std::vector<svc_event_info> g_events;
 static std::vector<std::string> g_event_session_ids;
 /** on_start の戻り値 (テストごとに設定する)。 */
 static int g_on_start_rc = 0;
+/** on_run の戻り値 (テストごとに設定する)。 */
+static int g_on_run_rc = 0;
+/** on_stop の戻り値 (テストごとに設定する)。 */
+static int g_on_stop_rc = 0;
 
 /* ============================================================
  *  サービス コールバック スタブ
@@ -33,16 +37,18 @@ extern "C"
         return g_on_start_rc;
     }
 
-    static void test_on_run(void *user_data)
+    static int test_on_run(void *user_data)
     {
         (void)user_data;
         g_calls.push_back("on_run");
+        return g_on_run_rc;
     }
 
-    static void test_on_stop(void *user_data)
+    static int test_on_stop(void *user_data)
     {
         (void)user_data;
         g_calls.push_back("on_stop");
+        return g_on_stop_rc;
     }
 
     static void test_on_event(const svc_event_info *info, void *user_data)
@@ -142,6 +148,8 @@ class service_sampleTest : public Test
         g_events.clear();
         g_event_session_ids.clear();
         g_on_start_rc = 0;
+        g_on_run_rc = 0;
+        g_on_stop_rc = 0;
     }
 };
 
@@ -260,7 +268,7 @@ TEST_F(service_sampleTest, console_lifecycle_order)
 TEST_F(service_sampleTest, console_on_start_failure)
 {
     // Arrange
-    g_on_start_rc = 1; // [状態] - on_start が失敗 (1) を返すように設定する。
+    g_on_start_rc = 7; // [状態] - on_start が失敗 (7) を返すように設定する。
     int argc = 2;
     const char *argv[] = {"service-sampleTest", "console"};
 
@@ -270,9 +278,45 @@ TEST_F(service_sampleTest, console_on_start_failure)
     int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_NE(0, rtc);                 // [確認] - main() の戻り値が 0 以外であること。
+    EXPECT_EQ(7, rtc);                 // [確認] - on_start の戻り値がそのまま終了コードになること。
     ASSERT_EQ(1U, g_calls.size());     // [確認] - on_start 以降の処理が行われないこと。
     EXPECT_EQ("on_start", g_calls[0]); // [確認] - on_start のみが呼ばれること。
+}
+
+TEST_F(service_sampleTest, console_on_run_failure)
+{
+    // Arrange
+    g_on_run_rc = 2; // [状態] - on_run が失敗 (2) を返すように設定する。
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"};
+
+    // Pre-Assert
+
+    // Act
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+
+    // Assert
+    EXPECT_EQ(2, rtc); // [確認] - on_run の戻り値がそのまま終了コードになること。
+    ASSERT_EQ(5U, g_calls.size());
+    EXPECT_EQ("notify_stopping", g_calls[3]); // [確認] - on_run 失敗後も停止開始が通知されること。
+    EXPECT_EQ("on_stop", g_calls[4]);         // [確認] - on_run 失敗後も後始末の on_stop が呼ばれること。
+}
+
+TEST_F(service_sampleTest, console_on_stop_failure)
+{
+    // Arrange
+    g_on_stop_rc = 3; // [状態] - on_stop が失敗 (3) を返すように設定する。
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"};
+
+    // Pre-Assert
+
+    // Act
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+
+    // Assert
+    EXPECT_EQ(3, rtc);             // [確認] - on_stop の戻り値がそのまま終了コードになること。
+    ASSERT_EQ(5U, g_calls.size()); // [確認] - ライフサイクル全体が実行されること。
 }
 
 /* ============================================================

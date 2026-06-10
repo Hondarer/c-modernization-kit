@@ -115,6 +115,11 @@ Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 
 Table: `service-sample` の通知抽象
 
+ライフサイクル コールバック (on_start / on_run / on_stop) は、戻り値で成功 (0) と失敗 (0 以外) を返します。  
+最初に失敗したコールバックの戻り値は、Windows では `SERVICE_STOPPED` 報告時の `ERROR_SERVICE_SPECIFIC_ERROR` + `dwServiceSpecificExitCode`、Linux ではプロセス終了コードとして OS に伝わり、[自動再起動](#自動再起動の対応状況) の発動条件になります。  
+on_run が失敗を返しても、後始末のため on_stop は実行されます。  
+Linux ではプロセス終了コードになるため、失敗の値は 1 から 255 の範囲を推奨します。
+
 さらに、OS イベントを共通のイベント種別 (`svc_event_type`) に対応付け、任意のコールバック `on_event` へ配送します。
 
 | 共通イベント | Windows (SCM) | Linux (systemd-logind) |
@@ -167,7 +172,7 @@ Table: `service-sample` の OS イベント抽象
 | セッション変更 | 対応 | `SERVICE_CONTROL_SESSIONCHANGE` のログオン・ログオフを `SVC_EVENT_SESSION_LOGON` / `SVC_EVENT_SESSION_LOGOFF` として配送する。 |
 | 設定再読込 | 対応 | `SERVICE_CONTROL_PARAMCHANGE` で `on_reload` を呼ぶ。 |
 | 状態照会 | 対応 | `SERVICE_CONTROL_INTERROGATE` で現在の `SERVICE_STATUS` を再通知する。 |
-| 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び、`SERVICE_STOPPED` を通知する。 |
+| 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び、`SERVICE_STOPPED` を通知する。コールバックが失敗を返した場合は `ERROR_SERVICE_SPECIFIC_ERROR` と失敗の戻り値を併せて報告する。 |
 
 Table: `service-sample` の Windows 対応範囲
 
@@ -211,7 +216,7 @@ WatchdogSec=30
 | 停止開始通知 | 対応 | `on_run` 復帰後、`on_stop` 呼び出し前に `STOPPING=1` を送信する。 |
 | 停止要求 | 対応 | `systemctl stop` などで送られる `SIGTERM` を `shutdown.h` が補足し、`svc_request_stop()` を呼ぶ。 |
 | コンソール停止 | 対応 | `console` 実行時の `SIGINT` も同じ停止要求として扱う。 |
-| 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝える。 |
+| 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝える。コールバックが失敗を返した場合は、その値がプロセス終了コードになり失敗として伝わる。 |
 | 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動される。 |
 | 設定再読込 | 対応 | `ExecReload=` 経由の `SIGHUP` をイベント監視スレッドが受け、`RELOADING=1` 送信、`on_reload` 呼び出し、`READY=1` 再送信の順で処理する。 |
 | watchdog | 対応 | `WatchdogSec=30` に対し、イベント監視スレッドの `sd_event_set_watchdog()` が `WATCHDOG_USEC` から算出した間隔で `WATCHDOG=1` を自動応答する。 |
@@ -245,7 +250,7 @@ Table: `service-sample` の Linux 対応範囲
 そのため再起動のたびに新しいプロセスで `on_start` → `on_run` → `on_stop` が再度巡回します。
 
 一時停止 (`SERVICE_CONTROL_PAUSE`) と再開 (`SERVICE_CONTROL_CONTINUE`) は同一プロセスを維持したまま動作を中断・再開する操作であり、プロセスを終了させる再起動とは異なります。  
-`service-sample` はこれらを受け付けていないため、詳細は [service-sample の Windows 対応範囲](#service-sample-の-windows-対応範囲) を参照してください。
+`service-sample` はこれらを受け付けていません。詳細は [service-sample の Windows 対応範囲](#service-sample-の-windows-対応範囲) を参照してください。
 
 ```plantuml
 @startuml サービス再起動時のイベント順序 (手動再起動)
@@ -284,21 +289,22 @@ Table: `service-sample` の手動再起動の手段
 
 | 観点 | Linux | Windows |
 |---|---|---|
-| 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動する。 | 未設定。failure actions を登録していないため自動再起動しない。 |
-| 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 (現状は説明文と pre-shutdown 猶予のみ設定) |
+| 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動する。 | 対応。install 時に `SERVICE_CONFIG_FAILURE_ACTIONS` (`SC_ACTION_RESTART`、遅延 5 秒) と `SERVICE_CONFIG_FAILURE_ACTIONS_FLAG` を登録し、失敗から 5 秒後に再起動する。 |
+| 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 |
 
 Table: `service-sample` の自動再起動の対応状況
 
-Linux は `Restart=on-failure` をすでに持つため追加設定は不要です。
+Windows の SCM は、既定では「`SERVICE_STOPPED` を報告せずにプロセスが消滅した場合」だけを失敗とみなします。  
+Linux の `Restart=on-failure` は非ゼロの終了コードでも再起動するため、`SERVICE_CONFIG_FAILURE_ACTIONS_FLAG` を設定し、終了コードが `NO_ERROR` 以外で `SERVICE_STOPPED` を報告した場合も失敗扱いにして意味を揃えています。  
+このため、ライフサイクル コールバック (on_start / on_run / on_stop) が失敗 (0 以外) を返した場合は、両 OS とも自動再起動の発動条件になります。
 
-Windows で自動再起動を有効化するには、次のいずれかの方法を使います。
-
-install 処理の `svc_os_install` 内で `ChangeServiceConfig2` に `SERVICE_CONFIG_FAILURE_ACTIONS` (`SERVICE_FAILURE_ACTIONS` 構造体) を渡し、`SC_ACTION_RESTART` と遅延ミリ秒を指定します。
-
-登録済みのサービスに対しては、次のコマンドでも設定できます。
+登録された設定は次のコマンドで確認できます。
 
 ```cmd
-sc failure {name} reset= 86400 actions= restart/5000
+sc qfailure {name}
 ```
 
-`reset=` はカウンターのリセット間隔 (秒)、`actions=` は失敗時のアクションと遅延 (ミリ秒) の組み合わせです。
+再起動の抑制方式には次の差異が残ります。
+
+- Linux は `StartLimitBurst` (既定 10 秒間に 5 回) を超えると unit が failed 状態になり、自動再起動を停止する。
+- Windows は失敗カウンター方式で、無失敗期間が `dwResetPeriod` (86400 秒) 続くとカウンターがリセットされる。登録したアクションが 1 件のみのため、失敗回数によらず同じ再起動アクションが適用され続け、回数上限による停止はない。

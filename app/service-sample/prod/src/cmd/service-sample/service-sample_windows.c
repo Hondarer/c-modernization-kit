@@ -47,6 +47,12 @@
     /** PRESHUTDOWN 通知から強制停止までの猶予 (ミリ秒)。 */
     #define SVC_PRESHUTDOWN_TIMEOUT_MS 30000
 
+    /** 異常終了から自動再起動までの遅延 (ミリ秒)。Linux 側の RestartSec=5 と一致させる。 */
+    #define SVC_FAILURE_RESTART_DELAY_MS 5000
+
+    /** 失敗カウンターをリセットする無失敗期間 (秒)。 */
+    #define SVC_FAILURE_RESET_PERIOD_SEC 86400
+
 /* ============================================================
  *  内部状態 (SCM ディスパッチャーへの受け渡し)
  * ============================================================ */
@@ -78,6 +84,33 @@ static void set_service_status(const DWORD state, const DWORD controls, const DW
     g_status.dwServiceSpecificExitCode = 0;
     g_status.dwCheckPoint = checkpoint;
     g_status.dwWaitHint = wait_hint;
+    SetServiceStatus(g_status_handle, &g_status);
+}
+
+/**
+ *  @brief          停止完了 (SERVICE_STOPPED) を SCM に通知します。
+ *  @param[in]      specific_exit_code  サービス固有の終了コード。0 は正常停止、
+ *                                      0 以外は失敗として報告します。
+ *
+ *  set_service_status() は終了コードを NO_ERROR で上書きするため、
+ *  失敗を報告する場合は必ずこの関数を使います。\n
+ *  0 以外を報告すると SERVICE_CONFIG_FAILURE_ACTIONS_FLAG により
+ *  failure actions (自動再起動) の発動条件になります。
+ */
+static void set_service_stopped(const DWORD specific_exit_code)
+{
+    g_status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+    g_status.dwCurrentState = SERVICE_STOPPED;
+    g_status.dwControlsAccepted = 0;
+    g_status.dwWin32ExitCode = NO_ERROR;
+    g_status.dwServiceSpecificExitCode = 0;
+    if (specific_exit_code != 0)
+    {
+        g_status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
+        g_status.dwServiceSpecificExitCode = specific_exit_code;
+    }
+    g_status.dwCheckPoint = 0;
+    g_status.dwWaitHint = 0;
     SetServiceStatus(g_status_handle, &g_status);
 }
 
@@ -339,6 +372,8 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
  */
 static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 {
+    int rc;
+
     (void)argc;
     (void)argv;
 
@@ -360,11 +395,12 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     /* on_start を呼ぶ */
     if (g_def->on_start != NULL)
     {
-        if (g_def->on_start(g_def->user_data) != 0)
+        rc = g_def->on_start(g_def->user_data);
+        if (rc != 0)
         {
-            g_status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
-            g_status.dwServiceSpecificExitCode = 1;
-            set_service_status(SERVICE_STOPPED, 0, 0, 0);
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "on_start が失敗しました (戻り値: %d)。", rc);
+            set_service_stopped((DWORD)rc);
             return;
         }
     }
@@ -373,19 +409,36 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     svc_os_notify_ready();
 
     /* on_run を呼ぶ (停止要求まで戻らない) */
-    g_def->on_run(g_def->user_data);
+    rc = g_def->on_run(g_def->user_data);
+    if (rc != 0)
+    {
+        com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                               "on_run が失敗しました (戻り値: %d)。", rc);
+    }
 
     /* 停止中を通知する (svc_os_notify_stopping で SERVICE_STOP_PENDING を通知) */
     svc_os_notify_stopping();
 
-    /* on_stop を呼ぶ */
+    /* on_stop を呼ぶ (on_run が失敗しても後始末のため実行する) */
     if (g_def->on_stop != NULL)
     {
-        g_def->on_stop(g_def->user_data);
+        int stop_rc;
+
+        stop_rc = g_def->on_stop(g_def->user_data);
+        if (stop_rc != 0)
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "on_stop が失敗しました (戻り値: %d)。", stop_rc);
+            /* 最初に失敗したコールバックの戻り値を採用する */
+            if (rc == 0)
+            {
+                rc = stop_rc;
+            }
+        }
     }
 
-    /* 停止完了を通知する */
-    set_service_status(SERVICE_STOPPED, 0, 0, 0);
+    /* 停止完了を通知する (rc が 0 以外の場合は失敗として報告する) */
+    set_service_stopped((DWORD)rc);
 }
 
 /* ============================================================
@@ -512,6 +565,37 @@ int svc_os_install(const svc_definition *def)
         {
             com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
                                    "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+        }
+
+        /* 異常終了時の自動再起動を設定する (Linux の Restart=on-failure / RestartSec=5 と同等)。
+           文字列メンバー (lpRebootMsg / lpCommand) は NULL のため W 版を直接使う */
+        SC_ACTION restart_action;
+        SERVICE_FAILURE_ACTIONSW failure_actions;
+
+        restart_action.Type = SC_ACTION_RESTART;
+        restart_action.Delay = SVC_FAILURE_RESTART_DELAY_MS;
+        failure_actions.dwResetPeriod = SVC_FAILURE_RESET_PERIOD_SEC;
+        failure_actions.lpRebootMsg = NULL;
+        failure_actions.lpCommand = NULL;
+        /* アクションが 1 件のみの場合、2 回目以降の失敗にも最後のアクションが繰り返される */
+        failure_actions.cActions = 1;
+        failure_actions.lpsaActions = &restart_action;
+        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS, &failure_actions))
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                                   "自動再起動の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+        }
+
+        /* 既定の SCM は SERVICE_STOPPED 未報告のプロセス消滅のみを失敗とみなすため、
+           NO_ERROR 以外の終了コード報告 (例: on_start 失敗) も失敗扱いにして
+           Linux の Restart=on-failure (非ゼロ終了で再起動) と意味を揃える */
+        SERVICE_FAILURE_ACTIONS_FLAG failure_flag;
+
+        failure_flag.fFailureActionsOnNonCrashFailures = TRUE;
+        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &failure_flag))
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_WARNING, NULL,
+                                   "自動再起動フラグの設定に失敗しました (エラー コード: %lu)。", GetLastError());
         }
 
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",

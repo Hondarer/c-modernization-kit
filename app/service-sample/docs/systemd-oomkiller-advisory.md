@@ -1,4 +1,4 @@
-# Linux systemd OOM killer 対策アドバイザリー
+# Linux systemd OOM killer 対策アドバイザリ
 
 この文書では、Linux の systemd unit で管理されるプロセスが OOM killer (Out-Of-Memory Killer) により停止されにくくするための設定を説明します。
 
@@ -157,7 +157,7 @@ oomctl
 恒久運用では、メモリ使用量の上限、再試行間隔、ジョブ ログ、監視メトリクスを別途設計してください。
 
 `MemoryMax=` は unit のメモリ使用量が上限を超えた場合に unit 内で OOM killer を呼び出す設定です。  
-停止させたくないプロセスを保護する目的では、このアドバイザリーの主対策としては使いません。
+停止させたくないプロセスを保護する目的では、このアドバイザリの主対策としては使いません。
 
 `ManagedOOMSwap=kill` や `ManagedOOMMemoryPressure=kill` は、対象 cgroup を `systemd-oomd` の監視対象にする設定です。  
 停止回避を目的にする場合、保護対象 unit 自身へこれらを設定する必要はありません。

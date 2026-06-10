@@ -260,19 +260,49 @@ int svc_run_lifecycle(const svc_definition *def)
     if (def->on_start != NULL)
     {
         rc = def->on_start(def->user_data);
+        if (rc != 0)
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "on_start が失敗しました (戻り値: %d)。", rc);
+        }
     }
 
     if (rc == 0)
     {
+        int run_rc;
+        int stop_rc;
+
         svc_os_notify_ready();
 
-        def->on_run(def->user_data);
+        run_rc = def->on_run(def->user_data);
+        if (run_rc != 0)
+        {
+            com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                   "on_run が失敗しました (戻り値: %d)。", run_rc);
+        }
 
         svc_os_notify_stopping();
 
+        /* on_run が失敗しても後始末のため on_stop は実行する */
+        stop_rc = 0;
         if (def->on_stop != NULL)
         {
-            def->on_stop(def->user_data);
+            stop_rc = def->on_stop(def->user_data);
+            if (stop_rc != 0)
+            {
+                com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,
+                                       "on_stop が失敗しました (戻り値: %d)。", stop_rc);
+            }
+        }
+
+        /* 最初に失敗したコールバックの戻り値を採用する */
+        if (run_rc != 0)
+        {
+            rc = run_rc;
+        }
+        else
+        {
+            rc = stop_rc;
         }
     }
 

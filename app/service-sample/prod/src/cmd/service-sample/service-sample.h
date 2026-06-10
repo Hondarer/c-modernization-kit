@@ -64,7 +64,10 @@ extern "C"
      *  @brief          サービス初期化コールバックの型。
      *
      *  サービス起動時に 1 回だけ呼ばれます。\n
-     *  0 を返すと on_run() が呼ばれます。0 以外を返すと起動を中断します。
+     *  0 を返すと on_run() が呼ばれます。0 以外を返すと起動を中断します
+     *  (on_run() と on_stop() は呼ばれません)。\n
+     *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
+     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
      *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
      *  @return         成功時は 0、失敗時は 0 以外を返します。
@@ -76,21 +79,29 @@ extern "C"
      *
      *  on_start() が成功した後に呼ばれます。\n
      *  停止要求が来るまで戻らないように実装してください。\n
-     *  停止要求の検知には svc_wait_for_stop() を使用してください。
+     *  停止要求の検知には svc_wait_for_stop() を使用してください。\n
+     *  失敗 (0 以外) を返してもその後の on_stop() は呼ばれます。\n
+     *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
+     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
      *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
+     *  @return         成功時は 0、失敗時は 0 以外を返します。
      */
-    typedef void (*svc_on_run_fn)(void *user_data);
+    typedef int (*svc_on_run_fn)(void *user_data);
 
     /**
      *  @brief          サービス停止処理コールバックの型。
      *
-     *  on_run() が戻った後に必ず呼ばれます。\n
-     *  on_start() が失敗した場合は呼ばれません。
+     *  on_run() が戻った後に必ず呼ばれます (on_run() が失敗を返した場合も
+     *  後始末のために呼ばれます)。\n
+     *  on_start() が失敗した場合は呼ばれません。\n
+     *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
+     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
      *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
+     *  @return         成功時は 0、失敗時は 0 以外を返します。
      */
-    typedef void (*svc_on_stop_fn)(void *user_data);
+    typedef int (*svc_on_stop_fn)(void *user_data);
 
     /* ============================================================
      *  OS イベント定義
@@ -184,9 +195,9 @@ extern "C"
         const char *name;         /**< 登録名。systemd unit 名 / SCM サービス名に使う (英数・ハイフン推奨)。 */
         const char *display_name; /**< 表示名。Windows SCM のサービス一覧に表示される。 */
         const char *description;  /**< 説明文。Windows SCM / systemd unit の Description に設定される。 */
-        svc_on_start_fn on_start; /**< 初期化コールバック。NULL 可。 */
-        svc_on_run_fn on_run;     /**< メインループ コールバック。NULL 不可。 */
-        svc_on_stop_fn on_stop;   /**< 停止処理コールバック。NULL 可。 */
+        svc_on_start_fn on_start; /**< 初期化コールバック。NULL 可。失敗 (0 以外) を返すと起動を中断する。 */
+        svc_on_run_fn on_run;     /**< メインループ コールバック。NULL 不可。失敗 (0 以外) で失敗終了する。 */
+        svc_on_stop_fn on_stop;   /**< 停止処理コールバック。NULL 可。失敗 (0 以外) で失敗終了する。 */
         void *user_data;          /**< 各コールバックに渡す任意ポインター。 */
         svc_on_event_fn on_event; /**< OS イベント コールバック。NULL 可 (NULL の場合は電源・セッション・
                                        シャットダウン前イベントの監視を行わない)。 */
@@ -208,13 +219,14 @@ extern "C"
      *
      *  @par            使用例
      *  @code{.c}
-        static void on_run(void *user_data)
+        static int on_run(void *user_data)
         {
             (void)user_data;
             while (svc_wait_for_stop(1000) == 0)
             {
                 // TODO: ここに周期処理を書く
             }
+            return 0;
         }
      *  @endcode
      */
@@ -357,11 +369,15 @@ extern "C"
     /**
      *  @brief          ライフサイクル コールバックを駆動します (内部共有関数)。
      *  @param[in]      def     サービス定義。NULL を渡してはなりません。
-     *  @return         成功時は 0、on_start が失敗した場合はその戻り値を返します。
+     *  @return         成功時は 0、いずれかのコールバックが失敗した場合は
+     *                  最初に失敗したコールバックの戻り値を返します。
      *
      *  console モードおよび Linux run モード (Type=notify) が使用します。\n
      *  shutdown.h の request callback を登録して SIGINT/SIGTERM を補足し、
-     *  on_start → on_run → on_stop の順でライフサイクルを駆動します。
+     *  on_start → on_run → on_stop の順でライフサイクルを駆動します。\n
+     *  on_run が失敗を返しても on_stop は実行します。\n
+     *  戻り値はプロセス終了コードとして OS に伝わり、失敗時は自動再起動の
+     *  発動条件になります。
      */
     int svc_run_lifecycle(const svc_definition *def);
 

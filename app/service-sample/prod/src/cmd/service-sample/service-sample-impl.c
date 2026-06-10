@@ -24,7 +24,7 @@
 /**
  *  @brief          サービス初期化処理の雛形。
  *  @param[in]      user_data 未使用。
- *  @return         常に 0 (成功) を返します。
+ *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
  */
 static int on_start(void *user_data)
 {
@@ -38,11 +38,12 @@ static int on_start(void *user_data)
 /**
  *  @brief          サービス メインループの雛形。
  *  @param[in]      user_data 未使用。
+ *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
  *
  *  1 秒ごとに動作ログを出力し、停止要求を受け取るとループを抜けます。\n
  *  svc_set_status_text() による状態テキスト通知の利用例を含みます。
  */
-static void on_run(void *user_data)
+static int on_run(void *user_data)
 {
     char status_text[64];
     unsigned long cycle_count;
@@ -64,18 +65,21 @@ static void on_run(void *user_data)
         svc_set_status_text(status_text);
     }
     com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "サービス処理 終了");
+    return 0;
 }
 
 /**
  *  @brief          サービス停止処理の雛形。
  *  @param[in]      user_data 未使用。
+ *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
  */
-static void on_stop(void *user_data)
+static int on_stop(void *user_data)
 {
     (void)user_data;
     com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "停止処理 開始");
     /* TODO: ここに停止処理を書く */
     com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL, "停止処理 終了");
+    return 0;
 }
 
 /**
