@@ -13,7 +13,7 @@
  *  - エントリ ポイント
  *
  *  プラットフォーム差異は各プラットフォーム ファイルが実装するフック関数
- *  (svc_os_install / svc_os_uninstall / svc_os_run_service) で吸収します。
+ *  (svc_os_install / svc_os_uninstall / svc_os_run_service / svc_os_notify_*) で吸収します。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -401,7 +401,7 @@ int svc_main(const int argc, char *argv[], const svc_definition *def)
  *  エントリ ポイント
  * ============================================================ */
 
-/** サービス定義。 */
+/** サービス定義。実装側 (service-sample-impl.c) が定義する。 */
 extern const svc_definition g_service_def;
 
 /**

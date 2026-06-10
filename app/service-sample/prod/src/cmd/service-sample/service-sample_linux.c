@@ -15,8 +15,8 @@
  *  電源・セッション・シャットダウン前イベントの監視 (D-Bus) は
  *  service-sample_linux_events.c に実装します。
  *
- *  共通処理 (svc_run_lifecycle / svc_main / コールバック雛形) は
- *  service-sample.c に実装します。
+ *  共通処理 (svc_run_lifecycle / svc_main / main) は service-sample.c に、
+ *  コールバック雛形は service-sample-impl.c に実装します。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *

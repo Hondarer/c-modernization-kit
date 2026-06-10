@@ -11,7 +11,9 @@
  *  \n
  *  利用者は svc_definition 構造体にサービス名・表示名・説明と
  *  ライフサイクル コールバック (on_start / on_run / on_stop) を設定し、
- *  svc_main() を呼ぶだけでクロスプラットフォーム サービスを構築できます。\n
+ *  svc_main() に渡すだけでクロスプラットフォーム サービスを構築できます。\n
+ *  エントリ ポイント main() は共通実装 (service-sample.c) が提供しており、
+ *  実装側 (service-sample-impl.c) は g_service_def の定義のみを行います。\n
  *  \n
  *  サービスの停止要求は 3 経路 (SIGINT/SIGTERM、SetConsoleCtrlHandler、
  *  Windows SCM の SERVICE_CONTROL_STOP) を svc_request_stop() に集約します。
@@ -176,7 +178,9 @@ extern "C"
      *
      *  @par            使用例
      *  @code{.c}
-        static const svc_definition g_service_def = {
+        // 実装側で g_service_def を定義する (外部結合が必要)。
+        // main() は共通実装 (service-sample.c) が提供し、g_service_def を svc_main() に渡す。
+        const svc_definition g_service_def = {
             "my-service",
             "My Service",
             "サービスの説明",
@@ -187,7 +191,6 @@ extern "C"
             on_event,
             on_reload
         };
-        int main(int argc, char *argv[]) { return svc_main(argc, argv, &g_service_def); }
      *  @endcode
      */
     typedef struct svc_definition
@@ -315,6 +318,8 @@ extern "C"
      *
      *  SCM/systemd から "run" 引数付きで起動されたときに呼ばれます。\n
      *  - Linux  : Type=notify のため fork せずそのまま常駐し、SIGTERM で停止します。\n
+     *             常駐の前後でイベント監視スレッド (電源・セッション イベント、
+     *             SIGHUP、watchdog 応答) を起動・停止します。\n
      *  - Windows: StartServiceCtrlDispatcher でサービス ディスパッチャーに接続します。
      */
     int svc_os_run_service(const svc_definition *def);
@@ -323,7 +328,7 @@ extern "C"
      *  @brief          起動完了を OS に通知します (内部共有関数)。
      *
      *  on_start() 成功直後に svc_run_lifecycle() から呼ばれます。\n
-     *  - Linux  : NOTIFY_SOCKET へ "READY=1" を送信します (sd_notify 相当)。\n
+     *  - Linux  : sd_notify(3) で "READY=1" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に SERVICE_RUNNING を通知します。\n
      *             コンソール モード (SCM 未接続) の場合は何もしません。
@@ -334,7 +339,7 @@ extern "C"
      *  @brief          停止開始を OS に通知します (内部共有関数)。
      *
      *  on_run() 復帰直後、on_stop() 呼び出し前に svc_run_lifecycle() から呼ばれます。\n
-     *  - Linux  : NOTIFY_SOCKET へ "STOPPING=1" を送信します (sd_notify 相当)。\n
+     *  - Linux  : sd_notify(3) で "STOPPING=1" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に SERVICE_STOP_PENDING を通知します。\n
      *             コンソール モード (SCM 未接続) の場合は何もしません。
@@ -345,7 +350,7 @@ extern "C"
      *  @brief          設定再読込の開始を OS に通知します (内部共有関数)。
      *
      *  svc_dispatch_reload() が on_reload() 呼び出し前に呼びます。\n
-     *  - Linux  : NOTIFY_SOCKET へ "RELOADING=1" を送信します。\n
+     *  - Linux  : sd_notify(3) で "RELOADING=1" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に等価な通知がないため何もしません。
      */
@@ -356,7 +361,7 @@ extern "C"
      *  @param[in]      text    状態テキスト。NULL を渡してはなりません。
      *
      *  svc_set_status_text() から呼ばれます。\n
-     *  - Linux  : NOTIFY_SOCKET へ "STATUS=<text>" を送信します。\n
+     *  - Linux  : sd_notify(3) で "STATUS=<text>" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に等価な通知がないため何もしません。
      */

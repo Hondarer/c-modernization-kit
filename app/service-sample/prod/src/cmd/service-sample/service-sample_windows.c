@@ -11,8 +11,8 @@
  *  - svc_os_install     : CreateService による SCM 登録
  *  - svc_os_uninstall   : DeleteService による SCM 解除
  *
- *  共通処理 (svc_run_lifecycle / svc_main / コールバック雛形) は
- *  service-sample.c に実装します。
+ *  共通処理 (svc_run_lifecycle / svc_main / main) は service-sample.c に、
+ *  コールバック雛形は service-sample-impl.c に実装します。
  *
  *  内部起動パターン (ユーザーは直接使わない):
  *  - `service-sample run` : SCM から起動されるサービス本体
