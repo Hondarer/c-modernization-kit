@@ -120,7 +120,7 @@ fi
     h2 { border-bottom: 1px solid #ccc; margin-top: 1.5em; }
     table { border-collapse: collapse; width: 100%; }
     th, td { text-align: left; padding: 0.4em 0.8em; border: 1px solid #ddd; }
-    th { background: #f6f8fa; }
+    th { background: #f6f8fa; font-weight: normal; }
     a { color: #0366d6; text-decoration: none; }
     a:hover { text-decoration: underline; }
   </style>
