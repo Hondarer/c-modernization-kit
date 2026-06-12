@@ -36,6 +36,12 @@ namespace CalcLib
         /// </summary>
         private const int CALC_ERROR = -1;
 
+        /**
+         *  @defgroup       CALCLIB_PUBLIC_API 公開 API (CalcLib)
+         *  @brief          CalcLib ラッパーの公開 API です。
+         *  @{
+         */
+
         /// <summary>
         /// 指定された演算種別に基づいて計算を実行します。
         /// </summary>
@@ -168,5 +174,7 @@ namespace CalcLib
         /// </code>
         /// </example>
         public static CalcResult Divide(int a, int b) => Calculate(CalcKind.Divide, a, b);
+
+        /** @} */
     }
 }
