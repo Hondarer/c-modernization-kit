@@ -25,8 +25,6 @@
 #include <string.h>
 
 #include <com_util/console/console.h>
-#include <com_util/crt/path.h>
-#include <com_util/runtime/process.h>
 #include <com_util/runtime/shutdown.h>
 #include <com_util/sync/sync.h>
 #include <com_util/trace/trace_file.h>
@@ -58,11 +56,7 @@ com_util_tracer *svc_get_tracer(void)
  */
 static int svc_tracer_open(const svc_definition *def, const int enable_stderr)
 {
-    char exe_path[PLATFORM_PATH_MAX];
-    char log_dir[PLATFORM_PATH_MAX];
-    char log_path[PLATFORM_PATH_MAX];
     com_util_trace_level_t stderr_level;
-    char *sep;
 
     g_tracer = com_util_tracer_create();
     if (g_tracer == NULL)
@@ -83,26 +77,10 @@ static int svc_tracer_open(const svc_definition *def, const int enable_stderr)
     }
     com_util_tracer_set_stderr_level(g_tracer, stderr_level);
 
-    /* 実行ファイルと同じディレクトリの log/ サブディレクトリにファイル出力する */
-    if (com_util_process_get_executable_path(exe_path, sizeof(exe_path)) == 0)
-    {
-        sep = strrchr(exe_path, PLATFORM_PATH_SEP_CHR);
-        if (sep != NULL)
-        {
-            *sep = '\0'; /* バッファーをディレクトリ部分のみに切り詰める */
-            if (com_util_path_concat(log_dir, sizeof(log_dir), NULL, exe_path, PLATFORM_PATH_SEP, "log") == 0)
-            {
-                /* ディレクトリ生成は com_util_trace_file_sink_create が自動実行する */
-                if (com_util_path_concat(log_path, sizeof(log_path), NULL, log_dir, PLATFORM_PATH_SEP, def->name,
-                                         ".log") == 0)
-                {
-                    /* サービスとコンソールの複数プロセスが同一ログへ書き込むため共有モードにする */
-                    com_util_tracer_set_file_level(g_tracer, log_path, COM_UTIL_TRACE_LEVEL_VERBOSE, 0, 0,
-                                                   COM_UTIL_TRACE_FILE_SINK_SHARED);
-                }
-            }
-        }
-    }
+    /* Windows で一般ユーザーによる実行の場合、昇格が発生し同じファイルに複数プロセスが */
+    /* 出力するため、共有モードを指定する。                                             */
+    /* パスとファイル名は com_util tracer のデフォルト解決に任せる。                    */
+    com_util_tracer_set_file_level(g_tracer, NULL, COM_UTIL_TRACE_LEVEL_VERBOSE, 0, 0, COM_UTIL_TRACE_FILE_SINK_SHARED);
 
     return com_util_tracer_start(g_tracer);
 }

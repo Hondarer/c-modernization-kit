@@ -12,4 +12,4 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/src/cmd/service-sample
 
 # ライブラリの指定
-LIBS += com_util
+LIBS += mock_com_util

@@ -1,9 +1,15 @@
 #include <testfw.h>
+#include <mock_com_util.h>
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include "service-sample.h"
+
+using testing::_;
+using testing::NiceMock;
+using testing::Return;
 
 /* ============================================================
  *  記録用の内部状態
@@ -141,6 +147,9 @@ extern "C"
 class service_sampleTest : public Test
 {
   protected:
+    NiceMock<Mock_com_util> mock_com_util_;
+    com_util_tracer *tracer_handle_ = reinterpret_cast<com_util_tracer *>(static_cast<uintptr_t>(0x1234));
+
     void SetUp() override
     {
         g_calls.clear();
@@ -150,6 +159,17 @@ class service_sampleTest : public Test
         g_on_start_rc = 0;
         g_on_run_rc = 0;
         g_on_stop_rc = 0;
+
+        ON_CALL(mock_com_util_, com_util_tracer_create()).WillByDefault(Return(tracer_handle_));
+        ON_CALL(mock_com_util_, com_util_tracer_set_name(_, _, _)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, com_util_tracer_set_os_level(_, _)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, com_util_tracer_set_file_level(_, _, _, _, _, _)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, com_util_tracer_set_stderr_level(_, _)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, com_util_tracer_start(_)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, com_util_tracer_stop(_)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, com_util_tracer_dispose(_)).WillByDefault(Return());
+        ON_CALL(mock_com_util_, _com_util_tracer_write(_, _, _, _)).WillByDefault(Return(0));
+        ON_CALL(mock_com_util_, _com_util_tracer_writef(_, _, _, _)).WillByDefault(Return(0));
     }
 };
 
@@ -204,6 +224,23 @@ TEST_F(service_sampleTest, install_dispatch)
     EXPECT_EQ(0, rtc);                   // [確認] - main() の戻り値が 0 であること。
     ASSERT_EQ(1U, g_calls.size());       // [確認] - フックが 1 回だけ呼ばれること。
     EXPECT_EQ("os_install", g_calls[0]); // [確認] - svc_os_install() が呼ばれること。
+}
+
+TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "install"}; // [状態] - tracer 初期化を通る代表コマンドを与える。
+    EXPECT_CALL(mock_com_util_,
+                com_util_tracer_set_file_level(tracer_handle_, NULL, COM_UTIL_TRACE_LEVEL_VERBOSE, 0U, 0,
+                                               COM_UTIL_TRACE_FILE_SINK_SHARED))
+        .WillOnce(Return(0)); // [Pre-Assert確認] - パスは com_util 既定値へ委譲し、既存の共有モードを維持すること。
+
+    // Act
+    int rtc = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+
+    // Assert
+    EXPECT_EQ(0, rtc); // [確認] - tracer 設定後も通常の dispatch が成功すること。
 }
 
 TEST_F(service_sampleTest, uninstall_dispatch)
