@@ -476,6 +476,48 @@ cd <module-dir> && make doxy 2>&1 | grep -i warning
 型推論で追従するため、通常は無修正で OK です。  
 ただし `Matcher<T*>` のように明示型指定している箇所がある場合は併せて修正します。
 
+## Doxygen コメントのプレースホルダー表記
+
+### 基本ルール
+
+Doxygen コメント内で可変部分 (プレースホルダー) を表すときは、山括弧 `<` `>` ではなく波括弧 `{` `}` を使用します。
+
+```c
+/* NG: Doxygen が <ファイル名> を XML/HTML タグと解釈する */
+/**
+ *  デフォルト パスは log/<ファイル名>.log です。
+ *  識別名は @c <name>-<identifier> です。
+ */
+
+/* OK: 波括弧であればタグと解釈されない */
+/**
+ *  デフォルト パスは log/{ファイル名}.log です。
+ *  識別名は @c {name}-{identifier} です。
+ */
+```
+
+### 理由
+
+Doxygen は `<...>` を XML/HTML タグとして解釈し、`warning: Unsupported xml/html tag <ファイル名> found` 警告を出力します。
+さらに、この解釈は XML 出力にも影響し、XML を入力とする Doxybook2 の Markdown 変換が正しく行えなくなります。
+`@c` の指定やバッククォートのコード スパンの外にある場合は、日本語のプレースホルダーでも警告を出力します。
+
+### 適用範囲
+
+- Doxygen コメント (`/** */`) 内のすべてのプレースホルダー表記に適用します。
+- 通常の C コメント (`/* */`) は Doxygen の処理対象外ですが、将来の Doxygen 化やコピーを考慮して `{}` に統一します。
+- 関数テンプレート構文 (`template <typename T>` など) をコード ブロック (`@code` / バッククォート) 内に書く場合は対象外です。コード ブロック内の `<` `>` はタグと解釈されません。
+
+### 検証
+
+`make doxy` 実行後に生成される `doxy*.warn` で「Unsupported xml/html tag」が検出されないことを確認します。
+
+```bash
+grep "Unsupported xml/html tag" <module-dir>/doxy*.warn
+```
+
+`doxy*.warn` は生成物のため、警告が残っていても手では編集せず、コメント側を修正して再生成します。
+
 ## 参照
 
 - [`source-style-guideline.md`](source-style-guideline.md) - `.gitattributes` / `.editorconfig` / `.clang-format` によるソース スタイル維持
