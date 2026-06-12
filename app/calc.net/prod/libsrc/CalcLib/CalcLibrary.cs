@@ -175,6 +175,8 @@ namespace CalcLib
         /// </example>
         public static CalcResult Divide(int a, int b) => Calculate(CalcKind.Divide, a, b);
 
+#pragma warning disable 1587
         /** @} */
+#pragma warning restore 1587
     }
 }
