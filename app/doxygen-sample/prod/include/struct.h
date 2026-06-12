@@ -38,3 +38,10 @@ typedef struct SAMPLE_STRUCT
     int a;   /**< 整数値。 */
     float b; /**< 浮動小数点数値。 */
 } SAMPLE_STRUCT;
+
+/* NOTE: brief や details を持たない構造体のサンプルです。                 */
+/*       構造体定義コード ブロックのみでも概要セクションが出力されます。   */
+typedef struct SAMPLE_STRUCT_NO_BRIEF
+{
+    int code; /**< コード値。 */
+} SAMPLE_STRUCT_NO_BRIEF;
