@@ -390,6 +390,10 @@ extern const svc_definition g_service_def;
  */
 int main(int argc, char *argv[])
 {
+    /* 昇格起動された場合、親コンソールへ再接続して出力を元のコンソールへ戻す。
+       引き継ぎフラグを argv から取り除く必要があるため、引数解析より前に呼び出す。 */
+    com_util_console_attach_parent(&argc, argv);
+
     com_util_console_init();
 
     return svc_main(argc, argv, &g_service_def);
