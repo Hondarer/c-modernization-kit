@@ -48,6 +48,10 @@ git config --global core.autocrlf false
 - Makefile 系ファイルではタブを使用
 - Windows 専用スクリプトでは CRLF を使用
 - PowerShell スクリプトでは UTF-8 BOM を使用
+- メッセージ コンパイラ入力 (`.mc`) では UTF-8 BOM を使用
+
+`.mc` を UTF-8 BOM とするのは、`mc.exe` が BOM の無い入力をシステム コードページ (Windows 日本語環境では cp932) として読み、UTF-8 で書いた日本語コメントが壊れるためです。
+BOM を付けて UTF-8 と認識させます。
 
 VS Code で `.editorconfig` を反映するには、以下の拡張機能をインストールしてください。
 
