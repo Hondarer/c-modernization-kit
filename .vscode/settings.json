@@ -1,15 +1,5 @@
 {
-    "editor.renderWhitespace": "all",
-    "explorer.compactFolders": false,
-    "terminal.integrated.scrollback": 20000,
-    "makefile.configureOnOpen": false,
-    "files.associations": {
-        "c_cpp_properties.json": "jsonc",
-        ".debug-params.json": "jsonc",
-        "**/.text_style_jp/*.json": "jsonc",
-        "Doxyfile.part": "shellscript",
-        "Doxyfile.part.*": "shellscript"
-    },
+    // 環境変数の設定
     "terminal.integrated.env.linux": {
         "MAKEFW_HOME": "${workspaceFolder}/framework/makefw",
         "DOXYFW_HOME": "${workspaceFolder}/framework/doxyfw",
@@ -25,11 +15,31 @@
         "DOCSFW_HOME": "${workspaceFolder}/framework/docsfw",
         "PATH": "${workspaceFolder}\\app\\calc\\prod\\lib;${workspaceFolder}\\app\\calc\\prod\\cbin;${workspaceFolder}\\app\\calc.net\\prod\\lib;${workspaceFolder}\\app\\calc.net\\prod\\cbin;${workspaceFolder}\\app\\override-sample\\prod\\lib;${workspaceFolder}\\app\\override-sample\\prod\\cbin;${workspaceFolder}\\app\\porter\\prod\\lib;${workspaceFolder}\\app\\porter\\prod\\cbin;${workspaceFolder}\\app\\com_util\\prod\\lib;${workspaceFolder}\\app\\com_util\\prod\\cbin;${workspaceFolder}\\app\\tutorial\\prod\\lib;${workspaceFolder}\\app\\tutorial\\prod\\cbin;${env:PATH}"
     },
+    // 半角空白を表示する
+    "editor.renderWhitespace": "all",
+    // エクスプローラー ビューのフォルダ省略を行わない
+    "explorer.compactFolders": false,
+    // ターミナルのスクロールバッファ行数
+    "terminal.integrated.scrollback": 20000,
+    // ファイル名と言語モードの関連付け
+    "files.associations": {
+        "c_cpp_properties.json": "jsonc",
+        ".debug-params.json": "jsonc",
+        "**/.text_style_jp/*.json": "jsonc",
+        "Doxyfile.part": "shellscript",
+        "Doxyfile.part.*": "shellscript"
+    },
+    // Makefile Tools 拡張の起動時自動構成を無効にする
+    "makefile.configureOnOpen": false,
+    // .NET のデフォルトソリューションの無効指定
     "dotnet.defaultSolution": "disable",
-    "C_Cpp.formatting": "clangFormat",
+    // Debug Params 拡張の既定値 (実行ファイルパスを make から取得)
     "debugParams.defaults": {
         "program": "${shell:make show-exepath}"
     },
+    // C のフォーマッタ指定
+    "C_Cpp.formatting": "clangFormat",
+    // https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight
     "todohighlight.keywords": [
         {
             "text": "@todo",
@@ -37,8 +47,19 @@
             "backgroundColor": "#ffbd2a",
             "overviewRulerColor": "rgba(255,189,42,0.8)"
         },
-    ], // https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight
+    ],
     // oracle-linux-container および devbin-win によってセットアップされた環境では、
     // PLANTUML_HOME が利用可能
     "markdown-preview-enhanced.plantumlJarPath": "${env:PLANTUML_HOME}/plantuml.jar",
+    // git の自動フェッチを有効にする
+    "git.autofetch": true,
+    // json, jsonc でファイル末尾改行を付加する
+    "[json]": {
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": false,
+    },
+    "[jsonc]": {
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": false,
+    },
 }
