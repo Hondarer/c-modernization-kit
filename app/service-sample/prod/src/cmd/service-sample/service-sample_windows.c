@@ -48,7 +48,7 @@
     /** PRESHUTDOWN 通知から強制停止までの猶予 (ミリ秒)。 */
     #define SVC_PRESHUTDOWN_TIMEOUT_MS 30000
 
-    /** 異常終了から自動再起動までの遅延 (ミリ秒)。Linux 側の RestartSec=5 と一致させる。 */
+    /** 異常終了から自動再起動までの遅延 (ミリ秒)。Linux 側の RestartSec=5 と一致させます。 */
     #define SVC_FAILURE_RESTART_DELAY_MS 5000
 
     /** 失敗カウンターをリセットする無失敗期間 (秒)。 */

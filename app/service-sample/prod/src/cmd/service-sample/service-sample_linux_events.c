@@ -70,7 +70,7 @@ typedef struct svc_linux_events_ctx
 {
     const svc_definition *def; /**< サービス定義。svc_linux_events_start() で設定される。 */
     com_util_thread *thread;   /**< イベント監視スレッドのハンドル。未起動時は NULL。 */
-    sd_event *event;           /**< sd_event ループ。スレッド内で生成・解放する。 */
+    sd_event *event;           /**< sd_event ループ。スレッド内で生成・解放します。 */
     sd_bus *bus;               /**< system bus 接続。接続失敗時は NULL。 */
     int stop_fd;               /**< 停止指示用 eventfd。未生成時は -1。 */
     int reload_fd;             /**< SIGHUP 転送用 eventfd。未生成時は -1。 */

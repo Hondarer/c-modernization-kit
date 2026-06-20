@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           subfolder-sample.h
- *  @brief          subfolder-sample.h ヘッダー。
+ *  @brief          subfolder-sample ライブラリの公開ヘッダー。
  *
  *  @hideincludedbygraph
  *
@@ -18,29 +18,29 @@
 
 #ifdef DOXYGEN
 
-/**
- *  @brief          DLL エクスポート/インポート制御マクロ。
- *
- *  ビルド条件に応じて以下の値を取ります。
- *
- *  | 条件                                                          | 値                       |
- *  | ------------------------------------------------------------- | ------------------------ |
- *  | Linux (非 Windows)                                            | (空)                     |
- *  | Windows / `__INTELLISENSE__` 定義時                           | (空)                     |
- *  | Windows / `SUBFOLDER_SAMPLE_STATIC` 定義時 (静的リンク)       | (空)                     |
- *  | Windows / `SUBFOLDER_SAMPLE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
- *  | Windows / `SUBFOLDER_SAMPLE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
- */
-#define SUBFOLDER_SAMPLE_EXPORT
+    /**
+     *  @brief          DLL エクスポート/インポート制御マクロ。
+     *
+     *  ビルド条件に応じて以下の値を取ります。
+     *
+     *  | 条件                                                          | 値                       |
+     *  | ------------------------------------------------------------- | ------------------------ |
+     *  | Linux (非 Windows)                                            | (空)                     |
+     *  | Windows / `__INTELLISENSE__` 定義時                           | (空)                     |
+     *  | Windows / `SUBFOLDER_SAMPLE_STATIC` 定義時 (静的リンク)       | (空)                     |
+     *  | Windows / `SUBFOLDER_SAMPLE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
+     *  | Windows / `SUBFOLDER_SAMPLE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+     */
+    #define SUBFOLDER_SAMPLE_EXPORT
 
-/**
- *  @brief          呼び出し規約マクロ。
- *
- *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
- *  Linux (非 Windows) 環境では空に展開されます。\n
- *  すでに定義済みの場合は再定義されません。
- */
-#define SUBFOLDER_SAMPLE_API
+    /**
+     *  @brief          呼び出し規約マクロ。
+     *
+     *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
+     *  Linux (非 Windows) 環境では空に展開されます。\n
+     *  すでに定義済みの場合は再定義されません。
+     */
+    #define SUBFOLDER_SAMPLE_API
 
 #else /* !DOXYGEN */
 
@@ -61,8 +61,22 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+    /**
+     *  @brief          libsrc 直下のビルドを検証する関数です。
+     *  @return         常に 0 を返します。
+     */
     SUBFOLDER_SAMPLE_EXPORT extern int SUBFOLDER_SAMPLE_API func(void);
+
+    /**
+     *  @brief          サブフォルダー a のビルドを検証する関数です。
+     *  @return         常に 1 を返します。
+     */
     SUBFOLDER_SAMPLE_EXPORT extern int SUBFOLDER_SAMPLE_API func_a(void);
+
+    /**
+     *  @brief          サブフォルダー b のビルドを検証する関数です。
+     *  @return         常に 2 を返します。
+     */
     SUBFOLDER_SAMPLE_EXPORT extern int SUBFOLDER_SAMPLE_API func_b(void);
 
 #ifdef __cplusplus

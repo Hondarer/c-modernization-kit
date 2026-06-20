@@ -198,9 +198,9 @@ extern "C"
         const char *name;         /**< 登録名。systemd unit 名 / SCM サービス名に使う (英数・ハイフン推奨)。 */
         const char *display_name; /**< 表示名。Windows SCM のサービス一覧に表示される。 */
         const char *description;  /**< 説明文。Windows SCM / systemd unit の Description に設定される。 */
-        svc_on_start_fn on_start; /**< 初期化コールバック。NULL 可。失敗 (0 以外) を返すと起動を中断する。 */
-        svc_on_run_fn on_run;     /**< メインループ コールバック。NULL 不可。失敗 (0 以外) で失敗終了する。 */
-        svc_on_stop_fn on_stop;   /**< 停止処理コールバック。NULL 可。失敗 (0 以外) で失敗終了する。 */
+        svc_on_start_fn on_start; /**< 初期化コールバック。NULL 可。失敗 (0 以外) を返すと起動を中断します。 */
+        svc_on_run_fn on_run;     /**< メインループ コールバック。NULL 不可。失敗 (0 以外) で失敗終了します。 */
+        svc_on_stop_fn on_stop;   /**< 停止処理コールバック。NULL 可。失敗 (0 以外) で失敗終了します。 */
         void *user_data;          /**< 各コールバックに渡す任意ポインター。 */
         svc_on_event_fn on_event; /**< OS イベント コールバック。NULL 可 (NULL の場合は電源・セッション・
                                        シャットダウン前イベントの監視を行わない)。 */

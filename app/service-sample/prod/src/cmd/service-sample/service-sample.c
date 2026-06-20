@@ -37,7 +37,7 @@
  *  tracer (プロセス共通)
  * ============================================================ */
 
-/** プロセス共通の tracer ハンドル。svc_main が open / close する。 */
+/** プロセス共通の tracer ハンドル。svc_main が open / close します。 */
 static com_util_tracer *g_tracer = NULL;
 
 com_util_tracer *svc_get_tracer(void)
@@ -379,7 +379,7 @@ int svc_main(const int argc, char *argv[], const svc_definition *def)
  *  エントリ ポイント
  * ============================================================ */
 
-/** サービス定義。実装側 (service-sample-impl.c) が定義する。 */
+/** サービス定義。実装側 (service-sample-impl.c) が定義します。 */
 extern const svc_definition g_service_def;
 
 /**
