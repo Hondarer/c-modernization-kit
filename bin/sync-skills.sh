@@ -76,6 +76,25 @@ collect_skill_dirs() {
     collect_non_submodule_app_skill_dirs
 }
 
+# 先頭フロントマターへ `key: "value"` を挿入する。
+# 既存の同名キーは置換し、フロントマターが無ければ新規生成する。
+inject_frontmatter_key() {
+    md_file="$1"
+    fm_key="$2"
+    fm_value="$3"
+    tmp_file="$(mktemp)"
+    awk -v key="$fm_key" -v value="$fm_value" '
+        BEGIN { newline = key ": \"" value "\""; done = 0; has_fm = 0 }
+        NR == 1 {
+            if ($0 ~ /^---[[:space:]]*$/) { has_fm = 1; print; next }
+            print "---"; print newline; print "---"; print ""; print; done = 1; next
+        }
+        has_fm && !done && $0 ~ /^---[[:space:]]*$/ { print newline; print; done = 1; next }
+        has_fm && !done && index($0, key ":") == 1 { next }
+        { print }
+    ' "$md_file" > "$tmp_file" && mv "$tmp_file" "$md_file"
+}
+
 create_root_skill_entry() {
     src_dir="$1"
     skill_name="$2"
@@ -137,3 +156,18 @@ done
 } > "$ROOT_SKILLS_STATE"
 
 recreate_claude_skills
+
+# Windows ではコピー (symlink ではない) のため、コピー先からはオリジナルをたどれず、
+# .agents/skills 配下は gitignore 対象となる。docsfw の Git リンクを Linux と同じ最終結果に
+# するため、コピー先の各 md へ収集元 (オリジナル) の workspace 相対パスを git-origin として埋め込む。
+# 注入は recreate_claude_skills の後に行い、.claude/skills (Claude ハーネスが読む) には混入させない。
+if [ "$IS_WINDOWS" -eq 1 ]; then
+    for skill_name in "${!skill_sources[@]}"; do
+        dst_dir="$ROOT_SKILLS_DIR/$skill_name"
+        src_rel="${skill_sources[$skill_name]#$ROOT_DIR/}"
+        find "$dst_dir" -type f -name '*.md' | while IFS= read -r md_file; do
+            md_rel="${md_file#$dst_dir/}"
+            inject_frontmatter_key "$md_file" "git-origin" "$src_rel/$md_rel"
+        done
+    done
+fi
