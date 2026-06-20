@@ -35,6 +35,7 @@
 
     #include <systemd/sd-daemon.h>
 
+    #include <com_util/runtime/elevated_process.h>
     #include <com_util/runtime/process.h>
 
     #include "service-sample.h"
@@ -174,7 +175,7 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
     }
 
     exit_code = EXIT_FAILURE;
-    rc = com_util_process_run_elevated_if_needed(command, &exit_code, handled);
+    rc = com_util_elevated_process_run_if_needed(command, &exit_code, handled);
     if (rc != 0)
     {
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL,

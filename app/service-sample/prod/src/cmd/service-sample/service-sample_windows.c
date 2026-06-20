@@ -33,6 +33,7 @@
     #include <stdlib.h>
     #include <string.h>
 
+    #include <com_util/runtime/elevated_process.h>
     #include <com_util/runtime/process.h>
     #include <com_util/win32/win32.h>
 
@@ -196,7 +197,7 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
     }
 
     exit_code = EXIT_FAILURE;
-    rc = com_util_process_run_elevated_if_needed(command, &exit_code, handled);
+    rc = com_util_elevated_process_run_if_needed(command, &exit_code, handled);
     if (rc != 0)
     {
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_ERROR, NULL, "%s には管理者権限が必要です。",
