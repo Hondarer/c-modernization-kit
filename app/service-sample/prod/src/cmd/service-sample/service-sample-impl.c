@@ -106,10 +106,12 @@ static void on_event(const svc_event_info *info, void *user_data)
     case SVC_EVENT_SESSION_LOGON:
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
                                "セッションがログオンしました (ID: %s)。", info->session_id);
+        /* TODO: ここにログオン時処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGOFF:
         com_util_tracer_writef(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
                                "セッションがログオフしました (ID: %s)。", info->session_id);
+        /* TODO: ここにログオフ時処理を書く */
         break;
     case SVC_EVENT_PRESHUTDOWN:
         com_util_tracer_write(svc_get_tracer(), COM_UTIL_TRACE_LEVEL_INFO, NULL,
