@@ -3,6 +3,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Windows の Git Bash では pwd (/d/...) と git の --show-toplevel (D:/...) で表記が異なる。
+# 非サブモジュール判定で --show-toplevel と比較する際は、同じく git 由来の表記に揃える。
+ROOT_TOP="$(git -C "$ROOT_DIR" rev-parse --show-toplevel 2>/dev/null || echo "$ROOT_DIR")"
 ROOT_SKILLS_DIR="$ROOT_DIR/.agents/skills"
 ROOT_SKILLS_STATE="$ROOT_SKILLS_DIR/.sync-state"
 CLAUDE_DIR="$ROOT_DIR/.claude"
@@ -58,7 +61,7 @@ collect_non_submodule_app_skill_dirs() {
         | while IFS= read -r app_dir; do
             [ -n "$app_dir" ] || continue
 
-            if [ "$(git -C "$app_dir" rev-parse --show-toplevel 2>/dev/null || true)" != "$ROOT_DIR" ]; then
+            if [ "$(git -C "$app_dir" rev-parse --show-toplevel 2>/dev/null || true)" != "$ROOT_TOP" ]; then
                 continue
             fi
 
