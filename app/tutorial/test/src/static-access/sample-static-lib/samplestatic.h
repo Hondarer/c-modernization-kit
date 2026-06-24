@@ -1,13 +1,12 @@
 /**
  *******************************************************************************
  *  @file           samplestatic.h
- *  @brief          static 変数アクセスのサンプル ライブラリ ヘッダー ファイル。
+ *  @brief          static 変数へアクセスするサンプル API を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/25
  *  @version        1.0.0
  *
- *  このライブラリは static 変数へのアクセス方法を示すサンプルです。\n
- *  テスト フレームワークでの static 変数のテスト手法を説明します。
+ *  テスト フレームワークで static 変数をテストする方法を説明します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

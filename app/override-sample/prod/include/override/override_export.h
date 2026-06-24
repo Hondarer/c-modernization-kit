@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           override_export.h
- *  @brief          override の Windows DLL エクスポート/呼び出し規約マクロ。
+ *  @brief          override の Windows DLL エクスポートおよび呼び出し規約マクロを定義します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0

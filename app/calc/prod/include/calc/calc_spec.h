@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calc_spec.h
- *  @brief          calc ライブラリ (動的リンク用) のヘッダー ファイル。
+ *  @brief          動的リンク用 calc ライブラリの API を公開します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0

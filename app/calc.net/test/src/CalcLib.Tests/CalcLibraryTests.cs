@@ -2,13 +2,10 @@
 /**
  *******************************************************************************
  *  @file           CalcLibraryTests.cs
- *  @brief          CalcLibrary の単体テスト。
+ *  @brief          CalcLibrary の計算演算とエラー処理を検証する単体テストを実装します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
- *
- *  CalcLibrary クラスの包括的な単体テストを含み、
- *  すべての計算演算とエラー処理をテストします。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

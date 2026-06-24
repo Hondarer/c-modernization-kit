@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calc.h
- *  @brief          calc ライブラリの公開アンブレラ ヘッダー。
+ *  @brief          calc ライブラリの公開 API をまとめて取り込みます。
  *  @author         c-modenization-kit sample team
  *  @date           2026/05/21
  *  @version        1.0.0

@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           override.h
- *  @brief          override ライブラリの公開アンブレラ ヘッダー。
+ *  @brief          override ライブラリの公開 API をまとめて取り込みます。
  *  @author         c-modenization-kit sample team
  *  @date           2026/05/21
  *  @version        1.0.0

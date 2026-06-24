@@ -1,12 +1,10 @@
 /**
  *******************************************************************************
  *  @file           calcHandler.c
- *  @brief          calcHandler 関数の実装ファイル。
+ *  @brief          演算種別に基づいて適切な計算関数を呼び出すハンドラーを提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
- *
- *  演算種別に基づいて適切な計算関数を呼び出すハンドラーを提供します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

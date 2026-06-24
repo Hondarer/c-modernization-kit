@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           service-sample_linux_events.c
- *  @brief          Linux 向け OS イベント監視スレッドの実装。
+ *  @brief          Linux の OS イベントを監視するスレッドを実装します。
  *  @author         Tetsuo Honda
  *  @date           2026/06/10
  *  @version        1.0.0

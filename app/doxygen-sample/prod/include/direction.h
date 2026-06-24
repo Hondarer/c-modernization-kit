@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           direction.h
- *  @brief          direction.h ヘッダー。
+ *  @brief          Doxygen で引数の入出力方向を記述する例を提供します。
  *
  *  @hideincludedbygraph
  *

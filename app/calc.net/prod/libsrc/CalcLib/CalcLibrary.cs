@@ -2,7 +2,7 @@
 /**
  *******************************************************************************
  *  @file           CalcLibrary.cs
- *  @brief          calc ライブラリ ラッパーのメイン公開 API。
+ *  @brief          ネイティブ calc ライブラリを使用して計算する公開 API を提供します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0

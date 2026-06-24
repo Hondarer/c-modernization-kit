@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           service-sample_windows.c
- *  @brief          クロスプラットフォーム サービス サンプル Windows 実装。
+ *  @brief          クロスプラットフォーム サービスの Windows 向け処理を実装します。
  *  @author         Tetsuo Honda
  *  @date           2026/06/07
  *  @version        1.0.0

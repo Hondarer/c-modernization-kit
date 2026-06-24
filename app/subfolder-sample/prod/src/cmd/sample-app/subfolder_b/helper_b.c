@@ -1,6 +1,6 @@
 /**
  * @file helper_b.c
- * @brief サブフォルダー B のヘルパー関数
+ * @brief サブフォルダー B のヘルパー関数を提供します。
  */
 
 #include "../sample-app.h"

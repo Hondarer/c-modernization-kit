@@ -2,12 +2,10 @@
 /**
  *******************************************************************************
  *  @file           CalcKind.cs
- *  @brief          計算演算種別の列挙型。
+ *  @brief          calc ライブラリでサポートする計算演算の種別を定義します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
- *
- *  calc ライブラリでサポートされる計算演算の種別を定義します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

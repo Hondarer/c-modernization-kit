@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           src/cmd/add/add.c
- *  @brief          add 関数の呼び出しコマンド。
+ *  @brief          2 つの整数を加算するコマンドを実装します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0

@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calc_export.h
- *  @brief          calc の Windows DLL エクスポート/呼び出し規約マクロ。
+ *  @brief          calc の Windows DLL エクスポートおよび呼び出し規約マクロを定義します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0

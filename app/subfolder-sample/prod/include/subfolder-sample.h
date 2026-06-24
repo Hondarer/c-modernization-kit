@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           subfolder-sample.h
- *  @brief          subfolder-sample ライブラリの公開ヘッダー。
+ *  @brief          subfolder-sample ライブラリの公開 API を提供します。
  *
  *  @hideincludedbygraph
  *

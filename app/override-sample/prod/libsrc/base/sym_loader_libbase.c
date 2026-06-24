@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           sym_loader_libbase.c
- *  @brief          sym_loader が管理する関数ポインターの実定義。
+ *  @brief          sym_loader が管理する関数ポインターの実体を定義します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/23
  *  @version        1.0.0

@@ -1,13 +1,12 @@
 /**
  *******************************************************************************
  *  @file           libsrc/samplestatic/samplestatic.c
- *  @brief          samplestatic 関数の実装ファイル。
+ *  @brief          static 変数へアクセスする samplestatic 関数を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/25
  *  @version        1.0.0
  *
- *  static 変数へのアクセスを提供する関数を実装します。\n
- *  テスト フレームワークでの static 変数のテスト手法を示すサンプルです。
+ *  テスト フレームワークで static 変数をテストする方法を示します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

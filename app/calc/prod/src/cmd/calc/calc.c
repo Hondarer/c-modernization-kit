@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           src/cmd/calc/calc.c
- *  @brief          calc 関数の呼び出しコマンド。
+ *  @brief          指定された演算子に基づいて 2 つの整数を計算するコマンドを実装します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0

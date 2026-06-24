@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           override_spec.h
- *  @brief          override ライブラリ (動的リンク用) のヘッダー ファイル。
+ *  @brief          動的リンク用 override ライブラリの API を公開します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0

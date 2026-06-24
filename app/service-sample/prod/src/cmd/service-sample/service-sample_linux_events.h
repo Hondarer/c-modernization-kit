@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           service-sample_linux_events.h
- *  @brief          Linux 向け OS イベント監視スレッドの定義。
+ *  @brief          Linux の OS イベントを監視するスレッドのインターフェイスを宣言します。
  *  @author         Tetsuo Honda
  *  @date           2026/06/10
  *  @version        1.0.0

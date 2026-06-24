@@ -1,6 +1,6 @@
 /**
  * @file main.c
- * @brief サブフォルダー make 検証用メイン プログラム
+ * @brief サブフォルダーを含む make ビルドを検証するエントリ ポイントを提供します。
  */
 
 #include <stdio.h>

@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           typedef_void.h
- *  @brief          typedef_void.h ヘッダー。
+ *  @brief          Doxygen で void 型の typedef を説明する記述例を提供します。
  *
  *  @hideincludedbygraph
  *

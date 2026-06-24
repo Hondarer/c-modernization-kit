@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calcbase.h
- *  @brief          calcbase ライブラリの公開アンブレラ ヘッダー。
+ *  @brief          calcbase ライブラリの公開 API をまとめて取り込みます。
  *  @author         c-modenization-kit sample team
  *  @date           2026/05/21
  *  @version        1.0.0

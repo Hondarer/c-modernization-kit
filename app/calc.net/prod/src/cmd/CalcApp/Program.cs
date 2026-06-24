@@ -2,7 +2,7 @@
 /**
  *******************************************************************************
  *  @file           Program.cs
- *  @brief          calc コマンドの .NET 版。
+ *  @brief          指定された演算子に基づいて 2 つの整数を計算する .NET コマンドを実装します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0

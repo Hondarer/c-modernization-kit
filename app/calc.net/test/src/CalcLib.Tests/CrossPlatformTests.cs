@@ -2,13 +2,10 @@
 /**
  *******************************************************************************
  *  @file           CrossPlatformTests.cs
- *  @brief          クロスプラットフォーム互換性テスト。
+ *  @brief          クロスプラットフォーム互換性とプラットフォーム検出機能を検証します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
- *
- *  クロスプラットフォーム互換性と
- *  プラットフォーム検出機能を検証するテストを含みます。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

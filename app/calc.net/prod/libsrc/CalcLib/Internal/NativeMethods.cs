@@ -2,7 +2,7 @@
 /**
  *******************************************************************************
  *  @file           NativeMethods.cs
- *  @brief          ネイティブ calc ライブラリの P/Invoke 宣言。
+ *  @brief          ネイティブ calc ライブラリの P/Invoke 宣言を提供します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0

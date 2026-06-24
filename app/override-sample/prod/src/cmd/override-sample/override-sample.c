@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           override-sample.c
- *  @brief          override-sample メイン プログラム。
+ *  @brief          関数の動的オーバーライドを実演するコマンドを実装します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0

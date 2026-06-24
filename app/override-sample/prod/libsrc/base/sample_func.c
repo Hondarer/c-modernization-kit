@@ -1,12 +1,10 @@
 /**
  *******************************************************************************
  *  @file           sample_func.c
- *  @brief          sample_func 関数の実装ファイル。
+ *  @brief          外部ライブラリに処理を委譲できるサンプル関数を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
- *
- *  外部ライブラリに処理を委譲可能なサンプル関数を提供します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *

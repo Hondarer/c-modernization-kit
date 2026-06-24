@@ -2,13 +2,12 @@
 /**
  *******************************************************************************
  *  @file           CalcResult.cs
- *  @brief          計算結果クラス。
+ *  @brief          計算演算の結果を表します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
  *
- *  計算演算の結果クラスを定義します。
- *  成功ステータス、結果値、エラー コードを含みます。
+ *  成功ステータス、結果値、エラー コードを保持します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

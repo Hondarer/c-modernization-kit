@@ -1,6 +1,6 @@
 /**
  * @file sample-app.h
- * @brief サブフォルダー make 検証用サンプル アプリの共通ヘッダー。
+ * @brief サブフォルダーを含む make ビルドの検証に使用する共通 API を宣言します。
  */
 
 #ifndef SAMPLE_APP_H

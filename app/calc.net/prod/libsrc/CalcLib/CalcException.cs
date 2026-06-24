@@ -2,13 +2,10 @@
 /**
  *******************************************************************************
  *  @file           CalcException.cs
- *  @brief          計算エラー用のカスタム例外。
+ *  @brief          ネイティブ calc ライブラリの計算エラーを表すカスタム例外を定義します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
- *
- *  ネイティブ calc ライブラリで発生する計算エラー用の
- *  カスタム例外クラスを定義します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

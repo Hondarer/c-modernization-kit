@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           image.c
- *  @brief          イメージ引用のサンプル。
+ *  @brief          Doxygen コメント内で画像を参照する例を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/04/26
  *  @version        1.0.0

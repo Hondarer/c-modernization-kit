@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           libbase_lifecycle.c
- *  @brief          base.so / base.dll のロード・アンロード時処理。
+ *  @brief          base 共有ライブラリのロード時とアンロード時の処理を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0

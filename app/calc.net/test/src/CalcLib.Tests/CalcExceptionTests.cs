@@ -2,13 +2,10 @@
 /**
  *******************************************************************************
  *  @file           CalcExceptionTests.cs
- *  @brief          CalcException の単体テスト。
+ *  @brief          CalcException のプロパティと動作を検証する単体テストを実装します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/20
  *  @version        1.0.0
- *
- *  CalcException クラスの単体テストを含み、
- *  例外のプロパティと動作を検証します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *

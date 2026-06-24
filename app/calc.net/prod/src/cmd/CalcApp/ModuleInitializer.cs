@@ -2,7 +2,7 @@
 /**
  *******************************************************************************
  *  @file           ModuleInitializer.cs
- *  @brief          モジュール初期化処理。
+ *  @brief          プラットフォームに応じたアセンブリ解決処理を初期化します。
  *  @author         c-modernization-kit sample team
  *  @date           2025/12/23
  *  @version        1.0.0

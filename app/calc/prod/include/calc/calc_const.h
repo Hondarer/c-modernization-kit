@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           calc_const.h
- *  @brief          calc ライブラリの定数ファイル。
+ *  @brief          calc ライブラリで使用する定数を定義します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0

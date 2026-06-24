@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  *  @file           override_func.c
- *  @brief          override_func 関数の実装ファイル。
+ *  @brief          base ライブラリの処理をオーバーライドする関数を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0

@@ -1,12 +1,10 @@
 /**
  *******************************************************************************
  *  @file           libsrc/calcbase/multiply.c
- *  @brief          multiply 関数の実装ファイル。
+ *  @brief          2 つの整数を乗算する multiply 関数を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
- *
- *  2 つの整数を乗算する関数を提供します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
