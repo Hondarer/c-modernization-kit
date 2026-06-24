@@ -1,3 +1,6 @@
+# app 直下 makefile テンプレート
+# app/makefile で使用する標準テンプレート
+# 本ファイルの直接編集は禁止する。
 MAKEFW_HOME := $(strip $(MAKEFW_HOME))
 ifeq ($(MAKEFW_HOME),)
     $(error MAKEFW_HOME is required. Export MAKEFW_HOME before running make)
