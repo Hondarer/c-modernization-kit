@@ -65,7 +65,7 @@ extern "C"
      *                  または result が NULL の場合は失敗を返します。
      *                  呼び出し側で戻り値のチェックを行ってください。
      */
-    CALC_EXPORT extern int CALC_API calcHandler(const int kind, const int a, const int b, int *result);
+    CALC_EXPORT extern int CALC_API calcHandler(int kind, int a, int b, int *result);
 
 #ifdef __cplusplus
 }

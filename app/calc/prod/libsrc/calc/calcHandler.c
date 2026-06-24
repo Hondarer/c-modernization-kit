@@ -19,7 +19,7 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-CALC_EXPORT int CALC_API calcHandler(const int kind, const int a, const int b, int *result)
+int calcHandler(const int kind, const int a, const int b, int *result)
 {
     if (result == NULL)
     {

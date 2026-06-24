@@ -46,7 +46,7 @@ extern "C"
      *
      *  @warning        result が NULL の場合は -1 を返します。
      */
-    BASE_EXPORT extern int BASE_API sample_func(const int a, const int b, int *result);
+    BASE_EXPORT extern int BASE_API sample_func(int a, int b, int *result);
 
     /**
      *  @brief          printf と同じ書式でコンソールに出力します。

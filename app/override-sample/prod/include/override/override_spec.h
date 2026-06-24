@@ -54,7 +54,7 @@ extern "C"
      *
      *  @warning        result が NULL の場合は -1 を返します。
      */
-    BASE_EXT_EXPORT extern int BASE_EXT_API override_func(const int a, const int b, int *result);
+    BASE_EXT_EXPORT extern int BASE_EXT_API override_func(int a, int b, int *result);
 
 #ifdef __cplusplus
 }

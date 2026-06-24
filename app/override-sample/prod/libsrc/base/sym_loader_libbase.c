@@ -49,7 +49,7 @@ const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_arra
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-BASE_EXPORT int BASE_API sym_loader_info_libbase()
+int sym_loader_info_libbase()
 {
     printf("- congigpath: %s\n", sym_loader_configpath);
     return com_util_sym_loader_info(fobj_array_libbase, fobj_length_libbase);

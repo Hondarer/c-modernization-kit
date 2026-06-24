@@ -9,7 +9,7 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-SUBFOLDER_SAMPLE_EXPORT int SUBFOLDER_SAMPLE_API func_b(void)
+int func_b(void)
 {
     return 2;
 }

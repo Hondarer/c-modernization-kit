@@ -18,7 +18,7 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-BASE_EXPORT int BASE_API sample_func(const int a, const int b, int *result)
+int sample_func(const int a, const int b, int *result)
 {
     if (result == NULL)
     {

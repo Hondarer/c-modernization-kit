@@ -55,7 +55,7 @@ extern "C"
      *                  呼び出し側で範囲チェックを行ってください。
      *  @warning        result が NULL の場合は失敗を返します。
      */
-    extern int add(const int a, const int b, int *result);
+    extern int add(int a, int b, int *result);
 
     /**
      *  @brief          2 つの整数を減算します。
@@ -78,7 +78,7 @@ extern "C"
      *                  呼び出し側で範囲チェックを行ってください。
      *  @warning        result が NULL の場合は失敗を返します。
      */
-    extern int subtract(const int a, const int b, int *result);
+    extern int subtract(int a, int b, int *result);
 
     /**
      *  @brief          2 つの整数を乗算します。
@@ -101,7 +101,7 @@ extern "C"
      *                  呼び出し側で範囲チェックを行ってください。
      *  @warning        result が NULL の場合は失敗を返します。
      */
-    extern int multiply(const int a, const int b, int *result);
+    extern int multiply(int a, int b, int *result);
 
     /**
      *  @brief          2 つの整数を除算します。
@@ -123,7 +123,7 @@ extern "C"
      *
      *  @warning        ゼロ除算の場合、または result が NULL の場合は失敗を返します。
      */
-    extern int divide(const int a, const int b, int *result);
+    extern int divide(int a, int b, int *result);
 
 #ifdef __cplusplus
 }
