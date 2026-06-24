@@ -130,3 +130,13 @@ $(SUBDIRS) :
 	else \
 		:; # echo "Skipping directory '$@' (no makefile)"; \
 	fi
+
+# app 間の依存順 (--app-order) を並列ビルド (-j) 下でも維持する。
+# 各 app を直前の app へ order-only 依存させ、default/clean の並列プリレキジット
+# でも依存元 app が先行ビルドされるようにする (test/doxy/with-cov は直列 for ループ)。
+# Keep the resolved app-order under parallel make (-j): chain each app after the
+# previous via order-only prerequisites.
+_MAKEFW_PREV_APP :=
+$(foreach d,$(SUBDIRS),\
+	$(if $(_MAKEFW_PREV_APP),$(eval $(d): | $(_MAKEFW_PREV_APP)))\
+	$(eval _MAKEFW_PREV_APP := $(d)))
