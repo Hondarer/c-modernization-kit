@@ -181,6 +181,10 @@ jobs:
               exit 1
           }
           & $opencppCommandPath --help
+          if ($LASTEXITCODE -gt 1) {
+              Write-Host "ERROR: OpenCppCoverage help failed with exit code $LASTEXITCODE."
+              exit $LASTEXITCODE
+          }
         shell: pwsh
 
       - name: Restore ReportGenerator cache
