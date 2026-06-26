@@ -9,6 +9,8 @@
  *  @par            実装メモ
  *  定義側 (ソース) に記載した実装メモです。
  *
+ *  @par            使用例
+ *
  *  @code{.c}
     int result = merge_in_group(1);
  *  @endcode
@@ -26,6 +28,8 @@ int merge_in_group(int value)
  *
  *  @par            実装メモ
  *  定義側 (ソース) に記載した実装メモです。
+ *
+ *  @par            使用例
  *
  *  @code{.c}
     int result = merge(1);
