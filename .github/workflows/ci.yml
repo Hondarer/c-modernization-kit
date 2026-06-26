@@ -17,6 +17,8 @@ env:
   DOCSFW_HOME: ${{ github.workspace }}/framework/docsfw
   DOXYFW_HOME: ${{ github.workspace }}/framework/doxyfw
   TESTFW_HOME: ${{ github.workspace }}/framework/testfw
+  OPENCPPCOVERAGE_VERSION: "0.9.9.0"
+  REPORTGENERATOR_VERSION: "5.4.3"
 
 jobs:
   build-and-test-linux:
@@ -115,47 +117,60 @@ jobs:
       - name: Check NBSP
         run: python3 bin/check-nbsp.py --force
 
+      - name: Restore OpenCppCoverage cache
+        uses: actions/cache@v5
+        with:
+          path: C:\Program Files\OpenCppCoverage
+          key: opencppcoverage-${{ runner.os }}-${{ env.OPENCPPCOVERAGE_VERSION }}
+
       - name: Install OpenCppCoverage
         run: |
           $maxRetry = 3
           $retryCount = 0
-          $installed = $false
           $opencppPath = "C:\Program Files\OpenCppCoverage"
           $opencppExe = Join-Path $opencppPath "OpenCppCoverage.exe"
           $chocoLogPath = "C:\ProgramData\chocolatey\logs\chocolatey.log"
-          while (-not $installed -and $retryCount -lt $maxRetry) {
-              $retryCount++
-              Write-Host "choco install opencppcoverage (attempt $retryCount/$maxRetry)..."
-              choco install opencppcoverage -y
-              $chocoExitCode = $LASTEXITCODE
-              $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
-              if ((Test-Path $opencppExe) -or $null -ne $resolvedCommand) {
-                  $installed = $true
-                  Write-Host "OpenCppCoverage is available."
-              } elseif ($retryCount -lt $maxRetry) {
-                  Write-Host "OpenCppCoverage is not available yet (choco exit code $chocoExitCode). Retrying in 10 seconds..."
-                  Start-Sleep -Seconds 10
+          if (Test-Path $opencppExe) {
+              Write-Host "OpenCppCoverage cache restored; skipping install."
+          } else {
+              $installed = $false
+              while (-not $installed -and $retryCount -lt $maxRetry) {
+                  $retryCount++
+                  Write-Host "choco install opencppcoverage $env:OPENCPPCOVERAGE_VERSION (attempt $retryCount/$maxRetry)..."
+                  choco install opencppcoverage --version=$env:OPENCPPCOVERAGE_VERSION -y
+                  $chocoExitCode = $LASTEXITCODE
+                  $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
+                  if ((Test-Path $opencppExe) -or $null -ne $resolvedCommand) {
+                      $installed = $true
+                      Write-Host "OpenCppCoverage is available."
+                  } elseif ($retryCount -lt $maxRetry) {
+                      Write-Host "OpenCppCoverage is not available yet (choco exit code $chocoExitCode). Retrying in 10 seconds..."
+                      Start-Sleep -Seconds 10
+                  }
               }
-          }
-          if (-not $installed) {
-              Write-Host "ERROR: choco install opencppcoverage failed after $maxRetry attempts."
-              if (Test-Path $chocoLogPath) {
-                  Write-Host "Last 50 lines of ${chocoLogPath}:"
-                  Get-Content $chocoLogPath -Tail 50
-              } else {
-                  Write-Host "Chocolatey log not found at $chocoLogPath"
+              if (-not $installed) {
+                  Write-Host "ERROR: choco install opencppcoverage failed after $maxRetry attempts."
+                  if (Test-Path $chocoLogPath) {
+                      Write-Host "Last 50 lines of ${chocoLogPath}:"
+                      Get-Content $chocoLogPath -Tail 50
+                  } else {
+                      Write-Host "Chocolatey log not found at $chocoLogPath"
+                  }
+                  exit 1
               }
-              exit 1
           }
 
           # PATH に追加 (GitHub Actions の永続化メカニズムを使用)
           $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
-          if (Test-Path $opencppPath) {
+          if (Test-Path $opencppExe) {
               $opencppBinPath = $opencppPath
+              $opencppCommandPath = $opencppExe
           } elseif ($null -ne $resolvedCommand) {
               $opencppBinPath = Split-Path -Parent $resolvedCommand.Source
+              $opencppCommandPath = $resolvedCommand.Source
           } else {
               $opencppBinPath = $null
+              $opencppCommandPath = $null
           }
           if ($null -ne $opencppBinPath) {
               Write-Host "`nAdding OpenCppCoverage to PATH from $opencppBinPath..."
@@ -165,10 +180,29 @@ jobs:
               Write-Host "ERROR: OpenCppCoverage executable not found after installation."
               exit 1
           }
+          & $opencppCommandPath --help
         shell: pwsh
 
+      - name: Restore ReportGenerator cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.dotnet/tools
+          key: reportgenerator-${{ runner.os }}-${{ env.REPORTGENERATOR_VERSION }}
+
       - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+        run: |
+          $dotnetToolsPath = Join-Path $env:USERPROFILE ".dotnet\tools"
+          Add-Content -Path $env:GITHUB_PATH -Value $dotnetToolsPath
+          $env:PATH = "$dotnetToolsPath;$env:PATH"
+
+          $reportGeneratorExe = Join-Path $dotnetToolsPath "reportgenerator.exe"
+          if (Test-Path $reportGeneratorExe) {
+              Write-Host "ReportGenerator cache restored; skipping install."
+          } else {
+              dotnet tool install --global dotnet-reportgenerator-globaltool --version $env:REPORTGENERATOR_VERSION
+          }
+
+          reportgenerator -h
         shell: pwsh
 
       - name: Setup MSVC environment
