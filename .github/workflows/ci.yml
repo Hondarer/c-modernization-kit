@@ -337,7 +337,7 @@ jobs:
           docs_warn_list=$(mktemp)
           {
             [ -f docs.warn ] && printf '%s\n' docs.warn
-            find app -type f -name "doxy.warn" | sort
+            find app -type f -name "doxy*.warn" | sort
           } > "$docs_warn_list"
           if [ -s "$docs_warn_list" ]; then
             zip -r pages/artifacts/docs-warns.zip -@ < "$docs_warn_list" || true
@@ -366,7 +366,7 @@ jobs:
           name: docs-warns
           path: |
             docs.warn
-            app/**/doxy.warn
+            app/**/doxy*.warn
           if-no-files-found: ignore
 
       - name: Upload html artifacts (doxygen)
@@ -717,3 +717,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+

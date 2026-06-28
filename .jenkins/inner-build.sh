@@ -76,11 +76,11 @@ if [ "${BUILD_DOCS}" = "1" ]; then
     make doxy 2>&1 | tee "logs/linux-${OS_NAME}-doxy.log"
     make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 
-    # ドキュメント警告 (docs.warn, doxy.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
+    # ドキュメント警告 (docs.warn, doxy*.warn) のアーカイブ (.github/workflows/ci.yml に準拠)
     docs_warn_list=$(mktemp)
     {
         [ -f /workspace/docs.warn ] && printf '%s\n' docs.warn
-        find /workspace/app -type f -name "doxy.warn" 2>/dev/null | sed 's#^/workspace/##' | sort
+        find /workspace/app -type f -name "doxy*.warn" 2>/dev/null | sed 's#^/workspace/##' | sort
     } > "$docs_warn_list"
     if [ -s "$docs_warn_list" ]; then
         (cd /workspace && zip -r "pages/artifacts/docs-warns.zip" -@ < "$docs_warn_list") || true
@@ -191,3 +191,4 @@ LANG_TABLE
 </html>
 INDEX_BOTTOM
 } > /workspace/pages/index.html
+
