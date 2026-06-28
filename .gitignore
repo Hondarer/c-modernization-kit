@@ -45,6 +45,7 @@ coverage
 results
 core
 coverage.xml
+.gitignore.tmp.*
 
 ## ビルド/Doxy スキップ用スタンプ
 make_build.stamp
