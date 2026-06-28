@@ -6,5 +6,5 @@
 <!-- 別ウインドウに開き、かつ、target id を固定したいため、html で記載 -->
 
 <ul>
-    <li><a href="../../../../doxygen/calc_public/dependency/index.html" target="calc_public_dependency">依存関係レポート</a></li>
+    <li><a href="../../../../doxygen/calc_internal/dependency/index.html" target="calc_internal_dependency">依存関係レポート</a></li>
 </ul>
