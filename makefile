@@ -110,18 +110,55 @@ cleandocs :
 docs :
 	$(MAKE) skills
 	@if [ -d framework/docsfw ] && [ -f "$(DOCSFW_SCRIPT)" ]; then \
+		DOCS_PID=""; \
+		TEE_PID=""; \
 		DOCS_LOGFILE=$$(mktemp); \
 		DOCS_PIPE="$$DOCS_LOGFILE.pipe"; \
+		docs_kill_pid() { \
+			_pid="$$1"; \
+			[ -n "$$_pid" ] || return 0; \
+			kill "$$_pid" 2>/dev/null || true; \
+			case "$$(uname -s 2>/dev/null)" in \
+				MINGW*|MSYS*|CYGWIN*) \
+					if command -v taskkill.exe >/dev/null 2>&1; then \
+						MSYS2_ARG_CONV_EXCL='*' taskkill.exe /PID "$$_pid" /T /F >/dev/null 2>&1 || true; \
+					fi; \
+					;; \
+			esac; \
+		}; \
+		docs_cleanup() { \
+			rm -f "$$DOCS_PIPE"; \
+			if [ "$${DOCS_KEEP_LOG:-0}" != "1" ]; then \
+				rm -f "$$DOCS_LOGFILE"; \
+			fi; \
+		}; \
+		docs_on_signal() { \
+			_exit_code="$$1"; \
+			trap - INT TERM HUP EXIT; \
+			docs_kill_pid "$$DOCS_PID"; \
+			docs_kill_pid "$$TEE_PID"; \
+			wait "$$DOCS_PID" 2>/dev/null || true; \
+			wait "$$TEE_PID" 2>/dev/null || true; \
+			docs_cleanup; \
+			exit "$$_exit_code"; \
+		}; \
+		trap 'docs_on_signal 130' INT; \
+		trap 'docs_on_signal 143' TERM; \
+		trap 'docs_on_signal 129' HUP; \
+		trap 'docs_cleanup' EXIT; \
 		rm -f "$(DOCS_WARN_FILE)"; \
 		mkfifo "$$DOCS_PIPE"; \
 		tee "$$DOCS_LOGFILE" < "$$DOCS_PIPE" & \
 		TEE_PID=$$!; \
-		if "$(BASH)" "$(DOCSFW_SCRIPT)" --workspaceFolder="$(CURDIR)" > "$$DOCS_PIPE" 2>&1; then \
+		"$(BASH)" "$(DOCSFW_SCRIPT)" --workspaceFolder="$(CURDIR)" > "$$DOCS_PIPE" 2>&1 & \
+		DOCS_PID=$$!; \
+		if wait "$$DOCS_PID"; then \
 			DOCS_EXIT=0; \
 		else \
 			DOCS_EXIT=$$?; \
 		fi; \
 		wait $$TEE_PID; \
+		DOCS_KEEP_LOG=1; \
 		rm -f "$$DOCS_PIPE"; \
 		if [ -x "$(EXTRACT_DOCS_WARNINGS)" ]; then \
 			"$(EXTRACT_DOCS_WARNINGS)" "$$DOCS_LOGFILE" "$(DOCS_WARN_FILE)"; \
