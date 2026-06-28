@@ -51,10 +51,6 @@ make_build.stamp
 make_test.stamp
 make_doxy.stamp
 
-## 中間ファイル (Doxygen)
-/xml/
-/xml_org/
-
 ## 中間ファイル (Coverity)
 idir
 

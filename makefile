@@ -10,6 +10,10 @@ DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown_core.sh
 DOCS_WARN_FILE := $(CURDIR)/docs.warn
 EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin/extract_docs_warnings.sh
 TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
+ROOT_RUNNER = $(MAKEFW_HOME)/bin/run_ordered_subdir_target.sh
+FRAMEWORK_MAKE_DIRS = $(TESTFW_HOME)
+
+include $(MAKEFW_HOME)/makefiles/_parallel.mk
 
 export WORKSPACE_DIR
 export MAKEFW_HOME
@@ -34,18 +38,36 @@ endif
 .PHONY: default
 default :
 	$(MAKE) skills
-	$(MAKE) -C $(TESTFW_HOME)
+	@$(call _MAKEFW_RESOLVE_PARALLEL_SHELL) \
+	framework_jobs="$$jobs"; \
+	if [ -z "$$framework_jobs" ]; then framework_jobs=1; fi; \
+	MAKEFW_SUBDIR_MAKE="$(MAKE)" "$(SHELL)" \
+		"$(ROOT_RUNNER)" \
+		--app-deps --silent-missing --echo-command --progress \
+		"$$framework_jobs" default "$(FRAMEWORK_MAKE_DIRS)"
 	$(MAKE) -C app
 
 .PHONY: with-cov
 with-cov :
 	$(MAKE) skills
-	$(MAKE) -C $(TESTFW_HOME)
+	@$(call _MAKEFW_RESOLVE_PARALLEL_SHELL) \
+	framework_jobs="$$jobs"; \
+	if [ -z "$$framework_jobs" ]; then framework_jobs=1; fi; \
+	MAKEFW_SUBDIR_MAKE="$(MAKE)" "$(SHELL)" \
+		"$(ROOT_RUNNER)" \
+		--app-deps --silent-missing --echo-command --progress \
+		"$$framework_jobs" default "$(FRAMEWORK_MAKE_DIRS)"
 	$(MAKE) -C app with-cov
 
 .PHONY: test
 test :
-	$(MAKE) -C $(TESTFW_HOME)
+	@$(call _MAKEFW_RESOLVE_PARALLEL_SHELL) \
+	framework_jobs="$$jobs"; \
+	if [ -z "$$framework_jobs" ]; then framework_jobs=1; fi; \
+	MAKEFW_SUBDIR_MAKE="$(MAKE)" "$(SHELL)" \
+		"$(ROOT_RUNNER)" \
+		--app-deps --silent-missing --echo-command --progress \
+		"$$framework_jobs" test "$(FRAMEWORK_MAKE_DIRS)"
 	$(MAKE) -C app test
 
 .PHONY: doxy
@@ -64,7 +86,13 @@ check-nbsp :
 
 .PHONY: clean
 clean :
-	$(MAKE) -C $(TESTFW_HOME) clean
+	@$(call _MAKEFW_RESOLVE_PARALLEL_SHELL) \
+	framework_jobs="$$jobs"; \
+	if [ -z "$$framework_jobs" ]; then framework_jobs=1; fi; \
+	MAKEFW_SUBDIR_MAKE="$(MAKE)" "$(SHELL)" \
+		"$(ROOT_RUNNER)" \
+		--app-deps --silent-missing --echo-command --progress \
+		"$$framework_jobs" clean "$(FRAMEWORK_MAKE_DIRS)"
 	$(MAKE) -C app clean
 	$(MAKE) cleandocs
 
