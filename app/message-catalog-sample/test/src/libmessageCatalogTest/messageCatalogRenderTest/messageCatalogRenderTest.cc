@@ -147,6 +147,47 @@ TEST_F(messageCatalogRenderTest, argument_kind_text)
     EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
     EXPECT_STREQ("(null)", dest);              // [確認_正常系] - NULL が (null) と表現されること。
 
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_CHAR;
+    values[0].value.char_value = 'A';
+    actual_ret = format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 印字できる文字を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("'A'", dest);                 // [確認_正常系] - 単引用符で囲んだ 1 文字になること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_CHAR;
+    values[0].value.char_value = (char)0x8A;
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 印字できない文字を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("138 (0x8a)", dest);          // [確認_正常系] - 10 進数と 16 進数が併記されること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_INT8;
+    values[0].value.int8_value = INT8_C(-12);
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 符号付き 8 bit 整数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("-12", dest);                 // [確認_正常系] - 10 進数で表現されること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_UINT8;
+    values[0].value.uint8_value = UINT8_C(200);
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 符号なし 8 bit 整数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("200", dest);                 // [確認_正常系] - 10 進数で表現されること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_INT16;
+    values[0].value.int16_value = INT16_C(-1200);
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 符号付き 16 bit 整数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("-1200", dest);               // [確認_正常系] - 10 進数で表現されること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_UINT16;
+    values[0].value.uint16_value = UINT16_C(48000);
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 符号なし 16 bit 整数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("48000", dest);               // [確認_正常系] - 10 進数で表現されること。
+
     values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_UINT32;
     values[0].value.uint32_value = 12U;
     actual_ret =
@@ -168,6 +209,20 @@ TEST_F(messageCatalogRenderTest, argument_kind_text)
     EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
     EXPECT_STREQ("4294967296", dest);          // [確認_正常系] - 10 進数で表現されること。
 
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_HEX8;
+    values[0].value.uint8_value = UINT8_C(0x8A);
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 8 bit の 16 進数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("0x8a", dest);                // [確認_正常系] - 2 桁の英小文字 16 進数で表現されること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_HEX16;
+    values[0].value.uint16_value = UINT16_C(0xBEEF);
+    actual_ret =
+        format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 16 bit の 16 進数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("0xbeef", dest);              // [確認_正常系] - 4 桁の英小文字 16 進数で表現されること。
+
     values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_HEX32;
     values[0].value.uint32_value = 0x1234ABCDU;
     actual_ret =
@@ -187,6 +242,13 @@ TEST_F(messageCatalogRenderTest, argument_kind_text)
     actual_ret = format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - バイト数を展開する。
     EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
     EXPECT_STREQ("4096", dest);                // [確認_正常系] - 10 進数で表現されること。
+
+    values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_SSIZE;
+    values[0].value.int64_value = INT64_C(-1);
+    actual_ret = format_engine_render_text(dest, sizeof(dest), "{0}", values,
+                                           1); // [手順] - 符号付きのバイト数を展開する。
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_STREQ("-1", dest);                  // [確認_正常系] - 10 進数で表現されること。
 
     values[0].kind = MESSAGE_CATALOG_ARGUMENT_KIND_POINTER;
     values[0].value.pointer_value = sample_object;
@@ -214,7 +276,7 @@ TEST_F(messageCatalogRenderTest, unknown_argument_kind)
 {
     // Arrange
     int actual_ret;
-    values[0].kind = (message_catalog_argument_kind)15;
+    values[0].kind = (message_catalog_argument_kind)19;
 
     // Pre-Assert
 

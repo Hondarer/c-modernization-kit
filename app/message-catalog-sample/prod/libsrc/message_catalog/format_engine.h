@@ -59,9 +59,14 @@ extern "C"
         union format_engine_argument_storage
         {
             const char *string_value;  /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_STRING の値です。 */
+            char char_value;           /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_CHAR の値です。 */
+            int8_t int8_value;         /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_INT8 の値です。 */
+            uint8_t uint8_value;       /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_UINT8 と HEX8 の値です。 */
+            int16_t int16_value;       /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_INT16 の値です。 */
+            uint16_t uint16_value;     /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_UINT16 と HEX16 の値です。 */
             int32_t int32_value;       /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_INT32 の値です。 */
             uint32_t uint32_value;     /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_UINT32 と HEX32 の値です。 */
-            int64_t int64_value;       /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_INT64 の値です。 */
+            int64_t int64_value;       /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_INT64 と SSIZE の値です。 */
             uint64_t uint64_value;     /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_UINT64 と HEX64 の値です。 */
             size_t size_value;         /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_SIZE の値です。 */
             const void *pointer_value; /**< @ref MESSAGE_CATALOG_ARGUMENT_KIND_POINTER の値です。 */
@@ -83,7 +88,8 @@ extern "C"
      *  引数種別が未知の場合は、その時点で読み取りを打ち切ります。以降の値は取り出せません。
      *
      *  既定引数拡張と一致しない `va_arg` の指定は未定義動作となるため、
-     *  引数種別ごとの取り出し型を本関数へ閉じ込めています。
+     *  引数種別ごとの取り出し型を本関数へ閉じ込めています。\n
+     *  `char` と 8 bit、16 bit の整数の種別は `int` として取り出し、種別が表す幅へ変換して格納します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。内部に共有状態を持ちません。

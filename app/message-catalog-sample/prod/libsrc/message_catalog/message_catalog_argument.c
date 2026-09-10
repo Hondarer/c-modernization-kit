@@ -19,8 +19,18 @@
 #include "format_engine.h"
 
 #include <message_catalog/message_catalog_const.h>
+#include <assert.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
+
+/*
+ *  `char` と 8 bit、16 bit の整数は、既定引数拡張によって `int` へ昇格します。
+ *  この昇格は `int` がすべての値を表現できることが条件であり、成り立たない処理系では
+ *  符号なしの実引数が `unsigned int` へ昇格し、`va_arg(args, int)` が未定義動作になります。
+ *  対象プラットフォームでは成り立つため、前提を静的表明で固定します。
+ */
+static_assert(INT_MAX >= UINT16_MAX, "int must represent every uint16_t value for default argument promotion");
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -42,6 +52,29 @@ int format_engine_collect_arguments(const message_catalog_entry *entry, va_list 
             values[index].value.string_value = va_arg(args, const char *);
             break;
 
+        /* 昇格後の `int` として取り出し、種別が表す幅へ変換する */
+        case MESSAGE_CATALOG_ARGUMENT_KIND_CHAR:
+            values[index].value.char_value = (char)va_arg(args, int);
+            break;
+
+        case MESSAGE_CATALOG_ARGUMENT_KIND_INT8:
+            values[index].value.int8_value = (int8_t)va_arg(args, int);
+            break;
+
+        case MESSAGE_CATALOG_ARGUMENT_KIND_UINT8:
+        case MESSAGE_CATALOG_ARGUMENT_KIND_HEX8:
+            values[index].value.uint8_value = (uint8_t)va_arg(args, int);
+            break;
+
+        case MESSAGE_CATALOG_ARGUMENT_KIND_INT16:
+            values[index].value.int16_value = (int16_t)va_arg(args, int);
+            break;
+
+        case MESSAGE_CATALOG_ARGUMENT_KIND_UINT16:
+        case MESSAGE_CATALOG_ARGUMENT_KIND_HEX16:
+            values[index].value.uint16_value = (uint16_t)va_arg(args, int);
+            break;
+
         case MESSAGE_CATALOG_ARGUMENT_KIND_INT32:
             values[index].value.int32_value = va_arg(args, int32_t);
             break;
@@ -52,6 +85,7 @@ int format_engine_collect_arguments(const message_catalog_entry *entry, va_list 
             break;
 
         case MESSAGE_CATALOG_ARGUMENT_KIND_INT64:
+        case MESSAGE_CATALOG_ARGUMENT_KIND_SSIZE:
             values[index].value.int64_value = va_arg(args, int64_t);
             break;
 

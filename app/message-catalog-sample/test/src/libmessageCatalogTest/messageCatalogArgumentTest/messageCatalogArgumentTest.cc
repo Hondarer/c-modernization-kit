@@ -119,6 +119,35 @@ TEST_F(messageCatalogArgumentTest, all_argument_kinds)
     EXPECT_EQ((const void *)sample_object, values[0].value.pointer_value); // [確認_正常系] - ポインターを取り出すこと。
     EXPECT_DOUBLE_EQ(12.5, values[1].value.double_value); // [確認_正常系] - 倍精度浮動小数点数を取り出すこと。
     EXPECT_EQ(2, values[2].value.error_code_value);       // [確認_正常系] - エラー コードを取り出すこと。
+
+    // Arrange
+    memset(values, 0, sizeof(values));
+    memset(&entry, 0, sizeof(entry));
+
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_CHAR);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_INT8);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_UINT8);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_INT16);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_UINT16);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_HEX8);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_HEX16);
+    add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_SSIZE);
+
+    // Act
+    actual_ret = collect_arguments(&entry, values, 'A', -12, 200, -1200, 48000, 0x8A, 0xBEEF,
+                                   INT64_C(-1)); // [手順] - 昇格して渡る種別と SSIZE で値を取り出す。
+
+    // Assert
+    EXPECT_EQ(MESSAGE_CATALOG_OK, actual_ret);              // [確認_正常系] - 戻り値が MESSAGE_CATALOG_OK であること。
+    EXPECT_EQ('A', values[0].value.char_value);             // [確認_正常系] - 文字を取り出すこと。
+    EXPECT_EQ(INT8_C(-12), values[1].value.int8_value);     // [確認_正常系] - 符号付き 8 bit 整数を取り出すこと。
+    EXPECT_EQ(UINT8_C(200), values[2].value.uint8_value);   // [確認_正常系] - 符号なし 8 bit 整数を取り出すこと。
+    EXPECT_EQ(INT16_C(-1200), values[3].value.int16_value); // [確認_正常系] - 符号付き 16 bit 整数を取り出すこと。
+    EXPECT_EQ(UINT16_C(48000), values[4].value.uint16_value); // [確認_正常系] - 符号なし 16 bit 整数を取り出すこと。
+    EXPECT_EQ(UINT8_C(0x8A), values[5].value.uint8_value);    // [確認_正常系] - 16 進表現の 8 bit 整数を取り出すこと。
+    EXPECT_EQ(UINT16_C(0xBEEF),
+              values[6].value.uint16_value);             // [確認_正常系] - 16 進表現の 16 bit 整数を取り出すこと。
+    EXPECT_EQ(INT64_C(-1), values[7].value.int64_value); // [確認_正常系] - 符号付きのバイト数を取り出すこと。
 }
 
 // 列挙に無い引数種別が定義エラーになることの確認
@@ -128,7 +157,7 @@ TEST_F(messageCatalogArgumentTest, unknown_argument_kind)
     int actual_ret;
 
     add_kind(MESSAGE_CATALOG_ARGUMENT_KIND_INT32);
-    add_kind((message_catalog_argument_kind)15);
+    add_kind((message_catalog_argument_kind)19);
 
     // Pre-Assert
 

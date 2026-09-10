@@ -31,6 +31,12 @@
 /** 文字列引数が NULL のときに出力する表現です。 */
 #define NULL_STRING_TEXT "(null)"
 
+/** 1 文字として出力する ASCII の下限です。 */
+#define CHAR_PRINTABLE_MIN 0x20U
+
+/** 1 文字として出力する ASCII の上限です。 */
+#define CHAR_PRINTABLE_MAX 0x7EU
+
 /**
  *  @brief          書き込み先と、書き込みの経過を保持します。
  *
@@ -114,6 +120,38 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
         }
         return MESSAGE_CATALOG_OK;
 
+    case MESSAGE_CATALOG_ARGUMENT_KIND_CHAR:
+    {
+        /* isprint はロケールに依存するため、ASCII の印字可能範囲を直接判定する */
+        const unsigned int code = (unsigned int)(unsigned char)value->value.char_value;
+
+        if ((code >= CHAR_PRINTABLE_MIN) && (code <= CHAR_PRINTABLE_MAX))
+        {
+            (void)snprintf(value_text, sizeof(value_text), "'%c'", (char)code);
+        }
+        else
+        {
+            (void)snprintf(value_text, sizeof(value_text), "%u (0x%02x)", code, code);
+        }
+    }
+    break;
+
+    case MESSAGE_CATALOG_ARGUMENT_KIND_INT8:
+        (void)snprintf(value_text, sizeof(value_text), "%" PRId8, value->value.int8_value);
+        break;
+
+    case MESSAGE_CATALOG_ARGUMENT_KIND_UINT8:
+        (void)snprintf(value_text, sizeof(value_text), "%" PRIu8, value->value.uint8_value);
+        break;
+
+    case MESSAGE_CATALOG_ARGUMENT_KIND_INT16:
+        (void)snprintf(value_text, sizeof(value_text), "%" PRId16, value->value.int16_value);
+        break;
+
+    case MESSAGE_CATALOG_ARGUMENT_KIND_UINT16:
+        (void)snprintf(value_text, sizeof(value_text), "%" PRIu16, value->value.uint16_value);
+        break;
+
     case MESSAGE_CATALOG_ARGUMENT_KIND_INT32:
         (void)snprintf(value_text, sizeof(value_text), "%" PRId32, value->value.int32_value);
         break;
@@ -130,6 +168,14 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
         (void)snprintf(value_text, sizeof(value_text), "%" PRIu64, value->value.uint64_value);
         break;
 
+    case MESSAGE_CATALOG_ARGUMENT_KIND_HEX8:
+        (void)snprintf(value_text, sizeof(value_text), "0x%02" PRIx8, value->value.uint8_value);
+        break;
+
+    case MESSAGE_CATALOG_ARGUMENT_KIND_HEX16:
+        (void)snprintf(value_text, sizeof(value_text), "0x%04" PRIx16, value->value.uint16_value);
+        break;
+
     case MESSAGE_CATALOG_ARGUMENT_KIND_HEX32:
         (void)snprintf(value_text, sizeof(value_text), "0x%08" PRIx32, value->value.uint32_value);
         break;
@@ -140,6 +186,10 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
 
     case MESSAGE_CATALOG_ARGUMENT_KIND_SIZE:
         (void)snprintf(value_text, sizeof(value_text), "%zu", value->value.size_value);
+        break;
+
+    case MESSAGE_CATALOG_ARGUMENT_KIND_SSIZE:
+        (void)snprintf(value_text, sizeof(value_text), "%" PRId64, value->value.int64_value);
         break;
 
     case MESSAGE_CATALOG_ARGUMENT_KIND_POINTER:

@@ -300,7 +300,7 @@ TEST_F(messageCatalogFormatTest, unknown_argument_kind)
 {
     // Arrange
     int actual_ret;
-    fake_catalog_set_argument_kind(FAKE_CATALOG_INDEX_ONE_ARGUMENT, 0, (message_catalog_argument_kind)15);
+    fake_catalog_set_argument_kind(FAKE_CATALOG_INDEX_ONE_ARGUMENT, 0, (message_catalog_argument_kind)19);
 
     // Pre-Assert
 
