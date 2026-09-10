@@ -27,29 +27,33 @@ void fake_catalog_reset(void)
 {
     static const message_catalog_entry initial_entries[FAKE_CATALOG_ENTRY_COUNT] = {
         {FAKE_CATALOG_ID_NO_ARGUMENT,
-         MESSAGE_CATALOG_TRACE_LEVEL_INFO,
+         3, /* 分類値。ライブラリは解釈しない */
          0,
          0,
          {0},
          "MSG_ID_0001",
-         {"started", "開始しました。", NULL},
-         {"no argument", "引数を取らないメッセージです。", NULL}},
+         {[MESSAGE_CATALOG_LANGUAGE_NEUTRAL] = "started", [MESSAGE_CATALOG_LANGUAGE_JAPANESE] = "開始しました。"},
+         {[MESSAGE_CATALOG_LANGUAGE_NEUTRAL] = "no argument",
+          [MESSAGE_CATALOG_LANGUAGE_JAPANESE] = "引数を取らないメッセージです。"}},
         {FAKE_CATALOG_ID_TWO_ARGUMENTS,
-         MESSAGE_CATALOG_TRACE_LEVEL_ERROR,
+         1, /* 分類値。ライブラリは解釈しない */
          2,
          0,
          {MESSAGE_CATALOG_ARGUMENT_KIND_STRING, MESSAGE_CATALOG_ARGUMENT_KIND_INT32},
          "MSG_ID_0002",
-         {"file {0} number {1}", "ファイル {0} 番号 {1}", "number {1} of {0}"},
-         {"reordered", "英語の書式が位置指定を入れ替えます。", NULL}},
+         {[MESSAGE_CATALOG_LANGUAGE_NEUTRAL] = "file {0} number {1}",
+          [MESSAGE_CATALOG_LANGUAGE_JAPANESE] = "ファイル {0} 番号 {1}",
+          [MESSAGE_CATALOG_LANGUAGE_ENGLISH] = "number {1} of {0}"},
+         {[MESSAGE_CATALOG_LANGUAGE_NEUTRAL] = "reordered",
+          [MESSAGE_CATALOG_LANGUAGE_JAPANESE] = "英語の書式が位置指定を入れ替えます。"}},
         {FAKE_CATALOG_ID_ONE_ARGUMENT,
-         MESSAGE_CATALOG_TRACE_LEVEL_WARNING,
+         2, /* 分類値。ライブラリは解釈しない */
          1,
          0,
          {MESSAGE_CATALOG_ARGUMENT_KIND_SIZE},
          "MSG_ID_0004",
-         {"limit {0}", "上限 {0}", NULL},
-         {"", NULL, NULL}}};
+         {[MESSAGE_CATALOG_LANGUAGE_NEUTRAL] = "limit {0}", [MESSAGE_CATALOG_LANGUAGE_JAPANESE] = "上限 {0}"},
+         {[MESSAGE_CATALOG_LANGUAGE_NEUTRAL] = ""}}};
     int index;
 
     for (index = 0; index < FAKE_CATALOG_ENTRY_COUNT; index++)
@@ -70,9 +74,9 @@ void fake_catalog_set_id(const int index, const int message_id)
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-void fake_catalog_set_level(const int index, const message_catalog_trace_level level)
+void fake_catalog_set_category(const int index, const int category)
 {
-    s_entries[index].level = level;
+    s_entries[index].category = category;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

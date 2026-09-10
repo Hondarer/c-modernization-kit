@@ -36,7 +36,6 @@
 #include <message_catalog/message_catalog_const.h>
 #include <message_catalog/message_catalog_entry.h>
 #include <message_catalog/message_catalog_language.h>
-#include <message_catalog/message_catalog_trace_level.h>
 #include <stdarg.h>
 #include <stddef.h>
 
@@ -185,7 +184,7 @@ extern "C"
      *  @return         すべての書式が正しい場合は @ref MESSAGE_CATALOG_OK を返します。
      *  @return         書式の構文が不正な場合、位置指定が引数個数を超える場合、
      *                  引数個数が @ref MESSAGE_CATALOG_ARGUMENT_MAX を超える場合、
-     *                  レベルが範囲外の場合、添字表からメッセージへ到達できない場合、
+     *                  添字表からメッセージへ到達できない場合、
      *                  またはニュートラル言語の書式か備考が欠けている場合は
      *                  @ref MESSAGE_CATALOG_ERR_INVALID_DEFINITION を返します。
      *
@@ -195,7 +194,7 @@ extern "C"
      *
      *  出力引数の値は、戻り値が @ref MESSAGE_CATALOG_ERR_INVALID_DEFINITION の場合だけ有効です。\n
      *  最初に検出した 1 件を報告し、その時点で走査を打ち切ります。\n
-     *  引数個数、レベル、添字表の不正は言語に依らないため、@p language_out には言語ではない
+     *  引数個数と添字表の不正は言語に依らないため、@p language_out には言語ではない
      *  @ref MESSAGE_CATALOG_LANGUAGE_COUNT を格納します。
      *
      *  カタログは生成物であるため、通常はビルド時または起動時に一度実行すれば十分です。\n
@@ -208,20 +207,27 @@ extern "C"
     extern int message_catalog_verify(int *message_id_out, message_catalog_language *language_out);
 
     /**
-     *  @brief          メッセージの重大度を返します。
+     *  @brief          メッセージの分類値を返します。
      *  @param[in]      message_id 参照するメッセージの ID。利用者の列挙の値を指定します。
-     *  @return         カタログが保持するトレース レベルを返します。
-     *  @return         カタログに存在しないメッセージ ID では
-     *                  @ref MESSAGE_CATALOG_TRACE_LEVEL_NONE を返します。
+     *  @return         カタログが保持する分類値を返します。
+     *  @return         カタログに存在しないメッセージ ID では 0 を返します。
      *
-     *  レベルは言語に依らず、メッセージ ID ごとに固定です。\n
-     *  本 app はトレースの出力機構を持たないため、レベルの用途は利用側が決めます。
+     *  分類値は、ライブラリが解釈しない補足情報です。\n
+     *  重大度、用途、出力先など、値の意味と有効な範囲は利用者が決めます。\n
+     *  ライブラリは値を検査せず、保持して返すだけです。
+     *
+     *  0 は分類なしを表します。\n
+     *  利用者が 0 を意味のある分類値として登録することもできますが、
+     *  その場合はカタログに存在しないメッセージ ID と区別できません。\n
+     *  区別が必要な場合は、先に @ref message_catalog_id_text で存在を確認してください。
+     *
+     *  分類値は言語に依らず、メッセージ ID ごとに固定です。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。\n
      *  読み取り専用のカタログだけを参照します。
      */
-    extern message_catalog_trace_level message_catalog_level(int message_id);
+    extern int message_catalog_category(int message_id);
 
     /**
      *  @brief          メッセージ ID の固定文字列を返します。

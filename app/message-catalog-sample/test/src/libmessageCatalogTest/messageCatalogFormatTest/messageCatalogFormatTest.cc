@@ -260,8 +260,8 @@ TEST_F(messageCatalogFormatTest, metadata)
     const char *actual_note_fallback;
     const char *actual_unknown_note;
     const char *actual_unknown_id_text;
-    message_catalog_trace_level actual_level;
-    message_catalog_trace_level actual_unknown_level;
+    int actual_category;
+    int actual_unknown_category;
 
     // Pre-Assert
 
@@ -273,20 +273,19 @@ TEST_F(messageCatalogFormatTest, metadata)
     message_catalog_set_language(MESSAGE_CATALOG_LANGUAGE_ENGLISH);
     actual_note_fallback =
         message_catalog_note(FAKE_CATALOG_ID_NO_ARGUMENT); // [手順] - 英語の備考が無い状態で備考を取得する。
-    actual_level = message_catalog_level(FAKE_CATALOG_ID_NO_ARGUMENT); // [手順] - レベルを取得する。
-    actual_unknown_level =
-        message_catalog_level(FAKE_CATALOG_ID_UNKNOWN); // [手順] - 未登録のメッセージ ID でレベルを取得する。
+    actual_category = message_catalog_category(FAKE_CATALOG_ID_NO_ARGUMENT); // [手順] - 分類値を取得する。
+    actual_unknown_category =
+        message_catalog_category(FAKE_CATALOG_ID_UNKNOWN); // [手順] - 未登録のメッセージ ID で分類値を取得する。
     actual_unknown_id_text =
         message_catalog_id_text(FAKE_CATALOG_ID_UNKNOWN); // [手順] - 未登録のメッセージ ID で固定文字列を取得する。
     actual_unknown_note =
         message_catalog_note(FAKE_CATALOG_ID_UNKNOWN); // [手順] - 未登録のメッセージ ID で備考を取得する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                        // [確認_正常系] - 固定文字列を取得できること。
-    EXPECT_STREQ("MSG_ID_0001", actual_id_text);               // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(MESSAGE_CATALOG_TRACE_LEVEL_INFO, actual_level); // [確認_正常系] - カタログのレベルを返すこと。
-    EXPECT_EQ(MESSAGE_CATALOG_TRACE_LEVEL_NONE,
-              actual_unknown_level); // [確認_異常系] - 未登録のメッセージ ID では NONE を返すこと。
+    ASSERT_NE(nullptr, actual_id_text);          // [確認_正常系] - 固定文字列を取得できること。
+    EXPECT_STREQ("MSG_ID_0001", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
+    EXPECT_EQ(3, actual_category);               // [確認_正常系] - カタログの分類値をそのまま返すこと。
+    EXPECT_EQ(0, actual_unknown_category);       // [確認_異常系] - 未登録のメッセージ ID では 0 を返すこと。
     EXPECT_STREQ("引数を取らないメッセージです。",
                  actual_note_japanese); // [確認_正常系] - 現在の言語の備考を返すこと。
     EXPECT_STREQ("no argument",

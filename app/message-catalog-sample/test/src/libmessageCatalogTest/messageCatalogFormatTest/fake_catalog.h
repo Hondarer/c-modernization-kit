@@ -63,11 +63,11 @@ extern "C"
     void fake_catalog_set_id(int index, int message_id);
 
     /**
-     *  @brief          指定したメッセージのレベルを書き換えます。
-     *  @param[in]      index 書き換えるメッセージの添字。
-     *  @param[in]      level 設定するレベル。
+     *  @brief          指定したメッセージの分類値を書き換えます。
+     *  @param[in]      index    書き換えるメッセージの添字。
+     *  @param[in]      category 設定する分類値。
      */
-    void fake_catalog_set_level(int index, message_catalog_trace_level level);
+    void fake_catalog_set_category(int index, int category);
 
     /**
      *  @brief          指定したメッセージの引数個数を書き換えます。

@@ -14,6 +14,7 @@ message-catalog-sample は、メッセージを体系化して組み立てるサ
 ## 入口
 
 - [作業規則](AGENTS.md)
+- [機能仕様](docs/functional-spec/README.md)
 - [アーキテクチャー](docs/architecture.md)
 - [発行文書](docs/README.md)
 - [Doxygen の入口](prod/README.md)
@@ -22,7 +23,7 @@ message-catalog-sample は、メッセージを体系化して組み立てるサ
 
 | ディレクトリ | 内容 |
 |---|---|
-| `prod/include/` | 公開ヘッダー。結果コード、引数種別、レベル、言語、カタログの型、API |
+| `prod/include/` | 公開ヘッダー。結果コード、引数種別、言語、カタログの型、API |
 | `prod/include_internal/` | 注入されたカタログへの参照 API。書式の展開とカタログの境界 |
 | `prod/libsrc/message_catalog/` | 書式の展開、可変長引数の取り出し、言語とカタログの保持 |
 | `prod/src/cmd/message-catalog-sample/` | 利用例を示すコマンドと、利用者が用意するカタログ定義 |
@@ -36,17 +37,18 @@ make
 ./prod/cbin/message-catalog-sample
 ```
 
-```text
-[メッセージ ID、レベル、備考]
-  MSG_ID_0002  ERROR     The path is emitted as given by the caller. The error is an errno or Win32 error number.
+1 件ごとに、メッセージ ID の固定文字列、レベル、組み立てたメッセージ、備考を表示します。
 
+```text
 [Neutral]
-  Failed to open file config.json. Error code=2 (0x00000002)
-  Record 42 has an unexpected signature 0x1234abcd.
+
+  MSG_ID_0002: ERROR    Failed to open file config.json. Error code=2 (0x00000002)
+  The path is emitted as given by the caller. The error is an errno or Win32 error number.
 
 [日本語]
-  ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)
-  シグネチャー 0x1234abcd は、レコード 42 の想定と一致しません。
+
+  MSG_ID_0002: ERROR    ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)
+  パスは利用者の指定をそのまま出力します。エラー コードは errno または Win32 のエラー番号です。
 ```
 
 英語の出力はニュートラル言語と同じです。  

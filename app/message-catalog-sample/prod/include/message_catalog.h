@@ -35,6 +35,5 @@
 #include <message_catalog/message_catalog_entry.h>
 #include <message_catalog/message_catalog_language.h>
 #include <message_catalog/message_catalog_spec.h>
-#include <message_catalog/message_catalog_trace_level.h>
 
 #endif /* MESSAGE_CATALOG_H */

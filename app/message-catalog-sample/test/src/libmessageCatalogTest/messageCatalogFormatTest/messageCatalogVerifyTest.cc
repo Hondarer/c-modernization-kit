@@ -138,27 +138,6 @@ TEST_F(messageCatalogVerifyTest, argument_count_over_max)
               language); // [確認_異常系] - 言語に依らない不正として、言語ではない値を報告すること。
 }
 
-// レベルが範囲外のカタログが拒否されることの確認
-TEST_F(messageCatalogVerifyTest, level_out_of_range)
-{
-    // Arrange
-    int actual_ret;
-    fake_catalog_set_level(FAKE_CATALOG_INDEX_TWO_ARGUMENTS, (message_catalog_trace_level)7);
-
-    // Pre-Assert
-
-    // Act
-    actual_ret = message_catalog_verify(&message_id, &language); // [手順] - レベルが範囲外のカタログを確認する。
-
-    // Assert
-    EXPECT_EQ(MESSAGE_CATALOG_ERR_INVALID_DEFINITION,
-              actual_ret); // [確認_異常系] - 戻り値が MESSAGE_CATALOG_ERR_INVALID_DEFINITION であること。
-    EXPECT_EQ(FAKE_CATALOG_ID_TWO_ARGUMENTS,
-              message_id); // [確認_異常系] - 不正を検出したメッセージ ID を報告すること。
-    EXPECT_EQ(MESSAGE_CATALOG_LANGUAGE_COUNT,
-              language); // [確認_異常系] - 言語に依らない不正として、言語ではない値を報告すること。
-}
-
 // メッセージ ID が重複したカタログが拒否されることの確認
 TEST_F(messageCatalogVerifyTest, duplicated_message_id)
 {

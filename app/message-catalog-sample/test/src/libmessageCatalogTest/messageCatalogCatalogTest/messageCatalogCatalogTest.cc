@@ -4,10 +4,10 @@
 #include <message_catalog/catalog.h>
 #include <stddef.h>
 
-/** 注入するカタログです。内容は参照の確認だけに使用します。 */
+/** 注入するカタログです。内容は参照の確認だけに使用します。第 2 要素は分類値です。 */
 static const message_catalog_entry s_entries[] = {
-    {1, MESSAGE_CATALOG_TRACE_LEVEL_INFO, 0, 0, {}, "MSG_ID_0001", {"first", NULL, NULL}, {"", NULL, NULL}},
-    {3, MESSAGE_CATALOG_TRACE_LEVEL_ERROR, 0, 0, {}, "MSG_ID_0003", {"second", NULL, NULL}, {"", NULL, NULL}}};
+    {1, 3, 0, 0, {}, "MSG_ID_0001", {"first", NULL, NULL}, {"", NULL, NULL}},
+    {3, 1, 0, 0, {}, "MSG_ID_0003", {"second", NULL, NULL}, {"", NULL, NULL}}};
 
 /** @ref s_entries の要素数です。 */
 static const int s_entry_count = (int)(sizeof(s_entries) / sizeof(s_entries[0]));

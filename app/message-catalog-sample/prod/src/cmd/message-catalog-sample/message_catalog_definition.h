@@ -35,9 +35,46 @@ extern "C"
 #endif /* __cplusplus */
 
     /**
+     *  @brief          メッセージの重大度を表すトレース レベルです。
+     *
+     *  カタログの分類値 (@ref message_catalog_entry::category) として使用します。\n
+     *  ライブラリは分類値を解釈しないため、この意味付けは利用者側の取り決めです。
+     *
+     *  値は `app/c-platform` の `cplat_trace_level` と同一です。\n
+     *  この app は標準 C だけで完結するサンプルであり、cplat に依存しないため、
+     *  同じ値をここで再実装しています。\n
+     *  cplat を利用する app へ移植する場合は、値が同じであるため変換表なしで置き換えられます。
+     *
+     *  | message_catalog_trace_level          | ETW Level         | syslog severity |
+     *  | ------------------------------------ | ----------------- | --------------- |
+     *  | MESSAGE_CATALOG_TRACE_LEVEL_CRITICAL | Critical (1)      | LOG_CRIT (2)    |
+     *  | MESSAGE_CATALOG_TRACE_LEVEL_ERROR    | Error (2)         | LOG_ERR (3)     |
+     *  | MESSAGE_CATALOG_TRACE_LEVEL_WARNING  | Warning (3)       | LOG_WARNING (4) |
+     *  | MESSAGE_CATALOG_TRACE_LEVEL_INFO     | Informational (4) | LOG_INFO (6)    |
+     *  | MESSAGE_CATALOG_TRACE_LEVEL_VERBOSE  | Verbose (5)       | LOG_DEBUG (7)   |
+     *  | MESSAGE_CATALOG_TRACE_LEVEL_DEBUG    | Verbose (5)       | LOG_DEBUG (7)   |
+     *
+     *  @ref MESSAGE_CATALOG_TRACE_LEVEL_CRITICAL は 0 であり、分類なしと同じ値です。\n
+     *  分類値を取得しただけでは、登録されていないメッセージと区別できません。
+     *
+     *  本 app はトレースの出力機構を持ちません。\n
+     *  レベルは、利用側が出力先や絞り込みを決めるための情報として保持します。
+     */
+    typedef enum message_catalog_trace_level
+    {
+        MESSAGE_CATALOG_TRACE_LEVEL_CRITICAL = 0, /**< 致命的エラー。 */
+        MESSAGE_CATALOG_TRACE_LEVEL_ERROR = 1,    /**< エラー。 */
+        MESSAGE_CATALOG_TRACE_LEVEL_WARNING = 2,  /**< 警告。 */
+        MESSAGE_CATALOG_TRACE_LEVEL_INFO = 3,     /**< 情報。 */
+        MESSAGE_CATALOG_TRACE_LEVEL_VERBOSE = 4,  /**< 詳細な診断情報。 */
+        MESSAGE_CATALOG_TRACE_LEVEL_DEBUG = 5,    /**< 最も詳細な診断情報。 */
+        MESSAGE_CATALOG_TRACE_LEVEL_NONE = 6      /**< 出力しない。 */
+    } message_catalog_trace_level;
+
+    /**
      *  @brief          カタログに登録したメッセージを識別します。
      *
-     *  各 ID の引数スキーマ、レベル、言語別の書式と備考は、同じ生成単位の表が保持します。\n
+     *  各 ID の引数スキーマ、分類値、言語別の書式と備考は、同じ生成単位の表が保持します。\n
      *  値はログの解析対象として安定させ、既存の値は変更せず、追加は末尾への追記だけとします。
      */
     typedef enum message_catalog_id

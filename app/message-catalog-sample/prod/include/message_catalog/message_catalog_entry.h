@@ -30,7 +30,6 @@
 #include <message_catalog/message_catalog_argument.h>
 #include <message_catalog/message_catalog_const.h>
 #include <message_catalog/message_catalog_language.h>
-#include <message_catalog/message_catalog_trace_level.h>
 
 /**
  *  @ingroup        MESSAGE_CATALOG_PUBLIC_API
@@ -45,24 +44,30 @@ extern "C"
     /**
      *  @brief          1 つのメッセージ ID が持つカタログの 1 件分です。
      *
-     *  引数スキーマ、レベル、メタデータ、言語別の書式と備考を 1 つの表で保持します。\n
+     *  引数スキーマ、分類値、メタデータ、言語別の書式と備考を 1 つの表で保持します。\n
      *  @ref message_catalog_entry::arguments の先頭から
      *  @ref message_catalog_entry::argument_count 個までが有効です。
+     *
+     *  @ref message_catalog_entry::category はライブラリが解釈しない補足情報です。\n
+     *  値の意味と有効な範囲は利用者が決めます。ライブラリは保持して返すだけです。
      *
      *  @ref message_catalog_entry::texts と @ref message_catalog_entry::notes は、
      *  言語を添字として引きます。\n
      *  ニュートラル言語以外の要素が NULL の場合は、ニュートラル言語の要素を使用します。\n
      *  ニュートラル言語の要素は NULL にできません。
      *
+     *  この 2 つの配列は、@ref message_catalog_language をキーとした指示付き初期化子で記載できます。\n
+     *  記載しなかった言語の要素は暗黙にヌル ポインターとなるため、リソースを持たない言語を省略できます。
+     *
      *  @ref message_catalog_entry::pad は明示的アラインメントです。\n
      *  配列の初期化子では 0 を指定してください。
      */
     typedef struct message_catalog_entry
     {
-        int id;                            /**< メッセージ ID です。利用者の列挙の値を指定します。 */
-        message_catalog_trace_level level; /**< メッセージの重大度です。 */
-        int argument_count;                /**< 引数の個数です。0 以上、上限以下です。 */
-        unsigned int pad;                  /**< 明示的アラインメントです。0 を指定します。 */
+        int id;             /**< メッセージ ID です。利用者の列挙の値を指定します。 */
+        int category;       /**< 利用者が意味を決める分類値です。0 は分類なしを表します。 */
+        int argument_count; /**< 引数の個数です。0 以上、上限以下です。 */
+        unsigned int pad;   /**< 明示的アラインメントです。0 を指定します。 */
         message_catalog_argument_kind arguments[MESSAGE_CATALOG_ARGUMENT_MAX]; /**< 引数の種別です。 */
         const char *id_text;                                                   /**< メッセージ ID の固定文字列です。 */
         const char *texts[MESSAGE_CATALOG_LANGUAGE_COUNT]; /**< 言語別の書式です。NULL は自動選択です。 */

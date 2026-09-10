@@ -116,8 +116,8 @@ int message_catalog_verify(int *message_id_out, message_catalog_language *langua
 
         entry = message_catalog_internal_entry_at(entry_index);
 
+        /* 分類値はライブラリが解釈しないため、範囲は確認しない */
         if ((entry->argument_count < 0) || (entry->argument_count > MESSAGE_CATALOG_ARGUMENT_MAX) ||
-            ((unsigned int)entry->level > (unsigned int)MESSAGE_CATALOG_TRACE_LEVEL_NONE) ||
             (message_catalog_internal_find_entry(entry->id) != entry))
         {
             if (message_id_out != NULL)
@@ -126,7 +126,7 @@ int message_catalog_verify(int *message_id_out, message_catalog_language *langua
             }
             if (language_out != NULL)
             {
-                /* 引数個数、レベル、添字表の不正は言語に依らないため、言語ではない値を格納する */
+                /* 引数個数と添字表の不正は言語に依らないため、言語ではない値を格納する */
                 *language_out = MESSAGE_CATALOG_LANGUAGE_COUNT;
             }
             return MESSAGE_CATALOG_ERR_INVALID_DEFINITION;
@@ -166,17 +166,17 @@ int message_catalog_verify(int *message_id_out, message_catalog_language *langua
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-message_catalog_trace_level message_catalog_level(const int message_id)
+int message_catalog_category(const int message_id)
 {
     const message_catalog_entry *entry;
 
     entry = message_catalog_internal_find_entry(message_id);
     if (entry == NULL)
     {
-        return MESSAGE_CATALOG_TRACE_LEVEL_NONE;
+        return 0;
     }
 
-    return entry->level;
+    return entry->category;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

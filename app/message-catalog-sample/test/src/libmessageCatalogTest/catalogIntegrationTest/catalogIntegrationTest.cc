@@ -45,23 +45,23 @@ TEST_F(catalogIntegrationTest, metadata)
     const char *actual_id_text;
     const char *actual_note;
     const char *actual_unknown_id_text;
-    message_catalog_trace_level actual_level;
+    int actual_category;
 
     // Pre-Assert
 
     // Act
     actual_id_text =
         message_catalog_id_text(MESSAGE_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - メッセージ ID の固定文字列を取得する。
-    actual_note = message_catalog_note(MESSAGE_CATALOG_ID_FILE_OPEN_FAILED);   // [手順] - 備考を取得する。
-    actual_level = message_catalog_level(MESSAGE_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - レベルを取得する。
+    actual_note = message_catalog_note(MESSAGE_CATALOG_ID_FILE_OPEN_FAILED);         // [手順] - 備考を取得する。
+    actual_category = message_catalog_category(MESSAGE_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
     actual_unknown_id_text = message_catalog_id_text(0); // [手順] - 未登録のメッセージ ID で固定文字列を取得する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                         // [確認_正常系] - 固定文字列を取得できること。
-    ASSERT_NE(nullptr, actual_note);                            // [確認_正常系] - 備考を取得できること。
-    EXPECT_STREQ("MSG_ID_0002", actual_id_text);                // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(MESSAGE_CATALOG_TRACE_LEVEL_ERROR, actual_level); // [確認_正常系] - カタログのレベルが一致すること。
-    EXPECT_LT(0U, strlen(actual_note));                         // [確認_正常系] - 備考が空でないこと。
+    ASSERT_NE(nullptr, actual_id_text);                            // [確認_正常系] - 固定文字列を取得できること。
+    ASSERT_NE(nullptr, actual_note);                               // [確認_正常系] - 備考を取得できること。
+    EXPECT_STREQ("MSG_ID_0002", actual_id_text);                   // [確認_正常系] - 固定文字列が一致すること。
+    EXPECT_EQ(MESSAGE_CATALOG_TRACE_LEVEL_ERROR, actual_category); // [確認_正常系] - カタログの分類値が一致すること。
+    EXPECT_LT(0U, strlen(actual_note));                            // [確認_正常系] - 備考が空でないこと。
     EXPECT_EQ(nullptr, actual_unknown_id_text); // [確認_異常系] - 未登録のメッセージ ID では NULL を返すこと。
 }
 

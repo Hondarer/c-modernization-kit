@@ -17,4 +17,4 @@ message-catalog-sample コマンドのソース コードです。
 
 ## コマンド一覧
 
-- `message-catalog-sample` - カタログの点検、メタデータの一覧、全メッセージの言語別出力を行うコマンド
+- `message-catalog-sample` - カタログの注入と点検を行い、全メッセージを言語別に出力するコマンド
