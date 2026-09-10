@@ -21,7 +21,7 @@
 | `cjson`、`lua`、`sqlite`、`zlib` | 外部 OSS を makefw の規約でビルドする例 |
 | `doxygen-sample` | Doxygen 文書生成の例 |
 | `empty-lib` | ソースが空のライブラリを扱う例 |
-| `message-catalog-sample` | メッセージ ID、引数スキーマ、言語別リソースを分離してメッセージを組み立てる例 |
+| `string-catalog-sample` | 文字列 ID、引数スキーマ、言語別の文字列リソースを分離して文字列を組み立てる例 |
 | `override-sample` | ライブラリ関数を差し替える例 |
 | `service-sample` | Linux のデーモンと Windows サービスの実装例 |
 | `subfolder-sample` | サブディレクトリを再帰的にコンパイルする例 |
@@ -35,7 +35,7 @@
 - `calc`、`porter`、`empty-lib`、`override-sample`、`service-sample`、`subfolder-sample`、`tutorial` は `cplat` に依存します。
 - `cplat` は JSON 設定解析に `cjson`、圧縮・展開に `zlib` を利用します。
 - `calc.net` は `calc` に依存し、推移的に `cplat` も利用します。
-- `cjson`、`lua`、`sqlite`、`zlib`、`doxygen-sample`、`message-catalog-sample` は、ほかの app に依存しません。
+- `cjson`、`lua`、`sqlite`、`zlib`、`doxygen-sample`、`string-catalog-sample` は、ほかの app に依存しません。
 - `general` と `c-modernization-kit` は文書だけを持つため、ビルド依存関係を定義しません。
 
 makefw はこの依存グラフから app の実行順序を決定します。  
