@@ -6,7 +6,7 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応、
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。  
-現版では「一括変更で対象外とした箇所の明示」「命名規則」「ゼロ初期化」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
+現版では「一括変更で対象外とした箇所の明示」「命名規則」「ゼロ初期化」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
 
 本書は一般的な方針を定めるものです。  
 各 app のドキュメントに優先事項、特化事項がある場合は、それに従ってください。
@@ -2778,10 +2778,11 @@ grep -rnE '\?' app --include=*.c --include=*.h \
   | grep -vE 'app/(lua|sqlite)/prod/|app/cjson/prod/(include|libsrc/cjson)/cJSON(\.|_Utils\.)|/obj/|doxybook2_'
 ```
 
-## restrict、volatile、inline の利用
+## restrict、volatile、inline、register の利用
 
-`restrict`、`volatile`、`inline` は、コンパイラによる最適化やメモリ アクセスの評価に影響します。  
-これらを移植性やスレッド同期の代替として使用しません。
+`restrict`、`volatile`、`inline`、`register` は、コンパイラによる最適化やメモリ アクセスの評価に影響します。  
+これらを移植性やスレッド同期の代替として使用しません。  
+効果が処理系定義にとどまるものは使用しません。
 
 ### restrict による非 alias 契約
 
@@ -2893,6 +2894,39 @@ inline int sample_is_valid(const int value)
 既存の公開ヘッダーにある `static inline` 関数は、この規則の追加だけを理由に変更しません。  
 既存箇所の監査は別の変更で実施します。
 
+### register を使用しない
+
+`app/` 配下では `register` を使用しません。  
+記憶域クラス指定子を書かず、変数をレジスターへ置くかどうかはコンパイラの最適化へ任せます。  
+C++ で記述するテスト コードでも使用しません。  
+外部 OSS 由来のコードは対象外です。
+
+レガシ C の移植で `register` が付いた宣言を持ち込む場合は、移植時に除去します。  
+除去はアドレス取得の制約を外す方向の変更であり、変数の値と生存期間は変わりません。
+
+```c
+/* 望ましくない: register でレジスター割り当てを指示する */
+register size_t index = 0;
+register int total = 0;
+```
+
+```c
+/* 望ましい: 記憶域クラス指定子を書かず、最適化へ任せる */
+size_t index = 0;
+int total = 0;
+```
+
+> [!WARNING]
+> `register` を付けたオブジェクトへは単項 `&` を適用できません。  
+> C17 の制約違反であり、後からアドレスを取る変更を加えるとビルド エラーになります。  
+> C++ では `/std:c++17` 以降の MSVC が C5033 を報告します。
+
+> [!NOTE]
+> C17 の `register` は「アクセスをできるだけ速くすることを提案する」指定であり、提案がどの程度有効かは処理系定義です (N1570 6.7.1)。  
+> 現在のコンパイラはレジスター割り当てをレジスター アロケーターで決めるため、この提案は最適化結果を変えません。  
+> C++ では C++11 で非推奨となり、C++17 で言語から削除されました (P0001R1)。キーワード自体は将来の転用に備えて予約されたまま残ります。  
+> GNU 拡張の明示レジスター変数 (`register int *p asm("r12");`) だけは `register` キーワードを必須とします。GCC 専用であり、Linux/GCC と Windows/MSVC の双方で動作する構成を維持する要件を満たさないため、本規範では使用しません。
+
 ### 検証
 
 次の検索結果をレビューし、使用場所と理由が規則に合っていることを確認します。
@@ -2906,6 +2940,16 @@ rg -n '\b(restrict|_Restrict)\b|\bvolatile\b|\b(static[[:space:]]+)?inline\b|\bF
 
 `restrict` と強制インライン化には、レビュー資料として GCC と MSVC の計測結果を添付します。  
 `volatile` は許容用途、同期機構、根拠コメントの有無を確認します。
+
+`register` は、`eventlog-register` のようなコマンド名、「register 系 API」のような日本語本文、`failed to register` のような英語メッセージにも現れます。  
+記憶域クラス指定子としての使用だけを拾うため、直後に識別子が続く形へ絞り込み、grep は補助として目視を併用します。
+
+```bash
+rg -n '(^|[^-[:alnum:]_])register[[:space:]]+[A-Za-z_]' app \
+  --glob '*.{c,h,cc,cpp,hpp}' \
+  --glob '!app/<external-module>/**' \
+  --glob '!**/obj/**' --glob '!**/packages/**'
+```
 
 ## 関数引数の const 付与と Doxygen 方向タグ
 
@@ -3579,11 +3623,14 @@ Doxygen コメント (`/** */`) 内の `@code` ~ `@endcode` に書くコード�
 - MISRA C:2012 Rule 20.7 - 関数形式マクロの仮引数を括弧で囲むこと (本規範の括弧規則の参考)
 - [C++ FAQ: Const correctness](https://isocpp.org/wiki/faq/const-correctness) - `T **` を `const T **` へ変換できない理由と、`const T *const *` への誘導
 - [SEI CERT C EXP05-C](https://cmu-sei.github.io/secure-coding-standards/sei-cert-c-coding-standard/recommendations/expressions-exp/exp05-c/) - const 修飾を捨てるキャストを行わないこと
-- [ISO/IEC 9899:201x Committee Draft N1570](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) - `restrict`、`volatile`、inline 関数、データ競合に関する C11 の公開委員会草案
+- [ISO/IEC 9899:201x Committee Draft N1570](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) - `restrict`、`volatile`、inline 関数、`register`、データ競合に関する C11 の公開委員会草案
 - [SEI CERT C EXP43-C](https://wiki.sei.cmu.edu/confluence/spaces/c/pages/87151927/EXP43-C.+Avoid+undefined+behavior+when+using+restrict-qualified+pointers) - `restrict` の非 alias 契約へ違反して未定義動作を起こさないこと
 - [SEI CERT C POS40-C](https://wiki.sei.cmu.edu/confluence/display/c/POS40-C.%2BDo%2Bnot%2Buse%2Bvolatile%2Bas%2Ba%2Bsynchronization%2Bprimitive) - `volatile` を同期プリミティブとして使用しないこと
 - [Microsoft C キーワード](https://learn.microsoft.com/ja-jp/cpp/c-language/c-keywords?view=msvc-170) - MSVC の C11/C17 モードにおける `restrict`、`inline`、`_Atomic` のサポート状況
 - [Microsoft `__restrict`](https://learn.microsoft.com/ja-jp/cpp/cpp/extension-restrict?view=msvc-170) - MSVC 拡張と標準 C の `restrict` の相違
 - [GCC Inline](https://gcc.gnu.org/onlinedocs/gcc-9.4.0/gcc/Inline.html) - ISO C と GNU C における inline 関数の定義規則
+- [Remove Deprecated Use of the register Keyword (P0001R1)](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0001r1.html) - C++17 で `register` を言語から削除し、キーワードを予約のまま残すこと
+- [MSVC のコンパイラ警告 C5033](https://learn.microsoft.com/ja-jp/cpp/error-messages/compiler-warnings/c5033?view=msvc-170) - `/std:c++17` 以降で `register` が記憶域クラスとして扱われないこと
+- [GCC Explicit Register Variables](https://gcc.gnu.org/onlinedocs/gcc/Explicit-Register-Variables.html) - `register` キーワードを必須とする GNU 拡張 (本規範では使用しません)
 - [Doxygen Special Commands Reference](https://www.doxygen.nl/manual/commands.html#cmdpar) - `@par` が任意の表題を持つ段落を作ること
 - [POSIX.1-2024 Definitions](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap03.html) - thread-safe function の定義
