@@ -1,0 +1,5 @@
+/message_catalog_argument.c
+/message_catalog_catalog.c
+/message_catalog_format.c
+/message_catalog_language.c
+/message_catalog_render.c
