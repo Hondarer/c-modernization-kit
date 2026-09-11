@@ -42,12 +42,12 @@ make
 ```text
 [Neutral]
 
-  STRING_CATALOG_ID_0002: ERROR    Failed to open file config.json. Error code=2 (0x00000002)
+  SAMPLE_MESSAGES_ID_0002: ERROR    Failed to open file config.json. Error code=2 (0x00000002)
   The path is emitted as given by the caller. The error is an errno or Win32 error number.
 
 [日本語]
 
-  STRING_CATALOG_ID_0002: ERROR    ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)
+  SAMPLE_MESSAGES_ID_0002: ERROR    ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)
   パスは利用者の指定をそのまま出力します。エラー コードは errno または Win32 のエラー番号です。
 ```
 

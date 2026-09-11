@@ -6,8 +6,8 @@
 
 /** 参照するカタログです。内容は参照の確認だけに使用します。第 2 要素は分類値です。 */
 static const string_catalog_entry s_entries[] = {
-    {1, 3, 0, 0, {}, "STRING_CATALOG_ID_0001", {"first", NULL, NULL}, {"", NULL, NULL}},
-    {3, 1, 0, 0, {}, "STRING_CATALOG_ID_0003", {"second", NULL, NULL}, {"", NULL, NULL}}};
+    {1, 3, 0, 0, {}, "FAKE_ID_0001", {"first", NULL, NULL}, {"", NULL, NULL}},
+    {3, 1, 0, 0, {}, "FAKE_ID_0003", {"second", NULL, NULL}, {"", NULL, NULL}}};
 
 /** @ref s_entries の要素数です。 */
 static const int s_entry_count = (int)(sizeof(s_entries) / sizeof(s_entries[0]));
@@ -185,7 +185,7 @@ TEST_F(stringCatalogCatalogTest, multiple_catalogs_are_independent)
     // Assert
     ASSERT_NE(nullptr, actual_entry_first); // [確認_正常系] - 1 つ目のカタログから取得できること。
     ASSERT_NE(nullptr, actual_entry_other); // [確認_正常系] - 2 つ目のカタログから取得できること。
-    EXPECT_STREQ("STRING_CATALOG_ID_0001",
+    EXPECT_STREQ("FAKE_ID_0001",
                  actual_entry_first->id_text); // [確認_正常系] - 1 つ目の内容を返すこと。
     EXPECT_STREQ("OTHER_CATALOG_ID_0001",
                  actual_entry_other->id_text);  // [確認_正常系] - 2 つ目の内容を返すこと。

@@ -284,10 +284,10 @@ TEST_F(stringCatalogFormatTest, metadata)
         string_catalog_note(fake_catalog(), FAKE_CATALOG_ID_UNKNOWN); // [手順] - 未登録の文字列 ID で備考を取得する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                     // [確認_正常系] - 固定文字列を取得できること。
-    EXPECT_STREQ("STRING_CATALOG_ID_0001", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(3, actual_category);                          // [確認_正常系] - カタログの分類値をそのまま返すこと。
-    EXPECT_EQ(0, actual_unknown_category);                  // [確認_異常系] - 未登録の文字列 ID では 0 を返すこと。
+    ASSERT_NE(nullptr, actual_id_text);           // [確認_正常系] - 固定文字列を取得できること。
+    EXPECT_STREQ("FAKE_ID_0001", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
+    EXPECT_EQ(3, actual_category);                // [確認_正常系] - カタログの分類値をそのまま返すこと。
+    EXPECT_EQ(0, actual_unknown_category);        // [確認_異常系] - 未登録の文字列 ID では 0 を返すこと。
     EXPECT_STREQ("引数を取らない文字列です。",
                  actual_note_japanese); // [確認_正常系] - 現在の言語の備考を返すこと。
     EXPECT_STREQ("no argument",

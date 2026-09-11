@@ -12,7 +12,7 @@ string-catalog-sample コマンドのソース コードです。
 カタログに登録したすべての文字列を、ニュートラル言語、日本語、英語で組み立てて表示します。
 
 カタログはライブラリが抱え込まないため、この階層が利用者としてカタログ定義を用意します。  
-`string_catalog_definition.h` が文字列 ID の列挙、`string_catalog_definition.c` がカタログの配列と添字表です。  
+定義の正本は `sample_messages.jsonc` で、生成物の `gen/sample_messages.h` が文字列 ID の列挙、`gen/sample_messages.c` がカタログの配列と添字表です。  
 カタログを省略して呼び出す口も同じ生成物が用意します。
 
 ## コマンド一覧

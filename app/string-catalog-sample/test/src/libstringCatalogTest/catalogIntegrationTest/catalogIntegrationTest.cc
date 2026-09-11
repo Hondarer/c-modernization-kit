@@ -1,7 +1,7 @@
 #include <testfw.h>
 
-#include "string_catalog_definition.h"
-#include "string_catalog_trace_level.h"
+#include "sample_messages.h"
+#include "sample_trace_level.h"
 
 #include <string_catalog.h>
 #include <stdint.h>
@@ -24,14 +24,14 @@ class catalogIntegrationTest : public Test
 TEST_F(catalogIntegrationTest, injected_catalog_is_consistent)
 {
     // Arrange
-    int string_id = STRING_CATALOG_ID_STARTUP_COMPLETED;
+    int string_id = SAMPLE_MESSAGES_ID_STARTUP_COMPLETED;
     string_catalog_language language = STRING_CATALOG_LANGUAGE_NEUTRAL;
     int actual_ret;
 
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_verify(string_catalog_definition_catalog(), &string_id,
+    actual_ret = string_catalog_verify(sample_messages_catalog(), &string_id,
                                        &language); // [手順] - 注入したカタログ全体を確認する。
 
     // Assert
@@ -51,22 +51,22 @@ TEST_F(catalogIntegrationTest, metadata)
 
     // Act
     actual_id_text =
-        string_catalog_id_text(string_catalog_definition_catalog(),
-                               STRING_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - 文字列 ID の固定文字列を取得する。
-    actual_note = string_catalog_note(string_catalog_definition_catalog(),
-                                      STRING_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - 備考を取得する。
-    actual_category = string_catalog_category(string_catalog_definition_catalog(),
-                                              STRING_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_unknown_id_text = string_catalog_id_text(string_catalog_definition_catalog(),
+        string_catalog_id_text(sample_messages_catalog(),
+                               SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 文字列 ID の固定文字列を取得する。
+    actual_note = string_catalog_note(sample_messages_catalog(),
+                                      SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 備考を取得する。
+    actual_category = string_catalog_category(sample_messages_catalog(),
+                                              SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
+    actual_unknown_id_text = string_catalog_id_text(sample_messages_catalog(),
                                                     0); // [手順] - 未登録の文字列 ID で固定文字列を取得する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                           // [確認_正常系] - 固定文字列を取得できること。
-    ASSERT_NE(nullptr, actual_note);                              // [確認_正常系] - 備考を取得できること。
-    EXPECT_STREQ("STRING_CATALOG_ID_0002", actual_id_text);       // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(STRING_CATALOG_TRACE_LEVEL_ERROR, actual_category); // [確認_正常系] - カタログの分類値が一致すること。
-    EXPECT_LT(0U, strlen(actual_note));                           // [確認_正常系] - 備考が空でないこと。
-    EXPECT_EQ(nullptr, actual_unknown_id_text); // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
+    ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
+    ASSERT_NE(nullptr, actual_note);                         // [確認_正常系] - 備考を取得できること。
+    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
+    EXPECT_EQ(SAMPLE_TRACE_LEVEL_ERROR, actual_category);    // [確認_正常系] - カタログの分類値が一致すること。
+    EXPECT_LT(0U, strlen(actual_note));                      // [確認_正常系] - 備考が空でないこと。
+    EXPECT_EQ(nullptr, actual_unknown_id_text);              // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
 }
 
 // 波括弧のエスケープを含む文字列を組み立てられることの確認
@@ -79,8 +79,8 @@ TEST_F(catalogIntegrationTest, escaped_braces)
 
     // Act
     actual_ret = string_catalog_format(
-        string_catalog_definition_catalog(), dest, sizeof(dest),
-        STRING_CATALOG_ID_STARTUP_COMPLETED); // [手順] - 引数を取らない文字列を日本語で組み立てる。
+        sample_messages_catalog(), dest, sizeof(dest),
+        SAMPLE_MESSAGES_ID_STARTUP_COMPLETED); // [手順] - 引数を取らない文字列を日本語で組み立てる。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
@@ -98,8 +98,8 @@ TEST_F(catalogIntegrationTest, neutral_language)
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_format(string_catalog_definition_catalog(), dest, sizeof(dest),
-                                       STRING_CATALOG_ID_FILE_OPEN_FAILED, "config.json",
+    actual_ret = string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
+                                       SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
                                        2); // [手順] - ニュートラル言語で文字列を組み立てる。
 
     // Assert
@@ -121,13 +121,13 @@ TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
     // Pre-Assert
 
     // Act
-    actual_ret_japanese = string_catalog_format(string_catalog_definition_catalog(), dest, sizeof(dest),
-                                                STRING_CATALOG_ID_FILE_OPEN_FAILED, "config.json",
+    actual_ret_japanese = string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
+                                                SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
                                                 2); // [手順] - ファイル オープン失敗の文字列を日本語で組み立てる。
 
     string_catalog_set_language(STRING_CATALOG_LANGUAGE_ENGLISH);
-    actual_ret_english = string_catalog_format(string_catalog_definition_catalog(), english_dest, sizeof(english_dest),
-                                               STRING_CATALOG_ID_FILE_OPEN_FAILED, "config.json",
+    actual_ret_english = string_catalog_format(sample_messages_catalog(), english_dest, sizeof(english_dest),
+                                               SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
                                                2); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
 
     // Assert
@@ -154,14 +154,13 @@ TEST_F(catalogIntegrationTest, language_changes_order_only)
 
     // Act
     actual_ret_japanese = string_catalog_format(
-        string_catalog_definition_catalog(), dest, sizeof(dest), STRING_CATALOG_ID_RECORD_MISMATCH, UINT32_C(42),
+        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42),
         UINT32_C(0x1234ABCD)); // [手順] - レコード不一致の文字列を日本語で組み立てる。
 
     string_catalog_set_language(STRING_CATALOG_LANGUAGE_ENGLISH);
-    actual_ret_english =
-        string_catalog_format(string_catalog_definition_catalog(), english_dest, sizeof(english_dest),
-                              STRING_CATALOG_ID_RECORD_MISMATCH, UINT32_C(42),
-                              UINT32_C(0x1234ABCD)); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
+    actual_ret_english = string_catalog_format(
+        sample_messages_catalog(), english_dest, sizeof(english_dest), SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42),
+        UINT32_C(0x1234ABCD)); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK,
@@ -182,9 +181,9 @@ TEST_F(catalogIntegrationTest, repeated_placeholder)
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_format(string_catalog_definition_catalog(), dest, sizeof(dest),
-                                       STRING_CATALOG_ID_THROUGHPUT_REPORT, 12.5,
-                                       UINT64_C(4000000000)); // [手順] - 同じ位置指定を 2 回含む文字列を組み立てる。
+    actual_ret =
+        string_catalog_format(sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_ID_THROUGHPUT_REPORT, 12.5,
+                              UINT64_C(4000000000)); // [手順] - 同じ位置指定を 2 回含む文字列を組み立てる。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。

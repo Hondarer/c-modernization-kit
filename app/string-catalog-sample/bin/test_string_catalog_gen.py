@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 import string_catalog_gen as gen
 
@@ -80,13 +81,10 @@ class PlaceholderTest(unittest.TestCase):
 def minimal_document(**overrides):
     """検査の対象となる最小の定義を組み立てる。"""
     document = {
-        "library_prefix": "string_catalog",
-        "module_prefix": "string_catalog_definition",
-        "id_enum": "string_catalog_id",
-        "languages": ["neutral", "japanese"],
+        "module_prefix": "sample_messages",
         "strings": [
             {
-                "id": "STRING_CATALOG_ID_A",
+                "id": "SAMPLE_MESSAGES_ID_A",
                 "id_text": "ID_0001",
                 "category": 1,
                 "brief": "あ。",
@@ -107,6 +105,13 @@ class ValidateTest(unittest.TestCase):
     def test_accepts_minimal(self):
         self.assertEqual(len(gen.validate(minimal_document())), 1)
 
+    def test_does_not_require_derived_keys(self):
+        # 生成器が持つ名前と仕様は、カタログ定義へ書かない
+        document = minimal_document()
+        for key in ("library_prefix", "id_enum", "module_dir", "languages"):
+            self.assertNotIn(key, document)
+        self.assertEqual(len(gen.validate(document)), 1)
+
     def test_rejects_duplicate_id(self):
         document = minimal_document()
         document["strings"].append(dict(document["strings"][0]))
@@ -117,7 +122,7 @@ class ValidateTest(unittest.TestCase):
     def test_rejects_duplicate_id_text(self):
         document = minimal_document()
         duplicated = dict(document["strings"][0])
-        duplicated["id"] = "STRING_CATALOG_ID_B"
+        duplicated["id"] = "SAMPLE_MESSAGES_ID_B"
         document["strings"].append(duplicated)
         with self.assertRaises(gen.DefinitionError):
             gen.validate(document)
@@ -149,7 +154,7 @@ class ValidateTest(unittest.TestCase):
     def test_rejects_symbolic_category(self):
         # 分類値を生値に限るのは、生成物を特定の app の列挙から独立させるため
         document = minimal_document()
-        document["strings"][0]["category"] = "STRING_CATALOG_TRACE_LEVEL_ERROR"
+        document["strings"][0]["category"] = "SAMPLE_TRACE_LEVEL_ERROR"
         with self.assertRaises(gen.DefinitionError):
             gen.validate(document)
 
@@ -171,16 +176,67 @@ class WrapperNameTest(unittest.TestCase):
     """関数名の導出規則を確認する。"""
 
     def test_lowercases_whole_id(self):
-        document = minimal_document()
         self.assertEqual(
-            gen.wrapper_name(document, "STRING_CATALOG_ID_FILE_OPEN_FAILED"),
-            "string_catalog_definition_string_catalog_id_file_open_failed",
+            gen.wrapper_name("SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED"),
+            "string_catalog_sample_messages_id_file_open_failed",
         )
 
     def test_has_no_double_underscore(self):
+        self.assertNotIn("__", gen.wrapper_name("SAMPLE_MESSAGES_ID_A"))
+
+    def test_prefixes_the_library_prefix(self):
+        # モジュール接頭辞ではなくライブラリ側の接頭辞を前置する
+        name = gen.wrapper_name("SAMPLE_MESSAGES_ID_A")
+        self.assertTrue(name.startswith(f"{gen.LIBRARY_PREFIX}_"))
+
+    def test_does_not_depend_on_the_module_prefix(self):
+        # モジュール接頭辞を変えても関数名は変わらない
+        self.assertEqual(gen.wrapper_name("APP_ID_A"), "string_catalog_app_id_a")
+
+
+class DerivedNameTest(unittest.TestCase):
+    """定義に書かない名前の導出を確認する。"""
+
+    def test_module_prefix_comes_from_the_file_name(self):
+        self.assertEqual(gen.derive_module_prefix(Path("/tmp/app/sample_messages.jsonc")), "sample_messages")
+
+    def test_module_prefix_rejects_a_name_that_is_not_an_identifier(self):
+        for name in ("Sample_Messages.jsonc", "sample-messages.jsonc", "1st.jsonc", "サンプル.jsonc"):
+            with self.subTest(name=name):
+                with self.assertRaises(gen.DefinitionError):
+                    gen.derive_module_prefix(Path(f"/tmp/app/{name}"))
+
+    def test_id_enum_follows_the_module_prefix(self):
+        self.assertEqual(gen.id_enum_name(minimal_document()), "sample_messages_id")
+        self.assertEqual(gen.id_enum_name({"module_prefix": "app_messages"}), "app_messages_id")
+
+    def test_module_dir_starts_at_prod(self):
+        path = Path("/tmp/workspace/app/example/prod/src/cmd/example/messages.jsonc")
+        self.assertEqual(gen.derive_module_dir(path), "prod/src/cmd/example")
+
+    def test_module_dir_starts_at_test(self):
+        path = Path("/tmp/workspace/app/example/test/src/exampleTest/messages.jsonc")
+        self.assertEqual(gen.derive_module_dir(path), "test/src/exampleTest")
+
+    def test_module_dir_falls_back_to_current_directory(self):
+        path = Path("/tmp/workspace/messages.jsonc")
+        self.assertEqual(gen.derive_module_dir(path), ".")
+
+
+class LibrarySpecTest(unittest.TestCase):
+    """ライブラリ側の仕様が生成器の定数であることを確認する。"""
+
+    def test_prefix_is_string_catalog(self):
+        self.assertEqual(gen.LIBRARY_PREFIX, "string_catalog")
+
+    def test_languages_match_the_library_enumeration(self):
+        # string_catalog_language の並びと揃える
+        self.assertEqual(gen.LANGUAGES, ("neutral", "japanese", "english"))
+
+    def test_is_used_for_the_library_constants(self):
         document = minimal_document()
-        name = gen.wrapper_name(document, "STRING_CATALOG_ID_A")
-        self.assertNotIn("__", name)
+        self.assertEqual(gen.language_constant(document, "neutral"), "STRING_CATALOG_LANGUAGE_NEUTRAL")
+        self.assertEqual(gen.kind_constant(document, "STRING"), "STRING_CATALOG_ARGUMENT_KIND_STRING")
 
 
 class ArgumentTypeTest(unittest.TestCase):
@@ -221,11 +277,11 @@ class GeneratedOutputTest(unittest.TestCase):
 
     def test_source_emits_raw_category(self):
         source = gen.emit_source(self.document, self.strings, "example.jsonc")
-        self.assertIn("    {STRING_CATALOG_ID_A,\n     1,\n", source)
+        self.assertIn("    {SAMPLE_MESSAGES_ID_A,\n     1,\n", source)
         self.assertNotIn("TRACE_LEVEL", source)
 
     def test_module_dir_appears_in_documentation(self):
         header = gen.emit_header(self.document, self.strings, "example.jsonc")
         self.assertIn("`prod/src/cmd/example/` のモジュール私有ヘッダー", header)
         source = gen.emit_source(self.document, self.strings, "example.jsonc")
-        self.assertIn("@file           src/cmd/example/string_catalog_definition.c", source)
+        self.assertIn("@file           src/cmd/example/sample_messages.c", source)

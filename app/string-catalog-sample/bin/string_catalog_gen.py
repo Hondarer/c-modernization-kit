@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,6 +35,14 @@ ARGUMENT_TYPES = {
     "DOUBLE": "double",
     "ERROR_CODE": "int",
 }
+
+# ライブラリ側の接頭辞。カタログ定義には書かず、生成器が補う。
+# 文字列カタログの型名と API 名を決めるのはライブラリであり、利用者の選択肢ではないため。
+LIBRARY_PREFIX = "string_catalog"
+
+# texts と notes のキーに書ける言語。string_catalog_language の並びと揃える。
+# 言語はライブラリが定める仕様であり、カタログ定義が増減できる項目ではない。
+LANGUAGES = ("neutral", "japanese", "english")
 
 # 位置指定の添字に書ける最大の桁数。string_catalog_render.c の INDEX_DIGITS_MAX と揃える。
 INDEX_DIGITS_MAX = 2
@@ -168,13 +178,9 @@ def placeholder_indices(text: str) -> list[int]:
 
 def validate(document: dict) -> list[dict]:
     """定義の内容を検査し、文字列の一覧を返す。"""
-    for key in ("library_prefix", "module_prefix", "id_enum", "languages", "strings"):
+    for key in ("strings",):
         if key not in document:
             raise DefinitionError(f"必須の項目がありません: {key}")
-
-    languages = document["languages"]
-    if "neutral" not in languages:
-        raise DefinitionError("languages に neutral が必要です。")
 
     strings = document["strings"]
     if not strings:
@@ -215,8 +221,8 @@ def validate(document: dict) -> list[dict]:
             if "neutral" not in entry[section]:
                 raise DefinitionError(f"{entry['id']}: {section} に neutral が必要です。")
             for language in entry[section]:
-                if language not in languages:
-                    raise DefinitionError(f"{entry['id']}: languages にない言語です: {language}")
+                if language not in LANGUAGES:
+                    raise DefinitionError(f"{entry['id']}: ライブラリが扱わない言語です: {language}")
 
         for language, text in entry["texts"].items():
             indices = placeholder_indices(join_text(text))
@@ -242,17 +248,23 @@ def c_string(text: str) -> str:
 
 def language_constant(document: dict, language: str) -> str:
     """言語のキーを、ライブラリの列挙定数へ変換する。"""
-    return f"{document['library_prefix'].upper()}_LANGUAGE_{language.upper()}"
+    return f"{LIBRARY_PREFIX.upper()}_LANGUAGE_{language.upper()}"
 
 
 def kind_constant(document: dict, kind: str) -> str:
     """引数種別のキーを、ライブラリの列挙定数へ変換する。"""
-    return f"{document['library_prefix'].upper()}_ARGUMENT_KIND_{kind}"
+    return f"{LIBRARY_PREFIX.upper()}_ARGUMENT_KIND_{kind}"
 
 
-def wrapper_name(document: dict, string_id: str) -> str:
-    """文字列 ID から型付きラッパーの関数名を導出する。"""
-    return f"{document['module_prefix']}_{string_id.lower()}"
+def wrapper_name(string_id: str) -> str:
+    """文字列 ID から型付きラッパーの関数名を導出する。
+
+    ライブラリ側の接頭辞へ、文字列 ID の定数名をそのまま小文字化して続ける。
+    モジュール接頭辞ではなくライブラリ側の接頭辞を前置するのは、
+    この関数が文字列カタログによる組み立てであることを、呼び出し側で明示するため。
+    どのカタログの文字列かは、定数名に含まれるモジュール接頭辞が表す。
+    """
+    return f"{LIBRARY_PREFIX}_{string_id.lower()}"
 
 
 def doc_lines(text: str, indent: str, width: int = 112) -> list[str]:
@@ -276,7 +288,7 @@ def doc_lines(text: str, indent: str, width: int = 112) -> list[str]:
 
 def emit_wrapper(document: dict, entry: dict) -> str:
     """1 件分の型付きラッパーを、Doxygen コメントとともに書き出す。"""
-    name = wrapper_name(document, entry["id"])
+    name = wrapper_name(entry["id"])
     arguments = entry["arguments"]
 
     names = ["dest", "dest_size"] + [argument["name"] for argument in arguments]
@@ -297,7 +309,7 @@ def emit_wrapper(document: dict, entry: dict) -> str:
         lines.append(f"{continuation}引数種別は @ref {kind_constant(document, argument['kind'])} です。")
 
     lines.append(
-        f"     *  @return         戻り値は @ref {document['library_prefix']}_format と同じです。"
+        f"     *  @return         戻り値は @ref {LIBRARY_PREFIX}_format と同じです。"
     )
 
     if not arguments:
@@ -311,7 +323,7 @@ def emit_wrapper(document: dict, entry: dict) -> str:
     lines.append("     *")
     lines.append("     *  @par            書式")
     texts = entry["texts"]
-    languages = [language for language in document["languages"] if language in texts]
+    languages = [language for language in LANGUAGES if language in texts]
     for position, language in enumerate(languages):
         suffix = "\\n" if position < (len(languages) - 1) else ""
         lines.append(f"     *  `{join_text(texts[language])}`{suffix}")
@@ -330,7 +342,7 @@ def emit_wrapper(document: dict, entry: dict) -> str:
 
     lines.append(f"    static inline int {name}({', '.join(parameters)})")
     lines.append("    {")
-    lines.append(f"        return {document['library_prefix']}_format({', '.join(call)});")
+    lines.append(f"        return {LIBRARY_PREFIX}_format({', '.join(call)});")
     lines.append("    }")
 
     return "\n".join(lines)
@@ -344,14 +356,66 @@ def expand(template: str, module: str, library: str) -> str:
     return template.replace("@MODULE@", module).replace("@LIBRARY@", library)
 
 
-def emit_header(document: dict, strings: list[dict], definition_name: str) -> str:
+def derive_module_prefix(definition: Path) -> str:
+    """定義ファイルの名前から、モジュール接頭辞を導出する。
+
+    生成物のファイル名と、カタログを省略する口の名前がここから決まる。
+    C の識別子の一部になるため、英小文字で始まる snake_case だけを認める。
+    """
+    prefix = definition.stem
+    if re.fullmatch(r"[a-z][a-z0-9_]*", prefix) is None:
+        raise DefinitionError(
+            "定義ファイルの名前をモジュール接頭辞に使います。"
+            f"英小文字で始まり、英小文字、数字、下線だけで綴ってください: {definition.name}"
+        )
+    return prefix
+
+
+def id_enum_name(document: dict) -> str:
+    """文字列 ID の列挙名を導出する。
+
+    モジュール接頭辞に `_id` を続ける。定義ファイルには書かない。
+    """
+    return f"{document['module_prefix']}_id"
+
+
+def derive_module_dir(definition: Path) -> str:
+    """定義ファイルの位置から、app 直下を起点としたディレクトリを導出する。
+
+    app の配下は `prod/` と `test/` に分かれる。定義ファイルの絶対パスから、
+    最も近い `prod` または `test` を探し、そこからの部分をディレクトリとする。
+    どちらも無い場所に置いた場合は `.` とする。
+    """
+    parts = definition.resolve().parent.parts
+    for anchor in ("prod", "test"):
+        if anchor in parts:
+            index = len(parts) - 1 - parts[::-1].index(anchor)
+            return "/".join(parts[index:])
+    return "."
+
+
+def output_dir_display(document: dict, out_relative: str) -> str:
+    """生成物の置き場所を、リポジトリ相対のディレクトリとして表す。
+
+    out_relative は、定義ファイルの置き場所から見た出力先の相対パス。
+    Doxygen の @file は実際のパスと一致している必要がある。
+    """
+    module_dir = document.get("module_dir", ".")
+    if out_relative in ("", "."):
+        return module_dir
+    return f"{module_dir}/{out_relative}"
+
+
+def emit_header(document: dict, strings: list[dict], definition_name: str, out_relative: str = ".") -> str:
     """ヘッダー側の生成物を組み立てる。"""
     module = document["module_prefix"]
-    library = document["library_prefix"]
+    library = LIBRARY_PREFIX
     guard = f"{module.upper()}_H"
     header_name = f"{module}.h"
     source_name = f"{module}.c"
     module_dir = document.get("module_dir", ".")
+    output_dir = output_dir_display(document, out_relative)
+    include_path = header_name if output_dir == module_dir else f"{out_relative}/{header_name}"
 
     out = [
         "/**",
@@ -362,8 +426,8 @@ def emit_header(document: dict, strings: list[dict], definition_name: str) -> st
         f" *  @date           {document.get('date', '')}",
         f" *  @version        {document.get('version', '')}",
         " *",
-        f" *  本ヘッダーは `{module_dir}/` のモジュール私有ヘッダーです。\\n",
-        f' *  同ディレクトリの実装ファイルからだけ `#include "{header_name}"` で取り込みます。',
+        f" *  本ヘッダーは `{output_dir}/` のモジュール私有ヘッダーです。\\n",
+        f' *  `{module_dir}/` の実装ファイルからだけ `#include "{include_path}"` で取り込みます。',
         " *",
         GENERATED_NOTE.format(source=source_name, definition=definition_name),
         " *",
@@ -371,8 +435,8 @@ def emit_header(document: dict, strings: list[dict], definition_name: str) -> st
         " *  言語、引数種別、書式の構文はライブラリが定めます。\\n",
         " *  分類値の意味付けは利用者の取り決めであり、別ヘッダーで手書きします。",
         " *",
-        " *  列挙の名前をライブラリの接頭辞に揃えているのは、生成物の識別子がカタログ定義に由来するためです。\\n",
-        f" *  ライブラリはこの名前を定義せず、文字列 ID を `int` として受け取ります。",
+        " *  列挙と関数の名前はカタログ定義が決めます。ライブラリの接頭辞とは別の名前空間です。\\n",
+        " *  ライブラリはこの名前を定義せず、文字列 ID を `int` として受け取ります。",
         " *",
         f" *  @copyright      Copyright (C) {document.get('author', '')}. 2026. All rights reserved.",
         " *",
@@ -402,7 +466,7 @@ def emit_header(document: dict, strings: list[dict], definition_name: str) -> st
             "     *  各 ID の引数スキーマ、分類値、言語別の書式と備考は、同じ生成単位の表が保持します。\\n",
             "     *  値は生成のたびに並び順から決まります。ログの解析で安定して使う識別子は固定文字列です。",
             "     */",
-            f"    typedef enum {document['id_enum']}",
+            f"    typedef enum {id_enum_name(document)}",
             "    {",
         ]
     )
@@ -411,7 +475,7 @@ def emit_header(document: dict, strings: list[dict], definition_name: str) -> st
         comma = "," if position < (len(strings) - 1) else ""
         out.append(f"        {entry['id']} = {position + 1}{comma} /**< {entry['brief']} */")
 
-    out.append(f"    }} {document['id_enum']};")
+    out.append(f"    }} {id_enum_name(document)};")
     out.append("")
     out.append(expand(ACCESSOR_DECLARATIONS, module, library))
 
@@ -576,8 +640,9 @@ ACCESSOR_DECLARATIONS = """\
      *  文字列 ID の数だけ公開シンボルが増えることを避けます。
      *
      *  関数名は文字列 ID から機械的に導出します。
-     *  文字列 ID の定数名をそのまま小文字化し、`@MODULE@_` を前置します。
-     *  接頭辞の除去や語の入れ替えを行わないため、規則に例外がありません。
+     *  ライブラリ側の接頭辞 `@LIBRARY@_` へ、文字列 ID の定数名を小文字化して続けます。
+     *  文字列カタログによる組み立てであることを、呼び出し側で名前から判別するためです。
+     *  語の除去や入れ替えを行わないため、規則に例外がありません。
      *  導出規則の全体は docs/architecture.md を参照してください。
      */
 """
@@ -678,15 +743,15 @@ const char *@MODULE@_note(const int string_id)
 """
 
 
-def emit_source(document: dict, strings: list[dict], definition_name: str) -> str:
+def emit_source(document: dict, strings: list[dict], definition_name: str, out_relative: str = ".") -> str:
     """実装側の生成物を組み立てる。"""
     module = document["module_prefix"]
-    library = document["library_prefix"]
+    library = LIBRARY_PREFIX
     header_name = f"{module}.h"
     source_name = f"{module}.c"
     # @file はリポジトリの慣習に合わせ、prod/ を除いた相対パスで示す
-    module_dir = document.get("module_dir", ".")
-    source_display = module_dir[len("prod/") :] if module_dir.startswith("prod/") else module_dir
+    output_dir = output_dir_display(document, out_relative)
+    source_display = output_dir[len("prod/") :] if output_dir.startswith("prod/") else output_dir
     last_id = strings[-1]["id"]
 
     out = [
@@ -762,7 +827,7 @@ def emit_source(document: dict, strings: list[dict], definition_name: str) -> st
 
         for section in ("texts", "notes"):
             items = []
-            for language in document["languages"]:
+            for language in LANGUAGES:
                 if language in entry[section]:
                     constant = language_constant(document, language)
                     items.append(f"[{constant}] = {c_string(join_text(entry[section][language]))}")
@@ -863,6 +928,9 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         document = load_definition(args.definition)
+        # 名前と置き場所は定義ファイル自身から決まる。定義の中には書かない。
+        document["module_prefix"] = derive_module_prefix(args.definition)
+        document["module_dir"] = derive_module_dir(args.definition)
         strings = validate(document)
     except DefinitionError as error:
         print(f"エラー: {error}", file=sys.stderr)
@@ -882,13 +950,16 @@ def main(argv: list[str] | None = None) -> int:
             if oldest_target >= newest_source:
                 return 0
 
+    # 出力先が定義ファイルと別のディレクトリなら、Doxygen の @file もその位置を指す
+    out_relative = os.path.relpath(out_dir, args.definition.parent).replace("\\", "/")
+
     style = find_clang_format_style(out_dir)
     outputs = {
         out_dir / f"{module}.h": format_source(
-            emit_header(document, strings, definition_name), f"{module}.h", style
+            emit_header(document, strings, definition_name, out_relative), f"{module}.h", style
         ),
         out_dir / f"{module}.c": format_source(
-            emit_source(document, strings, definition_name), f"{module}.c", style
+            emit_source(document, strings, definition_name, out_relative), f"{module}.c", style
         ),
     }
 

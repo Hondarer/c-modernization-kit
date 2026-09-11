@@ -111,7 +111,7 @@ extern "C"
         static const string_catalog catalog = {entries, id_index, entry_count, id_index_count};
         char text[STRING_CATALOG_TEXT_MAX];
         string_catalog_set_language(STRING_CATALOG_LANGUAGE_JAPANESE);
-        int ret = string_catalog_format(&catalog, text, sizeof(text), STRING_CATALOG_ID_FILE_OPEN_FAILED,
+        int ret = string_catalog_format(&catalog, text, sizeof(text), SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED,
                                          "config.json", 2);
         if (ret == STRING_CATALOG_OK)
         {
@@ -208,7 +208,7 @@ extern "C"
      *  @brief          文字列 ID の固定文字列を返します。
      *  @param[in]      catalog   参照するカタログ。NULL を渡した場合は NULL を返します。
      *  @param[in]      string_id 参照する文字列の ID。利用者の列挙の値を指定します。
-     *  @return         文字列 ID の固定文字列 (例: `STRING_CATALOG_ID_0001`) を返します。
+     *  @return         文字列 ID の固定文字列 (例: `SAMPLE_MESSAGES_ID_0001`) を返します。
      *  @return         カタログに存在しない文字列 ID では NULL を返します。
      *
      *  返す文字列は言語に依らず、カタログの生成物が保持する静的領域を指します。\n

@@ -21,8 +21,8 @@
  *******************************************************************************
  */
 
-#include "gen/string_catalog_definition.h"
-#include "string_catalog_trace_level.h"
+#include "gen/sample_messages.h"
+#include "sample_trace_level.h"
 
 #include <string_catalog.h>
 #include <stdarg.h>
@@ -36,7 +36,7 @@
 /** ポインター引数の実例として、アドレスを表示する対象です。 */
 static const char s_sample_object[] = SAMPLE_PATH;
 
-/** レベルの表示名です。@ref string_catalog_trace_level の値を添字として参照します。 */
+/** レベルの表示名です。@ref sample_trace_level の値を添字として参照します。 */
 static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "INFO", "VERBOSE", "DEBUG", "NONE"};
 
 /**
@@ -46,20 +46,20 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
  *
  *  分類値はライブラリが解釈しない `int` であり、範囲の保証がありません。\n
  *  範囲外の値と、カタログに存在しない文字列 ID の 0 を
- *  @ref STRING_CATALOG_TRACE_LEVEL_NONE へ切り詰め、表示名の添字として安全に使えるようにします。
+ *  @ref SAMPLE_TRACE_LEVEL_NONE へ切り詰め、表示名の添字として安全に使えるようにします。
  *
  *  分類値の意味付けはこの app の取り決めであるため、切り詰めもこの階層で行います。
  */
-static string_catalog_trace_level trace_level_of(const int string_id)
+static sample_trace_level trace_level_of(const int string_id)
 {
-    const int category = string_catalog_definition_category(string_id);
+    const int category = sample_messages_category(string_id);
 
-    if ((unsigned int)category > (unsigned int)STRING_CATALOG_TRACE_LEVEL_NONE)
+    if ((unsigned int)category > (unsigned int)SAMPLE_TRACE_LEVEL_NONE)
     {
-        return STRING_CATALOG_TRACE_LEVEL_NONE;
+        return SAMPLE_TRACE_LEVEL_NONE;
     }
 
-    return (string_catalog_trace_level)category;
+    return (sample_trace_level)category;
 }
 
 /**
@@ -68,7 +68,7 @@ static string_catalog_trace_level trace_level_of(const int string_id)
  *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
  *  @return         成功時は @ref STRING_CATALOG_OK 、失敗時はライブラリの結果コードを返します。
  *
- *  可変長引数をそのまま中継するため、@ref string_catalog_definition_vformat を使用します。
+ *  可変長引数をそのまま中継するため、@ref sample_messages_vformat を使用します。
  */
 static int print_string(const int string_id, ...)
 {
@@ -77,7 +77,7 @@ static int print_string(const int string_id, ...)
     int ret;
 
     va_start(args, string_id);
-    ret = string_catalog_definition_vformat(text, sizeof(text), string_id, args);
+    ret = sample_messages_vformat(text, sizeof(text), string_id, args);
     va_end(args);
 
     if (ret != STRING_CATALOG_OK)
@@ -88,10 +88,10 @@ static int print_string(const int string_id, ...)
 
     const char *id_text;
     const char *note;
-    string_catalog_trace_level level;
+    sample_trace_level level;
 
-    id_text = string_catalog_definition_id_text(string_id);
-    note = string_catalog_definition_note(string_id);
+    id_text = sample_messages_id_text(string_id);
+    note = sample_messages_note(string_id);
     level = trace_level_of(string_id);
 
     printf("  %s: %-8s %s\n", id_text, s_level_labels[(unsigned int)level], text);
@@ -111,43 +111,44 @@ static int print_all_strings(void)
     int result = STRING_CATALOG_OK;
     int ret;
 
-    ret = print_string(STRING_CATALOG_ID_STARTUP_COMPLETED);
+    ret = print_string(SAMPLE_MESSAGES_ID_STARTUP_COMPLETED);
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
     }
 
-    ret = print_string(STRING_CATALOG_ID_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
+    ret = print_string(SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
     }
 
-    ret = print_string(STRING_CATALOG_ID_MEMORY_SIGNATURE, (const void *)s_sample_object, UINT64_C(0x00000000DEADBEEF));
+    ret =
+        print_string(SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE, (const void *)s_sample_object, UINT64_C(0x00000000DEADBEEF));
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
     }
 
-    ret = print_string(STRING_CATALOG_ID_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
+    ret = print_string(SAMPLE_MESSAGES_ID_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
     }
 
-    ret = print_string(STRING_CATALOG_ID_RECORD_MISMATCH, UINT32_C(42), UINT32_C(0x1234ABCD));
+    ret = print_string(SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42), UINT32_C(0x1234ABCD));
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
     }
 
-    ret = print_string(STRING_CATALOG_ID_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
+    ret = print_string(SAMPLE_MESSAGES_ID_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
     }
 
-    ret = print_string(STRING_CATALOG_ID_THROUGHPUT_REPORT, 12.5, UINT64_C(4000000000));
+    ret = print_string(SAMPLE_MESSAGES_ID_THROUGHPUT_REPORT, 12.5, UINT64_C(4000000000));
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
@@ -163,11 +164,11 @@ static int print_all_strings(void)
  */
 static int verify_catalog(void)
 {
-    int string_id = STRING_CATALOG_ID_STARTUP_COMPLETED;
+    int string_id = SAMPLE_MESSAGES_ID_STARTUP_COMPLETED;
     string_catalog_language language = STRING_CATALOG_LANGUAGE_NEUTRAL;
     int ret;
 
-    ret = string_catalog_definition_verify(&string_id, &language);
+    ret = sample_messages_verify(&string_id, &language);
     if (ret != STRING_CATALOG_OK)
     {
         fprintf(stderr, "エラー: カタログの定義が不正です (文字列 ID=%d、言語=%d)。\n", string_id, (int)language);

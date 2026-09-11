@@ -1,13 +1,13 @@
 #include <testfw.h>
 
-#include "string_catalog_definition.h"
-#include "string_catalog_trace_level.h"
+#include "sample_messages.h"
+#include "sample_trace_level.h"
 
 #include <string_catalog.h>
 #include <stddef.h>
 #include <string.h>
 
-class stringCatalogDefinitionTest : public Test
+class sampleMessagesTest : public Test
 {
   protected:
     void SetUp() override
@@ -17,7 +17,7 @@ class stringCatalogDefinitionTest : public Test
 };
 
 // カタログを取得できることの確認
-TEST_F(stringCatalogDefinitionTest, entries)
+TEST_F(sampleMessagesTest, entries)
 {
     // Arrange
     const string_catalog_entry *actual_entries;
@@ -26,8 +26,8 @@ TEST_F(stringCatalogDefinitionTest, entries)
     // Pre-Assert
 
     // Act
-    actual_entries = string_catalog_definition_entries();   // [手順] - カタログの先頭を取得する。
-    actual_count = string_catalog_definition_entry_count(); // [手順] - カタログの件数を取得する。
+    actual_entries = sample_messages_entries();   // [手順] - カタログの先頭を取得する。
+    actual_count = sample_messages_entry_count(); // [手順] - カタログの件数を取得する。
 
     // Assert
     EXPECT_NE(nullptr, actual_entries); // [確認_正常系] - カタログの先頭を取得できること。
@@ -35,7 +35,7 @@ TEST_F(stringCatalogDefinitionTest, entries)
 }
 
 // 注入したカタログが引数スキーマと整合していることの確認
-TEST_F(stringCatalogDefinitionTest, catalog_is_consistent)
+TEST_F(sampleMessagesTest, catalog_is_consistent)
 {
     // Arrange
     int string_id = 0;
@@ -45,7 +45,7 @@ TEST_F(stringCatalogDefinitionTest, catalog_is_consistent)
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_verify(string_catalog_definition_catalog(), &string_id,
+    actual_ret = string_catalog_verify(sample_messages_catalog(), &string_id,
                                        &language); // [手順] - 注入したカタログ全体を確認する。
 
     // Assert
@@ -53,11 +53,11 @@ TEST_F(stringCatalogDefinitionTest, catalog_is_consistent)
 }
 
 // 各文字列が固定文字列とニュートラル言語のリソースを持つことの確認
-TEST_F(stringCatalogDefinitionTest, every_entry_has_neutral_resource)
+TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 {
     // Arrange
-    const string_catalog_entry *entries = string_catalog_definition_entries();
-    const int count = string_catalog_definition_entry_count();
+    const string_catalog_entry *entries = sample_messages_entries();
+    const int count = sample_messages_entry_count();
     int index;
 
     // Pre-Assert
@@ -73,7 +73,7 @@ TEST_F(stringCatalogDefinitionTest, every_entry_has_neutral_resource)
                   entries[index]
                       .notes[STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の備考を持つこと。
         EXPECT_LE(entries[index].category,
-                  STRING_CATALOG_TRACE_LEVEL_NONE);  // [確認_正常系] - 分類値がトレース レベルの範囲内であること。
+                  SAMPLE_TRACE_LEVEL_NONE);          // [確認_正常系] - 分類値がトレース レベルの範囲内であること。
         EXPECT_GE(entries[index].argument_count, 0); // [確認_正常系] - 引数個数が 0 以上であること。
         EXPECT_LE(entries[index].argument_count,
                   STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系] - 引数個数が上限以下であること。
@@ -81,7 +81,7 @@ TEST_F(stringCatalogDefinitionTest, every_entry_has_neutral_resource)
 }
 
 // 文字列 ID から定義の内容を参照できることの確認
-TEST_F(stringCatalogDefinitionTest, file_open_failed_entry)
+TEST_F(sampleMessagesTest, file_open_failed_entry)
 {
     // Arrange
     const char *actual_id_text;
@@ -94,25 +94,25 @@ TEST_F(stringCatalogDefinitionTest, file_open_failed_entry)
     // Pre-Assert
 
     // Act
-    actual_id_text = string_catalog_id_text(string_catalog_definition_catalog(),
-                                            STRING_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - 固定文字列を取得する。
-    actual_category = string_catalog_category(string_catalog_definition_catalog(),
-                                              STRING_CATALOG_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_ret = string_catalog_format(string_catalog_definition_catalog(), dest, sizeof(dest),
-                                       STRING_CATALOG_ID_FILE_OPEN_FAILED, "config.json",
+    actual_id_text = string_catalog_id_text(sample_messages_catalog(),
+                                            SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 固定文字列を取得する。
+    actual_category = string_catalog_category(sample_messages_catalog(),
+                                              SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
+    actual_ret = string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
+                                       SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
                                        2); // [手順] - ニュートラル言語で文字列を組み立てる。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                           // [確認_正常系] - 固定文字列を取得できること。
-    EXPECT_STREQ("STRING_CATALOG_ID_0002", actual_id_text);       // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(STRING_CATALOG_TRACE_LEVEL_ERROR, actual_category); // [確認_正常系] - 分類値が一致すること。
-    EXPECT_EQ(STRING_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
+    ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
+    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
+    EXPECT_EQ(SAMPLE_TRACE_LEVEL_ERROR, actual_category);    // [確認_正常系] - 分類値が一致すること。
+    EXPECT_EQ(STRING_CATALOG_OK, actual_ret);                // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
     EXPECT_STREQ("Failed to open file config.json. Error code=2 (0x00000002)",
                  dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。
 }
 
 // 文字列 ID ごとの型付きラッパーが、カタログを指定した呼び出しと同じ結果を出すことの確認
-TEST_F(stringCatalogDefinitionTest, typed_wrappers_match_generic_call)
+TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 {
     // Arrange
     char actual_dest[STRING_CATALOG_TEXT_MAX];
@@ -127,7 +127,7 @@ TEST_F(stringCatalogDefinitionTest, typed_wrappers_match_generic_call)
     // Pre-Assert
 
     // Act
-    actual_ret_no_argument = string_catalog_definition_string_catalog_id_startup_completed(
+    actual_ret_no_argument = string_catalog_sample_messages_id_startup_completed(
         actual_dest, sizeof(actual_dest)); // [手順] - 引数を取らないラッパーで組み立てる。
 
     // Assert
@@ -136,11 +136,12 @@ TEST_F(stringCatalogDefinitionTest, typed_wrappers_match_generic_call)
                  actual_dest); // [確認_正常系] - 引数なしの書式で組み立てられること。
 
     // Act
-    actual_ret_two_arguments = string_catalog_definition_string_catalog_id_file_open_failed(
-        actual_dest, sizeof(actual_dest), "config.json", 2); // [手順] - 型付きラッパーで組み立てる。
+    actual_ret_two_arguments =
+        string_catalog_sample_messages_id_file_open_failed(actual_dest, sizeof(actual_dest), "config.json",
+                                                           2); // [手順] - 型付きラッパーで組み立てる。
     expected_ret_two_arguments =
-        string_catalog_format(string_catalog_definition_catalog(), expected_dest, sizeof(expected_dest),
-                              STRING_CATALOG_ID_FILE_OPEN_FAILED, "config.json",
+        string_catalog_format(sample_messages_catalog(), expected_dest, sizeof(expected_dest),
+                              SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
                               2); // [手順] - カタログを指定した呼び出しで同じ文字列を組み立てる。
 
     // Assert
@@ -152,7 +153,7 @@ TEST_F(stringCatalogDefinitionTest, typed_wrappers_match_generic_call)
 }
 
 // 型付きラッパーでも、引数の順序が言語に依らないことの確認
-TEST_F(stringCatalogDefinitionTest, typed_wrapper_argument_order_is_language_independent)
+TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
 {
     // Arrange
     char neutral_dest[STRING_CATALOG_TEXT_MAX];
@@ -166,14 +167,14 @@ TEST_F(stringCatalogDefinitionTest, typed_wrapper_argument_order_is_language_ind
     // Pre-Assert
 
     // Act
-    actual_ret_neutral = string_catalog_definition_string_catalog_id_record_mismatch(
+    actual_ret_neutral = string_catalog_sample_messages_id_record_mismatch(
         neutral_dest, sizeof(neutral_dest), 12U,
         0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号とシグネチャーの順に渡す。
 
     string_catalog_set_language(STRING_CATALOG_LANGUAGE_JAPANESE);
-    actual_ret_japanese = string_catalog_definition_string_catalog_id_record_mismatch(
-        japanese_dest, sizeof(japanese_dest), 12U,
-        0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
+    actual_ret_japanese =
+        string_catalog_sample_messages_id_record_mismatch(japanese_dest, sizeof(japanese_dest), 12U,
+                                                          0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret_neutral);  // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。

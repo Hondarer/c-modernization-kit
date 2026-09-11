@@ -174,7 +174,7 @@ POSIX の `ssize_t` は Windows に無く、幅も処理系で異なるため、
 
 | 項目 | 参照 API | 内容 |
 |---|---|---|
-| 文字列 ID の固定文字列 | `string_catalog_id_text()` | `STRING_CATALOG_ID_0001` のような、言語に依らない参照名です。ログの検索キーや障害報告で使用します。 |
+| 文字列 ID の固定文字列 | `string_catalog_id_text()` | `SAMPLE_MESSAGES_ID_0001` のような、言語に依らない参照名です。ログの検索キーや障害報告で使用します。 |
 | 分類値 | `string_catalog_category()` | ライブラリが解釈しない `int` の補足情報です。言語に依らず、文字列 ID ごとに固定です。 |
 | 備考 | `string_catalog_note()` | 引数の単位や出力条件など、書式には含めない補足です。言語別に持ち、書式と同じ読み替えを行います。 |
 
@@ -192,12 +192,12 @@ POSIX の `ssize_t` は Windows に無く、幅も処理系で異なるため、
 区別が必要な場合は、先に `string_catalog_id_text()` で存在を確認します。
 
 この app では、分類値をトレース レベルとして使います。  
-列挙 `string_catalog_trace_level` は、カタログ定義と同じ `prod/src/cmd/string-catalog-sample/string_catalog_definition.h` にあります。  
+列挙 `sample_trace_level` は、手書きの `prod/src/cmd/string-catalog-sample/sample_trace_level.h` にあります。  
 値は cplat の `cplat_trace_level` と同一です。  
 この app は標準 C だけで完結するサンプルであり cplat に依存しないため、同じ値をここで再実装しています。  
 cplat を利用する app へ移植する場合は、値が同じであるため変換表なしで置き換えられます。
 
-範囲外の値は、コマンドの `trace_level_of()` が `STRING_CATALOG_TRACE_LEVEL_NONE` へ切り詰めます。  
+範囲外の値は、コマンドの `trace_level_of()` が `SAMPLE_TRACE_LEVEL_NONE` へ切り詰めます。  
 意味付けを行う階層で切り詰めるため、ライブラリとそのテストは分類値の範囲を確認しません。
 
 本 app はトレースの出力機構を持ちません。  
@@ -234,10 +234,10 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 
 | ファイル | 内容 | 種別 |
 |---|---|---|
-| `string_catalog_definition.jsonc` | カタログ定義の正本 | 手書き |
-| `string_catalog_trace_level.h` | 分類値の列挙と、その意味付け | 手書き |
-| `gen/string_catalog_definition.h` | 文字列 ID の列挙、カタログと省略の口の宣言、型付きラッパー | 生成 |
-| `gen/string_catalog_definition.c` | カタログの配列、添字表、カタログ識別オブジェクト、省略の口 | 生成 |
+| `sample_messages.jsonc` | カタログ定義の正本 | 手書き |
+| `sample_trace_level.h` | 分類値の列挙と、その意味付け | 手書き |
+| `gen/sample_messages.h` | 文字列 ID の列挙、カタログと省略の口の宣言、型付きラッパー | 生成 |
+| `gen/sample_messages.c` | カタログの配列、添字表、カタログ識別オブジェクト、省略の口 | 生成 |
 
 生成物は `gen/` へ置き、Git では管理しません。`struct-meta` と同じ扱いです。  
 生成は `bin/string_catalog_gen.py` が行い、ビルドが駆動します。  
@@ -254,14 +254,14 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 利用側は `gen/` を付けて取り込みます。
 
 ```c
-#include "gen/string_catalog_definition.h"
+#include "gen/sample_messages.h"
 ```
 
 手で実行する場合と、内容を確かめる場合です。
 
 ```bash
-python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/string_catalog_definition.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
-python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/string_catalog_definition.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
+python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
+python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
 ```
 
 `--check` は書き出さず、既存の生成物が定義と一致するかだけを確かめます。  
@@ -270,6 +270,35 @@ python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/string_cata
 定義の形式は JSONC です。行コメント、ブロック コメント、末尾コンマを書けます。  
 長い文章は文字列の配列で書けます。生成器が空白 1 個で連結するため、定義ファイル上の行を短く保てます。  
 JSON を選んだのは cJSON と Python の双方で読めるためで、コメントの前処理は生成器が文字列リテラルを認識しながら行います。
+
+定義ファイルに書くのは、著者、日付、版、文字列の一覧だけです。  
+`texts` と `notes` に書ける言語も、生成器の定数 `LANGUAGES` が持ちます。  
+言語はライブラリが `string_catalog_language` で定める仕様であり、カタログが増減できる項目ではないためです。  
+生成器は、書かれた言語がその一覧にあるかだけを検査します。
+
+### 名前空間の分離
+
+利用者側の識別子は `sample_` で始め、ライブラリ側の `string_catalog_` と分けます。  
+サンプルであっても両者が同じ接頭辞を共有していると、どこまでがライブラリの提供物かを名前から判断できません。
+
+| 側 | 接頭辞 | 例 |
+|---|---|---|
+| ライブラリ | `string_catalog` | `string_catalog_format()`、`STRING_CATALOG_LANGUAGE_JAPANESE` |
+| 利用者 | `sample_messages`、`sample_trace_level` | `sample_messages_catalog()`、`SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED` |
+
+例外は文字列 ID ごとの型付きラッパーです。  
+ライブラリの機能を使う組み立てであることを示すため、関数名は `string_catalog_` で始めます。  
+規則は「文字列 ID ごとの型付きラッパー」の節に記載します。
+
+ライブラリ側の接頭辞は定義ファイルに書きません。  
+生成器の定数 `LIBRARY_PREFIX` が補います。型名と API 名を決めるのはライブラリであり、利用者が選べる項目ではないためです。
+
+モジュール接頭辞は、定義ファイルの名前そのものです。  
+`sample_messages.jsonc` なら `sample_messages` になり、生成物のファイル名、カタログを省略する口の名前、文字列 ID の列挙名 `sample_messages_id` がここから決まります。  
+C の識別子の一部になるため、英小文字で始まる snake_case だけを認めます。
+
+名前空間を移すには、定義ファイルの名前を変えます。  
+同じ名前を定義の中にも書くと、ファイル名と食い違う余地が残るためです。
 
 ### 生成物を汎用に保つ
 
@@ -280,17 +309,18 @@ JSON を選んだのは cJSON と Python の双方で読めるためで、コメ
 定義ファイルにも整数で書き、意味はコメントで示します。生成器は整数以外を受け付けません。
 
 ```c
-/* 生成される表。分類値は 1 で、STRING_CATALOG_TRACE_LEVEL_ERROR を意味する */
-{STRING_CATALOG_ID_FILE_OPEN_FAILED,
+/* 生成される表。分類値は 1 で、SAMPLE_TRACE_LEVEL_ERROR を意味する */
+{SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED,
  1,
  2,
 ```
 
-分類値の列挙 `string_catalog_trace_level` は手書きの別ヘッダーが持ちます。  
+分類値の列挙 `sample_trace_level` は手書きの別ヘッダーが持ちます。  
 生成物はこのヘッダーを include しません。値を解釈する側、つまりコマンドとテストが直接 include します。
 
-生成物の Doxygen に現れるディレクトリ名も、定義ファイルの `module_dir` から取ります。  
-生成器の中に配置先を持ちません。
+生成物の Doxygen に現れるディレクトリ名は、定義ファイルの置き場所から導出します。  
+絶対パスの中で最も近い `prod` または `test` を起点とし、そこから下を app 直下からの相対パスとします。  
+生成器の中に配置先を持たず、定義ファイルにも書きません。同じ内容を 2 か所で管理すると食い違うためです。
 
 生成器が検査するのは、文字列 ID と固定文字列の重複、引数種別が対応表にあること、位置指定が引数個数に収まること、ニュートラル言語のリソースが欠けていないこと、宣言していない言語が現れないことです。  
 `string_catalog_verify()` が実行時に見ている内容を、生成時へ前倒しします。
@@ -326,10 +356,10 @@ NULL、配列が NULL、要素数が負のいずれかであれば、引数不�
 そこで、カタログを省略して呼び出す口を利用者側の生成物へ置きます。
 
 ```c
-/* string_catalog_definition.c が持つ */
+/* sample_messages.c が持つ */
 static const string_catalog s_catalog = {s_entries, s_id_index, ENTRY_COUNT, ID_INDEX_COUNT};
 
-int string_catalog_definition_format(char *dest, size_t dest_size, int string_id, ...)
+int sample_messages_format(char *dest, size_t dest_size, int string_id, ...)
 {
     /* s_catalog を補って string_catalog_format() を呼び出す */
 }
@@ -349,22 +379,29 @@ int string_catalog_definition_format(char *dest, size_t dest_size, int string_id
 通常のプロトタイプ検査が働き、Doxygen コメントによって利用者は各引数の意味をインテリセンス上で参照できます。
 
 ```c
-static inline int string_catalog_definition_string_catalog_id_file_open_failed(char *dest, size_t dest_size,
-                                                                       const char *file_path, int error_code);
+static inline int string_catalog_sample_messages_id_file_open_failed(char *dest, size_t dest_size,
+                                                                     const char *file_path, int error_code);
 ```
 
 関数名は文字列 ID から機械的に導出します。  
-文字列 ID の定数名をそのまま小文字化し、`string_catalog_definition_` を前置するだけです。  
+ライブラリ側の接頭辞 `string_catalog_` へ、文字列 ID の定数名を小文字化して続けます。  
 導出は生成器の `wrapper_name()` が行い、`bin/test_string_catalog_gen.py` が規則を固定しています。
 
 ```text
-STRING_CATALOG_ID_FILE_OPEN_FAILED
-  → 小文字化                   → string_catalog_id_file_open_failed
-  → string_catalog_definition_ を前置
-  → string_catalog_definition_string_catalog_id_file_open_failed
+SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED
+  → 小文字化            → sample_messages_id_file_open_failed
+  → string_catalog_ を前置
+  → string_catalog_sample_messages_id_file_open_failed
 ```
 
-接頭辞の除去や語の入れ替えを行わないため、規則に例外がありません。  
+モジュール接頭辞ではなくライブラリ側の接頭辞を前置するのは、この関数が文字列カタログによる組み立てであることを、呼び出し側で名前から判別するためです。  
+どのカタログの文字列かは、定数名に含まれるモジュール接頭辞が表します。  
+カタログを省略する口 (`sample_messages_format()` など) はカタログ固有の関数であり、モジュール接頭辞のままです。
+
+この規則の下では、文字列 ID の定数名がそのまま `string_catalog_` の名前空間に現れます。  
+定数名がライブラリの公開する名前と重なるとビルドが失敗するため、定数名にはモジュール接頭辞を含めます。
+
+語の除去や入れ替えは行わないため、規則に例外がありません。  
 区切りのアンダースコアは 1 個です。2 個続けると、C++ が処理系用に予約する識別子になります。
 
 引数の型は、引数種別から `prod/include/string_catalog/string_catalog_argument.h` の対応表で決まります。  
@@ -429,14 +466,14 @@ string_catalog = {entries, id_index, entry_count, id_index_count}
 | `stringCatalogLanguageTest` | プロセスの言語設定 |
 | `stringCatalogCatalogTest` | カタログの形の確認、文字列 ID による検索、複数カタログの独立性 |
 | `stringCatalogFormatTest` | 公開 API。カタログはテスト ディレクトリの偽物を渡す |
-| `stringCatalogDefinitionTest` | コマンドが用意するカタログと添字表 |
+| `sampleMessagesTest` | コマンドが用意するカタログと添字表 |
 | `catalogIntegrationTest` | コマンドのカタログと展開処理を結合した確認 |
 
 `stringCatalogFormatTest` がカタログを偽物へ差し替えるのは、コマンドのカタログが正しい内容だけを持ち、定義が壊れた場合の経路へ到達できないためです。  
 偽物はテスト ディレクトリの `fake_catalog.c` にあり、テストから文字列 ID、分類値、引数個数、引数種別、言語別の書式と備考を書き換えられます。  
 偽物は添字表を持たないため、線形探索の経路も同時に確認できます。
 
-`stringCatalogDefinitionTest` は `test/src/cmd/` に置きます。  
+`sampleMessagesTest` は `test/src/cmd/` に置きます。  
 対象がライブラリではなく、コマンドが用意するソースであるためです。
 
 `stringCatalogLanguageTest` は、既定値を確認するテストを先頭に置きます。  

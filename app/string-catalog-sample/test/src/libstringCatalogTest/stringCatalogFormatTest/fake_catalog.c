@@ -34,7 +34,7 @@ void fake_catalog_reset(void)
          0,
          0,
          {0},
-         "STRING_CATALOG_ID_0001",
+         "FAKE_ID_0001",
          {[STRING_CATALOG_LANGUAGE_NEUTRAL] = "started", [STRING_CATALOG_LANGUAGE_JAPANESE] = "開始しました。"},
          {[STRING_CATALOG_LANGUAGE_NEUTRAL] = "no argument",
           [STRING_CATALOG_LANGUAGE_JAPANESE] = "引数を取らない文字列です。"}},
@@ -43,7 +43,7 @@ void fake_catalog_reset(void)
          2,
          0,
          {STRING_CATALOG_ARGUMENT_KIND_STRING, STRING_CATALOG_ARGUMENT_KIND_INT32},
-         "STRING_CATALOG_ID_0002",
+         "FAKE_ID_0002",
          {[STRING_CATALOG_LANGUAGE_NEUTRAL] = "file {0} number {1}",
           [STRING_CATALOG_LANGUAGE_JAPANESE] = "ファイル {0} 番号 {1}",
           [STRING_CATALOG_LANGUAGE_ENGLISH] = "number {1} of {0}"},
@@ -54,7 +54,7 @@ void fake_catalog_reset(void)
          1,
          0,
          {STRING_CATALOG_ARGUMENT_KIND_SIZE},
-         "STRING_CATALOG_ID_0004",
+         "FAKE_ID_0004",
          {[STRING_CATALOG_LANGUAGE_NEUTRAL] = "limit {0}", [STRING_CATALOG_LANGUAGE_JAPANESE] = "上限 {0}"},
          {[STRING_CATALOG_LANGUAGE_NEUTRAL] = ""}}};
     int index;

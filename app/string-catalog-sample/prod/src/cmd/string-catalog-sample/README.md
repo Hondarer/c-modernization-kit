@@ -8,9 +8,20 @@ short-title: "string-catalog-sample"
 
 1 件ごとに、文字列 ID の固定文字列、レベル、組み立てた文字列、備考を表示します。
 
-カタログはこのディレクトリの `string_catalog_definition.h` と `string_catalog_definition.c` が持ちます。  
+カタログはこのディレクトリの定義 `sample_messages.jsonc` から生成する、`gen/sample_messages.h` と `gen/sample_messages.c` が持ちます。  
 同じ生成物が、カタログを省略して呼び出す口も提供します。  
 起動直後にカタログの整合を確認し、不正があれば失敗して終了します。
+
+## カタログ定義
+
+定義ファイルの名前 `sample_messages` が、そのままモジュール接頭辞になります。  
+ライブラリ側の接頭辞 `string_catalog` とは別の名前空間にして、どこまでが利用者の資産かを名前だけで見分けられるようにしています。
+
+分類値はトレース レベルとして使います。  
+値の意味は手書きの `sample_trace_level.h` が持ち、定義ファイルには生値を書いてコメントで定数名を示します。  
+生成物はこのヘッダーに依存しません。値を解釈する側だけが include します。
+
+定義ファイルの項目と、名前の導出規則は、定義ファイルの冒頭コメントと、app 直下の `docs/architecture.md` に記載します。
 
 ## 使用方法
 
@@ -23,7 +34,7 @@ short-title: "string-catalog-sample"
 ```text
 [日本語]
 
-  STRING_CATALOG_ID_0002: ERROR    ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)
+  SAMPLE_MESSAGES_ID_0002: ERROR    ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)
   パスは利用者の指定をそのまま出力します。エラー コードは errno または Win32 のエラー番号です。
 ```
 
