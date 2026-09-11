@@ -1,6 +1,7 @@
 #include <testfw.h>
 
 #include "string_catalog_definition.h"
+#include "string_catalog_trace_level.h"
 
 #include <string_catalog.h>
 #include <stddef.h>

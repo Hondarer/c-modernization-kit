@@ -1,0 +1,223 @@
+// string-catalog-sample のカタログ定義です。
+//
+// このファイルが正本であり、string_catalog_definition.h と .c は
+// bin/string_catalog_gen.py がここから生成します。生成物を手で編集しないでください。
+//
+// 形式は JSONC です。行コメント、ブロック コメント、末尾コンマを書けます。
+// 長い文章は文字列の配列で書けます。生成器が空白 1 個で連結します。
+//
+// category は生値で書きます。生成物を特定の app の列挙から独立させるためです。
+// この app では string_catalog_trace_level.h の値を使いますが、
+// 生成物はそのヘッダーに依存しません。意味はここのコメントで示します。
+{
+    "library_prefix": "string_catalog",
+    "module_prefix": "string_catalog_definition",
+    "id_enum": "string_catalog_id",
+    "module_dir": "prod/src/cmd/string-catalog-sample",
+    "author": "Tetsuo Honda",
+    "date": "2026/09/12",
+    "version": "1.0.0",
+
+    // texts と notes のキーに書ける言語です。ライブラリの列挙に対応します。
+    "languages": ["neutral", "japanese", "english"],
+
+    "strings": [
+        {
+            "id": "STRING_CATALOG_ID_STARTUP_COMPLETED",
+            "id_text": "STRING_CATALOG_ID_0001",
+            "category": 3, // STRING_CATALOG_TRACE_LEVEL_INFO
+            "brief": "起動完了。",
+            "summary": "既定設定で起動したことを知らせる文字列を組み立てます。",
+            "arguments": [],
+            "texts": {
+                "neutral": "Startup completed. The default setting is {{ default }}.",
+                "japanese": "起動が完了しました。既定の設定は {{ default }} です。"
+            },
+            "notes": {
+                "neutral": "Informational text emitted when startup finishes with the default settings.",
+                "japanese": "運用開始を知らせる文字列です。既定設定で起動したことを示します。"
+            }
+        },
+        {
+            "id": "STRING_CATALOG_ID_FILE_OPEN_FAILED",
+            "id_text": "STRING_CATALOG_ID_0002",
+            "category": 1, // STRING_CATALOG_TRACE_LEVEL_ERROR
+            "brief": "ファイルのオープン失敗。",
+            "summary": "ファイルを開けなかったことを知らせる文字列を組み立てます。",
+            "arguments": [
+                {
+                    "kind": "STRING",
+                    "name": "file_path",
+                    "description": "開けなかったファイルのパス。利用者の指定をそのまま出力します。"
+                },
+                {
+                    "kind": "ERROR_CODE",
+                    "name": "error_code",
+                    "description": "errno または Win32 のエラー番号。10 進数と 16 進数を併記します。"
+                }
+            ],
+            "texts": {
+                "neutral": "Failed to open file {0}. Error code={1}",
+                "japanese": "ファイル {0} を開けませんでした。エラー コード={1}"
+            },
+            "notes": {
+                "neutral": [
+                    "The path is emitted as given by the caller.",
+                    "The error is an errno or Win32 error number."
+                ],
+                "japanese": "パスは利用者の指定をそのまま出力します。エラー コードは errno または Win32 のエラー番号です。"
+            }
+        },
+        {
+            "id": "STRING_CATALOG_ID_MEMORY_SIGNATURE",
+            "id_text": "STRING_CATALOG_ID_0003",
+            "category": 5, // STRING_CATALOG_TRACE_LEVEL_DEBUG
+            "brief": "メモリー領域のシグネチャー。",
+            "summary": "メモリー領域のシグネチャーを知らせる文字列を組み立てます。",
+            "remarks": "障害解析で領域の同一性を確認する目的で使用します。",
+            "arguments": [
+                {
+                    "kind": "POINTER",
+                    "name": "address",
+                    "description": "対象領域のアドレス。実行のたびに変わります。"
+                },
+                {
+                    "kind": "HEX64",
+                    "name": "signature",
+                    "description": "領域が保持するシグネチャー。16 桁の 16 進数で出力します。"
+                }
+            ],
+            "texts": {
+                "neutral": "The signature at memory address {0} is {1}.",
+                "japanese": "メモリー アドレス {0} のシグネチャーは {1} です。"
+            },
+            "notes": {
+                "neutral": [
+                    "The address changes on every run.",
+                    "It is emitted to identify a region during failure analysis."
+                ],
+                "japanese": "アドレスは実行のたびに変わります。障害解析で領域の同一性を確認する目的で出力します。"
+            }
+        },
+        {
+            "id": "STRING_CATALOG_ID_BUFFER_LIMIT",
+            "id_text": "STRING_CATALOG_ID_0004",
+            "category": 2, // STRING_CATALOG_TRACE_LEVEL_WARNING
+            "brief": "バッファー上限の超過。",
+            "summary": "要求サイズが上限を超えたことを知らせる文字列を組み立てます。",
+            "arguments": [
+                {
+                    "kind": "SIZE",
+                    "name": "requested_size",
+                    "description": "要求したバイト数。"
+                },
+                {
+                    "kind": "SIZE",
+                    "name": "limit_size",
+                    "description": "上限のバイト数。構成で変更できます。"
+                }
+            ],
+            "texts": {
+                "neutral": "The requested size of {0} bytes exceeds the limit of {1} bytes.",
+                "japanese": "要求サイズ {0} バイトが上限 {1} バイトを超えました。"
+            },
+            "notes": {
+                "neutral": "The requested size and the limit are in bytes. The limit is configurable.",
+                "japanese": "要求サイズと上限サイズの単位はバイトです。上限は構成で変更できます。"
+            }
+        },
+        {
+            "id": "STRING_CATALOG_ID_RECORD_MISMATCH",
+            "id_text": "STRING_CATALOG_ID_0005",
+            "category": 1, // STRING_CATALOG_TRACE_LEVEL_ERROR
+            "brief": "レコードのシグネチャー不一致。",
+            "summary": "レコードのシグネチャーが想定と一致しないことを知らせる文字列を組み立てます。",
+            "remarks": "日本語の書式は位置指定を入れ替えますが、引数の順序は言語に依らず同じです。",
+            "arguments": [
+                {
+                    "kind": "UINT32",
+                    "name": "record_number",
+                    "description": "対象レコードの番号。"
+                },
+                {
+                    "kind": "HEX32",
+                    "name": "signature",
+                    "description": "検出したシグネチャー。8 桁の 16 進数で出力します。"
+                }
+            ],
+            "texts": {
+                "neutral": "Record {0} has an unexpected signature {1}.",
+                "japanese": "シグネチャー {1} は、レコード {0} の想定と一致しません。"
+            },
+            "notes": {
+                "neutral": [
+                    "The Japanese text swaps the placeholders.",
+                    "The caller passes the arguments in the same order for every language."
+                ],
+                "japanese": "日本語の書式は位置指定を入れ替えています。呼び出し側の引数順序は言語によらず同じです。",
+                "english": "The Japanese text swaps the placeholders, while the argument order stays the same."
+            }
+        },
+        {
+            "id": "STRING_CATALOG_ID_RETRY_SCHEDULED",
+            "id_text": "STRING_CATALOG_ID_0006",
+            "category": 2, // STRING_CATALOG_TRACE_LEVEL_WARNING
+            "brief": "再試行の予約。",
+            "summary": "接続の再試行を予約したことを知らせる文字列を組み立てます。",
+            "remarks": "再試行の回数は呼び出し側が管理します。",
+            "arguments": [
+                {
+                    "kind": "INT32",
+                    "name": "connection_number",
+                    "description": "対象接続の番号。"
+                },
+                {
+                    "kind": "INT64",
+                    "name": "delay_milliseconds",
+                    "description": "再試行までの待ち時間。単位はミリ秒です。"
+                }
+            ],
+            "texts": {
+                "neutral": "Retrying connection {0} in {1} milliseconds.",
+                "japanese": "接続 {0} を {1} ミリ秒後に再試行します。"
+            },
+            "notes": {
+                "neutral": "The delay is in milliseconds. The caller manages the retry count.",
+                "japanese": "待ち時間の単位はミリ秒です。再試行の回数は呼び出し側が管理します。"
+            }
+        },
+        {
+            "id": "STRING_CATALOG_ID_THROUGHPUT_REPORT",
+            "id_text": "STRING_CATALOG_ID_0007",
+            "category": 4, // STRING_CATALOG_TRACE_LEVEL_VERBOSE
+            "brief": "スループット報告。",
+            "summary": "処理速度と累計件数を知らせる文字列を組み立てます。",
+            "arguments": [
+                {
+                    "kind": "DOUBLE",
+                    "name": "records_per_second",
+                    "description": "毎秒の処理件数。書式中で 2 か所から参照します。"
+                },
+                {
+                    "kind": "UINT64",
+                    "name": "processed_count",
+                    "description": "処理した累計件数。"
+                }
+            ],
+            "texts": {
+                "neutral": [
+                    "The throughput is {0} records per second.",
+                    "{1} records were processed at {0} records per second."
+                ],
+                "japanese": "処理速度は {0} 件/秒です。累計 {1} 件を {0} 件/秒で処理しました。"
+            },
+            "notes": {
+                "neutral": [
+                    "The rate is referenced twice.",
+                    "It shows that one placeholder can appear more than once."
+                ],
+                "japanese": "毎秒件数を 2 か所で参照します。同じ位置指定を複数回書けることを示す例です。"
+            }
+        }
+    ]
+}

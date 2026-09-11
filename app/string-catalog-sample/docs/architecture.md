@@ -232,14 +232,72 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 
 本サンプルでは、この 2 つをコマンド側の `prod/src/cmd/string-catalog-sample/` へ置いています。
 
-| ファイル | 内容 |
-|---|---|
-| `string_catalog_definition.h` | 文字列 ID の列挙と、カタログおよび省略の口の宣言 |
-| `string_catalog_definition.c` | カタログの配列、添字表、カタログ識別オブジェクト、省略の口 |
+| ファイル | 内容 | 種別 |
+|---|---|---|
+| `string_catalog_definition.jsonc` | カタログ定義の正本 | 手書き |
+| `string_catalog_trace_level.h` | 分類値の列挙と、その意味付け | 手書き |
+| `gen/string_catalog_definition.h` | 文字列 ID の列挙、カタログと省略の口の宣言、型付きラッパー | 生成 |
+| `gen/string_catalog_definition.c` | カタログの配列、添字表、カタログ識別オブジェクト、省略の口 | 生成 |
 
-この 2 ファイルは、カタログ定義 (Excel など) からの 1 組の生成物です。  
-列挙と表は常に同時に生成します。  
-現時点では、生成器そのものは含みません。
+生成物は `gen/` へ置き、Git では管理しません。`struct-meta` と同じ扱いです。  
+生成は `bin/string_catalog_gen.py` が行い、ビルドが駆動します。  
+定義ファイルか生成器が新しければ `make` が再生成するため、手で実行する必要はありません。
+
+生成はビルド規則ではなく、app 直下の `makepart.mk` が makefile のパース時に行います。  
+コマンドとテストの双方が生成物を参照し、framework はソースの実在をパース時に検査するためです。  
+ビルド規則にすると、テストのディレクトリを解釈する時点で生成物が存在せず失敗します。  
+`app/sqlite` や `app/cjson` が展開ツールを呼ぶ方式と同じです。
+
+毎回のパースで走るため、生成器は `--if-newer` を受け取ります。  
+定義ファイルと生成器のどちらも生成物より古ければ、何もせずに終了します。
+
+利用側は `gen/` を付けて取り込みます。
+
+```c
+#include "gen/string_catalog_definition.h"
+```
+
+手で実行する場合と、内容を確かめる場合です。
+
+```bash
+python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/string_catalog_definition.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
+python3 bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/string_catalog_definition.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
+```
+
+`--check` は書き出さず、既存の生成物が定義と一致するかだけを確かめます。  
+生成器は出力を clang-format へ通すため、生成直後の内容がそのまま最終形です。
+
+定義の形式は JSONC です。行コメント、ブロック コメント、末尾コンマを書けます。  
+長い文章は文字列の配列で書けます。生成器が空白 1 個で連結するため、定義ファイル上の行を短く保てます。  
+JSON を選んだのは cJSON と Python の双方で読めるためで、コメントの前処理は生成器が文字列リテラルを認識しながら行います。
+
+### 生成物を汎用に保つ
+
+生成物が依存してよいのは、string_catalog の公開ヘッダーと標準ヘッダーだけです。  
+特定の app の型や列挙へ依存させません。文字列カタログを共通機能へ移す際に、生成物をそのまま持ち運べるようにするためです。
+
+そのため分類値は生値で保持します。  
+定義ファイルにも整数で書き、意味はコメントで示します。生成器は整数以外を受け付けません。
+
+```c
+/* 生成される表。分類値は 1 で、STRING_CATALOG_TRACE_LEVEL_ERROR を意味する */
+{STRING_CATALOG_ID_FILE_OPEN_FAILED,
+ 1,
+ 2,
+```
+
+分類値の列挙 `string_catalog_trace_level` は手書きの別ヘッダーが持ちます。  
+生成物はこのヘッダーを include しません。値を解釈する側、つまりコマンドとテストが直接 include します。
+
+生成物の Doxygen に現れるディレクトリ名も、定義ファイルの `module_dir` から取ります。  
+生成器の中に配置先を持ちません。
+
+生成器が検査するのは、文字列 ID と固定文字列の重複、引数種別が対応表にあること、位置指定が引数個数に収まること、ニュートラル言語のリソースが欠けていないこと、宣言していない言語が現れないことです。  
+`string_catalog_verify()` が実行時に見ている内容を、生成時へ前倒しします。
+
+文字列 ID の値は、定義の並び順から 1 始まりで生成器が決めます。  
+安定させる必要がある識別子は固定文字列 (`id_text`) であり、これは定義ファイルへ明記します。  
+ログに出るのは固定文字列なので、定義を並べ替えても外部から見える識別子は動きません。
 
 言語別の書式と備考は、言語をキーとした指示付き初期化子で記載します。
 
@@ -296,7 +354,8 @@ static inline int string_catalog_definition_string_catalog_id_file_open_failed(c
 ```
 
 関数名は文字列 ID から機械的に導出します。  
-文字列 ID の定数名をそのまま小文字化し、`string_catalog_definition_` を前置するだけです。
+文字列 ID の定数名をそのまま小文字化し、`string_catalog_definition_` を前置するだけです。  
+導出は生成器の `wrapper_name()` が行い、`bin/test_string_catalog_gen.py` が規則を固定しています。
 
 ```text
 STRING_CATALOG_ID_FILE_OPEN_FAILED
