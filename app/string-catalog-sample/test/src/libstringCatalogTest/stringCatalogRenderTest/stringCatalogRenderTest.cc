@@ -156,7 +156,7 @@ TEST_F(stringCatalogRenderTest, argument_kind_text)
     EXPECT_STREQ("'A'", dest);                // [確認_正常系] - 単引用符で囲んだ 1 文字になること。
 
     values[0].kind = STRING_CATALOG_ARGUMENT_KIND_CHAR;
-    values[0].value.char_value = (char)0x8A;
+    values[0].value.char_value = (char)(unsigned char)0x8A;
     actual_ret =
         format_engine_render_text(dest, sizeof(dest), "{0}", values, 1); // [手順] - 印字できない文字を展開する。
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
