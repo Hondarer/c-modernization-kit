@@ -30,7 +30,7 @@ TEST_F(stringCatalogVerifyTest, valid_catalog)
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_verify(&string_id, &language); // [手順] - 既定のカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id, &language); // [手順] - 既定のカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
@@ -46,14 +46,14 @@ TEST_F(stringCatalogVerifyTest, invalid_format)
     // Pre-Assert
 
     // Act
-    actual_ret =
-        string_catalog_verify(&string_id, &language); // [手順] - 引数個数を超える位置指定を持つカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id,
+                                       &language); // [手順] - 引数個数を超える位置指定を持つカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
     EXPECT_EQ(FAKE_CATALOG_ID_ONE_ARGUMENT,
-              string_id); // [確認_異常系] - 不正を検出した文字列 ID を報告すること。
+              string_id);                                 // [確認_異常系] - 不正を検出した文字列 ID を報告すること。
     EXPECT_EQ(STRING_CATALOG_LANGUAGE_ENGLISH, language); // [確認_異常系] - 不正を検出した言語を報告すること。
 }
 
@@ -67,8 +67,8 @@ TEST_F(stringCatalogVerifyTest, missing_localized_text_is_allowed)
     // Pre-Assert
 
     // Act
-    actual_ret =
-        string_catalog_verify(&string_id, &language); // [手順] - 日本語のリソースが欠けたカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id,
+                                       &language); // [手順] - 日本語のリソースが欠けたカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK,
@@ -85,14 +85,14 @@ TEST_F(stringCatalogVerifyTest, missing_neutral_text)
     // Pre-Assert
 
     // Act
-    actual_ret =
-        string_catalog_verify(&string_id, &language); // [手順] - ニュートラル言語の書式が欠けたカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id,
+                                       &language); // [手順] - ニュートラル言語の書式が欠けたカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
     EXPECT_EQ(FAKE_CATALOG_ID_TWO_ARGUMENTS,
-              string_id); // [確認_異常系] - 不正を検出した文字列 ID を報告すること。
+              string_id);                                 // [確認_異常系] - 不正を検出した文字列 ID を報告すること。
     EXPECT_EQ(STRING_CATALOG_LANGUAGE_NEUTRAL, language); // [確認_異常系] - 不正を検出した言語を報告すること。
 }
 
@@ -106,14 +106,14 @@ TEST_F(stringCatalogVerifyTest, missing_neutral_note)
     // Pre-Assert
 
     // Act
-    actual_ret =
-        string_catalog_verify(&string_id, &language); // [手順] - ニュートラル言語の備考が欠けたカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id,
+                                       &language); // [手順] - ニュートラル言語の備考が欠けたカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
     EXPECT_EQ(FAKE_CATALOG_ID_TWO_ARGUMENTS,
-              string_id); // [確認_異常系] - 不正を検出した文字列 ID を報告すること。
+              string_id);                                 // [確認_異常系] - 不正を検出した文字列 ID を報告すること。
     EXPECT_EQ(STRING_CATALOG_LANGUAGE_NEUTRAL, language); // [確認_異常系] - 不正を検出した言語を報告すること。
 }
 
@@ -127,7 +127,8 @@ TEST_F(stringCatalogVerifyTest, argument_count_over_max)
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_verify(&string_id, &language); // [手順] - 引数個数が上限を超えるカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id,
+                                       &language); // [手順] - 引数個数が上限を超えるカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
@@ -148,8 +149,8 @@ TEST_F(stringCatalogVerifyTest, duplicated_string_id)
     // Pre-Assert
 
     // Act
-    actual_ret =
-        string_catalog_verify(&string_id, &language); // [手順] - 文字列 ID が重複したカタログを確認する。
+    actual_ret = string_catalog_verify(fake_catalog(), &string_id,
+                                       &language); // [手順] - 文字列 ID が重複したカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
@@ -169,7 +170,8 @@ TEST_F(stringCatalogVerifyTest, argument_count_negative)
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_verify(&string_id, &language); // [手順] - 引数個数が負のカタログを確認する。
+    actual_ret =
+        string_catalog_verify(fake_catalog(), &string_id, &language); // [手順] - 引数個数が負のカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
@@ -187,13 +189,13 @@ TEST_F(stringCatalogVerifyTest, omitted_output_arguments)
 
     // Act
     fake_catalog_set_argument_count(FAKE_CATALOG_INDEX_TWO_ARGUMENTS, STRING_CATALOG_ARGUMENT_MAX + 1);
-    actual_ret_count =
-        string_catalog_verify(NULL, NULL); // [手順] - 出力引数を省略して、引数個数が不正なカタログを確認する。
+    actual_ret_count = string_catalog_verify(fake_catalog(), NULL,
+                                             NULL); // [手順] - 出力引数を省略して、引数個数が不正なカタログを確認する。
 
     fake_catalog_reset();
     fake_catalog_set_text(FAKE_CATALOG_INDEX_TWO_ARGUMENTS, STRING_CATALOG_LANGUAGE_NEUTRAL, NULL);
     actual_ret_text = string_catalog_verify(
-        NULL, NULL); // [手順] - 出力引数を省略して、ニュートラル言語の書式が欠けたカタログを確認する。
+        fake_catalog(), NULL, NULL); // [手順] - 出力引数を省略して、ニュートラル言語の書式が欠けたカタログを確認する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,

@@ -13,8 +13,8 @@ string-catalog-sample コマンドのソース コードです。
 
 カタログはライブラリが抱え込まないため、この階層が利用者としてカタログ定義を用意します。  
 `string_catalog_definition.h` が文字列 ID の列挙、`string_catalog_definition.c` がカタログの配列と添字表です。  
-起動時に `string_catalog_set_catalog()` で注入します。
+カタログを省略して呼び出す口も同じ生成物が用意します。
 
 ## コマンド一覧
 
-- `string-catalog-sample` - カタログの注入と点検を行い、全文字列を言語別に出力するコマンド
+- `string-catalog-sample` - カタログの点検を行い、全文字列を言語別に出力するコマンド

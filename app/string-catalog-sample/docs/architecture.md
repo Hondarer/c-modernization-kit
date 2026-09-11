@@ -23,7 +23,8 @@ C の可変長引数は順番にしか安全に取り出せません。
 - 言語別リソースは語順だけを決めます。書式指定は書けません。
 - 可変長引数は最初に一度だけ値の配列へ写し、そのあとで書式を展開します。
 - 出力する言語はプロセスで 1 つとし、文字列を組み立てるたびには指定しません。
-- カタログはライブラリが抱え込まず、利用者が注入します。
+- カタログはライブラリが抱え込まず、利用者が用意したカタログを呼び出しごとに渡します。
+- 1 つのプロセスで複数のカタログを扱えます。カタログどうしは互いに影響しません。
 
 ## 責務の 3 段構成
 
@@ -57,7 +58,7 @@ C の可変長引数は順番にしか安全に取り出せません。
 | 段 | 実装 | 責務 |
 |---|---|---|
 | 入口 | `prod/libsrc/string_catalog/string_catalog_format.c` | 引数検査、カタログの取得、言語別リソースの選択、下位 2 段の呼び出し |
-| 保持 | `prod/libsrc/string_catalog/string_catalog_catalog.c` | 注入されたカタログの保持と、文字列 ID による検索 |
+| 検索 | `prod/libsrc/string_catalog/string_catalog_catalog.c` | 渡されたカタログに対する、文字列 ID による検索 |
 | 取り出し | `prod/libsrc/string_catalog/string_catalog_argument.c` | 引数スキーマに従って `va_arg` の型を選び、値の配列へ写す |
 | 展開 | `prod/libsrc/string_catalog/string_catalog_render.c` | 位置指定を値の文字列表現へ置き換える |
 
@@ -159,10 +160,18 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 本 app はトレースの出力機構を持ちません。  
 レベルは、利用側が出力先や絞り込みを決めるための情報として保持します。
 
-## カタログの注入
+## カタログの受け渡し
 
 カタログはライブラリが抱え込みません。  
-利用者が定義し、`string_catalog_set_catalog()` でプロセスへ注入します。
+利用者が定義し、`string_catalog` へまとめて、API の呼び出しごとに渡します。
+
+`string_catalog` は、カタログの配列と添字表を 1 つにまとめたカタログ識別オブジェクトです。  
+すべてのメンバーを初期化子で与えられるため、`const` の静的記憶域期間を持つ値として定義できます。  
+初期化関数を持たないため、初期化順序を気にする必要がありません。
+
+ライブラリはこの値を保持しません。  
+そのため、1 つのプロセスで複数のカタログを同時に扱えます。  
+ライブラリ本体のカタログと、それを利用するアプリケーションのカタログを、別々に持てます。
 
 利用者が用意するのは次の 2 つだけです。
 
@@ -182,8 +191,8 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 
 | ファイル | 内容 |
 |---|---|
-| `string_catalog_definition.h` | 文字列 ID の列挙と、カタログを取得する宣言 |
-| `string_catalog_definition.c` | カタログの配列と添字表 |
+| `string_catalog_definition.h` | 文字列 ID の列挙と、カタログおよび省略の口の宣言 |
+| `string_catalog_definition.c` | カタログの配列、添字表、カタログ識別オブジェクト、省略の口 |
 
 この 2 ファイルは、カタログ定義 (Excel など) からの 1 組の生成物です。  
 列挙と表は常に同時に生成します。  
@@ -201,14 +210,33 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 リソースを持たない言語は、行ごと省略できます。
 
 配列はコピーせず、ポインターだけを保持します。  
-プロセスの生存期間にわたって有効な領域を渡す必要があるため、静的記憶域期間を持つ配列を想定しています。
+カタログを使用する間ずっと有効な領域を渡す必要があるため、静的記憶域期間を持つ配列を想定しています。
 
-注入していないプロセスは、カタログが空であるものとして扱います。  
-この状態で文字列を組み立てると `STRING_CATALOG_ERR_NOT_FOUND` を返します。
+カタログは利用者が静的初期化するため、ライブラリは値の形を関数の入口で確認します。  
+NULL、配列が NULL、要素数が負のいずれかであれば、引数不正として扱います。
 
-書式を展開する実装は、注入されたカタログを直接参照しません。  
-`prod/include_internal/string_catalog/catalog.h` が宣言する 3 つの関数だけを経由します。  
-保持と検索は `prod/libsrc/string_catalog/string_catalog_catalog.c` が担います。
+書式を展開する実装は、渡されたカタログを直接参照しません。  
+`prod/include_internal/string_catalog/catalog.h` が宣言する関数だけを経由します。  
+検索は `prod/libsrc/string_catalog/string_catalog_catalog.c` が担い、この層は状態を持ちません。
+
+### カタログを省略する口
+
+カタログを引数に取る形は、複数のカタログを扱うために必要ですが、1 つしか使わない呼び出し側には手間です。  
+そこで、カタログを省略して呼び出す口を利用者側の生成物へ置きます。
+
+```c
+/* string_catalog_definition.c が持つ */
+static const string_catalog s_catalog = {s_entries, s_id_index, ENTRY_COUNT, ID_INDEX_COUNT};
+
+int string_catalog_definition_format(char *dest, size_t dest_size, int string_id, ...)
+{
+    /* s_catalog を補って string_catalog_format() を呼び出す */
+}
+```
+
+この口をライブラリではなく生成物へ置くのは、既定のカタログという状態をライブラリへ戻さないためです。  
+ライブラリは状態を持たないまま、呼び出し側は 1 つのカタログを短く書けます。  
+可変長引数はいったん `va_list` にして `string_catalog_vformat()` へ中継します。
 
 ### 添字表による探索
 
@@ -216,7 +244,7 @@ cplat を利用する app へ移植する場合は、値が同じであるため
 利用者は、文字列 ID を添字としてカタログの添字を引く表を添えられます。
 
 ```text
-string_catalog_set_catalog(entries, entry_count, id_index, id_index_count)
+string_catalog = {entries, id_index, entry_count, id_index_count}
 
   id_index[string_id] -> entries の添字 (未登録は負の値)
 ```
@@ -237,10 +265,11 @@ string_catalog_set_catalog(entries, entry_count, id_index, id_index_count)
 
 ニュートラル言語以外のリソースは、欠けていればニュートラル言語へ読み替えるため、欠けていること自体は不正ではありません。
 
-カタログは注入した時点で内容が確定するため、点検は起動時に一度実行すれば十分です。  
-文字列を組み立てるたびに実行する必要はありません。
+カタログは静的に確定するため、点検は起動時に一度実行すれば十分です。  
+文字列を組み立てるたびに実行する必要はありません。  
+複数のカタログを使う場合は、カタログごとに点検します。
 
-サンプル コマンドは、カタログを注入した直後にこの関数を呼び出します。
+サンプル コマンドは、起動直後にこの関数を呼び出します。
 
 ## 依存関係
 
@@ -257,14 +286,14 @@ string_catalog_set_catalog(entries, entry_count, id_index, id_index_count)
 | `stringCatalogRenderTest` | 位置指定書式の展開と構文確認 |
 | `stringCatalogArgumentTest` | 引数種別ごとの可変長引数の取り出し |
 | `stringCatalogLanguageTest` | プロセスの言語設定 |
-| `stringCatalogCatalogTest` | カタログの注入と、文字列 ID による検索 |
-| `stringCatalogFormatTest` | 公開 API。カタログはテスト ディレクトリの偽物を注入する |
+| `stringCatalogCatalogTest` | カタログの形の確認、文字列 ID による検索、複数カタログの独立性 |
+| `stringCatalogFormatTest` | 公開 API。カタログはテスト ディレクトリの偽物を渡す |
 | `stringCatalogDefinitionTest` | コマンドが用意するカタログと添字表 |
 | `catalogIntegrationTest` | コマンドのカタログと展開処理を結合した確認 |
 
 `stringCatalogFormatTest` がカタログを偽物へ差し替えるのは、コマンドのカタログが正しい内容だけを持ち、定義が壊れた場合の経路へ到達できないためです。  
 偽物はテスト ディレクトリの `fake_catalog.c` にあり、テストから文字列 ID、分類値、引数個数、引数種別、言語別の書式と備考を書き換えられます。  
-偽物は添字表を渡さずに注入するため、線形探索の経路も同時に確認できます。
+偽物は添字表を持たないため、線形探索の経路も同時に確認できます。
 
 `stringCatalogDefinitionTest` は `test/src/cmd/` に置きます。  
 対象がライブラリではなく、コマンドが用意するソースであるためです。

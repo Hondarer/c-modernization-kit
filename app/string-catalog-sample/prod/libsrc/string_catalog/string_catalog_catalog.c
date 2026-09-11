@@ -1,21 +1,21 @@
 /**
  *******************************************************************************
  *  @file           libsrc/string_catalog/string_catalog_catalog.c
- *  @brief          プロセスが使用するカタログの保持と検索を提供します。
+ *  @brief          カタログの検索を提供します。
  *  @author         Tetsuo Honda
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  カタログはライブラリが抱え込まず、利用者が注入します。\n
+ *  カタログはライブラリが抱え込まず、利用者が用意します。\n
  *  ライブラリが定めるのは、言語、引数種別、分類、書式の構文です。\n
  *  利用者が用意するのは、文字列 ID の列挙とカタログの配列です。
  *
- *  設定はプロセス グローバルな状態であり、同期を持ちません。\n
- *  プロセスの初期化時に設定し、文字列を組み立てている間は変更しない前提です。\n
- *  配列はコピーせず、ポインターだけを保持します。
+ *  本ファイルは状態を持ちません。呼び出し元が渡すカタログだけを参照します。\n
+ *  1 つのプロセスで複数のカタログを扱え、カタログどうしは互いに影響しません。
  *
+ *  カタログは利用者が静的初期化するため、値の形を関数の入口で確認します。\n
  *  文字列 ID からカタログを引く探索は、添字表があれば添字表を、無ければ線形探索を使います。\n
- *  添字表の内容は利用者が用意するため、参照する前に範囲を確認します。
+ *  添字表の内容も利用者が用意するため、参照する前に範囲を確認します。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -24,89 +24,84 @@
 
 #include <string_catalog/catalog.h>
 #include <string_catalog/string_catalog_spec.h>
+#include <stdbool.h>
 #include <stddef.h>
 
-/** 注入されたカタログの先頭です。注入前は NULL です。 */
-static const string_catalog_entry *s_entries = NULL;
-
-/** 注入されたカタログの件数です。注入前は 0 です。 */
-static int s_entry_count = 0;
-
-/** 文字列 ID を添字として、カタログの添字を引く表です。注入していない場合は NULL です。 */
-static const int *s_id_index = NULL;
-
-/** @ref s_id_index の要素数です。添字表が無い場合は 0 です。 */
-static int s_id_index_count = 0;
-
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int string_catalog_set_catalog(const string_catalog_entry *entries, const int entry_count, const int *id_index,
-                                const int id_index_count)
+bool string_catalog_internal_is_usable(const string_catalog *const catalog)
 {
-    if ((entries == NULL) || (entry_count < 0) || (id_index_count < 0))
+    if (catalog == NULL)
     {
-        return STRING_CATALOG_ERR_INVALID_ARGUMENT;
+        return false;
     }
 
-    s_entries = entries;
-    s_entry_count = entry_count;
-    s_id_index = id_index;
-
-    if (id_index == NULL)
+    if ((catalog->entries == NULL) || (catalog->entry_count < 0) || (catalog->id_index_count < 0))
     {
-        s_id_index_count = 0;
-    }
-    else
-    {
-        s_id_index_count = id_index_count;
+        return false;
     }
 
-    return STRING_CATALOG_OK;
+    return true;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int string_catalog_internal_entry_count(void)
+int string_catalog_internal_entry_count(const string_catalog *const catalog)
 {
-    return s_entry_count;
+    if (!string_catalog_internal_is_usable(catalog))
+    {
+        return 0;
+    }
+
+    return catalog->entry_count;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-const string_catalog_entry *string_catalog_internal_entry_at(const int index)
+const string_catalog_entry *string_catalog_internal_entry_at(const string_catalog *const catalog, const int index)
 {
-    if ((index < 0) || (index >= s_entry_count))
+    if (!string_catalog_internal_is_usable(catalog))
     {
         return NULL;
     }
 
-    return &s_entries[index];
+    if ((index < 0) || (index >= catalog->entry_count))
+    {
+        return NULL;
+    }
+
+    return &catalog->entries[index];
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-const string_catalog_entry *string_catalog_internal_find_entry(const int string_id)
+const string_catalog_entry *string_catalog_internal_find_entry(const string_catalog *const catalog, const int string_id)
 {
     int index;
 
-    if ((string_id >= 0) && (string_id < s_id_index_count))
+    if (!string_catalog_internal_is_usable(catalog))
+    {
+        return NULL;
+    }
+
+    if ((catalog->id_index != NULL) && (string_id >= 0) && (string_id < catalog->id_index_count))
     {
         /* 添字表の内容は利用者が用意するため、参照する前に範囲を確認する */
-        const int entry_index = s_id_index[string_id];
+        const int entry_index = catalog->id_index[string_id];
 
-        if ((entry_index < 0) || (entry_index >= s_entry_count))
+        if ((entry_index < 0) || (entry_index >= catalog->entry_count))
         {
             return NULL;
         }
 
-        return &s_entries[entry_index];
+        return &catalog->entries[entry_index];
     }
 
-    for (index = 0; index < s_entry_count; index++)
+    for (index = 0; index < catalog->entry_count; index++)
     {
-        if (s_entries[index].id == string_id)
+        if (catalog->entries[index].id == string_id)
         {
-            return &s_entries[index];
+            return &catalog->entries[index];
         }
     }
 

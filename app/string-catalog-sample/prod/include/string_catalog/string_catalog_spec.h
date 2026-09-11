@@ -9,8 +9,10 @@
  *  文字列 ID を指定して、UTF-8 の文字列を組み立てます。\n
  *  引数の型と文字列表現は文字列 ID 側の定義が決め、言語別リソースは語順だけを決めます。
  *
- *  カタログはライブラリが抱え込まず、利用者が @ref string_catalog_set_catalog で注入します。\n
- *  注入していないプロセスは、カタログが空であるものとして扱います。
+ *  カタログはライブラリが抱え込みません。\n
+ *  利用者が @ref string_catalog へ配列と添字表をまとめ、API の呼び出しごとに渡します。\n
+ *  1 つのプロセスで複数のカタログを扱えます。カタログどうしは互いに影響しません。\n
+ *  カタログを渡す手間を省く口は、利用者側の生成物が用意します。
  *
  *  出力する言語はプロセスで 1 つとし、@ref string_catalog_set_language で設定します。\n
  *  設定していないプロセスは @ref STRING_CATALOG_LANGUAGE_NEUTRAL を使用します。
@@ -50,42 +52,6 @@ extern "C"
 #endif /* __cplusplus */
 
     /**
-     *  @brief          プロセスが使用するカタログを設定します。
-     *  @param[in]      entries        カタログの配列。NULL を渡してはなりません。
-     *  @param[in]      entry_count    @p entries の要素数。0 以上を指定してください。
-     *  @param[in]      id_index       文字列 ID を添字として @p entries の添字を引く表。
-     *                                 不要な場合は NULL を指定できます。
-     *  @param[in]      id_index_count @p id_index の要素数。0 以上を指定してください。
-     *                                 @p id_index が NULL の場合は無視します。
-     *  @return         成功時は @ref STRING_CATALOG_OK を返します。
-     *  @return         @p entries が NULL の場合、@p entry_count が負の場合、
-     *                  または @p id_index_count が負の場合は
-     *                  @ref STRING_CATALOG_ERR_INVALID_ARGUMENT を返し、設定を変更しません。
-     *
-     *  設定はプロセス全体で 1 つです。\n
-     *  @p entries と @p id_index はコピーせず、ポインターだけを保持します。
-     *  プロセスの生存期間にわたって有効な領域を渡してください。\n
-     *  静的記憶域期間を持つ配列を渡すことを想定しています。
-     *
-     *  @p id_index は、文字列 ID からカタログを引く探索コストを下げるための表です。\n
-     *  文字列 ID を添字として @p entries の添字を格納し、登録していない添字には負の値を格納します。\n
-     *  文字列 ID が小さい非負整数である場合に使用できます。\n
-     *  NULL を指定した場合、または添字が @p id_index_count 以上の場合は、線形探索で検索します。
-     *
-     *  本関数を呼び出していないプロセスは、カタログが空であるものとして扱います。\n
-     *  この状態では、文字列の組み立ては @ref STRING_CATALOG_ERR_NOT_FOUND を返します。
-     *
-     *  内容の妥当性は確認しません。注入した内容は @ref string_catalog_verify で確認してください。
-     *
-     *  @par            スレッド セーフ
-     *  本関数はスレッド セーフではありません。\n
-     *  プロセスの初期化時に設定し、文字列を組み立てている間は変更しないでください。\n
-     *  設定を変更しない限り、文字列の組み立ては複数のスレッドから同時に行えます。
-     */
-    extern int string_catalog_set_catalog(const string_catalog_entry *entries, int entry_count, const int *id_index,
-                                           int id_index_count);
-
-    /**
      *  @brief          プロセスが文字列を出力する言語を設定します。
      *  @param[in]      language 設定する言語。
      *  @return         成功時は @ref STRING_CATALOG_OK を返します。
@@ -118,12 +84,14 @@ extern "C"
 
     /**
      *  @brief          文字列 ID と可変長引数から、現在の言語の文字列を組み立てます。
+     *  @param[in]      catalog    使用するカタログ。NULL を渡してはなりません。
      *  @param[out]     dest       文字列の格納先。NULL を渡してはなりません。常に NUL 終端します。
      *  @param[in]      dest_size  @p dest のバイト数。1 以上を指定してください。
      *  @param[in]      string_id 組み立てる文字列の ID。利用者の列挙の値を指定します。
      *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
      *  @return         成功時は @ref STRING_CATALOG_OK を返します。
-     *  @return         @p dest が NULL の場合、または @p dest_size が 0 の場合は
+     *  @return         @p catalog が NULL の場合、@p catalog の内容が不正な場合、
+     *                  @p dest が NULL の場合、または @p dest_size が 0 の場合は
      *                  @ref STRING_CATALOG_ERR_INVALID_ARGUMENT を返します。
      *  @return         @p string_id がカタログに存在しない場合は @ref STRING_CATALOG_ERR_NOT_FOUND を返します。
      *  @return         カタログの書式が不正な場合は @ref STRING_CATALOG_ERR_INVALID_DEFINITION を返します。
@@ -140,10 +108,10 @@ extern "C"
      *
      *  @par            使用例
         @code{.c}
+        static const string_catalog catalog = {entries, id_index, entry_count, id_index_count};
         char text[STRING_CATALOG_TEXT_MAX];
-        string_catalog_set_catalog(entries, entry_count, id_index, id_index_count);
         string_catalog_set_language(STRING_CATALOG_LANGUAGE_JAPANESE);
-        int ret = string_catalog_format(text, sizeof(text), STRING_CATALOG_ID_FILE_OPEN_FAILED,
+        int ret = string_catalog_format(&catalog, text, sizeof(text), STRING_CATALOG_ID_FILE_OPEN_FAILED,
                                          "config.json", 2);
         if (ret == STRING_CATALOG_OK)
         {
@@ -155,10 +123,11 @@ extern "C"
      *  本関数は、言語設定を変更しない限りスレッド セーフです。\n
      *  呼び出し側のバッファーへ書き込み、読み取り専用のカタログだけを参照します。
      */
-    extern int string_catalog_format(char *dest, size_t dest_size, int string_id, ...);
+    extern int string_catalog_format(const string_catalog *catalog, char *dest, size_t dest_size, int string_id, ...);
 
     /**
      *  @brief          文字列 ID と @c va_list から、現在の言語の文字列を組み立てます。
+     *  @param[in]      catalog    使用するカタログ。NULL を渡してはなりません。
      *  @param[out]     dest       文字列の格納先。NULL を渡してはなりません。常に NUL 終端します。
      *  @param[in]      dest_size  @p dest のバイト数。1 以上を指定してください。
      *  @param[in]      string_id 組み立てる文字列の ID。利用者の列挙の値を指定します。
@@ -175,13 +144,17 @@ extern "C"
      *  本関数は、言語設定を変更しない限りスレッド セーフです。\n
      *  呼び出し側のバッファーへ書き込み、読み取り専用のカタログだけを参照します。
      */
-    extern int string_catalog_vformat(char *dest, size_t dest_size, int string_id, va_list args);
+    extern int string_catalog_vformat(const string_catalog *catalog, char *dest, size_t dest_size, int string_id,
+                                      va_list args);
 
     /**
      *  @brief          カタログのすべての書式が、引数スキーマと矛盾しないことを確認します。
+     *  @param[in]      catalog       確認するカタログ。NULL を渡してはなりません。
      *  @param[out]     string_id_out 不正を検出した文字列の ID。不要な場合は NULL を指定できます。
      *  @param[out]     language_out   不正を検出した言語。不要な場合は NULL を指定できます。
      *  @return         すべての書式が正しい場合は @ref STRING_CATALOG_OK を返します。
+     *  @return         @p catalog が NULL の場合、@ref string_catalog::entries が NULL の場合、
+     *                  または要素数が負の場合は @ref STRING_CATALOG_ERR_INVALID_ARGUMENT を返します。
      *  @return         書式の構文が不正な場合、位置指定が引数個数を超える場合、
      *                  引数個数が @ref STRING_CATALOG_ARGUMENT_MAX を超える場合、
      *                  添字表から文字列へ到達できない場合、
@@ -204,10 +177,12 @@ extern "C"
      *  本関数はスレッド セーフです。\n
      *  読み取り専用のカタログだけを参照します。
      */
-    extern int string_catalog_verify(int *string_id_out, string_catalog_language *language_out);
+    extern int string_catalog_verify(const string_catalog *catalog, int *string_id_out,
+                                     string_catalog_language *language_out);
 
     /**
      *  @brief          文字列の分類値を返します。
+     *  @param[in]      catalog   参照するカタログ。NULL を渡した場合は 0 を返します。
      *  @param[in]      string_id 参照する文字列の ID。利用者の列挙の値を指定します。
      *  @return         カタログが保持する分類値を返します。
      *  @return         カタログに存在しない文字列 ID では 0 を返します。
@@ -227,10 +202,11 @@ extern "C"
      *  本関数はスレッド セーフです。\n
      *  読み取り専用のカタログだけを参照します。
      */
-    extern int string_catalog_category(int string_id);
+    extern int string_catalog_category(const string_catalog *catalog, int string_id);
 
     /**
      *  @brief          文字列 ID の固定文字列を返します。
+     *  @param[in]      catalog   参照するカタログ。NULL を渡した場合は NULL を返します。
      *  @param[in]      string_id 参照する文字列の ID。利用者の列挙の値を指定します。
      *  @return         文字列 ID の固定文字列 (例: `STRING_CATALOG_ID_0001`) を返します。
      *  @return         カタログに存在しない文字列 ID では NULL を返します。
@@ -243,10 +219,11 @@ extern "C"
      *  本関数はスレッド セーフです。\n
      *  読み取り専用のカタログだけを参照します。
      */
-    extern const char *string_catalog_id_text(int string_id);
+    extern const char *string_catalog_id_text(const string_catalog *catalog, int string_id);
 
     /**
      *  @brief          現在の言語で文字列の備考を返します。
+     *  @param[in]      catalog   参照するカタログ。NULL を渡した場合は NULL を返します。
      *  @param[in]      string_id 参照する文字列の ID。利用者の列挙の値を指定します。
      *  @return         備考を返します。備考が無い文字列では空文字列を返します。
      *  @return         カタログに存在しない文字列 ID では NULL を返します。
@@ -260,7 +237,7 @@ extern "C"
      *  本関数はスレッド セーフです。\n
      *  読み取り専用のカタログだけを参照します。
      */
-    extern const char *string_catalog_note(int string_id);
+    extern const char *string_catalog_note(const string_catalog *catalog, int string_id);
 
 #ifdef __cplusplus
 }

@@ -47,7 +47,8 @@ static const char *select_localized(const char *const *localized, const string_c
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int string_catalog_vformat(char *dest, const size_t dest_size, const int string_id, va_list args)
+int string_catalog_vformat(const string_catalog *const catalog, char *dest, const size_t dest_size, const int string_id,
+                           va_list args)
 {
     const string_catalog_entry *entry;
     const string_catalog_language language = string_catalog_get_language();
@@ -62,7 +63,12 @@ int string_catalog_vformat(char *dest, const size_t dest_size, const int string_
 
     dest[0] = '\0';
 
-    entry = string_catalog_internal_find_entry(string_id);
+    if (!string_catalog_internal_is_usable(catalog))
+    {
+        return STRING_CATALOG_ERR_INVALID_ARGUMENT;
+    }
+
+    entry = string_catalog_internal_find_entry(catalog, string_id);
     if (entry == NULL)
     {
         return STRING_CATALOG_ERR_NOT_FOUND;
@@ -90,13 +96,14 @@ int string_catalog_vformat(char *dest, const size_t dest_size, const int string_
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int string_catalog_format(char *dest, const size_t dest_size, const int string_id, ...)
+int string_catalog_format(const string_catalog *const catalog, char *dest, const size_t dest_size, const int string_id,
+                          ...)
 {
     va_list args;
     int ret;
 
     va_start(args, string_id);
-    ret = string_catalog_vformat(dest, dest_size, string_id, args);
+    ret = string_catalog_vformat(catalog, dest, dest_size, string_id, args);
     va_end(args);
 
     return ret;
@@ -104,21 +111,29 @@ int string_catalog_format(char *dest, const size_t dest_size, const int string_i
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int string_catalog_verify(int *string_id_out, string_catalog_language *language_out)
+int string_catalog_verify(const string_catalog *const catalog, int *string_id_out,
+                          string_catalog_language *language_out)
 {
-    const int entry_count = string_catalog_internal_entry_count();
+    int entry_count;
     int entry_index;
+
+    if (!string_catalog_internal_is_usable(catalog))
+    {
+        return STRING_CATALOG_ERR_INVALID_ARGUMENT;
+    }
+
+    entry_count = string_catalog_internal_entry_count(catalog);
 
     for (entry_index = 0; entry_index < entry_count; entry_index++)
     {
         const string_catalog_entry *entry;
         int language_index;
 
-        entry = string_catalog_internal_entry_at(entry_index);
+        entry = string_catalog_internal_entry_at(catalog, entry_index);
 
         /* 分類値はライブラリが解釈しないため、範囲は確認しない */
         if ((entry->argument_count < 0) || (entry->argument_count > STRING_CATALOG_ARGUMENT_MAX) ||
-            (string_catalog_internal_find_entry(entry->id) != entry))
+            (string_catalog_internal_find_entry(catalog, entry->id) != entry))
         {
             if (string_id_out != NULL)
             {
@@ -166,11 +181,11 @@ int string_catalog_verify(int *string_id_out, string_catalog_language *language_
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int string_catalog_category(const int string_id)
+int string_catalog_category(const string_catalog *const catalog, const int string_id)
 {
     const string_catalog_entry *entry;
 
-    entry = string_catalog_internal_find_entry(string_id);
+    entry = string_catalog_internal_find_entry(catalog, string_id);
     if (entry == NULL)
     {
         return 0;
@@ -181,11 +196,11 @@ int string_catalog_category(const int string_id)
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-const char *string_catalog_id_text(const int string_id)
+const char *string_catalog_id_text(const string_catalog *const catalog, const int string_id)
 {
     const string_catalog_entry *entry;
 
-    entry = string_catalog_internal_find_entry(string_id);
+    entry = string_catalog_internal_find_entry(catalog, string_id);
     if (entry == NULL)
     {
         return NULL;
@@ -196,11 +211,11 @@ const char *string_catalog_id_text(const int string_id)
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-const char *string_catalog_note(const int string_id)
+const char *string_catalog_note(const string_catalog *const catalog, const int string_id)
 {
     const string_catalog_entry *entry;
 
-    entry = string_catalog_internal_find_entry(string_id);
+    entry = string_catalog_internal_find_entry(catalog, string_id);
     if (entry == NULL)
     {
         return NULL;

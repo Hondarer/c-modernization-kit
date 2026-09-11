@@ -27,7 +27,9 @@
 #ifndef STRING_CATALOG_DEFINITION_H
 #define STRING_CATALOG_DEFINITION_H
 
-#include <string_catalog/string_catalog_entry.h>
+#include <string_catalog/string_catalog_spec.h>
+#include <stdarg.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -93,8 +95,8 @@ extern "C"
      *  @return         カタログの配列です。NULL は返しません。
      *
      *  返すポインターは静的領域を指します。呼び出し側で解放してはなりません。\n
-     *  @ref string_catalog_definition_entry_count とともに
-     *  `string_catalog_set_catalog()` へ渡します。
+     *  @ref string_catalog_definition_entry_count とともに @ref string_catalog を組み立てる材料です。\n
+     *  組み立て済みのカタログは @ref string_catalog_definition_catalog が返します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
@@ -133,6 +135,91 @@ extern "C"
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
      */
     int string_catalog_definition_id_index_count(void);
+
+    /**
+     *  @brief          このカタログ定義のカタログ識別オブジェクトを返します。
+     *  @return         カタログ識別オブジェクトです。NULL は返しません。
+     *
+     *  配列と添字表を 1 つのカタログへまとめた値です。\n
+     *  ライブラリはカタログを保持しないため、組み立て API へはこの値を渡します。
+     *
+     *  返すポインターは静的領域を指します。呼び出し側で解放してはなりません。\n
+     *  ほかのカタログ定義と組み合わせる場合は、それぞれのカタログを使い分けます。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
+     */
+    const string_catalog *string_catalog_definition_catalog(void);
+
+    /**
+     *  @brief          このカタログ定義を使用して、文字列を組み立てます。
+     *  @param[out]     dest      文字列の格納先。NULL を渡してはなりません。
+     *  @param[in]      dest_size @p dest のバイト数。1 以上を指定してください。
+     *  @param[in]      string_id 組み立てる文字列の ID。
+     *  @param[in]      ...       引数スキーマが定める順序と型の値。
+     *  @return         戻り値は @ref string_catalog_format と同じです。
+     *
+     *  カタログを省略して呼び出す口です。\n
+     *  @ref string_catalog_definition_catalog を補って @ref string_catalog_format を呼び出します。
+     *
+     *  @par            スレッド セーフ
+     *  スレッド セーフ性は @ref string_catalog_format と同じです。
+     */
+    int string_catalog_definition_format(char *dest, size_t dest_size, int string_id, ...);
+
+    /**
+     *  @brief          このカタログ定義を使用して、@c va_list から文字列を組み立てます。
+     *  @param[out]     dest      文字列の格納先。NULL を渡してはなりません。
+     *  @param[in]      dest_size @p dest のバイト数。1 以上を指定してください。
+     *  @param[in]      string_id 組み立てる文字列の ID。
+     *  @param[in]      args      引数スキーマが定める順序と型の値を保持する引数リスト。
+     *  @return         戻り値は @ref string_catalog_vformat と同じです。
+     *
+     *  @par            スレッド セーフ
+     *  スレッド セーフ性は @ref string_catalog_vformat と同じです。
+     */
+    int string_catalog_definition_vformat(char *dest, size_t dest_size, int string_id, va_list args);
+
+    /**
+     *  @brief          このカタログ定義の内容を確認します。
+     *  @param[out]     string_id_out 不正を検出した文字列の ID。不要な場合は NULL を指定できます。
+     *  @param[out]     language_out  不正を検出した言語。不要な場合は NULL を指定できます。
+     *  @return         戻り値は @ref string_catalog_verify と同じです。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフです。
+     */
+    int string_catalog_definition_verify(int *string_id_out, string_catalog_language *language_out);
+
+    /**
+     *  @brief          このカタログ定義から、文字列の分類値を返します。
+     *  @param[in]      string_id 参照する文字列の ID。
+     *  @return         戻り値は @ref string_catalog_category と同じです。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフです。
+     */
+    int string_catalog_definition_category(int string_id);
+
+    /**
+     *  @brief          このカタログ定義から、文字列 ID の固定文字列を返します。
+     *  @param[in]      string_id 参照する文字列の ID。
+     *  @return         戻り値は @ref string_catalog_id_text と同じです。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフです。
+     */
+    const char *string_catalog_definition_id_text(int string_id);
+
+    /**
+     *  @brief          このカタログ定義から、現在の言語で文字列の備考を返します。
+     *  @param[in]      string_id 参照する文字列の ID。
+     *  @return         戻り値は @ref string_catalog_note と同じです。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフです。
+     */
+    const char *string_catalog_definition_note(int string_id);
 
 #ifdef __cplusplus
 }

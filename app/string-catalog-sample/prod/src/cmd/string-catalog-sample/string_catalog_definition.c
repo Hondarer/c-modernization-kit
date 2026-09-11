@@ -11,7 +11,8 @@
  *  手作業で編集せず、生成元の定義を変更してから再生成してください。
  *
  *  この表は利用者が用意する部分であり、ライブラリは抱え込みません。\n
- *  `string_catalog_set_catalog()` で注入します。
+ *  配列と添字表を @ref s_catalog へまとめ、組み立て API の呼び出しごとに渡します。\n
+ *  カタログを省略して呼び出す口も、この生成物が用意します。
  *
  *  分類値はライブラリが解釈しない補足情報です。\n
  *  この app では @ref string_catalog_trace_level をトレース レベルとして格納します。
@@ -41,6 +42,7 @@
 
 #include "string_catalog_definition.h"
 
+#include <stdarg.h>
 #include <stddef.h>
 
 /** 文字列 ID ごとのカタログです。文字列 ID の昇順に並べます。 */
@@ -53,10 +55,8 @@ static const string_catalog_entry s_entries[] = {
      "STRING_CATALOG_ID_0001",
      {[STRING_CATALOG_LANGUAGE_NEUTRAL] = "Startup completed. The default setting is {{ default }}.",
       [STRING_CATALOG_LANGUAGE_JAPANESE] = "起動が完了しました。既定の設定は {{ default }} です。"},
-     {[STRING_CATALOG_LANGUAGE_NEUTRAL] =
-          "Informational text emitted when startup finishes with the default settings.",
-      [STRING_CATALOG_LANGUAGE_JAPANESE] =
-          "運用開始を知らせる文字列です。既定設定で起動したことを示します。"}},
+     {[STRING_CATALOG_LANGUAGE_NEUTRAL] = "Informational text emitted when startup finishes with the default settings.",
+      [STRING_CATALOG_LANGUAGE_JAPANESE] = "運用開始を知らせる文字列です。既定設定で起動したことを示します。"}},
     {STRING_CATALOG_ID_FILE_OPEN_FAILED,
      STRING_CATALOG_TRACE_LEVEL_ERROR,
      2,
@@ -183,4 +183,68 @@ const int *string_catalog_definition_id_index(void)
 int string_catalog_definition_id_index_count(void)
 {
     return ID_INDEX_COUNT;
+}
+
+/**
+ *  @brief          このカタログ定義のカタログ識別オブジェクトです。
+ *
+ *  配列と添字表を 1 つのカタログへまとめます。\n
+ *  すべてのメンバーを初期化子で与えられるため `const` とし、初期化関数を持ちません。
+ */
+static const string_catalog s_catalog = {s_entries, s_id_index, ENTRY_COUNT, ID_INDEX_COUNT};
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+const string_catalog *string_catalog_definition_catalog(void)
+{
+    return &s_catalog;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int string_catalog_definition_vformat(char *dest, const size_t dest_size, const int string_id, va_list args)
+{
+    return string_catalog_vformat(&s_catalog, dest, dest_size, string_id, args);
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int string_catalog_definition_format(char *dest, const size_t dest_size, const int string_id, ...)
+{
+    va_list args;
+    int ret;
+
+    va_start(args, string_id);
+    ret = string_catalog_vformat(&s_catalog, dest, dest_size, string_id, args);
+    va_end(args);
+
+    return ret;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int string_catalog_definition_verify(int *string_id_out, string_catalog_language *language_out)
+{
+    return string_catalog_verify(&s_catalog, string_id_out, language_out);
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int string_catalog_definition_category(const int string_id)
+{
+    return string_catalog_category(&s_catalog, string_id);
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+const char *string_catalog_definition_id_text(const int string_id)
+{
+    return string_catalog_id_text(&s_catalog, string_id);
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+const char *string_catalog_definition_note(const int string_id)
+{
+    return string_catalog_note(&s_catalog, string_id);
 }

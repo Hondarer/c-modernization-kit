@@ -6,7 +6,7 @@
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  製品のカタログの代わりに注入し、定義が壊れた場合の経路へ到達させます。
+ *  製品のカタログの代わりに渡し、定義が壊れた場合の経路へ到達させます。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -20,6 +20,9 @@
 
 /** 偽のカタログが保持する定義です。テストから書き換えます。 */
 static string_catalog_entry s_entries[FAKE_CATALOG_ENTRY_COUNT];
+
+/** 偽のカタログのカタログ識別オブジェクトです。添字表を持たず、線形探索の経路を使います。 */
+static const string_catalog s_catalog = {s_entries, NULL, FAKE_CATALOG_ENTRY_COUNT, 0};
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -60,9 +63,13 @@ void fake_catalog_reset(void)
     {
         s_entries[index] = initial_entries[index];
     }
+}
 
-    /* 添字表を渡さず、線形探索でカタログを引く経路を使う */
-    (void)string_catalog_set_catalog(s_entries, FAKE_CATALOG_ENTRY_COUNT, NULL, 0);
+/* Doxygen コメントは、ヘッダーに記載 */
+
+const string_catalog *fake_catalog(void)
+{
+    return &s_catalog;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

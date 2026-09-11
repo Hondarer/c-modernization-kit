@@ -51,9 +51,17 @@ extern "C"
     } fake_catalog_id;
 
     /**
-     *  @brief          偽のカタログを既定の内容へ戻し、プロセスへ注入します。
+     *  @brief          偽のカタログを既定の内容へ戻します。
      */
     void fake_catalog_reset(void);
+
+    /**
+     *  @brief          偽のカタログのカタログ識別オブジェクトを返します。
+     *  @return         カタログ識別オブジェクトです。NULL は返しません。
+     *
+     *  添字表を持たないため、カタログの検索は線形探索の経路を通ります。
+     */
+    const string_catalog *fake_catalog(void);
 
     /**
      *  @brief          指定したカタログ要素の文字列 ID を書き換えます。

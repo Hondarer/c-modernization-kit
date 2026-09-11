@@ -6,8 +6,8 @@
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  カタログはライブラリが抱え込まず、利用者が定義して
- *  @ref string_catalog_set_catalog で注入します。\n
+ *  カタログはライブラリが抱え込まず、利用者が定義します。\n
+ *  配列と添字表を @ref string_catalog へまとめ、組み立て API の呼び出しごとに渡します。\n
  *  利用者が用意するのは文字列 ID の列挙とこの型の配列の 2 つだけです。\n
  *  言語、引数種別、レベル、書式の構文はライブラリが定めます。
  *
@@ -69,10 +69,39 @@ extern "C"
         int argument_count; /**< 引数の個数です。0 以上、上限以下です。 */
         unsigned int pad;   /**< 明示的アラインメントです。0 を指定します。 */
         string_catalog_argument_kind arguments[STRING_CATALOG_ARGUMENT_MAX]; /**< 引数の種別です。 */
-        const char *id_text;                                                   /**< 文字列 ID の固定文字列です。 */
+        const char *id_text;                                                 /**< 文字列 ID の固定文字列です。 */
         const char *texts[STRING_CATALOG_LANGUAGE_COUNT]; /**< 言語別の書式です。NULL は自動選択です。 */
         const char *notes[STRING_CATALOG_LANGUAGE_COUNT]; /**< 言語別の備考です。NULL は自動選択です。 */
     } string_catalog_entry;
+
+    /**
+     *  @brief          1 つのカタログを識別します。
+     *
+     *  カタログの配列と、文字列 ID から配列の添字を引く表を 1 つにまとめた値です。\n
+     *  ライブラリはこの値を保持せず、API の呼び出しごとに受け取ります。\n
+     *  1 つのプロセスで複数のカタログを扱えます。
+     *
+     *  すべてのメンバーを初期化子で与えられるため、静的記憶域期間を持つ `const` として定義できます。\n
+     *  配列はコピーせず、ポインターだけを保持します。
+     *  指す領域は、このカタログを使用する間ずっと有効である必要があります。
+     *
+     *  @ref string_catalog::id_index は、文字列 ID からカタログを引く探索コストを下げる表です。\n
+     *  文字列 ID を添字として @ref string_catalog::entries の添字を格納し、
+     *  登録していない添字には負の値を格納します。\n
+     *  不要な場合は NULL と 0 を指定します。この場合は線形探索になります。
+     *
+     *  メンバーは配列を先に、要素数をあとにまとめています。\n
+     *  この順序であれば暗黙のパディングが生じません。
+     *
+     *  内容の妥当性は @ref string_catalog_verify で確認します。
+     */
+    typedef struct string_catalog
+    {
+        const string_catalog_entry *entries; /**< カタログの配列です。NULL にできません。 */
+        const int *id_index; /**< 文字列 ID を添字として entries の添字を引く表です。不要な場合は NULL です。 */
+        int entry_count;     /**< entries の要素数です。0 以上を指定します。 */
+        int id_index_count;  /**< id_index の要素数です。id_index が NULL の場合は 0 を指定します。 */
+    } string_catalog;
 
 #ifdef __cplusplus
 }

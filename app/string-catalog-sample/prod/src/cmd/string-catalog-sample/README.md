@@ -8,8 +8,9 @@ short-title: "string-catalog-sample"
 
 1 件ごとに、文字列 ID の固定文字列、レベル、組み立てた文字列、備考を表示します。
 
-カタログはこのディレクトリの `string_catalog_definition.h` と `string_catalog_definition.c` が持ち、起動時にライブラリへ注入します。  
-注入した直後にカタログの整合を確認し、不正があれば失敗して終了します。
+カタログはこのディレクトリの `string_catalog_definition.h` と `string_catalog_definition.c` が持ちます。  
+同じ生成物が、カタログを省略して呼び出す口も提供します。  
+起動直後にカタログの整合を確認し、不正があれば失敗して終了します。
 
 ## 使用方法
 

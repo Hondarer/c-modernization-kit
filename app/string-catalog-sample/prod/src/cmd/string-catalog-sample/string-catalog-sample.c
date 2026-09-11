@@ -7,7 +7,8 @@
  *  @version        1.0.0
  *
  *  カタログに登録したすべての文字列を、ニュートラル言語、日本語、英語で組み立てて表示します。\n
- *  カタログはライブラリが抱え込まないため、起動時に `string_catalog_set_catalog()` で注入します。\n
+ *  カタログはライブラリが抱え込まないため、呼び出しごとにカタログを渡します。\n
+ *  本コマンドは 1 つのカタログ定義だけを使うため、カタログを省略する口を通して呼び出します。\n
  *  出力する言語はプロセスで 1 つとし、文字列を組み立てるたびには指定不要です。\n
  *  同じ呼び出しで語順が変わること、同じ引数を複数回参照できること、
  *  値の文字列表現が言語に依らないことを確認できます。
@@ -50,7 +51,7 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
  */
 static string_catalog_trace_level trace_level_of(const int string_id)
 {
-    const int category = string_catalog_category(string_id);
+    const int category = string_catalog_definition_category(string_id);
 
     if ((unsigned int)category > (unsigned int)STRING_CATALOG_TRACE_LEVEL_NONE)
     {
@@ -66,7 +67,7 @@ static string_catalog_trace_level trace_level_of(const int string_id)
  *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
  *  @return         成功時は @ref STRING_CATALOG_OK 、失敗時はライブラリの結果コードを返します。
  *
- *  可変長引数をそのまま中継するため、@ref string_catalog_vformat を使用します。
+ *  可変長引数をそのまま中継するため、@ref string_catalog_definition_vformat を使用します。
  */
 static int print_string(const int string_id, ...)
 {
@@ -75,7 +76,7 @@ static int print_string(const int string_id, ...)
     int ret;
 
     va_start(args, string_id);
-    ret = string_catalog_vformat(text, sizeof(text), string_id, args);
+    ret = string_catalog_definition_vformat(text, sizeof(text), string_id, args);
     va_end(args);
 
     if (ret != STRING_CATALOG_OK)
@@ -88,8 +89,8 @@ static int print_string(const int string_id, ...)
     const char *note;
     string_catalog_trace_level level;
 
-    id_text = string_catalog_id_text(string_id);
-    note = string_catalog_note(string_id);
+    id_text = string_catalog_definition_id_text(string_id);
+    note = string_catalog_definition_note(string_id);
     level = trace_level_of(string_id);
 
     printf("  %s: %-8s %s\n", id_text, s_level_labels[(unsigned int)level], text);
@@ -121,8 +122,7 @@ static int print_all_strings(void)
         result = ret;
     }
 
-    ret =
-        print_string(STRING_CATALOG_ID_MEMORY_SIGNATURE, (const void *)s_sample_object, UINT64_C(0x00000000DEADBEEF));
+    ret = print_string(STRING_CATALOG_ID_MEMORY_SIGNATURE, (const void *)s_sample_object, UINT64_C(0x00000000DEADBEEF));
     if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
     {
         result = ret;
@@ -166,7 +166,7 @@ static int verify_catalog(void)
     string_catalog_language language = STRING_CATALOG_LANGUAGE_NEUTRAL;
     int ret;
 
-    ret = string_catalog_verify(&string_id, &language);
+    ret = string_catalog_definition_verify(&string_id, &language);
     if (ret != STRING_CATALOG_OK)
     {
         fprintf(stderr, "エラー: カタログの定義が不正です (文字列 ID=%d、言語=%d)。\n", string_id, (int)language);
@@ -190,15 +190,6 @@ int main(int argc, char *argv[])
     (void)argv;
 
     int ret;
-
-    ret =
-        string_catalog_set_catalog(string_catalog_definition_entries(), string_catalog_definition_entry_count(),
-                                    string_catalog_definition_id_index(), string_catalog_definition_id_index_count());
-    if (ret != STRING_CATALOG_OK)
-    {
-        fprintf(stderr, "エラー: カタログを設定できませんでした (結果コード=%d)。\n", ret);
-        return EXIT_FAILURE;
-    }
 
     ret = verify_catalog();
     if (ret != STRING_CATALOG_OK)
