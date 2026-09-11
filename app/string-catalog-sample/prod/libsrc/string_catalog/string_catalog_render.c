@@ -6,7 +6,7 @@
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  書式が解釈するのは `{0}` から `{9}` までの位置指定と、`{{` と `}}` のエスケープだけです。\n
+ *  書式が解釈するのは `{0}` から `{31}` までの位置指定と、`{{` と `}}` のエスケープだけです。\n
  *  値の文字列表現は引数種別が決めるため、書式側には書式指定を書けません。\n
  *  展開と構文確認は同じ走査で行い、書き込み先を持たない呼び出しを構文確認として扱います。
  *
@@ -18,24 +18,106 @@
 #include "format_engine.h"
 
 #include <string_catalog/string_catalog_const.h>
-#include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-/** 1 個の値を文字列化する一時領域のバイト数です。最長は 16 進 16 桁の表現です。 */
+/** 1 個の値を文字列化する一時領域のバイト数です。最長はエラー コードの併記表現で 24 バイトです。 */
 #define VALUE_TEXT_MAX 64
+
+/** 10 進数へ変換した符号なし 64 bit 整数の最大桁数です。 */
+#define DECIMAL_DIGITS_MAX 20
 
 /** 文字列引数が NULL のときに出力する表現です。 */
 #define NULL_STRING_TEXT "(null)"
+
+/** 位置指定の添字に書ける最大の桁数です。@ref STRING_CATALOG_ARGUMENT_MAX の桁数と一致させます。 */
+#define INDEX_DIGITS_MAX 2
 
 /** 1 文字として出力する ASCII の下限です。 */
 #define CHAR_PRINTABLE_MIN 0x20U
 
 /** 1 文字として出力する ASCII の上限です。 */
 #define CHAR_PRINTABLE_MAX 0x7EU
+
+/**
+ *  @brief          符号なし整数を 10 進数へ変換します。
+ *  @param[out]     out   書き込み先。@ref DECIMAL_DIGITS_MAX バイト以上の空きが必要です。
+ *  @param[in]      value 変換する値。
+ *  @return         書き込んだバイト数を返します。NUL 終端しません。
+ *
+ *  `snprintf` を使用しないのは、1 引数あたりの変換コストが数倍になるためです。\n
+ *  書き込み先の容量は呼び出し側が確保するため、本関数では確認しません。
+ */
+static size_t decimal_from_uint64(char *const out, uint64_t value)
+{
+    char digits[DECIMAL_DIGITS_MAX];
+    size_t count = 0U;
+    size_t index;
+
+    /* 下位の桁から得られるため、いったん逆順に作ってから並べ替える */
+    do
+    {
+        digits[count] = (char)('0' + (int)(value % 10U));
+        value /= 10U;
+        count++;
+    } while (value != 0U);
+
+    for (index = 0U; index < count; index++)
+    {
+        out[index] = digits[count - 1U - index];
+    }
+
+    return count;
+}
+
+/**
+ *  @brief          符号付き整数を 10 進数へ変換します。
+ *  @param[out]     out   書き込み先。@ref DECIMAL_DIGITS_MAX に 1 を加えたバイト数以上の空きが必要です。
+ *  @param[in]      value 変換する値。
+ *  @return         書き込んだバイト数を返します。NUL 終端しません。
+ */
+static size_t decimal_from_int64(char *const out, const int64_t value)
+{
+    if (value < 0)
+    {
+        out[0] = '-';
+
+        /* -value は最小値でオーバーフローするため、符号なしで絶対値を作る */
+        return 1U + decimal_from_uint64(&out[1], (uint64_t)0U - (uint64_t)value);
+    }
+
+    return decimal_from_uint64(out, (uint64_t)value);
+}
+
+/**
+ *  @brief          符号なし整数を、桁数を固定した 16 進数へ変換します。
+ *  @param[out]     out    書き込み先。@p digits に 2 を加えたバイト数以上の空きが必要です。
+ *  @param[in]      value  変換する値。
+ *  @param[in]      digits 出力する桁数。16 以下を指定してください。
+ *  @return         書き込んだバイト数を返します。`0x` の 2 バイトを含みます。NUL 終端しません。
+ *
+ *  英小文字で出力します。@p digits に収まらない上位の桁は出力しません。
+ */
+static size_t hex_from_uint64(char *const out, const uint64_t value, const size_t digits)
+{
+    static const char table[] = "0123456789abcdef";
+    size_t index;
+
+    out[0] = '0';
+    out[1] = 'x';
+
+    for (index = 0U; index < digits; index++)
+    {
+        const size_t shift = (digits - 1U - index) * 4U;
+
+        out[2U + index] = table[(size_t)((value >> shift) & 0xFU)];
+    }
+
+    return 2U + digits;
+}
 
 /**
  *  @brief          書き込み先と、書き込みの経過を保持します。
@@ -104,8 +186,9 @@ static void render_buffer_append_string(render_buffer *buffer, const char *text)
  */
 static int render_buffer_append_argument(render_buffer *buffer, const format_engine_argument_value *value)
 {
-    /* 各書式は固定の桁数に収まるため、切り詰めは発生しない */
+    /* 各種別の出力は VALUE_TEXT_MAX に収まるため、切り詰めは発生しない */
     char value_text[VALUE_TEXT_MAX];
+    size_t text_length;
 
     switch (value->kind)
     {
@@ -120,6 +203,12 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
         }
         return STRING_CATALOG_OK;
 
+    case STRING_CATALOG_ARGUMENT_KIND_DOUBLE:
+        /* 有効桁を保つ丸めは自前で持たず、標準ライブラリへ任せる */
+        (void)snprintf(value_text, sizeof(value_text), "%g", value->value.double_value);
+        render_buffer_append_string(buffer, value_text);
+        return STRING_CATALOG_OK;
+
     case STRING_CATALOG_ARGUMENT_KIND_CHAR:
     {
         /* isprint はロケールに依存するため、ASCII の印字可能範囲を直接判定する */
@@ -127,90 +216,100 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
 
         if ((code >= CHAR_PRINTABLE_MIN) && (code <= CHAR_PRINTABLE_MAX))
         {
-            (void)snprintf(value_text, sizeof(value_text), "'%c'", (char)code);
+            value_text[0] = '\'';
+            value_text[1] = (char)code;
+            value_text[2] = '\'';
+            text_length = 3U;
         }
         else
         {
-            (void)snprintf(value_text, sizeof(value_text), "%u (0x%02x)", code, code);
+            text_length = decimal_from_uint64(value_text, (uint64_t)code);
+            value_text[text_length] = ' ';
+            value_text[text_length + 1U] = '(';
+            text_length += 2U;
+            text_length += hex_from_uint64(&value_text[text_length], (uint64_t)code, 2U);
+            value_text[text_length] = ')';
+            text_length += 1U;
         }
     }
     break;
 
     case STRING_CATALOG_ARGUMENT_KIND_INT8:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRId8, value->value.int8_value);
+        text_length = decimal_from_int64(value_text, (int64_t)value->value.int8_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_UINT8:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRIu8, value->value.uint8_value);
+        text_length = decimal_from_uint64(value_text, (uint64_t)value->value.uint8_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_INT16:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRId16, value->value.int16_value);
+        text_length = decimal_from_int64(value_text, (int64_t)value->value.int16_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_UINT16:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRIu16, value->value.uint16_value);
+        text_length = decimal_from_uint64(value_text, (uint64_t)value->value.uint16_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_INT32:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRId32, value->value.int32_value);
+        text_length = decimal_from_int64(value_text, (int64_t)value->value.int32_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_UINT32:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRIu32, value->value.uint32_value);
+        text_length = decimal_from_uint64(value_text, (uint64_t)value->value.uint32_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_INT64:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRId64, value->value.int64_value);
+        text_length = decimal_from_int64(value_text, value->value.int64_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_UINT64:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRIu64, value->value.uint64_value);
+        text_length = decimal_from_uint64(value_text, value->value.uint64_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_HEX8:
-        (void)snprintf(value_text, sizeof(value_text), "0x%02" PRIx8, value->value.uint8_value);
+        text_length = hex_from_uint64(value_text, (uint64_t)value->value.uint8_value, 2U);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_HEX16:
-        (void)snprintf(value_text, sizeof(value_text), "0x%04" PRIx16, value->value.uint16_value);
+        text_length = hex_from_uint64(value_text, (uint64_t)value->value.uint16_value, 4U);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_HEX32:
-        (void)snprintf(value_text, sizeof(value_text), "0x%08" PRIx32, value->value.uint32_value);
+        text_length = hex_from_uint64(value_text, (uint64_t)value->value.uint32_value, 8U);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_HEX64:
-        (void)snprintf(value_text, sizeof(value_text), "0x%016" PRIx64, value->value.uint64_value);
+        text_length = hex_from_uint64(value_text, value->value.uint64_value, 16U);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_SIZE:
-        (void)snprintf(value_text, sizeof(value_text), "%zu", value->value.size_value);
+        text_length = decimal_from_uint64(value_text, (uint64_t)value->value.size_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_SSIZE:
-        (void)snprintf(value_text, sizeof(value_text), "%" PRId64, value->value.int64_value);
+        text_length = decimal_from_int64(value_text, value->value.int64_value);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_POINTER:
         /* %p の表現はプラットフォームで異なるため、ポインター幅の 16 進表現へ揃える */
-        (void)snprintf(value_text, sizeof(value_text), "0x%016" PRIxPTR, (uintptr_t)value->value.pointer_value);
-        break;
-
-    case STRING_CATALOG_ARGUMENT_KIND_DOUBLE:
-        (void)snprintf(value_text, sizeof(value_text), "%g", value->value.double_value);
+        text_length = hex_from_uint64(value_text, (uint64_t)(uintptr_t)value->value.pointer_value, 16U);
         break;
 
     case STRING_CATALOG_ARGUMENT_KIND_ERROR_CODE:
-        (void)snprintf(value_text, sizeof(value_text), "%d (0x%08x)", value->value.error_code_value,
-                       (unsigned int)value->value.error_code_value);
+        text_length = decimal_from_int64(value_text, (int64_t)value->value.error_code_value);
+        value_text[text_length] = ' ';
+        value_text[text_length + 1U] = '(';
+        text_length += 2U;
+        text_length += hex_from_uint64(&value_text[text_length], (uint64_t)(uint32_t)value->value.error_code_value, 8U);
+        value_text[text_length] = ')';
+        text_length += 1U;
         break;
 
     default:
         return STRING_CATALOG_ERR_INVALID_DEFINITION;
     }
 
-    render_buffer_append_string(buffer, value_text);
+    render_buffer_append(buffer, value_text, text_length);
 
     return STRING_CATALOG_OK;
 }
@@ -233,6 +332,7 @@ static int render_scan_text(render_buffer *buffer, const char *text, const forma
     while (text[position] != '\0')
     {
         size_t plain_length;
+        int digit_count;
         int index;
         int ret;
 
@@ -263,13 +363,29 @@ static int render_scan_text(render_buffer *buffer, const char *text, const forma
             continue;
         }
 
-        /* 位置指定は 1 桁の添字だけを受け付ける */
-        if ((text[position + 1U] < '0') || (text[position + 1U] > '9') || (text[position + 2U] != '}'))
+        /*
+         *  位置指定の添字は 10 進数で、桁数は INDEX_DIGITS_MAX までとする。
+         *  先頭のゼロは認めない。同じ添字の書き方を 1 通りに保つため。
+         */
+        digit_count = 0;
+        index = 0;
+        while ((digit_count < INDEX_DIGITS_MAX) && (text[position + 1U + (size_t)digit_count] >= '0') &&
+               (text[position + 1U + (size_t)digit_count] <= '9'))
+        {
+            index = (index * 10) + (text[position + 1U + (size_t)digit_count] - '0');
+            digit_count++;
+        }
+
+        if ((digit_count == 0) || (text[position + 1U + (size_t)digit_count] != '}'))
         {
             return STRING_CATALOG_ERR_INVALID_DEFINITION;
         }
 
-        index = text[position + 1U] - '0';
+        if ((digit_count > 1) && (text[position + 1U] == '0'))
+        {
+            return STRING_CATALOG_ERR_INVALID_DEFINITION;
+        }
+
         if (index >= value_count)
         {
             return STRING_CATALOG_ERR_INVALID_DEFINITION;
@@ -284,7 +400,7 @@ static int render_scan_text(render_buffer *buffer, const char *text, const forma
             }
         }
 
-        position += 3U;
+        position += 2U + (size_t)digit_count;
     }
 
     return STRING_CATALOG_OK;

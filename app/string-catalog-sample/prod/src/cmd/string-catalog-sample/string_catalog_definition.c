@@ -26,7 +26,7 @@
  *  記載しなかった言語の要素は暗黙にヌル ポインターとなり、ニュートラル言語の要素へ読み替えます。
  *
  *  引数の型と文字列表現はこの表が決め、言語別リソースは語順だけを決めます。\n
- *  書式中の `{0}` から `{9}` は引数の位置を表します。\n
+ *  書式中の `{0}` から `{31}` は引数の位置を表します。\n
  *  `{` と `}` そのものを出力する場合は `{{` と `}}` を使用します。
  *
  *  ニュートラル言語の書式は、英語と同じ表現とします。\n
@@ -42,6 +42,7 @@
 
 #include "string_catalog_definition.h"
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stddef.h>
 
@@ -156,6 +157,13 @@ static const int s_id_index[] = {
 
 /** @ref s_id_index の要素数です。 */
 #define ID_INDEX_COUNT ((int)(sizeof(s_id_index) / sizeof(s_id_index[0])))
+
+/*
+ *  添字表が最大の文字列 ID を覆っていることを、ビルド時に確かめます。
+ *  覆っていない文字列 ID は線形探索へ落ちるため動作はしますが、添字表の拡張漏れです。
+ *  対象は文字列 ID の昇順で最後の定数です。文字列 ID を追加したときは、この表明も更新します。
+ */
+static_assert(ID_INDEX_COUNT > STRING_CATALOG_ID_THROUGHPUT_REPORT, "id_index must cover every string id");
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
