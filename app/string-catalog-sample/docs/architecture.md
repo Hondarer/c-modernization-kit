@@ -291,18 +291,22 @@ int string_catalog_definition_format(char *dest, size_t dest_size, int string_id
 通常のプロトタイプ検査が働き、Doxygen コメントによって利用者は各引数の意味をインテリセンス上で参照できます。
 
 ```c
-static inline int string_catalog_definition_format_id_file_open_failed(char *dest, size_t dest_size,
+static inline int string_catalog_definition_string_catalog_id_file_open_failed(char *dest, size_t dest_size,
                                                                        const char *file_path, int error_code);
 ```
 
-関数名は文字列 ID から機械的に導出します。
+関数名は文字列 ID から機械的に導出します。  
+文字列 ID の定数名をそのまま小文字化し、`string_catalog_definition_` を前置するだけです。
 
 ```text
 STRING_CATALOG_ID_FILE_OPEN_FAILED
-  → 接頭辞 STRING_CATALOG_ を除く   → ID_FILE_OPEN_FAILED
-  → 小文字化                        → id_file_open_failed
-  → string_catalog_definition_format_ を前置
+  → 小文字化                   → string_catalog_id_file_open_failed
+  → string_catalog_definition_ を前置
+  → string_catalog_definition_string_catalog_id_file_open_failed
 ```
+
+接頭辞の除去や語の入れ替えを行わないため、規則に例外がありません。  
+区切りのアンダースコアは 1 個です。2 個続けると、C++ が処理系用に予約する識別子になります。
 
 引数の型は、引数種別から `prod/include/string_catalog/string_catalog_argument.h` の対応表で決まります。  
 引数名は生成元の定義が持つ情報であり、カタログのデータには含まれません。

@@ -233,7 +233,8 @@ extern "C"
      *  文字列 ID の数だけ公開シンボルが増えることを避けます。
      *
      *  関数名は文字列 ID から機械的に導出します。
-     *  接頭辞 `STRING_CATALOG_` を除き、小文字化し、`string_catalog_definition_format_` を前置します。
+     *  文字列 ID の定数名をそのまま小文字化し、`string_catalog_definition_` を前置します。
+     *  接頭辞の除去や語の入れ替えを行わないため、規則に例外がありません。
      *  導出規則の全体は docs/architecture.md を参照してください。
      */
 
@@ -249,7 +250,7 @@ extern "C"
      *  `Startup completed. The default setting is { default }.`\n
      *  `起動が完了しました。既定の設定は { default } です。`
      */
-    static inline int string_catalog_definition_format_id_startup_completed(char *dest, const size_t dest_size)
+    static inline int string_catalog_definition_string_catalog_id_startup_completed(char *dest, const size_t dest_size)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_STARTUP_COMPLETED);
@@ -269,8 +270,9 @@ extern "C"
      *  `Failed to open file config.json. Error code=2 (0x00000002)`\n
      *  `ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)`
      */
-    static inline int string_catalog_definition_format_id_file_open_failed(char *dest, const size_t dest_size,
-                                                                           const char *file_path, const int error_code)
+    static inline int string_catalog_definition_string_catalog_id_file_open_failed(char *dest, const size_t dest_size,
+                                                                                   const char *file_path,
+                                                                                   const int error_code)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_FILE_OPEN_FAILED, file_path, error_code);
@@ -292,9 +294,9 @@ extern "C"
      *  `The signature at memory address 0x00007fffa1234567 is 0x00000000deadbeef.`\n
      *  `メモリー アドレス 0x00007fffa1234567 のシグネチャーは 0x00000000deadbeef です。`
      */
-    static inline int string_catalog_definition_format_id_memory_signature(char *dest, const size_t dest_size,
-                                                                           const void *address,
-                                                                           const uint64_t signature)
+    static inline int string_catalog_definition_string_catalog_id_memory_signature(char *dest, const size_t dest_size,
+                                                                                   const void *address,
+                                                                                   const uint64_t signature)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_MEMORY_SIGNATURE, address, signature);
@@ -314,9 +316,9 @@ extern "C"
      *  `The requested size of 8192 bytes exceeds the limit of 4096 bytes.`\n
      *  `要求サイズ 8192 バイトが上限 4096 バイトを超えました。`
      */
-    static inline int string_catalog_definition_format_id_buffer_limit(char *dest, const size_t dest_size,
-                                                                       const size_t requested_size,
-                                                                       const size_t limit_size)
+    static inline int string_catalog_definition_string_catalog_id_buffer_limit(char *dest, const size_t dest_size,
+                                                                               const size_t requested_size,
+                                                                               const size_t limit_size)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_BUFFER_LIMIT, requested_size, limit_size);
@@ -338,9 +340,9 @@ extern "C"
      *  `Record 12 has an unexpected signature 0x1234abcd.`\n
      *  `シグネチャー 0x1234abcd は、レコード 12 の想定と一致しません。`
      */
-    static inline int string_catalog_definition_format_id_record_mismatch(char *dest, const size_t dest_size,
-                                                                          const uint32_t record_number,
-                                                                          const uint32_t signature)
+    static inline int string_catalog_definition_string_catalog_id_record_mismatch(char *dest, const size_t dest_size,
+                                                                                  const uint32_t record_number,
+                                                                                  const uint32_t signature)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_RECORD_MISMATCH, record_number, signature);
@@ -362,9 +364,9 @@ extern "C"
      *  `Retrying connection 3 in 5000 milliseconds.`\n
      *  `接続 3 を 5000 ミリ秒後に再試行します。`
      */
-    static inline int string_catalog_definition_format_id_retry_scheduled(char *dest, const size_t dest_size,
-                                                                          const int32_t connection_number,
-                                                                          const int64_t delay_milliseconds)
+    static inline int string_catalog_definition_string_catalog_id_retry_scheduled(char *dest, const size_t dest_size,
+                                                                                  const int32_t connection_number,
+                                                                                  const int64_t delay_milliseconds)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_RETRY_SCHEDULED, connection_number, delay_milliseconds);
@@ -384,9 +386,9 @@ extern "C"
      *  `The throughput is 12.5 records per second. 400 records were processed at 12.5 records per second.`\n
      *  `処理速度は 12.5 件/秒です。累計 400 件を 12.5 件/秒で処理しました。`
      */
-    static inline int string_catalog_definition_format_id_throughput_report(char *dest, const size_t dest_size,
-                                                                            const double records_per_second,
-                                                                            const uint64_t processed_count)
+    static inline int string_catalog_definition_string_catalog_id_throughput_report(char *dest, const size_t dest_size,
+                                                                                    const double records_per_second,
+                                                                                    const uint64_t processed_count)
     {
         return string_catalog_format(string_catalog_definition_catalog(), dest, dest_size,
                                      STRING_CATALOG_ID_THROUGHPUT_REPORT, records_per_second, processed_count);

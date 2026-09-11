@@ -126,7 +126,7 @@ TEST_F(stringCatalogDefinitionTest, typed_wrappers_match_generic_call)
     // Pre-Assert
 
     // Act
-    actual_ret_no_argument = string_catalog_definition_format_id_startup_completed(
+    actual_ret_no_argument = string_catalog_definition_string_catalog_id_startup_completed(
         actual_dest, sizeof(actual_dest)); // [手順] - 引数を取らないラッパーで組み立てる。
 
     // Assert
@@ -135,7 +135,7 @@ TEST_F(stringCatalogDefinitionTest, typed_wrappers_match_generic_call)
                  actual_dest); // [確認_正常系] - 引数なしの書式で組み立てられること。
 
     // Act
-    actual_ret_two_arguments = string_catalog_definition_format_id_file_open_failed(
+    actual_ret_two_arguments = string_catalog_definition_string_catalog_id_file_open_failed(
         actual_dest, sizeof(actual_dest), "config.json", 2); // [手順] - 型付きラッパーで組み立てる。
     expected_ret_two_arguments =
         string_catalog_format(string_catalog_definition_catalog(), expected_dest, sizeof(expected_dest),
@@ -165,14 +165,14 @@ TEST_F(stringCatalogDefinitionTest, typed_wrapper_argument_order_is_language_ind
     // Pre-Assert
 
     // Act
-    actual_ret_neutral = string_catalog_definition_format_id_record_mismatch(
+    actual_ret_neutral = string_catalog_definition_string_catalog_id_record_mismatch(
         neutral_dest, sizeof(neutral_dest), 12U,
         0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号とシグネチャーの順に渡す。
 
     string_catalog_set_language(STRING_CATALOG_LANGUAGE_JAPANESE);
-    actual_ret_japanese =
-        string_catalog_definition_format_id_record_mismatch(japanese_dest, sizeof(japanese_dest), 12U,
-                                                            0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
+    actual_ret_japanese = string_catalog_definition_string_catalog_id_record_mismatch(
+        japanese_dest, sizeof(japanese_dest), 12U,
+        0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret_neutral);  // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
