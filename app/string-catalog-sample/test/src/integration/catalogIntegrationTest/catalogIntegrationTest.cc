@@ -1,6 +1,7 @@
 #include <testfw.h>
 
 #include "sample_messages.h"
+#include "sample_metrics.h"
 
 #include <cplat/string_catalog/string_catalog.h>
 #include <cplat/trace/tracer.h>
@@ -183,7 +184,7 @@ TEST_F(catalogIntegrationTest, repeated_placeholder)
 
     // Act
     actual_ret = cplat_string_catalog_format(
-        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_ID_THROUGHPUT_REPORT, 12.5,
+        sample_metrics_catalog(), dest, sizeof(dest), SAMPLE_METRICS_ID_THROUGHPUT_REPORT, 12.5,
         UINT64_C(4000000000)); // [手順] - 同じ位置指定を 2 回含む文字列を組み立てる。
 
     // Assert

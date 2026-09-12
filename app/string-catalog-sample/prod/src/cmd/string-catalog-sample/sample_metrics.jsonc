@@ -1,0 +1,44 @@
+// 文字列カタログの定義です。
+// このファイルから gen/ 配下の生成物が出力されます。生成物を直接編集しないでください。
+// 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
+{
+    "author": "Tetsuo Honda",
+    "date": "2026/09/13",
+    "version": "1.0.0",
+
+    "strings": [
+        {
+            "id": "SAMPLE_METRICS_ID_THROUGHPUT_REPORT",
+            "id_text": "SAMPLE_METRICS_ID_0001",
+            "category": 4, // CPLAT_TRACE_LEVEL_VERBOSE
+            "brief": "スループット報告。",
+            "summary": "処理速度と累計件数を通知する文字列を組み立てます。",
+            "arguments": [
+                {
+                    "kind": "DOUBLE",
+                    "name": "records_per_second",
+                    "description": "毎秒の処理件数。書式中で 2 か所から参照します。"
+                },
+                {
+                    "kind": "UINT64",
+                    "name": "processed_count",
+                    "description": "処理した累計件数。"
+                }
+            ],
+            "texts": {
+                "neutral": [
+                    "The throughput is {0} records per second.",
+                    "{1} records were processed at {0} records per second."
+                ],
+                "japanese": "処理速度は {0} 件/秒です。累計 {1} 件を {0} 件/秒で処理しました。"
+            },
+            "notes": {
+                "neutral": [
+                    "The rate is referenced twice.",
+                    "It shows that one placeholder can appear more than once."
+                ],
+                "japanese": "毎秒件数を 2 か所で参照します。同じ位置指定を複数回記述できることを示す例です。"
+            }
+        }
+    ]
+}

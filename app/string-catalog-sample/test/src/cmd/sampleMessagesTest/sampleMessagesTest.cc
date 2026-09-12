@@ -1,6 +1,7 @@
 #include <testfw.h>
 
 #include "sample_messages.h"
+#include "sample_metrics.h"
 
 #include <cplat/string_catalog/string_catalog.h>
 #include <cplat/trace/tracer.h>
@@ -50,6 +51,24 @@ TEST_F(sampleMessagesTest, catalog_is_consistent)
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - すべての書式が引数スキーマと整合していること。
+}
+
+// 同じ翻訳単位から 2 つ目のカタログも利用できることの確認
+TEST_F(sampleMessagesTest, second_catalog_is_consistent)
+{
+    // Arrange
+    int string_id = 0;
+    cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret = cplat_string_catalog_verify(sample_metrics_catalog(), &string_id,
+                                             &language); // [手順] - 2 つ目のカタログ全体を確認する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 2 つ目のカタログも書式と引数スキーマが整合していること。
 }
 
 // 各文字列が固定文字列とニュートラル言語のリソースを持つことの確認

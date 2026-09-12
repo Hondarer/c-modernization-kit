@@ -170,39 +170,6 @@
                 "neutral": "The delay is in milliseconds. The caller manages the retry count.",
                 "japanese": "待ち時間の単位はミリ秒です。再試行の回数は呼び出し側が管理します。"
             }
-        },
-        {
-            "id": "SAMPLE_MESSAGES_ID_THROUGHPUT_REPORT",
-            "id_text": "SAMPLE_MESSAGES_ID_0007",
-            "category": 4, // CPLAT_TRACE_LEVEL_VERBOSE
-            "brief": "スループット報告。",
-            "summary": "処理速度と累計件数を通知する文字列を組み立てます。",
-            "arguments": [
-                {
-                    "kind": "DOUBLE",
-                    "name": "records_per_second",
-                    "description": "毎秒の処理件数。書式中で 2 か所から参照します。"
-                },
-                {
-                    "kind": "UINT64",
-                    "name": "processed_count",
-                    "description": "処理した累計件数。"
-                }
-            ],
-            "texts": {
-                "neutral": [
-                    "The throughput is {0} records per second.",
-                    "{1} records were processed at {0} records per second."
-                ],
-                "japanese": "処理速度は {0} 件/秒です。累計 {1} 件を {0} 件/秒で処理しました。"
-            },
-            "notes": {
-                "neutral": [
-                    "The rate is referenced twice.",
-                    "It shows that one placeholder can appear more than once."
-                ],
-                "japanese": "毎秒件数を 2 か所で参照します。同じ位置指定を複数回記述できることを示す例です。"
-            }
         }
     ]
 }

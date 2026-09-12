@@ -21,13 +21,16 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 この 2 つをまとめたカタログ識別オブジェクトを、呼び出しごとに cplat へ渡します。  
 文字列 ID の型が列挙ではなく `int` であるため、利用者は任意の名前の列挙を定義し、その定数をそのまま渡せます。
 
-この app では、両方をコマンド側の `prod/src/cmd/string-catalog-sample/` へ置いています。
+この app では、用途を分けた 2 つのカタログをコマンド側の `prod/src/cmd/string-catalog-sample/` へ置いています。
 
 | ファイル | 内容 | 種別 |
 |---|---|---|
 | `sample_messages.jsonc` | カタログ定義の正本 | 手動作成 |
 | `gen/sample_messages.h` | 文字列 ID の列挙型、簡易関数の宣言、型付きラッパー | 自動生成 |
 | `gen/sample_messages.c` | カタログ配列、添字テーブル、カタログ識別オブジェクト、簡易関数 | 自動生成 |
+| `sample_metrics.jsonc` | メトリクス向けカタログ定義の正本 | 手動作成 |
+| `gen/sample_metrics.h` | メトリクス向けの列挙型、簡易関数の宣言、型付きラッパー | 自動生成 |
+| `gen/sample_metrics.c` | メトリクス向けのカタログ配列、添字テーブル、カタログ識別オブジェクト、簡易関数 | 自動生成 |
 
 配列はコピーせず、ポインターだけを保持します。  
 カタログを使用する間ずっと有効な領域を渡す必要があるため、静的記憶域期間を持つ配列を想定しています。
@@ -53,6 +56,7 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 
 ```c
 #include "gen/sample_messages.h"
+#include "gen/sample_metrics.h"
 ```
 
 手動で実行する場合、および内容を検証する場合のコマンド例です。
@@ -60,6 +64,8 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 ```bash
 python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
 python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
+python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
+python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
 ```
 
 `--check` は書き出さず、既存の生成物が定義と一致するかだけを確かめます。  
@@ -104,6 +110,7 @@ JSON を選んだのは cJSON と Python の双方で読めるためで、コメ
 |---|---|---|
 | cplat | `cplat_string_catalog` | `cplat_string_catalog_format()`、`CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE` |
 | 利用者 | `sample_messages` | `sample_messages_catalog()`、`SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED` |
+| 利用者 | `sample_metrics` | `sample_metrics_catalog()`、`SAMPLE_METRICS_ID_THROUGHPUT_REPORT` |
 
 型付きラッパーの関数名も利用者側の名前空間に収めます。  
 `cplat_` を前置すると、利用者が定義した関数が cplat のリンカー名前空間を名乗ることになるためです。
@@ -114,6 +121,9 @@ C の識別子の一部になるため、英小文字で始まる snake_case だ
 
 名前空間を移すには、定義ファイルの名前を変えます。  
 同じ名前を定義の中にも書くと、ファイル名と食い違う余地が残るためです。
+
+生成される `.c` 内の補助マクロにも、モジュール接頭辞を大文字化した名前を付けます。  
+例えば `SAMPLE_MESSAGES_ENTRY_COUNT` と `SAMPLE_METRICS_ENTRY_COUNT` になるため、複数の生成物を同じビルドへ取り込んでも名前が衝突しません。
 
 ## 生成物を汎用に保つ
 
@@ -159,7 +169,8 @@ C の識別子の一部になるため、英小文字で始まる snake_case だ
 
 ```c
 /* sample_messages.c が持つ */
-static const cplat_string_catalog s_catalog = {s_entries, s_id_index, ENTRY_COUNT, ID_INDEX_COUNT};
+static const cplat_string_catalog s_catalog = {
+    s_entries, s_id_index, SAMPLE_MESSAGES_ENTRY_COUNT, SAMPLE_MESSAGES_ID_INDEX_COUNT};
 
 int sample_messages_format(char *dest, size_t dest_size, int string_id, ...)
 {
@@ -238,7 +249,7 @@ cplat_string_catalog = {entries, id_index, entry_count, id_index_count}
 カタログは静的に確定するため、点検は起動時に一度実行すれば十分です。  
 複数のカタログを使う場合は、カタログごとに点検します。
 
-サンプル コマンドは、起動直後に `sample_messages_verify()` を呼び出します。  
+サンプル コマンドは、起動直後に `sample_messages` と `sample_metrics` の両方を点検します。  
 不正が検出された場合はエラー終了します。
 
 ## 依存関係

@@ -8,7 +8,7 @@
  *
  *  カタログに登録したすべての文字列を、ニュートラル言語、日本語、英語で組み立てて表示します。\n
  *  カタログはライブラリ側では保持しないため、呼び出しごとにカタログを渡します。\n
- *  本コマンドは 1 つのカタログ定義のみを使用するため、カタログ指定を省略する簡易関数を通して呼び出します。\n
+ *  本コマンドは 2 つのカタログ定義を同時に使用し、呼び出しごとに対象のカタログを指定します。\n
  *  出力言語はプロセス全体で一元管理され、文字列組み立ての都度指定する必要はありません。\n
  *  同一の呼び出しで語順が切り替わること、同一の引数を複数回参照できること、
  *  値の文字列表現が言語に依存しないことを確認できます。
@@ -19,6 +19,7 @@
  */
 
 #include "gen/sample_messages.h"
+#include "gen/sample_metrics.h"
 
 #include <cplat/console/console.h>
 #include <cplat/string_catalog/string_catalog.h>
@@ -39,6 +40,7 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
 
 /**
  *  @brief          文字列の分類値を、トレース レベルとして読み取ります。
+ *  @param[in]      catalog   参照するカタログ識別オブジェクト。NULL は指定できません。
  *  @param[in]      string_id 参照する文字列の ID。
  *  @return         トレース レベルを返します。
  *
@@ -48,9 +50,9 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
  *
  *  分類値の意味付けは本 app の規約であるため、範囲制限処理もこの階層で行います。
  */
-static cplat_trace_level trace_level_of(const int string_id)
+static cplat_trace_level trace_level_of(const cplat_string_catalog *const catalog, const int string_id)
 {
-    const int category = sample_messages_category(string_id);
+    const int category = cplat_string_catalog_get_category(catalog, string_id);
 
     if ((unsigned int)category > (unsigned int)CPLAT_TRACE_LEVEL_NONE)
     {
@@ -62,20 +64,21 @@ static cplat_trace_level trace_level_of(const int string_id)
 
 /**
  *  @brief          1 件の文字列を組み立てて標準出力へ表示します。
+ *  @param[in]      catalog   参照するカタログ識別オブジェクト。NULL は指定できません。
  *  @param[in]      string_id 表示する文字列の ID。
  *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
  *  @return         成功時は @c CPLAT_OK 、失敗時はライブラリの結果コードを返します。
  *
- *  可変長引数をそのまま中継するため、@c sample_messages_vformat を使用します。
+ *  可変長引数をそのまま中継するため、@c cplat_string_catalog_vformat を使用します。
  */
-static int print_string(const int string_id, ...)
+static int print_string(const cplat_string_catalog *const catalog, const int string_id, ...)
 {
     char text[CPLAT_STRING_CATALOG_TEXT_MAX];
     va_list args;
     int ret;
 
     va_start(args, string_id);
-    ret = sample_messages_vformat(text, sizeof(text), string_id, args);
+    ret = cplat_string_catalog_vformat(catalog, text, sizeof(text), string_id, args);
     va_end(args);
 
     if (ret != CPLAT_OK)
@@ -88,9 +91,9 @@ static int print_string(const int string_id, ...)
     const char *note;
     cplat_trace_level level;
 
-    id_text = sample_messages_id_text(string_id);
-    note = sample_messages_note(string_id);
-    level = trace_level_of(string_id);
+    id_text = cplat_string_catalog_get_id_text(catalog, string_id);
+    note = cplat_string_catalog_get_note(catalog, string_id);
+    level = trace_level_of(catalog, string_id);
 
     printf("  %s: %-8s %s\n", id_text, s_level_labels[(unsigned int)level], text);
     printf("  %s\n\n", note);
@@ -109,44 +112,47 @@ static int print_all_strings(void)
     int result = CPLAT_OK;
     int ret;
 
-    ret = print_string(SAMPLE_MESSAGES_ID_STARTUP_COMPLETED);
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_STARTUP_COMPLETED);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret =
-        print_string(SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE, (const void *)s_sample_object, UINT64_C(0x00000000DEADBEEF));
+        print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE, (const void *)s_sample_object,
+                     UINT64_C(0x00000000DEADBEEF));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(SAMPLE_MESSAGES_ID_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42), UINT32_C(0x1234ABCD));
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42),
+                       UINT32_C(0x1234ABCD));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(SAMPLE_MESSAGES_ID_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(SAMPLE_MESSAGES_ID_THROUGHPUT_REPORT, 12.5, UINT64_C(4000000000));
+    ret = print_string(sample_metrics_catalog(), SAMPLE_METRICS_ID_THROUGHPUT_REPORT, 12.5,
+                       UINT64_C(4000000000));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
@@ -160,20 +166,21 @@ static int print_all_strings(void)
  *  @return         整合している場合は @c CPLAT_OK 、
  *                  不正がある場合は @c CPLAT_ERR_MALFORMED_DEFINITION を返します。
  */
-static int verify_catalog(void)
+static int verify_catalog(const char *const catalog_name, const cplat_string_catalog *const catalog)
 {
-    int string_id = SAMPLE_MESSAGES_ID_STARTUP_COMPLETED;
+    int string_id = 0;
     cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int ret;
 
-    ret = sample_messages_verify(&string_id, &language);
+    ret = cplat_string_catalog_verify(catalog, &string_id, &language);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: カタログの定義が不正です (文字列 ID=%d、言語=%d)。\n", string_id, (int)language);
+        fprintf(stderr, "エラー: カタログ %s の定義が不正です (文字列 ID=%d、言語=%d)。\n", catalog_name,
+                string_id, (int)language);
         return ret;
     }
 
-    printf("カタログの書式と引数スキーマは整合しています。\n");
+    printf("カタログ %s の書式と引数スキーマは整合しています。\n", catalog_name);
 
     return CPLAT_OK;
 }
@@ -193,7 +200,13 @@ int main(int argc, char *argv[])
 
     cplat_console_init();
 
-    ret = verify_catalog();
+    ret = verify_catalog("sample_messages", sample_messages_catalog());
+    if (ret != CPLAT_OK)
+    {
+        return EXIT_FAILURE;
+    }
+
+    ret = verify_catalog("sample_metrics", sample_metrics_catalog());
     if (ret != CPLAT_OK)
     {
         return EXIT_FAILURE;

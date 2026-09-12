@@ -12,7 +12,7 @@ string-catalog-sample コマンドのソース コードです。
 カタログに登録したすべての文字列を、ニュートラル言語、日本語、英語で組み立てて表示します。
 
 カタログは cplat 側では保持しないため、この階層が利用側としてカタログ定義を用意します。  
-定義の正本は `sample_messages.jsonc` で、生成物の `gen/sample_messages.h` が文字列 ID の列挙型、`gen/sample_messages.c` がカタログ配列と添字テーブルです。  
+定義の正本は `sample_messages.jsonc` と `sample_metrics.jsonc` です。生成物の各ヘッダーが文字列 ID の列挙型、各ソースがカタログ配列と添字テーブルを保持します。  
 カタログの指定を省略して呼び出すための簡易関数も、同じ生成物が提供します。
 
 ## コマンド一覧
