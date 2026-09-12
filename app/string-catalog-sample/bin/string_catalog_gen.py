@@ -235,9 +235,9 @@ def validate(document: dict) -> list[dict]:
     return strings
 
 
-GENERATED_NOTE = """ *  本ヘッダーと `{source}` は、カタログ定義 `{definition}` からの生成物です。\\n
- *  列挙と表は 1 組の生成単位であり、常に同時に生成してください。\\n
- *  手作業で編集せず、生成元の定義を変更してから `bin/string_catalog_gen.py` を実行してください。"""
+GENERATED_NOTE = """ *  本ヘッダーと `{source}` は、カタログ定義 `{definition}` から自動生成されたファイルです。\\n
+ *  列挙型とテーブルは 1 組の生成単位のため、常に同時に生成してください。\\n
+ *  手作業で直接編集せず、生成元の定義を変更してから `bin/string_catalog_gen.py` を実行してください。"""
 
 
 def c_string(text: str) -> str:
@@ -298,7 +298,9 @@ def emit_wrapper(document: dict, entry: dict) -> str:
 
     lines = ["    /**"]
     lines.append(f"     *  @brief          {entry['summary']}")
-    lines.append(f"     *  @param[out]     {'dest'.ljust(name_width)}文字列の格納先。NULL を渡してはなりません。")
+    lines.append(
+        f"     *  @param[out]     {'dest'.ljust(name_width)}文字列の格納先バッファー。NULL を渡してはなりません。"
+    )
     lines.append(
         f"     *  @param[in]      {'dest_size'.ljust(name_width)}@p dest のバイト数。1 以上を指定してください。"
     )
@@ -314,7 +316,7 @@ def emit_wrapper(document: dict, entry: dict) -> str:
 
     if not arguments:
         lines.append("     *")
-        lines.append("     *  この文字列は引数を取りません。")
+        lines.append("     *  この文字列は引数を必要としません。")
 
     if entry.get("remarks"):
         lines.append("     *")
@@ -421,22 +423,22 @@ def emit_header(document: dict, strings: list[dict], definition_name: str, out_r
         "/**",
         " " + "*" * 79,
         f" *  @file           {header_name}",
-        f" *  @brief          利用者が定義する文字列 ID の列挙と、カタログの取得を宣言します。",
+        f" *  @brief          利用者が定義する文字列 ID の列挙型と、カタログ取得関数を宣言します。",
         f" *  @author         {document.get('author', '')}",
         f" *  @date           {document.get('date', '')}",
         f" *  @version        {document.get('version', '')}",
         " *",
         f" *  本ヘッダーは `{output_dir}/` のモジュール私有ヘッダーです。\\n",
-        f' *  `{module_dir}/` の実装ファイルからだけ `#include "{include_path}"` で取り込みます。',
+        f' *  `{module_dir}/` の実装ファイルからのみ `#include "{include_path}"` でインクルードします。',
         " *",
         GENERATED_NOTE.format(source=source_name, definition=definition_name),
         " *",
-        " *  この 2 ファイルが、文字列カタログを利用するアプリケーションが用意する部分です。\\n",
-        " *  言語、引数種別、書式の構文はライブラリが定めます。\\n",
-        " *  分類値の意味付けは利用者の取り決めであり、別ヘッダーで手書きします。",
+        " *  この 2 ファイルは、文字列カタログを利用するアプリケーション側で用意するファイルです。\\n",
+        " *  言語、引数種別、書式構文はライブラリ側で規定されます。\\n",
+        " *  分類値の意味付けは利用側の取り決めであり、別ヘッダーで個別に定義します。",
         " *",
-        " *  列挙と関数の名前はカタログ定義が決めます。ライブラリの接頭辞とは別の名前空間です。\\n",
-        " *  ライブラリはこの名前を定義せず、文字列 ID を `int` として受け取ります。",
+        " *  列挙名や関数名はカタログ定義に基づいて決まり、ライブラリの接頭辞とは異なる名前空間に属します。\\n",
+        " *  ライブラリ側ではこれらの名前を定義せず、文字列 ID を `int` 型として受け取ります。",
         " *",
         f" *  @copyright      Copyright (C) {document.get('author', '')}. 2026. All rights reserved.",
         " *",
@@ -461,10 +463,10 @@ def emit_header(document: dict, strings: list[dict], definition_name: str, out_r
             "#endif /* __cplusplus */",
             "",
             "    /**",
-            "     *  @brief          カタログに登録した文字列を識別します。",
+            "     *  @brief          カタログに登録された文字列を識別する列挙型です。",
             "     *",
-            "     *  各 ID の引数スキーマ、分類値、言語別の書式と備考は、同じ生成単位の表が保持します。\\n",
-            "     *  値は生成のたびに並び順から決まります。ログの解析で安定して使う識別子は固定文字列です。",
+            "     *  各 ID の引数スキーマ、分類値、言語別の書式および備考は、同一の生成単位のテーブルで保持します。\\n",
+            "     *  列挙値は生成順に基づいて割り当てられます。ログ解析等で永続的に利用する識別子には固定文字列を使用します。",
             "     */",
             f"    typedef enum {id_enum_name(document)}",
             "    {",
@@ -499,12 +501,12 @@ def emit_header(document: dict, strings: list[dict], definition_name: str, out_r
 
 ACCESSOR_DECLARATIONS = """\
     /**
-     *  @brief          カタログの先頭を返します。
-     *  @return         カタログの配列です。NULL は返しません。
+     *  @brief          カタログ配列の先頭を取得します。
+     *  @return         カタログ配列の先頭ポインターです。NULL は返しません。
      *
-     *  返すポインターは静的領域を指します。呼び出し側で解放してはなりません。\\n
-     *  @ref @MODULE@_entry_count とともに @ref @LIBRARY@ を組み立てる材料です。\\n
-     *  組み立て済みのカタログは @ref @MODULE@_catalog が返します。
+     *  返されるポインターは静的領域を指しているため、呼び出し側で解放してはなりません。\\n
+     *  @ref @MODULE@_entry_count とともに @ref @LIBRARY@ を構築するための構成要素です。\\n
+     *  構築済みのカタログ オブジェクトを取得する場合は @ref @MODULE@_catalog を使用してください。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
@@ -512,8 +514,8 @@ ACCESSOR_DECLARATIONS = """\
     const @LIBRARY@_entry *@MODULE@_entries(void);
 
     /**
-     *  @brief          カタログの件数を返します。
-     *  @return         文字列の件数です。1 以上を返します。
+     *  @brief          カタログの登録件数を取得します。
+     *  @return         文字列の登録件数です。1 以上を返します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
@@ -521,14 +523,14 @@ ACCESSOR_DECLARATIONS = """\
     int @MODULE@_entry_count(void);
 
     /**
-     *  @brief          文字列 ID からカタログの添字を引く表を返します。
-     *  @return         添字表です。NULL は返しません。
+     *  @brief          文字列 ID からカタログ配列の添字を引くテーブルを取得します。
+     *  @return         添字テーブルへのポインターです。NULL は返しません。
      *
-     *  文字列 ID を添字として、カタログの添字を格納します。\\n
-     *  登録していない添字には負の値を格納します。\\n
-     *  この表により、文字列 ID からカタログを引く探索を線形探索から添字引きへ置き換えます。
+     *  文字列 ID を添字として、カタログ配列の添字を格納しています。\\n
+     *  未登録の文字列 ID に対応する要素には負の値を格納します。\\n
+     *  このテーブルを使用することで、文字列 ID からカタログを引く探索を線形探索からインデックス参照へ置き換えます。
      *
-     *  返すポインターは静的領域を指します。呼び出し側で解放してはなりません。
+     *  返されるポインターは静的領域を指しているため、呼び出し側で解放してはなりません。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
@@ -536,8 +538,8 @@ ACCESSOR_DECLARATIONS = """\
     const int *@MODULE@_id_index(void);
 
     /**
-     *  @brief          添字表の要素数を返します。
-     *  @return         添字表の要素数です。最大の文字列 ID に 1 を加えた値です。
+     *  @brief          添字テーブルの要素数を取得します。
+     *  @return         添字テーブルの要素数です。最大の文字列 ID に 1 を加えた値となります。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
@@ -545,14 +547,14 @@ ACCESSOR_DECLARATIONS = """\
     int @MODULE@_id_index_count(void);
 
     /**
-     *  @brief          このカタログ定義のカタログ識別オブジェクトを返します。
-     *  @return         カタログ識別オブジェクトです。NULL は返しません。
+     *  @brief          本カタログ定義のカタログ識別オブジェクトを取得します。
+     *  @return         カタログ識別オブジェクトへのポインターです。NULL は返しません。
      *
-     *  配列と添字表を 1 つのカタログへまとめた値です。\\n
-     *  ライブラリはカタログを保持しないため、組み立て API へはこの値を渡します。
+     *  配列と添字テーブルを 1 つのカタログ構造体にまとめたオブジェクトです。\\n
+     *  ライブラリ側ではカタログを保持しないため、文字列組み立て API へはこのオブジェクトへのポインターを渡します。
      *
-     *  返すポインターは静的領域を指します。呼び出し側で解放してはなりません。\\n
-     *  ほかのカタログ定義と組み合わせる場合は、それぞれのカタログを使い分けます。
+     *  返されるポインターは静的領域を指しているため、呼び出し側で解放してはなりません。\\n
+     *  他のカタログ定義と組み合わせる場合は、対象に応じたカタログ オブジェクトを使い分けます。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
@@ -560,15 +562,15 @@ ACCESSOR_DECLARATIONS = """\
     const @LIBRARY@ *@MODULE@_catalog(void);
 
     /**
-     *  @brief          このカタログ定義を使用して、文字列を組み立てます。
-     *  @param[out]     dest      文字列の格納先。NULL を渡してはなりません。
+     *  @brief          本カタログ定義を使用して、文字列を組み立てます。
+     *  @param[out]     dest      文字列の格納先バッファー。NULL を渡してはなりません。
      *  @param[in]      dest_size @p dest のバイト数。1 以上を指定してください。
      *  @param[in]      string_id 組み立てる文字列の ID。
-     *  @param[in]      ...       引数スキーマが定める順序と型の値。
+     *  @param[in]      ...       引数スキーマが定める順序と型の引数リスト。
      *  @return         戻り値は @ref @LIBRARY@_format と同じです。
      *
-     *  カタログを省略して呼び出す口です。\\n
-     *  @ref @MODULE@_catalog を補って @ref @LIBRARY@_format を呼び出します。
+     *  カタログの指定を省略して呼び出すための簡易関数です。\\n
+     *  内部で @ref @MODULE@_catalog を補って @ref @LIBRARY@_format を呼び出します。
      *
      *  @par            スレッド セーフ
      *  スレッド セーフ性は @ref @LIBRARY@_format と同じです。
@@ -576,12 +578,15 @@ ACCESSOR_DECLARATIONS = """\
     int @MODULE@_format(char *dest, size_t dest_size, int string_id, ...);
 
     /**
-     *  @brief          このカタログ定義を使用して、@c va_list から文字列を組み立てます。
-     *  @param[out]     dest      文字列の格納先。NULL を渡してはなりません。
+     *  @brief          本カタログ定義を使用して、@c va_list から文字列を組み立てます。
+     *  @param[out]     dest      文字列の格納先バッファー。NULL を渡してはなりません。
      *  @param[in]      dest_size @p dest のバイト数。1 以上を指定してください。
      *  @param[in]      string_id 組み立てる文字列の ID。
      *  @param[in]      args      引数スキーマが定める順序と型の値を保持する引数リスト。
      *  @return         戻り値は @ref @LIBRARY@_vformat と同じです。
+     *
+     *  カタログの指定を省略して呼び出すための簡易関数です。\\n
+     *  内部で @ref @MODULE@_catalog を補って @ref @LIBRARY@_vformat を呼び出します。
      *
      *  @par            スレッド セーフ
      *  スレッド セーフ性は @ref @LIBRARY@_vformat と同じです。
@@ -589,9 +594,9 @@ ACCESSOR_DECLARATIONS = """\
     int @MODULE@_vformat(char *dest, size_t dest_size, int string_id, va_list args);
 
     /**
-     *  @brief          このカタログ定義の内容を確認します。
-     *  @param[out]     string_id_out 不正を検出した文字列の ID。不要な場合は NULL を指定できます。
-     *  @param[out]     language_out  不正を検出した言語。不要な場合は NULL を指定できます。
+     *  @brief          本カタログ定義の内容を確認します。
+     *  @param[out]     string_id_out 不正を検出した文字列 ID の格納先。不要な場合は NULL を指定できます。
+     *  @param[out]     language_out  不正を検出した言語の格納先。不要な場合は NULL を指定できます。
      *  @return         戻り値は @ref @LIBRARY@_verify と同じです。
      *
      *  @par            スレッド セーフ
@@ -600,7 +605,7 @@ ACCESSOR_DECLARATIONS = """\
     int @MODULE@_verify(int *string_id_out, @LIBRARY@_language *language_out);
 
     /**
-     *  @brief          このカタログ定義から、文字列の分類値を返します。
+     *  @brief          本カタログ定義から、文字列の分類値を取得します。
      *  @param[in]      string_id 参照する文字列の ID。
      *  @return         戻り値は @ref @LIBRARY@_category と同じです。
      *
@@ -610,7 +615,7 @@ ACCESSOR_DECLARATIONS = """\
     int @MODULE@_category(int string_id);
 
     /**
-     *  @brief          このカタログ定義から、文字列 ID の固定文字列を返します。
+     *  @brief          本カタログ定義から、文字列 ID に対応する固定文字列を取得します。
      *  @param[in]      string_id 参照する文字列の ID。
      *  @return         戻り値は @ref @LIBRARY@_id_text と同じです。
      *
@@ -620,7 +625,7 @@ ACCESSOR_DECLARATIONS = """\
     const char *@MODULE@_id_text(int string_id);
 
     /**
-     *  @brief          このカタログ定義から、現在の言語で文字列の備考を返します。
+     *  @brief          本カタログ定義から、現在の言語設定における文字列の備考を取得します。
      *  @param[in]      string_id 参照する文字列の ID。
      *  @return         戻り値は @ref @LIBRARY@_note と同じです。
      *
@@ -632,17 +637,17 @@ ACCESSOR_DECLARATIONS = """\
     /*
      *  ここから下は、文字列 ID ごとに引数の型を固定したラッパーです。
      *
-     *  可変長引数の口はコンパイラが引数の個数と型を検査できません。
-     *  書式と引数スキーマがカタログの中にあり、書式文字列が呼び出しの実引数ではないためです。
-     *  型付きのラッパーを通すと、通常のプロトタイプ検査によって個数と型の誤りがビルド時に止まります。
+     *  可変長引数を取る関数では、コンパイラが引数の個数および型を検査できません。
+     *  書式および引数スキーマがカタログ内に保持されており、書式文字列が関数呼び出しの実引数ではないためです。
+     *  型付きラッパーを経由することで、通常のプロトタイプ検査が働き、引数の個数や型の不整合をビルド時に検出できます。
      *
      *  実体を持つ翻訳単位を増やさないよう、`static inline` 関数として提供します。
-     *  文字列 ID の数だけ公開シンボルが増えることを避けます。
+     *  これにより、文字列 ID の増加に伴って公開シンボルが増加するのを防ぎます。
      *
      *  関数名は文字列 ID から機械的に導出します。
-     *  ライブラリ側の接頭辞 `@LIBRARY@_` へ、文字列 ID の定数名を小文字化して続けます。
-     *  文字列カタログによる組み立てであることを、呼び出し側で名前から判別するためです。
-     *  語の除去や入れ替えを行わないため、規則に例外がありません。
+     *  ライブラリ側の接頭辞 `@LIBRARY@_` に、文字列 ID の定数名を小文字化して連結します。
+     *  これは、文字列カタログによる組み立て処理であることを呼び出し側の名前から判別できるようにするためです。
+     *  語句の削除や順序の入れ替えは行わないため、導出規則に例外はありません。
      *  導出規則の全体は docs/architecture.md を参照してください。
      */
 """
@@ -678,10 +683,10 @@ int @MODULE@_id_index_count(void)
 }
 
 /**
- *  @brief          このカタログ定義のカタログ識別オブジェクトです。
+ *  @brief          本カタログ定義のカタログ識別オブジェクトです。
  *
- *  配列と添字表を 1 つのカタログへまとめます。\\n
- *  すべてのメンバーを初期化子で与えられるため `const` とし、初期化関数を持ちません。
+ *  配列と添字テーブルを 1 つのカタログ構造体にまとめます。\\n
+ *  すべてのメンバーを初期化子で設定可能なため `const` とし、初期化関数は提供しません。
  */
 static const @LIBRARY@ s_catalog = {s_entries, s_id_index, ENTRY_COUNT, ID_INDEX_COUNT};
 
@@ -758,39 +763,39 @@ def emit_source(document: dict, strings: list[dict], definition_name: str, out_r
         "/**",
         " " + "*" * 79,
         f" *  @file           {source_display}/{source_name}",
-        " *  @brief          文字列 ID ごとの引数スキーマ、分類値、メタデータ、言語別リソースを保持します。",
+        " *  @brief          文字列 ID ごとの引数スキーマ、分類値、メタデータ、および言語別リソースを保持します。",
         f" *  @author         {document.get('author', '')}",
         f" *  @date           {document.get('date', '')}",
         f" *  @version        {document.get('version', '')}",
         " *",
-        f" *  本ファイルは、カタログ定義 `{definition_name}` からの生成物です。\\n",
-        f" *  同じ生成元から作る `{header_name}` と合わせて 1 組の生成単位です。\\n",
-        " *  手作業で編集せず、生成元の定義を変更してから `bin/string_catalog_gen.py` を実行してください。",
+        f" *  本ファイルは、カタログ定義 `{definition_name}` から自動生成されたファイルです。\\n",
+        f" *  同じ生成元から作成される `{header_name}` と合わせて 1 組の生成単位です。\\n",
+        " *  手作業で直接編集せず、生成元の定義を変更してから `bin/string_catalog_gen.py` を実行してください。",
         " *",
-        " *  この表は利用者が用意する部分であり、ライブラリは抱え込みません。\\n",
-        " *  配列と添字表を @ref s_catalog へまとめ、組み立て API の呼び出しごとに渡します。\\n",
-        " *  カタログを省略して呼び出す口も、この生成物が用意します。",
+        " *  このテーブルは利用側で用意する定義情報であり、ライブラリ側では保持しません。\\n",
+        " *  配列と添字テーブルを @ref s_catalog へまとめ、組み立て API の呼び出しごとに渡します。\\n",
+        " *  カタログの指定を省略して呼び出すための簡易関数も、本生成物で提供します。",
         " *",
-        " *  分類値はライブラリが解釈しない補足情報です。\\n",
-        " *  意味と有効な範囲は利用者が決めます。生成物は生値のまま保持し、特定の列挙へ依存しません。",
+        " *  分類値はライブラリ側では解釈しない補足情報です。\\n",
+        " *  意味や有効範囲は利用側で定義します。本生成物では生値のまま保持し、特定の列挙型には依存しません。",
         " *",
-        " *  カタログの配列に加えて、文字列 ID を添字とする添字表を持ちます。\\n",
-        " *  ライブラリはこの表によって文字列 ID からカタログを直接引き、線形探索を避けます。",
+        " *  カタログ配列に加えて、文字列 ID を添字とする添字テーブルを保持します。\\n",
+        " *  ライブラリはこのテーブルを参照して文字列 ID からカタログ エントリを直接引き、線形探索を回避します。",
         " *",
-        " *  各要素は、文字列 ID、分類値、引数個数、明示的アラインメント、引数スキーマ、",
-        " *  文字列 ID の固定文字列、言語別の書式、言語別の備考の順です。\\n",
-        f" *  `texts` と `notes` は、@ref {library}_language をキーとした指示付き初期化子で記載します。\\n",
-        " *  記載しなかった言語の要素は暗黙にヌル ポインターとなり、ニュートラル言語の要素へ読み替えます。",
+        " *  各要素は、文字列 ID、分類値、引数の個数、明示的なアラインメント、引数スキーマ、",
+        " *  文字列 ID の固定文字列、言語別の書式、言語別の備考の順に配置します。\\n",
+        f" *  `texts` と `notes` は、@ref {library}_language をキーとした指示付き初期化子で記述します。\\n",
+        " *  記述を省略した言語の要素は暗黙的にヌル ポインターとなり、ニュートラル言語の要素へフォールバック（読み替え）されます。",
         " *",
-        " *  引数の型と文字列表現はこの表が決め、言語別リソースは語順だけを決めます。\\n",
+        " *  引数の型と文字列表現はこのテーブルで定義し、言語別リソースでは語順のみを管理します。\\n",
         " *  書式中の `{0}` から `{31}` は引数の位置を表します。\\n",
-        " *  `{` と `}` そのものを出力する場合は `{{` と `}}` を使用します。",
+        " *  `{` や `}` そのものを出力する場合は `{{` および `}}` と記述します。",
         " *",
-        " *  ニュートラル言語の書式は、英語と同じ表現とします。\\n",
-        " *  英語の要素は記載せず、ニュートラル言語の書式へ読み替えます。\\n",
-        " *  英語をニュートラル言語と分ける必要が生じた時点で、英語の要素を追加してください。",
+        " *  ニュートラル言語の書式は、英語と同一の表現とします。\\n",
+        " *  そのため英語の要素は個別に記載せず、ニュートラル言語の書式へフォールバックされます。\\n",
+        " *  英語とニュートラル言語で表現を分ける必要が生じた時点で、英語の要素を追加してください。",
         " *",
-        " *  ソース ファイルの文字コードは UTF-8 です。出力する文字列も UTF-8 です。",
+        " *  ソース ファイルの文字コードおよび出力する文字列は UTF-8 です。",
         " *",
         f" *  @copyright      Copyright (C) {document.get('author', '')}. 2026. All rights reserved.",
         " *",
@@ -803,7 +808,7 @@ def emit_source(document: dict, strings: list[dict], definition_name: str, out_r
         "#include <stdarg.h>",
         "#include <stddef.h>",
         "",
-        "/** 文字列 ID ごとのカタログです。文字列 ID の昇順に並べます。 */",
+        "/** 文字列 ID ごとのカタログ テーブルです。文字列 ID の昇順に定義します。 */",
         f"static const {library}_entry s_entries[] = {{",
     ]
 
@@ -844,14 +849,14 @@ def emit_source(document: dict, strings: list[dict], definition_name: str, out_r
             "/** @ref s_entries の要素数です。 */",
             "#define ENTRY_COUNT ((int)(sizeof(s_entries) / sizeof(s_entries[0])))",
             "",
-            "/** 添字表で、文字列 ID を登録していないことを表す値です。 */",
+            "/** 添字テーブルにおいて、文字列 ID が未登録であることを表す値です。 */",
             "#define ID_INDEX_ABSENT (-1)",
             "",
             "/**",
-            " *  @brief          文字列 ID を添字として、@ref s_entries の添字を引く表です。",
+            " *  @brief          文字列 ID を添字として、@ref s_entries の添字を引くためのテーブルです。",
             " *",
             " *  文字列 ID は 1 から始まるため、添字 0 は使用しません。\\n",
-            " *  文字列 ID を歯抜けにする場合は、該当する添字へ @ref ID_INDEX_ABSENT を格納します。",
+            " *  文字列 ID が連続せず欠番となる場合は、該当する添字へ @ref ID_INDEX_ABSENT を格納します。",
             " */",
             "static const int s_id_index[] = {",
             "    ID_INDEX_ABSENT, /* 0: 未使用 */",
@@ -870,8 +875,8 @@ def emit_source(document: dict, strings: list[dict], definition_name: str, out_r
             "#define ID_INDEX_COUNT ((int)(sizeof(s_id_index) / sizeof(s_id_index[0])))",
             "",
             "/*",
-            " *  添字表が最大の文字列 ID を覆っていることを、ビルド時に確かめます。",
-            " *  覆っていない文字列 ID は線形探索へ落ちるため動作はしますが、添字表の拡張漏れです。",
+            " *  添字テーブルが最大の文字列 ID までを網羅していることを、ビルド時に検証します。",
+            " *  網羅されていない文字列 ID は線形探索にフォールバックするため動作自体は可能ですが、添字テーブルの拡張漏れとなります。",
             " *  対象は文字列 ID の昇順で最後の定数です。",
             " */",
             f'static_assert(ID_INDEX_COUNT > {last_id}, "id_index must cover every string id");',
