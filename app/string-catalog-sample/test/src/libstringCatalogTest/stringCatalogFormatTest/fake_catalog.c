@@ -21,7 +21,7 @@
 /** 偽のカタログが保持する定義です。テストから書き換えます。 */
 static string_catalog_entry s_entries[FAKE_CATALOG_ENTRY_COUNT];
 
-/** 偽のカタログのカタログ識別オブジェクトです。添字表を持たず、線形探索の経路を使います。 */
+/** 偽のカタログのカタログ識別オブジェクトです。インデックス表を持たず、線形探索の経路を使います。 */
 static const string_catalog s_catalog = {s_entries, NULL, FAKE_CATALOG_ENTRY_COUNT, 0};
 
 /* Doxygen コメントは、ヘッダーに記載 */

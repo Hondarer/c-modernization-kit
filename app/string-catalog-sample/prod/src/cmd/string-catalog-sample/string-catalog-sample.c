@@ -7,14 +7,11 @@
  *  @version        1.0.0
  *
  *  カタログに登録したすべての文字列を、ニュートラル言語、日本語、英語で組み立てて表示します。\n
- *  カタログはライブラリが抱え込まないため、呼び出しごとにカタログを渡します。\n
- *  本コマンドは 1 つのカタログ定義だけを使うため、カタログを省略する口を通して呼び出します。\n
- *  出力する言語はプロセスで 1 つとし、文字列を組み立てるたびには指定不要です。\n
- *  同じ呼び出しで語順が変わること、同じ引数を複数回参照できること、
- *  値の文字列表現が言語に依らないことを確認できます。
- *
- *  出力は UTF-8 です。Windows のコンソールで文字化けする場合は、
- *  あらかじめ `chcp 65001` でコード ページを切り替えてください。
+ *  カタログはライブラリ側では保持しないため、呼び出しごとにカタログを渡します。\n
+ *  本コマンドは 1 つのカタログ定義のみを使用するため、カタログ指定を省略する簡易関数を通して呼び出します。\n
+ *  出力言語はプロセス全体で一元管理され、文字列組み立ての都度指定する必要はありません。\n
+ *  同一の呼び出しで語順が切り替わること、同一の引数を複数回参照できること、
+ *  値の文字列表現が言語に依存しないことを確認できます。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -22,9 +19,10 @@
  */
 
 #include "gen/sample_messages.h"
-#include "sample_trace_level.h"
 
 #include <string_catalog.h>
+#include <cplat/console/console.h>
+#include <cplat/trace/tracer.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -36,7 +34,7 @@
 /** ポインター引数の実例として、アドレスを表示する対象です。 */
 static const char s_sample_object[] = SAMPLE_PATH;
 
-/** レベルの表示名です。@ref sample_trace_level の値を添字として参照します。 */
+/** レベルの表示名です。@ref cplat_trace_level の値をインデックスとして参照します。 */
 static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "INFO", "VERBOSE", "DEBUG", "NONE"};
 
 /**
@@ -45,21 +43,21 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
  *  @return         トレース レベルを返します。
  *
  *  分類値はライブラリが解釈しない `int` であり、範囲の保証がありません。\n
- *  範囲外の値と、カタログに存在しない文字列 ID の 0 を
- *  @ref SAMPLE_TRACE_LEVEL_NONE へ切り詰め、表示名の添字として安全に使えるようにします。
+ *  範囲外の値やカタログに存在しない文字列 ID の 0 を
+ *  @ref CPLAT_TRACE_LEVEL_NONE へフォールバックし、表示名のインデックスとして安全に使用できるようにします。
  *
- *  分類値の意味付けはこの app の取り決めであるため、切り詰めもこの階層で行います。
+ *  分類値の意味付けは本 app の規約であるため、範囲制限処理もこの階層で行います。
  */
-static sample_trace_level trace_level_of(const int string_id)
+static cplat_trace_level trace_level_of(const int string_id)
 {
     const int category = sample_messages_category(string_id);
 
-    if ((unsigned int)category > (unsigned int)SAMPLE_TRACE_LEVEL_NONE)
+    if ((unsigned int)category > (unsigned int)CPLAT_TRACE_LEVEL_NONE)
     {
-        return SAMPLE_TRACE_LEVEL_NONE;
+        return CPLAT_TRACE_LEVEL_NONE;
     }
 
-    return (sample_trace_level)category;
+    return (cplat_trace_level)category;
 }
 
 /**
@@ -88,7 +86,7 @@ static int print_string(const int string_id, ...)
 
     const char *id_text;
     const char *note;
-    sample_trace_level level;
+    cplat_trace_level level;
 
     id_text = sample_messages_id_text(string_id);
     note = sample_messages_note(string_id);
@@ -192,6 +190,8 @@ int main(int argc, char *argv[])
     (void)argv;
 
     int ret;
+
+    cplat_console_init();
 
     ret = verify_catalog();
     if (ret != STRING_CATALOG_OK)

@@ -370,27 +370,27 @@ TEST_F(stringCatalogRenderTest, invalid_format)
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 
     actual_ret = format_engine_render_text(dest, sizeof(dest), "{abc}", values,
-                                           1); // [手順] - 数字でない添字を含む書式を展開する。
+                                           1); // [手順] - 数値以外のインデックスを含む書式を展開する。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 
     actual_ret = format_engine_render_text(dest, sizeof(dest), "{~}", values,
-                                           1); // [手順] - 数字より大きい文字を添字に持つ書式を展開する。
+                                           1); // [手順] - 数字以外の文字をインデックスに指定した書式を展開する。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 
     actual_ret = format_engine_render_text(dest, sizeof(dest), "{01}", values,
-                                           1); // [手順] - 先頭がゼロの 2 桁の添字を持つ書式を展開する。
+                                           1); // [手順] - 先行ゼロを含む 2 桁のインデックスを持つ書式を展開する。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 
     actual_ret = format_engine_render_text(dest, sizeof(dest), "{1}", values,
-                                           1); // [手順] - 引数個数を超える添字を持つ書式を展開する。
+                                           1); // [手順] - 引数個数を超えるインデックスを持つ書式を展開する。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 }
 
-// 2 桁の添字を展開できることの確認
+// 2 桁のインデックスを展開できることの確認
 TEST_F(stringCatalogRenderTest, two_digit_placeholder)
 {
     // Arrange
@@ -413,18 +413,18 @@ TEST_F(stringCatalogRenderTest, two_digit_placeholder)
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret_first); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
-    EXPECT_STREQ("0/9/10", wide_dest);              // [確認_正常系] - 2 桁の添字が対応する値へ置き換わること。
+    EXPECT_STREQ("0/9/10", wide_dest);              // [確認_正常系] - 2 桁のインデックスが対応する値へ展開されること。
 
     // Act
     actual_ret_last = format_engine_render_text(wide_dest, sizeof(wide_dest), "{31}", values,
-                                                STRING_CATALOG_ARGUMENT_MAX); // [手順] - 最大の添字を展開する。
+                                                STRING_CATALOG_ARGUMENT_MAX); // [手順] - 最大インデックスを展開する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret_last); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
-    EXPECT_STREQ("31", wide_dest);                 // [確認_正常系] - 添字 31 の値へ置き換わること。
+    EXPECT_STREQ("31", wide_dest);                 // [確認_正常系] - インデックス 31 の値へ展開されること。
 }
 
-// 2 桁を超える添字と、範囲外の添字が定義エラーになることの確認
+// 2 桁を超えるインデックスおよび範囲外のインデックスが定義エラーになることの確認
 TEST_F(stringCatalogRenderTest, invalid_two_digit_placeholder)
 {
     // Arrange
@@ -442,21 +442,21 @@ TEST_F(stringCatalogRenderTest, invalid_two_digit_placeholder)
 
     // Act
     actual_ret_three_digits = format_engine_render_text(dest, sizeof(dest), "{100}", values,
-                                                        STRING_CATALOG_ARGUMENT_MAX); // [手順] - 3 桁の添字を展開する。
+                                                        STRING_CATALOG_ARGUMENT_MAX); // [手順] - 3 桁のインデックスを展開する。
     actual_ret_over_count =
         format_engine_render_text(dest, sizeof(dest), "{32}", values,
-                                  STRING_CATALOG_ARGUMENT_MAX); // [手順] - 引数個数と同じ添字を展開する。
+                                  STRING_CATALOG_ARGUMENT_MAX); // [手順] - 引数個数と同じインデックスを展開する。
     actual_ret_leading_zero =
         format_engine_render_text(dest, sizeof(dest), "{09}", values,
-                                  STRING_CATALOG_ARGUMENT_MAX); // [手順] - 先頭がゼロの 2 桁の添字を展開する。
+                                  STRING_CATALOG_ARGUMENT_MAX); // [手順] - 先行ゼロを含む 2 桁のインデックスを展開する。
 
     // Assert
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
-              actual_ret_three_digits); // [確認_異常系] - 3 桁の添字は定義エラーになること。
+              actual_ret_three_digits); // [確認_異常系] - 3 桁のインデックスは定義エラーになること。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
-              actual_ret_over_count); // [確認_異常系] - 引数個数以上の添字は定義エラーになること。
+              actual_ret_over_count); // [確認_異常系] - 引数個数以上のインデックスは定義エラーになること。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
-              actual_ret_leading_zero); // [確認_異常系] - 先頭がゼロの添字は定義エラーになること。
+              actual_ret_leading_zero); // [確認_異常系] - 先行ゼロを含むインデックスは定義エラーになること。
 }
 
 // 自前の整数変換が、標準ライブラリの書式と境界値で一致することの確認

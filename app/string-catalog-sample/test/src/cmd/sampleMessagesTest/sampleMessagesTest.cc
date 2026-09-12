@@ -1,9 +1,9 @@
 #include <testfw.h>
 
 #include "sample_messages.h"
-#include "sample_trace_level.h"
 
 #include <string_catalog.h>
+#include <cplat/trace/tracer.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -73,7 +73,7 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
                   entries[index]
                       .notes[STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の備考を持つこと。
         EXPECT_LE(entries[index].category,
-                  SAMPLE_TRACE_LEVEL_NONE);          // [確認_正常系] - 分類値がトレース レベルの範囲内であること。
+                  CPLAT_TRACE_LEVEL_NONE);           // [確認_正常系] - 分類値がトレース レベルの範囲内であること。
         EXPECT_GE(entries[index].argument_count, 0); // [確認_正常系] - 引数個数が 0 以上であること。
         EXPECT_LE(entries[index].argument_count,
                   STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系] - 引数個数が上限以下であること。
@@ -105,7 +105,7 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
     // Assert
     ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
     EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(SAMPLE_TRACE_LEVEL_ERROR, actual_category);    // [確認_正常系] - 分類値が一致すること。
+    EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category);     // [確認_正常系] - 分類値が一致すること。
     EXPECT_EQ(STRING_CATALOG_OK, actual_ret);                // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
     EXPECT_STREQ("Failed to open file config.json. Error code=2 (0x00000002)",
                  dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。

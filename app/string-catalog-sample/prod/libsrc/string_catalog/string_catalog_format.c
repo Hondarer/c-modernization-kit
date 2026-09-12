@@ -6,8 +6,8 @@
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  公開 API は、引数スキーマの取得、可変長引数の取り出し、書式の展開の 3 段を順に呼び出します。\n
- *  可変長引数を最初に値の配列へ写すため、言語ごとの語順の違いは書式の展開だけで吸収できます。
+ *  公開 API は、引数スキーマの取得、可変長引数の取り出し、書式の展開の 3 つの処理段階を順に呼び出します。\n
+ *  可変長引数を事前に値の配列へ格納するため、言語ごとの語順の違いは書式の展開処理のみで対応できます。
  *
  *  出力する言語はプロセスの設定から取得します。言語の保持は `string_catalog_language.c`、
  *  カタログの保持は `string_catalog_catalog.c` が担います。
@@ -26,12 +26,12 @@
 
 /**
  *  @brief          言語別リソースから、指定した言語の要素を選びます。
- *  @param[in]      localized 言語を添字とするリソースの配列。NULL を渡してはなりません。
+ *  @param[in]      localized 言語をインデックスとするリソースの配列。NULL を渡してはなりません。
  *  @param[in]      language  出力する言語。範囲内の値を渡してください。
- *  @return         使用するリソースです。ニュートラル言語の要素も無い場合は NULL を返します。
+ *  @return         使用するリソースです。ニュートラル言語の要素も未設定の場合は NULL を返します。
  *
- *  指定した言語のリソースが無い場合は、ニュートラル言語の要素へ読み替えます。\n
- *  翻訳が追い付いていない言語でも、文字列を出力できます。
+ *  指定した言語のリソースが未設定の場合は、ニュートラル言語の要素を代替として使用します。\n
+ *  翻訳が完了していない言語であっても、文字列を出力できます。
  */
 static const char *select_localized(const char *const *localized, const string_catalog_language language)
 {
@@ -141,7 +141,7 @@ int string_catalog_verify(const string_catalog *const catalog, int *string_id_ou
             }
             if (language_out != NULL)
             {
-                /* 引数個数と添字表の不正は言語に依らないため、言語ではない値を格納する */
+                /* 引数個数とインデックス表の不正は言語に依存しないため、言語ではない値を格納する */
                 *language_out = STRING_CATALOG_LANGUAGE_COUNT;
             }
             return STRING_CATALOG_ERR_INVALID_DEFINITION;

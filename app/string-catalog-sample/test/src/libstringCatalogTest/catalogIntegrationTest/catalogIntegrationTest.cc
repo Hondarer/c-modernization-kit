@@ -1,9 +1,9 @@
 #include <testfw.h>
 
 #include "sample_messages.h"
-#include "sample_trace_level.h"
 
 #include <string_catalog.h>
+#include <cplat/trace/tracer.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -64,7 +64,7 @@ TEST_F(catalogIntegrationTest, metadata)
     ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
     ASSERT_NE(nullptr, actual_note);                         // [確認_正常系] - 備考を取得できること。
     EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
-    EXPECT_EQ(SAMPLE_TRACE_LEVEL_ERROR, actual_category);    // [確認_正常系] - カタログの分類値が一致すること。
+    EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category);     // [確認_正常系] - カタログの分類値が一致すること。
     EXPECT_LT(0U, strlen(actual_note));                      // [確認_正常系] - 備考が空でないこと。
     EXPECT_EQ(nullptr, actual_unknown_id_text);              // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
 }

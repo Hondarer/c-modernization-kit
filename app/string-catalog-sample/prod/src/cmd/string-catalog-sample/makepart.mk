@@ -1,5 +1,5 @@
 # 依存ライブラリ
-LIBS += string_catalog
+LIBS += string_catalog cplat
 
 # 生成物のコンパイルを framework へ登録する。
 # 生成そのものは app 直下の makepart.mk がパース時に行う。

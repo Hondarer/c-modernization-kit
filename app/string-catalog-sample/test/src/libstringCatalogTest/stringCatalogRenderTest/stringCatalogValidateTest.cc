@@ -56,7 +56,7 @@ TEST_F(stringCatalogValidateTest, invalid_format)
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 
-    actual_ret = format_engine_validate_text("{8}", 8); // [手順] - 上限を超える添字を持つ書式を確認する。
+    actual_ret = format_engine_validate_text("{8}", 8); // [手順] - 上限を超えるインデックスを持つ書式を確認する。
     EXPECT_EQ(STRING_CATALOG_ERR_INVALID_DEFINITION,
               actual_ret); // [確認_異常系] - 戻り値が STRING_CATALOG_ERR_INVALID_DEFINITION であること。
 }

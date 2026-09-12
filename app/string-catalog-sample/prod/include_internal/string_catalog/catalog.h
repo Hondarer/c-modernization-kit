@@ -8,8 +8,8 @@
  *
  *  本ヘッダーは string_catalog ライブラリ内の共有ヘッダーです。\n
  *  カタログの検索は `prod/libsrc/string_catalog/string_catalog_catalog.c` が担い、
- *  書式を展開する実装はこの境界を通してだけカタログを参照します。\n
- *  境界を設けることで、検索方式を変更しても展開側は影響を受けません。\n
+ *  書式を展開する実装はこの抽象化境界を通してのみカタログを参照します。\n
+ *  境界を設けることで、検索方式を変更しても展開処理側は影響を受けません。\n
  *  ライブラリはカタログを保持しません。呼び出し元が @ref string_catalog を渡します。\n
  *  see: app/string-catalog-sample/docs/architecture.md
  *
@@ -38,12 +38,12 @@ extern "C"
 #endif /* __cplusplus */
 
     /**
-     *  @brief          カタログの内容が参照できる形であることを確認します。
+     *  @brief          カタログの内容が利用可能な構造であることを確認します。
      *  @param[in]      catalog 確認するカタログ。NULL を渡せます。
-     *  @return         参照できる場合は true を返します。
+     *  @return         利用可能な場合は true を返します。
      *
      *  NULL、配列が NULL、要素数が負のいずれかであれば false を返します。\n
-     *  カタログは利用者が静的初期化するため、参照する前にこの関数で形を確認します。\n
+     *  カタログは利用側で静的初期化されるため、参照前に本関数で構造の妥当性を確認します。\n
      *  書式や引数スキーマの妥当性は確認しません。@ref string_catalog_verify が担います。
      *
      *  @par            スレッド セーフ
@@ -65,9 +65,9 @@ extern "C"
     int string_catalog_internal_entry_count(const string_catalog *catalog);
 
     /**
-     *  @brief          添字を指定してカタログの 1 件を取得します。
+     *  @brief          インデックスを指定してカタログの 1 件を取得します。
      *  @param[in]      catalog 参照するカタログ。NULL を渡せます。
-     *  @param[in]      index   0 以上、件数未満の添字。
+     *  @param[in]      index   0 以上、件数未満のインデックス。
      *  @return         カタログの 1 件です。@p index が範囲外の場合は NULL を返します。
      *
      *  返すポインターは利用者が用意した領域を指します。ライブラリでは解放しません。

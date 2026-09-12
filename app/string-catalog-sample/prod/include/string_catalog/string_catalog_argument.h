@@ -78,7 +78,7 @@ extern "C"
      *  既定引数拡張のため、`char` と 8 bit、16 bit の整数は `int` へ、`float` は `double` へ昇格します。\n
      *  8 bit と 16 bit の種別は、`va_arg` で `int` として取り出したあと、種別が表す幅へ変換します。
      *  昇格後の型と一致しない `va_arg` の指定は行いません。\n
-     *  単精度浮動小数点数の種別を設けていないのは、`double` へ昇格した値を倍精度として扱えば足りるためです。
+     *  単精度浮動小数点数の種別を設けていないのは、`double` へ昇格した値を倍精度として扱えば十分なためです。
      *
      *  @ref STRING_CATALOG_ARGUMENT_KIND_ERROR_CODE は、Linux の `errno` と
      *  Windows のエラー コードのどちらも `int` として受け取り、10 進数と 16 進数を併記します。
@@ -102,7 +102,7 @@ extern "C"
         STRING_CATALOG_ARGUMENT_KIND_SIZE = 14,      /**< オブジェクトのバイト数や要素数。10 進数で表現します。 */
         STRING_CATALOG_ARGUMENT_KIND_SSIZE = 15,     /**< 符号付きのバイト数や要素数。10 進数で表現します。 */
         STRING_CATALOG_ARGUMENT_KIND_POINTER = 16,   /**< オブジェクトのアドレス。16 進数で表現します。 */
-        STRING_CATALOG_ARGUMENT_KIND_DOUBLE = 17,    /**< 倍精度浮動小数点数。有効桁を保つ短い表現にします。 */
+        STRING_CATALOG_ARGUMENT_KIND_DOUBLE = 17,    /**< 倍精度浮動小数点数。有効桁を保った簡潔な表現にします。 */
         STRING_CATALOG_ARGUMENT_KIND_ERROR_CODE = 18 /**< OS のエラー コード。10 進数と 16 進数を併記します。 */
     } string_catalog_argument_kind;
 

@@ -6,9 +6,9 @@
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  書式が解釈するのは `{0}` から `{31}` までの位置指定と、`{{` と `}}` のエスケープだけです。\n
- *  値の文字列表現は引数種別が決めるため、書式側には書式指定を書けません。\n
- *  展開と構文確認は同じ走査で行い、書き込み先を持たない呼び出しを構文確認として扱います。
+ *  本モジュールが解釈する構文は、`{0}` から `{31}` までの位置指定と、`{{` と `}}` のエスケープのみです。\n
+ *  値の文字列表現は引数種別側で規定されるため、書式内には書式指定子を記述できません。\n
+ *  展開と構文確認は同一の走査ロジックで行い、出力先バッファーを指定しない呼び出しを構文確認として扱います。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -33,7 +33,7 @@
 /** 文字列引数が NULL のときに出力する表現です。 */
 #define NULL_STRING_TEXT "(null)"
 
-/** 位置指定の添字に書ける最大の桁数です。@ref STRING_CATALOG_ARGUMENT_MAX の桁数と一致させます。 */
+/** 位置指定のインデックスに指定可能な最大桁数です。@ref STRING_CATALOG_ARGUMENT_MAX の桁数と一致させます。 */
 #define INDEX_DIGITS_MAX 2
 
 /** 1 文字として出力する ASCII の下限です。 */
@@ -204,7 +204,7 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
         return STRING_CATALOG_OK;
 
     case STRING_CATALOG_ARGUMENT_KIND_DOUBLE:
-        /* 有効桁を保つ丸めは自前で持たず、標準ライブラリへ任せる */
+        /* 有効桁数を保つ丸め処理は独自実装せず、標準ライブラリに委任する */
         (void)snprintf(value_text, sizeof(value_text), "%g", value->value.double_value);
         render_buffer_append_string(buffer, value_text);
         return STRING_CATALOG_OK;
@@ -321,7 +321,7 @@ static int render_buffer_append_argument(render_buffer *buffer, const format_eng
  *  @param[in]      values      展開に使用する値の配列。NULL のときは構文確認だけを行います。
  *  @param[in]      value_count 位置指定が指してよい引数の個数。
  *  @return         成功時は @ref STRING_CATALOG_OK を返します。
- *  @return         構文が不正な場合、または位置指定が @p value_count 以上の添字を指す場合は
+ *  @return         構文が不正な場合、または位置指定が @p value_count 以上のインデックスを指す場合は
  *                  @ref STRING_CATALOG_ERR_INVALID_DEFINITION を返します。
  */
 static int render_scan_text(render_buffer *buffer, const char *text, const format_engine_argument_value *values,
@@ -364,8 +364,8 @@ static int render_scan_text(render_buffer *buffer, const char *text, const forma
         }
 
         /*
-         *  位置指定の添字は 10 進数で、桁数は INDEX_DIGITS_MAX までとする。
-         *  先頭のゼロは認めない。同じ添字の書き方を 1 通りに保つため。
+         *  位置指定のインデックスは 10 進数で、桁数は INDEX_DIGITS_MAX までとする。
+         *  同一インデックスの表記揺れを防ぐため、先行ゼロは許可しない。
          */
         digit_count = 0;
         index = 0;

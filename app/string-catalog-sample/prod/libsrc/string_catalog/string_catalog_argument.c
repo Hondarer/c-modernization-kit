@@ -6,10 +6,10 @@
  *  @date           2026/09/10
  *  @version        1.0.0
  *
- *  可変長引数は順番にしか安全に取り出せず、`va_arg` の型指定が実引数の型 (既定引数拡張後)
+ *  可変長引数は先頭から順次安全に取り出す必要があり、`va_arg` の型指定が実引数の型 (既定引数拡張後)
  *  と適合しない場合は未定義動作になります。\n
- *  そのため、引数種別ごとの取り出し型をこのファイルへ閉じ込め、
- *  ほかの実装は値の配列だけを扱います。
+ *  そのため、引数種別ごとの取り出し型を本ファイル内に集約し、
+ *  他の実装モジュールは値の配列のみを取り扱います。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -26,9 +26,9 @@
 
 /*
  *  `char` と 8 bit、16 bit の整数は、既定引数拡張によって `int` へ昇格します。
- *  この昇格は `int` がすべての値を表現できることが条件であり、成り立たない処理系では
+ *  この昇格は `int` がすべての値を表現できることが条件であり、成立しない処理系では
  *  符号なしの実引数が `unsigned int` へ昇格し、`va_arg(args, int)` が未定義動作になります。
- *  対象プラットフォームでは成り立つため、前提を静的表明で固定します。
+ *  対象プラットフォームでは成立するため、この前提を静的アサーションで確認します。
  */
 static_assert(INT_MAX >= UINT16_MAX, "int must represent every uint16_t value for default argument promotion");
 
@@ -52,7 +52,7 @@ int format_engine_collect_arguments(const string_catalog_entry *entry, va_list a
             values[index].value.string_value = va_arg(args, const char *);
             break;
 
-        /* 昇格後の `int` として取り出し、種別が表す幅へ変換する */
+        /* 昇格後の `int` として取り出し、種別に応じた型幅へ変換する */
         case STRING_CATALOG_ARGUMENT_KIND_CHAR:
             values[index].value.char_value = (char)va_arg(args, int);
             break;
@@ -111,7 +111,7 @@ int format_engine_collect_arguments(const string_catalog_entry *entry, va_list a
             break;
 
         default:
-            /* 未知の種別では取り出す型を決められないため、以降の引数も読み進めない */
+            /* 未知の種別では取り出す型を特定できないため、以降の引数の走査も中止する */
             return STRING_CATALOG_ERR_INVALID_DEFINITION;
         }
     }

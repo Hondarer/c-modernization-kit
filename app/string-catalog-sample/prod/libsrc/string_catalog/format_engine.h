@@ -7,14 +7,14 @@
  *  @version        1.0.0
  *
  *  本ヘッダーは `prod/libsrc/string_catalog/` のモジュール私有ヘッダーです。\n
- *  同ディレクトリの実装ファイルからだけ `#include "format_engine.h"` で取り込みます。\n
+ *  同一ディレクトリ内の実装ファイルからのみ `#include "format_engine.h"` で取り込みます。\n
  *  公開契約は公開ヘッダー `<string_catalog/string_catalog_spec.h>` を正とします。
  *
- *  ディレクトリ名と同じ `string_catalog.h` としないのは、公開アンブレラ ヘッダー
- *  `prod/include/string_catalog.h` がインクルード パスの直下に同名で存在し、
- *  取り違えを招くためです。
+ *  ヘッダー名をディレクトリ名と同じ `string_catalog.h` としていないのは、公開アンブレラ ヘッダー
+ *  `prod/include/string_catalog.h` がインクルード パス直下に同名で存在し、
+ *  混同を避けるためです。
  *
- *  本ヘッダーで宣言する関数は、呼び出し元が同一ディレクトリに閉じるため NULL を検査しません。\n
+ *  本ヘッダーで宣言する関数は、呼び出し元が同一ディレクトリ内に限定されるため、NULL チェックは行いません。\n
  *  前提条件は各関数の Doxygen コメントに記載します。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
@@ -45,7 +45,7 @@ extern "C"
      *  @brief          可変長引数から取り出した値 1 個分です。
      *
      *  @ref format_engine_argument_value::kind が、共用体のどのメンバーが有効かを表します。\n
-     *  可変長引数は順番にしか取り出せないため、書式を展開する前にこの型の配列へ写します。\n
+     *  可変長引数は順次取り出す必要があるため、書式を展開する前に本構造体の配列へ格納します。\n
      *  これにより、位置指定の並べ替えと繰り返し参照を行えます。
      */
     typedef struct format_engine_argument_value
@@ -105,13 +105,14 @@ extern "C"
      *  @param[in]      values      展開に使用する値の配列。NULL を渡してはなりません。
      *  @param[in]      value_count @p values の有効な要素数。
      *  @return         成功時は @ref STRING_CATALOG_OK を返します。
-     *  @return         書式の構文が不正な場合、または位置指定が @p value_count 以上の添字を指す場合は
+     *  @return         書式の構文が不正な場合、または位置指定が @p value_count 以上のインデックスを指す場合は
      *                  @ref STRING_CATALOG_ERR_INVALID_DEFINITION を返します。
      *  @return         結果が @p dest に収まらない場合は、切り詰めたうえで
      *                  @ref STRING_CATALOG_ERR_TRUNCATED を返します。
      *
-     *  書式の構文は `{0}` から `{31}` までの位置指定と、`{{` と `}}` のエスケープだけです。\n     *  添字は 10 進数で 2 桁までとし、先頭のゼロは認めません。\n
-     *  書式指定は解釈しません。文字列表現は引数種別が決めます。
+     *  書式の構文は `{0}` から `{31}` までの位置指定と、`{{` と `}}` のエスケープのみです。\n
+     *  インデックスは 10 進数で 2 桁までとし、先行ゼロは許可しません。\n
+     *  書式指定は解釈しません。文字列表現は引数種別側で規定されます。
      *
      *  構文が不正な場合でも @p dest は NUL 終端します。内容は保証しません。
      *
@@ -126,7 +127,7 @@ extern "C"
      *  @param[in]      text        確認する書式。NULL を渡してはなりません。
      *  @param[in]      value_count 位置指定が指してよい引数の個数。
      *  @return         書式が正しい場合は @ref STRING_CATALOG_OK を返します。
-     *  @return         構文が不正な場合、または位置指定が @p value_count 以上の添字を指す場合は
+     *  @return         構文が不正な場合、または位置指定が @p value_count 以上のインデックスを指す場合は
      *                  @ref STRING_CATALOG_ERR_INVALID_DEFINITION を返します。
      *
      *  値を持たずに書式だけを確認するため、カタログ全体の点検に使用します。

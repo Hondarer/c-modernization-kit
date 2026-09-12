@@ -12,22 +12,22 @@ static const string_catalog_entry s_entries[] = {
 /** @ref s_entries の要素数です。 */
 static const int s_entry_count = (int)(sizeof(s_entries) / sizeof(s_entries[0]));
 
-/** 文字列 ID を添字として @ref s_entries の添字を引く表です。 */
+/** 文字列 ID をインデックスとして @ref s_entries のインデックスを参照する表です。 */
 static const int s_id_index[] = {-1, 0, -1, 1};
 
 /** @ref s_id_index の要素数です。 */
 static const int s_id_index_count = (int)(sizeof(s_id_index) / sizeof(s_id_index[0]));
 
-/** 範囲外の添字を格納した、内容が壊れた添字表です。 */
+/** 範囲外のインデックスを格納した、不正なインデックス表です。 */
 static const int s_broken_id_index[] = {-1, 99};
 
-/** 添字表を持たないカタログです。検索は線形探索の経路を通ります。 */
+/** インデックス表を持たないカタログです。検索は線形探索の経路を通ります。 */
 static const string_catalog s_catalog_without_index = {s_entries, NULL, 2, 0};
 
-/** 添字表を持つカタログです。 */
+/** インデックス表を持つカタログです。 */
 static const string_catalog s_catalog_with_index = {s_entries, s_id_index, 2, 4};
 
-/** 内容が壊れた添字表を持つカタログです。 */
+/** 不正なインデックス表を持つカタログです。 */
 static const string_catalog s_catalog_broken_index = {s_entries, s_broken_id_index, 2, 2};
 
 /** 同じ文字列 ID に別の内容を持つ、2 つ目のカタログです。 */
@@ -57,21 +57,21 @@ TEST_F(stringCatalogCatalogTest, unusable_catalog_is_empty)
         string_catalog_internal_is_usable(&null_entries)); // [確認_異常系] - 配列が NULL なら参照できないこと。
     EXPECT_FALSE(string_catalog_internal_is_usable(&negative_count)); // [確認_異常系] - 件数が負なら参照できないこと。
     EXPECT_FALSE(string_catalog_internal_is_usable(
-        &negative_index_count)); // [確認_異常系] - 添字表の要素数が負なら参照できないこと。
+        &negative_index_count)); // [確認_異常系] - インデックス表の要素数が負なら参照できないこと。
     EXPECT_TRUE(string_catalog_internal_is_usable(
-        &s_catalog_with_index)); // [確認_正常系] - 形の整ったカタログは参照できること。
+        &s_catalog_with_index)); // [確認_正常系] - 妥当な構造のカタログは参照できること。
 
     EXPECT_EQ(0, string_catalog_internal_entry_count(NULL)); // [確認_異常系] - NULL では件数が 0 であること。
     EXPECT_EQ(nullptr,
               string_catalog_internal_find_entry(NULL, 1)); // [確認_異常系] - NULL では検索が NULL を返すこと。
     EXPECT_EQ(nullptr,
-              string_catalog_internal_entry_at(NULL, 0)); // [確認_異常系] - NULL では添字取得が NULL を返すこと。
+              string_catalog_internal_entry_at(NULL, 0)); // [確認_異常系] - NULL ではインデックス指定取得が NULL を返すこと。
     EXPECT_EQ(
         0,
         string_catalog_internal_entry_count(&null_entries)); // [確認_異常系] - 配列が NULL では件数が 0 であること。
 }
 
-// 添字表を持たないカタログを線形探索で引けることの確認
+// インデックス表を持たないカタログを線形探索で参照できることの確認
 TEST_F(stringCatalogCatalogTest, find_without_id_index)
 {
     // Arrange
@@ -95,7 +95,7 @@ TEST_F(stringCatalogCatalogTest, find_without_id_index)
     EXPECT_EQ(nullptr, actual_entry_unknown); // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
 }
 
-// 添字表でカタログを引けることの確認
+// インデックス表でカタログを参照できることの確認
 TEST_F(stringCatalogCatalogTest, find_with_id_index)
 {
     // Arrange
@@ -108,23 +108,23 @@ TEST_F(stringCatalogCatalogTest, find_with_id_index)
 
     // Act
     actual_entry_found =
-        string_catalog_internal_find_entry(&s_catalog_with_index, 3); // [手順] - 添字表に登録した文字列 ID で検索する。
+        string_catalog_internal_find_entry(&s_catalog_with_index, 3); // [手順] - インデックス表に登録した文字列 ID で検索する。
     actual_entry_absent = string_catalog_internal_find_entry(&s_catalog_with_index,
-                                                             2); // [手順] - 添字表が負の値を持つ文字列 ID で検索する。
+                                                             2); // [手順] - インデックス表が負の値を持つ文字列 ID で検索する。
     actual_entry_over_index = string_catalog_internal_find_entry(
-        &s_catalog_with_index, 9); // [手順] - 添字表の範囲を超える文字列 ID で検索する。
+        &s_catalog_with_index, 9); // [手順] - インデックス表の範囲を超える文字列 ID で検索する。
     actual_entry_negative_id =
         string_catalog_internal_find_entry(&s_catalog_with_index, -1); // [手順] - 負の文字列 ID で検索する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_entry_found);       // [確認_正常系] - 添字表からカタログを取得できること。
+    ASSERT_NE(nullptr, actual_entry_found);       // [確認_正常系] - インデックス表からカタログを取得できること。
     EXPECT_EQ(3, actual_entry_found->id);         // [確認_正常系] - 検索した文字列 ID の定義であること。
-    EXPECT_EQ(nullptr, actual_entry_absent);      // [確認_異常系] - 添字表が負の値を持つ場合は NULL を返すこと。
-    EXPECT_EQ(nullptr, actual_entry_over_index);  // [確認_異常系] - 添字表の範囲外では線形探索へ落ち、NULL を返すこと。
+    EXPECT_EQ(nullptr, actual_entry_absent);      // [確認_異常系] - インデックス表が負の値を持つ場合は NULL を返すこと。
+    EXPECT_EQ(nullptr, actual_entry_over_index);  // [確認_異常系] - インデックス表の範囲外では線形探索へフォールバックし、NULL を返すこと。
     EXPECT_EQ(nullptr, actual_entry_negative_id); // [確認_異常系] - 負の文字列 ID では NULL を返すこと。
 }
 
-// 添字表が範囲外の添字を持つ場合に参照しないことの確認
+// インデックス表が範囲外のインデックスを持つ場合に参照しないことの確認
 TEST_F(stringCatalogCatalogTest, broken_id_index)
 {
     // Arrange
@@ -134,13 +134,13 @@ TEST_F(stringCatalogCatalogTest, broken_id_index)
 
     // Act
     actual_entry =
-        string_catalog_internal_find_entry(&s_catalog_broken_index, 1); // [手順] - 範囲外の添字を持つ添字表で検索する。
+        string_catalog_internal_find_entry(&s_catalog_broken_index, 1); // [手順] - 範囲外のインデックスを持つインデックス表で検索する。
 
     // Assert
     EXPECT_EQ(nullptr, actual_entry); // [確認_異常系] - カタログを参照せずに NULL を返すこと。
 }
 
-// 添字でカタログを取得できることの確認
+// インデックス指定でカタログを取得できることの確認
 TEST_F(stringCatalogCatalogTest, entry_at)
 {
     // Arrange
@@ -151,17 +151,17 @@ TEST_F(stringCatalogCatalogTest, entry_at)
     // Pre-Assert
 
     // Act
-    actual_entry = string_catalog_internal_entry_at(&s_catalog_with_index, 1); // [手順] - 添字で 2 件目を取得する。
+    actual_entry = string_catalog_internal_entry_at(&s_catalog_with_index, 1); // [手順] - インデックス指定で 2 件目を取得する。
     actual_entry_negative =
-        string_catalog_internal_entry_at(&s_catalog_with_index, -1); // [手順] - 負の添字で取得する。
+        string_catalog_internal_entry_at(&s_catalog_with_index, -1); // [手順] - 負のインデックスで取得する。
     actual_entry_over = string_catalog_internal_entry_at(&s_catalog_with_index,
-                                                         s_entry_count); // [手順] - 登録件数と同じ添字で取得する。
+                                                         s_entry_count); // [手順] - 登録件数と同じインデックスで取得する。
 
     // Assert
     ASSERT_NE(nullptr, actual_entry);          // [確認_正常系] - カタログを取得できること。
-    EXPECT_EQ(3, actual_entry->id);            // [確認_正常系] - 添字に対応する文字列であること。
-    EXPECT_EQ(nullptr, actual_entry_negative); // [確認_異常系] - 負の添字では NULL を返すこと。
-    EXPECT_EQ(nullptr, actual_entry_over);     // [確認_異常系] - 登録件数以上の添字では NULL を返すこと。
+    EXPECT_EQ(3, actual_entry->id);            // [確認_正常系] - インデックスに対応する文字列であること。
+    EXPECT_EQ(nullptr, actual_entry_negative); // [確認_異常系] - 負のインデックスでは NULL を返すこと。
+    EXPECT_EQ(nullptr, actual_entry_over);     // [確認_異常系] - 登録件数以上のインデックスでは NULL を返すこと。
 }
 
 // 複数のカタログが互いに影響しないことの確認
