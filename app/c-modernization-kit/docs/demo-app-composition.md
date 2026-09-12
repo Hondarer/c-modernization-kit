@@ -38,7 +38,7 @@
 - `cjson`、`lua`、`sqlite`、`zlib`、`doxygen-sample`、`string-catalog-sample` は、ほかの app に依存しません。
 - `general` と `c-modernization-kit` は文書だけを持つため、ビルド依存関係を定義しません。
 
-makefw はこの依存グラフから app の実行順序を決定します。  
+makefw はこの依存グラフから app のビルド順序を決定します。  
 依存関係のない app は並列にビルドできます。
 
 ## calc と calc.net の構成
@@ -52,10 +52,10 @@ Linux と Windows で同じ .NET API を提供し、ネイティブ ライブラ
 ## cplat のリンク方式
 
 `cplat` は動的ライブラリだけを生成し、すべての製品利用者が同じライブラリを共有します。  
-これにより、トレース レジストリや既定パーサーなどのプロセス グローバルな状態がプロセス内で一つになります。
+これにより、トレース レジストリや既定パーサーなどのプロセス グローバルな状態がプロセス内で一元化されます。
 
-同梱 CLI、`service-sample`、`tutorial` には `libcplat`、`libcjson`、`libzlib` を実行ファイルと同じ `prod/cbin` へコピーします。  
-Linux では `$ORIGIN` の実行時探索パス、Windows では実行ファイルと同じディレクトリの DLL 探索を使うため、開発環境のライブラリ探索パスに依存せず実行できます。
+同梱 CLI、`service-sample`、`tutorial` では、`libcplat`、`libcjson`、`libzlib` を実行ファイルと同じ `prod/cbin` へコピーします。  
+Linux では `$ORIGIN` の実行時探索パス、Windows では実行ファイルと同じディレクトリの DLL 探索を利用するため、開発環境のライブラリ探索パスに依存せず実行できます。
 
 記述方法と配布時の要件は、[リンク方式の規約](../../c-platform/docs/link-policy.md) に従います。
 

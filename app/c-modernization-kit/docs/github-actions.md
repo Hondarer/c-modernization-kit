@@ -45,10 +45,10 @@ Linux ビルド (OL8/OL9/OL10)、Windows ビルド、ドキュメント生成の
 | `WINFLEXBISON_SHA256` | `8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135` | WinFlexBison 配布 ZIP の SHA-256 |
 
 framework home 系 (`MAKEFW_HOME` / `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME`) と実行時パスは、各ジョブの `Load app environment` ステップが `.vscode/.env.*` から読み込みます。  
-`MAKEFW_HOME` は `make` / `make test` / `make doxy` などで必須です。未設定だと `MAKEFW_HOME is required. Export MAKEFW_HOME before running make` で停止します。  
-`DOCSFW_HOME` は `make docs` と VS Code の Markdown 発行タスクで使います。  
-`DOXYFW_HOME` は `make doxy` が doxyfw を呼び出すときに使います。  
-`TESTFW_HOME` は `make` / `make test` が testfw をビルドし、テスト実行スクリプトやライブラリを参照するときに使います。  
+`MAKEFW_HOME` は `make` / `make test` / `make doxy` などで必須です。未設定の場合は `MAKEFW_HOME is required. Export MAKEFW_HOME before running make` を出力して停止します。  
+`DOCSFW_HOME` は `make docs` と VS Code の Markdown 発行タスクで使用します。  
+`DOXYFW_HOME` は `make doxy` が doxyfw を呼び出すときに利用します。  
+`TESTFW_HOME` は `make` / `make test` が testfw をビルドし、テスト実行スクリプトやライブラリを参照するときに使用します。  
 これらのパスを変更する場合は、VS Code の `.env.*` / `settings.json` と Jenkins の `.jenkins/inner-build.sh` も同時に確認します。
 
 ## 実行環境
@@ -246,8 +246,8 @@ end note
 
 **実行条件**:
 
-- 他のビルド＆テスト ジョブと独立して並列実行されます
-- CI 全体の実行時間を短縮し、効率的なリソース利用を実現します
+- 他のビルド＆テスト ジョブと独立して並列実行されます。
+- CI 全体の実行時間を短縮し、効率的なリソース利用を実現します。
 
 **処理フロー**:
 
@@ -283,16 +283,16 @@ end note
 
 **目的**:
 
-- ビルドやドキュメント生成は最後まで走らせる
-- warning artifact があれば、ワークフロー自体は成功のまま通知します。
+- ビルドやドキュメント生成を最後まで実行します。
+- warning artifact が存在する場合でも、ワークフロー自体の成功状態を維持して通知します。
 - Pull Request でも `deploy-pages` に依存せず警告を確認できるようにします。
 
 **処理フロー**:
 
 1. workflow run にアップロードされた artifact 一覧を取得します。
 2. `linux-ol8-warns` / `linux-ol9-warns` / `linux-ol10-warns` / `windows-warns` / `docs-warns` の有無を確認します。
-3. warning artifact があれば warning annotation を出し、Step Summary に対象 artifact 名を列挙します。
-4. warning artifact が無ければ Step Summary に「warning なし」を出す
+3. warning artifact が存在する場合は warning annotation を出力し、Step Summary に対象 artifact 名を列挙します。
+4. warning artifact が存在しない場合は Step Summary に「warning なし」を出力します。
 
 ### deploy-pages ジョブ
 
@@ -334,12 +334,12 @@ end note
     - `pages/` 配下のドキュメントと統合
 
 4. **GitHub Pages へのデプロイ**
-    - 閲覧用の HTML は `pages/` に残す
-    - 未圧縮の `docx` ディレクトリは Pages artifact から外し、DOCX は `pages/artifacts/docs-docx-*.zip` で配布する
-    - 統合した `pages/` を GitHub Pages artifact として公開する
+    - 閲覧用の HTML は `pages/` に残します。
+    - 未圧縮の `docx` ディレクトリは Pages artifact から除外し、DOCX は `pages/artifacts/docs-docx-*.zip` で配布します。
+    - 統合した `pages/` を GitHub Pages artifact として公開します。
 
 GitHub Pages の artifact 上限は 1 GB です。  
-日本語と英語を中継 artifact として分け、Pages には未圧縮 DOCX を載せないことで上限を超えないようにします。
+日本語と英語を中継 artifact として分け、Pages には未圧縮 DOCX を含めないことで上限を超えないようにします。
 
 **アーティファクト ストレージの役割**:
 
@@ -427,14 +427,14 @@ https://<username>.github.io/<repository>/
 
 **固定 URL の利点**:
 
-- テスト結果アーカイブは常に同じファイル名で配置されるため、固定 URL でアクセス可能
+- テスト結果アーカイブは常に同じファイル名で配置されるため、固定 URL でアクセス可能です。
 - ドキュメントへのリンクをハード コードしても、更新後も同じ URL でアクセスできます。
 
 Pages の `index.html` では、通常アーティファクト一覧とは別に、存在する場合のみ「ビルド・ドキュメント警告詳細」として `.warn` アーカイブを表示します。  
 `docs-warns.zip` には `docs.warn` と `app/**/doxy*.warn` がまとめて格納されます。
 
-`index.html` のタイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を使います。MkDocs による動的発行のサイト名と源泉が同じであり、`deploy-pages` ジョブはこの解決のために `bin` と `.vscode` だけを sparse checkout します。  
-同じ解決を `.jenkins/inner-build.sh` も使うため、GitHub Actions と Jenkins のエントリ ページは同じ名前になります。
+`index.html` のタイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を利用します。MkDocs による動的発行のサイト名と源泉が同じであり、`deploy-pages` ジョブはこの解決のために `bin` と `.vscode` だけを sparse checkout します。  
+同じ解決を `.jenkins/inner-build.sh` も利用するため、GitHub Actions と Jenkins のエントリ ページは同じ名前になります。
 
 ### GitHub リポジトリ設定
 
@@ -518,7 +518,7 @@ CI 実行時に生成されるファイルをアーティファクトとして�
     if-no-files-found: ignore
 ```
 
-`.warn` は警告が出た場合のみ生成され、警告が無いビルドではアーティファクト自体が作られません。`app/c_cpp_properties.warn` は、`INCDIR` と `SYSTEM_INCDIR` では `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` では `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の不一致を知らせる dry-run 警告です。`deploy-pages` では、実行中の workflow run に warn artifact が存在するか確認したうえで、存在するものだけをダウンロードします。
+`.warn` は警告が出力された場合のみ生成され、警告が無いビルドではアーティファクト自体が作成されません。`app/c_cpp_properties.warn` は、`INCDIR` と `SYSTEM_INCDIR` では `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` では `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の不一致を知らせる dry-run 警告です。`deploy-pages` では、実行中の workflow run に warn artifact が存在するか確認したうえで、存在するものだけをダウンロードします。
 
 `warnings-summary` ジョブは同じ artifact 名を検知し、warning annotation と Step Summary で通知します。警告があっても workflow 自体は成功のままです。
 
@@ -535,7 +535,7 @@ CI 実行時に生成されるファイルをアーティファクトとして�
     if-no-files-found: ignore
 ```
 
-`docs.warn` は `make docs` 実行時の警告ファイルで、リポジトリ ルートに生成されます。`doxy*.warn` は各アプリ配下に生成される Doxygen 警告ファイルです。`Create artifact archives` ステップではこれらをまとめて `pages/artifacts/docs-warns.zip` に固めます。`warnings-summary` ジョブでは `docs-warns` artifact の有無も集約対象に含めます。
+`docs.warn` は `make docs` 実行時の警告ファイルで、リポジトリ ルートに生成されます。`doxy*.warn` は各 app 配下に生成される Doxygen 警告ファイルです。`Create artifact archives` ステップではこれらをまとめて `pages/artifacts/docs-warns.zip` にアーカイブします。`warnings-summary` ジョブでは `docs-warns` artifact の有無も集約対象に含めます。
 
 ### 履歴管理用アーティファクト (コミット固有)
 

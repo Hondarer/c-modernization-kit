@@ -5,7 +5,7 @@
 追跡対象のスキル正本は、framework または `app/<name>/.agents/skills/` に配置します。  
 全 app 向けの正本は `app/general`、個別 app 向けの正本はその app、ワークスペース固有の正本は `app/c-modernization-kit` に配置します。
 
-ルート `.agents/skills/` は `make skills` が作る射影先です。  
+ルート `.agents/skills/` は `make skills` が作成する射影先です。  
 追跡対象のスキル正本を直接配置しません。
 
 ## 同期処理
@@ -13,7 +13,7 @@
 `make skills` は、`.gitmodules` に登録されたサブモジュールと、ルート Git 管理下の `app/<name>` から `.agents/skills/<skill>` を収集します。  
 同名スキルが複数の正本に存在する場合はエラーで停止します。
 
-Linux では正本へのシンボリック リンクを作り、Windows ではディレクトリをコピーします。  
+Linux では正本へのシンボリック リンクを作成し、Windows ではディレクトリをコピーします。  
 `.claude/skills` も同じ集約結果を参照します。
 
 Windows のルート `.agents/skills/` の Markdown には、発行時に正本へリンクするため `git-origin` が追加されます。  

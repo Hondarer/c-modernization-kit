@@ -30,7 +30,7 @@ make sync-app-env
 `make servedocs` はローカル配信を開始し、`make stopdocs` で停止します。  
 詳細は [動的発行 (MkDocs)](../../../framework/docsfw/livedocs/README.md) を参照してください。
 
-app を追加または削除した場合は、`.vscode`、GitHub Actions、Jenkins の環境変数を手編集せず、`make sync-app-env` を実行します。  
+app を追加または削除した場合は、`.vscode`、GitHub Actions、Jenkins の環境変数を手動で編集せず、`make sync-app-env` を実行します。  
 詳細は [VS Code 環境変数](../../general/docs/vscode-variables.md) を参照してください。
 
 ## ビルドとテスト
@@ -56,10 +56,10 @@ find . -type f -name '*.warn' -size +0 -print0 | xargs -0 -r sed -n '1,200p'
 
 ## ライブラリ構成の確認
 
-`prod/libsrc/` 配下のソースをサブディレクトリへ分ける場合は、各サブディレクトリに makefw のテンプレート `makefile` を置くサブディレクトリ走査方式を使います。  
-`makepart.mk` の `ADD_SRCS` へ相対パスを列挙すると、ライブラリ ルート直下へシンボリック リンクが作られ、`.gitignore` の自動生成、Doxygen の重複読み込み、モジュール私有ヘッダーの探索失敗を招きます。
+`prod/libsrc/` 配下のソースをサブディレクトリへ分ける場合は、各サブディレクトリに makefw のテンプレート `makefile` を置くサブディレクトリ走査方式を利用します。  
+`makepart.mk` の `ADD_SRCS` へ相対パスを列挙すると、ライブラリ ルート直下へシンボリック リンクが作成され、`.gitignore` の自動生成、Doxygen の重複読み込み、モジュール私有ヘッダーの探索失敗を招きます。
 
-構成の誤りは次の 3 本で検出します。いずれも 0 件である必要があります。
+構成の誤りは次の 3 つのコマンドで検出します。いずれも 0 件である必要があります。
 
 ```bash
 find app -path '*/prod/libsrc/*' -type l -not -path '*/obj/*'
@@ -68,9 +68,9 @@ grep -rln 'EXCLUDE_PATTERNS' app --include='Doxyfile.part*'
 ```
 
 `.gitignore` の有無は検出条件に使いません。  
-外部 OSS を扱う app が、zip から展開した生成物を除外する目的で手書きしており、誤検知するためです。
+外部 OSS を扱う app が、zip から展開した生成物を除外する目的で手動定義しており、誤検知するためです。
 
-ビルド機構の回避策を足す前に、他の app が同じ回避策を必要としているかを確認します。  
+ビルド機構の回避策を追加する前に、他の app が同じ回避策を必要としているかを確認します。  
 自分だけが特別な回避策を要する状態は、フレームワークの制約ではなく構成の誤りを示します。
 
 ## 文書の変更
