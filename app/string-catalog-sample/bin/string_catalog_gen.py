@@ -913,6 +913,7 @@ def format_source(text: str, filename: str, style: Path | None) -> str:
         input=text,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     )
     return completed.stdout

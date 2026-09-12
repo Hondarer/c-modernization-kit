@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import string_catalog_gen as gen
 
@@ -249,6 +250,20 @@ class ArgumentTypeTest(unittest.TestCase):
             "POINTER", "DOUBLE", "ERROR_CODE",
         }
         self.assertEqual(set(gen.ARGUMENT_TYPES), expected)
+
+
+class FormatSourceTest(unittest.TestCase):
+    """clang-format 呼び出しの文字コード指定を確認する。"""
+
+    @mock.patch("string_catalog_gen.shutil.which", return_value="clang-format")
+    @mock.patch("string_catalog_gen.subprocess.run")
+    def test_uses_utf8_for_clang_format_stdio(self, run_mock, _which_mock):
+        run_mock.return_value = mock.Mock(stdout="整形後\n")
+
+        formatted = gen.format_source("日本語\n", "sample.c", Path("/tmp/.clang-format"))
+
+        self.assertEqual(formatted, "整形後\n")
+        self.assertEqual(run_mock.call_args.kwargs["encoding"], "utf-8")
 
 
 if __name__ == "__main__":
