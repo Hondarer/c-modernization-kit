@@ -156,7 +156,7 @@ Table: CI/CD スキル ガイド一覧
 |--------------------|-----------------------------------|
 | [VS Code](08-dev-environment/vscode.md)              | エディターの設定と拡張機能          |
 | [WSL / MinGW 環境](08-dev-environment/wsl-mingw.md)  | Windows での Linux 互換ビルド環境 |
-| [C# / P/Invoke](08-dev-environment/dotnet-csharp.md) | .NET から C ライブラリを呼び出す  |
+| [C# / P/Invoke](08-dev-environment/dotnet-csharp.md) | .NET から C ライブラリの呼び出し  |
 
 Table: 開発環境・.NET 連携スキル ガイド一覧
 

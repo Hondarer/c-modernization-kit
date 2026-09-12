@@ -439,7 +439,7 @@ endif
 
 Windows 環境では、Git for Windows に付属する MinGW 環境を活用します。これにより:
 
-- `bash`, `pwd`, `dirname` などの Linux コマンドが使える
+- `bash`, `pwd`, `dirname` などの Linux コマンドを使用できます。
 - `sh` コマンドで既存のシェル スクリプトを実行できます。
 - framework/makefw/bin/ 配下のシェル スクリプトがそのまま動作します。
 - doxyfw の makefile がそのまま動作します。
@@ -463,8 +463,8 @@ makefw は testfw から makefile 関連機能を切り出したフレームワ�
 この構成により、以下のメリットがあります:
 
 1. libexample.dll/.so が examplebase を内部に静的リンクします。
-2. 依存関係が単純化され、配布時に libexample.dll/.so のみを配置すれば動作
-3. Windows と Linux で同様の動作を実現
+2. 依存関係が単純化され、配布時に libexample.dll/.so のみを配置すれば動作します。
+3. Windows と Linux で同様の動作を実現します。
 
 ### 実装ファイル
 
@@ -593,7 +593,7 @@ OBJS = obj/exampleHandler.obj
 
 2. **ビルド最適化**
     - 並列ビルドのさらなる最適化
-    - インク リ メンタル ビルドの改善
+    - インクリメンタル ビルドの改善
 
 3. **プラットフォーム拡張**
     - macOS サポート
@@ -747,10 +747,10 @@ obj ディレクトリの削除により、コンパイル時の PDB と ILK フ
 ### メリット
 
 - **再利用性**: makefw がクロスプラットフォーム対応され、他のプロジェクトでも利用できます。
-- **保守性**: Linux と Windows で同じ makefile を使用できるため、メンテナンス性が向上
+- **保守性**: Linux と Windows で同じ makefile を使用できるため、保守性が向上します。
 - **互換性**: MinGW 環境により、既存のシェル スクリプトとシェル コマンドを活用できます。
 - **ネイティブ性**: MSVC を使用することで、Windows ネイティブなバイナリを生成できます。
-- **安定性**: Linux の動作は完全に維持される
+- **安定性**: Linux の動作は完全に維持されます。
 
 ### 注意点
 

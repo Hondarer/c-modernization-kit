@@ -18,7 +18,7 @@ Linux の共有ビルドでは makefw が `-fvisibility=hidden` を付け、公�
 - [ ] Windows の `__declspec(dllexport)` / `__declspec(dllimport)` の意味を理解できます。
 - [ ] GCC の `__attribute__((visibility("default")))` の意味を理解できます。
 - [ ] 共通マクロ (`EXPORT` など) を定義してプラットフォーム差異を吸収できます。
-- [ ] `app/example/prod/include/libexample.h` のクロスプラットフォーム宣言を読み取れる
+- [ ] `app/example/prod/include/libexample.h` のクロスプラットフォーム宣言を読み取ることができます。
 
 ## 学習マテリアル
 

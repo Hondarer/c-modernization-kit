@@ -13,7 +13,7 @@ xUnit.net は .NET 向けの単体テスト フレームワークです。`[Fact
 - [ ] xUnit のテスト プロジェクト (`.csproj`) を作成できます。
 - [ ] `[Fact]` でテスト メソッドを定義できます。
 - [ ] `Assert.Equal`・`Assert.True`・`Assert.Throws` を使用できます。
-- [ ] `[Theory]` と `[InlineData]` でパラメーター化テストを書ける
+- [ ] `[Theory]` と `[InlineData]` でパラメーター化テストを記述できます。
 - [ ] `dotnet test` でテストを実行し結果を確認できます。
 
 ## 学習マテリアル

@@ -10,13 +10,13 @@ include 検索パスと `-D` の正本は `.vscode/c_cpp_properties.json` では
 
 ### 基本ルール
 
-- リポジトリ全体に効かせる IntelliSense 向け include / define は `makepart.mk` または `app/makepart.mk` に書く
-- app 共通の IntelliSense 向け include / define は `app/<name>/makepart.mk` に書く
-- 個別ターゲットだけが必要とする追加 `INCDIR` または `SYSTEM_INCDIR` は、対象ディレクトリ配下の `makepart.mk` に書くと `.vscode/c_cpp_properties.json` にも反映される
-- 個別ターゲットだけが必要な `DEFINES` は、必要なら `.vscode` へは反映されない前提で下位の `makepart.mk` に書く
-- `.vscode/c_cpp_properties.json` を直接編集しても make のビルド設定には反映されない
-- Linux の `_DEFAULT_SOURCE` のように実ビルドでも必要な define は `app/makepart.mk` などの正本側へ書く
-- `TARGET_ARCH` は app 側の実値を `.vscode` へ持ち込まず、Linux / Win32 ともに `TARGET_ARCH=target_arch` を同期スクリプトが補う
+- リポジトリ全体に効かせる IntelliSense 向け include / define は `makepart.mk` または `app/makepart.mk` に記述します。
+- app 共通の IntelliSense 向け include / define は `app/<name>/makepart.mk` に記述します。
+- 個別ターゲットだけが必要とする追加 `INCDIR` または `SYSTEM_INCDIR` は、対象ディレクトリ配下の `makepart.mk` に記述すると `.vscode/c_cpp_properties.json` にも反映されます。
+- 個別ターゲットだけが必要な `DEFINES` は、必要なら `.vscode` へは反映されない前提で下位の `makepart.mk` に記述します。
+- `.vscode/c_cpp_properties.json` を直接編集しても make のビルド設定には反映されません。
+- Linux の `_DEFAULT_SOURCE` のように実ビルドでも必要な define は `app/makepart.mk` などの正本側へ記述します。
+- `TARGET_ARCH` は app 側の実値を `.vscode` へ持ち込まず、Linux / Win32 ともに `TARGET_ARCH=target_arch` を同期スクリプトが補います。
 - `.vscode/c_cpp_properties.json` の配列は、特殊項目を先頭に固定し、それ以外をソートして同期します。
 
 ### 同期の流れ
@@ -53,7 +53,7 @@ bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 
 - `_DEFAULT_SOURCE` のような通常 define は `makepart.mk` / `app/makepart.mk` 側の正本からそのまま反映します。
 - `TARGET_ARCH` は app 側の実値を無視し、常に `TARGET_ARCH=target_arch` を使用します。
-- `TARGET_ARCH=target_arch` を先頭に置き、それ以外の項目はソートして並べる
+- `TARGET_ARCH=target_arch` を先頭に配置し、それ以外の項目はソートして並べます。
 
 これは IntelliSense 用の互換条件ですが、通常の define 自体は make の build 設定と分離しません。
 
@@ -69,7 +69,7 @@ test ! -f app/c_cpp_properties.warn
 対象ワークスペースでは、実行時に必要なライブラリ探索パスとコマンド探索パスを `.vscode/.env.linux` と `.vscode/.env.windows` に集約しています。
 
 - VS Code の `make test` タスクとデバッグ構成は `envFile` で直接参照します。
-- GitHub Actions と Jenkins は `bin/load-app-env.sh` を介して同じファイルを読む
+- GitHub Actions と Jenkins は `bin/load-app-env.sh` を介して同じファイルを参照します。
 - VS Code の統合ターミナルは `envFile` を扱えないため、`.vscode/settings.json` へ同じ内容を複製します。
 
 更新要否の判断は、これらの設定ファイルではなく、`app` 配下の各アプリケーションの構成と依存関係に基づいて行います。
@@ -131,9 +131,9 @@ see: [CI と Jenkins での読み込み](#ci-と-jenkins-での読み込み)
 `bin/sync-app-env.sh` が `app/<name>/**/makepart.mk` を make で評価し、次の規則で導出します。
 
 - `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/cbin` が現れる app は、`app/<name>/prod/cbin` をコマンド探索パスへ追加します。
-- `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/lib` が現れる app は、`app/<name>/prod/lib` をライブラリ探索パスへ追加する (Windows では `PATH` へ追加する)
+- `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/lib` が現れる app は、`app/<name>/prod/lib` をライブラリ探索パスへ追加します (Windows では `PATH` へ追加します)。
 - `test/lib` のように `prod/` 以外を指す `OUTPUT_DIR` は対象外とします。
-- 並び順は app 名の `LC_ALL=C sort` とし、Windows の `PATH` は app ごとに `lib`、`cbin` の順に並べる
+- 並び順は app 名の `LC_ALL=C sort` とし、Windows の `PATH` は app ごとに `lib`、`cbin` の順に並べます。
 
 `LIB_TYPE` (static / shared / both) による絞り込みは行いません。  
 静的ライブラリだけを出力する app のディレクトリが探索パスに載っても実害がないため、判定を `OUTPUT_DIR` の 1 つに統一しています。

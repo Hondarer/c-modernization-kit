@@ -47,22 +47,22 @@ INCDIR += \
 bash framework/makefw/bin/sync_c_cpp_properties.sh --write
 ```
 
-差異確認だけをしたい場合は次です。
+差分の確認だけを行う場合は、次のコマンドを実行します。
 
 ```bash
 bash framework/makefw/bin/sync_c_cpp_properties.sh --check
 ```
 
-`make -C app` のデフォルト ビルド後にも dry-run が走り、差異があれば `app/c_cpp_properties.warn` に出ます。
+`make -C app` のデフォルト ビルド後にも dry-run が実行され、差分がある場合は `app/c_cpp_properties.warn` に出力されます。
 
 ### パスが設定されていない場合
 
-インテリセンスが正しく動作せず、以下のような問題が発生します。
+IntelliSense が正しく動作せず、以下のような問題が発生します。
 
-- ヘッダー ファイルが見つからないエラー表示
-- 関数や変数の定義へジャンプできません。
-- コード補完が機能しません。
-- 型情報が表示されない
+- ヘッダー ファイルが見つからないエラーの表示
+- 関数や変数の定義へジャンプできない現象
+- コード補完が機能しない問題
+- 型情報が表示されない現象
 
 ## 最低限の確認
 

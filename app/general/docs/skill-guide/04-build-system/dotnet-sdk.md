@@ -15,7 +15,7 @@
 ## 習得目標
 
 - [ ] `dotnet build`・`dotnet run`・`dotnet test` などの基本コマンドを実行できます。
-- [ ] `.csproj` ファイルの基本構造 (`<Project>`・`<PropertyGroup>`・`<ItemGroup>`) を読み取れる
+- [ ] `.csproj` ファイルの基本構造 (`<Project>`・`<PropertyGroup>`・`<ItemGroup>`) を読み取ることができます。
 - [ ] `Directory.Build.props` による共通設定の仕組みを理解できます。
 - [ ] `dotnet publish` で実行可能な成果物を生成できます。
 - [ ] `<ProjectReference>` によるプロジェクト参照を理解できます。

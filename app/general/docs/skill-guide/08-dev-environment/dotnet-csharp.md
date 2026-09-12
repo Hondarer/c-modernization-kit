@@ -13,8 +13,8 @@ C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて
 - [ ] C# の基本構文 (クラス・メソッド・プロパティ・例外処理) を理解できます。
 - [ ] `[DllImport]` 属性の基本的な書き方を理解できます。
 - [ ] C の型と C# の型の対応 (`int` → `int`・`char*` → `string`・ポインタ → `ref`/`out`) を理解できます。
-- [ ] `NativeMethods.cs` の P/Invoke 定義を読み取れる
-- [ ] `ExampleLibrary.cs` のラッパー実装を読み取れる
+- [ ] `NativeMethods.cs` の P/Invoke 定義を読み取ることができます。
+- [ ] `ExampleLibrary.cs` のラッパー実装を読み取ることができます。
 - [ ] `ExampleException` のような C# カスタム例外を理解できます。
 - [ ] `ModuleInitializer.cs` によるネイティブ ライブラリのロード設定を理解できます。
 

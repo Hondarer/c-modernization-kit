@@ -15,7 +15,7 @@ C 言語のコードを Google Test でテストするには C++ でテスト �
 - [ ] `ASSERT_*` と `EXPECT_*` の違いを説明できます。
 - [ ] テスト フィクスチャ (`::testing::Test` の派生クラス) を作成できます。
 - [ ] テストを実行し、結果レポートを確認できます。
-- [ ] `app/example/test/src/libexamplebaseTest/addTest/` のテスト コードを読み取れる
+- [ ] `app/example/test/src/libexamplebaseTest/addTest/` のテスト コードを読み取ることができます。
 
 ## 学習マテリアル
 

@@ -14,10 +14,10 @@ makefile の `ifdef` / `else ifdef` 整形は対象に含めません。
 
 このコマンドは、makefw ワークスペースで推奨する以下のルールを C/C++ 側へ適用します。
 
-- `#else` コメントは「そのブロックで真になる条件」を書く
-- `#endif` コメントは対応するマクロ名だけを書く
-- Linux/Windows 二択分岐は `#else` ではなく `#elif defined(PLATFORM_WINDOWS)` に寄せる
-- 複雑な条件式は安全側で変更しません。
+- `#else` コメントには「そのブロックで真になる条件」を記述します。
+- `#endif` コメントには対応するマクロ名のみを記述します。
+- Linux/Windows 二択分岐は `#else` ではなく `#elif defined(PLATFORM_WINDOWS)` を使用します。
+- 複雑な条件式は安全のため変更しません。
 
 ## 採用ルール
 

@@ -10,7 +10,7 @@ Jenkins はオープンソースの CI/CD オートメーション サーバー�
 
 - [ ] Jenkins を Oracle Linux 8 にインストールし、サービスとして起動できます。
 - [ ] Jenkins の初期設定ウィザード (管理者ユーザー作成・プラグイン インストール) を完了できます。
-- [ ] `jenkins` ユーザーで rootless Podman を動作させる設定を行える
+- [ ] `jenkins` ユーザーで rootless Podman を動作させる設定を行えます。
 - [ ] GitHub Actions と同じコンテナー イメージを使ったビルド ジョブ (Freestyle Project) を構成できます。
 - [ ] HTML Publisher Plugin でビルド成果物のドキュメントをサイト公開できます。
 - [ ] Jenkins の Credentials 機能で認証情報を安全に管理できます。

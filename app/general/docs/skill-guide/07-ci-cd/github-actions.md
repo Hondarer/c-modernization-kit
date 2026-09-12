@@ -10,10 +10,10 @@ GitHub Actions のワークフローを理解することで、CI の実行状�
 
 ## 習得目標
 
-- [ ] ワークフロー YAML ファイルの基本構造 (`on`・`jobs`・`steps`) を読み取れる
+- [ ] ワークフロー YAML ファイルの基本構造 (`on`・`jobs`・`steps`) を読み取ることができます。
 - [ ] `push`・`pull_request` トリガーを設定できます。
-- [ ] `uses` でサード パーティー Action を使用できる (`actions/checkout` など)
-- [ ] `run` でシェル コマンドを実行するステップを書ける
+- [ ] `uses` でサード パーティー Action を使用できます (`actions/checkout` など)。
+- [ ] `run` でシェル コマンドを実行するステップを記述できます。
 - [ ] GitHub Actions の実行ログを確認して失敗原因を調査できます。
 - [ ] `env` 環境変数と `secrets` を使用できます。
 - [ ] matrix build (複数 OS・バージョンの並行テスト) の概念を理解できます。

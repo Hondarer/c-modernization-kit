@@ -8,10 +8,10 @@ Mermaid はテキスト形式でフローチャート・シーケンス図・ガ
 
 ## 習得目標
 
-- [ ] Mermaid のフローチャート (`flowchart`) 記法を書ける
-- [ ] Mermaid のシーケンス図 (`sequenceDiagram`) を書ける
+- [ ] Mermaid のフローチャート (`flowchart`) 記法を記述できます。
+- [ ] Mermaid のシーケンス図 (`sequenceDiagram`) を記述できます。
 - [ ] GitHub 上で Mermaid 図がレンダリングされることを確認できます。
-- [ ] Markdown ファイルに Mermaid コード ブロックを埋め込める
+- [ ] Markdown ファイルに Mermaid コード ブロックを埋め込むことができます。
 - [ ] PlantUML と Mermaid の使い分け基準を説明できます。
 
 ## 学習マテリアル

@@ -332,9 +332,9 @@ WEAK_ATR int add(int a, int b, int *result)
 
 #### ポイント
 
-- **WEAK_ATR 属性**: リンク時に弱いシンボルとして扱われ、実装がない場合にモック関数が使用される
-- **C 言語関数**: `extern "C"` は不要 (`.cc` ファイルでも関数名が C++ にならない)
-- **モック インスタンス チェック**: `_mock_examplebase != nullptr` でモックの有無を確認
+- **WEAK_ATR 属性**: リンク時に弱いシンボルとして扱われ、実装がない場合にモック関数が使用されます。
+- **C 言語関数**: `extern "C"` は不要です (`.cc` ファイルでも関数名が C++ のマングル名になりません)。
+- **モック インスタンス チェック**: `_mock_examplebase != nullptr` でモックの有無を確認します。
 - **トレース機能**: デバッグ時に関数呼び出しを確認できます。
 
 ### モック ライブラリの makefile
@@ -491,9 +491,9 @@ main 関数を含むプログラムをテストするには、リンカー ラ�
 
 GCC の `-Wl,--wrap=main` オプションを使用すると:
 
-- `main` 関数は `__wrap_main` として定義される
+- `main` 関数は `__wrap_main` として定義されます。
 - 元の `main` 関数は `__real_main` として参照可能になります。
-- `gtest_wrapmain` ライブラリが `__wrap_main` を提供し、Google Test を起動
+- `gtest_wrapmain` ライブラリが `__wrap_main` を提供し、Google Test を起動します。
 
 ### テスト コードの構造
 
@@ -693,8 +693,8 @@ include $(WORKSPACE_DIR)/framework/makefw/makefiles/makemain.mk
 #### main 関数のラップ
 
 - `USE_WRAP_MAIN := 1`: main 関数をラップして `__real_main` として呼び出し可能にします。
-    - Linux では `-Wl,--wrap=main` オプションが自動的に設定される
-    - Windows では適切なリンカー オプションが自動的に設定される
+    - Linux では `-Wl,--wrap=main` オプションが自動的に設定されます。
+    - Windows では適切なリンカー オプションが自動的に設定されます。
 
 #### ライブラリの指定
 

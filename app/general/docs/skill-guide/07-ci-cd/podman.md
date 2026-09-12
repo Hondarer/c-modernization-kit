@@ -11,7 +11,7 @@ Podman はデーモンレス・rootless で動作するオープンソースの�
 - [ ] Podman をインストールし、rootless で動作することを確認できます。
 - [ ] `podman pull` / `podman run` / `podman images` の基本操作ができます。
 - [ ] GitHub Container Registry (ghcr.io) と Docker Hub からイメージを取得できます。
-- [ ] rootless Podman に必要な subordinate UID/GID の設定を行える
+- [ ] rootless Podman に必要な subordinate UID/GID の設定を行えます。
 - [ ] `--entrypoint` や `-v` (ボリューム マウント) などの実行オプションを理解できます。
 
 ## 学習マテリアル
