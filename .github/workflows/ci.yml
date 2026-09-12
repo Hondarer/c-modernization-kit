@@ -107,6 +107,7 @@ jobs:
       TZ: JST-9
       BISON: win_bison
       FLEX: win_flex
+      PYTHONIOENCODING: utf-8
 
     steps:
       - name: Checkout repository
