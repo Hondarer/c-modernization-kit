@@ -1,1 +1,0 @@
-LIBS += mock_zlib

@@ -25,3 +25,6 @@
 [submodule "app/lua"]
 	path = app/lua
 	url = https://github.com/Hondarer/app_lua.git
+[submodule "app/zlib"]
+	path = app/zlib
+	url = https://github.com/Hondarer/app_zlib.git

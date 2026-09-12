@@ -13,7 +13,8 @@ from urllib.parse import quote
 REPOSITORIES = (
     "c-modernization-kit", "make-framework", "googletest-c-framework",
     "doxygen-framework", "pub_markdown", "app_c-platform", "app_cjson",
-    "app_porter", "app_sqlite", "app_lua", "devbin-win", "oracle-linux-container",
+    "app_porter", "app_sqlite", "app_lua", "app_zlib", "devbin-win",
+    "oracle-linux-container",
 )
 
 
