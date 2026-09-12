@@ -34,7 +34,7 @@
 /** ポインター引数の実例として、アドレスを表示する対象です。 */
 static const char s_sample_object[] = SAMPLE_PATH;
 
-/** レベルの表示名です。@ref cplat_trace_level の値をインデックスとして参照します。 */
+/** レベルの表示名です。@c cplat_trace_level の値をインデックスとして参照します。 */
 static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "INFO", "VERBOSE", "DEBUG", "NONE"};
 
 /**
@@ -44,7 +44,7 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
  *
  *  分類値はライブラリが解釈しない `int` であり、範囲の保証がありません。\n
  *  範囲外の値やカタログに存在しない文字列 ID の 0 を
- *  @ref CPLAT_TRACE_LEVEL_NONE へフォールバックし、表示名のインデックスとして安全に使用できるようにします。
+ *  @c CPLAT_TRACE_LEVEL_NONE へフォールバックし、表示名のインデックスとして安全に使用できるようにします。
  *
  *  分類値の意味付けは本 app の規約であるため、範囲制限処理もこの階層で行います。
  */
@@ -64,9 +64,9 @@ static cplat_trace_level trace_level_of(const int string_id)
  *  @brief          1 件の文字列を組み立てて標準出力へ表示します。
  *  @param[in]      string_id 表示する文字列の ID。
  *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
- *  @return         成功時は @ref CPLAT_OK 、失敗時はライブラリの結果コードを返します。
+ *  @return         成功時は @c CPLAT_OK 、失敗時はライブラリの結果コードを返します。
  *
- *  可変長引数をそのまま中継するため、@ref sample_messages_vformat を使用します。
+ *  可変長引数をそのまま中継するため、@c sample_messages_vformat を使用します。
  */
 static int print_string(const int string_id, ...)
 {
@@ -100,7 +100,7 @@ static int print_string(const int string_id, ...)
 
 /**
  *  @brief          カタログのすべての文字列を表示します。
- *  @return         成功時は @ref CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
+ *  @return         成功時は @c CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
  *
  *  引数の値はサンプルとして固定しています。
  */
@@ -157,8 +157,8 @@ static int print_all_strings(void)
 
 /**
  *  @brief          カタログの整合を確認し、結果を表示します。
- *  @return         整合している場合は @ref CPLAT_OK 、
- *                  不正がある場合は @ref CPLAT_ERR_MALFORMED_DEFINITION を返します。
+ *  @return         整合している場合は @c CPLAT_OK 、
+ *                  不正がある場合は @c CPLAT_ERR_MALFORMED_DEFINITION を返します。
  */
 static int verify_catalog(void)
 {
