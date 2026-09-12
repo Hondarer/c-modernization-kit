@@ -9,7 +9,7 @@
 # そのため、すべてのディレクトリでパースされても負荷にならない。
 
 ifndef MAKEFW_SYNC_EVAL
-    _SAMPLE_MESSAGES_GEN_STATUS := $(shell python3 "$(MYAPP_DIR)/bin/string_catalog_gen.py" \
+    _SAMPLE_MESSAGES_GEN_STATUS := $(shell python3 "$(APP_DIR)/c-platform/bin/string_catalog_gen.py" \
         "$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/sample_messages.jsonc" \
         --out-dir "$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen" --if-newer >&2; echo $$?)
     ifneq ($(_SAMPLE_MESSAGES_GEN_STATUS),0)

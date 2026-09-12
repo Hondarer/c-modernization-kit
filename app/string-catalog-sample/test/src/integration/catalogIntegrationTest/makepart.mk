@@ -8,4 +8,4 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen
 
-LIBS += string_catalog
+LIBS += cplat

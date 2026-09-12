@@ -2,7 +2,7 @@
 
 #include "sample_messages.h"
 
-#include <string_catalog.h>
+#include <cplat/string_catalog/string_catalog.h>
 #include <cplat/trace/tracer.h>
 #include <stddef.h>
 #include <string.h>
@@ -12,7 +12,7 @@ class sampleMessagesTest : public Test
   protected:
     void SetUp() override
     {
-        string_catalog_set_language(STRING_CATALOG_LANGUAGE_NEUTRAL);
+        cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
     }
 };
 
@@ -20,7 +20,7 @@ class sampleMessagesTest : public Test
 TEST_F(sampleMessagesTest, entries)
 {
     // Arrange
-    const string_catalog_entry *actual_entries;
+    const cplat_string_catalog_entry *actual_entries;
     int actual_count;
 
     // Pre-Assert
@@ -39,24 +39,24 @@ TEST_F(sampleMessagesTest, catalog_is_consistent)
 {
     // Arrange
     int string_id = 0;
-    string_catalog_language language = STRING_CATALOG_LANGUAGE_NEUTRAL;
+    cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int actual_ret;
 
     // Pre-Assert
 
     // Act
-    actual_ret = string_catalog_verify(sample_messages_catalog(), &string_id,
-                                       &language); // [手順] - 注入したカタログ全体を確認する。
+    actual_ret = cplat_string_catalog_verify(sample_messages_catalog(), &string_id,
+                                             &language); // [手順] - 注入したカタログ全体を確認する。
 
     // Assert
-    EXPECT_EQ(STRING_CATALOG_OK, actual_ret); // [確認_正常系] - すべての書式が引数スキーマと整合していること。
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - すべての書式が引数スキーマと整合していること。
 }
 
 // 各文字列が固定文字列とニュートラル言語のリソースを持つことの確認
 TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 {
     // Arrange
-    const string_catalog_entry *entries = sample_messages_entries();
+    const cplat_string_catalog_entry *entries = sample_messages_entries();
     const int count = sample_messages_entry_count();
     int index;
 
@@ -66,17 +66,19 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
     for (index = 0; index < count; index++) // [手順] - すべてのカタログを走査する。
     {
         EXPECT_NE(nullptr, entries[index].id_text); // [確認_正常系] - 文字列 ID の固定文字列を持つこと。
-        EXPECT_NE(nullptr,
-                  entries[index]
-                      .texts[STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の書式を持つこと。
-        EXPECT_NE(nullptr,
-                  entries[index]
-                      .notes[STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の備考を持つこと。
+        EXPECT_NE(
+            nullptr,
+            entries[index]
+                .texts[CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の書式を持つこと。
+        EXPECT_NE(
+            nullptr,
+            entries[index]
+                .notes[CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の備考を持つこと。
         EXPECT_LE(entries[index].category,
                   CPLAT_TRACE_LEVEL_NONE);           // [確認_正常系] - 分類値がトレース レベルの範囲内であること。
         EXPECT_GE(entries[index].argument_count, 0); // [確認_正常系] - 引数個数が 0 以上であること。
         EXPECT_LE(entries[index].argument_count,
-                  STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系] - 引数個数が上限以下であること。
+                  CPLAT_STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系] - 引数個数が上限以下であること。
     }
 }
 
@@ -86,7 +88,7 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
     // Arrange
     const char *actual_id_text;
     int actual_category;
-    char dest[STRING_CATALOG_TEXT_MAX];
+    char dest[CPLAT_STRING_CATALOG_TEXT_MAX];
     int actual_ret;
 
     memset(dest, 0, sizeof(dest));
@@ -94,19 +96,21 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
     // Pre-Assert
 
     // Act
-    actual_id_text = string_catalog_id_text(sample_messages_catalog(),
-                                            SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 固定文字列を取得する。
-    actual_category = string_catalog_category(sample_messages_catalog(),
-                                              SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_ret = string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
-                                       SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
-                                       2); // [手順] - ニュートラル言語で文字列を組み立てる。
+    actual_id_text =
+        cplat_string_catalog_get_id_text(sample_messages_catalog(),
+                                         SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 固定文字列を取得する。
+    actual_category =
+        cplat_string_catalog_get_category(sample_messages_catalog(),
+                                          SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
+    actual_ret = cplat_string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
+                                             SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
+                                             2); // [手順] - ニュートラル言語で文字列を組み立てる。
 
     // Assert
     ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
     EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
     EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category);     // [確認_正常系] - 分類値が一致すること。
-    EXPECT_EQ(STRING_CATALOG_OK, actual_ret);                // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret);                         // [確認_正常系] - 戻り値が CPLAT_OK であること。
     EXPECT_STREQ("Failed to open file config.json. Error code=2 (0x00000002)",
                  dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。
 }
@@ -115,8 +119,8 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
 TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 {
     // Arrange
-    char actual_dest[STRING_CATALOG_TEXT_MAX];
-    char expected_dest[STRING_CATALOG_TEXT_MAX];
+    char actual_dest[CPLAT_STRING_CATALOG_TEXT_MAX];
+    char expected_dest[CPLAT_STRING_CATALOG_TEXT_MAX];
     int actual_ret_no_argument;
     int actual_ret_two_arguments;
     int expected_ret_two_arguments;
@@ -127,22 +131,21 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
     // Pre-Assert
 
     // Act
-    actual_ret_no_argument = string_catalog_sample_messages_id_startup_completed(
+    actual_ret_no_argument = sample_messages_id_startup_completed(
         actual_dest, sizeof(actual_dest)); // [手順] - 引数を取らないラッパーで組み立てる。
 
     // Assert
-    EXPECT_EQ(STRING_CATALOG_OK, actual_ret_no_argument); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_no_argument); // [確認_正常系] - 戻り値が CPLAT_OK であること。
     EXPECT_STREQ("Startup completed. The default setting is { default }.",
                  actual_dest); // [確認_正常系] - 引数なしの書式で組み立てられること。
 
     // Act
-    actual_ret_two_arguments =
-        string_catalog_sample_messages_id_file_open_failed(actual_dest, sizeof(actual_dest), "config.json",
-                                                           2); // [手順] - 型付きラッパーで組み立てる。
+    actual_ret_two_arguments = sample_messages_id_file_open_failed(actual_dest, sizeof(actual_dest), "config.json",
+                                                                   2); // [手順] - 型付きラッパーで組み立てる。
     expected_ret_two_arguments =
-        string_catalog_format(sample_messages_catalog(), expected_dest, sizeof(expected_dest),
-                              SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
-                              2); // [手順] - カタログを指定した呼び出しで同じ文字列を組み立てる。
+        cplat_string_catalog_format(sample_messages_catalog(), expected_dest, sizeof(expected_dest),
+                                    SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
+                                    2); // [手順] - カタログを指定した呼び出しで同じ文字列を組み立てる。
 
     // Assert
     EXPECT_EQ(expected_ret_two_arguments,
@@ -156,8 +159,8 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
 {
     // Arrange
-    char neutral_dest[STRING_CATALOG_TEXT_MAX];
-    char japanese_dest[STRING_CATALOG_TEXT_MAX];
+    char neutral_dest[CPLAT_STRING_CATALOG_TEXT_MAX];
+    char japanese_dest[CPLAT_STRING_CATALOG_TEXT_MAX];
     int actual_ret_neutral;
     int actual_ret_japanese;
 
@@ -167,18 +170,17 @@ TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
     // Pre-Assert
 
     // Act
-    actual_ret_neutral = string_catalog_sample_messages_id_record_mismatch(
+    actual_ret_neutral = sample_messages_id_record_mismatch(
         neutral_dest, sizeof(neutral_dest), 12U,
         0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号とシグネチャーの順に渡す。
 
-    string_catalog_set_language(STRING_CATALOG_LANGUAGE_JAPANESE);
-    actual_ret_japanese =
-        string_catalog_sample_messages_id_record_mismatch(japanese_dest, sizeof(japanese_dest), 12U,
-                                                          0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
+    cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
+    actual_ret_japanese = sample_messages_id_record_mismatch(japanese_dest, sizeof(japanese_dest), 12U,
+                                                             0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
 
     // Assert
-    EXPECT_EQ(STRING_CATALOG_OK, actual_ret_neutral);  // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
-    EXPECT_EQ(STRING_CATALOG_OK, actual_ret_japanese); // [確認_正常系] - 戻り値が STRING_CATALOG_OK であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_neutral);  // [確認_正常系] - 戻り値が CPLAT_OK であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_japanese); // [確認_正常系] - 戻り値が CPLAT_OK であること。
     EXPECT_STREQ("Record 12 has an unexpected signature 0x1234abcd.",
                  neutral_dest); // [確認_正常系] - ニュートラル言語の語順で組み立てられること。
     EXPECT_STREQ("シグネチャー 0x1234abcd は、レコード 12 の想定と一致しません。",

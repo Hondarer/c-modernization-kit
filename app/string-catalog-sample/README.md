@@ -1,6 +1,6 @@
 # string-catalog-sample
 
-string-catalog-sample は、言語別の文字列リソースを体系化して組み立てるサンプル app です。
+string-catalog-sample は、cplat の文字列カタログ機能の利用例を示すサンプル app です。
 
 文字列 ID ごとに引数の型と文字列表現を固定し、言語別リソースには語順だけを持たせます。  
 これにより、翻訳で語順が変わってもログの値の表現は変わりません。
@@ -8,26 +8,28 @@ string-catalog-sample は、言語別の文字列リソースを体系化して�
 出力する言語はプロセスで 1 つとし、文字列を組み立てるたびに指定する必要はありません。  
 言語を設定していないプロセスは、ニュートラル言語を使用します。
 
-カタログはライブラリ側では保持しません。  
-利用側で文字列 ID の列挙型とカタログ配列を用意し、カタログ識別オブジェクトにまとめて呼び出しごとに渡します。
+カタログは cplat 側では保持しません。  
+利用側で文字列 ID の列挙型とカタログ配列を用意し、カタログ識別オブジェクトにまとめて呼び出しごとに渡します。  
+この app では、カタログ定義から生成器が列挙型とカタログ配列を書き出します。
 
 ## 入口
 
 - [作業規則](AGENTS.md)
-- [機能仕様](docs/functional-spec/README.md)
 - [アーキテクチャー](docs/architecture.md)
 - [発行文書](docs/README.md)
 - [Doxygen の入口](prod/README.md)
+- [文字列カタログの機能仕様 (cplat)](../c-platform/docs/functional-spec/string_catalog.md)
+- [string_catalog モジュール (cplat)](../c-platform/prod/libsrc/cplat/string_catalog/README.md)
 
 ## 構成
 
 | ディレクトリ | 内容 |
 |---|---|
-| `prod/include/` | 公開ヘッダー。結果コード、引数種別、言語、カタログの型、API |
-| `prod/include_internal/` | カタログへの参照 API。書式の展開とカタログの境界 |
-| `prod/libsrc/string_catalog/` | 書式の展開、可変長引数の取り出し、言語とカタログの保持 |
 | `prod/src/cmd/string-catalog-sample/` | 利用例を示すコマンドと、利用者が用意するカタログ定義 |
-| `test/` | 単体テストと統合テスト |
+| `test/src/cmd/` | 生成物を対象とする単体テスト |
+| `test/src/integration/` | 生成物と cplat の文字列カタログ機能を結合して確認する統合テスト |
+
+文字列カタログの実装、生成器、機能仕様は `app/c-platform` にあります。
 
 ## 実行例
 

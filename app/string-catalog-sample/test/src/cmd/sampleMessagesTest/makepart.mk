@@ -10,4 +10,4 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen
 
 # 注入したカタログを確認するためにライブラリをリンクする
-LIBS += string_catalog
+LIBS += cplat

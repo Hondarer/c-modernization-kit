@@ -20,8 +20,8 @@
 
 #include "gen/sample_messages.h"
 
-#include <string_catalog.h>
 #include <cplat/console/console.h>
+#include <cplat/string_catalog/string_catalog.h>
 #include <cplat/trace/tracer.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -64,13 +64,13 @@ static cplat_trace_level trace_level_of(const int string_id)
  *  @brief          1 件の文字列を組み立てて標準出力へ表示します。
  *  @param[in]      string_id 表示する文字列の ID。
  *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
- *  @return         成功時は @ref STRING_CATALOG_OK 、失敗時はライブラリの結果コードを返します。
+ *  @return         成功時は @ref CPLAT_OK 、失敗時はライブラリの結果コードを返します。
  *
  *  可変長引数をそのまま中継するため、@ref sample_messages_vformat を使用します。
  */
 static int print_string(const int string_id, ...)
 {
-    char text[STRING_CATALOG_TEXT_MAX];
+    char text[CPLAT_STRING_CATALOG_TEXT_MAX];
     va_list args;
     int ret;
 
@@ -78,7 +78,7 @@ static int print_string(const int string_id, ...)
     ret = sample_messages_vformat(text, sizeof(text), string_id, args);
     va_end(args);
 
-    if (ret != STRING_CATALOG_OK)
+    if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 文字列 %d の組み立てに失敗しました (結果コード=%d)。\n", string_id, ret);
         return ret;
@@ -95,59 +95,59 @@ static int print_string(const int string_id, ...)
     printf("  %s: %-8s %s\n", id_text, s_level_labels[(unsigned int)level], text);
     printf("  %s\n\n", note);
 
-    return STRING_CATALOG_OK;
+    return CPLAT_OK;
 }
 
 /**
  *  @brief          カタログのすべての文字列を表示します。
- *  @return         成功時は @ref STRING_CATALOG_OK 、失敗時は最初に検出した結果コードを返します。
+ *  @return         成功時は @ref CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
  *
  *  引数の値はサンプルとして固定しています。
  */
 static int print_all_strings(void)
 {
-    int result = STRING_CATALOG_OK;
+    int result = CPLAT_OK;
     int ret;
 
     ret = print_string(SAMPLE_MESSAGES_ID_STARTUP_COMPLETED);
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret = print_string(SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret =
         print_string(SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE, (const void *)s_sample_object, UINT64_C(0x00000000DEADBEEF));
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret = print_string(SAMPLE_MESSAGES_ID_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret = print_string(SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42), UINT32_C(0x1234ABCD));
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret = print_string(SAMPLE_MESSAGES_ID_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
     ret = print_string(SAMPLE_MESSAGES_ID_THROUGHPUT_REPORT, 12.5, UINT64_C(4000000000));
-    if ((ret != STRING_CATALOG_OK) && (result == STRING_CATALOG_OK))
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
@@ -157,17 +157,17 @@ static int print_all_strings(void)
 
 /**
  *  @brief          カタログの整合を確認し、結果を表示します。
- *  @return         整合している場合は @ref STRING_CATALOG_OK 、
- *                  不正がある場合は @ref STRING_CATALOG_ERR_INVALID_DEFINITION を返します。
+ *  @return         整合している場合は @ref CPLAT_OK 、
+ *                  不正がある場合は @ref CPLAT_ERR_MALFORMED_DEFINITION を返します。
  */
 static int verify_catalog(void)
 {
     int string_id = SAMPLE_MESSAGES_ID_STARTUP_COMPLETED;
-    string_catalog_language language = STRING_CATALOG_LANGUAGE_NEUTRAL;
+    cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int ret;
 
     ret = sample_messages_verify(&string_id, &language);
-    if (ret != STRING_CATALOG_OK)
+    if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: カタログの定義が不正です (文字列 ID=%d、言語=%d)。\n", string_id, (int)language);
         return ret;
@@ -175,7 +175,7 @@ static int verify_catalog(void)
 
     printf("カタログの書式と引数スキーマは整合しています。\n");
 
-    return STRING_CATALOG_OK;
+    return CPLAT_OK;
 }
 
 /**
@@ -194,49 +194,49 @@ int main(int argc, char *argv[])
     cplat_console_init();
 
     ret = verify_catalog();
-    if (ret != STRING_CATALOG_OK)
+    if (ret != CPLAT_OK)
     {
         return EXIT_FAILURE;
     }
 
-    ret = string_catalog_set_language(STRING_CATALOG_LANGUAGE_NEUTRAL);
-    if (ret != STRING_CATALOG_OK)
+    ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
+    if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)STRING_CATALOG_LANGUAGE_NEUTRAL);
+        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
         return EXIT_FAILURE;
     }
 
     printf("\n[Neutral]\n\n");
     ret = print_all_strings();
-    if (ret != STRING_CATALOG_OK)
+    if (ret != CPLAT_OK)
     {
         return EXIT_FAILURE;
     }
 
-    ret = string_catalog_set_language(STRING_CATALOG_LANGUAGE_JAPANESE);
-    if (ret != STRING_CATALOG_OK)
+    ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
+    if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)STRING_CATALOG_LANGUAGE_JAPANESE);
+        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
         return EXIT_FAILURE;
     }
 
     printf("\n[日本語]\n\n");
     ret = print_all_strings();
-    if (ret != STRING_CATALOG_OK)
+    if (ret != CPLAT_OK)
     {
         return EXIT_FAILURE;
     }
 
-    ret = string_catalog_set_language(STRING_CATALOG_LANGUAGE_ENGLISH);
-    if (ret != STRING_CATALOG_OK)
+    ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
+    if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)STRING_CATALOG_LANGUAGE_ENGLISH);
+        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
         return EXIT_FAILURE;
     }
 
     printf("\n[English]\n\n");
     ret = print_all_strings();
-    if (ret != STRING_CATALOG_OK)
+    if (ret != CPLAT_OK)
     {
         return EXIT_FAILURE;
     }

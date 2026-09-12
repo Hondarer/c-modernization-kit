@@ -15,11 +15,11 @@ short-title: "string-catalog-sample"
 ## カタログ定義
 
 定義ファイルの名前 `sample_messages` が、そのままモジュール接頭辞になります。  
-ライブラリ側の接頭辞 `string_catalog` とは別の名前空間にして、どこまでが利用者の資産かを名前だけで見分けられるようにしています。
+cplat 側の接頭辞 `cplat_string_catalog` とは別の名前空間にして、どこまでが利用者の資産かを名前だけで見分けられるようにしています。
 
 分類値はトレース レベルとして使います。  
-値の意味は別ヘッダー `sample_trace_level.h` で個別に定義し、定義ファイルには生値を記述してコメントで定数名を示します。  
-生成物はこのヘッダーに依存しません。値を解釈する側だけが include します。
+定義ファイルには生値を記述し、コメントで `cplat_trace_level` の定数名を示します。  
+生成物は `cplat_trace_level` に依存しません。値を解釈する側だけが `<cplat/trace/tracer.h>` を include します。
 
 定義ファイルの項目と、名前の導出規則は、定義ファイルの冒頭コメントと、app 直下の `docs/architecture.md` に記載します。
 
