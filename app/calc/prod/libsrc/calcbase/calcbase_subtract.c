@@ -18,5 +18,5 @@
 
 int calcbase_subtract(const int a, const int b, int *result)
 {
-    return calcbase_add(a, -1 * b, result); /* 再帰的な関数呼び出しの実装例として calcbase_add を呼ぶ */
+    return calcbase_add(a, -1 * b, result); /* 再帰的な関数呼び出しの実装例として calcbase_add を呼び出す */
 }

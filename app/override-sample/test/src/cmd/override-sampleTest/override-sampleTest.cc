@@ -117,31 +117,31 @@ TEST_F(override_sampleTest, help)
     EXPECT_NE(string::npos, res.stdout_out.find("--help")); // [確認] - help オプションが usage に含まれること。
 }
 
-// stdout 確認テスト (デフォルト動作)
+// stdout 確認テスト (既定動作)
 TEST_F(override_sampleTest, check_stdout_default)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除してデフォルト動作を保証する。
+    removeConfigFile(); // [手順] - 定義ファイルを削除して既定動作を保証する。
     ProcessOptions opts = makeOpts();
 
     // Pre-Assert
 
     // Act
     ProcessResult res =
-        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
+        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] - デフォルト処理のメッセージが出力されること。
+            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] - 既定処理のメッセージが出力されること。
     EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));                 // [確認] - ret が 0 であること。
     EXPECT_NE(string::npos, res.stdout_out.find("result: 3"));              // [確認] - result が 3 (1+2) であること。
     EXPECT_EQ(
         string::npos,
         res.stdout_out.find(
-            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの移譲が行われないこと。
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの委譲が行われないこと。
 }
 
 // stdout 確認テスト (定義ファイルあり)
@@ -156,14 +156,14 @@ TEST_F(override_sampleTest, check_stdout_with_config)
 
     // Act
     ProcessResult res =
-        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout をキャプチャする。
+        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの移譲メッセージが出力されること。
+            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの委譲メッセージが出力されること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
@@ -176,7 +176,7 @@ TEST_F(override_sampleTest, check_stdout_with_config)
 TEST_F(override_sampleTest, onUnload_syslog)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除してデフォルト状態を保証する。
+    removeConfigFile(); // [手順] - 定義ファイルを削除して既定の状態を保証する。
     ProcessOptions opts = makeOpts();
     opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [手順] - DLLMain 診断ログ出力を有効化する。
 #if defined(PLATFORM_LINUX)
@@ -187,7 +187,7 @@ TEST_F(override_sampleTest, onUnload_syslog)
 
     // Act
     ProcessResult res = startProcess(
-        binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString をキャプチャする。
+        binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString を捕捉する。
 
     // Assert
     ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
@@ -195,11 +195,11 @@ TEST_F(override_sampleTest, onUnload_syslog)
               res.debug_log.find("base: onUnload called")); // [確認] - debug_log に onUnload の記録があること。
 }
 
-// デフォルトでは DLLMain 診断ログを出力しないことの確認
+// 既定では DLLMain 診断ログを出力しないことの確認
 TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除してデフォルト状態を保証する。
+    removeConfigFile(); // [手順] - 定義ファイルを削除して既定の状態を保証する。
     ProcessOptions opts = makeOpts();
 #if defined(PLATFORM_LINUX)
     opts.preload_lib = mock_lib_path; // [手順] - debug_log を観測できるよう syslog_mock.so を挿入する。
@@ -212,7 +212,7 @@ TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
     ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_EQ(
         string::npos,
-        res.debug_log.find("base: onUnload called")); // [確認] - デフォルトでは onUnload 診断ログが出力されないこと。
+        res.debug_log.find("base: onUnload called")); // [確認] - 既定では onUnload 診断ログが出力されないこと。
 }
 
 #if defined(PLATFORM_LINUX)

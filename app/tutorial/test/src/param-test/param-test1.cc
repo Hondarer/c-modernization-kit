@@ -8,7 +8,7 @@ class ParamTest1
     ParamTest1()
     {
         ON_CALL(*this, myFunction(_, _))
-            .WillByDefault(Invoke([](int a, int b) { return a * b; })); // デフォルトのアクション
+            .WillByDefault(Invoke([](int a, int b) { return a * b; })); // 既定のアクション
     }
 };
 

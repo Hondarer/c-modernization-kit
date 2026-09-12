@@ -101,7 +101,7 @@ TEST_SRCS := \
 
 ## テストの実行内容
 
-このテスト プログラムは以下の処理を行います:
+このテスト プログラムは次の処理を行います:
 
 1. Arrange (準備): inject 機能の `set_static_int()` 関数を使用して、static 変数 `static_int` に値 123 を設定
 2. Act (実行): テスト対象関数 `samplestatic()` を呼び出し、戻り値を取得

@@ -2,7 +2,7 @@
  *  @file           latex.c
  *  @brief          Doxygen コメント内で LaTeX 数式を記述する例を提供します。
  * 
- *  以下に、LaTeX の記載例を示します。
+ *  LaTeX の記載例を次のとおり示します。
  * 
  *  式のサンプル 1
     @f[

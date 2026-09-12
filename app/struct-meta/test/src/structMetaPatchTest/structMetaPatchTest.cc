@@ -279,7 +279,7 @@ TEST_F(StructMetaPatchTest, InvalidPathIsRejectedBeforePromptCreation)
     // [Pre-Assert確認_異常系] - パス解決に失敗した場合はプロンプトを作成しないこと。
 
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[2].city");
-    // [手順_異常系] - 範囲外の配列添字を指定する。
+    // [手順_異常系] - 範囲外の配列インデックスを指定する。
 
     EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, actual_ret); // [確認_異常系] - 範囲外エラーを返すこと。
 }

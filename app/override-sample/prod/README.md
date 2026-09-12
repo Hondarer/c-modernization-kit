@@ -94,7 +94,7 @@ int WINAPI override_func(const int a, const int b, int *result);
 | Linux | `/tmp/libbase_extdef.json` |
 | Windows | `%TEMP%\libbase_extdef.json` |
 
-ファイルが存在しない場合はデフォルト動作になります。ファイルのフォーマットは以下のとおりです。  
+ファイルが存在しない場合は既定の動作になります。ファイルのフォーマットは次のとおりです。  
 `//` 行コメントと C 形式のブロック コメントを利用できます。
 
 ```json
@@ -109,12 +109,12 @@ int WINAPI override_func(const int a, const int b, int *result);
 
 | `lib` / `func` の値 | 動作 |
 |---|---|
-| ともに `default` | 明示的デフォルト。設定ファイルなしと同様にデフォルト処理を行います。 |
+| ともに `default` | 明示的な既定指定。設定ファイルなしと同様に既定の処理を行います。 |
 | ライブラリ名 / 関数名 | 指定したライブラリを動的ロードし、関数に処理を委譲します。 |
 
-`sample-config/libbase_extdef.json` に設定ファイルのサンプルがあります。初期状態では明示的デフォルト (`"lib": "default"`, `"func": "default"`) が設定されており、オーバーライドする定義はコメント アウトされています。
+`sample-config/libbase_extdef.json` に設定ファイルのサンプルがあります。初期状態では明示的な既定指定 (`"lib": "default"`, `"func": "default"`) が設定されており、オーバーライドする定義はコメント アウトされています。
 
-`sample_func` をオーバーライドする場合は以下のように記述します。
+`sample_func` をオーバーライドする場合は次のように記述します。
 
 ```json
 {
@@ -133,9 +133,9 @@ override-sample (実行ファイル)
     | sample_func(1, 2, &result)
     +---> libbase.so / libbase.dll
               |
-              sym_loader が解決済み関数ポインタを確認
+              sym_loader が解決済み関数ポインターを確認
               |
-              [設定ファイルなし / 定義なし → デフォルト動作]
+              [設定ファイルなし / 定義なし → 既定動作]
               |  *result = 1 + 2 = 3
               |
               [設定ファイルで liboverride / override_func を定義 → オーバーライド動作]
@@ -152,7 +152,7 @@ cd app/override-sample/prod
 make
 ```
 
-ビルド成功後、以下のファイルが生成されます。
+ビルド成功後、次のファイルが生成されます。
 
 | ファイル | 説明 |
 |---|---|
@@ -163,7 +163,7 @@ make
 | `lib/liboverride.dll` | オーバーライド ライブラリ (Windows) |
 | `bin/override-sample.exe` | メイン プログラム (Windows) |
 
-クリーン ビルドを行う場合は以下のとおりです。
+クリーン ビルドを行う場合は次のとおりです。
 
 ```bash
 make clean && make
@@ -173,7 +173,7 @@ make clean && make
 
 ### Linux
 
-#### デフォルト動作 (設定ファイルなし)
+#### 既定動作 (設定ファイルなし)
 
 ```bash
 cd app/override-sample/prod/cbin
@@ -207,7 +207,7 @@ result: 2
 
 ### Windows
 
-#### デフォルト動作 (設定ファイルなし)
+#### 既定動作 (設定ファイルなし)
 
 ```cmd
 cd prod\override-sample\bin

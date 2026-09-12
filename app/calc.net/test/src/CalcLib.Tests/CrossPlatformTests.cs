@@ -38,7 +38,7 @@ namespace CalcLib.Tests
         public void CalcLibrary_ShouldWork_OnCurrentPlatform()
         {
             // このテストは、現在のプラットフォーム (Windows または Linux) で
-            // ライブラリがロードされ、呼び出せることを検証します。
+            // ライブラリが読み込まれ、呼び出せることを検証します。
 
             var addResult = CalcLibrary.Add(10, 20); // [手順] - CalcLibrary.Add(10, 20) を呼び出す。
             var subtractResult = CalcLibrary.Subtract(30, 15); // [手順] - CalcLibrary.Subtract(30, 15) を呼び出す。
@@ -64,7 +64,7 @@ namespace CalcLib.Tests
             // このテストは、ネイティブ ライブラリにアクセスでき、
             // 現在のプラットフォームで P/Invoke が正しく機能することを検証します。
 
-            var exception = Record.Exception(() => // [手順] - CalcLibrary.Add(1, 1) を呼び出し、例外をキャプチャする。
+            var exception = Record.Exception(() => // [手順] - CalcLibrary.Add(1, 1) を呼び出し、例外を捕捉する。
             {
                 var result = CalcLibrary.Add(1, 1); // [手順] - CalcLibrary.Add(1, 1) を呼び出す。
                 Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。

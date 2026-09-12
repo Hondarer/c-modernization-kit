@@ -32,7 +32,7 @@ int sample_func(const int a, const int b, int *result)
     }
     else
     {
-        /* 基底 (デフォルト) 処理 */
+        /* 基底 (既定) 処理 */
         base_console_output("sample_func: a=%d, b=%d の処理 (*result = a + b;) を行います\n", a, b);
         *result = a + b;
         return BASE_OK;

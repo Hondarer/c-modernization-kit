@@ -237,7 +237,7 @@ TEST(structMetaCatalogTest, rejects_invalid_arguments)
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_path);   // [確認_異常系] - パスの NULL を拒否すること。
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, missing_file);       // [確認_異常系] - 開けないヘッダーを拒否すること。
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_count);  // [確認_異常系] - カタログの NULL を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, out_of_range);       // [確認_異常系] - 範囲外の添字を拒否すること。
+    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, out_of_range);       // [確認_異常系] - 範囲外のインデックスを拒否すること。
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_name);   // [確認_異常系] - 名前の NULL を拒否すること。
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, unknown_name);       // [確認_異常系] - 未知の名前を拒否すること。
 

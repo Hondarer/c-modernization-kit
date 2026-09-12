@@ -136,9 +136,9 @@ extern "C"
                                                                         size_t *count_out);
 
     /**
-     *  @brief          添字で記述子を取得します。
+     *  @brief          インデックスで記述子を取得します。
      *  @param[in]      catalog         対象。NULL を渡してはなりません。
-     *  @param[in]      index           取得する記述子の添字。
+     *  @param[in]      index           取得する記述子のインデックス。
      *  @param[out]     descriptor_out  記述子の格納先。NULL を渡してはなりません。
      *  @return         @c CPLAT_OK 、@c CPLAT_ERR_INVALID_ARGUMENT 、または
      *                  @c CPLAT_ERR_NOT_FOUND を返します。

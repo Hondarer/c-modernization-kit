@@ -32,14 +32,14 @@
 int struct_meta_internal_index_find_validation(const struct_meta_descriptor *descriptor, int *result_out);
 
 /**
- *  @brief          フィールド名から @c fields の添字を引き当てます。
+ *  @brief          フィールド名から @c fields のインデックスを引き当てます。
  *  @param[in]      descriptor  記述子です。NULL を渡してはなりません。
  *  @param[in]      name        フィールド名です。NUL 終端していなくても構いません。
  *                              NULL を渡してはなりません。
  *  @param[in]      name_length @p name の長さです。
- *  @param[out]     index_out   添字の格納先です。NULL を渡してはなりません。
+ *  @param[out]     index_out   インデックスの格納先です。NULL を渡してはなりません。
  *  @return         見つかれば @c CPLAT_OK 、索引にあって不一致なら @c CPLAT_ERR_NOT_FOUND 、
- *                  索引が無ければ @c CPLAT_SKIPPED 、引数が不正なら
+ *                  索引がなければ @c CPLAT_SKIPPED 、引数が不正なら
  *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
  *
  *  @c CPLAT_SKIPPED は異常ではありません。呼び出し側は線形走査で検索してください。

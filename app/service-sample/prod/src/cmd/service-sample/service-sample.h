@@ -17,7 +17,7 @@
  *  \n
  *  サービスの停止要求は 3 経路 (SIGINT/SIGTERM、SetConsoleCtrlHandler、
  *  Windows SCM の SERVICE_CONTROL_STOP) を svc_request_stop() に集約します。
- *  on_run の実装は svc_wait_for_stop() を呼ぶだけで停止を検知できます。\n
+ *  on_run の実装は svc_wait_for_stop() を呼び出すだけで停止を検知できます。\n
  *  \n
  *  任意で on_event (電源・セッション・シャットダウン前イベント) と
  *  on_reload (設定再読込) のコールバックを設定できます。\n

@@ -1,7 +1,7 @@
 # 生成カタログを対象にする。
 # 生成物は prod のビルドで作られる。app 直下の makefile は default/build のとき
-# SUBDIRS を逐次ループで回すため、test を処理する時点では必ず存在する。
-# 一方 clean は prod の生成物を先に消すため、存在検査で守る。
+# SUBDIRS を逐次ループで実行するため、test を処理する時点では必ず存在する。
+# 一方 clean は prod の生成物を先に削除するため、存在検査で保護する。
 STRUCT_META_GEN_CATALOG := \
 	$(MYAPP_DIR)/prod/src/cmd/struct-meta-sample/gen/sample_types_meta.c
 

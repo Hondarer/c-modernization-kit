@@ -8,12 +8,12 @@
 
     主な用途:
     - プロジェクト全体で共通のプロパティやビルド設定を一元管理
-    - デフォルト値の設定 (プロジェクトファイルで上書き可能)
-
-    参考: https://learn.microsoft.com/ja-jp/visualstudio/msbuild/customize-by-directory
+    - 既定値の設定 (プロジェクト ファイルで上書き可能)
+    - 警告をエラーとして処理
+    - 出力パスの統一
   -->
 
-  <!-- デフォルトのビルド構成を RelWithDebInfo に設定 -->
+  <!-- 既定のビルド構成を RelWithDebInfo に設定 -->
   <!--
     -c オプション未指定時の動作:
     - dotnet build → RelWithDebInfo でビルド

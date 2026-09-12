@@ -79,7 +79,7 @@ static int tracer_open(const svc_definition *def, const int enable_stderr)
 
     /* Windows で一般ユーザーによる実行の場合、昇格が発生し同じファイルに複数プロセスが */
     /* 出力するため、共有モードを指定する。                                             */
-    /* パスとファイル名は cplat tracer のデフォルト解決に任せる。                    */
+    /* パスとファイル名は cplat tracer の既定の解決に任せる。                    */
     cplat_tracer_set_file_level(s_tracer, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0, 0, CPLAT_TRACE_FILE_SINK_SHARED);
 
     return cplat_tracer_start(s_tracer);

@@ -27,7 +27,7 @@ struct struct_meta_catalog
 {
     const struct_meta_descriptor *const *descriptors; /**< 記述子の配列です。宣言順に並びます。 */
     size_t descriptor_count;                    /**< @c descriptors の要素数です。 */
-    cplat_hashtable *index;                     /**< 構造体名から添字を引く索引です。 */
+    cplat_hashtable *index;                     /**< 構造体名からインデックスを引き当てる索引です。 */
     struct_meta_internal_arena *arena;          /**< 記述子の記憶域です。静的カタログでは NULL です。 */
 };
 
@@ -49,7 +49,7 @@ static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, s
 }
 
 /**
- *  @brief          構造体名から添字を引く索引を構築します。
+ *  @brief          構造体名からインデックスを引き当てる索引を構築します。
  *  @return         @c CPLAT_OK 、@c CPLAT_ERR_OUT_OF_MEMORY 、または
  *                  @c CPLAT_ERR_DUPLICATE_KEY を返します。
  *
@@ -203,7 +203,7 @@ int struct_meta_catalog_attach_static(const struct_meta_descriptor *const *descr
     catalog->arena = NULL;
 
     /* イメージは読み取り専用。cplat_hashtable_attach() は領域へ書き込まず、
-       この表へ書き込み API を呼ぶこともないため、const を外して渡す。
+       この表へ書き込み API を呼び出すこともないため、const を外して渡す。
        uintptr_t を経由するのは cplat と同じ書き方に揃えるため。
        see: app/c-platform/prod/libsrc/cplat/hashtable/hashtable_create.c の
             cplat_hashtable_attach() */

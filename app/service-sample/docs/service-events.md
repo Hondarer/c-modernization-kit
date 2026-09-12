@@ -163,16 +163,16 @@ Table: `service-sample` の OS イベント抽象
 
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
-| 起動開始 | 対応 | `ServiceMain` で `SERVICE_START_PENDING` を通知し、`on_start` を呼ぶ。 |
-| 起動完了 | 対応 | `on_start` 成功後に `SERVICE_RUNNING` を通知し、`on_run` を呼ぶ。 |
-| 停止要求 | 対応 | `SERVICE_CONTROL_STOP` で `SERVICE_STOP_PENDING` を通知し、`svc_request_stop()` を呼ぶ。 |
+| 起動開始 | 対応 | `ServiceMain` で `SERVICE_START_PENDING` を通知し、`on_start` を呼び出します。 |
+| 起動完了 | 対応 | `on_start` 成功後に `SERVICE_RUNNING` を通知し、`on_run` を呼び出します。 |
+| 停止要求 | 対応 | `SERVICE_CONTROL_STOP` で `SERVICE_STOP_PENDING` を通知し、`svc_request_stop()` を呼び出します。 |
 | OS シャットダウン | 対応 | `SERVICE_CONTROL_SHUTDOWN` を停止要求と同じ扱いにします。 |
 | OS シャットダウン前 | 対応 | `SERVICE_CONTROL_PRESHUTDOWN` で `SVC_EVENT_PRESHUTDOWN` を配送した後、停止要求と同じ扱いにします。猶予は install 時に 30 秒で登録します。 |
 | 電源状態変更 | 対応 | `SERVICE_CONTROL_POWEREVENT` のサスペンド・復帰を `SVC_EVENT_POWER_SUSPEND` / `SVC_EVENT_POWER_RESUME` として配送します。 |
 | セッション変更 | 対応 | `SERVICE_CONTROL_SESSIONCHANGE` のログオン・ログオフを `SVC_EVENT_SESSION_LOGON` / `SVC_EVENT_SESSION_LOGOFF` として配送します。 |
-| 設定再読込 | 対応 | `SERVICE_CONTROL_PARAMCHANGE` で `on_reload` を呼ぶ。 |
+| 設定再読込 | 対応 | `SERVICE_CONTROL_PARAMCHANGE` で `on_reload` を呼び出します。 |
 | 状態照会 | 対応 | `SERVICE_CONTROL_INTERROGATE` で現在の `SERVICE_STATUS` を再通知します。 |
-| 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び、`SERVICE_STOPPED` を通知します。コールバックが失敗を返した場合は `ERROR_SERVICE_SPECIFIC_ERROR` と失敗の戻り値を併せて報告します。 |
+| 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び出し、`SERVICE_STOPPED` を通知します。コールバックが失敗を返した場合は `ERROR_SERVICE_SPECIFIC_ERROR` と失敗の戻り値を併せて報告します。 |
 
 Table: `service-sample` の Windows 対応範囲
 
@@ -212,12 +212,12 @@ WatchdogSec=30
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
 | 起動処理 | 対応 | systemd が `ExecStart=... run` でプロセスを起動します。 |
-| 起動完了判定 | 対応 | `Type=notify` のため、`on_start` 成功後に `READY=1` を送信し、systemd が起動完了とみなす。 |
+| 起動完了判定 | 対応 | `Type=notify` のため、`on_start` 成功後に `READY=1` を送信し、systemd が起動完了とみなします。 |
 | 停止開始通知 | 対応 | `on_run` 復帰後、`on_stop` 呼び出し前に `STOPPING=1` を送信します。 |
-| 停止要求 | 対応 | `systemctl stop` などで送られる `SIGTERM` を `shutdown.h` が補足し、`svc_request_stop()` を呼ぶ。 |
+| 停止要求 | 対応 | `systemctl stop` などで送られる `SIGTERM` を `shutdown.h` が捕捉し、`svc_request_stop()` を呼び出します。 |
 | コンソール停止 | 対応 | `console` 実行時の `SIGINT` も同じ停止要求として扱います。 |
-| 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝える。コールバックが失敗を返した場合は、その値がプロセス終了コードになり失敗として伝わる。 |
-| 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動される。 |
+| 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝えます。コールバックが失敗を返した場合は、その値がプロセス終了コードになり失敗として伝わります。 |
+| 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動されます。 |
 | 設定再読込 | 対応 | `ExecReload=` 経由の `SIGHUP` をイベント監視スレッドが受け、`RELOADING=1` 送信、`on_reload` 呼び出し、`READY=1` 再送信の順で処理します。 |
 | watchdog | 対応 | `WatchdogSec=30` に対し、イベント監視スレッドの `sd_event_set_watchdog()` が `WATCHDOG_USEC` から算出した間隔で `WATCHDOG=1` を自動応答します。 |
 | サスペンド・復帰 | 対応 | systemd-logind の `PrepareForSleep` を購読し、`SVC_EVENT_POWER_SUSPEND` / `SVC_EVENT_POWER_RESUME` として配送します。 |

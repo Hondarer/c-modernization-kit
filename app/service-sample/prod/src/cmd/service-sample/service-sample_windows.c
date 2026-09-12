@@ -14,7 +14,7 @@
  *  共通処理 (svc_run_lifecycle / main) は service-sample.c に、
  *  コールバック雛形は service-sample-impl.c に実装します。
  *
- *  内部起動パターン (ユーザーは直接使わない):
+ *  内部起動パターン (ユーザーは直接使用しない):
  *  - `service-sample run` : SCM から起動されるサービス本体
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
@@ -395,7 +395,7 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     /* 起動中を通知する */
     set_service_status(SERVICE_START_PENDING, 0, 1, 3000);
 
-    /* on_start を呼ぶ */
+    /* on_start を呼び出す */
     if (s_def->on_start != NULL)
     {
         rc = s_def->on_start(s_def->user_data);
@@ -411,7 +411,7 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     /* 起動完了を通知する (svc_os_notify_ready で SERVICE_RUNNING を通知) */
     svc_os_notify_ready();
 
-    /* on_run を呼ぶ (停止要求まで戻らない) */
+    /* on_run を呼び出す (停止要求まで戻らない) */
     rc = s_def->on_run(s_def->user_data);
     if (rc != 0)
     {
@@ -422,7 +422,7 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     /* 停止中を通知する (svc_os_notify_stopping で SERVICE_STOP_PENDING を通知) */
     svc_os_notify_stopping();
 
-    /* on_stop を呼ぶ (on_run が失敗しても後始末のため実行する) */
+    /* on_stop を呼び出す (on_run が失敗しても後始末のため実行する) */
     if (s_def->on_stop != NULL)
     {
         int stop_rc;

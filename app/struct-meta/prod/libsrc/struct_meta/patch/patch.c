@@ -78,7 +78,7 @@ static int append_field_path(const char *path, const char *field_name, char **pa
 }
 
 /**
- *  @brief          現在位置へ配列添字を追加したパスを確保します。
+ *  @brief          現在位置へ配列インデックスを追加したパスを確保します。
  */
 static int append_index_path(const char *path, size_t index, char **path_out)
 {
@@ -687,7 +687,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
 }
 
 /**
- *  @brief          検査済みのパスで、終端フィールドの配列添字が指定されているかを返します。
+ *  @brief          検査済みのパスで、終端フィールドの配列インデックスが指定されているかを返します。
  */
 static int path_has_terminal_index(const char *path)
 {

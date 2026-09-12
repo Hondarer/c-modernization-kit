@@ -230,7 +230,7 @@ static const char *field_kind_name(struct_meta_field_kind kind)
  *  @brief          フィールドが配列として宣言されていたかどうかを返します。
  *
  *  `char` 配列は要素数 1 の NUL 終端文字列として記述子に入るため、種別で判定します。
- *  要素数 1 の配列は添字の有無で `sizeof` の値が変わらないため、区別しません。
+ *  要素数 1 の配列はインデックスの有無で `sizeof` の値が変わらないため、区別しません。
  */
 static int field_is_declared_array(const struct_meta_field *field)
 {
@@ -498,7 +498,7 @@ static size_t max_struct_name_bytes(const struct_meta_catalog *catalog, size_t c
 }
 
 /**
- *  @brief          構造体名から添字を引くハッシュ表を構築し、永続化イメージを書き出します。
+ *  @brief          構造体名からインデックスを引き当てるハッシュ表を構築し、永続化イメージを書き出します。
  *  @return         成功なら 0、失敗なら 1 です。
  *
  *  レコード数もキーの最大長も生成時に確定するため、実行時に構築せず、ここで構築した

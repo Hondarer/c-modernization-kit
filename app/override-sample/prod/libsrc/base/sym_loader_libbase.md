@@ -40,14 +40,14 @@ dllmain_libbase.c  (初期化・解放)
 
 ### sym_loader_libbase.h への追加
 
-以下の 2 点を追記します。
+次の 2 点を追記します。
 
 - `new_func` に対応する関数ポインター型の `typedef`
 - その cplat_sym_loader_entry へのポインターの `extern` 宣言
 
 ### sym_loader_libbase.c への追加
 
-以下の 2 点を追記します。
+次の 2 点を追記します。
 
 - `CPLAT_SYM_LOADER_ENTRY_INIT` マクロで cplat_sym_loader_entry の `static` 実体を定義し、対応する `const` ポインターを定義
 - `fobj_array_libbase` 配列に新しい実体のアドレスを追加
@@ -56,7 +56,7 @@ dllmain_libbase.c  (初期化・解放)
 
 ### 呼び出し元となる .c ファイルの作成・修正
 
-`new_func` の実装ファイルで、`cplat_sym_loader_resolve_as` を使って関数ポインターを取得し、オーバーライド処理またはデフォルト処理に分岐させます。`sample_func.c` を参考にしてください。
+`new_func` の実装ファイルで、`cplat_sym_loader_resolve_as` を使用して関数ポインターを取得し、オーバーライド処理または既定の処理に分岐させます。`sample_func.c` を参照してください。
 
 ### オーバーライド側ライブラリへの追加
 

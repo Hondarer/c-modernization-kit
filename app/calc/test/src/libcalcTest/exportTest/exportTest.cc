@@ -20,7 +20,7 @@
 
 // テーブルからシグネチャの static_assert と期待シンボル名一覧を生成する。
 // 定型マクロ (TESTFW_EXPORT_STATIC_ASSERT_ENTRY/TESTFW_EXPORT_NAME_ENTRY) は
-// framework/testfw/include/export_check.h 側の共通定義を使う。
+// framework/testfw/include/export_check.h 側の共通定義を使用する。
 CALC_EXPORT_TABLE(TESTFW_EXPORT_STATIC_ASSERT_ENTRY)
 
 static const char *const kExpectedExportNames[] = {CALC_EXPORT_TABLE(TESTFW_EXPORT_NAME_ENTRY)};
@@ -74,7 +74,7 @@ TEST_F(exportTest, symbol_names_match)
 TEST_F(exportTest, public_header_variables_declare_export_macro)
 {
     // Arrange
-    // calcbase/ は静的リンク専用のため走査対象から明示的に除外する (calc/ サブディレクトリのみを見る)。
+    // calcbase/ は静的リンク専用のため走査対象から明示的に除外する (calc/ サブディレクトリのみを対象とする)。
     include_dir =
         workspace_root +
         "/app/calc/prod/include/calc"; // [状態] - 公開ヘッダーのディレクトリを "/app/calc/prod/include/calc" に設定する。

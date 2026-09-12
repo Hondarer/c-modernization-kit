@@ -102,7 +102,7 @@ dotnet test --filter "FullyQualifiedName~CalcLibraryTests"
 
 ## テスト カバレッジ
 
-テスト スイートは以下の包括的なカバレッジを目指しています。
+テスト スイートは次の包括的なカバレッジを目指しています。
 
 - すべての公開 API メソッド
 - すべての計算操作
@@ -197,7 +197,7 @@ dotnet test --logger "trx;LogFileName=test-results.trx"
 
 ## 継続的インテグレーション
 
-CI/CD パイプラインの場合は、以下のコマンドを使用します。
+CI/CD パイプラインの場合は、次のコマンドを使用します。
 
 ```bash
 # 詳細ログでテストを実行

@@ -2,5 +2,5 @@
 OUTPUT_DIR := $(MYAPP_DIR)/prod/lib
 
 # 生成されるライブラリを動的ライブラリ (shared) とする
-# 未指定の場合 (デフォルト) は static
+# 未指定の場合 (既定値) は static
 LIB_TYPE = shared

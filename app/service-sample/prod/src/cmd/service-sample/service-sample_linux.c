@@ -264,7 +264,7 @@ int svc_os_run_service(const svc_definition *def)
     svc_linux_events_start(def);
 
     /* Type=notify のため fork せず、フォアグラウンドのまま常駐する。
-       shutdown.h が SIGTERM / SIGINT を補足して svc_request_stop() を呼ぶ。 */
+       shutdown.h が SIGTERM / SIGINT を捕捉して svc_request_stop() を呼び出す。 */
     rc = svc_run_lifecycle(def);
 
     svc_linux_events_stop();

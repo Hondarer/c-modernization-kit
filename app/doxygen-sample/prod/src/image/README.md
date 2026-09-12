@@ -8,7 +8,7 @@ short-title: "image"
 
 ## 概要
 
-images サブフォルダーに画像を置くことで、Doxygen 上でも図を扱うことができます。
+images サブフォルダーに画像を配置することで、Doxygen 上でも図を扱うことができます。
 
 ![イメージの引用サンプル](images/sample-image.drawio.svg)
 

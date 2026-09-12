@@ -23,7 +23,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-    /** @brief 添字でフィールドを取得します。@param[in] descriptor 記述子です。@param[in] index 添字です。@param[out] field_out 取得結果です。@return 結果コードです。@par スレッド セーフ 共有状態を変更しません。 */
+    /** @brief インデックスでフィールドを取得します。@param[in] descriptor 記述子です。@param[in] index インデックスです。@param[out] field_out 取得結果です。@return 結果コードです。@par スレッド セーフ 共有状態を変更しません。 */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_descriptor_get_field(const struct_meta_descriptor *descriptor,
                                                                             size_t index,
                                                                             const struct_meta_field **field_out);
@@ -47,10 +47,10 @@ extern "C"
     /** @brief 属性を検索します。@param[in] field フィールドです。@param[in] key 属性キーです。@param[out] attribute_out 取得結果です。@return 結果コードです。@par スレッド セーフ 共有状態を変更しません。 */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_field_find_attribute(
         const struct_meta_field *field, const char *key, const struct_meta_attribute **attribute_out);
-    /** @brief 配列要素を取得します。@param[in] field フィールドです。@param[in,out] instance 親構造体です。@param[in] index 添字です。@param[out] element_out 取得結果です。@return 結果コードです。@par スレッド セーフ 同じインスタンスを並行変更しない場合に限ります。 */
+    /** @brief 配列要素を取得します。@param[in] field フィールドです。@param[in,out] instance 親構造体です。@param[in] index インデックスです。@param[out] element_out 取得結果です。@return 結果コードです。@par スレッド セーフ 同じインスタンスを並行変更しない場合に限ります。 */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_field_get_element(const struct_meta_field *field, void *instance,
                                                                          size_t index, void **element_out);
-    /** @brief 読み取り専用の配列要素を取得します。@param[in] field フィールドです。@param[in] instance 親構造体です。@param[in] index 添字です。@param[out] element_out 取得結果です。@return 結果コードです。@par スレッド セーフ 同じインスタンスを並行変更しない場合に限ります。 */
+    /** @brief 読み取り専用の配列要素を取得します。@param[in] field フィールドです。@param[in] instance 親構造体です。@param[in] index インデックスです。@param[out] element_out 取得結果です。@return 結果コードです。@par スレッド セーフ 同じインスタンスを並行変更しない場合に限ります。 */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_field_get_const_element(const struct_meta_field *field,
                                                                                const void *instance, size_t index,
                                                                                const void **element_out);

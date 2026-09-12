@@ -140,7 +140,7 @@ var divResult = CalcLibrary.Divide(20, 5);    // 4
 
 ## エラー処理
 
-ネイティブ calc ライブラリは以下のエラー コードを返します。
+ネイティブ calc ライブラリは次のエラー コードを返します。
 
 - `0` (CALC_OK) - 操作成功
 - `-1` (CALC_ERR_UNKNOWN) - 操作失敗
@@ -162,7 +162,7 @@ var divResult = CalcLibrary.Divide(20, 5);    // 4
 ### Linux
 
 - `libcalc.so` を使用
-- 呼び出し規約: `cdecl` (デフォルト)
+- 呼び出し規約: `cdecl` (既定値)
 - ライブラリは実行ファイルと同じディレクトリまたは `LD_LIBRARY_PATH` に配置する必要がある
 
 ## スレッド セーフ
