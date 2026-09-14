@@ -23,15 +23,25 @@ env:
 jobs:
   build-and-test-linux:
     runs-on: ubuntu-latest
+    # docs: true のレグだけが使用する。他のレグでは未使用のまま無害である。
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/framework/docsfw/.cache/puppeteer
     strategy:
       matrix:
         include:
           - os-name: ol8
             image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+            # ドキュメント生成は 1 つのレグだけが担当する (.jenkins/build.sh の BUILD_DOCS と同じ考え方)。
+            # gen 配下の自動生成ソースを Doxygen の入力に含めるため、ビルド済みの断面で実行する。
+            docs: true
+            fetch-depth: 0
           - os-name: ol9
             image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-9-dev:latest
+            fetch-depth: 1
           - os-name: ol10
             image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest
+            fetch-depth: 1
     container:
       image: ${{ matrix.image }}
       credentials:
@@ -48,6 +58,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           submodules: recursive
+          # OL8 は make docs で git log から author と date を取得するため全履歴が要る。
+          fetch-depth: ${{ matrix.fetch-depth }}
 
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -99,6 +111,191 @@ jobs:
         with:
           name: linux-${{ matrix.os-name }}-logs
           path: logs/linux-${{ matrix.os-name }}-build.log
+          if-no-files-found: warn
+
+      - name: Restore docsfw npm and puppeteer cache
+        if: ${{ matrix.docs }}
+        uses: actions/cache@v6
+        with:
+          path: |
+            framework/docsfw/bin/node_modules
+            framework/docsfw/.cache/puppeteer
+          key: docsfw-cache-ol8-${{ hashFiles('framework/docsfw/bin/package-lock.json') }}
+
+      - name: Generate and publish documentation
+        if: ${{ matrix.docs }}
+        run: make doxy && make docs
+
+      - name: Create artifact archives
+        if: ${{ matrix.docs }}
+        run: |
+          mkdir -p pages/artifacts
+          # HTML ドキュメント (サブディレクトリごとに分割)
+          if [ -d "pages/doxygen" ]; then
+            zip -r pages/artifacts/docs-html-doxygen.zip pages/doxygen || true
+          fi
+          docs_warn_list=$(mktemp)
+          {
+            [ -f docs.warn ] && printf '%s\n' docs.warn
+            find app -type f -name "doxy*.warn" | sort
+          } > "$docs_warn_list"
+          if [ -s "$docs_warn_list" ]; then
+            zip -r pages/artifacts/docs-warns.zip -@ < "$docs_warn_list" || true
+          fi
+          rm -f "$docs_warn_list"
+          find pages -type d -name html | while read -r html_dir; do
+            label=$(echo "$html_dir" | sed 's|^pages/||;s|/html$||;s|/|-|g')
+            zip -r "pages/artifacts/docs-html-${label}.zip" "$html_dir" || true
+          done
+          # DOCX ドキュメント (サブディレクトリごとに分割)
+          find pages -type d -name docx | while read -r docx_dir; do
+            label=$(echo "$docx_dir" | sed 's|^pages/||;s|/docx$||;s|/|-|g')
+            zip -r "pages/artifacts/docs-docx-${label}.zip" "$docx_dir" || true
+          done
+
+      - name: Stage language-split documentation
+        if: ${{ matrix.docs }}
+        run: |
+          set -euo pipefail
+          stage_lang() {
+            local lang="$1"
+            local dest="staging/documentation-${lang}"
+            mkdir -p "${dest}/artifacts"
+            if [ -d "pages/${lang}" ]; then
+              cp -a "pages/${lang}" "${dest}/"
+            fi
+            if [ -d "pages/${lang}-details" ]; then
+              cp -a "pages/${lang}-details" "${dest}/"
+            fi
+            local zip
+            for zip in \
+              "pages/artifacts/docs-html-${lang}.zip" \
+              "pages/artifacts/docs-html-${lang}-details.zip" \
+              "pages/artifacts/docs-docx-${lang}.zip" \
+              "pages/artifacts/docs-docx-${lang}-details.zip"
+            do
+              if [ -f "${zip}" ]; then
+                cp -a "${zip}" "${dest}/artifacts/"
+              fi
+            done
+          }
+          stage_lang ja
+          stage_lang en
+          mkdir -p staging/documentation-doxygen/artifacts
+          if [ -d pages/doxygen ]; then
+            cp -a pages/doxygen staging/documentation-doxygen/
+          fi
+          if [ -f pages/artifacts/docs-html-doxygen.zip ]; then
+            cp -a pages/artifacts/docs-html-doxygen.zip staging/documentation-doxygen/artifacts/
+          fi
+          if [ -f pages/artifacts/docs-warns.zip ]; then
+            cp -a pages/artifacts/docs-warns.zip staging/documentation-doxygen/artifacts/
+          fi
+
+      - name: Upload Japanese documentation
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation-ja
+          path: staging/documentation-ja/
+          if-no-files-found: warn
+
+      - name: Upload English documentation
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation-en
+          path: staging/documentation-en/
+          if-no-files-found: warn
+
+      - name: Upload Doxygen documentation
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation-doxygen
+          path: staging/documentation-doxygen/
+          if-no-files-found: warn
+
+      - name: Upload documentation warnings
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-warns
+          path: |
+            docs.warn
+            app/**/doxy*.warn
+          if-no-files-found: ignore
+
+      - name: Upload html artifacts (doxygen)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-doxygen-${{ github.sha }}
+          path: pages/doxygen/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (ja)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-ja-${{ github.sha }}
+          path: pages/ja/html/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (en)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-en-${{ github.sha }}
+          path: pages/en/html/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (ja-details)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-ja-details-${{ github.sha }}
+          path: pages/ja-details/html/
+          if-no-files-found: warn
+
+      - name: Upload html artifacts (en-details)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-html-en-details-${{ github.sha }}
+          path: pages/en-details/html/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (ja)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-ja-${{ github.sha }}
+          path: pages/ja/docx/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (en)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-en-${{ github.sha }}
+          path: pages/en/docx/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (ja-details)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-ja-details-${{ github.sha }}
+          path: pages/ja-details/docx/
+          if-no-files-found: warn
+
+      - name: Upload docx artifacts (en-details)
+        if: ${{ matrix.docs }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-docs-docx-en-details-${{ github.sha }}
+          path: pages/en-details/docx/
           if-no-files-found: warn
 
   build-and-test-windows:
@@ -298,215 +495,9 @@ jobs:
           path: logs/windows-build.log
           if-no-files-found: warn
 
-  publish-docs:
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/framework/docsfw/.cache/puppeteer
-    container:
-      image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-      env:
-        HOST_USER: user
-        HOST_UID: 1001
-        HOST_GID: 127
-        TZ: Asia/Tokyo
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0  # 全履歴を取得 (git log 用: Markdown 処理時に author と date を取得するため)
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Initialize submodules (shallow)
-        run: git submodule update --init --recursive --depth 1
-
-      - name: Check NBSP
-        run: python3 bin/check-nbsp.py --force
-
-      - name: Load app environment
-        run: bash bin/load-app-env.sh --env-file .vscode/.env.linux --workspace "$GITHUB_WORKSPACE" --format github
-
-      - name: Restore docsfw npm and puppeteer cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            framework/docsfw/bin/node_modules
-            framework/docsfw/.cache/puppeteer
-          key: docsfw-cache-ol8-${{ hashFiles('framework/docsfw/bin/package-lock.json') }}
-
-      - name: Sync skills
-        run: make skills
-
-      - name: Generate and publish documentation
-        run: make doxy && make docs
-
-      - name: Create artifact archives
-        run: |
-          mkdir -p pages/artifacts
-          # HTML ドキュメント (サブディレクトリごとに分割)
-          if [ -d "pages/doxygen" ]; then
-            zip -r pages/artifacts/docs-html-doxygen.zip pages/doxygen || true
-          fi
-          docs_warn_list=$(mktemp)
-          {
-            [ -f docs.warn ] && printf '%s\n' docs.warn
-            find app -type f -name "doxy*.warn" | sort
-          } > "$docs_warn_list"
-          if [ -s "$docs_warn_list" ]; then
-            zip -r pages/artifacts/docs-warns.zip -@ < "$docs_warn_list" || true
-          fi
-          rm -f "$docs_warn_list"
-          find pages -type d -name html | while read -r html_dir; do
-            label=$(echo "$html_dir" | sed 's|^pages/||;s|/html$||;s|/|-|g')
-            zip -r "pages/artifacts/docs-html-${label}.zip" "$html_dir" || true
-          done
-          # DOCX ドキュメント (サブディレクトリごとに分割)
-          find pages -type d -name docx | while read -r docx_dir; do
-            label=$(echo "$docx_dir" | sed 's|^pages/||;s|/docx$||;s|/|-|g')
-            zip -r "pages/artifacts/docs-docx-${label}.zip" "$docx_dir" || true
-          done
-
-      - name: Stage language-split documentation
-        run: |
-          set -euo pipefail
-          stage_lang() {
-            local lang="$1"
-            local dest="staging/documentation-${lang}"
-            mkdir -p "${dest}/artifacts"
-            if [ -d "pages/${lang}" ]; then
-              cp -a "pages/${lang}" "${dest}/"
-            fi
-            if [ -d "pages/${lang}-details" ]; then
-              cp -a "pages/${lang}-details" "${dest}/"
-            fi
-            local zip
-            for zip in \
-              "pages/artifacts/docs-html-${lang}.zip" \
-              "pages/artifacts/docs-html-${lang}-details.zip" \
-              "pages/artifacts/docs-docx-${lang}.zip" \
-              "pages/artifacts/docs-docx-${lang}-details.zip"
-            do
-              if [ -f "${zip}" ]; then
-                cp -a "${zip}" "${dest}/artifacts/"
-              fi
-            done
-          }
-          stage_lang ja
-          stage_lang en
-          mkdir -p staging/documentation-doxygen/artifacts
-          if [ -d pages/doxygen ]; then
-            cp -a pages/doxygen staging/documentation-doxygen/
-          fi
-          if [ -f pages/artifacts/docs-html-doxygen.zip ]; then
-            cp -a pages/artifacts/docs-html-doxygen.zip staging/documentation-doxygen/artifacts/
-          fi
-          if [ -f pages/artifacts/docs-warns.zip ]; then
-            cp -a pages/artifacts/docs-warns.zip staging/documentation-doxygen/artifacts/
-          fi
-
-      - name: Upload Japanese documentation
-        uses: actions/upload-artifact@v7
-        with:
-          name: documentation-ja
-          path: staging/documentation-ja/
-          if-no-files-found: warn
-
-      - name: Upload English documentation
-        uses: actions/upload-artifact@v7
-        with:
-          name: documentation-en
-          path: staging/documentation-en/
-          if-no-files-found: warn
-
-      - name: Upload Doxygen documentation
-        uses: actions/upload-artifact@v7
-        with:
-          name: documentation-doxygen
-          path: staging/documentation-doxygen/
-          if-no-files-found: warn
-
-      - name: Upload documentation warnings
-        uses: actions/upload-artifact@v7
-        with:
-          name: docs-warns
-          path: |
-            docs.warn
-            app/**/doxy*.warn
-          if-no-files-found: ignore
-
-      - name: Upload html artifacts (doxygen)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-html-doxygen-${{ github.sha }}
-          path: pages/doxygen/
-          if-no-files-found: warn
-
-      - name: Upload html artifacts (ja)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-html-ja-${{ github.sha }}
-          path: pages/ja/html/
-          if-no-files-found: warn
-
-      - name: Upload html artifacts (en)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-html-en-${{ github.sha }}
-          path: pages/en/html/
-          if-no-files-found: warn
-
-      - name: Upload html artifacts (ja-details)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-html-ja-details-${{ github.sha }}
-          path: pages/ja-details/html/
-          if-no-files-found: warn
-
-      - name: Upload html artifacts (en-details)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-html-en-details-${{ github.sha }}
-          path: pages/en-details/html/
-          if-no-files-found: warn
-
-      - name: Upload docx artifacts (ja)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-docx-ja-${{ github.sha }}
-          path: pages/ja/docx/
-          if-no-files-found: warn
-
-      - name: Upload docx artifacts (en)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-docx-en-${{ github.sha }}
-          path: pages/en/docx/
-          if-no-files-found: warn
-
-      - name: Upload docx artifacts (ja-details)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-docx-ja-details-${{ github.sha }}
-          path: pages/ja-details/docx/
-          if-no-files-found: warn
-
-      - name: Upload docx artifacts (en-details)
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-docs-docx-en-details-${{ github.sha }}
-          path: pages/en-details/docx/
-          if-no-files-found: warn
-
   warnings-summary:
     runs-on: ubuntu-latest
-    needs: [build-and-test-linux, build-and-test-windows, publish-docs]
+    needs: [build-and-test-linux, build-and-test-windows]
     if: ${{ always() }}
 
     steps:
@@ -558,7 +549,7 @@ jobs:
             }
 
   deploy-pages:
-    needs: [build-and-test-linux, build-and-test-windows, publish-docs]
+    needs: [build-and-test-linux, build-and-test-windows]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:

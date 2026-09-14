@@ -308,7 +308,7 @@ source/app/**/test/**/*.warn
 | `Upload Japanese documentation` (`documentation-ja`) | `pages/ja`、`pages/ja-details`、`pages/artifacts/docs-*-ja*.zip` (分割せず `pages/` に残す) |
 | `Upload English documentation` (`documentation-en`) | `pages/en`、`pages/en-details`、`pages/artifacts/docs-*-en*.zip` (分割せず `pages/` に残す) |
 | `Upload Doxygen documentation` (`documentation-doxygen`) | `pages/doxygen`、`pages/artifacts/docs-html-doxygen.zip` (分割せず `pages/` に残す) |
-| `publish-docs`: `make skills && make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
+| `build-and-test-linux` (`matrix.docs` のレグ): `make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
 | `deploy-pages`: `index.html` 生成 | `inner-build.sh` の `pages/index.html` 生成 |
 
 `build-and-test-windows` および `deploy-pages` (GitHub Pages デプロイ) に対応する Jenkins スクリプトは存在しません。  

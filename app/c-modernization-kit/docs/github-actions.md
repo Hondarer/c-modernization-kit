@@ -14,15 +14,17 @@ main ブランチへの変更時に、Linux/Windows 両環境での自動ビル�
 
 - `.github/workflows/ci.yml` - ビルド、テスト、ドキュメント生成、Pages デプロイの統合ワークフロー
 
-このワークフローには以下の 5 つのジョブが含まれています:
+このワークフローには以下の 4 つのジョブが含まれています:
 
-1. `build-and-test-linux` - Linux 環境でのビルドとテスト (Oracle Linux 8 / Oracle Linux 9 / Oracle Linux 10 のマトリクス実行)
+1. `build-and-test-linux` - Linux 環境でのビルドとテスト (Oracle Linux 8 / Oracle Linux 9 / Oracle Linux 10 のマトリクス実行)。OL8 のレグはビルドとテストの後にドキュメント生成も行います
 2. `build-and-test-windows` - Windows 環境でのビルドとテスト
-3. `publish-docs` - ドキュメント生成
-4. `warnings-summary` - warning artifact の有無を集約し、annotation と Step Summary で通知
-5. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
+3. `warnings-summary` - warning artifact の有無を集約し、annotation と Step Summary で通知
+4. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
 
-Linux ビルド (OL8/OL9/OL10)、Windows ビルド、ドキュメント生成のジョブが並列実行されます。これらの完了後に `warnings-summary` が warning artifact を集約し、main ブランチへの push では `deploy-pages` がテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
+Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行されます。これらの完了後に `warnings-summary` が warning artifact を集約し、main ブランチへの push では `deploy-pages` がテスト結果とドキュメントを統合して GitHub Pages にデプロイします。
+
+ドキュメント生成を独立したジョブにせず、OL8 のレグへ含めています。Doxygen の入力には `gen/` 配下の自動生成ソースが含まれますが、これらは Git の管理対象外であり、make のパース時またはビルド規則でしか生成されません。ビルド済みの断面でドキュメントを生成することが、自動生成ソースを成果物へ含めるための条件です。詳細は [build-and-test-linux ジョブ](#build-and-test-linux-ジョブ) を参照してください。  
+`.jenkins/inner-build.sh` も `BUILD_DOCS` により 1 つの OS だけがドキュメント生成を担当する構成であり、GitHub Actions と Jenkins で同じ実行順になります。
 
 ### トリガー条件
 
@@ -64,13 +66,20 @@ strategy:
     include:
       - os-name: ol8
         image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest
+        docs: true
+        fetch-depth: 0
       - os-name: ol9
         image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-9-dev:latest
+        fetch-depth: 1
       - os-name: ol10
         image: ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest
+        fetch-depth: 1
 container:
   image: ${{ matrix.image }}
 ```
+
+`docs` はドキュメント生成を担当するレグを示します。ドキュメント関連のステップは `if: ${{ matrix.docs }}` で OL8 だけが実行します。  
+`fetch-depth` は `actions/checkout` へ渡す取得履歴の深さです。`make docs` が Markdown の author と date を `git log` から取得するため、OL8 だけ全履歴 (`0`) が必要です。値を `${{ matrix.docs && 0 || 1 }}` のような式で導出してはいけません。GitHub Actions の式では数値の `0` が falsy と評価され、OL8 でも `1` になります。
 
 | OS 名 | コンテナー イメージ | 説明 |
 |--------|-----------------|------|
@@ -132,11 +141,10 @@ skinparam shadowing false
 skinparam defaultFontName "Courier"
 
 rectangle "並列実行" {
-  card "build-and-test-linux\n(OL8)" as linux_ol8
+  card "build-and-test-linux\n(OL8)\nビルド + テスト + ドキュメント生成" as linux_ol8
   card "build-and-test-linux\n(OL9)" as linux_ol9
   card "build-and-test-linux\n(OL10)" as linux_ol10
   card "build-and-test-windows" as windows
-  card "publish-docs" as docs
 }
 
 artifact "linux-ol8-test-results" as linux_ol8_artifact
@@ -153,7 +161,7 @@ linux_ol8 -down-> linux_ol8_artifact
 linux_ol9 -down-> linux_ol9_artifact
 linux_ol10 -down-> linux_ol10_artifact
 windows -down-> windows_artifact
-docs -down-> docs_artifact
+linux_ol8 -down-> docs_artifact
 
 linux_ol8_artifact -down-> deploy
 linux_ol9_artifact -down-> deploy
@@ -173,6 +181,11 @@ note right of deploy
   すべてのジョブ成功時のみ実行
 end note
 
+note right of linux_ol8
+  ドキュメント生成はビルド済みの断面で行う
+  gen 配下の自動生成ソースを Doxygen の入力に含めるため
+end note
+
 note right of warns
   warning artifact の有無を検知し、ジョブは成功のまま
   annotation と Step Summary で通知
@@ -187,6 +200,7 @@ end note
 
 1. **リポジトリのチェックアウト**
     - サブモジュールを含めて再帰的にチェックアウト
+    - 取得する履歴の深さは `matrix.fetch-depth` に従います。OL8 は全履歴、OL9 と OL10 は最新コミットのみです
 
 2. **Git safe directory 設定**
     - コンテナー内での Git 操作を許可
@@ -205,6 +219,34 @@ end note
 
 6. **ビルド ログ アーティファクトのアップロード**
     - ビルド ログのみを保存
+
+7. **ドキュメント生成と発行** (OL8 のみ)
+    - docsfw の npm モジュールと puppeteer のキャッシュを復元
+    - `make doxy && make docs` を実行
+    - Doxygen および Pandoc でドキュメントを生成
+    - `make` 系ターゲットは `MAKEFW_HOME` を必須で参照し、`make doxy` は `DOXYFW_HOME`、`make docs` は `DOCSFW_HOME` を参照
+    - ルート `makefile` の既定ターゲットが `make skills` を実行済みのため、ここでの skill 同期は不要です
+
+8. **ドキュメント アーティファクトのアップロード** (OL8 のみ)
+    - 中継用に `documentation-ja`、`documentation-en`、`documentation-doxygen` を分割して保存
+    - ドキュメント警告を `docs-warns` として保存
+    - HTML と docx を言語・種別ごとの SHA 付き artifact としても保存
+
+#### ドキュメント生成を OL8 のレグで行う理由
+
+`gen/` 配下の自動生成ソースは Git の管理対象外であり、チェックアウト直後のワークスペースには存在しません。生成のタイミングは対象により異なります。
+
+| app | 生成物 | 生成のタイミング |
+|-----|--------|----------------|
+| `string-catalog-sample` | `prod/src/cmd/string-catalog-sample/gen/` | `app/string-catalog-sample/makepart.mk` のパース時 |
+| `struct-meta` | `prod/libsrc/struct_meta/parse/gen/` | flex/bison のビルド規則 |
+| `struct-meta` | `prod/src/cmd/struct-meta-sample/gen/` | ビルド済みの `prod/cbin/struct-meta-gen` を実行するビルド規則 |
+
+いずれも `make doxy` の経路ではリーフ makefile をパースしないため生成されません。`struct-meta` は生成に実行体のビルドを必要とするため、ソース生成だけを行う軽量な手段も成立しません。ビルドとテストを終えた断面でドキュメントを生成することが、自動生成ソースを Doxygen の入力に含めるための条件です。
+
+Doxygen 側に追加の設定は不要です。`framework/doxyfw/Doxyfile` の `EXCLUDE_PATTERNS` は `*/obj/*` のみであり、`gen/` を除外していません。特定の app で自動生成ソースを除外する場合は、その app の `Doxyfile.part` へ `EXCLUDE_PATTERNS` を全量で指定します。`Doxyfile.part` は共通 `Doxyfile` への単純連結であり、Doxygen は後勝ちで解釈するため、`+=` による追記は使えません。
+
+Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/eventlog-register/` の `.mc` から `mc.exe` が生成する `gen/` は、Linux でドキュメントを生成する以上、成果物に含まれません。
 
 ### build-and-test-windows ジョブ
 
@@ -240,46 +282,9 @@ end note
 9. **ビルド ログ アーティファクトのアップロード**
     - ビルド ログのみを保存
 
-### publish-docs ジョブ
-
-このジョブは、`build-and-test-linux` および `build-and-test-windows` と並列に実行されます。
-
-**実行条件**:
-
-- 他のビルド＆テスト ジョブと独立して並列実行されます。
-- CI 全体の実行時間を短縮し、効率的なリソース利用を実現します。
-
-**処理フロー**:
-
-1. **リポジトリのチェックアウト**
-    - `fetch-depth: 0` で全履歴を取得 (Markdown 処理時の author/date 取得用)
-
-2. **Git safe directory 設定**
-    - コンテナー内での Git 操作を許可
-
-3. **サブモジュール初期化**
-    - `git submodule update --init --recursive --depth 1` で浅いクローン
-
-4. **ドキュメント生成**
-    - `make doxy && make docs` を実行
-    - Doxygen および Pandoc でドキュメントを生成
-    - `make` 系ターゲットは `MAKEFW_HOME` を必須で参照し、`make doxy` は `DOXYFW_HOME`、`make docs` は `DOCSFW_HOME` を参照
-
-5. **gh-pages 用アーティファクト アーカイブの作成**
-    - main ブランチへの push 時のみ実行
-    - HTML と docx ファイルを zip 形式でアーカイブ
-
-6. **GitHub Pages へのデプロイ**
-    - main ブランチへの push 時のみ実行
-    - gh-pages ブランチに公開
-
-7. **アーティファクトのアップロード**
-    - 中継用に `documentation-ja`、`documentation-en`、`documentation-doxygen` を分割して保存
-    - HTML と docx を言語・種別ごとの SHA 付き artifact としても保存
-
 ### warnings-summary ジョブ
 
-このジョブは、`build-and-test-linux`、`build-and-test-windows`、`publish-docs` の完了後に `if: always()` で実行されます。
+このジョブは、`build-and-test-linux` および `build-and-test-windows` の完了後に `if: always()` で実行されます。
 
 **目的**:
 
@@ -296,11 +301,11 @@ end note
 
 ### deploy-pages ジョブ
 
-このジョブは、上記のジョブ (`build-and-test-linux` (OL8/OL9/OL10)、`build-and-test-windows`、`publish-docs`) が並列実行され、すべて完了した後に実行されます。
+このジョブは、上記のジョブ (`build-and-test-linux` (OL8/OL9/OL10)、`build-and-test-windows`) が並列実行され、すべて完了した後に実行されます。
 
 **実行条件**:
 
-- `needs: [build-and-test-linux, build-and-test-windows, publish-docs]` により、並列実行されたすべてのジョブが成功するまで待機
+- `needs: [build-and-test-linux, build-and-test-windows]` により、並列実行されたすべてのジョブが成功するまで待機
 - `if: github.ref == 'refs/heads/main' && github.event_name == 'push'` により、main ブランチへの push 時のみ実行
 
 **処理フロー**:
