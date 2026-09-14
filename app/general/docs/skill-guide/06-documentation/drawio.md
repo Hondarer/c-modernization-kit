@@ -47,9 +47,10 @@ Table: 図ツールの選択基準
 draw.io での保存手順:
 
 1. draw.io でファイルを編集します。
-2. File > Export As > SVG... を選択します。
-3. 「Include a copy of my diagram」にチェックを入れる
-4. ファイル名を `*.drawio.svg` として保存します。
+2. 日本語テキストは、テキスト パネルのフォント一覧から 「カスタム」 を選び、`Noto Sans JP` を指定します。
+3. File > Export As > SVG... を選択します。
+4. 「Include a copy of my diagram」にチェックを入れます。
+5. ファイル名を `*.drawio.svg` として保存します。
 
 Pandoc 変換時は通常の SVG 画像として HTML に埋め込まれます。`*.drawio.svg` ファイルは draw.io で再度開いて編集できるため、テキストベースの管理が難しい複雑なレイアウト図に適しています。
 
