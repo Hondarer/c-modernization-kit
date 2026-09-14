@@ -9,10 +9,10 @@
     "strings": [
         {
             "id": "SAMPLE_METRICS_ID_THROUGHPUT_REPORT",
-            "id_text": "SAMPLE_METRICS_ID_0001",
+            "key": "SAMPLE_METRICS_ID_0001",
             "category": 4, // CPLAT_TRACE_LEVEL_VERBOSE
             "brief": "スループット報告。",
-            "summary": "処理速度と累計件数を通知する文字列を組み立てます。",
+            "details": "処理速度と累計件数を通知する文字列を組み立てます。",
             "arguments": [
                 {
                     "kind": "DOUBLE",

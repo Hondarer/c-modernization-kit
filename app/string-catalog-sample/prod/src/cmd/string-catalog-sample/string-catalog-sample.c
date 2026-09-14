@@ -87,15 +87,15 @@ static int print_string(const cplat_string_catalog *const catalog, const int str
         return ret;
     }
 
-    const char *id_text;
+    const char *key;
     const char *note;
     cplat_trace_level level;
 
-    id_text = cplat_string_catalog_get_id_text(catalog, string_id);
+    key = cplat_string_catalog_get_key(catalog, string_id);
     note = cplat_string_catalog_get_note(catalog, string_id);
     level = trace_level_of(catalog, string_id);
 
-    printf("  %s: %-8s %s\n", id_text, s_level_labels[(unsigned int)level], text);
+    printf("  %s: %-8s %s\n", key, s_level_labels[(unsigned int)level], text);
     printf("  %s\n\n", note);
 
     return CPLAT_OK;

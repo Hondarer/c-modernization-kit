@@ -39,36 +39,37 @@ TEST_F(catalogIntegrationTest, injected_catalog_is_consistent)
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - すべての書式が引数スキーマと整合していること。
 }
 
-// 文字列 ID の固定文字列、レベル、備考を参照できることの確認
+// 文字列定義の key、レベル、備考を参照できることの確認
 TEST_F(catalogIntegrationTest, metadata)
 {
     // Arrange
-    const char *actual_id_text;
+    const char *actual_key;
     const char *actual_note;
-    const char *actual_unknown_id_text;
+    const char *actual_unknown_key;
     int actual_category;
 
     // Pre-Assert
 
     // Act
-    actual_id_text = cplat_string_catalog_get_id_text(
+    actual_key = cplat_string_catalog_get_key(
         sample_messages_catalog(),
-        SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 文字列 ID の固定文字列を取得する。
+        SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 処理用キーを取得する。
     actual_note = cplat_string_catalog_get_note(sample_messages_catalog(),
                                                 SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 備考を取得する。
     actual_category =
         cplat_string_catalog_get_category(sample_messages_catalog(),
                                           SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_unknown_id_text = cplat_string_catalog_get_id_text(sample_messages_catalog(),
-                                                              0); // [手順] - 未登録の文字列 ID で固定文字列を取得する。
+    actual_unknown_key =
+        cplat_string_catalog_get_key(sample_messages_catalog(),
+                                     0); // [手順] - 未登録の文字列 ID で処理用キーを取得する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
+    ASSERT_NE(nullptr, actual_key); // [確認_正常系] - 処理用キーを取得できること。
     ASSERT_NE(nullptr, actual_note);                         // [確認_正常系] - 備考を取得できること。
-    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
+    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_key); // [確認_正常系] - 処理用キーが一致すること。
     EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category);     // [確認_正常系] - カタログの分類値が一致すること。
     EXPECT_LT(0U, strlen(actual_note));                      // [確認_正常系] - 備考が空でないこと。
-    EXPECT_EQ(nullptr, actual_unknown_id_text);              // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
+    EXPECT_EQ(nullptr, actual_unknown_key); // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
 }
 
 // 波括弧のエスケープを含む文字列を組み立てられることの確認

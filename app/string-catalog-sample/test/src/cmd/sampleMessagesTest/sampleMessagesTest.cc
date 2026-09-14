@@ -71,7 +71,7 @@ TEST_F(sampleMessagesTest, second_catalog_is_consistent)
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 2 つ目のカタログも書式と引数スキーマが整合していること。
 }
 
-// 各文字列が固定文字列とニュートラル言語のリソースを持つことの確認
+// 各文字列が処理用キーとニュートラル言語のリソースを持つことの確認
 TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 {
     // Arrange
@@ -84,7 +84,9 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
     // Act / Assert
     for (index = 0; index < count; index++) // [手順] - すべてのカタログを走査する。
     {
-        EXPECT_NE(nullptr, entries[index].id_text); // [確認_正常系] - 文字列 ID の固定文字列を持つこと。
+        EXPECT_NE(nullptr, entries[index].key); // [確認_正常系] - 処理用キーを持つこと。
+        EXPECT_NE(nullptr, entries[index].brief);   // [確認_正常系] - 短い説明を持つこと。
+        EXPECT_NE(nullptr, entries[index].details); // [確認_正常系] - 詳細説明を持つこと。
         EXPECT_NE(
             nullptr,
             entries[index]
@@ -98,6 +100,10 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
         EXPECT_GE(entries[index].argument_count, 0); // [確認_正常系] - 引数個数が 0 以上であること。
         EXPECT_LE(entries[index].argument_count,
                   CPLAT_STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系] - 引数個数が上限以下であること。
+        if (entries[index].argument_count > 0)
+        {
+            EXPECT_NE(nullptr, entries[index].arguments); // [確認_正常系] - 引数定義を持つこと。
+        }
     }
 }
 
@@ -105,7 +111,8 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 TEST_F(sampleMessagesTest, file_open_failed_entry)
 {
     // Arrange
-    const char *actual_id_text;
+    const cplat_string_catalog_entry *actual_entry;
+    const char *actual_key;
     int actual_category;
     char dest[CPLAT_STRING_CATALOG_TEXT_MAX];
     int actual_ret;
@@ -115,9 +122,11 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
     // Pre-Assert
 
     // Act
-    actual_id_text =
-        cplat_string_catalog_get_id_text(sample_messages_catalog(),
-                                         SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 固定文字列を取得する。
+    actual_entry = sample_messages_entry(
+        SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 文字列 ID の項目メタデータを取得する。
+    actual_key = cplat_string_catalog_get_key(
+        sample_messages_catalog(),
+        SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 処理用キーを取得する。
     actual_category =
         cplat_string_catalog_get_category(sample_messages_catalog(),
                                           SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
@@ -126,12 +135,45 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
                                              2); // [手順] - ニュートラル言語で文字列を組み立てる。
 
     // Assert
-    ASSERT_NE(nullptr, actual_id_text);                      // [確認_正常系] - 固定文字列を取得できること。
-    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id_text); // [確認_正常系] - 固定文字列が一致すること。
+    ASSERT_NE(nullptr, actual_entry); // [確認_正常系] - 項目メタデータを取得できること。
+    ASSERT_NE(nullptr, actual_entry->arguments); // [確認_正常系] - 引数定義を取得できること。
+    EXPECT_STREQ("ファイルのオープン失敗。", actual_entry->brief); // [確認_正常系] - 短い説明を保持すること。
+    EXPECT_STREQ("ファイルを開けなかったことを通知する文字列を組み立てます。",
+                 actual_entry->details); // [確認_正常系] - 詳細説明を保持すること。
+    EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_STRING,
+              actual_entry->arguments[0].kind); // [確認_正常系] - 1 番目の引数種別を保持すること。
+    EXPECT_STREQ("file_path", actual_entry->arguments[0].name); // [確認_正常系] - 引数名を保持すること。
+    EXPECT_STREQ("開けなかったファイルのパス。呼び出し側の指定をそのまま出力します。",
+                 actual_entry->arguments[0].description); // [確認_正常系] - 1 番目の引数説明を保持すること。
+    EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_ERROR_CODE,
+              actual_entry->arguments[1].kind); // [確認_正常系] - 2 番目の引数種別を保持すること。
+    EXPECT_STREQ("error_code", actual_entry->arguments[1].name); // [確認_正常系] - 2 番目の引数名を保持すること。
+    EXPECT_STREQ("errno または Win32 のエラー コード。10 進数と 16 進数を併記します。",
+                 actual_entry->arguments[1].description); // [確認_正常系] - 2 番目の引数説明を保持すること。
+    ASSERT_NE(nullptr, actual_key); // [確認_正常系] - 処理用キーを取得できること。
+    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_key); // [確認_正常系] - 処理用キーが一致すること。
     EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category);     // [確認_正常系] - 分類値が一致すること。
     EXPECT_EQ(CPLAT_OK, actual_ret);                         // [確認_正常系] - 戻り値が CPLAT_OK であること。
     EXPECT_STREQ("Failed to open file config.json. Error code=2 (0x00000002)",
                  dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。
+}
+
+// 補足説明がカタログ項目へ保持されることの確認
+TEST_F(sampleMessagesTest, entry_remarks)
+{
+    // Arrange
+    const cplat_string_catalog_entry *actual_entry;
+
+    // Pre-Assert
+
+    // Act
+    actual_entry = sample_messages_entry(
+        SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE); // [手順] - 補足説明を持つ項目を取得する。
+
+    // Assert
+    ASSERT_NE(nullptr, actual_entry); // [確認_正常系] - 項目メタデータを取得できること。
+    EXPECT_STREQ("障害解析で領域の同一性を確認する目的で使用します。",
+                 actual_entry->remarks); // [確認_正常系] - 補足説明を保持すること。
 }
 
 // 文字列 ID ごとの型付きラッパーが、カタログを指定した呼び出しと同じ結果を出すことの確認
