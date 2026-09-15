@@ -28,7 +28,7 @@
 
 ### 差分の解釈
 
-- 下位の `AGENTS.md` は、上位に無い規則を追加し、上位の規則を対象固有に具体化します。
+- 下位の `AGENTS.md` は、上位に存在しない規則を追加し、上位の規則を対象固有に具体化します。
 - 既定では、下位は上位の規則を解除しません。
 - 上位の規則を解除または上書きする場合は、下位の `AGENTS.md` に解除する規則と理由を明示してください。明示がある項目に限り、下位の記載を優先します。
 - 明示のない相違は、上位の規則が有効なままです。
@@ -64,6 +64,7 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 ## 主要な正本
 
 - C/C++ の規範: [コーディング規範](app/general/docs/coding-guideline.md)
+- 機能仕様の規範: [機能仕様の記載規範](app/general/docs/functional-spec-guideline.md)
 - テスト構成: [テスト方法](framework/testfw/docs/how-to-test.md)
 - テスト フェーズとエビデンス: [テスト フェーズ](framework/testfw/docs/about-test-phase.md)
 - make ファイル断片: [makeparts](framework/makefw/docs/makeparts.md)
