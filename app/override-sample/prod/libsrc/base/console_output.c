@@ -15,7 +15,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-/* Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントはヘッダーに記述 */
 
 void base_console_output(const char *format, ...)
 {

@@ -1,6 +1,6 @@
 # c-modernization-kit サンプル (override-sample)
 
-これは、動的ライブラリのオーバーライド機能を示すサンプルです。
+動的ライブラリのオーバーライド機能を示すサンプルです。
 
 ## 概要
 
@@ -13,7 +13,7 @@ sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/c-platfo
 | 存在しない (または定義なし) | `libbase` 自身が処理を行う (`a + b`) |
 | `sample_func` に `liboverride` / `override_func` を定義 | `dlopen` / `LoadLibrary` で `liboverride` を実行時にロードし、`override_func` に処理を委譲する (`a * b`) |
 
-オーバーライドの切り替えは `libbase` がロードされるタイミング (constructor / `DllMain`) で行われます。メイン プログラムを変更せずに、設定ファイルを置くだけでライブラリの実装を差し替えられることを示します。
+オーバーライドの切り替えは `libbase` がロードされるタイミング (constructor / `DllMain`) で行われます。メイン プログラムを変更せずに、設定ファイルを配置するだけでライブラリの実装を差し替えられることを示します。
 
 ## ファイル構成
 
@@ -21,11 +21,11 @@ sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/c-platfo
 app/override-sample/prod/
 +-- include/
 |   +-- base/
-|   |   +-- base_export.h      # base の DLL エクスポートマクロ
+|   |   +-- base_export.h      # base の DLL エクスポート マクロ
 |   |   +-- base_const.h       # base の結果コード定数
 |   |   +-- base_spec.h        # base ヘッダー (sample_func, base_console_output 等の宣言)
 |   +-- override/
-|   |   +-- override_export.h  # override の DLL エクスポートマクロ
+|   |   +-- override_export.h  # override の DLL エクスポート マクロ
 |   |   +-- override_spec.h    # override ヘッダー (override_func の宣言)
 +-- libsrc/
 |   +-- base/
@@ -38,7 +38,7 @@ app/override-sample/prod/
 |       +-- override_func.c    # override_func の実装 (libbase から dlopen で呼ばれる)
 +-- src/
 |   +-- override-sample/
-|       +-- override-sample.c  # メインプログラム
+|       +-- override-sample.c  # メイン プログラム
 +-- sample-config/
 |   +-- libbase_extdef.json    # 設定ファイルのサンプル
 +-- lib/                       # ビルド済みライブラリ (libbase.so / liboverride.so / libbase.dll / liboverride.dll)
@@ -60,7 +60,7 @@ int WINAPI sample_func(const int a, const int b, int *result);
 ```
 
 - 設定ファイルで `override_func` が定義されているとき: `liboverride.so` / `liboverride.dll` を動的にロードし、`override_func` に処理を委譲します。
-- それ以外のとき: `*result = a + b` を計算して返す
+- それ以外のとき: `*result = a + b` を計算して結果を返します。
 
 #### base_console_output
 
@@ -69,7 +69,7 @@ void WINAPI base_console_output(const char *format, ...);
 ```
 
 `printf` と同じ書式でコンソールに出力する関数です。  
-`liboverride` からも呼び出しています。これは、動的にロードされた拡張処理から基底ライブラリの関数を呼び出すことができることのサンプル実装です。
+`liboverride` からも呼び出しています。これは、動的にロードされた拡張処理から基底ライブラリの関数を呼び出せることを示すサンプル実装です。
 
 ### liboverride (動的ライブラリ)
 

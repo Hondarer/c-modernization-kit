@@ -7,7 +7,7 @@
  *  @version        1.0.0
  *
  *  このライブラリは libbase から動的にロードされ、
- *  処理を引き受けるオーバーライド関数を提供します。
+ *  差し替え処理を実行するオーバーライド関数を提供します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -36,20 +36,21 @@ extern "C"
 #endif /* __cplusplus */
 
     /**
-     *  @brief          sample_func のオーバーライド実装。
+     *  @brief          base_calc の差し替え実装として積を計算します。
      *  @param[in]      a 第一オペランド。
      *  @param[in]      b 第二オペランド。
      *  @param[out]     result 計算結果を格納するポインター。NULL を渡してはなりません。
      *  @return         成功時は @ref BASE_OK を返します。
      *  @return         @p result が NULL の場合は @ref BASE_ERR_INVALID_ARGUMENT を返します。
      *
-     *                  libbase の sample_func から動的にロードされ呼び出されます。\n
-     *                  a * b を計算して result に格納します。
+     *                  シグネチャは @ref base_calc_fn に合わせます。\n
+     *                  libbase の base_calc から動的にロードされ、呼び出されます。\n
+     *                  a * b を計算して @p result に格納します。
      *
      *  @par            使用例
         @code{.c}
          int result;
-         if (override_func(1, 2, &result) == BASE_OK)
+         if (override_calc(1, 2, &result) == BASE_OK)
          {
              base_console_output("result: %d\n", result);  // 出力: result: 2
          }
@@ -59,7 +60,7 @@ extern "C"
      *  本関数はスレッド セーフではありません。
      *  本関数と同じ共有状態へアクセスする API の呼び出しを、呼び出し側で直列化してください。
      */
-    BASE_EXT_EXPORT extern int BASE_EXT_API override_func(int a, int b, int *result);
+    BASE_EXT_EXPORT extern int BASE_EXT_API override_calc(int a, int b, int *result);
 
 #ifdef __cplusplus
 }

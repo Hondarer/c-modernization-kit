@@ -6,8 +6,8 @@
  *  @date           2026/02/23
  *  @version        1.0.0
  *
- *  sym_loader_libbase.h には extern 宣言のみを宣言し、実体をここで定義します。
- *  関数を追加する場合は、sym_loader_libbase.h, sym_loader_libbase.c をメンテナンスします。
+ *  sym_loader_libbase.h には extern 宣言のみを記述し、実体をここで定義します。
+ *  関数を追加する場合は、sym_loader_libbase.h と sym_loader_libbase.c を更新します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -18,37 +18,37 @@
 #include <cplat/base/result.h>
 #include <stdio.h>
 
-/* Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントはヘッダーに記述 */
 
 char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
-/* --- 拡張可能な各関数のアクセス用のオブジェクトとアクセス用のポインター設定 --- */
-/* --- 対応関数を追加した場合、次への追加が必要です。                         --- */
+/* --- 差し替え可能な各関数のアクセス用オブジェクトとアクセス用ポインターの設定 --- */
+/* --- 対応関数を追加した場合、次への追加が必要です。                             --- */
 
-/** sample_func 用の sym_loader エントリ実体。 */
-static cplat_sym_loader_entry sfo_sample_func = CPLAT_SYM_LOADER_ENTRY_INIT("sample_func", sample_func_fn);
-/* Doxygen コメントは、ヘッダーに記載 */
+/** base_calc 用の sym_loader エントリ実体です。差し替えキーは公開関数名と同じにします。 */
+static cplat_sym_loader_entry sfo_base_calc = CPLAT_SYM_LOADER_ENTRY_INIT("base_calc", base_calc_fn);
+/* Doxygen コメントはヘッダーに記述 */
 
-cplat_sym_loader_entry *const pfo_sample_func = &sfo_sample_func;
+cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 
-/* static cplat_sym_loader_entry sfo_func_name = CPLAT_SYM_LOADER_ENTRY_INIT("func_name", func_name_fn); */ /* 将来追加 */
-/* cplat_sym_loader_entry *const pfo_func_name = &sfo_func_name; */ /* 将来追加 */
+/* static cplat_sym_loader_entry sfo_base_name = CPLAT_SYM_LOADER_ENTRY_INIT("base_name", base_name_fn); */ /* 将来追加 */
+/* cplat_sym_loader_entry *const pfo_base_name = &sfo_base_name; */ /* 将来追加 */
 
 /* --- sym_loader に渡すポインター配列                --- */
 /* --- 対応関数を追加した場合、次への追加が必要です。 --- */
 
-/* Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントはヘッダーに記述 */
 
 cplat_sym_loader_entry *const fobj_array_libbase[] = {
-    &sfo_sample_func,
-    /* &sfo_func_name, */ /* 将来追加 */
+    &sfo_base_calc,
+    /* &sfo_base_name, */ /* 将来追加 */
 };
 
-/* Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントはヘッダーに記述 */
 
 const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_array_libbase[0]);
 
-/* Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントはヘッダーに記述 */
 
 int base_sym_loader_info(void)
 {

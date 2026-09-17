@@ -6,7 +6,7 @@
  *  @date           2026/02/21
  *  @version        1.0.0
  *
- *  libbase の func を呼び出し、オーバーライド機能を示すサンプル プログラムです。
+ *  libbase の base_calc を呼び出し、オーバーライド機能を示すサンプル プログラムです。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 /**
- *  @brief          メイン エントリ ポイント。
+ *  @brief          メイン エントリ ポイントです。
  *  @param[in]      argc コマンド ライン引数の数。
  *  @param[in]      argv コマンド ライン引数の配列。
  *  @return         正常終了時は 0 を返します。
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     int need_help = 0;
 
-    cplat_argparser_init(argc, argv, "関数の動的オーバーライドのサンプルコマンド。");
+    cplat_argparser_init(argc, argv, "関数の動的オーバーライドのサンプル コマンド。");
     cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
 
     if (cplat_argparser_get_register_error_count() > 0)
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
     printf("configpath: %s\n", configpath);
     printf("Processing will be extended if defines.\n");
-    printf(" e.g.  printf '{\"sample_func\":{\"lib\":\"liboverride\",\"func\":\"override_func\"}}\\n'"
+    printf(" e.g.  printf '{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\\n'"
            " > \"%s\"\n",
            configpath);
 #if defined(PLATFORM_LINUX)
@@ -99,11 +99,11 @@ int main(int argc, char *argv[])
     ret = base_sym_loader_info();
     printf("ret: %d\n\n", ret);
 
-    ret = sample_func(1, 2, &result);
+    ret = base_calc(1, 2, &result);
     base_console_output("ret: %d\n", ret);
     if (ret != BASE_OK)
     {
-        fprintf(stderr, "func failed (sample_func(1, 2, &result))\n");
+        fprintf(stderr, "func failed (base_calc(1, 2, &result))\n");
     }
     else
     {

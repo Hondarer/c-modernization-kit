@@ -27,7 +27,7 @@
 #ifdef DOXYGEN
 
     /**
-     *  @brief          DLL エクスポート/インポート制御マクロ。
+     *  @brief          DLL エクスポートおよびインポートの制御マクロです。
      *
      *  ビルド条件に応じて次の値を取ります。
      *
@@ -42,7 +42,7 @@
     #define BASE_EXPORT
 
     /**
-     *  @brief          呼び出し規約マクロ。
+     *  @brief          呼び出し規約マクロです。
      *
      *  Windows 環境では `__stdcall` 呼び出し規約を指定します。\n
      *  Linux (非 Windows) 環境では空に展開されます。\n

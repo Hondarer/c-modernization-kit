@@ -4,13 +4,13 @@
 
 `sym_loader_libbase.h` / `sym_loader_libbase.c` は、`base` ライブラリが管理するオーバーライド対応関数の **cplat_sym_loader_entry 実体と、それに紐付く型・変数の宣言** を提供します。
 
-`sym_loader` の汎用機能 (`cplat_sym_loader_init`, `cplat_sym_loader_resolve`, `cplat_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群に接続する「接着剤」の役割を担います。
+`sym_loader` の汎用機能 (`cplat_sym_loader_init`, `cplat_sym_loader_resolve`, `cplat_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群へ接続する役割を担います。
 
 ## ファイルの責務
 
 | ファイル | 責務 |
 |---|---|
-| `sym_loader_libbase.h` | 関数ポインター型の `typedef`、`cplat_sym_loader_entry` ポインタ・配列・設定ファイル パスの `extern` 宣言 |
+| `sym_loader_libbase.h` | 関数ポインター型の `typedef`、`cplat_sym_loader_entry` ポインター・配列・設定ファイル パスの `extern` 宣言 |
 | `sym_loader_libbase.c` | `cplat_sym_loader_entry` 実体の定義、配列・要素数・設定ファイル パスの実体定義、`base_sym_loader_info()` の実装 |
 
 `cplat_sym_loader_entry` の実体は `sym_loader_libbase.c` 内で `static` 変数として定義します。外部からのアクセスは `cplat_sym_loader_entry *const` ポインター経由に限定することで、直接書き換えを防いでいます。
@@ -73,7 +73,7 @@ dllmain_libbase.c  (初期化・解放)
 > +- new_func (libbase) を呼び出す <- 無限再帰
 > ```
 >
-> オーバーライド実装はオーバーライド元の関数を呼ばないよう設計してください。同様に、複数の関数をオーバーライドする場合、A のオーバーライドが B を呼び、B のオーバーライドが A を呼ぶような間接的な循環にも注意が必要です。関数を追加する際は、呼び出し経路全体を把握したうえで設計してください。
+> オーバーライド実装は、オーバーライド元の関数を呼び出さないよう設計してください。同様に、複数の関数をオーバーライドする場合、A のオーバーライド実装が B を呼び出し、B のオーバーライド実装が A を呼び出すような間接的な循環にも注意が必要です。関数を追加する際は、呼び出し経路全体を把握したうえで設計してください。
 
 ### 変更ファイルのまとめ
 

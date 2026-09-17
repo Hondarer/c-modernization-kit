@@ -3,7 +3,7 @@
 #include <string>
 #include <testfw.h>
 
-// TARGET_ARCH は識別子として定義される。文字列化には TOSTRING を使う
+// TARGET_ARCH は識別子として定義されます。文字列化には TOSTRING を使用します。
 // TARGET_ARCH is defined as an identifier token; use TOSTRING to stringify it
 #define _STRINGIFY(x) #x
 #define TOSTRING(x)   _STRINGIFY(x)
@@ -27,7 +27,7 @@ class override_sampleTest : public Test
     void SetUp() override
     {
         string workspace_root = findWorkspaceRoot();
-        ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
+        ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
 #if defined(PLATFORM_LINUX)
         binary_path = workspace_root + "/app/override-sample/prod/cbin/override-sample";
         lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/c-platform/prod/lib" +
@@ -56,11 +56,11 @@ class override_sampleTest : public Test
 
     void TearDown() override
     {
-        /* テスト後に定義ファイルを削除する */
+        /* テスト後に定義ファイルを削除します。 */
         removeConfigFile();
     }
 
-    /** 定義ファイルを削除する。存在しない場合は無視する。 */
+    /** 定義ファイルを削除します。存在しない場合は無視します。 */
     void removeConfigFile()
     {
 #if defined(PLATFORM_LINUX)
@@ -70,7 +70,7 @@ class override_sampleTest : public Test
 #endif /* PLATFORM_ */
     }
 
-    /** 指定した内容で定義ファイルを作成する。 */
+    /** 指定した内容で定義ファイルを作成します。 */
     void createConfigFile(const string &content)
     {
 #if defined(PLATFORM_LINUX)
@@ -84,9 +84,9 @@ class override_sampleTest : public Test
         fclose(fp);
     }
 
-    /** ライブラリ探索パスを設定した ProcessOptions を返す。
-     *  Linux: LD_LIBRARY_PATH に lib_path を設定する。
-     *  Windows: PATH の先頭に lib_path を追加する。 */
+    /** ライブラリ探索パスを設定した ProcessOptions を返します。
+     *  Linux: LD_LIBRARY_PATH に lib_path を設定します。
+     *  Windows: PATH の先頭に lib_path を追加します。 */
     ProcessOptions makeOpts()
     {
         ProcessOptions opts;
@@ -135,13 +135,13 @@ TEST_F(override_sampleTest, check_stdout_default)
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "sample_func: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] - 既定処理のメッセージが出力されること。
+            "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] - 既定処理のメッセージが出力されること。
     EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));                 // [確認] - ret が 0 であること。
     EXPECT_NE(string::npos, res.stdout_out.find("result: 3"));              // [確認] - result が 3 (1+2) であること。
     EXPECT_EQ(
         string::npos,
         res.stdout_out.find(
-            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの委譲が行われないこと。
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認] - 差し替え実装への委譲が行われないこと。
 }
 
 // stdout 確認テスト (定義ファイルあり)
@@ -149,7 +149,7 @@ TEST_F(override_sampleTest, check_stdout_with_config)
 {
     // Arrange
     createConfigFile(
-        "{\"sample_func\":{\"lib\":\"liboverride\",\"func\":\"override_func\"}}\n"); // [手順] - 定義ファイルを作成してオーバーライドを設定する。
+        "{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\n"); // [手順] - 定義ファイルを作成して差し替え実装を設定する。
     ProcessOptions opts = makeOpts();
 
     // Pre-Assert
@@ -163,11 +163,11 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "sample_func: 拡張処理が見つかりました。拡張処理に移譲します")); // [確認] - オーバーライドへの委譲メッセージが出力されること。
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認] - 差し替え実装への委譲メッセージが出力されること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "override_func: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認] -  オーバーライド処理のメッセージが出力されること。
+            "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認] - 差し替え実装のメッセージが出力されること。
     EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));    // [確認] - ret が 0 であること。
     EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認] - result が 2 (1*2) であること。
 }
@@ -220,11 +220,11 @@ TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
 TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除して他要因を除く。
+    removeConfigFile(); // [手順] - 定義ファイルを削除して他の要因を排除する。
     ProcessOptions opts = makeOpts();
     opts.preload_lib = mock_lib_path; // [手順] - debug_log を取得するため syslog_mock.so を挿入する。
     opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [手順] - DLLMain 診断ログ出力を有効化する。
-    opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [手順] - 一時ディレクトリを上限超過長にする。
+    opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [手順] - 一時ディレクトリを上限超過の長さにする。
 
     // Act
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - 上限超過環境で override-sample を実行する。

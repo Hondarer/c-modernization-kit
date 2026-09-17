@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- *  @file           override_func.c
- *  @brief          base ライブラリの処理をオーバーライドする関数を提供します。
+ *  @file           override_calc.c
+ *  @brief          base_calc の差し替え実装として積を計算する関数を提供します。
  *  @author         c-modenization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
- *  libbase の func から動的にロードされ呼び出されるオーバーライド関数を提供します。
+ *  libbase の base_calc から動的にロードされ、呼び出される差し替え実装を提供します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2026. All rights reserved.
  *
@@ -17,15 +17,15 @@
 #include <override/override_spec.h>
 #include <stddef.h>
 
-/* Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントはヘッダーに記述 */
 
-int override_func(const int a, const int b, int *result)
+int override_calc(const int a, const int b, int *result)
 {
     if (result == NULL)
     {
         return BASE_ERR_INVALID_ARGUMENT;
     }
-    base_console_output("override_func: a=%d, b=%d の処理 (*result = a * b;) を行います\n", a, b);
+    base_console_output("override_calc: a=%d, b=%d の処理 (*result = a * b;) を行います\n", a, b);
     *result = a * b;
     return BASE_OK;
 }
