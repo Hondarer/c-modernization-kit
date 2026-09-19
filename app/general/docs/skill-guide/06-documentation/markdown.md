@@ -42,7 +42,7 @@ Markdown を使用しているファイル:
 | `docs/skill-guide/*.md` | このスキル ガイド |
 | `docs/doxybook2/` | Doxybook2 が生成する API ドキュメント |
 | `framework/doxyfw/docs/*.md` | フレームワーク技術ドキュメント |
-| `CLAUDE.md` | Claude Code への指針 |
+| `AGENTS.md` | AI エージェントへの指針 |
 | `*/README.md` | 各サブモジュールの説明 |
 
 Table: Markdown 使用ファイル・ディレクトリ一覧
