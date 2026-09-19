@@ -8,8 +8,8 @@
 
     "strings": [
         {
-            "id": "SAMPLE_MESSAGES_ID_STARTUP_COMPLETED",
-            "key": "SAMPLE_MESSAGES_ID_0001",
+            "key": "SAMPLE_MESSAGES_KEY_STARTUP_COMPLETED",
+            "id": "SAMPLE_MESSAGES_ID_0001",
             "category": 3, // CPLAT_TRACE_LEVEL_INFO
             "brief": "起動完了。",
             "details": "既定の設定で起動したことを通知する文字列を組み立てます。",
@@ -24,8 +24,8 @@
             }
         },
         {
-            "id": "SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED",
-            "key": "SAMPLE_MESSAGES_ID_0002",
+            "key": "SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED",
+            "id": "SAMPLE_MESSAGES_ID_0002",
             "category": 1, // CPLAT_TRACE_LEVEL_ERROR
             "brief": "ファイルのオープン失敗。",
             "details": "ファイルを開けなかったことを通知する文字列を組み立てます。",
@@ -54,8 +54,8 @@
             }
         },
         {
-            "id": "SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE",
-            "key": "SAMPLE_MESSAGES_ID_0003",
+            "key": "SAMPLE_MESSAGES_KEY_MEMORY_SIGNATURE",
+            "id": "SAMPLE_MESSAGES_ID_0003",
             "category": 5, // CPLAT_TRACE_LEVEL_DEBUG
             "brief": "メモリー領域のシグネチャー。",
             "details": "メモリー領域のシグネチャーを通知する文字列を組み立てます。",
@@ -85,8 +85,8 @@
             }
         },
         {
-            "id": "SAMPLE_MESSAGES_ID_BUFFER_LIMIT",
-            "key": "SAMPLE_MESSAGES_ID_0004",
+            "key": "SAMPLE_MESSAGES_KEY_BUFFER_LIMIT",
+            "id": "SAMPLE_MESSAGES_ID_0004",
             "category": 2, // CPLAT_TRACE_LEVEL_WARNING
             "brief": "バッファー上限の超過。",
             "details": "要求サイズが上限を超えたことを通知する文字列を組み立てます。",
@@ -112,8 +112,8 @@
             }
         },
         {
-            "id": "SAMPLE_MESSAGES_ID_RECORD_MISMATCH",
-            "key": "SAMPLE_MESSAGES_ID_0005",
+            "key": "SAMPLE_MESSAGES_KEY_RECORD_MISMATCH",
+            "id": "SAMPLE_MESSAGES_ID_0005",
             "category": 1, // CPLAT_TRACE_LEVEL_ERROR
             "brief": "レコードのシグネチャー不一致。",
             "details": "レコードのシグネチャーが想定と一致しないことを通知する文字列を組み立てます。",
@@ -144,8 +144,8 @@
             }
         },
         {
-            "id": "SAMPLE_MESSAGES_ID_RETRY_SCHEDULED",
-            "key": "SAMPLE_MESSAGES_ID_0006",
+            "key": "SAMPLE_MESSAGES_KEY_RETRY_SCHEDULED",
+            "id": "SAMPLE_MESSAGES_ID_0006",
             "category": 2, // CPLAT_TRACE_LEVEL_WARNING
             "brief": "再試行のスケジュール設定。",
             "details": "接続の再試行がスケジュールされたことを通知する文字列を組み立てます。",

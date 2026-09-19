@@ -41,18 +41,18 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
 /**
  *  @brief          文字列の分類値を、トレース レベルとして読み取ります。
  *  @param[in]      catalog   参照するカタログ識別オブジェクト。NULL は指定できません。
- *  @param[in]      string_id 参照する文字列の ID。
+ *  @param[in]      string_key 参照する文字列のキー。
  *  @return         トレース レベルを返します。
  *
  *  分類値はライブラリが解釈しない `int` であり、範囲の保証がありません。\n
- *  範囲外の値やカタログに存在しない文字列 ID の 0 を
+ *  範囲外の値やカタログに存在しない文字列キーの 0 を
  *  @c CPLAT_TRACE_LEVEL_NONE へフォールバックし、表示名のインデックスとして安全に使用できるようにします。
  *
  *  分類値の意味付けは本 app の規約であるため、範囲制限処理もこの階層で行います。
  */
-static cplat_trace_level trace_level_of(const cplat_string_catalog *const catalog, const int string_id)
+static cplat_trace_level trace_level_of(const cplat_string_catalog *const catalog, const int string_key)
 {
-    const int category = cplat_string_catalog_get_category(catalog, string_id);
+    const int category = cplat_string_catalog_get_category(catalog, string_key);
 
     if ((unsigned int)category > (unsigned int)CPLAT_TRACE_LEVEL_NONE)
     {
@@ -65,37 +65,38 @@ static cplat_trace_level trace_level_of(const cplat_string_catalog *const catalo
 /**
  *  @brief          1 件の文字列を組み立てて標準出力へ表示します。
  *  @param[in]      catalog   参照するカタログ識別オブジェクト。NULL は指定できません。
- *  @param[in]      string_id 表示する文字列の ID。
- *  @param[in]      ...        文字列 ID の引数スキーマが定める順序と型の値。
+ *  @param[in]      string_key 表示する文字列のキー。
+ *  @param[in]      ...        文字列キーの引数スキーマが定める順序と型の値。
  *  @return         成功時は @c CPLAT_OK 、失敗時はライブラリの結果コードを返します。
  *
  *  可変長引数をそのまま中継するため、@c cplat_string_catalog_vformat を使用します。
  */
-static int print_string(const cplat_string_catalog *const catalog, const int string_id, ...)
+static int print_string(const cplat_string_catalog *const catalog, const int string_key, ...)
 {
     char text[CPLAT_STRING_CATALOG_TEXT_MAX];
     va_list args;
     int ret;
 
-    va_start(args, string_id);
-    ret = cplat_string_catalog_vformat(catalog, text, sizeof(text), string_id, args);
+    va_start(args, string_key);
+    ret = cplat_string_catalog_vformat(catalog, text, sizeof(text), string_key, args);
     va_end(args);
 
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 文字列 %d の組み立てに失敗しました (結果コード=%d)。\n", string_id, ret);
+        fprintf(stderr, "エラー: 文字列 %d の組み立てに失敗しました (結果コード=%d)。\n", string_key, ret);
         return ret;
     }
 
-    const char *key;
+    const char *id;
     const char *note;
     cplat_trace_level level;
 
-    key = cplat_string_catalog_get_key(catalog, string_id);
-    note = cplat_string_catalog_get_note(catalog, string_id);
-    level = trace_level_of(catalog, string_id);
+    /* ID は処理では意味を持たない補足の文字列で、省略された定義では NULL になる */
+    id = cplat_string_catalog_get_id(catalog, string_key);
+    note = cplat_string_catalog_get_note(catalog, string_key);
+    level = trace_level_of(catalog, string_key);
 
-    printf("  %s: %-8s %s\n", key, s_level_labels[(unsigned int)level], text);
+    printf("  %s: %-8s %s\n", (id != NULL) ? id : "-", s_level_labels[(unsigned int)level], text);
     printf("  %s\n\n", note);
 
     return CPLAT_OK;
@@ -112,47 +113,45 @@ static int print_all_strings(void)
     int result = CPLAT_OK;
     int ret;
 
-    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_STARTUP_COMPLETED);
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_KEY_STARTUP_COMPLETED);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, SAMPLE_PATH, 2);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret =
-        print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_MEMORY_SIGNATURE, (const void *)s_sample_object,
-                     UINT64_C(0x00000000DEADBEEF));
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_KEY_MEMORY_SIGNATURE, (const void *)s_sample_object,
+                       UINT64_C(0x00000000DEADBEEF));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_KEY_BUFFER_LIMIT, (size_t)8192U, (size_t)4096U);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42),
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_KEY_RECORD_MISMATCH, UINT32_C(42),
                        UINT32_C(0x1234ABCD));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_ID_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
+    ret = print_string(sample_messages_catalog(), SAMPLE_MESSAGES_KEY_RETRY_SCHEDULED, INT32_C(3), INT64_C(1500));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = print_string(sample_metrics_catalog(), SAMPLE_METRICS_ID_THROUGHPUT_REPORT, 12.5,
-                       UINT64_C(4000000000));
+    ret = print_string(sample_metrics_catalog(), SAMPLE_METRICS_KEY_THROUGHPUT_REPORT, 12.5, UINT64_C(4000000000));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
@@ -168,15 +167,15 @@ static int print_all_strings(void)
  */
 static int verify_catalog(const char *const catalog_name, const cplat_string_catalog *const catalog)
 {
-    int string_id = 0;
+    int string_key = 0;
     cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int ret;
 
-    ret = cplat_string_catalog_verify(catalog, &string_id, &language);
+    ret = cplat_string_catalog_verify(catalog, &string_key, &language);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: カタログ %s の定義が不正です (文字列 ID=%d、言語=%d)。\n", catalog_name,
-                string_id, (int)language);
+        fprintf(stderr, "エラー: カタログ %s の定義が不正です (文字列キー=%d、言語=%d)。\n", catalog_name, string_key,
+                (int)language);
         return ret;
     }
 

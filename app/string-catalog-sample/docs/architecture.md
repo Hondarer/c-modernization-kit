@@ -15,20 +15,20 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 
 | 利用者が用意するもの | 内容 |
 |---|---|
-| 文字列 ID の列挙 | 文字列を識別する定数です。名前と値は利用者が決めます。 |
-| カタログの配列 | `id`、`key`、分類値、`brief`、`details`、`remarks`、引数定義、言語別の書式と備考です。 |
+| 文字列キーの列挙 | 文字列を識別する定数です。名前と値は利用者が決めます。 |
+| カタログの配列 | `key`、`id`、分類値、`brief`、`details`、`remarks`、引数定義、言語別の書式と備考です。 |
 
 `brief` は必須の短い説明です。`details` と `remarks` は省略でき、設定した場合は詳細説明と利用上の補足説明として扱います。
 
 この 2 つをまとめたカタログ識別オブジェクトを、呼び出しごとに cplat へ渡します。  
-文字列 ID の型が列挙ではなく `int` であるため、利用者は任意の名前の列挙を定義し、その定数をそのまま渡せます。
+文字列キーの型が列挙ではなく `int` であるため、利用者は任意の名前の列挙を定義し、その定数をそのまま渡せます。
 
 この app では、用途を分けた 2 つのカタログをコマンド側の `prod/src/cmd/string-catalog-sample/` へ置いています。
 
 | ファイル | 内容 | 種別 |
 |---|---|---|
 | `sample_messages.jsonc` | カタログ定義の正本 | 手動作成 |
-| `gen/sample_messages.h` | 文字列 ID の列挙型、簡易関数の宣言、型付きラッパー | 自動生成 |
+| `gen/sample_messages.h` | 文字列キーの列挙型、簡易関数の宣言、型付きラッパー | 自動生成 |
 | `gen/sample_messages.c` | カタログ配列、添字テーブル、カタログ識別オブジェクト、簡易関数 | 自動生成 |
 | `sample_metrics.jsonc` | メトリクス向けカタログ定義の正本 | 手動作成 |
 | `gen/sample_metrics.h` | メトリクス向けの列挙型、簡易関数の宣言、型付きラッパー | 自動生成 |
@@ -82,11 +82,13 @@ JSON を選んだのは cJSON と Python の双方で読めるためで、コメ
 言語は cplat が定める仕様であり、カタログが増減できる項目ではないためです。  
 生成器は、書かれた言語がその一覧にあるかだけを検査します。
 
-生成器が検査するのは、定義の `id` と処理用 `key` の重複、メタデータの型、引数種別が対応表にあること、位置指定が引数個数に収まること、ニュートラル言語のリソースが欠けていないこと、宣言していない言語が現れないこと、型付きラッパー名が簡易関数名と衝突しないことです。  
+生成器が検査するのは、文字列キー `key` の重複、メタデータの型、引数種別が対応表にあること、位置指定が引数個数に収まること、ニュートラル言語のリソースが欠けていないこと、宣言していない言語が現れないこと、型付きラッパー名が簡易関数名と衝突しないことです。  
 `cplat_string_catalog_verify()` が実行時に見ている内容を、生成時へ前倒しします。
 
-`id` の値は、定義の並び順から 1 始まりで生成器が決めます。これは定義間で一意であることを前提にしますが、処理側が項目を識別する主キーには使用しません。  
-処理で安定して利用する主キーは `key` であり、定義ファイルへ明記します。定義を並べ替えても `key` は変わりません。
+`key` は処理から項目を参照する文字列キーで、列挙定数の名前になります。列挙値は、定義の並び順から 1 始まりで生成器が決めます。  
+プログラムは列挙定数の名前で参照するため、定義を並べ替えても再生成と再ビルドで追従します。列挙値そのものは並び順で変わります。
+
+`id` は処理では意味を持たない補足の文字列です。省略でき、重複も検査しません。生成器は、省略された `id` を NULL として書き出します。
 
 言語別の書式と備考は、言語をキーとした指示付き初期化子で記載します。
 
@@ -110,14 +112,14 @@ JSON を選んだのは cJSON と Python の双方で読めるためで、コメ
 | 側 | 接頭辞 | 例 |
 |---|---|---|
 | cplat | `cplat_string_catalog` | `cplat_string_catalog_format()`、`CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE` |
-| 利用者 | `sample_messages` | `sample_messages_catalog()`、`SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED` |
-| 利用者 | `sample_metrics` | `sample_metrics_catalog()`、`SAMPLE_METRICS_ID_THROUGHPUT_REPORT` |
+| 利用者 | `sample_messages` | `sample_messages_catalog()`、`SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED` |
+| 利用者 | `sample_metrics` | `sample_metrics_catalog()`、`SAMPLE_METRICS_KEY_THROUGHPUT_REPORT` |
 
 型付きラッパーの関数名も利用者側の名前空間に収めます。  
 `cplat_` を前置すると、利用者が定義した関数が cplat のリンカー名前空間を名乗ることになるためです。
 
 モジュール接頭辞は、定義ファイルの名前そのものです。  
-`sample_messages.jsonc` なら `sample_messages` になり、生成物のファイル名、カタログ指定を省略する簡易関数の名前、文字列 ID の列挙名 `sample_messages_id` がここから決まります。  
+`sample_messages.jsonc` なら `sample_messages` になり、生成物のファイル名、カタログ指定を省略する簡易関数の名前、文字列キーの列挙名 `sample_messages_key` がここから決まります。  
 C の識別子の一部になるため、英小文字で始まる snake_case だけを認めます。
 
 名前空間を移すには、定義ファイルの名前を変えます。  
@@ -136,7 +138,7 @@ C の識別子の一部になるため、英小文字で始まる snake_case だ
 
 ```c
 /* 生成される表。分類値は 1 で、CPLAT_TRACE_LEVEL_ERROR を意味する */
-{SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED,
+{SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED,
  1,
  2,
 ```
@@ -151,8 +153,8 @@ C の識別子の一部になるため、英小文字で始まる snake_case だ
 重大度、用途、出力先など、値の意味と有効な範囲は利用者が決めます。cplat は値を検査せず、保持して返すだけです。
 
 0 は分類なしを表します。  
-利用者が 0 を意味のある分類値として登録することもできますが、その場合はカタログに存在しない文字列 ID と区別できません。  
-区別が必要な場合は、先に `cplat_string_catalog_get_key()` で項目の `key` を確認します。
+利用者が 0 を意味のある分類値として登録することもできますが、その場合はカタログに存在しない文字列キーと区別できません。  
+区別が必要な場合は、先に `cplat_string_catalog_get_entry()` で項目の有無を確認します。
 
 この app では、分類値をトレース レベルとして使います。  
 値は cplat の `cplat_trace_level` と同一です。生成物は `cplat_trace_level` に依存せず、値を解釈する側だけが `<cplat/trace/tracer.h>` を include します。
@@ -171,9 +173,9 @@ C の識別子の一部になるため、英小文字で始まる snake_case だ
 ```c
 /* sample_messages.c が持つ */
 static const cplat_string_catalog s_catalog = {
-    s_entries, s_id_index, SAMPLE_MESSAGES_ENTRY_COUNT, SAMPLE_MESSAGES_ID_INDEX_COUNT};
+    s_entries, s_key_index, SAMPLE_MESSAGES_ENTRY_COUNT, SAMPLE_MESSAGES_KEY_INDEX_COUNT};
 
-int sample_messages_format(char *dest, size_t dest_size, int string_id, ...)
+int sample_messages_format(char *dest, size_t dest_size, int string_key, ...)
 {
     /* s_catalog を補って cplat_string_catalog_format() を呼び出す */
 }
@@ -186,32 +188,32 @@ cplat は状態を持たないまま、呼び出し側は 1 つのカタログ�
 簡易関数の名前はモジュール接頭辞のままです。  
 `sample_messages_get_category()` のように cplat 側の動詞を写さないのは、この関数群が特定のカタログに固有の利用側 API であるためです。
 
-生成物には、文字列 ID から項目全体を取得する `sample_messages_entry()` も含まれます。  
+生成物には、文字列キーから項目全体を取得する `sample_messages_entry()` も含まれます。  
 返された項目から、説明文、引数の名前と説明、分類値、書式、備考をまとめて参照できます。
 
-## 文字列 ID ごとの型付きラッパー
+## 文字列キーごとの型付きラッパー
 
 可変長引数を取る関数では、引数の個数や型をコンパイラが検査できません。  
 書式と引数スキーマがカタログの中にあり、書式文字列が呼び出しの実引数ではないためです。  
 `printf` に付けられる `format` 属性も、付ける先の引数が無いため使えません。
 
-そこで、文字列 ID ごとに引数の型を固定したラッパーを生成物へ並べます。  
+そこで、文字列キーごとに引数の型を固定したラッパーを生成物へ並べます。  
 通常のプロトタイプ検査が働き、Doxygen コメントによって利用者は各引数の意味をインテリセンス上で参照できます。
 
 ```c
-static inline int sample_messages_id_file_open_failed(char *dest, size_t dest_size,
-                                                      const char *file_path, int error_code);
+static inline int sample_messages_key_file_open_failed(char *dest, size_t dest_size,
+                                                       const char *file_path, int error_code);
 ```
 
-関数名は文字列 ID から機械的に導出します。文字列 ID の定数名を小文字化しただけの名前です。  
+関数名は文字列キーから機械的に導出します。文字列キーの定数名を小文字化しただけの名前です。  
 導出は生成器の `wrapper_name()` が行い、`test_string_catalog_gen.py` が規則を固定しています。
 
 ```text
-SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED
-  → 小文字化 → sample_messages_id_file_open_failed
+SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED
+  → 小文字化 → sample_messages_key_file_open_failed
 ```
 
-文字列 ID の定数名にモジュール接頭辞を含めるため、ラッパー名は自然に利用者側の名前空間へ収まります。  
+文字列キーの定数名にモジュール接頭辞を含めるため、ラッパー名は自然に利用者側の名前空間へ収まります。  
 同じ生成物が出す簡易関数 (`sample_messages_format()` など) と名前が衝突する定数名は、生成器が定義の誤りとして弾きます。
 
 語の除去や入れ替えは行わないため、規則に例外がありません。  
@@ -220,7 +222,7 @@ SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED
 引数の型は、引数種別から cplat の公開ヘッダー `cplat/string_catalog/argument.h` の対応表で決まります。  
 引数名と説明は生成元の定義が持つ情報であり、生成されたカタログの引数定義へ保持されます。
 
-`static inline` とするのは、実体を持つ翻訳単位を増やさず、文字列 ID の数だけ公開シンボルが増えることを避けるためです。  
+`static inline` とするのは、実体を持つ翻訳単位を増やさず、文字列キーの数だけ公開シンボルが増えることを避けるためです。  
 関数形式マクロは採用しません。展開後が可変長引数の呼び出しのままで、型検査が働かないためです。  
 `static_assert` をマクロへ組み込む形も採れません。`static_assert` は宣言であって式ではなく、値を返す形にするには GNU 文式が必要で、[コーディング規範](../../general/docs/coding-guideline.md) が MSVC 非対応を理由に禁止しています。
 
@@ -231,18 +233,18 @@ SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED
 
 ## 添字表による探索
 
-文字列 ID からカタログを引く探索は、既定では線形探索です。  
-利用者は、文字列 ID を添字としてカタログの添字を引く表を添えられます。
+文字列キーからカタログを引く探索は、既定では線形探索です。  
+利用者は、文字列キーを添字としてカタログの添字を引く表を添えられます。
 
 ```text
-cplat_string_catalog = {entries, id_index, entry_count, id_index_count}
+cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 
-  id_index[string_id] -> entries の添字 (未登録は負の値)
+  key_index[string_key] -> entries の添字 (未登録は負の値)
 ```
 
 添字テーブルを渡すことで、線形探索からインデックス参照へ置き換えます。  
-文字列 ID が小さい非負整数である場合に使用できます。  
-文字列 ID が添字テーブルの範囲を超える場合は、線形探索へフォールバックします。
+文字列キーが小さい非負整数である場合に使用できます。  
+文字列キーが添字テーブルの範囲を超える場合は、線形探索へフォールバックします。
 
 生成器は添字表も書き出すため、利用側が手で整合を保つ必要はありません。  
 `cplat_string_catalog_verify()` は、各文字列が添字表を通して自分自身へ到達することも確認します。
@@ -253,7 +255,7 @@ cplat_string_catalog = {entries, id_index, entry_count, id_index_count}
 カタログは静的に確定するため、点検は起動時に一度実行すれば十分です。  
 複数のカタログを使う場合は、カタログごとに点検します。
 
-点検では、`id` と処理用 `key` の未設定または重複、項目メタデータと引数定義の欠落も確認します。項目を取得したあとの処理では、`id` を業務上の識別子として扱わず、`key` を使用します。
+点検では、文字列キーの重複、項目メタデータと引数定義の欠落も確認します。`id` は処理では意味を持たないため、未設定と重複を確認しません。
 
 サンプル コマンドは、起動直後に `sample_messages` と `sample_metrics` の両方を点検します。  
 不正が検出された場合はエラー終了します。

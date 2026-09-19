@@ -25,51 +25,49 @@ class catalogIntegrationTest : public Test
 TEST_F(catalogIntegrationTest, injected_catalog_is_consistent)
 {
     // Arrange
-    int string_id = SAMPLE_MESSAGES_ID_STARTUP_COMPLETED;
+    int string_key = SAMPLE_MESSAGES_KEY_STARTUP_COMPLETED;
     cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int actual_ret;
 
     // Pre-Assert
 
     // Act
-    actual_ret = cplat_string_catalog_verify(sample_messages_catalog(), &string_id,
+    actual_ret = cplat_string_catalog_verify(sample_messages_catalog(), &string_key,
                                              &language); // [手順] - 注入したカタログ全体を確認する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - すべての書式が引数スキーマと整合していること。
 }
 
-// 文字列定義の key、レベル、備考を参照できることの確認
+// 文字列定義の ID、レベル、備考を参照できることの確認
 TEST_F(catalogIntegrationTest, metadata)
 {
     // Arrange
-    const char *actual_key;
+    const char *actual_id;
     const char *actual_note;
-    const char *actual_unknown_key;
+    const char *actual_unknown_id;
     int actual_category;
 
     // Pre-Assert
 
     // Act
-    actual_key = cplat_string_catalog_get_key(
-        sample_messages_catalog(),
-        SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 処理用キーを取得する。
+    actual_id = cplat_string_catalog_get_id(sample_messages_catalog(),
+                                            SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - ID を取得する。
     actual_note = cplat_string_catalog_get_note(sample_messages_catalog(),
-                                                SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 備考を取得する。
+                                                SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 備考を取得する。
     actual_category =
         cplat_string_catalog_get_category(sample_messages_catalog(),
-                                          SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_unknown_key =
-        cplat_string_catalog_get_key(sample_messages_catalog(),
-                                     0); // [手順] - 未登録の文字列 ID で処理用キーを取得する。
+                                          SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
+    actual_unknown_id = cplat_string_catalog_get_id(sample_messages_catalog(),
+                                                    0); // [手順] - 未登録の文字列キーで ID を取得する。
 
     // Assert
-    ASSERT_NE(nullptr, actual_key); // [確認_正常系] - 処理用キーを取得できること。
-    ASSERT_NE(nullptr, actual_note);                         // [確認_正常系] - 備考を取得できること。
-    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_key); // [確認_正常系] - 処理用キーが一致すること。
-    EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category);     // [確認_正常系] - カタログの分類値が一致すること。
-    EXPECT_LT(0U, strlen(actual_note));                      // [確認_正常系] - 備考が空でないこと。
-    EXPECT_EQ(nullptr, actual_unknown_key); // [確認_異常系] - 未登録の文字列 ID では NULL を返すこと。
+    ASSERT_NE(nullptr, actual_id);                       // [確認_正常系] - ID を取得できること。
+    ASSERT_NE(nullptr, actual_note);                     // [確認_正常系] - 備考を取得できること。
+    EXPECT_STREQ("SAMPLE_MESSAGES_ID_0002", actual_id);  // [確認_正常系] - ID が一致すること。
+    EXPECT_EQ(CPLAT_TRACE_LEVEL_ERROR, actual_category); // [確認_正常系] - カタログの分類値が一致すること。
+    EXPECT_LT(0U, strlen(actual_note));                  // [確認_正常系] - 備考が空でないこと。
+    EXPECT_EQ(nullptr, actual_unknown_id);               // [確認_異常系] - 未登録の文字列キーでは NULL を返すこと。
 }
 
 // 波括弧のエスケープを含む文字列を組み立てられることの確認
@@ -83,7 +81,7 @@ TEST_F(catalogIntegrationTest, escaped_braces)
     // Act
     actual_ret = cplat_string_catalog_format(
         sample_messages_catalog(), dest, sizeof(dest),
-        SAMPLE_MESSAGES_ID_STARTUP_COMPLETED); // [手順] - 引数を取らない文字列を日本語で組み立てる。
+        SAMPLE_MESSAGES_KEY_STARTUP_COMPLETED); // [手順] - 引数を取らない文字列を日本語で組み立てる。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 戻り値が CPLAT_OK であること。
@@ -102,7 +100,7 @@ TEST_F(catalogIntegrationTest, neutral_language)
 
     // Act
     actual_ret = cplat_string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
-                                             SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
+                                             SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
                                              2); // [手順] - ニュートラル言語で文字列を組み立てる。
 
     // Assert
@@ -111,7 +109,7 @@ TEST_F(catalogIntegrationTest, neutral_language)
                  dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。
 }
 
-// 引数の型と表現が文字列 ID 側で決まることの確認
+// 引数の型と表現が文字列キー側で決まることの確認
 TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
 {
     // Arrange
@@ -125,12 +123,12 @@ TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
 
     // Act
     actual_ret_japanese = cplat_string_catalog_format(
-        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
+        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
         2); // [手順] - ファイル オープン失敗の文字列を日本語で組み立てる。
 
     cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
     actual_ret_english = cplat_string_catalog_format(sample_messages_catalog(), english_dest, sizeof(english_dest),
-                                                     SAMPLE_MESSAGES_ID_FILE_OPEN_FAILED, "config.json",
+                                                     SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
                                                      2); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
 
     // Assert
@@ -157,13 +155,14 @@ TEST_F(catalogIntegrationTest, language_changes_order_only)
 
     // Act
     actual_ret_japanese = cplat_string_catalog_format(
-        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42),
+        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_KEY_RECORD_MISMATCH, UINT32_C(42),
         UINT32_C(0x1234ABCD)); // [手順] - レコード不一致の文字列を日本語で組み立てる。
 
     cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
-    actual_ret_english = cplat_string_catalog_format(
-        sample_messages_catalog(), english_dest, sizeof(english_dest), SAMPLE_MESSAGES_ID_RECORD_MISMATCH, UINT32_C(42),
-        UINT32_C(0x1234ABCD)); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
+    actual_ret_english =
+        cplat_string_catalog_format(sample_messages_catalog(), english_dest, sizeof(english_dest),
+                                    SAMPLE_MESSAGES_KEY_RECORD_MISMATCH, UINT32_C(42),
+                                    UINT32_C(0x1234ABCD)); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -185,7 +184,7 @@ TEST_F(catalogIntegrationTest, repeated_placeholder)
 
     // Act
     actual_ret = cplat_string_catalog_format(
-        sample_metrics_catalog(), dest, sizeof(dest), SAMPLE_METRICS_ID_THROUGHPUT_REPORT, 12.5,
+        sample_metrics_catalog(), dest, sizeof(dest), SAMPLE_METRICS_KEY_THROUGHPUT_REPORT, 12.5,
         UINT64_C(4000000000)); // [手順] - 同じ位置指定を 2 回含む文字列を組み立てる。
 
     // Assert
