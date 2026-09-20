@@ -7,4 +7,5 @@ LIBS += cplat
 # ここではリテラル gen を使う。
 GENDIR_EXTRA_C += \
 	gen/sample_messages.c \
-	gen/sample_metrics.c
+	gen/sample_metrics.c \
+	gen/sample_trace.c

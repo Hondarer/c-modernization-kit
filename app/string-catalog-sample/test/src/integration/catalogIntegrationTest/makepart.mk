@@ -2,7 +2,8 @@
 # 個々のソースは単体テストがカバレッジを充足するため、TEST_SRCS は宣言しない
 ADD_SRCS := \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen/sample_messages.c \
-	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen/sample_metrics.c
+	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen/sample_metrics.c \
+	$(MYAPP_DIR)/prod/src/cmd/string-catalog-sample/gen/sample_trace.c
 
 # 生成物と、手書きの分類値ヘッダーの探索パス
 INCDIR += \

@@ -1,0 +1,92 @@
+// 文字列カタログの定義です。
+// このファイルから gen/ 配下の生成物が出力されます。生成物を直接編集しないでください。
+// 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
+//
+// kind に trace を指定したトレース種別の定義です。
+// 生成物は、呼び出し位置を付けてトレースへ出力する関数形式マクロを提供します。
+// 分類値は level へトレース レベルの名前で書き、生成器が整数へ変換します。
+{
+    "kind": "trace",
+    "author": "Tetsuo Honda",
+    "date": "2026/09/20",
+    "version": "1.0.0",
+
+    "strings": [
+        {
+            "key": "SAMPLE_TRACE_KEY_SERVICE_STARTED",
+            "id": "SAMPLE_TRACE_ID_0001",
+            "level": "INFO",
+            "brief": "サービスの開始。",
+            "details": "運用上の節目となる出来事のため、常時記録の対象となる INFO とします。",
+            "arguments": [],
+            "texts": {
+                "neutral": "The service has started.",
+                "japanese": "サービスを開始しました。"
+            },
+            "notes": {
+                "neutral": "This record marks a milestone of the service lifecycle.",
+                "japanese": "サービスの節目を示す記録です。"
+            }
+        },
+        {
+            "key": "SAMPLE_TRACE_KEY_FILE_OPEN_FAILED",
+            "id": "SAMPLE_TRACE_ID_0002",
+            "level": "ERROR",
+            "brief": "ファイルのオープン失敗。",
+            "details": "対処が必要な事象のため ERROR とします。",
+            "arguments": [
+                {
+                    "kind": "STRING",
+                    "name": "file_path",
+                    "description": "開けなかったファイルのパス。"
+                },
+                {
+                    "kind": "ERROR_CODE",
+                    "name": "error_code",
+                    "description": "errno または Win32 のエラー コード。"
+                }
+            ],
+            "texts": {
+                "neutral": "Failed to open file {0}. Error code={1}",
+                "japanese": "ファイル {0} を開けませんでした。エラー コード={1}"
+            },
+            "notes": {
+                "neutral": "The path is emitted as given by the caller.",
+                "japanese": "パスは呼び出し側が渡した表記のまま出力します。"
+            }
+        },
+        {
+            "key": "SAMPLE_TRACE_KEY_RECORD_PARSED",
+            "id": "SAMPLE_TRACE_ID_0003",
+            "level": "VERBOSE",
+            "brief": "レコードの解析。",
+            "details": "1 件ごとに発生し量が多くなるため、調査のときだけ有効にする VERBOSE とします。",
+            "arguments": [
+                {
+                    "kind": "UINT32",
+                    "name": "record_index",
+                    "description": "解析したレコードの番号。"
+                },
+                {
+                    "kind": "SIZE",
+                    "name": "byte_count",
+                    "description": "解析したレコードのバイト数。"
+                }
+            ],
+            "texts": {
+                "neutral": "Parsed record {0} ({1} bytes).",
+                "japanese": "レコード {0} を解析しました ({1} バイト)。"
+            },
+            "notes": {
+                "neutral": [
+                    "The call site and the runtime context are passed as arguments from index 40.",
+                    "The format can reference them when the output needs to carry them."
+                ],
+                "japanese": [
+                    "呼び出し位置と実行文脈は、40 番からの引数として渡されます。",
+                    "出力へ含める必要が生じた場合は、書式から位置指定で参照できます。"
+                ]
+            }
+        }
+    ]
+}

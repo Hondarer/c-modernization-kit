@@ -20,6 +20,7 @@
 
 #include "gen/sample_messages.h"
 #include "gen/sample_metrics.h"
+#include "gen/sample_trace.h"
 
 #include <cplat/console/console.h>
 #include <cplat/string_catalog/string_catalog.h>
@@ -161,6 +162,116 @@ static int print_all_strings(void)
 }
 
 /**
+ *  @brief          トレーサーの出力先を、標準エラー出力だけに設定します。
+ *  @param[in]      tracer 設定するトレーサー ハンドル。NULL は指定できません。
+ *  @return         成功時は @c CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
+ *
+ *  既定ではファイル出力が有効で、Windows では ETW も有効です。\n
+ *  本サンプルは画面で結果を確認するためのものであり、ログ ファイルや OS のログ基盤へ
+ *  記録を残す必要がないため、標準エラー出力以外の出力先をすべて無効にします。
+ *
+ *  OS のログ基盤は既定で無効ですが、既定値に依存せず明示します。\n
+ *  出力先の設定を読めば、このコマンドが何を出力するかが分かるようにするためです。
+ */
+static int configure_stderr_only(cplat_tracer *const tracer)
+{
+    int ret;
+
+    ret = cplat_tracer_set_file_level(tracer, NULL, CPLAT_TRACE_LEVEL_NONE, 0U, 0, 0);
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: ファイル出力を無効にできませんでした。\n");
+        return ret;
+    }
+
+    ret = cplat_tracer_set_os_level(tracer, CPLAT_TRACE_LEVEL_NONE);
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: OS のログ基盤への出力を無効にできませんでした。\n");
+        return ret;
+    }
+
+    ret = cplat_tracer_set_etw_level(tracer, CPLAT_TRACE_LEVEL_NONE);
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: ETW への出力を無効にできませんでした。\n");
+        return ret;
+    }
+
+    /* 既定では標準エラー出力が無効のため、サンプルが観測できる詳細度まで下げる */
+    ret = cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_VERBOSE);
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
+        return ret;
+    }
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          トレース種別のカタログから、トレースへ出力します。
+ *  @return         成功時は @c CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
+ *
+ *  トレース種別の生成物は、呼び出し位置を付けて出力する関数形式マクロを提供します。\n
+ *  文字列リソース種別との違いは、先頭の引数が格納先ではなくトレーサーのハンドルであることだけです。
+ *
+ *  呼び出し位置と実行文脈は引数として渡りますが、本サンプルの書式は位置指定を持たないため、
+ *  組み立てた文字列には現れません。\n
+ *  出力へ含める場合は、カタログ定義の書式へ 40 番からの位置指定を追加します。
+ */
+static int write_traces(void)
+{
+    cplat_tracer *tracer;
+    int result = CPLAT_OK;
+    int ret;
+
+    tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
+    if (tracer == NULL)
+    {
+        fprintf(stderr, "エラー: トレーサーを生成できませんでした。\n");
+        return CPLAT_ERR_UNKNOWN;
+    }
+
+    ret = configure_stderr_only(tracer);
+    if (ret != CPLAT_OK)
+    {
+        cplat_tracer_dispose(&tracer);
+        return ret;
+    }
+
+    ret = cplat_tracer_start(tracer);
+    if (ret != CPLAT_OK)
+    {
+        cplat_tracer_dispose(&tracer);
+        fprintf(stderr, "エラー: トレースを開始できませんでした。\n");
+        return ret;
+    }
+
+    ret = sample_trace_key_service_started(tracer);
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
+    {
+        result = ret;
+    }
+
+    ret = sample_trace_key_file_open_failed(tracer, SAMPLE_PATH, 2);
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
+    {
+        result = ret;
+    }
+
+    ret = sample_trace_key_record_parsed(tracer, UINT32_C(42), (size_t)512U);
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
+    {
+        result = ret;
+    }
+
+    cplat_tracer_dispose(&tracer);
+
+    return result;
+}
+
+/**
  *  @brief          カタログの整合を確認し、結果を表示します。
  *  @return         整合している場合は @c CPLAT_OK 、
  *                  不正がある場合は @c CPLAT_ERR_MALFORMED_DEFINITION を返します。
@@ -211,6 +322,12 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    ret = verify_catalog("sample_trace", sample_trace_catalog());
+    if (ret != CPLAT_OK)
+    {
+        return EXIT_FAILURE;
+    }
+
     ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
     if (ret != CPLAT_OK)
     {
@@ -248,6 +365,21 @@ int main(int argc, char *argv[])
 
     printf("\n[English]\n\n");
     ret = print_all_strings();
+    if (ret != CPLAT_OK)
+    {
+        return EXIT_FAILURE;
+    }
+
+    /* トレースの出力言語も、文字列の組み立てと同じプロセスの設定に従う */
+    ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
+        return EXIT_FAILURE;
+    }
+
+    printf("\n[トレース出力]\n\n");
+    ret = write_traces();
     if (ret != CPLAT_OK)
     {
         return EXIT_FAILURE;

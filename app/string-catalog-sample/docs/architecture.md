@@ -162,8 +162,39 @@ C の識別子の一部になるため、英小文字で始まる snake_case だ
 範囲外の値は、コマンドの `trace_level_of()` が `CPLAT_TRACE_LEVEL_NONE` へ切り詰めます。  
 意味付けを行う階層で切り詰めるため、cplat とそのテストは分類値の範囲を確認しません。
 
-この app はトレースの出力機構を持ちません。  
+文字列リソース種別では、この app はトレースの出力機構を持ちません。  
 レベルは、利用側が出力先や絞り込みを決めるための情報として保持します。
+
+トレース種別のカタログでは、分類値の書き方が変わります。  
+定義には整数ではなく `level` へトレース レベルの名前を書き、生成器が対応する整数へ変換して分類値に格納します。  
+名前で書くのは、トレース種別の生成物が分類値をトレース レベルとして解釈し、出力先へ渡すためです。
+
+## トレース種別のカタログ
+
+`sample_trace.jsonc` は、`kind` に `trace` を指定したトレース種別の定義です。  
+生成物は、組み立てた文字列をトレースへ出力する入口を提供します。
+
+文字列リソース種別との違いは、次の 3 点です。
+
+- 先頭の引数が、文字列の格納先ではなくトレーサーのハンドルになります
+- 呼び出し位置と実行文脈が、引数配列の 40 番から 6 個の引数として渡ります
+- 分類値を `level` へトレース レベルの名前で書き、生成器が整数へ変換します
+
+呼び出し側から見た引数の並びは、両方の種別で一致します。
+
+```c
+/* 文字列リソース種別 */
+sample_messages_key_file_open_failed(text, sizeof(text), "config.json", 2);
+
+/* トレース種別 */
+sample_trace_key_file_open_failed(tracer, "config.json", 2);
+```
+
+文脈引数は `source_file_path`、`source_file_name`、`source_line`、`function_name`、`process_id`、`thread_id` です。  
+前の 4 つは呼び出し位置で確定するため関数形式マクロが渡し、残る 2 つは実行時の値のため型付きラッパーの内部で取得します。
+
+書式が文脈引数の位置指定を持たない場合、組み立てた文字列に文脈値は現れません。  
+出力へ含める必要が生じた場合は、定義の書式へ 40 番からの位置指定を追加します。実装の変更は不要です。
 
 ## カタログ指定を省略する簡易関数
 
@@ -203,6 +234,18 @@ cplat は状態を持たないまま、呼び出し側は 1 つのカタログ�
 ```c
 static inline int sample_messages_key_file_open_failed(char *dest, size_t dest_size,
                                                        const char *file_path, int error_code);
+```
+
+トレース種別では、同じ名前を関数形式マクロとして出力します。  
+呼び出し位置は展開の位置で確定する必要があり、`__FILE__` と `__LINE__` と `__func__` をマクロでしか取得できないためです。  
+マクロは引数を `static inline` の `_with_source` 関数へ渡すだけで、引数の個数と型の検査はその関数のプロトタイプが行います。
+
+```c
+static inline int sample_trace_key_file_open_failed_with_source(cplat_tracer *tracer, const char *file_path,
+                                                                const int error_code, ...);
+
+#define sample_trace_key_file_open_failed(tracer, file_path, error_code) \
+    sample_trace_key_file_open_failed_with_source((tracer), (file_path), (error_code), __FILE__, ...)
 ```
 
 関数名は文字列キーから機械的に導出します。文字列キーの定数名を小文字化しただけの名前です。  
