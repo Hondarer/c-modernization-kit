@@ -252,13 +252,21 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
                                            SAMPLE_TRACE_KEY_FILE_OPEN_FAILED); // [手順] - 項目を取得する。
 
     // Assert
-    ASSERT_NE(nullptr, entry);           // [確認_正常系] - 項目を取得できること。
-    EXPECT_EQ(46, entry->argument_count); // [確認_正常系] - 文脈引数の末尾までを含む要素数であること。
+    ASSERT_NE(nullptr, entry); // [確認_正常系] - 項目を取得できること。
+    EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_MAX,
+              entry->argument_count); // [確認_正常系] - 文脈引数のために予約した番号空間の全体を確保すること。
     EXPECT_STREQ("file_path", entry->arguments[0].name); // [確認_正常系] - 利用者の引数が 0 番から並ぶこと。
     EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,
               entry->arguments[2].kind); // [確認_正常系] - 利用者の引数と文脈引数の間が未使用であること。
     EXPECT_STREQ("source_file_path", entry->arguments[40].name); // [確認_正常系] - 文脈引数が 40 番から並ぶこと。
-    EXPECT_STREQ("thread_id", entry->arguments[45].name);        // [確認_正常系] - 文脈引数の末尾が 45 番であること。
+    EXPECT_STREQ("thread_id", entry->arguments[45].name); // [確認_正常系] - cplat が定める文脈引数の末尾が 45 番であること。
+
+    // 本カタログは app が定める文脈引数を持たないため、46 番から 49 番は予約された空きとなる。
+    for (int index = 46; index < CPLAT_STRING_CATALOG_ARGUMENT_MAX; index++)
+    {
+        EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,
+                  entry->arguments[index].kind); // [確認_正常系] - 予約した番号が未使用のまま残ること。
+    }
 }
 
 // 型付きラッパーのマクロが、トレースへ出力することの確認

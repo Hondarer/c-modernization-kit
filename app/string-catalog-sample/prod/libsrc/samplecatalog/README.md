@@ -61,5 +61,9 @@ short-title: "samplecatalog"
 そのため `samplecatalog_next_sequence_number()` はライブラリの外部へ公開します。
 公開を忘れると、利用側のリンクが失敗します。
 
+`{47}` から `{49}` は、記載していなくても引数配列に確保されます。
+文脈引数を追加する場合は、`catalog_settings.jsonc` の `arguments` へ続けて記載してください。
+ただし公開したカタログでは、増減が利用側のバイナリに対する非互換の変更になるため、再コンパイルが必要です。
+
 出力の要求ごとに評価され、並行して呼ばれるため、待ち合わせを含めない不可分な加算で更新します。
 GCC では `__atomic_add_fetch`、MSVC では `InterlockedIncrement` を使用します。
