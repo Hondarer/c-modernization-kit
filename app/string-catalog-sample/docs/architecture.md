@@ -374,6 +374,7 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 |---|---|---|
 | `sampleMessagesTest` | `test/src/cmd/` | コマンドが用意するカタログと添字表 |
 | `exportTest` | `test/src/libsamplecatalog/` | ライブラリが実際に公開するシンボルの一覧とシグネチャ |
+| `contextTest` | `test/src/libsamplecatalog/` | app が定める文脈引数として渡す連番の巡回 |
 | `catalogIntegrationTest` | `test/src/integration/` | コマンドのカタログと cplat の組み立てを結合した確認 |
 
 `sampleMessagesTest` を `test/src/cmd/` に置くのは、対象がライブラリではなく、コマンドが用意するソースであるためです。  
@@ -402,3 +403,23 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 外部との契約になるのは、文字列キーの値と名前、引数の個数と型、分類値、および `id` です。  
 書式と備考の文言は契約に含まれないため、ライブラリの再ビルドだけで変更できます。  
 設計の根拠は [ライブラリのカタログを外部へ公開する設計](../../c-platform/docs/proposals/string-catalog-export-design.md) を参照してください。
+
+## app が定める文脈引数
+
+トレース種別のカタログ項目は、呼び出し位置と実行文脈を文脈引数として自動的に受け取ります。
+`{40}` から `{45}` までの 6 個は cplat が定め、`{46}` から 4 個までを app が定められます。
+
+この app では、`catalog_settings.jsonc` の `context` 節で 1 個を追加しています。
+
+| 位置指定 | 引数名 | 引数種別 | 取得式 |
+|---|---|---|---|
+| `{46}` | `sequence_number` | `INT32` | `samplecatalog_next_sequence_number()` |
+
+取得式は書式から参照した場合だけ意味を持ちますが、評価そのものは出力の要求ごとに行われます。
+そのため、取得処理は軽量、非失敗、スレッド セーフである必要があります。
+
+公開するカタログでは、取得関数もライブラリの外部へ公開します。
+取得式は生成ヘッダーの `static inline` の中で展開され、利用側のコンパイル単位から呼ばれるためです。
+実行結果では、ライブラリの内部からの出力と利用側からの出力に、通し番号として連番が現れます。
+
+設計の根拠は [app 固有の文脈引数の設計](../../c-platform/docs/proposals/string-catalog-context-extension-design.md) を参照してください。

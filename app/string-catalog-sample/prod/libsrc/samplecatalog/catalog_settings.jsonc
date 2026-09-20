@@ -4,9 +4,24 @@
 // export は、カタログをライブラリの外部へ公開する場合の装飾を決めます。
 // prefix からエクスポート マクロと呼び出し規約マクロの名前を導き、header をその定義元とします。
 // 名前の導出は cplat/base/dll_exports.h の CPLAT_DLL_EXPORT(prefix) と同じ規約です。
+//
+// context は、この app が定める文脈引数です。トレース種別のカタログにだけ効きます。
+// cplat が定める 6 個 ({40}-{45}) の後ろ、{46} から記載順に割り当てられます。
+// 取得式は出力の要求ごとに評価されるため、軽量かつ失敗せず、スレッド セーフである必要があります。
 {
     "export": {
         "prefix": "SAMPLECATALOG",
         "header": "samplecatalog/samplecatalog_export.h"
+    },
+    "context": {
+        "headers": ["samplecatalog/samplecatalog_context.h"],
+        "arguments": [
+            {
+                "name": "sequence_number",
+                "kind": "INT32",
+                "description": "出力ごとに 1 から順に増え、上限に達すると 1 へ戻る試験用の連番。",
+                "inline_value": "samplecatalog_next_sequence_number()"
+            }
+        ]
     }
 }

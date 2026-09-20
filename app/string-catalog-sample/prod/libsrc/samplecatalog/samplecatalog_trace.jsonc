@@ -28,8 +28,8 @@
                 }
             ],
             "texts": {
-                "neutral": "The library has initialized {0} catalogs.",
-                "japanese": "ライブラリは {0} 件のカタログを初期化しました。"
+                "neutral": "#{46} The library has initialized {0} catalogs.",
+                "japanese": "#{46} ライブラリは {0} 件のカタログを初期化しました。"
             },
             "notes": {
                 "neutral": "The destination tracer is set by the caller of the library.",
@@ -79,12 +79,18 @@
                 }
             ],
             "texts": {
-                "neutral": "Looked up item {0} from pid {44}.",
-                "japanese": "項目 {0} をプロセス {44} から探索しました。"
+                "neutral": "#{46} Looked up item {0} from pid {44}.",
+                "japanese": "#{46} 項目 {0} をプロセス {44} から探索しました。"
             },
             "notes": {
-                "neutral": "The process id is a context argument that the generator appends.",
-                "japanese": "プロセス ID は、生成器が付け加える文脈引数です。"
+                "neutral": [
+                    "The process id is a context argument that cplat defines.",
+                    "The leading number is a context argument that this app defines, assigned from index 46."
+                ],
+                "japanese": [
+                    "プロセス ID は、cplat が定める文脈引数です。",
+                    "先頭の番号は、この app が定める文脈引数で、46 番から割り当てられます。"
+                ]
             }
         }
     ]

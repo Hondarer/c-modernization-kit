@@ -2,11 +2,13 @@
 
 #include <cstdarg>
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <set>
 #include <string>
 
 #include <samplecatalog/samplecatalog.h>
+#include <samplecatalog/samplecatalog_context.h>
 #include <samplecatalog/samplecatalog_messages.h>
 #include <samplecatalog/samplecatalog_trace.h>
 
@@ -17,9 +19,14 @@
 // カタログの生成物は、カタログ定義の export が定める公開範囲に従って装飾される。
 // 公開範囲 api では、戻り値が cplat の構造体を指す関数 (_catalog、_entries、_entry、
 // _key_index、_key_index_count) と、提供元の責務である _verify を公開しない。
+//
+// samplecatalog_next_sequence_number は app が定める文脈引数の取得式であり、
+// 生成ヘッダーの static inline の中で展開される。利用側のコンパイル単位から
+// 呼ばれるため、公開が必須となる。
 #define SAMPLECATALOG_EXPORT_FUNCTION_TABLE(EXPORT_ENTRY) \
     EXPORT_ENTRY(samplecatalog_initialize, int(SAMPLECATALOG_API *)(cplat_tracer *)) \
     EXPORT_ENTRY(samplecatalog_find_item, int(SAMPLECATALOG_API *)(const char *, char *, size_t)) \
+    EXPORT_ENTRY(samplecatalog_next_sequence_number, int32_t(SAMPLECATALOG_API *)(void)) \
     EXPORT_ENTRY(samplecatalog_messages_entry_count, int(SAMPLECATALOG_API *)(void)) \
     EXPORT_ENTRY(samplecatalog_messages_format, int(SAMPLECATALOG_API *)(char *, size_t, int, ...)) \
     EXPORT_ENTRY(samplecatalog_messages_vformat, int(SAMPLECATALOG_API *)(char *, size_t, int, va_list)) \
