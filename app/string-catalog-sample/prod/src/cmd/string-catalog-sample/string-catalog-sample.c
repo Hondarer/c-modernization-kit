@@ -162,62 +162,22 @@ static int print_all_strings(void)
 }
 
 /**
- *  @brief          トレーサーの出力先を、標準エラー出力だけに設定します。
- *  @param[in]      tracer 設定するトレーサー ハンドル。NULL は指定できません。
- *  @return         成功時は @c CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
- *
- *  本サンプルは画面で結果を確認するためのものであり、ログ ファイルや OS のログ基盤へ
- *  記録を残す必要がないため、標準エラー出力だけを有効にします。
- *
- *  出力先は既定でいずれも無効ですが、既定値に依存せず無効も明示します。\n
- *  出力先の設定を読めば、このコマンドが何を出力するかが分かるようにするためです。
- */
-static int configure_stderr_only(cplat_tracer *const tracer)
-{
-    int ret;
-
-    ret = cplat_tracer_set_file_level(tracer, NULL, CPLAT_TRACE_LEVEL_NONE, 0U, 0, 0);
-    if (ret != CPLAT_OK)
-    {
-        fprintf(stderr, "エラー: ファイル出力を無効にできませんでした。\n");
-        return ret;
-    }
-
-    ret = cplat_tracer_set_os_level(tracer, CPLAT_TRACE_LEVEL_NONE);
-    if (ret != CPLAT_OK)
-    {
-        fprintf(stderr, "エラー: OS のログ基盤への出力を無効にできませんでした。\n");
-        return ret;
-    }
-
-    ret = cplat_tracer_set_etw_level(tracer, CPLAT_TRACE_LEVEL_NONE);
-    if (ret != CPLAT_OK)
-    {
-        fprintf(stderr, "エラー: ETW への出力を無効にできませんでした。\n");
-        return ret;
-    }
-
-    /* 既定では標準エラー出力が無効のため、サンプルが観測できる詳細度まで下げる */
-    ret = cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_VERBOSE);
-    if (ret != CPLAT_OK)
-    {
-        fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
-        return ret;
-    }
-
-    return CPLAT_OK;
-}
-
-/**
  *  @brief          トレース種別のカタログから、トレースへ出力します。
  *  @return         成功時は @c CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
  *
  *  トレース種別の生成物は、呼び出し位置を付けて出力する関数形式マクロを提供します。\n
- *  文字列リソース種別との違いは、先頭の引数が格納先ではなくトレーサーのハンドルであることだけです。
+ *  出力先はカタログが保持するため、出力の前に @c sample_trace_set_tracer で設定します。\n
+ *  未設定のまま出力を要求した場合は、何も出力せずに失敗を返します。
  *
- *  呼び出し位置と実行文脈は引数として渡りますが、本サンプルの書式は位置指定を持たないため、
- *  組み立てた文字列には現れません。\n
- *  出力へ含める場合は、カタログ定義の書式へ 40 番からの位置指定を追加します。
+ *  トレーサーの出力先は既定でいずれも無効です。\n
+ *  本サンプルは画面で結果を確認するため、標準エラー出力だけを有効にします。
+ *
+ *  トレーサーの破棄は行いません。cplat がプロセスの終了時に自動で破棄するためです。\n
+ *  破棄したあとに出力を要求する場合に限り、破棄の前に出力先へ NULL を設定します。
+ *
+ *  呼び出し位置と実行文脈は引数として渡ります。書式が位置指定を持たない項目では、
+ *  組み立てた文字列に現れません。\n
+ *  SAMPLE_TRACE_KEY_STATE_DUMP は 40 番からの位置指定を書式へ持つため、これらの値が出力へ現れます。
  */
 static int write_traces(void)
 {
@@ -232,10 +192,12 @@ static int write_traces(void)
         return CPLAT_ERR_UNKNOWN;
     }
 
-    ret = configure_stderr_only(tracer);
+    /* 出力先は既定でいずれも無効のため、使用する出力先だけを設定する */
+    ret = cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_DEBUG);
     if (ret != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
+        fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
         return ret;
     }
 
@@ -247,26 +209,38 @@ static int write_traces(void)
         return ret;
     }
 
-    ret = sample_trace_key_service_started(tracer);
+    /* 出力先はカタログが保持するため、呼び出しごとにトレーサーを渡さない */
+    sample_trace_set_tracer(tracer);
+
+    ret = sample_trace_key_service_started();
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = sample_trace_key_file_open_failed(tracer, SAMPLE_PATH, 2);
+    ret = sample_trace_key_file_open_failed(SAMPLE_PATH, 2);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    ret = sample_trace_key_record_parsed(tracer, UINT32_C(42), (size_t)512U);
+    ret = sample_trace_key_record_parsed(UINT32_C(42), (size_t)512U);
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
         result = ret;
     }
 
-    cplat_tracer_dispose(&tracer);
+    /* この項目の書式は、40 番からの文脈引数を参照する */
+    ret = sample_trace_key_state_dump(UINT32_C(7));
+    if ((ret != CPLAT_OK) && (result == CPLAT_OK))
+    {
+        result = ret;
+    }
 
+    /*
+     * 解除と破棄は行わない。トレーサーはプロセスの終了時に cplat が自動で破棄し、
+     * 破棄したあとに出力を要求しないため、カタログの設定を外す必要もない。
+     */
     return result;
 }
 

@@ -87,6 +87,38 @@
                     "出力へ含める必要が生じた場合は、書式から位置指定で参照できます。"
                 ]
             }
+        },
+        {
+            "key": "SAMPLE_TRACE_KEY_STATE_DUMP",
+            "id": "SAMPLE_TRACE_ID_0004",
+            "level": "DEBUG",
+            "brief": "内部状態の記録。",
+            "details": [
+                "書式から文脈引数を参照する例です。",
+                "呼び出し位置と実行文脈を組み立てた文字列へ含めます。",
+                "調査のときだけ有効にする詳細のため DEBUG とします。"
+            ],
+            "arguments": [
+                {
+                    "kind": "UINT32",
+                    "name": "queue_length",
+                    "description": "待ち行列の長さ。"
+                }
+            ],
+            "texts": {
+                "neutral": "Queue length is {0}. [{41}:{42} {43}] path={40} pid={44} tid={45}",
+                "japanese": "待ち行列の長さは {0} です。[{41}:{42} {43}] パス={40} プロセス={44} スレッド={45}"
+            },
+            "notes": {
+                "neutral": [
+                    "The call site and the runtime context are referenced from the format.",
+                    "Index 40 to 45 are the context arguments that the generator appends."
+                ],
+                "japanese": [
+                    "呼び出し位置と実行文脈を、書式から参照しています。",
+                    "40 番から 45 番は、生成器が付け加える文脈引数です。"
+                ]
+            }
         }
     ]
 }

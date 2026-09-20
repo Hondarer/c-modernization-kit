@@ -5,6 +5,7 @@
 #include "sample_trace.h"
 
 #include <cplat/string_catalog/string_catalog.h>
+#include <cplat/runtime/process.h>
 #include <cplat/trace/tracer.h>
 #include <stdint.h>
 #include <string.h>
@@ -276,10 +277,12 @@ TEST_F(catalogIntegrationTest, trace_macro_writes_to_tracer)
 
     // Pre-Assert
 
+    sample_trace_set_tracer(tracer); // [状態] - カタログの出力先へトレーサーを設定する。
+
     // Act
     testing::internal::CaptureStderr();
-    actual_ret = sample_trace_key_file_open_failed(tracer, "config.json",
-                                                   2); // [手順] - 型付きラッパーのマクロでトレースへ出力する。
+    actual_ret =
+        sample_trace_key_file_open_failed("config.json", 2); // [手順] - 型付きラッパーのマクロでトレースへ出力する。
     std::string captured = testing::internal::GetCapturedStderr();
 
     // Assert
@@ -289,5 +292,74 @@ TEST_F(catalogIntegrationTest, trace_macro_writes_to_tracer)
     // [確認_正常系] - 定義したレベルと、現在の出力言語の書式で出力されること。
 
     // Cleanup
+    sample_trace_set_tracer(nullptr);
     cplat_tracer_dispose(&tracer);
+}
+
+// 書式が参照する文脈引数が、呼び出し位置と実行文脈の値へ展開されることの確認
+TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
+{
+    // Arrange
+    cplat_tracer *tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
+    int actual_ret;
+
+    ASSERT_NE(nullptr, tracer); // [状態確認] - トレーサーを生成できること。
+    ASSERT_EQ(CPLAT_OK,
+              cplat_tracer_set_stderr_level(tracer,
+                                            CPLAT_TRACE_LEVEL_DEBUG)); // [状態] - 標準エラー出力を DEBUG とする。
+    // [状態確認] - cplat_tracer_set_stderr_level の戻り値が CPLAT_OK であること。
+    ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer)); // [状態] - トレースを開始する。
+                                                     // [状態確認] - cplat_tracer_start の戻り値が CPLAT_OK であること。
+    sample_trace_set_tracer(tracer);                 // [状態] - カタログの出力先へトレーサーを設定する。
+
+    // Pre-Assert
+
+    // Act
+    testing::internal::CaptureStderr();
+    actual_ret = sample_trace_key_state_dump(UINT32_C(7)); // [手順] - 文脈引数を参照する書式で出力する。
+    std::string captured = testing::internal::GetCapturedStderr();
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 戻り値が CPLAT_OK であること。
+    EXPECT_NE(std::string::npos,
+              captured.find("待ち行列の長さは 7 です。")); // [確認_正常系] - 利用者の引数が展開されること。
+    EXPECT_NE(std::string::npos,
+              captured.find("catalogIntegrationTest.cc:")); // [確認_正常系] - 41 番が呼び出し元のファイル名になること。
+    EXPECT_NE(std::string::npos,
+              captured.find("TestBody")); // [確認_正常系] - 43 番が呼び出し元の関数名になること。
+    EXPECT_NE(std::string::npos,
+              captured.find("プロセス=" + std::to_string(cplat_process_get_pid()))); // [確認_正常系] -
+                                                                                     // 44 番が実際のプロセス ID
+                                                                                     // になること。
+    EXPECT_NE(std::string::npos,
+              captured.find("スレッド=" + std::to_string(cplat_process_get_tid()))); // [確認_正常系] -
+                                                                                     // 45 番が実際のスレッド ID
+                                                                                     // になること。
+
+    // Cleanup
+    sample_trace_set_tracer(nullptr);
+    cplat_tracer_dispose(&tracer);
+}
+
+// 出力先が未設定のときに、何も出力せず失敗を返すことの確認
+TEST_F(catalogIntegrationTest, trace_macro_fails_without_tracer)
+{
+    // Arrange
+    int actual_ret;
+
+    sample_trace_set_tracer(nullptr); // [状態] - カタログの出力先を未設定にする。
+
+    // Pre-Assert
+    ASSERT_EQ(nullptr, sample_trace_get_tracer()); // [Pre-Assert確認_異常系] - 出力先が未設定であること。
+
+    // Act
+    testing::internal::CaptureStderr();
+    actual_ret = sample_trace_key_file_open_failed("config.json",
+                                                   2); // [手順] - 出力先が未設定のまま出力を要求する。
+    std::string captured = testing::internal::GetCapturedStderr();
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT,
+              actual_ret); // [確認_異常系] - 戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ("", captured); // [確認_異常系] - 何も出力しないこと。
 }
