@@ -50,7 +50,7 @@ short-title: "samplecatalog"
 
 `catalog_settings.jsonc` の `context` 節で、トレース種別のカタログへ文脈引数を 1 個追加しています。
 
-| 位置指定 | 引数名 | 引数種別 | 取得式 |
+| 位置指定 (`index`) | 引数名 | 引数種別 | 取得式 |
 |---|---|---|---|
 | `{46}` | `sequence_number` | `INT32` | `samplecatalog_next_sequence_number()` |
 
@@ -62,7 +62,8 @@ short-title: "samplecatalog"
 公開を忘れると、利用側のリンクが失敗します。
 
 `{47}` から `{49}` は、記載していなくても引数配列に確保されます。
-文脈引数を追加する場合は、`catalog_settings.jsonc` の `arguments` へ続けて記載してください。
+文脈引数を追加する場合は、`catalog_settings.jsonc` の `arguments` へ `index` を添えて記載してください。
+公開するカタログでは `index` が必須です。記載順を変えても位置指定が動かないようにするためです。
 ただし公開したカタログでは、増減が利用側のバイナリに対する非互換の変更になるため、再コンパイルが必要です。
 
 出力の要求ごとに評価され、並行して呼ばれるため、待ち合わせを含めない不可分な加算で更新します。

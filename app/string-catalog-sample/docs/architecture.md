@@ -411,9 +411,13 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 
 この app では、`catalog_settings.jsonc` の `context` 節で 1 個を追加しています。
 
-| 位置指定 | 引数名 | 引数種別 | 取得式 |
+| 位置指定 (`index`) | 引数名 | 引数種別 | 取得式 |
 |---|---|---|---|
 | `{46}` | `sequence_number` | `INT32` | `samplecatalog_next_sequence_number()` |
+
+位置指定は `index` が決めます。
+記載順の変更で番号が動くと書式が指す値が変わるため、公開するカタログでは記載を必須としています。
+カタログ項目の `value` と同じ考え方です。
 
 引数配列は、app が定める文脈引数の個数によらず `{46}` から `{49}` までを常に確保します。
 記載しなかった番号は、値を受け取らないインデックスとして残ります。
