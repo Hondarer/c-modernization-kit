@@ -23,7 +23,10 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 この 2 つをまとめたカタログ識別オブジェクトを、呼び出しごとに cplat へ渡します。  
 文字列キーの型が列挙ではなく `int` であるため、利用者は任意の名前の列挙を定義し、その定数をそのまま渡せます。
 
-この app では、用途を分けた 3 つのカタログをコマンド側の `prod/src/cmd/string-catalog-sample/` へ置いています。
+この app では、カタログの持ち方を 2 つの形で示します。  
+コマンドが同梱する 3 つのカタログを `prod/src/cmd/string-catalog-command-sample/` へ、ライブラリが外部へ公開する 2 つのカタログを `prod/libsrc/samplecatalog/` へ置いています。
+
+コマンドが同梱するカタログは次のとおりです。
 
 | ファイル | 内容 | 種別 |
 |---|---|---|
@@ -36,6 +39,18 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 | `sample_trace.jsonc` | トレース種別のカタログ定義の正本 | 手動作成 |
 | `gen/sample_trace.h` | トレース向けの列挙型、簡易関数と出力先の設定の宣言、型付きラッパーとマクロ | 自動生成 |
 | `gen/sample_trace.c` | トレース向けのカタログ配列、添字テーブル、カタログ識別オブジェクト、簡易関数、出力処理 | 自動生成 |
+
+ライブラリが公開するカタログは次のとおりです。生成物のヘッダーだけが公開ヘッダーの置き場所へ出力されます。
+
+| ファイル | 内容 | 種別 |
+|---|---|---|
+| `libsrc/samplecatalog/samplecatalog_messages.jsonc` | 公開するカタログ定義の正本 | 手動作成 |
+| `libsrc/samplecatalog/catalog_settings.jsonc` | エクスポート マクロの接頭辞と定義元のヘッダー | 手動作成 |
+| `include/samplecatalog/samplecatalog_messages.h` | 列挙型、簡易関数の宣言、型付きラッパー | 自動生成 |
+| `libsrc/samplecatalog/gen/samplecatalog_messages.c` | カタログ配列、添字テーブル、カタログ識別オブジェクト、簡易関数 | 自動生成 |
+| `libsrc/samplecatalog/samplecatalog_trace.jsonc` | 公開するトレース種別のカタログ定義の正本 | 手動作成 |
+| `include/samplecatalog/samplecatalog_trace.h` | 列挙型、出力先の設定の宣言、型付きラッパーとマクロ | 自動生成 |
+| `libsrc/samplecatalog/gen/samplecatalog_trace.c` | カタログ配列、添字テーブル、簡易関数、出力処理 | 自動生成 |
 
 配列はコピーせず、ポインターだけを保持します。  
 カタログを使用する間ずっと有効な領域を渡す必要があるため、静的記憶域期間を持つ配列を想定しています。
@@ -67,10 +82,10 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 手動で実行する場合、および内容を検証する場合のコマンド例です。
 
 ```bash
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-sample/gen --check
+python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
+python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
+python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
+python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
 ```
 
 `--check` は書き出さず、既存の生成物が定義と一致するかだけを確かめます。  
@@ -211,7 +226,7 @@ sample_trace_key_file_open_failed("config.json", 2);
 `sample_trace.jsonc` の `SAMPLE_TRACE_KEY_STATE_DUMP` が、書式から文脈引数を参照する例です。
 
 ```text
-待ち行列の長さは 7 です。[string-catalog-sample.c:273 write_traces] パス=string-catalog-sample.c プロセス=1917265 スレッド=1917265
+待ち行列の長さは 7 です。[string-catalog-command-sample.c:273 write_traces] パス=string-catalog-command-sample.c プロセス=1917265 スレッド=1917265
 ```
 
 記載した引数の個数から 39 番までは、値を受け取らないインデックスです。  
@@ -358,7 +373,32 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 | テスト | 置き場所 | 対象 |
 |---|---|---|
 | `sampleMessagesTest` | `test/src/cmd/` | コマンドが用意するカタログと添字表 |
+| `exportTest` | `test/src/libsamplecatalog/` | ライブラリが実際に公開するシンボルの一覧とシグネチャ |
 | `catalogIntegrationTest` | `test/src/integration/` | コマンドのカタログと cplat の組み立てを結合した確認 |
 
 `sampleMessagesTest` を `test/src/cmd/` に置くのは、対象がライブラリではなく、コマンドが用意するソースであるためです。  
 `catalogIntegrationTest` は個々のソースのカバレッジを目的としないため `TEST_SRCS` を宣言せず、生成物を `ADD_SRCS` で取り込み、cplat を実体でリンクします。
+
+## カタログを外部へ公開する
+
+`prod/libsrc/samplecatalog/` のカタログは、カタログ定義の `export` によって、ライブラリの外部から使用できます。  
+生成器は公開範囲に応じて、関数の宣言へ app のエクスポート マクロと呼び出し規約マクロを出力します。
+
+マクロの接頭辞と定義元のヘッダーは app 内で共通のため、カタログ定義が `settings` で指す `catalog_settings.jsonc` に置きます。  
+接頭辞からマクロ名を導く規約は、`cplat/base/dll_exports.h` の `CPLAT_DLL_EXPORT(prefix)` と同じです。
+
+公開範囲は `api` と `full` の 2 つです。  
+この app は `api` を使用し、戻り値が cplat の構造体を指す関数と `_verify` を公開しません。  
+公開すると、利用側が `cplat_string_catalog` のレイアウトへ依存することになるためです。  
+カタログの点検は提供元の責務とし、`samplecatalog_initialize()` の中で済ませます。
+
+型付きラッパーは `static inline` であり、利用側のコンパイル単位で展開されます。  
+呼び先は生成物の簡易関数 `@MODULE@_format` であるため、文字列リソース種別では利用側が cplat の関数を呼びません。  
+トレース種別では、関数形式マクロが `cplat_path_basename(__FILE__)` を展開の位置で評価するため、利用側も cplat をリンクします。
+
+ライブラリは共有ライブラリとして配置します。  
+カタログが保持するトレースの出力先と、cplat が持つプロセス全体の言語設定を、1 つの実体に保つためです。
+
+外部との契約になるのは、文字列キーの値と名前、引数の個数と型、分類値、および `id` です。  
+書式と備考の文言は契約に含まれないため、ライブラリの再ビルドだけで変更できます。  
+設計の根拠は [ライブラリのカタログを外部へ公開する設計](../../c-platform/docs/proposals/string-catalog-export-design.md) を参照してください。

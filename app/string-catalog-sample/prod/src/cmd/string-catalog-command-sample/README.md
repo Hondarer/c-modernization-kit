@@ -1,8 +1,8 @@
 ---
-short-title: "string-catalog-sample"
+short-title: "string-catalog-command-sample"
 ---
 
-# string-catalog-sample コマンド
+# string-catalog-command-sample コマンド
 
 カタログに登録したすべての文字列を、ニュートラル言語、日本語、英語で組み立てて表示します。
 
@@ -34,7 +34,7 @@ cplat 側の接頭辞 `cplat_string_catalog` とは別の名前空間にして�
 コマンド ライン引数は取りません。
 
 ```bash
-./prod/cbin/string-catalog-sample
+./prod/cbin/string-catalog-command-sample
 ```
 
 ```text

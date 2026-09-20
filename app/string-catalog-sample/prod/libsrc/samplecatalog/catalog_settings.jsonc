@@ -1,0 +1,12 @@
+// app 単位のカタログ設定です。
+// この app のカタログ定義が settings から参照します。
+//
+// export は、カタログをライブラリの外部へ公開する場合の装飾を決めます。
+// prefix からエクスポート マクロと呼び出し規約マクロの名前を導き、header をその定義元とします。
+// 名前の導出は cplat/base/dll_exports.h の CPLAT_DLL_EXPORT(prefix) と同じ規約です。
+{
+    "export": {
+        "prefix": "SAMPLECATALOG",
+        "header": "samplecatalog/samplecatalog_export.h"
+    }
+}

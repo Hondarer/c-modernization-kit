@@ -5,6 +5,10 @@
 この app は、cplat の文字列カタログ機能を利用する側のサンプルです。  
 カタログ定義から文字列キーの列挙とカタログの表を生成し、言語を切り替えながら文字列を組み立てます。
 
+カタログの持ち方を 2 つの形で示します。  
+`prod/src/cmd/string-catalog-command-sample/` はカタログをコマンドが同梱し、`prod/libsrc/samplecatalog/` はカタログをライブラリが外部へ公開します。  
+公開したカタログの利用側が `prod/src/cmd/string-catalog-library-sample/` です。
+
 `app/c-platform` の `cplat_string_catalog_*`、`cplat_trace_level`、`cplat_console_init/dispose` を利用します。  
 文字列カタログの実装、生成器、機能仕様は `app/c-platform` にあり、この app には含みません。
 
@@ -19,12 +23,15 @@
 
 ## 変更時の制約
 
-- 生成物は `prod/src/cmd/string-catalog-sample/gen/` へ置き、Git では管理しません。ビルドが cplat の `bin/string_catalog_gen.py` を駆動するため、手で実行する必要はありません。変更するのはカタログ定義ファイルです。
+- 生成物は Git では管理しません。ビルドが cplat の `bin/string_catalog_gen.py` を駆動するため、手で実行する必要はありません。変更するのはカタログ定義ファイルです。
+    - コマンドが同梱するカタログの生成物は `prod/src/cmd/string-catalog-command-sample/gen/` へ置きます。
+    - ライブラリが公開するカタログの生成物は、ヘッダーを `prod/include/samplecatalog/` へ、ソースを `prod/libsrc/samplecatalog/gen/` へ置きます。公開ヘッダーは `.gitignore` が個別に対象とします。
 - 生成は app 直下の `makepart.mk` が makefile のパース時に行います。ビルド規則にしないでください。テストのディレクトリを解釈する時点で生成物が必要になるためです。
 - 生成器そのものを変更する場合は `app/c-platform` 側で行い、その単体テストを実行してください。
 - 生成ヘッダーは `#include "gen/sample_messages.h"` の形で取り込みます。テストから引き込む場合は `INCDIR` へ `gen` を加えてください。
-- `sample_messages.jsonc`、`sample_metrics.jsonc`、`sample_trace.jsonc` がカタログ定義の正本です。1 つの定義ファイルが 1 つのカタログに対応し、1 つのカタログが 1 つの種別を持ちます。形式は JSONC で、行コメント、ブロック コメント、末尾コンマ、長文のための文字列配列を書けます。
+- `sample_messages.jsonc`、`sample_metrics.jsonc`、`sample_trace.jsonc`、`samplecatalog_messages.jsonc`、`samplecatalog_trace.jsonc` がカタログ定義の正本です。1 つの定義ファイルが 1 つのカタログに対応し、1 つのカタログが 1 つの種別を持ちます。形式は JSONC で、行コメント、ブロック コメント、末尾コンマ、長文のための文字列配列を書けます。
 - 利用者側の識別子は `sample_` で始めます。cplat 側の `cplat_string_catalog_` と名前空間を分け、どちらの資産かを名前だけで判別できるようにするためです。型付きラッパーの関数名も利用側の名前空間とし、`cplat_` を前置しません。
+- ライブラリ側の識別子は `samplecatalog_` で始めます。ライブラリが外部へ公開する資産であり、コマンドが同梱する資産と取り違えないようにするためです。
 - カタログ定義に書くのは、著者、日付、版、文字列の一覧だけです。導出できる名前と、cplat が定める仕様を持ち込まないでください。
     - 各文字列の `brief` は必須です。`details` と `remarks` は省略でき、設定した場合は詳細説明と利用上の補足説明として扱います。
     - `details`、`remarks`、`texts`、`notes` は、文字列と文字列の配列のどちらでも書けます。配列は空白 1 個で連結します。1 行が長くなる文を分けて書くためのものです。`brief` は 1 文のため文字列だけです。
@@ -34,6 +41,9 @@
     - Doxygen が示す置き場所は、定義ファイルの位置から導出します。絶対パスの中で最も近い `prod` または `test` が起点です。
 - カタログの名前空間を移す場合は、定義ファイルの名前を変えてください。生成物のファイル名と識別子がすべて追従します。
 - 生成物が依存してよいのは、cplat の公開ヘッダーと標準ヘッダーだけです。特定の app の型や列挙へ依存させないでください。生成物をそのまま持ち運べるようにするためです。
+- 外部へ公開するカタログ (`export` を記載したカタログ) では、この規則を解除します。生成物は app のエクスポート マクロを定義するヘッダーへ依存します。依存先は `catalog_settings.jsonc` の `export.header` に集約し、ほかのヘッダーを増やさないでください。
+- 公開するカタログでは `value` を必須とします。列挙値が利用側のバイナリへ埋め込まれるため、定義の並べ替えや途中への挿入で値が変わると、通知のない非互換の変更になります。廃止する項目は定義から取り除き、値を欠番として残してください。値を再利用しないでください。
+- 公開範囲は `api` を既定とします。`api` は、戻り値が cplat の構造体を指す関数 (`_catalog`、`_entries`、`_entry`、`_key_index`、`_key_index_count`) と `_verify` を公開しません。利用側が cplat の構造体レイアウトへ依存することを避けるためです。カタログの点検は提供元の責務とし、ライブラリの初期化で済ませてください。
 - 分類値は生値で保持します。文字列リソース種別 (`kind` が `message`、または省略) では定義ファイルにも整数で書き、意味はコメントで示してください。分類値の解釈には `cplat_trace_level` を使用します。値を解釈する側が `<cplat/trace/tracer.h>` を直接インクルードします。
 - トレース種別 (`kind` が `trace`) では、この規則を解除します。分類値は定義ファイルの `level` へ `cplat_trace_level` の名前で書き、生成器が整数へ変換します。生成物が分類値をトレース レベルとして解釈し、出力先へ渡すためです。
 - 分類値の重大度の意味付け (`cplat_trace_level`) は本 app の規約です。`trace_level_of()` で範囲外の値をフォールバックし、表示名のインデックスとして安全に使用できるようにします。
@@ -56,6 +66,13 @@ app 全体の確認には app 直下の `make test` を使用できます。
 サンプル コマンドは、起動直後にすべてのカタログを `cplat_string_catalog_verify()` で点検します。
 
 ```bash
-./prod/cbin/string-catalog-sample
+./prod/cbin/string-catalog-command-sample
+./prod/cbin/string-catalog-library-sample
 cd test/src/cmd/sampleMessagesTest && make test
 ```
+
+ライブラリの公開シンボルを変更した場合は、`test/src/libsamplecatalog/exportTest` の一覧も更新してください。  
+公開範囲の設定と実際のエクスポートが食い違っていないことを、このテストが確認します。
+
+ライブラリを追加または削除した場合は、`bin/sync-app-env.sh --write` を実行してください。  
+実行時のライブラリ探索パスが `.vscode` 配下の設定へ同期されます。

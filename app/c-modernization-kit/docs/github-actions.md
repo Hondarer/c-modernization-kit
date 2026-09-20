@@ -238,7 +238,7 @@ end note
 
 | app | 生成物 | 生成のタイミング |
 |-----|--------|----------------|
-| `string-catalog-sample` | `prod/src/cmd/string-catalog-sample/gen/` | `app/string-catalog-sample/makepart.mk` のパース時 |
+| `string-catalog-sample` | `prod/src/cmd/string-catalog-command-sample/gen/` | `app/string-catalog-sample/makepart.mk` のパース時 |
 | `struct-meta` | `prod/libsrc/struct_meta/parse/gen/` | flex/bison のビルド規則 |
 | `struct-meta` | `prod/src/cmd/struct-meta-sample/gen/` | ビルド済みの `prod/cbin/struct-meta-gen` を実行するビルド規則 |
 

@@ -1,0 +1,89 @@
+// 文字列カタログの定義です。
+// このファイルから公開ヘッダーとライブラリのソースが出力されます。生成物を直接編集しないでください。
+// 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
+//
+// ライブラリが外部へ公開するカタログのため、export に公開範囲を指定します。
+// 公開するカタログでは value に列挙値を書き、定義の並べ替えで値が変わらないようにします。
+{
+    "settings": "catalog_settings.jsonc",
+    "export": "api",
+    "author": "Tetsuo Honda",
+    "date": "2026/09/20",
+    "version": "1.0.0",
+
+    "strings": [
+        {
+            "key": "SAMPLECATALOG_MESSAGES_KEY_LIBRARY_READY",
+            "value": 1,
+            "id": "SAMPLECATALOG_MESSAGES_ID_0001",
+            "category": 3, // CPLAT_TRACE_LEVEL_INFO
+            "brief": "ライブラリの準備完了。",
+            "details": "カタログの点検が終わり、利用側が文字列を組み立てられる状態になったことを示します。",
+            "arguments": [],
+            "texts": {
+                "neutral": "The sample catalog library is ready.",
+                "japanese": "サンプル カタログ ライブラリの準備ができました。"
+            },
+            "notes": {
+                "neutral": "The library verifies its catalogs before the caller uses them.",
+                "japanese": "ライブラリは、利用側が使用する前に自身のカタログを点検します。"
+            }
+        },
+        {
+            "key": "SAMPLECATALOG_MESSAGES_KEY_ITEM_NOT_FOUND",
+            "value": 2,
+            "id": "SAMPLECATALOG_MESSAGES_ID_0002",
+            "category": 1, // CPLAT_TRACE_LEVEL_ERROR
+            "brief": "項目が見つからない。",
+            "details": "利用側が指定した名前に対応する項目が、ライブラリの保持する表になかったことを示します。",
+            "arguments": [
+                {
+                    "kind": "STRING",
+                    "name": "item_name",
+                    "description": "探した項目の名前。"
+                },
+                {
+                    "kind": "UINT32",
+                    "name": "table_size",
+                    "description": "探索の対象とした表の要素数。"
+                }
+            ],
+            "texts": {
+                "neutral": "Item {0} was not found in {1} entries.",
+                "japanese": "項目 {0} は {1} 件の中に見つかりませんでした。"
+            },
+            "notes": {
+                "neutral": "The name is emitted as given by the caller.",
+                "japanese": "名前は呼び出し側が渡した表記のまま出力します。"
+            }
+        },
+        {
+            "key": "SAMPLECATALOG_MESSAGES_KEY_LIMIT_EXCEEDED",
+            "value": 3,
+            "id": "SAMPLECATALOG_MESSAGES_ID_0003",
+            "category": 2, // CPLAT_TRACE_LEVEL_WARNING
+            "brief": "上限の超過。",
+            "details": "要求された大きさがライブラリの上限を超えたため、上限まで切り詰めたことを示します。",
+            "arguments": [
+                {
+                    "kind": "SIZE",
+                    "name": "requested",
+                    "description": "要求された大きさ。"
+                },
+                {
+                    "kind": "SIZE",
+                    "name": "limit",
+                    "description": "ライブラリが受け付ける上限。"
+                }
+            ],
+            "texts": {
+                "neutral": "Requested size {0} exceeds the limit {1}.",
+                "japanese": "要求された大きさ {0} は上限 {1} を超えています。"
+            },
+            "notes": {
+                "neutral": "The caller can retry with a size within the limit.",
+                "japanese": "上限以下の大きさで要求し直せます。"
+            }
+        }
+    ]
+}

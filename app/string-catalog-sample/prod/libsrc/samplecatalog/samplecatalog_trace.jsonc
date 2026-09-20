@@ -1,0 +1,91 @@
+// 文字列カタログの定義です。
+// このファイルから公開ヘッダーとライブラリのソースが出力されます。生成物を直接編集しないでください。
+// 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
+//
+// kind に trace を指定したトレース種別の定義です。
+// ライブラリが外部へ公開するため、出力先のトレーサーは利用側が設定します。
+{
+    "kind": "trace",
+    "settings": "catalog_settings.jsonc",
+    "export": "api",
+    "author": "Tetsuo Honda",
+    "date": "2026/09/20",
+    "version": "1.0.0",
+
+    "strings": [
+        {
+            "key": "SAMPLECATALOG_TRACE_KEY_LIBRARY_INITIALIZED",
+            "value": 1,
+            "id": "SAMPLECATALOG_TRACE_ID_0001",
+            "level": "INFO",
+            "brief": "ライブラリの初期化。",
+            "details": "運用上の節目となる出来事のため、常時記録の対象となる INFO とします。",
+            "arguments": [
+                {
+                    "kind": "UINT32",
+                    "name": "catalog_count",
+                    "description": "点検したカタログの数。"
+                }
+            ],
+            "texts": {
+                "neutral": "The library has initialized {0} catalogs.",
+                "japanese": "ライブラリは {0} 件のカタログを初期化しました。"
+            },
+            "notes": {
+                "neutral": "The destination tracer is set by the caller of the library.",
+                "japanese": "出力先のトレーサーは、ライブラリの利用側が設定します。"
+            }
+        },
+        {
+            "key": "SAMPLECATALOG_TRACE_KEY_VERIFY_FAILED",
+            "value": 2,
+            "id": "SAMPLECATALOG_TRACE_ID_0002",
+            "level": "ERROR",
+            "brief": "カタログの点検失敗。",
+            "details": "対処が必要な事象のため ERROR とします。",
+            "arguments": [
+                {
+                    "kind": "STRING",
+                    "name": "catalog_name",
+                    "description": "点検に失敗したカタログの名前。"
+                },
+                {
+                    "kind": "INT32",
+                    "name": "string_key",
+                    "description": "点検に失敗した文字列キー。"
+                }
+            ],
+            "texts": {
+                "neutral": "Catalog {0} failed verification at string key {1}. [{41}:{42} {43}]",
+                "japanese": "カタログ {0} の点検が文字列キー {1} で失敗しました。[{41}:{42} {43}]"
+            },
+            "notes": {
+                "neutral": "The call site is referenced from the format so the record can be traced to the library source.",
+                "japanese": "ライブラリのソースまでたどれるよう、呼び出し位置を書式から参照しています。"
+            }
+        },
+        {
+            "key": "SAMPLECATALOG_TRACE_KEY_LOOKUP_PERFORMED",
+            "value": 3,
+            "id": "SAMPLECATALOG_TRACE_ID_0003",
+            "level": "VERBOSE",
+            "brief": "項目の探索。",
+            "details": "1 件ごとに発生し量が多くなるため、調査のときだけ有効にする VERBOSE とします。",
+            "arguments": [
+                {
+                    "kind": "STRING",
+                    "name": "item_name",
+                    "description": "探した項目の名前。"
+                }
+            ],
+            "texts": {
+                "neutral": "Looked up item {0} from pid {44}.",
+                "japanese": "項目 {0} をプロセス {44} から探索しました。"
+            },
+            "notes": {
+                "neutral": "The process id is a context argument that the generator appends.",
+                "japanese": "プロセス ID は、生成器が付け加える文脈引数です。"
+            }
+        }
+    ]
+}
