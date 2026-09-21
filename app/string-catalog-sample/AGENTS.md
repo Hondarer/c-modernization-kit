@@ -25,7 +25,7 @@
 
 - 生成物は Git では管理しません。ビルドが cplat の `bin/string_catalog_gen.py` を駆動するため、手で実行する必要はありません。変更するのはカタログ定義ファイルです。
     - コマンドが同梱するカタログの生成物は `prod/src/cmd/string-catalog-command-sample/gen/` へ置きます。
-    - ライブラリが公開するカタログの生成物は、ヘッダーを `prod/include/samplecatalog/` へ、ソースを `prod/libsrc/samplecatalog/gen/` へ置きます。公開ヘッダーは `.gitignore` が個別に対象とします。
+    - ライブラリが公開するカタログの生成物は、ヘッダーを `prod/include/samplecatalog/` へ、ソースを `prod/libsrc/samplecatalog/gen/` へ置きます。公開ヘッダーは、置き場所の `prod/include/samplecatalog/.gitignore` が個別に対象とします。`app/lua` や `app/cjson` が展開した公開ヘッダーを扱う形と同じで、app 直下の `.gitignore` は共通の内容のままにします。
 - 生成は app 直下の `makepart.mk` が makefile のパース時に行います。ビルド規則にしないでください。テストのディレクトリを解釈する時点で生成物が必要になるためです。
 - 生成器そのものを変更する場合は `app/c-platform` 側で行い、その単体テストを実行してください。
 - 生成ヘッダーは `#include "gen/sample_messages.h"` の形で取り込みます。テストから引き込む場合は `INCDIR` へ `gen` を加えてください。

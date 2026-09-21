@@ -71,8 +71,3 @@ cbin
 
 ## トレース
 log/
-
-## カタログ定義から生成する公開ヘッダー
-## 生成ソースは gen/ 配下のため、上の中間ファイルの規則が対象とする。
-/prod/include/samplecatalog/samplecatalog_messages.h
-/prod/include/samplecatalog/samplecatalog_trace.h
