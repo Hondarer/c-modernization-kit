@@ -12,6 +12,14 @@
     "date": "2026/09/20",
     "version": "1.0.0",
 
+    // text_prefix と text_suffix は、このカタログの全文字列の書式へ共通に前置、後置する文字列です。
+    // 言語別に指定し、指定のない言語はニュートラル言語へフォールバックします。
+    // 結合では区切りを挿入しないため、必要な空白や記号はここへ含めます。
+    // ここでは、app が定義するコンテキスト引数の連番を全文字列の先頭に付けています。
+    "text_prefix": {
+        "neutral": "#{46} "
+    },
+
     "strings": [
         {
             "key": "SAMPLECATALOG_TRACE_KEY_LIBRARY_INITIALIZED",
@@ -27,8 +35,8 @@
                 }
             ],
             "texts": {
-                "neutral": "#{46} The library has initialized {0} catalogs.",
-                "japanese": "#{46} ライブラリは {0} 件のカタログを初期化しました。"
+                "neutral": "The library has initialized {0} catalogs.",
+                "japanese": "ライブラリは {0} 件のカタログを初期化しました。"
             },
             "notes": {
                 "neutral": "The destination tracer is set by the caller of the library.",
@@ -76,18 +84,12 @@
                 }
             ],
             "texts": {
-                "neutral": "#{46} Looked up item {0} from pid {44}.",
-                "japanese": "#{46} 項目 {0} をプロセス {44} から検索しました。"
+                "neutral": "Looked up item {0} from pid {44}.",
+                "japanese": "項目 {0} をプロセス {44} から検索しました。"
             },
             "notes": {
-                "neutral": [
-                    "The process id is a context argument that cplat defines.",
-                    "The leading number is a context argument that this app defines, assigned from index 46."
-                ],
-                "japanese": [
-                    "プロセス ID は、cplat が定義するコンテキスト引数です。",
-                    "先頭の番号は、この app が定義するコンテキスト引数であり、インデックス 46 から割り当てられます。"
-                ]
+                "neutral": "The process id is a context argument that cplat defines.",
+                "japanese": "プロセス ID は、cplat が定義するコンテキスト引数です。"
             }
         }
     ]
