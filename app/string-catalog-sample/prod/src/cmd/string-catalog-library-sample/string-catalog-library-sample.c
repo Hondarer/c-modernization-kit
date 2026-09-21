@@ -32,11 +32,11 @@
 /** 検索の実例として、ライブラリが保持する項目と保持しない項目を定義します。 */
 static const char *const s_lookup_names[] = {"beta", "delta"};
 
-/** @ref s_lookup_names の要素数です。 */
+/** `s_lookup_names` の要素数です。 */
 #define LOOKUP_COUNT ((int)(sizeof(s_lookup_names) / sizeof(s_lookup_names[0])))
 
 /**
- *  @brief          ライブラリのトレース出力先となるトレーサーを用意します。
+ *  @brief          ライブラリのトレース出力先となるトレーサーを生成します。
  *  @return         生成したトレーサーを返します。失敗した場合は NULL を返します。
  *
  *  出力先は既定でいずれも無効のため、使用する出力先のみを設定します。\n
@@ -134,10 +134,10 @@ static int print_library_messages(void)
 }
 
 /**
- *  @brief          プログラムのエントリ ポイント。
+ *  @brief          プログラムのエントリ ポイントです。
  *  @param[in]      argc コマンド ライン引数の数。この引数は使用しません。
  *  @param[in]      argv コマンド ライン引数の配列。この引数は使用しません。
- *  @return         成功時は 0 、失敗時は 0 以外の値を返します。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  */
 int main(int argc, char *argv[])
 {
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
     cplat_console_init();
 
-    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響する。初期化より前に設定する */
+    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響します。初期化の前に設定します。 */
     if (cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE) != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* カタログの点検はライブラリの責務のため、利用側は初期化を呼び出すだけでよい */
+    /* カタログの点検はライブラリの責務であるため、利用側は初期化を呼び出すのみとします。 */
     if (samplecatalog_initialize(tracer) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
@@ -183,14 +183,14 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* 利用側がライブラリのカタログへ直接トレースを出力することもできる */
+    /* 利用側がライブラリのカタログへ直接トレースを出力することも可能です。 */
     printf("\n[利用側からのトレース出力]\n\n");
     fflush(stdout);
     (void)samplecatalog_trace_key_lookup_performed("epsilon");
 
     /*
-     * トレーサーの解除と破棄は行わない。プロセスの終了時に cplat が自動で破棄し、
-     * その後に出力を要求する経路がないため。
+     * トレーサーの解除と破棄は行いません。プロセスの終了時に cplat が自動で破棄し、
+     * その後の出力要求経路が存在しないためです。
      */
 
     return EXIT_SUCCESS;

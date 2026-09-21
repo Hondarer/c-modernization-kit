@@ -12,4 +12,5 @@ API 表から生成する第三者共有ライブラリには `create-mock-share
 配置が不明な場合は `app/general/docs/testing-tutorial.md` の mock 節を参照してください。
 
 override ヘッダー、Mock クラス、`ON_CALL`、関数ラッパーのシグネチャを一致させ、app 関数と同名のラッパーには `MOCK_WEAK_IMPL` を使用してください。  
-ソースやリンク先を変える場合は `makepart.mk` も更新し、変更した mock を使う局所テストで確認してください。
+MSVC では、テスト翻訳単位が mock ヘッダーをインクルードすることで `/INCLUDE` と `/ALTERNATENAME` により実装オブジェクトが取り込まれます。一方の環境のみで成功した結果を、他方の環境におけるリンク確認の代用として扱わないでください。  
+ソースやリンク先を変更する場合は `makepart.mk` も更新し、変更した mock を使用する局所テストで確認してください。

@@ -9,7 +9,7 @@
 - [スキルの配置と同期](skill-sync.md)
 - [リリース タグと GitHub Release](release-workflow.md)
 - [GitHub Actions](github-actions.md)
-- [CI 警告への対応](ci-warning-remediation.md)
+- [CI エラーと警告の確認と修正](ci-warning-remediation.md)
 - [Markdown の一括スタイル確認](markdown-style-bulk-check.md)
 
 ## 文書一覧
