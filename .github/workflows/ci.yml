@@ -67,6 +67,9 @@ jobs:
       - name: Check NBSP
         run: python3 bin/check-nbsp.py --force
 
+      - name: Check app .gitignore
+        run: python3 bin/check-app-gitignore.py --check
+
       - name: Load app environment
         run: bash bin/load-app-env.sh --env-file .vscode/.env.linux --workspace "$GITHUB_WORKSPACE" --format github
 
@@ -314,6 +317,9 @@ jobs:
 
       - name: Check NBSP
         run: python3 bin/check-nbsp.py --force
+
+      - name: Check app .gitignore
+        run: python3 bin/check-app-gitignore.py --check
 
       - name: Load app environment
         run: bash bin/load-app-env.sh --env-file .vscode/.env.windows --workspace '${{ github.workspace }}' --format github
