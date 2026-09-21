@@ -1,3 +1,4 @@
-# app/string-catalog-sample/prod/libsrc/samplecatalog 配下のカタログ定義から生成される公開ヘッダー。手動改変しないため Git 管理対象外とする。
+# app/string-catalog-sample/prod/libsrc/samplecatalog 配下のカタログ定義から生成される公開ヘッダー。
+# 自動生成のため Git 管理対象外とする。
 /samplecatalog_messages.h
 /samplecatalog_trace.h
