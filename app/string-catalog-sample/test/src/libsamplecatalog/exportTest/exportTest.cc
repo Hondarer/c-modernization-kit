@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 
+#include <cplat/base/platform.h>
 #include <samplecatalog/samplecatalog.h>
 #include <samplecatalog/samplecatalog_context.h>
 #include <samplecatalog/samplecatalog_messages.h>
@@ -81,6 +82,12 @@ TEST_F(exportTest, symbol_names_match)
     std::set<std::string> expected(
         std::begin(kExpectedExportNames),
         std::end(kExpectedExportNames)); // [状態] - SAMPLECATALOG_EXPORT_TABLE から期待シンボル名一覧を構築する。
+#if defined(PLATFORM_WINDOWS)
+    // _ident_manifest_libsamplecatalog_dll は gen_ident_manifest.py が自動生成するビルド識別データであり、
+    // 関数ではないためシグネチャ検証の対象外としつつ、名前一致の期待値には含める。
+    expected.insert(testing::identManifestSymbolName(
+        "libsamplecatalog" TESTFW_SHARED_LIBRARY_EXTENSION)); // [状態] - IDENT manifest シンボル名を期待値へ追加する (Windows のみ実際にエクスポートされる)。
+#endif                                                        /* PLATFORM_WINDOWS */
 
     // Pre-Assert
 
