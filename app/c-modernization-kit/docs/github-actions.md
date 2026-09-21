@@ -42,9 +42,13 @@ Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行�
 | 変数名 | 値 | 説明 |
 |--------|-----|------|
 | `OPENCPPCOVERAGE_VERSION` | `0.9.9.0` | Windows CI で使用する OpenCppCoverage のバージョン |
-| `REPORTGENERATOR_VERSION` | `5.4.3` | Windows CI で使用する ReportGenerator のバージョン |
+| `INNOEXTRACT_VERSION` | `1.9` | OpenCppCoverage のインストーラーを展開する innoextract のバージョン |
+| `REPORTGENERATOR_VERSION` | `5.5.11` | Windows CI で使用する ReportGenerator のバージョン |
 | `WINFLEXBISON_VERSION` | `2.5.25` | Windows CI で使用する WinFlexBison のバージョン |
 | `WINFLEXBISON_SHA256` | `8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135` | WinFlexBison 配布 ZIP の SHA-256 |
+
+これらのバージョンと配布元は、Windows 開発環境を構築する [devbin-win](https://github.com/Hondarer/devbin-win) の `subscripts/config/packages.psd1` に揃えます。  
+開発者の手元と CI で同じバージョンのツールを使うことが目的であり、どちらか一方を更新した場合はもう一方も合わせて更新します。
 
 framework home 系 (`MAKEFW_HOME` / `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME`) と実行時パスは、各ジョブの `Load app environment` ステップが `.vscode/.env.*` から読み込みます。  
 `MAKEFW_HOME` は `make` / `make test` / `make doxy` などで必須です。未設定の場合は `MAKEFW_HOME is required. Export MAKEFW_HOME before running make` を出力して停止します。  
@@ -120,12 +124,16 @@ Windows 環境では Windows Server 2025 (VS 2026 イメージ) ランナーを�
 runs-on: windows-2025-vs2026
 ```
 
-Windows 環境では以下のツールを動的にセットアップしています:
+Windows 環境では以下のツールを動的にセットアップしています。いずれも devbin-win と同じ公式リリースをダウンロードして展開し、`GITHUB_PATH` へ追加します。パッケージ マネージャー (Chocolatey、.NET グローバル ツール) は使用しません。
 
 - **WinFlexBison** - flex/bison 互換のコード生成ツール (公式リリース ZIP の SHA-256 を検証して展開)
-- **OpenCppCoverage** - C++ コード カバレッジ ツール (Chocolatey 経由でインストール)
-- **ReportGenerator** - カバレッジ レポート生成ツール (.NET ツール)
+- **innoextract** - Inno Setup インストーラーの展開ツール (OpenCppCoverage の展開に使用)
+- **OpenCppCoverage** - C++ コード カバレッジ ツール (公式インストーラーを innoextract で展開)
+- **ReportGenerator** - カバレッジ レポート生成ツール (公式リリース ZIP の `net47` を展開)
 - **MSVC 環境** - カスタム スクリプト (`Add-VSBT-Env-x64.ps1`) で環境変数を設定
+
+OpenCppCoverage の配布物は Inno Setup 形式のインストーラーです。  
+innoextract で展開すると、インストーラーの実行と管理者権限が不要になり、devbin-win がローカルに配置する内容と同じファイル構成になります。
 
 WinFlexBison の実行ファイル名は `win_bison` / `win_flex` です。  
 Windows ジョブの `BISON` / `FLEX` 環境変数を通じて、makefw のコマンド上書き機構へ渡します。
@@ -259,11 +267,13 @@ Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/even
     - PATH に追加し、makefw の `BISON` / `FLEX` へ実行ファイル名を設定
 
 3. **OpenCppCoverage のインストール**
-    - Chocolatey を使用してインストール
-    - PATH に追加
+    - innoextract の公式リリース ZIP をダウンロードして展開
+    - OpenCppCoverage の公式インストーラーをダウンロードし、innoextract で展開
+    - 展開先の `app` ディレクトリを PATH に追加
 
 4. **ReportGenerator のインストール**
-    - .NET Global Tool としてインストール
+    - 公式リリース ZIP をダウンロードして展開
+    - `net47` ディレクトリを PATH に追加
 
 5. **MSVC 環境のセットアップ**
     - カスタム スクリプト (`Add-VSBT-Env-x64.ps1`) で環境変数を設定

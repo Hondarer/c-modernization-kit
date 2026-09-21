@@ -15,8 +15,12 @@ permissions:
 # framework home 系 (MAKEFW_HOME など) と実行時パスは .vscode/.env.* を源泉とし、
 # 各ジョブの Load app environment ステップで読み込む。ここには定義しない。
 env:
+  # Windows CI が導入するツールは、devbin-win の subscripts/config/packages.psd1 と
+  # 同じバージョン、同じ配布元に揃える。
+  # see: https://github.com/Hondarer/devbin-win
   OPENCPPCOVERAGE_VERSION: "0.9.9.0"
-  REPORTGENERATOR_VERSION: "5.4.3"
+  INNOEXTRACT_VERSION: "1.9"
+  REPORTGENERATOR_VERSION: "5.5.11"
   WINFLEXBISON_VERSION: "2.5.25"
   WINFLEXBISON_SHA256: "8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135"
 
@@ -355,98 +359,78 @@ jobs:
           }
         shell: pwsh
 
-      - name: Restore OpenCppCoverage cache
-        uses: actions/cache@v6
-        with:
-          path: C:\Program Files\OpenCppCoverage
-          key: opencppcoverage-${{ runner.os }}-${{ env.OPENCPPCOVERAGE_VERSION }}
-
       - name: Install OpenCppCoverage
         run: |
-          $maxRetry = 3
-          $retryCount = 0
-          $opencppPath = "C:\Program Files\OpenCppCoverage"
-          $opencppExe = Join-Path $opencppPath "OpenCppCoverage.exe"
-          $chocoLogPath = "C:\ProgramData\chocolatey\logs\chocolatey.log"
-          if (Test-Path $opencppExe) {
-              Write-Host "OpenCppCoverage cache restored; skipping install."
-          } else {
-              $installed = $false
-              while (-not $installed -and $retryCount -lt $maxRetry) {
-                  $retryCount++
-                  Write-Host "choco install opencppcoverage $env:OPENCPPCOVERAGE_VERSION (attempt $retryCount/$maxRetry)..."
-                  choco install opencppcoverage --version=$env:OPENCPPCOVERAGE_VERSION -y
-                  $chocoExitCode = $LASTEXITCODE
-                  $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
-                  if ((Test-Path $opencppExe) -or $null -ne $resolvedCommand) {
-                      $installed = $true
-                      Write-Host "OpenCppCoverage is available."
-                  } elseif ($retryCount -lt $maxRetry) {
-                      Write-Host "OpenCppCoverage is not available yet (choco exit code $chocoExitCode). Retrying in 10 seconds..."
-                      Start-Sleep -Seconds 10
-                  }
-              }
-              if (-not $installed) {
-                  Write-Host "ERROR: choco install opencppcoverage failed after $maxRetry attempts."
-                  if (Test-Path $chocoLogPath) {
-                      Write-Host "Last 50 lines of ${chocoLogPath}:"
-                      Get-Content $chocoLogPath -Tail 50
-                  } else {
-                      Write-Host "Chocolatey log not found at $chocoLogPath"
-                  }
-                  exit 1
-              }
+          $ErrorActionPreference = "Stop"
+
+          # OpenCppCoverage の配布物は Inno Setup インストーラーのため、devbin-win と同じく
+          # innoextract で展開する。インストーラーの実行と管理者権限が不要になる。
+          # see: https://github.com/dscharrer/innoextract/releases/tag/1.9
+          $innoArchiveName = "innoextract-$env:INNOEXTRACT_VERSION-windows.zip"
+          $innoArchivePath = Join-Path $env:RUNNER_TEMP $innoArchiveName
+          $innoInstallPath = Join-Path $env:RUNNER_TEMP "innoextract-$env:INNOEXTRACT_VERSION"
+          $innoDownloadUrl = "https://github.com/dscharrer/innoextract/releases/download/$env:INNOEXTRACT_VERSION/$innoArchiveName"
+
+          Invoke-WebRequest -Uri $innoDownloadUrl -OutFile $innoArchivePath
+          Expand-Archive -LiteralPath $innoArchivePath -DestinationPath $innoInstallPath -Force
+          $innoextractPath = Join-Path $innoInstallPath "innoextract.exe"
+
+          # see: https://github.com/OpenCppCoverage/OpenCppCoverage/releases/tag/release-0.9.9.0
+          $setupName = "OpenCppCoverageSetup-x64-$env:OPENCPPCOVERAGE_VERSION.exe"
+          $setupPath = Join-Path $env:RUNNER_TEMP $setupName
+          $extractPath = Join-Path $env:RUNNER_TEMP "opencppcoverage-$env:OPENCPPCOVERAGE_VERSION"
+          $downloadUrl = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-$env:OPENCPPCOVERAGE_VERSION/$setupName"
+
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $setupPath
+          if (Test-Path $extractPath) {
+              Remove-Item -LiteralPath $extractPath -Recurse -Force
+          }
+          & $innoextractPath -d $extractPath $setupPath
+          if ($LASTEXITCODE -ne 0) {
+              throw "innoextract failed with exit code $LASTEXITCODE"
           }
 
-          # PATH に追加 (GitHub Actions の永続化メカニズムを使用)
-          $resolvedCommand = Get-Command OpenCppCoverage.exe -ErrorAction SilentlyContinue
-          if (Test-Path $opencppExe) {
-              $opencppBinPath = $opencppPath
-              $opencppCommandPath = $opencppExe
-          } elseif ($null -ne $resolvedCommand) {
-              $opencppBinPath = Split-Path -Parent $resolvedCommand.Source
-              $opencppCommandPath = $resolvedCommand.Source
-          } else {
-              $opencppBinPath = $null
-              $opencppCommandPath = $null
+          # devbin-win の InnoSetup 戦略と同じく、インストーラー内の app を配置先とする。
+          $installPath = Join-Path $extractPath "app"
+          $opencppExe = Join-Path $installPath "OpenCppCoverage.exe"
+          if (-not (Test-Path $opencppExe)) {
+              throw "OpenCppCoverage.exe not found at $opencppExe"
           }
-          if ($null -ne $opencppBinPath) {
-              Write-Host "`nAdding OpenCppCoverage to PATH from $opencppBinPath..."
-              Add-Content -Path $env:GITHUB_PATH -Value $opencppBinPath
-              Write-Host "PATH addition completed."
-          } else {
-              Write-Host "ERROR: OpenCppCoverage executable not found after installation."
-              exit 1
-          }
-          & $opencppCommandPath --help
-          $opencppHelpExitCode = $LASTEXITCODE
-          if ($opencppHelpExitCode -gt 1) {
-              Write-Host "ERROR: OpenCppCoverage help failed with exit code $opencppHelpExitCode."
-              exit $opencppHelpExitCode
+          Add-Content -Path $env:GITHUB_PATH -Value $installPath
+
+          & $opencppExe --help
+          # OpenCppCoverage は --help でも終了コード 1 を返すことがある。
+          if ($LASTEXITCODE -gt 1) {
+              throw "OpenCppCoverage --help failed with exit code $LASTEXITCODE"
           }
           $global:LASTEXITCODE = 0
         shell: pwsh
 
-      - name: Restore ReportGenerator cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.dotnet/tools
-          key: reportgenerator-${{ runner.os }}-${{ env.REPORTGENERATOR_VERSION }}
-
       - name: Install ReportGenerator
         run: |
-          $dotnetToolsPath = Join-Path $env:USERPROFILE ".dotnet\tools"
-          Add-Content -Path $env:GITHUB_PATH -Value $dotnetToolsPath
-          $env:PATH = "$dotnetToolsPath;$env:PATH"
+          $ErrorActionPreference = "Stop"
+          # see: https://github.com/danielpalme/ReportGenerator/releases/tag/v5.5.11
+          $archiveName = "ReportGenerator_$env:REPORTGENERATOR_VERSION.zip"
+          $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
+          $extractPath = Join-Path $env:RUNNER_TEMP "reportgenerator-$env:REPORTGENERATOR_VERSION"
+          $downloadUrl = "https://github.com/danielpalme/ReportGenerator/releases/download/v$env:REPORTGENERATOR_VERSION/$archiveName"
 
-          $reportGeneratorExe = Join-Path $dotnetToolsPath "reportgenerator.exe"
-          if (Test-Path $reportGeneratorExe) {
-              Write-Host "ReportGenerator cache restored; skipping install."
-          } else {
-              dotnet tool install --global dotnet-reportgenerator-globaltool --version $env:REPORTGENERATOR_VERSION
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath
+          Expand-Archive -LiteralPath $archivePath -DestinationPath $extractPath -Force
+
+          # devbin-win と同じく .NET Framework 4.7 版を配置する。
+          $installPath = Join-Path $extractPath "net47"
+          $reportGeneratorExe = Join-Path $installPath "ReportGenerator.exe"
+          if (-not (Test-Path $reportGeneratorExe)) {
+              throw "ReportGenerator.exe not found at $reportGeneratorExe"
           }
+          Add-Content -Path $env:GITHUB_PATH -Value $installPath
 
-          reportgenerator -h
+          & $reportGeneratorExe -h
+          if ($LASTEXITCODE -gt 1) {
+              throw "ReportGenerator -h failed with exit code $LASTEXITCODE"
+          }
+          $global:LASTEXITCODE = 0
         shell: pwsh
 
       - name: Setup MSVC environment
