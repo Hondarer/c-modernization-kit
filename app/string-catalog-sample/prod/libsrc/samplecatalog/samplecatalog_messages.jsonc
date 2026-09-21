@@ -3,7 +3,6 @@
 // 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
 //
 // ライブラリが外部へ公開するカタログのため、export に公開範囲を指定します。
-// 公開するカタログでは value に列挙値を記述し、定義の並べ替えで値が変化しないようにします。
 {
     "settings": "catalog_settings.jsonc",
     "export": "api",
@@ -14,7 +13,6 @@
     "strings": [
         {
             "key": "SAMPLECATALOG_MESSAGES_KEY_LIBRARY_READY",
-            "value": 1,
             "id": "SAMPLECATALOG_MESSAGES_ID_0001",
             "category": 3, // CPLAT_TRACE_LEVEL_INFO
             "brief": "ライブラリの準備完了。",
@@ -31,7 +29,6 @@
         },
         {
             "key": "SAMPLECATALOG_MESSAGES_KEY_ITEM_NOT_FOUND",
-            "value": 2,
             "id": "SAMPLECATALOG_MESSAGES_ID_0002",
             "category": 1, // CPLAT_TRACE_LEVEL_ERROR
             "brief": "項目が見つからない。",
@@ -59,7 +56,6 @@
         },
         {
             "key": "SAMPLECATALOG_MESSAGES_KEY_LIMIT_EXCEEDED",
-            "value": 3,
             "id": "SAMPLECATALOG_MESSAGES_ID_0003",
             "category": 2, // CPLAT_TRACE_LEVEL_WARNING
             "brief": "上限の超過。",

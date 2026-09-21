@@ -15,7 +15,6 @@
     "strings": [
         {
             "key": "SAMPLECATALOG_TRACE_KEY_LIBRARY_INITIALIZED",
-            "value": 1,
             "id": "SAMPLECATALOG_TRACE_ID_0001",
             "level": "INFO",
             "brief": "ライブラリの初期化。",
@@ -38,7 +37,6 @@
         },
         {
             "key": "SAMPLECATALOG_TRACE_KEY_VERIFY_FAILED",
-            "value": 2,
             "id": "SAMPLECATALOG_TRACE_ID_0002",
             "level": "ERROR",
             "brief": "カタログ点検の失敗。",
@@ -66,7 +64,6 @@
         },
         {
             "key": "SAMPLECATALOG_TRACE_KEY_LOOKUP_PERFORMED",
-            "value": 3,
             "id": "SAMPLECATALOG_TRACE_ID_0003",
             "level": "VERBOSE",
             "brief": "項目の検索。",
