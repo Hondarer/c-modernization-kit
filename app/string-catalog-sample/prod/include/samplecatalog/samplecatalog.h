@@ -42,29 +42,29 @@ extern "C"
      *  自身が保持するカタログを点検し、トレースの出力先を設定します。\n
      *  点検は提供元の責務であるため、利用側はカタログの点検 API を呼び出す必要がありません。
      *
-     *  トレーサーの所有権は移りません。\n
-     *  出力先を決めるのは利用側であるため、初期化の段階で受け取ります。
+     *  トレーサーの所有権は移動しません。\n
+     *  出力先を決定するのは利用側であるため、初期化時に受け取ります。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  ライブラリを使用する前に、1 つのスレッドから 1 回だけ呼び出してください。
+     *  ライブラリを使用する前に、1 つのスレッドから 1 回のみ呼び出してください。
      */
     SAMPLECATALOG_EXPORT int SAMPLECATALOG_API samplecatalog_initialize(cplat_tracer *tracer);
 
     /**
-     *  @brief          項目を名前で探し、結果を説明する文字列を組み立てます。
-     *  @param[in]      item_name 探す項目の名前。NULL を渡してはなりません。
+     *  @brief          項目を名称で検索し、結果を説明する文字列を組み立てます。
+     *  @param[in]      item_name 検索対象の項目名。NULL を渡してはなりません。
      *  @param[out]     dest      文字列の格納先バッファー。NULL を渡してはなりません。
      *  @param[in]      dest_size @p dest のバイト数。1 以上を指定してください。
      *  @return         項目が見つかった場合は @c CPLAT_OK を返し、@p dest を変更しません。
-     *  @return         項目が見つからない場合は @c CPLAT_ERR_NOT_FOUND を返し、@p dest へ理由を組み立てます。
+     *  @return         項目が存在しない場合は @c CPLAT_ERR_NOT_FOUND を返し、@p dest へ理由を組み立てます。
      *  @return         引数が不正な場合は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  ライブラリが自身のカタログから文字列を組み立てる例です。\n
-     *  組み立てた文字列の言語は、@c cplat_string_catalog_set_language が定めるプロセスの設定に従います。
+     *  組み立てた文字列の言語は、@c cplat_string_catalog_set_language が設定するプロセスの設定に従います。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。読み取り専用の静的データだけを参照します。
+     *  本関数はスレッド セーフです。読み取り専用の静的データのみを参照します。
      */
     SAMPLECATALOG_EXPORT int SAMPLECATALOG_API samplecatalog_find_item(const char *item_name, char *dest,
                                                                       size_t dest_size);

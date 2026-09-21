@@ -67,7 +67,7 @@ static cplat_trace_level trace_level_of(const cplat_string_catalog *const catalo
  *  @brief          1 件の文字列を組み立てて標準出力へ表示します。
  *  @param[in]      catalog   参照するカタログ識別オブジェクト。NULL は指定できません。
  *  @param[in]      string_key 表示する文字列のキー。
- *  @param[in]      ...        文字列キーの引数スキーマが定める順序と型の値。
+ *  @param[in]      ...        文字列キーの引数スキーマが定義する順序と型の値。
  *  @return         成功時は @c CPLAT_OK 、失敗時はライブラリの結果コードを返します。
  *
  *  可変長引数をそのまま中継するため、@c cplat_string_catalog_vformat を使用します。
@@ -165,17 +165,17 @@ static int print_all_strings(void)
  *  @brief          トレース種別のカタログから、トレースへ出力します。
  *  @return         成功時は @c CPLAT_OK 、失敗時は最初に検出した結果コードを返します。
  *
- *  トレース種別の生成物は、呼び出し位置を付けて出力する関数形式マクロを提供します。\n
+ *  トレース種別の生成物は、呼び出し位置を付与して出力する関数形式マクロを提供します。\n
  *  出力先はカタログが保持するため、出力の前に @c sample_trace_set_tracer で設定します。\n
  *  未設定のまま出力を要求した場合は、何も出力せずに失敗を返します。
  *
  *  トレーサーの出力先は既定でいずれも無効です。\n
- *  本サンプルは画面で結果を確認するため、標準エラー出力だけを有効にします。
+ *  本サンプルは画面で結果を確認するため、標準エラー出力のみを有効にします。
  *
  *  トレーサーの破棄は行いません。cplat がプロセスの終了時に自動で破棄するためです。\n
  *  破棄したあとに出力を要求する場合に限り、破棄の前に出力先へ NULL を設定します。
  *
- *  呼び出し位置と実行文脈は引数として渡ります。書式が位置指定を持たない項目では、
+ *  呼び出し位置と実行コンテキストは引数として渡されます。書式が位置指定を持たない項目では、
  *  組み立てた文字列に現れません。\n
  *  SAMPLE_TRACE_KEY_STATE_DUMP は 40 番からの位置指定を書式へ持つため、これらの値が出力へ現れます。
  */
@@ -192,7 +192,7 @@ static int write_traces(void)
         return CPLAT_ERR_UNKNOWN;
     }
 
-    /* 出力先は既定でいずれも無効のため、使用する出力先だけを設定する */
+    /* 出力先は既定でいずれも無効のため、使用する出力先のみを設定する */
     ret = cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_DEBUG);
     if (ret != CPLAT_OK)
     {
@@ -230,7 +230,7 @@ static int write_traces(void)
         result = ret;
     }
 
-    /* この項目の書式は、40 番からの文脈引数を参照する */
+    /* この項目の書式は、インデックス 40 からのコンテキスト引数を参照する */
     ret = sample_trace_key_state_dump(UINT32_C(7));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
@@ -239,7 +239,7 @@ static int write_traces(void)
 
     /*
      * 解除と破棄は行わない。トレーサーはプロセスの終了時に cplat が自動で破棄し、
-     * 破棄したあとに出力を要求しないため、カタログの設定を外す必要もない。
+     * 破棄したあとに出力を要求しないため、カタログの設定を解除する必要もない。
      */
     return result;
 }

@@ -4,7 +4,7 @@
 
 C# (シーシャープ) は .NET 環境で動作するオブジェクト指向言語です。型安全で例外処理が充実しており、Java に似た構文を持ちます。P/Invoke (Platform Invocation Services) は .NET アプリケーションから C/C++ などで書かれたネイティブ コード (DLL) を呼び出す仕組みです。
 
-対象ワークスペースの `app/example.net/prod/` は C ライブラリ (`libexample`) を .NET から利用するための実装例です。`app/example.net/prod/libsrc/ExampleLib/Internal/NativeMethods.cs` で `[DllImport]` 属性を使った P/Invoke 定義を行い、`ExampleLibrary.cs` がこれをラップして .NET らしいインターフェース (例外・型安全・`ExampleResult` クラス) を提供します。`ExampleApp` がこのライブラリを使うサンプル アプリです。
+対象ワークスペースの `app/example.net/prod/` は C ライブラリ (`libexample`) を .NET から利用するための実装例です。`app/example.net/prod/libsrc/ExampleLib/Internal/NativeMethods.cs` で `[DllImport]` 属性を使った P/Invoke 定義を行い、`ExampleLibrary.cs` がこれをラップして .NET らしいインターフェイス (例外・型安全・`ExampleResult` クラス) を提供します。`ExampleApp` がこのライブラリを使うサンプル アプリです。
 
 C 言語開発者が .NET 連携を理解するには、C# の基礎に加えて P/Invoke の仕組みを習得することが重要です。
 

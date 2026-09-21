@@ -53,7 +53,7 @@ TEST_F(sampleMessagesTest, catalog_is_consistent)
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - すべての書式が引数スキーマと整合していること。
 }
 
-// 同じ翻訳単位から 2 つ目のカタログも利用できることの確認
+// 同一の翻訳単位から 2 つ目のカタログも利用できることの確認
 TEST_F(sampleMessagesTest, second_catalog_is_consistent)
 {
     // Arrange
@@ -71,7 +71,7 @@ TEST_F(sampleMessagesTest, second_catalog_is_consistent)
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 2 つ目のカタログも書式と引数スキーマが整合していること。
 }
 
-// 各文字列が ID とニュートラル言語のリソースを持つことの確認
+// 各文字列が ID とニュートラル言語のリソースを保持することの確認
 TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 {
     // Arrange
@@ -136,7 +136,7 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
     // Assert
     ASSERT_NE(nullptr, actual_entry);                              // [確認_正常系] - 項目メタデータを取得できること。
     ASSERT_NE(nullptr, actual_entry->arguments);                   // [確認_正常系] - 引数定義を取得できること。
-    EXPECT_STREQ("ファイルのオープン失敗。", actual_entry->brief); // [確認_正常系] - 短い説明を保持すること。
+    EXPECT_STREQ("ファイル オープンの失敗。", actual_entry->brief); // [確認_正常系] - 短い説明を保持すること。
     EXPECT_STREQ("ファイルを開けなかったことを通知する文字列を組み立てます。",
                  actual_entry->details); // [確認_正常系] - 詳細説明を保持すること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_STRING,
@@ -175,7 +175,7 @@ TEST_F(sampleMessagesTest, entry_remarks)
                  actual_entry->remarks); // [確認_正常系] - 補足説明を保持すること。
 }
 
-// 文字列キーごとの型付きラッパーが、カタログを指定した呼び出しと同じ結果を出すことの確認
+// 文字列キーごとの型付きラッパーが、カタログを指定した呼び出しと同一の結果を出力することの確認
 TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 {
     // Arrange
@@ -215,7 +215,7 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
                  actual_dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。
 }
 
-// 型付きラッパーでも、引数の順序が言語に依らないことの確認
+// 型付きラッパーでも、引数の順序が言語に依存しないことの確認
 TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
 {
     // Arrange

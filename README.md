@@ -18,7 +18,7 @@ C および C++ の開発、ビルド、自動テスト、ドキュメント生�
 
 ## 特徴
 
-- Linux では GCC、Windows では MSVC を使用し、共通の Make インターフェースからビルドします。
+- Linux では GCC、Windows では MSVC を使用し、共通の Make インターフェイスからビルドします。
 - Google Test を利用し、プロダクション コードから分離したテストとエビデンスを生成します。
 - Doxygen と Doxybook2 を利用して、C および C++ の API 資料を生成します。
 - Pandoc を利用して、Markdown から HTML と DOCX を静的発行します。

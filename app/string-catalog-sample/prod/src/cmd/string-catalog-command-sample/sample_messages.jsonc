@@ -27,7 +27,7 @@
             "key": "SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED",
             "id": "SAMPLE_MESSAGES_ID_0002",
             "category": 1, // CPLAT_TRACE_LEVEL_ERROR
-            "brief": "ファイルのオープン失敗。",
+            "brief": "ファイル オープンの失敗。",
             "details": "ファイルを開けなかったことを通知する文字列を組み立てます。",
             "arguments": [
                 {
@@ -89,22 +89,22 @@
             "id": "SAMPLE_MESSAGES_ID_0004",
             "category": 2, // CPLAT_TRACE_LEVEL_WARNING
             "brief": "バッファー上限の超過。",
-            "details": "要求サイズが上限を超えたことを通知する文字列を組み立てます。",
+            "details": "要求サイズが上限を超過したことを通知する文字列を組み立てます。",
             "arguments": [
                 {
                     "kind": "SIZE",
                     "name": "requested_size",
-                    "description": "要求したバイト数。"
+                    "description": "要求バイト数。"
                 },
                 {
                     "kind": "SIZE",
                     "name": "limit_size",
-                    "description": "上限のバイト数。設定により変更可能です。"
+                    "description": "上限バイト数。設定により変更可能です。"
                 }
             ],
             "texts": {
                 "neutral": "The requested size of {0} bytes exceeds the limit of {1} bytes.",
-                "japanese": "要求サイズ {0} バイトが上限 {1} バイトを超えました。"
+                "japanese": "要求サイズ {0} バイトが上限 {1} バイトを超過しました。"
             },
             "notes": {
                 "neutral": "The requested size and the limit are in bytes. The limit is configurable.",
@@ -117,7 +117,7 @@
             "category": 1, // CPLAT_TRACE_LEVEL_ERROR
             "brief": "レコードのシグネチャー不一致。",
             "details": "レコードのシグネチャーが想定と一致しないことを通知する文字列を組み立てます。",
-            "remarks": "日本語の書式は位置指定を入れ替えますが、引数の順序は言語によらず同じです。",
+            "remarks": "日本語の書式はプレースホルダーの指定順序を変更していますが、実引数の指定順序は言語に依存せず同一です。",
             "arguments": [
                 {
                     "kind": "UINT32",
@@ -139,7 +139,7 @@
                     "The Japanese text swaps the placeholders.",
                     "The caller passes the arguments in the same order for every language."
                 ],
-                "japanese": "日本語の書式は位置指定を入れ替えています。呼び出し側の引数順序は言語によらず同じです。",
+                "japanese": "日本語の書式はプレースホルダーの指定順序を変更しています。呼び出し側の引数順序は言語に依存せず同一です。",
                 "english": "The Japanese text swaps the placeholders, while the argument order stays the same."
             }
         },
@@ -159,7 +159,7 @@
                 {
                     "kind": "INT64",
                     "name": "delay_milliseconds",
-                    "description": "再試行までの待ち時間。単位はミリ秒です。"
+                    "description": "再試行までの待機時間。単位はミリ秒です。"
                 }
             ],
             "texts": {
@@ -168,7 +168,7 @@
             },
             "notes": {
                 "neutral": "The delay is in milliseconds. The caller manages the retry count.",
-                "japanese": "待ち時間の単位はミリ秒です。再試行の回数は呼び出し側が管理します。"
+                "japanese": "待機時間の単位はミリ秒です。再試行回数は呼び出し側が管理します。"
             }
         }
     ]

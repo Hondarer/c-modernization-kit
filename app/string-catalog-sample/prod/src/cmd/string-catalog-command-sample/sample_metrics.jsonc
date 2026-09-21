@@ -11,13 +11,13 @@
             "key": "SAMPLE_METRICS_KEY_THROUGHPUT_REPORT",
             "id": "SAMPLE_METRICS_ID_0001",
             "category": 4, // CPLAT_TRACE_LEVEL_VERBOSE
-            "brief": "スループット報告。",
+            "brief": "スループットの報告。",
             "details": "処理速度と累計件数を通知する文字列を組み立てます。",
             "arguments": [
                 {
                     "kind": "DOUBLE",
                     "name": "records_per_second",
-                    "description": "毎秒の処理件数。書式中で 2 か所から参照します。"
+                    "description": "1 秒あたりの処理件数。書式内で 2 か所から参照します。"
                 },
                 {
                     "kind": "UINT64",
@@ -37,7 +37,7 @@
                     "The rate is referenced twice.",
                     "It shows that one placeholder can appear more than once."
                 ],
-                "japanese": "毎秒件数を 2 か所で参照します。同じ位置指定を複数回記述できることを示す例です。"
+                "japanese": "1 秒あたりの処理件数を 2 か所で参照します。同一のプレースホルダーを複数回記述できることを示す例です。"
             }
         }
     ]

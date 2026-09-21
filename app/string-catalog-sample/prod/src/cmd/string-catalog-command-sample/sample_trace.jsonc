@@ -3,8 +3,8 @@
 // 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
 //
 // kind に trace を指定したトレース種別の定義です。
-// 生成物は、呼び出し位置を付けてトレースへ出力する関数形式マクロを提供します。
-// 分類値は level へトレース レベルの名前で書き、生成器が整数へ変換します。
+// 生成物は、呼び出し位置を付与してトレースへ出力する関数形式マクロを提供します。
+// 分類値は level へトレース レベルの定数名で記述し、生成器によって整数へ変換されます。
 {
     "kind": "trace",
     "author": "Tetsuo Honda",
@@ -17,7 +17,7 @@
             "id": "SAMPLE_TRACE_ID_0001",
             "level": "INFO",
             "brief": "サービスの開始。",
-            "details": "運用上の節目となる出来事のため、常時記録の対象となる INFO とします。",
+            "details": "運用上の節目となる出来事のため、常時記録の対象となる INFO に設定します。",
             "arguments": [],
             "texts": {
                 "neutral": "The service has started.",
@@ -32,8 +32,8 @@
             "key": "SAMPLE_TRACE_KEY_FILE_OPEN_FAILED",
             "id": "SAMPLE_TRACE_ID_0002",
             "level": "ERROR",
-            "brief": "ファイルのオープン失敗。",
-            "details": "対処が必要な事象のため ERROR とします。",
+            "brief": "ファイル オープンの失敗。",
+            "details": "対処が必要な事象のため ERROR に設定します。",
             "arguments": [
                 {
                     "kind": "STRING",
@@ -52,7 +52,7 @@
             },
             "notes": {
                 "neutral": "The path is emitted as given by the caller.",
-                "japanese": "パスは呼び出し側が渡した表記のまま出力します。"
+                "japanese": "パスは呼び出し側から渡された表記のまま出力します。"
             }
         },
         {
@@ -60,12 +60,12 @@
             "id": "SAMPLE_TRACE_ID_0003",
             "level": "VERBOSE",
             "brief": "レコードの解析。",
-            "details": "1 件ごとに発生し量が多くなるため、調査のときだけ有効にする VERBOSE とします。",
+            "details": "1 件ごとに発生して出力頻度が高くなるため、詳細調査時のみ有効化する VERBOSE に設定します。",
             "arguments": [
                 {
                     "kind": "UINT32",
                     "name": "record_index",
-                    "description": "解析したレコードの番号。"
+                    "description": "解析対象レコードの番号。"
                 },
                 {
                     "kind": "SIZE",
@@ -83,8 +83,8 @@
                     "The format can reference them when the output needs to carry them."
                 ],
                 "japanese": [
-                    "呼び出し位置と実行文脈は、40 番からの引数として渡されます。",
-                    "出力へ含める必要が生じた場合は、書式から位置指定で参照できます。"
+                    "呼び出し位置と実行コンテキストは、インデックス 40 からの引数として渡されます。",
+                    "出力へ含める必要が生じた場合は、書式からプレースホルダーで参照できます。"
                 ]
             }
         },
@@ -94,20 +94,20 @@
             "level": "DEBUG",
             "brief": "内部状態の記録。",
             "details": [
-                "書式から文脈引数を参照する例です。",
-                "呼び出し位置と実行文脈を組み立てた文字列へ含めます。",
-                "調査のときだけ有効にする詳細のため DEBUG とします。"
+                "書式からコンテキスト引数を参照する例です。",
+                "呼び出し位置と実行コンテキストを組み立てた文字列に含めます。",
+                "調査時のみ有効化する詳細情報のため DEBUG に設定します。"
             ],
             "arguments": [
                 {
                     "kind": "UINT32",
                     "name": "queue_length",
-                    "description": "待ち行列の長さ。"
+                    "description": "キューの長さ。"
                 }
             ],
             "texts": {
                 "neutral": "Queue length is {0}. [{41}:{42} {43}] path={40} pid={44} tid={45}",
-                "japanese": "待ち行列の長さは {0} です。[{41}:{42} {43}] パス={40} プロセス={44} スレッド={45}"
+                "japanese": "キューの長さは {0} です。[{41}:{42} {43}] パス={40} プロセス={44} スレッド={45}"
             },
             "notes": {
                 "neutral": [
@@ -115,8 +115,8 @@
                     "Index 40 to 45 are the context arguments that the generator appends."
                 ],
                 "japanese": [
-                    "呼び出し位置と実行文脈を、書式から参照しています。",
-                    "40 番から 45 番は、生成器が付け加える文脈引数です。"
+                    "呼び出し位置と実行コンテキストを、書式から参照しています。",
+                    "インデックス 40 から 45 は、生成器が付加するコンテキスト引数です。"
                 ]
             }
         }

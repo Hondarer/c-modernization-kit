@@ -113,7 +113,7 @@ TEST_F(catalogIntegrationTest, neutral_language)
                  dest); // [確認_正常系] - ニュートラル言語の書式で組み立てられること。
 }
 
-// 引数の型と表現が文字列キー側で決まることの確認
+// 引数の型と表現が文字列キー側で決定されることの確認
 TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
 {
     // Arrange
@@ -142,10 +142,10 @@ TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
     EXPECT_STREQ("ファイル config.json を開けませんでした。エラー コード=2 (0x00000002)",
                  dest); // [確認_正常系] - 日本語の文字列が一致すること。
     EXPECT_STREQ("Failed to open file config.json. Error code=2 (0x00000002)",
-                 english_dest); // [確認_正常系] - エラー コードの表現が言語に依らないこと。
+                 english_dest); // [確認_正常系] - エラー コードの表現が言語に依存しないこと。
 }
 
-// 言語別リソースが語順だけを決めることの確認
+// 言語別リソースが語順のみを決定することの確認
 TEST_F(catalogIntegrationTest, language_changes_order_only)
 {
     // Arrange
@@ -175,7 +175,7 @@ TEST_F(catalogIntegrationTest, language_changes_order_only)
     EXPECT_STREQ("シグネチャー 0x1234abcd は、レコード 42 の想定と一致しません。",
                  dest); // [確認_正常系] - 日本語では位置指定を入れ替えた語順になること。
     EXPECT_STREQ("Record 42 has an unexpected signature 0x1234abcd.",
-                 english_dest); // [確認_正常系] - 呼び出し側の引数順を変えずに語順だけが変わること。
+                 english_dest); // [確認_正常系] - 呼び出し側の引数順を変更せずに語順のみが変化すること。
 }
 
 // 同じ引数を複数回参照できることの確認
@@ -239,7 +239,7 @@ TEST_F(catalogIntegrationTest, trace_level_is_stored_as_category)
     EXPECT_EQ((int)CPLAT_TRACE_LEVEL_VERBOSE, verbose_category); // [確認_正常系] - VERBOSE が対応する整数になること。
 }
 
-// 文脈引数が引数配列の 40 番から並んでいることの確認
+// コンテキスト引数が引数配列のインデックス 40 から並んでいることの確認
 TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
 {
     // Arrange
@@ -259,9 +259,9 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
     EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,
               entry->arguments[2].kind); // [確認_正常系] - 利用者の引数と文脈引数の間が未使用であること。
     EXPECT_STREQ("source_file_path", entry->arguments[40].name); // [確認_正常系] - 文脈引数が 40 番から並ぶこと。
-    EXPECT_STREQ("thread_id", entry->arguments[45].name); // [確認_正常系] - cplat が定める文脈引数の末尾が 45 番であること。
+    EXPECT_STREQ("thread_id", entry->arguments[45].name); // [確認_正常系] - cplat が定義するコンテキスト引数の末尾が 45 番であること。
 
-    // 本カタログは app が定める文脈引数を持たないため、46 番から 49 番は予約された空きとなる。
+    // 本カタログは app が定義するコンテキスト引数を保持しないため、インデックス 46 から 49 は予約された未使用領域となる。
     for (int index = 46; index < CPLAT_STRING_CATALOG_ARGUMENT_MAX; index++)
     {
         EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,
@@ -304,7 +304,7 @@ TEST_F(catalogIntegrationTest, trace_macro_writes_to_tracer)
     cplat_tracer_dispose(&tracer);
 }
 
-// 書式が参照する文脈引数が、呼び出し位置と実行文脈の値へ展開されることの確認
+// 書式が参照するコンテキスト引数が、呼び出し位置と実行コンテキストの値へ展開されることの確認
 TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
 {
     // Arrange
@@ -324,13 +324,13 @@ TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
 
     // Act
     testing::internal::CaptureStderr();
-    actual_ret = sample_trace_key_state_dump(UINT32_C(7)); // [手順] - 文脈引数を参照する書式で出力する。
+    actual_ret = sample_trace_key_state_dump(UINT32_C(7)); // [手順] - コンテキスト引数を参照する書式で出力する。
     std::string captured = testing::internal::GetCapturedStderr();
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 戻り値が CPLAT_OK であること。
     EXPECT_NE(std::string::npos,
-              captured.find("待ち行列の長さは 7 です。")); // [確認_正常系] - 利用者の引数が展開されること。
+              captured.find("キューの長さは 7 です。")); // [確認_正常系] - 利用者の引数が展開されること。
     EXPECT_NE(std::string::npos,
               captured.find("catalogIntegrationTest.cc:")); // [確認_正常系] - 41 番が呼び出し元のファイル名になること。
     EXPECT_NE(std::string::npos,

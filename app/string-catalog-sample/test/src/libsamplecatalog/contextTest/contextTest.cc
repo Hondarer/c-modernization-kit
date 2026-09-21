@@ -4,7 +4,7 @@
 
 #include <samplecatalog/samplecatalog_context.h>
 
-// app が定める文脈引数として渡す、巡回する連番の確認
+// app が定義するコンテキスト引数として渡す、巡回する連番の確認
 class contextTest : public Test
 {
 };

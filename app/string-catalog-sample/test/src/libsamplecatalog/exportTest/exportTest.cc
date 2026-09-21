@@ -21,9 +21,9 @@
 // 公開範囲 api では、戻り値が cplat の構造体を指す関数 (_catalog、_entries、_entry、
 // _key_index、_key_index_count) と、提供元の責務である _verify を公開しない。
 //
-// samplecatalog_next_sequence_number は app が定める文脈引数の取得式であり、
-// 生成ヘッダーの static inline の中で展開される。利用側のコンパイル単位から
-// 呼ばれるため、公開が必須となる。
+// samplecatalog_next_sequence_number は app が定義するコンテキスト引数の取得式であり、
+// 生成ヘッダーの static inline の中で展開される。利用側の翻訳単位から
+// 呼び出されるため、公開が必須となる。
 #define SAMPLECATALOG_EXPORT_FUNCTION_TABLE(EXPORT_ENTRY) \
     EXPORT_ENTRY(samplecatalog_initialize, int(SAMPLECATALOG_API *)(cplat_tracer *)) \
     EXPORT_ENTRY(samplecatalog_find_item, int(SAMPLECATALOG_API *)(const char *, char *, size_t)) \
@@ -69,7 +69,7 @@ class exportTest : public Test
     void SetUp() override
     {
         workspace_root = findWorkspaceRoot();
-        ASSERT_FALSE(workspace_root.empty()) << "ワークスペースルートが見つかりません";
+        ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
         dll_path = workspace_root +
                    "/app/string-catalog-sample/prod/lib/libsamplecatalog" TESTFW_SHARED_LIBRARY_EXTENSION;
     }

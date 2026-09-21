@@ -3,7 +3,7 @@
 // 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
 //
 // ライブラリが外部へ公開するカタログのため、export に公開範囲を指定します。
-// 公開するカタログでは value に列挙値を書き、定義の並べ替えで値が変わらないようにします。
+// 公開するカタログでは value に列挙値を記述し、定義の並べ替えで値が変化しないようにします。
 {
     "settings": "catalog_settings.jsonc",
     "export": "api",
@@ -18,7 +18,7 @@
             "id": "SAMPLECATALOG_MESSAGES_ID_0001",
             "category": 3, // CPLAT_TRACE_LEVEL_INFO
             "brief": "ライブラリの準備完了。",
-            "details": "カタログの点検が終わり、利用側が文字列を組み立てられる状態になったことを示します。",
+            "details": "カタログの点検が完了し、利用側が文字列を組み立てられる状態になったことを示します。",
             "arguments": [],
             "texts": {
                 "neutral": "The sample catalog library is ready.",
@@ -35,17 +35,17 @@
             "id": "SAMPLECATALOG_MESSAGES_ID_0002",
             "category": 1, // CPLAT_TRACE_LEVEL_ERROR
             "brief": "項目が見つからない。",
-            "details": "利用側が指定した名前に対応する項目が、ライブラリの保持する表になかったことを示します。",
+            "details": "利用側が指定した名前に対応する項目が、ライブラリの保持するテーブルに存在しなかったことを示します。",
             "arguments": [
                 {
                     "kind": "STRING",
                     "name": "item_name",
-                    "description": "探した項目の名前。"
+                    "description": "検索対象の項目名。"
                 },
                 {
                     "kind": "UINT32",
                     "name": "table_size",
-                    "description": "探索の対象とした表の要素数。"
+                    "description": "検索対象テーブルの要素数。"
                 }
             ],
             "texts": {
@@ -54,7 +54,7 @@
             },
             "notes": {
                 "neutral": "The name is emitted as given by the caller.",
-                "japanese": "名前は呼び出し側が渡した表記のまま出力します。"
+                "japanese": "名前は呼び出し側から渡された表記のまま出力します。"
             }
         },
         {
@@ -63,26 +63,26 @@
             "id": "SAMPLECATALOG_MESSAGES_ID_0003",
             "category": 2, // CPLAT_TRACE_LEVEL_WARNING
             "brief": "上限の超過。",
-            "details": "要求された大きさがライブラリの上限を超えたため、上限まで切り詰めたことを示します。",
+            "details": "要求されたサイズがライブラリの上限を超過したため、上限値へ制限したことを示します。",
             "arguments": [
                 {
                     "kind": "SIZE",
                     "name": "requested",
-                    "description": "要求された大きさ。"
+                    "description": "要求されたサイズ。"
                 },
                 {
                     "kind": "SIZE",
                     "name": "limit",
-                    "description": "ライブラリが受け付ける上限。"
+                    "description": "ライブラリが受け付ける上限値。"
                 }
             ],
             "texts": {
                 "neutral": "Requested size {0} exceeds the limit {1}.",
-                "japanese": "要求された大きさ {0} は上限 {1} を超えています。"
+                "japanese": "要求されたサイズ {0} は上限 {1} を超えています。"
             },
             "notes": {
                 "neutral": "The caller can retry with a size within the limit.",
-                "japanese": "上限以下の大きさで要求し直せます。"
+                "japanese": "上限以下のサイズで再試行できます。"
             }
         }
     ]

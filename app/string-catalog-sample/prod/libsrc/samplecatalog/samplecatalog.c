@@ -22,7 +22,7 @@
 /** 本ライブラリが保持するカタログの数です。初期化のトレースへ出力します。 */
 #define SAMPLECATALOG_CATALOG_COUNT 2
 
-/** 探索の対象とする項目の表です。ライブラリが値を持つことを示すための固定の表です。 */
+/** 検索対象とする項目のテーブルです。ライブラリがデータを保持することを示すための固定テーブルです。 */
 static const char *const s_items[] = {"alpha", "beta", "gamma"};
 
 /** @ref s_items の要素数です。 */
@@ -35,7 +35,7 @@ int samplecatalog_initialize(cplat_tracer *const tracer)
     int string_key = 0;
     int ret;
 
-    /* 出力先を先に設定する。点検に失敗した場合もトレースへ残すため */
+    /* 出力先を事前に設定する。点検に失敗した場合もトレースへ記録するため */
     samplecatalog_trace_set_tracer(tracer);
 
     /* カタログの点検は提供元の責務とし、利用側へ点検の API を公開しない */
@@ -79,7 +79,7 @@ int samplecatalog_find_item(const char *const item_name, char *const dest, const
         }
     }
 
-    /* 見つからない理由は、ライブラリ自身のカタログから組み立てて利用側へ返す */
+    /* 項目が存在しない理由は、ライブラリ自身のカタログから組み立てて利用側へ返却する */
     (void)samplecatalog_messages_key_item_not_found(dest, dest_size, item_name, (uint32_t)SAMPLECATALOG_ITEM_COUNT);
 
     return CPLAT_ERR_NOT_FOUND;

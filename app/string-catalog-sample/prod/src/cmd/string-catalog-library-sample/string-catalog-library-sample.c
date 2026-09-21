@@ -9,7 +9,7 @@
  *  カタログを同梱する `string-catalog-command-sample` に対して、本コマンドは
  *  カタログを `samplecatalog` ライブラリから受け取ります。\n
  *  利用側はカタログ定義を持たず、ライブラリの公開ヘッダーが提供する型付きラッパーを使用します。\n
- *  ライブラリのトレース出力先は利用側が決めるため、初期化の段階でトレーサーを渡します。
+ *  ライブラリのトレース出力先は利用側が決定するため、初期化時にトレーサーを渡します。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -26,10 +26,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/** 組み立てた文字列を受け取るバッファーの大きさです。 */
+/** 組み立てた文字列を受け取るバッファー サイズです。 */
 #define TEXT_MAX 256
 
-/** 探索の実例として、ライブラリが持つ項目と持たない項目を並べます。 */
+/** 検索の実例として、ライブラリが保持する項目と保持しない項目を定義します。 */
 static const char *const s_lookup_names[] = {"beta", "delta"};
 
 /** @ref s_lookup_names の要素数です。 */
@@ -39,8 +39,8 @@ static const char *const s_lookup_names[] = {"beta", "delta"};
  *  @brief          ライブラリのトレース出力先となるトレーサーを用意します。
  *  @return         生成したトレーサーを返します。失敗した場合は NULL を返します。
  *
- *  出力先は既定でいずれも無効のため、使用する出力先だけを設定します。\n
- *  本コマンドは標準エラー出力だけへ出力し、ファイルなどほかの経路へは出力しません。
+ *  出力先は既定でいずれも無効のため、使用する出力先のみを設定します。\n
+ *  本コマンドは標準エラー出力のみへ出力し、ファイルなど他の経路へは出力しません。
  */
 static cplat_tracer *create_stderr_tracer(void)
 {
@@ -71,10 +71,10 @@ static cplat_tracer *create_stderr_tracer(void)
 }
 
 /**
- *  @brief          ライブラリの API を通して、項目の探索の結果を表示します。
+ *  @brief          ライブラリの API を通して、項目の検索結果を表示します。
  *  @return         成功した場合は @c CPLAT_OK を返します。
  *
- *  見つからない場合、ライブラリは自身のカタログから理由の文字列を組み立てて返します。\n
+ *  項目が存在しない場合、ライブラリは自身のカタログから理由の文字列を組み立てて返却します。\n
  *  利用側はその文字列を受け取るだけで、カタログの構造を参照しません。
  */
 static int print_lookup_results(void)
@@ -96,7 +96,7 @@ static int print_lookup_results(void)
         }
         else
         {
-            fprintf(stderr, "エラー: 項目 %s の探索に失敗しました。\n", s_lookup_names[index]);
+            fprintf(stderr, "エラー: 項目 %s の検索に失敗しました。\n", s_lookup_names[index]);
             return ret;
         }
     }
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
     cplat_console_init();
 
-    /* 言語はプロセス全体の設定であり、ライブラリの出力にも効く。初期化より前に設定する */
+    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響する。初期化より前に設定する */
     if (cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE) != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* カタログの点検はライブラリの責務のため、利用側は初期化を呼ぶだけでよい */
+    /* カタログの点検はライブラリの責務のため、利用側は初期化を呼び出すだけでよい */
     if (samplecatalog_initialize(tracer) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
