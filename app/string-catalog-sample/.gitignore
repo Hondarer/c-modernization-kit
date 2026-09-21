@@ -65,6 +65,7 @@ __pycache__/
 lib
 bin
 cbin
+!/bin
 *.exe
 *.pdb
 *.warn
