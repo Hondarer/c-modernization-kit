@@ -350,11 +350,12 @@ Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/even
 
 4. **GitHub Pages へのデプロイ**
     - 閲覧用の HTML は `pages/` に残します。
-    - 未圧縮の `docx` ディレクトリは Pages artifact から除外し、DOCX は `pages/artifacts/docs-docx-*.zip` で配布します。
+    - `pages/` の総量と内訳を実行ログに記録します。
     - 統合した `pages/` を GitHub Pages artifact として公開します。
 
 GitHub Pages の artifact 上限は 1 GB です。  
-日本語と英語を中継 artifact として分け、Pages には未圧縮 DOCX を含めないことで上限を超えないようにします。
+日本語と英語を中継 artifact として分け、HTML と DOCX の zip を Pages に置かないことで上限を超えないようにします。  
+根拠は [Pages に HTML と DOCX の zip を置かない理由](#pages-に-html-と-docx-の-zip-を置かない理由) を参照してください。
 
 **アーティファクト ストレージの役割**:
 
@@ -386,20 +387,25 @@ main ブランチへの push 時に、`deploy-pages` ジョブがドキュメン
 ### 使用アクション
 
 ```yaml
-- name: Deploy to gh-pages
-  uses: peaceiris/actions-gh-pages@v4
+- name: Upload Pages artifact
+  uses: actions/upload-pages-artifact@v5
   with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    publish_dir: ./docs
-    force_orphan: true
+    path: ./pages
+
+- name: Deploy to GitHub Pages
+  id: deployment
+  uses: actions/deploy-pages@v5
 ```
 
 ### 設定詳細
 
 | パラメーター | 値 | 説明 |
 |-----------|-----|------|
-| publish_dir | `./docs` | 公開するディレクトリ |
-| force_orphan | `true` | 履歴なしの孤立ブランチとしてデプロイ |
+| path | `./pages` | Pages artifact に格納するディレクトリ |
+| environment | `github-pages` | デプロイ先の environment |
+
+`actions/deploy-pages` は `github-pages` という名前の artifact を 1 つだけデプロイします。  
+artifact を分割して 1 つのサイトへ配置する手段はないため、1 GB 上限への対処はペイロードの削減に限られます。
 
 ### デプロイ条件
 
@@ -412,18 +418,14 @@ main ブランチへの push 時に、`deploy-pages` ジョブがドキュメン
 
 ```
 https://<username>.github.io/<repository>/
++-- index.html                        # エントリ ページ
 +-- doxygen/                          # Doxygen 生成 HTML
 |   +-- index.html
++-- ja/html/                          # Markdown ドキュメント ja (閲覧用)
++-- en/html/                          # Markdown ドキュメント en (閲覧用)
++-- ja-details/html/                  # Markdown ドキュメント ja-details (閲覧用)
++-- en-details/html/                  # Markdown ドキュメント en-details (閲覧用)
 +-- artifacts/
-|   +-- docs-html-doxygen.zip         # HTML ドキュメントアーカイブ doxygen (固定 URL)
-|   +-- docs-html-ja.zip              # HTML ドキュメントアーカイブ ja (固定 URL)
-|   +-- docs-html-en.zip              # HTML ドキュメントアーカイブ en (固定 URL)
-|   +-- docs-html-ja-details.zip      # HTML ドキュメントアーカイブ ja-details (固定 URL)
-|   +-- docs-html-en-details.zip      # HTML ドキュメントアーカイブ en-details (固定 URL)
-|   +-- docs-docx-ja.zip              # DOCX ドキュメントアーカイブ ja (固定 URL)
-|   +-- docs-docx-en.zip              # DOCX ドキュメントアーカイブ en (固定 URL)
-|   +-- docs-docx-ja-details.zip      # DOCX ドキュメントアーカイブ ja-details (固定 URL)
-|   +-- docs-docx-en-details.zip      # DOCX ドキュメントアーカイブ en-details (固定 URL)
 |   +-- linux-ol8-test-results.zip    # Linux OL8 テスト結果 + make test ログ (固定 URL)
 |   +-- linux-ol9-test-results.zip    # Linux OL9 テスト結果 + make test ログ (固定 URL)
 |   +-- linux-ol10-test-results.zip   # Linux OL10 テスト結果 + make test ログ (固定 URL)
@@ -437,15 +439,36 @@ https://<username>.github.io/<repository>/
 |   +-- linux-ol10-warns.zip          # Linux OL10 ビルド警告詳細 (警告がある場合のみ)
 |   +-- windows-warns.zip             # Windows ビルド警告詳細 (警告がある場合のみ)
 |   +-- docs-warns.zip                # ドキュメント警告詳細 (警告がある場合のみ)
-+-- (その他の生成ドキュメント)
 ```
 
 **固定 URL の利点**:
 
-- テスト結果アーカイブは常に同じファイル名で配置されるため、固定 URL でアクセス可能です。
+- テスト結果アーカイブとビルド ログは常に同じファイル名で配置されるため、固定 URL でアクセス可能です。
 - ドキュメントへのリンクをハード コードしても、更新後も同じ URL でアクセスできます。
 
-Pages の `index.html` では、通常アーティファクト一覧とは別に、存在する場合のみ「ビルド・ドキュメント警告詳細」として `.warn` アーカイブを表示します。  
+#### Pages に HTML と DOCX の zip を置かない理由
+
+HTML と DOCX の zip は Pages に配置せず、コミット固有の run artifact だけで配布します。
+
+2026 年 9 月 22 日の実行 (run 35706129477) では Pages artifact が 1,239,180,031 バイトとなり、`Uploaded artifact size of 1239180031 bytes exceeds the allowed size of 1 GB. Deployment might fail.` の警告が出ました。  
+内訳の概算は次のとおりです。zip はすでに圧縮済みで、Pages artifact の tar.gz でこれ以上縮みません。
+
+| 区分 | 内容 | 概算 |
+|------|------|------|
+| `pages/artifacts/docs-html-*.zip` | 閲覧用ディレクトリと同一内容の zip 5 本 | 約 353 MB |
+| `pages/artifacts/docs-docx-*.zip` | DOCX の zip 4 本 | 約 474 MB |
+| `pages/artifacts/*-test-results.zip` | テスト結果 4 本 | 約 105 MB |
+| 閲覧用 HTML ディレクトリ | `doxygen`、`ja/html`、`en/html`、`ja-details/html`、`en-details/html` | 約 353 MB |
+
+`docs-html-*.zip` は閲覧用ディレクトリの完全な重複であり、同じ内容が同じサイトに二重に存在していました。  
+DOCX は Pages 上で閲覧できず、ダウンロードの置き場としてのみ使われていました。  
+いずれもコミット固有の run artifact に同じ内容があるため、Pages から外しても取得手段は失われません。  
+エントリ ページには「ドキュメントのダウンロード」として、生成元の workflow run へのリンクを掲載します。
+
+この結果、中継 artifact からも DOCX と zip が外れます。`Stage language-split documentation` ステップは各言語の `html` ディレクトリだけを中継します。
+
+Pages の `index.html` は、ドキュメントへのリンク、生成元 workflow run へのリンク、「テスト結果とビルド ログ」の一覧を掲載します。  
+これらとは別に、存在する場合のみ「ビルド・ドキュメント警告詳細」として `.warn` アーカイブを表示します。  
 `docs-warns.zip` には `docs.warn` と `app/**/doxy*.warn` がまとめて格納されます。
 
 `index.html` のタイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を利用します。MkDocs による動的発行のサイト名と源泉が同じであり、`deploy-pages` ジョブはこの解決のために `bin` と `.vscode` だけを sparse checkout します。  
@@ -456,10 +479,9 @@ Pages の `index.html` では、通常アーティファクト一覧とは別に
 GitHub Pages を有効にするには、リポジトリ設定で以下を行います:
 
 1. Settings → Pages を開く
-2. Source で「Deploy from a branch」を選択
-3. Branch で「gh-pages」ブランチを選択
-4. フォルダーは「/ (root)」を選択
-5. Save をクリック
+2. Source で「GitHub Actions」を選択
+
+`deploy-pages` ジョブは `environment: github-pages` と `pages: write`、`id-token: write` の権限で発行します。gh-pages ブランチは使いません。
 
 公開後、`https://<username>.github.io/<repository>/` でアクセス可能になります。
 
@@ -511,13 +533,16 @@ CI 実行時に生成されるファイルをアーティファクトとして�
 ```
 
 `documentation-en` と `documentation-doxygen` も同じ手順でアップロードします。  
-1 つの `documentation` artifact にまとめると、HTML、DOCX、それらの zip が重なり、GitHub Pages の 1 GB 上限を超えます。
+言語と doxygen で分けているのは、HTML、DOCX、それらの zip を 1 つの `documentation` artifact にまとめると GitHub Pages の 1 GB 上限を超えたためです。  
+HTML と DOCX の zip を Pages から外した現在、合計は 1 GB を下回りますが、生成結果を言語単位で確認できるため分割を維持しています。
 
 含まれるファイル:
 
-- `documentation-ja` - `pages/ja`、`pages/ja-details`、対応する `pages/artifacts/docs-*-ja*.zip`
-- `documentation-en` - `pages/en`、`pages/en-details`、対応する `pages/artifacts/docs-*-en*.zip`
-- `documentation-doxygen` - `pages/doxygen`、`pages/artifacts/docs-html-doxygen.zip`、存在する場合は `pages/artifacts/docs-warns.zip`
+- `documentation-ja` - `pages/ja/html`、`pages/ja-details/html`
+- `documentation-en` - `pages/en/html`、`pages/en-details/html`
+- `documentation-doxygen` - `pages/doxygen`、存在する場合は `pages/artifacts/docs-warns.zip`
+
+Pages で閲覧しない DOCX は中継せず、コミット固有の run artifact だけで配布します。
 
 #### ビルド警告
 

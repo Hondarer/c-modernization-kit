@@ -137,10 +137,8 @@ jobs:
         if: ${{ matrix.docs }}
         run: |
           mkdir -p pages/artifacts
-          # HTML ドキュメント (サブディレクトリごとに分割)
-          if [ -d "pages/doxygen" ]; then
-            zip -r pages/artifacts/docs-html-doxygen.zip pages/doxygen || true
-          fi
+          # HTML と DOCX の zip は Pages に配置しない。
+          # 閲覧は pages/ 配下の HTML、ダウンロードはコミット固有の run artifact を使う。
           docs_warn_list=$(mktemp)
           {
             [ -f docs.warn ] && printf '%s\n' docs.warn
@@ -150,15 +148,6 @@ jobs:
             zip -r pages/artifacts/docs-warns.zip -@ < "$docs_warn_list" || true
           fi
           rm -f "$docs_warn_list"
-          find pages -type d -name html | while read -r html_dir; do
-            label=$(echo "$html_dir" | sed 's|^pages/||;s|/html$||;s|/|-|g')
-            zip -r "pages/artifacts/docs-html-${label}.zip" "$html_dir" || true
-          done
-          # DOCX ドキュメント (サブディレクトリごとに分割)
-          find pages -type d -name docx | while read -r docx_dir; do
-            label=$(echo "$docx_dir" | sed 's|^pages/||;s|/docx$||;s|/|-|g')
-            zip -r "pages/artifacts/docs-docx-${label}.zip" "$docx_dir" || true
-          done
 
       - name: Stage language-split documentation
         if: ${{ matrix.docs }}
@@ -167,22 +156,12 @@ jobs:
           stage_lang() {
             local lang="$1"
             local dest="staging/documentation-${lang}"
-            mkdir -p "${dest}/artifacts"
-            if [ -d "pages/${lang}" ]; then
-              cp -a "pages/${lang}" "${dest}/"
-            fi
-            if [ -d "pages/${lang}-details" ]; then
-              cp -a "pages/${lang}-details" "${dest}/"
-            fi
-            local zip
-            for zip in \
-              "pages/artifacts/docs-html-${lang}.zip" \
-              "pages/artifacts/docs-html-${lang}-details.zip" \
-              "pages/artifacts/docs-docx-${lang}.zip" \
-              "pages/artifacts/docs-docx-${lang}-details.zip"
-            do
-              if [ -f "${zip}" ]; then
-                cp -a "${zip}" "${dest}/artifacts/"
+            local variant
+            # DOCX は Pages に配置しないため、中継 artifact にも含めない
+            for variant in "${lang}" "${lang}-details"; do
+              if [ -d "pages/${variant}/html" ]; then
+                mkdir -p "${dest}/${variant}"
+                cp -a "pages/${variant}/html" "${dest}/${variant}/"
               fi
             done
           }
@@ -191,9 +170,6 @@ jobs:
           mkdir -p staging/documentation-doxygen/artifacts
           if [ -d pages/doxygen ]; then
             cp -a pages/doxygen staging/documentation-doxygen/
-          fi
-          if [ -f pages/artifacts/docs-html-doxygen.zip ]; then
-            cp -a pages/artifacts/docs-html-doxygen.zip staging/documentation-doxygen/artifacts/
           fi
           if [ -f pages/artifacts/docs-warns.zip ]; then
             cp -a pages/artifacts/docs-warns.zip staging/documentation-doxygen/artifacts/
@@ -774,10 +750,20 @@ jobs:
           LANG_TABLE
             fi
 
+            # HTML と DOCX の一式は run artifact として保存しているため、その導線を示す
+            cat <<RUN_ARTIFACTS
+            <h2>ドキュメントのダウンロード</h2>
+            <p>HTML と DOCX の一式は、このページを生成した GitHub Actions の実行に、コミット固有のアーティファクトとして保存しています。</p>
+            <table>
+              <tr><th>取得先</th><th>リンク</th></tr>
+              <tr><td>この実行のアーティファクト一覧</td><td><a href="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}">${GITHUB_REPOSITORY} の実行 ${GITHUB_RUN_ID}</a></td></tr>
+            </table>
+          RUN_ARTIFACTS
+
             # アーティファクト (存在するものを列挙)
             if [ -d "./pages/artifacts" ] && \
                find ./pages/artifacts -name "*.zip" ! -name "*-warns.zip" | grep -q .; then
-              echo '  <h2>アーティファクト</h2>'
+              echo '  <h2>テスト結果とビルド ログ</h2>'
               echo '  <table>'
               echo '    <tr><th>ファイル名</th></tr>'
               find ./pages/artifacts -name "*.zip" ! -name "*-warns.zip" | sort | while read -r zipfile; do
@@ -806,13 +792,15 @@ jobs:
           INDEX_BOTTOM
           } > ./pages/index.html
 
-      - name: Drop uncompressed docx from Pages payload
+      - name: Report Pages payload size
         run: |
           # GitHub Pages の artifact 上限は 1 GB。
-          # DOCX は index.html からディレクトリ参照せず、artifacts/*.zip で配布する。
-          rm -rf pages/ja/docx pages/en/docx pages/ja-details/docx pages/en-details/docx
-          echo "=== Pages payload after dropping uncompressed docx ==="
-          du -sh pages pages/* pages/artifacts 2>/dev/null || true
+          # HTML と DOCX の zip を Pages に含めない構成で上限内に収める。
+          # du は引数が重なると 2 回目以降を集計しないため、階層ごとに分けて実行する。
+          echo "=== Pages payload size ==="
+          du -sh pages
+          du -sh pages/* || true
+          du -sh pages/artifacts/* || true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
