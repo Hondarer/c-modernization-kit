@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/app/c-platform/prod/include",
                 "${workspaceFolder}/app/c-platform/prod/include_internal",
+                "${workspaceFolder}/app/c-platform/prod/libsrc/cplat/crt",
                 "${workspaceFolder}/app/c-platform/prod/libsrc/cplat/hashtable",
                 "${workspaceFolder}/app/c-platform/prod/libsrc/cplat/string_catalog",
                 "${workspaceFolder}/app/c-platform/prod/src/cmd/compress-cli",
@@ -57,6 +58,7 @@
             "includePath": [
                 "${workspaceFolder}/app/c-platform/prod/include",
                 "${workspaceFolder}/app/c-platform/prod/include_internal",
+                "${workspaceFolder}/app/c-platform/prod/libsrc/cplat/crt",
                 "${workspaceFolder}/app/c-platform/prod/libsrc/cplat/hashtable",
                 "${workspaceFolder}/app/c-platform/prod/libsrc/cplat/string_catalog",
                 "${workspaceFolder}/app/c-platform/prod/src/cmd/compress-cli",
