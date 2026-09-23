@@ -137,8 +137,9 @@ jobs:
         if: ${{ matrix.docs }}
         run: |
           mkdir -p pages/artifacts
-          # HTML と DOCX の zip は Pages に配置しない。
-          # 閲覧は pages/ 配下の HTML、ダウンロードはコミット固有の run artifact を使う。
+          # HTML と DOCX の一式をまとめた zip は Pages に配置しない。
+          # 閲覧は pages/ 配下の HTML、個別のダウンロードは各ページの DOCX リンク、
+          # 一式のダウンロードはコミット固有の run artifact を使う。
           docs_warn_list=$(mktemp)
           {
             [ -f docs.warn ] && printf '%s\n' docs.warn
@@ -157,12 +158,17 @@ jobs:
             local lang="$1"
             local dest="staging/documentation-${lang}"
             local variant
-            # DOCX は Pages に配置しないため、中継 artifact にも含めない
+            local subdir
+            # 各 HTML ページは同名の DOCX へダウンロード リンクを張るため、
+            # docx も html と同じ階層で中継する。
+            # 種別は pub_markdown_core.sh の出力種別に揃える。
             for variant in "${lang}" "${lang}-details"; do
-              if [ -d "pages/${variant}/html" ]; then
-                mkdir -p "${dest}/${variant}"
-                cp -a "pages/${variant}/html" "${dest}/${variant}/"
-              fi
+              for subdir in html html-self-contain docx; do
+                if [ -d "pages/${variant}/${subdir}" ]; then
+                  mkdir -p "${dest}/${variant}"
+                  cp -a "pages/${variant}/${subdir}" "${dest}/${variant}/"
+                fi
+              done
             done
           }
           stage_lang ja

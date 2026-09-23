@@ -14,9 +14,9 @@ main ブランチへの変更時に、Linux/Windows 両環境での自動ビル�
 
 - `.github/workflows/ci.yml` - ビルド、テスト、ドキュメント生成、Pages デプロイの統合ワークフロー
 
-このワークフローには以下の 4 つのジョブが含まれています:
+このワークフローには、次の 4 つのジョブが含まれています。
 
-1. `build-and-test-linux` - Linux 環境でのビルドとテスト (Oracle Linux 8 / Oracle Linux 9 / Oracle Linux 10 のマトリクス実行)。OL8 のレグはビルドとテストの後にドキュメント生成も行います
+1. `build-and-test-linux` - Linux 環境でのビルドとテスト (Oracle Linux 8 / Oracle Linux 9 / Oracle Linux 10 のマトリクス実行)。OL8 のレグではビルドとテストの後にドキュメント生成も実行
 2. `build-and-test-windows` - Windows 環境でのビルドとテスト
 3. `warnings-summary` - warning artifact の有無を集約し、annotation と Step Summary で通知
 4. `deploy-pages` - テスト結果とドキュメントの統合と GitHub Pages へのデプロイ
@@ -28,7 +28,7 @@ Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行�
 
 ### トリガー条件
 
-すべてのワークフローは以下のイベントで実行されます:
+すべてのワークフローは、次のイベントで実行されます。
 
 | イベント | 対象ブランチ |
 |---------|-------------|
@@ -48,12 +48,12 @@ Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行�
 | `WINFLEXBISON_SHA256` | `8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135` | WinFlexBison 配布 ZIP の SHA-256 |
 
 これらのバージョンと配布元は、Windows 開発環境を構築する [devbin-win](https://github.com/Hondarer/devbin-win) の `subscripts/config/packages.psd1` に揃えます。  
-開発者の手元と CI で同じバージョンのツールを使うことが目的であり、どちらか一方を更新した場合はもう一方も合わせて更新します。
+開発者のローカル環境と CI で同じバージョンのツールを使用することが目的であり、どちらか一方を更新した場合はもう一方も合わせて更新します。
 
 framework home 系 (`MAKEFW_HOME` / `DOCSFW_HOME` / `DOXYFW_HOME` / `TESTFW_HOME`) と実行時パスは、各ジョブの `Load app environment` ステップが `.vscode/.env.*` から読み込みます。  
 `MAKEFW_HOME` は `make` / `make test` / `make doxy` などで必須です。未設定の場合は `MAKEFW_HOME is required. Export MAKEFW_HOME before running make` を出力して停止します。  
 `DOCSFW_HOME` は `make docs` と VS Code の Markdown 発行タスクで使用します。  
-`DOXYFW_HOME` は `make doxy` が doxyfw を呼び出すときに利用します。  
+`DOXYFW_HOME` は `make doxy` が doxyfw を呼び出すときに使用します。  
 `TESTFW_HOME` は `make` / `make test` が testfw をビルドし、テスト実行スクリプトやライブラリを参照するときに使用します。  
 これらのパスを変更する場合は、VS Code の `.env.*` / `settings.json` と Jenkins の `.jenkins/inner-build.sh` も同時に確認します。
 
@@ -101,7 +101,7 @@ CI の表示名とビルド成果物の内部識別子は目的が異なるた�
 
 `el` 系の内部識別子は、makefw が RHEL 系 OS から生成する値であり、CI の表示名である `ol` 系の識別子とは置き換えません。
 
-これらのコンテナーには以下の開発ツールが含まれています:
+これらのコンテナーには、次の開発ツールが含まれています。
 
 - C/C++ コンパイラ (GCC)
 - GNU Make
@@ -124,7 +124,7 @@ Windows 環境では Windows Server 2025 (VS 2026 イメージ) ランナーを�
 runs-on: windows-2025-vs2026
 ```
 
-Windows 環境では以下のツールを動的にセットアップしています。いずれも devbin-win と同じ公式リリースをダウンロードして展開し、`GITHUB_PATH` へ追加します。パッケージ マネージャー (Chocolatey、.NET グローバル ツール) は使用しません。
+Windows 環境では、次のツールを動的にセットアップしています。いずれも devbin-win と同じ公式リリースをダウンロードして展開し、`GITHUB_PATH` へ追加します。パッケージ マネージャー (Chocolatey、.NET グローバル ツール) は使用しません。
 
 - **WinFlexBison** - flex/bison 互換のコード生成ツール (公式リリース ZIP の SHA-256 を検証して展開)
 - **innoextract** - Inno Setup インストーラーの展開ツール (OpenCppCoverage の展開に使用)
@@ -208,7 +208,7 @@ end note
 
 1. **リポジトリのチェックアウト**
     - サブモジュールを含めて再帰的にチェックアウト
-    - 取得する履歴の深さは `matrix.fetch-depth` に従います。OL8 は全履歴、OL9 と OL10 は最新コミットのみです
+    - 取得する履歴の深さは `matrix.fetch-depth` に従い、OL8 は全履歴、OL9 と OL10 は最新コミットのみを取得
 
 2. **Git safe directory 設定**
     - コンテナー内での Git 操作を許可
@@ -233,7 +233,7 @@ end note
     - `make doxy && make docs` を実行
     - Doxygen および Pandoc でドキュメントを生成
     - `make` 系ターゲットは `MAKEFW_HOME` を必須で参照し、`make doxy` は `DOXYFW_HOME`、`make docs` は `DOCSFW_HOME` を参照
-    - ルート `makefile` の既定ターゲットが `make skills` を実行済みのため、ここでの skill 同期は不要です
+    - ルート `makefile` の既定ターゲットが `make skills` を実行済みのため、ここでの skill 同期は不要
 
 8. **ドキュメント アーティファクトのアップロード** (OL8 のみ)
     - 中継用に `documentation-ja`、`documentation-en`、`documentation-doxygen` を分割して保存
@@ -252,9 +252,9 @@ end note
 
 いずれも `make doxy` の経路ではリーフ makefile をパースしないため生成されません。`struct-meta` は生成に実行体のビルドを必要とするため、ソース生成だけを行う軽量な手段も成立しません。ビルドとテストを終えた断面でドキュメントを生成することが、自動生成ソースを Doxygen の入力に含めるための条件です。
 
-Doxygen 側に追加の設定は不要です。`framework/doxyfw/Doxyfile` の `EXCLUDE_PATTERNS` は `*/obj/*` のみであり、`gen/` を除外していません。特定の app で自動生成ソースを除外する場合は、その app の `Doxyfile.part` へ `EXCLUDE_PATTERNS` を全量で指定します。`Doxyfile.part` は共通 `Doxyfile` への単純連結であり、Doxygen は後勝ちで解釈するため、`+=` による追記は使えません。
+Doxygen 側に追加の設定は不要です。`framework/doxyfw/Doxyfile` の `EXCLUDE_PATTERNS` は `*/obj/*` のみであり、`gen/` を除外していません。特定の app で自動生成ソースを除外する場合は、その app の `Doxyfile.part` へ `EXCLUDE_PATTERNS` を全量で指定します。`Doxyfile.part` は共通 `Doxyfile` への単純連結であり、Doxygen は後から指定された設定を優先して解釈するため、`+=` による追記は使えません。
 
-Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/eventlog-register/` の `.mc` から `mc.exe` が生成する `gen/` は、Linux でドキュメントを生成する以上、成果物に含まれません。
+Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/eventlog-register/` の `.mc` から `mc.exe` が生成する `gen/` は、Linux 環境でドキュメントを生成する構成上、成果物に含まれません。
 
 ### build-and-test-windows ジョブ
 
@@ -311,7 +311,7 @@ Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/even
 
 ### deploy-pages ジョブ
 
-このジョブは、上記のジョブ (`build-and-test-linux` (OL8/OL9/OL10)、`build-and-test-windows`) が並列実行され、すべて完了した後に実行されます。
+このジョブは、先行のジョブ (`build-and-test-linux` (OL8/OL9/OL10)、`build-and-test-windows`) が並列実行され、すべて完了した後に実行されます。
 
 **実行条件**:
 
@@ -349,13 +349,11 @@ Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/even
     - `pages/` 配下のドキュメントと統合
 
 4. **GitHub Pages へのデプロイ**
-    - 閲覧用の HTML は `pages/` に残します。
-    - `pages/` の総量と内訳を実行ログに記録します。
-    - 統合した `pages/` を GitHub Pages artifact として公開します。
+    - 閲覧用の HTML を `pages/` に保持
+    - `pages/` の総量と内訳を実行ログに記録
+    - 統合した `pages/` を GitHub Pages artifact として公開
 
-GitHub Pages の artifact 上限は 1 GB です。  
-日本語と英語を中継 artifact として分け、HTML と DOCX の zip を Pages に置かないことで上限を超えないようにします。  
-根拠は [Pages に HTML と DOCX の zip を置かない理由](#pages-に-html-と-docx-の-zip-を置かない理由) を参照してください。
+Pages に配置する対象と容量の考え方は、[Pages の配置対象](#pages-の配置対象) と [Pages の容量](#pages-の容量) を参照してください。
 
 **アーティファクト ストレージの役割**:
 
@@ -446,37 +444,49 @@ https://<username>.github.io/<repository>/
 - テスト結果アーカイブとビルド ログは常に同じファイル名で配置されるため、固定 URL でアクセス可能です。
 - ドキュメントへのリンクをハード コードしても、更新後も同じ URL でアクセスできます。
 
-#### Pages に HTML と DOCX の zip を置かない理由
+#### Pages の配置対象
 
-HTML と DOCX の zip は Pages に配置せず、コミット固有の run artifact だけで配布します。
+Pages には、閲覧の対象と、閲覧中に個別に取得する成果物を配置します。一式をまとめたアーカイブは配置しません。
 
-2026 年 9 月 22 日の実行 (run 35706129477) では Pages artifact が 1,239,180,031 バイトとなり、`Uploaded artifact size of 1239180031 bytes exceeds the allowed size of 1 GB. Deployment might fail.` の警告が出ました。  
-内訳の概算は次のとおりです。zip はすでに圧縮済みで、Pages artifact の tar.gz でこれ以上縮みません。
+| 区分 | Pages | 取得先 |
+|------|-------|--------|
+| 閲覧用 HTML (`doxygen`、`<言語><詳細度>/html`) | 配置する | Pages 上で閲覧 |
+| 個別の DOCX (`<言語><詳細度>/docx`) | 配置する | 各 HTML ページの Word アイコン |
+| HTML と DOCX の一式をまとめた zip | 配置しない | コミット固有の run artifact |
+| テスト結果とビルド ログの zip | 配置する | Pages から固定 URL で取得 |
+| `.warn` アーカイブ | 配置する (内容がある場合) | Pages から固定 URL で取得 |
 
-| 区分 | 内容 | 概算 |
-|------|------|------|
-| `pages/artifacts/docs-html-*.zip` | 閲覧用ディレクトリと同一内容の zip 5 本 | 約 353 MB |
-| `pages/artifacts/docs-docx-*.zip` | DOCX の zip 4 本 | 約 474 MB |
-| `pages/artifacts/*-test-results.zip` | テスト結果 4 本 | 約 105 MB |
-| 閲覧用 HTML ディレクトリ | `doxygen`、`ja/html`、`en/html`、`ja-details/html`、`en-details/html` | 約 353 MB |
+各 HTML ページのヘッダーには Word アイコンを表示し、同名の DOCX へ `../docx/<名前>.docx` でリンクします。リンク先は Pages 上に必要です。  
+一式をまとめた zip は閲覧に使用せず、run artifact に同じ内容が存在します。エントリ ページには「ドキュメントのダウンロード」として、生成元 workflow run へのリンクを掲載します。
 
-`docs-html-*.zip` は閲覧用ディレクトリの完全な重複であり、同じ内容が同じサイトに二重に存在していました。  
-DOCX は Pages 上で閲覧できず、ダウンロードの置き場としてのみ使われていました。  
-いずれもコミット固有の run artifact に同じ内容があるため、Pages から外しても取得手段は失われません。  
-エントリ ページには「ドキュメントのダウンロード」として、生成元の workflow run へのリンクを掲載します。
+`Stage language-split documentation` ステップは、各言語の `html` と `docx` を同じ階層で中継します。
 
-この結果、中継 artifact からも DOCX と zip が外れます。`Stage language-split documentation` ステップは各言語の `html` ディレクトリだけを中継します。
+#### Pages の容量
+
+GitHub Pages の artifact 上限は 1 GB です。`deploy-pages` は `github-pages` という名前の artifact を 1 つだけ公開するため、分割はできません。上限内に収めるのは構成の要件です。
+
+容量に影響する要因は、次の 2 つです。いずれも閲覧に使用しない成果物を配置しない方針に基づきます。
+
+**閲覧に使用しないアーカイブを配置しない**
+
+zip はすでに圧縮済みであり、Pages artifact の tar.gz ではこれ以上圧縮されません。閲覧用ディレクトリと同じ内容の zip を併置すると、そのまま二重の容量になります。個別の DOCX は各ページから参照するため配置しますが、一式をまとめた zip は配置しません。
+
+**発行先に生成の中間ファイルを残さない**
+
+docsfw は DOCX 用の画像を発行先の外へ集約します。詳細は [図キャッシュ](../../../framework/docsfw/docs/diagram-cache.md) を参照してください。HTML では図をインライン SVG として埋め込むため、画像ファイルは閲覧に不要です。
+
+`Report Pages payload size` ステップが、実行ごとに `pages/` の総量と内訳を記録します。上限に近づいた場合はこのログで内訳を確認します。
 
 Pages の `index.html` は、ドキュメントへのリンク、生成元 workflow run へのリンク、「テスト結果とビルド ログ」の一覧を掲載します。  
 これらとは別に、存在する場合のみ「ビルド・ドキュメント警告詳細」として `.warn` アーカイブを表示します。  
 `docs-warns.zip` には `docs.warn` と `app/**/doxy*.warn` がまとめて格納されます。
 
-`index.html` のタイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を利用します。MkDocs による動的発行のサイト名と源泉が同じであり、`deploy-pages` ジョブはこの解決のために `bin` と `.vscode` だけを sparse checkout します。  
+`index.html` のタイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を利用します。MkDocs による動的発行のサイト名と定義元が同一であり、`deploy-pages` ジョブはこの解決のために `bin` と `.vscode` だけを sparse checkout します。  
 同じ解決を `.jenkins/inner-build.sh` も利用するため、GitHub Actions と Jenkins のエントリ ページは同じ名前になります。
 
 ### GitHub リポジトリ設定
 
-GitHub Pages を有効にするには、リポジトリ設定で以下を行います:
+GitHub Pages を有効にするには、リポジトリ設定で次の操作を行います。
 
 1. Settings → Pages を開く
 2. Source で「GitHub Actions」を選択
@@ -534,7 +544,7 @@ CI 実行時に生成されるファイルをアーティファクトとして�
 
 `documentation-en` と `documentation-doxygen` も同じ手順でアップロードします。  
 言語と doxygen で分けているのは、HTML、DOCX、それらの zip を 1 つの `documentation` artifact にまとめると GitHub Pages の 1 GB 上限を超えたためです。  
-HTML と DOCX の zip を Pages から外した現在、合計は 1 GB を下回りますが、生成結果を言語単位で確認できるため分割を維持しています。
+HTML と DOCX の zip を Pages の配置対象から除外した現在、合計は 1 GB を下回りますが、生成結果を言語単位で確認できるため分割を維持しています。
 
 含まれるファイル:
 
@@ -558,7 +568,7 @@ Pages で閲覧しない DOCX は中継せず、コミット固有の run artifa
     if-no-files-found: ignore
 ```
 
-`.warn` は警告が出力された場合のみ生成され、警告が無いビルドではアーティファクト自体が作成されません。`app/c_cpp_properties.warn` は、`INCDIR` と `SYSTEM_INCDIR` では `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` では `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の不一致を知らせる dry-run 警告です。`deploy-pages` では、実行中の workflow run に warn artifact が存在するか確認したうえで、存在するものだけをダウンロードします。
+`.warn` は警告が出力された場合のみ生成され、警告が存在しないビルドではアーティファクト自体が作成されません。`app/c_cpp_properties.warn` は、`INCDIR` と `SYSTEM_INCDIR` では `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` では `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の不一致を知らせる dry-run 警告です。`deploy-pages` では、実行中の workflow run に warn artifact が存在するか確認したうえで、存在するものだけをダウンロードします。
 
 `warnings-summary` ジョブは同じ artifact 名を検知し、warning annotation と Step Summary で通知します。警告があっても workflow 自体は成功のままです。
 
