@@ -2,6 +2,7 @@
 #
 # app/<name>/**/makepart.mk の OUTPUT_DIR を正本として、実行時のコマンド探索パスと
 # ライブラリ探索パスを .vscode 配下の各設定ファイルへ同期する。
+# app/<name>/prod/bin はディレクトリが実在する場合に限り、コマンド探索パスへ加える。
 #
 # app の追加・削除に伴う手作業をなくすことが目的で、app 側に追加のメタファイルは
 # 必要としない。
@@ -200,6 +201,7 @@ classify_output_dir() {
 mapfile -t APPS < <(bash "$APP_ORDER_RESOLVER" --app-order | tr ' ' '\n' | LC_ALL=C sort | grep -v '^$')
 
 CBIN_APPS=()
+BIN_APPS=()
 LIB_APPS=()
 DOCS_APPS=()
 
@@ -228,6 +230,10 @@ for app in "${APPS[@]}"; do
     fi
     if (( has_lib )); then
         LIB_APPS+=("$app")
+    fi
+    # prod/bin は OUTPUT_DIR ではなく、同期実行時のディレクトリの実在で判定する
+    if [[ -d "$APP_DIR/$app/prod/bin" ]]; then
+        BIN_APPS+=("$app")
     fi
     if [[ -d "$APP_DIR/$app/docs" ]]; then
         DOCS_APPS+=("$app")
@@ -278,26 +284,41 @@ build_path_value() {
     join_by "$sep" "${entries[@]}"
 }
 
-# Windows の PATH は app ごとに lib, cbin の順で並べる
-build_windows_entries() {
+# 指定の app が app 名の配列に含まれるかを判定する
+contains_app() {
+    local app="$1"
+    shift
+
+    (( $# > 0 )) && printf '%s\n' "$@" | grep -qx -- "$app"
+}
+
+# コマンド探索パスは app ごとに cbin, bin の順で並べる。
+# with_lib を 1 にすると (Windows の PATH 向け) 各 app の先頭に lib を加える。
+build_path_entries() {
     local prefix="$1"
     local sep_dir="$2"
+    local with_lib="$3"
     local app
 
     for app in "${APPS[@]}"; do
-        if printf '%s\n' "${LIB_APPS[@]}" | grep -qx -- "$app"; then
+        if (( with_lib )) && contains_app "$app" "${LIB_APPS[@]}"; then
             printf '%s%s%sprod%slib\n' "$prefix" "$app" "$sep_dir" "$sep_dir"
         fi
-        if printf '%s\n' "${CBIN_APPS[@]}" | grep -qx -- "$app"; then
+        if contains_app "$app" "${CBIN_APPS[@]}"; then
             printf '%s%s%sprod%scbin\n' "$prefix" "$app" "$sep_dir" "$sep_dir"
+        fi
+        if contains_app "$app" "${BIN_APPS[@]}"; then
+            printf '%s%s%sprod%sbin\n' "$prefix" "$app" "$sep_dir" "$sep_dir"
         fi
     done
 }
 
-VSCODE_LINUX_PATH=$(build_path_value '${workspaceFolder}/app/' '/prod/cbin' ':' '${env:PATH}' "${CBIN_APPS[@]}")
+mapfile -t LINUX_ENTRIES < <(build_path_entries '${workspaceFolder}/app/' '/' 0)
+LINUX_ENTRIES+=('${env:PATH}')
+VSCODE_LINUX_PATH=$(join_by ':' "${LINUX_ENTRIES[@]}")
 VSCODE_LINUX_LDPATH=$(build_path_value '${workspaceFolder}/app/' '/prod/lib' ':' '' "${LIB_APPS[@]}")
 
-mapfile -t WIN_ENTRIES < <(build_windows_entries '${workspaceFolder}\app\' '\')
+mapfile -t WIN_ENTRIES < <(build_path_entries '${workspaceFolder}\app\' '\' 1)
 WIN_ENTRIES+=('${env:PATH}')
 VSCODE_WINDOWS_PATH=$(join_by ';' "${WIN_ENTRIES[@]}")
 # settings.json は JSON 文字列のため、バックスラッシュを二重化する
@@ -479,6 +500,7 @@ fi
     printf '  SOURCE :\n'
     if (( ${#REQUIRED_CHANGED_FILES[@]} > 0 )); then
         printf '    app/*/**/makepart.mk (OUTPUT_DIR)\n'
+        printf '    app/*/prod/bin (existence)\n'
     fi
     if (( INCLUDE_PUB_MARKDOWN )) && (( ${#OPTIONAL_CHANGED_FILES[@]} > 0 )); then
         printf '    app/*/docs\n'

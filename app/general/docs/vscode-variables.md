@@ -133,7 +133,10 @@ see: [CI と Jenkins での読み込み](#ci-と-jenkins-での読み込み)
 - `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/cbin` が現れる app は、`app/<name>/prod/cbin` をコマンド探索パスへ追加します。
 - `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/lib` が現れる app は、`app/<name>/prod/lib` をライブラリ探索パスへ追加します (Windows では `PATH` へ追加します)。
 - `test/lib` のように `prod/` 以外を指す `OUTPUT_DIR` は対象外とします。
-- 並び順は app 名の `LC_ALL=C sort` とし、Windows の `PATH` は app ごとに `lib`、`cbin` の順に並べます。
+- `app/<name>/prod/bin` は `OUTPUT_DIR` ではなく、同期の実行時にディレクトリが存在する場合に限り、コマンド探索パスへ追加します。
+- 並び順は app 名の `LC_ALL=C sort` とし、app ごとに `cbin`、`bin` の順に並べます。Windows の `PATH` は app ごとに `lib`、`cbin`、`bin` の順に並べます。
+
+`prod/bin` はディレクトリの有無で判定するため、`prod/bin` を作成または削除した場合は `make sync-app-env` を実行してください。
 
 `LIB_TYPE` (static / shared / both) による絞り込みは行いません。  
 静的ライブラリだけを出力する app のディレクトリが探索パスに載っても実害がないため、判定を `OUTPUT_DIR` の 1 つに統一しています。
