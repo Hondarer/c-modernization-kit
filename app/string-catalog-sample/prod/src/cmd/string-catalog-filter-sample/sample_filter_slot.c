@@ -63,7 +63,8 @@ struct sample_filter_slot
     uint32_t line_capacity;
     uint32_t line_width;
     uint32_t record_size;
-    int active_plane; /**< 判定が参照する面。plane_lock の下で読み書きします。 */
+    int active_plane;                                   /**< 判定が参照する面。plane_lock の下で読み書きします。 */
+    const sample_filter_category_names *category_names; /**< 自然文での表現に使う分類値の名前。未設定は NULL。 */
     cplat_local_rwlock *plane_lock;
     cplat_local_lock *apply_lock;
     filter_plane planes[2];
@@ -815,6 +816,99 @@ static const sample_filter_key_name *find_key_name(const sample_filter_slot *slo
 }
 
 /**
+ *  @brief          分類値と比較する定数 1 個を、分類値の名前の範囲で確かめ、識別子なら名前で解決します。
+ *  @return         受け入れられる場合は SAMPLE_FILTER_ERROR_NONE、それ以外は無効にする原因。
+ */
+static sample_filter_error resolve_category_constant(const sample_filter_category_names *names,
+                                                     const sample_filter_constant *constant, int64_t *identifiers,
+                                                     bool *is_category_identifier)
+{
+    switch (constant->header.kind)
+    {
+    case SAMPLE_FILTER_CONSTANT_KIND_IDENTIFIER:
+        for (size_t index = 0; index < names->count; index++)
+        {
+            if (strcmp(names->names[index], constant->text) == 0)
+            {
+                identifiers[constant->header.slot] = (int64_t)index;
+                is_category_identifier[constant->header.slot] = true;
+                return SAMPLE_FILTER_ERROR_NONE;
+            }
+        }
+        return SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME;
+
+    case SAMPLE_FILTER_CONSTANT_KIND_INTEGER:
+    case SAMPLE_FILTER_CONSTANT_KIND_CHARACTER:
+        if (((constant->header.flags & SAMPLE_FILTER_CONSTANT_FLAG_NEGATIVE) != 0U) ||
+            (constant->magnitude >= (uint64_t)names->count))
+        {
+            return SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE;
+        }
+        return SAMPLE_FILTER_ERROR_NONE;
+
+    case SAMPLE_FILTER_CONSTANT_KIND_FLOAT:
+        /* 分類値は整数のため、整数でない値は範囲外として扱う */
+        if ((constant->real < 0.0) || (constant->real >= (double)names->count) ||
+            (constant->real != floor(constant->real)))
+        {
+            return SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE;
+        }
+        return SAMPLE_FILTER_ERROR_NONE;
+
+    default:
+        /* 文字列と null は、コンパイルの時点で分類値との比較から除かれている */
+        return SAMPLE_FILTER_ERROR_NONE;
+    }
+}
+
+/**
+ *  @brief          分類値の比較に現れる定数を確かめます。分類値の名前が設定されている場合に限ります。
+ *
+ *  分類値の意味と範囲を決めるのは利用側です。名前が設定されていなければ、分類値の定数を確かめません。
+ */
+static sample_filter_error resolve_category_predicates(const sample_filter_slot *slot, const unsigned char *record,
+                                                       const unsigned char *constants,
+                                                       const sample_filter_record_header *header, int64_t *identifiers,
+                                                       bool *is_category_identifier)
+{
+    sample_filter_instruction instruction;
+    sample_filter_constant constant;
+
+    if (slot->category_names == NULL)
+    {
+        return SAMPLE_FILTER_ERROR_NONE;
+    }
+
+    for (uint32_t index = 0; index < header->instruction_count; index++)
+    {
+        uint32_t offset;
+
+        sample_filter_read_instruction(record, index, &instruction);
+        if ((instruction.opcode != (uint8_t)SAMPLE_FILTER_OPCODE_PREDICATE) ||
+            (instruction.field != (uint8_t)SAMPLE_FILTER_FIELD_CATEGORY))
+        {
+            continue;
+        }
+
+        offset = instruction.operand;
+        for (uint16_t operand = 0; operand < instruction.operand_count; operand++)
+        {
+            sample_filter_error error;
+
+            (void)sample_filter_read_constant(constants, header->constant_size, offset, &constant);
+            offset = constant.next_offset;
+
+            error = resolve_category_constant(slot->category_names, &constant, identifiers, is_category_identifier);
+            if (error != SAMPLE_FILTER_ERROR_NONE)
+            {
+                return error;
+            }
+        }
+    }
+    return SAMPLE_FILTER_ERROR_NONE;
+}
+
+/**
  *  @brief          1 行の名前を解決し、項目ごとの判定結果を事前計算します。
  *  @return         解決できた場合は SAMPLE_FILTER_ERROR_NONE、それ以外は無効にする原因。
  */
@@ -827,6 +921,8 @@ static sample_filter_error resolve_line(const sample_filter_slot *slot, filter_p
     uint8_t *states = line_states_of(slot, plane, line_index);
     int8_t *maps = argument_maps_of(slot, plane, line_index);
     int64_t *identifiers = identifier_values_of(plane, line_index);
+    bool is_category_identifier[SAMPLE_FILTER_IDENTIFIER_REFERENCE_MAX] = {false};
+    sample_filter_error error;
     uint32_t offset = 0U;
 
     sample_filter_read_record_header(record, &header);
@@ -834,13 +930,25 @@ static sample_filter_error resolve_line(const sample_filter_slot *slot, filter_p
     memset(maps, -1, slot->entry_count * SAMPLE_FILTER_ARGUMENT_REFERENCE_MAX * sizeof(*maps));
     memset(identifiers, 0, SAMPLE_FILTER_IDENTIFIER_REFERENCE_MAX * sizeof(*identifiers));
 
+    /* 分類値の比較を先に確かめる。分類値と比較する識別子は分類値の名前で解決し、文字列キーの名前では解決しない */
+    error = resolve_category_predicates(slot, record, constants, &header, identifiers, is_category_identifier);
+    if (error != SAMPLE_FILTER_ERROR_NONE)
+    {
+        return error;
+    }
+
     /* 定数をたどり、文字列キーの名前と引数名を解決する */
     while (offset < header.constant_size)
     {
         (void)sample_filter_read_constant(constants, header.constant_size, offset, &constant);
         offset = constant.next_offset;
 
-        if (constant.header.kind == (uint8_t)SAMPLE_FILTER_CONSTANT_KIND_IDENTIFIER)
+        if ((constant.header.kind == (uint8_t)SAMPLE_FILTER_CONSTANT_KIND_IDENTIFIER) &&
+            is_category_identifier[constant.header.slot])
+        {
+            /* 分類値の名前で解決済み */
+        }
+        else if (constant.header.kind == (uint8_t)SAMPLE_FILTER_CONSTANT_KIND_IDENTIFIER)
         {
             const sample_filter_key_name *key_name = find_key_name(slot, constant.text);
 
@@ -1231,6 +1339,35 @@ int sample_filter_slot_test(sample_filter_slot *slot, const int string_key, samp
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
+int sample_filter_slot_set_category_names(sample_filter_slot *slot, const sample_filter_category_names *category_names)
+{
+    if (slot == NULL)
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    if (category_names != NULL)
+    {
+        if ((category_names->names == NULL) || (category_names->count == 0U) ||
+            (category_names->subject_japanese == NULL) || (category_names->subject_neutral == NULL))
+        {
+            return CPLAT_ERR_INVALID_ARGUMENT;
+        }
+        for (size_t index = 0; index < category_names->count; index++)
+        {
+            if (category_names->names[index] == NULL)
+            {
+                return CPLAT_ERR_INVALID_ARGUMENT;
+            }
+        }
+    }
+
+    slot->category_names = category_names;
+    return CPLAT_OK;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
 int sample_filter_slot_describe_line(sample_filter_slot *slot, const size_t line_index, char *dest,
                                      const size_t dest_size)
 {
@@ -1268,6 +1405,7 @@ int sample_filter_slot_describe_line(sample_filter_slot *slot, const size_t line
         source.catalog = slot->catalog;
         source.record = sample_filter_record_address_const(plane->image, slot->record_size, (uint32_t)line_index);
         source.identifier_values = identifier_values_of(plane, (uint32_t)line_index);
+        source.category_names = slot->category_names;
         source.line_width = slot->line_width;
         source.is_japanese = (cplat_string_catalog_get_language() == CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
 

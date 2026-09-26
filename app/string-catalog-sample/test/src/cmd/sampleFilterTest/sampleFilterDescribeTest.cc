@@ -194,3 +194,130 @@ TEST_F(sampleFilterDescribeTest, small_buffer_is_truncated)
     EXPECT_EQ(CPLAT_ERR_BUFFER_TOO_SMALL, actual_ret); // [確認_異常系] - 切り詰めを報告すること。
     EXPECT_STREQ("the cat", actual_text);              // [確認_異常系] - 7 バイトで切り詰め、NUL 終端すること。
 }
+
+namespace
+{
+/** 分類値をトレース レベルとして扱う場合の名前です。 */
+const char *const s_test_level_names[] = {"CRITICAL", "ERROR", "WARNING", "INFO", "VERBOSE", "DEBUG", "NONE"};
+
+const sample_filter_category_names s_test_category_names = {
+    s_test_level_names,
+    sizeof(s_test_level_names) / sizeof(s_test_level_names[0]),
+    "レベル",
+    "the level",
+};
+} // namespace
+
+// 分類値の名前を設定した場合、条件を満たす名前を列挙して表すことの確認
+TEST_F(sampleFilterDescribeTest, category_names_list_matching_names)
+{
+    // Arrange
+    int actual_ret;
+
+    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+
+    // Pre-Assert
+
+    // Act
+    actual_ret =
+        describe("category <= 2", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 分類値の比較を日本語で説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("レベルが CRITICAL、ERROR、WARNING のいずれか",
+                 description_); // [確認_正常系] - 条件を満たすレベルの名前が列挙されること。
+}
+
+// 満たさない名前のほうが少ない場合は、補集合を「以外」で表すことの確認
+TEST_F(sampleFilterDescribeTest, category_names_use_complement_when_shorter)
+{
+    // Arrange
+    int actual_ret_japanese;
+    char actual_japanese[1024];
+    int actual_ret_neutral;
+
+    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+
+    // Pre-Assert
+
+    // Act
+    actual_ret_japanese =
+        describe("category != 4", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 日本語で説明する。
+    std::strcpy(actual_japanese, description_);
+    actual_ret_neutral =
+        describe("category != 4", CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL); // [手順] - ニュートラル言語で説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret_japanese);               // [確認_正常系] - 日本語の説明文を得られること。
+    EXPECT_STREQ("レベルが VERBOSE 以外", actual_japanese); // [確認_正常系] - 補集合の VERBOSE を「以外」で表すこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret_neutral);                // [確認_正常系] - ニュートラル言語の説明文を得られること。
+    EXPECT_STREQ("the level is other than VERBOSE",
+                 description_); // [確認_正常系] - ニュートラル言語でも補集合で表すこと。
+}
+
+// 1 つだけ、すべて、該当なしの場合の表現の確認
+TEST_F(sampleFilterDescribeTest, category_names_describe_single_any_and_none)
+{
+    // Arrange
+    int actual_ret_single;
+    char actual_single[1024];
+    int actual_ret_any;
+    char actual_any[1024];
+    int actual_ret_none;
+
+    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+
+    // Pre-Assert
+
+    // Act
+    actual_ret_single = describe(
+        "category == 3", CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL); // [手順] - 1 つの名前だけが該当する条件を説明する。
+    std::strcpy(actual_single, description_);
+    actual_ret_any = describe(
+        "category >= 0", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - すべての名前が該当する条件を説明する。
+    std::strcpy(actual_any, description_);
+    actual_ret_none = describe("category < 0",
+                               CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - どの名前も該当しない条件を説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret_single);           // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("the level is INFO", actual_single); // [確認_正常系] - 1 つの名前で表すこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret_any);              // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("レベルを問わない", actual_any);     // [確認_正常系] - すべての名前が該当することを表すこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret_none);             // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("レベルがいずれにも該当しない", description_); // [確認_正常系] - 該当なしを表すこと。
+}
+
+// 名前の設定を解除すると数値で表し、不正な設定を拒否することの確認
+TEST_F(sampleFilterDescribeTest, category_names_can_be_cleared_and_reject_invalid_settings)
+{
+    // Arrange
+    const char *const names_with_null[] = {"CRITICAL", nullptr};
+    sample_filter_category_names invalid_names = {names_with_null, 2U, "レベル", "the level"};
+    int actual_ret_invalid;
+    int actual_ret_null_slot;
+    int actual_ret_describe;
+
+    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+
+    // Pre-Assert
+
+    // Act
+    actual_ret_invalid =
+        sample_filter_slot_set_category_names(slot_, &invalid_names); // [手順] - NULL の名前を含む設定を渡す。
+    actual_ret_null_slot =
+        sample_filter_slot_set_category_names(nullptr, &s_test_category_names); // [手順] - スロットに NULL を渡す。
+    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(slot_, nullptr)); // [手順] - 設定を解除する。
+    actual_ret_describe =
+        describe("category <= 2", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 解除後に説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_invalid);   // [確認_異常系] - 不正な設定が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_null_slot); // [確認_異常系] - スロット NULL が拒否されること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_describe);                    // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("分類値が 2 以下", description_);               // [確認_正常系] - 名前の設定がなければ数値で表すこと。
+}

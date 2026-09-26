@@ -291,12 +291,13 @@ extern "C"
      */
     typedef struct sample_filter_describe_source
     {
-        const cplat_string_catalog *catalog;            /**< 関連付けたカタログ。 */
-        const unsigned char *record;                    /**< 検証済みの行レコード。 */
-        const int64_t *identifier_values;               /**< 行の識別子の定数を解決した文字列キー。 */
-        const cplat_string_catalog_entry *single_entry; /**< この行が一致し得る唯一の項目。複数の場合は NULL。 */
-        uint32_t line_width;                            /**< 行幅。 */
-        int is_japanese;                                /**< 日本語の文型を使う場合は 0 以外。 */
+        const cplat_string_catalog *catalog;                /**< 関連付けたカタログ。 */
+        const unsigned char *record;                        /**< 検証済みの行レコード。 */
+        const int64_t *identifier_values;                   /**< 行の識別子の定数を解決した文字列キー。 */
+        const cplat_string_catalog_entry *single_entry;     /**< この行が一致し得る唯一の項目。複数の場合は NULL。 */
+        const sample_filter_category_names *category_names; /**< 分類値の名前。NULL の場合は数値で表す。 */
+        uint32_t line_width;                                /**< 行幅。 */
+        int is_japanese;                                    /**< 日本語の文型を使う場合は 0 以外。 */
     } sample_filter_describe_source;
 
     /**

@@ -121,11 +121,22 @@ static size_t s_pending_line_count = 0U;
 static size_t s_pending_dropped_count = 0U;
 
 /**
+ *  出力領域の最後の行が、区間の終わりの空行かどうかです。s_output_lock の下で読み書きします。
+ *
+ *  区間の終わりの空行のあとに表示がなければ、次の区間の始まりの空行を省きます。
+ *  コマンドの間に空行が 2 行続かないようにするためです。
+ */
+static int s_is_after_trailing_blank = 0;
+
+/**
  *  次の入力欄へあらかじめ入れる文字列です。空文字列の場合は入れません。
  *
  *  引数なしの edit <n> が、edit <n> <現在の条件式> を用意します。利用者は入力欄で編集して確定します。
  */
 static char s_next_input[FILTER_SAMPLE_LINE_BUFFER_SIZE];
+
+/** 編集前の編集中イメージの退避先です。入力を受け付けない場合に、編集前の内容へ戻すために使います。 */
+static unsigned char s_draft_backup[FILTER_SAMPLE_IMAGE_SIZE];
 
 /** 編集中のフィルター オブジェクトです。適用前の作業領域です。 */
 static unsigned char s_draft_image[FILTER_SAMPLE_IMAGE_SIZE];
@@ -153,6 +164,19 @@ static cplat_trace_level s_display_threshold = CPLAT_TRACE_LEVEL_WARNING;
 /** レベルの表示名です。@c cplat_trace_level の値をインデックスとして参照します。 */
 static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "INFO", "VERBOSE", "DEBUG", "NONE"};
 
+/**
+ *  説明文で分類値を表すための名前です。
+ *
+ *  文字列カタログとフィルターは分類値の意味を解釈しません。
+ *  このコマンドはトレーサーと組み合わせ、分類値を cplat_trace_level として扱うため、レベルの名前を与えます。
+ */
+static const sample_filter_category_names s_category_names = {
+    s_level_labels,
+    sizeof(s_level_labels) / sizeof(s_level_labels[0]),
+    "レベル",
+    "the level",
+};
+
 /** sample_filter_error の日本語の原因名です。値をインデックスとして参照します。 */
 static const char *const s_filter_error_labels[] = {
     "原因なし",       /* SAMPLE_FILTER_ERROR_NONE */
@@ -162,7 +186,9 @@ static const char *const s_filter_error_labels[] = {
     "上限超過",       /* SAMPLE_FILTER_ERROR_LIMIT_EXCEEDED */
     "行数上限超過",   /* SAMPLE_FILTER_ERROR_LINE_CAPACITY */
     "未解決のキー名", /* SAMPLE_FILTER_ERROR_UNRESOLVED_KEY_NAME */
-    "未解決の引数名"  /* SAMPLE_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME */
+    "未解決の引数名", /* SAMPLE_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME */
+    "未知のレベル名", /* SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME */
+    "レベルの範囲外"  /* SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE */
 };
 
 /** sample_filter_state の日本語の表示名です。値をインデックスとして参照します。 */
@@ -527,6 +553,7 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
         else
         {
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", text);
+            s_is_after_trailing_blank = 0;
         }
         (void)cplat_local_lock_unlock(s_output_lock);
     }
@@ -534,13 +561,28 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
     cplat_tracer_call_next_hook(prev, handle, level, timestamp, message);
 }
 
-/** コマンドの表示区間を開始します。以降、他スレッドのトレースの表示を保留します。 */
-static void begin_command_section(void)
+/**
+ *  @brief          コマンドの表示区間を開始し、区間の始まりの空行を表示します。
+ *
+ *  以降、他スレッドのトレースの表示を保留します。\n
+ *  直前の区間の終わりの空行のあとに表示がなければ、始まりの空行は省きます。\n
+ *  判定と区間の開始を同じロックの下で行うため、判定から空行の表示までに他スレッドの表示は割り込みません。
+ */
+static void begin_command_section(cplat_pinned_prompt *screen)
 {
+    int needs_blank;
+
     (void)cplat_local_lock_lock(s_output_lock, CPLAT_SYNC_WAIT_FOREVER);
     s_is_command_section = 1;
     s_command_thread_id = cplat_process_get_tid();
+    needs_blank = (s_is_after_trailing_blank == 0);
+    s_is_after_trailing_blank = 0;
     (void)cplat_local_lock_unlock(s_output_lock);
+
+    if (needs_blank)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
+    }
 }
 
 /**
@@ -562,6 +604,8 @@ static void end_command_section(cplat_pinned_prompt *screen)
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
                                    "(表示を保留したトレースのうち %zu 件を破棄しました)\n", s_pending_dropped_count);
     }
+    /* 保留した表示がなければ、出力領域は区間の終わりの空行で終わっている */
+    s_is_after_trailing_blank = ((s_pending_line_count == 0U) && (s_pending_dropped_count == 0U));
     s_pending_line_count = 0U;
     s_pending_dropped_count = 0U;
     s_is_command_section = 0;
@@ -701,45 +745,142 @@ static void print_help(cplat_pinned_prompt *screen)
                                "  quit, exit                   終了します\n");
 }
 
-/** 条件式の例 1 件です。 */
+/** usage が表示する行の種類です。 */
+typedef enum filter_sample_example_kind
+{
+    FILTER_SAMPLE_EXAMPLE_KIND_HEADING = 0,      /**< 分類の見出し。 */
+    FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION = 1,   /**< 条件式とその説明。 */
+    FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE = 2,  /**< レベルの名前と列挙値の対応表。 */
+    FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE = 3 /**< コンテキスト引数の一覧。 */
+} filter_sample_example_kind;
+
+/** usage が表示する 1 行分です。 */
 typedef struct filter_sample_expression_example
 {
-    const char *expression;  /**< 条件式。NULL の場合は見出しの行です。 */
-    const char *description; /**< 説明、または見出し。 */
+    filter_sample_example_kind kind; /**< 行の種類。 */
+    unsigned int pad;                /**< 明示的アラインメントです。 */
+    const char *expression;          /**< 条件式。条件式の行以外は NULL です。 */
+    const char *description;         /**< 説明、または見出し。対応表の行は NULL です。 */
 } filter_sample_expression_example;
 
 /** usage が表示する条件式の例です。README.md の「条件式の例」と同じ内容です。 */
 static const filter_sample_expression_example s_expression_examples[] = {
-    {NULL, "項目の情報で選ぶ (引数の値によらず適用の時点で一致が確定します)"},
-    {"category <= 2", "分類値が WARNING 以上のトレース"},
-    {"key == SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS", "ジョブの進捗"},
-    {"key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]", "ジョブの受け付けと失敗"},
-    {"id ends_with \"0005\"", "ID が SAMPLE_WORKER_TRACE_ID_0005 のトレース"},
-    {NULL, "利用者の引数で選ぶ (引数を持たない項目には一致しません)"},
-    {"arg.worker_index == 1", "ワーカー 1 のトレース"},
-    {"arg.job_name starts_with \"import\"", "ジョブ名が import で始まるジョブの受け付け"},
-    {"arg.job_name contains_i \"EXP\"", "ジョブ名に exp を含むジョブの受け付け (ASCII の大文字と小文字を区別しない)"},
-    {"arg.priority between -3 and 3", "優先度が -3 以上 3 以下のジョブの受け付け"},
-    {"arg.ratio >= 0.9", "進捗の割合が 0.9 以上のジョブの進捗"},
-    {"arg.buffer == null", "確保に失敗したバッファーの確保"},
-    {"arg.byte_count > 200", "200 バイトを超えるバッファーの確保"},
-    {"arg.error_code == -2", "エラー コードが -2 のジョブの失敗"},
-    {"arg.command == 's'", "コマンドの文字が s の制御コマンドの受信"},
-    {"arg.status == 0x1F", "状態フラグが 0x1F の制御コマンドの受信"},
-    {"arg.delta < 0", "差分が負の制御コマンドの受信"},
-    {NULL, "呼び出し位置と実行コンテキストで選ぶ"},
-    {"arg.function_name == \"emit_job_failed\"", "関数 emit_job_failed から出力したトレース"},
-    {"arg.source_file_name ends_with \".c\"", "拡張子が .c のソースから出力したトレース"},
-    {"arg[42] > 300", "300 行目より後ろの呼び出し位置から出力したトレース ({42} は source_line)"},
-    {"arg.sequence_number between 90 and 99", "ラウンド トリップ ID が 90 から 99 のトレース"},
-    {"arg[46] == 1", "ラウンド トリップ ID が 1 のトレース"},
-    {NULL, "組み合わせる (! && || の順に強く結合します)"},
-    {"key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED && arg.error_code != -2", "エラー コードが -2 以外のジョブの失敗"},
-    {"arg.worker_index == 0 && !(arg.job_name starts_with \"export\")",
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "項目の情報で選ぶ (引数の値によらず適用の時点で一致が確定します)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= 2", "レベルが WARNING 以上に重大なトレース (数値で指定)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= WARNING", "同上 (レベル名で指定)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE, 0U, NULL, NULL},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "key == SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS", "ジョブの進捗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U,
+     "key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]", "ジョブの受け付けと失敗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id ends_with \"0005\"",
+     "ID が SAMPLE_WORKER_TRACE_ID_0005 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "利用者の引数で選ぶ (引数を持たない項目には一致しません)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 1", "ワーカー 1 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name starts_with \"import\"",
+     "ジョブ名が import で始まるジョブの受け付け"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name contains_i \"EXP\"",
+     "ジョブ名に exp を含むジョブの受け付け (ASCII の大文字と小文字を区別しない)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.priority between -3 and 3",
+     "優先度が -3 以上 3 以下のジョブの受け付け"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.ratio >= 0.9", "進捗の割合が 0.9 以上のジョブの進捗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.buffer == null", "確保に失敗したバッファーの確保"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.byte_count > 200", "200 バイトを超えるバッファーの確保"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.error_code == -2", "エラー コードが -2 のジョブの失敗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.command == 's'", "コマンドの文字が s の制御コマンドの受信"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.status == 0x1F", "状態フラグが 0x1F の制御コマンドの受信"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.delta < 0", "差分が負の制御コマンドの受信"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "呼び出し位置と実行コンテキストで選ぶ"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE, 0U, NULL, NULL},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.function_name == \"emit_job_failed\"",
+     "関数 emit_job_failed から出力したトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.source_file_name ends_with \".c\"",
+     "拡張子が .c のソースから出力したトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg[42] > 300",
+     "300 行目より後ろの呼び出し位置から出力したトレース ({42} は source_line)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.sequence_number between 90 and 99",
+     "ラウンド トリップ ID が 90 から 99 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg[46] == 1", "ラウンド トリップ ID が 1 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "組み合わせる (! && || の順に強く結合します)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED && arg.error_code != -2",
+     "エラー コードが -2 以外のジョブの失敗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 0 && !(arg.job_name starts_with \"export\")",
      "ワーカー 0 のトレースのうち、ジョブ名が export で始まるものを除いたもの"},
-    {"(arg.priority < 0 || arg.ratio >= 0.9) && has(arg.job_id)",
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "(arg.priority < 0 || arg.ratio >= 0.9) && has(arg.job_id)",
      "ジョブ番号を持つトレースのうち、優先度が負、または進捗の割合が 0.9 以上のもの"},
 };
+
+/**
+ *  コンテキスト引数の先頭の位置指定です。
+ *
+ *  トレース種別のカタログでは、生成器が {40} から {45} に cplat の文脈引数を、
+ *  {46} から {49} に app が定義するコンテキスト引数を割り当てます。
+ *  see: app/string-catalog-sample/docs/architecture.md の「トレース種別のカタログ」
+ */
+#define FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST 40
+
+/** 引数種別の表示名です。cplat_string_catalog_argument_kind の値をインデックスとして参照します。 */
+static const char *const s_argument_kind_labels[] = {
+    "UNUSED", "STRING", "CHAR",  "INT8",  "UINT8", "INT16", "UINT16", "INT32",   "UINT32", "INT64",
+    "UINT64", "HEX8",   "HEX16", "HEX32", "HEX64", "SIZE",  "SSIZE",  "POINTER", "DOUBLE", "ERROR_CODE",
+};
+
+static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind)
+{
+    if ((unsigned int)kind >= (sizeof(s_argument_kind_labels) / sizeof(s_argument_kind_labels[0])))
+    {
+        return "?";
+    }
+    return s_argument_kind_labels[(unsigned int)kind];
+}
+
+/**
+ *  @brief          条件式から参照できるコンテキスト引数の一覧を表示します。
+ *
+ *  カタログの引数定義から作ります。生成器が全項目に同じコンテキスト引数を付けるため、先頭の項目の定義を使います。\n
+ *  利用者の引数は項目ごとに異なり、定義ファイルで確認できるため、ここではコンテキスト引数だけを表示します。
+ */
+static void print_context_table(cplat_pinned_prompt *screen)
+{
+    const cplat_string_catalog *catalog = sample_worker_trace_catalog();
+    const cplat_string_catalog_entry *entry;
+
+    if (catalog->entry_count <= 0)
+    {
+        return;
+    }
+    entry = &catalog->entries[0];
+
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                               "        指定できるコンテキスト引数 (arg.<名前> または arg[<番号>] で参照します):\n");
+    for (int index = FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST; index < entry->argument_count; index++)
+    {
+        const cplat_string_catalog_argument *argument = &entry->arguments[index];
+
+        if (argument->kind == CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED)
+        {
+            continue;
+        }
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "          {%d} %-17s %-7s %s\n", index,
+                                   argument->name, argument_kind_label(argument->kind), argument->description);
+    }
+}
+
+/** 条件式の例を表示します。例は add や edit へそのまま指定できます。 */
+/**
+ *  @brief          分類値として指定できるレベルの名前と列挙値の対応を表示します。
+ *
+ *  説明文と入力の確認に使う s_category_names から作ります。レベルの名前と値の対応を 1 か所だけで定めるためです。
+ */
+static void print_level_table(cplat_pinned_prompt *screen)
+{
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                               "        指定できるレベルと列挙値 (名前と数値のどちらでも書けます):\n");
+    for (size_t value = 0; value < s_category_names.count; value++)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "          %-8s = %u\n",
+                                   s_category_names.names[value], (unsigned int)value);
+    }
+}
 
 /** 条件式の例を表示します。例は add や edit へそのまま指定できます。 */
 static void print_usage(cplat_pinned_prompt *screen)
@@ -750,14 +891,23 @@ static void print_usage(cplat_pinned_prompt *screen)
     {
         const filter_sample_expression_example *example = &s_expression_examples[index];
 
-        if (example->expression == NULL)
+        switch (example->kind)
         {
+        case FILTER_SAMPLE_EXAMPLE_KIND_HEADING:
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n  [%s]\n", example->description);
-        }
-        else
-        {
+            break;
+        case FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION:
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "    %s\n        %s\n",
                                        example->expression, example->description);
+            break;
+        case FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE:
+            print_level_table(screen);
+            break;
+        case FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE:
+            print_context_table(screen);
+            break;
+        default:
+            break;
         }
     }
 }
@@ -812,6 +962,48 @@ static void command_draft(cplat_pinned_prompt *screen)
     print_slot_lines(screen, s_preview_slot);
 }
 
+/**
+ *  @brief          編集した行を下見用のスロットで確かめ、レベルの指定に誤りがあれば編集を取り消します。
+ *  @param[in]      line_index 編集した行 (0 起点)。
+ *  @return         編集を取り消した場合は 1、受け付けた場合は 0 を返します。
+ *
+ *  レベルの名前と範囲は、分類値の名前を設定したスロットへ適用して初めて確かめられます。
+ *  コンパイルはカタログ定義にも分類値の意味にも依存しないためです。\n
+ *  このコマンドは分類値をトレース レベルとして扱うため、レベルの誤りは入力の時点で拒否します。
+ *  呼び出し側は、編集の前に編集中イメージを s_draft_backup へ退避しておきます。
+ */
+static int reject_invalid_level(cplat_pinned_prompt *screen, const char *expression, const size_t line_index)
+{
+    sample_filter_diagnostic diagnostics[FILTER_SAMPLE_LINE_CAPACITY];
+    size_t invalid_count = 0U;
+    int ret;
+
+    ret = sample_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
+                                   sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
+    if (ret != CPLAT_OK)
+    {
+        return 0;
+    }
+
+    for (size_t index = 0; (index < invalid_count) && (index < (sizeof(diagnostics) / sizeof(diagnostics[0]))); index++)
+    {
+        if ((diagnostics[index].line_index == (uint32_t)line_index) &&
+            ((diagnostics[index].error == SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME) ||
+             (diagnostics[index].error == SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE)))
+        {
+            memcpy(s_draft_image, s_draft_backup, sizeof(s_draft_image));
+            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s\n%s\n",
+                                       filter_error_label(diagnostics[index].error), expression);
+            cplat_pinned_prompt_printf(
+                screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                "レベルは %s から %s までの名前、または 0 から %u までの整数で指定してください。\n", s_level_labels[0],
+                s_level_labels[s_category_names.count - 1U], (unsigned int)(s_category_names.count - 1U));
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void command_add(cplat_pinned_prompt *screen, const char *expression)
 {
     sample_filter_info info;
@@ -832,6 +1024,7 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
         return;
     }
 
+    memcpy(s_draft_backup, s_draft_image, sizeof(s_draft_image));
     ret = sample_filter_insert_line(s_draft_image, sizeof(s_draft_image), (size_t)info.line_count, expression,
                                     &diagnostic);
     if (ret == CPLAT_ERR_MALFORMED_DEFINITION)
@@ -843,6 +1036,11 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                                    "エラー: 追加できませんでした (結果コード=%d)。\n", ret);
+        return;
+    }
+
+    if (reject_invalid_level(screen, expression, (size_t)info.line_count) != 0)
+    {
         return;
     }
 
@@ -878,6 +1076,7 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
         return;
     }
 
+    memcpy(s_draft_backup, s_draft_image, sizeof(s_draft_image));
     ret = sample_filter_insert_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL), expression,
                                     &diagnostic);
     if (ret == CPLAT_ERR_MALFORMED_DEFINITION)
@@ -889,6 +1088,11 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                                    "エラー: 挿入できませんでした (結果コード=%d)。\n", ret);
+        return;
+    }
+
+    if (reject_invalid_level(screen, expression, (size_t)(line_number - 1UL)) != 0)
+    {
         return;
     }
 
@@ -944,6 +1148,7 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
         return;
     }
 
+    memcpy(s_draft_backup, s_draft_image, sizeof(s_draft_image));
     ret = sample_filter_compile_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL), expression,
                                      &diagnostic);
     if (ret == CPLAT_ERR_MALFORMED_DEFINITION)
@@ -955,6 +1160,11 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                                    "エラー: 置き換えられませんでした (結果コード=%d)。\n", ret);
+        return;
+    }
+
+    if (reject_invalid_level(screen, expression, (size_t)(line_number - 1UL)) != 0)
+    {
         return;
     }
 
@@ -1571,6 +1781,10 @@ int main(int argc, char *argv[])
     }
 
     s_slot = slot;
+
+    /* 分類値はトレース レベルとして扱うため、説明文でもレベルの名前で表す */
+    (void)sample_filter_slot_set_category_names(s_slot, &s_category_names);
+    (void)sample_filter_slot_set_category_names(s_preview_slot, &s_category_names);
     (void)sample_filter_output_configure(sample_worker_trace_catalog(), slot, tracer);
 
     print_help(screen);
@@ -1580,6 +1794,7 @@ int main(int argc, char *argv[])
     while (!exit_requested)
     {
         /* コマンドの表示区間は、空行、入力の書き戻し、コマンドの応答、空行の順に、他スレッドの表示を挟まずに表示する。
+         * 直前の区間の終わりの空行のあとに表示がなければ、始まりの空行は省き、コマンドの間の空行を 1 行に保つ。
          * 固定プロンプトでは入力した行がプロンプトから消えるため、区間は入力を受け取ってから始め、
          * プロンプトを前置して書き戻す。入力を待つ間は他スレッドの表示を止めない。
          * TTY でない場合は cplat_fgets へ切り替わり、プロンプトと入力が同じ行に並ぶため、
@@ -1587,8 +1802,7 @@ int main(int argc, char *argv[])
          * 判定は pinned_prompt が固定プロンプトを使用する条件 (標準入力と標準出力の双方が TTY) と同じです。 */
         if (!is_pinned)
         {
-            begin_command_section();
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
+            begin_command_section(screen);
         }
 
         /* 直前のコマンドが入力欄の初期値を用意した場合は、それを入れて入力を受け付ける。
@@ -1620,8 +1834,8 @@ int main(int argc, char *argv[])
         }
         else if (skip_spaces(line)[0] != '\0')
         {
-            begin_command_section();
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n%s%s\n", FILTER_SAMPLE_PROMPT,
+            begin_command_section(screen);
+            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s%s\n", FILTER_SAMPLE_PROMPT,
                                        line);
         }
         else

@@ -9,6 +9,7 @@
  *  設計資料「デコンパイルと自然文での表現」の試作です。\n
  *  文字列キーの比較は項目の `brief` と `id`、引数の比較は引数の名前と説明で表します。\n
  *  分類値は、ライブラリが意味を解釈しないため、値そのもので表します。
+ *  利用側が分類値の名前を設定した場合に限り、条件を満たす分類値の名前を列挙して表します。
  *
  *  文型はニュートラル言語 (英語) と日本語を持ちます。\n
  *  カタログのメタ情報は言語別に持たないため、どちらの文型でも `brief` と説明はカタログの記述のまま埋め込みます。
@@ -48,32 +49,37 @@ typedef struct operator_phrase
 /** 1 言語分の文型です。 */
 typedef struct language_phrases
 {
-    const char *key_subject;          /**< 文字列キーを主語にする場合の名前。 */
-    const char *id_subject;           /**< ID を主語にする場合の名前。 */
-    const char *category_subject;     /**< 分類値を主語にする場合の名前。 */
-    const char *argument_prefix;      /**< 引数の名前の前に置く語。 */
-    const char *key_name_prefix;      /**< カタログにない文字列キーを表す語。 */
-    const char *entry_open;           /**< 項目の brief を囲む開きの記号。 */
-    const char *entry_close;          /**< 項目の brief を囲む閉じの記号。 */
-    const char *entry_id_open;        /**< 項目の ID を囲む開きの記号。 */
-    const char *key_not_equal_prefix; /**< 「この項目以外」の前置。 */
-    const char *key_not_equal_suffix; /**< 「この項目以外」の後置。 */
-    const char *key_in_prefix;        /**< 「いずれかの項目」の前置。 */
-    const char *key_in_suffix;        /**< 「いずれかの項目」の後置。 */
-    const char *has_prefix;           /**< 「引数を持つ」の前置。 */
-    const char *has_suffix;           /**< 「引数を持つ」の後置。 */
-    const char *between_before;       /**< between の主語と下限の間。 */
-    const char *between_middle;       /**< between の下限と上限の間。 */
-    const char *between_after;        /**< between の上限の後ろ。 */
-    const char *case_insensitive;     /**< 大文字と小文字を区別しない演算子の注記。 */
-    const char *and_text;             /**< 論理積。 */
-    const char *or_text;              /**< 論理和。 */
-    const char *not_prefix;           /**< 否定の前置。 */
-    const char *not_suffix;           /**< 否定の後置。 */
-    const char *list_separator;       /**< 列挙の区切り。 */
-    const char *null_text;            /**< null の表記。 */
-    int inserts_space_after_ascii;    /**< 主語が ASCII で終わる場合に before の前へ空白を置くなら 0 以外。 */
-    unsigned int pad;                 /**< 明示的アラインメントです。 */
+    const char *key_subject;           /**< 文字列キーを主語にする場合の名前。 */
+    const char *id_subject;            /**< ID を主語にする場合の名前。 */
+    const char *category_subject;      /**< 分類値を主語にする場合の名前。 */
+    const char *argument_prefix;       /**< 引数の名前の前に置く語。 */
+    const char *key_name_prefix;       /**< カタログにない文字列キーを表す語。 */
+    const char *entry_open;            /**< 項目の brief を囲む開きの記号。 */
+    const char *entry_close;           /**< 項目の brief を囲む閉じの記号。 */
+    const char *entry_id_open;         /**< 項目の ID を囲む開きの記号。 */
+    const char *key_not_equal_prefix;  /**< 「この項目以外」の前置。 */
+    const char *key_not_equal_suffix;  /**< 「この項目以外」の後置。 */
+    const char *key_in_prefix;         /**< 「いずれかの項目」の前置。 */
+    const char *key_in_suffix;         /**< 「いずれかの項目」の後置。 */
+    const char *has_prefix;            /**< 「引数を持つ」の前置。 */
+    const char *has_suffix;            /**< 「引数を持つ」の後置。 */
+    const char *between_before;        /**< between の主語と下限の間。 */
+    const char *between_middle;        /**< between の下限と上限の間。 */
+    const char *between_after;         /**< between の上限の後ろ。 */
+    const char *case_insensitive;      /**< 大文字と小文字を区別しない演算子の注記。 */
+    const char *and_text;              /**< 論理積。 */
+    const char *or_text;               /**< 論理和。 */
+    const char *not_prefix;            /**< 否定の前置。 */
+    const char *not_suffix;            /**< 否定の後置。 */
+    const char *list_separator;        /**< 列挙の区切り。 */
+    const char *null_text;             /**< null の表記。 */
+    const char *category_none;         /**< 分類値の名前: 条件を満たす名前がない場合の後置。 */
+    const char *category_any;          /**< 分類値の名前: すべての名前が条件を満たす場合の後置。 */
+    const char *category_is_after;     /**< 分類値の名前: 名前が 1 つの場合の後置。前置は演算子 == の文型。 */
+    const char *category_other_before; /**< 分類値の名前: 補集合を表す場合の前置。 */
+    const char *category_other_after;  /**< 分類値の名前: 補集合を表す場合の後置。 */
+    int inserts_space_after_ascii;     /**< 主語が ASCII で終わる場合に before の前へ空白を置くなら 0 以外。 */
+    unsigned int pad;                  /**< 明示的アラインメントです。 */
     operator_phrase operators[OPERATOR_TABLE_SIZE]; /**< 判定演算子ごとの文型。 */
 } language_phrases;
 
@@ -103,6 +109,11 @@ static const language_phrases s_japanese = {
     ") ではない",
     "、",
     "NULL",
+    "がいずれにも該当しない",
+    "を問わない",
+    " である",
+    "が ",
+    " 以外",
     1,
     0U,
     {
@@ -151,6 +162,11 @@ static const language_phrases s_neutral = {
     ")",
     ", ",
     "null",
+    " matches none",
+    " is any",
+    "",
+    " is other than ",
+    "",
     0,
     0U,
     {
@@ -533,6 +549,169 @@ static bool append_key_predicate(describe_context *context, const sample_filter_
     }
 }
 
+/** 比較対象の定数を、分類値との比較のための数値へ変換します。 */
+static double real_of_constant(const describe_context *context, const sample_filter_constant *constant)
+{
+    switch (constant->header.kind)
+    {
+    case SAMPLE_FILTER_CONSTANT_KIND_FLOAT:
+        return constant->real;
+    case SAMPLE_FILTER_CONSTANT_KIND_IDENTIFIER:
+        return (double)context->source->identifier_values[constant->header.slot];
+    default:
+        if ((constant->header.flags & SAMPLE_FILTER_CONSTANT_FLAG_NEGATIVE) != 0U)
+        {
+            return -(double)constant->magnitude;
+        }
+        return (double)constant->magnitude;
+    }
+}
+
+/** 分類値が判定要素を満たすかを求めます。分類値の比較に使える演算子は数値の比較、in、between です。 */
+static bool is_category_matched(const describe_context *context, const sample_filter_instruction *instruction,
+                                const double value)
+{
+    sample_filter_constant constant;
+    uint32_t offset = instruction->operand;
+
+    if (instruction->operator_kind == (uint8_t)SAMPLE_FILTER_OPERATOR_BETWEEN)
+    {
+        double lower;
+
+        (void)sample_filter_read_constant(context->constants, context->constant_size, offset, &constant);
+        lower = real_of_constant(context, &constant);
+        (void)sample_filter_read_constant(context->constants, context->constant_size, constant.next_offset, &constant);
+        return (lower <= value) && (value <= real_of_constant(context, &constant));
+    }
+
+    for (uint16_t index = 0; index < instruction->operand_count; index++)
+    {
+        double literal;
+
+        (void)sample_filter_read_constant(context->constants, context->constant_size, offset, &constant);
+        offset = constant.next_offset;
+        literal = real_of_constant(context, &constant);
+
+        switch (instruction->operator_kind)
+        {
+        case SAMPLE_FILTER_OPERATOR_EQUAL:
+        case SAMPLE_FILTER_OPERATOR_IN:
+            if (value == literal)
+            {
+                return true;
+            }
+            break;
+        case SAMPLE_FILTER_OPERATOR_NOT_EQUAL:
+            return value != literal;
+        case SAMPLE_FILTER_OPERATOR_LESS:
+            return value < literal;
+        case SAMPLE_FILTER_OPERATOR_LESS_EQUAL:
+            return value <= literal;
+        case SAMPLE_FILTER_OPERATOR_GREATER:
+            return value > literal;
+        case SAMPLE_FILTER_OPERATOR_GREATER_EQUAL:
+            return value >= literal;
+        default:
+            return false;
+        }
+    }
+    return false;
+}
+
+/**
+ *  @brief          分類値の比較を、条件を満たす分類値の名前の列挙で表します。
+ *
+ *  大小の比較を名前の大小に言い換えると、分類値の並びの意味 (例: 重大度の向き) を読み手が補う必要があるためです。\n
+ *  例: 名前が CRITICAL から NONE の順のとき、category <= 2 は「レベルが CRITICAL、ERROR、WARNING のいずれか」。\n
+ *  満たさない名前のほうが少ない場合は補集合で表します。例: category != 4 は「レベルが VERBOSE 以外」。
+ */
+static void append_category_predicate(describe_context *context, const sample_filter_instruction *instruction)
+{
+    const sample_filter_category_names *names = context->source->category_names;
+    const language_phrases *phrases = context->phrases;
+    size_t matched_count = 0U;
+    size_t listed_count;
+    size_t written = 0U;
+    bool is_complement;
+
+    for (size_t value = 0; value < names->count; value++)
+    {
+        if (is_category_matched(context, instruction, (double)value))
+        {
+            matched_count++;
+        }
+    }
+
+    if (context->source->is_japanese != 0)
+    {
+        append_text(&context->writer, names->subject_japanese);
+    }
+    else
+    {
+        append_text(&context->writer, names->subject_neutral);
+    }
+
+    if (matched_count == 0U)
+    {
+        append_before(context, phrases->category_none);
+        return;
+    }
+    if (matched_count == names->count)
+    {
+        append_before(context, phrases->category_any);
+        return;
+    }
+
+    /* 満たさない名前のほうが少なければ、補集合を「以外」で表す。列挙を短くするため */
+    is_complement = ((names->count - matched_count) < matched_count);
+    listed_count = matched_count;
+    if (is_complement)
+    {
+        listed_count = names->count - matched_count;
+    }
+
+    if (is_complement)
+    {
+        append_before(context, phrases->category_other_before);
+    }
+    else if (listed_count == 1U)
+    {
+        append_before(context, phrases->operators[SAMPLE_FILTER_OPERATOR_EQUAL].before);
+    }
+    else
+    {
+        append_before(context, phrases->operators[SAMPLE_FILTER_OPERATOR_IN].before);
+    }
+
+    for (size_t value = 0; value < names->count; value++)
+    {
+        /* 補集合を表す場合は、条件を満たさない名前を並べる */
+        if (is_category_matched(context, instruction, (double)value) == is_complement)
+        {
+            continue;
+        }
+        if (written > 0U)
+        {
+            append_text(&context->writer, phrases->list_separator);
+        }
+        append_text(&context->writer, names->names[value]);
+        written++;
+    }
+
+    if (is_complement)
+    {
+        append_text(&context->writer, phrases->category_other_after);
+    }
+    else if (listed_count == 1U)
+    {
+        append_text(&context->writer, phrases->category_is_after);
+    }
+    else
+    {
+        append_text(&context->writer, phrases->operators[SAMPLE_FILTER_OPERATOR_IN].after);
+    }
+}
+
 static void append_predicate(describe_context *context, const sample_filter_instruction *instruction)
 {
     const language_phrases *phrases = context->phrases;
@@ -541,6 +720,13 @@ static void append_predicate(describe_context *context, const sample_filter_inst
 
     if ((instruction->field == (uint8_t)SAMPLE_FILTER_FIELD_KEY) && append_key_predicate(context, instruction))
     {
+        return;
+    }
+
+    /* 分類値の名前が設定されていれば、分類値を名前で表す。設定がなければ数値のまま表す */
+    if ((instruction->field == (uint8_t)SAMPLE_FILTER_FIELD_CATEGORY) && (context->source->category_names != NULL))
+    {
+        append_category_predicate(context, instruction);
         return;
     }
 

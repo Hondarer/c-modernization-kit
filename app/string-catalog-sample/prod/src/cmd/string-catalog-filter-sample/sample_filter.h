@@ -85,14 +85,16 @@ extern "C"
      */
     typedef enum sample_filter_error
     {
-        SAMPLE_FILTER_ERROR_NONE = 0,                    /**< 原因なし。 */
-        SAMPLE_FILTER_ERROR_LEXICAL = 1,                 /**< 字句の誤り。閉じていない引用符や範囲外の数値など。 */
-        SAMPLE_FILTER_ERROR_SYNTAX = 2,                  /**< 構文の誤り。 */
-        SAMPLE_FILTER_ERROR_TYPE_MISMATCH = 3,           /**< フィールド、演算子、定数の型の組み合わせの誤り。 */
-        SAMPLE_FILTER_ERROR_LIMIT_EXCEEDED = 4,          /**< 判定要素数、ネスト、参照数、行幅の上限の超過。 */
-        SAMPLE_FILTER_ERROR_LINE_CAPACITY = 5,           /**< フィルター オブジェクトの行数の上限の超過。 */
-        SAMPLE_FILTER_ERROR_UNRESOLVED_KEY_NAME = 6,     /**< 名前解決テーブルにない文字列キーの名前。 */
-        SAMPLE_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME = 7 /**< カタログのどの項目にもない引数名。 */
+        SAMPLE_FILTER_ERROR_NONE = 0,                     /**< 原因なし。 */
+        SAMPLE_FILTER_ERROR_LEXICAL = 1,                  /**< 字句の誤り。閉じていない引用符や範囲外の数値など。 */
+        SAMPLE_FILTER_ERROR_SYNTAX = 2,                   /**< 構文の誤り。 */
+        SAMPLE_FILTER_ERROR_TYPE_MISMATCH = 3,            /**< フィールド、演算子、定数の型の組み合わせの誤り。 */
+        SAMPLE_FILTER_ERROR_LIMIT_EXCEEDED = 4,           /**< 判定要素数、ネスト、参照数、行幅の上限の超過。 */
+        SAMPLE_FILTER_ERROR_LINE_CAPACITY = 5,            /**< フィルター オブジェクトの行数の上限の超過。 */
+        SAMPLE_FILTER_ERROR_UNRESOLVED_KEY_NAME = 6,      /**< 名前解決テーブルにない文字列キーの名前。 */
+        SAMPLE_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME = 7, /**< カタログのどの項目にもない引数名。 */
+        SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME = 8, /**< 分類値の名前にない識別子を、分類値と比較した。 */
+        SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE = 9     /**< 分類値と比較する定数が、分類値の名前の範囲外。 */
     } sample_filter_error;
 
     /**
@@ -144,6 +146,21 @@ extern "C"
         SAMPLE_FILTER_STATE_ALWAYS_MATCH = 1,      /**< 引数の値によらず、いずれかの行に一致する。 */
         SAMPLE_FILTER_STATE_ARGUMENT_DEPENDENT = 2 /**< 引数の値を評価するまで一致が確定しない。 */
     } sample_filter_state;
+
+    /**
+     *  @brief          分類値の名前です。自然文での表現で、分類値を名前で表すために使用します。
+     *
+     *  フィルターは分類値の意味を解釈しません。意味を決める利用側 (例: 分類値をトレース レベルとして扱う app) が設定します。\n
+     *  分類値 i の名前は @ref sample_filter_category_names::names の i 番目です。
+     */
+    typedef struct sample_filter_category_names
+    {
+        const char *const *names;     /**< 分類値をインデックスとする名前の配列。NULL にできません。 */
+        size_t count;                 /**< @ref sample_filter_category_names::names の要素数。1 以上です。 */
+        const char *subject_japanese; /**< 日本語の文型で主語にする名前 (例: "レベル")。NULL にできません。 */
+        const char
+            *subject_neutral; /**< ニュートラル言語の文型で主語にする名前 (例: "the level")。NULL にできません。 */
+    } sample_filter_category_names;
 
     /** フィルター スロット (不透明型)。 */
     typedef struct sample_filter_slot sample_filter_slot;
@@ -374,6 +391,33 @@ extern "C"
                                     uint64_t *enabled_lines_out);
 
     /**
+     *  @brief          自然文での表現に使用する、分類値の名前を設定します。
+     *  @param[in,out]  slot           フィルター スロット。
+     *  @param[in]      category_names 分類値の名前。NULL の場合は設定を解除し、分類値を数値で表します。
+     *                                 スロットを破棄するか設定を解除するまで有効である必要があります。
+     *  @return         成功時は @ref CPLAT_OK を返します。
+     *  @return         @p slot が NULL の場合、または @p category_names の内容が不正な場合は
+     *                  @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *
+     *  設定した場合、次の 2 点が変わります。
+     *  - 条件式で分類値と比較する識別子 (例: `category <= WARNING`) を、文字列キーの名前ではなく
+     *    分類値の名前で解決します。名前にない識別子は @ref SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME として行を無効にします。
+     *  - 分類値と比較する定数は、0 以上 @ref sample_filter_category_names::count 未満の整数に限ります。
+     *    範囲外の値や整数でない値は @ref SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE として行を無効にします。
+     *
+     *  自然文での表現では、条件を満たす分類値の名前を列挙して表します。
+     *
+     *  名前の解決と範囲の確認は、適用の時点で行います。
+     *  内容が同一の行は前回の適用の結果を再利用するため、設定は最初の適用より前に行ってください。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフではありません。\n
+     *  @ref sample_filter_slot_describe_line と並行して呼び出さないでください。
+     */
+    int sample_filter_slot_set_category_names(sample_filter_slot *slot,
+                                              const sample_filter_category_names *category_names);
+
+    /**
      *  @brief          適用中の条件式の 1 行を、カタログのメタ情報を用いた自然文で表現します。
      *  @param[in]      slot       フィルター スロット。
      *  @param[in]      line_index 適用中のフィルター オブジェクトの行 (0 起点)。
@@ -385,7 +429,8 @@ extern "C"
      *  @return         @p dest に収まらない場合は、切り詰めたうえで @ref CPLAT_ERR_BUFFER_TOO_SMALL を返します。
      *
      *  文字列キーの比較は項目の `brief` と `id`、引数の比較は引数の名前と説明で表します。\n
-     *  分類値は値そのもので表し、意味を解釈しません。\n
+     *  分類値は値そのもので表し、意味を解釈しません。
+     *  @ref sample_filter_slot_set_category_names で名前を設定した場合は、条件を満たす分類値の名前を列挙して表します。\n
      *  行が 1 つの項目に限定される場合は、その項目の引数の説明を使います。\n
      *  複数の項目が対象の場合は、引数を持つすべての項目で説明が一致するときに限り、その説明を使います。
      *
