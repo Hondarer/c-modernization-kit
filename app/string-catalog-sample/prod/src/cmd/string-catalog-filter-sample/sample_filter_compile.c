@@ -597,8 +597,11 @@ static bool emit_logical(compiler *state, const sample_filter_opcode opcode)
 
 /**
  *  @brief          定数を定数領域の末尾へ追加します。
+ *  @param[in,out]  state        コンパイル状態。
+ *  @param[in]      header       定数の見出し。
  *  @param[in]      payload      値。NULL の場合は値を持ちません。
  *  @param[in]      payload_size 値のバイト数。文字列系は NUL を含めない長さを渡し、NUL と切り上げは本関数が行います。
+ *  @param[out]     offset_out   追加した定数のオフセット。
  */
 static bool emit_constant(compiler *state, const sample_filter_constant_header *header, const void *payload,
                           const uint32_t payload_size, uint32_t *offset_out)
@@ -638,6 +641,7 @@ static bool emit_constant(compiler *state, const sample_filter_constant_header *
 
 /**
  *  @brief          現在の字句を比較対象の定数として追加します。
+ *  @param[in,out]  state    コンパイル状態。
  *  @param[out]     kind_out 追加した定数の種類。
  */
 static bool parse_literal(compiler *state, uint8_t *kind_out)
@@ -727,7 +731,7 @@ static bool parse_literal(compiler *state, uint8_t *kind_out)
     return advance(state);
 }
 
-/** `arg.<name>` または `arg[<n>]` を読み、判定要素のフィールドを設定します。 */
+/** `arg.name` または `arg[n]` を読み、判定要素のフィールドを設定します。 */
 static bool parse_argument_reference(compiler *state, sample_filter_instruction *instruction)
 {
     if (!is_word(state, "arg"))
@@ -1082,6 +1086,7 @@ static bool parse_unary(compiler *state)
 
 /**
  *  @brief          `&&` または `||` で結ばれた並びを読みます。
+ *  @param[in,out]  state          コンパイル状態。
  *  @param[in]      operator_token 結合の字句。
  *  @param[in]      jump_opcode    短絡評価のジャンプ命令。
  *  @param[in]      join_opcode    結合の命令。

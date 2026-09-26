@@ -9,7 +9,7 @@
  *  条件式のいずれかの行に一致したトレースは、レベルを強制出力のレベルへ引き上げて出力します。\n
  *  一致しないトレースは、定義のレベルのまま出力し、出力先のしきい値で選別されます。
  *
- *  生成物の型付きラッパーは生成物の `<module>_write()` を直接呼び出すため、試作では使用できません。\n
+ *  生成物の型付きラッパーは生成物の `{module}_write()` を直接呼び出すため、試作では使用できません。\n
  *  代わりに @ref sample_filter_output マクロが呼び出し位置と実行コンテキストを付与します。\n
  *  このマクロは引数の型を検査しません。引数スキーマと一致する型で渡してください。
  *
@@ -41,8 +41,8 @@ extern "C"
      *  @param[in]      catalog トレース種別のカタログ。
      *  @param[in]      slot    @p catalog で作成したフィルター スロット。
      *  @param[in]      tracer  出力先のトレーサー。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *
      *  NULL をすべてに指定した場合は設定を解除します。
      *
@@ -70,12 +70,12 @@ extern "C"
      *  @brief          条件式で判定したうえで、トレースを出力します。
      *  @param[in]      string_key 文字列キー。
      *  @param[in]      ...        引数スキーマに従う値。文脈引数 (`{40}` から `{45}`) を含みます。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         設定されていない場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         設定されていない場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         文字列の組み立てに失敗した場合は、その結果コードを返し、出力しません。
      *
-     *  一致した場合のレベルは、分類値を @ref CPLAT_TRACE_LEVEL_TO_FORCE で変換した値です。\n
-     *  分類値が範囲外の場合は @ref CPLAT_TRACE_LEVEL_NONE として扱います。
+     *  一致した場合のレベルは、分類値を `CPLAT_TRACE_LEVEL_TO_FORCE` で変換した値です。\n
+     *  分類値が範囲外の場合は `CPLAT_TRACE_LEVEL_NONE` として扱います。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。フィルター スロットへの適用と並行して呼び出せます。

@@ -73,7 +73,10 @@ namespace sample_filter_test
         std::memset(rows, 0, sizeof(rows));
         for (std::size_t index = 0; index < count; index++)
         {
-            std::strncpy(rows[index], texts[index], line_width - 1U);
+            const std::size_t text_length = std::strlen(texts[index]);
+            const std::size_t copy_length = (text_length < (line_width - 1U)) ? text_length : (line_width - 1U);
+
+            std::memcpy(rows[index], texts[index], copy_length);
         }
 
         return sample_filter_compile(&rows[0][0], count, line_width, line_capacity, image, image_size, diagnostics,

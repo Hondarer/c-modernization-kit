@@ -688,6 +688,7 @@ static truth_value truth_or(const truth_value left, const truth_value right)
 
 /**
  *  @brief          1 行の命令列を評価します。
+ *  @param[in]      context      評価する行と文字列カタログ項目。
  *  @param[in]      honors_jumps 短絡評価のジャンプに従う場合は true。
  *                               事前計算では false とし、結合の命令で 3 値の論理演算を行います。
  *

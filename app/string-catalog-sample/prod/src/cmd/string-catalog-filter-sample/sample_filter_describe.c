@@ -360,8 +360,9 @@ static void append_entry(describe_context *context, const sample_filter_constant
 
 /**
  *  @brief          引数の定義を探します。
- *  @param[in]      name  引数名。NULL の場合は @p index で探します。
- *  @param[in]      index 引数のインデックス。@p name が NULL の場合に使用します。
+ *  @param[in]      entry  対象の文字列カタログ項目。
+ *  @param[in]      name   引数名。NULL の場合は @p index で探します。
+ *  @param[in]      index  引数のインデックス。@p name が NULL の場合に使用します。
  */
 static const cplat_string_catalog_argument *find_argument(const cplat_string_catalog_entry *entry, const char *name,
                                                           const int index)

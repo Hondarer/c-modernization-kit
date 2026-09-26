@@ -134,7 +134,7 @@ static int s_is_after_trailing_blank = 0;
 /**
  *  次の入力欄へあらかじめ入れる文字列です。空文字列の場合は入れません。
  *
- *  引数なしの edit <n> が、edit <n> <現在の条件式> を用意します。利用者は入力欄で編集して確定します。
+ *  条件式を省略した edit が、現在の条件式を入力欄へ用意します。利用者は入力欄で編集して確定します。
  */
 static char s_next_input[FILTER_SAMPLE_LINE_BUFFER_SIZE];
 
@@ -181,7 +181,7 @@ static sample_filter_slot *s_preview_slot = NULL;
 /** 表示のしきい値を保護するロックです。 */
 static cplat_local_lock *s_display_lock = NULL;
 
-/** 表示のしきい値です。@ref s_display_lock の下で読み書きします。 */
+/** 表示のしきい値です。`s_display_lock` の下で読み書きします。 */
 static cplat_trace_level s_display_threshold = CPLAT_TRACE_LEVEL_WARNING;
 
 /** レベルの表示名です。@c cplat_trace_level の値をインデックスとして参照します。 */
@@ -239,7 +239,7 @@ static cplat_condvar *s_worker_condvar = NULL;
 /** ワーカーの同期オブジェクトを初期化済みかどうかです。 */
 static int s_worker_sync_initialized = 0;
 
-/** ワーカーへの停止要求です。@ref s_worker_lock の下で読み書きします。 */
+/** ワーカーへの停止要求です。`s_worker_lock` の下で読み書きします。 */
 static int s_worker_stop_requested = 0;
 
 /* ===== 文字列テーブル引き ===== */
@@ -671,6 +671,9 @@ static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression
 
 /**
  *  @brief          フィルター オブジェクトの条件式を 1 行ずつ表示します。
+ *  @param[in,out]  screen          表示先の画面。
+ *  @param[in]      image           フィルター オブジェクト。
+ *  @param[in]      image_size      @p image のバイト数。
  *  @param[in]      enabled_lines   適用で有効になった行の集合。編集中イメージのように適用前の場合は NULL。
  *  @param[in]      describing_slot 説明文を表示するスロット。NULL の場合は説明文を表示しません。
  *                                  説明文は名前解決済みの適用中の面から作るため、適用中の条件にだけ指定します。
@@ -998,6 +1001,8 @@ static void command_draft(cplat_pinned_prompt *screen)
 
 /**
  *  @brief          編集した行を下見用のスロットで確かめ、レベルの指定に誤りがあれば編集を取り消します。
+ *  @param[in,out]  screen     表示先の画面。
+ *  @param[in]      expression 編集した条件式。
  *  @param[in]      line_index 編集した行 (0 起点)。
  *  @return         編集を取り消した場合は 1、受け付けた場合は 0 を返します。
  *
@@ -1612,7 +1617,7 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
 /**
  *  @brief          共有メモリを、書き込み側と読み取り側に見立てた 2 つのハンドルで開きます。
  *  @param[in]      path 共有メモリに対応付けるファイルのパス。NULL の場合は一時ディレクトリの既定の名前を使います。
- *  @return         成功時は @ref CPLAT_OK 、失敗時はその結果コードを返します。
+ *  @return         成功時は `CPLAT_OK`、失敗時はその結果コードを返します。
  *
  *  2 つのハンドルは同じミューテックスを共有し、別々のプロセスの書き込み側と読み取り側を模擬します。
  */

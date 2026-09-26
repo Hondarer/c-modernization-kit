@@ -197,7 +197,7 @@ int sample_filter_read_constant(const unsigned char *constants, const uint32_t c
     case SAMPLE_FILTER_CONSTANT_KIND_CHARACTER:
         memcpy(&constant_out->magnitude, constants + payload_offset, sizeof(constant_out->magnitude));
         if ((header.flags &
-             (uint8_t)~(SAMPLE_FILTER_CONSTANT_FLAG_NEGATIVE | SAMPLE_FILTER_CONSTANT_FLAG_HEXADECIMAL)) != 0U)
+             ~(SAMPLE_FILTER_CONSTANT_FLAG_NEGATIVE | SAMPLE_FILTER_CONSTANT_FLAG_HEXADECIMAL)) != 0U)
         {
             return CPLAT_ERR_CORRUPT_DESCRIPTOR;
         }
@@ -859,7 +859,11 @@ static void write_constant(text_writer *writer, const sample_filter_constant *co
         /* 整数の表記にならないよう、小数点か指数部を必ず含める */
         if (strpbrk(buffer, ".eE") == NULL)
         {
-            (void)strncat(buffer, ".0", sizeof(buffer) - strlen(buffer) - 1U);
+            const size_t length = strlen(buffer);
+
+            buffer[length] = '.';
+            buffer[length + 1U] = '0';
+            buffer[length + 2U] = '\0';
         }
         writer_append_text(writer, buffer);
         break;

@@ -79,8 +79,8 @@ extern "C"
         SAMPLE_FILTER_FIELD_KEY = 1,           /**< 文字列キー。 */
         SAMPLE_FILTER_FIELD_ID = 2,            /**< 項目の ID。 */
         SAMPLE_FILTER_FIELD_CATEGORY = 3,      /**< 分類値。 */
-        SAMPLE_FILTER_FIELD_ARGUMENT_NAME = 4, /**< 名前で指定した引数 `arg.<name>`。 */
-        SAMPLE_FILTER_FIELD_ARGUMENT_INDEX = 5 /**< インデックスで指定した引数 `arg[<n>]`。 */
+        SAMPLE_FILTER_FIELD_ARGUMENT_NAME = 4, /**< 名前で指定した引数 `arg.name`。 */
+        SAMPLE_FILTER_FIELD_ARGUMENT_INDEX = 5 /**< インデックスで指定した引数 `arg[n]`。 */
     } sample_filter_field;
 
     /** 判定演算子です。 */
@@ -158,9 +158,9 @@ extern "C"
     typedef struct sample_filter_instruction
     {
         uint8_t opcode;         /**< @ref sample_filter_opcode */
-        uint8_t field;          /**< @ref sample_filter_field。判定要素以外は 0。 */
-        uint8_t operator_kind;  /**< @ref sample_filter_operator。判定要素以外は 0。 */
-        uint8_t argument;       /**< `arg[<n>]` のインデックス、または `arg.<name>` の引数参照の番号。 */
+        uint8_t field;          /**< @ref sample_filter_field 。判定要素以外は 0。 */
+        uint8_t operator_kind;  /**< @ref sample_filter_operator 。判定要素以外は 0。 */
+        uint8_t argument;       /**< `arg[n]` のインデックス、または `arg.name` の引数参照の番号。 */
         uint16_t operand_count; /**< 比較対象の定数の数。 */
         uint16_t operand;       /**< 定数のオフセット、またはジャンプ先の命令の番号。 */
     } sample_filter_instruction;
@@ -218,7 +218,7 @@ extern "C"
 
     /**
      *  @brief          定数を 1 個読み取ります。
-     *  @return         定数が領域内に収まり、形式が正しい場合は @ref CPLAT_OK、それ以外は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR。
+     *  @return         定数が領域内に収まり、形式が正しい場合は `CPLAT_OK`、それ以外は `CPLAT_ERR_CORRUPT_DESCRIPTOR`。
      */
     int sample_filter_read_constant(const unsigned char *constants, uint32_t constant_size, uint32_t offset,
                                     sample_filter_constant *constant_out);
@@ -244,13 +244,13 @@ extern "C"
 
     /**
      *  @brief          ヘッダーを読み取り、形式と大きさを確認します。行レコードの内容は確認しません。
-     *  @return         @ref CPLAT_OK または @ref CPLAT_ERR_CORRUPT_DESCRIPTOR。
+     *  @return         `CPLAT_OK` または `CPLAT_ERR_CORRUPT_DESCRIPTOR`。
      */
     int sample_filter_check_header(const void *image, size_t image_size, sample_filter_image_header *header_out);
 
     /**
      *  @brief          行レコード 1 件の形式と、命令と定数の参照先を確認します。
-     *  @return         @ref CPLAT_OK または @ref CPLAT_ERR_CORRUPT_DESCRIPTOR。
+     *  @return         `CPLAT_OK` または `CPLAT_ERR_CORRUPT_DESCRIPTOR`。
      */
     int sample_filter_check_record(const unsigned char *record, uint32_t line_width);
 
@@ -278,7 +278,7 @@ extern "C"
      *  @param[in]      constant  定数。
      *  @param[out]     dest      書き出し先。常に NUL 終端します。
      *  @param[in]      dest_size @p dest のバイト数。1 以上です。
-     *  @return         @ref CPLAT_OK、収まらない場合は切り詰めて @ref CPLAT_ERR_BUFFER_TOO_SMALL。
+     *  @return         `CPLAT_OK`、収まらない場合は切り詰めて `CPLAT_ERR_BUFFER_TOO_SMALL`。
      */
     int sample_filter_format_constant(const sample_filter_constant *constant, char *dest, size_t dest_size);
 
@@ -305,7 +305,7 @@ extern "C"
      *  @param[in]      source    行の情報。
      *  @param[out]     dest      書き出し先。常に NUL 終端します。
      *  @param[in]      dest_size @p dest のバイト数。1 以上です。
-     *  @return         @ref CPLAT_OK、収まらない場合は切り詰めて @ref CPLAT_ERR_BUFFER_TOO_SMALL。
+     *  @return         `CPLAT_OK`、収まらない場合は切り詰めて `CPLAT_ERR_BUFFER_TOO_SMALL`。
      */
     int sample_filter_describe_record(const sample_filter_describe_source *source, char *dest, size_t dest_size);
 
@@ -319,7 +319,7 @@ extern "C"
      *  @param[out]     record       行レコードの格納先。@ref SAMPLE_FILTER_RECORD_SIZE バイトを 0 で埋めてから書き込みます。
      *  @param[out]     error_out    失敗の原因。
      *  @param[out]     column_out   失敗した位置。
-     *  @return         成功時は @ref CPLAT_OK、条件式が不正な場合は @ref CPLAT_ERR_MALFORMED_DEFINITION。
+     *  @return         成功時は `CPLAT_OK`、条件式が不正な場合は `CPLAT_ERR_MALFORMED_DEFINITION`。
      */
     int sample_filter_compile_record(const char *text, size_t text_length, uint32_t line_width, unsigned char *record,
                                      sample_filter_error *error_out, uint32_t *column_out);

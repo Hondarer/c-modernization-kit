@@ -11,7 +11,7 @@
  *  ロックを取得して再確認 (最終チェック) した後、フィルター オブジェクトを複製してフィルター スロットへ適用します。
  *
  *  書き込み側と、読み取り側の複製は、同じミューテックスで排他します。\n
- *  PoC では、呼び出し側が用意した単純なミューテックス (@ref cplat_local_lock) で、プロセスをまたぐ排他を模擬します。
+ *  PoC では、呼び出し側が用意した単純なミューテックス (`cplat_local_lock`) で、プロセスをまたぐ排他を模擬します。
  *  同じミューテックスを共有する複数のハンドルを、別々のプロセスの書き込み側と読み取り側に見立てます。\n
  *  実際に複数のプロセスで動かす段階では、このミューテックスをプロセス間で共有できるものに置き換えます。
  *
@@ -89,7 +89,7 @@ extern "C"
         int64_t published_seconds;      /**< 公開した実時刻の秒部。未公開は 0。 */
         int64_t published_nanoseconds;  /**< 公開した実時刻のナノ秒部。 */
         uint32_t publisher_process_id;  /**< 公開したプロセスの ID。未公開は 0。 */
-        int last_take_result;           /**< 直近の取り込みで適用した結果コード。未取り込みは @ref CPLAT_OK 。 */
+        int last_take_result;           /**< 直近の取り込みで適用した結果コード。未取り込みは `CPLAT_OK`。 */
         size_t last_take_invalid_count; /**< 直近の取り込みで無効にした行の数。 */
     } sample_filter_share_status;
 
@@ -105,11 +105,11 @@ extern "C"
      *  @param[in]      line_capacity 配布するフィルター オブジェクトの行数の上限。
      *  @param[in]      line_width    配布するフィルター オブジェクトの行幅。
      *  @param[out]     share_out     開いたハンドルの格納先。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         既存のファイルが必要な大きさに満たない場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
-     *  @return         メモリまたは共有メモリを確保できない場合は @ref CPLAT_ERR_OUT_OF_MEMORY または
-     *                  @ref CPLAT_ERR_UNKNOWN を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         既存のファイルが必要な大きさに満たない場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
+     *  @return         メモリまたは共有メモリを確保できない場合は `CPLAT_ERR_OUT_OF_MEMORY` または
+     *                  `CPLAT_ERR_UNKNOWN` を返します。
      *
      *  新しく作成したファイルは 0 で埋まっており、最初の公開で配布ヘッダーを初期化します。\n
      *  同じファイルを、同じプロセスの中で複数のハンドルから開くこともできます。
@@ -137,10 +137,10 @@ extern "C"
      *  @param[in]      image             公開するフィルター オブジェクト。
      *  @param[in]      image_size        @p image のバイト数。
      *  @param[out]     generation_out    公開した世代番号の格納先。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         @p image が検証に失敗した場合、行数の上限と行幅がハンドルと一致しない場合、
-     *                  または共有メモリの配布ヘッダーが別の形式の場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
+     *                  または共有メモリの配布ヘッダーが別の形式の場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *                  共有メモリは変更しません。
      *  @return         ロックを取れない場合は、その結果コードを返します。
      *
@@ -158,8 +158,8 @@ extern "C"
      *  @param[in]      share           ハンドル。
      *  @param[in,out]  slot            取り込み先のフィルター スロット。行数の上限と行幅がハンドルと一致すること。
      *  @param[out]     is_taken_out    今回取り込んだ場合は 0 以外、変化がなかった場合は 0 の格納先。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。変化がなかった場合も成功です。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。変化がなかった場合も成功です。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         ロックを取れない場合は、その結果コードを返します。
      *
      *  通常時は、世代番号をロック不要で 1 回読み取り、取り込み済みの世代と一致していれば直ちに関数を終了します。\n
@@ -177,8 +177,8 @@ extern "C"
      *  @brief          配布の状態を取得します。
      *  @param[in]      share      ハンドル。
      *  @param[out]     status_out 状態の格納先。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         ロックを取れない場合は、その結果コードを返します。
      *
      *  @par            スレッド セーフ

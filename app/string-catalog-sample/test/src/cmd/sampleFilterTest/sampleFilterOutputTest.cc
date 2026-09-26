@@ -33,8 +33,12 @@ namespace
         (void)handle;
         (void)timestamp;
         capture->level = level;
-        std::strncpy(capture->message, message, sizeof(capture->message) - 1U);
-        capture->message[sizeof(capture->message) - 1U] = '\0';
+        const std::size_t message_length = std::strlen(message);
+        const std::size_t copy_length =
+            (message_length < (sizeof(capture->message) - 1U)) ? message_length : (sizeof(capture->message) - 1U);
+
+        std::memcpy(capture->message, message, copy_length);
+        capture->message[copy_length] = '\0';
         capture->call_count++;
     }
 } // namespace

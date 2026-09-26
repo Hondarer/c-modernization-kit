@@ -6,7 +6,7 @@
  *  @date           2026/09/26
  *  @version        0.1.0
  *
- *  設計資料の第 2 段階では、カタログ定義生成器が `<module>_key_names()` を出力します。\n
+ *  設計資料の第 2 段階では、カタログ定義生成器が `{module}_key_names()` を出力します。\n
  *  試作では生成器を変更しないため、同じ形の関数を手書きしています。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.

@@ -141,7 +141,7 @@ TEST_F(sampleFilterDescribeTest, neutral_language_uses_neutral_phrases)
     // Act
     actual_ret_neutral = describe("category <= 2 || arg.job_name contains_i \"exp\"",
                                   CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL); // [手順] - ニュートラル言語で説明する。
-    std::strcpy(actual_neutral, description_);
+    std::memcpy(actual_neutral, description_, std::strlen(description_) + 1U);
     actual_ret_english = describe("category <= 2 || arg.job_name contains_i \"exp\"",
                                   CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH); // [手順] - 英語で説明する。
 
@@ -245,7 +245,7 @@ TEST_F(sampleFilterDescribeTest, category_names_use_complement_when_shorter)
     // Act
     actual_ret_japanese =
         describe("category != 4", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 日本語で説明する。
-    std::strcpy(actual_japanese, description_);
+    std::memcpy(actual_japanese, description_, std::strlen(description_) + 1U);
     actual_ret_neutral =
         describe("category != 4", CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL); // [手順] - ニュートラル言語で説明する。
 
@@ -275,10 +275,10 @@ TEST_F(sampleFilterDescribeTest, category_names_describe_single_any_and_none)
     // Act
     actual_ret_single = describe(
         "category == 3", CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL); // [手順] - 1 つの名前だけが該当する条件を説明する。
-    std::strcpy(actual_single, description_);
+    std::memcpy(actual_single, description_, std::strlen(description_) + 1U);
     actual_ret_any = describe(
         "category >= 0", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - すべての名前が該当する条件を説明する。
-    std::strcpy(actual_any, description_);
+    std::memcpy(actual_any, description_, std::strlen(description_) + 1U);
     actual_ret_none = describe("category < 0",
                                CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - どの名前も該当しない条件を説明する。
 

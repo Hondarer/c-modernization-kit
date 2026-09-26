@@ -7,7 +7,7 @@ short-title: "string-catalog-filter-sample"
 トレースの条件式フィルターの試作を対話的に確認します。  
 ワーカー スレッドが 7 種類のトレースを出し続ける間に、条件式を編集して適用し、スレッド セーフな差し替えと表示の変化を確認できます。
 
-設計の背景、設計資料との差分、進捗は [トレースの条件式フィルターの PoC](../../../../docs/trace-filter-poc.md) を参照してください。  
+設計の背景、設計資料との差分、進捗は <a href="../../../../docs/trace-filter-poc.md">トレースの条件式フィルターの PoC</a> を参照してください。  
 本 README は、このコマンドの構成と操作方法だけを扱います。
 
 ## 構成ファイル
@@ -17,6 +17,7 @@ short-title: "string-catalog-filter-sample"
 | `sample_filter.h` / `sample_filter_compile.c` | 条件式のコンパイル、行単位の編集、デコンパイル (カタログ定義を参照しない層) |
 | `sample_filter_image.h` / `sample_filter_image.c` | フィルター オブジェクトの内部形式 |
 | `sample_filter_slot.c` | フィルター スロット (名前解決、事前計算、判定、2 面の差し替え) |
+| `sample_filter_share.h` / `sample_filter_share.c` | 共有メモリによるフィルター オブジェクトの配布 (公開、取り込み、世代管理) |
 | `sample_filter_describe.c` | 条件式を、カタログのメタ情報を用いた自然文で表現する説明文 |
 | `sample_filter_output.h` / `sample_filter_output.c` | フィルターを通してトレースを出力する入口。`sample_filter_output(key, ...)` マクロを提供 |
 | `sample_worker_trace.jsonc` / `gen/sample_worker_trace.h` | ワーカーが出力するトレースのカタログ定義と生成物 |
@@ -68,7 +69,7 @@ short-title: "string-catalog-filter-sample"
 `add` や `edit` に指定できる条件式の例です。  
 同じ例を、コマンドの `usage` でも表示できます。  
 いずれも、このコマンドで `add` と `apply` を実行し、無効な行にならないことを確認しています。  
-構文と比較規則の詳細は [文字列カタログの条件式フィルターの設計](../../../../../c-platform/docs/proposals/string-catalog-filter-design.md) の「条件式の仕様」を参照してください。
+構文と比較規則の詳細は <a href="../../../../../c-platform/docs/proposals/string-catalog-filter-design.md">文字列カタログの条件式フィルターの設計</a> の「条件式の仕様」を参照してください。
 
 条件式リストは行の論理和です。  
 いずれかの行に一致したトレースは強制出力のレベルへ引き上がり、一致しないトレースは定義のレベルのまま表示のしきい値で選別されます。
@@ -184,7 +185,7 @@ filter-sample> list
 
 ## コンテキスト引数 sequence_number
 
-生成器が付与する文脈引数に加えて照合できる、本 app 固有のコンテキスト引数は [トレースの条件式フィルターの PoC](../../../../docs/trace-filter-poc.md) の「照合できる引数」を参照してください。  
+生成器が付与する文脈引数に加えて照合できる、本 app 固有のコンテキスト引数は <a href="../../../../docs/trace-filter-poc.md">トレースの条件式フィルターの PoC</a> の「照合できる引数」を参照してください。  
 `sample_worker_trace` はコンテキスト引数の 1 つとして `sequence_number` (1 から 99 を巡回するラウンド トリップ ID) を割り当てており、`arg.sequence_number` で参照できます。  
 取得と付与は `sample_filter_output` マクロが自動で行うため、コマンド側の出力呼び出しを変更する必要はありません。  
 この連番は組み立てた文字列の先頭に `#<連番> ` として現れます。
@@ -226,7 +227,7 @@ filter-sample> status
 
 PoC では、公開と取り込みの排他を単純なミューテックスで模擬しています。  
 別々のコマンドが同じ共有メモリへ同時に公開する場合の排他は保証しません。  
-設計と置き換えの方針は [トレースの条件式フィルターの PoC](../../../../docs/trace-filter-poc.md) の「共有メモリによる配布」を参照してください。
+設計と置き換えの方針は <a href="../../../../docs/trace-filter-poc.md">トレースの条件式フィルターの PoC</a> の「共有メモリによる配布」を参照してください。
 
 ### 操作例
 

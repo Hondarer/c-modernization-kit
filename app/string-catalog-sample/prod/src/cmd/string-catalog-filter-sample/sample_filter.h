@@ -179,11 +179,11 @@ extern "C"
      *  @param[out]     diagnostics         無効にした行の診断情報の格納先。NULL を指定できます。
      *  @param[in]      diagnostic_capacity @p diagnostics の要素数。
      *  @param[out]     invalid_count_out   無効にした行の総数の格納先。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。無効にした行があっても成功です。
+     *  @return         成功時は `CPLAT_OK` を返します。無効にした行があっても成功です。
      *  @return         引数が不正な場合、または行幅と行数の上限が範囲外の場合は
-     *                  @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *                  `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         @p image_size が @ref SAMPLE_FILTER_IMAGE_SIZE に満たない場合は
-     *                  @ref CPLAT_ERR_BUFFER_TOO_SMALL を返します。
+     *                  `CPLAT_ERR_BUFFER_TOO_SMALL` を返します。
      *
      *  空行、空白だけの行、先頭が `#` の行は格納しません。\n
      *  診断情報は @p diagnostic_capacity 個までを格納し、総数は @p invalid_count_out へ格納します。
@@ -203,10 +203,10 @@ extern "C"
      *  @param[in]      line_index     置き換える行 (0 起点)。格納している条件式の数より小さい値です。
      *  @param[in]      text           NUL 終端の条件式。
      *  @param[out]     diagnostic_out コンパイルに失敗した場合の診断情報の格納先。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         @p image が検証に失敗した場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
-     *  @return         条件式が不正な場合、および空行やコメントの場合は @ref CPLAT_ERR_MALFORMED_DEFINITION を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         @p image が検証に失敗した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
+     *  @return         条件式が不正な場合、および空行やコメントの場合は `CPLAT_ERR_MALFORMED_DEFINITION` を返します。
      *
      *  失敗した場合、@p image は変更しません。
      *
@@ -224,11 +224,11 @@ extern "C"
      *  @param[in]      line_index     挿入する位置 (0 起点)。格納している条件式の数と等しい場合は末尾へ追加します。
      *  @param[in]      text           NUL 終端の条件式。
      *  @param[out]     diagnostic_out コンパイルに失敗した場合の診断情報の格納先。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         @p image が検証に失敗した場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
-     *  @return         行数の上限に達している場合は @ref CPLAT_ERR_STORAGE_FULL を返します。
-     *  @return         条件式が不正な場合、および空行やコメントの場合は @ref CPLAT_ERR_MALFORMED_DEFINITION を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         @p image が検証に失敗した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
+     *  @return         行数の上限に達している場合は `CPLAT_ERR_STORAGE_FULL` を返します。
+     *  @return         条件式が不正な場合、および空行やコメントの場合は `CPLAT_ERR_MALFORMED_DEFINITION` を返します。
      *
      *  失敗した場合、@p image は変更しません。
      *
@@ -244,9 +244,9 @@ extern "C"
      *  @param[in,out]  image      フィルター オブジェクト。
      *  @param[in]      image_size @p image のバイト数。
      *  @param[in]      line_index 削除する行 (0 起点)。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         @p image が検証に失敗した場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         @p image が検証に失敗した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *
      *  後続の行は 1 つ前へ移動します。
      *
@@ -260,9 +260,9 @@ extern "C"
      *  @brief          フィルター オブジェクトの形式と内容の整合を確認します。
      *  @param[in]      image      フィルター オブジェクト。
      *  @param[in]      image_size @p image のバイト数。
-     *  @return         整合している場合は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         不整合を検出した場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
+     *  @return         整合している場合は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         不整合を検出した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *
      *  署名、形式版、バイト順序の目印、行数と行幅、全体のバイト数、内容のハッシュ値、
      *  および各行の命令と定数の参照先が領域内に収まることを確認します。
@@ -277,9 +277,9 @@ extern "C"
      *  @param[in]      image      フィルター オブジェクト。
      *  @param[in]      image_size @p image のバイト数。
      *  @param[out]     info_out   情報の格納先。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         @p image が検証に失敗した場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         @p image が検証に失敗した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。@p image へ同時に書き込む呼び出しとは直列化してください。
@@ -293,10 +293,10 @@ extern "C"
      *  @param[in]      line_index 復元する行 (0 起点)。
      *  @param[out]     dest       復元した条件式の格納先。常に NUL 終端します。
      *  @param[in]      dest_size  @p dest のバイト数。1 以上です。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         @p image が検証に失敗した場合は @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。
-     *  @return         @p dest に収まらない場合は、切り詰めたうえで @ref CPLAT_ERR_BUFFER_TOO_SMALL を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         @p image が検証に失敗した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
+     *  @return         @p dest に収まらない場合は、切り詰めたうえで `CPLAT_ERR_BUFFER_TOO_SMALL` を返します。
      *
      *  括弧は演算子の優先順位から必要な位置にだけ付与します。\n
      *  復元した条件式を再びコンパイルすると、同じ命令列になります。
@@ -318,9 +318,9 @@ extern "C"
      *  @param[in]      line_capacity  適用するフィルター オブジェクトの行数の上限。
      *  @param[in]      line_width     適用するフィルター オブジェクトの行幅。
      *  @param[out]     slot_out       作成したスロットの格納先。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         メモリまたは同期オブジェクトを確保できない場合は @ref CPLAT_ERR_OUT_OF_MEMORY を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         メモリまたは同期オブジェクトを確保できない場合は `CPLAT_ERR_OUT_OF_MEMORY` を返します。
      *
      *  作成直後のスロットは、行を持たないフィルター オブジェクトを適用した状態です。\n
      *  事前計算の結果を格納する 2 面のバッファーは、この時点で確保します。
@@ -351,10 +351,10 @@ extern "C"
      *  @param[out]     diagnostics         無効にした行の診断情報の格納先。NULL を指定できます。
      *  @param[in]      diagnostic_capacity @p diagnostics の要素数。
      *  @param[out]     invalid_count_out   無効にした行の総数の格納先。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。無効にした行があっても成功です。
-     *  @return         引数が不正な場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。無効にした行があっても成功です。
+     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         @p image が検証に失敗した場合、または行数の上限と行幅がスロットと一致しない場合は
-     *                  @ref CPLAT_ERR_CORRUPT_DESCRIPTOR を返します。現在の内容を維持します。
+     *                  `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。現在の内容を維持します。
      *
      *  内容はスロットの内部へ複製します。\n
      *  本関数が戻った時点で @p image は参照されず、呼び出し側は直ちに再利用または解放できます。
@@ -376,10 +376,10 @@ extern "C"
      *  @param[out]     image_out         複製の格納先。
      *  @param[in]      image_size        @p image_out のバイト数。
      *  @param[out]     enabled_lines_out 適用で有効になった行の集合 (ビット i が行 i)。NULL を指定できます。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         @p image_size がスロットのフィルター オブジェクトの大きさに満たない場合は
-     *                  @ref CPLAT_ERR_BUFFER_TOO_SMALL を返します。
+     *                  `CPLAT_ERR_BUFFER_TOO_SMALL` を返します。
      *
      *  名前を解決できずに無効とした行も、フィルター オブジェクトには残ります。\n
      *  有効かどうかは @p enabled_lines_out で判別します。
@@ -395,9 +395,9 @@ extern "C"
      *  @param[in,out]  slot           フィルター スロット。
      *  @param[in]      category_names 分類値の名前。NULL の場合は設定を解除し、分類値を数値で表します。
      *                                 スロットを破棄するか設定を解除するまで有効である必要があります。
-     *  @return         成功時は @ref CPLAT_OK を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
      *  @return         @p slot が NULL の場合、または @p category_names の内容が不正な場合は
-     *                  @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *                  `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *
      *  設定した場合、次の 2 点が変わります。
      *  - 条件式で分類値と比較する識別子 (例: `category <= WARNING`) を、文字列キーの名前ではなく
@@ -423,10 +423,10 @@ extern "C"
      *  @param[in]      line_index 適用中のフィルター オブジェクトの行 (0 起点)。
      *  @param[out]     dest       自然文の格納先。常に NUL 終端します。
      *  @param[in]      dest_size  @p dest のバイト数。1 以上です。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が不正な場合、または行が範囲外の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         適用で無効とした行の場合は @ref CPLAT_ERR_MALFORMED_DEFINITION を返します。
-     *  @return         @p dest に収まらない場合は、切り詰めたうえで @ref CPLAT_ERR_BUFFER_TOO_SMALL を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が不正な場合、または行が範囲外の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         適用で無効とした行の場合は `CPLAT_ERR_MALFORMED_DEFINITION` を返します。
+     *  @return         @p dest に収まらない場合は、切り詰めたうえで `CPLAT_ERR_BUFFER_TOO_SMALL` を返します。
      *
      *  文字列キーの比較は項目の `brief` と `id`、引数の比較は引数の名前と説明で表します。\n
      *  分類値は値そのもので表し、意味を解釈しません。
@@ -434,7 +434,7 @@ extern "C"
      *  行が 1 つの項目に限定される場合は、その項目の引数の説明を使います。\n
      *  複数の項目が対象の場合は、引数を持つすべての項目で説明が一致するときに限り、その説明を使います。
      *
-     *  文型は、@ref cplat_string_catalog_get_language が日本語を返す場合は日本語、それ以外はニュートラル言語です。
+     *  文型は、`cplat_string_catalog_get_language` が日本語を返す場合は日本語、それ以外はニュートラル言語です。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。判定および適用と並行して呼び出せます。
@@ -446,9 +446,9 @@ extern "C"
      *  @param[in]      slot       フィルター スロット。
      *  @param[in]      string_key 文字列キー。
      *  @param[out]     state_out  状態の格納先。
-     *  @return         成功時は @ref CPLAT_OK を返します。
-     *  @return         引数が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
-     *  @return         カタログに存在しない文字列キーの場合は @ref CPLAT_ERR_NOT_FOUND を返します。
+     *  @return         成功時は `CPLAT_OK` を返します。
+     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         カタログに存在しない文字列キーの場合は `CPLAT_ERR_NOT_FOUND` を返します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。判定および適用と並行して呼び出せます。
@@ -463,8 +463,8 @@ extern "C"
      *  @param[out]     matched_out いずれかの行に一致した場合は 0 以外、一致しない場合は 0 の格納先。
      *  @param[in]      string_key  文字列キー。
      *  @param[in]      args        文字列キーの引数スキーマに従う可変長引数。
-     *  @return         @ref cplat_string_catalog_vformat の戻り値を返します。
-     *  @return         @p slot または @p matched_out が NULL の場合は @ref CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         `cplat_string_catalog_vformat` の戻り値を返します。
+     *  @return         @p slot または @p matched_out が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *
      *  一致の有無にかかわらず、文字列を組み立てます。一致した文字列の扱いは呼び出し側が決めます。\n
      *  事前計算の状態が「引数値に依存」の場合に限り、可変長引数を収集して評価します。

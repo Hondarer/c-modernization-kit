@@ -227,7 +227,7 @@ TEST_F(sampleFilterCompileTest, out_of_range_width_or_capacity_returns_invalid_a
     std::size_t invalid_count = 0U;
 
     std::memset(row, 0, sizeof(row));
-    std::strcpy(row, "key == 1");
+    std::memcpy(row, "key == 1", sizeof("key == 1"));
 
     // Pre-Assert
 
