@@ -749,7 +749,7 @@ static void print_help(cplat_pinned_prompt *screen)
         "commands:\n"
         "  help                         このヘルプを表示します\n"
         "  usage                        条件式の例を表示します\n"
-        "  list                         適用中の条件式を、説明文とともに表示します\n"
+        "  list                         取り込み済みの条件式を、説明文とともに表示します\n"
         "  draft                        編集中の条件式を、説明文とともに表示します\n"
         "  add <条件式>                 編集中イメージの末尾へ条件式を追加します\n"
         "  insert <n> <条件式>          編集中イメージの n 行目へ条件式を挿入します\n"
