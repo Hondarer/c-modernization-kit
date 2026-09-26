@@ -35,6 +35,11 @@ ifeq ($(OS),Windows_NT)
     endif
 endif
 
+# "#!/bin/bash" のスクリプトを "$(SHELL)" で起動すると shebang は使われない。
+# make の既定は /bin/sh なので、ここで bash を指定する。
+# Windows 判定は上書き前の既定値を見るため、この代入より前に置く。
+SHELL := /bin/bash
+
 # app 依存パス設定 (.vscode, .github, .jenkins) の同期チェック。
 # 差分は warning 扱いとするため、sync-app-env.sh の終了コード 3 は致命扱いしない。
 define APP_ENV_SYNC_CHECK
