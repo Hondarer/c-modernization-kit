@@ -42,3 +42,16 @@
 構造体のパディング警告は、メンバー順、ABI、公開構造体かどうかを確認して判断します。  
 公開 ABI を変更する可能性があるため、警告抑制のみを目的にメンバーを並べ替えません。  
 判断基準は [コーディング規範](../../general/docs/coding-guideline.md) の構造体パディングに関する節を参照してください。
+
+## Doxygen 警告 (docs-warns.zip)
+
+Doxygen の警告ログを確認し、次の典型的な原因に応じて対処します。
+
+- **引数の未記載 (`warning: The following parameters of ... are not documented:`):**  
+  Doxygen コメントを付与した関数で、一部の仮引数に `@param` が抜けています。  
+  すべての仮引数について `@param[in]`、`@param[out]`、`@param[in,out]` の該当するタグを補完します。
+- **未解決シンボル参照 (`warning: unable to resolve reference to '...' for \ref command` など):**  
+  別 app など別の生成単位のシンボルや、ファイル内スコープの `static` 変数・関数を `@ref` や `@see` で参照しています。  
+  同一生成単位外のシンボルや `static` 変数・関数は `@ref` ではなくバッククォート (例: `` `CPLAT_OK` `` や `` `s_items` ``) で表記します。
+
+詳細な規則は [app 向け Doxygen コメント](../../general/docs/doxygen-comment-guideline.md) を参照してください。

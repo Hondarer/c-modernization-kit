@@ -3228,6 +3228,7 @@ const 付与とセットで、Doxygen タグも impl の挙動に合わせて見
 ### 適用範囲と作業の進め方
 
 - 新規関数では本ルールに従って最初から const と Doxygen タグを正しく付けます。
+- 関数へ Doxygen コメントを付与する場合は、未ドキュメント引数の警告を防ぐため、すべての仮引数に `@param` を漏れなく記載します。
 - 既存関数を変更する際は、変更ファイル内の関数全てに本ルールを適用します。
 - 大規模な const 化リファクタリングを行う際は、**1 commit = 1 ヘッダー (カテゴリ)** 単位で進めます。ヘッダー変更、impl 変更、対応する mock 追従、Doxygen タグ修正を同じ commit にまとめます。
 
@@ -3588,6 +3589,7 @@ Doxygen コメント (`/** */`) 内の `@code` ~ `@endcode` に書くコード�
 
 ## 参照
 
+- [`doxygen-comment-guideline.md`](doxygen-comment-guideline.md) - app 向け Doxygen コメント (コメント配置、参照できるシンボルの範囲、全仮引数の記載)
 - [`source-style-guideline.md`](source-style-guideline.md) - `.gitattributes` / `.editorconfig` / `.clang-format` によるソース スタイル維持
 - [`include-guard-guideline.md`](include-guard-guideline.md) - インクルード ガード命名規則
 - [POSIX の名前空間規定](https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_02_02) - `_t` で終わる型名が処理系用に予約されること
