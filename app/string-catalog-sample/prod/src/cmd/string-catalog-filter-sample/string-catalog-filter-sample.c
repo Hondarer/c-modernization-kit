@@ -21,12 +21,15 @@
 
 #include "sample_filter.h"
 #include "sample_filter_output.h"
+#include "sample_filter_share.h"
 #include "sample_worker_trace_key_names.h"
 
 #include "gen/sample_worker_trace.h"
 
 #include <cplat/base/result.h>
+#include <cplat/clock/clock.h>
 #include <cplat/console/console.h>
+#include <cplat/crt/path.h>
 #include <cplat/crt/unistd.h>
 #include <cplat/prompt/pinned_prompt.h>
 #include <cplat/runtime/process.h>
@@ -134,6 +137,26 @@ static int s_is_after_trailing_blank = 0;
  *  引数なしの edit <n> が、edit <n> <現在の条件式> を用意します。利用者は入力欄で編集して確定します。
  */
 static char s_next_input[FILTER_SAMPLE_LINE_BUFFER_SIZE];
+
+/** 共有メモリに対応付けるファイルの既定の名前です。一時ディレクトリに置きます。 */
+#define FILTER_SAMPLE_SHARE_FILE_NAME "string-catalog-filter-sample.share"
+
+/** 共有メモリに対応付けるファイルのパスです。 */
+static char s_share_path[PLATFORM_PATH_MAX];
+
+/**
+ *  書き込みと取り込みを排他するミューテックスです。
+ *
+ *  PoC では、単純なミューテックスでプロセスをまたぐ排他を模擬します。
+ *  このため、同じ共有メモリを別のプロセスから同時に公開する場合の排他は保証しません。
+ */
+static cplat_local_lock *s_share_lock = NULL;
+
+/** 書き込み側のプロセスに見立てた配布ハンドルです。apply が公開に使います。 */
+static sample_filter_share *s_writer_share = NULL;
+
+/** 読み取り側のプロセスに見立てた配布ハンドルです。トレース出力が取り込みに使います。 */
+static sample_filter_share *s_reader_share = NULL;
 
 /** 編集前の編集中イメージの退避先です。入力を受け付けない場合に、編集前の内容へ戻すために使います。 */
 static unsigned char s_draft_backup[FILTER_SAMPLE_IMAGE_SIZE];
@@ -721,28 +744,30 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
 
 static void print_help(cplat_pinned_prompt *screen)
 {
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "commands:\n"
-                               "  help                         このヘルプを表示します\n"
-                               "  usage                        条件式の例を表示します\n"
-                               "  list                         適用中の条件式を、説明文とともに表示します\n"
-                               "  draft                        編集中の条件式を、説明文とともに表示します\n"
-                               "  add <条件式>                 編集中イメージの末尾へ条件式を追加します\n"
-                               "  insert <n> <条件式>          編集中イメージの n 行目へ条件式を挿入します\n"
-                               "  edit <n> [<条件式>]          編集中イメージの n 行目を置き換えます。\n"
-                               "                               条件式を省略すると、現在の内容を入力欄へ呼び出します\n"
-                               "  delete <n>                   編集中イメージの n 行目を削除します\n"
-                               "  clear                        編集中イメージを空にします\n"
-                               "  revert                       適用中の条件を編集中イメージへ複製します\n"
-                               "  image                        編集中イメージのヘッダー情報とダンプを表示します\n"
-                               "  apply                        編集中イメージを適用します\n"
-                               "  state                        文字列キーごとの判定状態を表示します\n"
-                               "  display [レベル]             表示のしきい値を取得または設定します\n"
-                               "  language [ja|en|neutral]     出力言語 (トレースと説明文) を取得または設定します\n"
-                               "  emit                         7 種類のトレースを 1 回ずつ出力します\n"
-                               "  start [ワーカー数] [間隔ms]  ワーカー スレッドを起動します (既定 2 個、500 ms)\n"
-                               "  stop                         ワーカー スレッドを停止します\n"
-                               "  quit, exit                   終了します\n");
+    cplat_pinned_prompt_printf(
+        screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+        "commands:\n"
+        "  help                         このヘルプを表示します\n"
+        "  usage                        条件式の例を表示します\n"
+        "  list                         適用中の条件式を、説明文とともに表示します\n"
+        "  draft                        編集中の条件式を、説明文とともに表示します\n"
+        "  add <条件式>                 編集中イメージの末尾へ条件式を追加します\n"
+        "  insert <n> <条件式>          編集中イメージの n 行目へ条件式を挿入します\n"
+        "  edit <n> [<条件式>]          編集中イメージの n 行目を置き換えます。\n"
+        "                               条件式を省略すると、現在の内容を入力欄へ呼び出します\n"
+        "  delete <n>                   編集中イメージの n 行目を削除します\n"
+        "  clear                        編集中イメージを空にします\n"
+        "  revert                       適用中の条件を編集中イメージへ複製します\n"
+        "  image                        編集中イメージのヘッダー情報とダンプを表示します\n"
+        "  apply                        編集中イメージを共有メモリへ公開します (取り込みは次のトレース出力)\n"
+        "  state                        文字列キーごとの判定状態を表示します\n"
+        "  status                       共有メモリの公開済みの世代と、取り込み済みの世代を表示します\n"
+        "  display [レベル]             表示のしきい値を取得または設定します\n"
+        "  language [ja|en|neutral]     出力言語 (トレースと説明文) を取得または設定します\n"
+        "  emit                         7 種類のトレースを 1 回ずつ出力します\n"
+        "  start [ワーカー数] [間隔ms]  ワーカー スレッドを起動します (既定 2 個、500 ms)\n"
+        "  stop                         ワーカー スレッドを停止します\n"
+        "  quit, exit                   終了します\n");
 }
 
 /** usage が表示する行の種類です。 */
@@ -936,6 +961,15 @@ static void print_slot_lines(cplat_pinned_prompt *screen, sample_filter_slot *sl
 
 static void command_list(cplat_pinned_prompt *screen)
 {
+    sample_filter_share_status status;
+
+    /* 表示するのは、このプロセスが取り込み済みの条件。公開の直後は、次のトレース出力まで前の条件のまま */
+    if (sample_filter_share_get_status(s_reader_share, &status) == CPLAT_OK)
+    {
+        cplat_pinned_prompt_printf(
+            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  取り込み済みの世代: %llu (公開済みの世代: %llu)\n",
+            (unsigned long long)status.taken_generation, (unsigned long long)status.published_generation);
+    }
     print_slot_lines(screen, s_slot);
 }
 
@@ -1302,30 +1336,49 @@ static void command_image(cplat_pinned_prompt *screen)
     }
 }
 
+/**
+ *  @brief          編集中イメージを共有メモリへ公開します。
+ *
+ *  公開するだけで、このプロセスのフィルター スロットには何もしません。
+ *  各プロセスは、次のトレース出力で公開内容の変化に気付いて取り込みます。\n
+ *  名前を解決できない行は、公開の前に下見用のスロットで確かめて表示します。
+ */
 static void command_apply(cplat_pinned_prompt *screen)
 {
     sample_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
     size_t invalid_count = 0;
+    uint64_t generation = 0U;
     size_t i;
     int ret;
 
-    ret = sample_filter_slot_apply(s_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
+    ret = sample_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
                                    sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 適用できませんでした (結果コード=%d)。\n", ret);
+                                   "エラー: 編集中イメージを確かめられませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "適用しました。\n");
+    ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), &generation);
+    if (ret != CPLAT_OK)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                   "エラー: 公開できませんでした (結果コード=%d)。\n", ret);
+        return;
+    }
+
+    cplat_pinned_prompt_printf(
+        screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+        "世代 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
+        (unsigned long long)generation);
 
     if (invalid_count == 0U)
     {
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "無効にした行があります (%zu 件)。\n",
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "無効になる行があります (%zu 件)。\n",
                                invalid_count);
 
     for (i = 0; (i < invalid_count) && (i < (sizeof(diagnostics) / sizeof(diagnostics[0]))); i++)
@@ -1556,6 +1609,101 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
                                s_language_labels[(unsigned int)language]);
 }
 
+/**
+ *  @brief          共有メモリを、書き込み側と読み取り側に見立てた 2 つのハンドルで開きます。
+ *  @param[in]      path 共有メモリに対応付けるファイルのパス。NULL の場合は一時ディレクトリの既定の名前を使います。
+ *  @return         成功時は @ref CPLAT_OK 、失敗時はその結果コードを返します。
+ *
+ *  2 つのハンドルは同じミューテックスを共有し、別々のプロセスの書き込み側と読み取り側を模擬します。
+ */
+static int open_share(const char *path)
+{
+    char temp_dir[PLATFORM_PATH_MAX];
+    int ret;
+
+    if (path != NULL)
+    {
+        (void)snprintf(s_share_path, sizeof(s_share_path), "%s", path);
+    }
+    else
+    {
+        ret = cplat_get_temp_dir(temp_dir, sizeof(temp_dir), NULL);
+        if (ret != CPLAT_OK)
+        {
+            return ret;
+        }
+        ret = cplat_path_join(s_share_path, sizeof(s_share_path), NULL, temp_dir, FILTER_SAMPLE_SHARE_FILE_NAME);
+        if (ret != CPLAT_OK)
+        {
+            return ret;
+        }
+    }
+
+    ret = cplat_local_lock_create(&s_share_lock);
+    if (ret == CPLAT_OK)
+    {
+        ret = sample_filter_share_open(s_share_path, s_share_lock, FILTER_SAMPLE_LINE_CAPACITY,
+                                       FILTER_SAMPLE_LINE_WIDTH, &s_writer_share);
+    }
+    if (ret == CPLAT_OK)
+    {
+        ret = sample_filter_share_open(s_share_path, s_share_lock, FILTER_SAMPLE_LINE_CAPACITY,
+                                       FILTER_SAMPLE_LINE_WIDTH, &s_reader_share);
+    }
+    return ret;
+}
+
+/** 共有メモリのハンドルとミューテックスを閉じます。開いていないものは無視します。 */
+static void close_share(void)
+{
+    sample_filter_share_close(&s_reader_share);
+    sample_filter_share_close(&s_writer_share);
+    if (s_share_lock != NULL)
+    {
+        cplat_local_lock_dispose(s_share_lock);
+        s_share_lock = NULL;
+    }
+}
+
+/**
+ *  @brief          配布の状態を表示します。
+ *
+ *  公開済みの世代と、このプロセス (読み取り側のハンドル) が取り込んだ世代を並べて表示します。
+ *  取り込みは次のトレース出力で行われるため、公開の直後は 2 つの世代が一致しません。
+ */
+static void command_status(cplat_pinned_prompt *screen)
+{
+    sample_filter_share_status status;
+    char published_at[64] = "-";
+    int ret;
+
+    ret = sample_filter_share_get_status(s_reader_share, &status);
+    if (ret != CPLAT_OK)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                   "エラー: 配布の状態を取得できませんでした (結果コード=%d)。\n", ret);
+        return;
+    }
+
+    if (status.published_generation != SAMPLE_FILTER_SHARE_GENERATION_NONE)
+    {
+        cplat_timespec timestamp;
+
+        timestamp.tv_sec = (time_t)status.published_seconds;
+        timestamp.tv_nsec = status.published_nanoseconds;
+        (void)cplat_format_realtime_iso8601_local(published_at, sizeof(published_at), &timestamp);
+    }
+
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                               "共有メモリ: %s\n"
+                               "公開済みの世代: %llu (公開した時刻: %s、プロセス: %u)\n"
+                               "取り込み済みの世代: %llu\n"
+                               "直近の取り込み: 結果コード=%d、無効にした行=%zu\n",
+                               s_share_path, (unsigned long long)status.published_generation, published_at,
+                               (unsigned int)status.publisher_process_id, (unsigned long long)status.taken_generation,
+                               status.last_take_result, status.last_take_invalid_count);
+}
+
 static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requested_out)
 {
     char *command;
@@ -1619,6 +1767,10 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
     {
         command_apply(screen);
     }
+    else if (strcmp(command, "status") == 0)
+    {
+        command_status(screen);
+    }
     else if (strcmp(command, "state") == 0)
     {
         command_state(screen);
@@ -1674,8 +1826,12 @@ int main(int argc, char *argv[])
     int result = EXIT_SUCCESS;
     int ret;
 
-    (void)argc;
-    (void)argv;
+    /* 第 1 引数で共有メモリのファイル パスを指定できる。同じパスを指定したコマンドどうしで条件を配布する */
+    if (argc > 2)
+    {
+        fprintf(stderr, "使用方法: %s [共有メモリのファイル パス]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
     cplat_console_init();
 
@@ -1727,6 +1883,21 @@ int main(int argc, char *argv[])
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
+        result = EXIT_FAILURE;
+        goto out_dispose_slot;
+    }
+
+    if (argc == 2)
+    {
+        ret = open_share(argv[1]);
+    }
+    else
+    {
+        ret = open_share(NULL);
+    }
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);
         result = EXIT_FAILURE;
         goto out_dispose_slot;
     }
@@ -1786,6 +1957,7 @@ int main(int argc, char *argv[])
     (void)sample_filter_slot_set_category_names(s_slot, &s_category_names);
     (void)sample_filter_slot_set_category_names(s_preview_slot, &s_category_names);
     (void)sample_filter_output_configure(sample_worker_trace_catalog(), slot, tracer);
+    sample_filter_output_set_share(s_reader_share);
 
     print_help(screen);
 
@@ -1853,8 +2025,10 @@ int main(int argc, char *argv[])
     dispose_worker_sync();
     (void)cplat_tracer_stop(tracer);
     (void)sample_filter_output_configure(NULL, NULL, NULL);
+    sample_filter_output_set_share(NULL);
     cplat_tracer_dispose(&tracer);
     cplat_pinned_prompt_dispose(screen);
+    close_share();
     sample_filter_slot_dispose(&s_preview_slot);
     sample_filter_slot_dispose(&slot);
     cplat_local_lock_dispose(s_output_lock);
@@ -1875,6 +2049,7 @@ out_dispose_lock:
     cplat_local_lock_dispose(s_display_lock);
     s_display_lock = NULL;
 out_dispose_slot:
+    close_share();
     sample_filter_slot_dispose(&s_preview_slot);
     sample_filter_slot_dispose(&slot);
     return result;

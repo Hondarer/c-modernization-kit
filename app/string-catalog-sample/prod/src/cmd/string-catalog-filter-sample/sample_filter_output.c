@@ -25,6 +25,16 @@ static sample_filter_slot *s_slot = NULL;
 /** 出力先のトレーサーです。 */
 static cplat_tracer *s_tracer = NULL;
 
+/** 条件式を取り込む配布ハンドルです。NULL の場合は取り込みません。 */
+static sample_filter_share *s_share = NULL;
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void sample_filter_output_set_share(sample_filter_share *share)
+{
+    s_share = share;
+}
+
 /* Doxygen コメントは、ヘッダーに記載 */
 
 int sample_filter_output_configure(const cplat_string_catalog *catalog, sample_filter_slot *slot, cplat_tracer *tracer)
@@ -57,6 +67,13 @@ int sample_filter_output_write(const int string_key, ...)
     if ((s_catalog == NULL) || (s_slot == NULL) || (s_tracer == NULL))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    /* 公開内容が変わっていれば、判定の前に取り込む。通常は世代番号の比較 1 回で戻る。
+       取り込みの失敗はトレースの出力を妨げないため、結果は配布の状態で確認する */
+    if (s_share != NULL)
+    {
+        (void)sample_filter_share_refresh(s_share, s_slot, NULL);
     }
 
     va_start(args, string_key);

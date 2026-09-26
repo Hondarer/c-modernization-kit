@@ -21,6 +21,7 @@
 #define SAMPLE_FILTER_OUTPUT_PRIVATE_H
 
 #include "sample_filter.h"
+#include "sample_filter_share.h"
 #include "sample_worker_context.h"
 
 #include <cplat/crt/path.h>
@@ -52,6 +53,20 @@ extern "C"
                                        cplat_tracer *tracer);
 
     /**
+     *  @brief          条件式を共有メモリから取り込むための配布ハンドルを設定します。
+     *  @param[in]      share 配布ハンドル。NULL の場合は共有メモリから取り込みません。
+     *                        設定したスロットと、行数の上限と行幅が一致する必要があります。
+     *
+     *  設定した場合、@ref sample_filter_output_write は出力のたびに、出力の前に
+     *  @ref sample_filter_share_refresh を呼び出します。
+     *  公開内容が変わっていれば、出力したスレッドで取り込んでから判定します。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフではありません。出力を開始する前に設定してください。
+     */
+    void sample_filter_output_set_share(sample_filter_share *share);
+
+    /**
      *  @brief          条件式で判定したうえで、トレースを出力します。
      *  @param[in]      string_key 文字列キー。
      *  @param[in]      ...        引数スキーマに従う値。文脈引数 (`{40}` から `{45}`) を含みます。
@@ -79,8 +94,8 @@ extern "C"
  *  `{40}` から `{45}` は cplat が定める文脈引数、`{46}` は app が定義するラウンド トリップ ID です。\n
  *  app が定義するコンテキスト引数を増減した場合は、`catalog_settings.jsonc` と本マクロを同じ変更で更新してください。
  */
-#define sample_filter_output(string_key, ...)                                                                \
-    sample_filter_output_write((string_key), ##__VA_ARGS__, __FILE__, cplat_path_basename(__FILE__),           \
+#define sample_filter_output(string_key, ...) \
+    sample_filter_output_write((string_key), ##__VA_ARGS__, __FILE__, cplat_path_basename(__FILE__), \
                                (int32_t)__LINE__, __func__, cplat_process_get_pid(), cplat_process_get_tid(), \
                                sample_worker_next_sequence_number())
 

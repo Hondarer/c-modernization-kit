@@ -9,6 +9,7 @@ TEST_SRCS := \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_slot.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_describe.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_output.c \
+	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_share.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_worker_trace_key_names.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_worker_context.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/gen/sample_worker_trace.c

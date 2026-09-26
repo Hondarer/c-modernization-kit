@@ -14,33 +14,19 @@
 
 #include "sample_worker_context.h"
 
-#include <cplat/base/platform.h>
+#include <cplat/sync/atomic.h>
 
 #include <stdint.h>
-#if defined(PLATFORM_WINDOWS)
-    #include <cplat/win32/win32.h>
-#endif /* PLATFORM_WINDOWS */
 
-/** 呼び出しごとに増加するカウンターです。剰余で巡回させるため、カウンター自体は折り返しません。 */
-static volatile int32_t s_sequence_number = 0;
+/** 呼び出しごとに増加するカウンターです。計数だけが目的のため、順序の保証がない軽量な加算 (RELAXED) で更新します。 */
+static cplat_atomic_u32 s_sequence_number = CPLAT_ATOMIC_INIT(0U);
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
 int32_t sample_worker_next_sequence_number(void)
 {
-    int32_t current;
+    /* 加算前の値が返るため、1 を足して加算後の値にそろえる。 */
+    const uint32_t current = cplat_atomic_fetch_add_u32(&s_sequence_number, 1U, CPLAT_MEMORY_ORDER_RELAXED) + 1U;
 
-#if defined(PLATFORM_LINUX)
-    /* 加算後の値を受け取る。
-       see: https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html */
-    current = __atomic_add_fetch(&s_sequence_number, 1, __ATOMIC_RELAXED);
-#elif defined(PLATFORM_WINDOWS)
-    /* InterlockedIncrement も加算後の値を返す。
-       see: https://learn.microsoft.com/windows/win32/api/winnt/nf-winnt-interlockedincrement */
-    current = (int32_t)InterlockedIncrement((volatile LONG *)&s_sequence_number);
-#else
-    current = ++s_sequence_number;
-#endif /* PLATFORM_ */
-
-    return (int32_t)(((uint32_t)current - 1U) % (uint32_t)SAMPLE_WORKER_SEQUENCE_NUMBER_MAX) + 1;
+    return (int32_t)((current - 1U) % (uint32_t)SAMPLE_WORKER_SEQUENCE_NUMBER_MAX) + 1;
 }
