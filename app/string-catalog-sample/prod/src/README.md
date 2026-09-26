@@ -19,3 +19,4 @@ string-catalog-sample に含まれるコマンドのソース コードです。
 
 - `string-catalog-command-sample` - カタログを同梱し、カタログの点検と全文字列の言語別出力を行うコマンド
 - `string-catalog-library-sample` - ライブラリが公開するカタログを利用し、文字列の組み立てとトレース出力を行うコマンド
+- `string-catalog-filter-sample` - トレースの条件式フィルターを試作し、条件の編集、適用、差し替えを対話的に確かめるコマンド

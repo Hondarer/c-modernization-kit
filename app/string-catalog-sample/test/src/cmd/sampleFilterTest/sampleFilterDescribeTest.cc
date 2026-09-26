@@ -1,0 +1,196 @@
+#include <testfw.h>
+
+#include "sampleFilterTestSupport.h"
+
+#include "gen/sample_worker_trace.h"
+#include "sample_worker_trace_key_names.h"
+
+#include <cplat/base/result.h>
+#include <cplat/string_catalog/string_catalog.h>
+
+#include <cstring>
+
+using namespace sample_filter_test;
+
+class sampleFilterDescribeTest : public Test
+{
+  protected:
+    void SetUp() override
+    {
+        saved_language_ = cplat_string_catalog_get_language();
+        ASSERT_EQ(CPLAT_OK,
+                  sample_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                            sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+    }
+
+    void TearDown() override
+    {
+        sample_filter_slot_dispose(&slot_);
+        (void)cplat_string_catalog_set_language(saved_language_);
+    }
+
+    /** 1 行の条件式を適用し、その行の説明文を得ます。 */
+    int describe(const char *expression, const cplat_string_catalog_language language)
+    {
+        static unsigned char image[kImageSize];
+
+        if (compile_single_line(expression, image) != CPLAT_OK)
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
+        if (sample_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr) != CPLAT_OK)
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
+        (void)cplat_string_catalog_set_language(language);
+        return sample_filter_slot_describe_line(slot_, 0U, description_, sizeof(description_));
+    }
+
+    sample_filter_slot *slot_ = nullptr;
+    cplat_string_catalog_language saved_language_ = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
+    int pad_ = 0; /**< 明示的アラインメントです。 */
+    char description_[1024] = {0};
+};
+
+// 文字列キーの一致が、項目の brief と ID で表されることの確認
+TEST_F(sampleFilterDescribeTest, key_equal_is_described_with_brief_and_id)
+{
+    // Arrange
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret = describe("key == SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS",
+                          CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 文字列キーの一致を日本語で説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("「ジョブの進捗」(SAMPLE_WORKER_TRACE_ID_0003)",
+                 description_); // [確認_正常系] - brief の句点を除き、ID を添えた表現になること。
+}
+
+// 行が 1 つの項目に限定される場合、その項目の引数の説明が使われることの確認
+TEST_F(sampleFilterDescribeTest, single_entry_line_uses_argument_description)
+{
+    // Arrange
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret =
+        describe("arg.buffer == null",
+                 CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - BUFFER_ALLOCATED だけが持つ引数の条件を説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("引数 buffer (確保したバッファーのアドレス。確保に失敗した場合は NULL です) が NULL である",
+                 description_); // [確認_正常系] - 引数の説明と null の文型で表されること。
+}
+
+// 複数の項目が対象でも、説明が一致する引数は説明付きで表されることの確認
+TEST_F(sampleFilterDescribeTest, shared_argument_description_is_used_for_multiple_entries)
+{
+    // Arrange
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret = describe(
+        "arg[46] between 90 and 99",
+        CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 全項目が持つ app 定義のコンテキスト引数を説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("引数 {46} sequence_number (出力ごとに 1 から順に増加し、上限に達すると 1 へ戻るラウンド トリップ ID) "
+                 "が 90 以上 99 以下",
+                 description_); // [確認_正常系] - インデックス、共通の名前、共通の説明で表されること。
+}
+
+// 否定と、論理積の中の論理和に括弧が付くことの確認
+TEST_F(sampleFilterDescribeTest, not_and_nested_or_are_parenthesized)
+{
+    // Arrange
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret =
+        describe("!(category <= 2) && (key == 99 || id ends_with \"0002\")",
+                 CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 否定と、括弧で囲んだ論理和を含む条件を説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("(分類値が 2 以下) ではない かつ (文字列キー 99、または ID が \"0002\" で終わる)",
+                 description_); // [確認_正常系] - 否定の文型と、優先順位を保つ括弧で表されること。
+}
+
+// 日本語以外の出力言語では、ニュートラル言語の文型が使われることの確認
+TEST_F(sampleFilterDescribeTest, neutral_language_uses_neutral_phrases)
+{
+    // Arrange
+    int actual_ret_neutral;
+    char actual_neutral[1024];
+    int actual_ret_english;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret_neutral = describe("category <= 2 || arg.job_name contains_i \"exp\"",
+                                  CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL); // [手順] - ニュートラル言語で説明する。
+    std::strcpy(actual_neutral, description_);
+    actual_ret_english = describe("category <= 2 || arg.job_name contains_i \"exp\"",
+                                  CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH); // [手順] - 英語で説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret_neutral); // [確認_正常系] - ニュートラル言語で説明文を得られること。
+    EXPECT_STREQ("the category is less than or equal to 2 or argument job_name (ジョブの名前) contains \"exp\" "
+                 "(case-insensitive)",
+                 actual_neutral);               // [確認_正常系] - ニュートラル言語の文型で表されること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_english);    // [確認_正常系] - 英語で説明文を得られること。
+    EXPECT_STREQ(actual_neutral, description_); // [確認_正常系] - 英語はニュートラル言語の文型を使うこと。
+}
+
+// 名前を解決できずに無効とした行は、説明文を作らないことの確認
+TEST_F(sampleFilterDescribeTest, disabled_line_is_not_described)
+{
+    // Arrange
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret = describe("key == NO_SUCH_KEY",
+                          CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 未解決のキー名を含む行を説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret); // [確認_異常系] - 無効な行として扱われること。
+    EXPECT_STREQ("", description_);                        // [確認_異常系] - 出力先が空文字列であること。
+}
+
+// 出力先が小さい場合は、切り詰めて NUL 終端することの確認
+TEST_F(sampleFilterDescribeTest, small_buffer_is_truncated)
+{
+    // Arrange
+    static unsigned char image[kImageSize];
+    char actual_text[8];
+    int actual_ret;
+
+    ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK,
+              sample_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr)); // [状態] - 適用する。
+    (void)cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
+
+    // Pre-Assert
+
+    // Act
+    actual_ret = sample_filter_slot_describe_line(slot_, 0U, actual_text,
+                                                  sizeof(actual_text)); // [手順] - 8 バイトの出力先で説明する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_BUFFER_TOO_SMALL, actual_ret); // [確認_異常系] - 切り詰めを報告すること。
+    EXPECT_STREQ("the cat", actual_text);              // [確認_異常系] - 7 バイトで切り詰め、NUL 終端すること。
+}

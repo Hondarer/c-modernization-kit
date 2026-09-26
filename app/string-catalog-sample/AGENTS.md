@@ -7,7 +7,8 @@
 
 カタログの持ち方を 2 つの形で示します。  
 `prod/src/cmd/string-catalog-command-sample/` はカタログをコマンドが同梱し、`prod/libsrc/samplecatalog/` はカタログをライブラリが外部へ公開します。  
-公開したカタログの利用側が `prod/src/cmd/string-catalog-library-sample/` です。
+公開したカタログの利用側が `prod/src/cmd/string-catalog-library-sample/` です。  
+`prod/src/cmd/string-catalog-filter-sample/` は、cplat の条件式フィルターを組み込む前の試作です。
 
 `app/c-platform` の `cplat_string_catalog_*`、`cplat_trace_level`、`cplat_console_init/dispose` を利用します。  
 文字列カタログの実装、生成器、機能仕様は `app/c-platform` にあり、この app には含みません。
@@ -16,6 +17,7 @@
 
 - 対象の目的と構成を確認する場合は [README.md](README.md)
 - 利用側の設計 (定義から生成物、生成物から呼び出し) を変更する場合は [アーキテクチャー](docs/architecture.md) の該当節
+- 条件式フィルターの試作を変更する場合は [トレースの条件式フィルターの PoC](docs/trace-filter-poc.md)。設計資料との差分と進捗を同じ変更で更新してください
 - 文字列カタログの要件と外部から観測できる振る舞いは [文字列カタログ 機能仕様](../c-platform/docs/functional-spec/string_catalog.md)
 - 文字列カタログの責務境界と変更時の制約は [string_catalog モジュール](../c-platform/prod/libsrc/cplat/string_catalog/README.md)
 - C の規範は [コーディング規範](../general/docs/coding-guideline.md)
@@ -24,12 +26,12 @@
 ## 変更時の制約
 
 - 生成物は Git では管理しません。ビルドが cplat の `bin/string_catalog_gen.py` を駆動するため、手動で実行する必要はありません。変更するのはカタログ定義ファイルです。
-    - コマンドが同梱するカタログの生成物は `prod/src/cmd/string-catalog-command-sample/gen/` へ配置します。
+    - コマンドが同梱するカタログの生成物は、そのコマンドの `gen/` (`prod/src/cmd/string-catalog-command-sample/gen/` と `prod/src/cmd/string-catalog-filter-sample/gen/`) へ配置します。
     - ライブラリが公開するカタログの生成物は、ヘッダーを `prod/include/samplecatalog/` へ、ソースを `prod/libsrc/samplecatalog/gen/` へ配置します。公開ヘッダーは、配置先の `prod/include/samplecatalog/.gitignore` で個別に指定します。`app/lua` や `app/cjson` が展開した公開ヘッダーを扱う形式と同様であり、app 直下の `.gitignore` は共通の内容を維持します。
 - 生成は app 直下の `makepart.mk` が makefile のパース時に行います。ビルド規則に含めないでください。テストのディレクトリを解釈する時点で生成物が必要になるためです。
 - 生成器そのものを変更する場合は `app/c-platform` 側で実施し、その単体テストを実行してください。
 - 生成ヘッダーは `#include "gen/sample_messages.h"` の形式で取り込みます。テストからインクルードする場合は `INCDIR` へ `gen` を追加してください。
-- `sample_messages.jsonc`、`sample_metrics.jsonc`、`sample_trace.jsonc`、`samplecatalog_messages.jsonc`、`samplecatalog_trace.jsonc` がカタログ定義の正本です。1 つの定義ファイルが 1 つのカタログに対応し、1 つのカタログが 1 つの種別を持ちます。形式は JSONC であり、行コメント、ブロック コメント、末尾コンマ、長文向けの文字列配列を記述できます。
+- `sample_messages.jsonc`、`sample_metrics.jsonc`、`sample_trace.jsonc`、`sample_worker_trace.jsonc`、`samplecatalog_messages.jsonc`、`samplecatalog_trace.jsonc` がカタログ定義の正本です。1 つの定義ファイルが 1 つのカタログに対応し、1 つのカタログが 1 つの種別を持ちます。形式は JSONC であり、行コメント、ブロック コメント、末尾コンマ、長文向けの文字列配列を記述できます。
 - 利用者側の識別子は `sample_` で始めます。cplat 側の `cplat_string_catalog_` と名前空間を分離し、どちらの資産かを識別子のみで判別できるようにするためです。型付きラッパーの関数名も利用側の名前空間とし、`cplat_` を前置しません。
 - ライブラリ側の識別子は `samplecatalog_` で始めます。ライブラリが外部へ公開する資産であり、コマンドが同梱する資産と取り違えないようにするためです。
 - カタログ定義には、著者、日付、版、文字列の一覧のみを記述します。導出可能な名称や、cplat が定める仕様を含めないでください。

@@ -1,0 +1,95 @@
+/**
+ *******************************************************************************
+ *  @file           sampleFilterTestSupport.h
+ *  @brief          sampleFilterTest 配下の各テスト ファイルが共有するヘルパーを宣言します。
+ *
+ *  条件式リストは `char lines[N][M]` の形式で受け渡すため、行の作成を毎回書き下すと
+ *  テストの本質が読み取りにくくなります。本ヘッダーは、行の作成とコンパイルの呼び出しだけを
+ *  まとめ、期待値の検証はテスト本体に残します。
+ *
+ *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
+ *******************************************************************************
+ */
+
+#ifndef SAMPLE_FILTER_TEST_SUPPORT_H
+#define SAMPLE_FILTER_TEST_SUPPORT_H
+
+/* テスト対象が使用する標準ライブラリ関数の mock。Windows で実装オブジェクトを取り込むため、ヘッダーを取り込む */
+#include <mock_stdio.h>
+#include <mock_stdlib.h>
+#include <mock_string.h>
+#include "sample_filter.h"
+#include "sample_filter_image.h"
+#include "sample_worker_context.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+
+/**
+ *  @brief          生成器が付与する文脈引数 (`{40}` から `{45}`) の 6 個と、
+ *                  app が定義するコンテキスト引数 (`{46}` の sequence_number) の 1 個、
+ *                  合わせて 7 個を、型どおりの可変長引数として展開します。
+ *  @param[in]      seq `{46}` (sequence_number) に渡す値。
+ *
+ *  利用者引数に続けて渡す前提です (source_file_path, source_file_name, source_line, function_name,
+ *  process_id, thread_id, sequence_number の順)。
+ *
+ *  sequence_number は @ref sample_worker_next_sequence_number の巡回カウンターと結び付いていないため、
+ *  この値をテストの期待値検証に使う場合は、呼び出し側が同じ @p seq を検証にも使用してください。
+ *  値そのものに関心がないテストでは、固定値 (例: 7) を渡してください。
+ */
+#define SAMPLE_FILTER_TEST_CONTEXT_ARGS(seq) \
+    "f.c", "f.c", (int32_t)10, "fn", (uint32_t)1, (uint32_t)2, (int32_t)(seq)
+
+namespace sample_filter_test
+{
+    /** テストで共通して使用する行幅です。実在するどの条件式の例より十分に広く取ります。 */
+    constexpr std::size_t kLineWidth = 160U;
+
+    /** テストで共通して使用する行数の上限です。 */
+    constexpr std::size_t kLineCapacity = 8U;
+
+    /** kLineWidth と kLineCapacity から求まるフィルター オブジェクトのバイト数です。 */
+    constexpr std::size_t kImageSize = SAMPLE_FILTER_IMAGE_SIZE(kLineCapacity, kLineWidth);
+
+    /** compile_lines に渡せる行数の上限です (テストの入力配列のバッファー サイズ)。 */
+    constexpr std::size_t kMaxTestLines = 16U;
+
+    /**
+     *  @brief          条件式の配列を、既定の行幅で `char[count][line_width]` へ並べてコンパイルします。
+     *
+     *  @p texts の各要素は NUL 終端の条件式 (または空行、コメント行) です。
+     */
+    inline int compile_lines(const char *const *texts, std::size_t count, void *image,
+                              std::size_t image_size = kImageSize, std::size_t line_width = kLineWidth,
+                              std::size_t line_capacity = kLineCapacity,
+                              sample_filter_diagnostic *diagnostics = nullptr, std::size_t diagnostic_capacity = 0U,
+                              std::size_t *invalid_count_out = nullptr)
+    {
+        char rows[kMaxTestLines][kLineWidth];
+        std::size_t local_invalid_count = 0U;
+
+        std::memset(rows, 0, sizeof(rows));
+        for (std::size_t index = 0; index < count; index++)
+        {
+            std::strncpy(rows[index], texts[index], line_width - 1U);
+        }
+
+        return sample_filter_compile(&rows[0][0], count, line_width, line_capacity, image, image_size, diagnostics,
+                                     diagnostic_capacity,
+                                     (invalid_count_out != nullptr) ? invalid_count_out : &local_invalid_count);
+    }
+
+    /** 条件式 1 個だけを既定の行幅・行数上限でコンパイルします。 */
+    inline int compile_single_line(const char *text, void *image, std::size_t image_size = kImageSize,
+                                    std::size_t line_width = kLineWidth, std::size_t line_capacity = kLineCapacity,
+                                    sample_filter_diagnostic *diagnostics = nullptr,
+                                    std::size_t diagnostic_capacity = 0U, std::size_t *invalid_count_out = nullptr)
+    {
+        return compile_lines(&text, 1U, image, image_size, line_width, line_capacity, diagnostics,
+                             diagnostic_capacity, invalid_count_out);
+    }
+} // namespace sample_filter_test
+
+#endif /* SAMPLE_FILTER_TEST_SUPPORT_H */

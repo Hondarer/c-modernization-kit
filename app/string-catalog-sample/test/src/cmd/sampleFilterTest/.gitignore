@@ -1,0 +1,8 @@
+/sample_filter_compile.c
+/sample_filter_describe.c
+/sample_filter_image.c
+/sample_filter_output.c
+/sample_filter_slot.c
+/sample_worker_context.c
+/sample_worker_trace.c
+/sample_worker_trace_key_names.c

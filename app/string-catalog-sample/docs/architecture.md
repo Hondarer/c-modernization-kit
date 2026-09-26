@@ -7,7 +7,8 @@
 
 文字列カタログ自体の要件と外部から観測できる振る舞いは [文字列カタログ 機能仕様](../../c-platform/docs/functional-spec/string_catalog.md) を正本とします。  
 書式の構文、引数種別、責務の境界、実装の構成は [string_catalog モジュール](../../c-platform/prod/libsrc/cplat/string_catalog/README.md) にあります。  
-公開 API の契約は cplat の公開ヘッダーの Doxygen コメントを正本とし、この文書には複製しません。
+公開 API の契約は cplat の公開ヘッダーの Doxygen コメントを正本とし、この文書には複製しません。  
+なお、トレースの条件式フィルター試作 (`string-catalog-filter-sample`) の構成と設計判断は [トレースの条件式フィルターの PoC](trace-filter-poc.md) を参照してください。
 
 ## 利用側が用意するもの
 

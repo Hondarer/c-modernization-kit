@@ -22,11 +22,13 @@ string-catalog-sample は、cplat の文字列カタログ機能の利用例を�
 |---|---|---|
 | `string-catalog-command-sample` | コマンド自身に同梱 | 同一コマンド内の生成ヘッダーをインクルード |
 | `string-catalog-library-sample` | ライブラリ `samplecatalog` が公開 | ライブラリの公開ヘッダーをインクルード |
+| `string-catalog-filter-sample` | コマンド自身に同梱 | 同一コマンド内の生成ヘッダーをインクルード。条件式フィルターの試作 |
 
 ## 入口
 
 - [作業規則](AGENTS.md)
 - [アーキテクチャー](docs/architecture.md)
+- [トレースの条件式フィルターの PoC](docs/trace-filter-poc.md)
 - [発行文書](docs/README.md)
 - [Doxygen の入口](prod/README.md)
 - [文字列カタログの機能仕様 (cplat)](../c-platform/docs/functional-spec/string_catalog.md)
@@ -40,6 +42,7 @@ string-catalog-sample は、cplat の文字列カタログ機能の利用例を�
 | `prod/libsrc/samplecatalog/` | ライブラリの実装と、外部へ公開するカタログ定義 |
 | `prod/src/cmd/string-catalog-command-sample/` | カタログを同梱するコマンドと、そのカタログ定義 |
 | `prod/src/cmd/string-catalog-library-sample/` | ライブラリが公開するカタログを利用するコマンド |
+| `prod/src/cmd/string-catalog-filter-sample/` | トレースの条件式フィルターの試作と、それを対話的に確かめるコマンド |
 | `test/src/cmd/` | 生成物を対象とする単体テスト |
 | `test/src/libsamplecatalog/` | ライブラリの公開シンボルを対象とするテスト |
 | `test/src/integration/` | 生成物と cplat の文字列カタログ機能を結合して確認する統合テスト |

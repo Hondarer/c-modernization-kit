@@ -1,6 +1,7 @@
 # カタログ定義から生成物を書き出す。
 #
-# コマンド同梱のカタログは prod/src/cmd/string-catalog-command-sample/gen/ へ、
+# コマンド同梱のカタログは prod/src/cmd/string-catalog-command-sample/gen/ と
+# prod/src/cmd/string-catalog-filter-sample/gen/ へ、
 # ライブラリが公開するカタログはヘッダーを prod/include/samplecatalog/、
 # ソースを prod/libsrc/samplecatalog/gen/ へ置く。いずれも Git では管理しない。
 # コマンドとテストの双方が生成物を参照し、framework はソースの実在を makefile の
@@ -18,6 +19,14 @@ ifndef MAKEFW_SYNC_EVAL
     $(foreach _catalog,sample_messages sample_metrics sample_trace, \
         $(eval _STATUS := $(shell $(_CATALOG_GEN) "$(_COMMAND_DIR)/$(_catalog).jsonc" \
             --out-dir "$(_COMMAND_DIR)/gen" --if-newer >&2; echo $$?)) \
+        $(if $(filter-out 0,$(_STATUS)), \
+            $(error カタログ定義からの生成に失敗しました。上記のメッセージを確認してください)))
+
+    # 条件式フィルターの試作コマンドが同梱するカタログ。
+    _FILTER_COMMAND_DIR := $(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample
+    $(foreach _catalog,sample_worker_trace, \
+        $(eval _STATUS := $(shell $(_CATALOG_GEN) "$(_FILTER_COMMAND_DIR)/$(_catalog).jsonc" \
+            --out-dir "$(_FILTER_COMMAND_DIR)/gen" --if-newer >&2; echo $$?)) \
         $(if $(filter-out 0,$(_STATUS)), \
             $(error カタログ定義からの生成に失敗しました。上記のメッセージを確認してください)))
 
