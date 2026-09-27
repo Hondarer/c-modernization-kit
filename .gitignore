@@ -54,6 +54,9 @@ make_build.stamp
 make_test.stamp
 make_doxy.stamp
 
+## 保証済みサブモジュールの clean / test スキップ用スタンプ
+*.assured.stamp
+
 ## leaf テスト ディレクトリ単位の再テスト スキップ用スタンプ
 test.stamp
 
