@@ -190,7 +190,7 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
     }
 
     memcpy(share->image_area, image, share->image_size);
-    cplat_get_realtime(&now);
+    cplat_clock_get_realtime(&now);
     header->published_seconds = (int64_t)now.tv_sec;
     header->published_nanoseconds = now.tv_nsec;
     header->publisher_process_id = cplat_process_get_pid();

@@ -31,31 +31,31 @@ void onLoad(void)
     char leafname[CPLAT_SYM_LOADER_NAME_MAX + sizeof("_extdef.jsonc")] = {0};
     cplat_error error;
 
-    DLLMAIN_CPLAT_INFO_MSG("base: onLoad called");
+    CPLAT_DLLMAIN_INFO_MSG("base: onLoad called");
 
     if (cplat_module_get_basename(basename, sizeof(basename), (const void *)onLoad) == CPLAT_OK)
     {
         if (cplat_path_concat(leafname, sizeof(leafname), &error, basename, "_extdef.jsonc") != CPLAT_OK)
         {
             sym_loader_configpath[0] = '\0';
-            DLLMAIN_CPLAT_INFO_MSG("base: config path too long; override disabled");
+            CPLAT_DLLMAIN_INFO_MSG("base: config path too long; override disabled");
         }
         else
         {
             char tmpdir[PLATFORM_PATH_MAX];
-            if (cplat_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
+            if (cplat_path_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
             {
                 if (cplat_path_concat(sym_loader_configpath, sizeof(sym_loader_configpath), &error, tmpdir,
                                          PLATFORM_PATH_SEP, leafname) != CPLAT_OK)
                 {
                     sym_loader_configpath[0] = '\0';
-                    DLLMAIN_CPLAT_INFO_MSG("base: config path too long; override disabled");
+                    CPLAT_DLLMAIN_INFO_MSG("base: config path too long; override disabled");
                 }
             }
             else if (cplat_error_is(&error, CPLAT_CAUSE_NAME_TOO_LONG) != 0)
             {
                 sym_loader_configpath[0] = '\0';
-                DLLMAIN_CPLAT_INFO_MSG("base: config path too long; override disabled");
+                CPLAT_DLLMAIN_INFO_MSG("base: config path too long; override disabled");
             }
         }
     }
@@ -70,6 +70,6 @@ void onLoad(void)
 void onUnload(int process_terminating)
 {
     (void)process_terminating;
-    DLLMAIN_CPLAT_INFO_MSG("base: onUnload called");
+    CPLAT_DLLMAIN_INFO_MSG("base: onUnload called");
     cplat_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase);
 }

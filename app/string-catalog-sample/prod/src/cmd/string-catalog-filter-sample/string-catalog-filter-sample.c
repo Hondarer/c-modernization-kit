@@ -1633,7 +1633,7 @@ static int open_share(const char *path)
     }
     else
     {
-        ret = cplat_get_temp_dir(temp_dir, sizeof(temp_dir), NULL);
+        ret = cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), NULL);
         if (ret != CPLAT_OK)
         {
             return ret;
@@ -1693,7 +1693,7 @@ static void command_status(cplat_pinned_prompt *screen)
 
         timestamp.tv_sec = (time_t)status.published_seconds;
         timestamp.tv_nsec = status.published_nanoseconds;
-        (void)cplat_format_realtime_iso8601_local(published_at, sizeof(published_at), &timestamp);
+        (void)cplat_clock_format_realtime_iso8601_local(published_at, sizeof(published_at), &timestamp);
     }
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,

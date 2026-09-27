@@ -29,7 +29,7 @@ class sampleFilterShareTest : public Test
         char temp_dir[PLATFORM_PATH_MAX];
         const TestInfo *info = UnitTest::GetInstance()->current_test_info();
 
-        ASSERT_EQ(CPLAT_OK, cplat_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr));
+        ASSERT_EQ(CPLAT_OK, cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr));
         path_ = std::string(temp_dir) + "/sampleFilterShareTest_" + std::to_string(cplat_process_get_pid()) + "_" +
                 info->name() + ".share";
         (void)std::remove(path_.c_str());

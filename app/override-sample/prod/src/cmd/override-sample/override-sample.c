@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     {
         cplat_error error;
         char tmpdir[PLATFORM_PATH_MAX];
-        if (cplat_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
+        if (cplat_path_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
         {
             if (cplat_path_concat(configpath, sizeof(configpath), &error, tmpdir, PLATFORM_PATH_SEP,
                                      "libbase_extdef.jsonc") != CPLAT_OK)
