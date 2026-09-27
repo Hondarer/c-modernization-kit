@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         if (cplat_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
         {
             if (cplat_path_concat(configpath, sizeof(configpath), &error, tmpdir, PLATFORM_PATH_SEP,
-                                     "libbase_extdef.json") != CPLAT_OK)
+                                     "libbase_extdef.jsonc") != CPLAT_OK)
             {
                 fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
                 return EXIT_FAILURE;

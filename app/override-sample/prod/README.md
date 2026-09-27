@@ -42,7 +42,7 @@ app/override-sample/prod/
 |   +-- override-sample/
 |       +-- override-sample.c  # メイン プログラム
 +-- sample-config/
-|   +-- libbase_extdef.json    # 設定ファイルのサンプル
+|   +-- libbase_extdef.jsonc    # 設定ファイルのサンプル
 +-- lib/                       # ビルド済みライブラリ (libbase.so / liboverride.so / libbase.dll / liboverride.dll)
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
@@ -93,21 +93,21 @@ int WINAPI override_func(const int a, const int b, int *result);
 
 | プラットフォーム | 設定ファイル パス |
 |---|---|
-| Linux | `/tmp/libbase_extdef.json` |
-| Windows | `%TEMP%\libbase_extdef.json` |
+| Linux | `/tmp/libbase_extdef.jsonc` |
+| Windows | `%TEMP%\libbase_extdef.jsonc` |
 
 Table: プラットフォーム別の設定ファイル パス
 
-ファイルが存在しない場合は既定の動作になります。ファイルのフォーマットは次のとおりです。  
-`//` 行コメントと C 形式のブロック コメントを利用できます。
+ファイルが存在しない場合は既定の動作になります。設定ファイルは JSONC 形式です。  
+`//` 行コメント、C 形式のブロック コメント、末尾カンマを利用できます。
 
-```json
+```jsonc
 // コメント例
 {
   "func_key": {
     "lib": "lib_name",
-    "func": "func_name"
-  }
+    "func": "func_name",
+  },
 }
 ```
 
@@ -118,16 +118,16 @@ Table: プラットフォーム別の設定ファイル パス
 
 Table: 設定ファイルの lib/func 値に応じた動作
 
-`sample-config/libbase_extdef.json` に設定ファイルのサンプルがあります。初期状態では明示的な既定指定 (`"lib": "default"`, `"func": "default"`) が設定されており、オーバーライドする定義はコメント アウトされています。
+`sample-config/libbase_extdef.jsonc` に設定ファイルのサンプルがあります。初期状態では明示的な既定指定 (`"lib": "default"`, `"func": "default"`) が設定されており、オーバーライドする定義はコメント アウトされています。
 
 `sample_func` をオーバーライドする場合は次のように記述します。
 
-```json
+```jsonc
 {
   "sample_func": {
     "lib": "liboverride",
-    "func": "override_func"
-  }
+    "func": "override_func",
+  },
 }
 ```
 
@@ -197,10 +197,10 @@ result: 3
 
 #### オーバーライド動作 (設定ファイルあり)
 
-`sample-config/libbase_extdef.json` をコピーして編集するか、次のように直接書き込みます。
+`sample-config/libbase_extdef.jsonc` をコピーして編集するか、次のように直接書き込みます。
 
 ```bash
-printf '%s\n' '{"sample_func":{"lib":"liboverride","func":"override_func"}}' > /tmp/libbase_extdef.json
+printf '%s\n' '{"sample_func":{"lib":"liboverride","func":"override_func"}}' > /tmp/libbase_extdef.jsonc
 cd app/override-sample/prod/cbin
 LD_LIBRARY_PATH=../lib ./override-sample
 ```
@@ -225,10 +225,10 @@ override-sample.exe
 
 #### オーバーライド動作 (設定ファイルあり)
 
-`sample-config\libbase_extdef.json` をコピーして編集するか、次のように直接書き込みます。
+`sample-config\libbase_extdef.jsonc` をコピーして編集するか、次のように直接書き込みます。
 
 ```cmd
-echo {"sample_func":{"lib":"liboverride","func":"override_func"}} > %TEMP%\libbase_extdef.json
+echo {"sample_func":{"lib":"liboverride","func":"override_func"}} > %TEMP%\libbase_extdef.jsonc
 cd prod\override-sample\bin
 set PATH=%PATH%;..\lib
 override-sample.exe

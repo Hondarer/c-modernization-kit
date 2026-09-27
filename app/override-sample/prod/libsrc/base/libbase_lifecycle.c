@@ -28,14 +28,14 @@
 void onLoad(void)
 {
     char basename[CPLAT_SYM_LOADER_NAME_MAX] = {0};
-    char leafname[CPLAT_SYM_LOADER_NAME_MAX + sizeof("_extdef.json")] = {0};
+    char leafname[CPLAT_SYM_LOADER_NAME_MAX + sizeof("_extdef.jsonc")] = {0};
     cplat_error error;
 
     DLLMAIN_CPLAT_INFO_MSG("base: onLoad called");
 
     if (cplat_module_get_basename(basename, sizeof(basename), (const void *)onLoad) == CPLAT_OK)
     {
-        if (cplat_path_concat(leafname, sizeof(leafname), &error, basename, "_extdef.json") != CPLAT_OK)
+        if (cplat_path_concat(leafname, sizeof(leafname), &error, basename, "_extdef.jsonc") != CPLAT_OK)
         {
             sym_loader_configpath[0] = '\0';
             DLLMAIN_CPLAT_INFO_MSG("base: config path too long; override disabled");

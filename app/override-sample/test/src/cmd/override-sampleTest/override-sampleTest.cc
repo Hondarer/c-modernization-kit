@@ -33,7 +33,7 @@ class override_sampleTest : public Test
         lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/c-platform/prod/lib" +
                    ":" + workspace_root + "/app/cjson/prod/lib" + ":" + workspace_root + "/app/zlib/prod/lib";
         mock_lib_path = workspace_root + "/framework/testfw/lib/" TOSTRING(TARGET_ARCH) "/libmock_syslog.so";
-        config_path = "/tmp/libbase_extdef.json";
+        config_path = "/tmp/libbase_extdef.jsonc";
 #elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\app\\override-sample\\prod\\cbin\\override-sample.exe";
         lib_path = workspace_root + "\\app\\override-sample\\prod\\lib" + ";" + workspace_root +
@@ -47,7 +47,7 @@ class override_sampleTest : public Test
             {
                 WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
             }
-            config_path = string(tmpu8) + "libbase_extdef.json";
+            config_path = string(tmpu8) + "libbase_extdef.jsonc";
         }
 #endif /* PLATFORM_ */
         resetTraceLevel();
@@ -149,7 +149,7 @@ TEST_F(override_sampleTest, check_stdout_with_config)
 {
     // Arrange
     createConfigFile(
-        "{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\n"); // [状態] - 定義ファイルを作成して差し替え実装を設定する。
+        "// 差し替え設定\n{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\",},}\n"); // [状態] - コメントと末尾カンマを含む定義ファイルを作成する。
     ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
 
     // Pre-Assert

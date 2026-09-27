@@ -51,14 +51,14 @@ Table: 関数差し替え機構の用語定義と具体例
 
 Table: 差し替え対象別の命名形式と例
 
-設定ファイルの記述例は次のとおりです。
+設定ファイル (JSONC 形式) の記述例は次のとおりです。行コメント、C 形式のブロック コメント、末尾カンマを利用できます。
 
-```json
+```jsonc
 {
   "base_calc": {
     "lib": "liboverride",
-    "func": "override_calc"
-  }
+    "func": "override_calc",
+  },
 }
 ```
 
