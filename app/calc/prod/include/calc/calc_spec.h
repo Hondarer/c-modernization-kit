@@ -57,6 +57,9 @@ extern "C"
      *
      *  Table: サポートする演算種別
      *
+     *  @note           オーバーフローが発生する可能性がある場合は、
+     *                  呼び出し側で範囲チェックを行ってください。
+     *
      *  @par            使用例
         @code{.c}
         int result;
@@ -67,8 +70,7 @@ extern "C"
         @endcode
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     CALC_EXPORT extern int CALC_API calc_handler(int kind, int a, int b, int *result);
 

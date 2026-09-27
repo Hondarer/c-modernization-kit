@@ -34,7 +34,7 @@ extern "C"
  *  構造体が 1 個も無いヘッダーは @c CPLAT_ERR_NOT_FOUND とします。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。解析の状態はすべて呼び出しごとに確保します。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_parse_header_file(const char *path, struct_meta_internal_parse_struct_list **structs_out,
                                            struct_meta_diagnostic *diagnostic_out);
@@ -49,7 +49,7 @@ int struct_meta_internal_parse_header_file(const char *path, struct_meta_interna
  *                  @c CPLAT_ERR_OUT_OF_MEMORY 、または @c CPLAT_ERR_INVALID_PATTERN を返します。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。解析の状態はすべて呼び出しごとに確保します。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_parse_header_text(const char *text, size_t length,
                                            struct_meta_internal_parse_struct_list **structs_out,

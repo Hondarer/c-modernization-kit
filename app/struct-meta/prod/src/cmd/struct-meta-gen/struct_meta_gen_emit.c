@@ -427,7 +427,7 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, " *  @return         型の数です。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  @par            スレッド セーフ\n");
-    fprintf(out, " *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n");
+    fprintf(out, " *  本関数はスレッド セーフです。\n");
     fprintf(out, " */\n");
     fprintf(out, "size_t %s_meta_count(void);\n\n", stem);
 
@@ -437,7 +437,7 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, " *  @return         記述子です。範囲外の ID では NULL を返します。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  @par            スレッド セーフ\n");
-    fprintf(out, " *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n");
+    fprintf(out, " *  本関数はスレッド セーフです。\n");
     fprintf(out, " */\n");
     fprintf(out, "const struct_meta_descriptor *%s_meta_get(%s_meta_id id);\n\n", stem, stem);
 
@@ -454,7 +454,7 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, " *                  検索を続けても記述子を返せないためです。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  @par            スレッド セーフ\n");
-    fprintf(out, " *  本関数はスレッド セーフです。初回の接続は 1 回だけ実行されます。\n");
+    fprintf(out, " *  本関数はスレッド セーフです。\n");
     fprintf(out, " */\n");
     fprintf(out, "const struct_meta_descriptor *%s_meta_find(const char *name);\n\n", stem);
 
@@ -466,7 +466,7 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, " *  このカタログは静的領域を指すため、破棄してはなりません。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  @par            スレッド セーフ\n");
-    fprintf(out, " *  本関数はスレッド セーフです。初回の接続は 1 回だけ実行されます。\n");
+    fprintf(out, " *  本関数はスレッド セーフです。\n");
     fprintf(out, " */\n");
     fprintf(out, "const struct_meta_catalog *%s_meta_catalog(void);\n\n", stem);
     fprintf(out, "#ifdef __cplusplus\n");

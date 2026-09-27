@@ -30,8 +30,9 @@ extern "C"
  *  切り詰めを別のエラーとして扱う必要はありません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n
- *  同じ @p diagnostic を複数のスレッドから同時に渡してはなりません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なる診断情報に対する呼び出しは同時に実行できます。\n
+ *  同一診断情報に対する操作は、呼び出し側で同期してください。
  */
 void struct_meta_internal_diagnose(struct_meta_diagnostic *diagnostic, int line, const char *format, ...);
 
@@ -40,7 +41,7 @@ void struct_meta_internal_diagnose(struct_meta_diagnostic *diagnostic, int line,
  *  @param[out]     diagnostic  初期化する診断。NULL を渡せます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 void struct_meta_internal_diagnostic_clear(struct_meta_diagnostic *diagnostic);
 

@@ -113,7 +113,9 @@ const struct_meta_internal_parse_struct *struct_meta_internal_parse_struct_list_
  *  構文解析が途中で失敗した場合も、ここまでに作った要素を解放できます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるリストに対する呼び出しは同時に実行できます。\n
+ *  同一リストに対する操作は、呼び出し側で直列化してください。
  */
 void struct_meta_internal_parse_struct_list_destroy(struct_meta_internal_parse_struct_list *list);
 
@@ -122,7 +124,9 @@ void struct_meta_internal_parse_struct_list_destroy(struct_meta_internal_parse_s
  *  @param[in,out]  attributes  解放するリスト。NULL を渡せます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるリストに対する呼び出しは同時に実行できます。\n
+ *  同一リストに対する操作は、呼び出し側で直列化してください。
  */
 void struct_meta_internal_parse_attribute_list_destroy(struct_meta_internal_parse_attribute *attributes);
 
@@ -131,7 +135,9 @@ void struct_meta_internal_parse_attribute_list_destroy(struct_meta_internal_pars
  *  @param[in,out]  fields  解放する先頭要素。NULL を渡せます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるフィールドに対する呼び出しは同時に実行できます。\n
+ *  同一フィールドに対する操作は、呼び出し側で直列化してください。
  */
 void struct_meta_internal_parse_field_destroy(struct_meta_internal_parse_field *fields);
 
@@ -140,7 +146,9 @@ void struct_meta_internal_parse_field_destroy(struct_meta_internal_parse_field *
  *  @param[in,out]  list  解放するハンドル。NULL を渡せます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるリストに対する呼び出しは同時に実行できます。\n
+ *  同一リストに対する操作は、呼び出し側で直列化してください。
  */
 void struct_meta_internal_parse_field_list_destroy(struct_meta_internal_parse_field_list *list);
 
@@ -149,7 +157,9 @@ void struct_meta_internal_parse_field_list_destroy(struct_meta_internal_parse_fi
  *  @param[in,out]  items  解放する先頭要素。NULL を渡せます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なる構造体に対する呼び出しは同時に実行できます。\n
+ *  同一構造体に対する操作は、呼び出し側で直列化してください。
  */
 void struct_meta_internal_parse_struct_destroy(struct_meta_internal_parse_struct *items);
 

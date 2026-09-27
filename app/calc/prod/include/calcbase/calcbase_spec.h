@@ -57,8 +57,7 @@ extern "C"
      *                  呼び出し側で範囲チェックを行ってください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     extern int calcbase_add(int a, int b, int *result);
 
@@ -85,8 +84,7 @@ extern "C"
      *                  呼び出し側で範囲チェックを行ってください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     extern int calcbase_subtract(int a, int b, int *result);
 
@@ -113,8 +111,7 @@ extern "C"
      *                  呼び出し側で範囲チェックを行ってください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     extern int calcbase_multiply(int a, int b, int *result);
 
@@ -139,8 +136,7 @@ extern "C"
         @endcode
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     extern int calcbase_divide(int a, int b, int *result);
 

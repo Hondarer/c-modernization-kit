@@ -221,21 +221,20 @@ extern "C"
      *  停止要求を受け取ったときにメイン ループを正常に抜けられます。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部の停止フラグと条件変数をロックで保護します。
+     *  本関数はスレッド セーフです。
      *
      *  @par            使用例
-        @code{.c}
-        static int on_run(void *user_data)
-        {
-            (void)user_data;
-            while (svc_wait_for_stop(1000) == 0)
-            {
-                // TODO: ここに周期処理を書く
-            }
-            return 0;
-        }
-        @endcode
+     *  @code{.c}
+     *  static int on_run(void *user_data)
+     *  {
+     *      (void)user_data;
+     *      while (svc_wait_for_stop(1000) == 0)
+     *      {
+     *          // TODO: ここに周期処理を書く
+     *      }
+     *      return 0;
+     *  }
+     *  @endcode
      */
     int svc_wait_for_stop(int timeout_ms);
 
@@ -244,8 +243,7 @@ extern "C"
      *  @return         停止要求済みの場合は 1、そうでない場合は 0 を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部の停止フラグをロックで保護します。
+     *  本関数はスレッド セーフです。
      */
     int svc_stop_requested(void);
 
@@ -257,8 +255,7 @@ extern "C"
      *  複数回呼んでも安全 (べき等) です。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  内部の停止フラグと条件変数をロックで保護します。
+     *  本関数はスレッド セーフです。
      */
     void svc_request_stop(void);
 

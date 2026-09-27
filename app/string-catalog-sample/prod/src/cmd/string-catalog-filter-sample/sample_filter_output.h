@@ -78,7 +78,7 @@ extern "C"
      *  分類値が範囲外の場合は `CPLAT_TRACE_LEVEL_NONE` として扱います。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。フィルター スロットへの適用と並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_output_write(int string_key, ...);
 

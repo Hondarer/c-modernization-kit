@@ -64,7 +64,7 @@ extern "C"
      *  組み立てた文字列の言語は、@c cplat_string_catalog_set_language が設定するプロセスの設定に従います。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。読み取り専用の静的データのみを参照します。
+     *  本関数はスレッド セーフです。
      */
     SAMPLECATALOG_EXPORT int SAMPLECATALOG_API samplecatalog_find_item(const char *item_name, char *dest,
                                                                       size_t dest_size);

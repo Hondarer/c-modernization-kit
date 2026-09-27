@@ -29,7 +29,7 @@ typedef struct struct_meta_internal_arena struct_meta_internal_arena;
  *  @return         アリーナです。確保できない場合は NULL を返します。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 struct_meta_internal_arena *struct_meta_internal_arena_create(void);
 
@@ -43,8 +43,9 @@ struct_meta_internal_arena *struct_meta_internal_arena_create(void);
  *  返した領域はゼロ初期化済みです。個別には解放できません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフではありません。同じアリーナを複数のスレッドから
- *  同時に操作してはなりません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるアリーナに対する呼び出しは同時に実行できます。\n
+ *  同一アリーナに対する操作は、呼び出し側で同期してください。
  */
 void *struct_meta_internal_arena_allocate(struct_meta_internal_arena *arena, size_t size, size_t alignment);
 
@@ -59,8 +60,9 @@ void *struct_meta_internal_arena_allocate(struct_meta_internal_arena *arena, siz
  *                  呼び出し側は @p text の NULL を先に判定してください。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフではありません。同じアリーナを複数のスレッドから
- *  同時に操作してはなりません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるアリーナに対する呼び出しは同時に実行できます。\n
+ *  同一アリーナに対する操作は、呼び出し側で同期してください。
  */
 char *struct_meta_internal_arena_copy_string(struct_meta_internal_arena *arena, const char *text);
 
@@ -69,7 +71,9 @@ char *struct_meta_internal_arena_copy_string(struct_meta_internal_arena *arena, 
  *  @param[in,out]  arena  解放するアリーナ。NULL を渡せます。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数は条件付きスレッド セーフです。\n
+ *  異なるアリーナに対する呼び出しは同時に実行できます。\n
+ *  同一アリーナに対する操作は、呼び出し側で直列化してください。
  */
 void struct_meta_internal_arena_destroy(struct_meta_internal_arena *arena);
 

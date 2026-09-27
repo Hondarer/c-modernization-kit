@@ -189,8 +189,9 @@ extern "C"
      *  診断情報は @p diagnostic_capacity 個までを格納し、総数は @p invalid_count_out へ格納します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n
-     *  同じ @p image へ書き込む呼び出しは、呼び出し側で直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  異なる @p image に対する呼び出しは同時に実行できます。\n
+     *  同一 @p image に対する並行操作は、呼び出し側で直列化してください。
      */
     int sample_filter_compile(const char *lines, size_t line_count, size_t line_width, size_t line_capacity,
                               void *image, size_t image_size, sample_filter_diagnostic *diagnostics,
@@ -211,8 +212,9 @@ extern "C"
      *  失敗した場合、@p image は変更しません。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n
-     *  同じ @p image へアクセスする呼び出しは、呼び出し側で直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  異なる @p image に対する呼び出しは同時に実行できます。\n
+     *  同一 @p image に対する並行操作は、呼び出し側で直列化してください。
      */
     int sample_filter_compile_line(void *image, size_t image_size, size_t line_index, const char *text,
                                    sample_filter_diagnostic *diagnostic_out);
@@ -233,8 +235,9 @@ extern "C"
      *  失敗した場合、@p image は変更しません。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n
-     *  同じ @p image へアクセスする呼び出しは、呼び出し側で直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  異なる @p image に対する呼び出しは同時に実行できます。\n
+     *  同一 @p image に対する並行操作は、呼び出し側で直列化してください。
      */
     int sample_filter_insert_line(void *image, size_t image_size, size_t line_index, const char *text,
                                   sample_filter_diagnostic *diagnostic_out);
@@ -251,8 +254,9 @@ extern "C"
      *  後続の行は 1 つ前へ移動します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。\n
-     *  同じ @p image へアクセスする呼び出しは、呼び出し側で直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  異なる @p image に対する呼び出しは同時に実行できます。\n
+     *  同一 @p image に対する並行操作は、呼び出し側で直列化してください。
      */
     int sample_filter_remove_line(void *image, size_t image_size, size_t line_index);
 
@@ -268,7 +272,9 @@ extern "C"
      *  および各行の命令と定数の参照先が領域内に収まることを確認します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。@p image へ同時に書き込む呼び出しとは直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  他スレッドが @p image を同時に変更しない場合は、同時に実行できます。\n
+     *  他スレッドが同時に @p image を変更する場合は、呼び出し側で同期してください。
      */
     int sample_filter_validate(const void *image, size_t image_size);
 
@@ -282,7 +288,9 @@ extern "C"
      *  @return         @p image が検証に失敗した場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。@p image へ同時に書き込む呼び出しとは直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  他スレッドが @p image を同時に変更しない場合は、同時に実行できます。\n
+     *  他スレッドが同時に @p image を変更する場合は、呼び出し側で同期してください。
      */
     int sample_filter_get_info(const void *image, size_t image_size, sample_filter_info *info_out);
 
@@ -302,7 +310,9 @@ extern "C"
      *  復元した条件式を再びコンパイルすると、同じ命令列になります。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。@p image へ同時に書き込む呼び出しとは直列化してください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  他スレッドが @p image を同時に変更しない場合は、同時に実行できます。\n
+     *  他スレッドが同時に @p image を変更する場合は、呼び出し側で同期してください。
      */
     int sample_filter_decompile_line(const void *image, size_t image_size, size_t line_index, char *dest,
                                      size_t dest_size);
@@ -363,8 +373,7 @@ extern "C"
      *  内容が同一の行は、現在の面の事前計算の結果を再利用します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  判定と並行して呼び出せます。複数スレッドからの適用は、要求の順に 1 つずつ処理します。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_slot_apply(sample_filter_slot *slot, const void *image, size_t image_size,
                                  sample_filter_diagnostic *diagnostics, size_t diagnostic_capacity,
@@ -385,7 +394,7 @@ extern "C"
      *  有効かどうかは @p enabled_lines_out で判別します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。判定および適用と並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_slot_snapshot(sample_filter_slot *slot, void *image_out, size_t image_size,
                                     uint64_t *enabled_lines_out);
@@ -411,8 +420,9 @@ extern "C"
      *  内容が同一の行は前回の適用の結果を再利用するため、設定は最初の適用より前に行ってください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフではありません。\n
-     *  @ref sample_filter_slot_describe_line と並行して呼び出さないでください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  異なる @p slot に対する操作は同時に実行できます。\n
+     *  同一 @p slot に対する操作は、呼び出し側で直列化してください。
      */
     int sample_filter_slot_set_category_names(sample_filter_slot *slot,
                                               const sample_filter_category_names *category_names);
@@ -437,7 +447,7 @@ extern "C"
      *  文型は、`cplat_string_catalog_get_language` が日本語を返す場合は日本語、それ以外はニュートラル言語です。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。判定および適用と並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_slot_describe_line(sample_filter_slot *slot, size_t line_index, char *dest, size_t dest_size);
 
@@ -451,7 +461,7 @@ extern "C"
      *  @return         カタログに存在しない文字列キーの場合は `CPLAT_ERR_NOT_FOUND` を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。判定および適用と並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_slot_test(sample_filter_slot *slot, int string_key, sample_filter_state *state_out);
 
@@ -470,7 +480,7 @@ extern "C"
      *  事前計算の状態が「引数値に依存」の場合に限り、可変長引数を収集して評価します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。適用と並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_slot_vformat(sample_filter_slot *slot, char *dest, size_t dest_size, int *matched_out,
                                    int string_key, va_list args);
@@ -481,7 +491,7 @@ extern "C"
      *  引数と戻り値は @ref sample_filter_slot_vformat と同じです。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。適用と並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_slot_format(sample_filter_slot *slot, char *dest, size_t dest_size, int *matched_out,
                                   int string_key, ...);

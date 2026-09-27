@@ -29,7 +29,7 @@ extern "C"
      *  @brief          名前解決テーブルの先頭を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。読み取り専用の表を返します。
+     *  本関数はスレッド セーフです。
      */
     const sample_filter_key_name *sample_worker_trace_key_names(void);
 

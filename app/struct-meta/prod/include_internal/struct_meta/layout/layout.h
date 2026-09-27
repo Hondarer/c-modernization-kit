@@ -52,7 +52,7 @@ typedef struct struct_meta_internal_layout_type
  *  互換性を壊すため、この表に含めません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 const struct_meta_internal_layout_type *struct_meta_internal_layout_find_type(const char *spelling);
 
@@ -70,7 +70,7 @@ typedef struct struct_meta_internal_layout_builder
  *  @param[out]     builder  初期化する途中経過。NULL を渡してはなりません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 void struct_meta_internal_layout_begin(struct_meta_internal_layout_builder *builder);
 
@@ -89,7 +89,7 @@ void struct_meta_internal_layout_begin(struct_meta_internal_layout_builder *buil
  *  配列のアラインメントは要素のアラインメントと同じです。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder, size_t element_size,
                                     size_t element_count, size_t alignment, size_t *offset_out);
@@ -107,7 +107,7 @@ int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder
  *  @c CPLAT_ERR_INVALID_ARGUMENT を返します。C ではメンバーの無い構造体を宣言できません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *builder, size_t *size_out,
                                     size_t *alignment_out);

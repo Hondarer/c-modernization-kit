@@ -45,8 +45,7 @@ extern "C"
      *  利用側の翻訳単位から呼び出されるため、本関数はライブラリの外部へ公開します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  複数のスレッドから同時に呼び出しても、同一の値を重複して返しません。
+     *  本関数はスレッド セーフです。
      */
     SAMPLECATALOG_EXPORT int32_t SAMPLECATALOG_API samplecatalog_next_sequence_number(void);
 

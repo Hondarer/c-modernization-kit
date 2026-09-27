@@ -96,7 +96,7 @@ extern "C"
      *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_descriptor_validate(const struct_meta_descriptor *descriptor);
 

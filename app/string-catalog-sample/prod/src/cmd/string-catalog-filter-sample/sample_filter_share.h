@@ -148,8 +148,7 @@ extern "C"
      *  読み取り側のフィルター スロットは直接更新しません。読み取り側は次回の取り込み時に世代の変化を検知して反映します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  同じハンドルと異なるハンドル、および別のプロセスからの公開と取り込みと並行して呼び出せます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_share_publish(sample_filter_share *share, const void *image, size_t image_size,
                                     uint64_t *generation_out);
@@ -169,8 +168,7 @@ extern "C"
      *  適用の結果は @ref sample_filter_share_get_status で確認できます。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。\n
-     *  取り込みは排他の下で直列に行われ、後から来たスレッドは先の取り込みの完了を待ちます。
+     *  本関数はスレッド セーフです。
      */
     int sample_filter_share_refresh(sample_filter_share *share, sample_filter_slot *slot, int *is_taken_out);
 

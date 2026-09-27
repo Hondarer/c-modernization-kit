@@ -60,7 +60,7 @@ extern "C"
      *                  @c descriptor->size と @c sizeof の一致を確認してください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。解析の状態はすべて呼び出しごとに確保します。
+     *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_create_from_header_file(
         const char *path, struct_meta_catalog **catalog_out, struct_meta_diagnostic *diagnostic_out);
@@ -73,8 +73,12 @@ extern "C"
      *  @param[out]     diagnostic_out  診断の格納先。NULL を渡せます。
      *  @return         @ref struct_meta_catalog_create_from_header_file と同じです。
      *
+     *  @attention      本関数が返す記述子は、解析対象ヘッダーの宣言だけから求めたものです。
+     *                  実行中のプログラムが静的に知っている型へ適用する場合は、利用側で
+     *                  @c descriptor->size と @c sizeof の一致を確認してください。
+     *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。解析の状態はすべて呼び出しごとに確保します。
+     *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_create_from_header_text(
         const char *text, size_t length, struct_meta_catalog **catalog_out,
@@ -119,7 +123,9 @@ extern "C"
      *  どちらの場合も、登録した記述子を索引から登録解除します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフではありません。破棄と検索を同時に実行しないでください。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  異なる @p catalog に対する操作は同時に実行できます。\n
+     *  同一 @p catalog に対する操作は、呼び出し側で直列化してください。
      */
     STRUCT_META_EXPORT void STRUCT_META_API struct_meta_catalog_destroy(struct_meta_catalog *catalog);
 
@@ -130,7 +136,7 @@ extern "C"
      *  @return         @c CPLAT_OK または @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_get_count(const struct_meta_catalog *catalog,
                                                                         size_t *count_out);
@@ -146,7 +152,7 @@ extern "C"
      *  並びは解析対象ヘッダーの宣言順です。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+     *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_get(const struct_meta_catalog *catalog, size_t index,
                                                                   const struct_meta_descriptor **descriptor_out);
@@ -162,7 +168,7 @@ extern "C"
      *  検索にはハッシュ表を使います。線形走査の経路はありません。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。カタログの内容は作成後に変わりません。
+     *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_find(const struct_meta_catalog *catalog,
                                                                    const char *name,

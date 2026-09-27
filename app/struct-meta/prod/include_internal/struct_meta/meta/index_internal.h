@@ -26,8 +26,8 @@
  *
  *  @par            スレッド セーフ
  *  本関数は条件付きスレッド セーフです。\n
- *  @ref struct_meta_index_register および @ref struct_meta_index_unregister と
- *  同時に呼び出してはなりません。
+ *  本関数同士の呼び出しは同時に実行できます。\n
+ *  @ref struct_meta_index_register および @ref struct_meta_index_unregister との呼び出しは、呼び出し側で直列化してください。
  */
 int struct_meta_internal_index_find_validation(const struct_meta_descriptor *descriptor, int *result_out);
 
@@ -46,8 +46,8 @@ int struct_meta_internal_index_find_validation(const struct_meta_descriptor *des
  *
  *  @par            スレッド セーフ
  *  本関数は条件付きスレッド セーフです。\n
- *  @ref struct_meta_index_register および @ref struct_meta_index_unregister と
- *  同時に呼び出してはなりません。
+ *  本関数同士の呼び出しは同時に実行できます。\n
+ *  @ref struct_meta_index_register および @ref struct_meta_index_unregister との呼び出しは、呼び出し側で直列化してください。
  */
 int struct_meta_internal_index_find_field(const struct_meta_descriptor *descriptor, const char *name,
                                           size_t name_length, size_t *index_out);

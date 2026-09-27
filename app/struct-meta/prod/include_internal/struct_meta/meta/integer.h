@@ -22,7 +22,7 @@
  *  1、2、4、8 バイトだけを扱います。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_integer_is_supported_size(size_t element_size);
 
@@ -37,7 +37,7 @@ int struct_meta_internal_integer_is_supported_size(size_t element_size);
  *  読み出した値は符号拡張します。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_integer_load_signed(const unsigned char *field_ptr, size_t element_size, int64_t *value_out);
 
@@ -50,7 +50,7 @@ int struct_meta_internal_integer_load_signed(const unsigned char *field_ptr, siz
  *                  @c CPLAT_ERR_UNSUPPORTED を返します。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_integer_load_unsigned(const unsigned char *field_ptr, size_t element_size,
                                                uint64_t *value_out);
@@ -67,7 +67,7 @@ int struct_meta_internal_integer_load_unsigned(const unsigned char *field_ptr, s
  *  @c CPLAT_ERR_OUT_OF_RANGE を返します。切り詰めは行いません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t element_size, int64_t value);
 
@@ -83,7 +83,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
  *  @c CPLAT_ERR_OUT_OF_RANGE を返します。切り詰めは行いません。
  *
  *  @par            スレッド セーフ
- *  本関数はスレッド セーフです。内部に共有状態を持ちません。
+ *  本関数はスレッド セーフです。
  */
 int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t element_size, uint64_t value);
 
