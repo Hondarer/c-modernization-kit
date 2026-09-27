@@ -54,6 +54,15 @@
     "markdown-preview-enhanced.plantumlJarPath": "${env:PLANTUML_HOME}/plantuml.jar",
     // git の自動フェッチを有効にする
     "git.autofetch": true,
+    // jsonc の末尾カンマを警告にしない
+    "json.schemas": [
+        {
+            "fileMatch": ["*.jsonc"],
+            "schema": {
+                "allowTrailingCommas": true
+            }
+        }
+    ],
     // json, jsonc でファイル末尾改行を付加する
     "[json]": {
         "files.insertFinalNewline": true,
