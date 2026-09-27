@@ -23,8 +23,8 @@ make
 ./prod/cbin/string-catalog-library-sample
 ```
 
-共有ライブラリの探索パスは `bin/sync-app-env.sh` が `.vscode` 配下へ同期します。  
-コマンドが `libsamplecatalog.so` を検出できない場合は、`bin/load-app-env.sh` で環境を読み込んでください。
+共有ライブラリの探索パスは `app/general/bin/sync-app-env.sh` が `.vscode` 配下へ同期します。  
+コマンドが `libsamplecatalog.so` を検出できない場合は、`app/general/bin_internal/load-app-env.sh` で環境を読み込んでください。
 
 ## 言語の設定
 

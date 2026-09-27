@@ -47,8 +47,9 @@ HTML / docx (docs/ja/html/ など)
 
 ```text
 framework/docsfw/
-+-- bin/        # Pandoc 実行スクリプト
-+-- lib/        # フィルタ・変換ライブラリ (Lua フィルタなど)
++-- bin/        # Markdown 発行の公開コマンド
++-- bin_internal/ # Pandoc フィルターと発行の補助処理
++-- lib/        # 発行で利用する資材
 +-- styles/     # カスタム CSS・Word スタイル
 ```
 

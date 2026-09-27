@@ -62,7 +62,7 @@ Linux では GCC、Windows では MSVC を使用したクロスプラットフ�
 ```
 workspace/
 +-- framework/testfw/                 # テストフレームワーク (サブモジュール、論理名: testfw)
-|   +-- bin/                         # テスト支援コマンド
+|   +-- bin_internal/                # テスト実行用の補助スクリプト
 |   +-- include/                     # フレームワーク提供のモック (stdio等)
 |   +-- include_override/            # オーバーライド用ヘッダー
 |   +-- libsrc/                      # フレームワーク提供のモック実装

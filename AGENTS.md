@@ -67,7 +67,7 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 - テスト フェーズとエビデンス: [テスト フェーズ](framework/testfw/docs/about-test-phase.md)
 - make ファイル断片: [makeparts](framework/makefw/docs/makeparts.md)
 - VS Code と app 環境変数: [VS Code 環境変数](app/general/docs/vscode-variables.md)
-- Markdown の機械整形: [text_style_jp](framework/docsfw/bin/text_style_jp.md)
+- Markdown の機械整形: [text_style_jp](framework/docsfw/docs/text_style_jp.md)
 - 日本語本文の規範: [日本語技術文書の文章規範](framework/docsfw/docs/japanese-technical-writing-guideline.md)
 
 ## 変更後の確認

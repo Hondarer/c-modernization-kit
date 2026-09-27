@@ -120,7 +120,7 @@ Jenkins ジョブ側で別の framework 配置を使う場合は、`build.sh` �
 ```bash
 git config --global --add safe.directory /workspace
 cd /workspace && mkdir -p logs
-eval "$(bash /workspace/bin/load-app-env.sh \
+eval "$(bash /workspace/app/general/bin_internal/load-app-env.sh \
     --env-file /workspace/.vscode/.env.linux \
     --workspace /workspace \
     --format shell --no-clobber)"
@@ -129,11 +129,11 @@ make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 
 #### 環境変数の読み込み
 
-`bin/load-app-env.sh` が `.vscode/.env.linux` を読み、`${workspaceFolder}` と `${env:NAME}` を解決した値を `export` します。  
+`app/general/bin_internal/load-app-env.sh` が `.vscode/.env.linux` を読み、`${workspaceFolder}` と `${env:NAME}` を解決した値を `export` します。  
 VS Code の `launch.json` と `tasks.json` が参照するファイルと同一であり、`.github/workflows/ci.yml` の `Load app environment` ステップとも同じ源泉です。
 
 読み込む値は framework home 系 (`MAKEFW_HOME` など) と、実行時のコマンド探索パス (`PATH`)、共有ライブラリ探索パス (`LD_LIBRARY_PATH`) です。  
-`PATH` と `LD_LIBRARY_PATH` の内容は `bin/sync-app-env.sh` が `app/<name>/**/makepart.mk` の `OUTPUT_DIR` から導出して env ファイルへ反映するため、app を追加・削除しても本スクリプトの変更は発生しません。
+`PATH` と `LD_LIBRARY_PATH` の内容は `app/general/bin/sync-app-env.sh` が `app/<name>/**/makepart.mk` の `OUTPUT_DIR` から導出して env ファイルへ反映するため、app を追加・削除しても本スクリプトの変更は発生しません。
 
 ビルドは `LD_LIBRARY_PATH` に依存しません。共有ライブラリの間接依存 (`DT_NEEDED`) のリンク時解決は `framework/makefw` が `-Wl,-rpath-link` を付与して行います。  
 see: [ライブラリ探索パスの扱い (Linux)](../framework/makefw/docs/library-search-paths.md)
@@ -179,7 +179,7 @@ make docs 2>&1 | tee "logs/linux-${OS_NAME}-docs.log"
 
 生成ロジック:
 
-- タイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を使います。`siteName` が未指定の場合はワークスペース フォルダー名 (コンテナー内のマウント先は `/workspace`) になります
+- タイトルは `app/general/bin_internal/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を使います。`siteName` が未指定の場合はワークスペース フォルダー名 (コンテナー内のマウント先は `/workspace`) になります
 - `pages/doxygen/` 配下のサブディレクトリを自動探索してリンクを生成します
 - `pages/` 配下の `html` ディレクトリを検出した場合に言語別ドキュメントのリンクを出力します
 - `pages/artifacts/*.zip` を自動探索してリンクを生成します
@@ -299,7 +299,7 @@ source/app/**/test/**/*.warn
 |---|---|
 | `build-and-test-linux` (コンテナー内) | `inner-build.sh` |
 | `build-and-test-linux` (コンテナー起動) | `build.sh` |
-| `Check NBSP` | `inner-build.sh` の `python3 /workspace/bin/check-nbsp.py --force` |
+| `Check NBSP` | `inner-build.sh` の `python3 /workspace/app/general/bin/check-nbsp.py --force` |
 | `Load app environment` | `inner-build.sh` の `load-app-env.sh` 呼び出し (同じ env ファイルを参照) |
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |

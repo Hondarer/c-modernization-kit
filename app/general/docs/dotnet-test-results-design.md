@@ -127,7 +127,7 @@ dotnet test --filter "FullyQualifiedName=ExampleLib.Tests.ExampleLibraryTests.Ad
 
 ### テスト コード抽出スクリプト
 
-**ファイル名**: `framework/testfw/bin/get_test_code_dotnet.py`
+**ファイル名**: `framework/testfw/bin_internal/get_test_code_dotnet.py`
 
 **機能**:
 
@@ -238,7 +238,7 @@ if __name__ == '__main__':
 
 ### サマリー生成スクリプト
 
-**ファイル名**: `framework/testfw/bin/insert_summary_dotnet.py`
+**ファイル名**: `framework/testfw/bin_internal/insert_summary_dotnet.py`
 
 **機能**:
 
@@ -666,9 +666,9 @@ results/
     - C テスト フレームワークと同様のディレクトリ構造を実現
 
    **生成されたファイル**:
-    - `framework/testfw/bin/get_test_code_dotnet.py` (211 行)
-    - `framework/testfw/bin/insert_summary_dotnet.py` (155 行)
-    - `framework/testfw/bin/exec_test_dotnet.sh` (237 行、既存のバックアップも保存)
+    - `framework/testfw/bin_internal/get_test_code_dotnet.py` (211 行)
+    - `framework/testfw/bin_internal/insert_summary_dotnet.py` (155 行)
+    - `framework/testfw/bin_internal/exec_test_dotnet.sh` (237 行、既存のバックアップも保存)
 
 2. **フェーズ 1.5: 一括実行への最適化** ✅ **完了** (2026-02-17)
     - [x] `parse_trx_results.py` の新規作成 (TRX XML パーサー)
@@ -688,8 +688,8 @@ results/
     - テスト コード、サマリー、テスト結果行 (成功/失敗) は同一
 
    **追加されたファイル**:
-    - `framework/testfw/bin/parse_trx_results.py` (TRX XML パーサー)
-    - `framework/testfw/bin/extract_dotnet_output.py` (バッチ出力抽出)
+    - `framework/testfw/bin_internal/parse_trx_results.py` (TRX XML パーサー)
+    - `framework/testfw/bin_internal/extract_dotnet_output.py` (バッチ出力抽出)
 
 3. **フェーズ 2: 機能拡張** (オプション)
     - [ ] Theory テストの個別パラメータログ生成 (必要性を再評価)
@@ -705,14 +705,14 @@ results/
 
 ### C テスト フレームワークの関連ファイル
 
-- `framework/testfw/bin/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
-- `framework/testfw/bin/get_test_code_c_cpp.awk` - テスト コード抽出 (AWK)
-- `framework/testfw/bin/insert_summary_c_cpp.awk` - サマリー生成 (AWK)
-- `framework/testfw/bin/exec_test_dotnet.sh` - .NET テスト実行スクリプト (一括実行)
-- `framework/testfw/bin/get_test_code_dotnet.py` - .NET テスト コード抽出
-- `framework/testfw/bin/insert_summary_dotnet.py` - .NET サマリー生成
-- `framework/testfw/bin/parse_trx_results.py` - TRX XML パーサー
-- `framework/testfw/bin/extract_dotnet_output.py` - バッチ出力から個別テスト結果を抽出
+- `framework/testfw/bin_internal/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
+- `framework/testfw/bin_internal/get_test_code_c_cpp.awk` - テスト コード抽出 (AWK)
+- `framework/testfw/bin_internal/insert_summary_c_cpp.awk` - サマリー生成 (AWK)
+- `framework/testfw/bin_internal/exec_test_dotnet.sh` - .NET テスト実行スクリプト (一括実行)
+- `framework/testfw/bin_internal/get_test_code_dotnet.py` - .NET テスト コード抽出
+- `framework/testfw/bin_internal/insert_summary_dotnet.py` - .NET サマリー生成
+- `framework/testfw/bin_internal/parse_trx_results.py` - TRX XML パーサー
+- `framework/testfw/bin_internal/extract_dotnet_output.py` - バッチ出力から個別テスト結果を抽出
 
 ### .NET テスト プロジェクト
 

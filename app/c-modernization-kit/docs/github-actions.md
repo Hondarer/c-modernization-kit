@@ -481,7 +481,7 @@ Pages の `index.html` は、ドキュメントへのリンク、生成元 workf
 これらとは別に、存在する場合のみ「ビルド・ドキュメント警告詳細」として `.warn` アーカイブを表示します。  
 `docs-warns.zip` には `docs.warn` と `app/**/doxy*.warn` がまとめて格納されます。
 
-`index.html` のタイトルは `bin/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を利用します。MkDocs による動的発行のサイト名と定義元が同一であり、`deploy-pages` ジョブはこの解決のために `bin` と `.vscode` だけを sparse checkout します。  
+`index.html` のタイトルは `app/general/bin_internal/resolve-site-name.sh` が `.vscode/pub_markdown.config.yaml` の `siteName` から解決した名前を利用します。MkDocs による動的発行のサイト名と定義元が同一であり、`deploy-pages` ジョブはこの解決のために `app/general/bin_internal` と `.vscode` だけを sparse checkout します。  
 同じ解決を `.jenkins/inner-build.sh` も利用するため、GitHub Actions と Jenkins のエントリ ページは同じ名前になります。
 
 ### GitHub リポジトリ設定

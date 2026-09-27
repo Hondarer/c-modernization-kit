@@ -94,7 +94,7 @@ $windowsSDKVersion  = ""
 
 # VS Code 起動対象のパス
 # 空文字 ("") の場合、起動元のファイルシステムのカレントディレクトリを優先し、
-# 取得できない場合はこのスクリプトがある bin の親ディレクトリを使用します
+# 取得できない場合はこのスクリプトがある bin_internal の 3 階層上を使用します
 # 固定したい場合は絶対パスを設定してください
 $vscodeTargetPath   = ""
 
@@ -430,7 +430,7 @@ if (-not $vscodeTargetPath) {
     if ($currentLocation.Provider.Name -eq "FileSystem") {
         $vscodeTargetPath = $currentLocation.ProviderPath
     } else {
-        $vscodeTargetPath = Split-Path -Parent $scriptDir
+        $vscodeTargetPath = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $scriptDir))
     }
 }
 

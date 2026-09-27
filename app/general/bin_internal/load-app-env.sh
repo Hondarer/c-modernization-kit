@@ -5,7 +5,7 @@
 #
 # これらの env ファイルは VS Code の launch.json / tasks.json が envFile として参照する
 # 定義であり、CI と Jenkins も同じファイルを源泉とする。app の増減に伴う実行時パスの
-# 変更は bin/sync-app-env.sh が env ファイルへ反映するため、本スクリプトと CI 設定は
+# 変更は app/general/bin/sync-app-env.sh が env ファイルへ反映するため、本スクリプトと CI 設定は
 # app 名を一切持たない。
 #
 # see: app/general/docs/vscode-variables.md

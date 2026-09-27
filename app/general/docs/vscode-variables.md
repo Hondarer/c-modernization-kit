@@ -69,7 +69,7 @@ test ! -f app/c_cpp_properties.warn
 対象ワークスペースでは、実行時に必要なライブラリ探索パスとコマンド探索パスを `.vscode/.env.linux` と `.vscode/.env.windows` に集約しています。
 
 - VS Code の `make test` タスクとデバッグ構成は `envFile` で直接参照します。
-- GitHub Actions と Jenkins は `bin/load-app-env.sh` を介して同じファイルを参照します。
+- GitHub Actions と Jenkins は `app/general/bin_internal/load-app-env.sh` を介して同じファイルを参照します。
 - VS Code の統合ターミナルは `envFile` を扱えないため、`.vscode/settings.json` へ同じ内容を複製します。
 
 更新要否の判断は、これらの設定ファイルではなく、`app` 配下の各アプリケーションの構成と依存関係に基づいて行います。
@@ -82,7 +82,7 @@ test ! -f app/c_cpp_properties.warn
 新しく開いたターミナルには反映されますが、既存のターミナルには反映されません。
 
 対象ワークスペースでは、Linux では `LD_LIBRARY_PATH` と `PATH`、Windows では `PATH` を設定しています。  
-これらの値は `bin/sync-app-env.sh` が生成します。
+これらの値は `app/general/bin/sync-app-env.sh` が生成します。
 
 ### .vscode/tasks.json
 
@@ -108,7 +108,7 @@ error while loading shared libraries: libxxxx.so: cannot open shared object file
 ### .vscode/.env.linux / .vscode/.env.windows
 
 `launch.json` と `tasks.json` が共通で参照する環境変数定義ファイルです。  
-`PATH` と `LD_LIBRARY_PATH` の行は `bin/sync-app-env.sh` が生成するため、手で編集しません。
+`PATH` と `LD_LIBRARY_PATH` の行は `app/general/bin/sync-app-env.sh` が生成するため、手で編集しません。
 
 これらのファイルは VS Code 専用ではありません。  
 GitHub Actions と Jenkins も同じファイルを読むため、実行時パスと framework home の定義箇所はワークスペース全体でこの 2 ファイルに集約されています。  
@@ -121,22 +121,23 @@ see: [CI と Jenkins での読み込み](#ci-と-jenkins-での読み込み)
 `DOCSFW_HOME` は Markdown 発行フレームワークの場所を表し、VS Code の Markdown 発行タスクと `make docs` が参照します。
 
 `settings.json` の `terminal.integrated.env.*` は `envFile` をサポートしないため、ターミナル用の `PATH` は `settings.json` にも同じ内容が必要です。  
-この重複も `bin/sync-app-env.sh` が両方へ同時に生成します。
+この重複も `app/general/bin/sync-app-env.sh` が両方へ同時に生成します。
 
 ## 実行時パスの正本
 
 `.vscode` に書かれている実行時のコマンド探索パスとライブラリ探索パスは、これらのファイルが正本ではありません。  
-`app/<name>` 配下の `makepart.mk` が設定する `OUTPUT_DIR` が正本であり、各設定ファイルはその派生物です。
+ビルド成果物の探索パスは `app/<name>` 配下の `makepart.mk` が設定する `OUTPUT_DIR` から導出します。スクリプトの探索パスは、各 app と framework の公開 `bin` ディレクトリの有無から導出します。
 
-`bin/sync-app-env.sh` が `app/<name>/**/makepart.mk` を make で評価し、次の規則で導出します。
+`app/general/bin/sync-app-env.sh` が `app/<name>/**/makepart.mk` を make で評価し、次の規則で導出します。
 
 - `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/cbin` が現れる app は、`app/<name>/prod/cbin` をコマンド探索パスへ追加します。
 - `OUTPUT_DIR` に `$(MYAPP_DIR)/prod/lib` が現れる app は、`app/<name>/prod/lib` をライブラリ探索パスへ追加します (Windows では `PATH` へ追加します)。
 - `test/lib` のように `prod/` 以外を指す `OUTPUT_DIR` は対象外とします。
 - `app/<name>/prod/bin` は `OUTPUT_DIR` ではなく、同期の実行時にディレクトリが存在する場合に限り、コマンド探索パスへ追加します。
-- 並び順は app 名の `LC_ALL=C sort` とし、app ごとに `cbin`、`bin` の順に並べます。Windows の `PATH` は app ごとに `lib`、`cbin`、`bin` の順に並べます。
+- 実在する `app/<name>/bin` と `framework/<name>/bin` をコマンド探索パスへ追加します。`bin_internal` は追加しません。
+- app 名は `LC_ALL=C sort` で並べ、app ごとに `cbin`、`prod/bin`、`bin` の順に追加します。Windows では各 app の先頭に `lib` を加えます。framework の `bin` は app の後に名前順で追加します。
 
-`prod/bin` はディレクトリの有無で判定するため、`prod/bin` を作成または削除した場合は `make sync-app-env` を実行してください。
+`prod/bin` と公開 `bin` を作成または削除した場合は `make sync-app-env` を実行してください。
 
 `LIB_TYPE` (static / shared / both) による絞り込みは行いません。  
 静的ライブラリだけを出力する app のディレクトリが探索パスに載っても実害がないため、判定を `OUTPUT_DIR` の 1 つに統一しています。
@@ -144,7 +145,7 @@ see: [CI と Jenkins での読み込み](#ci-と-jenkins-での読み込み)
 `.vscode/pub_markdown.config.yaml` の `mergeSubfolderDocs` は、`app/<name>/docs` の有無から導出します。  
 このファイルは任意同期対象であり、`--include-pub-markdown` を指定した場合だけ警告または更新の対象になります。
 
-app の一覧は `framework/makefw/bin/resolve_app_deps.sh --app-order` から取得するため、app を追加・削除しただけで導出結果が追従します。
+app の一覧は `framework/makefw/bin_internal/resolve_app_deps.sh --app-order` から取得するため、app を追加・削除しただけで導出結果が追従します。
 
 ### 実行時パスの適用範囲
 
@@ -156,7 +157,7 @@ see: [ライブラリ探索パスの扱い (Linux)](../../../framework/makefw/do
 ### CI と Jenkins での読み込み
 
 `.github/workflows/ci.yml` と `.jenkins/inner-build.sh` は、実行時パスを自前で定義しません。  
-`bin/load-app-env.sh` が `.vscode/.env.linux` または `.vscode/.env.windows` を読み、VS Code のプレースホルダーを解決した値を適用します。
+`app/general/bin_internal/load-app-env.sh` が `.vscode/.env.linux` または `.vscode/.env.windows` を読み、VS Code のプレースホルダーを解決した値を適用します。
 
 | プレースホルダー | 解決後 |
 |---|---|
@@ -175,7 +176,7 @@ Jenkins ジョブ側で `MAKEFW_HOME` などを別配置へ差し替える運用
 読み込みは各ジョブのビルド前に 1 回だけ行い、キーによる読み分けはしません。  
 `.env.linux` の `LD_LIBRARY_PATH` は既存値を末尾に連結しない定義であり、CI でもそのまま適用します。
 
-app を追加・削除しても `bin/load-app-env.sh` と CI 設定は app 名を持たないため、変更が発生するのは `.vscode` 配下の 4 ファイルだけです。
+app を追加・削除しても `app/general/bin_internal/load-app-env.sh` と CI 設定は app 名を持たないため、環境設定の変更は `.vscode` 配下の 4 ファイルに反映されます。
 
 ### 生成対象
 
@@ -192,7 +193,7 @@ app を追加・削除しても `bin/load-app-env.sh` と CI 設定は app 名�
 
 ### 同期の流れ
 
-ルートの `make` (および `make with-cov`) の完了後に `bash bin/sync-app-env.sh --check` が自動で走ります。  
+ルートの `make` (および `make with-cov`) の完了後に `bash app/general/bin/sync-app-env.sh --check` が自動で走ります。  
 環境設定に差異がある場合は `app/app_env.warn` が生成され、CI の warn artifact 収集にもそのまま乗ります。  
 `.vscode/pub_markdown.config.yaml` だけに差異がある場合は `INFO:` を表示し、`app/app_env.warn` は生成しません。
 
@@ -205,10 +206,10 @@ make sync-app-env
 スクリプトを直接呼び出す場合は次のとおりです。
 
 ```bash
-bash bin/sync-app-env.sh --write
-bash bin/sync-app-env.sh --check
-bash bin/sync-app-env.sh --write --include-pub-markdown
-bash bin/sync-app-env.sh --check --include-pub-markdown
+bash app/general/bin/sync-app-env.sh --write
+bash app/general/bin/sync-app-env.sh --check
+bash app/general/bin/sync-app-env.sh --write --include-pub-markdown
+bash app/general/bin/sync-app-env.sh --check --include-pub-markdown
 ```
 
 `--check` は差異があるときに終了コード 3 を返します。  
@@ -220,7 +221,7 @@ bash bin/sync-app-env.sh --check --include-pub-markdown
 
 環境設定と CI を手で編集する必要はありません。  
 `make sync-app-env` を実行し、生成された環境設定の差分を確認します。  
-`pub_markdown.config.yaml` も更新する場合は、`bash bin/sync-app-env.sh --write --include-pub-markdown` を実行します。
+`pub_markdown.config.yaml` も更新する場合は、`bash app/general/bin/sync-app-env.sh --write --include-pub-markdown` を実行します。
 
 `.gitmodules` への submodule 登録と `README.md` のサブモジュール一覧は自動生成の対象外のため、従来どおり手で更新します。
 
@@ -228,8 +229,8 @@ bash bin/sync-app-env.sh --check --include-pub-markdown
 
 ```bash
 make sync-app-env
-bash bin/sync-app-env.sh --check
-bash bin/sync-app-env.sh --check --include-pub-markdown
+bash app/general/bin/sync-app-env.sh --check
+bash app/general/bin/sync-app-env.sh --check --include-pub-markdown
 ```
 
 ## framework home 系の環境変数を変更する場合
@@ -255,7 +256,7 @@ bash bin/sync-app-env.sh --check --include-pub-markdown
 - `make sync-app-env` を実行し、生成された環境設定の差分を確認した
 - `.vscode/pub_markdown.config.yaml` を同期する場合は、`--include-pub-markdown` を指定した
 - 生成結果に想定外の app の増減がないことを確認した (増減がある場合は `makepart.mk` の `OUTPUT_DIR` を疑う)
-- `bash bin/sync-app-env.sh --check` が終了コード 0 で完了することを確認した
+- `bash app/general/bin/sync-app-env.sh --check` が終了コード 0 で完了することを確認した
 - framework home 系の環境変数を変更した場合は、上表のファイルを手で更新した
 - 個別 README の実行例やトラブルシュートを更新した
 - 旧 `app/<name>/prod/...` 構成が残っていないことを確認した
@@ -306,9 +307,9 @@ LD_LIBRARY_PATH=$PWD/app/example/prod/lib:$PWD/app/example.net/prod/lib:$PWD/app
 - `.vscode/.env.windows`
 - `.vscode/settings.json`
 
-これらはいずれも `bin/sync-app-env.sh` の通常の同期対象です。  
+これらはいずれも `app/general/bin/sync-app-env.sh` の通常の同期対象です。  
 内容に疑問がある場合は、`app/<name>/**/makepart.mk` の `OUTPUT_DIR` に立ち戻って確認してください。
 
 `.vscode/pub_markdown.config.yaml` は任意同期対象であり、`--include-pub-markdown` を指定した場合だけ更新されます。
 
-`.github/workflows/ci.yml` と `.jenkins/inner-build.sh` は生成物ではなく、`bin/load-app-env.sh` で上記のファイルを読む固定の実装です。
+`.github/workflows/ci.yml` と `.jenkins/inner-build.sh` は生成物ではなく、`app/general/bin_internal/load-app-env.sh` で上記のファイルを読む固定の実装です。

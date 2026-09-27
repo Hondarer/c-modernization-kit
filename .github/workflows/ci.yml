@@ -69,13 +69,13 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Check NBSP
-        run: python3 bin/check-nbsp.py --force
+        run: python3 app/general/bin/check-nbsp.py --force
 
       - name: Check app .gitignore
-        run: python3 bin/check-app-gitignore.py --check
+        run: python3 app/general/bin_internal/check-app-gitignore.py --check
 
       - name: Load app environment
-        run: bash bin/load-app-env.sh --env-file .vscode/.env.linux --workspace "$GITHUB_WORKSPACE" --format github
+        run: bash app/general/bin_internal/load-app-env.sh --env-file .vscode/.env.linux --workspace "$GITHUB_WORKSPACE" --format github
 
       - name: Record make version
         run: make --version
@@ -125,9 +125,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: |
-            framework/docsfw/bin/node_modules
+            framework/docsfw/bin_internal/node_modules
             framework/docsfw/.cache/puppeteer
-          key: docsfw-cache-ol8-${{ hashFiles('framework/docsfw/bin/package-lock.json') }}
+          key: docsfw-cache-ol8-${{ hashFiles('framework/docsfw/bin_internal/package-lock.json') }}
 
       - name: Generate and publish documentation
         if: ${{ matrix.docs }}
@@ -302,13 +302,13 @@ jobs:
           submodules: recursive
 
       - name: Check NBSP
-        run: python3 bin/check-nbsp.py --force
+        run: python3 app/general/bin/check-nbsp.py --force
 
       - name: Check app .gitignore
-        run: python3 bin/check-app-gitignore.py --check
+        run: python3 app/general/bin_internal/check-app-gitignore.py --check
 
       - name: Load app environment
-        run: bash bin/load-app-env.sh --env-file .vscode/.env.windows --workspace '${{ github.workspace }}' --format github
+        run: bash app/general/bin_internal/load-app-env.sh --env-file .vscode/.env.windows --workspace '${{ github.workspace }}' --format github
         shell: bash
 
       - name: Install WinFlexBison
@@ -530,14 +530,14 @@ jobs:
 
     steps:
       # index.html のタイトルを .vscode/pub_markdown.config.yaml から解決するため、
-      # このジョブでも bin/ と .vscode/ を取得する。
+      # このジョブでもサイト名解決スクリプトと .vscode/ を取得する。
       # checkout は作業ディレクトリを掃除するため、アーティファクトの取得より前に置く。
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           submodules: false
           sparse-checkout: |
-            bin
+            app/general/bin_internal
             .vscode
 
       - name: Download Linux OL8 test results
@@ -705,7 +705,7 @@ jobs:
 
       - name: Create Pages root index.html
         run: |
-          SITE_NAME="$(bash bin/resolve-site-name.sh --workspace "$GITHUB_WORKSPACE")"
+          SITE_NAME="$(bash app/general/bin_internal/resolve-site-name.sh --workspace "$GITHUB_WORKSPACE")"
           {
             cat <<INDEX_TOP
           <!DOCTYPE html>

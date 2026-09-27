@@ -4,7 +4,7 @@
 各 app は .gitignore の実体を持ち、テンプレートから生成する仕組みがない。
 そのため app ごとに内容がずれても気付けず、実際に 6 app がずれていた。
 
-正本は bin/app-gitignore.template とし、全 app へ同じ内容を配る。
+正本は bin_internal/app-gitignore.template とし、全 app へ同じ内容を配る。
 app が生成しないものの規則も残す。生成物の有無は app ごとに変わるが、
 規則を app ごとに削ると、何がずれで何が意図かを判別できなくなるためである。
 
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 #: 正本の置き場所。ワークスペース ルートからの相対パス。
-TEMPLATE_RELATIVE = "bin/app-gitignore.template"
+TEMPLATE_RELATIVE = "app/general/bin_internal/app-gitignore.template"
 
 #: 検査の対象とする app の置き場所。
 APP_DIR_RELATIVE = "app"

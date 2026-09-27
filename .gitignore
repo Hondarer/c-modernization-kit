@@ -21,12 +21,6 @@
 !/framework/doxyfw
 !/framework/docsfw
 !/framework/testfw
-!/app/c-platform
-!/app/porter
-!/app/cjson
-!/app/sqlite
-!/app/lua
-!/app/zlib
 
 # 以下は管理対象外
 
@@ -65,24 +59,21 @@ make_doxy.stamp
 ## leaf テスト ディレクトリ単位の再テスト スキップ用スタンプ
 test.stamp
 
-## 中間ファイル (Coverity)
+## Coverity 中間ディレクトリ
 idir
 
 ## Python cache
 __pycache__/
 
-## 生成ドキュメント (gh-pages で公開)
+## 公開ドキュメント
 /pages/
 
 ## 成果物
-lib
-# 中間階層の bin は管理対象外
-bin
-# ルート直下の bin は管理対象
-!/bin
+lib/
+bin/
 *.exe
 *.pdb
 *.warn
 
-## トレース
+## トレースログ
 log/

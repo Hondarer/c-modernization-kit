@@ -6,12 +6,12 @@ ifeq ($(MAKEFW_HOME),)
 endif
 DOXYFW_HOME ?= $(WORKSPACE_DIR)/framework/doxyfw
 TESTFW_HOME ?= $(WORKSPACE_DIR)/framework/testfw
-DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown_core.sh
+DOCSFW_SCRIPT := $(CURDIR)/framework/docsfw/bin/pub_markdown.sh
 DOCS_WARN_FILE := $(CURDIR)/docs.warn
-EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin/extract_docs_warnings.sh
-TESTFW_BANNER = $(TESTFW_HOME)/bin/banner.sh
-ROOT_RUNNER = $(MAKEFW_HOME)/bin/run_ordered_subdir_target.sh
-APP_ENV_SYNC = $(CURDIR)/bin/sync-app-env.sh
+EXTRACT_DOCS_WARNINGS := $(CURDIR)/framework/docsfw/bin_internal/extract_docs_warnings.sh
+TESTFW_BANNER = $(TESTFW_HOME)/bin_internal/banner.sh
+ROOT_RUNNER = $(MAKEFW_HOME)/bin_internal/run_ordered_subdir_target.sh
+APP_ENV_SYNC = $(CURDIR)/app/general/bin/sync-app-env.sh
 APP_ENV_WARN_FILE := $(CURDIR)/app/app_env.warn
 FRAMEWORK_MAKE_DIRS = $(TESTFW_HOME)
 
@@ -97,7 +97,7 @@ doxy :
 .PHONY: skills
 skills :
 	@printf 'INFO: Checking skills sync...\n'
-	@"$(BASH)" "$(CURDIR)/bin/sync-skills.sh"
+	@"$(BASH)" "$(CURDIR)/app/general/bin_internal/sync-skills.sh"
 	@printf 'INFO: skills sync completed.\n'
 
 .PHONY: sync-app-env
@@ -108,7 +108,7 @@ sync-app-env :
 
 .PHONY: check-nbsp
 check-nbsp :
-	python3 "$(CURDIR)/bin/check-nbsp.py"
+	python3 "$(CURDIR)/app/general/bin/check-nbsp.py"
 
 .PHONY: clean
 clean :

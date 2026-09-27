@@ -94,13 +94,13 @@ Windows 側を暗黙の `#else` にせず、条件を明示します。
 
 ```bash
 # 差分確認のみ
-python bin/fix-if-comments.py --dry-run app/transport-example/prod
+python app/general/bin/fix-if-comments.py --dry-run app/transport-example/prod
 
 # 実際に適用
-python bin/fix-if-comments.py app/transport-example/prod
+python app/general/bin/fix-if-comments.py app/transport-example/prod
 
 # 個別ファイル指定
-python bin/fix-if-comments.py src/foo.c include/bar.h
+python app/general/bin/fix-if-comments.py src/foo.c include/bar.h
 ```
 
 ## プラットフォーム分岐との関係

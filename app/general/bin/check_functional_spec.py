@@ -796,7 +796,7 @@ def check_workspace(root: Path) -> CheckResult:
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
-    default_root = Path(__file__).resolve().parents[1]
+    default_root = Path(__file__).resolve().parents[3]
     parser = argparse.ArgumentParser(
         description="app の機能仕様の要件 ID、UUID、下流成果物の参照を検査します。"
     )

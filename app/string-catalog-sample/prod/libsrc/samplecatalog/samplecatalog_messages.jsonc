@@ -1,6 +1,6 @@
 // 文字列カタログの定義です。
 // このファイルから公開ヘッダーとライブラリのソースが出力されます。生成物を直接編集しないでください。
-// 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
+// 生成器は app/c-platform/bin_internal/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
 //
 // ライブラリが外部へ公開するカタログのため、export に公開範囲を指定します。
 {

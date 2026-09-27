@@ -294,13 +294,13 @@ app 固有の用語や、その app だけに適用する追加の記載規則�
 - 前提、保証範囲、適用範囲外が要件と矛盾しないこと
 - 関連する機能仕様との用語と役割分担が一致すること
 
-Markdown の表記と文章は、[日本語技術文書の文章規範](../../../framework/docsfw/docs/japanese-technical-writing-guideline.md) と [text_style_jp](../../../framework/docsfw/bin/text_style_jp.md) に従って確認します。
+Markdown の表記と文章は、[日本語技術文書の文章規範](../../../framework/docsfw/docs/japanese-technical-writing-guideline.md) と [text_style_jp](../../../framework/docsfw/docs/text_style_jp.md) に従って確認します。
 
 要件 ID と UUID の形式および参照関係は、ワークスペース ルートで次のコマンドを実行して確認します。  
 検査は、`docs/functional-spec-guideline.md` が配置されているすべての app を対象とします。
 
 ```shell
-python3 bin/check_functional_spec.py
+python3 app/general/bin/check_functional_spec.py
 ```
 
 ## 参考

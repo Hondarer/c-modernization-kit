@@ -22,7 +22,7 @@ Linux/Windows 二択分岐を標準化する。
   - #if EXPR (複雑な式) のブロックは変更しない
 
 【使い方】
-  python framework/makefw/bin/fix-if-comments.py [--dry-run] <path>...
+  python app/general/bin/fix-if-comments.py [--dry-run] <path>...
 
   --dry-run  ファイルを変更せず、差分のみ表示する
   <path>     ファイルまたはディレクトリ（複数指定可）

@@ -102,7 +102,7 @@ C/C++ の空白、改行位置、桁揃えは `.clang-format` の出力を正と
 
 NBSP (`U+00A0`) は、`.editorconfig` や `.clang-format` では確実に禁止できません。
 
-対象ワークスペースでは `bin/check-nbsp.py` により、Git 管理下のテキスト ファイルへ NBSP が混入していないことを確認します。
+対象ワークスペースでは `app/general/bin/check-nbsp.py` により、Git 管理下のテキスト ファイルへ NBSP が混入していないことを確認します。
 
 ローカルでは以下を実行します。
 
@@ -115,7 +115,7 @@ make check-nbsp
 CI と Jenkins では全管理ファイルを確認するため、以下のように `--force` を付けて実行します。
 
 ```bash
-python3 bin/check-nbsp.py --force
+python3 app/general/bin/check-nbsp.py --force
 ```
 
 ## 編集時の基本方針
@@ -132,7 +132,7 @@ python3 bin/check-nbsp.py --force
 - `.gitattributes`
 - `.editorconfig`
 - `.clang-format`
-- `bin/check-nbsp.py`
+- `app/general/bin/check-nbsp.py`
 
 ## 参考資料
 

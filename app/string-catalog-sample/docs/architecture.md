@@ -62,7 +62,7 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 ## 生成の仕組み
 
 生成物は `gen/` へ配置し、Git では管理しません。`struct-meta` と同様の扱いです。  
-生成は cplat の `bin/string_catalog_gen.py` が行い、ビルドが駆動します。  
+生成は cplat の `bin_internal/string_catalog_gen.py` が行い、ビルドが駆動します。  
 定義ファイルまたは生成器が新しければ `make` が再生成するため、手動で実行する必要はありません。
 
 生成はビルド規則ではなく、app 直下の `makepart.mk` が makefile のパース時に行います。  
@@ -83,10 +83,10 @@ cplat はカタログを保持しません。利用側が用意するのは次�
 手動で実行する場合、および内容を検証する場合のコマンド例です。
 
 ```bash
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
-python3 ../c-platform/bin/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
+python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
+python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
+python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
+python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
 ```
 
 `--check` はファイルを出力せず、既存の生成物が定義と一致するかのみを検証します。  

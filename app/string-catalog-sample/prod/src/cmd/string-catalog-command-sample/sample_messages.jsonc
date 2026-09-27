@@ -1,6 +1,6 @@
 // 文字列カタログの定義です。
 // このファイルから gen/ 配下の生成物が出力されます。生成物を直接編集しないでください。
-// 生成器は app/c-platform/bin/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
+// 生成器は app/c-platform/bin_internal/string_catalog_gen.py です。ビルドにおける makefile の構文解析時に実行されます。
 {
     "author": "Tetsuo Honda",
     "date": "2026/09/12",

@@ -212,7 +212,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\"",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\"",
                 "options": {
                     "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
@@ -222,7 +222,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\"",
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFile}\"",
                 "options": {
                     "envFile": "${workspaceFolder}/.vscode/.env.linux"
                 }
@@ -237,7 +237,7 @@
                 "isDefault": false
             },
             "windows": {
-                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
+                "command": "bash -i \"%DOCSFW_HOME%/bin/pub_markdown.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
                 "options": {
                     "envFile": "${workspaceFolder}/.vscode/.env.windows",
                     "shell": {
@@ -247,7 +247,7 @@
                 }
             },
             "linux": {
-                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown_core.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
+                "command": "bash -i \"$DOCSFW_HOME/bin/pub_markdown.sh\" --workspaceFolder=\"${workspaceFolder}\" --relativeFile=\"${relativeFileDirname}\"",
                 "options": {
                     "envFile": "${workspaceFolder}/.vscode/.env.linux"
                 }

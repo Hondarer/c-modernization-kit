@@ -2,12 +2,13 @@
 #
 # app/<name>/**/makepart.mk の OUTPUT_DIR を正本として、実行時のコマンド探索パスと
 # ライブラリ探索パスを .vscode 配下の各設定ファイルへ同期する。
-# app/<name>/prod/bin はディレクトリが実在する場合に限り、コマンド探索パスへ加える。
+# app/<name>/prod/bin と app/<name>/bin、framework/<name>/bin は
+# ディレクトリが実在する場合に限り、コマンド探索パスへ加える。
 #
 # app の追加・削除に伴う手作業をなくすことが目的で、app 側に追加のメタファイルは
 # 必要としない。
 #
-# CI と Jenkins は生成対象ではない。これらは bin/load-app-env.sh を介して
+# CI と Jenkins は生成対象ではない。これらは bin_internal/load-app-env.sh を介して
 # .vscode/.env.linux / .vscode/.env.windows を読むため、app が増減しても
 # .github/workflows/ci.yml と .jenkins 配下の変更は発生しない。
 #
@@ -53,7 +54,7 @@ fi
 
 APP_DIR="$WORKSPACE_DIR/app"
 WARN_FILE="$APP_DIR/app_env.warn"
-APP_ORDER_RESOLVER="$WORKSPACE_DIR/framework/makefw/bin/resolve_app_deps.sh"
+APP_ORDER_RESOLVER="$WORKSPACE_DIR/framework/makefw/bin_internal/resolve_app_deps.sh"
 # --check では「設定差分あり」を warning として扱うため、内部エラーとは別の終了コードを使う
 SYNC_WARN_EXIT=3
 
@@ -202,6 +203,7 @@ mapfile -t APPS < <(bash "$APP_ORDER_RESOLVER" --app-order | tr ' ' '\n' | LC_AL
 
 CBIN_APPS=()
 BIN_APPS=()
+SCRIPT_BIN_APPS=()
 LIB_APPS=()
 DOCS_APPS=()
 
@@ -235,9 +237,56 @@ for app in "${APPS[@]}"; do
     if [[ -d "$APP_DIR/$app/prod/bin" ]]; then
         BIN_APPS+=("$app")
     fi
+    if [[ -d "$APP_DIR/$app/bin" ]]; then
+        SCRIPT_BIN_APPS+=("$app")
+    fi
     if [[ -d "$APP_DIR/$app/docs" ]]; then
         DOCS_APPS+=("$app")
     fi
+done
+
+mapfile -t FRAMEWORK_BINS < <(find "$WORKSPACE_DIR/framework" -mindepth 2 -maxdepth 2 -type d -name bin -print | LC_ALL=C sort)
+
+# 公開コマンドが同じ名前を持つと PATH の先頭側だけが実行される。
+# Windows での解決も考慮し、大文字小文字を無視して比較する。
+declare -A PUBLIC_NAMES=()
+for app in "${SCRIPT_BIN_APPS[@]}"; do
+    for command_file in "$APP_DIR/$app/bin/"*; do
+        [[ -f "$command_file" ]] || continue
+        command_name=${command_file##*/}
+        folded_name=${command_name,,}
+        if [[ -n "${PUBLIC_NAMES[$folded_name]:-}" ]]; then
+            printf 'Error: public command name collision: %s and %s\n' \
+                "${PUBLIC_NAMES[$folded_name]}" "$command_file" >&2
+            exit 2
+        fi
+        PUBLIC_NAMES[$folded_name]="$command_file"
+    done
+done
+for command_dir in "${FRAMEWORK_BINS[@]}"; do
+    for command_file in "$command_dir/"*; do
+        [[ -f "$command_file" ]] || continue
+        command_name=${command_file##*/}
+        folded_name=${command_name,,}
+        if [[ -n "${PUBLIC_NAMES[$folded_name]:-}" ]]; then
+            printf 'Error: public command name collision: %s and %s\n' \
+                "${PUBLIC_NAMES[$folded_name]}" "$command_file" >&2
+            exit 2
+        fi
+        PUBLIC_NAMES[$folded_name]="$command_file"
+    done
+done
+for app in "${CBIN_APPS[@]}"; do
+    for command_file in "$APP_DIR/$app/prod/cbin/"*; do
+        [[ -f "$command_file" ]] || continue
+        command_name=${command_file##*/}
+        folded_name=${command_name,,}
+        if [[ -n "${PUBLIC_NAMES[$folded_name]:-}" ]]; then
+            printf 'Error: public command conflicts with prod/cbin: %s and %s\n' \
+                "${PUBLIC_NAMES[$folded_name]}" "$command_file" >&2
+            exit 2
+        fi
+    done
 done
 
 #
@@ -310,15 +359,25 @@ build_path_entries() {
         if contains_app "$app" "${BIN_APPS[@]}"; then
             printf '%s%s%sprod%sbin\n' "$prefix" "$app" "$sep_dir" "$sep_dir"
         fi
+        if contains_app "$app" "${SCRIPT_BIN_APPS[@]}"; then
+            printf '%s%s%sbin\n' "$prefix" "$app" "$sep_dir"
+        fi
     done
 }
 
 mapfile -t LINUX_ENTRIES < <(build_path_entries '${workspaceFolder}/app/' '/' 0)
+for framework_bin in "${FRAMEWORK_BINS[@]}"; do
+    LINUX_ENTRIES+=("\${workspaceFolder}/${framework_bin#"$WORKSPACE_DIR"/}")
+done
 LINUX_ENTRIES+=('${env:PATH}')
 VSCODE_LINUX_PATH=$(join_by ':' "${LINUX_ENTRIES[@]}")
 VSCODE_LINUX_LDPATH=$(build_path_value '${workspaceFolder}/app/' '/prod/lib' ':' '' "${LIB_APPS[@]}")
 
 mapfile -t WIN_ENTRIES < <(build_path_entries '${workspaceFolder}\app\' '\' 1)
+for framework_bin in "${FRAMEWORK_BINS[@]}"; do
+    framework_name=${framework_bin#"$WORKSPACE_DIR/framework/"}
+    WIN_ENTRIES+=("\${workspaceFolder}\\framework\\${framework_name//\//\\}")
+done
 WIN_ENTRIES+=('${env:PATH}')
 VSCODE_WINDOWS_PATH=$(join_by ';' "${WIN_ENTRIES[@]}")
 # settings.json は JSON 文字列のため、バックスラッシュを二重化する
@@ -501,6 +560,7 @@ fi
     if (( ${#REQUIRED_CHANGED_FILES[@]} > 0 )); then
         printf '    app/*/**/makepart.mk (OUTPUT_DIR)\n'
         printf '    app/*/prod/bin (existence)\n'
+        printf '    app/*/bin and framework/*/bin (existence)\n'
     fi
     if (( INCLUDE_PUB_MARKDOWN )) && (( ${#OPTIONAL_CHANGED_FILES[@]} > 0 )); then
         printf '    app/*/docs\n'
@@ -508,7 +568,7 @@ fi
     printf '  TARGET :\n'
     printf '    %s\n' "${WARNING_FILES[@]}"
     printf 'Run from workspace root:\n'
-    printf '  bash bin/sync-app-env.sh --write'
+    printf '  bash app/general/bin/sync-app-env.sh --write'
     if (( INCLUDE_PUB_MARKDOWN )) && (( ${#OPTIONAL_CHANGED_FILES[@]} > 0 )); then
         printf ' --include-pub-markdown'
     fi

@@ -17,7 +17,7 @@
 
 次の外部配布物は除外します。
 
-- `framework/docsfw/bin/modules/LibDeflate/`
+- `framework/docsfw/bin_internal/modules/LibDeflate/`
 - `framework/docsfw/styles/widdershins/`
 - `framework/testfw/gtest/`
 - app 配下で展開された第三者ソースとその生成文書

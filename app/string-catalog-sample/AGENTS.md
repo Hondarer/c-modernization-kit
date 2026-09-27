@@ -25,7 +25,7 @@
 
 ## 変更時の制約
 
-- 生成物は Git では管理しません。ビルドが cplat の `bin/string_catalog_gen.py` を駆動するため、手動で実行する必要はありません。変更するのはカタログ定義ファイルです。
+- 生成物は Git では管理しません。ビルドが cplat の `bin_internal/string_catalog_gen.py` を駆動するため、手動で実行する必要はありません。変更するのはカタログ定義ファイルです。
     - コマンドが同梱するカタログの生成物は、そのコマンドの `gen/` (`prod/src/cmd/string-catalog-command-sample/gen/` と `prod/src/cmd/string-catalog-filter-sample/gen/`) へ配置します。
     - ライブラリが公開するカタログの生成物は、ヘッダーを `prod/include/samplecatalog/` へ、ソースを `prod/libsrc/samplecatalog/gen/` へ配置します。公開ヘッダーは、配置先の `prod/include/samplecatalog/.gitignore` で個別に指定します。`app/lua` や `app/cjson` が展開した公開ヘッダーを扱う形式と同様であり、app 直下の `.gitignore` は共通の内容を維持します。
 - 生成は app 直下の `makepart.mk` が makefile のパース時に行います。ビルド規則に含めないでください。テストのディレクトリを解釈する時点で生成物が必要になるためです。
@@ -82,5 +82,5 @@ cd test/src/cmd/sampleMessagesTest && make test
 ライブラリの公開シンボルを変更した場合は、`test/src/libsamplecatalog/exportTest` の一覧も更新してください。  
 公開範囲の設定と実際のエクスポート内容に不整合が生じていないことを、このテストで検証します。
 
-ライブラリを追加または削除した場合は、`bin/sync-app-env.sh --write` を実行してください。  
+ライブラリを追加または削除した場合は、`app/general/bin/sync-app-env.sh --write` を実行してください。  
 実行時のライブラリ探索パスが `.vscode` 配下の設定へ同期されます。

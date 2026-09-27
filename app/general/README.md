@@ -2,6 +2,8 @@
 
 このディレクトリは、すべての app に共通する規範、設計、運用手順、スキルを管理します。
 
+統合ターミナルから直接使う共通コマンドは `bin/`、環境設定、スキル同期、検査などの内部処理は `bin_internal/` に配置します。
+
 - [作業規則](AGENTS.md)
 - [文書一覧](docs/README.md)
 - [AGENTS とスキルの設計指針](docs/agents-and-skills-guideline.md)

@@ -16,7 +16,7 @@ usage() {
 Usage:
   resolve-site-name.sh [--workspace <dir>] [--config <path>]
 
-  --workspace   ワークスペース ルート (既定: 本スクリプトの 1 階層上)
+  --workspace   ワークスペース ルート (既定: 本スクリプトの 3 階層上)
   --config      設定ファイル (既定: <workspace>/.vscode/pub_markdown.config.yaml)
 EOF
 }
@@ -47,7 +47,7 @@ while (( $# > 0 )); do
 done
 
 if [[ -z "$WORKSPACE" ]]; then
-    WORKSPACE="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+    WORKSPACE="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)"
 fi
 if [[ -z "$CONFIG" ]]; then
     CONFIG="$WORKSPACE/.vscode/pub_markdown.config.yaml"

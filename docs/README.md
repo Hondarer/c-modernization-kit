@@ -4,7 +4,7 @@
 
 ## 重要な文書
 
-- [ワークスペース固有の運用](../app/c-modernization-kit/docs/README.md)
+- [github.com/Hondarer/c-modernization-kit 固有の運用](../app/c-modernization-kit/docs/README.md)
 - [全 app 共通の規範とガイド](../app/general/docs/README.md)
 - [Markdown 発行フレームワーク](../framework/docsfw/docs/README.md)
 - [Doxygen 生成フレームワーク](../framework/doxyfw/docs/README.md)

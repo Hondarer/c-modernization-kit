@@ -19,12 +19,12 @@ mkdir -p logs
 # app が増減しても本スクリプトの変更は不要である。
 # --no-clobber により、Jenkins ジョブ側で先に export した値 (MAKEFW_HOME など) は保持する。
 # see: app/general/docs/vscode-variables.md
-eval "$(bash /workspace/bin/load-app-env.sh \
+eval "$(bash /workspace/app/general/bin_internal/load-app-env.sh \
     --env-file /workspace/.vscode/.env.linux \
     --workspace /workspace \
     --format shell --no-clobber)"
 
-python3 /workspace/bin/check-nbsp.py --force
+python3 /workspace/app/general/bin/check-nbsp.py --force
 
 # ビルド ログを保存しながら make を実行
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
@@ -106,7 +106,7 @@ fi
 
 # pages/index.html の生成 (GitHub Actions と同じ構造, HTML Publisher Plugin のエントリ ページ)
 # タイトルは .vscode/pub_markdown.config.yaml の siteName を源泉とする。
-SITE_NAME="$(bash /workspace/bin/resolve-site-name.sh --workspace /workspace)"
+SITE_NAME="$(bash /workspace/app/general/bin_internal/resolve-site-name.sh --workspace /workspace)"
 
 {
     cat <<INDEX_TOP

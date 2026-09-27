@@ -1,0 +1,7 @@
+## サブモジュール
+!/c-platform
+!/porter
+!/cjson
+!/sqlite
+!/lua
+!/zlib
