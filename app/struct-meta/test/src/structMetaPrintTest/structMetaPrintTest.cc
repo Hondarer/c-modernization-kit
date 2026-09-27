@@ -25,6 +25,7 @@ const struct_meta_field kFields[] = {
 const struct_meta_descriptor kDescriptor = {"ByteArrays", sizeof(ByteArrays), kFields, 2, nullptr, nullptr, 0};
 } // namespace
 
+// バイト配列のフィールドが指定されたフォーマット属性に従って整形出力されることの確認
 TEST(structMetaPrintTest, prints_byte_arrays_in_selected_format)
 {
     // Arrange

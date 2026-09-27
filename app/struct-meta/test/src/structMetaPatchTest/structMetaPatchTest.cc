@@ -105,32 +105,45 @@ class StructMetaPatchTest : public Test
     }
 };
 
+// パス指定によりネストした構造体内の文字列フィールドを対話編集できることの確認
 TEST_F(StructMetaPatchTest, PathSelectsNestedString)
 {
-    Sample sample = {}; // [準備_正常系] - ネスト配列を持つ構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - ネスト配列を持つ構造体を用意する。
     expect_inputs({"Tokyo"});
 
-    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[0].city");
-    // [手順_正常系] - ネストした文字列をパスで指定して編集する。
+    // Pre-Assert
 
+    // Act
+    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[0].city");
+    // [手順] - ネストした文字列をパスで指定して編集する。
+
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);                 // [確認_正常系] - 編集が成功すること。
     EXPECT_STREQ("Tokyo", sample.addresses[0].city); // [確認_正常系] - 指定した文字列だけが更新されること。
     EXPECT_THAT(prompts, Contains(HasSubstr("addresses[0].city (現在値")));
     // [確認_正常系] - パス指定方式の値入力にも完全パスを表示すること。
 }
 
+// パス指定により配列の特定要素を対話編集できることの確認
 TEST_F(StructMetaPatchTest, PathSelectsArrayElement)
 {
-    Sample sample = {}; // [準備_正常系] - 整数配列を持つ構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 整数配列を持つ構造体を用意する。
     expect_inputs({"42"});
 
-    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "scores[1]");
-    // [手順_正常系] - 整数配列の要素をパスで指定して編集する。
+    // Pre-Assert
 
+    // Act
+    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "scores[1]");
+    // [手順] - 整数配列の要素をパスで指定して編集する。
+
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 編集が成功すること。
     EXPECT_EQ(42, sample.scores[1]); // [確認_正常系] - 指定した要素だけが更新されること。
 }
 
+// パス指定により16進配列全体を文字列として一括編集できることの確認
 TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
 {
     // Arrange
@@ -151,6 +164,7 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
     EXPECT_EQ(0xdd, sample.hex_bytes[3]); // [確認_正常系] - 末尾バイトを更新すること。
 }
 
+// パス指定により16進配列の個別要素を10進整数として対話編集できることの確認
 TEST_F(StructMetaPatchTest, path_edits_hex_array_element_as_decimal)
 {
     // Arrange
@@ -168,10 +182,14 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_element_as_decimal)
     EXPECT_EQ(127, sample.hex_bytes[1]); // [確認_正常系] - 指定要素を10進値で更新すること。
 }
 
+// 構造体要素を終端とするパスを指定した場合にフィールド選択メニューが開くことの確認
 TEST_F(StructMetaPatchTest, PathEndingAtStructOpensFieldMenu)
 {
-    Sample sample = {}; // [準備_正常系] - 構造体配列を持つ構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 構造体配列を持つ構造体を用意する。
     expect_inputs({"2", "123", ""});
+
+    // Pre-Assert
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- Address (現在位置: addresses[0]) --")))
@@ -179,17 +197,23 @@ TEST_F(StructMetaPatchTest, PathEndingAtStructOpensFieldMenu)
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("2) addresses[0].zip = 0")))
         .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 構造体の候補を完全パスで表示すること。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[0]");
-    // [手順_正常系] - 構造体要素をパスで指定し、zip を編集して戻る。
+    // [手順] - 構造体要素をパスで指定し、zip を編集して戻る。
 
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);         // [確認_正常系] - 編集が成功すること。
     EXPECT_EQ(123, sample.addresses[0].zip); // [確認_正常系] - 選択した構造体の zip が更新されること。
 }
 
+// 配列を終端とするパスを指定した場合に要素選択メニューが開くことの確認
 TEST_F(StructMetaPatchTest, PathEndingAtArrayOpensElementMenu)
 {
-    Sample sample = {}; // [準備_正常系] - 整数配列を持つ構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 整数配列を持つ構造体を用意する。
     expect_inputs({"1", "77", ""});
+
+    // Pre-Assert
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- scores (現在位置: scores、配列、要素数 3) --")))
@@ -197,38 +221,53 @@ TEST_F(StructMetaPatchTest, PathEndingAtArrayOpensElementMenu)
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("1) scores[1]")))
         .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 配列要素を完全パスで表示すること。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "scores");
-    // [手順_正常系] - 配列全体をパスで指定し、要素を選択して編集する。
+    // [手順] - 配列全体をパスで指定し、要素を選択して編集する。
 
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 編集が成功すること。
     EXPECT_EQ(77, sample.scores[1]); // [確認_正常系] - メニューで選択した要素が更新されること。
 }
 
+// 構造体配列を終端とするパスを指定した場合に要素メニューとフィールドメニューが順に開くことの確認
 TEST_F(StructMetaPatchTest, PathEndingAtStructArrayOpensElementAndFieldMenus)
 {
-    Sample sample = {}; // [準備_正常系] - 構造体配列を持つ構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 構造体配列を持つ構造体を用意する。
     expect_inputs({"1", "1", "Osaka", "", ""});
 
-    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses");
-    // [手順_正常系] - 構造体配列全体を指定し、要素とフィールドを選択して編集する。
+    // Pre-Assert
 
+    // Act
+    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses");
+    // [手順] - 構造体配列全体を指定し、要素とフィールドを選択して編集する。
+
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);                 // [確認_正常系] - 編集が成功すること。
     EXPECT_STREQ("Osaka", sample.addresses[1].city); // [確認_正常系] - 選択した要素の city が更新されること。
 }
 
+// 対話入力で空行を入力した場合に現在の値が維持されることの確認
 TEST_F(StructMetaPatchTest, EmptyValueKeepsCurrentValue)
 {
+    // Arrange
     Sample sample = {};
-    sample.id = 12; // [準備_正常系] - 変更前の値を設定する。
+    sample.id = 12; // [状態] - 変更前の値を設定する。
     expect_inputs({""});
 
-    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
-    // [手順_正常系] - 値の入力で空行を指定する。
+    // Pre-Assert
 
+    // Act
+    int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
+    // [手順] - 値の入力で空行を指定する。
+
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 変更なしを正常終了として扱うこと。
     EXPECT_EQ(12, sample.id);        // [確認_正常系] - 元の値を維持すること。
 }
 
+// メニューからメンバー名を直接入力してフィールドを選択・編集できることの確認
 TEST_F(StructMetaPatchTest, MenuSelectsFieldByMemberName)
 {
     // Arrange
@@ -248,10 +287,14 @@ TEST_F(StructMetaPatchTest, MenuSelectsFieldByMemberName)
     // [確認_正常系] - メンバー名を入力できるプロンプトを表示すること。
 }
 
+// ルートからの階層メニュー選択（ドリルダウン）による編集が正しく機能することの確認
 TEST_F(StructMetaPatchTest, DrillDownRemainsAvailable)
 {
-    Sample sample = {}; // [準備_正常系] - 従来のメニュー選択に使う構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 従来のメニュー選択に使う構造体を用意する。
     expect_inputs({"1", "0", "1", "Tokyo", "", "", ""});
+
+    // Pre-Assert
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- Sample (現在位置: <root>) --")))
@@ -263,89 +306,126 @@ TEST_F(StructMetaPatchTest, DrillDownRemainsAvailable)
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("1) addresses[0].city = \"\"")))
         .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - ネスト先の候補を完全パスで表示すること。
 
+    // Act
     int actual_ret = struct_meta_patch_interactive(&kSampleDescriptor, &sample);
-    // [手順_正常系] - 従来のドリルダウン式で addresses[0].city を編集する。
+    // [手順] - 従来のドリルダウン式で addresses[0].city を編集する。
 
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);                 // [確認_正常系] - 従来の編集が成功すること。
     EXPECT_STREQ("Tokyo", sample.addresses[0].city); // [確認_正常系] - 選択したフィールドが更新されること。
     EXPECT_THAT(prompts, Contains(HasSubstr("addresses[0].city (現在値")));
     // [確認_正常系] - 値入力にも完全パスを表示すること。
 }
 
+// 範囲外の配列インデックスなど無効なパスが指定された場合にプロンプト生成前にエラーを返すことの確認
 TEST_F(StructMetaPatchTest, InvalidPathIsRejectedBeforePromptCreation)
 {
-    Sample sample = {}; // [準備_異常系] - パス解決対象の構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - パス解決対象の構造体を用意する。
+
+    // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - パス解決に失敗した場合はプロンプトを作成しないこと。
+    // [状態確認] - パス解決に失敗した場合はプロンプトを作成しないこと。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[2].city");
-    // [手順_異常系] - 範囲外の配列インデックスを指定する。
+    // [手順] - 範囲外の配列インデックスを指定する。
 
+    // Assert
     EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, actual_ret); // [確認_異常系] - 範囲外エラーを返すこと。
 }
 
+// 存在しないフィールド名を含むパスが指定された場合にプロンプト生成前にエラーを返すことの確認
 TEST_F(StructMetaPatchTest, UnknownFieldIsRejectedBeforePromptCreation)
 {
-    Sample sample = {}; // [準備_異常系] - パス解決対象の構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - パス解決対象の構造体を用意する。
+
+    // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - 未知フィールドの場合はプロンプトを作成しないこと。
+    // [状態確認] - 未知フィールドの場合はプロンプトを作成しないこと。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "unknown");
-    // [手順_異常系] - 存在しないフィールドを指定する。
+    // [手順] - 存在しないフィールドを指定する。
 
+    // Assert
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual_ret); // [確認_異常系] - 未検出エラーを返すこと。
 }
 
+// NULLまたは空文字列のパスが指定された場合にプロンプト生成前にエラーを返すことの確認
 TEST_F(StructMetaPatchTest, InvalidArgumentsAreRejectedBeforePromptCreation)
 {
-    Sample sample = {}; // [準備_異常系] - 引数検査に使う構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 引数検査に使う構造体を用意する。
+
+    // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - 引数が不正な場合はプロンプトを作成しないこと。
+    // [状態確認] - 引数が不正な場合はプロンプトを作成しないこと。
 
-    int null_path_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, nullptr);
-    int empty_path_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "");
-    // [手順_異常系] - NULL と空文字列のパスを指定する。
+    // Act
+    int null_path_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, nullptr); // [手順] - NULL パスを指定する。
+    int empty_path_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "");     // [手順] - 空文字列パスを指定する。
 
+    // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_path_ret);  // [確認_異常系] - NULL を拒否すること。
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, empty_path_ret); // [確認_異常系] - 空文字列を拒否すること。
 }
 
+// 名前のない破損した記述子が指定された場合にプロンプト生成前にエラーを返すことの確認
 TEST_F(StructMetaPatchTest, CorruptDescriptorIsRejectedBeforePromptCreation)
 {
-    Sample sample = {}; // [準備_異常系] - 不正な記述子の対象インスタンスを用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 不正な記述子の対象インスタンスを用意する。
     const struct_meta_descriptor corrupt_descriptor = {nullptr, sizeof(Sample), kSampleFields, 4, nullptr, nullptr, 0};
+
+    // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - 記述子検査に失敗した場合はプロンプトを作成しないこと。
+    // [状態確認] - 記述子検査に失敗した場合はプロンプトを作成しないこと。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&corrupt_descriptor, &sample, "id");
-    // [手順_異常系] - 名前のない壊れた記述子を指定する。
+    // [手順] - 名前のない壊れた記述子を指定する。
 
+    // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 記述子破損エラーを返すこと。
 }
 
+// プロンプト生成に失敗した場合にメモリ不足エラーを返すことの確認
 TEST_F(StructMetaPatchTest, PromptCreationFailureIsReturned)
 {
-    Sample sample = {}; // [準備_異常系] - 編集対象の構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 編集対象の構造体を用意する。
+
+    // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr))
         .WillOnce(Return(nullptr)); // [Pre-Assert確認_異常系] - プロンプト生成失敗を発生させる。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
-    // [手順_異常系] - プロンプトを生成して編集を開始する。
+    // [手順] - プロンプトを生成して編集を開始する。
 
+    // Assert
     EXPECT_EQ(CPLAT_ERR_OUT_OF_MEMORY, actual_ret); // [確認_異常系] - メモリ不足エラーを返すこと。
 }
 
+// 対話入力中にキャンセルが発生した場合にプロンプト破棄後にエラーコードを返すことの確認
 TEST_F(StructMetaPatchTest, PromptInputFailureIsReturnedAfterDisposal)
 {
-    Sample sample = {}; // [準備_異常系] - 編集対象の構造体を用意する。
+    // Arrange
+    Sample sample = {}; // [状態] - 編集対象の構造体を用意する。
+
+    // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr)).WillOnce(Return(prompt));
     EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))
         .WillOnce(Return(CPLAT_ERR_CANCELED)); // [Pre-Assert確認_異常系] - 入力キャンセルを発生させる。
     EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))
         .WillOnce(Return()); // [Pre-Assert確認_異常系] - 失敗時にもプロンプトを破棄すること。
 
+    // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
-    // [手順_異常系] - 対話入力中にキャンセルする。
+    // [手順] - 対話入力中にキャンセルする。
 
+    // Assert
     EXPECT_EQ(CPLAT_ERR_CANCELED, actual_ret); // [確認_異常系] - 入力元のエラーを返すこと。
 }

@@ -67,6 +67,7 @@ int add_scalar(struct_meta_internal_layout_builder *builder, const char *spellin
 
 } // namespace
 
+// 対応する基本型の情報を取得でき、プラットフォーム依存の未対応型名やNULLを拒否することの確認
 TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_ones)
 {
     // Arrange
@@ -101,6 +102,7 @@ TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_
               struct_meta_internal_layout_find_type("size_t")); // [確認_異常系] - 未対応の型名を拒否すること。
 }
 
+// スカラーメンバーを持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
 TEST(structMetaLayoutTest, computes_scalar_layout_like_the_compiler)
 {
     // Arrange
@@ -135,6 +137,7 @@ TEST(structMetaLayoutTest, computes_scalar_layout_like_the_compiler)
     EXPECT_EQ(alignof(mixed_widths), alignment);              // [確認_正常系] - 構造体の境界が一致すること。
 }
 
+// 固定長配列メンバーを持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
 TEST(structMetaLayoutTest, computes_array_layout_like_the_compiler)
 {
     // Arrange
@@ -163,6 +166,7 @@ TEST(structMetaLayoutTest, computes_array_layout_like_the_compiler)
     EXPECT_EQ(alignof(with_arrays), alignment);              // [確認_正常系] - 構造体の境界が一致すること。
 }
 
+// ネストした構造体を持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
 TEST(structMetaLayoutTest, computes_nested_layout_like_the_compiler)
 {
     // Arrange
@@ -207,6 +211,7 @@ TEST(structMetaLayoutTest, computes_nested_layout_like_the_compiler)
     EXPECT_EQ(alignof(nested_holder), alignment);                 // [確認_正常系] - ネストの境界が親へ伝播すること。
 }
 
+// レイアウト計算の各関数に不正な引数を渡した場合に適切なエラーコードを返すことの確認
 TEST(structMetaLayoutTest, rejects_invalid_arguments)
 {
     // Arrange
@@ -219,18 +224,18 @@ TEST(structMetaLayoutTest, rejects_invalid_arguments)
     // Pre-Assert
     struct_meta_internal_layout_begin(&builder);
     struct_meta_internal_layout_begin(&empty_builder);
-    struct_meta_internal_layout_begin(nullptr); // [手順] - NULL で異常終了しないこと。
+    struct_meta_internal_layout_begin(nullptr); // [状態] - NULL で異常終了しないこと。
 
     // Act
-    int null_builder = struct_meta_internal_layout_add(nullptr, 4, 1, 4, &offset);
-    int null_offset = struct_meta_internal_layout_add(&builder, 4, 1, 4, nullptr);
-    int zero_size = struct_meta_internal_layout_add(&builder, 0, 1, 4, &offset);
-    int zero_count = struct_meta_internal_layout_add(&builder, 4, 0, 4, &offset);
-    int zero_alignment = struct_meta_internal_layout_add(&builder, 4, 1, 0, &offset);
-    int odd_alignment = struct_meta_internal_layout_add(&builder, 4, 1, 3, &offset);
-    int huge_count = struct_meta_internal_layout_add(&builder, 8, SIZE_MAX, 8, &offset);
-    int empty_struct = struct_meta_internal_layout_end(&empty_builder, &size, &alignment);
-    int null_size = struct_meta_internal_layout_end(&empty_builder, nullptr, &alignment);
+    int null_builder = struct_meta_internal_layout_add(nullptr, 4, 1, 4, &offset); // [手順] - builder に NULL を指定して追加する。
+    int null_offset = struct_meta_internal_layout_add(&builder, 4, 1, 4, nullptr);  // [手順] - offset_out に NULL を指定して追加する。
+    int zero_size = struct_meta_internal_layout_add(&builder, 0, 1, 4, &offset);    // [手順] - 要素サイズに 0 を指定して追加する。
+    int zero_count = struct_meta_internal_layout_add(&builder, 4, 0, 4, &offset);   // [手順] - 要素数に 0 を指定して追加する。
+    int zero_alignment = struct_meta_internal_layout_add(&builder, 4, 1, 0, &offset); // [手順] - 境界に 0 を指定して追加する。
+    int odd_alignment = struct_meta_internal_layout_add(&builder, 4, 1, 3, &offset);  // [手順] - 2の冪でない境界を指定して追加する。
+    int huge_count = struct_meta_internal_layout_add(&builder, 8, SIZE_MAX, 8, &offset); // [手順] - 桁あふれする要素数を指定して追加する。
+    int empty_struct = struct_meta_internal_layout_end(&empty_builder, &size, &alignment); // [手順] - メンバー無しの状態で終了する。
+    int null_size = struct_meta_internal_layout_end(&empty_builder, nullptr, &alignment); // [手順] - size_out に NULL を指定して終了する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_builder);   // [確認_異常系] - 途中経過の NULL を拒否すること。

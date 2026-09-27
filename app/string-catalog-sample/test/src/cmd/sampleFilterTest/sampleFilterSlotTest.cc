@@ -275,7 +275,7 @@ TEST_F(sampleFilterSlotTest, apply_with_mismatched_line_width_returns_corrupt_de
     EXPECT_EQ(SAMPLE_FILTER_STATE_ALWAYS_MATCH, actual_state_after); // [確認_異常系] - 以前の判定状態が維持されること。
 }
 
-// 適用後に呼び出し側のイメージ領域を 0 で上書きしても、判定結果が変わらないことの確認 (複製の契約)
+// 呼び出し側のイメージ領域がスロット内部へ複製され、適用後に元の領域を 0 で上書きしても判定結果が変わらないことの確認
 TEST_F(sampleFilterSlotTest, apply_copies_image_so_caller_buffer_can_be_cleared_afterwards)
 {
     // Arrange

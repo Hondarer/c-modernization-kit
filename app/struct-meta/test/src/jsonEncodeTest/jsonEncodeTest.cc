@@ -77,19 +77,31 @@ const struct_meta_field kByteFields[] = {
 const struct_meta_descriptor kByteDescriptor = {"ByteArrays", sizeof(ByteArrays), kByteFields, 3, nullptr, nullptr, 0};
 } // namespace
 
+// 各ビット幅の整数値が JSON へ正しくエンコードされることの確認
 TEST(JsonEncodeTest, EncodesEachIntegerWidth)
 {
-    Widths sample = {-999999999999999, 4294967295U, -32768, 255, 0}; // [準備_正常系] - 各幅の限界値を用意する。
+    // Arrange
+    Widths sample = {-999999999999999, 4294967295U, -32768, 255, 0}; // [状態] - 各幅の限界値を用意する。
     cJSON *json = nullptr;
-    ASSERT_EQ(CPLAT_OK, struct_meta_json_encode(&kWidthsDescriptor, &sample, &json)); // [手順_正常系]
+
+    // Pre-Assert
+
+    // Act
+    int ret = struct_meta_json_encode(&kWidthsDescriptor, &sample, &json); // [手順] - 各幅の整数値を含む構造体を JSON へエンコードする。
+
+    // Assert
+    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
     ASSERT_NE(nullptr, json); // [確認_正常系] - 幅ごとの値が JSON へ変換されること。
     EXPECT_DOUBLE_EQ(-999999999999999.0, cJSON_GetObjectItemCaseSensitive(json, "wide")->valuedouble);
     EXPECT_DOUBLE_EQ(4294967295.0, cJSON_GetObjectItemCaseSensitive(json, "flags")->valuedouble);
     EXPECT_DOUBLE_EQ(-32768.0, cJSON_GetObjectItemCaseSensitive(json, "offset")->valuedouble);
     EXPECT_DOUBLE_EQ(255.0, cJSON_GetObjectItemCaseSensitive(json, "rank")->valuedouble);
+
+    // Cleanup
     cJSON_Delete(json);
 }
 
+// 64 ビット整数の全境界値が丸めなく正確に JSON へエンコードされることの確認
 TEST(JsonEncodeTest, encodes_64_bit_integer_limits_exactly)
 {
     // Arrange
@@ -127,28 +139,48 @@ TEST(JsonEncodeTest, encodes_64_bit_integer_limits_exactly)
     cJSON_Delete(json);
 }
 
+// json.name 属性および json.ignore 属性に従って JSON が生成されることの確認
 TEST(JsonEncodeTest, UsesGenericJsonAttributes)
 {
-    Sample sample = {42, 7}; // [準備_正常系] - 名前変更属性と除外属性を持つ値を用意する。
+    // Arrange
+    Sample sample = {42, 7}; // [状態] - 名前変更属性と除外属性を持つ値を用意する。
     cJSON *json = nullptr;
-    ASSERT_EQ(CPLAT_OK, struct_meta_json_encode(&kDescriptor, &sample, &json)); // [手順_正常系]
+
+    // Pre-Assert
+
+    // Act
+    int ret = struct_meta_json_encode(&kDescriptor, &sample, &json); // [手順] - 属性付き構造体を JSON へエンコードする。
+
+    // Assert
+    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
     ASSERT_NE(nullptr, json); // [確認_正常系] - 属性に従った JSON が生成されること。
     EXPECT_EQ(42, cJSON_GetObjectItemCaseSensitive(json, "person_id")->valueint);
     EXPECT_EQ(nullptr, cJSON_GetObjectItemCaseSensitive(json, "id"));
     EXPECT_EQ(nullptr, cJSON_GetObjectItemCaseSensitive(json, "hidden"));
+
+    // Cleanup
     cJSON_Delete(json);
 }
 
+// 破損した構造体記述子での JSON エンコードが適切に拒否されることの確認
 TEST(JsonEncodeTest, RejectsCorruptDescriptor)
 {
+    // Arrange
     const struct_meta_descriptor descriptor = {"Sample", sizeof(Sample), nullptr, 1, nullptr, nullptr, 0};
-    Sample sample = {}; // [準備_異常系] - フィールド配列が欠けた記述子を用意する。
+    Sample sample = {}; // [状態] - フィールド配列が欠けた記述子を用意する。
     cJSON *json = nullptr;
-    int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順_異常系]
+
+    // Pre-Assert
+
+    // Act
+    int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順] - 破損した記述子でエンコードを試みる。
+
+    // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual);                   // [確認_異常系] - 検査エラーになること。
-    EXPECT_EQ(nullptr, json);
+    EXPECT_EQ(nullptr, json);                                          // [確認_異常系] - JSON が生成されないこと。
 }
 
+// バイト配列フィールドが指定フォーマットに従い整数配列または 16 進数文字列としてエンコードされることの確認
 TEST(JsonEncodeTest, encodes_byte_arrays_in_selected_format)
 {
     // Arrange
@@ -174,9 +206,12 @@ TEST(JsonEncodeTest, encodes_byte_arrays_in_selected_format)
                      cJSON_GetArrayItem(unsigned_values, 2)->valuedouble); // [確認_正常系] - 符号なし値を維持すること。
     ASSERT_TRUE(cJSON_IsString(hex_values));                    // [確認_正常系] - hex 指定が文字列になること。
     EXPECT_STREQ("00 a5 ff", cJSON_GetStringValue(hex_values)); // [確認_正常系] - 小文字2桁の空白区切りであること。
+
+    // Cleanup
     cJSON_Delete(json);
 }
 
+// NUL 終端されていない文字配列が不正なエンコーディングとして拒否されることの確認
 TEST(JsonEncodeTest, rejects_unterminated_character_array)
 {
     // Arrange

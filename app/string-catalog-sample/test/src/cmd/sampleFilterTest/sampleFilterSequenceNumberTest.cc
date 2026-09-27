@@ -6,8 +6,7 @@ class sampleFilterSequenceNumberTest : public Test
 {
 };
 
-// SAMPLE_WORKER_SEQUENCE_NUMBER_MAX 回の呼び出し後に、基準値と同じ値へ巡回することの確認
-// (プロセス内で共有するカウンターのため、絶対値ではなく周期で確認し、実行順に依存させない)
+// プロセス内で共有するカウンターのため絶対値ではなく周期で確認し、上限回数の呼び出し後に基準値と同じ値へ巡回することの確認
 TEST_F(sampleFilterSequenceNumberTest, wraps_around_after_reaching_the_maximum)
 {
     // Arrange

@@ -3,6 +3,7 @@
 #include <struct_meta/access/access.h>
 #include <testfw.h>
 
+// 埋め込み索引を通じてカタログ内の型名から記述子を検索でき、未知・空の型名にはNULLを返すことの確認
 TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
 {
     // Arrange
@@ -11,7 +12,7 @@ TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
        「索引へ接続できた」ことの表明になる。 */
 
     // Pre-Assert
-    ASSERT_EQ(3U, sample_types_meta_count()); // [事前条件] - 生成カタログが 3 型を持つこと。
+    ASSERT_EQ(3U, sample_types_meta_count()); // [状態確認] - 生成カタログが 3 型を持つこと。
 
     // Act
     const struct_meta_descriptor *person = sample_types_meta_find("person");   // [手順] - 型名で記述子を検索する。
@@ -28,13 +29,14 @@ TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
     EXPECT_EQ(nullptr, empty);              // [確認_正常系] - 空の型名で NULL が返ること。
 }
 
+// カタログ内のすべての記述子を宣言順のIDで列挙取得できることの確認
 TEST(sampleTypesMetaTest, enumerates_all_descriptors_in_catalog_order)
 {
     // Arrange
     const char *expected_names[] = {"address", "byte_fields", "person"};
 
     // Pre-Assert
-    ASSERT_EQ(3U, sample_types_meta_count()); // [事前条件] - 生成カタログが 3 型を持つこと。
+    ASSERT_EQ(3U, sample_types_meta_count()); // [状態確認] - 生成カタログが 3 型を持つこと。
 
     // Act
     const struct_meta_descriptor *actual[3] = {};
@@ -51,13 +53,14 @@ TEST(sampleTypesMetaTest, enumerates_all_descriptors_in_catalog_order)
     }
 }
 
+// 文字型、バイト型、整数型および配列フィールドの種別と要素数が正しく分類されることの確認
 TEST(sampleTypesMetaTest, classifies_character_and_byte_fields)
 {
     // Arrange
     const struct_meta_descriptor *descriptor = sample_types_meta_find("byte_fields");
 
     // Pre-Assert
-    ASSERT_NE(nullptr, descriptor); // [事前条件] - 生成した確認用記述子が存在すること。
+    ASSERT_NE(nullptr, descriptor); // [状態確認] - 生成した確認用記述子が存在すること。
 
     // Act
     const struct_meta_field *character = nullptr;
@@ -108,6 +111,7 @@ TEST(sampleTypesMetaTest, classifies_character_and_byte_fields)
               fixed_unsigned_bytes->kind); // [確認_正常系] - uint8_t 配列が符号なしであること。
 }
 
+// 型名に NULL を渡して検索した場合に NULL が返ることの確認
 TEST(sampleTypesMetaTest, rejects_null_name)
 {
     // Arrange
@@ -121,6 +125,7 @@ TEST(sampleTypesMetaTest, rejects_null_name)
     EXPECT_EQ(nullptr, actual); // [確認_異常系] - NULL の型名で NULL が返ること。
 }
 
+// 索引から取得した記述子からフィールド情報を正しく検索・取得できることの確認
 TEST(sampleTypesMetaTest, registers_descriptors_into_index)
 {
     // Arrange
@@ -128,7 +133,7 @@ TEST(sampleTypesMetaTest, registers_descriptors_into_index)
     const struct_meta_descriptor *person = sample_types_meta_find("person");
 
     // Pre-Assert
-    ASSERT_NE(nullptr, person); // [事前条件] - person の記述子が引けること。
+    ASSERT_NE(nullptr, person); // [状態確認] - person の記述子が引けること。
 
     // Act
     /* 検索は索引の有無に関わらず成立するため、ここでは結果の同一性だけを確かめる。 */

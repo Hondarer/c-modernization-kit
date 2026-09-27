@@ -5,6 +5,7 @@ extern "C"
 #include "doc.h"
 }
 
+// 後置コメント内の汎用属性を解析し、brief から除外してキーと値を取得できることの確認
 TEST(structMetaParseDocTest, parses_generic_attributes_and_removes_them_from_brief)
 {
     // Arrange
@@ -29,6 +30,7 @@ TEST(structMetaParseDocTest, parses_generic_attributes_and_removes_them_from_bri
     EXPECT_EQ(nullptr, actual.attributes->next->value); // [確認_正常系] - 2 個目の属性値が NULL であること。
 }
 
+// 1つのコメント内で同じ属性名が重複している場合に解析エラーとなることの確認
 TEST(structMetaParseDocTest, rejects_duplicate_attributes)
 {
     // Arrange
@@ -47,6 +49,7 @@ TEST(structMetaParseDocTest, rejects_duplicate_attributes)
     EXPECT_STRNE("", diagnostic.message); // [確認_異常系] - 診断へ原因が記録されること。
 }
 
+// 前置コメントと後置コメントの間で同じ属性名が重複している場合に統合時にエラーとなることの確認
 TEST(structMetaParseDocTest, rejects_duplicate_attributes_across_comments)
 {
     // Arrange
@@ -63,6 +66,7 @@ TEST(structMetaParseDocTest, rejects_duplicate_attributes_across_comments)
     EXPECT_NE(0, actual.invalid); // [確認_異常系] - コメントをまたいで重複する属性が拒否されること。
 }
 
+// 廃止された古い JSON 固有コマンドが汎用属性として誤変換されず構文エラーにもならないことの確認
 TEST(structMetaParseDocTest, does_not_convert_legacy_json_commands)
 {
     // Arrange
@@ -80,6 +84,7 @@ TEST(structMetaParseDocTest, does_not_convert_legacy_json_commands)
     EXPECT_EQ(nullptr, actual.attributes); // [確認_正常系] - 廃止した JSON 固有コマンドが属性へ変換されないこと。
 }
 
+// 空の属性名や値、空白入りキー、閉じ括弧不足、改行混入などの不正な属性構文が拒否されることの確認
 TEST(structMetaParseDocTest, rejects_invalid_attribute_forms)
 {
     // Arrange

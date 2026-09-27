@@ -101,7 +101,7 @@ class override_sampleTest : public Test
     }
 };
 
-// help オプションのテスト
+// -h オプション指定時にヘルプが表示され正常終了することの確認
 TEST_F(override_sampleTest, help)
 {
     // Arrange
@@ -113,16 +113,16 @@ TEST_F(override_sampleTest, help)
     ProcessResult res = startProcess(binary_path, {"--help"}, opts); // [手順] - help オプションで起動する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code);                 // [確認] - help の表示後に正常終了すること。
-    EXPECT_NE(string::npos, res.stdout_out.find("--help")); // [確認] - help オプションが usage に含まれること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code);                          // [確認_正常系] - help の表示後に正常終了すること。
+    EXPECT_NE(string::npos, res.stdout_out.find("--help"));          // [確認_正常系] - help オプションが usage に含まれること。
 }
 
-// stdout 確認テスト (既定動作)
+// 定義ファイルなしの既定動作で標準出力に期待するメッセージが出力されることの確認
 TEST_F(override_sampleTest, check_stdout_default)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除して既定動作を保証する。
-    ProcessOptions opts = makeOpts();
+    removeConfigFile(); // [状態] - 定義ファイルを削除して既定動作を保証する。
+    ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
 
     // Pre-Assert
 
@@ -131,26 +131,26 @@ TEST_F(override_sampleTest, check_stdout_default)
         startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認] - 既定処理のメッセージが出力されること。
-    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));                 // [確認] - ret が 0 であること。
-    EXPECT_NE(string::npos, res.stdout_out.find("result: 3"));              // [確認] - result が 3 (1+2) であること。
+            "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認_正常系] - 既定処理のメッセージが出力されること。
+    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));                 // [確認_正常系] - ret が 0 であること。
+    EXPECT_NE(string::npos, res.stdout_out.find("result: 3"));              // [確認_正常系] - result が 3 (1+2) であること。
     EXPECT_EQ(
         string::npos,
         res.stdout_out.find(
-            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認] - 差し替え実装への委譲が行われないこと。
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - 差し替え実装への委譲が行われないこと。
 }
 
-// stdout 確認テスト (定義ファイルあり)
+// 定義ファイルありの場合に定義内容が反映されたメッセージが出力されることの確認
 TEST_F(override_sampleTest, check_stdout_with_config)
 {
     // Arrange
     createConfigFile(
-        "{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\n"); // [手順] - 定義ファイルを作成して差し替え実装を設定する。
-    ProcessOptions opts = makeOpts();
+        "{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\n"); // [状態] - 定義ファイルを作成して差し替え実装を設定する。
+    ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
 
     // Pre-Assert
 
@@ -159,28 +159,28 @@ TEST_F(override_sampleTest, check_stdout_with_config)
         startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認] - 差し替え実装への委譲メッセージが出力されること。
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - 差し替え実装への委譲メッセージが出力されること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認] - 差し替え実装のメッセージが出力されること。
-    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));    // [確認] - ret が 0 であること。
-    EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認] - result が 2 (1*2) であること。
+            "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認_正常系] - 差し替え実装のメッセージが出力されること。
+    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));    // [確認_正常系] - ret が 0 であること。
+    EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認_正常系] - result が 2 (1*2) であること。
 }
 
-// onUnload ログ確認テスト
+// アンロード時に syslog へメッセージが出力されることの確認
 TEST_F(override_sampleTest, onUnload_syslog)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除して既定の状態を保証する。
+    removeConfigFile(); // [状態] - 定義ファイルを削除して既定の状態を保証する。
     ProcessOptions opts = makeOpts();
-    opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [手順] - DLLMain 診断ログ出力を有効化する。
+    opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
 #if defined(PLATFORM_LINUX)
-    opts.preload_lib = mock_lib_path; // [手順] - LD_PRELOAD で syslog_mock.so を挿入する。
+    opts.preload_lib = mock_lib_path; // [状態] - LD_PRELOAD で syslog_mock.so を挿入する。
 #endif                                /* PLATFORM_LINUX */
 
     // Pre-Assert
@@ -190,52 +190,61 @@ TEST_F(override_sampleTest, onUnload_syslog)
         binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString を捕捉する。
 
     // Assert
-    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
+    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_NE(string::npos,
-              res.debug_log.find("base: onUnload called")); // [確認] - debug_log に onUnload の記録があること。
+              res.debug_log.find("base: onUnload called")); // [確認_正常系] - debug_log に onUnload の記録があること。
 }
 
 // 既定では DLLMain 診断ログを出力しないことの確認
 TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除して既定の状態を保証する。
+    removeConfigFile(); // [状態] - 定義ファイルを削除して既定の状態を保証する。
     ProcessOptions opts = makeOpts();
 #if defined(PLATFORM_LINUX)
-    opts.preload_lib = mock_lib_path; // [手順] - debug_log を観測できるよう syslog_mock.so を挿入する。
+    opts.preload_lib = mock_lib_path; // [状態] - debug_log を観測できるよう syslog_mock.so を挿入する。
 #endif                                /* PLATFORM_LINUX */
+
+    // Pre-Assert
 
     // Act
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、診断ログを確認する。
 
     // Assert
-    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認] - override-sample の終了コードが EXIT_SUCCESS であること。
+    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
     EXPECT_EQ(
         string::npos,
-        res.debug_log.find("base: onUnload called")); // [確認] - 既定では onUnload 診断ログが出力されないこと。
+        res.debug_log.find("base: onUnload called")); // [確認_正常系] - 既定では onUnload 診断ログが出力されないこと。
 }
 
-#if defined(PLATFORM_LINUX)
 // 過長な TMPDIR で設定ファイル パス構築に失敗し終了コード 1 になることの確認
 TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
 {
     // Arrange
-    removeConfigFile(); // [手順] - 定義ファイルを削除して他の要因を排除する。
+#if defined(PLATFORM_LINUX)
+    removeConfigFile(); // [状態] - 定義ファイルを削除して他の要因を排除する。
     ProcessOptions opts = makeOpts();
-    opts.preload_lib = mock_lib_path; // [手順] - debug_log を取得するため syslog_mock.so を挿入する。
-    opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [手順] - DLLMain 診断ログ出力を有効化する。
-    opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [手順] - 一時ディレクトリを上限超過の長さにする。
+    opts.preload_lib = mock_lib_path; // [状態] - debug_log を取得するため syslog_mock.so を挿入する。
+    opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
+    opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [状態] - 一時ディレクトリを上限超過の長さにする。
+
+    // Pre-Assert
 
     // Act
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - 上限超過環境で override-sample を実行する。
 
     // Assert
-    EXPECT_EQ(EXIT_FAILURE, res.exit_code); // [確認] - 設定ファイル パス構築失敗で EXIT_FAILURE を返すこと。
+    EXPECT_EQ(EXIT_FAILURE, res.exit_code); // [確認_異常系] - 設定ファイル パス構築失敗で EXIT_FAILURE を返すこと。
     EXPECT_NE(string::npos,
               res.stderr_out.find("failed to build config path"))
-        << res.stderr_out; // [確認] - 標準エラーに失敗理由が出力されること。
+        << res.stderr_out; // [確認_異常系] - 標準エラーに失敗理由が出力されること。
     EXPECT_NE(string::npos,
               res.debug_log.find("base: config path too long; override disabled"))
-        << res.debug_log; // [確認] - ライブラリ側ではオーバーライド無効化ログが残ること。
-}
+        << res.debug_log; // [確認_異常系] - ライブラリ側ではオーバーライド無効化ログが残ること。
+#else
+    // Pre-Assert
+    // Act
+    // Assert
+    GTEST_SKIP() << "TMPDIR のパス長制限は Linux 環境専用のテストです";
 #endif /* PLATFORM_LINUX */
+}

@@ -34,6 +34,7 @@ const struct_meta_field kFields[] = {
 const struct_meta_descriptor kDescriptor = {"Sample", sizeof(Sample), kFields, 3, nullptr, nullptr, 0};
 } // namespace
 
+// 索引に未登録の記述子でも線形探索によりフィールドを検索できることの確認
 TEST(structMetaIndexTest, unregistered_descriptor_is_searched_linearly)
 {
     // Arrange
@@ -51,6 +52,7 @@ TEST(structMetaIndexTest, unregistered_descriptor_is_searched_linearly)
     EXPECT_STREQ("age", field->name); // [確認_正常系] - 要求したフィールドが返ること。
 }
 
+// 記述子を索引へ登録した前後で同じフィールド検索結果が得られることの確認
 TEST(structMetaIndexTest, registered_descriptor_returns_same_fields)
 {
     // Arrange
@@ -59,7 +61,7 @@ TEST(structMetaIndexTest, registered_descriptor_returns_same_fields)
     int before_ret = struct_meta_descriptor_find_field(&kDescriptor, "nested", &before);
 
     // Pre-Assert
-    ASSERT_EQ(CPLAT_OK, before_ret); // [事前条件] - 登録前にフィールドを検索できること。
+    ASSERT_EQ(CPLAT_OK, before_ret); // [状態確認] - 登録前にフィールドを検索できること。
 
     // Act
     int register_ret = struct_meta_index_register(&kDescriptor); // [手順] - 記述子を索引へ登録する。
@@ -71,9 +73,11 @@ TEST(structMetaIndexTest, registered_descriptor_returns_same_fields)
     EXPECT_EQ(CPLAT_OK, after_ret);    // [確認_正常系] - 登録後もフィールド検索が成功すること。
     EXPECT_EQ(before, after);          // [確認_正常系] - 登録の前後で同じフィールドが返ること。
 
-    struct_meta_index_unregister(&kDescriptor);
+    // Cleanup
+    struct_meta_index_unregister(&kDescriptor); // [破棄] - 登録した記述子を解除する。
 }
 
+// 索引に登録された記述子において存在しないフィールドの検索が CPLAT_ERR_NOT_FOUND となることの確認
 TEST(structMetaIndexTest, registered_descriptor_reports_unknown_field)
 {
     // Arrange
@@ -81,7 +85,7 @@ TEST(structMetaIndexTest, registered_descriptor_reports_unknown_field)
     int register_ret = struct_meta_index_register(&kDescriptor);
 
     // Pre-Assert
-    ASSERT_EQ(CPLAT_OK, register_ret); // [事前条件] - 記述子を索引へ登録できること。
+    ASSERT_EQ(CPLAT_OK, register_ret); // [状態確認] - 記述子を索引へ登録できること。
 
     // Act
     int actual = struct_meta_descriptor_find_field(&kDescriptor, "unknown",
@@ -91,9 +95,11 @@ TEST(structMetaIndexTest, registered_descriptor_reports_unknown_field)
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual); // [確認_正常系] - 索引引きでも不在を CPLAT_ERR_NOT_FOUND で報告すること。
     EXPECT_EQ(nullptr, field);              // [確認_正常系] - 検索結果が NULL に初期化されること。
 
-    struct_meta_index_unregister(&kDescriptor);
+    // Cleanup
+    struct_meta_index_unregister(&kDescriptor); // [破棄] - 登録した記述子を解除する。
 }
 
+// 親構造体の記述子を索引へ登録した際にネスト先の記述子も再帰的に登録されることの確認
 TEST(structMetaIndexTest, nested_descriptor_is_registered_together)
 {
     // Arrange
@@ -101,7 +107,7 @@ TEST(structMetaIndexTest, nested_descriptor_is_registered_together)
     int register_ret = struct_meta_index_register(&kDescriptor);
 
     // Pre-Assert
-    ASSERT_EQ(CPLAT_OK, register_ret); // [事前条件] - 親の記述子を索引へ登録できること。
+    ASSERT_EQ(CPLAT_OK, register_ret); // [状態確認] - 親の記述子を索引へ登録できること。
 
     // Act
     int actual = struct_meta_descriptor_find_field(&kNestedDescriptor, "inner",
@@ -114,9 +120,11 @@ TEST(structMetaIndexTest, nested_descriptor_is_registered_together)
     EXPECT_STREQ("inner", field->name);     // [確認_正常系] - 要求したフィールドが返ること。
     EXPECT_EQ(CPLAT_OK, unregister_nested); // [確認_正常系] - ネスト先も再帰的に登録されていること。
 
-    struct_meta_index_unregister(&kDescriptor);
+    // Cleanup
+    struct_meta_index_unregister(&kDescriptor); // [破棄] - 登録した記述子を解除する。
 }
 
+// 記述子の登録解除後に線形探索へ復帰し、未登録の二重解除が拒否されることの確認
 TEST(structMetaIndexTest, unregister_restores_linear_search)
 {
     // Arrange
@@ -124,7 +132,7 @@ TEST(structMetaIndexTest, unregister_restores_linear_search)
     int register_ret = struct_meta_index_register(&kDescriptor);
 
     // Pre-Assert
-    ASSERT_EQ(CPLAT_OK, register_ret); // [事前条件] - 記述子を索引へ登録できること。
+    ASSERT_EQ(CPLAT_OK, register_ret); // [状態確認] - 記述子を索引へ登録できること。
 
     // Act
     int unregister_ret = struct_meta_index_unregister(&kDescriptor); // [手順] - 記述子を登録解除する。
@@ -139,6 +147,7 @@ TEST(structMetaIndexTest, unregister_restores_linear_search)
     EXPECT_STREQ("id", field->name);              // [確認_正常系] - 要求したフィールドが返ること。
 }
 
+// 破損した記述子を索引へ登録しても記述子の検証結果が一貫してエラーとなることの確認
 TEST(structMetaIndexTest, corrupt_descriptor_keeps_same_validation_result)
 {
     // Arrange
@@ -147,7 +156,7 @@ TEST(structMetaIndexTest, corrupt_descriptor_keeps_same_validation_result)
     int before = struct_meta_descriptor_validate(&corrupt);
 
     // Pre-Assert
-    ASSERT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, before); // [事前条件] - 登録前に壊れた記述子と判定されること。
+    ASSERT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, before); // [状態確認] - 登録前に壊れた記述子と判定されること。
 
     // Act
     int register_ret = struct_meta_index_register(&corrupt); // [手順] - 壊れた記述子を索引へ登録する。
@@ -157,9 +166,11 @@ TEST(structMetaIndexTest, corrupt_descriptor_keeps_same_validation_result)
     EXPECT_EQ(CPLAT_OK, register_ret);              // [確認_正常系] - 壊れた記述子でも登録自体は成功すること。
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, after); // [確認_異常系] - 控えた検査結果が登録前と一致すること。
 
-    struct_meta_index_unregister(&corrupt);
+    // Cleanup
+    struct_meta_index_unregister(&corrupt); // [破棄] - 登録した記述子を解除する。
 }
 
+// NULLの記述子の登録および登録解除が不正引数エラーとなることの確認
 TEST(structMetaIndexTest, rejects_invalid_arguments)
 {
     // Arrange

@@ -16,8 +16,8 @@ TEST_F(contextTest, advances_by_one_on_each_call)
     const int32_t first = samplecatalog_next_sequence_number(); // [状態] - 基準となる 1 つ目の番号を取得する。
 
     // Pre-Assert
-    ASSERT_GE(first, 1); // [事前確認] - 番号が 1 以上であること。
-    ASSERT_LE(first, SAMPLECATALOG_SEQUENCE_NUMBER_MAX); // [事前確認] - 番号が上限以下であること。
+    ASSERT_GE(first, 1); // [Pre-Assert確認_正常系] - 番号が 1 以上であること。
+    ASSERT_LE(first, SAMPLECATALOG_SEQUENCE_NUMBER_MAX); // [Pre-Assert確認_正常系] - 番号が上限以下であること。
 
     // Act
     const int32_t second = samplecatalog_next_sequence_number(); // [手順] - 続けて 2 つ目の番号を取得する。
@@ -35,7 +35,7 @@ TEST_F(contextTest, wraps_around_after_the_maximum)
     int32_t last = start;
 
     // Pre-Assert
-    ASSERT_GE(start, 1); // [事前確認] - 番号が 1 以上であること。
+    ASSERT_GE(start, 1); // [Pre-Assert確認_正常系] - 番号が 1 以上であること。
 
     // Act
     for (int count = 0; count < SAMPLECATALOG_SEQUENCE_NUMBER_MAX; count++)
@@ -52,8 +52,6 @@ TEST_F(contextTest, stays_within_the_range)
 {
     // Arrange
     bool in_range = true;
-
-    // Pre-Assert
 
     // Act
     for (int count = 0; count < (SAMPLECATALOG_SEQUENCE_NUMBER_MAX * 2); count++)

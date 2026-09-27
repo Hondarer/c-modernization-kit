@@ -34,7 +34,7 @@ TEST_F(sampleFilterCompileTest, blank_whitespace_and_comment_lines_are_not_store
     EXPECT_EQ(1U, actual_info.line_count);   // [確認_正常系] - 有効行の "key == 1" だけが格納されること。
 }
 
-// 字句の誤りが診断情報として通知されることの確認 (閉じない引用符、0x の後に桁なし、-0x1)
+// 閉じない引用符や不正な 16 進数表記などの字句の誤りが診断情報として通知されることの確認
 TEST_F(sampleFilterCompileTest, lexical_errors_are_diagnosed)
 {
     // Arrange
@@ -77,7 +77,7 @@ TEST_F(sampleFilterCompileTest, lexical_errors_are_diagnosed)
     EXPECT_EQ(7U, diagnostic.column);                       // [確認_正常系] - "-" の位置 (7) が誤りの位置であること。
 }
 
-// 構文の誤りが診断情報として通知されることの確認 (被演算子が続かない &&、arg でも key/id/category でもない識別子)
+// 被演算子の欠落や未定義の識別子などの構文の誤りが診断情報として通知されることの確認
 TEST_F(sampleFilterCompileTest, syntax_errors_are_diagnosed)
 {
     // Arrange
@@ -109,7 +109,7 @@ TEST_F(sampleFilterCompileTest, syntax_errors_are_diagnosed)
     EXPECT_EQ(0U, diagnostic.column);                      // [確認_正常系] - 識別子 "x" の位置 (0) が誤りの位置であること。
 }
 
-// 型の誤りが診断情報として通知されることの確認 (category へ文字列比較、id へ数値比較、key へ null 比較)
+// 型の不一致や非互換な比較演算子などの誤りが診断情報として通知されることの確認
 TEST_F(sampleFilterCompileTest, type_mismatch_errors_are_diagnosed)
 {
     // Arrange

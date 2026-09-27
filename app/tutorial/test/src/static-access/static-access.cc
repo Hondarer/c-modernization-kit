@@ -19,5 +19,5 @@ TEST_F(test_static_access, test)
     int actual_ret = samplestatic(); // [手順] - samplestatic() を呼び出す。
 
     // Assert
-    EXPECT_EQ(123, actual_ret); // [確認] - samplestatic() からの戻り値が 123 であること。
+    EXPECT_EQ(123, actual_ret); // [確認_正常系] - samplestatic() からの戻り値が 123 であること。
 }

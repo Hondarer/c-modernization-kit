@@ -59,6 +59,7 @@ int create(const char *text, struct_meta_catalog **catalog_out, struct_meta_diag
 
 } // namespace
 
+// C 言語ヘッダーテキストの解析により構造体記述子カタログが正しく構築されることの確認
 TEST(structMetaCatalogTest, builds_descriptors_from_header_text)
 {
     // Arrange
@@ -86,6 +87,7 @@ TEST(structMetaCatalogTest, builds_descriptors_from_header_text)
     struct_meta_catalog_destroy(catalog);
 }
 
+// カタログ生成による構造体・メンバーのレイアウト計算結果がコンパイラの実装と一致することの確認
 TEST(structMetaCatalogTest, computes_the_same_layout_as_the_compiler)
 {
     // Arrange
@@ -98,7 +100,7 @@ TEST(structMetaCatalogTest, computes_the_same_layout_as_the_compiler)
 
     // Act
     int ret = struct_meta_catalog_find(catalog, "person",
-                                       &person_descriptor); // [手順] - 構造体名で記述子を検索する。
+                                        &person_descriptor); // [手順] - 構造体名で記述子を検索する。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret);                                   // [確認_正常系] - 検索できること。
@@ -114,6 +116,7 @@ TEST(structMetaCatalogTest, computes_the_same_layout_as_the_compiler)
     struct_meta_catalog_destroy(catalog);
 }
 
+// フィールドの型種別分類およびメタ属性・ドキュメント情報が正しく保持されることの確認
 TEST(structMetaCatalogTest, classifies_fields_and_keeps_attributes)
 {
     // Arrange
@@ -154,6 +157,7 @@ TEST(structMetaCatalogTest, classifies_fields_and_keeps_attributes)
     struct_meta_catalog_destroy(catalog);
 }
 
+// 不正な宣言や未知の型を含むヘッダーが適切な診断メッセージとともに拒否されることの確認
 TEST(structMetaCatalogTest, rejects_invalid_headers_with_diagnostics)
 {
     // Arrange
@@ -186,6 +190,7 @@ TEST(structMetaCatalogTest, rejects_invalid_headers_with_diagnostics)
     EXPECT_STRNE("", bad_attribute.message);                // [確認_異常系] - 診断が残ること。
 }
 
+// 同一プロセス内で複数回の解析および失敗後の再解析が正常に継続できることの確認
 TEST(structMetaCatalogTest, parses_repeatedly_in_the_same_process)
 {
     // Arrange
@@ -213,6 +218,7 @@ TEST(structMetaCatalogTest, parses_repeatedly_in_the_same_process)
     struct_meta_catalog_destroy(third);
 }
 
+// カタログ API の各関数で不正な引数や範囲外アクセスが適切に拒否されることの確認
 TEST(structMetaCatalogTest, rejects_invalid_arguments)
 {
     // Arrange
@@ -225,12 +231,12 @@ TEST(structMetaCatalogTest, rejects_invalid_arguments)
     // Pre-Assert
 
     // Act
-    int null_path = struct_meta_catalog_create_from_header_file(nullptr, &catalog, &diagnostic);
-    int missing_file = struct_meta_catalog_create_from_header_file("does_not_exist.h", &catalog, &diagnostic);
-    int null_count = struct_meta_catalog_get_count(nullptr, &count);
-    int out_of_range = struct_meta_catalog_get(catalog, 99, &descriptor);
-    int null_name = struct_meta_catalog_find(catalog, nullptr, &descriptor);
-    int unknown_name = struct_meta_catalog_find(catalog, "missing", &descriptor);
+    int null_path = struct_meta_catalog_create_from_header_file(nullptr, &catalog, &diagnostic); // [手順] - パスに NULL を渡す。
+    int missing_file = struct_meta_catalog_create_from_header_file("does_not_exist.h", &catalog, &diagnostic); // [手順] - 存在しないファイルパスを渡す。
+    int null_count = struct_meta_catalog_get_count(nullptr, &count); // [手順] - カタログに NULL を渡して件数を取得する。
+    int out_of_range = struct_meta_catalog_get(catalog, 99, &descriptor); // [手順] - 範囲外のインデックスを指定する。
+    int null_name = struct_meta_catalog_find(catalog, nullptr, &descriptor); // [手順] - 名前に NULL を渡して検索する。
+    int unknown_name = struct_meta_catalog_find(catalog, "missing", &descriptor); // [手順] - 未登録の名前を検索する。
     struct_meta_catalog_destroy(nullptr); // [手順] - NULL の破棄で異常終了しないこと。
 
     // Assert

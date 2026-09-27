@@ -79,10 +79,11 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
     const int count = sample_messages_entry_count();
     int index;
 
-    // Pre-Assert
+    // Act
+    // カタログの各エントリを参照する。
 
-    // Act / Assert
-    for (index = 0; index < count; index++) // [手順] - すべてのカタログを走査する。
+    // Assert
+    for (index = 0; index < count; index++)
     {
         EXPECT_NE(nullptr, entries[index].id);      // [確認_正常系] - サンプルの定義はすべて ID を持つこと。
         EXPECT_NE(nullptr, entries[index].brief);   // [確認_正常系] - 短い説明を持つこと。
@@ -190,16 +191,16 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 
     // Pre-Assert
 
-    // Act
+    // Act_1
     actual_ret_no_argument = sample_messages_key_startup_completed(
         actual_dest, sizeof(actual_dest)); // [手順] - 引数を取らないラッパーで組み立てる。
 
-    // Assert
+    // Assert_1
     EXPECT_EQ(CPLAT_OK, actual_ret_no_argument); // [確認_正常系] - 戻り値が CPLAT_OK であること。
     EXPECT_STREQ("Startup completed. The default setting is { default }.",
                  actual_dest); // [確認_正常系] - 引数なしの書式で組み立てられること。
 
-    // Act
+    // Act_2
     actual_ret_two_arguments = sample_messages_key_file_open_failed(actual_dest, sizeof(actual_dest), "config.json",
                                                                     2); // [手順] - 型付きラッパーで組み立てる。
     expected_ret_two_arguments =
@@ -207,7 +208,7 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
                                     SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
                                     2); // [手順] - カタログを指定した呼び出しで同じ文字列を組み立てる。
 
-    // Assert
+    // Assert_2
     EXPECT_EQ(expected_ret_two_arguments,
               actual_ret_two_arguments);      // [確認_正常系] - 戻り値が一致すること。
     EXPECT_STREQ(expected_dest, actual_dest); // [確認_正常系] - 組み立てた文字列が一致すること。

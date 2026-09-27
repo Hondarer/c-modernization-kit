@@ -22,6 +22,7 @@ const struct_meta_field kScalarBytes = {
     "bad", STRUCT_META_FIELD_UNSIGNED_INTEGER, 0, 0, 1, 1, 0, nullptr, nullptr, kBytesAttributes, 1};
 } // namespace
 
+// バイト配列フィールドの判定およびフォーマット属性の取得が正しく行われることの確認
 TEST(structMetaBytesTest, classifies_byte_arrays_and_formats)
 {
     // Arrange
@@ -45,6 +46,7 @@ TEST(structMetaBytesTest, classifies_byte_arrays_and_formats)
     EXPECT_EQ(STRUCT_META_INTERNAL_BYTE_FORMAT_HEX, hex_format); // [確認_正常系] - 16進形式であること。
 }
 
+// 未知のフォーマット属性や不正なバイト指定が正しく拒否されることの確認
 TEST(structMetaBytesTest, rejects_invalid_meta_attributes)
 {
     // Arrange
@@ -66,6 +68,7 @@ TEST(structMetaBytesTest, rejects_invalid_meta_attributes)
               struct_meta_internal_field_byte_format(&kBytes, nullptr)); // [確認_異常系] - NULL出力を拒否すること。
 }
 
+// 固定長バイト配列と 16 進数文字列の相互変換が正しく行われることの確認
 TEST(structMetaBytesTest, converts_fixed_length_hex_text)
 {
     // Arrange
@@ -90,6 +93,7 @@ TEST(structMetaBytesTest, converts_fixed_length_hex_text)
     EXPECT_EQ(0xffU, decoded[2]);    // [確認_正常系] - 末尾バイトを復元すること。
 }
 
+// 不正な 16 進数表記が拒否されバッファーが書き換えられないことの確認
 TEST(structMetaBytesTest, rejects_invalid_hex_without_writing)
 {
     // Arrange
@@ -111,6 +115,7 @@ TEST(structMetaBytesTest, rejects_invalid_hex_without_writing)
     EXPECT_EQ(3U, bytes[2]);                               // [確認_異常系] - 末尾バイトを更新しないこと。
 }
 
+// 16 進数文字列の必要サイズ計算とバッファー境界値が正しく検証されることの確認
 TEST(structMetaBytesTest, validates_sizes_and_buffers)
 {
     // Arrange

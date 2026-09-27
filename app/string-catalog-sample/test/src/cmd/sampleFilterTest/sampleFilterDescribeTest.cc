@@ -257,7 +257,7 @@ TEST_F(sampleFilterDescribeTest, category_names_use_complement_when_shorter)
                  description_); // [確認_正常系] - ニュートラル言語でも補集合で表すこと。
 }
 
-// 1 つだけ、すべて、該当なしの場合の表現の確認
+// 1 つだけ、すべて、該当なしの場合にそれぞれ適切に表現されることの確認
 TEST_F(sampleFilterDescribeTest, category_names_describe_single_any_and_none)
 {
     // Arrange
@@ -306,18 +306,24 @@ TEST_F(sampleFilterDescribeTest, category_names_can_be_cleared_and_reject_invali
 
     // Pre-Assert
 
-    // Act
+    // Act_1
     actual_ret_invalid =
         sample_filter_slot_set_category_names(slot_, &invalid_names); // [手順] - NULL の名前を含む設定を渡す。
     actual_ret_null_slot =
         sample_filter_slot_set_category_names(nullptr, &s_test_category_names); // [手順] - スロットに NULL を渡す。
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(slot_, nullptr)); // [手順] - 設定を解除する。
+
+    // Assert_1
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_invalid);   // [確認_異常系] - 不正な設定が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_null_slot); // [確認_異常系] - スロット NULL が拒否されること。
+
+    // Arrange_2
+    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(slot_, nullptr)); // [状態] - 設定を解除する。
+
+    // Act_2
     actual_ret_describe =
         describe("category <= 2", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 解除後に説明する。
 
-    // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_invalid);   // [確認_異常系] - 不正な設定が拒否されること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_null_slot); // [確認_異常系] - スロット NULL が拒否されること。
+    // Assert_2
     EXPECT_EQ(CPLAT_OK, actual_ret_describe);                    // [確認_正常系] - 説明文を得られること。
     EXPECT_STREQ("分類値が 2 以下", description_);               // [確認_正常系] - 名前の設定がなければ数値で表すこと。
 }

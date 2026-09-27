@@ -18,5 +18,5 @@ TEST_F(subfolder_sampleTest_a, test_func_a)
     int actual_ret = func_a(); // [手順] - func_a() を呼び出す。
 
     // Assert
-    EXPECT_EQ(1, actual_ret); // [確認] - func_a() から 1 が返されること。
+    EXPECT_EQ(1, actual_ret); // [確認_正常系] - func_a() から 1 が返されること。
 }

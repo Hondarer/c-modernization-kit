@@ -119,6 +119,7 @@ int build(struct_meta_internal_parse_struct_list *structs, struct_meta_internal_
 
 } // namespace
 
+// ASTから構造体記述子を組み立てた際にオフセットやサイズがコンパイラ計算と一致することの確認
 TEST(structMetaBuildTest, computes_the_same_layout_as_the_compiler)
 {
     // Arrange
@@ -146,9 +147,11 @@ TEST(structMetaBuildTest, computes_the_same_layout_as_the_compiler)
               descriptors[1]->fields[1].offset); // [確認_正常系] - ネスト配列が境界へ揃うこと。
     EXPECT_EQ(offsetof(outer_probe, ratio), descriptors[1]->fields[2].offset);
 
-    struct_meta_internal_arena_destroy(arena);
+    // Cleanup
+    struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
 }
 
+// フィールドの型分類、ネスト先参照、要素数、および属性の複写が正しく行われることの確認
 TEST(structMetaBuildTest, classifies_fields_and_copies_attributes)
 {
     // Arrange
@@ -184,9 +187,11 @@ TEST(structMetaBuildTest, classifies_fields_and_copies_attributes)
     EXPECT_STREQ("sample.category", descriptors[0]->attributes[0].key);
     EXPECT_EQ(0U, descriptors[1]->attribute_count);            // [確認_正常系] - 属性が無ければ 0 であること。
 
-    struct_meta_internal_arena_destroy(arena);
+    // Cleanup
+    struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
 }
 
+// meta.kind=bytes 属性が指定された char 配列が文字列ではなくバイト配列として扱われることの確認
 TEST(structMetaBuildTest, treats_char_array_as_bytes_when_requested)
 {
     // Arrange
@@ -215,9 +220,11 @@ TEST(structMetaBuildTest, treats_char_array_as_bytes_when_requested)
     EXPECT_EQ(STRUCT_META_FIELD_CHAR_ARRAY,
               descriptors[0]->fields[1].kind); // [確認_正常系] - 既定の char 配列は文字列であること。
 
-    struct_meta_internal_arena_destroy(arena);
+    // Cleanup
+    struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
 }
 
+// 未知の型名、不正な属性指定、循環参照、NULL引数などの不正な入力がエラーとして拒否されることの確認
 TEST(structMetaBuildTest, rejects_invalid_input)
 {
     // Arrange
@@ -250,15 +257,15 @@ TEST(structMetaBuildTest, rejects_invalid_input)
     // Pre-Assert
 
     // Act
-    int unknown_ret = build(unknown_list, &arena, &descriptors, &count, &unknown_type);
+    int unknown_ret = build(unknown_list, &arena, &descriptors, &count, &unknown_type); // [手順] - 未知の型名を持つ AST を組み立てる。
     struct_meta_internal_arena_destroy(arena);
-    int kind_ret = build(kind_list, &arena, &descriptors, &count, &bad_kind);
+    int kind_ret = build(kind_list, &arena, &descriptors, &count, &bad_kind); // [手順] - スカラーに meta.kind を指定した AST を組み立てる。
     struct_meta_internal_arena_destroy(arena);
-    int format_ret = build(format_list, &arena, &descriptors, &count, &bad_format);
+    int format_ret = build(format_list, &arena, &descriptors, &count, &bad_format); // [手順] - スカラーに meta.format を指定した AST を組み立てる。
     struct_meta_internal_arena_destroy(arena);
-    int cyclic_ret = build(cyclic_list, &arena, &descriptors, &count, &cyclic);
+    int cyclic_ret = build(cyclic_list, &arena, &descriptors, &count, &cyclic); // [手順] - 循環参照を持つ AST を組み立てる。
     struct_meta_internal_arena_destroy(arena);
-    int null_structs = struct_meta_internal_build_descriptors(nullptr, nullptr, &descriptors, &count, nullptr);
+    int null_structs = struct_meta_internal_build_descriptors(nullptr, nullptr, &descriptors, &count, nullptr); // [手順] - NULL 引数を渡す。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, unknown_ret);           // [確認_異常系] - 未知の型を拒否すること。

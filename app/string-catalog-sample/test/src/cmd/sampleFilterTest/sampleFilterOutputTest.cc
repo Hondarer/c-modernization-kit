@@ -78,7 +78,7 @@ class sampleFilterOutputTest : public Test
     hook_capture capture_{};
 };
 
-// 条件式に一致しない場合、分類値をそのままトレース レベルとして使うことの確認 (JOB_FAILED は WARNING)
+// 条件式に一致しない場合に項目の分類値をそのままトレース レベルとして使うことの確認
 TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
 {
     // Arrange

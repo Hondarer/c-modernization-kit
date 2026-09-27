@@ -27,6 +27,7 @@ const struct_meta_field kFields[] = {
 const struct_meta_descriptor kFieldsDescriptor = {"Fields", sizeof(Fields), kFields, 2, nullptr, nullptr, 0};
 } // namespace
 
+// 構造体記述子から指定した名前のフィールドを検索できることの確認
 TEST(structMetaAccessTest, finds_field_by_name)
 {
     // Arrange
@@ -48,6 +49,7 @@ TEST(structMetaAccessTest, finds_field_by_name)
     EXPECT_EQ(&kFields[1], second);            // [確認_正常系] - 末尾フィールドの記述子が返ること。
 }
 
+// 存在しないフィールド名を検索した場合に CPLAT_ERR_NOT_FOUND が返り、出力先が NULL になることの確認
 TEST(structMetaAccessTest, returns_not_found_for_unknown_field)
 {
     // Arrange
@@ -64,6 +66,7 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_field)
     EXPECT_EQ(nullptr, field);              // [確認_正常系] - 検索結果が NULL に初期化されること。
 }
 
+// フィールド検索関数に NULL の記述子、名前、出力先を渡した場合に不正引数エラーとなることの確認
 TEST(structMetaAccessTest, rejects_invalid_arguments_for_find_field)
 {
     // Arrange
@@ -85,6 +88,7 @@ TEST(structMetaAccessTest, rejects_invalid_arguments_for_find_field)
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, output_ret);     // [確認_異常系] - NULL の出力先が拒否されること。
 }
 
+// 構造体記述子から指定したキーの属性（値あり・値なし）を検索できることの確認
 TEST(structMetaAccessTest, finds_descriptor_attributes)
 {
     // Arrange
@@ -108,6 +112,7 @@ TEST(structMetaAccessTest, finds_descriptor_attributes)
     EXPECT_EQ(nullptr, flag->value);   // [確認_正常系] - sample.flag 属性の値が NULL であること。
 }
 
+// 存在しない属性キーを検索した場合に CPLAT_ERR_NOT_FOUND が返り、出力先が NULL になることの確認
 TEST(structMetaAccessTest, returns_not_found_for_unknown_key)
 {
     // Arrange
@@ -124,6 +129,7 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_key)
     EXPECT_EQ(nullptr, attribute);          // [確認_正常系] - 検索結果が NULL に初期化されること。
 }
 
+// 属性検索関数に NULL の記述子、キー、出力先を渡した場合に不正引数エラーとなることの確認
 TEST(structMetaAccessTest, rejects_invalid_arguments)
 {
     // Arrange
@@ -145,6 +151,7 @@ TEST(structMetaAccessTest, rejects_invalid_arguments)
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, output_ret);     // [確認_異常系] - NULL の出力先が拒否されること。
 }
 
+// 重複する属性キーを持つ構造体記述子の検証時に記述子破損エラーとなることの確認
 TEST(structMetaAccessTest, rejects_duplicate_descriptor_attributes)
 {
     // Arrange

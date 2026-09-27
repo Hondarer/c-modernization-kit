@@ -88,20 +88,24 @@ TEST_F(sampleFilterCategoryTest, level_name_and_number_give_same_result)
 
     // Pre-Assert
 
-    // Act
+    // Act_1
     actual_error_name = apply_line("category <= WARNING"); // [手順] - レベル名で書いた条件式を適用する。
     actual_failed_name = state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED);
     actual_started_name = state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED);
-    actual_error_number = apply_line("category <= 2"); // [手順] - 数値で書いた条件式を適用する。
-    actual_failed_number = state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED);
-    actual_started_number = state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED);
 
-    // Assert
+    // Assert_1
     EXPECT_EQ(SAMPLE_FILTER_ERROR_NONE, actual_error_name); // [確認_正常系] - レベル名の行が有効であること。
     EXPECT_EQ(SAMPLE_FILTER_STATE_ALWAYS_MATCH,
               actual_failed_name); // [確認_正常系] - WARNING の JOB_FAILED が一致すること。
     EXPECT_EQ(SAMPLE_FILTER_STATE_NEVER_MATCH,
               actual_started_name); // [確認_正常系] - INFO の WORKER_STARTED が一致しないこと。
+
+    // Act_2
+    actual_error_number = apply_line("category <= 2"); // [手順] - 数値で書いた条件式を適用する。
+    actual_failed_number = state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED);
+    actual_started_number = state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED);
+
+    // Assert_2
     EXPECT_EQ(SAMPLE_FILTER_ERROR_NONE, actual_error_number); // [確認_正常系] - 数値の行が有効であること。
     EXPECT_EQ(actual_failed_name, actual_failed_number);      // [確認_正常系] - JOB_FAILED の判定が同じであること。
     EXPECT_EQ(actual_started_name, actual_started_number);    // [確認_正常系] - WORKER_STARTED の判定が同じであること。
@@ -166,5 +170,5 @@ TEST_F(sampleFilterCategoryTest, without_category_names_category_is_anonymous)
     EXPECT_EQ(SAMPLE_FILTER_ERROR_NONE, actual_large); // [確認_正常系] - 範囲を確かめないため受け入れられること。
     EXPECT_EQ(
         SAMPLE_FILTER_ERROR_UNRESOLVED_KEY_NAME,
-        actual_name); // [確認_正常系] - 識別子は従来どおり文字列キーの名前として解決され、WARNING は見つからないこと。
+        actual_name); // [確認_異常系] - 識別子は従来どおり文字列キーの名前として解決され、WARNING は見つからないこと。
 }

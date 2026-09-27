@@ -45,8 +45,7 @@ namespace
     }
 } // namespace
 
-// デコンパイルした条件式を再コンパイルすると、元のフィルター オブジェクトとバイト単位で一致することの確認
-// (in、between、16 進数、負数、浮動小数点数、文字、エスケープを含む文字列、has を含む)
+// 各種判定要素を含む条件式をデコンパイルして再コンパイルすると、元のフィルター オブジェクトとバイト単位で一致することの確認
 TEST_F(sampleFilterDecompileTest, decompile_then_recompile_matches_original_bytes)
 {
     // Arrange
@@ -99,7 +98,7 @@ TEST_F(sampleFilterDecompileTest, decompile_then_recompile_matches_original_byte
     EXPECT_TRUE(actual_matches_has);                // [確認_正常系] - has の行がバイト単位で一致すること。
 }
 
-// ! の対象が判定要素の場合に、括弧付きで復元されることの確認 (!(key == 1))
+// 否定の対象が判定要素の場合に、括弧付きで復元されることの確認
 TEST_F(sampleFilterDecompileTest, not_of_predicate_is_decompiled_with_parenthesis)
 {
     // Arrange

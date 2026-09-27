@@ -43,7 +43,7 @@ class exportTest : public Test
     }
 };
 
-// libcalc のエクスポート シンボル名一致テスト
+// libcalc のエクスポート シンボル名が API 表と一致することの確認
 TEST_F(exportTest, symbol_names_match)
 {
     // Arrange

@@ -404,12 +404,22 @@ TEST_F(service_sampleTest, dispatch_event_null_safety)
     // Pre-Assert
 
     // Act
-    svc_dispatch_event(NULL, &info);               // [手順] - def に NULL を渡して呼び出す。
-    svc_dispatch_event(&g_service_def, NULL);      // [手順] - info に NULL を渡して呼び出す。
-    svc_dispatch_event(&def_without_event, &info); // [手順] - on_event が NULL の定義で呼び出す。
+    svc_dispatch_event(NULL, &info); // [手順] - def に NULL を渡して呼び出す。
 
     // Assert
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - いずれの場合もコールバックが呼ばれないこと。
+    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - def が NULL の場合はコールバックが呼ばれないこと。
+
+    // Act_2
+    svc_dispatch_event(&g_service_def, NULL); // [手順] - info に NULL を渡して呼び出す。
+
+    // Assert_2
+    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - info が NULL の場合はコールバックが呼ばれないこと。
+
+    // Act_3
+    svc_dispatch_event(&def_without_event, &info); // [手順] - on_event が NULL の定義で呼び出す。
+
+    // Assert_3
+    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - on_event が NULL の場合はコールバックが呼ばれないこと。
 }
 
 // イベント情報が on_event へ渡ることの確認
@@ -482,11 +492,16 @@ TEST_F(service_sampleTest, dispatch_reload_null_safety)
     // Pre-Assert
 
     // Act
-    svc_dispatch_reload(NULL);                // [手順] - def に NULL を渡して呼び出す。
-    svc_dispatch_reload(&def_without_reload); // [手順] - on_reload が NULL の定義で呼び出す。
+    svc_dispatch_reload(NULL); // [手順] - def に NULL を渡して呼び出す。
 
     // Assert
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - コールバックも通知も行われないこと。
+    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - def が NULL の場合はコールバックも通知も行われないこと。
+
+    // Act_2
+    svc_dispatch_reload(&def_without_reload); // [手順] - on_reload が NULL の定義で呼び出す。
+
+    // Assert_2
+    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - on_reload が NULL の場合はコールバックも通知も行われないこと。
 }
 
 /* ============================================================

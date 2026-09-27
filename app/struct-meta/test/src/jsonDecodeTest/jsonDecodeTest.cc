@@ -114,11 +114,19 @@ int decode_integer64_limits(const char *text, Integer64Limits *sample)
 }
 } // namespace
 
+// 各ビット幅の整数値が JSON から正しくデコードされることの確認
 TEST(JsonDecodeTest, DecodesEachIntegerWidth)
 {
-    Widths sample = {}; // [準備_正常系] - 各幅の限界値を含む JSON を用意する。
+    // Arrange
+    Widths sample = {}; // [状態] - 各幅の限界値を含む JSON を用意する。
+
+    // Pre-Assert
+
+    // Act
     int actual = decode_widths("{\"wide\":-999999999999999,\"flags\":4294967295,\"offset\":-32768,\"rank\":255}",
-                               &sample);      // [手順_正常系]
+                               &sample); // [手順] - 各幅の限界値を含む JSON をデコードする。
+
+    // Assert
     ASSERT_EQ(CPLAT_OK, actual);              // [確認_正常系] - 幅ごとの限界値が受理されること。
     EXPECT_EQ(-999999999999999, sample.wide); // [確認_正常系] - 64 ビット符号付きが復元されること。
     EXPECT_EQ(4294967295U, sample.flags);     // [確認_正常系] - 32 ビット符号なしが復元されること。
@@ -126,26 +134,43 @@ TEST(JsonDecodeTest, DecodesEachIntegerWidth)
     EXPECT_EQ(255, sample.rank);              // [確認_正常系] - 8 ビット符号なしが復元されること。
 }
 
+// フィールドのビット幅を超える整数値がデコード時に拒否されることの確認
 TEST(JsonDecodeTest, RejectsValueOutsideFieldWidth)
 {
-    Widths sample = {};                                      // [準備_異常系] - 対象の幅に収まらない値を用意する。
-    int over = decode_widths("{\"rank\":256}", &sample);     // [手順_異常系] - uint8_t の範囲を超える。
-    int negative = decode_widths("{\"rank\":-1}", &sample);  // [手順_異常系] - 符号なしへ負値を与える。
-    int wide = decode_widths("{\"offset\":40000}", &sample); // [手順_異常系] - int16_t の範囲を超える。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, over);                 // [確認_異常系] - 幅を超える値が拒否されること。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, negative);             // [確認_異常系] - 符号なしへの負値が拒否されること。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, wide);                 // [確認_異常系] - 符号付きの範囲外が拒否されること。
+    // Arrange
+    Widths sample = {}; // [状態] - 対象の幅に収まらない値を用意する。
+
+    // Pre-Assert
+
+    // Act
+    int over = decode_widths("{\"rank\":256}", &sample);     // [手順] - uint8_t の範囲を超える値をデコードする。
+    int negative = decode_widths("{\"rank\":-1}", &sample);  // [手順] - 符号なしへ負値を与えてデコードする。
+    int wide = decode_widths("{\"offset\":40000}", &sample); // [手順] - int16_t の範囲を超える値をデコードする。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, over);     // [確認_異常系] - 幅を超える値が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, negative); // [確認_異常系] - 符号なしへの負値が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, wide);     // [確認_異常系] - 符号付きの範囲外が拒否されること。
 }
 
+// 小数や表現不可能な巨大数値が整数フィールドへのデコード時に拒否されることの確認
 TEST(JsonDecodeTest, RejectsNonIntegerAndUnrepresentableNumber)
 {
-    Widths sample = {};                                      // [準備_異常系] - 整数でない値と表現できない値を用意する。
-    int fraction = decode_widths("{\"wide\":1.5}", &sample); // [手順_異常系] - 小数を与える。
-    int huge = decode_widths("{\"wide\":1e300}", &sample);   // [手順_異常系] - double の範囲の巨大値を与える。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, fraction);             // [確認_異常系] - 小数が拒否されること。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, huge);                 // [確認_異常系] - 表現できない値が拒否されること。
+    // Arrange
+    Widths sample = {}; // [状態] - 整数でない値と表現できない値を用意する。
+
+    // Pre-Assert
+
+    // Act
+    int fraction = decode_widths("{\"wide\":1.5}", &sample); // [手順] - 小数値を与えてデコードする。
+    int huge = decode_widths("{\"wide\":1e300}", &sample);   // [手順] - double の範囲の巨大値を与えてデコードする。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, fraction); // [確認_異常系] - 小数が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, huge);     // [確認_異常系] - 表現できない値が拒否されること。
 }
 
+// 64 ビット整数の全境界値が JSON から正確にデコードされることの確認
 TEST(JsonDecodeTest, decodes_64_bit_integer_limits_exactly)
 {
     // Arrange
@@ -165,6 +190,7 @@ TEST(JsonDecodeTest, decodes_64_bit_integer_limits_exactly)
     EXPECT_EQ(UINT64_MAX, sample.unsigned_maximum); // [確認_正常系] - 符号なし最大値を正確に復元すること。
 }
 
+// 64 ビット整数の範囲外の値が拒否され他のフィールドが保護されることの確認
 TEST(JsonDecodeTest, rejects_values_outside_64_bit_integer_ranges)
 {
     // Arrange
@@ -173,9 +199,9 @@ TEST(JsonDecodeTest, rejects_values_outside_64_bit_integer_ranges)
     // Pre-Assert
 
     // Act
-    int signed_over = decode_integer64_limits("{\"maximum\":9223372036854775808}", &sample);
-    int unsigned_negative = decode_integer64_limits("{\"unsigned_maximum\":-1}", &sample);
-    int unsigned_over = decode_integer64_limits("{\"unsigned_maximum\":18446744073709551616}", &sample);
+    int signed_over = decode_integer64_limits("{\"maximum\":9223372036854775808}", &sample); // [手順] - 符号付き上限を超える値をデコードする。
+    int unsigned_negative = decode_integer64_limits("{\"unsigned_maximum\":-1}", &sample); // [手順] - 符号なしフィールドへ負値をデコードする。
+    int unsigned_over = decode_integer64_limits("{\"unsigned_maximum\":18446744073709551616}", &sample); // [手順] - 符号なし上限を超える値をデコードする。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, signed_over);       // [確認_異常系] - 符号付き上限を超える値を拒否すること。
@@ -186,28 +212,49 @@ TEST(JsonDecodeTest, rejects_values_outside_64_bit_integer_ranges)
     EXPECT_EQ(3U, sample.unsigned_maximum); // [確認_異常系] - 失敗した符号なしフィールドを変更しないこと。
 }
 
+// json.name 属性で指定された別名キーからフィールド値が正しく読み込まれることの確認
 TEST(JsonDecodeTest, UsesGenericJsonAttributes)
 {
+    // Arrange
     cJSON *json = cJSON_Parse("{\"person_id\":42}");
-    Sample sample = {0, 9}; // [準備_正常系] - 任意フィールドに既存値を持たせる。
-    ASSERT_NE(nullptr, json);
-    int actual = struct_meta_json_decode(&kDescriptor, json, &sample); // [手順_正常系]
+    Sample sample = {0, 9}; // [状態] - 任意フィールドに既存値を持たせる。
+
+    // Pre-Assert
+    ASSERT_NE(nullptr, json); // [状態確認] - JSON オブジェクトをパースできること。
+
+    // Act
+    int actual = struct_meta_json_decode(&kDescriptor, json, &sample); // [手順] - 別名キーを含む JSON をデコードする。
+
+    // Assert
     EXPECT_EQ(CPLAT_OK, actual); // [確認_正常系] - 必須の別名キーを読み込めること。
-    EXPECT_EQ(42, sample.id);
-    EXPECT_EQ(9, sample.optional);
+    EXPECT_EQ(42, sample.id);    // [確認_正常系] - 別名キーの値が id に反映されること。
+    EXPECT_EQ(9, sample.optional); // [確認_正常系] - 指定のないフィールドが保持されること。
+
+    // Cleanup
     cJSON_Delete(json);
 }
 
+// json.required 属性が付与された必須キーが欠落している場合にエラーが報告されることの確認
 TEST(JsonDecodeTest, ReportsMissingRequiredAttribute)
 {
+    // Arrange
     cJSON *json = cJSON_CreateObject();
-    Sample sample = {}; // [準備_異常系] - 必須キーのない JSON を用意する。
-    ASSERT_NE(nullptr, json);
-    int actual = struct_meta_json_decode(&kDescriptor, json, &sample); // [手順_異常系]
-    EXPECT_EQ(CPLAT_ERR_MISSING_REQUIRED, actual);                     // [確認_異常系] - 必須キー欠落を報告すること。
+    Sample sample = {}; // [状態] - 必須キーのない JSON を用意する。
+
+    // Pre-Assert
+    ASSERT_NE(nullptr, json); // [状態確認] - 空の JSON オブジェクトを作成できること。
+
+    // Act
+    int actual = struct_meta_json_decode(&kDescriptor, json, &sample); // [手順] - 必須キーが欠落した JSON をデコードする。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_MISSING_REQUIRED, actual); // [確認_異常系] - 必須キー欠落を報告すること。
+
+    // Cleanup
     cJSON_Delete(json);
 }
 
+// バイト配列フィールドが整数配列形式および 16 進数文字列形式からデコードされることの確認
 TEST(JsonDecodeTest, decodes_byte_arrays_in_selected_format)
 {
     // Arrange
@@ -229,6 +276,7 @@ TEST(JsonDecodeTest, decodes_byte_arrays_in_selected_format)
     EXPECT_EQ(0xff, sample.hex_values[2]);     // [確認_正常系] - 末尾バイトを復元すること。
 }
 
+// 不正な 16 進数文字列が拒否されバイト配列が部分更新されないことの確認
 TEST(JsonDecodeTest, rejects_invalid_hex_without_partial_update)
 {
     // Arrange

@@ -13,6 +13,7 @@ extern "C"
 #include <cstdio>
 #include <string>
 
+// 64ビット整数配列を改行折り返しと末尾ゼロ埋めを適用したC言語静的配列定義としてストリームへ出力できることの確認
 TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_tail)
 {
     // Arrange
