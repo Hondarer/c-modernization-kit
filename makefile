@@ -301,6 +301,8 @@ servedocs : livedocs-venv
 	@"$(BASH)" "$(LIVEDOCS_STOP)" --venv "$(LIVEDOCS_VENV)" --require-stopped
 	@$(MAKE) --no-print-directory livedocs-stage
 	@printf 'INFO: mkdocs serve on http://%s/ (variant %s)\n' "$(LIVEDOCS_ADDR)" "$(LIVEDOCS_VARIANT)"
+	@# Windows では Ctrl+C を Python が処理するため、ここの trap は動かない。
+	@# 終了コード 0 への変換は livedocs_autostage_hook.py の on_startup が行う。
 	@cd "$(LIVEDOCS_DIR)" && trap 'exit 0' INT && "$(LIVEDOCS_MKDOCS)" serve --dev-addr "$(LIVEDOCS_ADDR)"
 
 .PHONY: livedocs
