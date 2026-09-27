@@ -263,7 +263,8 @@ docs :
 #
 # LIVEDOCS_ADDR     mkdocs serve のアドレス (既定 127.0.0.1:8000)
 # LIVEDOCS_STRICT   1 を指定すると mkdocs build --strict で実行する
-# LIVEDOCS_VARIANT  ja / ja-details / en / en-details (既定 ja-details)
+# LIVEDOCS_VARIANT  ja / ja-details / en / en-details (既定 ja)
+#                   言語と / の着地先。同じ言語の通常版と詳細版は同時に配信する
 # ---------------------------------------------------------------------------
 LIVEDOCS_HOME := $(CURDIR)/framework/docsfw/livedocs
 LIVEDOCS_VENV := $(LIVEDOCS_HOME)/.venv
@@ -272,7 +273,7 @@ LIVEDOCS_MKDOCS := $(LIVEDOCS_VENV)/bin/mkdocs
 LIVEDOCS_DIR := $(CURDIR)/pages/livedocs
 LIVEDOCS_STOP := $(LIVEDOCS_HOME)/bin/stop_livedocs_serve.sh
 LIVEDOCS_ADDR ?= 127.0.0.1:8000
-LIVEDOCS_VARIANT ?= ja-details
+LIVEDOCS_VARIANT ?= ja
 LIVEDOCS_STRICT ?=
 
 # Windows (Git Bash) では venv の実行ファイルが Scripts/ に置かれる。
