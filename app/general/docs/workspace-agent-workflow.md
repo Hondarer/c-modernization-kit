@@ -2,7 +2,7 @@
 
 ## 対象
 
-この文書は、c-modernization-kit の統合ワークスペースに固有の作業手順を示します。  
+この文書は、統合ワークスペースの作業手順を示します。  
 個別 framework や app の詳細は、それぞれの AGENTS.md と README.md を参照してください。
 
 ## Git の扱い
@@ -31,7 +31,7 @@ make sync-app-env
 詳細は [動的発行 (MkDocs)](../../../framework/docsfw/livedocs/README.md) を参照してください。
 
 app を追加または削除した場合は、`.vscode`、GitHub Actions、Jenkins の環境変数を手動で編集せず、`make sync-app-env` を実行します。  
-詳細は [VS Code 環境変数](../../general/docs/vscode-variables.md) を参照してください。
+詳細は [VS Code 環境変数](vscode-variables.md) を参照してください。
 
 ## ビルドとテスト
 
@@ -89,4 +89,4 @@ python framework/docsfw/bin/text_style_jp.py <対象ファイル> --in-place
 新規ソースは `clang-format`、既存ソースの変更は `git clang-format` で確認します。  
 整形後は、Doxygen コメントの字下げも確認します。
 
-C/C++ の規範は [コーディング規範](../../general/docs/coding-guideline.md)、テストの規範は [テスト方法](../../../framework/testfw/docs/how-to-test.md) を参照してください。
+C/C++ の規範は [コーディング規範](coding-guideline.md)、テストの規範は [テスト方法](../../../framework/testfw/docs/how-to-test.md) を参照してください。

@@ -2,7 +2,7 @@
 
 ## 対象
 
-この app は、すべての app に共通する規範、設計、チュートリアル、スキルを管理します。
+この app は、すべての app に共通する規範、設計、運用手順、チュートリアル、スキルを管理します。
 
 ## 参照先
 
@@ -11,6 +11,8 @@
 - [README.md](README.md)
 - [文書一覧](docs/README.md)
 - [AGENTS とスキルの設計指針](docs/agents-and-skills-guideline.md)
+- ビルドや構成の運用を変更する場合は [ワークスペース作業ガイド](docs/workspace-agent-workflow.md) の該当節
+- スキルの配置や同期を変更する場合は [スキル同期](docs/skill-sync.md)
 
 ## 注意点
 

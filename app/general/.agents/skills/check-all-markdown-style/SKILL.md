@@ -5,7 +5,7 @@ description: 第一者管理 Markdown 全体の機械的な表記確認、また
 
 # Markdown 全体のスタイル確認
 
-`app/c-modernization-kit/docs/markdown-style-bulk-check.md` の対象列挙と除外条件に従ってください。  
+`app/general/docs/markdown-style-bulk-check.md` の対象列挙と除外条件に従ってください。  
 単一ファイルや変更ファイルだけの確認には、この一括手順を使わないでください。
 
 読み取り確認では既存差分を記録してから対象を列挙し、`text_style_jp.py --dry-run` の結果を報告してください。  

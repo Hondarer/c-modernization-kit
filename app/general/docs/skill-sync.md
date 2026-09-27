@@ -3,7 +3,7 @@
 ## 正本と射影先
 
 追跡対象のスキル正本は、framework または `app/<name>/.agents/skills/` に配置します。  
-全 app 向けの正本は `app/general`、個別 app 向けの正本はその app、ワークスペース固有の正本は `app/c-modernization-kit` に配置します。
+全 app 向けの正本は `app/general`、個別 app 向けの正本はその app に配置します。
 
 ルート `.agents/skills/` は `make skills` が作成する射影先です。  
 追跡対象のスキル正本を直接配置しません。

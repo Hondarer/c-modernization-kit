@@ -44,7 +44,8 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 - SKILL.md は発火条件と作業手順の要点だけを持ち、詳細は正本ドキュメントを参照します。
 - framework や `app/general` などの汎用層から、実在する個別 app の実装を規範として参照しないでください。
 
-指示やスキルを変更する場合は [AGENTS とスキルの設計指針](app/general/docs/agents-and-skills-guideline.md) を参照してください。
+指示やスキルを変更する場合は [AGENTS とスキルの設計指針](app/general/docs/agents-and-skills-guideline.md) を参照してください。  
+スキルの配置と同期手順は [スキル同期](app/general/docs/skill-sync.md) を参照してください。
 
 ## リポジトリ概要
 
@@ -56,7 +57,7 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 - `framework/docsfw` - Markdown 発行フレームワーク (Pandoc による静的発行と MkDocs による動的発行)
 - `app/<name>` - ライブラリ、コマンド、サンプル、ワークスペース共通文書
 
-ビルド、構成、CI の運用手順が必要な場合は [ワークスペース作業ガイド](app/c-modernization-kit/docs/workspace-agent-workflow.md) の該当節を参照してください。
+ビルド、構成、CI の運用手順が必要な場合は [ワークスペース作業ガイド](app/general/docs/workspace-agent-workflow.md) の該当節を参照してください。
 
 ## 主要な正本
 

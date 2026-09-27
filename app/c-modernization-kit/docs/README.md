@@ -5,12 +5,9 @@
 
 ## 重要な文書
 
-- [エージェントの参照順序](workspace-agent-workflow.md)
-- [スキルの配置と同期](skill-sync.md)
 - [リリース タグと GitHub Release](release-workflow.md)
 - [GitHub Actions](github-actions.md)
 - [CI エラーと警告の確認と修正](ci-warning-remediation.md)
-- [Markdown の一括スタイル確認](markdown-style-bulk-check.md)
 
 ## 文書一覧
 

@@ -25,7 +25,7 @@ Windows の生成コピーに付く `git-origin` は発行用の例外であり�
 個人用の一時的なスキルは `.gitignore` の対象として配置できます。
 
 追加、削除、または名称変更の後は `make skills` を実行します。  
-配置規則と同期手順は、[スキルの配置と同期](../../app/c-modernization-kit/docs/skill-sync.md) を参照してください。
+配置規則と同期手順は、[スキルの配置と同期](../../app/general/docs/skill-sync.md) を参照してください。
 
 ## スキル一覧
 
@@ -35,4 +35,4 @@ Windows の生成コピーに付く `git-origin` は発行用の例外であり�
 
 - [ワークスペースの作業規則](../../AGENTS.md)
 - [AGENTS.md とスキルの設計指針](../../app/general/docs/agents-and-skills-guideline.md)
-- [スキルの配置と同期](../../app/c-modernization-kit/docs/skill-sync.md)
+- [スキルの配置と同期](../../app/general/docs/skill-sync.md)
