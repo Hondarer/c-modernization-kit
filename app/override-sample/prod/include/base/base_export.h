@@ -38,6 +38,8 @@
      *  | Windows / `BASE_STATIC` 定義時 (静的リンク)       | (空)                     |
      *  | Windows / `BASE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
      *  | Windows / `BASE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+     *
+     *  Table: BASE_EXPORT のビルド条件別の展開値
      */
     #define BASE_EXPORT
 

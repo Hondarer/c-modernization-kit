@@ -35,6 +35,8 @@ Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行�
 | push | main |
 | pull_request | main |
 
+Table: GitHub Actions ワークフローのトリガー条件と対象ブランチ
+
 ### 共通環境変数
 
 `.github/workflows/ci.yml` では、全ジョブ共通の `env` として、CI が動的に導入するツールのバージョンと検証値を定義します。
@@ -46,6 +48,8 @@ Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行�
 | `REPORTGENERATOR_VERSION` | `5.5.11` | Windows CI で使用する ReportGenerator のバージョン |
 | `WINFLEXBISON_VERSION` | `2.5.25` | Windows CI で使用する WinFlexBison のバージョン |
 | `WINFLEXBISON_SHA256` | `8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135` | WinFlexBison 配布 ZIP の SHA-256 |
+
+Table: ci.yml で定義されている共通環境変数一覧
 
 これらのバージョンと配布元は、Windows 開発環境を構築する [devbin-win](https://github.com/Hondarer/devbin-win) の `subscripts/config/packages.psd1` に揃えます。  
 開発者のローカル環境と CI で同じバージョンのツールを使用することが目的であり、どちらか一方を更新した場合はもう一方も合わせて更新します。
@@ -91,6 +95,8 @@ container:
 | ol9 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-9-dev:latest` | Oracle Linux 9 開発コンテナー |
 | ol10 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest` | Oracle Linux 10 開発コンテナー |
 
+Table: Linux CI 実行環境で使用するコンテナー イメージ
+
 CI の表示名とビルド成果物の内部識別子は目的が異なるため、命名を分けています。
 
 | 用途 | 命名 |
@@ -98,6 +104,8 @@ CI の表示名とビルド成果物の内部識別子は目的が異なるた�
 | コンテナー、matrix、artifact | `ol8` / `ol9` / `ol10` |
 | `TARGET_ARCH` の OS 部分 | `el8` / `el9` / `el10` |
 | Linux ライブラリ配置 | `linux_el8_x64` / `linux_el9_x64` / `linux_el10_x64` |
+
+Table: Linux 環境における用途別の OS 識別子命名規則
 
 `el` 系の内部識別子は、makefw が RHEL 系 OS から生成する値であり、CI の表示名である `ol` 系の識別子とは置き換えません。
 
@@ -115,6 +123,8 @@ CI の表示名とビルド成果物の内部識別子は目的が異なるた�
 | HOST_USER | user | コンテナー内ユーザー名 |
 | HOST_UID | 1001 | ユーザー ID |
 | HOST_GID | 127 | グループ ID |
+
+Table: Linux ビルド ジョブで設定される環境変数一覧
 
 ### Windows 環境
 
@@ -249,6 +259,8 @@ end note
 | `string-catalog-sample` | `prod/src/cmd/string-catalog-command-sample/gen/` | `app/string-catalog-sample/makepart.mk` のパース時 |
 | `struct-meta` | `prod/libsrc/struct_meta/parse/gen/` | flex/bison のビルド規則 |
 | `struct-meta` | `prod/src/cmd/struct-meta-sample/gen/` | ビルド済みの `prod/cbin/struct-meta-gen` を実行するビルド規則 |
+
+Table: 各 app の自動生成ソースと生成タイミング
 
 いずれも `make doxy` の経路ではリーフ makefile をパースしないため生成されません。`struct-meta` は生成に実行体のビルドを必要とするため、ソース生成だけを行う軽量な手段も成立しません。ビルドとテストを終えた断面でドキュメントを生成することが、自動生成ソースを Doxygen の入力に含めるための条件です。
 
@@ -402,6 +414,8 @@ main ブランチへの push 時に、`deploy-pages` ジョブがドキュメン
 | path | `./pages` | Pages artifact に格納するディレクトリ |
 | environment | `github-pages` | デプロイ先の environment |
 
+Table: deploy-pages アクションの設定パラメーター
+
 `actions/deploy-pages` は `github-pages` という名前の artifact を 1 つだけデプロイします。  
 artifact を分割して 1 つのサイトへ配置する手段はないため、1 GB 上限への対処はペイロードの削減に限られます。
 
@@ -455,6 +469,8 @@ Pages には、閲覧の対象と、閲覧中に個別に取得する成果物�
 | HTML と DOCX の一式をまとめた zip | 配置しない | コミット固有の run artifact |
 | テスト結果とビルド ログの zip | 配置する | Pages から固定 URL で取得 |
 | `.warn` アーカイブ | 配置する (内容がある場合) | Pages から固定 URL で取得 |
+
+Table: 成果物の区分と GitHub Pages への配置有無および取得先
 
 各 HTML ページのヘッダーには Word アイコンを表示し、同名の DOCX へ `../docx/<名前>.docx` でリンクします。リンク先は Pages 上に必要です。  
 一式をまとめた zip は閲覧に使用せず、run artifact に同じ内容が存在します。エントリ ページには「ドキュメントのダウンロード」として、生成元 workflow run へのリンクを掲載します。

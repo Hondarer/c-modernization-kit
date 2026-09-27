@@ -24,6 +24,8 @@ short-title: "string-catalog-filter-sample"
 | `sample_worker_trace_key_names.h` / `.c` | 文字列キーの名前解決テーブル (手動定義) |
 | `string-catalog-filter-sample.c` | 本コマンドの対話ループとワーカー スレッドの実装 |
 
+Table: string-catalog-filter-sample の構成ファイル一覧
+
 ## コマンド一覧
 
 | コマンド | 内容 |
@@ -48,6 +50,8 @@ short-title: "string-catalog-filter-sample"
 | `start [ワーカー数] [間隔 ms]` | ワーカー スレッドを起動します (既定 2 個、500 ミリ秒間隔) |
 | `stop` | ワーカー スレッドを停止します |
 | `quit` / `exit` | 終了します |
+
+Table: string-catalog-filter-sample のコマンド一覧
 
 行番号は `1` 起点で表示、入力します。  
 入力したコマンドは、空行を 1 行置いてから `filter-sample> ` を前置して出力領域へ書き戻します。  
@@ -84,6 +88,8 @@ short-title: "string-catalog-filter-sample"
 | `key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]` | ジョブの受け付けと失敗 |
 | `id ends_with "0005"` | ID が `SAMPLE_WORKER_TRACE_ID_0005` のトレース (ジョブの失敗) |
 
+Table: 項目情報によるトレース選別条件式の例
+
 分類値にはレベルの名前と列挙値のどちらでも書けます。  
 対応は CRITICAL = 0、ERROR = 1、WARNING = 2、INFO = 3、VERBOSE = 4、DEBUG = 5、NONE = 6 です。
 
@@ -106,6 +112,8 @@ short-title: "string-catalog-filter-sample"
 | `arg.status == 0x1F` | 状態フラグが 0x1F の制御コマンドの受信 |
 | `arg.delta < 0` | 差分が負の制御コマンドの受信 |
 
+Table: 利用者引数によるトレース選別条件式の例
+
 引数を持たない項目では、その引数を参照する比較は偽になります。  
 たとえば `arg.priority between -3 and 3` は、ジョブの受け付け以外には一致しません。
 
@@ -118,6 +126,8 @@ short-title: "string-catalog-filter-sample"
 | `arg[42] > 300` | 300 行目より後ろの呼び出し位置から出力したトレース (`{42}` は `source_line`) |
 | `arg.sequence_number between 90 and 99` | ラウンド トリップ ID が 90 から 99 のトレース |
 | `arg[46] == 1` | ラウンド トリップ ID が 1 のトレース |
+
+Table: 呼び出し位置とコンテキストによるトレース選別条件式の例
 
 `{40}` から `{45}` は cplat の生成器が付与する文脈引数、`{46}` の `sequence_number` はこの app が定義するコンテキスト引数です。  
 どちらも引数名またはインデックスで、利用者の引数と同じように照合できます。  
@@ -132,6 +142,8 @@ short-title: "string-catalog-filter-sample"
 | `arg.worker_index == 0 && !(arg.job_name starts_with "export")` | ワーカー 0 のトレースのうち、ジョブ名が `export` で始まるものを除いたもの |
 | `(arg.priority < 0 \|\| arg.ratio >= 0.9) && has(arg.job_id)` | ジョブ番号を持つトレースのうち、優先度が負、または進捗の割合が 0.9 以上のもの |
 
+Table: 複合条件によるトレース選別条件式の例
+
 `!`、`&&`、`||` の順に強く結合します。  
 除外の条件は、同じ行の中で `!` を使って記述します。
 
@@ -141,6 +153,8 @@ short-title: "string-catalog-filter-sample"
 |---|---|
 | `arg.no_such == 1` | どの項目にもない引数名のため、`apply` で無効な行になります (未解決の引数名) |
 | `category starts_with "x"` | 分類値は整数のため、`add` の時点で拒否されます (型不一致) |
+
+Table: 無効判定となるフィルター条件式の例
 
 無効な行は、その行だけが適用されず、他の行は適用されます。  
 `list` では、無効な行に `[無効]` が付きます。

@@ -599,6 +599,8 @@ if re.match(r'^\s*#pragma', line):
 | カバレッジ ツールとの統合 | 高 | 中 | フェーズ 1 では除外、フェーズ 2 で検討 |
 | 既存の exec_test_dotnet.sh の破壊 | 高 | 低 | 従来版との results 差分検証で同一性を確認 |
 
+Table: .NET テスト結果収集設計におけるリスクと緩和策
+
 ## 改善提案
 
 ### get_test_code_dotnet.py の改善

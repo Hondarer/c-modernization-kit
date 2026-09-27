@@ -13,6 +13,8 @@ sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/c-platfo
 | 存在しない (または定義なし) | `libbase` 自身が処理を行う (`a + b`) |
 | `sample_func` に `liboverride` / `override_func` を定義 | `dlopen` / `LoadLibrary` で `liboverride` を実行時にロードし、`override_func` に処理を委譲する (`a * b`) |
 
+Table: 設定ファイルの状態に応じた動作仕様
+
 オーバーライドの切り替えは `libbase` がロードされるタイミング (constructor / `DllMain`) で行われます。メイン プログラムを変更せずに、設定ファイルを配置するだけでライブラリの実装を差し替えられることを示します。
 
 ## ファイル構成
@@ -94,6 +96,8 @@ int WINAPI override_func(const int a, const int b, int *result);
 | Linux | `/tmp/libbase_extdef.json` |
 | Windows | `%TEMP%\libbase_extdef.json` |
 
+Table: プラットフォーム別の設定ファイル パス
+
 ファイルが存在しない場合は既定の動作になります。ファイルのフォーマットは次のとおりです。  
 `//` 行コメントと C 形式のブロック コメントを利用できます。
 
@@ -111,6 +115,8 @@ int WINAPI override_func(const int a, const int b, int *result);
 |---|---|
 | ともに `default` | 明示的な既定指定。設定ファイルなしと同様に既定の処理を行います。 |
 | ライブラリ名 / 関数名 | 指定したライブラリを動的ロードし、関数に処理を委譲します。 |
+
+Table: 設定ファイルの lib/func 値に応じた動作
 
 `sample-config/libbase_extdef.json` に設定ファイルのサンプルがあります。初期状態では明示的な既定指定 (`"lib": "default"`, `"func": "default"`) が設定されており、オーバーライドする定義はコメント アウトされています。
 
@@ -162,6 +168,8 @@ make
 | `lib/libbase.dll` | ベース ライブラリ (Windows) |
 | `lib/liboverride.dll` | オーバーライド ライブラリ (Windows) |
 | `bin/override-sample.exe` | メイン プログラム (Windows) |
+
+Table: override-sample のビルド生成成果物一覧
 
 クリーン ビルドを行う場合は次のとおりです。
 

@@ -62,6 +62,8 @@ make
 | libexamplebase | `app/example/prod/lib/libexamplebase.lib` | `app/example/prod/lib/libexamplebase.a` | 基本計算関数ライブラリ (静的ライブラリ) |
 | libexample | `app/example/prod/lib/libexample.dll` + `libexample.lib` | `app/example/prod/lib/libexample.so` | 計算ハンドラー ライブラリ (動的ライブラリ、examplebase を内部に静的リンク) |
 
+Table: ビルドされるライブラリ成果物一覧
+
 コマンド / Commands:
 
 | コマンド | Windows | Linux | リンク ライブラリ |
@@ -70,11 +72,15 @@ make
 | example | `app/example/prod/cbin/example.exe` | `app/example/prod/cbin/example` | example のみ |
 | shared-and-static-example | `app/example/prod/cbin/shared-and-static-example.exe` | `app/example/prod/cbin/shared-and-static-example` | example + examplebase (両方) |
 
+Table: ビルドされるコマンド成果物一覧
+
 .NET コマンド / .NET Commands:
 
 | コマンド | Windows | Linux | 依存ライブラリ |
 |---------|---------|-------|--------------|
 | ExampleApp | `app/example.net/prod/cbin/ExampleApp.exe` | `app/example.net/prod/cbin/ExampleApp` | ExampleLib (libexample の .NET ラッパー) |
+
+Table: ビルドされる .NET コマンド成果物一覧
 
 重要:
 
@@ -389,6 +395,8 @@ endif
 | libexamplebase | 未設定 (→ static) | `.lib` | `.a` | 静的ライブラリ |
 | libexample | `shared` (makepart.mk で指定) | `.dll` + `.lib` | `.so` | 動的ライブラリ + インポート ライブラリ |
 
+Table: プロジェクトのライブラリ構成と出力形式
+
 **LIB_TYPE 変数:**
 
 - 未設定の場合はデフォルトで `static`
@@ -434,6 +442,8 @@ endif
 | 共有ライブラリ拡張 | .so | .dll |
 | 実行ファイル拡張 | なし | .exe |
 | オブジェクト拡張 | .o | .obj |
+
+Table: OS 別のコンパイラおよびツールチェーンの差異
 
 #### MinGW 環境の活用
 
@@ -510,6 +520,8 @@ makefw は testfw から makefile 関連機能を切り出したフレームワ�
 | 静的リンク自動化 | 動的ライブラリ ビルド時に静的ライブラリを自動検索・リンク |
 | テスト フレームワーク統合 | `LINK_TEST = 1` で Google Test を自動リンク |
 | モック機能 | testfw のインクルード オーバーライド機能によるモック |
+
+Table: ビルド設計の実装上の特徴
 
 ## デバッグ
 

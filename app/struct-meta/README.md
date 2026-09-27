@@ -26,6 +26,8 @@
 | `prod/src/cmd/struct-meta-gen/` | 記述子を C ソースとして書き出す PoC |
 | `prod/src/cmd/struct-meta-sample/` | 生成結果とライブラリを使う動作確認コマンド |
 
+Table: struct-meta の構成パスと責務一覧
+
 生成ファイルは `gen/` に置かれ、Git では管理しません。  
 生成器は Doxygen コメントの `@struct_meta{key}` と `@struct_meta{key=value}` を解析し、構造体またはフィールドの汎用 key/value 属性として保持します。  
 属性の記述方法と制約は [アーキテクチャー](docs/architecture.md#doxygen-属性の書式) を参照してください。  
@@ -48,6 +50,8 @@ make test
 | `init <header-path>` | 事後解析型 | 指定した C ヘッダーを実行時に構文解析します。コンパイラは不要です。 |
 | `init` | - | 使い方と、選択できる組み込みカタログ名を表示します。 |
 
+Table: struct-meta-sample のカタログ初期化コマンド一覧
+
 `init` はカタログを用意してから構造体一覧を表示し、番号で選ばせます。  
 選んだ記述子のサイズで領域を確保し、ゼロ初期化します。  
 組み込みカタログの名前は生成カタログのステムと同じで、`sample_types.h` からは `sample_types` になります。  
@@ -66,6 +70,8 @@ make test
 | `loadbin <path>` / `savebin <path>` | バイナリ | 記述子が表すバイト列をそのまま読み書きします。 |
 | `catbin <path>` | バイナリ | ファイルの内容を 16 進ダンプで表示します。 |
 | `dumpbin` | バイナリ | 現在の値をファイルへ保存せず、16 進ダンプとして標準出力へ表示します。`savebin` と `catbin` を続けて実行した場合と同じ内容です。 |
+
+Table: struct-meta-sample の入出力コマンド一覧
 
 `catjson` と `catbin` はファイルを読むだけなので、対象の選択を必要としません。  
 それ以外の値を扱うコマンドは、`init` で対象を定めるまで受け付けません。

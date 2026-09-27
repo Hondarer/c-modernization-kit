@@ -146,6 +146,8 @@ libcalc.so / libcalc.dll (ネイティブライブラリ)
 | 整数解析 | atoi() | int.TryParse() |
 | エラー メッセージ | fprintf(stderr) | Console.Error |
 
+Table: C 版と .NET 版の機能比較
+
 ## ビルド システムとの統合
 
 アプリケーションは既存の makefile ビルド システムに統合されています。

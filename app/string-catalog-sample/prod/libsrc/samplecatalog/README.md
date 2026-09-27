@@ -19,6 +19,8 @@ short-title: "samplecatalog"
 | `samplecatalog_context.c` | トレースのコンテキスト引数として付与する巡回連番 |
 | `catalog_settings.jsonc` | エクスポート マクロの接頭辞と定義元のヘッダー、および app が定義するコンテキスト引数 |
 
+Table: samplecatalog ライブラリの構成ファイル一覧
+
 カタログの生成物は、ヘッダーを `prod/include/samplecatalog/`、ソースを `gen/` へ出力します。  
 いずれも Git では管理しません。変更するのはカタログ定義ファイルです。
 
@@ -45,6 +47,8 @@ short-title: "samplecatalog"
 | 位置指定 | 引数名 | 引数種別 | 取得式 |
 |---|---|---|---|
 | `{46}` | `sequence_number` | `INT32` | `samplecatalog_next_sequence_number()` |
+
+Table: アプリ定義のコンテキスト引数一覧
 
 値は 1 から 999 まで増加し、上限到達後は 1 へ戻ります。  
 コンテキスト引数の仕組みを実証するための検証用の値であり、欠落の検出には使用できません。

@@ -16,6 +16,8 @@ RelWithDebInfo (Release with Debug Information) は、リリース最適化を�
 | Release | 有効 | 無効 (または限定的) | 本番リリース時 (デバッグ情報不要の場合) |
 | **RelWithDebInfo** | **有効** | **有効** | **本番リリース時・パフォーマンス測定・トラブルシューティング** |
 
+Table: .NET の標準ビルド構成比較
+
 ### RelWithDebInfo が有用な場面
 
 1. **本番リリース時の推奨構成**

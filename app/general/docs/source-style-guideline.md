@@ -10,6 +10,8 @@
 | `.editorconfig` | 編集時の基本設定 | 文字コード、改行コード、インデント、末尾空白 |
 | `.clang-format` | C/C++ の構文整形 | 波括弧、折り返し、プリプロセッサ、マクロ整列など |
 
+Table: スタイル定義ファイルの役割と守備範囲
+
 3 つは同じ目的を異なる段階で支えます。`.gitattributes` は Git に保存される内容をそろえ、`.editorconfig` は編集時の入力をそろえ、`.clang-format` は C/C++ コードの見た目をそろえます。いずれか 1 つだけでは守備範囲が不足します。
 
 ## .gitattributes
@@ -62,6 +64,8 @@ VS Code で `.editorconfig` を反映するには、以下の拡張機能をイ�
 | 説明 | EditorConfig Support for Visual Studio Code |
 | パブリッシャー | EditorConfig |
 | VS Marketplace | [EditorConfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) |
+
+Table: VS Code 用 EditorConfig 拡張機能情報
 
 ## .clang-format
 

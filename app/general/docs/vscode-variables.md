@@ -164,6 +164,8 @@ see: [ライブラリ探索パスの扱い (Linux)](../../../framework/makefw/do
 | `${workspaceFolder}` | `--workspace` に渡したワークスペース ルート |
 | `${env:NAME}` | 実行時の環境変数 `NAME` の値 |
 
+Table: VS Code プレースホルダーの解決ルール
+
 出力形式は 2 つです。
 
 - `--format shell` - `export KEY='VALUE'` を標準出力へ出す。Jenkins が `eval` で取り込む
@@ -186,6 +188,8 @@ app を追加・削除しても `app/general/bin_internal/load-app-env.sh` と C
 | VS Code テスト タスク / デバッグ (Linux) | `.vscode/.env.linux` | `PATH` と `LD_LIBRARY_PATH` の行 |
 | VS Code テスト タスク / デバッグ (Windows) | `.vscode/.env.windows` | `PATH` の行 |
 | Markdown 発行 | `.vscode/pub_markdown.config.yaml` | `mergeSubfolderDocs` の行 |
+
+Table: VS Code 環境設定の生成対象ファイルと反映箇所
 
 いずれもキー単位の行置換であり、その行以外は保持されます。  
 通常の `--check` と `--write` は環境設定の 3 ファイルを対象とし、`.vscode/pub_markdown.config.yaml` は差異を `INFO:` で通知するだけです。  
@@ -243,6 +247,8 @@ bash app/general/bin/sync-app-env.sh --check --include-pub-markdown
 | VS Code 統合ターミナル | `.vscode/settings.json` | `MAKEFW_HOME`, `DOCSFW_HOME`, `DOXYFW_HOME`, `TESTFW_HOME` |
 | Jenkins 説明 | `.jenkins/README.md` | Jenkins 上の既定値と上書き方法 |
 | CI 詳細説明 | 展開先の CI/CD 仕様書 | CI 上の既定値とドキュメント発行での利用 |
+
+Table: framework home 変更時の更新対象ファイル
 
 `.github/workflows/ci.yml` と `.jenkins/inner-build.sh` は `.vscode/.env.*` から読み込むため、更新は不要です。
 

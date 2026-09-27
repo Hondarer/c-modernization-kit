@@ -55,6 +55,8 @@ extern "C"
      *  | CALC_KIND_MULTIPLY  | 乗算を実行       |
      *  | CALC_KIND_DIVIDE    | 除算を実行       |
      *
+     *  Table: サポートする演算種別
+     *
      *  @par            使用例
         @code{.c}
         int result;

@@ -29,6 +29,8 @@ service-sample console    # フォアグラウンドで実行する (デバッ�
 | on_run | on_start 成功後に 1 回 | `svc_wait_for_stop()` が 1 を返すまで戻らないメイン ループ。 | 必須 |
 | on_stop | on_run が戻った後に必ず 1 回 | 停止処理。 | 任意 |
 
+Table: service-sample のライフサイクル コールバック一覧
+
 フレームワークは `on_start` 成功直後に起動完了 (Windows: `SERVICE_RUNNING` / Linux: `READY=1`)、`on_run` 復帰直後に停止開始 (Windows: `SERVICE_STOP_PENDING` / Linux: `STOPPING=1`) を OS へ自動通知します。コールバック側でこれらを意識する必要はありません。
 
 ```plantuml
@@ -96,6 +98,8 @@ SCM の停止通知はシグナルではないため、condvar が 3 経路す�
 | install | /etc/systemd/system/{name}.service を生成し systemctl enable を実行 (root 必須) |
 | uninstall | systemctl stop/disable を実行し unit ファイルを削除 (root 必須) |
 
+Table: Linux における service-sample の動作一覧
+
 ### Windows
 
 | コマンド | 動作 |
@@ -103,6 +107,8 @@ SCM の停止通知はシグナルではないため、condvar が 3 経路す�
 | run | StartServiceCtrlDispatcher で SCM ディスパッチャーに接続 |
 | install | OpenSCManager + CreateService でサービスを登録 (管理者権限必須) |
 | uninstall | OpenService + ControlService(STOP) + DeleteService で削除 (管理者権限必須) |
+
+Table: Windows における service-sample の動作一覧
 
 Windows SCM の状態遷移:
 
@@ -132,6 +138,8 @@ make
 | `prod/cbin/service-sample.exe` | 実行ファイル (Windows) |
 | `prod/cbin/libcplat.so` / `prod/cbin/libcplat.dll` | cplat の実行時ライブラリ |
 | `prod/cbin/libcjson.so` / `prod/cbin/libcjson.dll` | cplat が利用する cJSON の実行時ライブラリ |
+
+Table: service-sample のビルド生成ファイル一覧
 
 Linux は `$ORIGIN` の RUNPATH、Windows は実行ファイルと同じディレクトリの DLL 探索により、これらのライブラリを解決します。
 

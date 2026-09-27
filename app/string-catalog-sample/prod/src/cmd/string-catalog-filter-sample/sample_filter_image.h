@@ -15,6 +15,8 @@
  *  | ヘッダー (@ref sample_filter_image_header) | @ref SAMPLE_FILTER_HEADER_SIZE |
  *  | 行レコード × 行数の上限 | @ref SAMPLE_FILTER_RECORD_SIZE |
  *
+ *  Table: フィルター イメージの構成要素と大きさ
+ *
  *  行レコードは、見出し (@ref sample_filter_record_header)、命令領域、定数領域の順に並びます。\n
  *  命令領域は行幅と同じ個数の命令 (@ref sample_filter_instruction) を格納できます。\n
  *  定数領域は行幅の 8 倍のバイト数です。定数は見出し (@ref sample_filter_constant_header) と値で構成します。

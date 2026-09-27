@@ -41,6 +41,8 @@ C17 より前の標準にしかない書き方へ戻すこともしません。
 | `> [!IMPORTANT]` | 見落とすと規範違反になる要点、規則どうしの適用条件の違い |
 | `> [!WARNING]` | 誤った書き方が引き起こす具体的な障害 (ビルド エラー、リーク、情報漏えい、ABI 不整合) |
 
+Table: ガイドラインにおける記述形式と用途の使い分け
+
 出典の URL は本文中に置かず、末尾の [参照](#参照) へ集約します。  
 本文からは `> [!NOTE]` の中で規格名や条項名を挙げ、詳細は参照節へ誘導します。
 
@@ -75,6 +77,8 @@ admonition の記法と対応する Doxygen タグは [`framework/docsfw/docs/sa
 | 4 | ファイル内 | どのヘッダーでも宣言されず、`static` が付いている |
 | 5 | 関数内ローカル | 関数本体の内側で宣言されている |
 
+Table: シンボル スコープの判定順序と基準
+
 スコープはヘッダーの配置と `static` の有無で判定します。  
 ライブラリ内共有の関数・型・外部リンケージ変数は、名前にも公開境界のマーカー (`_internal_`) を含め、公開シンボルと区別します。
 
@@ -103,6 +107,8 @@ admonition の記法と対応する Doxygen タグは [`framework/docsfw/docs/sa
 | 公開共有変数 | 外部 | `include/` の `extern` | snake_case | `g_<lib>_` | `g_sample_default_limits` (必要最低限に厳選) |
 | 型 (struct / enum / union / 関数ポインター) | - | 宣言場所に従う | snake_case | 公開は `<lib>_`、ライブラリ内共有は `<lib>_internal_` | `sample_context`、`sample_internal_registry`、`sample_hook_fn` |
 | 列挙定数 / マクロ | - | - | 全大文字 | `<LIB>_` | `SAMPLE_TRACE_LEVEL_INFO` |
+
+Table: スコープ別の命名規則とリンケージ一覧
 
 > [!NOTE]
 > 表の各行は、次の原理から導かれます。  
@@ -146,6 +152,8 @@ int sample_path_dirname(char *dir_out, size_t dir_size, sample_error *detail_out
 | `out_buf` / `buf_out` | 「出力バッファー」を二重に述べる | 書き戻す値の意味名 (`value_out`、`key_out`) |
 | `dest_out` | `dest` がすでに書き込み先を表す | `dest` |
 | `{name}_out_size` / `out_{name}_sz` | 容量は入力であり、出力値ではない | `{name}_size` |
+
+Table: 避けるべき出力引数名と代替案
 
 変換・整形 API の書き込み先は、CRT の `strcpy_s` 系に合わせて `dest` / `dest_size` を使います。  
 ここへ `_out` は付けません。
@@ -194,6 +202,8 @@ Google Mock の Mock クラスを格納する変数名は、その Mock クラ�
 | `Mock_stdio` | `mock_stdio` |
 | `NiceMock<Mock_stdio>` | `mock_stdio` |
 
+Table: モック クラスの型名と変数名の対応規則
+
 ```cpp
 /* NG: どの Mock クラスかが名前から分からない */
 NiceMock<Mock_cplat> mock_;
@@ -237,6 +247,8 @@ rg -n --glob '*.cc' --glob '*.h' 'Mock_[A-Za-z0-9_]+>\s+mock;' .
 | アンダースコアで始まるファイル スコープ識別子 | C 標準は、アンダースコアで始まるすべての識別子を、ファイル スコープの通常識別子およびタグ名前空間で予約します |
 | 連続するアンダースコア (`__`) を含む識別子 | C++ 標準は、識別子の任意の位置に連続する `__` を含む名前を処理系用に予約します |
 
+Table: 禁止される予約識別子の形式と根拠
+
 `_t` の禁止は `typedef struct` / `typedef enum` / `typedef union` / 関数ポインター typedef のすべてに適用します。  
 アンダースコア始まりの禁止と `__` の禁止は、関数名、変数名、型名、マクロ名、インクルード ガードなど、ユーザーが **定義** する識別子に適用します。  
 インクルード ガードにおける予約識別子の詳細は [`include-guard-guideline.md`](include-guard-guideline.md) を参照してください。
@@ -267,6 +279,8 @@ rg -n --glob '*.cc' --glob '*.h' 'Mock_[A-Za-z0-9_]+>\s+mock;' .
 | 既定インスタンス版と明示ハンドル版の対 | 明示ハンドル版を正名とし、既定インスタンス版に `_default_` を挟む | `sample_parser_parse(parser, ...)` と `sample_parser_default_parse(...)` |
 | テスト専用フック | `_for_test` サフィックスのみで表し、前置きを付けない | `sample_shutdown_reset_for_test()` |
 
+Table: アンダースコア始まり識別子の用途と代替規則
+
 > [!NOTE]
 > 既定インスタンス版と明示ハンドル版の対で明示ハンドル版を正名とするのは、ハンドルを先頭引数に取る形が引数順序の規約に準拠した形であり、既定インスタンス版はそこからハンドルを暗黙化した派生形だからです。  
 > 規約に準拠した形が装飾のない名前を持つようにします。
@@ -284,6 +298,8 @@ snake_case とし、接頭辞は付けません。
 |---|---|---|
 | `ret` | 呼び出した API の結果コードを一時的に受ける作業変数 | 1 関数の戻り値だけを受けるときは初期化子でよい。複数関数で使い回すときは宣言と代入を分ける。成功 / 失敗定数やリテラルでは初期化しない |
 | `result` | 自関数が呼び出し元へ返す結果コードを蓄える変数 | 付けてよい (例: `int result = SAMPLE_OK;`) |
+
+Table: 結果コード変数 (ret と result) の役割と初期化規則
 
 `rc` と `rtc` は、生産コードにおける `ret` の歴史的な別名です。  
 新規の生産コードでは `ret` を使い、`rtc` は追加しません。  
@@ -425,6 +441,8 @@ if (ret != SAMPLE_OK)
 |---|---|
 | `err` | 成功 (`0` / `*_OK`) も含む変数を、エラー専用のように読ませる |
 | `status` | Win32 や状態機械の status と混同しやすく、本リポジトリの結果コード体系 (`*_OK` / 負の分類) との対応が弱い |
+
+Table: 結果コード変数として採用しない名前と理由
 
 `result` は **自関数が返す結果コードの蓄積** に限り使います。  
 計算の合計や変換結果など、結果コードではない値には `result` を使わず、`total` や `size` などの意味名を使います。
@@ -733,6 +751,8 @@ typedef void (*sample_hook_callback_t)(sample_context *context, void *user_data)
 | 処理系・ABI の抽象 | 呼び出し規約、export、インライン強制など | `SAMPLE_EXPORT`、`FORCE_INLINE` |
 | API 表の展開 | 1 つの関数一覧から宣言・実装・テストを生成する X マクロ | `MOCK_CJSON_RET` / `MOCK_SQLITE3_VOID` |
 
+Table: マクロの新設が許容される用途一覧
+
 第三者共有ライブラリの mock を API 表から生成する方式は [共有ライブラリの mock 化](shared-library-mock-guideline.md) が正本です。  
 API 表は include guard を持たず、展開に必要なマクロが未定義なら `#error` で停止する形とします。
 
@@ -779,6 +799,8 @@ API 表は include guard を持たず、展開に必要なマクロが未定義�
 | 型名トークン | `(type)expr` の `type` など |
 | 文字列リテラル連結に使う書式引数 | `"[%s:%d] " fmt` の `fmt`。括弧を付けると連結できません。 |
 | 構造体初期化子マクロの一部トークン | 中括弧初期化子の構文上の断片 |
+
+Table: マクロ引数および本体で括弧を付けない例外と理由
 
 ```c
 /* 例外: 文字列リテラル連結に使う fmt は括弧不可 */
@@ -882,6 +904,8 @@ grep -rnE '^[[:space:]]*#define[[:space:]]+[A-Za-z_][A-Za-z0-9_]*\(' \
 | ライブラリ内共有の外部リンケージ変数 | `include_internal/` で `extern` するすべて | `g_sample_internal_default_registry` |
 | モジュール私有ヘッダーとその宣言 | 付けない | `hashtable.h` / `hashtable_entry_status` |
 
+Table: ヘッダー ファイル名への _internal 付与条件
+
 ファイル名に `_internal` が無くても、`include_internal/` 配下で宣言する関数・型・外部リンケージ変数には公開境界のマーカーを付けます。
 
 ### モジュール私有ヘッダー
@@ -928,6 +952,8 @@ grep -rnE '^[[:space:]]*#define[[:space:]]+[A-Za-z_][A-Za-z0-9_]*\(' \
 | `libsrc/cplat/hashtable/hashtable.h` | `HASHTABLE_PRIVATE_H` |
 | `src/cmd/trace-cli/trace-cli.h` | `TRACE_CLI_PRIVATE_H` |
 | `src/cmd/bench-io/bench_case.h` | `BENCH_CASE_PRIVATE_H` |
+
+Table: 私有ヘッダーのインクルード ガード命名例
 
 モジュール名にハイフンやキャメル ケースが含まれる場合は、アンダースコア区切りの全大文字へ直します (例: `tcpServer.h` は `TCP_SERVER_PRIVATE_H`)。
 
@@ -1166,6 +1192,8 @@ record.native_handle = handle;
 | ABI 凍結を宣言した公開 API の構造体 | 置く |
 | ライブラリ内共有の構造体、`.c` 内に閉じた構造体 | 置かない |
 
+Table: 構造体への予約フィールド配置対象
+
 内部構造体は再コンパイルでレイアウトを変更できるため、予約フィールドは領域を浪費するだけです。  
 必要になった時点でメンバーを追加してください。
 
@@ -1232,6 +1260,8 @@ uint8_t reserved[sample_record_reserved_size];
 |---|---|---|
 | `pad` / `pad1` / `pad2` | 暗黙パディングの明示化。アラインメントを揃えるための穴埋め | 意味を持たない。将来も意味を与えない |
 | `reserved` / `reserved1` | 将来のメンバー追加のための領域 | ゼロで埋める。将来メンバーとして意味を与える |
+
+Table: pad と reserved メンバーの用途と値の扱いの相違
 
 既存メンバーのアラインメントを揃える目的で `reserved` を使いません。  
 将来の拡張に備える目的で `pad` を使いません。
@@ -1314,6 +1344,8 @@ static_assert(sizeof(sample_record) == 32, "サイズは変更前後で不変");
 | 2 | 幅そのものに意味がある | `<stdint.h>` の固定幅型 ([幅に意味がある値](#幅に意味がある値) を参照) |
 | 3 | 上記以外 (幅に意味がない算術の器) | `int` / `unsigned int`。64 bit の範囲が必要な場合は `int64_t` / `uint64_t` |
 
+Table: 整数型の選択順序と判定基準
+
 判定 2 の「幅そのものに意味がある」とは、幅を変えると値の意味や互換性が壊れることを指します。  
 外部レイアウト (ファイル形式、通信形式、共有メモリ)、規格が幅を定める計算値、OS API 境界が幅を要請する箇所が該当します。
 
@@ -1367,6 +1399,8 @@ static_assert(sizeof(sample_record) == 32, "サイズは変更前後で不変");
 | 検査済みの非負ナノ秒期間、タイムアウト | `uint64_t` | 負値を受け付けないことを API 仕様で定め、外部入力の負値検査が完了した後に使用します。 |
 | クロスプラットフォーム API のファイル位置、ファイル オフセット、I/O 結果 | `int64_t` | Linux の `off_t` / `ssize_t` と Windows の 64 bit API を共通化する場合に使用します。 |
 | 文字列から入力し、負値や範囲外を検査するファイル オフセット | `int64_t` | 符号付き整数として解析し、構文、負値、上限を検査してから目的の型へ変換します。 |
+
+Table: 値の意味に対応する整数型と使用条件
 
 64 bit のファイル位置を扱う共通 API には `int64_t` を使用し、Windows 実装では `_fseeki64` / `_ftelli64` / `_lseeki64` との境界で変換し、`off_t` を用いません。
 
@@ -1426,6 +1460,8 @@ Sleep(timeout_dword);
 | 公開ヘッダー (`prod/include/`) の引数、戻り値、構造体メンバー | `int` の 0 / 非 0。`bool` を使わない |
 | ライブラリ内共有ヘッダー (`prod/include_internal/`) | `bool` を使用できます。 |
 | `.c` 内のローカル変数、`static` 関数 | `bool` を使用できます。 |
+
+Table: 宣言場所に応じた真偽値型の使い分け
 
 公開 API が真偽の答えを返す場合は、`int *xxx_out` の出力引数とします。  
 詳細は [真偽値や状態を返す API の設計](#真偽値や状態を返す-api-の設計) を参照してください。
@@ -1506,6 +1542,8 @@ bool is_enabled = flags;
 | 暗黙の縮小変換 | 代入・引数渡し・戻り値で幅が狭まり値が失われる | `-Wconversion` / `-Wsign-conversion` (警告) |
 | 明示キャストの正当性 | キャストが警告を消す一方、範囲外の値を静かに壊す | 本節の規則とレビュー (警告では検出できない) |
 | 演算のオーバーフロー | 符号付きは未定義動作、符号なしは回り込み | 本節の事前検査 (警告ではほぼ検出できない) |
+
+Table: 整数演算における安全性論点と担保手段
 
 > [!NOTE]
 > SEI CERT C は INT30-C (符号なしの回り込み防止)、INT31-C (変換でデータと符号を失わせないこと)、INT32-C (符号付き演算のオーバーフロー防止)、INT02-C (整数変換規則の理解) を定めています。  
@@ -1686,6 +1724,8 @@ product = (uint32_t)a * (uint32_t)b;
 | 外部文字列から整数への変換 | [文字列入力から意味付き型への変換](#文字列入力から意味付き型への変換)。cplat 利用時は `cplat_parse_*` |
 | 要素数を伴うメモリ確保の乗算 | [配列の確保](#配列の確保)。cplat 利用時は `cplat_calloc` / `cplat_realloc` 系 |
 
+Table: 整数変換処理の対象と委譲先規定
+
 app 固有の API が関数内部で検査する範囲は、対象パスに適用される `AGENTS.md` とコーディング規範で定義してください。
 
 ### 警告オプション
@@ -1697,6 +1737,8 @@ Linux では `app/makepart.mk` と `framework/testfw/makepart.mk` の `GCC_WARN_
 | `-Wsign-compare` (`-Wextra` に含まれる) | 符号付きと符号なしの比較 |
 | `-Wconversion` | 値を変えうる暗黙の型変換 (縮小変換を含む) |
 | `-Wsign-conversion` | 符号付きと符号なしのあいだの暗黙変換 |
+
+Table: 整数演算安全性に関する GCC 警告フラグ一覧
 
 Windows では `framework/makefw/makefiles/_flags.mk` の `CWARNS ?= /W4` により、C4244 / C4267 (縮小変換による値の欠落) と C4245 / C4389 (符号付きと符号なしの不一致) が報告されます。
 
@@ -1758,6 +1800,8 @@ NULL 検査の義務は、その関数が **宣言されているヘッダーの
 | ライブラリ内共有 | `prod/include_internal/` 配下のヘッダーで宣言されている | **必須** |
 | モジュール内共有 | 実装と同じディレクトリのモジュール私有ヘッダーで宣言されている | 呼び出し側の責務 (検査しない) |
 | ファイル内 | どのヘッダーでも宣言されず `static` が付いている | 呼び出し側の責務 (検査しない) |
+
+Table: 関数公開層に応じたポインター引数の NULL 検査義務
 
 検査必須の層では、ポインター引数を受けるすべての関数が、本体の先頭で NULL を検査します。  
 NULL が渡された場合の挙動は、[関数引数の異常入力対応](#関数引数の異常入力対応) の基本ルールが負値に定めるものと同じ扱いとします。
@@ -1925,6 +1969,8 @@ void sample_sleep_ms(int ms)
 | 外部入力・環境起因の失敗 | 結果コード + エラー詳細 | すべて |
 | プロセスの継続が危険な状態 | `abort()` の直接呼び出し | すべて |
 
+Table: 異常状態の条件種別に応じた検出機構
+
 本表に `assert` の行はありません。  
 すべての機構が、ビルド構成によらず常に有効であることが本章の要点です。
 
@@ -1950,6 +1996,8 @@ void sample_sleep_ms(int ms)
 | 外部入力が不正 | 結果コードを返す |
 | ファイル、通信、メモリ確保の失敗 | 結果コードを返す |
 | 呼び出し元が回復できます。 | 結果コードを返す |
+
+Table: abort() を呼び出さない状況と正しい対処
 
 ```c
 /**
@@ -2065,6 +2113,8 @@ if (buffer == NULL)
 | ローカル変数 | `handle = (sample_tracer *)malloc(sizeof(*handle));` |
 | 宣言と初期化 | `size_t *order = (size_t *)calloc(count, sizeof(*order));` |
 | 構造体メンバー | `win->packets = (sample_packet *)calloc(count, sizeof(*win->packets));` |
+
+Table: 代入先に応じたメモリ確保サイズの記述規則
 
 代入先にメンバー名や変数名が存在しない場合に限り、型名を書けます。  
 バイト列そのものを扱うバッファーのように、確保サイズが要素型から導かれない場合が該当します。
@@ -2349,6 +2399,8 @@ if (ret != SAMPLE_OK)
 | 戻り値 (`int`) | `SAMPLE_OK` または負値の分類済みエラー コード |
 | `int *errno_out` などの出力引数 | 生の詳細値。Linux では `errno`、Windows では `GetLastError()` の値 |
 
+Table: 戻り値とエラー詳細出力引数の伝達役割分担
+
 分類済みコードでは失われる詳細 (`ENOENT` と `EACCES` の区別など) が必要な API のみ、`errno_out` を提供します。  
 `errno`、`GetLastError()`、`HRESULT` などの OS エラー値を、共通結果コードとして直接返しません。
 
@@ -2393,6 +2445,8 @@ int sample_paths_equal(const char *lhs, const char *rhs, int *errno_out);
 | ハンドル生成系 (`*_create` など) | 成功時ポインター / 失敗時 NULL というポインター返却 API の慣用に従う |
 | 値をそのまま返す関数 (getter、比較関数など) | 結果コードの概念が適用されない |
 | 戻り値を持たない関数 (`*_destroy` など) | 同上 |
+
+Table: 共通結果コードの適用対象外となる API 群と理由
 
 互換ラッパー層を対象外とする場合は、対象外とする範囲と根拠を当該ライブラリのドキュメントに明記します。  
 対象外の API を新設する場合は、元 API との対応と戻り値規約をヘッダーの Doxygen コメントに明記します。
@@ -2527,6 +2581,8 @@ int calculate_total(const int *values, int count)
 | シフト演算子と算術演算子の混在 | シフト式を括弧で囲む | `size = ((1 << shift) + header_len);` |
 | 単項 `!` の対象が 2 項式 | 対象を括弧で囲む | `if (!(a == b))` |
 
+Table: 式における演算子混在時の括弧付与規則
+
 ### 例
 
 ```c
@@ -2615,6 +2671,8 @@ cd <module-dir> && make 2>&1 | grep -iE 'parentheses|小括弧'
 | 後方ジャンプ (ループの代用) | 制御フローが構文構造から読み取れなくなります。 |
 | 条件分岐の代用 | `if` / `else` で表せる制御を分かりにくくします。 |
 | ブロックの内側へ飛び込む goto | 飛び越した宣言と初期化の対応が追えなくなります。 |
+
+Table: 禁止される goto の使い方と理由
 
 解放対象が 1 つ以下の場合、または解放が不要な場合は、`goto` を使わず早期 return とします。
 
@@ -2836,6 +2894,8 @@ static int sum_arrays(const int *restrict lhs, const int *restrict rhs, const si
 | コンパイラまたは OS API が要求する型 | 要求元と理由をコメントに記載します。 |
 | 最適化で除去させない意図的なメモリ アクセス | 目的と根拠をコメントに記載します。 |
 
+Table: volatile の許容用途と適用条件
+
 後二つの用途では、根拠となる仕様の URL を `see: {URL}` の形式でコメントに残します。
 
 ```c
@@ -2971,10 +3031,14 @@ rg -n '(^|[^-[:alnum:]_])register[[:space:]]+[A-Za-z_]' app \
 | `[out]` | 関数復帰後に初めて意味のある値が書き込まれる (初期化前の値は見ない) |
 | `[in,out]` | 関数復帰前後の両方で意味があり、関数が書き換えうる |
 
+Table: 関数引数の意味的方向タグの分類と説明
+
 | 物理的種別 | 例 |
 | --- | --- |
 | ポインター引数 | `T *p`, `const T *p`, `T **pp`, 配列 `T arr[]` |
 | 値渡し引数 (リテラル) | `int n`, `size_t len`, `enum E e` |
+
+Table: 関数引数の物理的種別の分類と例
 
 **opaque handle (`sample_context *handle` 等) / 同期プリミティブ (mutex, rwlock, condvar, thread, lock, once_flag) / `FILE *` は、関数本体で内部状態を変更しても常に `[in]` とします。**  
 `_dispose` / `_close` / `_stop` 系も例外なく `[in]` です。
@@ -3009,6 +3073,8 @@ void sample_context_close(sample_context *context);
 | `compress`/`crypto` の `dst_len` | 入力: バッファー サイズ / 出力: 必要サイズ |
 | `file_open` の `file` | 既存ハンドル状態を読んで再オープン判定 + 新規オープン結果を書き込む |
 
+Table: Doxygen 方向タグで [in,out] を使用する例と理由
+
 物理的な mutex 取得や内部状態変更は `@par スレッド セーフ` で言及し、`[in/out]` には反映しません。
 
 ### ポインター引数の const 付与判定
@@ -3024,6 +3090,8 @@ void sample_context_close(sample_context *context);
    | `p` または `&p->member` を書き換え系 OS API に渡す (`fstat` の出力先など) | const **不可** |
    | `p` を内部 mutex / rwlock / condvar の取得対象として渡す (`pthread_mutex_lock`、`EnterCriticalSection`、利用するライブラリの同期プリミティブ API 等) | const **不可** (mutable 扱い) |
    | 上記いずれにも該当しません。 | const **可** |
+
+   Table: ポインター引数への const 付与可否判定基準
 
 3. const 可と判定したら、**ヘッダー宣言と impl 定義の両方** に `const T *` を付けます。
 
@@ -3071,6 +3139,8 @@ const T **pp = &p; /* もしこれが許されると */
 | `T *const *` | 「`T *` への const ポインター」。**スロットは書き換え不可**、指す先の `T` は非 const 可 | 読み取り専用の `argv` 風配列 |
 | `const T *const *` | スロットも指す先も書き換えない読み取り専用のポインター配列 | 読み取り専用の `const char *` 配列を渡す API |
 
+Table: 二重ポインターの型表記・意味・典型用途
+
 > [!IMPORTANT]
 > `const T **` と `const T *const *` は別物です。  
 > 「読み取り専用のポインター配列」を表したいときに `const T **` と書くと、変換不能と危険なキャストの両方に突き当たります。
@@ -3083,6 +3153,8 @@ const T **pp = &p; /* もしこれが許されると */
 | 関数が `const T *` をスロットへ書き込む | `const T **` | `[out]` |
 | ポインター配列を読むだけ (指す先も読んだだけ) | `const T *const *` | `[in]` |
 | ポインター配列のスロットは固定、指す先は非 const 可 (argv 形) | `T *const *` | `[in]` |
+
+Table: 二重ポインター引数の用途別型選択と Doxygen 方向
 
 ```c
 /* 望ましい: 読み取り専用のポインター配列 */
@@ -3225,6 +3297,8 @@ const 付与とセットで、Doxygen タグも impl の挙動に合わせて見
 | in-place データ編集 (呼び出し元が復帰後に読む) | `[in]` のみ | `[in,out]` |
 | opaque handle への操作 (`_dispose`/`_write`/`_set_*` 等) | `[in,out]` が付いている | `[in]` |
 
+Table: Doxygen 方向タグの典型的な誤りと修正
+
 ### 適用範囲と作業の進め方
 
 - 新規関数では本ルールに従って最初から const と Doxygen タグを正しく付けます。
@@ -3294,6 +3368,8 @@ Doxygen の `@par` は任意の表題を持つ段落を作るコマンドであ�
 | スレッド セーフ | 呼び出し側が追加の排他制御を行わずに、対象となる同時呼び出しを実行できます。 |
 | 条件付きスレッド セーフ | ハンドル、引数、呼び出し順など、明示した条件を満たす場合だけ同時呼び出しを実行できます。 |
 | スレッド セーフではありません。 | 対象となる呼び出しを呼び出し側で直列化する必要がある |
+
+Table: スレッド セーフ性の分類と記載条件
 
 「対象となる同時呼び出し」は、同じ関数だけでなく、同じ状態へアクセスする別の API との同時呼び出しも含みます。  
 分類を判断する際は、次の項目を確認します。
@@ -3369,6 +3445,8 @@ Doxygen を生成する変更では、対象 app の `make doxy` を実行し、
 | 値渡し引数の top-level const (`const int n`) | 付けない | `[in]` に付ける |
 | ポインター参照先の const (`const T *p`) | 付ける | 付ける |
 
+Table: 公開 API の修飾子・マクロにおける宣言と定義の配置ルール
+
 `example` の例を示します。
 
 宣言 (ヘッダー):
@@ -3408,6 +3486,8 @@ int example_handler(const int kind, const int a, const int b, int *result_out)
 | 既定の動的エクスポート | 明示 `dllexport` のみ | 既定は default (全部出やすい) |
 | 本リポジトリの対策 | `*_EXPORT` → `dllexport` / `dllimport` | 共有ビルドで `-fvisibility=hidden` + `*_EXPORT` → `visibility("default")` |
 | 印の置き場所 | 宣言のみ (`*_EXPORT`) | 宣言のみ (同上) |
+
+Table: OS 別共有ライブラリのシンボル可視性の差異
 
 規則:
 
@@ -3462,6 +3542,8 @@ cd app/<lib>/test/.../exportTest && make test
 | getter の提供 | setter を作る属性には、対応する getter (確認手段) も用意します。 |
 | デフォルト値の独立 | ある属性のデフォルト値は、他の属性の設定に影響されない形で定義します。 |
 | 排他の区別 | プロセス間排他とプロセス内排他は別概念として扱います。占有モードでもプロセス内は調停して同一資源への出力をサポートします。 |
+
+Table: API 設計における概念分離の基本ルール
 
 > [!NOTE]
 > 概念を暗黙に結合すると、ライブラリが識別名を設定した瞬間に出力ファイル名まで変わるなど、利用者の意図しない副作用が生じます。  

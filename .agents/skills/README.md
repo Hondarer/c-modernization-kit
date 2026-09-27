@@ -21,6 +21,8 @@ Windows の生成コピーに付く `git-origin` は発行用の例外であり�
 | app 固有 | `app/<name>/.agents/skills/<skill>/` |
 | framework 固有 | `framework/<name>/.agents/skills/<skill>/` |
 
+Table: スキルの対象範囲と正本配置先
+
 プロジェクト ルートは射影先であるため、管理対象スキルの正本を原則として配置しません。  
 個人用の一時的なスキルは `.gitignore` の対象として配置できます。
 

@@ -24,6 +24,8 @@ string-catalog-sample は、cplat の文字列カタログ機能の利用例を�
 | `string-catalog-library-sample` | ライブラリ `samplecatalog` が公開 | ライブラリの公開ヘッダーをインクルード |
 | `string-catalog-filter-sample` | コマンド自身に同梱 | 同一コマンド内の生成ヘッダーをインクルード。条件式フィルターの試作 |
 
+Table: 実行ファイルごとのカタログ配置形態と参照形式
+
 ## 入口
 
 - [作業規則](AGENTS.md)
@@ -46,6 +48,8 @@ string-catalog-sample は、cplat の文字列カタログ機能の利用例を�
 | `test/src/cmd/` | 生成物を対象とする単体テスト |
 | `test/src/libsamplecatalog/` | ライブラリの公開シンボルを対象とするテスト |
 | `test/src/integration/` | 生成物と cplat の文字列カタログ機能を結合して確認する統合テスト |
+
+Table: string-catalog-sample のディレクトリ構成一覧
 
 文字列カタログの実装、生成器、機能仕様は `app/c-platform` にあります。
 

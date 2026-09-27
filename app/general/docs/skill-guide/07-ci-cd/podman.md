@@ -54,6 +54,8 @@ podman pull example/oracle-linux-dev:latest
 | ghcr.io への接続が困難な環境 | Docker Hub |
 | プライベート イメージへのアクセスが必要 | Jenkins Credentials で認証情報を管理 |
 
+Table: 条件に応じた推奨コンテナー レジストリ
+
 ## 対象ワークスペースとの関連
 
 ### Jenkins ビルド ジョブでの使用

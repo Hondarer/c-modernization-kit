@@ -13,6 +13,8 @@
 | `sym_loader_libbase.h` | 関数ポインター型の `typedef`、`cplat_sym_loader_entry` ポインター・配列・設定ファイル パスの `extern` 宣言 |
 | `sym_loader_libbase.c` | `cplat_sym_loader_entry` 実体の定義、配列・要素数・設定ファイル パスの実体定義、`base_sym_loader_info()` の実装 |
 
+Table: sym_loader_libbase 構成ファイルの責務
+
 `cplat_sym_loader_entry` の実体は `sym_loader_libbase.c` 内で `static` 変数として定義します。外部からのアクセスは `cplat_sym_loader_entry *const` ポインター経由に限定することで、直接書き換えを防いでいます。
 
 ## 利用側との関係
@@ -85,3 +87,5 @@ dllmain_libbase.c  (初期化・解放)
 | `libsrc/override/new_override_func.c` (新規) | オーバーライド実装 |
 | `include/base/base_spec.h` | `new_func` のエクスポート宣言を追加 |
 | `include/override/override_spec.h` | オーバーライド関数のエクスポート宣言を追加 |
+
+Table: 関数追加時の変更対象ファイルと作業内容

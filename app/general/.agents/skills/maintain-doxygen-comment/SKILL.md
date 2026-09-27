@@ -6,6 +6,7 @@ description: app の C/C++ Doxygen コメントを作成・変更・レビュー
 # Doxygen コメントの保守
 
 `app/general/docs/doxygen-comment-guideline.md` を参照し、宣言側を正本として実装と契約を照合してください。  
+表を含むコメントでは、同文書の「本文」にある `Table:` キャプションの規則も適用してください。  
 タグの仕様が必要なら `framework/doxyfw/docs/commands.md`、新しい形式の雛形が必要なら `framework/doxyfw/docs/cheatsheet.md` の該当節を確認してください。
 
 宣言側に説明がある公開関数や内部共有関数の定義直前には `/* Doxygen コメントは、ヘッダーに記載 */` を配置し、同じ説明を複製しないでください。  

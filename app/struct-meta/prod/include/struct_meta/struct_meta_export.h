@@ -39,6 +39,8 @@
      *  | Windows / `STRUCT_META_STATIC` 定義時 (静的リンク)  | (空)                                      |
      *  | Windows / `STRUCT_META_EXPORTS` 定義時 (DLL ビルド) | `__declspec(dllexport)`                   |
      *  | Windows / `STRUCT_META_EXPORTS` 未定義時 (DLL 利用側)| `__declspec(dllimport)`                  |
+     *
+     *  Table: STRUCT_META_EXPORT のビルド条件別の展開値
      */
     #define STRUCT_META_EXPORT
 

@@ -252,6 +252,8 @@ podman pull example/oracle-linux-dev:latest
 | Max # of builds to keep | `10` | ビルド記録 (ログ・テスト結果) の最大保持件数 |
 | Max # of builds to keep with artifacts | `5` | アーティファクト (HTML ドキュメント・zip) を保持するビルドの最大件数 |
 
+Table: Jenkins のビルド成果物保持ポリシー設定項目
+
 この設定により、ビルド記録は直近 10 件、アーティファクトは直近 5 件 (≒ 5 世代) を保持します。  
 古いビルドのアーティファクトは自動削除されますが、ビルド ログは 10 件分残るため、過去の実行状況の確認が可能です。
 
@@ -269,6 +271,8 @@ podman pull example/oracle-linux-dev:latest
 | `.jenkins/build.sh` | ホスト (Oracle Linux) 側で実行。Podman でコンテナーを起動して `inner-build.sh` を呼び出す |
 | `.jenkins/inner-build.sh` | コンテナー内でユーザー権限で実行。make, テスト, アーティファクト生成, ドキュメント生成を行います。 |
 | `.jenkins/report-warnings.sh` | warning ZIP を集約し、Jenkins コンソールへ非失敗通知を出す |
+
+Table: Jenkins ビルド スクリプト一覧と役割
 
 `inner-build.sh` は `.github/workflows/ci.yml` の Linux ジョブに準拠しており、以下の設定を反映しています。
 
@@ -469,6 +473,8 @@ Jenkins の **HTML Publisher Plugin** を使うと、ジョブのワークスペ
 | Index page(s) | `index.html` |
 | Report title | `docs-and-artifacts` (任意) |
 | Keep past HTML reports | チェックを入れると過去のビルドのレポートも保持される |
+
+Table: Publish HTML reports の設定項目
 
 設定を保存し、ジョブを実行します。ビルド完了後、ジョブのトップ ページに **Docs** リンクが表示されます。
 

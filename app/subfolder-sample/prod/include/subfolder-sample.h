@@ -30,6 +30,8 @@
      *  | Windows / `SUBFOLDER_SAMPLE_STATIC` 定義時 (静的リンク)       | (空)                     |
      *  | Windows / `SUBFOLDER_SAMPLE_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
      *  | Windows / `SUBFOLDER_SAMPLE_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
+     *
+     *  Table: SUBFOLDER_SAMPLE_EXPORT のビルド条件別の展開値
      */
     #define SUBFOLDER_SAMPLE_EXPORT
 
