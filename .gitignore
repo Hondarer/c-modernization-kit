@@ -13,10 +13,9 @@
 !LICENSE
 
 ## makefile
-!Makefile
 !makefile
 
-## サブモジュール
+## サブモジュール (framework)
 !/framework/makefw
 !/framework/doxyfw
 !/framework/docsfw
@@ -25,12 +24,11 @@
 # 以下は管理対象外
 
 ## Claude Code
-/.claude/*
+/.claude
 ## Codex
 /.codex
 /.codex_tmp
 ## GitHub Copilot
-/.copilot-artifacts
 /.github/mcp.json
 
 ## デバッグのために LLM に参照させるファイル群の一時置き場
