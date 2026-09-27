@@ -299,7 +299,7 @@ makefw が `makefile` を持つサブディレクトリを自動検出し、オ�
 `makepart.mk` の `ADD_SRCS` へ相対パスを列挙してはいけません。ライブラリ ルート直下へシンボリック リンクが作られ、Doxygen の重複読み込みとモジュール私有ヘッダーの探索失敗を招きます。
 
 `.l` と `.y` は `prod/libsrc/struct_meta/parse/` に置きます。  
-flex/bison の生成物はそのディレクトリの `gen/` に出るため、リンクを行うライブラリ ルートまでオブジェクトが届くよう、makefw の `bin/filter_existing_source_objs.sh` が `<サブディレクトリ>/gen/<ステム>.c` も生成元の根拠として認めます。  
+flex/bison の生成物はそのディレクトリの `gen/` に出るため、リンクを行うライブラリ ルートまでオブジェクトが届くよう、makefw の `bin_internal/filter_existing_source_objs.sh` が `<サブディレクトリ>/gen/<ステム>.c` も生成元の根拠として認めます。  
 あわせて `_flex_bison_compile.mk` が生成物を `.SECONDARY` に指定し、中間ファイルとして削除されないようにします。  
 see: `framework/makefw/docs/subfolder-compilation.md`
 
