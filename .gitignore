@@ -24,26 +24,26 @@
 # 以下は管理対象外
 
 ## Claude Code
-/.claude
+/.claude/
 ## Codex
-/.codex
-/.codex_tmp
+/.codex/
+/.codex_tmp/
 ## GitHub Copilot
 /.github/mcp.json
 
 ## デバッグのために LLM に参照させるファイル群の一時置き場
-/prompt
+/prompt/
 
 ## 中間ファイル
-obj
-gen
-gcov
+obj/
+gen/
+gcov/
 *.gcda
 *.gcno
 *.gcov
-lcov
-coverage
-results
+lcov/
+coverage/
+results/
 core
 coverage.xml
 LastCoverageResults.log
@@ -58,7 +58,7 @@ make_doxy.stamp
 test.stamp
 
 ## Coverity 中間ディレクトリ
-idir
+idir/
 
 ## Python cache
 __pycache__/
