@@ -102,4 +102,4 @@ Table: 差し替え対象別の命名形式と例
 ## 関連文書
 
 - 差し替え可能な関数を追加する手順: [sym_loader_libbase の概要](../prod/libsrc/base/sym_loader_libbase.md)
-- sym_loader の API と設定ファイルの形式: [sym_loader](../../c-platform/prod/libsrc/cplat/runtime/README.md)
+- sym_loader の API と設定ファイルの形式: [sym_loader](../../cplat/prod/libsrc/cplat/runtime/README.md)

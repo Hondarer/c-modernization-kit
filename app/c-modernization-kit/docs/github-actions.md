@@ -266,7 +266,7 @@ Table: 各 app の自動生成ソースと生成タイミング
 
 Doxygen 側に追加の設定は不要です。`framework/doxyfw/Doxyfile` の `EXCLUDE_PATTERNS` は `*/obj/*` のみであり、`gen/` を除外していません。特定の app で自動生成ソースを除外する場合は、その app の `Doxyfile.part` へ `EXCLUDE_PATTERNS` を全量で指定します。`Doxyfile.part` は共通 `Doxyfile` への単純連結であり、Doxygen は後から指定された設定を優先して解釈するため、`+=` による追記は使えません。
 
-Windows 専用の生成物は対象外です。`app/c-platform/prod/src/cmd/eventlog-register/` の `.mc` から `mc.exe` が生成する `gen/` は、Linux 環境でドキュメントを生成する構成上、成果物に含まれません。
+Windows 専用の生成物は対象外です。`app/cplat/prod/src/cmd/eventlog-register/` の `.mc` から `mc.exe` が生成する `gen/` は、Linux 環境でドキュメントを生成する構成上、成果物に含まれません。
 
 ### build-and-test-windows ジョブ
 

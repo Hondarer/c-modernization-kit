@@ -314,7 +314,7 @@ makefw は Windows で `FLEXFLAGS` の既定値を `--wincompat` とし、MSVC �
 生成ツール `struct-meta-gen` の実行ファイル名は、Linux の `struct-meta-gen` と Windows の `struct-meta-gen.exe` を `PLATFORM_*` で明示的に切り替えます。  
 これにより、生成規則の前提条件と実際の Windows ビルド成果物を一致させます。
 
-`struct-meta-gen` は `src` のビルド中に実行するため、`prod/makelocal.mk` は `default` と `build` のとき、`src` より先に `c-platform` と cJSON の実行時ライブラリを `prod/cbin` へ配置します。  
+`struct-meta-gen` は `src` のビルド中に実行するため、`prod/makelocal.mk` は `default` と `build` のとき、`src` より先に `cplat` と cJSON の実行時ライブラリを `prod/cbin` へ配置します。  
 `struct-meta-gen` は解析とレイアウト計算を `libstruct_meta` へ委ねるため、自 app の実行時ライブラリも同じディレクトリへ配置します。  
 これは `libsrc` の完了後に行います。  
 `clean` ではコピーせず、配置済みの実行時ライブラリだけを削除します。  

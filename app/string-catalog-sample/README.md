@@ -33,8 +33,8 @@ Table: 実行ファイルごとのカタログ配置形態と参照形式
 - [トレースの条件式フィルターの PoC](docs/trace-filter-poc.md)
 - [発行文書](docs/README.md)
 - [Doxygen の入口](prod/README.md)
-- [文字列カタログの機能仕様 (cplat)](../c-platform/docs/functional-spec/string_catalog.md)
-- [string_catalog モジュール (cplat)](../c-platform/prod/libsrc/cplat/string_catalog/README.md)
+- [文字列カタログの機能仕様 (cplat)](../cplat/docs/functional-spec/string_catalog.md)
+- [string_catalog モジュール (cplat)](../cplat/prod/libsrc/cplat/string_catalog/README.md)
 
 ## 構成
 
@@ -51,7 +51,7 @@ Table: 実行ファイルごとのカタログ配置形態と参照形式
 
 Table: string-catalog-sample のディレクトリ構成一覧
 
-文字列カタログの実装、生成器、機能仕様は `app/c-platform` にあります。
+文字列カタログの実装、生成器、機能仕様は `app/cplat` にあります。
 
 ## 実行例
 

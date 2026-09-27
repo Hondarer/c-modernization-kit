@@ -6,7 +6,7 @@
 
 `libbase` が公開する `sample_func` 関数は、起動時に読み込む設定ファイルによって処理を切り替えます。
 
-sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/c-platform/prod/` の `libcplat` に統合されており、`libbase` はそれをリンクして利用します。
+sym_loader 機構 (関数の動的呼び出しキャッシュ) は `app/cplat/prod/` の `libcplat` に統合されており、`libbase` はそれをリンクして利用します。
 
 | 設定ファイルの状態 | 動作 |
 |---|---|
@@ -47,7 +47,7 @@ app/override-sample/prod/
 +-- bin/                       # ビルド済み実行ファイル (override-sample / override-sample.exe)
 ```
 
-sym_loader 機構・DllMain ヘルパー・ライブラリ パス取得ユーティリティは `app/c-platform/prod/` の `libcplat` (`libcplat.so` / `libcplat.dll`) に統合されています。
+sym_loader 機構・DllMain ヘルパー・ライブラリ パス取得ユーティリティは `app/cplat/prod/` の `libcplat` (`libcplat.so` / `libcplat.dll`) に統合されています。
 
 ## ライブラリ
 

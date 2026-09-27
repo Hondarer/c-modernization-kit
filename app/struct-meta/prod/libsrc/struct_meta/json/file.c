@@ -9,7 +9,7 @@
  *  ファイル I/O は `cplat/crt/stdio.h` の stdio ラッパーを使用します。\n
  *  JSON 設定ファイルの読み書きは単発の逐次アクセスが支配的な用途であるため、
  *  `cplat_file_*` (低レベル API) や mmap ではなく stdio ラッパーを選択します
- *  (`app/c-platform/docs/fileio-api-selection-guideline.md` の結論 4)。
+ *  (`app/cplat/docs/fileio-api-selection-guideline.md` の結論 4)。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *

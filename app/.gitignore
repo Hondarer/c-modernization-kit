@@ -1,5 +1,5 @@
 ## サブモジュール (app)
-!/c-platform
+!/cplat
 !/porter
 !/cjson
 !/sqlite

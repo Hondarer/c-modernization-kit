@@ -74,7 +74,7 @@ Table: string-catalog-filter-sample のコマンド一覧
 `add` や `edit` に指定できる条件式の例です。  
 同じ例を、コマンドの `usage` でも表示できます。  
 いずれも、このコマンドで `add` と `apply` を実行し、無効な行にならないことを確認しています。  
-構文と比較規則の詳細は <a href="../../../../../c-platform/docs/proposals/string-catalog-filter-design.md">文字列カタログの条件式フィルターの設計</a> の「条件式の仕様」を参照してください。
+構文と比較規則の詳細は <a href="../../../../../cplat/docs/proposals/string-catalog-filter-design.md">文字列カタログの条件式フィルターの設計</a> の「条件式の仕様」を参照してください。
 
 条件式リストは行の論理和です。  
 いずれかの行に一致したトレースは強制出力のレベルへ引き上がり、一致しないトレースは定義のレベルのまま表示のしきい値で選別されます。

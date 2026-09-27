@@ -59,7 +59,7 @@ Linux と Windows で同じ .NET API を提供し、ネイティブ ライブラ
 同梱 CLI、`service-sample`、`tutorial` では、`libcplat`、`libcjson`、`libzlib` を実行ファイルと同じ `prod/cbin` へコピーします。  
 Linux では `$ORIGIN` の実行時探索パス、Windows では実行ファイルと同じディレクトリの DLL 探索を利用するため、開発環境のライブラリ探索パスに依存せず実行できます。
 
-記述方法と配布時の要件は、[リンク方式の規約](../../c-platform/docs/link-policy.md) に従います。
+記述方法と配布時の要件は、[リンク方式の規約](../../cplat/docs/link-policy.md) に従います。
 
 ## 関連資料
 

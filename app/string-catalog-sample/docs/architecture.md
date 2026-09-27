@@ -5,8 +5,8 @@
 この文書は、cplat の文字列カタログ機能を **利用する側** の設計を示します。  
 カタログ定義から生成物を作り、生成物を通じて cplat の API を呼び出すまでの構成です。
 
-文字列カタログ自体の要件と外部から観測できる振る舞いは [文字列カタログ 機能仕様](../../c-platform/docs/functional-spec/string_catalog.md) を正本とします。  
-書式の構文、引数種別、責務の境界、実装の構成は [string_catalog モジュール](../../c-platform/prod/libsrc/cplat/string_catalog/README.md) にあります。  
+文字列カタログ自体の要件と外部から観測できる振る舞いは [文字列カタログ 機能仕様](../../cplat/docs/functional-spec/string_catalog.md) を正本とします。  
+書式の構文、引数種別、責務の境界、実装の構成は [string_catalog モジュール](../../cplat/prod/libsrc/cplat/string_catalog/README.md) にあります。  
 公開 API の契約は cplat の公開ヘッダーの Doxygen コメントを正本とし、この文書には複製しません。  
 なお、トレースの条件式フィルター試作 (`string-catalog-filter-sample`) の構成と設計判断は [トレースの条件式フィルターの PoC](trace-filter-poc.md) を参照してください。
 
@@ -89,10 +89,10 @@ Table: ライブラリが公開するカタログ ファイル一覧
 手動で実行する場合、および内容を検証する場合のコマンド例です。
 
 ```bash
-python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
-python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
-python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
-python3 ../c-platform/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
+python3 ../cplat/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
+python3 ../cplat/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_messages.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
+python3 ../cplat/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen
+python3 ../cplat/bin_internal/string_catalog_gen.py prod/src/cmd/string-catalog-command-sample/sample_metrics.jsonc --out-dir prod/src/cmd/string-catalog-command-sample/gen --check
 ```
 
 `--check` はファイルを出力せず、既存の生成物が定義と一致するかのみを検証します。  
@@ -371,7 +371,7 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 
 ## 依存関係
 
-この app は `app/c-platform` に依存します。`appdeps.mk` の `APP_DEPS` に `c-platform` を指定し、コマンドとテストは `LIBS += cplat` でリンクします。
+この app は `app/cplat` に依存します。`appdeps.mk` の `APP_DEPS` に `cplat` を指定し、コマンドとテストは `LIBS += cplat` でリンクします。
 
 文字列カタログの API に加えて、コンソールの UTF-8 初期化 (`cplat_console_init` / `cplat_console_dispose`) と、分類値の意味付けに使うトレース レベルの列挙 (`cplat_trace_level`) を利用します。
 
@@ -379,7 +379,7 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 
 ## テストの構成
 
-文字列カタログ自体の単体テストは `app/c-platform` にあります。この app に残るのは、利用側の資産を対象とするテストだけです。
+文字列カタログ自体の単体テストは `app/cplat` にあります。この app に残るのは、利用側の資産を対象とするテストだけです。
 
 | テスト | 置き場所 | 対象 |
 |---|---|---|

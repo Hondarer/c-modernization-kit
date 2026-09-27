@@ -205,7 +205,7 @@ int struct_meta_catalog_attach_static(const struct_meta_descriptor *const *descr
     /* イメージは読み取り専用。cplat_hashtable_attach() は領域へ書き込まず、
        この表へ書き込み API を呼び出すこともないため、const を外して渡す。
        uintptr_t を経由するのは cplat と同じ書き方に揃えるため。
-       see: app/c-platform/prod/libsrc/cplat/hashtable/hashtable_create.c の
+       see: app/cplat/prod/libsrc/cplat/hashtable/hashtable_create.c の
             cplat_hashtable_attach() */
     if (cplat_hashtable_attach((void *)(uintptr_t)index_image_mgmt, index_image_mgmt_size,
                                (void *)(uintptr_t)index_image_data, index_image_data_size,

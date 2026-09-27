@@ -1,7 +1,7 @@
-include $(APP_DIR)/c-platform/prod/runtime-bundle.mk
+include $(APP_DIR)/cplat/prod/runtime-bundle.mk
 
-c-platform-runtime-bundle: src
+cplat-runtime-bundle: src
 
-default build: c-platform-runtime-bundle
+default build: cplat-runtime-bundle
 
-clean: c-platform-runtime-clean
+clean: cplat-runtime-clean

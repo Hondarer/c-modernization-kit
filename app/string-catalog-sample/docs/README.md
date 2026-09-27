@@ -24,7 +24,7 @@ cplat の文字列カタログ機能の利用例です。
 ## 文字列カタログの API 仕様書
 
 文字列カタログの公開 API は cplat が提供します。  
-[cplat の発行文書](../../c-platform/docs/README.md) と [文字列カタログの機能仕様](../../c-platform/docs/functional-spec/string_catalog.md) を参照してください。
+[cplat の発行文書](../../cplat/docs/README.md) と [文字列カタログの機能仕様](../../cplat/docs/functional-spec/string_catalog.md) を参照してください。
 
 ## 関連ドキュメント
 

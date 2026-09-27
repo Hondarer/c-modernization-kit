@@ -30,14 +30,14 @@ class override_sampleTest : public Test
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
 #if defined(PLATFORM_LINUX)
         binary_path = workspace_root + "/app/override-sample/prod/cbin/override-sample";
-        lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/c-platform/prod/lib" +
+        lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/cplat/prod/lib" +
                    ":" + workspace_root + "/app/cjson/prod/lib" + ":" + workspace_root + "/app/zlib/prod/lib";
         mock_lib_path = workspace_root + "/framework/testfw/lib/" TOSTRING(TARGET_ARCH) "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.jsonc";
 #elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\app\\override-sample\\prod\\cbin\\override-sample.exe";
         lib_path = workspace_root + "\\app\\override-sample\\prod\\lib" + ";" + workspace_root +
-                   "\\app\\c-platform\\prod\\lib" + ";" + workspace_root + "\\app\\cjson\\prod\\lib" + ";" +
+                   "\\app\\cplat\\prod\\lib" + ";" + workspace_root + "\\app\\cjson\\prod\\lib" + ";" +
                    workspace_root + "\\app\\zlib\\prod\\lib";
         {
             wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
@@ -178,7 +178,7 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Arrange
     removeConfigFile(); // [状態] - 定義ファイルを削除して既定の状態を保証する。
     ProcessOptions opts = makeOpts();
-    opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
+    opts.env_set["ENABLE_DLLMAIN_CPLAT_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
 #if defined(PLATFORM_LINUX)
     opts.preload_lib = mock_lib_path; // [状態] - LD_PRELOAD で syslog_mock.so を挿入する。
 #endif                                /* PLATFORM_LINUX */
@@ -225,7 +225,7 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     removeConfigFile(); // [状態] - 定義ファイルを削除して他の要因を排除する。
     ProcessOptions opts = makeOpts();
     opts.preload_lib = mock_lib_path; // [状態] - debug_log を取得するため syslog_mock.so を挿入する。
-    opts.env_set["ENABLE_DLLMAIN_C_PLATFORM_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
+    opts.env_set["ENABLE_DLLMAIN_CPLAT_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
     opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [状態] - 一時ディレクトリを上限超過の長さにする。
 
     // Pre-Assert

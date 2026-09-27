@@ -4,7 +4,7 @@ SUBDIRS := \
 	src
 # END makefw-subdirs
 
-include $(APP_DIR)/c-platform/prod/runtime-bundle.mk
+include $(APP_DIR)/cplat/prod/runtime-bundle.mk
 
 # struct-meta-gen は解析とレイアウト計算を libstruct_meta へ委ねるため、自 app の
 # 実行時ライブラリも生成器の隣へ置く。Linux の LD_LIBRARY_PATH と Windows の
@@ -33,10 +33,10 @@ struct-meta-runtime-clean:
 # clean は SUBDIRS 経由で src を辿るため、この依存を clean 時に付けると
 # 依存 app の成果物削除後にコピーして失敗する。
 ifeq ($(filter clean,$(MAKECMDGOALS)),)
-src: c-platform-runtime-bundle struct-meta-runtime-bundle
+src: cplat-runtime-bundle struct-meta-runtime-bundle
 struct-meta-runtime-bundle: libsrc
 endif
 
-default build: c-platform-runtime-bundle
+default build: cplat-runtime-bundle
 
-clean: c-platform-runtime-clean struct-meta-runtime-clean
+clean: cplat-runtime-clean struct-meta-runtime-clean

@@ -2,7 +2,7 @@
 
 ## この文書の位置付け
 
-cplat の [文字列カタログの条件式フィルターの設計](../../c-platform/docs/proposals/string-catalog-filter-design.md) (以下、設計資料) を、cplat へ組み込む前に利用側の app で試作します。  
+cplat の [文字列カタログの条件式フィルターの設計](../../cplat/docs/proposals/string-catalog-filter-design.md) (以下、設計資料) を、cplat へ組み込む前に利用側の app で試作します。  
 この文書は、試作の範囲、設計資料との差分、判断の理由、進捗を記録します。
 
 試作の本体は `prod/src/cmd/string-catalog-filter-sample/` です。  

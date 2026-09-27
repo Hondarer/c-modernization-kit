@@ -12,7 +12,7 @@
 # 何もしない。そのため、すべてのディレクトリでパースされても負荷にならない。
 
 ifndef MAKEFW_SYNC_EVAL
-    _CATALOG_GEN := python3 "$(APP_DIR)/c-platform/bin_internal/string_catalog_gen.py"
+    _CATALOG_GEN := python3 "$(APP_DIR)/cplat/bin_internal/string_catalog_gen.py"
 
     # コマンドが同梱するカタログ。生成物はコマンドのディレクトリに閉じる。
     _COMMAND_DIR := $(MYAPP_DIR)/prod/src/cmd/string-catalog-command-sample

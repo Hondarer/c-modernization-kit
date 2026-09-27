@@ -7,7 +7,7 @@
  *  @version        0.1.0
  *
  *  cplat の文字列カタログへ組み込む前の試作です。\n
- *  設計の正本は `app/c-platform/docs/proposals/string-catalog-filter-design.md` であり、
+ *  設計の正本は `app/cplat/docs/proposals/string-catalog-filter-design.md` であり、
  *  試作における差分は `app/string-catalog-sample/docs/trace-filter-poc.md` に記録しています。
  *
  *  API は 2 つの層に分かれます。
