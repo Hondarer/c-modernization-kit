@@ -11,14 +11,13 @@
  */
 
 #include "sample_filter_share.h"
+#include "sample_filter_share_region.h"
 
 #include <cplat/base/platform.h>
 #include <cplat/base/result.h>
 #include <cplat/clock/clock.h>
-#include <cplat/mmap/mmap.h>
 #include <cplat/runtime/process.h>
 #include <cplat/sync/atomic.h>
-#include <cplat/sync/sync.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -28,11 +27,11 @@ _Static_assert(sizeof(sample_filter_share_header) == SAMPLE_FILTER_SHARE_HEADER_
 
 struct sample_filter_share
 {
-    cplat_mmap *map;                    /**< 共有メモリ。 */
+    sample_filter_share_region *region; /**< 受け渡し用のメモリ領域。 */
     sample_filter_share_header *header; /**< 共有メモリの先頭の配布ヘッダー。 */
     unsigned char *image_area;          /**< 共有メモリ上のフィルター オブジェクト。 */
     unsigned char *copy;                /**< 取り込みで複製する手元の領域。 */
-    cplat_local_lock *lock;             /**< 書き込みと取り込みを排他するミューテックス。呼び出し側が所有する。 */
+    sample_filter_share_lock *lock;     /**< 書き込みと取り込みの排他。呼び出し側が所有する。 */
     size_t image_size;                  /**< フィルター オブジェクトのバイト数。 */
     cplat_atomic_u64 taken_generation;  /**< 取り込み済みの世代番号。ロックなしでアトミックに読まれる。 */
     size_t last_take_invalid_count;     /**< 直近の取り込みで無効にした行の数。lock の下で読み書きする。 */
@@ -44,27 +43,22 @@ struct sample_filter_share
 
 /* ===== ロック ===== */
 
-/**
- *  @brief          書き込みと取り込みを排他するミューテックスを取ります。
- *
- *  PoC では、呼び出し側が用意した単純なミューテックスでプロセスをまたぐ排他を模擬します。
- *  実際に複数のプロセスで動かす段階では、プロセス間で共有できる排他へ置き換える箇所です。
- */
+/** 書き込みと取り込みの排他を取得します。 */
 static int lock_share(sample_filter_share *share)
 {
-    return cplat_local_lock_lock(share->lock, CPLAT_SYNC_WAIT_FOREVER);
+    return sample_filter_share_lock_acquire(share->lock);
 }
 
-/** ミューテックスを解放します。 */
+/** 書き込みと取り込みの排他を解放します。 */
 static void unlock_share(sample_filter_share *share)
 {
-    (void)cplat_local_lock_unlock(share->lock);
+    sample_filter_share_lock_release(share->lock);
 }
 
 /**
  *  @brief          配布ヘッダーがこのハンドルと同じ形式のフィルター オブジェクトを持つかを確かめます。
  *
- *  ミューテックスの下で呼び出します。
+ *  排他の下で呼び出します。
  */
 static bool is_header_compatible(const sample_filter_share *share)
 {
@@ -81,7 +75,7 @@ static bool is_header_compatible(const sample_filter_share *share)
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int sample_filter_share_open(const char *path, cplat_local_lock *lock, const size_t line_capacity,
+int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, const size_t line_capacity,
                              const size_t line_width, sample_filter_share **share_out)
 {
     sample_filter_share *share;
@@ -115,23 +109,16 @@ int sample_filter_share_open(const char *path, cplat_local_lock *lock, const siz
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
 
-    /* 新しく作成したファイルは 0 で埋まる。配布ヘッダーは最初の公開で初期化する */
-    ret = cplat_mmap_attach(path, CPLAT_MMAP_ACCESS_READ_WRITE, share_size, &share->map, NULL);
+    /* 新しく作成した領域は 0 で埋まる。配布ヘッダーは最初の公開で初期化する */
+    ret = sample_filter_share_region_open(path, share_size, &share->region);
     if (ret != CPLAT_OK)
     {
         sample_filter_share_close(&share);
         return ret;
     }
 
-    /* 別の大きさで作成済みのファイルは使わない */
-    if (cplat_mmap_get_size(share->map) < share_size)
-    {
-        sample_filter_share_close(&share);
-        return CPLAT_ERR_CORRUPT_DESCRIPTOR;
-    }
-
-    /* マップの先頭はページ境界のため、配布ヘッダーの世代番号は 8 バイト境界に置かれる */
-    share->header = (sample_filter_share_header *)cplat_mmap_get_address(share->map);
+    /* 領域の先頭は 8 バイト境界のため、配布ヘッダーの世代番号は 8 バイト境界に置かれる */
+    share->header = (sample_filter_share_header *)sample_filter_share_region_get_address(share->region);
     share->image_area = (unsigned char *)share->header + SAMPLE_FILTER_SHARE_HEADER_SIZE;
 
     *share_out = share;
@@ -147,11 +134,8 @@ void sample_filter_share_close(sample_filter_share **share)
         return;
     }
 
-    if ((*share)->map != NULL)
-    {
-        (void)cplat_mmap_detach((*share)->map, NULL);
-    }
-    /* ミューテックスは呼び出し側が所有するため、破棄しない */
+    sample_filter_share_region_close(&(*share)->region);
+    /* 排他は呼び出し側が所有するため、破棄しない */
     free((*share)->copy);
     free(*share);
     *share = NULL;
@@ -213,7 +197,7 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
 
     /* 内容を書き終えてから世代を進める。緩いチェックで新しい世代を見た読み取り側は、ロックを取ってから複製する。
        世代は一致しないことだけで変化と判定されるため、一巡しても検知できる。0 は未公開のため飛ばす。
-       内容の受け渡しはミューテックスが順序付けるため、世代の読み書き自体に強い順序は要らない。
+       内容の受け渡しは排他が順序付けるため、世代の読み書き自体に強い順序は要らない。
        ただし緩いチェックで新しい世代を見た時点で内容も書き終えていると言えるよう、書き込みはリリース順序とする */
     generation = cplat_atomic_load_u64(&header->generation, CPLAT_MEMORY_ORDER_RELAXED) + 1U;
     if (generation == SAMPLE_FILTER_SHARE_GENERATION_NONE)
@@ -287,7 +271,7 @@ int sample_filter_share_refresh(sample_filter_share *share, sample_filter_slot *
         memcpy(share->copy, share->image_area, share->image_size);
     }
 
-    /* 適用は手元の複製に対して行う。取り込みを直列に行うため、適用を終えるまでミューテックスを保持する */
+    /* 適用は手元の複製に対して行う。取り込みを直列に行うため、適用を終えるまで排他を保持する */
     if (ret == CPLAT_OK)
     {
         ret = sample_filter_slot_apply(slot, share->copy, share->image_size, NULL, 0U, &invalid_count);

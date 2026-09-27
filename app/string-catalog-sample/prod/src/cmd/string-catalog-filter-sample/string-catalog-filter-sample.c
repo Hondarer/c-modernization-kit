@@ -22,6 +22,7 @@
 #include "sample_filter.h"
 #include "sample_filter_output.h"
 #include "sample_filter_share.h"
+#include "sample_filter_share_region.h"
 #include "sample_worker_trace_key_names.h"
 
 #include "gen/sample_worker_trace.h"
@@ -138,19 +139,19 @@ static int s_is_after_trailing_blank = 0;
  */
 static char s_next_input[FILTER_SAMPLE_LINE_BUFFER_SIZE];
 
-/** 共有メモリに対応付けるファイルの既定の名前です。一時ディレクトリに置きます。 */
+/** 共有メモリを識別する既定の名前です。一時ディレクトリのパスとして組み立てます。 */
 #define FILTER_SAMPLE_SHARE_FILE_NAME "string-catalog-filter-sample.share"
 
-/** 共有メモリに対応付けるファイルのパスです。 */
+/** 共有メモリを識別するパスです。 */
 static char s_share_path[PLATFORM_PATH_MAX];
 
 /**
- *  書き込みと取り込みを排他するミューテックスです。
+ *  書き込みと取り込みの排他です。
  *
- *  PoC では、単純なミューテックスでプロセスをまたぐ排他を模擬します。
+ *  PoC の実装 (`sample_filter_share_region.c`) は、プロセス内のミューテックスでプロセスをまたぐ排他を模擬します。
  *  このため、同じ共有メモリを別のプロセスから同時に公開する場合の排他は保証しません。
  */
-static cplat_local_lock *s_share_lock = NULL;
+static sample_filter_share_lock *s_share_lock = NULL;
 
 /** 書き込み側のプロセスに見立てた配布ハンドルです。apply が公開に使います。 */
 static sample_filter_share *s_writer_share = NULL;
@@ -1616,10 +1617,10 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
 
 /**
  *  @brief          共有メモリを、書き込み側と読み取り側に見立てた 2 つのハンドルで開きます。
- *  @param[in]      path 共有メモリに対応付けるファイルのパス。NULL の場合は一時ディレクトリの既定の名前を使います。
+ *  @param[in]      path 共有メモリを識別するパス。NULL の場合は一時ディレクトリの既定の名前を使います。
  *  @return         成功時は `CPLAT_OK`、失敗時はその結果コードを返します。
  *
- *  2 つのハンドルは同じミューテックスを共有し、別々のプロセスの書き込み側と読み取り側を模擬します。
+ *  2 つのハンドルは同じ排他を共有し、別々のプロセスの書き込み側と読み取り側を模擬します。
  */
 static int open_share(const char *path)
 {
@@ -1644,7 +1645,7 @@ static int open_share(const char *path)
         }
     }
 
-    ret = cplat_local_lock_create(&s_share_lock);
+    ret = sample_filter_share_lock_create(s_share_path, &s_share_lock);
     if (ret == CPLAT_OK)
     {
         ret = sample_filter_share_open(s_share_path, s_share_lock, FILTER_SAMPLE_LINE_CAPACITY,
@@ -1658,16 +1659,12 @@ static int open_share(const char *path)
     return ret;
 }
 
-/** 共有メモリのハンドルとミューテックスを閉じます。開いていないものは無視します。 */
+/** 共有メモリのハンドルと排他を閉じます。開いていないものは無視します。 */
 static void close_share(void)
 {
     sample_filter_share_close(&s_reader_share);
     sample_filter_share_close(&s_writer_share);
-    if (s_share_lock != NULL)
-    {
-        cplat_local_lock_dispose(s_share_lock);
-        s_share_lock = NULL;
-    }
+    sample_filter_share_lock_dispose(&s_share_lock);
 }
 
 /**
@@ -1831,10 +1828,10 @@ int main(int argc, char *argv[])
     int result = EXIT_SUCCESS;
     int ret;
 
-    /* 第 1 引数で共有メモリのファイル パスを指定できる。同じパスを指定したコマンドどうしで条件を配布する */
+    /* 第 1 引数で共有メモリのパスを指定できる */
     if (argc > 2)
     {
-        fprintf(stderr, "使用方法: %s [共有メモリのファイル パス]\n", argv[0]);
+        fprintf(stderr, "使用方法: %s [共有メモリのパス]\n", argv[0]);
         return EXIT_FAILURE;
     }
 

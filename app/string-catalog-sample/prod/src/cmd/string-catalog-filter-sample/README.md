@@ -18,6 +18,7 @@ short-title: "string-catalog-filter-sample"
 | `sample_filter_image.h` / `sample_filter_image.c` | フィルター オブジェクトの内部形式 |
 | `sample_filter_slot.c` | フィルター スロット (名前解決、事前計算、判定、2 面の差し替え) |
 | `sample_filter_share.h` / `sample_filter_share.c` | 共有メモリによるフィルター オブジェクトの配布 (公開、取り込み、世代管理) |
+| `sample_filter_share_region.h` / `sample_filter_share_region.c` | 受け渡し用のメモリ領域の確保と先頭アドレスの取得、受け渡しの排他 (差し替え可能な実装) |
 | `sample_filter_describe.c` | 条件式を、カタログのメタ情報を用いた自然文で表現する説明文 |
 | `sample_filter_output.h` / `sample_filter_output.c` | フィルターを通してトレースを出力する入口。`sample_filter_output(key, ...)` マクロを提供 |
 | `sample_worker_trace.jsonc` / `gen/sample_worker_trace.h` | ワーカーが出力するトレースのカタログ定義と生成物 |
@@ -207,16 +208,17 @@ filter-sample> list
 ## 使用方法
 
 ```bash
-./prod/cbin/string-catalog-filter-sample [共有メモリのファイル パス]
+./prod/cbin/string-catalog-filter-sample [共有メモリのパス]
 ```
 
 起動直後に `sample_worker_trace` カタログと名前解決テーブルの整合を検証し、不正があれば終了コード 1 で終了します。
 
 ### 共有メモリによる配布
 
-コンパイル済みの条件は、共有メモリに対応付けたファイルを通して配布します。  
-パスを省略した場合は、一時ディレクトリの `string-catalog-filter-sample.share` を使います。  
-同一パスを指定して複数のコマンドを起動した場合、いずれかのコマンドで実行された `apply` も、すべてのコマンドのトレース出力へ反映されます。
+コンパイル済みの条件は、共有メモリを通して配布します。  
+共有メモリはパスで識別します。パスを省略した場合は、一時ディレクトリの `string-catalog-filter-sample.share` を使います。  
+PoC では、共有メモリを `calloc()` で確保したプロセス内の領域で模擬するため、ファイルは作成せず、配布は同じプロセスの中に限られます。  
+差し替え箇所は `sample_filter_share_region.c` です。
 
 `apply` は共有メモリへ公開するだけであり、実行した自プロセスの適用中条件もその場では変更されません。  
 各プロセスは、次回トレース出力時に世代番号の変化を検知して最新条件を取り込みます。  

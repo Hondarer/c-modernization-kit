@@ -10,10 +10,9 @@
  *  読み取り側は、トレース出力の都度世代番号をロック不要で読み取り (緩いチェック)、変化が検知された場合に
  *  ロックを取得して再確認 (最終チェック) した後、フィルター オブジェクトを複製してフィルター スロットへ適用します。
  *
- *  書き込み側と、読み取り側の複製は、同じミューテックスで排他します。\n
- *  PoC では、呼び出し側が用意した単純なミューテックス (`cplat_local_lock`) で、プロセスをまたぐ排他を模擬します。
- *  同じミューテックスを共有する複数のハンドルを、別々のプロセスの書き込み側と読み取り側に見立てます。\n
- *  実際に複数のプロセスで動かす段階では、このミューテックスをプロセス間で共有できるものに置き換えます。
+ *  書き込み側と、読み取り側の複製は、同じ排他 (@ref sample_filter_share_lock) で排他します。\n
+ *  受け渡し用のメモリ領域の確保と先頭アドレスの取得、および排他は `sample_filter_share_region.h` に切り出しており、
+ *  方式の差し替えはそちらの実装で行います。
  *
  *  設計の理由は `app/string-catalog-sample/docs/trace-filter-poc.md` の「共有メモリによる配布」に記録しています。
  *
@@ -25,9 +24,9 @@
 #define SAMPLE_FILTER_SHARE_PRIVATE_H
 
 #include "sample_filter.h"
+#include "sample_filter_share_region.h"
 
 #include <cplat/sync/atomic.h>
-#include <cplat/sync/sync.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -62,7 +61,7 @@ extern "C"
      *
      *  複数のプロセスが同じレイアウトで読み書きするため、固定幅の整数型だけで構成します。\n
      *  @ref sample_filter_share_header::generation は、ロックを取らずにアトミックに読まれます。
-     *  それ以外のメンバーは、ミューテックスの下でだけ読み書きします。
+     *  それ以外のメンバーは、排他の下でだけ読み書きします。
      */
     typedef struct sample_filter_share_header
     {
@@ -97,37 +96,39 @@ extern "C"
     typedef struct sample_filter_share sample_filter_share;
 
     /**
-     *  @brief          共有メモリを開きます。ファイルが存在しない場合は作成します。
-     *  @param[in]      path          共有メモリに対応付けるファイルのパス。ローカル ファイル システム上を指定します。
-     *  @param[in]      lock          書き込みと取り込みを排他するミューテックス。呼び出し側が所有し、
+     *  @brief          共有メモリを開きます。存在しない場合は作成します。
+     *  @param[in]      path          共有メモリを識別するパス。
+     *  @param[in]      lock          書き込みと取り込みの排他。呼び出し側が所有し、
      *                                ハンドルを閉じるまで有効である必要があります。
-     *                                同じ共有メモリを開くすべてのハンドルに、同じミューテックスを渡します。
+     *                                同じ共有メモリを開くすべてのハンドルに、同じ排他を渡します。
      *  @param[in]      line_capacity 配布するフィルター オブジェクトの行数の上限。
      *  @param[in]      line_width    配布するフィルター オブジェクトの行幅。
      *  @param[out]     share_out     開いたハンドルの格納先。
      *  @return         成功時は `CPLAT_OK` を返します。
      *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
-     *  @return         既存のファイルが必要な大きさに満たない場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
+     *  @return         既存の共有メモリが必要な大きさに満たない場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *  @return         メモリまたは共有メモリを確保できない場合は `CPLAT_ERR_OUT_OF_MEMORY` または
      *                  `CPLAT_ERR_UNKNOWN` を返します。
      *
-     *  新しく作成したファイルは 0 で埋まっており、最初の公開で配布ヘッダーを初期化します。\n
-     *  同じファイルを、同じプロセスの中で複数のハンドルから開くこともできます。
+     *  新しく作成した共有メモリは 0 で埋まっており、最初の公開で配布ヘッダーを初期化します。\n
+     *  同じパスを、同じプロセスの中で複数のハンドルから開くこともできます。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数はスレッド セーフではありません。\n
+     *  共有メモリを開く処理と閉じる処理は、同時に呼び出さないことを呼び出し側で保証してください。
      */
-    int sample_filter_share_open(const char *path, cplat_local_lock *lock, size_t line_capacity, size_t line_width,
+    int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, size_t line_capacity, size_t line_width,
                                  sample_filter_share **share_out);
 
     /**
-     *  @brief          共有メモリを閉じます。ファイルは削除しません。
+     *  @brief          共有メモリを閉じます。
      *  @param[in,out]  share 閉じるハンドルを保持する変数のアドレス。閉じたあとは NULL を設定します。
      *                        NULL または *share が NULL の場合は何もしません。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  同じハンドルへの他の呼び出しが完了していることを、呼び出し側で保証してください。
+     *  同じハンドルへの他の呼び出しが完了していること、および共有メモリを開く処理と同時に呼び出さないことを、
+     *  呼び出し側で保証してください。
      */
     void sample_filter_share_close(sample_filter_share **share);
 
@@ -169,7 +170,7 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。\n
-     *  取り込みはミューテックスの下で直列に行われ、後から来たスレッドは先の取り込みの完了を待ちます。
+     *  取り込みは排他の下で直列に行われ、後から来たスレッドは先の取り込みの完了を待ちます。
      */
     int sample_filter_share_refresh(sample_filter_share *share, sample_filter_slot *slot, int *is_taken_out);
 

@@ -5,11 +5,11 @@
 #include "gen/sample_worker_trace.h"
 #include "sample_filter_output.h"
 #include "sample_filter_share.h"
+#include "sample_filter_share_region.h"
 #include "sample_worker_trace_key_names.h"
 
 #include <cplat/base/result.h>
 #include <cplat/crt/path.h>
-#include <cplat/mmap/mmap.h>
 #include <cplat/runtime/process.h>
 #include <cplat/sync/sync.h>
 
@@ -34,7 +34,7 @@ class sampleFilterShareTest : public Test
                 info->name() + ".share";
         (void)std::remove(path_.c_str());
 
-        ASSERT_EQ(CPLAT_OK, cplat_local_lock_create(&lock_));
+        ASSERT_EQ(CPLAT_OK, sample_filter_share_lock_create(path_.c_str(), &lock_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_));
         ASSERT_EQ(CPLAT_OK,
@@ -47,26 +47,22 @@ class sampleFilterShareTest : public Test
         sample_filter_slot_dispose(&slot_);
         sample_filter_share_close(&reader_);
         sample_filter_share_close(&writer_);
-        if (map_ != nullptr)
-        {
-            (void)cplat_mmap_detach(map_, nullptr);
-            map_ = nullptr;
-        }
-        cplat_local_lock_dispose(lock_);
+        sample_filter_share_region_close(&region_);
+        sample_filter_share_lock_dispose(&lock_);
         (void)std::remove(path_.c_str());
     }
 
-    /** 共有メモリの配布ヘッダーを、テストから直接読み書きするために対応付けます。 */
+    /** 共有メモリの配布ヘッダーを、テストから直接読み書きするために同じパスで確保します。 */
     sample_filter_share_header *header()
     {
-        if (map_ == nullptr)
+        if (region_ == nullptr)
         {
-            if (cplat_mmap_attach(path_.c_str(), CPLAT_MMAP_ACCESS_READ_WRITE, 1U, &map_, nullptr) != CPLAT_OK)
+            if (sample_filter_share_region_open(path_.c_str(), 1U, &region_) != CPLAT_OK)
             {
                 return nullptr;
             }
         }
-        return static_cast<sample_filter_share_header *>(cplat_mmap_get_address(map_));
+        return static_cast<sample_filter_share_header *>(sample_filter_share_region_get_address(region_));
     }
 
     sample_filter_state state_of(const int string_key)
@@ -78,11 +74,11 @@ class sampleFilterShareTest : public Test
     }
 
     std::string path_;
-    cplat_local_lock *lock_ = nullptr;
+    sample_filter_share_lock *lock_ = nullptr;
     sample_filter_share *writer_ = nullptr;
     sample_filter_share *reader_ = nullptr;
     sample_filter_slot *slot_ = nullptr;
-    cplat_mmap *map_ = nullptr;
+    sample_filter_share_region *region_ = nullptr;
 };
 
 // 未公開の共有メモリからは何も取り込まないことの確認
