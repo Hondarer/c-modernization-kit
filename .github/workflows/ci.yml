@@ -111,6 +111,7 @@ jobs:
             app/c_cpp_properties.warn
             app/**/prod/**/*.warn
             app/**/test/**/*.warn
+            framework/**/*.warn
           if-no-files-found: ignore
 
       - name: Upload build logs
@@ -458,6 +459,7 @@ jobs:
             app/c_cpp_properties.warn
             app/**/prod/**/*.warn
             app/**/test/**/*.warn
+            framework/**/*.warn
           if-no-files-found: ignore
 
       - name: Upload build logs
