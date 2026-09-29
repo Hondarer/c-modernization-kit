@@ -79,7 +79,7 @@ TEST_F(sampleFilterValidateTest, single_byte_content_change_is_detected_by_hash)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
-             actual_validate_ret_after); // [確認_異常系] - 内容のハッシュ値不一致を検出すること。
+              actual_validate_ret_after); // [確認_異常系] - 内容のハッシュ値不一致を検出すること。
 }
 
 // image_size が不足している場合に CPLAT_ERR_CORRUPT_DESCRIPTOR を返すことの確認
@@ -99,5 +99,5 @@ TEST_F(sampleFilterValidateTest, insufficient_image_size_returns_corrupt_descrip
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
-             actual_ret); // [確認_異常系] - 宣言されている image_size に満たない場合は破損として扱うこと。
+              actual_ret); // [確認_異常系] - 宣言されている image_size に満たない場合は破損として扱うこと。
 }

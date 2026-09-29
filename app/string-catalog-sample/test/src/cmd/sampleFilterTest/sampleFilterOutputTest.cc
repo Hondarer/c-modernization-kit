@@ -16,31 +16,31 @@ using namespace sample_filter_test;
 
 namespace
 {
-    /** トレース フックが受け取った内容を保存します。 */
-    struct hook_capture
-    {
-        cplat_trace_level level;
-        char message[CPLAT_STRING_CATALOG_TEXT_MAX];
-        int call_count;
-    };
+/** トレース フックが受け取った内容を保存します。 */
+struct hook_capture
+{
+    cplat_trace_level level;
+    char message[CPLAT_STRING_CATALOG_TEXT_MAX];
+    int call_count;
+};
 
-    void capture_hook(cplat_tracer_hook_entry *prev, cplat_tracer *handle, cplat_trace_level level,
-                      const cplat_timespec *timestamp, const char *message, void *context)
-    {
-        hook_capture *capture = static_cast<hook_capture *>(context);
+void capture_hook(cplat_tracer_hook_entry *prev, cplat_tracer *handle, cplat_trace_level level,
+                  const cplat_timespec *timestamp, const char *message, void *context)
+{
+    hook_capture *capture = static_cast<hook_capture *>(context);
 
-        (void)prev;
-        (void)handle;
-        (void)timestamp;
-        capture->level = level;
-        const std::size_t message_length = std::strlen(message);
-        const std::size_t copy_length =
-            (message_length < (sizeof(capture->message) - 1U)) ? message_length : (sizeof(capture->message) - 1U);
+    (void)prev;
+    (void)handle;
+    (void)timestamp;
+    capture->level = level;
+    const std::size_t message_length = std::strlen(message);
+    const std::size_t copy_length =
+        (message_length < (sizeof(capture->message) - 1U)) ? message_length : (sizeof(capture->message) - 1U);
 
-        std::memcpy(capture->message, message, copy_length);
-        capture->message[copy_length] = '\0';
-        capture->call_count++;
-    }
+    std::memcpy(capture->message, message, copy_length);
+    capture->message[copy_length] = '\0';
+    capture->call_count++;
+}
 } // namespace
 
 class sampleFilterOutputTest : public Test
@@ -87,15 +87,18 @@ TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_output_write(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
-                                            SAMPLE_FILTER_TEST_CONTEXT_ARGS(
-                                                7)); // [手順] - 作成直後 (何も一致しない) のスロットで JOB_FAILED を出力する。
+    actual_ret = sample_filter_output_write(
+        SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
+        SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 作成直後 (何も一致しない) のスロットで JOB_FAILED を出力する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);                      // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    ASSERT_EQ(1, capture_.call_count);                    // [確認_正常系] - フックが 1 回呼び出されること。
-    EXPECT_EQ(CPLAT_TRACE_LEVEL_WARNING, capture_.level); // [確認_正常系] - JOB_FAILED の分類値 (WARNING) がそのまま使われること。
-    EXPECT_EQ('#', capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
+    ASSERT_EQ(1, capture_.call_count); // [確認_正常系] - フックが 1 回呼び出されること。
+    EXPECT_EQ(CPLAT_TRACE_LEVEL_WARNING,
+              capture_.level); // [確認_正常系] - JOB_FAILED の分類値 (WARNING) がそのまま使われること。
+    EXPECT_EQ(
+        '#',
+        capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
 }
 
 // 条件式に一致する場合、強制出力のレベルへ引き上げることの確認
@@ -105,23 +108,26 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
     static unsigned char image[kImageSize];
     int actual_ret;
 
-    ASSERT_EQ(CPLAT_OK,
-             compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
+                                            image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U,
                                                                nullptr)); // [状態] - スロットへ適用する。
 
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_output_write(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
-                                            SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 一致する状態で JOB_FAILED を出力する。
+    actual_ret = sample_filter_output_write(
+        SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
+        SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 一致する状態で JOB_FAILED を出力する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
     ASSERT_EQ(1, capture_.call_count); // [確認_正常系] - フックが 1 回呼び出されること。
     EXPECT_EQ(CPLAT_TRACE_LEVEL_TO_FORCE(CPLAT_TRACE_LEVEL_WARNING),
-             capture_.level); // [確認_正常系] - 分類値 (WARNING) を強制出力のレベルへ変換した値が使われること。
-    EXPECT_EQ('#', capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
+              capture_.level); // [確認_正常系] - 分類値 (WARNING) を強制出力のレベルへ変換した値が使われること。
+    EXPECT_EQ(
+        '#',
+        capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
 }
 
 // 出力先を設定していない場合に CPLAT_ERR_INVALID_ARGUMENT を返し、組み立ても出力も行わないことの確認
@@ -135,10 +141,11 @@ TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argum
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_output_write(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
-                                            SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 未設定の状態で出力を試みる。
+    actual_ret =
+        sample_filter_output_write(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
+                                   SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 未設定の状態で出力を試みる。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret); // [確認_異常系] - CPLAT_ERR_INVALID_ARGUMENT を返すこと。
-    EXPECT_EQ(0, capture_.call_count);                 // [確認_異常系] - フックが呼び出されない (組み立ても出力も行わない) こと。
+    EXPECT_EQ(0, capture_.call_count); // [確認_異常系] - フックが呼び出されない (組み立ても出力も行わない) こと。
 }

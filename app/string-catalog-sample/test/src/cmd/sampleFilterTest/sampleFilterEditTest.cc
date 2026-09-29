@@ -74,9 +74,9 @@ TEST_F(sampleFilterEditTest, compile_line_replaces_only_target_line)
                                                      sizeof(actual_line1)); // [手順] - 行 1 を復元する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);          // [確認_正常系] - 置き換えが成功すること。
-    EXPECT_STREQ("key == 1", actual_line0);   // [確認_正常系] - 行 0 は変更されないこと。
-    EXPECT_STREQ("key == 5", actual_line1);   // [確認_正常系] - 行 1 が置き換えた内容であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret);        // [確認_正常系] - 置き換えが成功すること。
+    EXPECT_STREQ("key == 1", actual_line0); // [確認_正常系] - 行 0 は変更されないこと。
+    EXPECT_STREQ("key == 5", actual_line1); // [確認_正常系] - 行 1 が置き換えた内容であること。
 }
 
 // 行の削除で、後続の行が 1 つ前へ詰まることの確認
@@ -129,10 +129,10 @@ TEST_F(sampleFilterEditTest, malformed_compile_line_leaves_image_unchanged)
         image, kImageSize, 0U, "key ==", &diagnostic); // [手順] - 不正な条件式で行 0 を置き換えようとする。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret);          // [確認_異常系] - 構文エラーとして失敗すること。
+    EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret); // [確認_異常系] - 構文エラーとして失敗すること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
-              diagnostic.error); // [確認_異常系] - 診断情報の原因が構文の誤りであること。
-    EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize));         // [確認_異常系] - イメージが変更されていないこと。
+              diagnostic.error);                            // [確認_異常系] - 診断情報の原因が構文の誤りであること。
+    EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize)); // [確認_異常系] - イメージが変更されていないこと。
 }
 
 // 不正な条件式での insert_line が CPLAT_ERR_MALFORMED_DEFINITION を返し、イメージを変更しないことの確認
@@ -154,10 +154,10 @@ TEST_F(sampleFilterEditTest, malformed_insert_line_leaves_image_unchanged)
         image, kImageSize, 1U, "x.y", &diagnostic); // [手順] - 不正な条件式を末尾へ挿入しようとする。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret);   // [確認_異常系] - 構文エラーとして失敗すること。
+    EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret); // [確認_異常系] - 構文エラーとして失敗すること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
-              diagnostic.error);                             // [確認_異常系] - 診断情報の原因が構文の誤りであること。
-    EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize));  // [確認_異常系] - イメージが変更されていないこと。
+              diagnostic.error);                            // [確認_異常系] - 診断情報の原因が構文の誤りであること。
+    EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize)); // [確認_異常系] - イメージが変更されていないこと。
 }
 
 // 行数の上限に達している場合、insert_line が CPLAT_ERR_STORAGE_FULL を返すことの確認

@@ -137,9 +137,9 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_refresh)
     EXPECT_EQ(CPLAT_OK, actual_first_ret); // [確認_正常系] - 取り込みが成功すること。
     EXPECT_EQ(1, is_taken_first);          // [確認_正常系] - 取り込んだことが報告されること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
-              actual_state_after);                                   // [確認_正常系] - 公開内容が判定に反映されること。
-    EXPECT_EQ(CPLAT_OK, actual_second_ret);                          // [確認_正常系] - 再確認が成功すること。
-    EXPECT_EQ(0, is_taken_second);                                   // [確認_正常系] - 変化がなければ取り込まないこと。
+              actual_state_after);          // [確認_正常系] - 公開内容が判定に反映されること。
+    EXPECT_EQ(CPLAT_OK, actual_second_ret); // [確認_正常系] - 再確認が成功すること。
+    EXPECT_EQ(0, is_taken_second);          // [確認_正常系] - 変化がなければ取り込まないこと。
 }
 
 // 公開のたびに世代が進み、書き込み側のハンドルをまたいで続き番号になることの確認
@@ -233,7 +233,7 @@ TEST_F(sampleFilterShareTest, generation_wraps_around_skipping_zero)
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, nullptr)); // [状態] - 公開する。
-    ASSERT_NE(nullptr, header());      // [状態確認] - 配布ヘッダーを対応付けられること。
+    ASSERT_NE(nullptr, header()); // [状態確認] - 配布ヘッダーを対応付けられること。
     cplat_atomic_store_u64(&header()->generation, UINT64_MAX,
                            CPLAT_MEMORY_ORDER_RELAXED); // [状態] - 世代を上限の値へ書き換える。
 

@@ -326,6 +326,6 @@ TEST_F(sampleFilterDescribeTest, category_names_can_be_cleared_and_reject_invali
         describe("category <= 2", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 解除後に説明する。
 
     // Assert_2
-    EXPECT_EQ(CPLAT_OK, actual_ret_describe);                    // [確認_正常系] - 説明文を得られること。
-    EXPECT_STREQ("分類値が 2 以下", description_);               // [確認_正常系] - 名前の設定がなければ数値で表すこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret_describe);      // [確認_正常系] - 説明文を得られること。
+    EXPECT_STREQ("分類値が 2 以下", description_); // [確認_正常系] - 名前の設定がなければ数値で表すこと。
 }

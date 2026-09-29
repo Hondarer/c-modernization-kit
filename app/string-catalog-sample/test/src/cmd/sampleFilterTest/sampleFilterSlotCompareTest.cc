@@ -47,7 +47,8 @@ TEST_F(sampleFilterSlotCompareTest, signed_int32_and_large_uint_constant_are_not
     int actual_matched = -1;
     int actual_ret;
 
-    apply_filter("arg.priority == 4294967295"); // [状態] - INT32 の引数を、範囲外の巨大な整数定数と比較する条件式を適用する。
+    apply_filter(
+        "arg.priority == 4294967295"); // [状態] - INT32 の引数を、範囲外の巨大な整数定数と比較する条件式を適用する。
 
     // Pre-Assert
 
@@ -59,7 +60,7 @@ TEST_F(sampleFilterSlotCompareTest, signed_int32_and_large_uint_constant_are_not
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    EXPECT_EQ(0, actual_matched);    // [確認_正常系] - -1 と 4294967295 は数学的な大小で等しくないため、一致しないこと。
+    EXPECT_EQ(0, actual_matched); // [確認_正常系] - -1 と 4294967295 は数学的な大小で等しくないため、一致しないこと。
 }
 
 // UINT64 の最大値どうしの比較が一致することの確認
@@ -241,8 +242,8 @@ TEST_F(sampleFilterSlotCompareTest, pointer_argument_equal_null_distinguishes_nu
         (const void *)nullptr, (size_t)0, SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - buffer に NULL を渡す。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret_null);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    EXPECT_NE(0, actual_matched_null);      // [確認_正常系] - NULL のポインターは == null で真になること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_null); // [確認_正常系] - 戻り値が CPLAT_OK であること。
+    EXPECT_NE(0, actual_matched_null);    // [確認_正常系] - NULL のポインターは == null で真になること。
 
     // Act_2
     actual_ret_non_null = cplat_string_catalog_filter_slot_format(
@@ -519,9 +520,9 @@ TEST_F(sampleFilterSlotCompareTest, has_sequence_number_is_always_match_for_ever
 {
     // Arrange
     static const int keys[] = {
-        SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED,   SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED,
-        SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS,     SAMPLE_WORKER_TRACE_KEY_BUFFER_ALLOCATED,
-        SAMPLE_WORKER_TRACE_KEY_JOB_FAILED,       SAMPLE_WORKER_TRACE_KEY_COMMAND_RECEIVED,
+        SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED, SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED,
+        SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS,   SAMPLE_WORKER_TRACE_KEY_BUFFER_ALLOCATED,
+        SAMPLE_WORKER_TRACE_KEY_JOB_FAILED,     SAMPLE_WORKER_TRACE_KEY_COMMAND_RECEIVED,
         SAMPLE_WORKER_TRACE_KEY_WORKER_STOPPED,
     };
     cplat_string_catalog_filter_state actual_states[7];
@@ -569,9 +570,9 @@ TEST_F(sampleFilterSlotCompareTest, type_mismatched_predicate_is_always_false)
 
     // Assert
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH,
-              actual_state); // [確認_正常系] - 型が一致しないため、事前計算で常に不一致となること。
-    EXPECT_EQ(CPLAT_OK, actual_ret);                          // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    EXPECT_EQ(0, actual_matched);                             // [確認_正常系] - 判定結果が偽であること。
+              actual_state);         // [確認_正常系] - 型が一致しないため、事前計算で常に不一致となること。
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 戻り値が CPLAT_OK であること。
+    EXPECT_EQ(0, actual_matched);    // [確認_正常系] - 判定結果が偽であること。
 }
 
 // 一致の有無にかかわらず dest へ文字列が組み立てられ、戻り値が CPLAT_OK であることの確認
@@ -599,8 +600,9 @@ TEST_F(sampleFilterSlotCompareTest, destination_is_formatted_regardless_of_match
         SAMPLE_FILTER_TEST_CONTEXT_ARGS(sequence_number)); // [手順] - フィルターを介さず、同じ引数で直接組み立てる。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);          // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    EXPECT_EQ(0, actual_matched);             // [確認_正常系] - どの行にも一致しないこと。
-    EXPECT_EQ(CPLAT_OK, expected_ret);        // [確認_正常系] - 比較対象の直接呼び出しも成功すること。
-    EXPECT_STREQ(expected_dest, actual_dest); // [確認_正常系] - 一致しない場合でも、直接呼び出しと同じ文字列が組み立てられること。
+    EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
+    EXPECT_EQ(0, actual_matched);      // [確認_正常系] - どの行にも一致しないこと。
+    EXPECT_EQ(CPLAT_OK, expected_ret); // [確認_正常系] - 比較対象の直接呼び出しも成功すること。
+    EXPECT_STREQ(expected_dest,
+                 actual_dest); // [確認_正常系] - 一致しない場合でも、直接呼び出しと同じ文字列が組み立てられること。
 }

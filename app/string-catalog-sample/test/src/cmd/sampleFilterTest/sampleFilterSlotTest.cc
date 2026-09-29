@@ -51,8 +51,8 @@ TEST_F(sampleFilterSlotTest, freshly_created_slot_marks_all_keys_never_match)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret_worker_started); // [確認_正常系] - WORKER_STARTED の状態を取得できること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH,
-              actual_state_worker_started);          // [確認_正常系] - WORKER_STARTED が常に不一致であること。
-    EXPECT_EQ(CPLAT_OK, actual_ret_job_failed);      // [確認_正常系] - JOB_FAILED の状態を取得できること。
+              actual_state_worker_started);     // [確認_正常系] - WORKER_STARTED が常に不一致であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret_job_failed); // [確認_正常系] - JOB_FAILED の状態を取得できること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH,
               actual_state_job_failed); // [確認_正常系] - JOB_FAILED が常に不一致であること。
 }
@@ -99,7 +99,8 @@ TEST_F(sampleFilterSlotTest, key_name_and_integer_resolve_to_same_result)
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED",
                                             image_by_name)); // [状態] - 列挙定数名で指定した条件式をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 2", image_by_integer)); // [状態] - 整数値 (2) で指定した条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, compile_single_line(
+                            "key == 2", image_by_integer)); // [状態] - 整数値 (2) で指定した条件式をコンパイルする。
 
     // Pre-Assert
 
@@ -121,8 +122,9 @@ TEST_F(sampleFilterSlotTest, key_name_and_integer_resolve_to_same_result)
 
     // Assert_2
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
-              actual_state_by_integer);                       // [確認_正常系] - 整数指定でも常に一致になること。
-    EXPECT_EQ(actual_state_by_name, actual_state_by_integer); // [確認_正常系] - 名前指定と整数指定の結果が一致すること。
+              actual_state_by_integer); // [確認_正常系] - 整数指定でも常に一致になること。
+    EXPECT_EQ(actual_state_by_name,
+              actual_state_by_integer); // [確認_正常系] - 名前指定と整数指定の結果が一致すること。
 }
 
 // 引数を含む行が、その引数を持つ項目だけを引数値に依存させることの確認
@@ -134,7 +136,8 @@ TEST_F(sampleFilterSlotTest, argument_predicate_marks_only_entries_with_that_arg
     cplat_string_catalog_filter_state actual_state_worker_started;
     int actual_apply_ret;
 
-    ASSERT_EQ(CPLAT_OK, compile_single_line("arg.priority == 5", image)); // [状態] - JOB_RECEIVED だけが持つ引数の条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, compile_single_line("arg.priority == 5",
+                                            image)); // [状態] - JOB_RECEIVED だけが持つ引数の条件式をコンパイルする。
 
     // Pre-Assert
 
@@ -168,7 +171,8 @@ TEST_F(sampleFilterSlotTest, unresolved_key_name_disables_line_and_is_diagnosed)
     std::size_t actual_invalid_count = 0U;
     int actual_apply_ret;
 
-    ASSERT_EQ(CPLAT_OK, compile_lines(lines, 2U, image)); // [状態] - 名前解決できない行と、解決できる行をコンパイルする。
+    ASSERT_EQ(CPLAT_OK,
+              compile_lines(lines, 2U, image)); // [状態] - 名前解決できない行と、解決できる行をコンパイルする。
 
     // Pre-Assert
 
@@ -180,11 +184,11 @@ TEST_F(sampleFilterSlotTest, unresolved_key_name_disables_line_and_is_diagnosed)
         &actual_enabled_lines); // [手順] - 適用中のイメージと有効行の集合を取得する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_apply_ret);                             // [確認_正常系] - 名前解決できない行があっても適用は成功すること。
-    EXPECT_EQ(1U, actual_invalid_count);                               // [確認_正常系] - 無効にした行が 1 件であること。
+    EXPECT_EQ(CPLAT_OK, actual_apply_ret); // [確認_正常系] - 名前解決できない行があっても適用は成功すること。
+    EXPECT_EQ(1U, actual_invalid_count);   // [確認_正常系] - 無効にした行が 1 件であること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_KEY_NAME,
-              diagnostics[0].error);          // [確認_正常系] - 原因が名前解決できない文字列キーであること。
-    EXPECT_EQ(0U, diagnostics[0].line_index); // [確認_正常系] - イメージ内の行 0 が対象であること。
+              diagnostics[0].error);                   // [確認_正常系] - 原因が名前解決できない文字列キーであること。
+    EXPECT_EQ(0U, diagnostics[0].line_index);          // [確認_正常系] - イメージ内の行 0 が対象であること。
     EXPECT_EQ(0U, actual_enabled_lines & (1ULL << 0)); // [確認_正常系] - 行 0 のビットが立っていないこと。
     EXPECT_NE(0U, actual_enabled_lines & (1ULL << 1)); // [確認_正常系] - 行 1 のビットは立っていること。
 }
@@ -200,8 +204,8 @@ TEST_F(sampleFilterSlotTest, unresolved_argument_name_disables_line_and_is_diagn
     std::size_t actual_invalid_count = 0U;
     int actual_apply_ret;
 
-    ASSERT_EQ(CPLAT_OK,
-             compile_single_line("arg.nonexistent_argument == 1", image)); // [状態] - カタログのどの項目にもない引数名の行をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, compile_single_line("arg.nonexistent_argument == 1",
+                                            image)); // [状態] - カタログのどの項目にもない引数名の行をコンパイルする。
 
     // Pre-Assert
 
@@ -215,8 +219,8 @@ TEST_F(sampleFilterSlotTest, unresolved_argument_name_disables_line_and_is_diagn
     EXPECT_EQ(CPLAT_OK, actual_apply_ret); // [確認_正常系] - 名前解決できない行があっても適用は成功すること。
     EXPECT_EQ(1U, actual_invalid_count);   // [確認_正常系] - 無効にした行が 1 件であること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME,
-              diagnostics[0].error);          // [確認_正常系] - 原因が名前解決できない引数名であること。
-    EXPECT_EQ(0U, diagnostics[0].line_index); // [確認_正常系] - イメージ内の行 0 が対象であること。
+              diagnostics[0].error);                   // [確認_正常系] - 原因が名前解決できない引数名であること。
+    EXPECT_EQ(0U, diagnostics[0].line_index);          // [確認_正常系] - イメージ内の行 0 が対象であること。
     EXPECT_EQ(0U, actual_enabled_lines & (1ULL << 0)); // [確認_正常系] - 行 0 のビットが立っていないこと。
 }
 
@@ -230,9 +234,12 @@ TEST_F(sampleFilterSlotTest, apply_with_corrupt_image_keeps_previous_state)
     cplat_string_catalog_filter_state actual_state_after;
     int actual_corrupt_apply_ret;
 
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 2", valid_image)); // [状態] - JOB_RECEIVED (key=2) に一致する条件式をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 1", corrupt_image)); // [状態] - 別の内容をコンパイルしたうえで破損させる。
-    corrupt_image[0] = (unsigned char)(corrupt_image[0] ^ 0xFFU);      // [状態] - 署名を破損させる。
+    ASSERT_EQ(CPLAT_OK,
+              compile_single_line("key == 2",
+                                  valid_image)); // [状態] - JOB_RECEIVED (key=2) に一致する条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK,
+              compile_single_line("key == 1", corrupt_image));    // [状態] - 別の内容をコンパイルしたうえで破損させる。
+    corrupt_image[0] = (unsigned char)(corrupt_image[0] ^ 0xFFU); // [状態] - 署名を破損させる。
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, valid_image, kImageSize, nullptr, 0U,
                                                                nullptr)); // [状態] - 正常なイメージを適用する。
     (void)cplat_string_catalog_filter_slot_test(slot_, SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, &actual_state_before);
@@ -248,7 +255,8 @@ TEST_F(sampleFilterSlotTest, apply_with_corrupt_image_keeps_previous_state)
                                                 &actual_state_after); // [手順] - 適用の試行後の状態を取得する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_corrupt_apply_ret); // [確認_異常系] - 破損したイメージの適用は失敗すること。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
+              actual_corrupt_apply_ret); // [確認_異常系] - 破損したイメージの適用は失敗すること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
               actual_state_after); // [確認_異常系] - 以前の判定状態 (常に一致) が維持されること。
 }
@@ -263,7 +271,9 @@ TEST_F(sampleFilterSlotTest, apply_with_mismatched_line_width_returns_corrupt_de
     cplat_string_catalog_filter_state actual_state_after;
     int actual_mismatched_apply_ret;
 
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 2", valid_image)); // [状態] - JOB_RECEIVED (key=2) に一致する条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK,
+              compile_single_line("key == 2",
+                                  valid_image)); // [状態] - JOB_RECEIVED (key=2) に一致する条件式をコンパイルする。
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, valid_image, kImageSize, nullptr, 0U,
                                                                nullptr)); // [状態] - 正常なイメージを適用する。
     (void)cplat_string_catalog_filter_slot_test(slot_, SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, &actual_state_before);
@@ -285,8 +295,9 @@ TEST_F(sampleFilterSlotTest, apply_with_mismatched_line_width_returns_corrupt_de
                                                 &actual_state_after); // [手順] - 適用の試行後の状態を取得する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
-             actual_mismatched_apply_ret); // [確認_異常系] - 行幅の不一致により CPLAT_ERR_CORRUPT_DESCRIPTOR を返すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        actual_mismatched_apply_ret); // [確認_異常系] - 行幅の不一致により CPLAT_ERR_CORRUPT_DESCRIPTOR を返すこと。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
               actual_state_after); // [確認_異常系] - 以前の判定状態が維持されること。
 }
@@ -299,7 +310,8 @@ TEST_F(sampleFilterSlotTest, apply_copies_image_so_caller_buffer_can_be_cleared_
     cplat_string_catalog_filter_state actual_state;
     int actual_apply_ret;
 
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 2", image)); // [状態] - JOB_RECEIVED (key=2) に一致する条件式をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 2",
+                                            image)); // [状態] - JOB_RECEIVED (key=2) に一致する条件式をコンパイルする。
 
     // Pre-Assert
 

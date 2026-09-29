@@ -117,8 +117,8 @@ extern "C"
      *  本関数はスレッド セーフではありません。\n
      *  共有メモリを開く処理と閉じる処理は、同時に呼び出さないことを呼び出し側で保証してください。
      */
-    int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, size_t line_capacity, size_t line_width,
-                                 sample_filter_share **share_out);
+    int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, size_t line_capacity,
+                                 size_t line_width, sample_filter_share **share_out);
 
     /**
      *  @brief          共有メモリを閉じます。

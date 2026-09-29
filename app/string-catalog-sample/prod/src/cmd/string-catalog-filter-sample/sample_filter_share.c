@@ -172,8 +172,8 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
     }
 
     header = share->header;
-    if ((header->signature == 0U) && (cplat_atomic_load_u64(&header->generation, CPLAT_MEMORY_ORDER_RELAXED) ==
-                                      SAMPLE_FILTER_SHARE_GENERATION_NONE))
+    if ((header->signature == 0U) &&
+        (cplat_atomic_load_u64(&header->generation, CPLAT_MEMORY_ORDER_RELAXED) == SAMPLE_FILTER_SHARE_GENERATION_NONE))
     {
         /* 未初期化の共有メモリ。最初の書き込み側が配布ヘッダーを初期化する */
         header->format_version = SAMPLE_FILTER_SHARE_FORMAT_VERSION;

@@ -109,9 +109,9 @@ TEST_F(sampleFilterCategoryTest, level_name_and_number_give_same_result)
 
     // Assert_2
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_NONE,
-              actual_error_number);                           // [確認_正常系] - 数値の行が有効であること。
-    EXPECT_EQ(actual_failed_name, actual_failed_number);      // [確認_正常系] - JOB_FAILED の判定が同じであること。
-    EXPECT_EQ(actual_started_name, actual_started_number);    // [確認_正常系] - WORKER_STARTED の判定が同じであること。
+              actual_error_number);                        // [確認_正常系] - 数値の行が有効であること。
+    EXPECT_EQ(actual_failed_name, actual_failed_number);   // [確認_正常系] - JOB_FAILED の判定が同じであること。
+    EXPECT_EQ(actual_started_name, actual_started_number); // [確認_正常系] - WORKER_STARTED の判定が同じであること。
 }
 
 // 分類値の名前の範囲外の定数を、行を無効にして拒否することの確認
