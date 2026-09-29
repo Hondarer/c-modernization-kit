@@ -143,6 +143,7 @@ see: [CI と Jenkins での読み込み](#ci-と-jenkins-での読み込み)
 静的ライブラリだけを出力する app のディレクトリが探索パスに載っても実害がないため、判定を `OUTPUT_DIR` の 1 つに統一しています。
 
 `.vscode/pub_markdown.config.yaml` の `mergeSubfolderDocs` は、`app/<name>/docs` の有無から導出します。  
+Git 管理対象のファイルを含まない `docs` は対象外です。移動・削除した app に `.gitignore` 対象の生成物だけが残っても、存在しない app を追加しないためです。  
 このファイルは任意同期対象であり、`--include-pub-markdown` を指定した場合だけ警告または更新の対象になります。
 
 app の一覧は `framework/makefw/bin_internal/resolve_app_deps.sh --app-order` から取得するため、app を追加・削除しただけで導出結果が追従します。

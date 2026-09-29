@@ -240,7 +240,12 @@ for app in "${APPS[@]}"; do
     if [[ -d "$APP_DIR/$app/bin" ]]; then
         SCRIPT_BIN_APPS+=("$app")
     fi
-    if [[ -d "$APP_DIR/$app/docs" ]]; then
+    # docs は Git 管理対象のファイルがある場合だけ採用する。
+    # app の移動・削除後も、.gitignore 対象の生成物 (doxybook2 など) が残ると
+    # ディレクトリだけは実在するため、実在判定では存在しない app を拾ってしまう。
+    # git -C は app がサブモジュールの場合も、その app 自身のリポジトリで判定できる。
+    if [[ -d "$APP_DIR/$app/docs" ]] &&
+        [[ -n "$(git -C "$APP_DIR/$app" ls-files -- docs 2>/dev/null | head -n 1)" ]]; then
         DOCS_APPS+=("$app")
     fi
 done
