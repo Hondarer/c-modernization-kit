@@ -19,7 +19,7 @@
  *******************************************************************************
  */
 
-#include "sample_filter.h"
+#include <cplat/string_catalog/filter.h>
 #include "sample_filter_output.h"
 #include "sample_filter_share.h"
 #include "sample_filter_share_region.h"
@@ -50,7 +50,8 @@
 #define FILTER_SAMPLE_LINE_WIDTH 256U
 
 /** 編集中イメージのバイト数です。 */
-#define FILTER_SAMPLE_IMAGE_SIZE SAMPLE_FILTER_IMAGE_SIZE(FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH)
+#define FILTER_SAMPLE_IMAGE_SIZE \
+    CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH)
 
 /** 適用の失敗診断を受け取る最大件数です。 */
 #define FILTER_SAMPLE_DIAGNOSTIC_CAPACITY 8U
@@ -169,7 +170,7 @@ static unsigned char s_draft_image[FILTER_SAMPLE_IMAGE_SIZE];
 static unsigned char s_dummy_buffer[FILTER_SAMPLE_DUMMY_BUFFER_SIZE];
 
 /** 判定に使用するフィルター スロットです。 */
-static sample_filter_slot *s_slot = NULL;
+static cplat_string_catalog_filter_slot *s_slot = NULL;
 
 /**
  *  編集中イメージの下見用のフィルター スロットです。
@@ -177,7 +178,7 @@ static sample_filter_slot *s_slot = NULL;
  *  draft が編集中イメージを適用し、名前解決と説明文を list と同じ手順で得るために使います。\n
  *  トレース出力には結び付けないため、適用中の条件には影響しません。
  */
-static sample_filter_slot *s_preview_slot = NULL;
+static cplat_string_catalog_filter_slot *s_preview_slot = NULL;
 
 /** 表示のしきい値を保護するロックです。 */
 static cplat_local_lock *s_display_lock = NULL;
@@ -194,32 +195,32 @@ static const char *const s_level_labels[] = {"CRITICAL", "ERROR", "WARNING", "IN
  *  文字列カタログとフィルターは分類値の意味を解釈しません。
  *  このコマンドはトレーサーと組み合わせ、分類値を cplat_trace_level として扱うため、レベルの名前を与えます。
  */
-static const sample_filter_category_names s_category_names = {
+static const cplat_string_catalog_filter_category_names s_category_names = {
     s_level_labels,
     sizeof(s_level_labels) / sizeof(s_level_labels[0]),
     "レベル",
     "the level",
 };
 
-/** sample_filter_error の日本語の原因名です。値をインデックスとして参照します。 */
+/** cplat_string_catalog_filter_error の日本語の原因名です。値をインデックスとして参照します。 */
 static const char *const s_filter_error_labels[] = {
-    "原因なし",       /* SAMPLE_FILTER_ERROR_NONE */
-    "字句エラー",     /* SAMPLE_FILTER_ERROR_LEXICAL */
-    "構文エラー",     /* SAMPLE_FILTER_ERROR_SYNTAX */
-    "型不一致",       /* SAMPLE_FILTER_ERROR_TYPE_MISMATCH */
-    "上限超過",       /* SAMPLE_FILTER_ERROR_LIMIT_EXCEEDED */
-    "行数上限超過",   /* SAMPLE_FILTER_ERROR_LINE_CAPACITY */
-    "未解決のキー名", /* SAMPLE_FILTER_ERROR_UNRESOLVED_KEY_NAME */
-    "未解決の引数名", /* SAMPLE_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME */
-    "未知のレベル名", /* SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME */
-    "レベルの範囲外"  /* SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE */
+    "原因なし",       /* CPLAT_STRING_CATALOG_FILTER_ERROR_NONE */
+    "字句エラー",     /* CPLAT_STRING_CATALOG_FILTER_ERROR_LEXICAL */
+    "構文エラー",     /* CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX */
+    "型不一致",       /* CPLAT_STRING_CATALOG_FILTER_ERROR_TYPE_MISMATCH */
+    "上限超過",       /* CPLAT_STRING_CATALOG_FILTER_ERROR_LIMIT_EXCEEDED */
+    "行数上限超過",   /* CPLAT_STRING_CATALOG_FILTER_ERROR_LINE_CAPACITY */
+    "未解決のキー名", /* CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_KEY_NAME */
+    "未解決の引数名", /* CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME */
+    "未知のレベル名", /* CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME */
+    "レベルの範囲外"  /* CPLAT_STRING_CATALOG_FILTER_ERROR_CATEGORY_OUT_OF_RANGE */
 };
 
-/** sample_filter_state の日本語の表示名です。値をインデックスとして参照します。 */
+/** cplat_string_catalog_filter_state の日本語の表示名です。値をインデックスとして参照します。 */
 static const char *const s_filter_state_labels[] = {
-    "常に不一致",  /* SAMPLE_FILTER_STATE_NEVER_MATCH */
-    "常に一致",    /* SAMPLE_FILTER_STATE_ALWAYS_MATCH */
-    "引数値に依存" /* SAMPLE_FILTER_STATE_ARGUMENT_DEPENDENT */
+    "常に不一致",  /* CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH */
+    "常に一致",    /* CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH */
+    "引数値に依存" /* CPLAT_STRING_CATALOG_FILTER_STATE_ARGUMENT_DEPENDENT */
 };
 
 /** ワーカーの配列です。 */
@@ -245,7 +246,7 @@ static int s_worker_stop_requested = 0;
 
 /* ===== 文字列テーブル引き ===== */
 
-static const char *filter_error_label(const sample_filter_error error)
+static const char *filter_error_label(const cplat_string_catalog_filter_error error)
 {
     if (((unsigned int)error) >= (sizeof(s_filter_error_labels) / sizeof(s_filter_error_labels[0])))
     {
@@ -254,7 +255,7 @@ static const char *filter_error_label(const sample_filter_error error)
     return s_filter_error_labels[(unsigned int)error];
 }
 
-static const char *filter_state_label(const sample_filter_state state)
+static const char *filter_state_label(const cplat_string_catalog_filter_state state)
 {
     if (((unsigned int)state) >= (sizeof(s_filter_state_labels) / sizeof(s_filter_state_labels[0])))
     {
@@ -660,7 +661,7 @@ static void print_column_marker(cplat_pinned_prompt *screen, const size_t column
 }
 
 static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression,
-                             const sample_filter_diagnostic *diagnostic)
+                             const cplat_string_catalog_filter_diagnostic *diagnostic)
 {
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s (桁=%u)\n",
                                filter_error_label(diagnostic->error), (unsigned int)(diagnostic->column + 1U));
@@ -680,15 +681,15 @@ static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression
  *                                  説明文は名前解決済みの適用中の面から作るため、適用中の条件にだけ指定します。
  */
 static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char *image, const size_t image_size,
-                               const uint64_t *enabled_lines, sample_filter_slot *describing_slot)
+                               const uint64_t *enabled_lines, cplat_string_catalog_filter_slot *describing_slot)
 {
-    sample_filter_info info;
+    cplat_string_catalog_filter_info info;
     char text[FILTER_SAMPLE_LINE_WIDTH];
     char description[FILTER_SAMPLE_DESCRIPTION_SIZE];
     unsigned int i;
     int ret;
 
-    ret = sample_filter_get_info(image, image_size, &info);
+    ret = cplat_string_catalog_filter_get_info(image, image_size, &info);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -707,7 +708,7 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
     {
         int disabled;
 
-        ret = sample_filter_decompile_line(image, image_size, (size_t)i, text, sizeof(text));
+        ret = cplat_string_catalog_filter_decompile_line(image, image_size, (size_t)i, text, sizeof(text));
         if (ret != CPLAT_OK)
         {
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
@@ -734,7 +735,8 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
             /* 有効な行だけが、名前解決の結果とカタログのメタ情報に結び付く */
             if (describing_slot != NULL)
             {
-                ret = sample_filter_slot_describe_line(describing_slot, (size_t)i, description, sizeof(description));
+                ret = cplat_string_catalog_filter_slot_describe_line(describing_slot, (size_t)i, description,
+                                                                     sizeof(description));
                 if ((ret == CPLAT_OK) || (ret == CPLAT_ERR_BUFFER_TOO_SMALL))
                 {
                     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "      → %s\n", description);
@@ -946,13 +948,13 @@ static void print_usage(cplat_pinned_prompt *screen)
  *
  *  list と draft が共有します。無効な行には [無効] を付け、有効な行には説明文を添えます。
  */
-static void print_slot_lines(cplat_pinned_prompt *screen, sample_filter_slot *slot)
+static void print_slot_lines(cplat_pinned_prompt *screen, cplat_string_catalog_filter_slot *slot)
 {
     static unsigned char snapshot_image[FILTER_SAMPLE_IMAGE_SIZE];
     uint64_t enabled_lines = 0;
     int ret;
 
-    ret = sample_filter_slot_snapshot(slot, snapshot_image, sizeof(snapshot_image), &enabled_lines);
+    ret = cplat_string_catalog_filter_slot_snapshot(slot, snapshot_image, sizeof(snapshot_image), &enabled_lines);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -987,7 +989,7 @@ static void command_draft(cplat_pinned_prompt *screen)
 {
     int ret;
 
-    ret = sample_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), NULL, 0U, NULL);
+    ret = cplat_string_catalog_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), NULL, 0U, NULL);
     if (ret != CPLAT_OK)
     {
         /* 下見できない場合も、編集中の条件式だけは表示する */
@@ -1014,12 +1016,12 @@ static void command_draft(cplat_pinned_prompt *screen)
  */
 static int reject_invalid_level(cplat_pinned_prompt *screen, const char *expression, const size_t line_index)
 {
-    sample_filter_diagnostic diagnostics[FILTER_SAMPLE_LINE_CAPACITY];
+    cplat_string_catalog_filter_diagnostic diagnostics[FILTER_SAMPLE_LINE_CAPACITY];
     size_t invalid_count = 0U;
     int ret;
 
-    ret = sample_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
-                                   sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
+    ret = cplat_string_catalog_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
+                                                 sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
     if (ret != CPLAT_OK)
     {
         return 0;
@@ -1028,8 +1030,8 @@ static int reject_invalid_level(cplat_pinned_prompt *screen, const char *express
     for (size_t index = 0; (index < invalid_count) && (index < (sizeof(diagnostics) / sizeof(diagnostics[0]))); index++)
     {
         if ((diagnostics[index].line_index == (uint32_t)line_index) &&
-            ((diagnostics[index].error == SAMPLE_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME) ||
-             (diagnostics[index].error == SAMPLE_FILTER_ERROR_CATEGORY_OUT_OF_RANGE)))
+            ((diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME) ||
+             (diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_ERROR_CATEGORY_OUT_OF_RANGE)))
         {
             memcpy(s_draft_image, s_draft_backup, sizeof(s_draft_image));
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s\n%s\n",
@@ -1046,8 +1048,8 @@ static int reject_invalid_level(cplat_pinned_prompt *screen, const char *express
 
 static void command_add(cplat_pinned_prompt *screen, const char *expression)
 {
-    sample_filter_info info;
-    sample_filter_diagnostic diagnostic;
+    cplat_string_catalog_filter_info info;
+    cplat_string_catalog_filter_diagnostic diagnostic;
     int ret;
 
     if (expression == NULL)
@@ -1056,7 +1058,7 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
         return;
     }
 
-    ret = sample_filter_get_info(s_draft_image, sizeof(s_draft_image), &info);
+    ret = cplat_string_catalog_filter_get_info(s_draft_image, sizeof(s_draft_image), &info);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1065,8 +1067,8 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
     }
 
     memcpy(s_draft_backup, s_draft_image, sizeof(s_draft_image));
-    ret = sample_filter_insert_line(s_draft_image, sizeof(s_draft_image), (size_t)info.line_count, expression,
-                                    &diagnostic);
+    ret = cplat_string_catalog_filter_insert_line(s_draft_image, sizeof(s_draft_image), (size_t)info.line_count,
+                                                  expression, &diagnostic);
     if (ret == CPLAT_ERR_MALFORMED_DEFINITION)
     {
         print_diagnostic(screen, expression, &diagnostic);
@@ -1093,7 +1095,7 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
     char *number_token;
     char *expression;
     unsigned long line_number;
-    sample_filter_diagnostic diagnostic;
+    cplat_string_catalog_filter_diagnostic diagnostic;
     int ret;
 
     if (arg == NULL)
@@ -1117,8 +1119,8 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
     }
 
     memcpy(s_draft_backup, s_draft_image, sizeof(s_draft_image));
-    ret = sample_filter_insert_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL), expression,
-                                    &diagnostic);
+    ret = cplat_string_catalog_filter_insert_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL),
+                                                  expression, &diagnostic);
     if (ret == CPLAT_ERR_MALFORMED_DEFINITION)
     {
         print_diagnostic(screen, expression, &diagnostic);
@@ -1144,7 +1146,7 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
     char *number_token;
     char *expression;
     unsigned long line_number;
-    sample_filter_diagnostic diagnostic;
+    cplat_string_catalog_filter_diagnostic diagnostic;
     int ret;
 
     if (arg == NULL)
@@ -1172,8 +1174,8 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
     {
         char text[FILTER_SAMPLE_LINE_WIDTH];
 
-        ret = sample_filter_decompile_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL), text,
-                                           sizeof(text));
+        ret = cplat_string_catalog_filter_decompile_line(s_draft_image, sizeof(s_draft_image),
+                                                         (size_t)(line_number - 1UL), text, sizeof(text));
         if (ret != CPLAT_OK)
         {
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1189,8 +1191,8 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
     }
 
     memcpy(s_draft_backup, s_draft_image, sizeof(s_draft_image));
-    ret = sample_filter_compile_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL), expression,
-                                     &diagnostic);
+    ret = cplat_string_catalog_filter_compile_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL),
+                                                   expression, &diagnostic);
     if (ret == CPLAT_ERR_MALFORMED_DEFINITION)
     {
         print_diagnostic(screen, expression, &diagnostic);
@@ -1238,7 +1240,7 @@ static void command_delete(cplat_pinned_prompt *screen, char *arg)
         return;
     }
 
-    ret = sample_filter_remove_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL));
+    ret = cplat_string_catalog_filter_remove_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL));
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1253,8 +1255,8 @@ static void command_clear(cplat_pinned_prompt *screen)
 {
     int ret;
 
-    ret = sample_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY, s_draft_image,
-                                sizeof(s_draft_image), NULL, 0, NULL);
+    ret = cplat_string_catalog_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY,
+                                              s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1269,7 +1271,7 @@ static void command_revert(cplat_pinned_prompt *screen)
 {
     int ret;
 
-    ret = sample_filter_slot_snapshot(s_slot, s_draft_image, sizeof(s_draft_image), NULL);
+    ret = cplat_string_catalog_filter_slot_snapshot(s_slot, s_draft_image, sizeof(s_draft_image), NULL);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1284,12 +1286,12 @@ static void command_revert(cplat_pinned_prompt *screen)
 
 static void command_image(cplat_pinned_prompt *screen)
 {
-    sample_filter_info info;
+    cplat_string_catalog_filter_info info;
     size_t dump_size;
     size_t offset;
     int ret;
 
-    ret = sample_filter_get_info(s_draft_image, sizeof(s_draft_image), &info);
+    ret = cplat_string_catalog_filter_get_info(s_draft_image, sizeof(s_draft_image), &info);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1313,7 +1315,7 @@ static void command_image(cplat_pinned_prompt *screen)
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
                                "このアドレスとバイト数を、トレース出力側へ先頭ポインターと長さで引き渡します。\n");
 
-    dump_size = SAMPLE_FILTER_HEADER_SIZE;
+    dump_size = CPLAT_STRING_CATALOG_FILTER_HEADER_SIZE;
     if (dump_size > sizeof(s_draft_image))
     {
         dump_size = sizeof(s_draft_image);
@@ -1351,14 +1353,14 @@ static void command_image(cplat_pinned_prompt *screen)
  */
 static void command_apply(cplat_pinned_prompt *screen)
 {
-    sample_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
+    cplat_string_catalog_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
     size_t invalid_count = 0;
     uint64_t generation = 0U;
     size_t i;
     int ret;
 
-    ret = sample_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
-                                   sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
+    ret = cplat_string_catalog_filter_slot_apply(s_preview_slot, s_draft_image, sizeof(s_draft_image), diagnostics,
+                                                 sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1397,16 +1399,16 @@ static void command_apply(cplat_pinned_prompt *screen)
 
 static void command_state(cplat_pinned_prompt *screen)
 {
-    const sample_filter_key_name *key_names = sample_worker_trace_key_names();
+    const cplat_string_catalog_filter_key_name *key_names = sample_worker_trace_key_names();
     size_t key_name_count = sample_worker_trace_key_name_count();
     size_t i;
 
     for (i = 0; i < key_name_count; i++)
     {
-        sample_filter_state state = SAMPLE_FILTER_STATE_NEVER_MATCH;
+        cplat_string_catalog_filter_state state = CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH;
         int ret;
 
-        ret = sample_filter_slot_test(s_slot, key_names[i].key, &state);
+        ret = cplat_string_catalog_filter_slot_test(s_slot, key_names[i].key, &state);
         if (ret != CPLAT_OK)
         {
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
@@ -1812,12 +1814,12 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
  */
 int main(int argc, char *argv[])
 {
-    sample_filter_slot *slot = NULL;
+    cplat_string_catalog_filter_slot *slot = NULL;
     cplat_pinned_prompt *screen = NULL;
     cplat_tracer *tracer = NULL;
     cplat_tracer_hook_entry *hook_entry = NULL;
     char line[FILTER_SAMPLE_LINE_BUFFER_SIZE];
-    const sample_filter_key_name *key_names;
+    const cplat_string_catalog_filter_key_name *key_names;
     size_t name_count;
     size_t entry_count;
     size_t i;
@@ -1864,24 +1866,25 @@ int main(int argc, char *argv[])
         }
     }
 
-    ret = sample_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY, s_draft_image,
-                                sizeof(s_draft_image), NULL, 0, NULL);
+    ret = cplat_string_catalog_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY,
+                                              s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
         return EXIT_FAILURE;
     }
 
-    ret = sample_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count, FILTER_SAMPLE_LINE_CAPACITY,
-                                    FILTER_SAMPLE_LINE_WIDTH, &slot);
+    ret = cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count,
+                                                  FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &slot);
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
         return EXIT_FAILURE;
     }
 
-    ret = sample_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count, FILTER_SAMPLE_LINE_CAPACITY,
-                                    FILTER_SAMPLE_LINE_WIDTH, &s_preview_slot);
+    ret =
+        cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count,
+                                                FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &s_preview_slot);
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
@@ -1956,8 +1959,8 @@ int main(int argc, char *argv[])
     s_slot = slot;
 
     /* 分類値はトレース レベルとして扱うため、説明文でもレベルの名前で表す */
-    (void)sample_filter_slot_set_category_names(s_slot, &s_category_names);
-    (void)sample_filter_slot_set_category_names(s_preview_slot, &s_category_names);
+    (void)cplat_string_catalog_filter_slot_set_category_names(s_slot, &s_category_names);
+    (void)cplat_string_catalog_filter_slot_set_category_names(s_preview_slot, &s_category_names);
     (void)sample_filter_output_configure(sample_worker_trace_catalog(), slot, tracer);
     sample_filter_output_set_share(s_reader_share);
 
@@ -2031,8 +2034,8 @@ int main(int argc, char *argv[])
     cplat_tracer_dispose(&tracer);
     cplat_pinned_prompt_dispose(screen);
     close_share();
-    sample_filter_slot_dispose(&s_preview_slot);
-    sample_filter_slot_dispose(&slot);
+    cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
+    cplat_string_catalog_filter_slot_dispose(&slot);
     cplat_local_lock_dispose(s_output_lock);
     s_output_lock = NULL;
     cplat_local_lock_dispose(s_display_lock);
@@ -2052,7 +2055,7 @@ out_dispose_lock:
     s_display_lock = NULL;
 out_dispose_slot:
     close_share();
-    sample_filter_slot_dispose(&s_preview_slot);
-    sample_filter_slot_dispose(&slot);
+    cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
+    cplat_string_catalog_filter_slot_dispose(&slot);
     return result;
 }

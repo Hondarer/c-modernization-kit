@@ -48,9 +48,9 @@ class sampleFilterOutputTest : public Test
   protected:
     void SetUp() override
     {
-        ASSERT_EQ(CPLAT_OK,
-                 sample_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                           sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
+                                sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
 
         std::memset(&capture_, 0, sizeof(capture_));
 
@@ -69,10 +69,10 @@ class sampleFilterOutputTest : public Test
         (void)cplat_tracer_stop(tracer_);
         cplat_tracer_remove_hook(tracer_, hook_entry_);
         cplat_tracer_dispose(&tracer_);
-        sample_filter_slot_dispose(&slot_);
+        cplat_string_catalog_filter_slot_dispose(&slot_);
     }
 
-    sample_filter_slot *slot_ = nullptr;
+    cplat_string_catalog_filter_slot *slot_ = nullptr;
     cplat_tracer *tracer_ = nullptr;
     cplat_tracer_hook_entry *hook_entry_ = nullptr;
     hook_capture capture_{};
@@ -107,7 +107,8 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
 
     ASSERT_EQ(CPLAT_OK,
              compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr)); // [状態] - スロットへ適用する。
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U,
+                                                               nullptr)); // [状態] - スロットへ適用する。
 
     // Pre-Assert
 

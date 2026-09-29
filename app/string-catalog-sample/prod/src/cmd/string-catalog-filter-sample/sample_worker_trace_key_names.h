@@ -16,7 +16,7 @@
 #ifndef SAMPLE_WORKER_TRACE_KEY_NAMES_PRIVATE_H
 #define SAMPLE_WORKER_TRACE_KEY_NAMES_PRIVATE_H
 
-#include "sample_filter.h"
+#include <cplat/string_catalog/filter.h>
 
 #include <stddef.h>
 
@@ -31,7 +31,7 @@ extern "C"
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。
      */
-    const sample_filter_key_name *sample_worker_trace_key_names(void);
+    const cplat_string_catalog_filter_key_name *sample_worker_trace_key_names(void);
 
     /**
      *  @brief          名前解決テーブルの要素数を返します。

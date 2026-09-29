@@ -21,7 +21,7 @@
 #define SAMPLE_WORKER_TRACE_KEY_NAME(key) {#key, (key), 0U}
 
 /** 名前解決テーブルです。 */
-static const sample_filter_key_name s_key_names[] = {
+static const cplat_string_catalog_filter_key_name s_key_names[] = {
     SAMPLE_WORKER_TRACE_KEY_NAME(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED),
     SAMPLE_WORKER_TRACE_KEY_NAME(SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED),
     SAMPLE_WORKER_TRACE_KEY_NAME(SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS),
@@ -33,7 +33,7 @@ static const sample_filter_key_name s_key_names[] = {
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-const sample_filter_key_name *sample_worker_trace_key_names(void)
+const cplat_string_catalog_filter_key_name *sample_worker_trace_key_names(void)
 {
     return s_key_names;
 }

@@ -19,7 +19,7 @@ namespace
     /** ワーカー スレッドへ渡す引数です。ok はそのスレッドだけが書き込み、join 後に読むため競合しません。 */
     struct worker_args
     {
-        sample_filter_slot *slot;
+        cplat_string_catalog_filter_slot *slot;
         std::atomic<int> *stop_flag; /**< スレッド間の停止通知。volatile は同期に使わない。 */
         int ok;
         int pad; /**< 明示的アラインメントです。 */
@@ -37,9 +37,9 @@ namespace
         while (args->stop_flag->load() == 0)
         {
             matched = -1;
-            ret = sample_filter_slot_format(args->slot, dest, sizeof(dest), &matched,
-                                            SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, (uint32_t)1, (uint64_t)1, "job",
-                                            (int32_t)0, SAMPLE_FILTER_TEST_CONTEXT_ARGS(7));
+            ret = cplat_string_catalog_filter_slot_format(
+                args->slot, dest, sizeof(dest), &matched, SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, (uint32_t)1,
+                (uint64_t)1, "job", (int32_t)0, SAMPLE_FILTER_TEST_CONTEXT_ARGS(7));
             if ((ret != CPLAT_OK) || ((matched != 0) && (matched != 1)))
             {
                 args->ok = 0;
@@ -53,17 +53,17 @@ class sampleFilterSlotConcurrencyTest : public Test
   protected:
     void SetUp() override
     {
-        ASSERT_EQ(CPLAT_OK,
-                 sample_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                           sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
+                                sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
     }
 
     void TearDown() override
     {
-        sample_filter_slot_dispose(&slot_);
+        cplat_string_catalog_filter_slot_dispose(&slot_);
     }
 
-    sample_filter_slot *slot_ = nullptr;
+    cplat_string_catalog_filter_slot *slot_ = nullptr;
 };
 
 // 判定と書式展開を繰り返す複数スレッドの最中に、メイン スレッドが 2 種類のイメージを繰り返し適用しても、
@@ -97,9 +97,9 @@ TEST_F(sampleFilterSlotConcurrencyTest, concurrent_apply_does_not_break_concurre
     }
     for (iteration = 0; iteration < 200; iteration++)
     {
-        ASSERT_EQ(CPLAT_OK,
-                 sample_filter_slot_apply(slot_, ((iteration % 2) == 0) ? image_key2 : image_key3, kImageSize, nullptr,
-                                          0U, nullptr)); // [手順] - 2 種類のイメージを交互に 200 回適用する。
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(
+                                slot_, ((iteration % 2) == 0) ? image_key2 : image_key3, kImageSize, nullptr, 0U,
+                                nullptr)); // [手順] - 2 種類のイメージを交互に 200 回適用する。
     }
     stop_flag = 1; // [手順] - ワーカー スレッドへ終了を通知する。
     for (std::size_t index = 0; index < 4U; index++)

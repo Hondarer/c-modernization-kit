@@ -23,7 +23,7 @@
 #ifndef SAMPLE_FILTER_SHARE_PRIVATE_H
 #define SAMPLE_FILTER_SHARE_PRIVATE_H
 
-#include "sample_filter.h"
+#include <cplat/string_catalog/filter.h>
 #include "sample_filter_share_region.h"
 
 #include <cplat/sync/atomic.h>
@@ -49,7 +49,7 @@
  *  @param[in]      width 行幅。
  */
 #define SAMPLE_FILTER_SHARE_SIZE(lines, width) \
-    (SAMPLE_FILTER_SHARE_HEADER_SIZE + SAMPLE_FILTER_IMAGE_SIZE(lines, width))
+    (SAMPLE_FILTER_SHARE_HEADER_SIZE + CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(lines, width))
 
 #ifdef __cplusplus
 extern "C"
@@ -170,7 +170,8 @@ extern "C"
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。
      */
-    int sample_filter_share_refresh(sample_filter_share *share, sample_filter_slot *slot, int *is_taken_out);
+    int sample_filter_share_refresh(sample_filter_share *share, cplat_string_catalog_filter_slot *slot,
+                                    int *is_taken_out);
 
     /**
      *  @brief          配布の状態を取得します。

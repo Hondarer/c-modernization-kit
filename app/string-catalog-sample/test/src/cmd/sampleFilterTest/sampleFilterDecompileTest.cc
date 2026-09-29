@@ -25,7 +25,8 @@ namespace
         int decompile_ret;
         int recompile_ret;
 
-        decompile_ret = sample_filter_decompile_line(original_image, kImageSize, line_index, decoded, kLineWidth);
+        decompile_ret =
+            cplat_string_catalog_filter_decompile_line(original_image, kImageSize, line_index, decoded, kLineWidth);
         if (decompile_ret != CPLAT_OK)
         {
             return false;
@@ -36,12 +37,10 @@ namespace
             return false;
         }
 
-        original_record =
-            sample_filter_record_address_const(original_image, (uint32_t)SAMPLE_FILTER_RECORD_SIZE(kLineWidth),
-                                               (uint32_t)line_index);
-        recompiled_record =
-            sample_filter_record_address_const(recompiled_image, (uint32_t)SAMPLE_FILTER_RECORD_SIZE(kLineWidth), 0U);
-        return std::memcmp(original_record, recompiled_record, SAMPLE_FILTER_RECORD_SIZE(kLineWidth)) == 0;
+        original_record = filter_test_record_address(original_image, kLineWidth, line_index);
+        recompiled_record = filter_test_record_address(recompiled_image, kLineWidth, 0U);
+        return std::memcmp(original_record, recompiled_record, CPLAT_STRING_CATALOG_FILTER_RECORD_SIZE(kLineWidth)) ==
+               0;
     }
 } // namespace
 
@@ -111,8 +110,9 @@ TEST_F(sampleFilterDecompileTest, not_of_predicate_is_decompiled_with_parenthesi
 
     // Act
     actual_compile_ret = compile_single_line("!(key == 1)", image); // [手順] - "!(key == 1)" をコンパイルする。
-    actual_decompile_ret = sample_filter_decompile_line(image, kImageSize, 0U, actual_text,
-                                                        sizeof(actual_text)); // [手順] - 行 0 を復元する。
+    actual_decompile_ret =
+        cplat_string_catalog_filter_decompile_line(image, kImageSize, 0U, actual_text,
+                                                   sizeof(actual_text)); // [手順] - 行 0 を復元する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_compile_ret);        // [確認_正常系] - コンパイルが成功すること。
@@ -134,8 +134,9 @@ TEST_F(sampleFilterDecompileTest, right_grouped_and_chain_keeps_parenthesis)
     // Act
     actual_compile_ret =
         compile_single_line("key == 1 && (key == 2 && key == 3)", image); // [手順] - 右側を括弧でまとめた && の連結をコンパイルする。
-    actual_decompile_ret = sample_filter_decompile_line(image, kImageSize, 0U, actual_text,
-                                                        sizeof(actual_text)); // [手順] - 行 0 を復元する。
+    actual_decompile_ret =
+        cplat_string_catalog_filter_decompile_line(image, kImageSize, 0U, actual_text,
+                                                   sizeof(actual_text)); // [手順] - 行 0 を復元する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_compile_ret);   // [確認_正常系] - コンパイルが成功すること。
@@ -157,8 +158,8 @@ TEST_F(sampleFilterDecompileTest, small_destination_is_truncated_and_null_termin
 
     // Act
     actual_compile_ret = compile_single_line("key == 1", image); // [手順] - "key == 1" をコンパイルする。
-    actual_decompile_ret =
-        sample_filter_decompile_line(image, kImageSize, 0U, actual_text, sizeof(actual_text)); // [手順] - 3 バイトの出力先へ復元する。
+    actual_decompile_ret = cplat_string_catalog_filter_decompile_line(
+        image, kImageSize, 0U, actual_text, sizeof(actual_text)); // [手順] - 3 バイトの出力先へ復元する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_compile_ret);                        // [確認_正常系] - コンパイルが成功すること。

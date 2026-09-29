@@ -14,18 +14,17 @@ short-title: "string-catalog-filter-sample"
 
 | ファイル | 役割 |
 |---|---|
-| `sample_filter.h` / `sample_filter_compile.c` | 条件式のコンパイル、行単位の編集、デコンパイル (カタログ定義を参照しない層) |
-| `sample_filter_image.h` / `sample_filter_image.c` | フィルター オブジェクトの内部形式 |
-| `sample_filter_slot.c` | フィルター スロット (名前解決、事前計算、判定、2 面の差し替え) |
 | `sample_filter_share.h` / `sample_filter_share.c` | 共有メモリによるフィルター オブジェクトの配布 (公開、取り込み、世代管理) |
 | `sample_filter_share_region.h` / `sample_filter_share_region.c` | 受け渡し用のメモリ領域の確保と先頭アドレスの取得、受け渡しの排他 (差し替え可能な実装) |
-| `sample_filter_describe.c` | 条件式を、カタログのメタ情報を用いた自然文で表現する説明文 |
 | `sample_filter_output.h` / `sample_filter_output.c` | フィルターを通してトレースを出力する入口。`sample_filter_output(key, ...)` マクロを提供 |
 | `sample_worker_trace.jsonc` / `gen/sample_worker_trace.h` | ワーカーが出力するトレースのカタログ定義と生成物 |
 | `sample_worker_trace_key_names.h` / `.c` | 文字列キーの名前解決テーブル (手動定義) |
 | `string-catalog-filter-sample.c` | 本コマンドの対話ループとワーカー スレッドの実装 |
 
 Table: string-catalog-filter-sample の構成ファイル一覧
+
+条件式のコンパイル、フィルター オブジェクト、フィルター スロット、説明文は cplat へ移しました。  
+このコマンドは `<cplat/string_catalog/filter.h>` の `cplat_string_catalog_filter_*` を利用します。
 
 ## コマンド一覧
 

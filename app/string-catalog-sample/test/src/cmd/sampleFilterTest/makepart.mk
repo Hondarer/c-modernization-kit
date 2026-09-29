@@ -1,13 +1,10 @@
 # テスト対象のソース ファイル
-# コンパイル層 (sample_filter_image.c / sample_filter_compile.c)、
-# フィルター スロット層 (sample_filter_slot.c)、出力層 (sample_filter_output.c) と、
-# それらが結び付くカタログ定義の生成物および名前解決テーブルをまとめて対象とする。
+# フィルター本体 (コンパイル、イメージ、スロット、説明文) は cplat へ移したため、
+# cplat の公開 API として実体をリンクして確認する。
+# ここでは出力層 (sample_filter_output.c)、共有配布 (sample_filter_share*.c) と、
+# それらが結び付くカタログ定義の生成物および名前解決テーブルを対象とする。
 # string-catalog-filter-sample.c (コマンドの main) は対象外。
 TEST_SRCS := \
-	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_image.c \
-	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_compile.c \
-	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_slot.c \
-	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_describe.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_output.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_share.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_share_region.c \
@@ -15,7 +12,7 @@ TEST_SRCS := \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_worker_context.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/gen/sample_worker_trace.c
 
-# モジュール私有ヘッダー (sample_filter.h / sample_filter_image.h / sample_filter_output.h) と、
+# モジュール私有ヘッダー (sample_filter_output.h / sample_filter_share.h など) と、
 # 生成物のモジュール私有ヘッダー (gen/sample_worker_trace.h) の探索パス
 # テスト ディレクトリへ引き込んだソースからは、元ディレクトリを基準に解決できないため指定する
 INCDIR += \

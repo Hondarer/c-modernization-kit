@@ -37,14 +37,14 @@ class sampleFilterShareTest : public Test
         ASSERT_EQ(CPLAT_OK, sample_filter_share_lock_create(path_.c_str(), &lock_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_));
-        ASSERT_EQ(CPLAT_OK,
-                  sample_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                            sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
+                                sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
     }
 
     void TearDown() override
     {
-        sample_filter_slot_dispose(&slot_);
+        cplat_string_catalog_filter_slot_dispose(&slot_);
         sample_filter_share_close(&reader_);
         sample_filter_share_close(&writer_);
         sample_filter_share_region_close(&region_);
@@ -65,11 +65,11 @@ class sampleFilterShareTest : public Test
         return static_cast<sample_filter_share_header *>(sample_filter_share_region_get_address(region_));
     }
 
-    sample_filter_state state_of(const int string_key)
+    cplat_string_catalog_filter_state state_of(const int string_key)
     {
-        sample_filter_state state = SAMPLE_FILTER_STATE_NEVER_MATCH;
+        cplat_string_catalog_filter_state state = CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH;
 
-        (void)sample_filter_slot_test(slot_, string_key, &state);
+        (void)cplat_string_catalog_filter_slot_test(slot_, string_key, &state);
         return state;
     }
 
@@ -77,7 +77,7 @@ class sampleFilterShareTest : public Test
     sample_filter_share_lock *lock_ = nullptr;
     sample_filter_share *writer_ = nullptr;
     sample_filter_share *reader_ = nullptr;
-    sample_filter_slot *slot_ = nullptr;
+    cplat_string_catalog_filter_slot *slot_ = nullptr;
     sample_filter_share_region *region_ = nullptr;
 };
 
@@ -121,10 +121,10 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_refresh)
     // Act
     int actual_publish_ret =
         sample_filter_share_publish(writer_, image, kImageSize, &generation); // [手順] - 公開する。
-    sample_filter_state actual_state_before =
+    cplat_string_catalog_filter_state actual_state_before =
         state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED); // [手順] - 取り込み前の状態を取得する。
     int actual_first_ret = sample_filter_share_refresh(reader_, slot_, &is_taken_first); // [手順] - 取り込む。
-    sample_filter_state actual_state_after =
+    cplat_string_catalog_filter_state actual_state_after =
         state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED); // [手順] - 取り込み後の状態を取得する。
     int actual_second_ret =
         sample_filter_share_refresh(reader_, slot_, &is_taken_second); // [手順] - 変化のない状態で再び確かめる。
@@ -132,11 +132,12 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_refresh)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_publish_ret); // [確認_正常系] - 公開が成功すること。
     EXPECT_EQ(1U, generation);               // [確認_正常系] - 最初の公開は世代 1 であること。
-    EXPECT_EQ(SAMPLE_FILTER_STATE_NEVER_MATCH,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH,
               actual_state_before);        // [確認_正常系] - 公開だけでは読み取り側が変わらないこと。
     EXPECT_EQ(CPLAT_OK, actual_first_ret); // [確認_正常系] - 取り込みが成功すること。
     EXPECT_EQ(1, is_taken_first);          // [確認_正常系] - 取り込んだことが報告されること。
-    EXPECT_EQ(SAMPLE_FILTER_STATE_ALWAYS_MATCH, actual_state_after); // [確認_正常系] - 公開内容が判定に反映されること。
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
+              actual_state_after);                                   // [確認_正常系] - 公開内容が判定に反映されること。
     EXPECT_EQ(CPLAT_OK, actual_second_ret);                          // [確認_正常系] - 再確認が成功すること。
     EXPECT_EQ(0, is_taken_second);                                   // [確認_正常系] - 変化がなければ取り込まないこと。
 }
@@ -194,7 +195,7 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
 {
     // Arrange
     static unsigned char image[kImageSize];
-    static unsigned char narrow_image[SAMPLE_FILTER_IMAGE_SIZE(kLineCapacity, 64U)];
+    static unsigned char narrow_image[CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(kLineCapacity, 64U)];
     const char line[] = "category <= 2";
     sample_filter_share *narrow = nullptr;
 
@@ -203,8 +204,9 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
               sample_filter_share_publish(writer_, image, kImageSize, nullptr)); // [状態] - 配布ヘッダーを初期化する。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, 64U,
                                                  &narrow)); // [状態] - 行幅の異なるハンドルを開く。
-    ASSERT_EQ(CPLAT_OK, sample_filter_compile(line, 1U, sizeof(line), kLineCapacity, narrow_image, sizeof(narrow_image),
-                                              nullptr, 0U, nullptr)); // [状態] - 行幅の異なるイメージを作る。
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_compile(line, 1U, sizeof(line), kLineCapacity, narrow_image,
+                                                            sizeof(narrow_image), nullptr, 0U,
+                                                            nullptr)); // [状態] - 行幅の異なるイメージを作る。
 
     // Pre-Assert
 
@@ -267,7 +269,8 @@ TEST_F(sampleFilterShareTest, corrupted_shared_image_is_not_retried_for_same_gen
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, nullptr)); // [状態] - 公開する。
     ASSERT_NE(nullptr, header()); // [状態確認] - 配布ヘッダーを対応付けられること。
-    reinterpret_cast<unsigned char *>(header())[SAMPLE_FILTER_SHARE_HEADER_SIZE + SAMPLE_FILTER_HEADER_SIZE] ^=
+    reinterpret_cast<unsigned char *>(
+        header())[SAMPLE_FILTER_SHARE_HEADER_SIZE + CPLAT_STRING_CATALOG_FILTER_HEADER_SIZE] ^=
         0x01U; // [状態] - 共有メモリ上の行レコードを 1 バイト改変する。
 
     // Pre-Assert
@@ -283,7 +286,7 @@ TEST_F(sampleFilterShareTest, corrupted_shared_image_is_not_retried_for_same_gen
     EXPECT_EQ(CPLAT_OK, actual_second_ret);                    // [確認_異常系] - 再確認は何もせず成功すること。
     EXPECT_EQ(0, is_taken_second);                             // [確認_異常系] - 同じ世代を繰り返し取り込まないこと。
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, status.last_take_result); // [確認_異常系] - 状態に適用の失敗が残ること。
-    EXPECT_EQ(SAMPLE_FILTER_STATE_NEVER_MATCH,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH,
               state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED)); // [確認_異常系] - スロットは以前の条件のままであること。
 }
 
@@ -313,7 +316,7 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);        // [確認_正常系] - 出力が成功すること。
     EXPECT_EQ(1U, status.taken_generation); // [確認_正常系] - 出力の前に公開内容を取り込むこと。
-    EXPECT_EQ(SAMPLE_FILTER_STATE_ALWAYS_MATCH,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
               state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED)); // [確認_正常系] - 取り込んだ条件が判定に使われること。
 
     // Cleanup
@@ -329,7 +332,7 @@ namespace
 struct refresh_args
 {
     sample_filter_share *share;
-    sample_filter_slot *slot;
+    cplat_string_catalog_filter_slot *slot;
     std::atomic<int> *stop_flag;
     int is_ok;
     int pad; /**< 明示的アラインメントです。 */
@@ -345,8 +348,9 @@ void refresh_worker(void *raw_arg)
     while (args->stop_flag->load() == 0)
     {
         if ((sample_filter_share_refresh(args->share, args->slot, nullptr) != CPLAT_OK) ||
-            (sample_filter_slot_format(args->slot, dest, sizeof(dest), &matched, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED,
-                                       (uint64_t)1, (int)5, SAMPLE_FILTER_TEST_CONTEXT_ARGS(1)) != CPLAT_OK))
+            (cplat_string_catalog_filter_slot_format(args->slot, dest, sizeof(dest), &matched,
+                                                     SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)5,
+                                                     SAMPLE_FILTER_TEST_CONTEXT_ARGS(1)) != CPLAT_OK))
         {
             args->is_ok = 0;
         }
@@ -412,6 +416,6 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_refresh_converge)
     EXPECT_EQ(status.published_generation,
               status.taken_generation); // [確認_正常系] - 最後の公開内容を取り込んでいること。
     EXPECT_EQ(
-        SAMPLE_FILTER_STATE_ALWAYS_MATCH,
+        CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
         state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED)); // [確認_正常系] - 最後に公開した条件が判定に使われること。
 }

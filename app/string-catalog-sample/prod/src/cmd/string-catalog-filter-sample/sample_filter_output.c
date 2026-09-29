@@ -20,7 +20,7 @@
 static const cplat_string_catalog *s_catalog = NULL;
 
 /** 判定に使用するフィルター スロットです。 */
-static sample_filter_slot *s_slot = NULL;
+static cplat_string_catalog_filter_slot *s_slot = NULL;
 
 /** 出力先のトレーサーです。 */
 static cplat_tracer *s_tracer = NULL;
@@ -37,7 +37,8 @@ void sample_filter_output_set_share(sample_filter_share *share)
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int sample_filter_output_configure(const cplat_string_catalog *catalog, sample_filter_slot *slot, cplat_tracer *tracer)
+int sample_filter_output_configure(const cplat_string_catalog *catalog, cplat_string_catalog_filter_slot *slot,
+                                   cplat_tracer *tracer)
 {
     const int is_cleared = (catalog == NULL) && (slot == NULL) && (tracer == NULL);
 
@@ -77,7 +78,7 @@ int sample_filter_output_write(const int string_key, ...)
     }
 
     va_start(args, string_key);
-    ret = sample_filter_slot_vformat(s_slot, text, sizeof(text), &is_matched, string_key, args);
+    ret = cplat_string_catalog_filter_slot_vformat(s_slot, text, sizeof(text), &is_matched, string_key, args);
     va_end(args);
     if (ret != CPLAT_OK)
     {

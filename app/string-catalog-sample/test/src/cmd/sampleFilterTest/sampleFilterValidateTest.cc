@@ -24,7 +24,8 @@ TEST_F(sampleFilterValidateTest, valid_image_passes_validation)
 
     // Act
     actual_compile_ret = compile_single_line("key == 1", image); // [手順] - 有効な条件式をコンパイルする。
-    actual_validate_ret = sample_filter_validate(image, kImageSize); // [手順] - フィルター オブジェクトを検証する。
+    actual_validate_ret =
+        cplat_string_catalog_filter_validate(image, kImageSize); // [手順] - フィルター オブジェクトを検証する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_compile_ret);  // [確認_正常系] - コンパイルが成功すること。
@@ -44,7 +45,8 @@ TEST_F(sampleFilterValidateTest, corrupted_signature_returns_corrupt_descriptor)
     // Pre-Assert
 
     // Act
-    actual_validate_ret = sample_filter_validate(image, kImageSize); // [手順] - フィルター オブジェクトを検証する。
+    actual_validate_ret =
+        cplat_string_catalog_filter_validate(image, kImageSize); // [手順] - フィルター オブジェクトを検証する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_validate_ret); // [確認_異常系] - 署名の破損を検出すること。
@@ -60,7 +62,7 @@ TEST_F(sampleFilterValidateTest, single_byte_content_change_is_detected_by_hash)
     int actual_validate_ret_after;
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == 1", image)); // [状態] - 有効な条件式をコンパイルする。
-    actual_validate_ret_before = sample_filter_validate(image, kImageSize);
+    actual_validate_ret_before = cplat_string_catalog_filter_validate(image, kImageSize);
     ASSERT_EQ(CPLAT_OK, actual_validate_ret_before); // [状態確認] - 改変前は検証に成功すること。
 
     // Pre-Assert
@@ -69,9 +71,11 @@ TEST_F(sampleFilterValidateTest, single_byte_content_change_is_detected_by_hash)
     /* 命令数・定数サイズの使用域より後方 (レコード末尾の未使用パディング) を 1 バイト改変する。
      * 行のハッシュ値は使用域だけを対象とするため check_record は通過するが、
      * イメージ全体のハッシュ値はレコードの全バイトを対象とするため不一致を検出する。 */
-    record = sample_filter_record_address(image, (uint32_t)SAMPLE_FILTER_RECORD_SIZE(kLineWidth), 0U);
-    record[SAMPLE_FILTER_RECORD_SIZE(kLineWidth) - 1U] ^= 0xFFU; // [手順] - 先頭行レコードの末尾 1 バイトを反転する。
-    actual_validate_ret_after = sample_filter_validate(image, kImageSize); // [手順] - フィルター オブジェクトを再検証する。
+    record = filter_test_record_address(image, kLineWidth, 0U);
+    record[CPLAT_STRING_CATALOG_FILTER_RECORD_SIZE(kLineWidth) - 1U] ^=
+        0xFFU; // [手順] - 先頭行レコードの末尾 1 バイトを反転する。
+    actual_validate_ret_after =
+        cplat_string_catalog_filter_validate(image, kImageSize); // [手順] - フィルター オブジェクトを再検証する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
@@ -90,7 +94,8 @@ TEST_F(sampleFilterValidateTest, insufficient_image_size_returns_corrupt_descrip
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_validate(image, SAMPLE_FILTER_HEADER_SIZE); // [手順] - ヘッダー長だけの image_size で検証する。
+    actual_ret = cplat_string_catalog_filter_validate(
+        image, CPLAT_STRING_CATALOG_FILTER_HEADER_SIZE); // [手順] - ヘッダー長だけの image_size で検証する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,

@@ -18,14 +18,14 @@ class sampleFilterDescribeTest : public Test
     void SetUp() override
     {
         saved_language_ = cplat_string_catalog_get_language();
-        ASSERT_EQ(CPLAT_OK,
-                  sample_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                            sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
+                                sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
     }
 
     void TearDown() override
     {
-        sample_filter_slot_dispose(&slot_);
+        cplat_string_catalog_filter_slot_dispose(&slot_);
         (void)cplat_string_catalog_set_language(saved_language_);
     }
 
@@ -38,15 +38,15 @@ class sampleFilterDescribeTest : public Test
         {
             return CPLAT_ERR_UNKNOWN;
         }
-        if (sample_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr) != CPLAT_OK)
+        if (cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr) != CPLAT_OK)
         {
             return CPLAT_ERR_UNKNOWN;
         }
         (void)cplat_string_catalog_set_language(language);
-        return sample_filter_slot_describe_line(slot_, 0U, description_, sizeof(description_));
+        return cplat_string_catalog_filter_slot_describe_line(slot_, 0U, description_, sizeof(description_));
     }
 
-    sample_filter_slot *slot_ = nullptr;
+    cplat_string_catalog_filter_slot *slot_ = nullptr;
     cplat_string_catalog_language saved_language_ = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int pad_ = 0; /**< 明示的アラインメントです。 */
     char description_[1024] = {0};
@@ -180,15 +180,16 @@ TEST_F(sampleFilterDescribeTest, small_buffer_is_truncated)
     int actual_ret;
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
-    ASSERT_EQ(CPLAT_OK,
-              sample_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr)); // [状態] - 適用する。
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U,
+                                                               nullptr)); // [状態] - 適用する。
     (void)cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
 
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_slot_describe_line(slot_, 0U, actual_text,
-                                                  sizeof(actual_text)); // [手順] - 8 バイトの出力先で説明する。
+    actual_ret =
+        cplat_string_catalog_filter_slot_describe_line(slot_, 0U, actual_text,
+                                                       sizeof(actual_text)); // [手順] - 8 バイトの出力先で説明する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_BUFFER_TOO_SMALL, actual_ret); // [確認_異常系] - 切り詰めを報告すること。
@@ -200,7 +201,7 @@ namespace
 /** 分類値をトレース レベルとして扱う場合の名前です。 */
 const char *const s_test_level_names[] = {"CRITICAL", "ERROR", "WARNING", "INFO", "VERBOSE", "DEBUG", "NONE"};
 
-const sample_filter_category_names s_test_category_names = {
+const cplat_string_catalog_filter_category_names s_test_category_names = {
     s_test_level_names,
     sizeof(s_test_level_names) / sizeof(s_test_level_names[0]),
     "レベル",
@@ -214,7 +215,7 @@ TEST_F(sampleFilterDescribeTest, category_names_list_matching_names)
     // Arrange
     int actual_ret;
 
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
                             slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
@@ -237,7 +238,7 @@ TEST_F(sampleFilterDescribeTest, category_names_use_complement_when_shorter)
     char actual_japanese[1024];
     int actual_ret_neutral;
 
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
                             slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
@@ -267,7 +268,7 @@ TEST_F(sampleFilterDescribeTest, category_names_describe_single_any_and_none)
     char actual_any[1024];
     int actual_ret_none;
 
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
                             slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
@@ -296,28 +297,29 @@ TEST_F(sampleFilterDescribeTest, category_names_can_be_cleared_and_reject_invali
 {
     // Arrange
     const char *const names_with_null[] = {"CRITICAL", nullptr};
-    sample_filter_category_names invalid_names = {names_with_null, 2U, "レベル", "the level"};
+    cplat_string_catalog_filter_category_names invalid_names = {names_with_null, 2U, "レベル", "the level"};
     int actual_ret_invalid;
     int actual_ret_null_slot;
     int actual_ret_describe;
 
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
                             slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
     // Act_1
-    actual_ret_invalid =
-        sample_filter_slot_set_category_names(slot_, &invalid_names); // [手順] - NULL の名前を含む設定を渡す。
-    actual_ret_null_slot =
-        sample_filter_slot_set_category_names(nullptr, &s_test_category_names); // [手順] - スロットに NULL を渡す。
+    actual_ret_invalid = cplat_string_catalog_filter_slot_set_category_names(
+        slot_, &invalid_names); // [手順] - NULL の名前を含む設定を渡す。
+    actual_ret_null_slot = cplat_string_catalog_filter_slot_set_category_names(
+        nullptr, &s_test_category_names); // [手順] - スロットに NULL を渡す。
 
     // Assert_1
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_invalid);   // [確認_異常系] - 不正な設定が拒否されること。
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_null_slot); // [確認_異常系] - スロット NULL が拒否されること。
 
     // Arrange_2
-    ASSERT_EQ(CPLAT_OK, sample_filter_slot_set_category_names(slot_, nullptr)); // [状態] - 設定を解除する。
+    ASSERT_EQ(CPLAT_OK,
+              cplat_string_catalog_filter_slot_set_category_names(slot_, nullptr)); // [状態] - 設定を解除する。
 
     // Act_2
     actual_ret_describe =

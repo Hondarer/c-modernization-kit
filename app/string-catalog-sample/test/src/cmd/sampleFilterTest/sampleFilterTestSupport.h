@@ -18,8 +18,7 @@
 #include <mock_stdio.h>
 #include <mock_stdlib.h>
 #include <mock_string.h>
-#include "sample_filter.h"
-#include "sample_filter_image.h"
+#include <cplat/string_catalog/filter.h>
 #include "sample_worker_context.h"
 
 #include <cstddef>
@@ -51,7 +50,7 @@ namespace sample_filter_test
     constexpr std::size_t kLineCapacity = 8U;
 
     /** kLineWidth と kLineCapacity から求まるフィルター オブジェクトのバイト数です。 */
-    constexpr std::size_t kImageSize = SAMPLE_FILTER_IMAGE_SIZE(kLineCapacity, kLineWidth);
+    constexpr std::size_t kImageSize = CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(kLineCapacity, kLineWidth);
 
     /** compile_lines に渡せる行数の上限です (テストの入力配列のバッファー サイズ)。 */
     constexpr std::size_t kMaxTestLines = 16U;
@@ -62,10 +61,10 @@ namespace sample_filter_test
      *  @p texts の各要素は NUL 終端の条件式 (または空行、コメント行) です。
      */
     inline int compile_lines(const char *const *texts, std::size_t count, void *image,
-                              std::size_t image_size = kImageSize, std::size_t line_width = kLineWidth,
-                              std::size_t line_capacity = kLineCapacity,
-                              sample_filter_diagnostic *diagnostics = nullptr, std::size_t diagnostic_capacity = 0U,
-                              std::size_t *invalid_count_out = nullptr)
+                             std::size_t image_size = kImageSize, std::size_t line_width = kLineWidth,
+                             std::size_t line_capacity = kLineCapacity,
+                             cplat_string_catalog_filter_diagnostic *diagnostics = nullptr,
+                             std::size_t diagnostic_capacity = 0U, std::size_t *invalid_count_out = nullptr)
     {
         char rows[kMaxTestLines][kLineWidth];
         std::size_t local_invalid_count = 0U;
@@ -79,19 +78,42 @@ namespace sample_filter_test
             std::memcpy(rows[index], texts[index], copy_length);
         }
 
-        return sample_filter_compile(&rows[0][0], count, line_width, line_capacity, image, image_size, diagnostics,
-                                     diagnostic_capacity,
-                                     (invalid_count_out != nullptr) ? invalid_count_out : &local_invalid_count);
+        return cplat_string_catalog_filter_compile(
+            &rows[0][0], count, line_width, line_capacity, image, image_size, diagnostics, diagnostic_capacity,
+            (invalid_count_out != nullptr) ? invalid_count_out : &local_invalid_count);
     }
 
     /** 条件式 1 個だけを既定の行幅・行数上限でコンパイルします。 */
     inline int compile_single_line(const char *text, void *image, std::size_t image_size = kImageSize,
-                                    std::size_t line_width = kLineWidth, std::size_t line_capacity = kLineCapacity,
-                                    sample_filter_diagnostic *diagnostics = nullptr,
-                                    std::size_t diagnostic_capacity = 0U, std::size_t *invalid_count_out = nullptr)
+                                   std::size_t line_width = kLineWidth, std::size_t line_capacity = kLineCapacity,
+                                   cplat_string_catalog_filter_diagnostic *diagnostics = nullptr,
+                                   std::size_t diagnostic_capacity = 0U, std::size_t *invalid_count_out = nullptr)
     {
         return compile_lines(&text, 1U, image, image_size, line_width, line_capacity, diagnostics,
                              diagnostic_capacity, invalid_count_out);
+    }
+
+    /**
+     *  @brief          フィルター オブジェクト内の行レコードの先頭を求めます。
+     *  @param[in]      image      フィルター オブジェクト。
+     *  @param[in]      line_width 行幅。
+     *  @param[in]      line_index 行の位置 (0 起点)。
+     *  @return         行レコードの先頭。
+     *
+     *  公開マクロのヘッダーと行レコードのバイト数から求め、ライブラリの内部関数には依存しません。
+     */
+    inline unsigned char *filter_test_record_address(void *image, std::size_t line_width, std::size_t line_index)
+    {
+        return static_cast<unsigned char *>(image) + CPLAT_STRING_CATALOG_FILTER_HEADER_SIZE +
+               (line_index * CPLAT_STRING_CATALOG_FILTER_RECORD_SIZE(line_width));
+    }
+
+    /** @copydoc filter_test_record_address */
+    inline const unsigned char *filter_test_record_address(const void *image, std::size_t line_width,
+                                                           std::size_t line_index)
+    {
+        return static_cast<const unsigned char *>(image) + CPLAT_STRING_CATALOG_FILTER_HEADER_SIZE +
+               (line_index * CPLAT_STRING_CATALOG_FILTER_RECORD_SIZE(line_width));
     }
 } // namespace sample_filter_test
 

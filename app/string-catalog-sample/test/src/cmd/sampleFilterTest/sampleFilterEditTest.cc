@@ -28,18 +28,21 @@ TEST_F(sampleFilterEditTest, insert_line_at_head_and_tail_are_reflected)
     // Pre-Assert
 
     // Act
-    actual_insert_head_ret =
-        sample_filter_insert_line(image, kImageSize, 0U, "key == 2", nullptr); // [手順] - 先頭 (行 0) へ挿入する。
+    actual_insert_head_ret = cplat_string_catalog_filter_insert_line(image, kImageSize, 0U, "key == 2",
+                                                                     nullptr); // [手順] - 先頭 (行 0) へ挿入する。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, actual_insert_head_ret); // [確認_正常系] - 先頭への挿入が成功すること。
 
     // Act_2
-    actual_insert_tail_ret =
-        sample_filter_insert_line(image, kImageSize, 2U, "key == 3", nullptr); // [手順] - 末尾 (行数と同じ index=2) へ挿入する。
-    (void)sample_filter_decompile_line(image, kImageSize, 0U, actual_line0, sizeof(actual_line0)); // [手順] - 行 0 を復元する。
-    (void)sample_filter_decompile_line(image, kImageSize, 1U, actual_line1, sizeof(actual_line1)); // [手順] - 行 1 を復元する。
-    (void)sample_filter_decompile_line(image, kImageSize, 2U, actual_line2, sizeof(actual_line2)); // [手順] - 行 2 を復元する。
+    actual_insert_tail_ret = cplat_string_catalog_filter_insert_line(
+        image, kImageSize, 2U, "key == 3", nullptr); // [手順] - 末尾 (行数と同じ index=2) へ挿入する。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 0U, actual_line0,
+                                                     sizeof(actual_line0)); // [手順] - 行 0 を復元する。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 1U, actual_line1,
+                                                     sizeof(actual_line1)); // [手順] - 行 1 を復元する。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 2U, actual_line2,
+                                                     sizeof(actual_line2)); // [手順] - 行 2 を復元する。
 
     // Assert_2
     ASSERT_EQ(CPLAT_OK, actual_insert_tail_ret); // [確認_正常系] - 末尾への挿入が成功すること。
@@ -63,9 +66,12 @@ TEST_F(sampleFilterEditTest, compile_line_replaces_only_target_line)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_compile_line(image, kImageSize, 1U, "key == 5", nullptr); // [手順] - 行 1 を置き換える。
-    (void)sample_filter_decompile_line(image, kImageSize, 0U, actual_line0, sizeof(actual_line0)); // [手順] - 行 0 を復元する。
-    (void)sample_filter_decompile_line(image, kImageSize, 1U, actual_line1, sizeof(actual_line1)); // [手順] - 行 1 を復元する。
+    actual_ret = cplat_string_catalog_filter_compile_line(image, kImageSize, 1U, "key == 5",
+                                                          nullptr); // [手順] - 行 1 を置き換える。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 0U, actual_line0,
+                                                     sizeof(actual_line0)); // [手順] - 行 0 を復元する。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 1U, actual_line1,
+                                                     sizeof(actual_line1)); // [手順] - 行 1 を復元する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);          // [確認_正常系] - 置き換えが成功すること。
@@ -79,7 +85,7 @@ TEST_F(sampleFilterEditTest, remove_line_shifts_following_lines)
     // Arrange
     static unsigned char image[kImageSize];
     const char *lines[] = {"key == 1", "key == 2", "key == 3"};
-    sample_filter_info actual_info;
+    cplat_string_catalog_filter_info actual_info;
     char actual_line0[kLineWidth];
     char actual_line1[kLineWidth];
     int actual_remove_ret;
@@ -89,10 +95,13 @@ TEST_F(sampleFilterEditTest, remove_line_shifts_following_lines)
     // Pre-Assert
 
     // Act
-    actual_remove_ret = sample_filter_remove_line(image, kImageSize, 1U); // [手順] - 行 1 ("key == 2") を削除する。
-    (void)sample_filter_get_info(image, kImageSize, &actual_info); // [手順] - ヘッダー情報を取得する。
-    (void)sample_filter_decompile_line(image, kImageSize, 0U, actual_line0, sizeof(actual_line0)); // [手順] - 行 0 を復元する。
-    (void)sample_filter_decompile_line(image, kImageSize, 1U, actual_line1, sizeof(actual_line1)); // [手順] - 行 1 を復元する。
+    actual_remove_ret =
+        cplat_string_catalog_filter_remove_line(image, kImageSize, 1U); // [手順] - 行 1 ("key == 2") を削除する。
+    (void)cplat_string_catalog_filter_get_info(image, kImageSize, &actual_info); // [手順] - ヘッダー情報を取得する。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 0U, actual_line0,
+                                                     sizeof(actual_line0)); // [手順] - 行 0 を復元する。
+    (void)cplat_string_catalog_filter_decompile_line(image, kImageSize, 1U, actual_line1,
+                                                     sizeof(actual_line1)); // [手順] - 行 1 を復元する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_remove_ret); // [確認_正常系] - 削除が成功すること。
@@ -107,7 +116,7 @@ TEST_F(sampleFilterEditTest, malformed_compile_line_leaves_image_unchanged)
     // Arrange
     static unsigned char image[kImageSize];
     unsigned char snapshot[kImageSize];
-    sample_filter_diagnostic diagnostic;
+    cplat_string_catalog_filter_diagnostic diagnostic;
     int actual_ret;
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == 1", image)); // [状態] - 1 行の条件式をコンパイルする。
@@ -116,11 +125,13 @@ TEST_F(sampleFilterEditTest, malformed_compile_line_leaves_image_unchanged)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_compile_line(image, kImageSize, 0U, "key ==", &diagnostic); // [手順] - 不正な条件式で行 0 を置き換えようとする。
+    actual_ret = cplat_string_catalog_filter_compile_line(
+        image, kImageSize, 0U, "key ==", &diagnostic); // [手順] - 不正な条件式で行 0 を置き換えようとする。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret);          // [確認_異常系] - 構文エラーとして失敗すること。
-    EXPECT_EQ(SAMPLE_FILTER_ERROR_SYNTAX, diagnostic.error);        // [確認_異常系] - 診断情報の原因が構文の誤りであること。
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
+              diagnostic.error); // [確認_異常系] - 診断情報の原因が構文の誤りであること。
     EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize));         // [確認_異常系] - イメージが変更されていないこと。
 }
 
@@ -130,7 +141,7 @@ TEST_F(sampleFilterEditTest, malformed_insert_line_leaves_image_unchanged)
     // Arrange
     static unsigned char image[kImageSize];
     unsigned char snapshot[kImageSize];
-    sample_filter_diagnostic diagnostic;
+    cplat_string_catalog_filter_diagnostic diagnostic;
     int actual_ret;
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == 1", image)); // [状態] - 1 行の条件式をコンパイルする。
@@ -139,11 +150,13 @@ TEST_F(sampleFilterEditTest, malformed_insert_line_leaves_image_unchanged)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_insert_line(image, kImageSize, 1U, "x.y", &diagnostic); // [手順] - 不正な条件式を末尾へ挿入しようとする。
+    actual_ret = cplat_string_catalog_filter_insert_line(
+        image, kImageSize, 1U, "x.y", &diagnostic); // [手順] - 不正な条件式を末尾へ挿入しようとする。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret);   // [確認_異常系] - 構文エラーとして失敗すること。
-    EXPECT_EQ(SAMPLE_FILTER_ERROR_SYNTAX, diagnostic.error); // [確認_異常系] - 診断情報の原因が構文の誤りであること。
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
+              diagnostic.error);                             // [確認_異常系] - 診断情報の原因が構文の誤りであること。
     EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize));  // [確認_異常系] - イメージが変更されていないこと。
 }
 
@@ -151,17 +164,19 @@ TEST_F(sampleFilterEditTest, malformed_insert_line_leaves_image_unchanged)
 TEST_F(sampleFilterEditTest, insert_line_at_full_capacity_returns_storage_full)
 {
     // Arrange
-    static unsigned char image[SAMPLE_FILTER_IMAGE_SIZE(1U, kLineWidth)];
+    static unsigned char image[CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(1U, kLineWidth)];
     int actual_ret;
 
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == 1", image, SAMPLE_FILTER_IMAGE_SIZE(1U, kLineWidth), kLineWidth,
-                                            1U)); // [状態] - 行数の上限 1 いっぱいまで条件式を格納する。
+    ASSERT_EQ(CPLAT_OK,
+              compile_single_line("key == 1", image, CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(1U, kLineWidth), kLineWidth,
+                                  1U)); // [状態] - 行数の上限 1 いっぱいまで条件式を格納する。
 
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_insert_line(image, SAMPLE_FILTER_IMAGE_SIZE(1U, kLineWidth), 1U, "key == 2",
-                                           nullptr); // [手順] - 上限に達した状態で末尾へ挿入しようとする。
+    actual_ret = cplat_string_catalog_filter_insert_line(
+        image, CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(1U, kLineWidth), 1U, "key == 2",
+        nullptr); // [手順] - 上限に達した状態で末尾へ挿入しようとする。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_STORAGE_FULL, actual_ret); // [確認_異常系] - CPLAT_ERR_STORAGE_FULL を返すこと。

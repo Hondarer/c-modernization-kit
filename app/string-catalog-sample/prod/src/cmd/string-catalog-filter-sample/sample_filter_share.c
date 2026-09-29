@@ -83,8 +83,9 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
     int ret;
 
     if ((path == NULL) || (lock == NULL) || (share_out == NULL) || (line_capacity == 0U) ||
-        (line_capacity > SAMPLE_FILTER_LINE_MAX) || (line_width < SAMPLE_FILTER_LINE_WIDTH_MIN) ||
-        (line_width > SAMPLE_FILTER_LINE_WIDTH_MAX))
+        (line_capacity > CPLAT_STRING_CATALOG_FILTER_LINE_MAX) ||
+        (line_width < CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MIN) ||
+        (line_width > CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
@@ -98,7 +99,7 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
     share->lock = lock;
     share->line_capacity = (uint32_t)line_capacity;
     share->line_width = (uint32_t)line_width;
-    share->image_size = SAMPLE_FILTER_IMAGE_SIZE(line_capacity, line_width);
+    share->image_size = CPLAT_STRING_CATALOG_FILTER_IMAGE_SIZE(line_capacity, line_width);
     share->last_take_result = CPLAT_OK;
     share_size = SAMPLE_FILTER_SHARE_SIZE(line_capacity, line_width);
 
@@ -147,7 +148,7 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
                                 uint64_t *generation_out)
 {
     sample_filter_share_header *header;
-    sample_filter_info info;
+    cplat_string_catalog_filter_info info;
     cplat_timespec now;
     uint64_t generation;
     int ret;
@@ -158,7 +159,7 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
     }
 
     /* 共有メモリに触れる前に検証し、壊れた内容を配布しない */
-    if ((sample_filter_get_info(image, image_size, &info) != CPLAT_OK) ||
+    if ((cplat_string_catalog_filter_get_info(image, image_size, &info) != CPLAT_OK) ||
         (info.line_capacity != share->line_capacity) || (info.line_width != share->line_width))
     {
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
@@ -217,7 +218,7 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int sample_filter_share_refresh(sample_filter_share *share, sample_filter_slot *slot, int *is_taken_out)
+int sample_filter_share_refresh(sample_filter_share *share, cplat_string_catalog_filter_slot *slot, int *is_taken_out)
 {
     uint64_t published;
     size_t invalid_count = 0U;
@@ -274,7 +275,7 @@ int sample_filter_share_refresh(sample_filter_share *share, sample_filter_slot *
     /* 適用は手元の複製に対して行う。取り込みを直列に行うため、適用を終えるまで排他を保持する */
     if (ret == CPLAT_OK)
     {
-        ret = sample_filter_slot_apply(slot, share->copy, share->image_size, NULL, 0U, &invalid_count);
+        ret = cplat_string_catalog_filter_slot_apply(slot, share->copy, share->image_size, NULL, 0U, &invalid_count);
     }
 
     /* 適用に失敗しても世代を記録し、同じ世代の取り込みを繰り返さない */

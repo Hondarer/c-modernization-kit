@@ -20,7 +20,7 @@
 #ifndef SAMPLE_FILTER_OUTPUT_PRIVATE_H
 #define SAMPLE_FILTER_OUTPUT_PRIVATE_H
 
-#include "sample_filter.h"
+#include <cplat/string_catalog/filter.h>
 #include "sample_filter_share.h"
 #include "sample_worker_context.h"
 
@@ -49,7 +49,7 @@ extern "C"
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。出力を開始する前に設定してください。
      */
-    int sample_filter_output_configure(const cplat_string_catalog *catalog, sample_filter_slot *slot,
+    int sample_filter_output_configure(const cplat_string_catalog *catalog, cplat_string_catalog_filter_slot *slot,
                                        cplat_tracer *tracer);
 
     /**
