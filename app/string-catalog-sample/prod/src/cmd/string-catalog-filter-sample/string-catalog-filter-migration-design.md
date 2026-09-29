@@ -15,11 +15,11 @@
 
 | 関連文書 | 役割 |
 |---|---|
-| [文字列カタログの条件式フィルターの設計](../../../../../cplat/docs/proposals/string-catalog-filter-design.md) | 条件式、フィルター、判定結果と出力の契約 |
-| [トレースの条件式フィルターの PoC](../../../../docs/trace-filter-poc.md) | 試作の範囲と判断理由 |
+| [文字列カタログの条件式フィルターの設計](https://github.com/Hondarer/app_cplat/blob/main/docs/proposals/string-catalog-filter-design.md) | 条件式、フィルター、判定結果と出力の契約 |
+| [トレースの条件式フィルターの PoC](https://github.com/Hondarer/c-modernization-kit/blob/main/app/string-catalog-sample/docs/trace-filter-poc.md) | 試作の範囲と判断理由 |
 | [string-catalog-filter-sample コマンド](README.md) | コマンドの構成と操作方法 |
-| [文字列カタログの機能仕様](../../../../../cplat/docs/functional-spec/string_catalog.md) | 現行機能の要件と利用側から観測できる振る舞い |
-| [string_catalog モジュール](../../../../../cplat/prod/libsrc/cplat/string_catalog/README.md) | 現行の責務境界と実装上の制約 |
+| [文字列カタログの機能仕様](https://github.com/Hondarer/app_cplat/blob/main/docs/functional-spec/string_catalog.md) | 現行機能の要件と利用側から観測できる振る舞い |
+| [string_catalog モジュール](https://github.com/Hondarer/app_cplat/blob/main/prod/libsrc/cplat/string_catalog/README.md) | 現行の責務境界と実装上の制約 |
 
 Table: 移行検討で参照する文書と役割
 
