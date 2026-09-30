@@ -9,4 +9,5 @@ ADD_SRCS += \
 	$(MYAPP_DIR)/prod/libsrc/struct_meta/meta/integer.c \
 	$(MYAPP_DIR)/prod/libsrc/struct_meta/meta/validate.c
 
-LIBS += cplat
+# ライブラリの指定
+LIBS += cplat mock_libc

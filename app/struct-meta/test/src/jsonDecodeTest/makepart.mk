@@ -9,8 +9,8 @@ ADD_SRCS += \
 	$(MYAPP_DIR)/prod/libsrc/struct_meta/meta/integer.c \
 	$(MYAPP_DIR)/prod/libsrc/struct_meta/meta/validate.c
 
-# cJSON API を直接使用するため実体をリンクする (モック不要)。
-LIBS += cjson cplat
+# ライブラリの指定
+LIBS += cjson cplat mock_libc
 
 # json のモジュール私有ヘッダーを参照する。
 # see: app/general/docs/coding-guideline.md の「モジュール私有ヘッダー」
