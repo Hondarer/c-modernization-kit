@@ -31,12 +31,21 @@ class sampleFilterCategoryTest : public Test
     {
         ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
                                 sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+                                sample_worker_trace_key_name_count(), nullptr, kLineCapacity, kLineWidth, &slot_));
     }
 
     void TearDown() override
     {
         cplat_string_catalog_filter_slot_dispose(&slot_);
+    }
+
+    /** 分類値の名前を指定して、スロットを作り直します。分類値の名前は作成時にだけ指定できるためです。 */
+    int recreate_slot_with_category_names(const cplat_string_catalog_filter_category_names *category_names)
+    {
+        cplat_string_catalog_filter_slot_dispose(&slot_);
+        return cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                                       sample_worker_trace_key_name_count(), category_names,
+                                                       kLineCapacity, kLineWidth, &slot_);
     }
 
     /** 1 行の条件式を適用し、無効にした原因を返します。有効な場合は CPLAT_STRING_CATALOG_FILTER_ERROR_NONE です。 */
@@ -84,8 +93,8 @@ TEST_F(sampleFilterCategoryTest, level_name_and_number_give_same_result)
     cplat_string_catalog_filter_state actual_failed_number;
     cplat_string_catalog_filter_state actual_started_number;
 
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_level_category_names)); // [状態] - レベルの名前を設定する。
+    ASSERT_EQ(CPLAT_OK,
+              recreate_slot_with_category_names(&s_level_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
@@ -118,8 +127,8 @@ TEST_F(sampleFilterCategoryTest, level_name_and_number_give_same_result)
 TEST_F(sampleFilterCategoryTest, out_of_range_values_are_rejected)
 {
     // Arrange
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_level_category_names)); // [状態] - レベルの名前を設定する。
+    ASSERT_EQ(CPLAT_OK,
+              recreate_slot_with_category_names(&s_level_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
@@ -150,8 +159,8 @@ TEST_F(sampleFilterCategoryTest, out_of_range_values_are_rejected)
 TEST_F(sampleFilterCategoryTest, unknown_level_name_is_rejected)
 {
     // Arrange
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_level_category_names)); // [状態] - レベルの名前を設定する。
+    ASSERT_EQ(CPLAT_OK,
+              recreate_slot_with_category_names(&s_level_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 

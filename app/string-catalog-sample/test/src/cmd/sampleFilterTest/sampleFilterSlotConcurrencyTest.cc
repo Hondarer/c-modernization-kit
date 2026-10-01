@@ -55,7 +55,7 @@ class sampleFilterSlotConcurrencyTest : public Test
     {
         ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
                                 sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+                                sample_worker_trace_key_name_count(), nullptr, kLineCapacity, kLineWidth, &slot_));
     }
 
     void TearDown() override

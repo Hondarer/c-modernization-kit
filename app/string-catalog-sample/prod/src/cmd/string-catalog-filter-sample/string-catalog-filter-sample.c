@@ -1874,8 +1874,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    ret = cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count,
-                                                  FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &slot);
+    /* 分類値はトレース レベルとして扱うため、条件式と説明文でもレベルの名前を使う */
+    ret =
+        cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count, &s_category_names,
+                                                FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &slot);
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
@@ -1883,7 +1885,7 @@ int main(int argc, char *argv[])
     }
 
     ret =
-        cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count,
+        cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count, &s_category_names,
                                                 FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &s_preview_slot);
     if (ret != CPLAT_OK)
     {
@@ -1958,9 +1960,6 @@ int main(int argc, char *argv[])
 
     s_slot = slot;
 
-    /* 分類値はトレース レベルとして扱うため、説明文でもレベルの名前で表す */
-    (void)cplat_string_catalog_filter_slot_set_category_names(s_slot, &s_category_names);
-    (void)cplat_string_catalog_filter_slot_set_category_names(s_preview_slot, &s_category_names);
     (void)sample_filter_output_configure(sample_worker_trace_catalog(), slot, tracer);
     sample_filter_output_set_share(s_reader_share);
 

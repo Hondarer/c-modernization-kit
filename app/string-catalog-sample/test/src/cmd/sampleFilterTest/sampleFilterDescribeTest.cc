@@ -20,13 +20,22 @@ class sampleFilterDescribeTest : public Test
         saved_language_ = cplat_string_catalog_get_language();
         ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
                                 sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                sample_worker_trace_key_name_count(), kLineCapacity, kLineWidth, &slot_));
+                                sample_worker_trace_key_name_count(), nullptr, kLineCapacity, kLineWidth, &slot_));
     }
 
     void TearDown() override
     {
         cplat_string_catalog_filter_slot_dispose(&slot_);
         (void)cplat_string_catalog_set_language(saved_language_);
+    }
+
+    /** 分類値の名前を指定して、スロットを作り直します。分類値の名前は作成時にだけ指定できるためです。 */
+    int recreate_slot_with_category_names(const cplat_string_catalog_filter_category_names *category_names)
+    {
+        cplat_string_catalog_filter_slot_dispose(&slot_);
+        return cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), sample_worker_trace_key_names(),
+                                                       sample_worker_trace_key_name_count(), category_names,
+                                                       kLineCapacity, kLineWidth, &slot_);
     }
 
     /** 1 行の条件式を適用し、その行の説明文を得ます。 */
@@ -215,8 +224,7 @@ TEST_F(sampleFilterDescribeTest, category_names_list_matching_names)
     // Arrange
     int actual_ret;
 
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+    ASSERT_EQ(CPLAT_OK, recreate_slot_with_category_names(&s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
@@ -238,8 +246,7 @@ TEST_F(sampleFilterDescribeTest, category_names_use_complement_when_shorter)
     char actual_japanese[1024];
     int actual_ret_neutral;
 
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+    ASSERT_EQ(CPLAT_OK, recreate_slot_with_category_names(&s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
@@ -268,8 +275,7 @@ TEST_F(sampleFilterDescribeTest, category_names_describe_single_any_and_none)
     char actual_any[1024];
     int actual_ret_none;
 
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
+    ASSERT_EQ(CPLAT_OK, recreate_slot_with_category_names(&s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
@@ -292,38 +298,32 @@ TEST_F(sampleFilterDescribeTest, category_names_describe_single_any_and_none)
     EXPECT_STREQ("レベルがいずれにも該当しない", description_); // [確認_正常系] - 該当なしを表すこと。
 }
 
-// 名前の設定を解除すると数値で表し、不正な設定を拒否することの確認
-TEST_F(sampleFilterDescribeTest, category_names_can_be_cleared_and_reject_invalid_settings)
+// 分類値の名前を指定せずに作成すると数値で表し、不正な名前の設定では作成できないことの確認
+TEST_F(sampleFilterDescribeTest, category_names_absent_use_numbers_and_reject_invalid_settings)
 {
     // Arrange
     const char *const names_with_null[] = {"CRITICAL", nullptr};
     cplat_string_catalog_filter_category_names invalid_names = {names_with_null, 2U, "レベル", "the level"};
     int actual_ret_invalid;
-    int actual_ret_null_slot;
     int actual_ret_describe;
-
-    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_set_category_names(
-                            slot_, &s_test_category_names)); // [状態] - レベルの名前を設定する。
 
     // Pre-Assert
 
     // Act_1
-    actual_ret_invalid = cplat_string_catalog_filter_slot_set_category_names(
-        slot_, &invalid_names); // [手順] - NULL の名前を含む設定を渡す。
-    actual_ret_null_slot = cplat_string_catalog_filter_slot_set_category_names(
-        nullptr, &s_test_category_names); // [手順] - スロットに NULL を渡す。
+    actual_ret_invalid =
+        recreate_slot_with_category_names(&invalid_names); // [手順] - NULL の名前を含む設定でスロットを作り直す。
 
     // Assert_1
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_invalid);   // [確認_異常系] - 不正な設定が拒否されること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_null_slot); // [確認_異常系] - スロット NULL が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret_invalid); // [確認_異常系] - 不正な設定が拒否されること。
+    EXPECT_EQ(nullptr, slot_);                                 // [確認_異常系] - スロットが作成されないこと。
 
     // Arrange_2
     ASSERT_EQ(CPLAT_OK,
-              cplat_string_catalog_filter_slot_set_category_names(slot_, nullptr)); // [状態] - 設定を解除する。
+              recreate_slot_with_category_names(nullptr)); // [状態] - 分類値の名前を指定せずにスロットを作り直す。
 
     // Act_2
     actual_ret_describe =
-        describe("category <= 2", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 解除後に説明する。
+        describe("category <= 2", CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE); // [手順] - 分類値の比較を説明する。
 
     // Assert_2
     EXPECT_EQ(CPLAT_OK, actual_ret_describe);      // [確認_正常系] - 説明文を得られること。
