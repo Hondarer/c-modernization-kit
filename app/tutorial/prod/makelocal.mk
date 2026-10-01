@@ -1,4 +1,4 @@
-include $(APP_DIR)/cplat/prod/runtime-bundle.mk
+include $(call _makefw_escape_path,$(APP_DIR)/cplat/prod/runtime-bundle.mk)
 
 cplat-runtime-bundle: src
 

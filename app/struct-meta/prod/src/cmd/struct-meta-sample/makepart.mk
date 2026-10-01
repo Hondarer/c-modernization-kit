@@ -6,10 +6,10 @@ LIBS += cplat cjson struct_meta
 # 評価より前に struct-meta-gen のビルドが完了している。
 ifdef PLATFORM_LINUX
 STRUCT_META_GEN_BIN := $(MYAPP_DIR)/prod/cbin/struct-meta-gen
-STRUCT_META_GEN_RUN := LD_LIBRARY_PATH="$(MYAPP_DIR)/prod/cbin$${LD_LIBRARY_PATH:+:$${LD_LIBRARY_PATH}}" $(STRUCT_META_GEN_BIN)
+STRUCT_META_GEN_RUN := LD_LIBRARY_PATH="$(MYAPP_DIR)/prod/cbin$${LD_LIBRARY_PATH:+:$${LD_LIBRARY_PATH}}" "$(STRUCT_META_GEN_BIN)"
 else ifdef PLATFORM_WINDOWS
 STRUCT_META_GEN_BIN := $(MYAPP_DIR)/prod/cbin/struct-meta-gen.exe
-STRUCT_META_GEN_RUN := $(STRUCT_META_GEN_BIN)
+STRUCT_META_GEN_RUN := "$(STRUCT_META_GEN_BIN)"
 endif
 
 # 解析対象ヘッダーを静的に宣言する。ヘッダー内の typedef struct をすべて変換する。
@@ -30,11 +30,11 @@ _struct_meta_gen_stem = $(basename $(1))
 # gen/*.c -> obj/*.o のコンパイルは framework 側の _flex_bison_compile.mk が
 # GENDIR_EXTRA_C 経由で汎用的に扱う。
 define _STRUCT_META_GEN_RULE
-$(_struct_meta_gen_gendir)/$(call _struct_meta_gen_stem,$(1))_meta.c: $(1) $(STRUCT_META_GEN_BIN) | $(_struct_meta_gen_gendir)
+$(_struct_meta_gen_gendir)/$(call _struct_meta_gen_stem,$(1))_meta.c: $(1) $(call _makefw_escape_path,$(STRUCT_META_GEN_BIN)) | $(_struct_meta_gen_gendir)
 	@echo "struct-meta-gen --header $(1)"
-	$(STRUCT_META_GEN_RUN) --header $(1) --out $$@
+	$(STRUCT_META_GEN_RUN) --header "$(1)" --out "$$@"
 $(_struct_meta_gen_gendir)/$(call _struct_meta_gen_stem,$(1))_meta.h: $(_struct_meta_gen_gendir)/$(call _struct_meta_gen_stem,$(1))_meta.c
-	@test -f $$@
+	@test -f "$$@"
 endef
 $(foreach h,$(STRUCT_META_GEN_HEADERS),$(eval $(call _STRUCT_META_GEN_RULE,$(h))))
 
