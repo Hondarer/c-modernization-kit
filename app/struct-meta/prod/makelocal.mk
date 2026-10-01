@@ -4,7 +4,7 @@ SUBDIRS := \
 	src
 # END makefw-subdirs
 
-include $(APP_DIR)/cplat/prod/runtime-bundle.mk
+include $(call _makefw_escape_path,$(APP_DIR)/cplat/prod/runtime-bundle.mk)
 
 # struct-meta-gen は解析とレイアウト計算を libstruct_meta へ委ねるため、自 app の
 # 実行時ライブラリも生成器の隣へ置く。Linux の LD_LIBRARY_PATH と Windows の

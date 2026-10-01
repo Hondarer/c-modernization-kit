@@ -1,6 +1,9 @@
+_makefw_empty :=
+_makefw_space := $(_makefw_empty) $(_makefw_empty)
+_makefw_escape_path = $(subst $(_makefw_space),\$(_makefw_space),$(1))
 BASH ?= bash
 WORKSPACE_DIR ?= $(CURDIR)
-MAKEFW_HOME := $(strip $(MAKEFW_HOME))
+MAKEFW_HOME := $(subst \,/,$(strip $(MAKEFW_HOME)))
 ifeq ($(MAKEFW_HOME),)
     $(error MAKEFW_HOME is required. Export MAKEFW_HOME before running make)
 endif
@@ -15,7 +18,8 @@ APP_ENV_SYNC = $(CURDIR)/app/general/bin/sync-app-env.sh
 APP_ENV_WARN_FILE := $(CURDIR)/app/app_env.warn
 FRAMEWORK_MAKE_DIRS = $(TESTFW_HOME)
 
-include $(MAKEFW_HOME)/makefiles/_parallel.mk
+include $(call _makefw_escape_path,$(MAKEFW_HOME)/makefiles/_path_functions.mk)
+include $(call _makefw_escape_path,$(MAKEFW_HOME)/makefiles/_parallel.mk)
 
 export WORKSPACE_DIR
 export MAKEFW_HOME

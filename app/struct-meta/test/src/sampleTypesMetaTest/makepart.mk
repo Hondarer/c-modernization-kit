@@ -5,7 +5,7 @@
 STRUCT_META_GEN_CATALOG := \
 	$(MYAPP_DIR)/prod/src/cmd/struct-meta-sample/gen/sample_types_meta.c
 
-TEST_SRCS := $(wildcard $(STRUCT_META_GEN_CATALOG))
+TEST_SRCS := $(call _makefw_path_exists,$(STRUCT_META_GEN_CATALOG))
 
 # 生成カタログは同一ディレクトリの生成ヘッダーと、親の解析対象ヘッダーを
 # 引用符形式で取り込む。テストへ引き込むと探索起点が変わるため、元ディレクトリを
