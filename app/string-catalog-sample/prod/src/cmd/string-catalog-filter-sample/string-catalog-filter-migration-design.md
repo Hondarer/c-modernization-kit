@@ -195,7 +195,9 @@ Table: 実プロセス間配布へ移行する前に決定する事項
 | 3b | サイズ演算があふれないことをコンパイル時に固定し、イメージの形式版とバイト順の互換性を契約に明記する | 完了。64 ビットの `size_t` を前提とすることを `_Static_assert` で固定し、形式版とバイト順が異なるイメージは変換せずに拒否することを Doxygen の契約に記載 |
 | 4-a | 引数の値の型、収集、展開の宣言を `include_internal/cplat/string_catalog/format_internal.h` へ移して `cplat_internal_string_catalog_*` へ改名し、`cplat_string_catalog_vformat()` から項目の検索、書式の選択、収集を `cplat_internal_string_catalog_prepare_format()` として切り出す | 完了。振る舞いは変更せず、string_catalog のテストと string-catalog-sample のテストが成功 |
 | 4-b | フィルターの判定を共有の収集結果へ切り替え、独自の収集処理と `va_copy` を削除する | 完了。格納先が NULL の場合は判定せずに拒否する契約を追加し、cplat 側とサンプル側のテストが成功 |
-| 5 | 分類名の設定時期、説明文の文型など、残りの論点を扱う | 未着手 |
+| 5-a | 補強前と記載した古い説明を削除し、cplat の機能仕様へ条件式フィルターの要件と説明を追加する | 完了。要件 24 件 (FUNC 15 件、QUAL 4 件、COMP 2 件、CONS 3 件) を追加 |
+| 5-b | 分類名の設定時期、分類名の役割、分類値の範囲の方針を決めて反映する | 未着手 |
+| 5-c | 説明文の文型の記述の更新、メモリ量の測定、公開 API の最終確認 | 未着手 |
 | 6 | 共通機能のテストを cplat 側へ移す | 未着手 |
 
 Table: 第 1 段階の進め方と進捗
