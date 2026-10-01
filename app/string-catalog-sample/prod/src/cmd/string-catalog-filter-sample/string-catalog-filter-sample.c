@@ -202,18 +202,18 @@ static const cplat_string_catalog_filter_category_names s_category_names = {
     "the level",
 };
 
-/** cplat_string_catalog_filter_error の日本語の原因名です。値をインデックスとして参照します。 */
-static const char *const s_filter_error_labels[] = {
-    "原因なし",       /* CPLAT_STRING_CATALOG_FILTER_ERROR_NONE */
-    "字句エラー",     /* CPLAT_STRING_CATALOG_FILTER_ERROR_LEXICAL */
-    "構文エラー",     /* CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX */
-    "型不一致",       /* CPLAT_STRING_CATALOG_FILTER_ERROR_TYPE_MISMATCH */
-    "上限超過",       /* CPLAT_STRING_CATALOG_FILTER_ERROR_LIMIT_EXCEEDED */
-    "行数上限超過",   /* CPLAT_STRING_CATALOG_FILTER_ERROR_LINE_CAPACITY */
-    "未解決のキー名", /* CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_KEY_NAME */
-    "未解決の引数名", /* CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME */
-    "未知のレベル名", /* CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME */
-    "レベルの範囲外"  /* CPLAT_STRING_CATALOG_FILTER_ERROR_CATEGORY_OUT_OF_RANGE */
+/** cplat_string_catalog_filter_line_error の日本語の原因名です。値をインデックスとして参照します。 */
+static const char *const s_line_error_labels[] = {
+    "原因なし",       /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_NONE */
+    "字句エラー",     /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LEXICAL */
+    "構文エラー",     /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_SYNTAX */
+    "型不一致",       /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_TYPE_MISMATCH */
+    "上限超過",       /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LIMIT_EXCEEDED */
+    "行数上限超過",   /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LINE_CAPACITY */
+    "未解決のキー名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_KEY_NAME */
+    "未解決の引数名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_ARGUMENT_NAME */
+    "未知のレベル名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_CATEGORY_NAME */
+    "レベルの範囲外"  /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_CATEGORY_OUT_OF_RANGE */
 };
 
 /** cplat_string_catalog_filter_state の日本語の表示名です。値をインデックスとして参照します。 */
@@ -246,13 +246,13 @@ static int s_worker_stop_requested = 0;
 
 /* ===== 文字列テーブル引き ===== */
 
-static const char *filter_error_label(const cplat_string_catalog_filter_error error)
+static const char *line_error_label(const cplat_string_catalog_filter_line_error error)
 {
-    if (((unsigned int)error) >= (sizeof(s_filter_error_labels) / sizeof(s_filter_error_labels[0])))
+    if (((unsigned int)error) >= (sizeof(s_line_error_labels) / sizeof(s_line_error_labels[0])))
     {
         return "不明なエラー";
     }
-    return s_filter_error_labels[(unsigned int)error];
+    return s_line_error_labels[(unsigned int)error];
 }
 
 static const char *filter_state_label(const cplat_string_catalog_filter_state state)
@@ -664,7 +664,7 @@ static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression
                              const cplat_string_catalog_filter_diagnostic *diagnostic)
 {
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s (桁=%u)\n",
-                               filter_error_label(diagnostic->error), (unsigned int)(diagnostic->column + 1U));
+                               line_error_label(diagnostic->error), (unsigned int)(diagnostic->column + 1U));
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "%s\n", expression);
     print_column_marker(screen, (size_t)diagnostic->column);
 }
@@ -1030,12 +1030,12 @@ static int reject_invalid_level(cplat_pinned_prompt *screen, const char *express
     for (size_t index = 0; (index < invalid_count) && (index < (sizeof(diagnostics) / sizeof(diagnostics[0]))); index++)
     {
         if ((diagnostics[index].line_index == (uint32_t)line_index) &&
-            ((diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_CATEGORY_NAME) ||
-             (diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_ERROR_CATEGORY_OUT_OF_RANGE)))
+            ((diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_CATEGORY_NAME) ||
+             (diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_CATEGORY_OUT_OF_RANGE)))
         {
             memcpy(s_draft_image, s_draft_backup, sizeof(s_draft_image));
             cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s\n%s\n",
-                                       filter_error_label(diagnostics[index].error), expression);
+                                       line_error_label(diagnostics[index].error), expression);
             cplat_pinned_prompt_printf(
                 screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                 "レベルは %s から %s までの名前、または 0 から %u までの整数で指定してください。\n", s_level_labels[0],
@@ -1393,7 +1393,7 @@ static void command_apply(cplat_pinned_prompt *screen)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  行 %u: %s\n",
                                    (unsigned int)(diagnostics[i].line_index + 1U),
-                                   filter_error_label(diagnostics[i].error));
+                                   line_error_label(diagnostics[i].error));
     }
 }
 

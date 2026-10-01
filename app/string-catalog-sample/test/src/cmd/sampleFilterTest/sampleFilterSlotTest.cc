@@ -186,7 +186,7 @@ TEST_F(sampleFilterSlotTest, unresolved_key_name_disables_line_and_is_diagnosed)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_apply_ret); // [確認_正常系] - 名前解決できない行があっても適用は成功すること。
     EXPECT_EQ(1U, actual_invalid_count);   // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_KEY_NAME,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_KEY_NAME,
               diagnostics[0].error);                   // [確認_正常系] - 原因が名前解決できない文字列キーであること。
     EXPECT_EQ(0U, diagnostics[0].line_index);          // [確認_正常系] - イメージ内の行 0 が対象であること。
     EXPECT_EQ(0U, actual_enabled_lines & (1ULL << 0)); // [確認_正常系] - 行 0 のビットが立っていないこと。
@@ -218,7 +218,7 @@ TEST_F(sampleFilterSlotTest, unresolved_argument_name_disables_line_and_is_diagn
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_apply_ret); // [確認_正常系] - 名前解決できない行があっても適用は成功すること。
     EXPECT_EQ(1U, actual_invalid_count);   // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_UNRESOLVED_ARGUMENT_NAME,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_ARGUMENT_NAME,
               diagnostics[0].error);                   // [確認_正常系] - 原因が名前解決できない引数名であること。
     EXPECT_EQ(0U, diagnostics[0].line_index);          // [確認_正常系] - イメージ内の行 0 が対象であること。
     EXPECT_EQ(0U, actual_enabled_lines & (1ULL << 0)); // [確認_正常系] - 行 0 のビットが立っていないこと。

@@ -54,7 +54,7 @@ TEST_F(sampleFilterCompileTest, lexical_errors_are_diagnosed)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - 無効な行があってもコンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_LEXICAL,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LEXICAL,
               diagnostic.error);          // [確認_正常系] - 原因が字句の誤りであること。
     EXPECT_EQ(0U, diagnostic.line_index); // [確認_正常系] - 入力の行番号が 0 であること。
     EXPECT_EQ(6U, diagnostic.column);     // [確認_正常系] - 開き引用符の位置 (6) が誤りの位置であること。
@@ -66,7 +66,7 @@ TEST_F(sampleFilterCompileTest, lexical_errors_are_diagnosed)
     // Assert_2
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_LEXICAL,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LEXICAL,
               diagnostic.error);      // [確認_正常系] - 原因が字句の誤りであること。
     EXPECT_EQ(7U, diagnostic.column); // [確認_正常系] - "0x" の開始位置 (7) が誤りの位置であること。
 
@@ -77,7 +77,7 @@ TEST_F(sampleFilterCompileTest, lexical_errors_are_diagnosed)
     // Assert_3
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_LEXICAL,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LEXICAL,
               diagnostic.error);      // [確認_正常系] - 原因が字句の誤りであること。
     EXPECT_EQ(7U, diagnostic.column); // [確認_正常系] - "-" の位置 (7) が誤りの位置であること。
 }
@@ -100,7 +100,7 @@ TEST_F(sampleFilterCompileTest, syntax_errors_are_diagnosed)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_SYNTAX,
               diagnostic.error);       // [確認_正常系] - 原因が構文の誤りであること。
     EXPECT_EQ(11U, diagnostic.column); // [確認_正常系] - 行末 (11) が誤りの位置であること。
 
@@ -112,7 +112,7 @@ TEST_F(sampleFilterCompileTest, syntax_errors_are_diagnosed)
     // Assert_2
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_SYNTAX,
               diagnostic.error);      // [確認_正常系] - 原因が構文の誤りであること。
     EXPECT_EQ(0U, diagnostic.column); // [確認_正常系] - 識別子 "x" の位置 (0) が誤りの位置であること。
 }
@@ -136,7 +136,7 @@ TEST_F(sampleFilterCompileTest, type_mismatch_errors_are_diagnosed)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_TYPE_MISMATCH,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_TYPE_MISMATCH,
               diagnostic.error); // [確認_正常系] - 原因が型の誤りであること。
 
     // Act_2
@@ -147,7 +147,7 @@ TEST_F(sampleFilterCompileTest, type_mismatch_errors_are_diagnosed)
     // Assert_2
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_TYPE_MISMATCH,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_TYPE_MISMATCH,
               diagnostic.error); // [確認_正常系] - 原因が型の誤りであること。
 
     // Act_3
@@ -158,7 +158,7 @@ TEST_F(sampleFilterCompileTest, type_mismatch_errors_are_diagnosed)
     // Assert_3
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_TYPE_MISMATCH,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_TYPE_MISMATCH,
               diagnostic.error); // [確認_正常系] - 原因が型の誤りであること。
 }
 
@@ -181,7 +181,7 @@ TEST_F(sampleFilterCompileTest, argument_index_limit_exceeded_is_diagnosed)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count); // [確認_正常系] - 無効にした行が 1 件であること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_LIMIT_EXCEEDED,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LIMIT_EXCEEDED,
               diagnostic.error); // [確認_正常系] - 原因が上限超過であること。
 }
 
@@ -208,7 +208,7 @@ TEST_F(sampleFilterCompileTest, line_capacity_exceeded_is_diagnosed)
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_compile_ret); // [確認_正常系] - コンパイル自体は成功すること。
     EXPECT_EQ(1U, actual_invalid_count);     // [確認_正常系] - 上限を超えた 1 行が無効になること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_LINE_CAPACITY,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LINE_CAPACITY,
               diagnostic.error);           // [確認_正常系] - 原因が行数の上限超過であること。
     EXPECT_EQ(2U, diagnostic.line_index);  // [確認_正常系] - 入力の 3 行目 (index 2) が対象であること。
     EXPECT_EQ(2U, actual_info.line_count); // [確認_正常系] - 先着の 2 行だけが格納されること。

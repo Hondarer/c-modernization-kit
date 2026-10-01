@@ -130,7 +130,7 @@ TEST_F(sampleFilterEditTest, malformed_compile_line_leaves_image_unchanged)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret); // [確認_異常系] - 構文エラーとして失敗すること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_SYNTAX,
               diagnostic.error);                            // [確認_異常系] - 診断情報の原因が構文の誤りであること。
     EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize)); // [確認_異常系] - イメージが変更されていないこと。
 }
@@ -155,7 +155,7 @@ TEST_F(sampleFilterEditTest, malformed_insert_line_leaves_image_unchanged)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_MALFORMED_DEFINITION, actual_ret); // [確認_異常系] - 構文エラーとして失敗すること。
-    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_ERROR_SYNTAX,
+    EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_SYNTAX,
               diagnostic.error);                            // [確認_異常系] - 診断情報の原因が構文の誤りであること。
     EXPECT_EQ(0, std::memcmp(snapshot, image, kImageSize)); // [確認_異常系] - イメージが変更されていないこと。
 }
