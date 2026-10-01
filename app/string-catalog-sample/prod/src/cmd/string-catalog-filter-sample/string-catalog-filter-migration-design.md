@@ -513,7 +513,7 @@ Table: 移行時の検証対象と確認内容
 追加後のカバレッジは、`filter_image.c` の行が 85%、分岐が 69% です (追加前は 82% と 63%)。
 
 Linux/GCC と Windows/MSVC の双方で局所ビルドと関連テストを行い、内容がある `.warn` を確認します。  
-生成器変更時は `app/cplat/bin_internal/` で `python3 -m unittest test_string_catalog_gen` を実行します。  
+生成器変更時は `app/cplat/bin_test/` で `python3 -m unittest test_string_catalog_gen` を実行します。  
 framework または複数 app にまたがる全体テストは、コストを説明してユーザーに確認してから実施します。
 
 ### 調査時点の実行結果と未検証範囲

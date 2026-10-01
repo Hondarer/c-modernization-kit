@@ -87,6 +87,7 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 ## 共通の実装条件
 
 - 管理対象の末端 make ファイルは小文字の `makefile` とします。
+- スクリプト (`bin/`、`bin_internal/` など) を検証する Python、JavaScript、PowerShell のテストは、検証対象と同じ階層の `bin_test/` に配置します。C/C++ と .NET の単体テストは、従来どおり `test/` 配下に配置します。
 - `app/<name>` の C ライブラリは、公開ヘッダーを `prod/include/`、内部共有ヘッダーを `prod/include_internal/`、ソースを `prod/libsrc/` に配置します。
 - ライブラリのソースを責務別サブディレクトリへ分ける場合は、各サブディレクトリに makefw のテンプレート `makefile` を置くサブディレクトリ走査方式を使います。`prod/libsrc/` 配下の `makepart.mk` で `ADD_SRCS` へ相対パスを列挙しないでください。`ADD_SRCS` はディレクトリ外のソースを引き込む機能であり、ライブラリ ルート直下へシンボリック リンクを作ります。詳細は [サブフォルダー コンパイル](framework/makefw/docs/subfolder-compilation.md) を参照してください。
 - Linux/GCC と Windows/MSVC の双方で動作する構成を維持してください。
