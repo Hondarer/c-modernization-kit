@@ -84,8 +84,7 @@ def plan(github, tag):
             raise ReleaseError(f"Default branch unavailable: {repo}")
         head = github.get(f"{base}/commits/{quote(branch, safe='')}")
         sha = checked_sha(head.get("sha"))
-        if github.get(f"{base}/git/ref/tags/{tag}", optional=True) is not None:
-            raise ReleaseError(f"Existing tag: {repo} {tag}; no releases have been created by this check")
+        existing_tag = github.get(f"{base}/git/ref/tags/{tag}", optional=True) is not None
         latest = github.get(f"{base}/releases/latest", optional=True)
         latest_tag = latest.get("tag_name") if latest is not None else None
         latest_sha = None
@@ -96,6 +95,9 @@ def plan(github, tag):
             commit = github.get(f"{base}/commits/{quote(latest_tag, safe='')}")
             latest_sha = checked_sha(commit.get("sha"))
             latest_url = latest.get("html_url")
+        # A same-name tag is accepted only as the latest release already at HEAD.
+        if existing_tag and not (latest_tag == tag and latest_sha == sha):
+            raise ReleaseError(f"Existing tag: {repo} {tag}; no releases have been created by this check")
         entries.append({"repo": repo, "branch": branch, "sha": sha,
                         "latest_tag": latest_tag, "latest_sha": latest_sha,
                         "latest_url": latest_url,

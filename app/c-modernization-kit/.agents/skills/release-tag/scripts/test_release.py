@@ -17,6 +17,7 @@ class Remote:
     def __init__(self):
         self.heads = {"one": SHA, "two": SHA}
         self.latest = {"one": OLD, "two": SHA}
+        self.latest_tag = {"one": "previous", "two": "previous"}
         self.tags = {}
         self.published = set()
         self.writes = []
@@ -35,7 +36,8 @@ class Remote:
             return {"sha": self.heads[name]}
         if suffix == "releases/latest":
             return (None if self.latest[name] is None else
-                    {"tag_name": "previous", "html_url": f"https://example.test/{name}/previous"})
+                    {"tag_name": self.latest_tag[name],
+                     "html_url": f"https://example.test/{name}/{self.latest_tag[name]}"})
         if suffix == "commits/previous":
             return {"sha": self.latest[name]}
         if suffix == f"git/ref/tags/{TAG}":
@@ -85,6 +87,21 @@ class WorkflowTests(unittest.TestCase):
         self.remote.tags["two"] = OLD
         with self.assertRaises(release.ReleaseError):
             release.apply(self.remote, approved)
+        self.assertEqual(self.remote.writes, [])
+
+    def test_existing_tag_as_latest_release_at_head_is_skipped(self):
+        self.remote.tags["two"] = SHA
+        self.remote.latest_tag["two"] = TAG
+        approved = release.plan(self.remote, TAG)
+        self.assertEqual([e["action"] for e in approved["entries"]], ["create", "skip"])
+        release.apply(self.remote, approved, lambda _: None)
+        self.assertEqual(self.remote.writes, [("tag", "one", SHA), ("release", "one")])
+
+    def test_existing_tag_as_latest_release_behind_head_is_rejected(self):
+        self.remote.tags["two"] = OLD
+        self.remote.latest_tag["two"] = TAG
+        with self.assertRaisesRegex(release.ReleaseError, "Existing tag"):
+            release.plan(self.remote, TAG)
         self.assertEqual(self.remote.writes, [])
 
     def test_failed_latest_lookup_prevents_all_writes(self):
