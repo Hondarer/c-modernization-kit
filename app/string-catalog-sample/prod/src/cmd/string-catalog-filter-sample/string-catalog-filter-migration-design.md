@@ -90,7 +90,7 @@ Table: 判定とトレース出力を結び付ける各層の責務
 ### 引数収集を既存の書式展開と共有する
 
 現状の `cplat_string_catalog_filter_slot_vformat()` は、判定用に複製した `va_list` から引数を収集し、書式展開時には `cplat_string_catalog_vformat()` が再び引数を収集します。  
-移行後は既存の `string_catalog_collect_arguments()` と収集結果を共有し、同じ引数を二度取り出さない構造を推奨します。
+移行後は既存の引数収集 (`cplat_internal_string_catalog_collect_arguments()`) と収集結果を共有し、同じ引数を二度取り出さない構造を推奨します。
 
 事前計算で一致が確定する場合も、文字列の組み立てに必要な引数収集は残ります。  
 この共通化の効果は、収集の重複解消です。
@@ -192,7 +192,8 @@ Table: 実プロセス間配布へ移行する前に決定する事項
 | 2 | 公開入口の結果コードを補強する。判定用ロックの取得失敗は文字列を組み立てずに結果コードで返し、ロックの作成失敗は作成関数の結果コードを返す | 完了。失敗経路を cplat 側の `stringCatalogFilterSlotTest` で確認 |
 | 3 | スロット作成時の入力検査を補強する。項目を持つカタログは `cplat_string_catalog_verify()` で確認し、項目数が 0 のカタログは何もしないカタログとして受け付ける。名前解決表は NULL の名前、重複する名前、カタログにない文字列キーを拒否する | 完了。拒否と別名の受け付けを cplat 側の `stringCatalogFilterSlotTest` で確認 |
 | 3b | サイズ演算があふれないことをコンパイル時に固定し、イメージの形式版とバイト順の互換性を契約に明記する | 完了。64 ビットの `size_t` を前提とすることを `_Static_assert` で固定し、形式版とバイト順が異なるイメージは変換せずに拒否することを Doxygen の契約に記載 |
-| 4 | 引数収集を `string_catalog_collect_arguments()` と共有する | 未着手 |
+| 4-a | 引数の値の型、収集、展開の宣言を `include_internal/cplat/string_catalog/format_internal.h` へ移して `cplat_internal_string_catalog_*` へ改名し、`cplat_string_catalog_vformat()` から項目の検索、書式の選択、収集を `cplat_internal_string_catalog_prepare_format()` として切り出す | 完了。振る舞いは変更せず、string_catalog のテストと string-catalog-sample のテストが成功 |
+| 4-b | フィルターの判定を共有の収集結果へ切り替え、独自の収集処理と `va_copy` を削除する | 未着手 |
 | 5 | 分類名の設定時期、説明文の文型など、残りの論点を扱う | 未着手 |
 | 6 | 共通機能のテストを cplat 側へ移す | 未着手 |
 
