@@ -36,12 +36,12 @@ printf 'extern int sample_catalog;\\n' > "${4%.c}.h"
             command = ["make", "--no-print-directory", "gen/sample_types_meta.h",
                        "STRUCT_META_GEN_BIN=" + generator.as_posix()]
             result = subprocess.run(command, cwd=root, stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT, text=True, timeout=30)
+                                    stderr=subprocess.STDOUT, text=True, encoding="utf-8", timeout=30)
             self.assertEqual(result.returncode, 0, result.stdout)
             output = root / "gen/sample_types_meta.c"
             stamp = output.stat().st_mtime_ns
             result = subprocess.run(command, cwd=root, stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT, text=True, timeout=30)
+                                    stderr=subprocess.STDOUT, text=True, encoding="utf-8", timeout=30)
             self.assertEqual(result.returncode, 0, result.stdout)
             self.assertEqual(output.stat().st_mtime_ns, stamp)
             catalog = root / "prod/src/cmd/struct-meta-sample/gen/sample_types_meta.c"
@@ -55,7 +55,7 @@ printf 'extern int sample_catalog;\\n' > "${4%.c}.h"
             )
             result = subprocess.run(
                 ["make", "--no-print-directory", "inspect", "MYAPP_DIR=" + root.as_posix()],
-                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30,
+                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", timeout=30,
             )
             self.assertEqual(result.returncode, 0, result.stdout)
             self.assertEqual(result.stdout.strip(), catalog.as_posix())

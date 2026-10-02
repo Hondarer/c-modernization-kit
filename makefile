@@ -114,6 +114,14 @@ sync-app-env :
 check-nbsp :
 	python3 "$(CURDIR)/app/general/bin/check-nbsp.py"
 
+# bin_test/ のスクリプトのテストを実行する。livedocs のテストは専用の venv を使う。
+# 想定外のスキップは失敗として扱う。手元でツールが不足する場合は BIN_TEST_ARGS=--allow-skips を指定する。
+BIN_TEST_ARGS ?=
+
+.PHONY: bin-test
+bin-test : livedocs-venv
+	python3 "$(CURDIR)/app/general/bin_internal/run-bin-tests.py" $(BIN_TEST_ARGS)
+
 .PHONY: clean
 clean :
 	@$(call _MAKEFW_RESOLVE_PARALLEL_SHELL) \

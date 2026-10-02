@@ -18,6 +18,7 @@
 ```bash
 make
 make test
+make bin-test
 make doxy
 make docs
 make livedocs
@@ -53,6 +54,19 @@ find . -type f -name '*.warn' -size +0 -print0 | xargs -0 -r sed -n '1,200p'
 
 `.warn` ファイルは結果であり、直接編集しません。  
 警告原因を修正し、同じビルドを再実行します。
+
+`bin/` や `bin_internal/` のスクリプトを変更した場合は、`bin_test/` のテストを実行します。  
+`make bin-test` は、ワークスペース内のすべての `bin_test/` を実行し、CI でも同じコマンドを使用します。  
+対象を絞る場合は、ワークスペースからの相対パスに含まれる文字列を指定します。
+
+```bash
+make bin-test BIN_TEST_ARGS=framework/docsfw
+```
+
+ツールやファイルの不足によるスキップは、検証していないのに成功に見えるため失敗として扱います。  
+OS に依存するスキップは、理由を `[Linux]` または `[Windows]` で始めた場合に限り、別の OS で起きたときだけ認めます。  
+手元でツールが不足する場合は、`BIN_TEST_ARGS=--allow-skips` を指定すると、想定外のスキップを失敗にしません。  
+livedocs のテストは `make livedocs-venv` が作成する仮想環境の Python で実行され、`make bin-test` はこの仮想環境を先に作成します。
 
 ## ライブラリ構成の確認
 
