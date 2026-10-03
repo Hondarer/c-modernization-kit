@@ -45,7 +45,13 @@ Doxygen コメントの本文は、です・ます調で記載します。
 
 Doxygen コメント内の Markdown 表にも、原則として内容を表す `Table:` キャプションを付けます。  
 表と `Table:` 行の間、および `Table:` 行と後続の説明・タグ・節見出しの間には、コメント内の空行 (`*` の行) を挿入します。  
-表題の付け方は [表のキャプション](../../../framework/docsfw/docs/table-caption.md) に従います。
+`@par` の見出しにこの空行を残すときは、`@parblock` から `@endparblock` までで見出しの本文を囲みます。  
+箇条書きと表を続けるときは、箇条書きを終えてから、`|` と `Table:` をコメント本文と同じ桁に置きます。  
+`-` は、コメント本文と同じ桁に置くか、直前の文の次の行へ空行なしで [チート シート](../../../framework/doxyfw/docs/cheatsheet.md) の「リスト」と同じ字下げを続けます。  
+子項目は親より 4 スペース深くします。  
+`@param` や `@return` の箇条書きの後に置いた表は、詳細説明の先頭へ移ります。  
+箇条書きの直後に表を出すときは、タグなし本文か `@parblock` を使います。  
+表題の付け方は [表のキャプション](../../../framework/docsfw/docs/table-caption.md) に従い、コメント内の雛形は [チート シート](../../../framework/doxyfw/docs/cheatsheet.md) の「表」に従います。
 
 引数には `@param[in]`、`@param[out]`、`@param[in,out]` を使用します。  
 関数に Doxygen コメントを付与する場合は、すべての仮引数について `@param` を漏れなく記載します。  
