@@ -1627,36 +1627,29 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
 }
 
 /**
- *  @brief          共有メモリを、書き込み側と読み取り側に見立てた 2 つのハンドルで開きます。
- *  @param[in]      path 共有メモリを識別するパス。NULL の場合は一時ディレクトリの既定の名前を使います。
+ *  @brief          一時ディレクトリの共有メモリを、書き込み側と読み取り側の 2 つのハンドルで開きます。
  *  @return         成功時は `CPLAT_OK`、失敗時はその結果コードを返します。
  *
- *  2 つのハンドルは同じ排他を共有し、別々のプロセスの書き込み側と読み取り側を模擬します。
+ *  共有メモリは一時ディレクトリの固定の名前のファイルです。同じ名前を開いたほかのプロセスと内容を共有します。\n
+ *  2 つのハンドルは同じ排他を共有します。書き込み側は apply の公開に、読み取り側はトレース出力の取り込みに使います。
  */
-static int open_share(const char *path)
+static int open_share(void)
 {
     char temp_dir[PLATFORM_PATH_MAX];
     int ret;
 
-    if (path != NULL)
+    ret = cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), NULL);
+    if (ret != CPLAT_OK)
     {
-        (void)snprintf(s_share_path, sizeof(s_share_path), "%s", path);
+        return ret;
     }
-    else
+    ret = cplat_path_join(s_share_path, sizeof(s_share_path), NULL, temp_dir, FILTER_SAMPLE_SHARE_FILE_NAME);
+    if (ret != CPLAT_OK)
     {
-        ret = cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), NULL);
-        if (ret != CPLAT_OK)
-        {
-            return ret;
-        }
-        ret = cplat_path_join(s_share_path, sizeof(s_share_path), NULL, temp_dir, FILTER_SAMPLE_SHARE_FILE_NAME);
-        if (ret != CPLAT_OK)
-        {
-            return ret;
-        }
+        return ret;
     }
 
-    ret = sample_filter_share_lock_create(s_share_path, &s_share_lock);
+    ret = sample_filter_share_to_result(sample_filter_share_lock_create(s_share_path, &s_share_lock));
     if (ret == CPLAT_OK)
     {
         ret = sample_filter_share_open(s_share_path, s_share_lock, FILTER_SAMPLE_LINE_CAPACITY,
@@ -1821,8 +1814,8 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
 
 /**
  *  @brief          プログラムのエントリ ポイント。
- *  @param[in]      argc コマンド ライン引数の数。この引数は使用しません。
- *  @param[in]      argv コマンド ライン引数の配列。この引数は使用しません。
+ *  @param[in]      argc コマンド ライン引数の数。引数を指定した場合は使用方法を表示して終了します。
+ *  @param[in]      argv コマンド ライン引数の配列。使用方法の表示に使います。
  *  @return         成功時は 0 、失敗時は 0 以外の値を返します。
  */
 int main(int argc, char *argv[])
@@ -1842,10 +1835,10 @@ int main(int argc, char *argv[])
     int result = EXIT_SUCCESS;
     int ret;
 
-    /* 第 1 引数で共有メモリのパスを指定できる */
-    if (argc > 2)
+    /* 共有メモリは一時ディレクトリに固定するため、引数は受け付けない */
+    if (argc > 1)
     {
-        fprintf(stderr, "使用方法: %s [共有メモリのパス]\n", argv[0]);
+        fprintf(stderr, "使用方法: %s\n", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -1886,14 +1879,7 @@ int main(int argc, char *argv[])
         goto out_dispose_slot;
     }
 
-    if (argc == 2)
-    {
-        ret = open_share(argv[1]);
-    }
-    else
-    {
-        ret = open_share(NULL);
-    }
+    ret = open_share();
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);

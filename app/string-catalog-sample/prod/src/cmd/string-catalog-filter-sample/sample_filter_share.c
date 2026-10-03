@@ -16,27 +16,59 @@
 
 #include <stdlib.h>
 
+/** 排他と、cplat から取得するときの待ち時間の組です。cplat へ渡す関数の引数にします。 */
+typedef struct source_lock_context
+{
+    sample_filter_share_lock *lock; /**< 排他。 */
+    int timeout_ms;                 /**< 待ち時間 (ミリ秒)。 */
+    int pad;                        /**< 明示的アラインメントです。 */
+} source_lock_context;
+
 /** 共有メモリによる配布のハンドルです。 */
 struct sample_filter_share
 {
     sample_filter_share_region *region; /**< 受け渡し用のメモリ領域。 */
-    sample_filter_share_lock *lock;     /**< 書き込み側どうしの排他。呼び出し側が所有する。 */
+    sample_filter_share_lock *lock;     /**< 共有メモリの排他。呼び出し側が所有する。 */
     void *source;                       /**< 共有メモリの先頭。cplat のソース領域として使う。 */
     size_t source_size;                 /**< ソース領域のバイト数。 */
+    source_lock_context writer_lock;    /**< 公開で使う排他。取得できるまで待つ。 */
+    source_lock_context reader_lock;    /**< 取り込みで使う排他。待ち時間に上限を設ける。 */
     uint32_t line_capacity;             /**< 行数の上限。 */
     uint32_t line_width;                /**< 行幅。 */
 };
 
-/** 読み取り側のスロットが、書き込み側の排他を取得するために呼び出します。 */
+/** cplat が公開と取り込みの間に、排他を取得するために呼び出します。 */
 static int acquire_source_lock(void *context)
 {
-    return sample_filter_share_lock_acquire((sample_filter_share_lock *)context);
+    const source_lock_context *lock_context = (const source_lock_context *)context;
+
+    return sample_filter_share_to_result(sample_filter_share_lock_acquire(lock_context->lock, lock_context->timeout_ms));
 }
 
-/** 読み取り側のスロットが、書き込み側の排他を解放するために呼び出します。 */
+/** cplat が公開と取り込みの間に、排他を解放するために呼び出します。 */
 static void release_source_lock(void *context)
 {
-    sample_filter_share_lock_release((sample_filter_share_lock *)context);
+    sample_filter_share_lock_release(((const source_lock_context *)context)->lock);
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int sample_filter_share_to_result(const sample_filter_share_region_result result)
+{
+    switch (result)
+    {
+    case SAMPLE_FILTER_SHARE_REGION_OK:
+        return CPLAT_OK;
+    case SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT:
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    case SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH:
+        return CPLAT_ERR_CORRUPT_DESCRIPTOR;
+    case SAMPLE_FILTER_SHARE_REGION_TIMEOUT:
+        return CPLAT_ERR_TIMEOUT;
+    case SAMPLE_FILTER_SHARE_REGION_FAILED:
+    default:
+        return CPLAT_ERR_UNKNOWN;
+    }
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -62,12 +94,22 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
     share->lock = lock;
+    share->writer_lock.lock = lock;
+    share->writer_lock.timeout_ms = SAMPLE_FILTER_SHARE_WAIT_FOREVER;
+    share->reader_lock.lock = lock;
+    share->reader_lock.timeout_ms = SAMPLE_FILTER_SHARE_READER_TIMEOUT_MS;
     share->line_capacity = (uint32_t)line_capacity;
     share->line_width = (uint32_t)line_width;
     share->source_size = CPLAT_STRING_CATALOG_FILTER_SOURCE_SIZE(line_capacity, line_width);
 
-    /* 新しく作成した領域は 0 で埋まり、cplat は未公開のソース領域として扱う */
-    ret = sample_filter_share_region_open(path, share->source_size, &share->region);
+    /* 複数のプロセスが同時に作成しないよう、排他の下で開く。新しく作成した領域は 0 で埋まり、
+       cplat は未公開のソース領域として扱う */
+    ret = sample_filter_share_to_result(sample_filter_share_lock_acquire(lock, SAMPLE_FILTER_SHARE_WAIT_FOREVER));
+    if (ret == CPLAT_OK)
+    {
+        ret = sample_filter_share_to_result(sample_filter_share_region_open(path, share->source_size, &share->region));
+        sample_filter_share_lock_release(lock);
+    }
     if (ret != CPLAT_OK)
     {
         sample_filter_share_close(&share);
@@ -101,6 +143,7 @@ void sample_filter_share_close(sample_filter_share **share)
 int sample_filter_share_publish(sample_filter_share *share, const void *image, const size_t image_size,
                                 uint64_t *timestamp_out)
 {
+    cplat_string_catalog_filter_source_lock lock;
     cplat_string_catalog_filter_info info;
     int ret;
 
@@ -116,16 +159,12 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     }
 
-    /* 書き込み側どうしと、排他を結び付けた読み取り側の複製を直列化する */
-    ret = sample_filter_share_lock_acquire(share->lock);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-    ret = cplat_string_catalog_filter_source_publish(share->source, share->source_size, image, image_size,
-                                                     timestamp_out);
-    sample_filter_share_lock_release(share->lock);
-    return ret;
+    /* 排他は cplat が書き込みの間だけ取る。書き込み側どうしと、排他を結び付けた読み取り側の複製を直列化する */
+    lock.lock = acquire_source_lock;
+    lock.unlock = release_source_lock;
+    lock.context = &share->writer_lock;
+    return cplat_string_catalog_filter_source_publish(share->source, share->source_size, image, image_size, &lock,
+                                                      timestamp_out);
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -142,7 +181,7 @@ const void *sample_filter_share_get_source(const sample_filter_share *share, siz
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int sample_filter_share_get_source_lock(const sample_filter_share *share,
+int sample_filter_share_get_source_lock(sample_filter_share *share,
                                         cplat_string_catalog_filter_source_lock *lock_out)
 {
     if ((share == NULL) || (lock_out == NULL))
@@ -151,6 +190,6 @@ int sample_filter_share_get_source_lock(const sample_filter_share *share,
     }
     lock_out->lock = acquire_source_lock;
     lock_out->unlock = release_source_lock;
-    lock_out->context = share->lock;
+    lock_out->context = &share->reader_lock;
     return CPLAT_OK;
 }

@@ -4,19 +4,18 @@
  *  @brief          配布に使う受け渡し用のメモリ領域と、その排他を宣言します。
  *  @author         Tetsuo Honda
  *  @date           2026/09/27
- *  @version        0.1.0
+ *  @version        0.2.0
  *
  *  受け渡し用のメモリ領域の確保、確保後の先頭アドレスの取得、および受け渡しの排他を、
  *  配布の手順 (`sample_filter_share.c`) から切り離したモジュールです。\n
  *  領域の方式や排他の方式を差し替える場合は、本ヘッダーの宣言を保ったまま、実装ファイル
  *  (`sample_filter_share_region.c`) を置き換えます。
  *
+ *  本ヘッダーは cplat に依存しません。結果は本モジュールの @ref sample_filter_share_region_result で返します。\n
  *  本モジュールは領域の中身の型を知りません。先頭アドレスは `void *` で返し、利用者がキャストします。
  *
- *  PoC の実装では、共有メモリを calloc で確保したプロセス内の領域で模擬し、
- *  排他を単純なミューテックス (`cplat_local_lock`) で模擬します。
- *  同じ排他を共有する複数のハンドルを、別々のプロセスの書き込み側と読み取り側に見立てます。\n
- *  実際に複数のプロセスで動かす段階では、排他をプロセス間で共有できるものに置き換えます。
+ *  現在の実装は、領域をファイルのメモリ マップで、排他をファイル ロックで実現し、複数のプロセスで共有します。\n
+ *  ファイルは削除しません。OS の再起動を越えて残り、次に開いたプロセスが最後の公開内容を引き継ぎます。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *******************************************************************************
@@ -27,10 +26,23 @@
 
 #include <stddef.h>
 
+/** 排他を取得できるまで待つことを表す待ち時間です。 */
+#define SAMPLE_FILTER_SHARE_WAIT_FOREVER (-1)
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+    /** 本モジュールの関数の結果です。 */
+    typedef enum sample_filter_share_region_result
+    {
+        SAMPLE_FILTER_SHARE_REGION_OK = 0,               /**< 成功。 */
+        SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT = 1, /**< 引数が不正。 */
+        SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH = 2,    /**< 既存の領域の大きさが、要求した大きさと一致しない。 */
+        SAMPLE_FILTER_SHARE_REGION_TIMEOUT = 3,          /**< 待ち時間のうちに排他を取得できない。 */
+        SAMPLE_FILTER_SHARE_REGION_FAILED = 4            /**< OS の操作の失敗やメモリ不足。 */
+    } sample_filter_share_region_result;
 
     /** 受け渡し用のメモリ領域 (不透明型)。 */
     typedef struct sample_filter_share_region sample_filter_share_region;
@@ -39,34 +51,34 @@ extern "C"
     typedef struct sample_filter_share_lock sample_filter_share_lock;
 
     /**
-     *  @brief          受け渡し用のメモリ領域を確保します。存在しない場合は作成します。
-     *  @param[in]      path       領域を識別するパス。PoC の実装では、プロセス内で領域を識別する名前としてだけ使います。
+     *  @brief          受け渡し用のメモリ領域を開きます。存在しない場合は作成します。
+     *  @param[in]      path       領域のファイルのパス。ローカルのファイル システム上のパスを指定します。
      *  @param[in]      size       必要なバイト数。0 より大きい値を指定します。
-     *  @param[out]     region_out 確保した領域の格納先。
-     *  @return         成功時は `CPLAT_OK` を返します。
-     *  @return         引数が不正な場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
-     *  @return         既存の領域が @p size に満たない場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
-     *  @return         メモリまたは領域を確保できない場合は `CPLAT_ERR_OUT_OF_MEMORY` またはその他の結果コードを返します。
+     *  @param[out]     region_out 開いた領域の格納先。
+     *  @return         成功時は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
+     *  @return         引数が不正な場合は @ref SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT を返します。
+     *  @return         既存の領域の大きさが @p size と一致しない場合は @ref SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH
+     *                  を返します。既存の領域は作り直しません。
+     *  @return         領域を開けない場合は @ref SAMPLE_FILTER_SHARE_REGION_FAILED を返します。
      *
      *  新しく作成した領域は 0 で埋まっています。\n
-     *  同じパスを、同じプロセスの中で複数回確保することもできます。確保した領域は同じ内容を共有します。\n
-     *  PoC の実装では、領域はプロセス内にだけ存在し、最後の利用者が解放すると内容は失われます。
+     *  同じパスを複数のプロセス、または同じプロセスの複数のハンドルで開くと、同じ内容を共有します。\n
+     *  複数のプロセスが同時に作成しないよう、同じパスの排他を取得した状態で呼び出してください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフではありません。\n
-     *  領域の確保と解放は、同時に呼び出さないことを呼び出し側で保証してください。
+     *  本関数はスレッド セーフです。
      */
-    int sample_filter_share_region_open(const char *path, size_t size, sample_filter_share_region **region_out);
+    sample_filter_share_region_result sample_filter_share_region_open(const char *path, size_t size,
+                                                                      sample_filter_share_region **region_out);
 
     /**
-     *  @brief          受け渡し用のメモリ領域を解放します。
-     *  @param[in,out]  region 解放する領域を保持する変数のアドレス。解放したあとは NULL を設定します。
+     *  @brief          受け渡し用のメモリ領域を閉じます。ファイルは削除しません。
+     *  @param[in,out]  region 閉じる領域を保持する変数のアドレス。閉じたあとは NULL を設定します。
      *                         NULL または *region が NULL の場合は何もしません。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  同じ領域への他の呼び出しが完了していること、および領域の確保と同時に呼び出さないことを、
-     *  呼び出し側で保証してください。
+     *  同じ領域への他の呼び出しが完了していることを、呼び出し側で保証してください。
      */
     void sample_filter_share_region_close(sample_filter_share_region **region);
 
@@ -74,7 +86,7 @@ extern "C"
      *  @brief          受け渡し用のメモリ領域の先頭アドレスを取得します。
      *  @param[in]      region 領域。
      *  @return         先頭アドレスを返します。少なくとも 8 バイト境界に揃っています。
-     *                  領域を解放するまで有効です。@p region が NULL の場合は NULL を返します。
+     *                  領域を閉じるまで有効です。@p region が NULL の場合は NULL を返します。
      *
      *  領域の中身の型は利用者が決め、戻り値をキャストして使います。
      *
@@ -86,19 +98,23 @@ extern "C"
     /**
      *  @brief          受け渡しの排他を作成します。
      *  @param[in]      path     排他を識別するパス。受け渡し用のメモリ領域と同じパスを指定します。
-     *                           PoC の実装では使いません。プロセス間で共有する排他へ差し替える際の識別子です。
+     *                           実装は、このパスに `.lock` を付けたファイルをロックに使います。
      *  @param[out]     lock_out 作成した排他の格納先。
-     *  @return         成功時は `CPLAT_OK` を返します。
-     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
-     *  @return         作成できない場合は `CPLAT_ERR_OUT_OF_MEMORY` またはその他の結果コードを返します。
+     *  @return         成功時は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
+     *  @return         引数が NULL の場合は @ref SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT を返します。
+     *  @return         作成できない場合は @ref SAMPLE_FILTER_SHARE_REGION_FAILED を返します。
+     *
+     *  同じパスで作成した排他は、プロセスの間と、同じ排他を使うスレッドの間の両方で排他になります。\n
+     *  排他を保持したプロセスが異常終了した場合は、OS がファイル ロックを解放します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。
      */
-    int sample_filter_share_lock_create(const char *path, sample_filter_share_lock **lock_out);
+    sample_filter_share_region_result sample_filter_share_lock_create(const char *path,
+                                                                      sample_filter_share_lock **lock_out);
 
     /**
-     *  @brief          受け渡しの排他を破棄します。
+     *  @brief          受け渡しの排他を破棄します。ロックのファイルは削除しません。
      *  @param[in,out]  lock 破棄する排他を保持する変数のアドレス。破棄したあとは NULL を設定します。
      *                       NULL または *lock が NULL の場合は何もしません。
      *
@@ -109,16 +125,22 @@ extern "C"
     void sample_filter_share_lock_dispose(sample_filter_share_lock **lock);
 
     /**
-     *  @brief          受け渡しの排他を取得します。取得できるまで待ちます。
-     *  @param[in]      lock 排他。
-     *  @return         成功時は `CPLAT_OK` を返します。
-     *  @return         @p lock が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
-     *  @return         取得できない場合は、その結果コードを返します。
+     *  @brief          受け渡しの排他を取得します。
+     *  @param[in]      lock       排他。
+     *  @param[in]      timeout_ms 待ち時間 (ミリ秒)。@ref SAMPLE_FILTER_SHARE_WAIT_FOREVER で取得できるまで待ちます。
+     *                             0 の場合は待ちません。
+     *  @return         成功時は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
+     *  @return         @p lock が NULL の場合、または待ち時間が負の値 (@ref SAMPLE_FILTER_SHARE_WAIT_FOREVER を除く) の場合は
+     *                  @ref SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT を返します。
+     *  @return         待ち時間のうちに取得できない場合は @ref SAMPLE_FILTER_SHARE_REGION_TIMEOUT を返します。
+     *  @return         そのほかの失敗は @ref SAMPLE_FILTER_SHARE_REGION_FAILED を返します。
+     *
+     *  再入には対応しません。同じスレッドから取得済みの排他を取得しないでください。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。
      */
-    int sample_filter_share_lock_acquire(sample_filter_share_lock *lock);
+    sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter_share_lock *lock, int timeout_ms);
 
     /**
      *  @brief          受け渡しの排他を解放します。

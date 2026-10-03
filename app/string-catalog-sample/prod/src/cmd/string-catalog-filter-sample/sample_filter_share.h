@@ -12,6 +12,8 @@
  *  `cplat_string_catalog_filter_slot_attach_source` でフィルター スロットへ結び付けます。
  *  以降は、トレース出力のたびにスロットが公開時刻を比べ、変化した場合に取り込みます。
  *
+ *  領域の確保と排他の実装は、本モジュール (`sample_filter_share_region.h`) が受け持ちます。
+ *  cplat には、先頭アドレス、バイト数、排他を取得、解放する関数だけを渡します。\n
  *  書き込み側どうしは、同じ排他 (@ref sample_filter_share_lock) で直列化します。\n
  *  読み取り側にも @ref sample_filter_share_get_source_lock で同じ排他を渡し、二重確認で取り込みます。
  *  公開時刻の変化はロックを取らずに確かめ、変化した場合だけ排他を取って公開時刻を読み直してから複製します。\n
@@ -33,10 +35,28 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/**
+ *  @brief          取り込みで排他を待つ時間の上限 (ミリ秒) です。
+ *
+ *  書き込み側が書き込みを終えるのを待つ時間です。待ち時間のうちに取得できない場合は取り込まず、
+ *  次のトレース出力で改めて取り込みます。トレースの出力を長く止めないためです。
+ */
+#define SAMPLE_FILTER_SHARE_READER_TIMEOUT_MS 100
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+    /**
+     *  @brief          受け渡しのモジュールの結果を、cplat の結果コードへ変換します。
+     *  @param[in]      result 受け渡しのモジュール (`sample_filter_share_region.h`) の結果。
+     *  @return         対応する cplat の結果コード。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフです。
+     */
+    int sample_filter_share_to_result(sample_filter_share_region_result result);
 
     /** 共有メモリによる配布のハンドル (不透明型)。 */
     typedef struct sample_filter_share sample_filter_share;
@@ -125,12 +145,13 @@ extern "C"
      *
      *  格納した内容は `cplat_string_catalog_filter_slot_attach_source` へ渡します。
      *  スロットは、公開時刻の変化を検知した場合だけこの排他を取り、複製の間に公開が重ならないようにします。\n
+     *  排他を待つ時間は @ref SAMPLE_FILTER_SHARE_READER_TIMEOUT_MS までです。\n
      *  排他は、ハンドルを開くときに渡したものです。結び付けを解除するまで破棄しないでください。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。
      */
-    int sample_filter_share_get_source_lock(const sample_filter_share *share,
+    int sample_filter_share_get_source_lock(sample_filter_share *share,
                                             cplat_string_catalog_filter_source_lock *lock_out);
 
 #ifdef __cplusplus

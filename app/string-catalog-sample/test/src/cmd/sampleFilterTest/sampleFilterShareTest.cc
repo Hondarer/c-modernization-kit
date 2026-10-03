@@ -31,9 +31,11 @@ class sampleFilterShareTest : public Test
         ASSERT_EQ(CPLAT_OK, cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr));
         path_ = std::string(temp_dir) + "/sampleFilterShareTest_" + std::to_string(cplat_process_get_pid()) + "_" +
                 info->name() + ".share";
+        lock_path_ = path_ + ".lock";
         (void)std::remove(path_.c_str());
+        (void)std::remove(lock_path_.c_str());
 
-        ASSERT_EQ(CPLAT_OK, sample_filter_share_lock_create(path_.c_str(), &lock_));
+        ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, sample_filter_share_lock_create(path_.c_str(), &lock_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_));
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
@@ -54,6 +56,7 @@ class sampleFilterShareTest : public Test
         sample_filter_share_close(&writer_);
         sample_filter_share_lock_dispose(&lock_);
         (void)std::remove(path_.c_str());
+        (void)std::remove(lock_path_.c_str());
     }
 
     cplat_string_catalog_filter_state state_of(const int string_key)
@@ -97,6 +100,7 @@ class sampleFilterShareTest : public Test
     }
 
     std::string path_;
+    std::string lock_path_;
     sample_filter_share_lock *lock_ = nullptr;
     sample_filter_share *writer_ = nullptr;
     sample_filter_share *reader_ = nullptr;
@@ -342,4 +346,91 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
     EXPECT_EQ(
         CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
         state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED)); // [確認_正常系] - 最後に公開した条件が判定に使われること。
+}
+
+// 既存の領域の大きさが一致しない場合は、作り直さずに開くことを拒否することの確認
+TEST_F(sampleFilterShareTest, open_rejects_existing_region_of_different_size)
+{
+    // Arrange
+    sample_filter_share *other = nullptr;
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth + 8U,
+                                              &other); // [手順] - 行幅を変えて同じ領域を開く。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 大きさの不一致を拒否すること。
+    EXPECT_EQ(nullptr, other);                           // [確認_異常系] - ハンドルを返さないこと。
+}
+
+// 別に作成した排他 (別プロセスに見立てる) が保持している間は、待ち時間のうちに取得できないことの確認
+TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
+{
+    // Arrange
+    sample_filter_share_lock *another = nullptr;
+    ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
+              sample_filter_share_lock_create(path_.c_str(), &another)); // [状態] - 同じパスで別の排他を作成する。
+    ASSERT_EQ(
+        SAMPLE_FILTER_SHARE_REGION_OK,
+        sample_filter_share_lock_acquire(another, SAMPLE_FILTER_SHARE_WAIT_FOREVER)); // [状態] - 別の排他を保持する。
+
+    // Pre-Assert
+
+    // Act
+    const sample_filter_share_region_result actual_while_held =
+        sample_filter_share_lock_acquire(lock_, 0); // [手順] - 保持されている間に待たずに取得する。
+    sample_filter_share_lock_release(another);      // [手順] - 別の排他を解放する。
+    const sample_filter_share_region_result actual_after_release =
+        sample_filter_share_lock_acquire(lock_, 0); // [手順] - 解放後に待たずに取得する。
+
+    // Assert
+    EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_TIMEOUT,
+              actual_while_held); // [確認_異常系] - 保持されている間は取得できないこと。
+    EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, actual_after_release); // [確認_正常系] - 解放後は取得できること。
+
+    sample_filter_share_lock_release(lock_);
+    sample_filter_share_lock_dispose(&another);
+}
+
+// 別の排他が保持している間の取り込みは待ち時間の上限で諦め、解放後の出力で取り込むことの確認
+TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
+{
+    // Arrange
+    static unsigned char image[kImageSize];
+    sample_filter_share_lock *another = nullptr;
+    uint64_t timestamp = 0U;
+    int actual_while_held = 1;
+    int actual_after_release = 0;
+    ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
+                                            image)); // [状態] - 条件をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, &timestamp)); // [状態] - 公開する。
+    ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
+              sample_filter_share_lock_create(path_.c_str(), &another)); // [状態] - 同じパスで別の排他を作成する。
+    ASSERT_EQ(
+        SAMPLE_FILTER_SHARE_REGION_OK,
+        sample_filter_share_lock_acquire(another, SAMPLE_FILTER_SHARE_WAIT_FOREVER)); // [状態] - 別の排他を保持する。
+
+    // Pre-Assert
+
+    // Act
+    (void)format_job_failed(&actual_while_held); // [手順] - 保持されている間に組み立てる。
+    const cplat_string_catalog_filter_source_status status_while_held = [this]()
+    {
+        cplat_string_catalog_filter_source_status status;
+        (void)cplat_string_catalog_filter_slot_get_source_status(slot_, &status);
+        return status;
+    }();
+    sample_filter_share_lock_release(another);      // [手順] - 別の排他を解放する。
+    (void)format_job_failed(&actual_after_release); // [手順] - 解放後に組み立てる。
+
+    // Assert
+    EXPECT_EQ(0, actual_while_held);                  // [確認_異常系] - 取り込まず、以前の条件で判定すること。
+    EXPECT_EQ(0U, status_while_held.taken_timestamp); // [確認_異常系] - 取り込み済みとしないこと。
+    EXPECT_EQ(CPLAT_ERR_TIMEOUT, status_while_held.last_result); // [確認_異常系] - 待ち時間の超過を記録すること。
+    EXPECT_NE(0, actual_after_release);                          // [確認_正常系] - 解放後の出力で取り込むこと。
+    EXPECT_EQ(timestamp, taken_timestamp());                     // [確認_正常系] - 公開時刻を取り込み済みとすること。
+
+    sample_filter_share_lock_dispose(&another);
 }
