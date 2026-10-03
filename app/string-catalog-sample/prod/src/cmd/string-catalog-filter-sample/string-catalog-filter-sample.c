@@ -1749,7 +1749,7 @@ static void close_share(void)
  */
 static void command_status(cplat_pinned_prompt *screen)
 {
-    cplat_string_catalog_filter_source_status status;
+    cplat_string_catalog_filter_source_status status = {0};
     cplat_string_catalog_filter_source_info info;
     char published_at[64] = "-";
     const void *source;
