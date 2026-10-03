@@ -7,6 +7,7 @@
 
 - test_*.py: unittest で実行する
 - *_selftest.py: Python で直接実行し、終了コードで合否を判定する
+  BIN_TEST_PLATFORM = "linux" または "windows" を定義した場合は、その OS だけで実行する
 - *_selftest.ps1: Windows だけで PowerShell により実行する
 - test_*.js: Node.js で実行し、終了コードで合否を判定する
 
@@ -19,6 +20,7 @@ OS に依存するスキップは、理由を [Linux] または [Windows] で始
 
 import argparse
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -104,6 +106,13 @@ class Outcome:
         self.seconds = 0.0
 
 
+def declared_platform(path):
+    """*_selftest.py が BIN_TEST_PLATFORM で宣言した実行対象の OS を返す。"""
+    match = re.search(r"^BIN_TEST_PLATFORM\s*=\s*[\"'](linux|windows)[\"']",
+                      path.read_text(encoding="utf-8", errors="replace"), re.M)
+    return match.group(1) if match else None
+
+
 def run_command(command, cwd, label):
     outcome = Outcome(label)
     started = time.monotonic()
@@ -156,6 +165,13 @@ def run_directory(directory, root, allow_skips):
     for path in files:
         label = relative + "/" + path.name
         if path.name.endswith("_selftest.py"):
+            platform = declared_platform(path)
+            if platform and platform != current_platform():
+                # 宣言された OS 以外での不実行は、OS に依存する想定どおりのスキップとして扱う。
+                outcome = Outcome(label)
+                outcome.notes.append("expected skip: [{}] only".format(platform.capitalize()))
+                outcomes.append(outcome)
+                continue
             outcomes.append(run_command([python_for(directory), str(path)], cwd, label))
         elif path.name.endswith("_selftest.ps1"):
             # MSVC 向けの補助スクリプトを検証するため、Windows だけで実行する。
