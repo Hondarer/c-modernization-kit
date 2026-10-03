@@ -673,12 +673,11 @@ static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression
  *  @param[in,out]  screen          表示先の画面。
  *  @param[in]      image           フィルター オブジェクト。
  *  @param[in]      image_size      @p image のバイト数。
- *  @param[in]      enabled_lines   適用で有効になった行の集合。編集中イメージのように適用前の場合は NULL。
- *  @param[in]      describing_slot 説明文を表示するスロット。NULL の場合は説明文を表示しません。
- *                                  説明文は名前解決済みの適用中の面から作るため、適用中の条件にだけ指定します。
+ *  @param[in]      describing_slot @p image を適用したスロット。行の有効、無効と説明文をこのスロットから得ます。
+ *                                  編集中イメージのように適用前の場合は NULL を指定し、条件式だけを表示します。
  */
 static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char *image, const size_t image_size,
-                               const uint64_t *enabled_lines, cplat_string_catalog_filter_slot *describing_slot)
+                               cplat_string_catalog_filter_slot *describing_slot)
 {
     cplat_string_catalog_filter_info info;
     char text[FILTER_SAMPLE_LINE_WIDTH];
@@ -703,7 +702,7 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
 
     for (i = 0; i < info.line_count; i++)
     {
-        int disabled;
+        cplat_string_catalog_filter_line_error line_error = CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_NONE;
 
         ret = cplat_string_catalog_filter_decompile_line(image, image_size, (size_t)i, text, sizeof(text));
         if (ret != CPLAT_OK)
@@ -713,16 +712,15 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
             continue;
         }
 
-        disabled = 0;
-        if ((enabled_lines != NULL) && (((*enabled_lines) & ((uint64_t)1U << i)) == 0U))
+        if (describing_slot != NULL)
         {
-            disabled = 1;
+            (void)cplat_string_catalog_filter_slot_get_line_error(describing_slot, (size_t)i, &line_error);
         }
 
-        if (disabled)
+        if (line_error != CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_NONE)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %2u: [無効] %s\n",
-                                       (unsigned int)(i + 1U), text);
+            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %2u: [無効: %s] %s\n",
+                                       (unsigned int)(i + 1U), line_error_label(line_error), text);
         }
         else
         {
@@ -949,15 +947,14 @@ static void print_usage(cplat_pinned_prompt *screen)
 /**
  *  @brief          スロットに適用されている条件式を、説明文とともに表示します。
  *
- *  list と draft が共有します。無効な行には [無効] を付け、有効な行には説明文を添えます。
+ *  list と draft が共有します。無効な行には [無効: 原因] を付け、有効な行には説明文を添えます。
  */
 static void print_slot_lines(cplat_pinned_prompt *screen, cplat_string_catalog_filter_slot *slot)
 {
     static unsigned char snapshot_image[FILTER_SAMPLE_IMAGE_SIZE];
-    uint64_t enabled_lines = 0;
     int ret;
 
-    ret = cplat_string_catalog_filter_slot_snapshot(slot, snapshot_image, sizeof(snapshot_image), &enabled_lines);
+    ret = cplat_string_catalog_filter_slot_snapshot(slot, snapshot_image, sizeof(snapshot_image));
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -965,7 +962,7 @@ static void print_slot_lines(cplat_pinned_prompt *screen, cplat_string_catalog_f
         return;
     }
 
-    print_filter_lines(screen, snapshot_image, sizeof(snapshot_image), &enabled_lines, slot);
+    print_filter_lines(screen, snapshot_image, sizeof(snapshot_image), slot);
 }
 
 static void command_list(cplat_pinned_prompt *screen)
@@ -992,7 +989,7 @@ static void command_list(cplat_pinned_prompt *screen)
  *  @brief          編集中の条件式を、説明文とともに表示します。
  *
  *  編集中イメージを下見用のスロットへ適用し、list と同じ手順で表示します。\n
- *  適用前に、名前を解決できない行を [無効] として確認できます。
+ *  適用前に、名前を解決できない行を [無効: 原因] として確認できます。
  */
 static void command_draft(cplat_pinned_prompt *screen)
 {
@@ -1004,7 +1001,7 @@ static void command_draft(cplat_pinned_prompt *screen)
         /* 下見できない場合も、編集中の条件式だけは表示する */
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                                    "エラー: 編集中イメージを下見できませんでした (結果コード=%d)。\n", ret);
-        print_filter_lines(screen, s_draft_image, sizeof(s_draft_image), NULL, NULL);
+        print_filter_lines(screen, s_draft_image, sizeof(s_draft_image), NULL);
         return;
     }
 
@@ -1280,7 +1277,7 @@ static void command_revert(cplat_pinned_prompt *screen)
 {
     int ret;
 
-    ret = cplat_string_catalog_filter_slot_snapshot(s_slot, s_draft_image, sizeof(s_draft_image), NULL);
+    ret = cplat_string_catalog_filter_slot_snapshot(s_slot, s_draft_image, sizeof(s_draft_image));
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
