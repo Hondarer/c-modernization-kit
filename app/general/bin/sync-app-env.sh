@@ -115,6 +115,7 @@ eval_app_output_dirs() {
     local tmp_makefile
     local makepart_path
     local value
+    local helper_root="${WORKSPACE_DIR_M:-$WORKSPACE_DIR}"
 
     if [[ "$platform" == "Linux" ]]; then
         platform_flag="PLATFORM_LINUX := 1"
@@ -126,6 +127,7 @@ eval_app_output_dirs() {
 
     tmp_makefile=$(mktemp)
     {
+        printf 'include %s/framework/makefw/makefiles/_path_functions.mk\n' "${helper_root// /\\ }"
         cat <<EOF
 WORKSPACE_DIR := $WORKSPACE_DIR
 APP_DIR := $APP_DIR
@@ -154,12 +156,12 @@ EOF
             printf 'OUTPUT_DIR :=\n'
             cat "$makepart_path"
             printf '\n'
-            printf 'MAKEFW_APP_OUTPUT_DIRS += $(OUTPUT_DIR)\n'
+            printf 'MAKEFW_APP_OUTPUT_DIRS += $(call _makefw_encode_path,$(call _makefw_unescape_path,$(strip $(OUTPUT_DIR))))\n'
         done < <(list_app_makeparts "$app")
 
         cat <<'EOF'
 print:
-	@printf '%s\n' "$(MAKEFW_APP_OUTPUT_DIRS)"
+	@printf '%s\n' $(foreach path,$(MAKEFW_APP_OUTPUT_DIRS),"$(call _makefw_decode_path,$(path))")
 EOF
     } > "$tmp_makefile"
 
@@ -218,13 +220,13 @@ for app in "${APPS[@]}"; do
             exit 1
         fi
 
-        for item in $raw; do
+        while IFS= read -r item; do
             kind=$(classify_output_dir "$app" "$item")
             case "$kind" in
                 prod/cbin) has_cbin=1 ;;
                 prod/lib)  has_lib=1 ;;
             esac
-        done
+        done <<< "$raw"
     done
 
     if (( has_cbin )); then

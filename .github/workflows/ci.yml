@@ -121,6 +121,21 @@ jobs:
           path: logs/linux-${{ matrix.os-name }}-build.log
           if-no-files-found: warn
 
+      # bin_test/ のスクリプトのテストは、空白を含む一時ディレクトリでの検証を含む。
+      # 想定外のスキップは失敗として扱う (app/general/bin_internal/run-bin-tests.py)。
+      - name: Run script tests
+        run: |
+          set -o pipefail
+          make bin-test 2>&1 | tee logs/linux-${{ matrix.os-name }}-bin-test.log
+
+      - name: Upload script test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.os-name }}-bin-test-logs
+          path: logs/linux-${{ matrix.os-name }}-bin-test.log
+          if-no-files-found: ignore
+
       - name: Restore docsfw npm and puppeteer cache
         if: ${{ matrix.docs }}
         uses: actions/cache@v6
@@ -468,6 +483,22 @@ jobs:
           name: windows-logs
           path: logs/windows-build.log
           if-no-files-found: warn
+
+      # bin_test/ のスクリプトのテストは、空白を含む一時ディレクトリでの検証を含む。
+      # 想定外のスキップは失敗として扱う (app/general/bin_internal/run-bin-tests.py)。
+      - name: Run script tests
+        run: |
+          set -o pipefail
+          make bin-test 2>&1 | tee logs/windows-bin-test.log
+        shell: bash
+
+      - name: Upload script test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-bin-test-logs
+          path: logs/windows-bin-test.log
+          if-no-files-found: ignore
 
   warnings-summary:
     runs-on: ubuntu-latest
