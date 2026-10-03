@@ -10,17 +10,17 @@
  *  公開の形式と、読み取り側の変化の検知と取り込みは cplat が行います。
  *  読み取り側は、@ref sample_filter_share_get_source が返す領域を
  *  `cplat_string_catalog_filter_slot_attach_source` でフィルター スロットへ結び付けます。
- *  以降は、トレース出力のたびにスロットが公開時刻を比べ、変化した場合に取り込みます。
+ *  以降は、トレース出力のたびにスロットが版番号を比べ、変化した場合に取り込みます。
  *
  *  領域の確保と排他の実装は、本モジュール (`sample_filter_share_region.h`) が受け持ちます。
  *  cplat には、先頭アドレス、バイト数、排他を取得、解放する関数だけを渡します。\n
  *  書き込み側どうしは、同じ排他 (@ref sample_filter_share_lock) で直列化します。\n
  *  読み取り側にも @ref sample_filter_share_get_source_lock で同じ排他を渡し、二重確認で取り込みます。
- *  公開時刻の変化はロックを取らずに確かめ、変化した場合だけ排他を取って公開時刻を読み直してから複製します。\n
+ *  版番号の変化はロックを取らずに確かめ、変化した場合だけ排他を取って版番号を読み直してから複製します。\n
  *  受け渡し用のメモリ領域の確保と先頭アドレスの取得、および排他は `sample_filter_share_region.h` に切り出しており、
  *  方式の差し替えはそちらの実装で行います。
  *
- *  設計の理由は `string-catalog-filter-migration-design.md` の「条件の取り込みを公開時刻の比較で検知する」に記録しています。
+ *  設計の理由は `string-catalog-filter-migration-design.md` の「条件の取り込みを版番号の比較で検知する」に記録しています。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *******************************************************************************
@@ -108,7 +108,7 @@ extern "C"
      *  @param[in]      image_size    @p image のバイト数。
      *  @param[in]      catalog_id    @p image を判定に使うカタログの識別値 (`cplat_string_catalog_filter_get_catalog_id`)。
      *                                識別値が一致しない読み取り側は、公開内容を取り込みません。
-     *  @param[out]     timestamp_out 公開時刻の格納先。NULL を指定できます。
+     *  @param[out]     revision_out 版番号の格納先。NULL を指定できます。
      *  @return         成功時は `CPLAT_OK` を返します。
      *  @return         引数が NULL の場合、または @p catalog_id が 0 の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         @p image の行数の上限と行幅がハンドルと一致しない場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
@@ -116,13 +116,13 @@ extern "C"
      *  @return         排他を取れない場合は、その結果コードを返します。
      *  @return         そのほかの失敗は `cplat_string_catalog_filter_source_publish` と同じ結果コードを返します。
      *
-     *  読み取り側のフィルター スロットは直接更新しません。読み取り側は次のトレース出力で公開時刻の変化を検知して反映します。
+     *  読み取り側のフィルター スロットは直接更新しません。読み取り側は次のトレース出力で版番号の変化を検知して反映します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。書き込み側どうし、および排他を結び付けた読み取り側の複製とは、排他で直列化します。
      */
     int sample_filter_share_publish(sample_filter_share *share, const void *image, size_t image_size,
-                                    uint64_t catalog_id, uint64_t *timestamp_out);
+                                    uint64_t catalog_id, uint64_t *revision_out);
 
     /**
      *  @brief          共有メモリをソース領域として取得します。
@@ -146,7 +146,7 @@ extern "C"
      *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *
      *  格納した内容は `cplat_string_catalog_filter_slot_attach_source` へ渡します。
-     *  スロットは、公開時刻の変化を検知した場合だけこの排他を取り、複製の間に公開が重ならないようにします。\n
+     *  スロットは、版番号の変化を検知した場合だけこの排他を取り、複製の間に公開が重ならないようにします。\n
      *  排他を待つ時間は @ref SAMPLE_FILTER_SHARE_READER_TIMEOUT_MS までです。\n
      *  排他は、ハンドルを開くときに渡したものです。結び付けを解除するまで破棄しないでください。
      *

@@ -6,6 +6,7 @@
 
 #include <cplat/base/result.h>
 #include <cplat/crt/path.h>
+#include <cplat/crt/stdio.h>
 #include <cplat/runtime/process.h>
 
 #include <cstdint>
@@ -41,7 +42,7 @@ class sampleFilterFileTest : public Test
     /** ファイルへ内容をそのまま書き込みます。 */
     void write_file(const std::string &content)
     {
-        FILE *stream = std::fopen(path_.c_str(), "wb");
+        FILE *stream = cplat_fopen(path_.c_str(), "wb", nullptr);
 
         ASSERT_NE(nullptr, stream);
         ASSERT_EQ(content.size(), std::fwrite(content.data(), 1U, content.size(), stream));
