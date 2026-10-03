@@ -65,6 +65,7 @@ make bin-test BIN_TEST_ARGS=framework/docsfw
 
 ツールやファイルの不足によるスキップは、検証していないのに成功に見えるため失敗として扱います。  
 OS に依存するスキップは、理由を `[Linux]` または `[Windows]` で始めた場合に限り、別の OS で起きたときだけ認めます。  
+特定の OS だけで動く `*_selftest.py` は、`BIN_TEST_PLATFORM = "linux"` のように宣言すると、ほかの OS では実行せずに想定どおりのスキップとして扱います。  
 手元でツールが不足する場合は、`BIN_TEST_ARGS=--allow-skips` を指定すると、想定外のスキップを失敗にしません。  
 livedocs のテストは `make livedocs-venv` が作成する仮想環境の Python で実行され、`make bin-test` はこの仮想環境を先に作成します。
 
