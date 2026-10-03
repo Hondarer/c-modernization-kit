@@ -211,7 +211,8 @@ static const char *const s_line_error_labels[] = {
     "未解決のキー名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_KEY_NAME */
     "未解決の引数名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_ARGUMENT_NAME */
     "未知のレベル名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_CATEGORY_NAME */
-    "レベルの範囲外"  /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_CATEGORY_OUT_OF_RANGE */
+    "レベルの範囲外", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_CATEGORY_OUT_OF_RANGE */
+    "正規表現の誤り"  /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_INVALID_PATTERN */
 };
 
 /** cplat_string_catalog_filter_state の日本語の表示名です。値をインデックスとして参照します。 */
@@ -801,12 +802,18 @@ static const filter_sample_expression_example s_expression_examples[] = {
      "key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]", "ジョブの受け付けと失敗"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id ends_with \"0005\"",
      "ID が SAMPLE_WORKER_TRACE_ID_0005 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id matches \"000[45]$\"",
+     "ID の末尾が 0004 または 0005 のトレース (正規表現の部分一致)"},
     {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "利用者の引数で選ぶ (引数を持たない項目には一致しません)"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 1", "ワーカー 1 のトレース"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name starts_with \"import\"",
      "ジョブ名が import で始まるジョブの受け付け"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name contains_i \"EXP\"",
      "ジョブ名に exp を含むジョブの受け付け (ASCII の大文字と小文字を区別しない)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name matches \"^(im|ex)port-[01]$\"",
+     "ジョブ名がワーカー 0 または 1 の import か export であるジョブの受け付け (^ と $ で全体に固定)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name matches_i \"PORT-1\"",
+     "ジョブ名に port-1 を含むジョブの受け付け (正規表現、ASCII の大文字と小文字を区別しない)"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.priority between -3 and 3",
      "優先度が -3 以上 3 以下のジョブの受け付け"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.ratio >= 0.9", "進捗の割合が 0.9 以上のジョブの進捗"},

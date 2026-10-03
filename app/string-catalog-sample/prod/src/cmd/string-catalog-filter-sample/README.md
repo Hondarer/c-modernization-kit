@@ -87,6 +87,7 @@ Table: string-catalog-filter-sample のコマンド一覧
 | `key == SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS` | ジョブの進捗 |
 | `key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]` | ジョブの受け付けと失敗 |
 | `id ends_with "0005"` | ID が `SAMPLE_WORKER_TRACE_ID_0005` のトレース (ジョブの失敗) |
+| `id matches "000[45]$"` | ID の末尾が `0004` または `0005` のトレース (バッファーの確保とジョブの失敗。正規表現の部分一致) |
 
 Table: 項目情報によるトレース選別条件式の例
 
@@ -103,6 +104,8 @@ Table: 項目情報によるトレース選別条件式の例
 | `arg.worker_index == 1` | ワーカー 1 のトレース |
 | `arg.job_name starts_with "import"` | ジョブ名が `import` で始まるジョブの受け付け |
 | `arg.job_name contains_i "EXP"` | ジョブ名に `exp` を含むジョブの受け付け (ASCII の大文字と小文字を区別しない) |
+| `arg.job_name matches "^(im\|ex)port-[01]$"` | ジョブ名がワーカー 0 または 1 の `import` か `export` であるジョブの受け付け (`^` と `$` で全体に固定) |
+| `arg.job_name matches_i "PORT-1"` | ジョブ名に `port-1` を含むジョブの受け付け (正規表現、ASCII の大文字と小文字を区別しない) |
 | `arg.priority between -3 and 3` | 優先度が -3 以上 3 以下のジョブの受け付け |
 | `arg.ratio >= 0.9` | 進捗の割合が 0.9 以上のジョブの進捗 |
 | `arg.buffer == null` | 確保に失敗したバッファーの確保 |
@@ -153,6 +156,7 @@ Table: 複合条件によるトレース選別条件式の例
 |---|---|
 | `arg.no_such == 1` | どの項目にもない引数名のため、`apply` で無効な行になります (未解決の引数名) |
 | `category starts_with "x"` | 分類値は整数のため、`add` の時点で拒否されます (型不一致) |
+| `arg.job_name matches "(bad"` | 括弧が閉じていない正規表現のため、`add` の時点で拒否されます (正規表現の誤り) |
 
 Table: 無効判定となるフィルター条件式の例
 
