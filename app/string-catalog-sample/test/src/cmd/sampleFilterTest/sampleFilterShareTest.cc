@@ -350,8 +350,8 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
         state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED)); // [確認_正常系] - 最後に公開した条件が判定に使われること。
 }
 
-// 既存の領域の大きさが一致しない場合は、作り直さずに開くことを拒否することの確認
-TEST_F(sampleFilterShareTest, open_rejects_existing_region_of_different_size)
+// 既存の領域が必要な大きさに満たない場合は、作り直さずに開くことを拒否することの確認
+TEST_F(sampleFilterShareTest, open_rejects_existing_region_too_small)
 {
     // Arrange
     sample_filter_share *other = nullptr;
@@ -360,11 +360,34 @@ TEST_F(sampleFilterShareTest, open_rejects_existing_region_of_different_size)
 
     // Act
     int actual_ret = sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth + 8U,
-                                              &other); // [手順] - 行幅を変えて同じ領域を開く。
+                                              &other); // [手順] - 行幅を広げて、既存の領域より大きな大きさで開く。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 大きさの不一致を拒否すること。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 大きさが足りない領域を拒否すること。
     EXPECT_EQ(nullptr, other);                           // [確認_異常系] - ハンドルを返さないこと。
+}
+
+// 既存の領域が必要な大きさより大きい場合は受け付け、先頭の必要な大きさだけを使うことの確認
+TEST_F(sampleFilterShareTest, open_accepts_existing_region_larger_than_required)
+{
+    // Arrange
+    sample_filter_share *other = nullptr;
+    size_t actual_source_size = 0U;
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth - 8U,
+                                              &other); // [手順] - 行幅を狭めて、既存の領域より小さな大きさで開く。
+    const void *actual_source = sample_filter_share_get_source(other, &actual_source_size);
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 大きい領域を受け付けること。
+    EXPECT_NE(nullptr, actual_source); // [確認_正常系] - ソース領域を取得できること。
+    EXPECT_EQ((size_t)CPLAT_STRING_CATALOG_FILTER_SOURCE_SIZE(kLineCapacity, kLineWidth - 8U),
+              actual_source_size); // [確認_正常系] - 必要な大きさだけをソース領域として使うこと。
+
+    sample_filter_share_close(&other);
 }
 
 // 別に作成した排他 (別プロセスに見立てる) が保持している間は、待ち時間のうちに取得できないことの確認

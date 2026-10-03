@@ -39,7 +39,7 @@ extern "C"
     {
         SAMPLE_FILTER_SHARE_REGION_OK = 0,               /**< 成功。 */
         SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT = 1, /**< 引数が不正。 */
-        SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH = 2,    /**< 既存の領域の大きさが、要求した大きさと一致しない。 */
+        SAMPLE_FILTER_SHARE_REGION_TOO_SMALL = 2,        /**< 既存の領域の大きさが、要求した大きさに満たない。 */
         SAMPLE_FILTER_SHARE_REGION_TIMEOUT = 3,          /**< 待ち時間のうちに排他を取得できない。 */
         SAMPLE_FILTER_SHARE_REGION_FAILED = 4            /**< OS の操作の失敗やメモリ不足。 */
     } sample_filter_share_region_result;
@@ -57,8 +57,9 @@ extern "C"
      *  @param[out]     region_out 開いた領域の格納先。
      *  @return         成功時は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
      *  @return         引数が不正な場合は @ref SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT を返します。
-     *  @return         既存の領域の大きさが @p size と一致しない場合は @ref SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH
-     *                  を返します。既存の領域は作り直しません。
+     *  @return         既存の領域の大きさが @p size に満たない場合は @ref SAMPLE_FILTER_SHARE_REGION_TOO_SMALL
+     *                  を返します。既存の領域は作り直しません。\n
+     *                  既存の領域が @p size より大きい場合は受け付け、先頭の @p size バイトを使います。
      *  @return         領域を開けない場合は @ref SAMPLE_FILTER_SHARE_REGION_FAILED を返します。
      *
      *  新しく作成した領域は 0 で埋まっています。\n

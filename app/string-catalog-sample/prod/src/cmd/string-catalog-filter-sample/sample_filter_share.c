@@ -61,7 +61,7 @@ int sample_filter_share_to_result(const sample_filter_share_region_result result
         return CPLAT_OK;
     case SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT:
         return CPLAT_ERR_INVALID_ARGUMENT;
-    case SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH:
+    case SAMPLE_FILTER_SHARE_REGION_TOO_SMALL:
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     case SAMPLE_FILTER_SHARE_REGION_TIMEOUT:
         return CPLAT_ERR_TIMEOUT;

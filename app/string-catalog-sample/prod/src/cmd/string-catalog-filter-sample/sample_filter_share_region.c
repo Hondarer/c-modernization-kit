@@ -92,11 +92,11 @@ sample_filter_share_region_result sample_filter_share_region_open(const char *pa
         return result_of(ret);
     }
 
-    /* 既存のファイルは作り直さない。別の行数の上限や行幅で作られた領域を、黙って壊さないため */
-    if (cplat_mmap_get_size(region->map) != size)
+    /* 既存のファイルは作り直さない。大きい場合は先頭の size バイトだけを使い、足りない場合は拒否する */
+    if (cplat_mmap_get_size(region->map) < size)
     {
         sample_filter_share_region_close(&region);
-        return SAMPLE_FILTER_SHARE_REGION_SIZE_MISMATCH;
+        return SAMPLE_FILTER_SHARE_REGION_TOO_SMALL;
     }
 
     *region_out = region;
