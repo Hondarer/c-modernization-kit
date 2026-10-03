@@ -117,7 +117,7 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
         return ret;
     }
 
-    /* 領域の先頭は 8 バイト境界のため、ソース領域の公開時刻をアトミックに読み書きできる */
+    /* 領域の先頭は 8 バイト境界のため、ソース領域の版番号をアトミックに読み書きできる */
     share->source = sample_filter_share_region_get_address(share->region);
 
     *share_out = share;
@@ -142,7 +142,7 @@ void sample_filter_share_close(sample_filter_share **share)
 /* Doxygen コメントは、ヘッダーに記載 */
 
 int sample_filter_share_publish(sample_filter_share *share, const void *image, const size_t image_size,
-                                const uint64_t catalog_id, uint64_t *timestamp_out)
+                                const uint64_t catalog_id, uint64_t *revision_out)
 {
     cplat_string_catalog_filter_source_lock lock;
     cplat_string_catalog_filter_info info;
@@ -165,7 +165,7 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
     lock.unlock = release_source_lock;
     lock.context = &share->writer_lock;
     return cplat_string_catalog_filter_source_publish(share->source, share->source_size, image, image_size, catalog_id,
-                                                      &lock, timestamp_out);
+                                                      &lock, revision_out);
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

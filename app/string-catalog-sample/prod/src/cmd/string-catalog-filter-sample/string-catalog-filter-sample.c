@@ -766,7 +766,7 @@ static void print_help(cplat_pinned_prompt *screen)
         "  image                        編集中イメージのヘッダー情報とダンプを表示します\n"
         "  apply                        編集中イメージを共有メモリへ公開します (取り込みは次のトレース出力)\n"
         "  state                        文字列キーごとの判定状態を表示します\n"
-        "  status                       共有メモリの公開時刻と、取り込み済みの公開時刻を表示します\n"
+        "  status                       共有メモリの版番号と、取り込み済みの版番号を表示します\n"
         "  display [レベル]             表示のしきい値を取得または設定します\n"
         "  language [ja|en|neutral]     出力言語 (トレースと説明文) を取得または設定します\n"
         "  emit                         7 種類のトレースを 1 回ずつ出力します\n"
@@ -982,8 +982,8 @@ static void command_list(cplat_pinned_prompt *screen)
         (cplat_string_catalog_filter_source_get_info(source, source_size, &info) == CPLAT_OK))
     {
         cplat_pinned_prompt_printf(
-            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  取り込み済みの公開時刻: %llu (公開済みの公開時刻: %llu)\n",
-            (unsigned long long)status.taken_timestamp, (unsigned long long)info.published_timestamp);
+            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  取り込み済みの版番号: %llu (公開済みの版番号: %llu)\n",
+            (unsigned long long)status.taken_revision, (unsigned long long)info.published_revision);
     }
     print_slot_lines(screen, s_slot);
 }
@@ -1435,7 +1435,7 @@ static void command_apply(cplat_pinned_prompt *screen)
     cplat_string_catalog_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
     size_t invalid_count = 0;
     uint64_t catalog_id = 0U;
-    uint64_t timestamp = 0U;
+    uint64_t revision = 0U;
     size_t i;
     int ret;
 
@@ -1452,7 +1452,7 @@ static void command_apply(cplat_pinned_prompt *screen)
     ret = cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id);
     if (ret == CPLAT_OK)
     {
-        ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), catalog_id, &timestamp);
+        ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), catalog_id, &revision);
     }
     if (ret != CPLAT_OK)
     {
@@ -1463,8 +1463,8 @@ static void command_apply(cplat_pinned_prompt *screen)
 
     cplat_pinned_prompt_printf(
         screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-        "公開時刻 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
-        (unsigned long long)timestamp);
+        "版番号 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
+        (unsigned long long)revision);
 
     if (invalid_count == 0U)
     {
@@ -1750,8 +1750,8 @@ static void close_share(void)
 /**
  *  @brief          配布の状態を表示します。
  *
- *  共有メモリの公開時刻と、このプロセスのフィルター スロットが取り込んだ公開時刻を並べて表示します。
- *  取り込みは次のトレース出力で行われるため、公開の直後は 2 つの公開時刻が一致しません。
+ *  共有メモリの版番号と、このプロセスのフィルター スロットが取り込んだ版番号を並べて表示します。
+ *  取り込みは次のトレース出力で行われるため、公開の直後は 2 つの版番号が一致しません。
  */
 static void command_status(cplat_pinned_prompt *screen)
 {
@@ -1777,18 +1777,18 @@ static void command_status(cplat_pinned_prompt *screen)
     }
 
     (void)cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &own_catalog_id);
-    if (info.published_timestamp != 0U)
+    if (info.published_revision != 0U)
     {
         (void)cplat_clock_format_realtime_iso8601_local(published_at, sizeof(published_at), &info.published_realtime);
     }
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
                                "共有メモリ: %s\n"
-                               "公開済みの公開時刻: %llu (公開した時刻: %s、プロセス: %u)\n"
-                               "取り込み済みの公開時刻: %llu\n"
+                               "公開済みの版番号: %llu (公開した時刻: %s、プロセス: %u)\n"
+                               "取り込み済みの版番号: %llu\n"
                                "直近の取り込み: 結果コード=%d、無効にした行=%zu\n",
-                               s_share_path, (unsigned long long)info.published_timestamp, published_at,
-                               (unsigned int)info.publisher_process_id, (unsigned long long)status.taken_timestamp,
+                               s_share_path, (unsigned long long)info.published_revision, published_at,
+                               (unsigned int)info.publisher_process_id, (unsigned long long)status.taken_revision,
                                status.last_result, status.last_invalid_count);
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
                                "カタログの識別値: 公開内容 0x%016llx、このプロセス 0x%016llx\n",
@@ -1977,7 +1977,7 @@ int main(int argc, char *argv[])
     }
 
     /* 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付ける。
-       以降はトレース出力のたびに公開時刻を比べ、変化した場合だけ排他を取って取り込む (二重確認) */
+       以降はトレース出力のたびに版番号を比べ、変化した場合だけ排他を取って取り込む (二重確認) */
     source = sample_filter_share_get_source(s_reader_share, &source_size);
     ret = sample_filter_share_get_source_lock(s_reader_share, &source_lock);
     if (ret == CPLAT_OK)

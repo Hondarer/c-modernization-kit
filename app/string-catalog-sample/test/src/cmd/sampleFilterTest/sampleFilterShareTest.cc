@@ -80,7 +80,7 @@ class sampleFilterShareTest : public Test
                                                        SAMPLE_FILTER_TEST_CONTEXT_ARGS(1));
     }
 
-    uint64_t published_timestamp()
+    uint64_t published_revision()
     {
         cplat_string_catalog_filter_source_info info;
 
@@ -88,10 +88,10 @@ class sampleFilterShareTest : public Test
         {
             return UINT64_MAX;
         }
-        return info.published_timestamp;
+        return info.published_revision;
     }
 
-    uint64_t taken_timestamp()
+    uint64_t taken_revision()
     {
         cplat_string_catalog_filter_source_status status;
 
@@ -99,7 +99,7 @@ class sampleFilterShareTest : public Test
         {
             return UINT64_MAX;
         }
-        return status.taken_timestamp;
+        return status.taken_revision;
     }
 
     std::string path_;
@@ -126,10 +126,10 @@ TEST_F(sampleFilterShareTest, nothing_is_taken_before_first_publish)
     int actual_ret = format_job_failed(&actual_matched); // [手順] - 未公開のまま組み立てる。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);      // [確認_正常系] - 組み立てが成功すること。
-    EXPECT_EQ(0, actual_matched);         // [確認_正常系] - 何も取り込まず、条件に一致しないこと。
-    EXPECT_EQ(0U, published_timestamp()); // [確認_正常系] - 共有メモリが未公開であること。
-    EXPECT_EQ(0U, taken_timestamp());     // [確認_正常系] - 取り込み済みの公開時刻が 0 であること。
+    EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - 組み立てが成功すること。
+    EXPECT_EQ(0, actual_matched);        // [確認_正常系] - 何も取り込まず、条件に一致しないこと。
+    EXPECT_EQ(0U, published_revision()); // [確認_正常系] - 共有メモリが未公開であること。
+    EXPECT_EQ(0U, taken_revision());     // [確認_正常系] - 取り込み済みの版番号が 0 であること。
 }
 
 // 書き込み側のハンドルが公開した内容を、読み取り側の共有メモリを結び付けたスロットが次の組み立てで反映することの確認
@@ -137,7 +137,7 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
 {
     // Arrange
     static unsigned char image[kImageSize];
-    uint64_t timestamp = 0U;
+    uint64_t revision = 0U;
     int actual_matched = 0;
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
@@ -146,21 +146,21 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
 
     // Act
     int actual_publish_ret =
-        sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &timestamp); // [手順] - 公開する。
+        sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision); // [手順] - 公開する。
     cplat_string_catalog_filter_state actual_before = state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED);
     (void)format_job_failed(&actual_matched); // [手順] - 組み立てる。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_publish_ret);     // [確認_正常系] - 公開が成功すること。
-    EXPECT_EQ(timestamp, published_timestamp()); // [確認_正常系] - 公開時刻を読み取り側から読めること。
+    EXPECT_EQ(CPLAT_OK, actual_publish_ret);   // [確認_正常系] - 公開が成功すること。
+    EXPECT_EQ(revision, published_revision()); // [確認_正常系] - 版番号を読み取り側から読めること。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_NEVER_MATCH,
-              actual_before);                // [確認_正常系] - 公開だけでは取り込まないこと。
-    EXPECT_NE(0, actual_matched);            // [確認_正常系] - 組み立てで取り込んだ条件に一致すること。
-    EXPECT_EQ(timestamp, taken_timestamp()); // [確認_正常系] - 公開時刻を取り込み済みとすること。
+              actual_before);              // [確認_正常系] - 公開だけでは取り込まないこと。
+    EXPECT_NE(0, actual_matched);          // [確認_正常系] - 組み立てで取り込んだ条件に一致すること。
+    EXPECT_EQ(revision, taken_revision()); // [確認_正常系] - 版番号を取り込み済みとすること。
 }
 
-// 書き込み側のハンドルをまたいでも、公開時刻が増加することの確認
-TEST_F(sampleFilterShareTest, timestamp_advances_across_writers)
+// 書き込み側のハンドルをまたいでも、版番号が増加することの確認
+TEST_F(sampleFilterShareTest, revision_advances_across_writers)
 {
     // Arrange
     static unsigned char image[kImageSize];
@@ -180,10 +180,10 @@ TEST_F(sampleFilterShareTest, timestamp_advances_across_writers)
                                                         &second); // [手順] - 別の書き込み側から公開する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_first_ret);    // [確認_正常系] - 1 回目の公開が成功すること。
-    EXPECT_EQ(CPLAT_OK, actual_second_ret);   // [確認_正常系] - 2 回目の公開が成功すること。
-    EXPECT_GT(second, first);                 // [確認_正常系] - 公開時刻が増加すること。
-    EXPECT_EQ(second, published_timestamp()); // [確認_正常系] - 最後の公開時刻が共有メモリに残ること。
+    EXPECT_EQ(CPLAT_OK, actual_first_ret);   // [確認_正常系] - 1 回目の公開が成功すること。
+    EXPECT_EQ(CPLAT_OK, actual_second_ret);  // [確認_正常系] - 2 回目の公開が成功すること。
+    EXPECT_EQ(first + 2U, second);           // [確認_正常系] - 版番号が 2 増えること。
+    EXPECT_EQ(second, published_revision()); // [確認_正常系] - 最後の版番号が共有メモリに残ること。
 
     sample_filter_share_close(&another_writer);
 }
@@ -204,7 +204,7 @@ TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 公開が拒否されること。
-    EXPECT_EQ(0U, published_timestamp());                // [確認_異常系] - 共有メモリが未公開のままであること。
+    EXPECT_EQ(0U, published_revision());                 // [確認_異常系] - 共有メモリが未公開のままであること。
 }
 
 // 行数の上限と行幅が異なるイメージの公開を拒否することの確認
@@ -226,7 +226,7 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 形式の異なる公開が拒否されること。
-    EXPECT_EQ(0U, published_timestamp());                // [確認_異常系] - 共有メモリが未公開のままであること。
+    EXPECT_EQ(0U, published_revision());                 // [確認_異常系] - 共有メモリが未公開のままであること。
 }
 
 // 生成物のトレース出力が、出力の前に公開内容を取り込み、一致したトレースを強制出力にすることの確認
@@ -235,7 +235,7 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     // Arrange
     static unsigned char image[kImageSize];
     cplat_tracer *tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
-    uint64_t timestamp = 0U;
+    uint64_t revision = 0U;
 
     ASSERT_NE(nullptr, tracer);                                       // [状態確認] - トレーサーを作成できること。
     ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer));                  // [状態確認] - トレーサーを開始できること。
@@ -243,7 +243,7 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));       // [状態] - スロットを出力へ接続する。
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
     ASSERT_EQ(CPLAT_OK,
-              sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &timestamp)); // [状態] - 公開する。
+              sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)); // [状態] - 公開する。
 
     // Pre-Assert
 
@@ -251,8 +251,8 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     int actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 5); // [手順] - トレースを出力する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);         // [確認_正常系] - 出力が成功すること。
-    EXPECT_EQ(timestamp, taken_timestamp()); // [確認_正常系] - 出力の前に公開内容を取り込むこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret);       // [確認_正常系] - 出力が成功すること。
+    EXPECT_EQ(revision, taken_revision()); // [確認_正常系] - 出力の前に公開内容を取り込むこと。
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
               state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED)); // [確認_正常系] - 取り込んだ条件が判定に使われること。
 
@@ -303,7 +303,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
     format_args args[4];
     cplat_thread *threads[4];
     cplat_string_catalog_filter_source_status status;
-    uint64_t last_timestamp = 0U;
+    uint64_t last_revision = 0U;
     int matched = 0;
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
@@ -332,7 +332,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
             image = image_started;
         }
         ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
-                                                        &last_timestamp)); // [手順] - 2 種類の条件を交互に公開する。
+                                                        &last_revision)); // [手順] - 2 種類の条件を交互に公開する。
     }
     stop_flag = 1; // [手順] - スレッドへ終了を通知する。
     for (int index = 0; index < 4; index++)
@@ -347,9 +347,9 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
     {
         EXPECT_EQ(1, args[index].is_ok); // [確認_正常系] - 各スレッドの組み立てが常に成功すること。
     }
-    EXPECT_EQ(CPLAT_OK, actual_final_ret);             // [確認_正常系] - 最後の組み立てが成功すること。
-    EXPECT_EQ(last_timestamp, status.taken_timestamp); // [確認_正常系] - 最後の公開内容を取り込んでいること。
-    EXPECT_EQ(CPLAT_OK, status.last_result);           // [確認_正常系] - 最後の取り込みが成功していること。
+    EXPECT_EQ(CPLAT_OK, actual_final_ret);           // [確認_正常系] - 最後の組み立てが成功すること。
+    EXPECT_EQ(last_revision, status.taken_revision); // [確認_正常系] - 最後の公開内容を取り込んでいること。
+    EXPECT_EQ(CPLAT_OK, status.last_result);         // [確認_正常系] - 最後の取り込みが成功していること。
     EXPECT_EQ(
         CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
         state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED)); // [確認_正常系] - 最後に公開した条件が判定に使われること。
@@ -430,13 +430,13 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     // Arrange
     static unsigned char image[kImageSize];
     sample_filter_share_lock *another = nullptr;
-    uint64_t timestamp = 0U;
+    uint64_t revision = 0U;
     int actual_while_held = 1;
     int actual_after_release = 0;
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - 条件をコンパイルする。
     ASSERT_EQ(CPLAT_OK,
-              sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &timestamp)); // [状態] - 公開する。
+              sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)); // [状態] - 公開する。
     ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
               sample_filter_share_lock_create(path_.c_str(), &another)); // [状態] - 同じパスで別の排他を作成する。
     ASSERT_EQ(
@@ -457,11 +457,11 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     (void)format_job_failed(&actual_after_release); // [手順] - 解放後に組み立てる。
 
     // Assert
-    EXPECT_EQ(0, actual_while_held);                  // [確認_異常系] - 取り込まず、以前の条件で判定すること。
-    EXPECT_EQ(0U, status_while_held.taken_timestamp); // [確認_異常系] - 取り込み済みとしないこと。
+    EXPECT_EQ(0, actual_while_held);                 // [確認_異常系] - 取り込まず、以前の条件で判定すること。
+    EXPECT_EQ(0U, status_while_held.taken_revision); // [確認_異常系] - 取り込み済みとしないこと。
     EXPECT_EQ(CPLAT_ERR_TIMEOUT, status_while_held.last_result); // [確認_異常系] - 待ち時間の超過を記録すること。
     EXPECT_NE(0, actual_after_release);                          // [確認_正常系] - 解放後の出力で取り込むこと。
-    EXPECT_EQ(timestamp, taken_timestamp());                     // [確認_正常系] - 公開時刻を取り込み済みとすること。
+    EXPECT_EQ(revision, taken_revision());                       // [確認_正常系] - 版番号を取り込み済みとすること。
 
     sample_filter_share_lock_dispose(&another);
 }
@@ -469,31 +469,31 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
 namespace
 {
 /**
- *  @brief          ソース領域のヘッダーにおける公開時刻のオフセットです。
+ *  @brief          ソース領域のヘッダーにおける版番号のオフセットです。
  *
  *  cplat のソース領域の配置 (署名と形式版、行数の上限と行幅、フィルター オブジェクトのバイト数に続く 0x18)
- *  に合わせます。公開時刻を奇数にして、書き込みの途中で止まった状態を作るために使います。
+ *  に合わせます。版番号を奇数にして、書き込みの途中で止まった状態を作るために使います。
  */
-constexpr std::size_t kPublishedTimestampOffset = 0x18U;
+constexpr std::size_t kPublishedRevisionOffset = 0x18U;
 
 /**
  *  @brief          別のプロセスの書き込み側として、書き込みの途中で異常終了します。
  *
- *  同じパスの排他を新しく作成して取得し、公開時刻を奇数にして、フィルター オブジェクトの一部を書き換えた
+ *  同じパスの排他を新しく作成して取得し、版番号を奇数にして、フィルター オブジェクトの一部を書き換えた
  *  ところで、排他を解放せずに異常終了します。cplat の公開が書き込みの途中で止まった状態と同じです。
  */
 void crash_while_writing(const char *path, void *source)
 {
     sample_filter_share_lock *lock = nullptr;
-    cplat_atomic_u64 *timestamp =
-        reinterpret_cast<cplat_atomic_u64 *>(static_cast<unsigned char *>(source) + kPublishedTimestampOffset);
+    cplat_atomic_u64 *revision =
+        reinterpret_cast<cplat_atomic_u64 *>(static_cast<unsigned char *>(source) + kPublishedRevisionOffset);
 
     if ((sample_filter_share_lock_create(path, &lock) != SAMPLE_FILTER_SHARE_REGION_OK) ||
         (sample_filter_share_lock_acquire(lock, SAMPLE_FILTER_SHARE_WAIT_FOREVER) != SAMPLE_FILTER_SHARE_REGION_OK))
     {
         std::_Exit(2);
     }
-    cplat_atomic_store_u64(timestamp, cplat_atomic_load_u64(timestamp, CPLAT_MEMORY_ORDER_RELAXED) | 1U,
+    cplat_atomic_store_u64(revision, cplat_atomic_load_u64(revision, CPLAT_MEMORY_ORDER_RELAXED) | 1U,
                            CPLAT_MEMORY_ORDER_RELEASE);
     std::memset(static_cast<unsigned char *>(source) + CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, 0xAA, 64U);
     std::abort();
@@ -510,8 +510,8 @@ TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_re
     // Arrange
     static unsigned char image_failed[kImageSize];
     static unsigned char image_started[kImageSize];
-    uint64_t first_timestamp = 0U;
-    uint64_t recovered_timestamp = 0U;
+    uint64_t first_revision = 0U;
+    uint64_t recovered_revision = 0U;
     int actual_before_crash = 0;
     int actual_after_crash = 0;
     int actual_after_recovery = 1;
@@ -522,9 +522,9 @@ TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_re
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED",
                                             image_started)); // [状態] - 2 つ目の条件をコンパイルする。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_failed, kImageSize, catalog_id_,
-                                                    &first_timestamp)); // [状態] - 1 つ目の条件を公開する。
-    (void)format_job_failed(&actual_before_crash);                      // [状態] - 1 つ目の条件を取り込む。
-    ASSERT_NE(0, actual_before_crash);                                  // [状態確認] - 1 つ目の条件で一致すること。
+                                                    &first_revision)); // [状態] - 1 つ目の条件を公開する。
+    (void)format_job_failed(&actual_before_crash);                     // [状態] - 1 つ目の条件を取り込む。
+    ASSERT_NE(0, actual_before_crash);                                 // [状態確認] - 1 つ目の条件で一致すること。
     GTEST_FLAG_SET(death_test_style, "fast");
 
     // Pre-Assert
@@ -536,7 +536,7 @@ TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_re
     const int actual_info_after_crash = cplat_string_catalog_filter_source_get_info(
         source_, source_size_, &info_after_crash); // [手順] - 異常終了の後の領域の状態を読む。
     (void)format_job_failed(&actual_after_crash);  // [手順] - 異常終了の後に組み立てる。
-    const uint64_t taken_after_crash = taken_timestamp();
+    const uint64_t taken_after_crash = taken_revision();
     const sample_filter_share_region_result actual_lock_after_crash =
         sample_filter_share_lock_acquire(lock_, 0); // [手順] - 異常終了したプロセスの排他が解放されたかを確かめる。
     if (actual_lock_after_crash == SAMPLE_FILTER_SHARE_REGION_OK)
@@ -544,16 +544,16 @@ TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_re
         sample_filter_share_lock_release(lock_);
     }
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_started, kImageSize, catalog_id_,
-                                                    &recovered_timestamp)); // [手順] - 2 つ目の条件を公開し直す。
-    (void)format_job_failed(&actual_after_recovery);                        // [手順] - 公開し直した後に組み立てる。
+                                                    &recovered_revision)); // [手順] - 2 つ目の条件を公開し直す。
+    (void)format_job_failed(&actual_after_recovery);                       // [手順] - 公開し直した後に組み立てる。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_BUSY, actual_info_after_crash); // [確認_異常系] - 領域が書き込み中のまま残っていること。
-    EXPECT_NE(0, actual_after_crash);              // [確認_異常系] - 異常終了の後も取り込み済みの条件で判定すること。
-    EXPECT_EQ(first_timestamp, taken_after_crash); // [確認_異常系] - 書き込み途中の内容を取り込まないこと。
+    EXPECT_NE(0, actual_after_crash);             // [確認_異常系] - 異常終了の後も取り込み済みの条件で判定すること。
+    EXPECT_EQ(first_revision, taken_after_crash); // [確認_異常系] - 書き込み途中の内容を取り込まないこと。
     EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, actual_lock_after_crash); // [確認_異常系] - OS が排他を解放していること。
-    EXPECT_GT(recovered_timestamp, first_timestamp);   // [確認_正常系] - 公開し直した公開時刻が増加すること。
-    EXPECT_EQ(0, actual_after_recovery);               // [確認_正常系] - 公開し直した条件で判定すること。
-    EXPECT_EQ(recovered_timestamp, taken_timestamp()); // [確認_正常系] - 公開し直した内容を取り込むこと。
+    EXPECT_GT(recovered_revision, first_revision);   // [確認_正常系] - 公開し直した版番号が増加すること。
+    EXPECT_EQ(0, actual_after_recovery);             // [確認_正常系] - 公開し直した条件で判定すること。
+    EXPECT_EQ(recovered_revision, taken_revision()); // [確認_正常系] - 公開し直した内容を取り込むこと。
 #endif
 }
