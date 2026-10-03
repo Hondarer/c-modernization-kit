@@ -7,6 +7,7 @@
 #include "sample_filter_share_region.h"
 
 #include <cplat/base/result.h>
+#include <cplat/sync/atomic.h>
 #include <cplat/crt/path.h>
 #include <cplat/runtime/process.h>
 #include <cplat/sync/sync.h>
@@ -15,6 +16,7 @@
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 
@@ -433,4 +435,96 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     EXPECT_EQ(timestamp, taken_timestamp());                     // [確認_正常系] - 公開時刻を取り込み済みとすること。
 
     sample_filter_share_lock_dispose(&another);
+}
+
+namespace
+{
+/**
+ *  @brief          ソース領域のヘッダーにおける公開時刻のオフセットです。
+ *
+ *  cplat のソース領域の配置 (署名と形式版、行数の上限と行幅、フィルター オブジェクトのバイト数に続く 0x18)
+ *  に合わせます。公開時刻を奇数にして、書き込みの途中で止まった状態を作るために使います。
+ */
+constexpr std::size_t kPublishedTimestampOffset = 0x18U;
+
+/**
+ *  @brief          別のプロセスの書き込み側として、書き込みの途中で異常終了します。
+ *
+ *  同じパスの排他を新しく作成して取得し、公開時刻を奇数にして、フィルター オブジェクトの一部を書き換えた
+ *  ところで、排他を解放せずに異常終了します。cplat の公開が書き込みの途中で止まった状態と同じです。
+ */
+void crash_while_writing(const char *path, void *source)
+{
+    sample_filter_share_lock *lock = nullptr;
+    cplat_atomic_u64 *timestamp =
+        reinterpret_cast<cplat_atomic_u64 *>(static_cast<unsigned char *>(source) + kPublishedTimestampOffset);
+
+    if ((sample_filter_share_lock_create(path, &lock) != SAMPLE_FILTER_SHARE_REGION_OK) ||
+        (sample_filter_share_lock_acquire(lock, SAMPLE_FILTER_SHARE_WAIT_FOREVER) != SAMPLE_FILTER_SHARE_REGION_OK))
+    {
+        std::_Exit(2);
+    }
+    cplat_atomic_store_u64(timestamp, cplat_atomic_load_u64(timestamp, CPLAT_MEMORY_ORDER_RELAXED) | 1U,
+                           CPLAT_MEMORY_ORDER_RELEASE);
+    std::memset(static_cast<unsigned char *>(source) + CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, 0xAA, 64U);
+    std::abort();
+}
+} // namespace
+
+// 別のプロセスの書き込み側が書き込みの途中で異常終了しても、取り込み済みの条件を保ち、
+// OS が排他を解放し、次の公開で回復することの確認
+TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_recovers)
+{
+#if defined(_WIN32)
+    GTEST_SKIP() << "子プロセスを fork で起動するデス テストを使うため、Linux 環境専用のテストです";
+#else
+    // Arrange
+    static unsigned char image_failed[kImageSize];
+    static unsigned char image_started[kImageSize];
+    uint64_t first_timestamp = 0U;
+    uint64_t recovered_timestamp = 0U;
+    int actual_before_crash = 0;
+    int actual_after_crash = 0;
+    int actual_after_recovery = 1;
+    void *source = const_cast<void *>(source_);
+
+    ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
+                                            image_failed)); // [状態] - 1 つ目の条件をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED",
+                                            image_started)); // [状態] - 2 つ目の条件をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_failed, kImageSize,
+                                                    &first_timestamp)); // [状態] - 1 つ目の条件を公開する。
+    (void)format_job_failed(&actual_before_crash);                      // [状態] - 1 つ目の条件を取り込む。
+    ASSERT_NE(0, actual_before_crash);                                  // [状態確認] - 1 つ目の条件で一致すること。
+    GTEST_FLAG_SET(death_test_style, "fast");
+
+    // Pre-Assert
+
+    // Act
+    EXPECT_DEATH(crash_while_writing(path_.c_str(), source),
+                 ""); // [手順] - 別のプロセスの書き込み側を、書き込みの途中で異常終了させる。
+    cplat_string_catalog_filter_source_info info_after_crash;
+    const int actual_info_after_crash = cplat_string_catalog_filter_source_get_info(
+        source_, source_size_, &info_after_crash); // [手順] - 異常終了の後の領域の状態を読む。
+    (void)format_job_failed(&actual_after_crash);  // [手順] - 異常終了の後に組み立てる。
+    const uint64_t taken_after_crash = taken_timestamp();
+    const sample_filter_share_region_result actual_lock_after_crash =
+        sample_filter_share_lock_acquire(lock_, 0); // [手順] - 異常終了したプロセスの排他が解放されたかを確かめる。
+    if (actual_lock_after_crash == SAMPLE_FILTER_SHARE_REGION_OK)
+    {
+        sample_filter_share_lock_release(lock_);
+    }
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_started, kImageSize,
+                                                    &recovered_timestamp)); // [手順] - 2 つ目の条件を公開し直す。
+    (void)format_job_failed(&actual_after_recovery);                        // [手順] - 公開し直した後に組み立てる。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_BUSY, actual_info_after_crash); // [確認_異常系] - 領域が書き込み中のまま残っていること。
+    EXPECT_NE(0, actual_after_crash);              // [確認_異常系] - 異常終了の後も取り込み済みの条件で判定すること。
+    EXPECT_EQ(first_timestamp, taken_after_crash); // [確認_異常系] - 書き込み途中の内容を取り込まないこと。
+    EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, actual_lock_after_crash); // [確認_異常系] - OS が排他を解放していること。
+    EXPECT_GT(recovered_timestamp, first_timestamp);   // [確認_正常系] - 公開し直した公開時刻が増加すること。
+    EXPECT_EQ(0, actual_after_recovery);               // [確認_正常系] - 公開し直した条件で判定すること。
+    EXPECT_EQ(recovered_timestamp, taken_timestamp()); // [確認_正常系] - 公開し直した内容を取り込むこと。
+#endif
 }
