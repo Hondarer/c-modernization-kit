@@ -1434,6 +1434,7 @@ static void command_apply(cplat_pinned_prompt *screen)
 {
     cplat_string_catalog_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
     size_t invalid_count = 0;
+    uint64_t catalog_id = 0U;
     uint64_t timestamp = 0U;
     size_t i;
     int ret;
@@ -1447,7 +1448,12 @@ static void command_apply(cplat_pinned_prompt *screen)
         return;
     }
 
-    ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), &timestamp);
+    /* 読み取り側は、自分のカタログと識別値が一致する公開内容だけを取り込む */
+    ret = cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id);
+    if (ret == CPLAT_OK)
+    {
+        ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), catalog_id, &timestamp);
+    }
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1751,6 +1757,7 @@ static void command_status(cplat_pinned_prompt *screen)
 {
     cplat_string_catalog_filter_source_status status;
     cplat_string_catalog_filter_source_info info;
+    uint64_t own_catalog_id = 0U;
     char published_at[64] = "-";
     const void *source;
     size_t source_size = 0U;
@@ -1769,6 +1776,7 @@ static void command_status(cplat_pinned_prompt *screen)
         return;
     }
 
+    (void)cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &own_catalog_id);
     if (info.published_timestamp != 0U)
     {
         (void)cplat_clock_format_realtime_iso8601_local(published_at, sizeof(published_at), &info.published_realtime);
@@ -1782,6 +1790,9 @@ static void command_status(cplat_pinned_prompt *screen)
                                s_share_path, (unsigned long long)info.published_timestamp, published_at,
                                (unsigned int)info.publisher_process_id, (unsigned long long)status.taken_timestamp,
                                status.last_result, status.last_invalid_count);
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                               "カタログの識別値: 公開内容 0x%016llx、このプロセス 0x%016llx\n",
+                               (unsigned long long)info.catalog_id, (unsigned long long)own_catalog_id);
 }
 
 static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requested_out)

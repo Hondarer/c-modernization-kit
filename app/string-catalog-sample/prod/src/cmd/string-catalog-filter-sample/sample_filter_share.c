@@ -42,7 +42,8 @@ static int acquire_source_lock(void *context)
 {
     const source_lock_context *lock_context = (const source_lock_context *)context;
 
-    return sample_filter_share_to_result(sample_filter_share_lock_acquire(lock_context->lock, lock_context->timeout_ms));
+    return sample_filter_share_to_result(
+        sample_filter_share_lock_acquire(lock_context->lock, lock_context->timeout_ms));
 }
 
 /** cplat が公開と取り込みの間に、排他を解放するために呼び出します。 */
@@ -141,7 +142,7 @@ void sample_filter_share_close(sample_filter_share **share)
 /* Doxygen コメントは、ヘッダーに記載 */
 
 int sample_filter_share_publish(sample_filter_share *share, const void *image, const size_t image_size,
-                                uint64_t *timestamp_out)
+                                const uint64_t catalog_id, uint64_t *timestamp_out)
 {
     cplat_string_catalog_filter_source_lock lock;
     cplat_string_catalog_filter_info info;
@@ -163,8 +164,8 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
     lock.lock = acquire_source_lock;
     lock.unlock = release_source_lock;
     lock.context = &share->writer_lock;
-    return cplat_string_catalog_filter_source_publish(share->source, share->source_size, image, image_size, &lock,
-                                                      timestamp_out);
+    return cplat_string_catalog_filter_source_publish(share->source, share->source_size, image, image_size, catalog_id,
+                                                      &lock, timestamp_out);
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -181,8 +182,7 @@ const void *sample_filter_share_get_source(const sample_filter_share *share, siz
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int sample_filter_share_get_source_lock(sample_filter_share *share,
-                                        cplat_string_catalog_filter_source_lock *lock_out)
+int sample_filter_share_get_source_lock(sample_filter_share *share, cplat_string_catalog_filter_source_lock *lock_out)
 {
     if ((share == NULL) || (lock_out == NULL))
     {
