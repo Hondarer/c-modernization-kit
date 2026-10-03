@@ -41,6 +41,7 @@ class sampleFilterShareTest : public Test
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_));
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_));
 
         /* 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付け、別プロセスの読み取り側に見立てる */
         source_ = sample_filter_share_get_source(reader_, &source_size_);
@@ -103,6 +104,7 @@ class sampleFilterShareTest : public Test
 
     std::string path_;
     std::string lock_path_;
+    uint64_t catalog_id_ = 0U;
     sample_filter_share_lock *lock_ = nullptr;
     sample_filter_share *writer_ = nullptr;
     sample_filter_share *reader_ = nullptr;
@@ -143,7 +145,8 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
     // Pre-Assert
 
     // Act
-    int actual_publish_ret = sample_filter_share_publish(writer_, image, kImageSize, &timestamp); // [手順] - 公開する。
+    int actual_publish_ret =
+        sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &timestamp); // [手順] - 公開する。
     cplat_string_catalog_filter_state actual_before = state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED);
     (void)format_job_failed(&actual_matched); // [手順] - 組み立てる。
 
@@ -171,8 +174,9 @@ TEST_F(sampleFilterShareTest, timestamp_advances_across_writers)
     // Pre-Assert
 
     // Act
-    int actual_first_ret = sample_filter_share_publish(writer_, image, kImageSize, &first); // [手順] - 公開する。
-    int actual_second_ret = sample_filter_share_publish(another_writer, image, kImageSize,
+    int actual_first_ret =
+        sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &first); // [手順] - 公開する。
+    int actual_second_ret = sample_filter_share_publish(another_writer, image, kImageSize, catalog_id_,
                                                         &second); // [手順] - 別の書き込み側から公開する。
 
     // Assert
@@ -195,8 +199,8 @@ TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
     // Pre-Assert
 
     // Act
-    int actual_ret =
-        sample_filter_share_publish(writer_, image, kImageSize, nullptr); // [手順] - 壊れたイメージを公開する。
+    int actual_ret = sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
+                                                 nullptr); // [手順] - 壊れたイメージを公開する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 公開が拒否されること。
@@ -217,7 +221,7 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
     // Pre-Assert
 
     // Act
-    int actual_ret = sample_filter_share_publish(writer_, narrow_image, sizeof(narrow_image),
+    int actual_ret = sample_filter_share_publish(writer_, narrow_image, sizeof(narrow_image), catalog_id_,
                                                  nullptr); // [手順] - 行幅の異なるイメージを公開する。
 
     // Assert
@@ -238,7 +242,8 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     sample_worker_trace_set_tracer(tracer);                           // [状態] - 出力先を設定する。
     ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));       // [状態] - スロットを出力へ接続する。
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, &timestamp)); // [状態] - 公開する。
+    ASSERT_EQ(CPLAT_OK,
+              sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &timestamp)); // [状態] - 公開する。
 
     // Pre-Assert
 
@@ -326,7 +331,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
         {
             image = image_started;
         }
-        ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize,
+        ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                         &last_timestamp)); // [手順] - 2 種類の条件を交互に公開する。
     }
     stop_flag = 1; // [手順] - スレッドへ終了を通知する。
@@ -430,7 +435,8 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     int actual_after_release = 0;
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - 条件をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, &timestamp)); // [状態] - 公開する。
+    ASSERT_EQ(CPLAT_OK,
+              sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &timestamp)); // [状態] - 公開する。
     ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
               sample_filter_share_lock_create(path_.c_str(), &another)); // [状態] - 同じパスで別の排他を作成する。
     ASSERT_EQ(
@@ -515,7 +521,7 @@ TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_re
                                             image_failed)); // [状態] - 1 つ目の条件をコンパイルする。
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED",
                                             image_started)); // [状態] - 2 つ目の条件をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_failed, kImageSize,
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_failed, kImageSize, catalog_id_,
                                                     &first_timestamp)); // [状態] - 1 つ目の条件を公開する。
     (void)format_job_failed(&actual_before_crash);                      // [状態] - 1 つ目の条件を取り込む。
     ASSERT_NE(0, actual_before_crash);                                  // [状態確認] - 1 つ目の条件で一致すること。
@@ -537,7 +543,7 @@ TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_re
     {
         sample_filter_share_lock_release(lock_);
     }
-    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_started, kImageSize,
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_started, kImageSize, catalog_id_,
                                                     &recovered_timestamp)); // [手順] - 2 つ目の条件を公開し直す。
     (void)format_job_failed(&actual_after_recovery);                        // [手順] - 公開し直した後に組み立てる。
 

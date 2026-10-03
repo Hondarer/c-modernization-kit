@@ -106,9 +106,11 @@ extern "C"
      *  @param[in]      share         ハンドル。
      *  @param[in]      image         公開するフィルター オブジェクト。
      *  @param[in]      image_size    @p image のバイト数。
+     *  @param[in]      catalog_id    @p image を判定に使うカタログの識別値 (`cplat_string_catalog_filter_get_catalog_id`)。
+     *                                識別値が一致しない読み取り側は、公開内容を取り込みません。
      *  @param[out]     timestamp_out 公開時刻の格納先。NULL を指定できます。
      *  @return         成功時は `CPLAT_OK` を返します。
-     *  @return         引数が NULL の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
+     *  @return         引数が NULL の場合、または @p catalog_id が 0 の場合は `CPLAT_ERR_INVALID_ARGUMENT` を返します。
      *  @return         @p image の行数の上限と行幅がハンドルと一致しない場合は `CPLAT_ERR_CORRUPT_DESCRIPTOR` を返します。
      *                  共有メモリは変更しません。
      *  @return         排他を取れない場合は、その結果コードを返します。
@@ -120,7 +122,7 @@ extern "C"
      *  本関数はスレッド セーフです。書き込み側どうし、および排他を結び付けた読み取り側の複製とは、排他で直列化します。
      */
     int sample_filter_share_publish(sample_filter_share *share, const void *image, size_t image_size,
-                                    uint64_t *timestamp_out);
+                                    uint64_t catalog_id, uint64_t *timestamp_out);
 
     /**
      *  @brief          共有メモリをソース領域として取得します。

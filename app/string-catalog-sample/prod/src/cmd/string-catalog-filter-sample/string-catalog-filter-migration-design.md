@@ -443,7 +443,7 @@ cplat は、先頭アドレスとバイト数、および排他を取得、解�
 
 | 操作 | cplat が受け取るもの | 排他の扱い |
 |---|---|---|
-| 公開 (`cplat_string_catalog_filter_source_publish`) | 先頭アドレス、バイト数、排他の関数の組 (任意) | 関数の組を受け取った場合は、cplat が書き込みの間だけ取得します。受け取らない場合は、呼び出し側が直列化します |
+| 公開 (`cplat_string_catalog_filter_source_publish`) | 先頭アドレス、バイト数、カタログの識別値、排他の関数の組 (任意) | 関数の組を受け取った場合は、cplat が書き込みの間だけ取得します。受け取らない場合は、呼び出し側が直列化します |
 | 取り込み (`cplat_string_catalog_filter_slot_attach_source`) | 先頭アドレス、バイト数、排他の関数の組 (任意) | 関数の組を受け取った場合は、変化を検知したときだけ取得する二重確認で複製します |
 | 情報取得 (`cplat_string_catalog_filter_source_get_info`) | 先頭アドレス、バイト数 | 排他を取らず、書き込み中は `CPLAT_ERR_BUSY` を返します |
 
