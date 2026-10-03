@@ -1,6 +1,7 @@
 #include <merge.h>
 
-/* 外部利用者が参照する Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
+
 /**
  *  @details
  *  ◆ここには、グループ配下のこのファイルの実装上の記載を行います。\n
@@ -20,7 +21,8 @@ int merge_in_group(int value)
     return value;
 }
 
-/* 外部利用者が参照する Doxygen コメントは、ヘッダーに記載 */
+/* Doxygen コメントは、ヘッダーに記載 */
+
 /**
  *  @details
  *  ◆ここには、このファイルの実装上の記載を行います。\n
