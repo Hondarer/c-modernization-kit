@@ -14,17 +14,17 @@ short-title: "string-catalog-filter-sample"
 
 | ファイル | 役割 |
 |---|---|
-| `sample_filter_share.h` / `sample_filter_share.c` | 共有メモリによるフィルター オブジェクトの配布 (公開、取り込み、世代管理) |
+| `sample_filter_share.h` / `sample_filter_share.c` | 共有メモリを cplat のソース領域として開き、書き込み側の公開を直列化する |
 | `sample_filter_share_region.h` / `sample_filter_share_region.c` | 受け渡し用のメモリ領域の確保と先頭アドレスの取得、受け渡しの排他 (差し替え可能な実装) |
-| `sample_filter_output.h` / `sample_filter_output.c` | フィルターを通してトレースを出力する入口。`sample_filter_output(key, ...)` マクロを提供 |
-| `sample_worker_trace.jsonc` / `gen/sample_worker_trace.h` | ワーカーが出力するトレースのカタログ定義と生成物 |
-| `sample_worker_trace_key_names.h` / `.c` | 文字列キーの名前解決テーブル (手動定義) |
+| `sample_worker_trace.jsonc` / `gen/sample_worker_trace.h` | ワーカーが出力するトレースのカタログ定義と生成物。生成物が型付きラッパー、名前解決表、フィルター接続を提供 |
 | `string-catalog-filter-sample.c` | 本コマンドの対話ループとワーカー スレッドの実装 |
 
 Table: string-catalog-filter-sample の構成ファイル一覧
 
-条件式のコンパイル、フィルター オブジェクト、フィルター スロット、説明文は cplat へ移しました。  
-このコマンドは `<cplat/string_catalog/filter.h>` の `cplat_string_catalog_filter_*` を利用します。
+条件式のコンパイル、フィルター オブジェクト、フィルター スロット、説明文、ソース領域は cplat の機能です。  
+このコマンドは `<cplat/string_catalog/filter.h>` の `cplat_string_catalog_filter_*` を利用します。  
+スロットは生成物の `sample_worker_trace_create_filter()` で作成し、`sample_worker_trace_set_filter()` で出力へ接続します。  
+トレースは生成物の型付きラッパー (`sample_worker_trace_key_job_failed()` など) で出力します。
 
 ## コマンド一覧
 
@@ -42,7 +42,7 @@ Table: string-catalog-filter-sample の構成ファイル一覧
 | `revert` | 適用中の条件を編集中イメージへ複製します |
 | `image` | 編集中イメージのアドレス、ヘッダー情報、先頭 64 バイトのダンプを表示します |
 | `apply` | 編集中イメージを共有メモリへ公開します。このプロセスを含む各プロセスは、次のトレース出力で取り込みます |
-| `status` | 共有メモリの公開済みの世代 (公開した時刻とプロセス) と、このプロセスが取り込み済みの世代を表示します |
+| `status` | 共有メモリの公開時刻 (公開した実時刻とプロセス) と、このプロセスが取り込み済みの公開時刻を表示します |
 | `state` | 文字列キーごとの判定状態 (常に不一致 / 常に一致 / 引数値に依存) を表示します |
 | `display [レベル]` | 表示のしきい値を取得または設定します |
 | `language [ja\|en\|neutral]` | 出力言語を取得または設定します。トレースの文字列と、`list` の説明文の文型が切り替わります |
@@ -201,7 +201,7 @@ filter-sample> list
 
 生成器が付与する文脈引数に加えて照合できる、本 app 固有のコンテキスト引数は <a href="../../../../docs/trace-filter-poc.md">トレースの条件式フィルターの PoC</a> の「照合できる引数」を参照してください。  
 `sample_worker_trace` はコンテキスト引数の 1 つとして `sequence_number` (1 から 99 を巡回するラウンド トリップ ID) を割り当てており、`arg.sequence_number` で参照できます。  
-取得と付与は `sample_filter_output` マクロが自動で行うため、コマンド側の出力呼び出しを変更する必要はありません。  
+取得と付与は生成物の型付きラッパーが `catalog_settings.jsonc` の取得式で自動的に行うため、コマンド側の出力呼び出しを変更する必要はありません。  
 この連番は組み立てた文字列の先頭に `#<連番> ` として現れます。
 
 ## 使用方法
@@ -210,7 +210,7 @@ filter-sample> list
 ./prod/cbin/string-catalog-filter-sample [共有メモリのパス]
 ```
 
-起動直後に `sample_worker_trace` カタログと名前解決テーブルの整合を検証し、不正があれば終了コード 1 で終了します。
+起動直後に `sample_worker_trace` カタログの定義を検証し、不正があれば終了コード 1 で終了します。
 
 ### 共有メモリによる配布
 
@@ -219,28 +219,33 @@ filter-sample> list
 PoC では、共有メモリを `calloc()` で確保したプロセス内の領域で模擬するため、ファイルは作成せず、配布は同じプロセスの中に限られます。  
 差し替え箇所は `sample_filter_share_region.c` です。
 
+共有メモリは cplat のソース領域の形式で使います。  
+先頭のヘッダーに、単調増加クロックによる公開時刻を置き、続けてフィルター オブジェクトを置きます。  
+読み取り側の共有メモリはフィルター スロットへ結び付けてあり、スロットはトレース出力のたびに公開時刻を 1 回読み、変化した場合に取り込みます。
+
 `apply` は共有メモリへ公開するだけであり、実行した自プロセスの適用中条件もその場では変更されません。  
-各プロセスは、次回トレース出力時に世代番号の変化を検知して最新条件を取り込みます。  
-公開の直後に `list` と `status` を実行すると、取り込み済みの世代が公開済みの世代より古いことを確認できます。
+各プロセスは、次回トレース出力時に公開時刻の変化を検知して最新条件を取り込みます。  
+公開の直後に `list` と `status` を実行すると、取り込み済みの公開時刻が公開済みの公開時刻と異なることを確認できます。
 
 ```text
 filter-sample> apply
-世代 1 として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。
+公開時刻 359016099434306 として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。
 
 filter-sample> status
 共有メモリ: /tmp/string-catalog-filter-sample.share
-公開済みの世代: 1 (公開した時刻: 2026-09-27T10:00:00.000+09:00、プロセス: 12345)
-取り込み済みの世代: 0
+公開済みの公開時刻: 359016099434306 (公開した時刻: 2026-10-03T09:31:06.060+09:00、プロセス: 12345)
+取り込み済みの公開時刻: 0
 直近の取り込み: 結果コード=0、無効にした行=0
 
 filter-sample> emit
 ...
 filter-sample> status
 ...
-取り込み済みの世代: 1
+取り込み済みの公開時刻: 359016099434306
 ```
 
-PoC では、公開と取り込みの排他を単純なミューテックスで模擬しています。  
+読み取り側 (トレース出力) は、公開時刻の変化をロックを取らずに確かめ、変化した場合だけ書き込み側の排他を取って取り込みます (二重チェック)。  
+書き込み側の排他は、PoC では単純なミューテックスで模擬しています。  
 別々のコマンドが同じ共有メモリへ同時に公開する場合の排他は保証しません。  
 設計と置き換えの方針は <a href="../../../../docs/trace-filter-poc.md">トレースの条件式フィルターの PoC</a> の「共有メモリによる配布」を参照してください。
 
@@ -263,7 +268,7 @@ filter-sample> image
 このアドレスとバイト数を、トレース出力側へ先頭ポインターと長さで引き渡します。
 
 filter-sample> apply
-適用しました。
+公開時刻 ... として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。
 
 filter-sample> list
    1: arg.priority < 0
@@ -276,14 +281,14 @@ filter-sample> edit 1 arg.priority > 5
 行 1 を置き換えました。
 
 filter-sample> apply
-適用しました。
+公開時刻 ... として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。
 [FORCE:DEBUG] #45 ワーカー 1 がジョブ 1016 (import-1、優先度=6) を受け付けました。
 
 filter-sample> edit 1 arg.sequence_number between 90 and 99
 行 1 を置き換えました。
 
 filter-sample> apply
-適用しました。
+公開時刻 ... として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。
 [FORCE:WARNING] #97 ジョブ 1017 が失敗しました。エラー コード=5 (0x00000005)
 ```
 

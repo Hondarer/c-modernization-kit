@@ -3,8 +3,6 @@
 #include "sampleFilterTestSupport.h"
 
 #include "gen/sample_worker_trace.h"
-#include "sample_filter_output.h"
-#include "sample_worker_trace_key_names.h"
 
 #include <cplat/base/result.h>
 #include <cplat/trace/tracer.h>
@@ -48,9 +46,7 @@ class sampleFilterOutputTest : public Test
   protected:
     void SetUp() override
     {
-        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_create(
-                                sample_worker_trace_catalog(), sample_worker_trace_key_names(),
-                                sample_worker_trace_key_name_count(), nullptr, kLineCapacity, kLineWidth, &slot_));
+        ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
 
         std::memset(&capture_, 0, sizeof(capture_));
 
@@ -60,12 +56,14 @@ class sampleFilterOutputTest : public Test
         ASSERT_NE(nullptr, hook_entry_);
         ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer_));
 
-        ASSERT_EQ(CPLAT_OK, sample_filter_output_configure(sample_worker_trace_catalog(), slot_, tracer_));
+        sample_worker_trace_set_tracer(tracer_);
+        ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));
     }
 
     void TearDown() override
     {
-        (void)sample_filter_output_configure(nullptr, nullptr, nullptr);
+        (void)sample_worker_trace_set_filter(nullptr);
+        sample_worker_trace_set_tracer(nullptr);
         (void)cplat_tracer_stop(tracer_);
         cplat_tracer_remove_hook(tracer_, hook_entry_);
         cplat_tracer_dispose(&tracer_);
@@ -87,9 +85,8 @@ TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_output_write(
-        SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
-        SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 作成直後 (何も一致しない) のスロットで JOB_FAILED を出力する。
+    actual_ret = sample_worker_trace_key_job_failed(
+        (uint64_t)1, 2); // [手順] - 作成直後 (何も一致しない) のスロットで JOB_FAILED を出力する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
@@ -116,9 +113,7 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_output_write(
-        SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
-        SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 一致する状態で JOB_FAILED を出力する。
+    actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 2); // [手順] - 一致する状態で JOB_FAILED を出力する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
@@ -136,14 +131,12 @@ TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argum
     // Arrange
     int actual_ret;
 
-    ASSERT_EQ(CPLAT_OK, sample_filter_output_configure(nullptr, nullptr, nullptr)); // [状態] - 出力の設定を解除する。
+    sample_worker_trace_set_tracer(nullptr); // [状態] - 出力先の設定を解除する。
 
     // Pre-Assert
 
     // Act
-    actual_ret =
-        sample_filter_output_write(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)1, (int)2,
-                                   SAMPLE_FILTER_TEST_CONTEXT_ARGS(7)); // [手順] - 未設定の状態で出力を試みる。
+    actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 2); // [手順] - 未設定の状態で出力を試みる。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret); // [確認_異常系] - CPLAT_ERR_INVALID_ARGUMENT を返すこと。

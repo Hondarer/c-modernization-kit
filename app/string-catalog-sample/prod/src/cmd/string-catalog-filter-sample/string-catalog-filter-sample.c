@@ -20,10 +20,8 @@
  */
 
 #include <cplat/string_catalog/filter.h>
-#include "sample_filter_output.h"
 #include "sample_filter_share.h"
 #include "sample_filter_share_region.h"
-#include "sample_worker_trace_key_names.h"
 
 #include "gen/sample_worker_trace.h"
 
@@ -147,7 +145,7 @@ static char s_next_input[FILTER_SAMPLE_LINE_BUFFER_SIZE];
 static char s_share_path[PLATFORM_PATH_MAX];
 
 /**
- *  書き込みと取り込みの排他です。
+ *  書き込み側どうしの排他です。読み取り側 (トレース出力) はロックを取りません。
  *
  *  PoC の実装 (`sample_filter_share_region.c`) は、プロセス内のミューテックスでプロセスをまたぐ排他を模擬します。
  *  このため、同じ共有メモリを別のプロセスから同時に公開する場合の排他は保証しません。
@@ -157,7 +155,7 @@ static sample_filter_share_lock *s_share_lock = NULL;
 /** 書き込み側のプロセスに見立てた配布ハンドルです。apply が公開に使います。 */
 static sample_filter_share *s_writer_share = NULL;
 
-/** 読み取り側のプロセスに見立てた配布ハンドルです。トレース出力が取り込みに使います。 */
+/** 読み取り側のプロセスに見立てた配布ハンドルです。その領域をフィルター スロットへ結び付けます。 */
 static sample_filter_share *s_reader_share = NULL;
 
 /** 編集前の編集中イメージの退避先です。入力を受け付けない場合に、編集前の内容へ戻すために使います。 */
@@ -310,44 +308,42 @@ static void split_first_token(char *text, char **token_out, char **rest_out)
     }
 }
 
-/* ===== トレース出力 (型を jsonc の引数スキーマに合わせてキャストする) ===== */
+/* ===== トレース出力 (生成物の型付きラッパーが、引数の型を jsonc の引数スキーマで検査する) ===== */
 
 static void emit_worker_started(const uint32_t worker_index)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED, (uint32_t)worker_index);
+    (void)sample_worker_trace_key_worker_started(worker_index);
 }
 
 static void emit_worker_stopped(const uint32_t worker_index, const uint64_t processed_count)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_WORKER_STOPPED, (uint32_t)worker_index,
-                               (uint64_t)processed_count);
+    (void)sample_worker_trace_key_worker_stopped(worker_index, processed_count);
 }
 
 static void emit_job_received(const uint32_t worker_index, const uint64_t job_id, const char *job_name,
                               const int32_t priority)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, (uint32_t)worker_index, (uint64_t)job_id, job_name,
-                               (int32_t)priority);
+    (void)sample_worker_trace_key_job_received(worker_index, job_id, job_name, priority);
 }
 
 static void emit_job_progress(const uint64_t job_id, const double ratio)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS, (uint64_t)job_id, (double)ratio);
+    (void)sample_worker_trace_key_job_progress(job_id, ratio);
 }
 
 static void emit_buffer_allocated(const void *buffer, const size_t byte_count)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_BUFFER_ALLOCATED, (const void *)buffer, (size_t)byte_count);
+    (void)sample_worker_trace_key_buffer_allocated(buffer, byte_count);
 }
 
 static void emit_job_failed(const uint64_t job_id, const int error_code)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED, (uint64_t)job_id, (int)error_code);
+    (void)sample_worker_trace_key_job_failed(job_id, error_code);
 }
 
 static void emit_command_received(const int command, const int status, const int64_t delta)
 {
-    (void)sample_filter_output(SAMPLE_WORKER_TRACE_KEY_COMMAND_RECEIVED, (int)command, (int)status, (int64_t)delta);
+    (void)sample_worker_trace_key_command_received((char)command, (uint8_t)status, delta);
 }
 
 /**
@@ -767,7 +763,7 @@ static void print_help(cplat_pinned_prompt *screen)
         "  image                        編集中イメージのヘッダー情報とダンプを表示します\n"
         "  apply                        編集中イメージを共有メモリへ公開します (取り込みは次のトレース出力)\n"
         "  state                        文字列キーごとの判定状態を表示します\n"
-        "  status                       共有メモリの公開済みの世代と、取り込み済みの世代を表示します\n"
+        "  status                       共有メモリの公開時刻と、取り込み済みの公開時刻を表示します\n"
         "  display [レベル]             表示のしきい値を取得または設定します\n"
         "  language [ja|en|neutral]     出力言語 (トレースと説明文) を取得または設定します\n"
         "  emit                         7 種類のトレースを 1 回ずつ出力します\n"
@@ -967,14 +963,20 @@ static void print_slot_lines(cplat_pinned_prompt *screen, cplat_string_catalog_f
 
 static void command_list(cplat_pinned_prompt *screen)
 {
-    sample_filter_share_status status;
+    cplat_string_catalog_filter_source_status status;
+    cplat_string_catalog_filter_source_info info;
+    const void *source;
+    size_t source_size = 0U;
 
     /* 表示するのは、このプロセスが取り込み済みの条件。公開の直後は、次のトレース出力まで前の条件のまま */
-    if (sample_filter_share_get_status(s_reader_share, &status) == CPLAT_OK)
+    source = sample_filter_share_get_source(s_reader_share, &source_size);
+    if ((cplat_string_catalog_filter_slot_get_source_status(s_slot, &status) == CPLAT_OK) &&
+        (cplat_string_catalog_filter_source_get_info(source, source_size, &info) == CPLAT_OK))
     {
-        cplat_pinned_prompt_printf(
-            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  取り込み済みの世代: %llu (公開済みの世代: %llu)\n",
-            (unsigned long long)status.taken_generation, (unsigned long long)status.published_generation);
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                   "  取り込み済みの公開時刻: %llu (公開済みの公開時刻: %llu)\n",
+                                   (unsigned long long)status.taken_timestamp,
+                                   (unsigned long long)info.published_timestamp);
     }
     print_slot_lines(screen, s_slot);
 }
@@ -1355,7 +1357,7 @@ static void command_apply(cplat_pinned_prompt *screen)
 {
     cplat_string_catalog_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
     size_t invalid_count = 0;
-    uint64_t generation = 0U;
+    uint64_t timestamp = 0U;
     size_t i;
     int ret;
 
@@ -1368,7 +1370,7 @@ static void command_apply(cplat_pinned_prompt *screen)
         return;
     }
 
-    ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), &generation);
+    ret = sample_filter_share_publish(s_writer_share, s_draft_image, sizeof(s_draft_image), &timestamp);
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1378,8 +1380,8 @@ static void command_apply(cplat_pinned_prompt *screen)
 
     cplat_pinned_prompt_printf(
         screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-        "世代 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
-        (unsigned long long)generation);
+        "公開時刻 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
+        (unsigned long long)timestamp);
 
     if (invalid_count == 0U)
     {
@@ -1400,7 +1402,7 @@ static void command_apply(cplat_pinned_prompt *screen)
 static void command_state(cplat_pinned_prompt *screen)
 {
     const cplat_string_catalog_filter_key_name *key_names = sample_worker_trace_key_names();
-    size_t key_name_count = sample_worker_trace_key_name_count();
+    const size_t key_name_count = sample_worker_trace_key_name_count();
     size_t i;
 
     for (i = 0; i < key_name_count; i++)
@@ -1672,16 +1674,24 @@ static void close_share(void)
 /**
  *  @brief          配布の状態を表示します。
  *
- *  公開済みの世代と、このプロセス (読み取り側のハンドル) が取り込んだ世代を並べて表示します。
- *  取り込みは次のトレース出力で行われるため、公開の直後は 2 つの世代が一致しません。
+ *  共有メモリの公開時刻と、このプロセスのフィルター スロットが取り込んだ公開時刻を並べて表示します。
+ *  取り込みは次のトレース出力で行われるため、公開の直後は 2 つの公開時刻が一致しません。
  */
 static void command_status(cplat_pinned_prompt *screen)
 {
-    sample_filter_share_status status;
+    cplat_string_catalog_filter_source_status status;
+    cplat_string_catalog_filter_source_info info;
     char published_at[64] = "-";
+    const void *source;
+    size_t source_size = 0U;
     int ret;
 
-    ret = sample_filter_share_get_status(s_reader_share, &status);
+    source = sample_filter_share_get_source(s_reader_share, &source_size);
+    ret = cplat_string_catalog_filter_source_get_info(source, source_size, &info);
+    if (ret == CPLAT_OK)
+    {
+        ret = cplat_string_catalog_filter_slot_get_source_status(s_slot, &status);
+    }
     if (ret != CPLAT_OK)
     {
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
@@ -1689,23 +1699,19 @@ static void command_status(cplat_pinned_prompt *screen)
         return;
     }
 
-    if (status.published_generation != SAMPLE_FILTER_SHARE_GENERATION_NONE)
+    if (info.published_timestamp != 0U)
     {
-        cplat_timespec timestamp;
-
-        timestamp.tv_sec = (time_t)status.published_seconds;
-        timestamp.tv_nsec = status.published_nanoseconds;
-        (void)cplat_clock_format_realtime_iso8601_local(published_at, sizeof(published_at), &timestamp);
+        (void)cplat_clock_format_realtime_iso8601_local(published_at, sizeof(published_at), &info.published_realtime);
     }
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
                                "共有メモリ: %s\n"
-                               "公開済みの世代: %llu (公開した時刻: %s、プロセス: %u)\n"
-                               "取り込み済みの世代: %llu\n"
+                               "公開済みの公開時刻: %llu (公開した時刻: %s、プロセス: %u)\n"
+                               "取り込み済みの公開時刻: %llu\n"
                                "直近の取り込み: 結果コード=%d、無効にした行=%zu\n",
-                               s_share_path, (unsigned long long)status.published_generation, published_at,
-                               (unsigned int)status.publisher_process_id, (unsigned long long)status.taken_generation,
-                               status.last_take_result, status.last_take_invalid_count);
+                               s_share_path, (unsigned long long)info.published_timestamp, published_at,
+                               (unsigned int)info.publisher_process_id, (unsigned long long)status.taken_timestamp,
+                               status.last_result, status.last_invalid_count);
 }
 
 static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requested_out)
@@ -1819,10 +1825,9 @@ int main(int argc, char *argv[])
     cplat_tracer *tracer = NULL;
     cplat_tracer_hook_entry *hook_entry = NULL;
     char line[FILTER_SAMPLE_LINE_BUFFER_SIZE];
-    const cplat_string_catalog_filter_key_name *key_names;
-    size_t name_count;
-    size_t entry_count;
-    size_t i;
+    cplat_string_catalog_filter_source_lock source_lock;
+    const void *source;
+    size_t source_size = 0U;
     int string_key = 0;
     cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
     int exit_requested;
@@ -1847,25 +1852,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    name_count = sample_worker_trace_key_name_count();
-    entry_count = (size_t)sample_worker_trace_entry_count();
-    if (name_count != entry_count)
-    {
-        fprintf(stderr, "エラー: 名前解決テーブルの件数 (%zu) がカタログの項目数 (%zu) と一致しません。\n", name_count,
-                entry_count);
-        return EXIT_FAILURE;
-    }
-
-    key_names = sample_worker_trace_key_names();
-    for (i = 0; i < name_count; i++)
-    {
-        if (cplat_string_catalog_get_entry(sample_worker_trace_catalog(), key_names[i].key) == NULL)
-        {
-            fprintf(stderr, "エラー: 名前解決テーブルのキー %s はカタログに存在しません。\n", key_names[i].name);
-            return EXIT_FAILURE;
-        }
-    }
-
     ret = cplat_string_catalog_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY,
                                               s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
     if (ret != CPLAT_OK)
@@ -1874,19 +1860,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* 分類値はトレース レベルとして扱うため、条件式と説明文でもレベルの名前を使う */
-    ret =
-        cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count, &s_category_names,
-                                                FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &slot);
+    /* 分類値はトレース レベルとして扱うため、条件式と説明文でもレベルの名前を使う。
+       名前解決表は生成物が持つため、作成は生成物の簡易関数に任せる */
+    ret = sample_worker_trace_create_filter(&s_category_names, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH,
+                                            &slot);
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
         return EXIT_FAILURE;
     }
 
-    ret =
-        cplat_string_catalog_filter_slot_create(sample_worker_trace_catalog(), key_names, name_count, &s_category_names,
-                                                FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, &s_preview_slot);
+    ret = sample_worker_trace_create_filter(&s_category_names, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH,
+                                            &s_preview_slot);
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
@@ -1905,6 +1890,21 @@ int main(int argc, char *argv[])
     if (ret != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);
+        result = EXIT_FAILURE;
+        goto out_dispose_slot;
+    }
+
+    /* 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付ける。
+       以降はトレース出力のたびに公開時刻を比べ、変化した場合だけ排他を取って取り込む (二重確認) */
+    source = sample_filter_share_get_source(s_reader_share, &source_size);
+    ret = sample_filter_share_get_source_lock(s_reader_share, &source_lock);
+    if (ret == CPLAT_OK)
+    {
+        ret = cplat_string_catalog_filter_slot_attach_source(slot, source, source_size, &source_lock);
+    }
+    if (ret != CPLAT_OK)
+    {
+        fprintf(stderr, "エラー: 共有メモリをフィルター スロットへ結び付けられませんでした (結果コード=%d)。\n", ret);
         result = EXIT_FAILURE;
         goto out_dispose_slot;
     }
@@ -1960,8 +1960,9 @@ int main(int argc, char *argv[])
 
     s_slot = slot;
 
-    (void)sample_filter_output_configure(sample_worker_trace_catalog(), slot, tracer);
-    sample_filter_output_set_share(s_reader_share);
+    /* スロットは sample_worker_trace_create_filter で作成したため、接続は失敗しない */
+    sample_worker_trace_set_tracer(tracer);
+    (void)sample_worker_trace_set_filter(slot);
 
     print_help(screen);
 
@@ -2028,10 +2029,11 @@ int main(int argc, char *argv[])
     stop_all_workers();
     dispose_worker_sync();
     (void)cplat_tracer_stop(tracer);
-    (void)sample_filter_output_configure(NULL, NULL, NULL);
-    sample_filter_output_set_share(NULL);
+    (void)sample_worker_trace_set_filter(NULL);
+    sample_worker_trace_set_tracer(NULL);
     cplat_tracer_dispose(&tracer);
     cplat_pinned_prompt_dispose(screen);
+    (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
     close_share();
     cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
     cplat_string_catalog_filter_slot_dispose(&slot);
@@ -2053,6 +2055,7 @@ out_dispose_lock:
     cplat_local_lock_dispose(s_display_lock);
     s_display_lock = NULL;
 out_dispose_slot:
+    (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
     close_share();
     cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
     cplat_string_catalog_filter_slot_dispose(&slot);

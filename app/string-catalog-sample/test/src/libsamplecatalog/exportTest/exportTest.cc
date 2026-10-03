@@ -42,7 +42,12 @@
     EXPORT_ENTRY(samplecatalog_trace_note, const char *(SAMPLECATALOG_API *)(int)) \
     EXPORT_ENTRY(samplecatalog_trace_set_tracer, void(SAMPLECATALOG_API *)(cplat_tracer *)) \
     EXPORT_ENTRY(samplecatalog_trace_get_tracer, cplat_tracer *(SAMPLECATALOG_API *)(void)) \
-    EXPORT_ENTRY(samplecatalog_trace_write, int(SAMPLECATALOG_API *)(int, ...))
+    EXPORT_ENTRY(samplecatalog_trace_write, int(SAMPLECATALOG_API *)(int, ...)) \
+    EXPORT_ENTRY(samplecatalog_trace_create_filter, \
+                 int(SAMPLECATALOG_API *)(const cplat_string_catalog_filter_category_names *, size_t, size_t, \
+                                          cplat_string_catalog_filter_slot **)) \
+    EXPORT_ENTRY(samplecatalog_trace_set_filter, int(SAMPLECATALOG_API *)(cplat_string_catalog_filter_slot *)) \
+    EXPORT_ENTRY(samplecatalog_trace_get_filter, cplat_string_catalog_filter_slot *(SAMPLECATALOG_API *)(void))
 
 // libsamplecatalog が公開エクスポートすべき変数の一覧。
 // 現時点ではエントリなし (公開ヘッダーに dllexport 付きの変数エクスポートが存在しないため)。
@@ -109,7 +114,7 @@ TEST_F(exportTest, structure_returning_functions_are_not_exported)
         "samplecatalog_messages_catalog", "samplecatalog_messages_entries",   "samplecatalog_messages_entry",
         "samplecatalog_messages_verify",  "samplecatalog_trace_catalog",      "samplecatalog_trace_entries",
         "samplecatalog_trace_entry",
-        "samplecatalog_trace_verify"}; // [状態] - 公開しない関数の名前一覧を構築する。
+        "samplecatalog_trace_verify",     "samplecatalog_trace_key_names",    "samplecatalog_trace_key_name_count"}; // [状態] - 公開しない関数の名前一覧を構築する。
 
     // Pre-Assert
 

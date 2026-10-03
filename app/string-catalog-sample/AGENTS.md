@@ -8,7 +8,7 @@
 カタログの持ち方を 2 つの形で示します。  
 `prod/src/cmd/string-catalog-command-sample/` はカタログをコマンドが同梱し、`prod/libsrc/samplecatalog/` はカタログをライブラリが外部へ公開します。  
 公開したカタログの利用側が `prod/src/cmd/string-catalog-library-sample/` です。  
-`prod/src/cmd/string-catalog-filter-sample/` は、cplat の条件式フィルターを組み込む前の試作です。
+`prod/src/cmd/string-catalog-filter-sample/` は、cplat の条件式フィルターを生成物の接続で利用する例です。共有メモリによる配布は、模擬実装のまま残しています。
 
 `app/cplat` の `cplat_string_catalog_*`、`cplat_trace_level`、`cplat_console_init/dispose` を利用します。  
 文字列カタログの実装、生成器、機能仕様は `app/cplat` にあり、この app には含みません。
