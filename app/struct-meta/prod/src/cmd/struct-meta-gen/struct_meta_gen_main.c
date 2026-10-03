@@ -29,6 +29,7 @@
 #include <struct_meta/catalog/catalog.h>
 
 #include <cplat/base/result.h>
+#include <cplat/console/console.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -62,6 +63,8 @@ int main(int argc, char **argv)
 {
     const char *header_path = NULL;
     const char *out_path = NULL;
+
+    cplat_console_init();
 
     for (int i = 1; i < argc; i++)
     {
