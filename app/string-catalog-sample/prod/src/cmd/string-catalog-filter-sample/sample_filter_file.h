@@ -56,7 +56,7 @@ extern "C"
      *  @return         ファイルの行数が @ref SAMPLE_FILTER_FILE_LINE_MAX を超える場合は `CPLAT_ERR_LIMIT_EXCEEDED` を返します。
      *  @return         そのほかの失敗は `cplat_string_catalog_filter_compile` と同じ結果コードを返します。
      *
-     *  行幅を超える行は、その行だけを @ref CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LIMIT_EXCEEDED として無効にします。
+     *  行幅を超える行は、その行だけを `CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LIMIT_EXCEEDED` として無効にします。
      *  行の途中で切り詰めると、別の条件式としてコンパイルされるおそれがあるためです。\n
      *  構文の誤りなど、コンパイルで無効にした行の扱いは `cplat_string_catalog_filter_compile` と同じです。
      *  名前の解決など、適用の時点で検出する誤りは含みません。
