@@ -20,6 +20,7 @@
  */
 
 #include <cplat/string_catalog/filter.h>
+#include "sample_filter_file.h"
 #include "sample_filter_share.h"
 #include "sample_filter_share_region.h"
 
@@ -212,7 +213,8 @@ static const char *const s_line_error_labels[] = {
     "未解決の引数名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_ARGUMENT_NAME */
     "未知のレベル名", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_UNRESOLVED_CATEGORY_NAME */
     "レベルの範囲外", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_CATEGORY_OUT_OF_RANGE */
-    "正規表現の誤り"  /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_INVALID_PATTERN */
+    "正規表現の誤り", /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_INVALID_PATTERN */
+    "成立しない条件"  /* CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_NEVER_SATISFIABLE */
 };
 
 /** cplat_string_catalog_filter_state の日本語の表示名です。値をインデックスとして参照します。 */
@@ -758,6 +760,8 @@ static void print_help(cplat_pinned_prompt *screen)
         "                               条件式を省略すると、現在の内容を入力欄へ呼び出します\n"
         "  delete <n>                   編集中イメージの n 行目を削除します\n"
         "  clear                        編集中イメージを空にします\n"
+        "  load <ファイル>              条件式リストのファイルを編集中イメージへ読み込みます\n"
+        "  save <ファイル>              編集中イメージの条件式をファイルへ書き出します\n"
         "  revert                       適用中の条件を編集中イメージへ複製します\n"
         "  image                        編集中イメージのヘッダー情報とダンプを表示します\n"
         "  apply                        編集中イメージを共有メモリへ公開します (取り込みは次のトレース出力)\n"
@@ -977,10 +981,9 @@ static void command_list(cplat_pinned_prompt *screen)
     if ((cplat_string_catalog_filter_slot_get_source_status(s_slot, &status) == CPLAT_OK) &&
         (cplat_string_catalog_filter_source_get_info(source, source_size, &info) == CPLAT_OK))
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                   "  取り込み済みの公開時刻: %llu (公開済みの公開時刻: %llu)\n",
-                                   (unsigned long long)status.taken_timestamp,
-                                   (unsigned long long)info.published_timestamp);
+        cplat_pinned_prompt_printf(
+            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  取り込み済みの公開時刻: %llu (公開済みの公開時刻: %llu)\n",
+            (unsigned long long)status.taken_timestamp, (unsigned long long)info.published_timestamp);
     }
     print_slot_lines(screen, s_slot);
 }
@@ -1271,6 +1274,76 @@ static void command_clear(cplat_pinned_prompt *screen)
     }
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "編集中イメージを空にしました。\n");
+}
+
+/**
+ *  @brief          条件式リストのファイルを編集中イメージへ読み込みます。
+ *
+ *  ファイルの行番号で、無効にした行と原因を表示します。名前の解決などは、draft と apply の時点で確かめます。
+ */
+static void command_load(cplat_pinned_prompt *screen, const char *path)
+{
+    cplat_string_catalog_filter_diagnostic diagnostics[FILTER_SAMPLE_DIAGNOSTIC_CAPACITY];
+    sample_filter_file_result result;
+    int ret;
+
+    if (path == NULL)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                   "エラー: ファイルを指定してください。\n");
+        return;
+    }
+
+    ret = sample_filter_file_load(path, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH, s_draft_image,
+                                  sizeof(s_draft_image), diagnostics, sizeof(diagnostics) / sizeof(diagnostics[0]),
+                                  &result);
+    if (ret != CPLAT_OK)
+    {
+        cplat_pinned_prompt_printf(
+            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+            "エラー: %s を読み込めませんでした (結果コード=%d)。編集中イメージは変わりません。\n", path, ret);
+        return;
+    }
+
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                               "%s の %zu 行から、条件式 %zu 行を編集中イメージへ読み込みました。\n", path,
+                               result.line_count, result.condition_count);
+    if (result.invalid_count > 0U)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "無効にした行があります (%zu 件)。\n",
+                                   result.invalid_count);
+        for (size_t i = 0; (i < result.invalid_count) && (i < (sizeof(diagnostics) / sizeof(diagnostics[0]))); i++)
+        {
+            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %u 行目 (桁=%u): %s\n",
+                                       (unsigned int)(diagnostics[i].line_index + 1U),
+                                       (unsigned int)(diagnostics[i].column + 1U),
+                                       line_error_label(diagnostics[i].error));
+        }
+    }
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "draft で確かめ、apply で公開します。\n");
+}
+
+/** 編集中イメージの条件式を、条件式リストのファイルへ書き出します。 */
+static void command_save(cplat_pinned_prompt *screen, const char *path)
+{
+    int ret;
+
+    if (path == NULL)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                   "エラー: ファイルを指定してください。\n");
+        return;
+    }
+
+    ret = sample_filter_file_save(path, s_draft_image, sizeof(s_draft_image));
+    if (ret != CPLAT_OK)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                   "エラー: %s へ書き出せませんでした (結果コード=%d)。\n", path, ret);
+        return;
+    }
+    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                               "編集中イメージの条件式を %s へ書き出しました。\n", path);
 }
 
 static void command_revert(cplat_pinned_prompt *screen)
@@ -1761,6 +1834,14 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
     else if (strcmp(command, "clear") == 0)
     {
         command_clear(screen);
+    }
+    else if (strcmp(command, "load") == 0)
+    {
+        command_load(screen, arg);
+    }
+    else if (strcmp(command, "save") == 0)
+    {
+        command_save(screen, arg);
     }
     else if (strcmp(command, "revert") == 0)
     {
