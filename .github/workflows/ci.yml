@@ -23,6 +23,10 @@ env:
   REPORTGENERATOR_VERSION: "5.5.11"
   WINFLEXBISON_VERSION: "2.5.25"
   WINFLEXBISON_SHA256: "8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135"
+  PANDOC_VERSION: "3.11"
+  PANDOC_CROSSREF_VERSION: "0.3.25a"
+  DOXYGEN_VERSION: "1.18.0"
+  DOXYBOOK2_VERSION: "1.6.1"
 
 jobs:
   build-and-test-linux:
@@ -429,6 +433,116 @@ jobs:
               throw "ReportGenerator -h failed with exit code $LASTEXITCODE"
           }
           $global:LASTEXITCODE = 0
+        shell: pwsh
+
+      # 以降の文書ツールは、bin_test/ の docsfw、livedocs、doxyfw のテストが使用する。
+      # Windows のジョブは文書を発行しないが、スクリプトのテストは全レグで実行する。
+      - name: Install Pandoc
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installRoot = Join-Path $env:RUNNER_TEMP "pandoc"
+
+          # see: https://github.com/jgm/pandoc/releases/tag/3.11
+          $archiveName = "pandoc-$env:PANDOC_VERSION-windows-x86_64.zip"
+          $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
+          $downloadUrl = "https://github.com/jgm/pandoc/releases/download/$env:PANDOC_VERSION/$archiveName"
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath
+          Expand-Archive -LiteralPath $archivePath -DestinationPath $installRoot -Force
+          # devbin-win と同じく、アーカイブ内の pandoc-<version> を配置先とする。
+          $installPath = Join-Path $installRoot "pandoc-$env:PANDOC_VERSION"
+
+          # pandoc-crossref の配布物は 7z のため、Windows 標準の tar (libarchive) で展開する。
+          # see: https://github.com/lierdakil/pandoc-crossref/releases/tag/v0.3.25a
+          $crossrefName = "pandoc-crossref-Windows-X64.7z"
+          $crossrefPath = Join-Path $env:RUNNER_TEMP $crossrefName
+          $crossrefUrl = "https://github.com/lierdakil/pandoc-crossref/releases/download/v$env:PANDOC_CROSSREF_VERSION/$crossrefName"
+          Invoke-WebRequest -Uri $crossrefUrl -OutFile $crossrefPath
+          & "$env:SystemRoot\System32\tar.exe" -xf $crossrefPath -C $installPath
+          if ($LASTEXITCODE -ne 0) {
+              throw "tar failed to extract pandoc-crossref with exit code $LASTEXITCODE"
+          }
+
+          Add-Content -Path $env:GITHUB_PATH -Value $installPath
+          & (Join-Path $installPath "pandoc.exe") --version
+          if ($LASTEXITCODE -ne 0) {
+              throw "pandoc --version failed with exit code $LASTEXITCODE"
+          }
+          & (Join-Path $installPath "pandoc-crossref.exe") --version
+          if ($LASTEXITCODE -ne 0) {
+              throw "pandoc-crossref --version failed with exit code $LASTEXITCODE"
+          }
+        shell: pwsh
+
+      - name: Install Doxygen and doxybook2
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # see: https://www.doxygen.nl/download.html
+          $doxygenName = "doxygen-$env:DOXYGEN_VERSION.windows.x64.bin.zip"
+          $doxygenPath = Join-Path $env:RUNNER_TEMP $doxygenName
+          $doxygenInstall = Join-Path $env:RUNNER_TEMP "doxygen-$env:DOXYGEN_VERSION"
+          Invoke-WebRequest -Uri "https://www.doxygen.nl/files/$doxygenName" -OutFile $doxygenPath
+          Expand-Archive -LiteralPath $doxygenPath -DestinationPath $doxygenInstall -Force
+          Add-Content -Path $env:GITHUB_PATH -Value $doxygenInstall
+
+          # see: https://github.com/Antonz0/doxybook2/releases/tag/v1.6.1
+          $doxybookName = "doxybook2-windows-win64-v$env:DOXYBOOK2_VERSION.zip"
+          $doxybookPath = Join-Path $env:RUNNER_TEMP $doxybookName
+          $doxybookExtract = Join-Path $env:RUNNER_TEMP "doxybook2-$env:DOXYBOOK2_VERSION"
+          $doxybookUrl = "https://github.com/Antonz0/doxybook2/releases/download/v$env:DOXYBOOK2_VERSION/$doxybookName"
+          Invoke-WebRequest -Uri $doxybookUrl -OutFile $doxybookPath
+          Expand-Archive -LiteralPath $doxybookPath -DestinationPath $doxybookExtract -Force
+          # devbin-win と同じく、アーカイブ内の bin を配置先とする。
+          $doxybookInstall = Join-Path $doxybookExtract "bin"
+          Add-Content -Path $env:GITHUB_PATH -Value $doxybookInstall
+
+          & (Join-Path $doxygenInstall "doxygen.exe") --version
+          if ($LASTEXITCODE -ne 0) {
+              throw "doxygen --version failed with exit code $LASTEXITCODE"
+          }
+          & (Join-Path $doxybookInstall "doxybook2.exe") --version
+          if ($LASTEXITCODE -ne 0) {
+              throw "doxybook2 --version failed with exit code $LASTEXITCODE"
+          }
+        shell: pwsh
+
+      # Windows の docsfw は Puppeteer 用 Chrome をダウンロードせず、Microsoft Edge を使う
+      # (framework/docsfw/docs/node-components.md)。ランナーに導入済みの Edge を指定する。
+      - name: Configure Puppeteer browser
+        run: |
+          $ErrorActionPreference = "Stop"
+          $edgePath = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+          if (-not (Test-Path -LiteralPath $edgePath)) {
+              throw "Microsoft Edge not found at $edgePath"
+          }
+          Add-Content -Path $env:GITHUB_ENV -Value "PUPPETEER_EXECUTABLE_PATH=$edgePath"
+          Add-Content -Path $env:GITHUB_ENV -Value "PUPPETEER_SKIP_DOWNLOAD=1"
+        shell: pwsh
+
+      - name: Restore docsfw npm cache
+        uses: actions/cache@v6
+        with:
+          path: framework/docsfw/bin_internal/node_modules
+          key: docsfw-cache-windows-${{ hashFiles('framework/docsfw/bin_internal/package-lock.json') }}
+
+      - name: Install docsfw npm components
+        run: |
+          $ErrorActionPreference = "Stop"
+          # キャッシュの鍵は package-lock.json のハッシュのため、復元できた場合は再導入しない。
+          if (-not (Test-Path -LiteralPath "framework/docsfw/bin_internal/node_modules")) {
+              npm ci --prefix framework/docsfw/bin_internal --no-audit --no-fund
+              if ($LASTEXITCODE -ne 0) {
+                  throw "npm ci failed with exit code $LASTEXITCODE"
+              }
+          }
+          # 不足があっても終了コードは 0 のため、missing が空であることを確かめる。
+          $resolved = node framework/docsfw/bin_internal/resolve-node-components.js | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) {
+              throw "resolve-node-components.js failed with exit code $LASTEXITCODE"
+          }
+          if (@($resolved.missing).Count -ne 0) {
+              throw "docsfw npm components are missing: $($resolved.missing -join ', ')"
+          }
         shell: pwsh
 
       - name: Setup MSVC environment
