@@ -2,6 +2,7 @@
 """Plan releases with GET requests; publish only an explicitly approved plan."""
 
 import argparse
+import base64
 import json
 import re
 import subprocess
@@ -16,6 +17,8 @@ REPOSITORIES = (
     "app_porter", "app_sqlite", "app_lua", "app_zlib", "devbin-win",
     "oracle-linux-container",
 )
+# The workspace whose submodule pins can select the other repositories' commits.
+WORKSPACE = "c-modernization-kit"
 
 
 class ReleaseError(RuntimeError):
@@ -71,9 +74,48 @@ def checked_sha(value):
     return value
 
 
-def plan(github, tag):
+def on_branch(github, base, sha, branch):
+    # "ahead" or "identical" means the branch contains the commit.
+    # see: https://docs.github.com/en/rest/commits/commits#compare-two-commits
+    status = github.get(f"{base}/compare/{sha}...{quote(branch, safe='')}").get("status")
+    if status not in ("ahead", "identical"):
+        raise ReleaseError(f"{sha} is not on {branch} ({status}): {base}")
+
+
+def workspace_pins(github, sha):
+    """Map release targets to the submodule commits pinned by the workspace at sha."""
+    base = f"repos/Hondarer/{WORKSPACE}"
+    modules = github.get(f"{base}/contents/.gitmodules?ref={sha}")
+    try:
+        text = base64.b64decode(modules.get("content", "")).decode("utf-8")
+    except (ValueError, UnicodeDecodeError) as error:
+        raise ReleaseError(f"{base}: invalid .gitmodules at {sha}") from error
+    pins = {WORKSPACE: sha}
+    for section in re.split(r"^\s*\[submodule\b", text, flags=re.MULTILINE)[1:]:
+        path = re.search(r"^\s*path\s*=\s*(\S+)\s*$", section, re.MULTILINE)
+        url = re.search(r"^\s*url\s*=\s*(\S+)\s*$", section, re.MULTILINE)
+        name = url and re.fullmatch(r"https://github\.com/Hondarer/([^/]+?)(?:\.git)?/?", url[1])
+        if not path or not name or name[1] not in REPOSITORIES:
+            continue
+        # see: https://docs.github.com/en/rest/repos/contents#get-repository-content
+        entry = github.get(f"{base}/contents/{quote(path[1])}?ref={sha}")
+        if entry.get("type") != "submodule":
+            raise ReleaseError(f"{base}: {path[1]} is not a submodule at {sha}")
+        pins[name[1]] = checked_sha(entry.get("sha"))
+    return pins
+
+
+def plan(github, tag, workspace_sha=None):
     if not re.fullmatch(r"v\d{8}\.\d+\.\d+", tag):
         raise ReleaseError("Tag must have the form vYYYYMMDD.major.minor")
+    pins = {}
+    if workspace_sha is not None:
+        if not isinstance(workspace_sha, str) or not re.fullmatch(r"[0-9a-f]{7,40}", workspace_sha):
+            raise ReleaseError("Workspace SHA must be 7 to 40 lowercase hex digits")
+        # Store the full SHA so the recheck in apply resolves the same commit.
+        workspace_sha = checked_sha(
+            github.get(f"repos/Hondarer/{WORKSPACE}/commits/{workspace_sha}").get("sha"))
+        pins = workspace_pins(github, workspace_sha)
     entries = []
     for name in REPOSITORIES:
         repo = f"Hondarer/{name}"
@@ -82,8 +124,14 @@ def plan(github, tag):
         branch = metadata.get("default_branch")
         if not isinstance(branch, str) or not branch:
             raise ReleaseError(f"Default branch unavailable: {repo}")
-        head = github.get(f"{base}/commits/{quote(branch, safe='')}")
-        sha = checked_sha(head.get("sha"))
+        if name in pins:
+            sha = pins[name]
+            on_branch(github, base, sha, branch)
+            source = "workspace" if name == WORKSPACE else "workspace-submodule"
+        else:
+            head = github.get(f"{base}/commits/{quote(branch, safe='')}")
+            sha = checked_sha(head.get("sha"))
+            source = "default-branch"
         existing_tag = github.get(f"{base}/git/ref/tags/{tag}", optional=True) is not None
         latest = github.get(f"{base}/releases/latest", optional=True)
         latest_tag = latest.get("tag_name") if latest is not None else None
@@ -98,18 +146,18 @@ def plan(github, tag):
         # A same-name tag is accepted only as the latest release already at HEAD.
         if existing_tag and not (latest_tag == tag and latest_sha == sha):
             raise ReleaseError(f"Existing tag: {repo} {tag}; no releases have been created by this check")
-        entries.append({"repo": repo, "branch": branch, "sha": sha,
+        entries.append({"repo": repo, "branch": branch, "source": source, "sha": sha,
                         "latest_tag": latest_tag, "latest_sha": latest_sha,
                         "latest_url": latest_url,
                         "action": "skip" if latest_sha == sha else "create"})
-    return {"version": 1, "tag": tag, "entries": entries}
+    return {"version": 1, "tag": tag, "workspace_sha": workspace_sha, "entries": entries}
 
 
 def apply(github, approved, emit=print):
     if not isinstance(approved, dict) or approved.get("version") != 1:
         raise ReleaseError("Unsupported plan")
     # Recheck every repository before the first write, including skip decisions.
-    current = plan(github, approved.get("tag", ""))
+    current = plan(github, approved.get("tag", ""), approved.get("workspace_sha"))
     if current != approved:
         raise ReleaseError("Remote state or plan changed; review a new plan before publishing")
     tag = approved["tag"]
@@ -147,11 +195,15 @@ def main():
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--plan", metavar="TAG", help="GET only; print a reviewable JSON plan")
     mode.add_argument("--apply", type=Path, metavar="APPROVED_PLAN", help="publish an explicitly approved JSON plan")
+    parser.add_argument("--workspace-sha", metavar="SHA",
+                        help=f"with --plan: use this {WORKSPACE} commit and its submodule pins")
     args = parser.parse_args()
+    if args.workspace_sha and not args.plan:
+        parser.error("--workspace-sha requires --plan; --apply reuses the plan's value")
     github = GitHub()
     try:
         if args.plan:
-            print(json.dumps(plan(github, args.plan), indent=2))
+            print(json.dumps(plan(github, args.plan, args.workspace_sha), indent=2))
         else:
             apply(github, json.loads(args.apply.read_text(encoding="utf-8-sig")))
     except (ReleaseError, OSError, ValueError, TypeError, KeyError) as error:

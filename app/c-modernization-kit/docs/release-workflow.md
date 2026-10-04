@@ -6,10 +6,23 @@
 対象は Hondarer 配下の統合ワークスペース、対象 framework と app、および独立した devbin-win と oracle-linux-container です。  
 一覧を増減する場合は、依頼された公開対象と一致することを確認します。
 
-リモートの既定ブランチの完全なコミット SHA を基準とし、ローカルのサブモジュールのピン留め SHA は使用しません。  
+既定では、リモートの既定ブランチの完全なコミット SHA を基準とし、ローカルのサブモジュールのピン留め SHA は使用しません。  
 直近の通常の GitHub Release が同じ SHA を指す場合はスキップします。  
 ここで直近とは GitHub の `releases/latest` が返す Release です。  
 プレリリースを基準にする依頼は、この手順の対象外です。
+
+### 統合ワークスペースのコミットを基準にする場合
+
+最後に CI が成功したコミットなど、c-modernization-kit の特定のコミットを基準にする依頼では `--plan` に `--workspace-sha SHA` を追加します。  
+SHA は 7 桁以上の 16 進数で指定し、計画には完全な SHA として記録します。
+
+- c-modernization-kit は指定したコミットを基準にします。
+- 指定コミットの `.gitmodules` と、リモート上のサブモジュールのピン留め SHA を読み取り、`REPOSITORIES` に含まれるサブモジュールはそのピン留め SHA を基準にします。
+- サブモジュールではない対象 (devbin-win、oracle-linux-container など) は、従来どおり既定ブランチの SHA を基準にします。
+- 指定コミットとピン留め SHA が各リポジトリの既定ブランチに含まれない場合は、計画を作成せずに停止します。
+
+計画の各対象の `source` は、基準の取得元を `workspace`、`workspace-submodule`、`default-branch` のいずれかで示します。  
+`--apply` は計画に記録した `workspace_sha` で再計画して比較するため、`--workspace-sha` を再指定しません。
 
 ## 事前確認
 
@@ -23,6 +36,12 @@
 
 ```bash
 python app/c-modernization-kit/.agents/skills/release-tag/scripts/release.py --plan vYYYYMMDD.0.0
+```
+
+統合ワークスペースのコミットを基準にする場合は、次のように指定します。
+
+```bash
+python app/c-modernization-kit/.agents/skills/release-tag/scripts/release.py --plan vYYYYMMDD.0.0 --workspace-sha 5161ac8
 ```
 
 実際の日付のタグを指定し、成功した出力だけを UTF-8 の作業用 JSON ファイルへ保存します。  

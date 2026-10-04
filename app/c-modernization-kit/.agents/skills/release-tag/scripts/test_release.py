@@ -1,5 +1,6 @@
 """Release workflow tests using an in-memory remote; no network or Git writes."""
 
+import base64
 import json
 import subprocess
 import unittest
@@ -11,6 +12,14 @@ import release
 TAG = "v20260905.0.0"
 SHA = "a" * 40
 OLD = "b" * 40
+PIN = "c" * 40
+GITMODULES = """[submodule "lib/two"]
+\tpath = lib/two
+\turl = https://github.com/Hondarer/two.git
+[submodule "lib/external"]
+\tpath = lib/external
+\turl = https://github.com/someone/external.git
+"""
 
 
 class Remote:
@@ -24,6 +33,8 @@ class Remote:
         self.failure = None
         self.fail_publish = None
         self.tag_override = None
+        # Commits on each default branch; one@OLD pins two@PIN.
+        self.branch_commits = {"one": {SHA, OLD}, "two": {SHA, PIN}, "three": {SHA}}
 
     def get(self, endpoint, optional=False):
         if endpoint == self.failure:
@@ -34,6 +45,17 @@ class Remote:
             return {"default_branch": "main"}
         if suffix == "commits/main":
             return {"sha": self.heads[name]}
+        if suffix == "commits/bbbbbbb":
+            return {"sha": OLD}
+        if suffix == f"commits/{OLD}" and name == "one":
+            return {"sha": OLD}
+        if suffix == f"contents/.gitmodules?ref={OLD}" and name == "one":
+            return {"content": base64.b64encode(GITMODULES.encode()).decode()}
+        if suffix == f"contents/lib/two?ref={OLD}" and name == "one":
+            return {"type": "submodule", "sha": PIN}
+        if suffix.startswith("compare/"):
+            sha = suffix.split("/")[1].split("...")[0]
+            return {"status": "ahead" if sha in self.branch_commits[name] else "diverged"}
         if suffix == "releases/latest":
             return (None if self.latest[name] is None else
                     {"tag_name": self.latest_tag[name],
@@ -158,6 +180,43 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(release.ReleaseError, "Tag SHA mismatch"):
             release.apply(self.remote, approved, lambda _: None)
         self.assertEqual(self.remote.published, set())
+
+
+class WorkspacePinTests(unittest.TestCase):
+    def setUp(self):
+        for target, value in (("REPOSITORIES", ("one", "two", "three")), ("WORKSPACE", "one")):
+            patcher = patch.object(release, target, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.remote = Remote()
+        self.remote.heads["three"] = SHA
+        self.remote.latest["three"] = OLD
+        self.remote.latest_tag["three"] = "previous"
+        self.remote.latest["two"] = OLD
+
+    def test_workspace_sha_pins_workspace_and_submodules(self):
+        result = release.plan(self.remote, TAG, "bbbbbbb")
+        self.assertEqual(result["workspace_sha"], OLD)
+        self.assertEqual([(e["source"], e["sha"]) for e in result["entries"]],
+                         [("workspace", OLD), ("workspace-submodule", PIN), ("default-branch", SHA)])
+        self.assertEqual(self.remote.writes, [])
+
+    def test_apply_tags_pinned_commits(self):
+        self.remote.latest["one"] = None
+        approved = release.plan(self.remote, TAG, "bbbbbbb")
+        release.apply(self.remote, approved, lambda _: None)
+        self.assertEqual(self.remote.tags, {"one": OLD, "two": PIN, "three": SHA})
+
+    def test_pin_off_default_branch_is_rejected(self):
+        self.remote.branch_commits["two"] = {SHA}
+        with self.assertRaisesRegex(release.ReleaseError, "is not on main"):
+            release.plan(self.remote, TAG, OLD)
+        self.assertEqual(self.remote.writes, [])
+
+    def test_invalid_workspace_sha_is_rejected(self):
+        for value in ("main", "ABCDEF0", "abc"):
+            with self.subTest(value=value), self.assertRaises(release.ReleaseError):
+                release.plan(self.remote, TAG, value)
 
 
 class TransportTests(unittest.TestCase):
