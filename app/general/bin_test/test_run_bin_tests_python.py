@@ -21,7 +21,7 @@ class PythonSelectionTest(unittest.TestCase):
             executable = root / ".venv/Scripts/python.exe"
             executable.parent.mkdir(parents=True)
             executable.touch()
-            with patch.dict(os.environ, {"PYTHON": "/selected python/python"}):
+            with patch.dict(os.environ, {"BIN_TEST_PYTHON": "/selected python/python"}):
                 self.assertEqual(runner.python_for(root / "bin_test"), "/selected python/python")
 
     def test_without_override_existing_venv_remains_supported(self):
@@ -30,7 +30,7 @@ class PythonSelectionTest(unittest.TestCase):
             executable = root / ".venv/bin/python"
             executable.parent.mkdir(parents=True)
             executable.touch()
-            with patch.dict(os.environ, {"PYTHON": ""}):
+            with patch.dict(os.environ, {"BIN_TEST_PYTHON": ""}):
                 self.assertEqual(runner.python_for(root / "bin_test"), str(executable))
 
 
