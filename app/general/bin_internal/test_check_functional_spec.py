@@ -8,6 +8,9 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+import contextlib
+import io
 
 
 SCRIPT_PATH = Path(__file__).resolve().parent.parent / "bin/check_functional_spec.py"
@@ -118,6 +121,48 @@ class CheckFunctionalSpecTest(unittest.TestCase):
             f"<!-- {tag}: uuid={requirement_uuid} --> "
             f"| {body} |"
         )
+
+    def test_accepts_requirements_in_semantic_order(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self._write_app(root, [
+                self._row("SAMPLE-CLOCK-FUNC-001", UUID_1),
+                self._row("SAMPLE-CLOCK-FUNC-003", UUID_3),
+                self._row("SAMPLE-CLOCK-FUNC-002", UUID_2),
+            ])
+            result = CHECKER.check_workspace(root)
+            self.assertEqual([], result.errors)
+            self.assertEqual([], result.read_errors)
+            self.assertEqual(3, result.requirement_count)
+
+    def test_rejects_zero_requirement_number(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self._write_app(root, [self._row("SAMPLE-CLOCK-FUNC-000", UUID_1)])
+            result = CHECKER.check_workspace(root)
+            self.assertTrue(any("001 以上" in error for error in result.errors))
+
+    def test_unreadable_source_is_incomplete(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self._write_app(root)
+            source = root / "app/sample/test/generated.c"
+            self._write(root, "app/sample/test/generated.c", "")
+            original = Path.read_text
+
+            def read_text(path, *args, **kwargs):
+                if path == source:
+                    raise FileNotFoundError("generated source is missing")
+                return original(path, *args, **kwargs)
+
+            with patch.object(Path, "read_text", read_text):
+                result = CHECKER.check_workspace(root)
+                self.assertEqual([], result.errors)
+                self.assertEqual(1, len(result.read_errors))
+                with contextlib.redirect_stderr(io.StringIO()) as output:
+                    self.assertEqual(2, CHECKER.main(["--root", str(root)]))
+                self.assertIn("INCOMPLETE:", output.getvalue())
+                self.assertNotIn("ERROR:", output.getvalue())
 
     def test_accepts_all_reference_formats(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

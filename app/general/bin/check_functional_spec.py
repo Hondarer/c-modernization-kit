@@ -133,10 +133,13 @@ class Reference:
 
 @dataclass(frozen=True)
 class CheckResult:
+    """要件の問題と、読み取り不能による検査未完了を分けて保持する。"""
+
     errors: list[str]
     requirement_count: int
     reference_count: int
     counts_by_app: dict[str, int]
+    read_errors: list[str] = field(default_factory=list)
 
 
 def _relative(path: Path, root: Path) -> str:
@@ -150,12 +153,12 @@ def _error(path: Path, line: int, root: Path, message: str) -> str:
     return f"{_relative(path, root)}:{line}: {message}"
 
 
-def _read_lines(path: Path, root: Path, errors: list[str]) -> list[str]:
+def _read_lines(path: Path, root: Path, read_errors: list[str]) -> list[str] | None:
     try:
         return path.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeError) as exc:
-        errors.append(_error(path, 1, root, f"ファイルを読み取れません: {exc}"))
-        return []
+        read_errors.append(_error(path, 1, root, f"ファイルを読み取れません: {exc}"))
+        return None
 
 
 def _section_lines(lines: list[str], heading: str) -> list[str]:
@@ -186,10 +189,14 @@ def _section_lines(lines: list[str], heading: str) -> list[str]:
 
 
 def _parse_guideline(
-    guideline_path: Path, app_root: Path, root: Path, errors: list[str]
+    guideline_path: Path,
+    app_root: Path,
+    root: Path,
+    errors: list[str],
+    read_errors: list[str],
 ) -> AppSpec | None:
     """app 固有規範から、要件 ID の構成とカテゴリごとの主語を読み取る。"""
-    lines = _read_lines(guideline_path, root, errors)
+    lines = _read_lines(guideline_path, root, read_errors)
     if not lines:
         return None
 
@@ -256,7 +263,9 @@ def _parse_guideline(
     )
 
 
-def _discover_apps(root: Path, errors: list[str]) -> list[AppSpec]:
+def _discover_apps(
+    root: Path, errors: list[str], read_errors: list[str]
+) -> list[AppSpec]:
     """機能仕様を持つ app を探索し、app 固有規範から設定を読み取る。"""
     apps: list[AppSpec] = []
     app_directory = root / "app"
@@ -273,7 +282,7 @@ def _discover_apps(root: Path, errors: list[str]) -> list[AppSpec]:
             continue
         if not spec_directory.is_dir():
             continue
-        app = _parse_guideline(guideline_path, app_root, root, errors)
+        app = _parse_guideline(guideline_path, app_root, root, errors, read_errors)
         if app is not None:
             apps.append(app)
 
@@ -414,6 +423,7 @@ def _load_requirements(
     requirements_by_id: dict[str, Requirement],
     requirements_by_uuid: dict[str, Requirement],
     errors: list[str],
+    read_errors: list[str],
 ) -> tuple[set[Path], int]:
     """1 つの app の機能仕様から、要件 ID と UUID の正本を読み取る。"""
     spec_paths: set[Path] = set()
@@ -427,7 +437,9 @@ def _load_requirements(
             continue
         spec_paths.add(path)
         category = path.stem.upper()
-        lines = _read_lines(path, root, errors)
+        lines = _read_lines(path, root, read_errors)
+        if lines is None:
+            continue
         if f"| 要件 ID | {app.table_heading} |" not in lines:
             errors.append(_error(path, 1, root, "機能要件表の見出しが存在しません"))
         if "|---|---|" not in lines:
@@ -442,7 +454,6 @@ def _load_requirements(
                 )
             )
 
-        previous_numbers: dict[str, int] = {}
         row_count = 0
         for line_number, line in enumerate(lines, start=1):
             if not line.startswith(row_prefix):
@@ -482,19 +493,10 @@ def _load_requirements(
                     )
                 )
 
-            kind = id_match.group("kind")
-            number = int(id_match.group("number"))
-            previous_number = previous_numbers.get(kind, 0)
-            if number <= previous_number:
+            if int(id_match.group("number")) < 1:
                 errors.append(
-                    _error(
-                        path,
-                        line_number,
-                        root,
-                        f"{kind} の連番が掲載順に増加していません: {requirement_id}",
-                    )
+                    _error(path, line_number, root, "要件 ID の連番は 001 以上でなければなりません")
                 )
-            previous_numbers[kind] = number
 
             requirement = Requirement(
                 requirement_id, requirement_uuid, path, line_number
@@ -714,6 +716,7 @@ def _iter_downstream_files(
     """要件参照を走査する対象のファイルを列挙する。
 
     機能仕様の正本と、記法を例示する規範は対象から除外する。
+    生成ソースも走査し、リンク切れなどの読み取り失敗は検査未完了として扱う。
     """
     paths: list[Path] = []
     for directory, subdirectories, filenames in os.walk(root):
@@ -733,10 +736,15 @@ def _iter_downstream_files(
 def check_workspace(root: Path) -> CheckResult:
     root = root.resolve()
     errors: list[str] = []
-    apps = _discover_apps(root, errors)
+    read_errors: list[str] = []
+    apps = _discover_apps(root, errors, read_errors)
     if not apps:
         return CheckResult(
-            errors=errors, requirement_count=0, reference_count=0, counts_by_app={}
+            errors=errors,
+            requirement_count=0,
+            reference_count=0,
+            counts_by_app={},
+            read_errors=read_errors,
         )
 
     patterns = _build_patterns(apps)
@@ -748,7 +756,7 @@ def check_workspace(root: Path) -> CheckResult:
 
     for app in apps:
         app_spec_paths, loaded = _load_requirements(
-            app, root, requirements_by_id, requirements_by_uuid, errors
+            app, root, requirements_by_id, requirements_by_uuid, errors, read_errors
         )
         counts_by_app[app.name] = loaded
         spec_paths |= app_spec_paths
@@ -758,7 +766,9 @@ def check_workspace(root: Path) -> CheckResult:
     for app in apps:
         canonical_row_re = app.canonical_row_re
         for path in sorted(spec_paths_by_app[app.name]):
-            lines = _read_lines(path, root, errors)
+            lines = _read_lines(path, root, read_errors)
+            if lines is None:
+                continue
             references.extend(
                 _scan_markdown(
                     path,
@@ -774,7 +784,9 @@ def check_workspace(root: Path) -> CheckResult:
     guideline_paths.add(root / "app" / "general" / "docs" / GUIDELINE_NAME)
 
     for path in _iter_downstream_files(root, spec_paths, guideline_paths):
-        lines = _read_lines(path, root, errors)
+        lines = _read_lines(path, root, read_errors)
+        if lines is None:
+            continue
         if path.suffix.lower() == ".md":
             references.extend(_scan_markdown(path, lines, root, patterns, errors))
         elif _is_test_path(path, root):
@@ -792,6 +804,7 @@ def check_workspace(root: Path) -> CheckResult:
         requirement_count=len(requirements_by_id),
         reference_count=len(references),
         counts_by_app=counts_by_app,
+        read_errors=read_errors,
     )
 
 
@@ -816,6 +829,16 @@ def main(argv: list[str] | None = None) -> int:
         for error in result.errors:
             print(error, file=sys.stderr)
         print(f"ERROR: {len(result.errors)} 件の問題が検出されました", file=sys.stderr)
+
+    if result.read_errors:
+        for error in result.read_errors:
+            print(error, file=sys.stderr)
+        print(
+            f"INCOMPLETE: {len(result.read_errors)} 件のファイルを読み取れず、検査が完了していません",
+            file=sys.stderr,
+        )
+        return 2
+    if result.errors:
         return 1
 
     breakdown = "、".join(
