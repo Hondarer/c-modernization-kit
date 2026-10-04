@@ -114,13 +114,13 @@ sync-app-env :
 check-nbsp :
 	python3 "$(CURDIR)/app/general/bin/check-nbsp.py"
 
-# bin_test/ のスクリプトのテストを実行する。livedocs のテストは専用の venv を使う。
+# bin_test/ のスクリプトのテストを実行する。発行処理と同じ Python を使う。
 # 想定外のスキップは失敗として扱う。手元でツールが不足する場合は BIN_TEST_ARGS=--allow-skips を指定する。
 BIN_TEST_ARGS ?=
 
 .PHONY: bin-test
 bin-test : livedocs-venv
-	python3 "$(CURDIR)/app/general/bin_internal/run-bin-tests.py" $(BIN_TEST_ARGS)
+	@$(LIVEDOCS_RESOLVE) --run-script "$(CURDIR)/app/general/bin_internal/run-bin-tests.py" $(BIN_TEST_ARGS)
 
 .PHONY: clean
 clean :
@@ -280,55 +280,44 @@ docs :
 # ---------------------------------------------------------------------------
 LIVEDOCS_HOME := $(CURDIR)/framework/docsfw/livedocs
 LIVEDOCS_VENV := $(LIVEDOCS_HOME)/.venv
-LIVEDOCS_PYTHON := $(LIVEDOCS_VENV)/bin/python
-LIVEDOCS_MKDOCS := $(LIVEDOCS_VENV)/bin/mkdocs
+LIVEDOCS_SYSTEM_PYTHON ?= python3
+LIVEDOCS_RESOLVE = "$(LIVEDOCS_SYSTEM_PYTHON)" "$(LIVEDOCS_HOME)/bin/resolve_python_components.py" --venv "$(LIVEDOCS_VENV)"
 LIVEDOCS_DIR := $(CURDIR)/pages/livedocs
 LIVEDOCS_STOP := $(LIVEDOCS_HOME)/bin/stop_livedocs_serve.sh
 LIVEDOCS_ADDR ?= 127.0.0.1:8000
 LIVEDOCS_VARIANT ?= ja
 LIVEDOCS_STRICT ?=
 
-# Windows (Git Bash) では venv の実行ファイルが Scripts/ に置かれる。
-ifeq ($(OS),Windows_NT)
-    LIVEDOCS_PYTHON := $(LIVEDOCS_VENV)/Scripts/python.exe
-    LIVEDOCS_MKDOCS := $(LIVEDOCS_VENV)/Scripts/mkdocs.exe
-endif
-
 .PHONY: livedocs-venv
 livedocs-venv :
-	@if [ ! -x "$(LIVEDOCS_PYTHON)" ]; then \
-		printf 'INFO: Creating livedocs venv at %s\n' "$(LIVEDOCS_VENV)"; \
-		python3 -m venv "$(LIVEDOCS_VENV)"; \
-		"$(LIVEDOCS_PYTHON)" -m pip install --quiet --upgrade pip; \
-		"$(LIVEDOCS_PYTHON)" -m pip install --quiet -r "$(LIVEDOCS_HOME)/requirements.txt"; \
-	fi
+	@$(LIVEDOCS_RESOLVE) --ensure
 
 .PHONY: livedocs-stage
 livedocs-stage : livedocs-venv
-	@python3 "$(LIVEDOCS_HOME)/bin/stage_livedocs.py" --workspaceFolder="$(CURDIR)" --variant="$(LIVEDOCS_VARIANT)"
-	@python3 "$(LIVEDOCS_HOME)/bin/vendor_assets.py" --workspaceFolder="$(CURDIR)" --variant="$(LIVEDOCS_VARIANT)"
+	@$(LIVEDOCS_RESOLVE) --run-script "$(LIVEDOCS_HOME)/bin/stage_livedocs.py" --workspaceFolder="$(CURDIR)" --variant="$(LIVEDOCS_VARIANT)"
+	@$(LIVEDOCS_RESOLVE) --run-script "$(LIVEDOCS_HOME)/bin/vendor_assets.py" --workspaceFolder="$(CURDIR)" --variant="$(LIVEDOCS_VARIANT)"
 
 .PHONY: servedocs
 servedocs : livedocs-venv
-	@"$(BASH)" "$(LIVEDOCS_STOP)" --venv "$(LIVEDOCS_VENV)" --require-stopped
+	@"$(BASH)" "$(LIVEDOCS_STOP)" --venv "$(LIVEDOCS_VENV)" --config "$(LIVEDOCS_DIR)/mkdocs.yml" --require-stopped
 	@$(MAKE) --no-print-directory livedocs-stage
 	@printf 'INFO: mkdocs serve on http://%s/ (variant %s)\n' "$(LIVEDOCS_ADDR)" "$(LIVEDOCS_VARIANT)"
 	@# Windows では Ctrl+C を Python が処理するため、ここの trap は動かない。
 	@# 終了コード 0 への変換は livedocs_autostage_hook.py の on_startup が行う。
-	@cd "$(LIVEDOCS_DIR)" && trap 'exit 0' INT && "$(LIVEDOCS_MKDOCS)" serve --dev-addr "$(LIVEDOCS_ADDR)"
+	@cd "$(LIVEDOCS_DIR)" && trap 'exit 0' INT && $(LIVEDOCS_RESOLVE) --run mkdocs serve --config-file "$(LIVEDOCS_DIR)/mkdocs.yml" --dev-addr "$(LIVEDOCS_ADDR)"
 
 .PHONY: livedocs
 livedocs : livedocs-stage
 	@cd "$(LIVEDOCS_DIR)" && \
 	if [ "$(LIVEDOCS_STRICT)" = "1" ]; then \
-		"$(LIVEDOCS_MKDOCS)" build --strict; \
+		$(LIVEDOCS_RESOLVE) --run mkdocs build --config-file "$(LIVEDOCS_DIR)/mkdocs.yml" --strict; \
 	else \
-		"$(LIVEDOCS_MKDOCS)" build; \
+		$(LIVEDOCS_RESOLVE) --run mkdocs build --config-file "$(LIVEDOCS_DIR)/mkdocs.yml"; \
 	fi
 
 .PHONY: stopdocs
 stopdocs :
-	@"$(BASH)" "$(LIVEDOCS_STOP)" --venv "$(LIVEDOCS_VENV)"
+	@"$(BASH)" "$(LIVEDOCS_STOP)" --venv "$(LIVEDOCS_VENV)" --config "$(LIVEDOCS_DIR)/mkdocs.yml"
 
 .PHONY: cleanlivedocs
 cleanlivedocs : stopdocs

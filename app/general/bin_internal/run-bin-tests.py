@@ -11,7 +11,8 @@
 - *_selftest.ps1: Windows だけで PowerShell により実行する
 - test_*.js: Node.js で実行し、終了コードで合否を判定する
 
-bin_test/ の親ディレクトリに .venv がある場合は、その Python を使う。
+PYTHON が指定されている場合は、その Python を使う。
+未指定で bin_test/ の親ディレクトリに .venv がある場合は、その Python を使う。
 作業ディレクトリは、bin_test/ を含む Git リポジトリのルートとする。
 
 ツールやファイルの不足によるスキップは、検証していないのに成功に見えるため失敗として扱う。
@@ -76,6 +77,8 @@ def repository_root(directory):
 
 
 def python_for(directory):
+    if os.environ.get("PYTHON"):
+        return os.environ["PYTHON"]
     venv = directory.parent / ".venv"
     for candidate in (venv / "Scripts" / "python.exe", venv / "bin" / "python"):
         if candidate.is_file():

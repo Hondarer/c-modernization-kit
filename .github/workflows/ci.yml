@@ -125,6 +125,33 @@ jobs:
           path: logs/linux-${{ matrix.os-name }}-build.log
           if-no-files-found: warn
 
+      - name: Identify docsfw Node cache
+        id: docsfw-node-cache
+        run: |
+          echo "node-version=$(node --version)" >> "$GITHUB_OUTPUT"
+          echo "npm-cache=$(npm config get cache)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore docsfw npm and puppeteer cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            framework/docsfw/bin_internal/node_modules
+            framework/docsfw/.cache/puppeteer
+            ${{ steps.docsfw-node-cache.outputs.npm-cache }}
+          key: docsfw-cache-${{ matrix.os-name }}-${{ runner.arch }}-${{ steps.docsfw-node-cache.outputs.node-version }}-${{ hashFiles('framework/docsfw/bin_internal/package.json', 'framework/docsfw/bin_internal/package-lock.json') }}
+
+      - name: Identify livedocs Python cache
+        id: livedocs-cache
+        run: python3 framework/docsfw/livedocs/bin/resolve_python_components.py --cache-info >> "$GITHUB_OUTPUT"
+
+      - name: Restore livedocs Python cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            framework/docsfw/livedocs/.venv
+            ${{ steps.livedocs-cache.outputs.pip-cache }}
+          key: livedocs-${{ matrix.os-name }}-${{ runner.arch }}-${{ steps.livedocs-cache.outputs.key }}
+
       # bin_test/ のスクリプトのテストは、空白を含む一時ディレクトリでの検証を含む。
       # 想定外のスキップは失敗として扱う (app/general/bin_internal/run-bin-tests.py)。
       - name: Run script tests
@@ -139,15 +166,6 @@ jobs:
           name: linux-${{ matrix.os-name }}-bin-test-logs
           path: logs/linux-${{ matrix.os-name }}-bin-test.log
           if-no-files-found: ignore
-
-      - name: Restore docsfw npm and puppeteer cache
-        if: ${{ matrix.docs }}
-        uses: actions/cache@v6
-        with:
-          path: |
-            framework/docsfw/bin_internal/node_modules
-            framework/docsfw/.cache/puppeteer
-          key: docsfw-cache-ol8-${{ hashFiles('framework/docsfw/bin_internal/package-lock.json') }}
 
       - name: Generate and publish documentation
         if: ${{ matrix.docs }}
@@ -519,21 +537,28 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "PUPPETEER_SKIP_DOWNLOAD=1"
         shell: pwsh
 
+      - name: Identify docsfw Node cache
+        id: docsfw-node-cache
+        run: |
+          echo "node-version=$(node --version)" >> "$GITHUB_OUTPUT"
+          echo "npm-cache=$(npm config get cache)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Restore docsfw npm cache
         uses: actions/cache@v6
         with:
-          path: framework/docsfw/bin_internal/node_modules
-          key: docsfw-cache-windows-${{ hashFiles('framework/docsfw/bin_internal/package-lock.json') }}
+          path: |
+            framework/docsfw/bin_internal/node_modules
+            ${{ steps.docsfw-node-cache.outputs.npm-cache }}
+          key: docsfw-cache-windows-${{ runner.arch }}-${{ steps.docsfw-node-cache.outputs.node-version }}-${{ hashFiles('framework/docsfw/bin_internal/package.json', 'framework/docsfw/bin_internal/package-lock.json') }}
 
       - name: Install docsfw npm components
         run: |
           $ErrorActionPreference = "Stop"
-          # キャッシュの鍵は package-lock.json のハッシュのため、復元できた場合は再導入しない。
-          if (-not (Test-Path -LiteralPath "framework/docsfw/bin_internal/node_modules")) {
-              npm ci --prefix framework/docsfw/bin_internal --no-audit --no-fund
-              if ($LASTEXITCODE -ne 0) {
-                  throw "npm ci failed with exit code $LASTEXITCODE"
-              }
+          # グローバルと復元済みローカルを確認し、不足分だけ導入する。
+          node framework/docsfw/bin_internal/resolve-node-components.js --ensure
+          if ($LASTEXITCODE -ne 0) {
+              throw "docsfw npm component resolution failed with exit code $LASTEXITCODE"
           }
           # 不足があっても終了コードは 0 のため、missing が空であることを確かめる。
           $resolved = node framework/docsfw/bin_internal/resolve-node-components.js | ConvertFrom-Json
@@ -597,6 +622,19 @@ jobs:
           name: windows-logs
           path: logs/windows-build.log
           if-no-files-found: warn
+
+      - name: Identify livedocs Python cache
+        id: livedocs-cache
+        run: python3 framework/docsfw/livedocs/bin/resolve_python_components.py --cache-info >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Restore livedocs Python cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            framework/docsfw/livedocs/.venv
+            ${{ steps.livedocs-cache.outputs.pip-cache }}
+          key: livedocs-windows-${{ runner.arch }}-${{ steps.livedocs-cache.outputs.key }}
 
       # bin_test/ のスクリプトのテストは、空白を含む一時ディレクトリでの検証を含む。
       # 想定外のスキップは失敗として扱う (app/general/bin_internal/run-bin-tests.py)。
