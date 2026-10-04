@@ -33,11 +33,15 @@ int struct_meta_internal_field_is_byte_array(const struct_meta_field *field)
     {
         return 0;
     }
-    return (((field->kind == STRUCT_META_FIELD_SIGNED_INTEGER) ||
-             (field->kind == STRUCT_META_FIELD_UNSIGNED_INTEGER)) &&
-            (field->element_size == 1U) && (field->element_count > 1U))
-               ? 1
-               : 0;
+    if (((field->kind == STRUCT_META_FIELD_SIGNED_INTEGER) || (field->kind == STRUCT_META_FIELD_UNSIGNED_INTEGER)) &&
+        (field->element_size == 1U) && (field->element_count > 1U))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 int struct_meta_internal_field_byte_format(const struct_meta_field *field, struct_meta_internal_byte_format *format_out)
@@ -166,7 +170,14 @@ static int validate_hex_text(const char *text, const size_t byte_count)
             } while (*cursor == ' ');
         }
     }
-    return (*cursor == '\0') ? CPLAT_OK : CPLAT_ERR_INVALID_ENCODING;
+    if (*cursor == '\0')
+    {
+        return CPLAT_OK;
+    }
+    else
+    {
+        return CPLAT_ERR_INVALID_ENCODING;
+    }
 }
 
 int struct_meta_internal_bytes_from_hex(unsigned char *bytes, const size_t byte_count, const char *text)

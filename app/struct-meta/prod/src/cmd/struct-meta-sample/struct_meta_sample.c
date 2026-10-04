@@ -121,7 +121,16 @@ static void print_builtin_catalog_names(FILE *stream)
 {
     for (size_t i = 0; i < (sizeof(g_builtin_catalogs) / sizeof(g_builtin_catalogs[0])); i++)
     {
-        fprintf(stream, "%s%s", (i == 0U) ? "" : "|", g_builtin_catalogs[i].name);
+        const char *separator;
+        if (i == 0U)
+        {
+            separator = "";
+        }
+        else
+        {
+            separator = "|";
+        }
+        fprintf(stream, "%s%s", separator, g_builtin_catalogs[i].name);
     }
 }
 
@@ -546,7 +555,14 @@ static void print_hexdump(const unsigned char *buffer, size_t size, size_t offse
             if (i < line_bytes)
             {
                 const unsigned char value = buffer[line_start + i];
-                printf("%c", ((value >= 0x20U) && (value < 0x7fU)) ? (char)value : '.');
+                if ((value >= 0x20U) && (value < 0x7fU))
+                {
+                    printf("%c", (char)value);
+                }
+                else
+                {
+                    printf("%c", '.');
+                }
             }
             else
             {
@@ -825,7 +841,14 @@ int main(int argc, char **argv)
         }
         if ((ret == CPLAT_ERR_EOF) || (ret == CPLAT_ERR_CANCELED))
         {
-            exit_code = (ret == CPLAT_ERR_EOF) ? 0 : 1;
+            if (ret == CPLAT_ERR_EOF)
+            {
+                exit_code = 0;
+            }
+            else
+            {
+                exit_code = 1;
+            }
             break;
         }
         if (ret != CPLAT_OK)

@@ -39,7 +39,15 @@ static int push_descriptor(validation_context *context, const struct_meta_descri
 
     if (context->depth == context->capacity)
     {
-        size_t capacity = (context->capacity == 0U) ? 8U : context->capacity * 2U;
+        size_t capacity;
+        if (context->capacity == 0U)
+        {
+            capacity = 8U;
+        }
+        else
+        {
+            capacity = context->capacity * 2U;
+        }
         if (capacity < context->capacity || capacity > (SIZE_MAX / sizeof(*context->stack)))
         {
             return CPLAT_ERR_OUT_OF_MEMORY;

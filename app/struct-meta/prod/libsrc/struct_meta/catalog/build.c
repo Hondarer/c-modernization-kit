@@ -97,10 +97,15 @@ static const struct_meta_internal_parse_attribute *find_attribute(
  */
 static int is_explicit_byte_type(const char *type_name)
 {
-    return ((strcmp(type_name, "signed char") == 0) || (strcmp(type_name, "unsigned char") == 0) ||
-            (strcmp(type_name, "int8_t") == 0) || (strcmp(type_name, "uint8_t") == 0))
-               ? 1
-               : 0;
+    if ((strcmp(type_name, "signed char") == 0) || (strcmp(type_name, "unsigned char") == 0) ||
+        (strcmp(type_name, "int8_t") == 0) || (strcmp(type_name, "uint8_t") == 0))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 /**
@@ -120,10 +125,15 @@ static int field_is_byte_array(const struct_meta_internal_parse_field *field)
         return 1;
     }
     const struct_meta_internal_parse_attribute *kind = find_attribute(field->attributes, "meta.kind");
-    return ((strcmp(field->type_name, "char") == 0) && (kind != NULL) && (kind->value != NULL) &&
-            (strcmp(kind->value, "bytes") == 0))
-               ? 1
-               : 0;
+    if ((strcmp(field->type_name, "char") == 0) && (kind != NULL) && (kind->value != NULL) &&
+        (strcmp(kind->value, "bytes") == 0))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 /**
@@ -272,7 +282,15 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
     }
 
     /* 記憶域の占有はここで決める。char 配列も宣言どおりの要素数で場所を取る。 */
-    const size_t declared_count = (source->array_count > 0) ? (size_t)source->array_count : 1U;
+    size_t declared_count;
+    if (source->array_count > 0)
+    {
+        declared_count = (size_t)source->array_count;
+    }
+    else
+    {
+        declared_count = 1U;
+    }
     size_t offset = 0U;
     ret = struct_meta_internal_layout_add(layout, element_size, declared_count, alignment, &offset);
     if (ret != CPLAT_OK)
@@ -287,10 +305,16 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
      * 全体のバイト数を char_buffer_size が表す。
      * see: app/struct-meta/docs/architecture.md の「文字列とバイト配列」
      */
-    const int is_char_array = ((source->is_struct_type == 0) && (strcmp(source->type_name, "char") == 0) &&
-                               (source->array_count > 0) && (field_is_byte_array(source) == 0))
-                                  ? 1
-                                  : 0;
+    int is_char_array;
+    if ((source->is_struct_type == 0) && (strcmp(source->type_name, "char") == 0) && (source->array_count > 0) &&
+        (field_is_byte_array(source) == 0))
+    {
+        is_char_array = 1;
+    }
+    else
+    {
+        is_char_array = 0;
+    }
     if (is_char_array != 0)
     {
         kind = STRUCT_META_FIELD_CHAR_ARRAY;

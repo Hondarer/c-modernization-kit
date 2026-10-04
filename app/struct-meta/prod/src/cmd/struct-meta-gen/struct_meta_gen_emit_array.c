@@ -32,7 +32,15 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
         uint64_t word = 0;
         size_t offset = i * 8U;
         size_t remain = data_size - offset;
-        size_t copy_size = (remain < 8U) ? remain : 8U;
+        size_t copy_size;
+        if (remain < 8U)
+        {
+            copy_size = remain;
+        }
+        else
+        {
+            copy_size = 8U;
+        }
 
         memcpy(&word, (const unsigned char *)data + offset, copy_size);
 

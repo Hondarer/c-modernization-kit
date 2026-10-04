@@ -152,7 +152,14 @@ static const char *find_doc_tag(const char *text, const char *tag)
                 }
             }
         }
-        at_line_start = (*p == '\n') ? 1 : 0;
+        if (*p == '\n')
+        {
+            at_line_start = 1;
+        }
+        else
+        {
+            at_line_start = 0;
+        }
         if (*p == '\0')
         {
             break;
@@ -290,7 +297,14 @@ int struct_meta_internal_parse_doc_has_file_tag(const char *raw)
     {
         return 0;
     }
-    found = (find_doc_tag(stripped, "file") != NULL) ? 1 : 0;
+    if (find_doc_tag(stripped, "file") != NULL)
+    {
+        found = 1;
+    }
+    else
+    {
+        found = 0;
+    }
     free(stripped);
     return found;
 }
@@ -410,7 +424,15 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
         }
 
         const char *separator = memchr(begin, '=', (size_t)(end - begin));
-        const char *key_end = (separator == NULL) ? end : separator;
+        const char *key_end;
+        if (separator == NULL)
+        {
+            key_end = end;
+        }
+        else
+        {
+            key_end = separator;
+        }
         while ((key_end > begin) && (isspace((unsigned char)key_end[-1]) != 0))
         {
             key_end--;
@@ -491,7 +513,14 @@ static char *copy_without_meta_cmds(const char *text)
             if (*open == '{')
             {
                 const char *close = strchr(open + 1, '}');
-                p = (close == NULL) ? (open + 1) : (close + 1);
+                if (close == NULL)
+                {
+                    p = (open + 1);
+                }
+                else
+                {
+                    p = (close + 1);
+                }
                 continue;
             }
         }

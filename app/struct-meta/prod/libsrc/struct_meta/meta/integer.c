@@ -18,7 +18,14 @@
 
 int struct_meta_internal_integer_is_supported_size(size_t element_size)
 {
-    return ((element_size == 1U) || (element_size == 2U) || (element_size == 4U) || (element_size == 8U)) ? 1 : 0;
+    if ((element_size == 1U) || (element_size == 2U) || (element_size == 4U) || (element_size == 8U))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

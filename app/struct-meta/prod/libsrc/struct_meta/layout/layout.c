@@ -75,7 +75,14 @@ const struct_meta_internal_layout_type *struct_meta_internal_layout_find_type(co
  */
 static int is_power_of_two(size_t value)
 {
-    return ((value != 0U) && ((value & (value - 1U)) == 0U)) ? 1 : 0;
+    if ((value != 0U) && ((value & (value - 1U)) == 0U))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void struct_meta_internal_layout_begin(struct_meta_internal_layout_builder *builder)
@@ -98,7 +105,15 @@ int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder
     }
 
     /* オフセットをアラインメントへ切り上げる。加算で桁あふれしないことを先に確かめる。 */
-    const size_t padding = (builder->offset % alignment == 0U) ? 0U : (alignment - (builder->offset % alignment));
+    size_t padding;
+    if (builder->offset % alignment == 0U)
+    {
+        padding = 0U;
+    }
+    else
+    {
+        padding = (alignment - (builder->offset % alignment));
+    }
     if (padding > (SIZE_MAX - builder->offset))
     {
         return CPLAT_ERR_OUT_OF_RANGE;
@@ -143,7 +158,15 @@ int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *b
     }
 
     const size_t remainder = builder->offset % builder->alignment;
-    const size_t padding = (remainder == 0U) ? 0U : (builder->alignment - remainder);
+    size_t padding;
+    if (remainder == 0U)
+    {
+        padding = 0U;
+    }
+    else
+    {
+        padding = (builder->alignment - remainder);
+    }
     if (padding > (SIZE_MAX - builder->offset))
     {
         return CPLAT_ERR_OUT_OF_RANGE;

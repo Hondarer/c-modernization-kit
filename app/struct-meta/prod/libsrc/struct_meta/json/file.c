@@ -65,7 +65,11 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
-    size_t expected_len = text_len + ((needs_newline != 0) ? 1U : 0U);
+    size_t expected_len = text_len;
+    if (needs_newline != 0)
+    {
+        expected_len++;
+    }
     size_t written = cplat_fwrite(text, 1, text_len, stream, NULL);
     if ((written == text_len) && (needs_newline != 0))
     {

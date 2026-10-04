@@ -37,15 +37,15 @@ TEST(structMetaAccessTest, finds_field_by_name)
     // Pre-Assert
 
     // Act
-    int first_ret = struct_meta_descriptor_find_field(&kFieldsDescriptor, "first",
-                                                      &first); // [手順] - 先頭のフィールドを名前で検索する。
-    int second_ret = struct_meta_descriptor_find_field(&kFieldsDescriptor, "second",
-                                                       &second); // [手順] - 末尾のフィールドを名前で検索する。
+    int actual_ret_first = struct_meta_descriptor_find_field(&kFieldsDescriptor, "first",
+                                                             &first); // [手順] - 先頭のフィールドを名前で検索する。
+    int actual_ret_second = struct_meta_descriptor_find_field(&kFieldsDescriptor, "second",
+                                                              &second); // [手順] - 末尾のフィールドを名前で検索する。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, first_ret);            // [確認_正常系] - 先頭フィールドの検索が成功すること。
+    ASSERT_EQ(CPLAT_OK, actual_ret_first);     // [確認_正常系] - 先頭フィールドの検索が成功すること。
     EXPECT_EQ(&kFields[0], first);             // [確認_正常系] - 先頭フィールドの記述子が返ること。
-    ASSERT_EQ(CPLAT_OK, second_ret);           // [確認_正常系] - 末尾フィールドの検索が成功すること。
+    ASSERT_EQ(CPLAT_OK, actual_ret_second);    // [確認_正常系] - 末尾フィールドの検索が成功すること。
     EXPECT_EQ(&kFields[1], second);            // [確認_正常系] - 末尾フィールドの記述子が返ること。
 }
 
@@ -58,11 +58,11 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_field)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_descriptor_find_field(&kFieldsDescriptor, "unknown",
-                                                   &field); // [手順] - 存在しないフィールドを検索する。
+    int actual_ret = struct_meta_descriptor_find_field(&kFieldsDescriptor, "unknown",
+                                                       &field); // [手順] - 存在しないフィールドを検索する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual); // [確認_正常系] - フィールド検索が CPLAT_ERR_NOT_FOUND を返すこと。
+    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual_ret); // [確認_正常系] - フィールド検索が CPLAT_ERR_NOT_FOUND を返すこと。
     EXPECT_EQ(nullptr, field);              // [確認_正常系] - 検索結果が NULL に初期化されること。
 }
 
@@ -121,11 +121,11 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_key)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_descriptor_find_attribute(&kDescriptor, "unknown",
-                                                       &attribute); // [手順] - 存在しない構造体属性を検索する。
+    int actual_ret = struct_meta_descriptor_find_attribute(&kDescriptor, "unknown",
+                                                           &attribute); // [手順] - 存在しない構造体属性を検索する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual); // [確認_正常系] - 属性検索が CPLAT_ERR_NOT_FOUND を返すこと。
+    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual_ret); // [確認_正常系] - 属性検索が CPLAT_ERR_NOT_FOUND を返すこと。
     EXPECT_EQ(nullptr, attribute);          // [確認_正常系] - 検索結果が NULL に初期化されること。
 }
 
@@ -161,8 +161,9 @@ TEST(structMetaAccessTest, rejects_duplicate_descriptor_attributes)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_descriptor_validate(&descriptor); // [手順] - 重複する構造体属性を持つ記述子を検査する。
+    int actual_ret =
+        struct_meta_descriptor_validate(&descriptor); // [手順] - 重複する構造体属性を持つ記述子を検査する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual); // [確認_異常系] - 重複する構造体属性が拒否されること。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 重複する構造体属性が拒否されること。
 }

@@ -73,7 +73,15 @@ static int append_path(const char *path, const char *separator, const char *suff
  */
 static int append_field_path(const char *path, const char *field_name, char **path_out)
 {
-    const char *separator = (path[0] == '\0') ? "" : ".";
+    const char *separator;
+    if (path[0] == '\0')
+    {
+        separator = "";
+    }
+    else
+    {
+        separator = ".";
+    }
     return append_path(path, separator, field_name, path_out);
 }
 
@@ -199,7 +207,14 @@ static int find_field_by_name(const struct_meta_descriptor *descriptor, const ch
         }
     }
 
-    return (*field_out == NULL) ? CPLAT_ERR_NOT_FOUND : CPLAT_OK;
+    if (*field_out == NULL)
+    {
+        return CPLAT_ERR_NOT_FOUND;
+    }
+    else
+    {
+        return CPLAT_OK;
+    }
 }
 
 /**
@@ -504,16 +519,25 @@ static int patch_array_field(cplat_prompt *prompt, const struct_meta_field *fiel
 static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc, unsigned char *base, const char *path)
 {
     char line[STRUCT_META_PATCH_LINE_BYTES];
+    const char *display_path;
+    if (path[0] == '\0')
+    {
+        display_path = "<root>";
+    }
+    else
+    {
+        display_path = path;
+    }
 
     for (;;)
     {
         if ((desc->brief != NULL) && (desc->brief[0] != '\0'))
         {
-            printf("-- %s (現在位置: %s) --  %s\n", desc->name, (path[0] == '\0') ? "<root>" : path, desc->brief);
+            printf("-- %s (現在位置: %s) --  %s\n", desc->name, display_path, desc->brief);
         }
         else
         {
-            printf("-- %s (現在位置: %s) --\n", desc->name, (path[0] == '\0') ? "<root>" : path);
+            printf("-- %s (現在位置: %s) --\n", desc->name, display_path);
         }
         for (size_t i = 0; i < desc->field_count; i++)
         {
@@ -569,7 +593,14 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                     if (format_ret == CPLAT_OK)
                     {
                         text = (char *)malloc(text_size);
-                        format_ret = (text == NULL) ? CPLAT_ERR_OUT_OF_MEMORY : CPLAT_OK;
+                        if (text == NULL)
+                        {
+                            format_ret = CPLAT_ERR_OUT_OF_MEMORY;
+                        }
+                        else
+                        {
+                            format_ret = CPLAT_OK;
+                        }
                     }
                     if (format_ret == CPLAT_OK)
                     {

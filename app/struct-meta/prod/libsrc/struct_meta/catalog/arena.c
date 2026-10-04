@@ -76,7 +76,15 @@ static size_t aligned_offset(const arena_chunk *chunk, size_t alignment)
 {
     const uintptr_t base = (uintptr_t)chunk->bytes + (uintptr_t)chunk->used;
     const uintptr_t misaligned = base % (uintptr_t)alignment;
-    const size_t padding = (misaligned == 0U) ? 0U : (size_t)((uintptr_t)alignment - misaligned);
+    size_t padding;
+    if (misaligned == 0U)
+    {
+        padding = 0U;
+    }
+    else
+    {
+        padding = (size_t)((uintptr_t)alignment - misaligned);
+    }
     return chunk->used + padding;
 }
 

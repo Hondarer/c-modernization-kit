@@ -234,7 +234,14 @@ static const char *field_kind_name(struct_meta_field_kind kind)
  */
 static int field_is_declared_array(const struct_meta_field *field)
 {
-    return ((field->kind == STRUCT_META_FIELD_CHAR_ARRAY) || (field->element_count > 1U)) ? 1 : 0;
+    if ((field->kind == STRUCT_META_FIELD_CHAR_ARRAY) || (field->element_count > 1U))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 
@@ -317,7 +324,15 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         const struct_meta_field *field = &descriptor->fields[i];
-        const char *element = (field_is_declared_array(field) != 0) ? "[0]" : "";
+        const char *element;
+        if (field_is_declared_array(field) != 0)
+        {
+            element = "[0]";
+        }
+        else
+        {
+            element = "";
+        }
         char element_size_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
         char char_buffer_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
         char nested_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];

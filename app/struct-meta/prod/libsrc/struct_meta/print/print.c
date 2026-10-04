@@ -218,6 +218,15 @@ int struct_meta_print_write(const struct_meta_descriptor *desc, const void *inst
     }
 
     print_indent(out, 0);
-    fprintf(out, "%s:\n", (desc->name != NULL) ? desc->name : "(unnamed)");
+    const char *name;
+    if (desc->name != NULL)
+    {
+        name = desc->name;
+    }
+    else
+    {
+        name = "(unnamed)";
+    }
+    fprintf(out, "%s:\n", name);
     return print_struct(desc, (const unsigned char *)instance, out, 2);
 }
