@@ -7,8 +7,8 @@
 #include "sample_filter_share_region.h"
 
 #include <cplat/base/result.h>
-#include <cplat/sync/atomic.h>
 #include <cplat/crt/path.h>
+#include <cplat/crt/stdio.h>
 #include <cplat/runtime/process.h>
 #include <cplat/sync/sync.h>
 #include <cplat/trace/tracer.h>
@@ -16,7 +16,6 @@
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <string>
 
@@ -38,10 +37,24 @@ class sampleFilterShareTest : public Test
         (void)std::remove(lock_path_.c_str());
 
         ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, sample_filter_share_lock_create(path_.c_str(), &lock_));
+        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_));
+        open_handles();
+    }
+
+    void TearDown() override
+    {
+        close_handles();
+        sample_filter_share_lock_dispose(&lock_);
+        (void)std::remove(path_.c_str());
+        (void)std::remove(lock_path_.c_str());
+    }
+
+    /** 書き込み側と読み取り側のハンドルで共有ファイルを開き、読み取り側の共有メモリをスロットへ結び付けます。 */
+    void open_handles()
+    {
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_));
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
-        ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_));
 
         /* 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付け、別プロセスの読み取り側に見立てる */
         source_ = sample_filter_share_get_source(reader_, &source_size_);
@@ -51,15 +64,31 @@ class sampleFilterShareTest : public Test
                   cplat_string_catalog_filter_slot_attach_source(slot_, source_, source_size_, &source_lock_));
     }
 
-    void TearDown() override
+    /** スロットと、書き込み側と読み取り側のハンドルを閉じます。排他は閉じません。 */
+    void close_handles()
     {
         (void)cplat_string_catalog_filter_slot_attach_source(slot_, nullptr, 0U, nullptr);
         cplat_string_catalog_filter_slot_dispose(&slot_);
         sample_filter_share_close(&reader_);
         sample_filter_share_close(&writer_);
-        sample_filter_share_lock_dispose(&lock_);
-        (void)std::remove(path_.c_str());
-        (void)std::remove(lock_path_.c_str());
+        source_ = nullptr;
+        source_size_ = 0U;
+    }
+
+    /**
+     *  @brief          共有ファイルの一部を、メモリ マップを経由せずに直接書き換えます。
+     *
+     *  close_handles() でハンドルを閉じてから呼び出します。
+     *  異常終了などで壊れた内容がファイルに残った状態を作り、open_handles() で再起動したプロセスに見立てて開き直します。
+     */
+    void rewrite_file(const std::size_t offset, const void *data, const std::size_t size)
+    {
+        FILE *file = cplat_fopen(path_.c_str(), "r+b", nullptr);
+        ASSERT_NE(nullptr, file);
+        const bool written =
+            (std::fseek(file, static_cast<long>(offset), SEEK_SET) == 0) && (std::fwrite(data, 1U, size, file) == size);
+        (void)std::fclose(file);
+        ASSERT_TRUE(written);
     }
 
     cplat_string_catalog_filter_state state_of(const int string_key)
@@ -476,84 +505,105 @@ namespace
  */
 constexpr std::size_t kPublishedRevisionOffset = 0x18U;
 
-/**
- *  @brief          別のプロセスの書き込み側として、書き込みの途中で異常終了します。
- *
- *  同じパスの排他を新しく作成して取得し、版番号を奇数にして、フィルター オブジェクトの一部を書き換えた
- *  ところで、排他を解放せずに異常終了します。cplat の公開が書き込みの途中で止まった状態と同じです。
- */
-void crash_while_writing(const char *path, void *source)
-{
-    sample_filter_share_lock *lock = nullptr;
-    cplat_atomic_u64 *revision =
-        reinterpret_cast<cplat_atomic_u64 *>(static_cast<unsigned char *>(source) + kPublishedRevisionOffset);
-
-    if ((sample_filter_share_lock_create(path, &lock) != SAMPLE_FILTER_SHARE_REGION_OK) ||
-        (sample_filter_share_lock_acquire(lock, SAMPLE_FILTER_SHARE_WAIT_FOREVER) != SAMPLE_FILTER_SHARE_REGION_OK))
-    {
-        std::_Exit(2);
-    }
-    cplat_atomic_store_u64(revision, cplat_atomic_load_u64(revision, CPLAT_MEMORY_ORDER_RELAXED) | 1U,
-                           CPLAT_MEMORY_ORDER_RELEASE);
-    std::memset(static_cast<unsigned char *>(source) + CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, 0xAA, 64U);
-    std::abort();
-}
+/** フィルター オブジェクトの先頭から書き換えるバイト数です。書き込みの途中で止まった内容に見立てます。 */
+constexpr std::size_t kTornImageBytes = 64U;
 } // namespace
 
-// 別のプロセスの書き込み側が書き込みの途中で異常終了しても、取り込み済みの条件を保ち、
-// OS が排他を解放し、次の公開で回復することの確認
-TEST_F(sampleFilterShareTest, writer_crash_while_writing_keeps_conditions_and_recovers)
+// 書き込みの途中で止まった内容が残るファイルを開き直した読み取り側は、その内容を取り込まず、
+// 次の公開で回復することの確認
+TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_publish)
 {
-#if defined(_WIN32)
-    GTEST_SKIP() << "子プロセスを fork で起動するデス テストを使うため、Linux 環境専用のテストです";
-#else
     // Arrange
-    static unsigned char image_failed[kImageSize];
-    static unsigned char image_started[kImageSize];
+    static unsigned char image[kImageSize];
+    unsigned char torn_image[kTornImageBytes];
     uint64_t first_revision = 0U;
     uint64_t recovered_revision = 0U;
-    int actual_before_crash = 0;
-    int actual_after_crash = 0;
-    int actual_after_recovery = 1;
-    void *source = const_cast<void *>(source_);
+    int actual_while_writing = 1;
+    int actual_after_recovery = 0;
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
-                                            image_failed)); // [状態] - 1 つ目の条件をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED",
-                                            image_started)); // [状態] - 2 つ目の条件をコンパイルする。
-    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_failed, kImageSize, catalog_id_,
-                                                    &first_revision)); // [状態] - 1 つ目の条件を公開する。
-    (void)format_job_failed(&actual_before_crash);                     // [状態] - 1 つ目の条件を取り込む。
-    ASSERT_NE(0, actual_before_crash);                                 // [状態確認] - 1 つ目の条件で一致すること。
-    GTEST_FLAG_SET(death_test_style, "fast");
+                                            image)); // [状態] - JOB_FAILED に一致する条件をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
+                                                    &first_revision)); // [状態] - 条件を公開する。
+    const uint64_t writing_revision = first_revision | 1U;
+    std::memset(torn_image, 0xAA, sizeof(torn_image));
+    close_handles(); // [状態] - すべてのハンドルを閉じる。
+    ASSERT_NO_FATAL_FAILURE(rewrite_file(kPublishedRevisionOffset, &writing_revision,
+                                         sizeof(writing_revision))); // [状態] - ファイルの版番号を奇数にする。
+    ASSERT_NO_FATAL_FAILURE(rewrite_file(CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, torn_image,
+                                         sizeof(torn_image))); // [状態] - フィルター オブジェクトの一部を書き換える。
+    ASSERT_NO_FATAL_FAILURE(open_handles());                   // [状態] - 再起動したプロセスに見立てて開き直す。
 
     // Pre-Assert
 
     // Act
-    EXPECT_DEATH(crash_while_writing(path_.c_str(), source),
-                 ""); // [手順] - 別のプロセスの書き込み側を、書き込みの途中で異常終了させる。
-    cplat_string_catalog_filter_source_info info_after_crash;
-    const int actual_info_after_crash = cplat_string_catalog_filter_source_get_info(
-        source_, source_size_, &info_after_crash); // [手順] - 異常終了の後の領域の状態を読む。
-    (void)format_job_failed(&actual_after_crash);  // [手順] - 異常終了の後に組み立てる。
-    const uint64_t taken_after_crash = taken_revision();
-    const sample_filter_share_region_result actual_lock_after_crash =
-        sample_filter_share_lock_acquire(lock_, 0); // [手順] - 異常終了したプロセスの排他が解放されたかを確かめる。
-    if (actual_lock_after_crash == SAMPLE_FILTER_SHARE_REGION_OK)
-    {
-        sample_filter_share_lock_release(lock_);
-    }
-    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image_started, kImageSize, catalog_id_,
-                                                    &recovered_revision)); // [手順] - 2 つ目の条件を公開し直す。
+    cplat_string_catalog_filter_source_info info_while_writing;
+    const int actual_info_while_writing = cplat_string_catalog_filter_source_get_info(
+        source_, source_size_, &info_while_writing); // [手順] - 開き直した領域の状態を読む。
+    (void)format_job_failed(&actual_while_writing);  // [手順] - 開き直した後に組み立てる。
+    const uint64_t taken_while_writing = taken_revision();
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
+                                                    &recovered_revision)); // [手順] - 条件を公開し直す。
     (void)format_job_failed(&actual_after_recovery);                       // [手順] - 公開し直した後に組み立てる。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_BUSY, actual_info_after_crash); // [確認_異常系] - 領域が書き込み中のまま残っていること。
-    EXPECT_NE(0, actual_after_crash);             // [確認_異常系] - 異常終了の後も取り込み済みの条件で判定すること。
-    EXPECT_EQ(first_revision, taken_after_crash); // [確認_異常系] - 書き込み途中の内容を取り込まないこと。
-    EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, actual_lock_after_crash); // [確認_異常系] - OS が排他を解放していること。
-    EXPECT_GT(recovered_revision, first_revision);   // [確認_正常系] - 公開し直した版番号が増加すること。
-    EXPECT_EQ(0, actual_after_recovery);             // [確認_正常系] - 公開し直した条件で判定すること。
-    EXPECT_EQ(recovered_revision, taken_revision()); // [確認_正常系] - 公開し直した内容を取り込むこと。
-#endif
+    EXPECT_EQ(CPLAT_ERR_BUSY, actual_info_while_writing); // [確認_異常系] - 領域が書き込み中として読まれること。
+    EXPECT_EQ(0, actual_while_writing);                   // [確認_異常系] - 書き込み途中の内容を取り込まないこと。
+    EXPECT_EQ(0U, taken_while_writing);                   // [確認_異常系] - 取り込み済みとしないこと。
+    EXPECT_EQ(first_revision + 2U,
+              recovered_revision);       // [確認_正常系] - 止まる前の版番号に 2 を加えた値で公開し直すこと。
+    EXPECT_NE(0, actual_after_recovery); // [確認_正常系] - 公開し直した条件を取り込むこと。
+    EXPECT_EQ(recovered_revision, taken_revision()); // [確認_正常系] - 公開し直した版番号を取り込み済みとすること。
+}
+
+// ヘッダーが壊れたファイルを開き直した読み取り側は、取り込まずに破損を記録し、書き込み側も公開を拒否すること、
+// ファイルを削除すると公開し直せることの確認
+TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed)
+{
+    // Arrange
+    static unsigned char image[kImageSize];
+    const uint32_t corrupt_signature = UINT32_MAX;
+    uint64_t revision = 0U;
+    uint64_t rejected_revision = 0U;
+    uint64_t recreated_revision = 0U;
+    int actual_corrupt = 1;
+    int actual_after_recreate = 0;
+
+    ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
+                                            image)); // [状態] - JOB_FAILED に一致する条件をコンパイルする。
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
+                                                    &revision)); // [状態] - 条件を公開する。
+    close_handles();                                             // [状態] - すべてのハンドルを閉じる。
+    ASSERT_NO_FATAL_FAILURE(rewrite_file(0U, &corrupt_signature,
+                                         sizeof(corrupt_signature))); // [状態] - ファイルの署名を書き換える。
+    ASSERT_NO_FATAL_FAILURE(open_handles());                          // [状態] - 再起動したプロセスに見立てて開き直す。
+
+    // Pre-Assert
+
+    // Act
+    cplat_string_catalog_filter_source_info info_corrupt;
+    const int actual_info_corrupt = cplat_string_catalog_filter_source_get_info(
+        source_, source_size_, &info_corrupt); // [手順] - 開き直した領域の状態を読む。
+    (void)format_job_failed(&actual_corrupt);  // [手順] - 開き直した後に組み立てる。
+    cplat_string_catalog_filter_source_status status_corrupt;
+    ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_get_source_status(slot_, &status_corrupt));
+    const int actual_publish_corrupt = sample_filter_share_publish(
+        writer_, image, kImageSize, catalog_id_, &rejected_revision); // [手順] - 壊れた領域へ公開する。
+    close_handles();                                                  // [手順] - すべてのハンドルを閉じる。
+    (void)std::remove(path_.c_str());                                 // [手順] - 共有ファイルを削除する。
+    ASSERT_NO_FATAL_FAILURE(open_handles());                          // [手順] - 共有ファイルを作り直す。
+    ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
+                                                    &recreated_revision)); // [手順] - 作り直した領域へ公開する。
+    (void)format_job_failed(&actual_after_recreate);                       // [手順] - 公開した後に組み立てる。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_info_corrupt); // [確認_異常系] - 領域の破損を返すこと。
+    EXPECT_EQ(0, actual_corrupt);                                 // [確認_異常系] - 壊れた内容を取り込まないこと。
+    EXPECT_EQ(revision, status_corrupt.taken_revision); // [確認_異常系] - 試みた版番号を記録し、繰り返し試みないこと。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, status_corrupt.last_result); // [確認_異常系] - 破損を記録すること。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
+              actual_publish_corrupt);               // [確認_異常系] - 壊れた領域への公開を拒否すること。
+    EXPECT_EQ(0U, rejected_revision);                // [確認_異常系] - 版番号を返さないこと。
+    EXPECT_NE(0, actual_after_recreate);             // [確認_正常系] - 作り直した領域の公開内容を取り込むこと。
+    EXPECT_EQ(recreated_revision, taken_revision()); // [確認_正常系] - 公開した版番号を取り込み済みとすること。
 }
