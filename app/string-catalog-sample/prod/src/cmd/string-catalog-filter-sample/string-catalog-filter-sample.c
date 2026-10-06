@@ -23,6 +23,7 @@
 #include "sample_filter_file.h"
 #include "sample_filter_share.h"
 #include "sample_filter_share_region.h"
+#include "sample_filter_warning.h"
 
 #include "gen/sample_worker_trace.h"
 
@@ -83,6 +84,12 @@
 
 /** 条件式 1 行の説明文のバイト数です。brief と引数の説明を複数含むため、行幅より大きく取ります。 */
 #define FILTER_SAMPLE_DESCRIPTION_SIZE 2048U
+
+/** 型が合わない比較要素の警告を受け取る件数です。超えた分は件数だけを表示します。 */
+#define FILTER_SAMPLE_WARNING_CAPACITY 16U
+
+/** print_type_warnings で、すべての行の警告を表示することを表す行の位置です。 */
+#define FILTER_SAMPLE_ALL_LINES SIZE_MAX
 
 /** ワーカーの出力間隔の既定値 (ミリ秒) です。 */
 #define FILTER_SAMPLE_WORKER_DEFAULT_INTERVAL_MS 500U
@@ -989,6 +996,49 @@ static void command_list(cplat_pinned_prompt *screen)
 }
 
 /**
+ *  @brief          編集中イメージを下見用のスロットで確かめ、型が合わない比較要素の警告を表示します。
+ *  @param[in,out]  screen     表示先の画面。
+ *  @param[in]      line_index 警告を表示する行 (0 起点)。すべての行は FILTER_SAMPLE_ALL_LINES。
+ *
+ *  警告は条件を無効にせず、そのまま公開できます。
+ *  型の合わない項目では比較が偽になるため、意図と違う判定にならないかを利用者が確かめられるようにします。\n
+ *  確認は下見用のスロットの判定に使う内容を変えないため、draft や apply の前後どちらでも呼び出せます。
+ */
+static void print_type_warnings(cplat_pinned_prompt *screen, const size_t line_index)
+{
+    cplat_string_catalog_filter_warning warnings[FILTER_SAMPLE_WARNING_CAPACITY];
+    char text[FILTER_SAMPLE_DESCRIPTION_SIZE];
+    size_t warning_count = 0U;
+    size_t stored_count;
+    int ret;
+
+    ret = cplat_string_catalog_filter_slot_check(s_preview_slot, s_draft_image, sizeof(s_draft_image), NULL, 0U, NULL,
+                                                 warnings, FILTER_SAMPLE_WARNING_CAPACITY, &warning_count);
+    if (ret != CPLAT_OK)
+    {
+        return;
+    }
+
+    stored_count = (warning_count < FILTER_SAMPLE_WARNING_CAPACITY) ? warning_count : FILTER_SAMPLE_WARNING_CAPACITY;
+    for (size_t i = 0; i < stored_count; i++)
+    {
+        if ((line_index != FILTER_SAMPLE_ALL_LINES) && (warnings[i].line_index != (uint32_t)line_index))
+        {
+            continue;
+        }
+        if (sample_filter_warning_format(sample_worker_trace_catalog(), &warnings[i], text, sizeof(text)) == CPLAT_OK)
+        {
+            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "警告: %s\n", text);
+        }
+    }
+    if (warning_count > FILTER_SAMPLE_WARNING_CAPACITY)
+    {
+        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                   "警告: ほかにも警告があります (全体で %zu 件)。\n", warning_count);
+    }
+}
+
+/**
  *  @brief          編集中の条件式を、説明文とともに表示します。
  *
  *  編集中イメージを下見用のスロットへ適用し、list と同じ手順で表示します。\n
@@ -1009,6 +1059,7 @@ static void command_draft(cplat_pinned_prompt *screen)
     }
 
     print_slot_lines(screen, s_preview_slot);
+    print_type_warnings(screen, FILTER_SAMPLE_ALL_LINES);
 }
 
 /**
@@ -1097,6 +1148,7 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %u を追加しました。\n",
                                (unsigned int)(info.line_count + 1U));
+    print_type_warnings(screen, (size_t)info.line_count);
 }
 
 static void command_insert(cplat_pinned_prompt *screen, char *arg)
@@ -1148,6 +1200,7 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
     }
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu へ挿入しました。\n", line_number);
+    print_type_warnings(screen, (size_t)(line_number - 1UL));
 }
 
 static void command_edit(cplat_pinned_prompt *screen, char *arg)
@@ -1220,6 +1273,7 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
     }
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu を置き換えました。\n", line_number);
+    print_type_warnings(screen, (size_t)(line_number - 1UL));
 }
 
 static void command_delete(cplat_pinned_prompt *screen, char *arg)
@@ -1320,6 +1374,7 @@ static void command_load(cplat_pinned_prompt *screen, const char *path)
                                        line_error_label(diagnostics[i].error));
         }
     }
+    print_type_warnings(screen, FILTER_SAMPLE_ALL_LINES);
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "draft で確かめ、apply で公開します。\n");
 }
 
@@ -1465,6 +1520,7 @@ static void command_apply(cplat_pinned_prompt *screen)
         screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
         "版番号 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
         (unsigned long long)revision);
+    print_type_warnings(screen, FILTER_SAMPLE_ALL_LINES);
 
     if (invalid_count == 0U)
     {

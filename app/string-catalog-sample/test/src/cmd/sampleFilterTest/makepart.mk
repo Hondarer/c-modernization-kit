@@ -1,11 +1,12 @@
 # テスト対象のソース ファイル
 # フィルター本体 (コンパイル、イメージ、スロット、説明文、ソース領域) は cplat の公開 API として実体をリンクして確認する。
-# ここでは条件式リストのファイル (sample_filter_file.c)、共有配布 (sample_filter_share*.c) と、生成物のフィルター接続 (gen/sample_worker_trace.c) を対象とする。
+# ここでは条件式リストのファイル (sample_filter_file.c)、共有配布 (sample_filter_share*.c)、警告の文 (sample_filter_warning.c) と、生成物のフィルター接続 (gen/sample_worker_trace.c) を対象とする。
 # string-catalog-filter-sample.c (コマンドの main) は対象外。
 TEST_SRCS := \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_file.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_share.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_share_region.c \
+	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_filter_warning.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/sample_worker_context.c \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/gen/sample_worker_trace.c
 

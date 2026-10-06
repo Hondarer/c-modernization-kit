@@ -1,5 +1,6 @@
 /sample_filter_file.c
 /sample_filter_share.c
 /sample_filter_share_region.c
+/sample_filter_warning.c
 /sample_worker_context.c
 /sample_worker_trace.c
