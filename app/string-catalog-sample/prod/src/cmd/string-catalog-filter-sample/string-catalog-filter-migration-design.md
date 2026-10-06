@@ -528,5 +528,5 @@ framework または複数 app にまたがる全体テストは、コストを�
 
 その後、実プロセス間通信は第 3 段階で確認しました。  
 Windows/MSVC のビルドと関連テストは、2026 年 10 月 6 日の [Windows CI](https://github.com/Hondarer/c-modernization-kit/actions/runs/37460933666/job/112260018459) で成功を確認しました。  
-ただし、`fork` を使う異常終了からの回復テストは Windows ではスキップされます。  
+異常終了からの回復テストは、`fork` を使わずに共有ファイルを直接書き換えるテストへ置き換え、Windows でも実行するようにしました。  
 性能測定は未実施であり、cplat の [文字列カタログの条件式フィルターの設計](https://github.com/Hondarer/app_cplat/blob/main/docs/proposals/string-catalog-filter-design.md) の残課題として扱います。
