@@ -1,0 +1,15 @@
+interface:
+  display_name: 成果物生成前の前提合意
+  short_description: 検討用 Markdown の質問と回答で前提を合意してから成果物を生成する
+  default_prompt: Use $agree-before-generate to confirm prerequisites in Markdown
+    before generating artifacts.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
+
