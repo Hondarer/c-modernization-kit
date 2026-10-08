@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           sym_loader_libbase.c
  *  @brief          sym_loader が管理する関数ポインターの実体を定義します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/23
  *  @version        1.0.0
  *
@@ -18,7 +18,7 @@
 #include <cplat/base/result.h>
 #include <stdio.h>
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
@@ -27,7 +27,7 @@ char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
 /** base_calc 用の sym_loader エントリ実体です。差し替えキーは公開関数名と同じにします。 */
 static cplat_sym_loader_entry sfo_base_calc = CPLAT_SYM_LOADER_ENTRY_INIT("base_calc", base_calc_fn);
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 
@@ -37,18 +37,18 @@ cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 /* --- sym_loader に渡すポインター配列                --- */
 /* --- 対応関数を追加した場合、次への追加が必要です。 --- */
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 cplat_sym_loader_entry *const fobj_array_libbase[] = {
     &sfo_base_calc,
     /* &sfo_base_name, */ /* 将来追加 */
 };
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 const size_t fobj_length_libbase = sizeof(fobj_array_libbase) / sizeof(fobj_array_libbase[0]);
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 int base_sym_loader_info(void)
 {

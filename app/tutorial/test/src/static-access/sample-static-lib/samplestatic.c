@@ -1,8 +1,8 @@
 /**
  *******************************************************************************
- *  @file           libsrc/samplestatic/samplestatic.c
+ *  @file           samplestatic.c
  *  @brief          static 変数へアクセスする samplestatic 関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/25
  *  @version        1.0.0
  *

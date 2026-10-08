@@ -3,10 +3,10 @@
 # 未指定の場合はワークスペース フォルダー名を使う。
 siteName: c-modernization-kit
 
-# markdown が格納されているフォルダ名 (ワークスペースフォルダからの相対パス)
+# markdown が格納されているフォルダー名 (ワークスペース フォルダーからの相対パス)
 #mdRoot: docs
 
-# 発行先のフォルダ名 (ワークスペースフォルダからの相対パス)
+# 発行先のフォルダー名 (ワークスペース フォルダーからの相対パス)
 #pubRoot: pages
 
 # 言語の指定 (スペース区切りで複数言語の指定可)
@@ -14,7 +14,7 @@ siteName: c-modernization-kit
 
 # details 版の出力有無 (false / true / both)
 # CLI: --details=false|true|both
-# デフォルト: false
+# 既定値: false
 details: both
 
 # html スタイルシートの指定
@@ -28,7 +28,7 @@ details: both
 
 # html (self-contain) の出力有無 (true / false)
 # CLI: --htmlSelfContainOutput=true|false
-# デフォルト: false
+# 既定値: false
 #htmlSelfContainOutput: false
 
 # html における toc 出力要否 (false / true)
@@ -37,23 +37,23 @@ details: both
 # html における toc の深さ
 #htmlTocDepth: 3
 
-# ナビゲーションリンクの表示有無 (true / false)
-# デフォルト: true
+# ナビゲーション リンクの表示有無 (true / false)
+# 既定値: true
 #htmlNavigationLinkEnable: true
 
 # 全文検索機能の有無 (true / false)
 # true にすると各ページに検索ボックスを表示し、発行後に search-index.js を生成する
-# デフォルト: true
+# 既定値: true
 #htmlSearchEnable: true
 
-# 全体ナビゲーションツリーの表示有無 (true / false)
+# 全体ナビゲーション ツリーの表示有無 (true / false)
 # true にすると各ページのサイドバーに全ページを一覧するナビツリーを表示し、nav-tree.js を生成する
-# デフォルト: true
+# 既定値: true
 #htmlNavTreeEnable: true
 
 # 数式 (LaTeX 書式) サポートの有無 (true / false)
 # true にすると \[...\] \(...\) 書式の数式が HTML (MathJax) および docx (OMML) で有効になる
-# デフォルト: true
+# 既定値: true
 #mathLatexEnable: true
 
 # PlantUML サーバーと出力形式の設定
@@ -72,26 +72,26 @@ details: both
 
 # docx の出力有無 (true / false)
 # CLI: --docxOutput=true|false
-# デフォルト: false
+# 既定値: false
 docxOutput: true
 
 # date 自動設定の有無 (false / true)
-# デフォルト: true
+# 既定値: true
 #autoSetDate: true
 
 # author 自動設定の有無 (false / true)
-# デフォルト: true
+# 既定値: true
 #autoSetAuthor: true
 
 # Git 単一ページ リンクの有効化 (true / false)
 # 各ページのナビバーに、対応する Git ホスティング上の単一ページ (blob ビュー) へのリンクを表示する。
 # Git 管理外・.gitignore 対象 (生成物など)・remote 未解決のファイルでは自動的に非表示となる。
-# デフォルト: true
+# 既定値: true
 #gitLinkEnable: true
 
 # Doxygen 単一ページ リンクの有効化 (true / false)
 # doxygen-page-url フロントマターを持つページでは、対応する Doxygen HTML へのリンクを表示する。
-# デフォルト: true
+# 既定値: true
 #doxygenLinkEnable: true
 
 # 追加ドキュメント サブフォルダー機能

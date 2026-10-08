@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           base_const.h
  *  @brief          base ライブラリで使用する定数を定義します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *

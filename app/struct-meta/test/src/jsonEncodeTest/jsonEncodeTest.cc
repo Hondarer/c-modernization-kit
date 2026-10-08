@@ -87,7 +87,8 @@ TEST(JsonEncodeTest, EncodesEachIntegerWidth)
     // Pre-Assert
 
     // Act
-    int ret = struct_meta_json_encode(&kWidthsDescriptor, &sample, &json); // [手順] - 各幅の整数値を含む構造体を JSON へエンコードする。
+    int ret = struct_meta_json_encode(&kWidthsDescriptor, &sample,
+                                      &json); // [手順] - 各幅の整数値を含む構造体を JSON へエンコードする。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
@@ -153,7 +154,8 @@ TEST(JsonEncodeTest, UsesGenericJsonAttributes)
     // Pre-Assert
 
     // Act
-    int ret = struct_meta_json_encode(&kDescriptor, &sample, &json); // [手順] - 属性付き構造体を JSON へエンコードする。
+    int ret =
+        struct_meta_json_encode(&kDescriptor, &sample, &json); // [手順] - 属性付き構造体を JSON へエンコードする。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
@@ -183,8 +185,8 @@ TEST(JsonEncodeTest, RejectsCorruptDescriptor)
     int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順] - 破損した記述子でエンコードを試みる。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual);                   // [確認_異常系] - 検査エラーになること。
-    EXPECT_EQ(nullptr, json);                                          // [確認_異常系] - JSON が生成されないこと。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual); // [確認_異常系] - 検査エラーになること。
+    EXPECT_EQ(nullptr, json);                        // [確認_異常系] - JSON が生成されないこと。
 }
 
 // バイト配列フィールドが指定フォーマットに従い整数配列または 16 進数文字列としてエンコードされることの確認

@@ -23,7 +23,7 @@ C 言語のコードを Google Test でテストするには C++ でテスト �
 
 - [Google Test User's Guide](https://google.github.io/googletest/) - Google Test の公式ガイド (英語)
     - [Primer](https://google.github.io/googletest/primer.html) - 基本的なテスト記述方法
-    - [Advanced Topics](https://google.github.io/googletest/advanced.html) - フィクスチャ・パラメータ化テスト
+    - [Advanced Topics](https://google.github.io/googletest/advanced.html) - フィクスチャ・パラメーター化テスト
 - [gMock for Dummies](https://google.github.io/googletest/googlemock/docs/for_dummies.html) - Google Mock 入門 (英語)
 
 ### チュートリアル・入門

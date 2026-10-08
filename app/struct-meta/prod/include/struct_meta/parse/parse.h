@@ -35,7 +35,7 @@ extern "C"
      */
     typedef struct struct_meta_diagnostic
     {
-        int line; /**< 対象行です。行が定まらない場合は 0 です。 */
+        int line;                                          /**< 対象行です。行が定まらない場合は 0 です。 */
         char message[STRUCT_META_DIAGNOSTIC_MESSAGE_SIZE]; /**< 診断メッセージです。診断が無ければ空文字列です。 */
     } struct_meta_diagnostic;
 

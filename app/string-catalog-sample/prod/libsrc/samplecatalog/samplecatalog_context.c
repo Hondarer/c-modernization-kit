@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           libsrc/samplecatalog/samplecatalog_context.c
+ *  @file           samplecatalog_context.c
  *  @brief          トレースのコンテキスト引数として付加する値の取得関数を実装します。
  *  @author         Tetsuo Honda
  *  @date           2026/09/21

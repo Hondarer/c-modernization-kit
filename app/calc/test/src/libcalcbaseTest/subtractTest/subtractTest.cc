@@ -29,7 +29,7 @@ TEST_F(subtractTest, test_10_subtract_3)
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_subtract の戻り値が CALC_OK であること。
-    EXPECT_EQ(7, result);         // [確認_正常系] - calcbase_subtract が result に 7 を設定すること。
+    EXPECT_EQ(7, result);           // [確認_正常系] - calcbase_subtract が result に 7 を設定すること。
 }
 
 // calcbase_subtract(3, 10) が -7 を返すことの確認
@@ -55,7 +55,7 @@ TEST_F(subtractTest, test_3_subtract_10)
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_subtract の戻り値が CALC_OK であること。
-    EXPECT_EQ(-7, result);        // [確認_正常系] - calcbase_subtract が result に -7 を設定すること。
+    EXPECT_EQ(-7, result);          // [確認_正常系] - calcbase_subtract が result に -7 を設定すること。
 }
 
 // calcbase_subtract(5, 5) が 0 を返すことの確認
@@ -81,7 +81,7 @@ TEST_F(subtractTest, test_5_subtract_5)
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_subtract の戻り値が CALC_OK であること。
-    EXPECT_EQ(0, result);         // [確認_正常系] - calcbase_subtract が result に 0 を設定すること。
+    EXPECT_EQ(0, result);           // [確認_正常系] - calcbase_subtract が result に 0 を設定すること。
 }
 
 // result が NULL のとき calcbase_subtract が CALC_ERR_INVALID_ARGUMENT を返すことの確認
@@ -93,12 +93,14 @@ TEST_F(subtractTest, test_null_result)
 
     // Pre-Assert
     EXPECT_CALL(mock_calcbase, calcbase_add(10, -3, NULL))
-        .WillOnce(Return(CALC_ERR_INVALID_ARGUMENT)); // [Pre-Assert確認_異常系] - calcbase_add(10, -3, NULL) が 1 回呼び出されること。
-                                       // [Pre-Assert手順] - calcbase_add(10, -3, NULL) にて CALC_ERR_INVALID_ARGUMENT を返す。
+        .WillOnce(Return(
+            CALC_ERR_INVALID_ARGUMENT)); // [Pre-Assert確認_異常系] - calcbase_add(10, -3, NULL) が 1 回呼び出されること。
+    // [Pre-Assert手順] - calcbase_add(10, -3, NULL) にて CALC_ERR_INVALID_ARGUMENT を返す。
 
     // Act
     actual_ret = calcbase_subtract(10, 3, NULL); // [手順] - calcbase_subtract(10, 3, NULL) を呼び出す。
 
     // Assert
-    EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT, actual_ret); // [確認_異常系] - calcbase_subtract の戻り値が CALC_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,
+              actual_ret); // [確認_異常系] - calcbase_subtract の戻り値が CALC_ERR_INVALID_ARGUMENT であること。
 }

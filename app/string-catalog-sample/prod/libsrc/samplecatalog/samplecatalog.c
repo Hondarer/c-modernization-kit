@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           libsrc/samplecatalog/samplecatalog.c
+ *  @file           samplecatalog.c
  *  @brief          カタログを公開するサンプル ライブラリの API を実装します。
  *  @author         Tetsuo Honda
  *  @date           2026/09/20

@@ -22,7 +22,7 @@ using CalcLib;
 namespace CalcApp
 {
     /// <summary>
-    /// calc コマンドのメ インク ラス。
+    /// calc コマンドのメイン クラス。
     /// </summary>
     public class Program
     {

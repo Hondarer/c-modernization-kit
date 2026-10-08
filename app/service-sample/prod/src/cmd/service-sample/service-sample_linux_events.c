@@ -71,7 +71,7 @@
 typedef struct svc_linux_events_ctx
 {
     const svc_definition *def; /**< サービス定義。svc_linux_events_start() で設定される。 */
-    cplat_thread *thread;   /**< イベント監視スレッドのハンドル。未起動時は NULL。 */
+    cplat_thread *thread;      /**< イベント監視スレッドのハンドル。未起動時は NULL。 */
     sd_event *event;           /**< sd_event ループ。スレッド内で生成・解放します。 */
     sd_bus *bus;               /**< system bus 接続。接続失敗時は NULL。 */
     int stop_fd;               /**< 停止指示用 eventfd。未生成時は -1。 */
@@ -139,7 +139,7 @@ static int acquire_inhibit_lock(const char *what)
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "inhibitor lock (%s) の取得に失敗しました: %s", what, strerror(-rc));
+                            "inhibitor lock (%s) の取得に失敗しました: %s", what, strerror(-rc));
     }
     else
     {
@@ -147,7 +147,7 @@ static int acquire_inhibit_lock(const char *what)
         if (rc < 0)
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                   "inhibitor lock (%s) の fd を取得できませんでした: %s", what, strerror(-rc));
+                                "inhibitor lock (%s) の fd を取得できませんでした: %s", what, strerror(-rc));
         }
         else
         {
@@ -156,7 +156,7 @@ static int acquire_inhibit_lock(const char *what)
             if (lock_fd < 0)
             {
                 cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                       "inhibitor lock (%s) の fd を複製できませんでした。", what);
+                                    "inhibitor lock (%s) の fd を複製できませんでした。", what);
             }
         }
         sd_bus_message_unref(reply);
@@ -396,8 +396,8 @@ static void setup_bus_monitoring(void)
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "D-Bus (system bus) に接続できないため電源・セッション イベントは無効です: %s",
-                               strerror(-rc));
+                            "D-Bus (system bus) に接続できないため電源・セッション イベントは無効です: %s",
+                            strerror(-rc));
         s_ctx.bus = NULL;
         return;
     }
@@ -407,28 +407,28 @@ static void setup_bus_monitoring(void)
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "PrepareForSleep の購読に失敗しました: %s", strerror(-rc));
+                            "PrepareForSleep の購読に失敗しました: %s", strerror(-rc));
     }
     rc = sd_bus_match_signal(s_ctx.bus, NULL, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "PrepareForShutdown",
                              on_prepare_for_shutdown, NULL);
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "PrepareForShutdown の購読に失敗しました: %s", strerror(-rc));
+                            "PrepareForShutdown の購読に失敗しました: %s", strerror(-rc));
     }
     rc = sd_bus_match_signal(s_ctx.bus, NULL, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "SessionNew",
                              on_session_new, NULL);
     if (rc < 0)
     {
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "SessionNew の購読に失敗しました: %s", strerror(-rc));
+        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "SessionNew の購読に失敗しました: %s",
+                            strerror(-rc));
     }
     rc = sd_bus_match_signal(s_ctx.bus, NULL, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "SessionRemoved",
                              on_session_removed, NULL);
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "SessionRemoved の購読に失敗しました: %s", strerror(-rc));
+                            "SessionRemoved の購読に失敗しました: %s", strerror(-rc));
     }
 
     /* イベント発生時にコールバックを実行する猶予を確保するための delay lock */
@@ -439,8 +439,8 @@ static void setup_bus_monitoring(void)
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "D-Bus をイベント ループに接続できないため電源・セッション イベントは無効です: %s",
-                               strerror(-rc));
+                            "D-Bus をイベント ループに接続できないため電源・セッション イベントは無効です: %s",
+                            strerror(-rc));
         release_inhibit_locks();
         sd_bus_flush_close_unref(s_ctx.bus);
         s_ctx.bus = NULL;
@@ -467,7 +467,7 @@ static void events_thread_func(void *arg)
     if (rc < 0)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "sd_event の生成に失敗したため OS イベント監視は無効です: %s", strerror(-rc));
+                            "sd_event の生成に失敗したため OS イベント監視は無効です: %s", strerror(-rc));
         return;
     }
 
@@ -475,8 +475,8 @@ static void events_thread_func(void *arg)
     rc = sd_event_set_watchdog(s_ctx.event, 1);
     if (rc < 0)
     {
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "watchdog 応答の設定に失敗しました: %s", strerror(-rc));
+        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "watchdog 応答の設定に失敗しました: %s",
+                            strerror(-rc));
     }
 
     rc = sd_event_add_io(s_ctx.event, NULL, s_ctx.stop_fd, EPOLLIN, on_stop_requested, NULL);
@@ -484,7 +484,7 @@ static void events_thread_func(void *arg)
     {
         /* 停止指示を監視できないとスレッドを終了させられないため、ループに入らない */
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                               "停止監視の登録に失敗したため OS イベント監視は無効です: %s", strerror(-rc));
+                            "停止監視の登録に失敗したため OS イベント監視は無効です: %s", strerror(-rc));
     }
     else
     {
@@ -494,7 +494,7 @@ static void events_thread_func(void *arg)
             if (rc < 0)
             {
                 cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                       "reload 監視の登録に失敗したため設定再読込は無効です: %s", strerror(-rc));
+                                    "reload 監視の登録に失敗したため設定再読込は無効です: %s", strerror(-rc));
             }
         }
 
@@ -507,7 +507,7 @@ static void events_thread_func(void *arg)
         if (rc < 0)
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                   "イベント ループがエラーで終了しました: %s", strerror(-rc));
+                                "イベント ループがエラーで終了しました: %s", strerror(-rc));
         }
     }
 
@@ -574,7 +574,7 @@ int svc_linux_events_start(const svc_definition *def)
     if (s_ctx.stop_fd < 0)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                              "停止指示用 eventfd の生成に失敗したため OS イベント監視は無効です。");
+                           "停止指示用 eventfd の生成に失敗したため OS イベント監視は無効です。");
         release_local_resources();
         return -1;
     }
@@ -585,7 +585,7 @@ int svc_linux_events_start(const svc_definition *def)
         if (s_ctx.reload_fd < 0)
         {
             cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                  "reload 用 eventfd の生成に失敗したため設定再読込は無効です。");
+                               "reload 用 eventfd の生成に失敗したため設定再読込は無効です。");
         }
         else
         {
@@ -596,7 +596,7 @@ int svc_linux_events_start(const svc_definition *def)
             if (sigaction(SIGHUP, &action, &s_old_sighup_action) != 0)
             {
                 cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                      "SIGHUP ハンドラーの設定に失敗したため設定再読込は無効です。");
+                                   "SIGHUP ハンドラーの設定に失敗したため設定再読込は無効です。");
                 cplat_close(s_ctx.reload_fd, NULL);
                 s_ctx.reload_fd = -1;
             }
@@ -611,7 +611,7 @@ int svc_linux_events_start(const svc_definition *def)
     if (result != CPLAT_OK)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                              "イベント監視スレッドの起動に失敗したため OS イベント監視は無効です。");
+                           "イベント監視スレッドの起動に失敗したため OS イベント監視は無効です。");
         s_ctx.thread = NULL;
         release_local_resources();
         return -1;
@@ -636,7 +636,7 @@ void svc_linux_events_stop(void)
         if (result != CPLAT_OK)
         {
             cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                  "イベント監視スレッドが時間内に終了しないため切り離します。");
+                               "イベント監視スレッドが時間内に終了しないため切り離します。");
             cplat_thread_detach(s_ctx.thread);
         }
         s_ctx.thread = NULL;

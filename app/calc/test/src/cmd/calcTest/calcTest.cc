@@ -63,5 +63,7 @@ TEST_F(calcTest, help)
     int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションで main() を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値として、必須位置引数なしでも EXIT_SUCCESS で正常終了すること。
+    EXPECT_EQ(
+        EXIT_SUCCESS,
+        actual_ret); // [確認_正常系] - main() の戻り値として、必須位置引数なしでも EXIT_SUCCESS で正常終了すること。
 }

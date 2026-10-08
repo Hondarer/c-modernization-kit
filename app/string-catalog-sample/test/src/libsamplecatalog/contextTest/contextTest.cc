@@ -16,7 +16,7 @@ TEST_F(contextTest, advances_by_one_on_each_call)
     const int32_t first = samplecatalog_next_sequence_number(); // [状態] - 基準となる 1 つ目の番号を取得する。
 
     // Pre-Assert
-    ASSERT_GE(first, 1); // [Pre-Assert確認_正常系] - 番号が 1 以上であること。
+    ASSERT_GE(first, 1);                                 // [Pre-Assert確認_正常系] - 番号が 1 以上であること。
     ASSERT_LE(first, SAMPLECATALOG_SEQUENCE_NUMBER_MAX); // [Pre-Assert確認_正常系] - 番号が上限以下であること。
 
     // Act

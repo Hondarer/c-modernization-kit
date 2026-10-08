@@ -20,7 +20,7 @@ TEST_F(addTest, test_1_add_2)
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_add の戻り値が CALC_OK であること。
-    EXPECT_EQ(3, result);         // [確認_正常系] - calcbase_add が result に 3 を設定すること。
+    EXPECT_EQ(3, result);           // [確認_正常系] - calcbase_add が result に 3 を設定すること。
 }
 
 // calcbase_add(2, 1) が 3 を返すことの確認
@@ -37,7 +37,7 @@ TEST_F(addTest, test_2_add_1)
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_add の戻り値が CALC_OK であること。
-    EXPECT_EQ(3, result);         // [確認_正常系] - calcbase_add が result に 3 を設定すること。
+    EXPECT_EQ(3, result);           // [確認_正常系] - calcbase_add が result に 3 を設定すること。
 }
 
 // result が NULL のとき calcbase_add が CALC_ERR_INVALID_ARGUMENT を返すことの確認
@@ -52,5 +52,6 @@ TEST_F(addTest, test_null_result)
     actual_ret = calcbase_add(1, 2, NULL); // [手順] - calcbase_add(1, 2, NULL) を呼び出す。
 
     // Assert
-    EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT, actual_ret); // [確認_異常系] - calcbase_add の戻り値が CALC_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,
+              actual_ret); // [確認_異常系] - calcbase_add の戻り値が CALC_ERR_INVALID_ARGUMENT であること。
 }

@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           override_calc.c
  *  @brief          base_calc の差し替え実装として積を計算する関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
@@ -17,7 +17,7 @@
 #include <override/override_spec.h>
 #include <stddef.h>
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 int override_calc(const int a, const int b, int *result)
 {

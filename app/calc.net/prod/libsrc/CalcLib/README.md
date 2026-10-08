@@ -99,7 +99,7 @@ var divResult = CalcLibrary.Divide(20, 5);    // 4
 
 - `CalcResult Calculate(CalcKind kind, int a, int b)`
     - 計算を実行し、結果オブジェクトを返す
-    - 失敗時に例外をスローしません。
+    - 失敗時に例外をスローしない
 
 - `int CalculateOrThrow(CalcKind kind, int a, int b)`
     - 計算を実行し、結果を返す
@@ -125,7 +125,7 @@ var divResult = CalcLibrary.Divide(20, 5);    // 4
 
 #### プロパティ
 
-- `bool IsSuccess` - 操作が成功したかどうかを示します。
+- `bool IsSuccess` - 操作が成功したかどうかを示す
 - `int Value` - 計算結果 (`IsSuccess` が true の場合のみ有効)
 - `int ErrorCode` - エラー コード (0 = CALC_OK、-1 = CALC_ERR_UNKNOWN、-2 = CALC_ERR_INVALID_ARGUMENT)
 

@@ -81,12 +81,15 @@ TEST_F(sampleMessagesTest, second_catalog_is_consistent)
 TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 {
     // Arrange
-    const cplat_string_catalog_entry *entries = sample_messages_entries();
-    const int count = sample_messages_entry_count();
+    const cplat_string_catalog_entry *entries;
+    int count;
     int index;
 
+    // Pre-Assert
+
     // Act
-    // カタログの各エントリを参照する。
+    entries = sample_messages_entries();   // [手順] - カタログの先頭エントリを取得する。
+    count = sample_messages_entry_count(); // [手順] - カタログのエントリ件数を取得する。
 
     // Assert
     for (index = 0; index < count; index++)
@@ -142,8 +145,8 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
                                              2); // [手順] - ニュートラル言語で文字列を組み立てる。
 
     // Assert
-    ASSERT_NE(nullptr, actual_entry);                              // [確認_正常系] - 項目メタデータを取得できること。
-    ASSERT_NE(nullptr, actual_entry->arguments);                   // [確認_正常系] - 引数定義を取得できること。
+    ASSERT_NE(nullptr, actual_entry);                               // [確認_正常系] - 項目メタデータを取得できること。
+    ASSERT_NE(nullptr, actual_entry->arguments);                    // [確認_正常系] - 引数定義を取得できること。
     EXPECT_STREQ("ファイル オープンの失敗。", actual_entry->brief); // [確認_正常系] - 短い説明を保持すること。
     EXPECT_STREQ("ファイルを開けなかったことを通知する文字列を組み立てます。",
                  actual_entry->details); // [確認_正常系] - 詳細説明を保持すること。

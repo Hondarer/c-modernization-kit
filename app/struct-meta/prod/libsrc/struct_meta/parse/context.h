@@ -26,16 +26,16 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/**
- *  @brief          構文解析 1 回分の状態です。
- */
-typedef struct struct_meta_internal_parse_context
-{
-    struct_meta_internal_parse_struct_list *structs; /**< 解析できた構造体のリストです。 */
-    struct_meta_diagnostic *diagnostic;              /**< 診断の書き込み先です。NULL を渡せます。 */
-    int failed;                                      /**< 0 以外なら解析が失敗しました。 */
-    int pad;                                         /**< 明示的アラインメントです。0 を指定します。 */
-} struct_meta_internal_parse_context;
+    /**
+     *  @brief          構文解析 1 回分の状態です。
+     */
+    typedef struct struct_meta_internal_parse_context
+    {
+        struct_meta_internal_parse_struct_list *structs; /**< 解析できた構造体のリストです。 */
+        struct_meta_diagnostic *diagnostic;              /**< 診断の書き込み先です。NULL を渡せます。 */
+        int failed;                                      /**< 0 以外なら解析が失敗しました。 */
+        int pad;                                         /**< 明示的アラインメントです。0 を指定します。 */
+    } struct_meta_internal_parse_context;
 
 #ifdef __cplusplus
 }

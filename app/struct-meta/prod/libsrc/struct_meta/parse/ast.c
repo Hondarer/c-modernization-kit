@@ -15,9 +15,9 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-struct_meta_internal_parse_field *struct_meta_internal_parse_field_create(
-    char *name, char *type_name, int is_struct_type, long array_count, int line, char *brief,
-    struct_meta_internal_parse_attribute *attributes)
+struct_meta_internal_parse_field *
+struct_meta_internal_parse_field_create(char *name, char *type_name, int is_struct_type, long array_count, int line,
+                                        char *brief, struct_meta_internal_parse_attribute *attributes)
 {
     struct_meta_internal_parse_field *field = (struct_meta_internal_parse_field *)calloc(1, sizeof(*field));
     if (field == NULL)
@@ -35,8 +35,8 @@ struct_meta_internal_parse_field *struct_meta_internal_parse_field_create(
     return field;
 }
 
-struct_meta_internal_parse_field_list *struct_meta_internal_parse_field_list_create(
-    struct_meta_internal_parse_field *first)
+struct_meta_internal_parse_field_list *
+struct_meta_internal_parse_field_list_create(struct_meta_internal_parse_field *first)
 {
     struct_meta_internal_parse_field_list *list = (struct_meta_internal_parse_field_list *)calloc(1, sizeof(*list));
     if (list == NULL)
@@ -48,17 +48,18 @@ struct_meta_internal_parse_field_list *struct_meta_internal_parse_field_list_cre
     return list;
 }
 
-struct_meta_internal_parse_field_list *struct_meta_internal_parse_field_list_append(
-    struct_meta_internal_parse_field_list *list, struct_meta_internal_parse_field *field)
+struct_meta_internal_parse_field_list *
+struct_meta_internal_parse_field_list_append(struct_meta_internal_parse_field_list *list,
+                                             struct_meta_internal_parse_field *field)
 {
     list->tail->next = field;
     list->tail = field;
     return list;
 }
 
-struct_meta_internal_parse_struct *struct_meta_internal_parse_struct_create(
-    char *name, struct_meta_internal_parse_field_list *fields, char *brief, int line,
-    struct_meta_internal_parse_attribute *attributes)
+struct_meta_internal_parse_struct *
+struct_meta_internal_parse_struct_create(char *name, struct_meta_internal_parse_field_list *fields, char *brief,
+                                         int line, struct_meta_internal_parse_attribute *attributes)
 {
     struct_meta_internal_parse_struct *item = (struct_meta_internal_parse_struct *)calloc(1, sizeof(*item));
     if (item == NULL)
@@ -98,8 +99,8 @@ void struct_meta_internal_parse_struct_list_append(struct_meta_internal_parse_st
     }
 }
 
-const struct_meta_internal_parse_struct *struct_meta_internal_parse_struct_list_find(
-    const struct_meta_internal_parse_struct_list *list, const char *name)
+const struct_meta_internal_parse_struct *
+struct_meta_internal_parse_struct_list_find(const struct_meta_internal_parse_struct_list *list, const char *name)
 {
     if ((list == NULL) || (name == NULL))
     {

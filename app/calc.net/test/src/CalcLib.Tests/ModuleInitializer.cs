@@ -1,3 +1,22 @@
+#pragma warning disable 1587
+/**
+ *******************************************************************************
+ *  @file           ModuleInitializer.cs
+ *  @brief          プラットフォームに応じたアセンブリ解決処理を初期化します。
+ *  @author         c-modernization-kit sample team
+ *  @date           2025/12/23
+ *  @version        1.0.0
+ *
+ *  アセンブリ解決のカスタム ハンドラーを登録し、LD_LIBRARY_PATH (Linux) または
+ *  PATH (Windows) からアセンブリを動的に読み込みます。
+ *  これにより、C のネイティブ ライブラリと同じ挙動でアセンブリを解決できます。
+ *
+ *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
+ *
+ *******************************************************************************
+ */
+#pragma warning restore 1587
+
 using System;
 using System.IO;
 using System.Reflection;

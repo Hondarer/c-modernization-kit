@@ -1,5 +1,5 @@
 # clang-format 設定ファイル
-# C/C++ ソースコードのフォーマットルールを定義します。
+# C/C++ ソース コードのフォーマット ルールを定義します。
 
 # ベーススタイル: LLVM
 BasedOnStyle: LLVM
@@ -7,7 +7,7 @@ BasedOnStyle: LLVM
 # LF 改行を尊重する (.gitattributes の `* text=auto eol=lf`、.editorconfig の `end_of_line = lf` と整合)
 UseCRLF: false
 
-# プリプロセッサディレクティブを # ごとインデントする
+# プリプロセッサ ディレクティブを # ごとインデントする
 IndentPPDirectives: BeforeHash
 
 # 折り返しカラム: 120 文字
@@ -25,7 +25,7 @@ BreakBeforeBraces: Allman
 # 短い関数の 1 行化: 空の関数本体のみ許可 (非空関数は複数行に展開)
 AllowShortFunctionsOnASingleLine: Empty
 
-# 引数・パラメータのビンパッキング (false にすると 1 引数ずつ別行に展開)
+# 引数・パラメーターのビン パッキング (false にすると 1 引数ずつ別行に展開)
 BinPackArguments: true
 BinPackParameters: true
 

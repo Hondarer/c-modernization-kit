@@ -39,8 +39,8 @@ class override_sampleTest : public Test
 #elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\app\\override-sample\\prod\\cbin\\override-sample.exe";
         lib_path = workspace_root + "\\app\\override-sample\\prod\\lib" + ";" + workspace_root +
-                   "\\app\\cplat\\prod\\lib" + ";" + workspace_root + "\\app\\cjson\\prod\\lib" + ";" +
-                   workspace_root + "\\app\\zlib\\prod\\lib";
+                   "\\app\\cplat\\prod\\lib" + ";" + workspace_root + "\\app\\cjson\\prod\\lib" + ";" + workspace_root +
+                   "\\app\\zlib\\prod\\lib";
         {
             wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
             char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
@@ -122,8 +122,8 @@ TEST_F(override_sampleTest, help)
     ProcessResult res = startProcess(binary_path, {"--help"}, opts); // [手順] - help オプションで起動する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code);                          // [確認_正常系] - help の表示後に正常終了すること。
-    EXPECT_NE(string::npos, res.stdout_out.find("--help"));          // [確認_正常系] - help オプションが usage に含まれること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code);                 // [確認_正常系] - help の表示後に正常終了すること。
+    EXPECT_NE(string::npos, res.stdout_out.find("--help")); // [確認_正常系] - help オプションが usage に含まれること。
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
@@ -132,14 +132,13 @@ TEST_F(override_sampleTest, help)
 TEST_F(override_sampleTest, check_stdout_default)
 {
     // Arrange
-    removeConfigFile(); // [状態] - 定義ファイルを削除して既定動作を保証する。
+    removeConfigFile();               // [状態] - 定義ファイルを削除して既定動作を保証する。
     ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
 
     // Pre-Assert
 
     // Act
-    ProcessResult res =
-        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
+    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
@@ -147,8 +146,8 @@ TEST_F(override_sampleTest, check_stdout_default)
         string::npos,
         res.stdout_out.find(
             "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認_正常系] - 既定処理のメッセージが出力されること。
-    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));                 // [確認_正常系] - ret が 0 であること。
-    EXPECT_NE(string::npos, res.stdout_out.find("result: 3"));              // [確認_正常系] - result が 3 (1+2) であること。
+    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));               // [確認_正常系] - ret が 0 であること。
+    EXPECT_NE(string::npos, res.stdout_out.find("result: 3")); // [確認_正常系] - result が 3 (1+2) であること。
     EXPECT_EQ(
         string::npos,
         res.stdout_out.find(
@@ -169,8 +168,7 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     // Pre-Assert
 
     // Act
-    ProcessResult res =
-        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
+    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
@@ -202,8 +200,8 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Pre-Assert
 
     // Act
-    ProcessResult res = startProcess(
-        binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString を捕捉する。
+    ProcessResult res =
+        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString を捕捉する。
 
     // Assert
     ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
@@ -245,7 +243,7 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     removeConfigFile(); // [状態] - 定義ファイルを削除して他の要因を排除する。
     ProcessOptions opts = makeOpts();
     opts.preload_lib = mock_lib_path; // [状態] - debug_log を取得するため syslog_mock.so を挿入する。
-    opts.env_set["ENABLE_DLLMAIN_CPLAT_INFO_MSG"] = "1"; // [状態] - DLLMain 診断ログ出力を有効化する。
+    opts.env_set["ENABLE_DLLMAIN_CPLAT_INFO_MSG"] = "1";     // [状態] - DLLMain 診断ログ出力を有効化する。
     opts.env_set["TMPDIR"] = string(PLATFORM_PATH_MAX, 'a'); // [状態] - 一時ディレクトリを上限超過の長さにする。
 
     // Pre-Assert

@@ -17,11 +17,11 @@
 
 - 対象の目的と構成を確認する場合は [README.md](README.md)
 - 利用側の設計 (定義から生成物、生成物から呼び出し) を変更する場合は [アーキテクチャー](docs/architecture.md) の該当節
-- 条件式フィルターの試作を変更する場合は [トレースの条件式フィルターの PoC](docs/trace-filter-poc.md)。設計資料との差分と進捗を同じ変更で更新してください
-- 文字列カタログの要件と外部から観測できる振る舞いは [文字列カタログ 機能仕様](../cplat/docs/functional-spec/string_catalog.md)
-- 文字列カタログの責務境界と変更時の制約は [string_catalog モジュール](../cplat/prod/libsrc/cplat/string_catalog/README.md)
-- C の規範は [コーディング規範](../general/docs/coding-guideline.md)
-- テスト構成は [テスト方法](../../framework/testfw/docs/how-to-test.md)
+- 条件式フィルターの試作を変更する場合は [トレースの条件式フィルターの PoC](docs/trace-filter-poc.md)。設計資料との差分と進捗を同じ変更で更新してください。
+- 文字列カタログの要件と外部から観測できる振る舞いを確認する場合は [文字列カタログ 機能仕様](../cplat/docs/functional-spec/string_catalog.md)
+- 文字列カタログの責務境界と変更時の制約を確認する場合は [string_catalog モジュール](../cplat/prod/libsrc/cplat/string_catalog/README.md)
+- C の規範を確認する場合は [コーディング規範](../general/docs/coding-guideline.md)
+- テスト構成を確認する場合は [テスト方法](../../framework/testfw/docs/how-to-test.md)
 
 ## 変更時の制約
 

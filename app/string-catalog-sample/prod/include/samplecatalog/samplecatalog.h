@@ -67,7 +67,7 @@ extern "C"
      *  本関数はスレッド セーフです。
      */
     SAMPLECATALOG_EXPORT int SAMPLECATALOG_API samplecatalog_find_item(const char *item_name, char *dest,
-                                                                      size_t dest_size);
+                                                                       size_t dest_size);
 
 #ifdef __cplusplus
 }

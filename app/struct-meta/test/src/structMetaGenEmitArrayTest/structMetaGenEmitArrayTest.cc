@@ -18,18 +18,14 @@ TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_
 {
     // Arrange
     const uint64_t data[] = {
-        UINT64_C(0x0123456789abcdef),
-        UINT64_C(0xfedcba9876543210),
-        UINT64_C(0x1111222233334444),
-        UINT64_C(0xaaaabbbbccccdddd),
-        UINT64_C(0xaaaaaaaaaaaaaaaa),
+        UINT64_C(0x0123456789abcdef), UINT64_C(0xfedcba9876543210), UINT64_C(0x1111222233334444),
+        UINT64_C(0xaaaabbbbccccdddd), UINT64_C(0xaaaaaaaaaaaaaaaa),
     };
-    const char expected[] =
-        "static const uint64_t s_sample[5] = {\n"
-        "    UINT64_C(0x0123456789abcdef), UINT64_C(0xfedcba9876543210), "
-        "UINT64_C(0x1111222233334444), UINT64_C(0xaaaabbbbccccdddd),\n"
-        "    UINT64_C(0x00000000000000aa)\n"
-        "};\n\n";
+    const char expected[] = "static const uint64_t s_sample[5] = {\n"
+                            "    UINT64_C(0x0123456789abcdef), UINT64_C(0xfedcba9876543210), "
+                            "UINT64_C(0x1111222233334444), UINT64_C(0xaaaabbbbccccdddd),\n"
+                            "    UINT64_C(0x00000000000000aa)\n"
+                            "};\n\n";
     char path[PLATFORM_PATH_MAX] = {};
     FILE *stream = cplat_fopen_temp("sma", "w+b", path, sizeof(path),
                                     nullptr); // [状態] - 生成結果を読み戻す一時ストリームを作成する。
@@ -38,8 +34,8 @@ TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_
     // Pre-Assert
 
     // Act
-    struct_meta_gen_emit_uint64_array(
-        stream, "s_sample", data, 33U); // [手順] - 4 ワードと 1 バイトを静的配列として出力する。
+    struct_meta_gen_emit_uint64_array(stream, "s_sample", data,
+                                      33U); // [手順] - 4 ワードと 1 バイトを静的配列として出力する。
     ASSERT_EQ(0, std::fflush(stream));
     // [確認_正常系] - `std::fflush(stream)` の戻り値が `0` であること。
     std::rewind(stream);

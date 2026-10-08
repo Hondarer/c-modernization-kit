@@ -36,7 +36,7 @@ WIN32_MANIFEST = utf8
 # #include <cplat/console/console.h> のうえで cplat_console_init() を組み込む必要がある。
 # cplat_console_dispose() はライブラリ アンロード時に自動的に呼ばれるため不要。
 
-# マルチスレッドを利用するため、リポジトリ全体に pthread を指定しておく
+# マルチ スレッドを利用するため、リポジトリ全体に pthread を指定しておく
 ifdef PLATFORM_LINUX
     LIBS += pthread
 endif

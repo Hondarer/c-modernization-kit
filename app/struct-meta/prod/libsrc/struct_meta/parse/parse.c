@@ -22,7 +22,7 @@
 
 /* flex と bison が生成する再入可能な入口。生成ヘッダーはこの翻訳単位だけが使う。 */
 #ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
+    #define YY_TYPEDEF_YY_SCANNER_T
 typedef void *yyscan_t;
 #endif
 

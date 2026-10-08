@@ -43,10 +43,10 @@ TEST(structMetaAccessTest, finds_field_by_name)
                                                               &second); // [手順] - 末尾のフィールドを名前で検索する。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, actual_ret_first);     // [確認_正常系] - 先頭フィールドの検索が成功すること。
-    EXPECT_EQ(&kFields[0], first);             // [確認_正常系] - 先頭フィールドの記述子が返ること。
-    ASSERT_EQ(CPLAT_OK, actual_ret_second);    // [確認_正常系] - 末尾フィールドの検索が成功すること。
-    EXPECT_EQ(&kFields[1], second);            // [確認_正常系] - 末尾フィールドの記述子が返ること。
+    ASSERT_EQ(CPLAT_OK, actual_ret_first);  // [確認_正常系] - 先頭フィールドの検索が成功すること。
+    EXPECT_EQ(&kFields[0], first);          // [確認_正常系] - 先頭フィールドの記述子が返ること。
+    ASSERT_EQ(CPLAT_OK, actual_ret_second); // [確認_正常系] - 末尾フィールドの検索が成功すること。
+    EXPECT_EQ(&kFields[1], second);         // [確認_正常系] - 末尾フィールドの記述子が返ること。
 }
 
 // 存在しないフィールド名を検索した場合に CPLAT_ERR_NOT_FOUND が返り、出力先が NULL になることの確認
@@ -63,7 +63,7 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_field)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual_ret); // [確認_正常系] - フィールド検索が CPLAT_ERR_NOT_FOUND を返すこと。
-    EXPECT_EQ(nullptr, field);              // [確認_正常系] - 検索結果が NULL に初期化されること。
+    EXPECT_EQ(nullptr, field);                  // [確認_正常系] - 検索結果が NULL に初期化されること。
 }
 
 // フィールド検索関数に NULL の記述子、名前、出力先を渡した場合に不正引数エラーとなることの確認
@@ -126,7 +126,7 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_key)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual_ret); // [確認_正常系] - 属性検索が CPLAT_ERR_NOT_FOUND を返すこと。
-    EXPECT_EQ(nullptr, attribute);          // [確認_正常系] - 検索結果が NULL に初期化されること。
+    EXPECT_EQ(nullptr, attribute);              // [確認_正常系] - 検索結果が NULL に初期化されること。
 }
 
 // 属性検索関数に NULL の記述子、キー、出力先を渡した場合に不正引数エラーとなることの確認

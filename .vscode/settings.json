@@ -17,9 +17,9 @@
     },
     // 半角空白を表示する
     "editor.renderWhitespace": "all",
-    // エクスプローラー ビューのフォルダ省略を行わない
+    // エクスプローラー ビューのフォルダー省略を行わない
     "explorer.compactFolders": false,
-    // ターミナルのスクロールバッファ行数
+    // ターミナルのスクロール バッファー行数
     "terminal.integrated.scrollback": 20000,
     // ファイル名と言語モードの関連付け
     "files.associations": {
@@ -32,13 +32,13 @@
     },
     // Makefile Tools 拡張の起動時自動構成を無効にする
     "makefile.configureOnOpen": false,
-    // .NET のデフォルトソリューションの無効指定
+    // .NET の既定ソリューションの無効指定
     "dotnet.defaultSolution": "disable",
-    // Debug Params 拡張の既定値 (実行ファイルパスを make から取得)
+    // Debug Params 拡張の既定値 (実行ファイル パスを make から取得)
     "debugParams.defaults": {
         "program": "${shell:make show-exepath}"
     },
-    // C のフォーマッタ指定
+    // C のフォーマッター指定
     "C_Cpp.formatting": "clangFormat",
     // https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight
     "todohighlight.keywords": [

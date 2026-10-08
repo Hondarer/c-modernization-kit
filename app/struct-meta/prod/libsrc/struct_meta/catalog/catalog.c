@@ -26,9 +26,9 @@
 struct struct_meta_catalog
 {
     const struct_meta_descriptor *const *descriptors; /**< 記述子の配列です。宣言順に並びます。 */
-    size_t descriptor_count;                    /**< @c descriptors の要素数です。 */
-    cplat_hashtable *index;                     /**< 構造体名からインデックスを引き当てる索引です。 */
-    struct_meta_internal_arena *arena;          /**< 記述子の記憶域です。静的カタログでは NULL です。 */
+    size_t descriptor_count;                          /**< @c descriptors の要素数です。 */
+    cplat_hashtable *index;                           /**< 構造体名からインデックスを引き当てる索引です。 */
+    struct_meta_internal_arena *arena;                /**< 記述子の記憶域です。静的カタログでは NULL です。 */
 };
 
 /**
@@ -126,8 +126,8 @@ static int create_from_structs(struct_meta_internal_parse_struct_list *structs, 
     }
     catalog->arena = arena;
 
-    int ret = struct_meta_internal_build_descriptors(structs, arena, &catalog->descriptors,
-                                                     &catalog->descriptor_count, diagnostic);
+    int ret = struct_meta_internal_build_descriptors(structs, arena, &catalog->descriptors, &catalog->descriptor_count,
+                                                     diagnostic);
     /* AST はここまでで役目を終える。記述子は arena へ複写済み。 */
     struct_meta_internal_parse_struct_list_destroy(structs);
     if (ret != CPLAT_OK)
@@ -187,8 +187,8 @@ int struct_meta_catalog_attach_static(const struct_meta_descriptor *const *descr
                                       const void *index_image_data, size_t index_image_data_size,
                                       struct_meta_catalog **catalog_out)
 {
-    if ((descriptors == NULL) || (descriptor_count == 0U) || (index_image_mgmt == NULL) ||
-        (index_image_data == NULL) || (catalog_out == NULL))
+    if ((descriptors == NULL) || (descriptor_count == 0U) || (index_image_mgmt == NULL) || (index_image_data == NULL) ||
+        (catalog_out == NULL))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
@@ -208,8 +208,7 @@ int struct_meta_catalog_attach_static(const struct_meta_descriptor *const *descr
        see: app/cplat/prod/libsrc/cplat/hashtable/hashtable_create.c の
             cplat_hashtable_attach() */
     if (cplat_hashtable_attach((void *)(uintptr_t)index_image_mgmt, index_image_mgmt_size,
-                               (void *)(uintptr_t)index_image_data, index_image_data_size,
-                               &catalog->index) != CPLAT_OK)
+                               (void *)(uintptr_t)index_image_data, index_image_data_size, &catalog->index) != CPLAT_OK)
     {
         free(catalog);
         return CPLAT_ERR_INVALID_ARGUMENT;

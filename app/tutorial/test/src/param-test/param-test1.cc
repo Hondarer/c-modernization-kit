@@ -7,8 +7,7 @@ class ParamTest1
 
     ParamTest1()
     {
-        ON_CALL(*this, myFunction(_, _))
-            .WillByDefault(Invoke([](int a, int b) { return a * b; })); // 既定のアクション
+        ON_CALL(*this, myFunction(_, _)).WillByDefault(Invoke([](int a, int b) { return a * b; })); // 既定のアクション
     }
 };
 
@@ -27,7 +26,8 @@ TEST_P(ParamTest1Test, MultiplyTest)
     int expected = get<2>(GetParam()); // [状態] - パラメーターから期待する戻り値を取り出す。
 
     // Pre-Assert
-    EXPECT_CALL(mockObj, myFunction(a, b)).Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction(a, b) が 1 回呼び出されること。
+    EXPECT_CALL(mockObj, myFunction(a, b))
+        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction(a, b) が 1 回呼び出されること。
 
     // Act
     int result = mockObj.myFunction(a, b); // [手順] - myFunction(a, b) を呼び出す。

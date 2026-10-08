@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           image.c
  *  @brief          Doxygen コメント内で画像を参照する例を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/04/26
  *  @version        1.0.0
  *

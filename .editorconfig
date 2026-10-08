@@ -29,7 +29,7 @@ end_of_line = crlf
 [*.ps1]
 charset = utf-8-bom
 
-# メッセージ コンパイラ入力 (mc.exe) は UTF-8 BOM 付き。
-# BOM が無いと mc.exe が入力をシステム コードページ (cp932) として読み、UTF-8 の日本語が壊れる。
+# メッセージ コンパイラー入力 (mc.exe) は UTF-8 BOM 付き。
+# BOM がないと mc.exe が入力をシステム コード ページ (cp932) として読み、UTF-8 の日本語が壊れる。
 [*.mc]
 charset = utf-8-bom

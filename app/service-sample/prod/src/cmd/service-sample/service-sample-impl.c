@@ -52,7 +52,7 @@ static int on_run(void *user_data)
 
     (void)user_data;
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                          "動作中です。Ctrl+C または停止コマンドで終了します。");
+                       "動作中です。Ctrl+C または停止コマンドで終了します。");
 
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
     cycle_count = 0;
@@ -106,23 +106,22 @@ static void on_event(const svc_event_info *info, void *user_data)
         /* TODO: ここに復帰処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGON:
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                               "セッションがログオンしました (ID: %s)。", info->session_id);
+        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "セッションがログオンしました (ID: %s)。",
+                            info->session_id);
         /* TODO: ここにログオン時処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGOFF:
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                               "セッションがログオフしました (ID: %s)。", info->session_id);
+        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "セッションがログオフしました (ID: %s)。",
+                            info->session_id);
         /* TODO: ここにログオフ時処理を書く */
         break;
     case SVC_EVENT_PRESHUTDOWN:
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                              "システムのシャットダウンが始まります。");
+        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "システムのシャットダウンが始まります。");
         /* TODO: ここにシャットダウン前処理を書く */
         break;
     default:
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "未知のイベントです (種別: %d)。",
-                               (int)info->type);
+                            (int)info->type);
         break;
     }
 }

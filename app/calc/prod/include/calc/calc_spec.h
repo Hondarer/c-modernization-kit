@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           calc_spec.h
  *  @brief          動的リンク用 calc ライブラリの API を公開します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *

@@ -1,8 +1,8 @@
 /**
  *******************************************************************************
- *  @file           libsrc/calcbase/calcbase_subtract.c
+ *  @file           calcbase_subtract.c
  *  @brief          2 つの整数を減算する calcbase_subtract 関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *

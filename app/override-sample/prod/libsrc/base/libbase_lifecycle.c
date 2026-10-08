@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           libbase_lifecycle.c
  *  @brief          base 共有ライブラリのロード時とアンロード時の処理を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
@@ -46,7 +46,7 @@ void onLoad(void)
             if (cplat_path_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
             {
                 if (cplat_path_concat(sym_loader_configpath, sizeof(sym_loader_configpath), &error, tmpdir,
-                                         PLATFORM_PATH_SEP, leafname) != CPLAT_OK)
+                                      PLATFORM_PATH_SEP, leafname) != CPLAT_OK)
                 {
                     sym_loader_configpath[0] = '\0';
                     CPLAT_DLLMAIN_INFO_MSG("base: config path too long; override disabled");

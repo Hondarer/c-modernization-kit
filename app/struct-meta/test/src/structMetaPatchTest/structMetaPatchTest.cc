@@ -401,8 +401,10 @@ TEST_F(StructMetaPatchTest, InvalidArgumentsAreRejectedBeforePromptCreation)
     // [状態確認] - 引数が不正な場合はプロンプトを作成しないこと。
 
     // Act
-    int null_path_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, nullptr); // [手順] - NULL パスを指定する。
-    int empty_path_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "");     // [手順] - 空文字列パスを指定する。
+    int null_path_ret =
+        struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, nullptr); // [手順] - NULL パスを指定する。
+    int empty_path_ret =
+        struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, ""); // [手順] - 空文字列パスを指定する。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_path_ret);  // [確認_異常系] - NULL を拒否すること。

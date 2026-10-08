@@ -245,7 +245,7 @@ TEST_F(catalogIntegrationTest, trace_level_is_stored_as_category)
         sample_trace_catalog(), SAMPLE_TRACE_KEY_RECORD_PARSED); // [手順] - VERBOSE の分類値を取得する。
 
     // Assert
-    EXPECT_EQ((int)CPLAT_TRACE_LEVEL_INFO, info_category); // [確認_正常系] - INFO が対応する整数になること。
+    EXPECT_EQ((int)CPLAT_TRACE_LEVEL_INFO, info_category);       // [確認_正常系] - INFO が対応する整数になること。
     EXPECT_EQ((int)CPLAT_TRACE_LEVEL_ERROR, error_category);     // [確認_正常系] - ERROR が対応する整数になること。
     EXPECT_EQ((int)CPLAT_TRACE_LEVEL_VERBOSE, verbose_category); // [確認_正常系] - VERBOSE が対応する整数になること。
 }
@@ -271,7 +271,9 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
     EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,
               entry->arguments[2].kind); // [確認_正常系] - 利用者の引数と文脈引数の間が未使用であること。
     EXPECT_STREQ("source_file_path", entry->arguments[40].name); // [確認_正常系] - 文脈引数が 40 番から並ぶこと。
-    EXPECT_STREQ("thread_id", entry->arguments[45].name); // [確認_正常系] - cplat が定義するコンテキスト引数の末尾が 45 番であること。
+    EXPECT_STREQ(
+        "thread_id",
+        entry->arguments[45].name); // [確認_正常系] - cplat が定義するコンテキスト引数の末尾が 45 番であること。
 
     // 本カタログは app が定義するコンテキスト引数を保持しないため、インデックス 46 から 49 は予約された未使用領域となる。
     for (int index = 46; index < CPLAT_STRING_CATALOG_ARGUMENT_MAX; index++)
@@ -379,6 +381,6 @@ TEST_F(catalogIntegrationTest, trace_macro_fails_without_tracer)
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT,
-              actual_ret); // [確認_異常系] - 戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+              actual_ret);   // [確認_異常系] - 戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ("", captured); // [確認_異常系] - 何も出力しないこと。
 }

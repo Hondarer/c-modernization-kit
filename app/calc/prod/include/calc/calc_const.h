@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           calc_const.h
  *  @brief          calc ライブラリで使用する定数を定義します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *
@@ -24,9 +24,9 @@
  *  @{
  */
 
-#define CALC_OK 0                       /**< 成功の戻り値を表します。 */
-#define CALC_ERR_UNKNOWN -1             /**< 分類済みコードに該当しないその他のエラーです。 */
-#define CALC_ERR_INVALID_ARGUMENT -2    /**< API 引数が不正です (NULL、ゼロ除算など)。 */
+#define CALC_OK                   0  /**< 成功の戻り値を表します。 */
+#define CALC_ERR_UNKNOWN          -1 /**< 分類済みコードに該当しないその他のエラーです。 */
+#define CALC_ERR_INVALID_ARGUMENT -2 /**< API 引数が不正です (NULL、ゼロ除算など)。 */
 
 #define CALC_KIND_ADD      1 /**< 加算の演算種別を表します。 */
 #define CALC_KIND_SUBTRACT 2 /**< 減算の演算種別を表します。 */

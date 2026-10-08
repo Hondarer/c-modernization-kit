@@ -1,8 +1,8 @@
 /**
  *******************************************************************************
- *  @file           libsrc/calcbase/calcbase_multiply.c
+ *  @file           calcbase_multiply.c
  *  @brief          2 つの整数を乗算する calcbase_multiply 関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *

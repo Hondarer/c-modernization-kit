@@ -40,8 +40,7 @@ extern "C"
      *  行番号と比較要素の番号は 1 起点で表します。行番号は draft の一覧と同じ、編集中イメージの行です。
      */
     int sample_filter_warning_format(const cplat_string_catalog *catalog,
-                                     const cplat_string_catalog_filter_warning *warning, char *dest,
-                                     size_t dest_size);
+                                     const cplat_string_catalog_filter_warning *warning, char *dest, size_t dest_size);
 
 #ifdef __cplusplus
 }

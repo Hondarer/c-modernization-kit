@@ -1,8 +1,8 @@
 /**
  *******************************************************************************
- *  @file           libsrc/calcbase/calcbase_divide.c
+ *  @file           calcbase_divide.c
  *  @brief          2 つの整数を除算する calcbase_divide 関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *

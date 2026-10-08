@@ -21,7 +21,7 @@ TEST_F(test_static_access, test)
 {
     // Arrange
     // inject 機能を使用して static 変数に値を設定
-    set_static_int(123); // [準備] - static_int に 123 を設定する。
+    set_static_int(123); // [状態] - static_int に 123 を設定する。
 
     // Pre-Assert
 
@@ -29,7 +29,7 @@ TEST_F(test_static_access, test)
     int actual_ret = samplestatic(); // [手順] - samplestatic() を呼び出す。
 
     // Assert
-    EXPECT_EQ(123, actual_ret); // [確認] - 戻り値が設定した値 123 であること。
+    EXPECT_EQ(123, actual_ret); // [確認_正常系] - samplestatic() からの戻り値が 123 であること。
 }
 ```
 
@@ -125,4 +125,4 @@ make test
 
 - testfw フレームワークの詳細: `../../../../framework/testfw/README.md`
 - テスト対象ソース: `sample-static-lib/samplestatic.c`
-- テスト対象ヘッダー: `app/tutorial/prod/include/samplestatic.h`
+- テスト対象ヘッダー: `sample-static-lib/samplestatic.h`

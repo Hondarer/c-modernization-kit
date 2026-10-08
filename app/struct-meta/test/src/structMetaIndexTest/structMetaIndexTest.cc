@@ -21,8 +21,7 @@ const struct_meta_field kNestedFields[] = {
     {"inner", STRUCT_META_FIELD_SIGNED_INTEGER, 0, offsetof(Nested, inner), sizeof(int), 1, 0, nullptr, nullptr,
      nullptr, 0},
 };
-const struct_meta_descriptor kNestedDescriptor = {"Nested",  sizeof(Nested), kNestedFields, 1, nullptr,
-                                                  nullptr,   0};
+const struct_meta_descriptor kNestedDescriptor = {"Nested", sizeof(Nested), kNestedFields, 1, nullptr, nullptr, 0};
 
 const struct_meta_field kFields[] = {
     {"id", STRUCT_META_FIELD_SIGNED_INTEGER, 0, offsetof(Sample, id), sizeof(int), 1, 0, nullptr, nullptr, nullptr, 0},
@@ -136,15 +135,15 @@ TEST(structMetaIndexTest, unregister_restores_linear_search)
 
     // Act
     int unregister_ret = struct_meta_index_unregister(&kDescriptor); // [手順] - 記述子を登録解除する。
-    int again_ret = struct_meta_index_unregister(&kDescriptor); // [手順] - 登録解除済みの記述子を再度解除する。
+    int again_ret = struct_meta_index_unregister(&kDescriptor);      // [手順] - 登録解除済みの記述子を再度解除する。
     int find_ret = struct_meta_descriptor_find_field(&kDescriptor, "id",
                                                      &field); // [手順] - 登録解除後にフィールドを検索する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, unregister_ret);          // [確認_正常系] - 登録解除が成功すること。
-    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, again_ret);    // [確認_異常系] - 未登録の記述子の解除が拒否されること。
-    ASSERT_EQ(CPLAT_OK, find_ret);                // [確認_正常系] - 登録解除後も線形走査で検索できること。
-    EXPECT_STREQ("id", field->name);              // [確認_正常系] - 要求したフィールドが返ること。
+    EXPECT_EQ(CPLAT_OK, unregister_ret);       // [確認_正常系] - 登録解除が成功すること。
+    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, again_ret); // [確認_異常系] - 未登録の記述子の解除が拒否されること。
+    ASSERT_EQ(CPLAT_OK, find_ret);             // [確認_正常系] - 登録解除後も線形走査で検索できること。
+    EXPECT_STREQ("id", field->name);           // [確認_正常系] - 要求したフィールドが返ること。
 }
 
 // 破損した記述子を索引へ登録しても記述子の検証結果が一貫してエラーとなることの確認

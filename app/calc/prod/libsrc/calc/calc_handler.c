@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           calc_handler.c
  *  @brief          演算種別に基づいて適切な計算関数を呼び出すハンドラーを提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *

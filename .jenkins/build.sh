@@ -4,12 +4,12 @@
 # Jenkins の Execute shell から呼び出すホスト側スクリプト。
 # Podman で CI と同じコンテナー イメージを起動し、inner-build.sh を実行する。
 #
-# 以下の環境変数で動作をカスタマイズできる。Jenkins の Execute shell 先頭で export してから
+# 次の環境変数で動作をカスタマイズできる。Jenkins の Execute shell 先頭で export してから
 # このスクリプトを呼び出すこと。
 #
-#   IMAGE      使用するコンテナー イメージ (デフォルト: oracle-linux-8-dev:latest)
-#   OS_NAME    ビルド ログのファイル名に使用する OS 識別子 (ol8, ol9, ol10。デフォルト: ol8)
-#   BUILD_DOCS ドキュメント生成の有無 1=あり / 0=なし (デフォルト: 1)
+#   IMAGE      使用するコンテナー イメージ (既定値: oracle-linux-8-dev:latest)
+#   OS_NAME    ビルド ログのファイル名に使用する OS 識別子 (ol8, ol9, ol10。既定値: ol8)
+#   BUILD_DOCS ドキュメント生成の有無 1=あり / 0=なし (既定値: 1)
 
 set -eu
 

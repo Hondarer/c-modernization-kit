@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           override-sample.c
  *  @brief          関数の動的オーバーライドのサンプル コマンドを実装します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         if (cplat_path_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
         {
             if (cplat_path_concat(configpath, sizeof(configpath), &error, tmpdir, PLATFORM_PATH_SEP,
-                                     "libbase_extdef.jsonc") != CPLAT_OK)
+                                  "libbase_extdef.jsonc") != CPLAT_OK)
             {
                 fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
                 return EXIT_FAILURE;

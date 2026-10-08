@@ -81,8 +81,7 @@ extern "C"
      *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_create_from_header_text(
-        const char *text, size_t length, struct_meta_catalog **catalog_out,
-        struct_meta_diagnostic *diagnostic_out);
+        const char *text, size_t length, struct_meta_catalog **catalog_out, struct_meta_diagnostic *diagnostic_out);
 
     /**
      *  @brief          静的な記述子と埋め込み索引イメージからカタログを作ります。
@@ -139,7 +138,7 @@ extern "C"
      *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_get_count(const struct_meta_catalog *catalog,
-                                                                        size_t *count_out);
+                                                                         size_t *count_out);
 
     /**
      *  @brief          インデックスで記述子を取得します。
@@ -155,7 +154,7 @@ extern "C"
      *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_get(const struct_meta_catalog *catalog, size_t index,
-                                                                  const struct_meta_descriptor **descriptor_out);
+                                                                   const struct_meta_descriptor **descriptor_out);
 
     /**
      *  @brief          構造体名で記述子を検索します。
@@ -171,8 +170,8 @@ extern "C"
      *  本関数はスレッド セーフです。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_find(const struct_meta_catalog *catalog,
-                                                                   const char *name,
-                                                                   const struct_meta_descriptor **descriptor_out);
+                                                                    const char *name,
+                                                                    const struct_meta_descriptor **descriptor_out);
 
 #ifdef __cplusplus
 }

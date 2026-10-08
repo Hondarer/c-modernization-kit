@@ -35,7 +35,7 @@ calc コマンド ライン電卓の .NET 版です。このアプリケーシ�
 
 ```bash
 # アプリケーションをビルド
-cd app/calc.net/prod/src/CalcApp
+cd app/calc.net/prod/src/cmd/CalcApp
 make build
 
 # ビルド成果物をクリーン
@@ -154,17 +154,18 @@ Table: C 版と .NET 版の機能比較
 
 ```bash
 # プロジェクト ルートからビルド
-cd app/calc.net/prod/src
+cd app/calc.net/prod/src/cmd
 make  # CalcApp を含むすべてのアプリケーションをビルド
 
 # CalcApp のみをビルド
-cd app/calc.net/prod/src/CalcApp
+cd app/calc.net/prod/src/cmd/CalcApp
 make build
 ```
 
 ## ファイル
 
 - `Program.cs` - メイン アプリケーション ロジック
+- `ModuleInitializer.cs` - モジュール初期化ロジック (アセンブリ探索)
 - `CalcApp.csproj` - プロジェクト設定
 - `makefile` - ビルド統合
 - `README.md` - このドキュメント

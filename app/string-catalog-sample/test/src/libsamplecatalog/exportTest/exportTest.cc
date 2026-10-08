@@ -77,8 +77,8 @@ class exportTest : public Test
         workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
         // [状態確認] - `workspace_root.empty()` が false であること。
-        dll_path = workspace_root +
-                   "/app/string-catalog-sample/prod/lib/libsamplecatalog" TESTFW_SHARED_LIBRARY_EXTENSION;
+        dll_path =
+            workspace_root + "/app/string-catalog-sample/prod/lib/libsamplecatalog" TESTFW_SHARED_LIBRARY_EXTENSION;
     }
     // [サブ手順終了]
 };
@@ -117,10 +117,10 @@ TEST_F(exportTest, structure_returning_functions_are_not_exported)
 {
     // Arrange
     const std::set<std::string> hidden = {
-        "samplecatalog_messages_catalog", "samplecatalog_messages_entries",   "samplecatalog_messages_entry",
-        "samplecatalog_messages_verify",  "samplecatalog_trace_catalog",      "samplecatalog_trace_entries",
-        "samplecatalog_trace_entry",
-        "samplecatalog_trace_verify",     "samplecatalog_trace_key_names",    "samplecatalog_trace_key_name_count"}; // [状態] - 公開しない関数の名前一覧を構築する。
+        "samplecatalog_messages_catalog",    "samplecatalog_messages_entries", "samplecatalog_messages_entry",
+        "samplecatalog_messages_verify",     "samplecatalog_trace_catalog",    "samplecatalog_trace_entries",
+        "samplecatalog_trace_entry",         "samplecatalog_trace_verify",     "samplecatalog_trace_key_names",
+        "samplecatalog_trace_key_name_count"}; // [状態] - 公開しない関数の名前一覧を構築する。
 
     // Pre-Assert
 
@@ -154,7 +154,7 @@ TEST_F(exportTest, public_header_variables_declare_export_macro)
         "SAMPLECATALOG_EXPORT"); // [手順] - prod/include 配下を走査し、装飾を伴わない extern 変数宣言を集める。
 
     // Assert
-    EXPECT_TRUE(undecorated.empty())
-        << "SAMPLECATALOG_EXPORT を伴わない変数宣言: "
-        << testing::joinNames(undecorated); // [確認_正常系] - 該当する宣言が 1 件もないこと。
+    EXPECT_TRUE(undecorated.empty()) << "SAMPLECATALOG_EXPORT を伴わない変数宣言: "
+                                     << testing::joinNames(
+                                            undecorated); // [確認_正常系] - 該当する宣言が 1 件もないこと。
 }

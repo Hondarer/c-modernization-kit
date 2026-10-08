@@ -36,7 +36,8 @@ TEST_F(sampleFilterWarningTest, type_mismatch_is_formatted_with_entry_and_argume
     // Arrange
     int actual_ret;
 
-    warning_.kind = CPLAT_STRING_CATALOG_FILTER_WARNING_TYPE_MISMATCH; // [状態] - job_name (STRING) の型の不一致とする。
+    warning_.kind =
+        CPLAT_STRING_CATALOG_FILTER_WARNING_TYPE_MISMATCH; // [状態] - job_name (STRING) の型の不一致とする。
 
     // Pre-Assert
 
@@ -89,17 +90,19 @@ TEST_F(sampleFilterWarningTest, unknown_entry_or_kind_is_rejected)
     // Pre-Assert
 
     // Act
-    actual_unknown_argument_ret = sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
-                                                               sizeof(text_)); // [手順] - 引数の位置が不正な警告を整える。
+    actual_unknown_argument_ret =
+        sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
+                                     sizeof(text_)); // [手順] - 引数の位置が不正な警告を整える。
     warning_.argument_index = 2;
     warning_.kind = CPLAT_STRING_CATALOG_FILTER_WARNING_NONE;
     actual_none_ret = sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
                                                    sizeof(text_)); // [手順] - 種別のない警告を整える。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_unknown_argument_ret); // [確認_異常系] - 不正な引数の位置を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_none_ret);             // [確認_異常系] - 種別のない警告を拒否すること。
-    EXPECT_STREQ("", text_);                                            // [確認_異常系] - 空文字列を残すこと。
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT,
+              actual_unknown_argument_ret);                 // [確認_異常系] - 不正な引数の位置を拒否すること。
+    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_none_ret); // [確認_異常系] - 種別のない警告を拒否すること。
+    EXPECT_STREQ("", text_);                                // [確認_異常系] - 空文字列を残すこと。
 }
 
 // 格納先に収まらない場合は CPLAT_ERR_BUFFER_TOO_SMALL を返すことの確認

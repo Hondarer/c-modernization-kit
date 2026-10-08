@@ -206,7 +206,7 @@ TEST_F(service_sampleTest, usage_without_args)
 
     // Assert
     EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - main() の戻り値が EXIT_SUCCESS 以外であること。
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - OS フックもコールバックも呼ばれないこと。
+    EXPECT_TRUE(g_calls.empty());        // [確認_異常系] - OS フックもコールバックも呼ばれないこと。
 }
 
 // --help 指定時に usage を表示して正常終了することの確認
@@ -223,7 +223,7 @@ TEST_F(service_sampleTest, help)
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - help の表示後に正常終了すること。
-    EXPECT_TRUE(g_calls.empty()); // [確認_正常系] - OS フックやサービス コールバックを呼び出さないこと。
+    EXPECT_TRUE(g_calls.empty());        // [確認_正常系] - OS フックやサービス コールバックを呼び出さないこと。
 }
 
 // 不明なコマンドで失敗終了することの確認
@@ -241,7 +241,7 @@ TEST_F(service_sampleTest, unknown_command)
 
     // Assert
     EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - main() の戻り値が EXIT_SUCCESS 以外であること。
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - OS フックもコールバックも呼ばれないこと。
+    EXPECT_TRUE(g_calls.empty());        // [確認_異常系] - OS フックもコールバックも呼ばれないこと。
 }
 
 // install コマンドが svc_os_install を呼び出すことの確認
@@ -258,7 +258,7 @@ TEST_F(service_sampleTest, install_dispatch)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret);        // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
     ASSERT_EQ(1U, g_calls.size());       // [確認_正常系] - フックが 1 回だけ呼ばれること。
     EXPECT_EQ("os_install", g_calls[0]); // [確認_正常系] - svc_os_install() が呼ばれること。
 }
@@ -272,11 +272,9 @@ TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
     const char *argv[] = {"service-sampleTest", "install"}; // [状態] - tracer 初期化を通る代表コマンドを与える。
 
     // Pre-Assert
-    EXPECT_CALL(mock_cplat_,
-                cplat_tracer_set_file_level(tracer_handle_, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0U, 0,
-                                               CPLAT_TRACE_FILE_SINK_SHARED))
-        .WillOnce(
-            Return(0)); // [Pre-Assert確認_正常系] - パスは cplat 既定値へ委譲し、既存の共有モードを維持すること。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_set_file_level(tracer_handle_, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0U, 0,
+                                                         CPLAT_TRACE_FILE_SINK_SHARED))
+        .WillOnce(Return(0)); // [Pre-Assert確認_正常系] - パスは cplat 既定値へ委譲し、既存の共有モードを維持すること。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
@@ -299,7 +297,7 @@ TEST_F(service_sampleTest, uninstall_dispatch)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret);          // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret);   // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
     ASSERT_EQ(1U, g_calls.size());         // [確認_正常系] - フックが 1 回だけ呼ばれること。
     EXPECT_EQ("os_uninstall", g_calls[0]); // [確認_正常系] - svc_os_uninstall() が呼ばれること。
 }
@@ -318,7 +316,7 @@ TEST_F(service_sampleTest, run_dispatch)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret);            // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret);     // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
     ASSERT_EQ(1U, g_calls.size());           // [確認_正常系] - フックが 1 回だけ呼ばれること。
     EXPECT_EQ("os_run_service", g_calls[0]); // [確認_正常系] - svc_os_run_service() が呼ばれること。
 }
@@ -366,7 +364,7 @@ TEST_F(service_sampleTest, console_on_start_failure)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(7, actual_ret);                 // [確認_異常系] - on_start の戻り値がそのまま終了コードになること。
+    EXPECT_EQ(7, actual_ret);          // [確認_異常系] - on_start の戻り値がそのまま終了コードになること。
     ASSERT_EQ(1U, g_calls.size());     // [確認_異常系] - on_start 以降の処理が行われないこと。
     EXPECT_EQ("on_start", g_calls[0]); // [確認_異常系] - on_start のみが呼ばれること。
 }
@@ -408,7 +406,7 @@ TEST_F(service_sampleTest, console_on_stop_failure)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(3, actual_ret);             // [確認_異常系] - on_stop の戻り値がそのまま終了コードになること。
+    EXPECT_EQ(3, actual_ret);      // [確認_異常系] - on_stop の戻り値がそのまま終了コードになること。
     ASSERT_EQ(5U, g_calls.size()); // [確認_異常系] - ライフサイクル全体が実行されること。
 }
 

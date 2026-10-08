@@ -1,7 +1,7 @@
-﻿# VSBT PATH 動的追加スクリプト (PowerShell) - GitHub Actions 専用
+# VSBT PATH 動的追加スクリプト (PowerShell) - GitHub Actions 専用
 # MSVC と Windows SDK を GitHub Actions の環境変数に追加します
 
-# GitHub Actions 環境の Visual Studio インストールパスを取得
+# GitHub Actions 環境の Visual Studio インストール パスを取得
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $vsInstallPath = & $vswhere -latest -property installationPath
 $vsbtBase = $vsInstallPath

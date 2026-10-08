@@ -14,8 +14,8 @@ Mock_calcbase::Mock_calcbase()
                 return CALC_OK;
             })); // モックの既定の挙動を定義する例
     ON_CALL(*this, calcbase_subtract(_, _, _))
-        .WillByDefault(Return(
-            CALC_OK)); // 一般的にはモックの既定の挙動は NOP にしておき、テスト プログラムで具体的な挙動を決める
+        .WillByDefault(
+            Return(CALC_OK)); // 一般的にはモックの既定の挙動は NOP にしておき、テスト プログラムで具体的な挙動を決める
     ON_CALL(*this, calcbase_multiply(_, _, _)).WillByDefault(Return(CALC_OK));
     ON_CALL(*this, calcbase_divide(_, _, _)).WillByDefault(Return(CALC_OK));
 

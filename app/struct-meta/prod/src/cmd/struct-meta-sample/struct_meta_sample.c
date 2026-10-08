@@ -237,8 +237,7 @@ static int select_descriptor(cplat_prompt *prompt, const struct_meta_catalog *ca
             return CPLAT_OK;
         }
 
-        fprintf(stderr, "struct-meta-sample: 1 から %zu の番号、または構造体名を入力してください\n",
-                descriptor_count);
+        fprintf(stderr, "struct-meta-sample: 1 から %zu の番号、または構造体名を入力してください\n", descriptor_count);
     }
 }
 

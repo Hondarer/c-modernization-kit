@@ -76,7 +76,7 @@ app/example.net/test/src/ExampleLib.Tests/
     |   +-- summary.log                 # 全体サマリ
     +-- ExampleLibraryTests.Add_ShouldReturnCorrectResult/
     |   +-- results.log                 # データセット全体のログ
-    |   +-- a_10_b_20_expected_30.log   # 個別パラメータのログ (オプション)
+    |   +-- a_10_b_20_expected_30.log   # 個別パラメーターのログ (オプション)
     |   +-- a_-5_b_5_expected_0.log
     |   +-- ...
     +-- ExampleLibraryTests.Divide_ByZero_ShouldReturnError/
@@ -84,7 +84,7 @@ app/example.net/test/src/ExampleLib.Tests/
     +-- ...
 ```
 
-**注記**: Theory テストの個別パラメータログは、必要に応じて実装します。
+**注記**: Theory テストの個別パラメーターログは、必要に応じて実装します。
 
 ### results.log の内容
 
@@ -704,7 +704,7 @@ results/
     - `framework/testfw/bin_internal/extract_dotnet_output.py` (バッチ出力抽出)
 
 3. **フェーズ 2: 機能拡張** (オプション)
-    - [ ] Theory テストの個別パラメータログ生成 (必要性を再評価)
+    - [ ] Theory テストの個別パラメーターログ生成 (必要性を再評価)
     - [ ] カバレッジ情報の統合 (coverlet, dotnet-coverage との連携)
     - [ ] エラー処理の強化
 

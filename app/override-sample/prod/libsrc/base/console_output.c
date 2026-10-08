@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           console_output.c
  *  @brief          printf と同じ書式でコンソールに出力する関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
@@ -15,7 +15,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 void base_console_output(const char *format, ...)
 {

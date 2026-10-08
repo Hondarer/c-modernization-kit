@@ -185,7 +185,7 @@ void svc_dispatch_event(const svc_definition *def, const svc_event_info *info)
         return;
     }
     cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "OS イベントを配送します (種別: %d)。",
-                           (int)info->type);
+                        (int)info->type);
     def->on_event(info, def->user_data);
 }
 
@@ -241,7 +241,7 @@ int svc_run_lifecycle(const svc_definition *def)
         if (rc != EXIT_SUCCESS)
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                   "on_start が失敗しました (戻り値: %d)。", rc);
+                                "on_start が失敗しました (戻り値: %d)。", rc);
         }
     }
 
@@ -255,8 +255,8 @@ int svc_run_lifecycle(const svc_definition *def)
         run_rc = def->on_run(def->user_data);
         if (run_rc != EXIT_SUCCESS)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                   "on_run が失敗しました (戻り値: %d)。", run_rc);
+            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "on_run が失敗しました (戻り値: %d)。",
+                                run_rc);
         }
 
         svc_os_notify_stopping();
@@ -269,7 +269,7 @@ int svc_run_lifecycle(const svc_definition *def)
             if (stop_rc != EXIT_SUCCESS)
             {
                 cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                       "on_stop が失敗しました (戻り値: %d)。", stop_rc);
+                                    "on_stop が失敗しました (戻り値: %d)。", stop_rc);
             }
         }
 
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
     cplat_argparser_init(argc, argv, "サービスの登録、削除、起動を行います。");
     cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
     cplat_argparser_register_positional_string("command", "install、uninstall、run、console のいずれか。",
-                                                  CPLAT_ARGPARSER_REQUIRED, &command);
+                                               CPLAT_ARGPARSER_REQUIRED, &command);
 
     if (cplat_argparser_get_register_error_count() > 0)
     {
@@ -354,8 +354,7 @@ int main(int argc, char *argv[])
     /* 停止イベント抽象の初期化 */
     if (cplat_local_lock_create(&s_stop_lock) != CPLAT_OK)
     {
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                              "ミューテックスの生成に失敗しました。");
+        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "ミューテックスの生成に失敗しました。");
         tracer_close();
         return EXIT_FAILURE;
     }

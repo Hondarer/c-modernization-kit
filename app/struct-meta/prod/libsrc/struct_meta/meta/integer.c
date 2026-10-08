@@ -74,8 +74,7 @@ int struct_meta_internal_integer_load_signed(const unsigned char *field_ptr, siz
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-int struct_meta_internal_integer_load_unsigned(const unsigned char *field_ptr, size_t element_size,
-                                               uint64_t *value_out)
+int struct_meta_internal_integer_load_unsigned(const unsigned char *field_ptr, size_t element_size, uint64_t *value_out)
 {
     if ((field_ptr == NULL) || (value_out == NULL))
     {

@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           base_calc.c
  *  @brief          外部ライブラリの実装に差し替え可能な計算関数を提供します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *
@@ -14,7 +14,7 @@
 #include "sym_loader_libbase.h"
 #include <base/base_spec.h>
 
-/* Doxygen コメントはヘッダーに記述 */
+/* Doxygen コメントは、ヘッダーに記載 */
 
 int base_calc(const int a, const int b, int *result)
 {

@@ -344,7 +344,8 @@ static int valid_attribute_key(const char *key)
     return key[0] != '\0';
 }
 
-static struct_meta_internal_parse_attribute *find_attribute(struct_meta_internal_parse_attribute *attributes, const char *key)
+static struct_meta_internal_parse_attribute *find_attribute(struct_meta_internal_parse_attribute *attributes,
+                                                            const char *key)
 {
     for (struct_meta_internal_parse_attribute *attribute = attributes; attribute != NULL; attribute = attribute->next)
     {
@@ -356,7 +357,8 @@ static struct_meta_internal_parse_attribute *find_attribute(struct_meta_internal
     return NULL;
 }
 
-static void append_attribute(struct_meta_internal_parse_attribute **attributes, struct_meta_internal_parse_attribute *attribute)
+static void append_attribute(struct_meta_internal_parse_attribute **attributes,
+                             struct_meta_internal_parse_attribute *attribute)
 {
     if (*attributes == NULL)
     {
@@ -475,7 +477,8 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
             return 1;
         }
 
-        struct_meta_internal_parse_attribute *attribute = (struct_meta_internal_parse_attribute *)calloc(1, sizeof(*attribute));
+        struct_meta_internal_parse_attribute *attribute =
+            (struct_meta_internal_parse_attribute *)calloc(1, sizeof(*attribute));
         if (attribute == NULL)
         {
             free(value);
@@ -565,9 +568,9 @@ char *struct_meta_internal_parse_brief_from_doc(const char *raw, int is_postfix)
     return brief;
 }
 
-struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_from_raw(const char *raw, const int is_postfix,
-                                                                                  const int line,
-                                                                                  struct_meta_diagnostic *diagnostic)
+struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_from_raw(const char *raw,
+                                                                                   const int is_postfix, const int line,
+                                                                                   struct_meta_diagnostic *diagnostic)
 {
     struct_meta_internal_parse_doc_attrs attrs = {0};
     char *stripped;
@@ -591,9 +594,10 @@ struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_from_r
     return attrs;
 }
 
-struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_choose(
-    struct_meta_internal_parse_doc_attrs prefix, struct_meta_internal_parse_doc_attrs postfix, const int line,
-    struct_meta_diagnostic *diagnostic)
+struct_meta_internal_parse_doc_attrs
+struct_meta_internal_parse_doc_attrs_choose(struct_meta_internal_parse_doc_attrs prefix,
+                                            struct_meta_internal_parse_doc_attrs postfix, const int line,
+                                            struct_meta_diagnostic *diagnostic)
 {
     struct_meta_internal_parse_doc_attrs out = prefix;
 
@@ -603,7 +607,8 @@ struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_choose
         out.brief = postfix.brief;
     }
     out.invalid = (prefix.invalid != 0) || (postfix.invalid != 0);
-    for (struct_meta_internal_parse_attribute *attribute = postfix.attributes; attribute != NULL; attribute = attribute->next)
+    for (struct_meta_internal_parse_attribute *attribute = postfix.attributes; attribute != NULL;
+         attribute = attribute->next)
     {
         if (find_attribute(prefix.attributes, attribute->key) != NULL)
         {

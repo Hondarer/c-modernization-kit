@@ -199,9 +199,12 @@ TEST(JsonDecodeTest, rejects_values_outside_64_bit_integer_ranges)
     // Pre-Assert
 
     // Act
-    int signed_over = decode_integer64_limits("{\"maximum\":9223372036854775808}", &sample); // [手順] - 符号付き上限を超える値をデコードする。
-    int unsigned_negative = decode_integer64_limits("{\"unsigned_maximum\":-1}", &sample); // [手順] - 符号なしフィールドへ負値をデコードする。
-    int unsigned_over = decode_integer64_limits("{\"unsigned_maximum\":18446744073709551616}", &sample); // [手順] - 符号なし上限を超える値をデコードする。
+    int signed_over = decode_integer64_limits("{\"maximum\":9223372036854775808}",
+                                              &sample); // [手順] - 符号付き上限を超える値をデコードする。
+    int unsigned_negative = decode_integer64_limits("{\"unsigned_maximum\":-1}",
+                                                    &sample); // [手順] - 符号なしフィールドへ負値をデコードする。
+    int unsigned_over = decode_integer64_limits("{\"unsigned_maximum\":18446744073709551616}",
+                                                &sample); // [手順] - 符号なし上限を超える値をデコードする。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, signed_over);       // [確認_異常系] - 符号付き上限を超える値を拒否すること。
@@ -226,8 +229,8 @@ TEST(JsonDecodeTest, UsesGenericJsonAttributes)
     int actual = struct_meta_json_decode(&kDescriptor, json, &sample); // [手順] - 別名キーを含む JSON をデコードする。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual); // [確認_正常系] - 必須の別名キーを読み込めること。
-    EXPECT_EQ(42, sample.id);    // [確認_正常系] - 別名キーの値が id に反映されること。
+    EXPECT_EQ(CPLAT_OK, actual);   // [確認_正常系] - 必須の別名キーを読み込めること。
+    EXPECT_EQ(42, sample.id);      // [確認_正常系] - 別名キーの値が id に反映されること。
     EXPECT_EQ(9, sample.optional); // [確認_正常系] - 指定のないフィールドが保持されること。
 
     // Cleanup
@@ -245,7 +248,8 @@ TEST(JsonDecodeTest, ReportsMissingRequiredAttribute)
     ASSERT_NE(nullptr, json); // [状態確認] - 空の JSON オブジェクトを作成できること。
 
     // Act
-    int actual = struct_meta_json_decode(&kDescriptor, json, &sample); // [手順] - 必須キーが欠落した JSON をデコードする。
+    int actual =
+        struct_meta_json_decode(&kDescriptor, json, &sample); // [手順] - 必須キーが欠落した JSON をデコードする。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_MISSING_REQUIRED, actual); // [確認_異常系] - 必須キー欠落を報告すること。

@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- *  @file           src/cmd/string-catalog-command-sample/string-catalog-command-sample.c
+ *  @file           string-catalog-command-sample.c
  *  @brief          文字列カタログの利用例を示すコマンドを実装します。
  *  @author         Tetsuo Honda
  *  @date           2026/09/10

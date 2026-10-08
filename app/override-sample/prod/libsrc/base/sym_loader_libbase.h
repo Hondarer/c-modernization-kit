@@ -2,7 +2,7 @@
  *******************************************************************************
  *  @file           sym_loader_libbase.h
  *  @brief          sym_loader が管理する関数ポインターを extern 宣言します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2026/02/21
  *  @version        1.0.0
  *

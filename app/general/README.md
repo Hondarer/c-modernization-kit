@@ -4,6 +4,8 @@
 
 統合ターミナルから直接使う共通コマンドは `bin/`、環境設定、スキル同期、検査などの内部処理は `bin_internal/`、それらのテストは `bin_test/` に配置します。
 
+## 入口
+
 - [作業規則](AGENTS.md)
 - [文書一覧](docs/README.md)
 - [AGENTS とスキルの設計指針](docs/agents-and-skills-guideline.md)

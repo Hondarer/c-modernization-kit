@@ -1,8 +1,8 @@
 /**
  *******************************************************************************
- *  @file           src/cmd/calc/calc.c
+ *  @file           calc.c
  *  @brief          指定された演算子に基づいて 2 つの整数を計算するコマンドを実装します。
- *  @author         c-modenization-kit sample team
+ *  @author         c-modernization-kit sample team
  *  @date           2025/11/22
  *  @version        1.0.0
  *
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
     cplat_argparser_register_positional_int("num1", "第一オペランド。", CPLAT_ARGPARSER_REQUIRED, &arg1);
     cplat_argparser_register_positional_string("operator", "+、-、x、/ のいずれか。", CPLAT_ARGPARSER_REQUIRED,
-                                                  &operator_value);
+                                               &operator_value);
     cplat_argparser_register_positional_int("num2", "第二オペランド。", CPLAT_ARGPARSER_REQUIRED, &arg3);
     if (cplat_argparser_get_register_error_count() > 0)
     {

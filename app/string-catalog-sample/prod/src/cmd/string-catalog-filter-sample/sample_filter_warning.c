@@ -61,8 +61,7 @@ static const char *entry_label(const cplat_string_catalog_entry *entry)
 /* Doxygen コメントは、ヘッダーに記載 */
 
 int sample_filter_warning_format(const cplat_string_catalog *catalog,
-                                 const cplat_string_catalog_filter_warning *warning, char *dest,
-                                 const size_t dest_size)
+                                 const cplat_string_catalog_filter_warning *warning, char *dest, const size_t dest_size)
 {
     const cplat_string_catalog_entry *entry = NULL;
     const cplat_string_catalog_entry *other_entry = NULL;
@@ -90,8 +89,7 @@ int sample_filter_warning_format(const cplat_string_catalog *catalog,
                               entry_label(entry), argument->name, argument_kind_label(argument->kind));
 
     case CPLAT_STRING_CATALOG_FILTER_WARNING_MIXED_ARGUMENT_TYPES:
-        other_argument =
-            find_argument(catalog, warning->other_string_key, warning->other_argument_index, &other_entry);
+        other_argument = find_argument(catalog, warning->other_string_key, warning->other_argument_index, &other_entry);
         if (other_argument == NULL)
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
@@ -100,8 +98,7 @@ int sample_filter_warning_format(const cplat_string_catalog *catalog,
                               "%u 行目: 引数 %s は、%s では文字列、%s では%s (%s) です。"
                               "型の合わない項目では比較が偽になり、意図した判定結果にならない可能性があります",
                               (unsigned int)(warning->line_index + 1U), argument->name, entry_label(entry),
-                              entry_label(other_entry),
-                              s_other_class_label, argument_kind_label(other_argument->kind));
+                              entry_label(other_entry), s_other_class_label, argument_kind_label(other_argument->kind));
 
     case CPLAT_STRING_CATALOG_FILTER_WARNING_NONE:
     default:

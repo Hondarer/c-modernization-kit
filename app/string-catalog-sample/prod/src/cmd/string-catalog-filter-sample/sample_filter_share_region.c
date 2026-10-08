@@ -41,8 +41,8 @@ struct sample_filter_share_region
 
 struct sample_filter_share_lock
 {
-    cplat_local_lock *local;           /**< 同じ排他を使うスレッドを直列化するプロセス内のロック。 */
-    cplat_interprocess_lock *process;  /**< プロセスの間を直列化するファイル ロック。 */
+    cplat_local_lock *local;          /**< 同じ排他を使うスレッドを直列化するプロセス内のロック。 */
+    cplat_interprocess_lock *process; /**< プロセスの間を直列化するファイル ロック。 */
 };
 
 /** cplat の結果コードを、本モジュールの結果へ変換します。 */
@@ -136,8 +136,7 @@ void *sample_filter_share_region_get_address(const sample_filter_share_region *r
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-sample_filter_share_region_result sample_filter_share_lock_create(const char *path,
-                                                                  sample_filter_share_lock **lock_out)
+sample_filter_share_region_result sample_filter_share_lock_create(const char *path, sample_filter_share_lock **lock_out)
 {
     sample_filter_share_lock *lock;
     char *lock_path;

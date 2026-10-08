@@ -208,21 +208,21 @@ static const char *field_kind_name(struct_meta_field_kind kind)
 {
     switch (kind)
     {
-        case STRUCT_META_FIELD_SIGNED_INTEGER:
-            return "STRUCT_META_FIELD_SIGNED_INTEGER";
-        case STRUCT_META_FIELD_UNSIGNED_INTEGER:
-            return "STRUCT_META_FIELD_UNSIGNED_INTEGER";
-        case STRUCT_META_FIELD_FLOAT:
-            return "STRUCT_META_FIELD_FLOAT";
-        case STRUCT_META_FIELD_DOUBLE:
-            return "STRUCT_META_FIELD_DOUBLE";
-        case STRUCT_META_FIELD_CHAR_ARRAY:
-            return "STRUCT_META_FIELD_CHAR_ARRAY";
-        case STRUCT_META_FIELD_STRUCT:
-            return "STRUCT_META_FIELD_STRUCT";
-        default:
-            /* 記述子は libstruct_meta が組み立てるため、未知の種別は起こらない。 */
-            return "STRUCT_META_FIELD_SIGNED_INTEGER";
+    case STRUCT_META_FIELD_SIGNED_INTEGER:
+        return "STRUCT_META_FIELD_SIGNED_INTEGER";
+    case STRUCT_META_FIELD_UNSIGNED_INTEGER:
+        return "STRUCT_META_FIELD_UNSIGNED_INTEGER";
+    case STRUCT_META_FIELD_FLOAT:
+        return "STRUCT_META_FIELD_FLOAT";
+    case STRUCT_META_FIELD_DOUBLE:
+        return "STRUCT_META_FIELD_DOUBLE";
+    case STRUCT_META_FIELD_CHAR_ARRAY:
+        return "STRUCT_META_FIELD_CHAR_ARRAY";
+    case STRUCT_META_FIELD_STRUCT:
+        return "STRUCT_META_FIELD_STRUCT";
+    default:
+        /* 記述子は libstruct_meta が組み立てるため、未知の種別は起こらない。 */
+        return "STRUCT_META_FIELD_SIGNED_INTEGER";
     }
 }
 
@@ -243,7 +243,6 @@ static int field_is_declared_array(const struct_meta_field *field)
         return 0;
     }
 }
-
 
 /**
  *  @brief          属性の配列を生成コードへ書き出します。
@@ -266,7 +265,6 @@ static void emit_attributes(FILE *out, const char *symbol, const struct_meta_att
     fprintf(out, "};\n\n");
 }
 
-
 /**
  *  @brief          レイアウト エンジンの計算値と、コンパイラの実レイアウトを照合します。
  *
@@ -283,13 +281,11 @@ static void emit_layout_assertions(FILE *out, const struct_meta_descriptor *desc
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         const struct_meta_field *field = &descriptor->fields[i];
-        fprintf(out,
-                "_Static_assert(offsetof(%s, %s) == %zu, \"%s.%s: レイアウト エンジンの計算値と一致しません\");\n",
+        fprintf(out, "_Static_assert(offsetof(%s, %s) == %zu, \"%s.%s: レイアウト エンジンの計算値と一致しません\");\n",
                 descriptor->name, field->name, field->offset, descriptor->name, field->name);
     }
     fprintf(out, "\n");
 }
-
 
 /**
  *  @brief          記述子 1 個分の C ソースを書き出します。
@@ -337,8 +333,8 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         char char_buffer_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
         char nested_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
 
-        snprintf(element_size_expr, sizeof(element_size_expr), "sizeof(((%s *)0)->%s%s)", descriptor->name,
-                 field->name, element);
+        snprintf(element_size_expr, sizeof(element_size_expr), "sizeof(((%s *)0)->%s%s)", descriptor->name, field->name,
+                 element);
         if (field->char_buffer_size != 0U)
         {
             snprintf(char_buffer_expr, sizeof(char_buffer_expr), "sizeof(((%s *)0)->%s)", descriptor->name,
@@ -358,8 +354,8 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         }
 
         fprintf(out, "    { \"%s\", %s, 0, offsetof(%s, %s), %s, %zu, %s, %s, ", field->name,
-                field_kind_name(field->kind), descriptor->name, field->name, element_size_expr,
-                field->element_count, char_buffer_expr, nested_expr);
+                field_kind_name(field->kind), descriptor->name, field->name, element_size_expr, field->element_count,
+                char_buffer_expr, nested_expr);
         fprint_c_string(out, field->brief);
         if (field->attribute_count == 0U)
         {
@@ -583,7 +579,6 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
     return 0;
 }
 
-
 /**
  *  @brief          型一覧テーブルと取得関数を C ソースへ書き出します。
  *  @return         成功なら 0、失敗なら 1 です。
@@ -594,8 +589,8 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
  *  @c struct_meta_catalog_attach_static が行います。実行時に解析して作った
  *  カタログと同じハンドルになるため、利用側は経路を意識しません。
  */
-static int emit_catalog_source(FILE *out, const char *stem, const char *prefix,
-                               const struct_meta_catalog *catalog, size_t count)
+static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, const struct_meta_catalog *catalog,
+                               size_t count)
 {
     fprintf(out, "static const struct_meta_descriptor *const s_descriptors[%s_META_COUNT] = {\n", prefix);
     for (size_t index = 0; index < count; index++)
@@ -669,7 +664,6 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix,
     fprintf(out, "}\n");
     return 0;
 }
-
 
 int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_path, const char *out_path)
 {

@@ -34,15 +34,15 @@ typedef struct build_entry
  */
 typedef struct build_context
 {
-    build_entry *entries;                 /**< 構造体ごとの状態です。 */
-    size_t entry_count;                   /**< @c entries の要素数です。 */
-    struct_meta_internal_arena *arena;    /**< 記述子の記憶域です。 */
-    struct_meta_diagnostic *diagnostic;   /**< 診断の書き込み先です。 */
+    build_entry *entries;               /**< 構造体ごとの状態です。 */
+    size_t entry_count;                 /**< @c entries の要素数です。 */
+    struct_meta_internal_arena *arena;  /**< 記述子の記憶域です。 */
+    struct_meta_diagnostic *diagnostic; /**< 診断の書き込み先です。 */
 } build_context;
 
 #define BUILD_STATE_PENDING 0
-#define BUILD_STATE_ACTIVE 1
-#define BUILD_STATE_DONE 2
+#define BUILD_STATE_ACTIVE  1
+#define BUILD_STATE_DONE    2
 
 static int build_one(build_context *context, build_entry *entry);
 
@@ -76,8 +76,8 @@ static size_t count_fields(const struct_meta_internal_parse_field *fields)
  *  @brief          属性名で属性を探します。
  *  @return         見つかった属性です。無ければ NULL を返します。
  */
-static const struct_meta_internal_parse_attribute *find_attribute(
-    const struct_meta_internal_parse_attribute *attributes, const char *key)
+static const struct_meta_internal_parse_attribute *
+find_attribute(const struct_meta_internal_parse_attribute *attributes, const char *key)
 {
     for (const struct_meta_internal_parse_attribute *item = attributes; item != NULL; item = item->next)
     {
@@ -148,8 +148,8 @@ static int validate_meta_attributes(const struct_meta_internal_parse_field *fiel
     if ((kind != NULL) &&
         ((kind->value == NULL) || (strcmp(kind->value, "bytes") != 0) || (field_is_byte_array(field) == 0)))
     {
-        struct_meta_internal_diagnose(diagnostic, field->line,
-                                      "meta.kind はバイト配列へ bytes だけを指定できます: %s", field->name);
+        struct_meta_internal_diagnose(diagnostic, field->line, "meta.kind はバイト配列へ bytes だけを指定できます: %s",
+                                      field->name);
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     }
 
@@ -457,8 +457,8 @@ int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_stru
         return CPLAT_ERR_NOT_FOUND;
     }
 
-    build_entry *entries = (build_entry *)struct_meta_internal_arena_allocate(arena, count * sizeof(*entries),
-                                                                             sizeof(void *));
+    build_entry *entries =
+        (build_entry *)struct_meta_internal_arena_allocate(arena, count * sizeof(*entries), sizeof(void *));
     struct_meta_descriptor *descriptors = (struct_meta_descriptor *)struct_meta_internal_arena_allocate(
         arena, count * sizeof(*descriptors), sizeof(void *));
     const struct_meta_descriptor **table = (const struct_meta_descriptor **)struct_meta_internal_arena_allocate(
