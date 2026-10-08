@@ -20,6 +20,7 @@ C/C++ コーディング規約やテスト方針、AI エージェントとス�
 
 - [ビルド設計](build-design.md) - ライブラリ構成と依存関係の基本設計
 - [単体テストの作成](testing-tutorial.md) - app 向けの単体テスト作成チュートリアル
+- [期待確認の件数対応の棚卸し](test-confirmation-count-inventory.md) - 既存テストの回数指定と確認結果
 - [共有ライブラリのモック](shared-library-mock-guideline.md) - 第三者共有ライブラリのモック作成指針
 - [VS Code の環境変数](vscode-variables.md) - デバッグや実行に必要な環境変数の構成
 

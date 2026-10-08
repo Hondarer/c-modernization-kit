@@ -30,6 +30,7 @@ class sampleFilterShareTest : public Test
         const TestInfo *info = UnitTest::GetInstance()->current_test_info();
 
         ASSERT_EQ(CPLAT_OK, cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr));
+        // [状態確認] - `cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr)` の戻り値が `CPLAT_OK` であること。
         path_ = std::string(temp_dir) + "/sampleFilterShareTest_" + std::to_string(cplat_process_get_pid()) + "_" +
                 info->name() + ".share";
         lock_path_ = path_ + ".lock";
@@ -37,7 +38,9 @@ class sampleFilterShareTest : public Test
         (void)std::remove(lock_path_.c_str());
 
         ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK, sample_filter_share_lock_create(path_.c_str(), &lock_));
+        // [状態確認] - `sample_filter_share_lock_create(path_.c_str(), &lock_)` の戻り値が `SAMPLE_FILTER_SHARE_REGION_OK` であること。
         ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_));
+        // [状態確認] - `cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_)` の戻り値が `CPLAT_OK` であること。
         open_handles();
     }
 
@@ -53,15 +56,21 @@ class sampleFilterShareTest : public Test
     void open_handles()
     {
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
+        // [状態確認] - `sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_)` の戻り値が `CPLAT_OK` であること。
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_));
+        // [状態確認] - `sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &reader_)` の戻り値が `CPLAT_OK` であること。
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
+        // [状態確認] - `sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_)` の戻り値が `CPLAT_OK` であること。
 
         /* 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付け、別プロセスの読み取り側に見立てる */
         source_ = sample_filter_share_get_source(reader_, &source_size_);
         ASSERT_NE(nullptr, source_);
+        // [状態確認] - `nullptr` と `source_` が異なること。
         ASSERT_EQ(CPLAT_OK, sample_filter_share_get_source_lock(reader_, &source_lock_));
+        // [状態確認] - `sample_filter_share_get_source_lock(reader_, &source_lock_)` の戻り値が `CPLAT_OK` であること。
         ASSERT_EQ(CPLAT_OK,
                   cplat_string_catalog_filter_slot_attach_source(slot_, source_, source_size_, &source_lock_));
+        // [状態確認] - `cplat_string_catalog_filter_slot_attach_source(slot_, source_, source_size_, &source_lock_)` の戻り値が `CPLAT_OK` であること。
     }
 
     /** スロットと、書き込み側と読み取り側のハンドルを閉じます。排他は閉じません。 */
@@ -85,10 +94,12 @@ class sampleFilterShareTest : public Test
     {
         FILE *file = cplat_fopen(path_.c_str(), "r+b", nullptr);
         ASSERT_NE(nullptr, file);
+        // [状態確認] - `nullptr` と `file` が異なること。
         const bool written =
             (std::fseek(file, static_cast<long>(offset), SEEK_SET) == 0) && (std::fwrite(data, 1U, size, file) == size);
         (void)std::fclose(file);
         ASSERT_TRUE(written);
+        // [状態確認] - `written` が true であること。
     }
 
     cplat_string_catalog_filter_state state_of(const int string_key)
@@ -170,6 +181,7 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
     int actual_matched = 0;
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -197,8 +209,10 @@ TEST_F(sampleFilterShareTest, revision_advances_across_writers)
     uint64_t first = 0U;
     uint64_t second = 0U;
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
+    // [状態確認] - `compile_single_line("category <= 2", image)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth,
                                                  &another_writer)); // [状態] - 別の書き込み側を開く。
+    // [状態確認] - `sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &another_writer)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -223,6 +237,7 @@ TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
     // Arrange
     static unsigned char image[kImageSize];
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
+    // [状態確認] - `compile_single_line("category <= 2", image)` の戻り値が `CPLAT_OK` であること。
     filter_test_record_address(image, kLineWidth, 0U)[0] ^= 0xFFU;    // [状態] - 行レコードを壊す。
 
     // Pre-Assert
@@ -246,6 +261,7 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_compile(
                             line, 1U, sizeof(line), kLineCapacity, narrow_image, sizeof(narrow_image), nullptr, 0U,
                             &invalid_count)); // [状態] - 行幅の異なるイメージをコンパイルする。
+    // [状態確認] - `cplat_string_catalog_filter_compile( line, 1U, sizeof(line), kLineCapacity, narrow_image, sizeof(narrow_image), nullptr, 0U, &invalid_count)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -270,9 +286,12 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer));                  // [状態確認] - トレーサーを開始できること。
     sample_worker_trace_set_tracer(tracer);                           // [状態] - 出力先を設定する。
     ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));       // [状態] - スロットを出力へ接続する。
+    // [状態確認] - `sample_worker_trace_set_filter(slot_)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
+    // [状態確認] - `compile_single_line("category <= 2", image)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK,
               sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)); // [状態] - 公開する。
+    // [状態確認] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -337,8 +356,10 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image_failed)); // [状態] - 1 つ目の条件をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image_failed)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED",
                                             image_started)); // [状態] - 2 つ目の条件をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED", image_started)` の戻り値が `CPLAT_OK` であること。
     for (int index = 0; index < 4; index++)
     {
         args[index].slot = slot_;
@@ -347,6 +368,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
         args[index].pad = 0;
         ASSERT_EQ(CPLAT_OK, cplat_thread_create(&threads[index], format_worker,
                                                 &args[index])); // [状態] - 組み立てを繰り返すスレッドを起動する。
+        // [状態確認] - `cplat_thread_create(&threads[index], format_worker, &args[index])` の戻り値が `CPLAT_OK` であること。
     }
 
     // Pre-Assert
@@ -362,6 +384,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
         }
         ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                         &last_revision)); // [手順] - 2 種類の条件を交互に公開する。
+        // [確認_正常系 回数=200] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &last_revision)` の戻り値が `CPLAT_OK` であること。
     }
     stop_flag = 1; // [手順] - スレッドへ終了を通知する。
     for (int index = 0; index < 4; index++)
@@ -374,7 +397,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
     // Assert
     for (int index = 0; index < 4; index++)
     {
-        EXPECT_EQ(1, args[index].is_ok); // [確認_正常系] - 各スレッドの組み立てが常に成功すること。
+        EXPECT_EQ(1, args[index].is_ok); // [確認_正常系 回数=4] - 各スレッドの組み立てが常に成功すること。
     }
     EXPECT_EQ(CPLAT_OK, actual_final_ret);           // [確認_正常系] - 最後の組み立てが成功すること。
     EXPECT_EQ(last_revision, status.taken_revision); // [確認_正常系] - 最後の公開内容を取り込んでいること。
@@ -431,9 +454,11 @@ TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
     sample_filter_share_lock *another = nullptr;
     ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
               sample_filter_share_lock_create(path_.c_str(), &another)); // [状態] - 同じパスで別の排他を作成する。
+    // [状態確認] - `sample_filter_share_lock_create(path_.c_str(), &another)` の戻り値が `SAMPLE_FILTER_SHARE_REGION_OK` であること。
     ASSERT_EQ(
         SAMPLE_FILTER_SHARE_REGION_OK,
         sample_filter_share_lock_acquire(another, SAMPLE_FILTER_SHARE_WAIT_FOREVER)); // [状態] - 別の排他を保持する。
+    // [状態確認] - `sample_filter_share_lock_acquire(another, SAMPLE_FILTER_SHARE_WAIT_FOREVER)` の戻り値が `SAMPLE_FILTER_SHARE_REGION_OK` であること。
 
     // Pre-Assert
 
@@ -464,13 +489,17 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     int actual_after_release = 0;
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - 条件をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK,
               sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)); // [状態] - 公開する。
+    // [状態確認] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
               sample_filter_share_lock_create(path_.c_str(), &another)); // [状態] - 同じパスで別の排他を作成する。
+    // [状態確認] - `sample_filter_share_lock_create(path_.c_str(), &another)` の戻り値が `SAMPLE_FILTER_SHARE_REGION_OK` であること。
     ASSERT_EQ(
         SAMPLE_FILTER_SHARE_REGION_OK,
         sample_filter_share_lock_acquire(another, SAMPLE_FILTER_SHARE_WAIT_FOREVER)); // [状態] - 別の排他を保持する。
+    // [状態確認] - `sample_filter_share_lock_acquire(another, SAMPLE_FILTER_SHARE_WAIT_FOREVER)` の戻り値が `SAMPLE_FILTER_SHARE_REGION_OK` であること。
 
     // Pre-Assert
 
@@ -523,16 +552,21 @@ TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_pu
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - JOB_FAILED に一致する条件をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                     &first_revision)); // [状態] - 条件を公開する。
+    // [状態確認] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &first_revision)` の戻り値が `CPLAT_OK` であること。
     const uint64_t writing_revision = first_revision | 1U;
     std::memset(torn_image, 0xAA, sizeof(torn_image));
     close_handles(); // [状態] - すべてのハンドルを閉じる。
     ASSERT_NO_FATAL_FAILURE(rewrite_file(kPublishedRevisionOffset, &writing_revision,
                                          sizeof(writing_revision))); // [状態] - ファイルの版番号を奇数にする。
+    // [状態確認] - ASSERT_NO_FATAL_FAILURE(rewrite_file(kPublishedRevisionOffset, &writing_revision, sizeof(writing_revision))) の期待が成立すること。
     ASSERT_NO_FATAL_FAILURE(rewrite_file(CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, torn_image,
                                          sizeof(torn_image))); // [状態] - フィルター オブジェクトの一部を書き換える。
+    // [状態確認] - ASSERT_NO_FATAL_FAILURE(rewrite_file(CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, torn_image, sizeof(torn_image))) の期待が成立すること。
     ASSERT_NO_FATAL_FAILURE(open_handles());                   // [状態] - 再起動したプロセスに見立てて開き直す。
+    // [状態確認] - ASSERT_NO_FATAL_FAILURE(open_handles()) の期待が成立すること。
 
     // Pre-Assert
 
@@ -544,6 +578,7 @@ TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_pu
     const uint64_t taken_while_writing = taken_revision();
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                     &recovered_revision)); // [手順] - 条件を公開し直す。
+    // [確認_正常系] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &recovered_revision)` の戻り値が `CPLAT_OK` であること。
     (void)format_job_failed(&actual_after_recovery);                       // [手順] - 公開し直した後に組み立てる。
 
     // Assert
@@ -571,12 +606,16 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - JOB_FAILED に一致する条件をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                     &revision)); // [状態] - 条件を公開する。
+    // [状態確認] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)` の戻り値が `CPLAT_OK` であること。
     close_handles();                                             // [状態] - すべてのハンドルを閉じる。
     ASSERT_NO_FATAL_FAILURE(rewrite_file(0U, &corrupt_signature,
                                          sizeof(corrupt_signature))); // [状態] - ファイルの署名を書き換える。
+    // [状態確認] - ASSERT_NO_FATAL_FAILURE(rewrite_file(0U, &corrupt_signature, sizeof(corrupt_signature))) の期待が成立すること。
     ASSERT_NO_FATAL_FAILURE(open_handles());                          // [状態] - 再起動したプロセスに見立てて開き直す。
+    // [状態確認] - ASSERT_NO_FATAL_FAILURE(open_handles()) の期待が成立すること。
 
     // Pre-Assert
 
@@ -587,13 +626,16 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
     (void)format_job_failed(&actual_corrupt);  // [手順] - 開き直した後に組み立てる。
     cplat_string_catalog_filter_source_status status_corrupt;
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_get_source_status(slot_, &status_corrupt));
+    // [確認_正常系] - `cplat_string_catalog_filter_slot_get_source_status(slot_, &status_corrupt)` の戻り値が `CPLAT_OK` であること。
     const int actual_publish_corrupt = sample_filter_share_publish(
         writer_, image, kImageSize, catalog_id_, &rejected_revision); // [手順] - 壊れた領域へ公開する。
     close_handles();                                                  // [手順] - すべてのハンドルを閉じる。
     (void)std::remove(path_.c_str());                                 // [手順] - 共有ファイルを削除する。
     ASSERT_NO_FATAL_FAILURE(open_handles());                          // [手順] - 共有ファイルを作り直す。
+    // [確認_異常系] - ASSERT_NO_FATAL_FAILURE(open_handles()) の期待が成立すること。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                     &recreated_revision)); // [手順] - 作り直した領域へ公開する。
+    // [確認_正常系] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &recreated_revision)` の戻り値が `CPLAT_OK` であること。
     (void)format_job_failed(&actual_after_recreate);                       // [手順] - 公開した後に組み立てる。
 
     // Assert

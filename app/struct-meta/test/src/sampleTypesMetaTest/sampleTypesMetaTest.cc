@@ -48,8 +48,8 @@ TEST(sampleTypesMetaTest, enumerates_all_descriptors_in_catalog_order)
     // Assert
     for (size_t i = 0; i < 3U; i++)
     {
-        ASSERT_NE(nullptr, actual[i]); // [確認_正常系] - カタログの各 ID から記述子を取得できること。
-        EXPECT_STREQ(expected_names[i], actual[i]->name); // [確認_正常系] - カタログの宣言順に名称が並ぶこと。
+        ASSERT_NE(nullptr, actual[i]); // [確認_正常系 回数=3] - カタログの各 ID から記述子を取得できること。
+        EXPECT_STREQ(expected_names[i], actual[i]->name); // [確認_正常系 回数=3] - カタログの宣言順に名称が並ぶこと。
     }
 }
 
@@ -75,16 +75,27 @@ TEST(sampleTypesMetaTest, classifies_character_and_byte_fields)
     const struct_meta_field *fixed_signed_bytes = nullptr;
     const struct_meta_field *fixed_unsigned_bytes = nullptr;
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "character", &character));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "character", &character)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "signed_character", &signed_character));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "signed_character", &signed_character)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "unsigned_character", &unsigned_character));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "unsigned_character", &unsigned_character)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "fixed_signed", &fixed_signed));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "fixed_signed", &fixed_signed)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "fixed_unsigned", &fixed_unsigned));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "fixed_unsigned", &fixed_unsigned)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "text", &text));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "text", &text)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "raw_chars", &raw_chars));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "raw_chars", &raw_chars)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "signed_bytes", &signed_bytes));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "signed_bytes", &signed_bytes)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "unsigned_bytes", &unsigned_bytes));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "unsigned_bytes", &unsigned_bytes)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "fixed_signed_bytes", &fixed_signed_bytes));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "fixed_signed_bytes", &fixed_signed_bytes)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_descriptor_find_field(descriptor, "fixed_unsigned_bytes", &fixed_unsigned_bytes));
+    // [確認_正常系] - `struct_meta_descriptor_find_field(descriptor, "fixed_unsigned_bytes", &fixed_unsigned_bytes)` の戻り値が `CPLAT_OK` であること。
 
     // Assert
     EXPECT_EQ(STRUCT_META_FIELD_SIGNED_INTEGER,

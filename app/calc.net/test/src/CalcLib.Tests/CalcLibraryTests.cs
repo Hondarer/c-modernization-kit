@@ -38,9 +38,9 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Add(a, b); // [手順] - CalcLibrary.Add(a, b) を呼び出す。
 
             // Assert
-            Assert.True(result.IsSuccess); // [確認_正常系] - 結果が成功であること。
-            Assert.Equal(expected, result.Value); // [確認_正常系] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認_正常系] - エラー コードが 0 であること。
+            Assert.True(result.IsSuccess); // [確認_正常系 回数=PARAM] - 結果が成功であること。
+            Assert.Equal(expected, result.Value); // [確認_正常系 回数=PARAM] - 期待値と一致すること。
+            Assert.Equal(0, result.ErrorCode); // [確認_正常系 回数=PARAM] - エラー コードが 0 であること。
         }
 
         // Calculate メソッドで加算種別を指定した場合に正しい計算結果が返されることの確認
@@ -72,9 +72,9 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Subtract(a, b); // [手順] - CalcLibrary.Subtract(a, b) を呼び出す。
 
             // Assert
-            Assert.True(result.IsSuccess); // [確認_正常系] - 結果が成功であること。
-            Assert.Equal(expected, result.Value); // [確認_正常系] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認_正常系] - エラー コードが 0 であること。
+            Assert.True(result.IsSuccess); // [確認_正常系 回数=PARAM] - 結果が成功であること。
+            Assert.Equal(expected, result.Value); // [確認_正常系 回数=PARAM] - 期待値と一致すること。
+            Assert.Equal(0, result.ErrorCode); // [確認_正常系 回数=PARAM] - エラー コードが 0 であること。
         }
 
         #endregion
@@ -94,9 +94,9 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Multiply(a, b); // [手順] - CalcLibrary.Multiply(a, b) を呼び出す。
 
             // Assert
-            Assert.True(result.IsSuccess); // [確認_正常系] - 結果が成功であること。
-            Assert.Equal(expected, result.Value); // [確認_正常系] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認_正常系] - エラー コードが 0 であること。
+            Assert.True(result.IsSuccess); // [確認_正常系 回数=PARAM] - 結果が成功であること。
+            Assert.Equal(expected, result.Value); // [確認_正常系 回数=PARAM] - 期待値と一致すること。
+            Assert.Equal(0, result.ErrorCode); // [確認_正常系 回数=PARAM] - エラー コードが 0 であること。
         }
 
         #endregion
@@ -116,9 +116,9 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Divide(a, b); // [手順] - CalcLibrary.Divide(a, b) を呼び出す。
 
             // Assert
-            Assert.True(result.IsSuccess); // [確認_正常系] - 結果が成功であること。
-            Assert.Equal(expected, result.Value); // [確認_正常系] - 期待値と一致すること。
-            Assert.Equal(0, result.ErrorCode); // [確認_正常系] - エラー コードが 0 であること。
+            Assert.True(result.IsSuccess); // [確認_正常系 回数=PARAM] - 結果が成功であること。
+            Assert.Equal(expected, result.Value); // [確認_正常系 回数=PARAM] - 期待値と一致すること。
+            Assert.Equal(0, result.ErrorCode); // [確認_正常系 回数=PARAM] - エラー コードが 0 であること。
         }
 
         // 除数に 0 を指定した場合に除算が失敗しエラー コードが返されることの確認
@@ -127,6 +127,7 @@ namespace CalcLib.Tests
         {
             // Act
             var result = CalcLibrary.Divide(10, 0); // [手順] - CalcLibrary.Divide(10, 0) を呼び出す (ゼロ除算)。
+            // [確認_異常系] - ゼロ除算で CalcException が発生すること。
 
             // Assert
             Assert.False(result.IsSuccess); // [確認_異常系] - 結果が失敗であること。
@@ -140,6 +141,7 @@ namespace CalcLib.Tests
         {
             // Act
             var result = CalcLibrary.Divide(0, 0); // [手順] - CalcLibrary.Divide(0, 0) を呼び出す (ゼロ除算)。
+            // [確認_異常系] - ゼロ除算で CalcException が発生すること。
 
             // Assert
             Assert.False(result.IsSuccess); // [確認_異常系] - 結果が失敗であること。
@@ -202,6 +204,7 @@ namespace CalcLib.Tests
             // Act
             var exception = Assert.Throws<CalcException>(() =>
                 CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0)); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す (ゼロ除算)。
+            // [確認_異常系] - ゼロ除算で CalcException が発生すること。
 
             // Assert
             Assert.Equal(CalcLibrary.CALC_ERR_INVALID_ARGUMENT,
@@ -226,8 +229,8 @@ namespace CalcLib.Tests
             var result = CalcLibrary.Add(a, b); // [手順] - CalcLibrary.Add(a, b) を呼び出す (極端な値)。
 
             // Assert
-            Assert.True(result.IsSuccess); // [確認_正常系] - 結果が成功であること。
-            Assert.Equal(expected, result.Value); // [確認_正常系] - 期待値と一致すること。
+            Assert.True(result.IsSuccess); // [確認_正常系 回数=PARAM] - 結果が成功であること。
+            Assert.Equal(expected, result.Value); // [確認_正常系 回数=PARAM] - 期待値と一致すること。
         }
 
         // ゼロとの乗算結果が 0 になることの確認

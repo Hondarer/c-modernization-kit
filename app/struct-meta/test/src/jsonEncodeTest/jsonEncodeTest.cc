@@ -93,9 +93,13 @@ TEST(JsonEncodeTest, EncodesEachIntegerWidth)
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
     ASSERT_NE(nullptr, json); // [確認_正常系] - 幅ごとの値が JSON へ変換されること。
     EXPECT_DOUBLE_EQ(-999999999999999.0, cJSON_GetObjectItemCaseSensitive(json, "wide")->valuedouble);
+    // [確認_正常系] - JSON の `wide` フィールドの値が `-999999999999999.0` であること。
     EXPECT_DOUBLE_EQ(4294967295.0, cJSON_GetObjectItemCaseSensitive(json, "flags")->valuedouble);
+    // [確認_正常系] - JSON の `flags` フィールドの値が `4294967295.0` であること。
     EXPECT_DOUBLE_EQ(-32768.0, cJSON_GetObjectItemCaseSensitive(json, "offset")->valuedouble);
+    // [確認_正常系] - JSON の `offset` フィールドの値が `-32768.0` であること。
     EXPECT_DOUBLE_EQ(255.0, cJSON_GetObjectItemCaseSensitive(json, "rank")->valuedouble);
+    // [確認_正常系] - JSON の `rank` フィールドの値が `255.0` であること。
 
     // Cleanup
     cJSON_Delete(json);
@@ -155,8 +159,11 @@ TEST(JsonEncodeTest, UsesGenericJsonAttributes)
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
     ASSERT_NE(nullptr, json); // [確認_正常系] - 属性に従った JSON が生成されること。
     EXPECT_EQ(42, cJSON_GetObjectItemCaseSensitive(json, "person_id")->valueint);
+    // [確認_正常系] - JSON の `person_id` フィールドの値が `42` であること。
     EXPECT_EQ(nullptr, cJSON_GetObjectItemCaseSensitive(json, "id"));
+    // [確認_正常系] - `cJSON_GetObjectItemCaseSensitive(json, "id")` の戻り値が `nullptr` であること。
     EXPECT_EQ(nullptr, cJSON_GetObjectItemCaseSensitive(json, "hidden"));
+    // [確認_正常系] - `cJSON_GetObjectItemCaseSensitive(json, "hidden")` の戻り値が `nullptr` であること。
 
     // Cleanup
     cJSON_Delete(json);

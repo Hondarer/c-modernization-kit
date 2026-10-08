@@ -59,6 +59,7 @@ const struct_meta_descriptor kSampleDescriptor = {"Sample", sizeof(Sample), kSam
 void copy_line(char *dest, size_t dest_size, const std::string &line)
 {
     ASSERT_LT(line.size(), dest_size);
+    // [状態確認] - `line.size()` が `dest_size` より小さいこと。
     memcpy(dest, line.c_str(), line.size() + 1U);
 }
 } // namespace
@@ -77,9 +78,9 @@ class StructMetaPatchTest : public Test
         auto inputs = std::make_shared<std::vector<std::string>>(lines);
 
         EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr))
-            .WillOnce(Return(prompt)); // [Pre-Assert確認_正常系] - 編集開始時にプロンプトを作成すること。
+            .WillOnce(Return(prompt)); // 編集開始時にプロンプトを作成する。
         EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))
-            .WillOnce(Return()); // [Pre-Assert確認_正常系] - 編集終了時にプロンプトを破棄すること。
+            .WillOnce(Return()); // 編集終了時にプロンプトを破棄する。
         EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))
             .WillRepeatedly(
                 [this, index, inputs](cplat_prompt *, char *dest, size_t dest_size, const char *, int, const char *fmt,
@@ -110,9 +111,10 @@ TEST_F(StructMetaPatchTest, PathSelectsNestedString)
 {
     // Arrange
     Sample sample = {}; // [状態] - ネスト配列を持つ構造体を用意する。
-    expect_inputs({"Tokyo"});
 
     // Pre-Assert
+    expect_inputs({"Tokyo"});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[0].city");
@@ -130,9 +132,10 @@ TEST_F(StructMetaPatchTest, PathSelectsArrayElement)
 {
     // Arrange
     Sample sample = {}; // [状態] - 整数配列を持つ構造体を用意する。
-    expect_inputs({"42"});
 
     // Pre-Assert
+    expect_inputs({"42"});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "scores[1]");
@@ -148,9 +151,10 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
 {
     // Arrange
     Sample sample = {};
-    expect_inputs({"aa bb gg dd", "AA bb cc DD"});
 
     // Pre-Assert
+    expect_inputs({"aa bb gg dd", "AA bb cc DD"});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "hex_bytes");
@@ -169,9 +173,10 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_element_as_decimal)
 {
     // Arrange
     Sample sample = {};
-    expect_inputs({"127"});
 
     // Pre-Assert
+    expect_inputs({"127"});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "hex_bytes[1]");
@@ -187,10 +192,12 @@ TEST_F(StructMetaPatchTest, PathEndingAtStructOpensFieldMenu)
 {
     // Arrange
     Sample sample = {}; // [状態] - 構造体配列を持つ構造体を用意する。
-    expect_inputs({"2", "123", ""});
 
     // Pre-Assert
+    expect_inputs({"2", "123", ""});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
+    // [Pre-Assert確認_正常系] - mock_stdio の printf(_, _, _, _) が登録した呼び出し期待を満たすこと。
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- Address (現在位置: addresses[0]) --")))
         .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - パス指定で開始した構造体の現在位置を表示すること。
@@ -211,10 +218,12 @@ TEST_F(StructMetaPatchTest, PathEndingAtArrayOpensElementMenu)
 {
     // Arrange
     Sample sample = {}; // [状態] - 整数配列を持つ構造体を用意する。
-    expect_inputs({"1", "77", ""});
 
     // Pre-Assert
+    expect_inputs({"1", "77", ""});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
+    // [Pre-Assert確認_正常系] - mock_stdio の printf(_, _, _, _) が登録した呼び出し期待を満たすこと。
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- scores (現在位置: scores、配列、要素数 3) --")))
         .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 配列の現在位置を表示すること。
@@ -235,9 +244,10 @@ TEST_F(StructMetaPatchTest, PathEndingAtStructArrayOpensElementAndFieldMenus)
 {
     // Arrange
     Sample sample = {}; // [状態] - 構造体配列を持つ構造体を用意する。
-    expect_inputs({"1", "1", "Osaka", "", ""});
 
     // Pre-Assert
+    expect_inputs({"1", "1", "Osaka", "", ""});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses");
@@ -254,9 +264,10 @@ TEST_F(StructMetaPatchTest, EmptyValueKeepsCurrentValue)
     // Arrange
     Sample sample = {};
     sample.id = 12; // [状態] - 変更前の値を設定する。
-    expect_inputs({""});
 
     // Pre-Assert
+    expect_inputs({""});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
@@ -272,9 +283,10 @@ TEST_F(StructMetaPatchTest, MenuSelectsFieldByMemberName)
 {
     // Arrange
     Sample sample = {};
-    expect_inputs({"id", "42", ""});
 
     // Pre-Assert
+    expect_inputs({"id", "42", ""});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
 
     // Act
     int actual_ret = struct_meta_patch_interactive(&kSampleDescriptor, &sample);
@@ -292,10 +304,12 @@ TEST_F(StructMetaPatchTest, DrillDownRemainsAvailable)
 {
     // Arrange
     Sample sample = {}; // [状態] - 従来のメニュー選択に使う構造体を用意する。
-    expect_inputs({"1", "0", "1", "Tokyo", "", "", ""});
 
     // Pre-Assert
+    expect_inputs({"1", "0", "1", "Tokyo", "", "", ""});
+    // [Pre-Assert確認_正常系 回数=3] - プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
+    // [Pre-Assert確認_正常系] - mock_stdio の printf(_, _, _, _) が登録した呼び出し期待を満たすこと。
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- Sample (現在位置: <root>) --")))
         .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - ルートの現在位置を表示すること。
@@ -325,6 +339,7 @@ TEST_F(StructMetaPatchTest, InvalidPathIsRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
+    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
     // [状態確認] - パス解決に失敗した場合はプロンプトを作成しないこと。
 
     // Act
@@ -343,6 +358,7 @@ TEST_F(StructMetaPatchTest, UnknownFieldIsRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
+    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
     // [状態確認] - 未知フィールドの場合はプロンプトを作成しないこと。
 
     // Act
@@ -361,6 +377,7 @@ TEST_F(StructMetaPatchTest, InvalidArgumentsAreRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
+    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
     // [状態確認] - 引数が不正な場合はプロンプトを作成しないこと。
 
     // Act
@@ -381,6 +398,7 @@ TEST_F(StructMetaPatchTest, CorruptDescriptorIsRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
+    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
     // [状態確認] - 記述子検査に失敗した場合はプロンプトを作成しないこと。
 
     // Act
@@ -417,6 +435,7 @@ TEST_F(StructMetaPatchTest, PromptInputFailureIsReturnedAfterDisposal)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr)).WillOnce(Return(prompt));
+    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(nullptr) が登録した呼び出し期待を満たすこと。
     EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))
         .WillOnce(Return(CPLAT_ERR_CANCELED)); // [Pre-Assert確認_異常系] - 入力キャンセルを発生させる。
     EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))

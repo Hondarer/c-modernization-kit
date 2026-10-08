@@ -323,6 +323,7 @@ TEST_F(service_sampleTest, console_lifecycle_order)
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
     ASSERT_EQ(5U, g_calls.size());
+    // [確認_正常系] - `g_calls` の要素数が `5U` であること。
     EXPECT_EQ("on_start", g_calls[0]);        // [確認_正常系] - on_start が最初に呼ばれること。
     EXPECT_EQ("notify_ready", g_calls[1]);    // [確認_正常系] - on_start 成功後に起動完了が通知されること。
     EXPECT_EQ("on_run", g_calls[2]);          // [確認_正常系] - 起動完了通知の後に on_run が呼ばれること。
@@ -365,6 +366,7 @@ TEST_F(service_sampleTest, console_on_run_failure)
     // Assert
     EXPECT_EQ(2, actual_ret); // [確認_異常系] - on_run の戻り値がそのまま終了コードになること。
     ASSERT_EQ(5U, g_calls.size());
+    // [確認_異常系] - `g_calls` の要素数が `5U` であること。
     EXPECT_EQ("notify_stopping", g_calls[3]); // [確認_異常系] - on_run 失敗後も停止開始が通知されること。
     EXPECT_EQ("on_stop", g_calls[4]);         // [確認_異常系] - on_run 失敗後も後始末の on_stop が呼ばれること。
 }
@@ -477,6 +479,7 @@ TEST_F(service_sampleTest, dispatch_reload_order)
 
     // Assert
     ASSERT_EQ(3U, g_calls.size());
+    // [確認_正常系] - `g_calls` の要素数が `3U` であること。
     EXPECT_EQ("notify_reloading", g_calls[0]); // [確認_正常系] - 最初に RELOADING が通知されること。
     EXPECT_EQ("on_reload", g_calls[1]);        // [確認_正常系] - 次に on_reload が呼ばれること。
     EXPECT_EQ("notify_ready", g_calls[2]);     // [確認_正常系] - 最後に READY が再通知されること。

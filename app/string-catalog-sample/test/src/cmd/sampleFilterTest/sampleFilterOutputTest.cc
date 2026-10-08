@@ -47,17 +47,22 @@ class sampleFilterOutputTest : public Test
     void SetUp() override
     {
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
+        // [状態確認] - `sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_)` の戻り値が `CPLAT_OK` であること。
 
         std::memset(&capture_, 0, sizeof(capture_));
 
         tracer_ = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
         ASSERT_NE(nullptr, tracer_);
+        // [状態確認] - `nullptr` と `tracer_` が異なること。
         hook_entry_ = cplat_tracer_set_hook(tracer_, capture_hook, &capture_); /* stopped 状態で登録する */
         ASSERT_NE(nullptr, hook_entry_);
+        // [状態確認] - `nullptr` と `hook_entry_` が異なること。
         ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer_));
+        // [状態確認] - `cplat_tracer_start(tracer_)` の戻り値が `CPLAT_OK` であること。
 
         sample_worker_trace_set_tracer(tracer_);
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));
+        // [状態確認] - `sample_worker_trace_set_filter(slot_)` の戻り値が `CPLAT_OK` であること。
     }
 
     void TearDown() override
@@ -107,8 +112,10 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
+    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U,
                                                                nullptr)); // [状態] - スロットへ適用する。
+    // [状態確認] - `cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 

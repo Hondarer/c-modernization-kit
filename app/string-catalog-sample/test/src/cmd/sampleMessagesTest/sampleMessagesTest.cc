@@ -85,25 +85,25 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
     // Assert
     for (index = 0; index < count; index++)
     {
-        EXPECT_NE(nullptr, entries[index].id);      // [確認_正常系] - サンプルの定義はすべて ID を持つこと。
-        EXPECT_NE(nullptr, entries[index].brief);   // [確認_正常系] - 短い説明を持つこと。
-        EXPECT_NE(nullptr, entries[index].details); // [確認_正常系] - 詳細説明を持つこと。
+        EXPECT_NE(nullptr, entries[index].id);      // [確認_正常系 回数=6] - サンプルの定義はすべて ID を持つこと。
+        EXPECT_NE(nullptr, entries[index].brief);   // [確認_正常系 回数=6] - 短い説明を持つこと。
+        EXPECT_NE(nullptr, entries[index].details); // [確認_正常系 回数=6] - 詳細説明を持つこと。
         EXPECT_NE(
             nullptr,
             entries[index]
-                .texts[CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の書式を持つこと。
+                .texts[CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系 回数=6] - ニュートラル言語の書式を持つこと。
         EXPECT_NE(
             nullptr,
             entries[index]
-                .notes[CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系] - ニュートラル言語の備考を持つこと。
+                .notes[CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL]); // [確認_正常系 回数=6] - ニュートラル言語の備考を持つこと。
         EXPECT_LE(entries[index].category,
-                  CPLAT_TRACE_LEVEL_NONE);           // [確認_正常系] - 分類値がトレース レベルの範囲内であること。
-        EXPECT_GE(entries[index].argument_count, 0); // [確認_正常系] - 引数個数が 0 以上であること。
+                  CPLAT_TRACE_LEVEL_NONE);           // [確認_正常系 回数=6] - 分類値がトレース レベルの範囲内であること。
+        EXPECT_GE(entries[index].argument_count, 0); // [確認_正常系 回数=6] - 引数個数が 0 以上であること。
         EXPECT_LE(entries[index].argument_count,
-                  CPLAT_STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系] - 引数個数が上限以下であること。
+                  CPLAT_STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系 回数=6] - 引数個数が上限以下であること。
         if (entries[index].argument_count > 0)
         {
-            EXPECT_NE(nullptr, entries[index].arguments); // [確認_正常系] - 引数定義を持つこと。
+            EXPECT_NE(nullptr, entries[index].arguments); // [確認_正常系 回数=5] - 引数定義を持つこと。
         }
     }
 }

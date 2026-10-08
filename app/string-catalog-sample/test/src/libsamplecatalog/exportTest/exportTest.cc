@@ -75,6 +75,7 @@ class exportTest : public Test
     {
         workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
+        // [状態確認] - `workspace_root.empty()` が false であること。
         dll_path = workspace_root +
                    "/app/string-catalog-sample/prod/lib/libsamplecatalog" TESTFW_SHARED_LIBRARY_EXTENSION;
     }
@@ -103,7 +104,7 @@ TEST_F(exportTest, symbol_names_match)
     // Assert
     testing::expectExportNamesMatch(
         expected, actual,
-        kExpectedExportSignatures); // [確認_正常系] - 期待シンボルとの不足や想定外がないこと (Windows / Linux とも完全一致)。
+        kExpectedExportSignatures); // [確認_正常系 回数=2] - 期待シンボルとの不足や想定外がないこと (Windows / Linux とも完全一致)。
 }
 
 // 公開範囲 api では、cplat の構造体を返す関数を公開しないことの確認
@@ -127,7 +128,7 @@ TEST_F(exportTest, structure_returning_functions_are_not_exported)
     {
         EXPECT_EQ(0U, actual.count(name))
             << "公開範囲 api で公開しない関数がエクスポートされています: "
-            << name; // [確認_正常系] - 利用側が cplat の構造体レイアウトへ依存しないこと。
+            << name; // [確認_正常系 回数=10] - 利用側が cplat の構造体レイアウトへ依存しないこと。
     }
 }
 

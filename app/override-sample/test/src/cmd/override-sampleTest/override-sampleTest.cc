@@ -28,6 +28,7 @@ class override_sampleTest : public Test
     {
         string workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
+        // [状態確認] - `workspace_root.empty()` が false であること。
 #if defined(PLATFORM_LINUX)
         binary_path = workspace_root + "/app/override-sample/prod/cbin/override-sample";
         lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/cplat/prod/lib" +
@@ -80,6 +81,7 @@ class override_sampleTest : public Test
         fopen_s(&fp, config_path.c_str(), "w");
 #endif /* PLATFORM_ */
         ASSERT_NE(nullptr, fp) << "定義ファイルの作成に失敗しました: " << config_path;
+        // [状態確認] - `nullptr` と `fp` が異なること。
         fputs(content.c_str(), fp);
         fclose(fp);
     }

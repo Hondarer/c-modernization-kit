@@ -25,6 +25,7 @@ class sampleFilterFileTest : public Test
         const TestInfo *info = UnitTest::GetInstance()->current_test_info();
 
         ASSERT_EQ(CPLAT_OK, cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr));
+        // [状態確認] - `cplat_path_get_temp_dir(temp_dir, sizeof(temp_dir), nullptr)` の戻り値が `CPLAT_OK` であること。
         path_ = std::string(temp_dir) + "/sampleFilterFileTest_" + std::to_string(cplat_process_get_pid()) + "_" +
                 info->name() + ".txt";
         saved_path_ = path_ + ".saved";
@@ -45,8 +46,11 @@ class sampleFilterFileTest : public Test
         FILE *stream = cplat_fopen(path_.c_str(), "wb", nullptr);
 
         ASSERT_NE(nullptr, stream);
+        // [状態確認] - `nullptr` と `stream` が異なること。
         ASSERT_EQ(content.size(), std::fwrite(content.data(), 1U, content.size(), stream));
+        // [状態確認] - `std::fwrite(content.data(), 1U, content.size(), stream)` の戻り値が `content.size()` であること。
         ASSERT_EQ(0, std::fclose(stream));
+        // [状態確認] - `std::fclose(stream)` の戻り値が `0` であること。
     }
 
     int load(const std::string &path)
@@ -81,6 +85,7 @@ TEST_F(sampleFilterFileTest, load_reports_invalid_lines_by_file_line_number)
     ASSERT_EQ(CPLAT_OK,
               cplat_string_catalog_filter_decompile_line(image_, sizeof(image_), 0U, actual_first,
                                                          sizeof(actual_first))); // [手順] - 1 行目を復元する。
+    // [確認_正常系] - `cplat_string_catalog_filter_decompile_line(image_, sizeof(image_), 0U, actual_first, sizeof(actual_first))` の戻り値が `CPLAT_OK` であること。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret);           // [確認_正常系] - 無効な行があっても読み込みに成功すること。
@@ -173,6 +178,7 @@ TEST_F(sampleFilterFileTest, saved_file_loads_to_same_image)
     const char *lines[] = {"key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", "!(arg.job_name contains \"a\\\"b\")",
                            "id matches \"000[45]$\""};
     ASSERT_EQ(CPLAT_OK, compile_lines(lines, 3U, original)); // [状態] - 3 行をコンパイルする。
+    // [状態確認] - `compile_lines(lines, 3U, original)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 

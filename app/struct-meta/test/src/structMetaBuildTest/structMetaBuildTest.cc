@@ -141,11 +141,15 @@ TEST(structMetaBuildTest, computes_the_same_layout_as_the_compiler)
     EXPECT_EQ(sizeof(inner_probe), descriptors[0]->size); // [確認_正常系] - ネストの大きさが一致すること。
     EXPECT_EQ(sizeof(outer_probe), descriptors[1]->size); // [確認_正常系] - 全体の大きさが一致すること。
     EXPECT_EQ(offsetof(inner_probe, label), descriptors[0]->fields[0].offset);
+    // [確認_正常系] - `descriptors[0]->fields[0].offset` が、対応する構造体メンバーのオフセット `offsetof(inner_probe, label)` であること。
     EXPECT_EQ(offsetof(inner_probe, value), descriptors[0]->fields[1].offset);
+    // [確認_正常系] - `descriptors[0]->fields[1].offset` が、対応する構造体メンバーのオフセット `offsetof(inner_probe, value)` であること。
     EXPECT_EQ(offsetof(outer_probe, flag), descriptors[1]->fields[0].offset);
+    // [確認_正常系] - `descriptors[1]->fields[0].offset` が、対応する構造体メンバーのオフセット `offsetof(outer_probe, flag)` であること。
     EXPECT_EQ(offsetof(outer_probe, inner),
               descriptors[1]->fields[1].offset); // [確認_正常系] - ネスト配列が境界へ揃うこと。
     EXPECT_EQ(offsetof(outer_probe, ratio), descriptors[1]->fields[2].offset);
+    // [確認_正常系] - `descriptors[1]->fields[2].offset` が、対応する構造体メンバーのオフセット `offsetof(outer_probe, ratio)` であること。
 
     // Cleanup
     struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
@@ -160,6 +164,7 @@ TEST(structMetaBuildTest, classifies_fields_and_copies_attributes)
     size_t count = 0;
     struct_meta_diagnostic diagnostic = {};
     ASSERT_EQ(CPLAT_OK, build(make_nested_ast(), &arena, &descriptors, &count, &diagnostic));
+    // [状態確認] - `build(make_nested_ast(), &arena, &descriptors, &count, &diagnostic)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -182,9 +187,12 @@ TEST(structMetaBuildTest, classifies_fields_and_copies_attributes)
     EXPECT_EQ(STRUCT_META_FIELD_DOUBLE, ratio->kind);          // [確認_正常系] - double を認識すること。
     ASSERT_EQ(1U, label->attribute_count);                     // [確認_正常系] - フィールドの属性を複写すること。
     EXPECT_STREQ("json.name", label->attributes[0].key);
+    // [確認_正常系] - `label->attributes[0].key` の値が `"json.name"` であること。
     EXPECT_STREQ("text", label->attributes[0].value);
+    // [確認_正常系] - `label->attributes[0].value` の値が `"text"` であること。
     ASSERT_EQ(1U, descriptors[0]->attribute_count);            // [確認_正常系] - 構造体の属性を複写すること。
     EXPECT_STREQ("sample.category", descriptors[0]->attributes[0].key);
+    // [確認_正常系] - `descriptors[0]->attributes[0].key` の値が `"sample.category"` であること。
     EXPECT_EQ(0U, descriptors[1]->attribute_count);            // [確認_正常系] - 属性が無ければ 0 であること。
 
     // Cleanup

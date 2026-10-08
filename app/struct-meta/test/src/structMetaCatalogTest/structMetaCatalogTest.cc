@@ -78,9 +78,12 @@ TEST(structMetaCatalogTest, builds_descriptors_from_header_text)
     ASSERT_EQ(CPLAT_OK, ret);                    // [確認_正常系] - 解析が成功すること。
     EXPECT_STREQ("", diagnostic.message);        // [確認_正常系] - 診断が残らないこと。
     ASSERT_EQ(CPLAT_OK, struct_meta_catalog_get_count(catalog, &count));
+    // [確認_正常系] - `struct_meta_catalog_get_count(catalog, &count)` の戻り値が `CPLAT_OK` であること。
     EXPECT_EQ(2U, count);                        // [確認_正常系] - 宣言した 2 個の構造体を持つこと。
     ASSERT_EQ(CPLAT_OK, struct_meta_catalog_get(catalog, 0, &address_descriptor));
+    // [確認_正常系] - `struct_meta_catalog_get(catalog, 0, &address_descriptor)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_catalog_get(catalog, 1, &person_descriptor));
+    // [確認_正常系] - `struct_meta_catalog_get(catalog, 1, &person_descriptor)` の戻り値が `CPLAT_OK` であること。
     EXPECT_STREQ("address", address_descriptor->name); // [確認_正常系] - 並びが宣言順であること。
     EXPECT_STREQ("person", person_descriptor->name);   // [確認_正常系] - 並びが宣言順であること。
 
@@ -95,6 +98,7 @@ TEST(structMetaCatalogTest, computes_the_same_layout_as_the_compiler)
     struct_meta_diagnostic diagnostic = {};
     const struct_meta_descriptor *person_descriptor = nullptr;
     ASSERT_EQ(CPLAT_OK, create(kHeader, &catalog, &diagnostic));
+    // [状態確認] - `create(kHeader, &catalog, &diagnostic)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -107,11 +111,15 @@ TEST(structMetaCatalogTest, computes_the_same_layout_as_the_compiler)
     EXPECT_EQ(sizeof(person_probe), person_descriptor->size);   // [確認_正常系] - 全体の大きさが一致すること。
     EXPECT_EQ(5U, person_descriptor->field_count);              // [確認_正常系] - フィールド数が一致すること。
     EXPECT_EQ(offsetof(person_probe, age), person_descriptor->fields[0].offset);
+    // [確認_正常系] - `person_descriptor->fields[0].offset` が、対応する構造体メンバーのオフセット `offsetof(person_probe, age)` であること。
     EXPECT_EQ(offsetof(person_probe, id), person_descriptor->fields[1].offset);
+    // [確認_正常系] - `person_descriptor->fields[1].offset` が、対応する構造体メンバーのオフセット `offsetof(person_probe, id)` であること。
     EXPECT_EQ(offsetof(person_probe, weight), person_descriptor->fields[2].offset);
+    // [確認_正常系] - `person_descriptor->fields[2].offset` が、対応する構造体メンバーのオフセット `offsetof(person_probe, weight)` であること。
     EXPECT_EQ(offsetof(person_probe, addresses),
               person_descriptor->fields[3].offset); // [確認_正常系] - ネスト配列がネストの境界へ揃うこと。
     EXPECT_EQ(offsetof(person_probe, token), person_descriptor->fields[4].offset);
+    // [確認_正常系] - `person_descriptor->fields[4].offset` が、対応する構造体メンバーのオフセット `offsetof(person_probe, token)` であること。
 
     struct_meta_catalog_destroy(catalog);
 }
@@ -125,8 +133,11 @@ TEST(structMetaCatalogTest, classifies_fields_and_keeps_attributes)
     const struct_meta_descriptor *address_descriptor = nullptr;
     const struct_meta_descriptor *person_descriptor = nullptr;
     ASSERT_EQ(CPLAT_OK, create(kHeader, &catalog, &diagnostic));
+    // [状態確認] - `create(kHeader, &catalog, &diagnostic)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_catalog_find(catalog, "address", &address_descriptor));
+    // [状態確認] - `struct_meta_catalog_find(catalog, "address", &address_descriptor)` の戻り値が `CPLAT_OK` であること。
     ASSERT_EQ(CPLAT_OK, struct_meta_catalog_find(catalog, "person", &person_descriptor));
+    // [状態確認] - `struct_meta_catalog_find(catalog, "person", &person_descriptor)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 
@@ -152,6 +163,7 @@ TEST(structMetaCatalogTest, classifies_fields_and_keeps_attributes)
     EXPECT_STREQ("locality", city->attributes[0].value);        // [確認_正常系] - 属性値を保持すること。
     ASSERT_EQ(1U, address_descriptor->attribute_count);         // [確認_正常系] - 構造体の属性を保持すること。
     EXPECT_STREQ("sample.category", address_descriptor->attributes[0].key);
+    // [確認_正常系] - `address_descriptor->attributes[0].key` の値が `"sample.category"` であること。
     EXPECT_STREQ("住所です。", address_descriptor->brief); // [確認_正常系] - brief を保持すること。
 
     struct_meta_catalog_destroy(catalog);
@@ -213,6 +225,7 @@ TEST(structMetaCatalogTest, parses_repeatedly_in_the_same_process)
     EXPECT_NE(CPLAT_OK, failed_ret);   // [確認_異常系] - 失敗がプロセスを終了させないこと。
     EXPECT_EQ(CPLAT_OK, third_ret);    // [確認_正常系] - 失敗の後も解析を続けられること。
     EXPECT_EQ(CPLAT_OK, struct_meta_catalog_find(third, "person", &descriptor));
+    // [確認_正常系] - `struct_meta_catalog_find(third, "person", &descriptor)` の戻り値が `CPLAT_OK` であること。
 
     struct_meta_catalog_destroy(first);
     struct_meta_catalog_destroy(third);
@@ -227,6 +240,7 @@ TEST(structMetaCatalogTest, rejects_invalid_arguments)
     size_t count = 0;
     const struct_meta_descriptor *descriptor = nullptr;
     ASSERT_EQ(CPLAT_OK, create(kHeader, &catalog, &diagnostic));
+    // [状態確認] - `create(kHeader, &catalog, &diagnostic)` の戻り値が `CPLAT_OK` であること。
 
     // Pre-Assert
 

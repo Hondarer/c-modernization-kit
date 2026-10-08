@@ -41,6 +41,7 @@ TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_
     struct_meta_gen_emit_uint64_array(
         stream, "s_sample", data, 33U); // [手順] - 4 ワードと 1 バイトを静的配列として出力する。
     ASSERT_EQ(0, std::fflush(stream));
+    // [確認_正常系] - `std::fflush(stream)` の戻り値が `0` であること。
     std::rewind(stream);
     std::string actual;
     char buffer[256];

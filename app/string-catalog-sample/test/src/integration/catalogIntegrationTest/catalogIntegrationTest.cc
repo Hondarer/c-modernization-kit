@@ -265,7 +265,7 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
     for (int index = 46; index < CPLAT_STRING_CATALOG_ARGUMENT_MAX; index++)
     {
         EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,
-                  entry->arguments[index].kind); // [確認_正常系] - 予約した番号が未使用のまま残ること。
+                  entry->arguments[index].kind); // [確認_正常系 回数=4] - 予約した番号が未使用のまま残ること。
     }
 }
 
@@ -336,13 +336,9 @@ TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
     EXPECT_NE(std::string::npos,
               captured.find("TestBody")); // [確認_正常系] - 43 番が呼び出し元の関数名になること。
     EXPECT_NE(std::string::npos,
-              captured.find("プロセス=" + std::to_string(cplat_process_get_pid()))); // [確認_正常系] -
-                                                                                     // 44 番が実際のプロセス ID
-                                                                                     // になること。
+              captured.find("プロセス=" + std::to_string(cplat_process_get_pid()))); // [確認_正常系] - 44 番が実際のプロセス ID になること。
     EXPECT_NE(std::string::npos,
-              captured.find("スレッド=" + std::to_string(cplat_process_get_tid()))); // [確認_正常系] -
-                                                                                     // 45 番が実際のスレッド ID
-                                                                                     // になること。
+              captured.find("スレッド=" + std::to_string(cplat_process_get_tid()))); // [確認_正常系] - 45 番が実際のスレッド ID になること。
 
     // Cleanup
     sample_trace_set_tracer(nullptr);
