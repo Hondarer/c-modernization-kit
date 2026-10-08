@@ -8,7 +8,10 @@ description: app 配下の C/C++ 単体テストを作成・変更・レビュ�
 作業に応じて次の節を参照してください。
 
 - 配置やビルド対象を変更する場合は `framework/testfw/docs/how-to-test.md` の `TEST_SRCS`、`ADD_SRCS`、main の扱いと、必要なら `app/general/docs/testing-tutorial.md` の配置例
-- フェーズやエビデンス コメントを変更する場合は `framework/testfw/docs/about-test-phase.md` の該当するテスト形式
+- フェーズやエビデンス コメントを変更する場合は `framework/testfw/docs/about-test-phase.md` の該当するテスト形式と「期待を確認する行為 1 回を 1 件として集計する」
+
+ループ、条件分岐、パラメーター テストの確認回数は、アルゴリズムとテスト データから決定して記載してください。
+
 - 期待値や照合方法を変更する場合は `framework/testfw/docs/how-to-expect.md` の該当するマクロ
 - mock を新設する場合は、対象パスの指示にある専用スキル、または通常の app 関数向け `create-mock`
 - mock ライブラリをリンクする場合は `framework/testfw/docs/how-to-test.md` の「GoogleTest / GoogleMock は testfw.h 経由で取り込む」を参照し、対応する mock ヘッダーをテスト翻訳単位がインクルードしていることの確認

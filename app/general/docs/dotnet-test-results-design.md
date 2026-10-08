@@ -1,5 +1,15 @@
 # .NET テスト用 results 生成機能 設計書
 
+## 現行の確認回数は testfw の規範に従う
+
+確認タグの書式と件数集計は、[期待確認の回数式](../../../framework/testfw/docs/about-test-phase.md#期待を確認する行為-1-回を-1-件として集計する) を正本とします。  
+C/C++ と .NET は `test_summary.py` の共通処理を使用し、各確認タグに指定した回数式を合算します。  
+.NET の `PARAM` は TRX のレコード別結果から取得し、`InlineData` の行数による一律乗算は行いません。  
+回数式、カテゴリ、説明文の解析に失敗した場合は、テスト実行スクリプトも失敗として扱います。
+
+以下の設計案、コード例、検証記録は初期実装の履歴です。  
+現行のタグを記載する際は、上記の正本に従ってください。
+
 ## 概要
 
 C テスト フレームワーク (testfw) と同様に、.NET テスト プロジェクトでも個別のテスト ケースごとに詳細な結果ログを生成する機能を設計します。
@@ -709,7 +719,9 @@ results/
 
 - `framework/testfw/bin_internal/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
 - `framework/testfw/bin_internal/get_test_code_c_cpp.awk` - テスト コード抽出 (AWK)
-- `framework/testfw/bin_internal/insert_summary_c_cpp.awk` - サマリー生成 (AWK)
+- `framework/testfw/bin_internal/insert_summary_c_cpp.py` - C/C++ サマリー生成
+- `framework/testfw/bin_internal/test_summary.py` - 期待確認の共通解析・集計
+- `framework/testfw/bin_internal/gtest_summary_groups.py` - Google Test のレコード集計と定義単位のエビデンス生成
 - `framework/testfw/bin_internal/exec_test_dotnet.sh` - .NET テスト実行スクリプト (一括実行)
 - `framework/testfw/bin_internal/get_test_code_dotnet.py` - .NET テスト コード抽出
 - `framework/testfw/bin_internal/insert_summary_dotnet.py` - .NET サマリー生成
