@@ -4,8 +4,7 @@ short-title: service-sample
 
 # service-sample
 
-Windows サービス (SCM) と Linux systemd の両方に対応した  
-クロスプラットフォーム サービス (デーモン) の C 言語サンプルです。
+Windows サービス (SCM) と Linux systemd の両方に対応した、クロスプラットフォーム サービス (デーモン) の C 言語サンプルです。
 
 ## 概要
 
