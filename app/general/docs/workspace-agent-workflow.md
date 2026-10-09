@@ -56,6 +56,7 @@ find . -type f -name '*.warn' -size +0 -print0 | xargs -0 -r sed -n '1,200p'
 警告原因を修正し、同じビルドを再実行します。
 
 `bin/` や `bin_internal/` のスクリプトを変更した場合は、`bin_test/` のテストを実行します。  
+Python のファイル入出力と子プロセス通信は、テスト用の一時ファイルも含めて [Python の文字コード指定規範](python-text-encoding-guideline.md) に従います。  
 `make bin-test` は、ワークスペース内のすべての `bin_test/` を実行し、CI でも同じコマンドを使用します。  
 対象を絞る場合は、ワークスペースからの相対パスに含まれる文字列を指定します。
 

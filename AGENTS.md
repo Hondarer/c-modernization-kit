@@ -62,6 +62,7 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 ## 主要な正本
 
 - C/C++ の規範: [コーディング規範](app/general/docs/coding-guideline.md)
+- Python のテキスト入出力を作成・変更・レビューする場合: [Python の文字コード指定規範](app/general/docs/python-text-encoding-guideline.md)
 - 機能仕様の規範: [機能仕様の記載規範](app/general/docs/functional-spec-guideline.md)
 - テスト構成: [テスト方法](framework/testfw/docs/how-to-test.md)
 - テスト フェーズとエビデンス: [テスト フェーズ](framework/testfw/docs/about-test-phase.md)
