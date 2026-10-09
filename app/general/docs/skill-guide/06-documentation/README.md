@@ -10,21 +10,21 @@ Markdown・Doxygen・Pandoc・PlantUML を組み合わせて、ソース コー�
 | [Markdown](markdown.md) | ドキュメント記法の基礎                    |
 | [Doxygen](doxygen.md)   | C/C++ ソース コードからのドキュメント生成  |
 | [Pandoc](pandoc.md)     | Markdown から HTML/docx への変換          |
-| [PlantUML](plantuml.md) | テキストベースの UML 図表作成 (第 1 選択) |
-| [Mermaid](mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
+| [Mermaid](mermaid.md)   | テキストベースの図表作成 (第 1 選択)      |
+| [PlantUML](plantuml.md) | テキストベースの UML 図表作成 (第 2 選択) |
 | [draw.io](drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
 
 Table: スキル ガイド一覧
 
 ## 図ツールの選択基準
 
-本フレームワークでは PlantUML・Mermaid・draw.io のすべてを扱うことができます。意味論を明確に表現しやすいことから PlantUML を第 1 選択とし、次いで Mermaid、任意のレイアウトの図が必要な場合にのみ draw.io の使用を推奨します。既存の PNG 等の画像ファイルも Markdown に直接引用できますが、修正履歴の管理が困難なため限定的な使用とすべきです。
+本フレームワークでは PlantUML・Mermaid・draw.io のすべてを扱うことができます。Mermaid を第 1 選択とし、Mermaid で表現できない場合は PlantUML を使用します。両者で表現できない場合は draw.io を使用し、`.drawio.svg` 形式で保存します。既存の PNG 等の画像ファイルも Markdown に直接引用できますが、修正履歴の管理が困難なため限定的な使用とすべきです。
 
 | ツール       | 特徴                                | 推奨ケース                                                     |
 |--------------|-------------------------------------|----------------------------------------------------------------|
-| PlantUML     | UML の意味論を厳密に表現できます。      | シーケンス図・クラス図・コンポーネント図など (第 1 選択)        |
-| Mermaid      | GitHub でネイティブ表示・記法が簡潔 | フロー図など、GitHub 上でのプレビューを重視する場合 (第 2 選択) |
-| draw.io      | GUI で自由に作図できます。              | UML の意味論で表現しにくい任意のレイアウトの図 (第 3 選択)      |
+| Mermaid | GitHub でネイティブ表示・記法が簡潔 | 図表作成で優先して使用 (第 1 選択) |
+| PlantUML | UML の意味論を厳密に表現できます。 | Mermaid で表現できない図 (第 2 選択) |
+| draw.io | GUI で自由に作図できます。 | Mermaid と PlantUML の両者で表現できない図を `.drawio.svg` 形式で保存 (第 3 選択) |
 | PNG/SVG など | 既存の画像をそのまま利用できます。      | 外部ツールで作成済みの図・スクリーンショットなど (第 4 選択)    |
 
 Table: 図ツールの選択基準

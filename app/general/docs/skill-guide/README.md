@@ -129,8 +129,8 @@ Table: テスト自動化スキル ガイド一覧
 | [Markdown](06-documentation/markdown.md) | ドキュメント記法の基礎                    |
 | [Doxygen](06-documentation/doxygen.md)   | C/C++ ソース コードからのドキュメント生成  |
 | [Pandoc](06-documentation/pandoc.md)     | Markdown から HTML/docx への変換          |
-| [PlantUML](06-documentation/plantuml.md) | テキストベースの UML 図表作成 (第 1 選択) |
-| [Mermaid](06-documentation/mermaid.md)   | テキストベースの図表作成 (第 2 選択)      |
+| [Mermaid](06-documentation/mermaid.md)   | テキストベースの図表作成 (第 1 選択)      |
+| [PlantUML](06-documentation/plantuml.md) | テキストベースの UML 図表作成 (第 2 選択) |
 | [draw.io](06-documentation/drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
 
 Table: ドキュメント自動化スキル ガイド一覧
