@@ -151,6 +151,7 @@ class service_sampleTest : public Test
     NiceMock<Mock_cplat> mock_cplat_;
     cplat_tracer *tracer_handle_ = reinterpret_cast<cplat_tracer *>(static_cast<uintptr_t>(0x1234));
 
+    // [サブ手順 名前=service_sampleTest.SetUp]
     void SetUp() override
     {
         g_calls.clear();
@@ -163,16 +164,27 @@ class service_sampleTest : public Test
 
         ON_CALL(mock_cplat_, cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED))
             .WillByDefault(Return(tracer_handle_));
+        // [状態] - `cplat_tracer_create` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_name(_, _, _)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_set_name` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_os_level(_, _)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_set_os_level` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_file_level(_, _, _, _, _, _)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_set_file_level` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_stderr_level(_, _)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_set_stderr_level` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_start(_)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_start` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_stop(_)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_stop` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillByDefault(Return());
+        // [状態] - `cplat_tracer_dispose` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_write_at(_, _, _, _)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_write_at` の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_writef_at(_, _, _, _)).WillByDefault(Return(0));
+        // [状態] - `cplat_tracer_writef_at` の既定動作を設定する。
     }
+    // [サブ手順終了]
 };
 
 /* ============================================================
@@ -180,6 +192,7 @@ class service_sampleTest : public Test
  * ============================================================ */
 
 // コマンド未指定時に usage を表示して失敗終了することの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, usage_without_args)
 {
     // Arrange
@@ -197,6 +210,7 @@ TEST_F(service_sampleTest, usage_without_args)
 }
 
 // --help 指定時に usage を表示して正常終了することの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, help)
 {
     // Arrange
@@ -213,6 +227,7 @@ TEST_F(service_sampleTest, help)
 }
 
 // 不明なコマンドで失敗終了することの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, unknown_command)
 {
     // Arrange
@@ -230,6 +245,7 @@ TEST_F(service_sampleTest, unknown_command)
 }
 
 // install コマンドが svc_os_install を呼び出すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, install_dispatch)
 {
     // Arrange
@@ -248,6 +264,7 @@ TEST_F(service_sampleTest, install_dispatch)
 }
 
 // tracer が既定のファイル パスと共有モードを使うことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
 {
     // Arrange
@@ -269,6 +286,7 @@ TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
 }
 
 // uninstall コマンドが svc_os_uninstall を呼び出すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, uninstall_dispatch)
 {
     // Arrange
@@ -287,6 +305,7 @@ TEST_F(service_sampleTest, uninstall_dispatch)
 }
 
 // run コマンドが svc_os_run_service を呼び出すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, run_dispatch)
 {
     // Arrange
@@ -309,6 +328,7 @@ TEST_F(service_sampleTest, run_dispatch)
  * ============================================================ */
 
 // console モードで起動から停止までのコールバック順が守られることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, console_lifecycle_order)
 {
     // Arrange
@@ -332,6 +352,7 @@ TEST_F(service_sampleTest, console_lifecycle_order)
 }
 
 // on_start 失敗時に後続処理を行わず終了コードを返すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, console_on_start_failure)
 {
     // Arrange
@@ -351,6 +372,7 @@ TEST_F(service_sampleTest, console_on_start_failure)
 }
 
 // on_run 失敗時も停止処理を行い終了コードを返すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, console_on_run_failure)
 {
     // Arrange
@@ -372,6 +394,7 @@ TEST_F(service_sampleTest, console_on_run_failure)
 }
 
 // on_stop 失敗時にその戻り値を終了コードとすることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, console_on_stop_failure)
 {
     // Arrange
@@ -394,6 +417,7 @@ TEST_F(service_sampleTest, console_on_stop_failure)
  * ============================================================ */
 
 // NULL や on_event 未設定ではイベントを配送しないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, dispatch_event_null_safety)
 {
     // Arrange
@@ -425,6 +449,7 @@ TEST_F(service_sampleTest, dispatch_event_null_safety)
 }
 
 // イベント情報が on_event へ渡ることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, dispatch_event_passes_info)
 {
     // Arrange
@@ -444,6 +469,7 @@ TEST_F(service_sampleTest, dispatch_event_passes_info)
 }
 
 // セッション ID なしのイベントがそのまま渡ることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, dispatch_event_without_session_id)
 {
     // Arrange
@@ -467,6 +493,7 @@ TEST_F(service_sampleTest, dispatch_event_without_session_id)
  * ============================================================ */
 
 // reload 通知、on_reload、READY 再通知の順になることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, dispatch_reload_order)
 {
     // Arrange
@@ -486,6 +513,7 @@ TEST_F(service_sampleTest, dispatch_reload_order)
 }
 
 // NULL や on_reload 未設定では reload しないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, dispatch_reload_null_safety)
 {
     // Arrange
@@ -512,6 +540,7 @@ TEST_F(service_sampleTest, dispatch_reload_null_safety)
  * ============================================================ */
 
 // 状態テキストが OS へ通知されることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, set_status_text)
 {
     // Arrange
@@ -528,6 +557,7 @@ TEST_F(service_sampleTest, set_status_text)
 }
 
 // NULL の状態テキストを通知しないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, set_status_text_null_safety)
 {
     // Arrange
@@ -547,6 +577,7 @@ TEST_F(service_sampleTest, set_status_text_null_safety)
  * ============================================================ */
 
 // 未初期化時の停止 API が要求を記録せず待機しないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
 TEST_F(service_sampleTest, stop_api_before_initialization)
 {
     // Arrange

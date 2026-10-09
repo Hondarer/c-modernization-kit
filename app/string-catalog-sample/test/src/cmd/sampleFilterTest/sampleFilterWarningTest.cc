@@ -11,6 +11,7 @@
 class sampleFilterWarningTest : public Test
 {
   protected:
+    // [サブ手順 名前=sampleFilterWarningTest.SetUp]
     void SetUp() override
     {
         std::memset(&warning_, 0, sizeof(warning_));
@@ -21,6 +22,7 @@ class sampleFilterWarningTest : public Test
         warning_.other_string_key = SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED;
         warning_.other_argument_index = -1;
     }
+    // [サブ手順終了]
 
     cplat_string_catalog_filter_warning warning_;
     int pad_ = 0; /**< 明示的アラインメントです。 */
@@ -28,6 +30,7 @@ class sampleFilterWarningTest : public Test
 };
 
 // 型の不一致は、行と比較要素の番号、項目の ID、引数の名前と種別で表すことの確認
+// [サブ手順参照 名前=sampleFilterWarningTest.SetUp]
 TEST_F(sampleFilterWarningTest, type_mismatch_is_formatted_with_entry_and_argument)
 {
     // Arrange
@@ -49,6 +52,7 @@ TEST_F(sampleFilterWarningTest, type_mismatch_is_formatted_with_entry_and_argume
 }
 
 // 型区分の混在は、文字列の項目と文字列以外の項目の両方を示すことの確認
+// [サブ手順参照 名前=sampleFilterWarningTest.SetUp]
 TEST_F(sampleFilterWarningTest, mixed_argument_types_is_formatted_with_both_entries)
 {
     // Arrange
@@ -72,6 +76,7 @@ TEST_F(sampleFilterWarningTest, mixed_argument_types_is_formatted_with_both_entr
 }
 
 // カタログにない項目や引数の位置、種別のない警告を拒否することの確認
+// [サブ手順参照 名前=sampleFilterWarningTest.SetUp]
 TEST_F(sampleFilterWarningTest, unknown_entry_or_kind_is_rejected)
 {
     // Arrange
@@ -98,6 +103,7 @@ TEST_F(sampleFilterWarningTest, unknown_entry_or_kind_is_rejected)
 }
 
 // 格納先に収まらない場合は CPLAT_ERR_BUFFER_TOO_SMALL を返すことの確認
+// [サブ手順参照 名前=sampleFilterWarningTest.SetUp]
 TEST_F(sampleFilterWarningTest, small_destination_is_reported)
 {
     // Arrange

@@ -44,6 +44,7 @@ void capture_hook(cplat_tracer_hook_entry *prev, cplat_tracer *handle, cplat_tra
 class sampleFilterOutputTest : public Test
 {
   protected:
+    // [サブ手順 名前=sampleFilterOutputTest.SetUp]
     void SetUp() override
     {
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
@@ -64,7 +65,9 @@ class sampleFilterOutputTest : public Test
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));
         // [状態確認] - `sample_worker_trace_set_filter(slot_)` の戻り値が `CPLAT_OK` であること。
     }
+    // [サブ手順終了]
 
+    // [サブ手順 名前=sampleFilterOutputTest.TearDown]
     void TearDown() override
     {
         (void)sample_worker_trace_set_filter(nullptr);
@@ -74,6 +77,7 @@ class sampleFilterOutputTest : public Test
         cplat_tracer_dispose(&tracer_);
         cplat_string_catalog_filter_slot_dispose(&slot_);
     }
+    // [サブ手順終了]
 
     cplat_string_catalog_filter_slot *slot_ = nullptr;
     cplat_tracer *tracer_ = nullptr;
@@ -82,6 +86,7 @@ class sampleFilterOutputTest : public Test
 };
 
 // 条件式に一致しない場合に項目の分類値をそのままトレース レベルとして使うことの確認
+// [サブ手順参照 名前=sampleFilterOutputTest.SetUp]
 TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
 {
     // Arrange
@@ -102,8 +107,10 @@ TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
         '#',
         capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
 }
+// [サブ手順参照 名前=sampleFilterOutputTest.TearDown]
 
 // 条件式に一致する場合、強制出力のレベルへ引き上げることの確認
+// [サブ手順参照 名前=sampleFilterOutputTest.SetUp]
 TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
 {
     // Arrange
@@ -131,8 +138,10 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
         '#',
         capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
 }
+// [サブ手順参照 名前=sampleFilterOutputTest.TearDown]
 
 // 出力先を設定していない場合に CPLAT_ERR_INVALID_ARGUMENT を返し、組み立ても出力も行わないことの確認
+// [サブ手順参照 名前=sampleFilterOutputTest.SetUp]
 TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argument)
 {
     // Arrange
@@ -149,3 +158,4 @@ TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argum
     EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret); // [確認_異常系] - CPLAT_ERR_INVALID_ARGUMENT を返すこと。
     EXPECT_EQ(0, capture_.call_count); // [確認_異常系] - フックが呼び出されない (組み立ても出力も行わない) こと。
 }
+// [サブ手順参照 名前=sampleFilterOutputTest.TearDown]

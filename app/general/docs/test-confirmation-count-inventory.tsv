@@ -1,316 +1,321 @@
-path	framework	definitions	check_tags	explicit_counts
-app/c-modernization-kit/.agents/skills/release-tag/scripts/test_release.py	script	-	-	-
-app/calc.net/test/src/CalcLib.Tests/CalcExceptionTests.cs	xUnit	5	14	0
-app/calc.net/test/src/CalcLib.Tests/CalcLibraryTests.cs	xUnit	15	36	14
-app/calc.net/test/src/CalcLib.Tests/CrossPlatformTests.cs	xUnit	3	11	0
-app/calc/test/src/cmd/addTest/addTest.cc	GoogleTest	4	7	0
-app/calc/test/src/cmd/calcTest/calcTest.cc	GoogleTest	3	5	0
-app/calc/test/src/cmd/shared-and-static-calcTest/shared-and-static-calcTest.cc	GoogleTest	3	7	0
-app/calc/test/src/libcalcTest/exportTest/exportTest.cc	GoogleTest	2	2	1
-app/calc/test/src/libcalcbaseTest/addTest/addTest.cc	GoogleTest	3	5	0
-app/calc/test/src/libcalcbaseTest/divideTest/divideTest.cc	GoogleTest	5	8	0
-app/calc/test/src/libcalcbaseTest/multiplyTest/multiplyTest.cc	GoogleTest	4	7	0
-app/calc/test/src/libcalcbaseTest/subtractTest/subtractTest.cc	GoogleTest	4	11	0
-app/cjson/test/src/cmd/cjsonIntegerTest/cjsonIntegerTest.cc	GoogleTest	12	45	0
-app/cjson/test/src/cmd/cjsonTest/cjsonTest.cc	GoogleTest	3	9	0
-app/cjson/test/src/libcjsonTest/exportTest/exportTest.cc	GoogleTest	1	1	1
-app/cjson/test/src/libcjsonTest/mockCjsonTest/mockCjsonTest.cc	GoogleTest	7	20	0
-app/cplat/bin_test/test_string_catalog_gen.py	script	-	-	-
-app/cplat/test/src/cmd/argparser-sampleTest/argparser-sampleTest.cc	GoogleTest	4	12	0
-app/cplat/test/src/cmd/compress-cliTest/compress-cliTest.cc	GoogleTest	13	151	0
-app/cplat/test/src/cmd/etw-viewerTest/etw-viewerTest.cc	GoogleTest	11	28	0
-app/cplat/test/src/cmd/hashtable-required-sizeTest/hashtable-required-sizeTest.cc	GoogleTest	3	3	0
-app/cplat/test/src/cmd/show-ui-languageTest/show-ui-languageTest.cc	GoogleTest	5	13	0
-app/cplat/test/src/cmd/trace-cliTest/trace-cliTest.cc	GoogleTest	12	60	0
-app/cplat/test/src/integration/hashtable/hashtableIntegrationTest/hashtableIntegrationTest.cc	GoogleTest	5	62	0
-app/cplat/test/src/integration/trace/etwSessionIntegrationTest/etwSessionIntegrationTest.cc	GoogleTest	9	61	2
-app/cplat/test/src/integration/trace/traceFileIntegrationTest/traceFileIntegrationTest.cc	GoogleTest	8	48	3
-app/cplat/test/src/libcplatTest/argparser/argparserTest/argparserAllocFailureTest.cc	GoogleTest	13	29	0
-app/cplat/test/src/libcplatTest/argparser/argparserTest/argparserTest.cc	GoogleTest	76	407	4
-app/cplat/test/src/libcplatTest/base/errorMessageTest/errorMessageTest.cc	GoogleTest	11	32	0
-app/cplat/test/src/libcplatTest/base/errorTest/errorTest.cc	GoogleTest	16	75	2
-app/cplat/test/src/libcplatTest/base/resultTest/resultTest.cc	GoogleTest	4	9	1
-app/cplat/test/src/libcplatTest/clock/clockTest/clockTest.cc	GoogleTest	23	92	2
-app/cplat/test/src/libcplatTest/clock/timespecTest/timespecTest.cc	GoogleTest	15	39	0
-app/cplat/test/src/libcplatTest/compress/compressTest/compressTest.cc	GoogleTest	18	58	0
-app/cplat/test/src/libcplatTest/console/consoleTest/consoleAttachTest.cc	GoogleTest	2	4	0
-app/cplat/test/src/libcplatTest/console/consoleTest/consoleTest.cc	GoogleTest	9	11	0
-app/cplat/test/src/libcplatTest/console/consoleTest/consoleWriteTest.cc	GoogleTest	8	15	0
-app/cplat/test/src/libcplatTest/crt/fcntlFormatTest/fcntlFormatTest.cc	GoogleTest	3	7	0
-app/cplat/test/src/libcplatTest/crt/fcntlTest/fcntlTest.cc	GoogleTest	6	13	0
-app/cplat/test/src/libcplatTest/crt/fileTest/fileFailureInjectionTest.cc	GoogleTest	20	42	0
-app/cplat/test/src/libcplatTest/crt/fileTest/fileTest.cc	GoogleTest	23	103	0
-app/cplat/test/src/libcplatTest/crt/fileTimestampTest/fileTimestampFailureInjectionTest.cc	GoogleTest	10	36	0
-app/cplat/test/src/libcplatTest/crt/fileTimestampTest/fileTimestampTest.cc	GoogleTest	12	45	0
-app/cplat/test/src/libcplatTest/crt/pathFormatTest/pathFormatTest.cc	GoogleTest	11	23	0
-app/cplat/test/src/libcplatTest/crt/pathNameTest/pathBasenameTest.cc	GoogleTest	9	9	0
-app/cplat/test/src/libcplatTest/crt/pathNameTest/pathDirnameTest.cc	GoogleTest	14	30	0
-app/cplat/test/src/libcplatTest/crt/pathNameTest/pathExtensionTest.cc	GoogleTest	6	6	0
-app/cplat/test/src/libcplatTest/crt/pathNameTest/pathJoinTest.cc	GoogleTest	17	35	0
-app/cplat/test/src/libcplatTest/crt/pathNameTest/pathNameInternalTest.cc	GoogleTest	4	8	0
-app/cplat/test/src/libcplatTest/crt/pathNameTest/pathStripExtensionTest.cc	GoogleTest	7	15	0
-app/cplat/test/src/libcplatTest/crt/pathTest/pathConcatTest.cc	GoogleTest	15	40	0
-app/cplat/test/src/libcplatTest/crt/pathTest/pathGetFullTest.cc	GoogleTest	14	46	0
-app/cplat/test/src/libcplatTest/crt/pathTest/pathsEqualTest.cc	GoogleTest	9	21	0
-app/cplat/test/src/libcplatTest/crt/stdioFormatTest/stdioFormatTest.cc	GoogleTest	12	28	0
-app/cplat/test/src/libcplatTest/crt/stdioTempTest/stdioTempTest.cc	GoogleTest	14	55	0
-app/cplat/test/src/libcplatTest/crt/stdioTest/fgetsTest.cc	GoogleTest	11	31	0
-app/cplat/test/src/libcplatTest/crt/stdioTest/freopenTest.cc	GoogleTest	6	20	0
-app/cplat/test/src/libcplatTest/crt/stdioTest/scanfTest.cc	GoogleTest	4	16	0
-app/cplat/test/src/libcplatTest/crt/stdioTest/snprintfTest.cc	GoogleTest	8	13	0
-app/cplat/test/src/libcplatTest/crt/stdioTest/stdioFailureInjectionTest.cc	GoogleTest	23	117	0
-app/cplat/test/src/libcplatTest/crt/stdlibTest/allocTest.cc	GoogleTest	19	45	0
-app/cplat/test/src/libcplatTest/crt/stdlibTest/envTest.cc	GoogleTest	14	45	0
-app/cplat/test/src/libcplatTest/crt/stdlibTest/parseTest.cc	GoogleTest	30	48	0
-app/cplat/test/src/libcplatTest/crt/stringTest/stringTest.cc	GoogleTest	36	83	0
-app/cplat/test/src/libcplatTest/crt/sysStatFormatTest/sysStatFormatTest.cc	GoogleTest	8	16	0
-app/cplat/test/src/libcplatTest/crt/sysStatTest/fileStatIsRegularTest.cc	GoogleTest	3	3	0
-app/cplat/test/src/libcplatTest/crt/sysStatTest/makedirsTest.cc	GoogleTest	15	43	0
-app/cplat/test/src/libcplatTest/crt/sysStatTest/rmdirTest.cc	GoogleTest	3	5	0
-app/cplat/test/src/libcplatTest/crt/sysStatTest/statTimestampTest.cc	GoogleTest	1	2	0
-app/cplat/test/src/libcplatTest/crt/timeTest/timeTest.cc	GoogleTest	15	66	3
-app/cplat/test/src/libcplatTest/crt/unistdFormatTest/unistdFormatTest.cc	GoogleTest	3	7	0
-app/cplat/test/src/libcplatTest/crt/unistdTest/accessTest.cc	GoogleTest	4	10	0
-app/cplat/test/src/libcplatTest/crt/unistdTest/fdTest.cc	GoogleTest	21	82	0
-app/cplat/test/src/libcplatTest/crt/unistdTest/isattyTest.cc	GoogleTest	4	10	0
-app/cplat/test/src/libcplatTest/crypto/cryptoTest/cryptoFailureInjectionTest.cc	GoogleTest	20	42	0
-app/cplat/test/src/libcplatTest/crypto/cryptoTest/cryptoTest.cc	GoogleTest	13	37	0
-app/cplat/test/src/libcplatTest/crypto/randomTest/randomTest.cc	GoogleTest	6	10	0
-app/cplat/test/src/libcplatTest/errorContractTest/errorContractTest.cc	GoogleTest	4	18	1
-app/cplat/test/src/libcplatTest/exportTest/exportTest.cc	GoogleTest	2	2	1
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableAttachTest.cc	GoogleTest	4	17	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableConfigTest.cc	GoogleTest	8	31	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableGenerationTest.cc	GoogleTest	8	73	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableGrowableTest.cc	GoogleTest	8	43	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableGuardTest.cc	GoogleTest	16	69	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableInsertDirectTest.cc	GoogleTest	5	47	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableLayoutTest.cc	GoogleTest	14	36	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableLifetimeInfiniteTest.cc	GoogleTest	5	32	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableMoreTest.cc	GoogleTest	12	54	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableResizeTest.cc	GoogleTest	14	86	1
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableScanTest.cc	GoogleTest	3	20	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableTest.cc	GoogleTest	16	92	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableTimestampTest.cc	GoogleTest	8	107	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableUpsertTest.cc	GoogleTest	7	30	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableValidateTest.cc	GoogleTest	17	20	0
-app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableVariableStringTest.cc	GoogleTest	13	91	8
-app/cplat/test/src/libcplatTest/locale/uiLanguageTest/uiLanguageTest.cc	GoogleTest	20	60	0
-app/cplat/test/src/libcplatTest/mmap/mmapTest/mmapFailureInjectionTest.cc	GoogleTest	14	59	0
-app/cplat/test/src/libcplatTest/mmap/mmapTest/mmapTest.cc	GoogleTest	8	43	0
-app/cplat/test/src/libcplatTest/net/byteorderTest/byteorderTest.cc	GoogleTest	10	24	3
-app/cplat/test/src/libcplatTest/net/endpointTest/endpointTest.cc	GoogleTest	17	66	9
-app/cplat/test/src/libcplatTest/net/socketTest/socketTest.cc	GoogleTest	45	331	5
-app/cplat/test/src/libcplatTest/prompt/pinnedPromptTest/pinnedPromptCoverageTest.cc	GoogleTest	24	129	1
-app/cplat/test/src/libcplatTest/prompt/pinnedPromptTest/pinnedPromptTest.cc	GoogleTest	39	230	6
-app/cplat/test/src/libcplatTest/prompt/promptEditTest/promptEditTest.cc	GoogleTest	28	50	0
-app/cplat/test/src/libcplatTest/prompt/promptLinuxTest/promptLinuxTest.cc	GoogleTest	14	36	0
-app/cplat/test/src/libcplatTest/prompt/promptTest/promptAllocFailureTest.cc	GoogleTest	8	24	0
-app/cplat/test/src/libcplatTest/prompt/promptTest/promptCoverageTest.cc	GoogleTest	10	31	1
-app/cplat/test/src/libcplatTest/prompt/promptTest/promptTest.cc	GoogleTest	40	98	0
-app/cplat/test/src/libcplatTest/prompt/promptWindowsTest/promptWindowsTest.cc	GoogleTest	13	41	0
-app/cplat/test/src/libcplatTest/regex/regexTest/regexCoverageTest.cc	GoogleTest	6	45	0
-app/cplat/test/src/libcplatTest/regex/regexTest/regexTest.cc	GoogleTest	42	222	3
-app/cplat/test/src/libcplatTest/regex/regexUtf8Test/regexUtf8Test.cc	GoogleTest	12	62	0
-app/cplat/test/src/libcplatTest/runtime/elevatedProcessTest/elevatedProcessTest.cc	GoogleTest	13	57	0
-app/cplat/test/src/libcplatTest/runtime/hostTest/hostTest.cc	GoogleTest	10	34	0
-app/cplat/test/src/libcplatTest/runtime/memoryLockTest/memoryLockTest.cc	GoogleTest	19	76	0
-app/cplat/test/src/libcplatTest/runtime/memoryLockTest/secureZeroTest.cc	GoogleTest	3	7	0
-app/cplat/test/src/libcplatTest/runtime/moduleTest/moduleTest.cc	GoogleTest	24	47	0
-app/cplat/test/src/libcplatTest/runtime/processTest/processTest.cc	GoogleTest	48	232	0
-app/cplat/test/src/libcplatTest/runtime/shutdownTest/shutdownTest.cc	GoogleTest	16	62	0
-app/cplat/test/src/libcplatTest/runtime/symLoaderDisposeTest/symLoaderDisposeTest.cc	GoogleTest	4	11	0
-app/cplat/test/src/libcplatTest/runtime/symLoaderInfoTest/symLoaderInfoTest.cc	GoogleTest	4	7	0
-app/cplat/test/src/libcplatTest/runtime/symLoaderInitTest/symLoaderInitTest.cc	GoogleTest	20	91	16
-app/cplat/test/src/libcplatTest/runtime/symLoaderIsDefaultTest/symLoaderIsDefaultTest.cc	GoogleTest	3	9	0
-app/cplat/test/src/libcplatTest/runtime/symLoaderResolveTest/symLoaderResolveTest.cc	GoogleTest	15	32	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogArgumentTest/stringCatalogArgumentTest.cc	GoogleTest	4	31	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogCatalogTest/stringCatalogCatalogTest.cc	GoogleTest	7	35	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterCompileTest.cc	GoogleTest	9	49	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterDecompileTest.cc	GoogleTest	4	18	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterEditTest.cc	GoogleTest	6	19	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterPatternCompileTest.cc	GoogleTest	6	21	1
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterStructureTest.cc	GoogleTest	13	17	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterValidateTest.cc	GoogleTest	4	5	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterApplyTest.cc	GoogleTest	13	52	1
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterCategoryTest.cc	GoogleTest	4	14	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterCheckTest.cc	GoogleTest	12	62	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterDescribeTest.cc	GoogleTest	11	32	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterPatternTest.cc	GoogleTest	8	56	12
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSlotCompareTest.cc	GoogleTest	23	70	1
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSlotConcurrencyTest.cc	GoogleTest	1	4	4
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSlotTest.cc	GoogleTest	15	39	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSourceTest.cc	GoogleTest	26	108	11
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterTraceOutputTest.cc	GoogleTest	7	18	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFormatTest/stringCatalogFormatTest.cc	GoogleTest	14	36	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFormatTest/stringCatalogVerifyTest.cc	GoogleTest	19	39	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogLanguageTest/stringCatalogLanguageTest.cc	GoogleTest	10	32	0
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogRenderTest/stringCatalogRenderTest.cc	GoogleTest	15	74	4
-app/cplat/test/src/libcplatTest/string_catalog/stringCatalogRenderTest/stringCatalogValidateTest.cc	GoogleTest	4	7	0
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicCompareExchangeTest.cc	GoogleTest	12	36	30
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicConcurrencyTest.cc	GoogleTest	2	6	4
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicExchangeTest.cc	GoogleTest	6	12	6
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicFenceTest.cc	GoogleTest	1	1	0
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicFetchAddSubTest.cc	GoogleTest	8	16	8
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicInitLayoutTest.cc	GoogleTest	2	18	0
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicLoadStoreTest.cc	GoogleTest	7	7	6
-app/cplat/test/src/libcplatTest/sync/atomicTest/atomicWraparoundTest.cc	GoogleTest	8	16	0
-app/cplat/test/src/libcplatTest/sync/syncDescriptorTest/syncDescriptorTest.cc	GoogleTest	6	24	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncAdditionalFailureTest.cc	GoogleTest	45	186	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncBoundaryTest.cc	GoogleTest	7	31	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncFailureInjectionTest.cc	GoogleTest	10	32	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncInterprocessLockTest.cc	GoogleTest	3	27	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncInterprocessRwlockTest.cc	GoogleTest	4	28	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncLocalLockTest.cc	GoogleTest	2	6	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncLocalRwlockTest.cc	GoogleTest	3	10	0
-app/cplat/test/src/libcplatTest/sync/syncTest/syncSleepMsTest.cc	GoogleTest	3	7	0
-app/cplat/test/src/libcplatTest/trace/traceCommonTest/traceCommonTest.cc	GoogleTest	12	37	0
-app/cplat/test/src/libcplatTest/trace/traceTest/traceAllocFailureTest.cc	GoogleTest	4	13	0
-app/cplat/test/src/libcplatTest/trace/traceTest/traceCoverageTest.cc	GoogleTest	18	152	0
-app/cplat/test/src/libcplatTest/trace/traceTest/traceHookTest.cc	GoogleTest	13	29	0
-app/cplat/test/src/libcplatTest/trace/traceTest/traceShutdownTest.cc	GoogleTest	1	3	0
-app/cplat/test/src/libcplatTest/trace/traceTest/traceTest.cc	GoogleTest	56	257	0
-app/cplat/test/src/libcplatTest/trace/trace_etwTest/trace_etwTest.cc	GoogleTest	4	10	0
-app/cplat/test/src/libcplatTest/trace/trace_fileTest/traceFileAllocFailureTest.cc	GoogleTest	4	8	0
-app/cplat/test/src/libcplatTest/trace/trace_fileTest/traceFileCoverageTest.cc	GoogleTest	14	43	1
-app/cplat/test/src/libcplatTest/trace/trace_fileTest/trace_fileTest.cc	GoogleTest	28	147	0
-app/cplat/test/src/libcplatTest/trace/trace_syslogTest/syslogFailureInjectionTest.cc	GoogleTest	24	55	0
-app/cplat/test/src/libcplatTest/trace/trace_syslogTest/trace_syslogTest.cc	GoogleTest	8	20	0
-app/general/bin_test/test_check_functional_spec.py	script	-	-	-
-app/general/bin_test/test_run_bin_tests_python.py	script	-	-	-
-app/lua/test/src/cmd/luaTest/luaTest.cc	GoogleTest	3	8	0
-app/lua/test/src/libluaTest/exportTest/exportTest.cc	GoogleTest	1	1	1
-app/lua/test/src/libluaTest/mockLuaTest/mockLuaTest.cc	GoogleTest	6	14	0
-app/override-sample/test/src/cmd/override-sampleTest/override-sampleTest.cc	GoogleTest	6	19	0
-app/porter/test/src/integration/configFileLoadTest/configFileLoadTest.cc	GoogleTest	1	18	0
-app/porter/test/src/integration/porterSendRecvTest/porterSendRecvTest.cc	GoogleTest	24	211	3
-app/porter/test/src/integration/porterSendRecvTest/tcpMultipathTest.cc	GoogleTest	7	37	0
-app/porter/test/src/integration/porterSendRecvTest/tcp_allocation_failure_test.cc	GoogleTest	1	17	17
-app/porter/test/src/libporter/configListServiceIdsTest/configListServiceIdsTest.cc	GoogleTest	3	12	0
-app/porter/test/src/libporter/configLoadGlobalTest/configLoadGlobalTest.cc	GoogleTest	5	33	0
-app/porter/test/src/libporter/configLoadServiceTest/configLoadServiceTest.cc	GoogleTest	6	45	0
-app/porter/test/src/libporter/exportTest/exportTest.cc	GoogleTest	2	2	1
-app/porter/test/src/libporter/packetTest/packetTest.cc	GoogleTest	4	7	0
-app/porter/test/src/libporter/potrConnectedThreadsTest/potrConnectedThreadsTest.cc	GoogleTest	8	66	0
-app/porter/test/src/libporter/potrPathEventTest/potrPathEventTest.cc	GoogleTest	2	37	0
-app/porter/test/src/libporter/potrSendQueueTest/potrSendQueueTest.cc	GoogleTest	4	6	0
-app/porter/test/src/libporter/potr_peer_disconnect_test/potr_peer_disconnect_test.cc	GoogleTest	7	41	0
-app/porter/test/src/libporter/potr_service_send_test/potr_service_send_test.cc	GoogleTest	9	40	0
-app/porter/test/src/libporter/resultTest/resultTest.cc	GoogleTest	2	4	0
-app/porter/test/src/libporter/seqnumTest/seqnumTest.cc	GoogleTest	4	11	0
-app/porter/test/src/libporter/windowTest/windowTest.cc	GoogleTest	13	64	2
-app/service-sample/test/src/cmd/service-sampleTest/service-sampleTest.cc	GoogleTest	19	53	0
-app/sqlite/test/src/cmd/sqliteTest/sqliteTest.cc	GoogleTest	3	14	0
-app/sqlite/test/src/libsqlite3Test/exportTest/exportTest.cc	GoogleTest	1	1	1
-app/sqlite/test/src/libsqlite3Test/mockSqlite3Test/mockSqlite3Test.cc	GoogleTest	7	20	0
-app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterFileTest.cc	GoogleTest	5	24	0
-app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterOutputTest.cc	GoogleTest	3	10	0
-app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterSequenceNumberTest.cc	GoogleTest	1	3	0
-app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterShareTest.cc	GoogleTest	13	56	2
-app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterWarningTest.cc	GoogleTest	4	9	0
-app/string-catalog-sample/test/src/cmd/sampleMessagesTest/sampleMessagesTest.cc	GoogleTest	8	39	9
-app/string-catalog-sample/test/src/integration/catalogIntegrationTest/catalogIntegrationTest.cc	GoogleTest	13	43	1
-app/string-catalog-sample/test/src/libsamplecatalog/contextTest/contextTest.cc	GoogleTest	3	6	0
-app/string-catalog-sample/test/src/libsamplecatalog/exportTest/exportTest.cc	GoogleTest	3	3	2
-app/struct-meta/bin_test/test_make_path_spaces.py	script	-	-	-
-app/struct-meta/test/src/jsonDecodeTest/jsonDecodeTest.cc	GoogleTest	9	34	0
-app/struct-meta/test/src/jsonEncodeTest/jsonEncodeTest.cc	GoogleTest	6	33	0
-app/struct-meta/test/src/sampleTypesMetaTest/sampleTypesMetaTest.cc	GoogleTest	5	36	2
-app/struct-meta/test/src/structMetaAccessTest/structMetaAccessTest.cc	GoogleTest	7	21	0
-app/struct-meta/test/src/structMetaBuildTest/structMetaBuildTest.cc	GoogleTest	4	41	0
-app/struct-meta/test/src/structMetaBytesTest/structMetaBytesTest.cc	GoogleTest	5	27	0
-app/struct-meta/test/src/structMetaCatalogTest/structMetaCatalogTest.cc	GoogleTest	6	50	0
-app/struct-meta/test/src/structMetaGenEmitArrayTest/structMetaGenEmitArrayTest.cc	GoogleTest	1	2	0
-app/struct-meta/test/src/structMetaIndexTest/structMetaIndexTest.cc	GoogleTest	7	19	0
-app/struct-meta/test/src/structMetaLayoutTest/structMetaLayoutTest.cc	GoogleTest	5	44	0
-app/struct-meta/test/src/structMetaParseDocTest/structMetaParseDocTest.cc	GoogleTest	5	19	0
-app/struct-meta/test/src/structMetaPatchTest/structMetaPatchTest.cc	GoogleTest	16	62	10
-app/struct-meta/test/src/structMetaPrintTest/structMetaPrintTest.cc	GoogleTest	1	4	0
-app/subfolder-sample/test/src/libsubfolder-sampleTest/subfolder-sampleTest/subfolder-sampleTest.cc	GoogleTest	1	1	0
-app/subfolder-sample/test/src/libsubfolder-sampleTest/subfolder-sampleTest/subfolder_a/subfolder-sampleTest_a.cc	GoogleTest	1	1	0
-app/subfolder-sample/test/src/libsubfolder-sampleTest/subfolder-sampleTest/subfolder_b/subfolder-sampleTest_b.cc	GoogleTest	1	1	0
-app/tutorial/test/src/param-test/param-test1.cc	GoogleTest	1	2	2
-app/tutorial/test/src/param-test/param-test2.cc	GoogleTest	1	2	2
-app/tutorial/test/src/param-test/param-test3.cc	GoogleTest	1	2	2
-app/tutorial/test/src/static-access/static-access.cc	GoogleTest	1	1	0
-app/zlib/bin_test/test_extract_package.py	script	-	-	-
-app/zlib/test/src/cmd/sampleTest/sampleTest.cc	GoogleTest	4	8	0
-app/zlib/test/src/cmd/zlibTest/zlibTest.cc	GoogleTest	6	19	3
-app/zlib/test/src/libzlibTest/exportTest/exportTest.cc	GoogleTest	1	1	1
-app/zlib/test/src/libzlibTest/mockZlibTest/mockZlibTest.cc	GoogleTest	5	15	0
-framework/docsfw/bin_internal/modules/LibDeflate/tests/dev_scripts/release.sh	script	-	-	-
-framework/docsfw/bin_internal/modules/LibDeflate/tests/dev_scripts/test_from_random_files_in_disk.py	script	-	-	-
-framework/docsfw/bin_internal/modules/LibDeflate/tests/dev_scripts/test_from_random_files_in_disk_linux.py	script	-	-	-
-framework/docsfw/bin_test/test_caption_line_breaks.py	script	-	-	-
-framework/docsfw/bin_test/test_docx_heading_indent.py	script	-	-	-
-framework/docsfw/bin_test/test_heading_content_indent.py	script	-	-	-
-framework/docsfw/bin_test/test_heading_numbering.py	script	-	-	-
-framework/docsfw/bin_test/test_heading_numbering_browser.js	script	-	-	-
-framework/docsfw/bin_test/test_lazy_nav_browser.js	script	-	-	-
-framework/docsfw/bin_test/test_livedocs_path_spaces.py	script	-	-	-
-framework/docsfw/bin_test/test_page_libraries_browser.js	script	-	-	-
-framework/docsfw/bin_test/test_page_performance_browser.js	script	-	-	-
-framework/docsfw/bin_test/test_pandoc_ui.py	script	-	-	-
-framework/docsfw/bin_test/test_path_spaces.py	script	-	-	-
-framework/docsfw/bin_test/test_testfw_count_comments.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_code_expander_browser.js	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_collapsible_browser.js	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_expand_toc.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_heading_indent.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_heading_numbering.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_index_links.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_link_filters.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_abstract.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_autostage.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_details_switch.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_doxygen.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_git_link.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_header.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_nav.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_nav_browser.js	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_nav_item.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_nav_item_browser.js	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_progress.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_publish_info.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_search.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_variant.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_versioned.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_livedocs_viewport.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_resolve_python_components.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_stage_livedocs.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_stop_livedocs_serve.py	script	-	-	-
-framework/docsfw/livedocs/bin_test/test_vendor_assets.py	script	-	-	-
-framework/doxyfw/bin_test/detail_copy_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_context_menu_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_depth_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_file_reclick_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_file_to_fn_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_interaction_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_large_layout_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_reselect_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_scope_layout_probe.js	script	-	-	-
-framework/doxyfw/bin_test/overview_seed_fn_click_probe.js	script	-	-	-
-framework/doxyfw/bin_test/page_link_probe.js	script	-	-	-
-framework/doxyfw/bin_test/resolve-puppeteer.js	script	-	-	-
-framework/doxyfw/bin_test/test_complete_namespace_index.py	script	-	-	-
-framework/doxyfw/bin_test/test_doxybook2_templates.py	script	-	-	-
-framework/doxyfw/bin_test/test_fix_member_anchors.py	script	-	-	-
-framework/doxyfw/bin_test/test_generate_dependency_report.py	script	-	-	-
-framework/doxyfw/bin_test/test_inject_groups.py	script	-	-	-
-framework/doxyfw/bin_test/test_materialize_group_members.py	script	-	-	-
-framework/doxyfw/bin_test/test_path_spaces.py	script	-	-	-
-framework/doxyfw/bin_test/test_postprocess.py	script	-	-	-
-framework/doxyfw/bin_test/test_preprocess.py	script	-	-	-
-framework/doxyfw/bin_test/url_state_probe.js	script	-	-	-
-framework/makefw/bin_test/apply_patches_selftest.py	script	-	-	-
-framework/makefw/bin_test/link_objects_selftest.py	script	-	-	-
-framework/makefw/bin_test/msvc_compile_heap_retry_selftest.ps1	script	-	-	-
-framework/makefw/bin_test/msvc_console_mutex_selftest.ps1	script	-	-	-
-framework/makefw/bin_test/test_flex_bison_warnings.py	script	-	-	-
-framework/makefw/bin_test/test_path_spaces.py	script	-	-	-
-framework/testfw/bin_internal/test_summary.py	script	-	-	-
-framework/testfw/bin_test/test_dotnet_path_spaces.py	script	-	-	-
-framework/testfw/bin_test/test_gcovr_json_normalize.py	script	-	-	-
-framework/testfw/bin_test/test_path_spaces.py	script	-	-	-
-framework/testfw/bin_test/test_summary_counts.py	script	-	-	-
-framework/testfw/test/src/exportCheckTest/exportCheckTest.cc	GoogleTest	2	3	1
-framework/testfw/test/src/mockInstanceTest/mockInstanceTest.cc	GoogleTest	2	4	0
+path	framework	definitions	check_tags	explicit_counts	subprocedures	references	reference_counts	category_overrides
+app/c-modernization-kit/.agents/skills/release-tag/scripts/test_release.py	script	-	-	-	-	-	-	-
+app/calc.net/test/src/CalcLib.Tests/CalcExceptionTests.cs	xUnit	5	14	0	0	0	0	0
+app/calc.net/test/src/CalcLib.Tests/CalcLibraryTests.cs	xUnit	15	36	14	0	0	0	0
+app/calc.net/test/src/CalcLib.Tests/CrossPlatformTests.cs	xUnit	3	11	0	0	0	0	0
+app/calc/test/src/cmd/addTest/addTest.cc	GoogleTest	4	7	0	0	0	0	0
+app/calc/test/src/cmd/calcTest/calcTest.cc	GoogleTest	3	5	0	0	0	0	0
+app/calc/test/src/cmd/shared-and-static-calcTest/shared-and-static-calcTest.cc	GoogleTest	3	7	0	1	3	0	0
+app/calc/test/src/libcalcTest/exportTest/exportTest.cc	GoogleTest	2	1	0	1	3	0	0
+app/calc/test/src/libcalcbaseTest/addTest/addTest.cc	GoogleTest	3	5	0	0	0	0	0
+app/calc/test/src/libcalcbaseTest/divideTest/divideTest.cc	GoogleTest	5	8	0	0	0	0	0
+app/calc/test/src/libcalcbaseTest/multiplyTest/multiplyTest.cc	GoogleTest	4	7	0	0	0	0	0
+app/calc/test/src/libcalcbaseTest/subtractTest/subtractTest.cc	GoogleTest	4	11	0	0	0	0	0
+app/cjson/test/src/cmd/cjsonIntegerTest/cjsonIntegerTest.cc	GoogleTest	12	45	0	0	0	0	0
+app/cjson/test/src/cmd/cjsonTest/cjsonTest.cc	GoogleTest	3	9	0	0	0	0	0
+app/cjson/test/src/libcjsonTest/exportTest/exportTest.cc	GoogleTest	1	0	0	0	1	0	0
+app/cjson/test/src/libcjsonTest/mockCjsonTest/mockCjsonTest.cc	GoogleTest	7	20	0	0	0	0	0
+app/cplat/bin_test/test_string_catalog_gen.py	script	-	-	-	-	-	-	-
+app/cplat/test/src/cmd/argparser-sampleTest/argparser-sampleTest.cc	GoogleTest	4	12	0	0	0	0	0
+app/cplat/test/src/cmd/compress-cliTest/compress-cliTest.cc	GoogleTest	13	151	0	0	0	0	0
+app/cplat/test/src/cmd/etw-viewerTest/etw-viewerTest.cc	GoogleTest	11	28	0	1	11	0	0
+app/cplat/test/src/cmd/hashtable-required-sizeTest/hashtable-required-sizeTest.cc	GoogleTest	3	3	0	0	0	0	0
+app/cplat/test/src/cmd/show-ui-languageTest/show-ui-languageTest.cc	GoogleTest	5	12	0	1	2	0	0
+app/cplat/test/src/cmd/trace-cliTest/trace-cliTest.cc	GoogleTest	12	60	0	2	24	0	0
+app/cplat/test/src/integration/hashtable/hashtableIntegrationTest/hashtableIntegrationTest.cc	GoogleTest	5	62	0	0	0	0	0
+app/cplat/test/src/integration/trace/etwSessionIntegrationTest/etwSessionIntegrationTest.cc	GoogleTest	9	61	2	2	6	0	0
+app/cplat/test/src/integration/trace/traceFileIntegrationTest/traceFileIntegrationTest.cc	GoogleTest	8	48	3	0	0	0	0
+app/cplat/test/src/libcplatTest/argparser/argparserTest/argparserAllocFailureTest.cc	GoogleTest	13	29	0	2	26	0	0
+app/cplat/test/src/libcplatTest/argparser/argparserTest/argparserTest.cc	GoogleTest	76	407	4	0	0	0	0
+app/cplat/test/src/libcplatTest/base/errorMessageTest/errorMessageTest.cc	GoogleTest	11	32	0	0	0	0	0
+app/cplat/test/src/libcplatTest/base/errorTest/errorTest.cc	GoogleTest	16	75	2	0	0	0	0
+app/cplat/test/src/libcplatTest/base/resultTest/resultTest.cc	GoogleTest	4	9	1	0	0	0	0
+app/cplat/test/src/libcplatTest/clock/clockTest/clockTest.cc	GoogleTest	23	96	0	1	2	0	1
+app/cplat/test/src/libcplatTest/clock/timespecTest/timespecTest.cc	GoogleTest	15	39	0	0	0	0	0
+app/cplat/test/src/libcplatTest/compress/compressTest/compressTest.cc	GoogleTest	18	58	0	0	0	0	0
+app/cplat/test/src/libcplatTest/console/consoleTest/consoleAttachTest.cc	GoogleTest	2	4	0	0	0	0	0
+app/cplat/test/src/libcplatTest/console/consoleTest/consoleTest.cc	GoogleTest	9	11	0	1	9	0	0
+app/cplat/test/src/libcplatTest/console/consoleTest/consoleWriteTest.cc	GoogleTest	8	15	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/fcntlFormatTest/fcntlFormatTest.cc	GoogleTest	3	7	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/fcntlTest/fcntlTest.cc	GoogleTest	6	13	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/fileTest/fileFailureInjectionTest.cc	GoogleTest	20	42	0	2	40	0	0
+app/cplat/test/src/libcplatTest/crt/fileTest/fileTest.cc	GoogleTest	23	103	0	0	23	0	0
+app/cplat/test/src/libcplatTest/crt/fileTest/fileTestCommon.h	GoogleTest support	0	0	0	1	0	0	0
+app/cplat/test/src/libcplatTest/crt/fileTimestampTest/fileTimestampFailureInjectionTest.cc	GoogleTest	10	36	0	4	20	0	0
+app/cplat/test/src/libcplatTest/crt/fileTimestampTest/fileTimestampTest.cc	GoogleTest	12	45	0	4	28	0	0
+app/cplat/test/src/libcplatTest/crt/pathFormatTest/pathFormatTest.cc	GoogleTest	11	23	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathNameTest/pathBasenameTest.cc	GoogleTest	9	9	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathNameTest/pathDirnameTest.cc	GoogleTest	14	30	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathNameTest/pathExtensionTest.cc	GoogleTest	6	6	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathNameTest/pathJoinTest.cc	GoogleTest	17	35	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathNameTest/pathNameInternalTest.cc	GoogleTest	4	8	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathNameTest/pathStripExtensionTest.cc	GoogleTest	7	15	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathTest/pathConcatTest.cc	GoogleTest	15	40	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/pathTest/pathGetFullTest.cc	GoogleTest	14	46	0	3	10	0	0
+app/cplat/test/src/libcplatTest/crt/pathTest/pathsEqualTest.cc	GoogleTest	9	21	0	3	13	0	0
+app/cplat/test/src/libcplatTest/crt/stdioFormatTest/stdioFormatTest.cc	GoogleTest	12	28	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdioTempTest/stdioTempTest.cc	GoogleTest	14	55	0	1	14	0	0
+app/cplat/test/src/libcplatTest/crt/stdioTest/fgetsTest.cc	GoogleTest	11	31	0	1	11	0	0
+app/cplat/test/src/libcplatTest/crt/stdioTest/freopenTest.cc	GoogleTest	6	20	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdioTest/scanfTest.cc	GoogleTest	4	16	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdioTest/snprintfTest.cc	GoogleTest	8	13	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdioTest/stdioFailureInjectionTest.cc	GoogleTest	23	117	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdlibTest/allocTest.cc	GoogleTest	19	45	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdlibTest/envTest.cc	GoogleTest	14	45	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stdlibTest/parseTest.cc	GoogleTest	30	48	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/stringTest/stringTest.cc	GoogleTest	36	83	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/sysStatFormatTest/sysStatFormatTest.cc	GoogleTest	8	16	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/sysStatTest/fileStatIsRegularTest.cc	GoogleTest	3	3	0	2	6	0	0
+app/cplat/test/src/libcplatTest/crt/sysStatTest/makedirsTest.cc	GoogleTest	15	43	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/sysStatTest/rmdirTest.cc	GoogleTest	3	5	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/sysStatTest/statTimestampTest.cc	GoogleTest	1	2	0	3	3	0	0
+app/cplat/test/src/libcplatTest/crt/timeTest/timeTest.cc	GoogleTest	15	66	3	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/unistdFormatTest/unistdFormatTest.cc	GoogleTest	3	7	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/unistdTest/accessTest.cc	GoogleTest	4	10	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/unistdTest/fdTest.cc	GoogleTest	21	82	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crt/unistdTest/isattyTest.cc	GoogleTest	4	10	0	0	0	0	0
+app/cplat/test/src/libcplatTest/crypto/cryptoTest/cryptoFailureInjectionTest.cc	GoogleTest	20	42	0	1	20	0	0
+app/cplat/test/src/libcplatTest/crypto/cryptoTest/cryptoTest.cc	GoogleTest	13	37	0	1	13	0	0
+app/cplat/test/src/libcplatTest/crypto/randomTest/randomTest.cc	GoogleTest	6	10	0	0	0	0	0
+app/cplat/test/src/libcplatTest/errorContractTest/errorContractTest.cc	GoogleTest	4	18	1	0	0	0	0
+app/cplat/test/src/libcplatTest/exportTest/exportTest.cc	GoogleTest	2	1	0	1	3	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableAttachTest.cc	GoogleTest	4	17	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableConfigTest.cc	GoogleTest	8	31	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableGenerationTest.cc	GoogleTest	8	73	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableGrowableTest.cc	GoogleTest	8	43	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableGuardTest.cc	GoogleTest	16	69	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableInsertDirectTest.cc	GoogleTest	5	47	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableLayoutTest.cc	GoogleTest	14	36	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableLifetimeInfiniteTest.cc	GoogleTest	5	32	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableMoreTest.cc	GoogleTest	12	54	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableResizeTest.cc	GoogleTest	14	86	1	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableScanTest.cc	GoogleTest	3	20	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableTest.cc	GoogleTest	16	92	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableTimestampTest.cc	GoogleTest	8	107	0	1	8	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableUpsertTest.cc	GoogleTest	7	30	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableValidateTest.cc	GoogleTest	17	20	0	0	0	0	0
+app/cplat/test/src/libcplatTest/hashtable/hashtableTest/hashtableVariableStringTest.cc	GoogleTest	13	91	8	0	0	0	0
+app/cplat/test/src/libcplatTest/locale/uiLanguageTest/uiLanguageTest.cc	GoogleTest	20	60	0	2	28	0	0
+app/cplat/test/src/libcplatTest/mmap/mmapTest/mmapFailureInjectionTest.cc	GoogleTest	14	59	0	0	20	0	0
+app/cplat/test/src/libcplatTest/mmap/mmapTest/mmapTest.cc	GoogleTest	8	43	0	0	9	0	0
+app/cplat/test/src/libcplatTest/mmap/mmapTest/mmapTestCommon.h	GoogleTest support	0	0	0	2	0	0	0
+app/cplat/test/src/libcplatTest/net/byteorderTest/byteorderTest.cc	GoogleTest	10	24	3	0	0	0	0
+app/cplat/test/src/libcplatTest/net/endpointTest/endpointTest.cc	GoogleTest	17	60	0	3	43	0	0
+app/cplat/test/src/libcplatTest/net/socketTest/socketTest.cc	GoogleTest	45	331	0	4	52	0	2
+app/cplat/test/src/libcplatTest/prompt/pinnedPromptTest/pinnedPromptCoverageTest.cc	GoogleTest	24	129	1	0	0	0	0
+app/cplat/test/src/libcplatTest/prompt/pinnedPromptTest/pinnedPromptTest.cc	GoogleTest	39	230	0	1	6	0	0
+app/cplat/test/src/libcplatTest/prompt/promptEditTest/promptEditTest.cc	GoogleTest	28	50	0	0	0	0	0
+app/cplat/test/src/libcplatTest/prompt/promptLinuxTest/promptLinuxTest.cc	GoogleTest	14	36	0	1	14	0	0
+app/cplat/test/src/libcplatTest/prompt/promptTest/promptAllocFailureTest.cc	GoogleTest	8	24	0	2	16	0	0
+app/cplat/test/src/libcplatTest/prompt/promptTest/promptCoverageTest.cc	GoogleTest	10	31	1	2	20	0	0
+app/cplat/test/src/libcplatTest/prompt/promptTest/promptTest.cc	GoogleTest	40	98	0	2	80	0	0
+app/cplat/test/src/libcplatTest/prompt/promptWindowsTest/promptWindowsTest.cc	GoogleTest	13	41	0	0	0	0	0
+app/cplat/test/src/libcplatTest/regex/regexTest/regexCoverageTest.cc	GoogleTest	6	45	0	1	6	0	0
+app/cplat/test/src/libcplatTest/regex/regexTest/regexTest.cc	GoogleTest	42	222	3	0	0	0	0
+app/cplat/test/src/libcplatTest/regex/regexUtf8Test/regexUtf8Test.cc	GoogleTest	12	62	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/elevatedProcessTest/elevatedProcessTest.cc	GoogleTest	13	57	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/hostTest/hostTest.cc	GoogleTest	10	34	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/memoryLockTest/memoryLockTest.cc	GoogleTest	19	76	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/memoryLockTest/secureZeroTest.cc	GoogleTest	3	7	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/moduleTest/moduleTest.cc	GoogleTest	24	47	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/processTest/processTest.cc	GoogleTest	48	232	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/shutdownTest/shutdownTest.cc	GoogleTest	16	62	0	2	32	0	0
+app/cplat/test/src/libcplatTest/runtime/symLoaderDisposeTest/symLoaderDisposeTest.cc	GoogleTest	4	11	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/symLoaderInfoTest/symLoaderInfoTest.cc	GoogleTest	4	7	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/symLoaderInitTest/symLoaderInitTest.cc	GoogleTest	20	81	0	2	17	0	6
+app/cplat/test/src/libcplatTest/runtime/symLoaderIsDefaultTest/symLoaderIsDefaultTest.cc	GoogleTest	3	9	0	0	0	0	0
+app/cplat/test/src/libcplatTest/runtime/symLoaderResolveTest/symLoaderResolveTest.cc	GoogleTest	15	32	0	2	27	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogArgumentTest/stringCatalogArgumentTest.cc	GoogleTest	4	31	0	1	4	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogCatalogTest/stringCatalogCatalogTest.cc	GoogleTest	7	35	0	0	0	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterCompileTest.cc	GoogleTest	9	49	0	0	0	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterDecompileTest.cc	GoogleTest	4	18	0	0	0	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterEditTest.cc	GoogleTest	6	19	0	0	0	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterPatternCompileTest.cc	GoogleTest	6	21	1	1	6	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterStructureTest.cc	GoogleTest	13	17	0	1	13	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterImageTest/stringCatalogFilterValidateTest.cc	GoogleTest	4	5	0	0	0	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterApplyTest.cc	GoogleTest	13	52	1	2	26	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterCategoryTest.cc	GoogleTest	4	14	0	2	8	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterCheckTest.cc	GoogleTest	12	62	0	2	24	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterDescribeTest.cc	GoogleTest	11	32	0	2	22	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterPatternTest.cc	GoogleTest	8	36	0	5	43	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSlotCompareTest.cc	GoogleTest	23	70	1	3	71	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSlotConcurrencyTest.cc	GoogleTest	1	4	4	2	2	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSlotTest.cc	GoogleTest	15	39	0	2	30	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterSourceTest.cc	GoogleTest	26	108	11	3	65	3	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFilterSlotTest/stringCatalogFilterTraceOutputTest.cc	GoogleTest	7	18	0	3	18	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFormatTest/stringCatalogFormatTest.cc	GoogleTest	14	36	0	1	14	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogFormatTest/stringCatalogVerifyTest.cc	GoogleTest	19	39	0	1	19	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogLanguageTest/stringCatalogLanguageTest.cc	GoogleTest	10	28	0	3	25	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogRenderTest/stringCatalogRenderTest.cc	GoogleTest	15	74	4	1	15	0	0
+app/cplat/test/src/libcplatTest/string_catalog/stringCatalogRenderTest/stringCatalogValidateTest.cc	GoogleTest	4	7	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicCompareExchangeTest.cc	GoogleTest	12	36	30	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicConcurrencyTest.cc	GoogleTest	2	6	4	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicExchangeTest.cc	GoogleTest	6	12	6	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicFenceTest.cc	GoogleTest	1	1	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicFetchAddSubTest.cc	GoogleTest	8	16	8	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicInitLayoutTest.cc	GoogleTest	2	18	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicLoadStoreTest.cc	GoogleTest	7	7	6	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/atomicTest/atomicWraparoundTest.cc	GoogleTest	8	16	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncDescriptorTest/syncDescriptorTest.cc	GoogleTest	6	24	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncAdditionalFailureTest.cc	GoogleTest	45	186	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncBoundaryTest.cc	GoogleTest	7	31	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncFailureInjectionTest.cc	GoogleTest	10	32	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncInterprocessLockTest.cc	GoogleTest	3	27	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncInterprocessRwlockTest.cc	GoogleTest	4	28	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncLocalLockTest.cc	GoogleTest	2	6	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncLocalRwlockTest.cc	GoogleTest	3	10	0	0	0	0	0
+app/cplat/test/src/libcplatTest/sync/syncTest/syncSleepMsTest.cc	GoogleTest	3	7	0	0	0	0	0
+app/cplat/test/src/libcplatTest/trace/traceCommonTest/traceCommonTest.cc	GoogleTest	12	37	0	0	0	0	0
+app/cplat/test/src/libcplatTest/trace/traceTest/traceAllocFailureTest.cc	GoogleTest	4	13	0	1	4	0	0
+app/cplat/test/src/libcplatTest/trace/traceTest/traceCoverageTest.cc	GoogleTest	18	152	0	2	36	0	0
+app/cplat/test/src/libcplatTest/trace/traceTest/traceHookTest.cc	GoogleTest	13	29	0	2	25	0	0
+app/cplat/test/src/libcplatTest/trace/traceTest/traceShutdownTest.cc	GoogleTest	1	3	0	2	2	0	0
+app/cplat/test/src/libcplatTest/trace/traceTest/traceTest.cc	GoogleTest	56	257	0	2	109	1	0
+app/cplat/test/src/libcplatTest/trace/trace_etwTest/trace_etwTest.cc	GoogleTest	4	10	0	0	0	0	0
+app/cplat/test/src/libcplatTest/trace/trace_fileTest/traceFileAllocFailureTest.cc	GoogleTest	4	8	0	1	4	0	0
+app/cplat/test/src/libcplatTest/trace/trace_fileTest/traceFileCoverageTest.cc	GoogleTest	14	43	1	1	14	0	0
+app/cplat/test/src/libcplatTest/trace/trace_fileTest/trace_fileTest.cc	GoogleTest	28	147	0	1	28	0	0
+app/cplat/test/src/libcplatTest/trace/trace_syslogTest/syslogFailureInjectionTest.cc	GoogleTest	24	55	0	0	0	0	0
+app/cplat/test/src/libcplatTest/trace/trace_syslogTest/trace_syslogTest.cc	GoogleTest	8	20	0	0	0	0	0
+app/general/bin_test/test_check_functional_spec.py	script	-	-	-	-	-	-	-
+app/general/bin_test/test_run_bin_tests_python.py	script	-	-	-	-	-	-	-
+app/lua/test/src/cmd/luaTest/luaTest.cc	GoogleTest	3	8	0	0	0	0	0
+app/lua/test/src/libluaTest/exportTest/exportTest.cc	GoogleTest	1	0	0	0	1	0	0
+app/lua/test/src/libluaTest/mockLuaTest/mockLuaTest.cc	GoogleTest	6	14	0	0	0	0	0
+app/override-sample/test/src/cmd/override-sampleTest/override-sampleTest.cc	GoogleTest	6	19	0	3	13	0	0
+app/porter/test/src/integration/configFileLoadTest/configFileLoadTest.cc	GoogleTest	1	18	0	0	0	0	0
+app/porter/test/src/integration/porterSendRecvTest/porterSendRecvTest.cc	GoogleTest	24	211	3	2	48	0	0
+app/porter/test/src/integration/porterSendRecvTest/tcpMultipathTest.cc	GoogleTest	7	37	0	5	39	0	0
+app/porter/test/src/integration/porterSendRecvTest/tcp_allocation_failure_test.cc	GoogleTest	1	17	17	2	2	2	0
+app/porter/test/src/libporter/configListServiceIdsTest/configListServiceIdsTest.cc	GoogleTest	3	12	0	0	0	0	0
+app/porter/test/src/libporter/configLoadGlobalTest/configLoadGlobalTest.cc	GoogleTest	5	33	0	0	0	0	0
+app/porter/test/src/libporter/configLoadServiceTest/configLoadServiceTest.cc	GoogleTest	6	45	0	0	0	0	0
+app/porter/test/src/libporter/exportTest/exportTest.cc	GoogleTest	2	1	0	1	3	0	0
+app/porter/test/src/libporter/packetTest/packetTest.cc	GoogleTest	4	7	0	0	0	0	0
+app/porter/test/src/libporter/potrConnectedThreadsTest/potrConnectedThreadsTest.cc	GoogleTest	8	66	0	1	8	0	0
+app/porter/test/src/libporter/potrPathEventTest/potrPathEventTest.cc	GoogleTest	2	38	0	2	3	1	0
+app/porter/test/src/libporter/potrSendQueueTest/potrSendQueueTest.cc	GoogleTest	4	6	0	2	8	0	0
+app/porter/test/src/libporter/potr_peer_disconnect_test/potr_peer_disconnect_test.cc	GoogleTest	7	41	0	2	14	0	0
+app/porter/test/src/libporter/potr_service_send_test/potr_service_send_test.cc	GoogleTest	9	40	0	3	20	0	0
+app/porter/test/src/libporter/resultTest/resultTest.cc	GoogleTest	2	4	0	0	0	0	0
+app/porter/test/src/libporter/seqnumTest/seqnumTest.cc	GoogleTest	4	11	0	0	0	0	0
+app/porter/test/src/libporter/windowTest/windowTest.cc	GoogleTest	13	64	2	2	26	0	0
+app/service-sample/test/src/cmd/service-sampleTest/service-sampleTest.cc	GoogleTest	19	53	0	1	19	0	0
+app/sqlite/test/src/cmd/sqliteTest/sqliteTest.cc	GoogleTest	3	14	0	0	0	0	0
+app/sqlite/test/src/libsqlite3Test/exportTest/exportTest.cc	GoogleTest	1	0	0	0	1	0	0
+app/sqlite/test/src/libsqlite3Test/mockSqlite3Test/mockSqlite3Test.cc	GoogleTest	7	20	0	0	0	0	0
+app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterFileTest.cc	GoogleTest	5	24	0	3	14	0	0
+app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterOutputTest.cc	GoogleTest	3	10	0	2	6	0	0
+app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterSequenceNumberTest.cc	GoogleTest	1	3	0	0	0	0	0
+app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterShareTest.cc	GoogleTest	13	56	2	4	33	0	0
+app/string-catalog-sample/test/src/cmd/sampleFilterTest/sampleFilterWarningTest.cc	GoogleTest	4	9	0	1	4	0	0
+app/string-catalog-sample/test/src/cmd/sampleMessagesTest/sampleMessagesTest.cc	GoogleTest	8	39	9	1	8	0	0
+app/string-catalog-sample/test/src/integration/catalogIntegrationTest/catalogIntegrationTest.cc	GoogleTest	13	43	1	1	13	0	0
+app/string-catalog-sample/test/src/libsamplecatalog/contextTest/contextTest.cc	GoogleTest	3	6	0	0	0	0	0
+app/string-catalog-sample/test/src/libsamplecatalog/exportTest/exportTest.cc	GoogleTest	3	2	1	1	4	0	0
+app/struct-meta/bin_test/test_make_path_spaces.py	script	-	-	-	-	-	-	-
+app/struct-meta/test/src/jsonDecodeTest/jsonDecodeTest.cc	GoogleTest	9	34	0	0	0	0	0
+app/struct-meta/test/src/jsonEncodeTest/jsonEncodeTest.cc	GoogleTest	6	33	0	0	0	0	0
+app/struct-meta/test/src/sampleTypesMetaTest/sampleTypesMetaTest.cc	GoogleTest	5	36	2	0	0	0	0
+app/struct-meta/test/src/structMetaAccessTest/structMetaAccessTest.cc	GoogleTest	7	21	0	0	0	0	0
+app/struct-meta/test/src/structMetaBuildTest/structMetaBuildTest.cc	GoogleTest	4	41	0	0	0	0	0
+app/struct-meta/test/src/structMetaBytesTest/structMetaBytesTest.cc	GoogleTest	5	27	0	0	0	0	0
+app/struct-meta/test/src/structMetaCatalogTest/structMetaCatalogTest.cc	GoogleTest	6	50	0	0	0	0	0
+app/struct-meta/test/src/structMetaGenEmitArrayTest/structMetaGenEmitArrayTest.cc	GoogleTest	1	2	0	0	0	0	0
+app/struct-meta/test/src/structMetaIndexTest/structMetaIndexTest.cc	GoogleTest	7	19	0	0	0	0	0
+app/struct-meta/test/src/structMetaLayoutTest/structMetaLayoutTest.cc	GoogleTest	5	44	0	0	0	0	0
+app/struct-meta/test/src/structMetaParseDocTest/structMetaParseDocTest.cc	GoogleTest	5	19	0	0	0	0	0
+app/struct-meta/test/src/structMetaPatchTest/structMetaPatchTest.cc	GoogleTest	16	55	0	2	11	0	0
+app/struct-meta/test/src/structMetaPrintTest/structMetaPrintTest.cc	GoogleTest	1	4	0	0	0	0	0
+app/subfolder-sample/test/src/libsubfolder-sampleTest/subfolder-sampleTest/subfolder-sampleTest.cc	GoogleTest	1	1	0	0	0	0	0
+app/subfolder-sample/test/src/libsubfolder-sampleTest/subfolder-sampleTest/subfolder_a/subfolder-sampleTest_a.cc	GoogleTest	1	1	0	0	0	0	0
+app/subfolder-sample/test/src/libsubfolder-sampleTest/subfolder-sampleTest/subfolder_b/subfolder-sampleTest_b.cc	GoogleTest	1	1	0	0	0	0	0
+app/tutorial/test/src/param-test/param-test1.cc	GoogleTest	1	2	2	0	0	0	0
+app/tutorial/test/src/param-test/param-test2.cc	GoogleTest	1	2	2	0	0	0	0
+app/tutorial/test/src/param-test/param-test3.cc	GoogleTest	1	2	2	0	0	0	0
+app/tutorial/test/src/static-access/static-access.cc	GoogleTest	1	1	0	0	0	0	0
+app/zlib/bin_test/test_extract_package.py	script	-	-	-	-	-	-	-
+app/zlib/test/src/cmd/sampleTest/sampleTest.cc	GoogleTest	4	8	0	0	0	0	0
+app/zlib/test/src/cmd/zlibTest/zlibTest.cc	GoogleTest	6	19	3	1	6	0	0
+app/zlib/test/src/libzlibTest/exportTest/exportTest.cc	GoogleTest	1	0	0	0	1	0	0
+app/zlib/test/src/libzlibTest/mockZlibTest/mockZlibTest.cc	GoogleTest	5	15	0	1	5	0	0
+framework/docsfw/bin_internal/modules/LibDeflate/tests/dev_scripts/release.sh	script	-	-	-	-	-	-	-
+framework/docsfw/bin_internal/modules/LibDeflate/tests/dev_scripts/test_from_random_files_in_disk.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_internal/modules/LibDeflate/tests/dev_scripts/test_from_random_files_in_disk_linux.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_caption_line_breaks.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_docx_heading_indent.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_heading_content_indent.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_heading_numbering.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_heading_numbering_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_lazy_nav_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_livedocs_path_spaces.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_page_libraries_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_page_performance_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_pandoc_ui.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_path_spaces.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_test_comment_subprocedures.py	script	-	-	-	-	-	-	-
+framework/docsfw/bin_test/test_testfw_count_comments.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_code_expander_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_collapsible_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_expand_toc.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_heading_indent.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_heading_numbering.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_index_links.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_link_filters.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_abstract.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_autostage.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_details_switch.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_doxygen.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_git_link.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_header.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_nav.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_nav_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_nav_item.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_nav_item_browser.js	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_progress.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_publish_info.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_search.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_variant.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_versioned.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_livedocs_viewport.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_resolve_python_components.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_stage_livedocs.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_stop_livedocs_serve.py	script	-	-	-	-	-	-	-
+framework/docsfw/livedocs/bin_test/test_vendor_assets.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/detail_copy_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_context_menu_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_depth_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_file_reclick_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_file_to_fn_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_interaction_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_large_layout_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_reselect_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_scope_layout_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/overview_seed_fn_click_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/page_link_probe.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/resolve-puppeteer.js	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_complete_namespace_index.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_doxybook2_templates.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_fix_member_anchors.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_generate_dependency_report.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_inject_groups.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_materialize_group_members.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_path_spaces.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_postprocess.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/test_preprocess.py	script	-	-	-	-	-	-	-
+framework/doxyfw/bin_test/url_state_probe.js	script	-	-	-	-	-	-	-
+framework/makefw/bin_test/apply_patches_selftest.py	script	-	-	-	-	-	-	-
+framework/makefw/bin_test/link_objects_selftest.py	script	-	-	-	-	-	-	-
+framework/makefw/bin_test/msvc_compile_heap_retry_selftest.ps1	script	-	-	-	-	-	-	-
+framework/makefw/bin_test/msvc_console_mutex_selftest.ps1	script	-	-	-	-	-	-	-
+framework/makefw/bin_test/test_flex_bison_warnings.py	script	-	-	-	-	-	-	-
+framework/makefw/bin_test/test_path_spaces.py	script	-	-	-	-	-	-	-
+framework/testfw/bin_internal/test_summary.py	script	-	-	-	-	-	-	-
+framework/testfw/bin_test/test_dotnet_path_spaces.py	script	-	-	-	-	-	-	-
+framework/testfw/bin_test/test_gcovr_json_normalize.py	script	-	-	-	-	-	-	-
+framework/testfw/bin_test/test_path_spaces.py	script	-	-	-	-	-	-	-
+framework/testfw/bin_test/test_subprocedure_reports.py	script	-	-	-	-	-	-	-
+framework/testfw/bin_test/test_summary_counts.py	script	-	-	-	-	-	-	-
+framework/testfw/libsrc/test_com/export_check.cc	GoogleTest support	0	2	0	1	0	0	0
+framework/testfw/test/src/exportCheckTest/exportCheckTest.cc	GoogleTest	2	2	0	0	3	0	0
+framework/testfw/test/src/mockInstanceTest/mockInstanceTest.cc	GoogleTest	2	4	0	0	0	0	0

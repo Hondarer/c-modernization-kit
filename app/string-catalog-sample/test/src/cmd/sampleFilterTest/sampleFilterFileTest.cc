@@ -19,6 +19,7 @@ using namespace sample_filter_test;
 class sampleFilterFileTest : public Test
 {
   protected:
+    // [サブ手順 名前=sampleFilterFileTest.SetUp]
     void SetUp() override
     {
         char temp_dir[PLATFORM_PATH_MAX];
@@ -33,14 +34,18 @@ class sampleFilterFileTest : public Test
         std::memset(&result_, 0, sizeof(result_));
         std::memset(diagnostics_, 0, sizeof(diagnostics_));
     }
+    // [サブ手順終了]
 
+    // [サブ手順 名前=sampleFilterFileTest.TearDown]
     void TearDown() override
     {
         (void)std::remove(path_.c_str());
         (void)std::remove(saved_path_.c_str());
     }
+    // [サブ手順終了]
 
     /** ファイルへ内容をそのまま書き込みます。 */
+    // [サブ手順 名前=sampleFilterFileTest.write_file]
     void write_file(const std::string &content)
     {
         FILE *stream = cplat_fopen(path_.c_str(), "wb", nullptr);
@@ -52,6 +57,7 @@ class sampleFilterFileTest : public Test
         ASSERT_EQ(0, std::fclose(stream));
         // [状態確認] - `std::fclose(stream)` の戻り値が `0` であること。
     }
+    // [サブ手順終了]
 
     int load(const std::string &path)
     {
@@ -67,10 +73,12 @@ class sampleFilterFileTest : public Test
 };
 
 // コメント行、空行、CRLF、先頭の BOM を含むファイルを読み込み、無効な行をファイルの行番号で通知することの確認
+// [サブ手順参照 名前=sampleFilterFileTest.SetUp]
 TEST_F(sampleFilterFileTest, load_reports_invalid_lines_by_file_line_number)
 {
     // Arrange
     char actual_first[kLineWidth];
+    // [サブ手順参照 名前=sampleFilterFileTest.write_file]
     write_file("\xEF\xBB\xBF# comment\r\n"
                "key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED\r\n"
                "\r\n"
@@ -98,12 +106,15 @@ TEST_F(sampleFilterFileTest, load_reports_invalid_lines_by_file_line_number)
     EXPECT_STREQ("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                  actual_first); // [確認_正常系] - BOM と CRLF を取り除いた条件式を格納すること。
 }
+// [サブ手順参照 名前=sampleFilterFileTest.TearDown]
 
 // 行幅を超える行は切り詰めずに無効にし、ほかの行は読み込むことの確認
+// [サブ手順参照 名前=sampleFilterFileTest.SetUp]
 TEST_F(sampleFilterFileTest, line_longer_than_width_is_invalid)
 {
     // Arrange
     const std::string long_line = "arg.job_name == \"" + std::string(kLineWidth, 'x') + "\"";
+    // [サブ手順参照 名前=sampleFilterFileTest.write_file]
     write_file("category <= 2\n" + long_line +
                "\nkey == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED\n"); // [状態] - 行幅を超える行を含むファイルを書き込む。
 
@@ -120,8 +131,10 @@ TEST_F(sampleFilterFileTest, line_longer_than_width_is_invalid)
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LIMIT_EXCEEDED,
               diagnostics_[0].error); // [確認_異常系] - 原因が上限の超過であること。
 }
+// [サブ手順参照 名前=sampleFilterFileTest.TearDown]
 
 // 有効な条件式が行数の上限を超える場合は、超えた行を無効にすることの確認
+// [サブ手順参照 名前=sampleFilterFileTest.SetUp]
 TEST_F(sampleFilterFileTest, conditions_beyond_capacity_are_invalid)
 {
     // Arrange
@@ -130,6 +143,7 @@ TEST_F(sampleFilterFileTest, conditions_beyond_capacity_are_invalid)
     {
         content += "arg.worker_index == " + std::to_string(index) + "\n";
     }
+    // [サブ手順参照 名前=sampleFilterFileTest.write_file]
     write_file(content); // [状態] - 行数の上限より 1 行多い条件式を書き込む。
 
     // Pre-Assert
@@ -144,8 +158,10 @@ TEST_F(sampleFilterFileTest, conditions_beyond_capacity_are_invalid)
     EXPECT_EQ(CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_LINE_CAPACITY,
               diagnostics_[0].error); // [確認_異常系] - 原因が行数の上限の超過であること。
 }
+// [サブ手順参照 名前=sampleFilterFileTest.TearDown]
 
 // 読み込めない場合は失敗を返し、格納先を変更しないことの確認
+// [サブ手順参照 名前=sampleFilterFileTest.SetUp]
 TEST_F(sampleFilterFileTest, failed_load_keeps_image)
 {
     // Arrange
@@ -161,6 +177,7 @@ TEST_F(sampleFilterFileTest, failed_load_keeps_image)
 
     // Act
     int actual_missing_ret = load(path_ + ".missing"); // [手順] - 存在しないファイルを読み込む。
+    // [サブ手順参照 名前=sampleFilterFileTest.write_file]
     write_file(too_many);                              // [手順] - 行数の上限を超えるファイルを書き込む。
     int actual_too_many_ret = load(path_);             // [手順] - 行数の上限を超えるファイルを読み込む。
 
@@ -169,8 +186,10 @@ TEST_F(sampleFilterFileTest, failed_load_keeps_image)
     EXPECT_EQ(CPLAT_ERR_LIMIT_EXCEEDED, actual_too_many_ret);    // [確認_異常系] - 行数の上限の超過で失敗すること。
     EXPECT_EQ(0, std::memcmp(expected, image_, sizeof(image_))); // [確認_異常系] - 格納先を変更しないこと。
 }
+// [サブ手順参照 名前=sampleFilterFileTest.TearDown]
 
 // 書き出したファイルを読み込むと、元と同じフィルター オブジェクトになることの確認
+// [サブ手順参照 名前=sampleFilterFileTest.SetUp]
 TEST_F(sampleFilterFileTest, saved_file_loads_to_same_image)
 {
     // Arrange
@@ -193,3 +212,4 @@ TEST_F(sampleFilterFileTest, saved_file_loads_to_same_image)
     EXPECT_EQ(0U, result_.invalid_count);                          // [確認_正常系] - 無効な行がないこと。
     EXPECT_EQ(0, std::memcmp(original, image_, sizeof(original))); // [確認_正常系] - 元と同じ内容になること。
 }
+// [サブ手順参照 名前=sampleFilterFileTest.TearDown]

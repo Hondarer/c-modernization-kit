@@ -24,6 +24,7 @@ class override_sampleTest : public Test
     string mock_lib_path;
 #endif /* PLATFORM_LINUX */
 
+    // [サブ手順 名前=override_sampleTest.SetUp]
     void SetUp() override
     {
         string workspace_root = findWorkspaceRoot();
@@ -54,12 +55,15 @@ class override_sampleTest : public Test
         resetTraceLevel();
         setTraceLevel("processController", TRACE_DETAIL);
     }
+    // [サブ手順終了]
 
+    // [サブ手順 名前=override_sampleTest.TearDown]
     void TearDown() override
     {
         /* テスト後に定義ファイルを削除します。 */
         removeConfigFile();
     }
+    // [サブ手順終了]
 
     /** 定義ファイルを削除します。存在しない場合は無視します。 */
     void removeConfigFile()
@@ -72,6 +76,7 @@ class override_sampleTest : public Test
     }
 
     /** 指定した内容で定義ファイルを作成します。 */
+    // [サブ手順 名前=override_sampleTest.createConfigFile]
     void createConfigFile(const string &content)
     {
 #if defined(PLATFORM_LINUX)
@@ -85,6 +90,7 @@ class override_sampleTest : public Test
         fputs(content.c_str(), fp);
         fclose(fp);
     }
+    // [サブ手順終了]
 
     /** ライブラリ探索パスを設定した ProcessOptions を返します。
      *  Linux: LD_LIBRARY_PATH に lib_path を設定します。
@@ -104,6 +110,7 @@ class override_sampleTest : public Test
 };
 
 // -h オプション指定時にヘルプが表示され正常終了することの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, help)
 {
     // Arrange
@@ -118,8 +125,10 @@ TEST_F(override_sampleTest, help)
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code);                          // [確認_正常系] - help の表示後に正常終了すること。
     EXPECT_NE(string::npos, res.stdout_out.find("--help"));          // [確認_正常系] - help オプションが usage に含まれること。
 }
+// [サブ手順参照 名前=override_sampleTest.TearDown]
 
 // 定義ファイルなしの既定動作で標準出力に期待するメッセージが出力されることの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, check_stdout_default)
 {
     // Arrange
@@ -145,11 +154,14 @@ TEST_F(override_sampleTest, check_stdout_default)
         res.stdout_out.find(
             "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - 差し替え実装への委譲が行われないこと。
 }
+// [サブ手順参照 名前=override_sampleTest.TearDown]
 
 // 定義ファイルありの場合に定義内容が反映されたメッセージが出力されることの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, check_stdout_with_config)
 {
     // Arrange
+    // [サブ手順参照 名前=override_sampleTest.createConfigFile]
     createConfigFile(
         "// 差し替え設定\n{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\",},}\n"); // [状態] - コメントと末尾カンマを含む定義ファイルを作成する。
     ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
@@ -173,8 +185,10 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));    // [確認_正常系] - ret が 0 であること。
     EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認_正常系] - result が 2 (1*2) であること。
 }
+// [サブ手順参照 名前=override_sampleTest.TearDown]
 
 // アンロード時に syslog へメッセージが出力されることの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, onUnload_syslog)
 {
     // Arrange
@@ -196,8 +210,10 @@ TEST_F(override_sampleTest, onUnload_syslog)
     EXPECT_NE(string::npos,
               res.debug_log.find("base: onUnload called")); // [確認_正常系] - debug_log に onUnload の記録があること。
 }
+// [サブ手順参照 名前=override_sampleTest.TearDown]
 
 // 既定では DLLMain 診断ログを出力しないことの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
 {
     // Arrange
@@ -218,8 +234,10 @@ TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
         string::npos,
         res.debug_log.find("base: onUnload called")); // [確認_正常系] - 既定では onUnload 診断ログが出力されないこと。
 }
+// [サブ手順参照 名前=override_sampleTest.TearDown]
 
 // 過長な TMPDIR で設定ファイル パス構築に失敗し終了コード 1 になることの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
 {
     // Arrange
@@ -250,3 +268,4 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     GTEST_SKIP() << "TMPDIR のパス長制限は Linux 環境専用のテストです";
 #endif /* PLATFORM_LINUX */
 }
+// [サブ手順参照 名前=override_sampleTest.TearDown]

@@ -24,6 +24,7 @@ using namespace sample_filter_test;
 class sampleFilterShareTest : public Test
 {
   protected:
+    // [サブ手順 名前=sampleFilterShareTest.SetUp]
     void SetUp() override
     {
         char temp_dir[PLATFORM_PATH_MAX];
@@ -41,9 +42,12 @@ class sampleFilterShareTest : public Test
         // [状態確認] - `sample_filter_share_lock_create(path_.c_str(), &lock_)` の戻り値が `SAMPLE_FILTER_SHARE_REGION_OK` であること。
         ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_));
         // [状態確認] - `cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &catalog_id_)` の戻り値が `CPLAT_OK` であること。
+        // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
         open_handles();
     }
+    // [サブ手順終了]
 
+    // [サブ手順 名前=sampleFilterShareTest.TearDown]
     void TearDown() override
     {
         close_handles();
@@ -51,8 +55,10 @@ class sampleFilterShareTest : public Test
         (void)std::remove(path_.c_str());
         (void)std::remove(lock_path_.c_str());
     }
+    // [サブ手順終了]
 
     /** 書き込み側と読み取り側のハンドルで共有ファイルを開き、読み取り側の共有メモリをスロットへ結び付けます。 */
+    // [サブ手順 名前=sampleFilterShareTest.open_handles]
     void open_handles()
     {
         ASSERT_EQ(CPLAT_OK, sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth, &writer_));
@@ -72,6 +78,7 @@ class sampleFilterShareTest : public Test
                   cplat_string_catalog_filter_slot_attach_source(slot_, source_, source_size_, &source_lock_));
         // [状態確認] - `cplat_string_catalog_filter_slot_attach_source(slot_, source_, source_size_, &source_lock_)` の戻り値が `CPLAT_OK` であること。
     }
+    // [サブ手順終了]
 
     /** スロットと、書き込み側と読み取り側のハンドルを閉じます。排他は閉じません。 */
     void close_handles()
@@ -90,6 +97,7 @@ class sampleFilterShareTest : public Test
      *  close_handles() でハンドルを閉じてから呼び出します。
      *  異常終了などで壊れた内容がファイルに残った状態を作り、open_handles() で再起動したプロセスに見立てて開き直します。
      */
+    // [サブ手順 名前=sampleFilterShareTest.rewrite_file]
     void rewrite_file(const std::size_t offset, const void *data, const std::size_t size)
     {
         FILE *file = cplat_fopen(path_.c_str(), "r+b", nullptr);
@@ -101,6 +109,7 @@ class sampleFilterShareTest : public Test
         ASSERT_TRUE(written);
         // [状態確認] - `written` が true であること。
     }
+    // [サブ手順終了]
 
     cplat_string_catalog_filter_state state_of(const int string_key)
     {
@@ -155,6 +164,7 @@ class sampleFilterShareTest : public Test
 };
 
 // 未公開の共有メモリからは何も取り込まないことの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, nothing_is_taken_before_first_publish)
 {
     // Arrange
@@ -171,8 +181,10 @@ TEST_F(sampleFilterShareTest, nothing_is_taken_before_first_publish)
     EXPECT_EQ(0U, published_revision()); // [確認_正常系] - 共有メモリが未公開であること。
     EXPECT_EQ(0U, taken_revision());     // [確認_正常系] - 取り込み済みの版番号が 0 であること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 書き込み側のハンドルが公開した内容を、読み取り側の共有メモリを結び付けたスロットが次の組み立てで反映することの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
 {
     // Arrange
@@ -199,8 +211,10 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
     EXPECT_NE(0, actual_matched);          // [確認_正常系] - 組み立てで取り込んだ条件に一致すること。
     EXPECT_EQ(revision, taken_revision()); // [確認_正常系] - 版番号を取り込み済みとすること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 書き込み側のハンドルをまたいでも、版番号が増加することの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, revision_advances_across_writers)
 {
     // Arrange
@@ -230,8 +244,10 @@ TEST_F(sampleFilterShareTest, revision_advances_across_writers)
 
     sample_filter_share_close(&another_writer);
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 検証に失敗するイメージは公開せず、共有メモリを変えないことの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
 {
     // Arrange
@@ -250,8 +266,10 @@ TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 公開が拒否されること。
     EXPECT_EQ(0U, published_revision());                 // [確認_異常系] - 共有メモリが未公開のままであること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 行数の上限と行幅が異なるイメージの公開を拒否することの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
 {
     // Arrange
@@ -273,8 +291,10 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 形式の異なる公開が拒否されること。
     EXPECT_EQ(0U, published_revision());                 // [確認_異常系] - 共有メモリが未公開のままであること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 生成物のトレース出力が、出力の前に公開内容を取り込み、一致したトレースを強制出力にすることの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
 {
     // Arrange
@@ -310,6 +330,7 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     (void)cplat_tracer_stop(tracer);
     cplat_tracer_dispose(&tracer);
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 namespace
 {
@@ -342,6 +363,7 @@ void format_worker(void *raw_arg)
 } // namespace
 
 // 公開を繰り返す間に複数スレッドが取り込みと判定を行っても、失敗せず最後の公開内容に収束することの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
 {
     // Arrange
@@ -406,8 +428,10 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
         CPLAT_STRING_CATALOG_FILTER_STATE_ALWAYS_MATCH,
         state_of(SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED)); // [確認_正常系] - 最後に公開した条件が判定に使われること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 既存の領域が必要な大きさに満たない場合は、作り直さずに開くことを拒否することの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, open_rejects_existing_region_too_small)
 {
     // Arrange
@@ -423,8 +447,10 @@ TEST_F(sampleFilterShareTest, open_rejects_existing_region_too_small)
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 大きさが足りない領域を拒否すること。
     EXPECT_EQ(nullptr, other);                           // [確認_異常系] - ハンドルを返さないこと。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 既存の領域が必要な大きさより大きい場合は受け付け、先頭の必要な大きさだけを使うことの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, open_accepts_existing_region_larger_than_required)
 {
     // Arrange
@@ -446,8 +472,10 @@ TEST_F(sampleFilterShareTest, open_accepts_existing_region_larger_than_required)
 
     sample_filter_share_close(&other);
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 別に作成した排他 (別プロセスに見立てる) が保持している間は、待ち時間のうちに取得できないことの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
 {
     // Arrange
@@ -477,8 +505,10 @@ TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
     sample_filter_share_lock_release(lock_);
     sample_filter_share_lock_dispose(&another);
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // 別の排他が保持している間の取り込みは待ち時間の上限で諦め、解放後の出力で取り込むことの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
 {
     // Arrange
@@ -523,6 +553,7 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
 
     sample_filter_share_lock_dispose(&another);
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 namespace
 {
@@ -540,6 +571,7 @@ constexpr std::size_t kTornImageBytes = 64U;
 
 // 書き込みの途中で止まった内容が残るファイルを開き直した読み取り側は、その内容を取り込まず、
 // 次の公開で回復することの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_publish)
 {
     // Arrange
@@ -559,12 +591,15 @@ TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_pu
     const uint64_t writing_revision = first_revision | 1U;
     std::memset(torn_image, 0xAA, sizeof(torn_image));
     close_handles(); // [状態] - すべてのハンドルを閉じる。
+    // [サブ手順参照 名前=sampleFilterShareTest.rewrite_file]
     ASSERT_NO_FATAL_FAILURE(rewrite_file(kPublishedRevisionOffset, &writing_revision,
                                          sizeof(writing_revision))); // [状態] - ファイルの版番号を奇数にする。
     // [状態確認] - ASSERT_NO_FATAL_FAILURE(rewrite_file(kPublishedRevisionOffset, &writing_revision, sizeof(writing_revision))) の期待が成立すること。
+    // [サブ手順参照 名前=sampleFilterShareTest.rewrite_file]
     ASSERT_NO_FATAL_FAILURE(rewrite_file(CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, torn_image,
                                          sizeof(torn_image))); // [状態] - フィルター オブジェクトの一部を書き換える。
     // [状態確認] - ASSERT_NO_FATAL_FAILURE(rewrite_file(CPLAT_STRING_CATALOG_FILTER_SOURCE_HEADER_SIZE, torn_image, sizeof(torn_image))) の期待が成立すること。
+    // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
     ASSERT_NO_FATAL_FAILURE(open_handles());                   // [状態] - 再起動したプロセスに見立てて開き直す。
     // [状態確認] - ASSERT_NO_FATAL_FAILURE(open_handles()) の期待が成立すること。
 
@@ -590,9 +625,11 @@ TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_pu
     EXPECT_NE(0, actual_after_recovery); // [確認_正常系] - 公開し直した条件を取り込むこと。
     EXPECT_EQ(recovered_revision, taken_revision()); // [確認_正常系] - 公開し直した版番号を取り込み済みとすること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
 // ヘッダーが壊れたファイルを開き直した読み取り側は、取り込まずに破損を記録し、書き込み側も公開を拒否すること、
 // ファイルを削除すると公開し直せることの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
 TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed)
 {
     // Arrange
@@ -611,9 +648,11 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
                                                     &revision)); // [状態] - 条件を公開する。
     // [状態確認] - `sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision)` の戻り値が `CPLAT_OK` であること。
     close_handles();                                             // [状態] - すべてのハンドルを閉じる。
+    // [サブ手順参照 名前=sampleFilterShareTest.rewrite_file]
     ASSERT_NO_FATAL_FAILURE(rewrite_file(0U, &corrupt_signature,
                                          sizeof(corrupt_signature))); // [状態] - ファイルの署名を書き換える。
     // [状態確認] - ASSERT_NO_FATAL_FAILURE(rewrite_file(0U, &corrupt_signature, sizeof(corrupt_signature))) の期待が成立すること。
+    // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
     ASSERT_NO_FATAL_FAILURE(open_handles());                          // [状態] - 再起動したプロセスに見立てて開き直す。
     // [状態確認] - ASSERT_NO_FATAL_FAILURE(open_handles()) の期待が成立すること。
 
@@ -631,6 +670,7 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
         writer_, image, kImageSize, catalog_id_, &rejected_revision); // [手順] - 壊れた領域へ公開する。
     close_handles();                                                  // [手順] - すべてのハンドルを閉じる。
     (void)std::remove(path_.c_str());                                 // [手順] - 共有ファイルを削除する。
+    // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
     ASSERT_NO_FATAL_FAILURE(open_handles());                          // [手順] - 共有ファイルを作り直す。
     // [確認_異常系] - ASSERT_NO_FATAL_FAILURE(open_handles()) の期待が成立すること。
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
@@ -649,3 +689,4 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
     EXPECT_NE(0, actual_after_recreate);             // [確認_正常系] - 作り直した領域の公開内容を取り込むこと。
     EXPECT_EQ(recreated_revision, taken_revision()); // [確認_正常系] - 公開した版番号を取り込み済みとすること。
 }
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]

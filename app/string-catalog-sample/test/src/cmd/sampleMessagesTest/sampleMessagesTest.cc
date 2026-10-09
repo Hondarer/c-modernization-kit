@@ -11,13 +11,16 @@
 class sampleMessagesTest : public Test
 {
   protected:
+    // [サブ手順 名前=sampleMessagesTest.SetUp]
     void SetUp() override
     {
         cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
     }
+    // [サブ手順終了]
 };
 
 // カタログを取得できることの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, entries)
 {
     // Arrange
@@ -36,6 +39,7 @@ TEST_F(sampleMessagesTest, entries)
 }
 
 // 注入したカタログが引数スキーマと整合していることの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, catalog_is_consistent)
 {
     // Arrange
@@ -54,6 +58,7 @@ TEST_F(sampleMessagesTest, catalog_is_consistent)
 }
 
 // 同一の翻訳単位から 2 つ目のカタログも利用できることの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, second_catalog_is_consistent)
 {
     // Arrange
@@ -72,6 +77,7 @@ TEST_F(sampleMessagesTest, second_catalog_is_consistent)
 }
 
 // 各文字列が ID とニュートラル言語のリソースを保持することの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 {
     // Arrange
@@ -109,6 +115,7 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
 }
 
 // 文字列キーから定義の内容を参照できることの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, file_open_failed_entry)
 {
     // Arrange
@@ -159,6 +166,7 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
 }
 
 // 補足説明がカタログ項目へ保持されることの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, entry_remarks)
 {
     // Arrange
@@ -177,6 +185,7 @@ TEST_F(sampleMessagesTest, entry_remarks)
 }
 
 // 文字列キーごとの型付きラッパーが、カタログを指定した呼び出しと同一の結果を出力することの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 {
     // Arrange
@@ -217,6 +226,7 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 }
 
 // 型付きラッパーでも、引数の順序が言語に依存しないことの確認
+// [サブ手順参照 名前=sampleMessagesTest.SetUp]
 TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
 {
     // Arrange

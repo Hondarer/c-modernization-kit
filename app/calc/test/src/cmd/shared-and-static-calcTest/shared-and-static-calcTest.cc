@@ -6,6 +6,7 @@
 
 class shared_and_static_addTest : public Test
 {
+    // [サブ手順 名前=shared_and_static_addTest.SetUp]
     void SetUp() override
     {
         // mock 呼び出しのテスト エビデンスへの可視化のために、トレース レベルを変更する例。
@@ -15,9 +16,11 @@ class shared_and_static_addTest : public Test
         setTraceLevel("calc_handler", TRACE_DETAIL);
         setTraceLevel("calcbase_add", TRACE_DETAIL);
     }
+    // [サブ手順終了]
 };
 
 // 引数が不足している場合に失敗終了することの確認
+// [サブ手順参照 名前=shared_and_static_addTest.SetUp]
 TEST_F(shared_and_static_addTest, less_argc)
 {
     // Arrange
@@ -34,6 +37,7 @@ TEST_F(shared_and_static_addTest, less_argc)
 }
 
 // 正常な引数で共有と静的の計算結果が表示されることの確認
+// [サブ手順参照 名前=shared_and_static_addTest.SetUp]
 TEST_F(shared_and_static_addTest, normal)
 {
     // Arrange
@@ -76,6 +80,7 @@ TEST_F(shared_and_static_addTest, normal)
 }
 
 // --help 指定時に必須引数なしでも正常終了することの確認
+// [サブ手順参照 名前=shared_and_static_addTest.SetUp]
 TEST_F(shared_and_static_addTest, help)
 {
     // Arrange

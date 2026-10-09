@@ -18,14 +18,17 @@ class catalogIntegrationTest : public Test
     /** 組み立てた文字列の格納先です。 */
     char dest[CPLAT_STRING_CATALOG_TEXT_MAX];
 
+    // [サブ手順 名前=catalogIntegrationTest.SetUp]
     void SetUp() override
     {
         memset(dest, 0, sizeof(dest));
         cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
     }
+    // [サブ手順終了]
 };
 
 // 注入したカタログが引数スキーマと整合していることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, injected_catalog_is_consistent)
 {
     // Arrange
@@ -44,6 +47,7 @@ TEST_F(catalogIntegrationTest, injected_catalog_is_consistent)
 }
 
 // 文字列定義の ID、レベル、備考を参照できることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, metadata)
 {
     // Arrange
@@ -75,6 +79,7 @@ TEST_F(catalogIntegrationTest, metadata)
 }
 
 // 波括弧のエスケープを含む文字列を組み立てられることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, escaped_braces)
 {
     // Arrange
@@ -94,6 +99,7 @@ TEST_F(catalogIntegrationTest, escaped_braces)
 }
 
 // 言語を設定していない状態でニュートラル言語の書式を使用することの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, neutral_language)
 {
     // Arrange
@@ -114,6 +120,7 @@ TEST_F(catalogIntegrationTest, neutral_language)
 }
 
 // 引数の型と表現が文字列キー側で決定されることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
 {
     // Arrange
@@ -146,6 +153,7 @@ TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
 }
 
 // 言語別リソースが語順のみを決定することの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, language_changes_order_only)
 {
     // Arrange
@@ -179,6 +187,7 @@ TEST_F(catalogIntegrationTest, language_changes_order_only)
 }
 
 // 同じ引数を複数回参照できることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, repeated_placeholder)
 {
     // Arrange
@@ -198,6 +207,7 @@ TEST_F(catalogIntegrationTest, repeated_placeholder)
 }
 
 // トレース種別のカタログが引数スキーマと整合していることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, trace_catalog_is_consistent)
 {
     // Arrange
@@ -216,6 +226,7 @@ TEST_F(catalogIntegrationTest, trace_catalog_is_consistent)
 }
 
 // トレース レベルの名前が分類値の整数として保持されていることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, trace_level_is_stored_as_category)
 {
     // Arrange
@@ -240,6 +251,7 @@ TEST_F(catalogIntegrationTest, trace_level_is_stored_as_category)
 }
 
 // コンテキスト引数が引数配列のインデックス 40 から並んでいることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
 {
     // Arrange
@@ -270,6 +282,7 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
 }
 
 // 型付きラッパーのマクロが、トレースへ出力することの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, trace_macro_writes_to_tracer)
 {
     // Arrange
@@ -305,6 +318,7 @@ TEST_F(catalogIntegrationTest, trace_macro_writes_to_tracer)
 }
 
 // 書式が参照するコンテキスト引数が、呼び出し位置と実行コンテキストの値へ展開されることの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
 {
     // Arrange
@@ -346,6 +360,7 @@ TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
 }
 
 // 出力先が未設定のときに、何も出力せず失敗を返すことの確認
+// [サブ手順参照 名前=catalogIntegrationTest.SetUp]
 TEST_F(catalogIntegrationTest, trace_macro_fails_without_tracer)
 {
     // Arrange

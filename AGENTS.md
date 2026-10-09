@@ -65,6 +65,7 @@ README は対象の目的や入口が必要な場合に、正本文書は変更�
 - 機能仕様の規範: [機能仕様の記載規範](app/general/docs/functional-spec-guideline.md)
 - テスト構成: [テスト方法](framework/testfw/docs/how-to-test.md)
 - テスト フェーズとエビデンス: [テスト フェーズ](framework/testfw/docs/about-test-phase.md)
+- 共通処理の参照と確認件数: [サブ手順](framework/testfw/docs/test-subprocedures.md)
 - make ファイル断片: [makeparts](framework/makefw/docs/makeparts.md)
 - VS Code と app 環境変数: [VS Code 環境変数](app/general/docs/vscode-variables.md)
 - Markdown の機械整形: [text_style_jp](framework/docsfw/docs/text_style_jp.md)
