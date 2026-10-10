@@ -7,131 +7,36 @@ C/C++ と .NET は `test_summary.py` の共通処理を使用し、各確認タ�
 .NET の `PARAM` は TRX のレコード別結果から取得し、`InlineData` の行数による一律乗算は行いません。  
 回数式、カテゴリ、説明文の解析に失敗した場合は、テスト実行スクリプトも失敗として扱います。
 
-以下の設計案、コード例、検証記録は初期実装の履歴です。  
-現行のタグを記載する際は、上記の正本に従ってください。
+## 現行の結果ファイル
 
-## 概要
+`exec_test_dotnet.sh` は `dotnet test` を一括実行し、TRX の結果とバッチ出力から、メソッド単位の `results/<TestClass>.<TestMethod>/results.md` を生成します。  
+Theory の各レコードは、そのメソッドの実行結果にまとめます。
 
-C テスト フレームワーク (testfw) と同様に、.NET テスト プロジェクトでも個別のテスト ケースごとに詳細な結果ログを生成する機能を設計します。
+個別結果の先頭にはテスト ID と判定 (PASSED、WARNING、FAILED) を記載し、続けてテスト項目、テスト コード、実行結果の節を設けます。  
+.NET ではテスト バイナリのメタデータを出力しません。テスト コードは `csharp`、実行結果は `text` のコード ブロックにします。  
+エビデンス生成が失敗した場合は FAILED とし、テスト項目に CAUTION の admonition でエラーを記載します。
 
-### 目的
+全体サマリーは `results/all_tests/summary.md` に終了時に一括で書き出します。  
+開始日時、個別結果への相対リンク付きのテスト結果表、集計、確認件数を記載し、警告とエラーがあれば admonition で記録します。  
+確認件数はメソッド単位の正常系、異常系、計と合計を記載します。サマリー生成に失敗したテストは「未評価」とし、合計に含めていない定義の数を注記します。  
+構成と集計規則の正本は [テスト エビデンス](../../../framework/testfw/docs/about-test-phase.md#テスト-エビデンス-resultsmd) です。
 
-- テスト項目のサマリー表示 (状態、手順、確認内容)
-- テスト コードの抜粋表示
-- テスト実行結果の記録
-- C テスト フレームワークとの統一的なユーザー体験
+結果ファイルは BOM なしの UTF-8、LF 改行で出力します。入力の文字コードは `FILES_LANG` に従い、実行結果の解釈できないバイト列は置換文字にします。  
+フェンス長は内容中の最長のバッククォート連続より 1 つ長くし、最低 3 個とします。旧名の `.log` は出力しません。  
+コンソールは Markdown 本文を表示し、判定行を省略し、実行結果のフェンスを 3 個に固定して色付けを維持します。全テスト終了後の一覧と集計は従来の表示です。
 
-## 現状の仕組み
-
-### C テスト フレームワーク (testfw)
-
-C テスト フレームワークは以下の仕組みで results を生成します:
-
-1. **テスト コード抽出** (`get_test_code_c_cpp.awk`)
-    - テスト ファイルから特定のテスト ケースのコードを抽出
-    - テスト メソッド直前のコメントも含めて抽出
-
-2. **サマリー生成** (`insert_summary.awk`)
-    - コード内の特殊タグを検出:
-        - `[状態]` - テストの前提条件
-        - `[手順]` - 実行手順
-        - `[Pre-Assert手順]` - Assert 前の手順
-        - `[確認]` - Assert による確認内容
-        - `[Pre-Assert確認]` - Pre-Assert による確認
-    - Markdown 形式のサマリーを生成
-
-3. **テスト実行とログ生成** (`exec_test_c_cpp.sh`)
-    - 各テストを個別に実行
-    - `results/<test_id>/results.log` に以下を出力:
-        - テスト項目サマリー (Markdown)
-        - テスト コード
-        - テスト実行結果
-    - `results/all_tests/summary.log` に全体サマリーを出力
-
-### 現在の .NET テスト
-
-`exec_test_dotnet.sh` は以下の機能を提供します:
-
-- `dotnet test` の一括実行 (TRX ロガーによる結果収集)
-- TRX XML のパースによるテストごとの Passed/Failed 判定
-- バッチ出力からの個別テスト結果抽出
-- `results/<TestClass>.<TestMethod>/results.log` への個別ログ生成
-- `results/all_tests/summary.log` への全体サマリー出力
-
-## 設計
-
-### 要件
-
-1. C テスト フレームワークと同様の results ディレクトリ構造
-2. 個別テストごとの results.log 生成
-3. テスト コード内の `[手順]`、`[確認]` などのタグによるサマリー生成
-4. xUnit の [Theory]/[InlineData] によるパラメーター テストへの対応
-
-### ディレクトリ構造
-
-```
-app/example.net/test/src/ExampleLib.Tests/
-+-- results/
-    +-- all_tests/
-    |   +-- summary.log                 # 全体サマリ
-    +-- ExampleLibraryTests.Add_ShouldReturnCorrectResult/
-    |   +-- results.log                 # データセット全体のログ
-    |   +-- a_10_b_20_expected_30.log   # 個別パラメーターのログ (オプション)
-    |   +-- a_-5_b_5_expected_0.log
-    |   +-- ...
-    +-- ExampleLibraryTests.Divide_ByZero_ShouldReturnError/
-    |   +-- results.log
-    +-- ...
+```text
+results/
++-- all_tests/
+|   +-- summary.md
++-- <TestClass>.<TestMethod>/
+    +-- results.md
 ```
 
-**注記**: Theory テストの個別パラメーターログは、必要に応じて実装します。
+## Markdown 化以前の設計と検証記録
 
-### results.log の内容
-
-```
-Running test: ExampleLibraryTests.Add_ShouldReturnCorrectResult
-----
-## テスト項目
-
-### 状態
-
-### 手順
-
-- ExampleLibrary.Add(a, b) を呼び出す。
-
-### 確認内容 (3)
-
-- 結果が成功であること。
-- 期待値と一致すること。
-- エラーコードが 0 であること。
-----
-[Theory]
-[InlineData(10, 20, 30)]
-[InlineData(-5, 5, 0)]
-[InlineData(0, 0, 0)]
-[InlineData(100, -50, 50)]
-[InlineData(-10, -20, -30)]
-public void Add_ShouldReturnCorrectResult(int a, int b, int expected)
-{
-    var result = ExampleLibrary.Add(a, b); // [手順] - ExampleLibrary.Add(a, b) を呼び出す。
-
-    Assert.True(result.IsSuccess); // [確認] - 結果が成功であること。
-    Assert.Equal(expected, result.Value); // [確認] - 期待値と一致すること。
-    Assert.Equal(0, result.ErrorCode); // [確認] - エラーコードが 0 であること。
-}
-----
-dotnet test --filter "FullyQualifiedName=ExampleLib.Tests.ExampleLibraryTests.Add_ShouldReturnCorrectResult"
-
-  成功 ExampleLib.Tests.ExampleLibraryTests.Add_ShouldReturnCorrectResult(a: 10, b: 20, expected: 30) [2 ms]
-  成功 ExampleLib.Tests.ExampleLibraryTests.Add_ShouldReturnCorrectResult(a: -5, b: 5, expected: 0) [< 1 ms]
-  成功 ExampleLib.Tests.ExampleLibraryTests.Add_ShouldReturnCorrectResult(a: 0, b: 0, expected: 0) [< 1 ms]
-  成功 ExampleLib.Tests.ExampleLibraryTests.Add_ShouldReturnCorrectResult(a: 100, b: -50, expected: 50) [< 1 ms]
-  成功 ExampleLib.Tests.ExampleLibraryTests.Add_ShouldReturnCorrectResult(a: -10, b: -20, expected: -30) [< 1 ms]
-
-テストの実行に成功しました。
-テストの合計数: 5
-     成功: 5
-```
+次の設計案、コード例、検証記録は Markdown 化以前の初期実装の履歴です。  
+`results.log`、`summary.log`、旧タグや出力例は、当時の記録として残しています。現行仕様は上記と testfw の正本を参照してください。
 
 ## 実装方針
 
@@ -704,7 +609,7 @@ results/
     - `framework/testfw/bin_internal/extract_dotnet_output.py` (バッチ出力抽出)
 
 3. **フェーズ 2: 機能拡張** (オプション)
-    - [ ] Theory テストの個別パラメーターログ生成 (必要性を再評価)
+    - [ ] Theory テストの個別パラメーター ログ生成 (必要性を再評価)
     - [ ] カバレッジ情報の統合 (coverlet, dotnet-coverage との連携)
     - [ ] エラー処理の強化
 
