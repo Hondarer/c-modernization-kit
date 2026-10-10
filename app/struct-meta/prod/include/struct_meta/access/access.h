@@ -32,7 +32,10 @@ extern "C"
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照します。\n
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) と同時に呼び出さない場合は、同時に実行できます。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_descriptor_get_field(const struct_meta_descriptor *descriptor,
                                                                             size_t index,
@@ -47,7 +50,10 @@ extern "C"
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照します。\n
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) と同時に呼び出さない場合は、同時に実行できます。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_descriptor_find_field(const struct_meta_descriptor *descriptor,
                                                                              const char *name,
@@ -62,7 +68,10 @@ extern "C"
      *                  @c CPLAT_ERR_INVALID_ARGUMENT、記述子不正時は対応するエラー コードを返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照します。\n
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) と同時に呼び出さない場合は、同時に実行できます。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_descriptor_find_attribute(
         const struct_meta_descriptor *descriptor, const char *key, const struct_meta_attribute **attribute_out);
@@ -127,7 +136,10 @@ extern "C"
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
      *  異なる @p instance に対する操作は同時に実行できます。\n
-     *  同一 @p instance に対する操作は、呼び出し側で直列化してください。
+     *  同一 @p instance に対する操作は、呼び出し側で直列化してください。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照するため、
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) とは同時に呼び出さないでください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_path_resolve(const struct_meta_descriptor *descriptor,
                                                                     void *instance, const char *path,
@@ -147,7 +159,10 @@ extern "C"
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
      *  異なる @p instance に対する操作は同時に実行できます。\n
-     *  同一 @p instance に対する操作は、呼び出し側で直列化してください。
+     *  同一 @p instance に対する操作は、呼び出し側で直列化してください。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照するため、
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) とは同時に呼び出さないでください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_path_resolve_const(const struct_meta_descriptor *descriptor,
                                                                           const void *instance, const char *path,

@@ -43,7 +43,9 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  登録と登録解除は呼び出し側で直列化し、検索と同時に実行しないでください。\n
+     *  登録と登録解除 (カタログの作成と破棄、生成コードによるカタログの初回取得を含む) は呼び出し側で直列化し、
+     *  索引を参照する操作 (@ref struct_meta_descriptor_validate 、フィールドの検索、
+     *  パスの解決など) と同時に実行しないでください。\n
      *  通常は初期化時に登録を済ませてください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_index_register(const struct_meta_descriptor *descriptor);
@@ -59,7 +61,9 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  登録と登録解除は呼び出し側で直列化し、検索と同時に実行しないでください。
+     *  登録と登録解除 (カタログの作成と破棄、生成コードによるカタログの初回取得を含む) は呼び出し側で直列化し、
+     *  索引を参照する操作 (@ref struct_meta_descriptor_validate 、フィールドの検索、
+     *  パスの解決など) と同時に実行しないでください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_index_unregister(const struct_meta_descriptor *descriptor);
 

@@ -465,7 +465,12 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, " *                  検索を続けても記述子を返せないためです。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  @par            スレッド セーフ\n");
-    fprintf(out, " *  本関数はスレッド セーフです。\n");
+    fprintf(out, " *  本関数は条件付きスレッド セーフです。\\n\n");
+    fprintf(out, " *  初回の呼び出しは、カタログの記述子を索引 (@c struct_meta_index_register) へ登録します。\\n\n");
+    fprintf(out, " *  そのため、初回の呼び出しは、索引を更新する操作 (カタログの作成と破棄など) と、\n");
+    fprintf(out, " *  索引を参照する操作 (@c struct_meta_descriptor_validate など) と\n");
+    fprintf(out, " *  同時に実行しないでください。\\n\n");
+    fprintf(out, " *  初回の呼び出しが完了した後は、同時に実行できます。\n");
     fprintf(out, " */\n");
     fprintf(out, "const struct_meta_descriptor *%s_meta_find(const char *name);\n\n", stem);
 
@@ -477,7 +482,12 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, " *  このカタログは静的領域を指すため、破棄してはなりません。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  @par            スレッド セーフ\n");
-    fprintf(out, " *  本関数はスレッド セーフです。\n");
+    fprintf(out, " *  本関数は条件付きスレッド セーフです。\\n\n");
+    fprintf(out, " *  初回の呼び出しは、カタログの記述子を索引 (@c struct_meta_index_register) へ登録します。\\n\n");
+    fprintf(out, " *  そのため、初回の呼び出しは、索引を更新する操作 (カタログの作成と破棄など) と、\n");
+    fprintf(out, " *  索引を参照する操作 (@c struct_meta_descriptor_validate など) と\n");
+    fprintf(out, " *  同時に実行しないでください。\\n\n");
+    fprintf(out, " *  初回の呼び出しが完了した後は、同時に実行できます。\n");
     fprintf(out, " */\n");
     fprintf(out, "const struct_meta_catalog *%s_meta_catalog(void);\n\n", stem);
     fprintf(out, "#ifdef __cplusplus\n");

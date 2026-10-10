@@ -64,7 +64,14 @@ extern "C"
      *  組み立てた文字列の言語は、@c cplat_string_catalog_set_language が設定するプロセスの設定に従います。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  文字列の組み立てとトレースの出力に、言語設定と、本ライブラリのトレースの設定を使用します。\n
+     *  言語設定、トレースの出力先 (@c samplecatalog_trace_set_tracer) および
+     *  条件式フィルターの接続 (@c samplecatalog_trace_set_filter) を同時に変更しない場合は、同時に実行できます。\n
+     *  他スレッドがそれらを同時に変更する場合は、呼び出し側で同期してください。\n
+     *  @c cplat_string_catalog_set_language で言語を設定しておらず、言語がまだ決まっていない場合は、
+     *  環境変数から言語を決定します。\n
+     *  このとき、他スレッドが環境変数を同時に変更する場合は、呼び出し側で同期してください。
      */
     SAMPLECATALOG_EXPORT int SAMPLECATALOG_API samplecatalog_find_item(const char *item_name, char *dest,
                                                                        size_t dest_size);

@@ -60,7 +60,11 @@ extern "C"
      *                  @c descriptor->size と @c sizeof の一致を確認してください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  作成したカタログの記述子を、記述子の索引 (@ref struct_meta_index_register) へ登録します。\n
+     *  索引を更新する操作 (本関数どうしを含む) と、索引を参照する操作 (@ref struct_meta_descriptor_validate 、
+     *  フィールドの検索、パスの解決など) とは、同時に呼び出さないでください。\n
+     *  それ以外の操作とは、同時に実行できます。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_create_from_header_file(
         const char *path, struct_meta_catalog **catalog_out, struct_meta_diagnostic *diagnostic_out);
@@ -78,7 +82,11 @@ extern "C"
      *                  @c descriptor->size と @c sizeof の一致を確認してください。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  作成したカタログの記述子を、記述子の索引 (@ref struct_meta_index_register) へ登録します。\n
+     *  索引を更新する操作 (本関数どうしを含む) と、索引を参照する操作 (@ref struct_meta_descriptor_validate 、
+     *  フィールドの検索、パスの解決など) とは、同時に呼び出さないでください。\n
+     *  それ以外の操作とは、同時に実行できます。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_create_from_header_text(
         const char *text, size_t length, struct_meta_catalog **catalog_out, struct_meta_diagnostic *diagnostic_out);
@@ -103,8 +111,11 @@ extern "C"
      *  正しく扱えるためです。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフではありません。生成コードは
-     *  @c cplat_call_once から 1 回だけ呼びます。
+     *  本関数はスレッド セーフではありません。\n
+     *  生成コードは @c cplat_call_once から 1 回だけ呼びます。\n
+     *  記述子を索引 (@ref struct_meta_index_register) へ登録するため、索引を更新する操作と、
+     *  索引を参照する操作 (@ref struct_meta_descriptor_validate 、フィールドの検索、パスの解決など) とは、
+     *  同時に呼び出さないでください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_catalog_attach_static(
         const struct_meta_descriptor *const *descriptors, size_t descriptor_count, const void *index_image_mgmt,
@@ -123,7 +134,10 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
-     *  異なる @p catalog に対する操作は同時に実行できます。\n
+     *  登録した記述子を、記述子の索引 (@ref struct_meta_index_register) から登録解除します。\n
+     *  そのため、索引を更新する操作 (異なる @p catalog に対する本関数を含む) と、
+     *  索引を参照する操作 (@ref struct_meta_descriptor_validate 、フィールドの検索、パスの解決など) とは、
+     *  同時に呼び出さないでください。\n
      *  同一 @p catalog に対する操作は、呼び出し側で直列化してください。
      */
     STRUCT_META_EXPORT void STRUCT_META_API struct_meta_catalog_destroy(struct_meta_catalog *catalog);

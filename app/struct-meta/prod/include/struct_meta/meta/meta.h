@@ -96,7 +96,10 @@ extern "C"
      *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。
      *
      *  @par            スレッド セーフ
-     *  本関数はスレッド セーフです。
+     *  本関数は条件付きスレッド セーフです。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照します。\n
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) と同時に呼び出さない場合は、同時に実行できます。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_descriptor_validate(const struct_meta_descriptor *descriptor);
 

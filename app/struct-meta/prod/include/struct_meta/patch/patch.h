@@ -35,7 +35,10 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  同一 @p instance と標準入出力を、ほかのスレッドから同時に操作しないでください。
+     *  同一 @p instance と標準入出力を、ほかのスレッドから同時に操作しないでください。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照するため、
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) とも同時に呼び出さないでください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_patch_interactive(const struct_meta_descriptor *descriptor,
                                                                          void *instance);
@@ -54,7 +57,10 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。\n
-     *  同一 @p instance と標準入出力を、ほかのスレッドから同時に操作しないでください。
+     *  同一 @p instance と標準入出力を、ほかのスレッドから同時に操作しないでください。\n
+     *  記述子の索引 (@ref struct_meta_index_register) を参照するため、
+     *  索引を更新する操作 (@ref struct_meta_index_register 、@ref struct_meta_index_unregister 、カタログの作成と破棄、
+     *  生成コードによるカタログの初回取得) とも同時に呼び出さないでください。
      */
     STRUCT_META_EXPORT int STRUCT_META_API struct_meta_patch_path_interactive(const struct_meta_descriptor *descriptor,
                                                                               void *instance, const char *path);
