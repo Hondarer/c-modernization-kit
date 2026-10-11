@@ -1,0 +1,13 @@
+interface:
+  display_name: 成果物実装前の前提合意
+  short_description: 検討用 Markdown の質問と回答で前提を合意してから成果物を実装する
+  default_prompt: Use $agree-before-implement to confirm prerequisites in Markdown
+    before implementing artifacts.
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
+
