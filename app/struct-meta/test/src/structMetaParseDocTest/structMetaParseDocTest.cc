@@ -19,15 +19,22 @@ TEST(structMetaParseDocTest, parses_generic_attributes_and_removes_them_from_bri
         comment, 1, 10, &diagnostic); // [手順] - 汎用属性を含む後置コメントを解析する。
 
     // Assert
-    EXPECT_EQ(0, actual.invalid);                        // [確認_正常系] - コメントの解析が成功すること。
-    EXPECT_STREQ("識別子です。", actual.brief);          // [確認_正常系] - brief から汎用属性の記述が除外されること。
-    ASSERT_NE(nullptr, actual.attributes);               // [確認_正常系] - 1 個目の属性が取得できること。
-    EXPECT_STREQ("json.name", actual.attributes->key);   // [確認_正常系] - 1 個目の属性名が json.name であること。
-    EXPECT_STREQ("person_id", actual.attributes->value); // [確認_正常系] - 1 個目の属性値が person_id であること。
-    ASSERT_NE(nullptr, actual.attributes->next);         // [確認_正常系] - 2 個目の属性が取得できること。
-    EXPECT_STREQ("sample.flag",
-                 actual.attributes->next->key);         // [確認_正常系] - 2 個目の属性名が sample.flag であること。
-    EXPECT_EQ(nullptr, actual.attributes->next->value); // [確認_正常系] - 2 個目の属性値が NULL であること。
+    EXPECT_EQ(0, actual.invalid); // [確認_正常系] - actual.invalid が 0 であること。
+    EXPECT_STREQ(
+        "識別子です。",
+        actual
+            .brief); // [確認_正常系] - actual.brief が "識別子です。" であること。(汎用属性の記述が brief から除外されたことの確認)
+    ASSERT_NE(nullptr, actual.attributes); // [確認_正常系] - actual.attributes が nullptr 以外であること。
+    EXPECT_STREQ("json.name",
+                 actual.attributes->key); // [確認_正常系] - actual.attributes->key が "json.name" であること。
+    EXPECT_STREQ("person_id",
+                 actual.attributes->value);      // [確認_正常系] - actual.attributes->value が "person_id" であること。
+    ASSERT_NE(nullptr, actual.attributes->next); // [確認_正常系] - actual.attributes->next が nullptr 以外であること。
+    EXPECT_STREQ(
+        "sample.flag",
+        actual.attributes->next->key); // [確認_正常系] - actual.attributes->next->key が "sample.flag" であること。
+    EXPECT_EQ(nullptr,
+              actual.attributes->next->value); // [確認_正常系] - actual.attributes->next->value が nullptr であること。
 }
 
 // 1つのコメント内で同じ属性名が重複している場合に解析エラーとなることの確認
@@ -44,9 +51,14 @@ TEST(structMetaParseDocTest, rejects_duplicate_attributes)
         comment, 1, 20, &diagnostic); // [手順] - 重複する属性を含むコメントを解析する。
 
     // Assert
-    EXPECT_NE(0, actual.invalid);         // [確認_異常系] - 重複する属性が拒否されること。
-    EXPECT_EQ(20, diagnostic.line);       // [確認_異常系] - 診断へ行番号が記録されること。
-    EXPECT_STRNE("", diagnostic.message); // [確認_異常系] - 診断へ原因が記録されること。
+    EXPECT_NE(
+        0, actual.invalid); // [確認_異常系] - actual.invalid が 0 以外であること。(重複する属性が拒否されたことの確認)
+    EXPECT_EQ(
+        20, diagnostic.line); // [確認_異常系] - diagnostic.line が 20 であること。(診断へ行番号が記録されたことの確認)
+    EXPECT_STRNE(
+        "",
+        diagnostic
+            .message); // [確認_異常系] - diagnostic.message が "" 以外であること。(診断へ原因が記録されたことの確認)
 }
 
 // 前置コメントと後置コメントの間で同じ属性名が重複している場合に統合時にエラーとなることの確認
@@ -66,7 +78,10 @@ TEST(structMetaParseDocTest, rejects_duplicate_attributes_across_comments)
         prefix, postfix, 21, &diagnostic); // [手順] - 同じ属性名を持つ前置と後置コメントを結合する。
 
     // Assert
-    EXPECT_NE(0, actual.invalid); // [確認_異常系] - コメントをまたいで重複する属性が拒否されること。
+    EXPECT_NE(
+        0,
+        actual
+            .invalid); // [確認_異常系] - actual.invalid が 0 以外であること。(コメントをまたいで重複する属性が拒否されたことの確認)
 }
 
 // 廃止された古い JSON 固有コマンドが汎用属性として誤変換されず構文エラーにもならないことの確認
@@ -83,8 +98,14 @@ TEST(structMetaParseDocTest, does_not_convert_legacy_json_commands)
         comment, 1, 22, &diagnostic); // [手順] - 廃止した JSON 固有コマンドを含むコメントを解析する。
 
     // Assert
-    EXPECT_EQ(0, actual.invalid); // [確認_正常系] - 未知の Doxygen コマンドが汎用属性の構文エラーにならないこと。
-    EXPECT_EQ(nullptr, actual.attributes); // [確認_正常系] - 廃止した JSON 固有コマンドが属性へ変換されないこと。
+    EXPECT_EQ(
+        0,
+        actual
+            .invalid); // [確認_正常系] - actual.invalid が 0 であること。(未知の Doxygen コマンドが汎用属性の構文エラーにならないことの確認)
+    EXPECT_EQ(
+        nullptr,
+        actual
+            .attributes); // [確認_正常系] - actual.attributes が nullptr であること。(廃止した JSON 固有コマンドが属性へ変換されないことの確認)
 }
 
 // 空の属性名や値、空白入りキー、閉じ括弧不足、改行混入などの不正な属性構文が拒否されることの確認
@@ -113,9 +134,24 @@ TEST(structMetaParseDocTest, rejects_invalid_attribute_forms)
         multiline, 1, 34, &diagnostic); // [手順] - 改行を含む属性値を解析する。
 
     // Assert
-    EXPECT_NE(0, empty_key_result.invalid);     // [確認_異常系] - 空の属性名が拒否されること。
-    EXPECT_NE(0, empty_value_result.invalid);   // [確認_異常系] - 空の属性値が拒否されること。
-    EXPECT_NE(0, invalid_key_result.invalid);   // [確認_異常系] - 空白を含む属性名が拒否されること。
-    EXPECT_NE(0, missing_close_result.invalid); // [確認_異常系] - 閉じ波括弧が無い属性が拒否されること。
-    EXPECT_NE(0, multiline_result.invalid);     // [確認_異常系] - 改行を含む属性値が拒否されること。
+    EXPECT_NE(
+        0,
+        empty_key_result
+            .invalid); // [確認_異常系] - empty_key_result.invalid が 0 以外であること。(空の属性名が拒否されたことの確認)
+    EXPECT_NE(
+        0,
+        empty_value_result
+            .invalid); // [確認_異常系] - empty_value_result.invalid が 0 以外であること。(空の属性値が拒否されたことの確認)
+    EXPECT_NE(
+        0,
+        invalid_key_result
+            .invalid); // [確認_異常系] - invalid_key_result.invalid が 0 以外であること。(空白を含む属性名が拒否されたことの確認)
+    EXPECT_NE(
+        0,
+        missing_close_result
+            .invalid); // [確認_異常系] - missing_close_result.invalid が 0 以外であること。(閉じ波括弧が無い属性が拒否されたことの確認)
+    EXPECT_NE(
+        0,
+        multiline_result
+            .invalid); // [確認_異常系] - multiline_result.invalid が 0 以外であること。(改行を含む属性値が拒否されたことの確認)
 }

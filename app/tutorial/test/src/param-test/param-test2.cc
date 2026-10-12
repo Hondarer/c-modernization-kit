@@ -52,13 +52,14 @@ TEST_P(ParamTest2Test, MultiplyTest)
 
     // Pre-Assert
     EXPECT_CALL(mockObj, myFunction(p.a, p.b))
-        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction(a, b) が 1 回呼び出されること。
+        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction() が p.a、p.b を指定して 1 回呼び出されること。
 
     // Act
     int result = mockObj.myFunction(p.a, p.b); // [手順] - myFunction(a, b) を呼び出す。
 
     // Assert
-    EXPECT_EQ(result, p.expected); // [確認_正常系 回数=PARAM] - myFunction(a, b) の戻り値が期待する戻り値と一致すること。
+    EXPECT_EQ(result,
+              p.expected); // [確認_正常系 回数=PARAM] - mockObj.myFunction() の戻り値が p.expected と一致すること。
 }
 
 // テスト名をデータ定義できるようにする例

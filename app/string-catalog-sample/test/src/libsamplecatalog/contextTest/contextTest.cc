@@ -16,15 +16,19 @@ TEST_F(contextTest, advances_by_one_on_each_call)
     const int32_t first = samplecatalog_next_sequence_number(); // [状態] - 基準となる 1 つ目の番号を取得する。
 
     // Pre-Assert
-    ASSERT_GE(first, 1);                                 // [Pre-Assert確認_正常系] - 番号が 1 以上であること。
-    ASSERT_LE(first, SAMPLECATALOG_SEQUENCE_NUMBER_MAX); // [Pre-Assert確認_正常系] - 番号が上限以下であること。
 
     // Act
     const int32_t second = samplecatalog_next_sequence_number(); // [手順] - 続けて 2 つ目の番号を取得する。
 
     // Assert
+    ASSERT_GE(first, 1); // [確認_正常系] - 1 回目の samplecatalog_next_sequence_number() の戻り値が 1 以上であること。
+    ASSERT_LE(
+        first,
+        SAMPLECATALOG_SEQUENCE_NUMBER_MAX); // [確認_正常系] - 1 回目の samplecatalog_next_sequence_number() の戻り値が SAMPLECATALOG_SEQUENCE_NUMBER_MAX 以下であること。
     const int32_t expected = (first == SAMPLECATALOG_SEQUENCE_NUMBER_MAX) ? 1 : (first + 1);
-    EXPECT_EQ(expected, second); // [確認_正常系] - 1 つ増えた番号を返すこと (上限では 1 へ戻ること)。
+    EXPECT_EQ(
+        expected,
+        second); // [確認_正常系] - 2 回目の samplecatalog_next_sequence_number() の戻り値が expected と一致すること。(1 つ増えた番号になり、上限では 1 へ戻ったことの確認)
 }
 
 // 上限の回数だけ呼び出すと、同じ番号へ戻ることの確認
@@ -35,7 +39,6 @@ TEST_F(contextTest, wraps_around_after_the_maximum)
     int32_t last = start;
 
     // Pre-Assert
-    ASSERT_GE(start, 1); // [Pre-Assert確認_正常系] - 番号が 1 以上であること。
 
     // Act
     for (int count = 0; count < SAMPLECATALOG_SEQUENCE_NUMBER_MAX; count++)
@@ -44,7 +47,11 @@ TEST_F(contextTest, wraps_around_after_the_maximum)
     }
 
     // Assert
-    EXPECT_EQ(start, last); // [確認_正常系] - 上限の回数で 1 周し、起点と同じ番号へ戻ること。
+    ASSERT_GE(start,
+              1); // [確認_正常系] - 起点取得時の samplecatalog_next_sequence_number() の戻り値が 1 以上であること。
+    EXPECT_EQ(
+        start,
+        last); // [確認_正常系] - 1 周後の samplecatalog_next_sequence_number() の戻り値が起点取得時の samplecatalog_next_sequence_number() の戻り値と一致すること。(上限の回数で 1 周し、起点と同じ番号へ戻ったことの確認)
 }
 
 // 番号が上限を超えないことの確認
@@ -65,5 +72,6 @@ TEST_F(contextTest, stays_within_the_range)
     }
 
     // Assert
-    EXPECT_TRUE(in_range); // [確認_正常系] - すべての番号が 1 から上限までに収まること。
+    EXPECT_TRUE(
+        in_range); // [確認_正常系] - in_range が true であること。(すべての番号が 1 から SAMPLECATALOG_SEQUENCE_NUMBER_MAX までに収まることの確認)
 }

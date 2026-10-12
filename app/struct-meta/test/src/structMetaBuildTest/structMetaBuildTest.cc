@@ -132,22 +132,29 @@ TEST(structMetaBuildTest, computes_the_same_layout_as_the_compiler)
     int ret = build(make_nested_ast(), &arena, &descriptors, &count, &diagnostic); // [手順] - AST から記述子を作る。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, ret);                             // [確認_正常系] - 組み立てが成功すること。
-    ASSERT_EQ(2U, count);                                 // [確認_正常系] - 2 個の記述子ができること。
-    EXPECT_STREQ("inner_probe", descriptors[0]->name);    // [確認_正常系] - 並びが宣言順であること。
-    EXPECT_STREQ("outer_probe", descriptors[1]->name);    // [確認_正常系] - 並びが宣言順であること。
-    EXPECT_EQ(sizeof(inner_probe), descriptors[0]->size); // [確認_正常系] - ネストの大きさが一致すること。
-    EXPECT_EQ(sizeof(outer_probe), descriptors[1]->size); // [確認_正常系] - 全体の大きさが一致すること。
+    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - build() の戻り値が CPLAT_OK であること。
+    ASSERT_EQ(2U, count);     // [確認_正常系] - count が 2U であること。
+    EXPECT_STREQ("inner_probe",
+                 descriptors[0]->name); // [確認_正常系] - descriptors[0]->name が "inner_probe" であること。
+    EXPECT_STREQ("outer_probe",
+                 descriptors[1]->name); // [確認_正常系] - descriptors[1]->name が "outer_probe" であること。
+    EXPECT_EQ(sizeof(inner_probe),
+              descriptors[0]->size); // [確認_正常系] - descriptors[0]->size が sizeof(inner_probe) と一致すること。
+    EXPECT_EQ(sizeof(outer_probe),
+              descriptors[1]->size); // [確認_正常系] - descriptors[1]->size が sizeof(outer_probe) と一致すること。
     EXPECT_EQ(offsetof(inner_probe, label), descriptors[0]->fields[0].offset);
-    // [確認_正常系] - `descriptors[0]->fields[0].offset` が、対応する構造体メンバーのオフセット `offsetof(inner_probe, label)` であること。
+    // [確認_正常系] - descriptors[0]->fields[0].offset が offsetof(inner_probe, label) と一致すること。
     EXPECT_EQ(offsetof(inner_probe, value), descriptors[0]->fields[1].offset);
-    // [確認_正常系] - `descriptors[0]->fields[1].offset` が、対応する構造体メンバーのオフセット `offsetof(inner_probe, value)` であること。
+    // [確認_正常系] - descriptors[0]->fields[1].offset が offsetof(inner_probe, value) と一致すること。
     EXPECT_EQ(offsetof(outer_probe, flag), descriptors[1]->fields[0].offset);
-    // [確認_正常系] - `descriptors[1]->fields[0].offset` が、対応する構造体メンバーのオフセット `offsetof(outer_probe, flag)` であること。
-    EXPECT_EQ(offsetof(outer_probe, inner),
-              descriptors[1]->fields[1].offset); // [確認_正常系] - ネスト配列が境界へ揃うこと。
+    // [確認_正常系] - descriptors[1]->fields[0].offset が offsetof(outer_probe, flag) と一致すること。
+    EXPECT_EQ(
+        offsetof(outer_probe, inner),
+        descriptors[1]
+            ->fields[1]
+            .offset); // [確認_正常系] - descriptors[1]->fields[1].offset が offsetof(outer_probe, inner) と一致すること。
     EXPECT_EQ(offsetof(outer_probe, ratio), descriptors[1]->fields[2].offset);
-    // [確認_正常系] - `descriptors[1]->fields[2].offset` が、対応する構造体メンバーのオフセット `offsetof(outer_probe, ratio)` であること。
+    // [確認_正常系] - descriptors[1]->fields[2].offset が offsetof(outer_probe, ratio) と一致すること。
 
     // Cleanup
     struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
@@ -162,7 +169,7 @@ TEST(structMetaBuildTest, classifies_fields_and_copies_attributes)
     size_t count = 0;
     struct_meta_diagnostic diagnostic = {};
     ASSERT_EQ(CPLAT_OK, build(make_nested_ast(), &arena, &descriptors, &count, &diagnostic));
-    // [状態確認] - `build(make_nested_ast(), &arena, &descriptors, &count, &diagnostic)` の戻り値が `CPLAT_OK` であること。
+    // [状態確認] - build() の戻り値が CPLAT_OK であること。
 
     // Pre-Assert
 
@@ -173,25 +180,32 @@ TEST(structMetaBuildTest, classifies_fields_and_copies_attributes)
     const struct_meta_field *ratio = &descriptors[1]->fields[2]; // [手順] - double を取り出す。
 
     // Assert
-    EXPECT_EQ(STRUCT_META_FIELD_CHAR_ARRAY, label->kind);      // [確認_正常系] - char 配列を文字列として扱うこと。
-    EXPECT_EQ(1U, label->element_count);                       // [確認_正常系] - 文字列は要素数 1 であること。
-    EXPECT_EQ(8U, label->char_buffer_size);                    // [確認_正常系] - 全体のバイト数を保持すること。
-    EXPECT_EQ(1U, label->element_size);                        // [確認_正常系] - 要素 1 個は 1 バイトであること。
-    EXPECT_EQ(STRUCT_META_FIELD_UNSIGNED_INTEGER, flag->kind); // [確認_正常系] - unsigned char が符号なしであること。
-    EXPECT_EQ(STRUCT_META_FIELD_STRUCT, inner->kind);          // [確認_正常系] - ネスト構造体であること。
-    EXPECT_EQ(descriptors[0], inner->nested);                  // [確認_正常系] - ネスト先が張られること。
-    EXPECT_EQ(sizeof(inner_probe), inner->element_size);       // [確認_正常系] - 要素サイズがネストの大きさであること。
-    EXPECT_EQ(2U, inner->element_count);                       // [確認_正常系] - 要素数が宣言どおりであること。
-    EXPECT_EQ(STRUCT_META_FIELD_DOUBLE, ratio->kind);          // [確認_正常系] - double を認識すること。
-    ASSERT_EQ(1U, label->attribute_count);                     // [確認_正常系] - フィールドの属性を複写すること。
+    EXPECT_EQ(STRUCT_META_FIELD_CHAR_ARRAY,
+              label->kind);                 // [確認_正常系] - label->kind が STRUCT_META_FIELD_CHAR_ARRAY であること。
+    EXPECT_EQ(1U, label->element_count);    // [確認_正常系] - label->element_count が 1U であること。
+    EXPECT_EQ(8U, label->char_buffer_size); // [確認_正常系] - label->char_buffer_size が 8U であること。
+    EXPECT_EQ(1U, label->element_size);     // [確認_正常系] - label->element_size が 1U であること。
+    EXPECT_EQ(STRUCT_META_FIELD_UNSIGNED_INTEGER,
+              flag->kind); // [確認_正常系] - flag->kind が STRUCT_META_FIELD_UNSIGNED_INTEGER であること。
+    EXPECT_EQ(STRUCT_META_FIELD_STRUCT,
+              inner->kind);                   // [確認_正常系] - inner->kind が STRUCT_META_FIELD_STRUCT であること。
+    EXPECT_EQ(descriptors[0], inner->nested); // [確認_正常系] - inner->nested が descriptors[0] と一致すること。
+    EXPECT_EQ(sizeof(inner_probe),
+              inner->element_size);      // [確認_正常系] - inner->element_size が sizeof(inner_probe) と一致すること。
+    EXPECT_EQ(2U, inner->element_count); // [確認_正常系] - inner->element_count が 2U であること。
+    EXPECT_EQ(STRUCT_META_FIELD_DOUBLE,
+              ratio->kind);                // [確認_正常系] - ratio->kind が STRUCT_META_FIELD_DOUBLE であること。
+    ASSERT_EQ(1U, label->attribute_count); // [確認_正常系] - label->attribute_count が 1U であること。
     EXPECT_STREQ("json.name", label->attributes[0].key);
-    // [確認_正常系] - `label->attributes[0].key` の値が `"json.name"` であること。
+    // [確認_正常系] - label->attributes[0].key が "json.name" であること。
     EXPECT_STREQ("text", label->attributes[0].value);
-    // [確認_正常系] - `label->attributes[0].value` の値が `"text"` であること。
-    ASSERT_EQ(1U, descriptors[0]->attribute_count); // [確認_正常系] - 構造体の属性を複写すること。
+    // [確認_正常系] - label->attributes[0].value が "text" であること。
+    ASSERT_EQ(1U,
+              descriptors[0]->attribute_count); // [確認_正常系] - descriptors[0]->attribute_count が 1U であること。
     EXPECT_STREQ("sample.category", descriptors[0]->attributes[0].key);
-    // [確認_正常系] - `descriptors[0]->attributes[0].key` の値が `"sample.category"` であること。
-    EXPECT_EQ(0U, descriptors[1]->attribute_count); // [確認_正常系] - 属性が無ければ 0 であること。
+    // [確認_正常系] - descriptors[0]->attributes[0].key が "sample.category" であること。
+    EXPECT_EQ(0U,
+              descriptors[1]->attribute_count); // [確認_正常系] - descriptors[1]->attribute_count が 0U であること。
 
     // Cleanup
     struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
@@ -219,13 +233,23 @@ TEST(structMetaBuildTest, treats_char_array_as_bytes_when_requested)
         build(list, &arena, &descriptors, &count, &diagnostic); // [手順] - meta.kind=bytes を含む AST を組み立てる。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - 組み立てが成功すること。
-    EXPECT_EQ(STRUCT_META_FIELD_SIGNED_INTEGER,
-              descriptors[0]->fields[0].kind);                 // [確認_正常系] - バイト配列を符号付き整数とすること。
-    EXPECT_EQ(3U, descriptors[0]->fields[0].element_count);    // [確認_正常系] - 要素数が宣言どおりであること。
-    EXPECT_EQ(0U, descriptors[0]->fields[0].char_buffer_size); // [確認_正常系] - 文字列ではないこと。
+    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - build() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(
+        STRUCT_META_FIELD_SIGNED_INTEGER,
+        descriptors[0]
+            ->fields[0]
+            .kind); // [確認_正常系] - descriptors[0]->fields[0].kind が STRUCT_META_FIELD_SIGNED_INTEGER であること。
+    EXPECT_EQ(3U, descriptors[0]
+                      ->fields[0]
+                      .element_count); // [確認_正常系] - descriptors[0]->fields[0].element_count が 3U であること。
+    EXPECT_EQ(0U,
+              descriptors[0]
+                  ->fields[0]
+                  .char_buffer_size); // [確認_正常系] - descriptors[0]->fields[0].char_buffer_size が 0U であること。
     EXPECT_EQ(STRUCT_META_FIELD_CHAR_ARRAY,
-              descriptors[0]->fields[1].kind); // [確認_正常系] - 既定の char 配列は文字列であること。
+              descriptors[0]
+                  ->fields[1]
+                  .kind); // [確認_正常系] - descriptors[0]->fields[1].kind が STRUCT_META_FIELD_CHAR_ARRAY であること。
 
     // Cleanup
     struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
@@ -280,13 +304,22 @@ TEST(structMetaBuildTest, rejects_invalid_input)
                                                               nullptr); // [手順] - NULL 引数を渡す。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, unknown_ret);         // [確認_異常系] - 未知の型を拒否すること。
-    EXPECT_STRNE("", unknown_type.message);              // [確認_異常系] - 診断が残ること。
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, kind_ret);   // [確認_異常系] - スカラーへの meta.kind を拒否すること。
-    EXPECT_STRNE("", bad_kind.message);                  // [確認_異常系] - 診断が残ること。
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, format_ret); // [確認_異常系] - スカラーへの meta.format を拒否すること。
-    EXPECT_STRNE("", bad_format.message);                // [確認_異常系] - 診断が残ること。
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, cyclic_ret); // [確認_異常系] - 循環する構造体を拒否すること。
-    EXPECT_STRNE("", cyclic.message);                    // [確認_異常系] - 診断が残ること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_structs); // [確認_異常系] - 引数の NULL を拒否すること。
+    EXPECT_EQ(CPLAT_ERR_NOT_FOUND,
+              unknown_ret); // [確認_異常系] - 未知の型に対する build() の戻り値が CPLAT_ERR_NOT_FOUND であること。
+    EXPECT_STRNE("", unknown_type.message); // [確認_異常系] - unknown_type.message が "" 以外であること。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        kind_ret); // [確認_異常系] - スカラーへの meta.kind 指定に対する build() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_STRNE("", bad_kind.message); // [確認_異常系] - bad_kind.message が "" 以外であること。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        format_ret); // [確認_異常系] - スカラーへの meta.format 指定に対する build() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_STRNE("", bad_format.message); // [確認_異常系] - bad_format.message が "" 以外であること。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        cyclic_ret); // [確認_異常系] - 循環参照に対する build() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_STRNE("", cyclic.message); // [確認_異常系] - cyclic.message が "" 以外であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        null_structs); // [確認_異常系] - NULL 引数に対する struct_meta_internal_build_descriptors() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }

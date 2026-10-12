@@ -76,7 +76,7 @@ class exportTest : public Test
     {
         workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
-        // [状態確認] - `workspace_root.empty()` が false であること。
+        // [状態確認] - workspace_root.empty() の戻り値が false であること。
         dll_path =
             workspace_root + "/app/string-catalog-sample/prod/lib/libsamplecatalog" TESTFW_SHARED_LIBRARY_EXTENSION;
     }
@@ -133,7 +133,7 @@ TEST_F(exportTest, structure_returning_functions_are_not_exported)
     {
         EXPECT_EQ(0U, actual.count(name))
             << "公開範囲 api で公開しない関数がエクスポートされています: "
-            << name; // [確認_正常系 回数=10] - 利用側が cplat の構造体レイアウトへ依存しないこと。
+            << name; // [確認_正常系 回数=10] - name を数えた actual.count() の戻り値が 0 であること。(公開しない関数がエクスポートされていないことの確認)
     }
 }
 
@@ -154,7 +154,8 @@ TEST_F(exportTest, public_header_variables_declare_export_macro)
         "SAMPLECATALOG_EXPORT"); // [手順] - prod/include 配下を走査し、装飾を伴わない extern 変数宣言を集める。
 
     // Assert
-    EXPECT_TRUE(undecorated.empty()) << "SAMPLECATALOG_EXPORT を伴わない変数宣言: "
-                                     << testing::joinNames(
-                                            undecorated); // [確認_正常系] - 該当する宣言が 1 件もないこと。
+    EXPECT_TRUE(undecorated.empty())
+        << "SAMPLECATALOG_EXPORT を伴わない変数宣言: "
+        << testing::joinNames(
+               undecorated); // [確認_正常系] - undecorated.empty() の戻り値が true であること。(装飾を伴わない変数宣言が 1 件もないことの確認)
 }

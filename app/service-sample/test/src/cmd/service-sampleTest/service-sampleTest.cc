@@ -205,8 +205,10 @@ TEST_F(service_sampleTest, usage_without_args)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() を引数なしで呼び出す。
 
     // Assert
-    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - main() の戻り値が EXIT_SUCCESS 以外であること。
-    EXPECT_TRUE(g_calls.empty());        // [確認_異常系] - OS フックもコールバックも呼ばれないこと。
+    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - g_calls.empty() の戻り値が true であること。(OS フックもコールバックも呼ばれないことの確認)
 }
 
 // --help 指定時に usage を表示して正常終了することの確認
@@ -222,8 +224,10 @@ TEST_F(service_sampleTest, help)
     int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションで main() を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - help の表示後に正常終了すること。
-    EXPECT_TRUE(g_calls.empty());        // [確認_正常系] - OS フックやサービス コールバックを呼び出さないこと。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_正常系] - g_calls.empty() の戻り値が true であること。(OS フックやサービス コールバックを呼び出さないことの確認)
 }
 
 // 不明なコマンドで失敗終了することの確認
@@ -240,8 +244,10 @@ TEST_F(service_sampleTest, unknown_command)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - main() の戻り値が EXIT_SUCCESS 以外であること。
-    EXPECT_TRUE(g_calls.empty());        // [確認_異常系] - OS フックもコールバックも呼ばれないこと。
+    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - g_calls.empty() の戻り値が true であること。(OS フックもコールバックも呼ばれないことの確認)
 }
 
 // install コマンドが svc_os_install を呼び出すことの確認
@@ -258,9 +264,14 @@ TEST_F(service_sampleTest, install_dispatch)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(1U, g_calls.size());       // [確認_正常系] - フックが 1 回だけ呼ばれること。
-    EXPECT_EQ("os_install", g_calls[0]); // [確認_正常系] - svc_os_install() が呼ばれること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(
+        1U,
+        g_calls
+            .size()); // [確認_正常系] - g_calls.size() の戻り値が 1U であること。(フックが 1 回だけ呼ばれることの確認)
+    EXPECT_EQ(
+        "os_install",
+        g_calls[0]); // [確認_正常系] - g_calls[0] が "os_install" であること。(svc_os_install() が呼ばれることの確認)
 }
 
 // tracer が既定のファイル パスと共有モードを使うことの確認
@@ -274,13 +285,15 @@ TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
     // Pre-Assert
     EXPECT_CALL(mock_cplat_, cplat_tracer_set_file_level(tracer_handle_, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0U, 0,
                                                          CPLAT_TRACE_FILE_SINK_SHARED))
-        .WillOnce(Return(0)); // [Pre-Assert確認_正常系] - パスは cplat 既定値へ委譲し、既存の共有モードを維持すること。
+        .WillOnce(Return(
+            0)); // [Pre-Assert確認_正常系] - cplat_tracer_set_file_level() が tracer_handle_、NULL、CPLAT_TRACE_LEVEL_VERBOSE、0U、0、CPLAT_TRACE_FILE_SINK_SHARED を指定して 1 回呼び出されること。(パスは cplat 既定値へ委譲し、既存の共有モードを維持することの確認)
+                 // [Pre-Assert手順] - cplat_tracer_set_file_level から 0 を返却する。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - tracer 設定後も通常の dispatch が成功すること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
 }
 
 // uninstall コマンドが svc_os_uninstall を呼び出すことの確認
@@ -297,9 +310,15 @@ TEST_F(service_sampleTest, uninstall_dispatch)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret);   // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(1U, g_calls.size());         // [確認_正常系] - フックが 1 回だけ呼ばれること。
-    EXPECT_EQ("os_uninstall", g_calls[0]); // [確認_正常系] - svc_os_uninstall() が呼ばれること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(
+        1U,
+        g_calls
+            .size()); // [確認_正常系] - g_calls.size() の戻り値が 1U であること。(フックが 1 回だけ呼ばれることの確認)
+    EXPECT_EQ(
+        "os_uninstall",
+        g_calls
+            [0]); // [確認_正常系] - g_calls[0] が "os_uninstall" であること。(svc_os_uninstall() が呼ばれることの確認)
 }
 
 // run コマンドが svc_os_run_service を呼び出すことの確認
@@ -316,9 +335,15 @@ TEST_F(service_sampleTest, run_dispatch)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret);     // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(1U, g_calls.size());           // [確認_正常系] - フックが 1 回だけ呼ばれること。
-    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_正常系] - svc_os_run_service() が呼ばれること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(
+        1U,
+        g_calls
+            .size()); // [確認_正常系] - g_calls.size() の戻り値が 1U であること。(フックが 1 回だけ呼ばれることの確認)
+    EXPECT_EQ(
+        "os_run_service",
+        g_calls
+            [0]); // [確認_正常系] - g_calls[0] が "os_run_service" であること。(svc_os_run_service() が呼ばれることの確認)
 }
 
 /* ============================================================
@@ -339,14 +364,24 @@ TEST_F(service_sampleTest, console_lifecycle_order)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(5U, g_calls.size());
-    // [確認_正常系] - `g_calls` の要素数が `5U` であること。
-    EXPECT_EQ("on_start", g_calls[0]);        // [確認_正常系] - on_start が最初に呼ばれること。
-    EXPECT_EQ("notify_ready", g_calls[1]);    // [確認_正常系] - on_start 成功後に起動完了が通知されること。
-    EXPECT_EQ("on_run", g_calls[2]);          // [確認_正常系] - 起動完了通知の後に on_run が呼ばれること。
-    EXPECT_EQ("notify_stopping", g_calls[3]); // [確認_正常系] - on_run 復帰後に停止開始が通知されること。
-    EXPECT_EQ("on_stop", g_calls[4]);         // [確認_正常系] - 最後に on_stop が呼ばれること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(5U, g_calls.size());       // [確認_正常系] - g_calls.size() の戻り値が 5U であること。
+    EXPECT_EQ("on_start",
+              g_calls[0]); // [確認_正常系] - g_calls[0] が "on_start" であること。(on_start が最初に呼ばれることの確認)
+    EXPECT_EQ(
+        "notify_ready",
+        g_calls
+            [1]); // [確認_正常系] - g_calls[1] が "notify_ready" であること。(on_start 成功後に起動完了が通知されることの確認)
+    EXPECT_EQ(
+        "on_run",
+        g_calls
+            [2]); // [確認_正常系] - g_calls[2] が "on_run" であること。(起動完了通知の後に on_run が呼ばれることの確認)
+    EXPECT_EQ(
+        "notify_stopping",
+        g_calls
+            [3]); // [確認_正常系] - g_calls[3] が "notify_stopping" であること。(on_run 復帰後に停止開始が通知されることの確認)
+    EXPECT_EQ("on_stop",
+              g_calls[4]); // [確認_正常系] - g_calls[4] が "on_stop" であること。(最後に on_stop が呼ばれることの確認)
 }
 
 // on_start 失敗時に後続処理を行わず終了コードを返すことの確認
@@ -364,9 +399,15 @@ TEST_F(service_sampleTest, console_on_start_failure)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(7, actual_ret);          // [確認_異常系] - on_start の戻り値がそのまま終了コードになること。
-    ASSERT_EQ(1U, g_calls.size());     // [確認_異常系] - on_start 以降の処理が行われないこと。
-    EXPECT_EQ("on_start", g_calls[0]); // [確認_異常系] - on_start のみが呼ばれること。
+    EXPECT_EQ(
+        7,
+        actual_ret); // [確認_異常系] - __real_main() の戻り値が 7 であること。(on_start() の戻り値がそのまま終了コードになることの確認)
+    ASSERT_EQ(
+        1U,
+        g_calls
+            .size()); // [確認_異常系] - g_calls.size() の戻り値が 1U であること。(on_start 以降の処理が行われないことの確認)
+    EXPECT_EQ("on_start",
+              g_calls[0]); // [確認_異常系] - g_calls[0] が "on_start" であること。(on_start のみが呼ばれることの確認)
 }
 
 // on_run 失敗時も停止処理を行い終了コードを返すことの確認
@@ -384,11 +425,18 @@ TEST_F(service_sampleTest, console_on_run_failure)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(2, actual_ret); // [確認_異常系] - on_run の戻り値がそのまま終了コードになること。
-    ASSERT_EQ(5U, g_calls.size());
-    // [確認_異常系] - `g_calls` の要素数が `5U` であること。
-    EXPECT_EQ("notify_stopping", g_calls[3]); // [確認_異常系] - on_run 失敗後も停止開始が通知されること。
-    EXPECT_EQ("on_stop", g_calls[4]);         // [確認_異常系] - on_run 失敗後も後始末の on_stop が呼ばれること。
+    EXPECT_EQ(
+        2,
+        actual_ret); // [確認_異常系] - __real_main() の戻り値が 2 であること。(on_run() の戻り値がそのまま終了コードになることの確認)
+    ASSERT_EQ(5U, g_calls.size()); // [確認_異常系] - g_calls.size() の戻り値が 5U であること。
+    EXPECT_EQ(
+        "notify_stopping",
+        g_calls
+            [3]); // [確認_異常系] - g_calls[3] が "notify_stopping" であること。(on_run 失敗後も停止開始が通知されることの確認)
+    EXPECT_EQ(
+        "on_stop",
+        g_calls
+            [4]); // [確認_異常系] - g_calls[4] が "on_stop" であること。(on_run 失敗後も後始末の on_stop が呼ばれることの確認)
 }
 
 // on_stop 失敗時にその戻り値を終了コードとすることの確認
@@ -406,8 +454,13 @@ TEST_F(service_sampleTest, console_on_stop_failure)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(3, actual_ret);      // [確認_異常系] - on_stop の戻り値がそのまま終了コードになること。
-    ASSERT_EQ(5U, g_calls.size()); // [確認_異常系] - ライフサイクル全体が実行されること。
+    EXPECT_EQ(
+        3,
+        actual_ret); // [確認_異常系] - __real_main() の戻り値が 3 であること。(on_stop() の戻り値がそのまま終了コードになることの確認)
+    ASSERT_EQ(
+        5U,
+        g_calls
+            .size()); // [確認_異常系] - g_calls.size() の戻り値が 5U であること。(ライフサイクル全体が実行されることの確認)
 }
 
 /* ============================================================
@@ -431,19 +484,25 @@ TEST_F(service_sampleTest, dispatch_event_null_safety)
     svc_dispatch_event(NULL, &info); // [手順] - def に NULL を渡して呼び出す。
 
     // Assert
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - def が NULL の場合はコールバックが呼ばれないこと。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - def が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 
     // Act_2
     svc_dispatch_event(&g_service_def, NULL); // [手順] - info に NULL を渡して呼び出す。
 
     // Assert_2
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - info が NULL の場合はコールバックが呼ばれないこと。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - info が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 
     // Act_3
     svc_dispatch_event(&def_without_event, &info); // [手順] - on_event が NULL の定義で呼び出す。
 
     // Assert_3
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - on_event が NULL の場合はコールバックが呼ばれないこと。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - on_event が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 }
 
 // イベント情報が on_event へ渡ることの確認
@@ -461,9 +520,17 @@ TEST_F(service_sampleTest, dispatch_event_passes_info)
     svc_dispatch_event(&g_service_def, &info); // [手順] - svc_dispatch_event() を呼び出す。
 
     // Assert
-    ASSERT_EQ(1U, g_events.size());                       // [確認_正常系] - on_event が 1 回呼ばれること。
-    EXPECT_EQ(SVC_EVENT_SESSION_LOGON, g_events[0].type); // [確認_正常系] - イベント種別が伝わること。
-    EXPECT_EQ("42", g_event_session_ids[0]);              // [確認_正常系] - セッション ID が伝わること。
+    ASSERT_EQ(
+        1U,
+        g_events
+            .size()); // [確認_正常系] - g_events.size() の戻り値が 1U であること。(on_event が 1 回呼ばれることの確認)
+    EXPECT_EQ(
+        SVC_EVENT_SESSION_LOGON,
+        g_events[0]
+            .type); // [確認_正常系] - g_events[0].type が SVC_EVENT_SESSION_LOGON であること。(イベント種別が伝わることの確認)
+    EXPECT_EQ("42",
+              g_event_session_ids
+                  [0]); // [確認_正常系] - g_event_session_ids[0] が "42" であること。(セッション ID が伝わることの確認)
 }
 
 // セッション ID なしのイベントがそのまま渡ることの確認
@@ -481,9 +548,18 @@ TEST_F(service_sampleTest, dispatch_event_without_session_id)
     svc_dispatch_event(&g_service_def, &info); // [手順] - svc_dispatch_event() を呼び出す。
 
     // Assert
-    ASSERT_EQ(1U, g_events.size());                     // [確認_正常系] - on_event が 1 回呼ばれること。
-    EXPECT_EQ(SVC_EVENT_PRESHUTDOWN, g_events[0].type); // [確認_正常系] - イベント種別が伝わること。
-    EXPECT_EQ(NULL, g_events[0].session_id);            // [確認_正常系] - session_id が NULL のまま伝わること。
+    ASSERT_EQ(
+        1U,
+        g_events
+            .size()); // [確認_正常系] - g_events.size() の戻り値が 1U であること。(on_event が 1 回呼ばれることの確認)
+    EXPECT_EQ(
+        SVC_EVENT_PRESHUTDOWN,
+        g_events[0]
+            .type); // [確認_正常系] - g_events[0].type が SVC_EVENT_PRESHUTDOWN であること。(イベント種別が伝わることの確認)
+    EXPECT_EQ(
+        NULL,
+        g_events[0]
+            .session_id); // [確認_正常系] - g_events[0].session_id が NULL であること。(session_id が NULL のまま伝わることの確認)
 }
 
 /* ============================================================
@@ -503,11 +579,17 @@ TEST_F(service_sampleTest, dispatch_reload_order)
     svc_dispatch_reload(&g_service_def); // [手順] - svc_dispatch_reload() を呼び出す。
 
     // Assert
-    ASSERT_EQ(3U, g_calls.size());
-    // [確認_正常系] - `g_calls` の要素数が `3U` であること。
-    EXPECT_EQ("notify_reloading", g_calls[0]); // [確認_正常系] - 最初に RELOADING が通知されること。
-    EXPECT_EQ("on_reload", g_calls[1]);        // [確認_正常系] - 次に on_reload が呼ばれること。
-    EXPECT_EQ("notify_ready", g_calls[2]);     // [確認_正常系] - 最後に READY が再通知されること。
+    ASSERT_EQ(3U, g_calls.size()); // [確認_正常系] - g_calls.size() の戻り値が 3U であること。
+    EXPECT_EQ(
+        "notify_reloading",
+        g_calls
+            [0]); // [確認_正常系] - g_calls[0] が "notify_reloading" であること。(最初に RELOADING が通知されることの確認)
+    EXPECT_EQ(
+        "on_reload",
+        g_calls[1]); // [確認_正常系] - g_calls[1] が "on_reload" であること。(次に on_reload が呼ばれることの確認)
+    EXPECT_EQ(
+        "notify_ready",
+        g_calls[2]); // [確認_正常系] - g_calls[2] が "notify_ready" であること。(最後に READY が再通知されることの確認)
 }
 
 // NULL や on_reload 未設定では reload しないことの確認
@@ -524,13 +606,17 @@ TEST_F(service_sampleTest, dispatch_reload_null_safety)
     svc_dispatch_reload(NULL); // [手順] - def に NULL を渡して呼び出す。
 
     // Assert
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - def が NULL の場合はコールバックも通知も行われないこと。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - def が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックも通知も行われないことの確認)
 
     // Act_2
     svc_dispatch_reload(&def_without_reload); // [手順] - on_reload が NULL の定義で呼び出す。
 
     // Assert_2
-    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - on_reload が NULL の場合はコールバックも通知も行われないこと。
+    EXPECT_TRUE(
+        g_calls
+            .empty()); // [確認_異常系] - on_reload が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックも通知も行われないことの確認)
 }
 
 /* ============================================================
@@ -550,8 +636,14 @@ TEST_F(service_sampleTest, set_status_text)
     svc_set_status_text("処理中"); // [手順] - svc_set_status_text() を呼び出す。
 
     // Assert
-    ASSERT_EQ(1U, g_status_texts.size());   // [確認_正常系] - svc_os_notify_status() が 1 回呼ばれること。
-    EXPECT_EQ("処理中", g_status_texts[0]); // [確認_正常系] - テキストがそのまま渡されること。
+    ASSERT_EQ(
+        1U,
+        g_status_texts
+            .size()); // [確認_正常系] - g_status_texts.size() の戻り値が 1U であること。(svc_os_notify_status() が 1 回呼ばれることの確認)
+    EXPECT_EQ(
+        "処理中",
+        g_status_texts
+            [0]); // [確認_正常系] - g_status_texts[0] が "処理中" であること。(テキストがそのまま渡されることの確認)
 }
 
 // NULL の状態テキストを通知しないことの確認
@@ -567,7 +659,9 @@ TEST_F(service_sampleTest, set_status_text_null_safety)
     svc_set_status_text(NULL); // [手順] - svc_set_status_text() に NULL を渡して呼び出す。
 
     // Assert
-    EXPECT_TRUE(g_status_texts.empty()); // [確認_異常系] - svc_os_notify_status() が呼ばれないこと。
+    EXPECT_TRUE(
+        g_status_texts
+            .empty()); // [確認_異常系] - g_status_texts.empty() の戻り値が true であること。(svc_os_notify_status() が呼ばれないことの確認)
 }
 
 /* ============================================================
@@ -589,6 +683,10 @@ TEST_F(service_sampleTest, stop_api_before_initialization)
     int wait_result = svc_wait_for_stop(10); // [手順] - 停止待機を行う。
 
     // Assert
-    EXPECT_EQ(0, requested);   // [確認_異常系] - 未初期化のため停止要求が記録されないこと。
-    EXPECT_EQ(1, wait_result); // [確認_異常系] - 未初期化のため待機せず 1 (停止扱い) が返ること。
+    EXPECT_EQ(
+        0,
+        requested); // [確認_異常系] - svc_stop_requested() の戻り値が 0 であること。(未初期化のため停止要求が記録されないことの確認)
+    EXPECT_EQ(
+        1,
+        wait_result); // [確認_異常系] - svc_wait_for_stop() の戻り値が 1 であること。(未初期化のため待機せず停止扱いであることの確認)
 }

@@ -60,7 +60,7 @@ const struct_meta_descriptor kSampleDescriptor = {"Sample", sizeof(Sample), kSam
 void copy_line(char *dest, size_t dest_size, const std::string &line)
 {
     ASSERT_LT(line.size(), dest_size);
-    // [状態確認] - `line.size()` が `dest_size` より小さいこと。
+    // [状態確認] - line.size() の戻り値が dest_size より小さいこと。
     memcpy(dest, line.c_str(), line.size() + 1U);
 }
 // [サブ手順終了]
@@ -82,12 +82,12 @@ class StructMetaPatchTest : public Test
 
         EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr))
             .WillOnce(Return(prompt)); // 編集開始時にプロンプトを作成する。
+        // [Pre-Assert確認_正常系] - 編集開始時に cplat_prompt_create() が nullptr を指定して 1 回呼び出されること。
         // [Pre-Assert手順] - 入力用のプロンプト ハンドルを返す。
-        // [Pre-Assert確認_正常系] - 編集開始時に cplat_prompt_create(nullptr) が 1 回呼び出されること。
         EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))
             .WillOnce(Return()); // 編集終了時にプロンプトを破棄する。
+        // [Pre-Assert確認_正常系] - 編集終了時に cplat_prompt_dispose() が prompt を指定して 1 回呼び出されること。
         // [Pre-Assert手順] - プロンプトの破棄を受け付ける。
-        // [Pre-Assert確認_正常系] - 編集終了時に cplat_prompt_dispose() が作成した prompt を引数に 1 回呼び出されること。
         EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))
             .WillRepeatedly(
                 [this, index, inputs](cplat_prompt *, char *dest, size_t dest_size, const char *, int, const char *fmt,
@@ -110,8 +110,8 @@ class StructMetaPatchTest : public Test
                     copy_line(dest, dest_size, (*inputs)[*index]);
                     (*index)++;
                     return CPLAT_OK;
-                }); // [Pre-Assert手順] - 指定した入力列を順番に返す。
-        // [Pre-Assert確認_正常系] - 入力時の cplat_prompt_readline_fmt_at() の呼び出しに、作成した prompt が渡されること。
+                }); // [Pre-Assert確認_正常系] - cplat_prompt_readline_fmt_at() が prompt を指定して任意の回数呼び出されること。
+                    // [Pre-Assert手順] - 指定した入力列を順番に返す。
     }
     // [サブ手順終了]
 };
@@ -132,10 +132,11 @@ TEST_F(StructMetaPatchTest, PathSelectsNestedString)
     // [手順] - ネストした文字列をパスで指定して編集する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);                 // [確認_正常系] - 編集が成功すること。
-    EXPECT_STREQ("Tokyo", sample.addresses[0].city); // [確認_正常系] - 指定した文字列だけが更新されること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_STREQ("Tokyo", sample.addresses[0].city); // [確認_正常系] - sample.addresses[0].city が "Tokyo" であること。
     EXPECT_THAT(prompts, Contains(HasSubstr("addresses[0].city (現在値")));
-    // [確認_正常系] - パス指定方式の値入力にも完全パスを表示すること。
+    // [確認_正常系] - prompts が "addresses[0].city (現在値" を含む文字列を要素に持つこと。
 }
 
 // パス指定により配列の特定要素を対話編集できることの確認
@@ -154,8 +155,9 @@ TEST_F(StructMetaPatchTest, PathSelectsArrayElement)
     // [手順] - 整数配列の要素をパスで指定して編集する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 編集が成功すること。
-    EXPECT_EQ(42, sample.scores[1]); // [確認_正常系] - 指定した要素だけが更新されること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(42, sample.scores[1]); // [確認_正常系] - sample.scores[1] が 42 であること。
 }
 
 // パス指定により16進配列全体を文字列として一括編集できることの確認
@@ -174,11 +176,13 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
     // [手順] - 不正な入力に続けて正しい16進文字列を指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);      // [確認_正常系] - 再入力後に編集が成功すること。
-    EXPECT_EQ(0xaa, sample.hex_bytes[0]); // [確認_正常系] - 先頭バイトを更新すること。
-    EXPECT_EQ(0xbb, sample.hex_bytes[1]); // [確認_正常系] - 2番目のバイトを更新すること。
-    EXPECT_EQ(0xcc, sample.hex_bytes[2]); // [確認_正常系] - 3番目のバイトを更新すること。
-    EXPECT_EQ(0xdd, sample.hex_bytes[3]); // [確認_正常系] - 末尾バイトを更新すること。
+    EXPECT_EQ(
+        CPLAT_OK,
+        actual_ret); // [確認_正常系] - 再入力後の struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(0xaa, sample.hex_bytes[0]); // [確認_正常系] - sample.hex_bytes[0] が 0xaa であること。
+    EXPECT_EQ(0xbb, sample.hex_bytes[1]); // [確認_正常系] - sample.hex_bytes[1] が 0xbb であること。
+    EXPECT_EQ(0xcc, sample.hex_bytes[2]); // [確認_正常系] - sample.hex_bytes[2] が 0xcc であること。
+    EXPECT_EQ(0xdd, sample.hex_bytes[3]); // [確認_正常系] - sample.hex_bytes[3] が 0xdd であること。
 }
 
 // パス指定により16進配列の個別要素を10進整数として対話編集できることの確認
@@ -197,8 +201,9 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_element_as_decimal)
     // [手順] - hex配列の1要素を10進整数で指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);     // [確認_正常系] - 要素編集が成功すること。
-    EXPECT_EQ(127, sample.hex_bytes[1]); // [確認_正常系] - 指定要素を10進値で更新すること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(127, sample.hex_bytes[1]); // [確認_正常系] - sample.hex_bytes[1] が 127 であること。
 }
 
 // 構造体要素を終端とするパスを指定した場合にフィールド選択メニューが開くことの確認
@@ -212,20 +217,23 @@ TEST_F(StructMetaPatchTest, PathEndingAtStructOpensFieldMenu)
     expect_inputs({"2", "123", ""});
     // プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
-    // [Pre-Assert確認_正常系] - mock_stdio の printf(_, _, _, _) が登録した呼び出し期待を満たすこと。
+    // [Pre-Assert確認_正常系] - printf() が任意の回数呼び出されること。
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- Address (現在位置: addresses[0]) --")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - パス指定で開始した構造体の現在位置を表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "-- Address (現在位置: addresses[0]) --" を含む文字列を指定して 1 回以上呼び出されること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("2) addresses[0].zip = 0")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 構造体の候補を完全パスで表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "2) addresses[0].zip = 0" を含む文字列を指定して 1 回以上呼び出されること。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[0]");
     // [手順] - 構造体要素をパスで指定し、zip を編集して戻る。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);         // [確認_正常系] - 編集が成功すること。
-    EXPECT_EQ(123, sample.addresses[0].zip); // [確認_正常系] - 選択した構造体の zip が更新されること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(123, sample.addresses[0].zip); // [確認_正常系] - sample.addresses[0].zip が 123 であること。
 }
 
 // 配列を終端とするパスを指定した場合に要素選択メニューが開くことの確認
@@ -239,20 +247,23 @@ TEST_F(StructMetaPatchTest, PathEndingAtArrayOpensElementMenu)
     expect_inputs({"1", "77", ""});
     // プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
-    // [Pre-Assert確認_正常系] - mock_stdio の printf(_, _, _, _) が登録した呼び出し期待を満たすこと。
+    // [Pre-Assert確認_正常系] - printf() が任意の回数呼び出されること。
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- scores (現在位置: scores、配列、要素数 3) --")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 配列の現在位置を表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "-- scores (現在位置: scores、配列、要素数 3) --" を含む文字列を指定して 1 回以上呼び出されること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("1) scores[1]")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 配列要素を完全パスで表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "1) scores[1]" を含む文字列を指定して 1 回以上呼び出されること。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "scores");
     // [手順] - 配列全体をパスで指定し、要素を選択して編集する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 編集が成功すること。
-    EXPECT_EQ(77, sample.scores[1]); // [確認_正常系] - メニューで選択した要素が更新されること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(77, sample.scores[1]); // [確認_正常系] - sample.scores[1] が 77 であること。
 }
 
 // 構造体配列を終端とするパスを指定した場合に要素メニューとフィールドメニューが順に開くことの確認
@@ -271,8 +282,9 @@ TEST_F(StructMetaPatchTest, PathEndingAtStructArrayOpensElementAndFieldMenus)
     // [手順] - 構造体配列全体を指定し、要素とフィールドを選択して編集する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);                 // [確認_正常系] - 編集が成功すること。
-    EXPECT_STREQ("Osaka", sample.addresses[1].city); // [確認_正常系] - 選択した要素の city が更新されること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_STREQ("Osaka", sample.addresses[1].city); // [確認_正常系] - sample.addresses[1].city が "Osaka" であること。
 }
 
 // 対話入力で空行を入力した場合に現在の値が維持されることの確認
@@ -292,8 +304,11 @@ TEST_F(StructMetaPatchTest, EmptyValueKeepsCurrentValue)
     // [手順] - 値の入力で空行を指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - 変更なしを正常終了として扱うこと。
-    EXPECT_EQ(12, sample.id);        // [確認_正常系] - 元の値を維持すること。
+    EXPECT_EQ(
+        CPLAT_OK,
+        actual_ret); // [確認_正常系] - 空行入力後の struct_meta_patch_path_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(12,
+              sample.id); // [確認_正常系] - sample.id が 12 であること。(空行を入力しても元の値を維持することの確認)
 }
 
 // メニューからメンバー名を直接入力してフィールドを選択・編集できることの確認
@@ -312,10 +327,12 @@ TEST_F(StructMetaPatchTest, MenuSelectsFieldByMemberName)
     // [手順] - メンバー名で id を選択して編集する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - メンバー名選択後の編集が成功すること。
-    EXPECT_EQ(42, sample.id);        // [確認_正常系] - メンバー名で選択した id が更新されること。
+    EXPECT_EQ(
+        CPLAT_OK,
+        actual_ret); // [確認_正常系] - メンバー名選択後の struct_meta_patch_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(42, sample.id); // [確認_正常系] - sample.id が 42 であること。
     EXPECT_THAT(prompts, Contains(HasSubstr("フィールド番号またはメンバー名を選択")));
-    // [確認_正常系] - メンバー名を入力できるプロンプトを表示すること。
+    // [確認_正常系] - prompts が "フィールド番号またはメンバー名を選択" を含む文字列を要素に持つこと。
 }
 
 // ルートからの階層メニュー選択（ドリルダウン）による編集が正しく機能することの確認
@@ -329,26 +346,32 @@ TEST_F(StructMetaPatchTest, DrillDownRemainsAvailable)
     expect_inputs({"1", "0", "1", "Tokyo", "", "", ""});
     // プロンプトの作成、破棄、入力の 3 つの呼び出し期待を満たすこと。
     EXPECT_CALL(mock_stdio, printf(_, _, _, _)).Times(AnyNumber());
-    // [Pre-Assert確認_正常系] - mock_stdio の printf(_, _, _, _) が登録した呼び出し期待を満たすこと。
+    // [Pre-Assert確認_正常系] - printf() が任意の回数呼び出されること。
     // [Pre-Assert手順] - 検証対象以外のメニュー出力を許可する。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("-- Sample (現在位置: <root>) --")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - ルートの現在位置を表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "-- Sample (現在位置: <root>) --" を含む文字列を指定して 1 回以上呼び出されること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("1) addresses [配列 2 件]")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - ルート候補をパスとして表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "1) addresses [配列 2 件]" を含む文字列を指定して 1 回以上呼び出されること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("0) addresses[0]")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - 選択した配列の要素パスを表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "0) addresses[0]" を含む文字列を指定して 1 回以上呼び出されること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, HasSubstr("1) addresses[0].city = \"\"")))
-        .Times(AtLeast(1)); // [Pre-Assert確認_正常系] - ネスト先の候補を完全パスで表示すること。
+        .Times(AtLeast(
+            1)); // [Pre-Assert確認_正常系] - printf() が "1) addresses[0].city = \"\"" を含む文字列を指定して 1 回以上呼び出されること。
 
     // Act
     int actual_ret = struct_meta_patch_interactive(&kSampleDescriptor, &sample);
     // [手順] - 従来のドリルダウン式で addresses[0].city を編集する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);                 // [確認_正常系] - 従来の編集が成功すること。
-    EXPECT_STREQ("Tokyo", sample.addresses[0].city); // [確認_正常系] - 選択したフィールドが更新されること。
+    EXPECT_EQ(
+        CPLAT_OK,
+        actual_ret); // [確認_正常系] - ドリルダウン後の struct_meta_patch_interactive() の戻り値が CPLAT_OK であること。
+    EXPECT_STREQ("Tokyo", sample.addresses[0].city); // [確認_正常系] - sample.addresses[0].city が "Tokyo" であること。
     EXPECT_THAT(prompts, Contains(HasSubstr("addresses[0].city (現在値")));
-    // [確認_正常系] - 値入力にも完全パスを表示すること。
+    // [確認_正常系] - prompts が "addresses[0].city (現在値" を含む文字列を要素に持つこと。
 }
 
 // 範囲外の配列インデックスなど無効なパスが指定された場合にプロンプト生成前にエラーを返すことの確認
@@ -359,15 +382,16 @@ TEST_F(StructMetaPatchTest, InvalidPathIsRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
-    // [状態確認] - パス解決に失敗した場合はプロンプトを作成しないこと。
+    // [Pre-Assert確認_異常系] - cplat_prompt_create() が呼び出されないこと。(パス解決に失敗した場合はプロンプトを作成しないことの確認)
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "addresses[2].city");
     // [手順] - 範囲外の配列インデックスを指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, actual_ret); // [確認_異常系] - 範囲外エラーを返すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_OUT_OF_RANGE,
+        actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_OUT_OF_RANGE であること。
 }
 
 // 存在しないフィールド名を含むパスが指定された場合にプロンプト生成前にエラーを返すことの確認
@@ -378,15 +402,16 @@ TEST_F(StructMetaPatchTest, UnknownFieldIsRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
-    // [状態確認] - 未知フィールドの場合はプロンプトを作成しないこと。
+    // [Pre-Assert確認_異常系] - cplat_prompt_create() が呼び出されないこと。(未知フィールドの場合はプロンプトを作成しないことの確認)
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "unknown");
     // [手順] - 存在しないフィールドを指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_NOT_FOUND, actual_ret); // [確認_異常系] - 未検出エラーを返すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_NOT_FOUND,
+        actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_NOT_FOUND であること。
 }
 
 // NULLまたは空文字列のパスが指定された場合にプロンプト生成前にエラーを返すことの確認
@@ -397,8 +422,7 @@ TEST_F(StructMetaPatchTest, InvalidArgumentsAreRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
-    // [状態確認] - 引数が不正な場合はプロンプトを作成しないこと。
+    // [Pre-Assert確認_異常系] - cplat_prompt_create() が呼び出されないこと。(引数が不正な場合はプロンプトを作成しないことの確認)
 
     // Act
     int null_path_ret =
@@ -407,8 +431,12 @@ TEST_F(StructMetaPatchTest, InvalidArgumentsAreRejectedBeforePromptCreation)
         struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, ""); // [手順] - 空文字列パスを指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_path_ret);  // [確認_異常系] - NULL を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, empty_path_ret); // [確認_異常系] - 空文字列を拒否すること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        null_path_ret); // [確認_異常系] - NULL パスに対する struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        empty_path_ret); // [確認_異常系] - 空文字列パスに対する struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }
 
 // 名前のない破損した記述子が指定された場合にプロンプト生成前にエラーを返すことの確認
@@ -420,15 +448,16 @@ TEST_F(StructMetaPatchTest, CorruptDescriptorIsRejectedBeforePromptCreation)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(_)).Times(0);
-    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(_) が登録した呼び出し期待を満たすこと。
-    // [状態確認] - 記述子検査に失敗した場合はプロンプトを作成しないこと。
+    // [Pre-Assert確認_異常系] - cplat_prompt_create() が呼び出されないこと。(記述子検査に失敗した場合はプロンプトを作成しないことの確認)
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&corrupt_descriptor, &sample, "id");
     // [手順] - 名前のない壊れた記述子を指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual_ret); // [確認_異常系] - 記述子破損エラーを返すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
 }
 
 // プロンプト生成に失敗した場合にメモリ不足エラーを返すことの確認
@@ -439,14 +468,18 @@ TEST_F(StructMetaPatchTest, PromptCreationFailureIsReturned)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr))
-        .WillOnce(Return(nullptr)); // [Pre-Assert確認_異常系] - プロンプト生成失敗を発生させる。
+        .WillOnce(Return(
+            nullptr)); // [Pre-Assert確認_異常系] - cplat_prompt_create() が nullptr を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - プロンプト生成失敗を発生させる。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
     // [手順] - プロンプトを生成して編集を開始する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_MEMORY, actual_ret); // [確認_異常系] - メモリ不足エラーを返すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_OUT_OF_MEMORY,
+        actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_OUT_OF_MEMORY であること。
 }
 
 // 対話入力中にキャンセルが発生した場合にプロンプト破棄後にエラーコードを返すことの確認
@@ -457,16 +490,21 @@ TEST_F(StructMetaPatchTest, PromptInputFailureIsReturnedAfterDisposal)
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr)).WillOnce(Return(prompt));
-    // [Pre-Assert確認_異常系] - mock_cplat の cplat_prompt_create(nullptr) が登録した呼び出し期待を満たすこと。
+    // [Pre-Assert確認_異常系] - cplat_prompt_create() が nullptr を指定して 1 回呼び出されること。
     EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))
-        .WillOnce(Return(CPLAT_ERR_CANCELED)); // [Pre-Assert確認_異常系] - 入力キャンセルを発生させる。
+        .WillOnce(Return(
+            CPLAT_ERR_CANCELED)); // [Pre-Assert確認_異常系] - cplat_prompt_readline_fmt_at() が prompt を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - 入力キャンセルを発生させる。
     EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))
-        .WillOnce(Return()); // [Pre-Assert確認_異常系] - 失敗時にもプロンプトを破棄すること。
+        .WillOnce(
+            Return()); // [Pre-Assert確認_異常系] - cplat_prompt_dispose() が prompt を指定して 1 回呼び出されること。(失敗時にもプロンプトを破棄することの確認)
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
     // [手順] - 対話入力中にキャンセルする。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CANCELED, actual_ret); // [確認_異常系] - 入力元のエラーを返すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_CANCELED,
+        actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_CANCELED であること。
 }

@@ -33,7 +33,7 @@ TEST_F(shared_and_static_addTest, less_argc)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - main() の戻り値が EXIT_SUCCESS 以外であること。
+    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
 }
 
 // 正常な引数で共有と静的の計算結果が表示されることの確認
@@ -55,7 +55,7 @@ TEST_F(shared_and_static_addTest, normal)
             {
                 *result = 3;
                 return CALC_OK;
-            }); // [Pre-Assert確認_正常系] - calc_handler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
+            }); // [Pre-Assert確認_正常系] - calc_handler() が CALC_KIND_ADD、1、2 を指定して 1 回呼び出されること。
     // [Pre-Assert手順] - calc_handler(CALC_KIND_ADD, 1, 2, &result) にて result に 3 を設定し、CALC_OK を返す。
     EXPECT_CALL(mock_calcbase, calcbase_add(1, 2, _))
         .WillOnce(
@@ -63,20 +63,20 @@ TEST_F(shared_and_static_addTest, normal)
             {
                 *result = 3;
                 return CALC_OK;
-            }); // [Pre-Assert確認_正常系] - calcbase_add(1, 2, &result) が 1 回呼び出されること。
+            }); // [Pre-Assert確認_正常系] - calcbase_add() が 1、2 を指定して 1 回呼び出されること。
                 // [Pre-Assert手順] - calcbase_add(1, 2, &result) にて result に 3 を設定し、CALC_OK を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("result_shared: 3\n")))
         .WillOnce(
-            DoDefault()); // [Pre-Assert確認_正常系] - printf() が 1 回呼び出され、内容が "result_shared: 3\n" であること。
+            DoDefault()); // [Pre-Assert確認_正常系] - printf() が "result_shared: 3\n" と等しい文字列を指定して 1 回呼び出されること。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("result_static: 3\n")))
         .WillOnce(
-            DoDefault()); // [Pre-Assert確認_正常系] - printf() が 1 回呼び出され、内容が "result_static: 3\n" であること。
+            DoDefault()); // [Pre-Assert確認_正常系] - printf() が "result_static: 3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
 }
 
 // --help 指定時に必須引数なしでも正常終了することの確認
@@ -92,5 +92,5 @@ TEST_F(shared_and_static_addTest, help)
     int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションで main() を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - 必須位置引数なしでも正常終了すること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
 }

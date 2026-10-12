@@ -20,7 +20,7 @@ TEST_F(calcTest, less_argc)
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - main() の戻り値が EXIT_SUCCESS 以外であること。
+    EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
 }
 
 // 正常な引数で計算結果が表示されることの確認
@@ -39,16 +39,17 @@ TEST_F(calcTest, normal)
             {
                 *result = 3;
                 return CALC_OK;
-            }); // [Pre-Assert確認_正常系] - calc_handler(CALC_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
+            }); // [Pre-Assert確認_正常系] - calc_handler() が CALC_KIND_ADD、1、2 を指定して 1 回呼び出されること。
     // [Pre-Assert手順] - calc_handler(CALC_KIND_ADD, 1, 2, &result) にて result に 3 を設定し、CALC_OK を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が 1 回呼び出され、内容が "3\n" であること。
+        .WillOnce(
+            DoDefault()); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
 }
 
 // -h 指定時に必須引数なしでも正常終了することの確認
@@ -63,7 +64,6 @@ TEST_F(calcTest, help)
     int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションで main() を呼び出す。
 
     // Assert
-    EXPECT_EQ(
-        EXIT_SUCCESS,
-        actual_ret); // [確認_正常系] - main() の戻り値として、必須位置引数なしでも EXIT_SUCCESS で正常終了すること。
+    EXPECT_EQ(EXIT_SUCCESS,
+              actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
 }
