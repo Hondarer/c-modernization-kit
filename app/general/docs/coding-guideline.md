@@ -6,7 +6,7 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応、
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。  
-現版では「一括変更で対象外とした箇所の明示」「コメントの記載量」「命名規則」「ゼロ初期化」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
+現版では「一括変更で対象外とした箇所の明示」「コメントの記載量」「命名規則」「ゼロ初期化」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「プロセスの終了コード」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
 
 本書は一般的な方針を定めるものです。  
 各 app のドキュメントに優先事項、特化事項がある場合は、それに従ってください。
@@ -2589,6 +2589,181 @@ grep -nE '(==|!=)[[:space:]]*-1\b' <dir>/*.c
 cd <module-dir> && make test
 ```
 
+## プロセスの終了コード
+
+コマンドの終了コードは、呼び出し元 (シェル、スクリプト、サービス マネージャー、親プロセス) に対するインターフェイスです。  
+内部で使用する C API の戻り値とは別に、終了コードの値と意味を設計します。
+
+### 基本ルール
+
+- 成功は `EXIT_SUCCESS` (0) とします。
+- 呼び出し元が区別する必要のない失敗は、`EXIT_FAILURE` にまとめます。
+- 呼び出し元が区別する必要のある状態に限り、少数の非 0 コードを定義します。  
+  定義した値と意味は、コマンドの README またはファイル先頭の Doxygen に記載します。
+- 独自に定義する非 0 コードは 1 から 125 の範囲に収めます。
+- 処理結果の詳細は標準出力へ、エラー メッセージなどの診断は標準エラー出力へ書き出します。  
+  機械処理させる構造化された結果は、標準出力、結果ファイル、IPC で渡します。
+- 共通結果コード、`errno`、`GetLastError()`、`HRESULT` などの値を、終了コードとして直接返しません。  
+  [API の戻り値を透過しない](#api-の戻り値を透過しない) に従って変換します。
+
+`main()` からの復帰、`exit()`、ライブラリが提供する終了関数のいずれで終了する場合も、本節の規則は同じです。
+
+> [!NOTE]
+> C 標準 (N1570 7.22.4.4) が移植性をもって意味を定める終了ステータスは、0、`EXIT_SUCCESS`、`EXIT_FAILURE` の 3 つだけです。  
+> それ以外の値の意味は処理系定義であり、各コマンドが自ら定義して文書化しない限り、呼び出し元は解釈できません。  
+> 標準エラー出力についても、C 標準 (N1570 7.21.3) は「診断出力を書き出すためのストリーム」と位置付けています。  
+> 処理結果と診断を分けておくと、`command > result.txt` のように結果だけをリダイレクトしても、エラー メッセージは端末に残ります。
+
+### 値の範囲
+
+POSIX では `exit()` へ渡した値や `main()` の戻り値のうち、下位 8 bit だけが親プロセスへ伝わります。  
+このため、伝達できる値は 0 から 255 です。  
+`return -1;` は 255、`return 256;` は 0 として観測され、失敗が成功として扱われることがあります。
+
+一方、シェルは 0 から 255 の一部に独自の意味を与えます。
+
+| 値 | シェルでの意味 | 独自の割り当て |
+|---|---|---|
+| 0 | 成功、条件判定の真 | `EXIT_SUCCESS` として使用します |
+| 1 から 125 | コマンドが定義する意味。条件判定では偽 | 使用できます |
+| 126 | コマンドは見つかったが、実行できない | 使用しません |
+| 127 | コマンドが見つからない | 使用しません |
+| 128 から 255 | シグナルによる終了の報告に使われる (POSIX では 128 より大きい値、Bash ではシグナル番号 N に対して 128 + N) | 使用しません |
+
+Table: 終了コードの値とシェルでの意味
+
+126 以上の値も伝達はできますが、独自のエラーに割り当てると、起動の失敗やシグナルによる終了と区別できなくなります。  
+1 から 125 に収めるのは、この衝突を避けるための設計上の慣例であり、OS の制限ではありません。
+
+ライブラリが範囲外の値を予約値へ置き換えて終了する機構を提供する場合は、その予約値も独自の値に使用しません。  
+機構と予約値は、各ライブラリの特化規範に定めます。
+
+> [!NOTE]
+> POSIX が規定するのは、「シグナルで終了したコマンドの終了ステータスは 128 より大きい値として報告する」ことまでです。  
+> 128 + N という計算式は Bash の規則です。  
+> なお、親プロセスが `waitpid()` で取得する状態では、通常終了とシグナルによる終了を区別できます。  
+> `exit(137)` と `SIGKILL` による終了は Bash の `$?` ではどちらも 137 になりえますが、OS が保持する終了状態は異なります。
+
+> [!NOTE]
+> Windows の `ExitProcess()` は `UINT`、`GetExitCodeProcess()` は `DWORD` で終了コードを扱い、32 bit の値を伝達できます。  
+> ただし、Linux と Windows の双方で動作するコマンドの契約としては、POSIX の 8 bit の範囲を前提にします。  
+> `GetExitCodeProcess()` が実行中を表すために返す `STILL_ACTIVE` (259) も、この範囲に含まれません。
+
+### 非 0 は処理の失敗とは限らない
+
+シェルは終了コードを 0 と非 0 で分岐しますが、コマンドは非 0 に「検索対象なし」や「差分あり」などの正当な結果を割り当てることがあります。
+
+| コマンド | 0 | 主な非 0 の意味 |
+|---|---|---|
+| GNU `grep` | 一致する行がある | 1: 一致する行がない、2: エラー |
+| GNU `diff`、`cmp` | 差分がない | 1: 差分がある、2: エラー |
+| GNU `ls` | 成功 | 1: 軽微な問題 (サブディレクトリにアクセスできないなど)、2: 重大な問題 |
+| util-linux `fsck` | エラーなし | 1: 修復済み、2: 再起動が必要、4: 未修復のエラー、8: 動作上のエラーなど (ビットの組み合わせ) |
+
+Table: 非 0 の終了コードに正当な結果を割り当てる Linux コマンドの例
+
+したがって、「シェルの条件判定で偽になる」ことと「処理そのものが失敗した」ことは別です。  
+`diff a b && next_command` は、差分があれば `diff` が正しく比較を終えていても `next_command` を実行しません。
+
+このような値を定義するコマンドでは、利用側もその規約に応じて分岐する必要があります。  
+非 0 に正当な結果を割り当てる場合は、利用側の分岐方法と合わせて文書化します。
+
+### 値の割り当てに共通規格はない
+
+「1 は一般エラー、2 は引数エラー」という割り当て例もありますが、全コマンド共通の規格ではありません。  
+本リポジトリでも、引数エラーへ専用の値を割り当てる一般則は設けません。  
+引数エラーは、呼び出し元が区別する必要がなければ `EXIT_FAILURE` とします。
+
+> [!NOTE]
+> 引数エラーの値は、慣行ごとに異なります。  
+> Bash の組み込みコマンドは誤った使い方に 2 を返し、BSD 由来の `<sysexits.h>` は `EX_USAGE` (64) を定めています。  
+> GNU `grep` や `diff` の 2 は、引数エラーに限らない「エラー全般」です。  
+> どの割り当ても、そのコマンドや慣行における固有の規約であり、呼び出し元はコマンドごとの文書から意味を確認する必要があります。
+
+### API の戻り値を透過しない
+
+C API の戻り値には、処理結果のデータも含まれます。  
+たとえば `read()` は、正の値で読み取ったバイト数、0 で EOF、-1 でエラーを表します。  
+正の値は通常の成功結果であり、失敗を表すものではありません。
+
+このような値を終了コードへそのまま渡すと、次の問題が生じます。
+
+- 正の成功結果が、シェルでは失敗として扱われます。
+- 負の値や 256 以上の値が下位 8 bit に切り詰められ、意味が変わります。  
+  共通結果コードの `SAMPLE_ERR` (-1) は 255、256 は 0 として観測されます。
+- 内部 API の変更が、そのままコマンドを呼び出すスクリプトの互換性に影響します。
+
+コマンドは、API の戻り値を終了コードの意味へ変換します。  
+変換で失われる詳細 (結果コードの値、OS のエラー コード) は、標準エラー出力やログへ記録します。
+
+```c
+/* 望ましい: 結果コードを終了コードへ変換し、詳細は標準エラー出力へ書き出す */
+int main(int argc, char *argv[])
+{
+    int ret = sample_job_run(argc, argv);
+
+    if (ret != SAMPLE_OK)
+    {
+        fprintf(stderr, "sample-job: ジョブの実行に失敗しました (ret=%d)\n", ret);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+```
+
+```c
+/* 望ましくない: 負値の結果コードをそのまま終了コードにしている */
+int main(int argc, char *argv[])
+{
+    return sample_job_run(argc, argv); /* SAMPLE_ERR_INVALID_ARGUMENT (-2) は 254 として観測される */
+}
+```
+
+呼び出し元に状態の違いを判定させる場合は、終了コード用の値を定義し、API の結果から明示的に対応付けます。
+
+```c
+/* 終了コード: 0 = 一致あり、1 = 一致なし (エラーではない)、2 = エラー */
+#define SAMPLE_FIND_EXIT_NOT_FOUND 1
+#define SAMPLE_FIND_EXIT_ERROR     2
+
+int main(int argc, char *argv[])
+{
+    int found = 0;
+    int ret = sample_find(argc, argv, &found);
+
+    if (ret != SAMPLE_OK)
+    {
+        fprintf(stderr, "sample-find: 検索に失敗しました (ret=%d)\n", ret);
+        return SAMPLE_FIND_EXIT_ERROR;
+    }
+    if (found == 0)
+    {
+        return SAMPLE_FIND_EXIT_NOT_FOUND;
+    }
+
+    return EXIT_SUCCESS;
+}
+```
+
+関数の戻り値の意味と値域を、あらかじめ終了コードとして設計した場合に限り、その値をそのまま返して構いません。  
+たとえば、コマンド内部の関数が「成功は 0、失敗は 1」を契約とし、その契約を Doxygen に記載している場合です。  
+これは個別の設計判断であり、「API の戻り値を透過してよい」という一般則ではありません。
+
+### 検証
+
+```bash
+# main() が EXIT_SUCCESS / EXIT_FAILURE / 0 以外を返す箇所 (値の出所、範囲、文書化を目視で確認する)
+for f in $(grep -rlE '^int (main|wmain)\(' app/*/prod/src --include=*.c | grep -v /obj/); do
+  awk -v F="$f" '/^int (main|wmain)\(/{m=1} m&&/return /&&!/EXIT_(SUCCESS|FAILURE)|return 0;/{print F":"NR": "$0} m&&/^}/{m=0}' "$f"
+done
+
+# exit 系関数へ EXIT_SUCCESS / EXIT_FAILURE 以外を渡す箇所 (同上)
+# ライブラリ接頭辞付きの終了関数 (<lib>_exit) も対象とする
+grep -rnE '(^|[^A-Za-z0-9_])([a-z0-9]+_)?(exit|_Exit)[[:space:]]*\(' app/*/prod/src --include=*.c \
+  | grep -vE '/obj/|EXIT_(SUCCESS|FAILURE)'
+```
+
 ## 変数宣言位置と命令文の関係
 
 ### 基本ルール
@@ -3837,7 +4012,19 @@ Doxygen コメント (`/** */`) 内の `@code` ~ `@endcode` に書くコード�
 - MISRA C:2012 Rule 20.7 - 関数形式マクロの仮引数を括弧で囲むこと (本規範の括弧規則の参考)
 - [C++ FAQ: Const correctness](https://isocpp.org/wiki/faq/const-correctness) - `T **` を `const T **` へ変換できない理由と、`const T *const *` への誘導
 - [SEI CERT C EXP05-C](https://cmu-sei.github.io/secure-coding-standards/sei-cert-c-coding-standard/recommendations/expressions-exp/exp05-c/) - const 修飾を捨てるキャストを行わないこと
-- [ISO/IEC 9899:201x Committee Draft N1570](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) - `restrict`、`volatile`、inline 関数、`register`、データ競合に関する C11 の公開委員会草案
+- [POSIX.1-2024 `exit`](https://pubs.opengroup.org/onlinepubs/9799919799/functions/exit.html) - 終了ステータスのうち下位 8 bit が親プロセスへ伝わること
+- [POSIX.1-2024 Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html) - 126 (実行できない)、127 (見つからない)、シグナル終了を 128 より大きい値で報告すること
+- [GNU Bash Reference Manual: Exit Status](https://www.gnu.org/software/bash/manual/html_node/Exit-Status.html) - シグナル番号 N による終了を 128 + N とすること、組み込みコマンドが誤った使い方に 2 を返すこと
+- [Linux `exit(3)`](https://man7.org/linux/man-pages/man3/exit.3.html) - `status` の下位 1 byte (`status & 0xFF`) が親プロセスへ返されること
+- [Linux `wait(2)`](https://man7.org/linux/man-pages/man2/wait.2.html) - 通常終了とシグナル終了を `WIFEXITED` / `WIFSIGNALED` で区別できること
+- [Linux `read(2)`](https://man7.org/linux/man-pages/man2/read.2.html) - 戻り値が読み取ったバイト数、0 (EOF)、-1 (エラー) を表すこと
+- [Linux `sysexits.h(3head)`](https://man7.org/linux/man-pages/man3/sysexits.h.3head.html) - BSD 由来の終了コード定義 (`EX_USAGE` = 64 など)
+- [GNU grep: Exit Status](https://www.gnu.org/software/grep/manual/html_node/Exit-Status.html) - 0 (一致あり)、1 (一致なし)、2 (エラー)
+- [GNU diffutils: Invoking diff](https://www.gnu.org/software/diffutils/manual/html_node/Invoking-diff.html) / [Linux `cmp(1)`](https://man7.org/linux/man-pages/man1/cmp.1.html) - 0 (差分なし)、1 (差分あり)、2 (エラー)
+- [Linux `ls(1)`](https://man7.org/linux/man-pages/man1/ls.1.html) - 0 (成功)、1 (軽微な問題)、2 (重大な問題)
+- [util-linux `fsck(8)`](https://man7.org/linux/man-pages/man8/fsck.8.html) - ビットの組み合わせによる終了コード
+- [Microsoft Learn: `ExitProcess`](https://learn.microsoft.com/ja-jp/windows/win32/api/processthreadsapi/nf-processthreadsapi-exitprocess) / [`GetExitCodeProcess`](https://learn.microsoft.com/ja-jp/windows/win32/api/processthreadsapi/nf-processthreadsapi-getexitcodeprocess) - Windows の終了コードの型と `STILL_ACTIVE` (259)
+- [ISO/IEC 9899:201x Committee Draft N1570](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) - `restrict`、`volatile`、inline 関数、`register`、データ競合、`exit` の終了ステータス、標準エラー ストリームに関する C11 の公開委員会草案
 - [SEI CERT C EXP43-C](https://wiki.sei.cmu.edu/confluence/spaces/c/pages/87151927/EXP43-C.+Avoid+undefined+behavior+when+using+restrict-qualified+pointers) - `restrict` の非 alias 契約へ違反して未定義動作を起こさないこと
 - [SEI CERT C POS40-C](https://wiki.sei.cmu.edu/confluence/display/c/POS40-C.%2BDo%2Bnot%2Buse%2Bvolatile%2Bas%2Ba%2Bsynchronization%2Bprimitive) - `volatile` を同期プリミティブとして使用しないこと
 - [Microsoft C キーワード](https://learn.microsoft.com/ja-jp/cpp/c-language/c-keywords?view=msvc-170) - MSVC の C11/C17 モードにおける `restrict`、`inline`、`_Atomic` のサポート状況

@@ -118,7 +118,7 @@ Table: `service-sample` の通知抽象
 ライフサイクル コールバック (on_start / on_run / on_stop) は、戻り値で成功 (0) と失敗 (0 以外) を返します。  
 最初に失敗したコールバックの戻り値は、Windows では `SERVICE_STOPPED` 報告時の `ERROR_SERVICE_SPECIFIC_ERROR` + `dwServiceSpecificExitCode`、Linux ではプロセス終了コードとして OS に伝わり、[自動再起動](#自動再起動の対応状況) の発動条件になります。  
 on_run が失敗を返しても、後始末のため on_stop は実行されます。  
-Linux ではプロセス終了コードになるため、失敗の値は 1 から 255 の範囲を推奨します。
+Linux ではプロセス終了コードになるため、失敗の値は [プロセスの終了コード](../../general/docs/coding-guideline.md#プロセスの終了コード) に従い、1 から 125 の範囲とします。
 
 さらに、OS イベントを共通のイベント種別 (`svc_event_type`) に対応付け、任意のコールバック `on_event` へ配送します。
 
