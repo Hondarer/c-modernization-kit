@@ -83,23 +83,44 @@ TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_
         struct_meta_internal_layout_find_type("double"); // [手順] - double を引く。
 
     // Assert
-    ASSERT_NE(nullptr, type_short);                   // [確認_正常系] - short が表にあること。
-    EXPECT_EQ(sizeof(short), type_short->size);       // [確認_正常系] - short の大きさが実環境と一致すること。
-    EXPECT_EQ(alignof(short), type_short->alignment); // [確認_正常系] - short の境界が実環境と一致すること。
-    EXPECT_EQ(STRUCT_META_FIELD_SIGNED_INTEGER, type_short->kind); // [確認_正常系] - short が符号付き整数であること。
-    ASSERT_NE(nullptr, type_unsigned);                             // [確認_正常系] - unsigned が表にあること。
-    EXPECT_STREQ("unsigned int",
-                 type_unsigned->canonical_spelling);    // [確認_正常系] - unsigned が正規化した綴りを持つこと。
-    ASSERT_NE(nullptr, type_double);                    // [確認_正常系] - double が表にあること。
-    EXPECT_EQ(sizeof(double), type_double->size);       // [確認_正常系] - double の大きさが実環境と一致すること。
-    EXPECT_EQ(alignof(double), type_double->alignment); // [確認_正常系] - double の境界が実環境と一致すること。
-    EXPECT_EQ(nullptr,
-              struct_meta_internal_layout_find_type("long")); // [確認_異常系] - long は表に無いこと。
-    EXPECT_EQ(nullptr,
-              struct_meta_internal_layout_find_type("unsigned long")); // [確認_異常系] - unsigned long は表に無いこと。
-    EXPECT_EQ(nullptr, struct_meta_internal_layout_find_type(nullptr)); // [確認_異常系] - NULL を拒否すること。
-    EXPECT_EQ(nullptr,
-              struct_meta_internal_layout_find_type("size_t")); // [確認_異常系] - 未対応の型名を拒否すること。
+    ASSERT_NE(
+        nullptr,
+        type_short); // [確認_正常系] - "short" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr 以外であること。
+    EXPECT_EQ(sizeof(short), type_short->size); // [確認_正常系] - type_short->size が sizeof(short) と一致すること。
+    EXPECT_EQ(alignof(short),
+              type_short->alignment); // [確認_正常系] - type_short->alignment が alignof(short) と一致すること。
+    EXPECT_EQ(STRUCT_META_FIELD_SIGNED_INTEGER,
+              type_short->kind); // [確認_正常系] - type_short->kind が STRUCT_META_FIELD_SIGNED_INTEGER であること。
+    ASSERT_NE(
+        nullptr,
+        type_unsigned); // [確認_正常系] - "unsigned" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr 以外であること。
+    EXPECT_STREQ(
+        "unsigned int",
+        type_unsigned
+            ->canonical_spelling); // [確認_正常系] - type_unsigned->canonical_spelling が "unsigned int" であること。
+    ASSERT_NE(
+        nullptr,
+        type_double); // [確認_正常系] - "double" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr 以外であること。
+    EXPECT_EQ(sizeof(double),
+              type_double->size); // [確認_正常系] - type_double->size が sizeof(double) と一致すること。
+    EXPECT_EQ(alignof(double),
+              type_double->alignment); // [確認_正常系] - type_double->alignment が alignof(double) と一致すること。
+    EXPECT_EQ(
+        nullptr,
+        struct_meta_internal_layout_find_type(
+            "long")); // [確認_異常系] - "long" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
+    EXPECT_EQ(
+        nullptr,
+        struct_meta_internal_layout_find_type(
+            "unsigned long")); // [確認_異常系] - "unsigned long" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
+    EXPECT_EQ(
+        nullptr,
+        struct_meta_internal_layout_find_type(
+            nullptr)); // [確認_異常系] - NULL に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
+    EXPECT_EQ(
+        nullptr,
+        struct_meta_internal_layout_find_type(
+            "size_t")); // [確認_異常系] - "size_t" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
 }
 
 // スカラーメンバーを持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
@@ -127,14 +148,19 @@ TEST(structMetaLayoutTest, computes_scalar_layout_like_the_compiler)
     int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, ret);                                 // [確認_正常系] - 計算が成功すること。
-    EXPECT_EQ(offsetof(mixed_widths, first), offset_first);   // [確認_正常系] - 先頭メンバーの位置が一致すること。
-    EXPECT_EQ(offsetof(mixed_widths, second), offset_second); // [確認_正常系] - 4バイト境界へ揃うこと。
-    EXPECT_EQ(offsetof(mixed_widths, third), offset_third);   // [確認_正常系] - 詰めずに続くこと。
-    EXPECT_EQ(offsetof(mixed_widths, fourth), offset_fourth); // [確認_正常系] - 8バイト境界へ揃うこと。
-    EXPECT_EQ(offsetof(mixed_widths, fifth), offset_fifth);   // [確認_正常系] - 2バイト境界へ揃うこと。
-    EXPECT_EQ(sizeof(mixed_widths), size);       // [確認_正常系] - 末尾パディングを含む大きさが一致すること。
-    EXPECT_EQ(alignof(mixed_widths), alignment); // [確認_正常系] - 構造体の境界が一致すること。
+    EXPECT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_internal_layout_end() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(offsetof(mixed_widths, first),
+              offset_first); // [確認_正常系] - offset_first が offsetof(mixed_widths, first) と一致すること。
+    EXPECT_EQ(offsetof(mixed_widths, second),
+              offset_second); // [確認_正常系] - offset_second が offsetof(mixed_widths, second) と一致すること。
+    EXPECT_EQ(offsetof(mixed_widths, third),
+              offset_third); // [確認_正常系] - offset_third が offsetof(mixed_widths, third) と一致すること。
+    EXPECT_EQ(offsetof(mixed_widths, fourth),
+              offset_fourth); // [確認_正常系] - offset_fourth が offsetof(mixed_widths, fourth) と一致すること。
+    EXPECT_EQ(offsetof(mixed_widths, fifth),
+              offset_fifth); // [確認_正常系] - offset_fifth が offsetof(mixed_widths, fifth) と一致すること。
+    EXPECT_EQ(sizeof(mixed_widths), size);       // [確認_正常系] - size が sizeof(mixed_widths) と一致すること。
+    EXPECT_EQ(alignof(mixed_widths), alignment); // [確認_正常系] - alignment が alignof(mixed_widths) と一致すること。
 }
 
 // 固定長配列メンバーを持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
@@ -158,12 +184,15 @@ TEST(structMetaLayoutTest, computes_array_layout_like_the_compiler)
     int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, ret);                                // [確認_正常系] - 計算が成功すること。
-    EXPECT_EQ(offsetof(with_arrays, header), offset_header); // [確認_正常系] - 先頭配列の位置が一致すること。
-    EXPECT_EQ(offsetof(with_arrays, values), offset_values); // [確認_正常系] - 配列が要素の境界へ揃うこと。
-    EXPECT_EQ(offsetof(with_arrays, text), offset_text);     // [確認_正常系] - char 配列の位置が一致すること。
-    EXPECT_EQ(sizeof(with_arrays), size);       // [確認_正常系] - 末尾パディングを含む大きさが一致すること。
-    EXPECT_EQ(alignof(with_arrays), alignment); // [確認_正常系] - 構造体の境界が一致すること。
+    EXPECT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_internal_layout_end() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(offsetof(with_arrays, header),
+              offset_header); // [確認_正常系] - offset_header が offsetof(with_arrays, header) と一致すること。
+    EXPECT_EQ(offsetof(with_arrays, values),
+              offset_values); // [確認_正常系] - offset_values が offsetof(with_arrays, values) と一致すること。
+    EXPECT_EQ(offsetof(with_arrays, text),
+              offset_text);               // [確認_正常系] - offset_text が offsetof(with_arrays, text) と一致すること。
+    EXPECT_EQ(sizeof(with_arrays), size); // [確認_正常系] - size が sizeof(with_arrays) と一致すること。
+    EXPECT_EQ(alignof(with_arrays), alignment); // [確認_正常系] - alignment が alignof(with_arrays) と一致すること。
 }
 
 // ネストした構造体を持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
@@ -201,14 +230,19 @@ TEST(structMetaLayoutTest, computes_nested_layout_like_the_compiler)
     int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, ret);                              // [確認_正常系] - 計算が成功すること。
-    EXPECT_EQ(sizeof(mixed_widths), body_size);            // [確認_正常系] - ネストの大きさが一致すること。
-    EXPECT_EQ(alignof(mixed_widths), body_alignment);      // [確認_正常系] - ネストの境界が一致すること。
-    EXPECT_EQ(offsetof(nested_holder, flag), offset_flag); // [確認_正常系] - 先頭メンバーの位置が一致すること。
-    EXPECT_EQ(offsetof(nested_holder, body), offset_body); // [確認_正常系] - ネストが自身の境界へ揃うこと。
-    EXPECT_EQ(offsetof(nested_holder, tail), offset_tail); // [確認_正常系] - ネストの直後に続くこと。
-    EXPECT_EQ(sizeof(nested_holder), size);                // [確認_正常系] - 全体の大きさが一致すること。
-    EXPECT_EQ(alignof(nested_holder), alignment);          // [確認_正常系] - ネストの境界が親へ伝播すること。
+    EXPECT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_internal_layout_end() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(sizeof(mixed_widths), body_size); // [確認_正常系] - body_size が sizeof(mixed_widths) と一致すること。
+    EXPECT_EQ(alignof(mixed_widths),
+              body_alignment); // [確認_正常系] - body_alignment が alignof(mixed_widths) と一致すること。
+    EXPECT_EQ(offsetof(nested_holder, flag),
+              offset_flag); // [確認_正常系] - offset_flag が offsetof(nested_holder, flag) と一致すること。
+    EXPECT_EQ(offsetof(nested_holder, body),
+              offset_body); // [確認_正常系] - offset_body が offsetof(nested_holder, body) と一致すること。
+    EXPECT_EQ(offsetof(nested_holder, tail),
+              offset_tail); // [確認_正常系] - offset_tail が offsetof(nested_holder, tail) と一致すること。
+    EXPECT_EQ(sizeof(nested_holder), size); // [確認_正常系] - size が sizeof(nested_holder) と一致すること。
+    EXPECT_EQ(alignof(nested_holder),
+              alignment); // [確認_正常系] - alignment が alignof(nested_holder) と一致すること。
 }
 
 // レイアウト計算の各関数に不正な引数を渡した場合に適切なエラーコードを返すことの確認
@@ -247,13 +281,31 @@ TEST(structMetaLayoutTest, rejects_invalid_arguments)
                                                     &alignment); // [手順] - size_out に NULL を指定して終了する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_builder);   // [確認_異常系] - 途中経過の NULL を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_offset);    // [確認_異常系] - 出力先の NULL を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, zero_size);      // [確認_異常系] - 要素サイズ 0 を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, zero_count);     // [確認_異常系] - 要素数 0 を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, zero_alignment); // [確認_異常系] - 境界 0 を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, odd_alignment);  // [確認_異常系] - 2 の冪でない境界を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, huge_count);         // [確認_異常系] - 桁あふれする要素数を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, empty_struct);   // [確認_異常系] - メンバーの無い構造体を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, null_size);      // [確認_異常系] - 出力先の NULL を拒否すること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        null_builder); // [確認_異常系] - NULL の builder に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        null_offset); // [確認_異常系] - NULL の offset_out に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        zero_size); // [確認_異常系] - 要素サイズ 0 に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        zero_count); // [確認_異常系] - 要素数 0 に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        zero_alignment); // [確認_異常系] - 境界 0 に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        odd_alignment); // [確認_異常系] - 境界 3 に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_OUT_OF_RANGE,
+        huge_count); // [確認_異常系] - 要素数 SIZE_MAX に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_OUT_OF_RANGE であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        empty_struct); // [確認_異常系] - メンバー無しの struct_meta_internal_layout_end() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        null_size); // [確認_異常系] - NULL の size_out に対する struct_meta_internal_layout_end() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }

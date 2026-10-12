@@ -421,8 +421,8 @@ TEST_F(addTest, test_1_add_2)
     int actual_ret = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add の戻り値が EXAMPLE_SUCCESS であること。
-    EXPECT_EQ(3, result);         // [確認_正常系] - add が result に 3 を設定すること。
+    EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add() の戻り値が EXAMPLE_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認_正常系] - result が 3 であること。
 }
 ```
 
@@ -451,8 +451,8 @@ TEST_F(addTest, test_1_add_2)
     int actual_ret = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add の戻り値が EXAMPLE_SUCCESS であること。
-    EXPECT_EQ(3, result);         // [確認_正常系] - add が result に 3 を設定すること。
+    EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add() の戻り値が EXAMPLE_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認_正常系] - result が 3 であること。
 }
 
 // 交換法則のテスト
@@ -467,8 +467,8 @@ TEST_F(addTest, test_2_add_1)
     int actual_ret = add(2, 1, &result); // [手順] - add(2, 1, &result) を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add の戻り値が EXAMPLE_SUCCESS であること。
-    EXPECT_EQ(3, result);         // [確認_正常系] - add が result に 3 を設定すること。
+    EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add() の戻り値が EXAMPLE_SUCCESS であること。
+    EXPECT_EQ(3, result);         // [確認_正常系] - result が 3 であること。
 }
 
 // NULL ポインターのテスト
@@ -482,7 +482,7 @@ TEST_F(addTest, test_null_result)
     int actual_ret = add(1, 2, NULL); // [手順] - add(1, 2, NULL) を呼び出す。
 
     // Assert
-    EXPECT_EQ(EXAMPLE_ERROR, actual_ret); // [確認_異常系] - add の戻り値が EXAMPLE_ERROR であること。
+    EXPECT_EQ(EXAMPLE_ERROR, actual_ret); // [確認_異常系] - add() の戻り値が EXAMPLE_ERROR であること。
 }
 ```
 
@@ -539,11 +539,11 @@ TEST_F(addTest, normal)
         .WillOnce([](int, int, int *result) {
             *result = 3;
             return EXAMPLE_SUCCESS;
-        }); // [Pre-Assert確認_正常系] - add(1, 2, &result) が 1 回呼び出されること。
+        }); // [Pre-Assert確認_正常系] - add() が 1 と 2 を指定して 1 回呼び出されること。
             // [Pre-Assert手順] - add(1, 2, &result) にて result に 3 を設定し、EXAMPLE_SUCCESS を返す。
 
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が 1 回呼び出され、内容が "3\n" であること。
+        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
@@ -854,11 +854,11 @@ TEST_F(exampleTest, normal)
         .WillOnce([](int, int, int, int *result) {
             *result = 3;
             return EXAMPLE_SUCCESS;
-        }); // [Pre-Assert確認_正常系] - exampleHandler(EXAMPLE_KIND_ADD, 1, 2, &result) が 1 回呼び出されること。
+        }); // [Pre-Assert確認_正常系] - exampleHandler() が EXAMPLE_KIND_ADD、1、2 を指定して 1 回呼び出されること。
             // [Pre-Assert手順] - exampleHandler(EXAMPLE_KIND_ADD, 1, 2, &result) にて result に 3 を設定し、EXAMPLE_SUCCESS を返す。
 
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が 1 回呼び出され、内容が "3\n" であること。
+        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
@@ -1065,7 +1065,7 @@ TEST_F(MyTest, null_pointer_case) { /* ... */ }
 int actual_ret = add(1, 2); // [手順] - add(1, 2) を呼び出す。
 
 // Assert
-EXPECT_EQ(3, actual_ret); // [確認_正常系] - add の戻り値が 3 であること。
+EXPECT_EQ(3, actual_ret); // [確認_正常系] - add() の戻り値が 3 であること。
 ```
 
 ### makefile の保守性

@@ -36,14 +36,29 @@ TEST(structMetaBytesTest, classifies_byte_arrays_and_formats)
     int hex_ret = struct_meta_internal_field_byte_format(&kHexBytes, &hex_format);      // [手順] - 16進形式を取得する。
 
     // Assert
-    EXPECT_EQ(0, struct_meta_internal_field_is_byte_array(nullptr)); // [確認_異常系] - NULL はバイト配列でないこと。
-    EXPECT_EQ(0,
-              struct_meta_internal_field_is_byte_array(&kScalar));   // [確認_正常系] - スカラーはバイト配列でないこと。
-    EXPECT_EQ(1, struct_meta_internal_field_is_byte_array(&kBytes)); // [確認_正常系] - 1バイト整数配列を認識すること。
-    EXPECT_EQ(CPLAT_OK, integer_ret);                                // [確認_正常系] - 既定形式を取得できること。
-    EXPECT_EQ(STRUCT_META_INTERNAL_BYTE_FORMAT_INTEGER, integer_format); // [確認_正常系] - 既定が整数形式であること。
-    EXPECT_EQ(CPLAT_OK, hex_ret);                                // [確認_正常系] - 属性付き形式を取得できること。
-    EXPECT_EQ(STRUCT_META_INTERNAL_BYTE_FORMAT_HEX, hex_format); // [確認_正常系] - 16進形式であること。
+    EXPECT_EQ(
+        0,
+        struct_meta_internal_field_is_byte_array(
+            nullptr)); // [確認_異常系] - NULL に対する struct_meta_internal_field_is_byte_array() の戻り値が 0 であること。(バイト配列と判定されないことの確認)
+    EXPECT_EQ(
+        0,
+        struct_meta_internal_field_is_byte_array(
+            &kScalar)); // [確認_正常系] - スカラーに対する struct_meta_internal_field_is_byte_array() の戻り値が 0 であること。(バイト配列と判定されないことの確認)
+    EXPECT_EQ(
+        1,
+        struct_meta_internal_field_is_byte_array(
+            &kBytes)); // [確認_正常系] - 1 バイト整数配列に対する struct_meta_internal_field_is_byte_array() の戻り値が 1 であること。(バイト配列と判定されることの確認)
+    EXPECT_EQ(
+        CPLAT_OK,
+        integer_ret); // [確認_正常系] - 既定形式を取得した struct_meta_internal_field_byte_format() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(
+        STRUCT_META_INTERNAL_BYTE_FORMAT_INTEGER,
+        integer_format); // [確認_正常系] - integer_format が STRUCT_META_INTERNAL_BYTE_FORMAT_INTEGER であること。
+    EXPECT_EQ(
+        CPLAT_OK,
+        hex_ret); // [確認_正常系] - 属性付き形式を取得した struct_meta_internal_field_byte_format() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(STRUCT_META_INTERNAL_BYTE_FORMAT_HEX,
+              hex_format); // [確認_正常系] - hex_format が STRUCT_META_INTERNAL_BYTE_FORMAT_HEX であること。
 }
 
 // 未知のフォーマット属性や不正なバイト指定が正しく拒否されることの確認
@@ -60,12 +75,22 @@ TEST(structMetaBytesTest, rejects_invalid_meta_attributes)
         struct_meta_internal_field_byte_format(&kScalarBytes, &format); // [手順] - スカラーへbytesを指定する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, bad_format);   // [確認_異常系] - 未知の形式を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, scalar_bytes); // [確認_異常系] - スカラーのbytes指定を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, struct_meta_internal_field_byte_format(
-                                              nullptr, &format)); // [確認_異常系] - NULLフィールドを拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT,
-              struct_meta_internal_field_byte_format(&kBytes, nullptr)); // [確認_異常系] - NULL出力を拒否すること。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        bad_format); // [確認_異常系] - 未知の形式に対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        scalar_bytes); // [確認_異常系] - スカラーの bytes 指定に対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        struct_meta_internal_field_byte_format(
+            nullptr,
+            &format)); // [確認_異常系] - NULL フィールドに対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        struct_meta_internal_field_byte_format(
+            &kBytes,
+            nullptr)); // [確認_異常系] - NULL 出力に対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }
 
 // 固定長バイト配列と 16 進数文字列の相互変換が正しく行われることの確認
@@ -85,12 +110,14 @@ TEST(structMetaBytesTest, converts_fixed_length_hex_text)
         struct_meta_internal_bytes_from_hex(decoded, 3U, "00  A5 ff"); // [手順] - 複数空白と大文字を含む入力を戻す。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, encode_ret); // [確認_正常系] - エンコードできること。
-    EXPECT_STREQ("00 a5 ff", text);  // [確認_正常系] - 正規形が小文字・単一空白であること。
-    EXPECT_EQ(CPLAT_OK, decode_ret); // [確認_正常系] - デコードできること。
-    EXPECT_EQ(0x00U, decoded[0]);    // [確認_正常系] - 先頭バイトを復元すること。
-    EXPECT_EQ(0xa5U, decoded[1]);    // [確認_正常系] - 中央バイトを復元すること。
-    EXPECT_EQ(0xffU, decoded[2]);    // [確認_正常系] - 末尾バイトを復元すること。
+    EXPECT_EQ(CPLAT_OK,
+              encode_ret); // [確認_正常系] - struct_meta_internal_bytes_to_hex() の戻り値が CPLAT_OK であること。
+    EXPECT_STREQ("00 a5 ff", text); // [確認_正常系] - text が "00 a5 ff" であること。
+    EXPECT_EQ(CPLAT_OK,
+              decode_ret); // [確認_正常系] - struct_meta_internal_bytes_from_hex() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(0x00U, decoded[0]); // [確認_正常系] - decoded[0] が 0x00U であること。
+    EXPECT_EQ(0xa5U, decoded[1]); // [確認_正常系] - decoded[1] が 0xa5U であること。
+    EXPECT_EQ(0xffU, decoded[2]); // [確認_正常系] - decoded[2] が 0xffU であること。
 }
 
 // 不正な 16 進数表記が拒否されバッファーが書き換えられないことの確認
@@ -107,12 +134,18 @@ TEST(structMetaBytesTest, rejects_invalid_hex_without_writing)
     int trailing_space = struct_meta_internal_bytes_from_hex(bytes, 3U, "aa bb cc "); // [手順] - 末尾空白を与える。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING, invalid_digit);  // [確認_異常系] - 不正な桁を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING, leading_space);  // [確認_異常系] - 先頭空白を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING, trailing_space); // [確認_異常系] - 末尾空白を拒否すること。
-    EXPECT_EQ(1U, bytes[0]);                               // [確認_異常系] - 先頭バイトを更新しないこと。
-    EXPECT_EQ(2U, bytes[1]);                               // [確認_異常系] - 中央バイトを更新しないこと。
-    EXPECT_EQ(3U, bytes[2]);                               // [確認_異常系] - 末尾バイトを更新しないこと。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ENCODING,
+        invalid_digit); // [確認_異常系] - 不正な桁に対する struct_meta_internal_bytes_from_hex() の戻り値が CPLAT_ERR_INVALID_ENCODING であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ENCODING,
+        leading_space); // [確認_異常系] - 先頭空白に対する struct_meta_internal_bytes_from_hex() の戻り値が CPLAT_ERR_INVALID_ENCODING であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ENCODING,
+        trailing_space); // [確認_異常系] - 末尾空白に対する struct_meta_internal_bytes_from_hex() の戻り値が CPLAT_ERR_INVALID_ENCODING であること。
+    EXPECT_EQ(1U, bytes[0]); // [確認_異常系] - bytes[0] が 1U であること。(先頭バイトが更新されないことの確認)
+    EXPECT_EQ(2U, bytes[1]); // [確認_異常系] - bytes[1] が 2U であること。(中央バイトが更新されないことの確認)
+    EXPECT_EQ(3U, bytes[2]); // [確認_異常系] - bytes[2] が 3U であること。(末尾バイトが更新されないことの確認)
 }
 
 // 16 進数文字列の必要サイズ計算とバッファー境界値が正しく検証されることの確認
@@ -129,12 +162,18 @@ TEST(structMetaBytesTest, validates_sizes_and_buffers)
     int size_ret = struct_meta_internal_bytes_hex_text_size(3U, &text_size); // [手順] - 必要サイズを求める。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, size_ret); // [確認_正常系] - 必要サイズを計算できること。
-    EXPECT_EQ(9U, text_size);      // [確認_正常系] - NULを含む必要サイズであること。
-    EXPECT_EQ(CPLAT_ERR_BUFFER_TOO_SMALL,
-              struct_meta_internal_bytes_to_hex(&byte, 1U, short_buffer,
-                                                sizeof(short_buffer))); // [確認_異常系] - 小さい出力先を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_OUT_OF_RANGE, struct_meta_internal_bytes_hex_text_size(
-                                          std::numeric_limits<size_t>::max(),
-                                          &text_size)); // [確認_異常系] - サイズのオーバーフローを拒否すること。
+    EXPECT_EQ(CPLAT_OK,
+              size_ret); // [確認_正常系] - struct_meta_internal_bytes_hex_text_size() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(9U, text_size); // [確認_正常系] - text_size が 9U であること。(NUL を含む必要サイズであることの確認)
+    EXPECT_EQ(
+        CPLAT_ERR_BUFFER_TOO_SMALL,
+        struct_meta_internal_bytes_to_hex(
+            &byte, 1U, short_buffer,
+            sizeof(
+                short_buffer))); // [確認_異常系] - 小さい出力先に対する struct_meta_internal_bytes_to_hex() の戻り値が CPLAT_ERR_BUFFER_TOO_SMALL であること。
+    EXPECT_EQ(
+        CPLAT_ERR_OUT_OF_RANGE,
+        struct_meta_internal_bytes_hex_text_size(
+            std::numeric_limits<size_t>::max(),
+            &text_size)); // [確認_異常系] - 最大サイズに対する struct_meta_internal_bytes_hex_text_size() の戻り値が CPLAT_ERR_OUT_OF_RANGE であること。
 }

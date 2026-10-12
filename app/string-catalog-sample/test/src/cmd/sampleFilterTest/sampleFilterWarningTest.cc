@@ -46,10 +46,11 @@ TEST_F(sampleFilterWarningTest, type_mismatch_is_formatted_with_entry_and_argume
                                               sizeof(text_)); // [手順] - 警告を文へ整える。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - CPLAT_OK を返すこと。
-    EXPECT_STREQ("2 行目の 1 番目の比較: SAMPLE_WORKER_TRACE_ID_0002 の引数 job_name は STRING のため、"
-                 "この項目では比較が偽になります",
-                 text_); // [確認_正常系] - 番号は 1 起点で、項目の ID と引数の名前、種別を含むこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - sample_filter_warning_format() の戻り値が CPLAT_OK であること。
+    EXPECT_STREQ(
+        "2 行目の 1 番目の比較: SAMPLE_WORKER_TRACE_ID_0002 の引数 job_name は STRING のため、"
+        "この項目では比較が偽になります",
+        text_); // [確認_正常系] - text_ が "2 行目の 1 番目の比較: SAMPLE_WORKER_TRACE_ID_0002 の引数 job_name は STRING のため、この項目では比較が偽になります" であること。(番号は 1 起点で、項目の ID と引数の名前、種別を含むことの確認)
 }
 
 // 型区分の混在は、文字列の項目と文字列以外の項目の両方を示すことの確認
@@ -70,10 +71,11 @@ TEST_F(sampleFilterWarningTest, mixed_argument_types_is_formatted_with_both_entr
                                               sizeof(text_)); // [手順] - 警告を文へ整える。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - CPLAT_OK を返すこと。
-    EXPECT_STREQ("2 行目: 引数 job_name は、SAMPLE_WORKER_TRACE_ID_0002 では文字列、SAMPLE_WORKER_TRACE_ID_0003 では"
-                 "数値 (DOUBLE) です。型の合わない項目では比較が偽になり、意図した判定結果にならない可能性があります",
-                 text_); // [確認_正常系] - 両方の項目と、文字列以外の側の種別を含むこと。
+    EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - sample_filter_warning_format() の戻り値が CPLAT_OK であること。
+    EXPECT_STREQ(
+        "2 行目: 引数 job_name は、SAMPLE_WORKER_TRACE_ID_0002 では文字列、SAMPLE_WORKER_TRACE_ID_0003 では"
+        "数値 (DOUBLE) です。型の合わない項目では比較が偽になり、意図した判定結果にならない可能性があります",
+        text_); // [確認_正常系] - text_ が "2 行目: 引数 job_name は、SAMPLE_WORKER_TRACE_ID_0002 では文字列、SAMPLE_WORKER_TRACE_ID_0003 では数値 (DOUBLE) です。型の合わない項目では比較が偽になり、意図した判定結果にならない可能性があります" であること。(両方の項目と、文字列以外の側の種別を含むことの確認)
 }
 
 // カタログにない項目や引数の位置、種別のない警告を拒否することの確認
@@ -99,10 +101,13 @@ TEST_F(sampleFilterWarningTest, unknown_entry_or_kind_is_rejected)
                                                    sizeof(text_)); // [手順] - 種別のない警告を整える。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT,
-              actual_unknown_argument_ret);                 // [確認_異常系] - 不正な引数の位置を拒否すること。
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_none_ret); // [確認_異常系] - 種別のない警告を拒否すること。
-    EXPECT_STREQ("", text_);                                // [確認_異常系] - 空文字列を残すこと。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        actual_unknown_argument_ret); // [確認_異常系] - 不正な引数の位置を渡したときの sample_filter_warning_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        actual_none_ret); // [確認_異常系] - 種別のない警告を渡したときの sample_filter_warning_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_STREQ("", text_); // [確認_異常系] - text_ が "" であること。(拒否したときに空文字列が残ることの確認)
 }
 
 // 格納先に収まらない場合は CPLAT_ERR_BUFFER_TOO_SMALL を返すことの確認
@@ -122,6 +127,8 @@ TEST_F(sampleFilterWarningTest, small_destination_is_reported)
                                               sizeof(small)); // [手順] - 小さな格納先へ整える。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_BUFFER_TOO_SMALL, actual_ret); // [確認_異常系] - 収まらないことを返すこと。
-    EXPECT_STREQ("", small);                           // [確認_異常系] - 空文字列にすること。
+    EXPECT_EQ(
+        CPLAT_ERR_BUFFER_TOO_SMALL,
+        actual_ret); // [確認_異常系] - sample_filter_warning_format() の戻り値が CPLAT_ERR_BUFFER_TOO_SMALL であること。
+    EXPECT_STREQ("", small); // [確認_異常系] - small が "" であること。(収まらない場合も空文字列になることの確認)
 }

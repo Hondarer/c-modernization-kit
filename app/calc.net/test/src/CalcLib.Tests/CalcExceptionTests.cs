@@ -36,8 +36,8 @@ namespace CalcLib.Tests
             var exception = new CalcException(errorCode, message); // [手順] - CalcException を作成する。
 
             // Assert
-            Assert.Equal(errorCode, exception.ErrorCode); // [確認_正常系] - エラー コードが正しく設定されていること。
-            Assert.Equal(message, exception.Message); // [確認_正常系] - メッセージが正しく設定されていること。
+            Assert.Equal(errorCode, exception.ErrorCode); // [確認_正常系] - exception.ErrorCode が errorCode と一致すること。
+            Assert.Equal(message, exception.Message); // [確認_正常系] - exception.Message が message と一致すること。
         }
 
         // 内部例外を指定して CalcException を生成した場合に各プロパティおよび内部例外が正しく保持されることの確認
@@ -53,9 +53,9 @@ namespace CalcLib.Tests
             var exception = new CalcException(errorCode, message, innerException); // [手順] - CalcException を内部例外付きで作成する。
 
             // Assert
-            Assert.Equal(errorCode, exception.ErrorCode); // [確認_正常系] - エラー コードが正しく設定されていること。
-            Assert.Equal(message, exception.Message); // [確認_正常系] - メッセージが正しく設定されていること。
-            Assert.Same(innerException, exception.InnerException); // [確認_正常系] - 内部例外が正しく設定されていること。
+            Assert.Equal(errorCode, exception.ErrorCode); // [確認_正常系] - exception.ErrorCode が errorCode と一致すること。
+            Assert.Equal(message, exception.Message); // [確認_正常系] - exception.Message が message と一致すること。
+            Assert.Same(innerException, exception.InnerException); // [確認_正常系] - exception.InnerException が innerException と同じインスタンスであること。
         }
 
         // CalculateOrThrow でゼロ除算が発生した際にスローされる CalcException に詳細なコンテキスト情報が含まれることの確認
@@ -63,16 +63,19 @@ namespace CalcLib.Tests
         public void CalcException_ThrownFromCalculateOrThrow_ShouldContainContextInfo()
         {
             // Act
-            var exception = Assert.Throws<CalcException>(() =>
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0)); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0) を呼び出す (ゼロ除算)。
+            var thrown = Record.Exception(() =>
+            {
+                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0) を呼び出す (ゼロ除算)。
+            });
 
             // Assert
+            var exception = Assert.IsType<CalcException>(thrown); // [確認_異常系] - thrown の型が CalcException であること。(ゼロ除算で CalcLibrary.CalculateOrThrow() が CalcException を送出したことの確認)
             Assert.Equal(CalcLibrary.CALC_ERR_INVALID_ARGUMENT,
-                         exception.ErrorCode); // [確認_異常系] - 例外のエラー コードが CALC_ERR_INVALID_ARGUMENT であること。
-            Assert.Contains("kind=Divide", exception.Message); // [確認_異常系] - メッセージに "kind=Divide" が含まれること。
-            Assert.Contains("a=100", exception.Message); // [確認_異常系] - メッセージに "a=100" が含まれること。
-            Assert.Contains("b=0", exception.Message); // [確認_異常系] - メッセージに "b=0" が含まれること。
-            Assert.Contains("errorCode=-2", exception.Message); // [確認_異常系] - メッセージに "errorCode=-2" が含まれること。
+                         exception.ErrorCode); // [確認_異常系] - exception.ErrorCode が CalcLibrary.CALC_ERR_INVALID_ARGUMENT であること。
+            Assert.Contains("kind=Divide", exception.Message); // [確認_異常系] - exception.Message が "kind=Divide" を含むこと。
+            Assert.Contains("a=100", exception.Message); // [確認_異常系] - exception.Message が "a=100" を含むこと。
+            Assert.Contains("b=0", exception.Message); // [確認_異常系] - exception.Message が "b=0" を含むこと。
+            Assert.Contains("errorCode=-2", exception.Message); // [確認_異常系] - exception.Message が "errorCode=-2" を含むこと。
         }
 
         // スローされた CalcException を基底の Exception 型として正常に捕捉できることの確認
@@ -81,20 +84,22 @@ namespace CalcLib.Tests
         {
             // Arrange
             bool caughtAsException = false; // [状態] - 例外キャッチ フラグを準備する。
+            Exception ex = null;
 
             // Act
             try
             {
                 CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す。
             }
-            catch (Exception ex)
+            catch (Exception caught)
             {
                 caughtAsException = true;
-                Assert.IsType<CalcException>(ex); // [確認_異常系] - 捕捉した例外が CalcException 型であること。
+                ex = caught;
             }
 
             // Assert
-            Assert.True(caughtAsException); // [確認_異常系] - Exception としてキャッチできたこと。
+            Assert.True(caughtAsException); // [確認_異常系] - caughtAsException が true であること。(Exception として捕捉できたことの確認)
+            Assert.IsType<CalcException>(ex); // [確認_異常系] - ex の型が CalcException であること。
         }
 
         // スローされた CalcException を専用の CalcException 型として正常に捕捉しエラー コードを取得できることの確認
@@ -103,21 +108,23 @@ namespace CalcLib.Tests
         {
             // Arrange
             bool caughtAsCalcException = false; // [状態] - 例外キャッチ フラグを準備する。
+            CalcException ex = null;
 
             // Act
             try
             {
                 CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す。
             }
-            catch (CalcException ex)
+            catch (CalcException caught)
             {
                 caughtAsCalcException = true;
-                Assert.Equal(CalcLibrary.CALC_ERR_INVALID_ARGUMENT,
-                             ex.ErrorCode); // [確認_異常系] - エラー コードが CALC_ERR_INVALID_ARGUMENT であること。
+                ex = caught;
             }
 
             // Assert
-            Assert.True(caughtAsCalcException); // [確認_異常系] - CalcException としてキャッチできたこと。
+            Assert.True(caughtAsCalcException); // [確認_異常系] - caughtAsCalcException が true であること。(CalcException として捕捉できたことの確認)
+            Assert.Equal(CalcLibrary.CALC_ERR_INVALID_ARGUMENT,
+                         ex.ErrorCode); // [確認_異常系] - ex.ErrorCode が CalcLibrary.CALC_ERR_INVALID_ARGUMENT であること。
         }
     }
 }

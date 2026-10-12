@@ -32,7 +32,7 @@ TEST(structMetaPrintTest, prints_byte_arrays_in_selected_format)
     ByteArrays sample = {{-1, 0, 1}, {0, 165, 255}};
     char path[PLATFORM_PATH_MAX] = {};
     FILE *stream = cplat_fopen_temp("smp", "w+b", path, sizeof(path), nullptr); // [状態] - 一時出力先を作成する。
-    ASSERT_NE(nullptr, stream); // [状態確認] - 一時出力先を作成できること。
+    ASSERT_NE(nullptr, stream); // [状態確認] - cplat_fopen_temp() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -43,10 +43,18 @@ TEST(structMetaPrintTest, prints_byte_arrays_in_selected_format)
     size_t read_size = fread(output, 1U, sizeof(output) - 1U, stream);
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, actual);                                  // [確認_正常系] - 表示に成功すること。
-    ASSERT_GT(read_size, 0U);                                     // [確認_正常系] - 出力が存在すること。
-    EXPECT_NE(nullptr, strstr(output, "integer_values[0] = -1")); // [確認_正常系] - 既定形式を整数で表示すること。
-    EXPECT_NE(nullptr, strstr(output, "hex_values = 00 a5 ff"));  // [確認_正常系] - hex形式を一行で表示すること。
+    ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - struct_meta_print_write() の戻り値が CPLAT_OK であること。
+    ASSERT_GT(read_size, 0U);    // [確認_正常系] - fread() の戻り値が 0U より大きいこと。(出力が存在することの確認)
+    EXPECT_NE(
+        nullptr,
+        strstr(
+            output,
+            "integer_values[0] = -1")); // [確認_正常系] - "integer_values[0] = -1" を探した strstr() の戻り値が nullptr 以外であること。
+    EXPECT_NE(
+        nullptr,
+        strstr(
+            output,
+            "hex_values = 00 a5 ff")); // [確認_正常系] - "hex_values = 00 a5 ff" を探した strstr() の戻り値が nullptr 以外であること。
 
     // Cleanup
     (void)fclose(stream);

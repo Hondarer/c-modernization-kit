@@ -29,15 +29,15 @@ TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_
     char path[PLATFORM_PATH_MAX] = {};
     FILE *stream = cplat_fopen_temp("sma", "w+b", path, sizeof(path),
                                     nullptr); // [状態] - 生成結果を読み戻す一時ストリームを作成する。
-    ASSERT_NE(nullptr, stream);               // [状態確認] - 生成結果を読み戻す一時ストリームを作成できること。
+    ASSERT_NE(nullptr, stream);               // [状態確認] - cplat_fopen_temp() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
     // Act
     struct_meta_gen_emit_uint64_array(stream, "s_sample", data,
                                       33U); // [手順] - 4 ワードと 1 バイトを静的配列として出力する。
-    ASSERT_EQ(0, std::fflush(stream));
-    // [確認_正常系] - `std::fflush(stream)` の戻り値が `0` であること。
+    int actual_ret_flush = std::fflush(stream);
+    ASSERT_EQ(0, actual_ret_flush); // [状態確認] - std::fflush() の戻り値が 0 であること。
     std::rewind(stream);
     std::string actual;
     char buffer[256];
@@ -48,7 +48,9 @@ TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_
     }
 
     // Assert
-    EXPECT_EQ(expected, actual); // [確認_正常系] - ワード、改行、末尾の 0 埋めを含む配列全体が一致すること。
+    EXPECT_EQ(
+        expected,
+        actual); // [確認_正常系] - actual が expected と一致すること。(ワード、改行、末尾の 0 埋めを含む配列全体であることの確認)
 
     // Cleanup
     (void)std::fclose(stream);

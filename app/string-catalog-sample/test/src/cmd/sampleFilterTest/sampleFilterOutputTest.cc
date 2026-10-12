@@ -48,22 +48,22 @@ class sampleFilterOutputTest : public Test
     void SetUp() override
     {
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_));
-        // [状態確認] - `sample_worker_trace_create_filter(nullptr, kLineCapacity, kLineWidth, &slot_)` の戻り値が `CPLAT_OK` であること。
+        // [状態確認] - sample_worker_trace_create_filter() の戻り値が CPLAT_OK であること。
 
         std::memset(&capture_, 0, sizeof(capture_));
 
         tracer_ = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
         ASSERT_NE(nullptr, tracer_);
-        // [状態確認] - `nullptr` と `tracer_` が異なること。
+        // [状態確認] - cplat_tracer_create() の戻り値が nullptr 以外であること。
         hook_entry_ = cplat_tracer_set_hook(tracer_, capture_hook, &capture_); /* stopped 状態で登録する */
         ASSERT_NE(nullptr, hook_entry_);
-        // [状態確認] - `nullptr` と `hook_entry_` が異なること。
+        // [状態確認] - cplat_tracer_set_hook() の戻り値が nullptr 以外であること。
         ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer_));
-        // [状態確認] - `cplat_tracer_start(tracer_)` の戻り値が `CPLAT_OK` であること。
+        // [状態確認] - cplat_tracer_start() の戻り値が CPLAT_OK であること。
 
         sample_worker_trace_set_tracer(tracer_);
         ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));
-        // [状態確認] - `sample_worker_trace_set_filter(slot_)` の戻り値が `CPLAT_OK` であること。
+        // [状態確認] - sample_worker_trace_set_filter() の戻り値が CPLAT_OK であること。
     }
     // [サブ手順終了]
 
@@ -99,13 +99,20 @@ TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
         (uint64_t)1, 2); // [手順] - 作成直後 (何も一致しない) のスロットで JOB_FAILED を出力する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    ASSERT_EQ(1, capture_.call_count); // [確認_正常系] - フックが 1 回呼び出されること。
-    EXPECT_EQ(CPLAT_TRACE_LEVEL_WARNING,
-              capture_.level); // [確認_正常系] - JOB_FAILED の分類値 (WARNING) がそのまま使われること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - sample_worker_trace_key_job_failed() の戻り値が CPLAT_OK であること。
+    ASSERT_EQ(
+        1,
+        capture_
+            .call_count); // [確認_正常系] - capture_.call_count が 1 であること。(フックが 1 回呼び出されたことの確認)
+    EXPECT_EQ(
+        CPLAT_TRACE_LEVEL_WARNING,
+        capture_
+            .level); // [確認_正常系] - capture_.level が CPLAT_TRACE_LEVEL_WARNING であること。(JOB_FAILED の分類値がそのままトレース レベルに使われたことの確認)
     EXPECT_EQ(
         '#',
-        capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
+        capture_.message
+            [0]); // [確認_正常系] - capture_.message[0] が '#' であること。(組み立てた文字列の先頭がラウンド トリップ ID の接頭辞であることの確認)
 }
 // [サブ手順参照 名前=sampleFilterOutputTest.TearDown]
 
@@ -119,10 +126,10 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
 
     ASSERT_EQ(CPLAT_OK, compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED",
                                             image)); // [状態] - JOB_FAILED に一致する条件式をコンパイルする。
-    // [状態確認] - `compile_single_line("key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED", image)` の戻り値が `CPLAT_OK` であること。
+    // [状態確認] - compile_single_line() の戻り値が CPLAT_OK であること。
     ASSERT_EQ(CPLAT_OK, cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U,
                                                                nullptr)); // [状態] - スロットへ適用する。
-    // [状態確認] - `cplat_string_catalog_filter_slot_apply(slot_, image, kImageSize, nullptr, 0U, nullptr)` の戻り値が `CPLAT_OK` であること。
+    // [状態確認] - cplat_string_catalog_filter_slot_apply() の戻り値が CPLAT_OK であること。
 
     // Pre-Assert
 
@@ -130,13 +137,20 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
     actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 2); // [手順] - 一致する状態で JOB_FAILED を出力する。
 
     // Assert
-    EXPECT_EQ(CPLAT_OK, actual_ret);   // [確認_正常系] - 戻り値が CPLAT_OK であること。
-    ASSERT_EQ(1, capture_.call_count); // [確認_正常系] - フックが 1 回呼び出されること。
-    EXPECT_EQ(CPLAT_TRACE_LEVEL_TO_FORCE(CPLAT_TRACE_LEVEL_WARNING),
-              capture_.level); // [確認_正常系] - 分類値 (WARNING) を強制出力のレベルへ変換した値が使われること。
+    EXPECT_EQ(CPLAT_OK,
+              actual_ret); // [確認_正常系] - sample_worker_trace_key_job_failed() の戻り値が CPLAT_OK であること。
+    ASSERT_EQ(
+        1,
+        capture_
+            .call_count); // [確認_正常系] - capture_.call_count が 1 であること。(フックが 1 回呼び出されたことの確認)
+    EXPECT_EQ(
+        CPLAT_TRACE_LEVEL_TO_FORCE(CPLAT_TRACE_LEVEL_WARNING),
+        capture_
+            .level); // [確認_正常系] - capture_.level が CPLAT_TRACE_LEVEL_TO_FORCE(CPLAT_TRACE_LEVEL_WARNING) と一致すること。(分類値を強制出力のレベルへ変換した値が使われたことの確認)
     EXPECT_EQ(
         '#',
-        capture_.message[0]); // [確認_正常系] - 組み立てた文字列の先頭がラウンド トリップ ID の接頭辞 "#" であること。
+        capture_.message
+            [0]); // [確認_正常系] - capture_.message[0] が '#' であること。(組み立てた文字列の先頭がラウンド トリップ ID の接頭辞であることの確認)
 }
 // [サブ手順参照 名前=sampleFilterOutputTest.TearDown]
 
@@ -155,7 +169,12 @@ TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argum
     actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 2); // [手順] - 未設定の状態で出力を試みる。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ARGUMENT, actual_ret); // [確認_異常系] - CPLAT_ERR_INVALID_ARGUMENT を返すこと。
-    EXPECT_EQ(0, capture_.call_count); // [確認_異常系] - フックが呼び出されない (組み立ても出力も行わない) こと。
+    EXPECT_EQ(
+        CPLAT_ERR_INVALID_ARGUMENT,
+        actual_ret); // [確認_異常系] - sample_worker_trace_key_job_failed() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+    EXPECT_EQ(
+        0,
+        capture_
+            .call_count); // [確認_異常系] - capture_.call_count が 0 であること。(フックが呼び出されない、つまり組み立ても出力も行わないことの確認)
 }
 // [サブ手順参照 名前=sampleFilterOutputTest.TearDown]

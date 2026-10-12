@@ -29,7 +29,7 @@ class override_sampleTest : public Test
     {
         string workspace_root = findWorkspaceRoot();
         ASSERT_FALSE(workspace_root.empty()) << "ワークスペース ルートが見つかりません";
-        // [状態確認] - `workspace_root.empty()` が false であること。
+        // [状態確認] - workspace_root.empty() の戻り値が false であること。
 #if defined(PLATFORM_LINUX)
         binary_path = workspace_root + "/app/override-sample/prod/cbin/override-sample";
         lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/cplat/prod/lib" +
@@ -86,7 +86,7 @@ class override_sampleTest : public Test
         fopen_s(&fp, config_path.c_str(), "w");
 #endif /* PLATFORM_ */
         ASSERT_NE(nullptr, fp) << "定義ファイルの作成に失敗しました: " << config_path;
-        // [状態確認] - `nullptr` と `fp` が異なること。
+        // [状態確認] - fp が nullptr 以外であること。
         fputs(content.c_str(), fp);
         fclose(fp);
     }
@@ -122,8 +122,11 @@ TEST_F(override_sampleTest, help)
     ProcessResult res = startProcess(binary_path, {"--help"}, opts); // [手順] - help オプションで起動する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code);                 // [確認_正常系] - help の表示後に正常終了すること。
-    EXPECT_NE(string::npos, res.stdout_out.find("--help")); // [確認_正常系] - help オプションが usage に含まれること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "--help")); // [確認_正常系] - "--help" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
@@ -141,17 +144,23 @@ TEST_F(override_sampleTest, check_stdout_default)
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認_正常系] - 既定処理のメッセージが出力されること。
-    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));               // [確認_正常系] - ret が 0 であること。
-    EXPECT_NE(string::npos, res.stdout_out.find("result: 3")); // [確認_正常系] - result が 3 (1+2) であること。
+            "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認_正常系] - "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "ret: 0")); // [確認_正常系] - "ret: 0" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "result: 3")); // [確認_正常系] - "result: 3" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
     EXPECT_EQ(
         string::npos,
         res.stdout_out.find(
-            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - 差し替え実装への委譲が行われないこと。
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します" を探した res.stdout_out.find() の戻り値が string::npos であること。
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
@@ -171,17 +180,23 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
 
     // Assert
-    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - 差し替え実装への委譲メッセージが出力されること。
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
     EXPECT_NE(
         string::npos,
         res.stdout_out.find(
-            "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認_正常系] - 差し替え実装のメッセージが出力されること。
-    EXPECT_NE(string::npos, res.stdout_out.find("ret: 0"));    // [確認_正常系] - ret が 0 であること。
-    EXPECT_NE(string::npos, res.stdout_out.find("result: 2")); // [確認_正常系] - result が 2 (1*2) であること。
+            "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います")); // [確認_正常系] - "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "ret: 0")); // [確認_正常系] - "ret: 0" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "result: 2")); // [確認_正常系] - "result: 2" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
@@ -204,9 +219,11 @@ TEST_F(override_sampleTest, onUnload_syslog)
         startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString を捕捉する。
 
     // Assert
-    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
-    EXPECT_NE(string::npos,
-              res.debug_log.find("base: onUnload called")); // [確認_正常系] - debug_log に onUnload の記録があること。
+    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
+    EXPECT_NE(
+        string::npos,
+        res.debug_log.find(
+            "base: onUnload called")); // [確認_正常系] - "base: onUnload called" を探した res.debug_log.find() の戻り値が string::npos 以外であること。
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
@@ -227,10 +244,11 @@ TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、診断ログを確認する。
 
     // Assert
-    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - override-sample の終了コードが EXIT_SUCCESS であること。
+    ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
     EXPECT_EQ(
         string::npos,
-        res.debug_log.find("base: onUnload called")); // [確認_正常系] - 既定では onUnload 診断ログが出力されないこと。
+        res.debug_log.find(
+            "base: onUnload called")); // [確認_正常系] - "base: onUnload called" を探した res.debug_log.find() の戻り値が string::npos であること。
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
@@ -252,13 +270,13 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - 上限超過環境で override-sample を実行する。
 
     // Assert
-    EXPECT_EQ(EXIT_FAILURE, res.exit_code); // [確認_異常系] - 設定ファイル パス構築失敗で EXIT_FAILURE を返すこと。
+    EXPECT_EQ(EXIT_FAILURE, res.exit_code); // [確認_異常系] - res.exit_code が EXIT_FAILURE であること。
     EXPECT_NE(string::npos,
               res.stderr_out.find("failed to build config path"))
-        << res.stderr_out; // [確認_異常系] - 標準エラーに失敗理由が出力されること。
+        << res.stderr_out; // [確認_異常系] - "failed to build config path" を探した res.stderr_out.find() の戻り値が string::npos 以外であること。
     EXPECT_NE(string::npos,
               res.debug_log.find("base: config path too long; override disabled"))
-        << res.debug_log; // [確認_異常系] - ライブラリ側ではオーバーライド無効化ログが残ること。
+        << res.debug_log; // [確認_異常系] - "base: config path too long; override disabled" を探した res.debug_log.find() の戻り値が string::npos 以外であること。
 #else
     // Pre-Assert
     // Act

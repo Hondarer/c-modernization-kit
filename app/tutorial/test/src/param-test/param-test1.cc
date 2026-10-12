@@ -27,13 +27,13 @@ TEST_P(ParamTest1Test, MultiplyTest)
 
     // Pre-Assert
     EXPECT_CALL(mockObj, myFunction(a, b))
-        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction(a, b) が 1 回呼び出されること。
+        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction() が a、b を指定して 1 回呼び出されること。
 
     // Act
     int result = mockObj.myFunction(a, b); // [手順] - myFunction(a, b) を呼び出す。
 
     // Assert
-    EXPECT_EQ(result, expected); // [確認_正常系 回数=PARAM] - myFunction(a, b) の戻り値が期待する戻り値と一致すること。
+    EXPECT_EQ(result, expected); // [確認_正常系 回数=PARAM] - mockObj.myFunction() の戻り値が expected と一致すること。
 }
 
 // NOTE: get_test_code.awk での構文解析の都合で、

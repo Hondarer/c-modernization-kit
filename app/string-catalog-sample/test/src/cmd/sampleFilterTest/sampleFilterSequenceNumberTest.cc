@@ -25,9 +25,12 @@ TEST_F(sampleFilterSequenceNumberTest, wraps_around_after_reaching_the_maximum)
     }
 
     // Assert
-    EXPECT_GE(actual_base_value, 1);                                 // [確認_正常系] - 基準値が下限 1 以上であること。
-    EXPECT_LE(actual_base_value, SAMPLE_WORKER_SEQUENCE_NUMBER_MAX); // [確認_正常系] - 基準値が上限以下であること。
+    EXPECT_GE(actual_base_value,
+              1); // [確認_正常系] - 基準値取得時の sample_worker_next_sequence_number() の戻り値が 1 以上であること。
+    EXPECT_LE(
+        actual_base_value,
+        SAMPLE_WORKER_SEQUENCE_NUMBER_MAX); // [確認_正常系] - 基準値取得時の sample_worker_next_sequence_number() の戻り値が SAMPLE_WORKER_SEQUENCE_NUMBER_MAX 以下であること。
     EXPECT_EQ(
         actual_base_value,
-        actual_value_after_full_cycle); // [確認_正常系] - 上限周期と同じ回数の呼び出し後、基準値と同じ値へ巡回すること。
+        actual_value_after_full_cycle); // [確認_正常系] - 1 周後の sample_worker_next_sequence_number() の戻り値が基準値取得時の sample_worker_next_sequence_number() の戻り値と一致すること。(上限周期と同じ回数の呼び出し後に基準値と同じ値へ巡回したことの確認)
 }

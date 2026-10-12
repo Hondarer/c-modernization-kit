@@ -91,16 +91,16 @@ TEST(JsonEncodeTest, EncodesEachIntegerWidth)
                                       &json); // [手順] - 各幅の整数値を含む構造体を JSON へエンコードする。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
-    ASSERT_NE(nullptr, json); // [確認_正常系] - 幅ごとの値が JSON へ変換されること。
+    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
+    ASSERT_NE(nullptr, json); // [確認_正常系] - json が nullptr 以外であること。
     EXPECT_DOUBLE_EQ(-999999999999999.0, cJSON_GetObjectItemCaseSensitive(json, "wide")->valuedouble);
-    // [確認_正常系] - JSON の `wide` フィールドの値が `-999999999999999.0` であること。
+    // [確認_正常系] - "wide" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値の valuedouble が -999999999999999.0 であること。
     EXPECT_DOUBLE_EQ(4294967295.0, cJSON_GetObjectItemCaseSensitive(json, "flags")->valuedouble);
-    // [確認_正常系] - JSON の `flags` フィールドの値が `4294967295.0` であること。
+    // [確認_正常系] - "flags" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値の valuedouble が 4294967295.0 であること。
     EXPECT_DOUBLE_EQ(-32768.0, cJSON_GetObjectItemCaseSensitive(json, "offset")->valuedouble);
-    // [確認_正常系] - JSON の `offset` フィールドの値が `-32768.0` であること。
+    // [確認_正常系] - "offset" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値の valuedouble が -32768.0 であること。
     EXPECT_DOUBLE_EQ(255.0, cJSON_GetObjectItemCaseSensitive(json, "rank")->valuedouble);
-    // [確認_正常系] - JSON の `rank` フィールドの値が `255.0` であること。
+    // [確認_正常系] - "rank" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値の valuedouble が 255.0 であること。
 
     // Cleanup
     cJSON_Delete(json);
@@ -119,25 +119,29 @@ TEST(JsonEncodeTest, encodes_64_bit_integer_limits_exactly)
     int actual = struct_meta_json_encode(&kInteger64LimitsDescriptor, &sample, &json); // [手順] - 境界値を変換する。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - 64 ビット整数の全境界値を変換できること。
-    ASSERT_NE(nullptr, json);    // [確認_正常系] - JSON オブジェクトが生成されること。
+    ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
+    ASSERT_NE(nullptr, json);    // [確認_正常系] - json が nullptr 以外であること。
     int64_t minimum = 0;
     int64_t maximum = 0;
     uint64_t unsigned_maximum = 0U;
-    EXPECT_TRUE(cJSON_GetInt64Value(cJSON_GetObjectItemCaseSensitive(json, "minimum"),
-                                    &minimum)); // [確認_正常系] - 符号付き最小値を整数として取得できること。
-    EXPECT_TRUE(cJSON_GetInt64Value(cJSON_GetObjectItemCaseSensitive(json, "maximum"),
-                                    &maximum)); // [確認_正常系] - 符号付き最大値を整数として取得できること。
-    EXPECT_TRUE(cJSON_GetUInt64Value(cJSON_GetObjectItemCaseSensitive(json, "unsigned_maximum"),
-                                     &unsigned_maximum)); // [確認_正常系] - 符号なし最大値を整数として取得できること。
-    EXPECT_EQ(INT64_MIN, minimum);                        // [確認_正常系] - 符号付き最小値を正確に保持すること。
-    EXPECT_EQ(INT64_MAX, maximum);                        // [確認_正常系] - 符号付き最大値を正確に保持すること。
-    EXPECT_EQ(UINT64_MAX, unsigned_maximum);              // [確認_正常系] - 符号なし最大値を正確に保持すること。
+    EXPECT_TRUE(cJSON_GetInt64Value(
+        cJSON_GetObjectItemCaseSensitive(json, "minimum"),
+        &minimum)); // [確認_正常系] - "minimum" を取得した cJSON_GetInt64Value() の戻り値が true であること。
+    EXPECT_TRUE(cJSON_GetInt64Value(
+        cJSON_GetObjectItemCaseSensitive(json, "maximum"),
+        &maximum)); // [確認_正常系] - "maximum" を取得した cJSON_GetInt64Value() の戻り値が true であること。
+    EXPECT_TRUE(cJSON_GetUInt64Value(
+        cJSON_GetObjectItemCaseSensitive(json, "unsigned_maximum"),
+        &unsigned_maximum)); // [確認_正常系] - "unsigned_maximum" を取得した cJSON_GetUInt64Value() の戻り値が true であること。
+    EXPECT_EQ(INT64_MIN, minimum);           // [確認_正常系] - minimum が INT64_MIN であること。
+    EXPECT_EQ(INT64_MAX, maximum);           // [確認_正常系] - maximum が INT64_MAX であること。
+    EXPECT_EQ(UINT64_MAX, unsigned_maximum); // [確認_正常系] - unsigned_maximum が UINT64_MAX であること。
     char *text = cJSON_PrintUnformatted(json);
-    ASSERT_NE(nullptr, text); // [確認_正常系] - JSON テキストを生成できること。
-    EXPECT_STREQ("{\"minimum\":-9223372036854775808,\"maximum\":9223372036854775807,"
-                 "\"unsigned_maximum\":18446744073709551615}",
-                 text); // [確認_正常系] - 丸めや指数表記のない十進整数として出力すること。
+    ASSERT_NE(nullptr, text); // [確認_正常系] - cJSON_PrintUnformatted() の戻り値が nullptr 以外であること。
+    EXPECT_STREQ(
+        "{\"minimum\":-9223372036854775808,\"maximum\":9223372036854775807,"
+        "\"unsigned_maximum\":18446744073709551615}",
+        text); // [確認_正常系] - cJSON_PrintUnformatted() の戻り値が "{\"minimum\":-9223372036854775808,\"maximum\":9223372036854775807,\"unsigned_maximum\":18446744073709551615}" であること。
 
     // Cleanup
     cJSON_free(text);
@@ -158,14 +162,14 @@ TEST(JsonEncodeTest, UsesGenericJsonAttributes)
         struct_meta_json_encode(&kDescriptor, &sample, &json); // [手順] - 属性付き構造体を JSON へエンコードする。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - エンコードが成功すること。
-    ASSERT_NE(nullptr, json); // [確認_正常系] - 属性に従った JSON が生成されること。
+    ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
+    ASSERT_NE(nullptr, json); // [確認_正常系] - json が nullptr 以外であること。
     EXPECT_EQ(42, cJSON_GetObjectItemCaseSensitive(json, "person_id")->valueint);
-    // [確認_正常系] - JSON の `person_id` フィールドの値が `42` であること。
+    // [確認_正常系] - "person_id" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値の valueint が 42 であること。
     EXPECT_EQ(nullptr, cJSON_GetObjectItemCaseSensitive(json, "id"));
-    // [確認_正常系] - `cJSON_GetObjectItemCaseSensitive(json, "id")` の戻り値が `nullptr` であること。
+    // [確認_正常系] - "id" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値が nullptr であること。
     EXPECT_EQ(nullptr, cJSON_GetObjectItemCaseSensitive(json, "hidden"));
-    // [確認_正常系] - `cJSON_GetObjectItemCaseSensitive(json, "hidden")` の戻り値が `nullptr` であること。
+    // [確認_正常系] - "hidden" を取得した cJSON_GetObjectItemCaseSensitive() の戻り値が nullptr であること。
 
     // Cleanup
     cJSON_Delete(json);
@@ -185,8 +189,9 @@ TEST(JsonEncodeTest, RejectsCorruptDescriptor)
     int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順] - 破損した記述子でエンコードを試みる。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, actual); // [確認_異常系] - 検査エラーになること。
-    EXPECT_EQ(nullptr, json);                        // [確認_異常系] - JSON が生成されないこと。
+    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
+              actual); // [確認_異常系] - struct_meta_json_encode() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_EQ(nullptr, json); // [確認_異常系] - json が nullptr であること。
 }
 
 // バイト配列フィールドが指定フォーマットに従い整数配列または 16 進数文字列としてエンコードされることの確認
@@ -202,19 +207,27 @@ TEST(JsonEncodeTest, encodes_byte_arrays_in_selected_format)
     int actual = struct_meta_json_encode(&kByteDescriptor, &sample, &json); // [手順] - バイト配列を変換する。
 
     // Assert
-    ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - バイト配列を変換できること。
-    ASSERT_NE(nullptr, json);    // [確認_正常系] - JSON オブジェクトが生成されること。
+    ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
+    ASSERT_NE(nullptr, json);    // [確認_正常系] - json が nullptr 以外であること。
     const cJSON *signed_values = cJSON_GetObjectItemCaseSensitive(json, "signed_values");
     const cJSON *unsigned_values = cJSON_GetObjectItemCaseSensitive(json, "unsigned_values");
     const cJSON *hex_values = cJSON_GetObjectItemCaseSensitive(json, "hex_values");
-    ASSERT_TRUE(cJSON_IsArray(signed_values)); // [確認_正常系] - 既定形式が整数配列であること。
-    EXPECT_DOUBLE_EQ(-128.0,
-                     cJSON_GetArrayItem(signed_values, 0)->valuedouble); // [確認_正常系] - 符号付き値を維持すること。
-    ASSERT_TRUE(cJSON_IsArray(unsigned_values)); // [確認_正常系] - 符号なし配列も整数配列であること。
-    EXPECT_DOUBLE_EQ(255.0,
-                     cJSON_GetArrayItem(unsigned_values, 2)->valuedouble); // [確認_正常系] - 符号なし値を維持すること。
-    ASSERT_TRUE(cJSON_IsString(hex_values));                    // [確認_正常系] - hex 指定が文字列になること。
-    EXPECT_STREQ("00 a5 ff", cJSON_GetStringValue(hex_values)); // [確認_正常系] - 小文字2桁の空白区切りであること。
+    ASSERT_TRUE(cJSON_IsArray(
+        signed_values)); // [確認_正常系] - signed_values に対する cJSON_IsArray() の戻り値が true であること。
+    EXPECT_DOUBLE_EQ(
+        -128.0,
+        cJSON_GetArrayItem(signed_values, 0)
+            ->valuedouble); // [確認_正常系] - signed_values の要素 0 を取得した cJSON_GetArrayItem() の戻り値の valuedouble が -128.0 であること。
+    ASSERT_TRUE(cJSON_IsArray(
+        unsigned_values)); // [確認_正常系] - unsigned_values に対する cJSON_IsArray() の戻り値が true であること。
+    EXPECT_DOUBLE_EQ(
+        255.0,
+        cJSON_GetArrayItem(unsigned_values, 2)
+            ->valuedouble); // [確認_正常系] - unsigned_values の要素 2 を取得した cJSON_GetArrayItem() の戻り値の valuedouble が 255.0 であること。
+    ASSERT_TRUE(cJSON_IsString(hex_values)); // [確認_正常系] - cJSON_IsString() の戻り値が true であること。
+    EXPECT_STREQ(
+        "00 a5 ff",
+        cJSON_GetStringValue(hex_values)); // [確認_正常系] - cJSON_GetStringValue() の戻り値が "00 a5 ff" であること。
 
     // Cleanup
     cJSON_Delete(json);
@@ -239,6 +252,7 @@ TEST(JsonEncodeTest, rejects_unterminated_character_array)
     int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順] - NUL のない配列を変換する。
 
     // Assert
-    EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING, actual); // [確認_異常系] - NUL のない文字列を拒否すること。
-    EXPECT_EQ(nullptr, json);                      // [確認_異常系] - JSON が生成されないこと。
+    EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING,
+              actual); // [確認_異常系] - struct_meta_json_encode() の戻り値が CPLAT_ERR_INVALID_ENCODING であること。
+    EXPECT_EQ(nullptr, json); // [確認_異常系] - json が nullptr であること。
 }
