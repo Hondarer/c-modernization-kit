@@ -8,7 +8,7 @@ TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
 {
     // Arrange
     /* 生成カタログには線形走査の経路が無い。埋め込みイメージへ接続できなければ
-       attach_index() が abort() するため、検索が成立すること自体が
+       attach_catalog() が CPLAT_ASSERT で異常終了するため、検索が成立すること自体が
        「索引へ接続できた」ことの表明になる。 */
     ASSERT_EQ(3U, sample_types_meta_count()); // [状態確認] - sample_types_meta_count() の戻り値が 3U であること。
 

@@ -630,16 +630,13 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
 
     fprintf(out, "static void attach_catalog(void)\n");
     fprintf(out, "{\n");
-    fprintf(out, "    if (struct_meta_catalog_attach_static(s_descriptors, %s_META_COUNT,\n", prefix);
-    fprintf(out, "                                          s_index_mgmt, sizeof(s_index_mgmt),\n");
-    fprintf(out, "                                          s_index_data, sizeof(s_index_data),\n");
-    fprintf(out, "                                          &s_catalog) != CPLAT_OK)\n");
-    fprintf(out, "    {\n");
-    fprintf(out, "        /* 同一ビルドで作ったイメージが読めないという不変条件の破れ。\n");
-    fprintf(out, "           線形走査へ縮退させず、その場で落とす。 */\n");
-    fprintf(out, "        (void)fprintf(stderr, \"%s: 埋め込み索引へ接続できません\\n\");\n", stem);
-    fprintf(out, "        abort();\n");
-    fprintf(out, "    }\n");
+    fprintf(out, "    int ret;\n\n");
+    fprintf(out, "    ret = struct_meta_catalog_attach_static(s_descriptors, %s_META_COUNT, s_index_mgmt,\n", prefix);
+    fprintf(out, "                                            sizeof(s_index_mgmt), s_index_data, sizeof(s_index_data),\n");
+    fprintf(out, "                                            &s_catalog);\n");
+    fprintf(out, "    /* 同一ビルドで作ったイメージが読めないという不変条件の破れ。\n");
+    fprintf(out, "       線形走査へ縮退させず、その場で落とす。 */\n");
+    fprintf(out, "    CPLAT_ASSERT(ret == CPLAT_OK);\n");
     fprintf(out, "    (void)cplat_shutdown_register(destroy_catalog, NULL);\n");
     fprintf(out, "}\n\n");
 
@@ -722,6 +719,7 @@ int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_
     fprintf(out, "#include <struct_meta/meta/index.h>\n\n");
     fprintf(out, "#include <cplat/base/result.h>\n");
     fprintf(out, "#include <cplat/hashtable/hashtable.h>\n");
+    fprintf(out, "#include <cplat/runtime/assertion.h>\n");
     fprintf(out, "#include <cplat/runtime/shutdown.h>\n");
     fprintf(out, "#include <cplat/sync/sync.h>\n\n");
     fprintf(out, "#include <stddef.h>\n");
