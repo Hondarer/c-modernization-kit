@@ -58,9 +58,9 @@ static int ensure_registry(void)
     cplat_hashtable_growth_config growth = {0}; /* 全フィールド 0 で上限なし。 */
 
     config.capacity = STRUCT_META_INDEX_REGISTRY_INITIAL_CAPACITY;
-    config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_BINARY;
+    config.key_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.key_size = sizeof(const struct_meta_descriptor *);
-    config.value_type = CPLAT_HASHTABLE_FIELD_FIXED_BINARY;
+    config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(index_record);
     config.value_align = sizeof(void *);
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
@@ -121,7 +121,7 @@ static cplat_hashtable *build_field_names(const struct_meta_descriptor *descript
     config.capacity = descriptor->field_count * 2U;
     config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
     config.key_size = STRUCT_META_INDEX_FIELD_NAME_BYTES;
-    config.value_type = CPLAT_HASHTABLE_FIELD_FIXED_BINARY;
+    config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(size_t);
     config.value_align = sizeof(size_t);
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;

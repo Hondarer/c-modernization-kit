@@ -533,7 +533,7 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
     config.capacity = count * 2U;
     config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
     config.key_size = max_struct_name_bytes(catalog, count);
-    config.value_type = CPLAT_HASHTABLE_FIELD_FIXED_BINARY;
+    config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(size_t);
     config.value_align = sizeof(size_t);
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
