@@ -31,6 +31,7 @@
 #include <cplat/base/result.h>
 #include <cplat/crt/stdio.h>
 #include <cplat/hashtable/hashtable.h>
+#include <cplat/runtime/abort.h>
 
 #include <ctype.h>
 #include <stdio.h>
@@ -221,8 +222,9 @@ static const char *field_kind_name(struct_meta_field_kind kind)
     case STRUCT_META_FIELD_STRUCT:
         return "STRUCT_META_FIELD_STRUCT";
     default:
-        /* 記述子は libstruct_meta が組み立てるため、未知の種別は起こらない。 */
-        return "STRUCT_META_FIELD_SIGNED_INTEGER";
+        /* 記述子は libstruct_meta が組み立てるため、未知の種別は記述子の破壊を意味する。
+           別の種別の定数で代用すると、誤った型の生成コードを書き出す */
+        CPLAT_ABORT("記述子に未知のフィールド種別があります");
     }
 }
 
@@ -476,7 +478,9 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
 
     fprintf(out, "/**\n");
     fprintf(out, " *  @brief          カタログ ハンドルを返します。\n");
-    fprintf(out, " *  @return         カタログです。接続できない場合はプロセスを終了させます。\n");
+    fprintf(out, " *  @return         カタログです。ハンドルを確保できない場合は NULL を返します。\n");
+    fprintf(out, " *\n");
+    fprintf(out, " *  埋め込み索引へ接続できない場合は、プロセスを異常終了させます。\n");
     fprintf(out, " *\n");
     fprintf(out, " *  実行時にヘッダーを解析して作ったカタログと同じ API で扱えます。\n");
     fprintf(out, " *  このカタログは静的領域を指すため、破棄してはなりません。\n");
@@ -634,7 +638,12 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
     fprintf(out, "    ret = struct_meta_catalog_attach_static(s_descriptors, %s_META_COUNT, s_index_mgmt,\n", prefix);
     fprintf(out, "                                            sizeof(s_index_mgmt), s_index_data, sizeof(s_index_data),\n");
     fprintf(out, "                                            &s_catalog);\n");
-    fprintf(out, "    /* 同一ビルドで作ったイメージが読めないという不変条件の破れ。\n");
+    fprintf(out, "    if (ret == CPLAT_ERR_OUT_OF_MEMORY)\n");
+    fprintf(out, "    {\n");
+    fprintf(out, "        /* ハンドルを確保できない。カタログは NULL のままとし、検索は見つからない結果を返す */\n");
+    fprintf(out, "        return;\n");
+    fprintf(out, "    }\n");
+    fprintf(out, "    /* それ以外の失敗は、同一ビルドで作ったイメージが読めないという不変条件の破れ。\n");
     fprintf(out, "       線形走査へ縮退させず、その場で落とす。 */\n");
     fprintf(out, "    CPLAT_ASSERT(ret == CPLAT_OK);\n");
     fprintf(out, "    (void)cplat_shutdown_register(destroy_catalog, NULL);\n");
@@ -719,7 +728,7 @@ int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_
     fprintf(out, "#include <struct_meta/meta/index.h>\n\n");
     fprintf(out, "#include <cplat/base/result.h>\n");
     fprintf(out, "#include <cplat/hashtable/hashtable.h>\n");
-    fprintf(out, "#include <cplat/runtime/assertion.h>\n");
+    fprintf(out, "#include <cplat/runtime/abort.h>\n");
     fprintf(out, "#include <cplat/runtime/shutdown.h>\n");
     fprintf(out, "#include <cplat/sync/sync.h>\n\n");
     fprintf(out, "#include <stddef.h>\n");

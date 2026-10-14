@@ -101,7 +101,9 @@ extern "C"
      *  @param[in]      index_image_data_size  @p index_image_data のバイト数。
      *  @param[out]     catalog_out       カタログの格納先。NULL を渡してはなりません。
      *  @return         @c CPLAT_OK 、@c CPLAT_ERR_INVALID_ARGUMENT 、または
-     *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。
+     *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。\n
+     *                  カタログまたは索引のハンドルを確保できない場合は @c CPLAT_ERR_OUT_OF_MEMORY 、
+     *                  索引イメージへ接続できない場合は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  `struct-meta-gen` が生成したコードが呼びます。イメージは読み取り専用領域に置けます。
      *  接続はイメージへ書き込まず、ハンドル 1 個を確保するだけです。\n

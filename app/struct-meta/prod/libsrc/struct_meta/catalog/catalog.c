@@ -207,10 +207,17 @@ int struct_meta_catalog_attach_static(const struct_meta_descriptor *const *descr
        uintptr_t を経由するのは cplat と同じ書き方に揃えるため。
        see: app/cplat/prod/libsrc/cplat/hashtable/hashtable_create.c の
             cplat_hashtable_attach() */
-    if (cplat_hashtable_attach((void *)(uintptr_t)index_image_mgmt, index_image_mgmt_size,
-                               (void *)(uintptr_t)index_image_data, index_image_data_size, &catalog->index) != CPLAT_OK)
+    int ret = cplat_hashtable_attach((void *)(uintptr_t)index_image_mgmt, index_image_mgmt_size,
+                                     (void *)(uintptr_t)index_image_data, index_image_data_size, &catalog->index);
+    if (ret != CPLAT_OK)
     {
         free(catalog);
+        /* ハンドルの確保失敗は呼び出し元が回復できるため、そのまま伝える。
+           それ以外はイメージを読めないことを意味する */
+        if (ret == CPLAT_ERR_OUT_OF_MEMORY)
+        {
+            return CPLAT_ERR_OUT_OF_MEMORY;
+        }
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
