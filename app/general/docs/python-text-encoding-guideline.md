@@ -1,15 +1,15 @@
-# Python のテキスト入出力で文字コードを明示する
+# Python のテキスト入出力における文字コード指定規範
 
-第一者管理の Python スクリプトとそのテストでは、テキスト入出力の文字コードを明示します。  
-リポジトリの文書、ソース、設定、テスト用の一時ファイルを読み書きする場合は、別の文字コードを指定する契約がない限り `encoding="utf-8"` を指定します。  
-子プロセスのテキスト通信も、入出力の契約に従って文字コードを指定します。  
-外部配布物と生成済み成果物は手動で変更せず、第一者管理の生成元や呼び出し元を修正します。
+第一者管理の Python スクリプトおよびそのテスト コードでは、テキスト入出力の文字コードを常に明示します。  
+リポジトリ内の文書、ソース、設定、テスト用一時ファイルを読み書きする際は、別の文字コードが仕様で定められている場合を除き、原則として `encoding="utf-8"` を指定します。
 
-## ファイルと子プロセスの両方で指定する
+## ファイル入出力および子プロセス通信での明示
 
-`open()`、`Path.open()`、`Path.read_text()`、`Path.write_text()` のテキスト入出力では、`encoding` を省略しません。  
-`subprocess.run()`、`Popen()`、`check_output()` などで `text=True` または `universal_newlines=True` を使う場合も、`encoding` を指定します。  
-エラー時の診断メッセージや将来追加するデータに日本語が含まれる可能性があるため、ASCII だけのデータや、成功時の出力が空のテストでも文字コードを指定します。
+テキスト データを扱うすべての API 呼び出しにおいて、`encoding` の指定を省略してはなりません。エラー メッセージや将来追加されるデータに非 ASCII 文字が含まれる可能性があるため、ASCII のみのデータや出力が空のテストであっても明示を必須とします。
+
+### ファイルの読み書き
+
+`open()`、`Path.open()`、`Path.read_text()`、`Path.write_text()` では、必ず `encoding="utf-8"` を指定します。
 
 ```python
 source = path.read_text(encoding="utf-8")
@@ -17,7 +17,13 @@ path.write_text(source, encoding="utf-8")
 
 with open(log_path, "w", encoding="utf-8") as output:
     output.write(message)
+```
 
+### 子プロセスとのテキスト通信
+
+`subprocess.run()`、`Popen()`、`check_output()` などで `text=True` または `universal_newlines=True` を指定する場合も、`encoding="utf-8"` を明示します。
+
+```python
 result = subprocess.run(
     command,
     input=source,
@@ -28,45 +34,43 @@ result = subprocess.run(
 )
 ```
 
-親プロセスで `encoding="utf-8"` を指定しても、子プロセスの標準入出力の文字コードは変更されません。  
-親プロセスの `encoding` と、子プロセスの標準入出力の文字コードを一致させます。  
-第一者管理の CLI では、ファイルやパイプの文字コードを仕様として定め、必要に応じて標準入出力の `reconfigure()` やバイト列の明示的な変換で対応します。  
-子プロセスの標準出力と標準エラー出力の文字コードが異なる場合は、それぞれをバイト列として受け取り、各出力の契約でデコードします。
+> [!NOTE]
+> 親プロセスで `encoding="utf-8"` を指定しても、子プロセス側の標準入出力エンコーディングは変更されません。両者の文字コード契約を一致させる必要があります。  
+> 子プロセスの標準出力と標準エラー出力でエンコーディングが異なる場合は、テキスト モードではなくバイト列として受け取り、それぞれの出力仕様に合わせて個別にデコードします。
 
-## 異なる文字コードは契約を確認して指定する
+## 非 UTF-8 文字コードの取り扱いと禁止事項
 
-既存ファイル、外部コマンド、ターゲット設定が UTF-8 以外を定めている場合は、その文字コードを明示して保持します。  
-入力と出力の仕様、設定値、指定理由を確認し、UTF-8 へ一律に置き換えません。  
-`encoding=None` は使いません。  
-システムのロケールや環境変数 `PYTHONUTF8` に依存して、呼び出し元の文字コード指定を省略しません。  
-デコード失敗を隠すために `errors="ignore"` や `errors="replace"` を追加しません。
+既存ファイル形式、外部ツール、特定ターゲットの仕様により UTF-8 以外が指定されている場合は、その仕様に従って文字コードを明示し、一律に UTF-8 へ置き換えてはなりません。
 
-バイナリ モードの `open(..., "rb")`、`Path.read_bytes()`、`Path.write_bytes()`、バイト列での子プロセス通信には、テキスト用の `encoding` を指定しません。  
-`str` とバイト列を相互変換する箇所では、契約に従って `encode("utf-8")` や `decode("utf-8")` などを明示します。
+### 禁止事項
 
-## 既定値が UTF-8 の Linux だけで判断しない
+- **`encoding=None` の使用禁止**: プラットフォーム依存の既定エンコーディングに委ねてはなりません。
+- **システム環境依存の禁止**: システム ロケールや環境変数 `PYTHONUTF8` に依存して、コード側の明示を省略してはなりません。
+- **安易なエラー抑制の禁止**: デコード エラーを隠蔽する目的で `errors="ignore"` や `errors="replace"` を指定してはなりません。
+- **バイナリ モードでの誤指定禁止**: バイナリ モード (`"rb"`, `"wb"`, `Path.read_bytes()`) やバイト列通信に対してテキスト用の `encoding` を指定してはなりません (`str` とバイト列の境界で `encode()` / `decode()` を明示します)。
 
-Windows CI では、文字コード未指定の子プロセス通信に CP1252 が使われ、日本語の入力で `UnicodeEncodeError` が発生しました。  
-Linux での通常実行に成功しても、文字コードの指定漏れがないとは判断しません。  
-レビューでは、ファイルの読み書きと診断出力のデコードも対象にして指定漏れを確認します。
+## プラットフォーム差異の検証
 
-変更した Python スクリプトとその局所テストを、次のオプションで検証します。  
-`EncodingWarning` をエラーにして、実行された経路の指定漏れを検出します。  
-`path/to/bin_test` は検証対象のディレクトリへ置き換えます。  
-テストが起動する Python にも適用する場合は、`PYTHONWARNDEFAULTENCODING=1` と `PYTHONWARNINGS=error::EncodingWarning` を渡します。
+Linux 環境の Python は既定値が UTF-8 であることが多く、文字コードを省略しても正常に動作してしまうため、指定漏れを見落とす原因になります。Windows 環境では既定値が ANSI コード ページ (例: CP1252) となり、日本語などのマルチバイト文字で `UnicodeEncodeError` が発生します。
+
+### 指定漏れの検出コマンド
+
+スクリプトの変更時は、局所テストで `EncodingWarning` をエラーとして扱い、実行経路上の指定漏れを機械的に検出します。
 
 ```bash
+# path/to/bin_test 配下のテストを実行し、文字コード未指定をエラーとして検出
 python3 -X warn_default_encoding -W error::EncodingWarning -m unittest discover -s path/to/bin_test -p 'test_*.py'
 ```
 
-第三者コードの警告が出た場合は、第一者コードの指定漏れと分けて報告し、依存側の原因を確認します。  
-第三者コードを直接変更したり、全警告を無効にして合格扱いにしたりしません。
+子プロセスとして起動される Python スクリプトにも適用する場合は、環境変数 `PYTHONWARNDEFAULTENCODING=1` および `PYTHONWARNINGS=error::EncodingWarning` を設定します。
 
-文字コードが問題になった CLI の回帰テストには、日本語の入力、成功時の出力、エラー時の診断を含めます。  
-Linux でも既定値が CP1252 の条件を模擬し、文字コードを明示した実際の入出力が成功することを検証します。  
-Windows 固有の実行結果は、Windows CI で別途確認します。
+### 回帰テストの考慮事項
 
-## Python の公式仕様
+- 文字コードに起因する不具合の回帰テストには、日本語入力、成功時出力、エラー時の診断メッセージを含めます。
+- Linux 上であっても Windows 相当の環境 (非 UTF-8 既定値) を模擬し、文字コードが明示されていれば正常動作することを検証します。
+- 外部依存ライブラリから警告が出た場合は、自作コードの漏れと切り分け、第三者コードを直接書き換えるのではなく報告・調査を行います。
 
-- [テキスト入出力の文字コードと EncodingWarning](https://docs.python.org/3/library/io.html#text-encoding)
-- [subprocess のテキスト モードと encoding](https://docs.python.org/3/library/subprocess.html#frequently-used-arguments)
+## 参考仕様
+
+- [Python 公式ドキュメント: テキスト入出力の文字コードと EncodingWarning](https://docs.python.org/3/library/io.html#text-encoding)
+- [Python 公式ドキュメント: subprocess のテキスト モードと encoding](https://docs.python.org/3/library/subprocess.html#frequently-used-arguments)

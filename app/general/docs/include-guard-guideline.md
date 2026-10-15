@@ -1,47 +1,12 @@
 # インクルード ガードのガイドライン
 
-C/C++ ヘッダー ファイルにおけるインクルード ガードの命名規則を示します。
+C/C++ ヘッダー ファイルにおけるインクルード ガードの命名規則と、規格上の予約識別子に関する方針を示します。
 
-## アンダースコアで始まる識別子の予約
+## インクルード ガードの命名規則
 
-C 標準では、アンダースコアで始まる特定の識別子は「実装系」(コンパイラ、標準ライブラリ、OS) のために予約されています。ユーザー コードでこれらの識別子を使用した場合、未定義動作 (undefined behavior) となります。
+### 命名形式
 
-### 予約規則
-
-以下の識別子はファイル スコープにおいて予約されています。
-
-| パターン | 予約先 | 例 |
-| -------- | ------ | -- |
-| アンダースコア + 大文字で始まる (`_[A-Z]...`) | 実装系 (いかなる用途でも予約) | `_LIBEXAMPLE_H`, `_FMTIO_UTIL_H` |
-| アンダースコア 2 つで始まる (`__...`) | 実装系 (いかなる用途でも予約) | `__GNUC__`, `__cplusplus` |
-| アンダースコア 1 つで始まる (`_[a-z]...`) | 通常の識別子としてはファイル スコープで予約 | `_count`, `_internal` |
-
-Table: アンダースコアで始まる予約識別子パターン
-
-コンパイラやライブラリが提供するマクロ (`_WIN32`, `__GNUC__`, `_MSC_VER` など) がこのパターンに従っているのは、予約済み名前空間に属しているためです。
-
-### 出典
-
-この予約規則は以下の規格で定義されています。
-
-- **ISO/IEC 9899:2011 (C11)** - 7.1.3 Reserved identifiers
-- **ISO/IEC 9899:1999 (C99)** - 7.1.3 Reserved identifiers
-- **ISO/IEC 9899:1990 (C90)** - 7.1.3 Reserved identifiers
-- **ISO/IEC 14882:2020 (C++20)** - 16.4.5.3 Reserved names [reserved.names]
-
-C11 §7.1.3 から該当部分を引用します。
-
-> All identifiers that begin with an underscore and either an uppercase letter or another underscore are always reserved for any use.
->
-> All identifiers that begin with an underscore are always reserved for use as identifiers with file scope in both the ordinary and tag name spaces.
-
-C++ 標準でも同等の規則が定義されています (C++20 では [lex.name] および [reserved.names])。
-
-## 対象プロジェクトの命名規則
-
-### インクルード ガードの形式
-
-ヘッダー ファイル名を大文字に変換し、ハイフンやドットをアンダースコアに置き換えた名前を使用します。先頭にアンダースコアを付けません。
+ヘッダー ファイル名を大文字に変換し、ハイフンやドットをアンダースコアに置き換えた名前を使用します。**先頭にアンダースコアを付けてはなりません。**
 
 ```c
 /* fmtio-util.h の場合 */
@@ -56,21 +21,55 @@ C++ 標準でも同等の規則が定義されています (C++20 では [lex.na
 ### 正しい例と誤った例
 
 ```c
-/* 正しい例 */
+/* 正しい例: ファイル名に基づき、アンダースコアで開始しない */
 #ifndef LIBEXAMPLE_H
 #define LIBEXAMPLE_H
 
-/* 誤った例: アンダースコア + 大文字は実装系に予約されている */
+/* 誤った例: 先頭のアンダースコア + 大文字はコンパイラ・標準ライブラリ用に予約されている */
 #ifndef _LIBEXAMPLE_H
 #define _LIBEXAMPLE_H
 ```
 
-### 判定で使用するコンパイラ定義マクロ
+## 規則の根拠 (予約識別子の回避)
 
-`_WIN32`, `_MSC_VER`, `__GNUC__` 等のコンパイラが定義するマクロは、予約済み名前空間を使用することが規格上正しい識別子です。これらはユーザーが定義するものではなく、コンパイラや OS が提供するものであるため、`#if defined(_WIN32)` のような判定はそのまま使用します。
+インクルード ガードの先頭にアンダースコアを禁止するのは、C/C++ 規格においてアンダースコアで始まる特定の識別子が「実装系 (コンパイラ、標準ライブラリ、OS)」のために予約されているためです。ユーザー コードでこれらの識別子を定義すると未定義動作 (undefined behavior) となります。
+
+### 予約規則
+
+以下の識別子パターンは、ファイル スコープにおいて実装系のために予約されています。
+
+| パターン | 予約範囲 | 代表例 |
+| -------- | -------- | ------ |
+| アンダースコア + 大文字 (`_[A-Z]...`) | 実装系 (あらゆる用途で予約) | `_LIBEXAMPLE_H`, `_FMTIO_UTIL_H` |
+| 連続する 2 つのアンダースコア (`__...`) | 実装系 (あらゆる用途で予約) | `__GNUC__`, `__cplusplus` |
+| アンダースコア 1 つで始まる小文字 (`_[a-z]...`) | ファイル スコープの識別子 (通常名・タグ名) として予約 | `_count`, `_internal` |
+
+Table: アンダースコアで始まる予約識別子のパターン
+
+コンパイラや標準ライブラリが提供するマクロ (`_WIN32`, `__GNUC__`, `_MSC_VER` など) がこれらの命名パターンを使用しているのは、予約済み名前空間に属しているためです。
+
+### 規格上の根拠
+
+本規則は、以下の標準規格に基づいています。
+
+- **ISO/IEC 9899:2011 (C11)**: §7.1.3 Reserved identifiers
+- **ISO/IEC 9899:1999 (C99)**: §7.1.3 Reserved identifiers
+- **ISO/IEC 9899:1990 (C90)**: §7.1.3 Reserved identifiers
+- **ISO/IEC 14882:2020 (C++20)**: §16.4.5.3 Reserved names [reserved.names]
+
+> **C11 §7.1.3 より引用:**
+>
+> - All identifiers that begin with an underscore and either an uppercase letter or another underscore are always reserved for any use.
+> - All identifiers that begin with an underscore are always reserved for use as identifiers with file scope in both the ordinary and tag name spaces.
+
+## 条件付きコンパイルにおける定義済みマクロの扱い
+
+ユーザー コード側で `_WIN32` や `_MSC_VER` などの識別子を新規に **定義** することは禁止されますが、コンパイラや OS が提供する定義済みマクロを `#if defined(...)` や `#ifndef` で **判定** することは規格上正当な利用法です。
+
+条件付きコンパイル判定における定義済みマクロは、変更せずそのまま使用します。
 
 ```c
-/* コンパイラ定義マクロの判定: 変更不要 */
+/* コンパイラ定義済みマクロの判定: 定義の参照・判定であるため変更不要 */
 #ifndef _WIN32
 #define EXAMPLE_API
 #else
