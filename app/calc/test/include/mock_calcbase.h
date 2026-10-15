@@ -21,7 +21,7 @@ class Mock_calcbase
     MOCK_METHOD(int, calcbase_divide, (int, int, int *));
 
     Mock_calcbase();
-    ~Mock_calcbase();
+    virtual ~Mock_calcbase();
 };
 
 extern Mock_calcbase *_mock_calcbase;

@@ -234,7 +234,7 @@ public:
     MOCK_METHOD(int, divide, (int, int, int *));
 
     Mock_examplebase();
-    ~Mock_examplebase();
+    virtual ~Mock_examplebase();
 };
 
 // グローバルなモック インスタンスへのポインター

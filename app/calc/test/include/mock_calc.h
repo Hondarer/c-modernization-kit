@@ -15,7 +15,7 @@ class Mock_calc
     MOCK_METHOD(int, calc_handler, (int, int, int, int *));
 
     Mock_calc();
-    ~Mock_calc();
+    virtual ~Mock_calc();
 };
 
 extern Mock_calc *_mock_calc;
