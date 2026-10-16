@@ -3,7 +3,7 @@
 #include <struct_meta/access/access.h>
 #include <testfw.h>
 
-// 埋め込み索引を通じてカタログ内の型名から記述子を検索でき、未知・空の型名にはNULLを返すことの確認
+// 埋め込み索引を通じてカタログ内の型名から記述子を検索でき、未知・空の型名には NULL を返すことの確認
 TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
 {
     // Arrange
@@ -34,7 +34,7 @@ TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
               empty); // [確認_正常系] - 空の型名に対する sample_types_meta_find() の戻り値が nullptr であること。
 }
 
-// カタログ内のすべての記述子を宣言順のIDで列挙取得できることの確認
+// カタログ内のすべての記述子を宣言順の ID で列挙取得できることの確認
 TEST(sampleTypesMetaTest, enumerates_all_descriptors_in_catalog_order)
 {
     // Arrange

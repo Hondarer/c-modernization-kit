@@ -67,7 +67,7 @@ int add_scalar(struct_meta_internal_layout_builder *builder, const char *spellin
 
 } // namespace
 
-// 対応する基本型の情報を取得でき、プラットフォーム依存の未対応型名やNULLを拒否することの確認
+// 対応する基本型の情報を取得でき、プラットフォーム依存の未対応型名や NULL を拒否することの確認
 TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_ones)
 {
     // Arrange
@@ -123,7 +123,7 @@ TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_
             "size_t")); // [確認_異常系] - "size_t" に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
 }
 
-// スカラーメンバーを持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
+// スカラー メンバーを持つ構造体のオフセット、サイズ、アラインメントがコンパイラの計算結果と一致することの確認
 TEST(structMetaLayoutTest, computes_scalar_layout_like_the_compiler)
 {
     // Arrange
@@ -178,8 +178,8 @@ TEST(structMetaLayoutTest, computes_array_layout_like_the_compiler)
 
     // Act
     struct_meta_internal_layout_begin(&builder);                            // [手順] - 計算を開始する。
-    add_scalar(&builder, "unsigned char", 3, &offset_header);               // [手順] - 1バイト配列を追加する。
-    add_scalar(&builder, "int", 4, &offset_values);                         // [手順] - 4バイト配列を追加する。
+    add_scalar(&builder, "unsigned char", 3, &offset_header);               // [手順] - 1 バイト配列を追加する。
+    add_scalar(&builder, "int", 4, &offset_values);                         // [手順] - 4 バイト配列を追加する。
     add_scalar(&builder, "char", 5, &offset_text);                          // [手順] - char 配列を追加する。
     int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
 
@@ -245,7 +245,7 @@ TEST(structMetaLayoutTest, computes_nested_layout_like_the_compiler)
               alignment); // [確認_正常系] - alignment が alignof(nested_holder) と一致すること。
 }
 
-// レイアウト計算の各関数に不正な引数を渡した場合に適切なエラーコードを返すことの確認
+// レイアウト計算の各関数に不正な引数を渡した場合に適切なエラー コードを返すことの確認
 TEST(structMetaLayoutTest, rejects_invalid_arguments)
 {
     // Arrange
@@ -272,7 +272,7 @@ TEST(structMetaLayoutTest, rejects_invalid_arguments)
     int zero_alignment =
         struct_meta_internal_layout_add(&builder, 4, 1, 0, &offset); // [手順] - 境界に 0 を指定して追加する。
     int odd_alignment =
-        struct_meta_internal_layout_add(&builder, 4, 1, 3, &offset); // [手順] - 2の冪でない境界を指定して追加する。
+        struct_meta_internal_layout_add(&builder, 4, 1, 3, &offset); // [手順] - 2 の冪でない境界を指定して追加する。
     int huge_count = struct_meta_internal_layout_add(&builder, 8, SIZE_MAX, 8,
                                                      &offset); // [手順] - 桁あふれする要素数を指定して追加する。
     int empty_struct =

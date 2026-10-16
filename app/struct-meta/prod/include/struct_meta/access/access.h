@@ -28,7 +28,7 @@ extern "C"
      *  @param[in]      descriptor   構造体記述子です。NULL を渡してはなりません。
      *  @param[in]      index        インデックスです。
      *  @param[out]     field_out    取得結果の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、未検出時は @c CPLAT_ERR_NOT_FOUND、引数不正時は
+     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
@@ -46,7 +46,7 @@ extern "C"
      *  @param[in]      descriptor   構造体記述子です。NULL を渡してはなりません。
      *  @param[in]      name         フィールド名です。NULL を渡してはなりません。
      *  @param[out]     field_out    取得結果の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、未検出時は @c CPLAT_ERR_NOT_FOUND、引数不正時は
+     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
@@ -64,8 +64,8 @@ extern "C"
      *  @param[in]      descriptor   構造体記述子です。NULL を渡してはなりません。
      *  @param[in]      key          属性キーです。NULL を渡してはなりません。
      *  @param[out]     attribute_out 検索結果です。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、未検出時は @c CPLAT_ERR_NOT_FOUND、引数不正時は
-     *                  @c CPLAT_ERR_INVALID_ARGUMENT、記述子不正時は対応するエラー コードを返します。
+     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
+     *                  @c CPLAT_ERR_INVALID_ARGUMENT 、記述子不正時は対応するエラー コードを返します。
      *
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
@@ -81,7 +81,7 @@ extern "C"
      *  @param[in]      field          フィールドです。NULL を渡してはなりません。
      *  @param[in]      key            属性キーです。NULL を渡してはなりません。
      *  @param[out]     attribute_out  取得結果の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、未検出時は @c CPLAT_ERR_NOT_FOUND、引数不正時は
+     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
@@ -96,7 +96,7 @@ extern "C"
      *  @param[in,out]  instance     親構造体のインスタンスです。NULL を渡してはなりません。
      *  @param[in]      index        インデックスです。
      *  @param[out]     element_out  取得結果の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、引数不正時は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は @c CPLAT_OK 、引数不正時は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
@@ -112,7 +112,7 @@ extern "C"
      *  @param[in]      instance     親構造体のインスタンスです。NULL を渡してはなりません。
      *  @param[in]      index        インデックスです。
      *  @param[out]     element_out  取得結果の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、引数不正時は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は @c CPLAT_OK 、引数不正時は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
@@ -130,7 +130,7 @@ extern "C"
      *  @param[in]      path         パス文字列です。NULL を渡してはなりません。
      *  @param[out]     field_out    終端フィールドの格納先。NULL を渡せます。
      *  @param[out]     value_out    終端値の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、未検出時は @c CPLAT_ERR_NOT_FOUND、引数不正時は
+     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
@@ -153,7 +153,7 @@ extern "C"
      *  @param[in]      path         パス文字列です。NULL を渡してはなりません。
      *  @param[out]     field_out    終端フィールドの格納先。NULL を渡せます。
      *  @param[out]     value_out    終端値の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK、未検出時は @c CPLAT_ERR_NOT_FOUND、引数不正時は
+     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
      *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ

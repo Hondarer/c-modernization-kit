@@ -48,7 +48,7 @@ typedef struct byte_fields
     unsigned char unsigned_bytes[3];  /**< unsigned char のバイト配列です。 */
     int8_t fixed_signed_bytes[3];     /**< int8_t のバイト配列です。 */
     uint8_t fixed_unsigned_bytes[3];  /**< uint8_t のバイト配列です。 */
-    uint8_t hex_bytes[3];             /**< 16進形式のバイト配列です。 @struct_meta{meta.format=hex} */
+    uint8_t hex_bytes[3];             /**< 16 進形式のバイト配列です。 @struct_meta{meta.format=hex} */
 } byte_fields;
 
 /**

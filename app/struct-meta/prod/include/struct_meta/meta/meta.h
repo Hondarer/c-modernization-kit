@@ -91,8 +91,8 @@ extern "C"
     /**
      *  @brief          記述子を再帰的に検査します。
      *  @param[in]      descriptor 検査対象です。
-     *  @return         @c CPLAT_OK、@c CPLAT_ERR_INVALID_ARGUMENT、または
-     *                  @c CPLAT_ERR_CORRUPT_DESCRIPTOR、または
+     *  @return         @c CPLAT_OK 、@c CPLAT_ERR_INVALID_ARGUMENT 、または
+     *                  @c CPLAT_ERR_CORRUPT_DESCRIPTOR 、または
      *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。
      *
      *  @par            スレッド セーフ

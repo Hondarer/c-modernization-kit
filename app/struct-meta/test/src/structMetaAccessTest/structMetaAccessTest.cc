@@ -100,7 +100,7 @@ TEST(structMetaAccessTest, rejects_invalid_arguments_for_find_field)
         output_ret); // [確認_異常系] - NULL の出力先に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }
 
-// 構造体記述子から指定したキーの属性（値あり・値なし）を検索できることの確認
+// 構造体記述子から指定したキーの属性 (値あり・値なし) を検索できることの確認
 TEST(structMetaAccessTest, finds_descriptor_attributes)
 {
     // Arrange

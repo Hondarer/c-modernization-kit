@@ -58,7 +58,7 @@ int create(const char *text, struct_meta_catalog **catalog_out, struct_meta_diag
 
 } // namespace
 
-// C 言語ヘッダーテキストの解析により構造体記述子カタログが正しく構築されることの確認
+// C 言語ヘッダー テキストの解析により構造体記述子カタログが正しく構築されることの確認
 TEST(structMetaCatalogTest, builds_descriptors_from_header_text)
 {
     // Arrange
@@ -292,7 +292,7 @@ TEST(structMetaCatalogTest, rejects_invalid_arguments)
     int null_path =
         struct_meta_catalog_create_from_header_file(nullptr, &catalog, &diagnostic); // [手順] - パスに NULL を渡す。
     int missing_file = struct_meta_catalog_create_from_header_file(
-        "does_not_exist.h", &catalog, &diagnostic); // [手順] - 存在しないファイルパスを渡す。
+        "does_not_exist.h", &catalog, &diagnostic); // [手順] - 存在しないファイル パスを渡す。
     int null_count =
         struct_meta_catalog_get_count(nullptr, &count); // [手順] - カタログに NULL を渡して件数を取得する。
     int out_of_range = struct_meta_catalog_get(catalog, 99, &descriptor); // [手順] - 範囲外のインデックスを指定する。
@@ -306,7 +306,7 @@ TEST(structMetaCatalogTest, rejects_invalid_arguments)
         null_path); // [確認_異常系] - NULL のパスに対する struct_meta_catalog_create_from_header_file() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_NOT_FOUND,
-        missing_file); // [確認_異常系] - 存在しないファイルパスに対する struct_meta_catalog_create_from_header_file() の戻り値が CPLAT_ERR_NOT_FOUND であること。
+        missing_file); // [確認_異常系] - 存在しないファイル パスに対する struct_meta_catalog_create_from_header_file() の戻り値が CPLAT_ERR_NOT_FOUND であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
         null_count); // [確認_異常系] - NULL のカタログに対する struct_meta_catalog_get_count() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。

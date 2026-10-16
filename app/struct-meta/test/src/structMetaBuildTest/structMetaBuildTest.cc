@@ -117,7 +117,7 @@ int build(struct_meta_internal_parse_struct_list *structs, struct_meta_internal_
 
 } // namespace
 
-// ASTから構造体記述子を組み立てた際にオフセットやサイズがコンパイラ計算と一致することの確認
+// AST から構造体記述子を組み立てた際にオフセットやサイズがコンパイラ計算と一致することの確認
 TEST(structMetaBuildTest, computes_the_same_layout_as_the_compiler)
 {
     // Arrange
@@ -255,7 +255,7 @@ TEST(structMetaBuildTest, treats_char_array_as_bytes_when_requested)
     struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
 }
 
-// 未知の型名、不正な属性指定、循環参照、NULL引数などの不正な入力がエラーとして拒否されることの確認
+// 未知の型名、不正な属性指定、循環参照、NULL 引数などの不正な入力がエラーとして拒否されることの確認
 TEST(structMetaBuildTest, rejects_invalid_input)
 {
     // Arrange

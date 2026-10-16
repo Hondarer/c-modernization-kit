@@ -8,7 +8,7 @@
  *
  *  systemd-logind (D-Bus) の電源・セッション・シャットダウン前イベント、
  *  SIGHUP による設定再読込、systemd watchdog への応答を担当する
- *  イベント監視スレッドのインターフェースです。\n
+ *  イベント監視スレッドのインターフェイスです。\n
  *  Linux (PLATFORM_LINUX) 専用です。実装は service-sample_linux_events.c に
  *  あり、service-sample_linux.c の svc_os_run_service() から使用します。
  *

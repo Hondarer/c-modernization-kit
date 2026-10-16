@@ -1961,7 +1961,7 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
  *  @brief          プログラムのエントリ ポイント。
  *  @param[in]      argc コマンド ライン引数の数。引数を指定した場合は使用方法を表示して終了します。
  *  @param[in]      argv コマンド ライン引数の配列。使用方法の表示に使います。
- *  @return         成功時は 0 、失敗時は 0 以外の値を返します。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  */
 int main(int argc, char *argv[])
 {

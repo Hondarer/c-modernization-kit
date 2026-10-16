@@ -198,7 +198,7 @@ TEST(structMetaIndexTest, corrupt_descriptor_keeps_same_validation_result)
     struct_meta_index_unregister(&corrupt); // [破棄] - 登録した記述子を解除する。
 }
 
-// NULLの記述子の登録および登録解除が不正引数エラーとなることの確認
+// NULL の記述子の登録および登録解除が不正引数エラーとなることの確認
 TEST(structMetaIndexTest, rejects_invalid_arguments)
 {
     // Arrange

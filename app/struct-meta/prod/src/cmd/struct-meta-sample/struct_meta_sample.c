@@ -33,7 +33,7 @@
  *  現在の値を標準出力へ 16 進ダンプします。\n
  *  `patch` はメニュー形式、`patch <path>` はパス指定で編集対象を選びます。\n
  *  その他は `dump` / `dumpjson` / `dumpbin` / `help` / `exit` です。\n
- *  ルートメニューの空行は `help` と同じです。終了は `exit` です。
+ *  ルート メニューの空行は `help` と同じです。終了は `exit` です。
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -111,7 +111,7 @@ typedef struct sample_target
     struct_meta_catalog *parsed_catalog;      /**< 実行時に解析して作ったカタログです。組み込みでは NULL です。 */
     const struct_meta_descriptor *descriptor; /**< 選択した記述子です。未選択では NULL です。 */
     void *instance;                           /**< 記述子のサイズで確保した領域です。未選択では NULL です。 */
-    char catalog_name[SAMPLE_CMD_LINE_BYTES]; /**< init へ渡したカタログ名またはヘッダーパスです。 */
+    char catalog_name[SAMPLE_CMD_LINE_BYTES]; /**< init へ渡したカタログ名またはヘッダー パスです。 */
 } sample_target;
 
 /**
@@ -168,7 +168,7 @@ static void print_init_usage(void)
  *  @param[in]      prompt          入力に使用するプロンプトです。NULL は指定しません。
  *  @param[in]      catalog         対象のカタログです。NULL は指定しません。
  *  @param[out]     descriptor_out  選択した記述子の格納先です。NULL は指定しません。
- *  @return         選択成功時は @c CPLAT_OK、EOF、キャンセル、その他の入力エラー時は
+ *  @return         選択成功時は @c CPLAT_OK 、EOF、キャンセル、その他の入力エラー時は
  *                  対応する結果コードを返します。
  */
 static int select_descriptor(cplat_prompt *prompt, const struct_meta_catalog *catalog,
@@ -677,7 +677,7 @@ static void cmd_dump(const sample_target *target)
  *  @brief          解析対象ヘッダーを実行時に構文解析してカタログを作ります。
  *  @param[in]      header_path  解析対象ヘッダーのパスです。NULL は指定しません。
  *  @param[out]     catalog_out  カタログの格納先です。NULL は指定しません。
- *  @return         成功時は @c CPLAT_OK、失敗時は対応する結果コードを返します。
+ *  @return         成功時は @c CPLAT_OK 、失敗時は対応する結果コードを返します。
  *
  *  コンパイラを使いません。失敗した場合は、原因と行番号を標準エラーへ出します。
  */

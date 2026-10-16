@@ -289,7 +289,7 @@ TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
     // Act
     actual_ret_neutral = sample_messages_key_record_mismatch(
         neutral_dest, sizeof(neutral_dest), 12U,
-        0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号とシグネチャーの順に渡す。
+        0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号とシグネチャの順に渡す。
 
     cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
     actual_ret_japanese = sample_messages_key_record_mismatch(japanese_dest, sizeof(japanese_dest), 12U,

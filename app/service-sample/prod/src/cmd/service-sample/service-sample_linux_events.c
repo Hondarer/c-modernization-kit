@@ -58,7 +58,7 @@
     #define LOGIND_SERVICE "org.freedesktop.login1"
     /** systemd-logind の D-Bus 接続先 (オブジェクト パス)。 */
     #define LOGIND_OBJECT "/org/freedesktop/login1"
-    /** systemd-logind の D-Bus 接続先 (インターフェース)。 */
+    /** systemd-logind の D-Bus 接続先 (インターフェイス)。 */
     #define LOGIND_INTERFACE "org.freedesktop.login1.Manager"
 
 /* ============================================================

@@ -160,7 +160,7 @@ TEST_F(StructMetaPatchTest, PathSelectsArrayElement)
     EXPECT_EQ(42, sample.scores[1]); // [確認_正常系] - sample.scores[1] が 42 であること。
 }
 
-// パス指定により16進配列全体を文字列として一括編集できることの確認
+// パス指定により 16 進配列全体を文字列として一括編集できることの確認
 TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
 {
     // Arrange
@@ -173,7 +173,7 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "hex_bytes");
-    // [手順] - 不正な入力に続けて正しい16進文字列を指定する。
+    // [手順] - 不正な入力に続けて正しい 16 進文字列を指定する。
 
     // Assert
     EXPECT_EQ(
@@ -185,7 +185,7 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_as_a_whole)
     EXPECT_EQ(0xdd, sample.hex_bytes[3]); // [確認_正常系] - sample.hex_bytes[3] が 0xdd であること。
 }
 
-// パス指定により16進配列の個別要素を10進整数として対話編集できることの確認
+// パス指定により 16 進配列の個別要素を 10 進整数として対話編集できることの確認
 TEST_F(StructMetaPatchTest, path_edits_hex_array_element_as_decimal)
 {
     // Arrange
@@ -198,7 +198,7 @@ TEST_F(StructMetaPatchTest, path_edits_hex_array_element_as_decimal)
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "hex_bytes[1]");
-    // [手順] - hex配列の1要素を10進整数で指定する。
+    // [手順] - hex 配列の 1 要素を 10 進整数で指定する。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -266,7 +266,7 @@ TEST_F(StructMetaPatchTest, PathEndingAtArrayOpensElementMenu)
     EXPECT_EQ(77, sample.scores[1]); // [確認_正常系] - sample.scores[1] が 77 であること。
 }
 
-// 構造体配列を終端とするパスを指定した場合に要素メニューとフィールドメニューが順に開くことの確認
+// 構造体配列を終端とするパスを指定した場合に要素メニューとフィールド メニューが順に開くことの確認
 TEST_F(StructMetaPatchTest, PathEndingAtStructArrayOpensElementAndFieldMenus)
 {
     // Arrange
@@ -335,7 +335,7 @@ TEST_F(StructMetaPatchTest, MenuSelectsFieldByMemberName)
     // [確認_正常系] - prompts が "フィールド番号またはメンバー名を選択" を含む文字列を要素に持つこと。
 }
 
-// ルートからの階層メニュー選択（ドリルダウン）による編集が正しく機能することの確認
+// ルートからの階層メニュー選択 (ドリルダウン) による編集が正しく機能することの確認
 TEST_F(StructMetaPatchTest, DrillDownRemainsAvailable)
 {
     // Arrange
@@ -414,7 +414,7 @@ TEST_F(StructMetaPatchTest, UnknownFieldIsRejectedBeforePromptCreation)
         actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_NOT_FOUND であること。
 }
 
-// NULLまたは空文字列のパスが指定された場合にプロンプト生成前にエラーを返すことの確認
+// NULL または空文字列のパスが指定された場合にプロンプト生成前にエラーを返すことの確認
 TEST_F(StructMetaPatchTest, InvalidArgumentsAreRejectedBeforePromptCreation)
 {
     // Arrange
@@ -482,7 +482,7 @@ TEST_F(StructMetaPatchTest, PromptCreationFailureIsReturned)
         actual_ret); // [確認_異常系] - struct_meta_patch_path_interactive() の戻り値が CPLAT_ERR_OUT_OF_MEMORY であること。
 }
 
-// 対話入力中にキャンセルが発生した場合にプロンプト破棄後にエラーコードを返すことの確認
+// 対話入力中にキャンセルが発生した場合にプロンプト破棄後にエラー コードを返すことの確認
 TEST_F(StructMetaPatchTest, PromptInputFailureIsReturnedAfterDisposal)
 {
     // Arrange

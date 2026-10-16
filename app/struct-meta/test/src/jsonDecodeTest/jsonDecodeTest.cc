@@ -299,7 +299,7 @@ TEST(JsonDecodeTest, decodes_byte_arrays_in_selected_format)
     // Act
     int actual =
         decode_bytes("{\"signed_values\":[-128,0,127],\"unsigned_values\":[0,128,255],\"hex_values\":\"00  A5 ff\"}",
-                     &sample); // [手順] - 整数配列と16進文字列を読み込む。
+                     &sample); // [手順] - 整数配列と 16 進文字列を読み込む。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, actual);               // [確認_正常系] - decode_bytes() の戻り値が CPLAT_OK であること。
@@ -319,7 +319,7 @@ TEST(JsonDecodeTest, rejects_invalid_hex_without_partial_update)
     // Pre-Assert
 
     // Act
-    int actual = decode_bytes("{\"hex_values\":\"aa bb gg\"}", &sample); // [手順] - 不正な16進入力を与える。
+    int actual = decode_bytes("{\"hex_values\":\"aa bb gg\"}", &sample); // [手順] - 不正な 16 進入力を与える。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING,

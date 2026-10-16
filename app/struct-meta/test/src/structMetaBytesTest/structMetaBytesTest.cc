@@ -33,7 +33,7 @@ TEST(structMetaBytesTest, classifies_byte_arrays_and_formats)
 
     // Act
     int integer_ret = struct_meta_internal_field_byte_format(&kBytes, &integer_format); // [手順] - 既定形式を取得する。
-    int hex_ret = struct_meta_internal_field_byte_format(&kHexBytes, &hex_format);      // [手順] - 16進形式を取得する。
+    int hex_ret = struct_meta_internal_field_byte_format(&kHexBytes, &hex_format);      // [手順] - 16 進形式を取得する。
 
     // Assert
     EXPECT_EQ(
@@ -72,7 +72,7 @@ TEST(structMetaBytesTest, rejects_invalid_meta_attributes)
     // Act
     int bad_format = struct_meta_internal_field_byte_format(&kBadFormat, &format); // [手順] - 未知の形式を解釈する。
     int scalar_bytes =
-        struct_meta_internal_field_byte_format(&kScalarBytes, &format); // [手順] - スカラーへbytesを指定する。
+        struct_meta_internal_field_byte_format(&kScalarBytes, &format); // [手順] - スカラーへ bytes を指定する。
 
     // Assert
     EXPECT_EQ(
@@ -105,7 +105,7 @@ TEST(structMetaBytesTest, converts_fixed_length_hex_text)
 
     // Act
     int encode_ret =
-        struct_meta_internal_bytes_to_hex(source, 3U, text, sizeof(text)); // [手順] - 16進文字列へ変換する。
+        struct_meta_internal_bytes_to_hex(source, 3U, text, sizeof(text)); // [手順] - 16 進文字列へ変換する。
     int decode_ret =
         struct_meta_internal_bytes_from_hex(decoded, 3U, "00  A5 ff"); // [手順] - 複数空白と大文字を含む入力を戻す。
 

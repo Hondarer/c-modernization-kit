@@ -37,7 +37,7 @@ TEST(structMetaParseDocTest, parses_generic_attributes_and_removes_them_from_bri
               actual.attributes->next->value); // [確認_正常系] - actual.attributes->next->value が nullptr であること。
 }
 
-// 1つのコメント内で同じ属性名が重複している場合に解析エラーとなることの確認
+// 1 つのコメント内で同じ属性名が重複している場合に解析エラーとなることの確認
 TEST(structMetaParseDocTest, rejects_duplicate_attributes)
 {
     // Arrange

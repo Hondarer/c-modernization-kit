@@ -272,7 +272,7 @@ static int verify_catalog(const char *const catalog_name, const cplat_string_cat
  *  @brief          プログラムのエントリ ポイント。
  *  @param[in]      argc コマンド ライン引数の数。この引数は使用しません。
  *  @param[in]      argv コマンド ライン引数の配列。この引数は使用しません。
- *  @return         成功時は 0 、失敗時は 0 以外の値を返します。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
  */
 int main(int argc, char *argv[])
 {
