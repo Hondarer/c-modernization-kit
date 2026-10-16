@@ -49,7 +49,7 @@ TEST_F(addTest, test_null_result)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_add(1, 2, NULL); // [手順] - calcbase_add(1, 2, NULL) を呼び出す。
+    actual_ret = calcbase_add(1, 2, nullptr); // [手順] - calcbase_add(1, 2, NULL) を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

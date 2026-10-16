@@ -42,8 +42,7 @@ TEST_F(addTest, normal)
             }); // [Pre-Assert確認_正常系] - calcbase_add() が 1、2 を指定して 1 回呼び出されること。
                 // [Pre-Assert手順] - calcbase_add(1, 2, &result) にて result に 3 を設定し、CALC_OK を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(
-            DoDefault()); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
+        .Times(1); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。

@@ -47,7 +47,7 @@ class override_sampleTest : public Test
             DWORD n = GetTempPathW((DWORD)(sizeof(tmpw) / sizeof(tmpw[0])), tmpw);
             if (n > 0 && n < (DWORD)(sizeof(tmpw) / sizeof(tmpw[0])))
             {
-                WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, tmpw, -1, tmpu8, (int)sizeof(tmpu8), nullptr, nullptr);
             }
             config_path = string(tmpu8) + "libbase_extdef.jsonc";
         }

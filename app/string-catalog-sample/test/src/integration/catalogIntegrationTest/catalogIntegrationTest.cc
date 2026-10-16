@@ -276,13 +276,13 @@ TEST_F(catalogIntegrationTest, trace_level_is_stored_as_category)
     // Assert
     EXPECT_EQ(
         (int)CPLAT_TRACE_LEVEL_INFO,
-        info_category); // [確認_正常系] - SAMPLE_TRACE_KEY_SERVICE_STARTED に対する cplat_string_catalog_get_category() の戻り値が (int)CPLAT_TRACE_LEVEL_INFO であること。
+        info_category); // [確認_正常系] - SAMPLE_TRACE_KEY_SERVICE_STARTED に対する cplat_string_catalog_get_category() の戻り値が CPLAT_TRACE_LEVEL_INFO であること。
     EXPECT_EQ(
         (int)CPLAT_TRACE_LEVEL_ERROR,
-        error_category); // [確認_正常系] - SAMPLE_TRACE_KEY_FILE_OPEN_FAILED に対する cplat_string_catalog_get_category() の戻り値が (int)CPLAT_TRACE_LEVEL_ERROR であること。
+        error_category); // [確認_正常系] - SAMPLE_TRACE_KEY_FILE_OPEN_FAILED に対する cplat_string_catalog_get_category() の戻り値が CPLAT_TRACE_LEVEL_ERROR であること。
     EXPECT_EQ(
         (int)CPLAT_TRACE_LEVEL_VERBOSE,
-        verbose_category); // [確認_正常系] - SAMPLE_TRACE_KEY_RECORD_PARSED に対する cplat_string_catalog_get_category() の戻り値が (int)CPLAT_TRACE_LEVEL_VERBOSE であること。
+        verbose_category); // [確認_正常系] - SAMPLE_TRACE_KEY_RECORD_PARSED に対する cplat_string_catalog_get_category() の戻り値が CPLAT_TRACE_LEVEL_VERBOSE であること。
 }
 
 // コンテキスト引数が引数配列のインデックス 40 から並んでいることの確認

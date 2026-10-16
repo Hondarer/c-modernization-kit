@@ -83,7 +83,7 @@ TEST_F(divideTest, test_null_result)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_divide(20, 4, NULL); // [手順] - calcbase_divide(20, 4, NULL) を呼び出す。
+    actual_ret = calcbase_divide(20, 4, nullptr); // [手順] - calcbase_divide(20, 4, NULL) を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

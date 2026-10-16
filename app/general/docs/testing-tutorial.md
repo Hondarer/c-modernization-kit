@@ -479,7 +479,7 @@ TEST_F(addTest, test_null_result)
     // Pre-Assert
 
     // Act
-    int actual_ret = add(1, 2, NULL); // [手順] - add(1, 2, NULL) を呼び出す。
+    int actual_ret = add(1, 2, nullptr); // [手順] - add(1, 2, nullptr) を呼び出す。
 
     // Assert
     EXPECT_EQ(EXAMPLE_ERROR, actual_ret); // [確認_異常系] - add() の戻り値が EXAMPLE_ERROR であること。

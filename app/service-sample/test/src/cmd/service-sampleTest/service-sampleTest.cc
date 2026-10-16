@@ -63,7 +63,7 @@ extern "C"
         (void)user_data;
         g_calls.push_back("on_event");
         g_events.push_back(*info);
-        if (info->session_id != NULL)
+        if (info->session_id != nullptr)
         {
             g_event_session_ids.push_back(info->session_id);
         }
@@ -90,7 +90,7 @@ extern "C"
                                           test_on_start,
                                           test_on_run,
                                           test_on_stop,
-                                          NULL,
+                                          nullptr,
                                           test_on_event,
                                           test_on_reload};
 
@@ -164,25 +164,25 @@ class service_sampleTest : public Test
 
         ON_CALL(mock_cplat_, cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED))
             .WillByDefault(Return(tracer_handle_));
-        // [状態] - `cplat_tracer_create` の既定動作を設定する。
+        // [状態] - cplat_tracer_create() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_name(_, _, _)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_set_name` の既定動作を設定する。
+        // [状態] - cplat_tracer_set_name() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_os_level(_, _)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_set_os_level` の既定動作を設定する。
+        // [状態] - cplat_tracer_set_os_level() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_file_level(_, _, _, _, _, _)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_set_file_level` の既定動作を設定する。
+        // [状態] - cplat_tracer_set_file_level() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_stderr_level(_, _)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_set_stderr_level` の既定動作を設定する。
+        // [状態] - cplat_tracer_set_stderr_level() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_start(_)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_start` の既定動作を設定する。
+        // [状態] - cplat_tracer_start() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_stop(_)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_stop` の既定動作を設定する。
+        // [状態] - cplat_tracer_stop() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillByDefault(Return());
-        // [状態] - `cplat_tracer_dispose` の既定動作を設定する。
+        // [状態] - cplat_tracer_dispose() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_write_at(_, _, _, _)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_write_at` の既定動作を設定する。
+        // [状態] - cplat_tracer_write_at() の既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_writef_at(_, _, _, _)).WillByDefault(Return(0));
-        // [状態] - `cplat_tracer_writef_at` の既定動作を設定する。
+        // [状態] - cplat_tracer_writef_at() の既定動作を設定する。
     }
     // [サブ手順終了]
 };
@@ -283,11 +283,11 @@ TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
     const char *argv[] = {"service-sampleTest", "install"}; // [状態] - tracer 初期化を通る代表コマンドを与える。
 
     // Pre-Assert
-    EXPECT_CALL(mock_cplat_, cplat_tracer_set_file_level(tracer_handle_, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0U, 0,
+    EXPECT_CALL(mock_cplat_, cplat_tracer_set_file_level(tracer_handle_, nullptr, CPLAT_TRACE_LEVEL_VERBOSE, 0U, 0,
                                                          CPLAT_TRACE_FILE_SINK_SHARED))
         .WillOnce(Return(
-            0)); // [Pre-Assert確認_正常系] - cplat_tracer_set_file_level() が tracer_handle_、NULL、CPLAT_TRACE_LEVEL_VERBOSE、0U、0、CPLAT_TRACE_FILE_SINK_SHARED を指定して 1 回呼び出されること。(パスは cplat 既定値へ委譲し、既存の共有モードを維持することの確認)
-                 // [Pre-Assert手順] - cplat_tracer_set_file_level から 0 を返却する。
+            0)); // [Pre-Assert確認_正常系] - cplat_tracer_set_file_level() が tracer_handle_、nullptr、CPLAT_TRACE_LEVEL_VERBOSE、0U、0、CPLAT_TRACE_FILE_SINK_SHARED を指定して 1 回呼び出されること。(パスは cplat 既定値へ委譲し、既存の共有モードを維持することの確認)
+                 // [Pre-Assert手順] - cplat_tracer_set_file_level() から 0 を返却する。
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
@@ -474,14 +474,14 @@ TEST_F(service_sampleTest, dispatch_event_null_safety)
     // Arrange
     svc_event_info info;
     info.type = SVC_EVENT_POWER_SUSPEND; // [状態] - 有効なイベント情報と、on_event 未設定の定義を用意する。
-    info.session_id = NULL;
+    info.session_id = nullptr;
     svc_definition def_without_event = g_service_def;
-    def_without_event.on_event = NULL;
+    def_without_event.on_event = nullptr;
 
     // Pre-Assert
 
     // Act
-    svc_dispatch_event(NULL, &info); // [手順] - def に NULL を渡して呼び出す。
+    svc_dispatch_event(nullptr, &info); // [手順] - def に NULL を渡して呼び出す。
 
     // Assert
     EXPECT_TRUE(
@@ -489,7 +489,7 @@ TEST_F(service_sampleTest, dispatch_event_null_safety)
             .empty()); // [確認_異常系] - def が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 
     // Act_2
-    svc_dispatch_event(&g_service_def, NULL); // [手順] - info に NULL を渡して呼び出す。
+    svc_dispatch_event(&g_service_def, nullptr); // [手順] - info に NULL を渡して呼び出す。
 
     // Assert_2
     EXPECT_TRUE(
@@ -540,7 +540,7 @@ TEST_F(service_sampleTest, dispatch_event_without_session_id)
     // Arrange
     svc_event_info info;
     info.type = SVC_EVENT_PRESHUTDOWN; // [状態] - セッション ID を持たないイベントを用意する。
-    info.session_id = NULL;
+    info.session_id = nullptr;
 
     // Pre-Assert
 
@@ -557,9 +557,9 @@ TEST_F(service_sampleTest, dispatch_event_without_session_id)
         g_events[0]
             .type); // [確認_正常系] - g_events[0].type が SVC_EVENT_PRESHUTDOWN であること。(イベント種別が伝わることの確認)
     EXPECT_EQ(
-        NULL,
+        nullptr,
         g_events[0]
-            .session_id); // [確認_正常系] - g_events[0].session_id が NULL であること。(session_id が NULL のまま伝わることの確認)
+            .session_id); // [確認_正常系] - g_events[0].session_id が nullptr であること。(session_id が NULL のまま伝わることの確認)
 }
 
 /* ============================================================
@@ -598,12 +598,12 @@ TEST_F(service_sampleTest, dispatch_reload_null_safety)
 {
     // Arrange
     svc_definition def_without_reload = g_service_def;
-    def_without_reload.on_reload = NULL; // [状態] - on_reload 未設定のサービス定義を用意する。
+    def_without_reload.on_reload = nullptr; // [状態] - on_reload 未設定のサービス定義を用意する。
 
     // Pre-Assert
 
     // Act
-    svc_dispatch_reload(NULL); // [手順] - def に NULL を渡して呼び出す。
+    svc_dispatch_reload(nullptr); // [手順] - def に NULL を渡して呼び出す。
 
     // Assert
     EXPECT_TRUE(
@@ -656,7 +656,7 @@ TEST_F(service_sampleTest, set_status_text_null_safety)
     // Pre-Assert
 
     // Act
-    svc_set_status_text(NULL); // [手順] - svc_set_status_text() に NULL を渡して呼び出す。
+    svc_set_status_text(nullptr); // [手順] - svc_set_status_text() に NULL を渡して呼び出す。
 
     // Assert
     EXPECT_TRUE(

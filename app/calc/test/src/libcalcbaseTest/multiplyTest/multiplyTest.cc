@@ -66,7 +66,7 @@ TEST_F(multiplyTest, test_null_result)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_multiply(5, 4, NULL); // [手順] - calcbase_multiply(5, 4, NULL) を呼び出す。
+    actual_ret = calcbase_multiply(5, 4, nullptr); // [手順] - calcbase_multiply(5, 4, NULL) を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

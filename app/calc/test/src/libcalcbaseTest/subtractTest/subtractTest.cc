@@ -92,13 +92,13 @@ TEST_F(subtractTest, test_null_result)
     int actual_ret;
 
     // Pre-Assert
-    EXPECT_CALL(mock_calcbase, calcbase_add(10, -3, NULL))
+    EXPECT_CALL(mock_calcbase, calcbase_add(10, -3, nullptr))
         .WillOnce(Return(
-            CALC_ERR_INVALID_ARGUMENT)); // [Pre-Assert確認_異常系] - calcbase_add() が 10、-3、NULL を指定して 1 回呼び出されること。
+            CALC_ERR_INVALID_ARGUMENT)); // [Pre-Assert確認_異常系] - calcbase_add() が 10、-3、nullptr を指定して 1 回呼び出されること。
     // [Pre-Assert手順] - calcbase_add(10, -3, NULL) にて CALC_ERR_INVALID_ARGUMENT を返す。
 
     // Act
-    actual_ret = calcbase_subtract(10, 3, NULL); // [手順] - calcbase_subtract(10, 3, NULL) を呼び出す。
+    actual_ret = calcbase_subtract(10, 3, nullptr); // [手順] - calcbase_subtract(10, 3, NULL) を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

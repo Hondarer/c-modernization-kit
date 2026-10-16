@@ -518,7 +518,7 @@ TEST_F(sampleFilterShareTest, open_accepts_existing_region_larger_than_required)
               actual_source); // [確認_正常系] - sample_filter_share_get_source() の戻り値が nullptr 以外であること。
     EXPECT_EQ(
         (size_t)CPLAT_STRING_CATALOG_FILTER_SOURCE_SIZE(kLineCapacity, kLineWidth - 8U),
-        actual_source_size); // [確認_正常系] - actual_source_size が (size_t)CPLAT_STRING_CATALOG_FILTER_SOURCE_SIZE(kLineCapacity, kLineWidth - 8U) と一致すること。(必要な大きさだけをソース領域として使ったことの確認)
+        actual_source_size); // [確認_正常系] - actual_source_size が CPLAT_STRING_CATALOG_FILTER_SOURCE_SIZE(kLineCapacity, kLineWidth - 8U) と一致すること。(必要な大きさだけをソース領域として使ったことの確認)
 
     sample_filter_share_close(&other);
 }

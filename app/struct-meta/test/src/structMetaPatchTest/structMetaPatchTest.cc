@@ -491,6 +491,7 @@ TEST_F(StructMetaPatchTest, PromptInputFailureIsReturnedAfterDisposal)
     // Pre-Assert
     EXPECT_CALL(mock_cplat, cplat_prompt_create(nullptr)).WillOnce(Return(prompt));
     // [Pre-Assert確認_異常系] - cplat_prompt_create() が nullptr を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - 入力用のプロンプト ハンドルを返す。
     EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))
         .WillOnce(Return(
             CPLAT_ERR_CANCELED)); // [Pre-Assert確認_異常系] - cplat_prompt_readline_fmt_at() が prompt を指定して 1 回呼び出されること。
@@ -498,6 +499,7 @@ TEST_F(StructMetaPatchTest, PromptInputFailureIsReturnedAfterDisposal)
     EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))
         .WillOnce(
             Return()); // [Pre-Assert確認_異常系] - cplat_prompt_dispose() が prompt を指定して 1 回呼び出されること。(失敗時にもプロンプトを破棄することの確認)
+    // [Pre-Assert手順] - プロンプトの破棄を受け付ける。
 
     // Act
     int actual_ret = struct_meta_patch_path_interactive(&kSampleDescriptor, &sample, "id");
