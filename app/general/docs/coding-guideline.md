@@ -6,7 +6,7 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応、
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。  
-現版では「一括変更で対象外とした箇所の明示」「コメントの記載量」「命名規則」「ゼロ初期化」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「プロセスの終了コード」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
+現版では「一括変更で対象外とした箇所の明示」「コメントの記載量」「命名規則」「ゼロ初期化」「空ポインターの表記」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「プロセスの終了コード」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
 
 本書は一般的な方針を定めるものです。  
 各 app のドキュメントに優先事項、特化事項がある場合は、それに従ってください。
@@ -1146,6 +1146,101 @@ void sample_worker_reset(sample_worker *worker)
 >
 > C++ の `= {}` は、すべてのメンバーを型の規則に従って値初期化する目的で使用します。  
 > `= {0}` は先頭メンバーだけを明示した部分的な初期化子として扱われ、GCC の `-Wmissing-field-initializers` が省略したメンバーを警告するため使用しません。
+
+## 空ポインターの表記
+
+### 基本ルール
+
+空ポインターを表す値と、ポインターが空かどうかの判定は、翻訳する言語で書き分けます。
+
+| 翻訳の言語 | 対象 | 空ポインターの値 | 判定 |
+|---|---|---|---|
+| C | `.c` と、`.c` から読み込まれるヘッダー | `NULL` | `ptr == NULL` / `ptr != NULL` |
+| C++ | `.cc`、`.cpp` と、C++ のソースだけから読み込まれるヘッダー | `nullptr` | `ptr == nullptr` / `ptr != nullptr` |
+
+Table: 言語ごとの空ポインターの表記
+
+次の書き方は使用しません。
+
+- C で空ポインターを `0` や `(void *)0` で書くこと
+- C++ で空ポインターを `NULL` や `0` で書くこと
+- `!ptr`、`if (ptr)`、`ptr ? a : b` など、ポインターをそのまま条件にすること
+
+Google Test の判定マクロでも、空ポインターは `nullptr` と比べます (`EXPECT_EQ(nullptr, ptr)`、`ASSERT_NE(nullptr, ptr)`)。  
+`nullptr` はどのポインター型へもキャストなしで変換できるため、`(uint8_t *)NULL` のような型合わせのキャストは書きません。
+
+```c
+/* 望ましい: C */
+char *buf = NULL;
+
+buf = (char *)malloc(size);
+if (buf == NULL)
+{
+    return SAMPLE_ERR_NO_MEMORY;
+}
+```
+
+```cpp
+// 望ましい: C++
+FILE *fp = nullptr;
+EXPECT_CALL(mock_stdio, fopen(_, _, _, StrEq(path), StrEq("rb"))).WillOnce(Return(nullptr));
+ASSERT_NE(nullptr, buf);
+if (handle == nullptr)
+{
+    return;
+}
+```
+
+```c
+/* 望ましくない: C で 0 を空ポインターに使い、ポインターをそのまま条件にする */
+char *buf = 0;
+if (!buf)
+{
+    return SAMPLE_ERR_NO_MEMORY;
+}
+```
+
+```cpp
+// 望ましくない: C++ で NULL を使い、型合わせのキャストを書く
+ASSERT_NE((uint8_t *)NULL, buf);
+EXPECT_CALL(mock_stdio, fopen(_, _, _, _, _)).WillOnce(Return((FILE *)NULL));
+```
+
+### 判定手順
+
+1. ファイルの拡張子が `.c` であれば、C の規則に従います。
+2. ヘッダーは、1 つでも `.c` から読み込まれる場合に C の規則に従います。公開ヘッダー (`prod/include/`) と内部共有ヘッダー (`prod/include_internal/`) は C の規則に従います。
+3. それ以外 (`.cc`、`.cpp`、テストの mock ヘッダーなど C++ のソースだけから読み込まれるヘッダー) は、C++ の規則に従います。
+
+### 例外条件
+
+- 外部由来の配布物と自動生成された成果物は対象外です。
+- コメントと文字列リテラルの中の `NULL` は対象外です。テストの確認コメントの表記は [テスト フェーズ](../../../framework/testfw/docs/about-test-phase.md) の「確認コメントの書き方」に従います。
+
+> [!NOTE]
+> 本書が前提とする C17 には `nullptr` がなく (C23 で追加)、C では `NULL` を使います。  
+> C++ の `nullptr` は型付きの空ポインターで、整数の `0` と区別されます。  
+> `NULL` は処理系によって `0` や `0L` と定義され、関数の多重定義やテンプレートの型推論で整数として扱われることがあります。  
+> 判定を明示的な比較で書くと、判定の対象がポインターであることがコードから読み取れます。[判定慣用句](#判定慣用句) がコード名との明示的な比較を求めるのと同じ考え方です。
+
+### 検証
+
+```bash
+# 外部由来とビルド生成物を除外する共通条件
+EXCL='/(gtest|external|third_party)/|framework/docsfw/bin_internal/modules/|app/(lua|sqlite|zlib)/prod/|app/cjson/prod/(include|libsrc/cjson)/cJSON(\.|_Utils\.)|/obj/'
+
+# C++ のソースのコード上の NULL (0 件であること。行末コメントと文字列だけの一致は目視で除外)
+git ls-files --recurse-submodules '*.cc' '*.cpp' | grep -vE "$EXCL" \
+  | xargs grep -nw 'NULL' | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|\*)'
+
+# ポインターをそのまま条件にする候補 (真偽値の変数を目視で除外し、ポインターが 0 件であること)
+git ls-files --recurse-submodules '*.c' '*.cc' '*.cpp' '*.h' | grep -vE "$EXCL" \
+  | xargs grep -nE '\b(if|while)[[:space:]]*\([[:space:]]*!?[[:space:]]*[A-Za-z_][A-Za-z0-9_>.-]*[[:space:]]*\)'
+
+# C でポインターを 0 で初期化する宣言 (0 件であること)
+git ls-files --recurse-submodules '*.c' '*.h' | grep -vE "$EXCL" \
+  | xargs grep -nE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_ ]*[[:space:]]\*+[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=[[:space:]]*0[[:space:]]*;'
+```
 
 ## 構造体のパディングと予約フィールド
 
