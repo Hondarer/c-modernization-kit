@@ -42,8 +42,9 @@ TEST_F(sampleFilterWarningTest, type_mismatch_is_formatted_with_entry_and_argume
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
-                                              sizeof(text_)); // [手順] - 警告を文へ整える。
+    actual_ret = sample_filter_warning_format(
+        sample_worker_trace_catalog(), &warning_, text_,
+        sizeof(text_)); // [手順] - 警告 warning_ を指定して sample_filter_warning_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - sample_filter_warning_format() の戻り値が CPLAT_OK であること。
@@ -67,8 +68,9 @@ TEST_F(sampleFilterWarningTest, mixed_argument_types_is_formatted_with_both_entr
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
-                                              sizeof(text_)); // [手順] - 警告を文へ整える。
+    actual_ret = sample_filter_warning_format(
+        sample_worker_trace_catalog(), &warning_, text_,
+        sizeof(text_)); // [手順] - 警告 warning_ を指定して sample_filter_warning_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - sample_filter_warning_format() の戻り値が CPLAT_OK であること。
@@ -92,13 +94,14 @@ TEST_F(sampleFilterWarningTest, unknown_entry_or_kind_is_rejected)
     // Pre-Assert
 
     // Act
-    actual_unknown_argument_ret =
-        sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
-                                     sizeof(text_)); // [手順] - 引数の位置が不正な警告を整える。
+    actual_unknown_argument_ret = sample_filter_warning_format(
+        sample_worker_trace_catalog(), &warning_, text_,
+        sizeof(text_)); // [手順] - 引数の位置が不正な警告を指定して sample_filter_warning_format() を呼び出す。
     warning_.argument_index = 2;
     warning_.kind = CPLAT_STRING_CATALOG_FILTER_WARNING_NONE;
-    actual_none_ret = sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, text_,
-                                                   sizeof(text_)); // [手順] - 種別のない警告を整える。
+    actual_none_ret = sample_filter_warning_format(
+        sample_worker_trace_catalog(), &warning_, text_,
+        sizeof(text_)); // [手順] - 種別のない警告を指定して sample_filter_warning_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -123,8 +126,9 @@ TEST_F(sampleFilterWarningTest, small_destination_is_reported)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_filter_warning_format(sample_worker_trace_catalog(), &warning_, small,
-                                              sizeof(small)); // [手順] - 小さな格納先へ整える。
+    actual_ret = sample_filter_warning_format(
+        sample_worker_trace_catalog(), &warning_, small,
+        sizeof(small)); // [手順] - 小さな格納先を指定して sample_filter_warning_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(

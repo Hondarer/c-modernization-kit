@@ -17,11 +17,12 @@ TEST_F(sampleFilterSequenceNumberTest, wraps_around_after_reaching_the_maximum)
     // Pre-Assert
 
     // Act
-    actual_base_value = sample_worker_next_sequence_number(); // [手順] - 基準となる値を 1 回取得する。
+    actual_base_value =
+        sample_worker_next_sequence_number(); // [手順] - 基準となる値を取得するため、sample_worker_next_sequence_number() を 1 回呼び出す。
     for (cycle_index = 0; cycle_index < SAMPLE_WORKER_SEQUENCE_NUMBER_MAX; cycle_index++)
     {
         actual_value_after_full_cycle =
-            sample_worker_next_sequence_number(); // [手順] - 上限周期と同じ回数だけ呼び出し、1 周させる。
+            sample_worker_next_sequence_number(); // [手順] - 上限周期と同じ回数だけ sample_worker_next_sequence_number() を呼び出す。
     }
 
     // Assert

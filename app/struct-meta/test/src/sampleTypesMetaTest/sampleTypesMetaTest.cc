@@ -15,10 +15,14 @@ TEST(sampleTypesMetaTest, finds_descriptor_through_embedded_index)
     // Pre-Assert
 
     // Act
-    const struct_meta_descriptor *person = sample_types_meta_find("person");   // [手順] - 型名で記述子を検索する。
-    const struct_meta_descriptor *address = sample_types_meta_find("address"); // [手順] - もう 1 つの型名を検索する。
-    const struct_meta_descriptor *unknown = sample_types_meta_find("unknown"); // [手順] - 未知の型名を検索する。
-    const struct_meta_descriptor *empty = sample_types_meta_find("");          // [手順] - 空の型名を検索する。
+    const struct_meta_descriptor *person =
+        sample_types_meta_find("person"); // [手順] - 型名 "person" を指定して sample_types_meta_find() を呼び出す。
+    const struct_meta_descriptor *address = sample_types_meta_find(
+        "address"); // [手順] - もう 1 つの型名 "address" を指定して sample_types_meta_find() を呼び出す。
+    const struct_meta_descriptor *unknown = sample_types_meta_find(
+        "unknown"); // [手順] - 未知の型名 "unknown" を指定して sample_types_meta_find() を呼び出す。
+    const struct_meta_descriptor *empty =
+        sample_types_meta_find(""); // [手順] - 空の型名を指定して sample_types_meta_find() を呼び出す。
 
     // Assert
     ASSERT_NE(nullptr,
@@ -47,7 +51,8 @@ TEST(sampleTypesMetaTest, enumerates_all_descriptors_in_catalog_order)
     const struct_meta_descriptor *actual[3] = {};
     for (size_t i = 0; i < sample_types_meta_count(); i++)
     {
-        actual[i] = sample_types_meta_get(static_cast<sample_types_meta_id>(i)); // [手順] - ID 順に記述子を取得する。
+        actual[i] = sample_types_meta_get(
+            static_cast<sample_types_meta_id>(i)); // [手順] - ID を指定して sample_types_meta_get() を呼び出す。
     }
 
     // Assert
@@ -88,68 +93,69 @@ TEST(sampleTypesMetaTest, classifies_character_and_byte_fields)
     // Pre-Assert
 
     // Act
-    int actual_ret_character =
-        struct_meta_descriptor_find_field(descriptor, "character",
-                                          &character); // [手順] - character フィールドを検索する。
+    int actual_ret_character = struct_meta_descriptor_find_field(
+        descriptor, "character",
+        &character); // [手順] - character フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_character); // [状態確認] - "character" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_signed_character =
-        struct_meta_descriptor_find_field(descriptor, "signed_character",
-                                          &signed_character); // [手順] - signed_character フィールドを検索する。
+    int actual_ret_signed_character = struct_meta_descriptor_find_field(
+        descriptor, "signed_character",
+        &signed_character); // [手順] - signed_character フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_signed_character); // [状態確認] - "signed_character" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_unsigned_character =
-        struct_meta_descriptor_find_field(descriptor, "unsigned_character",
-                                          &unsigned_character); // [手順] - unsigned_character フィールドを検索する。
+    int actual_ret_unsigned_character = struct_meta_descriptor_find_field(
+        descriptor, "unsigned_character",
+        &unsigned_character); // [手順] - unsigned_character フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_unsigned_character); // [状態確認] - "unsigned_character" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_fixed_signed =
-        struct_meta_descriptor_find_field(descriptor, "fixed_signed",
-                                          &fixed_signed); // [手順] - fixed_signed フィールドを検索する。
+    int actual_ret_fixed_signed = struct_meta_descriptor_find_field(
+        descriptor, "fixed_signed",
+        &fixed_signed); // [手順] - fixed_signed フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_fixed_signed); // [状態確認] - "fixed_signed" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_fixed_unsigned =
-        struct_meta_descriptor_find_field(descriptor, "fixed_unsigned",
-                                          &fixed_unsigned); // [手順] - fixed_unsigned フィールドを検索する。
+    int actual_ret_fixed_unsigned = struct_meta_descriptor_find_field(
+        descriptor, "fixed_unsigned",
+        &fixed_unsigned); // [手順] - fixed_unsigned フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_fixed_unsigned); // [状態確認] - "fixed_unsigned" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_text = struct_meta_descriptor_find_field(descriptor, "text",
-                                                            &text); // [手順] - text フィールドを検索する。
+    int actual_ret_text = struct_meta_descriptor_find_field(
+        descriptor, "text",
+        &text); // [手順] - text フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_text); // [状態確認] - "text" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_raw_chars =
-        struct_meta_descriptor_find_field(descriptor, "raw_chars",
-                                          &raw_chars); // [手順] - raw_chars フィールドを検索する。
+    int actual_ret_raw_chars = struct_meta_descriptor_find_field(
+        descriptor, "raw_chars",
+        &raw_chars); // [手順] - raw_chars フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_raw_chars); // [状態確認] - "raw_chars" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_signed_bytes =
-        struct_meta_descriptor_find_field(descriptor, "signed_bytes",
-                                          &signed_bytes); // [手順] - signed_bytes フィールドを検索する。
+    int actual_ret_signed_bytes = struct_meta_descriptor_find_field(
+        descriptor, "signed_bytes",
+        &signed_bytes); // [手順] - signed_bytes フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_signed_bytes); // [状態確認] - "signed_bytes" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_unsigned_bytes =
-        struct_meta_descriptor_find_field(descriptor, "unsigned_bytes",
-                                          &unsigned_bytes); // [手順] - unsigned_bytes フィールドを検索する。
+    int actual_ret_unsigned_bytes = struct_meta_descriptor_find_field(
+        descriptor, "unsigned_bytes",
+        &unsigned_bytes); // [手順] - unsigned_bytes フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_unsigned_bytes); // [状態確認] - "unsigned_bytes" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
-    int actual_ret_fixed_signed_bytes =
-        struct_meta_descriptor_find_field(descriptor, "fixed_signed_bytes",
-                                          &fixed_signed_bytes); // [手順] - fixed_signed_bytes フィールドを検索する。
+    int actual_ret_fixed_signed_bytes = struct_meta_descriptor_find_field(
+        descriptor, "fixed_signed_bytes",
+        &fixed_signed_bytes); // [手順] - fixed_signed_bytes フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_fixed_signed_bytes); // [状態確認] - "fixed_signed_bytes" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
     int actual_ret_fixed_unsigned_bytes = struct_meta_descriptor_find_field(
         descriptor, "fixed_unsigned_bytes",
-        &fixed_unsigned_bytes); // [手順] - fixed_unsigned_bytes フィールドを検索する。
+        &fixed_unsigned_bytes); // [手順] - fixed_unsigned_bytes フィールドを指定して struct_meta_descriptor_find_field() を呼び出す。
     ASSERT_EQ(
         CPLAT_OK,
         actual_ret_fixed_unsigned_bytes); // [状態確認] - "fixed_unsigned_bytes" を探した struct_meta_descriptor_find_field() の戻り値が CPLAT_OK であること。
@@ -203,11 +209,13 @@ TEST(sampleTypesMetaTest, rejects_null_name)
     // Pre-Assert
 
     // Act
-    const struct_meta_descriptor *actual = sample_types_meta_find(nullptr); // [手順] - NULL の型名を検索する。
+    const struct_meta_descriptor *actual =
+        sample_types_meta_find(nullptr); // [手順] - nullptr の型名を指定して sample_types_meta_find() を呼び出す。
 
     // Assert
-    EXPECT_EQ(nullptr,
-              actual); // [確認_異常系] - NULL の型名に対する sample_types_meta_find() の戻り値が nullptr であること。
+    EXPECT_EQ(
+        nullptr,
+        actual); // [確認_異常系] - nullptr の型名に対する sample_types_meta_find() の戻り値が nullptr であること。
 }
 
 // 索引から取得した記述子からフィールド情報を正しく検索・取得できることの確認
@@ -223,8 +231,9 @@ TEST(sampleTypesMetaTest, registers_descriptors_into_index)
 
     // Act
     /* 検索は索引の有無に関わらず成立するため、ここでは結果の同一性だけを確かめる。 */
-    int actual = struct_meta_descriptor_find_field(person, "balance",
-                                                   &field); // [手順] - 登録済み記述子のフィールドを検索する。
+    int actual = struct_meta_descriptor_find_field(
+        person, "balance",
+        &field); // [手順] - 登録済み記述子のフィールド "balance" を指定して struct_meta_descriptor_find_field() を呼び出す。
 
     // Assert
     ASSERT_EQ(

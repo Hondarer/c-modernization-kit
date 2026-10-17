@@ -37,7 +37,9 @@ TEST(structMetaPrintTest, prints_byte_arrays_in_selected_format)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_print_write(&kDescriptor, &sample, stream); // [手順] - バイト配列を表示する。
+    int actual = struct_meta_print_write(
+        &kDescriptor, &sample,
+        stream); // [手順] - バイト配列を含む構造体を指定して struct_meta_print_write() を呼び出す。
     rewind(stream);
     char output[256] = {};
     size_t read_size = fread(output, 1U, sizeof(output) - 1U, stream);

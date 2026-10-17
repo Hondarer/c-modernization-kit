@@ -71,7 +71,7 @@ TEST(structMetaCatalogTest, builds_descriptors_from_header_text)
     // Pre-Assert
 
     // Act
-    int ret = create(kHeader, &catalog, &diagnostic); // [手順] - ヘッダー内容を実行時に解析する。
+    int ret = create(kHeader, &catalog, &diagnostic); // [手順] - ヘッダー内容 kHeader を指定して create() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret);             // [確認_正常系] - create() の戻り値が CPLAT_OK であること。
@@ -110,8 +110,9 @@ TEST(structMetaCatalogTest, computes_the_same_layout_as_the_compiler)
     // Pre-Assert
 
     // Act
-    int ret = struct_meta_catalog_find(catalog, "person",
-                                       &person_descriptor); // [手順] - 構造体名で記述子を検索する。
+    int ret = struct_meta_catalog_find(
+        catalog, "person",
+        &person_descriptor); // [手順] - 構造体名 "person" を指定して struct_meta_catalog_find() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_catalog_find() の戻り値が CPLAT_OK であること。
@@ -214,12 +215,14 @@ TEST(structMetaCatalogTest, rejects_invalid_headers_with_diagnostics)
     // Pre-Assert
 
     // Act
-    int long_ret = create(kLongMember, &catalog, &platform_dependent); // [手順] - long を含むヘッダーを解析する。
-    int pointer_ret =
-        create(kPointerMember, &catalog, &pointer_member);           // [手順] - ポインターを含むヘッダーを解析する。
-    int unknown_ret = create(kUnknownType, &catalog, &unknown_type); // [手順] - 未知の型を含むヘッダーを解析する。
-    int attribute_ret =
-        create(kBadAttribute, &catalog, &bad_attribute); // [手順] - 不正な属性を含むヘッダーを解析する。
+    int long_ret = create(kLongMember, &catalog,
+                          &platform_dependent); // [手順] - long を含むヘッダーを指定して create() を呼び出す。
+    int pointer_ret = create(kPointerMember, &catalog,
+                             &pointer_member); // [手順] - ポインターを含むヘッダーを指定して create() を呼び出す。
+    int unknown_ret = create(kUnknownType, &catalog,
+                             &unknown_type); // [手順] - 未知の型を含むヘッダーを指定して create() を呼び出す。
+    int attribute_ret = create(kBadAttribute, &catalog,
+                               &bad_attribute); // [手順] - 不正な属性を含むヘッダーを指定して create() を呼び出す。
 
     // Assert
     EXPECT_NE(CPLAT_OK,
@@ -251,11 +254,13 @@ TEST(structMetaCatalogTest, parses_repeatedly_in_the_same_process)
     // Pre-Assert
 
     // Act
-    int first_ret = create(kHeader, &first, &diagnostic); // [手順] - 1 回目の解析を行う。
+    int first_ret = create(kHeader, &first,
+                           &diagnostic); // [手順] - ヘッダー内容 kHeader を指定して、1 回目の create() を呼び出す。
     int failed_ret = create("typedef struct s { long v; } s;\n", &second,
-                            &diagnostic); // [手順] - 失敗する解析を挟む。
+                            &diagnostic); // [手順] - 失敗するヘッダーを指定して create() を呼び出す。
     struct_meta_catalog *third = nullptr;
-    int third_ret = create(kHeader, &third, &diagnostic); // [手順] - 3 回目の解析を行う。
+    int third_ret = create(kHeader, &third,
+                           &diagnostic); // [手順] - ヘッダー内容 kHeader を指定して、3 回目の create() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, first_ret); // [確認_正常系] - 1 回目の create() の戻り値が CPLAT_OK であること。
@@ -289,33 +294,39 @@ TEST(structMetaCatalogTest, rejects_invalid_arguments)
     // Pre-Assert
 
     // Act
-    int null_path =
-        struct_meta_catalog_create_from_header_file(nullptr, &catalog, &diagnostic); // [手順] - パスに NULL を渡す。
+    int null_path = struct_meta_catalog_create_from_header_file(
+        nullptr, &catalog,
+        &diagnostic); // [手順] - パスに nullptr を指定して struct_meta_catalog_create_from_header_file() を呼び出す。
     int missing_file = struct_meta_catalog_create_from_header_file(
-        "does_not_exist.h", &catalog, &diagnostic); // [手順] - 存在しないファイル パスを渡す。
-    int null_count =
-        struct_meta_catalog_get_count(nullptr, &count); // [手順] - カタログに NULL を渡して件数を取得する。
-    int out_of_range = struct_meta_catalog_get(catalog, 99, &descriptor); // [手順] - 範囲外のインデックスを指定する。
-    int null_name = struct_meta_catalog_find(catalog, nullptr, &descriptor); // [手順] - 名前に NULL を渡して検索する。
-    int unknown_name = struct_meta_catalog_find(catalog, "missing", &descriptor); // [手順] - 未登録の名前を検索する。
-    struct_meta_catalog_destroy(nullptr); // [手順] - NULL の破棄で異常終了しないこと。
+        "does_not_exist.h", &catalog,
+        &diagnostic); // [手順] - 存在しないファイル パスを指定して struct_meta_catalog_create_from_header_file() を呼び出す。
+    int null_count = struct_meta_catalog_get_count(
+        nullptr, &count); // [手順] - カタログに nullptr を指定して struct_meta_catalog_get_count() を呼び出す。
+    int out_of_range = struct_meta_catalog_get(
+        catalog, 99, &descriptor); // [手順] - 範囲外のインデックス 99 を指定して struct_meta_catalog_get() を呼び出す。
+    int null_name = struct_meta_catalog_find(
+        catalog, nullptr, &descriptor); // [手順] - 名前に nullptr を指定して struct_meta_catalog_find() を呼び出す。
+    int unknown_name = struct_meta_catalog_find(
+        catalog, "missing",
+        &descriptor); // [手順] - 未登録の名前 "missing" を指定して struct_meta_catalog_find() を呼び出す。
+    struct_meta_catalog_destroy(nullptr); // [手順] - nullptr を指定して struct_meta_catalog_destroy() を呼び出す。
 
     // Assert
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_path); // [確認_異常系] - NULL のパスに対する struct_meta_catalog_create_from_header_file() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_path); // [確認_異常系] - nullptr のパスに対する struct_meta_catalog_create_from_header_file() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_NOT_FOUND,
         missing_file); // [確認_異常系] - 存在しないファイル パスに対する struct_meta_catalog_create_from_header_file() の戻り値が CPLAT_ERR_NOT_FOUND であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_count); // [確認_異常系] - NULL のカタログに対する struct_meta_catalog_get_count() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_count); // [確認_異常系] - nullptr のカタログに対する struct_meta_catalog_get_count() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_NOT_FOUND,
         out_of_range); // [確認_異常系] - 範囲外のインデックスに対する struct_meta_catalog_get() の戻り値が CPLAT_ERR_NOT_FOUND であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_name); // [確認_異常系] - NULL の名前に対する struct_meta_catalog_find() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_name); // [確認_異常系] - nullptr の名前に対する struct_meta_catalog_find() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_NOT_FOUND,
         unknown_name); // [確認_異常系] - 未登録の名前に対する struct_meta_catalog_find() の戻り値が CPLAT_ERR_NOT_FOUND であること。

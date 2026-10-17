@@ -16,7 +16,7 @@ TEST_F(multiplyTest, test_5_multiply_4)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_multiply(5, 4, &result); // [手順] - calcbase_multiply(5, 4, &result) を呼び出す。
+    actual_ret = calcbase_multiply(5, 4, &result); // [手順] - 5 と 4 を指定して calcbase_multiply() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_multiply() の戻り値が CALC_OK であること。
@@ -33,7 +33,7 @@ TEST_F(multiplyTest, test_3_multiply_0)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_multiply(3, 0, &result); // [手順] - calcbase_multiply(3, 0, &result) を呼び出す。
+    actual_ret = calcbase_multiply(3, 0, &result); // [手順] - 3 と 0 を指定して calcbase_multiply() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_multiply() の戻り値が CALC_OK であること。
@@ -50,7 +50,7 @@ TEST_F(multiplyTest, test_negative_multiply)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_multiply(-3, 4, &result); // [手順] - calcbase_multiply(-3, 4, &result) を呼び出す。
+    actual_ret = calcbase_multiply(-3, 4, &result); // [手順] - -3 と 4 を指定して calcbase_multiply() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_multiply() の戻り値が CALC_OK であること。
@@ -66,7 +66,8 @@ TEST_F(multiplyTest, test_null_result)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_multiply(5, 4, nullptr); // [手順] - calcbase_multiply(5, 4, NULL) を呼び出す。
+    actual_ret = calcbase_multiply(
+        5, 4, nullptr); // [手順] - 5 と 4、出力先に nullptr を指定して calcbase_multiply() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

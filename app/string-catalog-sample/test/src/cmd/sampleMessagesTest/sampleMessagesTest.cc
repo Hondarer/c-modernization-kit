@@ -30,8 +30,10 @@ TEST_F(sampleMessagesTest, entries)
     // Pre-Assert
 
     // Act
-    actual_entries = sample_messages_entries();   // [手順] - カタログの先頭を取得する。
-    actual_count = sample_messages_entry_count(); // [手順] - カタログの件数を取得する。
+    actual_entries =
+        sample_messages_entries(); // [手順] - カタログの先頭を取得するため、sample_messages_entries() を呼び出す。
+    actual_count =
+        sample_messages_entry_count(); // [手順] - カタログの件数を取得するため、sample_messages_entry_count() を呼び出す。
 
     // Assert
     EXPECT_NE(nullptr, actual_entries); // [確認_正常系] - sample_messages_entries() の戻り値が nullptr 以外であること。
@@ -50,8 +52,9 @@ TEST_F(sampleMessagesTest, catalog_is_consistent)
     // Pre-Assert
 
     // Act
-    actual_ret = cplat_string_catalog_verify(sample_messages_catalog(), &string_key,
-                                             &language); // [手順] - 注入したカタログ全体を確認する。
+    actual_ret = cplat_string_catalog_verify(
+        sample_messages_catalog(), &string_key,
+        &language); // [手順] - 注入したカタログ全体を指定して cplat_string_catalog_verify() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -71,8 +74,9 @@ TEST_F(sampleMessagesTest, second_catalog_is_consistent)
     // Pre-Assert
 
     // Act
-    actual_ret = cplat_string_catalog_verify(sample_metrics_catalog(), &string_key,
-                                             &language); // [手順] - 2 つ目のカタログ全体を確認する。
+    actual_ret = cplat_string_catalog_verify(
+        sample_metrics_catalog(), &string_key,
+        &language); // [手順] - 2 つ目のカタログ全体を指定して cplat_string_catalog_verify() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -92,8 +96,10 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
     // Pre-Assert
 
     // Act
-    entries = sample_messages_entries();   // [手順] - カタログの先頭エントリを取得する。
-    count = sample_messages_entry_count(); // [手順] - カタログのエントリ件数を取得する。
+    entries =
+        sample_messages_entries(); // [手順] - カタログの先頭エントリを取得するため、sample_messages_entries() を呼び出す。
+    count =
+        sample_messages_entry_count(); // [手順] - カタログのエントリ件数を取得するため、sample_messages_entry_count() を呼び出す。
 
     // Assert
     for (index = 0; index < count; index++)
@@ -148,16 +154,17 @@ TEST_F(sampleMessagesTest, file_open_failed_entry)
     // Pre-Assert
 
     // Act
-    actual_entry =
-        sample_messages_entry(SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キーの項目メタデータを取得する。
-    actual_id = cplat_string_catalog_get_id(sample_messages_catalog(),
-                                            SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - ID を取得する。
-    actual_category =
-        cplat_string_catalog_get_category(sample_messages_catalog(),
-                                          SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_ret = cplat_string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
-                                             SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
-                                             2); // [手順] - ニュートラル言語で文字列を組み立てる。
+    actual_entry = sample_messages_entry(
+        SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED を指定して sample_messages_entry() を呼び出す。
+    actual_id = cplat_string_catalog_get_id(
+        sample_messages_catalog(),
+        SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED を指定して cplat_string_catalog_get_id() を呼び出す。
+    actual_category = cplat_string_catalog_get_category(
+        sample_messages_catalog(),
+        SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED を指定して cplat_string_catalog_get_category() を呼び出す。
+    actual_ret = cplat_string_catalog_format(
+        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
+        2); // [手順] - ニュートラル言語で、"config.json" と 2 を指定して cplat_string_catalog_format() を呼び出す。
 
     // Assert
     ASSERT_NE(nullptr, actual_entry); // [確認_正常系] - sample_messages_entry() の戻り値が nullptr 以外であること。
@@ -214,8 +221,8 @@ TEST_F(sampleMessagesTest, entry_remarks)
     // Pre-Assert
 
     // Act
-    actual_entry =
-        sample_messages_entry(SAMPLE_MESSAGES_KEY_MEMORY_SIGNATURE); // [手順] - 補足説明を持つ項目を取得する。
+    actual_entry = sample_messages_entry(
+        SAMPLE_MESSAGES_KEY_MEMORY_SIGNATURE); // [手順] - 補足説明を持つ項目の文字列キーを指定して sample_messages_entry() を呼び出す。
 
     // Assert
     ASSERT_NE(nullptr, actual_entry); // [確認_正常系] - sample_messages_entry() の戻り値が nullptr 以外であること。
@@ -243,7 +250,9 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
 
     // Act_1
     actual_ret_no_argument = sample_messages_key_startup_completed(
-        actual_dest, sizeof(actual_dest)); // [手順] - 引数を取らないラッパーで組み立てる。
+        actual_dest,
+        sizeof(
+            actual_dest)); // [手順] - 引数を取らないラッパーの dest を指定して sample_messages_key_startup_completed() を呼び出す。
 
     // Assert_1
     EXPECT_EQ(
@@ -254,12 +263,13 @@ TEST_F(sampleMessagesTest, typed_wrappers_match_generic_call)
         actual_dest); // [確認_正常系] - actual_dest が "Startup completed. The default setting is { default }." であること。(引数なしの書式で組み立てられたことの確認)
 
     // Act_2
-    actual_ret_two_arguments = sample_messages_key_file_open_failed(actual_dest, sizeof(actual_dest), "config.json",
-                                                                    2); // [手順] - 型付きラッパーで組み立てる。
-    expected_ret_two_arguments =
-        cplat_string_catalog_format(sample_messages_catalog(), expected_dest, sizeof(expected_dest),
-                                    SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
-                                    2); // [手順] - カタログを指定した呼び出しで同じ文字列を組み立てる。
+    actual_ret_two_arguments = sample_messages_key_file_open_failed(
+        actual_dest, sizeof(actual_dest), "config.json",
+        2); // [手順] - "config.json" と 2 を指定して sample_messages_key_file_open_failed() を呼び出す。
+    expected_ret_two_arguments = cplat_string_catalog_format(
+        sample_messages_catalog(), expected_dest, sizeof(expected_dest), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED,
+        "config.json",
+        2); // [手順] - カタログと同じ引数を指定して cplat_string_catalog_format() を呼び出す。
 
     // Assert_2
     EXPECT_EQ(
@@ -289,11 +299,12 @@ TEST_F(sampleMessagesTest, typed_wrapper_argument_order_is_language_independent)
     // Act
     actual_ret_neutral = sample_messages_key_record_mismatch(
         neutral_dest, sizeof(neutral_dest), 12U,
-        0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号とシグネチャの順に渡す。
+        0x1234ABCDU); // [手順] - ニュートラル言語で、レコード番号 12U とシグネチャ 0x1234ABCDU の順に指定して sample_messages_key_record_mismatch() を呼び出す。
 
     cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
-    actual_ret_japanese = sample_messages_key_record_mismatch(japanese_dest, sizeof(japanese_dest), 12U,
-                                                              0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を渡す。
+    actual_ret_japanese = sample_messages_key_record_mismatch(
+        japanese_dest, sizeof(japanese_dest), 12U,
+        0x1234ABCDU); // [手順] - 日本語で、同じ順序の引数を指定して sample_messages_key_record_mismatch() を呼び出す。
 
     // Assert
     EXPECT_EQ(

@@ -305,7 +305,7 @@ Mock_examplebase::~Mock_examplebase()
 #include <mock_examplebase.h>
 
 // C 言語の関数として実装
-// この関数がテスト時に本物の add() 関数の代わりに呼ばれます
+// この関数がテスト時に製品 (prod) の add() 関数の代わりに呼ばれます
 // WEAK_ATR 属性により、リンク時に弱いシンボルとして扱われる
 WEAK_ATR int add(int a, int b, int *result)
 {
@@ -418,7 +418,7 @@ TEST_F(addTest, test_1_add_2)
     // - モックの期待動作を設定 (この例では不要)
 
     // Act
-    int actual_ret = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
+    int actual_ret = add(1, 2, &result); // [手順] - 1 と 2 を指定して add() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add() の戻り値が EXAMPLE_SUCCESS であること。
@@ -448,7 +448,7 @@ TEST_F(addTest, test_1_add_2)
     // Pre-Assert
 
     // Act
-    int actual_ret = add(1, 2, &result); // [手順] - add(1, 2, &result) を呼び出す。
+    int actual_ret = add(1, 2, &result); // [手順] - 1 と 2 を指定して add() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add() の戻り値が EXAMPLE_SUCCESS であること。
@@ -464,7 +464,7 @@ TEST_F(addTest, test_2_add_1)
     // Pre-Assert
 
     // Act
-    int actual_ret = add(2, 1, &result); // [手順] - add(2, 1, &result) を呼び出す。
+    int actual_ret = add(2, 1, &result); // [手順] - 2 と 1 を指定して add() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXAMPLE_SUCCESS, actual_ret); // [確認_正常系] - add() の戻り値が EXAMPLE_SUCCESS であること。
@@ -479,7 +479,7 @@ TEST_F(addTest, test_null_result)
     // Pre-Assert
 
     // Act
-    int actual_ret = add(1, 2, nullptr); // [手順] - add(1, 2, nullptr) を呼び出す。
+    int actual_ret = add(1, 2, nullptr); // [手順] - 結果の格納先に nullptr を指定して add() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXAMPLE_ERROR, actual_ret); // [確認_異常系] - add() の戻り値が EXAMPLE_ERROR であること。
@@ -520,7 +520,7 @@ TEST_F(addTest, less_argc)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - 引数を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_NE(0, actual_ret); // [確認_異常系] - main() の戻り値が 0 以外であること。
@@ -540,13 +540,13 @@ TEST_F(addTest, normal)
             *result = 3;
             return EXAMPLE_SUCCESS;
         }); // [Pre-Assert確認_正常系] - add() が 1 と 2 を指定して 1 回呼び出されること。
-            // [Pre-Assert手順] - add(1, 2, &result) にて result に 3 を設定し、EXAMPLE_SUCCESS を返す。
+            // [Pre-Assert手順] - add() から、result に 3 を設定して EXAMPLE_SUCCESS を返す。
 
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
+        .Times(1); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - 引数を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(0, actual_ret); // [確認_正常系] - main() の戻り値が 0 であること。
@@ -834,7 +834,7 @@ TEST_F(exampleTest, less_argc)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - 引数を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_NE(0, actual_ret); // [確認_異常系] - main() の戻り値が 0 以外であること。
@@ -855,13 +855,13 @@ TEST_F(exampleTest, normal)
             *result = 3;
             return EXAMPLE_SUCCESS;
         }); // [Pre-Assert確認_正常系] - exampleHandler() が EXAMPLE_KIND_ADD、1、2 を指定して 1 回呼び出されること。
-            // [Pre-Assert手順] - exampleHandler(EXAMPLE_KIND_ADD, 1, 2, &result) にて result に 3 を設定し、EXAMPLE_SUCCESS を返す。
+            // [Pre-Assert手順] - exampleHandler() から、result に 3 を設定して EXAMPLE_SUCCESS を返す。
 
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
-        .WillOnce(DoDefault()); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
+        .Times(1); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - 引数を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(0, actual_ret); // [確認_正常系] - main() の戻り値が 0 であること。
@@ -1011,7 +1011,7 @@ NiceMock<Mock_stdio> mock_stdio;
 
 // 検証したい呼び出しのみ EXPECT_CALL で指定
 EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("result\n")))
-    .WillOnce(DoDefault());
+    .Times(1);
 ```
 
 ### テストの独立性
@@ -1062,7 +1062,7 @@ TEST_F(MyTest, null_pointer_case) { /* ... */ }
 
 ```cpp
 // Act
-int actual_ret = add(1, 2); // [手順] - add(1, 2) を呼び出す。
+int actual_ret = add(1, 2); // [手順] - 1 と 2 を指定して add() を呼び出す。
 
 // Assert
 EXPECT_EQ(3, actual_ret); // [確認_正常系] - add() の戻り値が 3 であること。

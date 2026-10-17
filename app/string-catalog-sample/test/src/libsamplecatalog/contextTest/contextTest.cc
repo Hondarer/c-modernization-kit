@@ -18,7 +18,8 @@ TEST_F(contextTest, advances_by_one_on_each_call)
     // Pre-Assert
 
     // Act
-    const int32_t second = samplecatalog_next_sequence_number(); // [手順] - 続けて 2 つ目の番号を取得する。
+    const int32_t second =
+        samplecatalog_next_sequence_number(); // [手順] - 続けて 2 回目の samplecatalog_next_sequence_number() を呼び出す。
 
     // Assert
     ASSERT_GE(first, 1); // [確認_正常系] - 1 回目の samplecatalog_next_sequence_number() の戻り値が 1 以上であること。
@@ -43,7 +44,8 @@ TEST_F(contextTest, wraps_around_after_the_maximum)
     // Act
     for (int count = 0; count < SAMPLECATALOG_SEQUENCE_NUMBER_MAX; count++)
     {
-        last = samplecatalog_next_sequence_number(); // [手順] - 上限の回数だけ番号を進める。
+        last =
+            samplecatalog_next_sequence_number(); // [手順] - 上限の回数だけ samplecatalog_next_sequence_number() を呼び出す。
     }
 
     // Assert
@@ -63,7 +65,8 @@ TEST_F(contextTest, stays_within_the_range)
     // Act
     for (int count = 0; count < (SAMPLECATALOG_SEQUENCE_NUMBER_MAX * 2); count++)
     {
-        const int32_t value = samplecatalog_next_sequence_number(); // [手順] - 2 周分の番号を取得する。
+        const int32_t value =
+            samplecatalog_next_sequence_number(); // [手順] - 2 周分の回数だけ samplecatalog_next_sequence_number() を呼び出す。
         if ((value < 1) || (value > SAMPLECATALOG_SEQUENCE_NUMBER_MAX))
         {
             in_range = false;

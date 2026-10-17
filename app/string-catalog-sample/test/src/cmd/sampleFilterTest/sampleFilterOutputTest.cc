@@ -96,7 +96,8 @@ TEST_F(sampleFilterOutputTest, unmatched_trace_uses_category_level_directly)
 
     // Act
     actual_ret = sample_worker_trace_key_job_failed(
-        (uint64_t)1, 2); // [手順] - 作成直後 (何も一致しない) のスロットで JOB_FAILED を出力する。
+        (uint64_t)1,
+        2); // [手順] - 作成直後 (何も一致しない) のスロットの状態で、1 と 2 を指定して sample_worker_trace_key_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -134,7 +135,8 @@ TEST_F(sampleFilterOutputTest, matched_trace_uses_forced_level)
     // Pre-Assert
 
     // Act
-    actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 2); // [手順] - 一致する状態で JOB_FAILED を出力する。
+    actual_ret = sample_worker_trace_key_job_failed(
+        (uint64_t)1, 2); // [手順] - 一致する状態で、1 と 2 を指定して sample_worker_trace_key_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -166,7 +168,8 @@ TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argum
     // Pre-Assert
 
     // Act
-    actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 2); // [手順] - 未設定の状態で出力を試みる。
+    actual_ret = sample_worker_trace_key_job_failed(
+        (uint64_t)1, 2); // [手順] - 未設定の状態で、1 と 2 を指定して sample_worker_trace_key_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(

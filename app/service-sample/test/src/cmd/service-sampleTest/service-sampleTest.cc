@@ -164,25 +164,25 @@ class service_sampleTest : public Test
 
         ON_CALL(mock_cplat_, cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED))
             .WillByDefault(Return(tracer_handle_));
-        // [状態] - cplat_tracer_create() の既定動作を設定する。
+        // [状態] - cplat_tracer_create() から tracer_handle_ を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_name(_, _, _)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_set_name() の既定動作を設定する。
+        // [状態] - cplat_tracer_set_name() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_os_level(_, _)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_set_os_level() の既定動作を設定する。
+        // [状態] - cplat_tracer_set_os_level() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_file_level(_, _, _, _, _, _)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_set_file_level() の既定動作を設定する。
+        // [状態] - cplat_tracer_set_file_level() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_set_stderr_level(_, _)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_set_stderr_level() の既定動作を設定する。
+        // [状態] - cplat_tracer_set_stderr_level() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_start(_)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_start() の既定動作を設定する。
+        // [状態] - cplat_tracer_start() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_stop(_)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_stop() の既定動作を設定する。
+        // [状態] - cplat_tracer_stop() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillByDefault(Return());
-        // [状態] - cplat_tracer_dispose() の既定動作を設定する。
+        // [状態] - cplat_tracer_dispose() から戻るように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_write_at(_, _, _, _)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_write_at() の既定動作を設定する。
+        // [状態] - cplat_tracer_write_at() から 0 を返すように既定動作を設定する。
         ON_CALL(mock_cplat_, cplat_tracer_writef_at(_, _, _, _)).WillByDefault(Return(0));
-        // [状態] - cplat_tracer_writef_at() の既定動作を設定する。
+        // [状態] - cplat_tracer_writef_at() から 0 を返すように既定動作を設定する。
     }
     // [サブ手順終了]
 };
@@ -202,7 +202,7 @@ TEST_F(service_sampleTest, usage_without_args)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() を引数なしで呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンドを指定せずに __real_main() を呼び出す。
 
     // Assert
     EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
@@ -221,7 +221,7 @@ TEST_F(service_sampleTest, help)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションで main() を呼び出す。
+    int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションを指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -241,7 +241,8 @@ TEST_F(service_sampleTest, unknown_command)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret =
+        __real_main(argc, (char **)&argv); // [手順] - 不明なコマンド "bogus" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
@@ -261,7 +262,8 @@ TEST_F(service_sampleTest, install_dispatch)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret =
+        __real_main(argc, (char **)&argv); // [手順] - コマンド "install" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -287,10 +289,11 @@ TEST_F(service_sampleTest, tracer_uses_default_file_path_with_shared_mode)
                                                          CPLAT_TRACE_FILE_SINK_SHARED))
         .WillOnce(Return(
             0)); // [Pre-Assert確認_正常系] - cplat_tracer_set_file_level() が tracer_handle_、nullptr、CPLAT_TRACE_LEVEL_VERBOSE、0U、0、CPLAT_TRACE_FILE_SINK_SHARED を指定して 1 回呼び出されること。(パスは cplat 既定値へ委譲し、既存の共有モードを維持することの確認)
-                 // [Pre-Assert手順] - cplat_tracer_set_file_level() から 0 を返却する。
+                 // [Pre-Assert手順] - cplat_tracer_set_file_level() から 0 を返す。
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret =
+        __real_main(argc, (char **)&argv); // [手順] - コマンド "install" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -307,7 +310,8 @@ TEST_F(service_sampleTest, uninstall_dispatch)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret =
+        __real_main(argc, (char **)&argv); // [手順] - コマンド "uninstall" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -332,7 +336,7 @@ TEST_F(service_sampleTest, run_dispatch)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "run" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -361,7 +365,8 @@ TEST_F(service_sampleTest, console_lifecycle_order)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret =
+        __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -396,7 +401,9 @@ TEST_F(service_sampleTest, console_on_start_failure)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(
+        argc,
+        (char **)&argv); // [手順] - on_start が失敗する状態で、コマンド "console" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -422,7 +429,9 @@ TEST_F(service_sampleTest, console_on_run_failure)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(
+        argc,
+        (char **)&argv); // [手順] - on_run が失敗する状態で、コマンド "console" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -451,7 +460,9 @@ TEST_F(service_sampleTest, console_on_stop_failure)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(
+        argc,
+        (char **)&argv); // [手順] - on_stop が失敗する状態で、コマンド "console" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -481,28 +492,30 @@ TEST_F(service_sampleTest, dispatch_event_null_safety)
     // Pre-Assert
 
     // Act
-    svc_dispatch_event(nullptr, &info); // [手順] - def に NULL を渡して呼び出す。
+    svc_dispatch_event(nullptr, &info); // [手順] - def に nullptr を指定して svc_dispatch_event() を呼び出す。
 
     // Assert
     EXPECT_TRUE(
         g_calls
-            .empty()); // [確認_異常系] - def が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
+            .empty()); // [確認_異常系] - def が nullptr の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 
     // Act_2
-    svc_dispatch_event(&g_service_def, nullptr); // [手順] - info に NULL を渡して呼び出す。
+    svc_dispatch_event(&g_service_def,
+                       nullptr); // [手順] - info に nullptr を指定して svc_dispatch_event() を呼び出す。
 
     // Assert_2
     EXPECT_TRUE(
         g_calls
-            .empty()); // [確認_異常系] - info が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
+            .empty()); // [確認_異常系] - info が nullptr の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 
     // Act_3
-    svc_dispatch_event(&def_without_event, &info); // [手順] - on_event が NULL の定義で呼び出す。
+    svc_dispatch_event(&def_without_event,
+                       &info); // [手順] - on_event が nullptr の定義を指定して svc_dispatch_event() を呼び出す。
 
     // Assert_3
     EXPECT_TRUE(
         g_calls
-            .empty()); // [確認_異常系] - on_event が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
+            .empty()); // [確認_異常系] - on_event が nullptr の場合の g_calls.empty() の戻り値が true であること。(コールバックが呼ばれないことの確認)
 }
 
 // イベント情報が on_event へ渡ることの確認
@@ -517,7 +530,8 @@ TEST_F(service_sampleTest, dispatch_event_passes_info)
     // Pre-Assert
 
     // Act
-    svc_dispatch_event(&g_service_def, &info); // [手順] - svc_dispatch_event() を呼び出す。
+    svc_dispatch_event(&g_service_def,
+                       &info); // [手順] - セッション ログオン イベントを指定して svc_dispatch_event() を呼び出す。
 
     // Assert
     ASSERT_EQ(
@@ -545,7 +559,8 @@ TEST_F(service_sampleTest, dispatch_event_without_session_id)
     // Pre-Assert
 
     // Act
-    svc_dispatch_event(&g_service_def, &info); // [手順] - svc_dispatch_event() を呼び出す。
+    svc_dispatch_event(&g_service_def,
+                       &info); // [手順] - セッション ID を持たないイベントを指定して svc_dispatch_event() を呼び出す。
 
     // Assert
     ASSERT_EQ(
@@ -559,7 +574,7 @@ TEST_F(service_sampleTest, dispatch_event_without_session_id)
     EXPECT_EQ(
         nullptr,
         g_events[0]
-            .session_id); // [確認_正常系] - g_events[0].session_id が nullptr であること。(session_id が NULL のまま伝わることの確認)
+            .session_id); // [確認_正常系] - g_events[0].session_id が nullptr であること。(session_id が nullptr のまま伝わることの確認)
 }
 
 /* ============================================================
@@ -576,7 +591,7 @@ TEST_F(service_sampleTest, dispatch_reload_order)
     // Pre-Assert
 
     // Act
-    svc_dispatch_reload(&g_service_def); // [手順] - svc_dispatch_reload() を呼び出す。
+    svc_dispatch_reload(&g_service_def); // [手順] - g_service_def を指定して svc_dispatch_reload() を呼び出す。
 
     // Assert
     ASSERT_EQ(3U, g_calls.size()); // [確認_正常系] - g_calls.size() の戻り値が 3U であること。
@@ -603,20 +618,21 @@ TEST_F(service_sampleTest, dispatch_reload_null_safety)
     // Pre-Assert
 
     // Act
-    svc_dispatch_reload(nullptr); // [手順] - def に NULL を渡して呼び出す。
+    svc_dispatch_reload(nullptr); // [手順] - def に nullptr を指定して svc_dispatch_reload() を呼び出す。
 
     // Assert
     EXPECT_TRUE(
         g_calls
-            .empty()); // [確認_異常系] - def が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックも通知も行われないことの確認)
+            .empty()); // [確認_異常系] - def が nullptr の場合の g_calls.empty() の戻り値が true であること。(コールバックも通知も行われないことの確認)
 
     // Act_2
-    svc_dispatch_reload(&def_without_reload); // [手順] - on_reload が NULL の定義で呼び出す。
+    svc_dispatch_reload(
+        &def_without_reload); // [手順] - on_reload が nullptr の定義を指定して svc_dispatch_reload() を呼び出す。
 
     // Assert_2
     EXPECT_TRUE(
         g_calls
-            .empty()); // [確認_異常系] - on_reload が NULL の場合の g_calls.empty() の戻り値が true であること。(コールバックも通知も行われないことの確認)
+            .empty()); // [確認_異常系] - on_reload が nullptr の場合の g_calls.empty() の戻り値が true であること。(コールバックも通知も行われないことの確認)
 }
 
 /* ============================================================
@@ -633,7 +649,7 @@ TEST_F(service_sampleTest, set_status_text)
     // Pre-Assert
 
     // Act
-    svc_set_status_text("処理中"); // [手順] - svc_set_status_text() を呼び出す。
+    svc_set_status_text("処理中"); // [手順] - "処理中" を指定して svc_set_status_text() を呼び出す。
 
     // Assert
     ASSERT_EQ(
@@ -651,12 +667,12 @@ TEST_F(service_sampleTest, set_status_text)
 TEST_F(service_sampleTest, set_status_text_null_safety)
 {
     // Arrange
-    // [状態] - 状態テキストに NULL を渡す。
+    // [状態] - 状態テキストに nullptr を渡す。
 
     // Pre-Assert
 
     // Act
-    svc_set_status_text(nullptr); // [手順] - svc_set_status_text() に NULL を渡して呼び出す。
+    svc_set_status_text(nullptr); // [手順] - nullptr を指定して svc_set_status_text() を呼び出す。
 
     // Assert
     EXPECT_TRUE(
@@ -678,9 +694,10 @@ TEST_F(service_sampleTest, stop_api_before_initialization)
     // Pre-Assert
 
     // Act
-    svc_request_stop();                      // [手順] - 未初期化状態で停止要求を行う。
-    int requested = svc_stop_requested();    // [手順] - 停止要求状態を取得する。
-    int wait_result = svc_wait_for_stop(10); // [手順] - 停止待機を行う。
+    svc_request_stop();                   // [手順] - 未初期化の状態で svc_request_stop() を呼び出す。
+    int requested = svc_stop_requested(); // [手順] - 未初期化の状態で svc_stop_requested() を呼び出す。
+    int wait_result =
+        svc_wait_for_stop(10); // [手順] - 10 を指定して、未初期化の状態で svc_wait_for_stop() を呼び出す。
 
     // Assert
     EXPECT_EQ(

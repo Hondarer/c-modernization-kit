@@ -173,7 +173,8 @@ TEST_F(sampleFilterShareTest, nothing_is_taken_before_first_publish)
     // Pre-Assert
 
     // Act
-    int actual_ret = format_job_failed(&actual_matched); // [手順] - 未公開のまま組み立てる。
+    int actual_ret = format_job_failed(
+        &actual_matched); // [手順] - 未公開のまま、actual_matched を指定して format_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - format_job_failed() の戻り値が CPLAT_OK であること。
@@ -204,10 +205,11 @@ TEST_F(sampleFilterShareTest, published_image_is_taken_on_next_format)
     // Pre-Assert
 
     // Act
-    int actual_publish_ret =
-        sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &revision); // [手順] - 公開する。
+    int actual_publish_ret = sample_filter_share_publish(
+        writer_, image, kImageSize, catalog_id_,
+        &revision); // [手順] - image と catalog_id_ を指定して sample_filter_share_publish() を呼び出す。
     cplat_string_catalog_filter_state actual_before = state_of(SAMPLE_WORKER_TRACE_KEY_JOB_FAILED);
-    (void)format_job_failed(&actual_matched); // [手順] - 組み立てる。
+    (void)format_job_failed(&actual_matched); // [手順] - actual_matched を指定して format_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -245,10 +247,12 @@ TEST_F(sampleFilterShareTest, revision_advances_across_writers)
     // Pre-Assert
 
     // Act
-    int actual_first_ret =
-        sample_filter_share_publish(writer_, image, kImageSize, catalog_id_, &first); // [手順] - 公開する。
-    int actual_second_ret = sample_filter_share_publish(another_writer, image, kImageSize, catalog_id_,
-                                                        &second); // [手順] - 別の書き込み側から公開する。
+    int actual_first_ret = sample_filter_share_publish(
+        writer_, image, kImageSize, catalog_id_,
+        &first); // [手順] - image と catalog_id_ を指定して sample_filter_share_publish() を呼び出す。
+    int actual_second_ret = sample_filter_share_publish(
+        another_writer, image, kImageSize, catalog_id_,
+        &second); // [手順] - 別の書き込み側 another_writer を指定して sample_filter_share_publish() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -281,8 +285,9 @@ TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
     // Pre-Assert
 
     // Act
-    int actual_ret = sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
-                                                 nullptr); // [手順] - 壊れたイメージを公開する。
+    int actual_ret = sample_filter_share_publish(
+        writer_, image, kImageSize, catalog_id_,
+        nullptr); // [手順] - 壊れたイメージを指定して sample_filter_share_publish() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -310,8 +315,9 @@ TEST_F(sampleFilterShareTest, publish_with_different_geometry_is_rejected)
     // Pre-Assert
 
     // Act
-    int actual_ret = sample_filter_share_publish(writer_, narrow_image, sizeof(narrow_image), catalog_id_,
-                                                 nullptr); // [手順] - 行幅の異なるイメージを公開する。
+    int actual_ret = sample_filter_share_publish(
+        writer_, narrow_image, sizeof(narrow_image), catalog_id_,
+        nullptr); // [手順] - 行幅の異なるイメージを指定して sample_filter_share_publish() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -347,7 +353,8 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
     // Pre-Assert
 
     // Act
-    int actual_ret = sample_worker_trace_key_job_failed((uint64_t)1, 5); // [手順] - トレースを出力する。
+    int actual_ret = sample_worker_trace_key_job_failed(
+        (uint64_t)1, 5); // [手順] - 1 と 5 を指定して sample_worker_trace_key_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -440,8 +447,9 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
         {
             image = image_started;
         }
-        int actual_ret_publish = sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
-                                                             &last_revision); // [手順] - 2 種類の条件を交互に公開する。
+        int actual_ret_publish = sample_filter_share_publish(
+            writer_, image, kImageSize, catalog_id_,
+            &last_revision); // [手順] - 2 種類の条件を交互に指定して sample_filter_share_publish() を呼び出す。
         ASSERT_EQ(CPLAT_OK, actual_ret_publish);
         // [確認_正常系 回数=200] - sample_filter_share_publish() の戻り値が CPLAT_OK であること。
     }
@@ -450,7 +458,8 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
     {
         (void)cplat_thread_join(threads[index], CPLAT_SYNC_WAIT_FOREVER);
     }
-    int actual_final_ret = format_job_failed(&matched); // [手順] - 最後にもう一度組み立てる。
+    int actual_final_ret =
+        format_job_failed(&matched); // [手順] - matched を指定して、最後にもう一度 format_job_failed() を呼び出す。
     (void)cplat_string_catalog_filter_slot_get_source_status(slot_, &status);
 
     // Assert
@@ -484,8 +493,9 @@ TEST_F(sampleFilterShareTest, open_rejects_existing_region_too_small)
     // Pre-Assert
 
     // Act
-    int actual_ret = sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth + 8U,
-                                              &other); // [手順] - 行幅を広げて、既存の領域より大きな大きさで開く。
+    int actual_ret = sample_filter_share_open(
+        path_.c_str(), lock_, kLineCapacity, kLineWidth + 8U,
+        &other); // [手順] - 行幅を広げて、既存の領域より大きな大きさを指定して sample_filter_share_open() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -506,8 +516,9 @@ TEST_F(sampleFilterShareTest, open_accepts_existing_region_larger_than_required)
     // Pre-Assert
 
     // Act
-    int actual_ret = sample_filter_share_open(path_.c_str(), lock_, kLineCapacity, kLineWidth - 8U,
-                                              &other); // [手順] - 行幅を狭めて、既存の領域より小さな大きさで開く。
+    int actual_ret = sample_filter_share_open(
+        path_.c_str(), lock_, kLineCapacity, kLineWidth - 8U,
+        &other); // [手順] - 行幅を狭めて、既存の領域より小さな大きさを指定して sample_filter_share_open() を呼び出す。
     const void *actual_source = sample_filter_share_get_source(other, &actual_source_size);
 
     // Assert
@@ -541,11 +552,12 @@ TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
     // Pre-Assert
 
     // Act
-    const sample_filter_share_region_result actual_while_held =
-        sample_filter_share_lock_acquire(lock_, 0); // [手順] - 保持されている間に待たずに取得する。
-    sample_filter_share_lock_release(another);      // [手順] - 別の排他を解放する。
-    const sample_filter_share_region_result actual_after_release =
-        sample_filter_share_lock_acquire(lock_, 0); // [手順] - 解放後に待たずに取得する。
+    const sample_filter_share_region_result actual_while_held = sample_filter_share_lock_acquire(
+        lock_, 0); // [手順] - 排他が保持されている間に、待たない指定で sample_filter_share_lock_acquire() を呼び出す。
+    sample_filter_share_lock_release(
+        another); // [手順] - 別の排他を指定して sample_filter_share_lock_release() を呼び出す。
+    const sample_filter_share_region_result actual_after_release = sample_filter_share_lock_acquire(
+        lock_, 0); // [手順] - 排他が解放された後に、待たない指定で sample_filter_share_lock_acquire() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -587,15 +599,18 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     // Pre-Assert
 
     // Act
-    (void)format_job_failed(&actual_while_held); // [手順] - 保持されている間に組み立てる。
+    (void)format_job_failed(
+        &actual_while_held); // [手順] - 排他が保持されている間に、actual_while_held を指定して format_job_failed() を呼び出す。
     const cplat_string_catalog_filter_source_status status_while_held = [this]()
     {
         cplat_string_catalog_filter_source_status status;
         (void)cplat_string_catalog_filter_slot_get_source_status(slot_, &status);
         return status;
     }();
-    sample_filter_share_lock_release(another);      // [手順] - 別の排他を解放する。
-    (void)format_job_failed(&actual_after_release); // [手順] - 解放後に組み立てる。
+    sample_filter_share_lock_release(
+        another); // [手順] - 別の排他を指定して sample_filter_share_lock_release() を呼び出す。
+    (void)format_job_failed(
+        &actual_after_release); // [手順] - 排他が解放された後に、actual_after_release を指定して format_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -673,14 +688,18 @@ TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_pu
     // Act
     cplat_string_catalog_filter_source_info info_while_writing;
     const int actual_info_while_writing = cplat_string_catalog_filter_source_get_info(
-        source_, source_size_, &info_while_writing); // [手順] - 開き直した領域の状態を読む。
-    (void)format_job_failed(&actual_while_writing);  // [手順] - 開き直した後に組み立てる。
+        source_, source_size_,
+        &info_while_writing); // [手順] - 開き直した領域を指定して cplat_string_catalog_filter_source_get_info() を呼び出す。
+    (void)format_job_failed(
+        &actual_while_writing); // [手順] - 開き直した後に、actual_while_writing を指定して format_job_failed() を呼び出す。
     const uint64_t taken_while_writing = taken_revision();
-    int actual_ret_publish_recovered = sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
-                                                                   &recovered_revision); // [手順] - 条件を公開し直す。
+    int actual_ret_publish_recovered = sample_filter_share_publish(
+        writer_, image, kImageSize, catalog_id_,
+        &recovered_revision); // [手順] - 条件を公開し直すため、image と catalog_id_ を指定して sample_filter_share_publish() を呼び出す。
     ASSERT_EQ(CPLAT_OK, actual_ret_publish_recovered);
     // [確認_正常系] - sample_filter_share_publish() の戻り値が CPLAT_OK であること。
-    (void)format_job_failed(&actual_after_recovery);                       // [手順] - 公開し直した後に組み立てる。
+    (void)format_job_failed(
+        &actual_after_recovery); // [手順] - 公開し直した後に、actual_after_recovery を指定して format_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -738,25 +757,31 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
     // Act
     cplat_string_catalog_filter_source_info info_corrupt;
     const int actual_info_corrupt = cplat_string_catalog_filter_source_get_info(
-        source_, source_size_, &info_corrupt); // [手順] - 開き直した領域の状態を読む。
-    (void)format_job_failed(&actual_corrupt);  // [手順] - 開き直した後に組み立てる。
+        source_, source_size_,
+        &info_corrupt); // [手順] - 開き直した領域を指定して cplat_string_catalog_filter_source_get_info() を呼び出す。
+    (void)format_job_failed(
+        &actual_corrupt); // [手順] - 開き直した後に、actual_corrupt を指定して format_job_failed() を呼び出す。
     cplat_string_catalog_filter_source_status status_corrupt;
     int actual_ret_source_status = cplat_string_catalog_filter_slot_get_source_status(
-        slot_, &status_corrupt); // [手順] - 開き直した領域からの取り込み状態を取得する。
+        slot_,
+        &status_corrupt); // [手順] - 開き直した領域のスロットを指定して cplat_string_catalog_filter_slot_get_source_status() を呼び出す。
     ASSERT_EQ(CPLAT_OK, actual_ret_source_status);
     // [状態確認] - cplat_string_catalog_filter_slot_get_source_status() の戻り値が CPLAT_OK であること。
     const int actual_publish_corrupt = sample_filter_share_publish(
-        writer_, image, kImageSize, catalog_id_, &rejected_revision); // [手順] - 壊れた領域へ公開する。
-    close_handles();                                                  // [手順] - すべてのハンドルを閉じる。
-    (void)std::remove(path_.c_str());                                 // [手順] - 共有ファイルを削除する。
+        writer_, image, kImageSize, catalog_id_,
+        &rejected_revision); // [手順] - 壊れた領域へ公開するため、image と catalog_id_ を指定して sample_filter_share_publish() を呼び出す。
+    close_handles();                  // [手順] - ハンドルを開いた状態で close_handles() を呼び出す。
+    (void)std::remove(path_.c_str()); // [手順] - 共有ファイルのパスを指定して std::remove() を呼び出す。
     // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
-    ASSERT_NO_FATAL_FAILURE(open_handles());                          // [手順] - 共有ファイルを作り直す。
+    ASSERT_NO_FATAL_FAILURE(open_handles()); // [手順] - 共有ファイルが削除された状態で open_handles() を呼び出す。
     // [状態確認] - open_handles() の中で致命的な失敗が起きないこと。
     int actual_ret_publish_recreated = sample_filter_share_publish(
-        writer_, image, kImageSize, catalog_id_, &recreated_revision); // [手順] - 作り直した領域へ公開する。
+        writer_, image, kImageSize, catalog_id_,
+        &recreated_revision); // [手順] - 作り直した領域へ公開するため、image と catalog_id_ を指定して sample_filter_share_publish() を呼び出す。
     ASSERT_EQ(CPLAT_OK, actual_ret_publish_recreated);
     // [確認_正常系] - 作り直した領域へ公開したときの sample_filter_share_publish() の戻り値が CPLAT_OK であること。
-    (void)format_job_failed(&actual_after_recreate);                       // [手順] - 公開した後に組み立てる。
+    (void)format_job_failed(
+        &actual_after_recreate); // [手順] - 公開した後に、actual_after_recreate を指定して format_job_failed() を呼び出す。
 
     // Assert
     EXPECT_EQ(

@@ -55,7 +55,7 @@ TEST_P(ParamTest2Test, MultiplyTest)
         .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction() が p.a、p.b を指定して 1 回呼び出されること。
 
     // Act
-    int result = mockObj.myFunction(p.a, p.b); // [手順] - myFunction(a, b) を呼び出す。
+    int result = mockObj.myFunction(p.a, p.b); // [手順] - p.a と p.b を指定して mockObj.myFunction() を呼び出す。
 
     // Assert
     EXPECT_EQ(result,

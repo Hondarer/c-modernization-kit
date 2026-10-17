@@ -89,9 +89,11 @@ TEST_F(sampleFilterFileTest, load_reports_invalid_lines_by_file_line_number)
     // Pre-Assert
 
     // Act
-    int actual_ret = load(path_); // [手順] - ファイルを読み込む。
+    int actual_ret = load(path_); // [手順] - path_ を指定して load() を呼び出す。
     int actual_ret_decompile = cplat_string_catalog_filter_decompile_line(
-        image_, sizeof(image_), 0U, actual_first, sizeof(actual_first)); // [手順] - 1 行目を復元する。
+        image_, sizeof(image_), 0U, actual_first,
+        sizeof(
+            actual_first)); // [手順] - 1 行目の復元先を指定して cplat_string_catalog_filter_decompile_line() を呼び出す。
     ASSERT_EQ(CPLAT_OK, actual_ret_decompile);
     // [状態確認] - cplat_string_catalog_filter_decompile_line() の戻り値が CPLAT_OK であること。
 
@@ -134,7 +136,7 @@ TEST_F(sampleFilterFileTest, line_longer_than_width_is_invalid)
     // Pre-Assert
 
     // Act
-    int actual_ret = load(path_); // [手順] - ファイルを読み込む。
+    int actual_ret = load(path_); // [手順] - path_ を指定して load() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - load() の戻り値が CPLAT_OK であること。
@@ -173,7 +175,7 @@ TEST_F(sampleFilterFileTest, conditions_beyond_capacity_are_invalid)
     // Pre-Assert
 
     // Act
-    int actual_ret = load(path_); // [手順] - ファイルを読み込む。
+    int actual_ret = load(path_); // [手順] - path_ を指定して load() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - load() の戻り値が CPLAT_OK であること。
@@ -208,10 +210,12 @@ TEST_F(sampleFilterFileTest, failed_load_keeps_image)
     // Pre-Assert
 
     // Act
-    int actual_missing_ret = load(path_ + ".missing"); // [手順] - 存在しないファイルを読み込む。
+    int actual_missing_ret =
+        load(path_ + ".missing"); // [手順] - 存在しないファイルのパスを指定して load() を呼び出す。
     // [サブ手順参照 名前=sampleFilterFileTest.write_file]
-    write_file(too_many);                              // [手順] - 行数の上限を超えるファイルを書き込む。
-    int actual_too_many_ret = load(path_);             // [手順] - 行数の上限を超えるファイルを読み込む。
+    write_file(too_many); // [手順] - 行数の上限を超える内容を指定して write_file() を呼び出す。
+    int actual_too_many_ret =
+        load(path_); // [手順] - path_ を指定して load() を呼び出す。(行数の上限を超えるファイルを読み込む)
 
     // Assert
     EXPECT_EQ(
@@ -243,9 +247,10 @@ TEST_F(sampleFilterFileTest, saved_file_loads_to_same_image)
     // Pre-Assert
 
     // Act
-    int actual_save_ret =
-        sample_filter_file_save(saved_path_.c_str(), original, sizeof(original)); // [手順] - 書き出す。
-    int actual_load_ret = load(saved_path_); // [手順] - 書き出したファイルを読み込む。
+    int actual_save_ret = sample_filter_file_save(
+        saved_path_.c_str(), original,
+        sizeof(original)); // [手順] - 保存先のパスと元のイメージを指定して sample_filter_file_save() を呼び出す。
+    int actual_load_ret = load(saved_path_); // [手順] - 書き出したファイルのパスを指定して load() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_save_ret); // [確認_正常系] - sample_filter_file_save() の戻り値が CPLAT_OK であること。

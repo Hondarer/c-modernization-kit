@@ -119,7 +119,8 @@ TEST_F(override_sampleTest, help)
     // Pre-Assert
 
     // Act
-    ProcessResult res = startProcess(binary_path, {"--help"}, opts); // [手順] - help オプションで起動する。
+    ProcessResult res =
+        startProcess(binary_path, {"--help"}, opts); // [手順] - help オプションを指定して startProcess() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
@@ -141,7 +142,9 @@ TEST_F(override_sampleTest, check_stdout_default)
     // Pre-Assert
 
     // Act
-    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
+    ProcessResult res = startProcess(
+        binary_path, {},
+        opts); // [手順] - override-sample の stdout を捕捉するため、引数を指定せずに startProcess() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
@@ -177,7 +180,9 @@ TEST_F(override_sampleTest, check_stdout_with_config)
     // Pre-Assert
 
     // Act
-    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、stdout を捕捉する。
+    ProcessResult res = startProcess(
+        binary_path, {},
+        opts); // [手順] - override-sample の stdout を捕捉するため、引数を指定せずに startProcess() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
@@ -215,8 +220,9 @@ TEST_F(override_sampleTest, onUnload_syslog)
     // Pre-Assert
 
     // Act
-    ProcessResult res =
-        startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、syslog/OutputDebugString を捕捉する。
+    ProcessResult res = startProcess(
+        binary_path, {},
+        opts); // [手順] - override-sample の syslog と OutputDebugString を捕捉するため、引数を指定せずに startProcess() を呼び出す。
 
     // Assert
     ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
@@ -241,7 +247,8 @@ TEST_F(override_sampleTest, onUnload_syslog_disabled_by_default)
     // Pre-Assert
 
     // Act
-    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - override-sample を実行し、診断ログを確認する。
+    ProcessResult res = startProcess(
+        binary_path, {}, opts); // [手順] - 診断ログを確認するため、引数を指定せずに startProcess() を呼び出す。
 
     // Assert
     ASSERT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
@@ -267,7 +274,9 @@ TEST_F(override_sampleTest, too_long_tmpdir_causes_exit_code_1)
     // Pre-Assert
 
     // Act
-    ProcessResult res = startProcess(binary_path, {}, opts); // [手順] - 上限超過環境で override-sample を実行する。
+    ProcessResult res =
+        startProcess(binary_path, {},
+                     opts); // [手順] - 上限超過の TMPDIR を設定した環境で、引数を指定せずに startProcess() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_FAILURE, res.exit_code); // [確認_異常系] - res.exit_code が EXIT_FAILURE であること。

@@ -34,8 +34,9 @@ TEST(structMetaGenEmitArrayTest, emits_words_with_line_wrapping_and_zero_padded_
     // Pre-Assert
 
     // Act
-    struct_meta_gen_emit_uint64_array(stream, "s_sample", data,
-                                      33U); // [手順] - 4 ワードと 1 バイトを静的配列として出力する。
+    struct_meta_gen_emit_uint64_array(
+        stream, "s_sample", data,
+        33U); // [手順] - 4 ワードと 1 バイトの 33 バイトを指定して struct_meta_gen_emit_uint64_array() を呼び出す。
     int actual_ret_flush = std::fflush(stream);
     ASSERT_EQ(0, actual_ret_flush); // [状態確認] - std::fflush() の戻り値が 0 であること。
     std::rewind(stream);

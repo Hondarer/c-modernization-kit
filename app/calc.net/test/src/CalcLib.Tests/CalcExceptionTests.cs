@@ -63,10 +63,13 @@ namespace CalcLib.Tests
         public void CalcException_ThrownFromCalculateOrThrow_ShouldContainContextInfo()
         {
             // Act
-            var thrown = Record.Exception(() =>
-            {
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 100, 0) を呼び出す (ゼロ除算)。
-            });
+            var thrown = Record.Exception(
+                () =>
+                {
+                    CalcLibrary.CalculateOrThrow(
+                        CalcKind.Divide, 100,
+                        0); // [手順] - ゼロ除算となる 100 と 0 を指定して CalcLibrary.CalculateOrThrow() を呼び出す。
+                });
 
             // Assert
             var exception = Assert.IsType<CalcException>(thrown); // [確認_異常系] - thrown の型が CalcException であること。(ゼロ除算で CalcLibrary.CalculateOrThrow() が CalcException を送出したことの確認)
@@ -89,7 +92,9 @@ namespace CalcLib.Tests
             // Act
             try
             {
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す。
+                CalcLibrary.CalculateOrThrow(
+                    CalcKind.Divide, 10,
+                    0); // [手順] - ゼロ除算となる 10 と 0 を指定して CalcLibrary.CalculateOrThrow() を呼び出す。
             }
             catch (Exception caught)
             {
@@ -113,7 +118,9 @@ namespace CalcLib.Tests
             // Act
             try
             {
-                CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0); // [手順] - CalcLibrary.CalculateOrThrow(CalcKind.Divide, 10, 0) を呼び出す。
+                CalcLibrary.CalculateOrThrow(
+                    CalcKind.Divide, 10,
+                    0); // [手順] - ゼロ除算となる 10 と 0 を指定して CalcLibrary.CalculateOrThrow() を呼び出す。
             }
             catch (CalcException caught)
             {

@@ -64,8 +64,8 @@ TEST_F(exportTest, symbol_names_match)
     // Pre-Assert
 
     // Act
-    std::set<std::string> actual =
-        testing::getActualExportNames(dll_path); // [手順] - dumpbin/nm で libcalc の実際のエクスポート一覧を取得する。
+    std::set<std::string> actual = testing::getActualExportNames(
+        dll_path); // [手順] - dll_path を指定して testing::getActualExportNames() を呼び出す。
 
     // Assert
     // [サブ手順参照 名前=testing.expectExportNamesMatch]
@@ -90,7 +90,7 @@ TEST_F(exportTest, public_header_variables_declare_export_macro)
     // Act
     std::vector<std::string> undecorated = testing::findUndecoratedExternVariables(
         include_dir,
-        "CALC_EXPORT"); // [手順] - prod/include/calc 配下を走査し、CALC_EXPORT を伴わない extern 変数宣言を集める。
+        "CALC_EXPORT"); // [手順] - include_dir と "CALC_EXPORT" を指定して testing::findUndecoratedExternVariables() を呼び出す。
 
     // Assert
     EXPECT_TRUE(undecorated.empty())

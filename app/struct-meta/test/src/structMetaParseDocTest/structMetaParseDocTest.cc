@@ -16,7 +16,8 @@ TEST(structMetaParseDocTest, parses_generic_attributes_and_removes_them_from_bri
 
     // Act
     struct_meta_internal_parse_doc_attrs actual = struct_meta_internal_parse_doc_attrs_from_raw(
-        comment, 1, 10, &diagnostic); // [手順] - 汎用属性を含む後置コメントを解析する。
+        comment, 1, 10,
+        &diagnostic); // [手順] - 汎用属性を含む後置コメントを指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
 
     // Assert
     EXPECT_EQ(0, actual.invalid); // [確認_正常系] - actual.invalid が 0 であること。
@@ -48,7 +49,8 @@ TEST(structMetaParseDocTest, rejects_duplicate_attributes)
 
     // Act
     struct_meta_internal_parse_doc_attrs actual = struct_meta_internal_parse_doc_attrs_from_raw(
-        comment, 1, 20, &diagnostic); // [手順] - 重複する属性を含むコメントを解析する。
+        comment, 1, 20,
+        &diagnostic); // [手順] - 重複する属性を含むコメントを指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
 
     // Assert
     EXPECT_NE(
@@ -75,7 +77,8 @@ TEST(structMetaParseDocTest, rejects_duplicate_attributes_across_comments)
 
     // Act
     struct_meta_internal_parse_doc_attrs actual = struct_meta_internal_parse_doc_attrs_choose(
-        prefix, postfix, 21, &diagnostic); // [手順] - 同じ属性名を持つ前置と後置コメントを結合する。
+        prefix, postfix, 21,
+        &diagnostic); // [手順] - 同じ属性名を持つ前置と後置コメントを指定して struct_meta_internal_parse_doc_attrs_choose() を呼び出す。
 
     // Assert
     EXPECT_NE(
@@ -95,7 +98,8 @@ TEST(structMetaParseDocTest, does_not_convert_legacy_json_commands)
 
     // Act
     struct_meta_internal_parse_doc_attrs actual = struct_meta_internal_parse_doc_attrs_from_raw(
-        comment, 1, 22, &diagnostic); // [手順] - 廃止した JSON 固有コマンドを含むコメントを解析する。
+        comment, 1, 22,
+        &diagnostic); // [手順] - 廃止した JSON 固有コマンドを含むコメントを指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -122,16 +126,21 @@ TEST(structMetaParseDocTest, rejects_invalid_attribute_forms)
     // Pre-Assert
 
     // Act
-    struct_meta_internal_parse_doc_attrs empty_key_result =
-        struct_meta_internal_parse_doc_attrs_from_raw(empty_key, 1, 30, &diagnostic); // [手順] - 空の属性名を解析する。
+    struct_meta_internal_parse_doc_attrs empty_key_result = struct_meta_internal_parse_doc_attrs_from_raw(
+        empty_key, 1, 30,
+        &diagnostic); // [手順] - 空の属性名を指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
     struct_meta_internal_parse_doc_attrs empty_value_result = struct_meta_internal_parse_doc_attrs_from_raw(
-        empty_value, 1, 31, &diagnostic); // [手順] - 空の属性値を解析する。
+        empty_value, 1, 31,
+        &diagnostic); // [手順] - 空の属性値を指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
     struct_meta_internal_parse_doc_attrs invalid_key_result = struct_meta_internal_parse_doc_attrs_from_raw(
-        invalid_key, 1, 32, &diagnostic); // [手順] - 空白を含む属性名を解析する。
+        invalid_key, 1, 32,
+        &diagnostic); // [手順] - 空白を含む属性名を指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
     struct_meta_internal_parse_doc_attrs missing_close_result = struct_meta_internal_parse_doc_attrs_from_raw(
-        missing_close, 1, 33, &diagnostic); // [手順] - 閉じ波括弧が無い属性を解析する。
+        missing_close, 1, 33,
+        &diagnostic); // [手順] - 閉じ波括弧が無い属性を指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
     struct_meta_internal_parse_doc_attrs multiline_result = struct_meta_internal_parse_doc_attrs_from_raw(
-        multiline, 1, 34, &diagnostic); // [手順] - 改行を含む属性値を解析する。
+        multiline, 1, 34,
+        &diagnostic); // [手順] - 改行を含む属性値を指定して struct_meta_internal_parse_doc_attrs_from_raw() を呼び出す。
 
     // Assert
     EXPECT_NE(

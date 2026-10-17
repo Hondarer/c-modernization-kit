@@ -39,8 +39,9 @@ TEST_F(catalogIntegrationTest, injected_catalog_is_consistent)
     // Pre-Assert
 
     // Act
-    actual_ret = cplat_string_catalog_verify(sample_messages_catalog(), &string_key,
-                                             &language); // [手順] - 注入したカタログ全体を確認する。
+    actual_ret = cplat_string_catalog_verify(
+        sample_messages_catalog(), &string_key,
+        &language); // [手順] - 注入したカタログ全体を指定して cplat_string_catalog_verify() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -61,15 +62,18 @@ TEST_F(catalogIntegrationTest, metadata)
     // Pre-Assert
 
     // Act
-    actual_id = cplat_string_catalog_get_id(sample_messages_catalog(),
-                                            SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - ID を取得する。
-    actual_note = cplat_string_catalog_get_note(sample_messages_catalog(),
-                                                SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 備考を取得する。
-    actual_category =
-        cplat_string_catalog_get_category(sample_messages_catalog(),
-                                          SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 分類値を取得する。
-    actual_unknown_id = cplat_string_catalog_get_id(sample_messages_catalog(),
-                                                    0); // [手順] - 未登録の文字列キーで ID を取得する。
+    actual_id = cplat_string_catalog_get_id(
+        sample_messages_catalog(),
+        SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED を指定して cplat_string_catalog_get_id() を呼び出す。
+    actual_note = cplat_string_catalog_get_note(
+        sample_messages_catalog(),
+        SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED を指定して cplat_string_catalog_get_note() を呼び出す。
+    actual_category = cplat_string_catalog_get_category(
+        sample_messages_catalog(),
+        SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED を指定して cplat_string_catalog_get_category() を呼び出す。
+    actual_unknown_id = cplat_string_catalog_get_id(
+        sample_messages_catalog(),
+        0); // [手順] - 未登録の文字列キー 0 を指定して cplat_string_catalog_get_id() を呼び出す。
 
     // Assert
     ASSERT_NE(
@@ -104,7 +108,7 @@ TEST_F(catalogIntegrationTest, escaped_braces)
     // Act
     actual_ret = cplat_string_catalog_format(
         sample_messages_catalog(), dest, sizeof(dest),
-        SAMPLE_MESSAGES_KEY_STARTUP_COMPLETED); // [手順] - 引数を取らない文字列を日本語で組み立てる。
+        SAMPLE_MESSAGES_KEY_STARTUP_COMPLETED); // [手順] - 引数を取らない文字列キーを指定して、日本語で cplat_string_catalog_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - cplat_string_catalog_format() の戻り値が CPLAT_OK であること。
@@ -124,9 +128,9 @@ TEST_F(catalogIntegrationTest, neutral_language)
     // Pre-Assert
 
     // Act
-    actual_ret = cplat_string_catalog_format(sample_messages_catalog(), dest, sizeof(dest),
-                                             SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
-                                             2); // [手順] - ニュートラル言語で文字列を組み立てる。
+    actual_ret = cplat_string_catalog_format(
+        sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
+        2); // [手順] - ニュートラル言語で、"config.json" と 2 を指定して cplat_string_catalog_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - cplat_string_catalog_format() の戻り値が CPLAT_OK であること。
@@ -151,12 +155,13 @@ TEST_F(catalogIntegrationTest, argument_text_is_language_independent)
     // Act
     actual_ret_japanese = cplat_string_catalog_format(
         sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
-        2); // [手順] - ファイル オープン失敗の文字列を日本語で組み立てる。
+        2); // [手順] - ファイル オープン失敗の文字列キーを指定して、日本語で cplat_string_catalog_format() を呼び出す。
 
     cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
-    actual_ret_english = cplat_string_catalog_format(sample_messages_catalog(), english_dest, sizeof(english_dest),
-                                                     SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED, "config.json",
-                                                     2); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
+    actual_ret_english = cplat_string_catalog_format(
+        sample_messages_catalog(), english_dest, sizeof(english_dest), SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED,
+        "config.json",
+        2); // [手順] - 言語を英語へ変更し、同じ引数を指定して cplat_string_catalog_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -189,13 +194,15 @@ TEST_F(catalogIntegrationTest, language_changes_order_only)
     // Act
     actual_ret_japanese = cplat_string_catalog_format(
         sample_messages_catalog(), dest, sizeof(dest), SAMPLE_MESSAGES_KEY_RECORD_MISMATCH, UINT32_C(42),
-        UINT32_C(0x1234ABCD)); // [手順] - レコード不一致の文字列を日本語で組み立てる。
+        UINT32_C(
+            0x1234ABCD)); // [手順] - レコード不一致の文字列キーを指定して、日本語で cplat_string_catalog_format() を呼び出す。
 
     cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
-    actual_ret_english =
-        cplat_string_catalog_format(sample_messages_catalog(), english_dest, sizeof(english_dest),
-                                    SAMPLE_MESSAGES_KEY_RECORD_MISMATCH, UINT32_C(42),
-                                    UINT32_C(0x1234ABCD)); // [手順] - 言語を英語へ変更し、同じ引数で組み立てる。
+    actual_ret_english = cplat_string_catalog_format(
+        sample_messages_catalog(), english_dest, sizeof(english_dest), SAMPLE_MESSAGES_KEY_RECORD_MISMATCH,
+        UINT32_C(42),
+        UINT32_C(
+            0x1234ABCD)); // [手順] - 言語を英語へ変更し、同じ引数を指定して cplat_string_catalog_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -224,7 +231,8 @@ TEST_F(catalogIntegrationTest, repeated_placeholder)
     // Act
     actual_ret = cplat_string_catalog_format(
         sample_metrics_catalog(), dest, sizeof(dest), SAMPLE_METRICS_KEY_THROUGHPUT_REPORT, 12.5,
-        UINT64_C(4000000000)); // [手順] - 同じ位置指定を 2 回含む文字列を組み立てる。
+        UINT64_C(
+            4000000000)); // [手順] - 同じ位置指定を 2 回含む文字列キーを指定して cplat_string_catalog_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, actual_ret); // [確認_正常系] - cplat_string_catalog_format() の戻り値が CPLAT_OK であること。
@@ -245,8 +253,9 @@ TEST_F(catalogIntegrationTest, trace_catalog_is_consistent)
     // Pre-Assert
 
     // Act
-    actual_ret = cplat_string_catalog_verify(sample_trace_catalog(), &string_key,
-                                             &language); // [手順] - トレース種別のカタログ全体を確認する。
+    actual_ret = cplat_string_catalog_verify(
+        sample_trace_catalog(), &string_key,
+        &language); // [手順] - トレース種別のカタログ全体を指定して cplat_string_catalog_verify() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -267,11 +276,14 @@ TEST_F(catalogIntegrationTest, trace_level_is_stored_as_category)
 
     // Act
     info_category = cplat_string_catalog_get_category(
-        sample_trace_catalog(), SAMPLE_TRACE_KEY_SERVICE_STARTED); // [手順] - INFO の分類値を取得する。
+        sample_trace_catalog(),
+        SAMPLE_TRACE_KEY_SERVICE_STARTED); // [手順] - INFO の文字列キーを指定して cplat_string_catalog_get_category() を呼び出す。
     error_category = cplat_string_catalog_get_category(
-        sample_trace_catalog(), SAMPLE_TRACE_KEY_FILE_OPEN_FAILED); // [手順] - ERROR の分類値を取得する。
+        sample_trace_catalog(),
+        SAMPLE_TRACE_KEY_FILE_OPEN_FAILED); // [手順] - ERROR の文字列キーを指定して cplat_string_catalog_get_category() を呼び出す。
     verbose_category = cplat_string_catalog_get_category(
-        sample_trace_catalog(), SAMPLE_TRACE_KEY_RECORD_PARSED); // [手順] - VERBOSE の分類値を取得する。
+        sample_trace_catalog(),
+        SAMPLE_TRACE_KEY_RECORD_PARSED); // [手順] - VERBOSE の文字列キーを指定して cplat_string_catalog_get_category() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -295,8 +307,9 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
     // Pre-Assert
 
     // Act
-    entry = cplat_string_catalog_get_entry(sample_trace_catalog(),
-                                           SAMPLE_TRACE_KEY_FILE_OPEN_FAILED); // [手順] - 項目を取得する。
+    entry = cplat_string_catalog_get_entry(
+        sample_trace_catalog(),
+        SAMPLE_TRACE_KEY_FILE_OPEN_FAILED); // [手順] - 文字列キー SAMPLE_TRACE_KEY_FILE_OPEN_FAILED を指定して cplat_string_catalog_get_entry() を呼び出す。
 
     // Assert
     ASSERT_NE(nullptr, entry); // [確認_正常系] - cplat_string_catalog_get_entry() の戻り値が nullptr 以外であること。
@@ -352,8 +365,8 @@ TEST_F(catalogIntegrationTest, trace_macro_writes_to_tracer)
 
     // Act
     testing::internal::CaptureStderr();
-    actual_ret =
-        sample_trace_key_file_open_failed("config.json", 2); // [手順] - 型付きラッパーのマクロでトレースへ出力する。
+    actual_ret = sample_trace_key_file_open_failed(
+        "config.json", 2); // [手順] - "config.json" と 2 を指定して sample_trace_key_file_open_failed() を呼び出す。
     std::string captured = testing::internal::GetCapturedStderr();
 
     // Assert
@@ -389,7 +402,8 @@ TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
 
     // Act
     testing::internal::CaptureStderr();
-    actual_ret = sample_trace_key_state_dump(UINT32_C(7)); // [手順] - コンテキスト引数を参照する書式で出力する。
+    actual_ret = sample_trace_key_state_dump(UINT32_C(
+        7)); // [手順] - 7 を指定して sample_trace_key_state_dump() を呼び出す。(コンテキスト引数を参照する書式で出力する)
     std::string captured = testing::internal::GetCapturedStderr();
 
     // Assert
@@ -439,8 +453,9 @@ TEST_F(catalogIntegrationTest, trace_macro_fails_without_tracer)
 
     // Act
     testing::internal::CaptureStderr();
-    actual_ret = sample_trace_key_file_open_failed("config.json",
-                                                   2); // [手順] - 出力先が未設定のまま出力を要求する。
+    actual_ret = sample_trace_key_file_open_failed(
+        "config.json",
+        2); // [手順] - 出力先が未設定の状態で、"config.json" と 2 を指定して sample_trace_key_file_open_failed() を呼び出す。
     std::string captured = testing::internal::GetCapturedStderr();
 
     // Assert

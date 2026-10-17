@@ -16,7 +16,7 @@ TEST_F(addTest, test_1_add_2)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_add(1, 2, &result); // [手順] - calcbase_add(1, 2, &result) を呼び出す。
+    actual_ret = calcbase_add(1, 2, &result); // [手順] - 1 と 2 を指定して calcbase_add() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_add() の戻り値が CALC_OK であること。
@@ -33,7 +33,7 @@ TEST_F(addTest, test_2_add_1)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_add(2, 1, &result); // [手順] - calcbase_add(2, 1, &result) を呼び出す。
+    actual_ret = calcbase_add(2, 1, &result); // [手順] - 2 と 1 を指定して calcbase_add() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_add() の戻り値が CALC_OK であること。
@@ -49,7 +49,8 @@ TEST_F(addTest, test_null_result)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_add(1, 2, nullptr); // [手順] - calcbase_add(1, 2, NULL) を呼び出す。
+    actual_ret =
+        calcbase_add(1, 2, nullptr); // [手順] - 1 と 2、出力先に nullptr を指定して calcbase_add() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

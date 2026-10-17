@@ -255,7 +255,7 @@ NiceMock<Mock_stdio> mock_stdio;
 > `mock_` や `mock` のような省略名、および型名にない末尾 `_` (`mock_cplat_` など) は使いません。
 
 > [!WARNING]
-> `mock_` のまま複数の Mock クラスを扱うと、`file_open` の既定差し替えと `malloc` の失敗注入を別インスタンスへ書いてしまい、本物の I/O が単体テストから呼ばれることがあります。
+> `mock_` のまま複数の Mock クラスを扱うと、`file_open` の既定差し替えと `malloc` の失敗注入を別インスタンスへ書いてしまい、製品 (prod) の I/O の処理が単体テストから呼ばれることがあります。
 
 同一テスト関数に複数の Mock クラスがあるときは、それぞれ型名の小文字を使います。  
 引数で Mock オブジェクトを受け取るヘルパーも、仮引数名を同じ規則に揃えます。
@@ -1164,7 +1164,7 @@ Table: 言語ごとの空ポインターの表記
 
 - C で空ポインターを `0` や `(void *)0` で書くこと
 - C++ で空ポインターを `NULL` や `0` で書くこと
-- `!ptr`、`if (ptr)`、`ptr ? a : b` など、ポインターをそのまま条件にすること
+- `!ptr`、`if (ptr)`、`ptr ? a : b` など、ポインターをそのまま条件にすること (スマート ポインター (`std::shared_ptr`、`std::unique_ptr`) も同じです)
 
 Google Test の判定マクロでも、空ポインターは `nullptr` と比べます (`EXPECT_EQ(nullptr, ptr)`、`ASSERT_NE(nullptr, ptr)`)。  
 `nullptr` はどのポインター型へもキャストなしで変換できるため、`(uint8_t *)NULL` のような型合わせのキャストは書きません。
@@ -1189,6 +1189,16 @@ if (handle == nullptr)
 {
     return;
 }
+```
+
+```cpp
+// 望ましい: スマート ポインターも nullptr と比べる
+std::shared_ptr<ProcessHandle> handle = start_process(path);
+if (handle == nullptr)
+{
+    return false;
+}
+int pid = (handle != nullptr) ? (int)handle->pid : -1;
 ```
 
 ```c

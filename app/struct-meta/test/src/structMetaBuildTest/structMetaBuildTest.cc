@@ -129,7 +129,8 @@ TEST(structMetaBuildTest, computes_the_same_layout_as_the_compiler)
     // Pre-Assert
 
     // Act
-    int ret = build(make_nested_ast(), &arena, &descriptors, &count, &diagnostic); // [手順] - AST から記述子を作る。
+    int ret = build(make_nested_ast(), &arena, &descriptors, &count,
+                    &diagnostic); // [手順] - make_nested_ast() の AST を指定して build() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - build() の戻り値が CPLAT_OK であること。
@@ -229,8 +230,8 @@ TEST(structMetaBuildTest, treats_char_array_as_bytes_when_requested)
     // Pre-Assert
 
     // Act
-    int ret =
-        build(list, &arena, &descriptors, &count, &diagnostic); // [手順] - meta.kind=bytes を含む AST を組み立てる。
+    int ret = build(list, &arena, &descriptors, &count,
+                    &diagnostic); // [手順] - meta.kind=bytes を含む AST を指定して build() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - build() の戻り値が CPLAT_OK であること。
@@ -289,19 +290,21 @@ TEST(structMetaBuildTest, rejects_invalid_input)
 
     // Act
     int unknown_ret = build(unknown_list, &arena, &descriptors, &count,
-                            &unknown_type); // [手順] - 未知の型名を持つ AST を組み立てる。
+                            &unknown_type); // [手順] - 未知の型名を持つ AST を指定して build() を呼び出す。
     struct_meta_internal_arena_destroy(arena);
     int kind_ret = build(kind_list, &arena, &descriptors, &count,
-                         &bad_kind); // [手順] - スカラーに meta.kind を指定した AST を組み立てる。
+                         &bad_kind); // [手順] - スカラーに meta.kind を指定した AST を指定して build() を呼び出す。
     struct_meta_internal_arena_destroy(arena);
-    int format_ret = build(format_list, &arena, &descriptors, &count,
-                           &bad_format); // [手順] - スカラーに meta.format を指定した AST を組み立てる。
+    int format_ret =
+        build(format_list, &arena, &descriptors, &count,
+              &bad_format); // [手順] - スカラーに meta.format を指定した AST を指定して build() を呼び出す。
     struct_meta_internal_arena_destroy(arena);
-    int cyclic_ret =
-        build(cyclic_list, &arena, &descriptors, &count, &cyclic); // [手順] - 循環参照を持つ AST を組み立てる。
+    int cyclic_ret = build(cyclic_list, &arena, &descriptors, &count,
+                           &cyclic); // [手順] - 循環参照を持つ AST を指定して build() を呼び出す。
     struct_meta_internal_arena_destroy(arena);
-    int null_structs = struct_meta_internal_build_descriptors(nullptr, nullptr, &descriptors, &count,
-                                                              nullptr); // [手順] - NULL 引数を渡す。
+    int null_structs = struct_meta_internal_build_descriptors(
+        nullptr, nullptr, &descriptors, &count,
+        nullptr); // [手順] - 引数に nullptr を指定して struct_meta_internal_build_descriptors() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_NOT_FOUND,
@@ -321,5 +324,5 @@ TEST(structMetaBuildTest, rejects_invalid_input)
     EXPECT_STRNE("", cyclic.message); // [確認_異常系] - cyclic.message が "" 以外であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_structs); // [確認_異常系] - NULL 引数に対する struct_meta_internal_build_descriptors() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_structs); // [確認_異常系] - nullptr 引数に対する struct_meta_internal_build_descriptors() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }

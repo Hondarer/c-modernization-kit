@@ -16,7 +16,7 @@ TEST_F(divideTest, test_20_divide_4)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_divide(20, 4, &result); // [手順] - calcbase_divide(20, 4, &result) を呼び出す。
+    actual_ret = calcbase_divide(20, 4, &result); // [手順] - 20 と 4 を指定して calcbase_divide() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_divide() の戻り値が CALC_OK であること。
@@ -33,7 +33,7 @@ TEST_F(divideTest, test_10_divide_3)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_divide(10, 3, &result); // [手順] - calcbase_divide(10, 3, &result) を呼び出す。
+    actual_ret = calcbase_divide(10, 3, &result); // [手順] - 10 と 3 を指定して calcbase_divide() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_divide() の戻り値が CALC_OK であること。
@@ -50,7 +50,8 @@ TEST_F(divideTest, test_divide_by_zero)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_divide(10, 0, &result); // [手順] - calcbase_divide(10, 0, &result) **ゼロ除算** を呼び出す。
+    actual_ret =
+        calcbase_divide(10, 0, &result); // [手順] - ゼロ除算となる 10 と 0 を指定して calcbase_divide() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,
@@ -67,7 +68,7 @@ TEST_F(divideTest, test_negative_divide)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_divide(-12, 4, &result); // [手順] - calcbase_divide(-12, 4, &result) を呼び出す。
+    actual_ret = calcbase_divide(-12, 4, &result); // [手順] - -12 と 4 を指定して calcbase_divide() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_divide() の戻り値が CALC_OK であること。
@@ -83,7 +84,8 @@ TEST_F(divideTest, test_null_result)
     // Pre-Assert
 
     // Act
-    actual_ret = calcbase_divide(20, 4, nullptr); // [手順] - calcbase_divide(20, 4, NULL) を呼び出す。
+    actual_ret =
+        calcbase_divide(20, 4, nullptr); // [手順] - 20 と 4、出力先に nullptr を指定して calcbase_divide() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

@@ -17,7 +17,7 @@ TEST_F(addTest, less_argc)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - 引数が不足した状態で __real_main() を呼び出す。
 
     // Assert
     EXPECT_NE(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS 以外であること。
@@ -40,12 +40,13 @@ TEST_F(addTest, normal)
                 *result = 3;
                 return CALC_OK;
             }); // [Pre-Assert確認_正常系] - calcbase_add() が 1、2 を指定して 1 回呼び出されること。
-                // [Pre-Assert手順] - calcbase_add(1, 2, &result) にて result に 3 を設定し、CALC_OK を返す。
+                // [Pre-Assert手順] - calcbase_add() から、result に 3 を設定して CALC_OK を返す。
     EXPECT_CALL(mock_stdio, printf(_, _, _, StrEq("3\n")))
         .Times(1); // [Pre-Assert確認_正常系] - printf() が "3\n" と等しい文字列を指定して 1 回呼び出されること。
 
     // Act
-    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - main() に引数を与えて呼び出す。
+    int actual_ret =
+        __real_main(argc, (char **)&argv); // [手順] - 引数 "1" と "2" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -67,10 +68,10 @@ TEST_F(addTest, negative_operands)
                 *result = -9;
                 return CALC_OK;
             }); // [Pre-Assert確認_正常系] - calcbase_add() が -4、-5 を指定して 1 回呼び出されること。
-                // [Pre-Assert手順] - result に -9 を設定し、CALC_OK を返す。
+                // [Pre-Assert手順] - calcbase_add() から、result に -9 を設定して CALC_OK を返す。
 
     // Act
-    int actual_ret = __real_main(3, (char **)&argv); // [手順] - 負の位置整数で main() を呼び出す。
+    int actual_ret = __real_main(3, (char **)&argv); // [手順] - 負の位置整数を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
@@ -85,7 +86,7 @@ TEST_F(addTest, help)
     // Pre-Assert
 
     // Act
-    int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションで main() を呼び出す。
+    int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションを指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。

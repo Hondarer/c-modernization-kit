@@ -75,12 +75,12 @@ TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_
     // Pre-Assert
 
     // Act
-    const struct_meta_internal_layout_type *type_short =
-        struct_meta_internal_layout_find_type("short"); // [手順] - short を引く。
-    const struct_meta_internal_layout_type *type_unsigned =
-        struct_meta_internal_layout_find_type("unsigned"); // [手順] - unsigned を引く。
-    const struct_meta_internal_layout_type *type_double =
-        struct_meta_internal_layout_find_type("double"); // [手順] - double を引く。
+    const struct_meta_internal_layout_type *type_short = struct_meta_internal_layout_find_type(
+        "short"); // [手順] - "short" を指定して struct_meta_internal_layout_find_type() を呼び出す。
+    const struct_meta_internal_layout_type *type_unsigned = struct_meta_internal_layout_find_type(
+        "unsigned"); // [手順] - "unsigned" を指定して struct_meta_internal_layout_find_type() を呼び出す。
+    const struct_meta_internal_layout_type *type_double = struct_meta_internal_layout_find_type(
+        "double"); // [手順] - "double" を指定して struct_meta_internal_layout_find_type() を呼び出す。
 
     // Assert
     ASSERT_NE(
@@ -116,7 +116,7 @@ TEST(structMetaLayoutTest, finds_supported_types_and_rejects_platform_dependent_
     EXPECT_EQ(
         nullptr,
         struct_meta_internal_layout_find_type(
-            nullptr)); // [確認_異常系] - NULL に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
+            nullptr)); // [確認_異常系] - nullptr に対する struct_meta_internal_layout_find_type() の戻り値が nullptr であること。
     EXPECT_EQ(
         nullptr,
         struct_meta_internal_layout_find_type(
@@ -139,13 +139,15 @@ TEST(structMetaLayoutTest, computes_scalar_layout_like_the_compiler)
     // Pre-Assert
 
     // Act
-    struct_meta_internal_layout_begin(&builder);                            // [手順] - 計算を開始する。
-    add_scalar(&builder, "char", 1, &offset_first);                         // [手順] - char を追加する。
-    add_scalar(&builder, "int", 1, &offset_second);                         // [手順] - int を追加する。
-    add_scalar(&builder, "char", 1, &offset_third);                         // [手順] - char を追加する。
-    add_scalar(&builder, "double", 1, &offset_fourth);                      // [手順] - double を追加する。
-    add_scalar(&builder, "short", 1, &offset_fifth);                        // [手順] - short を追加する。
-    int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
+    struct_meta_internal_layout_begin(
+        &builder); // [手順] - builder を指定して struct_meta_internal_layout_begin() を呼び出す。
+    add_scalar(&builder, "char", 1, &offset_first);    // [手順] - "char" を指定して add_scalar() を呼び出す。
+    add_scalar(&builder, "int", 1, &offset_second);    // [手順] - "int" を指定して add_scalar() を呼び出す。
+    add_scalar(&builder, "char", 1, &offset_third);    // [手順] - "char" を指定して add_scalar() を呼び出す。
+    add_scalar(&builder, "double", 1, &offset_fourth); // [手順] - "double" を指定して add_scalar() を呼び出す。
+    add_scalar(&builder, "short", 1, &offset_fifth);   // [手順] - "short" を指定して add_scalar() を呼び出す。
+    int ret = struct_meta_internal_layout_end(
+        &builder, &size, &alignment); // [手順] - builder を指定して struct_meta_internal_layout_end() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_internal_layout_end() の戻り値が CPLAT_OK であること。
@@ -177,11 +179,15 @@ TEST(structMetaLayoutTest, computes_array_layout_like_the_compiler)
     // Pre-Assert
 
     // Act
-    struct_meta_internal_layout_begin(&builder);                            // [手順] - 計算を開始する。
-    add_scalar(&builder, "unsigned char", 3, &offset_header);               // [手順] - 1 バイト配列を追加する。
-    add_scalar(&builder, "int", 4, &offset_values);                         // [手順] - 4 バイト配列を追加する。
-    add_scalar(&builder, "char", 5, &offset_text);                          // [手順] - char 配列を追加する。
-    int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
+    struct_meta_internal_layout_begin(
+        &builder); // [手順] - builder を指定して struct_meta_internal_layout_begin() を呼び出す。
+    add_scalar(&builder, "unsigned char", 3,
+               &offset_header); // [手順] - "unsigned char" の 1 バイト配列を指定して add_scalar() を呼び出す。
+    add_scalar(&builder, "int", 4,
+               &offset_values);                    // [手順] - "int" の 4 バイト配列を指定して add_scalar() を呼び出す。
+    add_scalar(&builder, "char", 5, &offset_text); // [手順] - "char" の配列を指定して add_scalar() を呼び出す。
+    int ret = struct_meta_internal_layout_end(
+        &builder, &size, &alignment); // [手順] - builder を指定して struct_meta_internal_layout_end() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_internal_layout_end() の戻り値が CPLAT_OK であること。
@@ -213,21 +219,27 @@ TEST(structMetaLayoutTest, computes_nested_layout_like_the_compiler)
     // Pre-Assert
 
     // Act
-    struct_meta_internal_layout_begin(&body_builder);     // [手順] - ネスト側の計算を開始する。
-    add_scalar(&body_builder, "char", 1, &unused_offset); // [手順] - ネストのメンバーを並べる。
+    struct_meta_internal_layout_begin(
+        &body_builder); // [手順] - ネスト側の builder を指定して struct_meta_internal_layout_begin() を呼び出す。
+    add_scalar(&body_builder, "char", 1,
+               &unused_offset); // [手順] - ネストのメンバー "char" を指定して add_scalar() を呼び出す。
     add_scalar(&body_builder, "int", 1, &unused_offset);
     add_scalar(&body_builder, "char", 1, &unused_offset);
     add_scalar(&body_builder, "double", 1, &unused_offset);
     add_scalar(&body_builder, "short", 1, &unused_offset);
-    struct_meta_internal_layout_end(&body_builder, &body_size,
-                                    &body_alignment); // [手順] - ネストの大きさと境界を求める。
+    struct_meta_internal_layout_end(
+        &body_builder, &body_size,
+        &body_alignment); // [手順] - ネスト側の builder を指定して struct_meta_internal_layout_end() を呼び出す。
 
-    struct_meta_internal_layout_begin(&builder);   // [手順] - 親側の計算を開始する。
-    add_scalar(&builder, "char", 1, &offset_flag); // [手順] - char を追加する。
-    struct_meta_internal_layout_add(&builder, body_size, 1, body_alignment,
-                                    &offset_body);                          // [手順] - ネスト構造体を追加する。
-    add_scalar(&builder, "short", 1, &offset_tail);                         // [手順] - short を追加する。
-    int ret = struct_meta_internal_layout_end(&builder, &size, &alignment); // [手順] - 計算を終える。
+    struct_meta_internal_layout_begin(
+        &builder); // [手順] - 親側の builder を指定して struct_meta_internal_layout_begin() を呼び出す。
+    add_scalar(&builder, "char", 1, &offset_flag); // [手順] - "char" を指定して add_scalar() を呼び出す。
+    struct_meta_internal_layout_add(
+        &builder, body_size, 1, body_alignment,
+        &offset_body); // [手順] - ネスト構造体の大きさと境界を指定して struct_meta_internal_layout_add() を呼び出す。
+    add_scalar(&builder, "short", 1, &offset_tail); // [手順] - "short" を指定して add_scalar() を呼び出す。
+    int ret = struct_meta_internal_layout_end(
+        &builder, &size, &alignment); // [手順] - builder を指定して struct_meta_internal_layout_end() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_internal_layout_end() の戻り値が CPLAT_OK であること。
@@ -258,35 +270,42 @@ TEST(structMetaLayoutTest, rejects_invalid_arguments)
     // Pre-Assert
     struct_meta_internal_layout_begin(&builder);
     struct_meta_internal_layout_begin(&empty_builder);
-    struct_meta_internal_layout_begin(nullptr); // [状態] - NULL で異常終了しないこと。
+    struct_meta_internal_layout_begin(nullptr); // [状態] - nullptr で異常終了しないこと。
 
     // Act
-    int null_builder =
-        struct_meta_internal_layout_add(nullptr, 4, 1, 4, &offset); // [手順] - builder に NULL を指定して追加する。
-    int null_offset =
-        struct_meta_internal_layout_add(&builder, 4, 1, 4, nullptr); // [手順] - offset_out に NULL を指定して追加する。
-    int zero_size =
-        struct_meta_internal_layout_add(&builder, 0, 1, 4, &offset); // [手順] - 要素サイズに 0 を指定して追加する。
-    int zero_count =
-        struct_meta_internal_layout_add(&builder, 4, 0, 4, &offset); // [手順] - 要素数に 0 を指定して追加する。
-    int zero_alignment =
-        struct_meta_internal_layout_add(&builder, 4, 1, 0, &offset); // [手順] - 境界に 0 を指定して追加する。
-    int odd_alignment =
-        struct_meta_internal_layout_add(&builder, 4, 1, 3, &offset); // [手順] - 2 の冪でない境界を指定して追加する。
-    int huge_count = struct_meta_internal_layout_add(&builder, 8, SIZE_MAX, 8,
-                                                     &offset); // [手順] - 桁あふれする要素数を指定して追加する。
-    int empty_struct =
-        struct_meta_internal_layout_end(&empty_builder, &size, &alignment); // [手順] - メンバー無しの状態で終了する。
-    int null_size = struct_meta_internal_layout_end(&empty_builder, nullptr,
-                                                    &alignment); // [手順] - size_out に NULL を指定して終了する。
+    int null_builder = struct_meta_internal_layout_add(
+        nullptr, 4, 1, 4,
+        &offset); // [手順] - builder に nullptr を指定して struct_meta_internal_layout_add() を呼び出す。
+    int null_offset = struct_meta_internal_layout_add(
+        &builder, 4, 1, 4,
+        nullptr); // [手順] - offset_out に nullptr を指定して struct_meta_internal_layout_add() を呼び出す。
+    int zero_size = struct_meta_internal_layout_add(
+        &builder, 0, 1, 4,
+        &offset); // [手順] - 要素サイズに 0 を指定して struct_meta_internal_layout_add() を呼び出す。
+    int zero_count = struct_meta_internal_layout_add(
+        &builder, 4, 0, 4, &offset); // [手順] - 要素数に 0 を指定して struct_meta_internal_layout_add() を呼び出す。
+    int zero_alignment = struct_meta_internal_layout_add(
+        &builder, 4, 1, 0, &offset); // [手順] - 境界に 0 を指定して struct_meta_internal_layout_add() を呼び出す。
+    int odd_alignment = struct_meta_internal_layout_add(
+        &builder, 4, 1, 3,
+        &offset); // [手順] - 2 の冪でない境界を指定して struct_meta_internal_layout_add() を呼び出す。
+    int huge_count = struct_meta_internal_layout_add(
+        &builder, 8, SIZE_MAX, 8,
+        &offset); // [手順] - 桁あふれする要素数を指定して struct_meta_internal_layout_add() を呼び出す。
+    int empty_struct = struct_meta_internal_layout_end(
+        &empty_builder, &size,
+        &alignment); // [手順] - メンバー無しの builder を指定して struct_meta_internal_layout_end() を呼び出す。
+    int null_size = struct_meta_internal_layout_end(
+        &empty_builder, nullptr,
+        &alignment); // [手順] - size_out に nullptr を指定して struct_meta_internal_layout_end() を呼び出す。
 
     // Assert
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_builder); // [確認_異常系] - NULL の builder に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_builder); // [確認_異常系] - nullptr の builder に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_offset); // [確認_異常系] - NULL の offset_out に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_offset); // [確認_異常系] - nullptr の offset_out に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
         zero_size); // [確認_異常系] - 要素サイズ 0 に対する struct_meta_internal_layout_add() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
@@ -307,5 +326,5 @@ TEST(structMetaLayoutTest, rejects_invalid_arguments)
         empty_struct); // [確認_異常系] - メンバー無しの struct_meta_internal_layout_end() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        null_size); // [確認_異常系] - NULL の size_out に対する struct_meta_internal_layout_end() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        null_size); // [確認_異常系] - nullptr の size_out に対する struct_meta_internal_layout_end() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }

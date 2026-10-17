@@ -87,8 +87,9 @@ TEST(JsonEncodeTest, EncodesEachIntegerWidth)
     // Pre-Assert
 
     // Act
-    int ret = struct_meta_json_encode(&kWidthsDescriptor, &sample,
-                                      &json); // [手順] - 各幅の整数値を含む構造体を JSON へエンコードする。
+    int ret = struct_meta_json_encode(
+        &kWidthsDescriptor, &sample,
+        &json); // [手順] - 各幅の整数値を含む構造体を指定して struct_meta_json_encode() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
@@ -116,7 +117,9 @@ TEST(JsonEncodeTest, encodes_64_bit_integer_limits_exactly)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_json_encode(&kInteger64LimitsDescriptor, &sample, &json); // [手順] - 境界値を変換する。
+    int actual =
+        struct_meta_json_encode(&kInteger64LimitsDescriptor, &sample,
+                                &json); // [手順] - 境界値を含む構造体を指定して struct_meta_json_encode() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
@@ -158,8 +161,8 @@ TEST(JsonEncodeTest, UsesGenericJsonAttributes)
     // Pre-Assert
 
     // Act
-    int ret =
-        struct_meta_json_encode(&kDescriptor, &sample, &json); // [手順] - 属性付き構造体を JSON へエンコードする。
+    int ret = struct_meta_json_encode(
+        &kDescriptor, &sample, &json); // [手順] - 属性付き構造体を指定して struct_meta_json_encode() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, ret); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
@@ -186,7 +189,8 @@ TEST(JsonEncodeTest, RejectsCorruptDescriptor)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順] - 破損した記述子でエンコードを試みる。
+    int actual = struct_meta_json_encode(
+        &descriptor, &sample, &json); // [手順] - 破損した記述子を指定して struct_meta_json_encode() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR,
@@ -204,7 +208,9 @@ TEST(JsonEncodeTest, encodes_byte_arrays_in_selected_format)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_json_encode(&kByteDescriptor, &sample, &json); // [手順] - バイト配列を変換する。
+    int actual = struct_meta_json_encode(
+        &kByteDescriptor, &sample,
+        &json); // [手順] - バイト配列を含む構造体を指定して struct_meta_json_encode() を呼び出す。
 
     // Assert
     ASSERT_EQ(CPLAT_OK, actual); // [確認_正常系] - struct_meta_json_encode() の戻り値が CPLAT_OK であること。
@@ -249,7 +255,9 @@ TEST(JsonEncodeTest, rejects_unterminated_character_array)
     // Pre-Assert
 
     // Act
-    int actual = struct_meta_json_encode(&descriptor, &sample, &json); // [手順] - NUL のない配列を変換する。
+    int actual = struct_meta_json_encode(
+        &descriptor, &sample,
+        &json); // [手順] - NUL のない配列を含む構造体を指定して struct_meta_json_encode() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING,

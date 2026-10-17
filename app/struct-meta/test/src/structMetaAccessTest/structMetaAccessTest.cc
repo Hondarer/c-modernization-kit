@@ -37,10 +37,12 @@ TEST(structMetaAccessTest, finds_field_by_name)
     // Pre-Assert
 
     // Act
-    int actual_ret_first = struct_meta_descriptor_find_field(&kFieldsDescriptor, "first",
-                                                             &first); // [手順] - 先頭のフィールドを名前で検索する。
-    int actual_ret_second = struct_meta_descriptor_find_field(&kFieldsDescriptor, "second",
-                                                              &second); // [手順] - 末尾のフィールドを名前で検索する。
+    int actual_ret_first = struct_meta_descriptor_find_field(
+        &kFieldsDescriptor, "first",
+        &first); // [手順] - 先頭のフィールド名を指定して struct_meta_descriptor_find_field() を呼び出す。
+    int actual_ret_second = struct_meta_descriptor_find_field(
+        &kFieldsDescriptor, "second",
+        &second); // [手順] - 末尾のフィールド名を指定して struct_meta_descriptor_find_field() を呼び出す。
 
     // Assert
     ASSERT_EQ(
@@ -62,8 +64,9 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_field)
     // Pre-Assert
 
     // Act
-    int actual_ret = struct_meta_descriptor_find_field(&kFieldsDescriptor, "unknown",
-                                                       &field); // [手順] - 存在しないフィールドを検索する。
+    int actual_ret = struct_meta_descriptor_find_field(
+        &kFieldsDescriptor, "unknown",
+        &field); // [手順] - 存在しないフィールド名を指定して struct_meta_descriptor_find_field() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -81,23 +84,26 @@ TEST(structMetaAccessTest, rejects_invalid_arguments_for_find_field)
     // Pre-Assert
 
     // Act
-    int descriptor_ret = struct_meta_descriptor_find_field(nullptr, "first",
-                                                           &field); // [手順] - NULL の記述子を指定する。
-    int name_ret = struct_meta_descriptor_find_field(&kFieldsDescriptor, nullptr,
-                                                     &field); // [手順] - NULL のフィールド名を指定する。
-    int output_ret = struct_meta_descriptor_find_field(&kFieldsDescriptor, "first",
-                                                       nullptr); // [手順] - NULL の出力先を指定する。
+    int descriptor_ret = struct_meta_descriptor_find_field(
+        nullptr, "first",
+        &field); // [手順] - nullptr の記述子を指定して struct_meta_descriptor_find_field() を呼び出す。
+    int name_ret = struct_meta_descriptor_find_field(
+        &kFieldsDescriptor, nullptr,
+        &field); // [手順] - nullptr のフィールド名を指定して struct_meta_descriptor_find_field() を呼び出す。
+    int output_ret = struct_meta_descriptor_find_field(
+        &kFieldsDescriptor, "first",
+        nullptr); // [手順] - nullptr の出力先を指定して struct_meta_descriptor_find_field() を呼び出す。
 
     // Assert
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        descriptor_ret); // [確認_異常系] - NULL の記述子に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        descriptor_ret); // [確認_異常系] - nullptr の記述子に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        name_ret); // [確認_異常系] - NULL のフィールド名に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        name_ret); // [確認_異常系] - nullptr のフィールド名に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        output_ret); // [確認_異常系] - NULL の出力先に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        output_ret); // [確認_異常系] - nullptr の出力先に対する struct_meta_descriptor_find_field() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }
 
 // 構造体記述子から指定したキーの属性 (値あり・値なし) を検索できることの確認
@@ -110,10 +116,12 @@ TEST(structMetaAccessTest, finds_descriptor_attributes)
     // Pre-Assert
 
     // Act
-    int version_ret = struct_meta_descriptor_find_attribute(&kDescriptor, "schema.version",
-                                                            &version); // [手順] - 値ありの構造体属性を検索する。
-    int flag_ret = struct_meta_descriptor_find_attribute(&kDescriptor, "sample.flag",
-                                                         &flag); // [手順] - 値なしの構造体属性を検索する。
+    int version_ret = struct_meta_descriptor_find_attribute(
+        &kDescriptor, "schema.version",
+        &version); // [手順] - 値ありの構造体属性を指定して struct_meta_descriptor_find_attribute() を呼び出す。
+    int flag_ret = struct_meta_descriptor_find_attribute(
+        &kDescriptor, "sample.flag",
+        &flag); // [手順] - 値なしの構造体属性を指定して struct_meta_descriptor_find_attribute() を呼び出す。
 
     // Assert
     ASSERT_EQ(
@@ -137,8 +145,9 @@ TEST(structMetaAccessTest, returns_not_found_for_unknown_key)
     // Pre-Assert
 
     // Act
-    int actual_ret = struct_meta_descriptor_find_attribute(&kDescriptor, "unknown",
-                                                           &attribute); // [手順] - 存在しない構造体属性を検索する。
+    int actual_ret = struct_meta_descriptor_find_attribute(
+        &kDescriptor, "unknown",
+        &attribute); // [手順] - 存在しない構造体属性を指定して struct_meta_descriptor_find_attribute() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -156,23 +165,26 @@ TEST(structMetaAccessTest, rejects_invalid_arguments)
     // Pre-Assert
 
     // Act
-    int descriptor_ret = struct_meta_descriptor_find_attribute(nullptr, "schema.version",
-                                                               &attribute); // [手順] - NULL の記述子を指定する。
-    int key_ret = struct_meta_descriptor_find_attribute(&kDescriptor, nullptr,
-                                                        &attribute); // [手順] - NULL の属性キーを指定する。
-    int output_ret = struct_meta_descriptor_find_attribute(&kDescriptor, "schema.version",
-                                                           nullptr); // [手順] - NULL の出力先を指定する。
+    int descriptor_ret = struct_meta_descriptor_find_attribute(
+        nullptr, "schema.version",
+        &attribute); // [手順] - nullptr の記述子を指定して struct_meta_descriptor_find_attribute() を呼び出す。
+    int key_ret = struct_meta_descriptor_find_attribute(
+        &kDescriptor, nullptr,
+        &attribute); // [手順] - nullptr の属性キーを指定して struct_meta_descriptor_find_attribute() を呼び出す。
+    int output_ret = struct_meta_descriptor_find_attribute(
+        &kDescriptor, "schema.version",
+        nullptr); // [手順] - nullptr の出力先を指定して struct_meta_descriptor_find_attribute() を呼び出す。
 
     // Assert
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        descriptor_ret); // [確認_異常系] - NULL の記述子に対する struct_meta_descriptor_find_attribute() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        descriptor_ret); // [確認_異常系] - nullptr の記述子に対する struct_meta_descriptor_find_attribute() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        key_ret); // [確認_異常系] - NULL の属性キーに対する struct_meta_descriptor_find_attribute() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        key_ret); // [確認_異常系] - nullptr の属性キーに対する struct_meta_descriptor_find_attribute() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
-        output_ret); // [確認_異常系] - NULL の出力先に対する struct_meta_descriptor_find_attribute() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+        output_ret); // [確認_異常系] - nullptr の出力先に対する struct_meta_descriptor_find_attribute() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }
 
 // 重複する属性キーを持つ構造体記述子の検証時に記述子破損エラーとなることの確認
@@ -185,8 +197,8 @@ TEST(structMetaAccessTest, rejects_duplicate_descriptor_attributes)
     // Pre-Assert
 
     // Act
-    int actual_ret =
-        struct_meta_descriptor_validate(&descriptor); // [手順] - 重複する構造体属性を持つ記述子を検査する。
+    int actual_ret = struct_meta_descriptor_validate(
+        &descriptor); // [手順] - 重複する構造体属性を持つ記述子を指定して struct_meta_descriptor_validate() を呼び出す。
 
     // Assert
     EXPECT_EQ(

@@ -22,10 +22,10 @@ TEST_F(subtractTest, test_10_subtract_3)
                 *_result = 7;
                 return CALC_OK;
             }); // [Pre-Assert確認_正常系] - calcbase_add() が 10、-3 を指定して 1 回呼び出されること。
-                // [Pre-Assert手順] - calcbase_add(10, -3, &result) にて result に 7 を設定し、CALC_OK を返す。
+                // [Pre-Assert手順] - calcbase_add() から、result に 7 を設定して CALC_OK を返す。
 
     // Act
-    actual_ret = calcbase_subtract(10, 3, &result); // [手順] - calcbase_subtract(10, 3, &result) を呼び出す。
+    actual_ret = calcbase_subtract(10, 3, &result); // [手順] - 10 と 3 を指定して calcbase_subtract() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_subtract() の戻り値が CALC_OK であること。
@@ -48,10 +48,10 @@ TEST_F(subtractTest, test_3_subtract_10)
                 *_result = -7;
                 return CALC_OK;
             }); // [Pre-Assert確認_正常系] - calcbase_add() が 3、-10 を指定して 1 回呼び出されること。
-                // [Pre-Assert手順] - calcbase_add(3, -10, &result) にて result に -7 を設定し、CALC_OK を返す。
+                // [Pre-Assert手順] - calcbase_add() から、result に -7 を設定して CALC_OK を返す。
 
     // Act
-    actual_ret = calcbase_subtract(3, 10, &result); // [手順] - calcbase_subtract(3, 10, &result) を呼び出す。
+    actual_ret = calcbase_subtract(3, 10, &result); // [手順] - 3 と 10 を指定して calcbase_subtract() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_subtract() の戻り値が CALC_OK であること。
@@ -74,10 +74,10 @@ TEST_F(subtractTest, test_5_subtract_5)
                 *_result = 0;
                 return CALC_OK;
             }); // [Pre-Assert確認_正常系] - calcbase_add() が 5、-5 を指定して 1 回呼び出されること。
-                // [Pre-Assert手順] - calcbase_add(5, -5, &result) にて result に 0 を設定し、CALC_OK を返す。
+                // [Pre-Assert手順] - calcbase_add() から、result に 0 を設定して CALC_OK を返す。
 
     // Act
-    actual_ret = calcbase_subtract(5, 5, &result); // [手順] - calcbase_subtract(5, 5, &result) を呼び出す。
+    actual_ret = calcbase_subtract(5, 5, &result); // [手順] - 5 と 5 を指定して calcbase_subtract() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_OK, actual_ret); // [確認_正常系] - calcbase_subtract() の戻り値が CALC_OK であること。
@@ -95,10 +95,11 @@ TEST_F(subtractTest, test_null_result)
     EXPECT_CALL(mock_calcbase, calcbase_add(10, -3, nullptr))
         .WillOnce(Return(
             CALC_ERR_INVALID_ARGUMENT)); // [Pre-Assert確認_異常系] - calcbase_add() が 10、-3、nullptr を指定して 1 回呼び出されること。
-    // [Pre-Assert手順] - calcbase_add(10, -3, NULL) にて CALC_ERR_INVALID_ARGUMENT を返す。
+    // [Pre-Assert手順] - calcbase_add() から CALC_ERR_INVALID_ARGUMENT を返す。
 
     // Act
-    actual_ret = calcbase_subtract(10, 3, nullptr); // [手順] - calcbase_subtract(10, 3, NULL) を呼び出す。
+    actual_ret = calcbase_subtract(
+        10, 3, nullptr); // [手順] - 10 と 3、出力先に nullptr を指定して calcbase_subtract() を呼び出す。
 
     // Assert
     EXPECT_EQ(CALC_ERR_INVALID_ARGUMENT,

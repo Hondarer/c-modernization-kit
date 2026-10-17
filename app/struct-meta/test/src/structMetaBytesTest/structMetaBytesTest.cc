@@ -32,14 +32,18 @@ TEST(structMetaBytesTest, classifies_byte_arrays_and_formats)
     // Pre-Assert
 
     // Act
-    int integer_ret = struct_meta_internal_field_byte_format(&kBytes, &integer_format); // [手順] - 既定形式を取得する。
-    int hex_ret = struct_meta_internal_field_byte_format(&kHexBytes, &hex_format);      // [手順] - 16 進形式を取得する。
+    int integer_ret = struct_meta_internal_field_byte_format(
+        &kBytes,
+        &integer_format); // [手順] - 既定形式のフィールドを指定して struct_meta_internal_field_byte_format() を呼び出す。
+    int hex_ret = struct_meta_internal_field_byte_format(
+        &kHexBytes,
+        &hex_format); // [手順] - 16 進形式のフィールドを指定して struct_meta_internal_field_byte_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(
         0,
         struct_meta_internal_field_is_byte_array(
-            nullptr)); // [確認_異常系] - NULL に対する struct_meta_internal_field_is_byte_array() の戻り値が 0 であること。(バイト配列と判定されないことの確認)
+            nullptr)); // [確認_異常系] - nullptr に対する struct_meta_internal_field_is_byte_array() の戻り値が 0 であること。(バイト配列と判定されないことの確認)
     EXPECT_EQ(
         0,
         struct_meta_internal_field_is_byte_array(
@@ -70,9 +74,12 @@ TEST(structMetaBytesTest, rejects_invalid_meta_attributes)
     // Pre-Assert
 
     // Act
-    int bad_format = struct_meta_internal_field_byte_format(&kBadFormat, &format); // [手順] - 未知の形式を解釈する。
-    int scalar_bytes =
-        struct_meta_internal_field_byte_format(&kScalarBytes, &format); // [手順] - スカラーへ bytes を指定する。
+    int bad_format = struct_meta_internal_field_byte_format(
+        &kBadFormat,
+        &format); // [手順] - 未知の形式のフィールドを指定して struct_meta_internal_field_byte_format() を呼び出す。
+    int scalar_bytes = struct_meta_internal_field_byte_format(
+        &kScalarBytes,
+        &format); // [手順] - bytes を指定したスカラーのフィールドを指定して struct_meta_internal_field_byte_format() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -85,12 +92,12 @@ TEST(structMetaBytesTest, rejects_invalid_meta_attributes)
         CPLAT_ERR_INVALID_ARGUMENT,
         struct_meta_internal_field_byte_format(
             nullptr,
-            &format)); // [確認_異常系] - NULL フィールドに対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+            &format)); // [確認_異常系] - nullptr フィールドに対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
         struct_meta_internal_field_byte_format(
             &kBytes,
-            nullptr)); // [確認_異常系] - NULL 出力に対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+            nullptr)); // [確認_異常系] - nullptr 出力に対する struct_meta_internal_field_byte_format() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
 }
 
 // 固定長バイト配列と 16 進数文字列の相互変換が正しく行われることの確認
@@ -104,10 +111,12 @@ TEST(structMetaBytesTest, converts_fixed_length_hex_text)
     // Pre-Assert
 
     // Act
-    int encode_ret =
-        struct_meta_internal_bytes_to_hex(source, 3U, text, sizeof(text)); // [手順] - 16 進文字列へ変換する。
-    int decode_ret =
-        struct_meta_internal_bytes_from_hex(decoded, 3U, "00  A5 ff"); // [手順] - 複数空白と大文字を含む入力を戻す。
+    int encode_ret = struct_meta_internal_bytes_to_hex(
+        source, 3U, text,
+        sizeof(text)); // [手順] - 3 バイトの入力を指定して struct_meta_internal_bytes_to_hex() を呼び出す。
+    int decode_ret = struct_meta_internal_bytes_from_hex(
+        decoded, 3U,
+        "00  A5 ff"); // [手順] - 複数空白と大文字を含む入力 "00  A5 ff" を指定して struct_meta_internal_bytes_from_hex() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
@@ -129,9 +138,15 @@ TEST(structMetaBytesTest, rejects_invalid_hex_without_writing)
     // Pre-Assert
 
     // Act
-    int invalid_digit = struct_meta_internal_bytes_from_hex(bytes, 3U, "aa bb gg");   // [手順] - 不正な桁を与える。
-    int leading_space = struct_meta_internal_bytes_from_hex(bytes, 3U, " aa bb cc");  // [手順] - 先頭空白を与える。
-    int trailing_space = struct_meta_internal_bytes_from_hex(bytes, 3U, "aa bb cc "); // [手順] - 末尾空白を与える。
+    int invalid_digit = struct_meta_internal_bytes_from_hex(
+        bytes, 3U,
+        "aa bb gg"); // [手順] - 不正な桁を含む入力を指定して struct_meta_internal_bytes_from_hex() を呼び出す。
+    int leading_space = struct_meta_internal_bytes_from_hex(
+        bytes, 3U,
+        " aa bb cc"); // [手順] - 先頭空白を含む入力を指定して struct_meta_internal_bytes_from_hex() を呼び出す。
+    int trailing_space = struct_meta_internal_bytes_from_hex(
+        bytes, 3U,
+        "aa bb cc "); // [手順] - 末尾空白を含む入力を指定して struct_meta_internal_bytes_from_hex() を呼び出す。
 
     // Assert
     EXPECT_EQ(
@@ -159,7 +174,8 @@ TEST(structMetaBytesTest, validates_sizes_and_buffers)
     // Pre-Assert
 
     // Act
-    int size_ret = struct_meta_internal_bytes_hex_text_size(3U, &text_size); // [手順] - 必要サイズを求める。
+    int size_ret = struct_meta_internal_bytes_hex_text_size(
+        3U, &text_size); // [手順] - 3 バイトを指定して struct_meta_internal_bytes_hex_text_size() を呼び出す。
 
     // Assert
     EXPECT_EQ(CPLAT_OK,
