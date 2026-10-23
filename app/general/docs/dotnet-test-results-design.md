@@ -628,7 +628,6 @@ results/
 ### C テスト フレームワークの関連ファイル
 
 - `framework/testfw/bin_internal/exec_test_c_cpp.sh` - C/C++ テスト実行スクリプト
-- `framework/testfw/bin_internal/get_test_code_c_cpp.awk` - テスト コード抽出 (AWK)
 - `framework/testfw/bin_internal/insert_summary_c_cpp.py` - C/C++ サマリー生成
 - `framework/testfw/bin_internal/test_summary.py` - 期待確認の共通解析・集計
 - `framework/testfw/bin_internal/gtest_summary_groups.py` - Google Test のレコード集計と定義単位のエビデンス生成

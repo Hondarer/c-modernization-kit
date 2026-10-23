@@ -11,7 +11,20 @@ class ParamTest1
     }
 };
 
-class ParamTest1Test : public TestWithParam<tuple<int, int, int>>
+struct ParamTest1TestParam
+{
+    int a;
+    int b;
+    int expected;
+};
+
+void PrintTo(const ParamTest1TestParam &, ostream *);
+void PrintTo(const ParamTest1TestParam &p, ostream *os)
+{
+    *os << "a: " << p.a << ", b: " << p.b << ", expected: " << p.expected;
+}
+
+class ParamTest1Test : public TestWithParam<ParamTest1TestParam>
 {
 };
 
@@ -21,27 +34,24 @@ TEST_P(ParamTest1Test, MultiplyTest)
     // Arrange
     ParamTest1 mockObj;
 
-    int a = get<0>(GetParam());        // [状態] - パラメーターから a を取り出す。
-    int b = get<1>(GetParam());        // [状態] - パラメーターから b を取り出す。
-    int expected = get<2>(GetParam()); // [状態] - パラメーターから期待する戻り値を取り出す。
+    const ParamTest1TestParam p = GetParam(); // [状態] - パラメーターから a、b、期待する戻り値を取り出す。
 
     // Pre-Assert
-    EXPECT_CALL(mockObj, myFunction(a, b))
-        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction() が a、b を指定して 1 回呼び出されること。
+    EXPECT_CALL(mockObj, myFunction(p.a, p.b))
+        .Times(1); // [Pre-Assert確認_正常系 回数=PARAM] - myFunction() が p.a、p.b を指定して 1 回呼び出されること。
 
     // Act
-    int result = mockObj.myFunction(a, b); // [手順] - a と b を指定して mockObj.myFunction() を呼び出す。
+    int result = mockObj.myFunction(p.a, p.b); // [手順] - p.a と p.b を指定して mockObj.myFunction() を呼び出す。
 
     // Assert
-    EXPECT_EQ(result, expected); // [確認_正常系 回数=PARAM] - mockObj.myFunction() の戻り値が expected と一致すること。
+    EXPECT_EQ(result,
+              p.expected); // [確認_正常系 回数=PARAM] - mockObj.myFunction() の戻り値が p.expected と一致すること。
 }
 
-// NOTE: get_test_code.awk での構文解析の都合で、
-//       INSTANTIATE_TEST_SUITE_P の行には
-//       prefix (省略可能)、test_suite_name を同一行に記載し、
-//       最後に "," を付与する。
-INSTANTIATE_TEST_SUITE_P(, ParamTest1Test, Values(make_tuple(1, 3, 3), make_tuple(4, 1, 4)));
+INSTANTIATE_TEST_SUITE_P(, ParamTest1Test, Values(ParamTest1TestParam{1, 3, 3}, ParamTest1TestParam{4, 1, 4}));
 
-INSTANTIATE_TEST_SUITE_P(MultiplicationTests1, ParamTest1Test, Values(make_tuple(2, 3, 6), make_tuple(4, 5, 20)));
+INSTANTIATE_TEST_SUITE_P(MultiplicationTests1, ParamTest1Test,
+                         Values(ParamTest1TestParam{2, 3, 6}, ParamTest1TestParam{4, 5, 20}));
 
-INSTANTIATE_TEST_SUITE_P(MultiplicationTests2, ParamTest1Test, Values(make_tuple(3, 2, 6), make_tuple(5, 4, 20)));
+INSTANTIATE_TEST_SUITE_P(MultiplicationTests2, ParamTest1Test,
+                         Values(ParamTest1TestParam{3, 2, 6}, ParamTest1TestParam{5, 4, 20}));

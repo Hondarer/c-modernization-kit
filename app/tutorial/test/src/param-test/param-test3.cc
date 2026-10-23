@@ -33,10 +33,10 @@ struct ParamTest3TestParam
     #pragma GCC diagnostic pop
 #endif /* COMPILER_GCC */
 
-ostream &operator<<(ostream &, const ParamTest3TestParam &);
-ostream &operator<<(ostream &stream, const ParamTest3TestParam &p)
+void PrintTo(const ParamTest3TestParam &, ostream *);
+void PrintTo(const ParamTest3TestParam &p, ostream *os)
 {
-    return stream << p.desc;
+    *os << "desc: \"" << p.desc << "\", a: " << p.a << ", b: " << p.b << ", expected: " << p.expected;
 }
 
 class ParamTest3Test : public TestWithParam<ParamTest3TestParam>
@@ -65,4 +65,4 @@ TEST_P(ParamTest3Test, MultiplyTest)
 // テスト名をデータ定義できるようにする例
 INSTANTIATE_TEST_SUITE_P(, ParamTest3Test,
                          Values(ParamTest3TestParam("2_3_6", 2, 3, 6), ParamTest3TestParam("4_5_20", 4, 5, 20)),
-                         PrintToStringParamName());
+                         [](const TestParamInfo<ParamTest3TestParam> &param_info) { return param_info.param.desc; });

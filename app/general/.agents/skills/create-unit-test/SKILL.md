@@ -9,6 +9,7 @@ description: app 配下の C/C++ 単体テストを作成・変更・レビュ�
 
 - 配置やビルド対象を変更する場合は `framework/testfw/docs/how-to-test.md` の `TEST_SRCS`、`ADD_SRCS`、main の扱いと、必要なら `app/general/docs/testing-tutorial.md` の配置例
 - フェーズやエビデンス コメントを変更する場合は `framework/testfw/docs/about-test-phase.md` の該当するテスト形式と「期待を確認する行為 1 回を 1 件として集計する」
+- パラメーター テストを作成・変更する場合は `framework/testfw/docs/about-test-phase.md` の「パラメーター テストのパラメーター」
 
 ループ、条件分岐、パラメーター テストの確認回数は、アルゴリズムとテスト データから決定して記載してください。  
 共通関数や fixture の状態、手順、確認を含める場合は `framework/testfw/docs/test-subprocedures.md` に従ってサブ手順を定義し、テストから参照してください。  

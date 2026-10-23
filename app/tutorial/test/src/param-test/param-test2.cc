@@ -33,10 +33,10 @@ struct ParamTest2TestParam
     #pragma GCC diagnostic pop
 #endif /* COMPILER_GCC */
 
-ostream &operator<<(ostream &, const ParamTest2TestParam &);
-ostream &operator<<(ostream &stream, const ParamTest2TestParam &p)
+void PrintTo(const ParamTest2TestParam &, ostream *);
+void PrintTo(const ParamTest2TestParam &p, ostream *os)
 {
-    return stream << p.desc;
+    *os << "desc: \"" << p.desc << "\", a: " << p.a << ", b: " << p.b << ", expected: " << p.expected;
 }
 
 class ParamTest2Test : public TestWithParam<ParamTest2TestParam>
@@ -65,4 +65,4 @@ TEST_P(ParamTest2Test, MultiplyTest)
 // テスト名をデータ定義できるようにする例
 INSTANTIATE_TEST_SUITE_P(, ParamTest2Test,
                          Values(ParamTest2TestParam("2_3_6", 2, 3, 6), ParamTest2TestParam("4_5_20", 4, 5, 20)),
-                         PrintToStringParamName());
+                         [](const TestParamInfo<ParamTest2TestParam> &param_info) { return param_info.param.desc; });
