@@ -134,6 +134,20 @@ function Find-FirstValidPath {
     return $null
 }
 
+# Git のルートから使用可能なバイナリ ディレクトリの組を返す
+function Find-GitBinaryPaths {
+    param([string]$Root)
+    $usr = Join-Path $Root "usr\bin"
+    if (-not (Test-Path -LiteralPath (Join-Path $usr "bash.exe") -PathType Leaf)) { return $null }
+    foreach ($environment in @("ucrt64", "mingw64")) {
+        $bin = Join-Path $Root "$environment\bin"
+        if (Test-Path -LiteralPath (Join-Path $bin "git.exe") -PathType Leaf) {
+            return [PSCustomObject]@{ Bin = $bin; Usr = $usr }
+        }
+    }
+    return $null
+}
+
 # ディレクトリ内のバージョン番号ディレクトリから最新のものを返す
 function Find-LatestVersionDirectory {
     param([string]$BasePath)
@@ -199,15 +213,26 @@ if (-not $gitProgramPath) {
         "C:\Program Files\Git",
         "$devbinBase\bin\git"
     )
-    $gitProgramPath = Find-FirstValidPath $gitCandidates
+    foreach ($candidate in $gitCandidates) {
+        $gitBinaryPaths = Find-GitBinaryPaths $candidate
+        if ($gitBinaryPaths) {
+            $gitProgramPath = $candidate
+            break
+        }
+    }
     if ($gitProgramPath) {
         Write-Host "Git:                 $gitProgramPath"
     } else {
-        Write-Error "Git for Windows not found in candidate directories:"
+        Write-Error "Usable Git for Windows not found in candidate directories:"
         $gitCandidates | ForEach-Object { Write-Host "  - $_" }
         exit 1
     }
 } else {
+    $gitBinaryPaths = Find-GitBinaryPaths $gitProgramPath
+    if (-not $gitBinaryPaths) {
+        Write-Error "Usable Git for Windows not found in: $gitProgramPath (requires ucrt64\bin or mingw64\bin with git.exe, and usr\bin with bash.exe)"
+        exit 1
+    }
     Write-Host "Git:                 $gitProgramPath"
 }
 
@@ -297,8 +322,8 @@ if (-not $windowsSDKVersion) {
 
 # ---- MinGW 環境変数の設定 ----
 
-$mingwPath = Join-Path $gitProgramPath "mingw64\bin"
-$usrPath   = Join-Path $gitProgramPath "usr\bin"
+$mingwPath = $gitBinaryPaths.Bin
+$usrPath   = $gitBinaryPaths.Usr
 
 if (-not (Test-Path $mingwPath)) {
     Write-Error "MinGW path not found: $mingwPath"
