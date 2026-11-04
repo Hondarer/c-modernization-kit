@@ -11,6 +11,9 @@
 - *_selftest.ps1: Windows だけで PowerShell により実行する
 - test_*.js: Node.js で実行し、終了コードで合否を判定する
 
+子プロセスには PYTHONSAFEPATH=1 を設定し、埋め込み版 Python と同じく
+スクリプトのディレクトリを sys.path に入れない条件で実行する。
+
 BIN_TEST_PYTHON が指定されている場合は、その Python を使う。
 未指定で bin_test/ の親ディレクトリに .venv がある場合は、その Python を使う。
 作業ディレクトリは、bin_test/ を含む Git リポジトリのルートとする。
@@ -91,6 +94,11 @@ def child_environment():
     # 文字コードを指定していない読み書きの不具合を隠さない。
     environment = os.environ.copy()
     environment["PYTHONIOENCODING"] = "utf-8"
+    # 埋め込み版 Python (._pth) と同じく、スクリプトのディレクトリを sys.path に入れない。
+    # 子プロセスにも引き継がれるため、make などから起動されるスクリプトの import 漏れも検出できる。
+    # see: app/general/docs/python-import-path-guideline.md
+    # see: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONSAFEPATH
+    environment["PYTHONSAFEPATH"] = "1"
     return environment
 
 

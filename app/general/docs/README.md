@@ -12,6 +12,7 @@ C/C++ コーディング規約やテスト方針、AI エージェントとス�
 
 - [コーディング規範](coding-guideline.md) - C/C++ 言語の命名規則、設計、移植性の指針
 - [Python の文字コード指定規範](python-text-encoding-guideline.md) - ファイルと子プロセスのテキスト入出力、既定値への依存を検出する検証
+- [Python の import 経路の規範](python-import-path-guideline.md) - 埋め込み版 Python でも同じディレクトリのモジュールを読み込むための sys.path の追加と検証
 - [機能仕様の記載規範](functional-spec-guideline.md) - 機能仕様書の構成と記載要件
 - [Doxygen コメント](doxygen-comment-guideline.md) - app 共通の Doxygen コメント配置と契約記述
 

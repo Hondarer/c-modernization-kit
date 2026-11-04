@@ -34,5 +34,13 @@ class PythonSelectionTest(unittest.TestCase):
                 self.assertEqual(runner.python_for(root / "bin_test"), str(executable))
 
 
+class ChildEnvironmentTest(unittest.TestCase):
+    def test_child_python_excludes_script_directory_like_embedded_python(self):
+        # 埋め込み版 Python (._pth) と同じ条件で、同じディレクトリの import 漏れを検出する。
+        environment = runner.child_environment()
+        self.assertEqual(environment["PYTHONSAFEPATH"], "1")
+        self.assertEqual(environment["PYTHONIOENCODING"], "utf-8")
+
+
 if __name__ == "__main__":
     unittest.main()

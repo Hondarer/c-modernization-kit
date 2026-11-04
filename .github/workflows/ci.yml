@@ -27,6 +27,10 @@ env:
   PANDOC_CROSSREF_VERSION: "0.3.25a"
   DOXYGEN_VERSION: "1.18.0"
   DOXYBOOK2_VERSION: "1.6.1"
+  # 埋め込み版 Python (._pth) と同じく、スクリプトのディレクトリを sys.path に入れずに
+  # ビルド、テスト、文書生成を実行し、同じディレクトリの import 漏れを検出する。
+  # see: app/general/docs/python-import-path-guideline.md
+  PYTHONSAFEPATH: "1"
 
 jobs:
   build-and-test-linux:
@@ -77,6 +81,9 @@ jobs:
 
       - name: Check app .gitignore
         run: python3 app/general/bin_internal/check-app-gitignore.py --check
+
+      - name: Check Python import path
+        run: python3 app/general/bin/check-python-import-path.py
 
       - name: Load app environment
         run: bash app/general/bin_internal/load-app-env.sh --env-file .vscode/.env.linux --workspace "$GITHUB_WORKSPACE" --format github
@@ -344,6 +351,9 @@ jobs:
 
       - name: Check app .gitignore
         run: python3 app/general/bin_internal/check-app-gitignore.py --check
+
+      - name: Check Python import path
+        run: python3 app/general/bin/check-python-import-path.py
 
       - name: Load app environment
         run: bash app/general/bin_internal/load-app-env.sh --env-file .vscode/.env.windows --workspace '${{ github.workspace }}' --format github

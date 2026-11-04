@@ -308,6 +308,8 @@ source/app/**/test/**/*.warn
 | `build-and-test-linux` (コンテナー内) | `inner-build.sh` |
 | `build-and-test-linux` (コンテナー起動) | `build.sh` |
 | `Check NBSP` | `inner-build.sh` の `python3 /workspace/app/general/bin/check-nbsp.py --force` |
+| `Check Python import path` | `inner-build.sh` の `python3 /workspace/app/general/bin/check-python-import-path.py` |
+| `env: PYTHONSAFEPATH` | `inner-build.sh` の `export PYTHONSAFEPATH=1` |
 | `Load app environment` | `inner-build.sh` の `load-app-env.sh` 呼び出し (同じ env ファイルを参照) |
 | `upload-artifact: linux-*-test-results` | `linux-${OS_NAME}-test-results.zip` |
 | `upload-artifact: linux-*-logs` | `linux-${OS_NAME}-logs.zip` (`*-test.log` を除く) |

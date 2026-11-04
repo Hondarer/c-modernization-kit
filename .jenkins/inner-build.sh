@@ -25,6 +25,12 @@ eval "$(bash /workspace/app/general/bin_internal/load-app-env.sh \
     --format shell --no-clobber)"
 
 python3 /workspace/app/general/bin/check-nbsp.py --force
+python3 /workspace/app/general/bin/check-python-import-path.py
+
+# 埋め込み版 Python (._pth) と同じく、スクリプトのディレクトリを sys.path に入れずに実行する。
+# .github/workflows/ci.yml の env と揃える。
+# see: app/general/docs/python-import-path-guideline.md
+export PYTHONSAFEPATH=1
 
 # ビルド ログを保存しながら make を実行
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
