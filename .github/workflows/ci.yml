@@ -39,7 +39,12 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/framework/docsfw/.cache/puppeteer
+      # 多数のテスト実行ファイルが保持する DWARF を圧縮し、runner の容量不足を防ぐ。
+      # makefw が付加する警告・最適化・カバレッジのフラグを維持する。
+      # see: https://gcc.gnu.org/onlinedocs/gcc-8.1.0/gcc/Debugging-Options.html
+      MAKEFW_GCC_DEBUG_COMPRESSION: zlib
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os-name: ol8
@@ -97,7 +102,14 @@ jobs:
       - name: Build
         run: |
           set -o pipefail
+          df -h "$GITHUB_WORKSPACE"
           make 2>&1 | tee logs/linux-${{ matrix.os-name }}-build.log
+
+      - name: Record build disk usage
+        if: always()
+        run: |
+          df -h "$GITHUB_WORKSPACE"
+          du -sh app framework
 
       - name: Run tests
         run: |
@@ -114,6 +126,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload build warnings
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-warns
@@ -126,6 +139,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload build logs
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.os-name }}-logs
