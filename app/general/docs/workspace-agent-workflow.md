@@ -68,6 +68,9 @@ make bin-test BIN_TEST_ARGS=framework/docsfw
 OS に依存するスキップは、理由を `[Linux]` または `[Windows]` で始めた場合に限り、別の OS で起きたときだけ認めます。  
 特定の OS だけで動く `*_selftest.py` は、`BIN_TEST_PLATFORM = "linux"` のように宣言すると、ほかの OS では実行せずに想定どおりのスキップとして扱います。  
 手元でツールが不足する場合は、`BIN_TEST_ARGS=--allow-skips` を指定すると、想定外のスキップを失敗にしません。  
+NuGet ソースに到達できないときの testfw の .NET テストのスキップも、`make bin-test` では想定外のスキップとして失敗にします。ネットワークのある CI で、そのテストが実際に動いたことを確かめるためです。  
+`bin_test/` を含むサブモジュールに `framework/<name>.assured.stamp` や `app/<name>.assured.stamp` があり、ハッシュが HEAD と一致し、作業ツリーに差分が無いときは、その `bin_test/` を実行せず、`assured skip` として成功に数えます。  
+判定の条件は [assured.stamp による保証済み app の扱い](../../../framework/makefw/docs/build-configurations.md#assuredstamp-による保証済み-app-の扱い) を参照してください。  
 `make bin-test` は `make livedocs-venv` で依存を確認し、発行処理と同じ Python をスクリプトのテストに使用します。  
 Python の採用条件と不足分の導入は [動的発行の Python 依存](../../../framework/docsfw/docs/python-components.md) を参照してください。
 

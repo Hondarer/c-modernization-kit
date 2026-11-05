@@ -42,5 +42,53 @@ class ChildEnvironmentTest(unittest.TestCase):
         self.assertEqual(environment["PYTHONIOENCODING"], "utf-8")
 
 
+class AssuredSkipTest(unittest.TestCase):
+    """保証済みサブモジュールの bin_test/ を実行しないことを確認する。"""
+
+    def make_workspace(self, temporary, answer):
+        root = Path(temporary)
+        resolver = runner.assured_resolver(root)
+        resolver.parent.mkdir(parents=True)
+        # resolve_app_deps.sh --assured の代わりに、決めた判定結果を返す。
+        with open(resolver, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write('#!/bin/bash\nprintf "%s\\n" "$*" >> "$(dirname "$0")/calls.log"\necho {}\n'.format(answer))
+        submodule = root / "framework/sample"
+        (submodule / "bin_test").mkdir(parents=True)
+        return root, submodule
+
+    def test_without_stamp_runs_tests_without_resolver(self):
+        with tempfile.TemporaryDirectory(prefix="assured space ") as temporary:
+            root, submodule = self.make_workspace(temporary, 1)
+            self.assertFalse(runner.is_assured(submodule, root))
+            self.assertFalse((runner.assured_resolver(root).parent / "calls.log").exists())
+
+    def test_assured_submodule_is_skipped(self):
+        with tempfile.TemporaryDirectory(prefix="assured space ") as temporary:
+            root, submodule = self.make_workspace(temporary, 1)
+            (root / "framework/sample.assured.stamp").write_text("0123abcd\n", encoding="utf-8")
+            self.assertTrue(runner.is_assured(submodule, root))
+            calls = (runner.assured_resolver(root).parent / "calls.log").read_text(encoding="utf-8")
+            self.assertIn("--assured", calls)
+            outcomes = runner.run_directory(submodule / "bin_test", root, allow_skips=False)
+            self.assertEqual(len(outcomes), 1)
+            self.assertTrue(outcomes[0].passed)
+            self.assertIn("assured skip", outcomes[0].notes[0])
+
+    def test_unassured_stamp_runs_tests(self):
+        with tempfile.TemporaryDirectory(prefix="assured space ") as temporary:
+            root, submodule = self.make_workspace(temporary, 0)
+            (root / "framework/sample.assured.stamp").write_text("0123abcd\n", encoding="utf-8")
+            self.assertFalse(runner.is_assured(submodule, root))
+
+    def test_workspace_itself_is_never_assured(self):
+        with tempfile.TemporaryDirectory(prefix="assured space ") as temporary:
+            root, _ = self.make_workspace(temporary, 1)
+            (root.parent / (root.name + ".assured.stamp")).write_text("0123abcd\n", encoding="utf-8")
+            try:
+                self.assertFalse(runner.is_assured(root, root))
+            finally:
+                (root.parent / (root.name + ".assured.stamp")).unlink()
+
+
 if __name__ == "__main__":
     unittest.main()

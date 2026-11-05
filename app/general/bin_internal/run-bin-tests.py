@@ -20,6 +20,11 @@ BIN_TEST_PYTHON が指定されている場合は、その Python を使う。
 
 ツールやファイルの不足によるスキップは、検証していないのに成功に見えるため失敗として扱う。
 OS に依存するスキップは、理由を [Linux] または [Windows] で始め、別の OS で起きた場合だけ認める。
+
+bin_test/ を含むサブモジュールに <親>/<name>.assured.stamp があり、makefw の
+resolve_app_deps.sh --assured が保証済み (1) と判定したときは、その bin_test/ を実行しない。
+上流で検証済みのコミットを、利用するワークスペースで再検証しないためである。
+see: framework/makefw/docs/build-configurations.md (assured.stamp による保証済み app の扱い)
 """
 
 import argparse
@@ -102,6 +107,38 @@ def child_environment():
     return environment
 
 
+def assured_resolver(root):
+    return root / "framework/makefw/bin_internal/resolve_app_deps.sh"
+
+
+def is_assured(repository, root):
+    """bin_test/ を含むサブモジュールが assured.stamp で保証済みなら True を返す。
+
+    スタンプが無いとき、ワークスペース自身のとき、判定のスクリプトが無いときは False とする。
+    """
+    repository = Path(repository).resolve()
+    if repository == Path(root).resolve():
+        return False
+    stamp = repository.parent / (repository.name + ".assured.stamp")
+    if not stamp.is_file():
+        return False
+    resolver = assured_resolver(Path(root))
+    if not resolver.is_file():
+        print("Warning: {} is not found. Ignoring {}.".format(resolver, stamp.name), file=sys.stderr)
+        return False
+    # Windows の subprocess は System32 を PATH より先に探すため、PATH 上の bash を明示する。
+    # see: https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
+    bash = shutil.which("bash") or "bash"
+    result = subprocess.run(
+        [bash, str(resolver), "--assured", str(repository)],
+        stdout=subprocess.PIPE, encoding="utf-8", check=False,
+    )
+    if result.returncode != 0:
+        print("Warning: failed to evaluate {}. Running the tests.".format(stamp.name), file=sys.stderr)
+        return False
+    return result.stdout.strip() == "1"
+
+
 def is_expected_skip(reason):
     for tag, platform in PLATFORM_TAGS.items():
         if reason.startswith(tag):
@@ -169,6 +206,11 @@ def run_unittest(directory, cwd, label, allow_skips):
 def run_directory(directory, root, allow_skips):
     cwd = repository_root(directory)
     relative = directory.relative_to(root).as_posix()
+    if is_assured(cwd, root):
+        # 保証済みのサブモジュールは、検証済みのコミットのままのため再検証しない。
+        outcome = Outcome(relative + "/")
+        outcome.notes.append("assured skip: {}.assured.stamp matches the commit".format(cwd.name))
+        return [outcome]
     outcomes = []
     files = sorted(path for path in directory.iterdir() if path.is_file())
     if any(path.name.startswith("test_") and path.suffix == ".py" for path in files):
