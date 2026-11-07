@@ -726,7 +726,8 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
     fprintf(out, "{\n");
     fprintf(out, "    int ret;\n\n");
     fprintf(out, "    ret = struct_meta_catalog_attach_static(s_descriptors, %s_META_COUNT, s_index_mgmt,\n", prefix);
-    fprintf(out, "                                            sizeof(s_index_mgmt), s_index_data, sizeof(s_index_data),\n");
+    fprintf(out,
+            "                                            sizeof(s_index_mgmt), s_index_data, sizeof(s_index_data),\n");
     fprintf(out, "                                            &s_catalog);\n");
     fprintf(out, "    if (ret == CPLAT_ERR_OUT_OF_MEMORY)\n");
     fprintf(out, "    {\n");
