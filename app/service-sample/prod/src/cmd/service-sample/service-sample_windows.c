@@ -25,9 +25,8 @@
 #include <cplat/base/platform.h>
 
 #if defined(PLATFORM_WINDOWS)
-
+    /* Advapi32.lib は windows_sdk.h の #pragma comment(lib, "Advapi32.lib") で指定済みである。 */
     #include <cplat/base/windows_sdk.h>
-/* Advapi32.lib は windows_sdk.h の #pragma comment(lib, "Advapi32.lib") で指定済み */
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -42,40 +41,48 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-/* ============================================================
+/*
+ * ============================================================
  *  内部定数
- * ============================================================ */
+ * ============================================================
+ */
 
-    /** PRESHUTDOWN 通知から強制停止までの猶予 (ミリ秒)。 */
+    /** PRESHUTDOWN 通知から強制停止までの猶予 [ms]。 */
     #define SVC_PRESHUTDOWN_TIMEOUT_MS 30000
 
-    /** 異常終了から自動再起動までの遅延 (ミリ秒)。Linux 側の RestartSec=5 と一致させます。 */
+    /** 異常終了から自動再起動までの遅延 [ms]。Linux 側の RestartSec=5 と一致させます。 */
     #define SVC_FAILURE_RESTART_DELAY_MS 5000
 
-    /** 失敗カウンターをリセットする無失敗期間 (秒)。 */
+    /** 失敗カウンターをリセットする無失敗期間 [s]。 */
     #define SVC_FAILURE_RESET_PERIOD_SEC 86400
 
-/* ============================================================
+/*
+ * ============================================================
  *  内部状態 (SCM ディスパッチャーへの受け渡し)
- * ============================================================ */
+ * ============================================================
+ */
 
 /** ServiceMain からアクセスできるようにファイル static に保持するサービス定義。 */
 static const svc_definition *s_def = NULL;
+
 /** サービス ステータス ハンドル。ServiceMain で初期化される。 */
 static SERVICE_STATUS_HANDLE s_status_handle = NULL;
+
 /** 現在のサービス ステータス。 */
 static SERVICE_STATUS s_status = {0};
 
-/* ============================================================
+/*
+ * ============================================================
  *  内部ヘルパー
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          サービス ステータスを設定して SCM に通知します。
  *  @param[in]      state       新しいサービス状態 (SERVICE_RUNNING など)。
  *  @param[in]      controls    dwControlsAccepted (受け付けるコントロール)。
  *  @param[in]      checkpoint  進行状況カウンター (起動/停止中に使う)。
- *  @param[in]      wait_hint   次のチェックポイントまでの予想時間 (ミリ秒)。
+ *  @param[in]      wait_hint   次のチェックポイントまでの予想時間 [ms]。
  */
 static void set_service_status(const DWORD state, const DWORD controls, const DWORD checkpoint, const DWORD wait_hint)
 {
@@ -106,11 +113,13 @@ static void set_service_stopped(const DWORD specific_exit_code)
     s_status.dwControlsAccepted = 0;
     s_status.dwWin32ExitCode = NO_ERROR;
     s_status.dwServiceSpecificExitCode = 0;
+
     if (specific_exit_code != 0)
     {
         s_status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
         s_status.dwServiceSpecificExitCode = specific_exit_code;
     }
+
     s_status.dwCheckPoint = 0;
     s_status.dwWaitHint = 0;
     SetServiceStatus(s_status_handle, &s_status);
@@ -130,14 +139,17 @@ static DWORD accepted_controls(void)
     DWORD controls;
 
     controls = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
+
     if (s_def != NULL && s_def->on_event != NULL)
     {
         controls |= SERVICE_ACCEPT_POWEREVENT | SERVICE_ACCEPT_SESSIONCHANGE | SERVICE_ACCEPT_PRESHUTDOWN;
     }
+
     if (s_def != NULL && s_def->on_reload != NULL)
     {
         controls |= SERVICE_ACCEPT_PARAMCHANGE;
     }
+
     return controls;
 }
 
@@ -150,6 +162,7 @@ static void write_dispatcher_error(const DWORD err)
     cplat_tracer *tracer;
 
     tracer = svc_get_tracer();
+
     if (err == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
     {
         if (tracer != NULL)
@@ -166,6 +179,7 @@ static void write_dispatcher_error(const DWORD err)
             fprintf(stderr, "サービスとして登録された後、SCM から 'run' 引数で起動してください。\n");
             fprintf(stderr, "コンソールで実行するには 'console' コマンドを使用してください。\n");
         }
+
         return;
     }
 
@@ -214,9 +228,11 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
     return EXIT_SUCCESS;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  OS フック実装 (通知)
- * ============================================================ */
+ * ============================================================
+ */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -226,6 +242,7 @@ void svc_os_notify_ready(void)
     {
         return;
     }
+
     set_service_status(SERVICE_RUNNING, accepted_controls(), 0, 0);
 }
 
@@ -235,24 +252,29 @@ void svc_os_notify_stopping(void)
     {
         return;
     }
+
     set_service_status(SERVICE_STOP_PENDING, 0, 1, 3000);
 }
 
 void svc_os_notify_reloading(void)
 {
-    /* SCM には reload 開始を通知する仕組みがないため何もしない */
+    /* SCM には reload 開始を通知する仕組みがないため、何もしない。 */
 }
 
 void svc_os_notify_status(const char *text)
 {
-    /* SCM には状態テキストを表示する仕組みがないため何もしない
-       (共通層がトレース出力済み) */
+    /*
+     * SCM には状態テキストを表示する仕組みがないため、何もしない。
+     * 共通層がトレース出力済みである。
+     */
     (void)text;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  サービス コントロール ハンドラー
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          電源イベントを共通イベントに変換して配送します。
@@ -265,6 +287,7 @@ static void handle_power_event(const DWORD ev_type)
     svc_event_info info;
 
     info.session_id = NULL;
+
     if (ev_type == PBT_APMSUSPEND)
     {
         info.type = SVC_EVENT_POWER_SUSPEND;
@@ -294,6 +317,7 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
     {
         return;
     }
+
     if (ev_type != WTS_SESSION_LOGON && ev_type != WTS_SESSION_LOGOFF)
     {
         return;
@@ -310,6 +334,7 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
     {
         info.type = SVC_EVENT_SESSION_LOGOFF;
     }
+
     info.session_id = session_id_buf;
     svc_dispatch_event(s_def, &info);
 }
@@ -331,12 +356,13 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
     if (ctrl == SERVICE_CONTROL_STOP || ctrl == SERVICE_CONTROL_SHUTDOWN)
     {
         set_service_status(SERVICE_STOP_PENDING, 0, 1, 5000);
-        /* 停止要求を on_run のメイン ループに伝える */
+
+        /* 停止要求を on_run() のメイン ループに伝える。 */
         svc_request_stop();
     }
     else if (ctrl == SERVICE_CONTROL_PRESHUTDOWN)
     {
-        /* シャットダウン前の猶予通知を配送してから停止経路に入る */
+        /* シャットダウン前の猶予通知を配送してから、停止経路に入る。 */
         info.type = SVC_EVENT_PRESHUTDOWN;
         info.session_id = NULL;
         svc_dispatch_event(s_def, &info);
@@ -357,16 +383,18 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
     }
     else if (ctrl == SERVICE_CONTROL_INTERROGATE)
     {
-        /* 現在のステータスを再通知する */
+        /* 現在のステータスを再通知する。 */
         SetServiceStatus(s_status_handle, &s_status);
     }
 
     return NO_ERROR;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  ServiceMain (SCM ディスパッチャーから呼ばれる)
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          サービス メイン関数 (SCM ディスパッチャーから呼ばれる)。
@@ -385,17 +413,14 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         return;
     }
 
-    /* コントロール ハンドラーを登録する */
     s_status_handle = RegisterServiceCtrlHandlerExU(s_def->name, service_ctrl_handler, NULL);
     if (s_status_handle == NULL)
     {
         return;
     }
 
-    /* 起動中を通知する */
     set_service_status(SERVICE_START_PENDING, 0, 1, 3000);
 
-    /* on_start を呼び出す */
     if (s_def->on_start != NULL)
     {
         rc = s_def->on_start(s_def->user_data);
@@ -408,10 +433,9 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         }
     }
 
-    /* 起動完了を通知する (svc_os_notify_ready で SERVICE_RUNNING を通知) */
     svc_os_notify_ready();
 
-    /* on_run を呼び出す (停止要求まで戻らない) */
+    /* on_run() を呼び出す (停止要求まで戻らない)。 */
     rc = s_def->on_run(s_def->user_data);
     if (rc != 0)
     {
@@ -419,10 +443,9 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
                             rc);
     }
 
-    /* 停止中を通知する (svc_os_notify_stopping で SERVICE_STOP_PENDING を通知) */
     svc_os_notify_stopping();
 
-    /* on_stop を呼び出す (on_run が失敗しても後始末のため実行する) */
+    /* on_stop() を呼び出す (on_run() が失敗しても、後始末のため実行する)。 */
     if (s_def->on_stop != NULL)
     {
         int stop_rc;
@@ -432,7 +455,8 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                 "on_stop が失敗しました (戻り値: %d)。", stop_rc);
-            /* 最初に失敗したコールバックの戻り値を採用する */
+
+            /* 最初に失敗したコールバックの戻り値を採用する。 */
             if (rc == 0)
             {
                 rc = stop_rc;
@@ -440,23 +464,33 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         }
     }
 
-    /* 停止完了を通知する (rc が 0 以外の場合は失敗として報告する) */
+    /* 停止完了を通知する (rc が 0 以外の場合は、失敗として報告する)。 */
     set_service_stopped((DWORD)rc);
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  OS フック実装
- * ============================================================ */
+ * ============================================================
+ */
 
 int svc_os_run_service(const svc_definition *def)
 {
     cplat_service_entry_u dispatch_table[2];
 
-    /* def をファイル static に退避する (ServiceMain は固定シグネチャのため直接渡せない) */
+    /*
+     * def をファイル static に退避する。ServiceMain() は固定シグネチャのため、直接渡せない。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nc-winsvc-lpservice_main_functionw
+     */
     s_def = def;
 
     dispatch_table[0].service_name = def->name;
     dispatch_table[0].service_proc = service_main;
+
+    /*
+     * テーブルの最後の要素は、終端を示すため service_name と service_proc を NULL にする。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
+     */
     dispatch_table[1].service_name = NULL;
     dispatch_table[1].service_proc = NULL;
 
@@ -487,7 +521,6 @@ int svc_os_install(const svc_definition *def)
         return rc;
     }
 
-    /* 実行ファイルの絶対パスを取得する */
     if (cplat_process_get_executable_path(exe_path, sizeof(exe_path)) != CPLAT_OK)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
@@ -495,14 +528,16 @@ int svc_os_install(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
-    /* binPath は "\"<パス>\" run" 形式にする (パスにスペースが含まれる場合の対策) */
+    /*
+     * binPath は "\"<パス>\" run" 形式にする (パスにスペースが含まれる場合の対策)。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-createservicew
+     */
     if (cplat_snprintf(bin_path, sizeof(bin_path), "\"%s\" run", exe_path) != CPLAT_OK)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "パスの生成に失敗しました。");
         return EXIT_FAILURE;
     }
 
-    /* SCM に接続する */
     scm = OpenSCManagerU(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
     if (scm == NULL)
     {
@@ -517,12 +552,11 @@ int svc_os_install(const svc_definition *def)
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                 "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
         }
+
         return EXIT_FAILURE;
     }
 
     rc = EXIT_FAILURE;
-
-    /* サービスを登録する */
     svc = CreateServiceU(scm, def->name, def->display_name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
                          SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, bin_path, NULL, /* ロード オーダー グループなし */
                          NULL,                                                     /* タグ ID なし */
@@ -560,19 +594,21 @@ int svc_os_install(const svc_definition *def)
     {
         SERVICE_PRESHUTDOWN_INFO preshutdown_info;
 
-        /* 説明文を設定する */
         ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, def->description);
 
-        /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため W 版を直接使う) */
+        /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため、W 版を直接使う)。 */
         preshutdown_info.dwPreshutdownTimeout = SVC_PRESHUTDOWN_TIMEOUT_MS;
+
         if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_PRESHUTDOWN_INFO, &preshutdown_info))
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
                                 "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
         }
 
-        /* 異常終了時の自動再起動を設定する (Linux の Restart=on-failure / RestartSec=5 と同等)。
-           文字列メンバー (lpRebootMsg / lpCommand) は NULL のため W 版を直接使う */
+        /*
+         * 異常終了時の自動再起動を設定する (Linux の Restart=on-failure / RestartSec=5 と同等)。
+         * 文字列メンバー (lpRebootMsg / lpCommand) は NULL のため、W 版を直接使う。
+         */
         SC_ACTION restart_action;
         SERVICE_FAILURE_ACTIONSW failure_actions;
 
@@ -581,21 +617,30 @@ int svc_os_install(const svc_definition *def)
         failure_actions.dwResetPeriod = SVC_FAILURE_RESET_PERIOD_SEC;
         failure_actions.lpRebootMsg = NULL;
         failure_actions.lpCommand = NULL;
-        /* アクションが 1 件のみの場合、2 回目以降の失敗にも最後のアクションが繰り返される */
+
+        /*
+         * アクションが 1 件のみの場合、2 回目以降の失敗にも最後のアクションが繰り返される。
+         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actionsw
+         */
         failure_actions.cActions = 1;
         failure_actions.lpsaActions = &restart_action;
+
         if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS, &failure_actions))
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
                                 "自動再起動の設定に失敗しました (エラー コード: %lu)。", GetLastError());
         }
 
-        /* 既定の SCM は SERVICE_STOPPED 未報告のプロセス消滅のみを失敗とみなすため、
-           NO_ERROR 以外の終了コード報告 (例: on_start 失敗) も失敗扱いにして
-           Linux の Restart=on-failure (非ゼロ終了で再起動) と意味を揃える */
+        /*
+         * 既定の SCM は SERVICE_STOPPED 未報告のプロセス消滅のみを失敗とみなすため、
+         * NO_ERROR 以外の終了コード報告 (例: on_start() の失敗) も失敗扱いにして、
+         * Linux の Restart=on-failure (非ゼロ終了で再起動) と意味を揃える。
+         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actions_flag
+         */
         SERVICE_FAILURE_ACTIONS_FLAG failure_flag;
 
         failure_flag.fFailureActionsOnNonCrashFailures = TRUE;
+
         if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &failure_flag))
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
@@ -612,6 +657,7 @@ int svc_os_install(const svc_definition *def)
     }
 
     CloseServiceHandle(scm);
+
     return rc;
 }
 
@@ -629,7 +675,6 @@ int svc_os_uninstall(const svc_definition *def)
         return rc;
     }
 
-    /* SCM に接続する */
     scm = OpenSCManagerU(NULL, NULL, SC_MANAGER_CONNECT);
     if (scm == NULL)
     {
@@ -644,6 +689,7 @@ int svc_os_uninstall(const svc_definition *def)
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                 "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
         }
+
         return EXIT_FAILURE;
     }
 
@@ -671,7 +717,7 @@ int svc_os_uninstall(const svc_definition *def)
     }
     else
     {
-        /* 動作中の場合は停止する */
+        /* 動作中の場合は停止する。 */
         if (ControlService(svc, SERVICE_CONTROL_STOP, &status))
         {
             cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を停止しています...",
@@ -679,7 +725,6 @@ int svc_os_uninstall(const svc_definition *def)
             Sleep(1000);
         }
 
-        /* サービスを削除する */
         if (!DeleteService(svc))
         {
             DWORD err = GetLastError();

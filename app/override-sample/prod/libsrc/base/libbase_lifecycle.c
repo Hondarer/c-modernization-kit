@@ -33,6 +33,13 @@ void onLoad(void)
 
     CPLAT_DLLMAIN_INFO_MSG("base: onLoad called");
 
+    /*
+     * 自モジュールのベース名に _extdef.jsonc を付け、一時ディレクトリ上の定義ファイル パスにする。
+     * ベース名は onLoad のアドレスが属するモジュールから得る。
+     * パスが長すぎる場合は空文字にする。空のパスでは cplat_sym_loader_init() は設定を読まない。
+     * 正本は app/cplat/prod/libsrc/cplat/runtime/README.md の「module_info」節と、
+     * app/override-sample/prod/README.md の「設定ファイル」節である。
+     */
     if (cplat_module_get_basename(basename, sizeof(basename), (const void *)onLoad) == CPLAT_OK)
     {
         if (cplat_path_concat(leafname, sizeof(leafname), &error, basename, "_extdef.jsonc") != CPLAT_OK)
@@ -43,6 +50,7 @@ void onLoad(void)
         else
         {
             char tmpdir[PLATFORM_PATH_MAX];
+
             if (cplat_path_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
             {
                 if (cplat_path_concat(sym_loader_configpath, sizeof(sym_loader_configpath), &error, tmpdir,

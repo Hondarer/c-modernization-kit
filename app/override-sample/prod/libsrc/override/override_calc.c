@@ -25,7 +25,9 @@ int override_calc(const int a, const int b, int *result)
     {
         return BASE_ERR_INVALID_ARGUMENT;
     }
+
     base_console_output("override_calc: a=%d, b=%d の処理 (*result = a * b;) を行います\n", a, b);
     *result = a * b;
+
     return BASE_OK;
 }

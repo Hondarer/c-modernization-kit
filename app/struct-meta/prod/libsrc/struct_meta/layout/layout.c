@@ -22,7 +22,7 @@
  *  幅が異なるため載せず、構文解析側が診断付きで拒否します。
  *
  *  x86_64 では、ここに載せたすべての型でアラインメントが大きさと一致します。
- *  System V AMD64 ABI と Windows x64 でこの点は同じです。`double` を 4 バイト境界へ
+ *  System V AMD64 ABI と Windows x64 でこの点は同じです。`double` を 4 [byte] 境界へ
  *  置く 32 ビット x86 Linux は契約の対象外です。
  *  see: app/struct-meta/docs/architecture.md
  */
@@ -56,6 +56,7 @@ const struct_meta_internal_layout_type *struct_meta_internal_layout_find_type(co
     {
         return NULL;
     }
+
     for (size_t i = 0; i < (sizeof(g_layout_types) / sizeof(g_layout_types[0])); i++)
     {
         if (strcmp(g_layout_types[i].spelling, spelling) == 0)
@@ -63,6 +64,7 @@ const struct_meta_internal_layout_type *struct_meta_internal_layout_find_type(co
             return &g_layout_types[i];
         }
     }
+
     return NULL;
 }
 
@@ -91,6 +93,7 @@ void struct_meta_internal_layout_begin(struct_meta_internal_layout_builder *buil
     {
         return;
     }
+
     builder->offset = 0U;
     builder->alignment = 1U;
 }
@@ -106,6 +109,7 @@ int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder
 
     /* オフセットをアラインメントへ切り上げる。加算で桁あふれしないことを先に確かめる。 */
     size_t padding;
+
     if (builder->offset % alignment == 0U)
     {
         padding = 0U;
@@ -114,10 +118,12 @@ int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder
     {
         padding = (alignment - (builder->offset % alignment));
     }
+
     if (padding > (SIZE_MAX - builder->offset))
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
+
     const size_t offset = builder->offset + padding;
 
     /* 要素数を掛けた総バイト数を求める。 */
@@ -125,6 +131,7 @@ int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
+
     const size_t total = element_size * element_count;
     if (total > (SIZE_MAX - offset))
     {
@@ -132,11 +139,14 @@ int struct_meta_internal_layout_add(struct_meta_internal_layout_builder *builder
     }
 
     builder->offset = offset + total;
+
     if (alignment > builder->alignment)
     {
         builder->alignment = alignment;
     }
+
     *offset_out = offset;
+
     return CPLAT_OK;
 }
 
@@ -147,11 +157,13 @@ int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *b
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     /* C ではメンバーの無い構造体を宣言できないため、1 個も追加していない状態を拒否する。 */
     if (builder->offset == 0U)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     if (is_power_of_two(builder->alignment) == 0)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
@@ -159,6 +171,7 @@ int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *b
 
     const size_t remainder = builder->offset % builder->alignment;
     size_t padding;
+
     if (remainder == 0U)
     {
         padding = 0U;
@@ -167,6 +180,7 @@ int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *b
     {
         padding = (builder->alignment - remainder);
     }
+
     if (padding > (SIZE_MAX - builder->offset))
     {
         return CPLAT_ERR_OUT_OF_RANGE;
@@ -174,5 +188,6 @@ int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *b
 
     *size_out = builder->offset + padding;
     *alignment_out = builder->alignment;
+
     return CPLAT_OK;
 }

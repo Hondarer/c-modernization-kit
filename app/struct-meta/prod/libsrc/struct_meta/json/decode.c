@@ -38,11 +38,14 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
         int64_t value;
+
         if (!cJSON_GetInt64Value(item, &value))
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         return struct_meta_internal_integer_store_signed(field_ptr, element_size, value);
     }
 
@@ -52,11 +55,14 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
         uint64_t value;
+
         if (!cJSON_GetUInt64Value(item, &value))
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         return struct_meta_internal_integer_store_unsigned(field_ptr, element_size, value);
     }
 
@@ -69,6 +75,7 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
             float value = (float)cJSON_GetNumberValue(item);
             memcpy(field_ptr, &value, sizeof(value));
         }
+
         break;
 
     case STRUCT_META_FIELD_DOUBLE:
@@ -80,6 +87,7 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
             double value = cJSON_GetNumberValue(item);
             memcpy(field_ptr, &value, sizeof(value));
         }
+
         break;
 
     case STRUCT_META_FIELD_CHAR_ARRAY:
@@ -95,8 +103,10 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
             {
                 return CPLAT_ERR_BUFFER_TOO_SMALL;
             }
+
             memcpy(field_ptr, text, text_len + 1U);
         }
+
         break;
 
     case STRUCT_META_FIELD_STRUCT:
@@ -117,6 +127,7 @@ static int element_from_json(const struct_meta_field *field, const cJSON *item, 
     {
         return struct_from_json(field->nested, item, elem_ptr);
     }
+
     return scalar_from_json(field->kind, item, elem_ptr, field->element_size, field->char_buffer_size);
 }
 
@@ -131,6 +142,7 @@ static const char *json_key(const struct_meta_field *field)
     {
         return attribute->value;
     }
+
     return field->name;
 }
 
@@ -151,6 +163,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         {
             return CPLAT_ERR_MISSING_REQUIRED;
         }
+
         return CPLAT_OK;
     }
 
@@ -160,22 +173,27 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
     {
         return format_ret;
     }
+
+    /* 16 進文字列形式のバイト配列を復元する。 */
     if (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX)
     {
         if (!cJSON_IsString(item))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
         void *element;
         int ret = struct_meta_field_get_element(field, base, 0U, &element);
         if (ret != CPLAT_OK)
         {
             return ret;
         }
+
         return struct_meta_internal_bytes_from_hex((unsigned char *)element, field->element_count,
                                                    cJSON_GetStringValue(item));
     }
 
+    /* 単一要素 (スカラーまたは文字列) を復元する。 */
     if ((field->kind == STRUCT_META_FIELD_CHAR_ARRAY) || (field->element_count <= 1U))
     {
         void *element;
@@ -184,6 +202,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         {
             return ret;
         }
+
         return element_from_json(field, item, (unsigned char *)element);
     }
 
@@ -198,6 +217,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
+    /* 配列の各要素を復元する。 */
     for (size_t i = 0; i < field->element_count; i++)
     {
         const cJSON *elem = cJSON_GetArrayItem(item, (int)i);
@@ -207,6 +227,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         {
             ret = element_from_json(field, elem, (unsigned char *)element);
         }
+
         if (ret != CPLAT_OK)
         {
             return ret;
@@ -252,5 +273,6 @@ int struct_meta_json_decode(const struct_meta_descriptor *desc, const cJSON *jso
     {
         return ret;
     }
+
     return struct_from_json(desc, json, (unsigned char *)instance);
 }

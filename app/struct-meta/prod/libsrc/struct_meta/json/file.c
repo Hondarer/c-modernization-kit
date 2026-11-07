@@ -44,6 +44,7 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
 
     char *text = cJSON_Print(json);
     cJSON_Delete(json);
+
     if (text == NULL)
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
@@ -66,19 +67,23 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
     }
 
     size_t expected_len = text_len;
+
     if (needs_newline != 0)
     {
         expected_len++;
     }
+
     size_t written = cplat_fwrite(text, 1, text_len, stream, NULL);
     if ((written == text_len) && (needs_newline != 0))
     {
         static const char newline[] = "\n";
+
         if (cplat_fwrite(newline, 1U, 1U, stream, NULL) == 1U)
         {
             written++;
         }
     }
+
     cplat_fclose(stream, NULL);
     cJSON_free(text);
 
@@ -86,6 +91,7 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
     {
         return CPLAT_ERR_UNKNOWN;
     }
+
     return CPLAT_OK;
 }
 
@@ -109,6 +115,7 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
         cplat_fclose(stream, NULL);
         return CPLAT_ERR_UNKNOWN;
     }
+
     int64_t file_size = cplat_ftell(stream);
     if ((file_size < 0) || (cplat_fseek(stream, 0, SEEK_SET) != 0))
     {
@@ -116,7 +123,7 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
         return CPLAT_ERR_UNKNOWN;
     }
 
-    /* JSON テキストのバイト列バッファー。要素型に対応しない生バイト確保のため sizeof(*p) は使わない。 */
+    /* JSON テキストのバイト列バッファーである。要素型に対応しない生バイト確保のため sizeof(*p) は使わない。 */
     char *text = (char *)malloc((size_t)file_size + 1U);
     if (text == NULL)
     {
@@ -126,15 +133,18 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
 
     size_t read_count = cplat_fread(text, 1, (size_t)file_size, stream, NULL);
     cplat_fclose(stream, NULL);
+
     if (read_count != (size_t)file_size)
     {
         free(text);
         return CPLAT_ERR_UNKNOWN;
     }
+
     text[file_size] = '\0';
 
     cJSON *json = cJSON_Parse(text);
     free(text);
+
     if (json == NULL)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
@@ -142,5 +152,6 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
 
     int ret = struct_meta_json_decode(desc, json, instance);
     cJSON_Delete(json);
+
     return ret;
 }

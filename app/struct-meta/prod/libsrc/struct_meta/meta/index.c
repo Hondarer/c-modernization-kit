@@ -55,7 +55,7 @@ static int ensure_registry(void)
     }
 
     cplat_hashtable_config config = {0};
-    cplat_hashtable_growth_config growth = {0}; /* 全フィールド 0 で上限なし。 */
+    cplat_hashtable_growth_config growth = {0}; /* 全フィールド 0 で上限なし */
 
     config.capacity = STRUCT_META_INDEX_REGISTRY_INITIAL_CAPACITY;
     config.key_type = CPLAT_HASHTABLE_FIELD_BINARY;
@@ -70,6 +70,7 @@ static int ensure_registry(void)
         s_registry = NULL;
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     return CPLAT_OK;
 }
 
@@ -89,6 +90,7 @@ static const index_record *find_record(const struct_meta_descriptor *descriptor)
     {
         return NULL;
     }
+
     /* value_align に sizeof(void *) を指定しているため、型付きで参照できる。 */
     return (const index_record *)value;
 }
@@ -141,6 +143,7 @@ static cplat_hashtable *build_field_names(const struct_meta_descriptor *descript
             return NULL;
         }
     }
+
     return table;
 }
 
@@ -183,12 +186,14 @@ static int register_descriptor(const struct_meta_descriptor *descriptor)
         {
             continue;
         }
+
         int ret = register_descriptor(descriptor->fields[i].nested);
         if (ret != CPLAT_OK)
         {
             return ret;
         }
     }
+
     return CPLAT_OK;
 }
 
@@ -217,10 +222,12 @@ static int unregister_descriptor(const struct_meta_descriptor *descriptor)
         {
             if (descriptor->fields[i].nested != NULL)
             {
+                /* ネスト先が未登録または既に解除されていても、全体の解除処理を継続する。 */
                 (void)unregister_descriptor(descriptor->fields[i].nested);
             }
         }
     }
+
     return CPLAT_OK;
 }
 
@@ -238,6 +245,7 @@ int struct_meta_index_register(const struct_meta_descriptor *descriptor)
     {
         return ret;
     }
+
     return register_descriptor(descriptor);
 }
 
@@ -249,6 +257,7 @@ int struct_meta_index_unregister(const struct_meta_descriptor *descriptor)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     return unregister_descriptor(descriptor);
 }
 
@@ -266,7 +275,9 @@ int struct_meta_internal_index_find_validation(const struct_meta_descriptor *des
     {
         return CPLAT_SKIPPED;
     }
+
     *result_out = record->validation_result;
+
     return CPLAT_OK;
 }
 
@@ -285,6 +296,7 @@ int struct_meta_internal_index_find_field(const struct_meta_descriptor *descript
     {
         return CPLAT_SKIPPED;
     }
+
     if (name_length >= STRUCT_META_INDEX_FIELD_NAME_BYTES)
     {
         /* 表へ入れたどの名前より長いため、線形走査でも一致しない。 */
@@ -301,7 +313,9 @@ int struct_meta_internal_index_find_field(const struct_meta_descriptor *descript
     {
         return CPLAT_ERR_NOT_FOUND;
     }
+
     /* value_align に sizeof(size_t) を指定しているため、型付きで参照できる。 */
     *index_out = *(const size_t *)value;
+
     return CPLAT_OK;
 }

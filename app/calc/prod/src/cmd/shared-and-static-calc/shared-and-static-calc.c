@@ -51,6 +51,11 @@ int main(int argc, char *argv[])
     cplat_argparser_register_positional_string("operator", "+、-、x、/ のいずれか。", CPLAT_ARGPARSER_REQUIRED,
                                                &operator_value);
     cplat_argparser_register_positional_int("num2", "第二オペランド。", CPLAT_ARGPARSER_REQUIRED, &arg3);
+
+    /*
+     * 登録 API の成否は内部に蓄積される。
+     * 登録エラーはコーディング エラーのため、解析前に報告して終了する。
+     */
     if (cplat_argparser_get_register_error_count() > 0)
     {
         cplat_argparser_print_register_error_messages(stderr);
@@ -58,17 +63,22 @@ int main(int argc, char *argv[])
     }
 
     int parse_result = cplat_argparser_parse();
+
+    /* 必須引数が省略されていても -h と --help を優先する。 */
     if (need_help != 0)
     {
         cplat_argparser_print_usage(stdout);
         return EXIT_SUCCESS;
     }
+
     if (parse_result != CPLAT_OK)
     {
         cplat_argparser_print_error_messages(stderr);
         cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;
     }
+
+    /* 演算子は 1 文字に限る。後続の switch は先頭文字だけを見る。 */
     if (operator_value[0] == 0x00 || operator_value[1] != 0x00)
     {
         fprintf(stderr, "Error: operator must be one of +, -, x, /.\n\n");
@@ -76,24 +86,29 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    /* 同じ演算を動的リンクの calc_handler() と静的リンクの calcbase 関数の双方で実行する。 */
     switch (operator_value[0])
     {
     case '+':
     {
         int result_shared;
+
         if (calc_handler(CALC_KIND_ADD, arg1, arg3, &result_shared) != CALC_OK)
         {
             fprintf(stderr, "Error: calc_handler failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_shared: %d\n", result_shared);
 
         int result_static;
+
         if (calcbase_add(arg1, arg3, &result_static) != CALC_OK)
         {
             fprintf(stderr, "Error: calcbase_add failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_static: %d\n", result_static);
 
         break;
@@ -101,19 +116,23 @@ int main(int argc, char *argv[])
     case '-':
     {
         int result_shared;
+
         if (calc_handler(CALC_KIND_SUBTRACT, arg1, arg3, &result_shared) != CALC_OK)
         {
             fprintf(stderr, "Error: calc_handler failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_shared: %d\n", result_shared);
 
         int result_static;
+
         if (calcbase_subtract(arg1, arg3, &result_static) != CALC_OK)
         {
             fprintf(stderr, "Error: calcbase_subtract failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_static: %d\n", result_static);
 
         break;
@@ -121,19 +140,23 @@ int main(int argc, char *argv[])
     case 'x':
     {
         int result_shared;
+
         if (calc_handler(CALC_KIND_MULTIPLY, arg1, arg3, &result_shared) != CALC_OK)
         {
             fprintf(stderr, "Error: calc_handler failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_shared: %d\n", result_shared);
 
         int result_static;
+
         if (calcbase_multiply(arg1, arg3, &result_static) != CALC_OK)
         {
             fprintf(stderr, "Error: calcbase_multiply failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_static: %d\n", result_static);
 
         break;
@@ -141,19 +164,23 @@ int main(int argc, char *argv[])
     case '/':
     {
         int result_shared;
+
         if (calc_handler(CALC_KIND_DIVIDE, arg1, arg3, &result_shared) != CALC_OK)
         {
             fprintf(stderr, "Error: calc_handler failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_shared: %d\n", result_shared);
 
         int result_static;
+
         if (calcbase_divide(arg1, arg3, &result_static) != CALC_OK)
         {
             fprintf(stderr, "Error: calcbase_divide failed\n");
             return EXIT_FAILURE;
         }
+
         printf("result_static: %d\n", result_static);
 
         break;

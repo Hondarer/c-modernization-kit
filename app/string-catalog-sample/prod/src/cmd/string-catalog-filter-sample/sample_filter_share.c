@@ -20,7 +20,7 @@
 typedef struct source_lock_context
 {
     sample_filter_share_lock *lock; /**< 排他。 */
-    int timeout_ms;                 /**< 待ち時間 (ミリ秒)。 */
+    int timeout_ms;                 /**< 待ち時間 [ms]。 */
     int pad;                        /**< 明示的アラインメントです。 */
 } source_lock_context;
 
@@ -87,6 +87,7 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *share_out = NULL;
 
     share = (sample_filter_share *)calloc(1U, sizeof(*share));
@@ -94,6 +95,7 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     share->lock = lock;
     share->writer_lock.lock = lock;
     share->writer_lock.timeout_ms = SAMPLE_FILTER_SHARE_WAIT_FOREVER;
@@ -103,24 +105,28 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
     share->line_width = (uint32_t)line_width;
     share->source_size = CPLAT_STRING_CATALOG_FILTER_SOURCE_SIZE(line_capacity, line_width);
 
-    /* 複数のプロセスが同時に作成しないよう、排他の下で開く。新しく作成した領域は 0 で埋まり、
-       cplat は未公開のソース領域として扱う */
+    /*
+     * 複数のプロセスが同時に作成しないよう、排他の下で開く。新しく作成した領域は 0 で埋まり、
+     * cplat は未公開のソース領域として扱う。
+     */
     ret = sample_filter_share_to_result(sample_filter_share_lock_acquire(lock, SAMPLE_FILTER_SHARE_WAIT_FOREVER));
     if (ret == CPLAT_OK)
     {
         ret = sample_filter_share_to_result(sample_filter_share_region_open(path, share->source_size, &share->region));
         sample_filter_share_lock_release(lock);
     }
+
     if (ret != CPLAT_OK)
     {
         sample_filter_share_close(&share);
         return ret;
     }
 
-    /* 領域の先頭は 8 バイト境界のため、ソース領域の版番号をアトミックに読み書きできる */
+    /* 領域の先頭は 8 [byte] 境界のため、ソース領域の版番号をアトミックに読み書きできる。 */
     share->source = sample_filter_share_region_get_address(share->region);
 
     *share_out = share;
+
     return CPLAT_OK;
 }
 
@@ -134,7 +140,8 @@ void sample_filter_share_close(sample_filter_share **share)
     }
 
     sample_filter_share_region_close(&(*share)->region);
-    /* 排他は呼び出し側が所有するため、破棄しない */
+
+    /* 排他は呼び出し側が所有するため、破棄しない。 */
     free(*share);
     *share = NULL;
 }
@@ -153,17 +160,18 @@ int sample_filter_share_publish(sample_filter_share *share, const void *image, c
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
-    /* 読み取り側のスロットが受け付ける形だけを公開する。異なる形を公開すると、どの読み取り側も取り込めないため */
+    /* 読み取り側のスロットが受け付ける形だけを公開する。異なる形を公開すると、どの読み取り側も取り込めないため。 */
     ret = cplat_string_catalog_filter_get_info(image, image_size, &info);
     if ((ret != CPLAT_OK) || (info.line_capacity != share->line_capacity) || (info.line_width != share->line_width))
     {
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     }
 
-    /* 排他は cplat が書き込みの間だけ取る。書き込み側どうしと、排他を結び付けた読み取り側の複製を直列化する */
+    /* 排他は cplat が書き込みの間だけ取る。書き込み側どうしと、排他を結び付けた読み取り側の複製を直列化する。 */
     lock.lock = acquire_source_lock;
     lock.unlock = release_source_lock;
     lock.context = &share->writer_lock;
+
     return cplat_string_catalog_filter_source_publish(share->source, share->source_size, image, image_size, catalog_id,
                                                       &lock, revision_out);
 }
@@ -176,7 +184,9 @@ const void *sample_filter_share_get_source(const sample_filter_share *share, siz
     {
         return NULL;
     }
+
     *size_out = share->source_size;
+
     return share->source;
 }
 
@@ -188,8 +198,10 @@ int sample_filter_share_get_source_lock(sample_filter_share *share, cplat_string
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     lock_out->lock = acquire_source_lock;
     lock_out->unlock = release_source_lock;
     lock_out->context = &share->reader_lock;
+
     return CPLAT_OK;
 }

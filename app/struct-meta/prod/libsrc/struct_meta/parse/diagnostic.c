@@ -21,6 +21,7 @@ void struct_meta_internal_diagnostic_clear(struct_meta_diagnostic *diagnostic)
     {
         return;
     }
+
     diagnostic->line = 0;
     diagnostic->message[0] = '\0';
 }
@@ -31,6 +32,7 @@ void struct_meta_internal_diagnose(struct_meta_diagnostic *diagnostic, int line,
     {
         return;
     }
+
     /* 最初の 1 件だけを残す。後続は最初の診断の波及であることが多い。 */
     if (diagnostic->message[0] != '\0')
     {

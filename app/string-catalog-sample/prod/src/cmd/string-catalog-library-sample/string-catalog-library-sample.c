@@ -82,6 +82,13 @@ static int print_lookup_results(void)
     char text[TEXT_MAX];
     int index;
 
+    /*
+     * 定義した検索名を順に検索し、結果を表示する。
+     * CPLAT_OK のとき samplecatalog_find_item() は text を変更しないため、text は表示しない。
+     * CPLAT_ERR_NOT_FOUND のときは text の理由を表示して次の検索名へ進む。
+     * それ以外の結果コードは呼び出し元へ返し、残りの検索名は検索しない。
+     * すべての検索名を表示できた場合は CPLAT_OK を返す。
+     */
     for (index = 0; index < LOOKUP_COUNT; index++)
     {
         const int ret = samplecatalog_find_item(s_lookup_names[index], text, sizeof(text));
@@ -121,13 +128,16 @@ static int print_library_messages(void)
     {
         return ret;
     }
+
     printf("  %s\n", text);
 
+    /* 第 3 引数は要求されたサイズ、第 4 引数はライブラリが受け付ける上限である。 */
     ret = samplecatalog_messages_key_limit_exceeded(text, sizeof(text), (size_t)4096U, (size_t)1024U);
     if (ret != CPLAT_OK)
     {
         return ret;
     }
+
     printf("  %s\n", text);
 
     return CPLAT_OK;
@@ -148,7 +158,7 @@ int main(int argc, char *argv[])
 
     cplat_console_init();
 
-    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響します。初期化の前に設定します。 */
+    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響する。初期化の前に設定する。 */
     if (cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE) != CPLAT_OK)
     {
         fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
@@ -161,7 +171,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* カタログの点検はライブラリの責務であるため、利用側は初期化を呼び出すのみとします。 */
+    /* カタログの点検はライブラリの責務であるため、利用側は初期化を呼び出すのみとする。 */
     if (samplecatalog_initialize(tracer) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
@@ -171,6 +181,7 @@ int main(int argc, char *argv[])
 
     printf("\n[ライブラリのカタログから組み立てた文字列]\n\n");
     fflush(stdout);
+
     if (print_library_messages() != CPLAT_OK)
     {
         return EXIT_FAILURE;
@@ -178,20 +189,20 @@ int main(int argc, char *argv[])
 
     printf("\n[ライブラリの API が返す文字列]\n\n");
     fflush(stdout);
+
     if (print_lookup_results() != CPLAT_OK)
     {
         return EXIT_FAILURE;
     }
 
-    /* 利用側がライブラリのカタログへ直接トレースを出力することも可能です。 */
+    /* 利用側がライブラリのカタログへ直接トレースを出力することも可能である。 */
     printf("\n[利用側からのトレース出力]\n\n");
     fflush(stdout);
     (void)samplecatalog_trace_key_lookup_performed("epsilon");
 
     /*
-     * トレーサーの解除と破棄は行いません。プロセスの終了時に cplat が自動で破棄し、
-     * その後の出力要求経路が存在しないためです。
+     * トレーサーの解除と破棄は行わない。プロセスの終了時に cplat が自動で破棄し、
+     * その後の出力要求経路が存在しないためである。
      */
-
     return EXIT_SUCCESS;
 }

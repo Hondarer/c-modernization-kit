@@ -92,7 +92,7 @@ static int print_string(const cplat_string_catalog *const catalog, const int str
     const char *note;
     cplat_trace_level level;
 
-    /* ID は処理では意味を持たない補足の文字列で、省略された定義では NULL になる */
+    /* ID は処理では意味を持たない補足の文字列で、省略された定義では NULL になる。 */
     id = cplat_string_catalog_get_id(catalog, string_key);
     note = cplat_string_catalog_get_note(catalog, string_key);
     level = trace_level_of(catalog, string_key);
@@ -192,7 +192,7 @@ static int write_traces(void)
         return CPLAT_ERR_UNKNOWN;
     }
 
-    /* 出力先は既定でいずれも無効のため、使用する出力先のみを設定する */
+    /* 出力先は既定でいずれも無効のため、使用する出力先のみを設定する。 */
     ret = cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_DEBUG);
     if (ret != CPLAT_OK)
     {
@@ -209,7 +209,7 @@ static int write_traces(void)
         return ret;
     }
 
-    /* 出力先はカタログが保持するため、呼び出しごとにトレーサーを渡さない */
+    /* 出力先はカタログが保持するため、呼び出しごとにトレーサーを渡さない。 */
     sample_trace_set_tracer(tracer);
 
     ret = sample_trace_key_service_started();
@@ -230,7 +230,7 @@ static int write_traces(void)
         result = ret;
     }
 
-    /* この項目の書式は、インデックス 40 からのコンテキスト引数を参照する */
+    /* この項目の書式は、インデックス 40 からのコンテキスト引数を参照する。 */
     ret = sample_trace_key_state_dump(UINT32_C(7));
     if ((ret != CPLAT_OK) && (result == CPLAT_OK))
     {
@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* トレースの出力言語も、文字列の組み立てと同じプロセスの設定に従う */
+    /* トレースの出力言語も、文字列の組み立てと同じプロセスの設定に従う。 */
     ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
     if (ret != CPLAT_OK)
     {

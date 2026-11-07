@@ -25,9 +25,11 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-    /* --- 差し替え可能な各関数の sym_loader エントリへのポインター      --- */
-    /* --- 対応関数を追加した場合、次への追加が必要です。                --- */
-    /* --- 関数ポインター型 <lib>_<name>_fn は公開ヘッダーに定義します。 --- */
+    /*
+     * --- 差し替え可能な各関数の sym_loader エントリへのポインター ---
+     * --- 対応関数を追加した場合、次への追加が必要である。 ---
+     * --- 関数ポインター型 <lib>_<name>_fn は公開ヘッダーに定義する。 ---
+     */
 
     /** base_calc に対応する sym_loader エントリへのポインター。 */
     extern cplat_sym_loader_entry *const pfo_base_calc;

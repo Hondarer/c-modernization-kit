@@ -122,6 +122,7 @@ static void print_builtin_catalog_names(FILE *stream)
     for (size_t i = 0; i < (sizeof(g_builtin_catalogs) / sizeof(g_builtin_catalogs[0])); i++)
     {
         const char *separator;
+
         if (i == 0U)
         {
             separator = "";
@@ -130,6 +131,7 @@ static void print_builtin_catalog_names(FILE *stream)
         {
             separator = "|";
         }
+
         fprintf(stream, "%s%s", separator, g_builtin_catalogs[i].name);
     }
 }
@@ -188,15 +190,22 @@ static int select_descriptor(cplat_prompt *prompt, const struct_meta_catalog *ca
         fprintf(stderr, "struct-meta-sample: 構造体の一覧が空です\n");
         return CPLAT_ERR_NOT_FOUND;
     }
+
     if (descriptor_count > (size_t)INT_MAX)
     {
         fprintf(stderr, "struct-meta-sample: 構造体の一覧が大きすぎます\n");
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
+    /*
+     * 番号または構造体名で選ばれるまで繰り返す。
+     * 入力に失敗したときは、その結果コードを返して終わる。
+     * 記述子を取得できないときは CPLAT_ERR_NOT_FOUND を返して終わる。
+     */
     for (;;)
     {
         printf("構造体を選択してください:\n");
+
         for (size_t i = 0; i < descriptor_count; i++)
         {
             const struct_meta_descriptor *descriptor = NULL;
@@ -205,6 +214,7 @@ static int select_descriptor(cplat_prompt *prompt, const struct_meta_catalog *ca
                 fprintf(stderr, "struct-meta-sample: 構造体の記述子を取得できません: %zu\n", i + 1U);
                 return CPLAT_ERR_NOT_FOUND;
             }
+
             printf("  %zu) %s\n", i + 1U, descriptor->name);
         }
 
@@ -229,6 +239,7 @@ static int select_descriptor(cplat_prompt *prompt, const struct_meta_catalog *ca
                 fprintf(stderr, "struct-meta-sample: 選択した構造体の記述子を取得できません: %d\n", index);
                 return CPLAT_ERR_NOT_FOUND;
             }
+
             return CPLAT_OK;
         }
 
@@ -257,11 +268,13 @@ static int match_command(const char *line, const char *cmd, const char **args_ou
     {
         return 0;
     }
+
     if (line[cmd_len] == '\0')
     {
         *args_out = "";
         return 1;
     }
+
     if ((line[cmd_len] == ' ') || (line[cmd_len] == '\t'))
     {
         const char *args = line + cmd_len;
@@ -269,12 +282,19 @@ static int match_command(const char *line, const char *cmd, const char **args_ou
         {
             args++;
         }
+
         *args_out = args;
         return 1;
     }
+
+    /* コマンド名の直後が終端でも空白でもなければ、そのコマンドではない。 */
     return 0;
 }
 
+/*
+ * パスが空でなければ、その文字列をそのまま返す。
+ * 空ならエラーを出して NULL を返す。
+ */
 static const char *require_path(const char *args)
 {
     if ((args == NULL) || (args[0] == '\0'))
@@ -282,6 +302,7 @@ static const char *require_path(const char *args)
         fprintf(stderr, "struct-meta-sample: ファイル名を指定してください\n");
         return NULL;
     }
+
     return args;
 }
 
@@ -299,6 +320,7 @@ static int ensure_selected(const sample_target *target)
         print_init_usage();
         return 0;
     }
+
     return 1;
 }
 
@@ -338,6 +360,7 @@ static void cmd_dumpjson(const sample_target *target)
 
     char *text = cJSON_Print(json);
     cJSON_Delete(json);
+
     if (text == NULL)
     {
         fprintf(stderr, "struct-meta-sample: JSON のテキストを作成できません\n");
@@ -352,7 +375,10 @@ static void cmd_dumpjson(const sample_target *target)
         cJSON_free(text);
         return;
     }
+
+    /* 最終行に改行がない場合も、次の対話プロンプトと連結しないよう改行する。 */
     const int needs_newline = (text_length == 0U) || (text[text_length - 1U] != '\n');
+
     if (cplat_fwrite(text, 1U, text_length, stdout, &error) != text_length)
     {
         fprintf(stderr, "struct-meta-sample: dumpjson の標準出力へ書き込めません (結果コード %d)\n",
@@ -362,6 +388,7 @@ static void cmd_dumpjson(const sample_target *target)
     }
 
     static const char newline[] = "\n";
+
     if ((needs_newline != 0) && (cplat_fwrite(newline, 1U, 1U, stdout, &error) != 1U))
     {
         fprintf(stderr, "struct-meta-sample: dumpjson の最終改行を出力できません (結果コード %d)\n",
@@ -369,6 +396,7 @@ static void cmd_dumpjson(const sample_target *target)
         cJSON_free(text);
         return;
     }
+
     (void)cplat_fflush(stdout, NULL);
     cJSON_free(text);
 }
@@ -436,7 +464,7 @@ static void cmd_loadbin(const sample_target *target, const char *path)
         return;
     }
 
-    /* 記述子の大きさちょうどであることを確かめる。1 バイトでも余れば別のレイアウトとみなす。 */
+    /* 記述子の大きさちょうどであることを確かめる。1 [byte] でも余れば別のレイアウトとみなす。 */
     if (cplat_fread(&extra, 1U, 1U, stream, &error) != 0U)
     {
         fprintf(stderr, "struct-meta-sample: loadbin のファイルが大きすぎます (%s は %zu バイト): %s\n",
@@ -479,10 +507,11 @@ static void cmd_catjson(const char *path)
                 fprintf(stderr, "struct-meta-sample: catjson の入力ファイルを読み取れません (結果コード %d): %s\n",
                         cplat_error_to_result(&error), path);
             }
+
             break;
         }
 
-        /* 要求サイズ未満の最終ブロックも、EOF 判定より先に必ず出力します。 */
+        /* 要求サイズ未満の最終ブロックも、EOF 判定より先に必ず出力する。 */
         {
             size_t written_count = cplat_fwrite(buffer, 1U, read_count, stdout, &error);
             if (written_count != read_count)
@@ -492,6 +521,7 @@ static void cmd_catjson(const char *path)
                 (void)cplat_fclose(stream, NULL);
                 return;
             }
+
             last_byte = buffer[read_count - 1U];
             has_output = 1;
         }
@@ -502,10 +532,11 @@ static void cmd_catjson(const char *path)
         }
     }
 
-    /* 最終行に改行がない場合も、次の対話プロンプトと連結しないよう改行します。 */
+    /* 最終行に改行がない場合も、次の対話プロンプトと連結しないよう改行する。 */
     if ((has_output != 0) && (last_byte != (unsigned char)'\n'))
     {
         static const unsigned char newline[] = {'\n'};
+
         if (cplat_fwrite(newline, 1U, sizeof(newline), stdout, &error) != sizeof(newline))
         {
             fprintf(stderr, "struct-meta-sample: catjson の最終改行を出力できません (結果コード %d): %s\n",
@@ -514,6 +545,7 @@ static void cmd_catjson(const char *path)
             return;
         }
     }
+
     (void)cplat_fflush(stdout, NULL);
 
     if (cplat_fclose(stream, &error) != 0)
@@ -523,7 +555,10 @@ static void cmd_catjson(const char *path)
     }
 }
 
-/* バイト列を 16 進ダンプとして標準出力へ表示する共通処理です。 */
+/*
+ * バイト列を 16 進ダンプとして標準出力へ表示する共通処理である。
+ * 0x20 以上 0x7f 未満のバイトはそのまま出し、それ以外は '.' で表す。
+ */
 static void print_hexdump(const unsigned char *buffer, size_t size, size_t offset)
 {
     for (size_t line_start = 0U; line_start < size; line_start += SAMPLE_HEXDUMP_BYTES_PER_LINE)
@@ -535,6 +570,7 @@ static void print_hexdump(const unsigned char *buffer, size_t size, size_t offse
         }
 
         printf("%08zx  ", offset + line_start);
+
         for (size_t i = 0U; i < SAMPLE_HEXDUMP_BYTES_PER_LINE; i++)
         {
             if (i < line_bytes)
@@ -549,6 +585,7 @@ static void print_hexdump(const unsigned char *buffer, size_t size, size_t offse
         }
 
         printf(" |");
+
         for (size_t i = 0U; i < SAMPLE_HEXDUMP_BYTES_PER_LINE; i++)
         {
             if (i < line_bytes)
@@ -569,6 +606,7 @@ static void print_hexdump(const unsigned char *buffer, size_t size, size_t offse
                 printf(" ");
             }
         }
+
         printf("|\n");
     }
 }
@@ -618,12 +656,14 @@ static void cmd_catbin(const char *path)
                 fprintf(stderr, "struct-meta-sample: catbin の入力ファイルを読み取れません (結果コード %d): %s\n",
                         cplat_error_to_result(&error), path);
             }
+
             break;
         }
 
         print_hexdump(buffer, read_count, offset);
 
         offset += read_count;
+
         if (read_count < sizeof(buffer))
         {
             break;
@@ -639,6 +679,10 @@ static void cmd_catbin(const char *path)
     }
 }
 
+/*
+ * 引数が空ならメニュー形式で編集し、空でなければそのパスから編集する。
+ * 失敗したときは、どちらの形式だったかをメッセージで区別する。
+ */
 static void cmd_patch(const sample_target *target, const char *path)
 {
     int ret;
@@ -651,6 +695,7 @@ static void cmd_patch(const sample_target *target, const char *path)
     {
         ret = struct_meta_patch_path_interactive(target->descriptor, target->instance, path);
     }
+
     if (ret != CPLAT_OK)
     {
         if (path[0] == '\0')
@@ -690,6 +735,7 @@ static int open_parsed_catalog(const char *header_path, struct_meta_catalog **ca
         return CPLAT_OK;
     }
 
+    /* 診断が無い失敗では、ヘッダー パスだけを出す。 */
     if (diagnostic.message[0] == '\0')
     {
         fprintf(stderr, "struct-meta-sample: ヘッダーを解析できません: %s\n", header_path);
@@ -702,6 +748,7 @@ static int open_parsed_catalog(const char *header_path, struct_meta_catalog **ca
     {
         fprintf(stderr, "struct-meta-sample: %s: %s\n", header_path, diagnostic.message);
     }
+
     return ret;
 }
 
@@ -749,6 +796,7 @@ static void cmd_init(cplat_prompt *prompt, sample_target *target, const char *ar
         {
             return;
         }
+
         catalog = parsed_catalog;
     }
 
@@ -759,6 +807,7 @@ static void cmd_init(cplat_prompt *prompt, sample_target *target, const char *ar
         {
             fprintf(stderr, "struct-meta-sample: 構造体の選択に失敗しました (結果コード %d)\n", select_result);
         }
+
         /* この呼び出しで作ったカタログだけを破棄し、従来の対象を残す。 */
         struct_meta_catalog_destroy(parsed_catalog);
         return;
@@ -772,8 +821,10 @@ static void cmd_init(cplat_prompt *prompt, sample_target *target, const char *ar
         return;
     }
 
-    /* ここまで成功したので、古い対象を解放して差し替える。
-       組み込みカタログは静的領域であり、破棄しない。 */
+    /*
+     * ここまで成功したので、古い対象を解放して差し替える。
+     * 組み込みカタログは静的領域であり、破棄しない。
+     */
     struct_meta_catalog_destroy(target->parsed_catalog);
     free(target->instance);
 
@@ -795,19 +846,30 @@ int main(int argc, char **argv)
     int parse_result;
 
     cplat_console_init();
+
     cplat_argparser_init(argc, argv, "struct-meta の動作確認コマンドです。起動後は対話コマンドを入力します。");
+
+    /* 登録の失敗は戻り値ではなく、直後に登録エラー件数で判定する。 */
     (void)cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
+
     if (cplat_argparser_get_register_error_count() > 0U)
     {
         (void)cplat_argparser_print_register_error_messages(stderr);
         return EXIT_FAILURE;
     }
+
     parse_result = cplat_argparser_parse();
+
+    /*
+     * 必須引数が省略されていても、-h と --help を優先する。
+     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     */
     if (need_help != 0)
     {
         (void)cplat_argparser_print_usage(stdout);
         return EXIT_SUCCESS;
     }
+
     if (parse_result != CPLAT_OK)
     {
         (void)cplat_argparser_print_error_messages(stderr);
@@ -825,10 +887,16 @@ int main(int argc, char **argv)
     /* 対象は未選択の状態で始める。init で定めるまで、値を扱うコマンドは受け付けない。 */
     print_commands();
 
+    /*
+     * 対話コマンドを 1 行ずつ処理する。
+     * EOF では終了コード 0、入力の失敗またはキャンセルでは終了コード 1 でループを抜ける。
+     * 引数のない exit でも抜け、そのときの終了コードは 0 のままである。
+     */
     for (;;)
     {
         const char *args = NULL;
         int ret;
+
         if (target.descriptor == NULL)
         {
             ret = cplat_prompt_readline(prompt, line, sizeof(line), "struct-meta-sample> ");
@@ -838,6 +906,7 @@ int main(int argc, char **argv)
             ret = cplat_prompt_readline_fmt(prompt, line, sizeof(line), "struct-meta-sample(%s/%s)> ",
                                             target.catalog_name, target.descriptor->name);
         }
+
         if ((ret == CPLAT_ERR_EOF) || (ret == CPLAT_ERR_CANCELED))
         {
             if (ret == CPLAT_ERR_EOF)
@@ -848,14 +917,17 @@ int main(int argc, char **argv)
             {
                 exit_code = 1;
             }
+
             break;
         }
+
         if (ret != CPLAT_OK)
         {
             fprintf(stderr, "struct-meta-sample: 入力に失敗しました (結果コード %d)\n", ret);
             exit_code = 1;
             break;
         }
+
         if (line[0] == '\0')
         {
             print_commands();
@@ -979,8 +1051,12 @@ int main(int argc, char **argv)
 
     cplat_prompt_dispose(prompt);
     free(target.instance);
-    /* 事後解析型で作ったカタログだけを破棄する。組み込みカタログは静的領域であり、
-       生成コードが cplat_shutdown_register で管理する。 */
+
+    /*
+     * 事後解析型で作ったカタログだけを破棄する。組み込みカタログは静的領域であり、
+     * 生成コードが cplat_shutdown_register で管理する。
+     */
     struct_meta_catalog_destroy(target.parsed_catalog);
+
     return exit_code;
 }

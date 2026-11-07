@@ -50,7 +50,7 @@ static void trim_newline(char *line)
  */
 static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *too_long, size_t *line_count_out)
 {
-    /* 行幅いっぱいの行に、BOM (3 バイト)、改行 (最大 2 バイト)、NUL を加えても収まる大きさ */
+    /* 行幅いっぱいの行に、BOM (3 [byte])、改行 (最大 2 [byte])、NUL を加えても収まる大きさ */
     char buffer[CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX + 8U];
     size_t line_count = 0U;
 
@@ -64,12 +64,13 @@ static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *to
         {
             break;
         }
+
         if (line_count >= SAMPLE_FILTER_FILE_LINE_MAX)
         {
             return CPLAT_ERR_LIMIT_EXCEEDED;
         }
 
-        /* 収まらない行は、行の残りを読み捨てて、行幅を超えた行として扱う */
+        /* 収まらない行は、行の残りを読み捨てて、行幅を超えた行として扱う。 */
         while (ret == CPLAT_ERR_BUFFER_TOO_SMALL)
         {
             char rest[64];
@@ -77,18 +78,21 @@ static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *to
             is_overflowed = true;
             ret = cplat_fgets(rest, sizeof(rest), stream, NULL);
         }
+
         if ((ret != CPLAT_OK) && (ret != CPLAT_ERR_EOF))
         {
             return CPLAT_ERR_UNKNOWN;
         }
 
         trim_newline(buffer);
+
         if ((line_count == 0U) && (memcmp(buffer, s_utf8_bom, sizeof(s_utf8_bom)) == 0))
         {
             memmove(buffer, buffer + sizeof(s_utf8_bom), strlen(buffer) - sizeof(s_utf8_bom) + 1U);
         }
 
         row = rows + (line_count * line_width);
+
         if (is_overflowed || (strlen(buffer) > line_width))
         {
             too_long[line_count] = true;
@@ -97,10 +101,12 @@ static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *to
         {
             memcpy(row, buffer, strlen(buffer));
         }
+
         line_count++;
     }
 
     *line_count_out = line_count;
+
     return CPLAT_OK;
 }
 
@@ -147,9 +153,10 @@ int sample_filter_file_load(const char *path, const size_t line_capacity, const 
     {
         ret = read_rows(stream, line_width, rows, too_long, &line_count);
     }
+
     (void)cplat_fclose(stream, NULL);
 
-    /* 失敗した場合に格納先を変えないよう、手元の領域へコンパイルしてから複製する */
+    /* 失敗した場合に格納先を変えないよう、手元の領域へコンパイルしてから複製する。 */
     if (ret == CPLAT_OK)
     {
         ret = cplat_string_catalog_filter_compile(rows, line_count, line_width, line_capacity, compiled, image_size,
@@ -158,8 +165,10 @@ int sample_filter_file_load(const char *path, const size_t line_capacity, const 
 
     if (ret == CPLAT_OK)
     {
-        /* 行幅を超えた行と、コンパイルで無効にした行を、ファイルの行の順に並べる。
-           行幅を超えた行は空行としてコンパイルしたため、両者の行は重ならない */
+        /*
+         * 行幅を超えた行と、コンパイルで無効にした行を、ファイルの行の順に並べる。
+         * 行幅を超えた行は空行としてコンパイルしたため、両者の行は重ならない。
+         */
         for (size_t line_index = 0; line_index < line_count; line_index++)
         {
             cplat_string_catalog_filter_diagnostic entry;
@@ -185,10 +194,12 @@ int sample_filter_file_load(const char *path, const size_t line_capacity, const 
             {
                 diagnostics[merged] = entry;
             }
+
             merged++;
         }
 
         memcpy(image, compiled, image_size);
+
         if (result_out != NULL)
         {
             (void)cplat_string_catalog_filter_get_info(image, image_size, &info);
@@ -202,6 +213,7 @@ int sample_filter_file_load(const char *path, const size_t line_capacity, const 
     free(compiled_diagnostics);
     free(too_long);
     free(rows);
+
     return ret;
 }
 
@@ -218,6 +230,7 @@ int sample_filter_file_save(const char *path, const void *image, const size_t im
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     ret = cplat_string_catalog_filter_get_info(image, image_size, &info);
     if (ret != CPLAT_OK)
     {
@@ -243,5 +256,6 @@ int sample_filter_file_save(const char *path, const void *image, const size_t im
     {
         ret = CPLAT_ERR_UNKNOWN;
     }
+
     return ret;
 }

@@ -36,6 +36,10 @@ int main(int argc, char *argv[])
     cplat_argparser_init(argc, argv, "関数の動的オーバーライドのサンプル コマンド。");
     cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
 
+    /*
+     * オプション登録の失敗は、コーディング エラーとして終了する。
+     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     */
     if (cplat_argparser_get_register_error_count() > 0)
     {
         cplat_argparser_print_register_error_messages(stderr);
@@ -44,6 +48,10 @@ int main(int argc, char *argv[])
 
     int parse_result = cplat_argparser_parse();
 
+    /*
+     * ヘルプが指定されていれば、解析エラーより先に用法を表示して成功で終了する。
+     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     */
     if (need_help != 0)
     {
         cplat_argparser_print_usage(stdout);
@@ -61,9 +69,15 @@ int main(int argc, char *argv[])
     int ret;
     char configpath[PLATFORM_PATH_MAX];
 
+    /*
+     * 一時ディレクトリに libbase_extdef.jsonc を連結し、定義ファイルの作成例として表示するパスを作る。
+     * 一時ディレクトリまたは連結結果が長すぎる場合は、失敗で終了する。
+     * それ以外の理由で一時ディレクトリを取得できない場合は、パスを空文字にして続きを実行する。
+     */
     {
         cplat_error error;
         char tmpdir[PLATFORM_PATH_MAX];
+
         if (cplat_path_get_temp_dir(tmpdir, sizeof(tmpdir), &error) == CPLAT_OK)
         {
             if (cplat_path_concat(configpath, sizeof(configpath), &error, tmpdir, PLATFORM_PATH_SEP,
@@ -101,6 +115,7 @@ int main(int argc, char *argv[])
 
     ret = base_calc(1, 2, &result);
     base_console_output("ret: %d\n", ret);
+
     if (ret != BASE_OK)
     {
         fprintf(stderr, "func failed (base_calc(1, 2, &result))\n");

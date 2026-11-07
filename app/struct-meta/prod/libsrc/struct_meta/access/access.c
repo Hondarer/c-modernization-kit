@@ -25,6 +25,7 @@ int struct_meta_descriptor_get_field(const struct_meta_descriptor *descriptor, s
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *field_out = NULL;
 
     int ret = struct_meta_descriptor_validate(descriptor);
@@ -32,12 +33,14 @@ int struct_meta_descriptor_get_field(const struct_meta_descriptor *descriptor, s
     {
         return ret;
     }
+
     if (index >= descriptor->field_count)
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
     *field_out = &descriptor->fields[index];
+
     return CPLAT_OK;
 }
 
@@ -50,6 +53,7 @@ int struct_meta_descriptor_find_field(const struct_meta_descriptor *descriptor, 
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *field_out = NULL;
 
     int ret = struct_meta_descriptor_validate(descriptor);
@@ -66,6 +70,7 @@ int struct_meta_descriptor_find_field(const struct_meta_descriptor *descriptor, 
         *field_out = &descriptor->fields[index];
         return CPLAT_OK;
     }
+
     if (index_ret == CPLAT_ERR_NOT_FOUND)
     {
         return CPLAT_ERR_NOT_FOUND;
@@ -79,6 +84,7 @@ int struct_meta_descriptor_find_field(const struct_meta_descriptor *descriptor, 
             return CPLAT_OK;
         }
     }
+
     return CPLAT_ERR_NOT_FOUND;
 }
 
@@ -91,6 +97,7 @@ int struct_meta_descriptor_find_attribute(const struct_meta_descriptor *descript
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *attribute_out = NULL;
 
     int ret = struct_meta_descriptor_validate(descriptor);
@@ -107,6 +114,7 @@ int struct_meta_descriptor_find_attribute(const struct_meta_descriptor *descript
             return CPLAT_OK;
         }
     }
+
     return CPLAT_ERR_NOT_FOUND;
 }
 
@@ -119,6 +127,7 @@ int struct_meta_field_find_attribute(const struct_meta_field *field, const char 
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *attribute_out = NULL;
 
     for (size_t i = 0; i < field->attribute_count; i++)
@@ -129,6 +138,7 @@ int struct_meta_field_find_attribute(const struct_meta_field *field, const char 
             return CPLAT_OK;
         }
     }
+
     return CPLAT_ERR_NOT_FOUND;
 }
 
@@ -140,13 +150,16 @@ int struct_meta_field_get_element(const struct_meta_field *field, void *instance
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *element_out = NULL;
+
     if (index >= field->element_count)
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
     *element_out = (unsigned char *)instance + field->offset + (index * field->element_size);
+
     return CPLAT_OK;
 }
 
@@ -159,12 +172,15 @@ int struct_meta_field_get_const_element(const struct_meta_field *field, const vo
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *element_out = NULL;
+
     if (index >= field->element_count)
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
     *element_out = (const unsigned char *)instance + field->offset + (index * field->element_size);
+
     return CPLAT_OK;
 }

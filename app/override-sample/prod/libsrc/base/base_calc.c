@@ -23,16 +23,18 @@ int base_calc(const int a, const int b, int *result)
         return BASE_ERR_INVALID_ARGUMENT;
     }
 
+    /*
+     * 差し替え実装が見つかれば、その実装へ処理を委譲する。
+     * 見つからなければ既定の実装を実行する。
+     */
     base_calc_fn fp = cplat_sym_loader_resolve_as(pfo_base_calc, base_calc_fn);
     if (fp != NULL)
     {
-        /* 差し替え実装 */
         base_console_output("base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します\n");
         return fp(a, b, result);
     }
     else
     {
-        /* 既定の実装 */
         base_console_output("base_calc: a=%d, b=%d の処理 (*result = a + b;) を行います\n", a, b);
         *result = a + b;
         return BASE_OK;

@@ -16,52 +16,64 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Doxygen コメントは、ヘッダーに記載 */
-
+/*
+ * Doxygen の開始記号を読み飛ばす。ブロック形式は '/' に続く "**" または "*!"、行形式は "///" または "//!" であり、
+ * 後置用はそれぞれの後ろに '<' が付く。3 文字の開始記号と前方一致するため、後置用の 4 文字を先に判定して
+ * '<' が本文に残らないようにする。
+ */
 static const char *skip_doc_open(const char *s)
 {
     if ((s == NULL) || (s[0] != '/'))
     {
         return s;
     }
+
     if (s[1] == '*')
     {
         if ((s[2] == '*') && (s[3] == '<'))
         {
             return s + 4;
         }
+
         if ((s[2] == '!') && (s[3] == '<'))
         {
             return s + 4;
         }
+
         if (s[2] == '*')
         {
             return s + 3;
         }
+
         if (s[2] == '!')
         {
             return s + 3;
         }
     }
+
     if (s[1] == '/')
     {
         if ((s[2] == '/') && (s[3] == '<'))
         {
             return s + 4;
         }
+
         if ((s[2] == '!') && (s[3] == '<'))
         {
             return s + 4;
         }
+
         if (s[2] == '/')
         {
             return s + 3;
         }
+
         if (s[2] == '!')
         {
             return s + 3;
         }
     }
+
     return s;
 }
 
@@ -82,6 +94,8 @@ static char *strip_doc_text(const char *raw)
     body = skip_doc_open(raw);
     raw_len = strlen(body);
     end = body + raw_len;
+
+    /* 行コメントには終了記号がないため、末尾が終了記号の場合だけ除く。 */
     if ((raw_len >= 2U) && (end[-2] == '*') && (end[-1] == '/'))
     {
         end -= 2;
@@ -93,8 +107,13 @@ static char *strip_doc_text(const char *raw)
         return NULL;
     }
 
+    /*
+     * 各行の先頭から字下げとブロック コメントの装飾の '*' を 1 つ除く。
+     * '*' の直後の空白は 1 文字だけ除き、コード例などの本文の字下げは残す。
+     */
     out_len = 0;
     at_line_start = 1;
+
     while (body < end)
     {
         if (at_line_start != 0)
@@ -103,29 +122,38 @@ static char *strip_doc_text(const char *raw)
             {
                 body++;
             }
+
             if ((body < end) && (*body == '*'))
             {
                 body++;
+
                 if ((body < end) && (*body == ' '))
                 {
                     body++;
                 }
             }
+
             at_line_start = 0;
+
             if (body >= end)
             {
                 break;
             }
         }
+
         out[out_len] = *body;
+
         if (*body == '\n')
         {
             at_line_start = 1;
         }
+
         out_len++;
         body++;
     }
+
     out[out_len] = '\0';
+
     return out;
 }
 
@@ -135,6 +163,10 @@ static const char *find_doc_tag(const char *text, const char *tag)
     const char *p = text;
     int at_line_start = 1;
 
+    /*
+     * 字下げを除いた行頭にある @tag だけを検索する。
+     * 文中の @tag や、@tagname のように名前が前方一致するだけの別タグは除外する。
+     */
     while (*p != '\0')
     {
         if (at_line_start != 0)
@@ -143,6 +175,7 @@ static const char *find_doc_tag(const char *text, const char *tag)
             {
                 p++;
             }
+
             if ((*p == '@') && (strncmp(p + 1, tag, tag_len) == 0))
             {
                 const char after = p[1U + tag_len];
@@ -152,6 +185,7 @@ static const char *find_doc_tag(const char *text, const char *tag)
                 }
             }
         }
+
         if (*p == '\n')
         {
             at_line_start = 1;
@@ -160,15 +194,20 @@ static const char *find_doc_tag(const char *text, const char *tag)
         {
             at_line_start = 0;
         }
+
+        /* 字下げの読み飛ばしで終端に達した場合は、p++ で終端を越えないよう抜ける。 */
         if (*p == '\0')
         {
             break;
         }
+
         p++;
     }
+
     return NULL;
 }
 
+/* 前後の空白を除き、改行を含む連続空白を 1 つの ' ' に畳み込む。空白だけの文字列は NULL を返す。 */
 static char *collapse_ws(const char *begin, const char *end)
 {
     char *out;
@@ -179,10 +218,12 @@ static char *collapse_ws(const char *begin, const char *end)
     {
         begin++;
     }
+
     while ((end > begin) && (isspace((unsigned char)end[-1]) != 0))
     {
         end--;
     }
+
     if (begin >= end)
     {
         return NULL;
@@ -196,6 +237,7 @@ static char *collapse_ws(const char *begin, const char *end)
 
     out_len = 0;
     in_space = 0;
+
     while (begin < end)
     {
         if (isspace((unsigned char)*begin) != 0)
@@ -213,14 +255,18 @@ static char *collapse_ws(const char *begin, const char *end)
             out_len++;
             in_space = 0;
         }
+
         begin++;
     }
+
     out[out_len] = '\0';
+
     if (out_len == 0U)
     {
         free(out);
         return NULL;
     }
+
     return out;
 }
 
@@ -236,8 +282,9 @@ static const char *find_doc_tag_last(const char *text, const char *tag)
         {
             return found;
         }
+
         found = hit;
-        p = hit + 1;
+        p = hit + 1; /* 同じタグを再び見つけないよう 1 文字進める */
     }
 }
 
@@ -253,11 +300,13 @@ static char *extract_brief_tag(const char *stripped)
         return NULL;
     }
 
-    p = tag + (sizeof("@brief") - 1U);
+    p = tag + (sizeof("@brief") - 1U); /* sizeof は終端の NUL を含むため 1 を引く */
     while ((*p != '\0') && (isspace((unsigned char)*p) != 0))
     {
         p++;
     }
+
+    /* @brief の本文は複数行にまたがることがあるため、次の行頭が '@' で始まる位置か終端までを範囲とする。 */
     begin = p;
     end = p;
     while (*end != '\0')
@@ -269,19 +318,25 @@ static char *extract_brief_tag(const char *stripped)
             {
                 next++;
             }
+
             if (*next == '@')
             {
                 break;
             }
+
             if (*next == '\0')
             {
                 break;
             }
         }
+
         end++;
     }
+
     return collapse_ws(begin, end);
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 int struct_meta_internal_parse_doc_has_file_tag(const char *raw)
 {
@@ -292,11 +347,13 @@ int struct_meta_internal_parse_doc_has_file_tag(const char *raw)
     {
         return 0;
     }
+
     stripped = strip_doc_text(raw);
     if (stripped == NULL)
     {
         return 0;
     }
+
     if (find_doc_tag(stripped, "file") != NULL)
     {
         found = 1;
@@ -305,10 +362,16 @@ int struct_meta_internal_parse_doc_has_file_tag(const char *raw)
     {
         found = 0;
     }
+
     free(stripped);
+
     return found;
 }
 
+/*
+ * @struct_meta_other のような別タグを除外しつつ、'{' を書き忘れた @struct_meta も
+ * 呼び出し側で構文エラーとして診断できるよう、直後が '{'、空白、終端のいずれかなら一致とする。
+ */
 static int is_meta_cmd(const char *p)
 {
     static const char command[] = "@struct_meta";
@@ -327,8 +390,10 @@ static char *copy_range(const char *begin, const char *end)
     {
         return NULL;
     }
+
     memcpy(out, begin, len);
     out[len] = '\0';
+
     return out;
 }
 
@@ -341,7 +406,8 @@ static int valid_attribute_key(const char *key)
             return 0;
         }
     }
-    return key[0] != '\0';
+
+    return key[0] != '\0'; /* 空の属性名は不正とする */
 }
 
 static struct_meta_internal_parse_attribute *find_attribute(struct_meta_internal_parse_attribute *attributes,
@@ -354,6 +420,7 @@ static struct_meta_internal_parse_attribute *find_attribute(struct_meta_internal
             return attribute;
         }
     }
+
     return NULL;
 }
 
@@ -371,6 +438,7 @@ static void append_attribute(struct_meta_internal_parse_attribute **attributes,
     {
         tail = tail->next;
     }
+
     tail->next = attribute;
 }
 
@@ -380,6 +448,11 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
     static const size_t command_len = sizeof("@struct_meta") - 1U;
     const char *p = text;
 
+    /*
+     * @struct_meta{key} と @struct_meta{key=value} を先頭から順に解析する。
+     * 最初の違反を診断した時点で 1 を返す。
+     * 書式の正本は app/struct-meta/docs/architecture.md の「Doxygen 属性の書式」節である。
+     */
     while (*p != '\0')
     {
         if ((*p != '@') || (is_meta_cmd(p) == 0))
@@ -393,6 +466,7 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
         {
             open++;
         }
+
         if (*open != '{')
         {
             struct_meta_internal_diagnose(diagnostic, line, "@struct_meta に { がありません");
@@ -405,6 +479,7 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
             struct_meta_internal_diagnose(diagnostic, line, "@struct_meta に } がありません");
             return 1;
         }
+
         for (const char *q = open + 1; q < close; q++)
         {
             if ((*q == '{') || (*q == '\n') || (*q == '\r'))
@@ -414,12 +489,14 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
             }
         }
 
+        /* 波括弧内の前後の空白を除き、'=' の有無で属性名と属性値に分ける。 */
         const char *begin = open + 1;
         const char *end = close;
         while ((begin < end) && (isspace((unsigned char)*begin) != 0))
         {
             begin++;
         }
+
         while ((end > begin) && (isspace((unsigned char)end[-1]) != 0))
         {
             end--;
@@ -427,6 +504,7 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
 
         const char *separator = memchr(begin, '=', (size_t)(end - begin));
         const char *key_end;
+
         if (separator == NULL)
         {
             key_end = end;
@@ -435,10 +513,12 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
         {
             key_end = separator;
         }
+
         while ((key_end > begin) && (isspace((unsigned char)key_end[-1]) != 0))
         {
             key_end--;
         }
+
         char *key = copy_range(begin, key_end);
         if ((key == NULL) || (valid_attribute_key(key) == 0))
         {
@@ -448,6 +528,7 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
         }
 
         char *value = NULL;
+
         if (separator != NULL)
         {
             const char *value_begin = separator + 1;
@@ -455,12 +536,14 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
             {
                 value_begin++;
             }
+
             if (value_begin == end)
             {
                 struct_meta_internal_diagnose(diagnostic, line, "@struct_meta{%s=} の属性値が空です", key);
                 free(key);
                 return 1;
             }
+
             value = copy_range(value_begin, end);
             if (value == NULL)
             {
@@ -469,6 +552,7 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
             }
         }
 
+        /* 同一コメント内の重複を拒否し、属性リストの末尾へ追加する。 */
         if (find_attribute(*attributes_out, key) != NULL)
         {
             struct_meta_internal_diagnose(diagnostic, line, "属性が重複しています: %s", key);
@@ -485,11 +569,13 @@ static int parse_attributes(const char *text, const int line, struct_meta_intern
             free(key);
             return 1;
         }
+
         attribute->key = key;
         attribute->value = value;
         append_attribute(attributes_out, attribute);
         p = close + 1;
     }
+
     return 0;
 }
 
@@ -504,6 +590,7 @@ static char *copy_without_meta_cmds(const char *text)
     {
         return NULL;
     }
+
     while (*p != '\0')
     {
         if ((*p == '@') && (is_meta_cmd(p) != 0))
@@ -513,9 +600,16 @@ static char *copy_without_meta_cmds(const char *text)
             {
                 open++;
             }
+
             if (*open == '{')
             {
                 const char *close = strchr(open + 1, '}');
+
+                /*
+                 * 閉じ波括弧がない記述は parse_attributes() が先に拒否するため、通常の解析経路では到達しない。
+                 * struct_meta_internal_parse_brief_from_doc() が単独で呼び出された場合も無限ループにならないよう、
+                 * '{' の直後から走査を続ける。
+                 */
                 if (close == NULL)
                 {
                     p = (open + 1);
@@ -524,16 +618,22 @@ static char *copy_without_meta_cmds(const char *text)
                 {
                     p = (close + 1);
                 }
+
                 continue;
             }
         }
+
         out[o] = *p;
         o++;
         p++;
     }
+
     out[o] = '\0';
+
     return out;
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 char *struct_meta_internal_parse_brief_from_doc(const char *raw, int is_postfix)
 {
@@ -554,6 +654,7 @@ char *struct_meta_internal_parse_brief_from_doc(const char *raw, int is_postfix)
 
     without_meta = copy_without_meta_cmds(stripped);
     free(stripped);
+
     if (without_meta == NULL)
     {
         return NULL;
@@ -564,9 +665,13 @@ char *struct_meta_internal_parse_brief_from_doc(const char *raw, int is_postfix)
     {
         brief = collapse_ws(without_meta, without_meta + strlen(without_meta));
     }
+
     free(without_meta);
+
     return brief;
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_from_raw(const char *raw,
                                                                                    const int is_postfix, const int line,
@@ -579,6 +684,7 @@ struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_from_r
     {
         return attrs;
     }
+
     stripped = strip_doc_text(raw);
     if (stripped == NULL)
     {
@@ -590,9 +696,13 @@ struct_meta_internal_parse_doc_attrs struct_meta_internal_parse_doc_attrs_from_r
     {
         attrs.brief = struct_meta_internal_parse_brief_from_doc(raw, is_postfix);
     }
+
     free(stripped);
+
     return attrs;
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 struct_meta_internal_parse_doc_attrs
 struct_meta_internal_parse_doc_attrs_choose(struct_meta_internal_parse_doc_attrs prefix,
@@ -606,7 +716,13 @@ struct_meta_internal_parse_doc_attrs_choose(struct_meta_internal_parse_doc_attrs
         free(prefix.brief);
         out.brief = postfix.brief;
     }
+
     out.invalid = (prefix.invalid != 0) || (postfix.invalid != 0);
+
+    /*
+     * 重複を診断した場合も属性リストを連結し、所有権を out へ集約する。
+     * 呼び出し側は invalid の値によらず out だけを解放すればよい。
+     */
     for (struct_meta_internal_parse_attribute *attribute = postfix.attributes; attribute != NULL;
          attribute = attribute->next)
     {
@@ -616,6 +732,7 @@ struct_meta_internal_parse_doc_attrs_choose(struct_meta_internal_parse_doc_attrs
             out.invalid = 1;
         }
     }
+
     if (prefix.attributes == NULL)
     {
         out.attributes = postfix.attributes;
@@ -627,10 +744,14 @@ struct_meta_internal_parse_doc_attrs_choose(struct_meta_internal_parse_doc_attrs
         {
             tail = tail->next;
         }
+
         tail->next = postfix.attributes;
     }
+
     return out;
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 char *struct_meta_internal_parse_brief_choose(char *prefix_brief, char *postfix_brief)
 {
@@ -639,8 +760,11 @@ char *struct_meta_internal_parse_brief_choose(char *prefix_brief, char *postfix_
         free(prefix_brief);
         return postfix_brief;
     }
+
     return prefix_brief;
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 char *struct_meta_internal_parse_doc_concat(char *first, char *second)
 {
@@ -652,6 +776,7 @@ char *struct_meta_internal_parse_doc_concat(char *first, char *second)
     {
         return second;
     }
+
     if (second == NULL)
     {
         return first;
@@ -666,10 +791,12 @@ char *struct_meta_internal_parse_doc_concat(char *first, char *second)
         free(second);
         return NULL;
     }
+
     memcpy(out, first, first_len);
     out[first_len] = '\n';
-    memcpy(out + first_len + 1U, second, second_len + 1U);
+    memcpy(out + first_len + 1U, second, second_len + 1U); /* 終端の NUL も含めてコピーする */
     free(first);
     free(second);
+
     return out;
 }

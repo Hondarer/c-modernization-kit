@@ -13,8 +13,10 @@
  *******************************************************************************
  */
 
-/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
-/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
+/*
+ * このヘッダーは多数のソース ファイルから参照されるため、
+ * @hideincludedbygraph によって "Included by" グラフを無効にする。
+ */
 
 #ifndef CALC_EXPORT_H
 #define CALC_EXPORT_H
@@ -24,6 +26,7 @@
  *  @{
  */
 
+/* Doxygen には属性の展開値を見せず、マクロの意味だけを記載する。 */
 #ifdef DOXYGEN
 
     /**
@@ -52,7 +55,7 @@
     #define CALC_API
 
 #else /* !DOXYGEN */
-
+    /* CPLAT_DLL_EXPORT() は PREFIX_STATIC と PREFIX_EXPORTS が 0 または 1 であることを前提とする。 */
     #ifndef CALC_STATIC
         #define CALC_STATIC 0
     #endif /* CALC_STATIC */

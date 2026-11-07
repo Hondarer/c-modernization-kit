@@ -22,10 +22,13 @@ int calcbase_divide(const int a, const int b, int *result)
     {
         return CALC_ERR_INVALID_ARGUMENT;
     }
+
     if (b == 0)
     {
         return CALC_ERR_INVALID_ARGUMENT;
     }
+
     *result = a / b;
+
     return CALC_OK;
 }

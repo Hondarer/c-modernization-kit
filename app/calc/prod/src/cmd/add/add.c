@@ -46,6 +46,11 @@ int main(int argc, char *argv[])
     cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
     cplat_argparser_register_positional_int("arg1", "第一オペランド。", CPLAT_ARGPARSER_REQUIRED, &arg1);
     cplat_argparser_register_positional_int("arg2", "第二オペランド。", CPLAT_ARGPARSER_REQUIRED, &arg2);
+
+    /*
+     * 登録 API の成否は内部に蓄積される。
+     * 登録エラーはコーディング エラーのため、解析前に報告して終了する。
+     */
     if (cplat_argparser_get_register_error_count() > 0)
     {
         cplat_argparser_print_register_error_messages(stderr);
@@ -53,11 +58,14 @@ int main(int argc, char *argv[])
     }
 
     int parse_result = cplat_argparser_parse();
+
+    /* 必須引数が省略されていても -h と --help を優先する。 */
     if (need_help != 0)
     {
         cplat_argparser_print_usage(stdout);
         return EXIT_SUCCESS;
     }
+
     if (parse_result != CPLAT_OK)
     {
         cplat_argparser_print_error_messages(stderr);

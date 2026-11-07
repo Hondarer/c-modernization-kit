@@ -53,16 +53,19 @@ static arena_chunk *add_chunk(struct_meta_internal_arena *arena, size_t capacity
     {
         return NULL;
     }
+
     chunk->bytes = (unsigned char *)calloc(1, capacity);
     if (chunk->bytes == NULL)
     {
         free(chunk);
         return NULL;
     }
+
     chunk->capacity = capacity;
     chunk->used = 0U;
     chunk->next = arena->chunks;
     arena->chunks = chunk;
+
     return chunk;
 }
 
@@ -77,6 +80,7 @@ static size_t aligned_offset(const arena_chunk *chunk, size_t alignment)
     const uintptr_t base = (uintptr_t)chunk->bytes + (uintptr_t)chunk->used;
     const uintptr_t misaligned = base % (uintptr_t)alignment;
     size_t padding;
+
     if (misaligned == 0U)
     {
         padding = 0U;
@@ -85,6 +89,7 @@ static size_t aligned_offset(const arena_chunk *chunk, size_t alignment)
     {
         padding = (size_t)((uintptr_t)alignment - misaligned);
     }
+
     return chunk->used + padding;
 }
 
@@ -95,6 +100,7 @@ void *struct_meta_internal_arena_allocate(struct_meta_internal_arena *arena, siz
         return NULL;
     }
 
+    /* 先頭の塊に十分な空きがある場合は、その領域から割り当てる。 */
     if (arena->chunks != NULL)
     {
         const size_t offset = aligned_offset(arena->chunks, alignment);
@@ -108,14 +114,17 @@ void *struct_meta_internal_arena_allocate(struct_meta_internal_arena *arena, siz
 
     /* 既定の塊に収まらない要求には、その要求だけを入れる塊を割り当てる。 */
     size_t capacity = ARENA_CHUNK_BYTES;
+
     if (size > (SIZE_MAX - alignment))
     {
         return NULL;
     }
+
     if ((size + alignment) > capacity)
     {
         capacity = size + alignment;
     }
+
     arena_chunk *chunk = add_chunk(arena, capacity);
     if (chunk == NULL)
     {
@@ -127,8 +136,10 @@ void *struct_meta_internal_arena_allocate(struct_meta_internal_arena *arena, siz
     {
         return NULL;
     }
+
     unsigned char *result = chunk->bytes + offset;
     chunk->used = offset + size;
+
     return result;
 }
 
@@ -138,13 +149,16 @@ char *struct_meta_internal_arena_copy_string(struct_meta_internal_arena *arena, 
     {
         return NULL;
     }
+
     const size_t length = strlen(text) + 1U;
     char *copy = (char *)struct_meta_internal_arena_allocate(arena, length, 1U);
     if (copy == NULL)
     {
         return NULL;
     }
+
     memcpy(copy, text, length);
+
     return copy;
 }
 
@@ -154,6 +168,7 @@ void struct_meta_internal_arena_destroy(struct_meta_internal_arena *arena)
     {
         return;
     }
+
     arena_chunk *current = arena->chunks;
     while (current != NULL)
     {
@@ -162,5 +177,6 @@ void struct_meta_internal_arena_destroy(struct_meta_internal_arena *arena)
         free(current);
         current = next;
     }
+
     free(arena);
 }

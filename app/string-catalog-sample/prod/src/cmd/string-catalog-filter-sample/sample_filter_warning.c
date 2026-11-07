@@ -24,12 +24,14 @@ static const char *const s_argument_kind_labels[] = {
     "UINT64", "HEX8",   "HEX16", "HEX32", "HEX64", "SIZE",  "SSIZE",  "POINTER", "DOUBLE", "ERROR_CODE",
 };
 
+/* 引数種別の表示名を取得する。範囲外の値の場合は "?" を返す。 */
 static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind)
 {
     if ((unsigned int)kind >= (sizeof(s_argument_kind_labels) / sizeof(s_argument_kind_labels[0])))
     {
         return "?";
     }
+
     return s_argument_kind_labels[(unsigned int)kind];
 }
 
@@ -44,7 +46,9 @@ static const cplat_string_catalog_argument *find_argument(const cplat_string_cat
     {
         return NULL;
     }
+
     *entry_out = entry;
+
     return &entry->arguments[argument_index];
 }
 
@@ -55,6 +59,7 @@ static const char *entry_label(const cplat_string_catalog_entry *entry)
     {
         return entry->id;
     }
+
     return entry->brief;
 }
 
@@ -72,6 +77,7 @@ int sample_filter_warning_format(const cplat_string_catalog *catalog,
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     dest[0] = '\0';
 
     argument = find_argument(catalog, warning->string_key, warning->argument_index, &entry);
@@ -94,6 +100,7 @@ int sample_filter_warning_format(const cplat_string_catalog *catalog,
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
         return cplat_snprintf(dest, dest_size,
                               "%u 行目: 引数 %s は、%s では文字列、%s では%s (%s) です。"
                               "型の合わない項目では比較が偽になり、意図した判定結果にならない可能性があります",

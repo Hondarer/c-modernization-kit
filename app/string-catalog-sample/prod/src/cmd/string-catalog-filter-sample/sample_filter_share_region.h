@@ -86,7 +86,7 @@ extern "C"
     /**
      *  @brief          受け渡し用のメモリ領域の先頭アドレスを取得します。
      *  @param[in]      region 領域。
-     *  @return         先頭アドレスを返します。少なくとも 8 バイト境界に揃っています。
+     *  @return         先頭アドレスを返します。少なくとも 8 [byte] 境界に揃っています。
      *                  領域を閉じるまで有効です。@p region が NULL の場合は NULL を返します。
      *
      *  領域の中身の型は利用者が決め、戻り値をキャストして使います。
@@ -128,7 +128,7 @@ extern "C"
     /**
      *  @brief          受け渡しの排他を取得します。
      *  @param[in]      lock       排他。
-     *  @param[in]      timeout_ms 待ち時間 (ミリ秒)。@ref SAMPLE_FILTER_SHARE_WAIT_FOREVER で取得できるまで待ちます。
+     *  @param[in]      timeout_ms 待ち時間 [ms]。@ref SAMPLE_FILTER_SHARE_WAIT_FOREVER で取得できるまで待ちます。
      *                             0 の場合は待ちません。
      *  @return         成功時は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
      *  @return         @p lock が NULL の場合、または待ち時間が負の値 (@ref SAMPLE_FILTER_SHARE_WAIT_FOREVER を除く) の場合は

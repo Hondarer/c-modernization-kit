@@ -34,6 +34,10 @@ int main(int argc, char *argv[])
     cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
     cplat_argparser_register_positional_string("message", "表示する文字列。", CPLAT_ARGPARSER_REQUIRED, &message);
 
+    /*
+     * オプション登録の失敗は、コーディング エラーとして終了する。
+     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     */
     if (cplat_argparser_get_register_error_count() > 0)
     {
         cplat_argparser_print_register_error_messages(stderr);
@@ -42,6 +46,10 @@ int main(int argc, char *argv[])
 
     int parse_result = cplat_argparser_parse();
 
+    /*
+     * ヘルプが指定されていれば、解析エラーより先に用法を表示して成功で終了する。
+     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     */
     if (need_help != 0)
     {
         cplat_argparser_print_usage(stdout);

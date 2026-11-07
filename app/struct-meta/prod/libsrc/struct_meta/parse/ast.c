@@ -24,6 +24,7 @@ struct_meta_internal_parse_field_create(char *name, char *type_name, int is_stru
     {
         return NULL;
     }
+
     field->name = name;
     field->type_name = type_name;
     field->brief = brief;
@@ -32,6 +33,7 @@ struct_meta_internal_parse_field_create(char *name, char *type_name, int is_stru
     field->array_count = array_count;
     field->line = line;
     field->next = NULL;
+
     return field;
 }
 
@@ -43,8 +45,10 @@ struct_meta_internal_parse_field_list_create(struct_meta_internal_parse_field *f
     {
         return NULL;
     }
+
     list->head = first;
     list->tail = first;
+
     return list;
 }
 
@@ -54,6 +58,7 @@ struct_meta_internal_parse_field_list_append(struct_meta_internal_parse_field_li
 {
     list->tail->next = field;
     list->tail = field;
+
     return list;
 }
 
@@ -66,13 +71,17 @@ struct_meta_internal_parse_struct_create(char *name, struct_meta_internal_parse_
     {
         return NULL;
     }
+
     item->name = name;
     item->brief = brief;
     item->attributes = attributes;
     item->fields = fields->head;
     item->line = line;
     item->next = NULL;
+
+    /* フィールド連結リストの所有権を item へ移し、ラッパー構造体のみを解放する。 */
     free(fields);
+
     return item;
 }
 
@@ -87,6 +96,7 @@ void struct_meta_internal_parse_struct_list_append(struct_meta_internal_parse_st
             return;
         }
     }
+
     if ((*list)->head == NULL)
     {
         (*list)->head = item;
@@ -106,6 +116,7 @@ struct_meta_internal_parse_struct_list_find(const struct_meta_internal_parse_str
     {
         return NULL;
     }
+
     for (const struct_meta_internal_parse_struct *item = list->head; item != NULL; item = item->next)
     {
         if (strcmp(item->name, name) == 0)
@@ -113,6 +124,7 @@ struct_meta_internal_parse_struct_list_find(const struct_meta_internal_parse_str
             return item;
         }
     }
+
     return NULL;
 }
 
@@ -150,6 +162,7 @@ void struct_meta_internal_parse_field_list_destroy(struct_meta_internal_parse_fi
     {
         return;
     }
+
     struct_meta_internal_parse_field_destroy(list->head);
     free(list);
 }
@@ -175,6 +188,7 @@ void struct_meta_internal_parse_struct_list_destroy(struct_meta_internal_parse_s
     {
         return;
     }
+
     struct_meta_internal_parse_struct_destroy(list->head);
     free(list);
 }

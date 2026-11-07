@@ -33,9 +33,11 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-/* ============================================================
+/*
+ * ============================================================
  *  tracer (プロセス共通)
- * ============================================================ */
+ * ============================================================
+ */
 
 /** プロセス共通の tracer ハンドル。main() が open / close します。 */
 static cplat_tracer *s_tracer = NULL;
@@ -75,11 +77,13 @@ static int tracer_open(const svc_definition *def, const int enable_stderr)
     {
         stderr_level = CPLAT_TRACE_LEVEL_NONE;
     }
+
     cplat_tracer_set_stderr_level(s_tracer, stderr_level);
 
-    /* Windows で一般ユーザーによる実行の場合、昇格が発生し同じファイルに複数プロセスが */
-    /* 出力するため、共有モードを指定する。                                             */
-    /* パスとファイル名は cplat tracer の既定の解決に任せる。                    */
+    /*
+     * Windows で一般ユーザーによる実行の場合、昇格が発生し同じファイルに複数プロセスが
+     * 出力するため、共有モードを指定する。パスとファイル名は cplat tracer の既定の解決に任せる。
+     */
     cplat_tracer_set_file_level(s_tracer, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0, 0, CPLAT_TRACE_FILE_SINK_SHARED);
 
     return cplat_tracer_start(s_tracer);
@@ -100,14 +104,18 @@ static void tracer_close(void)
     }
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  停止イベント抽象 (内部状態)
- * ============================================================ */
+ * ============================================================
+ */
 
 /** 停止要求の有無。1 = 停止要求済み。 */
 static int s_stop_requested = 0;
+
 /** 停止フラグ・condvar を保護するミューテックス。 */
 static cplat_local_lock *s_stop_lock = NULL;
+
 /** 停止要求を on_run に通知するための条件変数。 */
 static cplat_condvar *s_stop_cv = NULL;
 
@@ -117,6 +125,7 @@ void svc_request_stop(void)
     {
         return;
     }
+
     cplat_local_lock_lock(s_stop_lock, CPLAT_SYNC_WAIT_FOREVER);
     s_stop_requested = 1;
     cplat_local_lock_unlock(s_stop_lock);
@@ -131,9 +140,11 @@ int svc_stop_requested(void)
     {
         return 0;
     }
+
     cplat_local_lock_lock(s_stop_lock, CPLAT_SYNC_WAIT_FOREVER);
     requested = s_stop_requested;
     cplat_local_lock_unlock(s_stop_lock);
+
     return requested;
 }
 
@@ -145,20 +156,26 @@ int svc_wait_for_stop(const int timeout_ms)
     {
         return 1;
     }
+
     cplat_local_lock_lock(s_stop_lock, CPLAT_SYNC_WAIT_FOREVER);
+
     if (s_stop_requested == 0)
     {
-        /* spurious wakeup 対策のため待機後に再確認する */
+        /* spurious wakeup 対策のため待機後に再確認する。 */
         cplat_condvar_wait(s_stop_cv, s_stop_lock, timeout_ms);
     }
+
     requested = s_stop_requested;
     cplat_local_lock_unlock(s_stop_lock);
+
     return requested;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  状態通知 API
- * ============================================================ */
+ * ============================================================
+ */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -168,13 +185,16 @@ void svc_set_status_text(const char *text)
     {
         return;
     }
+
     cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "状態テキスト: %s", text);
     svc_os_notify_status(text);
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  OS イベント配送 (プラットフォーム ファイルから呼ばれる)
- * ============================================================ */
+ * ============================================================
+ */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -184,6 +204,7 @@ void svc_dispatch_event(const svc_definition *def, const svc_event_info *info)
     {
         return;
     }
+
     cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "OS イベントを配送します (種別: %d)。",
                         (int)info->type);
     def->on_event(info, def->user_data);
@@ -195,15 +216,18 @@ void svc_dispatch_reload(const svc_definition *def)
     {
         return;
     }
+
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込要求を配送します。");
     svc_os_notify_reloading();
     def->on_reload(def->user_data);
     svc_os_notify_ready();
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  停止要求 callback (shutdown.h 経由で呼ばれる)
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          終了要求 callback。
@@ -221,9 +245,11 @@ static void shutdown_request_callback(const cplat_shutdown_event *event, void *c
     svc_request_stop();
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  ライフサイクル駆動 (console モードと Linux run モードが共用)
- * ============================================================ */
+ * ============================================================
+ */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -235,6 +261,8 @@ int svc_run_lifecycle(const svc_definition *def)
     cplat_shutdown_request_register(shutdown_request_callback, NULL);
 
     rc = EXIT_SUCCESS;
+
+    /* 初期化コールバックが設定されている場合は実行する。 */
     if (def->on_start != NULL)
     {
         rc = def->on_start(def->user_data);
@@ -245,6 +273,7 @@ int svc_run_lifecycle(const svc_definition *def)
         }
     }
 
+    /* 初期化に成功した場合はメイン ループと停止処理を実行する。 */
     if (rc == EXIT_SUCCESS)
     {
         int run_rc;
@@ -261,8 +290,9 @@ int svc_run_lifecycle(const svc_definition *def)
 
         svc_os_notify_stopping();
 
-        /* on_run が失敗しても後始末のため on_stop は実行する */
+        /* on_run が失敗しても後始末のため on_stop は実行する。 */
         stop_rc = EXIT_SUCCESS;
+
         if (def->on_stop != NULL)
         {
             stop_rc = def->on_stop(def->user_data);
@@ -273,7 +303,7 @@ int svc_run_lifecycle(const svc_definition *def)
             }
         }
 
-        /* 最初に失敗したコールバックの戻り値を採用する */
+        /* 最初に失敗したコールバックの戻り値を採用する。 */
         if (run_rc != EXIT_SUCCESS)
         {
             rc = run_rc;
@@ -304,8 +334,10 @@ extern const svc_definition g_service_def;
  */
 int main(int argc, char *argv[])
 {
-    /* 昇格起動された場合、親コンソールへ再接続して出力を元のコンソールへ戻す。
-       引き継ぎフラグを argv から取り除く必要があるため、引数解析より前に呼び出す。 */
+    /*
+     * 昇格起動された場合、親コンソールへ再接続して出力を元のコンソールへ戻す。
+     * 引き継ぎフラグを argv から取り除く必要があるため、引数解析より前に呼び出す。
+     */
     cplat_console_attach_parent(&argc, argv, NULL);
 
     cplat_console_init();
@@ -347,17 +379,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* run コマンドのみサービス モード: SCM/systemd 起動のため stderr は無効化する */
+    /* run コマンドのみサービス モード: SCM/systemd 起動のため stderr は無効化する。 */
     int is_service_mode = (strcmp(command, "run") == 0);
     tracer_open(&g_service_def, !is_service_mode); /* 失敗しても s_tracer=NULL で継続 */
 
-    /* 停止イベント抽象の初期化 */
+    /* 停止イベント抽象を初期化する。 */
     if (cplat_local_lock_create(&s_stop_lock) != CPLAT_OK)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "ミューテックスの生成に失敗しました。");
         tracer_close();
         return EXIT_FAILURE;
     }
+
     if (cplat_condvar_create(&s_stop_cv) != CPLAT_OK)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "条件変数の生成に失敗しました。");
@@ -369,6 +402,7 @@ int main(int argc, char *argv[])
 
     int rc = EXIT_FAILURE;
 
+    /* 指定されたコマンドに応じた処理を実行する。 */
     if (strcmp(command, "install") == 0)
     {
         rc = svc_os_install(&g_service_def);

@@ -46,16 +46,19 @@ static void print_usage(const char *prog)
  */
 static void print_diagnostic(const char *header_path, const struct_meta_diagnostic *diagnostic)
 {
+    /* 診断が無い失敗では、ヘッダー パスだけを出す。 */
     if (diagnostic->message[0] == '\0')
     {
         fprintf(stderr, "struct-meta-gen: ヘッダーを解析できません: %s\n", header_path);
         return;
     }
+
     if (diagnostic->line > 0)
     {
         fprintf(stderr, "struct-meta-gen: %d: %s\n", diagnostic->line, diagnostic->message);
         return;
     }
+
     fprintf(stderr, "struct-meta-gen: %s\n", diagnostic->message);
 }
 
@@ -66,6 +69,7 @@ int main(int argc, char **argv)
 
     cplat_console_init();
 
+    /* --header と --out を読み取る。値が続かないオプションと未知の引数は使い方を出して終了する。 */
     for (int i = 1; i < argc; i++)
     {
         if ((strcmp(argv[i], "--header") == 0) && ((i + 1) < argc))
@@ -92,13 +96,16 @@ int main(int argc, char **argv)
 
     struct_meta_catalog *catalog = NULL;
     struct_meta_diagnostic diagnostic;
+
     if (struct_meta_catalog_create_from_header_file(header_path, &catalog, &diagnostic) != CPLAT_OK)
     {
         print_diagnostic(header_path, &diagnostic);
         return 1;
     }
 
+    /* 生成が終わったら、成否にかかわらずカタログを破棄してから生成結果を返す。 */
     const int ret = struct_meta_gen_emit(catalog, header_path, out_path);
     struct_meta_catalog_destroy(catalog);
+
     return ret;
 }

@@ -19,9 +19,11 @@
 
 #include "service-sample.h"
 
-/* ============================================================
+/*
+ * ============================================================
  *  サービス コールバック
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          サービス初期化処理の雛形。
@@ -32,8 +34,10 @@ static int on_start(void *user_data)
 {
     (void)user_data;
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 開始");
+
     /* TODO: ここに初期化処理を書く */
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 終了");
+
     return 0;
 }
 
@@ -42,7 +46,7 @@ static int on_start(void *user_data)
  *  @param[in]      user_data 未使用。
  *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
  *
- *  1 秒ごとに動作ログを出力し、停止要求を受け取るとループを抜けます。\n
+ *  1 [s] ごとに動作ログを出力し、停止要求を受け取るとループを抜けます。\n
  *  svc_set_status_text() による状態テキスト通知の利用例を含みます。
  */
 static int on_run(void *user_data)
@@ -56,17 +60,21 @@ static int on_run(void *user_data)
 
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
     cycle_count = 0;
+
+    /* 停止要求が届くまで 1000 [ms] 間隔で周期処理を繰り返す。 */
     while (svc_wait_for_stop(1000) == 0)
     {
         /* TODO: ここに周期処理を書く (現状は何もしない雛形) */
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
 
-        /* 状態テキストの通知例 (Linux では systemctl status に表示される) */
+        /* 状態テキストの通知例 (Linux では systemctl status に表示される)。 */
         cycle_count++;
         (void)cplat_snprintf(status_text, sizeof(status_text), "動作中 (周期処理 %lu 回目)", cycle_count);
         svc_set_status_text(status_text);
     }
+
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 終了");
+
     return 0;
 }
 
@@ -79,8 +87,10 @@ static int on_stop(void *user_data)
 {
     (void)user_data;
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 開始");
+
     /* TODO: ここに停止処理を書く */
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 終了");
+
     return 0;
 }
 
@@ -99,24 +109,29 @@ static void on_event(const svc_event_info *info, void *user_data)
     {
     case SVC_EVENT_POWER_SUSPEND:
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドを開始します。");
+
         /* TODO: ここにサスペンド前処理を書く */
         break;
     case SVC_EVENT_POWER_RESUME:
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドから復帰しました。");
+
         /* TODO: ここに復帰処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGON:
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "セッションがログオンしました (ID: %s)。",
                             info->session_id);
+
         /* TODO: ここにログオン時処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGOFF:
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "セッションがログオフしました (ID: %s)。",
                             info->session_id);
+
         /* TODO: ここにログオフ時処理を書く */
         break;
     case SVC_EVENT_PRESHUTDOWN:
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "システムのシャットダウンが始まります。");
+
         /* TODO: ここにシャットダウン前処理を書く */
         break;
     default:
@@ -136,13 +151,16 @@ static void on_reload(void *user_data)
 {
     (void)user_data;
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 開始");
+
     /* TODO: ここに設定再読込処理を書く */
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 終了");
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  サービス定義
- * ============================================================ */
+ * ============================================================
+ */
 
 /** サービス定義。 */
 const svc_definition g_service_def = {"service-sample",

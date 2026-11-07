@@ -65,6 +65,7 @@ static int append_path(const char *path, const char *separator, const char *suff
     memcpy(dest + path_length, separator, separator_length);
     memcpy(dest + path_length + separator_length, suffix, suffix_length + 1U);
     *path_out = dest;
+
     return CPLAT_OK;
 }
 
@@ -74,6 +75,7 @@ static int append_path(const char *path, const char *separator, const char *suff
 static int append_field_path(const char *path, const char *field_name, char **path_out)
 {
     const char *separator;
+
     if (path[0] == '\0')
     {
         separator = "";
@@ -82,6 +84,7 @@ static int append_field_path(const char *path, const char *field_name, char **pa
     {
         separator = ".";
     }
+
     return append_path(path, separator, field_name, path_out);
 }
 
@@ -96,6 +99,7 @@ static int append_index_path(const char *path, size_t index, char **path_out)
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
+
     return append_path(path, "", suffix, path_out);
 }
 
@@ -110,22 +114,26 @@ static void format_scalar_value(struct_meta_field_kind kind, const unsigned char
     case STRUCT_META_FIELD_SIGNED_INTEGER:
     {
         int64_t value;
+
         if (struct_meta_internal_integer_load_signed(field_ptr, element_size, &value) != CPLAT_OK)
         {
             snprintf(dest, dest_size, "?");
             break;
         }
+
         snprintf(dest, dest_size, "%" PRId64, value);
         break;
     }
     case STRUCT_META_FIELD_UNSIGNED_INTEGER:
     {
         uint64_t value;
+
         if (struct_meta_internal_integer_load_unsigned(field_ptr, element_size, &value) != CPLAT_OK)
         {
             snprintf(dest, dest_size, "?");
             break;
         }
+
         snprintf(dest, dest_size, "%" PRIu64, value);
         break;
     }
@@ -152,6 +160,7 @@ static void format_scalar_value(struct_meta_field_kind kind, const unsigned char
         {
             snprintf(dest, dest_size, "\"%s\"", (const char *)field_ptr);
         }
+
         break;
     case STRUCT_META_FIELD_STRUCT:
     default:
@@ -169,6 +178,7 @@ static int parse_int(const char *text, int *value_out)
     {
         return CPLAT_ERR_EOF;
     }
+
     char *end = NULL;
     errno = 0;
     long value = strtol(text, &end, 10);
@@ -176,7 +186,9 @@ static int parse_int(const char *text, int *value_out)
     {
         return CPLAT_ERR_INVALID_INTEGER;
     }
+
     *value_out = (int)value;
+
     return CPLAT_OK;
 }
 
@@ -193,6 +205,7 @@ static int find_field_by_name(const struct_meta_descriptor *descriptor, const ch
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *field_out = NULL;
 
     for (size_t i = 0; i < descriptor->field_count; i++)
@@ -203,6 +216,7 @@ static int find_field_by_name(const struct_meta_descriptor *descriptor, const ch
             {
                 return CPLAT_ERR_DUPLICATE_KEY;
             }
+
             *field_out = &descriptor->fields[i];
         }
     }
@@ -229,14 +243,18 @@ static int parse_signed_integer(const char *text, int64_t *value_out)
     {
         return CPLAT_ERR_EOF;
     }
+
     char *end = NULL;
     errno = 0;
     long long value = strtoll(text, &end, 10);
+
     if ((end == text) || (*end != '\0') || (errno != 0))
     {
         return CPLAT_ERR_INVALID_INTEGER;
     }
+
     *value_out = (int64_t)value;
+
     return CPLAT_OK;
 }
 
@@ -252,35 +270,48 @@ static int parse_unsigned_integer(const char *text, uint64_t *value_out)
     {
         return CPLAT_ERR_EOF;
     }
+
     if (text[0] == '-')
     {
         return CPLAT_ERR_INVALID_INTEGER;
     }
+
     char *end = NULL;
     errno = 0;
     unsigned long long value = strtoull(text, &end, 10);
+
     if ((end == text) || (*end != '\0') || (errno != 0))
     {
         return CPLAT_ERR_INVALID_INTEGER;
     }
+
     *value_out = (uint64_t)value;
+
     return CPLAT_OK;
 }
 
+/*
+ * 入力文字列を浮動小数点数 (double) として解釈する。
+ * 成功時は CPLAT_OK、空行は CPLAT_ERR_EOF、数値でない場合は CPLAT_ERR_INVALID_INTEGER を返す。
+ */
 static int parse_double(const char *text, double *value_out)
 {
     if (text[0] == '\0')
     {
         return CPLAT_ERR_EOF;
     }
+
     char *end = NULL;
     errno = 0;
     double value = strtod(text, &end);
+
     if ((end == text) || (*end != '\0') || (errno != 0))
     {
         return CPLAT_ERR_INVALID_INTEGER;
     }
+
     *value_out = value;
+
     return CPLAT_OK;
 }
 
@@ -322,11 +353,13 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
                 printf("整数として解釈できません: %s\n", line);
                 break;
             }
+
             parse_ret = struct_meta_internal_integer_store_signed(field_ptr, field->element_size, value);
             if (parse_ret == CPLAT_OK)
             {
                 return CPLAT_OK;
             }
+
             printf("%zu バイトの符号付き整数で表せません: %s\n", field->element_size, line);
             break;
         }
@@ -339,11 +372,13 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
                 printf("符号なし整数として解釈できません: %s\n", line);
                 break;
             }
+
             parse_ret = struct_meta_internal_integer_store_unsigned(field_ptr, field->element_size, value);
             if (parse_ret == CPLAT_OK)
             {
                 return CPLAT_OK;
             }
+
             printf("%zu バイトの符号なし整数で表せません: %s\n", field->element_size, line);
             break;
         }
@@ -357,6 +392,7 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
                 memcpy(field_ptr, &value, sizeof(value));
                 return CPLAT_OK;
             }
+
             printf("数値として解釈できません: %s\n", line);
             break;
         }
@@ -369,6 +405,7 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
                 memcpy(field_ptr, &value, sizeof(value));
                 return CPLAT_OK;
             }
+
             printf("数値として解釈できません: %s\n", line);
             break;
         }
@@ -380,6 +417,7 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
                 printf("文字列がバッファー サイズ (%zu バイト) を超えています。\n", field->char_buffer_size);
                 break;
             }
+
             memcpy(field_ptr, line, text_len + 1U);
             return CPLAT_OK;
         }
@@ -391,6 +429,11 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
     }
 }
 
+/*
+ * 16 進数表記のバイト配列フィールドを対話入力で編集する。
+ * 書き換えた場合と、空行で変更しない場合は CPLAT_OK を返す。
+ * それ以外は、文字列長の計算や入力の結果、CPLAT_ERR_OUT_OF_RANGE、CPLAT_ERR_OUT_OF_MEMORY を返す。
+ */
 static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field, unsigned char *field_ptr,
                            const char *path)
 {
@@ -400,6 +443,7 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
     {
         return ret;
     }
+
     if (text_size > (SIZE_MAX / 2U))
     {
         return CPLAT_ERR_OUT_OF_RANGE;
@@ -413,6 +457,7 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
         free(line);
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     ret = struct_meta_internal_bytes_to_hex(field_ptr, field->element_count, current, text_size);
     while (ret == CPLAT_OK)
     {
@@ -422,6 +467,7 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
         {
             break;
         }
+
         int parse_ret = struct_meta_internal_bytes_from_hex(field_ptr, field->element_count, line);
         if (parse_ret == CPLAT_OK)
         {
@@ -432,8 +478,10 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
             printf("%zu 個のバイトを2桁の16進数で空白区切りにしてください: %s\n", field->element_count, line);
         }
     }
+
     free(current);
     free(line);
+
     return ret;
 }
 
@@ -447,12 +495,14 @@ static int patch_element(cplat_prompt *prompt, const struct_meta_field *field, u
     {
         return patch_struct(prompt, field->nested, elem_ptr, path);
     }
+
     int ret = patch_scalar(prompt, field, elem_ptr, path);
     if (ret == CPLAT_ERR_EOF)
     {
         /* 空行 (変更なし) は呼び出し元にとってはエラーではない。 */
         return CPLAT_OK;
     }
+
     return ret;
 }
 
@@ -467,6 +517,7 @@ static int patch_array_field(cplat_prompt *prompt, const struct_meta_field *fiel
     for (;;)
     {
         printf("-- %s (現在位置: %s、配列、要素数 %zu) --\n", field->name, path, field->element_count);
+
         for (size_t i = 0; i < field->element_count; i++)
         {
             char *element_path;
@@ -475,6 +526,7 @@ static int patch_array_field(cplat_prompt *prompt, const struct_meta_field *fiel
             {
                 return path_ret;
             }
+
             printf("  %zu) %s\n", i, element_path);
             free(element_path);
         }
@@ -484,12 +536,14 @@ static int patch_array_field(cplat_prompt *prompt, const struct_meta_field *fiel
         {
             return ret;
         }
+
         if (line[0] == '\0')
         {
             return CPLAT_OK;
         }
 
         int index;
+
         if ((parse_int(line, &index) != CPLAT_OK) || (index < 0) || ((size_t)index >= field->element_count))
         {
             printf("0 から %zu の範囲で入力してください。\n", field->element_count - 1U);
@@ -504,6 +558,7 @@ static int patch_array_field(cplat_prompt *prompt, const struct_meta_field *fiel
             ret = patch_element(prompt, field, element, element_path);
             free(element_path);
         }
+
         if (ret != CPLAT_OK)
         {
             return ret;
@@ -520,6 +575,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
 {
     char line[STRUCT_META_PATCH_LINE_BYTES];
     const char *display_path;
+
     if (path[0] == '\0')
     {
         display_path = "<root>";
@@ -539,6 +595,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
         {
             printf("-- %s (現在位置: %s) --\n", desc->name, display_path);
         }
+
         for (size_t i = 0; i < desc->field_count; i++)
         {
             const struct_meta_field *field = &desc->fields[i];
@@ -548,6 +605,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
             {
                 return path_ret;
             }
+
             void *element;
             int access_ret = struct_meta_field_get_element(field, base, 0U, &element);
             if (access_ret != CPLAT_OK)
@@ -555,6 +613,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                 free(field_path);
                 return access_ret;
             }
+
             unsigned char *field_ptr = (unsigned char *)element;
             const char *brief = "";
             const char *brief_sep = "";
@@ -585,11 +644,13 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                     free(field_path);
                     return format_ret;
                 }
+
                 if (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX)
                 {
                     size_t text_size;
                     format_ret = struct_meta_internal_bytes_hex_text_size(field->element_count, &text_size);
                     char *text = NULL;
+
                     if (format_ret == CPLAT_OK)
                     {
                         text = (char *)malloc(text_size);
@@ -602,17 +663,20 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                             format_ret = CPLAT_OK;
                         }
                     }
+
                     if (format_ret == CPLAT_OK)
                     {
                         format_ret =
                             struct_meta_internal_bytes_to_hex(field_ptr, field->element_count, text, text_size);
                     }
+
                     if (format_ret != CPLAT_OK)
                     {
                         free(text);
                         free(field_path);
                         return format_ret;
                     }
+
                     printf("  %zu) %s = %s%s%s\n", i + 1U, field_path, text, brief_sep, brief);
                     free(text);
                 }
@@ -628,6 +692,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                                     sizeof(current));
                 printf("  %zu) %s = %s%s%s\n", i + 1U, field_path, current, brief_sep, brief);
             }
+
             free(field_path);
         }
 
@@ -637,6 +702,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
         {
             return ret;
         }
+
         if (line[0] == '\0')
         {
             return CPLAT_OK;
@@ -652,6 +718,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                 printf("1 から %zu の範囲で入力してください。\n", desc->field_count);
                 continue;
             }
+
             field = &desc->fields[(size_t)index - 1U];
         }
         else
@@ -662,6 +729,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                 printf("メンバー名が重複しているため選択できません: %s\n", line);
                 continue;
             }
+
             if (find_result != CPLAT_OK)
             {
                 printf("1 から %zu の番号、またはメンバー名を入力してください。\n", desc->field_count);
@@ -675,6 +743,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
         {
             return ret;
         }
+
         struct_meta_internal_byte_format byte_format;
         ret = struct_meta_internal_field_byte_format(field, &byte_format);
         if (ret != CPLAT_OK)
@@ -682,6 +751,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
             free(field_path);
             return ret;
         }
+
         if (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX)
         {
             void *element;
@@ -709,7 +779,9 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
                 ret = patch_element(prompt, field, (unsigned char *)element, field_path);
             }
         }
+
         free(field_path);
+
         if (ret != CPLAT_OK)
         {
             return ret;
@@ -731,6 +803,7 @@ static int path_has_terminal_index(const char *path)
     {
         terminal++;
     }
+
     return strchr(terminal, '[') != NULL;
 }
 
@@ -747,6 +820,7 @@ static int patch_target(const struct_meta_field *field, unsigned char *value, co
     }
 
     int ret;
+
     if (edit_hex != 0)
     {
         ret = patch_hex_array(prompt, field, value, path);
@@ -759,12 +833,14 @@ static int patch_target(const struct_meta_field *field, unsigned char *value, co
     {
         ret = patch_element(prompt, field, value, path);
     }
+
     cplat_prompt_dispose(prompt);
 
     if (ret == CPLAT_ERR_EOF)
     {
         return CPLAT_OK;
     }
+
     return ret;
 }
 
@@ -796,6 +872,7 @@ int struct_meta_patch_interactive(const struct_meta_descriptor *desc, void *inst
     {
         return CPLAT_OK;
     }
+
     return ret;
 }
 
@@ -824,7 +901,9 @@ int struct_meta_patch_path_interactive(const struct_meta_descriptor *desc, void 
     {
         return ret;
     }
+
     int edit_hex = (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX) && (path_has_terminal_index(path) == 0);
     ret = patch_target(field, (unsigned char *)value, path, edit_array, edit_hex);
+
     return ret;
 }

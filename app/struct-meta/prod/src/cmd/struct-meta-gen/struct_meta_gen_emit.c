@@ -59,14 +59,17 @@ static int is_emitted(const emitted_name *list, const char *name)
             return 1;
         }
     }
+
     return 0;
 }
+
 /**
  *  @brief          パスの末尾ファイル名を返します (`/` と `\\` を区切りとします)。
  */
 static const char *path_basename(const char *path)
 {
     const char *base = path;
+
     for (const char *p = path; *p != '\0'; p++)
     {
         if ((*p == '/') || (*p == '\\'))
@@ -74,6 +77,7 @@ static const char *path_basename(const char *path)
             base = p + 1;
         }
     }
+
     return base;
 }
 
@@ -88,12 +92,18 @@ static int header_stem(const char *header_path, char *dest, size_t dest_size)
     char raw[STRUCT_META_GEN_EMIT_PATH_BYTES];
     size_t raw_len = 0;
 
+    /*
+     * ctype.h の分類関数の引数は、unsigned char に収まる値か EOF でなければならない。
+     * char が符号付きのとき、上位ビットが立ったバイトをそのまま渡すと未定義動作になる。
+     * see: https://man7.org/linux/man-pages/man3/isalnum.3.html
+     */
     for (const char *p = base; (*p != '\0') && (*p != '.'); p++)
     {
         if (raw_len + 1U >= sizeof(raw))
         {
             return 1;
         }
+
         if (isalnum((unsigned char)*p) != 0)
         {
             raw[raw_len] = *p;
@@ -102,29 +112,36 @@ static int header_stem(const char *header_path, char *dest, size_t dest_size)
         {
             raw[raw_len] = '_';
         }
+
         raw_len++;
     }
+
     raw[raw_len] = '\0';
 
     if (raw_len == 0U)
     {
         return 1;
     }
+
     if (isdigit((unsigned char)raw[0]) != 0)
     {
         if (dest_size < (raw_len + 2U))
         {
             return 1;
         }
+
         dest[0] = 'x';
         memcpy(dest + 1, raw, raw_len + 1U);
         return 0;
     }
+
     if (dest_size < (raw_len + 1U))
     {
         return 1;
     }
+
     memcpy(dest, raw, raw_len + 1U);
+
     return 0;
 }
 
@@ -134,15 +151,24 @@ static int header_stem(const char *header_path, char *dest, size_t dest_size)
 static int stem_prefix(const char *stem, char *dest, size_t dest_size)
 {
     size_t i;
+
+    /*
+     * toupper() の引数は、unsigned char に収まる値か EOF でなければならない。
+     * char が符号付きのとき、上位ビットが立ったバイトをそのまま渡すと未定義動作になる。
+     * see: https://man7.org/linux/man-pages/man3/toupper.3.html
+     */
     for (i = 0; stem[i] != '\0'; i++)
     {
         if ((i + 1U) >= dest_size)
         {
             return 1;
         }
+
         dest[i] = (char)toupper((unsigned char)stem[i]);
     }
+
     dest[i] = '\0';
+
     return 0;
 }
 
@@ -156,13 +182,16 @@ static int header_out_path(const char *c_path, char *header_path_out, size_t hea
     {
         return 1;
     }
+
     if ((len + 1U) > header_path_size)
     {
         return 1;
     }
+
     memcpy(header_path_out, c_path, len - 1U);
     header_path_out[len - 1U] = 'h';
     header_path_out[len] = '\0';
+
     return 0;
 }
 
@@ -174,6 +203,11 @@ static const char *generated_header_include(const char *header_out)
     return path_basename(header_out);
 }
 
+/*
+ * 文字列を C の文字列リテラルとして書き出す。
+ * NULL は識別子 NULL と書く。
+ * 引用符とバックスラッシュはバックスラッシュで逃がし、改行はバックスラッシュと n の 2 文字で書く。
+ */
 static void fprint_c_string(FILE *out, const char *text)
 {
     if (text == NULL)
@@ -183,6 +217,7 @@ static void fprint_c_string(FILE *out, const char *text)
     }
 
     fputc('"', out);
+
     for (const char *p = text; *p != '\0'; p++)
     {
         if ((*p == '"') || (*p == '\\'))
@@ -199,6 +234,7 @@ static void fprint_c_string(FILE *out, const char *text)
             fputc(*p, out);
         }
     }
+
     fputc('"', out);
 }
 
@@ -222,8 +258,10 @@ static const char *field_kind_name(struct_meta_field_kind kind)
     case STRUCT_META_FIELD_STRUCT:
         return "STRUCT_META_FIELD_STRUCT";
     default:
-        /* 記述子は libstruct_meta が組み立てるため、未知の種別は記述子の破壊を意味する。
-           別の種別の定数で代用すると、誤った型の生成コードを書き出す */
+        /*
+         * 記述子は libstruct_meta が組み立てるため、未知の種別は記述子の破壊を意味する。
+         * 別の種別の定数で代用すると、誤った型の生成コードを書き出す。
+         */
         CPLAT_ABORT("記述子に未知のフィールド種別があります");
     }
 }
@@ -255,7 +293,9 @@ static void emit_attributes(FILE *out, const char *symbol, const struct_meta_att
     {
         return;
     }
+
     fprintf(out, "static const struct_meta_attribute g_%s_attributes[] = {\n", symbol);
+
     for (size_t i = 0; i < count; i++)
     {
         fprintf(out, "    { ");
@@ -264,6 +304,7 @@ static void emit_attributes(FILE *out, const char *symbol, const struct_meta_att
         fprint_c_string(out, attributes[i].value);
         fprintf(out, " },\n");
     }
+
     fprintf(out, "};\n\n");
 }
 
@@ -280,12 +321,14 @@ static void emit_layout_assertions(FILE *out, const struct_meta_descriptor *desc
     fprintf(out, "/* レイアウト エンジンの計算値と、コンパイラが決めた配置との照合。 */\n");
     fprintf(out, "_Static_assert(sizeof(%s) == %zu, \"%s: レイアウト エンジンの計算値と一致しません\");\n",
             descriptor->name, descriptor->size, descriptor->name);
+
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         const struct_meta_field *field = &descriptor->fields[i];
         fprintf(out, "_Static_assert(offsetof(%s, %s) == %zu, \"%s.%s: レイアウト エンジンの計算値と一致しません\");\n",
                 descriptor->name, field->name, field->offset, descriptor->name, field->name);
     }
+
     fprintf(out, "\n");
 }
 
@@ -309,6 +352,10 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         }
     }
 
+    /*
+     * フィールド配列と記述子の初期化子が属性配列の名前を参照する。
+     * そのため属性配列を先に出力する。
+     */
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         const struct_meta_field *field = &descriptor->fields[i];
@@ -316,13 +363,16 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         snprintf(symbol, sizeof(symbol), "%s_%s", descriptor->name, field->name);
         emit_attributes(out, symbol, field->attributes, field->attribute_count);
     }
+
     emit_attributes(out, descriptor->name, descriptor->attributes, descriptor->attribute_count);
 
     fprintf(out, "static const struct_meta_field g_%s_fields[] = {\n", descriptor->name);
+
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         const struct_meta_field *field = &descriptor->fields[i];
         const char *element;
+
         if (field_is_declared_array(field) != 0)
         {
             element = "[0]";
@@ -331,12 +381,14 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         {
             element = "";
         }
+
         char element_size_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
         char char_buffer_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
         char nested_expr[STRUCT_META_GEN_EMIT_PATH_BYTES];
 
         snprintf(element_size_expr, sizeof(element_size_expr), "sizeof(((%s *)0)->%s%s)", descriptor->name, field->name,
                  element);
+
         if (field->char_buffer_size != 0U)
         {
             snprintf(char_buffer_expr, sizeof(char_buffer_expr), "sizeof(((%s *)0)->%s)", descriptor->name,
@@ -346,6 +398,7 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         {
             snprintf(char_buffer_expr, sizeof(char_buffer_expr), "0");
         }
+
         if (field->nested != NULL)
         {
             snprintf(nested_expr, sizeof(nested_expr), "&g_%s_desc", field->nested->name);
@@ -359,6 +412,7 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
                 field_kind_name(field->kind), descriptor->name, field->name, element_size_expr, field->element_count,
                 char_buffer_expr, nested_expr);
         fprint_c_string(out, field->brief);
+
         if (field->attribute_count == 0U)
         {
             fputs(", NULL, 0 },\n", out);
@@ -368,11 +422,13 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
             fprintf(out, ", g_%s_%s_attributes, %zu },\n", descriptor->name, field->name, field->attribute_count);
         }
     }
+
     fprintf(out, "};\n\n");
 
     fprintf(out, "static const struct_meta_descriptor g_%s_desc = { \"%s\", sizeof(%s), g_%s_fields, %zu, ",
             descriptor->name, descriptor->name, descriptor->name, descriptor->name, descriptor->field_count);
     fprint_c_string(out, descriptor->brief);
+
     if (descriptor->attribute_count == 0U)
     {
         fprintf(out, ", NULL, 0 };\n\n");
@@ -390,6 +446,7 @@ static void emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emi
         fprintf(stderr, "struct-meta-gen: 出力状態を確保できません\n");
         exit(1);
     }
+
     node->name = descriptor->name;
     node->next = *emitted;
     *emitted = node;
@@ -409,6 +466,8 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     }
 
     size_t count = 0U;
+
+    /* 引数は非 NULL である。失敗しないため戻り値は見ない。 */
     (void)struct_meta_catalog_get_count(catalog, &count);
 
     fprintf(out, "/* このファイルは struct-meta-gen が自動生成しました。手編集しないでください。 */\n");
@@ -422,17 +481,28 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, "#endif /* __cplusplus */\n\n");
     fprintf(out, "typedef enum %s_meta_id\n", stem);
     fprintf(out, "{\n");
+
     for (size_t index = 0; index < count; index++)
     {
         const struct_meta_descriptor *descriptor = NULL;
+
+        /* 引数は非 NULL で、添字は get_count で得た件数未満である。失敗しないため戻り値は見ない。 */
         (void)struct_meta_catalog_get(catalog, index, &descriptor);
         fprintf(out, "    %s_META_", prefix);
+
+        /*
+         * toupper() の引数は、unsigned char に収まる値か EOF でなければならない。
+         * char が符号付きのとき、上位ビットが立ったバイトをそのまま渡すと未定義動作になる。
+         * see: https://man7.org/linux/man-pages/man3/toupper.3.html
+         */
         for (const char *p = descriptor->name; *p != '\0'; p++)
         {
             fputc(toupper((unsigned char)*p), out);
         }
+
         fprintf(out, " = %zu,\n", index);
     }
+
     fprintf(out, "    %s_META_COUNT = %zu,\n", prefix, count);
     fprintf(out, "} %s_meta_id;\n\n", stem);
     fprintf(out, "/**\n");
@@ -500,6 +570,7 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     fprintf(out, "#endif /* %s_META_H */\n", prefix);
 
     fclose(out);
+
     return 0;
 }
 
@@ -509,9 +580,12 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
 static size_t max_struct_name_bytes(const struct_meta_catalog *catalog, size_t count)
 {
     size_t longest = 0U;
+
     for (size_t i = 0; i < count; i++)
     {
         const struct_meta_descriptor *descriptor = NULL;
+
+        /* 引数は非 NULL で、添字は引数 count 未満である。count は記述子数なので失敗しない。戻り値は見ない。 */
         (void)struct_meta_catalog_get(catalog, i, &descriptor);
         const size_t length = strlen(descriptor->name);
         if (length > longest)
@@ -519,6 +593,7 @@ static size_t max_struct_name_bytes(const struct_meta_catalog *catalog, size_t c
             longest = length;
         }
     }
+
     return longest + 1U;
 }
 
@@ -539,7 +614,7 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
     config.key_size = max_struct_name_bytes(catalog, count);
     config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(size_t);
-    config.value_align = sizeof(size_t);
+    config.value_align = sizeof(size_t); /* 返るポインターを size_t として参照する境界 */
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
 
     if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &table) != CPLAT_OK)
@@ -551,7 +626,10 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
     for (size_t index = 0; index < count; index++)
     {
         const struct_meta_descriptor *descriptor = NULL;
+
+        /* 引数は非 NULL で、添字は引数 count 未満である。count は記述子数なので失敗しない。戻り値は見ない。 */
         (void)struct_meta_catalog_get(catalog, index, &descriptor);
+
         if (cplat_hashtable_add(table, descriptor->name, &index, CPLAT_HASHTABLE_ADD_DELETED_OVERWRITE) != CPLAT_OK)
         {
             fprintf(stderr, "struct-meta-gen: 索引へ型名を登録できません: %s\n", descriptor->name);
@@ -574,11 +652,18 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
     }
 
     fprintf(out, "/* struct-meta-gen が構築済みの索引を永続化したイメージです。手編集しないでください。 */\n");
+
+    /*
+     * 永続化イメージは 8 [byte] 境界を要求されるため、uint64_t の配列として出力する。
+     * 正本は app/struct-meta/docs/architecture.md の「生成カタログの索引」節である。
+     */
     struct_meta_gen_emit_uint64_array(out, "s_index_mgmt", mgmt, mgmt_size);
     struct_meta_gen_emit_uint64_array(out, "s_index_data", data, data_size);
 
-    /* 埋め込みイメージが前提とする ABI を、生成先のコンパイル時に検査する。
-       生成器が動作した環境での実測値を出力する。 */
+    /*
+     * 埋め込みイメージが前提とする ABI を、生成先のコンパイル時に検査する。
+     * 生成器が動作した環境での実測値を出力する。
+     */
     fprintf(out, "/* 埋め込みイメージが前提とする ABI。破れた場合はコンパイル時に落とす。 */\n");
     fprintf(out, "_Static_assert(sizeof(size_t) == %zu, \"%s: 埋め込み索引は size_t %zu バイトを前提とします\");\n",
             sizeof(size_t), prefix, sizeof(size_t));
@@ -590,6 +675,7 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
             sizeof(cplat_hashtable_config), prefix);
 
     cplat_hashtable_dispose(table);
+
     return 0;
 }
 
@@ -607,12 +693,16 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
                                size_t count)
 {
     fprintf(out, "static const struct_meta_descriptor *const s_descriptors[%s_META_COUNT] = {\n", prefix);
+
     for (size_t index = 0; index < count; index++)
     {
         const struct_meta_descriptor *descriptor = NULL;
+
+        /* 引数は非 NULL で、添字は引数 count 未満である。count は記述子数なので失敗しない。戻り値は見ない。 */
         (void)struct_meta_catalog_get(catalog, index, &descriptor);
         fprintf(out, "    &g_%s_desc,\n", descriptor->name);
     }
+
     fprintf(out, "};\n\n");
 
     if (emit_catalog_index_image(out, prefix, catalog, count) != 0)
@@ -678,6 +768,7 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
     fprintf(out, "    }\n");
     fprintf(out, "    return descriptor;\n");
     fprintf(out, "}\n");
+
     return 0;
 }
 
@@ -693,21 +784,25 @@ int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_
         fprintf(stderr, "struct-meta-gen: 生成に必要な引数がありません\n");
         return 1;
     }
+
     if ((struct_meta_catalog_get_count(catalog, &count) != CPLAT_OK) || (count == 0U))
     {
         fprintf(stderr, "struct-meta-gen: 構造体が見つかりません: %s\n", header_path);
         return 1;
     }
+
     if (header_stem(header_path, stem, sizeof(stem)) != 0)
     {
         fprintf(stderr, "struct-meta-gen: ヘッダー名から識別子を作れません: %s\n", header_path);
         return 1;
     }
+
     if (stem_prefix(stem, prefix, sizeof(prefix)) != 0)
     {
         fprintf(stderr, "struct-meta-gen: ヘッダー名から接頭辞を作れません: %s\n", header_path);
         return 1;
     }
+
     if (header_out_path(out_path, header_out, sizeof(header_out)) != 0)
     {
         fprintf(stderr, "struct-meta-gen: 出力パスは .c で終わる必要があります: %s\n", out_path);
@@ -743,12 +838,17 @@ int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_
             "_Static_assert(CHAR_MAX == INT8_MAX, \"struct-meta は char と int8_t の同じ範囲を前提とします\");\n\n");
 
     emitted_name *emitted = NULL;
+
     for (size_t index = 0; index < count; index++)
     {
         const struct_meta_descriptor *descriptor = NULL;
+
+        /* 引数は非 NULL で、添字は get_count で得た件数未満である。失敗しないため戻り値は見ない。 */
         (void)struct_meta_catalog_get(catalog, index, &descriptor);
         emit_struct(out, descriptor, &emitted);
     }
+
+    /* emit_struct() が calloc() したノードの所有権はリストにあり、出力が終わったらここで解放する。 */
     while (emitted != NULL)
     {
         emitted_name *next = emitted->next;
@@ -758,6 +858,7 @@ int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_
 
     int catalog_ret = emit_catalog_source(out, stem, prefix, catalog, count);
     fclose(out);
+
     if (catalog_ret != 0)
     {
         return 1;

@@ -133,6 +133,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         int8_t raw = (int8_t)value;
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
@@ -143,6 +144,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         int16_t raw = (int16_t)value;
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
@@ -153,6 +155,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         int32_t raw = (int32_t)value;
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
@@ -182,6 +185,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         uint8_t raw = (uint8_t)value;
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
@@ -192,6 +196,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         uint16_t raw = (uint16_t)value;
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
@@ -202,6 +207,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         uint32_t raw = (uint32_t)value;
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;

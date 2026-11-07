@@ -47,11 +47,13 @@
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-/* ============================================================
+/*
+ * ============================================================
  *  内部定数
- * ============================================================ */
+ * ============================================================
+ */
 
-    /** イベント監視スレッドの終了を待機する時間 (ミリ秒)。 */
+    /** イベント監視スレッドの終了を待機する時間 [ms]。 */
     #define SVC_EVENTS_JOIN_TIMEOUT_MS 5000
 
     /** systemd-logind の D-Bus 接続先 (サービス名)。 */
@@ -61,9 +63,11 @@
     /** systemd-logind の D-Bus 接続先 (インターフェイス)。 */
     #define LOGIND_INTERFACE "org.freedesktop.login1.Manager"
 
-/* ============================================================
+/*
+ * ============================================================
  *  内部状態
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          イベント監視スレッドの内部状態。
@@ -85,12 +89,15 @@ static svc_linux_events_ctx s_ctx = {NULL, NULL, NULL, NULL, -1, -1, -1, -1};
 
 /** SIGHUP ハンドラー設定前のアクション (svc_linux_events_stop() で復元する)。 */
 static struct sigaction s_old_sighup_action;
+
 /** SIGHUP ハンドラーを設定済みかどうか。1 = 設定済み。 */
 static int s_sighup_installed = 0;
 
-/* ============================================================
+/*
+ * ============================================================
  *  SIGHUP ハンドラー (self-pipe)
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          SIGHUP を reload 用 eventfd に転送します。
@@ -104,6 +111,7 @@ static void sighup_signal_handler(int signum)
     ssize_t written;
 
     (void)signum;
+
     if (s_ctx.reload_fd >= 0)
     {
         value = 1;
@@ -112,9 +120,11 @@ static void sighup_signal_handler(int signum)
     }
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  inhibitor lock
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          logind の delay inhibitor lock を取得します。
@@ -123,7 +133,7 @@ static void sighup_signal_handler(int signum)
  *
  *  lock は fd の close で解放されます。\n
  *  delay lock のため、イベント発生から logind の InhibitDelayMaxSec
- *  (既定 5 秒) が経過すると lock の解放を待たずに処理が進みます。
+ *  (既定 5 [s]) が経過すると lock の解放を待たずに処理が進みます。
  */
 static int acquire_inhibit_lock(const char *what)
 {
@@ -151,7 +161,7 @@ static int acquire_inhibit_lock(const char *what)
         }
         else
         {
-            /* fd は reply メッセージが所有するため、複製して保持する */
+            /* fd は reply メッセージが所有するため、複製して保持する。 */
             lock_fd = fcntl(fd, F_DUPFD_CLOEXEC, 3);
             if (lock_fd < 0)
             {
@@ -159,9 +169,12 @@ static int acquire_inhibit_lock(const char *what)
                                     "inhibitor lock (%s) の fd を複製できませんでした。", what);
             }
         }
+
         sd_bus_message_unref(reply);
     }
+
     sd_bus_error_free(&error);
+
     return lock_fd;
 }
 
@@ -175,6 +188,7 @@ static void release_inhibit_locks(void)
         cplat_close(s_ctx.inhibit_sleep_fd, NULL);
         s_ctx.inhibit_sleep_fd = -1;
     }
+
     if (s_ctx.inhibit_shutdown_fd >= 0)
     {
         cplat_close(s_ctx.inhibit_shutdown_fd, NULL);
@@ -182,9 +196,11 @@ static void release_inhibit_locks(void)
     }
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  D-Bus シグナル ハンドラー
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          logind の PrepareForSleep シグナルを処理します。
@@ -210,11 +226,13 @@ static int on_prepare_for_sleep(sd_bus_message *m, void *userdata, sd_bus_error 
     }
 
     info.session_id = NULL;
+
     if (starting != 0)
     {
         info.type = SVC_EVENT_POWER_SUSPEND;
         svc_dispatch_event(s_ctx.def, &info);
-        /* lock を解放してサスペンドを許可する */
+
+        /* lock を解放してサスペンドを許可する。 */
         if (s_ctx.inhibit_sleep_fd >= 0)
         {
             cplat_close(s_ctx.inhibit_sleep_fd, NULL);
@@ -225,9 +243,11 @@ static int on_prepare_for_sleep(sd_bus_message *m, void *userdata, sd_bus_error 
     {
         info.type = SVC_EVENT_POWER_RESUME;
         svc_dispatch_event(s_ctx.def, &info);
-        /* 次のサスペンドに備えて lock を再取得する */
+
+        /* 次のサスペンドに備えて lock を再取得する。 */
         s_ctx.inhibit_sleep_fd = acquire_inhibit_lock("sleep");
     }
+
     return 0;
 }
 
@@ -260,7 +280,8 @@ static int on_prepare_for_shutdown(sd_bus_message *m, void *userdata, sd_bus_err
         info.type = SVC_EVENT_PRESHUTDOWN;
         info.session_id = NULL;
         svc_dispatch_event(s_ctx.def, &info);
-        /* lock を解放してシャットダウンを許可する */
+
+        /* lock を解放してシャットダウンを許可する。 */
         if (s_ctx.inhibit_shutdown_fd >= 0)
         {
             cplat_close(s_ctx.inhibit_shutdown_fd, NULL);
@@ -269,12 +290,13 @@ static int on_prepare_for_shutdown(sd_bus_message *m, void *userdata, sd_bus_err
     }
     else
     {
-        /* シャットダウンが取り消された場合に備えて lock を再取得する */
+        /* シャットダウンが取り消された場合に備えて lock を再取得する。 */
         if (s_ctx.inhibit_shutdown_fd < 0)
         {
             s_ctx.inhibit_shutdown_fd = acquire_inhibit_lock("shutdown");
         }
     }
+
     return 0;
 }
 
@@ -298,6 +320,7 @@ static int dispatch_session_signal(sd_bus_message *m, const svc_event_type type)
     info.type = type;
     info.session_id = session_id;
     svc_dispatch_event(s_ctx.def, &info);
+
     return 0;
 }
 
@@ -312,6 +335,7 @@ static int on_session_new(sd_bus_message *m, void *userdata, sd_bus_error *ret_e
 {
     (void)userdata;
     (void)ret_error;
+
     return dispatch_session_signal(m, SVC_EVENT_SESSION_LOGON);
 }
 
@@ -326,12 +350,15 @@ static int on_session_removed(sd_bus_message *m, void *userdata, sd_bus_error *r
 {
     (void)userdata;
     (void)ret_error;
+
     return dispatch_session_signal(m, SVC_EVENT_SESSION_LOGOFF);
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  eventfd ハンドラー
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          停止指示 (eventfd) を受けてイベント ループを終了します。
@@ -352,6 +379,7 @@ static int on_stop_requested(sd_event_source *source, int fd, uint32_t revents, 
     bytes = read(fd, &value, sizeof(value));
     (void)bytes;
     sd_event_exit(sd_event_source_get_event(source), 0);
+
     return 0;
 }
 
@@ -375,12 +403,15 @@ static int on_reload_requested(sd_event_source *source, int fd, uint32_t revents
     bytes = read(fd, &value, sizeof(value));
     (void)bytes;
     svc_dispatch_reload(s_ctx.def);
+
     return 0;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  D-Bus 監視の構築
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          system bus に接続して logind のシグナル監視を構築します。
@@ -409,6 +440,7 @@ static void setup_bus_monitoring(void)
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
                             "PrepareForSleep の購読に失敗しました: %s", strerror(-rc));
     }
+
     rc = sd_bus_match_signal(s_ctx.bus, NULL, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "PrepareForShutdown",
                              on_prepare_for_shutdown, NULL);
     if (rc < 0)
@@ -416,6 +448,7 @@ static void setup_bus_monitoring(void)
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
                             "PrepareForShutdown の購読に失敗しました: %s", strerror(-rc));
     }
+
     rc = sd_bus_match_signal(s_ctx.bus, NULL, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "SessionNew",
                              on_session_new, NULL);
     if (rc < 0)
@@ -423,6 +456,7 @@ static void setup_bus_monitoring(void)
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "SessionNew の購読に失敗しました: %s",
                             strerror(-rc));
     }
+
     rc = sd_bus_match_signal(s_ctx.bus, NULL, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "SessionRemoved",
                              on_session_removed, NULL);
     if (rc < 0)
@@ -431,7 +465,7 @@ static void setup_bus_monitoring(void)
                             "SessionRemoved の購読に失敗しました: %s", strerror(-rc));
     }
 
-    /* イベント発生時にコールバックを実行する猶予を確保するための delay lock */
+    /* イベント発生時にコールバックを実行する猶予を確保するため、delay lock を取得する。 */
     s_ctx.inhibit_sleep_fd = acquire_inhibit_lock("sleep");
     s_ctx.inhibit_shutdown_fd = acquire_inhibit_lock("shutdown");
 
@@ -447,9 +481,11 @@ static void setup_bus_monitoring(void)
     }
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  イベント監視スレッド
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          イベント監視スレッドの本体。
@@ -471,7 +507,7 @@ static void events_thread_func(void *arg)
         return;
     }
 
-    /* WATCHDOG_USEC が設定されている場合のみ有効になる (未設定なら何もしない) */
+    /* WATCHDOG_USEC が設定されている場合のみ有効になる (未設定なら何もしない)。 */
     rc = sd_event_set_watchdog(s_ctx.event, 1);
     if (rc < 0)
     {
@@ -482,7 +518,7 @@ static void events_thread_func(void *arg)
     rc = sd_event_add_io(s_ctx.event, NULL, s_ctx.stop_fd, EPOLLIN, on_stop_requested, NULL);
     if (rc < 0)
     {
-        /* 停止指示を監視できないとスレッドを終了させられないため、ループに入らない */
+        /* 停止指示を監視できないとスレッドを終了させられないため、ループに入らない。 */
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
                             "停止監視の登録に失敗したため OS イベント監視は無効です: %s", strerror(-rc));
     }
@@ -512,18 +548,22 @@ static void events_thread_func(void *arg)
     }
 
     release_inhibit_locks();
+
     if (s_ctx.bus != NULL)
     {
         sd_bus_flush_close_unref(s_ctx.bus);
         s_ctx.bus = NULL;
     }
+
     sd_event_unref(s_ctx.event);
     s_ctx.event = NULL;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  起動・停止 (svc_os_run_service から呼ばれる)
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          start 失敗時・停止時にスレッド外の資源を解放します。
@@ -538,16 +578,19 @@ static void release_local_resources(void)
         sigaction(SIGHUP, &s_old_sighup_action, NULL);
         s_sighup_installed = 0;
     }
+
     if (s_ctx.reload_fd >= 0)
     {
         cplat_close(s_ctx.reload_fd, NULL);
         s_ctx.reload_fd = -1;
     }
+
     if (s_ctx.stop_fd >= 0)
     {
         cplat_close(s_ctx.stop_fd, NULL);
         s_ctx.stop_fd = -1;
     }
+
     s_ctx.def = NULL;
 }
 
@@ -562,9 +605,10 @@ int svc_linux_events_start(const svc_definition *def)
     {
         return -1;
     }
+
     if (s_ctx.thread != NULL)
     {
-        /* すでに起動済み */
+        /* すでに起動済みの場合は何もしない。 */
         return 0;
     }
 
@@ -593,6 +637,7 @@ int svc_linux_events_start(const svc_definition *def)
             action.sa_handler = sighup_signal_handler;
             sigemptyset(&action.sa_mask);
             action.sa_flags = SA_RESTART;
+
             if (sigaction(SIGHUP, &action, &s_old_sighup_action) != 0)
             {
                 cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
@@ -639,6 +684,7 @@ void svc_linux_events_stop(void)
                                "イベント監視スレッドが時間内に終了しないため切り離します。");
             cplat_thread_detach(s_ctx.thread);
         }
+
         s_ctx.thread = NULL;
     }
 

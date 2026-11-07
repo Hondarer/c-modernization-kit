@@ -76,6 +76,7 @@ sample_filter_share_region_result sample_filter_share_region_open(const char *pa
     {
         return SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT;
     }
+
     *region_out = NULL;
 
     region = (sample_filter_share_region *)calloc(1U, sizeof(*region));
@@ -84,7 +85,7 @@ sample_filter_share_region_result sample_filter_share_region_open(const char *pa
         return SAMPLE_FILTER_SHARE_REGION_FAILED;
     }
 
-    /* ファイルがなければ size バイトで作成する。作成したファイルは 0 で埋まる */
+    /* ファイルがなければ size [byte] で作成する。作成したファイルは 0 で埋まる。 */
     ret = cplat_mmap_attach(path, CPLAT_MMAP_ACCESS_READ_WRITE, size, &region->map, NULL);
     if (ret != CPLAT_OK)
     {
@@ -92,7 +93,7 @@ sample_filter_share_region_result sample_filter_share_region_open(const char *pa
         return result_of(ret);
     }
 
-    /* 既存のファイルは作り直さない。大きい場合は先頭の size バイトだけを使い、足りない場合は拒否する */
+    /* 既存のファイルは作り直さない。大きい場合は先頭の size [byte] だけを使い、足りない場合は拒否する。 */
     if (cplat_mmap_get_size(region->map) < size)
     {
         sample_filter_share_region_close(&region);
@@ -100,6 +101,7 @@ sample_filter_share_region_result sample_filter_share_region_open(const char *pa
     }
 
     *region_out = region;
+
     return SAMPLE_FILTER_SHARE_REGION_OK;
 }
 
@@ -116,6 +118,7 @@ void sample_filter_share_region_close(sample_filter_share_region **region)
     {
         (void)cplat_mmap_detach((*region)->map, NULL);
     }
+
     free(*region);
     *region = NULL;
 }
@@ -128,7 +131,8 @@ void *sample_filter_share_region_get_address(const sample_filter_share_region *r
     {
         return NULL;
     }
-    /* マップの先頭はページ境界のため、8 バイト境界に揃っている */
+
+    /* マップの先頭はページ境界のため、8 [byte] 境界に揃っている。 */
     return cplat_mmap_get_address(region->map);
 }
 
@@ -147,6 +151,7 @@ sample_filter_share_region_result sample_filter_share_lock_create(const char *pa
     {
         return SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT;
     }
+
     *lock_out = NULL;
 
     lock = (sample_filter_share_lock *)calloc(1U, sizeof(*lock));
@@ -158,6 +163,7 @@ sample_filter_share_region_result sample_filter_share_lock_create(const char *pa
         free(lock);
         return SAMPLE_FILTER_SHARE_REGION_FAILED;
     }
+
     (void)snprintf(lock_path, lock_path_size, "%s%s", path, LOCK_FILE_SUFFIX);
 
     ret = cplat_local_lock_create(&lock->local);
@@ -165,7 +171,9 @@ sample_filter_share_region_result sample_filter_share_lock_create(const char *pa
     {
         ret = cplat_interprocess_lock_open(lock_path, &lock->process);
     }
+
     free(lock_path);
+
     if (ret != CPLAT_OK)
     {
         sample_filter_share_lock_dispose(&lock);
@@ -173,6 +181,7 @@ sample_filter_share_region_result sample_filter_share_lock_create(const char *pa
     }
 
     *lock_out = lock;
+
     return SAMPLE_FILTER_SHARE_REGION_OK;
 }
 
@@ -189,10 +198,12 @@ void sample_filter_share_lock_dispose(sample_filter_share_lock **lock)
     {
         cplat_interprocess_lock_dispose((*lock)->process);
     }
+
     if ((*lock)->local != NULL)
     {
         cplat_local_lock_dispose((*lock)->local);
     }
+
     free(*lock);
     *lock = NULL;
 }
@@ -209,32 +220,35 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
     {
         return SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT;
     }
+
     if (timeout_ms != SAMPLE_FILTER_SHARE_WAIT_FOREVER)
     {
         remaining_ms = timeout_ms;
         deadline_ms = cplat_clock_get_monotonic_ms() + (uint64_t)timeout_ms;
     }
 
-    /* 同じハンドルを使うスレッドの間はファイル ロックが排他にならないため、プロセス内のロックを先に取る */
+    /* 同じハンドルを使うスレッドの間はファイル ロックが排他にならないため、プロセス内のロックを先に取る。 */
     ret = cplat_local_lock_lock(lock->local, remaining_ms);
     if (ret != CPLAT_OK)
     {
         return result_of(ret);
     }
 
-    /* プロセス間ロックは、プロセス内のロックで使った時間を差し引いた残りだけ待つ */
+    /* プロセス間ロックは、プロセス内のロックで使った時間を差し引いた残りだけ待つ。 */
     if (timeout_ms != SAMPLE_FILTER_SHARE_WAIT_FOREVER)
     {
         const uint64_t now_ms = cplat_clock_get_monotonic_ms();
 
         remaining_ms = (now_ms >= deadline_ms) ? 0 : (int)(deadline_ms - now_ms);
     }
+
     ret = cplat_interprocess_lock_lock(lock->process, remaining_ms);
     if (ret != CPLAT_OK)
     {
         (void)cplat_local_lock_unlock(lock->local);
         return result_of(ret);
     }
+
     return SAMPLE_FILTER_SHARE_REGION_OK;
 }
 
@@ -246,6 +260,7 @@ void sample_filter_share_lock_release(sample_filter_share_lock *lock)
     {
         return;
     }
+
     (void)cplat_interprocess_lock_unlock(lock->process);
     (void)cplat_local_lock_unlock(lock->local);
 }

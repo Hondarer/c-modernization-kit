@@ -49,6 +49,11 @@ int main(int argc, char *argv[])
     cplat_argparser_register_positional_string("operator", "+、-、x、/ のいずれか。", CPLAT_ARGPARSER_REQUIRED,
                                                &operator_value);
     cplat_argparser_register_positional_int("num2", "第二オペランド。", CPLAT_ARGPARSER_REQUIRED, &arg3);
+
+    /*
+     * 登録 API の成否は内部に蓄積される。
+     * 登録エラーはコーディング エラーのため、解析前に報告して終了する。
+     */
     if (cplat_argparser_get_register_error_count() > 0)
     {
         cplat_argparser_print_register_error_messages(stderr);
@@ -56,26 +61,33 @@ int main(int argc, char *argv[])
     }
 
     int parse_result = cplat_argparser_parse();
+
+    /* 必須引数が省略されていても -h と --help を優先する。 */
     if (need_help != 0)
     {
         cplat_argparser_print_usage(stdout);
         return EXIT_SUCCESS;
     }
+
     if (parse_result != CPLAT_OK)
     {
         cplat_argparser_print_error_messages(stderr);
         cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;
     }
+
+    /* 演算子は 1 文字に限る。後続の switch は先頭文字だけを見る。 */
     if (operator_value[0] == 0x00 || operator_value[1] != 0x00)
     {
         fprintf(stderr, "Error: operator must be one of +, -, x, /.\n\n");
         cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;
     }
+
     int result;
 
     int kind;
+
     switch (operator_value[0])
     {
     case '+':

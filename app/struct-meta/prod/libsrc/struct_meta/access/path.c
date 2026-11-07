@@ -18,6 +18,10 @@
 #include <stdint.h>
 #include <string.h>
 
+/*
+ * パス セグメントのフィールド名からフィールド記述子を検索する。
+ * フィールドが見つかった場合はそのポインターを返し、見つからない場合は NULL を返す。
+ */
 static const struct_meta_field *find_field_segment(const struct_meta_descriptor *descriptor, const char *name,
                                                    size_t name_length)
 {
@@ -28,6 +32,7 @@ static const struct_meta_field *find_field_segment(const struct_meta_descriptor 
     {
         return &descriptor->fields[index];
     }
+
     if (index_ret == CPLAT_ERR_NOT_FOUND)
     {
         return NULL;
@@ -41,9 +46,17 @@ static const struct_meta_field *find_field_segment(const struct_meta_descriptor 
             return field;
         }
     }
+
     return NULL;
 }
 
+/*
+ * パス文字列の現在位置から配列インデックス指定 "[N]" を解析する。
+ * 先頭が '[' でない場合は CPLAT_SKIPPED を返し、解析位置を進めない。
+ * 数字が続かない場合や ']' で閉じられていない場合は CPLAT_ERR_INVALID_ARGUMENT を返し、
+ * 数値が size_t の上限を超える場合は CPLAT_ERR_OUT_OF_RANGE を返す。
+ * 成功時は CPLAT_OK を返し、index_out にインデックス値を格納して cursor_in_out を ']' の直後へ進める。
+ */
 static int parse_index(const char **cursor_in_out, size_t *index_out)
 {
     const char *cursor = *cursor_in_out;
@@ -53,7 +66,9 @@ static int parse_index(const char **cursor_in_out, size_t *index_out)
     {
         return CPLAT_SKIPPED;
     }
+
     cursor++;
+
     if (isdigit((unsigned char)*cursor) == 0)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
@@ -65,9 +80,11 @@ static int parse_index(const char **cursor_in_out, size_t *index_out)
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
+
         index = (index * 10U) + digit;
         cursor++;
     }
+
     if (*cursor != ']')
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
@@ -75,9 +92,17 @@ static int parse_index(const char **cursor_in_out, size_t *index_out)
 
     *cursor_in_out = cursor + 1;
     *index_out = index;
+
     return CPLAT_OK;
 }
 
+/*
+ * ドット区切りのフィールド パスを走査し、終端のフィールド記述子と値のアドレスを解決する。
+ * const と非 const の両方の解決処理を共通化するため、インスタンスと値のアドレスを uintptr_t で扱う。
+ * 成功時は CPLAT_OK を返し、field_out に終端フィールド記述子、value_address_out に値のアドレスを格納する。
+ * パス構文不正時は CPLAT_ERR_INVALID_ARGUMENT、指定されたフィールドが存在しない場合は CPLAT_ERR_NOT_FOUND、
+ * 配列インデックスが範囲外または char 配列に対するインデックス指定の場合は CPLAT_ERR_OUT_OF_RANGE を返す。
+ */
 static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t instance_address, const char *path,
                         const struct_meta_field **field_out, uintptr_t *value_address_out)
 {
@@ -96,6 +121,7 @@ static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t inst
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
         do
         {
             cursor++;
@@ -112,10 +138,12 @@ static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t inst
         int ret = parse_index(&cursor, &index);
         if (ret == CPLAT_OK)
         {
+            /* char 配列は NUL 終端文字列として扱うため、配列インデックス指定を認めない。 */
             if ((field->kind == STRUCT_META_FIELD_CHAR_ARRAY) || (index >= field->element_count))
             {
                 return CPLAT_ERR_OUT_OF_RANGE;
             }
+
             value_address += index * field->element_size;
             has_index = 1;
         }
@@ -130,20 +158,28 @@ static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t inst
             *value_address_out = value_address;
             return CPLAT_OK;
         }
+
         if (*cursor != '.')
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
+        /*
+         * 次のセグメントへ進むため、現在のフィールドが構造体であることと、
+         * 構造体配列の場合はインデックス指定済みであることを確認する。
+         */
         if ((field->kind != STRUCT_META_FIELD_STRUCT) || ((field->element_count > 1U) && (has_index == 0)))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
         cursor++;
+
         if (*cursor == '\0')
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
+
         current_descriptor = field->nested;
         current_address = value_address;
     }
@@ -161,6 +197,7 @@ int struct_meta_path_resolve_const(const struct_meta_descriptor *descriptor, con
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *field_out = NULL;
     *value_out = NULL;
 
@@ -169,12 +206,14 @@ int struct_meta_path_resolve_const(const struct_meta_descriptor *descriptor, con
     {
         return ret;
     }
+
     uintptr_t value_address = 0U;
     ret = resolve_path(descriptor, (uintptr_t)instance, path, field_out, &value_address);
     if (ret == CPLAT_OK)
     {
         *value_out = (const void *)value_address;
     }
+
     return ret;
 }
 
@@ -187,12 +226,14 @@ int struct_meta_path_resolve(const struct_meta_descriptor *descriptor, void *ins
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *value_out = NULL;
 
     if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0') || (field_out == NULL))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *field_out = NULL;
 
     int ret = struct_meta_descriptor_validate(descriptor);
@@ -200,11 +241,13 @@ int struct_meta_path_resolve(const struct_meta_descriptor *descriptor, void *ins
     {
         return ret;
     }
+
     uintptr_t value_address = 0U;
     ret = resolve_path(descriptor, (uintptr_t)instance, path, field_out, &value_address);
     if (ret == CPLAT_OK)
     {
         *value_out = (void *)value_address;
     }
+
     return ret;
 }

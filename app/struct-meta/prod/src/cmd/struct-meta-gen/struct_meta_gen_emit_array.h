@@ -24,7 +24,7 @@
  *  @param[in]      data        出力するバイト列です。NULL を渡してはなりません。
  *  @param[in]      data_size   @p data のバイト数です。1 以上を指定してください。
  *
- *  8 バイトに満たない末尾は 0 で埋め、1 行あたり 4 要素を出力します。
+ *  8 [byte] に満たない末尾は 0 で埋め、1 行あたり 4 要素を出力します。
  */
 void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const void *data, size_t data_size);
 

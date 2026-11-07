@@ -22,6 +22,8 @@ int calcbase_multiply(const int a, const int b, int *result)
     {
         return CALC_ERR_INVALID_ARGUMENT;
     }
+
     *result = a * b;
+
     return CALC_OK;
 }

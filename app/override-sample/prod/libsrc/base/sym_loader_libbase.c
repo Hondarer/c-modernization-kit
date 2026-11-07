@@ -22,11 +22,16 @@
 
 char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
 
-/* --- 差し替え可能な各関数のアクセス用オブジェクトとアクセス用ポインターの設定 --- */
-/* --- 対応関数を追加した場合、次への追加が必要です。                             --- */
+/*
+ * --- 差し替え可能な各関数のアクセス用オブジェクトとアクセス用ポインターの設定 ---
+ * 実体は static で定義し、外部からのアクセスはポインター経由に限定して直接の書き換えを防ぐ。
+ * 正本は app/override-sample/prod/libsrc/base/sym_loader_libbase.md の「ファイルの責務」節である。
+ * --- 対応関数を追加した場合、次への追加が必要である。 ---
+ */
 
 /** base_calc 用の sym_loader エントリ実体です。差し替えキーは公開関数名と同じにします。 */
 static cplat_sym_loader_entry sfo_base_calc = CPLAT_SYM_LOADER_ENTRY_INIT("base_calc", base_calc_fn);
+
 /* Doxygen コメントは、ヘッダーに記載 */
 
 cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
@@ -34,13 +39,16 @@ cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 /* static cplat_sym_loader_entry sfo_base_name = CPLAT_SYM_LOADER_ENTRY_INIT("base_name", base_name_fn); */ /* 将来追加 */
 /* cplat_sym_loader_entry *const pfo_base_name = &sfo_base_name; */ /* 将来追加 */
 
-/* --- sym_loader に渡すポインター配列                --- */
-/* --- 対応関数を追加した場合、次への追加が必要です。 --- */
+/*
+ * --- sym_loader に渡すポインター配列 ---
+ * --- 対応関数を追加した場合、次への追加が必要である。 ---
+ */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
 cplat_sym_loader_entry *const fobj_array_libbase[] = {
     &sfo_base_calc,
+
     /* &sfo_base_name, */ /* 将来追加 */
 };
 
@@ -60,5 +68,6 @@ int base_sym_loader_info(void)
     {
         return BASE_ERR_UNKNOWN;
     }
+
     return BASE_OK;
 }

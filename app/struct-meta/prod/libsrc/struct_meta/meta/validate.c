@@ -27,6 +27,10 @@ typedef struct validation_context
     size_t capacity;
 } validation_context;
 
+/*
+ * 再帰走査中の記述子スタックへ記述子を追加し、循環参照を検出する。
+ * 成功時は CPLAT_OK、循環検出時は CPLAT_ERR_CORRUPT_DESCRIPTOR、メモリ不足時は CPLAT_ERR_OUT_OF_MEMORY を返す。
+ */
 static int push_descriptor(validation_context *context, const struct_meta_descriptor *descriptor)
 {
     for (size_t i = 0; i < context->depth; i++)
@@ -40,6 +44,7 @@ static int push_descriptor(validation_context *context, const struct_meta_descri
     if (context->depth == context->capacity)
     {
         size_t capacity;
+
         if (context->capacity == 0U)
         {
             capacity = 8U;
@@ -48,25 +53,33 @@ static int push_descriptor(validation_context *context, const struct_meta_descri
         {
             capacity = context->capacity * 2U;
         }
+
         if (capacity < context->capacity || capacity > (SIZE_MAX / sizeof(*context->stack)))
         {
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
+
         const struct_meta_descriptor **stack =
             (const struct_meta_descriptor **)realloc(context->stack, capacity * sizeof(*context->stack));
         if (stack == NULL)
         {
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
+
         context->stack = stack;
         context->capacity = capacity;
     }
 
     context->stack[context->depth] = descriptor;
     context->depth++;
+
     return CPLAT_OK;
 }
 
+/*
+ * 属性配列のキーが空でないこと、および重複がないことを検証する。
+ * 妥当な場合は CPLAT_OK、キーが空または重複している場合は CPLAT_ERR_CORRUPT_DESCRIPTOR を返す。
+ */
 static int validate_attributes(const struct_meta_attribute *attributes, const size_t attribute_count)
 {
     if ((attribute_count > 0U) && (attributes == NULL))
@@ -83,9 +96,11 @@ static int validate_attributes(const struct_meta_attribute *attributes, const si
         }
     }
 
+    /* 属性キーの重複を走査して検証する。 */
     for (size_t i = 0; i < attribute_count; i++)
     {
         const struct_meta_attribute *attribute = &attributes[i];
+
         for (size_t j = i + 1U; j < attribute_count; j++)
         {
             if (strcmp(attribute->key, attributes[j].key) == 0)
@@ -94,9 +109,15 @@ static int validate_attributes(const struct_meta_attribute *attributes, const si
             }
         }
     }
+
     return CPLAT_OK;
 }
 
+/*
+ * 記述子とその属性、フィールド、ネスト構造を再帰的に検証する。
+ * 妥当な場合は CPLAT_OK、矛盾や破損がある場合は CPLAT_ERR_CORRUPT_DESCRIPTOR、
+ * メモリ不足時は CPLAT_ERR_OUT_OF_MEMORY を返す。
+ */
 static int validate_descriptor(validation_context *context, const struct_meta_descriptor *descriptor)
 {
     if ((descriptor->name == NULL) || (descriptor->name[0] == '\0') || (descriptor->size == 0U) ||
@@ -112,6 +133,8 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
     }
 
     ret = validate_attributes(descriptor->attributes, descriptor->attribute_count);
+
+    /* 各フィールドの型、サイズ、オフセット、ネスト関係を検証する。 */
     for (size_t i = 0; (ret == CPLAT_OK) && (i < descriptor->field_count); i++)
     {
         const struct_meta_field *field = &descriptor->fields[i];
@@ -140,6 +163,7 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
                 ret = CPLAT_ERR_CORRUPT_DESCRIPTOR;
                 break;
             }
+
             field_size = field->char_buffer_size;
         }
         else
@@ -149,6 +173,7 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
                 ret = CPLAT_ERR_CORRUPT_DESCRIPTOR;
                 break;
             }
+
             field_size = field->element_count * field->element_size;
         }
 
@@ -165,6 +190,7 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
                 ret = CPLAT_ERR_CORRUPT_DESCRIPTOR;
                 break;
             }
+
             ret = validate_descriptor(context, field->nested);
             if (ret != CPLAT_OK)
             {
@@ -192,6 +218,7 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
     }
 
     context->depth--;
+
     return ret;
 }
 
@@ -204,9 +231,12 @@ int struct_meta_descriptor_validate(const struct_meta_descriptor *descriptor)
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
-    /* 登録済みの記述子は、登録時に求めた結果を控えている。公開入口が呼ばれるたびに
-       記述子全体を再帰走査し直す費用を避ける。未登録なら控えが無く、以降で検査する。 */
+    /*
+     * 登録済みの記述子は、登録時に求めた結果を控えている。公開入口が呼ばれるたびに
+     * 記述子全体を再帰走査し直す費用を避ける。未登録なら控えが無く、以降で検査する。
+     */
     int cached;
+
     if (struct_meta_internal_index_find_validation(descriptor, &cached) == CPLAT_OK)
     {
         return cached;
@@ -216,5 +246,6 @@ int struct_meta_descriptor_validate(const struct_meta_descriptor *descriptor)
     int ret = validate_descriptor(&context, descriptor);
 
     free(context.stack);
+
     return ret;
 }

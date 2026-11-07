@@ -27,12 +27,14 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
     size_t words = (data_size + 7U) / 8U;
 
     fprintf(out, "static const uint64_t %s[%zu] = {\n", array_name, words);
+
     for (size_t i = 0; i < words; i++)
     {
         uint64_t word = 0;
         size_t offset = i * 8U;
         size_t remain = data_size - offset;
         size_t copy_size;
+
         if (remain < 8U)
         {
             copy_size = remain;
@@ -48,11 +50,14 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
         {
             fprintf(out, "    ");
         }
+
         fprintf(out, "UINT64_C(0x%016" PRIx64 ")", word);
+
         if ((i + 1U) < words)
         {
             fprintf(out, ",");
         }
+
         if ((((i + 1U) % STRUCT_META_GEN_EMIT_ARRAY_WORDS_PER_LINE) == 0U) || ((i + 1U) == words))
         {
             fprintf(out, "\n");
@@ -62,5 +67,6 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
             fprintf(out, " ");
         }
     }
+
     fprintf(out, "};\n\n");
 }

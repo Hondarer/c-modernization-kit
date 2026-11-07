@@ -52,10 +52,12 @@ static int build_one(build_context *context, build_entry *entry);
 static size_t count_attributes(const struct_meta_internal_parse_attribute *attributes)
 {
     size_t count = 0U;
+
     for (const struct_meta_internal_parse_attribute *item = attributes; item != NULL; item = item->next)
     {
         count++;
     }
+
     return count;
 }
 
@@ -65,10 +67,12 @@ static size_t count_attributes(const struct_meta_internal_parse_attribute *attri
 static size_t count_fields(const struct_meta_internal_parse_field *fields)
 {
     size_t count = 0U;
+
     for (const struct_meta_internal_parse_field *item = fields; item != NULL; item = item->next)
     {
         count++;
     }
+
     return count;
 }
 
@@ -86,6 +90,7 @@ find_attribute(const struct_meta_internal_parse_attribute *attributes, const cha
             return item;
         }
     }
+
     return NULL;
 }
 
@@ -120,10 +125,12 @@ static int field_is_byte_array(const struct_meta_internal_parse_field *field)
     {
         return 0;
     }
+
     if (is_explicit_byte_type(field->type_name) != 0)
     {
         return 1;
     }
+
     const struct_meta_internal_parse_attribute *kind = find_attribute(field->attributes, "meta.kind");
     if ((strcmp(field->type_name, "char") == 0) && (kind != NULL) && (kind->value != NULL) &&
         (strcmp(kind->value, "bytes") == 0))
@@ -161,6 +168,7 @@ static int validate_meta_attributes(const struct_meta_internal_parse_field *fiel
                                       field->name);
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     }
+
     return CPLAT_OK;
 }
 
@@ -174,6 +182,7 @@ static int copy_attributes(build_context *context, const struct_meta_internal_pa
     const size_t count = count_attributes(source);
     *attributes_out = NULL;
     *count_out = 0U;
+
     if (count == 0U)
     {
         return CPLAT_OK;
@@ -187,6 +196,7 @@ static int copy_attributes(build_context *context, const struct_meta_internal_pa
     }
 
     size_t index = 0U;
+
     for (const struct_meta_internal_parse_attribute *item = source; item != NULL; item = item->next)
     {
         attributes[index].key = struct_meta_internal_arena_copy_string(context->arena, item->key);
@@ -194,6 +204,7 @@ static int copy_attributes(build_context *context, const struct_meta_internal_pa
         {
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
+
         if (item->value != NULL)
         {
             attributes[index].value = struct_meta_internal_arena_copy_string(context->arena, item->value);
@@ -202,11 +213,13 @@ static int copy_attributes(build_context *context, const struct_meta_internal_pa
                 return CPLAT_ERR_OUT_OF_MEMORY;
             }
         }
+
         index++;
     }
 
     *attributes_out = attributes;
     *count_out = count;
+
     return CPLAT_OK;
 }
 
@@ -223,6 +236,7 @@ static build_entry *find_entry(build_context *context, const char *name)
             return &context->entries[i];
         }
     }
+
     return NULL;
 }
 
@@ -252,17 +266,20 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
             struct_meta_internal_diagnose(context->diagnostic, source->line, "未知の型です: %s", source->type_name);
             return CPLAT_ERR_NOT_FOUND;
         }
+
         if (entry->state == BUILD_STATE_ACTIVE)
         {
             struct_meta_internal_diagnose(context->diagnostic, source->line, "構造体が循環しています: %s",
                                           source->type_name);
             return CPLAT_ERR_CORRUPT_DESCRIPTOR;
         }
+
         ret = build_one(context, entry);
         if (ret != CPLAT_OK)
         {
             return ret;
         }
+
         kind = STRUCT_META_FIELD_STRUCT;
         element_size = entry->descriptor->size;
         alignment = entry->alignment;
@@ -276,6 +293,7 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
             struct_meta_internal_diagnose(context->diagnostic, source->line, "未知の型です: %s", source->type_name);
             return CPLAT_ERR_NOT_FOUND;
         }
+
         kind = type->kind;
         element_size = type->size;
         alignment = type->alignment;
@@ -283,6 +301,7 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
 
     /* 記憶域の占有はここで決める。char 配列も宣言どおりの要素数で場所を取る。 */
     size_t declared_count;
+
     if (source->array_count > 0)
     {
         declared_count = (size_t)source->array_count;
@@ -291,6 +310,7 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
     {
         declared_count = 1U;
     }
+
     size_t offset = 0U;
     ret = struct_meta_internal_layout_add(layout, element_size, declared_count, alignment, &offset);
     if (ret != CPLAT_OK)
@@ -303,9 +323,10 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
     /*
      * 記述子の表現は記憶域の占有と異なる。char 配列は NUL 終端文字列 1 個として扱い、
      * 全体のバイト数を char_buffer_size が表す。
-     * see: app/struct-meta/docs/architecture.md の「文字列とバイト配列」
+     * 正本は app/struct-meta/docs/architecture.md の「文字列とバイト配列」節である。
      */
     int is_char_array;
+
     if ((source->is_struct_type == 0) && (strcmp(source->type_name, "char") == 0) && (source->array_count > 0) &&
         (field_is_byte_array(source) == 0))
     {
@@ -315,6 +336,7 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
     {
         is_char_array = 0;
     }
+
     if (is_char_array != 0)
     {
         kind = STRUCT_META_FIELD_CHAR_ARRAY;
@@ -332,6 +354,7 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     if (source->brief != NULL)
     {
         target->brief = struct_meta_internal_arena_copy_string(context->arena, source->brief);
@@ -340,6 +363,7 @@ static int build_field(build_context *context, const struct_meta_internal_parse_
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
     }
+
     target->kind = kind;
     target->pad = 0U;
     target->offset = offset;
@@ -361,12 +385,14 @@ static int build_one(build_context *context, build_entry *entry)
     {
         return CPLAT_OK;
     }
+
     if (entry->state == BUILD_STATE_ACTIVE)
     {
         struct_meta_internal_diagnose(context->diagnostic, entry->source->line, "構造体が循環しています: %s",
                                       entry->source->name);
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     }
+
     entry->state = BUILD_STATE_ACTIVE;
 
     const size_t field_count = count_fields(entry->source->fields);
@@ -388,6 +414,7 @@ static int build_one(build_context *context, build_entry *entry)
     struct_meta_internal_layout_begin(&layout);
 
     size_t index = 0U;
+
     for (const struct_meta_internal_parse_field *source = entry->source->fields; source != NULL; source = source->next)
     {
         const int ret = build_field(context, source, &fields[index], &layout);
@@ -395,6 +422,7 @@ static int build_one(build_context *context, build_entry *entry)
         {
             return ret;
         }
+
         index++;
     }
 
@@ -413,6 +441,7 @@ static int build_one(build_context *context, build_entry *entry)
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     if (entry->source->brief != NULL)
     {
         entry->descriptor->brief = struct_meta_internal_arena_copy_string(context->arena, entry->source->brief);
@@ -421,6 +450,7 @@ static int build_one(build_context *context, build_entry *entry)
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
     }
+
     entry->descriptor->size = size;
     entry->descriptor->fields = fields;
     entry->descriptor->field_count = field_count;
@@ -434,6 +464,7 @@ static int build_one(build_context *context, build_entry *entry)
     }
 
     entry->state = BUILD_STATE_DONE;
+
     return CPLAT_OK;
 }
 
@@ -448,10 +479,12 @@ int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_stru
     }
 
     size_t count = 0U;
+
     for (const struct_meta_internal_parse_struct *item = structs->head; item != NULL; item = item->next)
     {
         count++;
     }
+
     if (count == 0U)
     {
         return CPLAT_ERR_NOT_FOUND;
@@ -469,6 +502,7 @@ int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_stru
     }
 
     size_t index = 0U;
+
     for (const struct_meta_internal_parse_struct *item = structs->head; item != NULL; item = item->next)
     {
         entries[index].source = item;
@@ -478,6 +512,7 @@ int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_stru
     }
 
     build_context context = {entries, count, arena, diagnostic};
+
     for (size_t i = 0; i < count; i++)
     {
         const int ret = build_one(&context, &entries[i]);
@@ -485,12 +520,16 @@ int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_stru
         {
             return ret;
         }
+
         table[i] = entries[i].descriptor;
     }
 
-    /* 配列の中身はこの先変えない。C では多段ポインターへの const 付与が暗黙に
-       行われないため、カタログが保持する型へ明示的に変換する。 */
+    /*
+     * 配列の中身はこの先変えない。C では多段ポインターへの const 付与が暗黙に
+     * 行われないため、カタログが保持する型へ明示的に変換する。
+     */
     *descriptors_out = (const struct_meta_descriptor *const *)table;
     *count_out = count;
+
     return CPLAT_OK;
 }

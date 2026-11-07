@@ -8,8 +8,10 @@
  *******************************************************************************
  */
 
-/* NOTE: このヘッダーは多数のソース ファイルから参照されるため、            */
-/*       @hideincludedbygraph によって "Included by" グラフを無効にします。 */
+/*
+ * このヘッダーは多数のソース ファイルから参照されるため、
+ * @hideincludedbygraph によって "Included by" グラフを無効にする。
+ */
 
 /**
  *  @brief          サンプル構造体。
@@ -39,8 +41,10 @@ typedef struct SAMPLE_STRUCT
     float b; /**< 浮動小数点数値。 */
 } SAMPLE_STRUCT;
 
-/* NOTE: brief や details を持たない構造体のサンプルです。                 */
-/*       構造体定義コード ブロックのみでも概要セクションが出力されます。   */
+/*
+ * NOTE: brief や details を持たない構造体のサンプルである。
+ * 構造体定義コード ブロックのみでも概要セクションが出力される。
+ */
 typedef struct SAMPLE_STRUCT_NO_BRIEF
 {
     int code; /**< コード値。 */

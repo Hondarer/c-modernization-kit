@@ -37,6 +37,7 @@ struct struct_meta_catalog
 static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, size_t count)
 {
     size_t longest = 0U;
+
     for (size_t i = 0; i < count; i++)
     {
         const size_t length = strlen(descriptors[i]->name);
@@ -45,6 +46,7 @@ static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, s
             longest = length;
         }
     }
+
     return longest + 1U;
 }
 
@@ -84,6 +86,7 @@ static int create_index(struct_meta_catalog *catalog, struct_meta_diagnostic *di
             return CPLAT_ERR_DUPLICATE_KEY;
         }
     }
+
     return CPLAT_OK;
 }
 
@@ -124,12 +127,15 @@ static int create_from_structs(struct_meta_internal_parse_struct_list *structs, 
         struct_meta_internal_diagnose(diagnostic, 0, "カタログを確保できません");
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     catalog->arena = arena;
 
     int ret = struct_meta_internal_build_descriptors(structs, arena, &catalog->descriptors, &catalog->descriptor_count,
                                                      diagnostic);
-    /* AST はここまでで役目を終える。記述子は arena へ複写済み。 */
+
+    /* AST はここまでで役目を終える。記述子は arena へ複写済みである。 */
     struct_meta_internal_parse_struct_list_destroy(structs);
+
     if (ret != CPLAT_OK)
     {
         struct_meta_catalog_destroy(catalog);
@@ -145,6 +151,7 @@ static int create_from_structs(struct_meta_internal_parse_struct_list *structs, 
 
     register_descriptors(catalog);
     *catalog_out = catalog;
+
     return CPLAT_OK;
 }
 
@@ -162,6 +169,7 @@ int struct_meta_catalog_create_from_header_file(const char *path, struct_meta_ca
     {
         return ret;
     }
+
     return create_from_structs(structs, catalog_out, diagnostic_out);
 }
 
@@ -179,6 +187,7 @@ int struct_meta_catalog_create_from_header_text(const char *text, size_t length,
     {
         return ret;
     }
+
     return create_from_structs(structs, catalog_out, diagnostic_out);
 }
 
@@ -198,31 +207,38 @@ int struct_meta_catalog_attach_static(const struct_meta_descriptor *const *descr
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
     catalog->descriptors = descriptors;
     catalog->descriptor_count = descriptor_count;
     catalog->arena = NULL;
 
-    /* イメージは読み取り専用。cplat_hashtable_attach() は領域へ書き込まず、
-       この表へ書き込み API を呼び出すこともないため、const を外して渡す。
-       uintptr_t を経由するのは cplat と同じ書き方に揃えるため。
-       see: app/cplat/prod/libsrc/cplat/hashtable/hashtable_create.c の
-            cplat_hashtable_attach() */
+    /*
+     * イメージは読み取り専用である。cplat_hashtable_attach() は領域へ書き込まず、
+     * この表へ書き込み API を呼び出すこともないため、const を外して渡す。
+     * uintptr_t を経由するのは cplat と同じ書き方に揃えるためである。
+     * 揃える先は app/cplat/prod/libsrc/cplat/hashtable/hashtable_create.c の cplat_hashtable_attach() である。
+     */
     int ret = cplat_hashtable_attach((void *)(uintptr_t)index_image_mgmt, index_image_mgmt_size,
                                      (void *)(uintptr_t)index_image_data, index_image_data_size, &catalog->index);
     if (ret != CPLAT_OK)
     {
         free(catalog);
-        /* ハンドルの確保失敗は呼び出し元が回復できるため、そのまま伝える。
-           それ以外はイメージを読めないことを意味する */
+
+        /*
+         * ハンドルの確保失敗は呼び出し元が回復できるため、そのまま伝える。
+         * それ以外はイメージを読めないことを意味する。
+         */
         if (ret == CPLAT_ERR_OUT_OF_MEMORY)
         {
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
+
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
     register_descriptors(catalog);
     *catalog_out = catalog;
+
     return CPLAT_OK;
 }
 
@@ -232,16 +248,19 @@ void struct_meta_catalog_destroy(struct_meta_catalog *catalog)
     {
         return;
     }
+
     for (size_t i = 0; i < catalog->descriptor_count; i++)
     {
         (void)struct_meta_index_unregister(catalog->descriptors[i]);
     }
+
     if (catalog->index != NULL)
     {
         /* ハンドルだけを解放する。静的カタログのイメージは解放しない。 */
         cplat_hashtable_dispose(catalog->index);
     }
-    /* 実行時に組み立てた記述子はアリーナごと返す。静的カタログでは arena が NULL。 */
+
+    /* 実行時に組み立てた記述子はアリーナごと返す。静的カタログでは arena が NULL である。 */
     struct_meta_internal_arena_destroy(catalog->arena);
     free(catalog);
 }
@@ -252,7 +271,9 @@ int struct_meta_catalog_get_count(const struct_meta_catalog *catalog, size_t *co
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     *count_out = catalog->descriptor_count;
+
     return CPLAT_OK;
 }
 
@@ -263,11 +284,14 @@ int struct_meta_catalog_get(const struct_meta_catalog *catalog, size_t index,
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     if (index >= catalog->descriptor_count)
     {
         return CPLAT_ERR_NOT_FOUND;
     }
+
     *descriptor_out = catalog->descriptors[index];
+
     return CPLAT_OK;
 }
 
@@ -284,12 +308,15 @@ int struct_meta_catalog_find(const struct_meta_catalog *catalog, const char *nam
     {
         return CPLAT_ERR_NOT_FOUND;
     }
+
     /* value_align に sizeof(size_t) を指定しているため、型付きで参照できる。 */
     const size_t index = *(const size_t *)value;
     if (index >= catalog->descriptor_count)
     {
         return CPLAT_ERR_CORRUPT_DESCRIPTOR;
     }
+
     *descriptor_out = catalog->descriptors[index];
+
     return CPLAT_OK;
 }

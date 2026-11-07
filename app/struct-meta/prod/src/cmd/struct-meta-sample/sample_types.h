@@ -33,7 +33,7 @@ typedef struct address
 } address;
 
 /**
- *  @brief          1 バイト整数、文字列、バイト配列の判定確認に使用します。
+ *  @brief          1 [byte] 整数、文字列、バイト配列の判定確認に使用します。
  */
 typedef struct byte_fields
 {

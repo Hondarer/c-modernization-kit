@@ -52,12 +52,17 @@ static int finish(int parse_result, struct_meta_internal_parse_context *context,
     {
         struct_meta_internal_parse_struct_list_destroy(context->structs);
         context->structs = NULL;
-        /* yyparse が 2 を返すのはメモリ不足のときだけ。 */
+
+        /*
+         * yyparse() が 2 を返すのはメモリ不足の場合に限られる。
+         * see: https://www.gnu.org/software/bison/manual/html_node/Parser-Function.html
+         */
         if (parse_result == 2)
         {
             struct_meta_internal_diagnose(context->diagnostic, 0, "構文解析に必要なメモリを確保できません");
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
+
         struct_meta_internal_diagnose(context->diagnostic, 0, "構文解析に失敗しました");
         return CPLAT_ERR_INVALID_PATTERN;
     }
@@ -72,6 +77,7 @@ static int finish(int parse_result, struct_meta_internal_parse_context *context,
 
     *structs_out = context->structs;
     context->structs = NULL;
+
     return CPLAT_OK;
 }
 
@@ -82,6 +88,7 @@ int struct_meta_internal_parse_header_file(const char *path, struct_meta_interna
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     struct_meta_internal_diagnostic_clear(diagnostic_out);
 
     FILE *stream = cplat_fopen(path, "r", NULL);
@@ -113,10 +120,12 @@ int struct_meta_internal_parse_header_text(const char *text, size_t length,
                                            struct_meta_internal_parse_struct_list **structs_out,
                                            struct_meta_diagnostic *diagnostic_out)
 {
+    /* yy_scan_bytes() の長さに int を渡すため、INT_MAX を超える長さを拒否する。 */
     if ((text == NULL) || (structs_out == NULL) || (length > (size_t)INT_MAX))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+
     struct_meta_internal_diagnostic_clear(diagnostic_out);
 
     yyscan_t scanner = NULL;

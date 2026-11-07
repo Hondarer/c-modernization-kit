@@ -6,7 +6,7 @@ C / C++ コードでの整数型の選択、関数引数の異常入力対応、
 適用範囲は主に `app/` 配下の C / C++ コードです。
 
 本書は、ログ / トレース、テスト規約、ヘッダー設計など、コーディング規範を順次追加していくことを想定しています。  
-現版では「一括変更で対象外とした箇所の明示」「コメントの記載量」「命名規則」「ゼロ初期化」「空ポインターの表記」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「プロセスの終了コード」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
+現版では「一括変更で対象外とした箇所の明示」「実装コメント」「処理を区切る空行」「命名規則」「ゼロ初期化」「空ポインターの表記」「構造体のパディングと予約フィールド」「整数型の選択」「整数演算の安全性」「関数引数の異常入力対応」「異常状態の検出とプロセス終了」「動的メモリの確保と解放」「エラー処理と戻り値規約」「プロセスの終了コード」「変数宣言位置と命令文の関係」「式の括弧」「制御構造の制限」「restrict、volatile、inline、register の利用」「関数引数の const 付与と Doxygen 方向タグ」「スレッド安全性の Doxygen 記載」「宣言と定義の関係」「API 設計における概念の分離」「Doxygen コメントのプレースホルダー表記」「Doxygen コメントの @p などコマンド引数と日本語句読点の間隔」「Doxygen コード例内のコメント形式」を記載します。
 
 本書は一般的な方針を定めるものです。  
 各 app のドキュメントに優先事項、特化事項がある場合は、それに従ってください。
@@ -59,11 +59,21 @@ admonition の記法と対応する Doxygen タグは [`framework/docsfw/docs/sa
 対象外とする範囲を規則として定める場合は、対象パスに適用される `AGENTS.md` またはライブラリのドキュメントへ記載します。  
 個々の箇所に残すコメントは、その規則のどれに該当するかが読み取れる内容にします。
 
-## コメントの記載量
+## 実装コメント
+
+関数本体のコメント、`static` 関数とファイル内変数の定義側コメントには、コードから読み取れない目的と理由を記述します。  
+コードを読めば分かる手順は繰り返さず、コメントで補う前に、命名、関数分割、名前付き定数で意図を表せないかを検討します。
+
+### 適用範囲
+
+- 関数本体のコメント、`static` 関数とファイル内変数の定義側コメント、プリプロセッサ分岐のコメントを対象とします。`#else` と `#endif` のコメントの書式は [fix-if-comments](fix-if-comments.md) に従います。
+- 宣言側の契約 (引数、戻り値、所有権、スレッド セーフ) は [app 向け Doxygen コメント](doxygen-comment-guideline.md) に従って宣言側へ記載し、実装コメントでは繰り返しません。
+- [記載量](#記載量) は、`app/` 配下の `makepart.mk` など make ファイル断片のコメントにも適用します。
+
+### 記載量
 
 コメントには、記載内容から読み取れない意図や背景を書きます。  
-定義から役割が自明な項目を補強した場合は、理由の説明を追加しません。  
-本節は、C / C++ のソース コメントに加え、`app/` 配下の `makepart.mk` など make ファイル断片のコメントにも適用します。
+定義から役割が自明な項目を補強した場合は、理由の説明を追加しません。
 
 | 変更の内容 | コメント |
 |---|---|
@@ -94,6 +104,325 @@ LIBS += cplat
 > [!NOTE]
 > 自明な内容の説明は、変更の要点を埋もれさせ、後の変更で本体だけが更新されて説明が古くなる原因になります。
 > 一方で、意図が読み取れない指定に説明がないと、後の保守で不要な記述と誤認されて削除されるおそれがあります。
+
+### 書く場面
+
+次のいずれかに該当する場合は、実装コメントを記述します。
+
+| 場面 | 記述する内容 |
+|---|---|
+| `static` 関数の役割や戻り値の意味が名前・型から自明でない | 関数の定義直前に、関数の目的、戻り値の意味、共通結果コードの対象外理由 |
+| 関数が複数の段階からなる | 各段階の制御構造の前に、その段階が達成すること |
+| 条件式の意味が式から読み取れない | 条件が表すドメイン上の状態 |
+| ループの終了条件や走査範囲が自明でない | 停止する条件と、停止した後の状態 |
+| より自然な書き方を選択しなかった | 選択しない理由。OS や規格に由来する場合は `see: <URL>` |
+| 文の順序に制約がある | 入れ替えると整合性が崩れる理由 |
+| 一見不要な処理、通常は到達しない経路がある | 削除すると発生する不具合 |
+| 戻り値やエラーを意図的に処理しない | 処理しない理由 |
+| 解放の位置や所有権の移動が非自明 | その位置で解放する理由、または所有権の移動先 |
+| しきい値や定数の意味が名前から読み取れない | 値の意味と算出方法の根拠 |
+| 書式や仕様の正本が別にある | 正本の文書と節 |
+
+Table: 実装コメントを記述する場面と内容
+
+```c
+/* 望ましい: 自然な書き方を選ばない理由と根拠を、処理の段落の前に書く */
+/*
+ * flock() には期限付きの待機がないため、LOCK_NB で試行し、取得できなければ 1 [ms] 待機して期限まで繰り返す。
+ * see: https://man7.org/linux/man-pages/man2/flock.2.html
+ */
+deadline = monotonic_ms() + (uint64_t)timeout_ms;
+```
+
+```c
+/* 望ましくない: コードの逐語訳を書く */
+/* deadline に現在時刻と timeout_ms の和を代入する。 */
+deadline = monotonic_ms() + (uint64_t)timeout_ms;
+```
+
+> [!NOTE]
+> 関数本体のコメントを短い注記に限る規範 (Linux kernel coding style など) もありますが、本規範は複数の段階からなる長い関数を説明するため、制御構造の単位 (処理の段落) で段階の目的を記述することを認めます。
+
+### 書かない内容
+
+- コードの逐語訳 (「`i` を 1 増やす」など)、関数名や変数名から分かる内容
+- 宣言側の Doxygen コメントにある契約の繰り返し
+- 変更の経緯、作者、日付 (Git の履歴に残します)
+- コメント アウトしたコード、`#if 0` で無効化したコード
+- コードや文書で確認していない推測の理由
+- TODO コメント。ただし、利用者が処理を書き足す位置を示す雛形 (サンプルの `/* TODO: ここに初期化処理を書く */` など) は許容します。
+
+> [!WARNING]
+> 推測の理由をコメントに書くと、後の保守者が事実として扱い、誤った前提で変更します。理由を確認できない場合は、確認できた事実だけを書きます。
+
+### 前置コメントと後置コメント
+
+前置コメントと後置コメントを、説明が及ぶ範囲で使い分けます。
+
+| 種類 | 使用する場面 | 形式 |
+|---|---|---|
+| 前置コメント | ブロック、複数の文、関数全体にかかる説明、または 2 行以上になる説明 | 対象の直前に、同じ字下げで独立した行として配置し、文末に句点 `。` を付ける |
+| 後置コメント | その行に限った説明 (単位、値の範囲、その 1 文の理由、メンバーの意味など) | 対象の行末に配置し、句点 `。` を省いて 1 行に収める |
+
+Table: 前置コメントと後置コメントの使い分け
+
+```c
+/* 望ましい: ループ全体の方式と根拠を前置に、1 行の数値の単位を後置に書く */
+/*
+ * flock() には期限付きの待機がないため、LOCK_NB で試行し、取得できなければ 1 [ms] 待機して期限まで繰り返す。
+ * 呼び出し元で timeout_ms < 0 を拒否済みのため、ここでの timeout_ms は 0 以上の有限値である。
+ * see: https://man7.org/linux/man-pages/man2/flock.2.html
+ */
+deadline = monotonic_ms() + (uint64_t)timeout_ms;
+
+do
+{
+    if (flock(lock->fd, operation | LOCK_NB) == 0)
+    {
+        lock->locked = 1;
+        return CPLAT_OK;
+    }
+
+    if (errno != EWOULDBLOCK && errno != EINTR)
+    {
+        return CPLAT_ERR_UNKNOWN;
+    }
+
+    {
+        struct timespec sleep_ts = {0, 1000000L}; /* 1 [ms] */
+        nanosleep(&sleep_ts, NULL);
+    }
+} while (monotonic_ms() < deadline);
+```
+
+```c
+/* 望ましくない: 1 文だけに関わる説明を前置にし、後続の文にもかかるように読める */
+/* NACK と REJECT は対象通番を ack_num に持つ。 */
+memcpy(nonce + 6, &pkt->ack_num, 4);
+memset(nonce + 10, 0, 2);
+
+/* 望ましい: その行に限った説明は後置にする */
+memcpy(nonce + 6, &pkt->ack_num, 4); /* NACK と REJECT は対象通番を ack_num に持つ */
+memset(nonce + 10, 0, 2);
+```
+
+- 後置コメントは、`if`、`for`、`while` の条件の行と、波括弧だけの行には付与しません。ブロック全体の説明と区別できなくなるため、前置コメントにします。
+- 後置コメントを 2 行以上に続けません。1 行に収まらない場合は前置コメントにします。
+- 閉じ波括弧と `else` の間にはコメントを置きません。`else` 側の説明は、`if` の連鎖の前の前置コメントか、`else` のブロックの中に書きます。
+- 後置コメントの桁は `clang-format` の整形結果に従い、手作業で揃えません。
+- 定義群や節の見出しなど、文ではない体言止めのラベル (`/* 分類不能 */`、罫線付きの節見出しなど) と、定型の誘導マーカー `/* Doxygen コメントは、ヘッダーに記載 */` は句点を付けません。
+
+> [!WARNING]
+> 後置コメントの説明を次の行へ続けると、`clang-format` がその行を直前の文の字下げ位置へ移し、別の行の前置コメントのように見えます ([ソース スタイル維持ガイドライン](source-style-guideline.md) の「整形結果の確定と手作業修正の禁止」)。
+
+### 形式
+
+- 1 行に収まる前置コメントは `/* 文。 */` とします。
+- 複数行のコメントは、`/*` だけの行で始め、各行を ` * ` で始め、`*/` だけの行で終えます。
+- `see: <URL>` は、その根拠に依存する説明の最終行に配置します。
+- コメント内に `/*` を記述しません。記号を説明する場合は `'*'` と `'/'` に分解して記述します。
+- C のソースでは `//` を使用しません。Doxygen の `@code` 内のコード例は、[Doxygen コード例内のコメント形式](#doxygen-コード例内のコメント形式) に従って `//` を使用します。
+- 段落コメントに番号を付けません。段階を追加・削除した際に振り直しが必要になるためです。
+- コンパイラや解析ツールが認識する注記 (`/* fall through */`、`/* coverity[...] */`、`// clang-format off` など) は、ツールが定める形のまま独立したコメントとして残し、ほかの説明と 1 つのコメントにまとめません。
+
+```c
+/*
+ * 1 行目の文。
+ * 2 行目の文。
+ * see: https://example.com/
+ */
+```
+
+> [!WARNING]
+> コメント内の `/*` は、閉じ忘れたコメントが後続のコードを無効にしても気付けない原因になります。GCC は `-Wcomment` で警告します。
+
+### 単位の表記
+
+- コメント中の単位は、後置コメントか文中かによらず、値の後ろへ半角空白を置いて角括弧で示します (`/* 1 [ms] */`、「1 [ms] 間隔で繰り返す」)。
+- リテラルと異なる単位へ換算して示す場合は、換算後の値と単位を記述します (ナノ秒の値である `1000000L` を `1 [ms]` と記述するなど)。
+- 角括弧を付けるのは、時間、データ量、割合などの単位 (`[ms]`、`[ns]`、`[s]`、`[byte]`、`[%]` など) とします。データ量は `[byte]` と記述します。
+- 「1 文字」「10 倍」「3 件」などの助数詞は単位ではないため、角括弧を付けません。
+
+Doxygen コメントの単位も同じ表記とします ([app 向け Doxygen コメント](doxygen-comment-guideline.md))。
+
+### 文体と表記
+
+- 実装コメントは常体 (「〜する」「〜である」) で記述します。
+- 識別子は Markdown のバッククォートで囲まず、コード上の表記をそのまま使用します。関数は `name()` と記述し、1 文字の記号を地の文と区別する場合は `'<'` のようにシングル クォートで囲みます。
+- モジュール内で確立した専門用語に統一します。
+- 日本語の表記と表現は [日本語技術文書の文章規範](../../../framework/docsfw/docs/japanese-technical-writing-guideline.md) に従います。
+
+> [!NOTE]
+> 実装コメントを常体とするのは、敬体の Doxygen コメント (宣言側の契約) と見分けるためです。
+
+### 保守
+
+- コードを変更する際は、同じ変更の中で該当するコメントを更新します。コードと矛盾するコメントは不具合として扱います。
+- 説明の対象がなくなったコメントは削除します。
+
+### 検証
+
+コメント内の `/*` は、GCC の `-Wall` に含まれる `-Wcomment` が警告します。ビルド後の `.warn` が空であることで確認します。
+
+```bash
+# C のソースの行頭 // (Doxygen の @code 内のコード例を目視で除外し、残りが 0 件であること)
+grep -rn -P '^\s*//' --include='*.c' --include='*.h' <対象 app>/prod
+
+# コメント アウトしたコードの候補 (セミコロンや波括弧で終わる 1 行コメント。0 件であること)
+grep -rn -P '^\s*/\*(?![*!]).*(;|\{|\})\s*\*/\s*$' --include='*.c' --include='*.h' <対象 app>/prod
+```
+
+コメント アウトの検出は補助です。カンマで終わる要素や後置コメントを伴う形は検出できないため、レビューで確認します。
+
+## 処理を区切る空行
+
+### 空行を入れる箇所
+
+次の箇所には空行を 1 行入れます。
+
+| 箇所 | 例 |
+| --- | --- |
+| 連続するブロックの間 | 閉じ波括弧の直後に次の `if` |
+| ブロックの後に通常の文が続く箇所 | 閉じ波括弧の直後に代入や `return` |
+| 通常の文の後にブロックが続く箇所 | 関数呼び出しの直後に `if` |
+| 前置コメントの直前 | 処理の直後に、次の処理の前置コメント |
+| 関数末尾の `return` の直前 | 関数の最後の文としての `return` |
+
+Table: 空行を入れる箇所
+
+ここでのブロックは、`if`、`for`、`while`、`switch`、`do` の文と、波括弧だけで始まるブロックを指します。`do` 文の末尾 `} while (...);` もブロックの終わりとして扱います。  
+後置コメントはその行の一部であるため、前置コメントの規則の対象外とします。
+
+> [!NOTE]
+> 前置コメントが作用するのは下の処理です。上の処理と空行で切り離すと、どの処理にかかる説明かを見分けやすくなります。
+
+### 空行を入れない場合
+
+ブロックの前後では、次の場合は空行を入れません。
+
+- `else`、`else if` が続く場合
+- `do` 文の閉じ波括弧と `while` の間
+- 外側のブロックの閉じ波括弧が続く場合
+- 字下げの異なる行 (プリプロセッサ指令、`case` ラベルなど) が続く場合
+- 直前の文で代入した値を、ブロックの条件 (`if`、`while`、`switch` の式、`for` の条件) で判定する場合。通常の文の後にブロックが続く箇所に限ります。`do` 文は条件がブロックの末尾にあるため含めません。
+
+前置コメントの直前では、次の場合は空行を入れません。
+
+- ブロックの先頭 (`{` の直後)
+- `case`、`default`、`goto` のラベルの直後
+- プリプロセッサ指令の直後
+- 別のコメントの直後
+- 括弧の内側 (関数の引数の説明など)
+
+関数末尾の `return` の直前では、次の場合は空行を入れません。
+
+- `{` の直後 (本体が `return` だけの関数)
+- 前置コメントの直後と、ラベルの直後
+- 本体が `return` を含めて 2 文以下で、`return` の直前が通常の文の場合。文は本体の直下にある宣言と文を数え、ブロックは 1 文、複数行にわたる文も 1 文と数えます。プリプロセッサの分岐がある場合は、分岐ごとに数えます。`return` の直前がブロックの場合は、ブロックの後の空行を優先して空行を入れます。
+
+### 例
+
+```c
+/* 望ましい: 連続する if の間に空行を入れる */
+if (rc == 0)
+{
+    return CPLAT_OK;
+}
+
+if (rc == ETIMEDOUT)
+{
+    return CPLAT_ERR_TIMEOUT;
+}
+```
+
+```c
+/* 望ましくない: 閉じ波括弧の直後に次の if が続く */
+if (rc == 0)
+{
+    return CPLAT_OK;
+}
+if (rc == ETIMEDOUT)
+{
+    return CPLAT_ERR_TIMEOUT;
+}
+```
+
+```c
+/* 望ましくない: 前置コメントが直前の if に接し、どちらにかかるか見分けにくい */
+if (timeout_ms == CPLAT_SYNC_NO_WAIT)
+{
+    return map_wait_rc(pthread_mutex_trylock(&mtx->native));
+}
+/*
+ * pthread_mutex_timedlock() は期限を CLOCK_REALTIME で判定するため使わない。
+ */
+deadline = monotonic_ms() + (uint64_t)timeout_ms;
+
+/* 望ましい: 前置コメントの上に空行を入れ、下の処理とひとまとまりにする */
+if (timeout_ms == CPLAT_SYNC_NO_WAIT)
+{
+    return map_wait_rc(pthread_mutex_trylock(&mtx->native));
+}
+
+/*
+ * pthread_mutex_timedlock() は期限を CLOCK_REALTIME で判定するため使わない。
+ */
+deadline = monotonic_ms() + (uint64_t)timeout_ms;
+```
+
+```c
+/* 望ましい: 直前で代入した値を判定する if は詰め、それ以外のブロックの前には空行を入れる */
+rc = pthread_condattr_init(&attr);
+if (rc != 0)
+{
+    return rc;
+}
+
+rwlock_state_lock(rwlock);
+
+if (rwlock->active_readers == 0)
+{
+    rwlock_state_unlock(rwlock);
+    return CPLAT_ERR_INVALID_ARGUMENT;
+}
+```
+
+```c
+/* 望ましい: 関数末尾の return の前に空行を入れる。本体が 2 文以下の関数は詰める */
+static uint64_t monotonic_ms(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return ((uint64_t)ts.tv_sec * 1000U) + ((uint64_t)ts.tv_nsec / 1000000U);
+}
+
+static int is_ready(const sample_context *context)
+{
+    int state = context->state;
+    return state == SAMPLE_STATE_READY;
+}
+```
+
+### 整形ツールとの関係
+
+`clang-format` には、これらの空行を挿入する設定がありません。  
+既存の空行は `MaxEmptyLinesToKeep` (LLVM の既定値は 1) の範囲で保持されるため、手作業で入れた空行は整形後も維持されます。
+
+### 検証
+
+`app/general/bin/check_c_blank_lines.py` で、空行がない箇所を検出します。`--fix` を指定すると空行を挿入します。
+
+```bash
+# 空行がない箇所の検出 (0 件であること。検出があれば終了コード 1)
+python3 app/general/bin/check_c_blank_lines.py <対象 app>/prod
+
+# 空行の挿入
+python3 app/general/bin/check_c_blank_lines.py --fix <対象のファイルまたはディレクトリ>
+```
+
+対象には、外部 OSS とビルド生成物 (bison と flex の出力、`gen/` 配下) を含めません。
 
 ## 命名規則
 
@@ -4192,7 +4521,14 @@ Doxygen コメント (`/** */`) 内の `@code` ~ `@endcode` に書くコード�
 - MISRA C:2012 Dir 4.6 (`typedefs that indicate size and signedness should be used in place of the basic numerical types`) - 幅に依存する値へ実装定義幅の基本型を使わないこと
 - [SEI CERT C INT00-C](https://cmu-sei.github.io/secure-coding-standards/sei-cert-c-coding-standard/recommendations/integers-int/int00-c/) - 処理系のデータ モデルを理解し、仮定を静的表明で裏付けること
 - [SEI CERT C INT01-C](https://cmu-sei.github.io/secure-coding-standards/sei-cert-c-coding-standard/recommendations/integers-int/int01-c/) - オブジェクトのサイズを表す値に `size_t` を使うこと
-- [Linux kernel coding style](https://www.kernel.org/doc/html/latest/process/coding-style.html) - ローカル変数を短く保つ方針、共通の後始末がある関数における goto の使用とラベル命名、および 14 章のメモリ確保の指針 (`sizeof(*p)` の推奨)
+- [Linux kernel coding style](https://www.kernel.org/doc/html/latest/process/coding-style.html) - ローカル変数を短く保つ方針、共通の後始末がある関数における goto の使用とラベル命名、14 章のメモリ確保の指針 (`sizeof(*p)` の推奨)、および 8 章のコメントの方針 (HOW ではなく WHAT と WHY を書く、複数行コメントの形式)
+- [Google C++ Style Guide: Comments](https://google.github.io/styleguide/cppguide.html#Comments) - 分かりにくい箇所や重要な箇所にコメントを書き、自明な内容や逐語訳を書かないこと
+- [LLVM Coding Standards: Commenting](https://llvm.org/docs/CodingStandards.html#commenting) - 何をしようとしているかと理由を書くこと、ヘッダーと実装で文書コメントを重複させないこと
+- [GNU Coding Standards: Comments](https://www.gnu.org/prep/standards/html_node/Comments.html) - `static` 変数へのコメント、`#else` と `#endif` への条件の付記
+- [SEI CERT C MSC04-C](https://cmu-sei.github.io/secure-coding-standards/sei-cert-c-coding-standard/recommendations/miscellaneous-msc/msc04-c/) - コメント内に `/*` を書かないこと、コードの無効化にコメントを使わないこと
+- MISRA C:2012 Dir 4.4 - コードの一部をコメント アウトして残さないこと (Advisory)
+- [Stack Overflow Blog: Best practices for writing code comments](https://stackoverflow.blog/2021/12/23/best-practices-for-writing-code-comments/) - 慣用から外れたコードに理由を書くこと、外部の参照先を依存する箇所に置くこと
+- [PostgreSQL Coding Conventions: Formatting](https://www.postgresql.org/docs/current/source-format.html) - 各行を ` * ` で始めるブロック コメントの形式
 - [Linux Wireless の ath10k / ath11k / ath12k coding style](https://wireless.docs.kernel.org/en/latest/en/users/drivers/ath10k/codingstyle.html#status-error-variables) - 戻り値または状態コードを格納する変数名に `ret` を使う規定
 - [BoringSSL API Conventions](https://boringssl.googlesource.com/boringssl/+/HEAD/API-CONVENTIONS.md) - cleanup を伴う C 関数で `int ret = 0;` と `goto err` を使い、自関数の成否を組み立てる例
 - [C++ Core Guidelines ES.20](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es20-always-initialize-an-object) - 常時初期化を勧める側の一般則 (本規範の `ret` 未初期化は結果コード作業変数に限る例外)

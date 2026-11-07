@@ -44,9 +44,11 @@
 
     /* Doxygen コメントは、ヘッダーに記載 */
 
-    /* ============================================================
+    /*
+     * ============================================================
      *  内部定数
-     * ============================================================ */
+     * ============================================================
+     */
 
     /** systemd ユニット ファイルのインストール先ディレクトリ。 */
     #define SYSTEMD_UNIT_DIR "/etc/systemd/system"
@@ -57,9 +59,11 @@
     /** ManagedOOMPreference= が導入された systemd のバージョン。 */
     #define SYSTEMD_MANAGED_OOM_PREFERENCE_VERSION 248
 
-/* ============================================================
+/*
+ * ============================================================
  *  内部ヘルパー
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          外部コマンドを fork + execvp で実行します。
@@ -81,6 +85,7 @@ static int run_command(char *const argv[])
                             argv[0]);
         return -1;
     }
+
     return exit_code;
 }
 
@@ -97,17 +102,22 @@ static int parse_systemd_major_version(const char *version_line)
     int has_digit;
 
     index = 0;
+
+    /* 接頭辞 "systemd " と一致するか判定する。 */
     while (prefix[index] != '\0')
     {
         if (version_line[index] != prefix[index])
         {
             return -1;
         }
+
         index++;
     }
 
     version = 0;
     has_digit = 0;
+
+    /* バージョン番号の数字列を整数に変換する。 */
     while (version_line[index] >= '0' && version_line[index] <= '9')
     {
         has_digit = 1;
@@ -119,6 +129,7 @@ static int parse_systemd_major_version(const char *version_line)
     {
         return -1;
     }
+
     return version;
 }
 
@@ -154,6 +165,7 @@ static int get_systemd_major_version(void)
     {
         return -1;
     }
+
     return version;
 }
 
@@ -191,9 +203,11 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
     return EXIT_SUCCESS;
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  sd_notify ヘルパー
- * ============================================================ */
+ * ============================================================
+ */
 
 /**
  *  @brief          NOTIFY_SOCKET へメッセージを送信します。
@@ -213,12 +227,15 @@ static void sd_notify_send(const char *message)
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "sd_notify: 送信に失敗しました: %s",
                             strerror(-rc));
     }
-    /* rc == 0 は NOTIFY_SOCKET 未設定 (コンソール モードなどでは通常の状態) */
+
+    /* rc == 0 は NOTIFY_SOCKET 未設定 (コンソール モードなどでは通常の状態)。 */
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  OS フック実装 (通知)
- * ============================================================ */
+ * ============================================================
+ */
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -245,29 +262,37 @@ void svc_os_notify_status(const char *text)
     {
         return;
     }
+
     /* 長すぎる場合は切り詰めを許容する。cplat_snprintf は切り詰めで空文字にするため使わない。 */
     snprintf(message, sizeof(message), "STATUS=%s", text); /* 置換対象外: 通知文の意図的な切り詰め */
     sd_notify_send(message);
 }
 
-/* ============================================================
+/*
+ * ============================================================
  *  OS フック実装
- * ============================================================ */
+ * ============================================================
+ */
 
 int svc_os_run_service(const svc_definition *def)
 {
     int rc;
 
-    /* 電源・セッション イベント (D-Bus)、SIGHUP reload、watchdog 応答を
-       担当するイベント監視スレッドを起動する。失敗しても該当機能が
-       無効になるだけで、サービス本体は継続する。 */
+    /*
+     * 電源・セッション イベント (D-Bus)、SIGHUP reload、watchdog 応答を
+     * 担当するイベント監視スレッドを起動する。失敗しても該当機能が
+     * 無効になるだけで、サービス本体は継続する。
+     */
     svc_linux_events_start(def);
 
-    /* Type=notify のため fork せず、フォアグラウンドのまま常駐する。
-       shutdown.h が SIGTERM / SIGINT を捕捉して svc_request_stop() を呼び出す。 */
+    /*
+     * Type=notify のため fork せず、フォアグラウンドのまま常駐する。
+     * shutdown.h が SIGTERM / SIGINT を捕捉して svc_request_stop() を呼び出す。
+     */
     rc = svc_run_lifecycle(def);
 
     svc_linux_events_stop();
+
     return rc;
 }
 
@@ -279,7 +304,8 @@ int svc_os_install(const svc_definition *def)
     char svc_name_buf[256];
     const char *managed_oom_preference_line;
     FILE *fp;
-    /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う */
+
+    /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う。 */
     char *argv_daemon_reload[] = {"systemctl", "daemon-reload", NULL};
     char *argv_enable[4];
     int rc;
@@ -291,6 +317,7 @@ int svc_os_install(const svc_definition *def)
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "サービス名が長すぎます。");
         return EXIT_FAILURE;
     }
+
     argv_enable[0] = "systemctl";
     argv_enable[1] = "enable";
     argv_enable[2] = svc_name_buf;
@@ -311,6 +338,11 @@ int svc_os_install(const svc_definition *def)
 
     managed_oom_preference_line = "";
     systemd_major_version = get_systemd_major_version();
+
+    /*
+     * ManagedOOMPreference=omit を設定できる systemd のバージョンかを判定する。
+     * 正本は app/service-sample/docs/systemd-oomkiller-advisory.md の「推奨 unit 設定」節である。
+     */
     if (systemd_major_version >= SYSTEMD_MANAGED_OOM_PREFERENCE_VERSION)
     {
         managed_oom_preference_line = "ManagedOOMPreference=omit\n";
@@ -328,14 +360,13 @@ int svc_os_install(const svc_definition *def)
             systemd_major_version);
     }
 
-    /* ユニット ファイルのパスを生成する */
+    /* ユニット ファイルを生成して書き込む。 */
     if (cplat_snprintf(unit_path, sizeof(unit_path), "%s/%s.service", SYSTEMD_UNIT_DIR, def->name) != CPLAT_OK)
     {
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "ユニット ファイルのパスが長すぎます。");
         return EXIT_FAILURE;
     }
 
-    /* ユニット ファイルの内容を生成する */
     if (cplat_snprintf(unit_content, sizeof(unit_content),
                        "[Unit]\n"
                        "Description=%s\n"
@@ -359,7 +390,6 @@ int svc_os_install(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
-    /* ユニット ファイルに書き込む */
     fp = fopen(unit_path, "w");
     if (fp == NULL)
     {
@@ -367,6 +397,7 @@ int svc_os_install(const svc_definition *def)
                             strerror(errno));
         return EXIT_FAILURE;
     }
+
     if (fputs(unit_content, fp) == EOF)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "%s への書き込みに失敗しました: %s",
@@ -374,11 +405,12 @@ int svc_os_install(const svc_definition *def)
         fclose(fp);
         return EXIT_FAILURE;
     }
+
     fclose(fp);
     cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "ユニット ファイルを書き込みました: %s",
                         unit_path);
 
-    /* systemctl daemon-reload を実行する */
+    /* 新しいユニット ファイルを systemd に反映するため、daemon-reload を実行する。 */
     rc = run_command(argv_daemon_reload);
     if (rc != 0)
     {
@@ -387,7 +419,7 @@ int svc_os_install(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
-    /* systemctl enable を実行する */
+    /* サービスが OS 起動時に自動開始されるよう、systemctl enable を実行する。 */
     rc = run_command(argv_enable);
     if (rc != 0)
     {
@@ -407,7 +439,8 @@ int svc_os_uninstall(const svc_definition *def)
 {
     char unit_path[512];
     char svc_name_buf[256];
-    /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う */
+
+    /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う。 */
     char *argv_stop[4];
     char *argv_disable[4];
     char *argv_daemon_reload[] = {"systemctl", "daemon-reload", NULL};
@@ -419,6 +452,7 @@ int svc_os_uninstall(const svc_definition *def)
         cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "サービス名が長すぎます。");
         return EXIT_FAILURE;
     }
+
     argv_stop[0] = "systemctl";
     argv_stop[1] = "stop";
     argv_stop[2] = svc_name_buf;
@@ -440,10 +474,10 @@ int svc_os_uninstall(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
-    /* systemctl stop を実行する (実行中でなくてもエラーにしない) */
+    /* サービスが動作中でない場合もあるため、停止失敗でもエラーとせず継続する。 */
     run_command(argv_stop);
 
-    /* systemctl disable を実行する */
+    /* サービスが OS 起動時に自動開始されないよう、systemctl disable を実行する。 */
     rc = run_command(argv_disable);
     if (rc != 0)
     {
@@ -451,17 +485,18 @@ int svc_os_uninstall(const svc_definition *def)
                             "systemctl disable %s が失敗しました (終了コード %d)。", def->name, rc);
     }
 
-    /* ユニット ファイルを削除する */
+    /* ユニット ファイルを削除する。ファイルが存在しない場合はエラーとしない。 */
     if (remove(unit_path) != 0 && errno != ENOENT)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "%s の削除に失敗しました: %s", unit_path,
                             strerror(errno));
         return EXIT_FAILURE;
     }
+
     cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "ユニット ファイルを削除しました: %s",
                         unit_path);
 
-    /* systemctl daemon-reload を実行する */
+    /* ユニット ファイルの削除を systemd に反映するため、daemon-reload を実行する。 */
     rc = run_command(argv_daemon_reload);
     if (rc != 0)
     {
