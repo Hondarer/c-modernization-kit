@@ -354,7 +354,7 @@ Table: 知見の反映計画
 | `app/general/bin/check_c_blank_lines.py` | 新規 |
 | `app/general/bin_test/test_check_c_blank_lines.py` | 新規 |
 | 各 app の `prod/` 配下 418 本 | コメントと空行の修正 |
-| `app/general/docs/prompts/current/261107-source-comment-progress.md` | 新規 (進捗) |
-| `app/general/docs/prompts/current/261107-source-comment-backlog.md` | 残課題の追記と整理 |
+| `app/general/docs/prompts/past/261107-source-comment-progress.md` | 新規 (進捗) |
+| `app/general/docs/prompts/past/261107-source-comment-backlog.md` | 残課題の追記と整理 |
 
 Table: 対象ファイル
