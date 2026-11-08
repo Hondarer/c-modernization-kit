@@ -75,8 +75,9 @@ TEST(structMetaPrintTest, prints_complete_long_string)
     const struct_meta_field fields[] = {{"text", STRUCT_META_FIELD_CHAR_ARRAY, 0, offsetof(LongString, text),
                                          sizeof(char), 1, 256, nullptr, nullptr, nullptr, 0}};
     const struct_meta_descriptor descriptor = {"LongString", sizeof(LongString), fields, 1, nullptr, nullptr, 0};
-    FILE *stream = tmpfile();   // [状態] - 255 文字の文字列と一時出力先を用意する。
-    ASSERT_NE(nullptr, stream); // [状態確認] - 一時ファイルを開けること。
+    char path[PLATFORM_PATH_MAX] = {};
+    FILE *stream = cplat_fopen_temp("smp", "w+b", path, sizeof(path), nullptr); // [状態] - 255 文字の文字列と一時出力先を用意する。
+    ASSERT_NE(nullptr, stream); // [状態確認] - cplat_fopen_temp() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -93,7 +94,8 @@ TEST(structMetaPrintTest, prints_complete_long_string)
     EXPECT_NE(nullptr, strstr(output, "x\"\n"));     // [確認_正常系] - 閉じ引用符が残ること。
 
     // Cleanup
-    fclose(stream);
+    (void)fclose(stream);
+    (void)cplat_remove(path, nullptr);
 }
 
 // 終端のない文字列を表示しようとした場合に拒否することの確認
@@ -107,8 +109,9 @@ TEST(structMetaPrintTest, rejects_unterminated_string)
     const struct_meta_field fields[] = {{"value", STRUCT_META_FIELD_CHAR_ARRAY, 0, offsetof(Text, value), sizeof(char),
                                          1, sizeof(sample.value), nullptr, nullptr, nullptr, 0}};
     const struct_meta_descriptor descriptor = {"Text", sizeof(Text), fields, 1, nullptr, nullptr, 0};
-    FILE *stream = tmpfile();   // [状態] - 終端のない文字列を用意する。
-    ASSERT_NE(nullptr, stream); // [状態確認] - 一時出力先を開けること。
+    char path[PLATFORM_PATH_MAX] = {};
+    FILE *stream = cplat_fopen_temp("smp", "w+b", path, sizeof(path), nullptr); // [状態] - 終端のない文字列を用意する。
+    ASSERT_NE(nullptr, stream); // [状態確認] - cplat_fopen_temp() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -119,7 +122,8 @@ TEST(structMetaPrintTest, rejects_unterminated_string)
     EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING, actual); // [確認_異常系] - 配列の外まで読み取らず拒否すること。
 
     // Cleanup
-    fclose(stream);
+    (void)fclose(stream);
+    (void)cplat_remove(path, nullptr);
 }
 
 // 出力できないストリームを成功として扱わないことの確認
@@ -130,9 +134,9 @@ TEST(structMetaPrintTest, reports_stream_write_failure)
     char path[PLATFORM_PATH_MAX] = {};
     FILE *temporary = cplat_fopen_temp("smp", "wb", path, sizeof(path), nullptr);
     ASSERT_NE(nullptr, temporary); // [状態確認] - 一時ファイルを作成できること。
-    fclose(temporary);
-    FILE *stream = fopen(path, "rb"); // [状態] - 書き込みできない読み取り専用ストリームを用意する。
-    ASSERT_NE(nullptr, stream);       // [状態確認] - 読み取り用に開けること。
+    (void)fclose(temporary);
+    FILE *stream = cplat_fopen(path, "rb", nullptr); // [状態] - 書き込みできない読み取り専用ストリームを用意する。
+    ASSERT_NE(nullptr, stream); // [状態確認] - cplat_fopen() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -143,6 +147,6 @@ TEST(structMetaPrintTest, reports_stream_write_failure)
     EXPECT_EQ(CPLAT_ERR_UNKNOWN, actual); // [確認_異常系] - 出力失敗を返すこと。
 
     // Cleanup
-    fclose(stream);
-    remove(path);
+    (void)fclose(stream);
+    (void)cplat_remove(path, nullptr);
 }
