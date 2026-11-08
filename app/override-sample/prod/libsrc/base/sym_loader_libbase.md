@@ -21,7 +21,7 @@ Table: sym_loader_libbase 構成ファイルの責務
 
 ```text
 sample_func.c  (呼び出し元)
-    |  cplat_sym_loader_resolve_as(pfo_sample_func, sample_func_fn)
+    |  cplat_sym_loader_resolve(pfo_sample_func, &function)
     +---> sym_loader_libbase.h の extern 宣言 (pfo_sample_func)
               |
               sym_loader_libbase.c の実体 (sfo_sample_func)
@@ -58,7 +58,8 @@ dllmain_libbase.c  (初期化・解放)
 
 ### 呼び出し元となる .c ファイルの作成・修正
 
-`new_func` の実装ファイルで、`cplat_sym_loader_resolve_as` を使用して関数ポインターを取得し、オーバーライド処理または既定の処理に分岐させます。`sample_func.c` を参照してください。
+`new_func` の実装ファイルでは、`void *` の一時変数を用意して `cplat_sym_loader_resolve` を呼び出し、結果コードが `CPLAT_OK` かつ取得したアドレスが非 NULL であることを確認してから関数ポインター型へ変換してオーバーライド処理へ委譲します。  
+明示的な `default` 設定 (`CPLAT_OK` かつアドレスが `NULL`) または未設定・解決失敗の場合は、既定の処理へ分岐させます。`base_calc.c` を参照してください。
 
 ### オーバーライド側ライブラリへの追加
 
@@ -70,9 +71,9 @@ dllmain_libbase.c  (初期化・解放)
 >
 > ```text
 > new_func (libbase)
-> +- cplat_sym_loader_resolve_as でオーバーライド関数を取得
+> +- cplat_sym_loader_resolve で void * アドレスを取得し、結果コード確認後に型変換
 > +- new_override_func (liboverride) を呼び出す
-> +- new_func (libbase) を呼び出す <- 無限再帰
+>    +- new_func (libbase) を呼び出す <- 無限再帰
 > ```
 >
 > オーバーライド実装は、オーバーライド元の関数を呼び出さないよう設計してください。同様に、複数の関数をオーバーライドする場合、A のオーバーライド実装が B を呼び出し、B のオーバーライド実装が A を呼び出すような間接的な循環にも注意が必要です。関数を追加する際は、呼び出し経路全体を把握したうえで設計してください。

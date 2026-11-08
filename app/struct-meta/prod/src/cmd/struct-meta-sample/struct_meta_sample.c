@@ -500,6 +500,7 @@ static void cmd_catjson(const char *path)
     for (;;)
     {
         size_t read_count = cplat_fread(buffer, 1U, sizeof(buffer), stream, &error);
+        cplat_error read_error = error;
         if (read_count == 0U)
         {
             if (cplat_error_is_set(&error) != 0)
@@ -524,6 +525,13 @@ static void cmd_catjson(const char *path)
 
             last_byte = buffer[read_count - 1U];
             has_output = 1;
+        }
+
+        if (cplat_error_is_set(&read_error) != 0)
+        {
+            fprintf(stderr, "struct-meta-sample: catjson の入力ファイルを読み取れません (結果コード %d): %s\n",
+                    cplat_error_to_result(&read_error), path);
+            break;
         }
 
         if (read_count < sizeof(buffer))
@@ -649,6 +657,7 @@ static void cmd_catbin(const char *path)
     for (;;)
     {
         const size_t read_count = cplat_fread(buffer, 1U, sizeof(buffer), stream, &error);
+        cplat_error read_error = error;
         if (read_count == 0U)
         {
             if (cplat_error_is_set(&error) != 0)
@@ -663,6 +672,13 @@ static void cmd_catbin(const char *path)
         print_hexdump(buffer, read_count, offset);
 
         offset += read_count;
+
+        if (cplat_error_is_set(&read_error) != 0)
+        {
+            fprintf(stderr, "struct-meta-sample: catbin の入力ファイルを読み取れません (結果コード %d): %s\n",
+                    cplat_error_to_result(&read_error), path);
+            break;
+        }
 
         if (read_count < sizeof(buffer))
         {

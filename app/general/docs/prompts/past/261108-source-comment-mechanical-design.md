@@ -18,7 +18,7 @@
 
 ## 先行対処の範囲を意味不変の機械的整形に限定する
 
-過去のソース コメント案件の残課題一覧 ([261107-source-comment-backlog.md](../past/261107-source-comment-backlog.md)) に記録された全 22 項目のうち、仕様判断を伴わず既存の書式規則だけで完結する BL-007 と BL-005 を先行対処の対象とします。  
+過去のソース コメント案件の残課題一覧 ([261107-source-comment-backlog.md](261107-source-comment-backlog.md)) に記録された全 22 項目のうち、仕様判断を伴わず既存の書式規則だけで完結する BL-007 と BL-005 を先行対処の対象とします。  
 契約、識別子、型、式、条件分岐、C のトークン列、文字列リテラル、およびコメント本文の文面を一切変更せず、差分を空白と改行および Doxygen タグの桁揃えに限定します。
 
 | 対象項目 | 対処内容 | 変更の境界 |
@@ -104,7 +104,7 @@ Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
 ソース ファイルの対処と検証が完了した後、第 3 ゲートの承認を求める前に残課題一覧を次のとおり更新・作成します。
 
 1. **過去の残課題一覧の保持と経緯更新**: 元の残課題一覧 (`app/general/docs/prompts/past/261107-source-comment-backlog.md`) のファイルおよび全 22 項目の記載は削除せず保持します。対処を完了した BL-005 と BL-007 の状態を「対応済み」に更新し、本案件 (`source-comment-mechanical-20261108`) で対処した経緯と検証結果を追記します。また、今回未対処の 20 項目には、最新作業の残課題一覧へ転記して引き継いだ旨 (転記先ファイル パスと課題 ID) を経緯として追記します。
-2. **最新作業の残課題一覧への転記と整理**: 最新作業の残課題一覧 (`app/general/docs/prompts/current/261108-source-comment-mechanical-backlog.md`) を作成し、今回対処しなかった 20 項目 (BL-001〜BL-004、BL-006、BL-008〜BL-022) を、チケット管理システムへの起票にそのまま利用できる詳細度・具体性を維持して転記します。先行対象の BL-005・BL-007 に未解決の残渣が生じた場合は、その残渣もあわせて記録し、最新作業の残課題一覧だけで現時点の残件をすべて把握できるように整理します。
+2. **最新作業の残課題一覧への転記と整理**: 最新作業の残課題一覧 (`app/general/docs/prompts/past/261108-source-comment-mechanical-backlog.md`) を作成し、今回対処しなかった 20 項目 (BL-001〜BL-004、BL-006、BL-008〜BL-022) を、チケット管理システムへの起票にそのまま利用できる詳細度・具体性を維持して転記します。先行対象の BL-005・BL-007 に未解決の残渣が生じた場合は、その残渣もあわせて記録し、最新作業の残課題一覧だけで現時点の残件をすべて把握できるように整理します。
 3. **Markdown の機械整形確認**: 更新・作成した残課題一覧の Markdown ファイルに対して `text_style_jp.py --dry-run` を先に実行し、不自然な変換がないことを確認したうえで `--in-place` を適用し、再度 `--dry-run` で差分がないことを確認します。
 
 ## 恒久仕様の追加を伴わないため正本規範は改訂しない
@@ -120,7 +120,7 @@ Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
 - 変更したすべてのソース・ヘッダー ファイルで、コメントと文字列を含む差分全体を目視および機械比較で確認し、C のトークン列、文字列リテラル、コメント本文の意味に一切変更がない。
 - `app/porter` の `make doxy` が成功し、内容のある `.warn` ファイルが存在せず、該当する Doxygen 生成結果に崩れがない (かつ生成物を手動編集していない)。
 - 元の残課題一覧 (`app/general/docs/prompts/past/261107-source-comment-backlog.md`) の全 22 項目が削除されずに保持され、BL-005・BL-007 の対処経緯と未対処 20 項目の引き継ぎ先が記録されている。
-- 最新作業の残課題一覧 (`app/general/docs/prompts/current/261108-source-comment-mechanical-backlog.md`) に、未対処の 20 項目 (および先行対象に残渣がある場合はその項目) が起票レベルの詳細度で引き継がれ、整理状態が「整理済み」になっている。
+- 最新作業の残課題一覧 (`app/general/docs/prompts/past/261108-source-comment-mechanical-backlog.md`) に、未対処の 20 項目 (および先行対象に残渣がある場合はその項目) が起票レベルの詳細度で引き継がれ、整理状態が「整理済み」になっている。
 - 本案件の合意文書の管理を除き、BL-005、BL-007、および残課題一覧の 2 ファイル以外に、変更が広がっていない。
 
 ## 対象ファイル一覧
@@ -139,6 +139,6 @@ Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
 | `app/porter/prod/libsrc/porter/api/potr_peer_disconnect.c` | BL-007 | 既存 `.clang-format` 設定による整形 (差分がある場合) |
 | `app/porter/prod/libsrc/porter/thread/thread_recv_window.h` | BL-005 | Doxygen コメントのタグ 16 桁幅と継続行の空白整列 |
 | `app/general/docs/prompts/past/261107-source-comment-backlog.md` | 残課題管理 | 全項目を保持したまま、BL-005・BL-007 の対処経緯と未対処 20 項目の引き継ぎ先を追記 |
-| `app/general/docs/prompts/current/261108-source-comment-mechanical-backlog.md` | 残課題管理 | 新規作成。未対処 20 項目 (BL-001〜BL-004、BL-006、BL-008〜BL-022) の引き継ぎと整理 |
+| `app/general/docs/prompts/past/261108-source-comment-mechanical-backlog.md` | 残課題管理 | 新規作成。未対処 20 項目 (BL-001〜BL-004、BL-006、BL-008〜BL-022) の引き継ぎと整理 |
 
 Table: 第 2 ゲート承認後に作成・更新する対象ファイル

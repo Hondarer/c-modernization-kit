@@ -51,7 +51,7 @@
 
 ## 根拠資料と確認の限界
 
-- [元の残課題一覧](../past/261107-source-comment-backlog.md): 整理済みの BL-001〜BL-022 を分類の根拠にしています。
+- [元の残課題一覧](261107-source-comment-backlog.md): 整理済みの BL-001〜BL-022 を分類の根拠にしています。
 - [ソース スタイル維持ガイドライン](../../source-style-guideline.md): 空白・改行・桁揃えは `.clang-format` の出力を正とします。
 - [app 向け Doxygen コメント](../../doxygen-comment-guideline.md): タグ開始位置から 16 桁幅で揃える規則と生成確認を参照します。
 - [コーディング規範](../../coding-guideline.md): 後続の命名・型・制御構造の修正時に、該当する規定と例外を確認します。

@@ -62,7 +62,7 @@ int base_sym_loader_info(void)
 {
     int ret;
 
-    printf("- congigpath: %s\n", sym_loader_configpath);
+    printf("- configpath: %s\n", sym_loader_configpath);
     ret = cplat_sym_loader_info(fobj_array_libbase, fobj_length_libbase);
     if (ret != CPLAT_OK)
     {

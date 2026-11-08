@@ -79,5 +79,8 @@ void onUnload(int process_terminating)
 {
     (void)process_terminating;
     CPLAT_DLLMAIN_INFO_MSG("base: onUnload called");
-    cplat_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase);
+    if (cplat_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase) != CPLAT_OK)
+    {
+        CPLAT_DLLMAIN_INFO_MSG("base: symbol loader disposal failed");
+    }
 }

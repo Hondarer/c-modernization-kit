@@ -38,10 +38,10 @@ static void print_indent(FILE *out, int indent)
  * スカラー フィールドの値を表示用の文字列にする。
  * 成功時は CPLAT_OK を返し、dest に表示文字列を書く。
  * 整数を読み出せないとき、および構造体または未知の種別のときは CPLAT_ERR_INVALID_ARGUMENT を返す。
- * NUL 終端が無い char 配列は CPLAT_ERR_INVALID_ENCODING を返す。
+ * char 配列は print_element から直接出力するため、本関数では扱わない。
  */
 static int format_scalar_value(struct_meta_field_kind kind, const unsigned char *field_ptr, size_t element_size,
-                               size_t char_buffer_size, char *dest, size_t dest_size)
+                               char *dest, size_t dest_size)
 {
     switch (kind)
     {
@@ -88,16 +88,8 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
         return CPLAT_OK;
     }
     case STRUCT_META_FIELD_CHAR_ARRAY:
-        /*
-         * char 配列は NUL 終端文字列として扱う。終端が無いものは表示できない。
-         * 正本は app/struct-meta/docs/architecture.md の「文字列とバイト配列」節である。
-         */
-        if ((char_buffer_size == 0U) || (memchr(field_ptr, '\0', char_buffer_size) == NULL))
-        {
-            return CPLAT_ERR_INVALID_ENCODING;
-        }
-        snprintf(dest, dest_size, "\"%s\"", (const char *)field_ptr);
-        return CPLAT_OK;
+        /* 文字列は print_element から直接出力する。 */
+        return CPLAT_ERR_INVALID_ARGUMENT;
     case STRUCT_META_FIELD_STRUCT:
     default:
         snprintf(dest, dest_size, "{...}");
@@ -123,21 +115,40 @@ static int print_element(const struct_meta_field *field, const unsigned char *el
         }
 
         print_indent(out, indent);
-        fprintf(out, "%s:\n", label);
+        if (fprintf(out, "%s:\n", label) < 0 || ferror(out))
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
         return print_struct(field->nested, elem_ptr, out, indent + 2);
+    }
+
+    if (field->kind == STRUCT_META_FIELD_CHAR_ARRAY)
+    {
+        if (field->char_buffer_size == 0U || memchr(elem_ptr, '\0', field->char_buffer_size) == NULL)
+        {
+            return CPLAT_ERR_INVALID_ENCODING;
+        }
+        print_indent(out, indent);
+        if (fprintf(out, "%s = \"%s\"\n", label, (const char *)elem_ptr) < 0 || ferror(out))
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
+        return CPLAT_OK;
     }
 
     {
         char current[64];
-        int ret = format_scalar_value(field->kind, elem_ptr, field->element_size, field->char_buffer_size, current,
-                                      sizeof(current));
+        int ret = format_scalar_value(field->kind, elem_ptr, field->element_size, current, sizeof(current));
         if (ret != CPLAT_OK)
         {
             return ret;
         }
 
         print_indent(out, indent);
-        fprintf(out, "%s = %s\n", label, current);
+        if (fprintf(out, "%s = %s\n", label, current) < 0 || ferror(out))
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
     }
 
     return CPLAT_OK;
@@ -187,7 +198,10 @@ static int print_field(const struct_meta_field *field, const unsigned char *base
         if (ret == CPLAT_OK)
         {
             print_indent(out, indent);
-            fprintf(out, "%s = %s\n", field->name, text);
+            if (fprintf(out, "%s = %s\n", field->name, text) < 0 || ferror(out))
+            {
+                ret = CPLAT_ERR_UNKNOWN;
+            }
         }
 
         free(text);
@@ -288,7 +302,10 @@ int struct_meta_print_write(const struct_meta_descriptor *desc, const void *inst
         name = "(unnamed)";
     }
 
-    fprintf(out, "%s:\n", name);
+    if (fprintf(out, "%s:\n", name) < 0 || ferror(out))
+    {
+        return CPLAT_ERR_UNKNOWN;
+    }
 
     return print_struct(desc, (const unsigned char *)instance, out, 2);
 }

@@ -102,6 +102,10 @@ JSON 変換は `json.name`、`json.ignore`、`json.required` を解釈します�
 `meta.kind` の値は `bytes`、`meta.format` の値は `hex` だけを定義します。  
 未知の値、スカラーへの `meta.kind=bytes`、バイト配列以外への `meta.format=hex` は不正な記述子として拒否します。
 
+テキスト表示 (`print`) は、NUL 終端された `char[N]` 文字列を固定長の内部バッファーで切り詰めず、引用符付きで全文出力します。  
+配列内に NUL 終端が無い場合は `CPLAT_ERR_INVALID_ENCODING` を返し、出力ストリームへの書き込み失敗もエラーとして返します。  
+サンプル コマンド (`struct-meta-sample`) のファイル出力 (`catjson`、`catbin`) も、読み取りエラーを EOF と区別して検出し、途中までしか読めなかったファイルを正常完了として扱いません。
+
 ### Doxygen 属性の書式
 
 Doxygen コメントには、値を持たない `@struct_meta{key}` または値を持つ `@struct_meta{key=value}` を記載します。  

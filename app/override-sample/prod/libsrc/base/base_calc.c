@@ -27,10 +27,12 @@ int base_calc(const int a, const int b, int *result)
      * 差し替え実装が見つかれば、その実装へ処理を委譲する。
      * 見つからなければ既定の実装を実行する。
      */
-    base_calc_fn fp = cplat_sym_loader_resolve_as(pfo_base_calc, base_calc_fn);
-    if (fp != NULL)
+    void *function = NULL;
+    int resolve_ret = cplat_sym_loader_resolve(pfo_base_calc, &function);
+    if (resolve_ret == CPLAT_OK && function != NULL)
     {
         base_console_output("base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します\n");
+        base_calc_fn fp = (base_calc_fn)function;
         return fp(a, b, result);
     }
     else
