@@ -320,7 +320,8 @@ extern "C"
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。
-     */
+     *  @note Windows は最大 30 秒の停止待ち後に削除を要求します。停止を確認できなければ削除しません。
+ */
     int svc_os_uninstall(const svc_definition *def);
 
     /**

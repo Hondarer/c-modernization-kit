@@ -318,7 +318,7 @@ static void emit_attributes(FILE *out, const char *symbol, const struct_meta_att
  */
 static void emit_layout_assertions(FILE *out, const struct_meta_descriptor *descriptor)
 {
-    fprintf(out, "/* レイアウト エンジンの計算値と、コンパイラが決めた配置との照合。 */\n");
+    fprintf(out, "/* レイアウト エンジンの計算値と、コンパイラが決めた配置との照合 */\n");
     fprintf(out, "_Static_assert(sizeof(%s) == %zu, \"%s: レイアウト エンジンの計算値と一致しません\");\n",
             descriptor->name, descriptor->size, descriptor->name);
 
@@ -470,7 +470,7 @@ static int emit_catalog_header(const char *header_out, const char *stem, const c
     /* 引数は非 NULL である。失敗しないため戻り値は見ない。 */
     (void)struct_meta_catalog_get_count(catalog, &count);
 
-    fprintf(out, "/* このファイルは struct-meta-gen が自動生成しました。手編集しないでください。 */\n");
+    fprintf(out, "/* このファイルは struct-meta-gen が自動生成した。手編集しないこと。 */\n");
     fprintf(out, "#ifndef %s_META_H\n", prefix);
     fprintf(out, "#define %s_META_H\n\n", prefix);
     fprintf(out, "#include <struct_meta/catalog/catalog.h>\n");
@@ -651,7 +651,14 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
         return 1;
     }
 
-    fprintf(out, "/* struct-meta-gen が構築済みの索引を永続化したイメージです。手編集しないでください。 */\n");
+    if ((mgmt == NULL) || (data == NULL) || (mgmt_size == 0U) || (data_size == 0U))
+    {
+        fprintf(stderr, "struct-meta-gen: 索引の永続化イメージが空です\n");
+        cplat_hashtable_dispose(table);
+        return 1;
+    }
+
+    fprintf(out, "/* struct-meta-gen が構築済みの索引を永続化した。手編集しないこと。 */\n");
 
     /*
      * 永続化イメージは 8 [byte] 境界を要求されるため、uint64_t の配列として出力する。
@@ -664,7 +671,7 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
      * 埋め込みイメージが前提とする ABI を、生成先のコンパイル時に検査する。
      * 生成器が動作した環境での実測値を出力する。
      */
-    fprintf(out, "/* 埋め込みイメージが前提とする ABI。破れた場合はコンパイル時に落とす。 */\n");
+    fprintf(out, "/* 埋め込みイメージが前提とする ABI を検査する。破れた場合はコンパイル時に落とす。 */\n");
     fprintf(out, "_Static_assert(sizeof(size_t) == %zu, \"%s: 埋め込み索引は size_t %zu バイトを前提とします\");\n",
             sizeof(size_t), prefix, sizeof(size_t));
     fprintf(out, "_Static_assert(sizeof(time_t) == %zu, \"%s: 埋め込み索引は time_t %zu バイトを前提とします\");\n",
@@ -731,11 +738,13 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
     fprintf(out, "                                            &s_catalog);\n");
     fprintf(out, "    if (ret == CPLAT_ERR_OUT_OF_MEMORY)\n");
     fprintf(out, "    {\n");
-    fprintf(out, "        /* ハンドルを確保できない。カタログは NULL のままとし、検索は見つからない結果を返す */\n");
+    fprintf(out, "        /* ハンドルを確保できない。カタログは NULL のままとし、検索は見つからない結果を返す。 */\n");
     fprintf(out, "        return;\n");
     fprintf(out, "    }\n");
-    fprintf(out, "    /* それ以外の失敗は、同一ビルドで作ったイメージが読めないという不変条件の破れ。\n");
-    fprintf(out, "       線形走査へ縮退させず、その場で落とす。 */\n");
+    fprintf(out, "    /*\n");
+    fprintf(out, "     * それ以外の失敗は、同一ビルドで作ったイメージが読めないため、不変条件が破れている。\n");
+    fprintf(out, "     * 線形走査へ縮退させず、その場で落とす。\n");
+    fprintf(out, "     */\n");
     fprintf(out, "    CPLAT_ASSERT(ret == CPLAT_OK);\n");
     fprintf(out, "    (void)cplat_shutdown_register(destroy_catalog, NULL);\n");
     fprintf(out, "}\n\n");
@@ -817,7 +826,7 @@ int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_
         return 1;
     }
 
-    fprintf(out, "/* このファイルは struct-meta-gen が自動生成しました。手編集しないでください。 */\n");
+    fprintf(out, "/* このファイルは struct-meta-gen が自動生成した。手編集しないこと。 */\n");
     fprintf(out, "#include \"../%s\"\n", header_path);
     fprintf(out, "#include \"%s\"\n\n", generated_header_include(header_out));
     fprintf(out, "#include <struct_meta/catalog/catalog.h>\n");

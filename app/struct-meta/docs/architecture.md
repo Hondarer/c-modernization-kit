@@ -183,7 +183,7 @@ JSON 実装だけが `json.name`、`json.ignore`、`json.required` を解釈し�
 ```c
 static const struct_meta_descriptor g_address_desc = { "address", sizeof(address), g_address_fields, 2, ... };
 
-/* レイアウト エンジンの計算値と、コンパイラが決めた配置との照合。 */
+/* レイアウト エンジンの計算値と、コンパイラが決めた配置との照合 */
 _Static_assert(sizeof(address) == 36, "address: レイアウト エンジンの計算値と一致しません");
 _Static_assert(offsetof(address, city) == 0, "address.city: レイアウト エンジンの計算値と一致しません");
 _Static_assert(offsetof(address, zip) == 32, "address.zip: レイアウト エンジンの計算値と一致しません");

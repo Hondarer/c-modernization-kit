@@ -192,10 +192,16 @@ static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t inst
 int struct_meta_path_resolve_const(const struct_meta_descriptor *descriptor, const void *instance, const char *path,
                                    const struct_meta_field **field_out, const void **value_out)
 {
-    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0') || (field_out == NULL) ||
-        (value_out == NULL))
+    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0') || (value_out == NULL))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const struct_meta_field *discarded_field = NULL;
+
+    if (field_out == NULL)
+    {
+        field_out = &discarded_field;
     }
 
     *field_out = NULL;
@@ -229,9 +235,16 @@ int struct_meta_path_resolve(const struct_meta_descriptor *descriptor, void *ins
 
     *value_out = NULL;
 
-    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0') || (field_out == NULL))
+    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0'))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const struct_meta_field *discarded_field = NULL;
+
+    if (field_out == NULL)
+    {
+        field_out = &discarded_field;
     }
 
     *field_out = NULL;

@@ -21,7 +21,7 @@
  *
  *  @param[in]      argc コマンド ライン引数の個数。
  *  @param[in]      argv コマンド ライン引数の文字列の配列。
- *  @return         常に 0 を返します。
+ *  @return         成功時は EXIT_SUCCESS、失敗時は EXIT_FAILURE を返します。
  */
 int main(int argc, char *argv[])
 {

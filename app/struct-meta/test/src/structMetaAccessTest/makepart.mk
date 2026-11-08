@@ -1,5 +1,6 @@
 TEST_SRCS := \
-	$(MYAPP_DIR)/prod/libsrc/struct_meta/access/access.c
+	$(MYAPP_DIR)/prod/libsrc/struct_meta/access/access.c \
+    $(MYAPP_DIR)/prod/libsrc/struct_meta/access/path.c
 
 ADD_SRCS += \
 	$(MYAPP_DIR)/prod/libsrc/struct_meta/meta/bytes.c \

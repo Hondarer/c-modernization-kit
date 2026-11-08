@@ -345,7 +345,7 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
  *  @param[in]      ev_type イベント種別 (POWEREVENT / SESSIONCHANGE のときのみ有効)。
  *  @param[in]      ev_data イベント データ (SESSIONCHANGE のときのみ有効)。
  *  @param[in]      context 未使用。
- *  @return         常に NO_ERROR を返します。
+ *  @return         処理した制御と INTERROGATE は NO_ERROR、未処理の制御は ERROR_CALL_NOT_IMPLEMENTED を返します。
  */
 static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_data, LPVOID context)
 {
@@ -385,6 +385,11 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
     {
         /* 現在のステータスを再通知する。 */
         SetServiceStatus(s_status_handle, &s_status);
+    }
+    else
+    {
+        /* see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nc-winsvc-lphandler_function_ex */
+        return ERROR_CALL_NOT_IMPLEMENTED;
     }
 
     return NO_ERROR;
@@ -661,11 +666,59 @@ int svc_os_install(const svc_definition *def)
     return rc;
 }
 
+    /** 停止完了を待つ上限 [ms] です。 */
+    #define SVC_STOP_TIMEOUT_MS 30000ULL
+    /** 停止状態を問い合わせる間隔 [ms] です。 */
+    #define SVC_STOP_POLL_INTERVAL_MS 50U
+
+/**
+ *  @brief          必要なら停止を要求し、停止状態を上限時間まで確認します。
+ *  @param[in]      service  状態照会と停止要求が可能なサービスのハンドル。
+ *  @return         停止を確認した場合は 1、照会・停止要求の失敗または時間切れは 0 を返します。
+ *
+ *  see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-queryservicestatusex
+ */
+static int wait_for_service_stop(SC_HANDLE service)
+{
+    SERVICE_STATUS_PROCESS status;
+    DWORD bytes_needed;
+    SERVICE_STATUS requested_status;
+    ULONGLONG started = GetTickCount64();
+
+    if (!QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, (DWORD)sizeof(status), &bytes_needed))
+    {
+        return 0;
+    }
+
+    if ((status.dwCurrentState != SERVICE_STOPPED) && (status.dwCurrentState != SERVICE_STOP_PENDING))
+    {
+        if (!ControlService(service, SERVICE_CONTROL_STOP, &requested_status))
+        {
+            return 0;
+        }
+    }
+    while (status.dwCurrentState != SERVICE_STOPPED)
+    {
+        if (GetTickCount64() - started >= SVC_STOP_TIMEOUT_MS)
+        {
+            return 0;
+        }
+
+        Sleep(SVC_STOP_POLL_INTERVAL_MS);
+
+        if (!QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, (DWORD)sizeof(status), &bytes_needed))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 int svc_os_uninstall(const svc_definition *def)
 {
     SC_HANDLE scm = NULL;
     SC_HANDLE svc = NULL;
-    SERVICE_STATUS status;
     int rc;
     int handled;
 
@@ -717,12 +770,17 @@ int svc_os_uninstall(const svc_definition *def)
     }
     else
     {
-        /* 動作中の場合は停止する。 */
-        if (ControlService(svc, SERVICE_CONTROL_STOP, &status))
+        /*
+         * 削除は停止確認後に要求する。ほかのハンドルが開いている間は、削除完了とは限らない。
+         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-deleteservice
+         */
+        if (!wait_for_service_stop(svc))
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を停止しています...",
-                                def->name);
-            Sleep(1000);
+            cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                               "サービスの停止を確認できないため、削除しません。");
+            CloseServiceHandle(svc);
+            CloseServiceHandle(scm);
+            return EXIT_FAILURE;
         }
 
         if (!DeleteService(svc))
@@ -742,7 +800,7 @@ int svc_os_uninstall(const svc_definition *def)
         }
         else
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を解除しました。",
+            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' の削除を要求しました。",
                                 def->name);
             rc = EXIT_SUCCESS;
         }

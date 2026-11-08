@@ -224,7 +224,14 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
     if (timeout_ms != SAMPLE_FILTER_SHARE_WAIT_FOREVER)
     {
         remaining_ms = timeout_ms;
-        deadline_ms = cplat_clock_get_monotonic_ms() + (uint64_t)timeout_ms;
+        uint64_t now_ms;
+        ret = cplat_clock_get_monotonic_ms(&now_ms);
+        if (ret != CPLAT_OK)
+        {
+            return result_of(ret);
+        }
+
+        deadline_ms = now_ms + (uint64_t)timeout_ms;
     }
 
     /* 同じハンドルを使うスレッドの間はファイル ロックが排他にならないため、プロセス内のロックを先に取る。 */
@@ -237,7 +244,13 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
     /* プロセス間ロックは、プロセス内のロックで使った時間を差し引いた残りだけ待つ。 */
     if (timeout_ms != SAMPLE_FILTER_SHARE_WAIT_FOREVER)
     {
-        const uint64_t now_ms = cplat_clock_get_monotonic_ms();
+        uint64_t now_ms;
+        ret = cplat_clock_get_monotonic_ms(&now_ms);
+        if (ret != CPLAT_OK)
+        {
+            (void)cplat_local_lock_unlock(lock->local);
+            return result_of(ret);
+        }
 
         remaining_ms = (now_ms >= deadline_ms) ? 0 : (int)(deadline_ms - now_ms);
     }

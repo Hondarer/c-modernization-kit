@@ -28,8 +28,8 @@ extern "C"
      *  @param[in]      descriptor   構造体記述子です。NULL を渡してはなりません。
      *  @param[in]      index        インデックスです。
      *  @param[out]     field_out    取得結果の格納先。NULL を渡してはなりません。
-     *  @return         成功時は @c CPLAT_OK 、未検出時は @c CPLAT_ERR_NOT_FOUND 、引数不正時は
-     *                  @c CPLAT_ERR_INVALID_ARGUMENT を返します。
+     *  @return         成功時は @c CPLAT_OK 、インデックスが範囲外の場合は @c CPLAT_ERR_OUT_OF_RANGE 、
+     *                  引数不正時は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n

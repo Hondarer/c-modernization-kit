@@ -205,3 +205,26 @@ TEST(structMetaAccessTest, rejects_duplicate_descriptor_attributes)
         CPLAT_ERR_CORRUPT_DESCRIPTOR,
         actual_ret); // [確認_異常系] - struct_meta_descriptor_validate() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
 }
+
+// フィールドの出力を省略してもパスから値へ到達できることの確認
+TEST(structMetaAccessTest, path_resolves_without_field_output)
+{
+    // Arrange
+    Fields instance = {7, 8};
+    void *mutable_value = nullptr;
+    const void *const_value = nullptr;
+
+    // Pre-Assert
+
+    // Act
+    int mutable_ret = struct_meta_path_resolve(&kFieldsDescriptor, &instance, "first", nullptr,
+                                               &mutable_value); // [手順] - 変更可能版でフィールド出力を省略する。
+    int const_ret = struct_meta_path_resolve_const(&kFieldsDescriptor, &instance, "second", nullptr,
+                                                   &const_value); // [手順] - const 版でフィールド出力を省略する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, mutable_ret);          // [確認_正常系] - 変更可能版が成功すること。
+    EXPECT_EQ(CPLAT_OK, const_ret);            // [確認_正常系] - const 版が成功すること。
+    EXPECT_EQ(&instance.first, mutable_value); // [確認_正常系] - 変更可能な値のアドレスが一致すること。
+    EXPECT_EQ(&instance.second, const_value);  // [確認_正常系] - const 値のアドレスが一致すること。
+}
