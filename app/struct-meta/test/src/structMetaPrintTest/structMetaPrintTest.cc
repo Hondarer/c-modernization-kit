@@ -62,3 +62,87 @@ TEST(structMetaPrintTest, prints_byte_arrays_in_selected_format)
     (void)fclose(stream);
     (void)cplat_remove(path, nullptr);
 }
+
+// 内部作業領域より長い文字列も引用符付きで末尾まで表示することの確認
+TEST(structMetaPrintTest, prints_complete_long_string)
+{
+    // Arrange
+    struct LongString
+    {
+        char text[256];
+    } sample = {};
+    memset(sample.text, 'x', sizeof(sample.text) - 1U);
+    const struct_meta_field fields[] = {{"text", STRUCT_META_FIELD_CHAR_ARRAY, 0, offsetof(LongString, text),
+                                         sizeof(char), 1, 256, nullptr, nullptr, nullptr, 0}};
+    const struct_meta_descriptor descriptor = {"LongString", sizeof(LongString), fields, 1, nullptr, nullptr, 0};
+    FILE *stream = tmpfile();   // [状態] - 255 文字の文字列と一時出力先を用意する。
+    ASSERT_NE(nullptr, stream); // [状態確認] - 一時ファイルを開けること。
+
+    // Pre-Assert
+
+    // Act
+    int actual = struct_meta_print_write(&descriptor, &sample, stream); // [手順] - 長い文字列を表示する。
+    rewind(stream);
+    char output[512] = {};
+    size_t count = fread(output, 1, sizeof(output) - 1, stream);
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, actual); // [確認_正常系] - 出力に成功すること。
+    EXPECT_GT(count, 255U);
+    EXPECT_NE(nullptr, strstr(output, sample.text)); // [確認_正常系] - 文字列の全体を含むこと。
+    EXPECT_NE(nullptr, strstr(output, "x\"\n"));     // [確認_正常系] - 閉じ引用符が残ること。
+
+    // Cleanup
+    fclose(stream);
+}
+
+// 終端のない文字列を表示しようとした場合に拒否することの確認
+TEST(structMetaPrintTest, rejects_unterminated_string)
+{
+    // Arrange
+    struct Text
+    {
+        char value[3];
+    } sample = {{'a', 'b', 'c'}};
+    const struct_meta_field fields[] = {{"value", STRUCT_META_FIELD_CHAR_ARRAY, 0, offsetof(Text, value), sizeof(char),
+                                         1, sizeof(sample.value), nullptr, nullptr, nullptr, 0}};
+    const struct_meta_descriptor descriptor = {"Text", sizeof(Text), fields, 1, nullptr, nullptr, 0};
+    FILE *stream = tmpfile();   // [状態] - 終端のない文字列を用意する。
+    ASSERT_NE(nullptr, stream); // [状態確認] - 一時出力先を開けること。
+
+    // Pre-Assert
+
+    // Act
+    int actual = struct_meta_print_write(&descriptor, &sample, stream); // [手順] - 文字列を表示する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_INVALID_ENCODING, actual); // [確認_異常系] - 配列の外まで読み取らず拒否すること。
+
+    // Cleanup
+    fclose(stream);
+}
+
+// 出力できないストリームを成功として扱わないことの確認
+TEST(structMetaPrintTest, reports_stream_write_failure)
+{
+    // Arrange
+    ByteArrays sample = {};
+    char path[PLATFORM_PATH_MAX] = {};
+    FILE *temporary = cplat_fopen_temp("smp", "wb", path, sizeof(path), nullptr);
+    ASSERT_NE(nullptr, temporary); // [状態確認] - 一時ファイルを作成できること。
+    fclose(temporary);
+    FILE *stream = fopen(path, "rb"); // [状態] - 書き込みできない読み取り専用ストリームを用意する。
+    ASSERT_NE(nullptr, stream);       // [状態確認] - 読み取り用に開けること。
+
+    // Pre-Assert
+
+    // Act
+    int actual = struct_meta_print_write(&kDescriptor, &sample, stream); // [手順] - 書き込み失敗を検出する。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_UNKNOWN, actual); // [確認_異常系] - 出力失敗を返すこと。
+
+    // Cleanup
+    fclose(stream);
+    remove(path);
+}
