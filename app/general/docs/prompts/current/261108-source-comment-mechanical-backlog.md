@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: codex
+最終更新エージェント: grok / セッション ID: 01a1b8e0-a733-76f2-86a6-3e08d3489aff
 上流文書: `261108-source-comment-mechanical-design.md` (最終仕様)、`261108-source-comment-mechanical-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
@@ -569,16 +569,15 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 概要と問題点
 
-- **現状の事象**: 次の箇所は、NULL の間接参照、データ競合、結果コードの対応付けの誤り、切り詰め、Windows での動作不良などの可能性があると報告されました。 該当は 16 件です。
+- **現状の事象**: 次の箇所は、NULL の間接参照、データ競合、結果コードの対応付けの誤り、切り詰め、Windows での動作不良などの可能性があると報告されました。 該当は 15 件です。
     - `app/cplat/prod/libsrc/cplat/base/error_message.c:282`: PLATFORM_LINUX でも PLATFORM_WINDOWS でもないとき return がなく、関数末尾から戻る。
     - `app/cplat/prod/libsrc/cplat/base/result.c:205`: ERROR_INSUFFICIENT_BUFFER を ENAMETOOLONG にしている。error.h では ERROR_INSUFFICIENT_BUFFER は CPLAT_CAUSE_BUFFER_TOO_SMALL、ENAMETOOLONG は CPLAT_CAUSE_NAME_TOO_LONG である。
     - `app/cplat/prod/libsrc/cplat/crt/unistd.c:78`: Windows 実装の cplat_isatty において GetStdHandle の失敗判定が INVALID_HANDLE_VALUE のみであり、標準ハンドルが割り当てられていない場合に返される NULL の検査がない。
     - `app/cplat/prod/libsrc/cplat/net/endpoint_windows.c:34`: cplat_ipv4_parse() において Winsock の初期化 (cplat_internal_socket_startup()) の失敗に対して CPLAT_ERR_INVALID_ARGUMENT (引数不正) を返しており、環境・システム初期化の失敗と関数の引数妥当性が混同されている。
-    - `app/cplat/prod/libsrc/cplat/runtime/sym_loader_dispose.c:29`: 引数 fobj_array および配列要素 fobj_array[fobj_index] の NULL チェックが行われておらず、不正なポインターが渡された場合に NULL ポインターの間接参照が発生する。
-    - `app/cplat/prod/libsrc/cplat/runtime/sym_loader_is_default.c:20`: 引数 fobj の NULL チェックが行われておらず、NULL が渡された場合に NULL ポインターの間接参照が発生する。
-    - `app/cplat/prod/libsrc/cplat/runtime/sym_loader_resolve.c:117`: 引数 fobj の NULL チェックが行われておらず、NULL が渡された場合に NULL ポインターの間接参照が発生する。
+    - `app/cplat/prod/libsrc/cplat/runtime/sym_loader_dispose.c:121`: 引数 fobj_array および配列要素 fobj_array[fobj_index] の NULL チェックが行われておらず、不正なポインターが渡された場合に NULL ポインターの間接参照が発生する。
+    - `app/cplat/prod/libsrc/cplat/runtime/sym_loader_is_default.c:22`: 引数 fobj の NULL チェックが行われておらず、NULL が渡された場合に NULL ポインターの間接参照が発生する。
+    - `app/cplat/prod/libsrc/cplat/runtime/sym_loader_resolve.c:599`: 公開関数 cplat_sym_loader_resolve は削除された。cplat_sym_loader_count 以降の件数、取得、診断は、引数 fobj の NULL チェックを行わずにメンバーを読む。sym_loader_is_failed.c:27 も同じである。
     - `app/cplat/prod/libsrc/cplat/trace/backends/syslog/trace_syslog.c:306`: `cplat_syslog_sink_write()` がロックを取得せずに `handle->ident` を参照しているため、`cplat_syslog_sink_rename()` と並行実行された場合に解放済みポインターへのアクセス (Use-After-Free) またはデータ競合が発生する可能性がある。
-    - `app/override-sample/prod/libsrc/base/sym_loader_libbase.c:65`: 出力文字列が congigpath になっており、変数名 configpath と一致しない。
     - `app/porter/prod/libsrc/porter/thread/thread_recv_validate.c:163`: 制御パケットのタグ検証でも、同じように復号の失敗理由を区別せず POTR_ERR_PROTOCOL を返している。
     - `app/porter/prod/libsrc/porter/thread/thread_recv_validate.c:79`: cplat_crypto_decrypt() が CPLAT_OK 以外のとき、メモリ不足や引数不正も含めて POTR_ERR_PROTOCOL を返している。porter の戻り値規約では、原因を区別できる場合は対応する結果コードへ変換する。
     - `app/porter/prod/src/cmd/porter-test/porter-test.c:266`: `on_recv` において一時ファイルへバイナリ データを保存する際、`fwrite` 失敗時に一時ファイル (`tmp_path`) が削除されずに残存する。
@@ -595,6 +594,8 @@ Table: 今回未対処のソース コメント案件の残課題
 
 今回の見送り理由: 承認された先行対処を BL-005 と BL-007 に限定したため、未対処として引き継ぎます。  
 元の課題 ID `BL-013` を維持し、記載された事象の真偽や設計意図は今回改めて検証していません。
+
+2026-11-08 の `sym_loader` 複数先の作業は、この NULL 検査を実装していません。公開の `cplat_sym_loader_resolve` は削除され、同じ未検査は件数、取得、診断、内部失敗、解放に残っています。現行の記載は `app/cplat/docs/prompts/current/261108-sym-loader-multi-target-backlog.md` の BL-001 です。行番号は、その作業後のソースに合わせました。
 
 ### 影響範囲とリスク
 

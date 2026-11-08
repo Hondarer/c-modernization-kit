@@ -205,6 +205,52 @@ TEST_F(override_sampleTest, check_stdout_with_config)
 }
 // [サブ手順参照 名前=override_sampleTest.TearDown]
 
+// 移譲先が 2 件以上のとき、添字 0 だけを 1 回呼ぶことの確認
+// [サブ手順参照 名前=override_sampleTest.SetUp]
+TEST_F(override_sampleTest, check_stdout_with_two_targets)
+{
+    const string override_message = "override_calc: a=1, b=2 の処理 (*result = a * b;) を行います";
+    size_t message_count = 0u;
+    size_t position = 0u;
+
+    // Arrange
+    // [サブ手順参照 名前=override_sampleTest.createConfigFile]
+    createConfigFile(
+        "{\"base_calc\":[{\"lib\":\"liboverride\",\"func\":\"override_calc\"},{\"lib\":\"liboverride\",\"func\":\"override_calc\"}]}\n"); // [状態] - 同じ移譲先を 2 件持つ定義ファイルを作成する。
+    ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
+
+    // Pre-Assert
+
+    // Act
+    ProcessResult res = startProcess(
+        binary_path, {},
+        opts); // [手順] - override-sample の stdout を捕捉するため、引数を指定せずに startProcess() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, res.exit_code); // [確認_正常系] - res.exit_code が EXIT_SUCCESS であること。
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します")); // [確認_正常系] - "base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
+    while ((position = res.stdout_out.find(override_message, position)) != string::npos)
+    {
+        message_count += 1u;
+        position += override_message.size();
+    }
+    EXPECT_EQ(
+        1u,
+        message_count); // [確認_正常系] - message_count が 1u であること。(同じ移譲先が 2 件あっても添字 0 だけを呼ぶことの確認)
+    EXPECT_NE(
+        string::npos,
+        res.stdout_out.find(
+            "result: 2")); // [確認_正常系] - "result: 2" を探した res.stdout_out.find() の戻り値が string::npos 以外であること。
+    EXPECT_EQ(
+        string::npos,
+        res.stdout_out.find(
+            "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います")); // [確認_正常系] - "base_calc: a=1, b=2 の処理 (*result = a + b;) を行います" を探した res.stdout_out.find() の戻り値が string::npos であること。
+}
+// [サブ手順参照 名前=override_sampleTest.TearDown]
+
 // アンロード時に syslog へメッセージが出力されることの確認
 // [サブ手順参照 名前=override_sampleTest.SetUp]
 TEST_F(override_sampleTest, onUnload_syslog)

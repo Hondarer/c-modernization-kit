@@ -4,7 +4,7 @@
 
 `sym_loader_libbase.h` / `sym_loader_libbase.c` は、`base` ライブラリが管理するオーバーライド対応関数の **cplat_sym_loader_entry 実体と、それに紐付く型・変数の宣言** を提供します。
 
-`sym_loader` の汎用機能 (`cplat_sym_loader_init`, `cplat_sym_loader_resolve`, `cplat_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群へ接続する役割を担います。
+`sym_loader` の汎用機能 (`cplat_sym_loader_init`, `cplat_sym_loader_count`, `cplat_sym_loader_get`, `cplat_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群へ接続する役割を担います。
 
 ## ファイルの責務
 
@@ -21,7 +21,7 @@ Table: sym_loader_libbase 構成ファイルの責務
 
 ```text
 sample_func.c  (呼び出し元)
-    |  cplat_sym_loader_resolve_as(pfo_sample_func, sample_func_fn)
+    |  cplat_sym_loader_get_as(pfo_sample_func, 0, sample_func_fn)
     +---> sym_loader_libbase.h の extern 宣言 (pfo_sample_func)
               |
               sym_loader_libbase.c の実体 (sfo_sample_func)
@@ -58,7 +58,7 @@ dllmain_libbase.c  (初期化・解放)
 
 ### 呼び出し元となる .c ファイルの作成・修正
 
-`new_func` の実装ファイルで、`cplat_sym_loader_resolve_as` を使用して関数ポインターを取得し、オーバーライド処理または既定の処理に分岐させます。`sample_func.c` を参照してください。
+`new_func` の実装ファイルで、`cplat_sym_loader_count` と `cplat_sym_loader_get_as` を使用して関数ポインターを取得し、オーバーライド処理または既定の処理に分岐させます。`sample_func.c` を参照してください。
 
 ### オーバーライド側ライブラリへの追加
 
@@ -70,7 +70,7 @@ dllmain_libbase.c  (初期化・解放)
 >
 > ```text
 > new_func (libbase)
-> +- cplat_sym_loader_resolve_as でオーバーライド関数を取得
+> +- cplat_sym_loader_get_as でオーバーライド関数を取得
 > +- new_override_func (liboverride) を呼び出す
 > +- new_func (libbase) を呼び出す <- 無限再帰
 > ```

@@ -30,13 +30,13 @@ char sym_loader_configpath[SYM_LOADER_CONFIG_PATH_MAX] = {0};
  */
 
 /** base_calc 用の sym_loader エントリ実体です。差し替えキーは公開関数名と同じにします。 */
-static cplat_sym_loader_entry sfo_base_calc = CPLAT_SYM_LOADER_ENTRY_INIT("base_calc", base_calc_fn);
+static cplat_sym_loader_entry sfo_base_calc = CPLAT_SYM_LOADER_ENTRY_INIT("base_calc");
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
 cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 
-/* static cplat_sym_loader_entry sfo_base_name = CPLAT_SYM_LOADER_ENTRY_INIT("base_name", base_name_fn); */ /* 将来追加 */
+/* static cplat_sym_loader_entry sfo_base_name = CPLAT_SYM_LOADER_ENTRY_INIT("base_name"); */ /* 将来追加 */
 /* cplat_sym_loader_entry *const pfo_base_name = &sfo_base_name; */ /* 将来追加 */
 
 /*
@@ -62,7 +62,7 @@ int base_sym_loader_info(void)
 {
     int ret;
 
-    printf("- congigpath: %s\n", sym_loader_configpath);
+    printf("- configpath: %s\n", sym_loader_configpath);
     ret = cplat_sym_loader_info(fobj_array_libbase, fobj_length_libbase);
     if (ret != CPLAT_OK)
     {
