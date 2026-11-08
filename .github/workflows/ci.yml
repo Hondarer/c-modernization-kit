@@ -374,15 +374,38 @@ jobs:
         shell: bash
 
       - name: Install WinFlexBison
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # gh の失敗でリトライ前に止まらないようにする。
+          $PSNativeCommandUseErrorActionPreference = $false
           $archiveName = "win_flex_bison-$env:WINFLEXBISON_VERSION.zip"
           $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
           $installPath = Join-Path $env:RUNNER_TEMP "winflexbison-$env:WINFLEXBISON_VERSION"
+          $tag = "v$env:WINFLEXBISON_VERSION"
+          # releases/download の直リンクは 504 Gateway Time-out を返すことがある。
+          # gh は API の asset から同じ配布物を取得する。SHA-256 は従来どおり確認する。
           # see: https://github.com/lexxmark/winflexbison/releases/tag/v2.5.25
-          $downloadUrl = "https://github.com/lexxmark/winflexbison/releases/download/v$env:WINFLEXBISON_VERSION/$archiveName"
+          $downloaded = $false
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+              if (Test-Path -LiteralPath $archivePath) {
+                  Remove-Item -LiteralPath $archivePath -Force
+              }
+              & gh release download $tag --repo lexxmark/winflexbison --pattern $archiveName --dir $env:RUNNER_TEMP --clobber
+              if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $archivePath)) {
+                  $downloaded = $true
+                  break
+              }
+              Write-Host "WinFlexBison download attempt $attempt failed"
+              if ($attempt -lt 3) {
+                  Start-Sleep -Seconds (5 * $attempt)
+              }
+          }
+          if (-not $downloaded) {
+              throw "WinFlexBison download failed: $archiveName"
+          }
 
-          Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath
           $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash
           if ($actualHash -ne $env:WINFLEXBISON_SHA256) {
               throw "WinFlexBison SHA-256 mismatch: expected $env:WINFLEXBISON_SHA256, actual $actualHash"
