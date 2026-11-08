@@ -36,9 +36,6 @@ static cplat_sym_loader_entry sfo_base_calc = CPLAT_SYM_LOADER_ENTRY_INIT("base_
 
 cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 
-/* static cplat_sym_loader_entry sfo_base_name = CPLAT_SYM_LOADER_ENTRY_INIT("base_name"); */ /* 将来追加 */
-/* cplat_sym_loader_entry *const pfo_base_name = &sfo_base_name; */ /* 将来追加 */
-
 /*
  * --- sym_loader に渡すポインター配列 ---
  * --- 対応関数を追加した場合、次への追加が必要である。 ---
@@ -48,8 +45,6 @@ cplat_sym_loader_entry *const pfo_base_calc = &sfo_base_calc;
 
 cplat_sym_loader_entry *const fobj_array_libbase[] = {
     &sfo_base_calc,
-
-    /* &sfo_base_name, */ /* 将来追加 */
 };
 
 /* Doxygen コメントは、ヘッダーに記載 */

@@ -34,8 +34,6 @@ extern "C"
     /** base_calc に対応する sym_loader エントリへのポインター。 */
     extern cplat_sym_loader_entry *const pfo_base_calc;
 
-    /* extern cplat_sym_loader_entry *const pfo_base_name; */ /* 将来追加 */
-
     /** sym_loader に設定するポインター配列。 */
     extern cplat_sym_loader_entry *const fobj_array_libbase[];
 

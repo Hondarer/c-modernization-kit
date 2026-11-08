@@ -15,10 +15,13 @@
 BL-009・BL-013 の対処と BL-015 の展開長不一致の修正に含めなかった報告を引き継ぎます。  
 過去の報告は、現在の実装との照合を経てから起票します。
 
+継続作業 `source-comment-cleanup-20261108` で BL-001・BL-002 を対処しました。  
+未対処の 17 課題は [最新の残課題一覧](261108-source-comment-cleanup-backlog.md) へ同じ ID で引き継いでいます。
+
 | 課題 ID | 題名 | 区分 | 優先度 | 状態 |
 | --- | --- | --- | --- | --- |
-| BL-001 | コメント アウトしたコードが残っている | 過去 backlog からの転記 | 低 | 未着手 |
-| BL-002 | cplat の読み書きロックのパディング メンバーが命名規則に従っていない | 過去 backlog からの転記 | 低 | 未着手 |
+| BL-001 | コメント アウトしたコードが残っている | 過去 backlog からの転記 | 低 | 対応済み |
+| BL-002 | cplat の読み書きロックのパディング メンバーが命名規則に従っていない | 過去 backlog からの転記 | 低 | 対応済み |
 | BL-003 | cplat の map_wait_rc() が EACCES を使用中に対応付ける理由が不明 | 過去 backlog からの転記 | 低 | 未着手 |
 | BL-004 | struct-meta の find_doc_tag_last() が最後の @brief を採る理由が文書化されていない | 過去 backlog からの転記 | 低 | 未着手 |
 | BL-006 | cplat の sync_linux.c にプロセス横断ロックの重複実装がある | 過去 backlog からの転記 | 中 | 未着手 |
@@ -68,6 +71,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 作者に意図を確認し、不要であれば削除します。将来の予定であれば、課題管理へ移します。
 - **参考情報**: [コーディング規範](../../coding-guideline.md) の「実装コメント」節
 
+状態: 対応済み。継続作業 `source-comment-cleanup-20261108` で、列挙したコメント アウトの 5 行と付随する将来追加の記述を削除しました。base_name はユーザーの明示的な指示で完全削除とし、追加予定を残課題にしません。TCP の予定だけを最新 backlog の BL-025 に移管しました。
+
 ## BL-002 cplat の読み書きロックのパディング メンバーが命名規則に従っていない
 
 ### 概要と問題点
@@ -92,6 +97,8 @@ Table: 正しさの対処後に残る課題
 
 - **恒久対応案**: メンバー名を `pad` に変更し、明示的アラインメントのコメントを付けます。
 - **参考情報**: [コーディング規範](../../coding-guideline.md) の「明示的なパディング メンバー」節
+
+状態: 対応済み。継続作業 `source-comment-cleanup-20261108` で、`_pad_struct_end` を `pad` に改名し、明示的アラインメントのコメントを追加しました。メンバーの型と順序は維持しています。
 
 ## BL-003 cplat の map_wait_rc() が EACCES を使用中に対応付ける理由が不明
 
@@ -118,6 +125,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 呼び出し元を確認し、`EACCES` を返す経路がなければ対応付けを削除します。
 - **参考情報**: pthread_mutex_lock(3p)、pthread_cond_timedwait(3p) の ERRORS 節
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-003 へ同じ ID で転記しました。
+
 ## BL-004 struct-meta の find_doc_tag_last() が最後の @brief を採る理由が文書化されていない
 
 ### 概要と問題点
@@ -143,6 +152,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 採用規則を `architecture.md` に記述し、コメントから参照します。
 - **参考情報**: `app/struct-meta/docs/architecture.md`
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-004 へ同じ ID で転記しました。
+
 ## BL-006 cplat の sync_linux.c にプロセス横断ロックの重複実装がある
 
 ### 概要と問題点
@@ -167,6 +178,8 @@ Table: 正しさの対処後に残る課題
 
 - **恒久対応案**: ファイル記述子を扱う共通関数を設け、両方から呼び出します。単体テストで両方の経路を確認します。
 - **参考情報**: `app/cplat/prod/libsrc/cplat/sync/sync_linux.c`
+
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-006 へ同じ ID で転記しました。
 
 ## BL-008 理由を確認できず実装コメントを記述しなかった箇所がある
 
@@ -387,6 +400,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 作者または担当者が意図を確認し、実装コメントへ理由を記述します。意図がない場合は、コードを見直します。
 - **参考情報**: [コーディング規範](../../coding-guideline.md) の「実装コメント」節
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-008 へ同じ ID で転記しました。
+
 ## BL-010 Doxygen コメントや文書の記載と実装が一致していない箇所がある
 
 ### 概要と問題点
@@ -435,6 +450,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 箇所ごとに正とする側を判断し、Doxygen コメントまたは実装を修正します。戻り値の経路は単体テストで確認します。
 - **参考情報**: [app 向け Doxygen コメント](../../doxygen-comment-guideline.md)
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-010 へ同じ ID で転記しました。
+
 ## BL-011 Doxygen コメントの配置や表記が規則に従っていない箇所がある
 
 ### 概要と問題点
@@ -468,6 +485,8 @@ Table: 正しさの対処後に残る課題
 
 - **恒久対応案**: Doxygen コメントを対象の関数の直前へ移し、表記を規則に合わせます。修正後に `make doxy` を実行し、`.warn` を確認します。
 - **参考情報**: [app 向け Doxygen コメント](../../doxygen-comment-guideline.md)
+
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-011 へ同じ ID で転記しました。
 
 ## BL-012 戻り値や失敗を検査していない箇所がある
 
@@ -510,6 +529,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 箇所ごとに失敗時の扱いを決め、検査を追加するか理由を記述します。
 - **参考情報**: [コーディング規範](../../coding-guideline.md) の「実装コメント」節
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-012 へ同じ ID で転記しました。
+
 ## BL-014 到達しない分岐や冗長な実装がある
 
 ### 概要と問題点
@@ -548,6 +569,8 @@ Table: 正しさの対処後に残る課題
 
 - **恒久対応案**: 到達しない分岐を削除し、重複した実装を 1 つの関数にまとめます。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
+
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-014 へ同じ ID で転記しました。
 
 ## BL-015 出力引数の名前が命名規則に従っていない
 
@@ -615,6 +638,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 引数名を変更し、宣言と定義、Doxygen コメントをそろえます。公開 API の引数名の変更は ABI に影響しません。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-015 へ同じ ID で転記しました。
+
 ## BL-016 書式の規範に従っていない箇所がある
 
 ### 概要と問題点
@@ -679,6 +704,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: app ごとにまとめて修正し、`clang-format` とビルドで確認します。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)、[#else と #endif のコメント](../../fix-if-comments.md)
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-016 へ同じ ID で転記しました。
+
 ## BL-017 定義側の値渡し引数に const がない
 
 ### 概要と問題点
@@ -723,6 +750,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 定義側の引数に `const` を付け、ビルドで確認します。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-017 へ同じ ID で転記しました。
+
 ## BL-018 メモリ確保の書き方や標準関数の直接使用が規範に従っていない
 
 ### 概要と問題点
@@ -765,6 +794,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: `sizeof(*p)` の形と cplat の代替関数へ置き換えます。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-018 へ同じ ID で転記しました。
+
 ## BL-019 識別子の命名やマジック ナンバーが規範に従っていない
 
 ### 概要と問題点
@@ -802,6 +833,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 名前を変更し、数値はマクロまたは列挙定数にします。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-019 へ同じ ID で転記しました。
+
 ## BL-020 公開ヘッダーとマクロの定義が規範に従っていない箇所がある
 
 ### 概要と問題点
@@ -830,6 +863,8 @@ Table: 正しさの対処後に残る課題
 
 - **恒久対応案**: ヘッダーの構成を規範に合わせ、C と C++ の双方からのビルドで確認します。
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
+
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-020 へ同じ ID で転記しました。
 
 ## BL-021 サンプル app の記述が規範と異なる箇所がある
 
@@ -867,6 +902,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 各サンプルの目的に照らして判断し、意図的な箇所は README に明記します。
 - **参考情報**: 各 app の README.md
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-021 へ同じ ID で転記しました。
+
 ## BL-022 struct-meta-gen が生成するコメントが実装コメント規範に従っていない
 
 ### 概要と問題点
@@ -898,6 +935,8 @@ Table: 正しさの対処後に残る課題
 - **恒久対応案**: 生成元の文字列リテラルを規範に合わせ、`app/struct-meta/docs/architecture.md` の例も合わせて更新します。生成物を再生成して差分を確認します。
 - **参考情報**: `app/struct-meta/docs/architecture.md`
 
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-022 へ同じ ID で転記しました。
+
 ## BL-024 Windows 実機で変更した ABI とソケット受け渡しを検証する
 
 ### 現状と影響範囲
@@ -917,3 +956,5 @@ Windows 向けの共通単体テスト、モジュールとロックの実資源
 ### 見送り理由
 
 Windows 実行環境がないためです。テストを用意したことや Linux の条件付きビルドだけを、Windows の動作確認の代わりには扱いません。
+
+継続作業での経緯: `source-comment-cleanup-20261108` でも未対処のため、[最新の残課題一覧](261108-source-comment-cleanup-backlog.md) の BL-024 へ同じ ID で転記しました。
