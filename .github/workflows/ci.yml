@@ -353,6 +353,7 @@ jobs:
       BISON: win_bison
       FLEX: win_flex
       PYTHONIOENCODING: utf-8
+      GH_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout repository
@@ -380,9 +381,9 @@ jobs:
           $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
           $installPath = Join-Path $env:RUNNER_TEMP "winflexbison-$env:WINFLEXBISON_VERSION"
           # see: https://github.com/lexxmark/winflexbison/releases/tag/v2.5.25
-          $downloadUrl = "https://github.com/lexxmark/winflexbison/releases/download/v$env:WINFLEXBISON_VERSION/$archiveName"
+          $download = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Get-GitHubReleaseAsset.ps1"
+          & $download -Repo "lexxmark/winflexbison" -Tag "v$env:WINFLEXBISON_VERSION" -Name $archiveName -OutFile $archivePath
 
-          Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath
           $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash
           if ($actualHash -ne $env:WINFLEXBISON_SHA256) {
               throw "WinFlexBison SHA-256 mismatch: expected $env:WINFLEXBISON_SHA256, actual $actualHash"
@@ -413,9 +414,8 @@ jobs:
           $innoArchiveName = "innoextract-$env:INNOEXTRACT_VERSION-windows.zip"
           $innoArchivePath = Join-Path $env:RUNNER_TEMP $innoArchiveName
           $innoInstallPath = Join-Path $env:RUNNER_TEMP "innoextract-$env:INNOEXTRACT_VERSION"
-          $innoDownloadUrl = "https://github.com/dscharrer/innoextract/releases/download/$env:INNOEXTRACT_VERSION/$innoArchiveName"
-
-          Invoke-WebRequest -Uri $innoDownloadUrl -OutFile $innoArchivePath
+          $download = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Get-GitHubReleaseAsset.ps1"
+          & $download -Repo "dscharrer/innoextract" -Tag $env:INNOEXTRACT_VERSION -Name $innoArchiveName -OutFile $innoArchivePath
           Expand-Archive -LiteralPath $innoArchivePath -DestinationPath $innoInstallPath -Force
           $innoextractPath = Join-Path $innoInstallPath "innoextract.exe"
 
@@ -423,9 +423,7 @@ jobs:
           $setupName = "OpenCppCoverageSetup-x64-$env:OPENCPPCOVERAGE_VERSION.exe"
           $setupPath = Join-Path $env:RUNNER_TEMP $setupName
           $extractPath = Join-Path $env:RUNNER_TEMP "opencppcoverage-$env:OPENCPPCOVERAGE_VERSION"
-          $downloadUrl = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-$env:OPENCPPCOVERAGE_VERSION/$setupName"
-
-          Invoke-WebRequest -Uri $downloadUrl -OutFile $setupPath
+          & $download -Repo "OpenCppCoverage/OpenCppCoverage" -Tag "release-$env:OPENCPPCOVERAGE_VERSION" -Name $setupName -OutFile $setupPath
           if (Test-Path $extractPath) {
               Remove-Item -LiteralPath $extractPath -Recurse -Force
           }
@@ -457,9 +455,8 @@ jobs:
           $archiveName = "ReportGenerator_$env:REPORTGENERATOR_VERSION.zip"
           $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
           $extractPath = Join-Path $env:RUNNER_TEMP "reportgenerator-$env:REPORTGENERATOR_VERSION"
-          $downloadUrl = "https://github.com/danielpalme/ReportGenerator/releases/download/v$env:REPORTGENERATOR_VERSION/$archiveName"
-
-          Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath
+          $download = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Get-GitHubReleaseAsset.ps1"
+          & $download -Repo "danielpalme/ReportGenerator" -Tag "v$env:REPORTGENERATOR_VERSION" -Name $archiveName -OutFile $archivePath
           Expand-Archive -LiteralPath $archivePath -DestinationPath $extractPath -Force
 
           # devbin-win と同じく .NET Framework 4.7 版を配置する。
@@ -487,8 +484,8 @@ jobs:
           # see: https://github.com/jgm/pandoc/releases/tag/3.11
           $archiveName = "pandoc-$env:PANDOC_VERSION-windows-x86_64.zip"
           $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
-          $downloadUrl = "https://github.com/jgm/pandoc/releases/download/$env:PANDOC_VERSION/$archiveName"
-          Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath
+          $download = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Get-GitHubReleaseAsset.ps1"
+          & $download -Repo "jgm/pandoc" -Tag $env:PANDOC_VERSION -Name $archiveName -OutFile $archivePath
           Expand-Archive -LiteralPath $archivePath -DestinationPath $installRoot -Force
           # devbin-win と同じく、アーカイブ内の pandoc-<version> を配置先とする。
           $installPath = Join-Path $installRoot "pandoc-$env:PANDOC_VERSION"
@@ -497,8 +494,7 @@ jobs:
           # see: https://github.com/lierdakil/pandoc-crossref/releases/tag/v0.3.25a
           $crossrefName = "pandoc-crossref-Windows-X64.7z"
           $crossrefPath = Join-Path $env:RUNNER_TEMP $crossrefName
-          $crossrefUrl = "https://github.com/lierdakil/pandoc-crossref/releases/download/v$env:PANDOC_CROSSREF_VERSION/$crossrefName"
-          Invoke-WebRequest -Uri $crossrefUrl -OutFile $crossrefPath
+          & $download -Repo "lierdakil/pandoc-crossref" -Tag "v$env:PANDOC_CROSSREF_VERSION" -Name $crossrefName -OutFile $crossrefPath
           & "$env:SystemRoot\System32\tar.exe" -xf $crossrefPath -C $installPath
           if ($LASTEXITCODE -ne 0) {
               throw "tar failed to extract pandoc-crossref with exit code $LASTEXITCODE"
@@ -531,8 +527,8 @@ jobs:
           $doxybookName = "doxybook2-windows-win64-v$env:DOXYBOOK2_VERSION.zip"
           $doxybookPath = Join-Path $env:RUNNER_TEMP $doxybookName
           $doxybookExtract = Join-Path $env:RUNNER_TEMP "doxybook2-$env:DOXYBOOK2_VERSION"
-          $doxybookUrl = "https://github.com/Antonz0/doxybook2/releases/download/v$env:DOXYBOOK2_VERSION/$doxybookName"
-          Invoke-WebRequest -Uri $doxybookUrl -OutFile $doxybookPath
+          $download = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Get-GitHubReleaseAsset.ps1"
+          & $download -Repo "Antonz0/doxybook2" -Tag "v$env:DOXYBOOK2_VERSION" -Name $doxybookName -OutFile $doxybookPath
           Expand-Archive -LiteralPath $doxybookPath -DestinationPath $doxybookExtract -Force
           # devbin-win と同じく、アーカイブ内の bin を配置先とする。
           $doxybookInstall = Join-Path $doxybookExtract "bin"

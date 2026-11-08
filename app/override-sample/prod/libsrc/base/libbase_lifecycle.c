@@ -22,6 +22,8 @@
 #include <cplat/crt/path.h>
 #include <cplat/runtime/module.h>
 
+static int shutdown_completed = 0;
+
 /**
  *  @brief          ライブラリ ロード時に呼び出されます。
  */
@@ -68,7 +70,13 @@ void onLoad(void)
         }
     }
 
-    cplat_sym_loader_init(fobj_array_libbase, fobj_length_libbase, sym_loader_configpath);
+    {
+        int rc = cplat_sym_loader_init(fobj_array_libbase, fobj_length_libbase, sym_loader_configpath);
+        if ((rc != CPLAT_OK) && (rc != CPLAT_SKIPPED))
+        {
+            CPLAT_DLLMAIN_INFO_MSG("base: sym_loader initialization failed");
+        }
+    }
 }
 
 /**
@@ -77,7 +85,27 @@ void onLoad(void)
  */
 void onUnload(int process_terminating)
 {
-    (void)process_terminating;
+    /* see: https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary */
     CPLAT_DLLMAIN_INFO_MSG("base: onUnload called");
-    cplat_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase);
+#if defined(PLATFORM_WINDOWS)
+    if ((process_terminating == 0) && (shutdown_completed == 0))
+    {
+        CPLAT_DLLMAIN_INFO_MSG("base: sym_loader shutdown was not completed");
+    }
+#else
+    (void)process_terminating;
+#endif /* PLATFORM_WINDOWS */
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int base_sym_loader_shutdown(void)
+{
+    if (cplat_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase) != CPLAT_OK)
+    {
+        return BASE_ERR_UNKNOWN;
+    }
+
+    shutdown_completed = 1;
+    return BASE_OK;
 }

@@ -73,6 +73,15 @@ void WINAPI base_console_output(const char *format, ...);
 `printf` と同じ書式でコンソールに出力する関数です。  
 `liboverride` からも呼び出しています。これは、動的にロードされた拡張処理から基底ライブラリの関数を呼び出せることを示すサンプル実装です。
 
+#### 明示的アンロード前の終了
+
+`libbase` を明示的にアンロードする利用側は、通常の呼び出しコンテキストで `base_sym_loader_shutdown()` を呼び、`BASE_OK` を確認してください。  
+失敗時はアンロードせずに再試行し、成功後はアンロードまで `base_calc` と `base_sym_loader_info` を呼びません。  
+終了処理は取得や関数ポインターの利用と並行させないでください。プロセス終了時は呼び出し不要です。
+
+Windows では終了処理の未完了を明示的アンロード時に検出できれば通知しますが、フックと通知の実行は保証されません。  
+Linux の終了フックはプロセス終了と明示的アンロードを区別できないため通知しません。
+
 ### liboverride (動的ライブラリ)
 
 `liboverride.so` / `liboverride.dll` を提供します。`libbase` の `sample_func` から設定に応じて実行時にロードされます。
