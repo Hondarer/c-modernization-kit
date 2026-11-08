@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: copilot / セッション ID: 8f839972-2ad8-411b-8421-b03bde2c138a
+最終更新エージェント: grok / セッション ID: 01a1ba02-4e77-70d0-a296-9274d8ed1adf
 上流文書: `261108-source-comment-mechanical-design.md` (最終仕様)、`261108-source-comment-mechanical-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
@@ -36,11 +36,11 @@ BL-005 と BL-007 は対応済みのため、この残課題一覧には含め�
 | BL-004 | struct-meta の find_doc_tag_last() が最後の @brief を採る理由が文書化されていない | 過去 backlog からの転記 | 低 | 未着手 |
 | BL-006 | cplat の sync_linux.c にプロセス横断ロックの重複実装がある | 過去 backlog からの転記 | 中 | 未着手 |
 | BL-008 | 理由を確認できず実装コメントを記述しなかった箇所がある | 過去 backlog からの転記 | 中 | 未着手 |
-| BL-009 | 整数の範囲検査や縮小変換の検査が不足している箇所がある | 過去 backlog からの転記 | 高 | 対応済み (Windows 未検証) |
+| BL-009 | 整数の範囲検査や縮小変換の検査が不足している箇所がある | 過去 backlog からの転記 | 高 | 対応済み (Windows 局所テスト済み) |
 | BL-010 | Doxygen コメントや文書の記載と実装が一致していない箇所がある | 過去 backlog からの転記 | 中 | 未着手 |
 | BL-011 | Doxygen コメントの配置や表記が規則に従っていない箇所がある | 過去 backlog からの転記 | 低 | 未着手 |
 | BL-012 | 戻り値や失敗を検査していない箇所がある | 過去 backlog からの転記 | 中 | 未着手 |
-| BL-013 | 動作上の不具合の可能性がある箇所がある | 過去 backlog からの転記 | 高 | 対応済み (Windows 未検証) |
+| BL-013 | 動作上の不具合の可能性がある箇所がある | 過去 backlog からの転記 | 高 | 対応済み (Windows 局所テスト済み。ワーカー失敗のテストは無し) |
 | BL-014 | 到達しない分岐や冗長な実装がある | 過去 backlog からの転記 | 低 | 未着手 |
 | BL-015 | 出力引数の名前が命名規則に従っていない | 過去 backlog からの転記 | 低 | 一部対応済み |
 | BL-016 | 書式の規範に従っていない箇所がある | 過去 backlog からの転記 | 低 | 未着手 |
@@ -473,6 +473,18 @@ Table: 今回未対処のソース コメント案件の残課題
 Windows 固有処理のコンパイルと実行は未検証であり、[最新の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-024 へ引き継ぎます。  
 時刻演算は結果コードと出力値を分離し、最終結果の範囲を検査します。暗号入力はバックエンドへの変換前に上限を検査し、展開処理は入力・出力を分割して扱います。
 
+### Windows 実機の範囲検査は成功 (2026-11-09)
+
+2026-11-09 に、この Windows ホストの MSVC で局所テストを実行しました。  
+実行できたテストは、いずれも失敗 0、警告 0 です。  
+timespecTest は 17 件、compressTest は 19 件、cryptoTest は 15 件です。  
+cryptoTest は `crypto_windows.obj` をリンクし、表現できない長さの拒否と、大きな出力容量の受付を含みます。  
+時刻演算は最終結果の範囲検査とミリ秒の境界を含みます。  
+展開は長さの不一致と、途中で切れたストリームの拒否を含みます。  
+clockTest は、不足していた mock シンボルを `libmock_cplat` の再ビルドで解消したあとに 25 件が成功し、失敗時に出力を保持する検査を含みます。  
+これらの対象に内容のある `.warn` は残っていません。  
+2026-11-08 の未検証と BL-024 への引き継ぎは、当時の記録として残します。
+
 ## BL-010 Doxygen コメントや文書の記載と実装が一致していない箇所がある
 
 ### 概要と問題点
@@ -638,9 +650,9 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 今回の見送り理由: 承認された先行対処を BL-005 と BL-007 に限定したため、未対処として引き継ぎます。  
 元の課題 ID `BL-013` を維持し、記載された事象の真偽や設計意図は今回改めて検証していません。
 
-2026-11-08 の `sym_loader` 複数先の作業は、この NULL 検査を実装していません。公開の `cplat_sym_loader_resolve` は削除され、同じ未検査は件数、取得、診断、内部失敗、解放に残っています。現行の記載は `app/cplat/docs/prompts/current/261108-sym-loader-multi-target-backlog.md` の BL-001 です。行番号は、その作業後のソースに合わせました。
+2026-11-08 の `sym_loader` 複数先の作業は、この NULL 検査を実装していません。公開の `cplat_sym_loader_resolve` は削除され、同じ未検査は件数、取得、診断、内部失敗、解放に残っています。現行の記載は `app/cplat/docs/prompts/past/261108-sym-loader-multi-target-backlog.md` の BL-001 です。行番号は、その作業後のソースに合わせました。
 
-その後の [NULL 引数と資源の寿命の対策](../../../../cplat/docs/prompts/current/261108-sym-loader-null-contract-design.md) で、これらの `sym_loader` API の引数検査と結果コード、解放失敗時の保持と再試行を実装しました。Linux と Windows の局所テストで確認しました。この追記は BL-013 の他の報告に関する Windows 未検証の扱いを変更しません。
+その後の [NULL 引数と資源の寿命の対策](../../../../cplat/docs/prompts/past/261108-sym-loader-null-contract-design.md) で、これらの `sym_loader` API の引数検査と結果コード、解放失敗時の保持と再試行を実装しました。Linux と Windows の局所テストで確認しました。この追記は BL-013 の他の報告に関する Windows 未検証の扱いを変更しません。
 
 ### 影響範囲とリスク
 
@@ -658,6 +670,37 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 報告ごとの変更内容は同文書の「全報告の対処対応表」、局所検証は [検討記録](261108-source-comment-correctness-discussion.md) の「実装と検証の結果」に対応付けています。  
 Windows 固有処理のコンパイルと実行は未検証であり、[最新の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-024 へ引き継ぎます。  
 シンボル解決・解放の結果コード化、syslog の排他、受信認証エラーの分類、一時ファイルの後始末、Windows のソケット複製、文字列の完全出力、部分読み取りエラーの通知、および基盤エラーの補正を実施しました。isatty の報告は、GetFileType の失敗が FILE_TYPE_UNKNOWN となって判定結果が 0 になるため、戻り値の不具合は不成立と判断し、実装を変更していません。
+
+### Windows 実機の動作確認は成功し、失敗シナリオは未実施 (2026-11-09)
+
+2026-11-09 に、この Windows ホストの MSVC で局所テストを実行しました。  
+実行できたテストは、いずれも失敗 0、警告 0 です。  
+resultTest は 6 件です。  
+`windows_buffer_errors_keep_their_distinct_meanings` は、`ERROR_INSUFFICIENT_BUFFER` を `ERANGE` へ対応付け、名前の長さの誤りを `ENAMETOOLONG` のままにします。  
+`windows_unsupported_errors_map_to_unsupported` も成功しています。  
+errorMessageTest は 7 件、endpointTest は 17 件、unistdTest は 23 件です。  
+endpointTest の `parse_propagates_startup_failure_without_updating_address` は、Winsock の初期化失敗をアドレスへ反映せずに伝えます。  
+この実行では `endpoint_windows.c` の全行が実行されました。  
+同じ日の cryptoTest 15 件には、改ざんした暗号文と異なる鍵を `CPLAT_ERR_AUTHENTICATION_FAILED` で拒否する検査が含まれます。  
+unistdTest は、標準ストリーム以外が 0 を返す検査と、実在する標準ハンドルが 0 または 1 を返す検査を含みます。  
+この単体テストは、標準ハンドルが NULL になる状態を注入していません。  
+`unistd.c` の `INVALID_HANDLE_VALUE` で戻る行は、この実行では実行されていません。  
+実装は NULL を `INVALID_HANDLE_VALUE` と区別せず、`GetFileType` へ渡します。  
+このホストで `GetFileType(NULL)` の戻り値は 0 であり、`FILE_TYPE_UNKNOWN` と一致しました。  
+同時に取得した `GetLastError` は 6 (`ERROR_INVALID_HANDLE`) です。  
+`FILE_TYPE_CHAR` は 2 なので、この比較は偽です。  
+比較が偽なので `GetConsoleMode` は呼ばれず、戻り値は 0 です。  
+このプロセスの標準入力ハンドルは NULL ではありません。  
+観察は `GetFileType` へ NULL を直接渡した結果です。  
+報告された戻り値の不具合は、このホストの観察でも不成立です。  
+実装は変更していません。  
+symLoaderDisposeTest は `test.stamp` を削除して再実行し、5 件が成功しました。  
+tcpServerPreforkTest の逐次処理は 564 [ms]、多重処理は 1279 [ms] で、いずれも成功しました。  
+ワーカーの途中終了、名前付きパイプの失敗、ソケット復元の失敗を確認するテストは `app/porter/test` に無く、未実施です。  
+errorMessageTest、endpointTest、unistdTest は、不足していた mock シンボルを `libmock_cplat` の再ビルドで解消したあとに成功しています。  
+これらの対象に内容のある `.warn` は残っていません。  
+2026-11-08 の未検証と BL-024 への引き継ぎは、当時の記録として残します。  
+`261108-source-comment-correctness-backlog.md` の BL-024 にある Windows 未検証の記載は、このファイルでは変更していません。
 
 ## BL-014 到達しない分岐や冗長な実装がある
 
