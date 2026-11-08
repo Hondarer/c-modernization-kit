@@ -411,7 +411,7 @@ Table: 正しさの対処後に残る課題
     - `app/cplat/prod/include/cplat/mmap/mmap.h:80`: マップ結果のサイズが 0 のとき CPLAT_ERR_UNKNOWN を返すと記載している。mmap_linux.c:148 と mmap_windows.c:151 は EINVAL を渡し、CPLAT_ERR_INVALID_ARGUMENT になる。同ヘッダー 67 行目の、create_size が 0 のとき INVALID_ARGUMENT になるという記載は実装と一致する。
     - `app/cplat/prod/include/cplat/trace/tracer.h:1149`: cplat_tracer_write_hex の仮引数 message を cplat_tracer_hex_sep() と cplat_tracer_hex_msg() で 2 回評価している。規範は仮引数の評価を高々 1 回とし、残す場合は Doxygen に副作用のある実引数を渡さない旨を書くことを求めている。
     - `app/cplat/prod/libsrc/cplat/base/error.c:687`: 宣言は不正なドメインで CPLAT_ERR_INVALID_ARGUMENT を返すと定める。実装は NULL と CPLAT_ERROR_DOMAIN_NONE 以外のドメインを検査せず、error->result を返す。
-    - `app/cplat/prod/libsrc/cplat/compress/compress.c:122`: 出力が尽きて deflate が Z_STREAM_END 以外になったとき CPLAT_ERR_UNKNOWN を返す。機能仕様 CPLAT-COMPRESS-FUNC-002 は容量不足の通知を求めている。
+    - `app/cplat/prod/libsrc/cplat/compress/compress.c:122`: 出力が尽きて deflate が Z_STREAM_END 以外になったとき CPLAT_ERR_UNKNOWN を返す。機能仕様 `CPLAT-COMPRESS-FUNC-002` <!-- cplat-req: uuid=7bb7c876-6877-4159-afd3-51955f4d7d45 --> は容量不足の通知を求めている。
     - `app/cplat/prod/libsrc/cplat/console/console.c:664`: 実装コメント内に `(README.md 参照)` と記載されているが、`app/cplat/README.md` に該当する説明が存在しない。
     - `app/cplat/prod/libsrc/cplat/hashtable/hashtable_validate.c:248`: レコード状態 REC_IN_USE について「実装中または削除済みなのに、どのバケットからも辿れない。」と記述されており、機能仕様書や他のソースでの用語「使用中」との揺れがある。
     - `app/cplat/prod/libsrc/cplat/runtime/elevated_process.c:974`: 報告先パスが配列より長いとき、末尾を切り捨てて s_result_target_path へ保存し、検出済みとして CPLAT_OK を返す。切り捨て後のパスは渡されたパスと異なる。ヘッダーは常に CPLAT_OK を返すとだけ定め、切り捨ては記載していない。

@@ -270,70 +270,73 @@ static char *collapse_ws(const char *begin, const char *end)
     return out;
 }
 
-static const char *find_doc_tag_last(const char *text, const char *tag)
+static char *extract_brief_tag(const char *stripped)
 {
-    const char *found = NULL;
-    const char *p = text;
+    const char *cursor = stripped;
+    char *brief = NULL;
 
     for (;;)
     {
-        const char *hit = find_doc_tag(p, tag);
-        if (hit == NULL)
+        const char *tag = find_doc_tag(cursor, "brief");
+        const char *begin;
+        const char *end;
+        const char *nonspace;
+        char *part;
+
+        if (tag == NULL)
         {
-            return found;
+            return brief;
         }
 
-        found = hit;
-        p = hit + 1; /* 同じタグを再び見つけないよう 1 文字進める */
-    }
-}
+        begin = tag + (sizeof("@brief") - 1U); /* sizeof は終端の NUL を含むため 1 を引く */
+        end = begin;
 
-static char *extract_brief_tag(const char *stripped)
-{
-    const char *tag = find_doc_tag_last(stripped, "brief");
-    const char *p;
-    const char *begin;
-    const char *end;
-
-    if (tag == NULL)
-    {
-        return NULL;
-    }
-
-    p = tag + (sizeof("@brief") - 1U); /* sizeof は終端の NUL を含むため 1 を引く */
-    while ((*p != '\0') && (isspace((unsigned char)*p) != 0))
-    {
-        p++;
-    }
-
-    /* @brief の本文は複数行にまたがることがあるため、次の行頭が '@' で始まる位置か終端までを範囲とする。 */
-    begin = p;
-    end = p;
-    while (*end != '\0')
-    {
-        if (*end == '\n')
+        /* 各 @brief の本文は、次の行頭が '@' で始まる位置か終端までを範囲とする。 */
+        while (*end != '\0')
         {
-            const char *next = end + 1;
-            while ((*next == ' ') || (*next == '\t'))
+            if (*end == '\n')
             {
-                next++;
+                const char *next = end + 1;
+                while ((*next == ' ') || (*next == '\t'))
+                {
+                    next++;
+                }
+
+                if ((*next == '@') || (*next == '\0'))
+                {
+                    break;
+                }
             }
 
-            if (*next == '@')
+            end++;
+        }
+
+        part = collapse_ws(begin, end);
+        if (part == NULL)
+        {
+            nonspace = begin;
+            while ((nonspace < end) && (isspace((unsigned char)*nonspace) != 0))
             {
-                break;
+                nonspace++;
             }
 
-            if (*next == '\0')
+            if (nonspace < end)
             {
-                break;
+                free(brief);
+                return NULL;
+            }
+        }
+        else
+        {
+            brief = struct_meta_internal_parse_doc_concat(brief, part);
+            if (brief == NULL)
+            {
+                return NULL;
             }
         }
 
-        end++;
+        cursor = end;
     }
-
-    return collapse_ws(begin, end);
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -660,7 +663,7 @@ char *struct_meta_internal_parse_brief_from_doc(const char *raw, int is_postfix)
         return NULL;
     }
 
-    brief = extract_brief_tag(without_meta); /* 複数あるときは最後の @brief を使う */
+    brief = extract_brief_tag(without_meta);
     if ((brief == NULL) && (is_postfix != 0))
     {
         brief = collapse_ws(without_meta, without_meta + strlen(without_meta));

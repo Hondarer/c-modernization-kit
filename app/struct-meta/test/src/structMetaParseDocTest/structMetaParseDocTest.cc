@@ -1,8 +1,82 @@
 #include <testfw.h>
 
+#include <cstdlib>
+
 extern "C"
 {
 #include "doc.h"
+}
+
+// 同じコメント内の複数の brief が記載順に連結されることの確認
+TEST(structMetaParseDocTest, joins_brief_tags_in_source_order)
+{
+    // Arrange
+    const char comment[] = "/**\n"
+                           " * @brief 最初の  説明です。\n"
+                           " *   続きです。\n"
+                           " * @note 注記です。\n"
+                           " * @brief 次の説明です。\n"
+                           " */";
+
+    // Pre-Assert
+
+    // Act
+    char *actual = struct_meta_internal_parse_brief_from_doc(
+        comment, 0); // [手順] - 2 個の @brief と別タグを含むコメントから説明を取り出す。
+
+    // Assert
+    EXPECT_STREQ("最初の 説明です。 続きです。\n次の説明です。",
+                 actual); // [確認_正常系] - 2 個の @brief の本文が改行で連結され、注記が含まれないこと。
+
+    // Cleanup
+    std::free(actual);
+}
+
+// 空の brief を除き、本文のある brief だけを返すことの確認
+TEST(structMetaParseDocTest, ignores_empty_brief_tag)
+{
+    // Arrange
+    const char comment[] = "/**\n"
+                           " * @brief\n"
+                           " * @brief 有効な説明です。\n"
+                           " */";
+
+    // Pre-Assert
+
+    // Act
+    char *actual = struct_meta_internal_parse_brief_from_doc(
+        comment, 0); // [手順] - 空の @brief と本文のある @brief を含むコメントから説明を取り出す。
+
+    // Assert
+    EXPECT_STREQ("有効な説明です。",
+                 actual); // [確認_正常系] - 空の @brief が除かれ、本文のある @brief だけが返ること。
+
+    // Cleanup
+    std::free(actual);
+}
+
+// 文中の表記と前方一致する別タグを brief として扱わないことの確認
+TEST(structMetaParseDocTest, ignores_non_brief_tags)
+{
+    // Arrange
+    const char comment[] = "/**\n"
+                           " * @briefly 別タグです。\n"
+                           " * 文中の @brief はタグではありません。\n"
+                           " * @brief 正しい説明です。\n"
+                           " */";
+
+    // Pre-Assert
+
+    // Act
+    char *actual = struct_meta_internal_parse_brief_from_doc(
+        comment, 0); // [手順] - 別タグと文中の表記を含むコメントから説明を取り出す。
+
+    // Assert
+    EXPECT_STREQ("正しい説明です。",
+                 actual); // [確認_正常系] - 行頭の @brief だけの本文が返ること。
+
+    // Cleanup
+    std::free(actual);
 }
 
 // 後置コメント内の汎用属性を解析し、brief から除外してキーと値を取得できることの確認
