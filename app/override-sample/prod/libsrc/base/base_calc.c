@@ -19,6 +19,7 @@
 int base_calc(const int a, const int b, int *result)
 {
     size_t count;
+    void *address;
     base_calc_fn fp;
 
     if (result == NULL)
@@ -29,7 +30,10 @@ int base_calc(const int a, const int b, int *result)
     /*
      * 移譲先が 1 件以上なら先頭だけを呼び、0 件なら組み込みの加算を行う。
      */
-    count = cplat_sym_loader_count(pfo_base_calc);
+    if (cplat_sym_loader_count(pfo_base_calc, &count) != CPLAT_OK)
+    {
+        return BASE_ERR_UNKNOWN;
+    }
 
     if (count == 0)
     {
@@ -38,7 +42,11 @@ int base_calc(const int a, const int b, int *result)
         return BASE_OK;
     }
 
+    if (cplat_sym_loader_get(pfo_base_calc, 0u, &address) != CPLAT_OK)
+    {
+        return BASE_ERR_UNKNOWN;
+    }
     base_console_output("base_calc: 差し替え実装が見つかりました。差し替え実装に移譲します\n");
-    fp = cplat_sym_loader_get_as(pfo_base_calc, 0, base_calc_fn);
+    fp = (base_calc_fn)address;
     return fp(a, b, result);
 }

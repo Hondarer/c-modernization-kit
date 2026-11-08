@@ -55,6 +55,7 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインター。NULL を渡してはなりません。
      *  @return         成功時は @ref BASE_OK を返します。
      *  @return         @p result が NULL の場合は @ref BASE_ERR_INVALID_ARGUMENT を返します。
+     *  @return         移譲先の取得に失敗した場合は @ref BASE_ERR_UNKNOWN を返し、結果を変更しません。
      *
      *  既定の実装は a + b を計算して @p result に格納します。\n
      *  設定ファイルに差し替えキー `base_calc` が定義されている場合は、
@@ -95,6 +96,20 @@ extern "C"
      *  本関数と同じ共有状態へアクセスする API の呼び出しを、呼び出し側で直列化してください。
      */
     BASE_EXPORT extern int BASE_API base_sym_loader_info(void);
+
+    /**
+     *  @brief          明示的アンロードの前に移譲先を解放します。
+     *
+     *  通常の呼び出しコンテキストで実行します。失敗時はアンロードせず再試行してください。\n
+     *  成功後はアンロードまで base_calc と情報表示を呼び出さないでください。\n
+     *  プロセス終了時は呼び出し不要です。
+     *
+     *  @return         成功時は @ref BASE_OK 、解放失敗時は @ref BASE_ERR_UNKNOWN を返します。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフではありません。同一エントリを使用する処理と並行して呼び出さないでください。
+     */
+    BASE_EXPORT extern int BASE_API base_sym_loader_shutdown(void);
 
 #ifdef __cplusplus
 }

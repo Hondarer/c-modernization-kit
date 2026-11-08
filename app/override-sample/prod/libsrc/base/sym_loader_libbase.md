@@ -4,13 +4,13 @@
 
 `sym_loader_libbase.h` / `sym_loader_libbase.c` は、`base` ライブラリが管理するオーバーライド対応関数の **cplat_sym_loader_entry 実体と、それに紐付く型・変数の宣言** を提供します。
 
-`sym_loader` の汎用機能 (`cplat_sym_loader_init`, `cplat_sym_loader_count`, `cplat_sym_loader_get`, `cplat_sym_loader_dispose` など) は `base/base_spec.h` で定義されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群へ接続する役割を担います。
+`sym_loader` の汎用機能は `cplat/runtime/sym_loader.h` で宣言されています。`sym_loader_libbase.h` / `sym_loader_libbase.c` はそれを `base` 固有の関数群へ接続する役割を担います。
 
 ## ファイルの責務
 
 | ファイル | 責務 |
 |---|---|
-| `sym_loader_libbase.h` | 関数ポインター型の `typedef`、`cplat_sym_loader_entry` ポインター・配列・設定ファイル パスの `extern` 宣言 |
+| `sym_loader_libbase.h` | `cplat_sym_loader_entry` ポインター・配列・設定ファイル パスの `extern` 宣言 |
 | `sym_loader_libbase.c` | `cplat_sym_loader_entry` 実体の定義、配列・要素数・設定ファイル パスの実体定義、`base_sym_loader_info()` の実装 |
 
 Table: sym_loader_libbase 構成ファイルの責務
@@ -20,13 +20,13 @@ Table: sym_loader_libbase 構成ファイルの責務
 ## 利用側との関係
 
 ```text
-sample_func.c  (呼び出し元)
-    |  cplat_sym_loader_get_as(pfo_sample_func, 0, sample_func_fn)
-    +---> sym_loader_libbase.h の extern 宣言 (pfo_sample_func)
+base_calc.c  (呼び出し元)
+    |  cplat_sym_loader_get(pfo_base_calc, 0, &address)
+    +---> sym_loader_libbase.h の extern 宣言 (pfo_base_calc)
               |
-              sym_loader_libbase.c の実体 (sfo_sample_func)
+              sym_loader_libbase.c の実体 (sfo_base_calc)
 
-dllmain_libbase.c  (初期化・解放)
+libbase_lifecycle.c  (初期化・明示的な終了)
     |  cplat_sym_loader_init(fobj_array_libbase, fobj_length_libbase, sym_loader_configpath)
     |  cplat_sym_loader_dispose(fobj_array_libbase, fobj_length_libbase)
     +---> sym_loader_libbase.h の extern 宣言 (fobj_array_libbase, fobj_length_libbase, sym_loader_configpath)
@@ -38,14 +38,12 @@ dllmain_libbase.c  (初期化・解放)
 
 ## オーバーライド対応関数を追加する場合の作業
 
-`sample_func` に相当する新しい関数 `new_func` を追加する場合の手順です。
+`base_calc` に相当する新しい関数 `new_func` を追加する場合の手順です。
 
 ### sym_loader_libbase.h への追加
 
-次の 2 点を追記します。
-
-- `new_func` に対応する関数ポインター型の `typedef`
-- その cplat_sym_loader_entry へのポインターの `extern` 宣言
+`new_func` に対応する cplat_sym_loader_entry ポインターの `extern` 宣言を追記します。  
+関数ポインター型の `typedef` は公開ヘッダーに定義します。
 
 ### sym_loader_libbase.c への追加
 
@@ -58,7 +56,7 @@ dllmain_libbase.c  (初期化・解放)
 
 ### 呼び出し元となる .c ファイルの作成・修正
 
-`new_func` の実装ファイルで、`cplat_sym_loader_count` と `cplat_sym_loader_get_as` を使用して関数ポインターを取得し、オーバーライド処理または既定の処理に分岐させます。`sample_func.c` を参照してください。
+`new_func` の実装ファイルで、`cplat_sym_loader_count` と `cplat_sym_loader_get` の成功を確認し、取得したアドレスを関数ポインター型へ変換します。移譲先が 0 件の場合は既定の処理へ分岐します。`base_calc.c` を参照してください。
 
 ### オーバーライド側ライブラリへの追加
 
@@ -70,7 +68,7 @@ dllmain_libbase.c  (初期化・解放)
 >
 > ```text
 > new_func (libbase)
-> +- cplat_sym_loader_get_as でオーバーライド関数を取得
+> +- cplat_sym_loader_get でオーバーライド関数を取得
 > +- new_override_func (liboverride) を呼び出す
 >    +- new_func (libbase) を呼び出す <- 無限再帰
 > ```
@@ -81,7 +79,7 @@ dllmain_libbase.c  (初期化・解放)
 
 | ファイル | 作業 |
 |---|---|
-| `sym_loader_libbase.h` | 型定義・extern 宣言を追加 |
+| `sym_loader_libbase.h` | extern 宣言を追加 |
 | `sym_loader_libbase.c` | 実体定義・配列エントリを追加 |
 | `libsrc/base/new_func.c` (新規) | sym_loader を使ったオーバーライド対応の実装 |
 | `libsrc/override/new_override_func.c` (新規) | オーバーライド実装 |
