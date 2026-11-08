@@ -66,7 +66,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: pthread_mutex_lock(3p)、pthread_cond_timedwait(3p) の ERRORS 節
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-003 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-003 です。
 
 ## BL-004 struct-meta の find_doc_tag_last() が最後の @brief を採る理由が文書化されていない
 
@@ -94,7 +94,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: `app/struct-meta/docs/architecture.md`
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-004 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-004 です。
 
 ## BL-006 cplat の sync_linux.c にプロセス横断ロックの重複実装がある
 
@@ -122,7 +122,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: `app/cplat/prod/libsrc/cplat/sync/sync_linux.c`
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-006 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-006 です。
 
 ## BL-008 理由を確認できず実装コメントを記述しなかった箇所がある
 
@@ -344,7 +344,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md) の「実装コメント」節
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-008 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-008 です。
 
 ## BL-010 Doxygen コメントや文書の記載と実装が一致していない箇所がある
 
@@ -395,7 +395,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [app 向け Doxygen コメント](../../doxygen-comment-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-010 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-010 です。
 
 ## BL-011 Doxygen コメントの配置や表記が規則に従っていない箇所がある
 
@@ -432,7 +432,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [app 向け Doxygen コメント](../../doxygen-comment-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-011 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-011 です。
 
 ## BL-012 戻り値や失敗を検査していない箇所がある
 
@@ -476,7 +476,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md) の「実装コメント」節
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-012 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-012 です。
 
 ## BL-014 到達しない分岐や冗長な実装がある
 
@@ -518,7 +518,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-014 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-014 です。
 
 ## BL-015 出力引数の名前が命名規則に従っていない
 
@@ -587,7 +587,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-015 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-015 です。
 
 ## BL-016 書式の規範に従っていない箇所がある
 
@@ -654,7 +654,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)、[#else と #endif のコメント](../../fix-if-comments.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-016 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-016 です。
 
 ## BL-017 定義側の値渡し引数に const がない
 
@@ -701,7 +701,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-017 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-017 です。
 
 ## BL-018 メモリ確保の書き方や標準関数の直接使用が規範に従っていない
 
@@ -746,7 +746,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-018 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-018 です。
 
 ## BL-019 識別子の命名やマジック ナンバーが規範に従っていない
 
@@ -786,7 +786,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-019 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-019 です。
 
 ## BL-020 公開ヘッダーとマクロの定義が規範に従っていない箇所がある
 
@@ -818,7 +818,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: [コーディング規範](../../coding-guideline.md)
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-020 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-020 です。
 
 ## BL-021 サンプル app の記述が規範と異なる箇所がある
 
@@ -857,7 +857,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: 各 app の README.md
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-021 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-021 です。
 
 ## BL-022 struct-meta-gen が生成するコメントが実装コメント規範に従っていない
 
@@ -891,7 +891,7 @@ Table: 今回の対処後に残る課題
 - **参考情報**: `app/struct-meta/docs/architecture.md`
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-022 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-022 です。
 
 ## BL-024 Windows 実機で変更した ABI とソケット受け渡しを検証する
 
@@ -914,7 +914,7 @@ Windows 向けの共通単体テスト、モジュールとロックの実資源
 Windows 実行環境がないためです。テストを用意したことや Linux の条件付きビルドだけを、Windows の動作確認の代わりには扱いません。
 
 今回の見送り理由: 承認された対象を BL-001・BL-002 に限定したため、未対処として引き継ぎます。  
-転記元: [前回の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-024 です。
+転記元: [前回の残課題一覧](../past/261108-source-comment-correctness-backlog.md) の BL-024 です。
 
 ## BL-025 TCP 双方向 N:1 通信の実施要否を判断する
 

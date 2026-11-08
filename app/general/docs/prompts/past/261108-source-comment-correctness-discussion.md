@@ -58,7 +58,7 @@
 前案件における Git 書き込み操作の許可は前案件に対する単発の許可であり、本案件におけるステージング、コミット、アンステージ、スタッシュなどの Git 操作の許可には当たりません。  
 また、前案件でユーザーが示した「先に機械的にできることだけを対処する」という意向は前案件の対象選定で採用した要求として記録し、残る項目の優先対象は、[Q-001](#q-001-次の優先対処対象の選定) で改めて方針を確認します。
 
-第 1 ゲート通過前の現段階において書き込み可能なファイルは、この検討用 Markdown (`app/general/docs/prompts/current/261108-source-comment-correctness-discussion.md`) のみです。  
+第 1 ゲート通過前の現段階において書き込み可能なファイルは、この検討用 Markdown (`app/general/docs/prompts/past/261108-source-comment-correctness-discussion.md`) のみです。  
 既存の残課題一覧 ([261108-source-comment-mechanical-backlog.md](../past/261108-source-comment-mechanical-backlog.md))、C ソース コード、ヘッダー、および正本文書の変更やビルド・テストの実行は行いません。
 
 | 資料・規範 | 参照目的 |

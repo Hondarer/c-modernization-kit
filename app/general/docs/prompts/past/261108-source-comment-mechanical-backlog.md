@@ -84,7 +84,7 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-002 cplat の読み書きロックのパディング メンバーが命名規則に従っていない
 
@@ -113,7 +113,7 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-003 cplat の map_wait_rc() が EACCES を使用中に対応付ける理由が不明
 
@@ -142,7 +142,7 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-004 struct-meta の find_doc_tag_last() が最後の @brief を採る理由が文書化されていない
 
@@ -171,7 +171,7 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-006 cplat の sync_linux.c にプロセス横断ロックの重複実装がある
 
@@ -200,7 +200,7 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-008 理由を確認できず実装コメントを記述しなかった箇所がある
 
@@ -423,7 +423,7 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-009 整数の範囲検査や縮小変換の検査が不足している箇所がある
 
@@ -468,9 +468,9 @@ Table: 今回未対処のソース コメント案件の残課題
 
 ### 正しさの対処 (2026-11-08)
 
-[API 改善の最終仕様](../current/261108-source-comment-correctness-design.md) に従い、この項目の全 16 報告に対処しました。  
-報告ごとの変更内容は同文書の「全報告の対処対応表」、局所検証は [検討記録](../current/261108-source-comment-correctness-discussion.md) の「実装と検証の結果」に対応付けています。  
-Windows 固有処理のコンパイルと実行は未検証であり、[最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の BL-024 へ引き継ぎます。  
+[API 改善の最終仕様](261108-source-comment-correctness-design.md) に従い、この項目の全 16 報告に対処しました。  
+報告ごとの変更内容は同文書の「全報告の対処対応表」、局所検証は [検討記録](261108-source-comment-correctness-discussion.md) の「実装と検証の結果」に対応付けています。  
+Windows 固有処理のコンパイルと実行は未検証であり、[最新の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-024 へ引き継ぎます。  
 時刻演算は結果コードと出力値を分離し、最終結果の範囲を検査します。暗号入力はバックエンドへの変換前に上限を検査し、展開処理は入力・出力を分割して扱います。
 
 ## BL-010 Doxygen コメントや文書の記載と実装が一致していない箇所がある
@@ -523,7 +523,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-011 Doxygen コメントの配置や表記が規則に従っていない箇所がある
 
@@ -561,7 +561,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-012 戻り値や失敗を検査していない箇所がある
 
@@ -606,7 +606,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-013 動作上の不具合の可能性がある箇所がある
 
@@ -652,9 +652,9 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 正しさの対処 (2026-11-08)
 
-[API 改善の最終仕様](../current/261108-source-comment-correctness-design.md) に従い、この項目の全 16 報告に対処しました。  
-報告ごとの変更内容は同文書の「全報告の対処対応表」、局所検証は [検討記録](../current/261108-source-comment-correctness-discussion.md) の「実装と検証の結果」に対応付けています。  
-Windows 固有処理のコンパイルと実行は未検証であり、[最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の BL-024 へ引き継ぎます。  
+[API 改善の最終仕様](261108-source-comment-correctness-design.md) に従い、この項目の全 16 報告に対処しました。  
+報告ごとの変更内容は同文書の「全報告の対処対応表」、局所検証は [検討記録](261108-source-comment-correctness-discussion.md) の「実装と検証の結果」に対応付けています。  
+Windows 固有処理のコンパイルと実行は未検証であり、[最新の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-024 へ引き継ぎます。  
 シンボル解決・解放の結果コード化、syslog の排他、受信認証エラーの分類、一時ファイルの後始末、Windows のソケット複製、文字列の完全出力、部分読み取りエラーの通知、および基盤エラーの補正を実施しました。isatty の報告は、GetFileType の失敗が FILE_TYPE_UNKNOWN となって判定結果が 0 になるため、戻り値の不具合は不成立と判断し、実装を変更していません。
 
 ## BL-014 到達しない分岐や冗長な実装がある
@@ -698,7 +698,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-015 出力引数の名前が命名規則に従っていない
 
@@ -771,7 +771,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 元の 42 報告は保持しています。このうち `cplat_decompress` の実出力長とヘッダーの宣言長を比較しない報告を対処しました。  
 宣言長不一致を `CPLAT_ERR_CORRUPT_DATA` で拒否し、宣言長を超える出力を小さな作業領域へ受けて呼び出し元の出力領域を保護します。  
-残る 41 報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の BL-015 へ引き継ぎます。
+残る 41 報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の BL-015 へ引き継ぎます。
 
 ## BL-016 書式の規範に従っていない箇所がある
 
@@ -839,7 +839,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-017 定義側の値渡し引数に const がない
 
@@ -887,7 +887,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-018 メモリ確保の書き方や標準関数の直接使用が規範に従っていない
 
@@ -933,7 +933,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-019 識別子の命名やマジック ナンバーが規範に従っていない
 
@@ -974,7 +974,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-020 公開ヘッダーとマクロの定義が規範に従っていない箇所がある
 
@@ -1007,7 +1007,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-021 サンプル app の記述が規範と異なる箇所がある
 
@@ -1047,7 +1047,7 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
 
 ## BL-022 struct-meta-gen が生成するコメントが実装コメント規範に従っていない
 
@@ -1082,4 +1082,4 @@ Windows 固有処理のコンパイルと実行は未検証であり、[最新�
 
 ### 継続先 (2026-11-08)
 
-未対処の報告を [最新の残課題一覧](../current/261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。
+未対処の報告を [最新の残課題一覧](261108-source-comment-correctness-backlog.md) の同じ課題 ID へ引き継ぎました。

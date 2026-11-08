@@ -2,7 +2,7 @@
 生成元: agree-before-implement スキル
 文書種別: 検討用 Markdown (discussion)
 最終更新エージェント: codex
-対処元: 261108-source-comment-correctness-backlog.md
+対処元: ../past/261108-source-comment-correctness-backlog.md
 下流文書: 261108-source-comment-cleanup-design.md (最終仕様)、261108-source-comment-cleanup-backlog.md (残課題一覧)。
 再開手順: agree-before-implement スキルを読み、ユーザーが編集した最新版を読み直してください。作業 WBS の CURRENT の項目から再開し、対象ファイルと差分から実施済みの範囲を確認してください。最終仕様の承認前は対象ソースを変更しません。
 -->
@@ -70,8 +70,8 @@ BL-002 の構造体は `cplat_calloc(1, sizeof(*new_lock))` で確保されて�
 参照版は、このセッションで確認した作業ツリーです。  
 開始時の `git status --short` に変更はありませんでした。
 
-- [元の残課題一覧](261108-source-comment-correctness-backlog.md): BL-001・BL-002 と全 19 課題の一覧。
-- [元の最終仕様](261108-source-comment-correctness-design.md): 前回の対処範囲。
+- [元の残課題一覧](../past/261108-source-comment-correctness-backlog.md): BL-001・BL-002 と全 19 課題の一覧。
+- [元の最終仕様](../past/261108-source-comment-correctness-design.md): 前回の対処範囲。
 - [コーディング規範](../../coding-guideline.md): 実装コメント、明示的なパディング メンバー。
 - [日本語技術文書の文章規範](../../../../../framework/docsfw/docs/japanese-technical-writing-guideline.md)。
 - [Markdown 表記確認](../../../../../framework/docsfw/docs/text_style_jp.md)。

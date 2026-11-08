@@ -3,7 +3,7 @@
 文書種別: 最終仕様 (design)
 最終更新エージェント: codex
 上流文書: 261108-source-comment-cleanup-discussion.md (検討用 Markdown、合意版 3)。削除されている場合があります。
-対処元: 261108-source-comment-correctness-backlog.md
+対処元: ../past/261108-source-comment-correctness-backlog.md
 下流文書: 261108-source-comment-cleanup-backlog.md (残課題一覧)
 再開手順: agree-before-implement スキルを読み、上流文書が存在する場合は最新版と WBS を確認してください。最終仕様の承認前は対象ソースを変更しません。上流文書が存在しない場合も、この文書を単独で参照できます。
 -->
@@ -74,7 +74,7 @@ Windows 実機での ABI とソケット受け渡しの検証は、BL-024 とし
 
 ## 過去の記録を保持して残件を引き継ぐ
 
-`261108-source-comment-correctness-backlog.md` の BL-001・BL-002 は、記載を削除せず、対応済みの状態と今回の対処内容を追記します。  
+`../past/261108-source-comment-correctness-backlog.md` の BL-001・BL-002 は、記載を削除せず、対応済みの状態と今回の対処内容を追記します。  
 未対処の他 17 課題は、ID と背景を保持して `261108-source-comment-cleanup-backlog.md` へ転記します。  
 元 backlog にも、未対処項目を新しい残課題一覧へ引き継いだ経緯を追記します。  
 今回の残課題一覧には、TCP の将来予定 1 件も既存 ID と衝突しない ID で記録します。  
