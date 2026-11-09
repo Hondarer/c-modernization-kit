@@ -27,6 +27,13 @@ env:
   PANDOC_CROSSREF_VERSION: "0.3.25a"
   DOXYGEN_VERSION: "1.18.0"
   DOXYBOOK2_VERSION: "1.6.1"
+  # app/openssl の Windows ビルドが使う NASM と Strawberry Perl。
+  # SHA-256 は devbin-win が取得する配布物と同じものを照合する。
+  NASM_VERSION: "3.02"
+  NASM_SHA256: "161D0BFAFF53C2F9E9F3E69FD0672323EBABAFD1268976A5CEC11BE92A19AEE7"
+  STRAWBERRY_PERL_VERSION: "5.42.3.1"
+  STRAWBERRY_PERL_TAG: "SP_54231_64bit"
+  STRAWBERRY_PERL_SHA256: "6A081A811781C30ACA51DBC036AFD93092AF91E3297901F02C17043795A10690"
   # 埋め込み版 Python (._pth) と同じく、スクリプトのディレクトリを sys.path に入れずに
   # ビルド、テスト、文書生成を実行し、同じディレクトリの import 漏れを検出する。
   # see: app/general/docs/python-import-path-guideline.md
@@ -95,6 +102,16 @@ jobs:
 
       - name: Record make version
         run: make --version
+
+      # app/openssl の Configure は、Perl のコア モジュール IPC::Cmd と Time::Piece を使う。
+      # RPM 系では perl-interpreter に含まれないため、不足している場合だけ導入する。
+      # see: https://github.com/openssl/openssl/blob/openssl-3.5.9/NOTES-PERL.md
+      - name: Ensure Perl modules for OpenSSL Configure
+        run: |
+          if ! perl -MIPC::Cmd -MTime::Piece -e 1 2>/dev/null; then
+            dnf install -y perl-IPC-Cmd perl-Time-Piece
+          fi
+          perl -MIPC::Cmd -MTime::Piece -e 'print "IPC::Cmd $IPC::Cmd::VERSION, Time::Piece $Time::Piece::VERSION\n"'
 
       - name: Make build log directory
         run: mkdir -p logs
@@ -401,6 +418,71 @@ jobs:
           & $flexPath --version
           if ($LASTEXITCODE -ne 0) {
               throw "win_flex --version failed with exit code $LASTEXITCODE"
+          }
+        shell: pwsh
+
+      # app/openssl の Windows ビルドは、アセンブラー ソースを NASM でアセンブルする。
+      - name: Install NASM
+        run: |
+          $ErrorActionPreference = "Stop"
+          $archiveName = "nasm-$env:NASM_VERSION-win64.zip"
+          $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
+          $extractPath = Join-Path $env:RUNNER_TEMP "nasm"
+          # see: https://www.nasm.us/pub/nasm/releasebuilds/3.02/win64/
+          $url = "https://www.nasm.us/pub/nasm/releasebuilds/$env:NASM_VERSION/win64/$archiveName"
+          Invoke-WebRequest -Uri $url -OutFile $archivePath -MaximumRetryCount 3 -RetryIntervalSec 5
+
+          $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash
+          if ($actualHash -ne $env:NASM_SHA256) {
+              throw "NASM SHA-256 mismatch: expected $env:NASM_SHA256, actual $actualHash"
+          }
+
+          Expand-Archive -LiteralPath $archivePath -DestinationPath $extractPath -Force
+          $nasmExe = Get-ChildItem -LiteralPath $extractPath -Recurse -Filter nasm.exe | Select-Object -First 1
+          if (-not $nasmExe) {
+              throw "nasm.exe not found in $archiveName"
+          }
+          Add-Content -Path $env:GITHUB_PATH -Value $nasmExe.DirectoryName
+
+          & $nasmExe.FullName -v
+          if ($LASTEXITCODE -ne 0) {
+              throw "nasm -v failed with exit code $LASTEXITCODE"
+          }
+        shell: pwsh
+
+      # app/openssl の Configure は、osname が MSWin32 の Perl を strawberry-perl の名前で探す。
+      # devbin-win と同じく、perl.exe を strawberry-perl.exe に改名し、perl では起動させない。
+      # Configure に必要なのはコア モジュールだけのため、perl\bin と perl\lib だけを展開する。
+      # see: app/openssl/README.md
+      - name: Install Strawberry Perl
+        run: |
+          $ErrorActionPreference = "Stop"
+          $archiveName = "strawberry-perl-$env:STRAWBERRY_PERL_VERSION-64bit-portable.zip"
+          $archivePath = Join-Path $env:RUNNER_TEMP $archiveName
+          $installPath = Join-Path $env:RUNNER_TEMP "strawberry-perl"
+          # see: https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/tag/SP_54231_64bit
+          $download = Join-Path $env:GITHUB_WORKSPACE ".github\scripts\Get-GitHubReleaseAsset.ps1"
+          & $download -Repo "StrawberryPerl/Perl-Dist-Strawberry" -Tag $env:STRAWBERRY_PERL_TAG -Name $archiveName -OutFile $archivePath
+
+          $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash
+          if ($actualHash -ne $env:STRAWBERRY_PERL_SHA256) {
+              throw "Strawberry Perl SHA-256 mismatch: expected $env:STRAWBERRY_PERL_SHA256, actual $actualHash"
+          }
+
+          New-Item -ItemType Directory -Force -Path $installPath | Out-Null
+          # Windows 標準の tar (libarchive) で、必要なディレクトリだけを ZIP から取り出す。
+          & "$env:SystemRoot\System32\tar.exe" -xf $archivePath -C $installPath perl/bin perl/lib licenses
+          if ($LASTEXITCODE -ne 0) {
+              throw "tar failed with exit code $LASTEXITCODE"
+          }
+          $binPath = Join-Path $installPath "perl\bin"
+          Move-Item -LiteralPath (Join-Path $binPath "perl.exe") -Destination (Join-Path $binPath "strawberry-perl.exe")
+          Add-Content -Path $env:GITHUB_PATH -Value $binPath
+
+          $perlExe = Join-Path $binPath "strawberry-perl.exe"
+          & $perlExe -MConfig -MIPC::Cmd -MTime::Piece -e 'print "$Config{osname} $^V\n"'
+          if ($LASTEXITCODE -ne 0) {
+              throw "strawberry-perl failed with exit code $LASTEXITCODE"
           }
         shell: pwsh
 
