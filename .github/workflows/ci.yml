@@ -103,16 +103,6 @@ jobs:
       - name: Record make version
         run: make --version
 
-      # app/openssl の Configure は、Perl のコア モジュール IPC::Cmd と Time::Piece を使う。
-      # RPM 系では perl-interpreter に含まれないため、不足している場合だけ導入する。
-      # see: https://github.com/openssl/openssl/blob/openssl-3.5.9/NOTES-PERL.md
-      - name: Ensure Perl modules for OpenSSL Configure
-        run: |
-          if ! perl -MIPC::Cmd -MTime::Piece -e 1 2>/dev/null; then
-            dnf install -y perl-IPC-Cmd perl-Time-Piece
-          fi
-          perl -MIPC::Cmd -MTime::Piece -e 'print "IPC::Cmd $IPC::Cmd::VERSION, Time::Piece $Time::Piece::VERSION\n"'
-
       - name: Make build log directory
         run: mkdir -p logs
 
