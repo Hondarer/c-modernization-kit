@@ -37,16 +37,16 @@
     - ✅ 4.3. 変更した Markdown に `text_style_jp.py` の dry-run と整形を実行しました。
     - ✅ 4.4. 局所検証の結果を受入条件と照合しました。Windows の CI 確認は 5.0 で行います。
     - ✅ 4.5. `../past/261108-source-comment-cleanup-backlog.md` の対処した項目へ経緯を追記し、未対処の項目を `261108-source-comment-residual-backlog.md` へ転記して整理しました。
-- 🔄 5. 成果物の承認の受付 (第 3 ゲート)
-    - 🔄 5.0. 変更対象の各リポジトリをコミットし、サブモジュールを先に push して親リポジトリから CI を起動し、全ジョブの成功を確認します。 ← **CURRENT**
-    - ⏸️ 5.1. 成果物、検証結果、残課題と CI の URL を提示します。
-    - ⏸️ 5.2. 成果物に対する「承認」または「完了」を受け付けます。
+- ✅ 5. 成果物の承認の受付 (第 3 ゲート)
+    - ✅ 5.0. 変更対象の各リポジトリをコミットし、サブモジュールを先に push して親リポジトリから CI を起動し、全 6 ジョブの成功を確認しました。
+    - ✅ 5.1. 成果物、検証結果、残課題と CI の URL を確認し、この文書へ記録しました。
+    - ✅ 5.2. ユーザーの「CI がうまくいったら完了させてほしい」という条件付きの完了指示を、CI 成功後に適用しました。
 
 ## 検討の識別と書き込み範囲
 
 検討 ID: `source-comment-residual-20261108`  
 版: 4  
-状態: 局所検証完了・CI 準備中  
+状態: 完了  
 作成日: 2026-11-08 (JST)
 
 前提の検討を完了し、最終仕様を作成しました。  
@@ -760,4 +760,30 @@ bench-io は 4 KiB の最小データを使用し、stdio と mmap の測定が�
 対話操作が必要な Windows の UAC、実サービスの停止・削除、EventLog を省略した動作は、実機での確認項目として BL-024 に残します。
 
 cplat は `33a6faf4`、porter は `a84fef2` にコミットしました。  
-親リポジトリのコミットと push を行い、そのコミットで起動する CI の全ジョブの成功を待ちます。
+親リポジトリのコミットと push を行い、そのコミットで起動した CI の結果を確認しました。
+
+### CI の Windows リンク失敗と修正
+
+引数の `const` と新しい hex 出力関数の方向タグを規範に合わせ、cplat の `be6929ae` と親の `24cd5dba` に反映しました。製品ビルドと Doxygen は警告なく成功しました。  
+この親コミットの [CI #42515674326](https://github.com/Hondarer/c-modernization-kit/actions/runs/42515674326) は、追加した `sampleFilterShareClockTest` の Windows リンクで失敗しました。
+
+原因は、このテストが `mock_cplat` の通常関数を静的にリンクする一方、テスト対象の `sample_filter_share_region.c` が DLL import の宣言を使っていたことです。  
+`__imp_cplat_clock_get_monotonic_ms` を含む 13 シンボルが未解決になりました。  
+当該テストの `makepart.mk` に限り、Windows の C/C++ コンパイルへ `/DCPLAT_STATIC` を追加しました。既存の実 libcplat をリンクするテストの設定は変更していません。  
+Linux で同じ局所テストを再実行し、1 件が成功しました。Windows の修正も、最終 CI で確認しました。
+
+Windows の失敗ログにあった C4996 警告 5 箇所は、直前の成功した CI #42489410572 の同じ箇所にも存在していました。  
+発見時点では変更していなかった `structMetaPrintTest` と `structMetaSampleIoTest` の標準入出力関数が原因でした。その後のコミット `8996e31d` で cplat の API に置き換えました。Linux の対象 4 テストは成功し、[CI #42526698400](https://github.com/Hondarer/c-modernization-kit/actions/runs/42526698400) も成功しました。  
+2 個目の一時ファイル作成に失敗した場合の後始末も、コミット `64ecad68` で修正し、Linux の局所テスト 1 件が成功しました。この失敗実行では Build 後の Windows 警告アーティファクトのアップロードがスキップされました。  
+親コミット `f0737b64` の [CI #42534300171](https://github.com/Hondarer/c-modernization-kit/actions/runs/42534300171) も成功しました。
+
+### 最終 CI の結果と完了
+
+親コミット `aadbb96b` の [CI #42605427102](https://github.com/Hondarer/c-modernization-kit/actions/runs/42605427102) は、Windows、Oracle Linux 8・9・10、Pages 配置、警告集計の全 6 ジョブが成功しました。  
+各 OS のビルド、テスト、スクリプト テストが成功し、Oracle Linux 8 の文書生成と公開も成功しました。  
+警告集計ジョブとアーティファクト一覧で、各 OS のビルド警告と文書警告のアーティファクトがないことを確認しました。  
+各 OS のビルド ログにも警告を示す行は見当たりませんでした。
+
+成果物と局所検証の結果は、この文書の「反映と検証の記録」に記載しました。  
+今回対処しなかった 14 件は `261108-source-comment-residual-backlog.md` に整理しています。  
+ユーザーから CI 成功を条件とする完了指示を受けているため、CI の成功確認をもって第 3 ゲートを完了しました。

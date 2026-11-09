@@ -652,6 +652,17 @@ Table: 今回の作業から引き継ぐ残課題
 
 今回の見送り理由: 対象を BL-006、BL-010、BL-012、BL-020、BL-022 と追加の BL-027 に限定する合意のため、元の課題 ID を維持して引き継ぎます。
 
+### Windows CI で確認した C4996 警告と今回の対処
+
+成功した CI #42489410572 と、今回の CI #42515674326 の両方で、次の 5 箇所が非推奨の CRT 使用として報告されました。
+
+- `app/struct-meta/test/src/structMetaPrintTest/structMetaPrintTest.cc`: 78 行と 110 行の `tmpfile()`、134 行の `fopen()`。
+- `app/struct-meta/test/src/structMetaSampleIoTest/structMetaSampleIoTest.cc`: 23 行と 24 行の `tmpfile()`。
+
+これらは当初の修正対象外で、以前からある警告でした。警告が常態化すると新たな CRT 使用の問題を見分けにくくなるため、コミット `8996e31d` で追加対処しました。`tmpfile()` 4 箇所を `cplat_fopen_temp()` に、`fopen()` 1 箇所を `cplat_fopen()` に置き換え、一時ファイルは `cplat_remove()` で削除するようにしました。  
+変更後の `structMetaPrintTest` 3 件と `structMetaSampleIoTest` 1 件は Linux で成功し、対象ディレクトリの `.warn` に内容のあるファイルはありません。対象 5 箇所の警告が消えたかどうかは、親コミット `f0737b64` の [CI #42534300171](https://github.com/Hondarer/c-modernization-kit/actions/runs/42534300171) の Windows ビルドと警告アーティファクトで確認します。  
+`structMetaSampleIoTest` では、2 個目の一時ファイル作成に失敗すると 1 個目を閉じずにテストを終了する問題も見つかりました。コミット `64ecad68` で、失敗時に 1 個目を閉じて削除してから検査するように修正しました。変更後の局所テスト 1 件は成功しました。BL-018 には、上記以外の未対処箇所が残ります。
+
 ## BL-019 識別子の命名やマジック ナンバーが規範に従っていない
 
 ### 概要と問題点
