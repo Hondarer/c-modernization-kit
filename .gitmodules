@@ -28,3 +28,6 @@
 [submodule "app/cplat"]
 	path = app/cplat
 	url = https://github.com/Hondarer/app_cplat.git
+[submodule "app/openssl"]
+	path = app/openssl
+	url = https://github.com/Hondarer/app_openssl.git
