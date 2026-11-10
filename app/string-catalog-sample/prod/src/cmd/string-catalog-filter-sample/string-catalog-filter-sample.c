@@ -886,7 +886,7 @@ static const filter_sample_expression_example s_expression_examples[] = {
  *
  *  トレース種別のカタログでは、生成器が {40} から {45} に cplat の文脈引数を、
  *  {46} から {49} に app が定義するコンテキスト引数を割り当てます。
- *  see: app/string-catalog-sample/docs/architecture.md の「トレース種別のカタログ」
+ *  詳細は app/string-catalog-sample/docs/architecture.md の「トレース種別のカタログ」を参照してください。
  */
 #define FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST 40
 
@@ -941,7 +941,6 @@ static void print_context_table(cplat_pinned_prompt *screen)
     }
 }
 
-/** 条件式の例を表示します。例は add や edit へそのまま指定できます。 */
 /**
  *  @brief          分類値として指定できるレベルの名前と列挙値の対応を表示します。
  *

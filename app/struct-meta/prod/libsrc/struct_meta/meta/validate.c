@@ -156,6 +156,13 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
             break;
         }
 
+        if (((field->kind == STRUCT_META_FIELD_FLOAT) && (field->element_size != sizeof(float))) ||
+            ((field->kind == STRUCT_META_FIELD_DOUBLE) && (field->element_size != sizeof(double))))
+        {
+            ret = CPLAT_ERR_CORRUPT_DESCRIPTOR;
+            break;
+        }
+
         if (field->kind == STRUCT_META_FIELD_CHAR_ARRAY)
         {
             if ((field->char_buffer_size == 0U) || (field->element_count != 1U) || (field->nested != NULL))

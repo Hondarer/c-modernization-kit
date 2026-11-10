@@ -22,10 +22,8 @@ int struct_meta_internal_integer_is_supported_size(size_t element_size)
     {
         return 1;
     }
-    else
-    {
-        return 0;
-    }
+
+    return 0;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

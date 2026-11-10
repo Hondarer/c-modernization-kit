@@ -1,3 +1,4 @@
+#include <cstring>
 #include <testfw.h>
 #include <struct_meta/json/json.h>
 #include <cplat/base/result.h>
@@ -349,4 +350,91 @@ TEST(JsonDecodeTest, rejects_invalid_hex_without_partial_update)
     EXPECT_EQ(
         3,
         sample.hex_values[2]); // [確認_異常系] - sample.hex_values[2] が 3 であること。(末尾要素を更新しないことの確認)
+}
+
+// float/double の大小両方の幅不一致を直下、配列、ネストで拒否することの確認
+TEST(jsonDecodeTest, rejects_mismatched_floating_widths)
+{
+    // Arrange
+    const struct_meta_field_kind kinds[] = {STRUCT_META_FIELD_FLOAT, STRUCT_META_FIELD_DOUBLE};
+    const size_t widths[] = {sizeof(float), sizeof(double)};
+    unsigned char storage[128];
+    memset(storage, 0x5a, sizeof(storage));
+    unsigned char before[128];
+    memcpy(before, storage, sizeof(storage));
+    cJSON *json = cJSON_Parse("{\"value\":[1,2],\"nested\":{\"value\":[1,2]}}");
+    ASSERT_NE(nullptr, json); // [状態確認] - 入力 JSON を作成できること。
+
+    // Pre-Assert
+
+    for (size_t type = 0; type < 2U; type++)
+    {
+        for (size_t delta = 0; delta < 2U; delta++)
+        {
+            for (size_t count = 1; count <= 2U; count++)
+            {
+                for (size_t nested = 0; nested < 2U; nested++)
+                {
+                    // Arrange
+                    const size_t bad_widths[] = {widths[type] - 1U, widths[type] + 1U};
+                    const struct_meta_field field = {"value", kinds[type], 0,       0, bad_widths[delta], count, 0,
+                                                     nullptr, nullptr,     nullptr, 0};
+                    const struct_meta_descriptor child = {"Child", 32, &field, 1, nullptr, nullptr, 0};
+                    const struct_meta_field parent_field = {
+                        "nested", STRUCT_META_FIELD_STRUCT, 0, 0, 32, 1, 0, &child, nullptr, nullptr, 0};
+                    const struct_meta_descriptor descriptors[] = {
+                        child, {"Parent", sizeof(storage), &parent_field, 1, nullptr, nullptr, 0}};
+                    const struct_meta_descriptor *descriptor = &descriptors[nested];
+
+                    // Pre-Assert
+
+                    // Act
+                    int ret = struct_meta_json_decode(descriptor, json, storage);
+                    // [手順] - 不正幅の記述子で JSON の書き戻しを要求する (16 回)。
+
+                    // Assert
+                    EXPECT_EQ(CPLAT_ERR_CORRUPT_DESCRIPTOR, ret);
+                    // [確認_異常系 回数=2*2*2*2] - JSON の値を読む前に不正幅を拒否すること (16 件)。
+                    EXPECT_EQ(0, memcmp(before, storage, sizeof(storage)));
+                    // [確認_異常系 回数=2*2*2*2] - 書き戻し先が変わらないこと (16 件)。
+                }
+            }
+        }
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+}
+
+// 正しい幅の float と double を処理できることの確認
+TEST(jsonDecodeTest, accepts_matching_floating_widths)
+{
+    // Arrange
+    struct FloatingValues
+    {
+        float single;
+        double wide;
+    } sample = {1.5F, 2.5};
+    const struct_meta_field fields[] = {
+        {"single", STRUCT_META_FIELD_FLOAT, 0, offsetof(FloatingValues, single), sizeof(float), 1, 0, nullptr, nullptr,
+         nullptr, 0},
+        {"wide", STRUCT_META_FIELD_DOUBLE, 0, offsetof(FloatingValues, wide), sizeof(double), 1, 0, nullptr, nullptr,
+         nullptr, 0},
+    };
+    const struct_meta_descriptor descriptor = {"FloatingValues", sizeof(sample), fields, 2, nullptr, nullptr, 0};
+    cJSON *json = cJSON_Parse("{\"single\":3.5,\"wide\":4.5}");
+    ASSERT_NE(nullptr, json); // [状態確認] - 入力 JSON を作成できること。
+
+    // Pre-Assert
+
+    // Act
+    int ret = struct_meta_json_decode(&descriptor, json, &sample); // [手順] - float と double を書き戻す。
+
+    // Assert
+    EXPECT_EQ(CPLAT_OK, ret);             // [確認_正常系] - デコードに成功すること。
+    EXPECT_FLOAT_EQ(3.5F, sample.single); // [確認_正常系] - float 値が一致すること。
+    EXPECT_DOUBLE_EQ(4.5, sample.wide);   // [確認_正常系] - double 値が一致すること。
+
+    // Cleanup
+    cJSON_Delete(json);
 }

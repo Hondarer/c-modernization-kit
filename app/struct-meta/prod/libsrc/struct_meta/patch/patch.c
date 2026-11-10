@@ -225,10 +225,8 @@ static int find_field_by_name(const struct_meta_descriptor *descriptor, const ch
     {
         return CPLAT_ERR_NOT_FOUND;
     }
-    else
-    {
-        return CPLAT_OK;
-    }
+
+    return CPLAT_OK;
 }
 
 /**
@@ -473,10 +471,8 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
         {
             break;
         }
-        else
-        {
-            printf("%zu 個のバイトを2桁の16進数で空白区切りにしてください: %s\n", field->element_count, line);
-        }
+
+        printf("%zu 個のバイトを2桁の16進数で空白区切りにしてください: %s\n", field->element_count, line);
     }
 
     free(current);

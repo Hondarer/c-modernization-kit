@@ -51,7 +51,6 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
 
         if (struct_meta_internal_integer_load_signed(field_ptr, element_size, &value) != CPLAT_OK)
         {
-            snprintf(dest, dest_size, "?");
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
@@ -64,7 +63,6 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
 
         if (struct_meta_internal_integer_load_unsigned(field_ptr, element_size, &value) != CPLAT_OK)
         {
-            snprintf(dest, dest_size, "?");
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
@@ -92,7 +90,6 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
         return CPLAT_ERR_INVALID_ARGUMENT;
     case STRUCT_META_FIELD_STRUCT:
     default:
-        snprintf(dest, dest_size, "{...}");
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 }
@@ -109,11 +106,6 @@ static int print_element(const struct_meta_field *field, const unsigned char *el
 {
     if (field->kind == STRUCT_META_FIELD_STRUCT)
     {
-        if (field->nested == NULL)
-        {
-            return CPLAT_ERR_INVALID_ARGUMENT;
-        }
-
         print_indent(out, indent);
         if (fprintf(out, "%s:\n", label) < 0 || ferror(out))
         {
@@ -291,18 +283,7 @@ int struct_meta_print_write(const struct_meta_descriptor *desc, const void *inst
 
     /* 構造体名を見出しにし、フィールドは空白 2 個で字下げして表示する。 */
     print_indent(out, 0);
-    const char *name;
-
-    if (desc->name != NULL)
-    {
-        name = desc->name;
-    }
-    else
-    {
-        name = "(unnamed)";
-    }
-
-    if (fprintf(out, "%s:\n", name) < 0 || ferror(out))
+    if (fprintf(out, "%s:\n", desc->name) < 0 || ferror(out))
     {
         return CPLAT_ERR_UNKNOWN;
     }

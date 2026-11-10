@@ -14,4 +14,4 @@
  *  @remark         remark タグのテスト。使用上のヒントや補足情報を記述します。
  *  @warning        warning タグのテスト。重大なエラーや危険の回避のための警告を記述します。
  */
-void admonition_func();
+void admonition_func(void);

@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 最終仕様 (design)
-最終更新エージェント: codex
-上流文書: `261109-source-comment-remaining-discussion.md` (合意版 4)。削除されている場合があります。
+最終更新エージェント: claude code / セッション ID: session_01KJc53S9NTSL234pjuYHGV9
+上流文書: `261109-source-comment-remaining-discussion.md` (合意版 10)。削除されている場合があります。
 対処元: `../past/261109-source-comment-backlog-followup-backlog.md`
 下流文書: `261109-source-comment-remaining-backlog.md`。未作成または削除されている場合があります。
 再開手順: agree-before-implement スキルを読み、存在する上流文書の CURRENT と第 2 ゲートの承認を確認してください。承認前は対象ソースと既存文書を変更しないでください。
@@ -11,8 +11,8 @@
 # ソース コメント残課題の対処仕様
 
 検討 ID: `source-comment-remaining-20261109`  
-仕様版: 1  
-状態: 実装着手の承認待ち
+仕様版: 5  
+状態: 承認済み (2026-11-10)。実装と Windows の局所検証を完了
 
 ## 変更の目的と範囲
 
@@ -35,12 +35,117 @@
 
 Table: 課題ごとの対処範囲
 
-公開関数のシンボル、型、引数順序、呼び出し規約は維持します。  
+公開関数のシンボル、型、引数順序、呼び出し規約は維持します。ただし、Win32 UTF-8 ラッパーは「Win32 UTF-8 ラッパーの引数名を元の API に合わせる」のとおり、W 版に合わせるために型を変更します。  
 出力引数の改名は宣言、定義、Doxygen の引数名と関連する mock に反映し、公開 API の逆引き文書とエクスポート テストの整合性を確認します。  
-公開構造体とワイヤ フォーマットのレイアウトは変更しません。
+公開構造体とワイヤ フォーマットのレイアウトは変更しません。Win32 UTF-8 ラッパーのサービス エントリの構造体は、レイアウトを変えずに型名とメンバー名を変更します。
 
-Git のステージング、コミット、アンステージ、スタッシュ、全体テスト、別担当者が追跡する CI の記録更新は、この仕様の対象に含めません。  
+Git のステージング、コミット、プッシュは、局所検証の完了後にユーザーの個別の指示を受けた場合だけ行います。  
+アンステージ、スタッシュ、全体テスト、別担当者が追跡する CI の記録更新は、この仕様の対象に含めません。  
 外部 OSS と生成物は直接変更しません。
+
+## 実装前の準備
+
+対象ソースを変更する前に、この節の準備を終えます。  
+準備で変更してよいのは、残課題一覧と検討用 Markdown の進捗記録だけです。  
+準備の結果がこの仕様と合わない場合は、対象ソースを変更せずに停止し、ユーザーへ確認します。
+
+### 基準のコミットと作業ツリーを記録する
+
+変更は、ルート、`app/cplat`、`app/porter` の 3 つの Git リポジトリにまたがります。  
+calc、struct-meta、doxygen-sample、string-catalog-sample と `app/general` の文書はルート、cplat と porter はそれぞれのサブモジュールで管理しています。  
+着手時に 3 リポジトリの HEAD と未コミットの差分を記録し、今回の変更と既存の差分を区別できるようにします。
+
+| リポジトリ | 仕様策定時の HEAD | 2026-11-10 の HEAD | その間の差分 |
+| --- | --- | --- | --- |
+| ルート | `848fe699` | `7a1abf70` | CI 設定、サブモジュールの参照、この案件の文書 |
+| `app/cplat` | `a51ef9ac` | `a04a4c16` | `cryptoTest` と `randomTest` の `makepart.mk` |
+| `app/porter` | `5fa9aad0` | `e9549ec8` | 検討文書の移動 |
+
+Table: 仕様策定後に進んだコミット
+
+この差分は、今回の変更対象のソースを含みません。  
+着手時に HEAD がさらに進んでいた場合は、同じ比較をもう一度行います。
+
+対象箇所の検索には `git grep` と `git ls-files` を使い、Git の管理対象だけを調べます。  
+`test/` 配下のテスト ディレクトリには、テスト対象の製品ソースと同じ関数定義を持つ管理対象外のファイルがあります。  
+たとえば `app/cplat/test/src/libcplatTest/trace/traceCommonTest/trace_common.c` が該当します。  
+Windows の作業ツリーでは通常のファイルとして存在するため、このファイルを編集しても製品ソースは変わりません。  
+編集と照合は、`prod/` 配下の管理対象ファイルに対して行います。
+
+変更と局所検証は、リポジトリを置いている Windows の作業ツリーで行います。  
+`mmap_windows.c`、`sync_windows.c`、`win32/file_api.c`、`etw-viewer.c`、`tcpServer_windows.c` は Windows 向けのソースであり、局所検証でコンパイルされます。  
+`prompt_linux.c`、`process_priority_linux.c`、`mmap_linux.c`、`socket_linux.c`、`test/syslog_test.c` は Linux 向けのソースであり、Windows ではコンパイルされません。  
+Linux 向けのソースを変更する前に、変更する関数と行を一覧にし、CI の Linux ビルドとテストで確認する対象として残課題一覧に記録します。  
+検証結果には、実行した OS を記録します。
+
+### 元報告との照合台帳を編集前に作る
+
+ソースを編集すると行番号がさらに変わるため、元報告と現行ソースの照合は編集前に終えます。  
+対象は、BL-008 の 187 項目と、次の 162 項目です。
+
+| 課題 ID | BL-011 | BL-014 | BL-015 | BL-016 | BL-017 | BL-018 | BL-019 | BL-021 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 報告の項目数 | 9 | 14 | 41 | 39 | 19 | 17 | 12 | 11 |
+
+Table: 照合する元報告の項目数
+
+BL-011 から BL-021 にも、BL-008 と同じく元の列挙順で枝番号を付けます。  
+台帳には、枝番号、報告時のパスと行番号、現行の関数名と行番号、予定する扱い、その根拠を記録します。  
+予定する扱いは、受入時の 4 分類と同じ語で記載します。  
+台帳は残課題一覧に置き、作業の完了時に、過去の残課題一覧への追記と最終的な残件へ振り分けます。
+
+BL-008 には、他の課題の変更によって対象の文がなくなる項目と、対象の式が書き換わる項目があります。  
+台帳の作成時に、次の重なりを確認します。
+
+| 枝番号 | 報告の対象 | 重なる変更 |
+| --- | --- | --- |
+| 009 | `syslog_test` で write の戻り値を無視する理由 | BL-018 が同じ関数の FD の変換を変更します |
+| 036 | `pinned_prompt.c` の未設定の行位置 9999 の選定理由 | BL-019 が同じ値に定数名を付けます |
+| 146 | `potr_send_thread.c` の警告抑止のしきい値 10 の選定理由 | BL-016 が同じ条件式を分割します |
+| 174、176 | `print.c` で失敗時に `{...}` と `?` を書く理由 | BL-014 がこの書き込みを削除します |
+
+Table: BL-008 と他の課題が重なる項目
+
+174 と 176 は、理由を問う対象の文がなくなるため、BL-014 と一体で対処する項目へ分類を変更する候補です。  
+変更した場合、一体で対処する項目は 4、引き継ぎ候補は 164 になります。  
+009、036、146 は理由が未確定のまま引き継ぎ、台帳に変更後の位置を記録します。  
+この表にない重なりも、台帳の作成時に同じ方法で確認します。
+
+### 改名表を引数単位で確定する
+
+BL-015 と BL-019 の表は、関数群の単位で改名の方針を示しています。  
+編集前に、関数と仮引数の単位で旧名と新名を対応付けた改名表を作ります。  
+この仕様と [コーディング規範](../../coding-guideline.md) の「出力引数」から新名が 1 つに決まらない場合は、改名せずにユーザーへ確認します。
+
+改名表には、引数ごとに次の反映先の有無を記録します。
+
+- 宣言、定義、OS 別の定義。
+- Doxygen の `@param` と、本文や使用例にある引数名の参照。
+- `app/cplat/test/include/mock_cplat.h` と `app/cplat/test/libsrc/mock_cplat/` 配下の mock。
+- `app/cplat/test/libsrc/stub_cplat/` 配下の stub。
+- `app/cplat/docs/api-cheatsheet.md` と `app/cplat/docs/coding-guideline.md` の記載。
+
+公開関数の引数名を変えても型は変わりませんが、`exportTest` がコンパイルできることを確認します。
+
+### 既存テストの期待値と、仕様に記載のない反映先を確認する
+
+次の対象は、この仕様の各節に記載がありませんが、記載した変更を成立させるために同じ変更で更新します。
+
+| 対象 | 確認した事実 | 行う変更 |
+| --- | --- | --- |
+| `app/cplat/test/libsrc/stub_cplat/stub_trace_common.c` | 内部の時刻補助関数 2 個を製品ソースとは別に定義しています。`traceTest`、`trace_fileTest`、`trace_syslogTest` がこの stub をリンクします | 引数名と結果コードを、製品ソースと同じ契約へ変更します |
+| `traceCommonTest` の期待値 | 時刻解決の戻り値を 0 と -1、不正な timestamp の書式化を -1 と比較しています | 名前付きの結果コードとの比較へ変更します。時計書式化関数の結果コードがそのまま返ることを検査する 2 件の期待値は変更しません |
+| `trace/traceTest` と `trace/trace_fileTest` | 呼び出し側の `tracer.c` と `trace_file.c` を対象にするテストです。`traceTest.cc` は標準エラー出力を取り込んで検査しています | 局所検証の対象に加えます。`write_stderr_entry` を `cplat_fprintf` へ変更する前に、取り込んだ出力の検査と mock の期待値への影響を確認します |
+| `subtractTest` の `test_null_result` | 出力先が NULL でも `calcbase_add(10, -3, nullptr)` が 1 回呼ばれることを期待しています | 演算前に拒否する契約に合わせ、`calcbase_add` が呼ばれないことの検査へ変更します |
+| `mock_calcbase` の `calcbase_add` | 実関数へ委譲する処理がありません。期待動作を設定しない呼び出しは、出力先へ書き込まずに 0 を返します | mock は変更しません。境界値の検査では、期待動作のラムダが加算を行います |
+| `app/calc/prod/include/calc/calc_spec.h` | `calc_handler` は減算の結果コードをそのまま返します。戻り値の説明は、出力先の NULL と不正な演算種別だけを挙げています | 減算結果が範囲外の場合の戻り値を説明へ加えます |
+| struct-meta のテスト用記述子 | 確認した記述子は、float と double の `element_size` をメンバーの sizeof で設定しています。`json/decode.c` と `json/encode.c` には、変換時に幅を個別に確認する処理があります | 幅が一致しない既存の記述子がないことを `git grep` で確認します。個別の確認処理は、この仕様に削除の記載がないため維持します |
+| `app/porter/prod/libsrc/porter/protocol/packet.c` の解析処理 | payload_len 以外のフィールドのオフセットも数値で記述しています | 名前を付けるのは payload_len のオフセットだけとし、他のフィールドへ広げません |
+
+Table: 仕様の各節に記載のない反映先
+
+calc.net のテストには、減算の範囲外を扱う検査がないことを確認しました。  
+calc.net のソースとテストは変更しません。
 
 ## BL-008 は根拠のある理由だけを反映する
 
@@ -103,14 +208,14 @@ struct-meta の `print/print.c` では、失敗を返したときに呼び出し
 | --- | --- |
 | argparser の配列登録系と usage 取得系 | `count_out`、`required_size_out`。対応する暗黙版・明示ハンドル版を一致させる |
 | `cplat_stat` | `stat_out` |
-| 暗号鍵の導出、乱数バイト列の生成、mmap の生成 | 鍵の `key_out`、乱数の変換先 `dest`、ハンドルの `map_out` |
+| 暗号鍵の導出、乱数バイト列の生成、mmap の生成 | 鍵の `key_out`、乱数の変換先 `dest` と容量 `dest_size`、ハンドルの `map_out` |
 | 昇格プロセスの操作 | `elevated_out`、`exit_code_out`、`handled_out` |
 | メモリ ロックとプロセスの操作 | `scope_out`、`process_out`、`exit_code_out` |
 | hashtable の管理レイアウト計算 | `off_bucket_head_out`、`off_entries_out` |
 | Windows プロセスの私有補助関数 | `prepared_out`、`duplicated_out`。読み取り専用の値渡し引数には定義側 const を付与 |
 | フィルターの `lex_string`、`lex_character`、`lex_number` | トークンの格納先を `token_out` |
 | 内部の時刻解決と整形 | `resolved_out`、`fallback_used_out`、変換先の `dest` と `dest_size` |
-| Win32 UTF-8 ラッパーの報告箇所 | 文字列の変換先は `dest` または意味名、返却する数値は `written_length_out`、`serial_number_out` など。Windows ネイティブの関数名と戻り値規約を維持 |
+| Win32 UTF-8 ラッパー | 出力引数の命名規則を適用せず、元の W 版の API と同じ引数名へ変更。対象と規則は「Win32 UTF-8 ラッパーの引数名を元の API に合わせる」のとおり |
 | bench-hashtable の文字列作成と構成作成 | 文字列の `dest`、構成の `config_out` |
 | porter の送信キュー | 要素の格納先を `item_out`。対応する宣言と各取り出し関数を一致させる |
 
@@ -124,12 +229,48 @@ options を新しい解析結果の出力値とみなした改名は行わず、
 `struct_meta_path_resolve` と const 版は、引数検証と出力初期化の順序が異なるという報告だけを理由に、失敗時の出力契約を新設しません。  
 `runtime/module.c` のポインター条件と波括弧、`patch/patch.c` の不要な else は、それぞれ書式と制御構造の修正として扱います。
 
+### Win32 UTF-8 ラッパーの引数名を元の API に合わせる
+
+`app/cplat/prod/include/cplat/win32/win32.h` が公開する UTF-8 ラッパーは、W 版の API を UTF-8 の文字列で呼び出すための差し替えです。  
+W 版と U 版の違いを文字列の型だけにするため、引数名を対応する W 版の API と同じにします。  
+共通コーディング規範の「出力引数」と snake_case の命名規則は、このラッパーの引数名に適用しません。
+
+対象は、元の報告にある 4 関数を含む次の 14 関数です。
+
+- `file_api.c`: `CreateFileU`、`CreateNamedPipeU`、`GetModuleFileNameU`、`WriteConsoleU`、`GetVolumePathNameU`、`GetVolumeInformationU`。
+- `library_api.c`: `LoadLibraryU`。
+- `process_api.c`: `CreateProcessU`。
+- `service_api.c`: `OpenSCManagerU`、`CreateServiceU`、`OpenServiceU`、`ChangeServiceConfig2U`、`RegisterServiceCtrlHandlerExU`、`StartServiceCtrlDispatcherU`。
+
+引数名の根拠は、Windows SDK のヘッダーの宣言と公式リファレンスです。  
+宣言、定義、Doxygen の `@param` と本文、`mock_cplat`、`docs/api-cheatsheet.md` を同じ名前へそろえます。  
+Doxygen の説明は公式リファレンスを根拠にし、U 版に固有の差分だけを記載します。
+
+14 関数とも、引数の個数と順序は W 版と一致しています。関数名と戻り値の規約は変更しません。  
+型は次のとおりそろえます。互換性を保たない変更を含みます。
+
+| 対象 | 変更内容 |
+| --- | --- |
+| 文字列以外の引数の型の表記 | W 版の宣言と同じ表記 (`LPDWORD`、`LPVOID` など) にそろえます。ABI は変わりません |
+| 文字列の引数の型 | UTF-8 であることが分かるように、`const char *` と `char *` を維持します |
+| `ChangeServiceConfig2U` の第 3 引数 | W 版と同じ `LPVOID lpInfo` にします。`SERVICE_CONFIG_DESCRIPTION` では、`lpInfo` を `SERVICE_DESCRIPTIONA` として受け取り、`lpDescription` を UTF-8 として扱います。そのほかの情報レベルは、現行どおり `ERROR_INVALID_PARAMETER` で拒否します。`lpInfo` が NULL の場合も `ERROR_INVALID_PARAMETER` で拒否します。`lpDescription` が NULL の場合は W 版へ NULL を渡します |
+| `StartServiceCtrlDispatcherU` の構造体 | 専用の構造体を維持し、型名を `SERVICE_TABLE_ENTRYU`、メンバー名を `lpServiceName` と `lpServiceProc` にします。サービス メイン関数の型は `LPSERVICE_MAIN_FUNCTIONW` のままです |
+| `CreateProcessU` | `lpCommandLine` は `const char *`、`lpStartupInfo` は `LPSTARTUPINFOW` のまま維持し、W 版との差異を Doxygen に記載します |
+
+Table: Win32 UTF-8 ラッパーの型の扱い
+
+`ChangeServiceConfig2U` と `SERVICE_TABLE_ENTRYU` の変更に合わせて、ワークスペース内の呼び出し側 (service-sample など)、`mock_cplat`、テスト、`exportTest`、`docs/api-cheatsheet.md` を同じ変更で更新します。  
+`WriteConsoleU` が長さを UTF-8 のバイト数で扱う点など、W 版と意味が異なる引数は、W 版の名前を付けたうえで差異を Doxygen に記載します。
+
+`app/cplat/docs/coding-guideline.md` の Win32 UTF-8 ラッパーの記載に、引数名を元の API と同じにする規則と、命名規則の適用対象外であることを加えます。
+
 ### 内部の時刻補助関数を共通結果コードへそろえる
 
 `cplat_internal_trace_resolve_timestamp` は、NULL の出力先を `CPLAT_ERR_INVALID_ARGUMENT`、時刻取得の失敗を取得関数の共通結果コード、取得した時刻の不正を `CPLAT_ERR_UNKNOWN` として返します。  
 明示した時刻が不正なら現在時刻へ代替し、`fallback_used_out` を設定する既存の動作を維持します。
 
-`cplat_internal_trace_format_local_timestamp` は、不正な timestamp を `CPLAT_ERR_INVALID_ARGUMENT` とし、既存の時計書式化関数が成功した場合は `CPLAT_OK`、その書式化が失敗した場合は `CPLAT_ERR_UNKNOWN` へ変換します。  
+`cplat_internal_trace_format_local_timestamp` は、不正な timestamp を `CPLAT_ERR_INVALID_ARGUMENT` とし、それ以外は時計書式化関数の結果コードをそのまま返します。  
+時計書式化関数は、成功を `CPLAT_OK`、不正な引数を `CPLAT_ERR_INVALID_ARGUMENT`、時刻の変換または書式化の失敗を `CPLAT_ERR_UNKNOWN` で返します。  
 公開の時計書式化 API の戻り値規約は変更しません。
 
 内部共有ヘッダー、定義、tracer・file・syslog の呼び出し側、対応するテストを同時に更新し、成否は名前付きの `CPLAT_OK` と比較します。  
@@ -193,10 +334,10 @@ Table: 代替関数と失敗検査の修正対象
 | cplat の `clock/clock.c` | 2 箇所のミリ秒変換の 1000000 を既存の変換定数に集約。符号混在が生じない型で同じ変換値を使用 |
 | cplat の `crt/wchar_conv.c` と宣言側 | 変換先を `dest` と `dest_size` に統一。要素数が wchar_t の数である契約を維持 |
 | cplat の `mmap/mmap_linux.c`、`mmap/mmap_windows.c` | 結果コードの作業変数を ret 系の名前へ変更し、成功値は `CPLAT_OK` と比較 |
-| cplat の `prompt/pinned_prompt.c` | 未設定の行位置 9999 に意味を示す私有定数を付け、値は維持 |
+| cplat の `prompt/pinned_prompt.c` | 未設定の行位置 9999 に私有定数 `PINNED_PROMPT_ROW_UNSET` を付け、値は維持 |
 | cplat の `trace-cli.c` | `g_trace_level_names` と `g_commands` を、それぞれ s_ で始まるファイル内共有変数名へ変更 |
-| porter の `protocol/config_load_service.c` | max_peers の既定値 1024U に意味を示す定数を付け、値は維持 |
-| porter の packet 定義、解析処理、`thread/thread_connect_prepare.c` | payload_len のワイヤ上のオフセット 34 を内部共有の名前付き定数にし、初回パケットと通常の解析で共用。バイト列は変えず、ヘッダー末尾との誤った説明も修正 |
+| porter の `protocol/config_load_service.c` | max_peers の既定値 1024U にファイル内の定数 `POTR_DEFAULT_MAX_PEERS` を付け、値は維持 |
+| porter の packet 定義、解析処理、`thread/thread_connect_prepare.c` | payload_len のワイヤ上のオフセット 34 を内部共有の定数 `POTR_PACKET_PAYLOAD_LEN_OFFSET` にし、初回パケットと通常の解析で共用。バイト列は変えず、ヘッダー末尾との誤った説明も修正 |
 
 Table: 識別子と定数の修正対象
 
@@ -238,7 +379,8 @@ Table: 減算の境界条件と受入結果
 方向指定の比較に使う `[inout]` と属性なしの例は保持します。
 
 `enum.h` はタグありとタグなしの比較を維持します。  
-タグありのタグ名と typedef 名を一致させ、別々の列挙型の列挙定数には重複しない名前を付けます。  
+型名は snake_case とし、タグありの型はタグ名と typedef 名をともに `enum_sample1`、タグなしの型は typedef 名を `enum_sample2` とします。  
+列挙定数は型名を接頭辞にした `ENUM_SAMPLE1_ZERO`、`ENUM_SAMPLE1_ONE`、`ENUM_SAMPLE1_TWO`、`ENUM_SAMPLE2_ZERO`、`ENUM_SAMPLE2_ONE`、`ENUM_SAMPLE2_TWO` とし、値の順を維持します。  
 タグなしの例に規範への追従だけを目的としたタグを追加しません。  
 `doxygen-sample/README.md` に、記法の比較例と一般の実装規範との関係を説明します。
 
@@ -249,6 +391,7 @@ Table: 減算の境界条件と受入結果
 | calc の公開ヘッダー、減算の実装コメント、必要な README の節 | 減算の失敗契約と、加算呼び出しを残すサンプルの目的 |
 | struct-meta の meta.h | 浮動小数点の要素幅と記述子の有効条件 |
 | cplat の内部共有ヘッダーと改名対象の公開ヘッダー | 出力先の意味、時刻補助関数の共通結果コード、方向タグ |
+| cplat の `docs/coding-guideline.md` | Win32 UTF-8 ラッパーの引数名を元の API と同じにする規則と、命名規則の適用対象外であること |
 | porter の内部 packet 定義 | payload_len のワイヤ上の位置と共用定数 |
 | doxygen-sample の README | 比較のために維持する記法と非推奨例の位置付け |
 | 過去の残課題一覧 | 元の報告を削除せず、対処結果、報告を採用しない根拠、引き継ぎ先を追記 |
@@ -265,10 +408,10 @@ Table: 契約と設計目的の反映先
 
 | 対象 | 局所検証 |
 | --- | --- |
-| calc | `test/src/libcalcbaseTest/subtractTest` の `make test`。境界値、加算の呼び出し経路、各段階の失敗と出力不変を確認。実関数へ委譲する境界値の検査も含める |
-| cplat の時刻補助と syslog | `trace/traceCommonTest` と `trace/trace_syslogTest`。時刻代替、取得失敗、不正時刻、共通結果コード、NULL の解放と各解放入口を確認 |
+| calc | `test/src/libcalcbaseTest/subtractTest` の `make test`。境界値、加算の呼び出し経路、各段階の失敗と出力不変を確認。2 段階の呼び出しは、期待動作のラムダで加算を行い、引数、中間値、結果を検査 |
+| cplat の時刻補助と syslog | `trace/traceCommonTest`、`trace/traceTest`、`trace/trace_fileTest`、`trace/trace_syslogTest`。時刻代替、取得失敗、不正時刻、共通結果コード、NULL の解放と各解放入口を確認 |
 | cplat の規範修正 | 変更に対応する argparser、hashtable、clock、prompt、module、process、memoryLock、processPriority、mmap、sync の既存の局所テストを選択し、影響するライブラリとコマンドをビルド |
-| cplat の数値変換 | syslog の FD と bench-tracer の空入力・不正文字・範囲超過を確認。新設するテストは対象と同じ C/C++ テスト階層に配置。Windows 専用の入力はテストを用意して未実行の範囲を記録 |
+| cplat の数値変換 | syslog の FD と bench-tracer の空入力・不正文字・範囲超過を確認。新設するテストは対象と同じ C/C++ テスト階層に配置。Windows で実行できない Linux 向けのテストは、用意したうえで CI の確認対象として記録 |
 | porter | `potrSendQueueTest`、`potrSendThreadTest`、`threadConnectPrepareTest`、`packetTest`、`configLoadServiceTest` を中心に変更箇所の局所テストを選択。抑止カウンターの 0、上限直前、上限超過と、従来のワイヤ列を確認 |
 | struct-meta | `structMetaPrintTest`、`structMetaAccessTest`、`jsonEncodeTest`、`jsonDecodeTest`、`structMetaPatchTest`。正常な float/double と大小両方の幅不一致、ネスト・配列を確認。不正記述子を出力前に拒否することを確認 |
 | Doxygen | cplat、struct-meta、string-catalog-sample、calc、doxygen-sample で対象 app の `make doxy`。変更した説明の配置と生成結果、内容のある .warn を確認 |
@@ -277,8 +420,22 @@ Table: 契約と設計目的の反映先
 Table: 対象ごとの検証計画
 
 cplat の局所テストの起点は `app/cplat/test/src/libcplatTest/`、porter は `app/porter/test/src/libporter/`、struct-meta は `app/struct-meta/test/src/` です。  
-Windows 専用のコードは Linux の成功で検証済みとせず、必要な Windows 確認を BL-024 に追記します。  
-Windows の実機操作や CI 追跡を今回の完了条件に含めません。
+局所検証は Windows で実行します。  
+Linux 向けのソースは Windows の成功で検証済みとせず、CI の Linux ビルドとテストで確認します。
+
+### CI による最終確認
+
+局所検証の完了後、成果物の承認を受け付ける前に、CI で最終確認します。
+
+1. エージェントが、3 リポジトリの変更内容、Windows の局所検証の結果、CI で確認する Linux 向けの対象を提示します。
+2. ユーザーの指示を受けて、指示された範囲のコミットとプッシュを行います。
+3. CI の Linux と Windows のビルド、テスト、警告アーティファクトを確認します。
+4. 今回の変更による失敗は原因を修正し、Windows の局所検証をやり直してから、ユーザーの指示を受けて再度プッシュします。
+5. CI の結果を成果物、検証結果、残課題一覧とともに提示し、成果物の承認を受け付けます。
+
+今回の変更と無関係な CI の失敗は、確認した結果と分けて報告します。  
+UAC、実サービスの停止と削除、EventLog、prefork 通信など、対話操作や実資源が必要な Windows 実機検証は今回の完了条件に含めず、BL-024 として引き継ぎます。  
+今回 Windows で実行した局所検証と CI の範囲は BL-024 に記録し、次回の重複を避けます。
 
 受入時には、元報告の各項目を「対処した」「現行で解消していた」「規範上は変更不要」「未対処として引き継いだ」に分類します。  
 BL-008 の残件、Windows 実機検証、TCP 双方向 N:1 通信は最新の残課題一覧だけで追跡できるようにします。  

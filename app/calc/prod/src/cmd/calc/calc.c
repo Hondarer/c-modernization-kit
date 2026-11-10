@@ -29,7 +29,7 @@
  *  使用例:
  *
     @code{.c}
-    ./calcbase_add 10 + 20
+    ./calc 10 + 20
     // 出力: 30
     @endcode
  *

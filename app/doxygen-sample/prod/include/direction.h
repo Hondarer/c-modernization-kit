@@ -17,11 +17,11 @@
  *  @param[in]      a in パラメーター。
  *                  - 引数 a に対する箇条書きのタイトル 1。
  *                      - 引数 a に対する箇条書きのタイトル 1-1。
- *  @param[out]     b out パラメーター。
- *  @param[in,out]  c in,out パラメーター。
- *  @param[inout]   d in,out (inout 表記) パラメーター。この表記方法は非推奨です。
+ *  @param[out]     b_out out パラメーター。
+ *  @param[in,out]  c_out in,out パラメーター。
+ *  @param[inout]   d_out in,out (inout 表記) パラメーター。この表記方法は非推奨です。
  *  @param          e 属性なしのパラメーター。
  *                  - 引数 e に対する箇条書きのタイトル 1。
  *                      - 引数 e に対する箇条書きのタイトル 1-1。
  */
-void direction_func(int a, int *b, int *c, int *d, int *e);
+void direction_func(int a, int *b_out, int *c_out, int *d_out, int *e);

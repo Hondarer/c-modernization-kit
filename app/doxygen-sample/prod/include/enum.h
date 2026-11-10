@@ -16,19 +16,19 @@
 /**
  *  @brief          タグ名のある enum を定義します。
  */
-typedef enum ENUM_SAMPLE_1
+typedef enum enum_sample1
 {
-    ZERO, /**< 0。 */
-    ONE,  /**< 1。 */
-    TWO   /**< 2。 */
-} ENUM_SAMPLE1;
+    ENUM_SAMPLE1_ZERO, /**< 0。 */
+    ENUM_SAMPLE1_ONE,  /**< 1。 */
+    ENUM_SAMPLE1_TWO   /**< 2。 */
+} enum_sample1;
 
 /**
  *  @brief          タグ名のない enum を定義します。
  */
 typedef enum
 {
-    ZERO, /**< 0。 */
-    ONE,  /**< 1。 */
-    TWO   /**< 2。 */
-} ENUM_SAMPLE2;
+    ENUM_SAMPLE2_ZERO, /**< 0。 */
+    ENUM_SAMPLE2_ONE,  /**< 1。 */
+    ENUM_SAMPLE2_TWO   /**< 2。 */
+} enum_sample2;

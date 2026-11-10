@@ -20,8 +20,8 @@
  *  以下は使用例です。
     @code{.c}
     char text[] = "Hello";
-    reverseString(text);
+    reverse_string(text);
     printf("%s\n", text);  // 出力: olleH
     @endcode
  */
-void reverseString(char *str);
+void reverse_string(char *str);

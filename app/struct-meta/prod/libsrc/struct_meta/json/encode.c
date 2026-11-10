@@ -233,9 +233,6 @@ static int field_to_json(const struct_meta_field *field, const unsigned char *ba
     return CPLAT_OK;
 }
 
-/**
- *  @brief          構造体インスタンス 1 個分を cJSON オブジェクトへ変換します。
- */
 static const char *json_key(const struct_meta_field *field)
 {
     const struct_meta_attribute *attribute = NULL;
@@ -248,6 +245,12 @@ static const char *json_key(const struct_meta_field *field)
     return field->name;
 }
 
+/**
+ *  @brief          構造体インスタンス 1 個分を cJSON オブジェクトへ変換します。
+ *  @param[in]      desc 構造体記述子です。
+ *  @param[in]      base 構造体インスタンスの先頭です。
+ *  @param[out]     json_out 生成した JSON オブジェクトの格納先です。
+ */
 static int struct_to_json(const struct_meta_descriptor *desc, const unsigned char *base, cJSON **json_out)
 {
     cJSON *obj = cJSON_CreateObject();

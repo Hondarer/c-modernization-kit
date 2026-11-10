@@ -8,7 +8,7 @@
  *
  *  コマンド ライン引数から 2 つの整数を受け取り、
  *  calc 関数、calcbase_add, calcbase_subtract, calcbase_multiply, calcbase_divide 関数を使用して
- *  加算結果を標準出力に出力します。
+ *  四則演算の結果を標準出力に出力します。
  *
  *  @copyright      Copyright (C) CompanyName, Ltd. 2025. All rights reserved.
  *
@@ -31,7 +31,7 @@
  *  使用例:
  *
     @code{.c}
-    ./calcbase_add 10 + 20
+    ./shared-and-static-calc 10 + 20
     // 出力: 30
     @endcode
  *

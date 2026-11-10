@@ -481,7 +481,7 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 
 int svc_os_run_service(const svc_definition *def)
 {
-    cplat_service_entry_u dispatch_table[2];
+    SERVICE_TABLE_ENTRYU dispatch_table[2];
 
     /*
      * def をファイル static に退避する。ServiceMain() は固定シグネチャのため、直接渡せない。
@@ -489,15 +489,15 @@ int svc_os_run_service(const svc_definition *def)
      */
     s_def = def;
 
-    dispatch_table[0].service_name = def->name;
-    dispatch_table[0].service_proc = service_main;
+    dispatch_table[0].lpServiceName = def->name;
+    dispatch_table[0].lpServiceProc = service_main;
 
     /*
-     * テーブルの最後の要素は、終端を示すため service_name と service_proc を NULL にする。
+     * テーブルの最後の要素は、終端を示すため lpServiceName と lpServiceProc を NULL にする。
      * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
      */
-    dispatch_table[1].service_name = NULL;
-    dispatch_table[1].service_proc = NULL;
+    dispatch_table[1].lpServiceName = NULL;
+    dispatch_table[1].lpServiceProc = NULL;
 
     cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
 
@@ -597,9 +597,11 @@ int svc_os_install(const svc_definition *def)
     }
     else
     {
+        SERVICE_DESCRIPTIONA description;
         SERVICE_PRESHUTDOWN_INFO preshutdown_info;
 
-        ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, def->description);
+        description.lpDescription = (char *)def->description;
+        ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, &description);
 
         /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため、W 版を直接使う)。 */
         preshutdown_info.dwPreshutdownTimeout = SVC_PRESHUTDOWN_TIMEOUT_MS;

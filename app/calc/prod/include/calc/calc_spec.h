@@ -45,6 +45,7 @@ extern "C"
      *  @param[out]     result 計算結果を格納するポインター。NULL を渡してはなりません。
      *  @return         成功時は @ref CALC_OK を返します。
      *  @return         @p result が NULL の場合、または @p kind が不正な場合は @ref CALC_ERR_INVALID_ARGUMENT を返します。
+     *  @return         減算結果が int の範囲外の場合は @ref CALC_ERR_INVALID_ARGUMENT を返します。
      *  @return         下位の計算関数が失敗した場合は、その結果コードを返します。
      *
      *  この関数は演算種別を受け取り、対応する計算関数を呼び出します。

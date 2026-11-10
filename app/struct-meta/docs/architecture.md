@@ -75,7 +75,9 @@ JSON 変換、表示、対話編集はいずれもこの関数を経由し、各
 ## 記述子と属性
 
 公開 API の入口は、利用前に `struct_meta_descriptor_validate()` で記述子全体を再帰検査します。  
-検査対象には、フィールド範囲、型ごとの制約、ネスト記述子との要素サイズ一致、属性キーの妥当性と重複、記述子の循環が含まれます。
+検査対象には、フィールド範囲、型ごとの制約、ネスト記述子との要素サイズ一致、属性キーの妥当性と重複、記述子の循環が含まれます。  
+FLOAT の `element_size` は `sizeof(float)`、DOUBLE は `sizeof(double)` と一致する必要があります。  
+小さすぎる幅と大きすぎる幅は、ともに `CPLAT_ERR_CORRUPT_DESCRIPTOR` として、出力や構造体の内容へのアクセス前に拒否します。
 
 属性は構造体またはフィールドに付与できる key/value の配列です。  
 JSON 変換は `json.name`、`json.ignore`、`json.required` を解釈します。  

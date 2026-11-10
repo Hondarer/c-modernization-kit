@@ -44,10 +44,8 @@ int struct_meta_internal_field_is_byte_array(const struct_meta_field *field)
     {
         return 1;
     }
-    else
-    {
-        return 0;
-    }
+
+    return 0;
 }
 
 int struct_meta_internal_field_byte_format(const struct_meta_field *field, struct_meta_internal_byte_format *format_out)

@@ -69,9 +69,10 @@ extern "C"
      *  @param[in]      b 第二オペランド。
      *  @param[out]     result 計算結果を格納するポインター。NULL を渡してはなりません。
      *  @return         成功時は @ref CALC_OK を返します。
-     *  @return         @p result が NULL の場合は @ref CALC_ERR_INVALID_ARGUMENT を返します。
+     *  @return         @p result が NULL の場合、または差が int の範囲外の場合は @ref CALC_ERR_INVALID_ARGUMENT を返します。
      *
      *  この関数は 2 つの整数を受け取り、その差を result に格納します。
+     *  失敗時は result の値を変更しません。
      *
      *  @par            使用例
         @code{.c}
@@ -81,9 +82,6 @@ extern "C"
             printf("Result: %d\n", result);  // 出力: Result: 7
         }
         @endcode
-     *
-     *  @note           オーバーフローが発生する可能性がある場合は、
-     *                  呼び出し側で範囲チェックを行ってください。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。

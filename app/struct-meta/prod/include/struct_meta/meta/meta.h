@@ -37,6 +37,8 @@ extern "C"
      *  表します。`int`、`long long`、`int32_t` のような C の型名ごとに種別を増やさず、
      *  対応する型が増えても列挙が変わらないようにするためです。\n
      *  整数の @ref struct_meta_field::element_size は 1、2、4、8 のいずれかです。
+     *  FLOAT の element_size は sizeof(float)、DOUBLE は sizeof(double) と一致する必要があります。
+     *  大小いずれの幅不一致も、記述子検証で `CPLAT_ERR_CORRUPT_DESCRIPTOR` として拒否します。
      *  `char[N]` は既定で NUL 終端文字列です。`signed char[N]`、`unsigned char[N]`、
      *  `int8_t[N]`、`uint8_t[N]` はバイト配列です。`char[N]` に
      *  `meta.kind=bytes` 属性を指定した場合も、符号付きバイト配列として扱います。

@@ -131,9 +131,6 @@ static int element_from_json(const struct_meta_field *field, const cJSON *item, 
     return scalar_from_json(field->kind, item, elem_ptr, field->element_size, field->char_buffer_size);
 }
 
-/**
- *  @brief          フィールド記述子 1 個分 (スカラー、char 配列、固定長配列のいずれか) を cJSON から書き戻します。
- */
 static const char *json_key(const struct_meta_field *field)
 {
     const struct_meta_attribute *attribute = NULL;
@@ -146,6 +143,12 @@ static const char *json_key(const struct_meta_field *field)
     return field->name;
 }
 
+/**
+ *  @brief          フィールド記述子 1 個分 (スカラー、char 配列、固定長配列のいずれか) を cJSON から書き戻します。
+ *  @param[in]      field フィールド記述子です。
+ *  @param[in]      json 読み出す JSON オブジェクトです。
+ *  @param[in,out]  base 書き戻す構造体の先頭です。
+ */
 static int field_from_json(const struct_meta_field *field, const cJSON *json, unsigned char *base)
 {
     const cJSON *item;

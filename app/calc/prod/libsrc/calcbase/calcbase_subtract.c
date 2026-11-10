@@ -13,10 +13,47 @@
 
 #include <calcbase/calcbase_spec.h>
 #include <stddef.h>
+#include <limits.h>
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
 int calcbase_subtract(const int a, const int b, int *result)
 {
-    return calcbase_add(a, -1 * b, result); /* 再帰的な関数呼び出しの実装例として calcbase_add() を呼び出す */
+    int difference;
+    int ret;
+
+    if (result == NULL)
+    {
+        return CALC_ERR_INVALID_ARGUMENT;
+    }
+
+    if (((b > 0) && (a < (INT_MIN + b))) || ((b < 0) && (a > (INT_MAX + b))))
+    {
+        return CALC_ERR_INVALID_ARGUMENT;
+    }
+
+    /* 関数呼び出しの経路を示すサンプルとして、calcbase_add() を経由する。 */
+    if (b == INT_MIN)
+    {
+        int intermediate;
+
+        ret = calcbase_add(a, INT_MAX, &intermediate);
+        if (ret != CALC_OK)
+        {
+            return ret;
+        }
+        ret = calcbase_add(intermediate, 1, &difference);
+    }
+    else
+    {
+        ret = calcbase_add(a, -b, &difference);
+    }
+
+    if (ret != CALC_OK)
+    {
+        return ret;
+    }
+
+    *result = difference;
+    return CALC_OK;
 }
