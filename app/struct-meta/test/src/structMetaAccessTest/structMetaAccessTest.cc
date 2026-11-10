@@ -296,8 +296,9 @@ TEST(structMetaAccessTest, accepts_matching_floating_widths)
     struct FloatingValues
     {
         float single;
+        char pad[4]; /* 明示的アラインメント。0 を指定する。 */
         double wide;
-    } sample = {1.5F, 2.5};
+    } sample = {1.5F, {}, 2.5};
     const struct_meta_field fields[] = {
         {"single", STRUCT_META_FIELD_FLOAT, 0, offsetof(FloatingValues, single), sizeof(float), 1, 0, nullptr, nullptr,
          nullptr, 0},
