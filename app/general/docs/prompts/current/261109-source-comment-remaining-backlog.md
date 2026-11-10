@@ -4,7 +4,7 @@
 最終更新エージェント: claude code / セッション ID: session_01KJc53S9NTSL234pjuYHGV9
 上流文書: `261109-source-comment-remaining-discussion.md`、`261109-source-comment-remaining-design.md`。削除されている場合があります。
 対処元: `../past/261109-source-comment-backlog-followup-backlog.md`
-再開手順: agree-before-implement スキルと存在する上流文書を読み、CURRENT と承認範囲を確認してください。この一覧は、実装と Windows の局所検証を終えた時点の残件です。CI の結果を確認した後に、「プッシュ後に CI で確認する対象」の節を結果に合わせて更新してください。
+再開手順: agree-before-implement スキルと存在する上流文書を読み、CURRENT と承認範囲を確認してください。この一覧は、実装、Windows の局所検証、CI の確認を終えた時点の残件です。
 -->
 
 # ソース コメント対処で引き継ぐ残課題
@@ -18,7 +18,7 @@ BL-024 と BL-025 は、ユーザーの回答に従って引き継ぎます。
 対処の結果は、[対処元の残課題一覧](../past/261109-source-comment-backlog-followup-backlog.md) の「2026-11-10 の対処結果」に記録しています。
 
 実装と局所検証は Windows の作業ツリーで行いました。  
-Linux のビルドとテストは実行していないため、CI で確認する対象を「プッシュ後に CI で確認する対象」に記載しています。  
+Linux のビルドとテストは、プッシュ後の CI で確認しました。結果は「CI で確認した対象と結果」に記載しています。  
 基準のコミットは、ルートが `7a1abf70`、cplat が `a04a4c16`、porter が `e9549ec8` です。
 
 ## 引き継ぐ残課題
@@ -299,16 +299,20 @@ Linux と Windows の検証方法も別途定めます。
 次回は、それぞれを現行の実装と規範に照合し、対処するかどうかを決めます。  
 bench-tracer の積の範囲は、検査を追加する場合の上限と、範囲外の場合の終了値を決める必要があります。
 
-## プッシュ後に CI で確認する対象
+## CI で確認した対象と結果
 
-ユーザーの回答 (検討用 Markdown の Q-009 と Q-010) に従い、Linux 向けの変更は CI で最終確認します。  
-今回はコミットまでを行い、プッシュはユーザーの指示を待ちます。  
-CI の結果を確認した後に、この節を結果に合わせて更新します。
+ユーザーの回答 (検討用 Markdown の Q-009 と Q-010) に従い、Linux 向けの変更を CI で最終確認しました。  
+この節の対象は確認を終えており、残課題ではありません。
+
+CI の実行 42786336853 (ルートのコミット `21a30657`) では、Linux (ol8、ol9、ol10) と Windows のジョブがすべて成功しました。  
+警告は、Linux の 3 環境に共通する app/struct-meta のテスト 5 ファイルの `-Wpadded` だけでした。  
+この警告を対処した実行 42821358874 (ルートのコミット `3d94d303`) では、全ジョブが成功し、警告アーティファクトは作られていません。  
+経緯は検討用 Markdown の「CI の結果」に記載しています。
 
 ### Windows でコンパイルされない Linux 向けの変更
 
-次の対象は、CI の Linux ビルドが最初のコンパイルになります。  
-宣言と OS 別の定義、mock、stub の名前と型は、差分を読んで照合しています。
+次の対象は、CI の Linux ビルドが最初のコンパイルでした。3 環境ともビルドとテストに成功しています。  
+行番号は、cplat のコミット `1d0172c9` の時点のものです。
 
 | パス | 関数と変更箇所 |
 | --- | --- |
@@ -329,17 +333,19 @@ CI の結果を確認した後に、この節を結果に合わせて更新し�
 | `app/cplat/prod/libsrc/cplat/runtime/elevated_process.c` | `cplat_elevated_process_is_elevated` (360 行)、`cplat_elevated_process_run_if_needed` (410 行)、`cplat_elevated_process_run_with_result` (701 行)、`cplat_elevated_process_run_piped` (1058 行)、Linux 側の差分位置: 360、410、673、911、1219 行 |
 | `app/cplat/test/src/libcplatTest/test/syslogFdTest/syslogFdTest.cc` | 不正な FD 5 入力と有効な FD の 2 テスト。Linux のみのため Windows では実行していません。 |
 
-Table: CI の Linux ビルドで確認する app/cplat の対象
+Table: CI の Linux ビルドで確認した app/cplat の対象
 
-`trace_syslogTest`、`promptLinuxTest`、`processPriorityTest` の Linux 専用のテストも、Windows では実行していません。
+`trace_syslogTest`、`promptLinuxTest`、`processPriorityTest` の Linux 専用のテストは、Windows では実行していません。CI の Linux のジョブは成功しています。
 
-### Linux で未実行の共通コード
+### Linux で未実行だった共通コード
 
 calc、struct-meta、string-catalog-sample、doxygen-sample、porter、service-sample の変更は、OS 共通のソースまたは Windows 向けのソースです。  
-Windows ではコンパイルと局所テストを実行しましたが、Linux/GCC のビルドとテストは実行していません。  
-今回追加したテスト ディレクトリ (`app/cplat/test/src/cmd/bench-tracerTest`、`app/cplat/test/src/libcplatTest/test/syslogFdTest`、`app/cplat/test/src/libcplatTest/win32/serviceApiTest`) の Linux でのビルドも、CI が最初の実行になります。
+Windows の局所テストに加えて、CI の Linux/GCC のビルドとテストに成功しました。  
+今回追加したテスト ディレクトリ (`app/cplat/test/src/cmd/bench-tracerTest`、`app/cplat/test/src/libcplatTest/test/syslogFdTest`、`app/cplat/test/src/libcplatTest/win32/serviceApiTest`) を含むジョブも成功しています。  
+ジョブの成功から確認したものであり、テストごとの実行件数は CI のログで照合していません。
 
 ### Doxygen と文書の生成
 
 calc、struct-meta、string-catalog-sample、doxygen-sample、cplat の `make doxy` は Windows で実行し、警告と内容のある `.warn` がないことを確認しました。  
-porter の `make doxy` と、ワークスペース全体の `make docs` は実行していません。
+porter の `make doxy` と、ワークスペース全体の `make docs` は手元では実行していません。  
+CI の実行 42821358874 では、文書の生成と deploy-pages が成功し、`docs-warns` は作られていません。
