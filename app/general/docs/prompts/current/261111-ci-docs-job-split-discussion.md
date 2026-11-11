@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 検討用 Markdown (discussion)
-最終更新エージェント: claude code / セッション ID: session_01KJc53S9NTSL234pjuYHGV9
+最終更新エージェント: claude code / セッション ID: session_01KJc53SaXJKaFZiB7mV4bp4
 下流文書: `261111-ci-docs-job-split-design.md` (最終仕様)、`261111-ci-docs-job-split-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。ユーザーが編集した最新版を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。セッション情報が見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があります。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。
 -->
@@ -10,7 +10,7 @@
 
 検討 ID: `ci-docs-job-split-20261111`  
 版: 4  
-状態: 作業中 (第 2 ゲート通過)
+状態: 完了 (第 3 ゲート通過、2026-11-11 に承認)
 
 ## 作業 WBS と進捗管理
 
@@ -30,7 +30,7 @@
     - ✅ 3.1. `261111-ci-docs-job-split-design.md` を作成する。
     - ✅ 3.2. 最終仕様の受入条件と整合性を確認する。
     - ✅ 3.3. 最終仕様の承認を受け付ける (第 2 ゲート)。2026-11-11 に承認。あわせて、全サブモジュールを含むコミットと push、CI の問題に対する再コミットの事前許可を受けた。サブエージェントとして codex CLI と grok を 1 つずつ使う指示を受けた。
-- 🔄 4. 承認された最終仕様に従った作業の実施
+- ✅ 4. 承認された最終仕様に従った作業の実施
     - ✅ 4.1. `framework/makefw/makefiles/makemain.mk` に空の `gen` と `SUBDIRS` への伝播を追加する。`_flex_bison_compile.mk` と `_resource_compile.mk` から `gen` へ前提を追加し、`.mc` の規則を生成とコンパイルに分ける。
     - ✅ 4.2. `framework/makefw/makefiles/__each_app_template.mk` と `__app_template.mk` へ `gen` を追加する。
     - ✅ 4.3. `framework/makefw/bin_internal/resolve_app_deps.sh` へ `--gen-build-apps` を追加する。
@@ -42,11 +42,11 @@
     - ✅ 4.9. 生成漏れの照合 (`verify-gen` ジョブと、ファイル一覧のアーティファクト) を `ci.yml` へ追加する。差分があれば失敗にする。
     - ✅ 4.10. 正本ドキュメント (makefw の `docs/`、`app/general/docs/workspace-agent-workflow.md`) とコード コメントへ、永続的な知見を反映する。
     - ✅ 4.11. 局所テストと機械的検証 (`text_style_jp.py`、`make bin-test` の該当分) を実施する。
-    - 🔄 4.12. 受入条件への適合を確認する。手元の確認は完了。コミットと push の後、GitHub Actions の実走で残りを確認する。 ← **CURRENT**
-    - ⏸️ 4.13. 残課題一覧 (`261111-ci-docs-job-split-backlog.md`) を再構築して整理する。
-- ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
-    - ⏸️ 5.1. 成果物、検証結果、残課題を提示する。
-    - ⏸️ 5.2. 成果物の承認を受け付ける。
+    - ✅ 4.12. 受入条件への適合を確認する。手元の確認と、GitHub Actions の実走 (実行 42930377100) での確認を完了した。
+    - ✅ 4.13. 残課題一覧 (`261111-ci-docs-job-split-backlog.md`) を再構築して整理する。
+- ✅ 5. 成果物の承認の受付 (第 3 ゲート)
+    - ✅ 5.1. 成果物、検証結果、残課題を提示する。
+    - ✅ 5.2. 成果物の承認を受け付ける。2026-11-11 に承認。
 
 ## 対象と参照資料
 
@@ -616,3 +616,35 @@ makefw の `bin_test/` には、一時ディレクトリで make を実行して
 - 各 app の `makefile` は `update_template_makefiles.py` で同期しました (18 件)。
 - `resolve_app_deps.sh --gen-build-apps` は cjson、cplat、openssl、struct-meta、zlib を出力しました。
 - Linux での `make gen` の実行は手元では行っていません。GitHub Actions の実走で確認します。
+
+### GitHub Actions の実走 (実行 42930377100、2026-11-11)
+
+対象のコミットは、ルートが `2ca7a85c`、makefw が `7e17710` です。再コミットは発生していません。
+
+| ジョブ | 結果 | 所要時間 |
+| --- | --- | --- |
+| `docs` | 成功 | 78[分] |
+| `build-and-test-linux` (OL8) | 成功 | 177[分] |
+| `build-and-test-linux` (OL9) | 成功 | 218[分] |
+| `build-and-test-linux` (OL10) | 成功 | 120[分] |
+| `build-and-test-windows` | 成功 | 202[分] |
+| `verify-gen` | 成功 | 6[秒] |
+| `warnings-summary` | 成功 | 4[秒] |
+| `deploy-pages` | 成功 | 3[分] |
+
+Table: 実行 42930377100 のジョブ別の結果
+
+受入条件ごとの結果は、次のとおりです。
+
+- 全ジョブが成功しました。
+- 生成ソースの一覧は、OL8 のフル ビルド後と `make gen` 後のどちらも 15 件で、差分はありません (`verify-gen` が成功)。
+- `make docs` が処理した doxybook2 の Markdown は 925 件で、分離前の実行 42821358874 と一覧が一致しました。
+- 実行全体は 221[分] でした。同じ実行で分離しなかった場合は、OL8 のレグ 177[分] に `make doxy && make docs` の 71[分] が加わり、248[分] 以上になります。短縮は約 27[分] です。
+
+`make gen` は 96[秒] で完了しました。事前の見積もり (25[分] 以下) より短い理由を、`linux-docs-gen.log` で確認しました。
+
+- ビルドが必要な 5 app は `make -C prod` を実行し、合計 1355 件をコンパイルしています (openssl 1145、cplat 159、struct-meta 30、zlib 16、cjson 5)。
+- cplat の `prod` のコンパイルとリンクは 172 件で、分離前のログから数えた件数と一致しました。分離前の cplat の 124[分] は、大半が `test` 側でした。
+- 残りの 12 app は `make -C prod _gen` を実行し、コンパイルは 0 件です。
+
+分離後は、最も長いジョブが OL9 のレグ (218[分]) に変わりました。これ以上の短縮には、テストのビルドと実行の時間を減らす必要があります。残課題一覧に記載しています。
