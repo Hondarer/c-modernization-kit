@@ -94,6 +94,12 @@ test :
 		"$$framework_jobs" test "$(FRAMEWORK_MAKE_DIRS)"
 	$(MAKE) -C app test
 
+# prod 配下の生成ソースだけを作る。フル ビルドなしで Doxygen の入力をそろえる用途。
+# doxy は gen に依存させない。生成ソースを含む文書が必要な場合は make gen && make doxy と続ける。
+.PHONY: gen
+gen :
+	$(MAKE) -C app gen
+
 .PHONY: doxy
 doxy :
 	$(MAKE) -C app doxy

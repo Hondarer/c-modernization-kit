@@ -19,6 +19,7 @@
 make
 make test
 make bin-test
+make gen
 make doxy
 make docs
 make livedocs
@@ -30,6 +31,16 @@ make sync-app-env
 `make docs` は Pandoc による静的発行、`make livedocs` と `make servedocs` は MkDocs による動的発行です。  
 `make servedocs` はローカル配信を開始し、`make stopdocs` で停止します。  
 詳細は [動的発行 (MkDocs)](../../../framework/docsfw/livedocs/README.md) を参照してください。
+
+`make gen` は、`prod/` 配下の生成ソースだけを作ります。  
+Doxygen の入力には `gen/` 配下の生成ソースが含まれるため、フル ビルドをしていない作業ツリーで文書を生成する場合は、`make gen && make doxy && make docs` の順に実行します。  
+`make doxy` は `make gen` を自動では実行しません。詳細は [生成ソースだけを作る (make gen)](../../../framework/makefw/docs/build-configurations.md#生成ソースだけを作る-make-gen) を参照してください。
+
+GitHub Actions では、ドキュメント生成を `docs` ジョブが担当し、ビルドとテストのジョブに並行して実行します。  
+`docs` ジョブは `make gen` で生成ソースをそろえてから、`make doxy && make docs` を実行します。  
+`verify-gen` ジョブは、フル ビルド後の生成ソースの一覧と `make gen` 後の一覧を照合し、差分があれば失敗して文書の公開を止めます。  
+生成器を使う app を追加して照合が失敗した場合は、その app の `appdeps.mk` に `APP_GEN_REQUIRES_BUILD := 1` を宣言します。  
+Jenkins はジョブを直列に実行するため、ビルドとテストの後に同じレグでドキュメントを生成します。
 
 app を追加または削除した場合は、`.vscode`、GitHub Actions、Jenkins の環境変数を手動で編集せず、`make sync-app-env` を実行します。  
 詳細は [VS Code 環境変数](vscode-variables.md) を参照してください。
