@@ -103,6 +103,12 @@ jobs:
         run: mkdir -p logs
 
       - name: Build
+        env:
+          # ランナーは 4 論理 CPU でビルド専用のため、CPU をすべて使う。
+          # makefw は CPU 予算の半分をコンパイルに使うので、予算を論理 CPU 数の 2 倍に指定する。
+          # make bin-test が実行する makefw のテストへ伝えないよう、ステップに指定する。
+          # see: framework/makefw/docs/build-configurations.md (並列ビルド)
+          MAKEFW_CPU_BUDGET: "8"
         run: |
           set -o pipefail
           df -h "$GITHUB_WORKSPACE"
@@ -128,6 +134,9 @@ jobs:
           if-no-files-found: error
 
       - name: Run tests
+        env:
+          # Build ステップと同じ理由で指定する。テストの同時実行数も make の並列度と同じ 4 になる。
+          MAKEFW_CPU_BUDGET: "8"
         run: |
           set -o pipefail
           make test 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
@@ -527,12 +536,19 @@ jobs:
         shell: pwsh
 
       - name: Build
+        env:
+          # build-and-test-linux の Build ステップと同じ理由で指定する。
+          # Windows でも make は -j4 になり、MSVC の /MP は 1 のまま変わらない。
+          MAKEFW_CPU_BUDGET: "8"
         run: |
           set -o pipefail
           make 2>&1 | tee logs/windows-build.log
         shell: bash
 
       - name: Run tests
+        env:
+          # Build ステップと同じ理由で指定する。テストの同時実行数も make の並列度と同じ 4 になる。
+          MAKEFW_CPU_BUDGET: "8"
         run: |
           set -o pipefail
           make test 2>&1 | tee logs/windows-test.log

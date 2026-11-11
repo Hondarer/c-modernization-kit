@@ -13,6 +13,12 @@
 サブモジュール境界が影響するのは、コミット単位と作業ツリーの扱いだけです。  
 `AGENTS.md` が適用される範囲はディレクトリ階層で決まるため、サブモジュール境界の影響を受けません。
 
+`app/general/docs/prompts/` 配下だけを変更するコミットは、コミット メッセージに `[skip ci]` を含めます。  
+検討の記録はビルド、テスト、公開する成果物に影響せず、CI の 1 回の実行に数時間かかるためです。  
+GitHub Actions は、push に含まれる最新のコミットのメッセージで起動を判定します。ほかの変更を含むコミットと一緒に push する場合は、CI が起動します。  
+`[skip ci]` を付けたコミットの内容は、次に CI が動いた時点で GitHub Pages に反映されます。  
+see: [Skipping workflow runs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/skipping-workflow-runs)
+
 ## 主要コマンド
 
 ```bash
