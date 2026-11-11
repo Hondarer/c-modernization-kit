@@ -17,6 +17,7 @@
 検討の記録はビルド、テスト、公開する成果物に影響せず、CI の 1 回の実行に数時間かかるためです。  
 GitHub Actions は、push に含まれる最新のコミットのメッセージで起動を判定します。ほかの変更を含むコミットと一緒に push する場合は、CI が起動します。  
 `[skip ci]` を付けたコミットの内容は、次に CI が動いた時点で GitHub Pages に反映されます。  
+この文字列は、コミット メッセージの本文に説明として書いた場合も有効です。CI を起動するコミットのメッセージには、この文字列を書かないでください。  
 see: [Skipping workflow runs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/skipping-workflow-runs)
 
 ## 主要コマンド
