@@ -136,7 +136,9 @@ make
 | `prod/cbin/service-sample` | 実行ファイル (Linux) |
 | `prod/cbin/service-sample.exe` | 実行ファイル (Windows) |
 | `prod/cbin/libcplat.so` / `prod/cbin/libcplat.dll` | cplat の実行時ライブラリ |
-| `prod/cbin/libcjson.so` / `prod/cbin/libcjson.dll` | cplat が利用する cJSON の実行時ライブラリ |
+| `prod/cbin/libcjson_app.so` / `prod/cbin/libcjson_app.dll` | cplat が利用する cJSON の実行時ライブラリ |
+| `prod/cbin/libzlib_app.so` / `prod/cbin/libzlib_app.dll` | cplat が利用する zlib の実行時ライブラリ |
+| `prod/cbin/libcrypto_app.so.3` (Linux) | cplat が利用する OpenSSL の実行時ライブラリ |
 
 Table: service-sample のビルド生成ファイル一覧
 

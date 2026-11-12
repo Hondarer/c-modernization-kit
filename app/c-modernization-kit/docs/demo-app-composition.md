@@ -56,7 +56,8 @@ Linux と Windows で同じ .NET API を提供し、ネイティブ ライブラ
 `cplat` は動的ライブラリだけを生成し、すべての製品利用者が同じライブラリを共有します。  
 これにより、トレース レジストリや既定パーサーなどのプロセス グローバルな状態がプロセス内で一元化されます。
 
-同梱 CLI、`service-sample`、`tutorial` では、`libcplat`、`libcjson`、`libzlib` を実行ファイルと同じ `prod/cbin` へコピーします。  
+同梱 CLI、`service-sample`、`tutorial` では、`libcplat`、`libcjson_app`、`libzlib_app` を実行ファイルと同じ `prod/cbin` へコピーします。  
+Linux では `libcrypto_app.so.3` も同梱します。  
 Linux では `$ORIGIN` の実行時探索パス、Windows では実行ファイルと同じディレクトリの DLL 探索を利用するため、開発環境のライブラリ探索パスに依存せず実行できます。
 
 記述方法と配布時の要件は、[リンク方式の規約](../../cplat/docs/link-policy.md) に従います。

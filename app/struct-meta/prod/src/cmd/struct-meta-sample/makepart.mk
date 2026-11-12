@@ -1,5 +1,5 @@
 # ライブラリの指定
-LIBS += cplat cjson struct_meta
+LIBS += cplat cjson_app struct_meta
 
 # struct-meta-gen (ヘッダー解析ツール) の実行体。
 # prod/src/cmd/makelocal.mk の SUBDIRS 宣言順により、必ずこの makepart.mk の
