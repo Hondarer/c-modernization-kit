@@ -54,7 +54,7 @@
 
 今回の対象範囲: GitHub Actions の構成と、`make gen` の追加です。`.jenkins/` は対象外です ([Q-008](#q-008-jenkins-の構成を対象に含めるか))。
 
-書き込み可能な検討用 Markdown: この文書 (`app/general/docs/prompts/current/261111-ci-docs-job-split-discussion.md`)
+書き込み可能な検討用 Markdown: この文書 (`app/general/docs/prompts/past/261111-ci-docs-job-split-discussion.md`)
 
 参照資料と版: リポジトリは `main` の `2ccd1c5e` です。CI の実績は、GitHub Actions の実行 42821358874、42786336853、42741579412 です。並列数と時間の上限は [Actions limits](https://docs.github.com/en/actions/reference/limits) を参照しました。
 

@@ -10,7 +10,7 @@
 
 ## 目的
 
-GitHub Actions の CI の待ち時間を短くします。あわせて、ドキュメント生成ジョブの分離で残った課題 (`261111-ci-docs-job-split-backlog.md` の BL-001 から BL-004) を整理します。
+GitHub Actions の CI の待ち時間を短くします。あわせて、ドキュメント生成ジョブの分離で残った課題 (`../past/261111-ci-docs-job-split-backlog.md` の BL-001 から BL-004) を整理します。
 
 ## 背景となる事実
 
@@ -98,7 +98,7 @@ Table: MAKEFW_CPU_BUDGET を 8 にした場合の並列度
 
 ### 対処元の残課題一覧
 
-`261111-ci-docs-job-split-backlog.md` の BL-001 から BL-004 に、今回の対処と経緯を追記します。項目とファイルは削除しません。
+`../past/261111-ci-docs-job-split-backlog.md` の BL-001 から BL-004 に、今回の対処と経緯を追記します。項目とファイルは削除しません。
 
 ## 知見の反映計画
 
