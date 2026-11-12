@@ -40,20 +40,20 @@
     - ✅ 3.1. `261111-third-party-lib-rename-design.md` の作成 (差し戻しを受けて「OpenSSL の mock」を改訂)
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認
     - ✅ 3.3. 対話セッションにおける最終仕様の承認の受付 (第 2 ゲート) (2026-11-12 承認)
-- 🔄 4. 承認された最終仕様に従った作業の実施
-    - ⚠️ 4.1. 第 1 段階: makefw 製の第三者管理ライブラリの名前変更 (`app/zlib`、`app/cjson`、`app/lua`、`app/sqlite` の `prod/libsrc/*/makepart.mk`、README.md、AGENTS.md)
+- ✅ 4. 承認された最終仕様に従った作業の実施
+    - ✅ 4.1. 第 1 段階: makefw 製の第三者管理ライブラリの名前変更 (`app/zlib`、`app/cjson`、`app/lua`、`app/sqlite` の `prod/libsrc/*/makepart.mk`、README.md、AGENTS.md)
     - ✅ 4.2. 第 1 段階: 各 mock の実委譲先ライブラリ名と公開シンボル検査の更新 (`test/include/mock_*.h`、`test/src/lib*Test/exportTest/`)
-    - 🔄 4.3. 第 1 段階: 利用側のリンク指定と同梱定義の更新 (`app/cplat`、`app/porter`、`app/struct-meta`、`app/lua`、`app/sqlite` などの `makepart.mk`、`app/cplat/prod/runtime-bundle.mk`、`app/cplat/docs/link-policy.md`) と局所テスト
+    - ✅ 4.3. 第 1 段階: 利用側のリンク指定と同梱定義の更新 (`app/cplat`、`app/porter`、`app/struct-meta`、`app/lua`、`app/sqlite` などの `makepart.mk`、`app/cplat/prod/runtime-bundle.mk`、`app/cplat/docs/link-policy.md`) と局所テスト
     - ✅ 4.4. 第 2 段階: OpenSSL の共有ライブラリ化 (`app/openssl/bin_internal/build_openssl.py`、`bin_test/test_build_openssl.py`、README.md、AGENTS.md)
     - ✅ 4.5. 第 2 段階: OpenSSL の mock の変更 (`app/openssl/test/include/mock_openssl.h`、`test/include_override/openssl/`、`test/libsrc/mock_openssl/`。呼び出し元情報の 3 引数を維持し、実委譲先を共有ライブラリに変え、置き換える関数を 17 個に広げる)
     - ✅ 4.6. 第 2 段階: cplat の OpenSSL リンク方法の変更 (`app/cplat/prod/libsrc/cplat/makepart.mk`、`exports.map`、`prod/runtime-bundle.mk`、`docs/link-policy.md`、crypto 関連テストの `makepart.mk`) と局所テスト
     - ✅ 4.7. 正本ドキュメントへの命名規則の反映 (`app/general/docs/shared-library-mock-guideline.md`、`app/general/docs/vscode-variables.md` などの該当節)
     - ✅ 4.8. 局所テストと `text_style_jp.py` による確認
-    - ⚠️ 4.9. 受入条件への適合確認 (未確認の事項: Windows のビルドとテスト。確認方法: CI。CI に必要なコミットとプッシュはユーザーの指示を受けてから行う)
+    - ✅ 4.9. 受入条件への適合確認 (Windows のビルドとテストは CI の run 43201888950 で確認)
     - ✅ 4.10. 残課題一覧 (`261111-third-party-lib-rename-backlog.md`) の再構築と整理
-- 🚫 5. 成果物の承認の受付 (第 3 ゲート)
+- ✅ 5. 成果物の承認の受付 (第 3 ゲート)
     - ✅ 5.1. 成果物・検証結果・残課題の提示
-    - 🚫 5.2. 対話セッションにおける成果物の承認の受付 (停止理由: ユーザーの承認待ち) ← **CURRENT**
+    - ✅ 5.2. 対話セッションにおける成果物の承認の受付 (2026-11-13 承認)
 
 ## 対象と参照資料
 
@@ -836,8 +836,19 @@ Table: 事前検証の結果
 - 変更した Markdown は `text_style_jp.py --dry-run` で指摘なしです。
 - 残課題一覧に BL-003 (OS 側が OpenSSL 3.x の環境での同居の確認) を追加しました。
 
-### 未確認の事項
+### CI での確認 (claude code、2026-11-12)
 
-Windows のビルドとテストは未実施です。[Q-010](#q-010-受入検証の範囲) のとおり CI で確認します。  
-事前検証では、Windows の一時フォルダーで OpenSSL の共有ビルド、mock だけのリンク、差し替えヘッダーを個別に確認しています。  
-makefw の `TARGET` 指定による Windows の成果物名、書き換えたビルド スクリプトの Windows の配置処理、Windows での mock ライブラリのビルドは、CI が最初の実行になります。
+ユーザーの指示でコミットとプッシュを行い、CI で Linux (ol8、ol9、ol10) と Windows を確認しました。  
+最新のコミット `ce9d5fc6` に対する run 43201888950 は、全ジョブが成功しました。警告のアーティファクトはありません。
+
+makefw の `TARGET` 指定による Windows の成果物名、書き換えたビルド スクリプトの Windows の配置処理、Windows での mock ライブラリのビルドは、最初の実行 (run 43165543777) で成功しました。
+
+CI で見つかった問題と修正は次のとおりです。
+
+| 実行 | 失敗したジョブ | 原因 | 修正 |
+| --- | --- | --- | --- |
+| run 43165543777 (`a95534ac`) | Linux の 3 ジョブの「Run tests」 | `override_sampleTest` が子プロセスに渡す `LD_LIBRARY_PATH` に `app/openssl/prod/lib` がなく、`libcrypto_app.so.3` を読み込めなかった。 | 親リポジトリの `1207efd2` で探索パスに追加。porter の Windows 側の探索パスにも追加 (`app/porter` の `069305e`)。 |
+| run 43165543777 (`a95534ac`) | Windows の「Run script tests」 | `test_build_openssl.py` のスキップ理由が `[Windows]` で始まり、実行器が想定外のスキップと判定した。 | `app/openssl` の `58dd7ff` で理由の先頭を `[Linux]` に変更。 |
+| run 43188568753 (`1207efd2`) | Windows の「Run tests」 | `framework/makefw/bin_internal/run_ordered_subdir_target.sh` の `now_seconds` が 2 行の値を返し、算術式が構文エラーになった。今回の変更に起因しない一過性の失敗。 | 次の実行では再発していない。承認時の指示で、`now_seconds` が出力を数値として確かめる形に直し、再現テストを `framework/makefw/bin_test/test_nested_parallel.py` に追加した。 |
+
+受入確認で override-sample のテストをローカルで実行していなかったことが、最初の失敗を見落とした原因です。
