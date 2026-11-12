@@ -33,14 +33,15 @@ class override_sampleTest : public Test
 #if defined(PLATFORM_LINUX)
         binary_path = workspace_root + "/app/override-sample/prod/cbin/override-sample";
         lib_path = workspace_root + "/app/override-sample/prod/lib" + ":" + workspace_root + "/app/cplat/prod/lib" +
-                   ":" + workspace_root + "/app/cjson/prod/lib" + ":" + workspace_root + "/app/zlib/prod/lib";
+                   ":" + workspace_root + "/app/cjson/prod/lib" + ":" + workspace_root + "/app/zlib/prod/lib" + ":" +
+                   workspace_root + "/app/openssl/prod/lib";
         mock_lib_path = workspace_root + "/framework/testfw/lib/" TOSTRING(TARGET_ARCH) "/libmock_syslog.so";
         config_path = "/tmp/libbase_extdef.jsonc";
 #elif defined(PLATFORM_WINDOWS)
         binary_path = workspace_root + "\\app\\override-sample\\prod\\cbin\\override-sample.exe";
         lib_path = workspace_root + "\\app\\override-sample\\prod\\lib" + ";" + workspace_root +
                    "\\app\\cplat\\prod\\lib" + ";" + workspace_root + "\\app\\cjson\\prod\\lib" + ";" + workspace_root +
-                   "\\app\\zlib\\prod\\lib";
+                   "\\app\\zlib\\prod\\lib" + ";" + workspace_root + "\\app\\openssl\\prod\\lib";
         {
             wchar_t tmpw[PLATFORM_PATH_MAX] = L"";
             char tmpu8[PLATFORM_PATH_MAX * 4] = {0};
