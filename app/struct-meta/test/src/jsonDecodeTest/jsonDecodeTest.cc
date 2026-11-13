@@ -78,39 +78,39 @@ const struct_meta_descriptor kByteDescriptor = {"ByteArrays", sizeof(ByteArrays)
 /** 幅ごとの限界値を JSON から書き戻し、結果コードを返します。 */
 int decode_widths(const char *text, Widths *sample)
 {
-    cJSON *json = cJSON_Parse(text);
+    cJSON *json = cjson_app_cJSON_Parse(text);
     if (json == nullptr)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
     int ret = struct_meta_json_decode(&kWidthsDescriptor, json, sample);
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
     return ret;
 }
 
 /** バイト配列を JSON から書き戻し、結果コードを返します。 */
 int decode_bytes(const char *text, ByteArrays *sample)
 {
-    cJSON *json = cJSON_Parse(text);
+    cJSON *json = cjson_app_cJSON_Parse(text);
     if (json == nullptr)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
     int ret = struct_meta_json_decode(&kByteDescriptor, json, sample);
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
     return ret;
 }
 
 /** 64 ビット整数を JSON から書き戻し、結果コードを返します。 */
 int decode_integer64_limits(const char *text, Integer64Limits *sample)
 {
-    cJSON *json = cJSON_Parse(text);
+    cJSON *json = cjson_app_cJSON_Parse(text);
     if (json == nullptr)
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
     int ret = struct_meta_json_decode(&kInteger64LimitsDescriptor, json, sample);
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
     return ret;
 }
 } // namespace
@@ -257,10 +257,10 @@ TEST(JsonDecodeTest, rejects_values_outside_64_bit_integer_ranges)
 TEST(JsonDecodeTest, UsesGenericJsonAttributes)
 {
     // Arrange
-    cJSON *json = cJSON_Parse("{\"person_id\":42}");
+    cJSON *json = cjson_app_cJSON_Parse("{\"person_id\":42}");
     Sample sample = {0, 9}; // [状態] - 任意フィールドに既存値を持たせる。
 
-    ASSERT_NE(nullptr, json); // [状態確認] - cJSON_Parse() の戻り値が nullptr 以外であること。
+    ASSERT_NE(nullptr, json); // [状態確認] - cjson_app_cJSON_Parse() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -277,17 +277,17 @@ TEST(JsonDecodeTest, UsesGenericJsonAttributes)
             .optional); // [確認_正常系] - sample.optional が 9 であること。(指定のないフィールドが保持されることの確認)
 
     // Cleanup
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
 }
 
 // json.required 属性が付与された必須キーが欠落している場合にエラーが報告されることの確認
 TEST(JsonDecodeTest, ReportsMissingRequiredAttribute)
 {
     // Arrange
-    cJSON *json = cJSON_CreateObject();
+    cJSON *json = cjson_app_cJSON_CreateObject();
     Sample sample = {}; // [状態] - 必須キーのない JSON を用意する。
 
-    ASSERT_NE(nullptr, json); // [状態確認] - cJSON_CreateObject() の戻り値が nullptr 以外であること。
+    ASSERT_NE(nullptr, json); // [状態確認] - cjson_app_cJSON_CreateObject() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -301,7 +301,7 @@ TEST(JsonDecodeTest, ReportsMissingRequiredAttribute)
               actual); // [確認_異常系] - struct_meta_json_decode() の戻り値が CPLAT_ERR_MISSING_REQUIRED であること。
 
     // Cleanup
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
 }
 
 // バイト配列フィールドが整数配列形式および 16 進数文字列形式からデコードされることの確認
@@ -362,7 +362,7 @@ TEST(jsonDecodeTest, rejects_mismatched_floating_widths)
     memset(storage, 0x5a, sizeof(storage));
     unsigned char before[128];
     memcpy(before, storage, sizeof(storage));
-    cJSON *json = cJSON_Parse("{\"value\":[1,2],\"nested\":{\"value\":[1,2]}}");
+    cJSON *json = cjson_app_cJSON_Parse("{\"value\":[1,2],\"nested\":{\"value\":[1,2]}}");
     ASSERT_NE(nullptr, json); // [状態確認] - 入力 JSON を作成できること。
 
     // Pre-Assert
@@ -403,7 +403,7 @@ TEST(jsonDecodeTest, rejects_mismatched_floating_widths)
     }
 
     // Cleanup
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
 }
 
 // 正しい幅の float と double を処理できることの確認
@@ -423,7 +423,7 @@ TEST(jsonDecodeTest, accepts_matching_floating_widths)
          nullptr, 0},
     };
     const struct_meta_descriptor descriptor = {"FloatingValues", sizeof(sample), fields, 2, nullptr, nullptr, 0};
-    cJSON *json = cJSON_Parse("{\"single\":3.5,\"wide\":4.5}");
+    cJSON *json = cjson_app_cJSON_Parse("{\"single\":3.5,\"wide\":4.5}");
     ASSERT_NE(nullptr, json); // [状態確認] - 入力 JSON を作成できること。
 
     // Pre-Assert
@@ -437,5 +437,5 @@ TEST(jsonDecodeTest, accepts_matching_floating_widths)
     EXPECT_DOUBLE_EQ(4.5, sample.wide);   // [確認_正常系] - double 値が一致すること。
 
     // Cleanup
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
 }

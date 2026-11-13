@@ -358,8 +358,8 @@ static void cmd_dumpjson(const sample_target *target)
         return;
     }
 
-    char *text = cJSON_Print(json);
-    cJSON_Delete(json);
+    char *text = cjson_app_cJSON_Print(json);
+    cjson_app_cJSON_Delete(json);
 
     if (text == NULL)
     {
@@ -372,7 +372,7 @@ static void cmd_dumpjson(const sample_target *target)
     if (text_length == SIZE_MAX)
     {
         fprintf(stderr, "struct-meta-sample: JSON のテキストが大きすぎます\n");
-        cJSON_free(text);
+        cjson_app_cJSON_free(text);
         return;
     }
 
@@ -383,7 +383,7 @@ static void cmd_dumpjson(const sample_target *target)
     {
         fprintf(stderr, "struct-meta-sample: dumpjson の標準出力へ書き込めません (結果コード %d)\n",
                 cplat_error_to_result(&error));
-        cJSON_free(text);
+        cjson_app_cJSON_free(text);
         return;
     }
 
@@ -393,12 +393,12 @@ static void cmd_dumpjson(const sample_target *target)
     {
         fprintf(stderr, "struct-meta-sample: dumpjson の最終改行を出力できません (結果コード %d)\n",
                 cplat_error_to_result(&error));
-        cJSON_free(text);
+        cjson_app_cJSON_free(text);
         return;
     }
 
     (void)cplat_fflush(stdout, NULL);
-    cJSON_free(text);
+    cjson_app_cJSON_free(text);
 }
 
 /**

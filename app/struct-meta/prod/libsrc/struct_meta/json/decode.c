@@ -34,14 +34,14 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
     {
     case STRUCT_META_FIELD_SIGNED_INTEGER:
     {
-        if (!cJSON_IsNumber(item))
+        if (!cjson_app_cJSON_IsNumber(item))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
         int64_t value;
 
-        if (!cJSON_GetInt64Value(item, &value))
+        if (!cjson_app_cJSON_GetInt64Value(item, &value))
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
@@ -51,14 +51,14 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
 
     case STRUCT_META_FIELD_UNSIGNED_INTEGER:
     {
-        if (!cJSON_IsNumber(item))
+        if (!cjson_app_cJSON_IsNumber(item))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
         uint64_t value;
 
-        if (!cJSON_GetUInt64Value(item, &value))
+        if (!cjson_app_cJSON_GetUInt64Value(item, &value))
         {
             return CPLAT_ERR_OUT_OF_RANGE;
         }
@@ -67,36 +67,36 @@ static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsi
     }
 
     case STRUCT_META_FIELD_FLOAT:
-        if ((element_size != sizeof(float)) || (!cJSON_IsNumber(item)))
+        if ((element_size != sizeof(float)) || (!cjson_app_cJSON_IsNumber(item)))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
         {
-            float value = (float)cJSON_GetNumberValue(item);
+            float value = (float)cjson_app_cJSON_GetNumberValue(item);
             memcpy(field_ptr, &value, sizeof(value));
         }
 
         break;
 
     case STRUCT_META_FIELD_DOUBLE:
-        if ((element_size != sizeof(double)) || (!cJSON_IsNumber(item)))
+        if ((element_size != sizeof(double)) || (!cjson_app_cJSON_IsNumber(item)))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
         {
-            double value = cJSON_GetNumberValue(item);
+            double value = cjson_app_cJSON_GetNumberValue(item);
             memcpy(field_ptr, &value, sizeof(value));
         }
 
         break;
 
     case STRUCT_META_FIELD_CHAR_ARRAY:
-        if (!cJSON_IsString(item))
+        if (!cjson_app_cJSON_IsString(item))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
         {
-            const char *text = cJSON_GetStringValue(item);
+            const char *text = cjson_app_cJSON_GetStringValue(item);
             size_t text_len = strlen(text);
 
             if ((char_buffer_size == 0U) || (text_len >= char_buffer_size))
@@ -159,7 +159,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         return CPLAT_OK;
     }
 
-    item = cJSON_GetObjectItemCaseSensitive(json, json_key(field));
+    item = cjson_app_cJSON_GetObjectItemCaseSensitive(json, json_key(field));
     if (item == NULL)
     {
         if (struct_meta_field_find_attribute(field, "json.required", &attribute) == CPLAT_OK)
@@ -180,7 +180,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
     /* 16 進文字列形式のバイト配列を復元する。 */
     if (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX)
     {
-        if (!cJSON_IsString(item))
+        if (!cjson_app_cJSON_IsString(item))
         {
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
@@ -193,7 +193,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         }
 
         return struct_meta_internal_bytes_from_hex((unsigned char *)element, field->element_count,
-                                                   cJSON_GetStringValue(item));
+                                                   cjson_app_cJSON_GetStringValue(item));
     }
 
     /* 単一要素 (スカラーまたは文字列) を復元する。 */
@@ -209,12 +209,12 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
         return element_from_json(field, item, (unsigned char *)element);
     }
 
-    if (!cJSON_IsArray(item))
+    if (!cjson_app_cJSON_IsArray(item))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
-    int array_size = cJSON_GetArraySize(item);
+    int array_size = cjson_app_cJSON_GetArraySize(item);
     if ((array_size < 0) || ((size_t)array_size != field->element_count))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
@@ -223,7 +223,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
     /* 配列の各要素を復元する。 */
     for (size_t i = 0; i < field->element_count; i++)
     {
-        const cJSON *elem = cJSON_GetArrayItem(item, (int)i);
+        const cJSON *elem = cjson_app_cJSON_GetArrayItem(item, (int)i);
         void *element;
         int ret = struct_meta_field_get_element(field, base, i, &element);
         if (ret == CPLAT_OK)
@@ -245,7 +245,7 @@ static int field_from_json(const struct_meta_field *field, const cJSON *json, un
  */
 static int struct_from_json(const struct_meta_descriptor *desc, const cJSON *json, unsigned char *base)
 {
-    if (!cJSON_IsObject(json))
+    if (!cjson_app_cJSON_IsObject(json))
     {
         return CPLAT_ERR_INVALID_ARGUMENT;
     }

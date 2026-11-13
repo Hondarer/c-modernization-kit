@@ -42,8 +42,8 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
         return ret;
     }
 
-    char *text = cJSON_Print(json);
-    cJSON_Delete(json);
+    char *text = cjson_app_cJSON_Print(json);
+    cjson_app_cJSON_Delete(json);
 
     if (text == NULL)
     {
@@ -53,7 +53,7 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
     FILE *stream = cplat_fopen(path, "wb", NULL);
     if (stream == NULL)
     {
-        cJSON_free(text);
+        cjson_app_cJSON_free(text);
         return CPLAT_ERR_NOT_FOUND;
     }
 
@@ -62,7 +62,7 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
     if ((needs_newline != 0) && (text_len == SIZE_MAX))
     {
         (void)cplat_fclose(stream, NULL);
-        cJSON_free(text);
+        cjson_app_cJSON_free(text);
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
@@ -85,7 +85,7 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
     }
 
     cplat_fclose(stream, NULL);
-    cJSON_free(text);
+    cjson_app_cJSON_free(text);
 
     if (written != expected_len)
     {
@@ -142,7 +142,7 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
 
     text[file_size] = '\0';
 
-    cJSON *json = cJSON_Parse(text);
+    cJSON *json = cjson_app_cJSON_Parse(text);
     free(text);
 
     if (json == NULL)
@@ -151,7 +151,7 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
     }
 
     int ret = struct_meta_json_decode(desc, json, instance);
-    cJSON_Delete(json);
+    cjson_app_cJSON_Delete(json);
 
     return ret;
 }

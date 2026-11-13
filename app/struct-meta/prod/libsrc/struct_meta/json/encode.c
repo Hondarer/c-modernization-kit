@@ -44,7 +44,7 @@ static int scalar_to_json(struct_meta_field_kind kind, const unsigned char *fiel
             return ret;
         }
 
-        item = cJSON_CreateInt64(value);
+        item = cjson_app_cJSON_CreateInt64(value);
         break;
     }
 
@@ -57,7 +57,7 @@ static int scalar_to_json(struct_meta_field_kind kind, const unsigned char *fiel
             return ret;
         }
 
-        item = cJSON_CreateUInt64(value);
+        item = cjson_app_cJSON_CreateUInt64(value);
         break;
     }
 
@@ -69,7 +69,7 @@ static int scalar_to_json(struct_meta_field_kind kind, const unsigned char *fiel
         {
             float value;
             memcpy(&value, field_ptr, sizeof(value));
-            item = cJSON_CreateNumber((double)value);
+            item = cjson_app_cJSON_CreateNumber((double)value);
         }
 
         break;
@@ -82,7 +82,7 @@ static int scalar_to_json(struct_meta_field_kind kind, const unsigned char *fiel
         {
             double value;
             memcpy(&value, field_ptr, sizeof(value));
-            item = cJSON_CreateNumber(value);
+            item = cjson_app_cJSON_CreateNumber(value);
         }
 
         break;
@@ -93,7 +93,7 @@ static int scalar_to_json(struct_meta_field_kind kind, const unsigned char *fiel
         {
             return CPLAT_ERR_INVALID_ENCODING;
         }
-        item = cJSON_CreateString((const char *)field_ptr);
+        item = cjson_app_cJSON_CreateString((const char *)field_ptr);
         break;
 
     case STRUCT_META_FIELD_STRUCT:
@@ -155,7 +155,7 @@ static int byte_array_to_json(const struct_meta_field *field, const unsigned cha
     ret = struct_meta_internal_bytes_to_hex((const unsigned char *)element, field->element_count, text, text_size);
     if (ret == CPLAT_OK)
     {
-        *item_out = cJSON_CreateString(text);
+        *item_out = cjson_app_cJSON_CreateString(text);
         if (*item_out == NULL)
         {
             ret = CPLAT_ERR_OUT_OF_MEMORY;
@@ -197,7 +197,7 @@ static int field_to_json(const struct_meta_field *field, const unsigned char *ba
         return element_to_json(field, (const unsigned char *)element, item_out);
     }
 
-    cJSON *array = cJSON_CreateArray();
+    cJSON *array = cjson_app_cJSON_CreateArray();
     if (array == NULL)
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
@@ -216,14 +216,14 @@ static int field_to_json(const struct_meta_field *field, const unsigned char *ba
 
         if (ret != CPLAT_OK)
         {
-            cJSON_Delete(array);
+            cjson_app_cJSON_Delete(array);
             return ret;
         }
 
-        if (!cJSON_AddItemToArray(array, elem))
+        if (!cjson_app_cJSON_AddItemToArray(array, elem))
         {
-            cJSON_Delete(elem);
-            cJSON_Delete(array);
+            cjson_app_cJSON_Delete(elem);
+            cjson_app_cJSON_Delete(array);
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
     }
@@ -253,7 +253,7 @@ static const char *json_key(const struct_meta_field *field)
  */
 static int struct_to_json(const struct_meta_descriptor *desc, const unsigned char *base, cJSON **json_out)
 {
-    cJSON *obj = cJSON_CreateObject();
+    cJSON *obj = cjson_app_cJSON_CreateObject();
     if (obj == NULL)
     {
         return CPLAT_ERR_OUT_OF_MEMORY;
@@ -274,14 +274,14 @@ static int struct_to_json(const struct_meta_descriptor *desc, const unsigned cha
         ret = field_to_json(field, base, &item);
         if (ret != CPLAT_OK)
         {
-            cJSON_Delete(obj);
+            cjson_app_cJSON_Delete(obj);
             return ret;
         }
 
-        if (!cJSON_AddItemToObject(obj, json_key(field), item))
+        if (!cjson_app_cJSON_AddItemToObject(obj, json_key(field), item))
         {
-            cJSON_Delete(item);
-            cJSON_Delete(obj);
+            cjson_app_cJSON_Delete(item);
+            cjson_app_cJSON_Delete(obj);
             return CPLAT_ERR_OUT_OF_MEMORY;
         }
     }
