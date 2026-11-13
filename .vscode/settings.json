@@ -78,4 +78,6 @@
         "files.insertFinalNewline": true,
         "files.trimFinalNewlines": false,
     },
+    // VS Code が親リポジトリごとに自動検出するサブモジュール数の上限 (既定値は 10 のため拡大)
+    "git.detectSubmodulesLimit": 20,
 }
