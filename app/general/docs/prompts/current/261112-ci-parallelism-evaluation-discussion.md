@@ -42,11 +42,11 @@
     - ✅ 4.5. 17 個の app の `makefile` の同期 (`update_template_makefiles.py`)
     - ✅ 4.6. 変更後の所要時間の測定と比較 (手元の Windows)
     - ✅ 4.7. 正本ドキュメントへの知見の反映 (`framework/makefw/docs/build-configurations.md`) と `text_style_jp.py` の確認
-    - 🔄 4.8. コミット、push (makefw、7 個の app のサブモジュール、親リポジトリ)、GitHub Actions の実走の確認 ← **CURRENT**
-    - ⏸️ 4.9. 受入条件への適合確認
-    - ⏸️ 4.10. 残課題一覧の作成と整理、対処元 (`261111-ci-time-backlog-followup-backlog.md`) への経緯の追記
-- ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
-    - ⏸️ 5.1. 成果物・検証結果・残課題の提示
+    - ✅ 4.8. コミット、push (makefw、7 個の app のサブモジュール、親リポジトリ)、GitHub Actions の実走の確認
+    - ✅ 4.9. 受入条件への適合確認 (実行 43429817821)
+    - ✅ 4.10. 残課題一覧の作成と整理、対処元 (`261111-ci-time-backlog-followup-backlog.md`) への経緯の追記
+- 🔄 5. 成果物の承認の受付 (第 3 ゲート)
+    - 🔄 5.1. 成果物・検証結果・残課題の提示 ← **CURRENT**
     - ⏸️ 5.2. 成果物の承認の受付
 ## 対象と参照資料
 
@@ -644,3 +644,55 @@ Table: app/calc の make の所要時間
 
 順に測った値では、変更後の中央値 (20.2[秒]) が変更前の範囲 (18.7 ～ 19.1[秒]) を外れました。  
 同じ時間帯に新旧の `makefile` を交互に入れ替えて測り直したところ、変更前の中央値が 20.1[秒]、変更後の中央値が 20.1[秒] で差はありませんでした。最初の差は、測定の時間帯による環境の差と判断し、受入条件 2 は交互の測定で満たしたものとしました。
+
+### コミット
+
+| リポジトリ | コミット | 内容 |
+| --- | --- | --- |
+| `framework/makefw` | `df018db` | 経過時間の表示、テスト、`build-configurations.md` |
+| cjson、cplat、lua、openssl、porter、sqlite、zlib | `e044dbb`、`7de9e621`、`60c6e31`、`20d21be`、`e92af58`、`6e456be`、`a14ebcb` | `makefile` のテンプレートへの同期 |
+| 親リポジトリ | `642e70bd` | サブモジュールの参照、10 個の app の `makefile`、検討用 Markdown と最終仕様 |
+
+Table: 実装のコミット
+
+`app/openssl` は、ブランチから外れた状態 (HEAD は `origin/main` と同じ `58dd7ff`) だったため、`main` に切り替えてからコミットしました。
+
+### GitHub Actions の実走
+
+実走では、この案件の変更とは別の、時間に依存するテストの失敗が 3 回続きました。ユーザーの指示 (2026-11-13) により、それぞれテストを修正して再実行しました。
+
+| 実行 | コミット | 結果 | 失敗の内容と対処 |
+| --- | --- | --- | --- |
+| 43321944455 | `642e70bd` | 失敗 (OL10) | cplat の `syncAdditionalFailureTest.thread_join_finite_wait_retries_then_succeeds`。期限 5[ms] の中で再試行の 1[ms] の待機が延び、タイムアウトした。期限を 1000[ms] に延ばした (cplat `64ba30e0`、親 `835a5dcf`) |
+| 43344867612 | `835a5dcf` | 失敗 (Windows) | porter の `porterSendRecvTest.health_timeout_clears_pending_fin_before_new_session`。health timeout 300[ms] が FIN の 150[ms] 後の確認より前に来た。health timeout を 1000[ms]、切断検知の待機を 3000[ms] に延ばした (porter `eff0c1d`、親 `8a9aef11`)。手元の Windows で 5 回成功 |
+| 43382171369 | `8a9aef11` | 失敗 (Windows の Run script tests) | makefw の `msvc_pch_selftest.ps1`。PCH の生成から 1[秒] 以内に `common.h` を書き換え、変更を検出できなかった。書き換えの前に 1.1[秒] 待つようにした (makefw `d02cd6d`、親 `4e6ea97a`)。手元の Windows で成功 |
+| 43429817821 | `4e6ea97a` | 成功 | 全ジョブが成功し、`deploy-pages` まで完了した。警告のアーティファクトはない |
+
+Table: 実走の経過
+
+失敗した 3 つのテストは、いずれもこの案件より前からあり、前後の実行では成功しています。また、失敗した実行でも、経過時間の表示は出ていました。
+
+### 受入条件への適合
+
+| 受入条件 | 結果 |
+| --- | --- |
+| 1. makefw の `bin_test/` | 手元の Windows で成功 (`--allow-skips`。環境の不足によるスキップは上に記載) |
+| 2. 手元の性能 | 交互の測定で、変更後の中央値 20.1[秒] が変更前の範囲 20.1 ～ 20.9[秒] の中にある |
+| 3. プロセスの起動の増加 | 0 個 (差分で確認) |
+| 4. `update_template_makefiles.py --dry-run` | 対象なし |
+| 5. `text_style_jp.py --dry-run` | 指摘なし |
+| 6. 実走で全ジョブが成功 | 実行 43429817821 で成功 |
+| 7. ログの経過時間の行 | 実行 43429817821 のすべてのレグで確認 (下表) |
+
+Table: 受入条件への適合
+
+| ジョブ | `INFO: done ... elapsed=` | `prod elapsed=` | `test elapsed=` | `test _test_run elapsed=` |
+| --- | ---: | ---: | ---: | ---: |
+| OL8 | 50 | 26 | 25 | 15 |
+| OL9 | 50 | 26 | 25 | 15 |
+| OL10 | 50 | 26 | 25 | 15 |
+| Windows | 71 | 29 | 28 | 15 |
+
+Table: 実行 43429817821 のログにある経過時間の行の数
+
+実行 43429817821 の所要時間は、Build ステップが OL8 89[分]、OL9 98[分]、OL10 103[分]、Windows 139[分]、Run tests ステップが OL8 41[分]、OL9 46[分]、OL10 44[分]、Windows 135[分]、`docs` ジョブの文書の生成が 58[分] でした。
