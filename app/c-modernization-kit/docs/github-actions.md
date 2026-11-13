@@ -150,67 +150,56 @@ Windows ジョブの `BISON` / `FLEX` 環境変数を通じて、makefw のコ�
 
 ## ジョブ実行フロー
 
-```plantuml
-@startuml
-!define RECTANGLE class
+```mermaid
+flowchart TD
+    subgraph parallel ["並列実行"]
+        linux_ol8["build-and-test-linux<br>(OL8)<br>ビルド + テスト + ドキュメント生成"]
+        linux_ol9["build-and-test-linux<br>(OL9)"]
+        linux_ol10["build-and-test-linux<br>(OL10)"]
+        windows["build-and-test-windows"]
+    end
 
-skinparam monochrome true
-skinparam shadowing false
-skinparam defaultFontName "Courier"
+    linux_ol8_artifact[/"linux-ol8-test-results"/]
+    linux_ol9_artifact[/"linux-ol9-test-results"/]
+    linux_ol10_artifact[/"linux-ol10-test-results"/]
+    windows_artifact[/"windows-test-results"/]
+    docs_artifact[/"documentation"/]
 
-rectangle "並列実行" {
-  card "build-and-test-linux\n(OL8)\nビルド + テスト + ドキュメント生成" as linux_ol8
-  card "build-and-test-linux\n(OL9)" as linux_ol9
-  card "build-and-test-linux\n(OL10)" as linux_ol10
-  card "build-and-test-windows" as windows
-}
+    warns["warnings-summary<br>(annotation + summary)"]
+    deploy["deploy-pages<br>(needs: すべて完了後)"]
+    pages(["GitHub Pages"])
 
-artifact "linux-ol8-test-results" as linux_ol8_artifact
-artifact "linux-ol9-test-results" as linux_ol9_artifact
-artifact "linux-ol10-test-results" as linux_ol10_artifact
-artifact "windows-test-results" as windows_artifact
-artifact "documentation" as docs_artifact
-card "warnings-summary\n(annotation + summary)" as warns
+    note_linux_ol8["注: ドキュメント生成はビルド済みの断面で行う<br>gen 配下の自動生成ソースを Doxygen の入力に含めるため"]
+    linux_ol8 --- note_linux_ol8
 
-card "deploy-pages\n(needs: すべて完了後)" as deploy
-cloud "GitHub Pages" as pages
+    linux_ol8 --> linux_ol8_artifact
+    linux_ol9 --> linux_ol9_artifact
+    linux_ol10 --> linux_ol10_artifact
+    windows --> windows_artifact
+    linux_ol8 --> docs_artifact
 
-linux_ol8 -down-> linux_ol8_artifact
-linux_ol9 -down-> linux_ol9_artifact
-linux_ol10 -down-> linux_ol10_artifact
-windows -down-> windows_artifact
-linux_ol8 -down-> docs_artifact
+    linux_ol8_artifact --> deploy
+    linux_ol9_artifact --> deploy
+    linux_ol10_artifact --> deploy
+    windows_artifact --> deploy
+    docs_artifact --> deploy
 
-linux_ol8_artifact -down-> deploy
-linux_ol9_artifact -down-> deploy
-linux_ol10_artifact -down-> deploy
-windows_artifact -down-> deploy
-docs_artifact -down-> deploy
-linux_ol8_artifact -down-> warns
-linux_ol9_artifact -down-> warns
-linux_ol10_artifact -down-> warns
-windows_artifact -down-> warns
-docs_artifact -down-> warns
+    linux_ol8_artifact --> warns
+    linux_ol9_artifact --> warns
+    linux_ol10_artifact --> warns
+    windows_artifact --> warns
+    docs_artifact --> warns
 
-deploy -down-> pages : アーティファクト統合
+    deploy -->|アーティファクト統合| pages
 
-note right of deploy
-  アーティファクトストレージ経由で異なる OS 環境のファイルを統合
-  すべてのジョブ成功時のみ実行
-end note
+    note_deploy["注: アーティファクトストレージ経由で異なる OS 環境のファイルを統合<br>すべてのジョブ成功時のみ実行"]
+    deploy --- note_deploy
 
-note right of linux_ol8
-  ドキュメント生成はビルド済みの断面で行う
-  gen 配下の自動生成ソースを Doxygen の入力に含めるため
-end note
-
-note right of warns
-  warning artifact の有無を検知し、ジョブは成功のまま
-  annotation と Step Summary で通知
-end note
-
-@enduml
+    note_warns["注: warning artifact の有無を検知し、ジョブは成功のまま<br>annotation と Step Summary で通知"]
+    warns --- note_warns
 ```
+
+CodeBlock: ジョブ実行フロー
 
 ## 実行ステップ
 
@@ -371,24 +360,19 @@ Pages に配置する対象と容量の考え方は、[Pages の配置対象](#p
 
 GitHub Actions のアーティファクト ストレージを中継ストレージとして使用することで、異なる OS 環境 (Linux、Windows) で生成されたファイルを 1 つのジョブに集約します。
 
-```plantuml
-@startuml
-!define RECTANGLE class
+```mermaid
+flowchart LR
+    jobs["各ジョブ<br>(Linux OL8/OL9/OL10/Windows/docs)"]
+    storage[("アーティファクトストレージ<br>(中継)")]
+    deploy["deploy-pages"]
+    pages(["GitHub Pages"])
 
-skinparam monochrome true
-skinparam shadowing false
-
-card "各ジョブ\n(Linux OL8/OL9/OL10/Windows/docs)" as jobs
-storage "アーティファクトストレージ\n(中継)" as storage
-card "deploy-pages" as deploy
-cloud "GitHub Pages" as pages
-
-jobs -right-> storage : upload
-storage -right-> deploy : download
-deploy -right-> pages : publish
-
-@enduml
+    jobs -->|upload| storage
+    storage -->|download| deploy
+    deploy -->|publish| pages
 ```
+
+CodeBlock: アーティファクト ストレージの役割
 
 ## GitHub Pages デプロイ
 

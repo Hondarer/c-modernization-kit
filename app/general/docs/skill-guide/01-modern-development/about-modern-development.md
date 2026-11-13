@@ -18,49 +18,41 @@
 
 プッシュを契機にビルド、テスト、ドキュメント生成、デプロイまでを自動化します。GitHub Actions や GitLab CI、Jenkins などに組み込み、ドキュメント サイトの自動公開までを一気通貫で行います。
 
-```plantuml
-@startuml CI/CD ワークフロー
-   caption CI/CD ワークフロー
-   start
-      :コード変更とコミット;
-      :CI トリガー (GitHub Actions / GitLab CI など);
-      :コードのビルドとテスト実行;
-      :make docs によるドキュメント自動生成;
-      :ドキュメントサイトへの自動デプロイ (GitHub Pages / GitLab Pages など);
-   stop
-@enduml
+```mermaid
+flowchart TD
+    startNode((開始)) --> step1["コード変更とコミット"]
+    step1 --> step2["CI トリガー (GitHub Actions / GitLab CI など)"]
+    step2 --> step3["コードのビルドとテスト実行"]
+    step3 --> step4["make docs によるドキュメント自動生成"]
+    step4 --> step5["ドキュメントサイトへの自動デプロイ (GitHub Pages / GitLab Pages など)"]
+    step5 --> endNode((終了))
 ```
+
+CodeBlock: CI/CD ワークフロー
 
 ## 全体ワークフロー
 
 このワークフローでは、製品ソース、テスト、関連ドキュメントを一体で管理し、ビルドからエビデンス、最終成果物までを自動生成します。Doxygen で API ドキュメントを抽出し、Doxybook2 で Markdown 化し、Pandoc で HTML や DOCX を出力します。テストは Google Test を使い、カバレッジなどのエビデンスも得ます。さらに、Markdown を AI の入力にすることで、リポジトリ全体の構造を AI が理解しやすくします。
 
-```plantuml
-@startuml 全体ワークフロー
-    caption 全体ワークフロー
-    folder "製品ソースコード" as src #ffc0c0
-    component Doxygen
-    component Doxybook2
-    folder "製品ドキュメント\n(Markdown)" as src_md
-    folder "テストのソースコード" as test_src #ffc0c0
-    folder "単体試験結果\n(テストエビデンス)" as test_evi
-    component "gcov / OpenCppCovrage" as gcov
-    component "lcov / ReportGenerator" as lcov
-    component "Google Test\n(w/Google Mock)" as gtest
-    folder "関連ドキュメント\n(Markdown)" as docs_md #ffc0c0
-    component Pandoc
-    folder "ドキュメント\n(HTML)" as html
-    folder "ドキュメント\n(DOCX)" as docx
-    note bottom
-        納品用
-    end note
-    actor "開発者" as developer
-    component "VS Code\n(インテリセンス)" as vscode
-    component "AI (LLM, RAG)" as llm
-    note bottom
-        AI の入力データ として
-        Markdown を活用
-    end note
+```mermaid
+flowchart TD
+    src["製品ソースコード"]:::redFolder
+    Doxygen["Doxygen"]
+    Doxybook2["Doxybook2"]
+    src_md["製品ドキュメント<br>(Markdown)"]
+    test_src["テストのソースコード"]:::redFolder
+    test_evi["単体試験結果<br>(テストエビデンス)"]
+    gcov["gcov / OpenCppCoverage"]
+    lcov["lcov / ReportGenerator"]
+    gtest["Google Test<br>(w/Google Mock)"]
+    docs_md["関連ドキュメント<br>(Markdown)"]:::redFolder
+    Pandoc["Pandoc"]
+    html["ドキュメント<br>(HTML)"]
+    docx["ドキュメント<br>(DOCX)<br><i>納品用</i>"]
+    developer(["開発者"])
+    vscode["VS Code<br>(インテリセンス)"]
+    llm["AI (LLM, RAG)<br><i>AI の入力データとして Markdown を活用</i>"]
+
     src --> Doxygen
     Doxygen --> Doxybook2
     Doxybook2 --> src_md
@@ -71,18 +63,21 @@
     gcov --> test_evi
     lcov --> test_evi
     test_src --> gtest
-    gtest -----> test_evi
+    gtest --> test_evi
     docs_md --> Pandoc
     src_md --> Pandoc
     Pandoc --> html
     Pandoc --> docx
     html --> developer
     docs_md --> llm
-    src_md ---> llm
-    src -----> vscode : ヘッダの\nDoxygen コメント
-    vscode -> developer
-@enduml
+    src_md --> llm
+    src -->|"ヘッダの<br>Doxygen コメント"| vscode
+    vscode --> developer
+
+    classDef redFolder fill:#ffc0c0,stroke:#333,stroke-width:1px;
 ```
+
+CodeBlock: 全体ワークフロー
 
 ### ステップの要点
 

@@ -60,30 +60,30 @@ git submodule update --init --recursive
 
 ### framework の依存関係
 
-```plantuml
-@startuml framework の依存関係
-    caption framework の依存関係
-    component "framework/testfw/gtest\ngoogletest-lib" as gtest
-    component "framework/testfw\ngoogletest-c-framework" as testfw
-    component "framework/makefw\nmake-framework" as makefw
-    component "framework/doxyfw\ndoxygen-framework" as doxyfw
-    component "framework/docsfw\npub_markdown" as docsfw
-    component "app/general" as general
-    component "利用者プロジェクト" as this
+```mermaid
+flowchart TD
+    gtest["framework/testfw/gtest<br>googletest-lib"]
+    testfw["framework/testfw<br>googletest-c-framework"]
+    makefw["framework/makefw<br>make-framework"]
+    doxyfw["framework/doxyfw<br>doxygen-framework"]
+    docsfw["framework/docsfw<br>pub_markdown"]
+    general["app/general"]
+    this["利用者プロジェクト"]
 
     testfw --> gtest
-    testfw ..> makefw : (CI 時に参照)
+    testfw -. "(CI 時に参照)" .-> makefw
     general --> doxyfw
     general --> docsfw
     general --> makefw
-    general --> testfw : (テスト時に参照)
+    general -. "(テスト時に参照)" .-> testfw
     this --> doxyfw
     this --> docsfw
     this --> makefw
-    this --> testfw : (テスト時に参照)
+    this -. "(テスト時に参照)" .-> testfw
     this --> general
-@enduml
 ```
+
+CodeBlock: framework の依存関係
 
 ## 入口
 

@@ -32,20 +32,21 @@ Table: service-sample のライフサイクル コールバック一覧
 
 フレームワークは `on_start` 成功直後に起動完了 (Windows: `SERVICE_RUNNING` / Linux: `READY=1`)、`on_run` 復帰直後に停止開始 (Windows: `SERVICE_STOP_PENDING` / Linux: `STOPPING=1`) を OS へ自動通知します。コールバック側でこれらを意識する必要はありません。
 
-```plantuml
-@startuml
-    caption 起動完了・停止開始の通知抽象
+```mermaid
+stateDiagram-v2
+    state "Starting<br>on_start 実行中" as Starting
+    state "Running<br>on_run 実行中" as Running
+    state "Stopping<br>on_stop 実行中" as Stopping
+    state "Stopped" as Stopped
+
     [*] --> Starting
-    Starting --> Running : svc_os_notify_ready()\nWin: SERVICE_RUNNING / Linux: READY=1
-    Running --> Stopping : svc_os_notify_stopping()\nWin: SERVICE_STOP_PENDING / Linux: STOPPING=1
+    Starting --> Running : svc_os_notify_ready()<br>Win: SERVICE_RUNNING / Linux: READY=1
+    Running --> Stopping : svc_os_notify_stopping()<br>Win: SERVICE_STOP_PENDING / Linux: STOPPING=1
     Stopping --> Stopped
     Stopped --> [*]
-
-    Starting : on_start 実行中
-    Running : on_run 実行中
-    Stopping : on_stop 実行中
-@enduml
 ```
+
+CodeBlock: 起動完了・停止開始の通知抽象
 
 ## ファイル構成
 
@@ -62,17 +63,16 @@ prod/src/cmd/service-sample/
 3 経路の停止シグナルを `svc_request_stop()` という単一関数に集約します。  
 on_run の実装は `svc_wait_for_stop()` だけを見れば停止を検知できます。
 
-```plantuml
-@startuml
-    caption 停止イベントの統一抽象
-    rectangle "SIGINT / SIGTERM\n(Linux)" as sig
-    rectangle "SetConsoleCtrlHandler\n(Windows console)" as con
-    rectangle "SERVICE_CONTROL_STOP\n(Windows SCM)" as scm
-    rectangle "shutdown.h /\nsvc_shutdown_request_callback()" as sdh
-    rectangle "ServiceCtrlHandler()" as sctl
-    rectangle "svc_request_stop()" as req
-    rectangle "s_stop_cv broadcast" as cv
-    rectangle "on_run の\nsvc_wait_for_stop() が戻る" as wait
+```mermaid
+flowchart TD
+    sig["SIGINT / SIGTERM<br>(Linux)"]
+    con["SetConsoleCtrlHandler<br>(Windows console)"]
+    scm["SERVICE_CONTROL_STOP<br>(Windows SCM)"]
+    sdh["shutdown.h /<br>svc_shutdown_request_callback()"]
+    sctl["ServiceCtrlHandler()"]
+    req["svc_request_stop()"]
+    cv["s_stop_cv broadcast"]
+    wait["on_run の<br>svc_wait_for_stop() が戻る"]
 
     sig --> sdh
     con --> sdh
@@ -81,8 +81,9 @@ on_run の実装は `svc_wait_for_stop()` だけを見れば停止を検知で�
     sctl --> req
     req --> cv
     cv --> wait
-@enduml
 ```
+
+CodeBlock: 停止イベントの統一抽象
 
 内部では `cplat/sync` の condvar + lock を使って待機します。  
 SCM の停止通知はシグナルではないため、condvar が 3 経路すべてに対応できる唯一の共通手段です。
@@ -111,16 +112,16 @@ Table: Windows における service-sample の動作一覧
 
 Windows SCM の状態遷移:
 
-```plantuml
-@startuml
-    caption Windows SCM の状態遷移
+```mermaid
+stateDiagram-v2
     [*] --> START_PENDING
     START_PENDING --> RUNNING : on_start 成功
     RUNNING --> STOP_PENDING : on_run 復帰
     STOP_PENDING --> STOPPED : on_stop 完了
     STOPPED --> [*]
-@enduml
 ```
+
+CodeBlock: Windows SCM の状態遷移
 
 ## ビルド
 

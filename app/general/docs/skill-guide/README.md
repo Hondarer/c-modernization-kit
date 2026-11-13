@@ -16,40 +16,44 @@
 
 ## 学習ステップ
 
-```plantuml
-@startuml 学習ステップ
-    caption 学習ステップ
-    skinparam roundcorner 8
+```mermaid
+flowchart TD
+    subgraph P1 ["ステップ1: 導入"]
+        P1A["モダンな開発の理解<br>(X as Code / GitOps)"]
+    end
 
-    rectangle "ステップ1\n導入" as P1 #EDE7F6 {
-        rectangle "モダンな開発の理解\n(X as Code / GitOps)" as P1A
-    }
+    subgraph P2 ["ステップ2: 必須基盤"]
+        P2A["バージョン管理<br>(Git / GitHub)"]
+    end
 
-    rectangle "ステップ2\n必須基盤" as P2 #E8F4FD {
-        rectangle "バージョン管理\n(Git / GitHub)" as P2A
-    }
+    subgraph P3 ["ステップ3: ビルド理解"]
+        P3A["C言語発展<br>(ライブラリ・クロスプラットフォーム)"]
+        P3B["ビルドシステム<br>(Make / GCC / .NET)"]
+    end
 
-    rectangle "ステップ3\nビルド理解" as P3 #E8F5E9 {
-        rectangle "C言語発展\n(ライブラリ・クロスプラットフォーム)" as P3A
-        rectangle "ビルドシステム\n(Make / GCC / .NET)" as P3B
-    }
+    subgraph P4 ["ステップ4: 品質向上"]
+        P4A["テスト自動化<br>(Google Test / カバレッジ)"]
+        P4B["ドキュメント自動化<br>(Doxygen / Pandoc)"]
+    end
 
-    rectangle "ステップ4\n品質向上" as P4 #FFF8E1 {
-        rectangle "テスト自動化\n(Google Test / カバレッジ)" as P4A
-        rectangle "ドキュメント自動化\n(Doxygen / Pandoc)" as P4B
-    }
+    subgraph P5 ["ステップ5: 自動化・拡張"]
+        P5A["CI/CD<br>(GitHub Actions / Pages / Jenkins / Podman)"]
+        P5B["開発環境・.NET連携<br>(VS Code / WSL / C#)"]
+    end
 
-    rectangle "ステップ5\n自動化・拡張" as P5 #FCE4EC {
-        rectangle "CI/CD\n(GitHub Actions / Pages / Jenkins / Podman)" as P5A
-        rectangle "開発環境・.NET連携\n(VS Code / WSL / C#)" as P5B
-    }
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
 
-    P1 -down-> P2
-    P2 -down-> P3
-    P3 -down-> P4
-    P4 -down-> P5
-@enduml
+    style P1 fill:#EDE7F6,stroke:#333
+    style P2 fill:#E8F4FD,stroke:#333
+    style P3 fill:#E8F5E9,stroke:#333
+    style P4 fill:#FFF8E1,stroke:#333
+    style P5 fill:#FCE4EC,stroke:#333
 ```
+
+CodeBlock: 学習ステップ
 
 | ステップ                 | 目標                                     | 技術カテゴリ                 |
 |--------------------------|------------------------------------------|------------------------------|

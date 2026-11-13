@@ -140,20 +140,21 @@ Table: `service-sample` の OS イベント抽象
 - OS 側の応答期限があるため、短時間で戻る必要があります。Linux のサスペンド・シャットダウン前の猶予は logind の delay inhibitor lock によるもので、上限は `InhibitDelayMaxSec` (既定 5 秒) です。Windows の pre-shutdown 猶予は install 時に 30 秒で登録します。
 - `svc_definition` の `on_event` / `on_reload` を NULL にした場合、該当イベントの受け付け自体を行いません (Windows は `SERVICE_ACCEPT_*` を宣言せず、Linux は監視を構築しません)。
 
-```plantuml
-@startuml 起動完了・停止開始の通知抽象
-    caption 起動完了・停止開始の通知抽象
+```mermaid
+stateDiagram-v2
+    state "Starting<br>on_start 実行中" as Starting
+    state "Running<br>on_run 実行中" as Running
+    state "Stopping<br>on_stop 実行中" as Stopping
+    state "Stopped" as Stopped
+
     [*] --> Starting
-    Starting --> Running : svc_os_notify_ready()\nWin: SERVICE_RUNNING / Linux: READY=1
-    Running --> Stopping : svc_os_notify_stopping()\nWin: SERVICE_STOP_PENDING / Linux: STOPPING=1
+    Starting --> Running : svc_os_notify_ready()<br>Win: SERVICE_RUNNING / Linux: READY=1
+    Running --> Stopping : svc_os_notify_stopping()<br>Win: SERVICE_STOP_PENDING / Linux: STOPPING=1
     Stopping --> Stopped
     Stopped --> [*]
-
-    Starting : on_start 実行中
-    Running : on_run 実行中
-    Stopping : on_stop 実行中
-@enduml
 ```
+
+CodeBlock: 起動完了・停止開始の通知抽象
 
 コンソール モード (`console` コマンド) や `NOTIFY_SOCKET` が未設定の環境では、各フックが no-op になります。
 
@@ -252,29 +253,30 @@ Table: `service-sample` の Linux 対応範囲
 一時停止 (`SERVICE_CONTROL_PAUSE`) と再開 (`SERVICE_CONTROL_CONTINUE`) は同一プロセスを維持したまま動作を中断・再開する操作であり、プロセスを終了させる再起動とは異なります。  
 `service-sample` はこれらを受け付けていません。詳細は [service-sample の Windows 対応範囲](#service-sample-の-windows-対応範囲) を参照してください。
 
-```plantuml
-@startuml サービス再起動時のイベント順序 (手動再起動)
-    caption サービス再起動時のイベント順序 (手動再起動)
-    participant "サービス マネージャー\n(SCM / systemd)" as MGR
-    participant "旧プロセス" as OLD
-    participant "新プロセス" as NEW
+```mermaid
+sequenceDiagram
+    autonumber off
+    participant MGR as サービス マネージャー<br>(SCM / systemd)
+    participant OLD as 旧プロセス
+    participant NEW as 新プロセス
 
-    MGR -> OLD : 停止要求\n(SERVICE_CONTROL_STOP / SIGTERM)
+    MGR->>OLD: 停止要求<br>(SERVICE_CONTROL_STOP / SIGTERM)
     activate OLD
-    OLD -> OLD : svc_request_stop()
-    OLD -> OLD : on_run が戻る
-    OLD -> OLD : on_stop()
-    OLD --> MGR : 停止完了\n(SERVICE_STOPPED / プロセス終了)
+    OLD->>OLD: svc_request_stop()
+    OLD->>OLD: on_run が戻る
+    OLD->>OLD: on_stop()
+    OLD-->>MGR: 停止完了<br>(SERVICE_STOPPED / プロセス終了)
     deactivate OLD
 
-    MGR -> NEW : 起動\n(ServiceMain / ExecStart=... run)
+    MGR->>NEW: 起動<br>(ServiceMain / ExecStart=... run)
     activate NEW
-    NEW -> NEW : on_start()
-    NEW -> NEW : on_run()\n(停止要求まで常駐)
-    NEW --> MGR : 起動完了\n(SERVICE_RUNNING / Type=notify)
+    NEW->>NEW: on_start()
+    NEW->>NEW: on_run()<br>(停止要求まで常駐)
+    NEW-->>MGR: 起動完了<br>(SERVICE_RUNNING / Type=notify)
     deactivate NEW
-@enduml
 ```
+
+CodeBlock: サービス再起動時のイベント順序 (手動再起動)
 
 ### 手動再起動の手段
 
