@@ -280,7 +280,7 @@ TEST_F(sampleFilterShareTest, invalid_image_is_not_published)
     static unsigned char image[kImageSize];
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
     // [状態確認] - compile_single_line() の戻り値が CPLAT_OK であること。
-    filter_test_record_address(image, kLineWidth, 0U)[0] ^= 0xFFU;    // [状態] - 行レコードを壊す。
+    filter_test_record_address(image, kLineWidth, 0U)[0] ^= 0xFFU; // [状態] - 行レコードを壊す。
 
     // Pre-Assert
 
@@ -340,9 +340,9 @@ TEST_F(sampleFilterShareTest, trace_output_takes_published_image_before_output)
 
     ASSERT_NE(nullptr, tracer); // [状態確認] - cplat_tracer_create() の戻り値が nullptr 以外であること。
     ASSERT_EQ(CPLAT_OK,
-              cplat_tracer_start(tracer)); // [状態確認] - cplat_tracer_start() の戻り値が CPLAT_OK であること。
-    sample_worker_trace_set_tracer(tracer);                           // [状態] - 出力先を設定する。
-    ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_));       // [状態] - スロットを出力へ接続する。
+              cplat_tracer_start(tracer));  // [状態確認] - cplat_tracer_start() の戻り値が CPLAT_OK であること。
+    sample_worker_trace_set_tracer(tracer); // [状態] - 出力先を設定する。
+    ASSERT_EQ(CPLAT_OK, sample_worker_trace_set_filter(slot_)); // [状態] - スロットを出力へ接続する。
     // [状態確認] - sample_worker_trace_set_filter() の戻り値が CPLAT_OK であること。
     ASSERT_EQ(CPLAT_OK, compile_single_line("category <= 2", image)); // [状態] - 条件式をコンパイルする。
     // [状態確認] - compile_single_line() の戻り値が CPLAT_OK であること。
@@ -680,7 +680,7 @@ TEST_F(sampleFilterShareTest, file_left_while_writing_is_not_taken_until_next_pu
                                          sizeof(torn_image))); // [状態] - フィルター オブジェクトの一部を書き換える。
     // [状態確認] - rewrite_file() の中で致命的な失敗が起きないこと。
     // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
-    ASSERT_NO_FATAL_FAILURE(open_handles());                   // [状態] - 再起動したプロセスに見立てて開き直す。
+    ASSERT_NO_FATAL_FAILURE(open_handles()); // [状態] - 再起動したプロセスに見立てて開き直す。
     // [状態確認] - open_handles() の中で致命的な失敗が起きないこと。
 
     // Pre-Assert
@@ -743,13 +743,13 @@ TEST_F(sampleFilterShareTest, file_with_corrupt_header_is_rejected_until_removed
     ASSERT_EQ(CPLAT_OK, sample_filter_share_publish(writer_, image, kImageSize, catalog_id_,
                                                     &revision)); // [状態] - 条件を公開する。
     // [状態確認] - sample_filter_share_publish() の戻り値が CPLAT_OK であること。
-    close_handles();                                             // [状態] - すべてのハンドルを閉じる。
+    close_handles(); // [状態] - すべてのハンドルを閉じる。
     // [サブ手順参照 名前=sampleFilterShareTest.rewrite_file]
     ASSERT_NO_FATAL_FAILURE(rewrite_file(0U, &corrupt_signature,
                                          sizeof(corrupt_signature))); // [状態] - ファイルの署名を書き換える。
     // [状態確認] - rewrite_file() の中で致命的な失敗が起きないこと。
     // [サブ手順参照 名前=sampleFilterShareTest.open_handles]
-    ASSERT_NO_FATAL_FAILURE(open_handles());                          // [状態] - 再起動したプロセスに見立てて開き直す。
+    ASSERT_NO_FATAL_FAILURE(open_handles()); // [状態] - 再起動したプロセスに見立てて開き直す。
     // [状態確認] - open_handles() の中で致命的な失敗が起きないこと。
 
     // Pre-Assert

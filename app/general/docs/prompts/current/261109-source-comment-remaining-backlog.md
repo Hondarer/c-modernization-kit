@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: claude code / セッション ID: session_01KJc53S9NTSL234pjuYHGV9
+最終更新エージェント: claude code / セッション ID: session_01KJc53SxAJ1aEypd18coD8r
 上流文書: `261109-source-comment-remaining-discussion.md`、`261109-source-comment-remaining-design.md`。削除されている場合があります。
 対処元: `../past/261109-source-comment-backlog-followup-backlog.md`
 再開手順: agree-before-implement スキルと存在する上流文書を読み、CURRENT と承認範囲を確認してください。この一覧は、実装、Windows の局所検証、CI の確認を終えた時点の残件です。
@@ -25,10 +25,10 @@ Linux のビルドとテストは、プッシュ後の CI で確認しました�
 
 | 課題 ID | 引き継ぐ内容 | 状態 |
 | --- | --- | --- |
-| BL-008 | 理由の根拠を確認できなかった 162 項目 | 未対処 |
-| BL-024 | Windows の対話操作を含む実機検証 | 未対処 |
-| BL-025 | TCP 双方向 N:1 通信の実施要否と実装 | 未対処 |
-| BL-029 | 今回の作業中に見つけた、対象範囲外の規範との差 4 件 | 未対処 |
+| BL-008 | 理由の根拠を確認できなかった 162 項目 | 未対処 (`261113-source-comment-bl029-backlog.md` の BL-002 へ転記) |
+| BL-024 | Windows の対話操作を含む実機検証 | 未対処 (`261113-source-comment-bl029-backlog.md` の BL-003 へ転記) |
+| BL-025 | TCP 双方向 N:1 通信の実施要否と実装 | 未対処 (`261113-source-comment-bl029-backlog.md` の BL-004 へ転記) |
+| BL-029 | 今回の作業中に見つけた、対象範囲外の規範との差 4 件 | 対応済み (案件 `source-comment-bl029-20261113`) |
 
 Table: 引き継ぐ残課題
 
@@ -248,6 +248,13 @@ Table: BL-008 で引き継ぐ app/cplat 以外の 46 項目
 139 は、元報告の「参照せず破棄」が全 OS には当てはまりません。  
 Windows では `app/override-sample/prod/libsrc/base/libbase_lifecycle.c:91` で参照し、非 Windows の破棄だけが残ります。
 
+### 2026-11-13 の転記
+
+案件 `source-comment-bl029-20261113` では、この項目を対象にしていません。  
+未対処のまま、`261113-source-comment-bl029-backlog.md` の BL-002 へ転記しました。  
+同じ案件の一括整形と波括弧の追加で、枝番号 146、148〜150、153〜156、159〜161、163、166 のファイルは行が移動している可能性があります。  
+これらの項目は、関数名と先頭の記述で位置を特定してください。
+
 ## BL-024 Windows の実機で ABI と実資源の動作を確認する
 
 ### 未確認の範囲
@@ -275,6 +282,11 @@ ACK 後の親側ソケット参照の解放、DONE 後の接続枠の再利用�
 service-sample は、管理者権限でサービスを登録し、説明文の表示、開始、停止、削除を確認します。  
 対話操作の結果は別途記録し、失敗があれば原因を修正して同じ範囲を再検証します。
 
+### 2026-11-13 の転記
+
+案件 `source-comment-bl029-20261113` では、この項目を対象にしていません。  
+未対処のまま、`261113-source-comment-bl029-backlog.md` の BL-003 へ転記しました。
+
 ## BL-025 TCP 双方向 N:1 通信の判断と実装を先送りする
 
 公開の通信種別には、過去に予定として `POTR_TYPE_TCP_BIDIR_N1 = 11` がコメントで残っていました。  
@@ -285,6 +297,11 @@ service-sample は、管理者権限でサービスを登録し、説明文の�
 実施する場合は利用目的、要求元、接続関係、送信先の識別、切断時の扱い、公開 API と列挙値の互換性を確認してから設計します。  
 Linux と Windows の検証方法も別途定めます。  
 利用目的が決まらないまま列挙子だけを復活させると、利用者が実装済みと誤認するおそれがあります。
+
+### 2026-11-13 の転記
+
+案件 `source-comment-bl029-20261113` では、この項目を対象にしていません。  
+未対処のまま、`261113-source-comment-bl029-backlog.md` の BL-004 へ転記しました。
 
 ## BL-029 作業中に見つけた対象範囲外の規範との差
 
@@ -298,6 +315,29 @@ Linux と Windows の検証方法も別途定めます。
 
 次回は、それぞれを現行の実装と規範に照合し、対処するかどうかを決めます。  
 bench-tracer の積の範囲は、検査を追加する場合の上限と、範囲外の場合の終了値を決める必要があります。
+
+### 2026-11-13 の対処
+
+案件 `source-comment-bl029-20261113` で、上の 4 件を対処しました。  
+この節の「次回は」で予定していた照合と対処も、同じ案件で行いました。  
+単文の `if` は、第一者管理の C と C++ で、`if`、`else if`、`else`、`for`、`while`、`do` の本体に波括弧を必須とする規則にしました。  
+`switch` 自体は対象外です。  
+リポジトリ直下の `.clang-format` に追加したキーは `InsertBraces: true` だけです。  
+第一者管理の実ファイル 1631 件を `clang-format` し、130 件が変わりました。  
+第三者管理ソース、生成物、テストのシンボリック リンクのパスは入力にしていません。  
+`potr_send_thread.c` の単文 `if` は、この一括整形で波括弧が入りました。  
+clang-format 22.1.4 で波括弧が入らない空の `while` は、`app/porter/prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c` で波括弧だけにしました。  
+マクロ継続行の `if` 11 箇所は、`framework/testfw/include/mock_factory_head.h` で波括弧を足しました。  
+`bench-tracer` は、プロセス数とメッセージ数の積が `int` の最大値を超える入力を、測定の前に終了値 1 で拒否します。  
+標準エラーは、積が `int` に収まらない旨の行と、既存の usage の行です。  
+プロセス数とメッセージ数の個別上限はありません。  
+拒否のテスト `rejects_product_that_does_not_fit_in_int` を追加し、Linux で 2 件のテストが成功しました。  
+`cplat_mmap_attach` の例は 5 引数になり、第 5 引数は `NULL` です。  
+`traceCommonTest` の `clock_failure_preserves_timestamp` では、ナノ秒の `EXPECT_EQ` に確認タグを 1 行足しました。  
+そのテストだけを実行して成功しました。  
+変更したファイルをコンパイルする Linux の局所検証は、ビルドとテストの 69 ディレクトリが成功し、失敗は 0 でした。  
+新しい `.warn` もありません。  
+未対処の BL-008、BL-024、BL-025 は、`261113-source-comment-bl029-backlog.md` の BL-002、BL-003、BL-004 へ転記しました。
 
 ## CI で確認した対象と結果
 

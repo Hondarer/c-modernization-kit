@@ -396,7 +396,7 @@ TEST_F(catalogIntegrationTest, trace_format_expands_context_arguments)
     // [状態確認] - cplat_tracer_set_stderr_level() の戻り値が CPLAT_OK であること。
     ASSERT_EQ(CPLAT_OK, cplat_tracer_start(tracer)); // [状態] - トレースを開始する。
     // [状態確認] - cplat_tracer_start() の戻り値が CPLAT_OK であること。
-    sample_trace_set_tracer(tracer);                 // [状態] - カタログの出力先へトレーサーを設定する。
+    sample_trace_set_tracer(tracer); // [状態] - カタログの出力先へトレーサーを設定する。
 
     // Pre-Assert
 

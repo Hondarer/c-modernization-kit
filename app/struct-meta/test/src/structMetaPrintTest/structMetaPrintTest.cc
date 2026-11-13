@@ -77,8 +77,9 @@ TEST(structMetaPrintTest, prints_complete_long_string)
                                          sizeof(char), 1, 256, nullptr, nullptr, nullptr, 0}};
     const struct_meta_descriptor descriptor = {"LongString", sizeof(LongString), fields, 1, nullptr, nullptr, 0};
     char path[PLATFORM_PATH_MAX] = {};
-    FILE *stream = cplat_fopen_temp("smp", "w+b", path, sizeof(path), nullptr); // [状態] - 255 文字の文字列と一時出力先を用意する。
-    ASSERT_NE(nullptr, stream); // [状態確認] - cplat_fopen_temp() の戻り値が nullptr 以外であること。
+    FILE *stream = cplat_fopen_temp("smp", "w+b", path, sizeof(path),
+                                    nullptr); // [状態] - 255 文字の文字列と一時出力先を用意する。
+    ASSERT_NE(nullptr, stream);               // [状態確認] - cplat_fopen_temp() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 
@@ -137,7 +138,7 @@ TEST(structMetaPrintTest, reports_stream_write_failure)
     ASSERT_NE(nullptr, temporary); // [状態確認] - 一時ファイルを作成できること。
     (void)fclose(temporary);
     FILE *stream = cplat_fopen(path, "rb", nullptr); // [状態] - 書き込みできない読み取り専用ストリームを用意する。
-    ASSERT_NE(nullptr, stream); // [状態確認] - cplat_fopen() の戻り値が nullptr 以外であること。
+    ASSERT_NE(nullptr, stream);                      // [状態確認] - cplat_fopen() の戻り値が nullptr 以外であること。
 
     // Pre-Assert
 

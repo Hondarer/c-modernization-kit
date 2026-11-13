@@ -84,8 +84,7 @@ class StructMetaPatchTest : public Test
             .WillOnce(Return(prompt)); // 編集開始時にプロンプトを作成する。
         // [Pre-Assert確認_正常系] - 編集開始時に cplat_prompt_create() が nullptr を指定して 1 回呼び出されること。
         // [Pre-Assert手順] - cplat_prompt_create() から入力用のプロンプト ハンドルを返す。
-        EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt))
-            .WillOnce(Return()); // 編集終了時にプロンプトを破棄する。
+        EXPECT_CALL(mock_cplat, cplat_prompt_dispose(prompt)).WillOnce(Return()); // 編集終了時にプロンプトを破棄する。
         // [Pre-Assert確認_正常系] - 編集終了時に cplat_prompt_dispose() が prompt を指定して 1 回呼び出されること。
         // [Pre-Assert手順] - cplat_prompt_dispose() から戻る。
         EXPECT_CALL(mock_cplat, cplat_prompt_readline_fmt_at(prompt, _, _, _, _, _, _))

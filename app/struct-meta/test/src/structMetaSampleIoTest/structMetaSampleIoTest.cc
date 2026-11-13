@@ -25,7 +25,7 @@ TEST(structMetaSampleIoTest, reports_partial_read_error_after_output)
     char json_path[PLATFORM_PATH_MAX] = {};
     char binary_path[PLATFORM_PATH_MAX] = {};
     FILE *json = cplat_fopen_temp("sio", "w+b", json_path, sizeof(json_path), nullptr);
-    ASSERT_NE(nullptr, json);   // [状態確認] - cplat_fopen_temp() が JSON 用の入力先を返すこと。
+    ASSERT_NE(nullptr, json); // [状態確認] - cplat_fopen_temp() が JSON 用の入力先を返すこと。
     FILE *binary = cplat_fopen_temp("sio", "w+b", binary_path, sizeof(binary_path), nullptr);
     if (binary == nullptr)
     {

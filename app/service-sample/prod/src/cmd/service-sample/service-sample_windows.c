@@ -708,7 +708,8 @@ static int wait_for_service_stop(SC_HANDLE service)
 
         Sleep(SVC_STOP_POLL_INTERVAL_MS);
 
-        if (!QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, (DWORD)sizeof(status), &bytes_needed))
+        if (!QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, (DWORD)sizeof(status),
+                                  &bytes_needed))
         {
             return 0;
         }

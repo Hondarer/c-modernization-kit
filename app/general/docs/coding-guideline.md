@@ -3671,6 +3671,58 @@ grep -rnE '\?' app --include=*.c --include=*.h \
   | grep -vE 'app/(lua|sqlite)/prod/|app/cjson/prod/(include|libsrc/cjson)/cJSON(\.|_Utils\.)|/obj/|doxybook2_'
 ```
 
+### 制御文の本体は波括弧で囲む
+
+`if`、`else if`、`else`、`for`、`while`、`do` の本体は、文が 1 つでも、空でも、波括弧で囲みます。  
+`else if` では、`else` と `if` の間に波括弧を置きません。  
+続く `if` の本体を波括弧で囲みます。  
+マクロの置換結果も同じです。
+
+新規のコードも、既存のコードも、この形にします。
+
+この節は、このリポジトリで作成した C / C++ に適用します。  
+`app/` と `framework/` を含みます。  
+テスト、コマンド、サンプル、ヘッダー、マクロ本体を含みます。  
+外部 OSS、第三者の配布物、ビルド生成物 (bison と flex の出力、`gen/` 配下) は含めません。
+
+`switch` は、この節で必須にする対象キーワードにはしません。  
+`switch` の中にある `if`、`for`、`while`、`do` は、この節に従います。
+
+望ましい例は、波括弧を次の行に置きます。
+
+```c
+if (rc == 0)
+{
+    return CPLAT_OK;
+}
+else
+{
+    return rc;
+}
+```
+
+空の本体は、波括弧だけにします。  
+単独のセミコロンは残しません。
+
+```c
+while (waitpid(-1, NULL, WNOHANG) > 0)
+{
+}
+```
+
+望ましくない例は、本体が 1 文で波括弧がありません。
+
+```c
+if (rc == 0)
+    return CPLAT_OK;
+```
+
+検証は、制御文の本体を目視して確認します。  
+文字列探索は補助であり、複数行の条件やマクロの継続行は探索結果だけで判断しません。  
+`.clang-format` の `InsertBraces` は true です。  
+通常の `if`、`else`、`for`、`do` では、整形時に波括弧が入ります。  
+本体が空の `while` と、マクロの継続行の中の制御文は、clang-format 22.1.4 では波括弧が入らないことがあります。
+
 ## restrict、volatile、inline、register の利用
 
 `restrict`、`volatile`、`inline`、`register` は、コンパイラによる最適化やメモリ アクセスの評価に影響します。  

@@ -216,9 +216,9 @@ TEST_F(override_sampleTest, check_stdout_with_two_targets)
 
     // Arrange
     // [サブ手順参照 名前=override_sampleTest.createConfigFile]
-    createConfigFile(
-        "{\"base_calc\":[{\"lib\":\"liboverride\",\"func\":\"override_calc\"},{\"lib\":\"liboverride\",\"func\":\"override_calc\"}]}\n"); // [状態] - 同じ移譲先を 2 件持つ定義ファイルを作成する。
-    ProcessOptions opts = makeOpts(); // [状態] - ライブラリ探索パスを設定する。
+    createConfigFile("{\"base_calc\":[{\"lib\":\"liboverride\",\"func\":\"override_calc\"},{\"lib\":\"liboverride\","
+                     "\"func\":\"override_calc\"}]}\n"); // [状態] - 同じ移譲先を 2 件持つ定義ファイルを作成する。
+    ProcessOptions opts = makeOpts();                    // [状態] - ライブラリ探索パスを設定する。
 
     // Pre-Assert
 
