@@ -540,6 +540,9 @@ jobs:
           # build-and-test-linux の Build ステップと同じ理由で指定する。
           # Windows でも make は -j4 になり、MSVC の /MP は 1 のまま変わらない。
           MAKEFW_CPU_BUDGET: "8"
+          # ワークスペース内の app はすべて既定の RelWithDebInfo / shared (md) でリンクするため、
+          # testfw も md のみをビルドし、未使用の mdd / mt / mtd のビルドを省く。
+          TESTFW_WINDOWS_VARIANTS: "md"
         run: |
           set -o pipefail
           make 2>&1 | tee logs/windows-build.log
@@ -549,6 +552,7 @@ jobs:
         env:
           # Build ステップと同じ理由で指定する。テストの同時実行数も make の並列度と同じ 4 になる。
           MAKEFW_CPU_BUDGET: "8"
+          TESTFW_WINDOWS_VARIANTS: "md"
         run: |
           set -o pipefail
           make test 2>&1 | tee logs/windows-test.log
