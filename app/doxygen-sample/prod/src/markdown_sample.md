@@ -11,4 +11,4 @@ sequenceDiagram
     Alice->>Bob: Hello
 ```
 
-CodeBlock: plantuml のサンプル
+Figure: plantuml のサンプル

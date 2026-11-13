@@ -83,7 +83,7 @@ flowchart TD
     this --> general
 ```
 
-CodeBlock: framework の依存関係
+Figure: framework の依存関係
 
 ## 入口
 

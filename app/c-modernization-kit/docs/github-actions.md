@@ -199,7 +199,7 @@ flowchart TD
     warns --- note_warns
 ```
 
-CodeBlock: ジョブ実行フロー
+Figure: ジョブ実行フロー
 
 ## 実行ステップ
 
@@ -372,7 +372,7 @@ flowchart LR
     deploy -->|publish| pages
 ```
 
-CodeBlock: アーティファクト ストレージの役割
+Figure: アーティファクト ストレージの役割
 
 ## GitHub Pages デプロイ
 

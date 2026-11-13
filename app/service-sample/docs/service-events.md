@@ -154,7 +154,7 @@ stateDiagram-v2
     Stopped --> [*]
 ```
 
-CodeBlock: 起動完了・停止開始の通知抽象
+Figure: 起動完了・停止開始の通知抽象
 
 コンソール モード (`console` コマンド) や `NOTIFY_SOCKET` が未設定の環境では、各フックが no-op になります。
 
@@ -276,7 +276,7 @@ sequenceDiagram
     deactivate NEW
 ```
 
-CodeBlock: サービス再起動時のイベント順序 (手動再起動)
+Figure: サービス再起動時のイベント順序 (手動再起動)
 
 ### 手動再起動の手段
 

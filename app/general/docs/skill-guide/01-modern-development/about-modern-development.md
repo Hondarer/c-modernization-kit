@@ -28,7 +28,7 @@ flowchart TD
     step5 --> endNode((終了))
 ```
 
-CodeBlock: CI/CD ワークフロー
+Figure: CI/CD ワークフロー
 
 ## 全体ワークフロー
 
@@ -77,7 +77,7 @@ flowchart TD
     classDef redFolder fill:#ffc0c0,stroke:#333,stroke-width:1px;
 ```
 
-CodeBlock: 全体ワークフロー
+Figure: 全体ワークフロー
 
 ### ステップの要点
 

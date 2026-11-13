@@ -46,7 +46,7 @@ stateDiagram-v2
     Stopped --> [*]
 ```
 
-CodeBlock: 起動完了・停止開始の通知抽象
+Figure: 起動完了・停止開始の通知抽象
 
 ## ファイル構成
 
@@ -83,7 +83,7 @@ flowchart TD
     cv --> wait
 ```
 
-CodeBlock: 停止イベントの統一抽象
+Figure: 停止イベントの統一抽象
 
 内部では `cplat/sync` の condvar + lock を使って待機します。  
 SCM の停止通知はシグナルではないため、condvar が 3 経路すべてに対応できる唯一の共通手段です。
@@ -121,7 +121,7 @@ stateDiagram-v2
     STOPPED --> [*]
 ```
 
-CodeBlock: Windows SCM の状態遷移
+Figure: Windows SCM の状態遷移
 
 ## ビルド
 
