@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 検討用 Markdown (discussion)
-最終更新エージェント: codex
+最終更新エージェント: agy / セッション ID: bd87b37b-2a01-4b3c-9daf-c46d0245e839
 上流文書: `261111-third-party-lib-rename-backlog.md`、`261111-third-party-lib-rename-design.md`、`261111-third-party-lib-rename-discussion.md`。
 下流文書: `261113-third-party-lib-backlog-design.md`、`261113-third-party-lib-backlog-backlog.md`。未作成の場合や、削除されている場合があります。
 再開手順: agree-before-implement スキルとユーザーが編集した最新版を読み、作業 WBS の CURRENT 項目から再開してください。対象成果物への変更は最終仕様の承認後に開始します。
@@ -31,10 +31,10 @@
     - ✅ 4.5. 影響範囲の局所検証、警告の確認、受入条件との照合
     - ✅ 4.6. 元 backlog の状態と対処の更新、未対応項目があれば今回の backlog へ転記
 - ✅ 5. 成果物、検証結果、残課題の提示と受入承認受付 (第 3 ゲート)
-- 🔄 6. origin 最新の取り込み、コミットと push、CI の確認と修正 ← **CURRENT**
+- ✅ 6. origin 最新の取り込み、コミットと push、CI の確認と修正
     - ✅ 6.1. 先行 CI の成功確認と origin 最新の取り込み
-    - 🔄 6.2. 対象リポジトリのコミットと push
-    - ⏸️ 6.3. 30 分周期で全 CI ジョブと警告を確認し、必要な修正を反映
+    - ✅ 6.2. 対象リポジトリのコミットと push
+    - ✅ 6.3. 30 分周期で全 CI ジョブと警告を確認し、必要な修正を反映
 
 ## 検討の識別と対象
 
@@ -42,7 +42,7 @@
 
 版: 5
 
-状態: 成果物受入済み、コミットと CI 確認中
+状態: 完了
 
 ユーザーの依頼は、元 backlog への対処です。  
 対象は記載された BL-001、BL-002、BL-003 の全 3 件とし、部分対応の指示はありません。  
@@ -406,4 +406,8 @@ framework と複数 app の全体テスト、外部 CI、Git のステージン�
 
 先行 CI [43429817821](https://github.com/Hondarer/c-modernization-kit/actions/runs/43429817821) は、2026-11-14 03:03 JST の確認で全ジョブ成功でした。  
 変更をバックアップしたうえで、親と対象 8 リポジトリに origin/main を取り込みました。親、porter、cplat の履歴分岐は両方の既存コミットを保持して統合しました。  
-別案件の porter の検討文書と既存の OpenSSL の差分は今回のコミットに含めません。今回のコードに対する Windows と全体 CI の結果は、push 後に別途記録します。
+別案件の porter の検討文書と既存の OpenSSL の差分は今回のコミットに含めません。
+
+2026-11-14 04:32 JST に親リポジトリ (`30617bf7`) および対象サブモジュールへコミットと push を完了しました。  
+その後、先行していた変更や後続の調整を取り込んだコミット (`66795cd0`) に対する GitHub Actions [43584976430](https://github.com/Hondarer/c-modernization-kit/actions/runs/43584976430) にて、`build-and-test-linux` (ol8、ol9、ol10)、`build-and-test-windows`、`docs`、`warnings-summary`、`verify-gen`、`deploy-pages` の全ジョブが正常終了しました。  
+`warnings-summary` で検出された警告アーティファクトは `docs-warns` のみであり、内容は別案件に関連する `app/service-sample/doxy.warn`、`app/doxygen-sample/doxy_internal.warn`、`app/cplat/doxy_internal.warn` の Mermaid タグ未認識警告だけで、本作業に起因するビルド・テスト・文書警告はありませんでした。以上をもって本案件を完了とします。
