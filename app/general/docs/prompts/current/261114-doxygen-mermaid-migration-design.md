@@ -1,274 +1,410 @@
 <!--
 生成元: agree-before-implement スキル
-文書種別: 最終仕様書 (design)
-最終更新エージェント: agy / セッション ID: 0781d8d9-344b-4de0-9d84-13f456bc6886
-上流文書: [261114-doxygen-mermaid-migration-discussion.md](261114-doxygen-mermaid-migration-discussion.md)
-位置づけ: 合意済み内容だけを正本反映可能な形式で記述する独立した仕様書。
+文書種別: 最終仕様 (design)
+最終更新エージェント: claude code / セッション ID: e1665a31-f98a-4cbe-aff5-beff19ab41c0
+上流文書: [261114-doxygen-mermaid-migration-discussion.md](261114-doxygen-mermaid-migration-discussion.md) (検討用 Markdown)。削除されている場合があります。
+再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。上流文書が存在する場合は、上流文書の再開手順に従って進行位置を確認し、判断の経緯を上流文書の Q&A で確認します。存在しない場合は、この文書を単体の最終仕様として扱います。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
 
 # Doxygen 由来の PlantUML 図を Mermaid へ移行する最終仕様
 
-合意 ID: `doxygen-mermaid-migration-20261114` / 版: 1 / 状態: 承認待ち (第 2 ゲート)
+合意 ID: `doxygen-mermaid-migration-20261114` / 版: 2 / 状態: 承認済み
 
 ## 概要と対象範囲
 
-本仕様は、Doxygen と Doxybook2 を経由して生成される Markdown 内の PlantUML 図を Mermaid (`Figure:` キャプション付き) へ移行するための実装仕様、正本文書更新計画、既存 Markdown 修正範囲、および受入・検証手順を定めます。
+Doxygen と Doxybook2 を経由して生成する Markdown の図を、PlantUML から Mermaid (`Figure:` キャプション付き) へ移行します。  
+あわせて、Doxygen コメントへ図を記述する際の規範を定め、規範への違反を検出する検査を追加します。
 
-- **移行対象の 2 系統**:
-    1. C ヘッダーの Doxygen コメント内に記述された手動図 ([memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) の 2 図)。
-    2. [extract-graphs.py](../../../../../framework/doxyfw/templates/extract-graphs.py) が Doxygen XML から生成する自動グラフ 4 種別 (インクルード依存グラフ・逆インクルード依存グラフ、継承グラフ、コラボレーション図、コールグラフ・呼び出し元グラフ)。
-- **互換維持の範囲**:
-    - 既存の `@startuml` / `@enduml` および `<plantuml>` タグの変換経路 ([preprocess.sh](../../../../../framework/doxyfw/templates/preprocess.sh))、[postprocess.sh](../../../../../framework/doxyfw/templates/postprocess.sh) の `~_~_` 退避、Doxygen の `PLANTUML_*` 設定、および [input-filter.py](../../../../../framework/doxyfw/bin_internal/input-filter.py) による ```` ```plantuml ```` 除去は互換・補足経路としてそのまま維持します。
-- **対象外とする事項**:
-    - `@mermaidfile` および外部 `.mmd` ファイル参照の一般的な変換対応は、現行の手動 2 図・自動生成グラフのいずれにも使用されていないため本移行の必須対象に含めません。
+### 変換対象
+
+`<mermaid>` タグは、次の 3 つの発生源から Doxygen XML へ現れます。変換処理は発生源を区別せず、すべての `<mermaid>` タグを対象とします。
+
+| 発生源 | 現状 | 移行後 |
+| --- | --- | --- |
+| C ヘッダーの手動コメント ([memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) の 2 図) | `@startuml` 〜 `@enduml` | `@mermaid "キャプション"` 〜 `@endmermaid` |
+| [extract-graphs.py](../../../../../framework/doxyfw/templates/extract-graphs.py) が生成する自動グラフ 4 種別 | `<plantuml>` タグを XML へ挿入 | `<mermaid caption="...">` タグを XML へ挿入 |
+| Doxygen の入力となる Markdown の ```` ```mermaid ```` コード フェンス | Doxygen が `<mermaid>` へ変換し、Doxybook2 が `Text tag "mermaid" not recognised` を警告 | 警告なしで変換 |
+
+Table: `<mermaid>` タグの発生源と移行後の扱い
+
+> [!NOTE]
+> Markdown 入力のページは、`postprocess.sh` が Doxybook2 の出力を破棄して入力の Markdown を複製するため、最終出力の内容は移行の前後で変わりません。この発生源で変わるのは、Doxybook2 の警告がなくなる点だけです。
+
+### 互換として維持する範囲
+
+次の PlantUML 変換経路は変更しません。
+
+- [preprocess.sh](../../../../../framework/doxyfw/templates/preprocess.sh) の `<plantuml>` タグの変換
+- [postprocess.sh](../../../../../framework/doxyfw/templates/postprocess.sh) の ```` ```plantuml ```` 内の `~_~_` 変換
+- [Doxyfile](../../../../../framework/doxyfw/Doxyfile) の `PLANTUML_*` 設定
+- [input-filter.py](../../../../../framework/doxyfw/bin_internal/input-filter.py) の ```` ```plantuml ```` 除去
+
+### 対象外
+
+- `@mermaidfile` と外部 `.mmd` ファイルの参照。いずれの発生源でも使用していません。
+- Doxyfile への `MERMAID_*` 設定の追加。既定の `MERMAID_RENDER_MODE = AUTO` を使用します。
 
 > [!IMPORTANT]
-> 本仕様確定後、実装フェーズの開始直前に、承認済みの `doxyfw` 局所単体テスト Python 4 ファイルを実行して変更前の基準値を記録してからソース変更へ進みます。
+> Doxygen が生成する HTML では、手動コメントの Mermaid 図は閲覧時に `cdn.jsdelivr.net` から mermaid を読み込んで描画されます。CDN へ接続できない端末では図が描画されず、Mermaid のソース テキストが表示されます。自動生成グラフは Doxygen の実行後に XML へ挿入するため、Doxygen HTML には現れません。Doxybook2 経由の Markdown は、この制約の影響を受けません。
 
-## 手動 Doxygen コメントの Mermaid 変換仕様
+## Doxygen コメントの図の規範
 
-対象は [memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) 内の関数コメント 2 箇所です。  
-Doxygen `1.17.0` (および CI 環境の `1.18.0`) における `@mermaid{caption="..."}` 〜 `@endmermaid` 構文を用い、ブロック先頭は行頭 `*` を置かない 4 スペース基準のインデントで記述します。この形式は [check-doxygen-indent.py](../../../../../framework/doxyfw/bin/check-doxygen-indent.py) が `/** ... */` 内で `^\s*\*` に一致しない行をスキップする仕様と整合します。
+Doxygen コメントへ記述する図は、次の規範に従います。この規範は [正本文書の更新](#正本文書の更新) で正本へ記載します。
+
+1. 新規の図は Mermaid で記述します。PlantUML (`@startuml` 〜 `@enduml`) は互換の記法として引き続き変換します。
+2. Mermaid のキャプションは `@mermaid "キャプション"` の形式で指定します。
+3. 図ブロック (`@mermaid` 〜 `@endmermaid`、`@startuml` 〜 `@enduml`) は、エディターのプレビューを利用できるよう、行頭の `*` を置かずに記述できます。この場合、次の字下げを守ります。
+    - 開始行と終了行は、コメント本文と同じ桁に置きます。コメント本文の桁は、`*` を持つ行で `*` と後続の空白の次に来る文字の位置です。
+    - 図の本文は、開始行より浅い位置に置きません。
+
+> [!IMPORTANT]
+> 字下げの規範に違反しても、Doxygen は多くの場合に警告を出しません。開始行が本文より浅いと、前後の `@par` の節が字下げコード ブロック (XML の `<verbatim>`) として出力されます。開始行が本文より深いと、図ブロック自体が `<verbatim>` になります。現行の `memory_lock.h` は開始行が本文より浅く、該当する 2 関数の `@par` の節がこの状態です。
 
 > [!NOTE]
-> `memory_lock.h` の仮引数名 (`options`、`&scope_out`、`scope_out`、`scope`) は現行実装および周辺 Doxygen コメントと一致させる必要があり、既存の参考 Markdown 側の名称 (`&scope` 等) へ勝手に読み替えません。
+> `@mermaid{caption="..."}` の形式は、波括弧を含む全体がキャプション文字列として扱われ、Doxygen HTML に `{caption="..."}` と表示されるため使用しません。
 
-### cplat_memory_lock_self (L130-153 付近) の変換内容
+## 手動コメントの変換 (memory_lock.h)
 
-既存の `@startuml cplat_memory_lock_self のロック取得` 〜 `@enduml` を、次の記述へ置き換えます。
+[memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) の 2 図を、現行図の参加者、メッセージ、分岐の入れ子、題名を保ったまま Mermaid へ置き換えます。  
+このファイルのコメント本文は 8 桁目から始まるため、開始行と終了行を 8 桁目、図の本文を 12 桁目に置きます。図ブロックの前後の行 (`     *` と各 `@par` の節) は変更しません。
 
-```c
- * @par 動作フロー
-    @mermaid{caption="cplat_memory_lock_self のロック取得"}
-    sequenceDiagram
-        participant Caller as 呼び出し元
-        participant API as cplat_memory_lock_self
-        participant Lock as Lock API
-        participant Scope as スコープ
+記法の対応は次のとおりです。
 
-        Caller->>API: options, &scope_out
-        opt 引数チェック
-            API-->>Caller: CPLAT_ERR_INVALID_ARG
-        end
-        API->>Lock: memory_lock(min_bytes)
-        alt ロック失敗
-            Lock-->>API: エラー
-            API-->>Caller: 変換済みエラー
-        else ロック成功
-            API->>Scope: scope にロック情報を保存
-            API-->>Caller: CPLAT_OK, scope_out
-        end
-    @endmermaid
- *
-```
+| PlantUML | Mermaid |
+| --- | --- |
+| `@startuml <題名>` と `caption <題名>` | `@mermaid "<題名>"` |
+| `participant "表示名" as ID` | `participant ID as 表示名` |
+| `A -> B : 文` (実線) | `A->>B: 文` |
+| `A --> B : 文` (破線) | `A-->>B: 文` |
+| `opt` / `alt` / `else` / `loop` / `end` | 同じ |
 
-### cplat_memory_lock_scope_release (L175-204 付近) の変換内容
+Table: `memory_lock.h` の図で使用する PlantUML と Mermaid の記法の対応
 
-既存の `@startuml cplat_memory_lock_scope_release の解放フロー` 〜 `@enduml` を、次の記述へ置き換えます。
+### cplat_memory_lock_self の図 (現行 L130-153)
 
 ```c
- * @par 解放フロー
-    @mermaid{caption="cplat_memory_lock_scope_release の解放フロー"}
-    sequenceDiagram
-        participant Caller as 呼び出し元
-        participant API as cplat_memory_lock_scope_release
-        participant Unlock as Unlock API
+        @mermaid "cplat_memory_lock_self のロック取得"
+            sequenceDiagram
+                participant Caller as 呼び出し側
+                participant API as cplat_memory_lock_self
+                participant Lock as 内部 lock
+                participant OS as OS
 
-        Caller->>API: scope
-        alt scope == NULL
-            API-->>Caller: return
-        else state == 0 または size == 0
-            API-->>Caller: clear scope
-        else state == CPLAT_MEMORY_LOCK_STATE_LOCKED
-            API->>Unlock: memory_unlock(base, size)
-            API-->>Caller: clear scope
-        end
-    @endmermaid
- *
+                Caller->>API: options, &scope_out
+                API->>API: 引数と flag を検証
+                opt stack_prefault_bytes > 0
+                    API->>API: 呼び出しスレッドのスタックへアクセス
+                end
+                API->>Lock: 取得
+                alt Linux
+                    API->>OS: mlockall(flags)
+                    API->>API: self scope 数を加算
+                else Windows
+                    API->>OS: VirtualQuery で committed region を列挙
+                    API->>OS: 未登録範囲へ VirtualLock
+                    API->>API: 登録済み範囲の ref-count を加算
+                end
+                API->>Lock: 解放
+                API-->>Caller: CPLAT_OK, scope_out
+        @endmermaid
 ```
 
-## 自動生成グラフの Mermaid 変換仕様
+### cplat_memory_lock_scope_release の図 (現行 L175-204)
 
-[extract-graphs.py](../../../../../framework/doxyfw/templates/extract-graphs.py) が Doxygen XML を解析して生成する自動グラフ出力を、`<plantuml>` から `<mermaid>` 形式へ移行します。  
-既存の制限・制御パラメーター (`DOT_GRAPH_MAX_NODES = 50`、`INC_GRAPH_LABEL_BASENAME_ONLY = True`、`GRAPH_DETAILS_ONLY = True`、`DETAILS_ONLY_MARKER = "DOXYFW_DETAILS_ONLY"`、エッジ 0 本またはノード 1 個以下のスキップ条件、および再帰コールグラフ展開ロジック) は変更しません。
+```c
+        @mermaid "cplat_memory_lock_scope_release のロック解放"
+            sequenceDiagram
+                participant Caller as 呼び出し側
+                participant API as cplat_memory_lock_scope_release
+                participant Lock as 内部 lock
+                participant OS as OS
 
-### 図種別・向き・矢印のマッピング
+                Caller->>API: scope
+                alt scope == NULL
+                    API-->>Caller: CPLAT_OK
+                else scope != NULL
+                    API->>Lock: 取得
+                    alt Linux
+                        API->>API: self scope 数を減算
+                        opt self scope 数 == 0
+                            API->>OS: munlockall()
+                        end
+                    else Windows
+                        loop scope の各範囲
+                            API->>API: registry の ref-count を減算
+                            opt ref-count == 0
+                                API->>OS: VirtualUnlock()
+                            end
+                        end
+                    end
+                    API->>Lock: 解放
+                    API->>API: scope を破棄
+                    API-->>Caller: 結果コード
+                end
+        @endmermaid
+```
 
-| Doxygen グラフ種別 | Mermaid 図種別・向き | 関係種別の矢印 | 備考 |
+> [!NOTE]
+> 公開関数、型、シグネチャは変更しないため、`app/cplat` の API 逆引き、エクスポート テスト、`mock_cplat`、機能仕様の更新は発生しません。字下げの修正により、該当する 2 関数では図の前後の `@par` の節 (「呼び出しタイミング」「解放タイミング」「スレッド セーフ」) が、コード ブロックではなく節として生成されるようになります。
+
+## 自動生成グラフの変換 (extract-graphs.py)
+
+[extract-graphs.py](../../../../../framework/doxyfw/templates/extract-graphs.py) の出力を `<plantuml>` から `<mermaid>` へ変更します。  
+グラフの生成条件は変更しません。対象は、`DOT_GRAPH_MAX_NODES = 50`、`INC_GRAPH_LABEL_BASENAME_ONLY`、`GRAPH_DETAILS_ONLY`、`DETAILS_ONLY_MARKER`、エッジがない場合に生成しない条件、再帰的な呼び出しグラフの展開 (`build_recursive_callgraph`、`build_recursive_callergraph`) です。
+
+### 図種別と矢印
+
+4 種別とも `flowchart` で出力します。
+
+| Doxygen のグラフ | Mermaid の宣言 | 矢印 | 向きの扱い |
 | --- | --- | --- | --- |
-| `incdepgraph` / `invincdepgraph` (インクルード依存) | `flowchart TD` | `-->` | `INC_GRAPH_LABEL_BASENAME_ONLY` を維持 |
-| `inheritancegraph` (継承関係) | `flowchart BT` | `-->` | 下から上へ向かう矢印で派生から基底の階層を表現 |
-| `collaborationgraph` (コラボレーション) | `flowchart TD` | `-.->` (`usage`) / `-->` (その他) | エッジ ラベルがある場合は `-->\|"..."\|` 形式で付与 |
-| `references` / `referencedby` (コール・呼び出し元) | `flowchart TD` | `-->` | `build_recursive_callgraph` / `build_recursive_callergraph` を維持 |
+| `incdepgraph` / `invincdepgraph` (インクルード依存) | `flowchart TD` | `-->` | 現行と同じ (`incdepgraph` はエッジを逆向きに出力し、対象を下に配置) |
+| `inheritancegraph` (継承) | `flowchart BT` | `-->` | 派生から基底へ向け、基底を上に配置 |
+| `collaborationgraph` (コラボレーション) | `flowchart TD` | `relation` が `usage` の場合は `-.->`、それ以外は `-->` | 現行と同じ |
+| `references` / `referencedby` (呼び出し先・呼び出し元) | `flowchart TD` | `-->` | 現行と同じ |
 
-Table: 自動生成グラフの Mermaid 構文マッピング
-
-### ノード ID、特殊文字エスケープ、および強調表現
-
-- **安全なノード ID**:
-    - Mermaid 予約語 (`end`、`style`、`subgraph`、`class`、`click` など) や記号 (`:`、`-`、`.`、空白) との衝突を防ぐため、生成するノード ID はすべて ASCII 連番 (`n0`、`n1`、`n2`、...) へ正規化します。
-- **ラベルのエスケープ順と形式**:
-    - ノード定義は二重引用符付きの `nX["<escaped_label>"]` 形式を徹底します。
-    - XML テキスト生成前、ラベル文字列に対して `&` -> `&amp;`、`<` -> `&lt;`、`>` -> `&gt;`、`"` -> `#quot;` の順でエスケープし、改行 (`\n` およびリテラル `\n`) は `<br/>` へ置換します。これにより `__dunder__`、`*`、`[...]`、`{...}`、`#` を含む C/C++ シンボル名も Mermaid パーサーおよび `postprocess.sh` と干渉しません。
-- **対象ノードの強調 (色・太字)**:
-    - 現行の PlantUML における `#LightBlue` および `**...**` による強調は、ノード直後またはブロック末尾のスタイル指定 `style nX fill:#ADD8E6,stroke:#333,font-weight:bold` へ置き換えます。
-    - `<mermaid>` 内へ生の HTML タグ (`<b>` など) を出力すると Doxybook2 (`v1.6.1`) が未認識タグ警告を出力するため、ラベル内 HTML 太字タグは使用しません。
+Table: 自動生成グラフの Mermaid 構文
 
 > [!NOTE]
-> 上記の `flowchart TD` / `flowchart BT`、`style nX fill:#ADD8E6,stroke:#333,font-weight:bold`、および `#quot;`・`&amp;`・`&lt;`・`&gt;`・`<br/>` を含むノード ラベルは、ローカルの `mmdc` (`11.17.0`) による構文別 SVG 生成で終了コード `0` を確認済みです。
+> 継承の矢印は、PlantUML の白抜き三角 (`-u-|>`) から通常の矢印へ変わります。派生から基底への向きと、基底を上に置く配置は保ちます。4 種別でノード ID、ラベル、強調の生成処理を共通にするための仕様です。
 
-### XML タグ出力と関数構成の整理
+### ノードとラベル
 
-- **XML 挿入形式 (`build_mermaid_tag`)**:
-    - グラフ本文とタイトルをそれぞれ XML エスケープ (`&`、`"`、`<`、`>`) し、次の形式で `<simplesect kind="par">` 内に挿入します。
+- ノード ID は、接頭辞 `n` と 0 からの連番 (`n0`、`n1`、...) とします。Mermaid の予約語や記号との衝突を避けるためです。
+- ノードは `nX["ラベル"]` の形式で、ラベルを必ず二重引用符で囲みます。
+- ラベルは次の順で変換します。
+    1. `&` を `&amp;`、`<` を `&lt;`、`>` を `&gt;`、`"` を `#quot;` へ置き換えます。
+    2. ラベル内の改行 (現行で `\n` と出力している箇所) を `<br/>` へ置き換えます。
+- 対象ノードの強調は、ノード定義の後に `style nX fill:#ADD8E6,stroke:#333,font-weight:bold` を出力して表します。ラベル内に太字の HTML タグは出力しません。
+
+### XML への挿入形式
+
+挿入する XML は次の形式です。`<title>` の見出しと `caption` のキャプションは別の文字列です。
 
 ```xml
-<mermaid caption="{caption=&quot;{xml_escaped_title}&quot;}">
-{xml_escaped_mermaid_code}
-</mermaid>
+<para><simplesect kind="par"><title>{見出し}</title><para><mermaid caption="{キャプション}">
+{Mermaid の本文}
+</mermaid></para></simplesect></para>
 ```
 
-- **内部関数の命名整理**:
-    - グラフ種別ごとの生成関数およびタグ構築関数は Mermaid 生成に即した名称 (`graph_to_mermaid`、`callgraph_to_mermaid`、`callergraph_to_mermaid`、`callgraph_to_mermaid_graph`、`callergraph_to_mermaid_graph`、`build_mermaid_tag`) へ統一し、旧 PlantUML 専用名の重複を残しません。
+| 項目 | 内容 | 例 |
+| --- | --- | --- |
+| 見出し | グラフ種別の名称。折り畳み対象の場合は先頭に `DOXYFW_DETAILS_ONLY` を付与 (現行と同じ) | `DOXYFW_DETAILS_ONLY 呼び出し先` |
+| キャプション | `<名前> の<グラフ種別>` (現行の `caption` 行と同じ文字列) | `divide の呼び出し先` |
 
-## Doxygen XML 前処理 (preprocess.sh) の仕様
+Table: 自動生成グラフの見出しとキャプション
 
-[preprocess.sh](../../../../../framework/doxyfw/templates/preprocess.sh) では、既存の `<plantuml>` 変換を残したまま、`<mermaid>` タグを Markdown の Mermaid コード フェンスおよび `Figure:` キャプション行へ変換する Python ヘルパーを新規追加して呼び出します。
+- キャプションは、XML の属性値として `&`、`<`、`>`、`"` をエスケープします。Markdown の記号のエスケープは変換ヘルパーが行うため、ここでは行いません。
+- Mermaid の本文は、XML のテキストとして `&`、`<`、`>` をエスケープします。ラベルの `&lt;` は XML 上で `&amp;lt;` となり、Doxybook2 が復号して Markdown へ `&lt;` を出力します。
+- 関数名は Mermaid の生成に合わせて改めます (`graph_to_mermaid`、`callgraph_to_mermaid`、`callergraph_to_mermaid`、`callgraph_to_mermaid_graph`、`callergraph_to_mermaid_graph`、`build_mermaid_tag`)。PlantUML を生成する関数は残しません。
+- [makefile](../../../../../framework/doxyfw/makefile) の `extract-graphs.py` 呼び出しのコメントと、`extract-graphs.py` および `preprocess.sh` のコメントのうち、PlantUML の生成を説明している箇所を Mermaid に合わせて更新します。
 
-### 新設ヘルパー (framework/doxyfw/templates/convert-mermaid-tags.py)
+## XML 前処理 (preprocess.sh と変換ヘルパー)
 
-- **文字コードとパス規範**:
-    - `app/general/docs/python-text-encoding-guideline.md` に従い、ファイル入出力で `encoding="utf-8"` および `newline="\n"` を明示します。
-    - `app/general/docs/python-import-path-guideline.md` に準拠し、`PYTHONSAFEPATH=1` 下で動作するよう単体スクリプトとして完結させます (同一ディレクトリの他モジュールへ依存する場合は `Path(__file__).resolve().parent` を参照)。
-- **変換仕様**:
-    1. `<mermaid([^>]*)>(.*?)</mermaid>` (`re.DOTALL`) に一致する各ブロックを抽出します。
-    2. 開始タグ属性から `caption="..."` を抽出して HTML アンエスケープし、`{caption="..."}` ラッパー形式である場合は外側の `{caption="..."}` と引用符を取り除いてキャプション本文を得ます (空文字列または属性なしの場合はキャプションなしとみなします)。
-    3. 本文先頭・末尾の余分な空行を除去したうえで `textwrap.dedent` を適用し、Doxygen が付与した共通インデントを整えます。本文内の XML 実体参照 (`&gt;`、`&amp;`、`&lt;`、`&quot;`) は Doxybook2 の XML パーサーが復号するため、前処理段階では生文字へ戻さずそのまま保持します。
-    4. 置換出力を次のように整形します (`caption` が存在しない場合は `Figure:` 行を省略)。なお、`caption` 本文は XML エスケープ (`xml.sax.saxutils.escape`) して出力し、Doxybook2 への XML 入力を常に整形式に保ちます。
+### 変換ヘルパー (framework/doxyfw/templates/convert-mermaid-tags.py)
 
-````xml
+XML フォルダーを引数に取り、配下の XML ファイルに含まれる `<mermaid>` タグを、Markdown のコード フェンスと `Figure:` 行へ置き換えます。
+
+- **呼び出し**: `python3 convert-mermaid-tags.py <xml_directory>`。`<mermaid` を含まないファイルは書き換えません。
+- **規範**: ファイル入出力は `encoding="utf-8"` と `newline="\n"` を明示します。同じディレクトリのモジュールは import しません。
+- **対象の抽出**: `<mermaid([^>]*)>(.*?)</mermaid>` (複数行に一致) の各ブロックを対象とします。
+- **キャプション**: 開始タグの `caption="..."` 属性を取り出し、XML の実体参照を復号します。属性がない場合と空文字列の場合は、キャプションなしとします。
+- **本文**: 先頭と末尾の空行を除き、共通の字下げを取り除きます。本文中の XML の実体参照 (`&gt;` など) は復号せずに保持します (Doxybook2 が復号します)。
+- **出力**: ブロックを次のテキストへ置き換えます。キャプションなしの場合は `Figure:` 行と直後の空行を出力しません。前後に空行を置き、隣接するテキストと行が連結しないようにします。
+
+````text
+(空行)
 ```mermaid
-{dedented_body}
+{本文}
 ```
-
-Figure: {xml_escaped_caption}
-
+(空行)
+Figure: {エスケープ済みのキャプション}
+(空行)
 ````
 
-    5. ブロック前後に改行を確保し、隣接するタグ本文や Doxybook2 テンプレート出力との行連結を防ぎます。
+#### キャプションのエスケープ
 
-### preprocess.sh への組み込み順序
+`Figure:` 行はコード フェンスの外にあり、Markdown の本文として解釈されます。名前に含まれる記号を文字どおりに表示するため、次の記号を数値文字参照へ変換します。手動コメントのキャプションと自動生成グラフのキャプションに同じ規則を適用します。
 
-- `<plantuml>` 置換および `<bold>` / `<name>` / `<title>` の `!dunder!` 退避に悪影響を与えない位置 (既存の `<plantuml>` 変換と同時期、`</para>` や `<bold>` 処理の前または並列段) で `python3 "$SCRIPT_DIR/convert-mermaid-tags.py"` を実行します。
-- `@mermaid` 本文内の `__` は Doxygen が `<bold>` へ変換しないため、`!dunder!` 置換対象と干渉しません。
+| 記号 | 変換後 | 記号 | 変換後 |
+| --- | --- | --- | --- |
+| `\` | `&#92;` | `>` | `&#62;` |
+| `` ` `` | `&#96;` | `[` | `&#91;` |
+| `*` | `&#42;` | `]` | `&#93;` |
+| `<` | `&#60;` | `~` | `&#126;` |
 
-## Markdown 後処理 (postprocess.sh) と Doxygen 設定の仕様
+Table: キャプション内の記号と数値文字参照の対応
 
-### postprocess.sh の保護と折り畳み調整
+- 変換後の文字列は XML のテキストとしてエスケープして書き込みます (`&#42;` は XML 上で `&amp;#42;`)。Doxybook2 が復号し、Markdown へ `&#42;` を出力します。
+- `__` と `$` は変換しません。`postprocess.sh` がコード フェンス外の本文に対して `&#95;&#95;` と `\$` へ変換します。
 
-1. **`is_mermaid` ブロック状態の追跡**:
-    - 既存のコード フェンス追跡 (`in_code_block` および `is_plantuml`) へ `is_mermaid` フラグを追加し、開始行が `` /^[[:space:]]*```[[:space:]]*mermaid([[:space:]]|$)/ `` に一致した場合に `is_mermaid = 1`、閉じフェンス `` ``` `` 到達時に `is_mermaid = 0` へ戻します。
-2. **`!dunder!` 保護の維持**:
-    - 既存の `in_code_block && !is_plantuml` 分岐は `~_~_` 退避と `&#95;&#95;` 置換の双方をスキップするため、Mermaid フェンス内の `__flag__` などはすでに保護されます。この保護条件を維持し、`is_mermaid` も含めて非破壊対象であることが読み取れるコメントを補います。
-3. **`fix_ptr` パスからの Mermaid 除外**:
-    - `fix_ptr` 処理 (ポインター `*` 周辺の空白・エスケープ補正) では、フェンス外の通常テキストだけでなくコード フェンス内の引用符外テキストも走査されます。条件を `in_code_block && is_mermaid` の場合は変換をスキップするよう変更し、Mermaid 構文内の `*` や演算子が書き換わらないようにします。
-4. **`DOXYFW_DETAILS_ONLY` の `Figure:` 内包折り畳み**:
-    - 現在の `DOXYFW_DETAILS_ONLY` 状態機械は閉じコード フェンス ```` ``` ```` 直後で即座に `<!--:details-->` を出力します。
-    - これを改め、閉じフェンス到達後は `pending_details_close = 1` として後続の空行をバッファリングします。
-    - 次の非空行が `^Figure:` に一致する場合は、空行 (1 行) と `Figure:` 行を出力した直後に `<!--:details-->` と後続空行を出力して折り畳み内にキャプションを含めます。
-    - 次の非空行が `^Figure:` に一致しない場合 (または `<!--par-end-->`・ファイル終端 `END` に達した場合) は、従来どおり閉じフェンス直後に `<!--:details-->` を出力してからバッファー済みの空行・次行を出力します。
+> [!NOTE]
+> バックスラッシュによるエスケープは使用しません。`\[` が `postprocess.sh` の LaTeX ブロック数式の分離処理に一致し、キャプション行が分断されるためです。数値文字参照は、`postprocess.sh` が `__` を `&#95;&#95;` へ変換する既存の方式と同じ手段です。
+
+### preprocess.sh への組み込み
+
+[preprocess.sh](../../../../../framework/doxyfw/templates/preprocess.sh) の XML ファイルのループより前で、`fix-anonymous-enums.py` の呼び出しの後に、変換ヘルパーを 1 回呼び出します。
+
+```bash
+python3 "$SCRIPT_DIR/convert-mermaid-tags.py" "$XML_FOLDER"
+```
+
+ループ内の `sed` による変換 (`<plantuml>`、`<bold>`、`<name>`、`<title>` など) は変更しません。変換後のコード フェンスはこれらのタグを含まないため、干渉しません。
+
+## Markdown 後処理 (postprocess.sh)
+
+### コード フェンス内の保護
+
+- **`__` の保護**: ```` ```plantuml ```` 以外のコード フェンスでは `!dunder!` を `__` へ戻すだけで、`__` 自体は変換しません。Mermaid のコード フェンスもこの扱いとなるため、処理は変更せず、Mermaid も保護対象である旨をコメントへ記載します。
+- **`fix_ptr` の除外**: ポインター型の空白を正規化する `fix_ptr` は、すべてのコード フェンスで二重引用符の外側へ適用されます。開始行が `^[[:space:]]*```[[:space:]]*mermaid([[:space:]]|$)` に一致するコード フェンスを `is_mermaid` として追跡し、その内側では `fix_ptr` を適用しません。手動コメントのシーケンス図のように、引用符で囲まないテキストに `*` を含む図を保護するためです。
+
+### Figure 行を含めた折り畳み
+
+`DOXYFW_DETAILS_ONLY` の見出しを持つグラフは、見出しからコード フェンスまでを `<!--details:-->` と `<!--:details-->` で囲みます。`Figure:` 行も折り畳みの内側へ含めるため、終端の出力を次のように変更します。
+
+1. 折り畳みの内側で閉じコード フェンスを出力した後、すぐには `<!--:details-->` を出力せず、後続の空行を保持します。
+2. 次の空行でない行が `Figure:` で始まる場合は、空行 1 行と `Figure:` 行を出力し、その後に空行と `<!--:details-->` を出力します。
+3. 次の空行でない行が `Figure:` で始まらない場合と、入力の終端に達した場合は、空行と `<!--:details-->` を出力してから、その行を出力します (現行と同じ結果)。
 
 ```mermaid
 flowchart TD
-    FenceClose["閉じフェンス ``` を検出"] --> BufferBlank["pending_details_close = 1 で空行を保持"]
-    BufferBlank --> NextLine{"次の非空行または EOF"}
-    NextLine -->|"^Figure: に一致"| EmitWithFig["空行 + Figure 行を出力し、直後に <!--:details--> を出力"]
-    NextLine -->|"一致しない / <!--par-end--> / EOF"| EmitNoFig["保持前に <!--:details--> を出力し、続けて保持行を出力"]
+    FenceClose["折り畳み内の閉じコード フェンスを出力"] --> Hold["後続の空行を保持"]
+    Hold --> Next{"次の空行でない行"}
+    Next -->|"Figure: で始まる"| WithFigure["空行と Figure 行を出力し、その後に終端タグを出力"]
+    Next -->|"それ以外、または入力の終端"| NoFigure["終端タグを出力し、その後に次の行を出力"]
 ```
 
-Figure: `DOXYFW_DETAILS_ONLY` における `Figure:` 行と `<!--:details-->` の終端制御フロー
+Figure: 折り畳みの終端と `Figure:` 行の出力順
 
-### Doxyfile および input-filter.py の扱い
+出力は次の形になります。
 
-- **`framework/doxyfw/Doxyfile`**:
-    - `PLANTUML_*` の互換定義はそのまま維持します。
-    - `GENERATE_HTML = YES` および `GENERATE_XML = YES` が有効ですが、Doxygen `1.17.0` / CI `1.18.0` の既定値である `MERMAID_RENDER_MODE = AUTO` により、`mmdc` が存在しない環境でも XML 生成および HTML 生成が警告なし・終了コード `0` で動作するため、新たな `MERMAID_*` 設定行は原則追加しません (局所 `make doxy` 検証で環境依存の問題が見つかった場合のみ最小設定を検討します)。
-- **`framework/doxyfw/bin_internal/input-filter.py`**:
-    - Markdown 入力から ```` ```plantuml ```` フェンスを除去する現行処理は互換維持のため変更せず、```` ```mermaid ```` に対する不要な除去は行いません。
+````markdown
+<!--details:-->
 
-## 正本文書 (framework/doxyfw/docs/) への反映計画
+**呼び出し先**
 
-`app/general/AGENTS.md` の規則に従い、`framework/doxyfw/docs/` 配下の汎用正本文書には個別 `app` 固有のパスや例外条件を記載せず、一般的な機能・利用例として更新します。更新はすべて `text_style_jp.py` で機械整形を確認します。
+```mermaid
+flowchart TD
+    n0["divide"]
+    n1["check_zero"]
+    style n0 fill:#ADD8E6,stroke:#333,font-weight:bold
+    n0 --> n1
+```
 
-| 正本ファイル | 更新内容 |
+Figure: divide の呼び出し先
+
+<!--:details-->
+````
+
+## 図ブロックの字下げ検査 (check-doxygen-indent.py)
+
+[check-doxygen-indent.py](../../../../../framework/doxyfw/bin/check-doxygen-indent.py) へ、[Doxygen コメントの図の規範](#doxygen-コメントの図の規範) の字下げを検査する処理を追加します。
+
+- **対象**: `/**` から `*/` までのコメント内で、行頭に `*` を置かずに記述された図ブロック。開始行は `@mermaid`、`@startuml` (および `\mermaid`、`\startuml`)、終了行は `@endmermaid`、`@enduml` (および `\` 形式) です。
+- **コメント本文の桁**: 図ブロックより前にある、`*` を持ち本文のある最も近い行から求めます。
+- **指摘の条件**:
+    - 開始行または終了行の字下げが、コメント本文の桁と一致しない。
+    - 図の本文 (空行を除く) に、開始行より浅い行がある。
+- **動作**: 検出だけを行い、指摘の行番号、現在の桁、期待する桁を表示します。指摘がある場合の終了コードは、既存の字下げレベルの指摘と同じ扱いとします。修正モードは図ブロックを書き換えず、指摘として表示します。
+- **既存の検査**: `*` を持つ行の字下げレベルの検査と修正は変更しません。
+
+> [!NOTE]
+> 自動修正は実装しません。図の本文の相対的な字下げを保ったまま移動する処理が必要であり、対象が `memory_lock.h` の 1 ファイルだけであるためです。
+
+## 正本文書の更新
+
+`framework/doxyfw` の正本文書へ、確定した仕様だけを記載します。移行の経緯、個別 app のパス、個別 app 固有の例外は記載しません。
+
+| 文書 | 更新内容 |
 | --- | --- |
-| [maintenance-verification.md](../../../../../framework/doxyfw/docs/maintenance-verification.md) | 推奨図記法を Mermaid (`Figure:` キャプション推奨、[codeblock-caption.md](../../../../../framework/docsfw/docs/codeblock-caption.md) 参照) へ改訂し、PlantUML を互換・補足として位置づける。 |
-| [commands.md](../../../../../framework/doxyfw/docs/commands.md) | Doxygen コメント内の標準図コマンドとして `@mermaid{caption="..."}` / `@endmermaid` を記述し、`@startuml` / `@enduml` を互換構文として併記する。 |
-| [cheatsheet.md](../../../../../framework/doxyfw/docs/cheatsheet.md) | 図の記述テンプレートを `@mermaid{caption="..."}` 〜 `@endmermaid` へ更新し、PlantUML 互換注記を添える。 |
-| [extract-graphs.md](../../../../../framework/doxyfw/docs/extract-graphs.md) | 自動生成グラフの出力形式・強調・キャプション (`Figure:`) 仕様を更新し、生成例 `plantuml` 4 箇所 (L139、L154、L169、L184) を `mermaid` 出力例 (`flowchart TD` / `flowchart BT`、`style ... fill:#ADD8E6,...`、`Figure:`) へ置換する。 |
-| [doxybook2-plantuml.md](../../../../../framework/doxyfw/docs/doxybook2-plantuml.md) | 既存の PlantUML 変換・下線保護仕様を、移行完了後の「PlantUML 互換経路」として明確に位置づける。 |
+| [maintenance-verification.md](../../../../../framework/doxyfw/docs/maintenance-verification.md) | 「文書の表記と図」の図の基本を Mermaid と `Figure:` キャプション ([codeblock-caption.md](../../../../../framework/docsfw/docs/codeblock-caption.md)) へ改め、PlantUML を互換の記法とする。Doxygen コメントの図の規範 (キャプションの形式、字下げ、検査コマンド) を記載する。 |
+| [commands.md](../../../../../framework/doxyfw/docs/commands.md) | `@mermaid "キャプション"` 〜 `@endmermaid` の節を追加し、標準の図コマンドとする。`@startuml` 〜 `@enduml` の節は互換の記法として残す。双方へ、行頭の `*` を置かない場合の字下げの規則を記載する。 |
+| [cheatsheet.md](../../../../../framework/doxyfw/docs/cheatsheet.md) | 図の記述例を `@mermaid "キャプション"` へ改め、字下げの規則を記載する。PlantUML は互換の記法として注記する。 |
+| [extract-graphs.md](../../../../../framework/doxyfw/docs/extract-graphs.md) | PlantUML を前提とする記述をすべて Mermaid へ改める。対象は、冒頭の説明、パイプライン図の注記、`relation` と矢印の対応表、ノードの強調、生成例 4 箇所、XML への挿入例、変換の流れ。 |
+| `framework/doxyfw/docs/doxybook2-mermaid.md` (新設) | `<mermaid>` タグの 3 つの発生源、変換ヘルパーの仕様、キャプションのエスケープ、`Figure:` 行を含めた折り畳み、`fix_ptr` の除外、Doxygen HTML の描画方式と CDN への依存を記載する。 |
+| [doxybook2-plantuml.md](../../../../../framework/doxyfw/docs/doxybook2-plantuml.md) | PlantUML 変換の文書として残し、Mermaid の変換は `doxybook2-mermaid.md` を参照する旨を追記する。 |
+| [docs/README.md](../../../../../framework/doxyfw/docs/README.md) | 文書一覧へ `doxybook2-mermaid.md` を追加する。 |
+| [check-doxygen-indent.md](../../../../../framework/doxyfw/docs/check-doxygen-indent.md) | 図ブロックの字下げ検査 (対象、指摘の条件、検出だけで修正しない点) を追記する。 |
+| [README.md](../../../../../framework/doxyfw/README.md) | 「必要なツール」の Doxygen へ「1.17.0 以上」を明記し、PlantUML を互換の変換経路で使用するツールとして記載する。 |
 
-Table: 正本文書の更新対象と反映方針
+Table: 正本文書の更新対象と内容
 
-## 既存 Markdown 3 箇所の修正仕様
+コード コメントへは、変換ヘルパーのキャプションのエスケープで数値文字参照を使う理由と、`postprocess.sh` で `Figure:` 行を折り畳みへ含める理由を記載します。
 
-過去 27 ファイルの実態調査で特定された差異 3 箇所を次のとおり修正し、変更後は `text_style_jp.py` で整形確認します。
+## 既存 Markdown の修正
 
-1. **[cplat-account-session-discussion.md](../../../../cplat/docs/prompts/current/cplat-account-session-discussion.md) (L295)**:
-    - L295 の `CodeBlock: セッション上でプロセスを起動する処理の流れ (試案)` を `Figure: セッション上でプロセスを起動する処理の流れ (試案)` へ変更します。
-    - 同ファイル内の C コード ブロック 5 箇所 (`{.c caption="..."}`) は Mermaid 図ではないため変更しません。
-2. **[architecture.md](../../../../porter/docs/architecture.md) (L28-36)**:
-    - `## ハンドルの寿命と通知の実行` 節にあるキャプションなし `flowchart LR` の閉じフェンス直後へ、内容に沿った `Figure:` キャプション行 (`Figure: ハンドルの寿命と非同期通知の実行関係`) を 1 行空けて追記します。
-3. **[sequence-data.md](../../../../porter/docs/sequence-data.md) (L408-421)**:
-    - `## close と登録済み通知` 節にあるキャプションなし `sequenceDiagram` の閉じフェンス直後へ、内容に沿った `Figure:` キャプション行 (`Figure: close 呼び出しと登録済み通知の処理シーケンス`) を 1 行空けて追記します。
+図のキャプションの表記を `Figure:` へそろえるため、次の 3 箇所を修正します。
 
-## Windows / Linux 両対応仕様
+| ファイル | 修正内容 |
+| --- | --- |
+| [cplat-account-session-discussion.md](../../../../cplat/docs/prompts/current/cplat-account-session-discussion.md) (L295) | `CodeBlock: セッション上でプロセスを起動する処理の流れ (試案)` を `Figure: セッション上でプロセスを起動する処理の流れ (試案)` へ変更する。同ファイルの C コード ブロック 5 箇所 (`{.c caption="..."}`) は変更しない。 |
+| [architecture.md](../../../../porter/docs/architecture.md) (L28-36、「ハンドルの寿命と通知の実行」) | キャプションのない `flowchart LR` の閉じコード フェンスの後へ、空行を挟んで `Figure: ハンドルの寿命と非同期通知の実行関係` を追加する。 |
+| [sequence-data.md](../../../../porter/docs/sequence-data.md) (L408-421、「close と登録済み通知」) | キャプションのない `sequenceDiagram` の閉じコード フェンスの後へ、空行を挟んで `Figure: close 呼び出しと登録済み通知の処理シーケンス` を追加する。 |
 
-- **文字コード・改行コード**:
-    - すべての新規・更新 Python スクリプト、テンプレート、ヘッダー、Markdown ファイルは UTF-8・LF 改行 (`newline="\n"`) で統一します。
-- **Bash と Python 実行環境**:
-    - `preprocess.sh` / `postprocess.sh` の単体テストおよび実行経路は Linux の `/bin/bash` と Windows の Git Bash (`shutil.which("bash")` で探索し WSL 環境へ誤誘導しない既存方式) の双方で同一動作させます。
-- **`mmdc` 有無と実行コマンド**:
-    - Doxygen の既定 `MERMAID_RENDER_MODE = AUTO` により、`mmdc` がインストールされていない環境でも XML 抽出・Markdown 生成がエラー・警告なしで完走する構成とします。
-    - 描画検証等で `mmdc` を直接起動する場合は、`shutil.which("mmdc")` により Linux の `mmdc` および Windows の `mmdc.cmd` (`mmdc.CMD`) を環境非依存で解決します。
+Table: 既存 Markdown の修正箇所
 
-## 変更対象一覧・単体テスト・受入条件
+## Linux と Windows の両対応
 
-### 変更・新設ファイル一覧
+- 新設・更新する Python スクリプトは、テキスト入出力で `encoding="utf-8"` と `newline="\n"` を明示します。
+- `preprocess.sh` と `postprocess.sh` の単体テストは、既存の方式 (`shutil.which("bash")` で PATH 上の bash を解決) で起動します。
+- 生成処理は `mmdc` を必要としません。`mmdc` を使うのは検証時の描画確認だけで、`shutil.which("mmdc")` または PATH 上のコマンドとして解決します。
+- `@mermaid` は Doxygen 1.17.0 以上で動作します (ローカルは 1.17.0、CI は 1.18.0)。
 
-| 区分 | パス | 変更概要 |
+## 変更対象の一覧
+
+| 区分 | パス | 変更 |
 | --- | --- | --- |
-| ヘッダー | [memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) | 手動 2 図を `@mermaid{caption="..."}` 〜 `@endmermaid` へ移行 |
-| グラフ抽出 | [extract-graphs.py](../../../../../framework/doxyfw/templates/extract-graphs.py) | 4 種別グラフを `<mermaid>` + `style` 強調 + XML/ラベル エスケープ出力へ変更 |
-| XML 前処理 | [preprocess.sh](../../../../../framework/doxyfw/templates/preprocess.sh) | `convert-mermaid-tags.py` 呼び出しを追加 (`<plantuml>` 互換維持) |
-| 新設ヘルパー | `framework/doxyfw/templates/convert-mermaid-tags.py` | `<mermaid>` タグを ```` ```mermaid ```` + `Figure:` へ変換 |
-| MD 後処理 | [postprocess.sh](../../../../../framework/doxyfw/templates/postprocess.sh) | `is_mermaid` 判定追加、`fix_ptr` 除外、`DOXYFW_DETAILS_ONLY` の `Figure:` 内包閉じ |
-| 単体テスト | [test_preprocess.py](../../../../../framework/doxyfw/bin_test/test_preprocess.py)、[test_postprocess.py](../../../../../framework/doxyfw/bin_test/test_postprocess.py)、[test_doxybook2_templates.py](../../../../../framework/doxyfw/bin_test/test_doxybook2_templates.py) | Mermaid 変換・特殊文字・`fix_ptr` 除外・`DOXYFW_DETAILS_ONLY`・`extract-graphs.py` 出力検証を追加 |
-| 正本文書 | `framework/doxyfw/docs/` の 5 ファイル | 推奨方針・構文例・生成例・PlantUML 互換位置づけを更新 |
-| 既存 MD | `cplat-account-session-discussion.md`、`architecture.md`、`sequence-data.md` | 残存 `CodeBlock:` 1 箇所の `Figure:` 化および無題 2 図への `Figure:` 付与 |
+| ヘッダー | `app/cplat/prod/include/cplat/runtime/memory_lock.h` | 2 図を `@mermaid` へ置き換え、図ブロックを 8 桁目へ字下げ |
+| グラフ抽出 | `framework/doxyfw/templates/extract-graphs.py` | 4 種別を `<mermaid caption="...">` で出力 |
+| 変換ヘルパー (新設) | `framework/doxyfw/templates/convert-mermaid-tags.py` | `<mermaid>` をコード フェンスと `Figure:` 行へ変換 |
+| XML 前処理 | `framework/doxyfw/templates/preprocess.sh` | 変換ヘルパーの呼び出しを追加 |
+| Markdown 後処理 | `framework/doxyfw/templates/postprocess.sh` | `fix_ptr` の Mermaid 除外、`Figure:` 行を含めた折り畳み |
+| make | `framework/doxyfw/makefile` | `extract-graphs.py` 呼び出しのコメントを更新 |
+| 検査 | `framework/doxyfw/bin/check-doxygen-indent.py` | 図ブロックの字下げ検査を追加 |
+| 単体テスト | `framework/doxyfw/bin_test/test_preprocess.py`、`test_postprocess.py` | テスト ケースを追加 |
+| 単体テスト (新設) | `framework/doxyfw/bin_test/test_extract_graphs.py`、`test_check_doxygen_indent.py` | 新設 |
+| 正本文書 | `framework/doxyfw/README.md`、`framework/doxyfw/docs/` の 8 ファイル (うち 1 ファイル新設) | [正本文書の更新](#正本文書の更新) のとおり |
+| 既存 Markdown | `cplat-account-session-discussion.md`、`architecture.md`、`sequence-data.md` | [既存 Markdown の修正](#既存-markdown-の修正) のとおり |
 
-Table: 変更および新設予定のファイル一覧
+Table: 変更および新設するファイル
 
-### 単体テストおよび局所検証の実施手順
+`Doxyfile` と `input-filter.py` は変更しません。
 
-1. **変更前基準値の取得 (`bin_test` 承認範囲 4 ファイル)**:
-    - 実装変更に着手する直前、`framework/doxyfw/bin_test/` の承認対象 Python 4 ファイル (`test_preprocess.py`、`test_postprocess.py`、`test_doxybook2_templates.py`、`test_materialize_group_members.py`) を実行し、全件成功する基準値を記録します (残る Python 6 ファイルおよび JavaScript 13 ファイルは実行しません)。
-    - あわせて `app/cplat` で変更前の `make doxy` を実行し、比較用の基準 Markdown 出力を一時退避します。
-2. **実装および単体テスト追加・更新**:
-    - `convert-mermaid-tags.py` 新設、`extract-graphs.py` / `preprocess.sh` / `postprocess.sh` / `memory_lock.h` 更新を行います。
-    - `test_preprocess.py` へ `<mermaid>` (キャプションあり/なし、特殊文字/`&lt;`/`__dunder__`、`<plantuml>` 共存)、`test_postprocess.py` へ `mermaid` フェンス内の `__` 保存・`fix_ptr` `*` 保護・`DOXYFW_DETAILS_ONLY` の `Figure:` 後 `<!--:details-->` 閉じ・`<plantuml>` `~_~_` 回帰、および `test_doxybook2_templates.py` へ `extract-graphs.py` 4 種別 (`incdep`/`inheritance`/`collaboration`/`call`・`caller`) の出力検証を追加します。
-3. **局所検証および描画確認**:
-    - 承認対象 Python 4 ファイルを `EncodingWarning` 確認も含めて再実行し、全件成功を確認します。
-    - Python インポート経路検査 (`check-python-import-path.py`) および Doxygen インデント検査 (`check-doxygen-indent.py`) を変更対象に対して確認します。
-    - `app/cplat` で `make doxy` を再実行し、生成物比較 (手動 2 図および自動グラフの Mermaid 化、`Figure:` と `<!--:details-->` 配置、既存非図本文の不変性) と対象範囲の `.warn` 警告ゼロを確認します。
-    - 生成された代表 Mermaid 図 (手動 2 図 + 自動グラフ代表 4 種別。`app/cplat` に存在しないグラフ種別がある場合は単体テストのサンプル XML 出力から補完) を `mmdc` で SVG 変換し、全件で終了コード `0`・構文エラーなし、かつ変更前 PlantUML 図とノード/エッジ/手順の意味が一致することを確認します。
-    - 変更・作成したすべての Markdown ファイル (`framework/doxyfw/docs/` 5 件、既存修正 3 件、検討・仕様文書) について `text_style_jp.py --dry-run` および `--in-place` が正常終了することを確認します。
+## 単体テスト
 
-### 受入条件
+| テスト ファイル | 追加する確認 |
+| --- | --- |
+| `test_preprocess.py` | キャプションありの `<mermaid>` がコード フェンスと `Figure:` 行になる。キャプションなしの `<mermaid>` と後続の `Figure:` 段落 (Markdown 入力の形) がコード フェンスだけになる。キャプションの記号 8 種が数値文字参照になり、`__` と `$` は変換されない。本文の共通の字下げが除かれ、XML の実体参照が保持される。`<plantuml>` と `<mermaid>` が同じファイルにあっても双方が変換される。 |
+| `test_postprocess.py` | Mermaid のコード フェンス内で `__` と、引用符の外にある `a* b` が変更されない。折り畳み内で `Figure:` 行の後に `<!--:details-->` が出力される。`Figure:` 行がない場合は閉じコード フェンスの後に `<!--:details-->` が出力される。```` ```plantuml ```` 内の `~_~_` 変換が維持される。 |
+| `test_extract_graphs.py` (新設) | インクルード依存、継承、コラボレーション、呼び出し先、呼び出し元の各グラフで、`flowchart` の宣言と向き、矢印、ノード ID、ラベルのエスケープ (`<`、`>`、`&`、`"`、改行)、`style` による強調、`caption` 属性、折り畳みの見出しが仕様どおりに出力される。ノード数の上限を超える場合とエッジがない場合は出力されない。 |
+| `test_check_doxygen_indent.py` (新設) | 開始行が本文より浅い場合、深い場合、図の本文が開始行より浅い場合に指摘される。本文と同じ桁の図ブロックと、行頭に `*` を持つ図ブロックは指摘されない。`@startuml` と `@mermaid` の双方が対象となる。 |
 
-- [ ] 承認済み Python 4 テスト (`test_preprocess.py`、`test_postprocess.py`、`test_doxybook2_templates.py`、`test_materialize_group_members.py`) が実装前後の双方で全件成功していること。
-- [ ] `app/cplat` の `make doxy` が終了コード `0` で完了し、対象 `.warn` に Mermaid / Doxybook2 / 前後処理起因の警告が存在しないこと。
-- [ ] `app/cplat` 生成 Markdown において、手動 2 図 (`cplat_memory_lock_self`、`cplat_memory_lock_scope_release`) と自動生成グラフが ```` ```mermaid ```` + `Figure:` 形式で出力され、`DOXYFW_DETAILS_ONLY` ブロックでは `Figure:` 行の後で `<!--:details-->` が閉じられていること。
-- [ ] `mmdc` (`11.17.0` または実行環境の同系統版) により代表図 (手動 2 図 + 自動生成グラフ 4 種別) がエラーなしで描画でき、移行前とノード・エッジ・処理手順の意味が一致していること。
-- [ ] 既存の PlantUML 変換経路 (`@startuml`/`<plantuml>`、`~_~_` 退避、`PLANTUML_*`、`input-filter.py`) の互換性が単体テストで確認されていること。
-- [ ] 正本文書 5 件と既存 Markdown 3 件の修正が完了し、すべての変更 Markdown で `text_style_jp.py --dry-run` 確認後の `--in-place` が正常終了していること。
+Table: 単体テストの追加内容
+
+## 検証手順
+
+1. **変更前の基準値の取得**
+    - `framework/doxyfw/bin_test/` の Python 4 ファイル (`test_preprocess.py`、`test_postprocess.py`、`test_doxybook2_templates.py`、`test_materialize_group_members.py`) を実行し、結果を記録します。
+    - `app/cplat` で `make doxy` を実行し、生成された Markdown と警告ファイル (`doxy*.warn`) を一時フォルダーへ退避します。`memory_lock.h` の 2 関数で、`@par` の節がコード ブロックとして出力されていることを確認します。
+2. **実装**
+    - [変更対象の一覧](#変更対象の一覧) のファイルを変更します。
+3. **変更後の検証**
+    - 上記の Python 4 ファイルと、新設の `test_extract_graphs.py`、`test_check_doxygen_indent.py` の計 6 ファイルを実行します。`framework/doxyfw/bin_test/` の残りの Python 6 ファイルと JavaScript 13 ファイルは実行しません。
+    - `check-doxygen-indent.py` を `app/cplat/prod/include` に対して実行します。Python の import 経路の検査を、変更した Python に対して実行します。
+    - `app/cplat` で `make doxy` を再実行し、基準値と比較します。
+    - 代表図 (手動 2 図と、自動生成グラフ 4 種別の各 1 図) を `mmdc` で SVG へ変換します。`app/cplat` に存在しない種別は、単体テストの入力から生成した図で代替します。変更前の PlantUML 図と、ノード、エッジ、手順を照合します。
+    - 変更または作成した Markdown ごとに、`text_style_jp.py --dry-run` と `--in-place` を実行します。
+
+## 受入条件
+
+- [ ] Python 4 ファイルの単体テストが、変更前と変更後の双方で全件成功する。
+- [ ] 新設の `test_extract_graphs.py` と `test_check_doxygen_indent.py` が全件成功する。
+- [ ] `app/cplat` の `make doxy` が終了コード `0` で完了し、警告ファイル (`doxy*.warn`) に `Text tag "mermaid" not recognised` がなく、変更前になかった警告が増えていない。
+- [ ] `app/cplat` の生成 Markdown で、手動 2 図と自動生成グラフが ```` ```mermaid ```` と `Figure:` 行で出力され、```` ```plantuml ```` が残っていない。
+- [ ] 折り畳み対象の自動生成グラフで、`Figure:` 行の後に `<!--:details-->` が出力されている。
+- [ ] `memory_lock.h` の 2 関数で、図の前後の `@par` の節がコード ブロックではなく節として出力されている。
+- [ ] `app/cplat` の生成 Markdown の変更前後の差分が、図の記法の変更、`Figure:` 行の追加、上記 2 関数の `@par` の節の修正だけである。
+- [ ] 代表図 (手動 2 図と自動生成グラフ 4 種別) が `mmdc` で終了コード `0`・構文エラーなしで描画でき、変更前の図とノード、エッジ、手順が一致する。継承グラフの矢印の形の違いは一致の判定から除く。
+- [ ] `check-doxygen-indent.py` が `app/cplat/prod/include` で指摘を出さない。
+- [ ] ```` ```plantuml ```` の変換経路 (`<plantuml>` の変換、`~_~_` 変換) が単体テストで維持されている。
+- [ ] 正本文書 9 件と既存 Markdown 3 件の更新が完了し、変更したすべての Markdown で `text_style_jp.py` が正常終了している。
