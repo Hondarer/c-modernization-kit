@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: claude code / セッション ID: session_01KJc53SxAJ1aEypd18coD8r
+最終更新エージェント: codex (文面支援: agy / セッション ID: 6632672a-684b-4f7e-bf27-e504701da2cb)
 検討 ID: source-comment-bl029-20261113
 上流文書: `261113-source-comment-bl029-design.md` (最終仕様)、`261113-source-comment-bl029-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
@@ -27,7 +27,7 @@
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
 | BL-002 | 確認できない設計理由 162 項目 | 過去 backlog からの転記 (BL-008) | 中 | 未着手 |
-| BL-003 | Windows 実機の ABI と実資源 | 過去 backlog からの転記 (BL-024) | 中 | 未着手 |
+| BL-003 | Windows 実機の ABI と実資源 | 過去 backlog からの転記 (BL-024) | 中 | 対応済み |
 | BL-004 | TCP 双方向 N:1 通信 | 過去 backlog からの転記 (BL-025) | 低 | 未着手 |
 
 Table: BL-029 対策で残す課題
@@ -72,7 +72,7 @@ Table: BL-029 対策で残す課題
 
 - **摘出契機**: 過去の案件 `source-comment-remaining-20261109` で、対話操作を含む実機検証を未対処として引き継ぐと回答がありました。
 - **今回の見送り理由**: 今回の案件の受入条件は、Linux の局所テストです。Windows での実行は含めていません。今回の一括整形の差分のうち、Windows のビルドだけでコンパイルするソースと分岐 (`service-sample_windows.c`、`tcpServer_windows.c` など) は、整形後にコンパイルしていません。
-- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-024 は削除していません。
+- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-024 は削除していません。その後、BL-003 のみを対象とする独立案件 `windows-real-machine-verification-20261114` ([検討文書](261114-windows-real-machine-verification-discussion.md)、[最終仕様と検証記録](261114-windows-real-machine-verification-design.md)) で対策を完了しました (本一覧の BL-002 および BL-004 は同案件の対象外です)。Windows 11 (MSVC 14.50) 実機において、同期前の 6 app (`cplat`、`calc`、`struct-meta`、`string-catalog-sample`、`service-sample`、`porter`) の `make test` 成功と `service-sample` の実サービス登録・説明文表示・開始・停止・削除・削除後不在確認および 10 分間の EventLog 未記録確認を実施し、さらに origin 同期後の `app/cplat` 依存ビルドと `app/porter` 基準テスト (470 件 PASSED)、`tcpServer_windows.c` の `CPLAT_TRACE_LEVEL_NONE` トレースとテスト専用コンパイル時フック境界の実装、通常ビルド `tcpServer.exe` での EOF による親側ソケット参照解放と接続枠再利用の外部観測、テスト専用補助実行体での異常系 3 種・空き待ち解除・負例感度確認 (`tcpServerPreforkTest` 13 件 PASSED)、および `Mock_cplat` 局所単体テスト (`tcpServerWindowsTest` 1 件 PASSED) をすべて完了しました。検証中に別途摘出した `framework/makefw` の補助処理に関する残課題 3 件は [261114-windows-real-machine-verification-backlog.md](261114-windows-real-machine-verification-backlog.md) (BL-002〜BL-004) に記録しています。
 
 ### 影響範囲とリスク
 
