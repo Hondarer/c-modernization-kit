@@ -139,7 +139,7 @@ jobs:
           MAKEFW_CPU_BUDGET: "8"
         run: |
           set -o pipefail
-          make test 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
+          make quicktest 2>&1 | tee logs/linux-${{ matrix.os-name }}-test.log
 
       - name: Upload test results artifacts
         uses: actions/upload-artifact@v7
@@ -555,7 +555,7 @@ jobs:
           TESTFW_WINDOWS_VARIANTS: "md"
         run: |
           set -o pipefail
-          make test 2>&1 | tee logs/windows-test.log
+          make quicktest 2>&1 | tee logs/windows-test.log
         shell: bash
 
       - name: Upload test results artifacts

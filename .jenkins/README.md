@@ -34,7 +34,7 @@ Jenkins Execute shell
                                   |
                                   +- load-app-env.sh            # .vscode/.env.linux を読み込み
                                   +- make                       # ビルド
-                                  +- make test                  # テスト実行
+                                  +- make quicktest             # テスト実行
                                   +- pages/artifacts/*.zip      # テスト結果・ログ・ビルド警告収集
                                   +- make skills                # skill 同期 (BUILD_DOCS=1 時)
                                   +- make doxy && make docs     # ドキュメント生成 (BUILD_DOCS=1 時)
@@ -147,7 +147,7 @@ see: [ライブラリ探索パスの扱い (Linux)](../framework/makefw/docs/lib
 #### テスト実行
 
 ```bash
-make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
+make quicktest 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 ```
 
 #### アーティファクト収集

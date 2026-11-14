@@ -83,16 +83,16 @@ with-cov :
 	$(MAKE) -C app with-cov
 	@$(APP_ENV_SYNC_CHECK)
 
-.PHONY: test
-test :
+.PHONY: test quicktest
+test quicktest :
 	@$(call _MAKEFW_RESOLVE_PARALLEL_SHELL) \
 	framework_jobs="$$jobs"; \
 	if [ -z "$$framework_jobs" ]; then framework_jobs=1; fi; \
 	MAKEFW_SUBDIR_MAKE="$(MAKE)" "$(SHELL)" \
 		"$(ROOT_RUNNER)" \
 		--app-deps --silent-missing --echo-command --progress \
-		"$$framework_jobs" test "$(FRAMEWORK_MAKE_DIRS)"
-	$(MAKE) -C app test
+		"$$framework_jobs" $@ "$(FRAMEWORK_MAKE_DIRS)"
+	$(MAKE) -C app $@
 
 # prod 配下の生成ソースだけを作る。フル ビルドなしで Doxygen の入力をそろえる用途。
 # doxy は gen に依存させない。生成ソースを含む文書が必要な場合は make gen && make doxy と続ける。

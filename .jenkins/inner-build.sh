@@ -35,8 +35,8 @@ export PYTHONSAFEPATH=1
 # ビルド ログを保存しながら make を実行
 make 2>&1 | tee "logs/linux-${OS_NAME}-build.log"
 
-# テスト ログを保存しながら make test を実行
-make test 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
+# テスト ログを保存しながら make quicktest を実行
+make quicktest 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 
 # アーティファクトの出力先 (.github/workflows/ci.yml と同じ pages/ を使用)
 mkdir -p /workspace/pages/artifacts

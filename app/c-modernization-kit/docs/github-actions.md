@@ -217,12 +217,12 @@ Figure: ジョブ実行フロー
     - ビルド ログを `logs/linux-build.log` に保存
 
 4. **テストの実行**
-    - `make test` を実行
+    - `make quicktest` を実行
     - testfw および test ディレクトリ配下のテストを実行
     - テスト ログを `logs/linux-test.log` に保存
 
 5. **テスト結果アーティファクトのアップロード**
-    - テスト結果 (`app/**/results/`) と `make test` ログを同じ artifact に保存
+    - テスト結果 (`app/**/results/`) と `make quicktest` ログを同じ artifact に保存
 
 6. **ビルド ログ アーティファクトのアップロード**
     - ビルド ログのみを保存
@@ -284,11 +284,11 @@ Windows 専用の生成物は対象外です。`app/cplat/prod/src/cmd/eventlog-
     - ビルド ログを `logs/windows-build.log` に保存
 
 7. **テストの実行**
-    - `make test` を実行
+    - `make quicktest` を実行
     - テスト ログを `logs/windows-test.log` に保存
 
 8. **テスト結果アーティファクトのアップロード**
-    - テスト結果 (`app/**/results/`) と `make test` ログを同じ artifact に保存
+    - テスト結果 (`app/**/results/`) と `make quicktest` ログを同じ artifact に保存
 
 9. **ビルド ログ アーティファクトのアップロード**
     - ビルド ログのみを保存
