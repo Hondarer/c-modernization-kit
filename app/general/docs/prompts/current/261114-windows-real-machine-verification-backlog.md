@@ -1,7 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: codex (文面支援: agy / セッション ID: 6632672a-684b-4f7e-bf27-e504701da2cb)
+最終更新日時: 2026-11-15 13:29:29 JST
+稼働 OS: Windows (Linux 検証は WSL)
+継続作業: `261114-makefw-windows-backlog-design.md`、`261114-makefw-windows-backlog-backlog.md`。削除されている場合があります。
+最終更新エージェント: codex (セッション ID は取得できません)
+前回の文面支援: agy / セッション ID: 6632672a-684b-4f7e-bf27-e504701da2cb
 検討 ID: windows-real-machine-verification-20261114
 上流文書: `261114-windows-real-machine-verification-design.md` (最終仕様)、`261114-windows-real-machine-verification-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。過去の backlog は `261113-source-comment-bl029-backlog.md` の BL-003 です。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
@@ -21,13 +25,18 @@
 作業期間中に BL-001 として一時記録していた「prefork の資源解放と親の待機解除の実機確認」は本案件の作業内で解消したため、整理時に除外しました。そのため課題 ID は BL-001 を欠番とし、新規に摘出した `framework/makefw` の補助処理に関する 3 件に BL-002〜BL-004 を割り当てています。  
 また、本案件の成功した検証結果 (同期前の 6 app テストおよび `service-sample` 実サービス検証、同期後の `app/porter` 基準テスト、prefork 統合テスト・局所単体テスト) は最終仕様 [261114-windows-real-machine-verification-design.md](261114-windows-real-machine-verification-design.md) の検証記録へ統合・保存し、この一覧からは除外しています。上流の `261113-source-comment-bl029-backlog.md` にある BL-002 および BL-004 は本案件の対策対象外であるため転記していません。
 
+## 継続作業による対処状況
+
+2026-11-15 の継続作業 `makefw-windows-backlog-20261114` により、BL-002〜BL-004 の対策と局所検証を完了しました。  
+元の背景・暫定対処・推奨案は当時の記録として保持し、各項目の末尾に継続作業の対処を追記しています。
+
 ## 残課題一覧
 
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
-| BL-002 | `makepart.mk` の `LIBS` 変更時に生成済み実行体が再リンクされない | 作業中摘出 | 中 | 未着手 |
-| BL-003 | MSVC `/MP` バッチ コンパイルで別ソース名へ割り当てられた `.warn` が元コード修正後も残存する | 作業中摘出 | 中 | 未着手 |
-| BL-004 | Windows で `certificateTest` を直接 `make` した際にシェルの引用符不一致メッセージが出力される | 作業中摘出 | 低 | 未着手 |
+| BL-002 | `makepart.mk` の `LIBS` 変更時に生成済み実行体が再リンクされない | 作業中摘出 | 中 | 対応済み |
+| BL-003 | MSVC `/MP` バッチ コンパイルで別ソース名へ割り当てられた `.warn` が元コード修正後も残存する | 作業中摘出 | 中 | 対応済み |
+| BL-004 | Windows で `certificateTest` を直接 `make` した際にシェルの引用符不一致メッセージが出力される | 作業中摘出 | 低 | 対応済み |
 
 Table: Windows 実機検証 (BL-003) で残す課題
 
@@ -54,6 +63,13 @@ Table: Windows 実機検証 (BL-003) で残す課題
 - **恒久対応案**: `framework/makefw` において、実効リンク引数 (`$(LD)`、`$(LDFLAGS)`、`$(LIBS)`、`$(LIBSFILES)` 等) のシグネチャ (コマンド記録ファイルやハッシュ) を `$(OBJDIR)` 配下に保存し、前回リンク時のシグネチャと異なる場合は `rebuild=1` として再リンクする仕組みを導入します。あわせて、`LIBS` 変更時に実行体削除なしで再リンクされることを確認する `makefw` の回帰テストを追加します。
 - **参考情報**: [makesrc_c_cpp.mk](../../../../../framework/makefw/makefiles/makesrc_c_cpp.mk#L379-L427)、[tcpServerWindowsTest の makepart.mk](../../../../porter/test/src/cmd/windows/tcpServerWindowsTest/makepart.mk)、補助ログ `C:/Users/tetsuo/AppData/Local/Temp/windows-verification-prefork-unit.log`、`windows-verification-prefork-unit-retry.log`、`windows-verification-prefork-unit-final.log`。
 
+### 継続作業での対処と検証
+
+実行体・共有ライブラリ・静的ライブラリの実効リンク構成を `.link.mk` へ記録し、構成変更時に必要なターゲットを再生成する処理を追加しました。  
+引数順序・引用符内の空白・記号の差異を保持し、長い構成は一時ファイル経由で保存します。  
+Linux と模擬 Windows の全ターゲット種別、旧状態の移行、変更なし時の再リンク抑止、失敗後の再実行を確認しました。  
+Windows の摘出元 tcpServerWindowsTest は 1 件成功し、protocol のビルドも両 OS で成功しました。
+
 ## BL-003 MSVC /MP バッチ コンパイルで別ソース名へ割り当てられた .warn が元コード修正後も残存する
 
 ### 概要と問題点
@@ -77,6 +93,13 @@ Table: Windows 実機検証 (BL-003) で残す課題
 - **恒久対応案**: `msvc_compile.ps1` において、警告行先頭の診断ファイル パス (`Resolve-MsvcDiagnosticPath` の結果や `/sourceDependencies` の JSON に含まれるソース・インクルード関係) と `$sourceList` を照合して正しい翻訳単位へ警告を割り当てます。あわせて、同一ディレクトリ内の再コンパイル時に過去の誤割り当てや古い `.warn` が残らないよう整合性を保つ仕組みと、`/MP` 出力交錯および部分再ビルドを模擬した回帰テストを `framework/makefw/bin_test/` 等に追加します。
 - **参考情報**: [msvc_compile.ps1](../../../../../framework/makefw/bin_internal/msvc_compile.ps1#L188-L230) および [335〜342 行目](../../../../../framework/makefw/bin_internal/msvc_compile.ps1#L335-L342)、補助ログ `C:/Users/tetsuo/AppData/Local/Temp/windows-verification-warning-refresh.log`。
 
+### 継続作業での対処と検証
+
+MSVC の警告を診断パスと依存 JSON・PCH 依存情報から割り当て、共有ヘッダーは候補の全翻訳単位へ、照合不能時は今回の全翻訳単位へ保存する方式へ変更しました。  
+今回再コンパイルしたソースのパスに一致する古い行だけを、同じディレクトリの既存 `.warn` から除去します。  
+実際の /MP2、出力交錯、共有ヘッダー、短い名前、破損・欠落 JSON、部分再コンパイル、終了コードを回帰テストで確認しました。  
+ビルドした対象 app 群の内容がある `.warn` は 0 件です。
+
 ## BL-004 Windows で certificateTest を直接 make した際にシェルの引用符不一致メッセージが出力される
 
 ### 概要と問題点
@@ -99,3 +122,11 @@ Table: Windows 実機検証 (BL-003) で残す課題
 
 - **恒久対応案**: 別案件にて `make --trace` または `SHELL="/usr/bin/sh -x"` 等を用いて `certificateTest` ビルド時に実行されるすべての `$(shell ...)` およびレシピ行をトレースし、引用符の不一致を引き起こしている変数展開箇所を特定して修正します。あわせて、シェル呼び出しのエラーが握り潰されず終了ステータスと標準出力・標準エラーが一致するようにエラー伝播を見直します。
 - **参考情報**: 補助ログ `C:/Users/tetsuo/AppData/Local/Temp/windows-verification-porter-baseline-retry.log` (92 行目)、`C:/Users/tetsuo/AppData/Local/Temp/windows-verification-warning-refresh.log` (35 行目)。
+
+### 継続作業での対処と検証
+
+ソース一覧を単一の長いシェル コマンドへ展開する処理を除去し、Make 関数による分類とディレクトリごとの実体確認へ変更しました。  
+シンボリック リンク名はシェル内の glob で一度収集し、同名ローカル実体の優先規則と clean の .gitignore 反映条件を維持します。  
+80 件の外部ソースで初回・反復・元ソース更新・clean を Windows と Linux で確認し、Windows certificateTest の要求 46 件すべてがコピー対象に入ることも確認しました。  
+Windows certificateTest は 31 件成功しました。  
+Linux では既存環境のライブラリ探索順を検証時に指定し直し、同一バイナリを Linux の一時領域から個別プロセスで実行して 31 件すべての成功を確認しました。
