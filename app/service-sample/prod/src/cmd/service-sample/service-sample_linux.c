@@ -78,7 +78,7 @@ static int run_command(char *const argv[])
 
     options.argv = argv;
 
-    result = cplat_process_run_sync(&options, CPLAT_PROCESS_WAIT_FOREVER, &exit_code);
+    result = cplat_process_run_sync(&options, &exit_code);
     if (result != CPLAT_OK)
     {
         cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "外部コマンドの実行に失敗しました: %s",

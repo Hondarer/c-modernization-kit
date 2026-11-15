@@ -146,11 +146,11 @@ extern "C"
     /**
      *  @brief          受け渡しの排他を解放します。
      *  @param[in]      lock 排他。取得済みであること。
-     *  @return         両方のロックを解放できた場合は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
+     *  @return         プロセス間ロックを解放できた場合は @ref SAMPLE_FILTER_SHARE_REGION_OK を返します。
      *                  @p lock が NULL の場合は @ref SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT を、
-     *                  いずれかのロックを解放できない場合は @ref SAMPLE_FILTER_SHARE_REGION_FAILED を返します。
+     *                  プロセス間ロックを解放できない場合は @ref SAMPLE_FILTER_SHARE_REGION_FAILED を返します。
      *
-     *  プロセス間ロックの解放に失敗した場合も、プロセス内ロックの解放を試みます。
+     *  プロセス間ロックの解放に失敗した場合も、プロセス内ロックを解放します。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。

@@ -126,7 +126,7 @@ void svc_request_stop(void)
         return;
     }
 
-    cplat_local_lock_lock(s_stop_lock, CPLAT_SYNC_WAIT_FOREVER);
+    cplat_local_lock_lock(s_stop_lock);
     s_stop_requested = 1;
     cplat_local_lock_unlock(s_stop_lock);
     cplat_condvar_broadcast(s_stop_cv);
@@ -141,7 +141,7 @@ int svc_stop_requested(void)
         return 0;
     }
 
-    cplat_local_lock_lock(s_stop_lock, CPLAT_SYNC_WAIT_FOREVER);
+    cplat_local_lock_lock(s_stop_lock);
     requested = s_stop_requested;
     cplat_local_lock_unlock(s_stop_lock);
 
@@ -157,12 +157,12 @@ int svc_wait_for_stop(const int timeout_ms)
         return 1;
     }
 
-    cplat_local_lock_lock(s_stop_lock, CPLAT_SYNC_WAIT_FOREVER);
+    cplat_local_lock_lock(s_stop_lock);
 
     if (s_stop_requested == 0)
     {
         /* spurious wakeup 対策のため待機後に再確認する。 */
-        cplat_condvar_wait(s_stop_cv, s_stop_lock, timeout_ms);
+        cplat_condvar_timed_wait(s_stop_cv, s_stop_lock, timeout_ms);
     }
 
     requested = s_stop_requested;

@@ -24,11 +24,11 @@ TEST(sampleFilterShareClockTest, clock_failure_releases_local_lock)
 
     // [Pre-Assert確認_異常系] - 開始時とローカル ロック取得後の時刻を取得すること。
     // [Pre-Assert手順] - 2 回目だけ失敗させる。
-    EXPECT_CALL(mock, cplat_local_lock_lock(local, 100)).WillOnce(Return(CPLAT_OK));
-    EXPECT_CALL(mock, cplat_local_lock_unlock(local)).WillOnce(Return(CPLAT_OK));
+    EXPECT_CALL(mock, cplat_local_lock_timed_lock(local, 100)).WillOnce(Return(CPLAT_OK));
+    EXPECT_CALL(mock, cplat_local_lock_unlock(local)).WillOnce(Return());
 
     // [Pre-Assert確認_異常系] - 取得したローカル ロックを 1 回解放すること。
-    EXPECT_CALL(mock, cplat_interprocess_lock_lock(_, _)).Times(0);
+    EXPECT_CALL(mock, cplat_interprocess_lock_timed_lock(_, _)).Times(0);
 
     // [Pre-Assert確認_異常系] - 時計失敗後にプロセス間ロックを取得しないこと。
     EXPECT_CALL(mock, cplat_local_lock_dispose(local)).WillOnce(Return());

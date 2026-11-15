@@ -676,7 +676,7 @@ void svc_linux_events_stop(void)
         written = write(s_ctx.stop_fd, &value, sizeof(value));
         (void)written;
 
-        result = cplat_thread_join(s_ctx.thread, SVC_EVENTS_JOIN_TIMEOUT_MS);
+        result = cplat_thread_timed_join(s_ctx.thread, SVC_EVENTS_JOIN_TIMEOUT_MS);
         if (result != CPLAT_OK)
         {
             cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,

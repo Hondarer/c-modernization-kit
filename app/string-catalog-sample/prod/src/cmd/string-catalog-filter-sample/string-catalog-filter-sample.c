@@ -33,7 +33,6 @@
 #include <cplat/crt/path.h>
 #include <cplat/crt/unistd.h>
 #include <cplat/prompt/pinned_prompt.h>
-#include <cplat/runtime/abort.h>
 #include <cplat/runtime/process.h>
 #include <cplat/string_catalog/string_catalog.h>
 #include <cplat/sync/sync.h>
@@ -469,22 +468,15 @@ static void filter_sample_worker_thread_proc(void *arg)
     {
         int stop;
 
-        if (cplat_local_lock_lock(s_worker_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-        {
-            CPLAT_ABORT("条件式フィルター サンプルのワーカー ロックを取得できません");
-        }
-
+        cplat_local_lock_lock(s_worker_lock);
         stop = s_worker_stop_requested;
         if (!stop)
         {
-            (void)cplat_condvar_wait(s_worker_condvar, s_worker_lock, (int)worker->interval_ms);
+            (void)cplat_condvar_timed_wait(s_worker_condvar, s_worker_lock, (int)worker->interval_ms);
             stop = s_worker_stop_requested;
         }
 
-        if (cplat_local_lock_unlock(s_worker_lock) != CPLAT_OK)
-        {
-            CPLAT_ABORT("条件式フィルター サンプルのワーカー ロックを解放できません");
-        }
+        cplat_local_lock_unlock(s_worker_lock);
 
         if (stop)
         {
@@ -537,21 +529,14 @@ static void stop_all_workers(void)
         return;
     }
 
-    if (cplat_local_lock_lock(s_worker_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルのワーカー ロックを取得できません");
-    }
-
+    cplat_local_lock_lock(s_worker_lock);
     s_worker_stop_requested = 1;
-    (void)cplat_condvar_broadcast(s_worker_condvar);
-    if (cplat_local_lock_unlock(s_worker_lock) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルのワーカー ロックを解放できません");
-    }
+    cplat_condvar_broadcast(s_worker_condvar);
+    cplat_local_lock_unlock(s_worker_lock);
 
     for (i = 0; i < s_worker_count; i++)
     {
-        (void)cplat_thread_join(s_workers[i].thread, CPLAT_SYNC_WAIT_FOREVER);
+        cplat_thread_join(s_workers[i].thread);
     }
 
     s_workers_running = 0;
@@ -585,16 +570,9 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
     char text[FILTER_SAMPLE_PENDING_LINE_WIDTH];
     cplat_trace_level threshold;
 
-    if (cplat_local_lock_lock(s_display_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの表示ロックを取得できません");
-    }
-
+    cplat_local_lock_lock(s_display_lock);
     threshold = s_display_threshold;
-    if (cplat_local_lock_unlock(s_display_lock) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの表示ロックを解放できません");
-    }
+    cplat_local_lock_unlock(s_display_lock);
 
     /* 出力先と同じく、NONE と FORCE_NONE は出力しない。 */
     if ((level != CPLAT_TRACE_LEVEL_NONE) && (level != CPLAT_TRACE_LEVEL_FORCE_NONE) && (level <= threshold))
@@ -611,10 +589,7 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
         }
 
         /* コマンドの表示区間の最中は、区間を開始したスレッド以外の表示を保留する。 */
-        if (cplat_local_lock_lock(s_output_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-        {
-            CPLAT_ABORT("条件式フィルター サンプルの出力ロックを取得できません");
-        }
+        cplat_local_lock_lock(s_output_lock);
 
         if ((s_is_command_section != 0) && (cplat_process_get_tid() != s_command_thread_id))
         {
@@ -634,10 +609,7 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
             s_is_after_trailing_blank = 0;
         }
 
-        if (cplat_local_lock_unlock(s_output_lock) != CPLAT_OK)
-        {
-            CPLAT_ABORT("条件式フィルター サンプルの出力ロックを解放できません");
-        }
+        cplat_local_lock_unlock(s_output_lock);
     }
 
     cplat_tracer_call_next_hook(prev, handle, level, timestamp, message);
@@ -654,19 +626,12 @@ static void begin_command_section(cplat_pinned_prompt *screen)
 {
     int needs_blank;
 
-    if (cplat_local_lock_lock(s_output_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの出力ロックを取得できません");
-    }
-
+    cplat_local_lock_lock(s_output_lock);
     s_is_command_section = 1;
     s_command_thread_id = cplat_process_get_tid();
     needs_blank = (s_is_after_trailing_blank == 0);
     s_is_after_trailing_blank = 0;
-    if (cplat_local_lock_unlock(s_output_lock) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの出力ロックを解放できません");
-    }
+    cplat_local_lock_unlock(s_output_lock);
 
     if (needs_blank)
     {
@@ -682,11 +647,7 @@ static void begin_command_section(cplat_pinned_prompt *screen)
  */
 static void end_command_section(cplat_pinned_prompt *screen)
 {
-    if (cplat_local_lock_lock(s_output_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの出力ロックを取得できません");
-    }
-
+    cplat_local_lock_lock(s_output_lock);
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
 
     for (size_t index = 0; index < s_pending_line_count; index++)
@@ -705,10 +666,7 @@ static void end_command_section(cplat_pinned_prompt *screen)
     s_pending_line_count = 0U;
     s_pending_dropped_count = 0U;
     s_is_command_section = 0;
-    if (cplat_local_lock_unlock(s_output_lock) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの出力ロックを解放できません");
-    }
+    cplat_local_lock_unlock(s_output_lock);
 }
 
 /* ===== 診断表示 ===== */
@@ -1663,16 +1621,9 @@ static void command_display(cplat_pinned_prompt *screen, const char *arg)
 
     if (arg == NULL)
     {
-        if (cplat_local_lock_lock(s_display_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-        {
-            CPLAT_ABORT("条件式フィルター サンプルの表示ロックを取得できません");
-        }
-
+        cplat_local_lock_lock(s_display_lock);
         level = s_display_threshold;
-        if (cplat_local_lock_unlock(s_display_lock) != CPLAT_OK)
-        {
-            CPLAT_ABORT("条件式フィルター サンプルの表示ロックを解放できません");
-        }
+        cplat_local_lock_unlock(s_display_lock);
 
         cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "表示のしきい値: %s\n",
                                    s_level_labels[(unsigned int)level]);
@@ -1699,16 +1650,9 @@ static void command_display(cplat_pinned_prompt *screen, const char *arg)
         return;
     }
 
-    if (cplat_local_lock_lock(s_display_lock, CPLAT_SYNC_WAIT_FOREVER) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの表示ロックを取得できません");
-    }
-
+    cplat_local_lock_lock(s_display_lock);
     s_display_threshold = level;
-    if (cplat_local_lock_unlock(s_display_lock) != CPLAT_OK)
-    {
-        CPLAT_ABORT("条件式フィルター サンプルの表示ロックを解放できません");
-    }
+    cplat_local_lock_unlock(s_display_lock);
 
     cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "表示のしきい値を %s に設定しました。\n",
                                s_level_labels[(unsigned int)level]);

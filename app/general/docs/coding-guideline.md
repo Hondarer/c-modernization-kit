@@ -349,7 +349,7 @@ if (rc == ETIMEDOUT)
 
 ```c
 /* 望ましくない: 前置コメントが直前の if に接し、どちらにかかるか見分けにくい */
-if (timeout_ms == CPLAT_SYNC_NO_WAIT)
+if (timeout_ms == CPLAT_NO_WAIT)
 {
     return map_wait_rc(pthread_mutex_trylock(&mtx->native));
 }
@@ -359,7 +359,7 @@ if (timeout_ms == CPLAT_SYNC_NO_WAIT)
 deadline = monotonic_ms() + (uint64_t)timeout_ms;
 
 /* 望ましい: 前置コメントの上に空行を入れ、下の処理とひとまとまりにする */
-if (timeout_ms == CPLAT_SYNC_NO_WAIT)
+if (timeout_ms == CPLAT_NO_WAIT)
 {
     return map_wait_rc(pthread_mutex_trylock(&mtx->native));
 }

@@ -22,6 +22,7 @@
 #include "sample_filter_share_region.h"
 
 #include <cplat/base/result.h>
+#include <cplat/base/wait.h>
 #include <cplat/clock/clock.h>
 #include <cplat/mmap/mmap.h>
 #include <cplat/sync/sync.h>
@@ -213,7 +214,7 @@ void sample_filter_share_lock_dispose(sample_filter_share_lock **lock)
 sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter_share_lock *lock, const int timeout_ms)
 {
     uint64_t deadline_ms = 0U;
-    int remaining_ms = CPLAT_SYNC_WAIT_FOREVER;
+    int remaining_ms = CPLAT_WAIT_FOREVER;
     int ret;
 
     if ((lock == NULL) || ((timeout_ms < 0) && (timeout_ms != SAMPLE_FILTER_SHARE_WAIT_FOREVER)))
@@ -235,7 +236,7 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
     }
 
     /* 同じハンドルを使うスレッドの間はファイル ロックが排他にならないため、プロセス内のロックを先に取る。 */
-    ret = cplat_local_lock_lock(lock->local, remaining_ms);
+    ret = cplat_local_lock_timed_lock(lock->local, remaining_ms);
     if (ret != CPLAT_OK)
     {
         return result_of(ret);
@@ -248,17 +249,17 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
         ret = cplat_clock_get_monotonic_ms(&now_ms);
         if (ret != CPLAT_OK)
         {
-            (void)cplat_local_lock_unlock(lock->local); /* 取得に成功したロックの解放は失敗しない */
+            cplat_local_lock_unlock(lock->local);
             return result_of(ret);
         }
 
         remaining_ms = (now_ms >= deadline_ms) ? 0 : (int)(deadline_ms - now_ms);
     }
 
-    ret = cplat_interprocess_lock_lock(lock->process, remaining_ms);
+    ret = cplat_interprocess_lock_timed_lock(lock->process, remaining_ms);
     if (ret != CPLAT_OK)
     {
-        (void)cplat_local_lock_unlock(lock->local); /* 取得に成功したロックの解放は失敗しない */
+        cplat_local_lock_unlock(lock->local);
         return result_of(ret);
     }
 
@@ -269,7 +270,6 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
 
 sample_filter_share_region_result sample_filter_share_lock_release(sample_filter_share_lock *lock)
 {
-    int local_ret;
     int process_ret;
 
     if (lock == NULL)
@@ -278,8 +278,9 @@ sample_filter_share_region_result sample_filter_share_lock_release(sample_filter
     }
 
     process_ret = cplat_interprocess_lock_unlock(lock->process);
-    local_ret = cplat_local_lock_unlock(lock->local);
-    if (process_ret != CPLAT_OK || local_ret != CPLAT_OK)
+    cplat_local_lock_unlock(lock->local);
+
+    if (process_ret != CPLAT_OK)
     {
         return SAMPLE_FILTER_SHARE_REGION_FAILED;
     }

@@ -461,7 +461,7 @@ TEST_F(sampleFilterShareTest, concurrent_publish_and_format_converge)
     stop_flag = 1; // [手順] - スレッドへ終了を通知する。
     for (int index = 0; index < 4; index++)
     {
-        (void)cplat_thread_join(threads[index], CPLAT_SYNC_WAIT_FOREVER);
+        cplat_thread_join(threads[index]);
     }
     int actual_final_ret =
         format_job_failed(&matched); // [手順] - matched を指定して、最後にもう一度 format_job_failed() を呼び出す。
