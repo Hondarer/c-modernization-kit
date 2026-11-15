@@ -599,7 +599,6 @@ static void release_local_resources(void)
 int svc_linux_events_start(const svc_definition *def)
 {
     int result;
-    struct sigaction action;
 
     if (def == NULL)
     {
@@ -633,7 +632,7 @@ int svc_linux_events_start(const svc_definition *def)
         }
         else
         {
-            memset(&action, 0, sizeof(action));
+            struct sigaction action = {0};
             action.sa_handler = sighup_signal_handler;
             sigemptyset(&action.sa_mask);
             action.sa_flags = SA_RESTART;

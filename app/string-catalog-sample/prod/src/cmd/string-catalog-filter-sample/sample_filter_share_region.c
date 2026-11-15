@@ -267,18 +267,22 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
-void sample_filter_share_lock_release(sample_filter_share_lock *lock)
+sample_filter_share_region_result sample_filter_share_lock_release(sample_filter_share_lock *lock)
 {
+    int local_ret;
+    int process_ret;
+
     if (lock == NULL)
     {
-        return;
+        return SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT;
     }
 
-    (void)cplat_interprocess_lock_unlock(lock->process);
+    process_ret = cplat_interprocess_lock_unlock(lock->process);
+    local_ret = cplat_local_lock_unlock(lock->local);
+    if (process_ret != CPLAT_OK || local_ret != CPLAT_OK)
+    {
+        return SAMPLE_FILTER_SHARE_REGION_FAILED;
+    }
 
-    /*
-     * 呼び出し元は sample_filter_share_lock_acquire() の成功後にだけ本関数を呼ぶため、
-     * 保持中のロックの解放は失敗しない。
-     */
-    (void)cplat_local_lock_unlock(lock->local);
+    return SAMPLE_FILTER_SHARE_REGION_OK;
 }

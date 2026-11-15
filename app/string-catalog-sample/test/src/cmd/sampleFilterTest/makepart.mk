@@ -18,6 +18,11 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/src/cmd/string-catalog-filter-sample/gen
 
 # テスト対象が呼び出す標準ライブラリ関数は、testfw の include_override によって mock_libc へ差し替わる。
-# フィルター層は cplat の同期プリミティブとトレーサーを実際に駆動して確認するため、
-# cplat は mock ではなく実体をリンクする (sampleMessagesTest と同じ)。
-LIBS += mock_libc cplat
+# cplat の mock は実体へ既定委譲し、sampleFilterShareTest でロック解放失敗を注入する。
+LIBS += mock_libc mock_cplat
+
+ifdef PLATFORM_WINDOWS
+    # mock_cplat をテスト実行体で解決するため、DLL import を無効にする。
+    CFLAGS   += /DCPLAT_STATIC
+    CXXFLAGS += /DCPLAT_STATIC
+endif

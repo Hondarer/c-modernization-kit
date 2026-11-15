@@ -13,6 +13,7 @@
 #include "sample_filter_share.h"
 
 #include <cplat/base/result.h>
+#include <cplat/runtime/abort.h>
 
 #include <stdlib.h>
 
@@ -49,7 +50,10 @@ static int acquire_source_lock(void *context)
 /** cplat が公開と取り込みの間に、排他を解放するために呼び出します。 */
 static void release_source_lock(void *context)
 {
-    sample_filter_share_lock_release(((const source_lock_context *)context)->lock);
+    if (sample_filter_share_lock_release(((const source_lock_context *)context)->lock) != SAMPLE_FILTER_SHARE_REGION_OK)
+    {
+        CPLAT_ABORT("共有文字列カタログの解放コールバックで排他を解放できません");
+    }
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -79,6 +83,7 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
 {
     sample_filter_share *share;
     int ret;
+    sample_filter_share_region_result release_result;
 
     if ((path == NULL) || (lock == NULL) || (share_out == NULL) || (line_capacity == 0U) ||
         (line_capacity > CPLAT_STRING_CATALOG_FILTER_LINE_MAX) ||
@@ -113,7 +118,11 @@ int sample_filter_share_open(const char *path, sample_filter_share_lock *lock, c
     if (ret == CPLAT_OK)
     {
         ret = sample_filter_share_to_result(sample_filter_share_region_open(path, share->source_size, &share->region));
-        sample_filter_share_lock_release(lock);
+        release_result = sample_filter_share_lock_release(lock);
+        if (release_result != SAMPLE_FILTER_SHARE_REGION_OK)
+        {
+            ret = sample_filter_share_to_result(release_result);
+        }
     }
 
     if (ret != CPLAT_OK)

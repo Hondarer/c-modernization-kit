@@ -1,4 +1,5 @@
 #include <testfw.h>
+#include <mock_cplat.h>
 
 #include "sampleFilterTestSupport.h"
 
@@ -20,6 +21,10 @@
 #include <string>
 
 using namespace sample_filter_test;
+using testing::DoAll;
+using testing::Invoke;
+using testing::NiceMock;
+using testing::Return;
 
 class sampleFilterShareTest : public Test
 {
@@ -554,7 +559,7 @@ TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
     // Act
     const sample_filter_share_region_result actual_while_held = sample_filter_share_lock_acquire(
         lock_, 0); // [手順] - 排他が保持されている間に、待たない指定で sample_filter_share_lock_acquire() を呼び出す。
-    sample_filter_share_lock_release(
+    const sample_filter_share_region_result actual_another_release = sample_filter_share_lock_release(
         another); // [手順] - 別の排他を指定して sample_filter_share_lock_release() を呼び出す。
     const sample_filter_share_region_result actual_after_release = sample_filter_share_lock_acquire(
         lock_, 0); // [手順] - 排他が解放された後に、待たない指定で sample_filter_share_lock_acquire() を呼び出す。
@@ -566,9 +571,44 @@ TEST_F(sampleFilterShareTest, lock_held_by_another_handle_times_out)
     EXPECT_EQ(
         SAMPLE_FILTER_SHARE_REGION_OK,
         actual_after_release); // [確認_正常系] - 解放後の sample_filter_share_lock_acquire() の戻り値が SAMPLE_FILTER_SHARE_REGION_OK であること。
+    EXPECT_EQ(
+        SAMPLE_FILTER_SHARE_REGION_OK,
+        actual_another_release); // [確認_正常系] - 別の排他を解放した sample_filter_share_lock_release() の戻り値が SAMPLE_FILTER_SHARE_REGION_OK であること。
 
-    sample_filter_share_lock_release(lock_);
+    EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
+              sample_filter_share_lock_release(lock_)); // [確認_正常系] - 自身の排他を解放できること。
     sample_filter_share_lock_dispose(&another);
+}
+// [サブ手順参照 名前=sampleFilterShareTest.TearDown]
+
+// プロセス間ロック解放失敗を共有領域のオープン結果へ返すことの確認
+// [サブ手順参照 名前=sampleFilterShareTest.SetUp]
+TEST_F(sampleFilterShareTest, open_reports_interprocess_unlock_failure)
+{
+    // Arrange
+    sample_filter_share *share = nullptr;
+
+    // Pre-Assert
+    NiceMock<Mock_cplat> mock;
+    EXPECT_CALL(mock, cplat_interprocess_lock_unlock(_))
+        .WillOnce(DoAll(Invoke(delegate_real_cplat_interprocess_lock_unlock), Return(CPLAT_ERR_UNKNOWN)));
+    // [Pre-Assert確認_異常系] - cplat_interprocess_lock_unlock() が 1 回呼び出されること。
+    // [Pre-Assert手順] - 実ロックを解放した後に CPLAT_ERR_UNKNOWN を返す。
+    EXPECT_CALL(mock, cplat_local_lock_unlock(_)).WillOnce(Invoke(delegate_real_cplat_local_lock_unlock));
+    // [Pre-Assert確認_正常系] - プロセス間ロック解放失敗後にローカル ロックを 1 回解放すること。
+    // [Pre-Assert手順] - cplat_local_lock_unlock() を通常の実装へ委譲する。
+
+    // Act
+    const int actual_ret = sample_filter_share_open(
+        path_.c_str(), lock_, kLineCapacity, kLineWidth,
+        &share); // [手順] - プロセス間ロック解放を失敗させて sample_filter_share_open() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(
+        CPLAT_ERR_UNKNOWN,
+        actual_ret); // [確認_異常系] - sample_filter_share_open() がロック解放失敗を CPLAT_ERR_UNKNOWN として返すこと。
+    EXPECT_EQ(nullptr,
+              share); // [確認_異常系] - オープン失敗時に共有領域のハンドルを返さないこと。
 }
 // [サブ手順参照 名前=sampleFilterShareTest.TearDown]
 
@@ -607,7 +647,7 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
         (void)cplat_string_catalog_filter_slot_get_source_status(slot_, &status);
         return status;
     }();
-    sample_filter_share_lock_release(
+    const sample_filter_share_region_result actual_release = sample_filter_share_lock_release(
         another); // [手順] - 別の排他を指定して sample_filter_share_lock_release() を呼び出す。
     (void)format_job_failed(
         &actual_after_release); // [手順] - 排他が解放された後に、actual_after_release を指定して format_job_failed() を呼び出す。
@@ -630,6 +670,8 @@ TEST_F(sampleFilterShareTest, take_retries_after_reader_lock_timeout)
     EXPECT_EQ(
         revision,
         taken_revision()); // [確認_正常系] - taken_revision() の戻り値が revision と一致すること。(版番号を取り込み済みとしたことの確認)
+    EXPECT_EQ(SAMPLE_FILTER_SHARE_REGION_OK,
+              actual_release); // [確認_正常系] - 別の排他の sample_filter_share_lock_release() が成功すること。
 
     sample_filter_share_lock_dispose(&another);
 }
