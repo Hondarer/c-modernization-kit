@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 検討用 Markdown (discussion)
-最終更新日時: 2026-11-16 02:41:43 JST
+最終更新日時: 2026-11-16 05:29:19 JST
 最終更新エージェント: claude code / セッション ID: 2175fa06-8a13-4dd8-8aad-a683cce01048
 稼働 OS: Linux (WSL)
 下流文書: `261115-local-lock-unlock-bl005-006-design.md` (最終仕様)、`261115-local-lock-unlock-bl005-006-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
@@ -44,7 +44,7 @@
     - ✅ 3.1. `261115-local-lock-unlock-bl005-006-design.md` の改訂 (版 9 に基づく版は、第 2 ゲートで BL-003 を範囲に加えるため差し戻し。版 11 に基づき改訂済み)
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認
     - ✅ 3.3. 対話セッションにおける最終仕様の承認の受付 (第 2 ゲート、承認済み)
-- 🔄 4. 承認された最終仕様に従った作業の実施 (実装は agy の gemini-4-hydrogen-high へ委譲し、Opus が管理とレビューを行う)
+- ✅ 4. 承認された最終仕様に従った作業の実施 (実装は agy の gemini-4-hydrogen-high へ委譲し、Opus が管理とレビューを行う)
     - ✅ 4.1. 共通の待ち時間定数ヘッダー (`app/cplat/prod/include/cplat/base/` に新設) の作成と、`CPLAT_SYNC_*`、`CPLAT_PROCESS_*`、`CPLAT_SOCKET_*` の待ち時間定数の削除 ([Q-018](#q-018-待ち時間を表す定数の統一))
     - ✅ 4.2. `sync.h`、`sync_linux.c`、`sync_windows.c` の同期 API 体系の変更 ([Q-004](#q-004-cplat_local_lock_unlock-の戻り値を-void-にするか)、[Q-005](#q-005-void-化した-cplat_local_lock_unlock-が-os-の失敗報告を受けた場合の扱い)、[Q-008](#q-008-無期限待機と期限付きの取得関数の名前)、[Q-009](#q-009-無期限待機の取得が-os-の失敗報告を受けた場合の扱い)、[Q-013](#q-013-同期-api-の命名と戻り値の体系)、[Q-014](#q-014-ローカル読み書きロックの解放の戻り値)、[Q-015](#q-015-ローカル読み書きロックの無期限待機で条件変数の待機が失敗した場合の扱い))
     - ✅ 4.3. `process.h`、`process.c` の変更 (無期限と期限付きの終了待機、同期実行、`SIGKILL`、強制終了の後の待ちの上限 3000 ms、BL-003 の終了待機の方式) ([Q-017](#q-017-プロセスとソケットの待機関数の名前と引数)、[Q-019](#q-019-プロセスの同期実行に期限付きの関数を設けるか)、[Q-022](#q-022-linux-のプロセスの強制終了で送るシグナル)〜[Q-029](#q-029-自動回収された子プロセスの終了コードの扱い))
@@ -55,13 +55,13 @@
     - ✅ 4.8. mock_cplat の変更 (create-mock-cplat-mock スキル)
     - ✅ 4.9. cplat、porter、string-catalog-sample、service-sample のテストの移行
     - ✅ 4.10. 正本文書の更新 (`app/general/docs/coding-guideline.md`、`app/cplat/docs/api-cheatsheet.md` など、旧名を参照する文書)
-    - ⚠️ 4.11. 4 app のビルド、対象テストの実行、`.warn` 確認、cplat の `make doxy`、Markdown の `text_style_jp.py` 確認 ([Q-016](#q-016-api-体系の変更を加えた場合の検証範囲)、[Q-021](#q-021-プロセスとソケットの変更を加えた場合の検証範囲)) (Windows/MSVC のビルドとテストは未確認。CI の Windows ジョブで確認する)
+    - ✅ 4.11. 4 app のビルド、対象テストの実行、`.warn` 確認、cplat の `make doxy`、Markdown の `text_style_jp.py` 確認 ([Q-016](#q-016-api-体系の変更を加えた場合の検証範囲)、[Q-021](#q-021-プロセスとソケットの変更を加えた場合の検証範囲)) (Windows/MSVC は CI の Windows ジョブで確認済み)
     - ✅ 4.12. 受入条件への適合確認 (全完確認)
     - ✅ 4.13. 残課題一覧の再構築と整理、および `261115-source-comment-bl002-batch3-backlog.md` の BL-005、BL-006 の状態・経緯と対処の更新、BL-001 の転記
-    - 🔄 4.14. 各リポジトリ (cplat、porter、親) へのコミット、プッシュと CI の確認 (2026-11-15 の対話でユーザーが指示) ← **CURRENT**
-- ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
-    - ⏸️ 5.1. 成果物・検証結果・残課題の提示
-    - ⏸️ 5.2. 対話セッションにおける成果物の承認の受付
+    - ✅ 4.14. 各リポジトリ (cplat、porter、親) へのコミット、プッシュと CI の確認 (2026-11-15 の対話でユーザーが指示。CI run 43744540726 は全ジョブ成功)
+- 🚫 5. 成果物の承認の受付 (第 3 ゲート)
+    - ✅ 5.1. 成果物・検証結果・残課題の提示
+    - 🚫 5.2. 対話セッションにおける成果物の承認の受付 ← **CURRENT** (ユーザーの承認待ち)
 
 ## 対象と参照資料
 
@@ -1805,4 +1805,4 @@ BL-003 を解消するため、Linux の `cplat_process_wait()` と `cplat_proce
 - **テスト**: 最終仕様の対象テスト 32 ディレクトリがすべて成功しました。`potrServiceCloseTest` は、本物でない mutex のトークンを実関数へ委譲していた 3 件が `void` の取得関数の異常終了で失敗したため、トークンだけを委譲しない期待値を加えて修正し、再実行で 10 件すべて成功しました。`pinnedPromptTest` は、既存の mock の制約により標準入力を `/dev/null` にして実行しています。
 - **生成物と表記**: cplat、porter、string-catalog-sample で `make doxy` が成功しました。変更した Markdown の `text_style_jp.py --dry-run` は問題を報告していません。
 - **旧名の残存**: 生成物と検討文書を除き、旧定数と旧引数形式の呼び出しは残っていません。
-- **未確認**: Windows/MSVC のビルドとテストは、この環境で実行できないため、CI の Windows ジョブで確認します。
+- **CI**: cplat 822dc7da、porter e5a1af0、親 77d8335b を push し、CI (run 43744540726) は docs、Linux (Oracle Linux 8、9、10)、Windows、warnings-summary、verify-gen、deploy-pages の全ジョブが成功しました。
