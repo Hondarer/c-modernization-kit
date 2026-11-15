@@ -1,9 +1,9 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-15 13:29:29 JST
-最終更新エージェント: codex (セッション ID は取得できません)
-稼働 OS: Windows (Linux 検証は WSL)
+最終更新日時: 2026-11-15 14:11:30 JST
+最終更新エージェント: grok (セッション ID: 01a1dd8f-3288-7e31-9b7f-aba93a5e1ef7)
+稼働 OS: Linux (WSL)
 検討 ID: makefw-windows-backlog-20261114
 上流文書: `261114-makefw-windows-backlog-design.md`、`261114-makefw-windows-backlog-discussion.md`。削除されている場合があります。
 再開手順: agree-before-implement スキルを読み込み、存在する上流文書と作業 WBS を確認してください。この残課題を対策する場合は別案件の検討から開始します。過去の記載は削除せず、対処と経緯を更新してください。
@@ -23,7 +23,7 @@
 
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
-| BL-001 | Linux の旧 OpenSSL mock が現行 app の mock より優先される | 作業中摘出・既存環境 | 中 | 未対策 |
+| BL-001 | Linux の旧 OpenSSL mock が現行 app の mock より優先される | 作業中摘出・既存環境 | 中 | 対策しない |
 
 Table: 本案件で残す環境上の課題
 
@@ -59,6 +59,14 @@ makefw のリンク構成追跡・警告保存・ソース分類とは別に、�
 旧アーカイブの生成元と現在の配置規則を確認し、生成物の移行・清掃手順で旧配置を整理する方針を検討します。  
 必要な場合は生成元の clean または移行処理を修正し、現在必要な testfw のライブラリを削除しない条件を明示します。  
 既存の旧アーカイブがある環境と、新規環境の両方で、追加の `LIBSDIR` 指定なしに `certificateTest` が現行 mock を使用して成功することを受入条件とします。
+
+### 旧アーカイブは無く、恒久対策は行わない
+
+2026-11-15 のユーザー判断で、探索順の変更と旧配置の清掃手順は行わず、この課題を対策しないこととしました。  
+作業ツリーの `framework/testfw/lib/linux_el8_x64/libmock_openssl.a` は存在しません。  
+現行の OpenSSL mock は `app/openssl/test/libsrc/mock_openssl` から `app/openssl/test/lib/libmock_openssl.a` へ生成されます。  
+`framework/testfw/libsrc` に `mock_openssl` はなく、現在の構成が同じパスへ旧アーカイブを再生成する経路はありません。  
+同じディレクトリにある `libmock_libssh.a` は、`framework/testfw/libsrc/mock_libssh` が生成する mock です。
 
 参照先:
 
