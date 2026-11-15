@@ -1,10 +1,12 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: codex (文面支援: agy / セッション ID: 6632672a-684b-4f7e-bf27-e504701da2cb)
+最終更新日時: 2026-11-15 08:54:00 JST
+最終更新エージェント: agy / セッション ID: 589c6480-ca6c-4130-b6f6-8d17f4d0ecf6 (前回の更新は codex / 文面支援: agy / セッション ID: 6632672a-684b-4f7e-bf27-e504701da2cb)
+稼働 OS: Linux (WSL)
 検討 ID: source-comment-bl029-20261113
 上流文書: `261113-source-comment-bl029-design.md` (最終仕様)、`261113-source-comment-bl029-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。
-再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
+再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
 
 # BL-029 対策の残課題一覧
@@ -20,7 +22,8 @@
 この文書は、今回の案件で対策しなかった残課題を記録します。  
 3 件とも、過去の残課題一覧 `261109-source-comment-remaining-backlog.md` から転記した未対処の項目です。  
 今回の案件で新たに見送った課題はありません。  
-課題 ID は作業中の採番を維持しているため、BL-001 は欠番です。
+課題 ID は作業中の採番を維持しているため、BL-001 は欠番です。  
+BL-002 の後続バッチへの転記、BL-003 の実機検証完了、および BL-004 の `app/porter` 残課題一覧への移管により、全項目の対応・引き継ぎが完了したため、この文書を `past/` へ保管しています。
 
 ## 残課題一覧
 
@@ -28,7 +31,7 @@
 | --- | --- | --- | --- | --- |
 | BL-002 | 確認できない設計理由 162 項目 | 過去 backlog からの転記 (BL-008) | 中 | 次フェーズへ転記 (第 1 バッチで 10 項目解消、152 項目を `261114-source-comment-bl002-batch1-backlog.md` へ転記) |
 | BL-003 | Windows 実機の ABI と実資源 | 過去 backlog からの転記 (BL-024) | 中 | 対応済み |
-| BL-004 | TCP 双方向 N:1 通信 | 過去 backlog からの転記 (BL-025) | 低 | 未着手 |
+| BL-004 | TCP 双方向 N:1 通信 | 過去 backlog からの転記 (BL-025) | 低 | 完了 (`app/porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md` の BL-001 へ移管) |
 
 Table: BL-029 対策で残す課題
 
@@ -59,7 +62,7 @@ Table: BL-029 対策で残す課題
 ### 推奨される対応策
 
 - **恒久対応案**: app ごとに分けて対処します。対象関数の契約、仕様、実装上の依存関係を照合し、根拠を確認できた行からコメントまたは正本へ反映します。確認できない行は、設計者へ理由または変更方針を確認します。数値に名前を付けたことや、実装が移動したことだけでは、理由を確認したとは扱いません。
-- **参考情報**: `261109-source-comment-remaining-backlog.md` の BL-008。対処済みと解消済みの 25 項目の分類は、`../past/261109-source-comment-backlog-followup-backlog.md` の「2026-11-10 の対処結果」にあります。
+- **参考情報**: `261109-source-comment-remaining-backlog.md` の BL-008。対処済みと解消済みの 25 項目の分類は、`261109-source-comment-backlog-followup-backlog.md` の「2026-11-10 の対処結果」にあります。
 
 ## BL-003 Windows 実機の ABI と実資源
 
@@ -72,7 +75,7 @@ Table: BL-029 対策で残す課題
 
 - **摘出契機**: 過去の案件 `source-comment-remaining-20261109` で、対話操作を含む実機検証を未対処として引き継ぐと回答がありました。
 - **今回の見送り理由**: 今回の案件の受入条件は、Linux の局所テストです。Windows での実行は含めていません。今回の一括整形の差分のうち、Windows のビルドだけでコンパイルするソースと分岐 (`service-sample_windows.c`、`tcpServer_windows.c` など) は、整形後にコンパイルしていません。
-- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-024 は削除していません。その後、BL-003 のみを対象とする独立案件 `windows-real-machine-verification-20261114` ([検討文書](261114-windows-real-machine-verification-discussion.md)、[最終仕様と検証記録](261114-windows-real-machine-verification-design.md)) で対策を完了しました (本一覧の BL-002 および BL-004 は同案件の対象外です)。Windows 11 (MSVC 14.50) 実機において、同期前の 6 app (`cplat`、`calc`、`struct-meta`、`string-catalog-sample`、`service-sample`、`porter`) の `make test` 成功と `service-sample` の実サービス登録・説明文表示・開始・停止・削除・削除後不在確認および 10 分間の EventLog 未記録確認を実施し、さらに origin 同期後の `app/cplat` 依存ビルドと `app/porter` 基準テスト (470 件 PASSED)、`tcpServer_windows.c` の `CPLAT_TRACE_LEVEL_NONE` トレースとテスト専用コンパイル時フック境界の実装、通常ビルド `tcpServer.exe` での EOF による親側ソケット参照解放と接続枠再利用の外部観測、テスト専用補助実行体での異常系 3 種・空き待ち解除・負例感度確認 (`tcpServerPreforkTest` 13 件 PASSED)、および `Mock_cplat` 局所単体テスト (`tcpServerWindowsTest` 1 件 PASSED) をすべて完了しました。検証中に別途摘出した `framework/makefw` の補助処理に関する残課題 3 件は [261114-windows-real-machine-verification-backlog.md](261114-windows-real-machine-verification-backlog.md) (BL-002〜BL-004) に記録しています。
+- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-024 は削除していません。その後、BL-003 のみを対象とする独立案件 `windows-real-machine-verification-20261114` ([検討文書](../current/261114-windows-real-machine-verification-discussion.md)、[最終仕様と検証記録](../current/261114-windows-real-machine-verification-design.md)) で対策を完了しました (本一覧の BL-002 および BL-004 は同案件の対象外です)。Windows 11 (MSVC 14.50) 実機において、同期前の 6 app (`cplat`、`calc`、`struct-meta`、`string-catalog-sample`、`service-sample`、`porter`) の `make test` 成功と `service-sample` の実サービス登録・説明文表示・開始・停止・削除・削除後不在確認および 10 分間の EventLog 未記録確認を実施し、さらに origin 同期後の `app/cplat` 依存ビルドと `app/porter` 基準テスト (470 件 PASSED)、`tcpServer_windows.c` の `CPLAT_TRACE_LEVEL_NONE` トレースとテスト専用コンパイル時フック境界の実装、通常ビルド `tcpServer.exe` での EOF による親側ソケット参照解放と接続枠再利用の外部観測、テスト専用補助実行体での異常系 3 種・空き待ち解除・負例感度確認 (`tcpServerPreforkTest` 13 件 PASSED)、および `Mock_cplat` 局所単体テスト (`tcpServerWindowsTest` 1 件 PASSED) をすべて完了しました。検証中に別途摘出した `framework/makefw` の補助処理に関する残課題 3 件は [261114-windows-real-machine-verification-backlog.md](../current/261114-windows-real-machine-verification-backlog.md) (BL-002〜BL-004) に記録しています。
 
 ### 影響範囲とリスク
 
@@ -95,7 +98,7 @@ Table: BL-029 対策で残す課題
 
 - **摘出契機**: 過去の案件 `source-comment-remaining-20261109` で、実施要否の判断と対処をともに先送りすると回答がありました。
 - **今回の見送り理由**: 今回の案件の対象外です。機能を追加しない、という恒久的な決定ではありません。
-- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-025 は削除していません。
+- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-025 は削除していません。2026-11-15、`app/porter` 固有の残課題として [`app/porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md`](../../../../porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md) (BL-001) を作成して移管し、本一覧での管理を完了しました。
 
 ### 影響範囲とリスク
 
@@ -105,4 +108,4 @@ Table: BL-029 対策で残す課題
 ### 推奨される対応策
 
 - **恒久対応案**: 利用目的、要求元、接続関係、送信先、切断、公開 API と列挙値の互換性、Linux と Windows の検証方法を確認してから設計します。
-- **参考情報**: `261109-source-comment-remaining-backlog.md` の BL-025。
+- **参考情報**: `261109-source-comment-remaining-backlog.md` の BL-025、[`app/porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md`](../../../../porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md) の BL-001。
