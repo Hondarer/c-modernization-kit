@@ -1,7 +1,9 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新エージェント: claude code / セッション ID: e1665a31-f98a-4cbe-aff5-beff19ab41c0
+最終更新日時: 2026-11-15 14:24:14 JST
+最終更新エージェント: claude code / セッション ID: 03e5288f-ed33-43e2-a2f3-760514153b6f (BL-002 から BL-004 の経緯と対処を追記。作成時は e1665a31-f98a-4cbe-aff5-beff19ab41c0)
+稼働 OS: Windows
 上流文書: [261114-doxygen-mermaid-migration-design.md](261114-doxygen-mermaid-migration-design.md) (最終仕様)、[261114-doxygen-mermaid-migration-discussion.md](261114-doxygen-mermaid-migration-discussion.md) (検討用 Markdown)。いずれも削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、各項目の状態および経緯と対処を更新することを原則とします。また、フェーズ分けした対策で対処ができていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
@@ -20,10 +22,10 @@
 
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
-| [BL-001](#bl-001-appcplat-以外の-app-と-windows-での生成結果が未確認) | `app/cplat` 以外の app と Windows での生成結果が未確認 | 検討時見送り | 中 | 未着手 |
-| [BL-002](#bl-002-doxyfw-の既存単体テストが-encodingwarning-を出す) | doxyfw の既存単体テストが EncodingWarning を出す | 作業中摘出 | 低 | 未着手 |
-| [BL-003](#bl-003-check-doxygen-indentpy-の修正モードが改行コードを明示していない) | `check-doxygen-indent.py` の修正モードが改行コードを明示していない | 作業中摘出 | 低 | 未着手 |
-| [BL-004](#bl-004-インクルード-グラフの見出し名が語の意味と逆に読める) | インクルード グラフの見出し名が語の意味と逆に読める | 作業中摘出 | 低 | 未着手 |
+| [BL-001](#bl-001-appcplat-以外の-app-と-windows-での生成結果が未確認) | `app/cplat` 以外の app と Windows での生成結果が未確認 | 検討時見送り | 中 | 完了 |
+| [BL-002](#bl-002-doxyfw-の既存単体テストが-encodingwarning-を出す) | doxyfw の既存単体テストが EncodingWarning を出す | 作業中摘出 | 低 | 対応済み |
+| [BL-003](#bl-003-check-doxygen-indentpy-の修正モードが改行コードを明示していない) | `check-doxygen-indent.py` の修正モードが改行コードを明示していない | 作業中摘出 | 低 | 対応済み |
+| [BL-004](#bl-004-インクルード-グラフの見出し名が語の意味と逆に読める) | インクルード グラフの見出し名が語の意味と逆に読める | 作業中摘出 | 低 | 対応済み |
 
 Table: 残課題の一覧
 
@@ -51,6 +53,13 @@ Table: 残課題の一覧
 - **恒久対応案**: この変更を取り込んだ CI の実行結果で、Linux と Windows の `docs-warns` に `Text tag "mermaid" not recognised` や新しい警告がないことを確認します。あわせて、継承関係を持つ app (C++ または .NET のコードを含む app) の生成 Markdown から継承グラフを 1 つ選び、描画結果を確認します。
 - **参考情報**: 最終仕様書の「検証手順」と「受入条件」、`framework/doxyfw/docs/doxybook2-mermaid.md`。
 
+### 確認結果と対処 (2026-11-15)
+
+- **CI 実行結果の確認 (Run `43646517799`)**: `CI (Build, Test, and Docs)` の全ジョブが `success` で完了しており、`docs` ジョブ (Linux) の `docs-warns` アーティファクトは警告ファイル 0 件のため未生成でした。`windows-logs`、`linux-ol9-logs`、`linux-docs-gen-logs` にも `Text tag "mermaid" not recognised` などの警告は出力されていません (Windows CI ジョブは `make doxy` を実行しない構成です)。
+- **Windows 実機での全 9 app 生成確認**: `calc`、`calc.net`、`cplat`、`doxygen-sample`、`override-sample`、`porter`、`service-sample`、`string-catalog-sample`、`struct-meta` について Windows 上で `make doxy` を実行し、全 9 app が終了コード `0`・`doxy*.warn` ファイル 0 件で完了しました。生成された最新の `docs/doxybook2*` には ```` ```plantuml ```` が残っておらず、計 4,705 件の図がすべて ```` ```mermaid ```` と `Figure:` 行で出力されています (`app/string-catalog-sample` の `docs/doxybook2_internal`・`docs/doxybook2_public` は 2026-09-12 時点の旧ディレクトリのため対象外)。
+- **継承グラフの描画確認 (`app/calc.net`)**: `CalcException : Exception` の継承グラフ (`flowchart BT`、3 件) が出力され、`mmdc` による SVG 変換が終了コード `0` で成功することを確認しました。
+- **記号付きキャプションの有無**: 全 9 app の `Figure:` 行 4,705 件に `<`、`>`、`*`、`[`、`]`、`~` および数値文字参照 (`&#`) を含むキャプションは存在しませんでした。現存する実データには該当対象がないため、この変換経路は単体テスト (`test_extract_graphs.py`、`test_preprocess.py`) での確認をもって十分と判断しました。
+
 ## BL-002 doxyfw の既存単体テストが EncodingWarning を出す
 
 ### 概要と問題点
@@ -75,6 +84,12 @@ Table: 残課題の一覧
 - **恒久対応案**: 該当行の `subprocess.run` または `open` へ `encoding="utf-8"` を指定します。修正後、`-X warn_default_encoding` 付きの実行で警告が出ないことを確認します。
 - **参考情報**: [Python の文字コード指定規範](../../python-text-encoding-guideline.md)。
 
+### 経緯と対処 (2026-11-15)
+
+- **対処した継続作業**: 案件 `doxygen-mermaid-backlog-20261115` (`261115-doxygen-mermaid-backlog-discussion.md`、`261115-doxygen-mermaid-backlog-design.md`)。
+- **対処内容**: 調査で同じ指定漏れが doxyfw の本体スクリプト `templates/generate-dependency-report.py`、docsfw、makefw にも見つかったため、範囲を広げました。`framework` 配下で `text=True` を指定して `encoding` のない呼び出し 17 か所 (doxyfw 9、docsfw 7、makefw 1) に `encoding="utf-8"` を指定しました。子プロセスが Python の docsfw のテスト 2 ファイルでは、子の環境変数に `PYTHONIOENCODING=utf-8` を加え、親と子の文字コードをそろえました。
+- **確認結果**: Windows で doxyfw の `bin_test` 138 件と、docsfw の対象テスト 75 件が `-X warn_default_encoding -W error::EncodingWarning` 付きで成功しました。makefw の `test_flex_bison_warnings.py` は Linux 専用のため Windows では skip で、Linux での結果は CI で確認します。構文木での再抽出で、`framework` 配下の該当する呼び出しは 0 件になりました。
+
 ## BL-003 check-doxygen-indent.py の修正モードが改行コードを明示していない
 
 ### 概要と問題点
@@ -96,6 +111,12 @@ Table: 残課題の一覧
 
 - **恒久対応案**: 読み込み時に `newline=''` で元の改行コードを保持し、書き込み時も `newline=''` または `newline='\n'` を指定します。CRLF と LF の双方の入力に対する単体テストを `test_check_doxygen_indent.py` へ追加します。
 - **参考情報**: [Python の文字コード指定規範](../../python-text-encoding-guideline.md)。
+
+### 経緯と対処 (2026-11-15)
+
+- **対処した継続作業**: 案件 `doxygen-mermaid-backlog-20261115` (`261115-doxygen-mermaid-backlog-discussion.md`、`261115-doxygen-mermaid-backlog-design.md`)。
+- **対処内容**: 元の改行コードを保つのではなく、リポジトリの改行規則 (`.gitattributes` の `* text=auto eol=lf`) に合わせて常に LF で書き戻す方針としました。修正処理 `fix_file` の書き込みに `newline='\n'` を指定し、CRLF のファイルを修正した場合は全行が LF になります。検出だけを行う処理は変更していません。`test_check_doxygen_indent.py` に、LF の入力が LF のまま、CRLF の入力が LF で書き戻されることを確かめるテスト 2 件を追加しました。
+- **確認結果**: Windows で `test_check_doxygen_indent.py` の 13 件が成功しました。
 
 ## BL-004 インクルード グラフの見出し名が語の意味と逆に読める
 
@@ -122,3 +143,9 @@ Table: 残課題の一覧
 
 - **恒久対応案**: まず、現在の名称が意図したものか、名称を変更するかを決めます。変更する場合は、向きを一意に読み取れる名称 (たとえば `incdepgraph` を「インクルードするファイル」、`invincdepgraph` を「インクルードされるファイル」) を選び、`extract-graphs.py`、`extract-graphs.md`、`test_extract_graphs.py` を同時に更新して、各 app の `make doxy` で生成結果を更新します。
 - **参考情報**: `framework/doxyfw/templates/extract-graphs.py` の見出しを設定する箇所 (`heading = 'インクルード元'`、`heading = 'インクルード先'`)、`framework/doxyfw/docs/extract-graphs.md` の見出しとキャプションの表。
+
+### 経緯と対処 (2026-11-15)
+
+- **対処した継続作業**: 案件 `doxygen-mermaid-backlog-20261115` (`261115-doxygen-mermaid-backlog-discussion.md`、`261115-doxygen-mermaid-backlog-design.md`)。
+- **対処内容**: 見出しを `インクルード依存関係` (`incdepgraph`) と `被インクルード依存関係` (`invincdepgraph`) に変更しました。あわせて、ユーザーの指示により、2 種類のグラフの矢印の向きと対象の位置を Doxygen HTML に合わせました。どちらも「インクルードする側 → インクルードされる側」の矢印で対象を上に置きます (インクルード依存は `flowchart TD` で XML の向きのまま、被インクルード関係は XML の向きを逆にして `flowchart BT`)。見出しの一覧を持つ `templates/postprocess.sh` の正規表現、`docs/extract-graphs.md`、`bin_test/test_extract_graphs.py` も更新しました。単体テストの被インクルード関係の入力 XML は実際の Doxygen の XML と逆向きだったため、実際の向きへ訂正しました。ノードの選び方、ラベル、強調の色は変更していません。
+- **確認結果**: Windows で doxyfw の `bin_test` 138 件が成功しました。Doxygen 1.18.0 で生成した XML に `extract-graphs.py` を適用し、2 種類のグラフの宣言と矢印の向きを確認しました。`extract-graphs.md` の新しい 2 つの図は `mmdc` で SVG に変換できました。各 app の生成 Markdown は、次回の `make doxy` で新しい見出しと向きになります。

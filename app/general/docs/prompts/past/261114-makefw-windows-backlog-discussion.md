@@ -4,7 +4,7 @@
 最終更新日時: 2026-11-15 13:38:55 JST
 稼働 OS: Windows
 最終更新エージェント: codex (セッション ID は取得できません。前担当: agy / 2a9bad6c-0328-438b-aea8-8c3f8d306f6d)
-上流文書: `261114-windows-real-machine-verification-backlog.md` (過去 backlog。継続作業の元)。
+上流文書: `../past/261114-windows-real-machine-verification-backlog.md` (過去 backlog。継続作業の元)。
 下流文書: `261114-makefw-windows-backlog-design.md` (最終仕様)、`261114-makefw-windows-backlog-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。ユーザーが編集した最新版を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。最終更新エージェントのセッション情報が参照可能であれば再開時のコンテキストとして利用し、別エージェントからの引き継ぎや担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があり、どこまで進んでいたかは文書だけでは分かりません。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。`← **CURRENT**` がなく、作業 WBS がすべて完了 (✅) であれば、この案件の合意フローは完了しています。
 -->
@@ -29,7 +29,7 @@
 凡例: ⏸️ 未着手、🔄 実施中、🚫 ブロック中、⚠️ 要注意、✅ 完了。現在取り組んでいる項目の末尾に `← **CURRENT**` を付けます。
 
 - ✅ 1. 検討用 Markdown のための情報収集と質問の実施
-    - ✅ 1.1. 前提条件と要求事項の調査 (`261114-windows-real-machine-verification-backlog.md` の BL-002〜BL-004、および `framework/makefw` の該当実装・テストの調査)
+    - ✅ 1.1. 前提条件と要求事項の調査 (`../past/261114-windows-real-machine-verification-backlog.md` の BL-002〜BL-004、および `framework/makefw` の該当実装・テストの調査)
     - ✅ 1.2. 課題・論点の抽出と明確化のための確認項目 ([Q-001](#q-001-今回の対策対象範囲)〜[Q-005](#q-005-検証範囲と実機確認の境界)) の作成
     - ✅ 1.3. 保存済みの [Q-001](#q-001-今回の対策対象範囲)〜[Q-005](#q-005-検証範囲と実機確認の境界) の A 回答を受付 (元の選択は保持)
     - ✅ 1.4. 本文・回答と実装を照合し、追加論点と複合質問を検出
@@ -49,7 +49,7 @@
     - ✅ 4.5. 正本ドキュメントおよびコード コメントへの永続的知見の反映
     - ✅ 4.6. 局所テスト (`framework/makefw/bin_test/` と `app/porter` 摘出箇所) および機械的検証 (`text_style_jp.py`、内容のある `.warn` 確認) の実施
     - ✅ 4.7. 受入条件への適合確認 (全完確認)
-    - ✅ 4.8. 過去 backlog (`261114-windows-real-machine-verification-backlog.md`) の状態・経緯・対処の更新、および必要に応じた本案件 backlog (`261114-makefw-windows-backlog-backlog.md`) の整理
+    - ✅ 4.8. 過去 backlog (`../past/261114-windows-real-machine-verification-backlog.md`) の状態・経緯・対処の更新、および必要に応じた本案件 backlog (`261114-makefw-windows-backlog-backlog.md`) の整理
 - ✅ 5. 成果物の承認の受付 (第 3 ゲート)
     - ✅ 5.1. 成果物・検証結果・残課題の提示
     - ✅ 5.2. 対話セッションにおける成果物の承認の受付 (「承認」または「完了」の受領によるスキル完了)
@@ -72,7 +72,7 @@
 
 参照資料と版:
 
-- [261114-windows-real-machine-verification-backlog.md](261114-windows-real-machine-verification-backlog.md) (BL-002、BL-003、BL-004)
+- [../past/261114-windows-real-machine-verification-backlog.md](../past/261114-windows-real-machine-verification-backlog.md) (BL-002、BL-003、BL-004)
 - `framework/makefw` HEAD: `49a9ed24c3e2b55dea1263cf1e995d457919910f`
     - [_link_objects.mk](../../../../../framework/makefw/makefiles/_link_objects.mk)
     - [makesrc_c_cpp.mk](../../../../../framework/makefw/makefiles/makesrc_c_cpp.mk)
@@ -116,7 +116,7 @@ HEAD は記録済みの `49a9ed24c3e2b55dea1263cf1e995d457919910f` と一致し�
 | --- | --- | --- |
 | 目的・利用者 | 確認済み | [Q-001](#q-001-今回の対策対象範囲) |
 | 範囲・境界 | 確認済み | [Q-001](#q-001-今回の対策対象範囲)、[Q-002](#q-002-bl-002-におけるリンク状態追跡の対象範囲と記録方式)、[Q-003](#q-003-bl-003-における-msvc-警告の割り当て方式と既存-warn-の整理範囲) |
-| 入力・根拠 | 確認済み | `261114-windows-real-machine-verification-backlog.md`、`_link_objects.mk`、`msvc_compile.ps1`、`_collect_srcs.mk` のコード読解 (前担当の再現確認の詳細条件は今回未確認) |
+| 入力・根拠 | 確認済み | `../past/261114-windows-real-machine-verification-backlog.md`、`_link_objects.mk`、`msvc_compile.ps1`、`_collect_srcs.mk` のコード読解 (前担当の再現確認の詳細条件は今回未確認) |
 | 整合性・依存関係 | 確認済み | [Q-002](#q-002-bl-002-におけるリンク状態追跡の対象範囲と記録方式)、[Q-004](#q-004-bl-004-の外部ソース判定におけるコマンド-ライン長制限の解消方式) |
 | 実現性・例外 | 確認済み | [Q-002](#q-002-bl-002-におけるリンク状態追跡の対象範囲と記録方式)、[Q-003](#q-003-bl-003-における-msvc-警告の割り当て方式と既存-warn-の整理範囲)、[Q-004](#q-004-bl-004-の外部ソース判定におけるコマンド-ライン長制限の解消方式) |
 | 受入条件・検証 | 確認済み | [Q-005](#q-005-検証範囲と実機確認の境界) |
@@ -152,15 +152,15 @@ Table: 質問一覧
 
 **Question**
 
-`261114-windows-real-machine-verification-backlog.md` に記載された残課題 3 件 (BL-002、BL-003、BL-004) を、本案件で一括して対策しますか。
+`../past/261114-windows-real-machine-verification-backlog.md` に記載された残課題 3 件 (BL-002、BL-003、BL-004) を、本案件で一括して対策しますか。
 
 **Context**
 
-- **経緯と背景**: [261114-windows-real-machine-verification-backlog.md](261114-windows-real-machine-verification-backlog.md#L26-L32) には、前案件の作業中に摘出された `framework/makefw` の残課題 3 件が記録されています。
+- **経緯と背景**: [../past/261114-windows-real-machine-verification-backlog.md](../past/261114-windows-real-machine-verification-backlog.md#L26-L32) には、前案件の作業中に摘出された `framework/makefw` の残課題 3 件が記録されています。
     1. **BL-002**: `makepart.mk` の `LIBS` 変更時に生成済み実行体が再リンクされない (優先度: 中)。
     2. **BL-003**: MSVC `/MP` バッチ コンパイルで別ソース名へ割り当てられた `.warn` が元コード修正後も残存する (優先度: 中)。
     3. **BL-004**: Windows で `certificateTest` を直接 `make` した際にシェルの引用符不一致メッセージが出力される (優先度: 低。ただし後述する [Q-004](#q-004-bl-004-の外部ソース判定におけるコマンド-ライン長制限の解消方式) の調査により、2 回目以降のビルドで `CP_SRCS` の一部が脱落する不具合を伴うことが判明しました)。
-- **判断の影響**: 3 件とも変更対象が `framework/makefw` (`makefiles/` および `bin_internal/`) に閉じており、原因箇所もすべて特定できています。一括で対策すれば、本案件の完了をもって `261114-windows-real-machine-verification-backlog.md` の残課題をすべて解消でき、後続案件への転記も不要になります。
+- **判断の影響**: 3 件とも変更対象が `framework/makefw` (`makefiles/` および `bin_internal/`) に閉じており、原因箇所もすべて特定できています。一括で対策すれば、本案件の完了をもって `../past/261114-windows-real-machine-verification-backlog.md` の残課題をすべて解消でき、後続案件への転記も不要になります。
 
 **Answer**
 
