@@ -35,7 +35,7 @@ origin 同期前に実施済みの検証結果は履歴として再利用し、�
 | --- | --- |
 | `app/porter/prod/src/cmd/tech-sample/tcpServer/tcpServer_windows.c` | `CPLAT_TRACE_LEVEL_NONE` トレースの追加、および通常ビルドでは無効となる最小限のテスト専用コンパイル時フック境界の追加 |
 | `app/porter/test/src/integration/tcpServerPreforkTest/` および `app/porter/test/` 配下 | 同一製品ソースをテスト専用マクロ付きで再コンパイルする補助実行ファイル、通常ビルド `tcpServer.exe` の外部観測テスト、異常系 3 種・空き待機解除・負例感度テスト、最小限の `Mock_cplat` 局所テスト |
-| `app/general/docs/prompts/current/261114-windows-real-machine-verification-design.md` | 本仕様書への検証結果 (同期前履歴・同期後再テスト・追加検証結果・検証限界) の記録 |
+| `app/general/docs/prompts/past/261114-windows-real-machine-verification-design.md` | 本仕様書への検証結果 (同期前履歴・同期後再テスト・追加検証結果・検証限界) の記録 |
 | `app/general/docs/prompts/current/261113-source-comment-bl029-backlog.md` / `261114-windows-real-machine-verification-backlog.md` | 過去 BL-003 の経緯・対処更新 (削除禁止)、および今回 backlog の未解決残渣のみの最終整理 |
 
 Table: 変更対象ファイルと変更内容

@@ -3,7 +3,7 @@
 文書種別: 残課題一覧 (backlog)
 最終更新日時: 2026-11-15 13:29:29 JST
 稼働 OS: Windows (Linux 検証は WSL)
-継続作業: `261114-makefw-windows-backlog-design.md`、`261114-makefw-windows-backlog-backlog.md`。削除されている場合があります。
+継続作業: `../current/261114-makefw-windows-backlog-design.md`、`../current/261114-makefw-windows-backlog-backlog.md`。削除されている場合があります。
 最終更新エージェント: codex (セッション ID は取得できません)
 前回の文面支援: agy / セッション ID: 6632672a-684b-4f7e-bf27-e504701da2cb
 検討 ID: windows-real-machine-verification-20261114

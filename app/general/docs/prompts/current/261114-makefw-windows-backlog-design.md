@@ -53,7 +53,7 @@ Table: 各課題の受入動作
 | `framework/makefw/bin_test/test_path_spaces.py` | 空白を含むワークスペースでの互換性確認 |
 | `framework/makefw/bin_test/` の局所テスト | MSVC 診断出力交錯・部分再コンパイル・多数ソース分類の回帰確認 |
 | `framework/makefw/docs/makeparts.md` と関連コード コメント | 利用者と保守者に必要な恒久仕様を反映 |
-| `app/general/docs/prompts/current/261114-windows-real-machine-verification-backlog.md` | 対策後に BL-002〜BL-004 の状態・経緯・対処を更新 |
+| `app/general/docs/prompts/past/261114-windows-real-machine-verification-backlog.md` | 対策後に BL-002〜BL-004 の状態・経緯・対処を更新 |
 
 Table: 対象ファイルと責務
 

@@ -56,7 +56,7 @@
 参照資料と版:
 
 - `261113-source-comment-bl029-backlog.md` の BL-003 (推奨される対応策を含む)
-- `../past/261109-source-comment-remaining-backlog.md` の BL-024 (未確認の範囲と次回の受入条件)
+- `261109-source-comment-remaining-backlog.md` の BL-024 (未確認の範囲と次回の受入条件)
 
 ### 環境の確認結果 (この作業ツリー)
 
