@@ -248,7 +248,7 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
         ret = cplat_clock_get_monotonic_ms(&now_ms);
         if (ret != CPLAT_OK)
         {
-            (void)cplat_local_lock_unlock(lock->local);
+            (void)cplat_local_lock_unlock(lock->local); /* 取得に成功したロックの解放は失敗しない */
             return result_of(ret);
         }
 
@@ -258,7 +258,7 @@ sample_filter_share_region_result sample_filter_share_lock_acquire(sample_filter
     ret = cplat_interprocess_lock_lock(lock->process, remaining_ms);
     if (ret != CPLAT_OK)
     {
-        (void)cplat_local_lock_unlock(lock->local);
+        (void)cplat_local_lock_unlock(lock->local); /* 取得に成功したロックの解放は失敗しない */
         return result_of(ret);
     }
 
@@ -275,5 +275,10 @@ void sample_filter_share_lock_release(sample_filter_share_lock *lock)
     }
 
     (void)cplat_interprocess_lock_unlock(lock->process);
+
+    /*
+     * 呼び出し元は sample_filter_share_lock_acquire() の成功後にだけ本関数を呼ぶため、
+     * 保持中のロックの解放は失敗しない。
+     */
     (void)cplat_local_lock_unlock(lock->local);
 }
