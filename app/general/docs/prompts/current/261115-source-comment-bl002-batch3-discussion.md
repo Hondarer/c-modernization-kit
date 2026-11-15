@@ -4,7 +4,7 @@
 最終更新日時: 2026-11-15 13:42:35 JST
 最終更新エージェント: Codex / セッション ID: 取得不可
 稼働 OS: Linux
-上流文書: `261114-source-comment-bl002-batch2-backlog.md` (対策対象)、`261114-source-comment-bl002-batch2-design.md` (前回の最終仕様)、`261114-source-comment-bl002-batch2-discussion.md` (前回の検討)。削除されている場合があります。
+上流文書: `../past/261114-source-comment-bl002-batch2-backlog.md` (対策対象)、`../past/261114-source-comment-bl002-batch2-design.md` (前回の最終仕様)、`../past/261114-source-comment-bl002-batch2-discussion.md` (前回の検討)。削除されている場合があります。
 下流文書: `261115-source-comment-bl002-batch3-design.md` (最終仕様)、`261115-source-comment-bl002-batch3-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。ユーザーが編集した最新版を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があり、どこまで進んでいたかは文書だけでは分かりません。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。`← **CURRENT**` がなく、作業 WBS がすべて完了 (✅) であれば、この案件の合意フローは完了しています。
 -->
@@ -62,14 +62,14 @@
 
 対象成果物: BL-002 のロック取得・解放、BL-003 の 2 製品呼び出し元におけるプロセス間ロック解放、BL-004 のローカル変数の初回ゼロ初期化。必要に応じて `app/cplat/prod/include/cplat/sync/sync.h` の契約と関連テストも更新します。BL-004 は `app/` 配下で調査した 9 ファイル、29 箇所を対象候補とします。
 
-今回の対象範囲: `261114-source-comment-bl002-batch2-backlog.md` の BL-002、BL-003、BL-004。BL-001 の 122 項目は今回の対策対象に含めず、今回の作業で未対処のまま残る項目は、最終 backlog の整理時に agree-before-implement の規則に従って引き継ぎます。
+今回の対象範囲: `../past/261114-source-comment-bl002-batch2-backlog.md` の BL-002、BL-003、BL-004。BL-001 の 122 項目は今回の対策対象に含めず、今回の作業で未対処のまま残る項目は、最終 backlog の整理時に agree-before-implement の規則に従って引き継ぎます。
 
 書き込み可能な検討用 Markdown: この文書 (`261115-source-comment-bl002-batch3-discussion.md`) のみ。第 1 ゲート前は、他の文書やコードを変更しません。
 
 参照資料と版 (2026-11-15 の作業ツリー):
 
-- [前回の残課題一覧](261114-source-comment-bl002-batch2-backlog.md) の BL-002〜004
-- [前回の最終仕様](261114-source-comment-bl002-batch2-design.md) と [前回の検討](261114-source-comment-bl002-batch2-discussion.md)
+- [前回の残課題一覧](../past/261114-source-comment-bl002-batch2-backlog.md) の BL-002〜004
+- [前回の最終仕様](../past/261114-source-comment-bl002-batch2-design.md) と [前回の検討](../past/261114-source-comment-bl002-batch2-discussion.md)
 - [共通コーディング規範](../../../docs/coding-guideline.md) の「実装コメント」「ゼロ初期化」「異常状態の検出とプロセス終了」
 - [`app/cplat` 固有コーディング規範](../../../../../app/cplat/docs/coding-guideline.md) の「エラー処理と戻り値規約」
 - [`sync.h`](../../../../../app/cplat/prod/include/cplat/sync/sync.h)、[`sync_linux.c`](../../../../../app/cplat/prod/libsrc/cplat/sync/sync_linux.c)、[`sync_windows.c`](../../../../../app/cplat/prod/libsrc/cplat/sync/sync_windows.c)
@@ -82,7 +82,7 @@
 
 ## 現行の合意内容
 
-- ユーザーは `261114-source-comment-bl002-batch2-backlog.md` の BL-002、BL-003、BL-004 の対策を依頼しました。
+- ユーザーは `../past/261114-source-comment-bl002-batch2-backlog.md` の BL-002、BL-003、BL-004 の対策を依頼しました。
 - 前回 backlog の BL-002 は、3 ファイルにある 13 組のロック取得・解放で両方の戻り値を破棄する問題です。
 - BL-003 は [Q-002](#q-002-bl-003-にどのプロセス間ロック解放を含めるか) の回答に従い、`sample_filter_share_region.c` と `trace_file.c` の 2 製品呼び出し元を対象にします。
 - Linux 実装の `cplat_interprocess_lock_unlock()` は `flock(LOCK_UN)` の失敗時に `CPLAT_ERR_UNKNOWN` を返し、Windows 実装は `UnlockFileEx()` の失敗時に同じ結果を返します。したがって、保持中の解放が常に成功すると断定できません。
@@ -156,7 +156,7 @@ BL-002 の 13 箇所で `cplat_local_lock_lock()` が失敗した場合、どの
 
 **Related**
 
-前回 backlog の [BL-002](261114-source-comment-bl002-batch2-backlog.md#bl-002-ロックの取得と解放の両方で戻り値を破棄している-13-組)、`sync_linux.c` の `cplat_local_lock_lock()`、`sync_windows.c` の同関数、共通コーディング規範「異常状態の検出とプロセス終了」。
+前回 backlog の [BL-002](../past/261114-source-comment-bl002-batch2-backlog.md#bl-002-ロックの取得と解放の両方で戻り値を破棄している-13-組)、`sync_linux.c` の `cplat_local_lock_lock()`、`sync_windows.c` の同関数、共通コーディング規範「異常状態の検出とプロセス終了」。
 
 ### Q-002 BL-003 にどのプロセス間ロック解放を含めるか
 
@@ -199,7 +199,7 @@ BL-003 の対策に、前回 backlog で報告された呼び出し元に加え�
 
 **Related**
 
-[Q-003](#q-003-bl-003-の解放失敗をどう通知するか)、前回 backlog の [BL-003](261114-source-comment-bl002-batch2-backlog.md#bl-003-プロセス間ロックの解放の戻り値破棄)。
+[Q-003](#q-003-bl-003-の解放失敗をどう通知するか)、前回 backlog の [BL-003](../past/261114-source-comment-bl002-batch2-backlog.md#bl-003-プロセス間ロックの解放の戻り値破棄)。
 
 ### Q-003 BL-003 の解放失敗をどう通知するか
 
@@ -243,7 +243,7 @@ Linux 実装は `flock(LOCK_UN)` が失敗すると `CPLAT_ERR_UNKNOWN` を返�
 
 **Related**
 
-[Q-002](#q-002-bl-003-にどのプロセス間ロック解放を含めるか)、前回 backlog の [BL-003](261114-source-comment-bl002-batch2-backlog.md#bl-003-プロセス間ロックの解放の戻り値破棄)、[`sync.h`](../../../../../app/cplat/prod/include/cplat/sync/sync.h) の `cplat_interprocess_lock_unlock()`。
+[Q-002](#q-002-bl-003-にどのプロセス間ロック解放を含めるか)、前回 backlog の [BL-003](../past/261114-source-comment-bl002-batch2-backlog.md#bl-003-プロセス間ロックの解放の戻り値破棄)、[`sync.h`](../../../../../app/cplat/prod/include/cplat/sync/sync.h) の `cplat_interprocess_lock_unlock()`。
 
 ### Q-004 BL-004 をどのファイル範囲まで適用するか
 
@@ -303,7 +303,7 @@ Table: 初回ゼロ初期化と判断したローカル変数の候補
 
 **Related**
 
-前回 backlog の [BL-004](261114-source-comment-bl002-batch2-backlog.md#bl-004-宣言後の-memset-によるゼロ初期化の残存)、[共通コーディング規範の「ゼロ初期化」](../../../docs/coding-guideline.md#ゼロ初期化)。
+前回 backlog の [BL-004](../past/261114-source-comment-bl002-batch2-backlog.md#bl-004-宣言後の-memset-によるゼロ初期化の残存)、[共通コーディング規範の「ゼロ初期化」](../../../docs/coding-guideline.md#ゼロ初期化)。
 
 ## 対象成果物と合意版
 
