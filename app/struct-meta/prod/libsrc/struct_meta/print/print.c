@@ -18,12 +18,18 @@
 #include <struct_meta/meta/integer.h>
 
 #include <cplat/base/result.h>
+#include <cplat/crt/stdio.h>
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/*
+ * 字下げ分の空白を出力する。
+ * 個々の fputc() の戻り値は見ず、直後の fprintf() の結果と ferror(out) で
+ * ストリームのエラー指示をまとめて検査する。
+ */
 static void print_indent(FILE *out, int indent)
 {
     int i;
@@ -35,9 +41,38 @@ static void print_indent(FILE *out, int indent)
 }
 
 /*
+ * 字下げ、フィールド名、および配列要素のインデックスをストリームへ直接出力する。
+ * 固定長の作業配列や動的確保を用いずに完全なラベルを出力し、字下げ時の
+ * fputc() 失敗も fprintf() 後の ferror(out) でまとめて検出する。
+ * 成功時は CPLAT_OK、出力失敗時は CPLAT_ERR_UNKNOWN を返す。
+ */
+static int print_label(FILE *out, const int indent, const char *name, const int has_index, const size_t index)
+{
+    print_indent(out, indent);
+
+    if (has_index != 0)
+    {
+        if ((fprintf(out, "%s[%zu]", name, index) < 0) || (ferror(out) != 0))
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
+    }
+    else
+    {
+        if ((fprintf(out, "%s", name) < 0) || (ferror(out) != 0))
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
+    }
+
+    return CPLAT_OK;
+}
+
+/*
  * スカラー フィールドの値を表示用の文字列にする。
  * 成功時は CPLAT_OK を返し、dest に表示文字列を書く。
  * 整数を読み出せないとき、および構造体または未知の種別のときは CPLAT_ERR_INVALID_ARGUMENT を返す。
+ * 数値の書式化に失敗した場合は、cplat_snprintf() が返した結果コードをそのまま返す。
  * char 配列は print_element から直接出力するため、本関数では扱わない。
  */
 static int format_scalar_value(struct_meta_field_kind kind, const unsigned char *field_ptr, size_t element_size,
@@ -54,8 +89,7 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
-        snprintf(dest, dest_size, "%" PRId64, value);
-        return CPLAT_OK;
+        return cplat_snprintf(dest, dest_size, "%" PRId64, value);
     }
     case STRUCT_META_FIELD_UNSIGNED_INTEGER:
     {
@@ -66,24 +100,33 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
             return CPLAT_ERR_INVALID_ARGUMENT;
         }
 
-        snprintf(dest, dest_size, "%" PRIu64, value);
-        return CPLAT_OK;
+        return cplat_snprintf(dest, dest_size, "%" PRIu64, value);
     }
     case STRUCT_META_FIELD_FLOAT:
     {
         float value;
 
+        /*
+         * 記述子検証で要素幅が sizeof(float) であることは担保済みだが、任意バイト列の
+         * ポインターを float* へ直接変換すると整列条件や有効型規則に依存する。
+         * memcpy() で型付きのローカル変数へ複製し、整列に依存せず読み出す。
+         * see: https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
+         */
         memcpy(&value, field_ptr, sizeof(value));
-        snprintf(dest, dest_size, "%g", (double)value);
-        return CPLAT_OK;
+        return cplat_snprintf(dest, dest_size, "%g", (double)value);
     }
     case STRUCT_META_FIELD_DOUBLE:
     {
         double value;
 
+        /*
+         * 記述子検証で要素幅が sizeof(double) であることは担保済みだが、任意バイト列の
+         * ポインターを double* へ直接変換すると整列条件や有効型規則に依存する。
+         * memcpy() で型付きのローカル変数へ複製し、整列に依存せず読み出す。
+         * see: https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
+         */
         memcpy(&value, field_ptr, sizeof(value));
-        snprintf(dest, dest_size, "%g", value);
-        return CPLAT_OK;
+        return cplat_snprintf(dest, dest_size, "%g", value);
     }
     case STRUCT_META_FIELD_CHAR_ARRAY:
         /* 文字列は print_element から直接出力する。 */
@@ -97,17 +140,17 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
 static int print_struct(const struct_meta_descriptor *desc, const unsigned char *base, FILE *out, int indent);
 
 /*
- * 1 要素を label 付きで表示する。
+ * 1 要素をフィールド名 (配列要素時はインデックス付き) で表示する。
  * ネスト構造体は子のフィールドを表示し、それ以外はスカラー値を 1 行に表示する。
  * 成功時は CPLAT_OK、失敗時はその結果コードを返す。
  */
 static int print_element(const struct_meta_field *field, const unsigned char *elem_ptr, FILE *out, int indent,
-                         const char *label)
+                         int has_index, size_t index)
 {
     if (field->kind == STRUCT_META_FIELD_STRUCT)
     {
-        print_indent(out, indent);
-        if (fprintf(out, "%s:\n", label) < 0 || ferror(out))
+        if ((print_label(out, indent, field->name, has_index, index) != CPLAT_OK) || (fprintf(out, ":\n") < 0) ||
+            (ferror(out) != 0))
         {
             return CPLAT_ERR_UNKNOWN;
         }
@@ -120,8 +163,8 @@ static int print_element(const struct_meta_field *field, const unsigned char *el
         {
             return CPLAT_ERR_INVALID_ENCODING;
         }
-        print_indent(out, indent);
-        if (fprintf(out, "%s = \"%s\"\n", label, (const char *)elem_ptr) < 0 || ferror(out))
+        if ((print_label(out, indent, field->name, has_index, index) != CPLAT_OK) ||
+            (fprintf(out, " = \"%s\"\n", (const char *)elem_ptr) < 0) || (ferror(out) != 0))
         {
             return CPLAT_ERR_UNKNOWN;
         }
@@ -136,8 +179,8 @@ static int print_element(const struct_meta_field *field, const unsigned char *el
             return ret;
         }
 
-        print_indent(out, indent);
-        if (fprintf(out, "%s = %s\n", label, current) < 0 || ferror(out))
+        if ((print_label(out, indent, field->name, has_index, index) != CPLAT_OK) ||
+            (fprintf(out, " = %s\n", current) < 0) || (ferror(out) != 0))
         {
             return CPLAT_ERR_UNKNOWN;
         }
@@ -189,8 +232,8 @@ static int print_field(const struct_meta_field *field, const unsigned char *base
         ret = struct_meta_internal_bytes_to_hex((const unsigned char *)element, field->element_count, text, text_size);
         if (ret == CPLAT_OK)
         {
-            print_indent(out, indent);
-            if (fprintf(out, "%s = %s\n", field->name, text) < 0 || ferror(out))
+            if ((print_label(out, indent, field->name, 0, 0U) != CPLAT_OK) || (fprintf(out, " = %s\n", text) < 0) ||
+                (ferror(out) != 0))
             {
                 ret = CPLAT_ERR_UNKNOWN;
             }
@@ -213,29 +256,22 @@ static int print_field(const struct_meta_field *field, const unsigned char *base
             return ret;
         }
 
-        return print_element(field, (const unsigned char *)element, out, indent, field->name);
+        return print_element(field, (const unsigned char *)element, out, indent, 0, 0U);
     }
 
-    /* 要素数 2 以上の配列は、要素ごとに名前と添字を label として表示する。 */
+    /* 要素数 2 以上の配列は、要素ごとに名前とインデックスを直接ストリームへ出力する。 */
+    for (size_t i = 0; i < field->element_count; i++)
     {
-        size_t i;
-        char label[128];
-
-        for (i = 0; i < field->element_count; i++)
+        const void *element;
+        int ret = struct_meta_field_get_const_element(field, base, i, &element);
+        if (ret == CPLAT_OK)
         {
-            int ret;
-            snprintf(label, sizeof(label), "%s[%zu]", field->name, i);
-            const void *element;
-            ret = struct_meta_field_get_const_element(field, base, i, &element);
-            if (ret == CPLAT_OK)
-            {
-                ret = print_element(field, (const unsigned char *)element, out, indent, label);
-            }
+            ret = print_element(field, (const unsigned char *)element, out, indent, 1, i);
+        }
 
-            if (ret != CPLAT_OK)
-            {
-                return ret;
-            }
+        if (ret != CPLAT_OK)
+        {
+            return ret;
         }
     }
 
@@ -282,8 +318,7 @@ int struct_meta_print_write(const struct_meta_descriptor *desc, const void *inst
     }
 
     /* 構造体名を見出しにし、フィールドは空白 2 個で字下げして表示する。 */
-    print_indent(out, 0);
-    if (fprintf(out, "%s:\n", desc->name) < 0 || ferror(out))
+    if ((print_label(out, 0, desc->name, 0, 0U) != CPLAT_OK) || (fprintf(out, ":\n") < 0) || (ferror(out) != 0))
     {
         return CPLAT_ERR_UNKNOWN;
     }

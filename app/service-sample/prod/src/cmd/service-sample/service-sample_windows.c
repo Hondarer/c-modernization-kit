@@ -310,6 +310,7 @@ static void handle_power_event(const DWORD ev_type)
 static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
 {
     const WTSSESSION_NOTIFICATION *notification;
+    /* dwSessionId は 32 bit の DWORD であり、最大 10 桁と終端 NUL (11 [byte]) が 16 [byte] に収まる。 */
     char session_id_buf[16];
     svc_event_info info;
 
@@ -324,6 +325,7 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
     }
 
     notification = (const WTSSESSION_NOTIFICATION *)ev_data;
+    /* 16 [byte] 配列に最大値が収まり、unsigned long と %lu の型も一致するため書式化は失敗しない。 */
     (void)cplat_snprintf(session_id_buf, sizeof(session_id_buf), "%lu", (unsigned long)notification->dwSessionId);
 
     if (ev_type == WTS_SESSION_LOGON)

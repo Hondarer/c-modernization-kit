@@ -93,6 +93,7 @@ void onUnload(int process_terminating)
         CPLAT_DLLMAIN_INFO_MSG("base: sym_loader shutdown was not completed");
     }
 #else
+    /* Linux の destructor は onUnload(0) のみを渡し、Windows の process_terminating 相当の区別がないため参照しない。 */
     (void)process_terminating;
 #endif /* PLATFORM_WINDOWS */
 }

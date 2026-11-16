@@ -369,12 +369,6 @@ static void cmd_dumpjson(const sample_target *target)
 
     cplat_error error;
     const size_t text_length = strlen(text);
-    if (text_length == SIZE_MAX)
-    {
-        fprintf(stderr, "struct-meta-sample: JSON のテキストが大きすぎます\n");
-        cjson_app_cJSON_free(text);
-        return;
-    }
 
     /* 最終行に改行がない場合も、次の対話プロンプトと連結しないよう改行する。 */
     const int needs_newline = (text_length == 0U) || (text[text_length - 1U] != '\n');
@@ -425,6 +419,7 @@ static void cmd_savebin(const sample_target *target, const char *path)
     {
         fprintf(stderr, "struct-meta-sample: savebin の出力ファイルへ書き込めません (結果コード %d): %s\n",
                 cplat_error_to_result(&error), path);
+        /* 既に書き込み失敗を報告した後の後始末であり、ファイルを閉じる処理の成否で最初の失敗を上書きしない。 */
         (void)cplat_fclose(stream, NULL);
         return;
     }
@@ -460,6 +455,7 @@ static void cmd_loadbin(const sample_target *target, const char *path)
     {
         fprintf(stderr, "struct-meta-sample: loadbin のファイルが小さすぎます (%s は %zu バイト必要、%zu バイト): %s\n",
                 target->descriptor->name, target->descriptor->size, read_count, path);
+        /* 既にサイズ不足を報告した後の後始末であり、ファイルを閉じる処理の成否で最初の失敗を上書きしない。 */
         (void)cplat_fclose(stream, NULL);
         return;
     }
@@ -469,6 +465,7 @@ static void cmd_loadbin(const sample_target *target, const char *path)
     {
         fprintf(stderr, "struct-meta-sample: loadbin のファイルが大きすぎます (%s は %zu バイト): %s\n",
                 target->descriptor->name, target->descriptor->size, path);
+        /* 既にサイズ超過を報告した後の後始末であり、ファイルを閉じる処理の成否で最初の失敗を上書きしない。 */
         (void)cplat_fclose(stream, NULL);
         return;
     }
@@ -519,6 +516,7 @@ static void cmd_catjson(const char *path)
             {
                 fprintf(stderr, "struct-meta-sample: catjson の標準出力へ書き込めません (結果コード %d): %s\n",
                         cplat_error_to_result(&error), path);
+                /* 既に書き込み失敗を報告した後の後始末であり、ファイルを閉じる処理の成否で最初の失敗を上書きしない。 */
                 (void)cplat_fclose(stream, NULL);
                 return;
             }
@@ -549,6 +547,7 @@ static void cmd_catjson(const char *path)
         {
             fprintf(stderr, "struct-meta-sample: catjson の最終改行を出力できません (結果コード %d): %s\n",
                     cplat_error_to_result(&error), path);
+            /* 既に書き込み失敗を報告した後の後始末であり、ファイルを閉じる処理の成否で最初の失敗を上書きしない。 */
             (void)cplat_fclose(stream, NULL);
             return;
         }
@@ -870,6 +869,7 @@ int main(int argc, char **argv)
 
     if (cplat_argparser_get_register_error_count() > 0U)
     {
+        /* 登録失敗が確定した診断出力であり、診断出力の成否に関わらず失敗終了を返す。 */
         (void)cplat_argparser_print_register_error_messages(stderr);
         return EXIT_FAILURE;
     }
@@ -879,15 +879,21 @@ int main(int argc, char **argv)
     /*
      * 必須引数が省略されていても、-h と --help を優先する。
      * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     * cplat_argparser_print_usage() は fprintf の結果を検査しないため、
+     * 戻り値に加えて stdout のフラッシュ失敗とストリーム エラーも確認する。
      */
     if (need_help != 0)
     {
-        (void)cplat_argparser_print_usage(stdout);
+        if (cplat_argparser_print_usage(stdout) != CPLAT_OK || fflush(stdout) != 0 || ferror(stdout) != 0)
+        {
+            return EXIT_FAILURE;
+        }
         return EXIT_SUCCESS;
     }
 
     if (parse_result != CPLAT_OK)
     {
+        /* 既に解析失敗が確定した診断出力であり、診断出力の成否に関わらず最初の解析失敗を維持する。 */
         (void)cplat_argparser_print_error_messages(stderr);
         (void)cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;

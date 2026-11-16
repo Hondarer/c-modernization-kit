@@ -2250,6 +2250,7 @@ int main(int argc, char *argv[])
     sample_worker_trace_set_tracer(NULL);
     cplat_tracer_dispose(&tracer);
     cplat_pinned_prompt_dispose(screen);
+    /* 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しない。共有領域を閉じる前に切り離す。 */
     (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
     close_share();
     cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
@@ -2272,6 +2273,7 @@ out_dispose_lock:
     cplat_local_lock_dispose(s_display_lock);
     s_display_lock = NULL;
 out_dispose_slot:
+    /* 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しない。共有領域を閉じる前に切り離す。 */
     (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
     close_share();
     cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
