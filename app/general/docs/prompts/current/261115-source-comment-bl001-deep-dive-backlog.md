@@ -4,7 +4,7 @@
 最終更新日時: 2026-11-16 12:22:56 JST
 最終更新エージェント: agy (Sol 管理レビュー・codex 記録委任反映)
 稼働 OS: Linux (WSL)
-上流文書: `261115-source-comment-bl001-deep-dive-design.md` (承認済み最終仕様)、`261115-source-comment-bl001-deep-dive-discussion.md` (検討用 Markdown)、`261115-source-comment-bl002-batch3-backlog.md` (対策元)。削除されている場合があります。
+上流文書: `261115-source-comment-bl001-deep-dive-design.md` (承認済み最終仕様)、`261115-source-comment-bl001-deep-dive-discussion.md` (検討用 Markdown)、`../past/261115-source-comment-bl002-batch3-backlog.md` (対策元)。削除されている場合があります。
 再開手順: agree-before-implement スキルを読み込んでください。整理状態が整理済みのため、本作業で引き継いだ未対策 73 件のみを記録しています。各項目の元の枝番号を維持し、後続案件の開始時からこのファイルを削除せず状態と経緯を更新してください。
 -->
 

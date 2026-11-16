@@ -57,7 +57,7 @@
     - ✅ 4.10. 正本文書の更新 (`app/general/docs/coding-guideline.md`、`app/cplat/docs/api-cheatsheet.md` など、旧名を参照する文書)
     - ✅ 4.11. 4 app のビルド、対象テストの実行、`.warn` 確認、cplat の `make doxy`、Markdown の `text_style_jp.py` 確認 ([Q-016](#q-016-api-体系の変更を加えた場合の検証範囲)、[Q-021](#q-021-プロセスとソケットの変更を加えた場合の検証範囲)) (Windows/MSVC は CI の Windows ジョブで確認済み)
     - ✅ 4.12. 受入条件への適合確認 (全完確認)
-    - ✅ 4.13. 残課題一覧の再構築と整理、および `261115-source-comment-bl002-batch3-backlog.md` の BL-005、BL-006 の状態・経緯と対処の更新、BL-001 の転記
+    - ✅ 4.13. 残課題一覧の再構築と整理、および `../past/261115-source-comment-bl002-batch3-backlog.md` の BL-005、BL-006 の状態・経緯と対処の更新、BL-001 の転記
     - ✅ 4.14. 各リポジトリ (cplat、porter、親) へのコミット、プッシュと CI の確認 (2026-11-15 の対話でユーザーが指示。CI run 43744540726 は全ジョブ成功)
 - ✅ 5. 成果物の承認の受付 (第 3 ゲート)
     - ✅ 5.1. 成果物・検証結果・残課題の提示
@@ -67,14 +67,14 @@
 
 対象成果物: cplat の `sync.h`、`process.h`、`socket.h` とその実装、新設する共通の待ち時間定数ヘッダー、mock_cplat、およびこれらを利用する cplat、porter、string-catalog-sample、service-sample の製品コード、テスト、正本文書 (版 9 で確定)。
 
-今回の対象範囲: [第 3 バッチの残課題一覧](261115-source-comment-bl002-batch3-backlog.md) の BL-005 と BL-006、および本作業の [残課題一覧](261115-local-lock-unlock-bl005-006-backlog.md) の BL-002 (版 4 で追加) と BL-003 (版 10 で追加) です。同 BL-001 (設計理由の確認 122 項目) は対象外とし、新しい backlog へ転記します。
+今回の対象範囲: [第 3 バッチの残課題一覧](../past/261115-source-comment-bl002-batch3-backlog.md) の BL-005 と BL-006、および本作業の [残課題一覧](261115-local-lock-unlock-bl005-006-backlog.md) の BL-002 (版 4 で追加) と BL-003 (版 10 で追加) です。同 BL-001 (設計理由の確認 122 項目) は対象外とし、新しい backlog へ転記します。
 
 書き込み可能な検討用 Markdown: この文書
 
 参照資料と版 (2026-11-15、コミット `37fef347` 時点):
 
-- [第 3 バッチの残課題一覧](261115-source-comment-bl002-batch3-backlog.md) の BL-005、BL-006
-- [第 3 バッチの最終仕様](261115-source-comment-bl002-batch3-design.md)
+- [第 3 バッチの残課題一覧](../past/261115-source-comment-bl002-batch3-backlog.md) の BL-005、BL-006
+- [第 3 バッチの最終仕様](../past/261115-source-comment-bl002-batch3-design.md)
 - [第 2 バッチの最終仕様](../past/261114-source-comment-bl002-batch2-design.md) の「ロック解放の戻り値破棄」
 - `app/cplat/prod/include/cplat/sync/sync.h` の `cplat_local_lock_unlock()`
 - `app/cplat/prod/libsrc/cplat/sync/sync_linux.c`、`sync_windows.c` の同関数
@@ -306,7 +306,7 @@ A が選ばれました。第 3 バッチで解放結果を確認するように
 
 **Related**
 
-[Q-001](#q-001-保持中のローカル-ロック解放の失敗をどう扱うか)、[Q-004](#q-004-cplat_local_lock_unlock-の戻り値を-void-にするか)、[第 3 バッチの最終仕様](261115-source-comment-bl002-batch3-design.md)。
+[Q-001](#q-001-保持中のローカル-ロック解放の失敗をどう扱うか)、[Q-004](#q-004-cplat_local_lock_unlock-の戻り値を-void-にするか)、[第 3 バッチの最終仕様](../past/261115-source-comment-bl002-batch3-design.md)。
 
 ### Q-003 sync.h の cplat_local_lock_unlock の契約文言を明確にするか
 
