@@ -36,7 +36,7 @@
 
 ### 経緯と見送り理由
 
-- **摘出契機**: [第 3 バッチの残課題一覧](261115-source-comment-bl002-batch3-backlog.md#bl-001-確認できない設計理由-122-項目) の BL-001 からの転記です。
+- **摘出契機**: [第 3 バッチの残課題一覧](../past/261115-source-comment-bl002-batch3-backlog.md#bl-001-確認できない設計理由-122-項目) の BL-001 からの転記です。
 - **今回の見送り理由**: 本作業は第 3 バッチの BL-005、BL-006 と待機 API 体系を対象とし、122 件の根拠確認は範囲外です。
 - **継続作業での経緯と対処**: 2026-11-15 に別の継続案件 `source-comment-bl001-deep-dive-20261115` ([検討用 Markdown](261115-source-comment-bl001-deep-dive-discussion.md)) が開始されており、進捗は第 3 バッチの残課題一覧の BL-001 で管理しています。本作業の待機 API の改名により、122 件のうち同期 API の呼び出しを含む項目は、関数名と定数名が変わっています。
 
@@ -48,7 +48,7 @@
 ### 推奨される対応策
 
 - **恒久対応案**: 継続案件 `source-comment-bl001-deep-dive-20261115` で対策します。対象の記述を照合する際は、本作業で改名した待機 API (`cplat_local_lock_timed_lock()`、`cplat_condvar_timed_wait()`、`CPLAT_WAIT_FOREVER` など) へ読み替えてください。
-- **参考情報**: [第 3 バッチの残課題一覧の BL-001](261115-source-comment-bl002-batch3-backlog.md#bl-001-確認できない設計理由-122-項目)
+- **参考情報**: [第 3 バッチの残課題一覧の BL-001](../past/261115-source-comment-bl002-batch3-backlog.md#bl-001-確認できない設計理由-122-項目)
 
 ## BL-004 porter の停止関数と、スレッドが残った場合の防御的な分岐
 
