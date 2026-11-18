@@ -23,8 +23,8 @@ cplat の待機を伴う API を、1 つの命名と戻り値の原則にそろ�
 
 | 課題 | 内容 | 解消の仕方 |
 | --- | --- | --- |
-| [第 3 バッチの BL-005](../past/261115-source-comment-bl002-batch3-backlog.md) | `trace_file.c` のローカル ロック解放結果が未処理 | `cplat_local_lock_unlock()` が `void` になり、確認すべき結果がなくなる |
-| [第 3 バッチの BL-006](../past/261115-source-comment-bl002-batch3-backlog.md) | `sample_filter_share_lock_acquire()` の回復時にローカル ロック解放結果が未処理 | 同上 |
+| [第 3 バッチの BL-005](261115-source-comment-bl002-batch3-backlog.md) | `trace_file.c` のローカル ロック解放結果が未処理 | `cplat_local_lock_unlock()` が `void` になり、確認すべき結果がなくなる |
+| [第 3 バッチの BL-006](261115-source-comment-bl002-batch3-backlog.md) | `sample_filter_share_lock_acquire()` の回復時にローカル ロック解放結果が未処理 | 同上 |
 | [本作業の BL-002](261115-local-lock-unlock-bl005-006-backlog.md) | ローカル ロックの取得結果を確認しない呼び出し | 無期限待機の取得が `void` になり、確認すべき結果がなくなる |
 | [本作業の BL-003](261115-local-lock-unlock-bl005-006-backlog.md) | `SIGCHLD` が `SIG_IGN` の場合の無期限のプロセス終了待ち | Linux の終了待機を `pidfd_open()` と `poll()` による方式に改める |
 
@@ -341,5 +341,5 @@ Table: 実行する対象テスト (各 app の `test/src/` からの相対パ�
 
 ## 対象外と残課題の扱い
 
-- `../past/261115-source-comment-bl002-batch3-backlog.md` の BL-005、BL-006 を「対応済み」にし、本作業での対処を記録します。同 BL-001 は本作業の残課題一覧へ転記します。
+- `261115-source-comment-bl002-batch3-backlog.md` の BL-005、BL-006 を「対応済み」にし、本作業での対処を記録します。同 BL-001 は本作業の残課題一覧へ転記します。
 - 本作業の残課題一覧の BL-002 と BL-003 は、本作業で解消するため整理時に除外します。

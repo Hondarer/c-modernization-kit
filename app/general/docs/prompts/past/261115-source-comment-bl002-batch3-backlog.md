@@ -81,7 +81,7 @@ Windows/MSVC では `%TEMP%` 配下の一時複製で対象 15 ターゲット�
 
 - **摘出契機**: 第 3 バッチで `trace_file.c` の共有ローテーションにおけるプロセス間ロック解放失敗を処理する際、同じファイル内に残るローカル ロック解放の未処理を確認しました。
 - **今回の見送り理由**: 承認済みの BL-002 は `pinned_prompt.c`、`pinned-prompt.c`、`string-catalog-filter-sample.c` の 13 組に限定されています。本項目の修正には、レジストリ解放ヘルパーとその複数の呼び出し元の戻り値契約を別途設計する必要があるため、範囲を広げませんでした。
-- **継続作業での経緯と対処**: 2026-11-15 に継続案件 [ローカル ロックの取得・解放結果の扱い](../current/261115-local-lock-unlock-bl005-006-discussion.md) で対策を開始しました。最終仕様 ([../current/261115-local-lock-unlock-bl005-006-design.md](../current/261115-local-lock-unlock-bl005-006-design.md)) で、`cplat_local_lock_unlock()` を戻り値のない関数にし、取得に成功したローカル ロックの解放は失敗しないものとして扱うことを決め、承認を得ました。2026-11-15〜16 に実装を完了しました。cplat、porter、string-catalog-sample、service-sample のビルドと対象テストが成功しています。本項目の解放箇所は戻り値のない呼び出しになり、確認すべき結果がなくなったため対応済みとします。
+- **継続作業での経緯と対処**: 2026-11-15 に継続案件 [ローカル ロックの取得・解放結果の扱い](261115-local-lock-unlock-bl005-006-discussion.md) で対策を開始しました。最終仕様 ([261115-local-lock-unlock-bl005-006-design.md](261115-local-lock-unlock-bl005-006-design.md)) で、`cplat_local_lock_unlock()` を戻り値のない関数にし、取得に成功したローカル ロックの解放は失敗しないものとして扱うことを決め、承認を得ました。2026-11-15〜16 に実装を完了しました。cplat、porter、string-catalog-sample、service-sample のビルドと対象テストが成功しています。本項目の解放箇所は戻り値のない呼び出しになり、確認すべき結果がなくなったため対応済みとします。
 
 ### 影響範囲とリスク
 
@@ -104,7 +104,7 @@ Windows/MSVC では `%TEMP%` 配下の一時複製で対象 15 ターゲット�
 
 - **摘出契機**: 第 3 バッチで同じファイルの `sample_filter_share_lock_release()` におけるプロセス間ロック解放を修正し、同期 API の宣言を照合した際に確認しました。
 - **今回の見送り理由**: 承認済み BL-002 は指定された 13 組に限定されており、本項目は異なる回復経路です。時計取得失敗とプロセス間ロック取得失敗が重なった場合に返す結果を新たに決める必要があるため、範囲を広げませんでした。
-- **継続作業での経緯と対処**: 2026-11-15 に継続案件 [ローカル ロックの取得・解放結果の扱い](../current/261115-local-lock-unlock-bl005-006-discussion.md) で対策を開始しました。最終仕様 ([../current/261115-local-lock-unlock-bl005-006-design.md](../current/261115-local-lock-unlock-bl005-006-design.md)) で、`cplat_local_lock_unlock()` を戻り値のない関数にし、取得に成功したローカル ロックの解放は失敗しないものとして扱うことを決め、承認を得ました。2026-11-15〜16 に実装を完了しました。cplat、porter、string-catalog-sample、service-sample のビルドと対象テストが成功しています。本項目の解放箇所は戻り値のない呼び出しになり、確認すべき結果がなくなったため対応済みとします。
+- **継続作業での経緯と対処**: 2026-11-15 に継続案件 [ローカル ロックの取得・解放結果の扱い](261115-local-lock-unlock-bl005-006-discussion.md) で対策を開始しました。最終仕様 ([261115-local-lock-unlock-bl005-006-design.md](261115-local-lock-unlock-bl005-006-design.md)) で、`cplat_local_lock_unlock()` を戻り値のない関数にし、取得に成功したローカル ロックの解放は失敗しないものとして扱うことを決め、承認を得ました。2026-11-15〜16 に実装を完了しました。cplat、porter、string-catalog-sample、service-sample のビルドと対象テストが成功しています。本項目の解放箇所は戻り値のない呼び出しになり、確認すべき結果がなくなったため対応済みとします。
 
 ### 影響範囲とリスク
 
