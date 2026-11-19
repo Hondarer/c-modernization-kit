@@ -27,8 +27,9 @@ namespace
 /** トレース フックが受け取った 1 件分の内容です。 */
 struct captured_trace
 {
-    cplat_trace_level level;
     std::string message;
+    cplat_trace_level level;
+    unsigned char pad[4] = {}; // 明示的アラインメントのためのパディング。
 };
 
 void capture_hook(cplat_tracer_hook_entry *prev, cplat_tracer *handle, cplat_trace_level level,
@@ -39,14 +40,15 @@ void capture_hook(cplat_tracer_hook_entry *prev, cplat_tracer *handle, cplat_tra
     (void)prev;
     (void)handle;
     (void)timestamp;
-    traces->push_back({level, message});
+    traces->push_back({message, level});
 }
 
 /** 表示の関数へ渡された文面を 1 件分記録します。 */
 struct captured_print
 {
-    cplat_pinned_prompt_channel channel;
     std::string text;
+    cplat_pinned_prompt_channel channel;
+    unsigned char pad[4] = {}; // 明示的アラインメントのためのパディング。
 };
 
 /** 条件式 1 行だけのフィルター オブジェクトの行幅です。 */
@@ -120,7 +122,7 @@ TEST(string_catalog_filter_sampleTest, start_rejects_interval_over_int_max)
         .WillByDefault(Invoke(
             [&prints](cplat_pinned_prompt *, cplat_pinned_prompt_channel channel, const char *text) -> int
             {
-                prints.push_back({channel, text});
+                prints.push_back({text, channel});
                 return 0;
             })); // [状態] - 表示の関数へ渡された文面を記録する。
 
@@ -159,7 +161,7 @@ TEST(string_catalog_filter_sampleTest, print_filter_lines_reports_line_error_fai
         .WillByDefault(Invoke(
             [&prints](cplat_pinned_prompt *, cplat_pinned_prompt_channel channel, const char *text) -> int
             {
-                prints.push_back({channel, text});
+                prints.push_back({text, channel});
                 return 0;
             })); // [状態] - 表示の関数へ渡された文面を記録する。
 
