@@ -4,6 +4,8 @@
 ワークスペース内で `docs/functional-spec-guideline.md` と `docs/functional-spec/`
 の両方を持つ app を検査対象とする。要件 ID の接頭辞、参照コメントのタグ、
 カテゴリごとの主語は、各 app の `docs/functional-spec-guideline.md` から読み取る。
+`docs/prompts/` 配下 (深さを問わない) は、判断の記録である検討文書を置く場所であり、
+製品のコードや文書から参照しない運用のため、走査の対象から外す。
 """
 
 from __future__ import annotations
@@ -48,6 +50,8 @@ C_SOURCE_SUFFIXES = {".c", ".h"}
 CXX_SOURCE_SUFFIXES = {".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx"}
 SOURCE_SUFFIXES = C_SOURCE_SUFFIXES | CXX_SOURCE_SUFFIXES
 SCAN_SUFFIXES = SOURCE_SUFFIXES | {".md"}
+# 走査対象から外す、`docs` の直下のディレクトリ名。名前だけでなく親が `docs` であることで判定する。
+EXCLUDED_DOCS_CHILD_NAMES = {"prompts"}
 EXCLUDED_DIRECTORY_NAMES = {
     ".git",
     "coverage",
@@ -716,12 +720,17 @@ def _iter_downstream_files(
     """要件参照を走査する対象のファイルを列挙する。
 
     機能仕様の正本と、記法を例示する規範は対象から除外する。
+    `docs` の直下の `prompts` ディレクトリ (検討文書) も、配下をすべて除外する。
     生成ソースも走査し、リンク切れなどの読み取り失敗は検査未完了として扱う。
     """
     paths: list[Path] = []
     for directory, subdirectories, filenames in os.walk(root):
+        is_docs_directory = Path(directory).name == "docs"
         subdirectories[:] = sorted(
-            name for name in subdirectories if name not in EXCLUDED_DIRECTORY_NAMES
+            name
+            for name in subdirectories
+            if name not in EXCLUDED_DIRECTORY_NAMES
+            and not (is_docs_directory and name in EXCLUDED_DOCS_CHILD_NAMES)
         )
         for filename in filenames:
             path = Path(directory) / filename
@@ -811,7 +820,10 @@ def check_workspace(root: Path) -> CheckResult:
 def _parse_args(argv: list[str]) -> argparse.Namespace:
     default_root = Path(__file__).resolve().parents[3]
     parser = argparse.ArgumentParser(
-        description="app の機能仕様の要件 ID、UUID、下流成果物の参照を検査します。"
+        description=(
+            "app の機能仕様の要件 ID、UUID、下流成果物の参照を検査します。"
+            "docs/prompts 配下は検査の対象外です。"
+        )
     )
     parser.add_argument(
         "--root",

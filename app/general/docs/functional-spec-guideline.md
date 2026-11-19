@@ -273,7 +273,10 @@ app 固有規範は本書を参照し、次の 2 つの表を所定の書式で�
 app 固有規範には、この 2 つの表に加えて、機能仕様の変更後に実行する検査コマンドを記載します。  
 app 固有の用語や、その app だけに適用する追加の記載規則がある場合も、app 固有規範に記載します。
 
-`docs/functional-spec-guideline.md` と `docs/functional-spec/` の両方が配置されている app が、検査の対象になります。
+`docs/functional-spec-guideline.md` と `docs/functional-spec/` の両方が配置されている app が、検査の対象になります。  
+各 app の `docs/prompts/` 配下 (深さを問わない) は、検査の走査対象から外します。  
+検討文書は判断の記録であり、廃止済みの ID や検討中の仮の ID を含むためです。製品のコードや文書から `docs/prompts/` 配下を参照しない運用とします。  
+`docs` の直下でない `prompts` ディレクトリは、従来どおり検査します。
 
 ## 変更時の扱い
 

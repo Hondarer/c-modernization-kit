@@ -587,6 +587,35 @@ class CheckFunctionalSpecTest(unittest.TestCase):
 
             self.assertTrue(any("機能要件が定義されていません" in error for error in result.errors))
 
+    def test_excludes_only_docs_prompts_from_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self._write_app(root, [self._row("SAMPLE-CLOCK-FUNC-001", UUID_1)])
+            unpaired = "要件は `SAMPLE-CLOCK-FUNC-001` を参照します。\n"
+            excluded_paths = [
+                "app/sample/docs/prompts/current/a.md",
+                "app/sample/docs/prompts/past/b.md",
+            ]
+            scanned_paths = [
+                "app/sample/docs/design.md",
+                "app/sample/docs/sub/prompts/x.md",
+            ]
+            for relative_path in excluded_paths + scanned_paths:
+                self._write(root, relative_path, "# 文書\n\n" + unpaired)
+            self._write(
+                root,
+                "app/sample/prod/prompts/x.c",
+                "/* SAMPLE-CLOCK-FUNC-001 */\nint x;\n",
+            )
+
+            result = CHECKER.check_workspace(root)
+
+            report = "\n".join(result.errors)
+            for relative_path in excluded_paths:
+                self.assertNotIn(relative_path, report)
+            for relative_path in scanned_paths + ["app/sample/prod/prompts/x.c"]:
+                self.assertIn(relative_path, report)
+
 
 if __name__ == "__main__":
     unittest.main()
