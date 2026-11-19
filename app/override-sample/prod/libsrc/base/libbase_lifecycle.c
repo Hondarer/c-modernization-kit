@@ -38,11 +38,18 @@ void onLoad(void)
     /*
      * 自モジュールのベース名に _extdef.jsonc を付け、一時ディレクトリ上の定義ファイル パスにする。
      * ベース名は onLoad のアドレスが属するモジュールから得る。
-     * パスが長すぎる場合は空文字にする。空のパスでは cplat_sym_loader_init() は設定を読まない。
+     * パスを組み立てられない場合 (モジュール名や一時ディレクトリを取得できない、パスが長すぎる) は
+     * 空文字にし、上書きを無効にしたことを原因ごとに出力する。onLoad は失敗を返す相手がいないためである。
+     * 空のパスでは cplat_sym_loader_init() は設定を読まない。
      * 正本は app/cplat/prod/libsrc/cplat/runtime/README.md の「module_info」節と、
      * app/override-sample/prod/README.md の「設定ファイル」節である。
      */
-    if (cplat_module_get_basename(basename, sizeof(basename), (const void *)onLoad) == CPLAT_OK)
+    if (cplat_module_get_basename(basename, sizeof(basename), (const void *)onLoad) != CPLAT_OK)
+    {
+        sym_loader_configpath[0] = '\0';
+        CPLAT_DLLMAIN_INFO_MSG("base: module basename unavailable; override disabled");
+    }
+    else
     {
         if (cplat_path_concat(leafname, sizeof(leafname), &error, basename, "_extdef.jsonc") != CPLAT_OK)
         {
@@ -66,6 +73,11 @@ void onLoad(void)
             {
                 sym_loader_configpath[0] = '\0';
                 CPLAT_DLLMAIN_INFO_MSG("base: config path too long; override disabled");
+            }
+            else
+            {
+                sym_loader_configpath[0] = '\0';
+                CPLAT_DLLMAIN_INFO_MSG("base: temp dir unavailable; override disabled");
             }
         }
     }

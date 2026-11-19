@@ -325,6 +325,11 @@ static void split_first_token(char *text, char **token_out, char **rest_out)
 
 /* ===== トレース出力 (生成物の型付きラッパーが、引数の型を jsonc の引数スキーマで検査する) ===== */
 
+/*
+ * 次の emit_*() は、トレースの出力結果を破棄する。
+ * トレースはワーカーの動作を観測する手段であり、出力の失敗でワーカーの処理を止めないためである。
+ */
+
 static void emit_worker_started(const uint32_t worker_index)
 {
     (void)sample_worker_trace_key_worker_started(worker_index);

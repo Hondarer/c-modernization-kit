@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     }
 
     printf("\n[ライブラリのカタログから組み立てた文字列]\n\n");
-    fflush(stdout);
+    (void)fflush(stdout); /* 失敗はストリームに残り、終了の直前にまとめて検査する */
 
     if (print_library_messages() != CPLAT_OK)
     {
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     }
 
     printf("\n[ライブラリの API が返す文字列]\n\n");
-    fflush(stdout);
+    (void)fflush(stdout); /* 失敗はストリームに残り、終了の直前にまとめて検査する */
 
     if (print_lookup_results() != CPLAT_OK)
     {
@@ -197,8 +197,20 @@ int main(int argc, char *argv[])
 
     /* 利用側がライブラリのカタログへ直接トレースを出力することも可能である。 */
     printf("\n[利用側からのトレース出力]\n\n");
-    fflush(stdout);
-    (void)samplecatalog_trace_key_lookup_performed("epsilon");
+    (void)fflush(stdout); /* 失敗はストリームに残り、終了の直前にまとめて検査する */
+
+    if (samplecatalog_trace_key_lookup_performed("epsilon") != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: トレースを出力できませんでした。\n"); /* 診断の出力先がほかにない */
+        return EXIT_FAILURE;
+    }
+
+    /* 標準出力はこのサンプルの成果物であるため、途中の書き込みの失敗を終了の直前にまとめて検査する。 */
+    if (fflush(stdout) != 0 || ferror(stdout) != 0)
+    {
+        (void)fprintf(stderr, "エラー: 標準出力へ書き込めませんでした。\n"); /* 診断の出力先がほかにない */
+        return EXIT_FAILURE;
+    }
 
     /*
      * トレーサーの解除と破棄は行わない。プロセスの終了時に cplat が自動で破棄し、

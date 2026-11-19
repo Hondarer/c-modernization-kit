@@ -1,10 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-16 12:22:56 JST
-最終更新エージェント: agy (Sol 管理レビュー・codex 記録委任反映)
-稼働 OS: Linux (WSL)
+最終更新日時: 2026-11-19 09:40:00 JST
+最終更新エージェント: claude code (Opus 5.5) / セッション ID: session_01KJc53SNPk1ZBvJzF3wRqtE
+稼働 OS: Windows
 上流文書: `261115-source-comment-bl001-deep-dive-design.md` (承認済み最終仕様)、`261115-source-comment-bl001-deep-dive-discussion.md` (検討用 Markdown)、`../past/261115-source-comment-bl002-batch3-backlog.md` (対策元)。削除されている場合があります。
+下流文書: `261118-source-comment-bl001-category-batch-discussion.md` (継続案件の検討用 Markdown)、`261118-source-comment-bl001-category-batch-design.md` (継続案件の最終仕様)、`261118-source-comment-bl001-category-batch-backlog.md` (継続案件の残課題一覧)。未作成の場合や、削除されている場合があります。
 再開手順: agree-before-implement スキルを読み込んでください。整理状態が整理済みのため、本作業で引き継いだ未対策 73 件のみを記録しています。各項目の元の枝番号を維持し、後続案件の開始時からこのファイルを削除せず状態と経緯を更新してください。
 -->
 
@@ -25,7 +26,7 @@
 
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
-| BL-001 | 根拠または変更後の契約が未確定の 73 件 | 過去 backlog からの転記 | 中 (項目により失敗処理・資源寿命への影響あり) | 未着手 |
+| BL-001 | 根拠または変更後の契約が未確定の 73 件 | 過去 backlog からの転記 | 中 (項目により失敗処理・資源寿命への影響あり) | 16 件対応済み、57 件次フェーズへ転記 |
 
 Table: 今回引き継ぐ未対策項目
 
@@ -44,6 +45,55 @@ Table: 今回引き継ぐ未対策項目
 今回の調査で、既存契約と一次資料から対策できる 49 件を承認済みの範囲へ選定しました。  
 以下の 73 件は根拠または修正時の契約の追加確認が必要であり、今回の最終仕様の解消対象には含めていません。  
 元の枝番号を保持し、過去の記載は削除しません。
+
+### 継続作業での経緯と対処
+
+2026-11-18 に、継続案件 `source-comment-bl001-category-batch-20261118` ([検討用 Markdown](261118-source-comment-bl001-category-batch-discussion.md)) を開始しました。  
+73 件のうち、疑問の種類が類似する 10 件から 20 件程度を選んで対処する案件です。  
+2026-11-18 の回答 (継続案件の Q-001) により、失敗を検査していない 16 件 (032、043、044、045、047、048、110、121、137、138、163、166、168、170、172、184) を対象に決定しました。  
+同じ回答 (Q-002) により、動作修正も対象に含めます。16 件の状態は「検討中」で、失敗の扱いの方針と項目ごとの変更内容を継続案件の Q-004 から Q-014 で確認しています。  
+対象ソースを照合し、16 件がいずれも現在のソースに残っていることを確認しました。  
+残る 57 件は今回の対象とせず、継続案件の backlog (`261118-source-comment-bl001-category-batch-backlog.md`) の BL-003 へ転記しました (2026-11-19)。
+
+2026-11-19 までの回答 (継続案件の Q-004、Q-015、Q-017 から Q-019) により、16 件に適用する失敗の扱いの方針が次のとおり決まりました。
+
+- 失敗の扱いを、異常終了、伝達、診断して続行、明示的な破棄、通知なし (void) の 5 つに分類する。
+- 関数を `void` とした場合も、関数の中の失敗しうる呼び出しには、異常終了、診断して続行、明示的な破棄のいずれかを必ず決める。
+- `(void)` で戻り値を破棄する呼び出しには、理由コメントを常に付ける。今回付けるのは 16 件の範囲だけとする。
+- 5 分類は、コーディング規範へ反映する。
+
+継続案件の Q-020 の回答 (2026-11-19) により、規範には本文、検証の方法、自然文のレビューの手順を用意し、確認の自動化とコンパイラの警告は対象外とすることが決まりました。  
+継続案件の Q-005 から Q-014 と Q-016 の回答 (2026-11-19) により、16 件の扱いが決まりました。  
+032 は異常終了、043、048、121、170、172 は伝達、110 は書き込みの経路で伝達、138、163、166、184 は診断して続行、044、045、047、168 は明示的な破棄、137 は通知なし (void) です。  
+確定した内容を継続案件の最終仕様 (`261118-source-comment-bl001-category-batch-design.md`) に記載し、2026-11-19 に承認を受けました。  
+2026-11-19 に 16 件を実装し、Windows/MSVC の局所テストで確認しました。16 件の状態は「対応済み」です。Linux/GCC は CI で確認します。
+
+| 枝番号 | 扱い | 対処の内容 | 確認 |
+| --- | --- | --- | --- |
+| 032 | 異常終了 | BCrypt の解放関数 9 箇所 (`BCryptCloseAlgorithmProvider` 6、`BCryptDestroyHash` 2、`BCryptDestroyKey` 1) を、失敗時に `CPLAT_ABORT` する内部関数へ置き換え、公開関数の Doxygen と `api-cheatsheet.md` に記載した。 | `cryptoTest` (成功時) |
+| 043 | 伝達 | `setvbuf` の失敗時に `CPLAT_ERR_UNKNOWN` を返す。 | `elevatedProcessTest` (成功時) |
+| 044 | 明示的な破棄 | 付け替え前の `fflush` に理由コメントを付けた。 | 変更内容の確認 |
+| 045 | 明示的な破棄 | `_close(expected_fd)` に理由コメントと `see:` を付けた。 | 変更内容の確認 |
+| 047 | 明示的な破棄 | `_dup2` 成功後の `_close(new_fd)` に理由コメントを付けた。 | 変更内容の確認 |
+| 048 | 伝達 | `SetStdHandle` の失敗時に -1 を返し、公開関数が `CPLAT_ERR_UNKNOWN` を返す。失敗時の標準ストリームが不定であることを Doxygen と `api-cheatsheet.md` に記載した。 | `elevatedProcessTest` (成功時) |
+| 110 | 伝達 / 明示的な破棄 | `close_file()` が結果を返し、書き込みの経路で失敗を返す。破棄の経路は理由コメント付きの `(void)`。 | `traceFileCoverageTest.rotation_reports_close_failure_and_continues` (失敗時) |
+| 121 | 伝達 | `main` が CSV を閉じる前に `ferror` を検査し、失敗時は診断を出して `EXIT_FAILURE` を返す。 | `benchIoFailureTest` (成功時) |
+| 137 | 通知なし (void) | `vprintf` に `(void)` と理由コメントを付け、`base_spec.h` と `prod/README.md` に失敗を通知しないことを記載した。 | `override-sample` の `make test` |
+| 138 | 診断して続行 | 一時ディレクトリとモジュール名を取得できない場合も、原因を区別した診断を出して上書きを無効にする。 | `override-sample` の `make test` (成功時) |
+| 163 | 診断して続行 | サービスの説明の設定の失敗時に WARNING のトレースを出す。 | `service-sample` の `make test` (成功時) |
+| 166 | 診断して続行 | `SetServiceStatus` の 3 箇所を内部関数にまとめ、失敗時に ERROR のトレースを出す。 | `service-sample` の `make test` (成功時) |
+| 168 | 明示的な破棄 | `emit_*()` の並びの前に理由を 1 か所に記載した。 | 変更内容の確認 |
+| 170 | 伝達 | 途中の `fflush` を理由コメント付きの `(void)` とし、終了の直前に `fflush` と `ferror` を検査する。 | `string-catalog-library-sample` の実行 (終了コード 0) |
+| 172 | 伝達 | トレース出力の失敗時に診断を出して `EXIT_FAILURE` を返す。 | `string-catalog-library-sample` の実行 (終了コード 0) |
+| 184 | 診断して続行 | 4 箇所の `cplat_fflush` を内部関数にまとめ、失敗時に標準エラー出力へ診断を出す。 | `structMetaSampleIoTest.dumpjson_reports_flush_failure` (失敗時) |
+
+Table: 16 件の対処結果
+
+失敗時のテストを追加できなかった 9 件は、継続案件の backlog の BL-002 に記録しました。  
+残る 57 件は、継続案件の backlog の BL-003 へ転記しました。57 件の状態は「次フェーズへ転記」です。  
+失敗を注入できない呼び出しのテストは、継続案件の backlog の BL-002 に記録しました。  
+032 に関連して Linux 側 (`crypto_linux.c`) も確認しました。解放の関数は戻り値が `void` で失敗を返さないため、Linux 側のソースの変更は要りません。  
+既存の `(void)` の箇所への理由コメントの追加は見送りとし、継続案件の backlog の BL-001 に記録しました。この課題は、対策元の 73 件には含まれない新しい課題です。
 
 ### 影響範囲と放置時のリスク
 
@@ -100,7 +150,7 @@ Table: 今回引き継ぐ未対策項目
 | 107 | `app/cplat/prod/libsrc/cplat/trace/backends/eventlog/trace_eventlog.c` | 識別子なしと書式化失敗が同じ判定になります。実際の作業配列で整数が収まるかと、異常時の省略方針を分けて確認します。 | 識別子の作業配列サイズと変換対象となる入力値の最大桁数を検証したうえで、書式化失敗時と識別子なし (0) を分離して扱うかを確認します。 |
 | 110 | `app/cplat/prod/libsrc/cplat/trace/backends/file/trace_file.c` | close_file はローテーションと破棄で共有されています。最終破棄の理由を、継続して書き込むローテーションへ流用できません。 | `close_file` の呼び出し元 (ローテーション時と破棄時) を分け、ローテーション時のクローズ失敗を次回書き込み・エラー記録へどう伝えるかを確認します。 |
 | 116 | `app/cplat/prod/libsrc/cplat/win32/file_api.c` | UTF-16 単位数から UTF-8 バイト数への単純比例変換はできません。部分成功時の公開戻り値契約と、出力済みデータとの整合を確認する必要があります。 | `win32.h` の UTF-8 コンソール書き込み API 契約と呼び出し元を照合し、部分書き込み発生時に書き込めた UTF-8 バイト数を計算して返すか全失敗扱いにするかを確認します。 |
-| 117 | `app/cplat/prod/src/cmd/bench-hashtable/bench-hashtable.c` | 有限寿命 5 を使う測定条件は記載済みですが、別の有効値より 5 を採る根拠は未確定です。 | `benchmark-method.md` と `bench-hashtable` の変更履歴を調べ、ベンチマーク条件 `lifetime = 5` を採った経緯 (再ハッシュ・トゥームストーン測定条件等) を確認し、設定根拠を文書化します。 |
+| 117 | `app/cplat/prod/src/cmd/bench-hashtable/bench-hashtable.c` | 有限寿命 5 を使う測定条件は記載済みですが、別の有効値より 5 を採る根拠は未確定です。 | `benchmark-method.md` と `bench-hashtable` の変更履歴を調べ、ベンチマーク条件 `lifetime = 5` を採った経緯 (再ハッシュ・トゥームス トーン測定条件等) を確認し、設定根拠を文書化します。 |
 | 118 | `app/cplat/prod/src/cmd/bench-hashtable/bench-hashtable.c` | 既定の測定範囲 16384 は確認できますが、環境・時間上限からこの値を導く条件はありません。 | `benchmark-method.md` と測定実行時間・メモリ制約を確認し、既定上限 `16384u` の選定基準を文書化するか既定値見直しの要否を判断します。 |
 | 121 | `app/cplat/prod/src/cmd/bench-io/bench-io.c`、`app/cplat/prod/src/cmd/bench-io/bench_report.c` | エラー診断と測定 CSV は目的が異なります。CSV の書き込み失敗を成功扱いにする理由は診断出力の説明で代用できません。 | `bench-io` の測定結果 CSV 出力とエラー診断出力を区別し、CSV 書き込み失敗時にコマンドの終了コードへ失敗を反映するかどうか契約を確認します。 |
 | 124 | `app/cplat/prod/src/cmd/bench-io/bench-io.c` | 通常測定に失敗していれば huge 測定を省略する動作です。失敗後も継続する通常サイズ群との方針の違いは未確定です。 | `bench-io.c` の引数仕様・測定フローと変更履歴を確認し、通常測定で一部失敗した後に huge 測定を省略する設計意図と、他サイズ群とのポリシー一致を確認します。 |

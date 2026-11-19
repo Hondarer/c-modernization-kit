@@ -342,6 +342,22 @@ static void cmd_savejson(const sample_target *target, const char *path)
     }
 }
 
+/*
+ * 表示コマンドの最後に標準出力を反映する。
+ * 失敗した場合は、同じコマンドの書き込みの失敗と同じく標準エラー出力へ診断を出し、対話を続ける。
+ */
+static void flush_command_output(const char *command)
+{
+    cplat_error error;
+
+    if (cplat_fflush(stdout, &error) != 0)
+    {
+        /* 診断の出力先がほかにない。 */
+        (void)fprintf(stderr, "struct-meta-sample: %s の標準出力を反映できません (結果コード %d)\n", command,
+                      cplat_error_to_result(&error));
+    }
+}
+
 /**
  *  @brief          構造体の内容を整形 JSON として標準出力へ表示します。
  *
@@ -391,7 +407,7 @@ static void cmd_dumpjson(const sample_target *target)
         return;
     }
 
-    (void)cplat_fflush(stdout, NULL);
+    flush_command_output("dumpjson");
     cjson_app_cJSON_free(text);
 }
 
@@ -553,7 +569,7 @@ static void cmd_catjson(const char *path)
         }
     }
 
-    (void)cplat_fflush(stdout, NULL);
+    flush_command_output("catjson");
 
     if (cplat_fclose(stream, &error) != 0)
     {
@@ -627,7 +643,7 @@ static void print_hexdump(const unsigned char *buffer, size_t size, size_t offse
 static void cmd_dumpbin(const sample_target *target)
 {
     print_hexdump((const unsigned char *)target->instance, target->descriptor->size, 0U);
-    (void)cplat_fflush(stdout, NULL);
+    flush_command_output("dumpbin");
 }
 
 /**
@@ -685,7 +701,7 @@ static void cmd_catbin(const char *path)
         }
     }
 
-    (void)cplat_fflush(stdout, NULL);
+    flush_command_output("catbin");
 
     if (cplat_fclose(stream, &error) != 0)
     {

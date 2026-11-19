@@ -78,6 +78,27 @@ static SERVICE_STATUS s_status = {0};
  */
 
 /**
+ *  @brief          現在のサービス ステータス (s_status) を SCM に通知します。
+ *
+ *  通知が失敗した場合は、エラー コードを付けた ERROR のトレースを出して処理を続けます。\n
+ *  停止へ進めても、その停止の通知が同じ理由で失敗する可能性が高く、SCM が持つ状態とのずれは解消できないためです。\n
+ *  SERVICE_STOPPED の通知は 1 回だけとされているため、再試行はしません。
+ *  see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-setservicestatus
+ */
+static void notify_service_status(void)
+{
+    if (!SetServiceStatus(s_status_handle, &s_status))
+    {
+        const DWORD err = GetLastError();
+
+        /* 状態通知の失敗を伝える経路はトレースだけであり、その失敗の伝え先はない。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "SetServiceStatus が失敗しました (状態: %lu、エラー コード: %lu)。",
+                                  s_status.dwCurrentState, err);
+    }
+}
+
+/**
  *  @brief          サービス ステータスを設定して SCM に通知します。
  *  @param[in]      state       新しいサービス状態 (SERVICE_RUNNING など)。
  *  @param[in]      controls    dwControlsAccepted (受け付けるコントロール)。
@@ -93,7 +114,7 @@ static void set_service_status(const DWORD state, const DWORD controls, const DW
     s_status.dwServiceSpecificExitCode = 0;
     s_status.dwCheckPoint = checkpoint;
     s_status.dwWaitHint = wait_hint;
-    SetServiceStatus(s_status_handle, &s_status);
+    notify_service_status();
 }
 
 /**
@@ -122,7 +143,7 @@ static void set_service_stopped(const DWORD specific_exit_code)
 
     s_status.dwCheckPoint = 0;
     s_status.dwWaitHint = 0;
-    SetServiceStatus(s_status_handle, &s_status);
+    notify_service_status();
 }
 
 /**
@@ -386,7 +407,7 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
     else if (ctrl == SERVICE_CONTROL_INTERROGATE)
     {
         /* 現在のステータスを再通知する。 */
-        SetServiceStatus(s_status_handle, &s_status);
+        notify_service_status();
     }
     else
     {
@@ -603,7 +624,14 @@ int svc_os_install(const svc_definition *def)
         SERVICE_PRESHUTDOWN_INFO preshutdown_info;
 
         description.lpDescription = (char *)def->description;
-        ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, &description);
+        if (!ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, &description))
+        {
+            const DWORD err = GetLastError();
+
+            /* 説明がなくてもサービスは動作するため、警告を残してインストールを続ける。トレースの失敗の伝え先はない。 */
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "サービスの説明の設定に失敗しました (エラー コード: %lu)。", err);
+        }
 
         /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため、W 版を直接使う)。 */
         preshutdown_info.dwPreshutdownTimeout = SVC_PRESHUTDOWN_TIMEOUT_MS;

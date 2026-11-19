@@ -328,3 +328,45 @@ TEST(structMetaSampleIoTest, dumps_json_with_trailing_newline_and_reports_write_
 
     // Cleanup
 }
+
+// dumpjson の最後の標準出力の反映が失敗した場合に、標準エラー出力へ診断を出すことの確認
+TEST(structMetaSampleIoTest, dumpjson_reports_flush_failure)
+{
+    // Arrange
+    struct SampleValue
+    {
+        int32_t count;
+    } sample = {42};
+    const struct_meta_field fields[] = {
+        {"count", STRUCT_META_FIELD_SIGNED_INTEGER, 0, offsetof(SampleValue, count), sizeof(int32_t), 1, 0, nullptr,
+         nullptr, nullptr, 0},
+    };
+    const struct_meta_descriptor descriptor = {"SampleValue", sizeof(SampleValue), fields, 1, nullptr, nullptr, 0};
+    NiceMock<Mock_cplat> mock_cplat;
+    NiceMock<Mock_stdio> mock_stdio; // [状態] - 正常な記述子と値を用意する。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat, cplat_fflush(stdout, _))
+        .WillOnce(Invoke(
+            [](FILE *, cplat_error *error) -> int
+            {
+                cplat_error_capture_errno(error, EIO);
+                return EOF;
+            }));
+    // [Pre-Assert確認_異常系] - cplat_fflush() が stdout を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - EIO を記録して EOF を返す。
+
+    // Act
+    testing::internal::CaptureStdout();
+    testing::internal::CaptureStderr();
+    test_sample_dumpjson(&descriptor, &sample); // [手順] - 反映が失敗する状態で dumpjson を実行する。
+    std::string output = testing::internal::GetCapturedStdout();
+    std::string errors = testing::internal::GetCapturedStderr();
+
+    // Assert
+    EXPECT_NE(std::string::npos, output.find("\"count\"")); // [確認_正常系] - 反映の前に JSON を出力していること。
+    EXPECT_NE(std::string::npos,
+              errors.find("dumpjson の標準出力を反映できません")); // [確認_異常系] - 反映の失敗を診断出力すること。
+
+    // Cleanup
+}
