@@ -117,6 +117,7 @@ void sample_filter_share_region_close(sample_filter_share_region **region)
 
     if ((*region)->map != NULL)
     {
+        /* 破棄の関数であり、マッピングの解除の失敗で呼び出し元が取れる行動がないため、戻り値は明示的に破棄する。 */
         (void)cplat_mmap_detach((*region)->map, NULL);
     }
 
@@ -165,6 +166,7 @@ sample_filter_share_region_result sample_filter_share_lock_create(const char *pa
         return SAMPLE_FILTER_SHARE_REGION_FAILED;
     }
 
+    /* lock_path_size は path と接尾辞の長さから求めた必要量で、切り詰めは起きないため、戻り値は明示的に破棄する。 */
     (void)snprintf(lock_path, lock_path_size, "%s%s", path, LOCK_FILE_SUFFIX);
 
     ret = cplat_local_lock_create(&lock->local);

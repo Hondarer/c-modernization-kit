@@ -25,7 +25,8 @@
  *  @brief          メイン エントリ ポイントです。
  *  @param[in]      argc コマンド ライン引数の数。
  *  @param[in]      argv コマンド ライン引数の配列。
- *  @return         正常終了時は 0 を返します。
+ *  @return         正常終了時は 0 を返します。引数が不正な場合、または標準出力へ書き込めない場合は
+ *                  EXIT_FAILURE を返します。
  */
 int main(int argc, char *argv[])
 {
@@ -34,7 +35,9 @@ int main(int argc, char *argv[])
     int need_help = 0;
 
     cplat_argparser_init(argc, argv, "関数の動的オーバーライドのサンプル コマンド。");
-    cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
+
+    /* 登録の失敗は cplat_argparser_get_register_error_count() でまとめて検査するため、戻り値は明示的に破棄する。 */
+    (void)cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
 
     /*
      * オプション登録の失敗は、コーディング エラーとして終了する。
@@ -42,7 +45,8 @@ int main(int argc, char *argv[])
      */
     if (cplat_argparser_get_register_error_count() > 0)
     {
-        cplat_argparser_print_register_error_messages(stderr);
+        /* 終了コードはすでに失敗に決まっているため、戻り値は明示的に破棄する。 */
+        (void)cplat_argparser_print_register_error_messages(stderr);
         return EXIT_FAILURE;
     }
 
@@ -54,14 +58,21 @@ int main(int argc, char *argv[])
      */
     if (need_help != 0)
     {
-        cplat_argparser_print_usage(stdout);
+        if (cplat_argparser_print_usage(stdout) != CPLAT_OK || fflush(stdout) != 0 || ferror(stdout) != 0)
+        {
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "error: failed to write stdout\n");
+            return EXIT_FAILURE;
+        }
+
         return EXIT_SUCCESS;
     }
 
     if (parse_result != CPLAT_OK)
     {
-        cplat_argparser_print_error_messages(stderr);
-        cplat_argparser_print_usage(stderr);
+        /* 終了コードはすでに失敗に決まっているため、この 2 つの表示の関数の戻り値は明示的に破棄する。 */
+        (void)cplat_argparser_print_error_messages(stderr);
+        (void)cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;
     }
 
@@ -83,13 +94,15 @@ int main(int argc, char *argv[])
             if (cplat_path_concat(configpath, sizeof(configpath), &error, tmpdir, PLATFORM_PATH_SEP,
                                   "libbase_extdef.jsonc") != CPLAT_OK)
             {
-                fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
+                /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+                (void)fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
                 return EXIT_FAILURE;
             }
         }
         else if (cplat_error_is(&error, CPLAT_CAUSE_NAME_TOO_LONG) != 0)
         {
-            fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "failed to build config path: exceeds PLATFORM_PATH_MAX\n");
             return EXIT_FAILURE;
         }
         else
@@ -98,31 +111,44 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("configpath: %s\n", configpath);
-    printf("Processing will be extended if defines.\n");
-    printf(" e.g.  printf '{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\\n'"
-           " > \"%s\"\n",
-           configpath);
+    /*
+     * 標準出力への途中の出力の失敗はストリームに残り、終了の直前にまとめて検査するため、
+     * この関数の printf の戻り値は明示的に破棄する。
+     */
+    (void)printf("configpath: %s\n", configpath);
+    (void)printf("Processing will be extended if defines.\n");
+    (void)printf(" e.g.  printf '{\"base_calc\":{\"lib\":\"liboverride\",\"func\":\"override_calc\"}}\\n'"
+                 " > \"%s\"\n",
+                 configpath);
 #if defined(PLATFORM_LINUX)
-    printf("       rm \"%s\"\n\n", configpath);
+    (void)printf("       rm \"%s\"\n\n", configpath);
 #elif defined(PLATFORM_WINDOWS)
-    printf("       del \"%s\"\n\n", configpath);
+    (void)printf("       del \"%s\"\n\n", configpath);
 #endif /* PLATFORM_ */
 
-    printf("--- sym_loader info ---\n");
+    (void)printf("--- sym_loader info ---\n");
     ret = base_sym_loader_info();
-    printf("ret: %d\n\n", ret);
+    (void)printf("ret: %d\n\n", ret);
 
     ret = base_calc(1, 2, &result);
     base_console_output("ret: %d\n", ret);
 
     if (ret != BASE_OK)
     {
-        fprintf(stderr, "func failed (base_calc(1, 2, &result))\n");
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "func failed (base_calc(1, 2, &result))\n");
     }
     else
     {
-        printf("result: %d\n", result);
+        (void)printf("result: %d\n", result);
+    }
+
+    /* 途中の出力の失敗はストリームに残るため、終了の直前にまとめて検査する。 */
+    if (fflush(stdout) != 0 || ferror(stdout) != 0)
+    {
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "error: failed to write stdout\n");
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;

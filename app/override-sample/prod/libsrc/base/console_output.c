@@ -21,6 +21,6 @@ void base_console_output(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-    (void)vprintf(format, args); /* 出力の失敗は通知しない契約 (base_spec.h) */
+    (void)vprintf(format, args); /* 出力の失敗を通知しない契約 (base_spec.h) のため、戻り値は明示的に破棄する */
     va_end(args);
 }

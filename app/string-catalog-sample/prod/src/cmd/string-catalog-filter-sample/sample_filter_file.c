@@ -154,6 +154,7 @@ int sample_filter_file_load(const char *path, const size_t line_capacity, const 
         ret = read_rows(stream, line_width, rows, too_long, &line_count);
     }
 
+    /* 読み取り専用のストリームであり、読み取りの結果は ret で確定しているため、戻り値は明示的に破棄する。 */
     (void)cplat_fclose(stream, NULL);
 
     /* 失敗した場合に格納先を変えないよう、手元の領域へコンパイルしてから複製する。 */
@@ -202,6 +203,10 @@ int sample_filter_file_load(const char *path, const size_t line_capacity, const 
 
         if (result_out != NULL)
         {
+            /*
+             * image は直前のコンパイルが成功したフィルター オブジェクトの複製であり、ヘッダーの検証は失敗しないため、
+             * 戻り値は明示的に破棄する。
+             */
             (void)cplat_string_catalog_filter_get_info(image, image_size, &info);
             result_out->line_count = line_count;
             result_out->condition_count = info.line_count;

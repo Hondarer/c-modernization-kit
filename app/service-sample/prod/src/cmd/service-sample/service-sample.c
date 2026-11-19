@@ -59,15 +59,22 @@ cplat_tracer *svc_get_tracer(void)
 static int tracer_open(const svc_definition *def, const int enable_stderr)
 {
     cplat_trace_level stderr_level;
+    int file_result;
 
-    s_tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
+    s_tracer =cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
     if (s_tracer == NULL)
     {
         return -1;
     }
 
-    cplat_tracer_set_name(s_tracer, def->name, 0);
-    cplat_tracer_set_os_level(s_tracer, CPLAT_TRACE_LEVEL_NONE);
+    /*
+     * 名前は OS トレースと ETW の識別にだけ使い、ファイルと標準エラー出力のトレースには影響しない (tracer.h) ため、
+     * 戻り値は明示的に破棄する。
+     */
+    (void)cplat_tracer_set_name(s_tracer, def->name, 0);
+
+    /* 生成済みのハンドルと範囲内のレベルを渡し、tracer.h の失敗の条件に当たらないため、戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_set_os_level(s_tracer, CPLAT_TRACE_LEVEL_NONE);
 
     if (enable_stderr != 0)
     {
@@ -78,13 +85,21 @@ static int tracer_open(const svc_definition *def, const int enable_stderr)
         stderr_level = CPLAT_TRACE_LEVEL_NONE;
     }
 
-    cplat_tracer_set_stderr_level(s_tracer, stderr_level);
+    /* 生成済みのハンドルと範囲内のレベルを渡し、tracer.h の失敗の条件に当たらないため、戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_set_stderr_level(s_tracer, stderr_level);
 
     /*
      * Windows で一般ユーザーによる実行の場合、昇格が発生し同じファイルに複数プロセスが
      * 出力するため、共有モードを指定する。パスとファイル名は cplat tracer の既定の解決に任せる。
+     * 設定できない場合はファイルへのトレースだけが無効になるため、診断を出して開始へ進む。
      */
-    cplat_tracer_set_file_level(s_tracer, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0, 0, CPLAT_TRACE_FILE_SINK_SHARED);
+    file_result =
+        cplat_tracer_set_file_level(s_tracer, NULL, CPLAT_TRACE_LEVEL_VERBOSE, 0, 0, CPLAT_TRACE_FILE_SINK_SHARED);
+    if (file_result != CPLAT_OK)
+    {
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "ファイルへのトレースを設定できませんでした (結果コード: %d)。\n", file_result);
+    }
 
     return cplat_tracer_start(s_tracer);
 }
@@ -98,7 +113,8 @@ static void tracer_close(void)
 {
     if (s_tracer != NULL)
     {
-        cplat_tracer_stop(s_tracer);
+        /* NULL でないことを確認済みであり、tracer.h の失敗の条件 (NULL) に当たらないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_stop(s_tracer);
         cplat_tracer_dispose(&s_tracer);
         s_tracer = NULL;
     }
@@ -151,22 +167,44 @@ int svc_stop_requested(void)
 int svc_wait_for_stop(const int timeout_ms)
 {
     int requested;
+    int wait_ms;
+    int wait_result;
 
     if (s_stop_lock == NULL || s_stop_cv == NULL)
     {
         return 1;
     }
 
+    /* 負の時間は待機の関数が失敗として扱うため、ヘッダーの記載どおりタイムアウト 0 として扱う。 */
+    wait_ms = timeout_ms;
+    if (wait_ms < 0)
+    {
+        wait_ms = 0;
+    }
+
+    wait_result = CPLAT_OK;
     cplat_local_lock_lock(s_stop_lock);
 
     if (s_stop_requested == 0)
     {
         /* spurious wakeup 対策のため待機後に再確認する。 */
-        cplat_condvar_timed_wait(s_stop_cv, s_stop_lock, timeout_ms);
+        wait_result = cplat_condvar_timed_wait(s_stop_cv, s_stop_lock, wait_ms);
     }
 
     requested = s_stop_requested;
     cplat_local_lock_unlock(s_stop_lock);
+
+    /*
+     * 待機に失敗した場合は、待たずに戻る呼び出しが周期処理を間隔なしで回し続けないよう、
+     * 停止の要求の状態は変えずに 1 を返して周期処理を抜けさせる。
+     */
+    if (wait_result != CPLAT_OK && wait_result != CPLAT_ERR_TIMEOUT)
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "停止要求の待機に失敗しました (結果コード: %d)。", wait_result);
+        return 1;
+    }
 
     return requested;
 }
@@ -186,7 +224,8 @@ void svc_set_status_text(const char *text)
         return;
     }
 
-    cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "状態テキスト: %s", text);
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "状態テキスト: %s", text);
     svc_os_notify_status(text);
 }
 
@@ -205,8 +244,9 @@ void svc_dispatch_event(const svc_definition *def, const svc_event_info *info)
         return;
     }
 
-    cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "OS イベントを配送します (種別: %d)。",
-                        (int)info->type);
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "OS イベントを配送します (種別: %d)。",
+                              (int)info->type);
     def->on_event(info, def->user_data);
 }
 
@@ -217,7 +257,8 @@ void svc_dispatch_reload(const svc_definition *def)
         return;
     }
 
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込要求を配送します。");
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込要求を配送します。");
     svc_os_notify_reloading();
     def->on_reload(def->user_data);
     svc_os_notify_ready();
@@ -258,7 +299,19 @@ int svc_run_lifecycle(const svc_definition *def)
     int rc;
 
     cplat_console_init();
-    cplat_shutdown_request_register(shutdown_request_callback, NULL);
+
+    /* 停止の要求を受け取れないとサービスを停止できないため、登録に失敗した場合は開始しない。 */
+    rc = cplat_shutdown_request_register(shutdown_request_callback, NULL);
+    if (rc != CPLAT_OK)
+    {
+        /*
+         * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+         * この関数のトレースの戻り値は明示的に破棄する。
+         */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "停止要求の登録に失敗しました (結果コード: %d)。", rc);
+        return EXIT_FAILURE;
+    }
 
     rc = EXIT_SUCCESS;
 
@@ -268,8 +321,8 @@ int svc_run_lifecycle(const svc_definition *def)
         rc = def->on_start(def->user_data);
         if (rc != EXIT_SUCCESS)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "on_start が失敗しました (戻り値: %d)。", rc);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "on_start が失敗しました (戻り値: %d)。", rc);
         }
     }
 
@@ -284,8 +337,8 @@ int svc_run_lifecycle(const svc_definition *def)
         run_rc = def->on_run(def->user_data);
         if (run_rc != EXIT_SUCCESS)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "on_run が失敗しました (戻り値: %d)。",
-                                run_rc);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "on_run が失敗しました (戻り値: %d)。", run_rc);
         }
 
         svc_os_notify_stopping();
@@ -298,8 +351,8 @@ int svc_run_lifecycle(const svc_definition *def)
             stop_rc = def->on_stop(def->user_data);
             if (stop_rc != EXIT_SUCCESS)
             {
-                cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                    "on_stop が失敗しました (戻り値: %d)。", stop_rc);
+                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                          "on_stop が失敗しました (戻り値: %d)。", stop_rc);
             }
         }
 
@@ -337,8 +390,10 @@ int main(int argc, char *argv[])
     /*
      * 昇格起動された場合、親コンソールへ再接続して出力を元のコンソールへ戻す。
      * 引き継ぎフラグを argv から取り除く必要があるため、引数解析より前に呼び出す。
+     * 再接続できない場合もフラグは取り除かれ、出力が元のコンソールへ戻らないだけで処理を続けられるため、
+     * 戻り値は明示的に破棄する。
      */
-    cplat_console_attach_parent(&argc, argv, NULL);
+    (void)cplat_console_attach_parent(&argc, argv, NULL);
 
     cplat_console_init();
 
@@ -346,13 +401,16 @@ int main(int argc, char *argv[])
     const char *command = NULL;
 
     cplat_argparser_init(argc, argv, "サービスの登録、削除、起動を行います。");
-    cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
-    cplat_argparser_register_positional_string("command", "install、uninstall、run、console のいずれか。",
-                                               CPLAT_ARGPARSER_REQUIRED, &command);
+
+    /* 登録の失敗は cplat_argparser_get_register_error_count() でまとめて検査するため、戻り値は明示的に破棄する。 */
+    (void)cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
+    (void)cplat_argparser_register_positional_string("command", "install、uninstall、run、console のいずれか。",
+                                                     CPLAT_ARGPARSER_REQUIRED, &command);
 
     if (cplat_argparser_get_register_error_count() > 0)
     {
-        cplat_argparser_print_register_error_messages(stderr);
+        /* 終了コードはすでに失敗に決まっているため、戻り値は明示的に破棄する。 */
+        (void)cplat_argparser_print_register_error_messages(stderr);
         return EXIT_FAILURE;
     }
 
@@ -360,40 +418,52 @@ int main(int argc, char *argv[])
 
     if (need_help != 0)
     {
-        cplat_argparser_print_usage(stdout);
+        if (cplat_argparser_print_usage(stdout) != CPLAT_OK || fflush(stdout) != 0 || ferror(stdout) != 0)
+        {
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "エラー: 使い方を標準出力へ書き込めませんでした。\n");
+            return EXIT_FAILURE;
+        }
+
         return EXIT_SUCCESS;
     }
 
     if (parse_result != CPLAT_OK)
     {
-        cplat_argparser_print_error_messages(stderr);
-        cplat_argparser_print_usage(stderr);
+        /* 終了コードはすでに失敗に決まっているため、この 2 つの表示の関数の戻り値は明示的に破棄する。 */
+        (void)cplat_argparser_print_error_messages(stderr);
+        (void)cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;
     }
 
     if (strcmp(command, "install") != 0 && strcmp(command, "uninstall") != 0 && strcmp(command, "run") != 0 &&
         strcmp(command, "console") != 0)
     {
-        fprintf(stderr, "不明なコマンド '%s'\n\n", command);
-        cplat_argparser_print_usage(stderr);
+        /* 診断の出力であり、終了コードはすでに失敗に決まっているため、この 2 つの出力の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "不明なコマンド '%s'\n\n", command);
+        (void)cplat_argparser_print_usage(stderr);
         return EXIT_FAILURE;
     }
 
     /* run コマンドのみサービス モード: SCM/systemd 起動のため stderr は無効化する。 */
     int is_service_mode = (strcmp(command, "run") == 0);
-    tracer_open(&g_service_def, !is_service_mode); /* 失敗しても s_tracer=NULL で継続 */
+
+    /* 失敗しても s_tracer=NULL でトレースが無効になるだけで処理を続けられるため、戻り値は明示的に破棄する。 */
+    (void)tracer_open(&g_service_def, !is_service_mode);
 
     /* 停止イベント抽象を初期化する。 */
     if (cplat_local_lock_create(&s_stop_lock) != CPLAT_OK)
     {
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "ミューテックスの生成に失敗しました。");
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "ミューテックスの生成に失敗しました。");
         tracer_close();
         return EXIT_FAILURE;
     }
 
     if (cplat_condvar_create(&s_stop_cv) != CPLAT_OK)
     {
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "条件変数の生成に失敗しました。");
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "条件変数の生成に失敗しました。");
         cplat_local_lock_dispose(s_stop_lock);
         s_stop_lock = NULL;
         tracer_close();

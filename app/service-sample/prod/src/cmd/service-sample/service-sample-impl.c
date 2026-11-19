@@ -33,10 +33,12 @@
 static int on_start(void *user_data)
 {
     (void)user_data;
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 開始");
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 開始");
 
     /* TODO: ここに初期化処理を書く */
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 終了");
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 終了");
 
     return 0;
 }
@@ -55,25 +57,32 @@ static int on_run(void *user_data)
     unsigned long cycle_count;
 
     (void)user_data;
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                       "動作中です。Ctrl+C または停止コマンドで終了します。");
 
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                             "動作中です。Ctrl+C または停止コマンドで終了します。");
+
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
     cycle_count = 0;
 
     /* 停止要求が届くまで 1000 [ms] 間隔で周期処理を繰り返す。 */
     while (svc_wait_for_stop(1000) == 0)
     {
         /* TODO: ここに周期処理を書く (現状は何もしない雛形) */
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
 
         /* 状態テキストの通知例 (Linux では systemctl status に表示される)。 */
         cycle_count++;
+
+        /*
+         * 固定の文面 (UTF-8 で 32 [byte]) と unsigned long の最大 20 桁、終端の計 53 [byte] が
+         * status_text の 64 [byte] に収まり、切り詰めは起きないため、戻り値は明示的に破棄する。
+         */
         (void)cplat_snprintf(status_text, sizeof(status_text), "動作中 (周期処理 %lu 回目)", cycle_count);
         svc_set_status_text(status_text);
     }
 
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 終了");
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 終了");
 
     return 0;
 }
@@ -86,10 +95,12 @@ static int on_run(void *user_data)
 static int on_stop(void *user_data)
 {
     (void)user_data;
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 開始");
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 開始");
 
     /* TODO: ここに停止処理を書く */
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 終了");
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 終了");
 
     return 0;
 }
@@ -105,38 +116,40 @@ static void on_event(const svc_event_info *info, void *user_data)
 {
     (void)user_data;
 
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
     switch (info->type)
     {
     case SVC_EVENT_POWER_SUSPEND:
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドを開始します。");
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドを開始します。");
 
         /* TODO: ここにサスペンド前処理を書く */
         break;
     case SVC_EVENT_POWER_RESUME:
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドから復帰しました。");
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドから復帰しました。");
 
         /* TODO: ここに復帰処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGON:
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "セッションがログオンしました (ID: %s)。",
-                            info->session_id);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                  "セッションがログオンしました (ID: %s)。", info->session_id);
 
         /* TODO: ここにログオン時処理を書く */
         break;
     case SVC_EVENT_SESSION_LOGOFF:
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "セッションがログオフしました (ID: %s)。",
-                            info->session_id);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                  "セッションがログオフしました (ID: %s)。", info->session_id);
 
         /* TODO: ここにログオフ時処理を書く */
         break;
     case SVC_EVENT_PRESHUTDOWN:
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "システムのシャットダウンが始まります。");
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                 "システムのシャットダウンが始まります。");
 
         /* TODO: ここにシャットダウン前処理を書く */
         break;
     default:
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "未知のイベントです (種別: %d)。",
-                            (int)info->type);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "未知のイベントです (種別: %d)。",
+                                  (int)info->type);
         break;
     }
 }
@@ -150,10 +163,12 @@ static void on_event(const svc_event_info *info, void *user_data)
 static void on_reload(void *user_data)
 {
     (void)user_data;
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 開始");
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 開始");
 
     /* TODO: ここに設定再読込処理を書く */
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 終了");
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 終了");
 }
 
 /*

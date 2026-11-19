@@ -6,7 +6,7 @@
  *  @date           2026/09/26
  *  @version        0.1.0
  *
- *  ワーカー スレッドが `sample_worker_trace.jsonc` の 7 種類のトレースを出し続ける間に、
+ *  ワーカー スレッドが `sample_worker_trace.jsonc` の 8 種類のトレースを出し続ける間に、
  *  条件式フィルターを編集して適用し、スレッド セーフな差し替えと表示の変化を確認できます。\n
  *  設計の背景は `app/string-catalog-sample/docs/trace-filter-poc.md` を参照してください。
  *
@@ -38,6 +38,7 @@
 #include <cplat/sync/sync.h>
 #include <cplat/trace/tracer.h>
 
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -326,8 +327,8 @@ static void split_first_token(char *text, char **token_out, char **rest_out)
 /* ===== トレース出力 (生成物の型付きラッパーが、引数の型を jsonc の引数スキーマで検査する) ===== */
 
 /*
- * 次の emit_*() は、トレースの出力結果を破棄する。
- * トレースはワーカーの動作を観測する手段であり、出力の失敗でワーカーの処理を止めないためである。
+ * トレースはワーカーの動作を観測する手段であり、出力の失敗でワーカーの処理を止めないため、
+ * 次の emit_*() の中の型付きラッパーの戻り値は明示的に破棄する。
  */
 
 static void emit_worker_started(const uint32_t worker_index)
@@ -366,12 +367,17 @@ static void emit_command_received(const int command, const int status, const int
     (void)sample_worker_trace_key_command_received((char)command, (uint8_t)status, delta);
 }
 
+static void emit_worker_wait_failed(const uint32_t worker_index, const int32_t result)
+{
+    (void)sample_worker_trace_key_worker_wait_failed(worker_index, result);
+}
+
 /**
  *  @brief          1 ティック分のジョブ系 5 種類のトレースを、カタログの定義順に出力します。
  *
  *  値はワーカー番号とティック番号から変化させます。\n
  *  WORKER_STARTED と WORKER_STOPPED は、スレッドの開始時と終了時に 1 回ずつ出力します。
- *  7 種類すべてを 1 回ずつ出力する確認には emit コマンドを使います。
+ *  8 種類すべてを 1 回ずつ出力する確認には emit コマンドを使います。
  */
 static void emit_worker_cycle(const unsigned int worker_index, const uint64_t tick)
 {
@@ -390,6 +396,10 @@ static void emit_worker_cycle(const unsigned int worker_index, const uint64_t ti
 
     job_id = ((uint64_t)worker_index * 1000ULL) + tick;
 
+    /*
+     * 接頭辞 7 文字と unsigned int の最大 10 桁、終端の計 18 [byte] が job_name の 32 [byte] に収まり、
+     * 切り詰めは起きないため、この 2 つの snprintf の戻り値は明示的に破棄する。
+     */
     if ((tick % 2ULL) == 0ULL)
     {
         (void)snprintf(job_name, sizeof(job_name), "import-%u", worker_index);
@@ -461,6 +471,7 @@ static void emit_worker_cycle(const unsigned int worker_index, const uint64_t ti
 /*
  * ワーカー スレッドの本体処理を実行する。
  * 停止要求を受けるまで、設定された間隔ごとにトレース出力を繰り返す。
+ * 待機に失敗した場合は、間隔なしでトレースを出し続けないよう、待機の失敗をトレースへ出して周期の処理を止める。
  */
 static void filter_sample_worker_thread_proc(void *arg)
 {
@@ -472,16 +483,23 @@ static void filter_sample_worker_thread_proc(void *arg)
     for (;;)
     {
         int stop;
+        int wait_result = CPLAT_OK;
 
         cplat_local_lock_lock(s_worker_lock);
         stop = s_worker_stop_requested;
         if (!stop)
         {
-            (void)cplat_condvar_timed_wait(s_worker_condvar, s_worker_lock, (int)worker->interval_ms);
+            wait_result = cplat_condvar_timed_wait(s_worker_condvar, s_worker_lock, (int)worker->interval_ms);
             stop = s_worker_stop_requested;
         }
 
         cplat_local_lock_unlock(s_worker_lock);
+
+        if ((wait_result != CPLAT_OK) && (wait_result != CPLAT_ERR_TIMEOUT))
+        {
+            emit_worker_wait_failed((uint32_t)worker->worker_index, (int32_t)wait_result);
+            break;
+        }
 
         if (stop)
         {
@@ -562,6 +580,11 @@ static void dispose_worker_sync(void)
 
 /* ===== トレース フック ===== */
 
+/*
+ * 画面へ表示するトレースと区間の空行は利用者が画面で確認する表示であるため、
+ * この節の関数の cplat_pinned_prompt_printf の戻り値は明示的に破棄する。
+ */
+
 /**
  *  @brief          表示のしきい値で選別し、通過したトレースだけを pinned-prompt の STDOUT へ表示します。
  *
@@ -582,6 +605,10 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
     /* 出力先と同じく、NONE と FORCE_NONE は出力しない。 */
     if ((level != CPLAT_TRACE_LEVEL_NONE) && (level != CPLAT_TRACE_LEVEL_FORCE_NONE) && (level <= threshold))
     {
+        /*
+         * 表示用の文字列であり、text に収まらない分の切り詰めを許容するため、
+         * この 2 つの snprintf の戻り値は明示的に破棄する。
+         */
         if (CPLAT_TRACE_LEVEL_IS_FORCE(level))
         {
             const cplat_trace_level original_level = CPLAT_TRACE_LEVEL_FROM_FORCE(level);
@@ -610,7 +637,7 @@ static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer
         }
         else
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", text);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", text);
             s_is_after_trailing_blank = 0;
         }
 
@@ -640,7 +667,7 @@ static void begin_command_section(cplat_pinned_prompt *screen)
 
     if (needs_blank)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
     }
 }
 
@@ -653,17 +680,18 @@ static void begin_command_section(cplat_pinned_prompt *screen)
 static void end_command_section(cplat_pinned_prompt *screen)
 {
     cplat_local_lock_lock(s_output_lock);
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n");
 
     for (size_t index = 0; index < s_pending_line_count; index++)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", s_pending_lines[index]);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", s_pending_lines[index]);
     }
 
     if (s_pending_dropped_count > 0U)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                   "(表示を保留したトレースのうち %zu 件を破棄しました)\n", s_pending_dropped_count);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                         "(表示を保留したトレースのうち %zu 件を破棄しました)\n",
+                                         s_pending_dropped_count);
     }
 
     /* 保留した表示がなければ、出力領域は区間の終わりの空行で終わっている。 */
@@ -675,6 +703,8 @@ static void end_command_section(cplat_pinned_prompt *screen)
 }
 
 /* ===== 診断表示 ===== */
+
+/* 診断の出力先がほかにないため、この節の関数の cplat_pinned_prompt_printf の戻り値は明示的に破棄する。 */
 
 /* 条件式の解析エラーなどの発生位置を示すキャレット行を表示する。 */
 static void print_column_marker(cplat_pinned_prompt *screen, const size_t column)
@@ -696,20 +726,25 @@ static void print_column_marker(cplat_pinned_prompt *screen, const size_t column
     marker[fill_count] = '^';
     marker[fill_count + 1U] = '\0';
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "%s\n", marker);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "%s\n", marker);
 }
 
 /* 条件式の解析エラー情報と発生位置のキャレットを表示する。 */
 static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression,
                              const cplat_string_catalog_filter_diagnostic *diagnostic)
 {
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s (桁=%u)\n",
-                               line_error_label(diagnostic->error), (unsigned int)(diagnostic->column + 1U));
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "%s\n", expression);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s (桁=%u)\n",
+                                     line_error_label(diagnostic->error), (unsigned int)(diagnostic->column + 1U));
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "%s\n", expression);
     print_column_marker(screen, (size_t)diagnostic->column);
 }
 
 /* ===== 一覧表示 ===== */
+
+/*
+ * 標準出力のチャネルへの出力は利用者が画面で確認する対話の応答であり、標準エラー出力のチャネルへの出力は
+ * 診断の出力先がほかにないため、この節の関数の cplat_pinned_prompt_printf の戻り値は明示的に破棄する。
+ */
 
 /**
  *  @brief          フィルター オブジェクトの条件式を 1 行ずつ表示します。
@@ -731,15 +766,15 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
     ret = cplat_string_catalog_filter_get_info(image, image_size, &info);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: フィルター オブジェクトの情報を取得できませんでした (結果コード=%d)。\n",
-                                   ret);
+        (void)cplat_pinned_prompt_printf(
+            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+            "エラー: フィルター オブジェクトの情報を取得できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
     if (info.line_count == 0U)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  (条件式はありません)\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  (条件式はありません)\n");
         return;
     }
 
@@ -750,25 +785,33 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
         ret = cplat_string_catalog_filter_decompile_line(image, image_size, (size_t)i, text, sizeof(text));
         if (ret != CPLAT_OK)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                       "  %2u: <復元できません (結果コード=%d)>\n", (unsigned int)(i + 1U), ret);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                             "  %2u: <復元できません (結果コード=%d)>\n", (unsigned int)(i + 1U), ret);
             continue;
         }
 
         if (describing_slot != NULL)
         {
-            (void)cplat_string_catalog_filter_slot_get_line_error(describing_slot, (size_t)i, &line_error);
+            /* 状態を取得できない行は、有効な行として説明を表示せず、条件式だけを代替の表示で出す。 */
+            ret = cplat_string_catalog_filter_slot_get_line_error(describing_slot, (size_t)i, &line_error);
+            if (ret != CPLAT_OK)
+            {
+                (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                                 "  %2u: <状態を取得できません (結果コード=%d)> %s\n",
+                                                 (unsigned int)(i + 1U), ret, text);
+                continue;
+            }
         }
 
         if (line_error != CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_NONE)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %2u: [無効: %s] %s\n",
-                                       (unsigned int)(i + 1U), line_error_label(line_error), text);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %2u: [無効: %s] %s\n",
+                                             (unsigned int)(i + 1U), line_error_label(line_error), text);
         }
         else
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %2u: %s\n",
-                                       (unsigned int)(i + 1U), text);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %2u: %s\n",
+                                             (unsigned int)(i + 1U), text);
 
             /* 有効な行だけが、名前解決の結果とカタログのメタ情報に結び付く。 */
             if (describing_slot != NULL)
@@ -777,7 +820,8 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
                                                                      sizeof(description));
                 if ((ret == CPLAT_OK) || (ret == CPLAT_ERR_BUFFER_TOO_SMALL))
                 {
-                    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "      → %s\n", description);
+                    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "      → %s\n",
+                                                     description);
                 }
             }
         }
@@ -786,9 +830,14 @@ static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char 
 
 /* ===== コマンド ===== */
 
+/*
+ * 標準出力のチャネルへの出力は利用者が画面で確認する対話の応答であり、標準エラー出力のチャネルへの出力は
+ * 診断の出力先がほかにないため、この節の関数の cplat_pinned_prompt_printf の戻り値は明示的に破棄する。
+ */
+
 static void print_help(cplat_pinned_prompt *screen)
 {
-    cplat_pinned_prompt_printf(
+    (void)cplat_pinned_prompt_printf(
         screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
         "commands:\n"
         "  help                         このヘルプを表示します\n"
@@ -810,7 +859,7 @@ static void print_help(cplat_pinned_prompt *screen)
         "  status                       共有メモリの版番号と、取り込み済みの版番号を表示します\n"
         "  display [レベル]             表示のしきい値を取得または設定します\n"
         "  language [ja|en|neutral]     出力言語 (トレースと説明文) を取得または設定します\n"
-        "  emit                         7 種類のトレースを 1 回ずつ出力します\n"
+        "  emit                         8 種類のトレースを 1 回ずつ出力します\n"
         "  start [ワーカー数] [間隔ms]  ワーカー スレッドを起動します (既定 2 個、500 ms)\n"
         "  stop                         ワーカー スレッドを停止します\n"
         "  quit, exit                   終了します\n");
@@ -929,8 +978,9 @@ static void print_context_table(cplat_pinned_prompt *screen)
 
     entry = &catalog->entries[0];
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "        指定できるコンテキスト引数 (arg.<名前> または arg[<番号>] で参照します):\n");
+    (void)cplat_pinned_prompt_printf(
+        screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+        "        指定できるコンテキスト引数 (arg.<名前> または arg[<番号>] で参照します):\n");
 
     for (int index = FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST; index < entry->argument_count; index++)
     {
@@ -941,8 +991,9 @@ static void print_context_table(cplat_pinned_prompt *screen)
             continue;
         }
 
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "          {%d} %-17s %-7s %s\n", index,
-                                   argument->name, argument_kind_label(argument->kind), argument->description);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "          {%d} %-17s %-7s %s\n",
+                                         index, argument->name, argument_kind_label(argument->kind),
+                                         argument->description);
     }
 }
 
@@ -953,21 +1004,21 @@ static void print_context_table(cplat_pinned_prompt *screen)
  */
 static void print_level_table(cplat_pinned_prompt *screen)
 {
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "        指定できるレベルと列挙値 (名前と数値のどちらでも書けます):\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "        指定できるレベルと列挙値 (名前と数値のどちらでも書けます):\n");
 
     for (size_t value = 0; value < s_category_names.count; value++)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "          %-8s = %u\n",
-                                   s_category_names.names[value], (unsigned int)value);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "          %-8s = %u\n",
+                                         s_category_names.names[value], (unsigned int)value);
     }
 }
 
 /** 条件式の例を表示します。例は add や edit へそのまま指定できます。 */
 static void print_usage(cplat_pinned_prompt *screen)
 {
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "条件式の例 (add や edit へそのまま指定できます):\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "条件式の例 (add や edit へそのまま指定できます):\n");
 
     for (size_t index = 0; index < (sizeof(s_expression_examples) / sizeof(s_expression_examples[0])); index++)
     {
@@ -976,11 +1027,12 @@ static void print_usage(cplat_pinned_prompt *screen)
         switch (example->kind)
         {
         case FILTER_SAMPLE_EXAMPLE_KIND_HEADING:
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n  [%s]\n", example->description);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "\n  [%s]\n",
+                                             example->description);
             break;
         case FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION:
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "    %s\n        %s\n",
-                                       example->expression, example->description);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "    %s\n        %s\n",
+                                             example->expression, example->description);
             break;
         case FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE:
             print_level_table(screen);
@@ -1007,8 +1059,9 @@ static void print_slot_lines(cplat_pinned_prompt *screen, cplat_string_catalog_f
     ret = cplat_string_catalog_filter_slot_snapshot(slot, snapshot_image, sizeof(snapshot_image));
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: フィルター オブジェクトを取得できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: フィルター オブジェクトを取得できませんでした (結果コード=%d)。\n",
+                                         ret);
         return;
     }
 
@@ -1027,7 +1080,7 @@ static void command_list(cplat_pinned_prompt *screen)
     if ((cplat_string_catalog_filter_slot_get_source_status(s_slot, &status) == CPLAT_OK) &&
         (cplat_string_catalog_filter_source_get_info(source, source_size, &info) == CPLAT_OK))
     {
-        cplat_pinned_prompt_printf(
+        (void)cplat_pinned_prompt_printf(
             screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  取り込み済みの版番号: %llu (公開済みの版番号: %llu)\n",
             (unsigned long long)status.taken_revision, (unsigned long long)info.published_revision);
     }
@@ -1069,14 +1122,14 @@ static void print_type_warnings(cplat_pinned_prompt *screen, const size_t line_i
 
         if (sample_filter_warning_format(sample_worker_trace_catalog(), &warnings[i], text, sizeof(text)) == CPLAT_OK)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "警告: %s\n", text);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "警告: %s\n", text);
         }
     }
 
     if (warning_count > FILTER_SAMPLE_WARNING_CAPACITY)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "警告: ほかにも警告があります (全体で %zu 件)。\n", warning_count);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "警告: ほかにも警告があります (全体で %zu 件)。\n", warning_count);
     }
 }
 
@@ -1094,8 +1147,8 @@ static void command_draft(cplat_pinned_prompt *screen)
     if (ret != CPLAT_OK)
     {
         /* 下見できない場合も、編集中の条件式だけは表示する。 */
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 編集中イメージを下見できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 編集中イメージを下見できませんでした (結果コード=%d)。\n", ret);
         print_filter_lines(screen, s_draft_image, sizeof(s_draft_image), NULL);
         return;
     }
@@ -1136,9 +1189,9 @@ static int reject_invalid_level(cplat_pinned_prompt *screen, const char *express
              (diagnostics[index].error == CPLAT_STRING_CATALOG_FILTER_LINE_ERROR_CATEGORY_OUT_OF_RANGE)))
         {
             memcpy(s_draft_image, s_draft_backup, sizeof(s_draft_image));
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s\n%s\n",
-                                       line_error_label(diagnostics[index].error), expression);
-            cplat_pinned_prompt_printf(
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "エラー: %s\n%s\n",
+                                             line_error_label(diagnostics[index].error), expression);
+            (void)cplat_pinned_prompt_printf(
                 screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                 "レベルは %s から %s までの名前、または 0 から %u までの整数で指定してください。\n", s_level_labels[0],
                 s_level_labels[s_category_names.count - 1U], (unsigned int)(s_category_names.count - 1U));
@@ -1157,15 +1210,15 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
 
     if (expression == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: add <条件式>\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: add <条件式>\n");
         return;
     }
 
     ret = cplat_string_catalog_filter_get_info(s_draft_image, sizeof(s_draft_image), &info);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 編集中イメージの情報を取得できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 編集中イメージの情報を取得できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
@@ -1180,8 +1233,8 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
 
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 追加できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 追加できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
@@ -1190,8 +1243,8 @@ static void command_add(cplat_pinned_prompt *screen, const char *expression)
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %u を追加しました。\n",
-                               (unsigned int)(info.line_count + 1U));
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %u を追加しました。\n",
+                                     (unsigned int)(info.line_count + 1U));
     print_type_warnings(screen, (size_t)info.line_count);
 }
 
@@ -1205,7 +1258,8 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
 
     if (arg == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: insert <行番号> <条件式>\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "使用方法: insert <行番号> <条件式>\n");
         return;
     }
 
@@ -1213,14 +1267,16 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
 
     if ((number_token == NULL) || (expression == NULL))
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: insert <行番号> <条件式>\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "使用方法: insert <行番号> <条件式>\n");
         return;
     }
 
     line_number = strtoul(number_token, NULL, 10);
     if (line_number == 0UL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "行番号は 1 以上を指定してください。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "行番号は 1 以上を指定してください。\n");
         return;
     }
 
@@ -1235,8 +1291,8 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
 
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 挿入できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 挿入できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
@@ -1245,7 +1301,8 @@ static void command_insert(cplat_pinned_prompt *screen, char *arg)
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu へ挿入しました。\n", line_number);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu へ挿入しました。\n",
+                                     line_number);
     print_type_warnings(screen, (size_t)(line_number - 1UL));
 }
 
@@ -1259,7 +1316,8 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
 
     if (arg == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: edit <行番号> [<条件式>]\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "使用方法: edit <行番号> [<条件式>]\n");
         return;
     }
 
@@ -1267,14 +1325,16 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
 
     if (number_token == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: edit <行番号> [<条件式>]\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "使用方法: edit <行番号> [<条件式>]\n");
         return;
     }
 
     line_number = strtoul(number_token, NULL, 10);
     if (line_number == 0UL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "行番号は 1 以上を指定してください。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "行番号は 1 以上を指定してください。\n");
         return;
     }
 
@@ -1287,16 +1347,20 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
                                                          (size_t)(line_number - 1UL), text, sizeof(text));
         if (ret != CPLAT_OK)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                       "エラー: 行 %lu の条件式を取得できませんでした (結果コード=%d)。\n", line_number,
-                                       ret);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                             "エラー: 行 %lu の条件式を取得できませんでした (結果コード=%d)。\n",
+                                             line_number, ret);
             return;
         }
 
+        /*
+         * s_next_input (512 [byte]) は、"edit " と行番号の最大 20 桁、空白、行幅 256 [byte] 未満の条件式と
+         * 終端を収め、切り詰めは起きないため、戻り値は明示的に破棄する。
+         */
         (void)snprintf(s_next_input, sizeof(s_next_input), "edit %lu %s", line_number, text);
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                   "行 %lu の条件式を入力欄へ呼び出しました。編集して確定してください。\n",
-                                   line_number);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                         "行 %lu の条件式を入力欄へ呼び出しました。編集して確定してください。\n",
+                                         line_number);
         return;
     }
 
@@ -1311,8 +1375,8 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
 
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 置き換えられませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 置き換えられませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
@@ -1321,7 +1385,8 @@ static void command_edit(cplat_pinned_prompt *screen, char *arg)
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu を置き換えました。\n", line_number);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu を置き換えました。\n",
+                                     line_number);
     print_type_warnings(screen, (size_t)(line_number - 1UL));
 }
 
@@ -1334,7 +1399,7 @@ static void command_delete(cplat_pinned_prompt *screen, char *arg)
 
     if (arg == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: delete <行番号>\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: delete <行番号>\n");
         return;
     }
 
@@ -1342,26 +1407,28 @@ static void command_delete(cplat_pinned_prompt *screen, char *arg)
 
     if (number_token == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: delete <行番号>\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "使用方法: delete <行番号>\n");
         return;
     }
 
     line_number = strtoul(number_token, NULL, 10);
     if (line_number == 0UL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "行番号は 1 以上を指定してください。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "行番号は 1 以上を指定してください。\n");
         return;
     }
 
     ret = cplat_string_catalog_filter_remove_line(s_draft_image, sizeof(s_draft_image), (size_t)(line_number - 1UL));
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 削除できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 削除できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu を削除しました。\n", line_number);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "行 %lu を削除しました。\n",
+                                     line_number);
 }
 
 static void command_clear(cplat_pinned_prompt *screen)
@@ -1372,12 +1439,12 @@ static void command_clear(cplat_pinned_prompt *screen)
                                               s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "編集中イメージを空にしました。\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "編集中イメージを空にしました。\n");
 }
 
 /**
@@ -1393,8 +1460,8 @@ static void command_load(cplat_pinned_prompt *screen, const char *path)
 
     if (path == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: ファイルを指定してください。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: ファイルを指定してください。\n");
         return;
     }
 
@@ -1403,32 +1470,33 @@ static void command_load(cplat_pinned_prompt *screen, const char *path)
                                   &result);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(
+        (void)cplat_pinned_prompt_printf(
             screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
             "エラー: %s を読み込めませんでした (結果コード=%d)。編集中イメージは変わりません。\n", path, ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "%s の %zu 行から、条件式 %zu 行を編集中イメージへ読み込みました。\n", path,
-                               result.line_count, result.condition_count);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "%s の %zu 行から、条件式 %zu 行を編集中イメージへ読み込みました。\n", path,
+                                     result.line_count, result.condition_count);
 
     if (result.invalid_count > 0U)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "無効にした行があります (%zu 件)。\n",
-                                   result.invalid_count);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                         "無効にした行があります (%zu 件)。\n", result.invalid_count);
 
         for (size_t i = 0; (i < result.invalid_count) && (i < (sizeof(diagnostics) / sizeof(diagnostics[0]))); i++)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %u 行目 (桁=%u): %s\n",
-                                       (unsigned int)(diagnostics[i].line_index + 1U),
-                                       (unsigned int)(diagnostics[i].column + 1U),
-                                       line_error_label(diagnostics[i].error));
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %u 行目 (桁=%u): %s\n",
+                                             (unsigned int)(diagnostics[i].line_index + 1U),
+                                             (unsigned int)(diagnostics[i].column + 1U),
+                                             line_error_label(diagnostics[i].error));
         }
     }
 
     print_type_warnings(screen, FILTER_SAMPLE_ALL_LINES);
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "draft で確かめ、apply で公開します。\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "draft で確かめ、apply で公開します。\n");
 }
 
 /** 編集中イメージの条件式を、条件式リストのファイルへ書き出します。 */
@@ -1438,21 +1506,21 @@ static void command_save(cplat_pinned_prompt *screen, const char *path)
 
     if (path == NULL)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: ファイルを指定してください。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: ファイルを指定してください。\n");
         return;
     }
 
     ret = sample_filter_file_save(path, s_draft_image, sizeof(s_draft_image));
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: %s へ書き出せませんでした (結果コード=%d)。\n", path, ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: %s へ書き出せませんでした (結果コード=%d)。\n", path, ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "編集中イメージの条件式を %s へ書き出しました。\n", path);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "編集中イメージの条件式を %s へ書き出しました。\n", path);
 }
 
 static void command_revert(cplat_pinned_prompt *screen)
@@ -1462,14 +1530,14 @@ static void command_revert(cplat_pinned_prompt *screen)
     ret = cplat_string_catalog_filter_slot_snapshot(s_slot, s_draft_image, sizeof(s_draft_image));
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 適用中のフィルター オブジェクトを複製できませんでした (結果コード=%d)。\n",
-                                   ret);
+        (void)cplat_pinned_prompt_printf(
+            screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+            "エラー: 適用中のフィルター オブジェクトを複製できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "適用中の条件を編集中イメージへ複製しました。\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "適用中の条件を編集中イメージへ複製しました。\n");
 }
 
 static void command_image(cplat_pinned_prompt *screen)
@@ -1482,26 +1550,27 @@ static void command_image(cplat_pinned_prompt *screen)
     ret = cplat_string_catalog_filter_get_info(s_draft_image, sizeof(s_draft_image), &info);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 編集中イメージの情報を取得できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 編集中イメージの情報を取得できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "先頭アドレス: %p\n"
-                               "バイト数: %llu\n"
-                               "行数の上限: %u\n"
-                               "行幅: %u\n"
-                               "格納行数: %u\n"
-                               "形式版: %u\n"
-                               "内容のハッシュ値: 0x%016llx\n",
-                               (const void *)s_draft_image, (unsigned long long)info.image_size,
-                               (unsigned int)info.line_capacity, (unsigned int)info.line_width,
-                               (unsigned int)info.line_count, (unsigned int)info.format_version,
-                               (unsigned long long)info.content_hash);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "先頭アドレス: %p\n"
+                                     "バイト数: %llu\n"
+                                     "行数の上限: %u\n"
+                                     "行幅: %u\n"
+                                     "格納行数: %u\n"
+                                     "形式版: %u\n"
+                                     "内容のハッシュ値: 0x%016llx\n",
+                                     (const void *)s_draft_image, (unsigned long long)info.image_size,
+                                     (unsigned int)info.line_capacity, (unsigned int)info.line_width,
+                                     (unsigned int)info.line_count, (unsigned int)info.format_version,
+                                     (unsigned long long)info.content_hash);
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "このアドレスとバイト数を、トレース出力側へ先頭ポインターと長さで引き渡します。\n");
+    (void)cplat_pinned_prompt_printf(
+        screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+        "このアドレスとバイト数を、トレース出力側へ先頭ポインターと長さで引き渡します。\n");
 
     dump_size = CPLAT_STRING_CATALOG_FILTER_HEADER_SIZE;
     if (dump_size > sizeof(s_draft_image))
@@ -1509,7 +1578,8 @@ static void command_image(cplat_pinned_prompt *screen)
         dump_size = sizeof(s_draft_image);
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ヘッダー (先頭 %zu バイト):\n", dump_size);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ヘッダー (先頭 %zu バイト):\n",
+                                     dump_size);
 
     /* ヘッダー領域を 16 [byte] ごとの 16 進ダンプとして表示する。 */
     for (offset = 0; offset < dump_size; offset += 16U)
@@ -1529,7 +1599,7 @@ static void command_image(cplat_pinned_prompt *screen)
             position += (size_t)written;
         }
 
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", line);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", line);
     }
 }
 
@@ -1553,8 +1623,8 @@ static void command_apply(cplat_pinned_prompt *screen)
                                                  sizeof(diagnostics) / sizeof(diagnostics[0]), &invalid_count);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 編集中イメージを確かめられませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 編集中イメージを確かめられませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
@@ -1567,12 +1637,12 @@ static void command_apply(cplat_pinned_prompt *screen)
 
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 公開できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 公開できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(
+    (void)cplat_pinned_prompt_printf(
         screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
         "版番号 %llu として共有メモリへ公開しました。各プロセスは次のトレース出力で取り込みます。\n",
         (unsigned long long)revision);
@@ -1583,14 +1653,14 @@ static void command_apply(cplat_pinned_prompt *screen)
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "無効になる行があります (%zu 件)。\n",
-                               invalid_count);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "無効になる行があります (%zu 件)。\n",
+                                     invalid_count);
 
     for (i = 0; (i < invalid_count) && (i < (sizeof(diagnostics) / sizeof(diagnostics[0]))); i++)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  行 %u: %s\n",
-                                   (unsigned int)(diagnostics[i].line_index + 1U),
-                                   line_error_label(diagnostics[i].error));
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  行 %u: %s\n",
+                                         (unsigned int)(diagnostics[i].line_index + 1U),
+                                         line_error_label(diagnostics[i].error));
     }
 }
 
@@ -1608,13 +1678,13 @@ static void command_state(cplat_pinned_prompt *screen)
         ret = cplat_string_catalog_filter_slot_test(s_slot, key_names[i].key, &state);
         if (ret != CPLAT_OK)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                       "  %-40s <取得できません (結果コード=%d)>\n", key_names[i].name, ret);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                             "  %-40s <取得できません (結果コード=%d)>\n", key_names[i].name, ret);
             continue;
         }
 
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %-40s %s\n", key_names[i].name,
-                                   filter_state_label(state));
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "  %-40s %s\n", key_names[i].name,
+                                         filter_state_label(state));
     }
 }
 
@@ -1630,8 +1700,8 @@ static void command_display(cplat_pinned_prompt *screen, const char *arg)
         level = s_display_threshold;
         cplat_local_lock_unlock(s_display_lock);
 
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "表示のしきい値: %s\n",
-                                   s_level_labels[(unsigned int)level]);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "表示のしきい値: %s\n",
+                                         s_level_labels[(unsigned int)level]);
         return;
     }
 
@@ -1650,8 +1720,8 @@ static void command_display(cplat_pinned_prompt *screen, const char *arg)
 
     if (!found)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "使用方法: display <CRITICAL|ERROR|WARNING|INFO|VERBOSE|DEBUG|NONE>\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "使用方法: display <CRITICAL|ERROR|WARNING|INFO|VERBOSE|DEBUG|NONE>\n");
         return;
     }
 
@@ -1659,8 +1729,8 @@ static void command_display(cplat_pinned_prompt *screen, const char *arg)
     s_display_threshold = level;
     cplat_local_lock_unlock(s_display_lock);
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "表示のしきい値を %s に設定しました。\n",
-                               s_level_labels[(unsigned int)level]);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "表示のしきい値を %s に設定しました。\n", s_level_labels[(unsigned int)level]);
 }
 
 static void command_emit(cplat_pinned_prompt *screen)
@@ -1672,9 +1742,10 @@ static void command_emit(cplat_pinned_prompt *screen)
     emit_job_failed((uint64_t)1U, -2);
     emit_command_received((int)'s', (int)0x01, (int64_t)10);
     emit_worker_stopped((uint32_t)0U, (uint64_t)1U);
+    emit_worker_wait_failed((uint32_t)0U, (int32_t)CPLAT_ERR_UNKNOWN);
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "7 種類のトレースを 1 回ずつ出力しました。\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "8 種類のトレースを 1 回ずつ出力しました。\n");
 }
 
 static void command_start(cplat_pinned_prompt *screen, char *arg)
@@ -1689,7 +1760,7 @@ static void command_start(cplat_pinned_prompt *screen, char *arg)
 
     if (s_workers_running)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーは稼働中です。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーは稼働中です。\n");
         return;
     }
 
@@ -1715,23 +1786,24 @@ static void command_start(cplat_pinned_prompt *screen, char *arg)
 
     if ((worker_count == 0UL) || (worker_count > (unsigned long)FILTER_SAMPLE_WORKER_MAX))
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "使用方法: start [ワーカー数 (1-%u)] [間隔ミリ秒]\n",
-                                   (unsigned int)FILTER_SAMPLE_WORKER_MAX);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "使用方法: start [ワーカー数 (1-%u)] [間隔ミリ秒]\n",
+                                         (unsigned int)FILTER_SAMPLE_WORKER_MAX);
         return;
     }
 
-    if (interval_ms == 0UL)
+    /* 間隔はワーカーの待機の関数へ int で渡すため、int で表せない値を拒否する。 */
+    if ((interval_ms == 0UL) || (interval_ms > (unsigned long)INT_MAX))
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "間隔ミリ秒は 1 以上を指定してください。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "間隔ミリ秒は 1 以上 %d 以下を指定してください。\n", INT_MAX);
         return;
     }
 
     if (ensure_worker_sync() != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: ワーカーの同期オブジェクトを初期化できませんでした。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: ワーカーの同期オブジェクトを初期化できませんでした。\n");
         return;
     }
 
@@ -1747,8 +1819,8 @@ static void command_start(cplat_pinned_prompt *screen, char *arg)
 
         if (cplat_thread_create(&s_workers[i].thread, filter_sample_worker_thread_proc, &s_workers[i]) != CPLAT_OK)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                       "エラー: ワーカー %u を起動できませんでした。\n", (unsigned int)(i + 1U));
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                             "エラー: ワーカー %u を起動できませんでした。\n", (unsigned int)(i + 1U));
             s_worker_count = i;
             break;
         }
@@ -1757,8 +1829,8 @@ static void command_start(cplat_pinned_prompt *screen, char *arg)
     if (s_worker_count > 0U)
     {
         s_workers_running = 1;
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                   "ワーカー %u 個を間隔 %lu ms で起動しました。\n", s_worker_count, interval_ms);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                         "ワーカー %u 個を間隔 %lu ms で起動しました。\n", s_worker_count, interval_ms);
     }
 }
 
@@ -1766,12 +1838,12 @@ static void command_stop(cplat_pinned_prompt *screen)
 {
     if (!s_workers_running)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーは稼働していません。\n");
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーは稼働していません。\n");
         return;
     }
 
     stop_all_workers();
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーを停止しました。\n");
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーを停止しました。\n");
 }
 
 /** 出力言語の表示名です。cplat_string_catalog_language の値をインデックスとして参照します。 */
@@ -1791,8 +1863,8 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
     if ((arg == NULL) || (arg[0] == '\0'))
     {
         language = cplat_string_catalog_get_language();
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "出力言語: %s\n",
-                                   s_language_labels[(unsigned int)language]);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "出力言語: %s\n",
+                                         s_language_labels[(unsigned int)language]);
         return;
     }
 
@@ -1802,7 +1874,7 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
         ret = cplat_string_catalog_language_from_tag(arg, &language);
         if (ret != CPLAT_OK)
         {
-            cplat_pinned_prompt_printf(
+            (void)cplat_pinned_prompt_printf(
                 screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                 "エラー: 言語 %s には対応していません。ja、en、neutral のいずれかを指定してください。\n", arg);
             return;
@@ -1812,13 +1884,13 @@ static void command_language(cplat_pinned_prompt *screen, const char *arg)
     ret = cplat_string_catalog_set_language(language);
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 出力言語を設定できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 出力言語を設定できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "出力言語を %s に設定しました。\n",
-                               s_language_labels[(unsigned int)language]);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "出力言語を %s に設定しました。\n",
+                                     s_language_labels[(unsigned int)language]);
 }
 
 /**
@@ -1894,29 +1966,34 @@ static void command_status(cplat_pinned_prompt *screen)
 
     if (ret != CPLAT_OK)
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
-                                   "エラー: 配布の状態を取得できませんでした (結果コード=%d)。\n", ret);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "エラー: 配布の状態を取得できませんでした (結果コード=%d)。\n", ret);
         return;
     }
 
+    /*
+     * 生成物のカタログと有効な格納先を渡し、filter.h の失敗の条件 (NULL、項目数の不正) に当たらないため、
+     * 戻り値は明示的に破棄する。
+     */
     (void)cplat_string_catalog_filter_get_catalog_id(sample_worker_trace_catalog(), &own_catalog_id);
 
     if (info.published_revision != 0U)
     {
+        /* 表示用の時刻であり、整形の失敗時も関数が格納する代替の文字列を表示するため、戻り値は明示的に破棄する。 */
         (void)cplat_clock_format_realtime_iso8601_local(published_at, sizeof(published_at), &info.published_realtime);
     }
 
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "共有メモリ: %s\n"
-                               "公開済みの版番号: %llu (公開した時刻: %s、プロセス: %u)\n"
-                               "取り込み済みの版番号: %llu\n"
-                               "直近の取り込み: 結果コード=%d、無効にした行=%zu\n",
-                               s_share_path, (unsigned long long)info.published_revision, published_at,
-                               (unsigned int)info.publisher_process_id, (unsigned long long)status.taken_revision,
-                               status.last_result, status.last_invalid_count);
-    cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                               "カタログの識別値: 公開内容 0x%016llx、このプロセス 0x%016llx\n",
-                               (unsigned long long)info.catalog_id, (unsigned long long)own_catalog_id);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "共有メモリ: %s\n"
+                                     "公開済みの版番号: %llu (公開した時刻: %s、プロセス: %u)\n"
+                                     "取り込み済みの版番号: %llu\n"
+                                     "直近の取り込み: 結果コード=%d、無効にした行=%zu\n",
+                                     s_share_path, (unsigned long long)info.published_revision, published_at,
+                                     (unsigned int)info.publisher_process_id, (unsigned long long)status.taken_revision,
+                                     status.last_result, status.last_invalid_count);
+    (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
+                                     "カタログの識別値: 公開内容 0x%016llx、このプロセス 0x%016llx\n",
+                                     (unsigned long long)info.catalog_id, (unsigned long long)own_catalog_id);
 }
 
 /*
@@ -2025,8 +2102,8 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
     }
     else
     {
-        cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR, "不明なコマンドです: %s (help を参照)\n",
-                                   command);
+        (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
+                                         "不明なコマンドです: %s (help を参照)\n", command);
     }
 }
 
@@ -2056,7 +2133,8 @@ int main(int argc, char *argv[])
     /* 共有メモリは一時ディレクトリに固定するため、引数は受け付けない。 */
     if (argc > 1)
     {
-        fprintf(stderr, "使用方法: %s\n", argv[0]);
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "使用方法: %s\n", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -2065,8 +2143,8 @@ int main(int argc, char *argv[])
     ret = cplat_string_catalog_verify(sample_worker_trace_catalog(), &string_key, &language);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: カタログ sample_worker_trace の定義が不正です (文字列キー=%d、言語=%d)。\n",
-                string_key, (int)language);
+        (void)fprintf(stderr, "エラー: カタログ sample_worker_trace の定義が不正です (文字列キー=%d、言語=%d)。\n",
+                      string_key, (int)language);
         return EXIT_FAILURE;
     }
 
@@ -2074,7 +2152,7 @@ int main(int argc, char *argv[])
                                               s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
+        (void)fprintf(stderr, "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
         return EXIT_FAILURE;
     }
 
@@ -2086,7 +2164,7 @@ int main(int argc, char *argv[])
                                             &slot);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
+        (void)fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
         return EXIT_FAILURE;
     }
 
@@ -2094,7 +2172,7 @@ int main(int argc, char *argv[])
                                             &s_preview_slot);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
+        (void)fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
         result = EXIT_FAILURE;
         goto out_dispose_slot;
     }
@@ -2102,7 +2180,7 @@ int main(int argc, char *argv[])
     ret = open_share();
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);
+        (void)fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);
         result = EXIT_FAILURE;
         goto out_dispose_slot;
     }
@@ -2120,7 +2198,8 @@ int main(int argc, char *argv[])
 
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 共有メモリをフィルター スロットへ結び付けられませんでした (結果コード=%d)。\n", ret);
+        (void)fprintf(stderr, "エラー: 共有メモリをフィルター スロットへ結び付けられませんでした (結果コード=%d)。\n",
+                      ret);
         result = EXIT_FAILURE;
         goto out_dispose_slot;
     }
@@ -2128,7 +2207,7 @@ int main(int argc, char *argv[])
     ret = cplat_local_lock_create(&s_display_lock);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 表示のしきい値を保護するロックを作成できませんでした。\n");
+        (void)fprintf(stderr, "エラー: 表示のしきい値を保護するロックを作成できませんでした。\n");
         result = EXIT_FAILURE;
         goto out_dispose_slot;
     }
@@ -2136,7 +2215,7 @@ int main(int argc, char *argv[])
     ret = cplat_local_lock_create(&s_output_lock);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 表示の区間を保護するロックを作成できませんでした。\n");
+        (void)fprintf(stderr, "エラー: 表示の区間を保護するロックを作成できませんでした。\n");
         result = EXIT_FAILURE;
         goto out_dispose_lock;
     }
@@ -2144,7 +2223,7 @@ int main(int argc, char *argv[])
     screen = cplat_pinned_prompt_create(NULL);
     if (screen == NULL)
     {
-        fprintf(stderr, "エラー: pinned-prompt を作成できませんでした。\n");
+        (void)fprintf(stderr, "エラー: pinned-prompt を作成できませんでした。\n");
         result = EXIT_FAILURE;
         goto out_dispose_output_lock;
     }
@@ -2152,7 +2231,7 @@ int main(int argc, char *argv[])
     tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
     if (tracer == NULL)
     {
-        fprintf(stderr, "エラー: トレーサーを作成できませんでした。\n");
+        (void)fprintf(stderr, "エラー: トレーサーを作成できませんでした。\n");
         result = EXIT_FAILURE;
         goto out_dispose_screen;
     }
@@ -2161,7 +2240,7 @@ int main(int argc, char *argv[])
     hook_entry = cplat_tracer_set_hook(tracer, filter_sample_trace_hook, screen);
     if (hook_entry == NULL)
     {
-        fprintf(stderr, "エラー: トレース フックを登録できませんでした。\n");
+        (void)fprintf(stderr, "エラー: トレース フックを登録できませんでした。\n");
         result = EXIT_FAILURE;
         goto out_dispose_tracer;
     }
@@ -2169,14 +2248,14 @@ int main(int argc, char *argv[])
     ret = cplat_tracer_start(tracer);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: トレースを開始できませんでした (結果コード=%d)。\n", ret);
+        (void)fprintf(stderr, "エラー: トレースを開始できませんでした (結果コード=%d)。\n", ret);
         result = EXIT_FAILURE;
         goto out_dispose_tracer;
     }
 
     s_slot = slot;
 
-    /* スロットは sample_worker_trace_create_filter で作成したため、接続は失敗しない。 */
+    /* sample_worker_trace_create_filter で作成したスロットであり、接続は失敗しないため、戻り値は明示的に破棄する。 */
     sample_worker_trace_set_tracer(tracer);
     (void)sample_worker_trace_set_filter(slot);
 
@@ -2229,13 +2308,13 @@ int main(int argc, char *argv[])
 
         if (!is_pinned)
         {
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", line);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", line);
         }
         else if (skip_spaces(line)[0] != '\0')
         {
             begin_command_section(screen);
-            cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s%s\n", FILTER_SAMPLE_PROMPT,
-                                       line);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s%s\n", FILTER_SAMPLE_PROMPT,
+                                             line);
         }
         else
         {
@@ -2250,12 +2329,22 @@ int main(int argc, char *argv[])
     /* フックが画面を参照するため、画面の破棄より前にトレーサーを止める。 */
     stop_all_workers();
     dispose_worker_sync();
+
+    /*
+     * 停止するのは作成に成功した tracer であり、NULL の指定は接続の解除であり、停止と解除はどちらも
+     * 失敗の条件 (NULL のハンドル、ほかのカタログのスロット) に当たらないため、この 2 つの戻り値は明示的に破棄する。
+     */
     (void)cplat_tracer_stop(tracer);
     (void)sample_worker_trace_set_filter(NULL);
     sample_worker_trace_set_tracer(NULL);
     cplat_tracer_dispose(&tracer);
     cplat_pinned_prompt_dispose(screen);
-    /* 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しない。共有領域を閉じる前に切り離す。 */
+
+    /*
+     * 共有領域を閉じる前に切り離す。
+     * 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しないため、
+     * 戻り値は明示的に破棄する。
+     */
     (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
     close_share();
     cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
@@ -2278,7 +2367,11 @@ out_dispose_lock:
     cplat_local_lock_dispose(s_display_lock);
     s_display_lock = NULL;
 out_dispose_slot:
-    /* 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しない。共有領域を閉じる前に切り離す。 */
+    /*
+     * 共有領域を閉じる前に切り離す。
+     * 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しないため、
+     * 戻り値は明示的に破棄する。
+     */
     (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
     close_share();
     cplat_string_catalog_filter_slot_dispose(&s_preview_slot);

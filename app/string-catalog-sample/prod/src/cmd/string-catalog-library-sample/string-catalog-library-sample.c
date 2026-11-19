@@ -49,21 +49,22 @@ static cplat_tracer *create_stderr_tracer(void)
     tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
     if (tracer == NULL)
     {
-        fprintf(stderr, "エラー: トレーサーを生成できませんでした。\n");
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: トレーサーを生成できませんでした。\n");
         return NULL;
     }
 
     if (cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_DEBUG) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
-        fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
+        (void)fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
         return NULL;
     }
 
     if (cplat_tracer_start(tracer) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
-        fprintf(stderr, "エラー: トレースを開始できませんでした。\n");
+        (void)fprintf(stderr, "エラー: トレースを開始できませんでした。\n");
         return NULL;
     }
 
@@ -88,6 +89,9 @@ static int print_lookup_results(void)
      * CPLAT_ERR_NOT_FOUND のときは text の理由を表示して次の検索名へ進む。
      * それ以外の結果コードは呼び出し元へ返し、残りの検索名は検索しない。
      * すべての検索名を表示できた場合は CPLAT_OK を返す。
+     * 標準出力への途中の出力の失敗はストリームに残り、main() が終了の直前にまとめて検査するため、
+     * この関数の printf の戻り値は明示的に破棄する。
+     * 標準エラー出力は診断の出力先がほかにないため、fprintf の戻り値は明示的に破棄する。
      */
     for (index = 0; index < LOOKUP_COUNT; index++)
     {
@@ -95,15 +99,15 @@ static int print_lookup_results(void)
 
         if (ret == CPLAT_OK)
         {
-            printf("  %s: 見つかりました。\n", s_lookup_names[index]);
+            (void)printf("  %s: 見つかりました。\n", s_lookup_names[index]);
         }
         else if (ret == CPLAT_ERR_NOT_FOUND)
         {
-            printf("  %s: %s\n", s_lookup_names[index], text);
+            (void)printf("  %s: %s\n", s_lookup_names[index], text);
         }
         else
         {
-            fprintf(stderr, "エラー: 項目 %s の検索に失敗しました。\n", s_lookup_names[index]);
+            (void)fprintf(stderr, "エラー: 項目 %s の検索に失敗しました。\n", s_lookup_names[index]);
             return ret;
         }
     }
@@ -129,7 +133,11 @@ static int print_library_messages(void)
         return ret;
     }
 
-    printf("  %s\n", text);
+    /*
+     * 標準出力への途中の出力の失敗はストリームに残り、main() が終了の直前にまとめて検査するため、
+     * この関数の printf の戻り値は明示的に破棄する。
+     */
+    (void)printf("  %s\n", text);
 
     /* 第 3 引数は要求されたサイズ、第 4 引数はライブラリが受け付ける上限である。 */
     ret = samplecatalog_messages_key_limit_exceeded(text, sizeof(text), (size_t)4096U, (size_t)1024U);
@@ -138,7 +146,7 @@ static int print_library_messages(void)
         return ret;
     }
 
-    printf("  %s\n", text);
+    (void)printf("  %s\n", text);
 
     return CPLAT_OK;
 }
@@ -161,7 +169,8 @@ int main(int argc, char *argv[])
     /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響する。初期化の前に設定する。 */
     if (cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE) != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
         return EXIT_FAILURE;
     }
 
@@ -175,20 +184,24 @@ int main(int argc, char *argv[])
     if (samplecatalog_initialize(tracer) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
-        fprintf(stderr, "エラー: ライブラリを初期化できませんでした。\n");
+        (void)fprintf(stderr, "エラー: ライブラリを初期化できませんでした。\n");
         return EXIT_FAILURE;
     }
 
-    printf("\n[ライブラリのカタログから組み立てた文字列]\n\n");
-    (void)fflush(stdout); /* 失敗はストリームに残り、終了の直前にまとめて検査する */
+    /*
+     * 標準出力への途中の出力の失敗はストリームに残り、終了の直前にまとめて検査するため、
+     * この関数の printf と途中の fflush の戻り値は明示的に破棄する。
+     */
+    (void)printf("\n[ライブラリのカタログから組み立てた文字列]\n\n");
+    (void)fflush(stdout);
 
     if (print_library_messages() != CPLAT_OK)
     {
         return EXIT_FAILURE;
     }
 
-    printf("\n[ライブラリの API が返す文字列]\n\n");
-    (void)fflush(stdout); /* 失敗はストリームに残り、終了の直前にまとめて検査する */
+    (void)printf("\n[ライブラリの API が返す文字列]\n\n");
+    (void)fflush(stdout);
 
     if (print_lookup_results() != CPLAT_OK)
     {
@@ -196,19 +209,19 @@ int main(int argc, char *argv[])
     }
 
     /* 利用側がライブラリのカタログへ直接トレースを出力することも可能である。 */
-    printf("\n[利用側からのトレース出力]\n\n");
-    (void)fflush(stdout); /* 失敗はストリームに残り、終了の直前にまとめて検査する */
+    (void)printf("\n[利用側からのトレース出力]\n\n");
+    (void)fflush(stdout);
 
     if (samplecatalog_trace_key_lookup_performed("epsilon") != CPLAT_OK)
     {
-        (void)fprintf(stderr, "エラー: トレースを出力できませんでした。\n"); /* 診断の出力先がほかにない */
+        (void)fprintf(stderr, "エラー: トレースを出力できませんでした。\n");
         return EXIT_FAILURE;
     }
 
     /* 標準出力はこのサンプルの成果物であるため、途中の書き込みの失敗を終了の直前にまとめて検査する。 */
     if (fflush(stdout) != 0 || ferror(stdout) != 0)
     {
-        (void)fprintf(stderr, "エラー: 標準出力へ書き込めませんでした。\n"); /* 診断の出力先がほかにない */
+        (void)fprintf(stderr, "エラー: 標準出力へ書き込めませんでした。\n");
         return EXIT_FAILURE;
     }
 

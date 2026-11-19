@@ -41,6 +41,7 @@ void struct_meta_internal_diagnose(struct_meta_diagnostic *diagnostic, int line,
 
     va_list args;
     va_start(args, format);
+    /* 診断の文面は固定長の配列に収め、収まらない分の切り詰めを許容するため、戻り値は明示的に破棄する。 */
     (void)vsnprintf(diagnostic->message, sizeof(diagnostic->message), format, args);
     va_end(args);
 

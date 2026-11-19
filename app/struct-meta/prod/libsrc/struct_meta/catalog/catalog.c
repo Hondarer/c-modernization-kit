@@ -100,6 +100,7 @@ static void register_descriptors(const struct_meta_catalog *catalog)
 {
     for (size_t i = 0; i < catalog->descriptor_count; i++)
     {
+        /* 登録は検索を速くするだけで、失敗しても未登録の記述子として正しく動作するため、戻り値は明示的に破棄する。 */
         (void)struct_meta_index_register(catalog->descriptors[i]);
     }
 }
@@ -251,6 +252,10 @@ void struct_meta_catalog_destroy(struct_meta_catalog *catalog)
 
     for (size_t i = 0; i < catalog->descriptor_count; i++)
     {
+        /*
+         * 登録に失敗した記述子や解除済みのネスト先は CPLAT_ERR_NOT_FOUND を返すが、カタログの破棄は続けるため、
+         * 戻り値は明示的に破棄する。
+         */
         (void)struct_meta_index_unregister(catalog->descriptors[i]);
     }
 

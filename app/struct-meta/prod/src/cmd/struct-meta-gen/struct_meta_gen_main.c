@@ -36,7 +36,8 @@
 
 static void print_usage(const char *prog)
 {
-    fprintf(stderr, "usage: %s --header <header> --out <out.c>\n", prog);
+    /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+    (void)fprintf(stderr, "usage: %s --header <header> --out <out.c>\n", prog);
 }
 
 /**
@@ -46,20 +47,22 @@ static void print_usage(const char *prog)
  */
 static void print_diagnostic(const char *header_path, const struct_meta_diagnostic *diagnostic)
 {
+    /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+
     /* 診断が無い失敗では、ヘッダー パスだけを出す。 */
     if (diagnostic->message[0] == '\0')
     {
-        fprintf(stderr, "struct-meta-gen: ヘッダーを解析できません: %s\n", header_path);
+        (void)fprintf(stderr, "struct-meta-gen: ヘッダーを解析できません: %s\n", header_path);
         return;
     }
 
     if (diagnostic->line > 0)
     {
-        fprintf(stderr, "struct-meta-gen: %d: %s\n", diagnostic->line, diagnostic->message);
+        (void)fprintf(stderr, "struct-meta-gen: %d: %s\n", diagnostic->line, diagnostic->message);
         return;
     }
 
-    fprintf(stderr, "struct-meta-gen: %s\n", diagnostic->message);
+    (void)fprintf(stderr, "struct-meta-gen: %s\n", diagnostic->message);
 }
 
 int main(int argc, char **argv)
@@ -82,7 +85,8 @@ int main(int argc, char **argv)
         }
         else
         {
-            fprintf(stderr, "struct-meta-gen: 未知の引数です: %s\n", argv[i]);
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "struct-meta-gen: 未知の引数です: %s\n", argv[i]);
             print_usage(argv[0]);
             return 1;
         }

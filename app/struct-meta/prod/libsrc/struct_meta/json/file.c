@@ -61,6 +61,10 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
     int needs_newline = (text_len == 0U) || (text[text_len - 1U] != '\n');
     if ((needs_newline != 0) && (text_len == SIZE_MAX))
     {
+        /*
+         * すでに CPLAT_ERR_OUT_OF_RANGE を返す経路の後始末であり、閉じる処理の失敗で結果は変わらないため、
+         * 戻り値は明示的に破棄する。
+         */
         (void)cplat_fclose(stream, NULL);
         cjson_app_cJSON_free(text);
         return CPLAT_ERR_OUT_OF_RANGE;
@@ -84,10 +88,11 @@ int struct_meta_json_file_save(const struct_meta_descriptor *desc, const void *i
         }
     }
 
-    cplat_fclose(stream, NULL);
+    /* 閉じる処理は残りの書き出しを含むため、失敗した場合は書き込みの失敗として扱う。 */
+    int close_ret = cplat_fclose(stream, NULL);
     cjson_app_cJSON_free(text);
 
-    if (written != expected_len)
+    if ((written != expected_len) || (close_ret != 0))
     {
         return CPLAT_ERR_UNKNOWN;
     }
@@ -112,14 +117,16 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
 
     if (cplat_fseek(stream, 0, SEEK_END) != 0)
     {
-        cplat_fclose(stream, NULL);
+        /* 移動の失敗を返す経路の後始末であり、閉じる失敗で結果は変わらないため、戻り値は明示的に破棄する。 */
+        (void)cplat_fclose(stream, NULL);
         return CPLAT_ERR_UNKNOWN;
     }
 
     int64_t file_size = cplat_ftell(stream);
     if ((file_size < 0) || (cplat_fseek(stream, 0, SEEK_SET) != 0))
     {
-        cplat_fclose(stream, NULL);
+        /* 大きさの取得の失敗を返す経路の後始末であり、閉じる失敗で結果は変わらないため、戻り値は明示的に破棄する。 */
+        (void)cplat_fclose(stream, NULL);
         return CPLAT_ERR_UNKNOWN;
     }
 
@@ -127,12 +134,15 @@ int struct_meta_json_file_load(const struct_meta_descriptor *desc, const char *p
     char *text = (char *)malloc((size_t)file_size + 1U);
     if (text == NULL)
     {
-        cplat_fclose(stream, NULL);
+        /* 確保の失敗を返す経路の後始末であり、閉じる失敗で結果は変わらないため、戻り値は明示的に破棄する。 */
+        (void)cplat_fclose(stream, NULL);
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
 
     size_t read_count = cplat_fread(text, 1, (size_t)file_size, stream, NULL);
-    cplat_fclose(stream, NULL);
+
+    /* 読み込み用のストリームであり、読み込みの結果は直後に read_count で検査するため、戻り値は明示的に破棄する。 */
+    (void)cplat_fclose(stream, NULL);
 
     if (read_count != (size_t)file_size)
     {

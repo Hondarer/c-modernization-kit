@@ -212,7 +212,10 @@ static int unregister_descriptor(const struct_meta_descriptor *descriptor)
     cplat_hashtable *field_names = record->field_names;
     int validation_result = record->validation_result;
 
-    /* 先に登録簿から外し、記述子の循環による無限再帰を止める。 */
+    /*
+     * 先に登録簿から外し、記述子の循環による無限再帰を止める。
+     * 直前の find_record() で登録を確かめたキーの削除であり、失敗しないため、戻り値は明示的に破棄する。
+     */
     (void)cplat_hashtable_delete(s_registry, &descriptor);
     cplat_hashtable_dispose(field_names);
 
@@ -222,7 +225,10 @@ static int unregister_descriptor(const struct_meta_descriptor *descriptor)
         {
             if (descriptor->fields[i].nested != NULL)
             {
-                /* ネスト先が未登録または既に解除されていても、全体の解除処理を継続する。 */
+                /*
+                 * ネスト先が未登録または既に解除されていても、全体の解除処理を継続するため、
+                 * 戻り値は明示的に破棄する。
+                 */
                 (void)unregister_descriptor(descriptor->fields[i].nested);
             }
         }

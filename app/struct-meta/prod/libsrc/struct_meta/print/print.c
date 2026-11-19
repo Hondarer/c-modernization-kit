@@ -27,8 +27,8 @@
 
 /*
  * 字下げ分の空白を出力する。
- * 個々の fputc() の戻り値は見ず、直後の fprintf() の結果と ferror(out) で
- * ストリームのエラー指示をまとめて検査する。
+ * 個々の fputc() の失敗はストリームのエラー指示に残り、呼び出し元の print_label() が
+ * 直後の fprintf() の結果と ferror(out) でまとめて検査するため、この関数の fputc の戻り値は明示的に破棄する。
  */
 static void print_indent(FILE *out, int indent)
 {
@@ -36,7 +36,7 @@ static void print_indent(FILE *out, int indent)
 
     for (i = 0; i < indent; i++)
     {
-        fputc(' ', out);
+        (void)fputc(' ', out);
     }
 }
 

@@ -162,10 +162,14 @@ TEST(structMetaSampleIoTest, returns_exit_failure_when_help_print_or_stream_fail
         // [Pre-Assert手順] - CPLAT_ERR_OUT_OF_MEMORY を返す。
 
         // Act
+        testing::internal::CaptureStderr();
         int exit_code = __real_main(2, argv); // [手順] - API 失敗時の --help 経路を実行する。
+        std::string errors = testing::internal::GetCapturedStderr();
 
         // Assert
         EXPECT_EQ(EXIT_FAILURE, exit_code); // [確認_異常系] - API 失敗で EXIT_FAILURE を返すこと。
+        EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めません"));
+        // [確認_異常系] - 標準エラー出力へ使い方を出力できなかった診断を出すこと。
     }
 
     {
@@ -182,10 +186,14 @@ TEST(structMetaSampleIoTest, returns_exit_failure_when_help_print_or_stream_fail
         // [Pre-Assert手順] - EOF を返す。
 
         // Act
+        testing::internal::CaptureStderr();
         int exit_code = __real_main(2, argv); // [手順] - フラッシュ失敗時の --help 経路を実行する。
+        std::string errors = testing::internal::GetCapturedStderr();
 
         // Assert
         EXPECT_EQ(EXIT_FAILURE, exit_code); // [確認_異常系] - fflush(stdout) 失敗で EXIT_FAILURE を返すこと。
+        EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めません"));
+        // [確認_異常系] - 標準エラー出力へ使い方を出力できなかった診断を出すこと。
     }
 
     {
@@ -205,10 +213,14 @@ TEST(structMetaSampleIoTest, returns_exit_failure_when_help_print_or_stream_fail
         // [Pre-Assert手順] - ストリーム エラーを示す 1 を返す。
 
         // Act
+        testing::internal::CaptureStderr();
         int exit_code = __real_main(2, argv); // [手順] - ストリーム エラー検出時の --help 経路を実行する。
+        std::string errors = testing::internal::GetCapturedStderr();
 
         // Assert
         EXPECT_EQ(EXIT_FAILURE, exit_code); // [確認_異常系] - ferror(stdout) 検出で EXIT_FAILURE を返すこと。
+        EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めません"));
+        // [確認_異常系] - 標準エラー出力へ使い方を出力できなかった診断を出すこと。
     }
 
     // Cleanup
@@ -367,6 +379,45 @@ TEST(structMetaSampleIoTest, dumpjson_reports_flush_failure)
     EXPECT_NE(std::string::npos, output.find("\"count\"")); // [確認_正常系] - 反映の前に JSON を出力していること。
     EXPECT_NE(std::string::npos,
               errors.find("dumpjson の標準出力を反映できません")); // [確認_異常系] - 反映の失敗を診断出力すること。
+
+    // Cleanup
+}
+// 表示コマンドの後に標準出力のエラーが残っていた場合に診断を出し、エラーのない次のコマンドでは診断しないことの確認
+TEST(structMetaSampleIoTest, dumpjson_reports_stream_error_per_command)
+{
+    // Arrange
+    struct SampleValue
+    {
+        int32_t count;
+    } sample = {42};
+    const struct_meta_field fields[] = {
+        {"count", STRUCT_META_FIELD_SIGNED_INTEGER, 0, offsetof(SampleValue, count), sizeof(int32_t), 1, 0, nullptr,
+         nullptr, nullptr, 0},
+    };
+    const struct_meta_descriptor descriptor = {"SampleValue", sizeof(SampleValue), fields, 1, nullptr, nullptr, 0};
+    NiceMock<Mock_cplat> mock_cplat;
+    NiceMock<Mock_stdio> mock_stdio; // [状態] - 正常な記述子と値を用意する。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_stdio, ferror(_, _, _, stdout)).WillOnce(Return(1)).WillOnce(Invoke(delegate_real_ferror));
+    // [Pre-Assert確認_異常系] - ferror(stdout) がコマンドごとに 1 回、合計 2 回呼び出されること。
+    // [Pre-Assert手順] - 1 回目は 1 を返し、2 回目は実関数へ委譲する。
+
+    // Act
+    testing::internal::CaptureStdout();
+    testing::internal::CaptureStderr();
+    test_sample_dumpjson(&descriptor, &sample); // [手順] - ストリームのエラーが残る状態で dumpjson を実行する。
+    std::string first_errors = testing::internal::GetCapturedStderr();
+    testing::internal::CaptureStderr();
+    test_sample_dumpjson(&descriptor, &sample); // [手順] - 続けて dumpjson を実行する。
+    std::string second_errors = testing::internal::GetCapturedStderr();
+    std::string output = testing::internal::GetCapturedStdout();
+
+    // Assert
+    EXPECT_NE(std::string::npos, first_errors.find("dumpjson の標準出力へ書き込めません"));
+    // [確認_異常系] - ストリームのエラーを診断出力すること。
+    EXPECT_TRUE(second_errors.empty()); // [確認_異常系] - 続くコマンドでは診断を出さないこと。
+    EXPECT_NE(std::string::npos, output.find("42")); // [確認_異常系] - 2 回とも JSON を出力していること。
 
     // Cleanup
 }

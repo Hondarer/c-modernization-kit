@@ -57,7 +57,11 @@ int base_sym_loader_info(void)
 {
     int ret;
 
-    printf("- configpath: %s\n", sym_loader_configpath);
+    /*
+     * 失敗は標準出力のストリームに残り、呼び出し元のコマンドが終了の直前にまとめて検査するため、
+     * 戻り値は明示的に破棄する。
+     */
+    (void)printf("- configpath: %s\n", sym_loader_configpath);
     ret = cplat_sym_loader_info(fobj_array_libbase, fobj_length_libbase);
     if (ret != CPLAT_OK)
     {

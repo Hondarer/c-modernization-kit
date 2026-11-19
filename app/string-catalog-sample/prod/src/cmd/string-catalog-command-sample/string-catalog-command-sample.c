@@ -84,7 +84,8 @@ static int print_string(const cplat_string_catalog *const catalog, const int str
 
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 文字列 %d の組み立てに失敗しました (結果コード=%d)。\n", string_key, ret);
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: 文字列 %d の組み立てに失敗しました (結果コード=%d)。\n", string_key, ret);
         return ret;
     }
 
@@ -97,8 +98,12 @@ static int print_string(const cplat_string_catalog *const catalog, const int str
     note = cplat_string_catalog_get_note(catalog, string_key);
     level = trace_level_of(catalog, string_key);
 
-    printf("  %s: %-8s %s\n", (id != NULL) ? id : "-", s_level_labels[(unsigned int)level], text);
-    printf("  %s\n\n", note);
+    /*
+     * 標準出力への途中の出力の失敗はストリームに残り、main() が終了の直前にまとめて検査するため、
+     * この 2 つの printf の戻り値は明示的に破棄する。
+     */
+    (void)printf("  %s: %-8s %s\n", (id != NULL) ? id : "-", s_level_labels[(unsigned int)level], text);
+    (void)printf("  %s\n\n", note);
 
     return CPLAT_OK;
 }
@@ -188,7 +193,8 @@ static int write_traces(void)
     tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
     if (tracer == NULL)
     {
-        fprintf(stderr, "エラー: トレーサーを生成できませんでした。\n");
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: トレーサーを生成できませんでした。\n");
         return CPLAT_ERR_UNKNOWN;
     }
 
@@ -197,7 +203,7 @@ static int write_traces(void)
     if (ret != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
-        fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
+        (void)fprintf(stderr, "エラー: 標準エラー出力の詳細度を設定できませんでした。\n");
         return ret;
     }
 
@@ -205,7 +211,7 @@ static int write_traces(void)
     if (ret != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
-        fprintf(stderr, "エラー: トレースを開始できませんでした。\n");
+        (void)fprintf(stderr, "エラー: トレースを開始できませんでした。\n");
         return ret;
     }
 
@@ -258,12 +264,14 @@ static int verify_catalog(const char *const catalog_name, const cplat_string_cat
     ret = cplat_string_catalog_verify(catalog, &string_key, &language);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: カタログ %s の定義が不正です (文字列キー=%d、言語=%d)。\n", catalog_name, string_key,
-                (int)language);
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: カタログ %s の定義が不正です (文字列キー=%d、言語=%d)。\n", catalog_name,
+                      string_key, (int)language);
         return ret;
     }
 
-    printf("カタログ %s の書式と引数スキーマは整合しています。\n", catalog_name);
+    /* 失敗は標準出力のストリームに残り、main() が終了の直前にまとめて検査するため、戻り値は明示的に破棄する。 */
+    (void)printf("カタログ %s の書式と引数スキーマは整合しています。\n", catalog_name);
 
     return CPLAT_OK;
 }
@@ -304,11 +312,16 @@ int main(int argc, char *argv[])
     ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL);
         return EXIT_FAILURE;
     }
 
-    printf("\n[Neutral]\n\n");
+    /*
+     * 標準出力への途中の出力の失敗はストリームに残り、終了の直前にまとめて検査するため、
+     * この関数の printf の戻り値は明示的に破棄する。
+     */
+    (void)printf("\n[Neutral]\n\n");
     ret = print_all_strings();
     if (ret != CPLAT_OK)
     {
@@ -318,11 +331,12 @@ int main(int argc, char *argv[])
     ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
+        (void)fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n",
+                      (int)CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
         return EXIT_FAILURE;
     }
 
-    printf("\n[日本語]\n\n");
+    (void)printf("\n[日本語]\n\n");
     ret = print_all_strings();
     if (ret != CPLAT_OK)
     {
@@ -332,11 +346,11 @@ int main(int argc, char *argv[])
     ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
+        (void)fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_ENGLISH);
         return EXIT_FAILURE;
     }
 
-    printf("\n[English]\n\n");
+    (void)printf("\n[English]\n\n");
     ret = print_all_strings();
     if (ret != CPLAT_OK)
     {
@@ -347,14 +361,22 @@ int main(int argc, char *argv[])
     ret = cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
     if (ret != CPLAT_OK)
     {
-        fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n", (int)CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
+        (void)fprintf(stderr, "エラー: 言語 %d を設定できませんでした。\n",
+                      (int)CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE);
         return EXIT_FAILURE;
     }
 
-    printf("\n[トレース出力]\n\n");
+    (void)printf("\n[トレース出力]\n\n");
     ret = write_traces();
     if (ret != CPLAT_OK)
     {
+        return EXIT_FAILURE;
+    }
+
+    /* 途中の出力の失敗はストリームに残るため、終了の直前にまとめて検査する。 */
+    if (fflush(stdout) != 0 || ferror(stdout) != 0)
+    {
+        (void)fprintf(stderr, "エラー: 標準出力へ書き込めませんでした。\n");
         return EXIT_FAILURE;
     }
 

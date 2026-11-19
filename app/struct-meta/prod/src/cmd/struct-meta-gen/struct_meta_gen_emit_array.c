@@ -26,7 +26,11 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
 {
     size_t words = (data_size + 7U) / 8U;
 
-    fprintf(out, "static const uint64_t %s[%zu] = {\n", array_name, words);
+    /*
+     * 生成ファイルへの書き込みの失敗はストリームに残り、呼び出し元がファイルを閉じる直前にまとめて検査するため、
+     * この関数の out への fprintf の戻り値は明示的に破棄する。
+     */
+    (void)fprintf(out, "static const uint64_t %s[%zu] = {\n", array_name, words);
 
     for (size_t i = 0; i < words; i++)
     {
@@ -48,25 +52,25 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
 
         if ((i % STRUCT_META_GEN_EMIT_ARRAY_WORDS_PER_LINE) == 0U)
         {
-            fprintf(out, "    ");
+            (void)fprintf(out, "    ");
         }
 
-        fprintf(out, "UINT64_C(0x%016" PRIx64 ")", word);
+        (void)fprintf(out, "UINT64_C(0x%016" PRIx64 ")", word);
 
         if ((i + 1U) < words)
         {
-            fprintf(out, ",");
+            (void)fprintf(out, ",");
         }
 
         if ((((i + 1U) % STRUCT_META_GEN_EMIT_ARRAY_WORDS_PER_LINE) == 0U) || ((i + 1U) == words))
         {
-            fprintf(out, "\n");
+            (void)fprintf(out, "\n");
         }
         else
         {
-            fprintf(out, " ");
+            (void)fprintf(out, " ");
         }
     }
 
-    fprintf(out, "};\n\n");
+    (void)fprintf(out, "};\n\n");
 }

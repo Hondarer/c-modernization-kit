@@ -91,7 +91,7 @@ static void notify_service_status(void)
     {
         const DWORD err = GetLastError();
 
-        /* 状態通知の失敗を伝える経路はトレースだけであり、その失敗の伝え先はない。 */
+        /* 状態通知の失敗を伝える経路はトレースだけであり、その失敗の伝え先はないため、戻り値は明示的に破棄する。 */
         (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                   "SetServiceStatus が失敗しました (状態: %lu、エラー コード: %lu)。",
                                   s_status.dwCurrentState, err);
@@ -184,21 +184,25 @@ static void write_dispatcher_error(const DWORD err)
 
     tracer = svc_get_tracer();
 
+    /*
+     * トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。
+     * 標準エラー出力は診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。
+     */
     if (err == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
     {
         if (tracer != NULL)
         {
-            cplat_tracer_write(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL, "SCM への接続に失敗しました。");
-            cplat_tracer_write(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "サービスとして登録された後、SCM から 'run' 引数で起動してください。");
-            cplat_tracer_write(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "コンソールで実行するには 'console' コマンドを使用してください。");
+            (void)cplat_tracer_write(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL, "SCM への接続に失敗しました。");
+            (void)cplat_tracer_write(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスとして登録された後、SCM から 'run' 引数で起動してください。");
+            (void)cplat_tracer_write(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "コンソールで実行するには 'console' コマンドを使用してください。");
         }
         else
         {
-            fprintf(stderr, "SCM への接続に失敗しました。\n");
-            fprintf(stderr, "サービスとして登録された後、SCM から 'run' 引数で起動してください。\n");
-            fprintf(stderr, "コンソールで実行するには 'console' コマンドを使用してください。\n");
+            (void)fprintf(stderr, "SCM への接続に失敗しました。\n");
+            (void)fprintf(stderr, "サービスとして登録された後、SCM から 'run' 引数で起動してください。\n");
+            (void)fprintf(stderr, "コンソールで実行するには 'console' コマンドを使用してください。\n");
         }
 
         return;
@@ -206,12 +210,12 @@ static void write_dispatcher_error(const DWORD err)
 
     if (tracer != NULL)
     {
-        cplat_tracer_writef(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL,
-                            "StartServiceCtrlDispatcherU が失敗しました (エラー コード: %lu)。", err);
+        (void)cplat_tracer_writef(tracer, CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "StartServiceCtrlDispatcherU が失敗しました (エラー コード: %lu)。", err);
     }
     else
     {
-        fprintf(stderr, "StartServiceCtrlDispatcherU が失敗しました (エラー コード: %lu)。\n", err);
+        (void)fprintf(stderr, "StartServiceCtrlDispatcherU が失敗しました (エラー コード: %lu)。\n", err);
     }
 }
 
@@ -236,8 +240,9 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
     ret = cplat_elevated_process_run_if_needed(command, &exit_code, handled);
     if (ret != 0)
     {
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "%s には管理者権限が必要です。",
-                            operation_name);
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "%s には管理者権限が必要です。",
+                                  operation_name);
         return EXIT_FAILURE;
     }
 
@@ -346,7 +351,11 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
     }
 
     notification = (const WTSSESSION_NOTIFICATION *)ev_data;
-    /* 16 [byte] 配列に最大値が収まり、unsigned long と %lu の型も一致するため書式化は失敗しない。 */
+
+    /*
+     * 16 [byte] 配列に最大値が収まり、unsigned long と %lu の型も一致して書式化は失敗しないため、
+     * 戻り値は明示的に破棄する。
+     */
     (void)cplat_snprintf(session_id_buf, sizeof(session_id_buf), "%lu", (unsigned long)notification->dwSessionId);
 
     if (ev_type == WTS_SESSION_LOGON)
@@ -454,8 +463,12 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         rc = s_def->on_start(s_def->user_data);
         if (rc != 0)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "on_start が失敗しました (戻り値: %d)。", rc);
+            /*
+             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+             * この関数のトレースの戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "on_start が失敗しました (戻り値: %d)。", rc);
             set_service_stopped((DWORD)rc);
             return;
         }
@@ -467,8 +480,8 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     rc = s_def->on_run(s_def->user_data);
     if (rc != 0)
     {
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "on_run が失敗しました (戻り値: %d)。",
-                            rc);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "on_run が失敗しました (戻り値: %d)。", rc);
     }
 
     svc_os_notify_stopping();
@@ -481,8 +494,8 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         stop_rc = s_def->on_stop(s_def->user_data);
         if (stop_rc != 0)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "on_stop が失敗しました (戻り値: %d)。", stop_rc);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "on_stop が失敗しました (戻り値: %d)。", stop_rc);
 
             /* 最初に失敗したコールバックの戻り値を採用する。 */
             if (rc == 0)
@@ -522,7 +535,8 @@ int svc_os_run_service(const svc_definition *def)
     dispatch_table[1].lpServiceName = NULL;
     dispatch_table[1].lpServiceProc = NULL;
 
-    cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
 
     if (!StartServiceCtrlDispatcherU(dispatch_table))
     {
@@ -551,8 +565,9 @@ int svc_os_install(const svc_definition *def)
 
     if (cplat_process_get_executable_path(exe_path, sizeof(exe_path)) != CPLAT_OK)
     {
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                           "実行ファイルのパスを取得できませんでした。");
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "実行ファイルのパスを取得できませんでした。");
         return EXIT_FAILURE;
     }
 
@@ -562,7 +577,7 @@ int svc_os_install(const svc_definition *def)
      */
     if (cplat_snprintf(bin_path, sizeof(bin_path), "\"%s\" run", exe_path) != CPLAT_OK)
     {
-        cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "パスの生成に失敗しました。");
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "パスの生成に失敗しました。");
         return EXIT_FAILURE;
     }
 
@@ -572,13 +587,13 @@ int svc_os_install(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_ACCESS_DENIED)
         {
-            cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "SCM へのアクセスが拒否されました。管理者として実行してください。");
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "SCM へのアクセスが拒否されました。管理者として実行してください。");
         }
         else
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
         }
 
         return EXIT_FAILURE;
@@ -598,24 +613,24 @@ int svc_os_install(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_SERVICE_EXISTS)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "サービス '%s' は既に登録されています。", def->name);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "サービス '%s' は既に登録されています。", def->name);
         }
         else if (err == ERROR_ACCESS_DENIED)
         {
-            cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "サービスの登録が拒否されました。管理者として実行してください。");
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスの登録が拒否されました。管理者として実行してください。");
         }
         else if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                                "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。",
-                                def->name);
+            (void)cplat_tracer_writef(
+                svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
         }
         else
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "CreateServiceU が失敗しました (エラー コード: %lu)。", err);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "CreateServiceU が失敗しました (エラー コード: %lu)。", err);
         }
     }
     else
@@ -628,7 +643,10 @@ int svc_os_install(const svc_definition *def)
         {
             const DWORD err = GetLastError();
 
-            /* 説明がなくてもサービスは動作するため、警告を残してインストールを続ける。トレースの失敗の伝え先はない。 */
+            /*
+             * 説明がなくてもサービスは動作するため、警告を残してインストールを続ける。
+             * トレースの失敗の伝え先はないため、戻り値は明示的に破棄する。
+             */
             (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
                                       "サービスの説明の設定に失敗しました (エラー コード: %lu)。", err);
         }
@@ -638,8 +656,8 @@ int svc_os_install(const svc_definition *def)
 
         if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_PRESHUTDOWN_INFO, &preshutdown_info))
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
         }
 
         /*
@@ -664,8 +682,8 @@ int svc_os_install(const svc_definition *def)
 
         if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS, &failure_actions))
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                "自動再起動の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "自動再起動の設定に失敗しました (エラー コード: %lu)。", GetLastError());
         }
 
         /*
@@ -680,20 +698,24 @@ int svc_os_install(const svc_definition *def)
 
         if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &failure_flag))
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                "自動再起動フラグの設定に失敗しました (エラー コード: %lu)。", GetLastError());
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "自動再起動フラグの設定に失敗しました (エラー コード: %lu)。", GetLastError());
         }
 
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
-                            def->name);
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "実行ファイル: %s", bin_path);
-        cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "開始するには: sc start %s", def->name);
-        CloseServiceHandle(svc);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
+                                  def->name);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "実行ファイル: %s", bin_path);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "開始するには: sc start %s",
+                                  def->name);
+
+        /* 登録の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
+        (void)CloseServiceHandle(svc);
 
         rc = EXIT_SUCCESS;
     }
 
-    CloseServiceHandle(scm);
+    /* 登録の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
+    (void)CloseServiceHandle(scm);
 
     return rc;
 }
@@ -767,13 +789,17 @@ int svc_os_uninstall(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_ACCESS_DENIED)
         {
-            cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "SCM へのアクセスが拒否されました。管理者として実行してください。");
+            /*
+             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+             * この関数のトレースの戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "SCM へのアクセスが拒否されました。管理者として実行してください。");
         }
         else
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
         }
 
         return EXIT_FAILURE;
@@ -787,18 +813,18 @@ int svc_os_uninstall(const svc_definition *def)
         DWORD err = GetLastError();
         if (err == ERROR_SERVICE_DOES_NOT_EXIST)
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "サービス '%s' は登録されていません。",
-                                def->name);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "サービス '%s' は登録されていません。", def->name);
         }
         else if (err == ERROR_ACCESS_DENIED)
         {
-            cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "サービスへのアクセスが拒否されました。管理者として実行してください。");
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスへのアクセスが拒否されました。管理者として実行してください。");
         }
         else
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                "OpenServiceU が失敗しました (エラー コード: %lu)。", err);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "OpenServiceU が失敗しました (エラー コード: %lu)。", err);
         }
     }
     else
@@ -809,10 +835,12 @@ int svc_os_uninstall(const svc_definition *def)
          */
         if (!wait_for_service_stop(svc))
         {
-            cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                               "サービスの停止を確認できないため、削除しません。");
-            CloseServiceHandle(svc);
-            CloseServiceHandle(scm);
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスの停止を確認できないため、削除しません。");
+
+            /* 停止を確認できない失敗を返す経路のため、この 2 つの CloseServiceHandle の戻り値は明示的に破棄する。 */
+            (void)CloseServiceHandle(svc);
+            (void)CloseServiceHandle(scm);
             return EXIT_FAILURE;
         }
 
@@ -821,27 +849,29 @@ int svc_os_uninstall(const svc_definition *def)
             DWORD err = GetLastError();
             if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
             {
-                cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                                    "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。",
-                                    def->name);
+                (void)cplat_tracer_writef(
+                    svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                    "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
             }
             else
             {
-                cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                    "DeleteService が失敗しました (エラー コード: %lu)。", err);
+                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                          "DeleteService が失敗しました (エラー コード: %lu)。", err);
             }
         }
         else
         {
-            cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' の削除を要求しました。",
-                                def->name);
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                      "サービス '%s' の削除を要求しました。", def->name);
             rc = EXIT_SUCCESS;
         }
 
-        CloseServiceHandle(svc);
+        /* 削除の要求の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
+        (void)CloseServiceHandle(svc);
     }
 
-    CloseServiceHandle(scm);
+    /* 終了コードは確定済みで、閉じる失敗で変わらないため、戻り値は明示的に破棄する。 */
+    (void)CloseServiceHandle(scm);
 
     return rc;
 }

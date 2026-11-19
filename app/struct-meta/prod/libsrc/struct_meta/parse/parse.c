@@ -102,6 +102,10 @@ int struct_meta_internal_parse_header_file(const char *path, struct_meta_interna
     yyscan_t scanner = NULL;
     if (yylex_init(&scanner) != 0)
     {
+        /*
+         * すでに CPLAT_ERR_OUT_OF_MEMORY を返す経路の後始末であり、読み取り専用のストリームを閉じる失敗で
+         * 結果は変わらないため、戻り値は明示的に破棄する。
+         */
         (void)fclose(stream);
         struct_meta_internal_diagnose(diagnostic_out, 0, "字句解析器を初期化できません");
         return CPLAT_ERR_OUT_OF_MEMORY;
@@ -110,8 +114,14 @@ int struct_meta_internal_parse_header_file(const char *path, struct_meta_interna
     struct_meta_internal_parse_context context = {NULL, diagnostic_out, 0, 0};
     yyset_in(stream, scanner);
     const int parse_result = yyparse(scanner, &context);
+
+    /*
+     * flex のマニュアルは、yylex_destroy() の戻り値の意味を定めていない。
+     * 再入可能スキャナーの yylex_destroy() は、flex 2.6.4 が生成するコード (gen/struct_meta_parse.lex.c) では
+     * 分岐なしで 0 を返すため、戻り値は明示的に破棄する。
+     */
     (void)yylex_destroy(scanner);
-    (void)fclose(stream);
+    (void)fclose(stream); /* 読み取り専用のストリームで、解析の結果は確定済みのため、戻り値は明示的に破棄する */
 
     return finish(parse_result, &context, structs_out);
 }
@@ -138,6 +148,7 @@ int struct_meta_internal_parse_header_text(const char *text, size_t length,
     YY_BUFFER_STATE buffer = yy_scan_bytes(text, (int)length, scanner);
     if (buffer == NULL)
     {
+        /* yylex_destroy() は flex 2.6.4 の生成コードでは分岐なしで 0 を返すため、戻り値は明示的に破棄する。 */
         (void)yylex_destroy(scanner);
         struct_meta_internal_diagnose(diagnostic_out, 0, "構文解析に必要なメモリを確保できません");
         return CPLAT_ERR_OUT_OF_MEMORY;
@@ -146,6 +157,8 @@ int struct_meta_internal_parse_header_text(const char *text, size_t length,
     struct_meta_internal_parse_context context = {NULL, diagnostic_out, 0, 0};
     const int parse_result = yyparse(scanner, &context);
     yy_delete_buffer(buffer, scanner);
+
+    /* yylex_destroy() は flex 2.6.4 の生成コードでは分岐なしで 0 を返すため、戻り値は明示的に破棄する。 */
     (void)yylex_destroy(scanner);
 
     return finish(parse_result, &context, structs_out);

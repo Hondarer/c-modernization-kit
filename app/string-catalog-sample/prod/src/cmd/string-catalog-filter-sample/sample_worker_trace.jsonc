@@ -216,6 +216,36 @@
                 "neutral": "arg.processed_count is an unsigned 64-bit integer.",
                 "japanese": "arg.processed_count は符号なし 64 ビット整数です。"
             }
+        },
+        {
+            "key": "SAMPLE_WORKER_TRACE_KEY_WORKER_WAIT_FAILED",
+            "id": "SAMPLE_WORKER_TRACE_ID_0008",
+            "level": "ERROR",
+            "brief": "ワーカーの待機の失敗。",
+            "details": [
+                "待機できないワーカーは周期の処理を止めるため、ERROR に設定します。",
+                "この後に WORKER_STOPPED を出力します。"
+            ],
+            "arguments": [
+                {
+                    "kind": "UINT32",
+                    "name": "worker_index",
+                    "description": "ワーカーの番号。"
+                },
+                {
+                    "kind": "INT32",
+                    "name": "result",
+                    "description": "待機の関数が返した cplat の結果コード。"
+                }
+            ],
+            "texts": {
+                "neutral": "Worker {0} failed to wait (result={1}) and stops its cycle.",
+                "japanese": "ワーカー {0} の待機に失敗しました (結果コード={1})。周期の処理を止めます。"
+            },
+            "notes": {
+                "neutral": "arg.result is a cplat result code.",
+                "japanese": "arg.result は cplat の結果コードです。"
+            }
         }
     ]
 }

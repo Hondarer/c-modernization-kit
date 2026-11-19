@@ -42,6 +42,10 @@ int samplecatalog_initialize(cplat_tracer *const tracer)
     ret = samplecatalog_messages_verify(&string_key, NULL);
     if (ret != CPLAT_OK)
     {
+        /*
+         * トレースは補助の記録であり、出力先が NULL の場合の失敗も含めて初期化の結果を変えないため、
+         * この関数のトレースの戻り値は明示的に破棄する。
+         */
         (void)samplecatalog_trace_key_verify_failed("samplecatalog_messages", string_key);
         return ret;
     }
@@ -69,6 +73,7 @@ int samplecatalog_find_item(const char *const item_name, char *const dest, const
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
+    /* トレースは補助の記録であり、出力の失敗で検索の結果を変えないため、戻り値は明示的に破棄する。 */
     (void)samplecatalog_trace_key_lookup_performed(item_name);
 
     /* 保持する項目テーブルを走査し、一致する項目を検索する。 */
@@ -80,7 +85,11 @@ int samplecatalog_find_item(const char *const item_name, char *const dest, const
         }
     }
 
-    /* 項目が存在しない理由は、ライブラリ自身のカタログから組み立てて利用側へ返却する。 */
+    /*
+     * 項目が存在しない理由は、ライブラリ自身のカタログから組み立てて利用側へ返却する。
+     * カタログは初期化時に点検済みで、残る失敗は dest に収まらない場合の切り詰めだけである。
+     * 理由の文字列を切り詰めても項目が存在しない結果は変わらないため、戻り値は明示的に破棄する。
+     */
     (void)samplecatalog_messages_key_item_not_found(dest, dest_size, item_name, (uint32_t)SAMPLECATALOG_ITEM_COUNT);
 
     return CPLAT_ERR_NOT_FOUND;

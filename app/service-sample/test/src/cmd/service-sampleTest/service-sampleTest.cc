@@ -1,14 +1,18 @@
 #include <testfw.h>
 #include <mock_cplat.h>
+#include <mock_stdio.h>
 
 #include <cstdint>
 #include <cstdlib>
+#include <functional>
 #include <string>
 #include <vector>
 
 #include "service-sample.h"
 
 using testing::_;
+using testing::AnyNumber;
+using testing::HasSubstr;
 using testing::NiceMock;
 using testing::Return;
 
@@ -30,6 +34,8 @@ static int g_on_start_rc = 0;
 static int g_on_run_rc = 0;
 /** on_stop の戻り値 (テストごとに設定する)。 */
 static int g_on_stop_rc = 0;
+/** on_run の中で行う処理 (テストごとに設定する)。未設定の場合は何もしない。 */
+static std::function<void()> g_on_run_action;
 
 /* ============================================================
  *  サービス コールバック スタブ
@@ -48,6 +54,10 @@ extern "C"
     {
         (void)user_data;
         g_calls.push_back("on_run");
+        if (g_on_run_action)
+        {
+            g_on_run_action();
+        }
         return g_on_run_rc;
     }
 
@@ -161,6 +171,7 @@ class service_sampleTest : public Test
         g_on_start_rc = 0;
         g_on_run_rc = 0;
         g_on_stop_rc = 0;
+        g_on_run_action = nullptr;
 
         ON_CALL(mock_cplat_, cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED))
             .WillByDefault(Return(tracer_handle_));
@@ -706,4 +717,197 @@ TEST_F(service_sampleTest, stop_api_before_initialization)
     EXPECT_EQ(
         1,
         wait_result); // [確認_異常系] - svc_wait_for_stop() の戻り値が 1 であること。(未初期化のため待機せず停止扱いであることの確認)
+}
+
+/* ============================================================
+ *  失敗時の扱いのテスト
+ * ============================================================ */
+
+// ファイルへのトレースを設定できない場合に、診断を出してサービスを続けることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, console_continues_when_file_trace_setting_fails)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"}; // [状態] - main() にコマンド "console" を与える。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_tracer_set_file_level(_, _, _, _, _, _)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+    // [Pre-Assert確認_異常系] - cplat_tracer_set_file_level() が 1 回呼び出されること。
+    // [Pre-Assert手順] - cplat_tracer_set_file_level() から CPLAT_ERR_UNKNOWN を返す。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_start(_)).WillOnce(Return(0));
+    // [Pre-Assert確認_異常系] - 設定の失敗の後も cplat_tracer_start() が 1 回呼び出されること。
+    // [Pre-Assert手順] - cplat_tracer_start() から 0 を返す。
+
+    // Act
+    testing::internal::CaptureStderr();
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+    std::string errors = testing::internal::GetCapturedStderr();
+
+    // Assert
+    EXPECT_NE(std::string::npos, errors.find("ファイルへのトレースを設定できませんでした"));
+    // [確認_異常系] - 標準エラー出力に、ファイルへのトレースを設定できなかった診断が出ること。
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(5U, g_calls.size()); // [確認_異常系] - g_calls.size() の戻り値が 5U であること。(ライフサイクルを続けることの確認)
+}
+
+// 停止要求の待機に失敗した場合に、ERROR のトレースを出して 1 を返し、停止要求の状態を変えないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, wait_for_stop_returns_one_when_wait_fails)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"}; // [状態] - 停止抽象を初期化する "console" の経路を使う。
+    int wait_result = -1;
+    int requested = -1;
+    g_on_run_action = [&wait_result, &requested]()
+    {
+        wait_result = svc_wait_for_stop(1000);
+        requested = svc_stop_requested();
+    }; // [状態] - on_run の中で svc_wait_for_stop() と svc_stop_requested() を呼ぶ。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_condvar_timed_wait(_, _, 1000)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+    // [Pre-Assert確認_異常系] - cplat_condvar_timed_wait() が 1000 を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - cplat_condvar_timed_wait() から CPLAT_ERR_UNKNOWN を返す。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, _, _, _)).Times(AnyNumber());
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_ERROR, _, HasSubstr("停止要求の待機に失敗しました")))
+        .WillOnce(Return(0));
+    // [Pre-Assert確認_異常系] - 待機の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+
+    // Act
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(1, wait_result); // [確認_異常系] - svc_wait_for_stop() の戻り値が 1 であること。
+    EXPECT_EQ(0, requested);   // [確認_異常系] - svc_stop_requested() の戻り値が 0 であること。(停止要求の状態を変えないことの確認)
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+}
+
+// 負の待機時間を 0 として待機の関数へ渡すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, wait_for_stop_treats_negative_timeout_as_zero)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"}; // [状態] - 停止抽象を初期化する "console" の経路を使う。
+    int wait_result = -1;
+    g_on_run_action = [&wait_result]()
+    { wait_result = svc_wait_for_stop(-5); }; // [状態] - on_run の中で負の時間を指定して svc_wait_for_stop() を呼ぶ。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_condvar_timed_wait(_, _, 0)).WillOnce(Return(CPLAT_ERR_TIMEOUT));
+    // [Pre-Assert確認_異常系] - cplat_condvar_timed_wait() が 0 を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - cplat_condvar_timed_wait() から CPLAT_ERR_TIMEOUT を返す。
+
+    // Act
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(0, wait_result); // [確認_異常系] - svc_wait_for_stop() の戻り値が 0 であること。(タイムアウトとして扱うことの確認)
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+}
+
+// 停止要求の登録に失敗した場合に、コールバックを呼ばずに EXIT_FAILURE を返すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, console_fails_when_shutdown_request_register_fails)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"}; // [状態] - main() にコマンド "console" を与える。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_shutdown_request_register(_, _)).WillOnce(Return(CPLAT_ERR_OUT_OF_MEMORY));
+    // [Pre-Assert確認_異常系] - cplat_shutdown_request_register() が 1 回呼び出されること。
+    // [Pre-Assert手順] - cplat_shutdown_request_register() から CPLAT_ERR_OUT_OF_MEMORY を返す。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, _, _, _)).Times(AnyNumber());
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_ERROR, _, HasSubstr("停止要求の登録に失敗しました")))
+        .WillOnce(Return(0));
+    // [Pre-Assert確認_異常系] - 登録の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+
+    // Act
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_FAILURE であること。
+    EXPECT_TRUE(g_calls.empty()); // [確認_異常系] - g_calls.empty() の戻り値が true であること。(on_start を呼ばないことの確認)
+}
+
+// --help で使い方の表示、fflush、ferror のどれかが失敗を示した場合に、診断を出して EXIT_FAILURE を返すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, help_returns_exit_failure_when_print_or_stream_fails)
+{
+    // Arrange
+    const char *argv[] = {"service-sampleTest", "--help"}; // [状態] - help オプションを指定する。
+
+    {
+        // Arrange
+        NiceMock<Mock_stdio> mock_stdio; // [状態] - 使い方の表示の関数が失敗する条件を用意する。
+
+        // Pre-Assert
+        EXPECT_CALL(mock_cplat_, cplat_argparser_print_usage(stdout)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - cplat_argparser_print_usage() が stdout を指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_argparser_print_usage() から CPLAT_ERR_UNKNOWN を返す。
+
+        // Act
+        testing::internal::CaptureStderr();
+        int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションを指定して __real_main() を呼び出す。
+        std::string errors = testing::internal::GetCapturedStderr();
+
+        // Assert
+        EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_FAILURE であること。
+        EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めませんでした"));
+        // [確認_異常系] - 標準エラー出力に診断が出ること。
+    }
+
+    {
+        // Arrange
+        NiceMock<Mock_stdio> mock_stdio; // [状態] - fflush(stdout) が失敗する条件を用意する。
+
+        // Pre-Assert
+        EXPECT_CALL(mock_cplat_, cplat_argparser_print_usage(stdout)).WillOnce(Return(CPLAT_OK));
+        // [Pre-Assert確認_異常系] - cplat_argparser_print_usage() が stdout を指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_argparser_print_usage() から CPLAT_OK を返す。
+        EXPECT_CALL(mock_stdio, fflush(_, _, _, stdout)).WillOnce(Return(EOF));
+        // [Pre-Assert確認_異常系] - fflush(stdout) が 1 回呼び出されること。
+        // [Pre-Assert手順] - fflush() から EOF を返す。
+
+        // Act
+        testing::internal::CaptureStderr();
+        int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションを指定して __real_main() を呼び出す。
+        std::string errors = testing::internal::GetCapturedStderr();
+
+        // Assert
+        EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_FAILURE であること。
+        EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めませんでした"));
+        // [確認_異常系] - 標準エラー出力に診断が出ること。
+    }
+
+    {
+        // Arrange
+        NiceMock<Mock_stdio> mock_stdio; // [状態] - ferror(stdout) がエラーを示す条件を用意する。
+
+        // Pre-Assert
+        EXPECT_CALL(mock_cplat_, cplat_argparser_print_usage(stdout)).WillOnce(Return(CPLAT_OK));
+        // [Pre-Assert確認_異常系] - cplat_argparser_print_usage() が stdout を指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_argparser_print_usage() から CPLAT_OK を返す。
+        EXPECT_CALL(mock_stdio, fflush(_, _, _, stdout)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - fflush(stdout) が 1 回呼び出されること。
+        // [Pre-Assert手順] - fflush() から 0 を返す。
+        EXPECT_CALL(mock_stdio, ferror(_, _, _, stdout)).WillOnce(Return(1));
+        // [Pre-Assert確認_異常系] - ferror(stdout) が 1 回呼び出されること。
+        // [Pre-Assert手順] - ferror() から 1 を返す。
+
+        // Act
+        testing::internal::CaptureStderr();
+        int actual_ret = __real_main(2, (char **)&argv); // [手順] - help オプションを指定して __real_main() を呼び出す。
+        std::string errors = testing::internal::GetCapturedStderr();
+
+        // Assert
+        EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_FAILURE であること。
+        EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めませんでした"));
+        // [確認_異常系] - 標準エラー出力に診断が出ること。
+    }
 }

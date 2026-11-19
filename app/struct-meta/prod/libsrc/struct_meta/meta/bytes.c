@@ -235,7 +235,10 @@ int struct_meta_internal_bytes_from_hex(unsigned char *bytes, const size_t byte_
         unsigned char high = 0U;
         unsigned char low = 0U;
 
-        /* 事前の validate_hex_text() で妥当性を検証済みのため、hex_value() は失敗しない。 */
+        /*
+         * 事前の validate_hex_text() で妥当性を検証済みであり、失敗しないため、
+         * 次の 2 つの hex_value() の戻り値は明示的に破棄する。
+         */
         (void)hex_value(cursor[0], &high);
         (void)hex_value(cursor[1], &low);
         bytes[i] = (unsigned char)((high << 4U) | low);

@@ -57,7 +57,8 @@ extern "C"
      *  @param[out]     dest      文字列の格納先バッファー。NULL を渡してはなりません。
      *  @param[in]      dest_size @p dest のバイト数。1 以上を指定してください。
      *  @return         項目が見つかった場合は @c CPLAT_OK を返し、@p dest を変更しません。
-     *  @return         項目が存在しない場合は @c CPLAT_ERR_NOT_FOUND を返し、@p dest へ理由を組み立てます。
+     *  @return         項目が存在しない場合は @c CPLAT_ERR_NOT_FOUND を返し、@p dest へ理由を組み立てます。\n
+     *                  理由の文字列が @p dest に収まらない場合は切り詰めます。
      *  @return         引数が不正な場合は @c CPLAT_ERR_INVALID_ARGUMENT を返します。
      *
      *  ライブラリが自身のカタログから文字列を組み立てる例です。\n

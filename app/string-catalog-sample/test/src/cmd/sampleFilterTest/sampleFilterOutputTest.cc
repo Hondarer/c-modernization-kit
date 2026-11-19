@@ -181,3 +181,36 @@ TEST_F(sampleFilterOutputTest, write_without_configuration_returns_invalid_argum
             .call_count); // [確認_異常系] - capture_.call_count が 0 であること。(フックが呼び出されない、つまり組み立ても出力も行わないことの確認)
 }
 // [サブ手順参照 名前=sampleFilterOutputTest.TearDown]
+
+// ワーカーの待機の失敗のトレースを、ERROR のレベルと結果コードを含む文面で出力することの確認
+// [サブ手順参照 名前=sampleFilterOutputTest.SetUp]
+TEST_F(sampleFilterOutputTest, worker_wait_failed_trace_uses_error_level_with_result_code)
+{
+    // Arrange
+    int actual_ret;
+
+    // Pre-Assert
+
+    // Act
+    actual_ret = sample_worker_trace_key_worker_wait_failed(
+        (uint32_t)3, (int32_t)-7); // [手順] - 3 と -7 を指定して sample_worker_trace_key_worker_wait_failed() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(
+        CPLAT_OK,
+        actual_ret); // [確認_異常系] - sample_worker_trace_key_worker_wait_failed() の戻り値が CPLAT_OK であること。
+    ASSERT_EQ(
+        1,
+        capture_
+            .call_count); // [確認_異常系] - capture_.call_count が 1 であること。(フックが 1 回呼び出されたことの確認)
+    EXPECT_EQ(
+        CPLAT_TRACE_LEVEL_ERROR,
+        capture_
+            .level); // [確認_異常系] - capture_.level が CPLAT_TRACE_LEVEL_ERROR であること。(WORKER_WAIT_FAILED の分類値がトレース レベルに使われたことの確認)
+    EXPECT_NE(
+        nullptr,
+        std::strstr(
+            capture_.message,
+            "=-7")); // [確認_異常系] - capture_.message に "=-7" が含まれること。(結果コードが文面に含まれることの確認)
+}
+// [サブ手順参照 名前=sampleFilterOutputTest.TearDown]
