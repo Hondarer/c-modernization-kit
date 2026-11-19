@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 検討用 Markdown (discussion)
-最終更新日時: 2026-11-19 10:20:00 JST
+最終更新日時: 2026-11-19 17:59:29 JST
 最終更新エージェント: claude code (Opus 5.5) / セッション ID: session_01KJc53SNPk1ZBvJzF3wRqtE
 稼働 OS: Windows
 上流文書: `261115-source-comment-bl001-deep-dive-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
@@ -17,7 +17,7 @@
 
 版: 7
 
-状態: 作業中
+状態: 完了
 
 ## 作業 WBS と進捗管理
 
@@ -44,7 +44,7 @@
     - ✅ 3.1. `261118-source-comment-bl001-category-batch-design.md` を作成し、対策元 backlog に確定方針を反映する。
     - ✅ 3.2. 受入条件と整合性を確認する。
     - ✅ 3.3. 最終仕様の承認を受け付ける (第 2 ゲート)。2026-11-19 にユーザーが対話で承認した。
-- 🔄 4. 承認された最終仕様に従った作業の実施
+- ✅ 4. 承認された最終仕様に従った作業の実施
     - ✅ 4.1. `app/cplat/prod/libsrc/cplat/crypto/crypto_windows.c` を変更する (032)。
     - ✅ 4.2. `app/cplat/prod/libsrc/cplat/runtime/elevated_process.c` と公開ヘッダー `elevated_process.h`、`app/cplat/docs/api-cheatsheet.md` を変更する (043、044、045、047、048)。
     - ✅ 4.3. `app/cplat/prod/libsrc/cplat/trace/backends/file/trace_file.c` を変更する (110)。
@@ -58,10 +58,10 @@
     - ✅ 4.11. 受入条件への適合を確認する。
     - ✅ 4.12. 対策元 backlog に枝番号別の結果を反映する。
     - ✅ 4.13. 今回対処しない 57 件と作業中の新しい課題を `261118-source-comment-bl001-category-batch-backlog.md` へ転記し、件数を照合する。
-    - 🔄 4.14. Linux/GCC の結果を CI で確認する。コミットとプッシュはユーザーの指示を受けてから行う。 ← **CURRENT**
-- ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
-    - ⏸️ 5.1. 成果物、検証結果、残課題を提示する。
-    - ⏸️ 5.2. 成果物の承認を受け付ける。
+    - ✅ 4.14. Linux/GCC の結果を CI で確認する。コミットとプッシュはユーザーの指示を受けてから行う。
+- ✅ 5. 成果物の承認の受付 (第 3 ゲート)
+    - ✅ 5.1. 成果物、検証結果、残課題を提示する。
+    - ✅ 5.2. 成果物の承認を受け付ける。2026-11-19 にユーザーが対話で承認した。
 
 ## 対象と参照資料
 
@@ -1523,4 +1523,4 @@ Windows/MSVC で実施した検証の結果は次のとおりです。
 
 Table: Windows/MSVC での検証結果
 
-Linux/GCC の結果は、プッシュ後の CI で確認します (作業 WBS 4.14)。
+Linux/GCC の結果は、コミット `276a4242` (cplat `8bd35e72`) のプッシュ後の CI ([run 44435772269](https://github.com/Hondarer/c-modernization-kit/actions/runs/44435772269)) で確認しました。Oracle Linux 8、9、10 と Windows のビルドとテスト、docs、verify-gen、warnings-summary のすべてのジョブが成功しました。
