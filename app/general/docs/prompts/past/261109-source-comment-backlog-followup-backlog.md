@@ -40,7 +40,7 @@ Table: 次期対処から引き継ぐ残課題
 案件 `source-comment-remaining-20261109` で、この一覧の 11 件を対処しました。  
 上の表の「状態」は、その結果です。  
 合意の経緯は `../current/261109-source-comment-remaining-discussion.md`、変更内容と受入条件は `../current/261109-source-comment-remaining-design.md` に記載しています。  
-引き継いだ項目は [新しい残課題一覧](../current/261109-source-comment-remaining-backlog.md) に記載しています。
+引き継いだ項目は [新しい残課題一覧](261109-source-comment-remaining-backlog.md) に記載しています。
 
 対処では、元の報告を列挙順の枝番号で現行の実装と照合しました。  
 以下の各節の報告は対処前の記録であり、行番号と内容は対処後の実装と一致しません。  

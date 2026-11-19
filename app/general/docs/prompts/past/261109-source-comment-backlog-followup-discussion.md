@@ -39,9 +39,9 @@
 
 ## 対象と確認した事実
 
-ユーザーの依頼は、[前回の残課題一覧](../current/261108-source-comment-residual-backlog.md) の対処を進めることです。  
+ユーザーの依頼は、[前回の残課題一覧](261108-source-comment-residual-backlog.md) の対処を進めることです。  
 同一覧には 14 件が未対処として記載されています。  
-前回の [検討文書](../current/261108-source-comment-residual-discussion.md) は、選んだ課題の実装後、CI 再検証中です。  
+前回の [検討文書](261108-source-comment-residual-discussion.md) は、選んだ課題の実装後、CI 再検証中です。  
 同文書と残課題一覧には、既存の未コミット変更があります。この検討では変更しません。
 
 BL-003 の `EACCES` 対応付けは `app/cplat/prod/libsrc/cplat/sync/sync_linux.c` に残っています。対応付けを直接検査するテストと、pthread 関数からの戻り値として注入するテストもあります。  
@@ -90,7 +90,7 @@ Table: 対処範囲の確認項目
 
 **Context**
 
-[前回の残課題一覧](../current/261108-source-comment-residual-backlog.md) は 14 件を含みます。  
+[前回の残課題一覧](261108-source-comment-residual-backlog.md) は 14 件を含みます。  
 BL-008 は 187 箇所の理由を確認する課題です。BL-024 は Windows 実機での検証、BL-025 は機能追加の実施要否の判断です。  
 一方、BL-003、BL-004、BL-028 は対象箇所が特定されており、現物確認に着手しました。  
 今回の依頼だけでは、14 件を一括して扱うか、対象を分けるかを確定できません。
