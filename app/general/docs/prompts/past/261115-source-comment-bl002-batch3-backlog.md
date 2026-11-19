@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-16 12:50:36 JST
+最終更新日時: 2026-11-20 08:21:00 JST
 最終更新エージェント: agy (Gemini 4 Hydrogen (High)、Sol 管理レビュー)
 稼働 OS: Linux (WSL)
 上流文書: `261115-source-comment-bl002-batch3-design.md` (最終仕様)、`261115-source-comment-bl002-batch3-discussion.md` (検討用 Markdown)。削除されている場合があります。
@@ -35,7 +35,7 @@ Table: 第 3 バッチで引き継ぐ残課題
 
 ### 概要と問題点
 
-- **現状の事象**: 第 3 バッチ完了時点の引き継ぎ対象として、ソース上の値の選定、戻り値の破棄、分岐条件などについて根拠をコードや文書から確認できない記述が 122 件ありました (当時の内訳は `app/cplat` の 76 件と、`calc`、`override-sample`、`porter`、`service-sample`、`string-catalog-sample`、`struct-meta` の 46 件です)。継続案件 `source-comment-bl001-deep-dive-20261115` により 49 件を対策・現行確認し、未対策の 73 件を [継続案件の残課題一覧](../current/261115-source-comment-bl001-deep-dive-backlog.md) (整理済み) へ引き継いでいます。
+- **現状の事象**: 第 3 バッチ完了時点の引き継ぎ対象として、ソース上の値の選定、戻り値の破棄、分岐条件などについて根拠をコードや文書から確認できない記述が 122 件ありました (当時の内訳は `app/cplat` の 76 件と、`calc`、`override-sample`、`porter`、`service-sample`、`string-catalog-sample`、`struct-meta` の 46 件です)。継続案件 `source-comment-bl001-deep-dive-20261115` により 49 件を対策・現行確認し、未対策の 73 件を [継続案件の残課題一覧](261115-source-comment-bl001-deep-dive-backlog.md) (整理済み) へ引き継いでいます。
 - **本来あるべき姿**: 根拠を確認できた記述には根拠をコメントまたは正本へ反映し、確認できない場合は設計者へ理由または変更方針を確認します。OS 仕様を根拠にする場合は `see: <URL>` を残します。
 
 ### 経緯と見送り理由
@@ -45,24 +45,24 @@ Table: 第 3 バッチで引き継ぐ残課題
 - **継続作業での経緯と対処**: 第 2 バッチで 30 件を解消しました。第 3 バッチでは残る 122 件を引き継ぎ、この文書で進捗を管理します。各項目のソース パスと背景は、[第 2 バッチ BL-001](../past/261114-source-comment-bl002-batch2-backlog.md#bl-001-確認できない設計理由-122-項目) に記録した一覧を参照してください。
 
 2026-11-15 に継続案件 `source-comment-bl001-deep-dive-20261115` を開始しました。  
-[検討用 Markdown](../current/261115-source-comment-bl001-deep-dive-discussion.md) で 122 件の根拠を調べ、説明できる項目の対策を検討しました。  
+[検討用 Markdown](261115-source-comment-bl001-deep-dive-discussion.md) で 122 件の根拠を調べ、説明できる項目の対策を検討しました。  
 122 件を照合し、理由反映 35 件、コメント訂正 4 件、原典との対応確認 1 件、表記修正 2 件、現行実装での解消確認 1 件、動作と不要処理の修正 6 件の合計 49 件を対象とする最終仕様を作成しました。  
 ユーザーの回答により、151 は固定プロンプトの共通入力中止 API と標準入力の専有契約を追加し、中止状態をハンドルの破棄まで保持します。  
 177 は長いフィールド名も省略せず出力します。  
 142 は受信時の展開先容量、152 は TCP_BIDIR の受信側の送信可否、183 は到達不能な比較、187 は help の出力失敗を対策します。  
 残る 73 件は根拠または変更方針が未確定であり、今回の解消件数には含めません。  
 2026-11-16 に仕様版 1 の承認を受領し、実装と局所検証を開始しました。  
-承認済みの 49 件 ([最終仕様の対象一覧](../current/261115-source-comment-bl001-deep-dive-design.md): 002, 005, 009, 033, 038, 046, 051, 052, 065, 066, 072, 077, 079〜083, 101, 103, 104, 106, 108, 111〜114, 120, 123, 131, 136, 139, 140, 142, 148〜152, 160, 161, 167, 175, 177, 179, 180, 183, 185〜187) は、理由反映 35 件、訂正 4 件、原典確認 1 件、NUL 表記修正 2 件、既存解消確認 1 件 (枝番号 150 は新規コード変更ではなく現行実装に旧重複分岐がないことの確認)、動作・不要処理修正 6 件 (142, 151, 152, 177, 183, 187) としてすべて実装・反映を完了しました。  
+承認済みの 49 件 ([最終仕様の対象一覧](261115-source-comment-bl001-deep-dive-design.md): 002, 005, 009, 033, 038, 046, 051, 052, 065, 066, 072, 077, 079〜083, 101, 103, 104, 106, 108, 111〜114, 120, 123, 131, 136, 139, 140, 142, 148〜152, 160, 161, 167, 175, 177, 179, 180, 183, 185〜187) は、理由反映 35 件、訂正 4 件、原典確認 1 件、NUL 表記修正 2 件、既存解消確認 1 件 (枝番号 150 は新規コード変更ではなく現行実装に旧重複分岐がないことの確認)、動作・不要処理修正 6 件 (142, 151, 152, 177, 183, 187) としてすべて実装・反映を完了しました。  
 Linux/GCC では対象局所テスト計 462 件 (Windows 専用 `promptWindowsTest` の Linux 上 0 件を除く)、実 `libcplat.so` と実 PTY・実パイプによる入力中止確認、および `cplat`・`struct-meta` の公開／内部 Doxygen 生成に合格し、対象範囲の内容のある `.warn` は 0 件です (`promptTest` は EOF 入力想定ケースのため `< /dev/null` を与えて 78 件成功)。  
 Windows/MSVC では `%TEMP%` 配下の一時複製で対象 15 ターゲット計 338 件の単体テスト、および実 `libcplat.dll` リンクでの同期パイプ・改行なし部分行・隔離 `AllocConsole` 実 TTY 中止確認に合格しました (初回検証時には既存 `porterTestOutputTest.cc` の `fopen` に係る C4996 警告 2 件が `HEAD` 由来の既知事項として出力されていましたが、新規起因から分離していました)。  
 08:47 の `pinned_prompt.inject.c`/`.h` 履歴エントリ数アクセサー追加を同期した後の Windows 版 `pinnedPromptTest` 再確認 (`55 / 55` 合格・終了コード `0`・非空 `.warn` 0 件) を完了しました。  
 その後、ユーザー追加依頼「既存の MSVC 警告 2 件も対応して」を受け、`app/porter/test/src/cmd/porterTestOutputTest/porterTestOutputTest.cc` に `<cplat/crt/stdio.h>` を追加し、保存処理後のファイル残存確認に使っていた `fopen(path, "rb")` 2 箇所 (旧 40/77 行目相当) を `cplat_fopen(path, "rb", nullptr)` へ置換しました。  
 変更後の再確認はこの変更対象 `porterTestOutputTest` の 7 ケースのみを実施し (他ターゲットの Linux 462 件・Windows 338 件の残りおよび実機確認・Doxygen は既存結果を再利用)、Linux で `7 / 7` 合格・対象 `.warn` 0 件、Windows 一時複製でも再コンパイル・再リンク・再テスト後に `7 / 7` 合格、`porterTestOutputTest.cc.warn` が空になり C4996 警告 2 件が解消されたこと (非空 `.warn` 0 件) を確認しました。  
-未対策の 73 件は [継続案件の残課題一覧](../current/261115-source-comment-bl001-deep-dive-backlog.md) (整理済み・49 件と重複なく和集合 122 件) へ引き継いでいます。
+未対策の 73 件は [継続案件の残課題一覧](261115-source-comment-bl001-deep-dive-backlog.md) (整理済み・49 件と重複なく和集合 122 件) へ引き継いでいます。
 
 ### 影響範囲とリスク
 
-- **影響対象**: 当初の調査対象は `app/cplat` の 76 件と、`calc`、`override-sample`、`porter`、`service-sample`、`string-catalog-sample`、`struct-meta` の 46 件でした。現在未対策の 73 件の対象パスと未確定点は、[継続案件の残課題一覧](../current/261115-source-comment-bl001-deep-dive-backlog.md) に記載しています。
+- **影響対象**: 当初の調査対象は `app/cplat` の 76 件と、`calc`、`override-sample`、`porter`、`service-sample`、`string-catalog-sample`、`struct-meta` の 46 件でした。現在未対策の 73 件の対象パスと未確定点は、[継続案件の残課題一覧](261115-source-comment-bl001-deep-dive-backlog.md) に記載しています。
 - **放置した場合のリスク**: 保守者が値を変更してよいか、分岐や戻り値を維持すべきか判断できないまま、根拠の不明な実装が残ります。
 
 ### 推奨される対応策

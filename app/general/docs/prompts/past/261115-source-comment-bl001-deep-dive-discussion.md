@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 検討用 Markdown (discussion)
-最終更新日時: 2026-11-16 12:50:36 JST
+最終更新日時: 2026-11-20 08:21:00 JST
 最終更新エージェント: agy (Gemini 4 Hydrogen (High)、Sol 管理レビュー)
 稼働 OS: Linux (WSL)
 上流文書: `../past/261115-source-comment-bl002-batch3-backlog.md`、`../past/261114-source-comment-bl002-batch2-backlog.md`
@@ -481,7 +481,7 @@ TTY、端末設定の復元、CRT の行入力との組み合わせは、実装�
 元の BL-001 122 件を調査し、承認済み仕様 ([261115-source-comment-bl001-deep-dive-design.md](261115-source-comment-bl001-deep-dive-design.md)) の 49 件を完了し、残る 73 件を [261115-source-comment-bl001-deep-dive-backlog.md](261115-source-comment-bl001-deep-dive-backlog.md) (整理済み) へ引き継ぎました。  
 49 件の内訳は、理由反映 35 件、誤った説明の訂正 4 件、原典の節・ページ確認 1 件、NUL 表記修正 2 件、既存解消確認 1 件 (枝番号 150 は新規コード変更ではなく現行実装に旧重複分岐がないことの確認)、および動作・不要処理修正 6 件 (142・151・152・177・183・187) です。  
 49 件と 73 件に重複はなく、和集合が 122 件に一致することを照合しました。  
-対策元の [../past/261115-source-comment-bl002-batch3-backlog.md](../past/261115-source-comment-bl002-batch3-backlog.md) と [261114-source-comment-bl002-batch2-backlog.md](../past/261114-source-comment-bl002-batch2-backlog.md) の記載も最終状態へ更新しています。
+対策元の [../past/261115-source-comment-bl002-batch3-backlog.md](261115-source-comment-bl002-batch3-backlog.md) と [261114-source-comment-bl002-batch2-backlog.md](261114-source-comment-bl002-batch2-backlog.md) の記載も最終状態へ更新しています。
 
 ### OS 別の局所テスト結果と主要コマンド
 

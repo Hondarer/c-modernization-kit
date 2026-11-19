@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-18 12:31:04 JST
+最終更新日時: 2026-11-20 08:21:00 JST
 最終更新エージェント: claude code / セッション ID: session_01KJc53TxVv1vjB6xMfjiUgc (BL-004 の継続案件の完了の記録)
 稼働 OS: Windows
 上流文書: `261115-local-lock-unlock-bl005-006-design.md` (最終仕様)、`261115-local-lock-unlock-bl005-006-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。
@@ -38,7 +38,7 @@
 
 - **摘出契機**: [第 3 バッチの残課題一覧](261115-source-comment-bl002-batch3-backlog.md#bl-001-確認できない設計理由-122-項目) の BL-001 からの転記です。
 - **今回の見送り理由**: 本作業は第 3 バッチの BL-005、BL-006 と待機 API 体系を対象とし、122 件の根拠確認は範囲外です。
-- **継続作業での経緯と対処**: 2026-11-15 に別の継続案件 `source-comment-bl001-deep-dive-20261115` ([検討用 Markdown](../current/261115-source-comment-bl001-deep-dive-discussion.md)) が開始されており、進捗は第 3 バッチの残課題一覧の BL-001 で管理しています。本作業の待機 API の改名により、122 件のうち同期 API の呼び出しを含む項目は、関数名と定数名が変わっています。
+- **継続作業での経緯と対処**: 2026-11-15 に別の継続案件 `source-comment-bl001-deep-dive-20261115` ([検討用 Markdown](261115-source-comment-bl001-deep-dive-discussion.md)) が開始されており、進捗は第 3 バッチの残課題一覧の BL-001 で管理しています。本作業の待機 API の改名により、122 件のうち同期 API の呼び出しを含む項目は、関数名と定数名が変わっています。
 
 ### 影響範囲とリスク
 

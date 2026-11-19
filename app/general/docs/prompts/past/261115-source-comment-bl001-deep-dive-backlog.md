@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-19 09:40:00 JST
+最終更新日時: 2026-11-20 08:21:00 JST
 最終更新エージェント: claude code (Opus 5.5) / セッション ID: session_01KJc53SNPk1ZBvJzF3wRqtE
 稼働 OS: Windows
 上流文書: `261115-source-comment-bl001-deep-dive-design.md` (承認済み最終仕様)、`261115-source-comment-bl001-deep-dive-discussion.md` (検討用 Markdown)、`../past/261115-source-comment-bl002-batch3-backlog.md` (対策元)。削除されている場合があります。
@@ -48,7 +48,7 @@ Table: 今回引き継ぐ未対策項目
 
 ### 継続作業での経緯と対処
 
-2026-11-18 に、継続案件 `source-comment-bl001-category-batch-20261118` ([検討用 Markdown](261118-source-comment-bl001-category-batch-discussion.md)) を開始しました。  
+2026-11-18 に、継続案件 `source-comment-bl001-category-batch-20261118` ([検討用 Markdown](../current/261118-source-comment-bl001-category-batch-discussion.md)) を開始しました。  
 73 件のうち、疑問の種類が類似する 10 件から 20 件程度を選んで対処する案件です。  
 2026-11-18 の回答 (継続案件の Q-001) により、失敗を検査していない 16 件 (032、043、044、045、047、048、110、121、137、138、163、166、168、170、172、184) を対象に決定しました。  
 同じ回答 (Q-002) により、動作修正も対象に含めます。16 件の状態は「検討中」で、失敗の扱いの方針と項目ごとの変更内容を継続案件の Q-004 から Q-014 で確認しています。  
@@ -193,6 +193,6 @@ Table: 未対策の 73 件と次の調査
 
 ### 参考資料
 
-- [第 2 バッチの対象と元の疑問](../past/261114-source-comment-bl002-batch2-backlog.md#bl-001-確認できない設計理由-122-項目)。
+- [第 2 バッチの対象と元の疑問](261114-source-comment-bl002-batch2-backlog.md#bl-001-確認できない設計理由-122-項目)。
 - `app/general/docs/coding-guideline.md` の実装コメント、エラー処理、資源管理の規範。
 - 各対象 app の宣言側の契約と、上表のモジュールの正本。
