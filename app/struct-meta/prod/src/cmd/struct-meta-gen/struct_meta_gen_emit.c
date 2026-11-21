@@ -27,6 +27,7 @@
 #include "struct_meta_gen_emit_array.h"
 
 #include <struct_meta/catalog/catalog.h>
+#include <struct_meta/meta/index_internal.h>
 
 #include <cplat/base/result.h>
 #include <cplat/crt/stdio.h>
@@ -39,7 +40,7 @@
 #include <string.h>
 
 /** 生成パス・識別子を組み立てる作業バッファーのバイト数です。 */
-#define STRUCT_META_GEN_EMIT_PATH_BYTES 512
+#define STRUCT_META_GEN_EMIT_PATH_BYTES 512U
 
 /**
  *  @brief          記述子をすでに出力した構造体名を記録する連結リストです。
@@ -125,13 +126,17 @@ static int header_stem(const char *header_path, char *dest, size_t dest_size)
 
     if (isdigit((unsigned char)raw[0]) != 0)
     {
-        if (dest_size < (raw_len + 2U))
+        /* 数字で始まる名前は識別子にならないため、前置する文字列である。 */
+        static const char digit_prefix[] = "x";
+        const size_t digit_prefix_len = sizeof(digit_prefix) - 1U;
+
+        if (dest_size < (raw_len + sizeof(digit_prefix)))
         {
             return 1;
         }
 
-        dest[0] = 'x';
-        memcpy(dest + 1, raw, raw_len + 1U);
+        memcpy(dest, digit_prefix, digit_prefix_len);
+        memcpy(dest + digit_prefix_len, raw, raw_len + 1U);
         return 0;
     }
 
@@ -177,8 +182,10 @@ static int stem_prefix(const char *stem, char *dest, size_t dest_size)
  */
 static int header_out_path(const char *c_path, char *header_path_out, size_t header_path_size)
 {
+    static const char ext[] = ".c";
+    const size_t ext_len = sizeof(ext) - 1U;
     size_t len = strlen(c_path);
-    if ((len < 2U) || (c_path[len - 2U] != '.') || (c_path[len - 1U] != 'c'))
+    if ((len < ext_len) || (memcmp(c_path + (len - ext_len), ext, ext_len) != 0))
     {
         return 1;
     }
@@ -725,12 +732,17 @@ static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_
     cplat_hashtable_config config = {0};
     cplat_hashtable *table = NULL;
 
-    config.capacity = count * 2U;
+    /* 件数の STRUCT_META_INDEX_CAPACITY_FACTOR 倍とする。正本は app/struct-meta/docs/architecture.md の「索引の容量」節である。 */
+    config.capacity = count * STRUCT_META_INDEX_CAPACITY_FACTOR;
     config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
     config.key_size = max_struct_name_bytes(catalog, count);
     config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(size_t);
     config.value_align = sizeof(size_t); /* 返るポインターを size_t として参照する境界 */
+    /*
+     * 索引は構築後に削除しないため、lifetime は動作に影響しない。
+     * 構成検査が 2 以上を求めるため、値を指定する。
+     */
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
 
     if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &table) != CPLAT_OK)

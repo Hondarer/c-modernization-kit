@@ -19,8 +19,21 @@
 #include <stdint.h>
 #include <string.h>
 
+/** 初期化時に点検するカタログの 1 件です。 */
+typedef struct samplecatalog_catalog_check
+{
+    const char *name; /**< トレースへ出力するカタログ名。 */
+    int (*verify)(int *string_key_out, cplat_string_catalog_language *language_out); /**< カタログの点検関数。 */
+} samplecatalog_catalog_check;
+
+/** 本ライブラリが保持するカタログの表です。初期化時に先頭から順に点検します。 */
+static const samplecatalog_catalog_check s_catalogs[] = {
+    {"samplecatalog_messages", samplecatalog_messages_verify},
+    {"samplecatalog_trace", samplecatalog_trace_verify},
+};
+
 /** 本ライブラリが保持するカタログの数です。初期化のトレースへ出力します。 */
-#define SAMPLECATALOG_CATALOG_COUNT 2
+#define SAMPLECATALOG_CATALOG_COUNT ((uint32_t)(sizeof(s_catalogs) / sizeof(s_catalogs[0])))
 
 /** 検索対象とする項目のテーブルです。ライブラリがデータを保持することを示すための固定テーブルです。 */
 static const char *const s_items[] = {"alpha", "beta", "gamma"};
@@ -32,29 +45,26 @@ static const char *const s_items[] = {"alpha", "beta", "gamma"};
 
 int samplecatalog_initialize(cplat_tracer *const tracer)
 {
-    int string_key = 0;
-    int ret;
+    uint32_t index;
 
     /* 出力先を事前に設定する。点検に失敗した場合もトレースへ記録するためである。 */
     samplecatalog_trace_set_tracer(tracer);
 
     /* カタログの点検は提供元の責務とし、利用側へ点検 API を公開しない。 */
-    ret = samplecatalog_messages_verify(&string_key, NULL);
-    if (ret != CPLAT_OK)
+    for (index = 0U; index < SAMPLECATALOG_CATALOG_COUNT; index++)
     {
-        /*
-         * トレースは補助の記録であり、出力先が NULL の場合の失敗も含めて初期化の結果を変えないため、
-         * この関数のトレースの戻り値は明示的に破棄する。
-         */
-        (void)samplecatalog_trace_key_verify_failed("samplecatalog_messages", string_key);
-        return ret;
-    }
+        int string_key = 0;
+        const int ret = s_catalogs[index].verify(&string_key, NULL);
 
-    ret = samplecatalog_trace_verify(&string_key, NULL);
-    if (ret != CPLAT_OK)
-    {
-        (void)samplecatalog_trace_key_verify_failed("samplecatalog_trace", string_key);
-        return ret;
+        if (ret != CPLAT_OK)
+        {
+            /*
+             * トレースは補助の記録であり、出力先が NULL の場合の失敗も含めて初期化の結果を変えないため、
+             * この関数のトレースの戻り値は明示的に破棄する。
+             */
+            (void)samplecatalog_trace_key_verify_failed(s_catalogs[index].name, string_key);
+            return ret;
+        }
     }
 
     (void)samplecatalog_trace_key_library_initialized(SAMPLECATALOG_CATALOG_COUNT);

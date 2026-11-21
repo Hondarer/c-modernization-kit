@@ -18,7 +18,8 @@
 
 int struct_meta_internal_integer_is_supported_size(size_t element_size)
 {
-    if ((element_size == 1U) || (element_size == 2U) || (element_size == 4U) || (element_size == 8U))
+    if ((element_size == sizeof(int8_t)) || (element_size == sizeof(int16_t)) || (element_size == sizeof(int32_t)) ||
+        (element_size == sizeof(int64_t)))
     {
         return 1;
     }
@@ -37,28 +38,28 @@ int struct_meta_internal_integer_load_signed(const unsigned char *field_ptr, siz
 
     switch (element_size)
     {
-    case 1U:
+    case sizeof(int8_t):
     {
         int8_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
         *value_out = (int64_t)raw;
         return CPLAT_OK;
     }
-    case 2U:
+    case sizeof(int16_t):
     {
         int16_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
         *value_out = (int64_t)raw;
         return CPLAT_OK;
     }
-    case 4U:
+    case sizeof(int32_t):
     {
         int32_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
         *value_out = (int64_t)raw;
         return CPLAT_OK;
     }
-    case 8U:
+    case sizeof(int64_t):
     {
         int64_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
@@ -81,28 +82,28 @@ int struct_meta_internal_integer_load_unsigned(const unsigned char *field_ptr, s
 
     switch (element_size)
     {
-    case 1U:
+    case sizeof(uint8_t):
     {
         uint8_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
         *value_out = (uint64_t)raw;
         return CPLAT_OK;
     }
-    case 2U:
+    case sizeof(uint16_t):
     {
         uint16_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
         *value_out = (uint64_t)raw;
         return CPLAT_OK;
     }
-    case 4U:
+    case sizeof(uint32_t):
     {
         uint32_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
         *value_out = (uint64_t)raw;
         return CPLAT_OK;
     }
-    case 8U:
+    case sizeof(uint64_t):
     {
         uint64_t raw;
         memcpy(&raw, field_ptr, sizeof(raw));
@@ -125,7 +126,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
 
     switch (element_size)
     {
-    case 1U:
+    case sizeof(int8_t):
     {
         if ((value < INT8_MIN) || (value > INT8_MAX))
         {
@@ -136,7 +137,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
     }
-    case 2U:
+    case sizeof(int16_t):
     {
         if ((value < INT16_MIN) || (value > INT16_MAX))
         {
@@ -147,7 +148,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
     }
-    case 4U:
+    case sizeof(int32_t):
     {
         if ((value < INT32_MIN) || (value > INT32_MAX))
         {
@@ -158,7 +159,7 @@ int struct_meta_internal_integer_store_signed(unsigned char *field_ptr, size_t e
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
     }
-    case 8U:
+    case sizeof(int64_t):
         memcpy(field_ptr, &value, sizeof(value));
         return CPLAT_OK;
     default:
@@ -177,7 +178,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
 
     switch (element_size)
     {
-    case 1U:
+    case sizeof(uint8_t):
     {
         if (value > UINT8_MAX)
         {
@@ -188,7 +189,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
     }
-    case 2U:
+    case sizeof(uint16_t):
     {
         if (value > UINT16_MAX)
         {
@@ -199,7 +200,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
     }
-    case 4U:
+    case sizeof(uint32_t):
     {
         if (value > UINT32_MAX)
         {
@@ -210,7 +211,7 @@ int struct_meta_internal_integer_store_unsigned(unsigned char *field_ptr, size_t
         memcpy(field_ptr, &raw, sizeof(raw));
         return CPLAT_OK;
     }
-    case 8U:
+    case sizeof(uint64_t):
         memcpy(field_ptr, &value, sizeof(value));
         return CPLAT_OK;
     default:

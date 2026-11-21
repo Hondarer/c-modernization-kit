@@ -314,7 +314,7 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
     // Assert
     ASSERT_NE(nullptr, entry); // [確認_正常系] - cplat_string_catalog_get_entry() の戻り値が nullptr 以外であること。
     EXPECT_EQ(
-        CPLAT_STRING_CATALOG_ARGUMENT_MAX,
+        (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX,
         entry
             ->argument_count); // [確認_正常系] - entry->argument_count が CPLAT_STRING_CATALOG_ARGUMENT_MAX であること。(文脈引数のために予約した番号空間の全体を確保したことの確認)
     EXPECT_STREQ(
@@ -335,7 +335,7 @@ TEST_F(catalogIntegrationTest, context_arguments_follow_user_arguments)
             .name); // [確認_正常系] - entry->arguments[45].name が "thread_id" であること。(cplat が定義するコンテキスト引数の末尾が 45 番であることの確認)
 
     // 本カタログは app が定義するコンテキスト引数を保持しないため、インデックス 46 から 49 は予約された未使用領域となる。
-    for (int index = 46; index < CPLAT_STRING_CATALOG_ARGUMENT_MAX; index++)
+    for (int index = 46; index < (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX; index++)
     {
         EXPECT_EQ(
             CPLAT_STRING_CATALOG_ARGUMENT_KIND_UNUSED,

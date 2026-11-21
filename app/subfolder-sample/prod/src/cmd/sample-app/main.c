@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    /* ビルド検証の表示例として固定の入力値を設定する。 */
     int a = 10;
     int b = 20;
 

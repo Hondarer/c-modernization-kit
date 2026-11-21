@@ -15,6 +15,9 @@
 #include <stdint.h>
 #include <string.h>
 
+/** 1 [byte] の 16 進表記 (2 文字) と、区切りの空白または終端 NUL (1 文字) を合わせた文字数です。 */
+#define BYTES_HEX_CHARS_PER_BYTE 3U
+
 /*
  * フィールドの属性一覧から指定されたキーを持つ属性を検索する。
  * 一致する属性へのポインターを返す。見つからない場合は NULL を返す。
@@ -91,12 +94,12 @@ int struct_meta_internal_bytes_hex_text_size(const size_t byte_count, size_t *te
     }
 
     /* 1 [byte] あたり 3 文字を要するため、乗算のオーバーフローを防ぐ上限を検査する。 */
-    if ((byte_count == 0U) || (byte_count > ((SIZE_MAX - 1U) / 3U)))
+    if ((byte_count == 0U) || (byte_count > ((SIZE_MAX - 1U) / BYTES_HEX_CHARS_PER_BYTE)))
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
-    *text_size_out = byte_count * 3U;
+    *text_size_out = byte_count * BYTES_HEX_CHARS_PER_BYTE;
 
     return CPLAT_OK;
 }

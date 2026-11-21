@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include "service-sample.h"
 #include "service-sample_windows.inject.h"
@@ -153,6 +154,173 @@ TEST(service_sampleWindowsTest, notify_continues_when_set_service_status_fails)
     svc_os_notify_stopping(); // [手順] - 続けて svc_os_notify_stopping() を呼び出す。
 
     // Assert
+
+    // Cleanup
+    test_service_windows_set_status_handle(nullptr);
+}
+
+/* ============================================================
+ *  サービスの停止の経路の checkpoint のテスト
+ * ============================================================ */
+
+/** SetServiceStatus() に渡された状態、checkpoint、dwWaitHint の記録。 */
+struct ServiceStatusRecord
+{
+    DWORD state;
+    DWORD checkpoint;
+    DWORD wait_hint;
+};
+
+/** SetServiceStatus() の呼び出しを順に記録する。 */
+static std::vector<ServiceStatusRecord> g_status_records;
+
+/** RegisterServiceCtrlHandlerExU() に登録された制御ハンドラー。 */
+static LPHANDLER_FUNCTION_EX g_ctrl_handler = nullptr;
+
+/** on_run() の中で、制御ハンドラーへ停止の要求を届けてから戻る。 */
+static int on_run_with_stop_request(void *user_data)
+{
+    (void)user_data;
+    (void)g_ctrl_handler(SERVICE_CONTROL_STOP, 0, nullptr, nullptr);
+    return 0;
+}
+
+/** on_run() が停止の要求なしに戻る。 */
+static int on_run_without_stop_request(void *user_data)
+{
+    (void)user_data;
+    return 0;
+}
+
+/**
+ *  @brief          svc_os_run_service() から ServiceMain までを mock で駆動する準備を行います。
+ *  @param[in]      mock_cplat      cplat の mock。
+ *  @param[in]      mock_windows    Windows API の mock。
+ *  @param[in]      status_handle   RegisterServiceCtrlHandlerExU() が返す偽のハンドル。
+ */
+static void arrange_service_dispatch(NiceMock<Mock_cplat> &mock_cplat, NiceMock<Mock_windows> &mock_windows,
+                                     SERVICE_STATUS_HANDLE status_handle)
+{
+    g_status_records.clear();
+    g_ctrl_handler = nullptr;
+    ON_CALL(mock_cplat, cplat_tracer_write_with_source(_, _, _, _, _, _)).WillByDefault(Return(CPLAT_OK));
+    ON_CALL(mock_cplat, cplat_tracer_writef_at(_, _, _, _)).WillByDefault(Return(CPLAT_OK));
+    ON_CALL(mock_cplat, RegisterServiceCtrlHandlerExU(_, _, _))
+        .WillByDefault(Invoke(
+            [status_handle](const char *, LPHANDLER_FUNCTION_EX handler, LPVOID) -> SERVICE_STATUS_HANDLE
+            {
+                g_ctrl_handler = handler;
+                return status_handle;
+            }));
+    ON_CALL(mock_cplat, StartServiceCtrlDispatcherU(_))
+        .WillByDefault(Invoke(
+            [](const SERVICE_TABLE_ENTRYU *table) -> BOOL
+            {
+                table[0].lpServiceProc(0, nullptr);
+                return TRUE;
+            }));
+    ON_CALL(mock_windows, SetServiceStatus(_, _, _, _, _))
+        .WillByDefault(Invoke(
+            [](const char *, const int, const char *, SERVICE_STATUS_HANDLE, LPSERVICE_STATUS status) -> BOOL
+            {
+                g_status_records.push_back({status->dwCurrentState, status->dwCheckPoint, status->dwWaitHint});
+                return TRUE;
+            }));
+}
+
+// on_run() の中で停止の要求を受けた場合に、on_run() の復帰後の SERVICE_STOP_PENDING の checkpoint が 2 になることの確認
+TEST(service_sampleWindowsTest, stop_path_increments_checkpoint_on_second_stop_pending)
+{
+    // Arrange
+    NiceMock<Mock_cplat> mock_cplat;
+    NiceMock<Mock_windows> mock_windows;
+    SERVICE_STATUS_HANDLE fake_status_handle = reinterpret_cast<SERVICE_STATUS_HANDLE>(static_cast<uintptr_t>(0x40));
+    const svc_definition def = {"service-sample-windows-test",
+                                "Service Sample Windows Test",
+                                "service-sample_windows.c の単体テスト用定義です。",
+                                nullptr,
+                                on_run_with_stop_request,
+                                nullptr,
+                                nullptr,
+                                nullptr,
+                                nullptr};
+    arrange_service_dispatch(
+        mock_cplat, mock_windows,
+        fake_status_handle); // [状態] - ServiceMain を呼び出し、SetServiceStatus() の引数を記録する。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret =
+        svc_os_run_service(&def); // [手順] - on_run() の中で停止の要求を届ける定義で svc_os_run_service() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret);    // [確認_正常系] - svc_os_run_service() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(5U, g_status_records.size()); // [確認_正常系] - SetServiceStatus() が 5 回呼び出されること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_START_PENDING),
+              g_status_records[0].state);          // [確認_正常系] - 1 回目の状態が SERVICE_START_PENDING であること。
+    EXPECT_EQ(1U, g_status_records[0].checkpoint); // [確認_正常系] - 1 回目の checkpoint が 1 であること。
+    EXPECT_EQ(3000U, g_status_records[0].wait_hint); // [確認_正常系] - 1 回目の dwWaitHint が 3000 であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_RUNNING),
+              g_status_records[1].state);          // [確認_正常系] - 2 回目の状態が SERVICE_RUNNING であること。
+    EXPECT_EQ(0U, g_status_records[1].checkpoint); // [確認_正常系] - 2 回目の checkpoint が 0 であること。
+    EXPECT_EQ(0U, g_status_records[1].wait_hint);  // [確認_正常系] - 2 回目の dwWaitHint が 0 であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOP_PENDING),
+              g_status_records[2].state);            // [確認_正常系] - 3 回目の状態が SERVICE_STOP_PENDING であること。
+    EXPECT_EQ(1U, g_status_records[2].checkpoint);   // [確認_正常系] - 3 回目の checkpoint が 1 であること。
+    EXPECT_EQ(5000U, g_status_records[2].wait_hint); // [確認_正常系] - 3 回目の dwWaitHint が 5000 であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOP_PENDING),
+              g_status_records[3].state); // [確認_正常系] - 4 回目の状態が SERVICE_STOP_PENDING であること。
+    EXPECT_EQ(
+        2U,
+        g_status_records[3]
+            .checkpoint); // [確認_正常系] - 4 回目の checkpoint が 2 であること。(同じ状態の 2 回目の通知で checkpoint が増えることの確認)
+    EXPECT_EQ(3000U, g_status_records[3].wait_hint); // [確認_正常系] - 4 回目の dwWaitHint が 3000 であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOPPED),
+              g_status_records[4].state);          // [確認_正常系] - 5 回目の状態が SERVICE_STOPPED であること。
+    EXPECT_EQ(0U, g_status_records[4].checkpoint); // [確認_正常系] - 5 回目の checkpoint が 0 であること。
+    EXPECT_EQ(0U, g_status_records[4].wait_hint);  // [確認_正常系] - 5 回目の dwWaitHint が 0 であること。
+
+    // Cleanup
+    test_service_windows_set_status_handle(nullptr);
+}
+
+// on_run() が停止の要求なしに戻った場合に、最初の SERVICE_STOP_PENDING の checkpoint が 2 になることの確認
+TEST(service_sampleWindowsTest, stop_pending_uses_checkpoint_2_when_run_returns_without_stop_request)
+{
+    // Arrange
+    NiceMock<Mock_cplat> mock_cplat;
+    NiceMock<Mock_windows> mock_windows;
+    SERVICE_STATUS_HANDLE fake_status_handle = reinterpret_cast<SERVICE_STATUS_HANDLE>(static_cast<uintptr_t>(0x50));
+    const svc_definition def = {"service-sample-windows-test",
+                                "Service Sample Windows Test",
+                                "service-sample_windows.c の単体テスト用定義です。",
+                                nullptr,
+                                on_run_without_stop_request,
+                                nullptr,
+                                nullptr,
+                                nullptr,
+                                nullptr};
+    arrange_service_dispatch(
+        mock_cplat, mock_windows,
+        fake_status_handle); // [状態] - ServiceMain を呼び出し、SetServiceStatus() の引数を記録する。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret =
+        svc_os_run_service(&def); // [手順] - on_run() が停止の要求なしに戻る定義で svc_os_run_service() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret);    // [確認_正常系] - svc_os_run_service() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(4U, g_status_records.size()); // [確認_正常系] - SetServiceStatus() が 4 回呼び出されること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOP_PENDING),
+              g_status_records[2].state); // [確認_正常系] - 3 回目の状態が SERVICE_STOP_PENDING であること。
+    EXPECT_EQ(
+        2U,
+        g_status_records[2]
+            .checkpoint); // [確認_正常系] - 3 回目の checkpoint が 2 であること。(直前の SERVICE_RUNNING の checkpoint 0 から増えていることの確認)
+    EXPECT_EQ(3000U, g_status_records[2].wait_hint); // [確認_正常系] - 3 回目の dwWaitHint が 3000 であること。
 
     // Cleanup
     test_service_windows_set_status_handle(nullptr);

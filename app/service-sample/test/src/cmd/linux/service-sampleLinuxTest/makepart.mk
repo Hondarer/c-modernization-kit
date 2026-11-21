@@ -1,15 +1,17 @@
 # テスト対象のソース ファイル
+# service-sample.c は、main() を経ずに停止イベント抽象を初期化する inject のアクセサーのために含める。
+# service-sample_linux_events.c は、libsystemd の mock (test/include_override/systemd/) を適用するために含める。
 TEST_SRCS := \
-	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample_linux.c
+	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample_linux.c \
+	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample_linux_events.c \
+	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample.c
 
-# リンクを成立させる共通処理とイベント監視 (カバレッジの対象外)
+# リンクを成立させるサービス定義 (カバレッジの対象外)
 ADD_SRCS := \
-	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample.c \
-	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample-impl.c \
-	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample_linux_events.c
+	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample-impl.c
 
 # エントリ ポイントの変更
-# ADD_SRCS の service-sample.c にある main() を、テストのエントリ ポイントと衝突させない
+# service-sample.c にある main() を、テストのエントリ ポイントと衝突させない
 USE_WRAP_MAIN := 1
 
 # テスト対象ソースのローカル ヘッダーを参照する
@@ -17,5 +19,6 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/src/cmd/service-sample
 
 # ライブラリの指定
-# libsystemd (sd_notify / sd_event / sd_bus) は製品と同じく直接リンクする
-LIBS += mock_cplat mock_libc systemd
+# mock_systemd は sd-event.h と sd-daemon.h の関数を mock_sd_* として提供し、既定では実関数へ委譲する。
+# 関数名が異なるため、libsystemd (sd_bus と委譲先の実関数) と同時にリンクする。
+LIBS += mock_cplat mock_libc mock_systemd systemd

@@ -7,7 +7,8 @@
  *  @version        1.0.0
  *
  *  Linux 固有のサービス処理を実装します。
- *  - svc_os_run_service : Type=notify で常駐 (fork 不要)、イベント監視スレッドの起動と停止
+ *  - svc_os_run_service : Type=notify で常駐 (fork 不要)、イベント監視スレッドの起動と停止。
+ *                         イベント監視スレッドを起動できない場合は、サービスを開始せずに終了する
  *  - svc_os_install     : systemd ユニット ファイル生成、OOM killer 対策、登録
  *  - svc_os_uninstall   : systemd サービスの解除と削除
  *  - sd_notify 通知     : libsystemd の sd_notify(3) による READY / STOPPING / RELOADING / STATUS 送信
@@ -27,6 +28,7 @@
 
 #if defined(PLATFORM_LINUX)
 
+    #include <assert.h>
     #include <errno.h>
     #include <stddef.h>
     #include <stdio.h>
@@ -40,6 +42,7 @@
     #include <cplat/runtime/process.h>
 
     #include "service-sample.h"
+    #include "service-sample_internal.h"
     #include "service-sample_linux_events.h"
 
     /* Doxygen コメントは、ヘッダーに記載 */
@@ -53,11 +56,27 @@
     /** systemd ユニット ファイルのインストール先ディレクトリ。 */
     #define SYSTEMD_UNIT_DIR "/etc/systemd/system"
 
-    /** readlink で取得するバイナリ パスの最大長。 */
-    #define EXEC_PATH_MAX 4096
-
     /** ManagedOOMPreference= が導入された systemd のバージョン。 */
     #define SYSTEMD_MANAGED_OOM_PREFERENCE_VERSION 248
+
+    /** systemctl --version の 1 行目を読む配列の大きさ [byte] (終端 NUL を含む)。 */
+    #define SYSTEMCTL_VERSION_LINE_SIZE 128U
+
+    /** sd_notify の通知文を組み立てる配列の大きさ [byte] (終端 NUL を含む)。 */
+    #define SD_NOTIFY_MESSAGE_SIZE 512U
+
+    /** サービス名を複製する配列の大きさ [byte] (終端 NUL を含む)。 */
+    #define SVC_NAME_BUFFER_SIZE 256U
+
+    /** ユニット ファイルのパス ("<SYSTEMD_UNIT_DIR>/<サービス名>.service") を格納する配列の大きさ [byte] (終端 NUL を含む)。 */
+    #define SYSTEMD_UNIT_PATH_SIZE 512U
+
+    /** ユニット ファイルの内容のうち、実行ファイル パス以外の分の大きさ [byte]。 */
+    #define UNIT_CONTENT_EXTRA_BYTES 1024U
+
+static_assert((sizeof(SYSTEMD_UNIT_DIR) - 1U) + 1U + (SVC_NAME_BUFFER_SIZE - 1U) + (sizeof(".service") - 1U) + 1U <=
+                  SYSTEMD_UNIT_PATH_SIZE,
+              "unit path buffer must hold SYSTEMD_UNIT_DIR and the longest service name");
 
 /*
  * ============================================================
@@ -140,7 +159,7 @@ static int parse_systemd_major_version(const char *version_line)
  */
 static int get_systemd_major_version(void)
 {
-    char line[128];
+    char line[SYSTEMCTL_VERSION_LINE_SIZE];
     FILE *pipe;
     int version;
 
@@ -244,11 +263,19 @@ static void sd_notify_send(const char *message)
 
 void svc_os_notify_ready(void)
 {
+    /* on_start() の実行中にイベント ループが異常終了した場合は、停止を要求済みであり、READY=1 を送らない。 */
+    if (svc_linux_events_loop_failed() != 0)
+    {
+        return;
+    }
+
     sd_notify_send("READY=1");
+    svc_linux_events_enter_running();
 }
 
 void svc_os_notify_stopping(void)
 {
+    svc_linux_events_enter_stopping();
     sd_notify_send("STOPPING=1");
 }
 
@@ -259,7 +286,7 @@ void svc_os_notify_reloading(void)
 
 void svc_os_notify_status(const char *text)
 {
-    char message[512];
+    char message[SD_NOTIFY_MESSAGE_SIZE];
 
     if (text == NULL)
     {
@@ -286,11 +313,17 @@ int svc_os_run_service(const svc_definition *def)
 
     /*
      * 電源・セッション イベント (D-Bus)、SIGHUP reload、watchdog 応答を
-     * 担当するイベント監視スレッドを起動する。失敗しても該当機能が
-     * 無効になるだけで、サービス本体は継続する。
-     * 失敗は関数の中でトレースへ出力済みで、サービス本体を続けるため、戻り値は明示的に破棄する。
+     * 担当するイベント監視スレッドを起動する。
+     * イベント監視スレッドの必須の初期化に失敗した場合は、サービスを開始しない。
+     * on_start() を呼ばず、READY=1 も送らずに失敗で終了し、systemd が起動の失敗として扱う。
      */
-    (void)svc_linux_events_start(def);
+    if (svc_linux_events_start(def) != 0)
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "イベント監視スレッドを起動できないため、サービスを開始しません。");
+        return EXIT_FAILURE;
+    }
 
     /*
      * Type=notify のため fork せず、フォアグラウンドのまま常駐する。
@@ -298,23 +331,28 @@ int svc_os_run_service(const svc_definition *def)
      */
     rc = svc_run_lifecycle(def);
 
-    svc_linux_events_stop();
+    /* 実行中にイベント ループが異常終了した場合は、コールバックが成功していても失敗として終了する。 */
+    if ((svc_linux_events_stop() != 0) && (rc == EXIT_SUCCESS))
+    {
+        rc = EXIT_FAILURE;
+    }
 
     return rc;
 }
 
 int svc_os_install(const svc_definition *def)
 {
-    char exec_path[EXEC_PATH_MAX];
-    char unit_path[EXEC_PATH_MAX + 64];
-    char unit_content[EXEC_PATH_MAX + 1024];
-    char svc_name_buf[256];
+    char exec_path[SVC_EXEC_PATH_MAX];
+    char unit_path[SYSTEMD_UNIT_PATH_SIZE];
+    char unit_content[SVC_EXEC_PATH_MAX + UNIT_CONTENT_EXTRA_BYTES];
+    char svc_name_buf[SVC_NAME_BUFFER_SIZE];
     const char *managed_oom_preference_line;
+    const char *exec_reload_line;
     FILE *fp;
 
     /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う。 */
     char *argv_daemon_reload[] = {"systemctl", "daemon-reload", NULL};
-    char *argv_enable[4];
+    char *argv_enable[] = {"systemctl", "enable", svc_name_buf, NULL};
     int rc;
     int handled;
     int systemd_major_version;
@@ -325,11 +363,6 @@ int svc_os_install(const svc_definition *def)
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "サービス名が長すぎます。");
         return EXIT_FAILURE;
     }
-
-    argv_enable[0] = "systemctl";
-    argv_enable[1] = "enable";
-    argv_enable[2] = svc_name_buf;
-    argv_enable[3] = NULL;
 
     rc = ensure_elevated_for_operation("install", "install", &handled);
     if (rc != 0 || handled != 0)
@@ -368,6 +401,16 @@ int svc_os_install(const svc_definition *def)
             systemd_major_version);
     }
 
+    /*
+     * on_reload がない場合は ExecReload= を書き込まない。systemctl reload を systemd が拒否し、
+     * 受け付けない再読込要求をサービスへ送らないためである。
+     */
+    exec_reload_line = "";
+    if (def->on_reload != NULL)
+    {
+        exec_reload_line = "ExecReload=/bin/kill -HUP $MAINPID\n";
+    }
+
     /* ユニット ファイルを生成して書き込む。 */
     if (cplat_snprintf(unit_path, sizeof(unit_path), "%s/%s.service", SYSTEMD_UNIT_DIR, def->name) != CPLAT_OK)
     {
@@ -384,16 +427,17 @@ int svc_os_install(const svc_definition *def)
                        "[Service]\n"
                        "Type=notify\n"
                        "ExecStart=%s run\n"
-                       "ExecReload=/bin/kill -HUP $MAINPID\n"
+                       "%s"
                        "Restart=on-failure\n"
-                       "RestartSec=5\n"
+                       "RestartSec=%u\n"
                        "WatchdogSec=30\n"
                        "OOMScoreAdjust=-1000\n"
                        "%s"
                        "\n"
                        "[Install]\n"
                        "WantedBy=multi-user.target\n",
-                       def->description, exec_path, managed_oom_preference_line) != CPLAT_OK)
+                       def->description, exec_path, exec_reload_line, (unsigned int)SVC_FAILURE_RESTART_DELAY_SEC,
+                       managed_oom_preference_line) != CPLAT_OK)
     {
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                  "ユニット ファイルの内容が長すぎます。");
@@ -455,12 +499,12 @@ int svc_os_install(const svc_definition *def)
 
 int svc_os_uninstall(const svc_definition *def)
 {
-    char unit_path[512];
-    char svc_name_buf[256];
+    char unit_path[SYSTEMD_UNIT_PATH_SIZE];
+    char svc_name_buf[SVC_NAME_BUFFER_SIZE];
 
     /* execvp は char * を期待するため、const char * を持つローカル バッファーを使う。 */
-    char *argv_stop[4];
-    char *argv_disable[4];
+    char *argv_stop[] = {"systemctl", "stop", svc_name_buf, NULL};
+    char *argv_disable[] = {"systemctl", "disable", svc_name_buf, NULL};
     char *argv_daemon_reload[] = {"systemctl", "daemon-reload", NULL};
     int rc;
     int handled;
@@ -471,15 +515,6 @@ int svc_os_uninstall(const svc_definition *def)
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "サービス名が長すぎます。");
         return EXIT_FAILURE;
     }
-
-    argv_stop[0] = "systemctl";
-    argv_stop[1] = "stop";
-    argv_stop[2] = svc_name_buf;
-    argv_stop[3] = NULL;
-    argv_disable[0] = "systemctl";
-    argv_disable[1] = "disable";
-    argv_disable[2] = svc_name_buf;
-    argv_disable[3] = NULL;
 
     rc = ensure_elevated_for_operation("uninstall", "uninstall", &handled);
     if (rc != 0 || handled != 0)

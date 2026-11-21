@@ -11,9 +11,13 @@
  *******************************************************************************
  */
 
+#include <assert.h>
 #include <cplat/sync/atomic.h>
 #include <samplecatalog/samplecatalog_context.h>
 #include <stdint.h>
+
+static_assert((SAMPLECATALOG_SEQUENCE_NUMBER_MAX >= 1) && (SAMPLECATALOG_SEQUENCE_NUMBER_MAX <= INT32_MAX),
+              "連番上限が範囲内");
 
 /**
  *  @brief          直前に返した連番です。

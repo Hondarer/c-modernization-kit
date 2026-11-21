@@ -25,7 +25,7 @@ service-sample console    # フォアグラウンドで実行する (デバッ�
 | コールバック | 呼ばれるタイミング | 実装すること | 必須 |
 |---|---|---|---|
 | on_start | サービス起動時に 1 回 | 初期化処理。0 を返すと on_run が呼ばれ、0 以外を返すと起動を中断します。 | 任意 |
-| on_run | on_start 成功後に 1 回 | `svc_wait_for_stop()` が 1 を返すまで戻らないメイン ループ。 | 必須 |
+| on_run | on_start 成功後に 1 回 | `svc_wait_for_stop()` が 1 を返すまで戻らないメイン ループ。Linux の watchdog の契約は [service-sample の Linux 対応範囲](../../../../docs/service-events.md#service-sample-の-linux-対応範囲) を参照してください。 | 必須 |
 | on_stop | on_run が戻った後に必ず 1 回 | 停止処理。 | 任意 |
 
 Table: service-sample のライフサイクル コールバック一覧

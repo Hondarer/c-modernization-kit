@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/** 階層ごとの字下げの空白の数です。print_indent() の引数が int のため、U を付けません。 */
+#define STRUCT_META_PRINT_INDENT 2
+
 /*
  * 字下げ分の空白を出力する。
  * 個々の fputc() の失敗はストリームのエラー指示に残り、呼び出し元の print_label() が
@@ -154,7 +157,7 @@ static int print_element(const struct_meta_field *field, const unsigned char *el
         {
             return CPLAT_ERR_UNKNOWN;
         }
-        return print_struct(field->nested, elem_ptr, out, indent + 2);
+        return print_struct(field->nested, elem_ptr, out, indent + STRUCT_META_PRINT_INDENT);
     }
 
     if (field->kind == STRUCT_META_FIELD_CHAR_ARRAY)
@@ -172,7 +175,7 @@ static int print_element(const struct_meta_field *field, const unsigned char *el
     }
 
     {
-        char current[64];
+        char current[STRUCT_META_SCALAR_TEXT_BYTES];
         int ret = format_scalar_value(field->kind, elem_ptr, field->element_size, current, sizeof(current));
         if (ret != CPLAT_OK)
         {
@@ -323,5 +326,5 @@ int struct_meta_print_write(const struct_meta_descriptor *desc, const void *inst
         return CPLAT_ERR_UNKNOWN;
     }
 
-    return print_struct(desc, (const unsigned char *)instance, out, 2);
+    return print_struct(desc, (const unsigned char *)instance, out, STRUCT_META_PRINT_INDENT);
 }

@@ -26,8 +26,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/** 組み立てた文字列を受け取るバッファー サイズです。 */
-#define TEXT_MAX 256
+/** 組み立てた文字列を受け取るバッファー サイズ [byte] (終端 NUL を含む) です。 */
+#define TEXT_MAX 256U
 
 /** 検索の実例として、ライブラリが保持する項目と保持しない項目を定義します。 */
 static const char *const s_lookup_names[] = {"beta", "delta"};
@@ -54,6 +54,7 @@ static cplat_tracer *create_stderr_tracer(void)
         return NULL;
     }
 
+    /* このサンプルは VERBOSE のトレースを出力するため、すべてのレベルを表示する。 */
     if (cplat_tracer_set_stderr_level(tracer, CPLAT_TRACE_LEVEL_DEBUG) != CPLAT_OK)
     {
         cplat_tracer_dispose(&tracer);
@@ -139,7 +140,10 @@ static int print_library_messages(void)
      */
     (void)printf("  %s\n", text);
 
-    /* 第 3 引数は要求されたサイズ、第 4 引数はライブラリが受け付ける上限である。 */
+    /*
+     * 第 3 引数は要求されたサイズ、第 4 引数はライブラリが受け付ける上限である。
+     * 4096 と 1024 は表示例であり、ライブラリの実際の上限ではない。
+     */
     ret = samplecatalog_messages_key_limit_exceeded(text, sizeof(text), (size_t)4096U, (size_t)1024U);
     if (ret != CPLAT_OK)
     {

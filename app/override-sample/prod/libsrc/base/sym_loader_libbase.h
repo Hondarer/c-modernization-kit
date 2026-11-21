@@ -40,7 +40,7 @@ extern "C"
     /** sym_loader に設定するポインター配列の要素数です。 */
     extern const size_t fobj_length_libbase;
 
-/** sym_loader 設定ファイルのパス長 (終端 '\0' を含む) */
+/** sym_loader 設定ファイルのパス長 [byte] (終端 '\0' を含む) */
 #define SYM_LOADER_CONFIG_PATH_MAX PLATFORM_PATH_MAX
 
     /** sym_loader 設定ファイルのパスです。 */

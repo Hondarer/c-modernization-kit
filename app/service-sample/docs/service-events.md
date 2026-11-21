@@ -103,7 +103,8 @@ Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 ## service-sample における抽象化範囲
 
 `service-sample` のフレームワークは、ライフサイクルの遷移点と再読込の前後で OS へ自動通知します。  
-この通知は OS フック (`svc_os_notify_ready` / `svc_os_notify_stopping` / `svc_os_notify_reloading` / `svc_os_notify_status`) として抽象化されており、コールバック (on_start / on_run / on_stop) の契約は変わりません。
+この通知は OS フック (`svc_os_notify_ready` / `svc_os_notify_stopping` / `svc_os_notify_reloading` / `svc_os_notify_status`) として抽象化されており、コールバック (on_start / on_run / on_stop) の契約は変わりません。  
+ただし Linux で systemd が watchdog を要求している場合は、`on_run` が `svc_wait_for_stop()` を呼び続けることが、`WATCHDOG=1` を送る条件になります ([service-sample の Linux 対応範囲](#service-sample-の-linux-対応範囲) を参照)。
 
 | 概念 | タイミング | Windows (SCM) | Linux (systemd) |
 |---|---|---|---|
@@ -138,7 +139,9 @@ Table: `service-sample` の OS イベント抽象
 
 - 両 OS とも `on_run` とは別のスレッド (Windows: SCM ハンドラー スレッド、Linux: イベント監視スレッド) から呼ばれるため、共有データへのアクセスには同期が必要です。
 - OS 側の応答期限があるため、短時間で戻る必要があります。Linux のサスペンド・シャットダウン前の猶予は logind の delay inhibitor lock によるもので、上限は `InhibitDelayMaxSec` (既定 5 秒) です。Windows の pre-shutdown 猶予は install 時に 30 秒で登録します。
-- `svc_definition` の `on_event` / `on_reload` を NULL にした場合、該当イベントの受け付け自体を行いません (Windows は `SERVICE_ACCEPT_*` を宣言せず、Linux は監視を構築しません)。
+- `on_start` の成功後から `on_run` が戻るまでの間に呼び出しを始めます。開始済みの呼び出しは、`on_stop` と並行して実行中のことがあります。
+- `svc_definition` の `on_event` を NULL にした場合、該当イベントの受け付け自体を行いません (Windows は `SERVICE_ACCEPT_*` を宣言せず、Linux は D-Bus の監視を構築しません)。
+- `svc_definition` の `on_reload` を NULL にした場合、Windows は `SERVICE_ACCEPT_PARAMCHANGE` を宣言しません。Linux は unit へ `ExecReload=` を書き込まず、`SIGHUP` を受信しても WARNING のトレースへ記録して無視します。
 
 ```mermaid
 stateDiagram-v2
@@ -177,6 +180,10 @@ Figure: 起動完了・停止開始の通知抽象
 
 Table: `service-sample` の Windows 対応範囲
 
+`SERVICE_START_PENDING` と `SERVICE_STOP_PENDING` の通知には、進捗を表す checkpoint と、次の通知までの見積もり (`dwWaitHint`) を付けます。  
+起動開始は checkpoint 1 と 3000 [ms]、停止要求の受け付けは checkpoint 1 と 5000 [ms]、`on_run` の復帰後は checkpoint 2 と 3000 [ms] です。  
+`dwWaitHint` は見積もりであり、コールバックがこれより長くかかる場合の checkpoint の更新には対応していません。
+
 pre-shutdown、電源状態変更、セッション変更は `svc_definition` の `on_event` が設定されている場合のみ、設定再読込は `on_reload` が設定されている場合のみ、`dwControlsAccepted` で受け付けを宣言します。
 
 次のイベントは、現行実装では受け付けを宣言していないため扱いません。
@@ -205,22 +212,29 @@ RestartSec=5
 WatchdogSec=30
 ```
 
+`RestartSec=5` と `WatchdogSec=30` は、このサンプルの例示値です。  
+`ExecReload=` は、`svc_definition` の `on_reload` が設定されている場合だけ書き込みます。`on_reload` が NULL の場合は書き込まず、`systemctl reload` は systemd が拒否します。
+
 また、`svc_os_run_service()` はライフサイクル実行の前後でイベント監視スレッド (`service-sample_linux_events.c`) を起動・停止します。  
-このスレッドは sd_bus による systemd-logind の監視、SIGHUP による設定再読込、systemd watchdog への自動応答を担当します。
+このスレッドは sd_bus による systemd-logind の監視、SIGHUP による設定再読込、`on_run` の進行に結び付けた systemd watchdog への応答を担当します。  
+`svc_os_run_service()` は、このスレッドの必須の初期化 (イベント ループの生成、停止監視、watchdog のタイマー、SIGHUP の準備) の完了を待ってから `on_start` を呼び出します。
 
 このため、`service-sample` の Linux 実装で扱うタイミングは次の範囲です。
 
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
 | 起動処理 | 対応 | systemd が `ExecStart=... run` でプロセスを起動します。 |
+| 起動の失敗 | 対応 | イベント監視スレッドの必須の初期化に失敗した場合は、ERROR のトレースを出力し、`on_start` を呼ばず、`READY=1` も送らずに失敗で終了します。systemd は起動の失敗として扱います。 |
 | 起動完了判定 | 対応 | `Type=notify` のため、`on_start` 成功後に `READY=1` を送信し、systemd が起動完了とみなします。 |
 | 停止開始通知 | 対応 | `on_run` 復帰後、`on_stop` 呼び出し前に `STOPPING=1` を送信します。 |
 | 停止要求 | 対応 | `systemctl stop` などで送られる `SIGTERM` を `shutdown.h` が捕捉し、`svc_request_stop()` を呼び出します。 |
 | コンソール停止 | 対応 | `console` 実行時の `SIGINT` も同じ停止要求として扱います。 |
 | 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝えます。コールバックが失敗を返した場合は、その値がプロセス終了コードになり失敗として伝わります。 |
+| イベント ループの異常終了 | 対応 | 実行中にイベント ループがエラーで終了した場合は、ERROR のトレースを出力して停止を要求し、コールバックが成功していても失敗で終了します。 |
+| 停止待機の時間切れ | 対応 | 停止時にイベント監視スレッドが 30 [s] 以内に終了しない場合は、ERROR のトレースを出力し、資源を解放せずにプロセスを異常終了させます。 |
 | 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動されます。 |
-| 設定再読込 | 対応 | `ExecReload=` 経由の `SIGHUP` をイベント監視スレッドが受け、`RELOADING=1` 送信、`on_reload` 呼び出し、`READY=1` 再送信の順で処理します。 |
-| watchdog | 対応 | `WatchdogSec=30` に対し、イベント監視スレッドの `sd_event_set_watchdog()` が `WATCHDOG_USEC` から算出した間隔で `WATCHDOG=1` を自動応答します。 |
+| 設定再読込 | 対応 | `ExecReload=` 経由の `SIGHUP` をイベント監視スレッドが受け、`RELOADING=1` 送信、`on_reload` 呼び出し、`READY=1` 再送信の順で処理します。`READY=1` の通知後から `STOPPING=1` の通知前までに限って配送します。 |
+| watchdog | 対応 | `WatchdogSec=30` に対し、イベント監視スレッドのタイマーが、期限の 1/4 (7.5 [s]) の周期で `on_run` の進行を確かめます。`on_run` が `svc_wait_for_stop()` で待機中の場合と、前回の確認の後に `svc_wait_for_stop()` を呼んでいた場合にだけ、`WATCHDOG=1` を送ります。送るのは、`READY=1` の後から、停止の要求が届くか `on_run` が戻るまでの間です。`on_run` が期限内に `svc_wait_for_stop()` へ戻らない場合と、イベント監視スレッドが止まった場合は、通知が途絶え、systemd がサービスを失敗として SIGABRT で終了させます。 |
 | サスペンド・復帰 | 対応 | systemd-logind の `PrepareForSleep` を購読し、`SVC_EVENT_POWER_SUSPEND` / `SVC_EVENT_POWER_RESUME` として配送します。 |
 | シャットダウン前 | 対応 | systemd-logind の `PrepareForShutdown(true)` を `SVC_EVENT_PRESHUTDOWN` として配送します。 |
 | セッション変更 | 対応 | systemd-logind の `SessionNew` / `SessionRemoved` を `SVC_EVENT_SESSION_LOGON` / `SVC_EVENT_SESSION_LOGOFF` として配送します。 |
@@ -228,11 +242,18 @@ WatchdogSec=30
 
 Table: `service-sample` の Linux 対応範囲
 
+watchdog の行の根拠資料は、`sd_watchdog_enabled(3)` と [systemd.service](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html) の `WatchdogSec=` です。
+
 サスペンドとシャットダウンの直前イベントは、logind の delay inhibitor lock を保持することで `on_event` の完了まで遅延させます。  
 猶予の上限は logind 側の `InhibitDelayMaxSec` (既定 5 秒) です。
 
-`svc_definition` の `on_event` が NULL の場合は D-Bus の監視自体を構築せず、`on_reload` が NULL の場合は SIGHUP の監視を構築しません。  
-また、D-Bus に接続できない環境 (コンテナーなど) では該当イベントのみ無効化し、サービス本体は継続します。
+`svc_definition` の `on_event` が NULL の場合は D-Bus の監視自体を構築しません。  
+`on_reload` が NULL の場合も SIGHUP の監視は構築し、受信した `SIGHUP` は WARNING のトレースへ記録して無視します。`SIGHUP` の既定の動作でプロセスが終了しないようにするためです。  
+D-Bus に接続できない環境 (コンテナーなど) では該当イベントのみ無効化し、サービス本体は継続します。  
+D-Bus の接続以外の必須の初期化 (イベント ループの生成、停止監視、watchdog のタイマー、SIGHUP の準備) が失敗した場合は、起動の失敗になります。
+
+`on_start` は、systemd の起動タイムアウト (`TimeoutStartSec=`、既定 90 [s]) より短い時間で戻る必要があります。  
+停止の要求から `on_run` の復帰と `on_stop` の完了までの合計は、60 [s] 未満にしてください。systemd の停止タイムアウト (`TimeoutStopSec=`、既定 90 [s]) から、イベント監視スレッドの終了を待つ上限 (30 [s]) を除いた時間です。停止の開始の直前に `WATCHDOG=1` が届き、systemd の watchdog が再び有効になった場合は、合計を `WatchdogSec=` 未満にしてください。
 
 次の systemd タイミングは、unit ファイルに設定がないため現行実装では使いません。
 

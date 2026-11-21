@@ -13,12 +13,29 @@
  *******************************************************************************
  */
 
+#include <assert.h>
 #include <stdio.h>
 
 #include <cplat/crt/stdio.h>
 
 #include "service-sample.h"
 
+/**
+ *  状態テキストを組み立てる配列の大きさ [byte] (終端 NUL を含む)。
+ *
+ *  固定の文面 (UTF-8 で 32 [byte]) と unsigned long の最大 20 桁、終端の計 53 [byte] が収まる大きさとします。
+ */
+#define SAMPLE_STATUS_TEXT_SIZE 64U
+
+static_assert(SAMPLE_STATUS_TEXT_SIZE >= 53U, "状態テキストの文面と 20 桁と終端 NUL が収まること");
+
+/**
+ *  周期処理の待機間隔 [ms]。svc_wait_for_stop() の引数が int のため、U を付けません。
+ *
+ *  値を変えると、周期処理の実行間隔が変わります。
+ *  svc_wait_for_stop() で待機している間は on_run() の生存として扱われるため、Linux の watchdog の契約には影響しません。
+ */
+#define SAMPLE_CYCLE_INTERVAL_MS 1000
 /*
  * ============================================================
  *  サービス コールバック
@@ -49,11 +66,13 @@ static int on_start(void *user_data)
  *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
  *
  *  1 [s] ごとに動作ログを出力し、停止要求を受け取るとループを抜けます。\n
- *  svc_set_status_text() による状態テキスト通知の利用例を含みます。
+ *  svc_set_status_text() による状態テキスト通知の利用例を含みます。\n
+ *  1000 [ms] (SAMPLE_CYCLE_INTERVAL_MS) の待機の後の周期処理は短時間で終わり、すぐに次の svc_wait_for_stop() を呼ぶため、
+ *  Linux の watchdog の契約 (svc_on_run_fn の「Linux の watchdog との関係」) を満たします。
  */
 static int on_run(void *user_data)
 {
-    char status_text[64];
+    char status_text[SAMPLE_STATUS_TEXT_SIZE];
     unsigned long cycle_count;
 
     (void)user_data;
@@ -65,8 +84,11 @@ static int on_run(void *user_data)
     (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
     cycle_count = 0;
 
-    /* 停止要求が届くまで 1000 [ms] 間隔で周期処理を繰り返す。 */
-    while (svc_wait_for_stop(1000) == 0)
+    /*
+     * 停止要求が届くまで 1000 [ms] 間隔で周期処理を繰り返す。
+     * 周期処理は短時間で終わり、すぐに次の svc_wait_for_stop() を呼ぶため、Linux の watchdog の契約を満たす。
+     */
+    while (svc_wait_for_stop(SAMPLE_CYCLE_INTERVAL_MS) == 0)
     {
         /* TODO: ここに周期処理を書く (現状は何もしない雛形) */
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "動作中...");

@@ -13,6 +13,7 @@
 #include <struct_meta/catalog/arena.h>
 #include <struct_meta/catalog/build.h>
 #include <struct_meta/meta/index.h>
+#include <struct_meta/meta/index_internal.h>
 #include <struct_meta/parse/diagnostic.h>
 #include <struct_meta/parse/parse_internal.h>
 
@@ -62,12 +63,17 @@ static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, s
 static int create_index(struct_meta_catalog *catalog, struct_meta_diagnostic *diagnostic)
 {
     cplat_hashtable_config config = {0};
-    config.capacity = catalog->descriptor_count * 2U;
+    /* 件数の STRUCT_META_INDEX_CAPACITY_FACTOR 倍とする。正本は app/struct-meta/docs/architecture.md の「索引の容量」節である。 */
+    config.capacity = catalog->descriptor_count * STRUCT_META_INDEX_CAPACITY_FACTOR;
     config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
     config.key_size = max_name_bytes(catalog->descriptors, catalog->descriptor_count);
     config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(size_t);
     config.value_align = sizeof(size_t);
+    /*
+     * 索引は構築後に削除しないため、lifetime は動作に影響しない。
+     * 構成検査が 2 以上を求めるため、値を指定する。
+     */
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
 
     if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &catalog->index) != CPLAT_OK)

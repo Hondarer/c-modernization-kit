@@ -24,6 +24,7 @@
 #include <cplat/base/result.h>
 #include <cplat/prompt/prompt.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -34,6 +35,15 @@
 
 /** 1 回の入力行を受けるバッファーのバイト数です。 */
 #define STRUCT_META_PATCH_LINE_BYTES 256
+
+/**
+ *  16 進の入力行を受ける配列の大きさを、現在値の 16 進表記の大きさ [byte] に対して何倍にするかの倍率です。
+ *  現在値の表記より長い入力 (区切りの空白の追加など) を受けるための余裕です。
+ *  制約: 1 以上とすること。値を変えると、受け付ける入力行の長さの上限が変わります。
+ */
+#define PATCH_HEX_LINE_FACTOR 2U
+
+static_assert(PATCH_HEX_LINE_FACTOR >= 1U, "hex line factor must be at least 1");
 
 static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc, unsigned char *base,
                         const char *path);
@@ -326,7 +336,7 @@ static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, un
                         const char *path)
 {
     char line[STRUCT_META_PATCH_LINE_BYTES];
-    char current[64];
+    char current[STRUCT_META_SCALAR_TEXT_BYTES];
 
     format_scalar_value(field->kind, field_ptr, field->element_size, field->char_buffer_size, current, sizeof(current));
 
@@ -450,13 +460,14 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
         return ret;
     }
 
-    if (text_size > (SIZE_MAX / 2U))
+    if (text_size > (SIZE_MAX / PATCH_HEX_LINE_FACTOR))
     {
         return CPLAT_ERR_OUT_OF_RANGE;
     }
 
+    const size_t line_size = text_size * PATCH_HEX_LINE_FACTOR;
     char *current = (char *)malloc(text_size);
-    char *line = (char *)malloc(text_size * 2U);
+    char *line = (char *)malloc(line_size);
     if ((current == NULL) || (line == NULL))
     {
         free(current);
@@ -467,8 +478,7 @@ static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field,
     ret = struct_meta_internal_bytes_to_hex(field_ptr, field->element_count, current, text_size);
     while (ret == CPLAT_OK)
     {
-        ret =
-            cplat_prompt_readline_fmt(prompt, line, text_size * 2U, "%s (現在値 %s、空行で変更なし)> ", path, current);
+        ret = cplat_prompt_readline_fmt(prompt, line, line_size, "%s (現在値 %s、空行で変更なし)> ", path, current);
         if ((ret != CPLAT_OK) || (line[0] == '\0'))
         {
             break;
@@ -702,7 +712,7 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
             }
             else
             {
-                char current[64];
+                char current[STRUCT_META_SCALAR_TEXT_BYTES];
                 format_scalar_value(field->kind, field_ptr, field->element_size, field->char_buffer_size, current,
                                     sizeof(current));
                 (void)printf("  %zu) %s = %s%s%s\n", i + 1U, field_path, current, brief_sep, brief);

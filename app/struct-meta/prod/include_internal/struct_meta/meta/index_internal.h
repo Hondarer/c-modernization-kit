@@ -13,7 +13,16 @@
 
 #include <struct_meta/meta/meta.h>
 
+#include <assert.h>
 #include <stddef.h>
+
+/*
+ * 名前から引き当てるハッシュ テーブル索引の容量倍率。
+ * 制約: 1 以上とすること (capacity が件数以上である必要があるため)。変更時は占有率の上限とメモリ消費量が変わる。
+ */
+#define STRUCT_META_INDEX_CAPACITY_FACTOR 2U
+
+static_assert(STRUCT_META_INDEX_CAPACITY_FACTOR >= 1U, "index capacity factor must be at least 1");
 
 /**
  *  @brief          記述子に控えた検査結果を引き当てます。

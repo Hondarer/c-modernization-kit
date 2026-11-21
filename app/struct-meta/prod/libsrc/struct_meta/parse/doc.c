@@ -23,55 +23,49 @@
  */
 static const char *skip_doc_open(const char *s)
 {
-    if ((s == NULL) || (s[0] != '/'))
+    if (s == NULL)
     {
         return s;
     }
 
-    if (s[1] == '*')
+    if (strncmp(s, "/**<", sizeof("/**<") - 1U) == 0)
     {
-        if ((s[2] == '*') && (s[3] == '<'))
-        {
-            return s + 4;
-        }
-
-        if ((s[2] == '!') && (s[3] == '<'))
-        {
-            return s + 4;
-        }
-
-        if (s[2] == '*')
-        {
-            return s + 3;
-        }
-
-        if (s[2] == '!')
-        {
-            return s + 3;
-        }
+        return s + (sizeof("/**<") - 1U);
     }
 
-    if (s[1] == '/')
+    if (strncmp(s, "/*!<", sizeof("/*!<") - 1U) == 0)
     {
-        if ((s[2] == '/') && (s[3] == '<'))
-        {
-            return s + 4;
-        }
+        return s + (sizeof("/*!<") - 1U);
+    }
 
-        if ((s[2] == '!') && (s[3] == '<'))
-        {
-            return s + 4;
-        }
+    if (strncmp(s, "/**", sizeof("/**") - 1U) == 0)
+    {
+        return s + (sizeof("/**") - 1U);
+    }
 
-        if (s[2] == '/')
-        {
-            return s + 3;
-        }
+    if (strncmp(s, "/*!", sizeof("/*!") - 1U) == 0)
+    {
+        return s + (sizeof("/*!") - 1U);
+    }
 
-        if (s[2] == '!')
-        {
-            return s + 3;
-        }
+    if (strncmp(s, "///<", sizeof("///<") - 1U) == 0)
+    {
+        return s + (sizeof("///<") - 1U);
+    }
+
+    if (strncmp(s, "//!<", sizeof("//!<") - 1U) == 0)
+    {
+        return s + (sizeof("//!<") - 1U);
+    }
+
+    if (strncmp(s, "///", sizeof("///") - 1U) == 0)
+    {
+        return s + (sizeof("///") - 1U);
+    }
+
+    if (strncmp(s, "//!", sizeof("//!") - 1U) == 0)
+    {
+        return s + (sizeof("//!") - 1U);
     }
 
     return s;
@@ -96,9 +90,10 @@ static char *strip_doc_text(const char *raw)
     end = body + raw_len;
 
     /* 行コメントには終了記号がないため、末尾が終了記号の場合だけ除く。 */
-    if ((raw_len >= 2U) && (end[-2] == '*') && (end[-1] == '/'))
+    const size_t close_len = sizeof("*/") - 1U;
+    if ((raw_len >= close_len) && (memcmp(end - close_len, "*/", close_len) == 0))
     {
-        end -= 2;
+        end -= close_len;
     }
 
     out = (char *)malloc((size_t)(end - body) + 1U);

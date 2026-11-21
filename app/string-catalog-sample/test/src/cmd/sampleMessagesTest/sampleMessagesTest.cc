@@ -127,7 +127,7 @@ TEST_F(sampleMessagesTest, every_entry_has_neutral_resource)
                   0); // [確認_正常系 回数=6] - entries[index].argument_count が 0 以上であること。
         EXPECT_LE(
             entries[index].argument_count,
-            CPLAT_STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系 回数=6] - entries[index].argument_count が CPLAT_STRING_CATALOG_ARGUMENT_MAX 以下であること。
+            (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX); // [確認_正常系 回数=6] - entries[index].argument_count が CPLAT_STRING_CATALOG_ARGUMENT_MAX 以下であること。
         if (entries[index].argument_count > 0)
         {
             EXPECT_NE(

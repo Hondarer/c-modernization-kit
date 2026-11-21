@@ -64,20 +64,26 @@
 #include "gen/sample_types_meta.h"
 
 /** サブコマンド 1 行を受けるバッファーのバイト数です。 */
-#define SAMPLE_CMD_LINE_BYTES 256
+#define SAMPLE_CMD_LINE_BYTES 256U
 
 /** cat 系コマンドが一度に読み取るバイト数です。 */
-#define SAMPLE_CAT_BUFFER_BYTES 4096
+#define SAMPLE_CAT_BUFFER_BYTES 4096U
 
 /** catbin が 1 行に表示するバイト数です。 */
-#define SAMPLE_HEXDUMP_BYTES_PER_LINE 16
+#define SAMPLE_HEXDUMP_BYTES_PER_LINE 16U
 
 /* 1 行分が読み取りブロックをまたがないようにし、行の組み立てを 1 ブロック内で完結させる。 */
-_Static_assert((SAMPLE_CAT_BUFFER_BYTES % SAMPLE_HEXDUMP_BYTES_PER_LINE) == 0,
-               "catbin の読み取りバイト数は 1 行のバイト数の倍数である必要があります");
+static_assert((SAMPLE_CAT_BUFFER_BYTES % SAMPLE_HEXDUMP_BYTES_PER_LINE) == 0U,
+              "catbin の読み取りバイト数は 1 行のバイト数の倍数である必要があります");
 
 /** 組み込みカタログを返す関数の型です。 */
 typedef const struct_meta_catalog *(*builtin_catalog_get_fn)(void);
+
+/** ASCII の印字可能な文字の下限 (空白) です。 */
+#define SAMPLE_ASCII_PRINTABLE_MIN 0x20U
+
+/** ASCII の削除文字 (DEL) です。印字可能な文字の上限の次の値です。 */
+#define SAMPLE_ASCII_DEL 0x7fU
 
 /**
  *  @brief          実行体へ組み込んだカタログ 1 個分の情報です。
@@ -666,7 +672,7 @@ static void print_hexdump(const unsigned char *buffer, size_t size, size_t offse
             if (i < line_bytes)
             {
                 const unsigned char value = buffer[line_start + i];
-                if ((value >= 0x20U) && (value < 0x7fU))
+                if ((value >= SAMPLE_ASCII_PRINTABLE_MIN) && (value < SAMPLE_ASCII_DEL))
                 {
                     (void)printf("%c", (char)value);
                 }

@@ -13,6 +13,7 @@
 using testing::_;
 using testing::AnyNumber;
 using testing::HasSubstr;
+using testing::Invoke;
 using testing::NiceMock;
 using testing::Return;
 
@@ -910,4 +911,90 @@ TEST_F(service_sampleTest, help_returns_exit_failure_when_print_or_stream_fails)
         EXPECT_NE(std::string::npos, errors.find("使い方を標準出力へ書き込めませんでした"));
         // [確認_異常系] - 標準エラー出力に診断が出ること。
     }
+}
+
+/* ============================================================
+ *  on_run の進行の記録のテスト
+ * ============================================================ */
+
+// svc_wait_for_stop() で待機している間は、on_run() が進行しているものとして扱うことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, on_run_progress_is_alive_while_waiting)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"}; // [状態] - 停止抽象を初期化する "console" の経路を使う。
+    int progress_while_waiting = -1;
+    g_on_run_action = []()
+    { (void)svc_wait_for_stop(1000); }; // [状態] - on_run の中で svc_wait_for_stop() を呼ぶ。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_condvar_timed_wait(_, _, 1000))
+        .WillOnce(Invoke(
+            [&progress_while_waiting](cplat_condvar *, cplat_local_lock *, int) -> int
+            {
+                uint32_t seen_count = 0U;
+                (void)svc_on_run_made_progress(&seen_count);
+                progress_while_waiting = svc_on_run_made_progress(&seen_count);
+                return CPLAT_ERR_TIMEOUT;
+            }));
+    // [Pre-Assert確認_正常系] - cplat_condvar_timed_wait() が 1000 を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - 待機の中で、計数を記録した後に svc_on_run_made_progress() を呼び、CPLAT_ERR_TIMEOUT を返す。
+
+    // Act
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(1, progress_while_waiting); // [確認_正常系] - 待機中の svc_on_run_made_progress() の戻り値が 1 であること。(計数が変わらなくても待機中は進行として扱うことの確認)
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+}
+
+// svc_wait_for_stop() から戻った後の最初の確認だけが、on_run() の進行として扱われることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, on_run_progress_is_alive_once_after_wait)
+{
+    // Arrange
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "console"}; // [状態] - 停止抽象を初期化する "console" の経路を使う。
+    int first_progress = -1;
+    int second_progress = -1;
+    g_on_run_action = [&first_progress, &second_progress]()
+    {
+        uint32_t seen_count = 0U;
+        (void)svc_on_run_made_progress(&seen_count);
+        (void)svc_wait_for_stop(0);
+        first_progress = svc_on_run_made_progress(&seen_count);
+        second_progress = svc_on_run_made_progress(&seen_count);
+    }; // [状態] - on_run の中で、計数を記録してから svc_wait_for_stop(0) を呼び、svc_on_run_made_progress() を 2 回呼ぶ。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_condvar_timed_wait(_, _, 0)).WillOnce(Return(CPLAT_ERR_TIMEOUT));
+    // [Pre-Assert確認_正常系] - cplat_condvar_timed_wait() が 0 を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - cplat_condvar_timed_wait() から CPLAT_ERR_TIMEOUT を返す。
+
+    // Act
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(1, first_progress);  // [確認_正常系] - 待機の後の 1 回目の svc_on_run_made_progress() の戻り値が 1 であること。
+    EXPECT_EQ(0, second_progress); // [確認_正常系] - 待機の後の 2 回目の svc_on_run_made_progress() の戻り値が 0 であること。(同じ進行を 2 回数えないことの確認)
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
+}
+
+// svc_wait_for_stop() を呼ばない場合は、on_run() が進行していないものとして扱うことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, on_run_progress_is_not_alive_without_wait)
+{
+    // Arrange
+    uint32_t seen_count = 0U;
+    (void)svc_on_run_made_progress(&seen_count); // [状態] - 先行のテストの呼び出しを含む現在の計数を記録する。
+
+    // Pre-Assert
+
+    // Act
+    int actual = svc_on_run_made_progress(
+        &seen_count); // [手順] - svc_wait_for_stop() を呼ばずに svc_on_run_made_progress() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(0, actual); // [確認_正常系] - svc_on_run_made_progress() の戻り値が 0 であること。
 }

@@ -20,6 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+/** 循環検出用の記述子スタックの初期容量 [要素] です。 */
+#define VALIDATE_STACK_INITIAL_CAPACITY 8U
+
+/** 循環検出用の記述子スタックを拡張するときの倍率です。 */
+#define VALIDATE_STACK_GROWTH_FACTOR 2U
+
 typedef struct validation_context
 {
     const struct_meta_descriptor **stack;
@@ -47,11 +53,11 @@ static int push_descriptor(validation_context *context, const struct_meta_descri
 
         if (context->capacity == 0U)
         {
-            capacity = 8U;
+            capacity = VALIDATE_STACK_INITIAL_CAPACITY;
         }
         else
         {
-            capacity = context->capacity * 2U;
+            capacity = context->capacity * VALIDATE_STACK_GROWTH_FACTOR;
         }
 
         if (capacity < context->capacity || capacity > (SIZE_MAX / sizeof(*context->stack)))

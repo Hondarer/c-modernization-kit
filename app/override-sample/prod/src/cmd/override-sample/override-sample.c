@@ -130,6 +130,7 @@ int main(int argc, char *argv[])
     ret = base_sym_loader_info();
     (void)printf("ret: %d\n\n", ret);
 
+    /* 動作確認の表示例として固定値を渡す (失敗時の診断文面と対応)。 */
     ret = base_calc(1, 2, &result);
     base_console_output("ret: %d\n", ret);
 

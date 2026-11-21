@@ -183,6 +183,8 @@ static int print_all_strings(void)
  *  呼び出し位置と実行コンテキストは引数として渡されます。書式が位置指定を持たない項目では、
  *  組み立てた文字列に現れません。\n
  *  SAMPLE_TRACE_KEY_STATE_DUMP は 40 番からの位置指定を書式へ持つため、これらの値が出力へ現れます。
+ *
+ *  引数の値はサンプルの表示例として固定しています。
  */
 static int write_traces(void)
 {

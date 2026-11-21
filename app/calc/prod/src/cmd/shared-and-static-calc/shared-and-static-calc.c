@@ -86,7 +86,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* 同じ演算を動的リンクの calc_handler() と静的リンクの calcbase 関数の双方で実行する。 */
+    /*
+     * 同じ演算を動的リンクの calc_handler() と静的リンクの calcbase 関数の双方で実行する。
+     * シェルが '*' をファイル名へ展開するため、乗算は 'x' で受け付ける。
+     */
     switch (operator_value[0])
     {
     case '+':

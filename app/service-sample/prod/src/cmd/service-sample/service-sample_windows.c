@@ -28,6 +28,7 @@
     /* Advapi32.lib は windows_sdk.h の #pragma comment(lib, "Advapi32.lib") で指定済みである。 */
     #include <cplat/base/windows_sdk.h>
 
+    #include <assert.h>
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
@@ -38,6 +39,7 @@
     #include <cplat/win32/win32.h>
 
     #include "service-sample.h"
+    #include "service-sample_internal.h"
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -48,13 +50,49 @@
  */
 
     /** PRESHUTDOWN 通知から強制停止までの猶予 [ms]。 */
-    #define SVC_PRESHUTDOWN_TIMEOUT_MS 30000
+    #define SVC_PRESHUTDOWN_TIMEOUT_MS 30000U
 
-    /** 異常終了から自動再起動までの遅延 [ms]。Linux 側の RestartSec=5 と一致させます。 */
-    #define SVC_FAILURE_RESTART_DELAY_MS 5000
+    /** 異常終了から自動再起動までの遅延 [ms]。Linux 側の RestartSec= と同じ SVC_FAILURE_RESTART_DELAY_SEC から求めます。 */
+    #define SVC_FAILURE_RESTART_DELAY_MS (SVC_FAILURE_RESTART_DELAY_SEC * 1000U)
 
-    /** 失敗カウンターをリセットする無失敗期間 [s]。 */
-    #define SVC_FAILURE_RESET_PERIOD_SEC 86400
+    /** 失敗カウンターをリセットする無失敗期間 [s]。1 日 (24 時間) です。 */
+    #define SVC_FAILURE_RESET_PERIOD_SEC (24U * 60U * 60U)
+
+    /**
+     *  起動開始の SERVICE_START_PENDING に付ける、次の通知までの見積もり (dwWaitHint) [ms]。
+     *
+     *  次の通知は、on_start() から戻った後の SERVICE_RUNNING (または失敗時の SERVICE_STOPPED) です。\n
+     *  制約: 1 以上とすること。値を大きくすると、on_start() が戻らない場合に SCM が起動の失敗と判断するまでの時間が延びます。
+     */
+    #define SVC_ON_START_WAIT_HINT_MS 3000U
+
+    /**
+     *  制御ハンドラーが停止の要求を受けて通知する SERVICE_STOP_PENDING に付ける、次の通知までの見積もり (dwWaitHint) [ms]。
+     *
+     *  停止、シャットダウン、シャットダウン前の制御で使います。
+     *  次の通知は、停止の要求を受けた on_run() が戻った後の SERVICE_STOP_PENDING です。\n
+     *  制約: 1 以上とすること。値を大きくすると、on_run() が戻らない場合に SCM が停止の失敗と判断するまでの時間が延びます。
+     */
+    #define SVC_ON_RUN_RETURN_WAIT_HINT_MS 5000U
+
+    /**
+     *  on_run() の復帰後に通知する SERVICE_STOP_PENDING に付ける、次の通知までの見積もり (dwWaitHint) [ms]。
+     *
+     *  次の通知は、on_stop() から戻った後の SERVICE_STOPPED です。\n
+     *  制約: 1 以上とすること。値を大きくすると、on_stop() が戻らない場合に SCM が停止の失敗と判断するまでの時間が延びます。
+     */
+    #define SVC_ON_STOP_WAIT_HINT_MS 3000U
+
+    /** セッション ID (DWORD の 10 進表記) を格納する配列の大きさ [byte] (終端 NUL を含む)。 */
+    #define SVC_SESSION_ID_TEXT_SIZE 16U
+
+    /** binPath の "\"<パス>\" run" のうち、実行ファイル パス以外の分 (引用符、空白、"run") [byte]。 */
+    #define SVC_BIN_PATH_EXTRA_BYTES 16U
+
+static_assert(SVC_ON_START_WAIT_HINT_MS > 0U, "start wait hint must be positive");
+static_assert(SVC_ON_RUN_RETURN_WAIT_HINT_MS > 0U, "stop request wait hint must be positive");
+static_assert(SVC_ON_STOP_WAIT_HINT_MS > 0U, "stop wait hint must be positive");
+static_assert(SVC_SESSION_ID_TEXT_SIZE >= (10U + 1U), "セッション ID の 10 桁と終端 NUL が収まること");
 
 /*
  * ============================================================
@@ -279,7 +317,13 @@ void svc_os_notify_stopping(void)
         return;
     }
 
-    set_service_status(SERVICE_STOP_PENDING, 0, 1, 3000);
+    /*
+     * 停止要求を受けた場合は、制御ハンドラーが checkpoint 1 で SERVICE_STOP_PENDING を通知済みである。
+     * 同じ状態を続けて通知するときは checkpoint を増やすため、ここでは 2 を通知する。
+     * on_run() が停止要求なしに戻った場合は、この通知が最初の SERVICE_STOP_PENDING になる。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_status
+     */
+    set_service_status(SERVICE_STOP_PENDING, 0, 2, SVC_ON_STOP_WAIT_HINT_MS);
 }
 
 void svc_os_notify_reloading(void)
@@ -337,7 +381,7 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
 {
     const WTSSESSION_NOTIFICATION *notification;
     /* dwSessionId は 32 bit の DWORD であり、最大 10 桁と終端 NUL (11 [byte]) が 16 [byte] に収まる。 */
-    char session_id_buf[16];
+    char session_id_buf[SVC_SESSION_ID_TEXT_SIZE];
     svc_event_info info;
 
     if (ev_data == NULL)
@@ -387,7 +431,7 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
 
     if (ctrl == SERVICE_CONTROL_STOP || ctrl == SERVICE_CONTROL_SHUTDOWN)
     {
-        set_service_status(SERVICE_STOP_PENDING, 0, 1, 5000);
+        set_service_status(SERVICE_STOP_PENDING, 0, 1, SVC_ON_RUN_RETURN_WAIT_HINT_MS);
 
         /* 停止要求を on_run() のメイン ループに伝える。 */
         svc_request_stop();
@@ -398,7 +442,7 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
         info.type = SVC_EVENT_PRESHUTDOWN;
         info.session_id = NULL;
         svc_dispatch_event(s_def, &info);
-        set_service_status(SERVICE_STOP_PENDING, 0, 1, 5000);
+        set_service_status(SERVICE_STOP_PENDING, 0, 1, SVC_ON_RUN_RETURN_WAIT_HINT_MS);
         svc_request_stop();
     }
     else if (ctrl == SERVICE_CONTROL_POWEREVENT)
@@ -456,7 +500,7 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
         return;
     }
 
-    set_service_status(SERVICE_START_PENDING, 0, 1, 3000);
+    set_service_status(SERVICE_START_PENDING, 0, 1, SVC_ON_START_WAIT_HINT_MS);
 
     if (s_def->on_start != NULL)
     {
@@ -517,23 +561,17 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 
 int svc_os_run_service(const svc_definition *def)
 {
-    SERVICE_TABLE_ENTRYU dispatch_table[2];
+    /*
+     * テーブルの最後の要素は、終端を示すため lpServiceName と lpServiceProc を NULL にする。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
+     */
+    SERVICE_TABLE_ENTRYU dispatch_table[] = {{def->name, service_main}, {NULL, NULL}};
 
     /*
      * def をファイル static に退避する。ServiceMain() は固定シグネチャのため、直接渡せない。
      * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nc-winsvc-lpservice_main_functionw
      */
     s_def = def;
-
-    dispatch_table[0].lpServiceName = def->name;
-    dispatch_table[0].lpServiceProc = service_main;
-
-    /*
-     * テーブルの最後の要素は、終端を示すため lpServiceName と lpServiceProc を NULL にする。
-     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
-     */
-    dispatch_table[1].lpServiceName = NULL;
-    dispatch_table[1].lpServiceProc = NULL;
 
     /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
     (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
@@ -552,8 +590,9 @@ int svc_os_install(const svc_definition *def)
 {
     SC_HANDLE scm = NULL;
     SC_HANDLE svc = NULL;
-    char bin_path[4096 + 16]; /* パスに "\"<path>\" run" を格納するための十分なサイズ */
-    char exe_path[4096];
+    /* パスに "\"<path>\" run" を格納するための十分なサイズ */
+    char bin_path[SVC_EXEC_PATH_MAX + SVC_BIN_PATH_EXTRA_BYTES];
+    char exe_path[SVC_EXEC_PATH_MAX];
     int rc;
     int handled;
 

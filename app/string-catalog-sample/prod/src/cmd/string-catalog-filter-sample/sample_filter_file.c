@@ -23,7 +23,16 @@
 /** UTF-8 の BOM です。 */
 static const unsigned char s_utf8_bom[] = {0xEFU, 0xBBU, 0xBFU};
 
-/** 復元した 1 行を格納する大きさです。括弧を補うため、行幅の上限より大きく取ります。 */
+/** 行末の改行 (LF または CRLF) の最大の長さ [byte] です。 */
+#define READ_ROW_NEWLINE_MAX_BYTES 2U
+
+/** 行幅いっぱいの行に加えて読み取る大きさ [byte] です。BOM、改行、終端 NUL の合計です。 */
+#define READ_ROW_EXTRA_BYTES (sizeof(s_utf8_bom) + READ_ROW_NEWLINE_MAX_BYTES + 1U)
+
+/** 行幅を超えた行の残りを読み捨てる配列の大きさ [byte] (終端 NUL を含む) です。 */
+#define READ_ROW_DISCARD_SIZE 64U
+
+/** 復元した 1 行を格納する大きさ [byte] (終端 NUL を含む) です。括弧を補うため、行幅の上限より大きく取ります。 */
 #define DECOMPILE_BUFFER_SIZE ((size_t)CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX * 2U)
 
 /** 行末の改行 (LF または CRLF) を取り除きます。 */
@@ -51,13 +60,13 @@ static void trim_newline(char *line)
 static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *too_long, size_t *line_count_out)
 {
     /* 行幅いっぱいの行に、BOM (3 [byte])、改行 (最大 2 [byte])、NUL を加えても収まる大きさ */
-    char buffer[CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX + 8U];
+    char buffer[CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX + READ_ROW_EXTRA_BYTES];
     size_t line_count = 0U;
 
     for (;;)
     {
         char *row;
-        int ret = cplat_fgets(buffer, line_width + 6U, stream, NULL);
+        int ret = cplat_fgets(buffer, line_width + READ_ROW_EXTRA_BYTES, stream, NULL);
         bool is_overflowed = false;
 
         if (ret == CPLAT_ERR_EOF)
@@ -73,7 +82,7 @@ static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *to
         /* 収まらない行は、行の残りを読み捨てて、行幅を超えた行として扱う。 */
         while (ret == CPLAT_ERR_BUFFER_TOO_SMALL)
         {
-            char rest[64];
+            char rest[READ_ROW_DISCARD_SIZE];
 
             is_overflowed = true;
             ret = cplat_fgets(rest, sizeof(rest), stream, NULL);

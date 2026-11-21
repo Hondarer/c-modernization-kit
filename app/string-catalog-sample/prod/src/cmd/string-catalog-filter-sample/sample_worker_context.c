@@ -16,7 +16,11 @@
 
 #include <cplat/sync/atomic.h>
 
+#include <assert.h>
 #include <stdint.h>
+
+static_assert((SAMPLE_WORKER_SEQUENCE_NUMBER_MAX >= 1) && (SAMPLE_WORKER_SEQUENCE_NUMBER_MAX <= INT32_MAX),
+              "連番上限が範囲内");
 
 /** 呼び出しごとに増加するカウンターです。計数だけが目的のため、順序の保証がない軽量な加算 (RELAXED) で更新します。 */
 static cplat_atomic_u32 s_sequence_number = CPLAT_ATOMIC_INIT(0U);

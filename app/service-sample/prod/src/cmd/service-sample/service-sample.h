@@ -24,6 +24,13 @@
  *  Windows は SCM のコントロール通知、Linux は systemd-logind (D-Bus) と
  *  SIGHUP を共通のイベントに対応付けます。
  *
+ *  @par            Windows の SCM へ通知する所要時間の見積もり
+ *  Windows のサービスでは、起動中と停止中の状態を SCM へ通知するときに、
+ *  次の通知までの所要時間の見積もり (SERVICE_STATUS の dwWaitHint) を固定値で渡します。\n
+ *  dwWaitHint は見積もりであり、on_start()、停止要求の後の on_run()、on_stop() が
+ *  これより長くかかる場合の進捗の通知 (checkpoint の更新) には対応していません。\n
+ *  see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_status
+ *
  *  @par            使用方法 (コマンド ライン)
     @code{.sh}
     service-sample install    # OS にサービスを登録する
@@ -42,6 +49,8 @@
 
 #include <cplat/base/platform.h>
 #include <cplat/trace/tracer.h>
+
+#include <stdint.h>
 
 /**
  *  @defgroup       SERVICE_SAMPLE_PUBLIC_API 公開 API (service-sample)
@@ -71,7 +80,9 @@ extern "C"
      *  0 を返すと on_run() が呼ばれます。0 以外を返すと起動を中断します
      *  (on_run() と on_stop() は呼ばれません)。\n
      *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
-     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
+     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。\n
+     *  Linux では、systemd の起動タイムアウト (TimeoutStartSec=。unit で指定していないため、既定の 90 [s]) より
+     *  短い時間で戻る必要があります。超えた場合は、systemd がサービスを起動の失敗として終了させます。
      *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
      *  @return         成功時は 0、失敗時は 0 以外を返します。
@@ -88,6 +99,18 @@ extern "C"
      *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
      *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
      *
+     *  @par            Linux の watchdog との関係
+     *  systemd が watchdog を要求している場合 (unit の WatchdogSec=) は、この関数の進行を watchdog の通知に結び付けます。\n
+     *  フレームワークは、この関数が svc_wait_for_stop() で待機している間と、
+     *  svc_wait_for_stop() の呼び出しを続けている間だけ、WATCHDOG=1 を送ります。\n
+     *  svc_wait_for_stop() から戻った後は、watchdog の期限の半分より短い時間で、次の svc_wait_for_stop() を
+     *  呼んでください (install が生成する unit は WatchdogSec=30 のため、15 [s] 未満)。\n
+     *  この関数の開始から最初の呼び出しまでも同じです。\n
+     *  svc_wait_for_stop() は、この関数を実行しているスレッドから呼んでください。\n
+     *  期限内に呼ばない場合は、systemd がサービスを失敗として SIGABRT で終了させ、Restart=on-failure により再起動します。\n
+     *  Windows の SCM には、動作中のサービスの生存を確かめる仕組みがないため、この条件は Linux だけに適用します。\n
+     *  watchdog が要求されていない場合 (WatchdogSec= がない、systemd の外で実行した場合) も適用しません。
+     *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
      *  @return         成功時は 0、失敗時は 0 以外を返します。
      */
@@ -100,7 +123,11 @@ extern "C"
      *  後始末のために呼ばれます)。\n
      *  on_start() が失敗した場合は呼ばれません。\n
      *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
-     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
+     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。\n
+     *  Linux では、停止の要求から on_run() の復帰と on_stop() の完了までの合計を 60 [s] 未満にしてください
+     *  (systemd の停止タイムアウト 90 [s] から、イベント監視スレッドの終了を待つ上限 30 [s] を除いた時間)。\n
+     *  停止の開始の直前に WATCHDOG=1 が届き、systemd の watchdog が再び有効になった場合は、
+     *  合計を WatchdogSec= 未満にしてください。
      *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
      *  @return         成功時は 0、失敗時は 0 以外を返します。
@@ -152,7 +179,9 @@ extern "C"
      *  Linux: イベント監視スレッド) から呼ばれるため、共有データへの
      *  アクセスには同期が必要です。\n
      *  OS 側の応答期限 (Linux のサスペンド猶予は logind の InhibitDelayMaxSec、
-     *  既定 5 [s]) があるため、短時間で戻るように実装してください。
+     *  既定 5 [s]) があるため、短時間で戻るように実装してください。\n
+     *  on_start() の成功後から on_run() が戻るまでの間に呼び出しを始めます。
+     *  開始済みの呼び出しは、on_stop() と並行して実行中のことがあります。
      *
      *  @param[in]      info        イベントの付加情報。NULL は渡されません。
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
@@ -167,7 +196,9 @@ extern "C"
      *  Linux では呼び出しの前後で RELOADING=1 / READY=1 の通知を
      *  フレームワーク側が自動で行います。\n
      *  on_run() とは別のスレッドから呼ばれるため、共有データへの
-     *  アクセスには同期が必要です。短時間で戻るように実装してください。
+     *  アクセスには同期が必要です。短時間で戻るように実装してください。\n
+     *  on_start() の成功後から on_run() が戻るまでの間に呼び出しを始めます。
+     *  開始済みの呼び出しは、on_stop() と並行して実行中のことがあります。
      *
      *  @param[in]      user_data   svc_definition に登録した任意ポインター。
      */
@@ -210,7 +241,9 @@ extern "C"
         void *user_data;          /**< 各コールバックに渡す任意ポインター。 */
         svc_on_event_fn on_event; /**< OS イベント コールバック。NULL 可 (NULL の場合は電源・セッション・
                                        シャットダウン前イベントの監視を行わない)。 */
-        svc_on_reload_fn on_reload; /**< 設定再読込コールバック。NULL 可 (NULL の場合は再読込要求を受け付けない)。 */
+        svc_on_reload_fn on_reload; /**< 設定再読込コールバック。NULL 可 (NULL の場合は再読込要求を受け付けない。
+                                         Linux では unit へ ExecReload= を書き込まず、SIGHUP を受信しても
+                                         トレースへ記録して無視する)。 */
     } svc_definition;
 
     /*
@@ -227,7 +260,9 @@ extern "C"
      *                  待機に失敗した場合も 1 を返します。停止要求の状態は変えません。
      *
      *  on_run() の周期処理ループでこの関数を使うことで、
-     *  停止要求を受け取ったときにメイン ループを正常に抜けられます。
+     *  停止要求を受け取ったときにメイン ループを正常に抜けられます。\n
+     *  呼び出しの入口と出口で on_run() の進行を記録します。Linux では、この記録を watchdog の通知の判定に使います
+     *  (svc_on_run_fn の「Linux の watchdog との関係」を参照)。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフです。
@@ -246,6 +281,22 @@ extern "C"
      *  @endcode
      */
     int svc_wait_for_stop(int timeout_ms);
+
+    /**
+     *  @brief          前回の確認の後に on_run() が進行したかを判定します (内部共有関数)。
+     *  @param[in,out]  seen_count  前回の確認で記録した svc_wait_for_stop() の呼び出しの計数。NULL を渡してはなりません。\n
+     *                              1 を返す場合は、現在の計数で更新します。初回は 0 を指定してください。
+     *  @return         svc_wait_for_stop() で待機中の場合、または前回の確認の後に svc_wait_for_stop() を
+     *                  呼んでいた場合は 1、それ以外は 0 を返します。
+     *
+     *  Linux のイベント監視スレッドが、WATCHDOG=1 を送るかどうかの判定に使います。\n
+     *  Windows でもコンパイルされますが、通知の判定には使いません。
+     *
+     *  @par            スレッド セーフ
+     *  本関数は条件付きスレッド セーフです。\n
+     *  svc_wait_for_stop() と同時に呼び出せます。同じ @p seen_count を複数のスレッドから同時に渡してはなりません。
+     */
+    int svc_on_run_made_progress(uint32_t *seen_count);
 
     /**
      *  @brief          停止要求が届いているかを即時判定します。
@@ -334,7 +385,17 @@ extern "C"
      *  - Linux  : Type=notify のため fork せずそのまま常駐し、SIGTERM で停止します。\n
      *             常駐の前後でイベント監視スレッド (電源・セッション イベント、
      *             SIGHUP、watchdog 応答) を起動・停止します。\n
-     *  - Windows: StartServiceCtrlDispatcher でサービス ディスパッチャーに接続します。
+     *  - Windows: StartServiceCtrlDispatcher でサービス ディスパッチャーに接続します。\n
+     *  \n
+     *  Linux では、イベント監視スレッドの必須の初期化 (イベント ループの生成、停止監視、
+     *  watchdog のタイマー、SIGHUP の準備) に失敗した場合は、on_start() を呼ばず、READY=1 も送らずに
+     *  失敗を返します。\n
+     *  実行中にイベント ループが異常終了した場合は停止を要求し、ライフサイクル コールバックが成功していても失敗を返します。
+     *
+     *  @attention      Linux では、停止の時にイベント監視スレッドが 30 [s] 以内に終了しない場合、
+     *                  資源を解放せずにプロセスを異常終了させます。
+     *                  スレッドが動いたまま終了を続けると、解放済みのサービス定義とトレースを参照し、
+     *                  プロセスの継続が危険になるためです。
      *
      *  @par            スレッド セーフ
      *  本関数はスレッド セーフではありません。

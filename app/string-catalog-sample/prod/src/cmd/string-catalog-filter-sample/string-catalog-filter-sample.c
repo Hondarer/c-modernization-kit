@@ -38,6 +38,7 @@
 #include <cplat/sync/sync.h>
 #include <cplat/trace/tracer.h>
 
+#include <assert.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -47,8 +48,11 @@
 /** 編集中イメージが格納できる行数の上限です。 */
 #define FILTER_SAMPLE_LINE_CAPACITY 32U
 
-/** 編集中イメージの行幅です。 */
+/** 編集中イメージの行幅 [byte] (終端 NUL を含む) です。 */
 #define FILTER_SAMPLE_LINE_WIDTH 256U
+
+static_assert(FILTER_SAMPLE_LINE_WIDTH <= CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX, "行幅は上限以下");
+static_assert(FILTER_SAMPLE_LINE_WIDTH >= CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MIN, "行幅は下限以上");
 
 /** 編集中イメージのバイト数です。 */
 #define FILTER_SAMPLE_IMAGE_SIZE \
@@ -65,6 +69,10 @@
 
 /** ワーカー数の既定値です。 */
 #define FILTER_SAMPLE_WORKER_DEFAULT_COUNT 2U
+
+static_assert((FILTER_SAMPLE_WORKER_DEFAULT_COUNT >= 1U) &&
+                  (FILTER_SAMPLE_WORKER_DEFAULT_COUNT <= FILTER_SAMPLE_WORKER_MAX),
+              "既定ワーカー数が上限以下であること");
 
 /**
  *  コマンド入力の履歴を識別する行番号です。
@@ -86,6 +94,8 @@
 /** 条件式 1 行の説明文のバイト数です。brief と引数の説明を複数含むため、行幅より大きく取ります。 */
 #define FILTER_SAMPLE_DESCRIPTION_SIZE 2048U
 
+static_assert(FILTER_SAMPLE_DESCRIPTION_SIZE > FILTER_SAMPLE_LINE_WIDTH, "説明文の配列は行幅より大きいこと");
+
 /** 型が合わない比較要素の警告を受け取る件数です。超えた分は件数だけを表示します。 */
 #define FILTER_SAMPLE_WARNING_CAPACITY 16U
 
@@ -97,6 +107,25 @@
 
 /** BUFFER_ALLOCATED の例として使うダミー領域のバイト数です。 */
 #define FILTER_SAMPLE_DUMMY_BUFFER_SIZE 64U
+
+/** ジョブ名を組み立てる配列の大きさ [byte] (終端 NUL を含む) です。 */
+#define FILTER_SAMPLE_JOB_NAME_SIZE 32U
+
+static_assert(FILTER_SAMPLE_JOB_NAME_SIZE >= (7U + 10U + 1U), "ジョブ名の接頭辞 7 文字と 10 桁と終端 NUL が収まること");
+
+/** キャレット行の配列で、行幅に加えて確保する大きさ [byte] です。キャレット '^' と終端 NUL の分です。 */
+#define FILTER_SAMPLE_MARKER_EXTRA_BYTES 2U
+
+/** ヘッダーの 16 進ダンプの 1 行あたりのバイト数です。 */
+#define FILTER_SAMPLE_DUMP_BYTES_PER_LINE 16U
+
+/** ヘッダーの 16 進ダンプの 1 行を組み立てる配列の大きさ [byte] (終端 NUL を含む) です。 */
+#define FILTER_SAMPLE_DUMP_LINE_SIZE 80U
+
+static_assert(FILTER_SAMPLE_DUMP_LINE_SIZE >= (7U + (FILTER_SAMPLE_DUMP_BYTES_PER_LINE * 3U) + 1U), "1 行収容");
+
+/** ISO 8601 の公開時刻の文字列を格納する配列の大きさ [byte] (終端 NUL を含む) です。 */
+#define FILTER_SAMPLE_TIMESTAMP_TEXT_SIZE 64U
 
 /** ワーカー 1 個分の実行状態です。 */
 typedef struct filter_sample_worker
@@ -381,7 +410,7 @@ static void emit_worker_wait_failed(const uint32_t worker_index, const int32_t r
  */
 static void emit_worker_cycle(const unsigned int worker_index, const uint64_t tick)
 {
-    char job_name[32];
+    char job_name[FILTER_SAMPLE_JOB_NAME_SIZE];
     uint64_t job_id;
     int32_t priority;
     double ratio;
@@ -709,13 +738,13 @@ static void end_command_section(cplat_pinned_prompt *screen)
 /* 条件式の解析エラーなどの発生位置を示すキャレット行を表示する。 */
 static void print_column_marker(cplat_pinned_prompt *screen, const size_t column)
 {
-    char marker[FILTER_SAMPLE_LINE_WIDTH + 2U];
+    char marker[FILTER_SAMPLE_LINE_WIDTH + FILTER_SAMPLE_MARKER_EXTRA_BYTES];
     size_t fill_count = column;
     size_t i;
 
-    if (fill_count > (sizeof(marker) - 2U))
+    if (fill_count > (sizeof(marker) - FILTER_SAMPLE_MARKER_EXTRA_BYTES))
     {
-        fill_count = sizeof(marker) - 2U;
+        fill_count = sizeof(marker) - FILTER_SAMPLE_MARKER_EXTRA_BYTES;
     }
 
     for (i = 0; i < fill_count; i++)
@@ -859,10 +888,12 @@ static void print_help(cplat_pinned_prompt *screen)
         "  status                       共有メモリの版番号と、取り込み済みの版番号を表示します\n"
         "  display [レベル]             表示のしきい値を取得または設定します\n"
         "  language [ja|en|neutral]     出力言語 (トレースと説明文) を取得または設定します\n"
-        "  emit                         8 種類のトレースを 1 回ずつ出力します\n"
-        "  start [ワーカー数] [間隔ms]  ワーカー スレッドを起動します (既定 2 個、500 ms)\n"
+        "  emit                         %zu 種類のトレースを 1 回ずつ出力します\n"
+        "  start [ワーカー数] [間隔ms]  ワーカー スレッドを起動します (既定 %u 個、%u ms)\n"
         "  stop                         ワーカー スレッドを停止します\n"
-        "  quit, exit                   終了します\n");
+        "  quit, exit                   終了します\n",
+        sample_worker_trace_key_name_count(), (unsigned int)FILTER_SAMPLE_WORKER_DEFAULT_COUNT,
+        (unsigned int)FILTER_SAMPLE_WORKER_DEFAULT_INTERVAL_MS);
 }
 
 /** usage が表示する行の種類です。 */
@@ -883,7 +914,13 @@ typedef struct filter_sample_expression_example
     const char *description;         /**< 説明、または見出し。対応表の行は NULL です。 */
 } filter_sample_expression_example;
 
-/** usage が表示する条件式の例です。README.md の「条件式の例」と同じ内容です。 */
+/**
+ *  usage が表示する条件式の例です。README.md の「条件式の例」と同じ内容です。
+ *
+ *  例の値は、emit_worker_cycle() が出力する値 (ジョブ名、優先度、進捗の割合、バイト数、エラー コードなど) と、
+ *  ラウンド トリップ ID の上限 (SAMPLE_WORKER_SEQUENCE_NUMBER_MAX) に合わせています。
+ *  これらを変える場合は、この表と README.md の「条件式の例」を同じ変更で直してください。
+ */
 static const filter_sample_expression_example s_expression_examples[] = {
     {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "項目の情報で選ぶ (引数の値によらず適用の時点で一致が確定します)"},
     {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= 2", "レベルが WARNING 以上に重大なトレース (数値で指定)"},
@@ -941,6 +978,7 @@ static const filter_sample_expression_example s_expression_examples[] = {
  *  トレース種別のカタログでは、生成器が {40} から {45} に cplat の文脈引数を、
  *  {46} から {49} に app が定義するコンテキスト引数を割り当てます。
  *  詳細は app/string-catalog-sample/docs/architecture.md の「トレース種別のカタログ」を参照してください。
+ *  値は生成器 app/cplat/bin_internal/string_catalog_gen.py の CONTEXT_ARGUMENT_BASE (40) と一致させます。
  */
 #define FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST 40
 
@@ -1582,9 +1620,9 @@ static void command_image(cplat_pinned_prompt *screen)
                                      dump_size);
 
     /* ヘッダー領域を 16 [byte] ごとの 16 進ダンプとして表示する。 */
-    for (offset = 0; offset < dump_size; offset += 16U)
+    for (offset = 0; offset < dump_size; offset += FILTER_SAMPLE_DUMP_BYTES_PER_LINE)
     {
-        char line[80];
+        char line[FILTER_SAMPLE_DUMP_LINE_SIZE];
         size_t position;
         size_t column;
         int written;
@@ -1592,7 +1630,7 @@ static void command_image(cplat_pinned_prompt *screen)
         written = snprintf(line, sizeof(line), "  %04x:", (unsigned int)offset);
         position = (size_t)written;
 
-        for (column = 0; (column < 16U) && ((offset + column) < dump_size); column++)
+        for (column = 0; (column < FILTER_SAMPLE_DUMP_BYTES_PER_LINE) && ((offset + column) < dump_size); column++)
         {
             written = snprintf(&line[position], sizeof(line) - position, " %02x",
                                (unsigned int)s_draft_image[offset + column]);
@@ -1735,6 +1773,7 @@ static void command_display(cplat_pinned_prompt *screen, const char *arg)
 
 static void command_emit(cplat_pinned_prompt *screen)
 {
+    /* サンプルの表示例として固定値を渡す。 */
     emit_worker_started((uint32_t)0U);
     emit_job_received((uint32_t)0U, (uint64_t)1U, "import-0", (int32_t)3);
     emit_job_progress((uint64_t)1U, 0.5);
@@ -1745,7 +1784,8 @@ static void command_emit(cplat_pinned_prompt *screen)
     emit_worker_wait_failed((uint32_t)0U, (int32_t)CPLAT_ERR_UNKNOWN);
 
     (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT,
-                                     "8 種類のトレースを 1 回ずつ出力しました。\n");
+                                     "%zu 種類のトレースを 1 回ずつ出力しました。\n",
+                                     sample_worker_trace_key_name_count());
 }
 
 static void command_start(cplat_pinned_prompt *screen, char *arg)
@@ -1952,7 +1992,7 @@ static void command_status(cplat_pinned_prompt *screen)
     cplat_string_catalog_filter_source_status status = {0};
     cplat_string_catalog_filter_source_info info;
     uint64_t own_catalog_id = 0U;
-    char published_at[64] = "-";
+    char published_at[FILTER_SAMPLE_TIMESTAMP_TEXT_SIZE] = "-";
     const void *source;
     size_t source_size = 0U;
     int ret;

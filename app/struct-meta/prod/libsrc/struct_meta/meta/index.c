@@ -20,10 +20,21 @@
 #include <cplat/base/result.h>
 #include <cplat/hashtable/hashtable.h>
 
+#include <assert.h>
 #include <string.h>
 
 /** 登録簿の初期レコード数です。登録数は事前に分からないため、自動拡張へ委ねます。 */
 #define STRUCT_META_INDEX_REGISTRY_INITIAL_CAPACITY 16U
+
+/**
+ *  登録簿の削除済みレコードの寿命です。最小値の 2 で、削除したレコードを直ちに空へ戻します。
+ *  値の範囲 (2 から 254 が有限、255 が無限) は cplat/hashtable/hashtable.h に従います。
+ */
+#define STRUCT_META_INDEX_REGISTRY_LIFETIME 2U
+
+static_assert(STRUCT_META_INDEX_REGISTRY_LIFETIME >= 2U &&
+                  STRUCT_META_INDEX_REGISTRY_LIFETIME < CPLAT_HASHTABLE_LIFETIME_INFINITE,
+              "registry lifetime must be finite and at least 2");
 
 /** フィールド名の鍵に許す最大バイト数です (NUL を含む)。 */
 #define STRUCT_META_INDEX_FIELD_NAME_BYTES 64U
@@ -63,7 +74,11 @@ static int ensure_registry(void)
     config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(index_record);
     config.value_align = sizeof(void *);
-    config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
+    /*
+     * 登録簿は永続化せず、削除済みのレコードを参照する処理がないため、解除したレコードを残さない。
+     * 残すと、異なるアドレスの記述子の登録と解除を繰り返すたびに、登録簿が大きくなり続ける。
+     */
+    config.lifetime = STRUCT_META_INDEX_REGISTRY_LIFETIME;
 
     if (cplat_hashtable_create_growable(&config, &growth, &s_registry) != CPLAT_OK)
     {
@@ -120,12 +135,17 @@ static cplat_hashtable *build_field_names(const struct_meta_descriptor *descript
     cplat_hashtable_config config = {0};
     cplat_hashtable *table = NULL;
 
-    config.capacity = descriptor->field_count * 2U;
+    /* 件数の STRUCT_META_INDEX_CAPACITY_FACTOR 倍とする。正本は app/struct-meta/docs/architecture.md の「索引の容量」節である。 */
+    config.capacity = descriptor->field_count * STRUCT_META_INDEX_CAPACITY_FACTOR;
     config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
     config.key_size = STRUCT_META_INDEX_FIELD_NAME_BYTES;
     config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
     config.value_size = sizeof(size_t);
     config.value_align = sizeof(size_t);
+    /*
+     * 索引は構築後に削除しないため、lifetime は動作に影響しない。
+     * 構成検査が 2 以上を求めるため、値を指定する。
+     */
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
 
     if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &table) != CPLAT_OK)

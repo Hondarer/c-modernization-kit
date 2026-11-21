@@ -25,6 +25,7 @@
 
 #include <cplat/console/console.h>
 #include <cplat/runtime/shutdown.h>
+#include <cplat/sync/atomic.h>
 #include <cplat/sync/sync.h>
 #include <cplat/trace/trace_file.h>
 #include <cplat/argparser/argparser.h>
@@ -135,6 +136,26 @@ static cplat_local_lock *s_stop_lock = NULL;
 /** 停止要求を on_run に通知するための条件変数。 */
 static cplat_condvar *s_stop_cv = NULL;
 
+/**
+ *  svc_wait_for_stop() の入口と出口の計数。
+ *
+ *  入口と出口でそれぞれ 1 加算する。on_run() が svc_wait_for_stop() を呼んだことを、
+ *  svc_on_run_made_progress() が前回の値との比較で判定するために使う。
+ */
+static cplat_atomic_u32 s_wait_count = CPLAT_ATOMIC_INIT(0U);
+
+/** svc_wait_for_stop() の中にいる呼び出しの数。正の場合は待機中である。 */
+static cplat_atomic_i32 s_wait_depth = CPLAT_ATOMIC_INIT(0);
+
+/**
+ *  @brief          svc_wait_for_stop() の本体です。
+ *  @param[in]      timeout_ms  タイムアウト [ms]。
+ *  @return         svc_wait_for_stop() と同じです。
+ *
+ *  進行の記録を入口と出口で 1 回ずつ行うため、待機の処理をこの関数へ分けます。
+ */
+static int wait_for_stop_body(const int timeout_ms);
+
 void svc_request_stop(void)
 {
     if (s_stop_lock == NULL || s_stop_cv == NULL)
@@ -165,6 +186,46 @@ int svc_stop_requested(void)
 }
 
 int svc_wait_for_stop(const int timeout_ms)
+{
+    int requested;
+
+    /*
+     * 入口と出口で進行を記録する。待機中も on_run() の生存として扱うため、待機の前に depth を加算する。
+     * 順序の保証は不要で、値の不可分性だけが要るため、RELAXED で更新する。
+     */
+    (void)cplat_atomic_fetch_add_u32(&s_wait_count, 1U, CPLAT_MEMORY_ORDER_RELAXED);
+    (void)cplat_atomic_fetch_add_i32(&s_wait_depth, 1, CPLAT_MEMORY_ORDER_RELAXED);
+
+    requested = wait_for_stop_body(timeout_ms);
+
+    (void)cplat_atomic_fetch_sub_i32(&s_wait_depth, 1, CPLAT_MEMORY_ORDER_RELAXED);
+    (void)cplat_atomic_fetch_add_u32(&s_wait_count, 1U, CPLAT_MEMORY_ORDER_RELAXED);
+
+    return requested;
+}
+
+int svc_on_run_made_progress(uint32_t *seen_count)
+{
+    uint32_t current;
+
+    if (seen_count == NULL)
+    {
+        return 0;
+    }
+
+    current = cplat_atomic_load_u32(&s_wait_count, CPLAT_MEMORY_ORDER_RELAXED);
+
+    /* 待機中、または前回の確認の後に svc_wait_for_stop() を呼んでいた場合は、進行したものとして扱う。 */
+    if ((cplat_atomic_load_i32(&s_wait_depth, CPLAT_MEMORY_ORDER_RELAXED) > 0) || (current != *seen_count))
+    {
+        *seen_count = current;
+        return 1;
+    }
+
+    return 0;
+}
+
+static int wait_for_stop_body(const int timeout_ms)
 {
     int requested;
     int wait_ms;
@@ -390,8 +451,8 @@ int main(int argc, char *argv[])
     /*
      * 昇格起動された場合、親コンソールへ再接続して出力を元のコンソールへ戻す。
      * 引き継ぎフラグを argv から取り除く必要があるため、引数解析より前に呼び出す。
-     * 再接続できない場合もフラグは取り除かれ、出力が元のコンソールへ戻らないだけで処理を続けられるため、
-     * 戻り値は明示的に破棄する。
+     * 親コンソールまたは標準ストリームを再接続できない場合もフラグは取り除かれ、
+     * 出力が元のコンソールへ戻らないか一部使えないだけで処理を続けられるため、戻り値は明示的に破棄する。
      */
     (void)cplat_console_attach_parent(&argc, argv, NULL);
 

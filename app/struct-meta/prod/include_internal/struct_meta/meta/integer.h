@@ -14,6 +14,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/** スカラー値の文字列表現を格納する配列の大きさ [byte] (終端 NUL を含む) です。 */
+#define STRUCT_META_SCALAR_TEXT_BYTES 64U
+
 /**
  *  @brief          整数フィールドとして扱える要素サイズかを判定します。
  *  @param[in]      element_size  判定する要素サイズ (バイト数)。

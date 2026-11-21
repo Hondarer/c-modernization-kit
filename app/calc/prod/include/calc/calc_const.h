@@ -26,14 +26,22 @@
  *  @{
  */
 
-#define CALC_OK                   0  /**< 成功の戻り値を表します。 */
-#define CALC_ERR_UNKNOWN          -1 /**< 分類済みコードに該当しないその他のエラーです。 */
-#define CALC_ERR_INVALID_ARGUMENT -2 /**< API 引数が不正です (NULL、ゼロ除算など)。 */
+#define CALC_OK                   0    /**< 成功の戻り値を表します。 */
+#define CALC_ERR_UNKNOWN          (-1) /**< 分類済みコードに該当しないその他のエラーです。 */
+#define CALC_ERR_INVALID_ARGUMENT (-2) /**< API 引数が不正です (NULL、ゼロ除算など)。 */
 
-#define CALC_KIND_ADD      1 /**< 加算の演算種別を表します。 */
-#define CALC_KIND_SUBTRACT 2 /**< 減算の演算種別を表します。 */
-#define CALC_KIND_MULTIPLY 3 /**< 乗算の演算種別を表します。 */
-#define CALC_KIND_DIVIDE   4 /**< 除算の演算種別を表します。 */
+/**
+ *  @brief          演算の種別を表します。
+ *
+ *  calc_handler() の引数 kind は、ABI を維持するため int 型のままとし、この列挙子の値を渡します。
+ */
+typedef enum calc_kind
+{
+    CALC_KIND_ADD = 1,      /**< 加算の演算種別を表します。 */
+    CALC_KIND_SUBTRACT = 2, /**< 減算の演算種別を表します。 */
+    CALC_KIND_MULTIPLY = 3, /**< 乗算の演算種別を表します。 */
+    CALC_KIND_DIVIDE = 4    /**< 除算の演算種別を表します。 */
+} calc_kind;
 
 /** @} */
 

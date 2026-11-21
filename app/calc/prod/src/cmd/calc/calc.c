@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 
     int kind;
 
+    /* シェルが '*' をファイル名へ展開するため、乗算は 'x' で受け付ける。 */
     switch (operator_value[0])
     {
     case '+':

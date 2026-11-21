@@ -24,7 +24,7 @@
 
 void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const void *data, size_t data_size)
 {
-    size_t words = (data_size + 7U) / 8U;
+    size_t words = (data_size + (sizeof(uint64_t) - 1U)) / sizeof(uint64_t);
 
     /*
      * 生成ファイルへの書き込みの失敗はストリームに残り、呼び出し元がファイルを閉じる直前にまとめて検査するため、
@@ -35,17 +35,17 @@ void struct_meta_gen_emit_uint64_array(FILE *out, const char *array_name, const 
     for (size_t i = 0; i < words; i++)
     {
         uint64_t word = 0;
-        size_t offset = i * 8U;
+        size_t offset = i * sizeof(uint64_t);
         size_t remain = data_size - offset;
         size_t copy_size;
 
-        if (remain < 8U)
+        if (remain < sizeof(uint64_t))
         {
             copy_size = remain;
         }
         else
         {
-            copy_size = 8U;
+            copy_size = sizeof(uint64_t);
         }
 
         memcpy(&word, (const unsigned char *)data + offset, copy_size);

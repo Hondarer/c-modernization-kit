@@ -3,6 +3,8 @@
 #include <struct_meta/meta/index.h>
 #include <testfw.h>
 
+#include "index.inject.h"
+
 namespace
 {
 struct Nested
@@ -228,4 +230,60 @@ TEST(structMetaIndexTest, rejects_invalid_arguments)
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
         unregister_ret); // [確認_異常系] - nullptr の記述子に対する struct_meta_index_unregister() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+}
+
+// 異なるアドレスの記述子の登録と解除を繰り返しても登録簿が大きくならないことの確認
+TEST(structMetaIndexTest, repeated_register_and_unregister_does_not_grow_registry)
+{
+    // Arrange
+    struct_meta_descriptor descriptors[100];
+    size_t in_use_before = 0U;
+    size_t in_use = 0U;
+    size_t deleted = 0U;
+    size_t empty = 0U;
+    int register_failures = 0;
+    int unregister_failures = 0;
+    cplat_hashtable *registry = test_struct_meta_index_registry();
+
+    for (size_t i = 0; i < 100U; i++)
+    {
+        descriptors[i] = kNestedDescriptor; // [状態] - ネスト先のない記述子を、すべて異なるアドレスに 100 個用意する。
+    }
+    if (registry != nullptr)
+    {
+        ASSERT_EQ(CPLAT_OK, cplat_hashtable_count_status(
+                                registry, &in_use_before, nullptr,
+                                nullptr)); // [状態確認] - ループ前の登録簿の使用中の件数を取得できること。
+    }
+
+    // Pre-Assert
+
+    // Act
+    for (size_t i = 0; i < 100U; i++)
+    {
+        if (struct_meta_index_register(&descriptors[i]) !=
+            CPLAT_OK) // [手順] - 記述子を 1 個ずつ struct_meta_index_register() で登録する。
+        {
+            register_failures++;
+        }
+        if (struct_meta_index_unregister(&descriptors[i]) !=
+            CPLAT_OK) // [手順] - 登録した記述子を struct_meta_index_unregister() で解除する。
+        {
+            unregister_failures++;
+        }
+    }
+    registry = test_struct_meta_index_registry();
+    ASSERT_NE(nullptr, registry); // [状態確認] - 登録簿が構築されていること。
+    int count_ret = cplat_hashtable_count_status(
+        registry, &in_use, &deleted, &empty); // [手順] - cplat_hashtable_count_status() で登録簿の件数を取得する。
+
+    // Assert
+    EXPECT_EQ(0, register_failures);   // [確認_正常系] - struct_meta_index_register() がすべて CPLAT_OK を返すこと。
+    EXPECT_EQ(0, unregister_failures); // [確認_正常系] - struct_meta_index_unregister() がすべて CPLAT_OK を返すこと。
+    EXPECT_EQ(CPLAT_OK, count_ret);   // [確認_正常系] - cplat_hashtable_count_status() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(0U, deleted);           // [確認_正常系] - 削除済みの件数が 0 であること。
+    EXPECT_EQ(in_use_before, in_use); // [確認_正常系] - 使用中の件数がループ前と同じであること。
+    EXPECT_EQ(16U,
+              in_use + deleted +
+                  empty); // [確認_正常系] - 3 値の合計 (容量) が 16 であること。(登録簿が拡張されていないことの確認)
 }

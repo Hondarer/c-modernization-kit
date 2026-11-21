@@ -18,6 +18,16 @@
 #include <string.h>
 
 /**
+ *  @brief          構造体 1 個分の組み立ての進み具合です。
+ */
+typedef enum build_state
+{
+    BUILD_STATE_PENDING = 0, /**< 未着手です。 */
+    BUILD_STATE_ACTIVE = 1,  /**< 組み立て中です。この状態の構造体へ再び入った場合は循環です。 */
+    BUILD_STATE_DONE = 2     /**< 組み立てが完了しています。 */
+} build_state;
+
+/**
  *  @brief          構造体 1 個分の組み立て状態です。
  */
 typedef struct build_entry
@@ -25,7 +35,7 @@ typedef struct build_entry
     const struct_meta_internal_parse_struct *source; /**< 構文解析結果です。 */
     struct_meta_descriptor *descriptor;              /**< 組み立て先です。 */
     size_t alignment;                                /**< 構造体のアラインメントです。 */
-    int state;                                       /**< 0:未着手 1:組み立て中 2:完了 */
+    int state;                                       /**< 組み立ての進み具合です (@ref build_state の値)。 */
     int pad;                                         /**< 明示的アラインメントです。0 を指定します。 */
 } build_entry;
 
@@ -39,10 +49,6 @@ typedef struct build_context
     struct_meta_internal_arena *arena;  /**< 記述子の記憶域です。 */
     struct_meta_diagnostic *diagnostic; /**< 診断の書き込み先です。 */
 } build_context;
-
-#define BUILD_STATE_PENDING 0
-#define BUILD_STATE_ACTIVE  1
-#define BUILD_STATE_DONE    2
 
 static int build_one(build_context *context, build_entry *entry);
 
