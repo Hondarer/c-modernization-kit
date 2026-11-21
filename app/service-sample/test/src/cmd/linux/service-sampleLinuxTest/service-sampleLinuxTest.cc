@@ -390,6 +390,7 @@ class NotifySocket
   private:
     std::string path_;
     int fd_ = -1;
+    int padding_ = 0; /* 明示的アラインメント。 */
     std::vector<std::string> messages_;
 };
 
