@@ -54,6 +54,7 @@
 #include <cplat/crt/stdlib.h>
 #include <cplat/prompt/prompt.h>
 
+#include <assert.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>

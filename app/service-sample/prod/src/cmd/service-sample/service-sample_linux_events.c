@@ -161,11 +161,12 @@ typedef struct svc_linux_events_ctx
     int reload_fd;                    /**< SIGHUP 転送用 eventfd。未生成時は -1。 */
     int inhibit_sleep_fd;             /**< サスペンドの delay inhibitor lock。未取得時は -1。 */
     int inhibit_shutdown_fd;          /**< シャットダウンの delay inhibitor lock。未取得時は -1。 */
+    int pad;                          /**< 明示的アラインメントです。0 を指定します。 */
 } svc_linux_events_ctx;
 
 /** イベント監視スレッドの内部状態 (プロセスで 1 つ)。 */
 static svc_linux_events_ctx s_ctx = {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1, -1, -1, -1};
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1, -1, -1, -1, 0};
 
 /** 実行中のイベント ループの異常終了を記録します。1 = 異常終了した。 */
 static cplat_atomic_i32 s_loop_failed = CPLAT_ATOMIC_INIT(0);
