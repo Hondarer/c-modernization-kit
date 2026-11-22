@@ -55,6 +55,7 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-038 | `app/porter` の `potr_service_close.c` の、読まれない 0 の格納 | 作業中摘出 | 低 | 未着手 |
 | BL-039 | `platform.h` の静的検査が、`static_assert` への統一の規範に従っていない | 作業中摘出 | 中 | 未着手 |
 | BL-040 | Doxybook2 の生成物で、拡張パスの接頭辞の後に endiskip が表示される | 作業中摘出 | 低 | 未着手 |
+| BL-041 | 受入条件 9 の実機での確認 (Windows と Linux の systemd) が未実施である | 検討時見送り | 中 | 未着手 |
 
 Table: 残課題の一覧
 
@@ -598,3 +599,28 @@ Table: 残課題の一覧
 
 - **恒久対応案**: Doxygen の XML 出力と Doxybook2 の出力を比べ、どちらで `\endiskip` が入るかを特定します。Doxygen 側が原因なら、コメントの書き方 (バックスラッシュの重ね方、`\verbatim` など) を直します。Doxybook2 側が原因なら、`framework/doxyfw` の後処理で対処します。直した後に `make doxy` で再生成して確かめます。
 - **参考情報**: `framework/doxyfw`。
+
+## BL-041 受入条件 9 の実機での確認 (Windows と Linux の systemd) が未実施である
+
+### 概要と問題点
+
+- **現状の事象**: 最終仕様の受入条件 9 は、「Windows 実機確認および Linux systemd 実機確認の項目がすべて確認されていること」と定めています。単体テスト、Windows のローカルの全テスト、Windows と Linux の CI は成功していますが、mock やコンテナーでは再現できない次の確認は、実施していません。
+    - Windows: 長いパス (`longPathAware`) でのモジュールと実行ファイルのパスの取得 (BL-001)、実物のコンソールでの途中の NUL の表示 (BL-009)、昇格の出力の名前付きパイプ化の手順 1 から 9 (BL-006。手順 7 と 8 は、標準ユーザーから別の管理者アカウントで昇格する場合)。
+    - Linux の systemd: `service-sample` の確認 1 から 4 (起動の失敗の記録と再起動、watchdog の途絶による `SIGABRT`、`ExecReload=` の省略時の `systemctl reload` の拒否、停止の 30 [s] の超過によるコア ダンプ) (BL-007、BL-008)。
+    - ETW の結合テスト `etwSessionIntegrationTest` は、実装の途中 (全体管理文書の作業 WBS 4.2) に開発用の Windows の PC で 9 件の成功を確かめています。
+- **本来あるべき姿**: 上の確認を実機で行い、期待どおりの結果を記録した状態です。期待と違う結果が出た場合は、その内容を新しい残課題として記録します。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 第 3 ゲートでの成果物の提示 (2026-11-22)。
+- **今回の見送り理由**: ユーザーが、実機での確認を後に回して成果物を承認したためです (`承認します。実機での検証はbacklogに記録して、本案件を修了し、pushして、...`、2026-11-22)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `app/cplat` の `runtime/module.c`、`runtime/process.c`、`runtime/elevated_process.c`、`win32/file_api.c`、`app/cplat/prod/src/cmd/eventlog-register`、`app/service-sample` の Linux の実装と unit。
+- **放置した場合のリスク**: 別の管理者アカウントで昇格した場合に、出力の受け渡しが失敗する可能性が残ります。systemd の watchdog と停止の扱いが、実環境で意図と違う可能性が残ります。
+
+### 推奨される対応策
+
+- **恒久対応案**: 最終仕様 (`261120-source-comment-bl003-remaining-57-design.md`) の「実機での確認が要る事項」の節の手順で確認し、結果を記録します。すべて期待どおりであれば、この項目と、BL-001、BL-006 から BL-009 を対応済みにします。
+- **参考情報**: 最終仕様の「実機での確認が要る事項」と「CI でも確かめられない事項」の節。
