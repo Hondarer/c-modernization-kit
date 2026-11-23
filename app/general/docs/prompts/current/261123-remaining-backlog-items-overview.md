@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-24 07:25:17 JST
+最終更新日時: 2026-11-24 07:53:50 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-backlog.md` (対策元の残課題一覧 A)、`261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧 B)。対策元 B の実機での確認の手順は `261120-source-comment-bl003-remaining-57-design.md` にあります。いずれも削除されている場合があります。
@@ -86,7 +86,7 @@ Git の書き込み操作は、第 2 ゲートの承認 (2026-11-23 20:00) で�
         - ⚠️ 4.5.6. Linux の SIGHUP の受信の方式の変更 (B-BL-035。単位 W4-C)。コミット済み。Linux だけの分岐のため手元ではコンパイルしていません。CI (`9214713f`) の結果が未確認です
         - ⚠️ 4.5.7. 運転中の D-Bus の呼び出しの非同期化と期限の明示 (B-BL-031。単位 W4-C)。同上
         - ⚠️ 4.5.8. リロードの完了の通知と停止の通知の直列化 (B-BL-036。単位 W5-A)。コミット済み。Windows のテスト (47 件) は成功。Linux は CI (`97868c47`) の結果が未確認です。`sd_notify()` がブロックする状態での動作の実機での確認は、残課題一覧へ記録します
-        - ⏸️ 4.5.9. makefw の並列の上限の共有 (A-BL-016)
+        - 🔄 4.5.9. makefw の並列の上限の共有 (A-BL-016。単位 W6-A。agy の Gemini 4 Hydrogen High が実装中。ほかの担当のビルドへ影響しないよう、`framework/makefw` の別の作業ツリー (セッションの一時ディレクトリの `wt-makefw`) で作業し、審査の後に main の作業ツリーへ反映します)
         - ⏸️ 4.5.10. Linux の CI のメモリの記録の除去 (A-BL-017。4.5.9 の後)
     - 🔄 4.6. 正本ドキュメントおよびコード コメントへの永続的知見の反映 (機能仕様、`api-cheatsheet.md`、`docs/api.md`、共通のコーディング規範)。項目ごとに、実装と同じ変更で行っています
     - 🔄 4.7. 局所テストおよび機械的検証 (`text_style_jp.py`、`check_functional_spec.py`、`.warn` の確認、`make doxy`) の実施。項目ごとに行っています
@@ -320,6 +320,7 @@ Table: 質問の一覧
 | W4-C | `app/service-sample`、`framework/testfw`: Linux の SIGHUP の受信の方式 (B-BL-035)、運転中の D-Bus の呼び出しの非同期化 (B-BL-031) | grok | 実装が完了。通知の直列化 (B-BL-036) は、この単位では止め、W5-A へ分けました | Linux だけの分岐が中心のため、CI (`9214713f`) で確かめます (未確認)。Windows の手元の確認は、W4-A の作業の途中の mock とリンクが合わず未実施です | `framework/testfw` `2e3339e`、ルート `80c0a286` (コミット メッセージの対策元の記載に誤りがあります。正しくは、261120 の残課題一覧の BL-035 と BL-031 です) |
 | W5-A | `app/service-sample`: リロードの完了の通知と停止の通知の直列化 (B-BL-036。Linux と Windows) | codex の GPT-6-Luna | 完了 (審査を通過。Q-080 の回答 A のとおり、通知ロックを持ったまま `sd_notify()` を呼び、ブロックし得る条件と結果を文書と Doxygen に明記しました) | Windows で `service-sampleTest` 36 件、`service-sampleWindowsTest` 11 件が成功。`make doxy` が成功。`.warn` なし。Linux は CI (`97868c47`) で確かめます (未確認) | ルート `97868c47` |
 | W5-B | `app/porter`: トレーサーの生成の失敗後の再試行 (A-BL-014)、tcpServer の Windows の子プロセスの起動と長いパス (A-BL-013、B-BL-024)、経路の状態の変化に伴う割り込みの PING (A-BL-002、A-BL-007) | codex の GPT-6-Luna | 実装中 (2026-11-24 07:25 に依頼。`app/porter` だけビルドしてテスト) | 未 | 未 |
+| W6-A | `framework/makefw`: makefw の並列の上限の共有 (A-BL-016) | agy の Gemini 4 Hydrogen High (2026-11-24 07:55 のユーザーの指示で、codex の代わりに使います) | 実装中 (2026-11-24 08:00 に依頼。別の作業ツリーで作業し、スクリプトのテスト (`bin_test`) だけを実行します) | 未 | 未 |
 | CI-1 | CI の失敗の直し: `mock_cplat` の文字コードの変換の mock の、`PLATFORM_WINDOWS` の条件の欠落 (W1-A の変更で取り除かれ、Linux でコンパイルに失敗) | Fable (審査に伴う直し) | 直し済み | CI (`9214713f`) の結果が未確認 | `app/cplat` `924bb25b`、ルート `9214713f` |
 
 Table: 実装の単位ごとの状態
