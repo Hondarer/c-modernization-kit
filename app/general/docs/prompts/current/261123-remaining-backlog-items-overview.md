@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-24 08:18:54 JST
+最終更新日時: 2026-11-24 08:25:15 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-backlog.md` (対策元の残課題一覧 A)、`261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧 B)。対策元 B の実機での確認の手順は `261120-source-comment-bl003-remaining-57-design.md` にあります。いずれも削除されている場合があります。
@@ -323,7 +323,7 @@ Table: 質問の一覧
 | W6-A | `framework/makefw`: makefw の並列の上限の共有 (A-BL-016) | agy の Gemini 4 Hydrogen High | 実装が完了 (約 8 分)。審査を通過 (runner の割り振りは、仕様の数式のとおりです)。本体への反映が未 (別の作業ツリー `wt-makefw` に変更があります。変更は 4 ファイルと、新規のテスト 2 ファイル) | Windows: `test_app_compile_budget.py` 17 件と既存の `bin_test` が成功。Linux (WSL の Oracle Linux 8 で、審査の担当が実行): `app_compile_budget_selftest.py` 4 件、`test_app_compile_budget.py` 17 件 (SIGTERM の中断を含む)、`test_nested_parallel.py` 5 件が成功。実際のビルドでの確認が未。担当が見つけた別の問題 2 件 (`app_paths_selftest.py` の `encoding` の指定の欠落、`test_path_spaces.py` が別の作業ツリーでは動かないこと) は未対処 | 未 |
 | CI-1 | CI の失敗の直し: `mock_cplat` の文字コードの変換の mock の、`PLATFORM_WINDOWS` の条件の欠落 (W1-A の変更で取り除かれ、Linux でコンパイルに失敗) | Fable (審査に伴う直し) | 直し済み | CI (`9214713f`) の結果が未確認 | `app/cplat` `924bb25b`、ルート `9214713f` |
 | CI-2 | CI の失敗の直し: `service-sample` の Linux のテストの、eventfd を閉じる回数の期待 (2 回から 1 回へ。W4-C の変更に追従していなかった既存のテスト) | Fable (審査に伴う直し) | 直し済み | CI の結果が未確認 | ルート `144da888` |
-| CI-3 | CI の失敗の直し: `app/porter` の既存のタイミングのテスト 2 件 (`porterSendRecvTest.unicast_recent_data_defers_ping_until_last_data_interval`、`potrSendTest.n1_blocking_send_waits_until_deferred_entries_are_released`) の待ち方。2026-11-24 08:20 に、ユーザーが修正を許可しました (十分に長いタイムアウトにしてよい) | agy の Gemini 4 Hydrogen High | 実装中 (2026-11-24 08:22 に依頼。テストの 2 ファイルだけを編集し、ビルドは W5-B の完了の後に審査の担当が行います) | 未 | 未 |
+| CI-3 | CI の失敗の直し: `app/porter` の既存のタイミングのテスト 2 件 (`porterSendRecvTest.unicast_recent_data_defers_ping_until_last_data_interval`、`potrSendTest.n1_blocking_send_waits_until_deferred_entries_are_released`) の待ち方。2026-11-24 08:20 に、ユーザーが修正を許可しました (十分に長いタイムアウトにしてよい) | agy の Gemini 4 Hydrogen High | 編集が完了 (報告の審査を通過)。1 件目は、固定の 250 [ms] の待ちの後に 1 回だけ読む形を、トレースの出現を最長 10 [s] 待つ形と、出力の中の順序の確認 (抑止のトレースが PING の送信のトレースより前) へ変えました。2 件目は、製品の不具合ではなく、mock が呼び出しの回数だけで保留の解除を返していたため、テストの側のスレッドが遅れると送信が先に完了する、テストの同期の問題でした。テストが明示的に解除を切り替える形へ変えました。同じ 2 ファイルのほかのテストに、同じ形の弱さはありませんでした | ビルドとテストが未 (W5-B の完了の後に、審査の担当が行います) | 未 (`app/porter` の作業ツリーに未コミット) |
 
 Table: 実装の単位ごとの状態
 
