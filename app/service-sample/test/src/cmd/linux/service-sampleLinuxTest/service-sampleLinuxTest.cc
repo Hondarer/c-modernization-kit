@@ -812,8 +812,8 @@ TEST_F(service_sampleLinuxRunTest, run_service_notifies_ready_and_stopping_in_or
     ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
 
     // Pre-Assert
-    EXPECT_CALL(mock_cplat_, cplat_close(_, _)).Times(2);
-    // [Pre-Assert確認_正常系] - cplat_close() が eventfd の数 (停止指示と SIGHUP 転送の 2 個) だけ呼び出されること。
+    EXPECT_CALL(mock_cplat_, cplat_close(_, _)).Times(1);
+    // [Pre-Assert確認_正常系] - cplat_close() が eventfd の数 (停止指示の 1 個) だけ呼び出されること。
 
     // Act
     int actual_ret =
