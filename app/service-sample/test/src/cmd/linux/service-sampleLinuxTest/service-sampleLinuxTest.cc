@@ -1,5 +1,6 @@
 #include <testfw.h>
 #include <mock_cplat.h>
+#include <mock_fcntl.h>
 #include <mock_signal.h>
 #include <mock_stdio.h>
 #include <mock_systemd.h>
@@ -29,6 +30,7 @@ using testing::_;
 using testing::AnyNumber;
 using testing::DoAll;
 using testing::HasSubstr;
+using testing::InSequence;
 using testing::Invoke;
 using testing::NiceMock;
 using testing::Return;
@@ -470,6 +472,7 @@ class service_sampleLinuxRunTest : public Test
   protected:
     NiceMock<Mock_cplat> mock_cplat_;
     NiceMock<Mock_systemd> mock_systemd_;
+    sigset_t saved_signal_mask_{};
 
     // [サブ手順 名前=service_sampleLinuxRunTest.SetUp]
     void SetUp() override
@@ -485,11 +488,22 @@ class service_sampleLinuxRunTest : public Test
         (void)::unsetenv("WATCHDOG_USEC");        // [状態] - watchdog を要求しない状態とする。
         (void)::unsetenv("WATCHDOG_PID");         // [状態] - watchdog の対象のプロセスを限定しない状態とする。
         ASSERT_EQ(0, test_svc_stop_initialize()); // [状態確認] - main() を経ずに停止イベント抽象を初期化できること。
+        ASSERT_EQ(0, ::pthread_sigmask(SIG_SETMASK, nullptr, &saved_signal_mask_));
+        // [状態確認] - テスト開始前のシグナル マスクを保存できること。
+        ASSERT_EQ(EXIT_SUCCESS, svc_os_prepare_run()); // [状態確認] - SIGHUP をブロックできること。
     }
     // [サブ手順終了]
 
     void TearDown() override
     {
+        sigset_t drain_set;
+        struct timespec zero_timeout = {};
+
+        (void)::sigemptyset(&drain_set);
+        (void)::sigaddset(&drain_set, SIGHUP);
+        (void)::sigtimedwait(&drain_set, nullptr, &zero_timeout); // [状態] - 保留中の SIGHUP を、待たずに取り除く。
+        EXPECT_EQ(0, ::pthread_sigmask(SIG_SETMASK, &saved_signal_mask_, nullptr));
+        // [状態確認] - テスト開始前のシグナル マスクへ戻せること。
         test_svc_stop_dispose();
         (void)::unsetenv("WATCHDOG_USEC");
         g_on_start_action = nullptr;
@@ -828,13 +842,13 @@ TEST_F(service_sampleLinuxRunTest, reload_is_dispatched_only_while_running)
     int reload_count_after_start = -1;
     g_on_start_action = [&reload_count_after_start]()
     {
-        (void)std::raise(SIGHUP);
+        (void)::kill(::getpid(), SIGHUP);
         sleep_ms(300);
         reload_count_after_start = g_reload_count.load();
     }; // [状態] - on_start の中で SIGHUP を送り、イベント監視スレッドが処理するまで 300 [ms] 待つ。
     g_on_run_action = []()
     {
-        (void)std::raise(SIGHUP);
+        (void)::kill(::getpid(), SIGHUP);
         for (int i = 0; (i < 50) && (g_reload_count.load() == 0); i++)
         {
             (void)svc_wait_for_stop(100);
@@ -902,7 +916,7 @@ TEST_F(service_sampleLinuxRunTest, sighup_without_on_reload_is_traced)
     // Arrange
     g_on_run_action = []()
     {
-        (void)std::raise(SIGHUP);
+        (void)::kill(::getpid(), SIGHUP);
         sleep_ms(300);
     }; // [状態] - on_run の中で SIGHUP を送り、イベント監視スレッドが処理するまで 300 [ms] 待つ。
 
@@ -923,12 +937,30 @@ TEST_F(service_sampleLinuxRunTest, sighup_without_on_reload_is_traced)
         actual_ret); // [確認_異常系] - svc_os_run_service() の戻り値が EXIT_SUCCESS であること。(プロセスが SIGHUP で終了しないことの確認)
 }
 
-// SIGHUP のハンドラーを設定できない場合に、on_start を呼ばずに EXIT_FAILURE を返すことの確認
+// pthread_sigmask() が失敗した場合に、svc_os_prepare_run() が EXIT_FAILURE を返すことの確認
 // [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
-TEST_F(service_sampleLinuxRunTest, run_service_fails_when_sighup_handler_cannot_be_installed)
+TEST_F(service_sampleLinuxRunTest, prepare_run_fails_when_sigmask_fails)
 {
     // Arrange
     NiceMock<Mock_signal> mock_signal;
+
+    // Pre-Assert
+    EXPECT_CALL(mock_signal, pthread_sigmask(_, _, _, SIG_BLOCK, _, _)).WillOnce(Return(EINVAL));
+    // [Pre-Assert確認_異常系] - pthread_sigmask() が SIG_BLOCK を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - pthread_sigmask() から EINVAL を返す。
+
+    // Act
+    int actual_ret = svc_os_prepare_run(); // [手順] - svc_os_prepare_run() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - svc_os_prepare_run() の戻り値が EXIT_FAILURE であること。
+}
+
+// SIGHUP の受信を登録できない場合に、on_start を呼ばずに EXIT_FAILURE を返すことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, run_service_fails_when_sighup_source_cannot_be_registered)
+{
+    // Arrange
     NotifySocket notify;
     ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
 
@@ -936,9 +968,9 @@ TEST_F(service_sampleLinuxRunTest, run_service_fails_when_sighup_handler_cannot_
     allow_any_trace();
     expect_start_failure_trace();
     // [Pre-Assert確認_異常系] - サービスを開始しないことを示す ERROR のトレースが 1 回出力されること。
-    EXPECT_CALL(mock_signal, sigaction(_, _, _, SIGHUP, _, _)).WillOnce(Return(-1));
-    // [Pre-Assert確認_異常系] - sigaction() が SIGHUP を指定して 1 回呼び出されること。
-    // [Pre-Assert手順] - sigaction() から -1 を返す。
+    EXPECT_CALL(mock_systemd_, sd_event_add_signal(_, _, _, _, _, SIGHUP, _, _)).WillOnce(Return(-ENOMEM));
+    // [Pre-Assert確認_異常系] - sd_event_add_signal() が SIGHUP を指定して 1 回呼び出されること。
+    // [Pre-Assert手順] - sd_event_add_signal() から -ENOMEM を返す。
 
     // Act
     int actual_ret = svc_os_run_service(&g_run_def); // [手順] - svc_os_run_service() を呼び出す。
@@ -948,4 +980,815 @@ TEST_F(service_sampleLinuxRunTest, run_service_fails_when_sighup_handler_cannot_
     EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - svc_os_run_service() の戻り値が EXIT_FAILURE であること。
     EXPECT_TRUE(g_run_calls.empty());    // [確認_異常系] - on_start、on_run、on_stop が呼び出されないこと。
     EXPECT_EQ(-1, index_of(messages, "READY=1")); // [確認_異常系] - READY=1 が届かないこと。
+}
+
+// SIGHUP がブロックされていない場合に、実物の sd_event_add_signal() が起動を失敗させることの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, run_service_fails_when_sighup_is_not_blocked)
+{
+    // Arrange
+    NotifySocket notify;
+    sigset_t unblock_set;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    ASSERT_EQ(0, ::sigemptyset(&unblock_set));
+    ASSERT_EQ(0, ::sigaddset(&unblock_set, SIGHUP));
+    ASSERT_EQ(0, ::pthread_sigmask(SIG_UNBLOCK, &unblock_set, nullptr)); // [状態] - SIGHUP のブロックを外す。
+
+    // Pre-Assert
+    allow_any_trace();
+    expect_start_failure_trace();
+    // [Pre-Assert確認_異常系] - サービスを開始しないことを示す ERROR のトレースが 1 回出力されること。
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def); // [手順] - svc_os_run_service() を呼び出す。
+
+    // Assert
+    std::vector<std::string> messages = notify.receive_all();
+    EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - svc_os_run_service() の戻り値が EXIT_FAILURE であること。
+    EXPECT_TRUE(g_run_calls.empty());    // [確認_異常系] - on_start、on_run、on_stop が呼び出されないこと。
+    EXPECT_EQ(-1, index_of(messages, "READY=1")); // [確認_異常系] - READY=1 が届かないこと。
+}
+
+// 停止の処理の後の SIGHUP で、プロセスが終了せずシグナルが保留されることの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, sighup_after_stop_does_not_terminate_process)
+{
+    // Arrange
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def); // [手順] - svc_os_run_service() を最後まで呼び出す。
+    ASSERT_EQ(0, ::kill(::getpid(), SIGHUP));        // [手順] - 停止の処理の後に、プロセス宛てへ SIGHUP を送る。
+    sigset_t pending;
+    ASSERT_EQ(0, ::sigpending(&pending)); // [手順] - 保留中のシグナルを読む。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - svc_os_run_service() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_EQ(1, ::sigismember(&pending, SIGHUP)); // [確認_正常系] - SIGHUP が保留のままであること。(プロセスが終了しないことの確認)
+}
+
+namespace
+{
+
+sd_bus *const k_dummy_bus = reinterpret_cast<sd_bus *>(static_cast<uintptr_t>(0x10));
+sd_bus_message *const k_dummy_message = reinterpret_cast<sd_bus_message *>(static_cast<uintptr_t>(0x20));
+sd_bus_message *const k_dummy_reply = reinterpret_cast<sd_bus_message *>(static_cast<uintptr_t>(0x30));
+sd_bus_slot *const k_dummy_slot = reinterpret_cast<sd_bus_slot *>(static_cast<uintptr_t>(0x40));
+/** SVC_INHIBIT_CALL_TIMEOUT_MS (10000) をマイクロ秒へ換算した期限。 */
+constexpr uint64_t k_inhibit_timeout_usec = 10000ULL * 1000ULL;
+
+void prevent_real_dbus(Mock_systemd &mock)
+{
+    ON_CALL(mock, sd_bus_message_new_method_call(_, _, _, _, _, _, _, _, _)).WillByDefault(Return(-EIO));
+    ON_CALL(mock, sd_bus_message_append_basic(_, _, _, _, _, _)).WillByDefault(Return(-EIO));
+    ON_CALL(mock, sd_bus_message_read_basic(_, _, _, _, _, _)).WillByDefault(Return(-EIO));
+    ON_CALL(mock, sd_bus_message_unref(_, _, _, _)).WillByDefault(Return(nullptr));
+    ON_CALL(mock, sd_bus_call(_, _, _, _, _, _, _, _)).WillByDefault(Return(-EIO));
+    ON_CALL(mock, sd_bus_call_async(_, _, _, _, _, _, _, _, _)).WillByDefault(Return(-EIO));
+    ON_CALL(mock, sd_bus_slot_unref(_, _, _, _)).WillByDefault(Return(nullptr));
+    ON_CALL(mock, sd_bus_error_free(_, _, _, _)).WillByDefault(Return());
+    ON_CALL(mock, sd_bus_message_is_method_error(_, _, _, _, _)).WillByDefault(Return(0));
+    ON_CALL(mock, sd_bus_message_get_error(_, _, _, _)).WillByDefault(Return(nullptr));
+}
+
+void expect_inhibit_message_built(Mock_systemd &mock)
+{
+    EXPECT_CALL(mock, sd_bus_message_new_method_call(_, _, _, k_dummy_bus, _, _, _, _, _))
+        .WillOnce(DoAll(SetArgPointee<4>(k_dummy_message), Return(0)));
+    EXPECT_CALL(mock, sd_bus_message_append_basic(_, _, _, k_dummy_message, 's', _)).Times(4).WillRepeatedly(Return(0));
+}
+
+int read_basic_writes_fd(sd_bus_message *, char type, void *out, int fd_value, int result)
+{
+    EXPECT_EQ('h', type);
+    if (result > 0)
+    {
+        *static_cast<int *>(out) = fd_value;
+    }
+    return result;
+}
+
+} // namespace
+
+// 要求メッセージの作成に失敗した場合に、作成済みメッセージを 1 回だけ解放することの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, build_inhibit_message_cleans_partial_message)
+{
+    // Arrange
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_bus(k_dummy_bus);
+    test_svc_linux_events_set_definition(&g_run_def); // [状態] - サービス名を持つ定義を設定する。
+    prevent_real_dbus(mock_systemd_);
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_message_new_method_call(_, _, _, _, _, _, _, _, _)).WillOnce(Return(-ENOMEM));
+    // [Pre-Assert確認_異常系] - sd_bus_message_new_method_call() が 1 回呼び出されること。
+    // [Pre-Assert手順] - sd_bus_message_new_method_call() から -ENOMEM を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(0);
+    // [Pre-Assert確認_異常系] - メッセージを作る前の失敗では unref しないこと。
+
+    // Act
+    void *message = k_dummy_message;
+    int actual_ret = test_svc_linux_events_build_inhibit_message("sleep", &message); // [手順] - 要求メッセージを作る。
+
+    // Assert
+    EXPECT_EQ(-ENOMEM, actual_ret); // [確認_異常系] - 戻り値が -ENOMEM であること。
+    EXPECT_EQ(nullptr, message);    // [確認_異常系] - 出力のメッセージが NULL であること。
+    ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+
+    for (int fail_at = 0; fail_at < 4; fail_at++)
+    {
+        int seen = 0;
+        prevent_real_dbus(mock_systemd_);
+        EXPECT_CALL(mock_systemd_, sd_bus_message_new_method_call(_, _, _, _, _, _, _, _, _))
+            .WillOnce(DoAll(SetArgPointee<4>(k_dummy_message), Return(0)));
+        // [Pre-Assert確認_異常系] - 作成は成功し、続く append の失敗を注入すること。
+        // [Pre-Assert手順] - sd_bus_message_new_method_call() から 0 を返し、メッセージを設定する。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_append_basic(_, _, _, k_dummy_message, 's', _))
+            .Times(fail_at + 1)
+            .WillRepeatedly(Invoke(
+                [&seen, fail_at](const char *, const int, const char *, sd_bus_message *, char, const void *) -> int
+                {
+                    int current = seen;
+                    seen++;
+                    return (current == fail_at) ? -EINVAL : 0;
+                }));
+        // [Pre-Assert確認_異常系] - 4 回のうち 1 回の append が失敗すること。
+        // [Pre-Assert手順] - 失敗させる回だけ -EINVAL を返し、それより前は 0 を返す。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, k_dummy_message)).WillOnce(Return(nullptr));
+        // [Pre-Assert確認_異常系] - 作成済みのメッセージを 1 回 unref すること。
+        // [Pre-Assert手順] - sd_bus_message_unref() から nullptr を返す。
+
+        message = k_dummy_message;
+        actual_ret = test_svc_linux_events_build_inhibit_message("sleep", &message); // [手順] - 要求メッセージを作る。
+
+        EXPECT_EQ(-EINVAL, actual_ret); // [確認_異常系] - 戻り値が -EINVAL であること。
+        EXPECT_EQ(nullptr, message);    // [確認_異常系] - 出力のメッセージが NULL であること。
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+    }
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// 起動時の同期呼び出しが、成功と失敗のすべての経路で資源を 1 回解放することの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, startup_sync_call_cleans_resources_on_all_results)
+{
+    // Arrange
+    NiceMock<Mock_fcntl> mock_fcntl;
+    int pipe_fd[2] = {-1, -1};
+    ASSERT_EQ(0, ::pipe(pipe_fd)); // [状態確認] - 複製の確認に使うパイプを開けること。
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_bus(k_dummy_bus);
+    test_svc_linux_events_set_definition(&g_run_def);
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    const int call_results[] = {-EIO, -ETIMEDOUT};
+    for (int call_result : call_results)
+    {
+        // Pre-Assert
+        expect_inhibit_message_built(mock_systemd_);
+        EXPECT_CALL(mock_systemd_, sd_bus_call(_, _, _, k_dummy_bus, k_dummy_message, k_inhibit_timeout_usec, _, _))
+            .WillOnce(DoAll(SetArgPointee<7>(k_dummy_reply), Return(call_result)));
+        // [Pre-Assert確認_異常系] - sd_bus_call() が 10 [s] の期限で 1 回呼び出されること。
+        // [Pre-Assert手順] - 非 NULL の応答を設定し、負の結果を返す。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - 呼び出しの失敗では応答を読まないこと。
+        EXPECT_CALL(mock_fcntl, fcntl(_, _, _, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - 呼び出しの失敗では fcntl() を呼ばないこと。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(2).WillRepeatedly(Return(nullptr));
+        // [Pre-Assert確認_異常系] - 要求と非 NULL の応答を、それぞれ unref すること。
+        EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(1);
+        // [Pre-Assert確認_異常系] - sd_bus_error_free() が 1 回呼び出されること。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("inhibitor lock")))
+            .Times(1);
+        // [Pre-Assert確認_異常系] - 取得の失敗を示す WARNING のトレースが 1 回出力されること。
+
+        // Act
+        test_svc_linux_events_acquire_inhibit_sync(0); // [手順] - sleep の lock を同期で取得する。
+
+        // Assert
+        EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0)); // [確認_異常系] - fd が -1 のままであること。
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_fcntl));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_cplat_));
+        prevent_real_dbus(mock_systemd_);
+        allow_any_trace();
+    }
+
+    const int read_results[] = {-EINVAL, 0};
+    for (int read_result : read_results)
+    {
+        expect_inhibit_message_built(mock_systemd_);
+        EXPECT_CALL(mock_systemd_, sd_bus_call(_, _, _, _, _, k_inhibit_timeout_usec, _, _))
+            .WillOnce(DoAll(SetArgPointee<7>(k_dummy_reply), Return(0)));
+        // [Pre-Assert確認_異常系] - 呼び出しは成功し、読み取りの失敗を注入すること。
+        // [Pre-Assert手順] - sd_bus_call() から 0 を返し、応答を設定する。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+            .WillOnce(Invoke(
+                [read_result](const char *, const int, const char *, sd_bus_message *message, char type, void *out)
+                    -> int { return read_basic_writes_fd(message, type, out, -1, read_result); }));
+        // [Pre-Assert確認_異常系] - sd_bus_message_read_basic() が 0 または負値を返すこと。
+        // [Pre-Assert手順] - 読み取りの結果を注入する。
+        EXPECT_CALL(mock_fcntl, fcntl(_, _, _, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - 読み取りの失敗では fcntl() を呼ばないこと。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(2).WillRepeatedly(Return(nullptr));
+        EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(1);
+        EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("inhibitor lock")))
+            .Times(1);
+
+        test_svc_linux_events_acquire_inhibit_sync(0); // [手順] - sleep の lock を同期で取得する。
+
+        EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0)); // [確認_異常系] - fd が -1 のままであること。
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_fcntl));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_cplat_));
+        prevent_real_dbus(mock_systemd_);
+        allow_any_trace();
+    }
+
+    expect_inhibit_message_built(mock_systemd_);
+    EXPECT_CALL(mock_systemd_, sd_bus_call(_, _, _, _, _, k_inhibit_timeout_usec, _, _))
+        .WillOnce(DoAll(SetArgPointee<7>(k_dummy_reply), Return(0)));
+    EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+        .WillOnce(Invoke(
+            [&pipe_fd](const char *, const int, const char *, sd_bus_message *message, char type, void *out) -> int
+            { return read_basic_writes_fd(message, type, out, pipe_fd[0], 1); }));
+    // [Pre-Assert確認_異常系] - 読み取りは成功し、fcntl() の失敗を注入すること。
+    // [Pre-Assert手順] - 借用 fd としてパイプの読み取り側を返し、結果 1 を返す。
+    EXPECT_CALL(mock_fcntl, fcntl(_, _, _, pipe_fd[0], F_DUPFD_CLOEXEC, _)).WillOnce(Return(-1));
+    // [Pre-Assert確認_異常系] - fcntl() が複製に失敗すること。
+    // [Pre-Assert手順] - fcntl() から -1 を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(2).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(1);
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("inhibitor lock")))
+        .Times(1);
+
+    test_svc_linux_events_acquire_inhibit_sync(0); // [手順] - sleep の lock を同期で取得する。
+
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0)); // [確認_異常系] - fd が -1 のままであること。
+    EXPECT_NE(-1, delegate_real_fcntl(__FILE__, __LINE__, __func__, pipe_fd[0], F_GETFD, 0));
+    // [確認_異常系] - 借用した fd が閉じられていないこと。
+    ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+    ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_fcntl));
+    prevent_real_dbus(mock_systemd_);
+
+    expect_inhibit_message_built(mock_systemd_);
+    EXPECT_CALL(mock_systemd_, sd_bus_call(_, _, _, _, _, k_inhibit_timeout_usec, _, _))
+        .WillOnce(DoAll(SetArgPointee<7>(k_dummy_reply), Return(0)));
+    // [Pre-Assert確認_正常系] - sd_bus_call() が 10 [s] の期限で成功すること。
+    // [Pre-Assert手順] - sd_bus_call() から 0 を返し、応答を設定する。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+        .WillOnce(Invoke(
+            [&pipe_fd](const char *, const int, const char *, sd_bus_message *message, char type, void *out) -> int
+            { return read_basic_writes_fd(message, type, out, pipe_fd[0], 1); }));
+    // [Pre-Assert確認_正常系] - 読み取りが成功 (1) であること。
+    // [Pre-Assert手順] - 借用 fd としてパイプの読み取り側を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(2).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(1);
+
+    test_svc_linux_events_acquire_inhibit_sync(0); // [手順] - sleep の lock を同期で取得する。
+
+    int stored_fd = test_svc_linux_events_inhibit_fd(0);
+    int stored_flags = delegate_real_fcntl(__FILE__, __LINE__, __func__, stored_fd, F_GETFD, 0);
+    EXPECT_GE(stored_fd, 3);                 // [確認_正常系] - 複製した fd が 3 以上であること。
+    EXPECT_NE(pipe_fd[0], stored_fd);        // [確認_正常系] - 複製した fd が借用 fd と異なること。
+    EXPECT_NE(0, stored_flags & FD_CLOEXEC); // [確認_正常系] - 複製した fd に FD_CLOEXEC が付くこと。
+    EXPECT_NE(-1, delegate_real_fcntl(__FILE__, __LINE__, __func__, pipe_fd[0], F_GETFD, 0));
+    // [確認_正常系] - 借用した fd が閉じられていないこと。
+
+    // Cleanup
+    (void)delegate_real_cplat_close(stored_fd, nullptr);
+    (void)::close(pipe_fd[0]);
+    (void)::close(pipe_fd[1]);
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// 読み取りが 0 または負値のとき、fcntl() を呼ばず fd を未取得のままにすることの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, store_inhibit_fd_does_not_duplicate_failed_or_empty_read)
+{
+    // Arrange
+    NiceMock<Mock_fcntl> mock_fcntl;
+    test_svc_linux_events_reset_inhibit();
+    prevent_real_dbus(mock_systemd_);
+    const int read_results[] = {-EINVAL, 0};
+
+    for (int read_result : read_results)
+    {
+        test_svc_linux_events_set_inhibit_fd(0, -1);
+
+        // Pre-Assert
+        EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+            .WillOnce(Invoke(
+                [read_result](const char *, const int, const char *, sd_bus_message *message, char type, void *out)
+                    -> int { return read_basic_writes_fd(message, type, out, -1, read_result); }));
+        // [Pre-Assert確認_異常系] - sd_bus_message_read_basic() が 0 または負値を返すこと。
+        // [Pre-Assert手順] - 読み取りの結果を注入する。
+        EXPECT_CALL(mock_fcntl, fcntl(_, _, _, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - fcntl() が呼び出されないこと。
+
+        // Act
+        int actual_ret = test_svc_linux_events_store_inhibit_fd(0, k_dummy_reply); // [手順] - fd の保存を呼ぶ。
+
+        // Assert
+        EXPECT_EQ(CPLAT_ERR_UNKNOWN, actual_ret);           // [確認_異常系] - 戻り値が CPLAT_ERR_UNKNOWN であること。
+        EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0)); // [確認_異常系] - fd が -1 のままであること。
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_fcntl));
+        prevent_real_dbus(mock_systemd_);
+    }
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+}
+
+// fcntl() が失敗した場合に、借用 fd を閉じず lock を未取得のままにすることの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, store_inhibit_fd_leaves_lock_unacquired_when_fcntl_fails)
+{
+    // Arrange
+    NiceMock<Mock_fcntl> mock_fcntl;
+    int pipe_fd[2] = {-1, -1};
+    ASSERT_EQ(0, ::pipe(pipe_fd)); // [状態確認] - 借用 fd の代わりに使うパイプを開けること。
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_inhibit_fd(0, -1);
+    prevent_real_dbus(mock_systemd_);
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+        .WillOnce(Invoke(
+            [&pipe_fd](const char *, const int, const char *, sd_bus_message *message, char type, void *out) -> int
+            { return read_basic_writes_fd(message, type, out, pipe_fd[0], 1); }));
+    // [Pre-Assert確認_異常系] - 読み取りが成功し、パイプの読み取り側を返すこと。
+    // [Pre-Assert手順] - sd_bus_message_read_basic() から 1 を返す。
+    EXPECT_CALL(mock_fcntl, fcntl(_, _, _, pipe_fd[0], F_DUPFD_CLOEXEC, _)).WillOnce(Return(-1));
+    // [Pre-Assert確認_異常系] - fcntl() が複製に失敗すること。
+    // [Pre-Assert手順] - fcntl() から -1 を返す。
+
+    // Act
+    int actual_ret = test_svc_linux_events_store_inhibit_fd(0, k_dummy_reply); // [手順] - fd の保存を呼ぶ。
+
+    // Assert
+    EXPECT_EQ(CPLAT_ERR_UNKNOWN, actual_ret);           // [確認_異常系] - 戻り値が CPLAT_ERR_UNKNOWN であること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0)); // [確認_異常系] - fd が -1 のままであること。
+    EXPECT_NE(-1, delegate_real_fcntl(__FILE__, __LINE__, __func__, pipe_fd[0], F_GETFD, 0));
+    // [確認_異常系] - 借用した fd が閉じられていないこと。
+
+    // Cleanup
+    (void)::close(pipe_fd[0]);
+    (void)::close(pipe_fd[1]);
+    test_svc_linux_events_reset_inhibit();
+}
+
+// 復帰時に、明示した期限の非同期要求だけを行い、応答前は fd を持たないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, resume_requests_inhibit_asynchronously_with_explicit_timeout)
+{
+    // Arrange
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_bus(k_dummy_bus);
+    test_svc_linux_events_set_definition(&g_run_def);
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    // Pre-Assert
+    expect_inhibit_message_built(mock_systemd_);
+    EXPECT_CALL(mock_systemd_, sd_bus_call(_, _, _, _, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - 同期の sd_bus_call() が呼び出されないこと。
+    EXPECT_CALL(mock_systemd_,
+                sd_bus_call_async(_, _, _, k_dummy_bus, _, k_dummy_message, _, _, k_inhibit_timeout_usec))
+        .WillOnce(DoAll(SetArgPointee<4>(k_dummy_slot), Return(0)));
+    // [Pre-Assert確認_正常系] - sd_bus_call_async() が 10 [s] の期限で 1 回呼び出されること。
+    // [Pre-Assert手順] - slot を設定し、0 を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, k_dummy_message)).WillOnce(Return(nullptr));
+    // [Pre-Assert確認_正常系] - 要求メッセージを 1 回 unref すること。
+
+    // Act
+    test_svc_linux_events_handle_prepare_for_sleep(0); // [手順] - 復帰 (starting == 0) を処理する。
+
+    // Assert
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0)); // [確認_正常系] - 応答前の fd が -1 であること。
+    EXPECT_EQ(k_dummy_slot, test_svc_linux_events_inhibit_slot(0)); // [確認_正常系] - 応答待ちの slot が残ること。
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// 正常な非同期応答で、複製した fd を保持し、借用した引数を解放しないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, inhibit_reply_stores_duplicated_fd)
+{
+    // Arrange
+    int pipe_fd[2] = {-1, -1};
+    sd_bus_error borrowed_error = SD_BUS_ERROR_NULL;
+    ASSERT_EQ(0, ::pipe(pipe_fd)); // [状態確認] - 複製の確認に使うパイプを開けること。
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+    test_svc_linux_events_set_inhibit_fd(0, -1);
+    prevent_real_dbus(mock_systemd_);
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+    // [Pre-Assert確認_正常系] - slot を 1 回 unref すること。
+    // [Pre-Assert手順] - sd_bus_slot_unref() から nullptr を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_is_method_error(_, _, _, k_dummy_reply, nullptr)).WillOnce(Return(0));
+    // [Pre-Assert確認_正常系] - 応答が method error ではないこと。
+    // [Pre-Assert手順] - sd_bus_message_is_method_error() から 0 を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+        .WillOnce(Invoke(
+            [&pipe_fd](const char *, const int, const char *, sd_bus_message *message, char type, void *out) -> int
+            { return read_basic_writes_fd(message, type, out, pipe_fd[0], 1); }));
+    // [Pre-Assert確認_正常系] - 読み取りが成功 (1) であること。
+    // [Pre-Assert手順] - 借用 fd としてパイプの読み取り側を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - 借用した応答メッセージを unref しないこと。
+    EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - コールバックの ret_error を解放しないこと。
+
+    // Act
+    int actual_ret = test_svc_linux_events_on_inhibit_reply(0, k_dummy_reply, &borrowed_error);
+    // [手順] - 正常応答のコールバックを呼ぶ。
+
+    // Assert
+    int stored_fd = test_svc_linux_events_inhibit_fd(0);
+    int stored_flags = delegate_real_fcntl(__FILE__, __LINE__, __func__, stored_fd, F_GETFD, 0);
+    EXPECT_EQ(0, actual_ret);                        // [確認_正常系] - コールバックの戻り値が 0 であること。
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_正常系] - slot が NULL であること。
+    EXPECT_GE(stored_fd, 3);                         // [確認_正常系] - 複製した fd が 3 以上であること。
+    EXPECT_NE(pipe_fd[0], stored_fd);                // [確認_正常系] - 複製した fd が借用 fd と異なること。
+    EXPECT_NE(0, stored_flags & FD_CLOEXEC);         // [確認_正常系] - 複製した fd に FD_CLOEXEC が付くこと。
+    EXPECT_NE(-1, delegate_real_fcntl(__FILE__, __LINE__, __func__, pipe_fd[0], F_GETFD, 0));
+    // [確認_正常系] - 借用した fd が閉じられていないこと。
+
+    // Cleanup
+    (void)delegate_real_cplat_close(stored_fd, nullptr);
+    (void)::close(pipe_fd[0]);
+    (void)::close(pipe_fd[1]);
+    test_svc_linux_events_reset_inhibit();
+}
+
+// method error の応答で、lock を未取得のままにし、借用したエラーを解放しないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, inhibit_reply_error_leaves_lock_unacquired)
+{
+    // Arrange
+    sd_bus_error borrowed_error = SD_BUS_ERROR_NULL;
+    borrowed_error.name = "org.freedesktop.DBus.Error.NoReply"; // [状態] - 名前に NoReply を含むエラーとする。
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+    test_svc_linux_events_set_inhibit_fd(0, -1);
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+    // [Pre-Assert確認_異常系] - slot を 1 回 unref すること。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_is_method_error(_, _, _, k_dummy_reply, nullptr)).WillOnce(Return(1));
+    // [Pre-Assert確認_異常系] - 応答が method error であること。
+    // [Pre-Assert手順] - sd_bus_message_is_method_error() から 0 以外を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_get_error(_, _, _, k_dummy_reply)).WillOnce(Return(&borrowed_error));
+    // [Pre-Assert確認_異常系] - エラー名の取得が 1 回呼び出されること。
+    // [Pre-Assert手順] - NoReply を含む sd_bus_error を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(0);
+    // [Pre-Assert確認_異常系] - 借用した応答メッセージを unref しないこと。
+    EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(0);
+    // [Pre-Assert確認_異常系] - 借用した sd_bus_error を解放しないこと。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("応答がエラーです")))
+        .Times(1);
+    // [Pre-Assert確認_異常系] - 応答のエラーを示す WARNING のトレースが 1 回出力されること。
+
+    // Act
+    int actual_ret = test_svc_linux_events_on_inhibit_reply(0, k_dummy_reply, &borrowed_error);
+    // [手順] - method error のコールバックを呼ぶ。
+
+    // Assert
+    EXPECT_EQ(0, actual_ret);                                  // [確認_異常系] - コールバックの戻り値が 0 であること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - fd が -1 のままであること。
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+}
+
+// 非同期応答の読み取りと fcntl() の失敗で、slot を解除し lock を未取得のままにすることの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, inhibit_reply_read_and_fcntl_failures_release_slot)
+{
+    // Arrange
+    NiceMock<Mock_fcntl> mock_fcntl;
+    int pipe_fd[2] = {-1, -1};
+    sd_bus_error borrowed_error = SD_BUS_ERROR_NULL;
+    ASSERT_EQ(0, ::pipe(pipe_fd)); // [状態確認] - 借用 fd の代わりに使うパイプを開けること。
+    test_svc_linux_events_reset_inhibit();
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    const int read_results[] = {-EINVAL, 0};
+    for (int read_result : read_results)
+    {
+        test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+        test_svc_linux_events_set_inhibit_fd(0, -1);
+
+        // Pre-Assert
+        EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+        // [Pre-Assert確認_異常系] - slot を 1 回 unref すること。
+        // [Pre-Assert手順] - sd_bus_slot_unref() から nullptr を返す。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_is_method_error(_, _, _, k_dummy_reply, nullptr))
+            .WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - 応答が method error ではないこと。
+        // [Pre-Assert手順] - sd_bus_message_is_method_error() から 0 を返す。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+            .WillOnce(Invoke(
+                [read_result](const char *, const int, const char *, sd_bus_message *message, char type, void *out)
+                    -> int { return read_basic_writes_fd(message, type, out, -1, read_result); }));
+        // [Pre-Assert確認_異常系] - sd_bus_message_read_basic() が 0 または負値を返すこと。
+        // [Pre-Assert手順] - 読み取りの結果を注入する。
+        EXPECT_CALL(mock_fcntl, fcntl(_, _, _, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - 読み取りの失敗では fcntl() を呼ばないこと。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - 借用した応答メッセージを unref しないこと。
+        EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - コールバックの ret_error を解放しないこと。
+        EXPECT_CALL(mock_cplat_,
+                    cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("fd を保存できませんでした")))
+            .Times(1);
+        // [Pre-Assert確認_異常系] - fd の保存の失敗を示す WARNING のトレースが 1 回出力されること。
+
+        // Act
+        int actual_ret = test_svc_linux_events_on_inhibit_reply(0, k_dummy_reply, &borrowed_error);
+        // [手順] - 読み取りに失敗する応答のコールバックを呼ぶ。
+
+        // Assert
+        EXPECT_EQ(0, actual_ret); // [確認_異常系] - コールバックの戻り値が 0 であること。
+        EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - fd が -1 のままであること。
+        EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_fcntl));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_cplat_));
+        prevent_real_dbus(mock_systemd_);
+        allow_any_trace();
+    }
+
+    test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+    test_svc_linux_events_set_inhibit_fd(0, -1);
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+    // [Pre-Assert確認_異常系] - slot を 1 回 unref すること。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_is_method_error(_, _, _, k_dummy_reply, nullptr)).WillOnce(Return(0));
+    EXPECT_CALL(mock_systemd_, sd_bus_message_read_basic(_, _, _, k_dummy_reply, 'h', _))
+        .WillOnce(Invoke(
+            [&pipe_fd](const char *, const int, const char *, sd_bus_message *message, char type, void *out) -> int
+            { return read_basic_writes_fd(message, type, out, pipe_fd[0], 1); }));
+    // [Pre-Assert確認_異常系] - 読み取りは成功し、fcntl() の失敗を注入すること。
+    // [Pre-Assert手順] - 借用 fd としてパイプの読み取り側を返し、結果 1 を返す。
+    EXPECT_CALL(mock_fcntl, fcntl(_, _, _, pipe_fd[0], F_DUPFD_CLOEXEC, _)).WillOnce(Return(-1));
+    // [Pre-Assert確認_異常系] - fcntl() が複製に失敗すること。
+    // [Pre-Assert手順] - fcntl() から -1 を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, _)).Times(0);
+    EXPECT_CALL(mock_systemd_, sd_bus_error_free(_, _, _, _)).Times(0);
+    EXPECT_CALL(mock_cplat_,
+                cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("fd を保存できませんでした")))
+        .Times(1);
+
+    // Act
+    int actual_ret = test_svc_linux_events_on_inhibit_reply(0, k_dummy_reply, &borrowed_error);
+    // [手順] - 複製に失敗する応答のコールバックを呼ぶ。
+
+    // Assert
+    EXPECT_EQ(0, actual_ret);                                  // [確認_異常系] - コールバックの戻り値が 0 であること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - fd が -1 のままであること。
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+    EXPECT_NE(-1, delegate_real_fcntl(__FILE__, __LINE__, __func__, pipe_fd[0], F_GETFD, 0));
+    // [確認_異常系] - 借用した fd が閉じられていないこと。
+
+    // Cleanup
+    (void)::close(pipe_fd[0]);
+    (void)::close(pipe_fd[1]);
+    test_svc_linux_events_reset_inhibit();
+}
+
+// 非同期要求の作成と登録が失敗した場合に、message と slot を残さないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, inhibit_request_failure_leaves_no_slot)
+{
+    // Arrange
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_bus(k_dummy_bus);
+    test_svc_linux_events_set_definition(&g_run_def);
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_message_new_method_call(_, _, _, _, _, _, _, _, _))
+        .WillOnce(DoAll(SetArgPointee<4>(k_dummy_message), Return(-ENOMEM)));
+    // [Pre-Assert確認_異常系] - 要求メッセージの作成が失敗すること。
+    // [Pre-Assert手順] - 作成途中のメッセージを設定し、-ENOMEM を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, k_dummy_message)).WillOnce(Return(nullptr));
+    // [Pre-Assert確認_異常系] - 作成途中のメッセージを 1 回 unref すること。
+    EXPECT_CALL(mock_systemd_, sd_bus_call_async(_, _, _, _, _, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_異常系] - 作成の失敗では sd_bus_call_async() を呼ばないこと。
+    EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, _)).Times(0);
+    // [Pre-Assert確認_異常系] - 作成の失敗では slot を作らないこと。
+    EXPECT_CALL(mock_cplat_,
+                cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("要求の作成に失敗しました")))
+        .Times(1);
+    // [Pre-Assert確認_異常系] - 作成の失敗を示す WARNING のトレースが 1 回出力されること。
+
+    // Act
+    test_svc_linux_events_request_inhibit_async(0); // [手順] - sleep の lock を非同期で要求する。
+
+    // Assert
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - fd が -1 のままであること。
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+    ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+    ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_cplat_));
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    for (int fail_at = 0; fail_at < 4; fail_at++)
+    {
+        int seen = 0;
+        EXPECT_CALL(mock_systemd_, sd_bus_message_new_method_call(_, _, _, _, _, _, _, _, _))
+            .WillOnce(DoAll(SetArgPointee<4>(k_dummy_message), Return(0)));
+        // [Pre-Assert確認_異常系] - 作成は成功し、続く append の失敗を注入すること。
+        // [Pre-Assert手順] - sd_bus_message_new_method_call() から 0 を返し、メッセージを設定する。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_append_basic(_, _, _, k_dummy_message, 's', _))
+            .Times(fail_at + 1)
+            .WillRepeatedly(Invoke(
+                [&seen, fail_at](const char *, const int, const char *, sd_bus_message *, char, const void *) -> int
+                {
+                    int current = seen;
+                    seen++;
+                    return (current == fail_at) ? -EINVAL : 0;
+                }));
+        // [Pre-Assert確認_異常系] - 4 回のうち 1 回の append が失敗すること。
+        // [Pre-Assert手順] - 失敗させる回だけ -EINVAL を返し、それより前は 0 を返す。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, k_dummy_message)).WillOnce(Return(nullptr));
+        // [Pre-Assert確認_異常系] - 作成済みのメッセージを 1 回 unref すること。
+        EXPECT_CALL(mock_systemd_, sd_bus_call_async(_, _, _, _, _, _, _, _, _)).Times(0);
+        // [Pre-Assert確認_異常系] - append の失敗では sd_bus_call_async() を呼ばないこと。
+        EXPECT_CALL(mock_cplat_,
+                    cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("要求の作成に失敗しました")))
+            .Times(1);
+
+        test_svc_linux_events_request_inhibit_async(0); // [手順] - sleep の lock を非同期で要求する。
+
+        EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - fd が -1 のままであること。
+        EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_systemd_));
+        ASSERT_TRUE(testing::Mock::VerifyAndClearExpectations(&mock_cplat_));
+        prevent_real_dbus(mock_systemd_);
+        allow_any_trace();
+    }
+
+    {
+        InSequence sequence;
+        expect_inhibit_message_built(mock_systemd_);
+        EXPECT_CALL(mock_systemd_,
+                    sd_bus_call_async(_, _, _, k_dummy_bus, _, k_dummy_message, _, _, k_inhibit_timeout_usec))
+            .WillOnce(DoAll(SetArgPointee<4>(k_dummy_slot), Return(-ENOMEM)));
+        // [Pre-Assert確認_異常系] - sd_bus_call_async() が 10 [s] の期限で失敗すること。
+        // [Pre-Assert手順] - 部分的な slot を設定し、-ENOMEM を返す。
+        EXPECT_CALL(mock_systemd_, sd_bus_message_unref(_, _, _, k_dummy_message)).WillOnce(Return(nullptr));
+        // [Pre-Assert確認_異常系] - 要求メッセージを、登録の失敗の後に 1 回 unref すること。
+        EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+        // [Pre-Assert確認_異常系] - 部分的な slot を、要求メッセージの後に 1 回 unref すること。
+    }
+    EXPECT_CALL(mock_cplat_,
+                cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _, HasSubstr("非同期の要求に失敗しました")))
+        .Times(1);
+    // [Pre-Assert確認_異常系] - 登録の失敗を示す WARNING のトレースが 1 回出力されること。
+
+    // Act
+    test_svc_linux_events_request_inhibit_async(0); // [手順] - sleep の lock を非同期で要求する。
+
+    // Assert
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - fd が -1 のままであること。
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// サスペンド開始で、応答待ちの slot を解除し、その後にコールバックを実行しないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, suspend_start_cancels_pending_request_without_callback)
+{
+    // Arrange
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_bus(k_dummy_bus);
+    test_svc_linux_events_set_definition(&g_run_def);
+    test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+    test_svc_linux_events_set_inhibit_fd(0, -1);
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+    // [Pre-Assert確認_正常系] - 応答待ちの slot を 1 回 unref すること。
+    // [Pre-Assert手順] - sd_bus_slot_unref() から nullptr を返す。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_is_method_error(_, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - 解除の後に、応答のコールバックを実行しないこと。
+    EXPECT_CALL(mock_systemd_, sd_bus_call_async(_, _, _, _, _, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - サスペンドの開始では、新しい非同期要求を作らないこと。
+    EXPECT_CALL(mock_cplat_, cplat_close(_, _)).Times(0);
+    // [Pre-Assert確認_正常系] - fd を保持していないため、close しないこと。
+
+    // Act
+    test_svc_linux_events_handle_prepare_for_sleep(1); // [手順] - サスペンドの開始 (starting != 0) を処理する。
+
+    // Assert
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_正常系] - slot が NULL であること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_正常系] - fd が -1 のままであること。
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// 応答待ち、または fd 取得済みのとき、復帰を繰り返しても要求を重ねないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, inhibit_request_is_not_duplicated)
+{
+    // Arrange
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_bus(k_dummy_bus);
+    test_svc_linux_events_set_definition(&g_run_def);
+    test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+    test_svc_linux_events_set_inhibit_fd(0, -1);
+    prevent_real_dbus(mock_systemd_);
+    allow_any_trace();
+
+    // Pre-Assert
+    EXPECT_CALL(mock_systemd_, sd_bus_call_async(_, _, _, _, _, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - すでに応答待ち、または取得済みのとき、新しい非同期要求を作らないこと。
+    EXPECT_CALL(mock_systemd_, sd_bus_message_new_method_call(_, _, _, _, _, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - 二重要求のためのメッセージを作らないこと。
+    EXPECT_CALL(mock_cplat_, cplat_close(_, _)).Times(0);
+    // [Pre-Assert確認_正常系] - 取得済みの fd を、復帰の処理で閉じないこと。
+
+    // Act
+    test_svc_linux_events_handle_prepare_for_sleep(0); // [手順] - 応答待ちのまま、復帰 (starting == 0) を処理する。
+
+    // Assert
+    EXPECT_EQ(k_dummy_slot, test_svc_linux_events_inhibit_slot(0)); // [確認_正常系] - 応答待ちの slot が残ること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));             // [確認_正常系] - fd が -1 のままであること。
+
+    test_svc_linux_events_set_inhibit_slot(0, nullptr);
+    test_svc_linux_events_set_inhibit_fd(0, 8); // [状態] - 実在しない番号の、取得済み fd とする。
+
+    // Act
+    test_svc_linux_events_handle_prepare_for_sleep(0); // [手順] - 取得済みのまま、復帰を処理する。
+    test_svc_linux_events_handle_prepare_for_sleep(0); // [手順] - 同じ復帰をもう一度処理する。
+
+    // Assert
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_正常系] - 新しい slot を作らないこと。
+    EXPECT_EQ(8, test_svc_linux_events_inhibit_fd(0));         // [確認_正常系] - 取得済みの fd が変わらないこと。
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// 解放のとき、応答待ちの slot を先に解除し、close が失敗しても fd を 1 回だけ閉じることの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, release_cancels_pending_requests_before_closing_fds)
+{
+    // Arrange
+    test_svc_linux_events_reset_inhibit();
+    test_svc_linux_events_set_inhibit_slot(0, k_dummy_slot);
+    test_svc_linux_events_set_inhibit_fd(0, 7); // [状態] - 実在しない番号の、保持中の fd とする。
+    prevent_real_dbus(mock_systemd_);
+
+    // Pre-Assert
+    {
+        InSequence sequence;
+        EXPECT_CALL(mock_systemd_, sd_bus_slot_unref(_, _, _, k_dummy_slot)).WillOnce(Return(nullptr));
+        // [Pre-Assert確認_異常系] - 保持 fd を閉じる前に、応答待ちの slot を 1 回 unref すること。
+        // [Pre-Assert手順] - sd_bus_slot_unref() から nullptr を返す。
+        EXPECT_CALL(mock_cplat_, cplat_close(7, _)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - 保持 fd の close を 1 回だけ呼び、失敗を返すこと。
+        // [Pre-Assert手順] - cplat_close() から CPLAT_ERR_UNKNOWN を返す。
+    }
+
+    // Act
+    test_svc_linux_events_release_inhibit_locks(); // [手順] - すべての inhibitor lock を解放する。
+
+    // Assert
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(0)); // [確認_異常系] - slot が NULL であること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(0));        // [確認_異常系] - close の失敗の後も fd が -1 であること。
+    EXPECT_EQ(nullptr, test_svc_linux_events_inhibit_slot(1)); // [確認_異常系] - shutdown の slot が NULL であること。
+    EXPECT_EQ(-1, test_svc_linux_events_inhibit_fd(1));        // [確認_異常系] - shutdown の fd が -1 のままであること。
+
+    // Cleanup
+    test_svc_linux_events_reset_inhibit();
 }

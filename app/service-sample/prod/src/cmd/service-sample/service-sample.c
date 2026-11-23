@@ -550,6 +550,21 @@ int main(int argc, char *argv[])
     int is_service_mode = (strcmp(command, "run") == 0);
 
     /*
+     * run の場合だけ、トレーサーの開始とスレッドの生成より前に OS の準備を行う。
+     * install と uninstall は子プロセスへマスクを引き継がせず、console は端末の SIGHUP で終了する動作を保つ。
+     * 失敗時はトレーサーが未開始のため、stderr へ診断を出して終了する。
+     */
+    if (is_service_mode != 0)
+    {
+        if (svc_os_prepare_run() != EXIT_SUCCESS)
+        {
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "エラー: run コマンドの実行の準備に失敗しました。\n");
+            return EXIT_FAILURE;
+        }
+    }
+
+    /*
      * 戻った後の s_tracer は、開始済みのトレーサーか NULL である。
      * NULL の場合はトレース出力が何もしないだけで、処理を続けられるため、戻り値は明示的に破棄する。
      */

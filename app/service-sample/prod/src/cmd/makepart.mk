@@ -17,5 +17,7 @@ ifdef PLATFORM_LINUX
             $(error libsystemd の開発ファイルが見つかりません。systemd-devel または libsystemd-dev をインストールしてください)
         endif
     endif
-    LIBS += systemd
+    # glibc 2.28 では pthread_sigmask が libpthread にある。実行体が直接参照するため、リンクに必要である。
+    # see: https://man7.org/linux/man-pages/man3/pthread_sigmask.3.html
+    LIBS += systemd pthread
 endif

@@ -229,7 +229,9 @@ WatchdogSec=30
 
 また、`svc_os_run_service()` はライフサイクル実行の前後でイベント監視スレッド (`service-sample_linux_events.c`) を起動・停止します。  
 このスレッドは sd_bus による systemd-logind の監視、SIGHUP による設定再読込、`on_run` の進行に結び付けた systemd watchdog への応答を担当します。  
-`svc_os_run_service()` は、このスレッドの必須の初期化 (イベント ループの生成、停止監視、watchdog のタイマー、SIGHUP の準備) の完了を待ってから `on_start` を呼び出します。
+`svc_os_run_service()` は、このスレッドの必須の初期化 (イベント ループの生成、停止監視、watchdog のタイマー、SIGHUP の受信の登録) の完了を待ってから `on_start` を呼び出します。
+
+SIGHUP は、`run` の入口の `svc_os_prepare_run()` で、スレッドを生成する前にブロックします。イベント監視スレッドは、作成元のシグナル マスクを引き継ぎ、`sd_event_add_signal()` で SIGHUP を受けます。ブロックは、停止の処理の後も、プロセスが終わるまで戻しません。停止の後に届いた SIGHUP は、保留のままで、プロセスを終了させません。`run` で起動した子プロセスは、このブロックを引き継ぎます。この app の `run` は子を起動しません。利用者のコールバックが子を起動して SIGHUP を使う場合は、子の側でマスクを戻します。
 
 このため、`service-sample` の Linux 実装で扱うタイミングは次の範囲です。
 
@@ -262,10 +264,14 @@ watchdog の行の根拠資料は、`sd_watchdog_enabled(3)` と [systemd.servic
 `svc_definition` の `on_event` が NULL の場合は D-Bus の監視自体を構築しません。  
 `on_reload` が NULL の場合も SIGHUP の監視は構築し、受信した `SIGHUP` は WARNING のトレースへ記録して無視します。`SIGHUP` の既定の動作でプロセスが終了しないようにするためです。  
 D-Bus に接続できない環境 (コンテナーなど) では該当イベントのみ無効化し、サービス本体は継続します。  
-D-Bus の接続以外の必須の初期化 (イベント ループの生成、停止監視、watchdog のタイマー、SIGHUP の準備) が失敗した場合は、起動の失敗になります。
+D-Bus の接続以外の必須の初期化 (イベント ループの生成、停止監視、watchdog のタイマー、SIGHUP の受信の登録) が失敗した場合は、起動の失敗になります。SIGHUP の受信の登録が失敗した場合は、`on_start` を呼ばず、`READY=1` も送りません。
 
-`on_start` は、systemd の起動タイムアウト (`TimeoutStartSec=`、既定 90 [s]) より短い時間で戻る必要があります。  
+運転中の inhibitor lock の再取得は、`sd_bus_call_async()` で行い、呼び出しごとの期限は 10 [s] です。起動時は、`READY=1` を送る前に、同じ期限の `sd_bus_call()` を最大 2 回 (sleep と shutdown) 呼びます。取得に失敗した場合は WARNING を出してサービスは続け、次のイベントまで自動では再試行しません。
+
+`on_start` は、systemd の起動タイムアウト (`TimeoutStartSec=`、既定 90 [s]) より短い時間で戻る必要があります。起動時の同期の inhibitor lock の取得 (最大 2 回、1 回あたり 10 [s]) も、この起動タイムアウトの中に入ります。  
 停止の要求から `on_run` の復帰と `on_stop` の完了までの合計は、60 [s] 未満にしてください。systemd の停止タイムアウト (`TimeoutStopSec=`、既定 90 [s]) から、イベント監視スレッドの終了を待つ上限 (30 [s]) を除いた時間です。停止の開始の直前に `WATCHDOG=1` が届き、systemd の watchdog が再び有効になった場合は、合計を `WatchdogSec=` 未満にしてください。
+
+イベント監視スレッドの終了待ち (30 [s]) は、`on_event` と `on_reload` の実行時間だけを見ます。応答待ちの D-Bus の slot は、完了を待たずに解除し、応答期限は待ち時間へ加算しません。
 
 次の systemd タイミングは、unit ファイルに設定がないため現行実装では使いません。
 

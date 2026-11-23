@@ -7,6 +7,7 @@
  *  @version        1.0.0
  *
  *  Linux 固有のサービス処理を実装します。
+ *  - svc_os_prepare_run : run の入口で、スレッド生成前に SIGHUP をブロックする。
  *  - svc_os_run_service : Type=notify で常駐 (fork 不要)、イベント監視スレッドの起動と停止。
  *                         イベント監視スレッドを起動できない場合は、サービスを開始せずに終了する
  *  - svc_os_install     : systemd ユニット ファイル生成、OOM killer 対策、登録
@@ -30,6 +31,8 @@
 
     #include <assert.h>
     #include <errno.h>
+    #include <pthread.h>
+    #include <signal.h>
     #include <stddef.h>
     #include <stdio.h>
     #include <stdlib.h>
@@ -108,7 +111,8 @@ static_assert(((SVC_START_LIMIT_BURST - 1U) * SVC_FAILURE_RESTART_DELAY_SEC) < S
 /*
  * Description= の本文と実行ファイルのパスを除いた unit の固定部分が、UNIT_CONTENT_EXTRA_BYTES に収まることを検査する。
  * 書式を変えたときは、この文字列も svc_os_install() の cplat_snprintf() に合わせる。
- * %u の桁数は、unsigned int が 64 [bit] の場合の 20 桁で見積もる。対象は 3 つである。
+ * %u の桁数は、unsigned int が 64 [bit] の場合の 20 桁で見積もる。対象は 4 つである。
+ * WatchdogSec= は SVC_UNIT_WATCHDOG_SEC を %u で出すため、桁の見積もりに含める。
  */
 static_assert(sizeof(unsigned int) <= 8U, "percent-u digit estimate assumes unsigned int is at most 64-bit");
 static_assert((sizeof("[Unit]\n"
@@ -123,14 +127,14 @@ static_assert((sizeof("[Unit]\n"
                       "ExecReload=/bin/kill -HUP $MAINPID\n"
                       "Restart=on-failure\n"
                       "RestartSec=\n"
-                      "WatchdogSec=30\n"
+                      "WatchdogSec=\n"
                       "OOMScoreAdjust=-1000\n"
                       "ManagedOOMPreference=omit\n"
                       "\n"
                       "[Install]\n"
                       "WantedBy=multi-user.target\n") -
                1U) +
-                      (20U * 3U) <=
+                      (20U * 4U) <=
                   UNIT_CONTENT_EXTRA_BYTES,
               "unit content fixed part must fit in UNIT_CONTENT_EXTRA_BYTES");
 
@@ -317,6 +321,37 @@ static void sd_notify_send(const char *message)
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
+int svc_os_prepare_run(void)
+{
+    sigset_t set;
+    int rc;
+
+    /*
+     * 有効なシグナル番号 SIGHUP を渡すため、sigemptyset と sigaddset は失敗の条件に当たらず、
+     * 戻り値は明示的に破棄する。
+     * see: https://man7.org/linux/man-pages/man3/sigemptyset.3p.html
+     * see: https://man7.org/linux/man-pages/man3/sigaddset.3p.html
+     */
+    (void)sigemptyset(&set);
+    (void)sigaddset(&set, SIGHUP);
+
+    /*
+     * 失敗時は errno ではなくエラー番号を返す。0 以外なら起動の準備を失敗とする。
+     * ブロックしたマスクは、プロセスが終わるまで戻さない。fork と execve を越えて子へ引き継がれる。
+     * see: https://man7.org/linux/man-pages/man3/pthread_sigmask.3.html
+     * see: https://man7.org/linux/man-pages/man7/signal.7.html
+     */
+    rc = pthread_sigmask(SIG_BLOCK, &set, NULL);
+    if (rc != 0)
+    {
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
 void svc_os_notify_ready(void)
 {
     /* on_start() の実行中にイベント ループが異常終了した場合は、停止を要求済みであり、READY=1 を送らない。 */
@@ -488,7 +523,7 @@ int svc_os_install(const svc_definition *def)
                        "%s"
                        "Restart=on-failure\n"
                        "RestartSec=%u\n"
-                       "WatchdogSec=30\n"
+                       "WatchdogSec=%u\n"
                        "OOMScoreAdjust=-1000\n"
                        "%s"
                        "\n"
@@ -496,7 +531,8 @@ int svc_os_install(const svc_definition *def)
                        "WantedBy=multi-user.target\n",
                        def->description, (unsigned int)SVC_START_LIMIT_INTERVAL_SEC,
                        (unsigned int)SVC_START_LIMIT_BURST, exec_path, exec_reload_line,
-                       (unsigned int)SVC_FAILURE_RESTART_DELAY_SEC, managed_oom_preference_line) != CPLAT_OK)
+                       (unsigned int)SVC_FAILURE_RESTART_DELAY_SEC, (unsigned int)SVC_UNIT_WATCHDOG_SEC,
+                       managed_oom_preference_line) != CPLAT_OK)
     {
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                  "ユニット ファイルの内容が長すぎます。");

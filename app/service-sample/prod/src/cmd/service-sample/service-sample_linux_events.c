@@ -15,10 +15,16 @@
  *
  *  OS イベントと設定再読込の配送は、動作中の段階 (READY=1 の通知後から STOPPING=1 の通知前まで) に限ります。
  *
- *  SIGHUP は sigaction + eventfd の self-pipe 方式でイベント ループへ
- *  転送します。signalfd 方式 (sd_event_add_signal) は全スレッドでの
- *  シグナル ブロックが前提となりますが、本スレッドの起動時点で tracer の
- *  スレッドが起動済みのため採用していません。
+ *  SIGHUP は、プロセスの入口 (svc_os_prepare_run()) で、スレッドを生成する前に全スレッドでブロックし、
+ *  イベント ループが sd_event_add_signal() で受けます。スレッドは作成元のマスクを引き継ぐため、
+ *  入口でブロックすれば、すべてのスレッドでブロックされた状態になります。
+ *  sd_event_add_signal() は、シグナルが全スレッドでブロックされていることを前提とします。
+ *  cplat の tracer と停止要求の登録は、スレッドを生成しません (Linux)。
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_event_add_signal.html
+ *  see: https://man7.org/linux/man-pages/man3/pthread_sigmask.3.html
+ *  see: https://man7.org/linux/man-pages/man7/signal.7.html
+ *  see: https://man7.org/linux/man-pages/man2/signalfd.2.html
+ *  see: https://man7.org/linux/man-pages/man3/raise.3.html
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -36,6 +42,7 @@
     #include <string.h>
     #include <sys/epoll.h>
     #include <sys/eventfd.h>
+    #include <sys/signalfd.h>
     #include <time.h>
     #include <unistd.h>
 
@@ -50,6 +57,7 @@
     #include <cplat/sync/sync.h>
 
     #include "service-sample.h"
+    #include "service-sample_internal.h"
     #include "service-sample_linux_events.h"
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -60,39 +68,49 @@
  * ============================================================
  */
 
+    /** logind の Inhibit の呼び出しの期限 [ms]。起動時の同期呼び出しと、運転中の非同期の呼び出しで、呼び出しごとに渡す。 */
+    #define SVC_INHIBIT_CALL_TIMEOUT_MS 10000U
+
+    /** 起動時に同期で呼ぶ Inhibit の回数 (sleep と shutdown)。 */
+    #define SVC_INHIBIT_STARTUP_CALL_COUNT 2U
+
     /**
-     *  sd-bus の同期呼び出し (sd_bus_call_method) の既定のタイムアウト [ms] です。
-     *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call.html
+     *  systemd の既定の起動タイムアウト (DefaultTimeoutStartSec=) [ms]。unit に TimeoutStartSec= を指定していない。
+     *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd-system.conf.html
      */
-    #define SVC_SD_BUS_DEFAULT_CALL_TIMEOUT_MS 25000
+    #define SVC_SYSTEMD_DEFAULT_TIMEOUT_START_MS 90000U
 
     /**
      *  systemd の既定の停止タイムアウト (DefaultTimeoutStopSec=) [ms] です。
      *  unit に TimeoutStopSec= を指定していないため、この既定値が適用されます。
      *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd-system.conf.html
      */
-    #define SVC_SYSTEMD_DEFAULT_TIMEOUT_STOP_MS 90000
+    #define SVC_SYSTEMD_DEFAULT_TIMEOUT_STOP_MS 90000U
 
     /**
      *  イベント監視スレッドの終了を待機する時間 [ms]。
      *
-     *  スレッドの中の D-Bus の同期呼び出しが既定のタイムアウト (25 [s]) で戻るのを待てるよう、25 [s] より大きくします。\n
+     *  運転中の D-Bus の呼び出しはイベント ループを止めないため、この待ち時間が必要とする根拠は、
+     *  利用者のコールバック (on_event、on_reload) の完了だけです。\n
      *  systemd の停止タイムアウト (TimeoutStopSec=。unit で指定していないため、既定の 90 [s]) より小さくします。\n
+     *  unit の WatchdogSec (30 [s]) 以下です。\n
      *  この時間内に終了しない場合は、資源を解放せずにプロセスを異常終了させます。\n
-     *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_set_method_call_timeout.html \n
      *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html \n
      *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd-system.conf.html
      */
     #define SVC_EVENTS_JOIN_TIMEOUT_MS 30000
 
-static_assert(SVC_EVENTS_JOIN_TIMEOUT_MS > SVC_SD_BUS_DEFAULT_CALL_TIMEOUT_MS,
-              "join timeout must exceed the sd-bus call timeout");
+static_assert((SVC_INHIBIT_CALL_TIMEOUT_MS * SVC_INHIBIT_STARTUP_CALL_COUNT) < SVC_SYSTEMD_DEFAULT_TIMEOUT_START_MS,
+              "inhibit calls at startup must finish before TimeoutStartSec");
 static_assert(SVC_EVENTS_JOIN_TIMEOUT_MS < SVC_SYSTEMD_DEFAULT_TIMEOUT_STOP_MS,
               "join timeout must be shorter than TimeoutStopSec");
+static_assert(SVC_EVENTS_JOIN_TIMEOUT_MS <= (SVC_UNIT_WATCHDOG_SEC * 1000U),
+              "join timeout must not exceed WatchdogSec");
 
     /**
      *  watchdog の確認周期を求めるための除数です (期限の 1/4)。
      *  on_run() の呼び出し間隔の上限 (期限の 1/2 未満) と合わせて、通知間隔の最大値を期限の 3/4 未満に保ちます。
+     *  運転中の D-Bus の呼び出しはイベント ループを止めないため、この計算に D-Bus の項は入れません。
      */
     #define SVC_WATCHDOG_CHECK_DIVISOR 4U
 
@@ -140,6 +158,21 @@ typedef enum svc_linux_events_phase
 } svc_linux_events_phase;
 
 /**
+ *  @brief          logind の delay inhibitor lock 1 件の状態。
+ *
+ *  fd は複製した lock の fd です。未取得は -1 です。\n
+ *  slot は応答待ちの非同期呼び出しです。応答待ちでなければ NULL です。\n
+ *  'h' で受け取った fd は応答メッセージが所有するため、複製した fd だけを保持します。
+ */
+typedef struct svc_inhibit_lock
+{
+    const char *what;  /**< 対象 ("sleep" または "shutdown")。 */
+    sd_bus_slot *slot; /**< 応答待ちの呼び出し。応答待ちでなければ NULL。 */
+    int fd;            /**< 取得済みの lock の fd。未取得は -1。 */
+    int pad;           /**< 明示的アラインメントです。0 を指定します。 */
+} svc_inhibit_lock;
+
+/**
  *  @brief          イベント監視スレッドの内部状態。
  */
 typedef struct svc_linux_events_ctx
@@ -149,7 +182,7 @@ typedef struct svc_linux_events_ctx
     sd_event *event;                  /**< sd_event ループ。スレッド内で生成・解放します。 */
     sd_bus *bus;                      /**< system bus 接続。接続失敗時は NULL。 */
     sd_event_source *stop_source;     /**< 停止指示の監視。スレッド内で生成・解放します。 */
-    sd_event_source *reload_source;   /**< SIGHUP 転送の監視。スレッド内で生成・解放します。 */
+    sd_event_source *reload_source;   /**< SIGHUP の監視。スレッド内で生成・解放します。 */
     sd_event_source *watchdog_source; /**< watchdog の確認のタイマー。watchdog が要求されていない場合は NULL。 */
     cplat_local_lock *init_lock;      /**< init_state を保護するロック。 */
     cplat_condvar *init_cv;           /**< init_state の変化を通知する条件変数。 */
@@ -158,27 +191,23 @@ typedef struct svc_linux_events_ctx
     int watchdog_warned;              /**< on_run() の停滞の WARNING を出力済みかどうか。1 = 出力済み。 */
     int init_state;                   /**< 初期化の状態 (svc_linux_events_init_state の値)。init_lock で保護。 */
     int stop_fd;                      /**< 停止指示用 eventfd。未生成時は -1。 */
-    int reload_fd;                    /**< SIGHUP 転送用 eventfd。未生成時は -1。 */
-    int inhibit_sleep_fd;             /**< サスペンドの delay inhibitor lock。未取得時は -1。 */
-    int inhibit_shutdown_fd;          /**< シャットダウンの delay inhibitor lock。未取得時は -1。 */
+    svc_inhibit_lock inhibit_sleep;   /**< サスペンドの delay inhibitor lock。 */
+    svc_inhibit_lock inhibit_shutdown; /**< シャットダウンの delay inhibitor lock。 */
     int pad;                          /**< 明示的アラインメントです。0 を指定します。 */
 } svc_linux_events_ctx;
 
 /** イベント監視スレッドの内部状態 (プロセスで 1 つ)。 */
 static svc_linux_events_ctx s_ctx = {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1, -1, -1, -1, 0};
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1,
+    {"sleep", NULL, -1, 0},
+    {"shutdown", NULL, -1, 0},
+    0};
 
 /** 実行中のイベント ループの異常終了を記録します。1 = 異常終了した。 */
 static cplat_atomic_i32 s_loop_failed = CPLAT_ATOMIC_INIT(0);
 
 /** サービスの動作段階 (svc_linux_events_phase の値)。 */
 static cplat_atomic_i32 s_phase = CPLAT_ATOMIC_INIT(SVC_LINUX_EVENTS_PHASE_STARTING);
-
-/** SIGHUP ハンドラー設定前のアクション (svc_linux_events_stop() で復元する)。 */
-static struct sigaction s_old_sighup_action;
-
-/** SIGHUP ハンドラーを設定済みかどうか。1 = 設定済み。 */
-static int s_sighup_installed = 0;
 
 /*
  * ============================================================
@@ -227,92 +256,310 @@ void svc_linux_events_enter_stopping(void)
 
 /*
  * ============================================================
- *  SIGHUP ハンドラー (self-pipe)
- * ============================================================
- */
-
-/**
- *  @brief          SIGHUP を reload 用 eventfd に転送します。
- *  @param[in]      signum  シグナル番号 (未使用)。
- *
- *  シグナル ハンドラーのため async-signal-safe な write() のみを使用します。
- */
-static void sighup_signal_handler(int signum)
-{
-    uint64_t value;
-    ssize_t written;
-
-    (void)signum;
-
-    if (s_ctx.reload_fd >= 0)
-    {
-        value = 1;
-        written = write(s_ctx.reload_fd, &value, sizeof(value));
-        (void)written;
-    }
-}
-
-/*
- * ============================================================
  *  inhibitor lock
  * ============================================================
  */
 
 /**
- *  @brief          logind の delay inhibitor lock を取得します。
- *  @param[in]      what    対象 ("sleep" または "shutdown")。
- *  @return         取得した lock の fd。失敗時は -1 を返します。
+ *  @brief          logind の Inhibit の要求メッセージを作ります。
+ *  @param[in]      what        対象 ("sleep" または "shutdown")。
+ *  @param[out]     message     作成したメッセージ。失敗時は NULL。
+ *  @return         成功時は CPLAT_OK、失敗時は負の systemd のエラーを返します。
  *
- *  lock は fd の close で解放されます。\n
- *  delay lock のため、イベント発生から logind の InhibitDelayMaxSec
- *  (既定 5 [s]) が経過すると lock の解放を待たずに処理が進みます。
+ *  引数は、対象、サービス名、理由、"delay" の 4 つです。\n
+ *  作成に失敗した場合は、作成済みのメッセージがあれば 1 回だけ解放し、*message を NULL に戻します。
  */
-static int acquire_inhibit_lock(const char *what)
+static int build_inhibit_message(const char *what, sd_bus_message **message)
 {
-    sd_bus_error error = SD_BUS_ERROR_NULL;
-    sd_bus_message *reply = NULL;
-    int fd;
-    int lock_fd;
+    const char *reason = "イベント コールバックの実行猶予を確保するため";
+    const char *mode = "delay";
+    const char *service_name;
     int rc;
 
-    lock_fd = -1;
-    rc = sd_bus_call_method(s_ctx.bus, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE, "Inhibit", &error, &reply,
-                            "ssss", what, s_ctx.def->name, "イベント コールバックの実行猶予を確保するため", "delay");
+    *message = NULL;
+    rc = sd_bus_message_new_method_call(s_ctx.bus, message, LOGIND_SERVICE, LOGIND_OBJECT, LOGIND_INTERFACE,
+                                        "Inhibit");
     if (rc < 0)
     {
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+        if (*message != NULL)
+        {
+            /*
+             * 作成途中のメッセージは、この関数が所有するため、1 回だけ解放する。
+             * 解放後のポインターは判定に使わないため、戻り値は明示的に破棄する。
+             */
+            (void)sd_bus_message_unref(*message);
+            *message = NULL;
+        }
+
+        return rc;
+    }
+
+    service_name = s_ctx.def->name;
+    /* 's' は、文字列そのものではなく、const char * を指すポインターを渡す。 */
+    rc = sd_bus_message_append_basic(*message, 's', &what);
+    if (rc >= 0)
+    {
+        rc = sd_bus_message_append_basic(*message, 's', &service_name);
+    }
+
+    if (rc >= 0)
+    {
+        rc = sd_bus_message_append_basic(*message, 's', &reason);
+    }
+
+    if (rc >= 0)
+    {
+        rc = sd_bus_message_append_basic(*message, 's', &mode);
+    }
+
+    if (rc < 0)
+    {
+        /* 作成済みのメッセージは、この関数が所有するため、1 回だけ解放する。解放後のポインターは判定に使わないため、戻り値は明示的に破棄する。 */
+        (void)sd_bus_message_unref(*message);
+        *message = NULL;
+        return rc;
+    }
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          応答から delay inhibitor lock の fd を複製して保持します。
+ *  @param[in,out]  lock    対象の lock。
+ *  @param[in]      reply   応答メッセージ。'h' の fd は、このメッセージが所有します。
+ *  @return         成功時は CPLAT_OK、失敗時は CPLAT_ERR_UNKNOWN を返します。
+ *
+ *  すでに fd を保持している場合は、メッセージを読まず、既存の fd を変えません。\n
+ *  読み取りの成功は 1 です。0 は配列の終端、負値は失敗であり、どちらも fcntl() を呼びません。\n
+ *  複製に失敗した場合は、lock->fd を -1 のままにし、借用した fd は閉じません。\n
+ *  see: https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-bus/bus-message.c \n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_message_read_basic.html \n
+ *  see: https://man7.org/linux/man-pages/man2/fcntl.2.html
+ */
+static int store_inhibit_fd(svc_inhibit_lock *lock, sd_bus_message *reply)
+{
+    int fd;
+    int lock_fd;
+
+    if (lock->fd != -1)
+    {
+        return CPLAT_OK;
+    }
+
+    fd = -1;
+    if (sd_bus_message_read_basic(reply, 'h', &fd) <= 0)
+    {
+        return CPLAT_ERR_UNKNOWN;
+    }
+
+    /*
+     * fd は reply メッセージが所有するため、複製して保持する。
+     * 複製先は、標準入出力 (0 から 2) より後の最小の fd 番号とする。
+     * 借用した fd は閉じない。
+     * see: https://man7.org/linux/man-pages/man2/fcntl.2.html
+     */
+    lock_fd = fcntl(fd, F_DUPFD_CLOEXEC, STDERR_FILENO + 1);
+    if (lock_fd < 0)
+    {
+        return CPLAT_ERR_UNKNOWN;
+    }
+
+    lock->fd = lock_fd;
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          起動時に、logind の delay inhibitor lock を同期で取得します。
+ *  @param[in,out]  lock    対象の lock。未取得の fd は -1 のままにします。
+ *
+ *  期限は、呼び出しごとに 10 [s] です。失敗しても起動は続け、WARNING を出します。\n
+ *  要求メッセージ、非 NULL の応答、sd_bus_error は、成功と失敗のすべての経路で 1 回解放します。\n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call.html \n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_error.html
+ */
+static void acquire_inhibit_lock_sync(svc_inhibit_lock *lock)
+{
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    sd_bus_message *m = NULL;
+    sd_bus_message *reply = NULL;
+    int rc;
+
+    lock->fd = -1;
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    rc = build_inhibit_message(lock->what, &m);
+    if (rc < 0)
+    {
         (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                  "inhibitor lock (%s) の取得に失敗しました: %s", what, strerror(-rc));
+                                  "inhibitor lock (%s) の要求の作成に失敗しました: %s", lock->what, strerror(-rc));
     }
     else
     {
-        rc = sd_bus_message_read(reply, "h", &fd);
+        rc = sd_bus_call(s_ctx.bus, m, (uint64_t)SVC_INHIBIT_CALL_TIMEOUT_MS * 1000ULL, &error, &reply);
         if (rc < 0)
         {
             (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                      "inhibitor lock (%s) の fd を取得できませんでした: %s", what, strerror(-rc));
+                                      "inhibitor lock (%s) の取得に失敗しました: %s", lock->what, strerror(-rc));
         }
-        else
+        else if (store_inhibit_fd(lock, reply) != CPLAT_OK)
         {
-            /*
-             * fd は reply メッセージが所有するため、複製して保持する。
-             * 複製先は、標準入出力 (0 から 2) より後の最小の fd 番号とする。
-             * see: https://man7.org/linux/man-pages/man2/fcntl.2.html
-             */
-            lock_fd = fcntl(fd, F_DUPFD_CLOEXEC, STDERR_FILENO + 1);
-            if (lock_fd < 0)
-            {
-                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                          "inhibitor lock (%s) の fd を複製できませんでした。", what);
-            }
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "inhibitor lock (%s) の fd を保存できませんでした。", lock->what);
         }
+    }
 
-        sd_bus_message_unref(reply);
+    if (m != NULL)
+    {
+        /* 要求メッセージは、この関数が所有するため、1 回解放する。解放後のポインターは判定に使わないため、戻り値は明示的に破棄する。 */
+        (void)sd_bus_message_unref(m);
+    }
+
+    if (reply != NULL)
+    {
+        /* 同期の応答は、この関数が所有するため、1 回解放する。解放後のポインターは判定に使わないため、戻り値は明示的に破棄する。 */
+        (void)sd_bus_message_unref(reply);
     }
 
     sd_bus_error_free(&error);
+}
 
-    return lock_fd;
+/**
+ *  @brief          非同期の Inhibit の応答を処理します。
+ *  @param[in]      m           応答メッセージ。借用であり、この関数は解放しません。
+ *  @param[in]      userdata    対象の svc_inhibit_lock。
+ *  @param[in]      ret_error   出力用のエラー。この関数は解放しません。
+ *  @return         常に 0 を返します。期限切れの後に自動では再試行しません。
+ *
+ *  先頭で応答待ちの slot を解除します。応答が method error の場合、読み取りに失敗した場合、
+ *  複製に失敗した場合は、fd を -1 のままにします。\n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call_async.html \n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_slot_unref.html \n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_error.html \n
+ *  see: https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-bus/sd-bus.c
+ */
+static int on_inhibit_reply(sd_bus_message *m, void *userdata, sd_bus_error *ret_error)
+{
+    svc_inhibit_lock *lock;
+    const sd_bus_error *bus_error;
+    const char *error_name;
+
+    lock = (svc_inhibit_lock *)userdata;
+    if (lock->slot != NULL)
+    {
+        lock->slot = sd_bus_slot_unref(lock->slot);
+    }
+
+    (void)ret_error;
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    if (sd_bus_message_is_method_error(m, NULL) != 0)
+    {
+        bus_error = sd_bus_message_get_error(m);
+        error_name = "";
+        if ((bus_error != NULL) && (bus_error->name != NULL))
+        {
+            error_name = bus_error->name;
+        }
+
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "inhibitor lock (%s) の応答がエラーです: %s", lock->what, error_name);
+        return 0;
+    }
+
+    if (store_inhibit_fd(lock, m) != CPLAT_OK)
+    {
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "inhibitor lock (%s) の fd を保存できませんでした。", lock->what);
+    }
+
+    return 0;
+}
+
+/**
+ *  @brief          応答待ちの Inhibit の登録を解除します。
+ *  @param[in,out]  lock    対象の lock。slot は NULL にします。
+ *
+ *  logind へ届いた要求自体は取り消しません。登録を解除すると、コールバックは呼ばれません。\n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_slot_unref.html \n
+ *  see: https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-bus/bus-slot.c
+ */
+static void cancel_inhibit_request(svc_inhibit_lock *lock)
+{
+    if (lock->slot != NULL)
+    {
+        lock->slot = sd_bus_slot_unref(lock->slot);
+    }
+}
+
+/**
+ *  @brief          運転中に、logind の delay inhibitor lock を非同期で要求します。
+ *  @param[in,out]  lock    対象の lock。
+ *
+ *  取得済み、または応答待ちの場合は、新しい要求を作りません。\n
+ *  期限は、呼び出しごとに 10 [s] です。失敗しても自動では再試行しません。\n
+ *  要求メッセージは、成功と失敗を問わず 1 回解放します。\n
+ *  see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call_async.html
+ */
+static void request_inhibit_lock_async(svc_inhibit_lock *lock)
+{
+    sd_bus_message *m = NULL;
+    int rc;
+
+    if ((lock->fd >= 0) || (lock->slot != NULL))
+    {
+        return;
+    }
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    rc = build_inhibit_message(lock->what, &m);
+    if (rc < 0)
+    {
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "inhibitor lock (%s) の要求の作成に失敗しました: %s", lock->what, strerror(-rc));
+        return;
+    }
+
+    rc = sd_bus_call_async(s_ctx.bus, &lock->slot, m, on_inhibit_reply, lock,
+                           (uint64_t)SVC_INHIBIT_CALL_TIMEOUT_MS * 1000ULL);
+    /*
+     * 要求メッセージは、呼び出し元であるこの関数が所有するため、成功と失敗を問わず 1 回解放する。
+     * 解放後のポインターは判定に使わないため、戻り値は明示的に破棄する。
+     */
+    (void)sd_bus_message_unref(m);
+
+    if (rc < 0)
+    {
+        if (lock->slot != NULL)
+        {
+            lock->slot = sd_bus_slot_unref(lock->slot);
+        }
+
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "inhibitor lock (%s) の非同期の要求に失敗しました: %s", lock->what, strerror(-rc));
+    }
+}
+
+/**
+ *  @brief          delay inhibitor lock 1 件の応答待ちと fd を解放します。
+ *  @param[in,out]  lock    対象の lock。
+ *
+ *  応答待ちの slot を先に解除し、fd を 1 回だけ閉じます。close が失敗しても再試行せず、fd を -1 にします。\n
+ *  閉じる前にバスは解放しません。\n
+ *  see: https://man7.org/linux/man-pages/man2/close.2.html
+ */
+static void release_inhibit_lock(svc_inhibit_lock *lock)
+{
+    cancel_inhibit_request(lock);
+
+    if (lock->fd >= 0)
+    {
+        /*
+         * Linux の close は失敗しても fd を解放して再試行できないため、戻り値は明示的に破棄する。
+         * see: https://man7.org/linux/man-pages/man2/close.2.html
+         */
+        (void)cplat_close(lock->fd, NULL);
+        lock->fd = -1;
+    }
 }
 
 /**
@@ -320,22 +567,8 @@ static int acquire_inhibit_lock(const char *what)
  */
 static void release_inhibit_locks(void)
 {
-    /*
-     * 解放の処理であり、Linux の close は失敗しても fd を解放して再試行できないため、
-     * この関数の cplat_close の戻り値は明示的に破棄する。
-     * see: https://man7.org/linux/man-pages/man2/close.2.html
-     */
-    if (s_ctx.inhibit_sleep_fd >= 0)
-    {
-        (void)cplat_close(s_ctx.inhibit_sleep_fd, NULL);
-        s_ctx.inhibit_sleep_fd = -1;
-    }
-
-    if (s_ctx.inhibit_shutdown_fd >= 0)
-    {
-        (void)cplat_close(s_ctx.inhibit_shutdown_fd, NULL);
-        s_ctx.inhibit_shutdown_fd = -1;
-    }
+    release_inhibit_lock(&s_ctx.inhibit_sleep);
+    release_inhibit_lock(&s_ctx.inhibit_shutdown);
 }
 
 /*
@@ -364,20 +597,90 @@ static void dispatch_event_while_running(const svc_event_info *info)
 }
 
 /**
+ *  @brief          PrepareForSleep の開始と復帰を処理します。
+ *  @param[in]      starting    0 以外はサスペンドの開始、0 は復帰。
+ *
+ *  開始時は、応答待ちを解除してからイベントを配送し、その後に fd を閉じます。\n
+ *  復帰時は、イベントを配送してから非同期で lock を要求します。\n
+ *  動作中の段階でない場合もイベントは配送しませんが、lock の解放と再取得は行います。
+ */
+static void handle_prepare_for_sleep(int starting)
+{
+    svc_event_info info;
+
+    info.session_id = NULL;
+
+    if (starting != 0)
+    {
+        cancel_inhibit_request(&s_ctx.inhibit_sleep);
+        info.type = SVC_EVENT_POWER_SUSPEND;
+        dispatch_event_while_running(&info);
+
+        /* イベントの配送の後に fd を閉じ、サスペンドを許可する。 */
+        if (s_ctx.inhibit_sleep.fd >= 0)
+        {
+            /*
+             * Linux の close は失敗しても fd を解放して再試行できないため、戻り値は明示的に破棄する。
+             * see: https://man7.org/linux/man-pages/man2/close.2.html
+             */
+            (void)cplat_close(s_ctx.inhibit_sleep.fd, NULL);
+            s_ctx.inhibit_sleep.fd = -1;
+        }
+    }
+    else
+    {
+        info.type = SVC_EVENT_POWER_RESUME;
+        dispatch_event_while_running(&info);
+        request_inhibit_lock_async(&s_ctx.inhibit_sleep);
+    }
+}
+
+/**
+ *  @brief          PrepareForShutdown の開始と取り消しを処理します。
+ *  @param[in]      starting    0 以外はシャットダウンの開始、0 は取り消し。
+ *
+ *  開始時は、応答待ちを解除してからイベントを配送し、その後に fd を閉じます。\n
+ *  取り消し時は、イベントを配送せず、非同期で lock を要求します。\n
+ *  実際のサービス停止は、この後 systemd が送る SIGTERM (既存の停止経路) で処理されます。
+ */
+static void handle_prepare_for_shutdown(int starting)
+{
+    svc_event_info info;
+
+    if (starting != 0)
+    {
+        cancel_inhibit_request(&s_ctx.inhibit_shutdown);
+        info.type = SVC_EVENT_PRESHUTDOWN;
+        info.session_id = NULL;
+        dispatch_event_while_running(&info);
+
+        /* イベントの配送の後に fd を閉じ、シャットダウンを許可する。 */
+        if (s_ctx.inhibit_shutdown.fd >= 0)
+        {
+            /*
+             * Linux の close は失敗しても fd を解放して再試行できないため、戻り値は明示的に破棄する。
+             * see: https://man7.org/linux/man-pages/man2/close.2.html
+             */
+            (void)cplat_close(s_ctx.inhibit_shutdown.fd, NULL);
+            s_ctx.inhibit_shutdown.fd = -1;
+        }
+    }
+    else
+    {
+        request_inhibit_lock_async(&s_ctx.inhibit_shutdown);
+    }
+}
+
+/**
  *  @brief          logind の PrepareForSleep シグナルを処理します。
  *  @param[in]      m           受信したシグナル メッセージ。
  *  @param[in]      userdata    未使用。
  *  @param[in]      ret_error   未使用。
  *  @return         常に 0 を返します。
- *
- *  サスペンド開始時はイベント配送後に sleep lock を解放してサスペンドを
- *  許可し、復帰時はイベント配送後に次のサスペンドに備えて再取得します。\n
- *  動作中の段階でない場合もイベントは配送しませんが、lock の解放と再取得は行います。
  */
 static int on_prepare_for_sleep(sd_bus_message *m, void *userdata, sd_bus_error *ret_error)
 {
     int starting;
-    svc_event_info info;
 
     (void)userdata;
     (void)ret_error;
@@ -387,32 +690,7 @@ static int on_prepare_for_sleep(sd_bus_message *m, void *userdata, sd_bus_error 
         return 0;
     }
 
-    info.session_id = NULL;
-
-    if (starting != 0)
-    {
-        info.type = SVC_EVENT_POWER_SUSPEND;
-        dispatch_event_while_running(&info);
-
-        /* lock を解放してサスペンドを許可する。 */
-        if (s_ctx.inhibit_sleep_fd >= 0)
-        {
-            /*
-             * Linux の close は失敗しても fd を解放して再試行できないため、戻り値は明示的に破棄する。
-             * see: https://man7.org/linux/man-pages/man2/close.2.html
-             */
-            (void)cplat_close(s_ctx.inhibit_sleep_fd, NULL);
-            s_ctx.inhibit_sleep_fd = -1;
-        }
-    }
-    else
-    {
-        info.type = SVC_EVENT_POWER_RESUME;
-        dispatch_event_while_running(&info);
-
-        /* 次のサスペンドに備えて lock を再取得する。 */
-        s_ctx.inhibit_sleep_fd = acquire_inhibit_lock("sleep");
-    }
+    handle_prepare_for_sleep(starting);
 
     return 0;
 }
@@ -423,15 +701,10 @@ static int on_prepare_for_sleep(sd_bus_message *m, void *userdata, sd_bus_error 
  *  @param[in]      userdata    未使用。
  *  @param[in]      ret_error   未使用。
  *  @return         常に 0 を返します。
- *
- *  シャットダウン開始時はイベント配送後に shutdown lock を解放します。\n
- *  実際のサービス停止は、この後 systemd が送る SIGTERM (既存の停止経路)
- *  で処理されます。
  */
 static int on_prepare_for_shutdown(sd_bus_message *m, void *userdata, sd_bus_error *ret_error)
 {
     int starting;
-    svc_event_info info;
 
     (void)userdata;
     (void)ret_error;
@@ -441,31 +714,7 @@ static int on_prepare_for_shutdown(sd_bus_message *m, void *userdata, sd_bus_err
         return 0;
     }
 
-    if (starting != 0)
-    {
-        info.type = SVC_EVENT_PRESHUTDOWN;
-        info.session_id = NULL;
-        dispatch_event_while_running(&info);
-
-        /* lock を解放してシャットダウンを許可する。 */
-        if (s_ctx.inhibit_shutdown_fd >= 0)
-        {
-            /*
-             * Linux の close は失敗しても fd を解放して再試行できないため、戻り値は明示的に破棄する。
-             * see: https://man7.org/linux/man-pages/man2/close.2.html
-             */
-            (void)cplat_close(s_ctx.inhibit_shutdown_fd, NULL);
-            s_ctx.inhibit_shutdown_fd = -1;
-        }
-    }
-    else
-    {
-        /* シャットダウンが取り消された場合に備えて lock を再取得する。 */
-        if (s_ctx.inhibit_shutdown_fd < 0)
-        {
-            s_ctx.inhibit_shutdown_fd = acquire_inhibit_lock("shutdown");
-        }
-    }
+    handle_prepare_for_shutdown(starting);
 
     return 0;
 }
@@ -559,26 +808,19 @@ static int on_stop_requested(sd_event_source *source, int fd, uint32_t revents, 
 }
 
 /**
- *  @brief          SIGHUP 転送 (eventfd) を受けて設定再読込を配送します。
+ *  @brief          SIGHUP を受けて設定再読込を配送します。
  *  @param[in]      source      イベント ソース (未使用)。
- *  @param[in]      fd          reload 用 eventfd。
- *  @param[in]      revents     発生したイベント (未使用)。
+ *  @param[in]      info        受信したシグナルの情報 (未使用)。
  *  @param[in]      userdata    未使用。
  *  @return         常に 0 を返します。
  *
  *  on_reload が NULL の場合と、動作中の段階でない場合は、配送せずにトレースへ記録します。
  */
-static int on_reload_requested(sd_event_source *source, int fd, uint32_t revents, void *userdata)
+static int on_reload_requested(sd_event_source *source, const struct signalfd_siginfo *info, void *userdata)
 {
-    uint64_t value;
-    ssize_t bytes;
-
     (void)source;
-    (void)revents;
+    (void)info;
     (void)userdata;
-
-    bytes = read(fd, &value, sizeof(value));
-    (void)bytes;
 
     /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
     if (s_ctx.def->on_reload == NULL)
@@ -775,9 +1017,9 @@ static void setup_bus_monitoring(void)
                                   "SessionRemoved の購読に失敗しました: %s", strerror(-rc));
     }
 
-    /* イベント発生時にコールバックを実行する猶予を確保するため、delay lock を取得する。 */
-    s_ctx.inhibit_sleep_fd = acquire_inhibit_lock("sleep");
-    s_ctx.inhibit_shutdown_fd = acquire_inhibit_lock("shutdown");
+    /* イベント発生時にコールバックを実行する猶予を確保するため、delay lock を同期で取得する。 */
+    acquire_inhibit_lock_sync(&s_ctx.inhibit_sleep);
+    acquire_inhibit_lock_sync(&s_ctx.inhibit_shutdown);
 
     rc = sd_bus_attach_event(s_ctx.bus, s_ctx.event, SD_EVENT_PRIORITY_NORMAL);
     if (rc < 0)
@@ -878,11 +1120,16 @@ static int setup_required_sources(void)
                                   "停止監視の優先度を設定できませんでした: %s", strerror(-rc));
     }
 
-    rc = sd_event_add_io(s_ctx.event, &s_ctx.reload_source, s_ctx.reload_fd, EPOLLIN, on_reload_requested, NULL);
+    /*
+     * on_reload の有無によらず SIGHUP を登録する。ブロックは svc_os_prepare_run() が済ませている。
+     * -EBUSY は、SIGHUP がスレッドでブロックされていないこと (svc_os_prepare_run() の呼び忘れ) を示す。
+     */
+    rc = sd_event_add_signal(s_ctx.event, &s_ctx.reload_source, SIGHUP, on_reload_requested, NULL);
     if (rc < 0)
     {
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                  "reload 監視の登録に失敗しました: %s", strerror(-rc));
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "reload 監視の登録に失敗しました: %s",
+                                  strerror(-rc));
         s_ctx.reload_source = NULL;
         return -1;
     }
@@ -947,34 +1194,16 @@ static void events_thread_func(void *arg)
 /**
  *  @brief          start 失敗時・停止時にスレッド外の資源を解放します。
  *
- *  SIGHUP ハンドラーの復元 → eventfd の close の順に行います
- *  (close を先にするとハンドラーが解放済み fd へ書き込む可能性があるため)。\n
+ *  停止指示用の eventfd を閉じます。SIGHUP のブロックは、プロセスが終わるまで戻しません。\n
  *  起動の待ち合わせのロックと条件変数は、スレッドが通知を終えた後 (終了待ちの後) に破棄します。
  */
 static void release_local_resources(void)
 {
-    if (s_sighup_installed != 0)
-    {
-        /*
-         * 有効なシグナル番号 SIGHUP と保存済みの設定を渡し、sigaction の失敗の条件 (EFAULT、EINVAL) に
-         * 当たらないため、戻り値は明示的に破棄する。
-         * see: https://man7.org/linux/man-pages/man2/sigaction.2.html
-         */
-        (void)sigaction(SIGHUP, &s_old_sighup_action, NULL);
-        s_sighup_installed = 0;
-    }
-
     /*
      * 解放の処理であり、Linux の close は失敗しても fd を解放して再試行できないため、
-     * この 2 つの cplat_close の戻り値は明示的に破棄する。
+     * この関数の cplat_close の戻り値は明示的に破棄する。
      * see: https://man7.org/linux/man-pages/man2/close.2.html
      */
-    if (s_ctx.reload_fd >= 0)
-    {
-        (void)cplat_close(s_ctx.reload_fd, NULL);
-        s_ctx.reload_fd = -1;
-    }
-
     if (s_ctx.stop_fd >= 0)
     {
         (void)cplat_close(s_ctx.stop_fd, NULL);
@@ -994,34 +1223,6 @@ static void release_local_resources(void)
     }
 
     s_ctx.def = NULL;
-}
-
-/**
- *  @brief          SIGHUP を reload 用 eventfd へ転送するハンドラーを設定します。
- *  @return         成功時は 0、失敗時は -1 を返します。
- */
-static int install_sighup_handler(void)
-{
-    struct sigaction action = {0};
-
-    action.sa_handler = sighup_signal_handler;
-
-    /*
-     * シグナル番号を取らない sigemptyset は、失敗の条件 (signum の不正) に当たらないため、
-     * 戻り値は明示的に破棄する。
-     * see: https://man7.org/linux/man-pages/man3/sigemptyset.3.html
-     */
-    (void)sigemptyset(&action.sa_mask);
-    action.sa_flags = SA_RESTART;
-
-    if (sigaction(SIGHUP, &action, &s_old_sighup_action) != 0)
-    {
-        return -1;
-    }
-
-    s_sighup_installed = 1;
-
-    return 0;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */
@@ -1065,27 +1266,6 @@ int svc_linux_events_start(const svc_definition *def)
         return -1;
     }
 
-    /*
-     * on_reload の有無によらず、SIGHUP を受ける準備をする。
-     * ハンドラーがないと、SIGHUP の既定の動作でプロセスが終了するためである。
-     */
-    s_ctx.reload_fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-    if (s_ctx.reload_fd < 0)
-    {
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "reload 用 eventfd の生成に失敗しました。");
-        release_local_resources();
-        return -1;
-    }
-
-    if (install_sighup_handler() != 0)
-    {
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "SIGHUP ハンドラーの設定に失敗しました。");
-        release_local_resources();
-        return -1;
-    }
-
     result = cplat_thread_create(&s_ctx.thread, events_thread_func, NULL);
     if (result != CPLAT_OK)
     {
@@ -1098,8 +1278,9 @@ int svc_linux_events_start(const svc_definition *def)
 
     /*
      * スレッドの必須の初期化の完了を無期限に待つ。
-     * スレッドの中の呼び出しには個別の時間上限 (D-Bus の同期呼び出しは既定 25 [s]) があり、
+     * 起動時の Inhibit の同期呼び出しは、1 回 10 [s] で、sleep と shutdown の 2 回であり、READY=1 の前に終わる。
      * 全体は systemd の TimeoutStartSec= (既定 90 [s]) が打ち切る。
+     * see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call.html
      */
     cplat_local_lock_lock(s_ctx.init_lock);
     while (s_ctx.init_state == SVC_LINUX_EVENTS_INIT_PENDING)

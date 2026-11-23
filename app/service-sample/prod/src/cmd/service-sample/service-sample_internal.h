@@ -27,4 +27,11 @@
  */
 #define SVC_FAILURE_RESTART_DELAY_SEC 5U
 
+/**
+ *  unit の WatchdogSec= に書く秒数。
+ *
+ *  service-sample_linux.c の unit 生成と、イベント監視スレッドの停止待ちの static_assert が、同じ値を使います。
+ */
+#define SVC_UNIT_WATCHDOG_SEC 30U
+
 #endif /* SERVICE_SAMPLE_INTERNAL_H */

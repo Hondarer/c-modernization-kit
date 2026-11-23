@@ -186,4 +186,21 @@ sd_event_source *mock_sd_event_source_unref(const char *file, const int line, co
                                       : delegate_real_sd_event_source_unref(file, line, func, s);
 }
 
+int delegate_real_sd_event_add_signal(const char *file, const int line, const char *func, sd_event *e,
+                                      sd_event_source **s, int sig, sd_event_signal_handler_t callback, void *userdata)
+{
+    (void)file;
+    (void)line;
+    (void)func;
+    return sd_event_add_signal(e, s, sig, callback, userdata);
+}
+
+int mock_sd_event_add_signal(const char *file, const int line, const char *func, sd_event *e, sd_event_source **s,
+                             int sig, sd_event_signal_handler_t callback, void *userdata)
+{
+    return (_mock_systemd != nullptr)
+               ? _mock_systemd->sd_event_add_signal(file, line, func, e, s, sig, callback, userdata)
+               : delegate_real_sd_event_add_signal(file, line, func, e, s, sig, callback, userdata);
+}
+
 #endif // _WIN32

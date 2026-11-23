@@ -380,6 +380,24 @@ extern "C"
     int svc_os_uninstall(const svc_definition *def);
 
     /**
+     *  @brief          run コマンドの実行の準備を行います (内部共有関数)。
+     *  @return         成功時は EXIT_SUCCESS、失敗時は EXIT_FAILURE を返します。
+     *
+     *  main() が、run コマンドで、トレーサーの開始とスレッドの生成より前に呼びます。\n
+     *  - Linux  : SIGHUP をブロックします。以後に生成するスレッドは、このマスクを引き継ぎます。
+     *             ブロックしたシグナルは、プロセスが終わるまで戻しません。\n
+     *  - Windows: 何もしません。
+     *
+     *  @attention      Linux では、ブロックしたマスクが fork と execve を越えて子プロセスへ引き継がれます。
+     *                  run の中で起動した子プロセスで SIGHUP を使う場合は、子の側でマスクを戻してください。
+     *                  cplat_process_start() は、子のシグナル マスクを変えません。
+     *
+     *  @par            スレッド セーフ
+     *  本関数はスレッド セーフではありません。
+     */
+    int svc_os_prepare_run(void);
+
+    /**
      *  @brief          サービスとして常駐起動します。
      *  @param[in]      def     サービス定義。NULL を渡してはなりません。
      *  @return         成功時は 0、失敗時は 0 以外を返します。
@@ -391,7 +409,7 @@ extern "C"
      *  - Windows: StartServiceCtrlDispatcher でサービス ディスパッチャーに接続します。\n
      *  \n
      *  Linux では、イベント監視スレッドの必須の初期化 (イベント ループの生成、停止監視、
-     *  watchdog のタイマー、SIGHUP の準備) に失敗した場合は、on_start() を呼ばず、READY=1 も送らずに
+     *  watchdog のタイマー、SIGHUP の受信の登録) に失敗した場合は、on_start() を呼ばず、READY=1 も送らずに
      *  失敗を返します。\n
      *  実行中にイベント ループが異常終了した場合は停止を要求し、ライフサイクル コールバックが成功していても失敗を返します。
      *

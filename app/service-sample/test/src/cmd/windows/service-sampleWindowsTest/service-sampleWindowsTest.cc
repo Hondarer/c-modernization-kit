@@ -466,3 +466,20 @@ TEST(service_sampleWindowsTest, run_and_stop_failures_report_on_run_exit_code)
     test_svc_stop_dispose();
     test_service_windows_set_status_handle(nullptr);
 }
+
+// svc_os_prepare_run() が成功を返し、SCM へ状態を報告しないことの確認
+TEST(service_sampleWindowsTest, prepare_run_succeeds_without_set_service_status)
+{
+    // Arrange
+    NiceMock<Mock_windows> mock_windows;
+
+    // Pre-Assert
+    EXPECT_CALL(mock_windows, SetServiceStatus(_, _, _, _, _)).Times(0);
+    // [Pre-Assert確認_正常系] - SetServiceStatus() が呼び出されないこと。
+
+    // Act
+    int actual_ret = svc_os_prepare_run(); // [手順] - svc_os_prepare_run() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - svc_os_prepare_run() の戻り値が EXIT_SUCCESS であること。
+}

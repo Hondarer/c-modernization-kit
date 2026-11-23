@@ -19,6 +19,6 @@ INCDIR += \
 	$(MYAPP_DIR)/prod/src/cmd/service-sample
 
 # ライブラリの指定
-# mock_systemd は sd-event.h と sd-daemon.h の関数を mock_sd_* として提供し、既定では実関数へ委譲する。
-# 関数名が異なるため、libsystemd (sd_bus と委譲先の実関数) と同時にリンクする。
+# mock_systemd は sd-event.h、sd-daemon.h、Inhibit に使う sd-bus.h の関数を mock_sd_* として提供し、既定では実関数へ委譲する。
+# 関数名が異なるため、libsystemd (委譲先の実関数と、mock していない sd-bus の関数) と同時にリンクする。
 LIBS += mock_cplat mock_libc mock_systemd systemd

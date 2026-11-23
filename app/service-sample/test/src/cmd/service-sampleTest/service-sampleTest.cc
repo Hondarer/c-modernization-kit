@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <vector>
@@ -24,6 +25,8 @@ using testing::Return;
 
 /** コールバックと OS フックの呼び出し順を記録する。 */
 static std::vector<std::string> g_calls;
+/** svc_os_prepare_run() の偽物が返す値。 */
+static int g_prepare_run_result = EXIT_SUCCESS;
 /** svc_os_notify_status() に渡されたテキストを記録する。 */
 static std::vector<std::string> g_status_texts;
 /** on_event に渡されたイベント情報を記録する。 */
@@ -124,6 +127,12 @@ extern "C"
         return EXIT_SUCCESS;
     }
 
+    int svc_os_prepare_run(void)
+    {
+        g_calls.push_back("prepare_run");
+        return g_prepare_run_result;
+    }
+
     int svc_os_run_service(const svc_definition *def)
     {
         (void)def;
@@ -167,6 +176,7 @@ class service_sampleTest : public Test
     void SetUp() override
     {
         g_calls.clear();
+        g_prepare_run_result = EXIT_SUCCESS;
         g_status_texts.clear();
         g_events.clear();
         g_event_session_ids.clear();
@@ -347,20 +357,86 @@ TEST_F(service_sampleTest, run_dispatch)
     const char *argv[] = {"service-sampleTest", "run"}; // [状態] - main() にコマンド "run" を与える。
 
     // Pre-Assert
+    {
+        InSequence sequence;
+        EXPECT_CALL(mock_cplat_, cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED))
+            .WillOnce(Invoke(
+                [this](cplat_tracer_concurrency_mode) -> cplat_tracer *
+                {
+                    EXPECT_EQ(std::vector<std::string>{"prepare_run"}, g_calls);
+                    return tracer_handle_;
+                }));
+        // [Pre-Assert確認_正常系] - cplat_tracer_create() の時点で、呼び出しが prepare_run だけであること。
+        // [Pre-Assert手順] - cplat_tracer_create() から tracer_handle_ を返す。
+    }
 
     // Act
     int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "run" を指定して __real_main() を呼び出す。
 
     // Assert
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - __real_main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(
-        1U,
-        g_calls
-            .size()); // [確認_正常系] - g_calls.size() の戻り値が 1U であること。(フックが 1 回だけ呼ばれることの確認)
-    EXPECT_EQ(
-        "os_run_service",
-        g_calls
-            [0]); // [確認_正常系] - g_calls[0] が "os_run_service" であること。(svc_os_run_service() が呼ばれることの確認)
+    ASSERT_EQ(2U, g_calls.size());       // [確認_正常系] - g_calls.size() の戻り値が 2U であること。
+    EXPECT_EQ("prepare_run", g_calls[0]); // [確認_正常系] - g_calls[0] が "prepare_run" であること。
+    EXPECT_EQ("os_run_service",
+              g_calls[1]); // [確認_正常系] - g_calls[1] が "os_run_service" であること。(prepare_run の後であることの確認)
+}
+
+// run の準備が失敗した場合に、トレーサーを生成せず EXIT_FAILURE を返すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, run_fails_when_prepare_run_fails)
+{
+    // Arrange
+    g_prepare_run_result = EXIT_FAILURE; // [状態] - svc_os_prepare_run() が失敗を返すように設定する。
+    int argc = 2;
+    const char *argv[] = {"service-sampleTest", "run"}; // [状態] - main() にコマンド "run" を与える。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_tracer_create(_)).Times(0);
+    // [Pre-Assert確認_異常系] - cplat_tracer_create() が呼び出されないこと。
+
+    // Act
+    testing::internal::CaptureStderr();
+    int actual_ret = __real_main(argc, (char **)&argv); // [手順] - コマンド "run" を指定して __real_main() を呼び出す。
+    std::string errors = testing::internal::GetCapturedStderr();
+
+    // Assert
+    EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - __real_main() の戻り値が EXIT_FAILURE であること。
+    ASSERT_EQ(1U, g_calls.size());       // [確認_異常系] - g_calls.size() の戻り値が 1U であること。
+    EXPECT_EQ("prepare_run", g_calls[0]); // [確認_異常系] - svc_os_run_service() が呼ばれないこと。
+    EXPECT_NE(std::string::npos, errors.find("エラー: run コマンドの実行の準備に失敗しました。"));
+    // [確認_異常系] - 標準エラー出力に、実行の準備の失敗の診断が出ること。
+}
+
+// install、uninstall、console では run の準備を呼ばないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, prepare_run_is_not_called_for_install_uninstall_console)
+{
+    // Arrange
+    int argc = 2;
+    const char *install_argv[] = {"service-sampleTest", "install"};
+    const char *uninstall_argv[] = {"service-sampleTest", "uninstall"};
+    const char *console_argv[] = {"service-sampleTest", "console"};
+
+    // Pre-Assert
+
+    // Act
+    int install_ret = __real_main(argc, (char **)&install_argv); // [手順] - コマンド "install" を指定して __real_main() を呼び出す。
+    bool install_prepared = std::find(g_calls.begin(), g_calls.end(), "prepare_run") != g_calls.end();
+    g_calls.clear();
+    int uninstall_ret =
+        __real_main(argc, (char **)&uninstall_argv); // [手順] - コマンド "uninstall" を指定して __real_main() を呼び出す。
+    bool uninstall_prepared = std::find(g_calls.begin(), g_calls.end(), "prepare_run") != g_calls.end();
+    g_calls.clear();
+    int console_ret = __real_main(argc, (char **)&console_argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+    bool console_prepared = std::find(g_calls.begin(), g_calls.end(), "prepare_run") != g_calls.end();
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, install_ret);   // [確認_正常系] - install の __real_main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_FALSE(install_prepared);         // [確認_正常系] - install で svc_os_prepare_run() が呼ばれないこと。
+    EXPECT_EQ(EXIT_SUCCESS, uninstall_ret); // [確認_正常系] - uninstall の __real_main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_FALSE(uninstall_prepared);       // [確認_正常系] - uninstall で svc_os_prepare_run() が呼ばれないこと。
+    EXPECT_EQ(EXIT_SUCCESS, console_ret);   // [確認_正常系] - console の __real_main() の戻り値が EXIT_SUCCESS であること。
+    EXPECT_FALSE(console_prepared);         // [確認_正常系] - console で svc_os_prepare_run() が呼ばれないこと。
 }
 
 /* ============================================================
@@ -1116,8 +1192,9 @@ TEST_F(service_sampleTest, tracer_start_failure_keeps_started_tracer)
 
     // Assert_3
     EXPECT_EQ(EXIT_SUCCESS, run_ret); // [確認_異常系] - run の __real_main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - run の呼び出しが 1 件であること。
-    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
+    ASSERT_EQ(2U, g_calls.size()); // [確認_異常系] - run の呼び出しが 2 件であること。
+    EXPECT_EQ("prepare_run", g_calls[0]); // [確認_異常系] - run で svc_os_prepare_run() が先に呼ばれること。
+    EXPECT_EQ("os_run_service", g_calls[1]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
     EXPECT_NE(std::string::npos, run_errors.find(start_diagnostic));
     // [確認_異常系] - run の標準エラー出力に、結果コードを含む診断が 1 行出ること。
 }
@@ -1227,8 +1304,9 @@ TEST_F(service_sampleTest, tracer_start_failure_discards_unstarted_tracer)
 
     // Assert_3
     EXPECT_EQ(EXIT_SUCCESS, run_ret); // [確認_異常系] - run の __real_main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - run の呼び出しが 1 件であること。
-    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
+    ASSERT_EQ(2U, g_calls.size()); // [確認_異常系] - run の呼び出しが 2 件であること。
+    EXPECT_EQ("prepare_run", g_calls[0]); // [確認_異常系] - run で svc_os_prepare_run() が先に呼ばれること。
+    EXPECT_EQ("os_run_service", g_calls[1]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
     EXPECT_EQ(nullptr, svc_get_tracer()); // [確認_異常系] - run の後の svc_get_tracer() の戻り値が nullptr であること。
 }
 
@@ -1280,8 +1358,9 @@ TEST_F(service_sampleTest, tracer_create_failure_skips_start)
 
     // Assert_3
     EXPECT_EQ(EXIT_SUCCESS, run_ret); // [確認_異常系] - run の __real_main() の戻り値が EXIT_SUCCESS であること。
-    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - run の呼び出しが 1 件であること。
-    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
+    ASSERT_EQ(2U, g_calls.size()); // [確認_異常系] - run の呼び出しが 2 件であること。
+    EXPECT_EQ("prepare_run", g_calls[0]); // [確認_異常系] - run で svc_os_prepare_run() が先に呼ばれること。
+    EXPECT_EQ("os_run_service", g_calls[1]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
 }
 
 /* ============================================================

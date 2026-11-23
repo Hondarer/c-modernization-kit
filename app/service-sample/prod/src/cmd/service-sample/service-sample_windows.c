@@ -7,6 +7,7 @@
  *  @version        1.0.0
  *
  *  Windows 固有のサービス処理を実装します。
+ *  - svc_os_prepare_run : run の入口では何もしない。
  *  - svc_os_run_service : SCM ディスパッチャーへの接続
  *  - svc_os_install     : CreateService による SCM 登録
  *  - svc_os_uninstall   : DeleteService による SCM 解除
@@ -515,6 +516,14 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
  *  OS フック実装
  * ============================================================
  */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int svc_os_prepare_run(void)
+{
+    /* Windows では、run の入口で行う準備がない。 */
+    return EXIT_SUCCESS;
+}
 
 int svc_os_run_service(const svc_definition *def)
 {
