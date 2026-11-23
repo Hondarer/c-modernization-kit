@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-23 20:00:46 JST
+最終更新日時: 2026-11-24 07:01:38 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o (継続案件の開始の記録。それより前の更新: claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
 稼働 OS: Windows
 上流文書: `261120-source-comment-bl003-remaining-57-overview.md` (全体管理文書)、`261120-source-comment-bl003-remaining-57-design.md` (最終仕様)、`261120-source-comment-bl003-remaining-57-discussion.md` (検討用 Markdown)、`261120-source-comment-bl003-remaining-57-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -37,22 +37,22 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-008 | service-sample の Linux で、切り離したイベント監視スレッドが解放済みの資源を参照する可能性がある | 作業中摘出 | 中 | 対応済み (実機確認待ち) |
 | BL-009 | `WriteConsoleU` が、入力の途中の NUL 以降を出力せずに全量を書いた扱いにする | 作業中摘出 | 低 | 対応済み (実機確認待ち) |
 | BL-011 | コンソールへの再接続の後に書き込みが失敗する事象の原因が、未特定である | 検討時見送り | 中 | 対応中 |
-| BL-023 | `file_api.c` の U 版のラッパーが、メモリ不足を `ERROR_INVALID_PARAMETER` で返す | 作業中摘出 | 低 | 対応中 |
+| BL-023 | `file_api.c` の U 版のラッパーが、メモリ不足を `ERROR_INVALID_PARAMETER` で返す | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-024 | `tcpServer_windows.c` が、`GetModuleFileNameU` の切り詰めを検査しない | 作業中摘出 | 低 | 対応中 |
 | BL-025 | `cplat_process_get_executable_path` の Linux 側が、切り詰めを検出できない | 作業中摘出 | 中 | 対応中 |
 | BL-026 | `cplat_makedirs` が、ディレクトリの作成の失敗をすべて `CPLAT_ERR_UNKNOWN` で返す | 作業中摘出 | 低 | 対応中 |
 | BL-027 | 一時ディレクトリの取得の、戻り値の境界の判定が 2 か所で違う | 作業中摘出 | 低 | 対応中 |
 | BL-028 | `cplat_path_equal` の Windows の比較が、非 ASCII の大文字と小文字を区別する | 作業中摘出 | 低 | 対応中 |
-| BL-029 | `struct-meta` の索引の登録が、フィールド名の表の作成の失敗を成功として扱う | 作業中摘出 | 中 | 対応中 |
+| BL-029 | `struct-meta` の索引の登録が、フィールド名の表の作成の失敗を成功として扱う | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
 | BL-030 | cplat の自動拡張のハッシュ テーブルが、削除済みのレコードを残したまま容量を増やし続ける | 作業中摘出 | 中 | 対応中 |
-| BL-031 | `service-sample` の Linux で、D-Bus の同期呼び出しの間は watchdog の通知を送れない | 作業中摘出 | 低 | 対応中 |
-| BL-032 | `service-sample` の文書の、自動再起動の停止の記載が、既定の制限と合わない可能性がある | 作業中摘出 | 低 | 対応中 |
-| BL-033 | `service-sample` の終了コードの推奨の範囲が、ヘッダーと文書で違う | 作業中摘出 | 低 | 対応中 |
-| BL-034 | `service-sample` の README のファイル構成に、記載のないファイルがある | 作業中摘出 | 低 | 対応中 |
-| BL-035 | `service-sample` の Linux で、停止の処理の後の SIGHUP でプロセスが終了する | 作業中摘出 | 低 | 対応中 |
+| BL-031 | `service-sample` の Linux で、D-Bus の同期呼び出しの間は watchdog の通知を送れない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
+| BL-032 | `service-sample` の文書の、自動再起動の停止の記載が、既定の制限と合わない可能性がある | 作業中摘出 | 低 | 対応済み |
+| BL-033 | `service-sample` の終了コードの推奨の範囲が、ヘッダーと文書で違う | 作業中摘出 | 低 | 対応済み |
+| BL-034 | `service-sample` の README のファイル構成に、記載のないファイルがある | 作業中摘出 | 低 | 対応済み |
+| BL-035 | `service-sample` の Linux で、停止の処理の後の SIGHUP でプロセスが終了する | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-036 | `service-sample` で、リロードの実行中に停止が始まると、停止中の通知の後に起動の完了の通知が送られる | 作業中摘出 | 低 | 対応中 |
-| BL-037 | `service-sample` の Windows と共通の処理で、コールバックの順序の実装が 2 つある | 作業中摘出 | 低 | 対応中 |
-| BL-038 | `app/porter` の `potr_service_close.c` の、読まれない 0 の格納 | 作業中摘出 | 低 | 対応中 |
+| BL-037 | `service-sample` の Windows と共通の処理で、コールバックの順序の実装が 2 つある | 作業中摘出 | 低 | 対応済み |
+| BL-038 | `app/porter` の `potr_service_close.c` の、読まれない 0 の格納 | 作業中摘出 | 低 | 対応済み |
 | BL-039 | `platform.h` の静的検査が、`static_assert` への統一の規範に従っていない | 作業中摘出 | 中 | 対応中 |
 | BL-040 | Doxybook2 の生成物で、拡張パスの接頭辞の後に endiskip が表示される | 作業中摘出 | 低 | 対応中 |
 | BL-041 | 受入条件 9 の実機での確認 (Windows と Linux の systemd) が未実施である | 検討時見送り | 中 | 未着手 |
@@ -219,7 +219,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: 残課題の調査でさらに見つかった気付きは、残課題一覧へ記録し、この案件では扱わないと決定したためです (検討用 Markdown の Q-041 の回答 A、簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-015)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、公開の変換の関数を、結果コードを返す形へ変える方針が決まりました。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-015)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、公開の変換の関数を、結果コードを返す形へ変える方針が決まりました。 2026-11-24 に、文字コードの変換の 6 関数を結果コードを返す形へ変え、不正なバイト列を `CPLAT_ERR_INVALID_ENCODING` で拒否し、U 版のラッパーは確保の失敗を `ERROR_OUTOFMEMORY` で返して、W 版の最終エラーを解放の後も保つ形へ直しました (`app/cplat` のコミット `02e6892a` と `924bb25b`、`framework/testfw` のコミット `c84b498`、ルートのコミット `fe35f7c6` と `9214713f`)。Windows のフル ビルドと `app/cplat` の全体のテストが成功しました。Linux の CI の結果は確認中です。
 
 ### 影響範囲とリスク
 
@@ -357,7 +357,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-019)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、同名のフィールドを含む記述子を、記述子の検査で拒否する方針が決まりました。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-019)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、同名のフィールドを含む記述子を、記述子の検査で拒否する方針が決まりました。 2026-11-24 に、同名のフィールドを検査と組み立てで拒否し、索引の登録の失敗を呼び出しの単位で取り消す形へ直しました (ルートのコミット `f97e0c91`)。あわせて、文字列の入力の構文解析で行番号を初期化していなかった不具合を直しました。Windows でテスト 123 件が成功しました。Linux の CI の結果は確認中です。
 
 ### 影響範囲とリスク
 
@@ -403,7 +403,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-021)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-021)。 2026-11-24 に、logind の inhibitor lock の取得を、起動の時は期限 10 [s] の同期の呼び出しを最大 2 回、運転中の再取得は同じ期限の `sd_bus_call_async()` にしました (ルートのコミット `80c0a286`)。Linux だけの分岐のため、手元ではコンパイルしていません。Linux の CI の結果は確認中です。 実機 (logind) での確認は、継続案件の残課題一覧へ記録します。
 
 ### 影響範囲とリスク
 
@@ -426,7 +426,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-022)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-022)。 2026-11-24 に、生成する unit の `[Unit]` へ `StartLimitIntervalSec=60` と `StartLimitBurst=5` を明示しました (ルートのコミット `1413248e`)。Linux の CI (3 つのジョブ) が成功しました。systemd の実機での確認 (6 回目の起動の拒否) は、継続案件の残課題一覧へ記録します。
 
 ### 影響範囲とリスク
 
@@ -449,7 +449,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-023)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-023)。 2026-11-24 に、コールバックの失敗値の推奨の範囲を、`service-sample.h` と `docs/service-events.md` で「1 から 125 (3 を除く)」にそろえ、`svc_run_lifecycle()` と `svc_run_callbacks()` の説明へ、範囲を検査しないことを記載しました (ルートのコミット `1413248e`)。
 
 ### 影響範囲とリスク
 
@@ -472,7 +472,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。`service-sample_internal.h` の記載の抜けは、2026-11-22 の整理で見つけました。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、README のファイル構成に記載のない 4 つのファイルを足す案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、README のファイル構成に記載のない 4 つのファイルを足す案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。 2026-11-24 に、README のファイル構成を、追跡対象の 10 ファイルに合わせました (ルートのコミット `1413248e`)。
 
 ### 影響範囲とリスク
 
@@ -495,7 +495,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。この案件では、`on_reload` がない場合にも SIGHUP のハンドラーを設定する修正を行いましたが、停止の処理の後の期間は対象にしていません。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、SIGHUP を入口でマスクし、`sd_event_add_signal` で受信する方針が決まりました (継続案件の簡易 ADR の LADR-033)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、SIGHUP を入口でマスクし、`sd_event_add_signal` で受信する方針が決まりました (継続案件の簡易 ADR の LADR-033)。 2026-11-24 に、`run` の入口で SIGHUP をブロックし、イベント ループが `sd_event_add_signal()` で受ける形へ変えました (`framework/testfw` のコミット `2e3339e`、ルートのコミット `80c0a286`)。Linux だけの分岐のため、手元ではコンパイルしていません。Linux の CI の結果は確認中です。
 
 ### 影響範囲とリスク
 
@@ -541,7 +541,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-025)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-025)。 2026-11-24 に、コールバックの順序と失敗値の採用を `svc_run_callbacks()` へ集約し、`svc_run_lifecycle()` と Windows の `service_main()` の両方から呼ぶ形にしました (ルートのコミット `1413248e`)。Windows のテスト (40 件) と Linux の CI が成功しました。
 
 ### 影響範囲とリスク
 
@@ -564,7 +564,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。解消済みの BL-020 (この一覧から除いた項目) の一部として調べ、問題ではないと分かった箇所です (全体管理文書の経緯の 2026-11-21 07:09)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、読まれない 0 の格納の 2 つのループを削除する案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、読まれない 0 の格納の 2 つのループを削除する案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。 2026-11-24 に、`close_impl()` の、停止の後に読まれない送信時刻への 0 の格納を削除しました (`app/porter` のコミット `8eb45d5`、ルートのコミット `1788e565`)。Windows のフルテストと Linux の CI が成功しました。
 
 ### 影響範囲とリスク
 

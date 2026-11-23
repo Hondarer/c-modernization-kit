@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-23 20:00:46 JST
+最終更新日時: 2026-11-24 07:01:38 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o (継続案件の開始の記録。それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-overview.md` (全体管理文書)、`261119-void-discard-reason-and-failure-injection-design.md` (最終仕様)、`261119-void-discard-reason-and-failure-injection-discussion.md` (検討用 Markdown)、`261119-void-discard-reason-and-failure-injection-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -25,21 +25,21 @@
 
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
-| BL-001 | override-sample の使い方の表示と終了の直前の検査に失敗時のテストがない | 検討時見送り | 低 | 対応中 |
+| BL-001 | override-sample の使い方の表示と終了の直前の検査に失敗時のテストがない | 検討時見送り | 低 | 対応済み (CI の確認待ち) |
 | BL-002 | porter の REJECT を受けた経路で割り込みの PING を送るべきかを決める | 検討時見送り | 中 | 対応中 |
 | BL-003 | porter の設定で、解釈できない値の一部が知らせなく既定値になる | 検討時見送り | 低 | 対応中 |
 | BL-004 | cplat のトレースのファイルを、ローテーションの後に開けないと書き込みが失敗し続ける | 作業中摘出 | 中 | 対応中 |
 | BL-005 | compress-cli と etw-viewer で、引数の検証の失敗の内容が表示されない | 作業中摘出 | 低 | 対応中 |
-| BL-006 | service-sample の tracer_open() の Doxygen とコメントが実装と食い違う | 作業中摘出 | 低 | 対応中 |
+| BL-006 | service-sample の tracer_open() の Doxygen とコメントが実装と食い違う | 作業中摘出 | 低 | 対応済み |
 | BL-007 | porter の FIN の受信処理のコメントが動作と合わない | 作業中摘出 | 低 | 対応中 |
 | BL-008 | porter の Windows で、受信を待っているソケットを別のスレッドが閉じている | 作業中摘出 | 中 | 対応中 |
 | BL-009 | cplat の PATH を探索する実行で、報告する errno が最後の候補のものになる | 作業中摘出 | 低 | 対応中 |
 | BL-010 | porter の設定ファイルの読み込みで、読み取りの失敗を終端と区別していない | 作業中摘出 | 低 | 対応中 |
-| BL-011 | 戻り値の破棄を探す走査が、マクロの引数とカンマ式の中の呼び出しを検出できない | 作業中摘出 | 低 | 対応中 |
+| BL-011 | 戻り値の破棄を探す走査が、マクロの引数とカンマ式の中の呼び出しを検出できない | 作業中摘出 | 低 | 対応済み |
 | BL-012 | cplat の戻り値のない公開関数の一部に、失敗を通知しないことの記載がない | 作業中摘出 | 低 | 対応中 |
 | BL-013 | tcpServer の Windows で、子プロセスの起動の失敗に診断がない | 作業中摘出 | 低 | 対応中 |
 | BL-014 | porter の potr_tracer_get() の Doxygen が、NULL を返さないと誤って記載している | 作業中摘出 | 低 | 対応中 |
-| BL-015 | porter-test の経路の状態の表示が、最後の経路しか表示しない | 作業中摘出 | 低 | 対応中 |
+| BL-015 | porter-test の経路の状態の表示が、最後の経路しか表示しない | 作業中摘出 | 低 | 対応済み |
 | BL-016 | makefw が、app の並列数と各 app の並列度で 1 つの上限を共有しない | 作業中摘出 | 中 | 対応中 |
 | BL-017 | Linux の CI に、ビルド中のメモリを記録する処理が残っている | 作業中摘出 | 低 | 対応中 |
 
@@ -54,7 +54,7 @@
 
 - **摘出契機**: 前提検討時に見送り (検討用 Markdown の Q-050 の回答 A、2026-11-19)。
 - **今回の見送り理由**: テストの構成を、子プロセスの起動からソースの組み込みへ作り替える必要があります。`main` は実行時に読み込むライブラリ (`base`) を使うため、組み込んだテストでは `--help` 以外の経路を実行しにくい状態です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-006)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-006)。 2026-11-24 に、`main` を組み込み、mock で使い方の表示、`fflush`、`ferror` の失敗を注入するテスト `override-sampleIoTest` (7 件) を加えました (ルートのコミット `de529eb3`)。Windows で 7 件が成功しました。Linux の CI の結果は確認中です。
 
 ### 影響範囲とリスク
 
@@ -169,7 +169,7 @@
 
 - **摘出契機**: 実装の前の調査で発見 (2026-11-19)。89 行の動作は、エージェントが確認していません。
 - **今回の見送り理由**: 戻り値の扱いではなく、記載と実装の不一致です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-009)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-009)。 2026-11-24 に、`tracer_open()` を、開始の失敗の診断を stderr へ出し、状態が開始済みならトレーサーを保持して続け、そうでなければ破棄する形へ直し、Doxygen とコメントを実装に合わせました (ルートのコミット `1413248e`)。Windows のテストと Linux の CI (3 つのジョブ) が成功しました。
 
 ### 影響範囲とリスク
 
@@ -284,7 +284,7 @@
 
 - **摘出契機**: 走査の検出漏れの確認で判明 (2026-11-19)。
 - **今回の見送り理由**: 道具の導入は、この案件の範囲外です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、検出の道具は入れず、検出できない形と道具の候補を規範に記載する方針が決まりました (継続案件の簡易 ADR の LADR-030)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、検出の道具は入れず、検出できない形と道具の候補を規範に記載する方針が決まりました (継続案件の簡易 ADR の LADR-030)。 2026-11-23 に、共通のコーディング規範の「エラー処理と戻り値規約」の「検証」へ、走査で検出できない形、レビューで確かめること、道具を入れる場合の候補 (clang-tidy の bugprone-unused-return-value) を記載しました (ルートのコミット `ff5b575e`)。検出の道具は入れていません。
 
 ### 影響範囲とリスク
 
@@ -376,7 +376,7 @@
 
 - **摘出契機**: 理由コメントの作業中に発見 (2026-11-19、サブエージェントの報告をエージェントがソースで確認)。
 - **今回の見送り理由**: 戻り値の破棄ではなく、戻り値の意味の取り違えによる表示の不具合であり、この案件の範囲の外です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、`cplat_snprintf` の成功の後に書き込んだ長さを求めて `offset` へ加える案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、`cplat_snprintf` の成功の後に書き込んだ長さを求めて `offset` へ加える案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。 2026-11-24 に、全経路の状態の連結を `format_path_states()` へまとめ、`cplat_snprintf()` の成功の後に `strlen()` で書き込み位置を進める形へ直しました (`app/porter` のコミット `8eb45d5`、ルートのコミット `1788e565`)。Windows のテスト (`porterTestOutputTest` の 22 件) と Linux の CI が成功しました。
 
 ### 影響範囲とリスク
 
