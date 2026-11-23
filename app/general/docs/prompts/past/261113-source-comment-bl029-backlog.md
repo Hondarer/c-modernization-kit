@@ -31,7 +31,7 @@ BL-002 の後続バッチへの転記、BL-003 の実機検証完了、および
 | --- | --- | --- | --- | --- |
 | BL-002 | 確認できない設計理由 162 項目 | 過去 backlog からの転記 (BL-008) | 中 | 次フェーズへ転記 (第 1 バッチで 10 項目解消、152 項目を `261114-source-comment-bl002-batch1-backlog.md` へ転記) |
 | BL-003 | Windows 実機の ABI と実資源 | 過去 backlog からの転記 (BL-024) | 中 | 対応済み |
-| BL-004 | TCP 双方向 N:1 通信 | 過去 backlog からの転記 (BL-025) | 低 | 完了 (`app/porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md` の BL-001 へ移管) |
+| BL-004 | TCP 双方向 N:1 通信 | 過去 backlog からの転記 (BL-025) | 低 | 完了 (`app/porter/docs/prompts/past/261115-porter-tcp-bidir-n1-backlog.md` の BL-001 へ移管) |
 
 Table: BL-029 対策で残す課題
 
@@ -98,7 +98,7 @@ Table: BL-029 対策で残す課題
 
 - **摘出契機**: 過去の案件 `source-comment-remaining-20261109` で、実施要否の判断と対処をともに先送りすると回答がありました。
 - **今回の見送り理由**: 今回の案件の対象外です。機能を追加しない、という恒久的な決定ではありません。
-- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-025 は削除していません。2026-11-15、`app/porter` 固有の残課題として [`app/porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md`](../../../../porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md) (BL-001) を作成して移管し、本一覧での管理を完了しました。
+- **継続作業での経緯と対処**: 未対処のため、この一覧へ転記しました。過去の一覧の BL-025 は削除していません。2026-11-15、`app/porter` 固有の残課題として [`app/porter/docs/prompts/past/261115-porter-tcp-bidir-n1-backlog.md`](../../../../porter/docs/prompts/past/261115-porter-tcp-bidir-n1-backlog.md) (BL-001) を作成して移管し、本一覧での管理を完了しました。
 
 ### 影響範囲とリスク
 
@@ -108,4 +108,4 @@ Table: BL-029 対策で残す課題
 ### 推奨される対応策
 
 - **恒久対応案**: 利用目的、要求元、接続関係、送信先、切断、公開 API と列挙値の互換性、Linux と Windows の検証方法を確認してから設計します。
-- **参考情報**: `261109-source-comment-remaining-backlog.md` の BL-025、[`app/porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md`](../../../../porter/docs/prompts/current/261115-porter-tcp-bidir-n1-backlog.md) の BL-001。
+- **参考情報**: `261109-source-comment-remaining-backlog.md` の BL-025、[`app/porter/docs/prompts/past/261115-porter-tcp-bidir-n1-backlog.md`](../../../../porter/docs/prompts/past/261115-porter-tcp-bidir-n1-backlog.md) の BL-001。
