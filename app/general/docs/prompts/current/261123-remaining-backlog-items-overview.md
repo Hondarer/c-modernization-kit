@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-24 07:04:59 JST
+最終更新日時: 2026-11-24 07:25:17 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-backlog.md` (対策元の残課題一覧 A)、`261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧 B)。対策元 B の実機での確認の手順は `261120-source-comment-bl003-remaining-57-design.md` にあります。いずれも削除されている場合があります。
@@ -71,7 +71,7 @@ Git の書き込み操作は、第 2 ゲートの承認 (2026-11-23 20:00) で�
         - ⚠️ 4.3.5. 終了処理で読まれない送信時刻の格納の削除 (B-BL-038) と、porter-test の全経路の状態の表示 (A-BL-015) (単位 W1-C)。Windows のフル ビルドとフルテスト、Linux の CI (`1788e565` の 3 つのジョブ) は成功。同じ CI の Windows のジョブは、変更していない既存のテスト 1 件 (`potrSendTest.n1_blocking_send_waits_until_deferred_entries_are_released`) の失敗で失敗しました。タイミングに依存する失敗の疑いがあり、CI (`9214713f`) で再現するかを確かめます
         - 🔄 4.3.6. tcpServer の Windows の子プロセスの起動と長いパス (A-BL-013、B-BL-024。単位 W5-B。codex が実装中)
     - 🔄 4.4. `app/porter` の設定の検証と確認用 CLI
-        - 🔄 4.4.1. cJSON の JSONC のラッパーの、誤りの種別と位置の報告 (A-BL-003 の `app/cjson` の側。単位 W4-B)。製品の実装は完了。テスト用の差し込み口の方式 (製品のライブラリをテスト用に作り直す仕組み) を審査で差し戻し、codex が作り直し中です
+        - ⚠️ 4.4.1. cJSON の JSONC のラッパーの、誤りの種別と位置の報告 (A-BL-003 の `app/cjson` の側。単位 W4-B)。コミット済み。Windows の共有と静的の CRT でテスト 36 件が成功。Linux (pthread のリンク、constructor でのフックの設定) は CI の結果が未確認です。cJSON が返す位置は「解析を止めた位置」であり、`app/porter/docs/config.md` への記載は 4.4.3 で行います
         - ⏸️ 4.4.2. porter の設定の誤りの結果コード (A-BL-003)
         - ⏸️ 4.4.3. porter の設定の検証の作り直し (A-BL-003、A-BL-010)
         - ⏸️ 4.4.4. porter の設定の検証の公開関数 (A-BL-003)
@@ -316,7 +316,7 @@ Table: 質問の一覧
 | W3-A | `app/service-sample`: トレーサーの開始の失敗 (A-BL-006)、コールバックの順序と失敗値の採用の集約 (B-BL-037) | grok | 完了 (Windows のテストのリンクの失敗 1 件と、期待の順序の誤り 2 件を直しました) | Windows で `service-sampleTest` 34 件、`service-sampleWindowsTest` 6 件が成功 | ルート `1413248e` |
 | W3-B | `framework/doxyfw`: Doxybook2 の生成物の endiskip の原因の特定 (B-BL-040 の手順 1 から 6) | grok | 原因の特定が完了 (分岐 A。コード スパンの末尾のバックスラッシュが奇数個の時に、Doxygen の生の XML へ現れます。公開 10 件、内部 16 件)。直しは未着手 (`app/cplat` のヘッダーに触れるため、W4-A の後) | 対象外 | 対象外 |
 | W4-A | `app/cplat`、`framework/testfw`: cplat の解除できるソケットの待機 (A-BL-008 の cplat の側)、マルチキャストの送信の TTL。`cplat_socket_shutdown_receive` の削除は、porter の通信の単位と同時に行うため、残します | codex の GPT-6-Luna | 実装中 (2026-11-24 04:35 に依頼。ビルドとテストを含む) | 未 | 未 |
-| W4-B | `app/cjson`: cJSON の JSONC のラッパー (A-BL-003 の `app/cjson` の側。ロード時のフック、サイズの管理と消去、解析の共通ロック、誤りの種別と位置の報告) | grok が途中まで (利用の上限で停止)、codex の GPT-6-Luna が引き継ぎ | 差し戻して作り直し中 (2026-11-24 06:35 に依頼)。製品の実装は仕様のとおりで、Windows の共有と静的の CRT のテストは成功していました。テスト用の差し込み口が、make のゴールで製品のライブラリを作り直してテスト用の関数をエクスポートする仕組みだったため、リポジトリの決まりの方式 (`TEST_SRCS`、`mock_libc` の確保の mock、inject) への作り直しを依頼しました。担当の報告: cJSON が返す位置は「解析を止めた位置」で、不正な字句の先頭とは限りません (`app/porter/docs/config.md` への反映が要ります) | 未 (Linux は CI) | 未 |
+| W4-B | `app/cjson`、`framework/testfw`: cJSON の JSONC のラッパー (A-BL-003 の `app/cjson` の側。ロード時のフック、サイズの管理と消去、解析の共通ロック、誤りの種別と位置の報告) | grok が途中まで (利用の上限で停止)、codex の GPT-6-Luna が引き継ぎ | 完了 (審査で、テスト用の差し込み口の方式を 1 回差し戻しました。make のゴールで製品のライブラリを作り直す仕組みを取り除き、`TEST_SRCS`、`malloc` と `free` の mock、inject の方式へ作り直しました。`framework/testfw` へ `free` の mock を加えました)。担当の報告: cJSON が返す位置は「解析を止めた位置」で、不正な字句の先頭とは限りません (`app/porter/docs/config.md` への反映が要ります) | Windows の共有と静的の CRT で、テスト 36 件が成功。`make` の後と `make test` の後で、製品の DLL のエクスポート (112 個) が一致。`.warn` なし。Linux は CI で確かめます (未確認) | `framework/testfw` `c1a4280`、`app/cjson` `8c7fe2d`、ルート `52422d1e` |
 | W4-C | `app/service-sample`、`framework/testfw`: Linux の SIGHUP の受信の方式 (B-BL-035)、運転中の D-Bus の呼び出しの非同期化 (B-BL-031) | grok | 実装が完了。通知の直列化 (B-BL-036) は、この単位では止め、W5-A へ分けました | Linux だけの分岐が中心のため、CI (`9214713f`) で確かめます (未確認)。Windows の手元の確認は、W4-A の作業の途中の mock とリンクが合わず未実施です | `framework/testfw` `2e3339e`、ルート `80c0a286` (コミット メッセージの対策元の記載に誤りがあります。正しくは、261120 の残課題一覧の BL-035 と BL-031 です) |
 | W5-A | `app/service-sample`: リロードの完了の通知と停止の通知の直列化 (B-BL-036。Linux と Windows) | codex の GPT-6-Luna | 完了 (審査を通過。Q-080 の回答 A のとおり、通知ロックを持ったまま `sd_notify()` を呼び、ブロックし得る条件と結果を文書と Doxygen に明記しました) | Windows で `service-sampleTest` 36 件、`service-sampleWindowsTest` 11 件が成功。`make doxy` が成功。`.warn` なし。Linux は CI (`97868c47`) で確かめます (未確認) | ルート `97868c47` |
 | W5-B | `app/porter`: トレーサーの生成の失敗後の再試行 (A-BL-014)、tcpServer の Windows の子プロセスの起動と長いパス (A-BL-013、B-BL-024)、経路の状態の変化に伴う割り込みの PING (A-BL-002、A-BL-007) | codex の GPT-6-Luna | 実装中 (2026-11-24 07:25 に依頼。`app/porter` だけビルドしてテスト) | 未 | 未 |
@@ -333,6 +333,7 @@ CI の実行の記録です。
 | 45259870669 | `80c0a286` (W4-C) | 同じ原因で失敗するため、取り消しました | 同上 |
 | 45266161700 | `9214713f` (CI-1 の直しを含む、ここまでのすべて) | 実行中 (2026-11-24 06:56 の時点) | 結果を確かめます |
 | 45275734591 | `a9b4cfd0` (リモートの 2 つのコミットの取り込み) | 次の実行と対象が重なるため、取り消しました | なし |
-| (次の実行) | `97868c47` (W5-A を含む、ここまでのすべて) | 実行中 (2026-11-24 07:25 の時点) | 結果を確かめます |
+| 45275977458 | `97868c47` (W5-A を含む、ここまでのすべて) | 実行中 (2026-11-24 07:50 の時点) | 結果を確かめます |
+| (次の実行) | `707a7d3f` (W4-B を含む、ここまでのすべて) | 開始 (2026-11-24 07:50 の時点) | 結果を確かめます |
 
 Table: CI の実行の結果と対処

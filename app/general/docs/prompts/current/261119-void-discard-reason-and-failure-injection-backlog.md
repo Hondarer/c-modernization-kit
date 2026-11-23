@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-24 07:01:38 JST
+最終更新日時: 2026-11-24 07:25:17 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o (継続案件の開始の記録。それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-overview.md` (全体管理文書)、`261119-void-discard-reason-and-failure-injection-design.md` (最終仕様)、`261119-void-discard-reason-and-failure-injection-discussion.md` (検討用 Markdown)、`261119-void-discard-reason-and-failure-injection-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -100,7 +100,7 @@
 
 - **摘出契機**: 前提検討時に見送り (検討用 Markdown の Q-058 の回答 A、2026-11-19)。
 - **今回の見送り理由**: この案件の対象は戻り値の破棄の箇所です。3 種類は書き方が異なり、対象の洗い出しをしていません。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、既知のキーの解釈できない値をすべて設定の誤りとして読み込みを失敗させる方針が決まりました (継続案件の簡易 ADR の LADR-031)。設定の確認用 CLI の作成も、継続案件の対象に加わりました (LADR-036)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、既知のキーの解釈できない値をすべて設定の誤りとして読み込みを失敗させる方針が決まりました (継続案件の簡易 ADR の LADR-031)。設定の確認用 CLI の作成も、継続案件の対象に加わりました (LADR-036)。 2026-11-24 に、対策の前提になる `app/cjson` の側 (JSONC の解析の結果の種別と位置を返す `cJSON_ParseJSONCWithLengthOpts()`、確保した領域の解放の前の消去、解析の共通ロック) を実装しました (`app/cjson` のコミット `8c7fe2d`、ルートのコミット `52422d1e`)。`app/porter` の側 (設定の誤りの結果コード、検証の作り直し、公開関数、確認用 CLI) は未着手です。
 
 ### 影響範囲とリスク
 
