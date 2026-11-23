@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-24 08:12:30 JST
+最終更新日時: 2026-11-24 08:15:50 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-backlog.md` (対策元の残課題一覧 A)、`261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧 B)。対策元 B の実機での確認の手順は `261120-source-comment-bl003-remaining-57-design.md` にあります。いずれも削除されている場合があります。
@@ -322,6 +322,8 @@ Table: 質問の一覧
 | W5-B | `app/porter`: トレーサーの生成の失敗後の再試行 (A-BL-014)、tcpServer の Windows の子プロセスの起動と長いパス (A-BL-013、B-BL-024)、経路の状態の変化に伴う割り込みの PING (A-BL-002、A-BL-007) | codex の GPT-6-Luna | 実装中 (2026-11-24 07:25 に依頼。`app/porter` だけビルドしてテスト) | 未 | 未 |
 | W6-A | `framework/makefw`: makefw の並列の上限の共有 (A-BL-016) | agy の Gemini 4 Hydrogen High | 実装が完了 (約 8 分)。審査を通過 (runner の割り振りは、仕様の数式のとおりです)。本体への反映が未 (別の作業ツリー `wt-makefw` に変更があります。変更は 4 ファイルと、新規のテスト 2 ファイル) | Windows: `test_app_compile_budget.py` 17 件と既存の `bin_test` が成功。Linux (WSL の Oracle Linux 8 で、審査の担当が実行): `app_compile_budget_selftest.py` 4 件、`test_app_compile_budget.py` 17 件 (SIGTERM の中断を含む)、`test_nested_parallel.py` 5 件が成功。実際のビルドでの確認が未。担当が見つけた別の問題 2 件 (`app_paths_selftest.py` の `encoding` の指定の欠落、`test_path_spaces.py` が別の作業ツリーでは動かないこと) は未対処 | 未 |
 | CI-1 | CI の失敗の直し: `mock_cplat` の文字コードの変換の mock の、`PLATFORM_WINDOWS` の条件の欠落 (W1-A の変更で取り除かれ、Linux でコンパイルに失敗) | Fable (審査に伴う直し) | 直し済み | CI (`9214713f`) の結果が未確認 | `app/cplat` `924bb25b`、ルート `9214713f` |
+| CI-2 | CI の失敗の直し: `service-sample` の Linux のテストの、eventfd を閉じる回数の期待 (2 回から 1 回へ。W4-C の変更に追従していなかった既存のテスト) | Fable (審査に伴う直し) | 直し済み | CI の結果が未確認 | ルート `144da888` |
+| CI-3 | CI の失敗の直し: `app/porter` の既存のタイミングのテスト 2 件 (`porterSendRecvTest.unicast_recent_data_defers_ping_until_last_data_interval`、`potrSendTest.n1_blocking_send_waits_until_deferred_entries_are_released`) の待ち方 | 未定 (W5-B の完了の後に依頼) | 未着手 | 未 | 未 |
 
 Table: 実装の単位ごとの状態
 
@@ -332,7 +334,7 @@ CI の実行の記録です。
 | 45239643815 | `1788e565` (W1-B、W2-C、W3-A、W2-B、W1-C) | docs、Linux の ol8、ol9、ol10 は成功。Windows は失敗 (`app/porter` の既存のテスト `potrSendTest.n1_blocking_send_waits_until_deferred_entries_are_released` の 1 件。`potr_service_send_test.cc` の 1005 行で、待機しているはずの送信が完了済みと判定されました) | 今回の変更の対象ではないテストで、手元と直前の CI では成功しています。タイミングに依存する失敗の疑いがあります。次の実行で再現するかを確かめ、再現する場合は原因を調べます |
 | 45249611634 | `f97e0c91` (W1-A、W2-A) | Linux の 3 つのジョブが、`app/cplat` の `mock_cplat` のコンパイルで失敗 | CI-1 で直し、実行は取り消しました |
 | 45259870669 | `80c0a286` (W4-C) | 同じ原因で失敗するため、取り消しました | 同上 |
-| 45266161700 | `9214713f` (CI-1 の直しを含む、ここまでのすべて) | 実行中 (2026-11-24 06:56 の時点) | 結果を確かめます |
+| 45266161700 | `9214713f` (CI-1 の直しを含む、W4-C まで) | docs は成功。Linux の ol9 は失敗 (2 件)。(1) `service_sampleLinuxRunTest.run_service_notifies_ready_and_stopping_in_order`: W4-C が SIGHUP の転送用の eventfd を取り除いたのに、既存のテストの期待 (eventfd を閉じる回数 2) が残っていました。`service-sample` の Linux のテストは、34 件のうち 33 件が成功です。(2) `app/porter` の既存のテスト `porterSendRecvTest.unicast_recent_data_defers_ping_until_last_data_interval`: 2 通目の送信の 250 [ms] 後に stderr を読んだ時点で、PING の抑止のトレース (送信の 251 [ms] 後に出力) がまだ出ていませんでした。待ち時間の余裕がないことによる、タイミングの失敗です。ol8、ol10、Windows は実行中 (2026-11-24 08:35 の時点) | (1) は期待を 1 回へ直しました (CI-2、ルート `144da888`)。(2) と、`1788e565` の Windows の失敗 (`potrSendTest` の 1 件) は、どちらも今回の変更の対象ではない porter の既存のテストのタイミングの問題です。`app/porter` を W5-B が扱っているため、その完了の後に、待ち方を直します (CI-3) |
 | 45275734591 | `a9b4cfd0` (リモートの 2 つのコミットの取り込み) | 次の実行と対象が重なるため、取り消しました | なし |
 | 45275977458 | `97868c47` (W5-A を含む、ここまでのすべて) | 実行中 (2026-11-24 07:50 の時点) | 結果を確かめます |
 | (次の実行) | `707a7d3f` (W4-B を含む、ここまでのすべて) | 開始 (2026-11-24 07:50 の時点) | 結果を確かめます |
