@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-24 05:25:33 JST
+最終更新日時: 2026-11-24 06:08:58 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-backlog.md` (対策元の残課題一覧 A)、`261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧 B)。対策元 B の実機での確認の手順は `261120-source-comment-bl003-remaining-57-design.md` にあります。いずれも削除されている場合があります。
@@ -17,7 +17,7 @@
 
 検討 ID: `remaining-backlog-items-20261123`
 
-検討用 Markdown の版: 9
+検討用 Markdown の版: 10
 
 状態: 実装中 (第 2 ゲートを 2026-11-23 に承認)
 
@@ -215,7 +215,7 @@ Table: 調査で新しく見つかった気付きと、含める先
 | [Q-077](261123-remaining-backlog-items-discussion.md#q-077-appcjson-のラッパーの変更を範囲に含めるか) | `app/cjson` のラッパーの変更を範囲に含めるか | CLI | 解決済み | Q-070 | LADR-036 |
 | [Q-078](261123-remaining-backlog-items-discussion.md#q-078-porter-の構造体を直接渡して開く場合の値の誤りの結果コード) | 構造体を直接渡して開く場合の値の誤りの結果コード | A-BL-003 | 解決済み | Q-071 | LADR-031 |
 | [Q-079](261123-remaining-backlog-items-discussion.md#q-079-porter-の-tcp-を閉じる処理の期限の範囲) | TCP を閉じる処理の期限の範囲 | A-BL-008 | 解決済み | Q-062、Q-063 | LADR-010 |
-| [Q-080](261123-remaining-backlog-items-discussion.md#q-080-通知ロックを持つ間の-sd_notify-がブロックし得る場合の扱い) | 通知ロックを持つ間の `sd_notify()` がブロックし得る場合の扱い | B-BL-036 | 未回答 | なし | 未定 |
+| [Q-080](261123-remaining-backlog-items-discussion.md#q-080-通知ロックを持つ間の-sd_notify-がブロックし得る場合の扱い) | 通知ロックを持つ間の `sd_notify()` がブロックし得る場合の扱い | B-BL-036 | 解決済み | Q-033 | LADR-024 |
 
 Table: 質問の一覧
 
@@ -262,6 +262,7 @@ Table: 質問の一覧
 | 2026-11-23 19:45 | 最終仕様の確認の完了と承認の依頼 | grok で、差し替えた最終仕様が監査の指摘 38 件をすべて解消していること (解消 38、一部 0、未解消 0) と、全体の機械的な整合 (公開 API の一覧の 67 個の名前、対象と範囲の表の 45 件の項目の名前、既存の文書のパス、コード ブロック、42 個の表) を確かめました。第 2 ゲートの承認を、ユーザーへ依頼しました。 |
 | 2026-11-23 20:00 | 第 2 ゲートの承認と実装の開始 | ユーザーが、条件を付けて最終仕様を承認しました (LADR-039)。実装は codex の GPT-6-Luna (xhigh) と grok 4.7 (high)、審査は Fable、文章の推敲は agy の Gemini 4 Hydrogen (High)。手元のフル ビルド、コミット、プッシュが許可されました。CI の警告とエラーは、原因が明確で解消できるものを直して、CI を通し直します。21:30 の起床の予約を設定しました。codex の利用量は、5 時間の枠が 43% (22:37 にリセット)、1 週間の枠が 65% (11-29 07:30 にリセット) です。 |
 | 2026-11-24 04:50 | 実装の途中の確認 (版 9) | 実装の担当が、最終仕様の「実装の最初の手順で確かめる事項」の前提 (通知ロックを持つ間の `sd_notify()` が長時間ブロックしない) が、systemd 239 のソースと違うことを確かめました。最終仕様の定めのとおり、項目「リロードの完了の通知と停止の通知の直列化」(B-BL-036) の実装を止め、[Q-080](261123-remaining-backlog-items-discussion.md#q-080-通知ロックを持つ間の-sd_notify-がブロックし得る場合の扱い) を追加しました。ほかの項目の実装は続けます。 |
+| 2026-11-24 06:08 | 版 9 の回答の受付 | Q-080 に、推奨案 (A) の回答が対話でありました。エージェントが検討用 Markdown へ記入し、LADR-024 と、最終仕様の該当の項目と「実装の最初の手順で確かめる事項」の行を書き換えました (版 10)。項目「リロードの完了の通知と停止の通知の直列化」の実装を再開します。 |
 
 ## 反映と検証の記録
 
@@ -278,8 +279,8 @@ Table: 質問の一覧
 | W2-C | `app/service-sample`: unit の起動の回数の制限の明示 (B-BL-032) | grok | 完了 (バッファーの大きさは `static_assert` で保証します) | Linux だけの分岐のため、CI で確かめます | ルート `1413248e` |
 | W3-A | `app/service-sample`: トレーサーの開始の失敗 (A-BL-006)、コールバックの順序と失敗値の採用の集約 (B-BL-037) | grok | 完了 (Windows のテストのリンクの失敗 1 件と、期待の順序の誤り 2 件を直しました) | Windows で `service-sampleTest` 34 件、`service-sampleWindowsTest` 6 件が成功 | ルート `1413248e` |
 | W3-B | `framework/doxyfw`: Doxybook2 の生成物の endiskip の原因の特定 (B-BL-040 の手順 1 から 6) | grok | 原因の特定が完了 (分岐 A。コード スパンの末尾のバックスラッシュが奇数個の時に、Doxygen の生の XML へ現れます。公開 10 件、内部 16 件)。直しは未着手 (`app/cplat` のヘッダーに触れるため、W4-A の後) | 対象外 | 対象外 |
-| W4-A | `app/cplat`、`framework/testfw`: cplat の解除できるソケットの待機 (B-BL-021)、マルチキャストの送信の TTL。`cplat_socket_shutdown_receive` の削除は、porter の通信の単位と同時に行うため、残します | codex の GPT-6-Luna | 実装中 (2026-11-24 04:35 に依頼。ビルドとテストを含む) | 未 | 未 |
+| W4-A | `app/cplat`、`framework/testfw`: cplat の解除できるソケットの待機 (A-BL-008 の cplat の側)、マルチキャストの送信の TTL。`cplat_socket_shutdown_receive` の削除は、porter の通信の単位と同時に行うため、残します | codex の GPT-6-Luna | 実装中 (2026-11-24 04:35 に依頼。ビルドとテストを含む) | 未 | 未 |
 | W4-B | `app/cjson`: ラッパー (ロード時のフック、サイズの管理と消去、解析の共通ロック、誤りの種別と位置の報告) | grok | 実装中 (2026-11-24 04:35 に依頼。`app/cjson` だけビルド) | 未 | 未 |
-| W4-C | `app/service-sample`: 通知の直列化、SIGHUP の受信の方式、D-Bus の非同期化 (Linux だけ) | grok | 実装中 (2026-11-24 04:35 に依頼。ビルドなし。Linux の CI で確かめます) | 未 | 未 |
+| W4-C | `app/service-sample`、`framework/testfw`: Linux の SIGHUP の受信の方式 (B-BL-035)、運転中の D-Bus の呼び出しの非同期化 (B-BL-031)。通知の直列化 (B-BL-036) は、前提の確認の結果が違ったため実装を止め、Q-080 で確認中です | grok | SIGHUP と D-Bus は実装が完了。通知の直列化は未着手 (Q-080 の回答待ち) | Linux だけの分岐が中心のため、CI で確かめます。Windows の手元の確認は、W4-A の作業の完了の後に行います | `framework/testfw` `2e3339e`、ルート `80c0a286` (コミット メッセージの対策元の記載に誤りがあります。正しくは、261120 の残課題一覧の BL-035 と BL-031 です) |
 
 Table: 実装の単位ごとの状態

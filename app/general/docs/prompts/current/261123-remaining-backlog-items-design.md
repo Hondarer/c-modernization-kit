@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 最終仕様 (design)
-最終更新日時: 2026-11-23 19:27:42 JST
+最終更新日時: 2026-11-24 06:08:58 JST
 最終更新エージェント: claude code (Fable 5.2) / 節の作成は Claude の Opus と Sonnet、codex の GPT-6.1-Sol、まとめは codex の GPT-6-Luna、文章の整理は agy の Gemini 4 Hydrogen、監査と直しは codex の GPT-6.1-Sol と GPT-6-Luna、突き合わせと転記は grok / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)、`261119-void-discard-reason-and-failure-injection-backlog.md` と `261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧)。いずれも削除されている場合があります。
@@ -4588,6 +4588,9 @@ Windows では、`svc_os_notify_ready()` が `SERVICE_RUNNING` を報告しま�
 - 通知ロック中は、段階の読み書きと OS 通知だけを行います。利用者のコールバック、トレース出力、ほかのロック取得はロック外で行います。通知の失敗や抑止を記録する必要がある場合は、ロック内で結果だけを保存し、解放後にトレースを出します。
 - 停止中へ遷移した後は、`READY=1`、`RELOADING=1`、`WATCHDOG=1`、`SERVICE_RUNNING` を通知しません。
 
+> [!IMPORTANT]
+> Linux の `sd_notify()` は、ブロックする送信です (systemd 239 の [sd-daemon.c](https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-daemon/sd-daemon.c) の `sd_pid_notify_with_fds()`)。systemd が通知を読めず、`NOTIFY_SOCKET` の受信のバッファーがいっぱいの場合、通知ロックを持ったまま `sd_notify()` がブロックし、ロックを待つほかの通知 (`STOPPING=1`、`WATCHDOG=1`) も待ちます。この場合、サービスは、systemd の停止のタイムアウト (`TimeoutStopSec=`) または watchdog の期限 (`WatchdogSec=`) で終了させられます。通知ロックを持ったまま呼ぶ作りは変えず、この条件と結果を、`docs/service-events.md` と、通知の入口の関数 (`svc_os_notify_ready()`、`svc_os_notify_stopping()`、`svc_os_notify_reloading()`) の Doxygen へ明記します。通知の送信を自前で実装する方式と、ロックの外で送信する方式は採りません。
+
 Linux:
 
 `service-sample_linux_events.h` に `svc_linux_events_notify_lock()` と `svc_linux_events_notify_unlock()` を設けます。Linux で実際に通知ロックを取得する関数は `svc_linux_events_notify_lock()` だけです。`svc_linux_events_start()` はイベント監視スレッドの生成前にロックを作り、`release_local_resources()` はスレッド終了後に破棄します。作成失敗は起動失敗です。console モードなどロックが未生成の場合、取得関数は何もしません。
@@ -5365,7 +5368,7 @@ stop
 | `app/porter` の設定の検証と確認用 CLI | `receiver_report.c` の受信者の管理が `multicast_raw` と `broadcast_raw` でも動き、`max_peers` を使うことです (証明書方式の受信者の管理で使うことは確かめ済みです)。 | 受信の処理の分岐を読みます。 | RAW の 1 対 N の種別で `max_peers` を使うのが証明書方式だけなら、種別と項目の対応の表は変えず、`docs/config.md` の説明にその条件を書きます。 |
 | `app/service-sample` と `framework/makefw`、CI | `sd_bus_message_is_method_error(m, NULL)` が、名前を問わず、エラー メッセージかどうかを返すことです。 | systemd 239 のソース (`src/libsystemd/sd-bus/sd-bus-message.c` の同関数) と、`man sd_bus_message_get_type` の記載を読みます。 | `sd_bus_message_get_error(m) != NULL` で判定する形へ変え、仕様の該当の文を直します。 |
 | service-sample / Oracle Linux 8 | 実際に使う systemd 239 パッケージが `sd_bus_slot_unref()`、`sd_bus_message_unref()` など必要な API をヘッダーと共有ライブラリの両方で提供し、対象版でスロットの取り消しとコールバック内の参照解除が仕様どおり安全であることです。 | 実機のパッケージのバージョンとパッチを確認し、`pkg-config` のインクルードとリンクのフラグ、ヘッダー宣言、`nm -D` または `readelf -Ws` の動的シンボルを確認します。v239 公式ソースと対照します。 | 1 つでも不足・不一致なら D-Bus 実装を止め、非同期と明示期限の要件を保つ互換方式を調べます。対象パッケージの確認なしに呼び出しを実装へ進めません。 |
-| `app/service-sample` と `framework/makefw`、CI | 通知ロックを持つ間の `sd_notify()` が、長時間ブロックしないことです (`NOTIFY_SOCKET` がいっぱいの場合)。 | systemd 239 の `src/libsystemd/sd-daemon/sd-daemon.c` の `sd_pid_notify_with_fds()` が、`sendmsg()` をどのフラグで呼ぶか読みます。 | 作業を止めてユーザーへ確認します (通知ロックの区間を縮める案を検討します)。 |
+| `app/service-sample` と `framework/makefw`、CI | 通知ロックを持つ間の `sd_notify()` が、ブロックし得ることです (確認済み。systemd 239 の `sd_pid_notify_with_fds()` は、ブロックするソケットを作り、`sendmsg()` を `MSG_NOSIGNAL` だけで呼びます)。 | 確認済みのため、読み直しは不要です。 | 通知ロックを持ったまま `sd_notify()` を呼びます。ブロックし得る条件と結果を、`docs/service-events.md` と通知の入口の関数の Doxygen へ明記します。 |
 | `app/service-sample` と `framework/makefw`、CI | `env MAKEFW_APP_COMPILE_BUDGET=<値> setsid --wait ... &` の `$!` が、従来どおり、`kill -- -$pid` の対象のプロセス グループの先頭であることです。 | ランナーのテスト (中断のテスト) を、新しい起動の形で実行して確認します。 | 環境変数を `export` した後に `setsid` を呼ぶ形 (サブシェル) へ変えます。 |
 | `app/service-sample` と `framework/makefw`、CI | `app/openssl/bin_internal/build_openssl.py` が、割り振られた並列度 (`MAKEFLAGS` の `-jN`) を引き継ぎ、CPU 数の全体を使わないことです。 | 該当の箇所 (`147-192` 行付近) を読み、割り振りを使った実行で、`openssl` のビルドに渡される `-j` の値を確認します。 | 作業を止めてユーザーへ確認します (外部のビルドを保証の対象外として文書へ明記するか、渡し方を直すか)。 |
 | `app/service-sample` と `framework/makefw`、CI | `LIBS += pthread` により、`pthread_sigmask` を参照する実行体が、Oracle Linux 8、9、10 のすべてでリンクできることです (glibc 2.28 では `libpthread` が提供することを、glibc のソースで確認済み)。 | コミットとプッシュの後の Linux の CI (3 つの環境) のビルドの結果と、`.warn` ファイルを確認します。 | 新しい glibc でリンクの警告が出る場合は、`pthread` の追加を OS ごとに分けます。 |

@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 簡易 ADR (lightadr)
-最終更新日時: 2026-11-23 20:00:46 JST
+最終更新日時: 2026-11-24 06:08:58 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)。削除されている場合があります。
@@ -38,7 +38,7 @@
 | LADR-021 | B-BL-031: 運転中の D-Bus の呼び出しを非同期にし、期限をバスへ明示する | Q-029 |
 | LADR-022 | B-BL-032: unit に起動の回数の制限を明示する | Q-030 |
 | LADR-023 | B-BL-033: 終了コードの範囲の記載を、共通の規範へそろえる | Q-031 |
-| LADR-024 | B-BL-036: リロードの完了の通知と停止の通知の送信を直列にする | Q-033 |
+| LADR-024 | B-BL-036: リロードの完了の通知と停止の通知の送信を直列にする | Q-033、Q-080 |
 | LADR-025 | B-BL-037: コールバックの順序と失敗値の採用を、1 つの内部の関数へまとめる | Q-034 |
 | LADR-026 | B-BL-039: `_GNU_SOURCE` をビルドの定義へ移し、`platform.h` を規範に合わせる | Q-035 |
 | LADR-027 | B-BL-040: 原因の工程を特定し、その工程で直す | Q-036 |
@@ -562,16 +562,20 @@ unit に `StartLimitIntervalSec=60` と `StartLimitBurst=5` を明示し、文�
 ### 得られた事実
 
 - 先行案件の最終仕様は、開始済みの `on_reload` が `on_stop()` と並行して実行されることを残すと定めています。
+- systemd 239 の `sd_pid_notify_with_fds()` は、ブロックするソケット (`SOCK_NONBLOCK` なし) を作り、`sendmsg()` を `MSG_NOSIGNAL` だけで呼びます ([sd-daemon.c](https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-daemon/sd-daemon.c)。実装の担当の報告、2026-11-24。実機では未確認)。systemd が通知を読めず、受信のバッファーがいっぱいの場合、`sd_notify()` はブロックします。
 
 ### 決定
 
 「動作中の段階かどうかの確認と `READY=1` の送信」と「停止中への遷移と `STOPPING=1` の送信」を、同じロックで直列にします。`on_reload` の実行中はロックを持ちません。
+
+Linux では、通知ロックを持ったまま `sd_notify()` を呼びます。`sd_notify()` がブロックし得る条件 (systemd が通知を読めず、受信のバッファーがいっぱいの場合) と、その時の結果 (ロックを待つほかの通知も待ち、systemd の停止のタイムアウトや watchdog の期限で終了させられる) を、文書と通知の入口の関数の Doxygen に明記します。通知の送信を自前で実装する方式と、ロックの外で送信する方式は採りません。
 
 ### 経緯
 
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-23 09:24 | [Q-033](261123-remaining-backlog-items-discussion.md#q-033-service-sample-のリロードの完了の通知と停止の通知の順序) (回答者: Tetsuo Honda) | A: 通知の送信だけを直列にする | なし | 新規に決定 |
+| 2026-11-24 06:08 | [Q-080](261123-remaining-backlog-items-discussion.md#q-080-通知ロックを持つ間の-sd_notify-がブロックし得る場合の扱い) (回答者: Tetsuo Honda。対話での回答) | A: 通知ロックを持ったまま `sd_notify()` を呼び、ブロックし得る条件と結果を文書に明記する | `Q-080はA` | 決定へ、Linux の `sd_notify()` の呼び方と、明記する内容を追記 |
 
 ## LADR-025 B-BL-037: コールバックの順序と失敗値の採用を、1 つの内部の関数へまとめる
 
@@ -888,7 +892,7 @@ porter の設定の整合性を確認する CLI を作り、この案件の対�
 ### 得られた事実
 
 - 最終仕様 (`261123-remaining-backlog-items-design.md`) は、別のモデルによる監査の指摘 38 件を直した版で、2026-11-23 に承認されました。
-- 2026-11-23 20:00 の時点の codex の利用量は、5 時間の枠が 43 % (22:37 にリセット)、1 週間の枠が 65 % (11-29 07:30 にリセット) です。
+- 2026-11-23 20:00 の時点の codex の利用量は、5 時間の枠が 43% (22:37 にリセット)、1 週間の枠が 65% (11-29 07:30 にリセット) です。
 
 ### 決定
 
