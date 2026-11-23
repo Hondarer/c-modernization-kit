@@ -2,6 +2,7 @@
 #include <struct_meta/catalog/arena.h>
 #include <struct_meta/catalog/build.h>
 #include <struct_meta/parse/ast.h>
+#include <struct_meta/parse/parse_internal.h>
 #include <testfw.h>
 
 #include <cstddef>
@@ -101,6 +102,32 @@ struct_meta_internal_parse_struct_list *make_nested_ast()
     append_struct(&list, "outer_probe", outer_fields, 3, nullptr);
 
     return list;
+}
+
+/**
+ *  @brief          文字列の中で、needle の n 回目が始まる行番号を返します。
+ */
+int line_containing_nth(const char *text, const char *needle, int nth)
+{
+    int line = 1;
+    int seen = 0;
+    const size_t needle_length = strlen(needle);
+    for (const char *cursor = text; *cursor != '\0'; ++cursor)
+    {
+        if (strncmp(cursor, needle, needle_length) == 0)
+        {
+            seen++;
+            if (seen == nth)
+            {
+                return line;
+            }
+        }
+        if (*cursor == '\n')
+        {
+            line++;
+        }
+    }
+    return 0;
 }
 
 /**
@@ -325,4 +352,68 @@ TEST(structMetaBuildTest, rejects_invalid_input)
     EXPECT_EQ(
         CPLAT_ERR_INVALID_ARGUMENT,
         null_structs); // [確認_異常系] - nullptr 引数に対する struct_meta_internal_build_descriptors() の戻り値が CPLAT_ERR_INVALID_ARGUMENT であること。
+}
+
+// 同名メンバーを持つヘッダー文字列の組み立てが、2 つ目のメンバーの行で拒否されることの確認
+TEST(structMetaBuildTest, rejects_duplicate_member_names)
+{
+    // Arrange
+    const char header[] = "typedef struct duplicate_probe\n"
+                          "{\n"
+                          "    int value;\n"
+                          "    int value;\n"
+                          "} duplicate_probe;\n";
+    const int second_member_line = line_containing_nth(header, "int value;", 2);
+    struct_meta_internal_arena *arena = nullptr;
+    const struct_meta_descriptor *const *descriptors = nullptr;
+    size_t count = 0;
+    struct_meta_diagnostic diagnostic = {};
+    struct_meta_internal_parse_struct_list *structs = nullptr;
+    int parse_ret = struct_meta_internal_parse_header_text(header, strlen(header), &structs, &diagnostic);
+    const struct_meta_internal_parse_field *first_field = nullptr;
+    const struct_meta_internal_parse_field *second_field = nullptr;
+    if ((structs != nullptr) && (structs->head != nullptr))
+    {
+        first_field = structs->head->fields;
+        if (first_field != nullptr)
+        {
+            second_field = first_field->next;
+        }
+    }
+
+    ASSERT_EQ(4, second_member_line); // [状態確認] - 2 つ目の "int value;" の字面が 4 行目であること。
+    ASSERT_EQ(CPLAT_OK, parse_ret);   // [状態確認] - ヘッダー文字列の構文解析が CPLAT_OK であること。
+    ASSERT_EQ('\0', diagnostic.message[0]); // [状態確認] - 構文解析が診断を残していないこと。
+    ASSERT_NE(nullptr, second_field); // [状態確認] - 2 つ目のフィールドがあること。
+    ASSERT_STREQ("value", second_field->name); // [状態確認] - 2 つ目のフィールド名が "value" であること。
+    /*
+     * フィールド規則は還元時に yyget_lineno を読む。先読みがセミコロンの次の改行を消費するため、
+     * 記録される行は字面の 4 行目ではなく、閉じ波括弧のある 5 行目である。
+     */
+    const int parser_second_line = second_field->line;
+    ASSERT_EQ(5, parser_second_line); // [状態確認] - 2 つ目のフィールドの source の行が 5 であること。
+    ASSERT_NE(first_field->line,
+              parser_second_line); // [状態確認] - 1 つ目と 2 つ目の記録行が異なること。
+
+    // Pre-Assert
+
+    // Act
+    int ret = build(structs, &arena, &descriptors, &count,
+                    &diagnostic); // [手順] - 同名メンバーを持つヘッダーの AST を指定して build() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        ret); // [確認_異常系] - build() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_EQ(parser_second_line,
+              diagnostic.line); // [確認_異常系] - diagnostic.line が 2 つ目のメンバーの source の行であること。
+    EXPECT_NE(nullptr,
+              strstr(diagnostic.message,
+                     "メンバー名が重複しています")); // [確認_異常系] - 診断の文面に重複の説明があること。
+    EXPECT_NE(nullptr, strstr(diagnostic.message, "value")); // [確認_異常系] - 診断の文面にメンバー名があること。
+    EXPECT_NE(nullptr,
+              strstr(diagnostic.message, "duplicate_probe")); // [確認_異常系] - 診断の文面に構造体名があること。
+
+    // Cleanup
+    struct_meta_internal_arena_destroy(arena); // [破棄] - アリーナを破棄する。
 }

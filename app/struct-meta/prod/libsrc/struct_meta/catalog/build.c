@@ -423,6 +423,16 @@ static int build_one(build_context *context, build_entry *entry)
 
     for (const struct_meta_internal_parse_field *source = entry->source->fields; source != NULL; source = source->next)
     {
+        for (size_t previous = 0U; previous < index; previous++)
+        {
+            if (strcmp(fields[previous].name, source->name) == 0)
+            {
+                struct_meta_internal_diagnose(context->diagnostic, source->line, "メンバー名が重複しています: %s (%s)",
+                                              source->name, entry->source->name);
+                return CPLAT_ERR_CORRUPT_DESCRIPTOR;
+            }
+        }
+
         const int ret = build_field(context, source, &fields[index], &layout);
         if (ret != CPLAT_OK)
         {

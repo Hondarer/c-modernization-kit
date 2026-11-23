@@ -153,6 +153,21 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
             break;
         }
 
+        /* 同名のフィールドを拒否する。先のフィールドの名前は、ここまでの検査で NULL と空でないことが確かめ済みである。 */
+        for (size_t j = 0U; j < i; j++)
+        {
+            if (strcmp(descriptor->fields[j].name, field->name) == 0)
+            {
+                ret = CPLAT_ERR_CORRUPT_DESCRIPTOR;
+                break;
+            }
+        }
+
+        if (ret != CPLAT_OK)
+        {
+            break;
+        }
+
         /* 整数は幅を element_size が表すため、扱える幅であることをここで確かめる。 */
         if (((field->kind == STRUCT_META_FIELD_SIGNED_INTEGER) ||
              (field->kind == STRUCT_META_FIELD_UNSIGNED_INTEGER)) &&

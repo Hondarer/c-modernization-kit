@@ -97,6 +97,9 @@ extern "C"
      *                  @c CPLAT_ERR_CORRUPT_DESCRIPTOR 、または
      *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。
      *
+     *  検査対象には、フィールド範囲、型ごとの制約、ネスト記述子との要素サイズ一致、
+     *  属性キーの妥当性と重複、フィールド名の重複、記述子の循環が含まれます。\n
+     *
      *  @par            スレッド セーフ
      *  本関数は条件付きスレッド セーフです。\n
      *  記述子の索引 (@ref struct_meta_index_register) を参照します。\n

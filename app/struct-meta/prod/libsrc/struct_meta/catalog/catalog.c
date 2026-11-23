@@ -99,14 +99,17 @@ static int create_index(struct_meta_catalog *catalog, struct_meta_diagnostic *di
 /**
  *  @brief          カタログの記述子を索引へ登録します。
  *
- *  登録は検索を速くするだけで、失敗しても未登録の記述子として正しく動作します。
- *  そのため戻り値を持たず、失敗を握りつぶします。
+ *  登録は検索を速くするだけで、失敗しても、その呼び出しで追加した登録は取り消され、
+ *  未登録の記述子として正しく動作します。そのため戻り値を持たず、失敗を握りつぶします。
  */
 static void register_descriptors(const struct_meta_catalog *catalog)
 {
     for (size_t i = 0; i < catalog->descriptor_count; i++)
     {
-        /* 登録は検索を速くするだけで、失敗しても未登録の記述子として正しく動作するため、戻り値は明示的に破棄する。 */
+        /*
+         * 失敗しても、その呼び出しで追加した登録は取り消され、未登録の記述子として正しく動作するため、
+         * 戻り値は明示的に破棄する。
+         */
         (void)struct_meta_index_register(catalog->descriptors[i]);
     }
 }

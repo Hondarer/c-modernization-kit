@@ -18,6 +18,7 @@
 #include <struct_meta/meta/index_internal.h>
 
 #include <cplat/base/result.h>
+#include <cplat/crt/stdlib.h>
 #include <cplat/hashtable/hashtable.h>
 
 #include <assert.h>
@@ -111,24 +112,44 @@ static const index_record *find_record(const struct_meta_descriptor *descriptor)
 }
 
 /**
- *  @brief          フィールド名の表を構築します。
- *  @return         構築した表を返します。索引を作らない場合と失敗した場合は NULL を返します。
+ *  @brief          この呼び出しで登録簿へ追加した記述子の記録です。
  *
- *  名前が長すぎるフィールドを含む記述子では、表を作らず線形走査へ任せます。
- *  一部だけを表に入れると、表引きの不一致を「無い」と誤って判断するためです。
+ *  失敗したときに、追加した記録だけを末尾から取り消すために使います。
  */
-static cplat_hashtable *build_field_names(const struct_meta_descriptor *descriptor)
+typedef struct added_descriptor_log
 {
+    const struct_meta_descriptor **items; /**< 追加した記述子です。未使用なら NULL です。 */
+    size_t count;                         /**< @c items の使用数です。 */
+    size_t capacity;                      /**< @c items の要素数です。 */
+} added_descriptor_log;
+
+/**
+ *  @brief          フィールド名の表を構築します。
+ *  @param[in]      descriptor  対象の記述子。検査に成功した記述子であること。
+ *  @param[out]     table_out   構築した表の格納先。表を作らない場合は NULL を格納します。
+ *  @return         @c CPLAT_OK (表を作った場合と、意図して作らない場合)、
+ *                  @c CPLAT_ERR_OUT_OF_MEMORY 、または @c CPLAT_ERR_UNKNOWN を返します。
+ *
+ *  フィールドが 0 個の場合と、名前が長すぎるフィールドを含む場合は、表を作らず、成功を返します。
+ *  表の作成が @c CPLAT_ERR_OUT_OF_MEMORY のときは、そのまま返します。
+ *  それ以外の作成の失敗と、追加の失敗は @c CPLAT_ERR_UNKNOWN です。
+ *  失敗した場合は、作りかけの表を解放します。
+ */
+static int build_field_names(const struct_meta_descriptor *descriptor, cplat_hashtable **table_out)
+{
+    *table_out = NULL;
+
     if (descriptor->field_count == 0U)
     {
-        return NULL;
+        return CPLAT_OK;
     }
 
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         if (strlen(descriptor->fields[i].name) >= STRUCT_META_INDEX_FIELD_NAME_BYTES)
         {
-            return NULL;
+            /* 一部だけを表に入れると、表引きの不一致を「無い」と誤って判断する。表は作らない。 */
+            return CPLAT_OK;
         }
     }
 
@@ -148,9 +169,18 @@ static cplat_hashtable *build_field_names(const struct_meta_descriptor *descript
      */
     config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
 
-    if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &table) != CPLAT_OK)
+    const int create_result = cplat_hashtable_create(&config, NULL, 0, NULL, 0, &table);
+    if (create_result != CPLAT_OK)
     {
-        return NULL;
+        /* 失敗した作成が表を書き残しても、呼び出し元へ渡さない。NULL の破棄は何もしない。 */
+        cplat_hashtable_dispose(table);
+
+        if (create_result == CPLAT_ERR_OUT_OF_MEMORY)
+        {
+            return CPLAT_ERR_OUT_OF_MEMORY;
+        }
+
+        return CPLAT_ERR_UNKNOWN;
     }
 
     for (size_t i = 0; i < descriptor->field_count; i++)
@@ -158,20 +188,82 @@ static cplat_hashtable *build_field_names(const struct_meta_descriptor *descript
         if (cplat_hashtable_add(table, descriptor->fields[i].name, &i, CPLAT_HASHTABLE_ADD_DELETED_OVERWRITE) !=
             CPLAT_OK)
         {
-            /* 同名フィールドなど、全件を入れられない記述子は線形走査へ任せる。 */
             cplat_hashtable_dispose(table);
-            return NULL;
+            return CPLAT_ERR_UNKNOWN;
         }
     }
 
-    return table;
+    *table_out = table;
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          取り消しの記録へ、1 要素分の空きを用意します。
+ *  @return         @c CPLAT_OK 、または @c CPLAT_ERR_OUT_OF_MEMORY を返します。
+ *
+ *  登録簿へ追加する前に呼びます。確保に失敗した場合は登録簿へ追加しないため、
+ *  記録と登録簿の内容がずれません。
+ *  失敗した cplat_realloc() は元の領域を解放しないため、成功したときだけ代入します。
+ */
+static int reserve_added_descriptor(added_descriptor_log *log)
+{
+    if (log->count < log->capacity)
+    {
+        return CPLAT_OK;
+    }
+
+    const size_t new_capacity = log->capacity + 1U;
+    const struct_meta_descriptor **items =
+        (const struct_meta_descriptor **)cplat_realloc(log->items, new_capacity, sizeof(*log->items));
+    if (items == NULL)
+    {
+        return CPLAT_ERR_OUT_OF_MEMORY;
+    }
+
+    log->items = items;
+    log->capacity = new_capacity;
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          この呼び出しで追加した記録を、末尾から取り消します。
+ *
+ *  取り消しは、やり直しがネスト先へ届かないことを避けるために行います。
+ *  親だけが残ると、次の登録は親を登録済みと見てネスト先へ進みません。
+ *  記録に載せた記述子だけを対象にし、再帰では解除しません。
+ *  呼び出しの前から登録されていた記述子と、共有されたネスト先には触れません。
+ *  ensure_registry() が構築した登録簿は、空のまま残します。
+ */
+static void rollback_added_descriptors(const added_descriptor_log *log)
+{
+    for (size_t i = log->count; i > 0U; i--)
+    {
+        const struct_meta_descriptor *descriptor = log->items[i - 1U];
+        const index_record *record = find_record(descriptor);
+        if (record == NULL)
+        {
+            continue;
+        }
+
+        /* 削除が値のポインターを無効にするため、フィールド名の表は先に控える。 */
+        cplat_hashtable *field_names = record->field_names;
+
+        /* 直前に登録した記述子のキーの削除で失敗しないため、戻り値は明示的に破棄する。 */
+        (void)cplat_hashtable_delete(s_registry, &descriptor);
+        cplat_hashtable_dispose(field_names);
+    }
 }
 
 /**
  *  @brief          記述子 1 個と、そのネスト先を再帰的に登録します。
- *  @return         @c CPLAT_OK 、または @c CPLAT_ERR_OUT_OF_MEMORY を返します。
+ *  @param[in]      descriptor  登録する記述子です。
+ *  @param[in,out]  log         この呼び出しで追加した記述子の記録です。
+ *  @return         @c CPLAT_OK 、@c CPLAT_ERR_OUT_OF_MEMORY 、または
+ *                  @c CPLAT_ERR_UNKNOWN を返します。
  */
-static int register_descriptor(const struct_meta_descriptor *descriptor)
+static int register_descriptor(const struct_meta_descriptor *descriptor, added_descriptor_log *log)
 {
     if (find_record(descriptor) != NULL)
     {
@@ -185,7 +277,18 @@ static int register_descriptor(const struct_meta_descriptor *descriptor)
     record.validation_result = struct_meta_descriptor_validate(descriptor);
     if (record.validation_result == CPLAT_OK)
     {
-        record.field_names = build_field_names(descriptor);
+        const int ret = build_field_names(descriptor, &record.field_names);
+        if (ret != CPLAT_OK)
+        {
+            return ret;
+        }
+    }
+
+    int ret = reserve_added_descriptor(log);
+    if (ret != CPLAT_OK)
+    {
+        cplat_hashtable_dispose(record.field_names);
+        return ret;
     }
 
     if (cplat_hashtable_add(s_registry, &descriptor, &record, CPLAT_HASHTABLE_ADD_DELETED_OVERWRITE) != CPLAT_OK)
@@ -193,6 +296,9 @@ static int register_descriptor(const struct_meta_descriptor *descriptor)
         cplat_hashtable_dispose(record.field_names);
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
+    log->items[log->count] = descriptor;
+    log->count++;
 
     if (record.validation_result != CPLAT_OK)
     {
@@ -207,7 +313,7 @@ static int register_descriptor(const struct_meta_descriptor *descriptor)
             continue;
         }
 
-        int ret = register_descriptor(descriptor->fields[i].nested);
+        ret = register_descriptor(descriptor->fields[i].nested, log);
         if (ret != CPLAT_OK)
         {
             return ret;
@@ -272,7 +378,16 @@ int struct_meta_index_register(const struct_meta_descriptor *descriptor)
         return ret;
     }
 
-    return register_descriptor(descriptor);
+    added_descriptor_log log = {0};
+    ret = register_descriptor(descriptor, &log);
+    if (ret != CPLAT_OK)
+    {
+        rollback_added_descriptors(&log);
+    }
+
+    cplat_free(log.items);
+
+    return ret;
 }
 
 /* Doxygen コメントは、ヘッダーに記載 */

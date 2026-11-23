@@ -2,4 +2,8 @@
 /ast.c
 /build.c
 /diagnostic.c
+/doc.c
 /layout.c
+/parse.c
+/struct_meta_parse.lex.c
+/struct_meta_parse.tab.c

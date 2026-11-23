@@ -275,3 +275,40 @@ TEST(structMetaGenEmitTest, returns_one_when_header_write_fails)
     struct_meta_catalog_destroy(catalog);
     remove_output_paths(paths);
 }
+
+// 同名メンバーのヘッダーが、生成の前のカタログ作成で拒否されることの確認
+TEST(structMetaGenEmitTest, duplicate_member_header_fails_before_emit)
+{
+    // Arrange
+    const char header[] = "typedef struct duplicate_probe\n"
+                          "{\n"
+                          "    int value;\n"
+                          "    int value;\n"
+                          "} duplicate_probe;\n";
+    struct_meta_catalog *catalog = nullptr;
+    struct_meta_diagnostic diagnostic = {};
+
+    // Pre-Assert
+
+    // Act
+    int ret = struct_meta_catalog_create_from_header_text(
+        header, strlen(header), &catalog,
+        &diagnostic); // [手順] - 同名メンバーを持つヘッダー文字列からカタログを作る。
+
+    // Assert
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        ret); // [確認_異常系] - struct_meta_catalog_create_from_header_text() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+    EXPECT_EQ(nullptr, catalog);   // [確認_異常系] - カタログが作られず、生成へ進まないこと。
+    /*
+     * 2 つ目の "int value;" の字面は 4 行目である。フィールド規則は還元時の yyget_lineno を記録し、
+     * 先読みが次の改行を消費するため、診断の行は閉じ波括弧のある 5 行目になる。
+     */
+    EXPECT_EQ(5, diagnostic.line); // [確認_異常系] - diagnostic.line が 2 つ目のメンバーの source の行 (5) であること。
+    EXPECT_NE(nullptr,
+              strstr(diagnostic.message,
+                     "メンバー名が重複しています")); // [確認_異常系] - 診断の文面に重複の説明があること。
+    EXPECT_NE(nullptr, strstr(diagnostic.message, "value")); // [確認_異常系] - 診断の文面にメンバー名があること。
+    EXPECT_NE(nullptr,
+              strstr(diagnostic.message, "duplicate_probe")); // [確認_異常系] - 診断の文面に構造体名があること。
+}

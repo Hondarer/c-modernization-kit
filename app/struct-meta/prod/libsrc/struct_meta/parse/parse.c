@@ -32,6 +32,7 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 int yylex_init(yyscan_t *scanner);
 int yylex_destroy(yyscan_t scanner);
 void yyset_in(FILE *in_str, yyscan_t scanner);
+void yyset_lineno(int line_number, yyscan_t scanner);
 YY_BUFFER_STATE yy_scan_bytes(const char *bytes, int len, yyscan_t scanner);
 void yy_delete_buffer(YY_BUFFER_STATE buffer, yyscan_t scanner);
 int yyparse(yyscan_t scanner, struct_meta_internal_parse_context *context);
@@ -153,6 +154,15 @@ int struct_meta_internal_parse_header_text(const char *text, size_t length,
         struct_meta_internal_diagnose(diagnostic_out, 0, "構文解析に必要なメモリを確保できません");
         return CPLAT_ERR_OUT_OF_MEMORY;
     }
+
+    /*
+     * flex 2.6.4 の yy_scan_buffer() は、再入可能スキャナーの行番号 (バッファーの yy_bs_lineno) を初期化しない。
+     * yy_scan_bytes() は yy_scan_buffer() を呼ぶ。%option yylineno はこの値を改行のたびに増やすため、
+     * 初期化していない領域の値が診断の行になる。ファイル入力は yy_init_buffer() が 1 から始める。
+     * 文字列入力も 1 から始める。
+     * see: https://github.com/westes/flex/issues/70
+     */
+    yyset_lineno(1, scanner);
 
     struct_meta_internal_parse_context context = {NULL, diagnostic_out, 0, 0};
     const int parse_result = yyparse(scanner, &context);

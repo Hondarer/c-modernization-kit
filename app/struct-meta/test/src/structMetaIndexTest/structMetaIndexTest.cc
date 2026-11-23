@@ -210,6 +210,51 @@ TEST(structMetaIndexTest, corrupt_descriptor_keeps_same_validation_result)
     struct_meta_index_unregister(&corrupt); // [破棄] - 登録した記述子を解除する。
 }
 
+// 同名フィールドを含む記述子が、登録の前後で同じ破損結果になることの確認
+TEST(structMetaIndexTest, duplicate_field_names_are_corrupt_before_and_after_register)
+{
+    // Arrange
+    struct DuplicateProbe
+    {
+        int first;
+        int second;
+    };
+    const struct_meta_field fields[] = {
+        {"value", STRUCT_META_FIELD_SIGNED_INTEGER, 0, offsetof(DuplicateProbe, first), sizeof(int), 1, 0, nullptr,
+         nullptr, nullptr, 0},
+        {"value", STRUCT_META_FIELD_SIGNED_INTEGER, 0, offsetof(DuplicateProbe, second), sizeof(int), 1, 0, nullptr,
+         nullptr, nullptr, 0},
+    };
+    const struct_meta_descriptor duplicate = {"DuplicateProbe", sizeof(DuplicateProbe), fields, 2, nullptr, nullptr,
+                                              0};
+    int distinct = struct_meta_descriptor_validate(&kDescriptor);
+    int before = struct_meta_descriptor_validate(&duplicate);
+
+    ASSERT_EQ(CPLAT_OK, distinct); // [状態確認] - 同名がない記述子の検査結果が CPLAT_OK であること。
+    ASSERT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        before); // [状態確認] - 登録前の struct_meta_descriptor_validate() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+
+    // Pre-Assert
+
+    // Act
+    int register_ret = struct_meta_index_register(
+        &duplicate); // [手順] - 同名フィールドを持つ記述子を指定して struct_meta_index_register() を呼び出す。
+    int after = struct_meta_descriptor_validate(
+        &duplicate); // [手順] - 登録後の同じ記述子を指定して struct_meta_descriptor_validate() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(
+        CPLAT_OK,
+        register_ret); // [確認_正常系] - 同名フィールドを持つ記述子の struct_meta_index_register() の戻り値が CPLAT_OK であること。
+    EXPECT_EQ(
+        CPLAT_ERR_CORRUPT_DESCRIPTOR,
+        after); // [確認_異常系] - 登録後の struct_meta_descriptor_validate() の戻り値が CPLAT_ERR_CORRUPT_DESCRIPTOR であること。
+
+    // Cleanup
+    struct_meta_index_unregister(&duplicate); // [破棄] - 登録した記述子を解除する。
+}
+
 // NULL の記述子の登録および登録解除が不正引数エラーとなることの確認
 TEST(structMetaIndexTest, rejects_invalid_arguments)
 {

@@ -207,10 +207,10 @@ static int parse_int(const char *text, int *value_out)
 }
 
 /**
- *  @brief          現在位置のメンバー名からフィールドを一意に検索します。
+ *  @brief          現在位置のメンバー名からフィールドを検索します。
  *
- *  同名フィールドを含む不正な記述子では、最初のフィールドを暗黙に選ばず、
- *  @c CPLAT_ERR_DUPLICATE_KEY を返します。
+ *  最初に一致したフィールドを返します。同名のフィールドは
+ *  @ref struct_meta_descriptor_validate が拒否するため、公開の入口からは届きません。
  */
 static int find_field_by_name(const struct_meta_descriptor *descriptor, const char *name,
                               const struct_meta_field **field_out)
@@ -220,27 +220,18 @@ static int find_field_by_name(const struct_meta_descriptor *descriptor, const ch
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 
-    *field_out = NULL;
-
     for (size_t i = 0; i < descriptor->field_count; i++)
     {
         if (strcmp(descriptor->fields[i].name, name) == 0)
         {
-            if (*field_out != NULL)
-            {
-                return CPLAT_ERR_DUPLICATE_KEY;
-            }
-
             *field_out = &descriptor->fields[i];
+            return CPLAT_OK;
         }
     }
 
-    if (*field_out == NULL)
-    {
-        return CPLAT_ERR_NOT_FOUND;
-    }
+    *field_out = NULL;
 
-    return CPLAT_OK;
+    return CPLAT_ERR_NOT_FOUND;
 }
 
 /**
@@ -749,12 +740,6 @@ static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc
         else
         {
             const int find_result = find_field_by_name(desc, line, &field);
-            if (find_result == CPLAT_ERR_DUPLICATE_KEY)
-            {
-                (void)printf("メンバー名が重複しているため選択できません: %s\n", line);
-                continue;
-            }
-
             if (find_result != CPLAT_OK)
             {
                 (void)printf("1 から %zu の番号、またはメンバー名を入力してください。\n", desc->field_count);

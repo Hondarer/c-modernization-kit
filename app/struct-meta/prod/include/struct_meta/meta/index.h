@@ -26,14 +26,21 @@ extern "C"
     /**
      *  @brief          記述子を索引へ登録します。
      *  @param[in]      descriptor 登録する記述子です。NULL を渡してはなりません。
-     *  @return         @c CPLAT_OK 、@c CPLAT_ERR_INVALID_ARGUMENT 、または
-     *                  @c CPLAT_ERR_OUT_OF_MEMORY を返します。
+     *  @return         @c CPLAT_OK 、@c CPLAT_ERR_INVALID_ARGUMENT 、
+     *                  @c CPLAT_ERR_OUT_OF_MEMORY 、または @c CPLAT_ERR_UNKNOWN を返します。
      *
      *  登録した記述子では、@ref struct_meta_descriptor_validate の検査結果を控えて
      *  再検査を省き、フィールド名の検索を線形走査からハッシュ表引きへ切り替えます。\n
      *  ネストした記述子も再帰的に登録します。登録済みの記述子を再度登録しても
      *  @c CPLAT_OK を返し、内容は変わりません。\n
-     *  索引を作れなかった場合はエラーを返します。索引の無い状態を黙って作りません。
+     *  フィールドが 0 個の場合と、名前が 64 バイト以上のフィールドがある場合は、
+     *  フィールド名の表を作らずに成功を返します。\n
+     *  表の作成がメモリ不足のときは @c CPLAT_ERR_OUT_OF_MEMORY を返します。
+     *  それ以外の作成の失敗と、表への追加の失敗は @c CPLAT_ERR_UNKNOWN です。\n
+     *  失敗した場合は、この呼び出しで追加した登録 (ネストした記述子を含む) をすべて取り消し、
+     *  呼び出しの前の状態へ戻します。登録済みの記述子の登録は変わりません。\n
+     *  同名のフィールドを含む記述子は、検査で @c CPLAT_ERR_CORRUPT_DESCRIPTOR となり、
+     *  その検査結果を控えて登録されます。
      *
      *  登録できるのは、寿命が登録期間より長く、内容が変化しない記述子だけです。\n
      *  記述子のアドレスを鍵にするため、解放または再利用されるアドレスの記述子を
