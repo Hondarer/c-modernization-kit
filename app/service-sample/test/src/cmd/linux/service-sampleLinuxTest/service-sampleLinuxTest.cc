@@ -181,6 +181,15 @@ TEST(service_sampleLinuxTest, install_omits_exec_reload_without_on_reload)
         unit.find("ExecStart=")); // [確認_正常系] - unit に ExecStart= があること。(unit の内容を取得できたことの確認)
     EXPECT_EQ(std::string::npos, unit.find("ExecReload="));    // [確認_正常系] - unit に ExecReload= がないこと。
     EXPECT_NE(std::string::npos, unit.find("RestartSec=5\n")); // [確認_正常系] - unit に RestartSec=5 があること。
+    const size_t unit_heading = unit.find("[Unit]\n");
+    const size_t service_heading = unit.find("[Service]\n");
+    const size_t interval_pos = unit.find("StartLimitIntervalSec=60\n");
+    const size_t burst_pos = unit.find("StartLimitBurst=5\n");
+    EXPECT_LT(unit_heading, service_heading); // [確認_正常系] - [Unit] が [Service] より前にあること。
+    EXPECT_GT(interval_pos, unit_heading);    // [確認_正常系] - StartLimitIntervalSec=60 が [Unit] より後にあること。
+    EXPECT_LT(interval_pos, service_heading); // [確認_正常系] - StartLimitIntervalSec=60 が [Service] より前にあること。
+    EXPECT_GT(burst_pos, unit_heading);       // [確認_正常系] - StartLimitBurst=5 が [Unit] より後にあること。
+    EXPECT_LT(burst_pos, service_heading);    // [確認_正常系] - StartLimitBurst=5 が [Service] より前にあること。
 }
 
 // on_reload がある定義で登録した場合に、unit へ ExecReload= を書き込むことの確認
@@ -200,6 +209,49 @@ TEST(service_sampleLinuxTest, install_writes_exec_reload_with_on_reload)
     EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - svc_os_install() の戻り値が EXIT_SUCCESS であること。
     EXPECT_NE(std::string::npos,
               unit.find("ExecReload=/bin/kill -HUP $MAINPID\n")); // [確認_正常系] - unit に ExecReload= があること。
+    const size_t unit_heading = unit.find("[Unit]\n");
+    const size_t service_heading = unit.find("[Service]\n");
+    const size_t interval_pos = unit.find("StartLimitIntervalSec=60\n");
+    const size_t burst_pos = unit.find("StartLimitBurst=5\n");
+    EXPECT_LT(unit_heading, service_heading); // [確認_正常系] - [Unit] が [Service] より前にあること。
+    EXPECT_GT(interval_pos, unit_heading);    // [確認_正常系] - StartLimitIntervalSec=60 が [Unit] より後にあること。
+    EXPECT_LT(interval_pos, service_heading); // [確認_正常系] - StartLimitIntervalSec=60 が [Service] より前にあること。
+    EXPECT_GT(burst_pos, unit_heading);       // [確認_正常系] - StartLimitBurst=5 が [Unit] より後にあること。
+    EXPECT_LT(burst_pos, service_heading);    // [確認_正常系] - StartLimitBurst=5 が [Service] より前にあること。
+}
+
+// [Unit] に起動回数の制限を書き、[Service] には書かないことの確認
+TEST(service_sampleLinuxTest, install_writes_start_limit_in_unit_section)
+{
+    // Arrange
+    int actual_ret = -1;
+
+    // Pre-Assert
+
+    // Act
+    std::string unit = install_and_capture_unit(
+        &g_test_def,
+        &actual_ret); // [手順] - svc_os_install() を呼び出し、unit の内容を取得する。
+
+    // Assert
+    const size_t unit_heading = unit.find("[Unit]\n");
+    const size_t service_heading = unit.find("[Service]\n");
+    const size_t interval_pos = unit.find("StartLimitIntervalSec=60\n");
+    const size_t burst_pos = unit.find("StartLimitBurst=5\n");
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - svc_os_install() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_NE(std::string::npos, unit_heading);    // [確認_正常系] - unit に [Unit] があること。
+    ASSERT_NE(std::string::npos, service_heading); // [確認_正常系] - unit に [Service] があること。
+    EXPECT_LT(unit_heading, service_heading);      // [確認_正常系] - [Unit] が [Service] より前にあること。
+    EXPECT_GT(interval_pos, unit_heading);         // [確認_正常系] - StartLimitIntervalSec=60 が [Unit] より後にあること。
+    EXPECT_LT(interval_pos, service_heading);      // [確認_正常系] - StartLimitIntervalSec=60 が [Service] より前にあること。
+    EXPECT_GT(burst_pos, unit_heading);            // [確認_正常系] - StartLimitBurst=5 が [Unit] より後にあること。
+    EXPECT_LT(burst_pos, service_heading);         // [確認_正常系] - StartLimitBurst=5 が [Service] より前にあること。
+    const std::string service_section = unit.substr(service_heading);
+    EXPECT_EQ(std::string::npos,
+              service_section.find(
+                  "StartLimitIntervalSec=")); // [確認_正常系] - [Service] に StartLimitIntervalSec= がないこと。
+    EXPECT_EQ(std::string::npos,
+              service_section.find("StartLimitBurst=")); // [確認_正常系] - [Service] に StartLimitBurst= がないこと。
 }
 
 /* ============================================================

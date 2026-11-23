@@ -74,9 +74,65 @@
     /** ユニット ファイルの内容のうち、実行ファイル パス以外の分の大きさ [byte]。 */
     #define UNIT_CONTENT_EXTRA_BYTES 1024U
 
+    /**
+     *  起動の回数を数える期間 [s]。
+     *
+     *  unit の [Unit] の StartLimitIntervalSec= に出力します。
+     *  systemd の既定は 10 [s] の間に 5 回です。
+     *  RestartSec=5 では、その回数に到達しません。
+     *  そのため、到達できる期間を unit に明示します。
+     *  設定は systemd 229 以降の [Unit] に置きます。
+     *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html
+     *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd-system.conf.html
+     */
+    #define SVC_START_LIMIT_INTERVAL_SEC 60U
+
+    /**
+     *  期間の中で許可する起動の回数。
+     *
+     *  unit の [Unit] の StartLimitBurst= に出力します。
+     *  手動の起動と Restart= による再起動の両方を数えます。
+     *  この回数を超える起動は systemd が拒否します。
+     *  see: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html
+     */
+    #define SVC_START_LIMIT_BURST 5U
+
 static_assert((sizeof(SYSTEMD_UNIT_DIR) - 1U) + 1U + (SVC_NAME_BUFFER_SIZE - 1U) + (sizeof(".service") - 1U) + 1U <=
                   SYSTEMD_UNIT_PATH_SIZE,
               "unit path buffer must hold SYSTEMD_UNIT_DIR and the longest service name");
+
+/* RestartSec= の間隔で StartLimitBurst 回の起動に達する時間が、StartLimitIntervalSec= の期間に収まることを検査する。 */
+static_assert(((SVC_START_LIMIT_BURST - 1U) * SVC_FAILURE_RESTART_DELAY_SEC) < SVC_START_LIMIT_INTERVAL_SEC,
+              "start limit must be reachable with the restart delay");
+
+/*
+ * Description= の本文と実行ファイルのパスを除いた unit の固定部分が、UNIT_CONTENT_EXTRA_BYTES に収まることを検査する。
+ * 書式を変えたときは、この文字列も svc_os_install() の cplat_snprintf() に合わせる。
+ * %u の桁数は、unsigned int が 64 [bit] の場合の 20 桁で見積もる。対象は 3 つである。
+ */
+static_assert(sizeof(unsigned int) <= 8U, "percent-u digit estimate assumes unsigned int is at most 64-bit");
+static_assert((sizeof("[Unit]\n"
+                      "Description=\n"
+                      "After=network.target\n"
+                      "StartLimitIntervalSec=\n"
+                      "StartLimitBurst=\n"
+                      "\n"
+                      "[Service]\n"
+                      "Type=notify\n"
+                      "ExecStart= run\n"
+                      "ExecReload=/bin/kill -HUP $MAINPID\n"
+                      "Restart=on-failure\n"
+                      "RestartSec=\n"
+                      "WatchdogSec=30\n"
+                      "OOMScoreAdjust=-1000\n"
+                      "ManagedOOMPreference=omit\n"
+                      "\n"
+                      "[Install]\n"
+                      "WantedBy=multi-user.target\n") -
+               1U) +
+                      (20U * 3U) <=
+                  UNIT_CONTENT_EXTRA_BYTES,
+              "unit content fixed part must fit in UNIT_CONTENT_EXTRA_BYTES");
 
 /*
  * ============================================================
@@ -423,6 +479,8 @@ int svc_os_install(const svc_definition *def)
                        "[Unit]\n"
                        "Description=%s\n"
                        "After=network.target\n"
+                       "StartLimitIntervalSec=%u\n"
+                       "StartLimitBurst=%u\n"
                        "\n"
                        "[Service]\n"
                        "Type=notify\n"
@@ -436,8 +494,9 @@ int svc_os_install(const svc_definition *def)
                        "\n"
                        "[Install]\n"
                        "WantedBy=multi-user.target\n",
-                       def->description, exec_path, exec_reload_line, (unsigned int)SVC_FAILURE_RESTART_DELAY_SEC,
-                       managed_oom_preference_line) != CPLAT_OK)
+                       def->description, (unsigned int)SVC_START_LIMIT_INTERVAL_SEC,
+                       (unsigned int)SVC_START_LIMIT_BURST, exec_path, exec_reload_line,
+                       (unsigned int)SVC_FAILURE_RESTART_DELAY_SEC, managed_oom_preference_line) != CPLAT_OK)
     {
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
                                  "ユニット ファイルの内容が長すぎます。");

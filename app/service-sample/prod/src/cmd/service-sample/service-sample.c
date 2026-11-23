@@ -8,7 +8,7 @@
  *
  *  プラットフォーム共通の処理を実装します。
  *  - 停止イベント抽象 (svc_request_stop / svc_wait_for_stop / svc_stop_requested)
- *  - ライフサイクル駆動 (svc_run_lifecycle)
+ *  - ライフサイクル駆動 (svc_run_callbacks / svc_run_lifecycle)
  *  - エントリ ポイント
  *
  *  プラットフォーム差異は各プラットフォーム ファイルが実装するフック関数
@@ -49,18 +49,36 @@ cplat_tracer *svc_get_tracer(void)
 }
 
 /**
+ *  @brief  tracer を停止・解放します。
+ *
+ *  s_tracer が NULL の場合は何もしません。
+ */
+static void tracer_close(void)
+{
+    if (s_tracer != NULL)
+    {
+        /* NULL でないことを確認済みであり、tracer.h の失敗の条件 (NULL) に当たらないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_stop(s_tracer);
+        cplat_tracer_dispose(&s_tracer);
+        s_tracer = NULL;
+    }
+}
+
+/**
  *  @brief          tracer を生成・設定してプロバイダーを開始します。
  *  @param[in]      def            サービス定義。NULL を渡してはなりません。
  *  @param[in]      enable_stderr  stderr バックエンドを有効にする場合は 0 以外を渡します。
- *  @return         成功時は 0、失敗時は -1 を返します。
+ *  @return         成功時、およびファイル以外のトレースが開始済みの場合は 0、
+ *                  トレーサーを生成できない場合と、開始できなかった場合は -1 を返します。
  *
- *  失敗時は s_tracer = NULL のまま返します。呼び出し元は失敗時も処理を継続し、
- *  tracer 出力が無効化されるだけの状態として扱ってください。
+ *  戻った後の `s_tracer` は、開始済みのトレーサーか NULL のどちらかです。
+ *  ファイルのトレースだけが失敗した場合は、診断を stderr へ出し、ほかの出力を続けます。
  */
 static int tracer_open(const svc_definition *def, const int enable_stderr)
 {
     cplat_trace_level stderr_level;
     int file_result;
+    int start_result;
 
     s_tracer =cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
     if (s_tracer == NULL)
@@ -102,23 +120,24 @@ static int tracer_open(const svc_definition *def, const int enable_stderr)
         (void)fprintf(stderr, "ファイルへのトレースを設定できませんでした (結果コード: %d)。\n", file_result);
     }
 
-    return cplat_tracer_start(s_tracer);
-}
-
-/**
- *  @brief  tracer を停止・解放します。
- *
- *  s_tracer が NULL の場合は何もしません。
- */
-static void tracer_close(void)
-{
-    if (s_tracer != NULL)
+    start_result = cplat_tracer_start(s_tracer);
+    if (start_result != CPLAT_OK)
     {
-        /* NULL でないことを確認済みであり、tracer.h の失敗の条件 (NULL) に当たらないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_stop(s_tracer);
-        cplat_tracer_dispose(&s_tracer);
-        s_tracer = NULL;
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "トレースを開始できませんでした (結果コード: %d)。\n", start_result);
+
+        /*
+         * トレース ファイルを開けない場合も、cplat は started 状態へ進め、ファイル以外の出力は続ける。
+         * see: app/cplat/prod/include/cplat/trace/tracer.h (cplat_tracer_start)
+         */
+        if (cplat_tracer_get_state(s_tracer) != CPLAT_TRACER_STATE_STARTED)
+        {
+            tracer_close();
+            return -1;
+        }
     }
+
+    return 0;
 }
 
 /*
@@ -355,6 +374,81 @@ static void shutdown_request_callback(const cplat_shutdown_event *event, void *c
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
+int svc_run_callbacks(const svc_definition *def)
+{
+    int rc;
+
+    rc = EXIT_SUCCESS;
+
+    /* 初期化コールバックが設定されている場合は実行する。 */
+    if (def->on_start != NULL)
+    {
+        rc = def->on_start(def->user_data);
+        if (rc != EXIT_SUCCESS)
+        {
+            /*
+             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+             * この関数のトレースの戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "on_start が失敗しました (戻り値: %d)。", rc);
+        }
+    }
+
+    /* 初期化に成功した場合はメイン ループと停止処理を実行する。 */
+    if (rc == EXIT_SUCCESS)
+    {
+        int run_rc;
+        int stop_rc;
+
+        svc_os_notify_ready();
+
+        run_rc = def->on_run(def->user_data);
+        if (run_rc != EXIT_SUCCESS)
+        {
+            /*
+             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+             * この関数のトレースの戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "on_run が失敗しました (戻り値: %d)。", run_rc);
+        }
+
+        svc_os_notify_stopping();
+
+        /* on_run が失敗しても後始末のため on_stop は実行する。 */
+        stop_rc = EXIT_SUCCESS;
+
+        if (def->on_stop != NULL)
+        {
+            stop_rc = def->on_stop(def->user_data);
+            if (stop_rc != EXIT_SUCCESS)
+            {
+                /*
+                 * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+                 * この関数のトレースの戻り値は明示的に破棄する。
+                 */
+                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                          "on_stop が失敗しました (戻り値: %d)。", stop_rc);
+            }
+        }
+
+        /* 最初に失敗したコールバックの戻り値を採用する。 */
+        if (run_rc != EXIT_SUCCESS)
+        {
+            rc = run_rc;
+        }
+        else
+        {
+            rc = stop_rc;
+        }
+    }
+
+    return rc;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
 int svc_run_lifecycle(const svc_definition *def)
 {
     int rc;
@@ -374,61 +468,7 @@ int svc_run_lifecycle(const svc_definition *def)
         return EXIT_FAILURE;
     }
 
-    rc = EXIT_SUCCESS;
-
-    /* 初期化コールバックが設定されている場合は実行する。 */
-    if (def->on_start != NULL)
-    {
-        rc = def->on_start(def->user_data);
-        if (rc != EXIT_SUCCESS)
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "on_start が失敗しました (戻り値: %d)。", rc);
-        }
-    }
-
-    /* 初期化に成功した場合はメイン ループと停止処理を実行する。 */
-    if (rc == EXIT_SUCCESS)
-    {
-        int run_rc;
-        int stop_rc;
-
-        svc_os_notify_ready();
-
-        run_rc = def->on_run(def->user_data);
-        if (run_rc != EXIT_SUCCESS)
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "on_run が失敗しました (戻り値: %d)。", run_rc);
-        }
-
-        svc_os_notify_stopping();
-
-        /* on_run が失敗しても後始末のため on_stop は実行する。 */
-        stop_rc = EXIT_SUCCESS;
-
-        if (def->on_stop != NULL)
-        {
-            stop_rc = def->on_stop(def->user_data);
-            if (stop_rc != EXIT_SUCCESS)
-            {
-                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                          "on_stop が失敗しました (戻り値: %d)。", stop_rc);
-            }
-        }
-
-        /* 最初に失敗したコールバックの戻り値を採用する。 */
-        if (run_rc != EXIT_SUCCESS)
-        {
-            rc = run_rc;
-        }
-        else
-        {
-            rc = stop_rc;
-        }
-    }
-
-    return rc;
+    return svc_run_callbacks(def);
 }
 
 /** サービス定義。実装側 (service-sample-impl.c) が定義します。 */
@@ -509,7 +549,10 @@ int main(int argc, char *argv[])
     /* run コマンドのみサービス モード: SCM/systemd 起動のため stderr は無効化する。 */
     int is_service_mode = (strcmp(command, "run") == 0);
 
-    /* 失敗しても s_tracer=NULL でトレースが無効になるだけで処理を続けられるため、戻り値は明示的に破棄する。 */
+    /*
+     * 戻った後の s_tracer は、開始済みのトレーサーか NULL である。
+     * NULL の場合はトレース出力が何もしないだけで、処理を続けられるため、戻り値は明示的に破棄する。
+     */
     (void)tracer_open(&g_service_def, !is_service_mode);
 
     /* 停止イベント抽象を初期化する。 */

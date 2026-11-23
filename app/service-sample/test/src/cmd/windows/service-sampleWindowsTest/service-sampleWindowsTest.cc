@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "service-sample.h"
+#include "service-sample.inject.h"
 #include "service-sample_windows.inject.h"
 
 using testing::_;
@@ -21,33 +22,34 @@ using testing::Return;
 using testing::SetArgPointee;
 
 /* ============================================================
- *  共通処理 (service-sample.c) の代替
+ *  service-sample.c が参照するサービス定義
  * ============================================================ */
-
-/** トレースの呼び出しを mock で受けるための偽の tracer ハンドル。 */
-static cplat_tracer *const g_fake_tracer = reinterpret_cast<cplat_tracer *>(static_cast<uintptr_t>(0x1234));
 
 extern "C"
 {
-    cplat_tracer *svc_get_tracer(void)
+    static int windows_link_on_run(void *user_data)
     {
-        return g_fake_tracer;
+        (void)user_data;
+        return EXIT_SUCCESS;
     }
 
-    void svc_request_stop(void)
-    {
-    }
-
-    void svc_dispatch_event(const svc_definition *def, const svc_event_info *info)
-    {
-        (void)def;
-        (void)info;
-    }
-
-    void svc_dispatch_reload(const svc_definition *def)
-    {
-        (void)def;
-    }
+    /*
+     * C++ の名前空間スコープにある const 変数は、extern で宣言しないと内部リンケージになる。
+     * extern "C" は言語リンケージだけで、外部リンケージにはしない。
+     * service-sample.c は C の extern で g_service_def を参照する。
+     * service-sampleTest と同じく、先に extern で宣言して外部リンケージにする。
+     */
+    extern const svc_definition g_service_def;
+    /* main() の参照を満たす。テストの svc_os_run_service() は、各テストの定義を渡す。 */
+    const svc_definition g_service_def = {"service-sample-windows-test",
+                                          "Service Sample Windows Test",
+                                          "リンクを成立させるための定義です。",
+                                          nullptr,
+                                          windows_link_on_run,
+                                          nullptr,
+                                          nullptr,
+                                          nullptr,
+                                          nullptr};
 }
 
 /** svc_os_install() に渡すサービス定義。 */
@@ -97,19 +99,19 @@ TEST(service_sampleWindowsTest, install_continues_when_description_setting_fails
     ON_CALL(mock_cplat, CreateServiceU(_, _, _, _, _, _, _, _, _, _, _, _, _))
         .WillByDefault(Return(service_handle)); // [状態] - サービスを登録できた状態とする。
     ON_CALL(mock_cplat, cplat_tracer_write_with_source(_, _, _, _, _, _))
-        .WillByDefault(Return(CPLAT_OK)); // [状態] - 偽の tracer ハンドルを実関数へ渡さないよう、トレースは何もせずに戻る。
+        .WillByDefault(Return(CPLAT_OK)); // [状態] - 未初期化の tracer (NULL) を実関数へ渡さないよう、トレースは何もせずに戻る。
 
     // Pre-Assert
     EXPECT_CALL(mock_cplat, ChangeServiceConfig2U(service_handle, SERVICE_CONFIG_DESCRIPTION, _)).WillOnce(Return(FALSE));
     // [Pre-Assert確認_異常系] - ChangeServiceConfig2U() が登録したサービスと SERVICE_CONFIG_DESCRIPTION を指定して 1 回呼び出されること。
     // [Pre-Assert手順] - ChangeServiceConfig2U() から FALSE を返す。
     EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(_, _, _, _)).Times(AnyNumber()).WillRepeatedly(Return(CPLAT_OK));
-    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(g_fake_tracer, CPLAT_TRACE_LEVEL_WARNING, _,
+    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_WARNING, _,
                                                    HasSubstr("サービスの説明の設定に失敗しました")))
         .WillOnce(Return(CPLAT_OK));
     // [Pre-Assert確認_異常系] - 説明の設定の失敗を示す WARNING のトレースが 1 回出力されること。
     // [Pre-Assert手順] - cplat_tracer_writef_at() から CPLAT_OK を返す。
-    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(g_fake_tracer, CPLAT_TRACE_LEVEL_INFO, _,
+    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_INFO, _,
                                                    HasSubstr("を登録しました")))
         .WillOnce(Return(CPLAT_OK));
     // [Pre-Assert確認_異常系] - 説明の設定の失敗の後も、登録の完了を示す INFO のトレースが 1 回出力されること。
@@ -136,13 +138,13 @@ TEST(service_sampleWindowsTest, notify_continues_when_set_service_status_fails)
         reinterpret_cast<SERVICE_STATUS_HANDLE>(static_cast<uintptr_t>(0x30));
     test_service_windows_set_status_handle(fake_status_handle); // [状態] - SCM に接続済みの状態とする。
     ON_CALL(mock_cplat, cplat_tracer_writef_at(_, _, _, _))
-        .WillByDefault(Return(CPLAT_OK)); // [状態] - 偽の tracer ハンドルを実関数へ渡さないよう、トレースは何もせずに戻る。
+        .WillByDefault(Return(CPLAT_OK)); // [状態] - 未初期化の tracer (NULL) を実関数へ渡さないよう、トレースは何もせずに戻る。
 
     // Pre-Assert
     EXPECT_CALL(mock_windows, SetServiceStatus(_, _, _, fake_status_handle, _)).Times(2).WillRepeatedly(Return(FALSE));
     // [Pre-Assert確認_異常系] - SetServiceStatus() が設定したハンドルを指定して 2 回呼び出されること。(1 回目の失敗の後も次の通知へ進むことの確認)
     // [Pre-Assert手順] - SetServiceStatus() から FALSE を返す。
-    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(g_fake_tracer, CPLAT_TRACE_LEVEL_ERROR, _,
+    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_ERROR, _,
                                                    HasSubstr("SetServiceStatus が失敗しました")))
         .Times(2)
         .WillRepeatedly(Return(CPLAT_OK));
@@ -163,12 +165,14 @@ TEST(service_sampleWindowsTest, notify_continues_when_set_service_status_fails)
  *  サービスの停止の経路の checkpoint のテスト
  * ============================================================ */
 
-/** SetServiceStatus() に渡された状態、checkpoint、dwWaitHint の記録。 */
+/** SetServiceStatus() に渡された状態、checkpoint、dwWaitHint、終了コードの記録。 */
 struct ServiceStatusRecord
 {
     DWORD state;
     DWORD checkpoint;
     DWORD wait_hint;
+    DWORD win32_exit_code;
+    DWORD service_specific_exit_code;
 };
 
 /** SetServiceStatus() の呼び出しを順に記録する。 */
@@ -223,7 +227,8 @@ static void arrange_service_dispatch(NiceMock<Mock_cplat> &mock_cplat, NiceMock<
         .WillByDefault(Invoke(
             [](const char *, const int, const char *, SERVICE_STATUS_HANDLE, LPSERVICE_STATUS status) -> BOOL
             {
-                g_status_records.push_back({status->dwCurrentState, status->dwCheckPoint, status->dwWaitHint});
+                g_status_records.push_back({status->dwCurrentState, status->dwCheckPoint, status->dwWaitHint,
+                                            status->dwWin32ExitCode, status->dwServiceSpecificExitCode});
                 return TRUE;
             }));
 }
@@ -244,6 +249,8 @@ TEST(service_sampleWindowsTest, stop_path_increments_checkpoint_on_second_stop_p
                                 nullptr,
                                 nullptr,
                                 nullptr};
+    ASSERT_EQ(0, test_svc_stop_initialize()); // [状態] - 停止要求のロックと条件変数を生成する。
+                                              // [状態確認] - test_svc_stop_initialize() の戻り値が 0 であること。
     arrange_service_dispatch(
         mock_cplat, mock_windows,
         fake_status_handle); // [状態] - ServiceMain を呼び出し、SetServiceStatus() の引数を記録する。
@@ -282,6 +289,7 @@ TEST(service_sampleWindowsTest, stop_path_increments_checkpoint_on_second_stop_p
     EXPECT_EQ(0U, g_status_records[4].wait_hint);  // [確認_正常系] - 5 回目の dwWaitHint が 0 であること。
 
     // Cleanup
+    test_svc_stop_dispose();
     test_service_windows_set_status_handle(nullptr);
 }
 
@@ -301,6 +309,8 @@ TEST(service_sampleWindowsTest, stop_pending_uses_checkpoint_2_when_run_returns_
                                 nullptr,
                                 nullptr,
                                 nullptr};
+    ASSERT_EQ(0, test_svc_stop_initialize()); // [状態] - 停止要求のロックと条件変数を生成する。
+                                              // [状態確認] - test_svc_stop_initialize() の戻り値が 0 であること。
     arrange_service_dispatch(
         mock_cplat, mock_windows,
         fake_status_handle); // [状態] - ServiceMain を呼び出し、SetServiceStatus() の引数を記録する。
@@ -323,5 +333,136 @@ TEST(service_sampleWindowsTest, stop_pending_uses_checkpoint_2_when_run_returns_
     EXPECT_EQ(3000U, g_status_records[2].wait_hint); // [確認_正常系] - 3 回目の dwWaitHint が 3000 であること。
 
     // Cleanup
+    test_svc_stop_dispose();
+    test_service_windows_set_status_handle(nullptr);
+}
+
+/** on_start() が失敗値 7 を返す。 */
+static int on_start_fails(void *user_data)
+{
+    (void)user_data;
+    return 7;
+}
+
+/** on_run() が失敗値 4 を返す。 */
+static int on_run_fails(void *user_data)
+{
+    (void)user_data;
+    return 4;
+}
+
+/** on_stop() が失敗値 5 を返す。 */
+static int on_stop_fails(void *user_data)
+{
+    (void)user_data;
+    return 5;
+}
+
+// on_start() が失敗したとき、SERVICE_RUNNING を出さずに SERVICE_STOPPED を失敗値で 1 回報告することの確認
+TEST(service_sampleWindowsTest, start_failure_reports_stopped_once_without_running)
+{
+    // Arrange
+    NiceMock<Mock_cplat> mock_cplat;
+    NiceMock<Mock_windows> mock_windows;
+    SERVICE_STATUS_HANDLE fake_status_handle = reinterpret_cast<SERVICE_STATUS_HANDLE>(static_cast<uintptr_t>(0x60));
+    const svc_definition def = {"service-sample-windows-test",
+                                "Service Sample Windows Test",
+                                "service-sample_windows.c の単体テスト用定義です。",
+                                on_start_fails,
+                                on_run_without_stop_request,
+                                on_stop_fails,
+                                nullptr,
+                                nullptr,
+                                nullptr};
+    ASSERT_EQ(0, test_svc_stop_initialize()); // [状態] - 停止要求のロックと条件変数を生成する。
+                                              // [状態確認] - test_svc_stop_initialize() の戻り値が 0 であること。
+    arrange_service_dispatch(
+        mock_cplat, mock_windows,
+        fake_status_handle); // [状態] - ServiceMain を呼び出し、SetServiceStatus() の引数を記録する。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                   HasSubstr("on_start が失敗しました (戻り値: 7)。")))
+        .WillOnce(Return(CPLAT_OK));
+    // [Pre-Assert確認_異常系] - on_start の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から CPLAT_OK を返す。
+
+    // Act
+    int actual_ret = svc_os_run_service(&def); // [手順] - on_start() が失敗する定義で svc_os_run_service() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_異常系] - svc_os_run_service() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(2U, g_status_records.size()); // [確認_異常系] - SetServiceStatus() が 2 回呼び出されること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_START_PENDING),
+              g_status_records[0].state); // [確認_異常系] - 1 回目の状態が SERVICE_START_PENDING であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOPPED),
+              g_status_records[1].state); // [確認_異常系] - 2 回目の状態が SERVICE_STOPPED であること。(SERVICE_RUNNING が報告されないことの確認)
+    EXPECT_EQ(static_cast<DWORD>(ERROR_SERVICE_SPECIFIC_ERROR),
+              g_status_records[1].win32_exit_code); // [確認_異常系] - 2 回目の dwWin32ExitCode が ERROR_SERVICE_SPECIFIC_ERROR であること。
+    EXPECT_EQ(7U, g_status_records[1].service_specific_exit_code);
+    // [確認_異常系] - 2 回目の dwServiceSpecificExitCode が 7 であること。(on_start() の失敗値であることの確認)
+
+    // Cleanup
+    test_svc_stop_dispose();
+    test_service_windows_set_status_handle(nullptr);
+}
+
+// on_run() と on_stop() の両方が失敗したとき、dwServiceSpecificExitCode が on_run() の値であることの確認
+TEST(service_sampleWindowsTest, run_and_stop_failures_report_on_run_exit_code)
+{
+    // Arrange
+    NiceMock<Mock_cplat> mock_cplat;
+    NiceMock<Mock_windows> mock_windows;
+    SERVICE_STATUS_HANDLE fake_status_handle = reinterpret_cast<SERVICE_STATUS_HANDLE>(static_cast<uintptr_t>(0x70));
+    const svc_definition def = {"service-sample-windows-test",
+                                "Service Sample Windows Test",
+                                "service-sample_windows.c の単体テスト用定義です。",
+                                nullptr,
+                                on_run_fails,
+                                on_stop_fails,
+                                nullptr,
+                                nullptr,
+                                nullptr};
+    ASSERT_EQ(0, test_svc_stop_initialize()); // [状態] - 停止要求のロックと条件変数を生成する。
+                                              // [状態確認] - test_svc_stop_initialize() の戻り値が 0 であること。
+    arrange_service_dispatch(
+        mock_cplat, mock_windows,
+        fake_status_handle); // [状態] - ServiceMain を呼び出し、SetServiceStatus() の引数を記録する。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                   HasSubstr("on_run が失敗しました (戻り値: 4)。")))
+        .WillOnce(Return(CPLAT_OK));
+    // [Pre-Assert確認_異常系] - on_run の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から CPLAT_OK を返す。
+    EXPECT_CALL(mock_cplat, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                   HasSubstr("on_stop が失敗しました (戻り値: 5)。")))
+        .WillOnce(Return(CPLAT_OK));
+    // [Pre-Assert確認_異常系] - on_stop の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から CPLAT_OK を返す。
+
+    // Act
+    int actual_ret =
+        svc_os_run_service(&def); // [手順] - on_run() と on_stop() が失敗する定義で svc_os_run_service() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_異常系] - svc_os_run_service() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(4U, g_status_records.size()); // [確認_異常系] - SetServiceStatus() が 4 回呼び出されること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_START_PENDING),
+              g_status_records[0].state); // [確認_異常系] - 1 回目の状態が SERVICE_START_PENDING であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_RUNNING),
+              g_status_records[1].state); // [確認_異常系] - 2 回目の状態が SERVICE_RUNNING であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOP_PENDING),
+              g_status_records[2].state); // [確認_異常系] - 3 回目の状態が SERVICE_STOP_PENDING であること。
+    EXPECT_EQ(2U, g_status_records[2].checkpoint); // [確認_異常系] - 3 回目の checkpoint が 2 であること。
+    EXPECT_EQ(static_cast<DWORD>(SERVICE_STOPPED),
+              g_status_records[3].state); // [確認_異常系] - 4 回目の状態が SERVICE_STOPPED であること。
+    EXPECT_EQ(static_cast<DWORD>(ERROR_SERVICE_SPECIFIC_ERROR),
+              g_status_records[3].win32_exit_code); // [確認_異常系] - 4 回目の dwWin32ExitCode が ERROR_SERVICE_SPECIFIC_ERROR であること。
+    EXPECT_EQ(4U, g_status_records[3].service_specific_exit_code);
+    // [確認_異常系] - 4 回目の dwServiceSpecificExitCode が 4 であること。(on_run() の失敗値であることの確認)
+
+    // Cleanup
+    test_svc_stop_dispose();
     test_service_windows_set_status_handle(nullptr);
 }

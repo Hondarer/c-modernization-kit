@@ -117,9 +117,11 @@ Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 Table: `service-sample` の通知抽象
 
 ライフサイクル コールバック (on_start / on_run / on_stop) は、戻り値で成功 (0) と失敗 (0 以外) を返します。  
-最初に失敗したコールバックの戻り値は、Windows では `SERVICE_STOPPED` 報告時の `ERROR_SERVICE_SPECIFIC_ERROR` + `dwServiceSpecificExitCode`、Linux ではプロセス終了コードとして OS に伝わり、[自動再起動](#自動再起動の対応状況) の発動条件になります。  
+コールバックの順序と、最初に失敗したコールバックの戻り値の採用は、`svc_run_callbacks()` が行います。  
+その値は、Windows では `SERVICE_STOPPED` 報告時の `ERROR_SERVICE_SPECIFIC_ERROR` + `dwServiceSpecificExitCode`、Linux ではプロセス終了コードとして OS に伝わり、[自動再起動](#自動再起動の対応状況) の発動条件になります。  
 on_run が失敗を返しても、後始末のため on_stop は実行されます。  
-Linux ではプロセス終了コードになるため、失敗の値は [プロセスの終了コード](../../general/docs/coding-guideline.md#プロセスの終了コード) に従い、1 から 125 の範囲とします。
+失敗の値は、[プロセスの終了コード](../../general/docs/coding-guideline.md#プロセスの終了コード) に従い、1 から 125 の範囲 (3 を除く) とします。  
+Linux ではプロセス終了コード、Windows では `dwServiceSpecificExitCode` として OS へ伝わるため、両 OS で同じ範囲を推奨します。
 
 さらに、OS イベントを共通のイベント種別 (`svc_event_type`) に対応付け、任意のコールバック `on_event` へ配送します。
 
@@ -203,6 +205,12 @@ pre-shutdown、電源状態変更、セッション変更は `svc_definition` �
 `service-sample_linux.c` は、インストール時に次の unit を生成します (OOM killer 対策の設定は省略)。
 
 ```ini
+[Unit]
+Description=<サービスの説明>
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
 [Service]
 Type=notify
 ExecStart=<service-sample の絶対パス> run
@@ -211,6 +219,10 @@ Restart=on-failure
 RestartSec=5
 WatchdogSec=30
 ```
+
+`StartLimitIntervalSec=60` と `StartLimitBurst=5` は、`[Unit]` に置きます。  
+この 2 つは systemd 229 以降の設定であり、対象の systemd 239 を含みます。  
+すでに配置した unit ファイルは、`install` を再実行するまで更新されません。
 
 `RestartSec=5` と `WatchdogSec=30` は、このサンプルの例示値です。  
 `ExecReload=` は、`svc_definition` の `on_reload` が設定されている場合だけ書き込みます。`on_reload` が NULL の場合は書き込まず、`systemctl reload` は systemd が拒否します。
@@ -232,7 +244,7 @@ WatchdogSec=30
 | 停止完了 | 対応 | `on_stop` が戻り、プロセス終了で systemd へ停止完了を伝えます。コールバックが失敗を返した場合は、その値がプロセス終了コードになり失敗として伝わります。 |
 | イベント ループの異常終了 | 対応 | 実行中にイベント ループがエラーで終了した場合は、ERROR のトレースを出力して停止を要求し、コールバックが成功していても失敗で終了します。 |
 | 停止待機の時間切れ | 対応 | 停止時にイベント監視スレッドが 30 [s] 以内に終了しない場合は、ERROR のトレースを出力し、資源を解放せずにプロセスを異常終了させます。 |
-| 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動されます。 |
+| 異常終了時の再起動 | 対応 | `Restart=on-failure` により、失敗終了時は 5 秒後に再起動されます。60 秒間に 5 回を超える起動は、`StartLimitIntervalSec=60` と `StartLimitBurst=5` により拒否され、自動再起動は止まります。 |
 | 設定再読込 | 対応 | `ExecReload=` 経由の `SIGHUP` をイベント監視スレッドが受け、`RELOADING=1` 送信、`on_reload` 呼び出し、`READY=1` 再送信の順で処理します。`READY=1` の通知後から `STOPPING=1` の通知前までに限って配送します。 |
 | watchdog | 対応 | `WatchdogSec=30` に対し、イベント監視スレッドのタイマーが、期限の 1/4 (7.5 [s]) の周期で `on_run` の進行を確かめます。`on_run` が `svc_wait_for_stop()` で待機中の場合と、前回の確認の後に `svc_wait_for_stop()` を呼んでいた場合にだけ、`WATCHDOG=1` を送ります。送るのは、`READY=1` の後から、停止の要求が届くか `on_run` が戻るまでの間です。`on_run` が期限内に `svc_wait_for_stop()` へ戻らない場合と、イベント監視スレッドが止まった場合は、通知が途絶え、systemd がサービスを失敗として SIGABRT で終了させます。 |
 | サスペンド・復帰 | 対応 | systemd-logind の `PrepareForSleep` を購読し、`SVC_EVENT_POWER_SUSPEND` / `SVC_EVENT_POWER_RESUME` として配送します。 |
@@ -312,7 +324,7 @@ Table: `service-sample` の手動再起動の手段
 
 | 観点 | Linux | Windows |
 |---|---|---|
-| 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動します。 | 対応。install 時に `SERVICE_CONFIG_FAILURE_ACTIONS` (`SC_ACTION_RESTART`、遅延 5 秒) と `SERVICE_CONFIG_FAILURE_ACTIONS_FLAG` を登録し、失敗から 5 秒後に再起動します。 |
+| 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動します。60 秒間に 5 回を超える起動は、`StartLimitIntervalSec=60` と `StartLimitBurst=5` により拒否されます。 | 対応。install 時に `SERVICE_CONFIG_FAILURE_ACTIONS` (`SC_ACTION_RESTART`、遅延 5 秒) と `SERVICE_CONFIG_FAILURE_ACTIONS_FLAG` を登録し、失敗から 5 秒後に再起動します。 |
 | 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 |
 
 Table: `service-sample` の自動再起動の対応状況
@@ -327,7 +339,14 @@ Linux の `Restart=on-failure` は非ゼロの終了コードでも再起動す�
 sc qfailure {name}
 ```
 
-再起動の抑制方式には次の差異が残ります。
+再起動の抑制方式には、次の差異があります。
 
-- Linux は `StartLimitBurst` (既定 10 秒間に 5 回) を超えると unit が failed 状態になり、自動再起動を停止します。
-- Windows は失敗カウンター方式で、無失敗期間が `dwResetPeriod` (86400 秒) 続くとカウンターがリセットされる。登録したアクションが 1 件のみのため、失敗回数によらず同じ再起動アクションが適用され続け、回数上限による停止はありません。
+Linux は、unit の `StartLimitIntervalSec=60` と `StartLimitBurst=5` により、60 秒間に 5 回を超える起動 (手動の起動と `Restart=` による再起動の両方) を許可しません。  
+上限を超えると unit は failed 状態になり、自動再起動が止まります。  
+systemd の既定 (10 秒間に 5 回) は、`RestartSec=5` では到達しないため、unit にこの値を明示しています。  
+拒否された unit は、`systemctl reset-failed` を実行するか、期間の経過の後に、手動で起動し直します。
+
+根拠は、[systemd.unit](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html) の `StartLimitIntervalSec=` と `StartLimitBurst=`、および [systemd-system.conf](https://www.freedesktop.org/software/systemd/man/latest/systemd-system.conf.html) の `DefaultStartLimitIntervalSec=` と `DefaultStartLimitBurst=` です。
+
+Windows は失敗カウンター方式で、無失敗期間が `dwResetPeriod` (86400 秒) 続くとカウンターがリセットされる。  
+登録したアクションが 1 件のみのため、失敗回数によらず同じ再起動アクションが適用され続け、回数上限による停止はありません。

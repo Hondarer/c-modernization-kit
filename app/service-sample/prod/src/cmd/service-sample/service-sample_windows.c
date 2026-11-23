@@ -11,7 +11,7 @@
  *  - svc_os_install     : CreateService による SCM 登録
  *  - svc_os_uninstall   : DeleteService による SCM 解除
  *
- *  共通処理 (svc_run_lifecycle / main) は service-sample.c に、
+ *  共通処理 (svc_run_callbacks / svc_run_lifecycle / main) は service-sample.c に、
  *  コールバック雛形は service-sample-impl.c に実装します。
  *
  *  内部起動パターン (ユーザーは直接使用しない):
@@ -481,6 +481,10 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
  *  @brief          サービス メイン関数 (SCM ディスパッチャーから呼ばれる)。
  *  @param[in]      argc    サービス引数の数。
  *  @param[in]      argv    サービス引数の配列。
+ *
+ *  制御ハンドラーの登録と SERVICE_START_PENDING の報告の後に、svc_run_callbacks() を呼びます。\n
+ *  コールバックの順序と失敗値の採用は svc_run_callbacks() に任せます。\n
+ *  戻り値は SERVICE_STOPPED の dwServiceSpecificExitCode として SCM へ報告します。
  */
 static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 {
@@ -502,54 +506,7 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
 
     set_service_status(SERVICE_START_PENDING, 0, 1, SVC_ON_START_WAIT_HINT_MS);
 
-    if (s_def->on_start != NULL)
-    {
-        rc = s_def->on_start(s_def->user_data);
-        if (rc != 0)
-        {
-            /*
-             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
-             * この関数のトレースの戻り値は明示的に破棄する。
-             */
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "on_start が失敗しました (戻り値: %d)。", rc);
-            set_service_stopped((DWORD)rc);
-            return;
-        }
-    }
-
-    svc_os_notify_ready();
-
-    /* on_run() を呼び出す (停止要求まで戻らない)。 */
-    rc = s_def->on_run(s_def->user_data);
-    if (rc != 0)
-    {
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                  "on_run が失敗しました (戻り値: %d)。", rc);
-    }
-
-    svc_os_notify_stopping();
-
-    /* on_stop() を呼び出す (on_run() が失敗しても、後始末のため実行する)。 */
-    if (s_def->on_stop != NULL)
-    {
-        int stop_rc;
-
-        stop_rc = s_def->on_stop(s_def->user_data);
-        if (stop_rc != 0)
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "on_stop が失敗しました (戻り値: %d)。", stop_rc);
-
-            /* 最初に失敗したコールバックの戻り値を採用する。 */
-            if (rc == 0)
-            {
-                rc = stop_rc;
-            }
-        }
-    }
-
-    /* 停止完了を通知する (rc が 0 以外の場合は、失敗として報告する)。 */
+    rc = svc_run_callbacks(s_def);
     set_service_stopped((DWORD)rc);
 }
 

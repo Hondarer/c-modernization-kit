@@ -13,6 +13,7 @@
 using testing::_;
 using testing::AnyNumber;
 using testing::HasSubstr;
+using testing::InSequence;
 using testing::Invoke;
 using testing::NiceMock;
 using testing::Return;
@@ -997,4 +998,388 @@ TEST_F(service_sampleTest, on_run_progress_is_not_alive_without_wait)
 
     // Assert
     EXPECT_EQ(0, actual); // [確認_正常系] - svc_on_run_made_progress() の戻り値が 0 であること。
+}
+
+/* ============================================================
+ *  tracer_open の開始失敗のテスト
+ * ============================================================ */
+
+// 開始に失敗しても状態が STARTED のとき、トレーサーを保持して処理を続けることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, tracer_start_failure_keeps_started_tracer)
+{
+    // Arrange
+    NiceMock<Mock_stdio> mock_stdio; // [状態] - stderr の診断を Mock_stdio で受ける。
+    const std::string start_diagnostic =
+        "トレースを開始できませんでした (結果コード: " + std::to_string(CPLAT_ERR_UNKNOWN) + ")。";
+    g_on_start_rc = 7; // [状態] - on_start が失敗 (7) を返すように設定する。
+    int argc = 2;
+    const char *console_argv[] = {"service-sampleTest", "console"}; // [状態] - main() にコマンド "console" を与える。
+    const char *install_argv[] = {"service-sampleTest", "install"}; // [状態] - main() にコマンド "install" を与える。
+    const char *run_argv[] = {"service-sampleTest", "run"};         // [状態] - main() にコマンド "run" を与える。
+    /*
+     * tracer_open() は、開始の失敗の診断を出してから cplat_tracer_get_state() で状態を確かめる。
+     * main() は末尾で tracer_close() を呼ぶ。開始済みのトレーサーは、その呼び出しまで保持される。
+     * 保持の確認は、on_start の失敗トレースの第 1 引数がハンドルであることとする。
+     */
+
+    // Pre-Assert
+    {
+        InSequence sequence;
+        EXPECT_CALL(mock_cplat_, cplat_tracer_start(tracer_handle_)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - console で cplat_tracer_start() が保持するハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_start() から CPLAT_ERR_UNKNOWN を返す。
+        EXPECT_CALL(mock_stdio, fprintf(_, _, _, stderr, HasSubstr(start_diagnostic)))
+            .WillOnce(Invoke(delegate_real_fprintf));
+        // [Pre-Assert確認_異常系] - console で結果コードを含む診断が stderr へ 1 回出ること。
+        // [Pre-Assert手順] - fprintf() は実関数へ委譲する。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(tracer_handle_)).WillOnce(Return(CPLAT_TRACER_STATE_STARTED));
+        // [Pre-Assert確認_異常系] - console で cplat_tracer_get_state() が保持するハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_get_state() から CPLAT_TRACER_STATE_STARTED を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(tracer_handle_, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                        HasSubstr("on_start が失敗しました (戻り値: 7)。")))
+            .WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - on_start の失敗トレースの第 1 引数が、保持したトレーサーのハンドルであること。
+        // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_stop(tracer_handle_)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - console の終了処理で cplat_tracer_stop() が保持したハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_stop() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillOnce(Return());
+        // [Pre-Assert確認_異常系] - console の終了処理で cplat_tracer_dispose() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_dispose() から戻る。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_start(tracer_handle_)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - install で cplat_tracer_start() が保持するハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_start() から CPLAT_ERR_UNKNOWN を返す。
+        EXPECT_CALL(mock_stdio, fprintf(_, _, _, stderr, HasSubstr(start_diagnostic)))
+            .WillOnce(Invoke(delegate_real_fprintf));
+        // [Pre-Assert確認_異常系] - install で結果コードを含む診断が stderr へ 1 回出ること。
+        // [Pre-Assert手順] - fprintf() は実関数へ委譲する。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(tracer_handle_)).WillOnce(Return(CPLAT_TRACER_STATE_STARTED));
+        // [Pre-Assert確認_異常系] - install で cplat_tracer_get_state() が保持するハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_get_state() から CPLAT_TRACER_STATE_STARTED を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_stop(tracer_handle_)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - install の終了処理で cplat_tracer_stop() が保持したハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_stop() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillOnce(Return());
+        // [Pre-Assert確認_異常系] - install の終了処理で cplat_tracer_dispose() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_dispose() から戻る。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_start(tracer_handle_)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - run で cplat_tracer_start() が保持するハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_start() から CPLAT_ERR_UNKNOWN を返す。
+        EXPECT_CALL(mock_stdio, fprintf(_, _, _, stderr, HasSubstr(start_diagnostic)))
+            .WillOnce(Invoke(delegate_real_fprintf));
+        // [Pre-Assert確認_異常系] - run で結果コードを含む診断が stderr へ 1 回出ること。
+        // [Pre-Assert手順] - fprintf() は実関数へ委譲する。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(tracer_handle_)).WillOnce(Return(CPLAT_TRACER_STATE_STARTED));
+        // [Pre-Assert確認_異常系] - run で cplat_tracer_get_state() が保持するハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_get_state() から CPLAT_TRACER_STATE_STARTED を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_stop(tracer_handle_)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - run の終了処理で cplat_tracer_stop() が保持したハンドルを指定して 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_stop() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillOnce(Return());
+        // [Pre-Assert確認_異常系] - run の終了処理で cplat_tracer_dispose() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_dispose() から戻る。
+    }
+
+    // Act
+    testing::internal::CaptureStderr();
+    int console_ret = __real_main(argc, (char **)&console_argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+    std::string console_errors = testing::internal::GetCapturedStderr();
+    std::vector<std::string> console_calls = g_calls;
+    g_calls.clear();
+
+    // Assert
+    EXPECT_EQ(7, console_ret); // [確認_異常系] - console の __real_main() の戻り値が 7 であること。
+    ASSERT_EQ(1U, console_calls.size()); // [確認_異常系] - console の呼び出しが 1 件であること。
+    EXPECT_EQ("on_start", console_calls[0]); // [確認_異常系] - console で on_start だけが呼ばれること。
+    EXPECT_NE(std::string::npos, console_errors.find(start_diagnostic));
+    // [確認_異常系] - console の標準エラー出力に、結果コードを含む診断が 1 行出ること。
+
+    // Act_2
+    testing::internal::CaptureStderr();
+    int install_ret = __real_main(argc, (char **)&install_argv); // [手順] - コマンド "install" を指定して __real_main() を呼び出す。
+    std::string install_errors = testing::internal::GetCapturedStderr();
+    std::vector<std::string> install_calls = g_calls;
+    g_calls.clear();
+
+    // Assert_2
+    EXPECT_EQ(EXIT_SUCCESS, install_ret); // [確認_異常系] - install の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(1U, install_calls.size()); // [確認_異常系] - install の呼び出しが 1 件であること。
+    EXPECT_EQ("os_install", install_calls[0]); // [確認_異常系] - install で svc_os_install() が呼ばれること。
+    EXPECT_NE(std::string::npos, install_errors.find(start_diagnostic));
+    // [確認_異常系] - install の標準エラー出力に、結果コードを含む診断が 1 行出ること。
+
+    // Act_3
+    testing::internal::CaptureStderr();
+    int run_ret = __real_main(argc, (char **)&run_argv); // [手順] - コマンド "run" を指定して __real_main() を呼び出す。
+    std::string run_errors = testing::internal::GetCapturedStderr();
+
+    // Assert_3
+    EXPECT_EQ(EXIT_SUCCESS, run_ret); // [確認_異常系] - run の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - run の呼び出しが 1 件であること。
+    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
+    EXPECT_NE(std::string::npos, run_errors.find(start_diagnostic));
+    // [確認_異常系] - run の標準エラー出力に、結果コードを含む診断が 1 行出ること。
+}
+
+// 開始に失敗し状態が STARTED でないとき、トレーサーを破棄して処理を続けることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, tracer_start_failure_discards_unstarted_tracer)
+{
+    // Arrange
+    NiceMock<Mock_stdio> mock_stdio; // [状態] - stderr の診断を Mock_stdio で受ける。
+    const std::string start_diagnostic =
+        "トレースを開始できませんでした (結果コード: " + std::to_string(CPLAT_ERR_UNKNOWN) + ")。";
+    g_on_start_rc = 7; // [状態] - on_start が失敗 (7) を返すように設定する。
+    int argc = 2;
+    const char *console_argv[] = {"service-sampleTest", "console"}; // [状態] - main() にコマンド "console" を与える。
+    const char *install_argv[] = {"service-sampleTest", "install"}; // [状態] - main() にコマンド "install" を与える。
+    const char *run_argv[] = {"service-sampleTest", "run"};         // [状態] - main() にコマンド "run" を与える。
+    /*
+     * tracer_open() は、開始の失敗の診断を出してから cplat_tracer_get_state() で状態を確かめる。
+     * 開始済みでなければ、その中で stop と dispose を 1 回ずつ呼び、s_tracer を NULL にする。
+     */
+
+    // Pre-Assert
+    {
+        InSequence sequence;
+        EXPECT_CALL(mock_cplat_, cplat_tracer_start(tracer_handle_)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - console で cplat_tracer_start() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_start() から CPLAT_ERR_UNKNOWN を返す。
+        EXPECT_CALL(mock_stdio, fprintf(_, _, _, stderr, HasSubstr(start_diagnostic)))
+            .WillOnce(Invoke(delegate_real_fprintf));
+        // [Pre-Assert確認_異常系] - console で結果コードを含む診断が stderr へ 1 回出ること。
+        // [Pre-Assert手順] - fprintf() は実関数へ委譲する。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(tracer_handle_)).WillOnce(Return(CPLAT_TRACER_STATE_STOPPED));
+        // [Pre-Assert確認_異常系] - console で cplat_tracer_get_state() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_get_state() から CPLAT_TRACER_STATE_STOPPED を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_stop(tracer_handle_)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - console で cplat_tracer_stop() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_stop() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillOnce(Return());
+        // [Pre-Assert確認_異常系] - console で cplat_tracer_dispose() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_dispose() から戻る。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(nullptr, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                        HasSubstr("on_start が失敗しました (戻り値: 7)。")))
+            .WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - 破棄の後の on_start の失敗トレースの第 1 引数が nullptr であること。
+        // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_start(tracer_handle_)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - install で cplat_tracer_start() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_start() から CPLAT_ERR_UNKNOWN を返す。
+        EXPECT_CALL(mock_stdio, fprintf(_, _, _, stderr, HasSubstr(start_diagnostic)))
+            .WillOnce(Invoke(delegate_real_fprintf));
+        // [Pre-Assert確認_異常系] - install で結果コードを含む診断が stderr へ 1 回出ること。
+        // [Pre-Assert手順] - fprintf() は実関数へ委譲する。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(tracer_handle_)).WillOnce(Return(CPLAT_TRACER_STATE_STOPPED));
+        // [Pre-Assert確認_異常系] - install で cplat_tracer_get_state() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_get_state() から CPLAT_TRACER_STATE_STOPPED を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_stop(tracer_handle_)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - install で cplat_tracer_stop() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_stop() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillOnce(Return());
+        // [Pre-Assert確認_異常系] - install で cplat_tracer_dispose() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_dispose() から戻る。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_start(tracer_handle_)).WillOnce(Return(CPLAT_ERR_UNKNOWN));
+        // [Pre-Assert確認_異常系] - run で cplat_tracer_start() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_start() から CPLAT_ERR_UNKNOWN を返す。
+        EXPECT_CALL(mock_stdio, fprintf(_, _, _, stderr, HasSubstr(start_diagnostic)))
+            .WillOnce(Invoke(delegate_real_fprintf));
+        // [Pre-Assert確認_異常系] - run で結果コードを含む診断が stderr へ 1 回出ること。
+        // [Pre-Assert手順] - fprintf() は実関数へ委譲する。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(tracer_handle_)).WillOnce(Return(CPLAT_TRACER_STATE_STOPPED));
+        // [Pre-Assert確認_異常系] - run で cplat_tracer_get_state() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_get_state() から CPLAT_TRACER_STATE_STOPPED を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_stop(tracer_handle_)).WillOnce(Return(0));
+        // [Pre-Assert確認_異常系] - run で cplat_tracer_stop() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_stop() から 0 を返す。
+        EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).WillOnce(Return());
+        // [Pre-Assert確認_異常系] - run で cplat_tracer_dispose() が 1 回呼び出されること。
+        // [Pre-Assert手順] - cplat_tracer_dispose() から戻る。
+    }
+
+    // Act
+    int console_ret = __real_main(argc, (char **)&console_argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+    std::vector<std::string> console_calls = g_calls;
+    cplat_tracer *console_tracer = svc_get_tracer();
+    g_calls.clear();
+
+    // Assert
+    EXPECT_EQ(7, console_ret); // [確認_異常系] - console の __real_main() の戻り値が 7 であること。
+    ASSERT_EQ(1U, console_calls.size()); // [確認_異常系] - console の呼び出しが 1 件であること。
+    EXPECT_EQ("on_start", console_calls[0]); // [確認_異常系] - console で on_start の後も処理が続くこと。
+    EXPECT_EQ(nullptr, console_tracer); // [確認_異常系] - console の後の svc_get_tracer() の戻り値が nullptr であること。
+
+    // Act_2
+    int install_ret = __real_main(argc, (char **)&install_argv); // [手順] - コマンド "install" を指定して __real_main() を呼び出す。
+    std::vector<std::string> install_calls = g_calls;
+    cplat_tracer *install_tracer = svc_get_tracer();
+    g_calls.clear();
+
+    // Assert_2
+    EXPECT_EQ(EXIT_SUCCESS, install_ret); // [確認_異常系] - install の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(1U, install_calls.size()); // [確認_異常系] - install の呼び出しが 1 件であること。
+    EXPECT_EQ("os_install", install_calls[0]); // [確認_異常系] - install で svc_os_install() が呼ばれること。
+    EXPECT_EQ(nullptr, install_tracer); // [確認_異常系] - install の後の svc_get_tracer() の戻り値が nullptr であること。
+
+    // Act_3
+    int run_ret = __real_main(argc, (char **)&run_argv); // [手順] - コマンド "run" を指定して __real_main() を呼び出す。
+
+    // Assert_3
+    EXPECT_EQ(EXIT_SUCCESS, run_ret); // [確認_異常系] - run の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - run の呼び出しが 1 件であること。
+    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
+    EXPECT_EQ(nullptr, svc_get_tracer()); // [確認_異常系] - run の後の svc_get_tracer() の戻り値が nullptr であること。
+}
+
+// トレーサーを生成できないとき、開始と破棄を呼ばずに処理を続けることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, tracer_create_failure_skips_start)
+{
+    // Arrange
+    int argc = 2;
+    const char *console_argv[] = {"service-sampleTest", "console"}; // [状態] - main() にコマンド "console" を与える。
+    const char *install_argv[] = {"service-sampleTest", "install"}; // [状態] - main() にコマンド "install" を与える。
+    const char *run_argv[] = {"service-sampleTest", "run"};         // [状態] - main() にコマンド "run" を与える。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_tracer_create(_)).Times(3).WillRepeatedly(Return(nullptr));
+    // [Pre-Assert確認_異常系] - cplat_tracer_create() が console、install、run で 1 回ずつ、合計 3 回呼び出されること。
+    // [Pre-Assert手順] - cplat_tracer_create() から nullptr を返す。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_start(_)).Times(0);
+    // [Pre-Assert確認_異常系] - cplat_tracer_start() が呼び出されないこと。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_get_state(_)).Times(0);
+    // [Pre-Assert確認_異常系] - cplat_tracer_get_state() が呼び出されないこと。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_dispose(_)).Times(0);
+    // [Pre-Assert確認_異常系] - cplat_tracer_dispose() が呼び出されないこと。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_stop(_)).Times(0);
+    // [Pre-Assert確認_異常系] - cplat_tracer_stop() が呼び出されないこと。
+
+    // Act
+    int console_ret = __real_main(argc, (char **)&console_argv); // [手順] - コマンド "console" を指定して __real_main() を呼び出す。
+    std::vector<std::string> console_calls = g_calls;
+    g_calls.clear();
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, console_ret); // [確認_異常系] - console の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(5U, console_calls.size()); // [確認_異常系] - console の呼び出しが 5 件であること。(ライフサイクルを続けることの確認)
+    EXPECT_EQ(nullptr, svc_get_tracer()); // [確認_異常系] - console の後の svc_get_tracer() の戻り値が nullptr であること。
+
+    // Act_2
+    int install_ret = __real_main(argc, (char **)&install_argv); // [手順] - コマンド "install" を指定して __real_main() を呼び出す。
+    std::vector<std::string> install_calls = g_calls;
+    g_calls.clear();
+
+    // Assert_2
+    EXPECT_EQ(EXIT_SUCCESS, install_ret); // [確認_異常系] - install の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(1U, install_calls.size()); // [確認_異常系] - install の呼び出しが 1 件であること。
+    EXPECT_EQ("os_install", install_calls[0]); // [確認_異常系] - install で svc_os_install() が呼ばれること。
+
+    // Act_3
+    int run_ret = __real_main(argc, (char **)&run_argv); // [手順] - コマンド "run" を指定して __real_main() を呼び出す。
+
+    // Assert_3
+    EXPECT_EQ(EXIT_SUCCESS, run_ret); // [確認_異常系] - run の __real_main() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - run の呼び出しが 1 件であること。
+    EXPECT_EQ("os_run_service", g_calls[0]); // [確認_異常系] - run で svc_os_run_service() が呼ばれること。
+}
+
+/* ============================================================
+ *  svc_run_callbacks のテスト
+ * ============================================================ */
+
+// on_start が NULL のとき、起動完了の通知の後の最初のコールバックが on_run であることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, run_callbacks_starts_at_on_run_when_on_start_is_null)
+{
+    // Arrange
+    svc_definition def = g_service_def;
+    def.on_start = nullptr; // [状態] - on_start が NULL の定義とする。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = svc_run_callbacks(&def); // [手順] - on_start が NULL の定義で svc_run_callbacks() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - svc_run_callbacks() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(4U, g_calls.size()); // [確認_正常系] - g_calls.size() の戻り値が 4U であること。(on_start を呼ばないことの確認)
+    EXPECT_EQ("notify_ready", g_calls[0]); // [確認_正常系] - g_calls[0] が "notify_ready" であること。
+    EXPECT_EQ("on_run", g_calls[1]); // [確認_正常系] - g_calls[1] が "on_run" であること。(コールバックが on_run から始まることの確認)
+    EXPECT_EQ("notify_stopping", g_calls[2]); // [確認_正常系] - g_calls[2] が "notify_stopping" であること。
+    EXPECT_EQ("on_stop", g_calls[3]); // [確認_正常系] - g_calls[3] が "on_stop" であること。
+}
+
+// on_stop が NULL のとき、on_run の後に停止開始の通知だけが呼ばれることの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, run_callbacks_notifies_stopping_when_on_stop_is_null)
+{
+    // Arrange
+    svc_definition def = g_service_def;
+    def.on_stop = nullptr; // [状態] - on_stop が NULL の定義とする。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = svc_run_callbacks(&def); // [手順] - on_stop が NULL の定義で svc_run_callbacks() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - svc_run_callbacks() の戻り値が EXIT_SUCCESS であること。
+    ASSERT_EQ(4U, g_calls.size()); // [確認_正常系] - g_calls.size() の戻り値が 4U であること。(on_stop が呼ばれないことの確認)
+    EXPECT_EQ("on_start", g_calls[0]); // [確認_正常系] - g_calls[0] が "on_start" であること。
+    EXPECT_EQ("notify_ready", g_calls[1]); // [確認_正常系] - g_calls[1] が "notify_ready" であること。
+    EXPECT_EQ("on_run", g_calls[2]); // [確認_正常系] - g_calls[2] が "on_run" であること。
+    EXPECT_EQ("notify_stopping", g_calls[3]); // [確認_正常系] - g_calls[3] が "notify_stopping" であること。(on_run の後は停止開始の通知だけであることの確認)
+}
+
+// on_run と on_stop の両方が失敗したとき、on_run の戻り値を返すことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, run_callbacks_returns_on_run_failure_when_on_stop_also_fails)
+{
+    // Arrange
+    g_on_run_rc = 4;  // [状態] - on_run が失敗 (4) を返すように設定する。
+    g_on_stop_rc = 5; // [状態] - on_stop が失敗 (5) を返すように設定する。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                    HasSubstr("on_run が失敗しました (戻り値: 4)。")))
+        .WillOnce(Return(0));
+    // [Pre-Assert確認_異常系] - on_run の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                    HasSubstr("on_stop が失敗しました (戻り値: 5)。")))
+        .WillOnce(Return(0));
+    // [Pre-Assert確認_異常系] - on_stop の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+
+    // Act
+    int actual_ret = svc_run_callbacks(&g_service_def); // [手順] - on_run と on_stop が失敗する状態で svc_run_callbacks() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(4, actual_ret); // [確認_異常系] - svc_run_callbacks() の戻り値が 4 であること。(on_run の戻り値を採用することの確認)
+    ASSERT_EQ(5U, g_calls.size()); // [確認_異常系] - g_calls.size() の戻り値が 5U であること。
+    EXPECT_EQ("on_stop", g_calls[4]); // [確認_異常系] - g_calls[4] が "on_stop" であること。(on_run の失敗後も on_stop が呼ばれることの確認)
+}
+
+// on_start が失敗したとき、後続の通知とコールバックを呼ばないことの確認
+// [サブ手順参照 名前=service_sampleTest.SetUp]
+TEST_F(service_sampleTest, run_callbacks_does_not_continue_after_on_start_failure)
+{
+    // Arrange
+    g_on_start_rc = 9; // [状態] - on_start が失敗 (9) を返すように設定する。
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_ERROR, _,
+                                                    HasSubstr("on_start が失敗しました (戻り値: 9)。")))
+        .WillOnce(Return(0));
+    // [Pre-Assert確認_異常系] - on_start の失敗を示す ERROR のトレースが 1 回出力されること。
+    // [Pre-Assert手順] - cplat_tracer_writef_at() から 0 を返す。
+
+    // Act
+    int actual_ret = svc_run_callbacks(&g_service_def); // [手順] - on_start が失敗する状態で svc_run_callbacks() を呼び出す。
+
+    // Assert
+    EXPECT_EQ(9, actual_ret); // [確認_異常系] - svc_run_callbacks() の戻り値が 9 であること。
+    ASSERT_EQ(1U, g_calls.size()); // [確認_異常系] - g_calls.size() の戻り値が 1U であること。
+    EXPECT_EQ("on_start", g_calls[0]); // [確認_異常系] - g_calls[0] が "on_start" であること。(起動完了の通知、on_run、停止開始の通知、on_stop が呼ばれないことの確認)
 }

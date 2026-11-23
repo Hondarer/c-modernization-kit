@@ -80,7 +80,8 @@ extern "C"
      *  0 を返すと on_run() が呼ばれます。0 以外を返すと起動を中断します
      *  (on_run() と on_stop() は呼ばれません)。\n
      *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
-     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。\n
+     *  失敗値は、プロセスの終了コードにもなるため、1 から 125 の範囲 (3 は abort() の終了コードのため除く) を推奨します。\n
+     *  範囲の根拠は、共通のコーディング規範の「プロセスの終了コード」です。\n
      *  Linux では、systemd の起動タイムアウト (TimeoutStartSec=。unit で指定していないため、既定の 90 [s]) より
      *  短い時間で戻る必要があります。超えた場合は、systemd がサービスを起動の失敗として終了させます。
      *
@@ -97,7 +98,8 @@ extern "C"
      *  停止要求の検知には svc_wait_for_stop() を使用してください。\n
      *  失敗 (0 以外) を返してもその後の on_stop() は呼ばれます。\n
      *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
-     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。
+     *  失敗値は、プロセスの終了コードにもなるため、1 から 125 の範囲 (3 は abort() の終了コードのため除く) を推奨します。\n
+     *  範囲の根拠は、共通のコーディング規範の「プロセスの終了コード」です。
      *
      *  @par            Linux の watchdog との関係
      *  systemd が watchdog を要求している場合 (unit の WatchdogSec=) は、この関数の進行を watchdog の通知に結び付けます。\n
@@ -123,7 +125,8 @@ extern "C"
      *  後始末のために呼ばれます)。\n
      *  on_start() が失敗した場合は呼ばれません。\n
      *  失敗を返すとサービスは失敗として終了し、自動再起動の対象になります。\n
-     *  Linux ではプロセス終了コードになるため、1 から 255 の範囲を推奨します。\n
+     *  失敗値は、プロセスの終了コードにもなるため、1 から 125 の範囲 (3 は abort() の終了コードのため除く) を推奨します。\n
+     *  範囲の根拠は、共通のコーディング規範の「プロセスの終了コード」です。\n
      *  Linux では、停止の要求から on_run() の復帰と on_stop() の完了までの合計を 60 [s] 未満にしてください
      *  (systemd の停止タイムアウト 90 [s] から、イベント監視スレッドの終了を待つ上限 30 [s] を除いた時間)。\n
      *  停止の開始の直前に WATCHDOG=1 が届き、systemd の watchdog が再び有効になった場合は、
@@ -405,7 +408,7 @@ extern "C"
     /**
      *  @brief          起動完了を OS に通知します (内部共有関数)。
      *
-     *  on_start() 成功直後に svc_run_lifecycle() から呼ばれます。\n
+     *  on_start() 成功直後に svc_run_callbacks() から呼ばれます。\n
      *  - Linux  : sd_notify(3) で "READY=1" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に SERVICE_RUNNING を通知します。\n
@@ -416,7 +419,7 @@ extern "C"
     /**
      *  @brief          停止開始を OS に通知します (内部共有関数)。
      *
-     *  on_run() 復帰直後、on_stop() 呼び出し前に svc_run_lifecycle() から呼ばれます。\n
+     *  on_run() 復帰直後、on_stop() 呼び出し前に svc_run_callbacks() から呼ばれます。\n
      *  - Linux  : sd_notify(3) で "STOPPING=1" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に SERVICE_STOP_PENDING を通知します。\n
@@ -453,15 +456,32 @@ extern "C"
 
     /**
      *  @brief          ライフサイクル コールバックを駆動します (内部共有関数)。
+     *  @param[in]      def     サービス定義。NULL を渡してはなりません。on_run は NULL であってはなりません。
+     *  @return         成功時は 0、失敗した場合は、最初に失敗したコールバックの戻り値を返します。\n
+     *                  失敗値の範囲は検査しません。\n
+     *                  範囲の根拠は、共通のコーディング規範の「プロセスの終了コード」です。
+     *
+     *  on_start (NULL でなければ)、svc_os_notify_ready()、on_run、svc_os_notify_stopping()、on_stop (NULL でなければ) の順に呼びます。\n
+     *  on_start が失敗した場合は、後続を呼ばずに、その戻り値を返します。\n
+     *  on_run が失敗しても、on_stop は呼びます。on_run と on_stop の両方が失敗した場合は、on_run の戻り値を返します。\n
+     *  失敗したコールバックごとに、ERROR のトレース「on_start が失敗しました (戻り値: %d)。」の形
+     *  (on_run と on_stop も同じ形) を出します。\n
+     *  OS ごとの入口の処理 (コンソールの初期化、停止要求の登録、SCM への状態の報告) と、結果の渡し方は、呼び出し元が行います。
+     */
+    int svc_run_callbacks(const svc_definition *def);
+
+    /**
+     *  @brief          コンソールを初期化し、ライフサイクル コールバックを駆動します (内部共有関数)。
      *  @param[in]      def     サービス定義。NULL を渡してはなりません。
      *  @return         成功時は 0、いずれかのコールバックが失敗した場合は
      *                  最初に失敗したコールバックの戻り値を返します。\n
-     *                  停止要求の登録に失敗した場合は、コールバックを呼ばずに EXIT_FAILURE を返します。
+     *                  停止要求の登録に失敗した場合は、コールバックを呼ばずに EXIT_FAILURE を返します。\n
+     *                  失敗値の範囲は検査しません。\n
+     *                  範囲の根拠は、共通のコーディング規範の「プロセスの終了コード」です。
      *
      *  console モードおよび Linux run モード (Type=notify) が使用します。\n
-     *  shutdown.h の request callback を登録して SIGINT/SIGTERM を補足し、
-     *  on_start → on_run → on_stop の順でライフサイクルを駆動します。\n
-     *  on_run が失敗を返しても on_stop は実行します。\n
+     *  コンソールを初期化し、shutdown.h の request callback を登録して SIGINT/SIGTERM を補足します。\n
+     *  登録に成功した場合は、コールバックの順序と失敗値の採用を svc_run_callbacks() に任せます。\n
      *  戻り値はプロセス終了コードとして OS に伝わり、失敗時は自動再起動の
      *  発動条件になります。
      */

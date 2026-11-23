@@ -48,14 +48,22 @@ stateDiagram-v2
 
 Figure: 起動完了・停止開始の通知抽象
 
+サンプルを写して使う利用者は、`service-sample-impl.c` のコールバックを書き換えます。
+
 ## ファイル構成
 
 ```text
 prod/src/cmd/service-sample/
-+-- service-sample.h          # 共通: ライフサイクル API・サービス定義・停止抽象
-+-- service-sample.c          # 共通: 引数ディスパッチ・ライフサイクル駆動・停止抽象実体
-+-- service-sample_linux.c    # Linux: run/install/uninstall の実装
-+-- service-sample_windows.c  # Windows: SCM dispatch/ServiceMain/install/uninstall の実装
++-- makefile                       # ビルドの入口 (makefw のテンプレート)
++-- README.md                      # この文書
++-- service-sample.h               # 共通: ライフサイクル API・サービス定義・停止抽象・内部共有関数
++-- service-sample.c               # 共通: 引数ディスパッチ・ライフサイクル駆動・停止抽象実体
++-- service-sample-impl.c          # サービス定義 (g_service_def) とライフサイクル コールバックのサンプル実装
++-- service-sample_internal.h      # Linux と Windows の実装が共有する定数
++-- service-sample_linux.c         # Linux: run/install/uninstall の実装、sd_notify による通知
++-- service-sample_linux_events.h  # Linux: イベント監視スレッドの内部インターフェイス
++-- service-sample_linux_events.c  # Linux: イベント監視スレッド (logind の D-Bus、SIGHUP、watchdog)
++-- service-sample_windows.c       # Windows: SCM dispatch/ServiceMain/install/uninstall の実装
 ```
 
 ## 停止イベントの統一抽象
