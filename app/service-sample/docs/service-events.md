@@ -111,7 +111,7 @@ Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 | 起動完了 | `on_start` 成功直後 | `SERVICE_RUNNING` を SCM に通知します。 | `READY=1` を送信します。 |
 | 停止開始 | `on_run` 復帰直後 | `SERVICE_STOP_PENDING` を SCM に通知します。 | `STOPPING=1` を送信します。 |
 | 再読込開始 | `on_reload` 呼び出し直前 | 何もしない (SCM に等価通知なし) | `RELOADING=1` を送信します。 |
-| 再読込完了 | `on_reload` 復帰直後 | 何もしない (SCM に等価通知なし) | `READY=1` を再送信します。 |
+| 再読込完了 | `on_reload` 復帰直後 | `SERVICE_RUNNING` を再報告します (停止中は報告しません)。 | `READY=1` を再送信します (停止中は送信しません)。 |
 | 状態テキスト | `svc_set_status_text()` 呼び出し時 | トレース出力のみ (SCM に等価機能なし) | `STATUS=` を送信します。 |
 
 Table: `service-sample` の通知抽象
@@ -142,6 +142,10 @@ Table: `service-sample` の OS イベント抽象
 - 両 OS とも `on_run` とは別のスレッド (Windows: SCM ハンドラー スレッド、Linux: イベント監視スレッド) から呼ばれるため、共有データへのアクセスには同期が必要です。
 - OS 側の応答期限があるため、短時間で戻る必要があります。Linux のサスペンド・シャットダウン前の猶予は logind の delay inhibitor lock によるもので、上限は `InhibitDelayMaxSec` (既定 5 秒) です。Windows の pre-shutdown 猶予は install 時に 30 秒で登録します。
 - `on_start` の成功後から `on_run` が戻るまでの間に呼び出しを始めます。開始済みの呼び出しは、`on_stop` と並行して実行中のことがあります。
+- 動作段階の確認・更新と対応する OS 通知は、同じ通知ロック内で行います。停止中へ遷移した後は `READY=1`、`RELOADING=1`、`WATCHDOG=1`、`SERVICE_RUNNING` を通知しません。通知ロックは段階の確認・更新と OS 通知だけに使い、`on_event`、`on_reload`、トレース出力をロック内で実行しません。停止処理は、実行中の `on_reload` の完了を待たずに通知ロックを取得できます。
+- Linux の `sd_notify()` はブロックする送信です。systemd が通知を読み取らず、`NOTIFY_SOCKET` の受信バッファーが満杯になると、通知ロックを保持した `sd_notify()` がブロックします。その間、通知ロックを待つ `STOPPING=1` や `WATCHDOG=1` も待機します。サービスは systemd の `TimeoutStopSec=` または `WatchdogSec=` の期限で終了させられます。通知ロックを保持したまま送信する方式は維持します。
+- Linux は `svc_linux_events_notify_lock()` だけが通知ロックを取得します。`svc_linux_events_start()` はイベント監視スレッドの生成前にロックを作り、イベント監視スレッドの終了後に破棄します。ロックが未生成の console モードでは取得と解放を行いません。段階を確認・更新する関数はロックを取得しないため、通知関数はロックを再帰取得しません。`sd_notify_send()` は OS 通知を送り、失敗結果のトレースは通知入口がロックを解放してから出力します。
+- Windows は `lock_service_status()` だけがステータス ロックを取得します。状態更新と `SetServiceStatus()` はロック内で行います。通知が失敗した場合は、ロック内で直後の `GetLastError()` を保存し、ロック解放後にトレースを出力します。
 - `svc_definition` の `on_event` を NULL にした場合、該当イベントの受け付け自体を行いません (Windows は `SERVICE_ACCEPT_*` を宣言せず、Linux は D-Bus の監視を構築しません)。
 - `svc_definition` の `on_reload` を NULL にした場合、Windows は `SERVICE_ACCEPT_PARAMCHANGE` を宣言しません。Linux は unit へ `ExecReload=` を書き込まず、`SIGHUP` を受信しても WARNING のトレースへ記録して無視します。
 

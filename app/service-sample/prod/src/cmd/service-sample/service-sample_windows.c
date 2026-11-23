@@ -37,6 +37,7 @@
     #include <cplat/crt/stdio.h>
     #include <cplat/runtime/elevated_process.h>
     #include <cplat/runtime/process.h>
+    #include <cplat/sync/sync.h>
     #include <cplat/win32/win32.h>
 
     #include "service-sample.h"
@@ -110,6 +111,9 @@ static SERVICE_STATUS_HANDLE s_status_handle = NULL;
 /** 現在のサービス ステータス。 */
 static SERVICE_STATUS s_status = {0};
 
+/** サービス ステータスと SCM 通知を直列化するロック。 */
+static cplat_local_lock *s_status_lock = NULL;
+
 /*
  * ============================================================
  *  内部ヘルパー
@@ -117,34 +121,65 @@ static SERVICE_STATUS s_status = {0};
  */
 
 /**
- *  @brief          現在のサービス ステータス (s_status) を SCM に通知します。
+ *  @brief          サービス ステータス ロックを取得します。
  *
- *  通知が失敗した場合は、エラー コードを付けた ERROR のトレースを出して処理を続けます。\n
- *  停止へ進めても、その停止の通知が同じ理由で失敗する可能性が高く、SCM が持つ状態とのずれは解消できないためです。\n
- *  SERVICE_STOPPED の通知は 1 回だけとされているため、再試行はしません。
- *  see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-setservicestatus
+ *  Windows でステータス ロックを実際に取得する関数は、本関数だけです。ロック未生成時は何もしません。
  */
-static void notify_service_status(void)
+static void lock_service_status(void)
 {
-    if (!SetServiceStatus(s_status_handle, &s_status))
+    if (s_status_lock != NULL)
     {
-        const DWORD err = GetLastError();
-
-        /* 状態通知の失敗を伝える経路はトレースだけであり、その失敗の伝え先はないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                  "SetServiceStatus が失敗しました (状態: %lu、エラー コード: %lu)。",
-                                  s_status.dwCurrentState, err);
+        cplat_local_lock_lock(s_status_lock);
     }
 }
 
 /**
- *  @brief          サービス ステータスを設定して SCM に通知します。
+ *  @brief          サービス ステータス ロックを解放します。
+ *
+ *  ロック未生成時は何もしません。
+ */
+static void unlock_service_status(void)
+{
+    if (s_status_lock != NULL)
+    {
+        cplat_local_lock_unlock(s_status_lock);
+    }
+}
+
+/**
+ *  @brief          保持中のサービス ステータス ロックの下で、現在のステータスを SCM に通知します。
+ *  @param[out]     failed  SetServiceStatus() の失敗時は 1、それ以外は 0 を設定します。
+ *  @return         成功時は ERROR_SUCCESS、失敗時は GetLastError() の値を返します。
+ *
+ *  呼び出し元がサービス ステータス ロックを保持している場合だけ使います。
+ *  通知が失敗した場合は、直後にエラー コードを保存します。
+ *  see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-setservicestatus
+ */
+static DWORD notify_service_status_locked(int *failed)
+{
+    *failed = 0;
+    if (!SetServiceStatus(s_status_handle, &s_status))
+    {
+        *failed = 1;
+        return GetLastError();
+    }
+
+    return ERROR_SUCCESS;
+}
+
+/**
+ *  @brief          保持中のサービス ステータス ロックの下で、ステータスを更新して SCM に通知します。
  *  @param[in]      state       新しいサービス状態 (SERVICE_RUNNING など)。
  *  @param[in]      controls    dwControlsAccepted (受け付けるコントロール)。
  *  @param[in]      checkpoint  進行状況カウンター (起動/停止中に使う)。
  *  @param[in]      wait_hint   次のチェックポイントまでの予想時間 [ms]。
+ *  @param[out]     failed      SetServiceStatus() の失敗時は 1、それ以外は 0 を設定します。
+ *  @return         SetServiceStatus() が失敗した場合は保存したエラー コード、それ以外は ERROR_SUCCESS を返します。
+ *
+ *  呼び出し元がサービス ステータス ロックを保持している場合だけ使います。
  */
-static void set_service_status(const DWORD state, const DWORD controls, const DWORD checkpoint, const DWORD wait_hint)
+static DWORD set_service_status_locked(const DWORD state, const DWORD controls, const DWORD checkpoint,
+                                      const DWORD wait_hint, int *failed)
 {
     s_status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     s_status.dwCurrentState = state;
@@ -153,20 +188,23 @@ static void set_service_status(const DWORD state, const DWORD controls, const DW
     s_status.dwServiceSpecificExitCode = 0;
     s_status.dwCheckPoint = checkpoint;
     s_status.dwWaitHint = wait_hint;
-    notify_service_status();
+    return notify_service_status_locked(failed);
 }
 
 /**
- *  @brief          停止完了 (SERVICE_STOPPED) を SCM に通知します。
+ *  @brief          保持中のサービス ステータス ロックの下で、停止完了を SCM に通知します。
  *  @param[in]      specific_exit_code  サービス固有の終了コード。0 は正常停止、
  *                                      0 以外は失敗として報告します。
+ *  @param[out]     failed              SetServiceStatus() の失敗時は 1、それ以外は 0 を設定します。
+ *  @return         SetServiceStatus() が失敗した場合は保存したエラー コード、それ以外は ERROR_SUCCESS を返します。
  *
- *  set_service_status() は終了コードを NO_ERROR で上書きするため、
+ *  set_service_status_locked() は終了コードを NO_ERROR で上書きするため、
  *  失敗を報告する場合は必ずこの関数を使います。\n
  *  0 以外を報告すると SERVICE_CONFIG_FAILURE_ACTIONS_FLAG により
  *  failure actions (自動再起動) の発動条件になります。
+ *  呼び出し元がサービス ステータス ロックを保持している場合だけ使います。
  */
-static void set_service_stopped(const DWORD specific_exit_code)
+static DWORD set_service_stopped_locked(const DWORD specific_exit_code, int *failed)
 {
     s_status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     s_status.dwCurrentState = SERVICE_STOPPED;
@@ -182,7 +220,66 @@ static void set_service_stopped(const DWORD specific_exit_code)
 
     s_status.dwCheckPoint = 0;
     s_status.dwWaitHint = 0;
-    notify_service_status();
+    return notify_service_status_locked(failed);
+}
+
+/**
+ *  @brief          SetServiceStatus() の失敗を、ロック解放後に記録します。
+ *  @param[in]      state サービス状態。
+ *  @param[in]      error SetServiceStatus() 直後に保存したエラー コード。
+ *  @param[in]      failed SetServiceStatus() が失敗したかどうか。
+ *
+ *  通知が失敗した場合も処理を続けます。停止通知も同じ理由で失敗する可能性が高く、SCM が持つ状態とのずれは解消できません。
+ *  SERVICE_STOPPED の通知は 1 回だけとされているため、再試行しません。
+ */
+static void trace_service_status_failure(const DWORD state, const DWORD error, const int failed)
+{
+    if (failed != 0)
+    {
+        /* 状態通知の失敗を伝える経路はトレースだけであり、その失敗の伝え先はないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "SetServiceStatus が失敗しました (状態: %lu、エラー コード: %lu)。", state,
+                                  error);
+    }
+}
+
+/**
+ *  @brief          サービス ステータスを更新して SCM に通知します。
+ *  @param[in]      state       新しいサービス状態 (SERVICE_RUNNING など)。
+ *  @param[in]      controls    dwControlsAccepted (受け付けるコントロール)。
+ *  @param[in]      checkpoint  進行状況カウンター (起動/停止中に使う)。
+ *  @param[in]      wait_hint   次のチェックポイントまでの予想時間 [ms]。
+ */
+static void set_service_status(const DWORD state, const DWORD controls, const DWORD checkpoint, const DWORD wait_hint)
+{
+    DWORD error;
+    int failed;
+
+    lock_service_status();
+    error = set_service_status_locked(state, controls, checkpoint, wait_hint, &failed);
+    unlock_service_status();
+
+    trace_service_status_failure(state, error, failed);
+}
+
+/**
+ *  @brief          停止完了 (SERVICE_STOPPED) を SCM に通知します。
+ *  @param[in]      specific_exit_code  サービス固有の終了コード。0 は正常停止、
+ *                                      0 以外は失敗として報告します。
+ *
+ *  0 以外を報告すると SERVICE_CONFIG_FAILURE_ACTIONS_FLAG により
+ *  failure actions (自動再起動) の発動条件になります。
+ */
+static void set_service_stopped(const DWORD specific_exit_code)
+{
+    DWORD error;
+    int failed;
+
+    lock_service_status();
+    error = set_service_stopped_locked(specific_exit_code, &failed);
+    unlock_service_status();
+
+    trace_service_status_failure(SERVICE_STOPPED, error, failed);
 }
 
 /**
@@ -303,16 +400,45 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
 
 void svc_os_notify_ready(void)
 {
+    DWORD error = ERROR_SUCCESS;
+    DWORD controls;
+    int failed = 0;
+    int suppressed = 0;
+
     if (s_status_handle == NULL)
     {
         return;
     }
 
-    set_service_status(SERVICE_RUNNING, accepted_controls(), 0, 0);
+    controls = accepted_controls();
+    lock_service_status();
+    if ((s_status.dwCurrentState == SERVICE_STOP_PENDING) || (s_status.dwCurrentState == SERVICE_STOPPED))
+    {
+        suppressed = 1;
+    }
+    else
+    {
+        error = set_service_status_locked(SERVICE_RUNNING, controls, 0, 0, &failed);
+    }
+    unlock_service_status();
+
+    if (suppressed != 0)
+    {
+        /* 状態通知を抑止した理由だけを記録し、トレースの失敗で処理を変えない。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                 "停止中のため SERVICE_RUNNING を通知しません。");
+    }
+    else
+    {
+        trace_service_status_failure(SERVICE_RUNNING, error, failed);
+    }
 }
 
 void svc_os_notify_stopping(void)
 {
+    DWORD error;
+    int failed;
+
     if (s_status_handle == NULL)
     {
         return;
@@ -324,7 +450,11 @@ void svc_os_notify_stopping(void)
      * on_run() が停止要求なしに戻った場合は、この通知が最初の SERVICE_STOP_PENDING になる。
      * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_status
      */
-    set_service_status(SERVICE_STOP_PENDING, 0, 2, SVC_ON_STOP_WAIT_HINT_MS);
+    lock_service_status();
+    error = set_service_status_locked(SERVICE_STOP_PENDING, 0, 2, SVC_ON_STOP_WAIT_HINT_MS, &failed);
+    unlock_service_status();
+
+    trace_service_status_failure(SERVICE_STOP_PENDING, error, failed);
 }
 
 void svc_os_notify_reloading(void)
@@ -427,6 +557,9 @@ static void handle_session_change(const DWORD ev_type, const LPVOID ev_data)
 static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_data, LPVOID context)
 {
     svc_event_info info;
+    DWORD error;
+    DWORD state;
+    int failed;
 
     (void)context;
 
@@ -461,7 +594,11 @@ static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_da
     else if (ctrl == SERVICE_CONTROL_INTERROGATE)
     {
         /* 現在のステータスを再通知する。 */
-        notify_service_status();
+        lock_service_status();
+        state = s_status.dwCurrentState;
+        error = notify_service_status_locked(&failed);
+        unlock_service_status();
+        trace_service_status_failure(state, error, failed);
     }
     else
     {
@@ -527,11 +664,28 @@ int svc_os_prepare_run(void)
 
 int svc_os_run_service(const svc_definition *def)
 {
+    cplat_local_lock *status_lock = NULL;
+    int result;
+
     /*
      * テーブルの最後の要素は、終端を示すため lpServiceName と lpServiceProc を NULL にする。
      * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
      */
     SERVICE_TABLE_ENTRYU dispatch_table[] = {{def->name, service_main}, {NULL, NULL}};
+
+    if (cplat_local_lock_create(&status_lock) != CPLAT_OK || status_lock == NULL)
+    {
+        if (status_lock != NULL)
+        {
+            cplat_local_lock_dispose(status_lock);
+        }
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "サービス ステータス ロックを生成できません。");
+        return EXIT_FAILURE;
+    }
+
+    s_status_lock = status_lock;
 
     /*
      * def をファイル static に退避する。ServiceMain() は固定シグネチャのため、直接渡せない。
@@ -542,14 +696,18 @@ int svc_os_run_service(const svc_definition *def)
     /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
     (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
 
+    result = EXIT_SUCCESS;
     if (!StartServiceCtrlDispatcherU(dispatch_table))
     {
         DWORD err = GetLastError();
         write_dispatcher_error(err);
-        return EXIT_FAILURE;
+        result = EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
+    cplat_local_lock_dispose(s_status_lock);
+    s_status_lock = NULL;
+
+    return result;
 }
 
 int svc_os_install(const svc_definition *def)

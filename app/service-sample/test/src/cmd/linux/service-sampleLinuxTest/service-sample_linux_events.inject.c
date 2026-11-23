@@ -5,7 +5,30 @@
 
 void test_svc_linux_events_set_phase(int phase)
 {
-    cplat_atomic_store_i32(&s_phase, phase, CPLAT_MEMORY_ORDER_RELEASE);
+    svc_linux_events_notify_lock();
+    s_phase = (svc_linux_events_phase)phase;
+    svc_linux_events_notify_unlock();
+}
+
+int test_svc_linux_events_get_phase(void)
+{
+    int phase;
+
+    svc_linux_events_notify_lock();
+    phase = (int)s_phase;
+    svc_linux_events_notify_unlock();
+
+    return phase;
+}
+
+void *test_svc_linux_events_notify_lock(void)
+{
+    return s_ctx.notify_lock;
+}
+
+void test_svc_linux_events_run_watchdog_timer(void)
+{
+    (void)on_watchdog_timer(s_ctx.watchdog_source, 0U, NULL);
 }
 
 void test_svc_linux_events_set_definition(const svc_definition *def)

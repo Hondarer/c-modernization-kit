@@ -186,6 +186,7 @@ typedef struct svc_linux_events_ctx
     sd_event_source *watchdog_source; /**< watchdog の確認のタイマー。watchdog が要求されていない場合は NULL。 */
     cplat_local_lock *init_lock;      /**< init_state を保護するロック。 */
     cplat_condvar *init_cv;           /**< init_state の変化を通知する条件変数。 */
+    cplat_local_lock *notify_lock;    /**< 動作段階と systemd 通知を直列化するロック。 */
     uint64_t watchdog_interval_usec;  /**< watchdog の確認周期 [us]。 */
     uint32_t watchdog_seen_count;     /**< 前回の確認で記録した on_run() の進行の計数。 */
     int watchdog_warned;              /**< on_run() の停滞の WARNING を出力済みかどうか。1 = 出力済み。 */
@@ -198,7 +199,7 @@ typedef struct svc_linux_events_ctx
 
 /** イベント監視スレッドの内部状態 (プロセスで 1 つ)。 */
 static svc_linux_events_ctx s_ctx = {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1,
     {"sleep", NULL, -1, 0},
     {"shutdown", NULL, -1, 0},
     0};
@@ -206,23 +207,14 @@ static svc_linux_events_ctx s_ctx = {
 /** 実行中のイベント ループの異常終了を記録します。1 = 異常終了した。 */
 static cplat_atomic_i32 s_loop_failed = CPLAT_ATOMIC_INIT(0);
 
-/** サービスの動作段階 (svc_linux_events_phase の値)。 */
-static cplat_atomic_i32 s_phase = CPLAT_ATOMIC_INIT(SVC_LINUX_EVENTS_PHASE_STARTING);
+/** サービスの動作段階 (svc_linux_events_phase の値)。通知ロックで保護します。 */
+static svc_linux_events_phase s_phase = SVC_LINUX_EVENTS_PHASE_STARTING;
 
 /*
  * ============================================================
  *  動作段階と異常終了の記録
  * ============================================================
  */
-
-/**
- *  @brief          サービスが動作中の段階かを判定します。
- *  @return         動作中の場合は 1、それ以外は 0 を返します。
- */
-static int is_running_phase(void)
-{
-    return (cplat_atomic_load_i32(&s_phase, CPLAT_MEMORY_ORDER_ACQUIRE) == SVC_LINUX_EVENTS_PHASE_RUNNING) ? 1 : 0;
-}
 
 /**
  *  @brief          イベント ループの異常終了を記録し、サービスの停止を要求します。
@@ -240,18 +232,56 @@ int svc_linux_events_loop_failed(void)
     return (cplat_atomic_load_i32(&s_loop_failed, CPLAT_MEMORY_ORDER_ACQUIRE) != 0) ? 1 : 0;
 }
 
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_linux_events_notify_lock(void)
+{
+    if (s_ctx.notify_lock != NULL)
+    {
+        cplat_local_lock_lock(s_ctx.notify_lock);
+    }
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_linux_events_notify_unlock(void)
+{
+    if (s_ctx.notify_lock != NULL)
+    {
+        cplat_local_lock_unlock(s_ctx.notify_lock);
+    }
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
 void svc_linux_events_enter_running(void)
 {
-    int32_t expected = SVC_LINUX_EVENTS_PHASE_STARTING;
-
-    /* リロード後の READY=1 の再送では段階を変えないため、起動中の場合だけ動作中へ進める。結果は判定に使わない。 */
-    (void)cplat_atomic_compare_exchange_i32(&s_phase, &expected, SVC_LINUX_EVENTS_PHASE_RUNNING,
-                                            CPLAT_MEMORY_ORDER_ACQ_REL);
+    /* リロード後の READY=1 の再送では段階を変えないため、起動中の場合だけ動作中へ進める。 */
+    if (s_phase == SVC_LINUX_EVENTS_PHASE_STARTING)
+    {
+        s_phase = SVC_LINUX_EVENTS_PHASE_RUNNING;
+    }
 }
+
+/* Doxygen コメントは、ヘッダーに記載 */
 
 void svc_linux_events_enter_stopping(void)
 {
-    cplat_atomic_store_i32(&s_phase, SVC_LINUX_EVENTS_PHASE_STOPPING, CPLAT_MEMORY_ORDER_RELEASE);
+    s_phase = SVC_LINUX_EVENTS_PHASE_STOPPING;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int svc_linux_events_is_running(void)
+{
+    return (s_phase == SVC_LINUX_EVENTS_PHASE_RUNNING) ? 1 : 0;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int svc_linux_events_is_stopping(void)
+{
+    return (s_phase == SVC_LINUX_EVENTS_PHASE_STOPPING) ? 1 : 0;
 }
 
 /*
@@ -585,7 +615,13 @@ static void release_inhibit_locks(void)
  */
 static void dispatch_event_while_running(const svc_event_info *info)
 {
-    if (is_running_phase() == 0)
+    int running;
+
+    svc_linux_events_notify_lock();
+    running = svc_linux_events_is_running();
+    svc_linux_events_notify_unlock();
+
+    if (running == 0)
     {
         /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
         (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
@@ -818,6 +854,8 @@ static int on_stop_requested(sd_event_source *source, int fd, uint32_t revents, 
  */
 static int on_reload_requested(sd_event_source *source, const struct signalfd_siginfo *info, void *userdata)
 {
+    int running;
+
     (void)source;
     (void)info;
     (void)userdata;
@@ -830,7 +868,11 @@ static int on_reload_requested(sd_event_source *source, const struct signalfd_si
         return 0;
     }
 
-    if (is_running_phase() == 0)
+    svc_linux_events_notify_lock();
+    running = svc_linux_events_is_running();
+    svc_linux_events_notify_unlock();
+
+    if (running == 0)
     {
         (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
                                  "動作中ではないため設定再読込要求を配送しません。");
@@ -861,28 +903,46 @@ static int on_reload_requested(sd_event_source *source, const struct signalfd_si
 static int on_watchdog_timer(sd_event_source *source, uint64_t usec, void *userdata)
 {
     int rc;
+    int running;
+    int progressed;
+    int stop_requested;
+    int trace_stall_allowed;
+    int notify_result = 0;
+    int trace_stall = 0;
 
     (void)userdata;
 
+    progressed = svc_on_run_made_progress(&s_ctx.watchdog_seen_count);
+    stop_requested = svc_stop_requested();
+    trace_stall_allowed = (s_ctx.watchdog_warned == 0) ? 1 : 0;
+    svc_linux_events_notify_lock();
+    running = svc_linux_events_is_running();
+
     /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-    if ((is_running_phase() != 0) && (svc_stop_requested() == 0))
+    if ((running != 0) && (stop_requested == 0))
     {
-        if (svc_on_run_made_progress(&s_ctx.watchdog_seen_count) != 0)
+        if (progressed != 0)
         {
-            rc = sd_notify(0, "WATCHDOG=1");
-            if (rc < 0)
-            {
-                /* 次の周期で再び送る。 */
-                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                          "WATCHDOG=1 の送信に失敗しました: %s", strerror(-rc));
-            }
+            notify_result = sd_notify_send("WATCHDOG=1");
         }
-        else if (s_ctx.watchdog_warned == 0)
+        else if (trace_stall_allowed != 0)
         {
-            s_ctx.watchdog_warned = 1;
-            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                     "on_run が svc_wait_for_stop() を呼んでいないため、WATCHDOG=1 を送りません。");
+            trace_stall = 1;
         }
+    }
+    svc_linux_events_notify_unlock();
+
+    if (trace_stall != 0)
+    {
+        s_ctx.watchdog_warned = 1;
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                 "on_run が svc_wait_for_stop() を呼んでいないため、WATCHDOG=1 を送りません。");
+    }
+    else if (notify_result < 0)
+    {
+        /* 次の周期で再び送る。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "WATCHDOG=1 の送信に失敗しました: %s", strerror(-notify_result));
     }
 
     rc = sd_event_source_set_time(source, usec + s_ctx.watchdog_interval_usec);
@@ -1222,6 +1282,12 @@ static void release_local_resources(void)
         s_ctx.init_lock = NULL;
     }
 
+    if (s_ctx.notify_lock != NULL)
+    {
+        cplat_local_lock_dispose(s_ctx.notify_lock);
+        s_ctx.notify_lock = NULL;
+    }
+
     s_ctx.def = NULL;
 }
 
@@ -1246,7 +1312,20 @@ int svc_linux_events_start(const svc_definition *def)
     s_ctx.def = def;
     s_ctx.init_state = SVC_LINUX_EVENTS_INIT_PENDING;
     cplat_atomic_store_i32(&s_loop_failed, 0, CPLAT_MEMORY_ORDER_RELEASE);
-    cplat_atomic_store_i32(&s_phase, SVC_LINUX_EVENTS_PHASE_STARTING, CPLAT_MEMORY_ORDER_RELEASE);
+
+    /* 通知入口がイベント監視スレッドの前に動くことはありませんが、段階の初期化も同じロックで保護します。 */
+    if ((cplat_local_lock_create(&s_ctx.notify_lock) != CPLAT_OK) || (s_ctx.notify_lock == NULL))
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "通知ロックを生成できないため、イベント監視スレッドを起動しません。");
+        release_local_resources();
+        return -1;
+    }
+
+    svc_linux_events_notify_lock();
+    s_phase = SVC_LINUX_EVENTS_PHASE_STARTING;
+    svc_linux_events_notify_unlock();
 
     /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
     if ((cplat_local_lock_create(&s_ctx.init_lock) != CPLAT_OK) || (cplat_condvar_create(&s_ctx.init_cv) != CPLAT_OK))

@@ -407,9 +407,10 @@ extern "C"
      *             常駐の前後でイベント監視スレッド (電源・セッション イベント、
      *             SIGHUP、watchdog 応答) を起動・停止します。\n
      *  - Windows: StartServiceCtrlDispatcher でサービス ディスパッチャーに接続します。\n
+     *             サービス ステータス ロックを生成できない場合は、dispatcher を開始せずに失敗を返します。\n
      *  \n
      *  Linux では、イベント監視スレッドの必須の初期化 (イベント ループの生成、停止監視、
-     *  watchdog のタイマー、SIGHUP の受信の登録) に失敗した場合は、on_start() を呼ばず、READY=1 も送らずに
+     *  watchdog のタイマー、SIGHUP の受信の登録、通知ロックの生成) に失敗した場合は、on_start() を呼ばず、READY=1 も送らずに
      *  失敗を返します。\n
      *  実行中にイベント ループが異常終了した場合は停止を要求し、ライフサイクル コールバックが成功していても失敗を返します。
      *
@@ -431,6 +432,12 @@ extern "C"
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に SERVICE_RUNNING を通知します。\n
      *             コンソール モード (SCM 未接続) の場合は何もしません。
+     *
+     *  Linux では通知ロックを保持して sd_notify(3) を呼び出します。systemd が通知を読み取らず
+     *  NOTIFY_SOCKET の受信バッファーが満杯の場合は送信がブロックし、通知ロックを待つ STOPPING=1 や
+     *  WATCHDOG=1 などの通知も待機します。サービスは systemd の TimeoutStopSec= または WatchdogSec= の
+     *  期限で終了させられます。
+     *  see: https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-daemon/sd-daemon.c
      */
     void svc_os_notify_ready(void);
 
@@ -442,6 +449,12 @@ extern "C"
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に SERVICE_STOP_PENDING を通知します。\n
      *             コンソール モード (SCM 未接続) の場合は何もしません。
+     *
+     *  Linux では停止段階への遷移と sd_notify(3) を通知ロック内で行います。systemd が通知を読み取らず
+     *  NOTIFY_SOCKET の受信バッファーが満杯の場合は送信がブロックし、通知ロックを待つ STOPPING=1 や
+     *  WATCHDOG=1 などの通知も待機します。サービスは systemd の TimeoutStopSec= または WatchdogSec= の
+     *  期限で終了させられます。
+     *  see: https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-daemon/sd-daemon.c
      */
     void svc_os_notify_stopping(void);
 
@@ -452,6 +465,12 @@ extern "C"
      *  - Linux  : sd_notify(3) で "RELOADING=1" を送信します。\n
      *             NOTIFY_SOCKET が設定されていない場合は何もしません。\n
      *  - Windows: SCM に等価な通知がないため何もしません。
+     *
+     *  Linux では動作中の段階を確認して sd_notify(3) を通知ロック内で呼び出します。systemd が通知を
+     *  読み取らず NOTIFY_SOCKET の受信バッファーが満杯の場合は送信がブロックし、通知ロックを待つ
+     *  STOPPING=1 や WATCHDOG=1 などの通知も待機します。サービスは systemd の TimeoutStopSec= または
+     *  WatchdogSec= の期限で終了させられます。
+     *  see: https://github.com/systemd/systemd/blob/v239/src/libsystemd/sd-daemon/sd-daemon.c
      */
     void svc_os_notify_reloading(void);
 
@@ -522,7 +541,9 @@ extern "C"
      *  各プラットフォーム ファイルが再読込要求を検出したときに呼びます。\n
      *  def->on_reload が NULL の場合は何もしません。\n
      *  svc_os_notify_reloading() → on_reload() → svc_os_notify_ready() の順に
-     *  呼び出し、Type=notify の reload 契約 (RELOADING=1 → READY=1) を満たします。
+     *  呼び出し、Type=notify の reload 契約 (RELOADING=1 → READY=1) を満たします。\n
+     *  通知の直列化ロックは、OS 通知の確認・送信にだけ使います。利用者の on_reload() はロック外で実行します。
+     *  Linux では停止中へ遷移した後の RELOADING=1 と READY=1 を抑止します。
      */
     void svc_dispatch_reload(const svc_definition *def);
 

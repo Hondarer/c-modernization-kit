@@ -10,6 +10,15 @@ extern "C"
     /* 動作段階を設定する (0: 起動中、1: 動作中、2: 停止中)。 */
     void test_svc_linux_events_set_phase(int phase);
 
+    /* 通知ロックの下で動作段階を取得する。 */
+    int test_svc_linux_events_get_phase(void);
+
+    /* 通知ロックの作成済みポインターを取得する。 */
+    void *test_svc_linux_events_notify_lock(void);
+
+    /* watchdog タイマーのコールバックを呼び出す。 */
+    void test_svc_linux_events_run_watchdog_timer(void);
+
     /* 配送先のサービス定義を設定する (NULL を渡すと未設定へ戻す)。 */
     void test_svc_linux_events_set_definition(const svc_definition *def);
 

@@ -10,10 +10,12 @@
 #include <cerrno>
 #include <chrono>
 #include <csignal>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -266,6 +268,13 @@ static std::vector<std::string> g_run_calls;
 /** on_reload の呼び出し回数 (イベント監視スレッドが加算する)。 */
 static std::atomic<int> g_reload_count(0);
 
+/** on_reload の開始、解放、完了を同期する状態。 */
+static std::mutex g_reload_mutex;
+static std::condition_variable g_reload_cv;
+static bool g_reload_entered = false;
+static bool g_release_reload = false;
+static bool g_reload_finished = false;
+
 /** on_event に配送されたイベントの種別。 */
 static std::vector<svc_event_type> g_dispatched_events;
 
@@ -273,6 +282,19 @@ static std::vector<svc_event_type> g_dispatched_events;
 static std::function<void()> g_on_start_action;
 static std::function<void()> g_on_run_action;
 static std::function<void()> g_on_stop_action;
+static std::function<void()> g_on_reload_action;
+
+/** 通知ロックの待機順と、ロック外トレースの確認に使う状態。 */
+static std::atomic<int> g_watchdog_lock_attempted(0);
+static std::atomic<int> g_watchdog_finished(0);
+static std::atomic<int> g_track_watchdog_lock(0);
+static int g_watchdog_waited_for_lock = 0;
+static int g_stopping_received_in_on_stop = 0;
+static int g_reload_finished_before_on_stop_return = 0;
+static int g_reload_started_before_stop = 0;
+static int g_reload_timed_out = 0;
+static int g_phase_after_reload = -1;
+static thread_local cplat_local_lock *g_notification_lock_held = nullptr;
 
 /** cplat_thread_detach() と cplat_close() の呼び出し回数 (異常終了のテストで使う)。 */
 static std::atomic<int> g_detach_calls(0);
@@ -315,6 +337,10 @@ static void run_test_on_reload(void *user_data)
 {
     (void)user_data;
     g_reload_count++;
+    if (g_on_reload_action)
+    {
+        g_on_reload_action();
+    }
 }
 
 static void run_test_on_event(const svc_event_info *info, void *user_data)
@@ -423,6 +449,29 @@ class NotifySocket
         return fd_ >= 0;
     }
 
+    /** 通知ソケットのパスを外し、後続の sd_notify() を失敗させる。 */
+    void remove_path()
+    {
+        (void)::unlink(path_.c_str());
+    }
+
+    /** 指定した通知を、期限内に受け取ったかどうかを返す。 */
+    bool wait_for_message(const std::string &message, const int timeout_ms)
+    {
+        for (int elapsed_ms = 0; elapsed_ms < timeout_ms; elapsed_ms += 5)
+        {
+            std::vector<std::string> messages = receive_all();
+            if (std::find(messages.begin(), messages.end(), message) != messages.end())
+            {
+                return true;
+            }
+            sleep_ms(5);
+        }
+
+        std::vector<std::string> messages = receive_all();
+        return std::find(messages.begin(), messages.end(), message) != messages.end();
+    }
+
     /** これまでに届いた通知を、届いた順に返す (改行で区切られた複数の項目は分けない)。 */
     std::vector<std::string> receive_all()
     {
@@ -474,19 +523,87 @@ class service_sampleLinuxRunTest : public Test
     NiceMock<Mock_systemd> mock_systemd_;
     sigset_t saved_signal_mask_{};
 
+    void install_real_sync_defaults()
+    {
+        ON_CALL(mock_cplat_, cplat_local_lock_create(_))
+            .WillByDefault(Invoke([](cplat_local_lock **lock) { return delegate_real_cplat_local_lock_create(lock); }));
+        ON_CALL(mock_cplat_, cplat_local_lock_lock(_))
+            .WillByDefault(Invoke([](cplat_local_lock *lock)
+                                  {
+                                      if ((g_track_watchdog_lock.load() != 0) &&
+                                          (lock == test_svc_linux_events_notify_lock()))
+                                      {
+                                          g_watchdog_lock_attempted = 1;
+                                      }
+                                      delegate_real_cplat_local_lock_lock(lock);
+                                      if (lock == test_svc_linux_events_notify_lock())
+                                      {
+                                          g_notification_lock_held = lock;
+                                      }
+                                  }));
+        ON_CALL(mock_cplat_, cplat_local_lock_timed_lock(_, _))
+            .WillByDefault(Invoke([](cplat_local_lock *lock, int timeout_ms)
+                                  { return delegate_real_cplat_local_lock_timed_lock(lock, timeout_ms); }));
+        ON_CALL(mock_cplat_, cplat_local_lock_try_lock(_))
+            .WillByDefault(Invoke([](cplat_local_lock *lock) { return delegate_real_cplat_local_lock_try_lock(lock); }));
+        ON_CALL(mock_cplat_, cplat_local_lock_unlock(_))
+            .WillByDefault(Invoke([](cplat_local_lock *lock)
+                                  {
+                                      delegate_real_cplat_local_lock_unlock(lock);
+                                      if (lock == test_svc_linux_events_notify_lock())
+                                      {
+                                          g_notification_lock_held = nullptr;
+                                      }
+                                  }));
+        ON_CALL(mock_cplat_, cplat_local_lock_dispose(_))
+            .WillByDefault(Invoke([](cplat_local_lock *lock) { delegate_real_cplat_local_lock_dispose(lock); }));
+        ON_CALL(mock_cplat_, cplat_condvar_create(_))
+            .WillByDefault(Invoke([](cplat_condvar **cv) { return delegate_real_cplat_condvar_create(cv); }));
+        ON_CALL(mock_cplat_, cplat_condvar_wait(_, _))
+            .WillByDefault(Invoke([](cplat_condvar *cv, cplat_local_lock *lock)
+                                  { delegate_real_cplat_condvar_wait(cv, lock); }));
+        ON_CALL(mock_cplat_, cplat_condvar_timed_wait(_, _, _))
+            .WillByDefault(Invoke([](cplat_condvar *cv, cplat_local_lock *lock, int timeout_ms)
+                                  { return delegate_real_cplat_condvar_timed_wait(cv, lock, timeout_ms); }));
+        ON_CALL(mock_cplat_, cplat_condvar_signal(_))
+            .WillByDefault(Invoke([](cplat_condvar *cv) { delegate_real_cplat_condvar_signal(cv); }));
+        ON_CALL(mock_cplat_, cplat_condvar_broadcast(_))
+            .WillByDefault(Invoke([](cplat_condvar *cv) { delegate_real_cplat_condvar_broadcast(cv); }));
+        ON_CALL(mock_cplat_, cplat_condvar_dispose(_))
+            .WillByDefault(Invoke([](cplat_condvar *cv) { delegate_real_cplat_condvar_dispose(cv); }));
+    }
+
     // [サブ手順 名前=service_sampleLinuxRunTest.SetUp]
     void SetUp() override
     {
         g_run_calls.clear();
         g_reload_count = 0;
+        {
+            std::lock_guard<std::mutex> lock(g_reload_mutex);
+            g_reload_entered = false;
+            g_release_reload = false;
+            g_reload_finished = false;
+        }
         g_dispatched_events.clear();
         g_on_start_action = nullptr;
         g_on_run_action = nullptr;
         g_on_stop_action = nullptr;
+        g_on_reload_action = nullptr;
+        g_watchdog_lock_attempted = 0;
+        g_watchdog_finished = 0;
+        g_track_watchdog_lock = 0;
+        g_watchdog_waited_for_lock = 0;
+        g_stopping_received_in_on_stop = 0;
+        g_reload_finished_before_on_stop_return = 0;
+        g_reload_started_before_stop = 0;
+        g_reload_timed_out = 0;
+        g_phase_after_reload = -1;
+        g_notification_lock_held = nullptr;
         g_detach_calls = 0;
         g_close_calls = 0;
         (void)::unsetenv("WATCHDOG_USEC");        // [状態] - watchdog を要求しない状態とする。
         (void)::unsetenv("WATCHDOG_PID");         // [状態] - watchdog の対象のプロセスを限定しない状態とする。
+        install_real_sync_defaults();
         ASSERT_EQ(0, test_svc_stop_initialize()); // [状態確認] - main() を経ずに停止イベント抽象を初期化できること。
         ASSERT_EQ(0, ::pthread_sigmask(SIG_SETMASK, nullptr, &saved_signal_mask_));
         // [状態確認] - テスト開始前のシグナル マスクを保存できること。
@@ -509,6 +626,7 @@ class service_sampleLinuxRunTest : public Test
         g_on_start_action = nullptr;
         g_on_run_action = nullptr;
         g_on_stop_action = nullptr;
+        g_on_reload_action = nullptr;
     }
 
     /** トレースの呼び出しを、すべて受け付ける期待値として設定する。 */
@@ -873,6 +991,228 @@ TEST_F(service_sampleLinuxRunTest, reload_is_dispatched_only_while_running)
     EXPECT_NE(
         -1, index_of(messages, "READY=1",
                      static_cast<size_t>(reloading_index))); // [確認_正常系] - RELOADING=1 の後に READY=1 が届くこと。
+}
+
+// on_reload の実行中に停止が始まった場合、STOPPING=1 の後に READY=1 を送らず、停止処理が callback 完了を待たないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, stopping_during_reload_suppresses_ready)
+{
+    // Arrange
+    NotifySocket notify;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    g_on_reload_action = []()
+    {
+        std::unique_lock<std::mutex> lock(g_reload_mutex);
+        g_reload_entered = true;
+        g_reload_cv.notify_all();
+        if (!g_reload_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_release_reload; }))
+        {
+            g_reload_timed_out = 1;
+        }
+        g_reload_finished = true;
+        g_reload_cv.notify_all();
+    }; // [状態] - on_reload をラッチで止め、5 [s] でテストの停止を防ぐ。
+    g_on_run_action = []()
+    {
+        (void)::kill(::getpid(), SIGHUP);
+        std::unique_lock<std::mutex> lock(g_reload_mutex);
+        g_reload_started_before_stop =
+            g_reload_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_reload_entered; }) ? 1 : 0;
+        lock.unlock();
+        svc_request_stop();
+    }; // [状態] - SIGHUP を送り、on_reload の開始後に停止を要求する。
+    g_on_stop_action = [&notify]()
+    {
+        g_stopping_received_in_on_stop = notify.wait_for_message("STOPPING=1", 5000) ? 1 : 0;
+        {
+            std::lock_guard<std::mutex> lock(g_reload_mutex);
+            g_release_reload = true;
+        }
+        g_reload_cv.notify_all();
+        std::unique_lock<std::mutex> lock(g_reload_mutex);
+        g_reload_finished_before_on_stop_return =
+            g_reload_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_reload_finished; }) ? 1 : 0;
+    }; // [状態] - STOPPING=1 を確認してから on_reload を解放し、完了を待つ。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def_with_reload); // [手順] - on_reload と停止が競合するサービスを実行する。
+
+    // Assert
+    std::vector<std::string> messages = notify.receive_all();
+    int stopping_index = index_of(messages, "STOPPING=1");
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - サービスが正常に終了すること。
+    ASSERT_NE(-1, stopping_index); // [確認_正常系] - STOPPING=1 が届くこと。
+    EXPECT_NE(-1, index_of(messages, "RELOADING=1")); // [確認_正常系] - reload 開始通知が届くこと。
+    EXPECT_EQ(-1, index_of(messages, "READY=1", static_cast<size_t>(stopping_index + 1)));
+    // [確認_正常系] - STOPPING=1 の後に READY=1 が届かないこと。
+    EXPECT_EQ(1, g_reload_count.load()); // [確認_正常系] - on_reload が 1 回呼び出されること。
+    EXPECT_EQ(1, g_reload_started_before_stop); // [確認_正常系] - 停止要求の前に on_reload が始まること。
+    EXPECT_EQ(1, g_stopping_received_in_on_stop); // [確認_正常系] - on_stop の中で STOPPING=1 を確認すること。
+    EXPECT_EQ(1, g_reload_finished_before_on_stop_return); // [確認_正常系] - on_stop が戻る前に on_reload が完了すること。
+    EXPECT_EQ(0, g_reload_timed_out); // [確認_正常系] - on_stop が on_reload を解放し、時間切れにならないこと。
+}
+
+// 停止中の段階では再読込の開始と完了を通知せず、on_reload は 1 回呼び出すことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, reload_notifications_are_not_sent_while_stopping)
+{
+    // Arrange
+    NotifySocket notify;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    test_svc_linux_events_set_definition(&g_run_def_with_reload); // [状態] - on_reload を持つサービス定義を設定する。
+    test_svc_linux_events_set_phase(2); // [状態] - サービスの段階を停止中にする。
+    allow_any_trace();
+
+    // Pre-Assert
+
+    // Act
+    svc_dispatch_reload(&g_run_def_with_reload); // [手順] - 停止中に再読込を配送する。
+
+    // Assert
+    std::vector<std::string> messages = notify.receive_all();
+    EXPECT_EQ(0, count_of(messages, "RELOADING=1")); // [確認_正常系] - RELOADING=1 が届かないこと。
+    EXPECT_EQ(0, count_of(messages, "READY=1")); // [確認_正常系] - READY=1 が届かないこと。
+    EXPECT_EQ(1, g_reload_count.load()); // [確認_正常系] - on_reload が 1 回呼び出されること。
+
+    // Cleanup
+    test_svc_linux_events_set_phase(0);
+    test_svc_linux_events_set_definition(nullptr);
+}
+
+// 動作中の再読込完了で READY=1 を再送しても、動作段階を維持することの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, ready_after_reload_keeps_running_phase)
+{
+    // Arrange
+    NotifySocket notify;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    g_on_run_action = []()
+    {
+        svc_dispatch_reload(&g_run_def_with_reload);
+        g_phase_after_reload = test_svc_linux_events_get_phase();
+    }; // [状態] - on_run から再読込を配送し、完了後の段階を保存する。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def_with_reload); // [手順] - 動作中に再読込を 1 回実行する。
+
+    // Assert
+    std::vector<std::string> messages = notify.receive_all();
+    int reloading_index = index_of(messages, "RELOADING=1");
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - サービスが正常に終了すること。
+    ASSERT_NE(-1, reloading_index); // [確認_正常系] - RELOADING=1 が届くこと。
+    EXPECT_NE(-1, index_of(messages, "READY=1", static_cast<size_t>(reloading_index + 1)));
+    // [確認_正常系] - RELOADING=1 の後に再読込完了の READY=1 が届くこと。
+    EXPECT_EQ(1, g_phase_after_reload); // [確認_正常系] - 再読込完了後も動作中の段階を維持すること。
+}
+
+// 停止段階への遷移を待っていた watchdog が、遷移後に WATCHDOG=1 を送らないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, watchdog_is_not_sent_after_stopping)
+{
+    // Arrange
+    NotifySocket notify;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    g_on_run_action = []()
+    {
+        (void)svc_wait_for_stop(1);
+        svc_linux_events_notify_lock();
+        g_track_watchdog_lock = 1;
+        std::thread watchdog_thread([]()
+                                    {
+                                        test_svc_linux_events_run_watchdog_timer();
+                                        g_watchdog_finished = 1;
+                                    });
+        for (int i = 0; (i < 5000) && (g_watchdog_lock_attempted.load() == 0); i++)
+        {
+            std::this_thread::yield();
+        }
+        g_watchdog_waited_for_lock =
+            (g_watchdog_lock_attempted.load() != 0) && (g_watchdog_finished.load() == 0) ? 1 : 0;
+        svc_linux_events_enter_stopping();
+        g_track_watchdog_lock = 0;
+        svc_linux_events_notify_unlock();
+        watchdog_thread.join();
+    }; // [状態] - watchdog が通知ロックを待つ間に停止段階へ進める。
+
+    // Pre-Assert
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def); // [手順] - watchdog の競合を作ってサービスを実行する。
+
+    // Assert
+    std::vector<std::string> messages = notify.receive_all();
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - サービスが正常に終了すること。
+    EXPECT_EQ(1, g_watchdog_waited_for_lock); // [確認_正常系] - watchdog が通知ロックを待つこと。
+    EXPECT_EQ(1, g_watchdog_finished.load()); // [確認_正常系] - ロック解放後に watchdog callback が終了すること。
+    EXPECT_EQ(0, count_of(messages, "WATCHDOG=1")); // [確認_正常系] - 停止段階の後に WATCHDOG=1 が届かないこと。
+}
+
+// 通知の抑止と sd_notify() の失敗を記録するときに通知ロックを保持していないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, notification_trace_is_written_after_unlock)
+{
+    // Arrange
+    NotifySocket notify;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    g_on_start_action = [&notify]()
+    {
+        test_svc_linux_events_set_phase(2);
+        notify.remove_path();
+    }; // [状態] - READY=1 を抑止し、STOPPING=1 の sd_notify() を失敗させる。
+    allow_any_trace();
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_tracer_write_with_source(_, CPLAT_TRACE_LEVEL_INFO, _, _, _,
+                                                            HasSubstr("READY=1 を送りません")))
+        .WillOnce(Invoke([](auto &&...)
+                         {
+                             EXPECT_EQ(nullptr, g_notification_lock_held);
+                             return CPLAT_OK;
+                         }));
+    // [Pre-Assert確認_正常系] - READY=1 の抑止を示すトレース時に通知ロックを保持しないこと。
+    EXPECT_CALL(mock_cplat_, cplat_tracer_writef_at(_, CPLAT_TRACE_LEVEL_WARNING, _,
+                                                    HasSubstr("STOPPING=1 の送信に失敗しました")))
+        .WillOnce(Invoke([](auto &&...)
+                         {
+                             EXPECT_EQ(nullptr, g_notification_lock_held);
+                             return CPLAT_OK;
+                         }));
+    // [Pre-Assert確認_正常系] - sd_notify() の失敗を示すトレース時に通知ロックを保持しないこと。
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def); // [手順] - 抑止と送信失敗のトレースを発生させる。
+
+    // Assert
+    EXPECT_EQ(EXIT_SUCCESS, actual_ret); // [確認_正常系] - サービスが正常に終了すること。
+}
+
+// 通知ロックの生成に失敗した場合はイベント監視スレッドとサービスを開始しないことの確認
+// [サブ手順参照 名前=service_sampleLinuxRunTest.SetUp]
+TEST_F(service_sampleLinuxRunTest, notification_lock_creation_failure_fails_run_service)
+{
+    // Arrange
+    NotifySocket notify;
+    ASSERT_TRUE(notify.is_ready()); // [状態確認] - 通知を受け取るソケットを準備できること。
+    allow_any_trace();
+
+    // Pre-Assert
+    EXPECT_CALL(mock_cplat_, cplat_local_lock_create(_)).WillOnce(Return(CPLAT_ERR_OUT_OF_MEMORY));
+    // [Pre-Assert確認_異常系] - 通知ロックの生成が 1 回試行され、確保失敗が返ること。
+    EXPECT_CALL(mock_cplat_, cplat_thread_create(_, _, _)).Times(0);
+    // [Pre-Assert確認_異常系] - 通知ロック生成の失敗時はイベント監視スレッドを生成しないこと。
+
+    // Act
+    int actual_ret = svc_os_run_service(&g_run_def); // [手順] - 通知ロック生成を失敗させてサービスを実行する。
+
+    // Assert
+    std::vector<std::string> messages = notify.receive_all();
+    EXPECT_EQ(EXIT_FAILURE, actual_ret); // [確認_異常系] - svc_os_run_service() が EXIT_FAILURE を返すこと。
+    EXPECT_EQ(0, count_of(messages, "READY=1")); // [確認_異常系] - READY=1 を送信しないこと。
+    EXPECT_TRUE(g_run_calls.empty()); // [確認_異常系] - ライフサイクル callback を呼び出さないこと。
 }
 
 // 動作中の段階でだけ、OS イベントを on_event へ配送することの確認

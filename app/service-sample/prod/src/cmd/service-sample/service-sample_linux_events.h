@@ -46,7 +46,7 @@ extern "C"
      *    WATCHDOG=1 を送ります。\n
      *  \n
      *  スレッドの必須の初期化 (イベント ループの生成、watchdog が要求されている場合のタイマー登録、
-     *  停止監視の登録、SIGHUP の受信の登録) の完了を待ってから戻ります。いずれかが失敗した場合は、
+     *  停止監視の登録、SIGHUP の受信の登録、通知ロックの生成) の完了を待ってから戻ります。いずれかが失敗した場合は、
      *  ERROR のトレースを出力して -1 を返します。\n
      *  D-Bus に接続できない環境 (コンテナーなど) では該当イベントのみ
      *  無効化し、スレッド自体は継続します。
@@ -80,9 +80,33 @@ extern "C"
     int svc_linux_events_loop_failed(void);
 
     /**
+     *  @brief          systemd へ通知を送信します。
+     *  @param[in]      message 送信する通知文字列。
+     *  @return         sd_notify(3) の戻り値を返します。
+     *
+     *  OS 通知の送信だけを行い、ロック取得とトレース出力は行いません。
+     */
+    int sd_notify_send(const char *message);
+
+    /**
+     *  @brief          動作段階と systemd 通知を保護するロックを取得します。
+     *
+     *  イベント監視スレッドの生成前にロックを生成します。console モードなどロックが未生成の場合は何もしません。
+     *  Linux で通知ロックを実際に取得する関数は、本関数だけです。
+     */
+    void svc_linux_events_notify_lock(void);
+
+    /**
+     *  @brief          動作段階と systemd 通知を保護するロックを解放します。
+     *
+     *  ロックが未生成の場合は何もしません。
+     */
+    void svc_linux_events_notify_unlock(void);
+
+    /**
      *  @brief          READY=1 の通知に合わせて、動作中の段階へ進めます。
      *
-     *  svc_os_notify_ready() が READY=1 を送った後に呼びます。\n
+     *  呼び出し元は通知ロックを保持します。本関数はロックを取得しません。\n
      *  起動中の段階から動作中へ進めるのは最初の 1 回だけです。リロード後の READY=1 の再送では段階を変えません。
      */
     void svc_linux_events_enter_running(void);
@@ -90,10 +114,27 @@ extern "C"
     /**
      *  @brief          STOPPING=1 の通知に合わせて、停止中の段階へ進めます。
      *
-     *  svc_os_notify_stopping() が STOPPING=1 を送る前に呼びます。
+     *  呼び出し元は通知ロックを保持します。本関数はロックを取得しません。svc_os_notify_stopping() が
+     *  STOPPING=1 を送る前に呼びます。
      *  以後は、WATCHDOG=1 を送らず、OS イベントと設定再読込を配送しません。
      */
     void svc_linux_events_enter_stopping(void);
+
+    /**
+     *  @brief          通知ロックを保持した状態で、サービスが動作中の段階かを返します。
+     *  @return         動作中の場合は 1、それ以外は 0 を返します。
+     *
+     *  本関数はロックを取得しません。呼び出し元は通知ロックを保持します。
+     */
+    int svc_linux_events_is_running(void);
+
+    /**
+     *  @brief          通知ロックを保持した状態で、サービスが停止中の段階かを返します。
+     *  @return         停止中の場合は 1、それ以外は 0 を返します。
+     *
+     *  本関数はロックを取得しません。呼び出し元は通知ロックを保持します。
+     */
+    int svc_linux_events_is_stopping(void);
 
 #ifdef __cplusplus
 }

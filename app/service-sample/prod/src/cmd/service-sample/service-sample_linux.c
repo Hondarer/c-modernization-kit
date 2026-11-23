@@ -294,23 +294,29 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
  *  @brief          NOTIFY_SOCKET へメッセージを送信します。
  *  @param[in]      message  送信するメッセージ文字列 (例: "READY=1")。
  *
- *  libsystemd の sd_notify(3) の薄いラッパーです。\n
- *  環境変数 NOTIFY_SOCKET が設定されていない場合は何もしません。\n
- *  送信失敗時はトレースに WARNING を出力するだけで処理を継続します。
+ *  libsystemd の sd_notify(3) の薄いラッパーで、戻り値を呼び出し元へ返します。\n
+ *  環境変数 NOTIFY_SOCKET が設定されていない場合は 0 を返します。
  */
-static void sd_notify_send(const char *message)
+int sd_notify_send(const char *message)
 {
-    int rc;
+    return sd_notify(0, message);
+}
 
-    rc = sd_notify(0, message);
-    if (rc < 0)
+/**
+ *  @brief          sd_notify(3) の失敗をトレースへ記録します。
+ *  @param[in]      message 通知名。
+ *  @param[in]      result  sd_notify(3) の戻り値。
+ *
+ *  呼び出し元が通知ロックを解放した後に呼び出します。
+ */
+static void trace_notify_failure(const char *message, const int result)
+{
+    if (result < 0)
     {
         /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
         (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                  "sd_notify: 送信に失敗しました: %s", strerror(-rc));
+                                  "sd_notify: %s の送信に失敗しました: %s", message, strerror(-result));
     }
-
-    /* rc == 0 は NOTIFY_SOCKET 未設定 (コンソール モードなどでは通常の状態)。 */
 }
 
 /*
@@ -354,25 +360,73 @@ int svc_os_prepare_run(void)
 
 void svc_os_notify_ready(void)
 {
-    /* on_start() の実行中にイベント ループが異常終了した場合は、停止を要求済みであり、READY=1 を送らない。 */
-    if (svc_linux_events_loop_failed() != 0)
-    {
-        return;
-    }
+    int result = 0;
+    int suppressed = 0;
 
-    sd_notify_send("READY=1");
-    svc_linux_events_enter_running();
+    svc_linux_events_notify_lock();
+    if ((svc_linux_events_loop_failed() != 0) || (svc_linux_events_is_stopping() != 0))
+    {
+        suppressed = 1;
+    }
+    else
+    {
+        result = sd_notify_send("READY=1");
+        svc_linux_events_enter_running();
+    }
+    svc_linux_events_notify_unlock();
+
+    if (suppressed != 0)
+    {
+        /* 通知ロックを解放してから、READY=1 の抑止を記録する。 */
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                 "イベント ループの異常終了または停止中のため、READY=1 を送りません。");
+    }
+    else
+    {
+        trace_notify_failure("READY=1", result);
+    }
 }
 
 void svc_os_notify_stopping(void)
 {
+    int result;
+
+    svc_linux_events_notify_lock();
     svc_linux_events_enter_stopping();
-    sd_notify_send("STOPPING=1");
+    result = sd_notify_send("STOPPING=1");
+    svc_linux_events_notify_unlock();
+
+    trace_notify_failure("STOPPING=1", result);
 }
 
 void svc_os_notify_reloading(void)
 {
-    sd_notify_send("RELOADING=1");
+    int result = 0;
+    int suppressed = 0;
+
+    svc_linux_events_notify_lock();
+    if (svc_linux_events_is_running() == 0)
+    {
+        suppressed = 1;
+    }
+    else
+    {
+        result = sd_notify_send("RELOADING=1");
+    }
+    svc_linux_events_notify_unlock();
+
+    if (suppressed != 0)
+    {
+        /* 通知ロックを解放してから、RELOADING=1 の抑止を記録する。 */
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                 "動作中ではないため、RELOADING=1 を送りません。");
+    }
+    else
+    {
+        trace_notify_failure("RELOADING=1", result);
+    }
 }
 
 void svc_os_notify_status(const char *text)
@@ -389,7 +443,8 @@ void svc_os_notify_status(const char *text)
      * 状態の通知文は長すぎる場合の切り詰めを許容するため、戻り値は明示的に破棄する。
      */
     (void)snprintf(message, sizeof(message), "STATUS=%s", text); /* 置換対象外: 通知文の意図的な切り詰め */
-    sd_notify_send(message);
+    /* STATUS 通知は補助情報であり、失敗でサービス状態を変えないため、戻り値は明示的に破棄する。 */
+    (void)sd_notify_send(message);
 }
 
 /*
