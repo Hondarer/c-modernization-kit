@@ -113,21 +113,6 @@ jobs:
         run: |
           set -o pipefail
           df -h "$GITHUB_WORKSPACE"
-          # ビルド中のメモリの余裕を確認するため、
-          # メモリの空き、負荷、常駐メモリの大きいプロセスを 30 秒ごとに記録する。
-          # 記録は行頭の MEMWATCH で検索できる。
-          (
-            while :; do
-              mem=$(awk '/^(MemTotal|MemAvailable|SwapTotal|SwapFree):/ { printf "%s%dM ", $1, $2 / 1024 }' /proc/meminfo)
-              load=$(cut -d' ' -f1-3 /proc/loadavg)
-              cc=$(ps -e -o comm= 2>/dev/null | grep -c '^cc1' || true)
-              top=$(ps -e -o rss=,comm= --sort=-rss 2>/dev/null | head -n 3 | awk '{ printf "%s:%dM ", $2, $1 / 1024 }')
-              echo "MEMWATCH $(date -u +%H:%M:%S) ${mem}load=${load} cc1=${cc} top=${top}"
-              sleep 30
-            done
-          ) &
-          memwatch_pid=$!
-          trap 'kill "$memwatch_pid" 2>/dev/null || true' EXIT
           make 2>&1 | tee logs/linux-${{ matrix.os-name }}-build.log
 
       - name: Record build disk usage
