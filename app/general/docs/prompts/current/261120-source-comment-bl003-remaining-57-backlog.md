@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-24 07:04:59 JST
-最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o (継続案件の開始の記録。それより前の更新: claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
+最終更新日時: 2026-11-24 14:40:00 JST
+最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192 (それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
 稼働 OS: Windows
 上流文書: `261120-source-comment-bl003-remaining-57-overview.md` (全体管理文書)、`261120-source-comment-bl003-remaining-57-design.md` (最終仕様)、`261120-source-comment-bl003-remaining-57-discussion.md` (検討用 Markdown)、`261120-source-comment-bl003-remaining-57-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。 2026-11-23 に開始した継続案件 (未着手の項目の対策): `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)、`261123-remaining-backlog-items-design.md` (最終仕様。2026-11-23 に承認され、実装中)。
@@ -38,7 +38,7 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-009 | `WriteConsoleU` が、入力の途中の NUL 以降を出力せずに全量を書いた扱いにする | 作業中摘出 | 低 | 対応済み (実機確認待ち) |
 | BL-011 | コンソールへの再接続の後に書き込みが失敗する事象の原因が、未特定である | 検討時見送り | 中 | 対応中 |
 | BL-023 | `file_api.c` の U 版のラッパーが、メモリ不足を `ERROR_INVALID_PARAMETER` で返す | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
-| BL-024 | `tcpServer_windows.c` が、`GetModuleFileNameU` の切り詰めを検査しない | 作業中摘出 | 低 | 対応中 |
+| BL-024 | `tcpServer_windows.c` が、`GetModuleFileNameU` の切り詰めを検査しない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-025 | `cplat_process_get_executable_path` の Linux 側が、切り詰めを検出できない | 作業中摘出 | 中 | 対応中 |
 | BL-026 | `cplat_makedirs` が、ディレクトリの作成の失敗をすべて `CPLAT_ERR_UNKNOWN` で返す | 作業中摘出 | 低 | 対応中 |
 | BL-027 | 一時ディレクトリの取得の、戻り値の境界の判定が 2 か所で違う | 作業中摘出 | 低 | 対応中 |
@@ -242,7 +242,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-016)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-016)。 2026-11-24 に、`tcpServer_windows.c` で、実行ファイルのパスの領域を動的に確保して切り詰めを検出し、完全なパスを `CreateProcess` のアプリケーション名として渡す形へ変えました。コマンド ラインの長さ (UTF-16 で 32767 単位) の上限を、起動の前に確かめます。パスの取得、確保、書式化、文字コードの変換、長さの検査のいずれかが失敗した場合は、子プロセスを起動しません。起動に失敗した場合は、失敗の直後に OS の最終エラーを保存し、fork と prefork の両方の経路で、その値を添えた診断を標準エラー出力へ出します。テストは `tcpServerWindowsTest` (16 件) を行い、README に長いパスの扱いと診断を記載しました (`app/porter` のコミット `e19365b`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。長いパスの配置からの実機での起動は未確認のため、継続案件の残課題一覧へ記録します。
 
 ### 影響範囲とリスク
 
@@ -518,7 +518,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-024)。 2026-11-24 に、実装の途中で、通知ロックを持つ間の `sd_notify()` がブロックし得ること (systemd 239 のソース) が分かり、継続案件の検討用 Markdown の Q-080 で扱いを確認しました (回答 A: ロックを持ったまま呼び、条件と結果を明記する)。同日、Linux と Windows の両方で、段階の確認と更新、OS への通知を通知ロックで直列にしました (ルートのコミット `97868c47`)。Windows のテスト (47 件) が成功しました。Linux の CI の結果は確認中です。`sd_notify()` がブロックする状態での動作の実機での確認は、継続案件の残課題一覧へ記録します。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-024)。 2026-11-24 に、実装の途中で、通知ロックを持つ間の `sd_notify()` がブロックし得ること (systemd 239 のソース) が分かり、継続案件の検討用 Markdown の Q-080 で扱いを確認しました (回答 A: ロックを持ったまま呼び、条件と結果を明記する)。同日、Linux と Windows の両方で、段階の確認と更新、OS への通知を通知ロックで直列にしました (ルートのコミット `97868c47`)。Windows のテスト (47 件) が成功しました。Linux の CI の結果は確認中です。`sd_notify()` がブロックする状態での動作の実機での確認は、継続案件の残課題一覧へ記録します。 2026-11-24 に、Linux の CI (コミット `144da888`) で、テストのソースが内部ヘッダーを取り込んでいないコンパイルのエラーが見つかりました。WSL (Oracle Linux 8) で確かめて直し、あわせて、watchdog のテスト 1 件の準備の不足と、GCC の `-Wpadded` の警告 3 件を直しました。直しの後、Linux のテスト 40 件が成功しています (ルートのコミット `291f1f97`)。
 
 ### 影響範囲とリスク
 

@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-24 07:25:17 JST
-最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o (継続案件の開始の記録。それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
+最終更新日時: 2026-11-24 14:40:00 JST
+最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192 (それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-overview.md` (全体管理文書)、`261119-void-discard-reason-and-failure-injection-design.md` (最終仕様)、`261119-void-discard-reason-and-failure-injection-discussion.md` (検討用 Markdown)、`261119-void-discard-reason-and-failure-injection-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。 2026-11-23 に開始した継続案件 (未着手の項目の対策): `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)、`261123-remaining-backlog-items-design.md` (最終仕様。2026-11-23 に承認され、実装中)。
@@ -26,19 +26,19 @@
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
 | BL-001 | override-sample の使い方の表示と終了の直前の検査に失敗時のテストがない | 検討時見送り | 低 | 対応済み (CI の確認待ち) |
-| BL-002 | porter の REJECT を受けた経路で割り込みの PING を送るべきかを決める | 検討時見送り | 中 | 対応中 |
+| BL-002 | porter の REJECT を受けた経路で割り込みの PING を送るべきかを決める | 検討時見送り | 中 | 対応中 (一部を実装済み) |
 | BL-003 | porter の設定で、解釈できない値の一部が知らせなく既定値になる | 検討時見送り | 低 | 対応中 |
 | BL-004 | cplat のトレースのファイルを、ローテーションの後に開けないと書き込みが失敗し続ける | 作業中摘出 | 中 | 対応中 |
 | BL-005 | compress-cli と etw-viewer で、引数の検証の失敗の内容が表示されない | 作業中摘出 | 低 | 対応中 |
 | BL-006 | service-sample の tracer_open() の Doxygen とコメントが実装と食い違う | 作業中摘出 | 低 | 対応済み |
-| BL-007 | porter の FIN の受信処理のコメントが動作と合わない | 作業中摘出 | 低 | 対応中 |
-| BL-008 | porter の Windows で、受信を待っているソケットを別のスレッドが閉じている | 作業中摘出 | 中 | 対応中 |
+| BL-007 | porter の FIN の受信処理のコメントが動作と合わない | 作業中摘出 | 低 | 対応中 (一部を実装済み) |
+| BL-008 | porter の Windows で、受信を待っているソケットを別のスレッドが閉じている | 作業中摘出 | 中 | 対応中 (cplat の側を実装済み) |
 | BL-009 | cplat の PATH を探索する実行で、報告する errno が最後の候補のものになる | 作業中摘出 | 低 | 対応中 |
 | BL-010 | porter の設定ファイルの読み込みで、読み取りの失敗を終端と区別していない | 作業中摘出 | 低 | 対応中 |
 | BL-011 | 戻り値の破棄を探す走査が、マクロの引数とカンマ式の中の呼び出しを検出できない | 作業中摘出 | 低 | 対応済み |
 | BL-012 | cplat の戻り値のない公開関数の一部に、失敗を通知しないことの記載がない | 作業中摘出 | 低 | 対応中 |
-| BL-013 | tcpServer の Windows で、子プロセスの起動の失敗に診断がない | 作業中摘出 | 低 | 対応中 |
-| BL-014 | porter の potr_tracer_get() の Doxygen が、NULL を返さないと誤って記載している | 作業中摘出 | 低 | 対応中 |
+| BL-013 | tcpServer の Windows で、子プロセスの起動の失敗に診断がない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
+| BL-014 | porter の potr_tracer_get() の Doxygen が、NULL を返さないと誤って記載している | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-015 | porter-test の経路の状態の表示が、最後の経路しか表示しない | 作業中摘出 | 低 | 対応済み |
 | BL-016 | makefw が、app の並列数と各 app の並列度で 1 つの上限を共有しない | 作業中摘出 | 中 | 対応中 |
 | BL-017 | Linux の CI に、ビルド中のメモリを記録する処理が残っている | 作業中摘出 | 低 | 対応中 |
@@ -77,7 +77,7 @@
 
 - **摘出契機**: 前提検討時に見送り (検討用 Markdown の Q-054 の回答 A、2026-11-19)。
 - **今回の見送り理由**: 通信の動作の変更であり、仕様の確認と通信のテストが要ります。戻り値の扱いをそろえるこの案件とは目的が異なります。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-007)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-007)。 2026-11-24 に、一部を実装しました。REJECT を受けて受信の状態を破棄した場合と、受信通知キューの容量超過で切断した場合に、経路の状態の変化を戻り値で返し、双方向 UDP (1 対 1 と N 対 1) で、受信の側からヘルス チェックのスレッドを起こす形にしました。N 対 1 では、`peers_mutex` を解放した後に起こします。FIN による状態の変化、片方向、RAW、状態の変化がない場合、無視する REJECT では、割り込みの PING を要求しません。`dispatch_fin()` などのコメントを、「FIN による経路の状態の変化では割り込みの PING を要求しないため 0 を返す」という動作に合わせました (BL-007)。dispatch の戻り値は、状態の変化の真偽値 (0 または 1) に統一し、致命的な失敗は戻り値ではなく `fatal_error` で伝えます。設計文書 (`docs/health-check.md`、`docs/sequence-bidir.md`) と機能仕様 (`docs/functional-spec/delivery.md`、`health.md`) へ反映しました。あわせて、N 対 1 で FIN の発火の後に、解放済みの peer を参照していた箇所を直しました (`app/porter` のコミット `e19365b`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。残る対処として、割り込みの PING の要求の保持と消費 (`health_send_pending`)、ヘルス チェックの同期の資源の寿命、停止との競合、既存の起床と開始の時の即時の送信の統一は、継続案件の項目「非ブロッキング通信と待機の解除による安全な停止」と同時に実装します。
 
 ### 影響範囲とリスク
 
@@ -192,7 +192,7 @@
 
 - **摘出契機**: 実装の前の調査で発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の扱いではなく、記載と動作の不一致です。BL-002 と関連します。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-007)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-007)。 2026-11-24 に、一部を実装しました (BL-002 とあわせて対処)。REJECT を受けて受信の状態を破棄した場合と、受信通知キューの容量超過で切断した場合に、経路の状態の変化を戻り値で返し、双方向 UDP (1 対 1 と N 対 1) で、受信の側からヘルス チェックのスレッドを起こす形にしました。N 対 1 では、`peers_mutex` を解放した後に起こします。FIN による状態の変化、片方向、RAW、状態の変化がない場合、無視する REJECT では、割り込みの PING を要求しません。`dispatch_fin()` などのコメントを、「FIN による経路の状態の変化では割り込みの PING を要求しないため 0 を返す」という動作に合わせました。dispatch の戻り値は、状態の変化の真偽値 (0 または 1) に統一し、致命的な失敗は戻り値ではなく `fatal_error` で伝えます。設計文書 (`docs/health-check.md`、`docs/sequence-bidir.md`) と機能仕様 (`docs/functional-spec/delivery.md`、`health.md`) へ反映しました。あわせて、N 対 1 で FIN の発火の後に、解放済みの peer を参照していた箇所を直しました (`app/porter` のコミット `e19365b`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。残る対処として、割り込みの PING の要求の保持と消費 (`health_send_pending`)、ヘルス チェックの同期の資源の寿命、停止との競合、既存の起床と開始の時の即時の送信の統一は、継続案件の項目「非ブロッキング通信と待機の解除による安全な停止」と同時に実装します。
 
 ### 影響範囲とリスク
 
@@ -215,7 +215,7 @@
 
 - **摘出契機**: 一次資料の確認中に発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の扱いではなく、スレッドの停止の方法の設計の問題です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-010)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、両方の OS に共通の待機の解除のオブジェクトを足し、`cplat_socket_shutdown_receive()` を削除する方針が決まりました。TCP の停止の経路への適用と Windows の方式は、確認中です。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-010)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、両方の OS に共通の待機の解除のオブジェクトを足し、`cplat_socket_shutdown_receive()` を削除する方針が決まりました。TCP の停止の経路への適用と Windows の方式は、確認中です。 2026-11-24 に、`app/cplat` へ、解除できるソケットの待機の API を加えました。待機の解除の合図 (`cplat_socket_wait_cancel_*`) と、解除と期限を指定できる接続、送受信、受け付け (`cplat_socket_watch_*`) です。結果コード `CPLAT_ERR_WOULD_BLOCK` と `CPLAT_ERR_CANCELED` を加えました。Windows は Winsock のイベント、Linux は eventfd と `poll` で実装しています (`app/cplat` のコミット `63cdc3c8`、テスト用の mock は `framework/testfw` のコミット `d798bed`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。`app/porter` の通信を、この API を使う非ブロッキングの形へ作り直し、停止の時に待機を解除する変更は未着手です。`cplat_socket_shutdown_receive` の削除も、その変更と同時に行います。
 
 ### 影響範囲とリスク
 
@@ -330,7 +330,7 @@
 
 - **摘出契機**: 最終仕様の作成中に発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値は検査済みであり、戻り値の破棄を扱うこの案件の対象外です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、fork と prefork の両方の経路に `GetLastError()` の値を添えた診断を足す案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、fork と prefork の両方の経路に `GetLastError()` の値を添えた診断を足す案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。 2026-11-24 に、`tcpServer_windows.c` で、実行ファイルのパスの領域を動的に確保して切り詰めを検出し、完全なパスを `CreateProcess` のアプリケーション名として渡す形へ変えました。コマンド ラインの長さ (UTF-16 で 32767 単位) の上限を、起動の前に確かめます。パスの取得、確保、書式化、文字コードの変換、長さの検査のいずれかが失敗した場合は、子プロセスを起動しません。起動に失敗した場合は、失敗の直後に OS の最終エラーを保存し、fork と prefork の両方の経路で、その値を添えた診断を標準エラー出力へ出します。テストは `tcpServerWindowsTest` (16 件) を行い、README に長いパスの扱いと診断を記載しました (`app/porter` のコミット `e19365b`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。長いパスの配置からの実機での起動は未確認のため、継続案件の残課題一覧へ記録します。
 
 ### 影響範囲とリスク
 
@@ -353,7 +353,7 @@
 
 - **摘出契機**: 最終仕様の作成中に発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の破棄ではなく、記載と実装の不一致です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、生成に失敗した後の呼び出しで生成をやり直し、NULL を返す場合があることを Doxygen に記載する方針が決まりました (継続案件の簡易 ADR の LADR-032)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、生成に失敗した後の呼び出しで生成をやり直し、NULL を返す場合があることを Doxygen に記載する方針が決まりました (継続案件の簡易 ADR の LADR-032)。 2026-11-24 に、`potr_tracer_get()` と内部の `potr_internal_trace_get()` を、アトミックな状態で生成を直列化する形へ変えました。生成に失敗した場合は NULL を返し、次の呼び出しで再び生成を試みます。成功の後は同じハンドルを返します。同時の初回の呼び出しでは、生成は 1 回だけです。Doxygen (`porter_spec.h`、`potr_trace.h`)、`docs/api.md`、機能仕様 (`docs/functional-spec/base.md`) を、この動作に合わせました。`porter-test` は、NULL の場合に診断を出し、hook の設定と開始を行わず、次の呼び出しで再試行します。テストは、新しい `potrTraceTest` (4 件) と `porterTestOutputTracerTest` (1 件) です (`app/porter` のコミット `e19365b`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
