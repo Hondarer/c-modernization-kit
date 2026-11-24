@@ -1300,6 +1300,8 @@ static inline int sample_twice_int(int x)
 - GNU 文式 (`({ ... })`) は使用しません。MSVC で使えません。
 - 空の可変引数に対応するための `##__VA_ARGS__` (GNU / MSVC 拡張) は、可変引数 API の糖衣に限り用いて構いません。
 - コンマ演算子で複数の副作用を並べた文マクロは避け、`do { ... } while (0)` または関数へ移します。
+- 機能検査マクロ (`_GNU_SOURCE` など) は、ヘッダーとソースの中で定義せず、ビルドの定義 (`makepart.mk` の `DEFINES`) で与えます。glibc は最初に取り込んだ標準ヘッダーの時点で機能検査マクロを確定するため、後からの定義は効かないことがあるためです。  
+  see: https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
 
 > [!NOTE]
 > ヘッダーに置く `static inline` の定義規則は、[inline 関数](#inline-関数) を参照してください。
