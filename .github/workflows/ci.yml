@@ -107,13 +107,9 @@ jobs:
           # ランナーは 4 論理 CPU でビルド専用のため、CPU をすべて使う。
           # makefw は CPU 予算の半分をコンパイルに使うので、予算を論理 CPU 数の 2 倍に指定する。
           # make bin-test が実行する makefw のテストへ伝えないよう、ステップに指定する。
+          # app の同時ビルドへの予算の割り振りは makefw が行う。
           # see: framework/makefw/docs/build-configurations.md (並列ビルド)
           MAKEFW_CPU_BUDGET: "8"
-          # app は 1 つずつビルドする。ランナーのメモリは 16 GB で、cplat の mock を使うテストは
-          # コンパイルとリンクが 1 プロセスあたり約 2 GB を使う。cplat に依存する app を 3 つ同時に
-          # ビルドすると最大 12 プロセスが並ぶ。この箇所で、空きメモリが 1 GB を切ることと、
-          # ランナーが停止すること (exit 137) を確認している。
-          MAKEFW_APP_BUILD_JOBS: "1"
         run: |
           set -o pipefail
           df -h "$GITHUB_WORKSPACE"
