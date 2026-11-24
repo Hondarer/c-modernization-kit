@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-24 20:00:00 JST
-最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: cfb4ba03-381c-4c07-b9c1-0e468f114208 (それより前の更新: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192、claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
+最終更新日時: 2026-11-25 06:10:00 JST
+最終更新エージェント: agy (Claude Sonnet 5.5) / セッション ID: c62e1c33-6d3a-42f1-9908-85ce00e469e1 (それより前の更新: agy (Gemini 4 Hydrogen High) / セッション ID: cfb4ba03-381c-4c07-b9c1-0e468f114208、agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192、claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
 稼働 OS: Windows
 上流文書: `261120-source-comment-bl003-remaining-57-overview.md` (全体管理文書)、`261120-source-comment-bl003-remaining-57-design.md` (最終仕様)、`261120-source-comment-bl003-remaining-57-discussion.md` (検討用 Markdown)、`261120-source-comment-bl003-remaining-57-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。 2026-11-23 に開始した継続案件 (未着手の項目の対策): `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)、`261123-remaining-backlog-items-design.md` (最終仕様。2026-11-23 に承認され、実装中)。
@@ -36,7 +36,7 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-007 | service-sample の Linux で、イベント監視スレッドの起動に失敗すると再起動を繰り返す可能性がある | 作業中摘出 | 中 | 対応済み (実機確認待ち) |
 | BL-008 | service-sample の Linux で、切り離したイベント監視スレッドが解放済みの資源を参照する可能性がある | 作業中摘出 | 中 | 対応済み (実機確認待ち) |
 | BL-009 | `WriteConsoleU` が、入力の途中の NUL 以降を出力せずに全量を書いた扱いにする | 作業中摘出 | 低 | 対応済み (実機確認待ち) |
-| BL-011 | コンソールへの再接続の後に書き込みが失敗する事象の原因が、未特定である | 検討時見送り | 中 | 対応中 |
+| BL-011 | コンソールへの再接続の後に書き込みが失敗する事象の原因が、未特定である | 検討時見送り | 中 | 対応済み (CI の確認待ち) |
 | BL-023 | `file_api.c` の U 版のラッパーが、メモリ不足を `ERROR_INVALID_PARAMETER` で返す | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-024 | `tcpServer_windows.c` が、`GetModuleFileNameU` の切り詰めを検査しない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-025 | `cplat_process_get_executable_path` の Linux 側が、切り詰めを検出できない | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
@@ -44,7 +44,7 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-027 | 一時ディレクトリの取得の、戻り値の境界の判定が 2 か所で違う | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-028 | `cplat_path_equal` の Windows の比較が、非 ASCII の大文字と小文字を区別する | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-029 | `struct-meta` の索引の登録が、フィールド名の表の作成の失敗を成功として扱う | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
-| BL-030 | cplat の自動拡張のハッシュ テーブルが、削除済みのレコードを残したまま容量を増やし続ける | 作業中摘出 | 中 | 対応中 |
+| BL-030 | cplat の自動拡張のハッシュ テーブルが、削除済みのレコードを残したまま容量を増やし続ける | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
 | BL-031 | `service-sample` の Linux で、D-Bus の同期呼び出しの間は watchdog の通知を送れない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-032 | `service-sample` の文書の、自動再起動の停止の記載が、既定の制限と合わない可能性がある | 作業中摘出 | 低 | 対応済み |
 | BL-033 | `service-sample` の終了コードの推奨の範囲が、ヘッダーと文書で違う | 作業中摘出 | 低 | 対応済み |
@@ -53,7 +53,7 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-036 | `service-sample` で、リロードの実行中に停止が始まると、停止中の通知の後に起動の完了の通知が送られる | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-037 | `service-sample` の Windows と共通の処理で、コールバックの順序の実装が 2 つある | 作業中摘出 | 低 | 対応済み |
 | BL-038 | `app/porter` の `potr_service_close.c` の、読まれない 0 の格納 | 作業中摘出 | 低 | 対応済み |
-| BL-039 | `platform.h` の静的検査が、`static_assert` への統一の規範に従っていない | 作業中摘出 | 中 | 対応中 |
+| BL-039 | `platform.h` の静的検査が、`static_assert` への統一の規範に従っていない | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
 | BL-040 | Doxybook2 の生成物で、拡張パスの接頭辞の後に endiskip が表示される | 作業中摘出 | 低 | 対応中 |
 | BL-041 | 受入条件 9 の実機での確認 (Windows と Linux の systemd) が未実施である | 検討時見送り | 中 | 未着手 |
 
@@ -195,7 +195,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 枝番号 021 の調査 (2026-11-20)。
 - **今回の見送り理由**: 実機での再現は行わず、原因が未特定の既知の制限として記載すると決定したためです (検討用 Markdown の Q-019、簡易 ADR の LADR-020、2026-11-20)。再現には UAC の対話操作が要り、間欠的な事象のため、調査の期間を見積もれません。2026-11-21 に残課題の対処を決めたときも、実機での確認が要る項目として、この案件では対処していません (LADR-026)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-028)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-028)。 2026-11-24 から 2026-11-25 にかけて、診断の記録へ、`FreeConsole` の結果、標準ハンドルの設定の後の読み戻し、終了の時の排出、`cplat_console_write()` の失敗を加えました。記録の前後で `GetLastError()` の値を保存して復元し、失敗の直後の値が記録で変わらないようにしました。`cplat_console_write()` は、診断の有効かどうかを、関数の先頭で 1 回だけ判定します (`app/cplat` のコミット `5c6822f1`)。 Windows では、各 app の全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと全体のテストの成功を確かめました (`app/porter` 962 件、`app/cplat` 2285 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。 CI の結果は、まだ確かめていません。
 - **この案件での扱い**: 最終仕様の「app/cplat のコンソール (021、022)」の節に従い、2 つの現象を分けて記載し、「原因は conhost 側にあると推測されます」という推測の記載を削除しました。原因の調査は行っていません。
 
 ### 影響範囲とリスク
@@ -380,7 +380,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。`struct-meta` の登録簿は、この案件で `lifetime` を 2 (`STRUCT_META_INDEX_REGISTRY_LIFETIME`) にして直しました (最終仕様の「app/struct-meta の記述子登録簿における削除済みレコード寿命の修正」の節)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-020)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-020)。 2026-11-24 から 2026-11-25 にかけて、`hashtable.h` (`cplat_hashtable_create_growable()`) と `api-cheatsheet.md` に、自動の再構築の契機、レコードの容量が増え続ける条件、回避策 5 点を記載し、記載を裏付けるテスト 6 件を加えました (`app/cplat` のコミット `5c6822f1`)。 Windows では、各 app の全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと全体のテストの成功を確かめました (`app/porter` 962 件、`app/cplat` 2285 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。 CI の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -588,7 +588,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 作業中摘出。2026-11-22 の実装の最終段階 (CI の失敗への対処) で見つけました。
 - **今回の見送り理由**: ビルドの失敗を直すことを優先し、規範をどう扱うかは決めていないためです。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-026)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-026)。 2026-11-24 から 2026-11-25 にかけて、機能検査マクロ `_GNU_SOURCE` を、各ソースの `#define` から、`app/cplat/makepart.mk` の `DEFINES` (Linux の全翻訳単位) へ移しました。`platform.h` は `<assert.h>` を取り込んで `static_assert` を使い、`app/cplat/prod` の `_Static_assert` をなくしました。`error_message.c` は、`strerror_r` の 2 つの版 (GNU の版と XSI の版) を `_Generic` で選びます。共通のコーディング規範と `app/cplat` の規範へ、機能検査マクロをビルドの定義で与える規則を加えました。Linux で、`_GNU_SOURCE` が全体に効いたことで、mock のヘッダーの置換のマクロ (`mkostemp`) とシステムのヘッダーの宣言が衝突したため、`framework/testfw` の `stdlib.h` の取り込みの間、そのマクロを退避するよう直しました。依存する app (`override-sample`、`service-sample`、`struct-meta`、`porter`) の Linux のビルドの成功を確かめました (`app/cplat` のコミット `5c6822f1`、`419a293d`、`framework/testfw` のコミット `6ef3fb8`、ルートのコミット `54f711b2`)。 Windows では、各 app の全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと全体のテストの成功を確かめました (`app/porter` 962 件、`app/cplat` 2285 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。 CI の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
