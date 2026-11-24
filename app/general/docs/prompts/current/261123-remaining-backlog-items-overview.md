@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-24 08:25:15 JST
+最終更新日時: 2026-11-24 09:18:49 JST
 最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-backlog.md` (対策元の残課題一覧 A)、`261120-source-comment-bl003-remaining-57-backlog.md` (対策元の残課題一覧 B)。対策元 B の実機での確認の手順は `261120-source-comment-bl003-remaining-57-design.md` にあります。いずれも削除されている場合があります。
@@ -45,7 +45,7 @@ Git の書き込み操作は、第 2 ゲートの承認 (2026-11-23 20:00) で�
     - ✅ 3.3. 対話セッションにおける最終仕様 (design.md) の承認の受付 (第 2 ゲート: 作業着手の合意。2026-11-23 20:00 にユーザーが承認)
 - 🔄 4. 承認された最終仕様に従った作業の実施 (項目の完了のたびに、対策元の残課題一覧 A または B の状態と対処を更新)。実装は外部のエージェント (codex の GPT-6-Luna の xhigh。grok 4.7 は 2026-11-24 05:30 に利用の上限に達したため、以後は codex) が行い、Fable は審査を行います (LADR-039)。単位ごとの詳細は「反映と検証の記録」に記録します。下位の項目は、最終仕様の項目の単位です
     - 🔄 4.1. `app/cplat` の公開 API とパスの処理
-        - 🔄 4.1.1. cplat の解除できるソケットの待機 (A-BL-008 の cplat の側) と、マルチキャストの送信の TTL (単位 W4-A。codex が実装中。`cplat_socket_shutdown_receive` の削除は 4.3.2 と同時に行います) ← **CURRENT**
+        - 🔄 4.1.1. cplat の解除できるソケットの待機 (A-BL-008 の cplat の側) と、マルチキャストの送信の TTL (単位 W4-A)。codex の実装が 2026-11-24 09:17 に完了 (`cplat_socket_shutdown_receive` の削除は 4.3.2 と同時に行うため、残しています)。審査と検証の途中です (Windows の全体のテストを実行中。Linux は未確認) ← **CURRENT**
         - ⚠️ 4.1.2. cplat の文字コードの変換の厳密化と U 版のラッパーの最終エラー (B-BL-023。単位 W1-A)。Windows のフル ビルドと全体のテストは成功。Linux の CI でコンパイルの失敗 (mock の `PLATFORM_WINDOWS` の条件の欠落) が出たため直しました。直しの後の CI (`9214713f`) の結果が未確認です
         - ⏸️ 4.1.3. cplat の一時ディレクトリの取得の集約 (B-BL-027)
         - ⏸️ 4.1.4. `cplat_path_equal` の Windows の大文字と小文字の比較 (B-BL-028)
@@ -315,7 +315,7 @@ Table: 質問の一覧
 | W2-C | `app/service-sample`: unit の起動の回数の制限の明示 (B-BL-032) | grok | 完了 (バッファーの大きさは `static_assert` で保証します) | Linux だけの分岐のため、CI で確かめます | ルート `1413248e` |
 | W3-A | `app/service-sample`: トレーサーの開始の失敗 (A-BL-006)、コールバックの順序と失敗値の採用の集約 (B-BL-037) | grok | 完了 (Windows のテストのリンクの失敗 1 件と、期待の順序の誤り 2 件を直しました) | Windows で `service-sampleTest` 34 件、`service-sampleWindowsTest` 6 件が成功 | ルート `1413248e` |
 | W3-B | `framework/doxyfw`: Doxybook2 の生成物の endiskip の原因の特定 (B-BL-040 の手順 1 から 6) | grok | 原因の特定が完了 (分岐 A。コード スパンの末尾のバックスラッシュが奇数個の時に、Doxygen の生の XML へ現れます。公開 10 件、内部 16 件)。直しは未着手 (`app/cplat` のヘッダーに触れるため、W4-A の後) | 対象外 | 対象外 |
-| W4-A | `app/cplat`、`framework/testfw`: cplat の解除できるソケットの待機 (A-BL-008 の cplat の側)、マルチキャストの送信の TTL。`cplat_socket_shutdown_receive` の削除は、porter の通信の単位と同時に行うため、残します | codex の GPT-6-Luna | 実装中 (2026-11-24 04:35 に依頼。ビルドとテストを含む) | 未 | 未 |
+| W4-A | `app/cplat`、`framework/testfw`: cplat の解除できるソケットの待機 (A-BL-008 の cplat の側)、マルチキャストの送信の TTL。`cplat_socket_shutdown_receive` の削除は、porter の通信の単位と同時に行うため、残します | codex の GPT-6-Luna | 実装が完了 (約 4 時間 40 分。19 ファイルの変更と、新規 16 ファイル)。審査中。担当の報告: 仕様と合わなかった点はなし。Windows の方向別のイベントの競合を障壁で固定する全部の組み合わせのテストは未実施。審査で見つけた点: `socketTest.cc` の改行が CRLF になっていたため LF へ戻しました。`doxy_internal.warn` の警告 4 件は、W1-A が `sys_stat.c` で関数を Doxygen のコメントと対象の関数の間へ挿入したことが原因で、直しました | 担当の確認: `socketTest` 53 件、結果コードとエクスポートのテストが成功。`app/cplat` の全体のテストは、`libmock_cjson` が静的の CRT で作られた状態 (W4-B の確認の名残) でリンクできず未実施。審査の担当が、`app/cjson` を作り直してから、全体のテストを実行中 (2026-11-24 09:18 から)。Linux は未確認 | 未 |
 | W4-B | `app/cjson`、`framework/testfw`: cJSON の JSONC のラッパー (A-BL-003 の `app/cjson` の側。ロード時のフック、サイズの管理と消去、解析の共通ロック、誤りの種別と位置の報告) | grok が途中まで (利用の上限で停止)、codex の GPT-6-Luna が引き継ぎ | 完了 (審査で、テスト用の差し込み口の方式を 1 回差し戻しました。make のゴールで製品のライブラリを作り直す仕組みを取り除き、`TEST_SRCS`、`malloc` と `free` の mock、inject の方式へ作り直しました。`framework/testfw` へ `free` の mock を加えました)。担当の報告: cJSON が返す位置は「解析を止めた位置」で、不正な字句の先頭とは限りません (`app/porter/docs/config.md` への反映が要ります) | Windows の共有と静的の CRT で、テスト 36 件が成功。`make` の後と `make test` の後で、製品の DLL のエクスポート (112 個) が一致。`.warn` なし。Linux は CI で確かめます (未確認) | `framework/testfw` `c1a4280`、`app/cjson` `8c7fe2d`、ルート `52422d1e` |
 | W4-C | `app/service-sample`、`framework/testfw`: Linux の SIGHUP の受信の方式 (B-BL-035)、運転中の D-Bus の呼び出しの非同期化 (B-BL-031) | grok | 実装が完了。通知の直列化 (B-BL-036) は、この単位では止め、W5-A へ分けました | Linux だけの分岐が中心のため、CI (`9214713f`) で確かめます (未確認)。Windows の手元の確認は、W4-A の作業の途中の mock とリンクが合わず未実施です | `framework/testfw` `2e3339e`、ルート `80c0a286` (コミット メッセージの対策元の記載に誤りがあります。正しくは、261120 の残課題一覧の BL-035 と BL-031 です) |
 | W5-A | `app/service-sample`: リロードの完了の通知と停止の通知の直列化 (B-BL-036。Linux と Windows) | codex の GPT-6-Luna | 完了 (審査を通過。Q-080 の回答 A のとおり、通知ロックを持ったまま `sd_notify()` を呼び、ブロックし得る条件と結果を文書と Doxygen に明記しました) | Windows で `service-sampleTest` 36 件、`service-sampleWindowsTest` 11 件が成功。`make doxy` が成功。`.warn` なし。Linux は CI (`97868c47`) で確かめます (未確認) | ルート `97868c47` |
