@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-24 14:40:00 JST
-最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192 (それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
+最終更新日時: 2026-11-24 20:00:00 JST
+最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: cfb4ba03-381c-4c07-b9c1-0e468f114208 (それより前の更新: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192、claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
 稼働 OS: Windows
 上流文書: `261120-source-comment-bl003-remaining-57-overview.md` (全体管理文書)、`261120-source-comment-bl003-remaining-57-design.md` (最終仕様)、`261120-source-comment-bl003-remaining-57-discussion.md` (検討用 Markdown)、`261120-source-comment-bl003-remaining-57-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。 2026-11-23 に開始した継続案件 (未着手の項目の対策): `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)、`261123-remaining-backlog-items-design.md` (最終仕様。2026-11-23 に承認され、実装中)。
@@ -39,10 +39,10 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-011 | コンソールへの再接続の後に書き込みが失敗する事象の原因が、未特定である | 検討時見送り | 中 | 対応中 |
 | BL-023 | `file_api.c` の U 版のラッパーが、メモリ不足を `ERROR_INVALID_PARAMETER` で返す | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-024 | `tcpServer_windows.c` が、`GetModuleFileNameU` の切り詰めを検査しない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
-| BL-025 | `cplat_process_get_executable_path` の Linux 側が、切り詰めを検出できない | 作業中摘出 | 中 | 対応中 |
-| BL-026 | `cplat_makedirs` が、ディレクトリの作成の失敗をすべて `CPLAT_ERR_UNKNOWN` で返す | 作業中摘出 | 低 | 対応中 |
-| BL-027 | 一時ディレクトリの取得の、戻り値の境界の判定が 2 か所で違う | 作業中摘出 | 低 | 対応中 |
-| BL-028 | `cplat_path_equal` の Windows の比較が、非 ASCII の大文字と小文字を区別する | 作業中摘出 | 低 | 対応中 |
+| BL-025 | `cplat_process_get_executable_path` の Linux 側が、切り詰めを検出できない | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
+| BL-026 | `cplat_makedirs` が、ディレクトリの作成の失敗をすべて `CPLAT_ERR_UNKNOWN` で返す | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
+| BL-027 | 一時ディレクトリの取得の、戻り値の境界の判定が 2 か所で違う | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
+| BL-028 | `cplat_path_equal` の Windows の比較が、非 ASCII の大文字と小文字を区別する | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-029 | `struct-meta` の索引の登録が、フィールド名の表の作成の失敗を成功として扱う | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
 | BL-030 | cplat の自動拡張のハッシュ テーブルが、削除済みのレコードを残したまま容量を増やし続ける | 作業中摘出 | 中 | 対応中 |
 | BL-031 | `service-sample` の Linux で、D-Bus の同期呼び出しの間は watchdog の通知を送れない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
@@ -265,7 +265,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。Windows 側は、この案件で OS の上限まで取得できるようにしました (LADR-027)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、`readlink` へ `path_size` を渡し、戻り値が `path_size` と等しい場合を `CPLAT_ERR_BUFFER_TOO_SMALL` とする案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。継続案件では質問を設けず、`readlink` へ `path_size` を渡し、戻り値が `path_size` と等しい場合を `CPLAT_ERR_BUFFER_TOO_SMALL` とする案としています (継続案件の全体管理文書の「設計判断が要らないと判断した項目の対処」)。 2026-11-24 に、Linux の分岐で、`readlink` へ領域の大きさの全体を渡し、戻り値が領域の大きさ以上の場合を `CPLAT_ERR_BUFFER_TOO_SMALL`、0 の場合を `CPLAT_ERR_UNKNOWN` として扱うようにしました (`app/cplat` のコミット `6c8cd7ed`、`5dd74cb9`)。テストは WSL で成功を確かめました。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -288,7 +288,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-017)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-017)。 2026-11-24 に、`cplat_makedirs` が、既存の対象がディレクトリかどうかを確かめ、ディレクトリではないもの (通常のファイルなど) を `ENOTDIR` の失敗として報告するようにしました。`mkdir` と競合した後の再確認では、局所の詳細エラーを使い、最初の失敗の情報 (`EACCES` など) を保ちます。中間の階層の失敗の結果も保ちます。Windows の不正な UTF-8 の入力は `CPLAT_ERR_INVALID_ENCODING` を返します。`sys/stat.h` の 8 関数の Doxygen、`api-cheatsheet.md`、機能仕様を合わせました (`app/cplat` のコミット `6c8cd7ed`、Linux のテストの直しは `5dd74cb9`)。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -311,7 +311,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、一時ディレクトリの取得を 1 つの内部の関数へ集約する方針が決まりました (継続案件の簡易 ADR の LADR-035)。使う API は確認中です。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、一時ディレクトリの取得を 1 つの内部の関数へ集約する方針が決まりました (継続案件の簡易 ADR の LADR-035)。使う API は確認中です。 2026-11-24 に、Windows の一時ディレクトリの取得を、内部の関数 `cplat_internal_get_temp_dir_w` (`GetTempPath2W` を実行時に解決し、なければ `GetTempPathW` を使うもので、領域は動的に確保し、足りなければ確保し直します) へ集約し、4 か所の呼び出し元 (`cplat_path_get_temp_dir`、`cplat_fopen_temp`、コンソールの診断の記録のパス、昇格したプロセスの結果のファイル) を置き換えました。テストは、新しい `tempDirTest` (9 件) と、4 か所の呼び出し元のテストです (`app/cplat` のコミット `6c8cd7ed`、Windows の API の mock は `framework/testfw` のコミット `704c4eb`)。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -334,7 +334,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 残課題の対処の設計の調査 (2026-11-21)。
 - **今回の見送り理由**: Q-041 の回答 A により、この案件では扱いません (簡易 ADR の LADR-035)。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-018)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-018)。 2026-11-24 に、Windows の比較を、バイト単位の `tolower` から、UTF-16 へ変換した上での `CompareStringOrdinal` (大文字と小文字を区別しない序数の比較) へ変えました。非 ASCII の文字の大文字と小文字を、ファイル システムと同じ規則で同一視します。変換または比較に失敗した場合は、出力を変えずに失敗を返します。Linux の動作 (バイト列の完全一致) は変えていません。Doxygen、`api-cheatsheet.md`、機能仕様 (`crt.md`) を合わせました (`app/cplat` のコミット `6c8cd7ed`)。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 

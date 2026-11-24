@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-24 14:40:00 JST
-最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192 (それより前の更新: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
+最終更新日時: 2026-11-24 20:00:00 JST
+最終更新エージェント: agy (Gemini 4 Hydrogen High) / セッション ID: cfb4ba03-381c-4c07-b9c1-0e468f114208 (それより前の更新: agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192、claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-overview.md` (全体管理文書)、`261119-void-discard-reason-and-failure-injection-design.md` (最終仕様)、`261119-void-discard-reason-and-failure-injection-discussion.md` (検討用 Markdown)、`261119-void-discard-reason-and-failure-injection-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。 2026-11-23 に開始した継続案件 (未着手の項目の対策): `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)、`261123-remaining-backlog-items-design.md` (最終仕様。2026-11-23 に承認され、実装中)。
@@ -27,14 +27,14 @@
 | --- | --- | --- | --- | --- |
 | BL-001 | override-sample の使い方の表示と終了の直前の検査に失敗時のテストがない | 検討時見送り | 低 | 対応済み (CI の確認待ち) |
 | BL-002 | porter の REJECT を受けた経路で割り込みの PING を送るべきかを決める | 検討時見送り | 中 | 対応中 (一部を実装済み) |
-| BL-003 | porter の設定で、解釈できない値の一部が知らせなく既定値になる | 検討時見送り | 低 | 対応中 |
+| BL-003 | porter の設定で、解釈できない値の一部が知らせなく既定値になる | 検討時見送り | 低 | 対応中 (認証のファイルの読み込みの部分を除いて実装済み) |
 | BL-004 | cplat のトレースのファイルを、ローテーションの後に開けないと書き込みが失敗し続ける | 作業中摘出 | 中 | 対応中 |
-| BL-005 | compress-cli と etw-viewer で、引数の検証の失敗の内容が表示されない | 作業中摘出 | 低 | 対応中 |
+| BL-005 | compress-cli と etw-viewer で、引数の検証の失敗の内容が表示されない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-006 | service-sample の tracer_open() の Doxygen とコメントが実装と食い違う | 作業中摘出 | 低 | 対応済み |
 | BL-007 | porter の FIN の受信処理のコメントが動作と合わない | 作業中摘出 | 低 | 対応中 (一部を実装済み) |
 | BL-008 | porter の Windows で、受信を待っているソケットを別のスレッドが閉じている | 作業中摘出 | 中 | 対応中 (cplat の側を実装済み) |
-| BL-009 | cplat の PATH を探索する実行で、報告する errno が最後の候補のものになる | 作業中摘出 | 低 | 対応中 |
-| BL-010 | porter の設定ファイルの読み込みで、読み取りの失敗を終端と区別していない | 作業中摘出 | 低 | 対応中 |
+| BL-009 | cplat の PATH を探索する実行で、報告する errno が最後の候補のものになる | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
+| BL-010 | porter の設定ファイルの読み込みで、読み取りの失敗を終端と区別していない | 作業中摘出 | 低 | 対応中 (認証のファイルの読み込みの部分を除いて実装済み) |
 | BL-011 | 戻り値の破棄を探す走査が、マクロの引数とカンマ式の中の呼び出しを検出できない | 作業中摘出 | 低 | 対応済み |
 | BL-012 | cplat の戻り値のない公開関数の一部に、失敗を通知しないことの記載がない | 作業中摘出 | 低 | 対応中 |
 | BL-013 | tcpServer の Windows で、子プロセスの起動の失敗に診断がない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
@@ -100,7 +100,7 @@
 
 - **摘出契機**: 前提検討時に見送り (検討用 Markdown の Q-058 の回答 A、2026-11-19)。
 - **今回の見送り理由**: この案件の対象は戻り値の破棄の箇所です。3 種類は書き方が異なり、対象の洗い出しをしていません。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、既知のキーの解釈できない値をすべて設定の誤りとして読み込みを失敗させる方針が決まりました (継続案件の簡易 ADR の LADR-031)。設定の確認用 CLI の作成も、継続案件の対象に加わりました (LADR-036)。 2026-11-24 に、対策の前提になる `app/cjson` の側 (JSONC の解析の結果の種別と位置を返す `cJSON_ParseJSONCWithLengthOpts()`、確保した領域の解放の前の消去、解析の共通ロック) を実装しました (`app/cjson` のコミット `8c7fe2d`、ルートのコミット `52422d1e`)。`app/porter` の側 (設定の誤りの結果コード、検証の作り直し、公開関数、確認用 CLI) は未着手です。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、既知のキーの解釈できない値をすべて設定の誤りとして読み込みを失敗させる方針が決まりました (継続案件の簡易 ADR の LADR-031)。設定の確認用 CLI の作成も、継続案件の対象に加わりました (LADR-036)。 2026-11-24 に、対策の前提になる `app/cjson` の側 (JSONC の解析の結果の種別と位置を返す `cJSON_ParseJSONCWithLengthOpts()`、確保した領域の解放の前の消去、解析の共通ロック) を実装しました (`app/cjson` のコミット `8c7fe2d`、ルートのコミット `52422d1e`)。`app/porter` の側 (設定の誤りの結果コード、検証の作り直し、公開関数、確認用 CLI) は未着手です。 2026-11-24 に、認証のファイルの読み込みの部分を除いて実装しました (BL-010 とあわせて対処)。結果コード `POTR_ERR_INVALID_CONFIG` (-6) を加え、設定の誤りと引数の誤りを分けました。設定の読み込みと検証を、段階のモジュール (読み込みと構文の解析、スキーマ、値の取り出し、項目の間の制約の検査、誤りの報告) へ作り直し、誤りを、キーのパス (JSON Pointer) を添えて、まとめて報告するようにしました。数値の項目の解釈の失敗、未知の通信種別、文字列の長さの超過、NUL の混入などを、警告ではなく誤りとして扱います。公開関数 `potr_config_validate_file` (設定ファイルの検証)、`potr_config_list_service_ids` と `potr_config_service_ids_free` (サービスの識別子の列挙) を加えました。設定の確認用の CLI `porter-config-check` を加えました (終了コードは、問題なしが 0、設定の誤りが 2、実行の失敗が 1)。リポジトリの中の設定の例 (`prod/sample-config/porter-services.jsonc`、文書の例、相互接続の試験の設定) は、すべて `porter-config-check` で問題なしになることを確かめました。設計文書 (`docs/config.md`、`docs/api.md`) と機能仕様 (`docs/functional-spec/config.md`) へ反映しました。cJSON が入れ子の構文の誤りで返す位置は「解析を止めた位置」であることを、`docs/config.md` に記載しました (`app/porter` のコミット `10c7dba`、GCC の警告の解消は `23e5e10`、`setvbuf` の mock を Linux でも有効にする変更は `framework/testfw` のコミット `d3fc07d`)。残る対処として、認証のファイル (証明書、秘密鍵、CA) の読み込みを、ファイルの全量の読み取りとメモリ BIO による解析へ置き換える変更と、そのための `app/openssl` の mock の追加は、実装中です (現在は、既存のファイルの API のまま、失敗を `POTR_ERR_IO`、`POTR_ERR_INVALID_CONFIG`、`POTR_ERR_OUT_OF_MEMORY` へ分類する変更だけが入っています)。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -146,7 +146,7 @@
 
 - **摘出契機**: 実装の前の調査で発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の扱いではなく、表示する内容の問題です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、引数パーサーに独自の検証の誤りを登録する公開関数を足す方針が決まりました (継続案件の簡易 ADR の LADR-034)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、引数パーサーに独自の検証の誤りを登録する公開関数を足す方針が決まりました (継続案件の簡易 ADR の LADR-034)。 2026-11-24 に、利用側の独自の検証の誤りを引数パーサーへ登録する公開関数 `cplat_argparser_set_validation_error` と `cplat_argparser_handle_set_validation_error` を加えました。登録した誤りは、解析の誤りと同じ経路で取得と表示ができます。`compress-cli` (モードの指定の組み合わせ) と `etw-viewer` (`--pid` の値) を、この関数を使う形へ変えました。mock、エクスポートのテスト、Doxygen の使用例、`api-cheatsheet.md`、機能仕様 (`argparser.md`) を合わせました (`app/cplat` のコミット `6c8cd7ed`)。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -238,7 +238,7 @@
 
 - **摘出契機**: 実装の前の調査で発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の扱いではなく、報告する原因の選び方の問題です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-011)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-011)。 2026-11-24 に、Linux の子プロセスの中の PATH の探索 (`exec_with_path`) を、次の規則へ直しました。空の名前は `ENOENT`、長すぎる名前は `ENAMETOOLONG` とします。先頭、途中、末尾の空の区間は、カレント ディレクトリとして探します。`ENOENT`、`ESTALE`、`ENOTDIR`、`ENODEV`、`ETIMEDOUT` の場合は次の候補へ進み、ほかの errno では探索を打ち切ります。探索の後は、`EACCES` があればそれを優先して報告します。`execvp` との 3 つの違い (子プロセス用の環境の PATH を使う、空の PATH でも既定のパスを使う、`ENOEXEC` で `/bin/sh` を起動しない) を、`process.h` の Doxygen と `api-cheatsheet.md` に記載しました (`app/cplat` のコミット `6c8cd7ed`、`5dd74cb9`)。テストは WSL で成功を確かめました。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -261,7 +261,7 @@
 
 - **摘出契機**: 実装の前の調査で発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の破棄ではなく、ループの終了条件の問題です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-012)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-012)。 2026-11-24 に、認証のファイルの読み込みの部分を除いて実装しました (BL-003 とあわせて対処)。結果コード `POTR_ERR_INVALID_CONFIG` (-6) を加え、設定の誤りと引数の誤りを分けました。設定の読み込みと検証を、段階のモジュール (読み込みと構文の解析、スキーマ、値の取り出し、項目の間の制約の検査、誤りの報告) へ作り直し、誤りを、キーのパス (JSON Pointer) を添えて、まとめて報告するようにしました。数値の項目の解釈の失敗、未知の通信種別、文字列の長さの超過、NUL の混入などを、警告ではなく誤りとして扱います。公開関数 `potr_config_validate_file` (設定ファイルの検証)、`potr_config_list_service_ids` と `potr_config_service_ids_free` (サービスの識別子の列挙) を加えました。設定の確認用の CLI `porter-config-check` を加えました (終了コードは、問題なしが 0、設定の誤りが 2、実行の失敗が 1)。リポジトリの中の設定の例 (`prod/sample-config/porter-services.jsonc`、文書の例、相互接続の試験の設定) は、すべて `porter-config-check` で問題なしになることを確かめました。設計文書 (`docs/config.md`、`docs/api.md`) と機能仕様 (`docs/functional-spec/config.md`) へ反映しました。cJSON が入れ子の構文の誤りで返す位置は「解析を止めた位置」であることを、`docs/config.md` に記載しました (`app/porter` のコミット `10c7dba`、GCC の警告の解消は `23e5e10`、`setvbuf` の mock を Linux でも有効にする変更は `framework/testfw` のコミット `d3fc07d`)。残る対処として、認証のファイル (証明書、秘密鍵、CA) の読み込みを、ファイルの全量の読み取りとメモリ BIO による解析へ置き換える変更と、そのための `app/openssl` の mock の追加は、実装中です (現在は、既存のファイルの API のまま、失敗を `POTR_ERR_IO`、`POTR_ERR_INVALID_CONFIG`、`POTR_ERR_OUT_OF_MEMORY` へ分類する変更だけが入っています)。Windows では、`app/cplat` の全体のテスト (1740 件) と `app/porter` の全体のテスト (958 件) が成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました (`app/porter` は全体のテスト 948 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。CI (ルートのコミット `512ef613`) の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
