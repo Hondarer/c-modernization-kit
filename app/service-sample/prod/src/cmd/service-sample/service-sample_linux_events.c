@@ -194,15 +194,13 @@ typedef struct svc_linux_events_ctx
     int stop_fd;                      /**< 停止指示用 eventfd。未生成時は -1。 */
     svc_inhibit_lock inhibit_sleep;   /**< サスペンドの delay inhibitor lock。 */
     svc_inhibit_lock inhibit_shutdown; /**< シャットダウンの delay inhibitor lock。 */
-    int pad;                          /**< 明示的アラインメントです。0 を指定します。 */
 } svc_linux_events_ctx;
 
 /** イベント監視スレッドの内部状態 (プロセスで 1 つ)。 */
 static svc_linux_events_ctx s_ctx = {
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1,
     {"sleep", NULL, -1, 0},
-    {"shutdown", NULL, -1, 0},
-    0};
+    {"shutdown", NULL, -1, 0}};
 
 /** 実行中のイベント ループの異常終了を記録します。1 = 異常終了した。 */
 static cplat_atomic_i32 s_loop_failed = CPLAT_ATOMIC_INIT(0);

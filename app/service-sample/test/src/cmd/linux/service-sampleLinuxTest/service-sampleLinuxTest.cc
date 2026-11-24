@@ -26,6 +26,7 @@
 
 #include "service-sample.h"
 #include "service-sample.inject.h"
+#include "service-sample_linux_events.h"
 #include "service-sample_linux_events.inject.h"
 
 using testing::_;
@@ -1139,6 +1140,16 @@ TEST_F(service_sampleLinuxRunTest, watchdog_is_not_sent_after_stopping)
     }; // [状態] - watchdog が通知ロックを待つ間に停止段階へ進める。
 
     // Pre-Assert
+    // watchdog を要求していないためタイマーのイベント ソースは NULL であり、callback を直接呼ぶと、
+    // 実関数は再設定に失敗してイベント ループの異常終了を記録する。再設定はこのテストの確認の対象ではないため、
+    // NULL のイベント ソースへの再設定だけを成功として扱う。
+    EXPECT_CALL(mock_systemd_, sd_event_source_set_time(_, _, _, testing::IsNull(), _)).WillOnce(Return(0));
+    // [Pre-Assert確認_正常系] - NULL のイベント ソースへの時刻の再設定が 1 回呼び出されること。
+    // [Pre-Assert手順] - sd_event_source_set_time() から 0 を返す。
+    EXPECT_CALL(mock_systemd_, sd_event_source_set_enabled(_, _, _, testing::IsNull(), SD_EVENT_ONESHOT))
+        .WillOnce(Return(0));
+    // [Pre-Assert確認_正常系] - NULL のイベント ソースの有効化が 1 回呼び出されること。
+    // [Pre-Assert手順] - sd_event_source_set_enabled() から 0 を返す。
 
     // Act
     int actual_ret = svc_os_run_service(&g_run_def); // [手順] - watchdog の競合を作ってサービスを実行する。
@@ -1448,7 +1459,7 @@ TEST_F(service_sampleLinuxRunTest, build_inhibit_message_cleans_partial_message)
         EXPECT_CALL(mock_systemd_, sd_bus_message_append_basic(_, _, _, k_dummy_message, 's', _))
             .Times(fail_at + 1)
             .WillRepeatedly(Invoke(
-                [&seen, fail_at](const char *, const int, const char *, sd_bus_message *, char, const void *) -> int
+                [&seen, &fail_at](const char *, const int, const char *, sd_bus_message *, char, const void *) -> int
                 {
                     int current = seen;
                     seen++;
@@ -1963,7 +1974,7 @@ TEST_F(service_sampleLinuxRunTest, inhibit_request_failure_leaves_no_slot)
         EXPECT_CALL(mock_systemd_, sd_bus_message_append_basic(_, _, _, k_dummy_message, 's', _))
             .Times(fail_at + 1)
             .WillRepeatedly(Invoke(
-                [&seen, fail_at](const char *, const int, const char *, sd_bus_message *, char, const void *) -> int
+                [&seen, &fail_at](const char *, const int, const char *, sd_bus_message *, char, const void *) -> int
                 {
                     int current = seen;
                     seen++;
