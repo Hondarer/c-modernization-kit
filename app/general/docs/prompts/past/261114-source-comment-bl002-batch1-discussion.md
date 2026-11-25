@@ -79,6 +79,8 @@ BL-002 が定める方針 (根拠を確認できた項目だけを反映し、�
 
 ### 理由に理屈が付いた項目 (コメントを追記する候補)
 
+Table: 理由に理屈が付いた 6 項目
+
 | 枝番号 | 位置 | 付いた理屈 | 根拠の出どころ |
 | --- | --- | --- | --- |
 | 006 | `prod/include/cplat/base/compiler.h:89` | Clang は互換性のため `__GNUC__` を定義します。除外しなければ Clang を GCC と判定し、`COMPILER_VERSION` が Clang の版ではなく互換対象の GCC の版 (4.2.1 相当) になります。 | 外部仕様 (Clang のマクロ定義) |
@@ -88,27 +90,27 @@ BL-002 が定める方針 (根拠を確認できた項目だけを反映し、�
 | 057 | `prod/libsrc/cplat/runtime/memory_lock.c:87` | `cplat_call_once()` へ渡す関数は戻り値を持てません。生成に失敗すると `s_memory_lock_lock` は NULL のままで、`memory_lock_lock()` が NULL を検査して `CPLAT_ERR_UNKNOWN` を返します。失敗は捨てられておらず、別の経路で検出しています。 | コード (`sync_linux.c:408-427`、`sync_windows.c:310-324`、`memory_lock.c:94-104`) |
 | 058 | `prod/libsrc/cplat/runtime/module.c:172` | 直前で `(wcslen(buf) + 1) > wpath_size` を検査し、容量不足なら `CPLAT_ERR_BUFFER_TOO_SMALL` で戻ります。複写は容量が足りる場合にだけ実行されるため、失敗しません。 | コード (`module.c:166-172`) |
 
-Table: 理由に理屈が付いた 6 項目
-
 ### 理屈が一部だけ付いた項目
+
+Table: 理屈が一部だけ付いた 1 項目
 
 | 枝番号 | 位置 | 付いた理屈 | 付かなかった点 |
 | --- | --- | --- | --- |
 | 034 | `prod/libsrc/cplat/net/endpoint_linux.c:65` | `ai_socktype` を 0 のままにすると、`getaddrinfo()` は同じアドレスをソケット種別の数だけ重複して返します。種別を 1 つに絞ると、アドレス 1 件につき結果が 1 件になります。 | `SOCK_STREAM` ではなく `SOCK_DGRAM` を選んだ理由。サービス名が NULL で、アドレスだけを使うため、どちらでも得られるアドレスは同じです。 |
 
-Table: 理屈が一部だけ付いた 1 項目
-
 `endpoint_windows.c:77` にも同じ行があります。162 項目には含まれていませんが、同じ理由が当てはまります。
 
 ### 既存の説明で解消していた項目
+
+Table: 既存の説明で解消していた 1 項目
 
 | 枝番号 | 位置 | 確認した内容 |
 | --- | --- | --- |
 | 060 | `prod/libsrc/cplat/runtime/process_priority_linux.c:199、215` | 同じファイルの先頭 (12〜13 行) に、「glibc 2.28 にラッパー関数がないため、`syscall()` で呼び出します」という説明がすでにあります。この環境の glibc も 2.28 です。 |
 
-Table: 既存の説明で解消していた 1 項目
-
 ### 理屈が付かず、変更の候補になった項目
+
+Table: 理屈が付かなかった 3 項目
 
 | 枝番号 | 位置 | 確認した内容 |
 | --- | --- | --- |
@@ -116,11 +118,11 @@ Table: 既存の説明で解消していた 1 項目
 | 011 | `prod/include/cplat/trace/tracer.h:74` | 010 と同じです。 |
 | 056 | `prod/libsrc/cplat/runtime/memory_lock.c:858` | 戻り値 -1 (不正なフラグ) は、関数の先頭で同じ条件を検査済みのため発生しません。一方、戻り値 1 (`MCL_ONFAULT` が未定義で ONFAULT を変換できない) を捨てる理由は見つかりません。1 のとき `native_flags` は 0 のままで、`mlockall(0)` が EINVAL で失敗し、`CPLAT_ERR_UNSUPPORTED` ではない結果を返します。この環境では `MCL_ONFAULT` が定義されているため、この経路は実行されません。 |
 
-Table: 理屈が付かなかった 3 項目
-
 ### 外部仕様 URL の照合結果
 
 WBS 1.5 として、採用が決まった項目 (006、016、054、055) の根拠となる外部仕様 URL を取得し、記載内容を照合しました。
+
+Table: 外部仕様 URL の照合結果
 
 | 枝番号 | 照合した URL | 照合結果 |
 | --- | --- | --- |
@@ -128,8 +130,6 @@ WBS 1.5 として、採用が決まった項目 (006、016、054、055) の根�
 | 016 | `https://man7.org/linux/man-pages/man3/tm.3type.html` | `tm_gmtoff` は `POSIX.1-2024` で追加されたメンバーであり、従来の ISO C 標準の `struct tm` には含まれないことを確認。 |
 | 054 | `https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#index-foptimize-sibling-calls` | `-foptimize-sibling-calls` (`-O2`、`-O3`、`-Os` で有効) が sibling call および tail recursive call を最適化することを確認。 |
 | 055 | `https://man7.org/linux/man-pages/man3/pthread_attr_init.3.html` | Linux では `pthread_attr_init()` および `pthread_attr_destroy()` が常に成功する ("on Linux these functions always succeed") と明記されていることを確認。 |
-
-Table: 外部仕様 URL の照合結果
 
 ## 観点別の確認
 

@@ -48,22 +48,22 @@ C 言語では、コードを再利用するためにライブラリとしてま
 
 ライブラリの構成:
 
+Table: ライブラリ構成一覧
+
 | ライブラリ    | 種別 | Linux           | Windows           | 実装ファイル                 |
 |---------------|------|-----------------|-------------------|------------------------------|
 | `libexamplebase` | 静的 | `libexamplebase.a` | `libexamplebase.lib` | `app/example/prod/libsrc/examplebase/` |
 | `libexample`     | 動的 | `libexample.so`    | `libexample.dll`     | `app/example/prod/libsrc/example/`     |
 
-Table: ライブラリ構成一覧
-
 各プログラムのリンク方式:
+
+Table: 各プログラムのリンク方式
 
 | プログラム               | リンク                     | ソース                                  |
 |--------------------------|----------------------------|-----------------------------------------|
 | `add`                    | `libexamplebase` を静的リンク | `app/example/prod/src/add/add.c`               |
 | `example`                   | `libexample` を動的リンク     | `app/example/prod/src/example/example.c`             |
 | `shared-and-static-example` | 両方をリンク               | `app/example/prod/src/shared-and-static-example/` |
-
-Table: 各プログラムのリンク方式
 
 ヘッダー ファイル:
 

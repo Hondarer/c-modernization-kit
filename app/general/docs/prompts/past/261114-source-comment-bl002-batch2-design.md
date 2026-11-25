@@ -24,6 +24,8 @@
 
 ### 対象の一覧
 
+Table: 対象と対処の一覧
+
 | 区分 | 対象 | 件数 | 対処 |
 | --- | --- | --- | --- |
 | 残課題一覧の項目 | `018`、`019` | 2 | 実装変更 ([clock.c の補助関数の戻り値](#clockc-の補助関数の戻り値-018019)) |
@@ -34,8 +36,6 @@
 | 残課題一覧の項目 | `115` | 1 | コメント追記 ([shutdown 時の管理リストの切り離し](#shutdown-時の管理リストの切り離し-115)) |
 | 未登録の同種箇所 | `filter_describe.c`、`filter_image.c` のゼロ初期化 | 2 | 実装変更 ([filter モジュールのゼロ初期化](#filter-モジュールのゼロ初期化-061)) |
 | 未登録の同種箇所 | ロック解放の戻り値破棄 (`argparser.c`、`tracer.c`、`sample_filter_share_region.c`) | 8 | コメント追記 ([ロック解放の戻り値破棄](#ロック解放の戻り値破棄)) |
-
-Table: 対象と対処の一覧
 
 ### 対象外
 
@@ -53,14 +53,14 @@ Table: 対象と対処の一覧
 
 両関数の戻り値を、`0` / `-1` から共通結果コードへ変更します。
 
+Table: clock.c の変更内容
+
 | 箇所 | 変更前 | 変更後 |
 | --- | --- | --- |
 | 両関数の前置コメント | `成功で 0、バッファー不足または書式化の失敗で -1 を返す。` | `成功で CPLAT_OK、バッファー不足または書式化の失敗で CPLAT_ERR_UNKNOWN を返す。` |
 | 両関数の失敗時の `return` (各 2 箇所) | `return -1;` | `return CPLAT_ERR_UNKNOWN;` |
 | 両関数の成功時の `return` (各 1 箇所) | `return 0;` | `return CPLAT_OK;` |
 | 呼び出し元 2 箇所 (`cplat_clock_format_realtime_iso8601_local()`、`cplat_clock_format_realtime_iso8601_utc()`) の判定 | `!= 0` | `!= CPLAT_OK` |
-
-Table: clock.c の変更内容
 
 呼び出し元は、失敗時にフォールバック文字列を書き込んで `CPLAT_ERR_UNKNOWN` を返す現在の処理を維持します。
 
@@ -70,13 +70,13 @@ Table: clock.c の変更内容
 
 ローカル構造体を、宣言時の集成体初期化子 `= {0}` でゼロ初期化します。実体を指すだけのポインター変数と、宣言後の `memset` は削除します。
 
+Table: ゼロ初期化の変更内容
+
 | ファイルと関数 | 変更前 | 変更後 |
 | --- | --- | --- |
 | `filter_compile.c` の `string_catalog_filter_compile_record()` | `compiler *state;`、`compiler state_storage;`、`state = &state_storage;`、`memset(state, 0, sizeof(*state));` | `compiler state = {0};` |
 | `filter_describe.c` の `string_catalog_filter_describe_record()` | `describe_context *context;`、`describe_context context_storage;`、`context = &context_storage;`、`memset(context, 0, sizeof(*context));` | `describe_context context = {0};` |
 | `filter_image.c` の `cplat_string_catalog_filter_decompile_line()` | `decompile_context context;` と、後続の `memset(&context, 0, sizeof(context));` | `decompile_context context = {0};` |
-
-Table: ゼロ初期化の変更内容
 
 `filter_compile.c` と `filter_describe.c` では、関数内のメンバー参照を `state->` から `state.` へ、`context->` から `context.` へ変更し、補助関数へ渡す引数を `&state`、`&context` へ変更します。`filter_compile.c` の `memset(record, 0, ...)` は、呼び出し元のバッファーを初期化する処理のため変更しません。
 
@@ -196,17 +196,19 @@ Linux の `cplat_local_lock_unlock()` が成功する根拠は POSIX の仕様�
     (void)cplat_local_rwlock_unlock_shared(slot->plane_lock); /* 取得に成功したロックの解放は失敗しない */
 ```
 
+Table: 後置コメントを書く 17 箇所
+
 | ファイル | 行 (変更前) | 件数 |
 | --- | --- | --- |
 | `app/cplat/prod/libsrc/cplat/string_catalog/filter/filter_slot.c` (`085`〜`097`) | 1723、1757、1954、2027、2048、2083、2109、2185、2217、2251、2281、2351、2472 | 13 |
 | `app/cplat/prod/libsrc/cplat/argparser/argparser.c` | 1264、1333 | 2 |
 | `app/string-catalog-sample/prod/src/cmd/string-catalog-filter-sample/sample_filter_share_region.c` | 251、261 | 2 |
 
-Table: 後置コメントを書く 17 箇所
-
 ### 解放専用の補助関数の 5 箇所
 
 取得を対になる別の関数が行う、解放専用の補助関数です。呼び出し元のすべての経路で、取得の成功後にだけ呼ばれることを確認済みです。`(void)` の文の直前に、前提を述べる前置コメントを書きます。
+
+Table: 前置コメントを書く 5 箇所
 
 | ファイルと関数 | 前置コメント |
 | --- | --- |
@@ -215,8 +217,6 @@ Table: 後置コメントを書く 17 箇所
 | `tracer.c` の `config_unlock_exclusive()` | `/* 呼び出し元は設定の排他ロックの取得に成功した後にだけ本関数を呼ぶため、保持中のロックの解放は失敗しない。 */` |
 | `tracer.c` の `config_unlock_shared()` | `/* 呼び出し元は設定の共有ロックの取得に成功した後にだけ本関数を呼ぶため、保持中のロックの解放は失敗しない。 */` |
 | `sample_filter_share_region.c` の `sample_filter_share_lock_release()` (`cplat_local_lock_unlock()` の行) | `/* 呼び出し元は sample_filter_share_lock_acquire() の成功後にだけ本関数を呼ぶため、保持中のロックの解放は失敗しない。 */` |
-
-Table: 前置コメントを書く 5 箇所
 
 コメントが 120 桁を超える場合は、複数行の前置コメントへ分けます。
 
@@ -248,12 +248,12 @@ Linux で次を実施します。Windows は push 後の CI で確認します�
 
 ## 知見の反映計画
 
+Table: 永続的な知見の反映先
+
 | 知見 | 反映先 |
 | --- | --- |
 | 保持中のロックの解放は成功するという契約 | `sync.h` の解放関数 3 つの `@return` ([宣言側の契約](#宣言側の契約-synch)) |
 | POSIX が所有者による mutex の解放にエラーを定義していないこと | `sync_linux.c` の `cplat_local_lock_unlock()` のコメント ([宣言側の契約](#宣言側の契約-synch)) |
 | shutdown 時にロックを解放してから各ハンドルを解放する理由 | `tracer.c` のコメント ([shutdown 時の管理リストの切り離し](#shutdown-時の管理リストの切り離し-115)) |
-
-Table: 永続的な知見の反映先
 
 コーディング規範などの正本文書への追記はありません。今回の変更は、既存の規範 (共通結果コード、ゼロ初期化、明示的なパディング メンバー、実装コメント) を適用するものです。

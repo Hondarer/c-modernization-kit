@@ -33,6 +33,8 @@
 
 失敗しうる呼び出しの扱いを、失敗の情報の行き先で 5 つに分類します。
 
+Table: 失敗の扱いの 5 分類
+
 | 分類 | 失敗の情報の行き先 | 判定の条件 | 扱い |
 | --- | --- | --- | --- |
 | 異常終了 | プロセスの終了 | 原因が OS や基盤の異常、または内部状態の破壊に限られる。かつ、続行が危険または構造上できない。 | 異常終了の機構を呼ぶ。Doxygen に、プロセスを終了させうることを記載する。 |
@@ -40,8 +42,6 @@
 | 診断して続行 | 診断の出力 | 関数の主な結果は成立するが、利用者が知らないと後で原因を調べられない。 | その場所ですでに使っている診断の経路へ出力し、処理を続ける。 |
 | 明示的な破棄 | 呼び出し元が受け取って捨てる | 呼び出した関数は結果を返すが、失敗しても呼び出し側の結果が変わらない。または、失敗を伝える先がない。 | 呼び出しに `(void)` を付け、理由コメントを付ける。 |
 | 通知なし (void) | 関数の外へ出さない | 関数の呼び出し元が、失敗を受けても取れる行動がない。解放、破棄、表示、通知の関数が該当する。 | 関数の戻り値を `void` とする。Doxygen に、失敗を通知しないことを記載する。 |
-
-Table: 失敗の扱いの 5 分類
 
 異常終了の条件は、既存の規範「プロセスの異常終了 (abort)」の条件と同じです。引数の不正、外部入力の不正、ファイル、通信、メモリ確保の失敗、呼び出し元が回復できる失敗には適用しません。
 
@@ -95,6 +95,8 @@ Table: 失敗の扱いの 5 分類
 
 16 件の扱いは次のとおりです。動作が変わるのは、失敗したときだけです。成功したときの動作は変わりません。
 
+Table: 16 件の扱い
+
 | 枝番号 | 対象 | 扱い | 動作の変更 |
 | --- | --- | --- | --- |
 | 032 | BCrypt の解放関数 (8 箇所) | 異常終了 | あり |
@@ -113,8 +115,6 @@ Table: 失敗の扱いの 5 分類
 | 170 | `fflush(stdout)` (3 箇所) | 伝達 (終了の直前にまとめて検査) | あり |
 | 172 | 利用側からのトレース出力 | 伝達 | あり |
 | 184 | `cplat_fflush(stdout, NULL)` (4 箇所) | 診断して続行 | あり |
-
-Table: 16 件の扱い
 
 ### crypto_windows.c (032)
 
@@ -210,6 +210,8 @@ OS による扱いの違いは、バックエンドの API が失敗を返すか
 
 `app/general/docs/coding-guideline.md` の「エラー処理と戻り値規約」に、小節「失敗の扱いの分類」を「適用対象外」の前へ追加します。内容は、この文書の「失敗の扱いの 5 分類」の各節です。
 
+Table: 共通の規範へ追加する内容
+
 | 追加する項 | 内容 |
 | --- | --- |
 | 分類 | 5 分類の表。分類の名前に、原文を確認できた英語の呼び方を併記する。 |
@@ -219,8 +221,6 @@ OS による扱いの違いは、バックエンドの API が失敗を返すか
 | 明示的な破棄の理由コメント | 常に付けること、置き方、まとまりの扱い、望ましい例と望ましくない例。 |
 | レビューの手順 | 次項に示す自然文の手順。 |
 | 既存コードへの適用 | 新規のコードと変更するコードに適用する。既存の `(void)` の箇所は、残課題として管理し、変更の機会に適用する。 |
-
-Table: 共通の規範へ追加する内容
 
 共通の規範は、個別の app の機構の名前を使いません。異常終了の機構は、既存の節「プロセスの異常終了 (abort)」を参照する形で示します。
 
@@ -259,13 +259,13 @@ Table: 共通の規範へ追加する内容
 
 既存の mock で対象の呼び出しを差し替えられる項目に、失敗時のテストを追加します。
 
+Table: 失敗時のテストを追加する項目
+
 | 枝番号 | テスト | 差し替える呼び出し | 確認する内容 |
 | --- | --- | --- | --- |
 | 110 | `trace_fileTest` | `cplat_file_close` | ローテーションで閉じる処理が失敗した場合に、書き込み関数が `CPLAT_ERR_UNKNOWN` を返し、次の書き込みが続けられる。 |
 | 163 | `service-sampleTest` | `ChangeServiceConfig2U` | 説明の設定が失敗した場合に、WARNING のトレースが出て、インストールが成功する。 |
 | 184 | `structMetaSampleIoTest` | `cplat_fflush` | フラッシュが失敗した場合に、標準エラー出力へ診断が出る。 |
-
-Table: 失敗時のテストを追加する項目
 
 > [!IMPORTANT]
 > 上表は、既存の mock の一覧から判断した見込みです。対象のテストが該当の呼び出しを実際に差し替えられるかは、実装の時点で確定します。差し替えられなかった項目は、成功時のテストと変更内容の確認で受け入れ、成果物の提示で報告します。
@@ -297,6 +297,8 @@ Table: 失敗時のテストを追加する項目
 
 ## 変更するファイル
 
+Table: 変更するファイル
+
 | app | ファイル |
 | --- | --- |
 | `cplat` | `prod/libsrc/cplat/crypto/crypto_windows.c`、暗号の公開ヘッダー、`prod/libsrc/cplat/runtime/elevated_process.c`、`prod/include/cplat/runtime/elevated_process.h`、`prod/libsrc/cplat/trace/backends/file/trace_file.c`、`prod/src/cmd/bench-io/bench-io.c`、`bench_report.c` と宣言のヘッダー、`docs/api-cheatsheet.md`、`docs/coding-guideline.md`、`test/` の `trace_fileTest` |
@@ -305,7 +307,5 @@ Table: 失敗時のテストを追加する項目
 | `string-catalog-sample` | `prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c`、`prod/src/cmd/string-catalog-library-sample/string-catalog-library-sample.c` |
 | `struct-meta` | `prod/src/cmd/struct-meta-sample/struct_meta_sample.c`、`test/` の `structMetaSampleIoTest` |
 | `general` | `docs/coding-guideline.md`、`.agents/skills/check-coding-guideline/SKILL.md` と同期先 |
-
-Table: 変更するファイル
 
 サブモジュールとして管理している app がある場合、コミットは app ごとに分かれます。コミットの単位と順序は、コミットの指示を受けた時点で確認します。

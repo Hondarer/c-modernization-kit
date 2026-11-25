@@ -12,6 +12,8 @@ short-title: "string-catalog-filter-sample"
 
 ## 構成ファイル
 
+Table: string-catalog-filter-sample の構成ファイル一覧
+
 | ファイル | 役割 |
 |---|---|
 | `sample_filter_file.h` / `sample_filter_file.c` | 条件式リストのファイルの読み込みと書き出し |
@@ -20,14 +22,14 @@ short-title: "string-catalog-filter-sample"
 | `sample_worker_trace.jsonc` / `gen/sample_worker_trace.h` | ワーカーが出力するトレースのカタログ定義と生成物。生成物が型付きラッパー、名前解決表、フィルター接続を提供 |
 | `string-catalog-filter-sample.c` | 本コマンドの対話ループとワーカー スレッドの実装 |
 
-Table: string-catalog-filter-sample の構成ファイル一覧
-
 条件式のコンパイル、フィルター オブジェクト、フィルター スロット、説明文、ソース領域は cplat の機能です。  
 このコマンドは `<cplat/string_catalog/filter.h>` の `cplat_string_catalog_filter_*` を利用します。  
 スロットは生成物の `sample_worker_trace_create_filter()` で作成し、`sample_worker_trace_set_filter()` で出力へ接続します。  
 トレースは生成物の型付きラッパー (`sample_worker_trace_key_job_failed()` など) で出力します。
 
 ## コマンド一覧
+
+Table: string-catalog-filter-sample のコマンド一覧
 
 | コマンド | 内容 |
 |---|---|
@@ -53,8 +55,6 @@ Table: string-catalog-filter-sample の構成ファイル一覧
 | `start [ワーカー数] [間隔 ms]` | ワーカー スレッドを起動します (既定 2 個、500 ミリ秒間隔) |
 | `stop` | ワーカー スレッドを停止します |
 | `quit` / `exit` | 終了します |
-
-Table: string-catalog-filter-sample のコマンド一覧
 
 行番号は `1` 起点で表示、入力します。  
 入力したコマンドは、空行を 1 行置いてから `filter-sample> ` を前置して出力領域へ書き戻します。  
@@ -83,6 +83,8 @@ Table: string-catalog-filter-sample のコマンド一覧
 
 ### 項目の情報で選ぶ
 
+Table: 項目情報によるトレース選別条件式の例
+
 | 条件式 | 引き上げる対象 |
 |---|---|
 | `category <= 2` | レベルが WARNING 以上に重大なトレース (数値で指定) |
@@ -92,8 +94,6 @@ Table: string-catalog-filter-sample のコマンド一覧
 | `id ends_with "0005"` | ID が `SAMPLE_WORKER_TRACE_ID_0005` のトレース (ジョブの失敗) |
 | `id matches "000[45]$"` | ID の末尾が `0004` または `0005` のトレース (バッファーの確保とジョブの失敗。正規表現の部分一致) |
 
-Table: 項目情報によるトレース選別条件式の例
-
 分類値にはレベルの名前と列挙値のどちらでも書けます。  
 対応は CRITICAL = 0、ERROR = 1、WARNING = 2、INFO = 3、VERBOSE = 4、DEBUG = 5、NONE = 6 です。
 
@@ -101,6 +101,8 @@ Table: 項目情報によるトレース選別条件式の例
 `state` では「常に一致」または「常に不一致」と表示され、出力時に可変長引数を収集しません。
 
 ### 利用者の引数で選ぶ
+
+Table: 利用者引数によるトレース選別条件式の例
 
 | 条件式 | 引き上げる対象 |
 |---|---|
@@ -118,12 +120,12 @@ Table: 項目情報によるトレース選別条件式の例
 | `arg.status == 0x1F` | 状態フラグが 0x1F の制御コマンドの受信 |
 | `arg.delta < 0` | 差分が負の制御コマンドの受信 |
 
-Table: 利用者引数によるトレース選別条件式の例
-
 引数を持たない項目では、その引数を参照する比較は偽になります。  
 たとえば `arg.priority between -3 and 3` は、ジョブの受け付け以外には一致しません。
 
 ### 呼び出し位置と実行コンテキストで選ぶ
+
+Table: 呼び出し位置とコンテキストによるトレース選別条件式の例
 
 | 条件式 | 引き上げる対象 |
 |---|---|
@@ -133,8 +135,6 @@ Table: 利用者引数によるトレース選別条件式の例
 | `arg.sequence_number between 90 and 99` | ラウンド トリップ ID が 90 から 99 のトレース |
 | `arg[46] == 1` | ラウンド トリップ ID が 1 のトレース |
 
-Table: 呼び出し位置とコンテキストによるトレース選別条件式の例
-
 `{40}` から `{45}` は cplat の生成器が付与する文脈引数、`{46}` の `sequence_number` はこの app が定義するコンテキスト引数です。  
 どちらも引数名またはインデックスで、利用者の引数と同じように照合できます。  
 コンテキスト引数の一覧は `usage` で確認できます。  
@@ -142,18 +142,20 @@ Table: 呼び出し位置とコンテキストによるトレース選別条件�
 
 ### 組み合わせる
 
+Table: 複合条件によるトレース選別条件式の例
+
 | 条件式 | 引き上げる対象 |
 |---|---|
 | `key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED && arg.error_code != -2` | エラー コードが -2 以外のジョブの失敗 |
 | `arg.worker_index == 0 && !(arg.job_name starts_with "export")` | ワーカー 0 のトレースのうち、ジョブ名が `export` で始まるものを除いたもの |
 | `(arg.priority < 0 \|\| arg.ratio >= 0.9) && has(arg.job_id)` | ジョブ番号を持つトレースのうち、優先度が負、または進捗の割合が 0.9 以上のもの |
 
-Table: 複合条件によるトレース選別条件式の例
-
 `!`、`&&`、`||` の順に強く結合します。  
 除外の条件は、同じ行の中で `!` を使って記述します。
 
 ### 無効になる例
+
+Table: 無効判定となるフィルター条件式の例
 
 | 条件式 | 結果 |
 |---|---|
@@ -162,8 +164,6 @@ Table: 複合条件によるトレース選別条件式の例
 | `arg.job_name matches "(bad"` | 括弧が閉じていない正規表現のため、`add` の時点で拒否されます (正規表現の誤り) |
 | `arg.priority matches "3"` | 整数の引数に正規表現を書いており、どの項目にも一致しないため、`apply` で無効な行になります (成立しない条件) |
 | `key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED && key == SAMPLE_WORKER_TRACE_KEY_WORKER_STARTED` | 互いに矛盾する条件のため、`apply` で無効な行になります (成立しない条件) |
-
-Table: 無効判定となるフィルター条件式の例
 
 無効な行は、その行だけが適用されず、他の行は適用されます。  
 `list` では、無効な行に `[無効: <原因>]` が付きます (例: `[無効: 未解決の引数名]`)。

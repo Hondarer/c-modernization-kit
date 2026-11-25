@@ -396,6 +396,8 @@ A が選ばれました。ただし、[Q-004](#q-004-cplat_local_lock_unlock-の
 
 #### void 化の影響調査
 
+Table: `cplat_local_lock_unlock()` を void にした場合の変更対象
+
 | 区分 | 対象 | 必要な変更 |
 | --- | --- | --- |
 | 宣言と実装 | `sync.h`、`sync_linux.c`、`sync_windows.c` | 型の変更、Doxygen の更新、Linux の失敗時の扱い ([Q-005](#q-005-void-化した-cplat_local_lock_unlock-が-os-の失敗報告を受けた場合の扱い)) |
@@ -404,8 +406,6 @@ A が選ばれました。ただし、[Q-004](#q-004-cplat_local_lock_unlock-の
 | porter、service-sample の呼び出し元 | porter の 22 ファイル約 190 箇所、`service-sample.c` 3 | 変更不要 (戻り値を捨てる文のため) |
 | mock | `mock_cplat.h` (`MOCK_METHOD`、委譲関数の宣言)、`mock_cplat_sync.cc` (`DEFINE_SYNC_RET` から `DEFINE_SYNC_VOID` へ) | 型の変更 |
 | テスト | cplat の `exportTest`、`pinnedPromptTest`、`memoryLockTest`、`syncTest`、`traceTest`、`trace_fileTest`、porter の `certificateTest`、`packetEmissionTest`、`pathGroupContextTest`、`potrConnectThreadTest`、`receiverReportTest`、`threadRecvHealthTest`、string-catalog-sample の `sampleFilterShareClockTest`、`sampleFilterTest` | `Return(CPLAT_OK)` などの戻り値指定と、解放失敗の注入の削除 |
-
-Table: `cplat_local_lock_unlock()` を void にした場合の変更対象
 
 案 A の場合の `sync.h`:
 
@@ -917,6 +917,8 @@ B が選ばれました。`sync.h` の同期プリミティブ全体に加えて
 3. **`void` の操作の異常時**: `NULL` を渡した場合は何もしません。OS が失敗を報告した場合は、契約違反か破損を意味するため `CPLAT_ABORT` で終了します ([Q-005](#q-005-void-化した-cplat_local_lock_unlock-が-os-の失敗報告を受けた場合の扱い)、[Q-009](#q-009-無期限待機の取得が-os-の失敗報告を受けた場合の扱い) と同じ)。
 4. **期限付きの関数**: 呼び出し元から受け取った待ち時間をそのまま渡す呼び出し元 (`sample_filter_share_lock_acquire()` など) のため、`CPLAT_SYNC_WAIT_FOREVER` と `CPLAT_SYNC_NO_WAIT` も受け付けます。
 
+Table: 同期 API の体系案 (関数名の接頭辞 `cplat_local_lock_` などは省略)
+
 | 対象 | 現在 | 提案 | 戻り値の根拠 |
 | --- | --- | --- | --- |
 | ローカル ロック | `int lock(mtx, timeout_ms)` | `void lock(mtx)`、`int timed_lock(mtx, timeout_ms)` | 無期限待機は失敗しない ([Q-007](#q-007-bl-002-の対策方式)) |
@@ -932,8 +934,6 @@ B が選ばれました。`sync.h` の同期プリミティブ全体に加えて
 | プロセス間ロック | `int try_lock(lock)`、`int unlock(lock)` | 変更なし | 同上 |
 | プロセス間読み書きロック | `int lock_shared(lock, timeout_ms)`、`int lock_exclusive(lock, timeout_ms)` | `int lock_shared(lock)`、`int timed_lock_shared(lock, timeout_ms)`、排他も同様 | 同上 |
 | プロセス間読み書きロック | `int try_lock_*(lock)`、`int unlock(lock)` | 変更なし | 同上 |
-
-Table: 同期 API の体系案 (関数名の接頭辞 `cplat_local_lock_` などは省略)
 
 - **変更規模の目安**: 製品コードで `timeout_ms` に無期限待機を渡す呼び出しは、ローカル ロック 135、条件変数 6、ローカル読み書きロック 7、スレッドの join 4 箇所です。条件変数の `signal` と `broadcast` は 22 箇所で、porter の多くは戻り値を捨てる文のため変更不要です。プロセス間の 2 種は、改名と引数の削除だけです。mock_cplat と関連テストも同じ変更で移行します。
 
@@ -1116,14 +1116,14 @@ Table: 同期 API の体系案 (関数名の接頭辞 `cplat_local_lock_` など
 - **期限付きの関数の時間切れの知らせ方**: ソケットの期限付き待機は、現在、時間切れを `CPLAT_OK` と `ready_out` の 0 で知らせます。ほかの関数の `CPLAT_ERR_TIMEOUT` とそろえるかは、[Q-020](#q-020-ソケットの期限付き待機での時間切れの知らせ方) で確認します。下表は、現在の知らせ方のまま書いています。
 - **プロセスの同期実行**: `cplat_process_run_sync()` の期限付き版を設けるかは、[Q-019](#q-019-プロセスの同期実行に期限付きの関数を設けるか) で確認します。
 
+Table: プロセスとソケットの待機関数の体系案
+
 | 対象 | 現在 | 提案 |
 | --- | --- | --- |
 | プロセスの終了待機 | `int cplat_process_wait(process, timeout_ms)` | `int cplat_process_wait(process)`、`int cplat_process_timed_wait(process, timeout_ms)` |
 | 受信可能の待機 | `int cplat_socket_wait_readable(sock, timeout_ms, ready_out, detail_out)` | `int cplat_socket_wait_readable(sock, detail_out)`、`int cplat_socket_timed_wait_readable(sock, timeout_ms, ready_out, detail_out)` |
 | 送信可能の待機 | `int cplat_socket_wait_writable(sock, timeout_ms, ready_out, detail_out)` | `int cplat_socket_wait_writable(sock, detail_out)`、`int cplat_socket_timed_wait_writable(sock, timeout_ms, ready_out, detail_out)` |
 | 複数ソケットの受信可能の待機 | `int cplat_socket_wait_readable_multi(socks, count, timeout_ms, ready_out, detail_out)` | `int cplat_socket_wait_readable_multi(socks, count, ready_out, detail_out)` (有効なソケットがなければ `CPLAT_ERR_INVALID_ARGUMENT`)、`int cplat_socket_timed_wait_readable_multi(socks, count, timeout_ms, ready_out, detail_out)` |
-
-Table: プロセスとソケットの待機関数の体系案
 
 - **変更規模の目安**: 製品コードの呼び出しは、プロセスの終了待機 5 箇所 (無期限 3、期限付き 2)、ソケットの待機 7 箇所 (無期限 1 は cplat 内部の `wait_connect_completion()`、期限付き 6 は porter) です。mock_cplat と関連テストも同じ変更で移行します。
 
@@ -1195,13 +1195,13 @@ Table: プロセスとソケットの待機関数の体系案
 - **経緯と背景**: [Q-013](#q-013-同期-api-の命名と戻り値の体系) の原則 4 で、期限付きの関数も無期限待機と待たない指定を受け付けることになりました。[Q-012](#q-012-api-体系をそろえる範囲) の B で、プロセスとソケットも同じ体系に入ります。
 - **現状**: 同じ意味の定数が 3 組あり、ソケットだけ値が異なります。
 
+Table: 待ち時間を表す現在の定数
+
 | 定義場所 | 無期限に待つ | 待たない |
 | --- | --- | --- |
 | `cplat/sync/sync.h` | `CPLAT_SYNC_WAIT_FOREVER` (`INT_MAX`) | `CPLAT_SYNC_NO_WAIT` (0) |
 | `cplat/runtime/process.h` | `CPLAT_PROCESS_WAIT_FOREVER` (`INT_MAX`) | `CPLAT_PROCESS_NO_WAIT` (0) |
 | `cplat/net/socket.h` | `CPLAT_SOCKET_WAIT_FOREVER` (-1) | `CPLAT_SOCKET_NO_WAIT` (0) |
-
-Table: 待ち時間を表す現在の定数
 
 - **判断の影響**: A は、1 組の定数 `CPLAT_WAIT_FOREVER` (`INT_MAX`) と `CPLAT_NO_WAIT` (0) を共通ヘッダー (新設の `cplat/base/wait.h` を想定し、`sync.h`、`process.h`、`socket.h` から読み込む) に置き、3 組を削除して利用箇所をすべて移行します。値を `INT_MAX` にそろえるため、ソケットの実装は `INT_MAX` を `poll()` の -1 や `INFINITE` へ変換します。負の値は、ほかと同じく `CPLAT_ERR_INVALID_ARGUMENT` にします。B は、名前を残して値だけをそろえます。製品コードとテストで、3 組の定数の利用は約 350 箇所です (ヘッダー自身を除く)。正本文書では、コーディング規範 (`app/general/docs/coding-guideline.md`) も定数名を参照しています。
 

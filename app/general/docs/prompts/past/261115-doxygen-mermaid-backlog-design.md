@@ -16,14 +16,14 @@
 
 この文書は、[261114-doxygen-mermaid-migration-backlog.md](261114-doxygen-mermaid-migration-backlog.md) の残課題 BL-001 から BL-004 への対処を定めます。
 
+Table: 課題ごとの対処
+
 | 課題 ID | 対処 | 変更するサブモジュール |
 | --- | --- | --- |
 | BL-001 | 確認済みとして完了 (成果物の変更なし) | なし |
 | BL-002 | テキスト モードの子プロセス呼び出し 17 か所に文字コードを明示 | `framework/doxyfw`、`framework/docsfw`、`framework/makefw` |
 | BL-003 | `check-doxygen-indent.py --fix` を常に LF で書き戻す | `framework/doxyfw` |
 | BL-004 | インクルード グラフの見出しを変え、矢印の向きと対象の位置を Doxygen HTML に合わせる | `framework/doxyfw` |
-
-Table: 課題ごとの対処
 
 Git の操作 (ステージング、コミット、サブモジュールの更新の取り込み) は、この仕様の範囲に含めません。
 
@@ -52,6 +52,8 @@ BL-001 は、確認済みとして完了とします。成果物は変更しま�
 
 対象は、Python の構文木で抽出した次の 17 か所です (行番号は 2026-11-15 時点)。
 
+Table: 文字コードを明示する呼び出し
+
 | サブモジュール | ファイル | 行 | 子プロセス | 子の環境変数の追加 |
 | --- | --- | --- | --- | --- |
 | doxyfw | `bin_test/test_doxybook2_templates.py` | 73、82 | `doxygen`、`doxybook2` | なし |
@@ -62,8 +64,6 @@ BL-001 は、確認済みとして完了とします。成果物は変更しま�
 | docsfw | `livedocs/bin_test/test_resolve_python_components.py` | 225、231、235 | Python (`resolve_python_components.py` とその子) | `PYTHONIOENCODING=utf-8` |
 | docsfw | `livedocs/bin_test/test_stop_livedocs_serve.py` | 24 (`Popen`)、44 | `bash` 経由の Python、`bash` | 24 に `PYTHONIOENCODING=utf-8` |
 | makefw | `bin_test/test_flex_bison_warnings.py` | 50 | `make` (Linux の GCC) | なし |
-
-Table: 文字コードを明示する呼び出し
 
 > [!NOTE]
 > `test_flex_bison_warnings.py` は Linux だけで実行されるテストで、子プロセスは GCC です。MSVC のようにコンソールの文字コードで出力するツールは、対象に含みません。実装時に、子プロセスが UTF-8 以外で出力することが分かった場合は、その箇所の変更を止めて扱いを確認します。
@@ -88,23 +88,23 @@ Table: 文字コードを明示する呼び出し
 
 2 種類のインクルード グラフの見出しを次のとおり変えます。キャプションは従来どおり `<名前> の<見出し>` の形です。
 
+Table: インクルード グラフの見出し
+
 | グラフ種別 | 変更前の見出し | 変更後の見出し | キャプションの例 |
 | --- | --- | --- | --- |
 | インクルード依存 (`incdepgraph`) | インクルード元 | インクルード依存関係 | `calculator.c のインクルード依存関係` |
 | 被インクルード関係 (`invincdepgraph`) | インクルード先 | 被インクルード依存関係 | `calculator.h の被インクルード依存関係` |
 
-Table: インクルード グラフの見出し
-
 ### 矢印の向きと対象の位置
 
 2 種類のインクルード グラフの矢印の向きと対象ノードの位置を、Doxygen HTML (Graphviz の図) に合わせます。どちらの図も、矢印は「インクルードする側 → インクルードされる側」へ向き、対象のファイルを上に置きます。
+
+Table: インクルード グラフの向き
 
 | グラフ種別 | Doxygen の XML のエッジ | Mermaid の出力 | 宣言 | 対象の位置 |
 | --- | --- | --- | --- | --- |
 | インクルード依存 | 対象 → インクルードされるファイル | XML の向きのまま | `flowchart TD` | 上 |
 | 被インクルード関係 | 対象 → インクルードする側 | XML の向きを逆にする | `flowchart BT` | 上 |
-
-Table: インクルード グラフの向き
 
 出力は次のようになります。
 
@@ -137,6 +137,8 @@ Figure: calculator.h の被インクルード依存関係
 
 ### 変更するファイル
 
+Table: BL-004 で変更するファイル (`framework/doxyfw` 配下)
+
 | ファイル | 変更内容 |
 | --- | --- |
 | `templates/extract-graphs.py` | 見出しの文字列を変更。インクルード依存は `reverse_edges` を外し、被インクルード関係は `reverse_edges=True` と `direction='BT'` を指定。関係するコメントと `graph_to_mermaid()` の `reverse_edges` の説明を、特定のグラフ種別に依存しない記述へ更新 |
@@ -144,19 +146,17 @@ Figure: calculator.h の被インクルード依存関係
 | `bin_test/test_extract_graphs.py` | 見出しとキャプションの期待値を変更。被インクルード関係の入力 XML を実際の Doxygen の XML の向き (対象 → インクルードする側) へ訂正。2 種類のグラフについて、宣言 (`flowchart TD` / `flowchart BT`) とエッジの向き (対象からの矢印 / 対象への矢印) を確かめる |
 | `docs/extract-graphs.md` | 「図の宣言と向き」の表、「生成される Mermaid の例」のインクルード依存の例、「挿入位置と見出し」の見出しとキャプションの表を更新し、被インクルード関係の例を追加 |
 
-Table: BL-004 で変更するファイル (`framework/doxyfw` 配下)
-
 生成 Markdown (`app/*/docs/doxybook2*`) はリポジトリの管理対象ではありません。次回の `make doxy` で新しい見出しと向きになります。
 
 ## 知見の反映計画
+
+Table: 永続的な知見の反映先
 
 | 反映先 | 反映する内容 |
 | --- | --- |
 | `framework/doxyfw/docs/extract-graphs.md` | 2 種類のインクルード グラフは Doxygen HTML と同じく「インクルードする側 → インクルードされる側」の矢印で対象を上に置くこと、`invincdepgraph` の XML は対象からインクルードする側へのエッジで、出力時に逆にすること |
 | `framework/doxyfw/templates/extract-graphs.py` のコメント | 各グラフで `reverse_edges` と `direction` を指定する理由 (Doxygen HTML の向きに合わせるため) |
 | `framework/doxyfw/bin/check-doxygen-indent.py` のコメント | 書き戻しを LF に固定する理由 (リポジトリの改行規則に合わせ、Windows で CRLF にしないため) |
-
-Table: 永続的な知見の反映先
 
 BL-002 の内容は既存の Python の文字コード指定規範の適用であり、規範文書は変更しません。
 

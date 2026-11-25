@@ -5,13 +5,13 @@ Google Test による C コードの単体テスト、コード カバレッジ�
 
 ## スキル ガイド一覧
 
+Table: スキル ガイド一覧
+
 | スキル ガイド                | 内容                                               |
 |-----------------------------|----------------------------------------------------|
 | [Google Test / Google Mock](google-test.md) | C/C++ 単体テスト フレームワーク                     |
 | [コード カバレッジ](code-coverage.md)        | gcov/lcov/OpenCppCoverage によるカバレッジ計測 |
 | [.NET テスト (xUnit)](dotnet-testing.md)     | xUnit による .NET 単体テスト                       |
-
-Table: スキル ガイド一覧
 
 ## 対象ワークスペースとの関連
 

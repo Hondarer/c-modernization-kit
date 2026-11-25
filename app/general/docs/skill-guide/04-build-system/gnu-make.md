@@ -51,6 +51,8 @@ make docs
 
 ファイル構成:
 
+Table: makefile ファイル構成一覧
+
 | ファイル                                         | 役割                               |
 |--------------------------------------------------|------------------------------------|
 | `makefile` (トップレベル)                        | 全体のビルド制御                   |
@@ -59,8 +61,6 @@ make docs
 | `app/example/prod/src/add/makefile`                     | add 実行ファイルのビルド           |
 | `app/example/test/src/libexamplebaseTest/addTest/makefile` | add テストのビルド                 |
 | `framework/makefw/makefiles/`                              | テンプレート makefile 群           |
-
-Table: makefile ファイル構成一覧
 
 カスタマイズ:  
 各サブディレクトリに `makepart.mk` を配置することで、テンプレートの動作をカスタマイズできます。

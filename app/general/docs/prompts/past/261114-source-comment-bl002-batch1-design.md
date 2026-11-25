@@ -19,6 +19,8 @@
 
 11 項目の処理方針は以下の 4 区分に分類される。
 
+Table: 対象 11 項目の確定方針
+
 | 区分 | 枝番号 | 対象ファイル | 確定方針 |
 | --- | --- | --- | --- |
 | コメント追記 | 006、016、054、055、057、058 | `compiler.h`、`clock.c`、`memory_lock.c`、`module.c` | 確認できた根拠と `see: <URL>` (外部仕様が根拠の場合) をコメントとして追記する |
@@ -26,13 +28,13 @@
 | 変更なし解消 | 060 | `process_priority_linux.c` | 同ファイル先頭に既存の理由説明があるため変更なしで解消とする |
 | 残課題へ引き継ぎ | 034 | `endpoint_linux.c` (参考: `endpoint_windows.c`) | コメントを書かずに今回の残課題一覧へ引き継ぐ |
 
-Table: 対象 11 項目の確定方針
-
 残る 151 項目は、034 とあわせて今回の残課題一覧 (`261114-source-comment-bl002-batch1-backlog.md`) へ転記する。
 
 ## 対象項目別の詳細仕様
 
 ### コメント追記対象 (6 項目)
+
+Table: コメント追記対象の仕様
 
 | 枝番号 | 対象箇所 | 追記する設計理由の要点 | 根拠・`see:` URL |
 | --- | --- | --- | --- |
@@ -42,8 +44,6 @@ Table: 対象 11 項目の確定方針
 | 055 | `app/cplat/prod/libsrc/cplat/runtime/memory_lock.c` (`(void)pthread_attr_destroy(&attr);`) | Linux では `pthread_attr_destroy()` は常に成功する。また、必要なスタック情報は直前の `pthread_attr_getstack()` で取得済みであり、属性破棄の成否は処理結果に影響しない。 | `see: https://man7.org/linux/man-pages/man3/pthread_attr_init.3.html` |
 | 057 | `app/cplat/prod/libsrc/cplat/runtime/memory_lock.c` (`init_memory_lock_lock()`) | `cplat_call_once()` に渡す初期化コールバックは戻り値を返せない。`cplat_local_lock_create()` が失敗した場合は `s_memory_lock_lock` が `NULL` のまま残り、呼び出し元の `memory_lock_lock()` が `NULL` を検査して `CPLAT_ERR_UNKNOWN` を返す設計としている。 | 既存実装 (`sync_linux.c`、`sync_windows.c`、`memory_lock.c`) |
 | 058 | `app/cplat/prod/libsrc/cplat/runtime/module.c` (`(void)cplat_wcscpy(wpath_out, wpath_size, buf);`) | 直前の検査 `(wcslen(buf) + 1) > wpath_size` により出力先バッファーの容量不足は事前に除外して `CPLAT_ERR_BUFFER_TOO_SMALL` を返しているため、この複写は失敗しない。 | 既存実装 (`module.c`) |
-
-Table: コメント追記対象の仕様
 
 ### 実装変更対象 (3 項目)
 

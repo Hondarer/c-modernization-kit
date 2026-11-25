@@ -48,13 +48,13 @@ podman pull example/oracle-linux-dev:latest
 
 ### レジストリの選択指針
 
+Table: 条件に応じた推奨コンテナー レジストリ
+
 | 条件 | 推奨レジストリ |
 |------|--------------|
 | 制約なし | ghcr.io (推奨) |
 | ghcr.io への接続が困難な環境 | Docker Hub |
 | プライベート イメージへのアクセスが必要 | Jenkins Credentials で認証情報を管理 |
-
-Table: 条件に応じた推奨コンテナー レジストリ
 
 ## 対象ワークスペースとの関連
 

@@ -24,11 +24,11 @@
 
 ## 残課題一覧
 
+Table: 今回引き継ぐ未対策項目
+
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
 | BL-001 | 根拠または変更後の契約が未確定の 73 件 | 過去 backlog からの転記 | 中 (項目により失敗処理・資源寿命への影響あり) | 16 件対応済み、57 件次フェーズへ転記 |
-
-Table: 今回引き継ぐ未対策項目
 
 ## BL-001 根拠または変更後の契約が未確定の 73 件
 
@@ -68,6 +68,8 @@ Table: 今回引き継ぐ未対策項目
 確定した内容を継続案件の最終仕様 (`261118-source-comment-bl001-category-batch-design.md`) に記載し、2026-11-19 に承認を受けました。  
 2026-11-19 に 16 件を実装し、Windows/MSVC の局所テストで確認しました。16 件の状態は「対応済み」です。Linux/GCC は CI で確認します。
 
+Table: 16 件の対処結果
+
 | 枝番号 | 扱い | 対処の内容 | 確認 |
 | --- | --- | --- | --- |
 | 032 | 異常終了 | BCrypt の解放関数 9 箇所 (`BCryptCloseAlgorithmProvider` 6、`BCryptDestroyHash` 2、`BCryptDestroyKey` 1) を、失敗時に `CPLAT_ABORT` する内部関数へ置き換え、公開関数の Doxygen と `api-cheatsheet.md` に記載した。 | `cryptoTest` (成功時) |
@@ -87,8 +89,6 @@ Table: 今回引き継ぐ未対策項目
 | 172 | 伝達 | トレース出力の失敗時に診断を出して `EXIT_FAILURE` を返す。 | `string-catalog-library-sample` の実行 (終了コード 0) |
 | 184 | 診断して続行 | 4 箇所の `cplat_fflush` を内部関数にまとめ、失敗時に標準エラー出力へ診断を出す。 | `structMetaSampleIoTest.dumpjson_reports_flush_failure` (失敗時) |
 
-Table: 16 件の対処結果
-
 失敗時のテストを追加できなかった 9 件は、継続案件の backlog の BL-002 に記録しました。  
 残る 57 件は、継続案件の backlog の BL-003 へ転記しました。57 件の状態は「次フェーズへ転記」です。  
 失敗を注入できない呼び出しのテストは、継続案件の backlog の BL-002 に記録しました。  
@@ -106,6 +106,8 @@ Table: 16 件の対処結果
 
 パスはリポジトリ ルートからの相対パスです。  
 行番号は変更で増減するため、元の対象と関数名を照合して位置を特定します。
+
+Table: 未対策の 73 件と次の調査
 
 | 枝番号 | 対象パス | 確認した事実・未確定点 | 次の調査・対策方針 |
 | --- | --- | --- | --- |
@@ -182,8 +184,6 @@ Table: 16 件の対処結果
 | 181 | `app/struct-meta/prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c` | count*2 は占有率を下げますが、検索性能の要求や実測から 2 倍を選ぶ根拠は未確定です。 | `cplat_hashtable` の負荷率・ハッシュ衝突と `struct-meta-gen` の生成規模・検索性能要件を調べ、`count * 2U` を採った実測・基準の有無を確認します。 |
 | 182 | `app/struct-meta/prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c` | lifetime は使用中レコードの期限ではなく削除済みレコードの寿命です。型名索引を永続化するから無限、という説明だけでは選択を正当化できません。 | `cplat_hashtable` の `lifetime` 契約 (削除済みレコード寿命と永続化イメージでの意味) を踏まえ、`INFINITE` 指定の妥当性と有限値との差を整理します。 |
 | 184 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c` | 対話中の出力失敗を flush 時に見落とす可能性があります。各コマンドが void のため、診断・継続方針と一緒に設計する必要があります。 | `struct_meta_sample.c` の各対話コマンド (`cmd_dumpjson` 等) が `void` である点を含め、`cplat_fflush` 失敗時の診断出力と継続・終了方針を設計し局所テストを追加します。 |
-
-Table: 未対策の 73 件と次の調査
 
 ### 推奨される恒久対応
 

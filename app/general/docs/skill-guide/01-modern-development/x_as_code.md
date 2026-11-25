@@ -8,13 +8,13 @@ DevOps における「コード化」(X as Code) の歴史的進化と、GitOps 
 
 DevOps における「コード化」の潮流を時系列で整理しています。
 
+Table: X as Code の歴史的進化
+
 | 時代          | 概念                                             |
 |---------------|--------------------------------------------------|
 | 2000 年代     | Infrastructure as Code の登場                    |
 | 2010 年代前半 | Pipeline as Code・Configuration as Code の実用化 |
 | 2010 年代後半 | Policy as Code・Everything as Code の台頭        |
-
-Table: X as Code の歴史的進化
 
 ### GitOps の概念
 

@@ -74,6 +74,8 @@ Linux の CI では、文書生成ジョブが `make doxy && make docs` を実�
 
 作業ツリーには、2026-11-15 10:32 から 12:15 に更新された生成結果があります。その集計は次のとおりです (`string-catalog-sample` の `doxybook2_internal` と `doxybook2_public` は 2026-09-12 の古い出力で、現在の出力先 `doxybook2` とは別のため除外)。
 
+Table: 作業ツリーの生成結果の集計
+
 | app | Mermaid 図 | PlantUML 図 | 継承グラフ (`flowchart BT`) | `Figure:` 行 |
 | --- | --- | --- | --- | --- |
 | calc (internal / public) | 40 / 8 | 0 / 0 | 0 / 0 | 40 / 8 |
@@ -85,8 +87,6 @@ Linux の CI では、文書生成ジョブが `make doxy && make docs` を実�
 | service-sample | 32 | 0 | 0 | 32 |
 | string-catalog-sample | 327 | 0 | 0 | 327 |
 | struct-meta (internal / public) | 483 / 15 | 0 / 0 | 0 / 0 | 483 / 15 |
-
-Table: 作業ツリーの生成結果の集計
 
 `app/calc.net` の継承グラフ (例: `classCalcLib_1_1CalcException.md` の `CalcLib::CalcException の継承関係`) は ```` ```mermaid ```` と `Figure:` 行で出力されています。作業ツリーに `doxy*.warn` はありません。ただし、記号 (`<`、`>`、`*`、`[`、`]`、`~` など) を含むキャプションは、どの app の生成結果にもありません。
 
@@ -114,6 +114,8 @@ Table: 作業ツリーの生成結果の集計
 
 [Q-005](#q-005-bl-004-のインクルード-グラフの見出し名) の補足を受けて、`app/cplat` の Doxygen HTML (`pages/doxygen/c-platform_internal/bench__case_8h__incl.svg` と `bench__case_8h__dep__incl.svg`。2026-09-22 の生成物) の座標と、作業ツリーの Mermaid 出力 (`app/cplat/docs/doxybook2_internal/Files/src/cmd/bench-io/bench_case.h.md`、`Files/include/cplat.h.md`) を比べました。
 
+Table: インクルード グラフの Doxygen HTML との差異
+
 | 項目 | Doxygen HTML | 現在の Mermaid |
 | --- | --- | --- |
 | インクルード依存の矢印 | 対象 → インクルードされるファイル | インクルードされるファイル → 対象 (逆) |
@@ -123,8 +125,6 @@ Table: 作業ツリーの生成結果の集計
 | 被インクルードのノード | ソース ファイル (`.c`) を含む | ラベルが `.h` で終わるノードだけ (`.hpp` なども除外)。`bench_case.h` のようにソース ファイルからだけインクルードされるヘッダーでは、図が出力されない |
 | ノード ラベル | パス (例: `cplat/base/error.h`) | 最短の後方パス (例: `error.h`) |
 | 対象ノードの強調 | 灰色 | 水色 (`#ADD8E6`) |
-
-Table: インクルード グラフの Doxygen HTML との差異
 
 この表は生成時期が異なる出力の比較です。差異の原因を確定するには、同じソースと設定で生成した HTML と XML の比較が必要です。`.h` 以外を除く処理は両方のインクルード グラフに適用され、インクルード依存では対象自身だけを拡張子によらず残します。
 
@@ -394,13 +394,13 @@ B の補足は、リポジトリの `.gitattributes` (`* text=auto eol=lf`) と�
 
 現状の見出し「インクルード元」と「インクルード先」は、リポジトリ内のコメントの用法と逆の意味になります ([BL-004 に関する事実](#bl-004-に関する事実))。キャプションは `<名前> の<見出し>` の形で作られます。Doxygen の英語の名称は、`incdepgraph` が「Include dependency graph」、`invincdepgraph` が「(this file is) included by」の向きを表します。変更する場合は、`extract-graphs.py`、`postprocess.sh`、`extract-graphs.md`、`test_extract_graphs.py` を同時に更新します。生成 Markdown は管理対象ではなく、次回の `make doxy` で新しい名称になります。
 
+Table: 見出し名の案
+
 | 案 | `incdepgraph` の見出し / キャプション例 | `invincdepgraph` の見出し / キャプション例 |
 | --- | --- | --- |
 | 案 A | インクルード依存関係 / `calculator.c のインクルード依存関係` | 被インクルード依存関係 / `calculator.h の被インクルード依存関係` |
 | 案 B | インクルードするファイル / `calculator.c のインクルードするファイル` | インクルードされるファイル / `calculator.h のインクルードされるファイル` |
 | 案 C | インクルード元 / `calculator.c のインクルード元` (現状維持) | インクルード先 / `calculator.h のインクルード先` (現状維持) |
-
-Table: 見出し名の案
 
 案 B は対策元 backlog が例示した名称です。ただし `calculator.h のインクルードされるファイル` は、「calculator.h がインクルードされる先のファイル」とも「calculator.h によってインクルードされるファイル」とも読めます。案 A は、Doxygen の英語の名称と、`extract-graphs.md` の表で種類名に使っている「インクルード依存」「被インクルード関係」に近い名称です。「被」が向きを示します。
 
@@ -533,12 +533,12 @@ A だけが選ばれたため、2 種類のインクルード グラフの矢印
 
 実装は `agy` (モデル `gemini-4-hydrogen-high`) が 2 回に分けて行い、claude code が各回の差分をレビューしました。
 
+Table: 委譲した作業
+
 | 回 | 範囲 | 変更したファイル |
 | --- | --- | --- |
 | 1 | BL-002、BL-003 | doxyfw 5 ファイル、docsfw 4 ファイル、makefw 1 ファイル |
 | 2 | BL-004 | doxyfw 4 ファイル (`templates/extract-graphs.py`、`templates/postprocess.sh`、`bin_test/test_extract_graphs.py`、`docs/extract-graphs.md`) |
-
-Table: 委譲した作業
 
 レビュー時の対応は次のとおりです。
 

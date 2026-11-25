@@ -4,13 +4,13 @@
 
 対象ワークスペースでは、`.gitattributes`、`.editorconfig`、`.clang-format` を併用してソース スタイルを維持します。
 
+Table: スタイル定義ファイルの役割と守備範囲
+
 | 定義 | 主な役割 | 守備範囲 |
 | --- | --- | --- |
 | `.gitattributes` | Git 管理時の正規化 | リポジトリへ格納する改行コード、バイナリ判定 |
 | `.editorconfig` | 編集時の基本設定 | 文字コード、改行コード、インデント、末尾空白 |
 | `.clang-format` | C/C++ の構文整形 | 波括弧、折り返し、プリプロセッサ、マクロ整列など |
-
-Table: スタイル定義ファイルの役割と守備範囲
 
 これら 3 つの定義ファイルは、開発の異なる段階で連携して機能します。`.gitattributes` は Git 格納時の差分を防止し、`.editorconfig` はエディター保存時の入力を整え、`.clang-format` は C/C++ コードの構文配置を確定します。いずれか 1 つだけでは一貫したスタイルを維持できません。
 
@@ -63,6 +63,8 @@ git config --global core.autocrlf false
 
 VS Code で `.editorconfig` を反映するには、以下の拡張機能をインストールします。
 
+Table: VS Code 用 EditorConfig 拡張機能情報
+
 | 項目 | 内容 |
 | --- | --- |
 | 名前 | EditorConfig |
@@ -70,8 +72,6 @@ VS Code で `.editorconfig` を反映するには、以下の拡張機能をイ�
 | 説明 | EditorConfig Support for Visual Studio Code |
 | パブリッシャー | EditorConfig |
 | VS Marketplace | [EditorConfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) |
-
-Table: VS Code 用 EditorConfig 拡張機能情報
 
 ## .clang-format
 

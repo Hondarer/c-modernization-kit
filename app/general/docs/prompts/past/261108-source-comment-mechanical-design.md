@@ -21,12 +21,12 @@
 過去のソース コメント案件の残課題一覧 ([261107-source-comment-backlog.md](261107-source-comment-backlog.md)) に記録された全 22 項目のうち、仕様判断を伴わず既存の書式規則だけで完結する BL-007 と BL-005 を先行対処の対象とします。  
 契約、識別子、型、式、条件分岐、C のトークン列、文字列リテラル、およびコメント本文の文面を一切変更せず、差分を空白と改行および Doxygen タグの桁揃えに限定します。
 
+Table: 今回の先行対処項目と変更の境界
+
 | 対象項目 | 対処内容 | 変更の境界 |
 | --- | --- | --- |
 | BL-007 | 指定 10 ファイルへの既存 `.clang-format` 設定の適用 | 空白と改行の整形のみとし、`.clang-format` の設定変更や対象ファイルの拡大は行わない |
 | BL-005 | `app/porter/prod/libsrc/porter/thread/thread_recv_window.h` の Doxygen タグと継続行の整列 | タグ開始位置から 16 桁幅の空白調整と継続行の字下げ整列のみとし、コメント本文・タグ種別・引数名は変更しない |
-
-Table: 今回の先行対処項目と変更の境界
 
 範囲外とする項目は次のとおりです。
 
@@ -42,6 +42,8 @@ Table: 今回の先行対処項目と変更の境界
 
 [ソース スタイル維持ガイドライン](../../source-style-guideline.md) に従い、元の残課題一覧の BL-007 に列挙された次の 10 ファイルへ既存の `.clang-format` 設定を適用します。
 
+Table: BL-007 の整形対象 10 ファイル
+
 | 通番 | 対象ファイル パス | 所属 app |
 | --- | --- | --- |
 | 1 | `app/struct-meta/prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c` | `app/struct-meta` |
@@ -55,8 +57,6 @@ Table: 今回の先行対処項目と変更の境界
 | 9 | `app/porter/prod/include_internal/porter/potr_context.h` | `app/porter` |
 | 10 | `app/porter/prod/libsrc/porter/api/potr_peer_disconnect.c` | `app/porter` |
 
-Table: BL-007 の整形対象 10 ファイル
-
 実施手順と制約は次のとおりです。
 
 1. 作業開始時に、使用する `clang-format` の版と参照する `.clang-format` 設定を確認して記録します。
@@ -68,6 +68,8 @@ Table: BL-007 の整形対象 10 ファイル
 
 [app 向け Doxygen コメント](../../doxygen-comment-guideline.md) の「タグの桁揃え」に従い、`app/porter/prod/libsrc/porter/thread/thread_recv_window.h` 内の関数 Doxygen コメントのタグ幅と継続行を整列します。
 
+Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
+
 | 関数名 | 現状の整列状態 | 今回の処置 |
 | --- | --- | --- |
 | `thread_recv_window_accept_outer()` | タグ開始位置から 16 桁幅に整列済み | 既存の整列状態を維持する |
@@ -75,8 +77,6 @@ Table: BL-007 の整形対象 10 ファイル
 | `thread_recv_window_on_nack()` | タグ直後が 1 空白のみで未整列 | タグ開始位置から 16 桁幅に揃え、継続行の開始位置を整列する |
 | `thread_recv_window_scan_ping_gap()` | タグ直後が 1 空白のみで未整列 | タグ開始位置から 16 桁幅に揃え、継続行の開始位置を整列する |
 | `thread_recv_window_check_reorder_timeout()` | タグ直後が 1 空白のみで未整列 | タグ開始位置から 16 桁幅に揃え、継続行の開始位置を整列する |
-
-Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
 
 変更は Doxygen コメント内の `@brief`、`@param[in]`、`@param[in,out]`、`@note` タグの開始位置から説明文または引数名までの空白幅 (16 桁幅) と、複数行にわたる継続行の空白整列だけに限定します。  
 コメント本文の文面、タグ種別、方向指定、引数名、および関数の宣言構文は一切変更しません。
@@ -125,6 +125,8 @@ Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
 
 ## 対象ファイル一覧
 
+Table: 第 2 ゲート承認後に作成・更新する対象ファイル
+
 | ファイル パス | 区分 | 変更内容 |
 | --- | --- | --- |
 | `app/struct-meta/prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c` | BL-007 | 既存 `.clang-format` 設定による整形 (差分がある場合) |
@@ -140,5 +142,3 @@ Table: `thread_recv_window.h` 内の関数別 Doxygen コメント整列内容
 | `app/porter/prod/libsrc/porter/thread/thread_recv_window.h` | BL-005 | Doxygen コメントのタグ 16 桁幅と継続行の空白整列 |
 | `app/general/docs/prompts/past/261107-source-comment-backlog.md` | 残課題管理 | 全項目を保持したまま、BL-005・BL-007 の対処経緯と未対処 20 項目の引き継ぎ先を追記 |
 | `app/general/docs/prompts/past/261108-source-comment-mechanical-backlog.md` | 残課題管理 | 新規作成。未対処 20 項目 (BL-001〜BL-004、BL-006、BL-008〜BL-022) の引き継ぎと整理 |
-
-Table: 第 2 ゲート承認後に作成・更新する対象ファイル

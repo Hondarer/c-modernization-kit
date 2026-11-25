@@ -27,13 +27,13 @@ BL-002 の後続バッチへの転記、BL-003 の実機検証完了、および
 
 ## 残課題一覧
 
+Table: BL-029 対策で残す課題
+
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
 | BL-002 | 確認できない設計理由 162 項目 | 過去 backlog からの転記 (BL-008) | 中 | 次フェーズへ転記 (第 1 バッチで 10 項目解消、152 項目を `261114-source-comment-bl002-batch1-backlog.md` へ転記) |
 | BL-003 | Windows 実機の ABI と実資源 | 過去 backlog からの転記 (BL-024) | 中 | 対応済み |
 | BL-004 | TCP 双方向 N:1 通信 | 過去 backlog からの転記 (BL-025) | 低 | 完了 (`app/porter/docs/prompts/past/261115-porter-tcp-bidir-n1-backlog.md` の BL-001 へ移管) |
-
-Table: BL-029 対策で残す課題
 
 ## BL-002 確認できない設計理由 162 項目
 

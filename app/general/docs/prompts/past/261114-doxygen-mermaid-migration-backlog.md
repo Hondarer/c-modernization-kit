@@ -20,14 +20,14 @@
 
 ## 残課題一覧
 
+Table: 残課題の一覧
+
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
 | [BL-001](#bl-001-appcplat-以外の-app-と-windows-での生成結果が未確認) | `app/cplat` 以外の app と Windows での生成結果が未確認 | 検討時見送り | 中 | 完了 |
 | [BL-002](#bl-002-doxyfw-の既存単体テストが-encodingwarning-を出す) | doxyfw の既存単体テストが EncodingWarning を出す | 作業中摘出 | 低 | 対応済み |
 | [BL-003](#bl-003-check-doxygen-indentpy-の修正モードが改行コードを明示していない) | `check-doxygen-indent.py` の修正モードが改行コードを明示していない | 作業中摘出 | 低 | 対応済み |
 | [BL-004](#bl-004-インクルード-グラフの見出し名が語の意味と逆に読める) | インクルード グラフの見出し名が語の意味と逆に読める | 作業中摘出 | 低 | 対応済み |
-
-Table: 残課題の一覧
 
 ## BL-001 app/cplat 以外の app と Windows での生成結果が未確認
 

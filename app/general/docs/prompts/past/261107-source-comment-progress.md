@@ -13,6 +13,8 @@
 各 app の `prod/` 配下で、最終仕様の一括適用の対象とした 418 本の進捗です。  
 凡例: ⏸️ 未着手、🔄 実施中、🚫 ブロック中、⚠️ 要注意、✅ 完了。
 
+Table: 進捗表の列
+
 | 列 | 内容 |
 | --- | --- |
 | 書式・空行 | 主エージェントによる、書式の移行と空行の挿入 |
@@ -20,9 +22,9 @@
 | 担当 | 内容の見直しを担当したエージェント (grok、agy、sonnet、opus) |
 | 報告 | 残課題一覧へ記録した課題 ID |
 
-Table: 進捗表の列
-
 ## app/calc (14 本)
+
+Table: app/calc の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -41,9 +43,9 @@ Table: 進捗表の列
 | `prod/src/cmd/calc/calc.c` | ✅ | ✅ | grok | |
 | `prod/src/cmd/shared-and-static-calc/shared-and-static-calc.c` | ✅ | ✅ | grok | |
 
-Table: app/calc の進捗
-
 ## app/cplat (207 本)
+
+Table: app/cplat の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -255,9 +257,9 @@ Table: app/calc の進捗
 | `prod/src/cmd/trace-cli/trace-cli.c` | ✅ | ✅ | agy | |
 | `prod/src/cmd/trace-cli/trace-cli.h` | ✅ | ✅ | agy | |
 
-Table: app/cplat の進捗
-
 ## app/doxygen-sample (22 本)
+
+Table: app/doxygen-sample の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -284,9 +286,9 @@ Table: app/cplat の進捗
 | `prod/src/merge.c` | ✅ | ✅ | agy | |
 | `prod/src/retval/retval.c` | ✅ | ✅ | agy | |
 
-Table: app/doxygen-sample の進捗
-
 ## app/override-sample (14 本)
+
+Table: app/override-sample の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -305,9 +307,9 @@ Table: app/doxygen-sample の進捗
 | `prod/libsrc/override/override_calc.c` | ✅ | ✅ | grok | |
 | `prod/src/cmd/override-sample/override-sample.c` | ✅ | ✅ | grok | |
 
-Table: app/override-sample の進捗
-
 ## app/porter (79 本)
+
+Table: app/porter の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -391,9 +393,9 @@ Table: app/override-sample の進捗
 | `prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c` | ✅ | ✅ | agy | |
 | `prod/src/cmd/tech-sample/tcpServer/tcpServer_windows.c` | ✅ | ✅ | agy | |
 
-Table: app/porter の進捗
-
 ## app/service-sample (7 本)
+
+Table: app/service-sample の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -405,9 +407,9 @@ Table: app/porter の進捗
 | `prod/src/cmd/service-sample/service-sample_linux_events.h` | ✅ | ✅ | agy | |
 | `prod/src/cmd/service-sample/service-sample_windows.c` | ✅ | ✅ | grok | |
 
-Table: app/service-sample の進捗
-
 ## app/string-catalog-sample (18 本)
+
+Table: app/string-catalog-sample の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -430,9 +432,9 @@ Table: app/service-sample の進捗
 | `prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c` | ✅ | ✅ | agy | |
 | `prod/src/cmd/string-catalog-library-sample/string-catalog-library-sample.c` | ✅ | ✅ | grok | |
 
-Table: app/string-catalog-sample の進捗
-
 ## app/struct-meta (47 本)
+
+Table: app/struct-meta の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -484,9 +486,9 @@ Table: app/string-catalog-sample の進捗
 | `prod/src/cmd/struct-meta-sample/sample_types.h` | ✅ | ✅ | grok | |
 | `prod/src/cmd/struct-meta-sample/struct_meta_sample.c` | ✅ | ✅ | grok | |
 
-Table: app/struct-meta の進捗
-
 ## app/subfolder-sample (8 本)
+
+Table: app/subfolder-sample の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
@@ -499,13 +501,11 @@ Table: app/struct-meta の進捗
 | `prod/src/cmd/sample-app/subfolder_a/helper_a.c` | ✅ | ✅ | agy | |
 | `prod/src/cmd/sample-app/subfolder_b/helper_b.c` | ✅ | ✅ | agy | |
 
-Table: app/subfolder-sample の進捗
-
 ## app/tutorial (2 本)
+
+Table: app/tutorial の進捗
 
 | ファイル | 書式・空行 | 内容 | 担当 | 報告 |
 | --- | --- | --- | --- | --- |
 | `prod/src/cmd/hello/hello.c` | ✅ | ✅ | agy | |
 | `prod/src/cmd/hello_with_args/hello_with_args.c` | ✅ | ✅ | agy | |
-
-Table: app/tutorial の進捗

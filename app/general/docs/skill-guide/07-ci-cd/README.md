@@ -5,14 +5,14 @@ GitHub Actions によるクラウド CI/CD から、Jenkins を使ったオン�
 
 ## スキル ガイド一覧
 
+Table: スキル ガイド一覧
+
 | スキル ガイド     | 内容                                           |
 |------------------|------------------------------------------------|
 | [GitHub Actions](github-actions.md) | 自動ビルド・テスト・デプロイのワークフロー定義 |
 | [GitHub Pages](github-pages.md)     | 生成ドキュメントの静的サイト公開               |
 | [Jenkins](jenkins.md)               | Oracle Linux 8 への Jenkins 導入、ビルド ジョブ構成、ドキュメント公開 |
 | [Podman](podman.md)                 | rootless Podman と Oracle Linux 開発コンテナーの利用 |
-
-Table: スキル ガイド一覧
 
 ## 対象ワークスペースとの関連
 

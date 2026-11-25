@@ -135,6 +135,8 @@ libcalc.so / libcalc.dll (ネイティブライブラリ)
 
 .NET 版 (`CalcApp`) は、C 版 (`calc`) と同じ機能を提供します。
 
+Table: C 版と .NET 版の機能比較
+
 | 機能 | C 版 | .NET 版 |
 |------|------|---------|
 | コマンド ライン インターフェイス | ✓ | ✓ |
@@ -145,8 +147,6 @@ libcalc.so / libcalc.dll (ネイティブライブラリ)
 | プラットフォーム サポート | Windows/Linux | Windows/Linux |
 | 整数解析 | atoi() | int.TryParse() |
 | エラー メッセージ | fprintf(stderr) | Console.Error |
-
-Table: C 版と .NET 版の機能比較
 
 ## ビルド システムとの統合
 

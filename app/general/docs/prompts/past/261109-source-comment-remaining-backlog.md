@@ -23,14 +23,14 @@ Linux のビルドとテストは、プッシュ後の CI で確認しました�
 
 ## 引き継ぐ残課題
 
+Table: 引き継ぐ残課題
+
 | 課題 ID | 引き継ぐ内容 | 状態 |
 | --- | --- | --- |
 | BL-008 | 理由の根拠を確認できなかった 162 項目 | 未対処 (`261113-source-comment-bl029-backlog.md` の BL-002 へ転記) |
 | BL-024 | Windows の対話操作を含む実機検証 | 未対処 (`261113-source-comment-bl029-backlog.md` の BL-003 へ転記) |
 | BL-025 | TCP 双方向 N:1 通信の実施要否と実装 | 未対処 (`261113-source-comment-bl029-backlog.md` の BL-004 へ転記) |
 | BL-029 | 今回の作業中に見つけた、対象範囲外の規範との差 4 件 | 対応済み (案件 `source-comment-bl029-20261113`) |
-
-Table: 引き継ぐ残課題
 
 ## BL-008 確認できない設計理由を推測で補わず引き継ぐ
 
@@ -66,6 +66,8 @@ Table: 引き継ぐ残課題
 
 パスは app/cplat からの相対パスです。  
 「基準時点の対象と位置」は基準のコミットでの位置、「作業後の位置」は今回の変更後の位置です。
+
+Table: BL-008 で引き継ぐ app/cplat の 116 項目
 
 | 枝番号 | 報告時のパスと行 | 基準時点の対象と位置 | 作業後の位置 | 確認した事実と未確認点 |
 | --- | --- | --- | --- | --- |
@@ -186,13 +188,13 @@ Table: 引き継ぐ残課題
 | 135 | `prod/src/cmd/compress-cli/compress-cli.c:277` | `compress_cli_run_compress` (`prod/src/cmd/compress-cli/compress-cli.c:277`) | `prod/src/cmd/compress-cli/compress-cli.c:277` | `prod/src/cmd/compress-cli/compress-cli.c:277` では、276 行は膨張とヘッダーを見込む目的だけを説明し、2 倍と下限 256 の算出根拠はない。圧縮容量を入力の 2 倍とヘッダーの和にし、下限を 256 [byte] とする算出根拠は要確認。 |
 | 136 | `prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166` | `main` (`prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166`) | `prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166` | `prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166` では、165 行は有効な最小寿命であることを説明するが、その値を採用する追加根拠はない。最小の有効な有限寿命であることを超える lifetime 2 の採用根拠は要確認。 |
 
-Table: BL-008 で引き継ぐ app/cplat の 116 項目
-
 ### app/cplat 以外の 46 項目
 
 パスはリポジトリ ルートからの相対パスです。  
 「作業後の位置」が「基準時点と同じ」の行は、実装の担当から位置の報告がなかった項目です。  
 porter の `potr_peer_table.c`、`potr_connect_thread.c`、`potr_recv_thread.c`、`potr_send_thread.c`、`porter-test.c`、`tcpServer_windows.c` は今回の変更で行が移動しているため、これらのファイルの項目は関数名で位置を特定してください。
+
+Table: BL-008 で引き継ぐ app/cplat 以外の 46 項目
 
 | 枝番号 | 報告時のパスと行 | 基準時点の対象と位置 | 作業後の位置 | 確認した事実と未確認点 |
 | --- | --- | --- | --- | --- |
@@ -242,8 +244,6 @@ porter の `potr_peer_table.c`、`potr_connect_thread.c`、`potr_recv_thread.c`�
 | 185 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428` | `cmd_savebin` (定義 413)、`cmd_loadbin` (定義 446)、`cmd_catjson` (定義 486); `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428,463,472,529,552` | `cmd_savebin`、`cmd_loadbin`、`cmd_catjson`、`app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428,463,472,529,552` | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428,463,472,529,552` に対象の記述が残る (先頭: `(void)cplat_fclose(stream, NULL);`)。失敗経路で cplat_fclose の戻り値を見ない理由 (463, 472, 521, 544 行も同じ) は要確認であり、最終仕様の BL-008 節 (149-170 行) に従って引き継ぐ。 |
 | 186 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:862` | `main` (定義 855); `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:873` | `main`、`app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:873` | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:873` に対象の記述が残る (先頭: `(void)cplat_argparser_print_register_error_messages(stderr);`)。登録エラー表示の戻り値を見ない理由は要確認であり、最終仕様の BL-008 節 (149-170 行) に従って引き継ぐ。 |
 | 187 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:874` | `main` (定義 855); `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:885,891-892` | `main`、`app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:885,891-892` | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:885,891-892` に対象の記述が残る (先頭: `(void)cplat_argparser_print_usage(stdout);`)。使用方法と解析エラー表示の戻り値を見ない理由 (880, 881 行も同じ) は要確認であり、最終仕様の BL-008 節 (149-170 行) に従って引き継ぐ。 |
-
-Table: BL-008 で引き継ぐ app/cplat 以外の 46 項目
 
 139 は、元報告の「参照せず破棄」が全 OS には当てはまりません。  
 Windows では `app/override-sample/prod/libsrc/base/libbase_lifecycle.c:91` で参照し、非 Windows の破棄だけが残ります。
@@ -354,6 +354,8 @@ CI の実行 42786336853 (ルートのコミット `21a30657`) では、Linux (o
 次の対象は、CI の Linux ビルドが最初のコンパイルでした。3 環境ともビルドとテストに成功しています。  
 行番号は、cplat のコミット `1d0172c9` の時点のものです。
 
+Table: CI の Linux ビルドで確認した app/cplat の対象
+
 | パス | 関数と変更箇所 |
 | --- | --- |
 | `app/cplat/prod/libsrc/cplat/net/socket_linux.c` | `wait_connect_completion` (445 行)、差分位置: 438 行 |
@@ -372,8 +374,6 @@ CI の実行 42786336853 (ルートのコミット `21a30657`) では、Linux (o
 | `app/cplat/prod/libsrc/cplat/runtime/process.c` | `cplat_process_start` (1217 行)、Linux 側の差分位置: 1269 行 |
 | `app/cplat/prod/libsrc/cplat/runtime/elevated_process.c` | `cplat_elevated_process_is_elevated` (360 行)、`cplat_elevated_process_run_if_needed` (410 行)、`cplat_elevated_process_run_with_result` (701 行)、`cplat_elevated_process_run_piped` (1058 行)、Linux 側の差分位置: 360、410、673、911、1219 行 |
 | `app/cplat/test/src/libcplatTest/test/syslogFdTest/syslogFdTest.cc` | 不正な FD 5 入力と有効な FD の 2 テスト。Linux のみのため Windows では実行していません。 |
-
-Table: CI の Linux ビルドで確認した app/cplat の対象
 
 `trace_syslogTest`、`promptLinuxTest`、`processPriorityTest` の Linux 専用のテストは、Windows では実行していません。CI の Linux のジョブは成功しています。
 

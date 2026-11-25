@@ -92,6 +92,8 @@
 
 ## 観点別の確認
 
+Table: BL-002〜004 の確認観点と確認結果
+
 | 観点 | 状態 | 根拠・関連 Q |
 | --- | --- | --- |
 | 目的・利用者 | 確認済み | ユーザーの依頼。BL-002〜004 の未対処項目を対策します。 |
@@ -100,8 +102,6 @@
 | 整合性・依存関係 | 確認済み | [Q-001](#q-001-bl-002-の取得失敗時にどう扱うか) と [Q-003](#q-003-bl-003-の解放失敗をどう通知するか) の方針は API の失敗契約と整合します。 |
 | 実現性・例外 | 確認済み | 同期 API は失敗結果を返し、`CPLAT_ABORT` も利用できます。個別の戻り値経路と安全な後処理は最終仕様で定めます。 |
 | 受入条件・検証 | 確認済み | 最終仕様で対象と受入条件を定めます。対象 app の局所ビルド・テストと変更ファイルの Markdown 機械検証を行い、ビルド後に対象 `.warn` を確認します。 |
-
-Table: BL-002〜004 の確認観点と確認結果
 
 ## 質問一覧
 
@@ -282,6 +282,8 @@ BL-004 のゼロ初期化変更を、既知の 2 箇所だけに行いますか�
 
 対象箇所の内訳:
 
+Table: 初回ゼロ初期化と判断したローカル変数の候補
+
 | パス | 初回ゼロ初期化 |
 | --- | ---: |
 | `app/cplat/prod/libsrc/cplat/string_catalog/filter/filter_compile.c` | 7 |
@@ -293,8 +295,6 @@ BL-004 のゼロ初期化変更を、既知の 2 箇所だけに行いますか�
 | `app/cplat/prod/src/cmd/bench-tracer/bench-tracer.c` | 1 |
 | `app/porter/prod/libsrc/porter/thread/potr_recv_thread.c` | 1 |
 | `app/service-sample/prod/src/cmd/service-sample/service-sample_linux_events.c` | 1 |
-
-Table: 初回ゼロ初期化と判断したローカル変数の候補
 
 **Recommendation**
 

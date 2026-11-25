@@ -57,6 +57,8 @@ Doxygen から Markdown へ出力される PlantUML 図には、生成元の異�
 
 ## 移行対象候補
 
+Table: 移行対象候補と現在の役割
+
 | 対象ファイル | 現在の役割 |
 | --- | --- |
 | [memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) | 手動 `@startuml` コメント 2 図の記述元 |
@@ -68,9 +70,9 @@ Doxygen から Markdown へ出力される PlantUML 図には、生成元の異�
 | [test_preprocess.py](../../../../../framework/doxyfw/bin_test/test_preprocess.py)、[test_postprocess.py](../../../../../framework/doxyfw/bin_test/test_postprocess.py)、[test_doxybook2_templates.py](../../../../../framework/doxyfw/bin_test/test_doxybook2_templates.py)、[test_materialize_group_members.py](../../../../../framework/doxyfw/bin_test/test_materialize_group_members.py) | 前処理・後処理・テンプレート・グループ実体化の単体テスト |
 | [maintenance-verification.md](../../../../../framework/doxyfw/docs/maintenance-verification.md)、[commands.md](../../../../../framework/doxyfw/docs/commands.md)、[cheatsheet.md](../../../../../framework/doxyfw/docs/cheatsheet.md)、[extract-graphs.md](../../../../../framework/doxyfw/docs/extract-graphs.md)、[doxybook2-plantuml.md](../../../../../framework/doxyfw/docs/doxybook2-plantuml.md) | 図記法方針、コマンド解説、生成例などの正本文書 |
 
-Table: 移行対象候補と現在の役割
-
 ## 質問一覧
+
+Table: 明確化のための確認項目一覧
 
 | Q-ID | 論点 | 状態 | 依存・関連 |
 | --- | --- | --- | --- |
@@ -94,8 +96,6 @@ Table: 移行対象候補と現在の役割
 | [Q-018](#q-018-キャプションの記号をどの手段でエスケープするか) | キャプションの記号をエスケープする手段 | 回答済み (解決) | [Q-011](#q-011-figure-行のキャプションに含まれる記号をどう扱うか) |
 | [Q-019](#q-019-手動コメントの図ブロックをどの桁へ字下げするか) | 手動コメントの図ブロックの字下げ位置 | 回答済み (解決) | [Q-006](#q-006-描画エラーなしと意味一致を受入基準に含めるか)、[Q-020](#q-020-図の規範の強化をどの範囲で行うか) |
 | [Q-020](#q-020-図の規範の強化をどの範囲で行うか) | 図の規範を強化する範囲 | 回答済み (解決) | [Q-003](#q-003-今後の図記法方針をどう改訂するか)、[Q-019](#q-019-手動コメントの図ブロックをどの桁へ字下げするか) |
-
-Table: 明確化のための確認項目一覧
 
 ## 明確化のための確認項目
 
@@ -811,6 +811,8 @@ Figure: Foo&#60;T&#62;::operator&#42; の図 operator&#91;&#93; &#126;Foo
 
 ## 観点別の確認
 
+Table: 多角的な確認の観点別状態
+
 | 観点 | 状態 | 根拠・関連項目 |
 | --- | --- | --- |
 | 目的・利用者 | 確定 | [Q-001](#q-001-手動コメントと自動生成グラフの双方を対象とするか) (A)、[Q-003](#q-003-今後の図記法方針をどう改訂するか) (A) |
@@ -819,8 +821,6 @@ Figure: Foo&#60;T&#62;::operator&#42; の図 operator&#91;&#93; &#126;Foo
 | 整合性・依存関係 | 確定 | [Q-002](#q-002-既存の-plantuml-変換経路を残すか) (A)、[Q-003](#q-003-今後の図記法方針をどう改訂するか) (A)、[Q-009](#q-009-doxygen-由来の-mermaid-図へ-figure-キャプションを出力するか) (A) により `Figure:` 出力と `DOXYFW_DETAILS_ONLY` 折り畳みを整合 |
 | 実現性・例外 | 確定 | 作業 WBS 1.3 (`<mermaid>` XML 変換・`fix_ptr` の `is_mermaid` 除外・`<!--:details-->` 終端調整・XML/`#quot;` エスケープを一時ディレクトリ検証で確認済み) |
 | 受入条件・検証 | 確定 | [Q-005](#q-005-検証する-app-の範囲をどうするか) (A)、[Q-006](#q-006-描画エラーなしと意味一致を受入基準に含めるか) (A)、[Q-010](#q-010-doxyfw-単体テストの実行範囲と基準値確認をどう扱うか) (A) (`bin_test` 4 本の基準値/再検証は第 2 ゲート後に実施) |
-
-Table: 多角的な確認の観点別状態
 
 ## 付録: 過去の完了報告 (手書き Markdown 27 ファイル)
 

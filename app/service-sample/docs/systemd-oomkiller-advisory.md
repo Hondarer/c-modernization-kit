@@ -6,12 +6,12 @@
 
 Linux では、OOM による停止経路を 2 つに分けて考える必要があります。
 
+Table: OOM による停止経路
+
 | 種類 | 主な設定 | 説明 |
 |---|---|---|
 | カーネル OOM killer | `OOMScoreAdjust=` | メモリ不足がカーネル空間で限界に達したとき、プロセスの OOM score をもとに停止対象を選択します。 |
 | `systemd-oomd` | `ManagedOOMPreference=` | cgroup v2 と PSI を使用し、カーネル OOM より前に cgroup 単位で停止対象を選択します。 |
-
-Table: OOM による停止経路
 
 カーネル OOM killer への対策には `OOMScoreAdjust=-1000` を設定します。  
 systemd の説明では、この値は対象 unit のプロセスに対する OOM killing を無効化する値です。

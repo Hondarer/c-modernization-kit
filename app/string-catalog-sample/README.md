@@ -18,13 +18,13 @@ string-catalog-sample は、cplat の文字列カタログ機能の利用例を�
 カタログの保持形態には 2 種類あり、この app はその双方を例示しています。  
 コマンドがカタログを同梱する形態と、ライブラリがカタログを外部公開し、別のコマンドがそれを参照する形態です。
 
+Table: 実行ファイルごとのカタログ配置形態と参照形式
+
 | 実行ファイル | カタログの配置形態 | 利用側における参照形式 |
 |---|---|---|
 | `string-catalog-command-sample` | コマンド自身に同梱 | 同一コマンド内の生成ヘッダーをインクルード |
 | `string-catalog-library-sample` | ライブラリ `samplecatalog` が公開 | ライブラリの公開ヘッダーをインクルード |
 | `string-catalog-filter-sample` | コマンド自身に同梱 | 同一コマンド内の生成ヘッダーをインクルード。条件式フィルターの試作 |
-
-Table: 実行ファイルごとのカタログ配置形態と参照形式
 
 ## 入口
 
@@ -38,6 +38,8 @@ Table: 実行ファイルごとのカタログ配置形態と参照形式
 
 ## 構成
 
+Table: string-catalog-sample のディレクトリ構成一覧
+
 | ディレクトリ | 内容 |
 |---|---|
 | `prod/include/samplecatalog/` | ライブラリの公開ヘッダー。カタログの生成ヘッダーもここへ出力します |
@@ -48,8 +50,6 @@ Table: 実行ファイルごとのカタログ配置形態と参照形式
 | `test/src/cmd/` | 生成物を対象とする単体テスト |
 | `test/src/libsamplecatalog/` | ライブラリの公開シンボルを対象とするテスト |
 | `test/src/integration/` | 生成物と cplat の文字列カタログ機能を結合して確認する統合テスト |
-
-Table: string-catalog-sample のディレクトリ構成一覧
 
 文字列カタログの実装、生成器、機能仕様は `app/cplat` にあります。
 

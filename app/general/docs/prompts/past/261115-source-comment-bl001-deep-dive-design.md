@@ -24,6 +24,8 @@
 対象は BL-001 の枝番号 49 件です。  
 件数は枝番号の数であり、変更する行数やコメント ブロック数ではありません。
 
+Table: 今回対象とする 49 件の内訳
+
 | 対策内容 | 件数 |
 | --- | --- |
 | 設計理由の反映 | 35 |
@@ -34,8 +36,6 @@
 | 動作修正 | 5 |
 | 到達不能な比較の削除 | 1 |
 | 合計 | 49 |
-
-Table: 今回対象とする 49 件の内訳
 
 対象枝番号: 002, 005, 009, 033, 038, 046, 051, 052, 065, 066, 072, 077, 079, 080, 081, 082, 083, 101, 103, 104, 106, 108, 111, 112, 113, 114, 120, 123, 131, 136, 139, 140, 142, 148, 149, 150, 151, 152, 160, 161, 167, 175, 177, 179, 180, 183, 185, 186, 187。
 
@@ -48,6 +48,8 @@ Table: 今回対象とする 49 件の内訳
 現在の契約、型、後続処理、対応する OS 仕様から確認できる理由を記述します。  
 同じ関数へ統合された 148・149 は、共通処理の 1 箇所へ反映します。  
 111〜114 など独立した呼び出し箇所には、保守時に必要な同じ理由を各箇所に記述します。
+
+Table: 根拠を反映・確認する 40 件
 
 | 枝番号 | 反映・確認する理由 |
 | --- | --- |
@@ -91,8 +93,6 @@ Table: 今回対象とする 49 件の内訳
 | 180 | 179 の double 側です。型の幅を検証する既存契約と memcpy を選ぶ理由を区別して反映できます。 |
 | 185 | すでに読み書き等の失敗を診断して戻る経路の後始末です。正常終了時の fclose 検査とは区別し、最初の失敗を維持する理由を反映できます。 |
 | 186 | 登録エラーを検出して EXIT_FAILURE を返す経路です。追加の診断出力が失敗してもコマンドの失敗結果は変わりません。 |
-
-Table: 根拠を反映・確認する 40 件
 
 反映対象は、対応する app の `syslog_test.c`、`ui_language_tag.c`、`pinned_prompt.c`、`elevated_process.c`、`host.c`、`filter_describe.c`、`filter_image.c`、`trace_etw_session.c`、`trace_eventlog.c`、`tracer.c`、`bench-io.c`、`bench_report.c`、`hashtable-required-size.c`、`libbase_lifecycle.c`、`config_parse_common.h`、`packet_seal.c`、`service-sample_windows.c`、`string-catalog-filter-sample.c`、`print.c`、`struct_meta_sample.c` です。  
 009 は宣言側の `cplat/test/syslog_test.h` でも、戻り値 1 が送信成功ではなく通常 syslog 送信の抑止を意味することを明確にします。  
@@ -221,6 +221,8 @@ porter のメッセージ仕様がすでに定める「圧縮前のメッセー�
 既存の未コミット変更を保持し、今回追加した差分と照合します。  
 Git のステージング、コミット、アンステージ、スタッシュは行いません。
 
+Table: 変更範囲ごとの局所確認
+
 | 対象 | 確認する内容 |
 | --- | --- |
 | 入力中止 API | NULL、入力前の中止、入力待ち中の中止、反復要求、中止後の次回入力、ハンドルの寿命、生成失敗時の資源解放 |
@@ -233,8 +235,6 @@ Git のステージング、コミット、アンステージ、スタッシュ�
 | コメント・表記 | 枝番号と反映箇所を照合。数値・条件式・API 呼び出しに意図しない変更がないこと |
 | 公開・Doxygen | export テスト、mock_cplat、公開ヘッダーと逆引きの一致。cplat と struct-meta の対象 Doxygen 出力・警告 |
 | Markdown | 変更ファイルごとの text_style_jp の dry-run、変換内容確認、in-place |
-
-Table: 変更範囲ごとの局所確認
 
 試験の入口は、cplat の promptTest・pinnedPromptTest と関連する platform テスト、porter の porterTestOutputTest・potrServiceOpenTest と受信処理の該当テスト、struct-meta の structMetaPrintTest・structMetaSampleIoTest とします。  
 既存の構成を確認し、必要な注入関数や testfw のフェーズ・エビデンスを対象の bin_test ではなく C/C++ 用の test 配下へ追加します。

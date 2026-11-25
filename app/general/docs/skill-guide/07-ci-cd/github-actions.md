@@ -37,6 +37,8 @@ GitHub Actions のワークフローを理解することで、CI の実行状�
 
 対象ワークスペースのワークフロー (`.github/workflows/` 配下) が担当する処理:
 
+Table: GitHub Actions ジョブ一覧
+
 | ジョブ | 内容 |
 |-------|------|
 | build | C コードのビルド (Linux / Windows) |
@@ -44,8 +46,6 @@ GitHub Actions のワークフローを理解することで、CI の実行状�
 | coverage | gcov / lcov によるカバレッジ計測 |
 | docs | Doxygen・Pandoc によるドキュメント生成 |
 | deploy | GitHub Pages へのドキュメント公開 |
-
-Table: GitHub Actions ジョブ一覧
 
 ワークフロー YAML の基本構造:
 

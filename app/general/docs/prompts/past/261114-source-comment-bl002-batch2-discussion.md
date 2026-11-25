@@ -138,6 +138,8 @@
 
 ## 事前調査で確認した事実
 
+Table: 版 1 で抽出した 19 項目の調査結果 (版 2 で訂正済み)
+
 | 番号 | 対象箇所 | 疑問点 | 確認した事実と対処の方向 |
 | :--- | :--- | :--- | :--- |
 | 018、019 | `app/cplat/prod/libsrc/cplat/clock/clock.c:127、147` (`clock_format_iso8601_utc_from_tm()`、`clock_format_iso8601_local_from_tm()`) | `CPLAT_OK` / `CPLAT_ERR_*` ではなく `0` / `-1` を返す理由。 | 両関数は `static` 補助関数で、呼び出し元は `cplat_clock_format_realtime_iso8601_local()` (372 行目) と `cplat_clock_format_realtime_iso8601_utc()` (394 行目) の各 1 箇所です。呼び出し元は `!= 0` で判定し、失敗をすべて `CPLAT_ERR_UNKNOWN` へ変換します。`app/general/docs/coding-guideline.md` の `## エラー処理と戻り値規約` は、結果コードを返す関数を共通結果コードへ統一し、`-1` などの数値リテラルとの比較を行わないと定めています。`0` / `-1` を使う理由は、コードにも文書にも見つかりません ([Q-002](#q-002-018-と-019-の戻り値の扱い))。 |
@@ -147,19 +149,17 @@
 | 085〜097 (13 項目) | `app/cplat/prod/libsrc/cplat/string_catalog/filter/filter_slot.c:1723、1757、1954、2027、2048、2083、2109、2185、2217、2251、2281、2351、2472` | ロック解放関数の戻り値を破棄する理由。 | 13 箇所はすべて、同じ関数内で対応する取得 (`cplat_local_rwlock_lock_exclusive()`、`cplat_local_rwlock_lock_shared()`、`cplat_local_lock_lock()`、`cplat_local_lock_try_lock()`) が `CPLAT_OK` を返した経路にあります。`cplat_local_rwlock_unlock_shared()` と `cplat_local_rwlock_unlock_exclusive()` (`sync_linux.c:792、822`、`sync_windows.c:639、669`) がエラーを返すのは、引数が `NULL` の場合と、対応するロック状態でない場合 (`active_readers == 0` または `writer_active == 0`) だけです。Linux で内部の mutex や条件変数の操作が失敗した場合は `CPLAT_ABORT` で終了します ([Q-010](#q-010-ロック解放の理由コメントを書く単位))。 |
 | 115 | `app/cplat/prod/libsrc/cplat/trace/tracer.c:2326〜2334` (`cplat_internal_trace_registry_dispose_all_on_shutdown()`) | 管理リストを切り離し、ロックを解放してから各ハンドルを解放する理由。 | 2327〜2333 行目で、`s_registry_lock` の保持下に `shutdown_started = 1` を設定し、`items` と `count` をローカル変数へ退避して、レジストリ側を `NULL` / `0` にしています。切り離した後は、ほかのスレッドがレジストリ経由で退避済みの配列へ到達できません。また、関数の末尾 (2370 行目) で `cplat_local_lock_dispose(s_registry_lock)` を呼びます。POSIX は、ロックされた mutex の破棄を未定義動作としています (`see: https://man7.org/linux/man-pages/man3/pthread_mutex_destroy.3p.html`)。 |
 
-Table: 版 1 で抽出した 19 項目の調査結果 (版 2 で訂正済み)
-
 ### 残課題一覧に未登録の同種箇所
 
 ロック解放の戻り値を `(void)` で破棄する書き方は、上表の 14 箇所 (`053`、`085`〜`097`) のほかに 21 箇所あります。前提によって 3 種類に分かれます。
+
+Table: 残課題一覧に未登録のロック解放の戻り値破棄 21 箇所
 
 | 種類 | 箇所 | 確認した事実 |
 | --- | --- | --- |
 | 同じ関数内で取得の成功を検査済み (4 箇所) | `app/cplat/prod/libsrc/cplat/argparser/argparser.c:1264、1333`、`app/string-catalog-sample/prod/src/cmd/string-catalog-filter-sample/sample_filter_share_region.c:251、261` | `085`〜`097` と同じ前提が成り立ちます。 |
 | 解放専用の補助関数 (4 箇所) | `app/cplat/prod/libsrc/cplat/trace/tracer.c:186` (`registry_unlock()`)、`541` (`config_unlock_exclusive()`)、`577` (`config_unlock_shared()`)、`sample_filter_share_region.c:278` (`sample_filter_share_lock_release()`) | 取得は対になる別の関数が行います。前提が成り立つかどうかは、呼び出し元のすべての経路に依存します。`tracer.c` の 3 関数には合計 51 箇所の呼び出しがあり、全経路は未確認です ([Q-009](#q-009-解放専用の補助関数-4-箇所の扱い))。 |
 | 取得の戻り値も破棄している (13 箇所) | `app/cplat/prod/libsrc/cplat/prompt/pinned_prompt.c:163`、`app/cplat/prod/src/cmd/pinned-prompt/pinned-prompt.c:257、269、305、347`、`app/string-catalog-sample/prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c:479、535、575、612、634、669、1626、1655` | 対になる取得も `(void)cplat_local_lock_lock(..., CPLAT_SYNC_WAIT_FOREVER);` で戻り値を破棄しています。取得の成功をコードで確認していないため、「取得成功後の解放だから失敗しない」という理由は書けません ([Q-008](#q-008-取得の戻り値も破棄している-13-箇所の扱い))。 |
-
-Table: 残課題一覧に未登録のロック解放の戻り値破棄 21 箇所
 
 ### 解放関数の宣言側の契約
 
@@ -187,13 +187,13 @@ Table: 残課題一覧に未登録のロック解放の戻り値破棄 21 箇所
 
 [Q-009](#q-009-解放専用の補助関数-4-箇所の扱い) の回答 (A) に従い、呼び出し元の全経路を確認しました。4 関数とも前提が成り立ちます。呼び出しは合計 49 箇所です (版 2 の「51 箇所」は、定義とコメントの行を含む数でした)。
 
+Table: 解放専用の補助関数の呼び出し元の確認結果
+
 | 関数 | 呼び出し | 確認した事実 |
 | --- | --- | --- |
 | `registry_unlock()` (`tracer.c:186`) | 6 箇所 | すべて、同じ関数内で `registry_lock()` が 0 を返した後です。`registry_lock()` は、`cplat_local_lock_lock()` が `CPLAT_OK` を返した場合だけ 0 を返します。 |
 | `config_unlock_exclusive()`、`config_unlock_shared()` (`tracer.c:541、577`) | 41 箇所 | すべて、同じ関数内で `config_lock_exclusive()`、`config_lock_shared_timed()`、または `tracer_enter_*()` が成功した後です。解放は `TRACER_MANAGED` の場合だけ行い、取得も同じ条件で行います。`concurrency_mode` を設定するのは生成時 (`tracer.c:1124、1186`) だけです。 |
 | `sample_filter_share_lock_release()` (`sample_filter_share_region.c:278`) | 2 箇所 | `sample_filter_share.c:116` は `sample_filter_share_lock_acquire()` の成功後です。`sample_filter_share.c:52` は解放コールバック `release_source_lock()` の中で、`filter_slot.c` が `writer_lock->lock()` の成功後にだけ `writer_lock->unlock()` を呼ぶ経路 (1701、2045、2071 行目) から呼ばれます。 |
-
-Table: 解放専用の補助関数の呼び出し元の確認結果
 
 `tracer.c:541` は 73 桁あり、補助関数の前提を述べる後置コメントは 120 桁に収まりません。補助関数の 5 箇所 (`053` を含む) は、関数全体にかかる前提の説明として前置コメントで書きます。
 
@@ -757,12 +757,12 @@ A を採用し、対象の 22 箇所すべてに理由コメントを書きま�
 
 実装が返す値は次のとおりで、`@return` と一致していません。
 
+Table: 解放関数の実装が返す値
+
 | 関数 | 実装が返す値 |
 | --- | --- |
 | `cplat_local_lock_unlock()` | `NULL` は `CPLAT_ERR_INVALID_ARGUMENT`。Linux は `pthread_mutex_unlock()` の結果を `CPLAT_OK`、`CPLAT_ERR_TIMEOUT`、`CPLAT_ERR_BUSY`、`CPLAT_ERR_UNKNOWN` へ変換。Windows は常に `CPLAT_OK` |
 | `cplat_local_rwlock_unlock_shared()`、`cplat_local_rwlock_unlock_exclusive()` | `NULL` と、対応するロック状態でない場合は `CPLAT_ERR_INVALID_ARGUMENT`。それ以外は `CPLAT_OK`。`CPLAT_ERR_UNKNOWN` を返す経路はない |
-
-Table: 解放関数の実装が返す値
 
 **Answer**
 
@@ -1008,6 +1008,8 @@ A を採用します。すでに直前へ前置コメントがある箇所 (`fil
 
 ### 対応箇所
 
+Table: 成果物ごとの対応内容
+
 | 成果物 | 対応内容 | 対象項目 |
 | --- | --- | --- |
 | `app/cplat/prod/libsrc/cplat/clock/clock.c` | 補助関数 2 つの戻り値を `CPLAT_OK` / `CPLAT_ERR_UNKNOWN` へ変更し、呼び出し元の判定を `!= CPLAT_OK` へ変更 | `018`、`019` |
@@ -1024,11 +1026,11 @@ A を採用します。すでに直前へ前置コメントがある箇所 (`fil
 | `261114-source-comment-bl002-batch2-backlog.md` | 作成 (BL-001 の 122 項目の転記と、新規 3 件の登録) | - |
 | `../past/261114-source-comment-bl002-batch1-backlog.md` | BL-001 の状態と第 2 バッチの経緯、転記先を追記 (記載は削除していない) | - |
 
-Table: 成果物ごとの対応内容
-
 ### 検証結果
 
 すべて Linux (WSL) で実施しました。
+
+Table: 受入条件に対する検証結果
 
 | 検証 | 結果 |
 | --- | --- |
@@ -1040,8 +1042,6 @@ Table: 成果物ごとの対応内容
 | `app/cplat` の `make doxy` | 成功、Doxygen の警告なし |
 | 根拠 URL の照合 | `pthread_mutex_lock.3p` (所有者による解放のエラー定義なし)、`pthread_mutex_destroy.3p` (ロック中の mutex の破棄は未定義動作) を man7.org の記載と照合済み |
 | `text_style_jp.py` | 作成・更新した Markdown 4 ファイルで指摘なし |
-
-Table: 受入条件に対する検証結果
 
 ### 未完了項目と補足
 

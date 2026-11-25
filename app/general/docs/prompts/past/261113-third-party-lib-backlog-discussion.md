@@ -72,6 +72,8 @@ Oracle Linux 9.8 で両方の読み込み順を実際に確認し、関数の所
 
 ## 観点別の確認
 
+Table: 前提条件の確認状況
+
 | 観点 | 状態 | 根拠・次の確認 |
 | --- | --- | --- |
 | 目的・利用者 | 確認済み | 元 backlog の 3 件への対処 |
@@ -80,8 +82,6 @@ Oracle Linux 9.8 で両方の読み込み順を実際に確認し、関数の所
 | 整合性・依存関係 | 合意済み | 新しい固有名を公開し、旧名 alias と旧名 mock ラッパーを作らない |
 | 実現性・例外 | 合意済み | 既知の利用側を移行し、関数ポインターは新名の mock ラッパーで扱う |
 | 受入条件・検証 | 確認済み | OL9 での OpenSSL 同居の事前検証、最終仕様の局所テストと Windows 確認の区別 |
-
-Table: 前提条件の確認状況
 
 ## 明確化のための確認項目
 
@@ -308,14 +308,14 @@ Q-001 の関数ポインター対応は、新しい固有 API 名の関数ラッ
 一時ディレクトリは `/tmp/third-party-namespace-probe-5v2yk_bj` です。  
 リポジトリの配布ソース、生成物、ビルド設定は変更していません。
 
+Table: 固有のシンボル名を使う方法の事前確認
+
 | 対象 | 公開シンボル数 | 一時コピーでの確認結果 |
 | --- | --- | --- |
 | zlib | 95 | 接頭辞を付けた全公開名の一致。独自の対応ヘッダーとマクロ用の局所変更でもビルド成功 |
 | cJSON | 110 | Integer、JSONC を含む全公開名の一致。公開ヘッダーからの対応付けでもビルド成功 |
 | Lua | 156 | 全公開名の一致。公開ヘッダーからの対応付けでもビルド成功 |
 | SQLite | 277 | 公開変数を含む全公開名の一致。ヘッダーと amalgamation への注入でもビルド成功 |
-
-Table: 固有のシンボル名を使う方法の事前確認
 
 公開名の比較では、リンカー合成の `__bss_start`、`_edata`、`_end` を除きました。  
 比較した版は、現在配置済みの共有ライブラリです。  
@@ -329,12 +329,12 @@ API 表のフィールドや外部モジュールのエントリ名を一律に�
 OpenSSL の事前検証では、Oracle Linux 9.8 の既存イメージにワークスペースを読み取り専用で接続しました。  
 OS 側の `libcrypto.so.3` にリンクする helper と、ワークスペースの `libcrypto_app.so.3` にリンクする helper を作り、同じプロセスに `RTLD_NOW | RTLD_GLOBAL` で読み込みました。
 
+Table: OpenSSL 3.x 同士の同居の事前確認
+
 | 読み込み順 | OS 側の関数の所属先と版 | app 側の関数の所属先と版 |
 | --- | --- | --- |
 | OS → app | `/lib64/libcrypto.so.3`、3.5.5 | `app/openssl/prod/lib/libcrypto_app.so.3`、3.5.9 |
 | app → OS | `/lib64/libcrypto.so.3`、3.5.5 | `app/openssl/prod/lib/libcrypto_app.so.3`、3.5.9 |
-
-Table: OpenSSL 3.x 同士の同居の事前確認
 
 `OpenSSL_version()` の文字列、`OpenSSL_version_num()` の値、および `dladdr()` による関数の所属先を確認しました。  
 OS 側は OpenSSL 3.5.5、app 側は 3.5.9 であり、両方の読み込み順でそれぞれの `libcrypto` に解決されました。  
@@ -373,6 +373,8 @@ Luna のサブエージェントと親エージェントが実装し、サブエ
 API 呼び出しマクロにはオブジェクト形式と SQLite 拡張 API 表の呼び出しも含め、API 表のフィールドと外部モジュールの入口は維持しました。  
 Windows 専用 API と SQLite の Windows 内部公開 API も対応表に含めています。
 
+Table: 継続作業の局所検証結果
+
 | 検証対象 | 結果 |
 | --- | --- |
 | 名前空間生成器 | 7 件成功。識別子、重複、同内容、マクロ、フィールドと include の保護 |
@@ -389,8 +391,6 @@ Windows 専用 API と SQLite の Windows 内部公開 API も対応表に含め
 | 追加利用側 | struct-meta の jsonDecodeTest 11、jsonEncodeTest 8 件、porter の設定解析 21 件と configFileLoadTest 1 件成功 |
 | 警告 | ビルド対象と局所テストの内容がある `.warn` なし |
 | 文書・スキル | Markdown の機械整形を実施し、`make skills` で同期 |
-
-Table: 継続作業の局所検証結果
 
 `make -C app/cjson doxy` は正常終了しましたが、対象の生成設定がないため生成物はなく、Doxygen 出力の確認結果には含めていません。
 

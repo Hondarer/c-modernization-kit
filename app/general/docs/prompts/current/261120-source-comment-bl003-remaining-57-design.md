@@ -18,6 +18,8 @@
 
 対象は、次の 3 つの群に分かれます。
 
+Table: 対処の対象と件数
+
 | 群 | 区分 | 内容 | 件数 |
 | --- | --- | --- | --- |
 | 未確定の 57 件 | 動作を変える修正 | 実装を修正し、失敗時または境界のテストを追加する。 | 11 |
@@ -26,8 +28,6 @@
 | 追加の修正 | `app/cplat` の修正 | パス上限対応、結果コード統一、UTF-8 境界切り詰め、名前付きパイプ化、契約補完、定数化、文書追記を行う。 | 15 |
 | 追加の修正 | サンプルの app と `app/porter` の修正 | `app/service-sample` (3 件)、`app/porter` (4 件: 証明書認証時の待機上限、設計文書修正、重複ゼロ代入削除の拡大、`POTR_NACK_DEDUP_SLOTS` の式変更)、`app/struct-meta` (2 件) の修正と改善を行う。 | 9 |
 | 規範の改定と適合 | 規範の改定と全 app 製品コードの修正 | `app/general/docs/coding-guideline.md` を改定し、`app/` 配下の製品コード (既存 7 app の 629 箇所と `app/porter` の 264 箇所、計 893 箇所) を規範へ適合させる。 | 893 |
-
-Table: 対処の対象と件数
 
 未確定の 57 件は、枝番号 (3 桁の数字) で識別します。  
 動作を変える変更は、未確定の 57 件の 11 件 (015、020、036、037、063、084、102、105、124、129、159) に、`app/porter` の定数確認から加えた `POTR_NACK_DEDUP_SLOTS` の 1 件を合わせた 12 件です (`POTR_NACK_DEDUP_SLOTS` は `app/porter` の規範適合 264 箇所のうちの 1 件でもあります)。  
@@ -156,14 +156,14 @@ framework、外部由来のコード、生成されたコード、生成器が�
 
 結果コードを、要因 (cause) で判定するように変えます。
 
+Table: 名前解決の失敗の結果コード
+
 | 要因 | 該当する `getaddrinfo` の結果 | 変更前 | 変更後 |
 | --- | --- | --- | --- |
 | 見つからない | `EAI_NONAME`、`EAI_NODATA`、`EAI_SYSTEM` で errno が `ENOENT` など | `CPLAT_ERR_NOT_FOUND` | `CPLAT_ERR_NOT_FOUND` |
 | 一時的な失敗 | `EAI_AGAIN`、`EAI_SYSTEM` で errno が `EAGAIN`、`EBUSY` など | `CPLAT_ERR_UNKNOWN` | `CPLAT_ERR_BUSY` |
 | メモリ不足 | `EAI_MEMORY`、`EAI_SYSTEM` で errno が `ENOMEM` | `CPLAT_ERR_UNKNOWN` | `CPLAT_ERR_OUT_OF_MEMORY` |
 | ほか | `EAI_FAMILY`、`EAI_SOCKTYPE`、`EAI_SERVICE`、`EAI_BADFLAGS`、その他 | `CPLAT_ERR_UNKNOWN` | `CPLAT_ERR_UNKNOWN` |
-
-Table: 名前解決の失敗の結果コード
 
 `EAI_SYSTEM` は Linux の値で、要因は errno から決まります。  
 `EAI_FAMILY`、`EAI_SOCKTYPE`、`EAI_BADFLAGS` を `CPLAT_ERR_INVALID_ARGUMENT` にしないのは、呼び出し元の `cplat_ipv4_resolve` が検索の条件を内部で固定しており、利用者の引数の誤りと区別できなくなるためです。
@@ -181,6 +181,8 @@ Table: 名前解決の失敗の結果コード
 
 テストは、次のとおりです。
 
+Table: 015 のテスト
+
 | テスト | ファイル | 内容 |
 | --- | --- | --- |
 | `report_gai_error_maps_standard_codes_and_unknown_code` (Linux) | `errorTest.cc` | `EAI_AGAIN` と `EAI_MEMORY` の期待値を、`CPLAT_ERR_BUSY` と `CPLAT_ERR_OUT_OF_MEMORY` へ直す。 |
@@ -188,8 +190,6 @@ Table: 名前解決の失敗の結果コード
 | `resolve_reports_lookup_failure` (両 OS) | `endpointTest.cc` | `EAI_AGAIN` の期待値を `CPLAT_ERR_BUSY` へ直す。 |
 | `resolve_reports_system_error_without_retry` (Linux) | `endpointTest.cc` | 注入している errno に合わせて、期待値を直す。 |
 | `resolve_reports_out_of_memory` (両 OS。追加) | `endpointTest.cc` | `getaddrinfo` の mock から `EAI_MEMORY` を返し、`CPLAT_ERR_OUT_OF_MEMORY` が返ることを確かめる。Windows での確認は、このテストが担う。 |
-
-Table: 015 のテスト
 
 ### 標準ストリームの再接続の失敗の扱い (020)
 
@@ -204,6 +204,8 @@ Table: 015 のテスト
 2. `cplat_console_attach_parent` は、`reopen_crt_std_fd(...) == CPLAT_OK` で判定し、標準ストリームの接続で検出できる失敗が 1 つでもあれば、`CPLAT_ERR_UNKNOWN` を返します。3 本とも最後まで試みてから返します。
 3. `attached_out` は、戻り値によらず有効とします。コンソールへ接続できていれば 1、できていなければ 0 を格納します。
 
+Table: cplat_console_attach_parent の戻り値
+
 | 段階 | 検出できる失敗 | 変更前 | 変更後 |
 | --- | --- | --- | --- |
 | コンソールへの接続 | `AttachConsole` が 1 度も成功しない | 失敗 | 失敗 |
@@ -213,7 +215,7 @@ Table: 015 のテスト
 | CRT のストリーム | `_open_osfhandle` の失敗 | 成功 | 失敗 |
 | CRT のストリーム | 開き直した FD 番号の不一致 | 成功 | 失敗 |
 
-Table: cplat_console_attach_parent の戻り値
+Table: 戻り値と attached_out の組み合わせ
 
 | 状態 | 戻り値 | `attached_out` |
 | --- | --- | --- |
@@ -221,8 +223,6 @@ Table: cplat_console_attach_parent の戻り値
 | 3 本とも接続できた | `CPLAT_OK` | 1 |
 | コンソールへ接続できなかった | `CPLAT_ERR_UNKNOWN` | 0 |
 | コンソールへ接続したが、標準ストリームの接続に失敗がある | `CPLAT_ERR_UNKNOWN` | 1 |
-
-Table: 戻り値と attached_out の組み合わせ
 
 > [!NOTE]
 > 標準ストリームの接続に失敗した場合でも、コンソールへの接続は成功しており、取り消せません。  
@@ -264,6 +264,8 @@ Table: 戻り値と attached_out の組み合わせ
 テストは、`test/src/libcplatTest/console/consoleTest/consoleFailureTest.cc` (Windows だけで実行) に置きます。  
 既存の mock (`Mock_unistd` の `_open_osfhandle` と `_close`、`Mock_stdio` の `_fileno` と `setvbuf`、`Mock_windows` の `FreeConsole`、`AttachConsole`、`CreateFileW`、`SetStdHandle`) で差し替えます。
 
+Table: 020 のテスト
+
 | テスト | 内容 |
 | --- | --- |
 | `attach_parent_returns_failure_when_set_std_handle_fails` (`attach_parent_logs_set_std_handle_failures` を改名) | 期待値を、戻り値 `CPLAT_ERR_UNKNOWN`、`attached` 1 とする。 |
@@ -272,8 +274,6 @@ Table: 戻り値と attached_out の組み合わせ
 | `attach_parent_returns_failure_when_open_osfhandle_fails` (追加) | `_open_osfhandle()` が -1 を返す場合に、戻り値 `CPLAT_ERR_UNKNOWN`、`attached` 1 であること。 |
 | `attach_parent_returns_failure_when_console_device_cannot_be_opened` (追加) | `CreateFileW()` が `INVALID_HANDLE_VALUE` を返す場合に、戻り値 `CPLAT_ERR_UNKNOWN`、`attached` 1 であること。 |
 | `attach_parent_tries_all_streams_after_one_fails` (追加) | `stdout` の開き直しだけが失敗する場合に、`stderr` と `stdin` の開き直しが行われること。 |
-
-Table: 020 のテスト
 
 `_fileno` の失敗と、`AttachConsole` が 1 度も成功しない場合 (`attached` 0) のテストは、既存の mock で書ける場合に足します。書けない場合は、理由を記録します。
 
@@ -309,12 +309,12 @@ Table: 020 のテスト
 `pinned_prompt_set_prompt` と `pinned_prompt_format_prompt` の戻り値を、`CPLAT_OK`、`CPLAT_ERR_OUT_OF_MEMORY`、および書式化失敗時 (`vsnprintf` が負を返した場合) の `CPLAT_ERR_UNKNOWN` へ統一します。  
 公開 API から見える動作は、次のとおりです。
 
+Table: 037 の公開 API の動作
+
 | 経路 | 変更前 | 変更後 |
 | --- | --- | --- |
 | プロンプト文字列または入力履歴を保持するメモリを確保できない (`pinned_prompt_set_prompt` または履歴確保の失敗) | `CPLAT_ERR_UNKNOWN` | `CPLAT_ERR_OUT_OF_MEMORY`。端末の設定の復元にも失敗した場合は `CPLAT_ERR_UNKNOWN` |
 | 書式付きの API で、書式化に失敗した、または書式バッファーの確保・再確保ができない (`pinned_prompt_format_prompt` の失敗) | 再確保失敗時はバイト単位で切り詰め、初回失敗時は空のプロンプトで継続 | 空のプロンプトで入力を続ける (初回確保失敗・再確保失敗・書式化失敗のいずれも同じ) |
-
-Table: 037 の公開 API の動作
 
 1 行目の「復元にも失敗した場合」は、公開ヘッダーが定める既存の規則 (端末の設定の復元の失敗は、入力の結果より優先して `CPLAT_ERR_UNKNOWN` を返す) に合わせるものです。初期値の確保の失敗の経路と、同じ形にします。
 
@@ -449,14 +449,14 @@ cplat 自身が書くイベントは、文字列 2 個と整数 1 個だけで�
 テストは、新しいディレクトリ `test/src/libcplatTest/trace/trace_etw_sessionTest/` に置きます (Windows だけで実行)。  
 ファイル内に閉じた関数を、既存の inject の方式 (`<対象ソース名>.inject.c` のアクセサー) で呼びます。関数はイベントの情報を引数で受け取るため、TDH の API の差し替えは要りません。テストは、偽のイベントの情報を組み立てて渡します。
 
+Table: 102 のテスト
+
 | テスト | 内容 |
 | --- | --- |
 | `extract_reads_service_message_and_process_id` | 文字列 2 個と整数 1 個のイベントで、3 つの値が得られること。 |
 | `extract_stops_at_struct_property` | 構造体のプロパティの後ろの文字列を読まず、NULL のままであること。 |
 | `extract_stops_at_fixed_count_array_property` | 固定の要素数の配列の後ろを読まないこと。 |
 | `extract_stops_at_variable_count_array_property` | 要素数を別のプロパティに持つ配列の後ろを読まないこと。 |
-
-Table: 102 のテスト
 
 名前なしプロパティと長さ指定文字列のテスト 3 件は、「app/cplat の追加の修正」の章の「ETW イベント読み取りでの名前なしプロパティと長さ指定文字列の打ち切り」で定めます。  
 実際のセッションを使う既存の結合テスト (`etwSessionIntegrationTest`) は変更しません。このテストが、通常のイベントの読み取りの回帰を検出します。
@@ -467,6 +467,8 @@ Table: 102 のテスト
 
 強制出力のトレース レベル (`CPLAT_TRACE_LEVEL_FORCE_*`、値は -7 から -1) を、ETW、syslog と同じ規則で通常のレベルへ変換してから、EventLog の書き込みへ渡します。
 
+Table: 強制出力のレベルの変換
+
 | 強制出力のレベル | 変換後のレベル (EventLog の種別、イベント ID、カテゴリを決める) |
 | --- | --- |
 | `CPLAT_TRACE_LEVEL_FORCE_CRITICAL` | CRITICAL |
@@ -476,8 +478,6 @@ Table: 102 のテスト
 | `CPLAT_TRACE_LEVEL_FORCE_VERBOSE` | INFO |
 | `CPLAT_TRACE_LEVEL_FORCE_DEBUG` | INFO |
 | `CPLAT_TRACE_LEVEL_FORCE_NONE` | INFO |
-
-Table: 強制出力のレベルの変換
 
 > [!NOTE]
 > 変換は、ETW と syslog の変換 (`to_etw_level`、`to_syslog_level`) と同じ `tracer.c` に、`to_eventlog_level` として置きます。  
@@ -551,13 +551,13 @@ error: --huge skipped due to earlier failures
 テストは、新しいディレクトリ `test/src/benchReportTest/` に置きます (Linux だけで実行。CI で確かめます)。  
 `cplat_fopen` の mock で、`/proc/cpuinfo` の読み取りを一時ファイルへ向け、公開関数 `bench_report_collect_environment` の結果を確かめます。
 
+Table: 129 のテスト
+
 | テスト | 入力の行 | 期待する CPU 名 |
 | --- | --- | --- |
 | `collect_environment_trims_leading_space_of_cpu_model` | `model name<TAB>: Test CPU @ 2.00GHz` | `Test CPU @ 2.00GHz` |
 | `collect_environment_trims_leading_tabs_and_spaces_of_cpu_model` | `model name<TAB>:<TAB>  Test CPU` | `Test CPU` |
 | `collect_environment_keeps_cpu_model_without_leading_space` | `model name:Test CPU` | `Test CPU` |
-
-Table: 129 のテスト
 
 `bench-ioTest/makepart.mk` の、各ソースのカバレッジを担うテストを挙げたコメントに、`benchReportTest` を足します。
 
@@ -570,13 +570,13 @@ Table: 129 のテスト
 
 `dwWaitHint` の直値 4 か所を、役割ごとの 3 個の定数にします。`set_service_status()` の第 4 引数が `DWORD` 型であるため、`U` 接尾辞を付け、`<assert.h>` の `static_assert` で正値であることを検査します。
 
+Table: dwWaitHint の定数
+
 | 定数 | 値 | 使う箇所 |
 | --- | --- | --- |
 | `SVC_ON_START_WAIT_HINT_MS` | `3000U` | 起動開始の `SERVICE_START_PENDING` の通知 |
 | `SVC_ON_RUN_RETURN_WAIT_HINT_MS` | `5000U` | 制御ハンドラーの `SERVICE_STOP_PENDING` の通知 (停止、シャットダウン、シャットダウン前の 2 か所) |
 | `SVC_ON_STOP_WAIT_HINT_MS` | `3000U` | `on_run` の復帰後の `SERVICE_STOP_PENDING` の通知 |
-
-Table: dwWaitHint の定数
 
 各定数の説明には、単位 `[ms]`、通知する状態と次の通知を行う時点 (どのコールバックから戻った後か)、満たすべき制約 (1 以上)、および値を変えたときの影響を書きます。
 
@@ -645,6 +645,8 @@ static_assert(POTR_NACK_DEDUP_SLOTS >= 1U && POTR_NACK_DEDUP_SLOTS <= UINT8_MAX,
 
 `git grep` で使用箇所を確認した結果は、次のとおりです。
 
+Table: POTR_NACK_DEDUP_SLOTS が影響する配列とループ
+
 | ファイルと行 | 対象 | 変更後の影響 |
 | --- | --- | --- |
 | `potr_context.h` 212 行目 | `potr_internal_peer_context::nack_dedup_buf[POTR_NACK_DEDUP_SLOTS]` | 要素数が 8 から 16 に増え、1 ピアあたりの配列長が 128 [byte] から 256 [byte] に増える (`potr_internal_nack_dedup_entry` は 16 [byte])。後続の `nack_dedup_next` と `_pad_reorder[3]` により 4 [byte] 境界の整列は維持される。 |
@@ -652,8 +654,6 @@ static_assert(POTR_NACK_DEDUP_SLOTS >= 1U && POTR_NACK_DEDUP_SLOTS <= UINT8_MAX,
 | `thread_recv_slot.c` 38-39、72-73 行目 | `slot->nack_dedup_buf`、`slot->nack_dedup_next` | 先頭要素のアドレスとインデックスのポインターを設定するだけであり、変更は不要。 |
 | `thread_recv_window.c` 390 行目 | `for (dedup_idx = 0; dedup_idx < (int)POTR_NACK_DEDUP_SLOTS; dedup_idx++)` | `nack_is_duplicate()` の重複探索ループの上限が 8 から 16 に増える。 |
 | `thread_recv_window.c` 403 行目 | `*slot->nack_dedup_next = (uint8_t)((*slot->nack_dedup_next + 1U) % POTR_NACK_DEDUP_SLOTS);` | リング バッファーの書き込み位置の剰余周期が 8 から 16 になる。 |
-
-Table: POTR_NACK_DEDUP_SLOTS が影響する配列とループ
 
 `sizeof(potr_context)` や `sizeof(potr_internal_peer_context)` の固定値を検査する `static_assert` は、コードベースにありません。
 
@@ -673,6 +673,8 @@ Table: POTR_NACK_DEDUP_SLOTS が影響する配列とループ
 
 ### app/cplat の基盤とパス (007、008、012、059)
 
+Table: 基盤とパスの変更内容
+
 | 枝番号 | 対象 | 変更内容 |
 | --- | --- | --- |
 | 007 | `prod/include/cplat/base/dll_exports.h` の `__INTELLISENSE__` の分岐 | 公開修飾を空にする `#define` の直前に、事実と `see:` だけを書く。分岐を入れた理由は履歴になく、書かない。 |
@@ -680,8 +682,6 @@ Table: POTR_NACK_DEDUP_SLOTS が影響する配列とループ
 | 012 | `prod/include_internal/cplat/base/error_message_internal.h` | `@hideincludedbygraph` を削除する。このヘッダーを取り込む製品のファイルは 2 つだけである。 |
 | 012 | `prod/include/cplat/base/error.h` | ほかの 72 件と同じ文面のコメントを足す。 |
 | 059 | `prod/libsrc/cplat/runtime/module.c` のファイル冒頭の `@note` | `path_buf[4096]` の廃止に伴い、ファイルの冒頭の注記を現在の実装 (OS の拡張パス上限 32767 文字まで取得できる旨) に合わせる。 |
-
-Table: 基盤とパスの変更内容
 
 007 の文面:
 
@@ -732,24 +732,24 @@ Table: 基盤とパスの変更内容
 テストは、`clockTest.cc` (両 OS) に `format_realtime_iso8601_local_truncates_sub_minute_offset_toward_zero` を足します。  
 `cplat_localtime()` と `cplat_gmtime()` の mock で、分解済みの時刻を注入します。丸め方を 1 つに特定するため、負の差と正の差の 2 回を確かめます。
 
+Table: 017 のテストの入力と期待値
+
 | 注入する差 | 期待する表記の末尾 | 四捨五入の場合の結果 |
 | --- | --- | --- |
 | -04:27:44 | `-04:27` | `-04:28` |
 | +00:19:32 | `+00:19` | `+00:20` |
-
-Table: 017 のテストの入力と期待値
 
 ### app/cplat のコンソール (021、022)
 
 021 は、コンソールへの再接続の後の書き込みの失敗の記載です。実機での再現は行わず、原因が未特定の既知の制限として記載します。  
 記録には 2 つの現象があり、分けて記載します。
 
+Table: 再接続後の書き込みの失敗の 2 つの現象
+
 | 現象 | `cplat_console_write()` への影響 |
 | --- | --- |
 | CRT のストリーム (`printf`、`fprintf`) を経由した書き込みが失敗する。 | 影響を受けない (CRT のストリームを経由しないため)。 |
 | 書き込みが `ERROR_INVALID_HANDLE` で間欠的に失敗する。一度失敗すると、再試行しても同じエラーで失敗する。 | 発生する。 |
-
-Table: 再接続後の書き込みの失敗の 2 つの現象
 
 記載の規則は、次のとおりです。
 
@@ -792,14 +792,14 @@ Table: 再接続後の書き込みの失敗の 2 つの現象
 
 ### app/cplat の暗号とネットワーク (030、031、034)
 
+Table: 暗号とネットワークのコメント
+
 | 枝番号 | 対象 | コメントの文面 |
 | --- | --- | --- |
 | 030 | `crypto_linux.c` の、パスフレーズが NULL の場合の置き換え | OpenSSL の資料は、長さ 0 のときのポインターの扱いを定めていないため、`EVP_DigestUpdate()` へ NULL を渡さない。`see: https://docs.openssl.org/master/man3/EVP_DigestInit/` |
 | 031 | `crypto_windows.c` の、同じ置き換え | Microsoft の資料と `bcrypt.h` の注釈は、`BCryptHashData()` の `pbInput` を省略可能としていないため、NULL を渡さない。`see: https://learn.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcrypthashdata` |
 | 034 | `endpoint_linux.c` の `ai_socktype` の指定 | ソケット種別を 1 つに絞る。0 を指定すると、同じサービスが複数のソケット種別で提供される場合に、種別ごとに結果が返る。`see: https://man7.org/linux/man-pages/man3/getaddrinfo.3.html` |
 | 034 | `endpoint_windows.c` の `ai_socktype` の指定 | ソケット種別を 1 つに絞る。0 を指定すると、どの種別の結果も返り得る。`see: https://learn.microsoft.com/en-us/windows/win32/api/ws2tcpip/nf-ws2tcpip-getaddrinfo` |
-
-Table: 暗号とネットワークのコメント
 
 034 で `SOCK_DGRAM` を選んだ理由は、履歴にも資料にもなく、書きません。
 
@@ -930,6 +930,8 @@ static_assert(EVENTLOG_IDENTIFIER_TEXT_SIZE >= 21U, "identifier text buffer must
 
 ### app/cplat のコマンド (117、118、128、132、134、135)
 
+Table: コマンドの変更内容
+
 | 枝番号 | 対象 | 変更内容 |
 | --- | --- | --- |
 | 117 | `bench-hashtable.c` の `lifetime = 5` | 定数 `BENCH_LIFETIME` (`5U`) にする。役割・制約 (`2` 以上かつ `CPLAT_HASHTABLE_LIFETIME_INFINITE` 未満)・変更影響のコメントと、`static_assert` を付ける。説明は、「削除済みレコードの寿命です。加齢の処理を呼び出さないため、3 以上なら測定結果に影響しません」とする。 |
@@ -937,8 +939,6 @@ static_assert(EVENTLOG_IDENTIFIER_TEXT_SIZE >= 21U, "identifier text buffer must
 | 128、132 | `bench_mmap.c` と `bench_stdio.c` の `accumulate()` | Doxygen を、2 つのファイルで同じ文面にする。 |
 | 134 | `bench_timer.h` の `bench_timing` | 構造体の説明に、「試行が偶数件のときは、中央の 2 値のうち大きいほうを `median_ns` に格納します」と足す。 |
 | 135 | `compress-cli.c` の、出力の容量の式 | 直値 `2u` と `256u` を定数 `COMPRESS_CLI_CAPACITY_FACTOR` (`2U`) と `COMPRESS_CLI_MIN_CAPACITY` (`256U`) にし、役割・制約・変更影響のコメントと `static_assert` を付ける。コメントを、zlib の上界との照合の結果に書き換える。 |
-
-Table: コマンドの変更内容
 
 128 と 132 の Doxygen の本文:
 
@@ -1145,13 +1145,13 @@ static_assert(SVC_EVENTS_JOIN_TIMEOUT_MS < SVC_SYSTEMD_DEFAULT_TIMEOUT_STOP_MS,
 コンテキストは、確保の直後に `memset` でゼロ初期化します。`cplat_atomic_*` は整数 1 個を持つ通常の構造体で、ゼロ初期化が契約で許されています。  
 削除の条件は、「初期化 (`memset` または `cplat_calloc`) からその行までに、対象の変数へ書き込む処理がないこと」とします。`potr_service_open.c` の 143 対象箇所、および追加修正で扱う `alloc_context_buffers()` の `send_has_data`、`potr_peer_table.c`、`potr_send_queue.c` について現在のソースを 1 行ずつ確かめた結果は、「サンプルの app と app/porter の追加の修正」の章の「app/porter のコンテキスト確保等における重複するゼロ代入の削除」に表としてまとめます。143 の対象箇所 (次の 3 か所) は、いずれも条件を満たすため削除します。
 
+Table: 143 で削除する 0 の格納
+
 | ファイル・関数と行 | 対象の変数 | 初期化からその行までの状態 | 処置 |
 | --- | --- | --- | --- |
 | `potr_service_open.c` `generate_session()` 76、80 行目 | `last_ping_send_ms[]`、`last_valid_data_send_ms[]` | 577 行目の `memset` から 653 行目の呼び出しまで書き込みなし。スレッドは未起動。 | 削除する |
 | `potr_service_open.c` `alloc_context_buffers()` 291、292 行目 | `tcp_peer_fin_received`、`tcp_sent_after_peer_fin` | 577 行目の `memset` から 667 行目の呼び出しまで書き込みなし。スレッドは未起動。 | 削除する |
 | `potr_service_open.c` `start_threads_udp()` 504 行目 | `health_send_immediate[0]` | 492 行目で起動済みの送信スレッドは参照せず、504 行目まで書き込みなし。ヘルス チェック スレッドは 511 行目で起動する。 | 削除する (`if` 分岐の 1 設定は維持) |
-
-Table: 143 で削除する 0 の格納
 
 `potr_peer_table.c` と `potr_send_queue.c` の判定結果も、同章の表に従って削除または維持します。テストの変更は要りません。既存のサービスを開くテスト (`potrServiceOpenTest`)、ピア テーブルのテスト (`potrPeerTableTest`)、および送信キューのテスト (`potrSendQueueTest`) で確かめます。
 
@@ -1180,6 +1180,8 @@ Table: 143 で削除する 0 の格納
 500 [ms] になるのは、`health_timeout_ms` が 0 の場合と、役割が SENDER で種別が `unicast_bidir` 以外の場合です。  
 `docs/health-check.md` (199-201 行目) の「タイムアウト検出 (受信スレッド)」の文を、待機から戻るたびに受信期限を確認して停止の指示を読み直すこと、現在の `potr_recv_thread.c` に存在する次の 6 つの条件をすべて載せた待機の上限の表、および `health_timeout_ms` が 300 [ms] 未満の場合の注記に書き換えます。文の中の関数名は、現在のコードの名前に直します。あわせて、`docs/health-check.md` に書くフロー制御に関する文面は、フロー制御の作業の担当へ確認します。
 
+Table: 受信スレッド (`recv_thread_func()`) の待機の上限を決める 6 つの条件
+
 | 条件 (`recv_thread_func()` 内の適用順) | 対象となる構成 | 待機の上限 [ms] |
 | --- | --- | --- |
 | 受信期限の監視 | 受信者、または `unicast_bidir` で `health_timeout_ms > 0` の場合 | `max(health_timeout_ms / 3, 100)` (`health_timeout_ms < 300` のときは `100` が下限) |
@@ -1189,8 +1191,6 @@ Table: 143 で削除する 0 の格納
 | 受信報告の送信の時刻 | 片方向通常モードの受信者で、次の受信報告の予定時刻 (`next_report_ms`) が現在時刻より後の場合 | 上の値と「次の報告予定時刻 − 現在時刻」の小さいほう |
 | `multicast` と `broadcast` の送信側の監視の時刻 | `multicast` または `broadcast` の送信者で、次の監視対象一覧の送出予定時刻 (`flow_monitor_next_ms`) が現在時刻より後の場合 (詳細は [設定仕様](config.md#multicast-と-broadcast-の監視対象) および [プロトコル仕様](protocol.md#監視対象の一覧のパケット) を参照) | 上の値と「次の送出予定時刻 − 現在時刻」の小さいほう |
 | フロー制御が有効な受信側の要求の間隔 | フロー制御が有効な受信側 (`flow_control != NULL`) の場合 (詳細は [設定仕様](config.md#再送周期と有効期限) を参照) | 上の値と `flow_control_request_interval_ms` の小さいほう |
-
-Table: 受信スレッド (`recv_thread_func()`) の待機の上限を決める 6 つの条件
 
 なお、TCP の受信スレッド (`tcp_recv_thread_func()`、766-801 行目) についても、「タイムアウト検出 (recv スレッド)」(231 行目) にフロー制御が有効な受信側では `flow_control_request_interval_ms` により待機上限が短縮される旨を補います。
 
@@ -1375,6 +1375,8 @@ static_assert(CPLAT_PROCESS_LONG_PATH_WCHAR_CAP > PLATFORM_PATH_MAX,
     - Linux のみ実行 (`Mock_cplat` を使用): `get_path_returns_out_of_memory_when_normalization_reports_out_of_memory` (`cplat_path_get_full` が `ENOMEM` と `CPLAT_ERR_OUT_OF_MEMORY` を返す場合に `CPLAT_ERR_OUT_OF_MEMORY` が返ること) を追加します。
 - Windows のみで実行する追加テスト 11 件は、次のとおりです。
 
+Table: モジュール・実行ファイル パスと UTF-8 パス最大長の追加テスト一覧
+
 | 配置先 | テスト名 | 手順と期待結果 |
 | --- | --- | --- |
 | `pathTest/pathGetFullTest.cc` | `returns_full_path_for_non_ascii_path_over_260_bytes_windows` | `"C:/"` に「あ」100 文字を続けたパス (300 [byte] 超、UTF-16 で 103 文字) を `PLATFORM_PATH_UTF8_MAX` の出力先で取得する。戻り値が `CPLAT_OK` であること。 |
@@ -1388,8 +1390,6 @@ static_assert(CPLAT_PROCESS_LONG_PATH_WCHAR_CAP > PLATFORM_PATH_MAX,
 | `processTest/processTest.cc` | `ExecutablePathReturnsBufferTooSmallForCallerBufferWindows` | 長いパスに対し呼び出し元の出力先が不足する場合に `CPLAT_ERR_BUFFER_TOO_SMALL` が返ること。 |
 | `processTest/processTest.cc` | `ExecutablePathReportsOutOfMemory` | `Mock_cplat` の `cplat_malloc` が `nullptr` を返す。戻り値が `CPLAT_ERR_OUT_OF_MEMORY`、出力先の先頭が `'\0'` であること。 |
 | `traceTest/traceTest.cc` | `default_file_path_uses_executable_directory_for_long_path` | `Mock_cplat` の `cplat_process_get_executable_path` が 300 [byte] のパスを返す状態で `cplat_tracer_start` を呼ぶ。`log/` 相対への切り替えが起きず、実行ファイルのディレクトリ配下の `log/` が渡ること。 |
-
-Table: モジュール・実行ファイル パスと UTF-8 パス最大長の追加テスト一覧
 
 実機での検証と CI での確認事項: 32767 文字付近の長いパスや `MAX_PATH` を超えるパスに配置したモジュール・実行ファイルを実際に読み込んで起動する動作は、`longPathAware` マニフェストとレジストリ設定を備えた Windows 実機でしか確かめられません。Linux 側へ限定する既存テスト、`get_path_returns_out_of_memory_when_normalization_reports_out_of_memory`、および両 OS テストの Linux 実行は CI で確かめます。
 
@@ -1629,6 +1629,8 @@ static_assert(PROMPT_FMT_INITIAL_CAPACITY >= 1U, "initial format buffer capacity
 
 テストは、新しいディレクトリ `app/cplat/test/src/libcplatTest/win32/fileApiTest/` に `makepart.mk` と `fileApiTest.cc` を新設して配置します (Windows だけで実行、`TEST_SRCS` は `$(MYAPP_DIR)/prod/libsrc/cplat/win32/file_api.c`、`LIBS += mock_libc mock_cplat`)。あわせて、`framework/testfw/include/mock_windows.h` と `framework/testfw/libsrc/mock_libc/mock_windows.cc` に `WriteConsoleW` の mock を追加します。
 
+Table: WriteConsoleU のテスト
+
 | テスト名 | 手順と期待結果 |
 | --- | --- |
 | `write_console_passes_characters_after_embedded_nul` | `"ab\0cd"` の 5 [byte] を渡します。`WriteConsoleW` の mock が受け取る文字数が 5 で内容が `L"ab\0cd"` と一致し、書き込めたバイト数が 5 であることを確かめます。 |
@@ -1636,8 +1638,6 @@ static_assert(PROMPT_FMT_INITIAL_CAPACITY >= 1U, "initial format buffer capacity
 | `write_console_stores_zero_on_partial_write` | `WriteConsoleW` の mock が要求より少ない文字数を返して `TRUE` にします。戻り値が `TRUE` で、書き込めたバイト数が 0 であることを確かめます。 |
 | `write_console_accepts_zero_length` | 長さ 0 を渡し、`WriteConsoleW` が文字数 0 で呼ばれることを確かめます。 |
 | `write_console_rejects_null_buffer` | `lpBuffer` に `NULL` を渡し、戻り値が `FALSE` で `GetLastError()` が `ERROR_INVALID_PARAMETER` であることを確かめます。 |
-
-Table: WriteConsoleU のテスト
 
 実機でしか確かめられない事項: 途中の NUL 文字が実物の Windows コンソール画面上でどのように表示されるかは Microsoft の資料に記載がなく、実機コンソールでのみ確認できます。
 
@@ -1696,6 +1696,8 @@ static_assert(CPLAT_WIN32_LONG_PATH_WCHAR_CAP > PLATFORM_PATH_MAX,
 
 テストは、前節で新設する `app/cplat/test/src/libcplatTest/win32/fileApiTest/fileApiTest.cc` へ次の 6 件を追加します (Windows だけで実行、`Mock_windows` の `GetModuleFileNameW` で返すパスを差し替えます)。
 
+Table: GetModuleFileNameU の修正で追加するテスト一覧 (Windows のみ)
+
 | テスト名 | 手順と期待結果 |
 | --- | --- |
 | `get_module_file_name_truncates_at_utf8_character_boundary` | `C:\あいう.exe` を返し、「い」の途中で切れる `nSize` を渡す。格納された文字列が `C:\あ`、戻り値が `nSize`、最終エラーが `ERROR_INSUFFICIENT_BUFFER` であること。 |
@@ -1704,8 +1706,6 @@ static_assert(CPLAT_WIN32_LONG_PATH_WCHAR_CAP > PLATFORM_PATH_MAX,
 | `get_module_file_name_reports_out_of_memory_when_allocation_fails` | `Mock_cplat` の `cplat_malloc` が `nullptr` を返す。戻り値が 0、最終エラーが `ERROR_OUTOFMEMORY` であること。 |
 | `get_module_file_name_rejects_null_buffer_and_zero_size` | `lpFilename` が `nullptr` または `nSize` が 0 の呼び出しを行う。戻り値が 0、最終エラーが `ERROR_INVALID_PARAMETER` であること。 |
 | `get_module_file_name_propagates_native_failure` | `Mock_windows` の `GetModuleFileNameW` が 0 を返す。戻り値が 0 であること。 |
-
-Table: GetModuleFileNameU の修正で追加するテスト一覧 (Windows のみ)
 
 実機でしか確かめられない事項は、ありません (テスト対象が Windows 専用 API であり、Windows の単体テストで検証できます)。
 
@@ -1859,13 +1859,13 @@ static int register_options(bench_hashtable_options *options)
 
 枝番号 020 の変更 (FD 番号不一致の失敗化と呼び出し元での失敗集計) に合わせて、`reopen_crt_std_fd` の戻り値と呼び出し元の比較を共通の結果コード (`CPLAT_OK` / `CPLAT_ERR_*`) へ統一します。
 
+Table: reopen_crt_std_fd の戻り値
+
 | 条件 | 変更前 | 変更後 |
 | --- | --- | --- |
 | 成功 | 0 | `CPLAT_OK` |
 | `handle` が無効、`stream` または `name` が `NULL` | -1 | `CPLAT_ERR_INVALID_ARGUMENT` |
 | `_fileno` の失敗、`_open_osfhandle` の失敗、FD 番号の不一致 (枝番号 020) | -1 | `CPLAT_ERR_UNKNOWN` |
-
-Table: reopen_crt_std_fd の戻り値
 
 呼び出し元の `cplat_console_attach_parent` は、次のように `== CPLAT_OK` で判定します。`CreateFileW` が失敗した場合は `CPLAT_ERR_INVALID_ARGUMENT` が返りますが、これは `CreateFileW` の分岐ですでに失敗を集計済みのため、公開 API の戻り値は変わりません。
 
@@ -2107,6 +2107,8 @@ Figure: 名前付きパイプによる昇格プロセスの出力の受け渡し
 テストは、Windows の名前付きパイプの API (`CreateNamedPipeW`、`ConnectNamedPipe`、`PeekNamedPipe`、`GetOverlappedResult`、`CancelIoEx`、`CreateEventW`) を mock にせず、実物の名前付きパイプをテストのプロセスの中で動かします。  
 一方、UAC 昇格の起動とトークン・セッション判定、およびクライアント PID の照合不一致の注入のため、`framework/testfw` へ次の 4 つの mock を追加します。
 
+Table: 名前付きパイプ化のテストのため framework/testfw へ追加する mock
+
 | 関数 | 追加先 | 用途 |
 | --- | --- | --- |
 | `ShellExecuteExW` | 新設の `include/mock_shellapi.h`、新設の `include_override/shellapi.h` (`bcrypt.h` と同じ形式)、`libsrc/mock_libc/` の実装 | 実際の UAC を出さず、テスト内で昇格プロセスの役として実物の `CreateFileW` でパイプへ書き込む。 |
@@ -2114,9 +2116,9 @@ Figure: 名前付きパイプによる昇格プロセスの出力の受け渡し
 | `ProcessIdToSessionId` | `include/mock_windows.h`、`libsrc/mock_libc/mock_windows.cc` | 対話セッションの状態を作る。 |
 | `GetNamedPipeClientProcessId` | `include/mock_windows.h`、`libsrc/mock_libc/mock_windows.cc` | クライアントの PID の不一致を注入する (既定は実物へ委譲する)。 |
 
-Table: 名前付きパイプ化のテストのため framework/testfw へ追加する mock
-
 既存のテスト (`app/cplat/test/src/libcplatTest/runtime/elevatedProcessTest/elevatedProcessTest.cc`) は、次の 5 件、サブ手順 1 個、およびリンク用 fake 1 個を直します (Windows で実行)。
+
+Table: elevatedProcessTest.cc で変更する既存のテストと補助関数
 
 | 対象 | 直す内容 |
 | --- | --- |
@@ -2127,9 +2129,9 @@ Table: 名前付きパイプ化のテストのため framework/testfw へ追加�
 | `attach_output_pipes_succeeds_when_all_steps_succeed` | フラグの値を新しい形式へ変え、`CreateFileW` の引数 (名前、`GENERIC_WRITE`、`OPEN_EXISTING`、`SECURITY_SQOS_PRESENT \| SECURITY_ANONYMOUS`) の確認を足す。 |
 | `attach_output_pipes_fails_when_set_std_handle_fails`、`attach_output_pipes_fails_when_setvbuf_fails` | フラグの値を新しい形式へ変える。前者は「親プロセス ハンドルを閉じる呼び出しを許す」の説明を直す。 |
 
-Table: elevatedProcessTest.cc で変更する既存のテストと補助関数
-
 追加するテストは、`elevatedProcessTest.cc` に 11 件、`app/cplat/test/src/cmd/eventlog-registerTest/eventlog-registerTest.cc` に 2 件の計 13 件です。すべて Windows だけで実行されます。
+
+Table: 名前付きパイプ化で追加するテスト一覧 (Windows のみ)
 
 | 配置先 | テスト名 | 手順と期待結果 |
 | --- | --- | --- |
@@ -2147,8 +2149,6 @@ Table: elevatedProcessTest.cc で変更する既存のテストと補助関数
 | `eventlog-registerTest.cc` | `main_reports_exit_code_when_elevated_process_fails` | 引数 `uninstall` で `cplat_elevated_process_run_piped` から終了コード 3、`handled` 1、`CPLAT_OK` を返す。戻り値が `EXIT_FAILURE`、標準エラー出力に「昇格したプロセスが失敗しました (終了コード: 3)。」が出て、`cplat_eventlog_unregister_source` が呼ばれないこと。 |
 | `eventlog-registerTest.cc` | `main_returns_success_without_diagnostic_when_elevated_process_succeeds` | `cplat_elevated_process_run_piped` から終了コード 0、`handled` 1、`CPLAT_OK` を返す。戻り値が `EXIT_SUCCESS`、標準エラー出力が空で、`cplat_eventlog_unregister_source` が呼ばれないこと。 |
 
-Table: 名前付きパイプ化で追加するテスト一覧 (Windows のみ)
-
 実機でしか確かめられない事項: 異なる管理者アカウントによる UAC 昇格およびパイプの作成・接続・後始末は、単体テストでは再現できないため、実装後に Windows 実機で確認します (確認手順は「テストと検証」の章に示します)。
 
 ### 同期プリミティブのメモリ確保失敗の結果コード
@@ -2156,6 +2156,8 @@ Table: 名前付きパイプ化で追加するテスト一覧 (Windows のみ)
 対象は、実装が `app/cplat/prod/libsrc/cplat/sync/sync_windows.c`、`sync_linux.c`、`sync_descriptor.c`、内部ヘッダーが `app/cplat/prod/include_internal/cplat/sync/sync_descriptor.h`、公開ヘッダーが `app/cplat/prod/include/cplat/sync/sync.h` です。
 
 プロセス間同期およびプロセス内同期のオブジェクト生成処理で、`cplat_malloc`、`cplat_calloc`、`cplat_strdup`、`dup_string` の失敗時 (メモリ不足) に `CPLAT_ERR_UNKNOWN` を返している次の 15 箇所 (プロセス間 7 箇所、プロセス内 8 箇所) の戻り値を、`CPLAT_ERR_OUT_OF_MEMORY` へ変更します。
+
+Table: 同期プリミティブで確保失敗を CPLAT_ERR_OUT_OF_MEMORY へ変える箇所
 
 | 区分 | ファイルと行 | 関数 | 対象の確保 |
 | --- | --- | --- | --- |
@@ -2166,8 +2168,6 @@ Table: 名前付きパイプ化で追加するテスト一覧 (Windows のみ)
 | プロセス間 | `sync_descriptor.c` 96-100 | `cplat_internal_interprocess_sync_descriptor_import` | `cplat_malloc` |
 | プロセス内 | `sync_windows.c` 316-320、419-423、523-527、785-792 | `cplat_local_lock_create`、`cplat_condvar_create`、`cplat_local_rwlock_create`、`cplat_thread_create` | `cplat_calloc`、`cplat_malloc` |
 | プロセス内 | `sync_linux.c` 415-419、568-572、685-689、1005-1012 | `cplat_local_lock_create`、`cplat_condvar_create`、`cplat_local_rwlock_create`、`cplat_thread_create` | `cplat_calloc`、`cplat_malloc` |
-
-Table: 同期プリミティブで確保失敗を CPLAT_ERR_OUT_OF_MEMORY へ変える箇所
 
 `cplat_thread_create` (`sync_windows.c` 797-802 行目、`sync_linux.c` 1017-1022 行目) のスレッド起動の失敗は、`CPLAT_ERR_UNKNOWN` のまま維持します。  
 `sync_windows.c` の `app_lock_open_identity` (124 行目) と `interprocess_lock_open_identity` (169 行目) のコメントを、「ファイルを開けない場合は CPLAT_ERR_UNKNOWN、メモリを確保できない場合は CPLAT_ERR_OUT_OF_MEMORY を返す」に直します。
@@ -2191,6 +2191,8 @@ Table: 同期プリミティブで確保失敗を CPLAT_ERR_OUT_OF_MEMORY へ変
 
 追加するテスト (計 5 件):
 
+Table: 同期プリミティブの確保失敗で追加するテスト一覧
+
 | 配置先 | テスト名 | 実行される OS | 手順と期待結果 |
 | --- | --- | --- | --- |
 | `syncInterprocessLockTest.cc` | `open_reports_out_of_memory_when_identity_duplication_fails_windows` | Windows | `Mock_cplat` の `cplat_malloc` (1 回目の `dup_string` 内) が `nullptr` を返す。戻り値が `CPLAT_ERR_OUT_OF_MEMORY`、`lock` が `nullptr` であること。 |
@@ -2198,8 +2200,6 @@ Table: 同期プリミティブで確保失敗を CPLAT_ERR_OUT_OF_MEMORY へ変
 | `syncInterprocessRwlockTest.cc` | `open_reports_out_of_memory_when_identity_duplication_fails_windows` | Windows | `Mock_cplat` の `cplat_malloc` が `nullptr` を返す。戻り値が `CPLAT_ERR_OUT_OF_MEMORY`、`lock` が `nullptr` であること。 |
 | `syncInterprocessRwlockTest.cc` | `open_reports_out_of_memory_when_allocation_fails_windows` | Windows | `Mock_cplat` の `cplat_calloc` が `nullptr` を返す。戻り値が `CPLAT_ERR_OUT_OF_MEMORY`、`lock` が `nullptr` であること。 |
 | `syncInterprocessLockTest.cc` | `import_descriptor_propagates_out_of_memory` | 両 OS | `stub_cplat` の `cplat_internal_interprocess_sync_descriptor_import` が `CPLAT_ERR_OUT_OF_MEMORY` を返す状態で `cplat_interprocess_lock_import_descriptor` を呼ぶ。戻り値が `CPLAT_ERR_OUT_OF_MEMORY` であること。 |
-
-Table: 同期プリミティブの確保失敗で追加するテスト一覧
 
 実機でしか確かめられない事項は、ありません (Linux の `syncTest` の変更と両 OS テストの Linux 実行は CI で確認します)。
 
@@ -2229,13 +2229,13 @@ Table: 同期プリミティブの確保失敗で追加するテスト一覧
 
 テストは、枝番号 102 で新設する `app/cplat/test/src/libcplatTest/trace/trace_etw_sessionTest/` に 3 件追加します (Windows だけで実行、`trace_etw_session.inject.c` のアクセサーへ偽のイベント情報を渡します)。
 
+Table: ETW プロパティ打ち切りの追加テスト
+
 | テスト名 | 手順と期待結果 |
 | --- | --- |
 | `extract_stops_at_unnamed_property` | `Service`、名前のない文字列、`Message` の順でデータ `"svc\0skip\0msg\0"` を渡します。`Service` が `"svc"`、`Message` が `NULL` であることを確かめます。 |
 | `extract_stops_at_string_with_length_property` | 長さを持つ `uint32` と、`PropertyParamLength` が立つ `Service` を並べ、データ `3`、`"abc"`、`"msg\0"` を渡します。`Service` が `NULL` であることを確かめます。 |
 | `extract_stops_at_fixed_length_string` | `PropertyParamFixedLength` が立ち、`length` が 3 の `Service` を渡し、`Service` が `NULL` であることを確かめます。 |
-
-Table: ETW プロパティ打ち切りの追加テスト
 
 実機でしか確かめられない事項: cplat 自身が発行するイベント (`TraceLoggingString` 2 個と `TraceLoggingUInt32` 1 個) に対して実機の TDH が返す `Flags` と `length` の値はコードからは確認できないため、既存の結合テスト `etwSessionIntegrationTest` (Windows 実機) を実行して通常のイベント読み取りが回帰していないことを確かめます。
 
@@ -2252,6 +2252,8 @@ Table: ETW プロパティ打ち切りの追加テスト
 
 対象ヘッダー: `cplat/crt/path.h`
 
+Table: パスの操作 API と cplat 代替ラッパーの差異
+
 | 生 API | cplat 代替 | 差異の要点 |
 |---|---|---|
 | `PATH_MAX` (POSIX) / `MAX_PATH` (Win32) | `PLATFORM_PATH_MAX` | OS 固有のパス最大長 (終端を含む)。Linux は `PATH_MAX` [byte]、Windows は `MAX_PATH` (UTF-16 の文字数) |
@@ -2267,13 +2269,13 @@ Table: ETW プロパティ打ち切りの追加テスト
 | (拡張子の取得) | `cplat_path_extension(path)` | ベース名の最後の `.` 以降を指すポインターを返す (`.` を含む)。先頭が `.` の名前のその `.` は、拡張子としない |
 | (拡張子の除去) | `cplat_path_strip_extension(path_out, path_size, detail_out, path)` | 拡張子を除いた文字列を `path_out` へ格納する |
 
-Table: パスの操作 API と cplat 代替ラッパーの差異
-
 出力するパスの区切りは、全プラットフォームで `/` です。入力は `/` を推奨し、Windows では `\` も受け付けます。  
 `cplat_path_basename`、`cplat_path_dirname`、`cplat_path_extension`、`cplat_path_strip_extension` は、Linux でも `\` を区切りとして扱います。`__FILE__` など Windows 由来のパスを解析できるようにするための例外です。  
 ポインターを返す `cplat_path_normalize_sep`、`cplat_path_basename`、`cplat_path_extension` は、共通結果コードの適用対象外です。
 
 パスの連結には、次の API を使用します。
+
+Table: パスの連結 API
 
 | 用途 | cplat API | 要点 |
 |---|---|---|
@@ -2281,8 +2283,6 @@ Table: パスの操作 API と cplat 代替ラッパーの差異
 | 区切りを補って連結する | `cplat_path_join(path_out, path_size, detail_out, ...)` | 可変長マクロ。断片は 1 個以上 16 個以下。断片の間の区切りを 1 つにする。断片の途中の `\` は正規化しない |
 | 断片が 17 個以上、または個数を実行時に決める | `cplat_path_concat_n` / `cplat_path_join_n` | 個数を引数で渡す |
 | `va_list` で渡す | `cplat_vpath_concat_n` / `cplat_vpath_join_n` | ラッパーを作る場合に使う |
-
-Table: パスの連結 API
 
 結果が `path_out` に収まらない場合は、`CPLAT_ERR_BUFFER_TOO_SMALL` を返します。
 ```
@@ -2327,6 +2327,8 @@ Table: パスの連結 API
 
 テストは、新しい libsystemd の mock を `app/service-sample/test/` 配下へ導入して行います。`app/service-sample/test/include_override/systemd/` に `<systemd/sd-event.h>` と `<systemd/sd-daemon.h>` の使用する関数だけを差し替える override ヘッダーを置き、`app/service-sample/test/libsrc/mock_systemd/` に実関数へ既定委譲するモック ライブラリを作ります (`sd-bus.h` は可変長引数の関数を持つため対象外)。`app/service-sample/test/src/cmd/linux/service-sampleLinuxTest/makepart.mk` で `service-sample_linux_events.c` を `ADD_SRCS` から `TEST_SRCS` へ移し、`mock_systemd` をリンクします。環境変数 `NOTIFY_SOCKET` はテスト用の UNIX ドメイン ソケット (`SOCK_DGRAM`) へ向け、スレッド起動前に設定します。
 
+Table: イベント監視スレッドの起動失敗とループ異常終了のテスト (すべて Linux だけで実行)
+
 | テスト | 配置先 | 手順と期待結果 |
 | --- | --- | --- |
 | `run_service_fails_when_events_thread_cannot_start` | `service-sampleLinuxTest.cc` | `cplat_thread_create` の mock から `CPLAT_ERR_UNKNOWN` を返す。`EXIT_FAILURE` が返り、`on_start` が呼ばれず、`READY=1` が届かず、ERROR のトレースが出る。 |
@@ -2335,8 +2337,6 @@ Table: パスの連結 API
 | `run_service_fails_when_stop_watch_cannot_be_registered` | 同上 | `sd_event_add_io` の mock から `-ENOMEM` を返す。同上。 |
 | `run_service_fails_when_watchdog_timer_cannot_be_registered` | 同上 | `WATCHDOG_USEC` を設定し、`sd_event_add_time` の mock から `-ENOMEM` を返す。同上。 |
 | `run_service_fails_when_event_loop_ends_abnormally` | 同上 | `sd_event_loop` の mock から `-EIO` を返す。`on_run` が戻り、`on_stop` が呼ばれ、`EXIT_FAILURE` が返る。 |
-
-Table: イベント監視スレッドの起動失敗とループ異常終了のテスト (すべて Linux だけで実行)
 
 Linux だけのコードのビルドと上記の 6 件のテストは、CI でのみ実行されます。また、CI はコンテナーで実行し systemd がサービスを管理しないため、`READY=1` 前の非 0 終了による起動失敗の記録および `Restart=on-failure` による再起動は、systemd が動く Linux 実機での手動確認が必要です。
 
@@ -2389,6 +2389,8 @@ static_assert(SVC_WATCHDOG_CHECK_DIVISOR >= 2U, "watchdog check interval must be
 - `service-sample_linux_events.h` と `service-sample_linux_events.c` のファイル説明および `docs/service-events.md` (106 行目、208 から 209 行目、および枝番号 157 の表) を更新します。
 - `app/service-sample/prod/src/cmd/service-sample/README.md` のコールバック一覧の `on_run` の行 (28 行目) へ、watchdog の契約への参照を追加します。
 
+Table: watchdog 監視と生存記録のテスト
+
 | テスト | 配置先 | 実行される OS | 手順と期待結果 |
 | --- | --- | --- | --- |
 | `on_run_progress_is_alive_while_waiting` | `service-sampleTest.cc` | 両方 | `cplat_condvar_timed_wait` の mock の中で `svc_on_run_made_progress()` を呼ぶ。`1` が返る。 |
@@ -2398,8 +2400,6 @@ static_assert(SVC_WATCHDOG_CHECK_DIVISOR >= 2U, "watchdog check interval must be
 | `run_service_sends_watchdog_while_on_run_waits` | 同上 | Linux | `WATCHDOG_USEC=2000000` (周期 500 [ms]) で `on_run` が `svc_wait_for_stop(100)` を繰り返す。`READY=1` の後に `WATCHDOG=1` が 1 回以上届く。 |
 | `run_service_does_not_send_watchdog_while_on_run_is_blocked` | 同上 | Linux | `WATCHDOG_USEC=2000000` で `on_run` が待機を呼ばずに 1500 [ms] 止まる。その間に `WATCHDOG=1` が届かず、WARNING のトレースが 1 回出る。 |
 | `run_service_does_not_send_watchdog_outside_running` | 同上 | Linux | `WATCHDOG_USEC=2000000` で `on_start` と `on_stop` が 1500 [ms] 止まる。`READY=1` の前と `STOPPING=1` の後に `WATCHDOG=1` が届かない。 |
-
-Table: watchdog 監視と生存記録のテスト
 
 Linux だけの 4 件のテストは CI で実行されます。実際に systemd が `WATCHDOG=1` の途絶を検知して `SIGABRT` で終了させ、再起動を行う動作は、systemd が動く Linux 実機での手動確認が必要です。
 
@@ -2466,6 +2466,8 @@ Linux だけのテストは CI で実行されます。実際に 30 [s] の待�
 
 テストは、`app/service-sample/test/src/cmd/linux/service-sampleLinuxTest/service-sampleLinuxTest.cc` に 6 件を追加します (Linux だけで実行)。
 
+Table: SIGHUP とイベント配送期間のテスト (すべて Linux だけで実行)
+
 | テスト | 手順と期待結果 |
 | --- | --- |
 | `run_service_fails_when_sighup_handler_cannot_be_installed` | `sigaction` の mock から `-1` を返す。`EXIT_FAILURE` が返り、`on_start` が呼ばれず、`READY=1` が届かず、ERROR のトレースが出る。 |
@@ -2475,13 +2477,13 @@ Linux だけのテストは CI で実行されます。実際に 30 [s] の待�
 | `install_omits_exec_reload_without_on_reload` | `on_reload` が NULL の定義で `svc_os_install()` を呼ぶ。生成された unit に `ExecReload=` がない。 |
 | `install_writes_exec_reload_with_on_reload` | `on_reload` がある定義で `svc_os_install()` を呼ぶ。生成された unit に `ExecReload=` がある。 |
 
-Table: SIGHUP とイベント配送期間のテスト (すべて Linux だけで実行)
-
 Linux だけのテスト 6 件は CI で実行されます。`on_event` の D-Bus シグナル配送は実バスを使うテストがないため、段階の判定だけを inject で確かめます。`ExecReload=` がない unit に対して `systemctl reload` が拒否される動作は、systemd が動く Linux 実機での手動確認が必要です。
 
 ### service-sample の Linux 実装で設計時に具体化した事項
 
 `service-sample` の Linux 実装について、設計時に具体化した事項の一覧は、次のとおりです。
+
+Table: service-sample の Linux 実装で設計時に具体化した事項
 
 | 項目 | 定めた内容 |
 | --- | --- |
@@ -2493,8 +2495,6 @@ Linux だけのテスト 6 件は CI で実行されます。`on_event` の D-Bu
 | 起動の待ち合わせ | `svc_linux_events_start()` は lock と条件変数を用いて、スレッドの初期化完了まで無期限に待つ。全体の打ち切りは systemd の `TimeoutStartSec=` に委ねる。 |
 | `on_start` と `on_stop` の上限 | `service-sample.h` と `docs/service-events.md` に、`on_start()` の上限 (既定 90 [s] 未満) と `on_stop()` の上限 (復帰と合わせ 60 [s] 未満、停止開始直前の競合時は `WatchdogSec=` 未満) を記載する。 |
 | 異常終了と共通規範の関係 | コールバックの停滞を含む時間切れでの `CPLAT_ABORT()` 呼び出しは、共通のコーディング規範の「プロセスの継続が危険な場合」に当たる理由をソース コメントと Doxygen へ記載し、共通の規範自体は変更しない。 |
-
-Table: service-sample の Linux 実装で設計時に具体化した事項
 
 ### app/porter の受信スレッドにおける証明書認証時の待機上限の定数化
 
@@ -2535,6 +2535,8 @@ static_assert(POTR_RECV_POLL_CERT_MS <= (uint32_t)INT_MAX, "cert poll interval m
 
 変更の内容は、現在のコードに合わせて次の名前へ一括で書き換えることです。145 と 146 で書き換える箇所 (`health-check.md` 201 行目と `architecture.md` 368-370 行目、544 行目) は、それぞれの修正へ委ね、`POTR_NACK_DEDUP_SLOTS` に伴うエントリ数表記 (`architecture.md` 526 行目、`protocol.md` 515 行目) は「動作を変える 12 件」の章で定めたとおりに更新します。`architecture.md` 267 行目の「バッファー満杯の path はスキップします」は、146 で確認した「他 path へ書き込めた場合だけ飛ばす」条件と合わせて直します。`linux-signal.md` 180 行目の OS 関数としての `poll()` や、移行の経緯の説明は対象外とします。
 
+Table: 設計文書で更新する廃止済みの名前
+
 | 対象ファイルと行 | 文書の古い記載 | 現在のコードに基づく記載 |
 | --- | --- | --- |
 | `health-check.md` 69、282、`protocol.md` 699、708、`sequence-bidir.md` 135 | `check_health_timeout()` | `thread_recv_health_check_service()` (`thread/thread_recv_health.c`) |
@@ -2552,8 +2554,6 @@ static_assert(POTR_RECV_POLL_CERT_MS <= (uint32_t)INT_MAX, "cert poll interval m
 | `fin-ordering.md` 182、183、`path-event.md` 176 | 旧ファイル パス (`config.c`、`potr_context.h`、`porter_type.h` の位置) | `config_load_global.c`、`include_internal/porter/potr_context.h`、`include/porter/porter_type.h` |
 | `health-check.md` 205、209、211、265、`protocol.md` 698-731、`sequence-bidir.md` 123、135、`sequence-health.md` 34 | `last_recv_tv_sec` / `_nsec` / `last_recv_tv`、`path_last_recv_sec` / `_nsec` | `last_recv_ts`、`path_last_recv_ts` |
 
-Table: 設計文書で更新する廃止済みの名前
-
 文書だけの修正であり、公開の契約は変わらず、テストの追加はありません。変更した各 Markdown ファイルに対して `text_style_jp.py --dry-run` と `--in-place` を実行します。
 
 ### app/porter のコンテキスト確保等における重複するゼロ代入の削除
@@ -2564,6 +2564,8 @@ Table: 設計文書で更新する廃止済みの名前
 対象は、`app/porter/prod/libsrc/porter/api/potr_service_open.c` (`alloc_context_buffers()` 290 行目の `ctx->send_has_data = 0;` および 143 対象箇所)、`app/porter/prod/libsrc/porter/potr_peer_table.c` (`potr_internal_peer_create()` 364、406、407 行目等)、および `app/porter/prod/libsrc/porter/infra/potr_send_queue.c` (`potr_internal_send_queue_init()` 50、51 行目等) です。
 
 各ファイルの現在のソースを、ゼロ初期化 (`memset` または `cplat_calloc`) から該当行までの間に同じ変数へ書き込む処理がないか 1 行ずつ確認した結果は、次のとおりです (143 で定めた `potr_service_open.c` 76、80、291、292、504 行目の確認結果は、「動作を変えない 46 件」の章の 143 の表に示しています)。
+
+Table: potr_service_open.c、potr_peer_table.c、potr_send_queue.c のゼロ代入の判定結果
 
 | ファイル・関数と行 | 対象の代入 | 初期化と途中の確認結果 | 処置 |
 | --- | --- | --- | --- |
@@ -2577,8 +2579,6 @@ Table: 設計文書で更新する廃止済みの名前
 | `potr_send_queue.c` `potr_internal_send_queue_init()` 50 行目 | `q->entries[i].flags = 0;` | 32 行目の `cplat_calloc` で `q->entries` 全体が 0 初期化済み。49 行目は `peer_id` のみ設定し、間に `flags` への書き込みなし。 | 削除する |
 | `potr_send_queue.c` `potr_internal_send_queue_init()` 51 行目 | `q->entries[i].payload_len = 0;` | 32 行目の `cplat_calloc` 後、間に `payload_len` への書き込みなし。 | 削除する |
 | `potr_send_queue.c` `potr_internal_send_queue_init()` 39-40 行目 | `q->entries = NULL; q->payload_pool = NULL;` | 32-33 行目で `cplat_calloc` の戻り値を書き込んだ後の失敗時解放 (`free` 後の NULL クリア)。間に書き込みがある。 | 削除しない (直前で非 NULL が格納され得るため) |
-
-Table: potr_service_open.c、potr_peer_table.c、potr_send_queue.c のゼロ代入の判定結果
 
 動作、公開の契約、文書は変わりません。テストの追加は不要であり、既存のサービスを開くテスト (`potrServiceOpenTest`)、ピア テーブルのテスト (`potrPeerTableTest`)、送信キューのテスト (`potrSendQueueTest`)、およびビルドで確認します。
 
@@ -2647,6 +2647,8 @@ static_assert(STRUCT_META_INDEX_REGISTRY_LIFETIME >= 2U &&
 
 既存 7 app (`app/cplat` および `app/calc` 等 6 app) の件数は 629 件 (修正 623 件、設計判断後に方針を確定した 6 件。ほかに例外・対象外が 37 件)、`app/porter` の件数はライブラリ 83 件 (31 ファイル)、コマンド 181 件 (6 ファイル) の計 264 件であり、全 app の修正対象の合計は **893 件** (例外・対象外 37 件を含めた総確認件数は 930 件) です。
 
+Table: 整数定数規範の規則ごとの判定件数 (全 app)
+
 | 規則 | 既存 7 app (修正 + 判断後) | `app/porter` ライブラリ | `app/porter` コマンド | 修正対象 合計 | 既存 7 app 例外・対象外 | 総計 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 表現 (`enum` 化) | (下表に 9 箇所を別掲) | 6 | 0 | 6 | 0 | 6 |
@@ -2656,8 +2658,6 @@ static_assert(STRUCT_META_INDEX_REGISTRY_LIFETIME >= 2U &&
 | R4 役割と単位を書く | 37 (36 + 1) | 4 | 3 | 44 | 1 | 45 |
 | R5 意味を持つ直値を書かない | 399 (396 + 3) | 25 | 136 | 560 | 26 | 586 |
 | 合計 | 629 (623 + 6) | 83 | 181 | 893 | 37 | 930 |
-
-Table: 整数定数規範の規則ごとの判定件数 (全 app)
 
 `app/porter` のうち確認時に判断を保留していた項目は、次のとおりすべて方針を確定しました。
 
@@ -2681,6 +2681,8 @@ Table: 整数定数規範の規則ごとの判定件数 (全 app)
 ### 複数ファイルで共有する新しい定数
 
 複数のファイルで重複していた値および文字符号の規格が定める値は、次のヘッダーへ集約します。
+
+Table: 複数のファイルで共有する新しい定数の一覧
 
 | 配置先ヘッダー | 定数名 | 値 | 役割と共有する主なファイル |
 | --- | --- | --- | --- |
@@ -2706,11 +2708,11 @@ Table: 整数定数規範の規則ごとの判定件数 (全 app)
 | `app/porter` / `prod/include_internal/porter/thread/potr_send_thread.h` (既存) | `POTR_TCP_BATCH_MIN_PACKETS`、`POTR_TCP_BUF_FULL_SUPPRESS_COUNT` | `2U`、`10` | TCP まとめ送り最小パケット数 (`potr_service_open.c`、`potr_send_thread.c`) と送信バッファー満杯警告の抑制回数 (`potr_send_thread.c`、`potrSendThreadTest.cc`) |
 | `app/porter` / `prod/src/cmd/tech-sample/tcpServer/tcpServer.h` (既存) | `CONNS_PER_WORKER_SEQUENTIAL`、`LISTEN_BACKLOG`、`PORT_MIN`、`PORT_MAX` | `1`、`128`、`1`、`UINT16_MAX` | 逐次処理モード接続数と `listen()` backlog (`tcpServer_linux.c`、`tcpServer_windows.c`)、有効ポート範囲 (`tcpServer.c`、`tcpServer.h`) |
 
-Table: 複数のファイルで共有する新しい定数の一覧
-
 ### enum にする値の集合
 
 状態や種別のように互いに排他的な値の集合を `#define` や直値で表している次の 9 箇所を `enum` へ改めます。公開の関数の引数と構造体のメンバーの型は、ABI 維持のため `int` (または既存の `uint8_t`) のままとします。
+
+Table: enum へ変更する値の集合の一覧 (計 15 集合)
 
 | app | ファイル | 現在の表現 | 変更後の enum と列挙子 | 公開ヘッダーか |
 | --- | --- | --- | --- | --- |
@@ -2730,8 +2732,6 @@ Table: 複数のファイルで共有する新しい定数の一覧
 | `app/porter` | `prod/libsrc/porter/potr_handle.c` (26 行目) | `int state` の `0` (OPEN)、`1` (CLOSING)、`2` (CLOSED) | `typedef enum handle_entry_state` (`HANDLE_STATE_OPEN = 0`、`CLOSING = 1`、`CLOSED = 2`) | `.c` 内部 |
 | `app/porter` | `prod/libsrc/porter/thread/potr_recv_thread.c` (451 行目) | `tcp_wait_readable()` の `-1` (ERROR)、`0` (TIMEOUT)、`1` (READY) | `typedef enum tcp_wait_status` (`TCP_WAIT_ERROR = -1`、`TIMEOUT = 0`、`READY = 1`) | `.c` 内部 |
 
-Table: enum へ変更する値の集合の一覧 (計 15 集合)
-
 `app/porter` の公開ヘッダーにおける `POTR_PING_STATE_*` と `POTR_FLOW_CONTROL_STATE_*` の `enum` 化について、`app/` 全体を検索した結果、`app/porter` 以外の app に `POTR_*` のコード参照はありませんでした。`app/porter/prod/libsrc` 内は `(uint8_t)` キャストまたは `uint8_t` 比較で整合しています。一方、`app/porter/test/` の C++ テストでは型が `unsigned int` から `enum` へ変わるため、次の 6 ファイル (`porterSendRecvTest.cc`、`packetEmissionTest.cc`、`potrConnectedThreadsTest.cc`、`threadRecvReportTest.cc`、`receiverReportTest.cc`、`threadRecvWindowRejectTest.cc`) の該当箇所について、ビルド時の警告や型不一致の有無を確認し、必要に応じて `(uint8_t)` 等を補います。
 
 なお、`app/cplat/prod/libsrc/cplat/hashtable/hashtable.h` 210 行目の無名 `enum` (`ENTRY_TIMESTAMP_PAD` 等 3 個) は、排他的な状態や種別ではなくバイト幅・オフセット定数であるため、`#define` (`U` 接尾辞付き) へ改めます。
@@ -2739,6 +2739,8 @@ Table: enum へ変更する値の集合の一覧 (計 15 集合)
 ### 公開ヘッダーの定数への U 付与と使用箇所の修正
 
 `app/cplat` の公開ヘッダーにおける大きさと個数を表す次の 7 個の定数について、定義へ `U` 接尾辞を付けます。
+
+Table: 公開ヘッダーで U を付与する定数 7 個
 
 | 定数名 | ヘッダー | 変更前 | 変更後 |
 | --- | --- | --- | --- |
@@ -2749,8 +2751,6 @@ Table: enum へ変更する値の集合の一覧 (計 15 集合)
 | `CPLAT_ELEVATED_PROCESS_RESULT_MESSAGE_SIZE` | `prod/include/cplat/runtime/elevated_process.h` | `4096` | `4096U` |
 | `CPLAT_HASHTABLE_VALUE_ALIGN_MAX` | `prod/include/cplat/hashtable/hashtable.h` | `16` | `16U` |
 | `CPLAT_TRACER_MESSAGE_MAX_BYTES` | `prod/include/cplat/trace/tracer.h` | `1024` | `1024U` |
-
-Table: 公開ヘッダーで U を付与する定数 7 個
 
 `app/` 配下の全 app (`prod/` と `test/`) を検索した結果、上記 7 定数および派生マクロ (`MAX_BODY` 等) について、書式指定 (`%d`) や符号付きの値との比較・代入により修正が必要になる使用箇所はありませんでした (`clock.c` 133・158 行目の `+ 1` は `1U` へそろえます)。
 
@@ -2781,6 +2781,8 @@ Table: 公開ヘッダーで U を付与する定数 7 個
 
 `app/cplat/docs/functional-spec/` へ、次の文を足します。関数名、型名、実装方式は書きません。
 
+Table: 機能仕様へ足す文
+
 | 対象項目 | ファイルと節 | 足す文 |
 | --- | --- | --- |
 | 017 | `clock.md` の「時刻の計算と整形」 | ローカル時刻の整形では、UTC との差を分単位で表します。差が分の倍数でない場合は、分未満を 0 方向へ切り捨てます。 |
@@ -2791,8 +2793,6 @@ Table: 公開ヘッダーで U を付与する定数 7 個
 | 名前付きパイプ化 | `runtime.md` の「前提と制約」 (173 行目の後) | 権限昇格したプロセスの出力を受け取る場合は、権限昇格したプロセスが、起動の直後に出力の受け渡しへ接続する必要があります。 |
 | 099 | `sync.md` の「前提と制約」 | プロセス横断ロックの識別子は、ファイル システム上の位置を表します。参加するプロセスがロックを開いている間は、その位置のファイルを削除または名前変更しないでください。 |
 
-Table: 機能仕様へ足す文
-
 要件 ID と UUID は、追加も変更もしません。既存の要件の範囲の中の、前提と振る舞いの明記です。
 
 ## テストと検証
@@ -2800,6 +2800,8 @@ Table: 機能仕様へ足す文
 ### 追加と変更のテスト
 
 動作を変える変更には、すべて失敗時または境界のテストを付けます。動作を変えない項目では、契約を固定する項目および定数の変更に伴う検証にテストを付けます。
+
+Table: テストの追加と変更の一覧
 
 | 対象 | テストの配置先 | 追加 | 変更 | 実行される OS |
 | --- | --- | ---: | ---: | --- |
@@ -2832,8 +2834,6 @@ Table: 機能仕様へ足す文
 | `tcpServer` 定数 `U` 付与 (`BUFFER_SIZE`) | `porter` の `tcpServerWindowsTest` | 0 | 1 | Windows |
 | `POTR_PING_STATE_*` / `POTR_FLOW_CONTROL_STATE_*` `enum` 化 | `porter` の `porterSendRecvTest`、`packetEmissionTest`、`potrConnectedThreadsTest`、`threadRecvReportTest`、`receiverReportTest`、`threadRecvWindowRejectTest` (型整合の確認・必要時のキャスト補完) | 0 | 6 | 両方 |
 
-Table: テストの追加と変更の一覧
-
 テストの配置、命名、エビデンスのコメントは、同じディレクトリの既存のテストと、テスト フレームワークの規範に合わせます。  
 ファイル内に閉じた関数は、既存の inject の方式で呼びます。製品のリンケージは変えません。
 
@@ -2860,6 +2860,8 @@ Table: テストの追加と変更の一覧
 3. **cplat 発行 ETW イベントのプロパティ属性**: 既存の結合テスト `etwSessionIntegrationTest` を Windows 実機で実行し、実機の TDH が返す `Flags` と `length` に対して通常のイベント読み取り (`TraceLoggingString` 2 個と `TraceLoggingUInt32` 1 個) が回帰していないことを確認します。
 4. **昇格出力の名前付きパイプ化 (同じユーザーおよび別の管理者アカウントでの UAC 昇格)**: `eventlog-register.exe`、`libcplat.dll`、`libcplat_eventlog_messages.dll` をどのアカウントからも読めるフォルダーへ配置し、次の手順を実行します (確認後は `uninstall` で登録を削除します)。
 
+Table: 名前付きパイプ化の実機確認手順
+
 | 手順番号 | 実行条件 | 手順 | 期待結果 |
 | --- | --- | --- | --- |
 | 1 | 同じユーザーでの昇格 (管理者アカウントで、未昇格のコンソールから実行) | `eventlog-register.exe install` を実行し、UAC を承認する。 | 「イベント ソース 'cplat.tracer' を登録しました。」と DLL のパスが同じコンソールに出ること、終了コードが 0 であること。 |
@@ -2871,8 +2873,6 @@ Table: テストの追加と変更の一覧
 | 7 | 別の管理者アカウントでの昇格 (標準ユーザーでサインインし、未昇格のコンソールから実行) | `eventlog-register.exe install` を実行し、UAC の画面で別の管理者アカウントの資格情報を入力する。 | 手順 1 と同じ表示と終了コードになること。失敗する場合は表示された診断と終了コードを記録する。 |
 | 8 | 同上 | 同じ環境で `uninstall` を実行する。あわせて手順 6 の状態で、`accesschk.exe \pipe\cplat-elevated-...` などでパイプの ACL を記録する。 | 手順 2 と同じ結果になること。また、LocalSystem、Administrators、呼び出し元のユーザーへの許可が意図どおり設定されていること。 |
 | 9 | 両方の条件 (手順 1 と手順 7) | 一時的な診断出力により、`ShellExecuteExW` が返したハンドルに対する `GetProcessId` の値と、`GetNamedPipeClientProcessId` の値を確認する。 | `GetProcessId` が成功し、パイプのクライアントのプロセス ID と一致すること。 |
-
-Table: 名前付きパイプ化の実機確認手順
 
 #### Linux 実機 (systemd 環境) での確認事項
 
@@ -2894,6 +2894,8 @@ Linux/GCC でのビルドと Linux 向け単体テストは CI で実行でき�
 
 この案件で確定した契約、事実、および規範は、次の正本へ反映します。反映は、各項目の変更と同じ変更で行います。
 
+Table: 知見の反映先
+
 | 知見 | 反映先 |
 | --- | --- |
 | 名前付きの整数定数の規範 (`#define` の使用、型整合、静的検査、重複排除、役割と単位、直値禁止と例外、排他的値集合の `enum`) | `app/general/docs/coding-guideline.md` |
@@ -2914,8 +2916,6 @@ Linux/GCC でのビルドと Linux 向け単体テストは CI で実行でき�
 | 索引の容量の決め方。 | `struct-meta` の `docs/architecture.md` |
 | サービスの状態の通知の checkpoint と `dwWaitHint`、Linux の起動失敗・イベント監視スレッド異常終了・`on_run` 生存監視の watchdog・`ExecReload=` 条件。 | `service-sample` の `service-sample.h`、`service-sample_linux_events.h`、`cmd/service-sample/README.md`、`docs/service-events.md` |
 | 送信キューの下限、受信スレッドの待機の上限 (証明書認証時を含む)、送信バッファー満杯の警告の抑制、設計文書の最新化。 | `porter` の `docs/config.md`、`docs/health-check.md`、`docs/architecture.md`、`protocol.md`、`sequence-bidir.md`、`sequence-health.md`、`fin-ordering.md`、`path-event.md` |
-
-Table: 知見の反映先
 
 ## 作業の順序
 
@@ -2951,6 +2951,8 @@ Table: 知見の反映先
 
 `app/general` と `framework/testfw`:
 
+Table: app/general と framework/testfw の変更するファイル
+
 | 単位 | 区分 | ファイル | 変更内容 |
 | --- | --- | --- | --- |
 | `app/general` | 規範文書 | `docs/coding-guideline.md` | 名前付きの整数定数の規範の追加、マクロ用途節の改定 |
@@ -2958,9 +2960,9 @@ Table: 知見の反映先
 | `framework/testfw` | override ヘッダー | `include_override/shellapi.h` (新設) | `ShellExecuteExW` の差し替え用 override ヘッダー |
 | `framework/testfw` | mock 実装 | `libsrc/mock_libc/mock_windows.cc`、`mock_shellapi` 実装ファイル | 上記 5 関数の mock 実装と既定委譲 |
 
-Table: app/general と framework/testfw の変更するファイル
-
 `app/cplat`:
+
+Table: app/cplat の変更するファイル
 
 | 区分 | ファイル | 対象・枝番号 |
 | --- | --- | --- |
@@ -3025,9 +3027,9 @@ Table: app/general と framework/testfw の変更するファイル
 | | `libcplatTest/win32/fileApiTest/` (新設) | `WriteConsoleU`、`GetModuleFileNameU` |
 | | `cmd/bench-hashtableTest/bench-hashtableTest.cc`、`cmd/bench-ioTest/bench-ioTest.cc`、`cmd/bench-ioTest/makepart.mk`、`cmd/benchReportTest/` (新設)、`cmd/eventlog-registerTest/eventlog-registerTest.cc` | 124、129、256 未満拒否、ヘルプ組立、名前付きパイプ化 |
 
-Table: app/cplat の変更するファイル
-
 ほかの app:
+
+Table: ほかの app の変更するファイル
 
 | app | ファイル | 対象・枝番号 |
 | --- | --- | --- |
@@ -3051,5 +3053,3 @@ Table: app/cplat の変更するファイル
 | 同上 | `prod/src/cmd/tech-sample/tcpServer/tcpServer.h`、`tcpServer.c`、`tcpServer_linux.c`、`tcpServer_windows.c`、`prod/src/cmd/porter-test/porter-test.c`、`prod/src/cmd/porter-bench/porter-bench.cc` | 153、154、155、156、規範適合 (`constexpr` 定数化含む) |
 | 同上 | `docs/config.md`、`health-check.md`、`architecture.md`、`protocol.md`、`sequence-bidir.md`、`sequence-health.md`、`fin-ordering.md`、`path-event.md` | 141、145、146、証明書認証時待機上限、`POTR_NACK_DEDUP_SLOTS`、設計文書廃止名修正 |
 | 同上 | `test/src/libporter/potrServiceOpenTest/potrServiceOpenTest.cc`、`test/src/libporter/potrSendThreadTest/potrSendThreadTest.cc`、`test/src/libporter/threadRecvWindowTest/threadRecvWindowTest.cc`、`thread_recv_window.inject.c`/`.h`、`test/src/cmd/windows/tcpServerWindowsTest/tcpServerWindowsTest.cc`、`test/src/integration/porterSendRecvTest/porterSendRecvTest.cc`、`test/src/libporter/packetEmissionTest/packetEmissionTest.cc`、`potrConnectedThreadsTest/potrConnectedThreadsTest.cc`、`threadRecvReportTest/threadRecvReportTest.cc`、`receiverReportTest/receiverReportTest.cc`、`threadRecvWindowTest/threadRecvWindowRejectTest.cc` | 141、146、`POTR_NACK_DEDUP_SLOTS`、規範適合 (`BUFFER_SIZE` `U` 付与および `enum` 化に伴う型整合) |
-
-Table: ほかの app の変更するファイル

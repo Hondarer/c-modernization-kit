@@ -15,6 +15,8 @@
 
 ## 決定事項一覧
 
+Table: 決定事項の一覧
+
 | 決定 ID | 題名 | 最終更新日 | 源泉 |
 | --- | --- | --- | --- |
 | [LADR-001](#ladr-001-この案件で対策する残課題) | この案件で対策する残課題 | 2026-11-19 | 対話での依頼 |
@@ -32,8 +34,6 @@
 | [LADR-013](#ladr-013-bl-002-の失敗を注入する方法) | BL-002 の失敗を注入する方法 | 2026-11-19 | [Q-021](261119-void-discard-reason-and-failure-injection-discussion.md#q-021-testfw-への-mock-の追加を範囲に含めるか)、[Q-022](261119-void-discard-reason-and-failure-injection-discussion.md#q-022-bcrypt-の解放関数-032-のテストの範囲)、[Q-023](261119-void-discard-reason-and-failure-injection-discussion.md#q-023-標準ストリームの付け替えの失敗-043048-のテストの方法)、[Q-024](261119-void-discard-reason-and-failure-injection-discussion.md#q-024-bench-io-の-csv-の書き込みの失敗-121-のテストの方法)、[Q-025](261119-void-discard-reason-and-failure-injection-discussion.md#q-025-onload-の設定ファイルのパスの組み立ての失敗-138-のテストの範囲)、[Q-026](261119-void-discard-reason-and-failure-injection-discussion.md#q-026-service-sample_windowsc-163166-のテストの方法)、[Q-027](261119-void-discard-reason-and-failure-injection-discussion.md#q-027-string-catalog-library-sample-の-main-170172-のテストの方法)、[Q-071](261119-void-discard-reason-and-failure-injection-discussion.md#q-071-string-catalog-library-sample-のトレース出力の失敗-172-のテストの方法) |
 | [LADR-014](#ladr-014-検査も-void-もない呼び出しの種類ごとの規則) | 検査も (void) もない呼び出しの種類ごとの規則 | 2026-11-19 | [Q-033](261119-void-discard-reason-and-failure-injection-discussion.md#q-033-戻り値が失敗を表さない関数の呼び出しの扱い)、[Q-034](261119-void-discard-reason-and-failure-injection-discussion.md#q-034-potr_trace-の戻り値を破棄する位置)、[Q-035](261119-void-discard-reason-and-failure-injection-discussion.md#q-035-トレース出力の関数を直接呼ぶ箇所の扱い)、[Q-036](261119-void-discard-reason-and-failure-injection-discussion.md#q-036-標準出力をまとめて検査する位置がないコマンドの扱い)、[Q-037](261119-void-discard-reason-and-failure-injection-discussion.md#q-037-対話の応答の出力の扱い)、[Q-038](261119-void-discard-reason-and-failure-injection-discussion.md#q-038-引数パーサーの表示の関数の書き込みの失敗の扱い)、[Q-050](261119-void-discard-reason-and-failure-injection-discussion.md#q-050-終了の直前の検査の失敗時のテストを追加する範囲)、[Q-051](261119-void-discard-reason-and-failure-injection-discussion.md#q-051-使い方の表示の関数の戻り値の検査)、[Q-064](261119-void-discard-reason-and-failure-injection-discussion.md#q-064-struct-meta-sample-の表示のコマンドの後の-ferror-の扱い) |
 | [LADR-015](#ladr-015-失敗時の動作を変える箇所のテスト) | 失敗時の動作を変える箇所のテスト | 2026-11-19 | [Q-059](261119-void-discard-reason-and-failure-injection-discussion.md#q-059-扱いを変える箇所の失敗時のテストの範囲) |
-
-Table: 決定事項の一覧
 
 ## LADR-001 この案件で対策する残課題
 
@@ -55,11 +55,11 @@ Table: 決定事項の一覧
 
 ### 経緯
 
+Table: LADR-001 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 | 対話での依頼 | BL-001 と BL-002 の対処計画を開始する。 | 先行案件は別のセッションが進めている。必要があればセッション間で連絡してよいが、必要性はないと考えている。 | 新規に決定 |
-
-Table: LADR-001 の経緯
 
 ## LADR-002 ソースの変更を始める時期
 
@@ -81,11 +81,11 @@ Table: LADR-001 の経緯
 
 ### 経緯
 
+Table: LADR-002 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 08:36 | [Q-001](261119-void-discard-reason-and-failure-injection-discussion.md#q-001-ソースの変更を始める時期) | A: 検討と最終仕様の作成は今から進める。ソースの変更は、先行案件の変更がコミットされた後に始める。 | なし | 新規に決定 |
-
-Table: LADR-002 の経緯
 
 ## LADR-003 BL-001 の対象範囲
 
@@ -110,13 +110,13 @@ Table: LADR-002 の経緯
 
 ### 経緯
 
+Table: LADR-003 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 08:36 | [Q-002](261119-void-discard-reason-and-failure-injection-discussion.md#q-002-bl-001-で今回対象とする-app) | A: 5 つの app の 525 箇所をすべて対象とする。 | なし | 新規に決定 |
 | 2026-11-19 08:36 | [Q-005](261119-void-discard-reason-and-failure-injection-discussion.md#q-005-test-配下の-void-の呼び出しの扱い) | C: 対象に含めない。規範に、`test` 配下には理由コメントを求めないことを定める。 | なし | 決定を補足 (`test` 配下の扱い) |
 | 2026-11-19 08:36 | [Q-006](261119-void-discard-reason-and-failure-injection-discussion.md#q-006-検索の条件に合わない形式の-14-箇所の扱い) | A: 対象とした app の範囲で、戻り値の破棄に当たる箇所を対象に含める。 | なし | 決定を補足 (検索の条件に合わない形式の扱い) |
-
-Table: LADR-003 の経緯
 
 ## LADR-004 破棄以外の分類に当たる箇所の扱い
 
@@ -139,11 +139,11 @@ Table: LADR-003 の経緯
 
 ### 経緯
 
+Table: LADR-004 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 08:36 | [Q-003](261119-void-discard-reason-and-failure-injection-discussion.md#q-003-破棄以外の分類に当たる箇所の扱い) | B: ほかの分類に当たる箇所の扱いも今回変更する。変更の内容は、箇所ごとに確認項目で合意する。 | 文脈から対処が一意に決定される場合は、エージェントの判断で変更を行ってよい。 | 新規に決定 |
-
-Table: LADR-004 の経緯
 
 ## LADR-005 エラー詳細を記録する内部関数の呼び出しの扱い
 
@@ -166,12 +166,12 @@ Table: LADR-004 の経緯
 
 ### 経緯
 
+Table: LADR-005 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 08:36 | [Q-004](261119-void-discard-reason-and-failure-injection-discussion.md#q-004-戻り値が失敗を表さない関数の呼び出しの扱い) | A: 戻り値を返さない記録専用の内部関数を追加し、92 箇所の `(void)` の呼び出しを置き換える。 | なし | 新規に決定 |
 | 2026-11-19 18:03 | [Q-011](261119-void-discard-reason-and-failure-injection-discussion.md#q-011-記録専用の内部関数の形) | A: 内部ヘッダーの `static inline` の関数とし、既存の関数へ委譲する。名前は `cplat_internal_error_record_errno`、`cplat_internal_error_record_success`、`cplat_internal_error_record_windows_error` とする。 | なし | 決定を補足 (関数の形と名前) |
-
-Table: LADR-005 の経緯
 
 ## LADR-006 ビルドと局所テストの実行担当
 
@@ -192,11 +192,11 @@ Table: LADR-005 の経緯
 
 ### 経緯
 
+Table: LADR-006 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 08:36 | [Q-007](261119-void-discard-reason-and-failure-injection-discussion.md#q-007-ビルドと局所テストの実行担当) | A: 先行案件と同じとする。エージェントが Windows/MSVC でビルドと局所テストを実行し、Linux/GCC は CI で確認する。 | なし | 新規に決定 |
-
-Table: LADR-006 の経緯
 
 ## LADR-007 BL-002 の対象を確定する時期
 
@@ -218,11 +218,11 @@ BL-002 の対象は、先行案件の実装の結果で決まります。対象�
 
 ### 経緯
 
+Table: LADR-007 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 08:36 | [Q-008](261119-void-discard-reason-and-failure-injection-discussion.md#q-008-bl-002-の対象を確定する時期) | A: 先行案件の実装とテストの追加が終わった後に、BL-002 の対象を確定し、項目ごとの方法を確認項目として提示する。 | なし | 新規に決定 |
-
-Table: LADR-007 の経緯
 
 ## LADR-008 理由コメントの文面の基準
 
@@ -249,14 +249,14 @@ Table: LADR-007 の経緯
 
 ### 経緯
 
+Table: LADR-008 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 18:03 | [Q-009](261119-void-discard-reason-and-failure-injection-discussion.md#q-009-理由コメントの文面の基準) | A: この 11 種類と文面の基準に従って付けてよい。個々の文面は最終仕様とソースの差分で確認する。 | `{理由}のため、戻り値は明示的に破棄する` と記載してほしい。 | 新規に決定 |
 | 2026-11-19 18:43 | [Q-028](261119-void-discard-reason-and-failure-injection-discussion.md#q-028-既存の理由コメントを新しい文型へ書き換えるか) | A: 書き換える。169 箇所の理由の内容と根拠の URL は保ち、文型だけを合わせる。 | なし | 決定を補足 (既存のコメントの扱い) |
 | 2026-11-19 18:43 | [Q-029](261119-void-discard-reason-and-failure-injection-discussion.md#q-029-理由コメントの文型を規範に定めるか) | A: 定める。節に文型を追加し、例を文型に合わせて書き換える。 | なし | 決定を補足 (規範への反映) |
 | 2026-11-19 18:43 | [Q-030](261119-void-discard-reason-and-failure-injection-discussion.md#q-030-理由コメントの文型の細部) | A: この 3 点のとおりとする。 | なし | 決定を補足 (文型の細部) |
-
-Table: LADR-008 の経緯
 
 ## LADR-009 検査も (void) もない呼び出しの扱い
 
@@ -282,14 +282,14 @@ Table: LADR-008 の経緯
 
 ### 経緯
 
+Table: LADR-009 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 18:03 | [Q-010](261119-void-discard-reason-and-failure-injection-discussion.md#q-010-検査も-void-もない呼び出しの扱い) | C: 5 つの app の `prod` 配下を網羅的に調査し、すべて今回の対象に含める。 | なし | 新規に決定 |
 | 2026-11-19 18:43 | [Q-031](261119-void-discard-reason-and-failure-injection-discussion.md#q-031-override-sample-を網羅的な調査の対象に含めるか) | A: 含める。6 つの app の `prod` 配下を調査する。 | なし | 決定を補足 (対象の app) |
 | 2026-11-19 18:43 | [Q-032](261119-void-discard-reason-and-failure-injection-discussion.md#q-032-検査も-void-もない呼び出しの調査の結果を受けた範囲) | B: すべてを今回の案件に含める。種類 1 から 3 の規則は、種類ごとの確認項目を追加して決める。 | なし | 決定を補足 (含める範囲) |
 | 2026-11-19 18:45 | 対話での指示 | 1,660 箇所の調査は Opus や Sonnet を使う。 | なし | 決定を補足 (調査の方法) |
-
-Table: LADR-009 の経緯
 
 ## LADR-010 cplat の扱いを変える箇所
 
@@ -325,6 +325,8 @@ Table: LADR-009 の経緯
 
 ### 経緯
 
+Table: LADR-010 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 18:03 | [Q-012](261119-void-discard-reason-and-failure-injection-discussion.md#q-012-終了フックの登録の失敗の扱い) | A: 伝達とする。初期化の結果を `static` の変数へ保持し、`cplat_shutdown_register()` が `CPLAT_ERR_UNKNOWN` を返す。Doxygen の戻り値に追記する。 | なし | 新規に決定 |
@@ -339,8 +341,6 @@ Table: LADR-009 の経緯
 | 2026-11-19 21:58 | [Q-060](261119-void-discard-reason-and-failure-injection-discussion.md#q-060-固定表示の書き込みのフラッシュの失敗時に返すバイト数) | A: `fwrite` が返したバイト数のまま設定する。`fwrite` の不足の経路と同じ扱いとする。 | なし | 決定を補足 (written_out の値) |
 | 2026-11-19 21:58 | [Q-061](261119-void-discard-reason-and-failure-injection-discussion.md#q-061-既定のパーサーの再初期化の失敗を伝える先) | A: 失敗時に既定のパーサーを破棄して NULL にする。新しく作る経路の失敗の後と同じ状態にし、次の取得で引数なしのパーサーが作られる。`cplat_argparser_init()` は戻り値を返さないままとし、Doxygen に、失敗時は既定のパーサーが初期化されない状態になることを書く。 | なし | 決定を変更 (既定のパーサーの再初期化) |
 | 2026-11-19 21:58 | [Q-062](261119-void-discard-reason-and-failure-injection-discussion.md#q-062-終了フックの設置の-1-つが失敗した後の扱い) | A: 残りの設置を続け、1 つでも失敗したら結果を失敗とする。 | なし | 決定を補足 (終了フックの設置) |
-
-Table: LADR-010 の経緯
 
 ## LADR-011 porter の扱いを変える箇所
 
@@ -377,6 +377,8 @@ Table: LADR-010 の経緯
 
 ### 経緯
 
+Table: LADR-011 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 18:03 | [Q-016](261119-void-discard-reason-and-failure-injection-discussion.md#q-016-porter-の接続別の設定値の変換の失敗の扱い) | A: 診断して続行とする。全体の設定の 10 項目と `dst_port`、`src_port` を含む 17 項目のすべてで、変換が失敗した場合に、項目名と値を WARNING のトレースへ出し、既定値のまま続ける。 | なし | 新規に決定 |
@@ -395,8 +397,6 @@ Table: LADR-010 の経緯
 | 2026-11-19 21:58 | [Q-068](261119-void-discard-reason-and-failure-injection-discussion.md#q-068-porter-の設定値の上限の定数の置き場所) | A: 内部に置く (`app/porter/prod/include_internal` 配下、または `potr_service_open.c` の中)。上限の値は設計文書に書く。 | なし | 決定を補足 (上限の定数の置き場所) |
 | 2026-11-19 21:58 | [Q-069](261119-void-discard-reason-and-failure-injection-discussion.md#q-069-porter-のマルチキャストの送信インターフェイスの設定の失敗の扱い) | A: 伝達とする。ERROR のトレースを出し、ソケットを閉じて、サービスを開く処理が `POTR_ERR_IO` を返す。 | なし | 決定を補足 (マルチキャストの送信インターフェイス) |
 | 2026-11-19 22:42 | [Q-070](261119-void-discard-reason-and-failure-injection-discussion.md#q-070-tcpserver-の-windows-のイベントの設定とリセットの失敗の扱い) | A: 異常終了とする。失敗した場合は、標準エラー出力へ `GetLastError()` を含む診断を出し、`cplat_exit(1)` で終了する。同じファイルの `start_prefork_workers()` の失敗と同じ扱い。 | なし | 決定を補足 (イベントの操作) |
-
-Table: LADR-011 の経緯
 
 ## LADR-012 サンプルとベンチマークの扱いを変える箇所
 
@@ -429,6 +429,8 @@ Table: LADR-011 の経緯
 
 ### 経緯
 
+Table: LADR-012 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 18:03 | [Q-018](261119-void-discard-reason-and-failure-injection-discussion.md#q-018-時間制限付きの待機の失敗の扱い) | A: 診断して続行とする。成功とタイムアウト以外の場合は、その場所の診断の経路へ結果コードを出し、ワーカーの周期の処理を止める。`string-catalog-filter-sample` の間隔の引数には、上限の検査を追加する。 | なし | 新規に決定 |
@@ -440,8 +442,6 @@ Table: LADR-011 の経緯
 | 2026-11-19 19:08 | [Q-047](261119-void-discard-reason-and-failure-injection-discussion.md#q-047-service-sample-の待機に負の時間を渡した場合の扱い) | A: 負の値は、関数の入口で 0 として扱い、ヘッダーの記載を保つ。それ以外の待機の失敗は、診断を出して停止の扱いとする。 | なし | 決定を補足 (負の待機時間) |
 | 2026-11-19 21:58 | [Q-063](261119-void-discard-reason-and-failure-injection-discussion.md#q-063-service-sample-の待機の失敗時の停止の扱い) | A: 1 を返すだけとする。停止の要求の状態は変えない。 | なし | 決定を補足 (停止の扱い) |
 | 2026-11-19 21:58 | [Q-065](261119-void-discard-reason-and-failure-injection-discussion.md#q-065-string-catalog-filter-sample-のワーカーの待機の失敗の診断の出力先) | A: 文字列カタログへ「待機の失敗」のトレースの項目を追加し、生成したトレースの関数で結果コードを出す。カタログの定義と、生成物を確かめるテストを更新する。 | なし | 決定を補足 (ワーカーの診断の出力先) |
-
-Table: LADR-012 の経緯
 
 ## LADR-013 BL-002 の失敗を注入する方法
 
@@ -472,6 +472,8 @@ Table: LADR-012 の経緯
 
 ### 経緯
 
+Table: LADR-013 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 18:03 | [Q-021](261119-void-discard-reason-and-failure-injection-discussion.md#q-021-testfw-への-mock-の追加を範囲に含めるか) | A: 含める。必要な関数を `mock_libc` へ追加する。 | なし | 新規に決定 |
@@ -482,8 +484,6 @@ Table: LADR-012 の経緯
 | 2026-11-19 18:03 | [Q-026](261119-void-discard-reason-and-failure-injection-discussion.md#q-026-service-sample_windowsc-163166-のテストの方法) | A: `service-sample_windows.c` を組み込む新しいテスト (Windows だけ) を追加し、163 と 166 の失敗を注入する。トレースの出力と、処理が続くことを確認する。 | なし | 決定を補足 (163、166) |
 | 2026-11-19 18:03 | [Q-027](261119-void-discard-reason-and-failure-injection-discussion.md#q-027-string-catalog-library-sample-の-main-170172-のテストの方法) | A: `main` を `USE_WRAP_MAIN` で組み込む新しいテストを追加し、成功する場合の 1 件と、170、172 の失敗の 2 件を追加する。終了コードと、標準エラー出力の診断を確認する。 | なし | 決定を補足 (170、172) |
 | 2026-11-20 03:07 | [Q-071](261119-void-discard-reason-and-failure-injection-discussion.md#q-071-string-catalog-library-sample-のトレース出力の失敗-172-のテストの方法) | A: 代わりの方法を採る。`cplat_tracer_start` に開始せずに `CPLAT_OK` を返させ、続くトレース出力の失敗で、終了コードが `EXIT_FAILURE` になり、標準エラー出力に診断が出ることを確かめる。テストのコメントに、失敗の原因を置き換えていることを書く。 | 単体テストは、自身の外部を mock にしてテストすることを許容している。その考えで行けば、main の 1 つ外側を mock にして戻り値を模擬して与えることは妥当。 | 決定を補足 (172 の注入の方法) |
-
-Table: LADR-013 の経緯
 
 ## LADR-014 検査も (void) もない呼び出しの種類ごとの規則
 
@@ -518,6 +518,8 @@ Table: LADR-013 の経緯
 
 ### 経緯
 
+Table: LADR-014 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 19:08 | [Q-033](261119-void-discard-reason-and-failure-injection-discussion.md#q-033-戻り値が失敗を表さない関数の呼び出しの扱い) | A: `(void)` を付けない。規範に、戻り値が失敗を表さない関数の呼び出しは 5 分類の対象外であることを定め、該当する標準ライブラリの関数を例示する。 | なし | 新規に決定 |
@@ -529,8 +531,6 @@ Table: LADR-013 の経緯
 | 2026-11-19 19:08 | [Q-050](261119-void-discard-reason-and-failure-injection-discussion.md#q-050-終了の直前の検査の失敗時のテストを追加する範囲) | A: 11 のコマンドにテストを追加する (既存のテストへ 6、新しいテストを 5)。`override-sample` は残課題として記録する。 | なし | 決定を補足 (テストの範囲) |
 | 2026-11-19 19:08 | [Q-051](261119-void-discard-reason-and-failure-injection-discussion.md#q-051-使い方の表示の関数の戻り値の検査) | A: 含める。`--help` の経路は、表示の関数の戻り値、`fflush` の戻り値、`ferror` の 3 つを検査する。`trace-cli.c:1021` も同じ形に直す。 | なし | 決定を補足 (表示の関数の戻り値) |
 | 2026-11-19 21:58 | [Q-064](261119-void-discard-reason-and-failure-injection-discussion.md#q-064-struct-meta-sample-の表示のコマンドの後の-ferror-の扱い) | A: 診断の後に `clearerr(stdout)` を呼び、コマンドごとに失敗を報告する。 | なし | 決定を補足 (エラーの状態の消去) |
-
-Table: LADR-014 の経緯
 
 ## LADR-015 失敗時の動作を変える箇所のテスト
 
@@ -554,8 +554,8 @@ BL-002 の 9 件と終了の直前の検査の 12 のコマンドのほかに、
 
 ### 経緯
 
+Table: LADR-015 の経緯
+
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-19 19:08 | [Q-059](261119-void-discard-reason-and-failure-injection-discussion.md#q-059-扱いを変える箇所の失敗時のテストの範囲) | A: すべての箇所に失敗時のテストを追加する。必要な mock は `framework/testfw` と `mock_cplat` へ追加する ([Q-021](#q-021-testfw-への-mock-の追加を範囲に含めるか) と同じ扱い)。実装の時点で注入できないと分かった箇所は、理由を付けて成果物の提示で報告し、残課題として記録する。 | なし | 新規に決定 |
-
-Table: LADR-015 の経緯

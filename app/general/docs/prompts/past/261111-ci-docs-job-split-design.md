@@ -28,13 +28,13 @@ GitHub Actions の全体の所要時間を短縮し、1 ジョブ 6 時間の上
 
 生成ソースは、次の 3 種類です。
 
+Table: 生成ソースの種類と gen での扱い
+
 | 種類 | 生成の仕組み | `gen` での扱い |
 | --- | --- | --- |
 | パース時スクリプト | `makepart.mk` が makefile のパース時にスクリプトを実行する | `prod` 配下の makefile をパースした時点で生成される |
 | ツールだけの規則 | flex / bison、mc.exe の規則 | 規則の生成物を `prod` 配下のゴール `_gen` の前提にする |
 | 自前ビルドの生成器 | app が `prod` でビルドした実行体を実行する | app が宣言し、`prod` のビルドに切り替える |
-
-Table: 生成ソースの種類と gen での扱い
 
 ### 階層ごとの動作
 
@@ -164,6 +164,8 @@ OL8 のレグには、Build の後に `gen/` のファイル一覧を作り、�
 
 makefw の `bin_test/` に、ゴール `gen` のテストを追加します。`bin_test/` のテストは、CI の全レグの「Run script tests」で実行されます。
 
+Table: 追加するテスト
+
 | テスト | 実行する OS | 確認する内容 |
 | --- | --- | --- |
 | flex / bison の生成 | Linux、Windows | `make _gen` が `.tab.c`、`.tab.h`、`.lex.c` を作り、オブジェクトを作らないこと |
@@ -171,12 +173,12 @@ makefw の `bin_test/` に、ゴール `gen` のテストを追加します。`b
 | 中間ディレクトリの伝播 | Linux、Windows | 上位のディレクトリの `make _gen` が、下位の生成物を作ること |
 | app の解決 | Linux、Windows | `--gen-build-apps` が、宣言した app と推移的な依存先を出力し、宣言がなければ何も出力しないこと |
 
-Table: 追加するテスト
-
 `.mc` のテストは、理由が `[Windows]` で始まるスキップとして宣言します。`run-bin-tests.py` は、この形式のスキップを Linux では想定内として扱います。  
 Windows の `make gen` は、現在の CI ではドキュメント生成に使いません。Windows だけのプロジェクトで利用する場合に備え、このテストで退行を防ぎます。
 
 ## 変更対象
+
+Table: 変更対象
 
 | 対象 | 変更の内容 |
 | --- | --- |
@@ -194,12 +196,12 @@ Windows の `make gen` は、現在の CI ではドキュメント生成に使�
 | `.github/workflows/ci.yml` | `docs` ジョブと `verify-gen` ジョブの追加、OL8 のレグの変更 |
 | `.github/scripts/list-generated-sources.sh` | 生成ソースの一覧を作るスクリプトの追加 |
 
-Table: 変更対象
-
 `framework/makefw` と、app のうち porter、cjson、sqlite、lua、zlib、cplat、openssl はサブモジュールです。テンプレートの変更と `makefile` の同期は、これらのサブモジュールにもまたがります。  
 ステージング、コミット、push は、ユーザーの個別の指示があるまで行いません。
 
 ## 知見の反映計画
+
+Table: 知見の反映計画
 
 | 反映先 | 反映する内容 |
 | --- | --- |
@@ -208,8 +210,6 @@ Table: 変更対象
 | `app/general/docs/workspace-agent-workflow.md` | CI のジョブの構成、`make gen && make doxy && make docs` の順序、生成漏れの照合 |
 | `_resource_compile.mk` のコメント | 規則を 2 つに分けた理由と、GNU Make 4.0 で動く書き方にした理由 |
 | `ci.yml` のコメント | `docs` ジョブが `make gen` を先に実行する理由と、`verify-gen` の目的 |
-
-Table: 知見の反映計画
 
 各文書の該当節の位置は、作業時に現物を読んで決めます。該当する節がない場合は、節を追加します。
 

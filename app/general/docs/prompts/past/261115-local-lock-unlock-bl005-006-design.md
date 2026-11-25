@@ -21,14 +21,14 @@ cplat の待機を伴う API を、1 つの命名と戻り値の原則にそろ�
 
 この変更により、次の残課題を解消します。
 
+Table: 解消する残課題
+
 | 課題 | 内容 | 解消の仕方 |
 | --- | --- | --- |
 | [第 3 バッチの BL-005](261115-source-comment-bl002-batch3-backlog.md) | `trace_file.c` のローカル ロック解放結果が未処理 | `cplat_local_lock_unlock()` が `void` になり、確認すべき結果がなくなる |
 | [第 3 バッチの BL-006](261115-source-comment-bl002-batch3-backlog.md) | `sample_filter_share_lock_acquire()` の回復時にローカル ロック解放結果が未処理 | 同上 |
 | [本作業の BL-002](261115-local-lock-unlock-bl005-006-backlog.md) | ローカル ロックの取得結果を確認しない呼び出し | 無期限待機の取得が `void` になり、確認すべき結果がなくなる |
 | [本作業の BL-003](261115-local-lock-unlock-bl005-006-backlog.md) | `SIGCHLD` が `SIG_IGN` の場合の無期限のプロセス終了待ち | Linux の終了待機を `pidfd_open()` と `poll()` による方式に改める |
-
-Table: 解消する残課題
 
 対象は次の 3 つの公開ヘッダーと、新設する共通ヘッダーです。
 
@@ -41,6 +41,8 @@ Table: 解消する残課題
 
 ## 設計原則
 
+Table: 待機 API の設計原則
+
 | 原則 | 内容 |
 | --- | --- |
 | 待ち方の分け方 | 待機を伴う操作は、無期限の `X()`、待たない `try_X()`、期限付きの `timed_X(..., timeout_ms)` に分ける。`try_X()` は既存のロックだけに設ける |
@@ -49,8 +51,6 @@ Table: 解消する残課題
 | 期限付きの関数の待ち時間 | 0 以上のミリ秒を受け付ける。`CPLAT_WAIT_FOREVER` と `CPLAT_NO_WAIT` も受け付ける。負の値は `CPLAT_ERR_INVALID_ARGUMENT` を返す |
 | 時間切れの知らせ方 | 期限付きの関数は、時間切れを `CPLAT_ERR_TIMEOUT` で返す |
 | 待ち時間の定数 | `cplat/base/wait.h` の `CPLAT_WAIT_FOREVER` と `CPLAT_NO_WAIT` の 1 組だけを使う |
-
-Table: 待機 API の設計原則
 
 > [!NOTE]
 > 名前の分け方は、POSIX (`pthread_mutex_lock()`、`pthread_mutex_trylock()`、`pthread_mutex_timedlock()`) と C11 (`mtx_lock()`、`mtx_trylock()`、`mtx_timedlock()`) に合わせています。ローカルの同期プリミティブの無期限待機は、有効な引数では OS が失敗を定義していないため `void` にします。プロセス間ロック、プロセス、ソケットは、ファイル ロック、子プロセス、ネットワークという外部の状態を待つため、無期限待機でも失敗を返します。
@@ -79,6 +79,8 @@ Table: 待機 API の設計原則
 
 ### ローカル ロック
 
+Table: ローカル ロックの API
+
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
 | `cplat_local_lock_lock(mtx)` | `void` | 取得できるまで待つ。`NULL` は無処理。OS の失敗報告は異常終了 |
@@ -86,9 +88,9 @@ Table: 待機 API の設計原則
 | `cplat_local_lock_try_lock(mtx)` | `int` | 変更なし (`CPLAT_ERR_BUSY` を返す) |
 | `cplat_local_lock_unlock(mtx)` | `void` | 呼び出しスレッドが保持しているロックを解放する。`NULL` は無処理。OS の失敗報告は異常終了 |
 
-Table: ローカル ロックの API
-
 ### 条件変数
+
+Table: 条件変数の API
 
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
@@ -97,9 +99,9 @@ Table: ローカル ロックの API
 | `cplat_condvar_signal(cv)` | `void` | `NULL` は無処理。OS の失敗報告は異常終了 |
 | `cplat_condvar_broadcast(cv)` | `void` | 同上 |
 
-Table: 条件変数の API
-
 ### ローカル読み書きロック
+
+Table: ローカル読み書きロックの API
 
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
@@ -108,21 +110,21 @@ Table: 条件変数の API
 | `cplat_local_rwlock_try_lock_shared(rwlock)`、`cplat_local_rwlock_try_lock_exclusive(rwlock)` | `int` | 変更なし |
 | `cplat_local_rwlock_unlock_shared(rwlock)`、`cplat_local_rwlock_unlock_exclusive(rwlock)` | `void` | `NULL` は無処理。保持していないロックの解放は異常終了 |
 
-Table: ローカル読み書きロックの API
-
 > [!NOTE]
 > 保持していないロックの解放は呼び出し側の不具合です。続行すると読み取り数と書き込み状態の管理が崩れるため、共通コーディング規範の「プロセスの継続が危険な状態」として異常終了させます。
 
 ### スレッド
+
+Table: スレッドの API
 
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
 | `cplat_thread_join(thread)` | `void` | 終了まで待ち、ハンドルを解放する。`NULL` は無処理。OS の失敗報告は異常終了 |
 | `cplat_thread_timed_join(thread, timeout_ms)` | `int` | `CPLAT_OK` (ハンドルを解放)、`CPLAT_ERR_TIMEOUT` (ハンドルは有効なまま)、`CPLAT_ERR_INVALID_ARGUMENT`、`CPLAT_ERR_UNKNOWN` |
 
-Table: スレッドの API
-
 ### プロセス間ロックとプロセス間読み書きロック
+
+Table: プロセス間ロックの API
 
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
@@ -132,9 +134,9 @@ Table: スレッドの API
 | `cplat_interprocess_rwlock_timed_lock_shared(lock, timeout_ms)`、`cplat_interprocess_rwlock_timed_lock_exclusive(lock, timeout_ms)` | `int` | 期限付きで待つ |
 | `try_lock` 系、`unlock` | `int` | 変更なし |
 
-Table: プロセス間ロックの API
-
 ### プロセス
+
+Table: プロセスの API
 
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
@@ -146,9 +148,9 @@ Table: プロセス間ロックの API
 | `cplat_process_terminate(process)` | `int` | 子プロセスを強制終了する。Linux は `SIGKILL` を送る。終了の完了は待たない |
 | `CPLAT_PROCESS_TERMINATE_WAIT_MS` | 定数 (3000) | 期限付きの同期実行で、強制終了の後に終了を待つ上限 [ms] |
 
-Table: プロセスの API
-
 ### ソケット
+
+Table: ソケットの API
 
 | 関数 | 戻り値 | 動作 |
 | --- | --- | --- |
@@ -156,8 +158,6 @@ Table: プロセスの API
 | `cplat_socket_timed_wait_readable(sock, timeout_ms, detail_out)`、`cplat_socket_timed_wait_writable(sock, timeout_ms, detail_out)` | `int` | 上記に `CPLAT_ERR_TIMEOUT` を加える |
 | `cplat_socket_wait_readable_multi(socks, count, ready_out, detail_out)` | `int` | いずれかが受信可能になるまで待つ。有効なソケットが 1 つもない場合は `CPLAT_ERR_INVALID_ARGUMENT` |
 | `cplat_socket_timed_wait_readable_multi(socks, count, timeout_ms, ready_out, detail_out)` | `int` | 期限内にいずれも受信可能にならなければ `CPLAT_ERR_TIMEOUT` (`ready_out` はすべて 0)。有効なソケットがない場合は、期限まで待ってから `CPLAT_ERR_TIMEOUT`。`CPLAT_WAIT_FOREVER` で有効なソケットがない場合は `CPLAT_ERR_INVALID_ARGUMENT` |
-
-Table: ソケットの API
 
 - 単一ソケットの待機は、`ready_out` を持ちません。成功の戻り値が「準備ができた」ことを表します。
 - 時間切れの場合、`detail_out` には時間切れを表す OS のエラー番号 (Linux は `ETIMEDOUT`、Windows は `WSAETIMEDOUT`) を格納します。
@@ -177,6 +177,8 @@ Table: ソケットの API
 
 ### sync (sync_linux.c、sync_windows.c)
 
+Table: sync の無期限待機と通知の実装
+
 | 関数 | Linux | Windows |
 | --- | --- | --- |
 | ローカル ロックの取得 | `pthread_mutex_lock()` (see: https://man7.org/linux/man-pages/man3/pthread_mutex_lock.3p.html) | `AcquireSRWLockExclusive()` (戻り値なし) |
@@ -185,8 +187,6 @@ Table: ソケットの API
 | 条件変数の通知 | `pthread_cond_signal()`、`pthread_cond_broadcast()` | `WakeConditionVariable()`、`WakeAllConditionVariable()` (戻り値なし) |
 | 読み書きロックの取得 | 内部の `pthread_cond_wait()` | 内部の `SleepConditionVariableCS()` に `INFINITE` |
 | スレッドの join | `pthread_join()` (see: https://man7.org/linux/man-pages/man3/pthread_join.3.html) | `WaitForSingleObject()` に `INFINITE` |
-
-Table: sync の無期限待機と通知の実装
 
 - `map_wait_rc()` は、期限付きの関数で引き続き使います。
 - 読み書きロックの無期限取得と期限付き取得は、内部の共通関数で実装を共有してよいものとします。共有する場合も、無期限取得の失敗は異常終了、期限付き取得の失敗は結果コードとします。
@@ -233,6 +233,8 @@ Table: sync の無期限待機と通知の実装
 
 ### 移行の規則
 
+Table: 呼び出し元の移行規則
+
 | 現在の呼び出し | 移行後 |
 | --- | --- |
 | 無期限の定数を渡す `void` 化対象の呼び出し (`cplat_local_lock_lock(mtx, CPLAT_SYNC_WAIT_FOREVER)` など) | 無期限の関数を文として呼ぶ。結果による分岐、`(void)`、理由コメント、失敗時の `CPLAT_ABORT` を削除する |
@@ -243,13 +245,13 @@ Table: sync の無期限待機と通知の実装
 | ソケットの期限付き待機の `ready_out` の確認 | `CPLAT_ERR_TIMEOUT` の分岐へ書き換える。時間切れと失敗を区別する |
 | 定数 | `CPLAT_WAIT_FOREVER`、`CPLAT_NO_WAIT` へ置き換える |
 
-Table: 呼び出し元の移行規則
-
 - 移行後に使わなくなった変数、関数、`#include` は削除します。`CPLAT_ABORT` をほかの用途で使うファイルでは `abort.h` の `#include` を残します。
 - 呼び出し元の静的ラッパー (`pinned_prompt.c` の `pinned_prompt_lock()` と `pinned_prompt_unlock()`、`memory_lock.c` の `memory_lock_unlock()`、`tracer.c` の `registry_unlock()`、`trace_file.c` の `sink_registry_lock()` と `sink_registry_unlock()` など) は、包む関数が `void` になる場合は `void` にし、呼び出し元の結果による分岐を削除します。
 - 公開ヘッダーまたは内部ヘッダーで、ロックの取得または解放の失敗を戻り値で返すと記載している関数は、Doxygen を実際の動作に合わせます。`pinned_prompt.h` の `cplat_pinned_prompt_dispose()` の「内部ロックの取得または解放に失敗した場合は、状態破損を防ぐためプロセスを異常終了します」は、`void` の関数自身が異常終了するため維持します。
 
 ### 個別の対象
+
+Table: 個別の対象 (パスは各 app の `prod/` 配下)
 
 | app | ファイル | 変更内容 |
 | --- | --- | --- |
@@ -264,8 +266,6 @@ Table: 呼び出し元の移行規則
 | string-catalog-sample | `sample_filter_share_region.c`、`sample_filter_share_region.h` | 回復経路の解放の `(void)` と理由コメントを削除する (BL-006)。`remaining_ms` を渡す取得を `cplat_local_lock_timed_lock()` と `cplat_interprocess_lock_timed_lock()` にする。`sample_filter_share_lock_release()` は、プロセス間ロックの解放結果だけで戻り値を決め、Doxygen をこの動作に合わせる |
 | string-catalog-sample | `string-catalog-filter-sample.c` | 取得・解放の失敗時の `CPLAT_ABORT` を削除する |
 | service-sample | `service-sample.c`、`service-sample_linux.c` | ローカル ロック、条件変数、スレッドの join を移行し、同期実行を `cplat_process_run_sync(&options, &exit_code)` にする |
-
-Table: 個別の対象 (パスは各 app の `prod/` 配下)
 
 上表以外の呼び出し元も、実装時に識別子の検索で洗い出し、規則どおりに移行します。旧名と旧定数がリポジトリ (生成物を除く) に残っていないことを、検索で確認します。
 
@@ -282,6 +282,8 @@ Table: 個別の対象 (パスは各 app の `prod/` 配下)
 
 ### テスト
 
+Table: テストの変更内容
+
 | 区分 | 変更内容 |
 | --- | --- |
 | 改名と引数 | 旧名と旧定数を使うテストを、新しい関数と定数へ移行する。無期限と期限付きの両方の経路を確認する |
@@ -294,11 +296,11 @@ Table: 個別の対象 (パスは各 app の `prod/` 配下)
 | プロセス | `cplat_process_terminate()` が `SIGKILL` で子プロセスを終了させること、`cplat_process_timed_run_sync()` が期限切れで子プロセスを強制終了して `CPLAT_ERR_TIMEOUT` を返すこと、強制終了の失敗でその結果コードを返すこと、強制終了の後に上限内で終わらない場合も `CPLAT_ERR_TIMEOUT` を返すことを確認する |
 | 型の照合 | `exportTest.cc` の関数ポインター型を新しい型に合わせる |
 
-Table: テストの変更内容
-
 テストは `create-unit-test` スキルのエビデンス規則に従って記述します。
 
 ## 恒久的な知見の反映
+
+Table: 知見の反映先
 
 | 反映先 | 内容 |
 | --- | --- |
@@ -310,8 +312,6 @@ Table: テストの変更内容
 | `app/cplat/docs/api-cheatsheet.md` | 関数名と待ち方の対応 |
 | `app/general/docs/coding-guideline.md` | コード例の定数名 (`CPLAT_SYNC_NO_WAIT`) |
 | `app/cplat/prod/libsrc/cplat/runtime/README.md`、`app/porter/docs/linux-signal.md`、`app/porter/docs/health-check.md` | 関数名 |
-
-Table: 知見の反映先
 
 Doxygen の生成物 (`docs/doxybook2*/`) は手動で編集せず、cplat の `make doxy` で更新します。
 
@@ -328,14 +328,14 @@ Doxygen の生成物 (`docs/doxybook2*/`) は手動で編集せず、cplat の `
 - cplat の `make doxy` が成功し、変更した Markdown の `text_style_jp.py --dry-run` が問題を報告しないこと。
 - Windows/MSVC のビルドとテストを行い、この環境で実行できない場合は未検証として報告すること。
 
+Table: 実行する対象テスト (各 app の `test/src/` からの相対パス)
+
 | app | 対象テストのディレクトリ |
 | --- | --- |
 | cplat | `libcplatTest/sync/syncTest`、`libcplatTest/sync/atomicTest`、`libcplatTest/exportTest`、`libcplatTest/errorContractTest`、`libcplatTest/net/socketTest`、`libcplatTest/runtime/processTest`、`libcplatTest/runtime/elevatedProcessTest`、`libcplatTest/runtime/memoryLockTest`、`libcplatTest/runtime/shutdownTest`、`libcplatTest/runtime/symLoaderResolveTest`、`libcplatTest/prompt/pinnedPromptTest`、`libcplatTest/trace/traceTest`、`libcplatTest/trace/trace_fileTest`、`libcplatTest/trace/trace_syslogTest`、`libcplatTest/argparser/argparserTest`、`libcplatTest/string_catalog/stringCatalogFilterSlotTest`、`cmd/bench-tracerTest` |
 | porter | `integration/certificateTest`、`integration/porterSendRecvTest`、`libporter/packetEmissionTest`、`libporter/pathGroupContextTest`、`libporter/potrConnectThreadTest`、`libporter/potrHealthThreadTest`、`libporter/potrNotifyTest`、`libporter/potrRecvThreadTest`、`libporter/potrSendThreadTest`、`libporter/potrServiceCloseTest`、`libporter/receiverReportTest`、`libporter/threadConnectPrepareTest`、`libporter/threadRecvHealthTest` |
 | string-catalog-sample | `cmd/sampleFilterShareClockTest`、`cmd/sampleFilterTest` |
 | service-sample | テストの対象なし (ビルドで確認) |
-
-Table: 実行する対象テスト (各 app の `test/src/` からの相対パス)
 
 上表は、変更する識別子を参照するテストと、変更する製品コードを検証するテストです。実装で変更したファイルを検証するテストがほかにあれば加えます。同時に実行する make は 1 本とし、4 app の全テストは実行しません。
 

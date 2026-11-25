@@ -14,12 +14,12 @@
 
 cplat はカタログを保持しません。利用側が用意するのは次の 2 つだけです。
 
+Table: 文字列カタログの利用側が用意する要素と内容
+
 | 利用者が用意するもの | 内容 |
 |---|---|
 | 文字列キーの列挙 | 文字列を識別する定数です。名称と値は利用者が決定します。 |
 | カタログの配列 | `key`、`id`、分類値、`brief`、`details`、`remarks`、引数定義、言語別の書式と備考です。 |
-
-Table: 文字列カタログの利用側が用意する要素と内容
 
 `brief` は必須の短い説明です。`details` と `remarks` は省略可能であり、設定した場合は詳細説明および利用上の補足説明として扱われます。
 
@@ -30,6 +30,8 @@ Table: 文字列カタログの利用側が用意する要素と内容
 コマンドが同梱する 3 つのカタログを `prod/src/cmd/string-catalog-command-sample/` へ、ライブラリが外部へ公開する 2 つのカタログを `prod/libsrc/samplecatalog/` へ配置しています。
 
 コマンドが同梱するカタログは次のとおりです。
+
+Table: コマンドが同梱するカタログ ファイル一覧
 
 | ファイル | 内容 | 種別 |
 |---|---|---|
@@ -43,9 +45,9 @@ Table: 文字列カタログの利用側が用意する要素と内容
 | `gen/sample_trace.h` | トレース向けの列挙型、簡易関数と出力先の設定の宣言、型付きラッパーとマクロ | 自動生成 |
 | `gen/sample_trace.c` | トレース向けのカタログ配列、インデックス テーブル、カタログ識別オブジェクト、簡易関数、出力処理 | 自動生成 |
 
-Table: コマンドが同梱するカタログ ファイル一覧
-
 ライブラリが公開するカタログは次のとおりです。生成物のヘッダーのみが公開ヘッダーの配置先へ出力されます。
+
+Table: ライブラリが公開するカタログ ファイル一覧
 
 | ファイル | 内容 | 種別 |
 |---|---|---|
@@ -56,8 +58,6 @@ Table: コマンドが同梱するカタログ ファイル一覧
 | `libsrc/samplecatalog/samplecatalog_trace.jsonc` | 公開するトレース種別のカタログ定義の正本 | 手動作成 |
 | `include/samplecatalog/samplecatalog_trace.h` | 列挙型、出力先の設定の宣言、型付きラッパーとマクロ | 自動生成 |
 | `libsrc/samplecatalog/gen/samplecatalog_trace.c` | カタログ配列、インデックス テーブル、簡易関数、出力処理 | 自動生成 |
-
-Table: ライブラリが公開するカタログ ファイル一覧
 
 配列はコピーせず、ポインターだけを保持します。  
 カタログを使用する間ずっと有効な領域を渡す必要があるため、静的記憶域期間を持つ配列を想定しています。
@@ -134,13 +134,13 @@ JSON を選定した理由は cJSON と Python の双方で読み込み可能な
 利用者側の識別子は `sample_` で始め、cplat 側の `cplat_string_catalog_` と分けます。  
 サンプルであっても両者が同じ接頭辞を共有していると、どこまでが cplat の提供物かを名前から判断できません。
 
+Table: cplat と利用者側における名前空間と接頭辞の対応
+
 | 側 | 接頭辞 | 例 |
 |---|---|---|
 | cplat | `cplat_string_catalog` | `cplat_string_catalog_format()`、`CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE` |
 | 利用者 | `sample_messages` | `sample_messages_catalog()`、`SAMPLE_MESSAGES_KEY_FILE_OPEN_FAILED` |
 | 利用者 | `sample_metrics` | `sample_metrics_catalog()`、`SAMPLE_METRICS_KEY_THROUGHPUT_REPORT` |
-
-Table: cplat と利用者側における名前空間と接頭辞の対応
 
 型付きラッパーの関数名も利用者側の名前空間に収めます。  
 `cplat_` を前置すると、利用者が定義した関数が cplat のリンカー名前空間を名乗ることになるためです。
@@ -220,6 +220,8 @@ sample_trace_key_file_open_failed("config.json", 2);
 文脈引数の位置指定と内容の対応は次のとおりです。  
 前の 4 つは呼び出し位置で確定するため関数形式マクロが渡し、残る 2 つは実行時の値のため型付きラッパーの内部で取得します。
 
+Table: トレース用文脈引数の位置指定と内容一覧
+
 | 位置指定 | 引数名 | 引数種別 | 値 |
 |---|---|---|---|
 | `{40}` | `source_file_path` | `STRING` | 呼び出し位置のソース ファイル。コンパイラへ渡した表記のまま |
@@ -228,8 +230,6 @@ sample_trace_key_file_open_failed("config.json", 2);
 | `{43}` | `function_name` | `STRING` | 呼び出し位置の関数名 |
 | `{44}` | `process_id` | `UINT32` | 出力を要求したプロセスの ID |
 | `{45}` | `thread_id` | `UINT32` | 出力を要求したスレッドの ID |
-
-Table: トレース用文脈引数の位置指定と内容一覧
 
 書式が文脈引数の位置指定を持たない場合、組み立てた文字列に文脈値は現れません。  
 出力へ含める必要が生じた場合は、定義の書式へ位置指定を追加します。実装の変更は不要です。
@@ -389,14 +389,14 @@ cplat_string_catalog = {entries, key_index, entry_count, key_index_count}
 
 文字列カタログ自体の単体テストは `app/cplat` にあります。この app に残るのは、利用側の資産を対象とするテストだけです。
 
+Table: string-catalog-sample のテスト構成と対象一覧
+
 | テスト | 置き場所 | 対象 |
 |---|---|---|
 | `sampleMessagesTest` | `test/src/cmd/` | コマンドが用意するカタログとインデックス表 |
 | `exportTest` | `test/src/libsamplecatalog/` | ライブラリが実際に公開するシンボルの一覧とシグネチャ |
 | `contextTest` | `test/src/libsamplecatalog/` | app が定義するコンテキスト引数として渡す連番の巡回 |
 | `catalogIntegrationTest` | `test/src/integration/` | コマンドのカタログと cplat の組み立てを結合した確認 |
-
-Table: string-catalog-sample のテスト構成と対象一覧
 
 `sampleMessagesTest` を `test/src/cmd/` に置くのは、対象がライブラリではなく、コマンドが用意するソースであるためです。  
 `catalogIntegrationTest` は個々のソースのカバレッジを目的としないため `TEST_SRCS` を宣言せず、生成物を `ADD_SRCS` で取り込み、cplat を実体でリンクします。
@@ -431,11 +431,11 @@ Table: string-catalog-sample のテスト構成と対象一覧
 
 この app では、`catalog_settings.jsonc` の `context` 節で 1 個を追加しています。
 
+Table: app が独自に定義するコンテキスト引数一覧
+
 | 位置指定 | 引数名 | 引数種別 | 取得式 |
 |---|---|---|---|
 | `{46}` | `sequence_number` | `INT32` | `samplecatalog_next_sequence_number()` |
-
-Table: app が独自に定義するコンテキスト引数一覧
 
 位置指定は、設定ファイルの記述順に `{46}` から詰めて割り当てられます。  
 ワークスペースは全体を一括でビルドするため、番号を定義へ固定する仕組みは設けていません。

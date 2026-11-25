@@ -8,6 +8,8 @@
 
 Windows サービスは Service Control Manager (SCM) から起動され、サービス コントロール ハンドラーで制御要求を受け取ります。
 
+Table: Windows サービスの一般的なイベント
+
 | タイミング | SCM の制御または状態 | 説明 |
 |---|---|---|
 | 起動開始 | `ServiceMain` | SCM からサービス プロセスが起動され、`StartServiceCtrlDispatcher` 経由で呼ばれる。 |
@@ -29,11 +31,11 @@ Windows サービスは Service Control Manager (SCM) から起動され、サ�
 | サービス トリガー | `SERVICE_CONTROL_TRIGGEREVENT` | サービス トリガー条件が発火したときに送られる。 |
 | 独自制御 | `128` から `255` | アプリケーション定義の制御コード。 |
 
-Table: Windows サービスの一般的なイベント
-
 ## systemd サービスの一般的なイベント
 
 systemd では、Windows SCM のような制御コード列挙ではなく、unit ファイル、プロセス終了、シグナル、必要に応じた `sd_notify()` でライフサイクルを表現します。
+
+Table: systemd サービスの一般的なイベント
 
 | タイミング | unit 設定または通知 | 説明 |
 |---|---|---|
@@ -48,9 +50,9 @@ systemd では、Windows SCM のような制御コード列挙ではなく、uni
 | 自動再起動 | `Restart=` | 失敗時などの再起動条件を指定します。 |
 | watchdog | `WatchdogSec=` | `sd_notify("WATCHDOG=1")` と組み合わせて死活監視します。 |
 
-Table: systemd サービスの一般的なイベント
-
 `Type=` により、systemd が起動完了とみなすタイミングは変わります。
+
+Table: systemd の `Type=` による起動完了タイミング
 
 | `Type=` | 起動完了タイミング |
 |---|---|
@@ -63,12 +65,12 @@ Table: systemd サービスの一般的なイベント
 | `notify-reload` | 起動は `notify` と同様。reload は `RELOADING=1` から `READY=1` まで。 |
 | `idle` | 他の起動ジョブの処理後、または短いタイムアウト後。 |
 
-Table: systemd の `Type=` による起動完了タイミング
-
 ## systemd-devel を使わない場合に扱えるイベント
 
 `systemd-devel` を使わない場合でも、サービス プロセスは通常の Linux プロセスとして systemd から管理されます。  
 そのため、次の範囲は C 標準ライブラリ、POSIX シグナル、unit ファイルだけで扱えます。
+
+Table: `systemd-devel` なしで扱える systemd イベント
 
 | 種別 | 扱える内容 |
 |---|---|
@@ -82,9 +84,9 @@ Table: systemd の `Type=` による起動完了タイミング
 | 停止前後の処理 | `ExecStop=`、`ExecStopPost=` を unit ファイルに定義します。 |
 | リロード | `ExecReload=` と任意のシグナル処理を組み合わせる。 |
 
-Table: `systemd-devel` なしで扱える systemd イベント
-
 一方で、`sd_notify()` が必要な次の通知は `libsystemd` なしでは扱えません。
+
+Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 
 | 通知 | `systemd-devel` なしの扱い |
 |---|---|
@@ -93,8 +95,6 @@ Table: `systemd-devel` なしで扱える systemd イベント
 | `STATUS=` | `systemctl status` に任意の進行状況メッセージを通知できません。 |
 | `EXTEND_TIMEOUT_USEC=` | 起動、停止、reload のタイムアウト延長を要求できません。 |
 | `MAINPID=` | サービス側から main PID を明示通知できません。 |
-
-Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 
 `READY=1` と `STOPPING=1` は `NOTIFY_SOCKET` へ直接書き込むことで `libsystemd` なしに送信できます。  
 かつての `service-sample` はこの方式 (libsystemd 非依存の自前実装) を採用していましたが、現在は電源・セッション イベントの D-Bus 連携 (sd_bus) のために `libsystemd` へ直接リンクしており、通知も `sd_notify(3)` で送信します。  
@@ -106,6 +106,8 @@ Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 この通知は OS フック (`svc_os_notify_ready` / `svc_os_notify_stopping` / `svc_os_notify_reloading` / `svc_os_notify_status`) として抽象化されており、コールバック (on_start / on_run / on_stop) の契約は変わりません。  
 ただし Linux で systemd が watchdog を要求している場合は、`on_run` が `svc_wait_for_stop()` を呼び続けることが、`WATCHDOG=1` を送る条件になります ([service-sample の Linux 対応範囲](#service-sample-の-linux-対応範囲) を参照)。
 
+Table: `service-sample` の通知抽象
+
 | 概念 | タイミング | Windows (SCM) | Linux (systemd) |
 |---|---|---|---|
 | 起動完了 | `on_start` 成功直後 | `SERVICE_RUNNING` を SCM に通知します。 | `READY=1` を送信します。 |
@@ -113,8 +115,6 @@ Table: `systemd-devel` なしでは扱えない `sd_notify()` 通知
 | 再読込開始 | `on_reload` 呼び出し直前 | 何もしない (SCM に等価通知なし) | `RELOADING=1` を送信します。 |
 | 再読込完了 | `on_reload` 復帰直後 | `SERVICE_RUNNING` を再報告します (停止中は報告しません)。 | `READY=1` を再送信します (停止中は送信しません)。 |
 | 状態テキスト | `svc_set_status_text()` 呼び出し時 | トレース出力のみ (SCM に等価機能なし) | `STATUS=` を送信します。 |
-
-Table: `service-sample` の通知抽象
 
 ライフサイクル コールバック (on_start / on_run / on_stop) は、戻り値で成功 (0) と失敗 (0 以外) を返します。  
 コールバックの順序と、最初に失敗したコールバックの戻り値の採用は、`svc_run_callbacks()` が行います。  
@@ -125,6 +125,8 @@ Linux ではプロセス終了コード、Windows では `dwServiceSpecificExitC
 
 さらに、OS イベントを共通のイベント種別 (`svc_event_type`) に対応付け、任意のコールバック `on_event` へ配送します。
 
+Table: `service-sample` の OS イベント抽象
+
 | 共通イベント | Windows (SCM) | Linux (systemd-logind) |
 |---|---|---|
 | `SVC_EVENT_POWER_SUSPEND` | `SERVICE_CONTROL_POWEREVENT` + `PBT_APMSUSPEND` | `PrepareForSleep(true)` |
@@ -132,8 +134,6 @@ Linux ではプロセス終了コード、Windows では `dwServiceSpecificExitC
 | `SVC_EVENT_SESSION_LOGON` | `SERVICE_CONTROL_SESSIONCHANGE` + `WTS_SESSION_LOGON` | `SessionNew` |
 | `SVC_EVENT_SESSION_LOGOFF` | `SERVICE_CONTROL_SESSIONCHANGE` + `WTS_SESSION_LOGOFF` | `SessionRemoved` |
 | `SVC_EVENT_PRESHUTDOWN` | `SERVICE_CONTROL_PRESHUTDOWN` | `PrepareForShutdown(true)` |
-
-Table: `service-sample` の OS イベント抽象
 
 設定再読込は `on_reload` コールバックとして抽象化されており、Windows は `SERVICE_CONTROL_PARAMCHANGE`、Linux は `SIGHUP` (`systemctl reload`) が同じコールバックに対応付けられます。
 
@@ -171,6 +171,8 @@ Figure: 起動完了・停止開始の通知抽象
 
 `service-sample_windows.c` は `RegisterServiceCtrlHandlerExW` でコントロール ハンドラーを登録し、次の制御を扱います。
 
+Table: `service-sample` の Windows 対応範囲
+
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
 | 起動開始 | 対応 | `ServiceMain` で `SERVICE_START_PENDING` を通知し、`on_start` を呼び出します。 |
@@ -183,8 +185,6 @@ Figure: 起動完了・停止開始の通知抽象
 | 設定再読込 | 対応 | `SERVICE_CONTROL_PARAMCHANGE` で `on_reload` を呼び出します。 |
 | 状態照会 | 対応 | `SERVICE_CONTROL_INTERROGATE` で現在の `SERVICE_STATUS` を再通知します。 |
 | 停止完了 | 対応 | `on_run` が戻った後に `on_stop` を呼び出し、`SERVICE_STOPPED` を通知します。コールバックが失敗を返した場合は `ERROR_SERVICE_SPECIFIC_ERROR` と失敗の戻り値を併せて報告します。 |
-
-Table: `service-sample` の Windows 対応範囲
 
 `SERVICE_START_PENDING` と `SERVICE_STOP_PENDING` の通知には、進捗を表す checkpoint と、次の通知までの見積もり (`dwWaitHint`) を付けます。  
 起動開始は checkpoint 1 と 3000 [ms]、停止要求の受け付けは checkpoint 1 と 5000 [ms]、`on_run` の復帰後は checkpoint 2 と 3000 [ms] です。  
@@ -239,6 +239,8 @@ SIGHUP は、`run` の入口の `svc_os_prepare_run()` で、スレッドを生�
 
 このため、`service-sample` の Linux 実装で扱うタイミングは次の範囲です。
 
+Table: `service-sample` の Linux 対応範囲
+
 | タイミング | 対応状況 | 実装上の動作 |
 |---|---|---|
 | 起動処理 | 対応 | systemd が `ExecStart=... run` でプロセスを起動します。 |
@@ -257,8 +259,6 @@ SIGHUP は、`run` の入口の `svc_os_prepare_run()` で、スレッドを生�
 | シャットダウン前 | 対応 | systemd-logind の `PrepareForShutdown(true)` を `SVC_EVENT_PRESHUTDOWN` として配送します。 |
 | セッション変更 | 対応 | systemd-logind の `SessionNew` / `SessionRemoved` を `SVC_EVENT_SESSION_LOGON` / `SVC_EVENT_SESSION_LOGOFF` として配送します。 |
 | 状態テキスト | 対応 | `svc_set_status_text()` で `STATUS=` を送信します。 |
-
-Table: `service-sample` の Linux 対応範囲
 
 watchdog の行の根拠資料は、`sd_watchdog_enabled(3)` と [systemd.service](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html) の `WatchdogSec=` です。
 
@@ -323,21 +323,21 @@ Figure: サービス再起動時のイベント順序 (手動再起動)
 
 ### 手動再起動の手段
 
+Table: `service-sample` の手動再起動の手段
+
 | プラットフォーム | 手段 | 内部の流れ |
 |---|---|---|
 | Linux | `systemctl restart {name}` | SIGTERM で停止後、systemd が新プロセスを `ExecStart=... run` で起動します。 |
 | Windows | `sc stop {name}` + `sc start {name}`、またはサービス管理画面の再起動 | `SERVICE_CONTROL_STOP` で停止後、SCM が新プロセスを起動し `ServiceMain` を再呼び出しします。 |
 
-Table: `service-sample` の手動再起動の手段
-
 ### 自動再起動の対応状況
+
+Table: `service-sample` の自動再起動の対応状況
 
 | 観点 | Linux | Windows |
 |---|---|---|
 | 異常終了時の自動再起動 | 対応。unit の `Restart=on-failure` / `RestartSec=5` により失敗終了から 5 秒後に再起動します。60 秒間に 5 回を超える起動は、`StartLimitIntervalSec=60` と `StartLimitBurst=5` により拒否されます。 | 対応。install 時に `SERVICE_CONFIG_FAILURE_ACTIONS` (`SC_ACTION_RESTART`、遅延 5 秒) と `SERVICE_CONFIG_FAILURE_ACTIONS_FLAG` を登録し、失敗から 5 秒後に再起動します。 |
 | 設定箇所 | `service-sample_linux.c` が生成する unit ファイル | `service-sample_windows.c` の install 処理 |
-
-Table: `service-sample` の自動再起動の対応状況
 
 Windows の SCM は、既定では「`SERVICE_STOPPED` を報告せずにプロセスが消滅した場合」だけを失敗とみなします。  
 Linux の `Restart=on-failure` は非ゼロの終了コードでも再起動するため、`SERVICE_CONFIG_FAILURE_ACTIONS_FLAG` を設定し、終了コードが `NO_ERROR` 以外で `SERVICE_STOPPED` を報告した場合も失敗扱いにして意味を揃えています。  

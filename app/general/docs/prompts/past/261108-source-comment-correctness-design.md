@@ -36,12 +36,12 @@
 `app/cplat/prod/include/cplat/base/result.h` に次のコードを追加します。  
 既存コードの数値と意味は維持します。
 
+Table: データ検証の専用結果コード
+
 | コード | 値 | 意味 |
 | --- | --- | --- |
 | `CPLAT_ERR_AUTHENTICATION_FAILED` | -50 | 受信した暗号文または AAD の認証検証に失敗しました。 |
 | `CPLAT_ERR_CORRUPT_DATA` | -51 | 圧縮データの構造、内容、または展開後長さが不整合です。 |
-
-Table: データ検証の専用結果コード
 
 `CPLAT_ERR_UNKNOWN` は、個別に判別できる失敗へ分類できない内部失敗に使用します。  
 OS の生エラー値と新しい共通結果コードを同一視せず、今回の暗号・展開 API は直接の戻り値で通知します。
@@ -84,6 +84,8 @@ int cplat_clock_get_realtime_deadline_ms(uint64_t timeout_ms, struct timespec *d
 出力先 NULL は `INVALID_ARGUMENT`、期限計算の範囲外は `OUT_OF_RANGE` とし、失敗時は出力を変更しません。  
 時計取得 API 自体の既存の失敗通知契約は本変更で拡張しません。
 
+Table: 時刻演算 API の利用側における失敗時処理
+
 | 呼び出し元 | 移行後の扱い |
 | --- | --- |
 | cplat の `clock.c` と `clock.h` の使用例 | 時刻演算の結果を確認し、計算できた期限だけを出力・利用します。 |
@@ -92,11 +94,11 @@ int cplat_clock_get_realtime_deadline_ms(uint64_t timeout_ms, struct timespec *d
 | porter の `thread_recv_window.c` | 待機期限を計算できない場合は未初期化の期限を使わず、待機状態を解除して即時の欠番処理へ進み、エラーをトレースへ記録します。 |
 | mock・エクスポート型検査・既存テスト | 新シグネチャへ移行します。mock の成功時には戻り値と出力値を両方設定し、失敗注入も更新します。 |
 
-Table: 時刻演算 API の利用側における失敗時処理
-
 ## 暗号処理の入力長と認証失敗を検査する
 
 ### 長さ上限
+
+Table: 暗号 API の入力長上限
 
 | 対象 | 両 OS 共通の上限 |
 | --- | --- |
@@ -104,8 +106,6 @@ Table: 時刻演算 API の利用側における失敗時処理
 | 復号のタグを除いた本文長 | `INT_MAX` [byte] |
 | 非 NULL の AAD の長さ | `INT_MAX` [byte] |
 | パスフレーズ長 | `UINT32_MAX` [byte] |
-
-Table: 暗号 API の入力長上限
 
 必須ポインター、タグの最低長、NULL と長さの組み合わせを検査した後、上限と加算の表現範囲を検査します。  
 上限超過は `CPLAT_ERR_OUT_OF_RANGE` を返し、backend の生成・呼び出しや出力の変更を行いません。  
@@ -131,6 +131,8 @@ NULL のパスフレーズと正の長さは引数不正で、NULL と長さ 0 �
 大きい出力容量が指定されても、ヘッダーの展開長と容量から使用可能な範囲を決めます。  
 公開ストリーミング API は追加しません。
 
+Table: 展開処理の失敗分類
+
 | 状況 | 結果コード |
 | --- | --- |
 | 必須ポインター、最低ヘッダー長などの引数不正 | `CPLAT_ERR_INVALID_ARGUMENT` |
@@ -139,8 +141,6 @@ NULL のパスフレーズと正の長さは引数不正で、NULL と長さ 0 �
 | メモリ不足 | `CPLAT_ERR_OUT_OF_MEMORY` |
 | DEFLATE の破損、正常終端前の入力切れ、実出力長とヘッダーの不一致 | `CPLAT_ERR_CORRUPT_DATA` |
 | 上記へ分類できない内部失敗 | `CPLAT_ERR_UNKNOWN` |
-
-Table: 展開処理の失敗分類
 
 正常終端へ達し、実出力長とヘッダーの長さが等しい場合だけ成功します。  
 ヘッダーの長さを超えて展開しようとする場合も破損として扱い、ヘッダーの範囲を超えて出力しません。  
@@ -158,6 +158,8 @@ int cplat_sym_loader_is_default(cplat_sym_loader_entry *entry, int *is_default_o
 int cplat_sym_loader_dispose(cplat_sym_loader_entry *const *entries, size_t count);
 ```
 
+Table: シンボル解決の成功値と失敗の分離
+
 | 状況 | resolve / is_default の扱い |
 | --- | --- |
 | 必須ポインターが NULL | `CPLAT_ERR_INVALID_ARGUMENT`。出力は変更しません。 |
@@ -167,8 +169,6 @@ int cplat_sym_loader_dispose(cplat_sym_loader_entry *const *entries, size_t coun
 | 名前が格納可能な長さを超える | `CPLAT_ERR_OUT_OF_RANGE`。出力は変更しません。 |
 | ライブラリのロードに失敗し、詳細を共通分類へ写せない | `CPLAT_ERR_UNKNOWN`。出力は変更しません。 |
 | ロックの生成・取得・解放に失敗する | 判別できる共通結果コードを返し、成功値を出力しません。 |
-
-Table: シンボル解決の成功値と失敗の分離
 
 結果の高速参照と初回解決のどちらでも、同じ状態に同じ結果を返します。  
 ロック初期化に失敗した場合も、待機していたスレッドへ失敗を通知します。  
@@ -201,6 +201,8 @@ Table: シンボル解決の成功値と失敗の分離
 
 ## porter の受信失敗と保存失敗を区別する
 
+Table: DATA/PING と制御パケットに共通する復号失敗の分類
+
 | 失敗の発生箇所・原因 | porter の扱い |
 | --- | --- |
 | 短い暗号文、制御パケットの不正なタグ長 | backend 呼び出し前に `POTR_ERR_PROTOCOL` |
@@ -208,8 +210,6 @@ Table: シンボル解決の成功値と失敗の分離
 | `CPLAT_ERR_OUT_OF_MEMORY` | `POTR_ERR_OUT_OF_MEMORY` |
 | 受信形式検査後の明確なローカル引数・容量・範囲の不整合 | `POTR_ERR_INVALID_ARGUMENT` |
 | 分類できない backend の内部失敗 | `POTR_ERR_UNKNOWN` |
-
-Table: DATA/PING と制御パケットに共通する復号失敗の分類
 
 認証を確認できなかったペイロードを配信せず、失敗時は成功後の payload の付け替えを行いません。  
 展開の利用側は成功時だけ配信する既存動作を維持し、新しい破損コードを含む失敗理由をトレースで識別できるようにします。
@@ -255,6 +255,8 @@ Table: DATA/PING と制御パケットに共通する復号失敗の分類
 
 ### その他の 4 報告
 
+Table: 小規模な修正と変更不要の報告
+
 | 対象 | 対処 |
 | --- | --- |
 | `error_message.c` の未知 OS 経路 | 末尾で `CPLAT_ERR_UNSUPPORTED` を返す防御を追加します。Linux/Windows の成功経路は維持します。 |
@@ -262,14 +264,14 @@ Table: DATA/PING と制御パケットに共通する復号失敗の分類
 | `cplat_isatty()` の NULL 標準ハンドル | 後続の GetFileType の失敗が偽判定となり 0 を返すため、指摘された戻り値の不具合は成立しないものとして確認結果を記録します。ソースの必須修正には含めません。 |
 | `override-sample` の表示ラベル | `congigpath` を `configpath` に修正します。 |
 
-Table: 小規模な修正と変更不要の報告
-
 ## 正本・利用側・テストを同期する
 
 ### ソースと公開契約の主な対象
 
 以下のディレクトリ内で、記載した機能とその直接の利用側だけを変更します。  
 全体の書式変更や独立した別課題の修正は含めません。
+
+Table: 修正対象のソースと ABI 移行範囲
 
 | 対象 | 主なファイル・範囲 |
 | --- | --- |
@@ -282,8 +284,6 @@ Table: 小規模な修正と変更不要の報告
 | struct-meta | `prod/libsrc/struct_meta/print/print.c`、`prod/src/cmd/struct-meta-sample/struct_meta_sample.c` |
 | override-sample | `prod/libsrc/base/{base_calc,libbase_lifecycle,sym_loader_libbase}.c` |
 | mock と ABI 検査 | `app/cplat/test/include/mock_cplat.h`、`app/cplat/test/libsrc/mock_cplat/` の対応 delegate・既定動作、`app/cplat/test/src/libcplatTest/exportTest/exportTest.cc`、利用側の対応 mock |
-
-Table: 修正対象のソースと ABI 移行範囲
 
 実装前と変更後にワークスペースを検索し、変更対象の旧シグネチャと旧マクロの利用が残っていないことを確認します。  
 自動生成されたテスト用シンボリック リンクや配布物を直接編集せず、生成元を変更します。
@@ -302,6 +302,8 @@ Table: 修正対象のソースと ABI 移行範囲
 既存の次の leaf テストを更新し、対象ディレクトリで `make test` を実行します。  
 必要な新規テストも同じ `test/` の配置規則と testfw の構成に従います。
 
+Table: 実施する局所テストの範囲
+
 | app | 局所テストの既存配置・追加対象 |
 | --- | --- |
 | cplat | `test/src/libcplatTest/clock/{timespecTest,clockTest}`、`crypto/cryptoTest`、`compress/compressTest`、`runtime/symLoader{Resolve,IsDefault,Dispose,Info}Test`、`base/{resultTest,errorMessageTest}`、`net/endpointTest`、`trace/trace_syslogTest`、`exportTest` |
@@ -310,8 +312,6 @@ Table: 修正対象のソースと ABI 移行範囲
 | コマンドと Windows 共有 | porter-test の保存失敗、Windows tcpServer の受け渡しは `app/porter/test/src/cmd/` に対応テストを追加します。 |
 | struct-meta | `test/src/structMetaPrintTest` と `test/src/` に追加するサンプル入出力のテスト |
 | override-sample | base の新しい解決結果分岐、既定実装へのフォールバック、終了処理の結果確認を局所検証します。 |
-
-Table: 実施する局所テストの範囲
 
 `TEST_SRCS` は実際の検証対象、`ADD_SRCS` は依存実装へ使用します。  
 正常系・異常系・mock の期待を testfw のフェーズとエビデンス規則に従って記載し、新しい各条件の真偽を確認します。
@@ -356,6 +356,8 @@ UBSan は環境で利用できる場合に補助的に使い、通常の境界�
 各番号は対処元の項目内での列挙順です。  
 変更不要とした報告も、根拠を残して対応完了を判定します。
 
+Table: 全 32 報告と追加した展開長不一致の対処
+
 | 報告 | 対象 | 最終的な対処 |
 | --- | --- | --- |
 | BL-009-01 | `timespec.c:add_ms` | 結果コード化し、ミリ秒加算と正規化を事前検査 |
@@ -391,8 +393,6 @@ UBSan は環境で利用できる場合に補助的に使い、通常の境界�
 | BL-013-15 | `struct_meta_sample.c:catjson` | 読み取りの詳細を保存し、部分読み取りの失敗を通知 |
 | BL-013-16 | `struct_meta_sample.c:catbin` | 正の部分読み取りでもエラー詳細を確認して通知 |
 | BL-015 の関連報告 | `compress.c:decompress` | 実出力長とヘッダーの長さ不一致を CORRUPT_DATA で拒否 |
-
-Table: 全 32 報告と追加した展開長不一致の対処
 
 ## 残課題一覧の更新と完了時の提示
 

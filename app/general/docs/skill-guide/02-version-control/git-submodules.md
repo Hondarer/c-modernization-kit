@@ -34,6 +34,8 @@ Git サブモジュールは、ひとつの Git リポジトリの中に別の G
 
 対象ワークスペースの `.gitmodules` に定義されたサブモジュールは以下の通りです。
 
+Table: サブモジュール一覧
+
 | サブモジュール | パス      | 役割                                   |
 |----------------|-----------|----------------------------------------|
 | `app/utility` | `app/utility/` | C プロジェクト向け汎用ユーティリティ ライブラリ |
@@ -42,8 +44,6 @@ Git サブモジュールは、ひとつの Git リポジトリの中に別の G
 | `docsfw`       | `framework/docsfw/` | Markdown 発行フレームワーク (Pandoc)   |
 | `testfw`       | `framework/testfw/` | Google Test テスト フレームワーク       |
 | `makefw`       | `framework/makefw/` | Make ビルド フレームワーク              |
-
-Table: サブモジュール一覧
 
 基本的な操作コマンド:
 

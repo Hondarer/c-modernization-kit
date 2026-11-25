@@ -31,14 +31,14 @@ origin 同期前に実施済みの検証結果は履歴として再利用し、�
 
 製品バイナリへのテスト専用 CLI 混入を避け、最小限のトレース・コンパイル時フック境界とテスト配下の補助実行ファイルで検証を構成します。
 
+Table: 変更対象ファイルと変更内容
+
 | 対象パス | 変更内容 |
 | --- | --- |
 | `app/porter/prod/src/cmd/tech-sample/tcpServer/tcpServer_windows.c` | `CPLAT_TRACE_LEVEL_NONE` トレースの追加、および通常ビルドでは無効となる最小限のテスト専用コンパイル時フック境界の追加 |
 | `app/porter/test/src/integration/tcpServerPreforkTest/` および `app/porter/test/` 配下 | 同一製品ソースをテスト専用マクロ付きで再コンパイルする補助実行ファイル、通常ビルド `tcpServer.exe` の外部観測テスト、異常系 3 種・空き待機解除・負例感度テスト、最小限の `Mock_cplat` 局所テスト |
 | `app/general/docs/prompts/past/261114-windows-real-machine-verification-design.md` | 本仕様書への検証結果 (同期前履歴・同期後再テスト・追加検証結果・検証限界) の記録 |
 | `app/general/docs/prompts/current/261113-source-comment-bl029-backlog.md` / `261114-windows-real-machine-verification-backlog.md` | 過去 BL-003 の経緯・対処更新 (削除禁止)、および今回 backlog の未解決残渣のみの最終整理 |
-
-Table: 変更対象ファイルと変更内容
 
 ## 通常ビルド tcpServer.exe の外部観測: EOF による親参照解放と接続枠再利用
 
@@ -111,6 +111,8 @@ Table: 変更対象ファイルと変更内容
 
 検証環境は Windows 11 (`cl.exe` MSVC 14.50) および WSL (Oracle Linux 8、GCC 8.5) です。対象コミットは `app/porter` が `6796b6f5865fc1aad7dedcd2703c142f7febe5a6`、`app/cplat` が `dd93136b65d24ef134f5d291d950d30d1a4d0dc8`、`app/openssl` が `9b2daca7ed74fc919a358e3575c21a632ff6a09b`、`framework/testfw` が `dbccc803108fd7036bf70bae9b6913ef1721853a` です。
 
+Table: 同期後の基準テストと prefork 実装後の局所検証結果
+
 | 区分 | 実行コマンド / 対象 | 結果と内訳 | 恒久記録 / 補助ログ |
 | --- | --- | --- | --- |
 | 依存ビルド (`app/cplat`) | `make -C framework/testfw TESTFW_WINDOWS_VARIANTS=md` の後、`make -C app/cplat` | 終了コード 0 (テスト実行体のビルドのみ実施し、`framework` 全体テストおよび `cplat` テストの実行は未実施) | - |
@@ -120,8 +122,6 @@ Table: 変更対象ファイルと変更内容
 | 統合テスト (`tcpServerPreforkTest`) | `make -C app/porter/test/src/integration/tcpServerPreforkTest -j2 MAKEFW_CL_MP_JOBS=1 test` | 終了コード 0、13 件すべて PASSED (既存 2 件 + 追加観測 11 件。基準テスト 470 件に既存 2 件が含まれるため単純合算しない) | [summary.md](../../../../porter/test/src/integration/tcpServerPreforkTest/results/all_tests/summary.md)、`C:/Users/tetsuo/AppData/Local/Temp/windows-verification-prefork-test.log` |
 | 局所単体テスト (`tcpServerWindowsTest`) | `make -C app/porter/test/src/cmd/windows/tcpServerWindowsTest -j2 MAKEFW_CL_MP_JOBS=1 test` | 終了コード 0、1 件 PASSED (`records_parent_close_with_none_level`) | [summary.md](../../../../porter/test/src/cmd/windows/tcpServerWindowsTest/results/all_tests/summary.md)、[results.md](../../../../porter/test/src/cmd/windows/tcpServerWindowsTest/results/tcpServerWindowsTest.records_parent_close_with_none_level/results.md)、`C:/Users/tetsuo/AppData/Local/Temp/windows-verification-prefork-unit-final.log` |
 | 整形・差分・警告確認 | 対象 C/C++ 8 ファイルへの `clang-format --dry-run --Werror`、`git diff --check`、および `app/porter` 配下の `.warn` 走査 | すべて終了コード 0、`app/porter` 配下の非空 `.warn` は 0 件 | `C:/Users/tetsuo/AppData/Local/Temp/windows-verification-warning-refresh.log` |
-
-Table: 同期後の基準テストと prefork 実装後の局所検証結果
 
 #### 統合テスト 13 件と局所単体テスト 1 件の確認内訳
 

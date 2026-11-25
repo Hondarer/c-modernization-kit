@@ -495,6 +495,8 @@ CPLAT_EXPORT int CPLAT_API cplat_socket_watch_connect(cplat_socket_watch *watch,
 
 ##### 利用側 (porter) の要求との対応
 
+Table: porter の要求と cplat の API の対応
+
 | porter の要求 | cplat の API |
 | --- | --- |
 | 待機の解除のオブジェクト (生成、通知、リセット、破棄) | `cplat_socket_wait_cancel_create`、`_signal`、`_reset`、`_dispose` |
@@ -507,8 +509,6 @@ CPLAT_EXPORT int CPLAT_API cplat_socket_watch_connect(cplat_socket_watch *watch,
 | ブロックしない接続と完了の確認 | `cplat_socket_watch_connect` (結果の取得を含む) |
 | `cplat_socket_shutdown_receive()` の削除 | 削除 |
 | 「ブロックする」を表す結果コード | `CPLAT_ERR_WOULD_BLOCK` |
-
-Table: porter の要求と cplat の API の対応
 
 > [!NOTE]
 > porter は、UDP の送信で `CPLAT_ERR_WOULD_BLOCK` が返った場合に、`cplat_socket_watch_wait_writable` へ期限 100 [ms] と受信の解除のオブジェクトを渡して待ちます。最初の送信から 100 [ms] の期限の中で、待機と再送を繰り返し、期限を超えたら送信の失敗として扱います。TCP の受け付けたソケットは、porter が `cplat_socket_watch_attach` で登録して非ブロッキングにします。porter 側の呼び出しの変更は、porter の通信の節で定めます。
@@ -682,6 +682,8 @@ U 版のラッパーの多くは、W 版の関数を呼んだ後に、変換し�
 
 すべての変換は、不正な入力を失敗にします。UTF-8 から UTF-16 は `MB_ERR_INVALID_CHARS`、UTF-16 から UTF-8 は `WC_ERR_INVALID_CHARS` を指定します。変換の関数は、失敗の理由を次の結果コードで区別します。
 
+Table: 変換の失敗の理由と結果コード
+
 | 理由 | 結果コード | U 版のラッパーの最終エラー | errno へ写す場合 |
 | --- | --- | --- | --- |
 | 引数の誤り (NULL、範囲外の大きさ) | `CPLAT_ERR_INVALID_ARGUMENT` | `ERROR_INVALID_PARAMETER` | `EINVAL` |
@@ -689,8 +691,6 @@ U 版のラッパーの多くは、W 版の関数を呼んだ後に、変換し�
 | 出力先の容量の不足 (バッファーを受ける版) | `CPLAT_ERR_BUFFER_TOO_SMALL` | `ERROR_INSUFFICIENT_BUFFER` | `ENAMETOOLONG` (パス) または `ERANGE` (パス以外) |
 | 不正な入力 | `CPLAT_ERR_INVALID_ENCODING` | `ERROR_NO_UNICODE_TRANSLATION` | `EILSEQ` |
 | その他の変換の失敗 | 変換の関数の最終エラーを `cplat_internal_result_from_windows_error()` で変換した値 | 変換の関数の最終エラーのまま | `EIO` |
-
-Table: 変換の失敗の理由と結果コード
 
 - `CPLAT_ERR_INVALID_ENCODING` の説明 (`result.h`) を、「文字列が UTF-8 または UTF-16 として不正です」へ広げ、対応 (errno `EILSEQ`、Win32 `ERROR_NO_UNICODE_TRANSLATION`) を記載します。
 - 結果コードの変換表 (`base/result.c` の `cplat_internal_result_from_errno` と `cplat_internal_result_from_windows_error`) に、`EILSEQ` と `ERROR_NO_UNICODE_TRANSLATION` から `CPLAT_ERR_INVALID_ENCODING` への対応を足します。詳細エラーの要因は、現在の分類どおり `CPLAT_CAUSE_OTHER` とし、ネイティブ エラー値と結果コードで不正な文字コードを識別します。
@@ -794,6 +794,8 @@ CPLAT_EXPORT int CPLAT_API cplat_wpath_to_utf8(char *dest, size_t dest_size, siz
 
 起点は `app/cplat/prod/libsrc/cplat/` です。変換の関数の結果コードを `rc` と書きます。
 
+Table: 変換の関数の呼び出し元の変更後の扱い
+
 | 呼び出し元 | 現在の扱い | 変更後の扱い |
 | --- | --- | --- |
 | `win32/file_api.c` の `CreateFileU`、`CreateNamedPipeU`、`GetVolumePathNameU`、`GetVolumeInformationU` | `ERROR_INVALID_PARAMETER` | `rc` を最終エラーへ写す |
@@ -823,8 +825,6 @@ CPLAT_EXPORT int CPLAT_API cplat_wpath_to_utf8(char *dest, size_t dest_size, siz
 | `runtime/elevated_process.c` の結果のファイルのパスの変換 | 一時ファイルを消し、出力の終了コードを `EXIT_FAILURE` にして `CPLAT_ERR_UNKNOWN` | `rc` を返す。片付けと出力の終了コードの扱いは変えない |
 | `locale/ui_language.c` (2 か所) | `> 0` で成功を判定し、失敗は次の候補へ | `rc == CPLAT_OK` で判定し、失敗は次の候補へ |
 | `app/cplat/prod/src/cmd/eventlog-register/eventlog-register.c` | `< 0` で失敗 | `rc != CPLAT_OK` で失敗とし、不正な入力と長すぎるパスを分けて表示する |
-
-Table: 変換の関数の呼び出し元の変更後の扱い
 
 #### 変更するファイル
 
@@ -880,14 +880,14 @@ Table: 変換の関数の呼び出し元の変更後の扱い
 
 Windows で一時ディレクトリを得る箇所が 4 つあり、それぞれが固定長の配列で `GetTempPathW` を呼びます。
 
+Table: 一時ディレクトリの取得の箇所
+
 | 箇所 (`app/cplat/prod/libsrc/cplat/`) | 配列 | 失敗の判定 |
 | --- | --- | --- |
 | `crt/path.c` の `cplat_path_get_temp_dir` | `wchar_t wdir[PLATFORM_PATH_MAX]` | 0 は Windows のエラー、`>= 要素数` は `ENAMETOOLONG` |
 | `crt/stdio_temp.c` の `cplat_fopen_temp` | `wchar_t wdir[MAX_PATH]` | 0 は Windows のエラー、`> 要素数` は `ENAMETOOLONG` (要素数と等しい値を成功とし、`GetTempFileNameW` へ渡す) |
 | `console/console.c` の `build_console_diag_log_path` | `wchar_t temp_path[PLATFORM_PATH_MAX]` | 0 または `>= 要素数` は -1 |
 | `runtime/elevated_process.c` の昇格の結果のファイルの作成 | `wchar_t wide_temp_dir[PLATFORM_PATH_MAX]` | 0 または `>= 要素数` は `EXIT_FAILURE` と `CPLAT_ERR_UNKNOWN` |
-
-Table: 一時ディレクトリの取得の箇所
 
 Windows の `PLATFORM_PATH_MAX` は `MAX_PATH` (260) です (`app/cplat/prod/include/cplat/crt/path.h`)。4 か所とも 260 要素の配列で、資料上の最大の戻り値 261 の一時ディレクトリを受けられません。`GetTempPathW` は、SYSTEM のプロセスでも、利用者ごとの環境変数に基づく場所を返します。
 
@@ -921,14 +921,14 @@ int cplat_internal_get_temp_dir_w(wchar_t **dir_out, size_t *length_out, cplat_e
 - 取得は、最初に `MAX_PATH + 2` 要素の領域で呼びます。戻り値 `n` が 0 なら、`GetLastError()` を詳細エラーとして返します。`0 < n < 容量` なら成功です。`n >= 容量` なら、`n + 1` 要素を確保し直して呼び直します。呼び直しは 2 回までとし (環境変数が呼び出しの間に変わる場合に備えます)、それでも収まらない場合は `CPLAT_ERR_BUFFER_TOO_SMALL` (詳細 `ERROR_INSUFFICIENT_BUFFER`) を返します。
 - 呼び出し元の扱いは、次のとおりです。いずれも、得たパスを固定長の配列へ写さずに使い、使い終えたら解放します。
 
+Table: 一時ディレクトリの取得の呼び出し元の扱い
+
 | 呼び出し元 | 変更後の扱い |
 | --- | --- |
 | `crt/path.c` の `cplat_path_get_temp_dir` | 内部の関数の失敗は、その結果コードと詳細エラーをそのまま返す。UTF-8 への変換と末尾の '/' の除去は変えない。呼び出し側のバッファーに収まらない場合は、現在と同じく `ENAMETOOLONG` |
 | `crt/stdio_temp.c` の `cplat_fopen_temp` | 内部の関数の失敗は、詳細エラーを記録して NULL。得たパスを `GetTempFileNameW` へ渡す。`GetTempFileNameW` の出力は `MAX_PATH` 要素の配列のままとする。ディレクトリの部分が `MAX_PATH - 14` を超える場合は、`GetTempFileNameW` が `ERROR_BUFFER_OVERFLOW` で失敗し、その最終エラーを詳細エラーとして返す |
 | `console/console.c` の `build_console_diag_log_path` | 内部の関数の失敗は -1。連結の結果が出力先に収まらない場合も -1 (現在と同じ) |
 | `runtime/elevated_process.c` | 内部の関数の失敗は、出力の終了コードを `EXIT_FAILURE` にして、内部の関数の結果コードを返す (現在の `CPLAT_ERR_UNKNOWN` から変える)。`GetTempFileNameW` の扱いは `cplat_fopen_temp` と同じ |
-
-Table: 一時ディレクトリの取得の呼び出し元の扱い
 
 > [!IMPORTANT]
 > SYSTEM のプロセスで動く場合、`GetTempPath2W` のある Windows では、一時ディレクトリは `SystemTemp` 環境変数の値、未設定なら既定の `C:\Windows\SystemTemp` になります。通常の利用者のプロセスは、管理者へ昇格しただけでは SYSTEM にならず、SYSTEM 以外の選択規則に従います。公開関数 `cplat_path_get_temp_dir` (`cplat/crt/path.h`) と `cplat_fopen_temp` (`cplat/crt/stdio.h`) の Doxygen に、この振る舞いと、使う API を書きます。
@@ -1412,6 +1412,8 @@ Linux だけで、`Mock_unistd` の `execve` を使い、呼ばれた候補の�
 
 ローテーション時の結果は次のとおりです。
 
+Table: ローテーション時の戻り値
+
 | モード | 失敗または競合 | `cplat_trace_file_sink_write()` の結果 |
 |---|---|---|
 | 単一プロセス | 新しい現在ファイルを開けない。ほかのローテーション処理は成功 | `CPLAT_OK`。次の書き込みで開き直します |
@@ -1424,8 +1426,6 @@ Linux だけで、`Mock_unistd` の `execve` を使い、呼ばれた候補の�
 | 共有 | 非ブロッキングのロック取得が `CPLAT_ERR_BUSY` | ローテーションを見送り `CPLAT_OK` |
 | 共有 | 非ブロッキングのロック取得が `CPLAT_ERR_BUSY` 以外で失敗 | `CPLAT_ERR_UNKNOWN` |
 | 共有 | 削除対象または名前変更の移動元がない (`CPLAT_ERR_NOT_FOUND`) | 正常な不在として続行します。ほかの処理が成功すれば `CPLAT_OK` です |
-
-Table: ローテーション時の戻り値
 
 `CPLAT_ERR_NOT_FOUND` は、削除対象または移動元の世代ファイルが存在しない場合の正常な状態として扱います。共有モードでファイル サイズの取得が失敗した場合は、サイズ不明のまま成功を返さず `CPLAT_ERR_UNKNOWN` とします。ローテーション後の新しいファイルを開けなかった場合は、sink を未オープンにし、次の書き込みで追記モードの開き直しを試みます。
 
@@ -1532,6 +1532,8 @@ Table: ローテーション時の戻り値
 
 診断が有効な場合だけ、次の項目を診断のログへ追記します。診断が無効な場合の動作、公開 API、戻り値、エラー詳細は変えません。ログは 1 行 1 事象とし、既存の書式 (`attempt=%d ...`、`handle=0x%p`、`error=%lu`) に合わせます。文面は英数字と記号の定型です。
 
+Table: 追加する診断の項目
+
 | 呼び出し | 記録する内容 | 行の例 |
 |---|---|---|
 | `FreeConsole()` (再接続の各試行) | 戻り値、直後の `GetLastError()` | `attempt=0 FreeConsole result=1 last_error=0` |
@@ -1542,8 +1544,6 @@ Table: ローテーション時の戻り値
 | `GetStdHandle()` (再接続の直後の読み戻し) | 標準入力、標準出力、標準エラー出力のハンドルの値と、`SetStdHandle()` へ渡した値との一致 | `attach_parent GetStdHandle readback stdout=0x... expected=0x... match=1` |
 | `GetStdHandle()` (終了時の同期の経路) | `NULL` または `INVALID_HANDLE_VALUE` のとき、その値 | `dispose_on_shutdown drain skipped GetStdHandle=0x...` |
 | `GetConsoleScreenBufferInfo()` (終了時の同期の経路) | 戻り値と、失敗時の `GetLastError()` | `dispose_on_shutdown drain GetConsoleScreenBufferInfo handle=0x... result=0 error=6` |
-
-Table: 追加する診断の項目
 
 動作の規則は次のとおりです。
 
@@ -1687,6 +1687,8 @@ ETW セッションを停止し、リソースを解放します。
 
 区分 C (記載を足す関数 14 個):
 
+Table: 失敗を通知しないことの記載を足す関数
+
 | 関数 | 宣言 | 失敗しうる処理 | 足す記載 |
 |---|---|---|---|
 | `cplat_argparser_init` | `argparser.h` | 既定のパーサーの確保と、説明などの複製 (`argparser_default_acquire()` の失敗を破棄している) | 下の文面 |
@@ -1701,8 +1703,6 @@ ETW セッションを停止し、リソースを解放します。
 | `cplat_etw_session_stop` | `etw.h` | 停止の要求、`CloseTrace` | 上の文面 |
 | `cplat_tracer_dispose` | `tracer.h` | 登録簿からの削除 | 下の文面 |
 | `cplat_tracer_remove_hook` | `tracer.h` | 状態が停止中でない場合 | 停止中でない場合、またはエントリが見つからない場合は、何もせず、通知しない |
-
-Table: 失敗を通知しないことの記載を足す関数
 
 `cplat_tracer_dispose` の記載 (`tracer.h`):
 
@@ -2293,6 +2293,8 @@ Doxygen と Doxybook2 で生成した Markdown で、ソースのコメントの
 
 作業場に `min/min.h` と最小の `Doxyfile` を作ります。`Doxyfile` は、`INPUT = min`、`GENERATE_XML = YES`、`GENERATE_HTML = NO`、`GENERATE_LATEX = NO`、`EXTRACT_ALL = YES`、`OUTPUT_DIRECTORY = out1`、`XML_OUTPUT = xml` だけを指定します。入力フィルターは使いません。`min.h` には、関数宣言 1 つにつき 1 つのコメントを置き、コード スパンの形だけを変えます。
 
+Table: 最小の入力の事例
+
 | 事例 | コメントの本文 | 確かめる内容 |
 |---|---|---|
 | C1 | `` `\\?\` `` | 症状の形。末尾がバックスラッシュ |
@@ -2303,8 +2305,6 @@ Doxygen と Doxybook2 で生成した Markdown で、ソースのコメントの
 | C6 | `` `/` と `\\` を区切りとします `` | 実在の形 (`struct_meta_gen_emit.c`) |
 | C7 | `<code>\\?\</code>` | HTML タグの形 |
 | C8 | `@c \\?\` | 単語の形 |
-
-Table: 最小の入力の事例
 
 実行は `doxygen Doxyfile` です。`out1/xml/*.xml` の各事例の関数の `<detaileddescription>` の文字列を読み、`endiskip` を含むかを調べます。
 
@@ -2324,6 +2324,8 @@ Table: 最小の入力の事例
 
 手順 2 の XML を variant ごとに複製し、`framework/doxyfw` の変換を実行順に 1 つずつ適用します。各段階で `grep -c endiskip` を数え、variant と段階名を含む別々のディレクトリへ保存します。
 
+Table: 公開・内部 XML の変換順序
+
 | 段階 | 適用する変換 | 保存先 |
 |---|---|---|
 | 3a | `python3 templates/normalize-function-references.py <xml>` | `xml3a-<variant>` |
@@ -2331,8 +2333,6 @@ Table: 最小の入力の事例
 | 3c | `python3 templates/extract-graphs.py <xml>` | `xml3c-<variant>` |
 | 3d | `python3 templates/materialize-group-members.py <xml>` | `xml3d-<variant>` |
 | 3e | `templates/preprocess.sh <xml>` | `xml3e-<variant>` |
-
-Table: 公開・内部 XML の変換順序
 
 両 variant のどちらかで数が 0 から 1 以上へ変わった最初の段階が原因工程です。変換スクリプトは `endiskip` の文字列を持たないため、その結果になった場合は想定外です (分岐 C)。
 
@@ -2356,14 +2356,14 @@ make -C framework/doxyfw CATEGORY=cplat SUBCATEGORY=internal DOCS_DOXYBOOK2_DIR=
 `CATEGORY` と `SUBCATEGORY` により入力はリポジトリ内の `app/cplat/prod/Doxyfile.part.<variant>` から選びます。`DOCS_DOXYBOOK2_DIR`、`DOCS_DOXYGEN_DIR`、`DOXY_WARN_OUTPUT` は make のコマンド行で上書きでき、ステージング後の公開先もこれらの値になります。`APP_DOCS_DIR` も作業場へ向け、実行後の `rmdir` がリポジトリを対象にしないようにします。作業場での make 実行結果と手順 5 の variant ごとの出力を `diff -ru` で比べます。リポジトリの既存 `docs/doxybook2_public` と `docs/doxybook2_internal` は読み取りだけで比較に使い、更新しません。
 ##### 分岐と直し方
 
+Table: 分岐と対応
+
 | 分岐 | 判定 | 原因の工程 | 対応 |
 |---|---|---|---|
 | A | 手順 1 または 2 で、Doxygen の XML に `endiskip` が現れる | Doxygen | 下の「A の直し方」 |
 | B | 手順 3 までは 0 で、手順 4 で Doxybook2 の出力に現れる | Doxybook2 | 下の「B の直し方」 |
 | C | 手順 3 または 5 で、リポジトリの変換スクリプトの適用の後に現れる | `framework/doxyfw` のスクリプト | 作業を止めて確認する |
 | D | どの手順でも再現しない | 不明 | 作業を止めて確認する |
-
-Table: 分岐と対応
 
 分岐 A の直し方 (Doxygen が原因の場合。Doxygen 自体は変更しません):
 
@@ -2452,6 +2452,8 @@ UDP と TCP の既存の起床、受信期限の超過による起床、開始�
 停止も同じロックの下で運転状態を更新して通知し、保留要求より停止を優先します。  
 同じサービス内で health を再起動するときの要求の初期化は、前の health の終了後に行います。
 
+Table: 切断の契機と割り込みの PING
+
 | 状態を戻す契機 | 割り込みの PING の扱い |
 | --- | --- |
 | 通常の REJECT、通知キューの容量超過 | 双方向の UDP で状態が変わった場合に要求します |
@@ -2460,8 +2462,6 @@ UDP と TCP の既存の起床、受信期限の超過による起床、開始�
 | RAW の欠番、満杯による切断 | RAW は片方向のため、要求しません |
 | UDP の受信期限の超過 | 既存の要求を維持します |
 | TCP の切断、PING の受信、PING の期限切れ | 既存の TCP 用の経路を維持します。FIN は対象外です |
-
-Table: 切断の契機と割り込みの PING
 
 内部の関数の契約を次のように統一します。
 
@@ -2487,14 +2487,14 @@ Table: 切断の契機と割り込みの PING
 
 `app/porter/test/src/libporter/` の次のテストへ追加します。
 
+Table: 割り込みの PING の局所テスト
+
 | 配置 | mock と確認内容 |
 | --- | --- |
 | `threadRecvWindowTest/threadRecvWindowRejectTest.cc` | `mock_porter` と `mock_cplat` を使い、通常、変化なし、無視、RAW、保留中の FIN、N 対 1、通知キューの容量超過の戻り値を確認します |
 | `packetEmissionTest/` | 実際の dispatch の処理を取り込み、致命的な失敗が 0 を返すこと、ヘルパーの対象種別を確認します |
 | `potrRecvThreadTest/` | dispatch の戻り値を注入し、1 対 1 の起床と、N 対 1 の `peers_mutex` 解放後の起床を `InSequence` で確認します |
 | `potrHealthThreadTest/` | 1 対 1 と N 対 1 の両方で、経路の状態の読み取り後、次の待機開始前に障壁で止め、状態変更と起床要求を発行します。再開後に周期の期限を待たず新しい状態を送ること、消費後の要求が次の送信へ残ることを確認します。複数要求の集約、待機前の要求、待機中の要求、見せかけの起床、停止との競合、UDP と TCP の既存の起床、受信期限の超過、開始時の即時送信も確認します |
-
-Table: 割り込みの PING の局所テスト
 
 #### 正本の文書とコメントへの反映
 
@@ -2549,6 +2549,8 @@ libporter の UDP、TCP の待ち受け、TCP の接続準備中、接続済み�
 UDP にも `udp_send_mutex[POTR_MAX_PATH]` を追加します。  
 登録中に porter が `WSAEventSelect`、`WSAPoll`、既存の cplat の待機、登録を受けない送信を呼び出すことはありません。
 
+Table: porter が使う登録と解除の API
+
 | 用途 | 使用する cplat の関数と契約 |
 | --- | --- |
 | 解除オブジェクトの寿命 | `cplat_socket_wait_cancel_create()`、`cplat_socket_wait_cancel_signal()`、`cplat_socket_wait_cancel_dispose()`。通知は保持され、待機前の通知も有効です |
@@ -2560,8 +2562,6 @@ UDP にも `udp_send_mutex[POTR_MAX_PATH]` を追加します。
 | 固定した期限の全量入出力 | `cplat_socket_watch_recv_all()`、`cplat_socket_watch_send_all()` を使います。解除、期限切れ、エラーでも処理済みバイト数を受け取り、読み書き位置へ反映します。部分フレームを配信せず、TCP の途中送信後の失敗では接続を閉じます |
 | 接続と完了確認 | `cplat_socket_watch_connect(watch, endpoint, cancel, timeout_ms, detail)`。0 以外の結果では detach と close を行い、同じソケットで再接続しません |
 | 一時的に待つ必要がある結果 | `CPLAT_ERR_WOULD_BLOCK` を判定します。`CPLAT_ERR_BUSY` と混用しません |
-
-Table: porter が使う登録と解除の API
 
 `cplat_socket_wait_cancel_signal()` は、有効なオブジェクトには必ず `CPLAT_OK` を返し、NULL の場合だけ `CPLAT_ERR_INVALID_ARGUMENT` を返します。  
 解除状態は OS の起床通知より先に記録され、OS の通知が失敗しても取り消されません。  
@@ -2586,6 +2586,8 @@ attach 失敗時は、そのスレッドだけがソケットを閉じます。
 TCP では経路ごとの短時間の寿命管理用ロック `tcp_lifecycle_mutex[i]` を追加します。  
 このロックの下では I/O、送信可能の待機、スレッドの終了待ちを行いません。
 
+Table: 通信資源の生成、所有、利用、解放
+
 | 資源 | 生成と所有者 | 利用者 | 解放条件と順序 |
 | --- | --- | --- | --- |
 | UDP の `sock[i]` と `udp_watch[i]` | サービスを開く処理が生成し、サービスが所有します | UDP 受信、送信、health、FIN、フロー制御、ピア管理、証明書、通知スレッドの処理です | 全利用者の終了後、グループ離脱、detach、close、無効化を行います |
@@ -2596,8 +2598,6 @@ TCP では経路ごとの短時間の寿命管理用ロック `tcp_lifecycle_mut
 | TCP の `tcp_conn_fd[i]`、`tcp_conn_watch[i]`、`tcp_conn_cancel[i]` | 接続管理スレッドが世代ごとに生成し、公開します | 受信、health、共有送信、FIN、フロー制御、通知スレッドです | 閉じる要求後、受信と health の終了、送信の使用完了、公開解除、detach、close、cancel の dispose の順です |
 | UDP と TCP の health のロックと条件変数 | スレッド起動前にサービスが生成し、所有します | health と、起こすすべてのスレッドです | health の stop では破棄しません。全起床側と全 health の終了後に共通解放で破棄します |
 | 送信キュー、送信ウィンドウのロック、送信用ロック、寿命管理用ロック | サービスが生成し、所有します | 対応する送受信と管理処理です | 参照する全スレッドと受付済み API の処理が終了した後に破棄します |
-
-Table: 通信資源の生成、所有、利用、解放
 
 接続の cancel は世代ごとに新しく作り、リセットして再利用しません。  
 古い世代への閉じる要求が、新しい接続を解除することを防ぎます。  
@@ -2660,6 +2660,8 @@ S -> X : cancel、health の同期資源、キュー、ロックを破棄
 @enduml
 ```
 
+Table: UDP の通信種別ごとの停止と資源解放
+
 | UDP の種別と役割 | 停止の通知と終了待ち | 登録とソケット、同期資源の最終処理 |
 | --- | --- | --- |
 | 片方向の送信役 (RAW を含む) | health があれば停止して join、排出と FIN、recv_cancel 通知、受信があれば join、送信を停止して join | マルチキャストは参加時と同じ NIC で離脱し、通知スレッドの終了後、全経路で detach、close、最後に cancel と同期資源を破棄します |
@@ -2667,8 +2669,6 @@ S -> X : cancel、health の同期資源、キュー、ロックを破棄
 | UNICAST_BIDIR | health の join、排出と FIN、recv_cancel 通知、受信の join、送信の停止と join | 受信が参照する送信ウィンドウのロックは、受信の終了まで保持します |
 | UNICAST_BIDIR_N1 | 上と同じです。FIN はピア表を維持したまま対象ピアへ送信します | ピア表と peers_mutex も全利用者の終了まで保持します |
 | 開始途中の失敗 | 起動済みスレッドだけへ停止を要求し、cancel と条件変数を通知して join します。通常終了の FIN は要求しません | 作成済みの資源だけを逆順に解放します。スレッド起動失敗だけを理由に共有同期資源を先に破棄しません |
-
-Table: UDP の通信種別ごとの停止と資源解放
 
 health の起動前から受信処理が動く場合にも備え、health のロックと条件変数は、起床側を起動する前に生成します。  
 health の起動失敗時も、ほかのスレッドがある間は破棄しません。  
@@ -2719,6 +2719,8 @@ S -> X : 全起床側の終了後に同期資源とキューを破棄
 @enduml
 ```
 
+Table: TCP の停止、切断、開始失敗の後始末
+
 | TCP の場面 | 停止要求から終了待ちまで | 所有者による解放 |
 | --- | --- | --- |
 | 接続要求の待機中 | 管理用 cancel の通知でリスナーの待機を解除し、管理スレッドを join します | サービスがリスナーを detach、close します |
@@ -2727,8 +2729,6 @@ S -> X : 全起床側の終了後に同期資源とキューを破棄
 | EOF、OS の失敗、PING の期限切れ、プロトコルの誤り | 検出側は対象世代へ閉じる要求を発行します。管理スレッドが受信と health を join します | 対象世代を解放し、状態とアクティブ経路数を更新してから再接続します |
 | 新しいセッションの受け付け | ほかの経路へ、旧世代を指定して閉じる要求を発行します。他経路の socket は閉じません | 各経路の管理スレッドが旧世代の終了待ちと解放を行います。新セッションの状態を旧スレッドが上書きしないよう、更新時にも世代を照合します |
 | 受信、bootstrap PING、health の起動失敗 | `potr_internal_start_connected_threads()` は閉じる要求、起動済み受信の join、起動済み health の join を行います。今回起動した共有送信だけを停止します | 送信の使用完了を確定してから世代を解放します。解放は呼び出し元と巻き戻しで重複させません |
-
-Table: TCP の停止、切断、開始失敗の後始末
 
 ```plantuml
 @startuml
@@ -2785,6 +2785,8 @@ UDP の peers_mutex、フロー制御の状態、各送信用ロックも通知�
 行番号は照合の補助であり、関数と処理を変更対象とします。  
 表の「結果規則」は直後の結果別の表に対応します。
 
+Table: libporter の待機、送受信、接続、受け付け、停止の全呼び出しの移行
+
 | 現在の呼び出し箇所 | 現在の関数 | 変更後 | 結果規則 |
 | --- | --- | --- | --- |
 | `thread/potr_recv_thread.c:421`、UDP のループ | `cplat_socket_timed_wait_readable_multi` | `cplat_socket_watch_wait_readable_multi` と `recv_cancel` | 受信待機 |
@@ -2818,7 +2820,7 @@ UDP の peers_mutex、フロー制御の状態、各送信用ロックも通知�
 | `thread/potr_send_thread.c:154`、`:165` | shutdown | 対象世代への閉じる要求 | 停止 |
 | `api/api_open_paths_udp.c`、`api_open_paths_tcp.c`、`api_context_cleanup.c`、接続準備と認証失敗の close | close | watch があれば必ず detach を先行し、所有者が close | 登録と停止 |
 
-Table: libporter の待機、送受信、接続、受け付け、停止の全呼び出しの移行
+Table: 非ブロッキング通信の各結果の処理
 
 | 結果規則 | 待つ必要がある場合 | 期限切れ | 解除 | 相手の切断 | OS の失敗 |
 | --- | --- | --- | --- | --- | --- |
@@ -2832,8 +2834,6 @@ Table: libporter の待機、送受信、接続、受け付け、停止の全呼
 | TCP 送信 | watch_send の部分送信数を進め、watch の送信可能を待ちます | 通常運転では無期限です。close の期限があれば TIMEOUT と閉じる要求です | CANCELED と閉じる要求です | DISCONNECTED と閉じる要求です | 詳細を変換し、対象世代へ閉じる要求を発行します |
 | 認証送信 | watch_send_all が吸収します | 認証の絶対期限で TIMEOUT、部分送信でも接続を解放します | CANCELED、公開前の接続を解放します | 公開せず解放します | 詳細を変換して公開せず解放します |
 | 無待機の確認 | 送信できる他経路があればその経路を利用します | 空きがない経路として扱います。全経路で送れない場合にデータを成功扱いで破棄しません | 対象経路を選択しません | 実際の送信の結果で判定します | 実際の送信で詳細を判定し、誤って成功扱いにしません |
-
-Table: 非ブロッキング通信の各結果の処理
 
 UDP 共通送信ヘルパー `potr_internal_udp_sendto()` は、最初の呼び出しから 100 [ms] の絶対期限を計算します。  
 ready 後にも WOULD_BLOCK が返る場合は、期限内で待機と再試行を繰り返します。  
@@ -2879,6 +2879,8 @@ ready の後に単発の `cplat_socket_recv()` を行い、WOULD_BLOCK なら待
 libporter の watch の登録は行わず、今回の通信停止の移行対象には含めません。  
 このサンプルの変更は、後項の子プロセス起動の修正です。
 
+Table: 独立した技術サンプルに存在する通信呼び出し
+
 | ファイルと処理 | 待機、送受信、受け付けの全呼び出し | この項目での扱い |
 | --- | --- | --- |
 | `tcpServer_linux.c` の `worker_loop()` | `accept` (:179、:244)、`epoll_wait` (:225)、`client_recv` (:286)、`client_send` (:289) | 既存の OS API を維持します |
@@ -2886,8 +2888,6 @@ libporter の watch の登録は行わず、今回の通信停止の移行対象
 | `tcpServer_windows.c` の `worker_loop()` | `select` (:436)、`recv` (:454)、`send` (:457) | 同上です |
 | 同 `run_fork_server()`、`run_prefork_server()` | `accept` (:935、:1003) | 同上です |
 | `tcpServer.c` の `handle_client_session()` | `client_recv` (:44)、`client_send` (:50) | `tcpServer.h` の recv/send のマクロ展開を含め、既存処理を維持します |
-
-Table: 独立した技術サンプルに存在する通信呼び出し
 
 #### 変更するファイル
 
@@ -2904,6 +2904,8 @@ Table: 独立した技術サンプルに存在する通信呼び出し
 
 単体テストは `app/porter/test/src/libporter/`、実ソケットの結合テストは `app/porter/test/src/integration/` に配置し、Windows と Linux の両方で実行する構成にします。
 
+Table: 通信と停止の単体テストの配置
+
 | 配置 | 使用する mock と確認内容 |
 | --- | --- |
 | 新規 `potrSocketIoTest/` | `mock_cplat` で send、sendto、watch の待機、単調時刻を注入します。UDP の即時成功、WOULD_BLOCK と再試行、ready 後の再度の WOULD_BLOCK、100 [ms] の期限、解除、短い送信、OS の失敗を確認します。TCP は部分送信、待機、解除、切断、期限の後からの公開を確認します。送信待機が `CPLAT_OK` を返した後の送信を切断または OS の失敗にし、待機だけで成功扱いしないことを確認します |
@@ -2916,8 +2918,6 @@ Table: 独立した技術サンプルに存在する通信呼び出し
 | `potrHealthThreadTest/`、`potrSendThreadTest/`、`potrFlowControlTest/`、`potrPeerTableTest/`、`threadRecvReportTest/`、`packetEmissionTest/` | 新ヘルパーへの移行と、失敗時の既存の配送・通知の扱い、`last_ping_send_ms` と `last_valid_data_send_ms` が失敗時に変わらないことを確認します。1 対 1 と N 対 1 の全経路の DATA 送信を失敗させ、`flow_last_data_send_ms` とピアごとの同名の項目は更新すること、単調時刻の取得失敗では前回値を保つことを確認します |
 | `potrHandleTest/` と `potrNotifyTest/` | 受付済み API が通信待機する状態で close の期限が先に公開されること、期限切れがキューと通信を解除すること、通知後のフロー制御送信が終わるまでロックとソケットを保持することを確認します |
 | `resultTest/` | 詳細の有無ごとに TIMEOUT、CANCELED、EOF、WOULD_BLOCK、BUSY、メモリ不足の変換を確認します |
-
-Table: 通信と停止の単体テストの配置
 
 順序の mock だけでなく、障壁でスレッドを待機させる競合テストを追加します。  
 送信スレッドが送信用ロックを保持して待つ状態で閉じる要求を発行し、ロックを取得せず signal が発行され、送信終了後にだけ detach されることを確認します。  
@@ -3016,6 +3016,8 @@ unsigned int potr_internal_config_effective_ttl(uint8_t configured_ttl);
 通信処理全体の完成を設定検証の前提にしません。  
 JSON の数値と文字列の値域検証は、uint8_t へ変換する前に行います。
 
+Table: TTL の設定値とソケットへ設定する実効値
+
 | 入力と通信種別 | 設定検証と実効値 |
 | --- | --- |
 | multicast、multicast_raw の設定ファイルで省略 | 既定値 1 です |
@@ -3024,8 +3026,6 @@ JSON の数値と文字列の値域検証は、uint8_t へ変換する前に行�
 | 構造体を直接渡した場合の 0 | 既定値 1 として扱います |
 | multicast、multicast_raw の受信役の設定にある有効な ttl | 設定を共有する用途のため受け付け、受信役のソケットには設定しません |
 | ほかの種別の設定ファイルにある ttl | 種別に合わない項目として `POTR_ERR_INVALID_CONFIG` です |
-
-Table: TTL の設定値とソケットへ設定する実効値
 
 構造体の値域と、項目の指定の有無を表現できない構造体の扱いは、設定検証の契約に従います。  
 既定値や種別の判定をソケットの処理側に複製しません。  
@@ -3318,6 +3318,8 @@ porter の公開 API は変わりません。
 `tcpServerWindowsTest/` の `TEST_SRCS` は製品の Windows ソース、`ADD_SRCS` は `tcpServer_common.c` です。  
 この取り込みと inject を使い、`mock_cplat` の `GetModuleFileNameU()`、`CreateProcessU()`、確保と変換、`mock_libc` の診断出力と既存の OS mock で確認します。
 
+Table: Windows の子プロセス起動の単体テスト
+
 | 入力と失敗の注入 | 確認内容 |
 | --- | --- |
 | パス取得が 0、容量と同じ値、容量より大きい値 | 起動せず診断します。確保領域を回収し、切り詰めたパスを使いません |
@@ -3327,8 +3329,6 @@ porter の公開 API は変わりません。
 | 書式化または文字コード変換の失敗 | 起動せず、途中のバッファーを解放します |
 | CreateProcessU が最終エラー 2 を設定して FALSE | fork と prefork の診断に `GetLastError=2` を含めます。解放で最終エラーが変わっても保存値を使います |
 | CreateProcessU の失敗 | 未設定のプロセスとスレッドのハンドルを閉じません。fork は接続を 1 回だけ閉じて受け付けを継続します |
-
-Table: Windows の子プロセス起動の単体テスト
 
 `test/src/integration/tcpServerPreforkTest/` の通常のパスの起動も確認します。  
 長いパスからの実際の起動は、残課題一覧の実機確認として別に記録します。
@@ -3431,6 +3431,8 @@ fork と prefork の両方が、取得した完全なパスをアプリケーシ
 
 段階 2 のルートの構造は、ルートの型、ルートの既知キー、`global` と `services` 自体の型、すべてのサービス ID の表記と範囲、ルート直下と `services` 直下の重複キーです。サービス本文の型と項目の意味は含めません。段階 1 は文書全体に適用し、文字列の U+0000 の拒否も、対象外のサービスを含めて適用します。
 
+Table: 各操作で検査する範囲と無関係なサービスの扱い
+
 | 誤りの場所と内容 | 全体の検証 | ID の列挙 | サービスを開く処理と種別の取得 |
 |---|---|---|---|
 | 文書全体の構文、生の NUL、文字列内の U+0000 | 拒否します | 拒否します | 拒否します |
@@ -3438,8 +3440,6 @@ fork と prefork の両方が、取得した完全なパスをアプリケーシ
 | `global` の本文の知らないキー、重複、型、値、制約 | 拒否します | 検査しません | 拒否します |
 | 指定したサービス本文の型、知らないキー、重複、値、必須項目、種別・認証方式・経路の制約 | 拒否します | 検査せず ID を返します | 拒否します |
 | ほかのサービス本文の同じ誤り | 拒否します | 検査せず ID を返します | 構文だけを確かめ、本文の検査を行いません |
-
-Table: 各操作で検査する範囲と無関係なサービスの扱い
 
 ##### 段階 3: 項目の解釈
 
@@ -3451,6 +3451,8 @@ Table: 各操作で検査する範囲と無関係なサービスの扱い
 - `-1` を受け付ける項目に `-1` を指定した場合は「無効」の専用の値 (`POTR_FLOW_CONTROL_DISABLED`) にします。どの項目でも、十進の `4294967295` は専用の値と区別できないため、値域の誤りにします。
 
 global の既知のキーは次の 22 項目です。「現在の誤りの扱い」の「WARNING」は、変換の失敗で WARNING を出して既定値または直前の値を保つことを、「開くときに ERROR」は、変換に成功した値の値域をサービスを開く処理で検査することを示します。変更後は、すべての項目で、型の誤り、値の誤り、値域の誤りを設定の誤りにします。
+
+Table: global の既知のキーと、変更後の検査
 
 | キー | 型 | 値域 | 既定値 | 現在の誤りの扱い | 変更後に加える検査 |
 |---|---|---|---|---|---|
@@ -3477,9 +3479,9 @@ global の既知のキーは次の 22 項目です。「現在の誤りの扱い
 | `flow_control_receive_buffer_percent` | uint32 | `-1`、0 から 100 (0 は既定値) | 100 | WARNING。範囲は開くときに ERROR | なし |
 | `udp_receive_buffer_size` | uint32 | `-1`、0 から 4,294,967,294 (0 は既定値) | 4,194,304 | WARNING | なし |
 
-Table: global の既知のキーと、変更後の検査
-
 サービスの既知のキーは次のとおりです。フロー制御の 12 項目は、global の同名の項目と同じ値域で、0 と省略は global の値を使うことを表し、`-1` は `flow_control_capacity`、`flow_control_excluded_receiver_count`、`flow_control_excluded_receiver_percent`、`flow_control_monitored_receiver_count`、`flow_control_receive_buffer_percent`、`udp_receive_buffer_size` の 6 項目で受け付けます (現在と同じ)。
+
+Table: サービスの既知のキーと、変更後の検査
 
 | キー | 型 | 値域 | 既定値 | 現在の誤りの扱い | 変更後に加える検査 |
 |---|---|---|---|---|---|
@@ -3504,8 +3506,6 @@ Table: global の既知のキーと、変更後の検査
 | `pinned_certs`、`peer_names` | 文字列の配列 | 1 要素以上 | なし | 誤り (要素の空と型)。空の配列は受け付ける | 空の配列は値の誤り。`auth` が `cert` でなければ認証方式に合わない項目の誤り |
 | フロー制御の 12 項目と `udp_receive_buffer_size` | uint32 | global と同じ (0 は global の値) | 0 | WARNING | 種別に合わない項目の誤り (後述) |
 
-Table: サービスの既知のキーと、変更後の検査
-
 `type` の誤りまたは省略のサービスでは、`potr_service_get_type()` も `POTR_ERR_INVALID_CONFIG` を返し、種別 0 を返しません。文字列の項目の長さは、構造体の配列 (`POTR_MAX_ADDR_LEN` の 64 [byte]、終端の NUL を含む) に収まる 63 [byte] までで、超える値は切り詰めずに値域の誤りにします。
 
 `ttl` は、multicast と multicast_raw の送信側のソケットへ、マルチキャストの送信の TTL として設定します (ソケットへの設定は、cplat に足す公開関数を porter の通信の処理が呼びます。この節は検証の側を定めます)。受信側の設定に書いた `ttl` は使われませんが、送信側と受信側で同じ設定を共有するため、誤りにしません。値 0 (送信したホストの外へ出さない) は受け付けません。構造体を直接渡す場合の `ttl` の 0 は、ほかの項目と同じく既定値 (1) を表します。
@@ -3517,6 +3517,8 @@ Table: サービスの既知のキーと、変更後の検査
 ##### 通信種別と項目の対応
 
 `type` が正しく解釈できたサービスでは、種別に合わない項目を、種別に合わない項目の誤りにします (`type` の誤りのサービスでは、この検査を省きます)。global の項目は、どのサービスにも適用されうるため、この検査の対象外です。全種別で使える項目は、`type`、`dst_port`、`src_port`、`pack_wait_ms`、`health_interval_ms`、`health_timeout_ms`、`auth`、`encrypt_key`、証明書の 6 項目です。それ以外の項目の対応を次に示します。「可」は使える種別、「-」は誤りになる種別です。
+
+Table: 通信種別ごとに使えるサービスの項目
 
 | キー | unicast | unicast_raw | multicast | multicast_raw | broadcast | broadcast_raw | unicast_bidir | unicast_bidir_n1 | tcp | tcp_bidir |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -3533,8 +3535,6 @@ Table: サービスの既知のキーと、変更後の検査
 | `flow_control_receive_buffer_percent` | 可 | - | 可 | - | 可 | - | 可 | 可 | - | - |
 | `udp_receive_buffer_size` | 可 | 可 | 可 | 可 | 可 | 可 | 可 | 可 | - | - |
 
-Table: 通信種別ごとに使えるサービスの項目
-
 ##### 認証方式と項目の対応
 
 - `auth` が `psk` または省略の場合、`cert_file`、`key_file`、`ca_file`、`crl_file`、`pinned_certs`、`peer_names` は、認証方式に合わない項目の誤りです。
@@ -3546,6 +3546,8 @@ Table: 通信種別ごとに使えるサービスの項目
 
 経路は 1 から始まる連続した番号で指定します。種別ごとに、経路を決めるキーと、経路ごとの条件を次の表に示します。経路を決めるキーの番号は 1 から連続していなければならず、番号の飛びは、飛んだ後の最初のキーを値の誤りにします。経路を決めるキーのない番号の、ほかの経路のキー (アドレスと `path_groupN`) は、値の誤りです。
 
+Table: 通信種別ごとの経路の指定
+
 | 種別 | 経路を決めるキー | 経路ごとの必須 | 経路ごとの任意 | そのほかの必須 |
 |---|---|---|---|---|
 | unicast、unicast_raw | `src_addrN` | `src_addrN` と `dst_addrN` の両方 | `path_groupN` (unicast のみ) | `src_addr1` |
@@ -3554,8 +3556,6 @@ Table: 通信種別ごとに使えるサービスの項目
 | unicast_bidir | `dst_addrN` | `dst_addrN` | `src_addrN`、`path_groupN` | 役割に依存 (後述。静的な受信側は全経路で両アドレスが必須) |
 | unicast_bidir_n1 | `dst_addrN` | `dst_addrN` | `path_groupN` | なし (`dst_addr1` の省略は INADDR_ANY) |
 | tcp、tcp_bidir | `dst_addrN` | `dst_addrN` | `src_addrN`、`path_groupN` | `dst_addr1` |
-
-Table: 通信種別ごとの経路の指定
 
 `unicast_bidir` の静的な受信側 (`src_addr1` を指定する場合) は、すべての経路に `src_addrN` と `dst_addrN` の両方を必要とします。動的な受信側 (`src_addr1` を省略する場合) は経路 1 だけを使い、`dst_addr1` は任意です。`src_addr2` 以降、`dst_addr2` 以降、`path_group2` 以降は誤りです。`unicast_bidir_n1` で `dst_addr1` を省略する場合も経路 1 だけを使い、`dst_addr2` 以降と `path_group2` 以降は誤りです。両方式とも暗黙の経路 1 の `path_group1` は指定できます。
 
@@ -4222,14 +4222,14 @@ typedef struct potr_config_validate_options
 porter-config-check [-h] [--check-files] [--role ROLE] config_path
 ```
 
+Table: porter-config-check の引数
+
 | 引数 | 意味 |
 |---|---|
 | `config_path` | 検証する設定ファイルのパス (必須の位置引数) |
 | `--check-files` | 証明書方式のサービスの認証のファイル (`cert_file`、`key_file`、`ca_file`、`crl_file`、`pinned_certs` の各要素) が、存在し、通常のファイルで、読み取りのために開けることも確かめます |
 | `--role ROLE` | 役割に依存する条件を検査する役割を `sender`、`receiver`、`all` のいずれかで指定します。既定は `all` です |
 | `-h`、`--help` | 使い方を標準出力へ出して、終了コード 0 で終了します |
-
-Table: porter-config-check の引数
 
 - 引数の解析には `cplat` の引数パーサー (`cplat_argparser_init()`、`cplat_argparser_register_flag()`、`cplat_argparser_register_option_string()`、`cplat_argparser_register_positional_string()` と `CPLAT_ARGPARSER_REQUIRED`、`cplat_argparser_parse()`) を使い、`porter-test` と同じ順序で、登録の誤り、ヘルプ、解析の誤りを処理します。
 - `porter-test` と `tcpServer` と同じく既定のパーサーを使います。`--role` の値が `sender`、`receiver`、`all` のどれでもない場合は、`cplat_argparser_set_validation_error(CPLAT_ERR_OUT_OF_RANGE, "--role", "value of '--role' must be sender, receiver, or all")` で誤りを登録します。結果コードは `CPLAT_ERR_OUT_OF_RANGE`、対象の名前は `"--role"`、説明の文は `"value of '--role' must be sender, receiver, or all"` です。`cplat_argparser_print_error_messages(stderr)` と `cplat_argparser_print_usage(stderr)` で診断と使い方を標準エラー出力へ出して、終了コード 1 で終了します。登録の戻り値は、複製に失敗しても結果コードが記録され、既定の文で表示して終了するため、理由のコメントを付けて明示的に破棄します。
@@ -4286,13 +4286,13 @@ Table: porter-config-check の引数
 
 ##### 終了コード
 
+Table: porter-config-check の終了コード
+
 | 終了コード | 意味 |
 |---|---|
 | 0 | 誤りがありません (`-h` の表示の成功を含みます) |
 | 1 | 実行の失敗 (引数の誤り、ファイルを開けない、読み取りの失敗、メモリ不足、標準出力または標準エラー出力への書き込みの失敗) |
 | 2 | 設定の誤りが 1 件以上あります (構文の誤り、`--check-files` の誤りを含みます) |
-
-Table: porter-config-check の終了コード
 
 - 終了コードは、次の順序で一度だけ決めます。最初に、引数処理、検証の `POTR_OK` と `POTR_ERR_INVALID_CONFIG` 以外の結果、CLI の記録領域の確保、標準出力・標準エラー出力への書き込みとフラッシュのいずれかに実行失敗があれば 1 とします。次に、検証が `POTR_ERR_INVALID_CONFIG` を返すか、ファイル確認の誤りが 1 件以上あれば 2 とします。それ以外は 0 です。誤りを表示した後のメモリ不足・出力失敗も 1 が優先します。ヘルプだけの場合も出力成功なら 0、出力失敗なら 1 です。
 - 結果コードをそのまま終了コードにしません (共通のコーディング規範の「API の戻り値を透過しない」に従います)。
@@ -4597,6 +4597,8 @@ Linux:
 
 `svc_linux_events_enter_running()`、`svc_linux_events_enter_stopping()`、`svc_linux_events_is_running()`、`svc_linux_events_is_stopping()` は、呼び出し元が通知ロックを保持している場合にだけ使います。これらの関数はロックを取得しません。`sd_notify_send()` は OS 通知の送信だけを行い、失敗のトレースを出さず結果を返します。
 
+Table: Linux 通知関数ごとのロック範囲
+
 | 関数 | 通知ロックの取得 | ロック内 | ロック解放後 |
 |---|---|---|---|
 | `svc_linux_events_notify_lock()` | この関数だけが実際に取得 | ロックの取得だけ | なし |
@@ -4609,13 +4611,13 @@ Linux:
 | `svc_os_notify_reloading()` | 1 回取得 | 動作中の場合だけ `RELOADING=1` を送る | 送信失敗をトレースする |
 | `on_watchdog_timer()` | 1 回取得 | 動作中の段階を確認し、必要な場合は `WATCHDOG=1` を送る | 送信失敗をトレースする |
 
-Table: Linux 通知関数ごとのロック範囲
-
 呼び出し関係は、`svc_os_notify_ready()` などの通知入口が `svc_linux_events_notify_lock()` を 1 回呼び、段階確認・更新の関数と `sd_notify_send()` を呼んでから、通知入口自身がロックを解放する形です。段階関数と `sd_notify_send()` はロック取得関数を呼ばず、トレースも出しません。そのためロックの再帰取得は起きません。トレースは通知入口がロックを解放した後に出します。
 
 Windows (`service-sample_windows.c`):
 
 `s_status_lock` を実際に取得する関数は `lock_service_status()` だけです。ロック解放は `unlock_service_status()` が行います。`notify_service_status_locked()` は `SetServiceStatus()` を呼び、失敗時は直後の `GetLastError()` を保存して返しますが、ロックの取得とトレース出力は行いません。`set_service_status_locked()` と `set_service_stopped_locked()` は状態を更新して `notify_service_status_locked()` を呼びます。これらの `_locked` 関数は、呼び出し元がロックを保持している場合にだけ使います。
+
+Table: Windows 通知関数ごとのロック範囲
 
 | 関数 | 通知ロックの取得 | ロック内 | ロック解放後 |
 |---|---|---|---|
@@ -4628,8 +4630,6 @@ Windows (`service-sample_windows.c`):
 | `svc_os_notify_ready()` | 1 回取得 | `SERVICE_STOP_PENDING` / `SERVICE_STOPPED` を確認し、停止中でなければ `SERVICE_RUNNING` を更新・通知する | 通知失敗または抑止をトレースする |
 | `svc_os_notify_stopping()` | 1 回取得 | `SERVICE_STOP_PENDING` を更新して通知する | 通知失敗をトレースする |
 | `service_main()` と制御ハンドラー | 自身では取得しない。状態更新用 wrapper を呼ぶ | なし | wrapper が通知後に必要なトレースを出す |
-
-Table: Windows 通知関数ごとのロック範囲
 
 呼び出し関係は、`service_main()` と制御ハンドラーが、ロックを保持せず `set_service_status()` または `set_service_stopped()` を呼ぶ形です。これらの wrapper は `lock_service_status()` を 1 回呼び、`_locked` 関数を経て `notify_service_status_locked()` を呼び、解放後にトレースします。`svc_os_notify_ready()` と `svc_os_notify_stopping()` も同じ取得関数を 1 回だけ呼び、wrapper をロック内から呼ばず `_locked` 関数を使います。`_locked` 関数と `notify_service_status_locked()` はロック取得関数を呼ばないため、再帰取得は起きません。
 
@@ -4752,6 +4752,8 @@ typedef struct svc_inhibit_lock
 
 失敗経路と資源・ロック状態は次のとおりです。
 
+Table: D-Bus 呼び出しの結果と資源の解放
+
 | 経路 | 結果と診断 | 要求メッセージ | 応答メッセージ | `sd_bus_error` / slot | lock の fd |
 |---|---|---|---|---|---|
 | `sd_bus_message_new_method_call()` の失敗 | ヘルパーは負のエラーを返し、呼び出し元が WARNING を出します | NULL のまま。作成途中の値があれば unref | なし | 同期呼び出しでは `sd_bus_error_free()`。非同期では slot は NULL | -1 のまま |
@@ -4767,8 +4769,6 @@ typedef struct svc_inhibit_lock
 | 非同期応答から fd を複製 | 成功。コールバックは 0 を返します | 登録後に呼び出し元の message は unref 済み | 借用 message は unref しません | slot を unref して NULL。`ret_error` は free しません | 複製 fd を保持 |
 | 応答前の取り消し | `sd_bus_slot_unref()` で登録を解除します | 呼び出し元の message は登録直後に unref 済み | コールバックは呼ばれません | slot を NULL にする | -1 のまま |
 | 保持 fd の解放 | close を 1 回試み、失敗しても再試行しません | なし | なし | pending slot もあれば解除 | close の結果によらず -1 にする |
-
-Table: D-Bus 呼び出しの結果と資源の解放
 
 呼び出し元の変更:
 
@@ -5077,6 +5077,8 @@ runner は、`budget_free` (使われていない予算) を、`B` で初期化�
 
 例:
 
+Table: コンパイルの予算 B と起動できる app の数に対する、渡す予算の例
+
 | B | jobs | 起動できる app の数 | 渡す予算 |
 |---|---|---|---|
 | 4 | 4 | 1 (`cplat` の前の単独の区間) | 4 |
@@ -5084,8 +5086,6 @@ runner は、`budget_free` (使われていない予算) を、`B` で初期化�
 | 4 | 4 | 5 | 1、1、1、1 (5 つ目は予算が戻るまで待つ) |
 | 7 | 3 | 3 | 3、2、2 |
 | 2 | 4 | 4 | 1、1 (残りの 2 つは待つ) |
-
-Table: コンパイルの予算 B と起動できる app の数に対する、渡す予算の例
 
 各 app の中での使い方: 渡された予算 `b` を、app の make の「コンパイルの予算」として使います。Linux は make の並列度が `min(b, 8)`、Windows は `min(ceil(sqrt(2 * CPU 数)), 12, b)` で、`/MP` と MSBuild の並列度は `floor(b / 並列度)` を 1 から 16 に収めた値です。したがって、1 つの app の `並列度 × /MP` は `b` 以下で、全体の和は `B` 以下です。
 

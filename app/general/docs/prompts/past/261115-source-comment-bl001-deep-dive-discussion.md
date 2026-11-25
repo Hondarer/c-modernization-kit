@@ -292,6 +292,8 @@ porter-test は終了フラグを確認した後で、実際の入力待ちへ�
 「根拠未確定」「追加確認」は、もっともらしい理由を追記して解消扱いにしない項目です。  
 未確定項目の対策可否と、修正要検討項目の範囲は、残る調査と最終仕様で確定します。
 
+Table: BL-001 の 122 件と追加調査の記録
+
 | 枝番号 | 一次照合の結果 | 確認した事実・残る判断 |
 | --- | --- | --- |
 | 007 | 根拠未確定 | IntelliSense 時だけ公開修飾を空にしています。解析負荷や誤診断を回避したという根拠は確認できておらず、推測でコメントを追加しません。 |
@@ -417,8 +419,6 @@ porter-test は終了フラグを確認した後で、実際の入力待ちへ�
 | 186 | 理由反映候補 | 登録エラーを検出して EXIT_FAILURE を返す経路です。追加の診断出力が失敗してもコマンドの失敗結果は変わりません。 |
 | 187 | 動作修正候補 | 解析エラー後はすでに失敗終了しますが、--help は出力失敗でも成功終了します。両経路を同じ無視理由で説明せず、help の出力結果を終了コードへ反映する案を検討します。 |
 
-Table: BL-001 の 122 件と追加調査の記録
-
 ## 設計へ進める対象と継続調査の対象
 
 理由反映 35 件、コメント訂正 4 件、原典との対応確認 1 件、表記修正 2 件、現行コードで旧分岐がなくなったもの 1 件、動作・不要処理の修正 6 件の合計 49 件を、今回の最終仕様の対象候補とします。  
@@ -495,6 +495,8 @@ Windows/MSVC は `%TEMP%` 配下の一時複製 (`CONFIG=RelWithDebInfo MSVC_CRT
 Linux 側 (`make -C app/porter/test/src/cmd/porterTestOutputTest test < /dev/null`) は終了コード `0` で `7 / 7` 合格、対象 `.warn` 0 件でした。  
 Windows 一時複製側も変更 1 ファイルのみを同期し、`temp_pipe_verify/run_win_tests.py --timeout 360 app/porter/test/src/cmd/porterTestOutputTest` により `porterTestOutputTest.cc` の再コンパイル・再リンク・再テストが実行され、終了コード `0` で `7 / 7` 合格、`porterTestOutputTest.cc.warn` が空になって C4996 警告 2 件が解消されたこと (非空 `.warn` 0 件) を確認しました。
 
+Table: OS 別の局所テスト実行結果と検証区分
+
 | 対象ターゲット | Linux/GCC 件数・状態 | Windows/MSVC 件数・状態 | 主な確認内容・モック/実体区分 |
 | --- | --- | --- | --- |
 | `app/cplat/test/src/libcplatTest/exportTest` | `2 / 2` 成功 | `2 / 2` 成功 | 実 `libcplat` の公開エクスポートと署名 |
@@ -516,8 +518,6 @@ Windows 一時複製側も変更 1 ファイルのみを同期し、`temp_pipe_v
 | `app/porter/test/src/libporter/configLoadServiceTest` | `44 / 44` 成功 | `44 / 44` 成功 | 設定読込の局所回帰 |
 | `app/porter/test/src/integration/porterSendRecvTest` | `49 / 49` 成功 | 対象外 | 実 `libporter` / `libcplat` 統合・割当失敗 6 件含む |
 | 合計 | `462` 件成功 (`0` 件は除外) | `338` 件成功 (15 ターゲット) | Linux 実 PTY・Windows 実 `libcplat.dll` ハーネスを別途実施 |
-
-Table: OS 別の局所テスト実行結果と検証区分
 
 主要実行コマンドは以下のとおりです。
 

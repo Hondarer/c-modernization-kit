@@ -30,16 +30,18 @@ Linux ビルド (OL8/OL9/OL10) と Windows ビルドのジョブが並列実行�
 
 すべてのワークフローは、次のイベントで実行されます。
 
+Table: GitHub Actions ワークフローのトリガー条件と対象ブランチ
+
 | イベント | 対象ブランチ |
 |---------|-------------|
 | push | main |
 | pull_request | main |
 
-Table: GitHub Actions ワークフローのトリガー条件と対象ブランチ
-
 ### 共通環境変数
 
 `.github/workflows/ci.yml` では、全ジョブ共通の `env` として、CI が動的に導入するツールのバージョンと検証値を定義します。
+
+Table: ci.yml で定義されている共通環境変数一覧
 
 | 変数名 | 値 | 説明 |
 |--------|-----|------|
@@ -48,8 +50,6 @@ Table: GitHub Actions ワークフローのトリガー条件と対象ブラン�
 | `REPORTGENERATOR_VERSION` | `5.5.11` | Windows CI で使用する ReportGenerator のバージョン |
 | `WINFLEXBISON_VERSION` | `2.5.25` | Windows CI で使用する WinFlexBison のバージョン |
 | `WINFLEXBISON_SHA256` | `8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135` | WinFlexBison 配布 ZIP の SHA-256 |
-
-Table: ci.yml で定義されている共通環境変数一覧
 
 これらのバージョンと配布元は、Windows 開発環境を構築する [devbin-win](https://github.com/Hondarer/devbin-win) の `subscripts/config/packages.psd1` に揃えます。  
 開発者のローカル環境と CI で同じバージョンのツールを使用することが目的であり、どちらか一方を更新した場合はもう一方も合わせて更新します。
@@ -89,23 +89,23 @@ container:
 `docs` はドキュメント生成を担当するレグを示します。ドキュメント関連のステップは `if: ${{ matrix.docs }}` で OL8 だけが実行します。  
 `fetch-depth` は `actions/checkout` へ渡す取得履歴の深さです。`make docs` が Markdown の author と date を `git log` から取得するため、OL8 だけ全履歴 (`0`) が必要です。値を `${{ matrix.docs && 0 || 1 }}` のような式で導出してはいけません。GitHub Actions の式では数値の `0` が falsy と評価され、OL8 でも `1` になります。
 
+Table: Linux CI 実行環境で使用するコンテナー イメージ
+
 | OS 名 | コンテナー イメージ | 説明 |
 |--------|-----------------|------|
 | ol8 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest` | Oracle Linux 8 開発コンテナー |
 | ol9 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-9-dev:latest` | Oracle Linux 9 開発コンテナー |
 | ol10 | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-10-dev:latest` | Oracle Linux 10 開発コンテナー |
 
-Table: Linux CI 実行環境で使用するコンテナー イメージ
-
 CI の表示名とビルド成果物の内部識別子は目的が異なるため、命名を分けています。
+
+Table: Linux 環境における用途別の OS 識別子命名規則
 
 | 用途 | 命名 |
 |------|------|
 | コンテナー、matrix、artifact | `ol8` / `ol9` / `ol10` |
 | `TARGET_ARCH` の OS 部分 | `el8` / `el9` / `el10` |
 | Linux ライブラリ配置 | `linux_el8_x64` / `linux_el9_x64` / `linux_el10_x64` |
-
-Table: Linux 環境における用途別の OS 識別子命名規則
 
 `el` 系の内部識別子は、makefw が RHEL 系 OS から生成する値であり、CI の表示名である `ol` 系の識別子とは置き換えません。
 
@@ -118,13 +118,13 @@ Table: Linux 環境における用途別の OS 識別子命名規則
 
 #### Linux 環境変数
 
+Table: Linux ビルド ジョブで設定される環境変数一覧
+
 | 変数名 | 値 | 説明 |
 |--------|-----|------|
 | HOST_USER | user | コンテナー内ユーザー名 |
 | HOST_UID | 1001 | ユーザー ID |
 | HOST_GID | 127 | グループ ID |
-
-Table: Linux ビルド ジョブで設定される環境変数一覧
 
 ### Windows 環境
 
@@ -243,13 +243,13 @@ Figure: ジョブ実行フロー
 
 `gen/` 配下の自動生成ソースは Git の管理対象外であり、チェックアウト直後のワークスペースには存在しません。生成のタイミングは対象により異なります。
 
+Table: 各 app の自動生成ソースと生成タイミング
+
 | app | 生成物 | 生成のタイミング |
 |-----|--------|----------------|
 | `string-catalog-sample` | `prod/src/cmd/string-catalog-command-sample/gen/` | `app/string-catalog-sample/makepart.mk` のパース時 |
 | `struct-meta` | `prod/libsrc/struct_meta/parse/gen/` | flex/bison のビルド規則 |
 | `struct-meta` | `prod/src/cmd/struct-meta-sample/gen/` | ビルド済みの `prod/cbin/struct-meta-gen` を実行するビルド規則 |
-
-Table: 各 app の自動生成ソースと生成タイミング
 
 いずれも `make doxy` の経路ではリーフ makefile をパースしないため生成されません。`struct-meta` は生成に実行体のビルドを必要とするため、ソース生成だけを行う軽量な手段も成立しません。ビルドとテストを終えた断面でドキュメントを生成することが、自動生成ソースを Doxygen の入力に含めるための条件です。
 
@@ -393,12 +393,12 @@ main ブランチへの push 時に、`deploy-pages` ジョブがドキュメン
 
 ### 設定詳細
 
+Table: deploy-pages アクションの設定パラメーター
+
 | パラメーター | 値 | 説明 |
 |-----------|-----|------|
 | path | `./pages` | Pages artifact に格納するディレクトリ |
 | environment | `github-pages` | デプロイ先の environment |
-
-Table: deploy-pages アクションの設定パラメーター
 
 `actions/deploy-pages` は `github-pages` という名前の artifact を 1 つだけデプロイします。  
 artifact を分割して 1 つのサイトへ配置する手段はないため、1 GB 上限への対処はペイロードの削減に限られます。
@@ -446,6 +446,8 @@ https://<username>.github.io/<repository>/
 
 Pages には、閲覧の対象と、閲覧中に個別に取得する成果物を配置します。一式をまとめたアーカイブは配置しません。
 
+Table: 成果物の区分と GitHub Pages への配置有無および取得先
+
 | 区分 | Pages | 取得先 |
 |------|-------|--------|
 | 閲覧用 HTML (`doxygen`、`<言語><詳細度>/html`) | 配置する | Pages 上で閲覧 |
@@ -453,8 +455,6 @@ Pages には、閲覧の対象と、閲覧中に個別に取得する成果物�
 | HTML と DOCX の一式をまとめた zip | 配置しない | コミット固有の run artifact |
 | テスト結果とビルド ログの zip | 配置する | Pages から固定 URL で取得 |
 | `.warn` アーカイブ | 配置する (内容がある場合) | Pages から固定 URL で取得 |
-
-Table: 成果物の区分と GitHub Pages への配置有無および取得先
 
 各 HTML ページのヘッダーには Word アイコンを表示し、同名の DOCX へ `../docx/<名前>.docx` でリンクします。リンク先は Pages 上に必要です。  
 一式をまとめた zip は閲覧に使用せず、run artifact に同じ内容が存在します。エントリ ページには「ドキュメントのダウンロード」として、生成元 workflow run へのリンクを掲載します。

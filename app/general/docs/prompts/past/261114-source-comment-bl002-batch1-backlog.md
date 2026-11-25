@@ -25,11 +25,11 @@
 
 ## 残課題一覧
 
+Table: BL-002 第 1 バッチ対策で残す課題
+
 | 課題 ID | 題名 | 区分 | 優先度 / 影響度 | 状態 |
 | --- | --- | --- | --- | --- |
 | BL-001 | 確認できない設計理由 152 項目 | 過去 backlog からの転記 (BL-002) / 検討時見送り (034) | 中 | 一部対応済み、次フェーズへ転記 (第 2 バッチで 30 項目解消、122 項目を `261114-source-comment-bl002-batch2-backlog.md` の BL-001 へ転記) |
-
-Table: BL-002 第 1 バッチ対策で残す課題
 
 ## BL-001 確認できない設計理由 152 項目
 
@@ -64,6 +64,8 @@ Table: BL-002 第 1 バッチ対策で残す課題
 ### app/cplat の 106 項目
 
 パスは app/cplat からの相対パスです。
+
+Table: BL-001 で引き継ぐ app/cplat の 106 項目
 
 | 枝番号 | 報告時のパスと行 | 基準時点の対象と位置 | 作業後の位置 | 確認した事実と未確認点 |
 | --- | --- | --- | --- | --- |
@@ -174,11 +176,11 @@ Table: BL-002 第 1 バッチ対策で残す課題
 | 135 | `prod/src/cmd/compress-cli/compress-cli.c:277` | `compress_cli_run_compress` (`prod/src/cmd/compress-cli/compress-cli.c:277`) | `prod/src/cmd/compress-cli/compress-cli.c:277` | `prod/src/cmd/compress-cli/compress-cli.c:277` では、276 行は膨張とヘッダーを見込む目的だけを説明し、2 倍と下限 256 の算出根拠はない。圧縮容量を入力の 2 倍とヘッダーの和にし、下限を 256 [byte] とする算出根拠は要確認。 |
 | 136 | `prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166` | `main` (`prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166`) | `prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166` | `prod/src/cmd/hashtable-required-size/hashtable-required-size.c:166` では、165 行は有効な最小寿命であることを説明するが、その値を採用する追加根拠はない。最小の有効な有限寿命であることを超える lifetime 2 の採用根拠は要確認。 |
 
-Table: BL-001 で引き継ぐ app/cplat の 106 項目
-
 ### app/cplat 以外の 46 項目
 
 パスはリポジトリ ルートからの相対パスです。
+
+Table: BL-001 で引き継ぐ app/cplat 以外の 46 項目
 
 | 枝番号 | 報告時のパスと行 | 基準時点の対象と位置 | 作業後の位置 | 確認した事実と未確認点 |
 | --- | --- | --- | --- | --- |
@@ -228,5 +230,3 @@ Table: BL-001 で引き継ぐ app/cplat の 106 項目
 | 185 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428` | `cmd_savebin` (定義 413)、`cmd_loadbin` (定義 446)、`cmd_catjson` (定義 486); `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428,463,472,529,552` | `cmd_savebin`、`cmd_loadbin`、`cmd_catjson`、`app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428,463,472,529,552` | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:428,463,472,529,552` に対象の記述が残る (先頭: `(void)cplat_fclose(stream, NULL);`)。失敗経路で cplat_fclose の戻り値を見ない理由 (463, 472, 521, 544 行も同じ) は要確認であり、最終仕様の BL-008 節 (149-170 行) に従って引き継ぐ。 |
 | 186 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:862` | `main` (定義 855); `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:873` | `main`、`app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:873` | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:873` に対象の記述が残る (先頭: `(void)cplat_argparser_print_register_error_messages(stderr);`)。登録エラー表示の戻り値を見ない理由は要確認であり、最終仕様の BL-008 節 (149-170 行) に従って引き継ぐ。 |
 | 187 | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:874` | `main` (定義 855); `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:885,891-892` | `main`、`app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:885,891-892` | `app/struct-meta/prod/src/cmd/struct-meta-sample/struct_meta_sample.c:885,891-892` に対象の記述が残る (先頭: `(void)cplat_argparser_print_usage(stdout);`)。使用方法と解析エラー表示の戻り値を見ない理由 (880, 881 行も同じ) は要確認であり、最終仕様の BL-008 節 (149-170 行) に従って引き継ぐ。 |
-
-Table: BL-001 で引き継ぐ app/cplat 以外の 46 項目

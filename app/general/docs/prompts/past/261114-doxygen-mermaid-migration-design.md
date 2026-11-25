@@ -19,13 +19,13 @@ Doxygen と Doxybook2 を経由して生成する Markdown の図を、PlantUML 
 
 `<mermaid>` タグは、次の 3 つの発生源から Doxygen XML へ現れます。変換処理は発生源を区別せず、すべての `<mermaid>` タグを対象とします。
 
+Table: `<mermaid>` タグの発生源と移行後の扱い
+
 | 発生源 | 現状 | 移行後 |
 | --- | --- | --- |
 | C ヘッダーの手動コメント ([memory_lock.h](../../../../cplat/prod/include/cplat/runtime/memory_lock.h) の 2 図) | `@startuml` 〜 `@enduml` | `@mermaid "キャプション"` 〜 `@endmermaid` |
 | [extract-graphs.py](../../../../../framework/doxyfw/templates/extract-graphs.py) が生成する自動グラフ 4 種別 | `<plantuml>` タグを XML へ挿入 | `<mermaid caption="...">` タグを XML へ挿入 |
 | Doxygen の入力となる Markdown の ```` ```mermaid ```` コード フェンス | Doxygen が `<mermaid>` へ変換し、Doxybook2 が `Text tag "mermaid" not recognised` を警告 | 警告なしで変換 |
-
-Table: `<mermaid>` タグの発生源と移行後の扱い
 
 > [!NOTE]
 > Markdown 入力のページは、`postprocess.sh` が Doxybook2 の出力を破棄して入力の Markdown を複製するため、最終出力の内容は移行の前後で変わりません。この発生源で変わるのは、Doxybook2 の警告がなくなる点だけです。
@@ -70,6 +70,8 @@ Doxygen コメントへ記述する図は、次の規範に従います。この
 
 記法の対応は次のとおりです。
 
+Table: `memory_lock.h` の図で使用する PlantUML と Mermaid の記法の対応
+
 | PlantUML | Mermaid |
 | --- | --- |
 | `@startuml <題名>` と `caption <題名>` | `@mermaid "<題名>"` |
@@ -77,8 +79,6 @@ Doxygen コメントへ記述する図は、次の規範に従います。この
 | `A -> B : 文` (実線) | `A->>B: 文` |
 | `A --> B : 文` (破線) | `A-->>B: 文` |
 | `opt` / `alt` / `else` / `loop` / `end` | 同じ |
-
-Table: `memory_lock.h` の図で使用する PlantUML と Mermaid の記法の対応
 
 ### cplat_memory_lock_self の図 (現行 L130-153)
 
@@ -156,14 +156,14 @@ Table: `memory_lock.h` の図で使用する PlantUML と Mermaid の記法の�
 
 4 種別とも `flowchart` で出力します。
 
+Table: 自動生成グラフの Mermaid 構文
+
 | Doxygen のグラフ | Mermaid の宣言 | 矢印 | 向きの扱い |
 | --- | --- | --- | --- |
 | `incdepgraph` / `invincdepgraph` (インクルード依存) | `flowchart TD` | `-->` | 現行と同じ (`incdepgraph` はエッジを逆向きに出力し、対象を下に配置) |
 | `inheritancegraph` (継承) | `flowchart BT` | `-->` | 派生から基底へ向け、基底を上に配置 |
 | `collaborationgraph` (コラボレーション) | `flowchart TD` | `relation` が `usage` の場合は `-.->`、それ以外は `-->` | 現行と同じ |
 | `references` / `referencedby` (呼び出し先・呼び出し元) | `flowchart TD` | `-->` | 現行と同じ |
-
-Table: 自動生成グラフの Mermaid 構文
 
 > [!NOTE]
 > 継承の矢印は、PlantUML の白抜き三角 (`-u-|>`) から通常の矢印へ変わります。派生から基底への向きと、基底を上に置く配置は保ちます。4 種別でノード ID、ラベル、強調の生成処理を共通にするための仕様です。
@@ -187,12 +187,12 @@ Table: 自動生成グラフの Mermaid 構文
 </mermaid></para></simplesect></para>
 ```
 
+Table: 自動生成グラフの見出しとキャプション
+
 | 項目 | 内容 | 例 |
 | --- | --- | --- |
 | 見出し | グラフ種別の名称。折り畳み対象の場合は先頭に `DOXYFW_DETAILS_ONLY` を付与 (現行と同じ) | `DOXYFW_DETAILS_ONLY 呼び出し先` |
 | キャプション | `<名前> の<グラフ種別>` (現行の `caption` 行と同じ文字列) | `divide の呼び出し先` |
-
-Table: 自動生成グラフの見出しとキャプション
 
 - キャプションは、XML の属性値として `&`、`<`、`>`、`"` をエスケープします。Markdown の記号のエスケープは変換ヘルパーが行うため、ここでは行いません。
 - Mermaid の本文は、XML のテキストとして `&`、`<`、`>` をエスケープします。ラベルの `&lt;` は XML 上で `&amp;lt;` となり、Doxybook2 が復号して Markdown へ `&lt;` を出力します。
@@ -226,14 +226,14 @@ Figure: {エスケープ済みのキャプション}
 
 `Figure:` 行はコード フェンスの外にあり、Markdown の本文として解釈されます。名前に含まれる記号を文字どおりに表示するため、次の記号を数値文字参照へ変換します。手動コメントのキャプションと自動生成グラフのキャプションに同じ規則を適用します。
 
+Table: キャプション内の記号と数値文字参照の対応
+
 | 記号 | 変換後 | 記号 | 変換後 |
 | --- | --- | --- | --- |
 | `\` | `&#92;` | `>` | `&#62;` |
 | `` ` `` | `&#96;` | `[` | `&#91;` |
 | `*` | `&#42;` | `]` | `&#93;` |
 | `<` | `&#60;` | `~` | `&#126;` |
-
-Table: キャプション内の記号と数値文字参照の対応
 
 - 変換後の文字列は XML のテキストとしてエスケープして書き込みます (`&#42;` は XML 上で `&amp;#42;`)。Doxybook2 が復号し、Markdown へ `&#42;` を出力します。
 - `__` と `$` は変換しません。`postprocess.sh` がコード フェンス外の本文に対して `&#95;&#95;` と `\$` へ変換します。
@@ -315,6 +315,8 @@ Figure: divide の呼び出し先
 
 `framework/doxyfw` の正本文書へ、確定した仕様だけを記載します。移行の経緯、個別 app のパス、個別 app 固有の例外は記載しません。
 
+Table: 正本文書の更新対象と内容
+
 | 文書 | 更新内容 |
 | --- | --- |
 | [maintenance-verification.md](../../../../../framework/doxyfw/docs/maintenance-verification.md) | 「文書の表記と図」の図の基本を Mermaid と `Figure:` キャプション ([codeblock-caption.md](../../../../../framework/docsfw/docs/codeblock-caption.md)) へ改め、PlantUML を互換の記法とする。Doxygen コメントの図の規範 (キャプションの形式、字下げ、検査コマンド) を記載する。 |
@@ -327,21 +329,19 @@ Figure: divide の呼び出し先
 | [check-doxygen-indent.md](../../../../../framework/doxyfw/docs/check-doxygen-indent.md) | 図ブロックの字下げ検査 (対象、指摘の条件、検出だけで修正しない点) を追記する。 |
 | [README.md](../../../../../framework/doxyfw/README.md) | 「必要なツール」の Doxygen へ「1.17.0 以上」を明記し、PlantUML を互換の変換経路で使用するツールとして記載する。 |
 
-Table: 正本文書の更新対象と内容
-
 コード コメントへは、変換ヘルパーのキャプションのエスケープで数値文字参照を使う理由と、`postprocess.sh` で `Figure:` 行を折り畳みへ含める理由を記載します。
 
 ## 既存 Markdown の修正
 
 図のキャプションの表記を `Figure:` へそろえるため、次の 3 箇所を修正します。
 
+Table: 既存 Markdown の修正箇所
+
 | ファイル | 修正内容 |
 | --- | --- |
 | [cplat-account-session-discussion.md](../../../../cplat/docs/prompts/current/cplat-account-session-discussion.md) (L295) | `CodeBlock: セッション上でプロセスを起動する処理の流れ (試案)` を `Figure: セッション上でプロセスを起動する処理の流れ (試案)` へ変更する。同ファイルの C コード ブロック 5 箇所 (`{.c caption="..."}`) は変更しない。 |
 | [architecture.md](../../../../porter/docs/architecture.md) (L28-36、「ハンドルの寿命と通知の実行」) | キャプションのない `flowchart LR` の閉じコード フェンスの後へ、空行を挟んで `Figure: ハンドルの寿命と非同期通知の実行関係` を追加する。 |
 | [sequence-data.md](../../../../porter/docs/sequence-data.md) (L408-421、「close と登録済み通知」) | キャプションのない `sequenceDiagram` の閉じコード フェンスの後へ、空行を挟んで `Figure: close 呼び出しと登録済み通知の処理シーケンス` を追加する。 |
-
-Table: 既存 Markdown の修正箇所
 
 ## Linux と Windows の両対応
 
@@ -351,6 +351,8 @@ Table: 既存 Markdown の修正箇所
 - `@mermaid` は Doxygen 1.17.0 以上で動作します (ローカルは 1.17.0、CI は 1.18.0)。
 
 ## 変更対象の一覧
+
+Table: 変更および新設するファイル
 
 | 区分 | パス | 変更 |
 | --- | --- | --- |
@@ -366,11 +368,11 @@ Table: 既存 Markdown の修正箇所
 | 正本文書 | `framework/doxyfw/README.md`、`framework/doxyfw/docs/` の 8 ファイル (うち 1 ファイル新設) | [正本文書の更新](#正本文書の更新) のとおり |
 | 既存 Markdown | `cplat-account-session-discussion.md`、`architecture.md`、`sequence-data.md` | [既存 Markdown の修正](#既存-markdown-の修正) のとおり |
 
-Table: 変更および新設するファイル
-
 `Doxyfile` と `input-filter.py` は変更しません。
 
 ## 単体テスト
+
+Table: 単体テストの追加内容
 
 | テスト ファイル | 追加する確認 |
 | --- | --- |
@@ -378,8 +380,6 @@ Table: 変更および新設するファイル
 | `test_postprocess.py` | Mermaid のコード フェンス内で `__` と、引用符の外にある `a* b` が変更されない。折り畳み内で `Figure:` 行の後に `<!--:details-->` が出力される。`Figure:` 行がない場合は閉じコード フェンスの後に `<!--:details-->` が出力される。```` ```plantuml ```` 内の `~_~_` 変換が維持される。 |
 | `test_extract_graphs.py` (新設) | インクルード依存、継承、コラボレーション、呼び出し先、呼び出し元の各グラフで、`flowchart` の宣言と向き、矢印、ノード ID、ラベルのエスケープ (`<`、`>`、`&`、`"`、改行)、`style` による強調、`caption` 属性、折り畳みの見出しが仕様どおりに出力される。ノード数の上限を超える場合とエッジがない場合は出力されない。 |
 | `test_check_doxygen_indent.py` (新設) | 開始行が本文より浅い場合、深い場合、図の本文が開始行より浅い場合に指摘される。本文と同じ桁の図ブロックと、行頭に `*` を持つ図ブロックは指摘されない。`@startuml` と `@mermaid` の双方が対象となる。 |
-
-Table: 単体テストの追加内容
 
 ## 検証手順
 

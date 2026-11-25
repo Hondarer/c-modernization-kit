@@ -17,6 +17,8 @@ CI の並列度の引き上げ (`MAKEFW_CPU_BUDGET` を 8 に指定) の評価�
 
 対処元は、`261111-ci-time-backlog-followup-backlog.md` の BL-001 から BL-006 です。
 
+Table: 残課題ごとの扱い
+
 | 課題 | 扱い |
 | --- | --- |
 | BL-001 並列度の引き上げの効果の評価 | Linux は「効果あり」として閉じる。Windows は、差を実行ごとのばらつきとして扱い、閉じる。`ci.yml` は変更しない |
@@ -25,8 +27,6 @@ CI の並列度の引き上げ (`MAKEFW_CPU_BUDGET` を 8 に指定) の評価�
 | BL-004 コンパイル結果のキャッシュとジョブの分割 | 行わずに閉じる |
 | BL-005 `make docs` の時間の短縮 | 見送り、新しい残課題一覧に引き継ぐ |
 | BL-006 doxyfw のテストの失敗 (実行 42978073210) | 原因不明として閉じる |
-
-Table: 残課題ごとの扱い
 
 > [!NOTE]
 > 並列度を上げた後の Build ステップの中央値は、OL8 が 120[分] (上げる前は 153[分])、OL9 が 89[分] (同 145[分])、OL10 が 67[分] (同 104[分])、Windows が 138[分] (同 149[分]) です。  
@@ -60,13 +60,13 @@ make -C test
 INFO: cplat test elapsed=48:40
 ```
 
+Table: 段階ごとの表示
+
 | ゴール | 表示する段階 | 表示の例 |
 | --- | --- | --- |
 | 既定 (`make`) | `prod` のビルド | `INFO: cplat prod elapsed=00:18` |
 | 既定 (`make`) | `test` のビルド | `INFO: cplat test elapsed=48:40` |
 | `test` | テストの実行 (`make -C test _test_run`) | `INFO: cplat test _test_run elapsed=31:05` |
-
-Table: 段階ごとの表示
 
 - `make test` は、最初に既定のゴールを実行します。この部分は、既定のゴールの表示 (`prod`、`test`) がそのまま出ます。
 - 子の `make` が失敗した場合も、失敗した段階の経過時間を表示します。
@@ -87,6 +87,8 @@ Windows では、プロセスを 1 つ起動するたびに時間がかかりま
 
 ## 変更対象
 
+Table: 変更対象
+
 | リポジトリ | ファイル | 変更 |
 | --- | --- | --- |
 | `framework/makefw` | `bin_internal/run_ordered_subdir_target.sh` | `done` と `interrupted` の行に `elapsed=` を追加 |
@@ -97,20 +99,18 @@ Windows では、プロセスを 1 つ起動するたびに時間がかかりま
 | 親リポジトリ | `app/<name>/makefile` 10 個 (calc、calc.net、doxygen-sample、empty-lib、override-sample、service-sample、string-catalog-sample、struct-meta、subfolder-sample、tutorial) | 同上 |
 | 親リポジトリ | サブモジュールの参照 (makefw と 7 個の app) | 更新 |
 
-Table: 変更対象
-
 `.github/workflows/ci.yml` と `.jenkins/` は変更しません。
 
 app の `makefile` は、テンプレートの複製です。手で編集せず、`python framework/makefw/bin/update_template_makefiles.py` で同期します。
 
 ## 知見の反映計画
 
+Table: 知見の反映先
+
 | 反映先 | 内容 |
 | --- | --- |
 | `framework/makefw/docs/build-configurations.md` | 経過時間の表示の形式と、表示される条件 |
 | `__each_app_template.mk` のコメント | 外部コマンドを使わずに `SECONDS` で求める理由 (Windows のプロセスの起動の時間) |
-
-Table: 知見の反映先
 
 ## 受入条件
 

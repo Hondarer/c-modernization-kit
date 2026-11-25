@@ -62,13 +62,13 @@
 
 直近の成功 3 回では、OL8 のレグが毎回最長で、その中でドキュメント生成が 70 ～ 92[分] を占めます。
 
+Table: 直近の成功 3 回のジョブ別所要時間
+
 | 実行 | 全体 | OL8 | うち `make doxy && make docs` | Windows | OL9 |
 | --- | --- | --- | --- | --- | --- |
 | 42821358874 | 320[分] | 317[分] | 85[分] | 275[分] | 232[分] |
 | 42786336853 | 280[分] | 277[分] | 70[分] | 271[分] | 216[分] |
 | 42741579412 | 353[分] | 349[分] | 92[分] | 196[分] | 178[分] |
-
-Table: 直近の成功 3 回のジョブ別所要時間
 
 実行 42821358874 では、`make doxy` が 3.5[分]、`make docs` が 81.5[分] でした。  
 ドキュメント生成を別ジョブにすると、全体は「OL8 からドキュメント生成を除いた時間」と「Windows」の長いほうで決まります。短縮の見込みは、上の 3 回でそれぞれ約 42[分]、約 6[分]、約 92[分] です。  
@@ -79,13 +79,13 @@ Doxygen の入力は各 app の `prod` 配下で、`gen/` を除外していま�
 
 Linux で Doxygen の入力に入る生成物は、次の 3 種類です。
 
+Table: Doxygen の入力に入る生成物の種類
+
 | 種類 | 対象 | 生成の仕組み | ビルドの要否 |
 | --- | --- | --- | --- |
 | パース時スクリプト | `app/string-catalog-sample` の `gen/` 3 か所と `prod/include/samplecatalog/` | app 直下の `makepart.mk` が、パース時に Python を実行する | 不要 |
 | ツールだけの規則 | `app/struct-meta/prod/libsrc/struct_meta/parse/gen/` | makefw の flex / bison 規則 (`_flex_bison_compile.mk`) | 不要 |
 | 自前ビルドの生成器 | `app/struct-meta/prod/src/cmd/struct-meta-sample/gen/` | ビルドした `struct-meta-gen` を実行する | 必要 |
-
-Table: Doxygen の入力に入る生成物の種類
 
 `struct-meta-gen` は libstruct_meta、cplat、cjson にリンクします。cplat は `appdeps.mk` で cjson、zlib、openssl に依存します。  
 makefw には、依存先の `prod` だけを make し、`make_build.stamp` を更新しない先例があります (`__each_app_template.mk` の `_makefw_with_cov_prod` と、`resolve_app_deps.sh --coverity-apps`)。  
@@ -119,6 +119,8 @@ makefw には、依存先の `prod` だけを make し、`make_build.stamp` を�
 
 ## 観点別の確認
 
+Table: 観点別の確認状況
+
 | 観点 | 状態 | 根拠・関連 Q |
 | --- | --- | --- |
 | 目的・利用者 | 確認済み | 現行の合意内容。CI の所要時間の短縮と、6 時間の上限に対する余裕の確保 |
@@ -128,9 +130,9 @@ makefw には、依存先の `prod` だけを make し、`make_build.stamp` を�
 | 実現性・例外 | 確認済み | [Q-005](#q-005-生成漏れの照合)、[Q-007](#q-007-cplat-の-prod-のビルド時間の測定方法) |
 | 受入条件・検証 | 確認済み | [Q-009](#q-009-受入の判定に-ci-の実走結果を含めるか)、[Q-010](#q-010-windows-の-make-gen-の検証方法) |
 
-Table: 観点別の確認状況
-
 ## 質問一覧
+
+Table: 質問一覧
 
 | Q-ID | 論点 | 状態 | 依存・関連 |
 | --- | --- | --- | --- |
@@ -144,8 +146,6 @@ Table: 観点別の確認状況
 | [Q-008](#q-008-jenkins-の構成を対象に含めるか) | Jenkins の構成を対象に含めるか | 解決済み | なし |
 | [Q-009](#q-009-受入の判定に-ci-の実走結果を含めるか) | 受入の判定に CI の実走結果を含めるか | 解決済み | [Q-007](#q-007-cplat-の-prod-のビルド時間の測定方法) |
 | [Q-010](#q-010-windows-の-make-gen-の検証方法) | Windows の `make gen` の検証方法 | 解決済み | [Q-005](#q-005-生成漏れの照合)、[Q-006](#q-006-windows-だけの生成物の扱い) |
-
-Table: 質問一覧
 
 ## 明確化のための確認項目
 
@@ -621,6 +621,8 @@ makefw の `bin_test/` には、一時ディレクトリで make を実行して
 
 対象のコミットは、ルートが `2ca7a85c`、makefw が `7e17710` です。再コミットは発生していません。
 
+Table: 実行 42930377100 のジョブ別の結果
+
 | ジョブ | 結果 | 所要時間 |
 | --- | --- | --- |
 | `docs` | 成功 | 78[分] |
@@ -631,8 +633,6 @@ makefw の `bin_test/` には、一時ディレクトリで make を実行して
 | `verify-gen` | 成功 | 6[秒] |
 | `warnings-summary` | 成功 | 4[秒] |
 | `deploy-pages` | 成功 | 3[分] |
-
-Table: 実行 42930377100 のジョブ別の結果
 
 受入条件ごとの結果は、次のとおりです。
 

@@ -42,13 +42,13 @@ Windows での環境セットアップ (PowerShell):
 
 `Start-VSCode-With-Env.ps1` が自動設定する環境変数:
 
+Table: Start-VSCode-With-Env.ps1 が設定する環境変数一覧
+
 | 環境変数  | 内容                                         |
 |-----------|----------------------------------------------|
 | `PATH`    | Git for Windows (MinGW) のバイナリ パスを追加 |
 | `INCLUDE` | Visual Studio Build Tools のインクルード パス |
 | `LIB`     | Visual Studio Build Tools のライブラリ パス   |
-
-Table: Start-VSCode-With-Env.ps1 が設定する環境変数一覧
 
 WSL を使った Linux ビルドの確認:
 
@@ -61,13 +61,13 @@ make              # ビルド実行
 
 OS による出力ファイルの違いの例:
 
+Table: OS による出力ファイルの違い
+
 | 種別           | Linux           | Windows           |
 |----------------|-----------------|-------------------|
 | 動的ライブラリ | `libexample.so`    | `libexample.dll`     |
 | 静的ライブラリ | `libexamplebase.a` | `libexamplebase.lib` |
 | 実行ファイル   | `add`           | `add.exe`         |
-
-Table: OS による出力ファイルの違い
 
 ### 関連ドキュメント
 

@@ -55,6 +55,8 @@ flowchart TD
 
 Figure: 学習ステップ
 
+Table: 学習ステップ一覧
+
 | ステップ                 | 目標                                     | 技術カテゴリ                 |
 |--------------------------|------------------------------------------|------------------------------|
 | ステップ 1: 導入         | モダン開発の全体像と背景を理解できます。     | X as Code・GitOps・生成 AI   |
@@ -63,11 +65,11 @@ Figure: 学習ステップ
 | ステップ 4: 品質向上     | テストとドキュメントを自動化できます。       | テスト・ドキュメント         |
 | ステップ 5: 自動化・拡張 | CI/CD とクロス言語連携を実現できます。       | CI/CD・開発環境・.NET        |
 
-Table: 学習ステップ一覧
-
 ## [ステップ 1 - 導入 (モダンな開発の理解)](01-modern-development/README.md)
 
 技術スキルを習得する前に、モダン開発の全体像・背景・思想を把握します。
+
+Table: ステップ 1 ドキュメント一覧
 
 | ドキュメント | 内容 |
 |------------|------|
@@ -75,11 +77,11 @@ Table: 学習ステップ一覧
 | [生成 AI 時代のソース コード管理 (X as Code)](01-modern-development/x_as_code.md) | X as Code・GitOps・生成 AI 活用の DevOps 進化論 |
 | [ADR (Architecture Decision Record)](01-modern-development/adr.md) | 設計判断の背景・根拠・影響を短い文書で残す方法 |
 
-Table: ステップ 1 ドキュメント一覧
-
 ## [ステップ 2 - 必須基盤 (バージョン管理)](02-version-control/README.md)
 
 Git を使ったバージョン管理はすべての現代的な開発の基盤です。まずここから始めてください。
+
+Table: バージョン管理スキル ガイド一覧
 
 | スキル ガイド          | 内容                           |
 |-----------------------|--------------------------------|
@@ -87,22 +89,22 @@ Git を使ったバージョン管理はすべての現代的な開発の基盤�
 | [Git サブモジュール](02-version-control/git-submodules.md)   | サブモジュールの操作           |
 | [GitHub ワークフロー](02-version-control/github-workflow.md) | PR・Issues・コード レビュー     |
 
-Table: バージョン管理スキル ガイド一覧
-
 ## ステップ 3 - ビルド理解
 
 C ライブラリの種類とビルド システムを理解することで、対象ワークスペースのコード構造を把握できます。
 
 ### [C 言語発展トピック](03-c-language/README.md)
 
+Table: C 言語発展トピック スキル ガイド一覧
+
 | スキル ガイド                 | 内容                                             |
 |------------------------------|--------------------------------------------------|
 | [C ライブラリの種類](03-c-language/c-library-types.md)           | 静的ライブラリ・動的ライブラリの違いとリンク方法 |
 | [クロスプラットフォーム対応](03-c-language/c-cross-platform.md) | Linux / Windows 対応マクロとビルド条件分岐       |
 
-Table: C 言語発展トピック スキル ガイド一覧
-
 ### [ビルド システム](04-build-system/README.md)
+
+Table: ビルド システム スキル ガイド一覧
 
 | スキル ガイド                | 内容                                    |
 |-----------------------------|-----------------------------------------|
@@ -110,13 +112,13 @@ Table: C 言語発展トピック スキル ガイド一覧
 | [GCC / MSVC ツールチェーン](04-build-system/gcc-toolchain.md) | コンパイラとリンカーのオプション          |
 | [.NET SDK](04-build-system/dotnet-sdk.md)                     | dotnet コマンドと .NET プロジェクト構造 |
 
-Table: ビルド システム スキル ガイド一覧
-
 ## ステップ 4 - 品質向上
 
 テストの自動化とドキュメントの自動生成により、品質と保守性を高めます。
 
 ### [テスト自動化](05-testing/README.md)
+
+Table: テスト自動化スキル ガイド一覧
 
 | スキル ガイド       | 内容                           |
 |--------------------|--------------------------------|
@@ -124,9 +126,9 @@ Table: ビルド システム スキル ガイド一覧
 | [コード カバレッジ](05-testing/code-coverage.md) | gcov / lcov / OpenCppCoverage  |
 | [.NET テスト](05-testing/dotnet-testing.md)     | xUnit による .NET 単体テスト   |
 
-Table: テスト自動化スキル ガイド一覧
-
 ### [ドキュメント自動化](06-documentation/README.md)
+
+Table: ドキュメント自動化スキル ガイド一覧
 
 | スキル ガイド | 内容                                     |
 |--------------|------------------------------------------|
@@ -137,13 +139,13 @@ Table: テスト自動化スキル ガイド一覧
 | [PlantUML](06-documentation/plantuml.md) | テキストベースの UML 図表作成 (第 2 選択) |
 | [draw.io](06-documentation/drawio.md)    | GUI による任意の図作成 (第 3 選択)        |
 
-Table: ドキュメント自動化スキル ガイド一覧
-
 ## ステップ 5 - 自動化・拡張
 
 CI/CD によるビルド・テストの自動化と、.NET 連携および開発環境の整備を行います。
 
 ### [CI/CD](07-ci-cd/README.md)
+
+Table: CI/CD スキル ガイド一覧
 
 | スキル ガイド      | 内容                         |
 |-------------------|------------------------------|
@@ -152,17 +154,15 @@ CI/CD によるビルド・テストの自動化と、.NET 連携および開発
 | [Jenkins](07-ci-cd/jenkins.md)               | Oracle Linux 8 への Jenkins 導入、ビルド ジョブ構成、ドキュメント公開 |
 | [Podman](07-ci-cd/podman.md)                 | rootless Podman と Oracle Linux 開発コンテナーの利用 |
 
-Table: CI/CD スキル ガイド一覧
-
 ### [開発環境・.NET 連携](08-dev-environment/README.md)
+
+Table: 開発環境・.NET 連携スキル ガイド一覧
 
 | スキル ガイド       | 内容                              |
 |--------------------|-----------------------------------|
 | [VS Code](08-dev-environment/vscode.md)              | エディターの設定と拡張機能          |
 | [WSL / MinGW 環境](08-dev-environment/wsl-mingw.md)  | Windows での Linux 互換ビルド環境 |
 | [C# / P/Invoke](08-dev-environment/dotnet-csharp.md) | .NET から C ライブラリの呼び出し  |
-
-Table: 開発環境・.NET 連携スキル ガイド一覧
 
 ## 関連ドキュメント
 

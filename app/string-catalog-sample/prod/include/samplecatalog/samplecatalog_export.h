@@ -33,6 +33,8 @@
      *
      *  ビルド条件に応じて次の値を取ります。
      *
+     *  Table: SAMPLECATALOG_EXPORT のビルド条件別の展開値
+     *
      *  | 条件                                                     | 値                      |
      *  | -------------------------------------------------------- | ----------------------- |
      *  | Linux (非 Windows)                                       | (空)                    |
@@ -40,8 +42,6 @@
      *  | Windows / `SAMPLECATALOG_STATIC` 定義時 (静的リンク)     | (空)                    |
      *  | Windows / `SAMPLECATALOG_EXPORTS` 定義時 (DLL ビルド)    | `__declspec(dllexport)` |
      *  | Windows / `SAMPLECATALOG_EXPORTS` 未定義時 (DLL 利用側)  | `__declspec(dllimport)` |
-     *
-     *  Table: SAMPLECATALOG_EXPORT のビルド条件別の展開値
      */
     #define SAMPLECATALOG_EXPORT
 

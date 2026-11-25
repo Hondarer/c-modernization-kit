@@ -52,6 +52,8 @@ BL-002 の 13 組のローカル ロック取得・解放、BL-003 の 2 つの�
 
 対象のローカル変数は、宣言へ `= {0}` を付けて初回の全体ゼロ初期化を行います。既存の処理順序と後続の各メンバー設定を維持します。
 
+Table: 宣言時初期化へ変更する 29 箇所
+
 | ファイル | 対象変数 | 箇所数 |
 | --- | --- | ---: |
 | `app/cplat/prod/libsrc/cplat/string_catalog/filter/filter_compile.c` | `instruction` 2 個、`header` 4 個、`jump` 1 個 | 7 |
@@ -63,8 +65,6 @@ BL-002 の 13 組のローカル ロック取得・解放、BL-003 の 2 つの�
 | `app/cplat/prod/src/cmd/bench-tracer/bench-tracer.c` | `options` | 1 |
 | `app/porter/prod/libsrc/porter/thread/potr_recv_thread.c` | `sender_addr` | 1 |
 | `app/service-sample/prod/src/cmd/service-sample/service-sample_linux_events.c` | `action` | 1 |
-
-Table: 宣言時初期化へ変更する 29 箇所
 
 ## 恒久的な文書反映
 

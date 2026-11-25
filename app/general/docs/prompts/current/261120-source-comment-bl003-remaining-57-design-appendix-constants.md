@@ -21,40 +21,42 @@
 
 ### prod/include/calc/calc_const.h
 
+Table: prod/include/calc/calc_const.h の修正
+
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 30 | R1 | `#define CALC_ERR_UNKNOWN          -1` | 30 行を #define CALC_ERR_UNKNOWN (-1) へ変更する。 |
 | 31 | R1 | `#define CALC_ERR_INVALID_ARGUMENT -2` | 31 行を #define CALC_ERR_INVALID_ARGUMENT (-2) へ変更する。 |
 
-Table: prod/include/calc/calc_const.h の修正
-
 ## app/cplat
 
 ### prod/include/cplat/argparser/argparser.h
+
+Table: prod/include/cplat/argparser/argparser.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 116 | R1 | `#define CPLAT_ARGPARSER_REQUIRED (0x00000001u)` | 定義を #define CPLAT_ARGPARSER_REQUIRED (0x00000001U) へ変更する。 |
 
-Table: prod/include/cplat/argparser/argparser.h の修正
-
 ### prod/include/cplat/base/compiler.h
+
+Table: prod/include/cplat/base/compiler.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 96 | R5 | `(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)` | COMPILER_GCC 内に COMPILER_GCC_VERSION_PART_BASE 100 と _MAJOR_WEIGHT (同定数の 2 乗) を定義し、96 行の 10000 と 100 を置換する。 |
 
-Table: prod/include/cplat/base/compiler.h の修正
-
 ### prod/include/cplat/base/platform.h
+
+Table: prod/include/cplat/base/platform.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 55 | R2 | `_Static_assert(sizeof(void *) == 8, "cplat: requires a 64-bit environment");` | <assert.h> をインクルードし、52-56 行の #if defined(__cplusplus) 分岐を static_assert(...) へ統一する。 |
 
-Table: prod/include/cplat/base/platform.h の修正
-
 ### prod/include/cplat/base/shared_lib_lifecycle.h
+
+Table: prod/include/cplat/base/shared_lib_lifecycle.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -64,9 +66,9 @@ Table: prod/include/cplat/base/platform.h の修正
 | 213 | R5 | `(wc_count + cw) > 1019 (222 行にも 1019)` | CPLAT_DLLMAIN_TRUNCATE_SUFFIX L" ..."、_LEN ((sizeof(...)/sizeof(wchar_t))-1U)、_DEBUG_TRUNCATE_MAX (_BUF_LEN - _LEN - 1U) を定義し、213, 222 行を (int) で置換。 |
 | 230 | R5 | `buf[written + 2] / + 3 / + 4 (228-232 行で L" ..." を 1 文字ずつ代入)` | 228-232 行を memcpy(&buf[written], CPLAT_DLLMAIN_TRUNCATE_SUFFIX, sizeof(CPLAT_DLLMAIN_TRUNCATE_SUFFIX)); へ置換する (接尾辞定数は 213 行の修正で定義)。 |
 
-Table: prod/include/cplat/base/shared_lib_lifecycle.h の修正
-
 ### prod/include/cplat/clock/clock.h
+
+Table: prod/include/cplat/clock/clock.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -75,42 +77,42 @@ Table: prod/include/cplat/base/shared_lib_lifecycle.h の修正
 | 254 | R1 | `#define CPLAT_CLOCK_ISO8601_UTC_MSEC_LEN 24` | 定義を #define CPLAT_CLOCK_ISO8601_UTC_MSEC_LEN 24U へ変更する (clock.c:133 の + 1 も 1U に揃える)。 |
 | 254 | R2 | `#define CPLAT_CLOCK_ISO8601_UTC_MSEC_LEN 24 (書式長の一致検査なし)` | <assert.h> 追加: static_assert ((sizeof ("YYYY-MM-DDTHH:MM:SS.sssZ") - 1U) == CPLAT_CLOCK_ISO8601_UTC_MSEC_LEN, "cplat: UTC ISO8601 len mismatch"); |
 
-Table: prod/include/cplat/clock/clock.h の修正
-
 ### prod/include/cplat/compress/compress.h
+
+Table: prod/include/cplat/compress/compress.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 45 | R2 | `#define CPLAT_COMPRESS_HEADER_SIZE 8U (uint64_t との一致検査なし)` | <assert.h> 追加: static_assert(sizeof(uint64_t) == CPLAT_COMPRESS_HEADER_SIZE, "cplat: header must hold a 64-bit length"); |
 | 48 | R2 | `#define CPLAT_COMPRESS_MAX_UNCOMPRESSED_SIZE UINT32_MAX (uInt 収容検査なし)` | compress.c に <assert.h> と static_assert(CPLAT_COMPRESS_MAX_UNCOMPRESSED_SIZE <= (size_t)((uInt)-1), "cplat: size limit must fit in zlib uInt"); を追加する。 |
 
-Table: prod/include/cplat/compress/compress.h の修正
-
 ### prod/include/cplat/crt/path.h
+
+Table: prod/include/cplat/crt/path.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 65 | R4 | `/** @brief OS 固有のパス最大長です。 */ (62 行)` | 62 行のコメントを「OS 固有のパス最大長 (配列の要素数、終端 NUL を含む) です。char 配列では [byte]、wchar_t 配列では wchar_t の要素数を表します。」へ変更する。 |
 
-Table: prod/include/cplat/crt/path.h の修正
-
 ### prod/include/cplat/crt/unistd.h
+
+Table: prod/include/cplat/crt/unistd.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 52 | R4 | `Windows 側の 0, 4, 2 (52-54 行) に出典なし` | 51 行の直下へ _access() の mode 定数 (存在・読取・書込) である旨と see: https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/access-waccess を追加する。 |
 
-Table: prod/include/cplat/crt/unistd.h の修正
-
 ### prod/include/cplat/crypto/crypto.h
+
+Table: prod/include/cplat/crypto/crypto.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 55 | R2 | `#define CPLAT_CRYPTO_KEY_SIZE 32U (SHA-256 長一致検査なし)` | crypto_linux.c に <openssl/sha.h>/<assert.h> と static_assert (CPLAT_CRYPTO_KEY_SIZE == SHA256_DIGEST_LENGTH, "cplat: key size must match SHA-256"); を追加。 |
 
-Table: prod/include/cplat/crypto/crypto.h の修正
-
 ### prod/include/cplat/hashtable/hashtable.h
+
+Table: prod/include/cplat/hashtable/hashtable.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -122,96 +124,96 @@ Table: prod/include/cplat/crypto/crypto.h の修正
 | 139 | R4 | `/**< value_align に指定できる最大境界です。 */` | コメントを /**< value_align に指定できる最大境界 [byte] です。 */ へ変更する。 |
 | 1041 | R1 | `#define CPLAT_HASHTABLE_SCAN_IN_USE 0x1u (1041-1043 行)` | 1041-1043 行の接尾辞 u を大文字 U (0x1U, 0x2U, 0x4U) へ変更する。 |
 
-Table: prod/include/cplat/hashtable/hashtable.h の修正
-
 ### prod/include/cplat/locale/ui_language.h
+
+Table: prod/include/cplat/locale/ui_language.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 42 | R2 | `#define CPLAT_UI_LANGUAGE_TAG_MAX 85 (LOCALE_NAME_MAX_LENGTH 検査なし)` | ui_language.c (Windows) に <assert.h> と static_assert (CPLAT_UI_LANGUAGE_TAG_MAX >= LOCALE_NAME_MAX_LENGTH, "cplat: tag buffer too small"); を追加。 |
 | 42 | R1 | `#define CPLAT_UI_LANGUAGE_TAG_MAX 85` | 定義を #define CPLAT_UI_LANGUAGE_TAG_MAX 85U へ変更する。 |
 
-Table: prod/include/cplat/locale/ui_language.h の修正
-
 ### prod/include/cplat/net/endpoint.h
+
+Table: prod/include/cplat/net/endpoint.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 43 | R2 | `#define CPLAT_IPV4_ADDR_STRLEN 16U (最長文字列との一致検査なし)` | <assert.h> を追加し、static_assert(sizeof("255.255.255.255") == CPLAT_IPV4_ADDR_STRLEN, "cplat: buffer must hold the longest IPv4 text"); を追加する。 |
 | 43 | R4 | `/** IPv4 アドレス文字列を格納するために必要なバッファー サイズ (終端を含む)。 */` | コメントを「...必要なバッファー サイズ [byte] (終端 NUL を含む)。」へ変更する。 |
 
-Table: prod/include/cplat/net/endpoint.h の修正
-
 ### prod/include/cplat/prompt/prompt.h
+
+Table: prod/include/cplat/prompt/prompt.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 86 | R1 | `#define CPLAT_PROMPT_HISTORY_DEFAULT 64` | 定義を #define CPLAT_PROMPT_HISTORY_DEFAULT 64U へ変更する。 |
 | 91 | R1 | `#define CPLAT_PROMPT_INPUT_BYTES_DEFAULT 4096` | 定義を #define CPLAT_PROMPT_INPUT_BYTES_DEFAULT 4096U へ変更する。 |
 
-Table: prod/include/cplat/prompt/prompt.h の修正
-
 ### prod/include/cplat/regex/regex.h
+
+Table: prod/include/cplat/regex/regex.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 89 | R2 | `CPLAT_REGEX_REPLACE_FIRST_ONLY ほか 2 件 (照合フラグとの非重複検査なし)` | <assert.h> 追加: static_assert (((照合フラグ論理和) & (置換フラグ論理和)) == 0U, "cplat: replace flags must not overlap match flags"); (CPLAT_REGEX_MATCH_* と REPLACE_* の 7 定数) |
 
-Table: prod/include/cplat/regex/regex.h の修正
-
 ### prod/include/cplat/runtime/elevated_process.h
+
+Table: prod/include/cplat/runtime/elevated_process.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 33 | R1 | `#define CPLAT_ELEVATED_PROCESS_RESULT_MESSAGE_SIZE 4096` | 定義の値を 4096 から 4096U へ変更する。 |
 
-Table: prod/include/cplat/runtime/elevated_process.h の修正
-
 ### prod/include/cplat/runtime/host.h
+
+Table: prod/include/cplat/runtime/host.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 39 | R2 | `#define CPLAT_HOST_NAME_MAX 256 (OS 上限・INT_MAX 検査なし)` | host.c (Windows) に <windns.h>/<assert.h> と static_assert (CPLAT_HOST_NAME_MAX >= DNS_MAX_NAME_BUFFER_LENGTH, "cplat: host name limit"); と <= INT_MAX を追加。 |
 | 39 | R1 | `#define CPLAT_HOST_NAME_MAX 256` | 定義を #define CPLAT_HOST_NAME_MAX 256U へ変更する。 |
 
-Table: prod/include/cplat/runtime/host.h の修正
-
 ### prod/include/cplat/runtime/shutdown.h
+
+Table: prod/include/cplat/runtime/shutdown.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 98 | R2 | `#define CPLAT_EXIT_CODE_RESERVED_OUT_OF_RANGE 125 (8 bit 収容検査なし)` | <assert.h> 追加: static_assert((N >= 1) && (N <= 255), "cplat: reserved exit code must fit in 8 bits"); (N=CPLAT_EXIT_CODE_RESERVED_OUT_OF_RANGE) |
 
-Table: prod/include/cplat/runtime/shutdown.h の修正
-
 ### prod/include/cplat/runtime/sym_loader.h
+
+Table: prod/include/cplat/runtime/sym_loader.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 86 | R1 | `#define CPLAT_SYM_LOADER_NAME_MAX 256` | 定義を #define CPLAT_SYM_LOADER_NAME_MAX 256U へ変更する。 |
 | 89 | R1 | `#define CPLAT_SYM_LOADER_REJECT_EMPTY_NAME (-1) ほか 6 件 (89-107 行)` | 89-107 行を typedef enum cplat_sym_loader_reject_reason に変更し、既存の -1 から -7 を明示指定する。引数の int *reason は維持する。 |
 
-Table: prod/include/cplat/runtime/sym_loader.h の修正
-
 ### prod/include/cplat/string_catalog/argument.h
+
+Table: prod/include/cplat/string_catalog/argument.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 136 | R1 | `#define CPLAT_STRING_CATALOG_ARGUMENT_MAX 50` | 定義を #define CPLAT_STRING_CATALOG_ARGUMENT_MAX 50U へ変更し、int 側の比較箇所へ (int) キャストを追加する。 |
 | 136 | R2 | `#define CPLAT_STRING_CATALOG_ARGUMENT_MAX 50 (上限 100 はコメントのみ)` | <assert.h> を追加し、定義近くに static_assert (CPLAT_STRING_CATALOG_ARGUMENT_MAX <= 100U, "cplat: argument index must fit in 2 digits"); を追加する。 |
 
-Table: prod/include/cplat/string_catalog/argument.h の修正
-
 ### prod/include/cplat/string_catalog/catalog.h
+
+Table: prod/include/cplat/string_catalog/catalog.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 144 | R4 | `/** @brief 呼び出し側が用意するバッファーの推奨サイズです。 */` | コメントを「推奨サイズ [byte] (終端 NUL を含む) です。」へ変更する。 |
 | 144 | R1 | `#define CPLAT_STRING_CATALOG_TEXT_MAX 512` | 定義を #define CPLAT_STRING_CATALOG_TEXT_MAX 512U へ変更する。 |
 
-Table: prod/include/cplat/string_catalog/catalog.h の修正
-
 ### prod/include/cplat/string_catalog/filter.h
+
+Table: prod/include/cplat/string_catalog/filter.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -222,18 +224,18 @@ Table: prod/include/cplat/string_catalog/catalog.h の修正
 | 119 | R2 | `#define CPLAT_STRING_CATALOG_FILTER_SOURCE_ALIGNMENT 8U (2 の冪検査なし)` | <assert.h> 追加: static_assert((N & (N - 1U)) == 0U, "cplat: source alignment must be a power of two"); (N=CPLAT_STRING_CATALOG_FILTER_SOURCE_ALIGNMENT) |
 | 119 | R4 | `/** ソース領域の先頭アドレスに求めるアラインメントです。... */` | コメントへ単位「[byte]」を補い「...求めるアラインメント [byte] です。...」とする。 |
 
-Table: prod/include/cplat/string_catalog/filter.h の修正
-
 ### prod/include/cplat/trace/eventlog.h
+
+Table: prod/include/cplat/trace/eventlog.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 43 | R1 | `#define CPLAT_EVENTLOG_LEVEL_COUNT 6` | 定義を #define CPLAT_EVENTLOG_LEVEL_COUNT 6U へ変更し、trace_eventlog.c:124 へ (int) キャストを追加する。 |
 | 43 | R3 | `#define CPLAT_EVENTLOG_LEVEL_COUNT 6` | eventlog.h は 6U 維持。tracer.c へ static_assert(CPLAT_EVENTLOG_LEVEL_COUNT == (unsigned int)CPLAT_TRACE_LEVEL_NONE, "cplat: eventlog level mismatch"); を追加。 |
 
-Table: prod/include/cplat/trace/eventlog.h の修正
-
 ### prod/include/cplat/trace/tracer.h
+
+Table: prod/include/cplat/trace/tracer.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -241,25 +243,25 @@ Table: prod/include/cplat/trace/eventlog.h の修正
 | 145 | R3 | `#define CPLAT_TRACER_HEX_MAX_DATA_BYTES 341` | 定義を #define CPLAT_TRACER_HEX_MAX_DATA_BYTES (CPLAT_TRACER_MESSAGE_MAX_BYTES / 3U) へ変更する。 |
 | 231 | R2 | `#define CPLAT_TRACE_LEVEL_FORCE_OFFSET 7 (強制値との対応はコメントのみ)` | <assert.h> を追加し、static_assert(CPLAT_TRACE_LEVEL_FORCE_OFFSET == ((int)CPLAT_TRACE_LEVEL_NONE + 1), "cplat: force offset must cover all normal levels"); を追加する。 |
 
-Table: prod/include/cplat/trace/tracer.h の修正
-
 ### prod/include_internal/cplat/console/console_internal.h
+
+Table: prod/include_internal/cplat/console/console_internal.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 77 | R1 | `#define CPLAT_CONSOLE_ATTACH_RETRY_INTERVAL_MS 10` | 定義を #define CPLAT_CONSOLE_ATTACH_RETRY_INTERVAL_MS 10U へ変更する。 |
 
-Table: prod/include_internal/cplat/console/console_internal.h の修正
-
 ### prod/include_internal/cplat/prompt/prompt_edit.h
+
+Table: prod/include_internal/cplat/prompt/prompt_edit.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 30 | R5 | `unsigned char bytes[4];` | include_internal/cplat/base/utf8_internal.h を新設し CPLAT_UTF8_MAX_BYTES 4U (see: RFC 3629) を定義、prompt_edit.h 30 行を置換。 |
 
-Table: prod/include_internal/cplat/prompt/prompt_edit.h の修正
-
 ### prod/include_internal/cplat/sync/sync_descriptor.h
+
+Table: prod/include_internal/cplat/sync/sync_descriptor.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -267,9 +269,9 @@ Table: prod/include_internal/cplat/prompt/prompt_edit.h の修正
 | 37 | R1 | `#define CPLAT_INTERPROCESS_SYNC_KIND_LOCK 1U` | 37-40 行を typedef enum cplat_internal_interprocess_sync_kind に統合し、呼び出し側 (sync_linux.c 等) で (uint8_t) キャストする。 |
 | 40 | R1 | `#define CPLAT_INTERPROCESS_SYNC_KIND_RWLOCK 2U` | 37 行の CPLAT_INTERPROCESS_SYNC_KIND_LOCK と同じ enum cplat_internal_interprocess_sync_kind にまとめる (値は 2)。 |
 
-Table: prod/include_internal/cplat/sync/sync_descriptor.h の修正
-
 ### prod/libsrc/cplat/argparser/argparser.c
+
+Table: prod/libsrc/cplat/argparser/argparser.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -286,9 +288,9 @@ Table: prod/include_internal/cplat/sync/sync_descriptor.h の修正
 | 1722 | R5 | `if (strncmp(token, "--", 2) == 0 && token[2] != '\0')` | L181 と共用の s_long_option_prefix と ARGPARSER_LONG_PREFIX_LENGTH を使い、strncmp と token[ARGPARSER_LONG_PREFIX_LENGTH] に置き換える |
 | 1803 | R5 | `if (name_len == 2)` | L146 と共用の ARGPARSER_SHORT_NAME_LENGTH (2U) で L1803 の 2 を置き換える |
 
-Table: prod/libsrc/cplat/argparser/argparser.c の修正
-
 ### prod/libsrc/cplat/clock/clock.c
+
+Table: prod/libsrc/cplat/clock/clock.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -299,9 +301,9 @@ Table: prod/libsrc/cplat/argparser/argparser.c の修正
 | 38 | R2 | `static const char s_iso8601_utc_fallback[] = "0000-00-00T00:00:00.000Z";` | <assert.h> を追加し、L38 後に static_assert(sizeof(s_iso8601_utc_fallback) - 1U == CPLAT_CLOCK_ISO8601_UTC_MSEC_LEN, "cplat: utc fallback len"); を追加 |
 | 206 | R1 | `(uint64_t)timestamp.tv_sec * MSEC_PER_SEC + (uint64_t)timestamp.tv_nsec / (uint64_t)NSEC_PER_MSEC;` | (uint64_t)CLOCK_MSEC_PER_SEC へ明示キャストを追加する |
 
-Table: prod/libsrc/cplat/clock/clock.c の修正
-
 ### prod/libsrc/cplat/clock/timespec.c
+
+Table: prod/libsrc/cplat/clock/timespec.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -321,9 +323,9 @@ Table: prod/libsrc/cplat/clock/clock.c の修正
 | 146 | R5 | `ret = sum_seconds(terms, 0U, 2U, &seconds);` | L146 を sum_seconds(terms, 0U, sizeof(terms) / sizeof(terms[0]), &seconds); に直す |
 | 176 | R5 | `subtract_mask = (1U << 1U) \| (1U << 3U);` | timespec.c に TERM_A_SEC (0U)..TERM_NSEC_SUM_CARRY (4U) を定義し、L169-172、L182 と L176 を (1U << TERM_B_SEC) \| (1U << TERM_B_NSEC_CARRY) に直す |
 
-Table: prod/libsrc/cplat/clock/timespec.c の修正
-
 ### prod/libsrc/cplat/compress/compress.c
+
+Table: prod/libsrc/cplat/compress/compress.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -332,9 +334,9 @@ Table: prod/libsrc/cplat/clock/timespec.c の修正
 | 85 | R5 | `ret = zlib_app_deflateInit2(&z, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY);` | compress.c 冒頭に #define COMPRESS_RAW_DEFLATE_WINDOW_BITS (-15) (役割と see: 付き) を定義し、L85 と L182 を置き換える |
 | 182 | R5 | `ret = zlib_app_inflateInit2(&z, -15);` | L85 と共用の COMPRESS_RAW_DEFLATE_WINDOW_BITS (-15) で L182 の -15 を置き換える |
 
-Table: prod/libsrc/cplat/compress/compress.c の修正
-
 ### prod/libsrc/cplat/console/console.c
+
+Table: prod/libsrc/cplat/console/console.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -344,44 +346,44 @@ Table: prod/libsrc/cplat/compress/compress.c の修正
 | 223 | R5 | `if (prefix_len + message_len + 2 >= (int)sizeof(line))` | console.c 内に #define CONSOLE_DIAG_LINE_SUFFIX_BYTES (2) を定義し、L223 と L225 の 2 を置き換える |
 | 225 | R5 | `message_len = (int)sizeof(line) - prefix_len - 2;` | L223 と共用の CONSOLE_DIAG_LINE_SUFFIX_BYTES (2) で L225 の 2 を置き換える |
 
-Table: prod/libsrc/cplat/console/console.c の修正
-
 ### prod/libsrc/cplat/crt/file.c
+
+Table: prod/libsrc/cplat/crt/file.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 140 | R5 | `file->handle = open(path, open_flags, 0644);` | file.c の PLATFORM_LINUX ブロックに #define CRT_FILE_CREATE_MODE (0644) を定義し、L140 を置き換える |
 
-Table: prod/libsrc/cplat/crt/file.c の修正
-
 ### prod/libsrc/cplat/crt/file_timestamp.c
+
+Table: prod/libsrc/cplat/crt/file_timestamp.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 162 | R5 | `struct timespec times[2];` | file_timestamp.c の PLATFORM_LINUX ブロックに #define UTIMENS_TIMES_COUNT (2U) (see: 付き) を定義し、L162 と L254 を置き換える |
 | 254 | R5 | `struct timespec times[2];` | L162 と共用の UTIMENS_TIMES_COUNT (2U) で L254 の 2 を置き換える |
 
-Table: prod/libsrc/cplat/crt/file_timestamp.c の修正
-
 ### prod/libsrc/cplat/crt/path.c
+
+Table: prod/libsrc/cplat/crt/path.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 98 | R1 | `cplat_calloc(PLATFORM_PATH_MAX, sizeof(*restore_points));` | 第 1 引数を (size_t)PLATFORM_PATH_MAX に変更する。 |
 | 136 | R5 | `if (seg_len == 2u && path[seg_start] == '.' && path[seg_start + 1u] == '.')` | path.c 冒頭に #define PATH_PARENT_SEGMENT_LEN (2U) を定義し、L136 の 2u を置き換える |
 
-Table: prod/libsrc/cplat/crt/path.c の修正
-
 ### prod/libsrc/cplat/crt/stdio.c
+
+Table: prod/libsrc/cplat/crt/stdio.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 66 | R5 | `wchar_t wmodes[64];` | prod/libsrc/cplat/crt/crt.h に #define CRT_WMODES_CAPACITY (64U) を定義し、stdio.c で "crt.h" を include して L66 と L136 を置き換える |
 | 136 | R5 | `wchar_t wmodes[64];` | crt.h の CRT_WMODES_CAPACITY (64U) で L136 を置き換える |
 
-Table: prod/libsrc/cplat/crt/stdio.c の修正
-
 ### prod/libsrc/cplat/crt/stdio_temp.c
+
+Table: prod/libsrc/cplat/crt/stdio_temp.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -390,9 +392,9 @@ Table: prod/libsrc/cplat/crt/stdio.c の修正
 | 129 | R5 | `wchar_t wmodes[64];` | crt.h の CRT_WMODES_CAPACITY (64U) を使い、stdio_temp.c で "crt.h" を include して L129 を置き換える |
 | 164 | R3 | `pfx = "cu_";` | L72 と共用の s_default_temp_prefix で L164 の "cu_" を置き換える |
 
-Table: prod/libsrc/cplat/crt/stdio_temp.c の修正
-
 ### prod/libsrc/cplat/crt/stdlib.c
+
+Table: prod/libsrc/cplat/crt/stdlib.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -402,9 +404,9 @@ Table: prod/libsrc/cplat/crt/stdio_temp.c の修正
 | 30 | R2 | `_Static_assert(INT_MIN == INT32_MIN && INT_MAX == INT32_MAX && UINT_MAX == UINT32_MAX, "cplat: ...` | static_assert(...) に直す |
 | 31 | R2 | `_Static_assert(LLONG_MIN == INT64_MIN && LLONG_MAX == INT64_MAX && ULLONG_MAX == UINT64_MAX,` | static_assert(...) に直す |
 
-Table: prod/libsrc/cplat/crt/stdlib.c の修正
-
 ### prod/libsrc/cplat/crt/sys_stat.c
+
+Table: prod/libsrc/cplat/crt/sys_stat.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -412,9 +414,9 @@ Table: prod/libsrc/cplat/crt/stdlib.c の修正
 | 124 | R5 | `size_t i = 2u;` | sys_stat.c 冒頭に #define UNC_PREFIX_LEN (2U) を定義し、L124 を size_t i = UNC_PREFIX_LEN; に直す |
 | 305 | R5 | `result = mkdir(path, 0755);` | sys_stat.c に #define CRT_MKDIR_MODE (0755) (stat.h と api-cheatsheet.md の記載場所コメント付き) を定義し、L305 を置き換える |
 
-Table: prod/libsrc/cplat/crt/sys_stat.c の修正
-
 ### prod/libsrc/cplat/hashtable/hashtable.h
+
+Table: prod/libsrc/cplat/hashtable/hashtable.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -428,34 +430,34 @@ Table: prod/libsrc/cplat/crt/sys_stat.c の修正
 | 229 | R2 | `_Static_assert(((sizeof(uint64_t) + sizeof(unsigned char) + 7u + sizeof(cplat_timespec)) % ...` | static_assert(...) に直す |
 | 279 | R2 | `_Static_assert(sizeof(struct hashtable_persist_header) % _Alignof(uint64_t) == 0,` | static_assert(...) に直す |
 
-Table: prod/libsrc/cplat/hashtable/hashtable.h の修正
-
 ### prod/libsrc/cplat/hashtable/hashtable_arena.c
+
+Table: prod/libsrc/cplat/hashtable/hashtable_arena.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 208 | R5 | `memmove(&arena->free_list[i + 2u], &arena->free_list[i + 1u],` | const size_t next_idx = i + 1u; を置き、&arena->free_list[next_idx + 1u] と &arena->free_list[next_idx] に直す |
 
-Table: prod/libsrc/cplat/hashtable/hashtable_arena.c の修正
-
 ### prod/libsrc/cplat/hashtable/hashtable_create.c
+
+Table: prod/libsrc/cplat/hashtable/hashtable_create.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 81 | R3 | `if (config->lifetime < 2)` | L81 を if (config->lifetime < REC_DELETED) に直す |
 
-Table: prod/libsrc/cplat/hashtable/hashtable_create.c の修正
-
 ### prod/libsrc/cplat/hashtable/hashtable_grow.c
+
+Table: prod/libsrc/cplat/hashtable/hashtable_grow.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 249 | R5 | `if (current > (SIZE_MAX / 2u))` | hashtable_grow.c 冒頭に #define HASHTABLE_GROWTH_FACTOR (2U) と static_assert(>= 2U) を定義し、L249 と L255 を置き換える |
 | 255 | R5 | `doubled = current * 2u;` | L249 と共用の HASHTABLE_GROWTH_FACTOR (2U) で L255 の 2u を置き換える |
 
-Table: prod/libsrc/cplat/hashtable/hashtable_grow.c の修正
-
 ### prod/libsrc/cplat/hashtable/hashtable_key.c
+
+Table: prod/libsrc/cplat/hashtable/hashtable_key.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -463,18 +465,18 @@ Table: prod/libsrc/cplat/hashtable/hashtable_grow.c の修正
 | 34 | R5 | `hash = ((hash << 5) + hash) + (uint64_t)c;` | hashtable_key.c 冒頭に #define HASHTABLE_DJB2_SHIFT 5U (33 倍を表すシフト量の説明と see: 付き) を定義し、L34 と L44 を置き換える |
 | 44 | R5 | `hash = ((hash << 5) + hash) + p[i];` | L34 と共用の HASHTABLE_DJB2_SHIFT (5U) で L44 の 5 を置き換える |
 
-Table: prod/libsrc/cplat/hashtable/hashtable_key.c の修正
-
 ### prod/libsrc/cplat/locale/ui_language_tag.c
+
+Table: prod/libsrc/cplat/locale/ui_language_tag.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 23 | R2 | `#define LANGUAGE_LENGTH_MIN 2U` | <assert.h> を include し、L26 の後に static_assert (LANGUAGE_LENGTH_MIN <= LANGUAGE_LENGTH_MAX, "cplat: language length min > max"); を追加 |
 | 155 | R2 | `/* 言語、表記体系、地域と区切りを合わせても言語タグの上限に収まるため、組み立て先は上限の配列とする。 */` | <assert.h> を追加し、static_assert(LANGUAGE_LENGTH_MAX + SCRIPT_LENGTH + REGION_DIGIT_LENGTH + 3U <= (size_t)CPLAT_UI_LANGUAGE_TAG_MAX, "cplat: tag max") を追加 |
 
-Table: prod/libsrc/cplat/locale/ui_language_tag.c の修正
-
 ### prod/libsrc/cplat/net/byteorder.c
+
+Table: prod/libsrc/cplat/net/byteorder.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -485,17 +487,17 @@ Table: prod/libsrc/cplat/locale/ui_language_tag.c の修正
 | 72 | R5 | `uint8_t bytes[8];` | L72 を uint8_t bytes[sizeof(value)]; に直す |
 | 92 | R5 | `uint8_t bytes[8];` | L92 を uint8_t bytes[sizeof(value)]; に直す |
 
-Table: prod/libsrc/cplat/net/byteorder.c の修正
-
 ### prod/libsrc/cplat/net/endpoint.c
+
+Table: prod/libsrc/cplat/net/endpoint.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 7 | R5 | `return cplat_hton32(UINT32_C(0x7f000001));` | endpoint.c 冒頭に #define IPV4_LOOPBACK_HOST_ORDER UINT32_C(0x7f000001) (127.0.0.1 の役割と see: 付き) を定義し、L7 を置き換える |
 
-Table: prod/libsrc/cplat/net/endpoint.c の修正
-
 ### prod/libsrc/cplat/prompt/pinned_prompt.c
+
+Table: prod/libsrc/cplat/prompt/pinned_prompt.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -513,9 +515,9 @@ Table: prod/libsrc/cplat/net/endpoint.c の修正
 | 775 | R5 | `new_cap = screen->history_ctx_cap * 2U;` | pinned_prompt.c に PINNED_PROMPT_HISTORY_CTX_GROWTH_FACTOR 2U を定義し 775 行目を置換 |
 | 965 | R5 | `screen->edit_len + 2U) != 0)` | screen->edit_len + 1U + 1U (挿入 1 [byte] + 終端 NUL 1 [byte]) へ書き換える |
 
-Table: prod/libsrc/cplat/prompt/pinned_prompt.c の修正
-
 ### prod/libsrc/cplat/prompt/prompt.c
+
+Table: prod/libsrc/cplat/prompt/prompt.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -528,9 +530,9 @@ Table: prod/libsrc/cplat/prompt/pinned_prompt.c の修正
 | 473 | R5 | `new_cap = p->ctx_cap * 2;` | prompt.c に PROMPT_HISTORY_CTX_GROWTH_FACTOR 2U を定義し 473 行目を置換 (size_t に合わせ U を付与) |
 | 895 | R5 | `p->edit_len + 2U) == 0)` | p->edit_len + 1U + 1U (挿入 1 [byte] + 終端 NUL 1 [byte]) へ書き換える |
 
-Table: prod/libsrc/cplat/prompt/prompt.c の修正
-
 ### prod/libsrc/cplat/prompt/prompt_edit.c
+
+Table: prod/libsrc/cplat/prompt/prompt_edit.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -586,9 +588,9 @@ Table: prod/libsrc/cplat/prompt/prompt.c の修正
 | 712 | R5 | `input->length = 3U;` | char_code_internal.h に UTF-8 符号長定数 CPLAT_UTF8_BYTES_2 (2U)、_3 (3U)、_4 (4U) を定義し 503・507・511・706・712・719 行目を置換 |
 | 719 | R5 | `input->length = 4U;` | char_code_internal.h に UTF-8 符号長定数 CPLAT_UTF8_BYTES_2 (2U)、_3 (3U)、_4 (4U) を定義し 503・507・511・706・712・719 行目を置換 |
 
-Table: prod/libsrc/cplat/prompt/prompt_edit.c の修正
-
 ### prod/libsrc/cplat/prompt/prompt_linux.c
+
+Table: prod/libsrc/cplat/prompt/prompt_linux.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -597,9 +599,9 @@ Table: prod/libsrc/cplat/prompt/prompt_edit.c の修正
 | 356 | R5 | `if (nfds == 2U && (fds[1].revents & (POLLERR \| POLLNVAL)) != 0)` | prompt_linux.c に PROMPT_LINUX_POLL_FD_COUNT 2U (標準入力 + 中止通知パイプ) を定義し 288・315・356・361 行目を置換 |
 | 361 | R5 | `if (nfds == 2U && (fds[1].revents & POLLIN) != 0)` | prompt_linux.c に PROMPT_LINUX_POLL_FD_COUNT 2U (標準入力 + 中止通知パイプ) を定義し 288・315・356・361 行目を置換 |
 
-Table: prod/libsrc/cplat/prompt/prompt_linux.c の修正
-
 ### prod/libsrc/cplat/prompt/prompt_platform.c
+
+Table: prod/libsrc/cplat/prompt/prompt_platform.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -608,25 +610,25 @@ Table: prod/libsrc/cplat/prompt/prompt_linux.c の修正
 | 33 | R5 | `*cols_out = 80;` | prompt_platform.c に PROMPT_PLATFORM_DEFAULT_COLS 80 (既定の端末列数) を定義し 25・33 行目を置換 |
 | 38 | R5 | `*rows_out = 24;` | prompt_platform.c に PROMPT_PLATFORM_DEFAULT_ROWS 24 (既定の端末行数) を定義し 26・38 行目を置換 |
 
-Table: prod/libsrc/cplat/prompt/prompt_platform.c の修正
-
 ### prod/libsrc/cplat/prompt/prompt_windows.c
+
+Table: prod/libsrc/cplat/prompt/prompt_windows.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 352 | R5 | `DWORD result = WaitForSingleObject(context->stdin_handle, 100U);` | prompt_windows.c に PROMPT_WINDOWS_RESIZE_POLL_INTERVAL_MS 100U (リサイズ確認用待機 [ms]) を定義し 352 行目を置換 |
 
-Table: prod/libsrc/cplat/prompt/prompt_windows.c の修正
-
 ### prod/libsrc/cplat/runtime/abort.c
+
+Table: prod/libsrc/cplat/runtime/abort.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 127 | R5 | `cplat_sleep_ms(1000);` | abort.c に ABORT_WAIT_INTERVAL_MS 1000 (他スレッドの異常終了完了を待つ間隔 [ms]) を定義し 127 行目を置換 |
 
-Table: prod/libsrc/cplat/runtime/abort.c の修正
-
 ### prod/libsrc/cplat/runtime/elevated_process.c
+
+Table: prod/libsrc/cplat/runtime/elevated_process.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -634,9 +636,9 @@ Table: prod/libsrc/cplat/runtime/abort.c の修正
 | 1182 | R5 | `buf_sz = strlen(base_arguments) + 1 + strlen(CPLAT_PROCESS_OUTPUT_PIPES_FLAG)...` | elevated_process.c に CPLAT_PROCESS_PID_DIGITS_MAX 10U と CPLAT_PROCESS_HANDLE_DIGITS_MAX 20U を定義し 1182 行目を置換 |
 | 1182 | R5 | `buf_sz = strlen(base_arguments) + 1 + strlen(CPLAT_PROCESS_OUTPUT_PIPES_FLAG) + 1 + 10 + 2 * (1 +...` | elevated_process.c に CPLAT_PROCESS_OUTPUT_PIPE_COUNT 2U (引き継ぐ出力パイプ stdout/stderr の数) を定義し 1182 行目の 2 を置換 |
 
-Table: prod/libsrc/cplat/runtime/elevated_process.c の修正
-
 ### prod/libsrc/cplat/runtime/memory_lock.c
+
+Table: prod/libsrc/cplat/runtime/memory_lock.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -649,9 +651,9 @@ Table: prod/libsrc/cplat/runtime/elevated_process.c の修正
 | 389 | R5 | `if (new_capacity > ((size_t)-1) / 2U)` | memory_lock.c に CPLAT_MEMORY_LOCK_CAPACITY_GROWTH_FACTOR 2U を定義し 343・389・395 行目を置換 |
 | 395 | R5 | `new_capacity *= 2U;` | memory_lock.c に CPLAT_MEMORY_LOCK_CAPACITY_GROWTH_FACTOR 2U を定義し 343・389・395 行目を置換 |
 
-Table: prod/libsrc/cplat/runtime/memory_lock.c の修正
-
 ### prod/libsrc/cplat/runtime/module.c
+
+Table: prod/libsrc/cplat/runtime/module.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -661,9 +663,9 @@ Table: prod/libsrc/cplat/runtime/memory_lock.c の修正
 | 70 | R5 | `return s + (len - 6);` | module.c に MODULE_DYLIB_EXT ".dylib" を定義し、68・70 行目の 6 と ".dylib" を sizeof(MODULE_DYLIB_EXT) - 1U 等へ置換 |
 | 294 | R5 | `char path_buf[4096];` | module.c に MODULE_PATH_BUF_SIZE 4096U (Windows でも長パスを受けられる固定サイズ [byte]) を定義し 294 行目を置換 |
 
-Table: prod/libsrc/cplat/runtime/module.c の修正
-
 ### prod/libsrc/cplat/runtime/process.c
+
+Table: prod/libsrc/cplat/runtime/process.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -685,9 +687,9 @@ Table: prod/libsrc/cplat/runtime/module.c の修正
 | 1374 | R5 | `inherit_handles[2] = res.stdio_handles[2];` | process.c に enum process_stdio_index (STDIN=0、STDOUT=1、STDERR=2) を定義し 1337・1347・1374 行目の 2 を置換 |
 | 1555 | R5 | `(void)usleep(1000);` | process.c に PROCESS_WAIT_POLL_INTERVAL_US 1000U (回収待機の間隔 [us]) を定義し 1555 行目を置換 |
 
-Table: prod/libsrc/cplat/runtime/process.c の修正
-
 ### prod/libsrc/cplat/runtime/process_priority_linux.c
+
+Table: prod/libsrc/cplat/runtime/process_priority_linux.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -697,9 +699,9 @@ Table: prod/libsrc/cplat/runtime/process.c の修正
 | 75 | R2 | `#define PROCESS_PRIORITY_IOPRIO_LEVEL_MAX 7` | 定義直下に static_assert(PROCESS_PRIORITY_IOPRIO_LEVEL_MAX <= PROCESS_PRIORITY_IOPRIO_LEVEL_MASK, "...") を追加 |
 | 187 | R5 | `return (static_priority >= 1) && (static_priority <= 99);` | process_priority_linux.c に PROCESS_PRIORITY_RT_PRIORITY_MIN 1・_MAX 99 (see: sched(7)) を定義し 187 行目を置換 |
 
-Table: prod/libsrc/cplat/runtime/process_priority_linux.c の修正
-
 ### prod/libsrc/cplat/runtime/sym_loader_resolve.c
+
+Table: prod/libsrc/cplat/runtime/sym_loader_resolve.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -708,18 +710,18 @@ Table: prod/libsrc/cplat/runtime/process_priority_linux.c の修正
 | 103 | R5 | `if (expected == 2)` | sym_loader_resolve.c に enum sym_loader_lock_state (UNINITIALIZED=0、INITIALIZING=1、INITIALIZED=2) を定義し 94・103 行目を置換 |
 | 388 | R5 | `if ((failed == 0) && (impl->pending_count >= 2u) && (pending_has_both_default...` | sym_loader_resolve.c に SYM_LOADER_MIXED_DEFAULT_MIN_COUNT 2U (既定混在とみなす最小移譲先数) を定義し 388 行目を置換 |
 
-Table: prod/libsrc/cplat/runtime/sym_loader_resolve.c の修正
-
 ### prod/libsrc/cplat/string_catalog/filter/filter.h
+
+Table: prod/libsrc/cplat/string_catalog/filter/filter.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 54 | R2 | `#define STRING_CATALOG_FILTER_CONSTANT_NUMBER_SIZE 8U` | <assert.h> を追加し static_assert(sizeof(uint64_t) == ..._NUMBER_SIZE && sizeof(double) == ..._NUMBER_SIZE, "...") を追加 |
 | 57 | R2 | `#define STRING_CATALOG_FILTER_CONSTANT_ALIGNMENT 8U` | static_assert((..._CONSTANT_HEADER_SIZE % ..._ALIGNMENT) == 0U && (..._CONSTANT_NUMBER_SIZE % ..._ALIGNMENT) == 0U, "...") を追加 |
 
-Table: prod/libsrc/cplat/string_catalog/filter/filter.h の修正
-
 ### prod/libsrc/cplat/string_catalog/filter/filter_compile.c
+
+Table: prod/libsrc/cplat/string_catalog/filter/filter_compile.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -734,9 +736,9 @@ Table: prod/libsrc/cplat/string_catalog/filter/filter.h の修正
 | 339 | R5 | `position += 2U;` | filter_compile.c に HEX_LITERAL_PREFIX_LEN (sizeof("0x") - 1U) を定義し 339 行目を置換 |
 | 1207 | R5 | `instruction.operand_count = 2U;` | filter.h に STRING_CATALOG_FILTER_BETWEEN_OPERAND_COUNT 2U を定義し filter_compile.c:1207 と filter_image.c:478 を置換 |
 
-Table: prod/libsrc/cplat/string_catalog/filter/filter_compile.c の修正
-
 ### prod/libsrc/cplat/string_catalog/filter/filter_describe.c
+
+Table: prod/libsrc/cplat/string_catalog/filter/filter_describe.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -745,9 +747,9 @@ Table: prod/libsrc/cplat/string_catalog/filter/filter_compile.c の修正
 | 293 | R5 | `((unsigned char)writer->dest[writer->length - 1U] < 0x80U) && (writer->dest[w...` | char_code_internal.h に CPLAT_ASCII_BOUND_U8 0x80U (ASCII 上限 + 1 / 非 ASCII 開始値) を定義し 293 行目を置換 |
 | 427 | R5 | `char text[32];` | filter_describe.c に DESCRIBE_ARGUMENT_TEXT_SIZE 32U (引数番号表記 "{255} " 用の作業配列 [byte]) を定義し 427 行目を置換 |
 
-Table: prod/libsrc/cplat/string_catalog/filter/filter_describe.c の修正
-
 ### prod/libsrc/cplat/string_catalog/filter/filter_image.c
+
+Table: prod/libsrc/cplat/string_catalog/filter/filter_image.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -770,9 +772,9 @@ Table: prod/libsrc/cplat/string_catalog/filter/filter_describe.c の修正
 | 1052 | R5 | `char buffer[32];` | filter_image.c に DECOMPILE_ARGUMENT_TEXT_SIZE 32U ("arg[255]" 書式化作業配列 [byte]) を定義し 1052 行目を置換 |
 | 1238 | R5 | `left[index] = stack[depth - 2U];` | filter.h の STRING_CATALOG_FILTER_BINARY_OPERAND_COUNT (2U) で 1238 行目を置換する |
 
-Table: prod/libsrc/cplat/string_catalog/filter/filter_image.c の修正
-
 ### prod/libsrc/cplat/string_catalog/filter/filter_slot.c
+
+Table: prod/libsrc/cplat/string_catalog/filter/filter_slot.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -781,9 +783,9 @@ Table: prod/libsrc/cplat/string_catalog/filter/filter_image.c の修正
 | 844 | R5 | `stack[depth - 2U] = (uint8_t)truth_and((truth_value)stack[depth - 2U], (truth...` | filter.h の STRING_CATALOG_FILTER_BINARY_OPERAND_COUNT (2U) で 844 行目の 2U を置換する |
 | 848 | R5 | `stack[depth - 2U] = (uint8_t)truth_or((truth_value)stack[depth - 2U], (truth_...` | filter.h の STRING_CATALOG_FILTER_BINARY_OPERAND_COUNT (2U) で 848 行目の 2U を置換する |
 
-Table: prod/libsrc/cplat/string_catalog/filter/filter_slot.c の修正
-
 ### prod/libsrc/cplat/string_catalog/filter/filter_source.c
+
+Table: prod/libsrc/cplat/string_catalog/filter/filter_source.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -793,34 +795,34 @@ Table: prod/libsrc/cplat/string_catalog/filter/filter_slot.c の修正
 | 73 | R5 | `if (base <= (UINT64_MAX - 3U))` | 73 行目の 3U を (REVISION_STEP + REVISION_WRITING_BIT) へ置換する (次の偶数版が書込中ビット領域を残すため) |
 | 75 | R5 | `return base + 2U;` | filter_source.c に REVISION_STEP 2ULL (偶数で進める版番号の増分) を定義し 75 行目を置換 |
 
-Table: prod/libsrc/cplat/string_catalog/filter/filter_source.c の修正
-
 ### prod/libsrc/cplat/string_catalog/string_catalog_argument.c
+
+Table: prod/libsrc/cplat/string_catalog/string_catalog_argument.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 34 | R1 | `entry->argument_count > CPLAT_STRING_CATALOG_ARGUMENT_MAX` | argument.h:136 の 50U 化に合わせ、右辺を (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX に変更する。 |
 
-Table: prod/libsrc/cplat/string_catalog/string_catalog_argument.c の修正
-
 ### prod/libsrc/cplat/string_catalog/string_catalog_format.c
+
+Table: prod/libsrc/cplat/string_catalog/string_catalog_format.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 79 | R1 | `entry->argument_count > CPLAT_STRING_CATALOG_ARGUMENT_MAX (79, 172 行)` | argument.h:136 の 50U 化に合わせ、79 行と 172 行の右辺を (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX に変更する。 |
 
-Table: prod/libsrc/cplat/string_catalog/string_catalog_format.c の修正
-
 ### prod/libsrc/cplat/string_catalog/string_catalog_language.c
+
+Table: prod/libsrc/cplat/string_catalog/string_catalog_language.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 34 | R2 | `#define LANGUAGE_UNDECIDED ((int32_t)-1)` | 定義直下に static_assert で NEUTRAL・JAPANESE・ENGLISH・COUNT の各列挙子が LANGUAGE_UNDECIDED と異なることを検査 |
 | 52 | R5 | `char tag_language[4]; /**< 言語タグの言語 (NUL 終端込み)。 */` | string_catalog_language.c に LANGUAGE_TAG_LANG_SIZE 4U (英字 3 文字 + NUL 終端 [byte]) を定義し 52 行目を置換 |
 
-Table: prod/libsrc/cplat/string_catalog/string_catalog_language.c の修正
-
 ### prod/libsrc/cplat/string_catalog/string_catalog_render.c
+
+Table: prod/libsrc/cplat/string_catalog/string_catalog_render.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -842,9 +844,9 @@ Table: prod/libsrc/cplat/string_catalog/string_catalog_language.c の修正
 | 379 | R5 | `position += 2U;` | string_catalog_render.c に ESCAPED_BRACE_LEN (sizeof("{{") - 1U) を定義し 372・379 行目の 2U を置換 |
 | 427 | R5 | `position += 2U + (size_t)digit_count;` | string_catalog_render.c に PLACEHOLDER_BRACES_LEN (sizeof("{}") - 1U) を定義し 427 行目の 2U を置換 |
 
-Table: prod/libsrc/cplat/string_catalog/string_catalog_render.c の修正
-
 ### prod/libsrc/cplat/sync/sync_descriptor.c
+
+Table: prod/libsrc/cplat/sync/sync_descriptor.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -862,9 +864,9 @@ Table: prod/libsrc/cplat/string_catalog/string_catalog_render.c の修正
 | 83 | R5 | `if (in[4] != CPLAT_INTERPROCESS_SYNC_DESCRIPTOR_VERSION)` | sync_descriptor.c に DESCRIPTOR_OFFSET_VERSION 4U を定義し 44・83 行目の 4 を置換 |
 | 89 | R5 | `identity_len = (uint32_t)in[8] \| ((uint32_t)in[9] << 8) \| ((uint32_t)in[10] <...` | sync_descriptor.c に DESCRIPTOR_OFFSET_IDENTITY_LEN 8U を定義し 50-53・89 行目を +0U..+3U (または +0..+3) で置換 |
 
-Table: prod/libsrc/cplat/sync/sync_descriptor.c の修正
-
 ### prod/libsrc/cplat/sync/sync_linux.c
+
+Table: prod/libsrc/cplat/sync/sync_linux.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -876,9 +878,9 @@ Table: prod/libsrc/cplat/sync/sync_descriptor.c の修正
 | 1429 | R5 | `cplat_atomic_store_i32(&flag->state, 2, CPLAT_MEMORY_ORDER_RELEASE);` | sync_internal.h に enum cplat_internal_once_state (UNINITIALIZED=0、RUNNING=1、DONE=2) を定義し 1429・1433 行目を置換 |
 | 1433 | R5 | `while (cplat_atomic_load_i32(&flag->state, CPLAT_MEMORY_ORDER_ACQUIRE) != 2)` | sync_internal.h に enum cplat_internal_once_state (UNINITIALIZED=0、RUNNING=1、DONE=2) を定義し 1429・1433 行目を置換 |
 
-Table: prod/libsrc/cplat/sync/sync_linux.c の修正
-
 ### prod/libsrc/cplat/sync/sync_windows.c
+
+Table: prod/libsrc/cplat/sync/sync_windows.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -886,9 +888,9 @@ Table: prod/libsrc/cplat/sync/sync_linux.c の修正
 | 1145 | R5 | `cplat_atomic_store_i32(&flag->state, 2, CPLAT_MEMORY_ORDER_RELEASE);` | sync_internal.h の enum cplat_internal_once_state を使い、1145・1150 行目の 2 を CPLAT_ONCE_STATE_DONE へ置換 |
 | 1150 | R5 | `while (cplat_atomic_load_i32(&flag->state, CPLAT_MEMORY_ORDER_ACQUIRE) != 2)` | sync_internal.h の enum cplat_internal_once_state を使い、1145・1150 行目の 2 を CPLAT_ONCE_STATE_DONE へ置換 |
 
-Table: prod/libsrc/cplat/sync/sync_windows.c の修正
-
 ### prod/libsrc/cplat/trace/backends/etw/trace_etw.c
+
+Table: prod/libsrc/cplat/trace/backends/etw/trace_etw.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -908,9 +910,9 @@ Table: prod/libsrc/cplat/sync/sync_windows.c の修正
 | 132 | R5 | `TraceLoggingWrite(ref, "Trace", TraceLoggingLevel(4), TraceLoggingString(mess...` | <evntrace.h> を取り込み、case と TraceLoggingLevel() の 2..5 を TRACE_LEVEL_ERROR / _WARNING / _INFORMATION / _VERBOSE へ置換 |
 | 136 | R5 | `TraceLoggingWrite(ref, "Trace", TraceLoggingLevel(5), TraceLoggingString(mess...` | <evntrace.h> を取り込み、case と TraceLoggingLevel() の 2..5 を TRACE_LEVEL_ERROR / _WARNING / _INFORMATION / _VERBOSE へ置換 |
 
-Table: prod/libsrc/cplat/trace/backends/etw/trace_etw.c の修正
-
 ### prod/libsrc/cplat/trace/backends/etw/trace_etw_session.c
+
+Table: prod/libsrc/cplat/trace/backends/etw/trace_etw_session.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -921,9 +923,9 @@ Table: prod/libsrc/cplat/trace/backends/etw/trace_etw.c の修正
 | 236 | R5 | `*consumed_out = 4U;` | 225 行目の 4U を sizeof(uint32_t)、236 行目の 4U を (USHORT)sizeof(uint32_t) へ置換する |
 | 604 | R5 | `status = EnableTraceEx2(session->session_handle, &provider_guid, EVENT_CONTRO...` | 604 行目の 5 を <evntrace.h> の TRACE_LEVEL_VERBOSE へ置換する |
 
-Table: prod/libsrc/cplat/trace/backends/etw/trace_etw_session.c の修正
-
 ### prod/libsrc/cplat/trace/backends/eventlog/trace_eventlog.c
+
+Table: prod/libsrc/cplat/trace/backends/eventlog/trace_eventlog.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -943,9 +945,9 @@ Table: prod/libsrc/cplat/trace/backends/etw/trace_etw_session.c の修正
 | 503 | R5 | `wchar_t key_path[512];` | trace_eventlog.c に EVENTLOG_KEY_PATH_CHARS 512 (レジストリ キー パスの作業配列長 [UTF-16]) を定義し 503・590 行目を置換 |
 | 590 | R5 | `wchar_t key_path[512];` | trace_eventlog.c に EVENTLOG_KEY_PATH_CHARS 512 (レジストリ キー パスの作業配列長 [UTF-16]) を定義し 503・590 行目を置換 |
 
-Table: prod/libsrc/cplat/trace/backends/eventlog/trace_eventlog.c の修正
-
 ### prod/libsrc/cplat/trace/backends/file/trace_file.c
+
+Table: prod/libsrc/cplat/trace/backends/file/trace_file.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -958,9 +960,9 @@ Table: prod/libsrc/cplat/trace/backends/eventlog/trace_eventlog.c の修正
 | 57 | R2 | `#define SINK_REGISTRY_INITIAL_CAPACITY 4` | 定義直下に static_assert(SINK_REGISTRY_INITIAL_CAPACITY > 0U, "...") を追加する |
 | 278 | R5 | `new_capacity = s_sink_registry.capacity * 2;` | trace_file.c に SINK_REGISTRY_GROWTH_FACTOR 2U を定義し 278 行目を置換 (size_t に合わせ U を付与) |
 
-Table: prod/libsrc/cplat/trace/backends/file/trace_file.c の修正
-
 ### prod/libsrc/cplat/trace/backends/syslog/trace_syslog.c
+
+Table: prod/libsrc/cplat/trace/backends/syslog/trace_syslog.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -970,9 +972,9 @@ Table: prod/libsrc/cplat/trace/backends/file/trace_file.c の修正
 | 115 | R5 | `int next = h->backoff_sec * 2;` | trace_syslog.c に BACKOFF_MULTIPLIER 2 (再接続失敗時の待機時間倍率) を定義し 115 行目を置換 |
 | 189 | R5 | `char value[32];` | trace_syslog.c に SYSLOG_TEST_FD_TEXT_SIZE 32 (SYSLOG_TEST_FD 読取配列 [byte]) を定義し 189 行目を置換 |
 
-Table: prod/libsrc/cplat/trace/backends/syslog/trace_syslog.c の修正
-
 ### prod/libsrc/cplat/trace/tracer.c
+
+Table: prod/libsrc/cplat/trace/tracer.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1009,25 +1011,25 @@ Table: prod/libsrc/cplat/trace/backends/syslog/trace_syslog.c の修正
 | 1695 | R5 | `max_data_bytes = (MAX_BODY - pos + 1) / 3;` | tracer.c に HEX_DUMP_CHARS_PER_BYTE 3U (1 [byte] 当たりの文字数: 16 進 2 桁 + 空白) を定義し 1695・1708 行目を置換 |
 | 1708 | R5 | `max_data_bytes = (MAX_BODY - pos - ELLIPSIS_LEN) / 3;` | tracer.c に HEX_DUMP_CHARS_PER_BYTE 3U (1 [byte] 当たりの文字数: 16 進 2 桁 + 空白) を定義し 1695・1708 行目を置換 |
 
-Table: prod/libsrc/cplat/trace/tracer.c の修正
-
 ### prod/libsrc/cplat/win32/file_api.c
+
+Table: prod/libsrc/cplat/win32/file_api.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 78 | R5 | `wchar_t wbuf[32768]; /* 拡張パスの最大長に合わせた固定バッファー */` | file_api.c に WIN32_EXTENDED_PATH_MAX_CHARS 32768U (NUL 含む拡張パス最大長 [UTF-16]、see: Win32 Naming Files) を定義し 78 行目を置換 |
 
-Table: prod/libsrc/cplat/win32/file_api.c の修正
-
 ### prod/src/cmd/argparser-sample/argparser-sample.c
+
+Table: prod/src/cmd/argparser-sample/argparser-sample.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 24 | R1 | `#define ARGPARSER_SAMPLE_INCLUDE_MAX (4)` | 24 行を #define ARGPARSER_SAMPLE_INCLUDE_MAX 4U へ変更する。 |
 
-Table: prod/src/cmd/argparser-sample/argparser-sample.c の修正
-
 ### prod/src/cmd/bench-hashtable/bench-hashtable.c
+
+Table: prod/src/cmd/bench-hashtable/bench-hashtable.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1044,9 +1046,9 @@ Table: prod/src/cmd/argparser-sample/argparser-sample.c の修正
 | 326 | R5 | `bench_make_config(state->capacity * 2u, &config);` | ファイル先頭へ #define BENCH_RESIZE_FACTOR 2U (役割: RESIZE で capacity を拡張する倍率) を定義し、326 行を置換する。 |
 | 381 | R5 | `(double)timing.median_ns / 1000000.0, per_unit_ns);` | 1000000.0 は直値のまま残し、381 行の同じ行に /* [ns] から [ms] への換算 */ とコメントを追記する。 |
 
-Table: prod/src/cmd/bench-hashtable/bench-hashtable.c の修正
-
 ### prod/src/cmd/bench-io/bench-io.c
+
+Table: prod/src/cmd/bench-io/bench-io.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1064,9 +1066,9 @@ Table: prod/src/cmd/bench-hashtable/bench-hashtable.c の修正
 | 819 | R5 | `char token[32];` | ファイル先頭へ #define BENCH_SIZE_TOKEN_SIZE 32U (役割: --sizes の 1 要素を受ける配列の大きさ [byte]、終端含む) を定義し、819 行を置換。 |
 | 867 | R5 | `size_t size = 1024U * 1024U * 1024U;` | ファイル先頭へ #define BENCH_HUGE_FILE_GIB 1U と #define BENCH_HUGE_FILE_SIZE ((size_t)BENCH_HUGE_FILE_GIB * 1024U * 1024U * 1024U) を定義し、867 行を置換。 |
 
-Table: prod/src/cmd/bench-io/bench-io.c の修正
-
 ### prod/src/cmd/bench-io/bench_case.h
+
+Table: prod/src/cmd/bench-io/bench_case.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1077,9 +1079,9 @@ Table: prod/src/cmd/bench-io/bench-io.c の修正
 | 164 | R4 | `/** @brief 環境情報の文字列長の上限です。 */` | 163 行を「環境情報の文字列を格納する配列の大きさ [byte] (終端 NUL を含む) です。」へ変更する。 |
 | 164 | R1 | `#define BENCH_ENV_TEXT_SIZE 128` | 164 行を #define BENCH_ENV_TEXT_SIZE 128U へ変更する。 |
 
-Table: prod/src/cmd/bench-io/bench_case.h の修正
-
 ### prod/src/cmd/bench-io/bench_report.c
+
+Table: prod/src/cmd/bench-io/bench_report.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1088,9 +1090,9 @@ Table: prod/src/cmd/bench-io/bench_case.h の修正
 | 255 | R1 | `(void)cplat_fprintf(csv, "# record_bytes=%d\n", BENCH_RECORD_SIZE);` | 255 行の書式指定 %d を %u へ変更する。 |
 | 330 | R1 | `(void)cplat_fprintf(csv, "%s,\"%s\",...,%d,..., BENCH_RECORD_SIZE, ...);` | 330 行の BENCH_RECORD_SIZE に対応する書式指定 %d を %u へ変更する。 |
 
-Table: prod/src/cmd/bench-io/bench_report.c の修正
-
 ### prod/src/cmd/bench-io/bench_timer.c
+
+Table: prod/src/cmd/bench-io/bench_timer.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1098,17 +1100,17 @@ Table: prod/src/cmd/bench-io/bench_report.c の修正
 | 23 | R1 | `#define BENCH_NS_PER_MS 1000000LL` | 23 行を #define BENCH_NS_PER_MS 1000000ULL とし、136 行の (uint64_t) キャストを外す。 |
 | 170 | R5 | `iterations = iterations * 2U;` | ファイル先頭へ #define BENCH_TIMER_ITERATION_GROWTH 2U (役割: 計測区間の不足時に反復回数を増やす倍率) を定義し、170 行を置換。 |
 
-Table: prod/src/cmd/bench-io/bench_timer.c の修正
-
 ### prod/src/cmd/bench-io/bench_timer.h
+
+Table: prod/src/cmd/bench-io/bench_timer.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 47 | R1 | `#define BENCH_TIMER_MAX_TRIALS 32` | 47 行を #define BENCH_TIMER_MAX_TRIALS 32U とし、bench_timer.c 131、206 行の (size_t) キャストを外す。 |
 
-Table: prod/src/cmd/bench-io/bench_timer.h の修正
-
 ### prod/src/cmd/bench-tracer/bench-tracer.c
+
+Table: prod/src/cmd/bench-tracer/bench-tracer.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1118,9 +1120,9 @@ Table: prod/src/cmd/bench-io/bench_timer.h の修正
 | 73 | R5 | `sink = cplat_trace_file_sink_create(path, 4096U, 3, flags);` | ファイル先頭へ #define BENCH_TRACER_SINK_GENERATIONS 3 (役割: ファイル出力先の保持世代数、相手が int のため U なし) を定義し、73 行を置換。 |
 | 273 | R5 | `if (argc == 5 && strcmp(argv[1], "--worker") == 0)` | ファイル先頭へ #define BENCH_TRACER_WORKER_ARGC 5 (役割: --worker モード起動時の argc 期待値、198 行 args[] の並びに対応) を定義し、273 行を置換。 |
 
-Table: prod/src/cmd/bench-tracer/bench-tracer.c の修正
-
 ### prod/src/cmd/compress-cli/compress-cli.c
+
+Table: prod/src/cmd/compress-cli/compress-cli.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1129,9 +1131,9 @@ Table: prod/src/cmd/bench-tracer/bench-tracer.c の修正
 | 291 | R5 | `if (compressed_capacity < 256u)` | ファイル先頭へ #define COMPRESS_CLI_MIN_CAPACITY 256U (役割: 小入力時の圧縮用バッファー最小容量 [byte]) を定義し、291、293 行で共用。 |
 | 293 | R5 | `compressed_capacity = 256u;` | 291 行と同じ COMPRESS_CLI_MIN_CAPACITY (256U) で 293 行を置換する。 |
 
-Table: prod/src/cmd/compress-cli/compress-cli.c の修正
-
 ### prod/src/cmd/etw-viewer/etw-viewer.c
+
+Table: prod/src/cmd/etw-viewer/etw-viewer.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1152,34 +1154,34 @@ Table: prod/src/cmd/compress-cli/compress-cli.c の修正
 | 168 | R5 | `ts.tv_nsec = (unix_100ns % 10000000LL) * 100LL;` | ファイル先頭へ #define ETW_VIEWER_NS_PER_100NS 100LL (役割: 100 [ns] 単位から [ns] への換算係数) を定義し、168 行を置換する。 |
 | 175 | R5 | `char timestamp_text[64];` | ファイル先頭へ #define ETW_VIEWER_TIMESTAMP_TEXT_SIZE 64U (役割: ISO 8601 時刻文字列を格納する配列の大きさ [byte]、終端含む) を定義し、175 行を置換。 |
 
-Table: prod/src/cmd/etw-viewer/etw-viewer.c の修正
-
 ### prod/src/cmd/etw-viewer/etw-viewer.h
+
+Table: prod/src/cmd/etw-viewer/etw-viewer.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 8 | R4 | `#define ETW_VIEWER_SESSION_NAME_MAX 128` | 8 行の直前へ /** @brief ETW セッション名を格納する配列の大きさ [byte] (終端 NUL を含む) です。 */ を追加する。 |
 | 8 | R1 | `#define ETW_VIEWER_SESSION_NAME_MAX 128` | 8 行を #define ETW_VIEWER_SESSION_NAME_MAX 128U へ変更する。 |
 
-Table: prod/src/cmd/etw-viewer/etw-viewer.h の修正
-
 ### prod/src/cmd/eventlog-register/eventlog-register.c
+
+Table: prod/src/cmd/eventlog-register/eventlog-register.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 196 | R5 | `table = FindResourceW(resources, MAKEINTRESOURCEW(1), MAKEINTRESOURCEW(11));` | ファイル先頭へ #define EVENTLOG_MESSAGETABLE_TYPE_ID 11 (役割: Win32 RT_MESSAGETABLE のリソース種別番号、see: Microsoft Learn Resource Types) を定義し置換。 |
 
-Table: prod/src/cmd/eventlog-register/eventlog-register.c の修正
-
 ### prod/src/cmd/hashtable-required-size/hashtable-required-size.c
+
+Table: prod/src/cmd/hashtable-required-size/hashtable-required-size.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 179 | R5 | `config.lifetime = 2;` | ファイル先頭へ #define HASHTABLE_REQUIRED_SIZE_LIFETIME 2U (役割: 構成検査を通す最小の有限 lifetime 値、相手が unsigned char のため U) を定義し、179 行を置換。 |
 
-Table: prod/src/cmd/hashtable-required-size/hashtable-required-size.c の修正
-
 ### prod/src/cmd/pinned-prompt/pinned-prompt.c
+
+Table: prod/src/cmd/pinned-prompt/pinned-prompt.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1187,46 +1189,46 @@ Table: prod/src/cmd/hashtable-required-size/hashtable-required-size.c の修正
 | 23 | R1 | `#define PINNED_PROMPT_CLI_TICK_MS  1000U` | 23 行を #define PINNED_PROMPT_CLI_TICK_MS 1000 へ変更する。 |
 | 23 | R4 | `#define PINNED_PROMPT_CLI_TICK_MS  1000U` | 23 行の直前へ /** @brief tick を出力する待機間隔 [ms] です。 */ を追加する。 |
 
-Table: prod/src/cmd/pinned-prompt/pinned-prompt.c の修正
-
 ### prod/src/cmd/string-catalog-filter-required-size/string-catalog-filter-required-size.c
+
+Table: prod/src/cmd/string-catalog-filter-required-size/string-catalog-filter-required-size.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 45 | R3 | `"(1-1024)" (45 行) と "(8-1024)" (47 行)` | register_options() 内で char 配列へ cplat_snprintf を使い、CPLAT_STRING_CATALOG_FILTER_LINE_MAX、_LINE_WIDTH_MIN、_LINE_WIDTH_MAX からヘルプ文面を実行時に組み立てる。 |
 
-Table: prod/src/cmd/string-catalog-filter-required-size/string-catalog-filter-required-size.c の修正
-
 ## app/override-sample
 
 ### prod/libsrc/base/sym_loader_libbase.h
+
+Table: prod/libsrc/base/sym_loader_libbase.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 44 | R4 | `/** sym_loader 設定ファイルのパス長 (終端 '\0' を含む) */` | 43 行を「/** sym_loader 設定ファイルのパス長 [byte] (終端 '\0' を含む) */」へ変更する。 |
 
-Table: prod/libsrc/base/sym_loader_libbase.h の修正
-
 ### prod/src/cmd/override-sample/override-sample.c
+
+Table: prod/src/cmd/override-sample/override-sample.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 133 | R5 | `ret = base_calc(1, 2, &result);` | 133 行の直前へ「動作確認の表示例として固定値を渡す (139 行の診断文面と対応)。」とコメントを追記する。 |
 
-Table: prod/src/cmd/override-sample/override-sample.c の修正
-
 ## app/service-sample
 
 ### prod/src/cmd/service-sample/service-sample-impl.c
+
+Table: prod/src/cmd/service-sample/service-sample-impl.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 56 | R5 | `char status_text[64];` | ファイル先頭へ #define SAMPLE_STATUS_TEXT_SIZE 64U (役割: 状態テキスト配列の大きさ [byte]、終端含む) を定義し、56 行を置換 (53 [byte] 以上の static_assert 可)。 |
 | 69 | R5 | `while (svc_wait_for_stop(1000) == 0)` | ファイル先頭へ #define SAMPLE_CYCLE_INTERVAL_MS 1000 (役割: 周期処理の待機間隔 [ms]、相手が int のため U なし) を定義し、69 行を置換。 |
 
-Table: prod/src/cmd/service-sample/service-sample-impl.c の修正
-
 ### prod/src/cmd/service-sample/service-sample_linux.c
+
+Table: prod/src/cmd/service-sample/service-sample_linux.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1244,17 +1246,17 @@ Table: prod/src/cmd/service-sample/service-sample-impl.c の修正
 | 462 | R5 | `char *argv_stop[4];` | 462 行を char *argv_stop[] = {"systemctl", "stop", svc_name_buf, NULL}; と初期化子にして 475〜478 行の代入を削除する。 |
 | 463 | R5 | `char *argv_disable[4];` | 463 行を char *argv_disable[] = {"systemctl", "disable", svc_name_buf, NULL}; と初期化子にして 479〜482 行の代入を削除する。 |
 
-Table: prod/src/cmd/service-sample/service-sample_linux.c の修正
-
 ### prod/src/cmd/service-sample/service-sample_linux_events.c
+
+Table: prod/src/cmd/service-sample/service-sample_linux_events.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 166 | R5 | `lock_fd = fcntl(fd, F_DUPFD_CLOEXEC, 3);` | 166 行の 3 を STDERR_FILENO + 1 へ変更し、標準入出力 (0..2) 以降の最小 fd 番号である旨と man2/fcntl.2.html の see: コメントを添える。 |
 
-Table: prod/src/cmd/service-sample/service-sample_linux_events.c の修正
-
 ### prod/src/cmd/service-sample/service-sample_windows.c
+
+Table: prod/src/cmd/service-sample/service-sample_windows.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1268,27 +1270,27 @@ Table: prod/src/cmd/service-sample/service-sample_linux_events.c の修正
 | 555 | R5 | `char bin_path[4096 + 16];` | service-sample_internal.h の SVC_EXEC_PATH_MAX (4096U) とファイル先頭の #define SVC_BIN_PATH_EXTRA_BYTES 16U を定義して 555 行を置換。 |
 | 556 | R5 | `char exe_path[4096];` | 555 行と同じ service-sample_internal.h の SVC_EXEC_PATH_MAX (4096U) で 556 行を置換する。 |
 
-Table: prod/src/cmd/service-sample/service-sample_windows.c の修正
-
 ## app/string-catalog-sample
 
 ### prod/include/samplecatalog/samplecatalog_context.h
+
+Table: prod/include/samplecatalog/samplecatalog_context.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 31 | R2 | `static_assert なし` | .c 側に static_assert((SAMPLECATALOG_SEQUENCE_NUMBER_MAX >= 1) && (SAMPLECATALOG_SEQUENCE_NUMBER_MAX <= INT32_MAX), "連番上限が範囲内"); を追加。 |
 
-Table: prod/include/samplecatalog/samplecatalog_context.h の修正
-
 ### prod/libsrc/samplecatalog/samplecatalog.c
+
+Table: prod/libsrc/samplecatalog/samplecatalog.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 23 | R3 | `#define SAMPLECATALOG_CATALOG_COUNT 2` | 検証対象の表 s_catalogs[] (2 要素) を定義し、#define SAMPLECATALOG_CATALOG_COUNT ((uint32_t)(sizeof(s_catalogs) / sizeof(s_catalogs[0]))) へ変更して 42〜58 行をループ化する。 |
 
-Table: prod/libsrc/samplecatalog/samplecatalog.c の修正
-
 ### prod/src/cmd/string-catalog-command-sample/string-catalog-command-sample.c
+
+Table: prod/src/cmd/string-catalog-command-sample/string-catalog-command-sample.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1296,9 +1298,9 @@ Table: prod/libsrc/samplecatalog/samplecatalog.c の修正
 | 233 | R5 | `ret = sample_trace_key_record_parsed(UINT32_C(42), (size_t)512U);` | 227 行と同様に 187 行 write_traces の Doxygen コメントへ表示例の固定値であることを追記する。 |
 | 240 | R5 | `ret = sample_trace_key_state_dump(UINT32_C(7));` | 227 行と同様に 187 行 write_traces の Doxygen コメントへ表示例の固定値であることを追記する。 |
 
-Table: prod/src/cmd/string-catalog-command-sample/string-catalog-command-sample.c の修正
-
 ### prod/src/cmd/string-catalog-filter-sample/sample_filter_file.c
+
+Table: prod/src/cmd/string-catalog-filter-sample/sample_filter_file.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1306,17 +1308,17 @@ Table: prod/src/cmd/string-catalog-command-sample/string-catalog-command-sample.
 | 60 | R5 | `int ret = cplat_fgets(buffer, line_width + 6U, stream, NULL);` | ファイル先頭へ #define READ_ROW_NEWLINE_MAX_BYTES 2U と #define READ_ROW_EXTRA_BYTES (sizeof(s_utf8_bom) + READ_ROW_NEWLINE_MAX_BYTES + 1U) を定義し、60 行を置換。 |
 | 76 | R5 | `char rest[64];` | ファイル先頭へ #define READ_ROW_DISCARD_SIZE 64U (役割: 行幅超過行の残りを読み捨てる配列の大きさ [byte]、終端含む) を定義し、76 行を置換。 |
 
-Table: prod/src/cmd/string-catalog-filter-sample/sample_filter_file.c の修正
-
 ### prod/src/cmd/string-catalog-filter-sample/sample_worker_context.h
+
+Table: prod/src/cmd/string-catalog-filter-sample/sample_worker_context.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 22 | R2 | `static_assert なし` | .c 側に static_assert((SAMPLE_WORKER_SEQUENCE_NUMBER_MAX >= 1) && (SAMPLE_WORKER_SEQUENCE_NUMBER_MAX <= INT32_MAX), "連番上限が範囲内"); を追加。 |
 
-Table: prod/src/cmd/string-catalog-filter-sample/sample_worker_context.h の修正
-
 ### prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c
+
+Table: prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1341,69 +1343,69 @@ Table: prod/src/cmd/string-catalog-filter-sample/sample_worker_context.h の修�
 | 1748 | R3 | `"8 種類のトレースを 1 回ずつ出力しました。\n"` | 1748 行を "%zu 種類のトレースを 1 回ずつ出力しました。\n" とし、sample_worker_trace_key_name_count() を渡して組み立てる。 |
 | 1955 | R5 | `char published_at[64] = "-";` | ファイル先頭へ #define FILTER_SAMPLE_TIMESTAMP_TEXT_SIZE 64U (役割: ISO 8601 公開時刻文字列の配列サイズ [byte]、終端含む) を定義し、1955 行を置換。 |
 
-Table: prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c の修正
-
 ### prod/src/cmd/string-catalog-library-sample/string-catalog-library-sample.c
+
+Table: prod/src/cmd/string-catalog-library-sample/string-catalog-library-sample.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 30 | R4 | `/** 組み立てた文字列を受け取るバッファー サイズです。 */` | 29 行を「/** 組み立てた文字列を受け取るバッファー サイズ [byte] (終端 NUL を含む) です。 */」へ変更する。 |
 | 30 | R1 | `#define TEXT_MAX 256` | 30 行を #define TEXT_MAX 256U へ変更する。 |
 
-Table: prod/src/cmd/string-catalog-library-sample/string-catalog-library-sample.c の修正
-
 ### test/src/cmd/sampleMessagesTest/sampleMessagesTest.cc
+
+Table: test/src/cmd/sampleMessagesTest/sampleMessagesTest.cc の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 130 | R1 | `EXPECT_LE(entries[index].argument_count, CPLAT_STRING_CATALOG_ARGUMENT_MAX);` | 右辺を (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX へキャストする。 |
 
-Table: test/src/cmd/sampleMessagesTest/sampleMessagesTest.cc の修正
-
 ### test/src/integration/catalogIntegrationTest/catalogIntegrationTest.cc
+
+Table: test/src/integration/catalogIntegrationTest/catalogIntegrationTest.cc の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 317 | R1 | `EXPECT_EQ(CPLAT_STRING_CATALOG_ARGUMENT_MAX, entry->argument_count); (338 行も)` | 317 行と 338 行 (int index < ...) で (int)CPLAT_STRING_CATALOG_ARGUMENT_MAX へキャストする。 |
 
-Table: test/src/integration/catalogIntegrationTest/catalogIntegrationTest.cc の修正
-
 ## app/struct-meta
 
 ### prod/libsrc/struct_meta/catalog/build.c
+
+Table: prod/libsrc/struct_meta/catalog/build.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 43 | R4 | `#define BUILD_STATE_PENDING 0 (45 行まで 3 個)` | enum build_state {BUILD_STATE_PENDING = 0, BUILD_STATE_ACTIVE, BUILD_STATE_DONE}; へ変更し各列挙子に役割コメントを書き、28 行の数値重複も除く。 |
 
-Table: prod/libsrc/struct_meta/catalog/build.c の修正
-
 ### prod/libsrc/struct_meta/catalog/catalog.c
+
+Table: prod/libsrc/struct_meta/catalog/catalog.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 65 | R5 | `config.capacity = catalog->descriptor_count * 2U;` | include_internal/struct_meta/meta/index_internal.h へ #define STRUCT_META_INDEX_CAPACITY_FACTOR 2U を定義し、65 行を置換する。 |
 
-Table: prod/libsrc/struct_meta/catalog/catalog.c の修正
-
 ### prod/libsrc/struct_meta/meta/bytes.c
+
+Table: prod/libsrc/struct_meta/meta/bytes.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 94 | R5 | `if ((byte_count == 0U) \|\| (byte_count > ((SIZE_MAX - 1U) / 3U)))` | ファイル先頭へ #define BYTES_HEX_CHARS_PER_BYTE 3U (役割: 1 [byte] の 16 進表記と区切りまたは終端の文字数) を定義し、94、99 行で共用する。 |
 | 99 | R5 | `*text_size_out = byte_count * 3U;` | 94 行と同じ BYTES_HEX_CHARS_PER_BYTE (3U) で 99 行を置換する。 |
 
-Table: prod/libsrc/struct_meta/meta/bytes.c の修正
-
 ### prod/libsrc/struct_meta/meta/index.c
+
+Table: prod/libsrc/struct_meta/meta/index.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 123 | R5 | `config.capacity = descriptor->field_count * 2U;` | index_internal.h の STRUCT_META_INDEX_CAPACITY_FACTOR (2U) を #include して 123 行を置換する。 |
 
-Table: prod/libsrc/struct_meta/meta/index.c の修正
-
 ### prod/libsrc/struct_meta/meta/integer.c
+
+Table: prod/libsrc/struct_meta/meta/integer.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1421,18 +1423,18 @@ Table: prod/libsrc/struct_meta/meta/index.c の修正
 | 202 | R5 | `case 4U:` | 202 行を case sizeof(uint32_t): へ変更する。 |
 | 213 | R5 | `case 8U:` | 213 行を case sizeof(uint64_t): へ変更する。 |
 
-Table: prod/libsrc/struct_meta/meta/integer.c の修正
-
 ### prod/libsrc/struct_meta/meta/validate.c
+
+Table: prod/libsrc/struct_meta/meta/validate.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 50 | R5 | `capacity = 8U;` | ファイル先頭へ #define VALIDATE_STACK_INITIAL_CAPACITY 8U (役割: 循環検出用スタックの初期容量) を定義し、50 行を置換する。 |
 | 54 | R5 | `capacity = context->capacity * 2U;` | ファイル先頭へ #define VALIDATE_STACK_GROWTH_FACTOR 2U (役割: 循環検出用スタックの拡張倍率) を定義し、54 行を置換する。 |
 
-Table: prod/libsrc/struct_meta/meta/validate.c の修正
-
 ### prod/libsrc/struct_meta/parse/doc.c
+
+Table: prod/libsrc/struct_meta/parse/doc.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1446,9 +1448,9 @@ Table: prod/libsrc/struct_meta/meta/validate.c の修正
 | 73 | R5 | `return s + 3;` | 開始記号 "//!" の照合と合わせて strncmp と sizeof("//!") - 1U を使い、return s + (sizeof("//!") - 1U); へ変更する。 |
 | 101 | R5 | `end -= 2;` | const size_t close_len = sizeof("*/") - 1U; とし、99 行の 2U・memcmp と 101 行の 2 を close_len で置換する。 |
 
-Table: prod/libsrc/struct_meta/parse/doc.c の修正
-
 ### prod/libsrc/struct_meta/patch/patch.c
+
+Table: prod/libsrc/struct_meta/patch/patch.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1458,9 +1460,9 @@ Table: prod/libsrc/struct_meta/parse/doc.c の修正
 | 471 | R5 | `cplat_prompt_readline_fmt(prompt, line, text_size * 2U, ...);` | 459 行の前に計算した変数 line_size を 471 行へ渡して重複式をなくす。 |
 | 705 | R5 | `char current[64];` | 329 行と同じ integer.h の STRUCT_META_SCALAR_TEXT_BYTES (64U) で 705 行を置換する。 |
 
-Table: prod/libsrc/struct_meta/patch/patch.c の修正
-
 ### prod/libsrc/struct_meta/print/print.c
+
+Table: prod/libsrc/struct_meta/print/print.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1468,9 +1470,9 @@ Table: prod/libsrc/struct_meta/patch/patch.c の修正
 | 175 | R5 | `char current[64];` | patch.c 329 行と同じ integer.h の STRUCT_META_SCALAR_TEXT_BYTES (64U) で 175 行を置換する。 |
 | 326 | R5 | `return print_struct(desc, (const unsigned char *)instance, out, 2);` | 157 行と同じ STRUCT_META_PRINT_INDENT (2) で 326 行を置換する。 |
 
-Table: prod/libsrc/struct_meta/print/print.c の修正
-
 ### prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c
+
+Table: prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1479,9 +1481,9 @@ Table: prod/libsrc/struct_meta/print/print.c の修正
 | 181 | R5 | `if ((len < 2U) \|\| (c_path[len - 2U] != '.') \|\| (c_path[len - 1U] != 'c'))` | static const char ext[] = ".c"; と const size_t ext_len = sizeof(ext) - 1U; を定義し、memcmp と ext_len で 181 行を置換。 |
 | 728 | R5 | `config.capacity = count * 2U;` | 自 app の include_internal は makefw が自動追加するため、index_internal.h を #include し STRUCT_META_INDEX_CAPACITY_FACTOR (2U) で置換。 |
 
-Table: prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c の修正
-
 ### prod/src/cmd/struct-meta-gen/struct_meta_gen_emit_array.c
+
+Table: prod/src/cmd/struct-meta-gen/struct_meta_gen_emit_array.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1490,9 +1492,9 @@ Table: prod/src/cmd/struct-meta-gen/struct_meta_gen_emit.c の修正
 | 42 | R5 | `if (remain < 8U)` | 42 行の 8U を sizeof(uint64_t) へ変更する。 |
 | 48 | R5 | `copy_size = 8U;` | 48 行の 8U を sizeof(uint64_t) へ変更する。 |
 
-Table: prod/src/cmd/struct-meta-gen/struct_meta_gen_emit_array.c の修正
-
 ### prod/src/cmd/struct-meta-sample/struct_meta_sample.c
+
+Table: prod/src/cmd/struct-meta-sample/struct_meta_sample.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1502,18 +1504,16 @@ Table: prod/src/cmd/struct-meta-gen/struct_meta_gen_emit_array.c の修正
 | 76 | R2 | `_Static_assert((SAMPLE_CAT_BUFFER_BYTES % SAMPLE_HEXDUMP_BYTES_PER_LINE) == 0, ...` | <assert.h> を追加し、76 行を static_assert((SAMPLE_CAT_BUFFER_BYTES % SAMPLE_HEXDUMP_BYTES_PER_LINE) == 0U, "catbin の読み取りバイト数は 1 行のバイト数の倍数である必要があります"); へ変更。 |
 | 669 | R5 | `if ((value >= 0x20U) && (value < 0x7fU))` | ファイル先頭へ #define SAMPLE_ASCII_PRINTABLE_MIN 0x20U と #define SAMPLE_ASCII_DEL 0x7fU (ASCII 範囲の役割コメント付き) を定義し置換。 |
 
-Table: prod/src/cmd/struct-meta-sample/struct_meta_sample.c の修正
-
 ## app/subfolder-sample
 
 ### prod/src/cmd/sample-app/main.c
+
+Table: prod/src/cmd/sample-app/main.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 57 | R5 | `int a = 10;` | 57 行の直前へ「ビルド検証の表示例として固定の入力値を設定する。」とコメントを追記する (58 行と共用)。 |
 | 58 | R5 | `int b = 20;` | 57 行直前のコメントへ 57、58 行が表示例の固定値であることを含めて追記する。 |
-
-Table: prod/src/cmd/sample-app/main.c の修正
 
 ## app/porter
 
@@ -1522,6 +1522,8 @@ Table: prod/src/cmd/sample-app/main.c の修正
 `POTR_NACK_DEDUP_SLOTS` は、最終仕様の節のとおり、`(POTR_MAX_PATH * 2U)` の式で定義します。
 
 ### prod/include/porter/porter_const.h
+
+Table: prod/include/porter/porter_const.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1535,18 +1537,18 @@ Table: prod/src/cmd/sample-app/main.c の修正
 | 213 | 表現 | `#define POTR_FLOW_CONTROL_STATE_SUPPRESS 1U` | typedef enum potr_flow_control_state {...SUPPRESS = 1, ...RESUME = 2, ...MONITOR = 3} potr_flow_control_state; に置換する。 |
 | 217 | R2 | `#define POTR_FLOW_CONTROL_MONITORED_RECEIVER_MAX 64U` | potr_flow_control.c へ MONITORED_RECEIVER_MAX in [1U, UINT8_MAX]、各既定割合 <= 100U、RESUME_PERCENT < SUPPRESS_PERCENT の static_assert を追加する。 |
 
-Table: prod/include/porter/porter_const.h の修正
-
 ### prod/include/porter/porter_export.h
+
+Table: prod/include/porter/porter_export.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 61 | R4 | `#define POTR_STATIC 0` | #ifndef POTR_STATIC の直前に役割コメント (0 = 共有ライブラリ、1 = 静的ライブラリとしてビルド) を追記する。 |
 | 64 | R4 | `#define POTR_EXPORTS 0` | #ifndef POTR_EXPORTS の直前に役割コメント (0 = インポート側、1 = DLL エクスポート側としてビルド) を追記する。 |
 
-Table: prod/include/porter/porter_export.h の修正
-
 ### prod/include_internal/porter/potr_context.h
+
+Table: prod/include_internal/porter/potr_context.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1555,18 +1557,18 @@ Table: prod/include/porter/porter_export.h の修正
 | 147 | R4 | `#define POTR_NACK_DEDUP_SLOTS 8U` | (1) (POTR_MAX_PATH * 2U) (= 16U) へ合わせるか (2) 8U を維持してコメントの (POTR_MAX_PATH x 2) を修正するかを人間が判断する。 |
 | 147 | R2 | `#define POTR_NACK_DEDUP_SLOTS 8U` | potr_context.h へ static_assert(POTR_NACK_DEDUP_SLOTS >= 1U && POTR_NACK_DEDUP_SLOTS <= UINT8_MAX, ...); を追加する。 |
 
-Table: prod/include_internal/porter/potr_context.h の修正
-
 ### prod/include_internal/porter/potr_flow_control.h
+
+Table: prod/include_internal/porter/potr_flow_control.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 31 | R2 | `#define POTR_FLOW_SEND_LIMIT_HELD 0x100000000ULL` | potr_flow_control.h へ static_assert((POTR_FLOW_SEND_LIMIT_HELD & (uint64_t)UINT32_MAX) == 0ULL && POTR_FLOW_SEND_LIMIT_HELD > (uint64_t)UINT32_MAX, ...); を追加。 |
 | 114 | R2 | `#define POTR_FLOW_RECEIVE_BUFFER_WIDTH_MIN 4U` | potr_flow_control.h へ static_assert(POTR_FLOW_RECEIVE_BUFFER_WIDTH_MIN >= 1U && POTR_FLOW_RECEIVE_BUFFER_OVERHEAD > 0U, ...); を追加する。 |
 
-Table: prod/include_internal/porter/potr_flow_control.h の修正
-
 ### prod/include_internal/porter/protocol/config_parse_common.h
+
+Table: prod/include_internal/porter/protocol/config_parse_common.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1574,9 +1576,9 @@ Table: prod/include_internal/porter/potr_flow_control.h の修正
 | 84 | R5 | `if (new_capacity > SIZE_MAX / 2U)` | config_parse_common.h へ #define POTR_CONFIG_BUF_GROWTH_FACTOR 2U (static_assert >= 2U) を定義し 84・92 行を置き換える。 |
 | 147 | R3 | `if (... && buffer_size >= 32U)` | config_parse_common.h へ #define POTR_INT64_STR_BUF_SIZE 32U (static_assert >= 21U) を定義し本行・config_load_global.c:119・config_load_service.c:544,609 で共有。 |
 
-Table: prod/include_internal/porter/protocol/config_parse_common.h の修正
-
 ### prod/include_internal/porter/protocol/packet.h
+
+Table: prod/include_internal/porter/protocol/packet.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1584,49 +1586,49 @@ Table: prod/include_internal/porter/protocol/config_parse_common.h の修正
 | 119 | R5 | `*state = packet->payload[0];` | packet.h へ POTR_FLOW_CTRL_OFF_STATE 0U と POTR_FLOW_CTRL_OFF_LIMIT 1U (static_assert == POTR_FLOW_CONTROL_PAYLOAD_SIZE - 4U) を定義し 119・125-126 行を置換。 |
 | 177 | R3 | `for (i = 0U; i < 8U; i++)` | packet.h へ POTR_IDENTITY_TV_SEC_OFF (0U)・ID_OFF (8U)・TV_NSEC_OFF (12U)・SIZE (16U) を定義し 177・182・187 行、packet.c、certificate.h/c で共有。 |
 
-Table: prod/include_internal/porter/protocol/packet.h の修正
-
 ### prod/include_internal/porter/protocol/packet_seal.h
+
+Table: prod/include_internal/porter/protocol/packet_seal.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 28 | R3 | `uint64_t bitmap[4];` | packet_seal.h へ WORD_BITS 64U、BITS 256U、WORDS (BITS / WORD_BITS) (static_assert 付) を定義し bitmap[POTR_REPLAY_WINDOW_WORDS] へ置換。 |
 
-Table: prod/include_internal/porter/protocol/packet_seal.h の修正
-
 ### prod/include_internal/porter/protocol/receiver_report.h
+
+Table: prod/include_internal/porter/protocol/receiver_report.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 80 | R3 | `size_t by_percent = (active * (size_t)receiver_percent + 99U) / 100U;` | potr_flow_control.h 等に POTR_PERCENT_MAX 100U と POTR_PERCENT_CEIL_OFFSET (POTR_PERCENT_MAX - 1U) を定義し 80・95 行と potr_flow_control.c で共有。 |
 
-Table: prod/include_internal/porter/protocol/receiver_report.h の修正
-
 ### prod/include_internal/porter/security/certificate.h
+
+Table: prod/include_internal/porter/security/certificate.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 27 | R3 | `uint8_t peer_identity[16];` | packet.h へ定義する POTR_IDENTITY_SIZE (16U) を参照し uint8_t peer_identity[POTR_IDENTITY_SIZE]; に変更する。 |
 
-Table: prod/include_internal/porter/security/certificate.h の修正
-
 ### prod/include_internal/porter/thread/potr_send_thread.h
+
+Table: prod/include_internal/porter/thread/potr_send_thread.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 46 | R2 | `#define POTR_TCP_BATCH_MAX_BYTES 65536U` | potr_send_thread.c へ static_assert(POTR_TCP_BATCH_MAX_BYTES >= POTR_PACKET_HEADER_WIRE_SIZE + POTR_DEFAULT_MAX_PAYLOAD + POTR_CRYPTO_TAG_SIZE, ...); を追加する。 |
 
-Table: prod/include_internal/porter/thread/potr_send_thread.h の修正
-
 ### prod/libsrc/porter/api/api_open_paths_udp.c
+
+Table: prod/libsrc/porter/api/api_open_paths_udp.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 572 | R3 | `ctx->max_peers = 1024;` | potr_context.h へ #define POTR_DEFAULT_MAX_PEERS 1024U (static_assert <= (uint32_t)INT_MAX) を移し ctx->max_peers = (int)POTR_DEFAULT_MAX_PEERS; に置換。 |
 
-Table: prod/libsrc/porter/api/api_open_paths_udp.c の修正
-
 ### prod/libsrc/porter/api/potr_service_open.c
+
+Table: prod/libsrc/porter/api/potr_service_open.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1636,25 +1638,25 @@ Table: prod/libsrc/porter/api/api_open_paths_udp.c の修正
 | 198 | R3 | `if (ctx->global.send_queue_depth < 2U)` | potr_service_open.c へ #define POTR_MIN_SEND_QUEUE_DEPTH 2U (static_assert <= POTR_SEND_QUEUE_DEPTH) を定義し 198 行比較と 201 行 "min: %u" に適用する。 |
 | 354 | R3 | `if (batch_cap >= 2U)` | potr_send_thread.h へ #define POTR_TCP_BATCH_MIN_PACKETS 2U (static_assert <= POTR_TCP_BATCH_MAX_PACKETS) を定義し本行と potr_send_thread.c:1184 で使う。 |
 
-Table: prod/libsrc/porter/api/potr_service_open.c の修正
-
 ### prod/libsrc/porter/api/potr_service_send.c
+
+Table: prod/libsrc/porter/api/potr_service_send.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 117 | R3 | `#define SEND_FLOW_RECHECK_MS 50` | potr_flow_control.h へ #define POTR_INTERNAL_FLOW_RECHECK_MS 50 (static_assert > 0 && <= POTR_WAIT_MS_MAX) を定義して本マクロを統合・削除する。 |
 
-Table: prod/libsrc/porter/api/potr_service_send.c の修正
-
 ### prod/libsrc/porter/infra/potr_trace.c
+
+Table: prod/libsrc/porter/infra/potr_trace.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 86 | R5 | `char context[256]; char message[256];` | potr_trace.c へ POTR_TRACE_CONTEXT_BUF_SIZE 256U と POTR_TRACE_MESSAGE_BUF_SIZE 256U (static_assert >= 2U) を定義し 86・87 行を置換する。 |
 
-Table: prod/libsrc/porter/infra/potr_trace.c の修正
-
 ### prod/libsrc/porter/potr_flow_control.c
+
+Table: prod/libsrc/porter/potr_flow_control.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1662,9 +1664,9 @@ Table: prod/libsrc/porter/infra/potr_trace.c の修正
 | 30 | R2 | `#define FLOW_CONTROL_WIRE_SIZE (POTR_PACKET_HEADER_SIZE + ...)` | 定義直後へ両者が POTR_PACKET_HEADER_SIZE + POTR_MAX_PAYLOAD + POTR_CRYPTO_TAG_SIZE 以下である static_assert を追加する。 |
 | 176 | R5 | `if (percent > 100U)` | potr_flow_control.h へ #define POTR_PERCENT_MAX 100U (static_assert == 100U) を定義し 176・241・272・279 行の上限比較を置換する。 |
 
-Table: prod/libsrc/porter/potr_flow_control.c の修正
-
 ### prod/libsrc/porter/potr_handle.c
+
+Table: prod/libsrc/porter/potr_handle.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1673,25 +1675,25 @@ Table: prod/libsrc/porter/potr_flow_control.c の修正
 | 118 | R5 | `size_t capacity = 64U;` | potr_handle.c へ #define HANDLE_TABLE_INIT_CAPACITY 64U (static_assert で 2 のべき乗かつ >= 2U) を定義し 118 行を置換する。 |
 | 124 | R5 | `capacity = s_capacity * 2U;` | potr_handle.c へ #define HANDLE_TABLE_GROWTH_FACTOR 2U (static_assert >= 2U) を定義し 124 行を置換する。 |
 
-Table: prod/libsrc/porter/potr_handle.c の修正
-
 ### prod/libsrc/porter/protocol/config_list_service_ids.c
+
+Table: prod/libsrc/porter/protocol/config_list_service_ids.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 67 | R5 | `int new_capacity = capacity * 2;` | config_list_service_ids.c へ #define SERVICE_ID_LIST_GROWTH_FACTOR 2 (static_assert >= 2) を定義し 67 行を置換する。 |
 
-Table: prod/libsrc/porter/protocol/config_list_service_ids.c の修正
-
 ### prod/libsrc/porter/protocol/config_load_global.c
+
+Table: prod/libsrc/porter/protocol/config_load_global.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 119 | R3 | `char value_buffer[32];` | config_parse_common.h へ定義する POTR_INT64_STR_BUF_SIZE (32U) を使い char value_buffer[POTR_INT64_STR_BUF_SIZE]; に変更する。 |
 
-Table: prod/libsrc/porter/protocol/config_load_global.c の修正
-
 ### prod/libsrc/porter/protocol/config_load_service.c
+
+Table: prod/libsrc/porter/protocol/config_load_service.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1700,9 +1702,9 @@ Table: prod/libsrc/porter/protocol/config_load_global.c の修正
 | 385 | R3 | `if (strncmp(key, "src_addr", 8) == 0 \|\| ...)` | リテラルと長さ (sizeof(lit) - 1U) を組にした定数構造体またはマクロを定義し 385・387・389・391・619・623 行の文字数直値 8・10 を置換する。 |
 | 544 | R3 | `char id_text[32];` | config_parse_common.h へ定義する POTR_INT64_STR_BUF_SIZE (32U) を使い 544 行・609 行を置換する。 |
 
-Table: prod/libsrc/porter/protocol/config_load_service.c の修正
-
 ### prod/libsrc/porter/protocol/packet.c
+
+Table: prod/libsrc/porter/protocol/packet.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1711,9 +1713,9 @@ Table: prod/libsrc/porter/protocol/config_load_service.c の修正
 | 314 | R5 | `memcpy(&flags_nbo, p, 2);` | packet.h へ ELEM_HDR_FLAGS_SIZE 2U・PLEN_OFF 2U・PLEN_SIZE 4U (static_assert 合計 == POTR_PAYLOAD_ELEM_HDR_SIZE) を定義し 314-315 行を置換。 |
 | 367 | R5 | `memcpy(&tmp64, b + 0, 8);` | packet.h に全 14 ヘッダー項目のオフセット・サイズ定数 (static_assert で offsetof/sizeof と一致確認) を定義し 367-394 行を置換する。 |
 
-Table: prod/libsrc/porter/protocol/packet.c の修正
-
 ### prod/libsrc/porter/protocol/packet_seal.c
+
+Table: prod/libsrc/porter/protocol/packet_seal.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1721,18 +1723,18 @@ Table: prod/libsrc/porter/protocol/packet.c の修正
 | 139 | R5 | `memcpy(nonce, &header.session_id, 4U);` | NONCE_SESSION_ID_SIZE (4U)・TX_COUNTER_OFF (4U)・TX_COUNTER_SIZE (8U) と PKT_OFF_SESSION_ID (16U)・TX_COUNTER (40U) (static_assert 付) で 139・140・235・236 行を置換。 |
 | 319 | R3 | `uint64_t shifted[4] = {0};` | packet_seal.h へ定義する POTR_REPLAY_WINDOW_WORDS (4U)・BITS (256U)・WORD_BITS (64U) を使い 319・323・326・328・331・339・343・344 行を置換する。 |
 
-Table: prod/libsrc/porter/protocol/packet_seal.c の修正
-
 ### prod/libsrc/porter/protocol/receiver_report.c
+
+Table: prod/libsrc/porter/protocol/receiver_report.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 244 | R3 | `limit = 1024U;` | potr_context.h へ移した POTR_DEFAULT_MAX_PEERS (1024U) を使い limit = POTR_DEFAULT_MAX_PEERS; に置換する。 |
 | 347 | R3 | `memcpy(&wire_flags, wire_header + 32U, sizeof(wire_flags));` | packet.h へ #define POTR_PACKET_FLAGS_OFFSET 32U (static_assert == offsetof(potr_packet, flags)) を定義し wire_header + POTR_PACKET_FLAGS_OFFSET に置換。 |
 
-Table: prod/libsrc/porter/protocol/receiver_report.c の修正
-
 ### prod/libsrc/porter/security/certificate.c
+
+Table: prod/libsrc/porter/security/certificate.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1742,9 +1744,9 @@ Table: prod/libsrc/porter/protocol/receiver_report.c の修正
 | 595 | R5 | `if (... && packet->payload_len > 13U && packet->payload[0] == 22U && ...` | DTLS_RECORD_HDR_LEN 13U・DTLS_CONTENT_TYPE_HANDSHAKE 22U・DTLS_HS_CLIENT_HELLO 1U とオフセット定数 (3・4・13) を定義し 595-597 行を置換。 |
 | 947 | R5 | `wait_result = cplat_socket_timed_wait_readable(socket, 100, NULL);` | certificate.c へ #define CERT_HANDSHAKE_POLL_MS 100 (役割・単位 [ms]・制約と static_assert > 0 && <= INT_MAX) を定義し 947 行を置換。 |
 
-Table: prod/libsrc/porter/security/certificate.c の修正
-
 ### prod/libsrc/porter/security/potr_auth.c
+
+Table: prod/libsrc/porter/security/potr_auth.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1752,9 +1754,9 @@ Table: prod/libsrc/porter/security/certificate.c の修正
 | 272 | R5 | `else if (X509_cmp_current_time(...) != -1` | potr_auth.c へ #define X509_CMP_TIME_BEFORE (-1) と #define X509_CMP_TIME_AFTER 1 (外部 API 戻り値分類定数) を定義し 272-273 行を置換する。 |
 | 759 | R5 | `... \|\| timeout.tv_usec >= 1000000L` | POTR_AUTH_USEC_PER_SEC 1000000L・MSEC_PER_SEC 1000U・USEC_PER_MSEC 1000U・USEC_ROUND (USEC_PER_MSEC - 1U) を定義し 759・764・769 行を置換する。 |
 
-Table: prod/libsrc/porter/security/potr_auth.c の修正
-
 ### prod/libsrc/porter/thread/potr_recv_thread.c
+
+Table: prod/libsrc/porter/thread/potr_recv_thread.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1765,9 +1767,9 @@ Table: prod/libsrc/porter/security/potr_auth.c の修正
 | 775 | R5 | `if (ctx->health_timeout_ms < 1000U)` | potr_recv_thread.c へ #define RECV_TCP_POLL_INTERVAL_MS 1000U (static_assert > 0U && <= POTR_WAIT_MS_MAX) を定義し 775・781 行を置換する。 |
 | 836 | R3 | `memcpy(&wpl, buf + 34, sizeof(wpl));` | packet.h 既存の POTR_PACKET_PAYLOAD_LEN_OFFSET を参照し 836 行・918 行を buf + POTR_PACKET_PAYLOAD_LEN_OFFSET に変更する。 |
 
-Table: prod/libsrc/porter/thread/potr_recv_thread.c の修正
-
 ### prod/libsrc/porter/thread/potr_send_thread.c
+
+Table: prod/libsrc/porter/thread/potr_send_thread.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1778,50 +1780,50 @@ Table: prod/libsrc/porter/thread/potr_recv_thread.c の修正
 | 776 | R2 | `#define FLOW_DEFERRED_SKIP_MAX 16U` | 定義直後へ static_assert(FLOW_DEFERRED_SKIP_MAX >= 1U && FLOW_DEFERRED_SKIP_MAX <= UINT32_MAX, ...); を追加する。 |
 | 1184 | R3 | `if (ctx->tcp_batch_cap >= 2U &&` | potr_send_thread.h へ定義する POTR_TCP_BATCH_MIN_PACKETS (2U) を使い 1184 行を置換する。 |
 
-Table: prod/libsrc/porter/thread/potr_send_thread.c の修正
-
 ### prod/libsrc/porter/thread/thread_connect_prepare.c
+
+Table: prod/libsrc/porter/thread/thread_connect_prepare.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 267 | R5 | `if (poll_ms > 100U)` | thread_connect_prepare.c へ #define TCP_CONNECT_POLL_SLICE_MS 100U (static_assert > 0U && <= POTR_WAIT_MS_MAX) を定義し 267・269 行を置換する。 |
 
-Table: prod/libsrc/porter/thread/thread_connect_prepare.c の修正
-
 ### prod/libsrc/porter/thread/thread_connect_prepare.h
+
+Table: prod/libsrc/porter/thread/thread_connect_prepare.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 21 | 表現 | `#define TCP_SESSION_NEW (1)` | typedef enum tcp_session_cmp {TCP_SESSION_OLD = -1, TCP_SESSION_SAME = 0, TCP_SESSION_NEW = 1} tcp_session_cmp; にし各列挙子へコメントを追記する (R4 も同時解消)。 |
 
-Table: prod/libsrc/porter/thread/thread_connect_prepare.h の修正
-
 ### prod/libsrc/porter/thread/thread_recv_fin.h
+
+Table: prod/libsrc/porter/thread/thread_recv_fin.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 24 | 表現 | `#define THREAD_RECV_FIN_IGNORED 0` | typedef enum thread_recv_fin_result {THREAD_RECV_FIN_IGNORED = 0, THREAD_RECV_FIN_PENDING = 1, THREAD_RECV_FIN_FIRE = 2} thread_recv_fin_result; に変更する。 |
 
-Table: prod/libsrc/porter/thread/thread_recv_fin.h の修正
-
 ### prod/libsrc/porter/thread/thread_recv_validate.c
+
+Table: prod/libsrc/porter/thread/thread_recv_validate.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 84 | R3 | `memcpy(&flags, wire_header + 32U, sizeof(flags));` | packet.h へ定義する POTR_PACKET_FLAGS_OFFSET (32U) を使い wire_header + POTR_PACKET_FLAGS_OFFSET に置換する。 |
 
-Table: prod/libsrc/porter/thread/thread_recv_validate.c の修正
-
 ### prod/libsrc/porter/thread/thread_recv_window.c
+
+Table: prod/libsrc/porter/thread/thread_recv_window.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
 | 38 | R2 | `#define POTR_NACK_DEDUP_MS 200U` | 定義直後へ static_assert(POTR_NACK_DEDUP_MS > 0U && POTR_NACK_DEDUP_MS <= POTR_WAIT_MS_MAX, ...); を追加する。 |
 | 515 | R5 | `if (stretch * 10U >= (uint32_t)slot->recv_window->window_size * 8U)` | thread_recv_window.c へ #define NACK_STRETCH_WARN_NUM 8U と #define NACK_STRETCH_WARN_DEN 10U (static_assert 付) を定義し 515 行を置換。 |
 
-Table: prod/libsrc/porter/thread/thread_recv_window.c の修正
-
 ### prod/src/cmd/porter-bench/porter-bench.cc
+
+Table: prod/src/cmd/porter-bench/porter-bench.cc の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1952,9 +1954,9 @@ Table: prod/libsrc/porter/thread/thread_recv_window.c の修正
 | 2312 | R5 | `char suffix[32];` | 無名名前空間へ constexpr size_t kCheckpointSuffixBytes = 32U; (static_assert >= sizeof("_c4294967295")) を定義し置換。 |
 | 2419 | R5 | `if (v == nullptr \|\| !parse_u32(v, &u) \|\| u == 0U \|\| u > 60000U)` | 無名名前空間へ constexpr uint32_t kBasePortMax = 60000U; を定義し置換 (u == 0U も kBasePortMin 1U 化可)。 |
 
-Table: prod/src/cmd/porter-bench/porter-bench.cc の修正
-
 ### prod/src/cmd/porter-test/porter-test.c
+
+Table: prod/src/cmd/porter-test/porter-test.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -1993,9 +1995,9 @@ Table: prod/src/cmd/porter-bench/porter-bench.cc の修正
 | 1666 | R3 | `"エラー: role、config_path、service_id は 3 個すべてを指定してください。\n\n");` | "エラー: role、config_path、service_id は %u 個すべてを指定してください。\n\n", (unsigned)POSITIONAL_ARG_COUNT へ変更。 |
 | 1711 | R5 | `if (positional_count == 3)` | (int)POSITIONAL_ARG_COUNT へ置換する。 |
 
-Table: prod/src/cmd/porter-test/porter-test.c の修正
-
 ### prod/src/cmd/tech-sample/tcpServer/tcpServer.c
+
+Table: prod/src/cmd/tech-sample/tcpServer/tcpServer.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -2003,9 +2005,9 @@ Table: prod/src/cmd/porter-test/porter-test.c の修正
 | 150 | R5 | `if (port < 1 \|\| port > 65535)` | tcpServer.h に <stdint.h> と #define PORT_MAX UINT16_MAX (または 65535 + static_assert) を定義し 150 行目の 65535 を置換する。 |
 | 153 | R3 | `(void)fprintf(stderr, "エラー: --port には 1 から 65535 を指定してください。\n\n");` | "エラー: --port には %d から %d を指定してください。\n\n", PORT_MIN, PORT_MAX へ変更する。 |
 
-Table: prod/src/cmd/tech-sample/tcpServer/tcpServer.c の修正
-
 ### prod/src/cmd/tech-sample/tcpServer/tcpServer.h
+
+Table: prod/src/cmd/tech-sample/tcpServer/tcpServer.h の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -2015,9 +2017,9 @@ Table: prod/src/cmd/tech-sample/tcpServer/tcpServer.c の修正
 | 83 | R1 | `#define BUFFER_SIZE 1024` | 1024U へ変更し、tcpServer_windows.c:408 と test/.../tcpServerWindowsTest.cc:77 の recv() 引数を (int)BUFFER_SIZE へ変更する。 |
 | 83 | R2 | `#define BUFFER_SIZE 1024` | <limits.h> と <assert.h> を追加し、static_assert((BUFFER_SIZE >= 2U) && (BUFFER_SIZE <= (size_t)INT_MAX), "tcpServer: BUFFER_SIZE invalid"); を追加。 |
 
-Table: prod/src/cmd/tech-sample/tcpServer/tcpServer.h の修正
-
 ### prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c
+
+Table: prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -2025,9 +2027,9 @@ Table: prod/src/cmd/tech-sample/tcpServer/tcpServer.h の修正
 | 42 | R2 | `#define MAX_EPOLL_EVENTS 64` | <limits.h> と <assert.h> を追加し、static_assert((MAX_EPOLL_EVENTS >= 1U) && (MAX_EPOLL_EVENTS <= (unsigned int)INT_MAX), "..."); を追加する。 |
 | 158 | R5 | `if (conns_per_worker == 1)` | tcpServer.h に #define CONNS_PER_WORKER_SEQUENTIAL 1 (逐次処理モードを表す同時接続数) を定義し、158 行目と Windows 版 308 行目を置換する。 |
 
-Table: prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c の修正
-
 ### prod/src/cmd/tech-sample/tcpServer/tcpServer_windows.c
+
+Table: prod/src/cmd/tech-sample/tcpServer/tcpServer_windows.c の修正
 
 | 行 | 規則 | 現在の記述 | 直し方 |
 | --- | --- | --- | --- |
@@ -2041,5 +2043,3 @@ Table: prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c の修正
 | 722 | R5 | `if (WaitForMultipleObjects(2, waits, FALSE, INFINITE) == WAIT_OBJECT_0)` | 第 1 引数 2 を (DWORD)(sizeof(waits) / sizeof(waits[0])) へ置換する。 |
 | 907 | R5 | `char cmdline[PLATFORM_PATH_MAX + 64];` | TCPSERVER_CHILD_CMDLINE_EXTRA_SIZE 64U を定義し置換。static_assert(>= sizeof("\"\" --child 18446744073709551615")) を追加。 |
 | 1002 | R5 | `DWORD wait_result = WaitForMultipleObjects(2, wait_handles, FALSE, INFINITE);` | 第 1 引数 2 を (DWORD)(sizeof(wait_handles) / sizeof(wait_handles[0])) へ置換する。 |
-
-Table: prod/src/cmd/tech-sample/tcpServer/tcpServer_windows.c の修正

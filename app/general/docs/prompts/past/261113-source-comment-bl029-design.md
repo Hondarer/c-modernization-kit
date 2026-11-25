@@ -179,6 +179,8 @@ cjson の整数拡張、JSONC、サンプル、各 app のテストと mock、Op
 件数は候補です。  
 編集前に各文を読み、誤検出は直さず、探索から漏れた第一者管理の文は追加で直します。
 
+Table: 波括弧を追加する候補ファイル
+
 | ファイル | 候補数 |
 | --- | --- |
 | `app/porter/prod/libsrc/porter/api/api_open_paths_tcp.c` | 2 |
@@ -205,8 +207,6 @@ cjson の整数拡張、JSONC、サンプル、各 app のテストと mock、Op
 | `app/porter/test/src/libporter/threadConnectPrepareTest/threadConnectPrepareTest.cc` | 7 |
 | `framework/testfw/include/mock_factory_head.h` | 11 |
 | `framework/testfw/libsrc/mock_libssh/mock_sftp.cc` | 7 |
-
-Table: 波括弧を追加する候補ファイル
 
 `potr_send_thread.c` の候補 5 件は、`tcp_write_all_paths` の 2 件、`flush_packed_peer` の 1 件、`send_packed_peer_mode` の 2 件です。  
 `tcpServer_linux.c` の 1 件は、本体が空の `while` です。  

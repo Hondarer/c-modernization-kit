@@ -65,6 +65,8 @@ make doxy
 
 設定ファイル:
 
+Table: Doxygen 設定ファイル一覧
+
 | ファイル | 説明 |
 |---------|------|
 | `Doxyfile.part.example` | C プロジェクト用 Doxygen 設定 |
@@ -72,8 +74,6 @@ make doxy
 | `framework/doxyfw/Doxyfile` | 基本設定ファイル |
 | `framework/doxyfw/doxybook2-config.json` | Doxybook2 の設定 |
 | `framework/doxyfw/templates/` | カスタム出力テンプレート |
-
-Table: Doxygen 設定ファイル一覧
 
 ### 関連ドキュメント
 

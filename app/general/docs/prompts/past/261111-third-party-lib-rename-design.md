@@ -20,6 +20,8 @@ app/openssl を共有ライブラリにし、OpenSSL の mock が、利用側と
 第三者管理ライブラリ (外部の配布アーカイブから取り込むライブラリ) の名前には、接尾辞 `_app` を付けます。  
 第一者管理ライブラリ (このワークスペースで作成するライブラリ) と mock ライブラリの名前は変更しません。
 
+Table: 第三者管理ライブラリの変更前後の名前
+
 | app | 変更前 (Linux) | 変更後 (Linux) | 変更後 (Windows) | リンク指定 |
 | --- | --- | --- | --- | --- |
 | zlib | `libzlib.so` | `libzlib_app.so` | `libzlib_app.dll`、`libzlib_app.lib` | `LIBS += zlib_app` |
@@ -28,8 +30,6 @@ app/openssl を共有ライブラリにし、OpenSSL の mock が、利用側と
 | sqlite | `libsqlite3.so` | `libsqlite3_app.so` | `libsqlite3_app.dll`、`libsqlite3_app.lib` | `LIBS += sqlite3_app` |
 | openssl | `libcrypto.a` | `libcrypto_app.so.3` | `libcrypto-3-x64_app.dll`、`libcrypto_app.lib` | `LIBS += crypto_app` |
 | openssl | `libssl.a` | `libssl_app.so.3` | `libssl-3-x64_app.dll`、`libssl_app.lib` | `LIBS += ssl_app crypto_app` |
-
-Table: 第三者管理ライブラリの変更前後の名前
 
 > [!NOTE]
 > OpenSSL の共有ライブラリ名は、OpenSSL のビルド システムが決めます。  
@@ -87,12 +87,12 @@ makefw は `TARGET` が未指定のときにディレクトリ名をライブラ
 
 `prod/lib/` に次のファイルを配置します。
 
+Table: OpenSSL の配置物
+
 | 環境 | 実行時に使うファイル | リンク時に使うファイル |
 | --- | --- | --- |
 | Linux | `libcrypto_app.so.3`、`libssl_app.so.3` | `libcrypto_app.so`、`libssl_app.so` (上記へのシンボリック リンク) |
 | Windows | `libcrypto-3-x64_app.dll`、`libssl-3-x64_app.dll` | `libcrypto_app.lib`、`libssl_app.lib` (import library) |
-
-Table: OpenSSL の配置物
 
 > [!NOTE]
 > OpenSSL のビルドが作るリンク用のファイル名は、`libcrypto.so` と `libcrypto.lib` であり、`_app` が付きません。  
@@ -178,12 +178,12 @@ app が新しい OpenSSL の関数を使う場合は、その都度、置き換�
 
 mock が実委譲で開くライブラリ名は、`mock_openssl.h` に OS ごとの定数として定義します。
 
+Table: mock が開く実ライブラリの名前
+
 | 環境 | ライブラリ名 |
 | --- | --- |
 | Linux | `libcrypto_app.so.3` |
 | Windows | `libcrypto-3-x64_app.dll` |
-
-Table: mock が開く実ライブラリの名前
 
 ## cplat の変更
 
@@ -205,6 +205,8 @@ Table: mock が開く実ライブラリの名前
 
 ## 変更対象
 
+Table: 変更対象
+
 | 段階 | 対象 | 内容 |
 | --- | --- | --- |
 | 1 | `app/zlib`、`app/cjson`、`app/lua`、`app/sqlite` | `TARGET` の指定、mock の定数、公開シンボル検査、リンク指定、README.md、AGENTS.md |
@@ -213,12 +215,12 @@ Table: mock が開く実ライブラリの名前
 | 2 | `app/cplat` | OpenSSL のリンク指定、`exports.map` のコメント、`runtime-bundle.mk`、crypto 関連テスト、`link-policy.md` |
 | 1、2 | `app/general/docs` | 下記「正本ドキュメントへの反映」 |
 
-Table: 変更対象
-
 変更は複数のリポジトリ (サブモジュール) にまたがります。  
 ステージングとコミットは、ユーザーの指示を受けてから行います。
 
 ## 正本ドキュメントへの反映
+
+Table: 正本ドキュメントへの反映
 
 | 文書 | 反映する内容 |
 | --- | --- |
@@ -227,8 +229,6 @@ Table: 変更対象
 | `app/zlib`、`app/cjson`、`app/lua`、`app/sqlite` の README.md | 新しいライブラリ名とリンク指定 |
 | `app/cplat/docs/link-policy.md` | OpenSSL を動的にリンクすることと、同梱するファイル |
 | `app/openssl/bin_internal/build_openssl.py` のコメント | `shlib_variant` の根拠 (`Configurations/README.md` の URL を `see:` で記載) と、リンク用ファイルの名前を変える理由 |
-
-Table: 正本ドキュメントへの反映
 
 命名規則の置き場所は、作業時に `app/general/docs` の文書一覧を確認し、より適切な文書があればそちらへ記載します。
 

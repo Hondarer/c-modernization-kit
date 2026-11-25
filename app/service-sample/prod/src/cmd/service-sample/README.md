@@ -22,13 +22,13 @@ service-sample console    # フォアグラウンドで実行する (デバッ�
 
 ### ライフサイクル コールバック
 
+Table: service-sample のライフサイクル コールバック一覧
+
 | コールバック | 呼ばれるタイミング | 実装すること | 必須 |
 |---|---|---|---|
 | on_start | サービス起動時に 1 回 | 初期化処理。0 を返すと on_run が呼ばれ、0 以外を返すと起動を中断します。 | 任意 |
 | on_run | on_start 成功後に 1 回 | `svc_wait_for_stop()` が 1 を返すまで戻らないメイン ループ。Linux の watchdog の契約は [service-sample の Linux 対応範囲](../../../../docs/service-events.md#service-sample-の-linux-対応範囲) を参照してください。 | 必須 |
 | on_stop | on_run が戻った後に必ず 1 回 | 停止処理。 | 任意 |
-
-Table: service-sample のライフサイクル コールバック一覧
 
 フレームワークは `on_start` 成功直後に起動完了 (Windows: `SERVICE_RUNNING` / Linux: `READY=1`)、`on_run` 復帰直後に停止開始 (Windows: `SERVICE_STOP_PENDING` / Linux: `STOPPING=1`) を OS へ自動通知します。コールバック側でこれらを意識する必要はありません。
 
@@ -100,23 +100,23 @@ SCM の停止通知はシグナルではないため、condvar が 3 経路す�
 
 ### Linux
 
+Table: Linux における service-sample の動作一覧
+
 | コマンド | 動作 |
 |---|---|
 | run | Type=notify として fork せずにフォアグラウンドで常駐 |
 | install | /etc/systemd/system/{name}.service を生成し systemctl enable を実行 (root 必須) |
 | uninstall | systemctl stop/disable を実行し unit ファイルを削除 (root 必須) |
 
-Table: Linux における service-sample の動作一覧
-
 ### Windows
+
+Table: Windows における service-sample の動作一覧
 
 | コマンド | 動作 |
 |---|---|
 | run | StartServiceCtrlDispatcher で SCM ディスパッチャーに接続 |
 | install | OpenSCManager + CreateService でサービスを登録 (管理者権限必須) |
 | uninstall | OpenService + ControlService(STOP) + DeleteService で削除 (管理者権限必須) |
-
-Table: Windows における service-sample の動作一覧
 
 Windows SCM の状態遷移:
 
@@ -140,6 +140,8 @@ make
 
 ビルド成功後、次のファイルが生成されます。
 
+Table: service-sample のビルド生成ファイル一覧
+
 | ファイル | 説明 |
 |---|---|
 | `prod/cbin/service-sample` | 実行ファイル (Linux) |
@@ -148,8 +150,6 @@ make
 | `prod/cbin/libcjson_app.so` / `prod/cbin/libcjson_app.dll` | cplat が利用する cJSON の実行時ライブラリ |
 | `prod/cbin/libzlib_app.so` / `prod/cbin/libzlib_app.dll` | cplat が利用する zlib の実行時ライブラリ |
 | `prod/cbin/libcrypto_app.so.3` (Linux) | cplat が利用する OpenSSL の実行時ライブラリ |
-
-Table: service-sample のビルド生成ファイル一覧
 
 Linux は `$ORIGIN` の RUNPATH、Windows は実行ファイルと同じディレクトリの DLL 探索により、これらのライブラリを解決します。
 

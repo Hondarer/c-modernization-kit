@@ -68,6 +68,8 @@ BL-015 の列挙には、`module.c` の `path_out` の真偽値判定と波括�
 
 ## 観点別の確認
 
+Table: 残課題 11 件の前提確認結果
+
 | 観点 | 状態 | 根拠・関連 Q |
 | --- | --- | --- |
 | 目的・利用者 | 確認済み | 元の 11 課題を整理し、根拠のある修正と追跡可能な残課題を残します |
@@ -77,9 +79,9 @@ BL-015 の列挙には、`module.c` の `path_out` の真偽値判定と波括�
 | 実現性・例外 | 確認済み | [Q-005](#q-005-doxygen-サンプルの規範との差の扱い) の比較例を保持します。Windows の成功は実機で未確認のまま引き継ぎます |
 | 受入条件・検証 | 確認済み | 境界値、記述子の幅不一致、時刻の代替、入力変換失敗、既存の局所テストと Doxygen 生成、内容のある .warn の確認を最終仕様へまとめます。calc の境界値は [Q-008](#q-008-calc-の境界値を検査する方法) の A の方法で検査し、局所検証は [Q-009](#q-009-局所検証の実行体制) の B により Windows で実行します。[Q-010](#q-010-ci-による最終確認と第-3-ゲートの順序) の A により、成果物の承認の前に CI で最終確認します |
 
-Table: 残課題 11 件の前提確認結果
-
 ## 質問一覧
+
+Table: 現時点で判断が必要な事項
 
 | Q-ID | 論点 | 状態 | 依存 |
 | --- | --- | --- | --- |
@@ -98,8 +100,6 @@ Table: 残課題 11 件の前提確認結果
 | [Q-013](#q-013-doxygen-サンプルの列挙型の名前) | doxygen サンプルの列挙型の名前 | 解決済み | [Q-005](#q-005-doxygen-サンプルの規範との差の扱い) |
 | [Q-014](#q-014-win32-utf-8-ラッパーの引数名を元の-api-に合わせる範囲) | Win32 UTF-8 ラッパーの引数名を元の API に合わせる範囲 | 解決済み | [Q-011](#q-011-win32-utf-8-ラッパーの文字列の出力先と容量の引数名) |
 | [Q-015 から Q-018](#win32-utf-8-ラッパーの型を-w-版へ合わせる確認-q-015-から-q-018) | Win32 UTF-8 ラッパーの型を W 版へ合わせる範囲 (4 件) | 解決済み | [Q-014](#q-014-win32-utf-8-ラッパーの引数名を元の-api-に合わせる範囲) |
-
-Table: 現時点で判断が必要な事項
 
 ## Q-001 Windows 実機検証の実行環境
 
@@ -412,6 +412,8 @@ A の選択を受け付けました。減算の演算前に範囲を検査し、
 BL-008 の枝番号は、元の残課題一覧の BL-008 に列挙された順に 001 から 187 を付けた照合用の番号です。  
 課題 ID は BL-008 のままとし、個々の枝番号と元のパス・行番号・報告内容を対応付けます。
 
+Table: BL-008 の 187 報告の分類
+
 | 枝番号 | 仕様策定時点の扱い | 確認した根拠 |
 | --- | --- | --- |
 | 001 | BL-021 と一体で対処 | 呼び出し経路の維持と範囲エラー規則の回答 |
@@ -419,8 +421,6 @@ BL-008 の枝番号は、元の残課題一覧の BL-008 に列挙された順�
 | 035、050、109、119、122、125〜127、130、133、144、162、164、171 | 現行ソースで元報告の問題を確認しない | 初期化失敗の伝播、長すぎるパスの拒否、ロック生成失敗の伝播、クローズや解放の失敗検査、既存の理由コメント、未処理サービス制御のエラー、停止確認後の削除、終了時の自動破棄を確認しました |
 | 147 | BL-019 と一体で対処 | `porter_type.h` と packet の解析処理は payload_len のオフセットを 34 と定めています。定数化して読み出し側とそろえます |
 | 上記以外の 166 項目 | 根拠未確定として引き継ぐ候補 | しきい値の選定理由、戻り値を無視する方針、OS 仕様の根拠などを確定できていません。現行実装の移動や変更だけでは理由の説明を補いません |
-
-Table: BL-008 の 187 報告の分類
 
 この分類は修正済み件数ではありません。  
 承認後の作業では、確認できた根拠だけをコメントや対処結果へ反映し、根拠を得られなかった項目を残課題一覧へ転記します。  
@@ -699,14 +699,14 @@ BL-008 では、仕様策定時の分類と次の 4 点が異なりました。1
 次の私有または内部の名前は、最終仕様が「意味を示す名前を付ける」と定める範囲で、既存の命名例に合わせて主セッションが定めました。  
 異なる名前を指定する場合は、いずれかの Q の補足欄に記載してください。
 
+Table: 主セッションが定めた私有または内部の名前
+
 | 対象 | 定めた名前 | 置き場所と根拠にした既存の名前 |
 | --- | --- | --- |
 | porter の `max_peers` の既定値 1024U | `POTR_DEFAULT_MAX_PEERS` | `config_load_service.c` のファイル内。`POTR_DEFAULT_WINDOW_SIZE` と同じ語順 |
 | porter の payload_len のオフセット 34 | `POTR_PACKET_PAYLOAD_LEN_OFFSET` | 内部共有の `protocol/packet.h`。`POTR_PACKET_HEADER_SIZE` と同じ接頭辞 |
 | `pinned_prompt.c` の未設定の行位置 9999 | `PINNED_PROMPT_ROW_UNSET` | `pinned_prompt.c` のファイル内 |
 | `mmap_linux.c` と `mmap_windows.c` の `open_result` | `ret`。同じ関数に `ret` がある場合は `open_ret` | 共通コーディング規範の「結果コード変数」 |
-
-Table: 主セッションが定めた私有または内部の名前
 
 ## Q-011 Win32 UTF-8 ラッパーの文字列の出力先と容量の引数名
 
@@ -944,14 +944,14 @@ cplat の `docs/coding-guideline.md` に、Win32 UTF-8 ラッパーの引数名�
 14 関数を W 版と照合した結果、引数の個数と順序は全関数で一致していました。型が W 版と異なるのは `ChangeServiceConfig2U`、`StartServiceCtrlDispatcherU`、`CreateProcessU` の 3 関数です。  
 この 3 関数と型の表記について、対話セッションの選択式の質問で確認しました。選択肢と回答を次に転記します。
 
+Table: Win32 UTF-8 ラッパーの型に関する質問と回答
+
 | Q-ID | 質問 | 選択肢 | 回答 |
 | --- | --- | --- | --- |
 | Q-015 | `ChangeServiceConfig2U` の第 3 引数 (現行は説明文の `const char *utf8_text`) をどう合わせるか | A: (推奨) W 版と同じ `LPVOID lpInfo` にし、`SERVICE_CONFIG_DESCRIPTION` では `SERVICE_DESCRIPTIONA` (UTF-8) を受け取る。ほかの情報レベルは現行どおり拒否する。B: 現行の型を維持し、引数名だけを合わせる | A |
 | Q-016 | `StartServiceCtrlDispatcherU` の専用構造体 `cplat_service_entry_u` をどう合わせるか | A: (推奨) 専用構造体を維持し、型名を `SERVICE_TABLE_ENTRYU`、メンバー名を `lpServiceName` と `lpServiceProc` にする。B: 型名は維持しメンバー名だけ合わせる。C: 現行のまま | A |
 | Q-017 | `CreateProcessU` の `lpCommandLine` (W 版は const なし) と `lpStartupInfo` (U 版でも `LPSTARTUPINFOW`) をどう扱うか | A: (推奨) 型は現行を維持し、差異を Doxygen に記載する。B: `lpCommandLine` を `char *` にする | A |
 | Q-018 | 型の表記をどこまで W 版の宣言に合わせるか | A: (推奨) 文字列以外を SDK の表記 (`LPDWORD`、`LPVOID` など) にし、文字列は `const char *` と `char *` を維持する。B: 文字列も `LPCSTR` と `LPSTR` にする。C: 型の表記は変更しない | A |
-
-Table: Win32 UTF-8 ラッパーの型に関する質問と回答
 
 回答者: Tetsuo Honda (対話セッションの選択式の質問への回答を claude code が転記)。  
 回答受付: 2026-11-10 09:45 JST ごろ、claude code。
@@ -1003,6 +1003,8 @@ claude code の主セッションは、各セッションの結果ファイル�
 
 実行環境は、この Windows の作業ツリー (MSVC) です。Linux のビルドとテストは実行していません。
 
+Table: Windows の局所検証の結果
+
 | 対象 | 実行した内容 | 結果 |
 | --- | --- | --- |
 | app/cplat (1 段階目) | ライブラリ、mock、stub、変更したコマンドのビルドと、37 ディレクトリの `make test` (codex が実行) | 1,178 件が成功 |
@@ -1013,8 +1015,6 @@ claude code の主セッションは、各セッションの結果ファイル�
 | app/service-sample | app 直下の `make test` (主セッションが実行) | 終了値 0。テストは 2 段階目で実行済みとして省略 |
 | app/porter | app 直下の `make test` (主セッションが実行) | 終了値 0 |
 | Doxygen | calc、struct-meta、string-catalog-sample、doxygen-sample、cplat の `make doxy` (主セッションが実行) | 5 つの app とも終了値 0。警告と内容のある .warn はなし |
-
-Table: Windows の局所検証の結果
 
 app 直下の `make test` は、cplat の変更後に、依存する app を再ビルドして実行したものです。  
 ビルド後に、calc、struct-meta、string-catalog-sample、service-sample、porter、cplat の配下で内容のある `.warn` がないことを確認しました。  
@@ -1034,12 +1034,12 @@ app/cplat とルートのコミットは、並行作業で進んだ origin/main 
 ユーザーの指示を受けて、2026-11-10 に 3 リポジトリをプッシュしました。  
 CI は GitHub Actions の「CI (Build, Test, and Docs)」です。
 
+Table: プッシュ後の CI の結果
+
 | CI の実行 | ルートのコミット | ジョブの結果 | 警告アーティファクト |
 | --- | --- | --- | --- |
 | 42786336853 | `21a30657` | Linux (ol8、ol9、ol10)、Windows、deploy-pages、warnings-summary がすべて成功 | Linux の 3 環境に、同じ `-Wpadded` の警告 5 件 |
 | 42821358874 | `3d94d303` | 同じ 6 種類のジョブがすべて成功 | なし |
-
-Table: プッシュ後の CI の結果
 
 1 回目の実行で、app/struct-meta のテスト 5 ファイルに `-Wpadded` の警告が出ました。  
 今回追加したテスト `accepts_matching_floating_widths` の構造体 `FloatingValues` が、`float` の直後に `double` を置いていたことが原因です。  

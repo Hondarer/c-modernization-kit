@@ -34,6 +34,8 @@
      *
      *  ビルド条件に応じて次の値を取ります。
      *
+     *  Table: CALC_EXPORT のビルド条件別の展開値
+     *
      *  | 条件                                              | 値                       |
      *  | ------------------------------------------------- | ------------------------ |
      *  | Linux (非 Windows)                                | (空)                     |
@@ -41,8 +43,6 @@
      *  | Windows / `CALC_STATIC` 定義時 (静的リンク)       | (空)                     |
      *  | Windows / `CALC_EXPORTS` 定義時 (DLL ビルド)      | `__declspec(dllexport)`  |
      *  | Windows / `CALC_EXPORTS` 未定義時 (DLL 利用側)    | `__declspec(dllimport)`  |
-     *
-     *  Table: CALC_EXPORT のビルド条件別の展開値
      */
     #define CALC_EXPORT
 

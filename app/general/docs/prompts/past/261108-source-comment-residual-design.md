@@ -55,6 +55,8 @@ Windows の正常時の時刻源と分解能は維持します。
 
 ### 利用側は取得失敗で操作を中止します
 
+Table: 時刻取得 API の変更に伴う利用側の動作
+
 | 利用側 | 取得失敗時の動作 |
 | --- | --- |
 | cplat の同期待機 | 期限を計算せず失敗を返します。ロックを取得済みなら解放して戻り、待機を無期限に変えません |
@@ -66,8 +68,6 @@ Windows の正常時の時刻源と分解能は維持します。
 | porter のコンテキスト・ピア生成 | 時刻取得失敗を既存の結果コード変換と生成失敗の解放経路へ接続します |
 | porter の送受信、接続、ヘルス監視 | 時刻を取得できない送信・受信処理・監視処理を失敗として扱います。スレッド境界では稼働状態へ反映して終了し、停止時の wake と join による解放を妨げません |
 | string-catalog-filter-sample の期限付きロック | 時刻取得失敗を呼び出し元へ返します。プロセス内ロックの取得後なら、そのロックを解放して戻ります |
-
-Table: 時刻取得 API の変更に伴う利用側の動作
 
 結果を返せない内部関数は、上位へ失敗を伝えられる戻り値へ変更します。  
 操作の途中で時刻を必要とする場合は、更新前へ取得を移すか、取得済みの時刻を内部関数へ渡します。  
@@ -94,6 +94,8 @@ hashtable の `stamp_record()`、`hashtable_stamp_table()` と呼び出し側を
 
 ## 契約の不一致は宣言・仕様と実装を同期して解消します
 
+Table: BL-010 に含まれる契約とコメントの同期
+
 | 対象 | 最終的な動作または記載 |
 | --- | --- |
 | cplat の `mmap.h` | 読み取り専用の不存在ファイルは `CPLAT_ERR_NOT_FOUND`、長さ 0 は `CPLAT_ERR_INVALID_ARGUMENT` と記載します。OS 失敗を共通結果へ変換する実装を維持し、戻り値一覧も一致させます |
@@ -109,8 +111,6 @@ hashtable の `stamp_record()`、`hashtable_stamp_table()` と呼び出し側を
 | struct-meta のインデックス取得 | 範囲外の `CPLAT_ERR_OUT_OF_RANGE` を維持し、Doxygen の戻り値へ記載します |
 | struct-meta のパス解決 | 変更可能版と const 版の両方で `field_out == NULL` を許容します。必須の `value_out` とほかの入力の検査は維持します |
 | tutorial の 2 コマンド | `hello` と `hello_with_args` の Doxygen に、成功と失敗の終了値を記載します |
-
-Table: BL-010 に含まれる契約とコメントの同期
 
 struct-meta の配列出力関数では、`data_size >= 1` という内部契約を維持します。  
 呼び出し元の `struct_meta_gen_emit.c` は、配列を書き出す前に索引イメージのポインターと長さを検査します。  
@@ -142,6 +142,8 @@ OS 契約の根拠は Microsoft の [HandlerEx](https://learn.microsoft.com/en-u
 
 ## 失敗の検査と後処理は成功判定に反映します
 
+Table: BL-012 の失敗通知と既存動作を維持する箇所
+
 | 対象 | 最終的な失敗処理 |
 | --- | --- |
 | cplat の Windows エラー メッセージ | 公開済みの「切り詰めても NUL 終端し成功する」契約を満たします。小さい出力先のテストを追加し、真の変換失敗と切り詰めを区別します |
@@ -149,8 +151,6 @@ OS 契約の根拠は Microsoft の [HandlerEx](https://learn.microsoft.com/en-u
 | ファイル sink のレジストリ ロック | 初回生成の失敗を保持し、NULL ロックで後続処理へ進みません。生成途中のキーを解放して sink の生成を失敗とします |
 | porter の送信ウィンドウ ロック | 生成失敗で送受信ウィンドウを解放し、ピアを未使用へ戻して NULL を返します。アクティブなピア数を増やしません |
 | trace-cli の表示 | ヘルプ表示の失敗を終了値へ反映します。登録・解析エラーの説明中の出力失敗は元の失敗を優先し、その理由と明示的な破棄を記載します |
-
-Table: BL-012 の失敗通知と既存動作を維持する箇所
 
 ファイル sink のレジストリ ロックは、`call_once` の初回生成結果を使います。  
 初回生成に失敗したプロセスでは、その後の生成要求も失敗とし、暗黙の再試行や同期なしでのレジストリ操作をしません。  
@@ -180,14 +180,14 @@ CPU 情報の補助的な読み取りでは、取得した情報を維持し、�
 
 ## 公開ヘッダーには宣言を置きます
 
+Table: BL-020 の公開ヘッダー変更
+
 | 対象 | 変更 |
 | --- | --- |
 | `cplat/crt/wchar_conv.h` | Windows 用の宣言を C リンケージで囲み、C++ から C の実体へリンクできるようにします |
 | `cplat/net/endpoint.h` | `CPLAT_IPV4_ADDR_LOOPBACK` を廃止し、`uint32_t cplat_ipv4_addr_loopback(void)` を公開します |
 | `cplat/net/socket.h` | `CPLAT_INVALID_SOCKET` を `cplat_socket` の型定義直後へ移します。値と型は変更しません |
 | `cplat/test/syslog_test.h` | 本体を除き、Linux 用の `int cplat_syslog_test_fd_write(const char *buf, size_t nbytes)` を宣言します |
-
-Table: BL-020 の公開ヘッダー変更
 
 ループバック関数は既存の `cplat_hton32()` でネットワーク バイト オーダーへ変換します。  
 呼び出し側にバイト オーダー依存の整数を埋め込まず、第一者管理の利用側を関数呼び出しへ更新します。  
@@ -228,6 +228,8 @@ struct-meta の設計例は生成元と同期します。
 変更した処理ごとに、必要な局所ビルドとテストを実行します。  
 テストは実装をなぞるだけのものを増やさず、失敗の注入、公開契約の境界、資源の所有権と解放、ABI とリンクの変更を確認するものへ限定します。
 
+Table: 局所検証の対象と受入条件
+
 | 対象 | 実施する確認と受入条件 |
 | --- | --- |
 | 時計 | `clock/clockTest` と必要な期限生成のテスト。成功値、NULL、取得失敗、UTC 変換失敗、失敗時の全出力不変を確認します |
@@ -242,8 +244,6 @@ struct-meta の設計例は生成元と同期します。
 | struct-meta | `structMetaAccessTest`、`structMetaGenEmitArrayTest`。任意の `field_out`、必須引数、生成前の長さ検査、通常生成を確認します。生成器とサンプルを再生成・ビルドします |
 | syslog のライフサイクル | 既存の共有ライブラリのロード・アンロード確認から、新しい通常関数への呼び出しで通知と解放順序を維持することを確認します |
 | Doxygen と Markdown | 公開契約を変更した app ごとに `make doxy`、対象範囲の内容のある `.warn` と生成結果を確認します。変更 Markdown は dry-run を確認してから整形します |
-
-Table: 局所検証の対象と受入条件
 
 テスト ディレクトリのパスは、cplat では `app/cplat/test/src/libcplatTest/`、porter では `app/porter/test/src/libporter/` を基準とします。  
 `benchTimerTest` は `app/cplat/test/src/benchTimerTest/`、struct-meta の 2 件は `app/struct-meta/test/src/` の直下です。  

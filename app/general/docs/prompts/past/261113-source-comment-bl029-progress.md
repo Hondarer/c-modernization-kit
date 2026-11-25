@@ -13,6 +13,8 @@
 最終仕様の合意版 6 に従う実装の、ファイルごとの状況です。  
 凡例: ⏸️ 未着手、🔄 実施中、🚫 ブロック中、⚠️ 要注意、✅ 完了。
 
+Table: 進捗表の列
+
 | 列 | 内容 |
 | --- | --- |
 | 作業 | そのファイルで行う作業 |
@@ -20,9 +22,9 @@
 | 担当 | grok または agy |
 | 結果 | 変更の有無、確認、停止理由 |
 
-Table: 進捗表の列
-
 ## 設定と規範
+
+Table: 設定と規範
 
 | ファイル | 作業 | 状態 | 担当 | 結果 |
 | --- | --- | --- | --- | --- |
@@ -32,9 +34,9 @@ Table: 進捗表の列
 | `app/cplat/docs/coding-guideline.md` | `cplat_mmap_attach` の例を 5 引数にする | ✅ | grok | 第 5 引数を NULL にした。表記確認は指摘なし |
 | `app/general/docs/prompts/current/261109-source-comment-remaining-backlog.md` | BL-029 へ経緯を追記 | ✅ | grok | 4 件の対処を追記。元の 4 項目は残した。表記確認は指摘なし |
 
-Table: 設定と規範
-
 ## 個別のコード
+
+Table: 個別のコード
 
 | ファイル | 作業 | 状態 | 担当 | 結果 |
 | --- | --- | --- | --- | --- |
@@ -42,14 +44,15 @@ Table: 設定と規範
 | `app/cplat/test/src/cmd/bench-tracerTest/bench-tracerTest.cc` | 拒否テストの追加 | ✅ | grok | `rejects_product_that_does_not_fit_in_int` が成功。終了値 1。tracer 生成とファイル シンク生成は 0 回 |
 | `app/cplat/test/src/libcplatTest/trace/traceCommonTest/traceCommonTest.cc` | ナノ秒の確認タグ | ✅ | grok | `clock_failure_preserves_timestamp` だけを実行して成功。確認タグはエビデンスに出た。警告 0 |
 
-Table: 個別のコード
-
 ## 一括整形
 
 対象の列挙と `clang-format -i` のあと、変更したファイルをこの節へ追記します。  
 第三者管理ソース、生成物、テストのシンボリック リンク パスは入力にしません。
 
 <!-- FORMAT_TABLE_START -->
+
+Table: 一括整形
+
 | ファイル | 作業 | 状態 | 担当 | 結果 |
 | --- | --- | --- | --- | --- |
 | `app/calc/prod/include/calc.h` | 一括整形 | ✅ | grok | 差分なし |
@@ -1686,18 +1689,16 @@ Table: 個別のコード
 | (集計) | 一括整形 | ✅ | grok | 入力 1631 件、変更 130 件、差分なし 1501 件 |
 <!-- FORMAT_TABLE_END -->
 
-Table: 一括整形
-
 ## 整形後の手直し
 
 clang-format 22.1.4 で波括弧が入らない空の `while` と、マクロ継続行の制御文です。
+
+Table: 整形後の手直し
 
 | ファイル | 作業 | 状態 | 担当 | 結果 |
 | --- | --- | --- | --- | --- |
 | `app/porter/prod/src/cmd/tech-sample/tcpServer/tcpServer_linux.c` | 空の while へ波括弧 | ✅ | grok | 単独のセミコロンを削除 |
 | `framework/testfw/include/mock_factory_head.h` | マクロ継続行の if 11 箇所 | ✅ | agy | 追加 22 行、削除 0 行。波括弧と継続行のバックスラッシュのみ。他ファイルは未変更。コンパイルは局所検証で確認する |
-
-Table: 整形後の手直し
 
 ## 局所検証
 
@@ -1707,6 +1708,8 @@ Table: 整形後の手直し
 `framework/testfw` 直下のヘッダーは `mock_libc` のビルドでコンパイルします。  
 `app/cplat/prod/libsrc/cplat/runtime` は `app/cplat/prod` のビルドに含めます。  
 `app/cjson/test/include/mock_cjson_api_table.h` は cjson のリーフ テストでコンパイルします。
+
+Table: 局所検証
 
 | ディレクトリ | 作業 | 状態 | 担当 | 結果 |
 | --- | --- | --- | --- | --- |
@@ -1722,8 +1725,6 @@ Table: 整形後の手直し
 | `app/service-sample/prod/src/cmd/service-sample` | コマンドのビルド | ✅ | grok | 2 秒。Linux では Windows ソースをコンパイルしない。新しい `.warn` は 0 |
 | `app/cplat/prod/src/cmd/bench-tracer` | コマンドのビルド | ✅ | grok | 0 秒。新しい `.warn` は 0 |
 | 変更ファイルを含むリーフ テスト | `make test` | ✅ | grok | 2026-11-13 09:33 JST までに終了。成功 69、対象外 5、失敗 0、新しい `.warn` は 0。終了コードは 0 |
-
-Table: 局所検証
 
 2026-11-13 09:33 JST までに、開始済みの局所検証が終了コード 0 で終わりました。  
 対象は 74 ディレクトリです。  
@@ -1742,6 +1743,8 @@ Table: 局所検証
 2026-11-13 10:00 JST 以降に、最終仕様の受入条件と照合しました。  
 局所検証の終了後に変更された C / C++ はありません。
 
+Table: 受入条件の照合
+
 | 確認 | 状態 | 担当 | 結果 |
 | --- | --- | --- | --- |
 | 差分のある C / C++ と整形結果の突き合わせ | ✅ | claude code | 135 件。整形の変更 130 件と、手作業の 5 件 (`bench-tracer.c`、`bench-tracerTest.cc`、`traceCommonTest.cc`、`tcpServer_linux.c`、`mock_factory_head.h`) |
@@ -1752,5 +1755,3 @@ Table: 局所検証
 | `cplat_mmap_attach` の例 | ✅ | claude code | 5 引数で、第 5 引数は `NULL` |
 | ナノ秒の確認タグ | ✅ | claude code | 仕様どおりの 1 行。行が 120 桁を超えるため、`clang-format` が `EXPECT_EQ` の引数を折り返した。既存のテストにも同じ折り返しがある |
 | `text_style_jp.py --dry-run` | ✅ | claude code | 変更した Markdown 8 件のうち、指摘は検討用 Markdown のユーザー回答の原文 3 行だけ。原文を保つため適用しない |
-
-Table: 受入条件の照合

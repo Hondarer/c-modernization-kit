@@ -43,12 +43,12 @@ BL-003、BL-004、BL-028 を対処します。
 次の 5 箇所に、表示する要件 ID の直後へ正本と同じ HTML コメントを記載します。  
 過去の検討内容と課題の記録は残します。
 
+Table: UUID を併記する過去の要件参照
+
 | 要件 ID と UUID | 対象文書 |
 | --- | --- |
 | `CPLAT-COMPRESS-FUNC-002` <!-- cplat-req: uuid=7bb7c876-6877-4159-afd3-51955f4d7d45 --> | `app/general/docs/prompts/past/261107-source-comment-backlog.md`、`261108-source-comment-cleanup-backlog.md`、`261108-source-comment-correctness-backlog.md`、`261108-source-comment-mechanical-backlog.md` |
 | `CPLAT-RUNTIME-FUNC-014` <!-- cplat-req: uuid=bd2d6d79-1efb-4bf0-a62f-937b6191b8a4 --> | `prompts/past/process-priority-discussion.md` |
-
-Table: UUID を併記する過去の要件参照
 
 ## 残課題の記録
 

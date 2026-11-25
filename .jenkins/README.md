@@ -54,13 +54,13 @@ Jenkins Execute shell
 
 Jenkins の Execute shell 先頭で `export` してから `build.sh` を呼び出すことでカスタマイズできます。
 
+Table: Jenkins ビルド スクリプトのカスタマイズ用環境変数
+
 | 変数 | デフォルト値 | 説明 |
 |---|---|---|
 | `IMAGE` | `ghcr.io/hondarer/oracle-linux-container/oracle-linux-8-dev:latest` | 使用するコンテナー イメージ |
 | `OS_NAME` | `ol8` | ビルド ログ・アーティファクトのファイル名に使用する OS 識別子 (`ol8`、`ol9`、`ol10`) |
 | `BUILD_DOCS` | `1` | ドキュメント生成の有無。`1`=あり、`0`=なし |
-
-Table: Jenkins ビルド スクリプトのカスタマイズ用環境変数
 
 `HOST_USER`, `HOST_UID`, `HOST_GID` は `id` コマンドで動的取得するため、設定不要です。
 
@@ -76,6 +76,8 @@ Jenkins の Execute shell が `bash source/.jenkins/build.sh` で呼び出す場
 
 ### podman run オプション
 
+Table: podman run コマンドで使用するオプションと指定値
+
 | オプション | 値・意味 |
 |---|---|
 | `--rm` | コンテナー終了後に自動削除 |
@@ -84,8 +86,6 @@ Jenkins の Execute shell が `bash source/.jenkins/build.sh` で呼び出す場
 | `--userns=keep-id` | rootless Podman でホストの UID/GID をコンテナー内に継承 |
 | `--entrypoint /bin/bash` | sshd 常駐用の既定 ENTRYPOINT を上書き |
 | `-v "$WORKDIR:/workspace:Z"` | リポジトリ ルートを `/workspace` にマウント (`:Z` は SELinux ラベル付与) |
-
-Table: podman run コマンドで使用するオプションと指定値
 
 ### コンテナー内の初期化
 
@@ -105,6 +105,8 @@ Table: podman run コマンドで使用するオプションと指定値
 
 `build.sh` が `su -c` の引数として渡します。
 
+Table: コンテナー内実行スクリプトへ引き渡す前提環境変数
+
 | 変数 | 説明 |
 |---|---|
 | `OS_NAME` | ビルド ログ・アーティファクトのファイル名に使用する OS 識別子 |
@@ -113,8 +115,6 @@ Table: podman run コマンドで使用するオプションと指定値
 | `DOCSFW_HOME` | Markdown 発行フレームワークの場所。省略可。未設定時は `.vscode/.env.linux` の値 |
 | `DOXYFW_HOME` | Doxygen 生成フレームワークの場所。省略可。未設定時は `.vscode/.env.linux` の値 |
 | `TESTFW_HOME` | テスト フレームワークの場所。省略可。未設定時は `.vscode/.env.linux` の値 |
-
-Table: コンテナー内実行スクリプトへ引き渡す前提環境変数
 
 `MAKEFW_HOME`、`DOCSFW_HOME`、`DOXYFW_HOME`、`TESTFW_HOME` は `inner-build.sh` が `.vscode/.env.linux` から読み込むため、Jenkins 側での設定は不要です。  
 Jenkins ジョブ側で別の framework 配置を使う場合は、`build.sh` の呼び出し前に該当の変数を `export` してください。読み込みは `--no-clobber` で行うため、先に設定された値が優先されます。
@@ -154,6 +154,8 @@ make quicktest 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 
 アーティファクトは `/workspace/pages/artifacts/` に出力します。`.github/workflows/ci.yml` と同じ命名規則を使用しています。
 
+Table: Jenkins ビルドで収集されるアーティファクト ファイル一覧
+
 | ファイル | 内容 | 生成条件 |
 |---|---|---|
 | `linux-${OS_NAME}-test-results.zip` | `app/**/results/` 以下のテスト結果 + `logs/linux-${OS_NAME}-test.log` | テスト結果またはテスト ログが存在する場合 |
@@ -163,8 +165,6 @@ make quicktest 2>&1 | tee "logs/linux-${OS_NAME}-test.log"
 | `docs-html-doxygen.zip` | `pages/doxygen/` 以下の Doxygen HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-html-{lang}.zip` | `pages/{lang}/html/` 以下の Markdown HTML | `BUILD_DOCS=1` かつ生成済みの場合 |
 | `docs-docx-{lang}.zip` | `pages/{lang}/docx/` 以下の DOCX | `BUILD_DOCS=1` かつ生成済みの場合 |
-
-Table: Jenkins ビルドで収集されるアーティファクト ファイル一覧
 
 `.warn` ファイルはコンパイル・リンク時に生成されるビルド警告ファイルです。`makefw` が各ターゲットの `lib/` または `bin/` に `${TARGET}.warn` として出力します。`app/c_cpp_properties.warn` は、`INCDIR` では `makepart.mk`、`app/makepart.mk`、`app/*/**/makepart.mk`、`DEFINES` では `makepart.mk`、`app/makepart.mk`、`app/*/makepart.mk` の同期結果と `.vscode/c_cpp_properties.json` の不一致を知らせる dry-run 警告です。`app/app_env.warn` は、`app/*/**/makepart.mk` の `OUTPUT_DIR` から導出した実行時パスと `.vscode` 配下の記載との不一致を知らせる dry-run 警告です。  
 `doxy*.warn` は Doxygen 実行時の警告ファイルで、各アプリ配下に出力されます。`docs.warn` は `make docs` 実行時の警告ファイルで、ワークスペース直下に出力されます。  
@@ -303,6 +303,8 @@ source/app/**/test/**/*.warn
 
 ## .github/workflows/ci.yml との対応
 
+Table: ci.yml のジョブ・ステップと .jenkins/ スクリプトの対応関係
+
 | ci.yml のジョブ・ステップ | .jenkins/ での対応 |
 |---|---|
 | `build-and-test-linux` (コンテナー内) | `inner-build.sh` |
@@ -320,8 +322,6 @@ source/app/**/test/**/*.warn
 | `Upload Doxygen documentation` (`documentation-doxygen`) | `pages/doxygen`、`pages/artifacts/docs-html-doxygen.zip` (分割せず `pages/` に残す) |
 | `build-and-test-linux` (`matrix.docs` のレグ): `make doxy && make docs` | `inner-build.sh` の `BUILD_DOCS=1` 時のドキュメント生成 |
 | `deploy-pages`: `index.html` 生成 | `inner-build.sh` の `pages/index.html` 生成 |
-
-Table: ci.yml のジョブ・ステップと .jenkins/ スクリプトの対応関係
 
 `build-and-test-windows` および `deploy-pages` (GitHub Pages デプロイ) に対応する Jenkins スクリプトは存在しません。  
 ただし `pages/index.html` の一覧構成は GitHub Actions の Pages 出力とそろえており、warn ZIP がある場合だけ専用セクションを表示します。  

@@ -14,6 +14,8 @@
 
 ## 構成
 
+Table: struct-meta の構成パスと責務一覧
+
 | パス | 責務 |
 |---|---|
 | `prod/include/struct_meta/catalog/` | 記述子の集合の取得、検索、破棄 |
@@ -25,8 +27,6 @@
 | `prod/include/struct_meta/print/` | テキスト表示 |
 | `prod/src/cmd/struct-meta-gen/` | 記述子を C ソースとして書き出す PoC |
 | `prod/src/cmd/struct-meta-sample/` | 生成結果とライブラリを使う動作確認コマンド |
-
-Table: struct-meta の構成パスと責務一覧
 
 生成ファイルは `gen/` に置かれ、Git では管理しません。  
 生成器は Doxygen コメントの `@struct_meta{key}` と `@struct_meta{key=value}` を解析し、構造体またはフィールドの汎用 key/value 属性として保持します。  
@@ -44,13 +44,13 @@ make test
 
 操作対象は、起動後に `init` で定めます。
 
+Table: struct-meta-sample のカタログ初期化コマンド一覧
+
 | コマンド | 経路 | 内容 |
 |---|---|---|
 | `init sample_types` | 事前組み込み型 | ビルド時に生成して実行体へ組み込んだカタログを使います。 |
 | `init <header-path>` | 事後解析型 | 指定した C ヘッダーを実行時に構文解析します。コンパイラは不要です。 |
 | `init` | - | 使い方と、選択できる組み込みカタログ名を表示します。 |
-
-Table: struct-meta-sample のカタログ初期化コマンド一覧
 
 `init` はカタログを用意してから構造体一覧を表示し、番号で選ばせます。  
 選んだ記述子のサイズで領域を確保し、ゼロ初期化します。  
@@ -62,6 +62,8 @@ Table: struct-meta-sample のカタログ初期化コマンド一覧
 
 対象を定めた後は、`patch`、`patch <field-path>`、`dump`、`dumpjson`、`dumpbin`、`help`、`exit` に加えて、次の入出力コマンドを使用できます。
 
+Table: struct-meta-sample の入出力コマンド一覧
+
 | コマンド | 形式 | 内容 |
 |---|---|---|
 | `loadjson <path>` / `savejson <path>` | JSON | 記述子に従って JSON と相互変換します。 |
@@ -70,8 +72,6 @@ Table: struct-meta-sample のカタログ初期化コマンド一覧
 | `loadbin <path>` / `savebin <path>` | バイナリ | 記述子が表すバイト列をそのまま読み書きします。 |
 | `catbin <path>` | バイナリ | ファイルの内容を 16 進ダンプで表示します。 |
 | `dumpbin` | バイナリ | 現在の値をファイルへ保存せず、16 進ダンプとして標準出力へ表示します。`savebin` と `catbin` を続けて実行した場合と同じ内容です。 |
-
-Table: struct-meta-sample の入出力コマンド一覧
 
 `catjson` と `catbin` はファイルを読むだけなので、対象の選択を必要としません。  
 それ以外の値を扱うコマンドは、`init` で対象を定めるまで受け付けません。

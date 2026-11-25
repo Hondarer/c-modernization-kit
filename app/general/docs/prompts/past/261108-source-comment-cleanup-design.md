@@ -22,14 +22,14 @@ BL-001 のコメント アウトしたコードを削除し、BL-002 のパデ�
 有効な公開 API、列挙値、実行される処理を維持します。  
 他の 17 課題は今回の変更対象に含めず、新しい残課題一覧へ引き継ぎます。
 
+Table: 対象ソースと確定した変更内容
+
 | 課題 | 対象ファイル | 変更内容 |
 | --- | --- | --- |
 | BL-001 | `app/override-sample/prod/libsrc/base/sym_loader_libbase.c` | `sfo_base_name` の定義、`pfo_base_name` の定義、配列内の `&sfo_base_name` を含むコメント アウトした 3 行と、付随する「将来追加」の記述を削除します。 |
 | BL-001 | `app/override-sample/prod/libsrc/base/sym_loader_libbase.h` | `pfo_base_name` の extern 宣言を含むコメント アウトした 1 行と、付随する「将来追加」の記述を削除します。 |
 | BL-001 | `app/porter/prod/include/porter/porter_type.h` | コメント アウトした `POTR_TYPE_TCP_BIDIR_N1 = 11` と、付随する将来予定の後置コメントを削除します。 |
 | BL-002 | `app/cplat/prod/libsrc/cplat/sync/sync_linux.c` | `struct cplat_local_rwlock` の `int _pad_struct_end;` を、下記の定義へ変更します。 |
-
-Table: 対象ソースと確定した変更内容
 
 ```c
 int pad; /* 明示的アラインメント */

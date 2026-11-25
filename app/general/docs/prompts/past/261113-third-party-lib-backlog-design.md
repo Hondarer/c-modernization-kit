@@ -37,14 +37,14 @@ mock だけをリンクし、実ライブラリは動的な実委譲先として
 
 ### 名前と公開境界
 
+Table: 実ライブラリの公開名
+
 | app | 実ライブラリの接頭辞 | 従来 API 名と公開する固有名の例 |
 | --- | --- | --- |
 | zlib | `zlib_app_` | `deflate` → `zlib_app_deflate` |
 | cjson | `cjson_app_` | `cJSON_Parse` → `cjson_app_cJSON_Parse` |
 | lua | `lua_app_` | `luaL_newstate` → `lua_app_luaL_newstate` |
 | sqlite | `sqlite3_app_` | `sqlite3_open` → `sqlite3_app_sqlite3_open` |
-
-Table: 実ライブラリの公開名
 
 対象は公開関数、可変長引数の公開関数、公開変数、およびこれらを呼び出す公開 API 呼び出しマクロです。利用側が記述する API 名も接頭辞付きにし、旧関数名・旧変数名・旧 API 呼び出しマクロ名は公開しません。  
 cJSON の Integer と JSONC の公開関数も対象に含めます。  
@@ -168,6 +168,8 @@ Oracle Linux 9.8 で OS 側の OpenSSL 3.5.5 と app 側の OpenSSL 3.5.9 を同
 
 ## 変更する成果物
 
+Table: 更新対象の範囲
+
 | 対象 | 主な変更箇所 |
 | --- | --- |
 | makefw | `bin_internal/generate_symbol_namespace.py`、対応する `bin_test/`、生成処理の利用方法を記載する文書 |
@@ -179,8 +181,6 @@ Oracle Linux 9.8 で OS 側の OpenSSL 3.5.5 と app 側の OpenSSL 3.5.9 を同
 | 利用者向け文書 | `app/zlib/README.md`、`app/cjson/README.md`、`app/lua/README.md`、`app/sqlite/README.md` |
 | 規範とスキル | `app/general/docs/shared-library-mock-guideline.md`、正本の `create-mock-shared-lib/SKILL.md` |
 | 案件記録 | 元 backlog の状態と対処経緯、残件があれば今回の backlog |
-
-Table: 更新対象の範囲
 
 利用側の実装変更は、新しい固有名への移行に必要な箇所をすべて対象にします。  
 調査で列挙した対象以外にも旧 API 名、動的シンボル名、mock 検証の参照がないか検索し、同じ変更に依存する箇所を移行します。  

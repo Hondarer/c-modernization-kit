@@ -19,6 +19,8 @@
 残課題 11 件を、確認できた根拠に基づいて対処します。  
 コメントと実装の不一致、規範との差、減算の途中計算、記述子の幅検査を修正し、根拠が未確定の事項は元の報告と対応付けて引き継ぎます。
 
+Table: 課題ごとの対処範囲
+
 | 課題 ID | 対処範囲 |
 | --- | --- |
 | BL-008 | 根拠を確認できた理由のコメント、他課題と重なる箇所の対処、現行で解消している報告の記録、理由が未確定の項目の引き継ぎ |
@@ -32,8 +34,6 @@
 | BL-021 | calc の減算とコマンド説明、Doxygen の比較例を維持したサンプルの修正 |
 | BL-024 | Windows 実機検証を未対処として引き継ぎ |
 | BL-025 | TCP 双方向 N:1 通信の判断と実装をともに先送り |
-
-Table: 課題ごとの対処範囲
 
 公開関数のシンボル、型、引数順序、呼び出し規約は維持します。ただし、Win32 UTF-8 ラッパーは「Win32 UTF-8 ラッパーの引数名を元の API に合わせる」のとおり、W 版に合わせるために型を変更します。  
 出力引数の改名は宣言、定義、Doxygen の引数名と関連する mock に反映し、公開 API の逆引き文書とエクスポート テストの整合性を確認します。  
@@ -55,13 +55,13 @@ Git のステージング、コミット、プッシュは、局所検証の完�
 calc、struct-meta、doxygen-sample、string-catalog-sample と `app/general` の文書はルート、cplat と porter はそれぞれのサブモジュールで管理しています。  
 着手時に 3 リポジトリの HEAD と未コミットの差分を記録し、今回の変更と既存の差分を区別できるようにします。
 
+Table: 仕様策定後に進んだコミット
+
 | リポジトリ | 仕様策定時の HEAD | 2026-11-10 の HEAD | その間の差分 |
 | --- | --- | --- | --- |
 | ルート | `848fe699` | `7a1abf70` | CI 設定、サブモジュールの参照、この案件の文書 |
 | `app/cplat` | `a51ef9ac` | `a04a4c16` | `cryptoTest` と `randomTest` の `makepart.mk` |
 | `app/porter` | `5fa9aad0` | `e9549ec8` | 検討文書の移動 |
-
-Table: 仕様策定後に進んだコミット
 
 この差分は、今回の変更対象のソースを含みません。  
 着手時に HEAD がさらに進んでいた場合は、同じ比較をもう一度行います。
@@ -83,11 +83,11 @@ Linux 向けのソースを変更する前に、変更する関数と行を一�
 ソースを編集すると行番号がさらに変わるため、元報告と現行ソースの照合は編集前に終えます。  
 対象は、BL-008 の 187 項目と、次の 162 項目です。
 
+Table: 照合する元報告の項目数
+
 | 課題 ID | BL-011 | BL-014 | BL-015 | BL-016 | BL-017 | BL-018 | BL-019 | BL-021 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 報告の項目数 | 9 | 14 | 41 | 39 | 19 | 17 | 12 | 11 |
-
-Table: 照合する元報告の項目数
 
 BL-011 から BL-021 にも、BL-008 と同じく元の列挙順で枝番号を付けます。  
 台帳には、枝番号、報告時のパスと行番号、現行の関数名と行番号、予定する扱い、その根拠を記録します。  
@@ -97,14 +97,14 @@ BL-011 から BL-021 にも、BL-008 と同じく元の列挙順で枝番号を�
 BL-008 には、他の課題の変更によって対象の文がなくなる項目と、対象の式が書き換わる項目があります。  
 台帳の作成時に、次の重なりを確認します。
 
+Table: BL-008 と他の課題が重なる項目
+
 | 枝番号 | 報告の対象 | 重なる変更 |
 | --- | --- | --- |
 | 009 | `syslog_test` で write の戻り値を無視する理由 | BL-018 が同じ関数の FD の変換を変更します |
 | 036 | `pinned_prompt.c` の未設定の行位置 9999 の選定理由 | BL-019 が同じ値に定数名を付けます |
 | 146 | `potr_send_thread.c` の警告抑止のしきい値 10 の選定理由 | BL-016 が同じ条件式を分割します |
 | 174、176 | `print.c` で失敗時に `{...}` と `?` を書く理由 | BL-014 がこの書き込みを削除します |
-
-Table: BL-008 と他の課題が重なる項目
 
 174 と 176 は、理由を問う対象の文がなくなるため、BL-014 と一体で対処する項目へ分類を変更する候補です。  
 変更した場合、一体で対処する項目は 4、引き継ぎ候補は 164 になります。  
@@ -131,6 +131,8 @@ BL-015 と BL-019 の表は、関数群の単位で改名の方針を示して�
 
 次の対象は、この仕様の各節に記載がありませんが、記載した変更を成立させるために同じ変更で更新します。
 
+Table: 仕様の各節に記載のない反映先
+
 | 対象 | 確認した事実 | 行う変更 |
 | --- | --- | --- |
 | `app/cplat/test/libsrc/stub_cplat/stub_trace_common.c` | 内部の時刻補助関数 2 個を製品ソースとは別に定義しています。`traceTest`、`trace_fileTest`、`trace_syslogTest` がこの stub をリンクします | 引数名と結果コードを、製品ソースと同じ契約へ変更します |
@@ -141,8 +143,6 @@ BL-015 と BL-019 の表は、関数群の単位で改名の方針を示して�
 | `app/calc/prod/include/calc/calc_spec.h` | `calc_handler` は減算の結果コードをそのまま返します。戻り値の説明は、出力先の NULL と不正な演算種別だけを挙げています | 減算結果が範囲外の場合の戻り値を説明へ加えます |
 | struct-meta のテスト用記述子 | 確認した記述子は、float と double の `element_size` をメンバーの sizeof で設定しています。`json/decode.c` と `json/encode.c` には、変換時に幅を個別に確認する処理があります | 幅が一致しない既存の記述子がないことを `git grep` で確認します。個別の確認処理は、この仕様に削除の記載がないため維持します |
 | `app/porter/prod/libsrc/porter/protocol/packet.c` の解析処理 | payload_len 以外のフィールドのオフセットも数値で記述しています | 名前を付けるのは payload_len のオフセットだけとし、他のフィールドへ広げません |
-
-Table: 仕様の各節に記載のない反映先
 
 calc.net のテストには、減算の範囲外を扱う検査がないことを確認しました。  
 calc.net のソースとテストは変更しません。
@@ -172,6 +172,8 @@ porter の payload_len のオフセット 34 は、パケットの定義と解�
 
 この節の相対パスは `app/` を起点とします。
 
+Table: Doxygen の修正対象
+
 | ファイル | 変更内容 |
 | --- | --- |
 | `cplat/prod/include/cplat/trace/etw.h` | URL ではない see: を、正本文書と節を示す本文の参照表記へ変更 |
@@ -180,8 +182,6 @@ porter の payload_len のオフセット 34 は、パケットの定義と解�
 | `string-catalog-sample/prod/src/cmd/string-catalog-filter-sample/string-catalog-filter-sample.c` | リポジトリ内の see: を本文の参照表記へ変更。`print_level_table` の前の `print_usage` 向け重複コメントを削除 |
 | `struct-meta/prod/libsrc/struct_meta/json/decode.c` | `field_from_json` の説明をその定義へ移動。`json_key` の説明と混同しないように配置 |
 | `struct-meta/prod/libsrc/struct_meta/json/encode.c` | `struct_to_json` の説明をその定義へ移動。`json_key` の説明と混同しないように配置 |
-
-Table: Doxygen の修正対象
 
 static シンボルに未解決の `@ref` を追加しません。  
 対象 app ごとの Doxygen 生成で、対象関数に正しい説明が付き、新たな未記載引数や参照解決の警告がないことを確認します。
@@ -204,6 +204,8 @@ struct-meta の `print/print.c` では、失敗を返したときに呼び出し
 
 ## BL-015 の引数名を用途に合わせる
 
+Table: 出力先の改名対象
+
 | 対象 | 引数名の変更 |
 | --- | --- |
 | argparser の配列登録系と usage 取得系 | `count_out`、`required_size_out`。対応する暗黙版・明示ハンドル版を一致させる |
@@ -218,8 +220,6 @@ struct-meta の `print/print.c` では、失敗を返したときに呼び出し
 | Win32 UTF-8 ラッパー | 出力引数の命名規則を適用せず、元の W 版の API と同じ引数名へ変更。対象と規則は「Win32 UTF-8 ラッパーの引数名を元の API に合わせる」のとおり |
 | bench-hashtable の文字列作成と構成作成 | 文字列の `dest`、構成の `config_out` |
 | porter の送信キュー | 要素の格納先を `item_out`。対応する宣言と各取り出し関数を一致させる |
-
-Table: 出力先の改名対象
 
 暗号、乱数、mmap、プロセスなどに OS 別の定義がある場合は両実装へ反映します。  
 引数名の変更によって型や引数順を変えません。
@@ -249,6 +249,8 @@ Doxygen の説明は公式リファレンスを根拠にし、U 版に固有の�
 14 関数とも、引数の個数と順序は W 版と一致しています。関数名と戻り値の規約は変更しません。  
 型は次のとおりそろえます。互換性を保たない変更を含みます。
 
+Table: Win32 UTF-8 ラッパーの型の扱い
+
 | 対象 | 変更内容 |
 | --- | --- |
 | 文字列以外の引数の型の表記 | W 版の宣言と同じ表記 (`LPDWORD`、`LPVOID` など) にそろえます。ABI は変わりません |
@@ -256,8 +258,6 @@ Doxygen の説明は公式リファレンスを根拠にし、U 版に固有の�
 | `ChangeServiceConfig2U` の第 3 引数 | W 版と同じ `LPVOID lpInfo` にします。`SERVICE_CONFIG_DESCRIPTION` では、`lpInfo` を `SERVICE_DESCRIPTIONA` として受け取り、`lpDescription` を UTF-8 として扱います。そのほかの情報レベルは、現行どおり `ERROR_INVALID_PARAMETER` で拒否します。`lpInfo` が NULL の場合も `ERROR_INVALID_PARAMETER` で拒否します。`lpDescription` が NULL の場合は W 版へ NULL を渡します |
 | `StartServiceCtrlDispatcherU` の構造体 | 専用の構造体を維持し、型名を `SERVICE_TABLE_ENTRYU`、メンバー名を `lpServiceName` と `lpServiceProc` にします。サービス メイン関数の型は `LPSERVICE_MAIN_FUNCTIONW` のままです |
 | `CreateProcessU` | `lpCommandLine` は `const char *`、`lpStartupInfo` は `LPSTARTUPINFOW` のまま維持し、W 版との差異を Doxygen に記載します |
-
-Table: Win32 UTF-8 ラッパーの型の扱い
 
 `ChangeServiceConfig2U` と `SERVICE_TABLE_ENTRYU` の変更に合わせて、ワークスペース内の呼び出し側 (service-sample など)、`mock_cplat`、テスト、`exportTest`、`docs/api-cheatsheet.md` を同じ変更で更新します。  
 `WriteConsoleU` が長さを UTF-8 のバイト数で扱う点など、W 版と意味が異なる引数は、W 版の名前を付けたうえで差異を Doxygen に記載します。
@@ -305,14 +305,14 @@ argparser の生成と配列再確保、hashtable の訪問済み領域の確保
 `wchar_conv.c` の UTF-8 文字列の確保は、計算済みの文字数と `sizeof(*utf8_text)` による `cplat_calloc` へそろえます。  
 確保失敗時の戻り値と、変換失敗時の解放は維持します。
 
+Table: 代替関数と失敗検査の修正対象
+
 | 対象 | 変更内容 |
 | --- | --- |
 | `cplat/prod/libsrc/cplat/test/syslog_test.c` | 移動先に残る atoi を `cplat_parse_int` へ変更。不正または範囲外の FD は write へ渡さず、環境変数が設定された場合に通常の syslog 送信を省略する既存規約を維持 |
 | `cplat/prod/src/cmd/bench-tracer/bench-tracer.c` | calloc、free、snprintf、atoi の報告箇所を対応する cplat 関数へ変更。書式化と変換の失敗を終了値へ反映し、起動済み子プロセスの既存の終了処理を維持 |
 | `cplat/prod/src/cmd/etw-viewer/etw-viewer.c` | プロセス ID の strtoul を `cplat_parse_uint64` と UINT32_MAX の上限検査へ変更。不正文字、負値、範囲超過を拒否 |
 | `cplat/prod/libsrc/cplat/trace/tracer.c` | 報告された標準エラー出力を、MSVC セキュア版を選択する `cplat_fprintf` へ変更。出力形式とライフサイクルを維持 |
-
-Table: 代替関数と失敗検査の修正対象
 
 標準ヘッダーを include していることだけを違反とみなして削除しません。  
 安全性のために必須となる代替関数と、単純な委譲だけのラッパーを区別し、無関係なファイルの標準関数を一括置換しません。
@@ -329,6 +329,8 @@ Table: 代替関数と失敗検査の修正対象
 
 ## BL-019 の数値と名前を整理する
 
+Table: 識別子と定数の修正対象
+
 | 対象 | 変更内容 |
 | --- | --- |
 | cplat の `clock/clock.c` | 2 箇所のミリ秒変換の 1000000 を既存の変換定数に集約。符号混在が生じない型で同じ変換値を使用 |
@@ -338,8 +340,6 @@ Table: 代替関数と失敗検査の修正対象
 | cplat の `trace-cli.c` | `g_trace_level_names` と `g_commands` を、それぞれ s_ で始まるファイル内共有変数名へ変更 |
 | porter の `protocol/config_load_service.c` | max_peers の既定値 1024U にファイル内の定数 `POTR_DEFAULT_MAX_PEERS` を付け、値は維持 |
 | porter の packet 定義、解析処理、`thread/thread_connect_prepare.c` | payload_len のワイヤ上のオフセット 34 を内部共有の定数 `POTR_PACKET_PAYLOAD_LEN_OFFSET` にし、初回パケットと通常の解析で共用。バイト列は変えず、ヘッダー末尾との誤った説明も修正 |
-
-Table: 識別子と定数の修正対象
 
 `CRYPTO_H` はファイル名由来のインクルード ガードの規則に合うため、この報告を理由に改名しません。  
 `FILTER_PRIVATE_H` は私有ヘッダーに適用する `_PRIVATE_H` の規則に合うため維持します。
@@ -358,6 +358,8 @@ b が INT_MIN 以外なら、検査後に既存の `calcbase_add(a, -b, ...)` �
 b が INT_MIN で差が表現可能な場合は、a に INT_MAX を加算した中間値へ 1 を加える 2 段階の `calcbase_add` 呼び出しを利用します。  
 両段階で戻り値を検査し、成功した結果だけを呼び出し元へ書き戻します。
 
+Table: 減算の境界条件と受入結果
+
 | 入力 | 結果 |
 | --- | --- |
 | `10 - 3`、`3 - 10` | 従来どおり 7、-7 |
@@ -365,8 +367,6 @@ b が INT_MIN で差が表現可能な場合は、a に INT_MAX を加算した�
 | `-1 - INT_MIN` | 成功、INT_MAX |
 | `INT_MAX - (-1)`、`INT_MIN - 1`、`0 - INT_MIN` | 引数エラー、出力値は不変 |
 | NULL 出力先 | 引数エラー、無効な出力先へアクセスしない |
-
-Table: 減算の境界条件と受入結果
 
 `calcbase_spec.h` の減算の説明に、範囲外の戻り値と失敗時の出力不変を記載します。  
 加算、乗算、除算の公開契約を一括で変更しません。  
@@ -386,6 +386,8 @@ Table: 減算の境界条件と受入結果
 
 ## 永続的な契約と目的を宣言側へ残す
 
+Table: 契約と設計目的の反映先
+
 | 反映先 | 残す内容 |
 | --- | --- |
 | calc の公開ヘッダー、減算の実装コメント、必要な README の節 | 減算の失敗契約と、加算呼び出しを残すサンプルの目的 |
@@ -396,8 +398,6 @@ Table: 減算の境界条件と受入結果
 | doxygen-sample の README | 比較のために維持する記法と非推奨例の位置付け |
 | 過去の残課題一覧 | 元の報告を削除せず、対処結果、報告を採用しない根拠、引き継ぎ先を追記 |
 
-Table: 契約と設計目的の反映先
-
 今回の逸脱箇所を列挙するためだけに共通規範やスキルを変更しません。  
 結果コードや公開契約を変更する箇所は対応する既存文書を確認し、表と本文の不一致があれば同じ変更でそろえます。
 
@@ -405,6 +405,8 @@ Table: 契約と設計目的の反映先
 
 実装前に対象パスの最新の AGENTS.md を確認し、変更に応じて C/C++、Doxygen、単体テストのスキルを適用します。  
 検証は変更した対象に限定し、同じ変更で成功した結果を理由なく繰り返しません。
+
+Table: 対象ごとの検証計画
 
 | 対象 | 局所検証 |
 | --- | --- |
@@ -416,8 +418,6 @@ Table: 契約と設計目的の反映先
 | struct-meta | `structMetaPrintTest`、`structMetaAccessTest`、`jsonEncodeTest`、`jsonDecodeTest`、`structMetaPatchTest`。正常な float/double と大小両方の幅不一致、ネスト・配列を確認。不正記述子を出力前に拒否することを確認 |
 | Doxygen | cplat、struct-meta、string-catalog-sample、calc、doxygen-sample で対象 app の `make doxy`。変更した説明の配置と生成結果、内容のある .warn を確認 |
 | Markdown と差分 | 変更した Markdown ごとに `text_style_jp.py --dry-run`、変換内容を確認後に `--in-place`。ソースの整形差分と変更範囲を確認 |
-
-Table: 対象ごとの検証計画
 
 cplat の局所テストの起点は `app/cplat/test/src/libcplatTest/`、porter は `app/porter/test/src/libporter/`、struct-meta は `app/struct-meta/test/src/` です。  
 局所検証は Windows で実行します。  

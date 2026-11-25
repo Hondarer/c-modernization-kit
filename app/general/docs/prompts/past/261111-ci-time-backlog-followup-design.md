@@ -21,14 +21,14 @@ GitHub Actions の CI の待ち時間を短くします。あわせて、ドキ�
 
 ## 対応の範囲
 
+Table: 課題ごとの対応
+
 | 課題 | 対応 |
 | --- | --- |
 | BL-001 テストのビルドと実行の時間の短縮 | CI の CPU 予算を指定し、並列度を 2 から 4 に上げる。あわせて、記録だけのコミットで CI を起動しない運用を定める |
 | BL-002 `make docs` の時間の短縮 | 対処しない。残課題一覧へ引き継ぐ |
 | BL-003 生成漏れの照合の対象範囲 | 生成ソースの置き場所の規則を文書に記載する。照合の仕組みは変えない |
 | BL-004 `cc` がない PC での `test_ident_batch` の失敗 | `cc` が見つからない場合は、理由を表示してスキップする |
-
-Table: 課題ごとの対応
 
 コンパイル結果のキャッシュ (ccache) とジョブの分割は、今回は扱いません。今回の測定結果とあわせて、残課題一覧に記載します。
 
@@ -51,12 +51,12 @@ Table: 課題ごとの対応
 
 この指定により、makefw の式は次の値を算出します。makefw 本体は変更しません。
 
+Table: MAKEFW_CPU_BUDGET を 8 にした場合の並列度
+
 | OS | make | MSVC の `/MP` | テストの同時実行数 |
 | --- | ---: | ---: | ---: |
 | Linux | `-j4` (変更前は `-j2`) | - | 4 (変更前は 2) |
 | Windows | `-j4` (変更前は `-j2`) | `/MP1` (変更なし) | 4 (変更前は 2) |
-
-Table: MAKEFW_CPU_BUDGET を 8 にした場合の並列度
 
 > [!NOTE]
 > 環境変数をジョブ全体ではなくステップに指定するのは、`make bin-test` (Run script tests ステップ) が実行する makefw のテストへ値が伝わらないようにするためです。`docs` ジョブには指定しません。
@@ -102,13 +102,13 @@ Table: MAKEFW_CPU_BUDGET を 8 にした場合の並列度
 
 ## 知見の反映計画
 
+Table: 知見の反映先
+
 | 反映先 | 内容 |
 | --- | --- |
 | `.github/workflows/ci.yml` のコメント | CPU 予算を論理 CPU 数の 2 倍に指定する理由 |
 | `app/general/docs/workspace-agent-workflow.md` | 記録だけのコミットに `[skip ci]` を付ける運用 |
 | `framework/makefw/docs/build-configurations.md` | 生成ソースを `gen/` に置く規則 |
-
-Table: 知見の反映先
 
 ## 受入条件
 
