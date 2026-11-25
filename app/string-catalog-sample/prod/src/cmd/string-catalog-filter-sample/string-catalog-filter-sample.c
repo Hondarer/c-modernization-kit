@@ -282,6 +282,432 @@ static int s_worker_sync_initialized = 0;
 /** ワーカーへの停止要求です。`s_worker_lock` の下で読み書きします。 */
 static int s_worker_stop_requested = 0;
 
+/** usage が表示する行の種類です。 */
+typedef enum filter_sample_example_kind
+{
+    FILTER_SAMPLE_EXAMPLE_KIND_HEADING = 0,      /**< 分類の見出し。 */
+    FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION = 1,   /**< 条件式とその説明。 */
+    FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE = 2,  /**< レベルの名前と列挙値の対応表。 */
+    FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE = 3 /**< コンテキスト引数の一覧。 */
+} filter_sample_example_kind;
+
+/** usage が表示する 1 行分です。 */
+typedef struct filter_sample_expression_example
+{
+    filter_sample_example_kind kind; /**< 行の種類。 */
+    unsigned int pad;                /**< 明示的アラインメントです。 */
+    const char *expression;          /**< 条件式。条件式の行以外は NULL です。 */
+    const char *description;         /**< 説明、または見出し。対応表の行は NULL です。 */
+} filter_sample_expression_example;
+
+/**
+ *  usage が表示する条件式の例です。README.md の「条件式の例」と同じ内容です。
+ *
+ *  例の値は、emit_worker_cycle() が出力する値 (ジョブ名、優先度、進捗の割合、バイト数、エラー コードなど) と、
+ *  ラウンド トリップ ID の上限 (SAMPLE_WORKER_SEQUENCE_NUMBER_MAX) に合わせています。
+ *  これらを変える場合は、この表と README.md の「条件式の例」を同じ変更で直してください。
+ */
+static const filter_sample_expression_example s_expression_examples[] = {
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "項目の情報で選ぶ (引数の値によらず適用の時点で一致が確定します)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= 2", "レベルが WARNING 以上に重大なトレース (数値で指定)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= WARNING", "同上 (レベル名で指定)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE, 0U, NULL, NULL},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "key == SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS", "ジョブの進捗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U,
+     "key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]", "ジョブの受け付けと失敗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id ends_with \"0005\"",
+     "ID が SAMPLE_WORKER_TRACE_ID_0005 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id matches \"000[45]$\"",
+     "ID の末尾が 0004 または 0005 のトレース (正規表現の部分一致)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "利用者の引数で選ぶ (引数を持たない項目には一致しません)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 1", "ワーカー 1 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name starts_with \"import\"",
+     "ジョブ名が import で始まるジョブの受け付け"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name contains_i \"EXP\"",
+     "ジョブ名に exp を含むジョブの受け付け (ASCII の大文字と小文字を区別しない)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name matches \"^(im|ex)port-[01]$\"",
+     "ジョブ名がワーカー 0 または 1 の import か export であるジョブの受け付け (^ と $ で全体に固定)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name matches_i \"PORT-1\"",
+     "ジョブ名に port-1 を含むジョブの受け付け (正規表現、ASCII の大文字と小文字を区別しない)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.priority between -3 and 3",
+     "優先度が -3 以上 3 以下のジョブの受け付け"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.ratio >= 0.9", "進捗の割合が 0.9 以上のジョブの進捗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.buffer == null", "確保に失敗したバッファーの確保"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.byte_count > 200", "200 バイトを超えるバッファーの確保"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.error_code == -2", "エラー コードが -2 のジョブの失敗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.command == 's'", "コマンドの文字が s の制御コマンドの受信"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.status == 0x1F", "状態フラグが 0x1F の制御コマンドの受信"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.delta < 0", "差分が負の制御コマンドの受信"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "呼び出し位置と実行コンテキストで選ぶ"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE, 0U, NULL, NULL},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.function_name == \"emit_job_failed\"",
+     "関数 emit_job_failed から出力したトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.source_file_name ends_with \".c\"",
+     "拡張子が .c のソースから出力したトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg[42] > 300",
+     "300 行目より後ろの呼び出し位置から出力したトレース ({42} は source_line)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.sequence_number between 90 and 99",
+     "ラウンド トリップ ID が 90 から 99 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg[46] == 1", "ラウンド トリップ ID が 1 のトレース"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "組み合わせる (! && || の順に強く結合します)"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED && arg.error_code != -2",
+     "エラー コードが -2 以外のジョブの失敗"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 0 && !(arg.job_name starts_with \"export\")",
+     "ワーカー 0 のトレースのうち、ジョブ名が export で始まるものを除いたもの"},
+    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "(arg.priority < 0 || arg.ratio >= 0.9) && has(arg.job_id)",
+     "ジョブ番号を持つトレースのうち、優先度が負、または進捗の割合が 0.9 以上のもの"},
+};
+
+/**
+ *  コンテキスト引数の先頭の位置指定です。
+ *
+ *  トレース種別のカタログでは、生成器が {40} から {45} に cplat の文脈引数を、
+ *  {46} から {49} に app が定義するコンテキスト引数を割り当てます。
+ *  詳細は app/string-catalog-sample/docs/architecture.md の「トレース種別のカタログ」を参照してください。
+ *  値は生成器 app/cplat/bin_internal/string_catalog_gen.py の CONTEXT_ARGUMENT_BASE (40) と一致させます。
+ */
+#define FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST 40
+
+static const char *line_error_label(const cplat_string_catalog_filter_line_error error);
+static const char *filter_state_label(const cplat_string_catalog_filter_state state);
+static char *skip_spaces(char *s);
+static void split_first_token(char *text, char **token_out, char **rest_out);
+static void emit_worker_started(const uint32_t worker_index);
+static void emit_worker_stopped(const uint32_t worker_index, const uint64_t processed_count);
+static void emit_job_received(const uint32_t worker_index, const uint64_t job_id, const char *job_name,
+                              const int32_t priority);
+static void emit_job_progress(const uint64_t job_id, const double ratio);
+static void emit_buffer_allocated(const void *buffer, const size_t byte_count);
+static void emit_job_failed(const uint64_t job_id, const int error_code);
+static void emit_command_received(const int command, const int status, const int64_t delta);
+static void emit_worker_wait_failed(const uint32_t worker_index, const int32_t result);
+static void emit_worker_cycle(const unsigned int worker_index, const uint64_t tick);
+static void filter_sample_worker_thread_proc(void *arg);
+static int ensure_worker_sync(void);
+static void stop_all_workers(void);
+static void dispose_worker_sync(void);
+static void filter_sample_trace_hook(cplat_tracer_hook_entry *prev, cplat_tracer *handle, const cplat_trace_level level,
+                                     const cplat_timespec *timestamp, const char *message, void *context);
+static void begin_command_section(cplat_pinned_prompt *screen);
+static void end_command_section(cplat_pinned_prompt *screen);
+static void print_column_marker(cplat_pinned_prompt *screen, const size_t column);
+static void print_diagnostic(cplat_pinned_prompt *screen, const char *expression,
+                             const cplat_string_catalog_filter_diagnostic *diagnostic);
+static void print_filter_lines(cplat_pinned_prompt *screen, const unsigned char *image, const size_t image_size,
+                               cplat_string_catalog_filter_slot *describing_slot);
+static void print_help(cplat_pinned_prompt *screen);
+static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind);
+static void print_context_table(cplat_pinned_prompt *screen);
+static void print_level_table(cplat_pinned_prompt *screen);
+static void print_usage(cplat_pinned_prompt *screen);
+static void print_slot_lines(cplat_pinned_prompt *screen, cplat_string_catalog_filter_slot *slot);
+static void command_list(cplat_pinned_prompt *screen);
+static void print_type_warnings(cplat_pinned_prompt *screen, const size_t line_index);
+static void command_draft(cplat_pinned_prompt *screen);
+static int reject_invalid_level(cplat_pinned_prompt *screen, const char *expression, const size_t line_index);
+static void command_add(cplat_pinned_prompt *screen, const char *expression);
+static void command_insert(cplat_pinned_prompt *screen, char *arg);
+static void command_edit(cplat_pinned_prompt *screen, char *arg);
+static void command_delete(cplat_pinned_prompt *screen, char *arg);
+static void command_clear(cplat_pinned_prompt *screen);
+static void command_load(cplat_pinned_prompt *screen, const char *path);
+static void command_save(cplat_pinned_prompt *screen, const char *path);
+static void command_revert(cplat_pinned_prompt *screen);
+static void command_image(cplat_pinned_prompt *screen);
+static void command_apply(cplat_pinned_prompt *screen);
+static void command_state(cplat_pinned_prompt *screen);
+static void command_display(cplat_pinned_prompt *screen, const char *arg);
+static void command_emit(cplat_pinned_prompt *screen);
+static void command_start(cplat_pinned_prompt *screen, char *arg);
+static void command_stop(cplat_pinned_prompt *screen);
+static void command_language(cplat_pinned_prompt *screen, const char *arg);
+static int open_share(void);
+static void close_share(void);
+static void command_status(cplat_pinned_prompt *screen);
+static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requested_out);
+
+/** 引数種別の表示名です。cplat_string_catalog_argument_kind の値をインデックスとして参照します。 */
+static const char *const s_argument_kind_labels[] = {
+    "UNUSED", "STRING", "CHAR",  "INT8",  "UINT8", "INT16", "UINT16", "INT32",   "UINT32", "INT64",
+    "UINT64", "HEX8",   "HEX16", "HEX32", "HEX64", "SIZE",  "SSIZE",  "POINTER", "DOUBLE", "ERROR_CODE",
+};
+
+/** 出力言語の表示名です。cplat_string_catalog_language の値をインデックスとして参照します。 */
+static const char *const s_language_labels[] = {"neutral", "ja", "en"};
+
+/**
+ *  @brief          プログラムのエントリ ポイント。
+ *  @param[in]      argc コマンド ライン引数の数。引数を指定した場合は使用方法を表示して終了します。
+ *  @param[in]      argv コマンド ライン引数の配列。使用方法の表示に使います。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
+ */
+int main(int argc, char *argv[])
+{
+    cplat_string_catalog_filter_slot *slot = NULL;
+    cplat_pinned_prompt *screen = NULL;
+    cplat_tracer *tracer = NULL;
+    cplat_tracer_hook_entry *hook_entry = NULL;
+    char line[FILTER_SAMPLE_LINE_BUFFER_SIZE];
+    cplat_string_catalog_filter_source_lock source_lock;
+    const void *source;
+    size_t source_size = 0U;
+    int string_key = 0;
+    cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
+    int exit_requested;
+    int is_pinned;
+    int result = EXIT_SUCCESS;
+    int ret;
+
+    /* 共有メモリは一時ディレクトリに固定するため、引数は受け付けない。 */
+    if (argc > 1)
+    {
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "使用方法: %s\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    cplat_console_init();
+
+    ret = cplat_string_catalog_verify(sample_worker_trace_catalog(), &string_key, &language);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: カタログ sample_worker_trace の定義が不正です (文字列キー=%d、言語=%d)。\n",
+                      string_key, (int)language);
+        return EXIT_FAILURE;
+    }
+
+    ret = cplat_string_catalog_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY,
+                                              s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
+        return EXIT_FAILURE;
+    }
+
+    /*
+     * 分類値はトレース レベルとして扱うため、条件式と説明文でもレベルの名前を使う。
+     * 名前解決表は生成物が持つため、作成は生成物の簡易関数に任せる。
+     */
+    ret = sample_worker_trace_create_filter(&s_category_names, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH,
+                                            &slot);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
+        return EXIT_FAILURE;
+    }
+
+    ret = sample_worker_trace_create_filter(&s_category_names, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH,
+                                            &s_preview_slot);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
+        result = EXIT_FAILURE;
+        goto out_dispose_slot;
+    }
+
+    ret = open_share();
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);
+        result = EXIT_FAILURE;
+        goto out_dispose_slot;
+    }
+
+    /*
+     * 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付ける。
+     * 以降はトレース出力のたびに版番号を比べ、変化した場合だけ排他を取って取り込む (二重確認)。
+     */
+    source = sample_filter_share_get_source(s_reader_share, &source_size);
+    ret = sample_filter_share_get_source_lock(s_reader_share, &source_lock);
+    if (ret == CPLAT_OK)
+    {
+        ret = cplat_string_catalog_filter_slot_attach_source(slot, source, source_size, &source_lock);
+    }
+
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: 共有メモリをフィルター スロットへ結び付けられませんでした (結果コード=%d)。\n",
+                      ret);
+        result = EXIT_FAILURE;
+        goto out_dispose_slot;
+    }
+
+    ret = cplat_local_lock_create(&s_display_lock);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: 表示のしきい値を保護するロックを作成できませんでした。\n");
+        result = EXIT_FAILURE;
+        goto out_dispose_slot;
+    }
+
+    ret = cplat_local_lock_create(&s_output_lock);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: 表示の区間を保護するロックを作成できませんでした。\n");
+        result = EXIT_FAILURE;
+        goto out_dispose_lock;
+    }
+
+    screen = cplat_pinned_prompt_create(NULL);
+    if (screen == NULL)
+    {
+        (void)fprintf(stderr, "エラー: pinned-prompt を作成できませんでした。\n");
+        result = EXIT_FAILURE;
+        goto out_dispose_output_lock;
+    }
+
+    tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
+    if (tracer == NULL)
+    {
+        (void)fprintf(stderr, "エラー: トレーサーを作成できませんでした。\n");
+        result = EXIT_FAILURE;
+        goto out_dispose_screen;
+    }
+
+    /* フックは stopped 状態でだけ登録できるため、start の前に登録する。 */
+    hook_entry = cplat_tracer_set_hook(tracer, filter_sample_trace_hook, screen);
+    if (hook_entry == NULL)
+    {
+        (void)fprintf(stderr, "エラー: トレース フックを登録できませんでした。\n");
+        result = EXIT_FAILURE;
+        goto out_dispose_tracer;
+    }
+
+    ret = cplat_tracer_start(tracer);
+    if (ret != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: トレースを開始できませんでした (結果コード=%d)。\n", ret);
+        result = EXIT_FAILURE;
+        goto out_dispose_tracer;
+    }
+
+    s_slot = slot;
+
+    /* sample_worker_trace_create_filter で作成したスロットであり、接続は失敗しないため、戻り値は明示的に破棄する。 */
+    sample_worker_trace_set_tracer(tracer);
+    (void)sample_worker_trace_set_filter(slot);
+
+    print_help(screen);
+
+    is_pinned = (cplat_isatty(CPLAT_STREAM_STDIN) != 0) && (cplat_isatty(CPLAT_STREAM_STDOUT) != 0);
+    exit_requested = 0;
+    while (!exit_requested)
+    {
+        /*
+         * コマンドの表示区間は、空行、入力の書き戻し、コマンドの応答、空行の順に、他スレッドの表示を挟まずに表示する。
+         * 直前の区間の終わりの空行のあとに表示がなければ、始まりの空行は省き、コマンドの間の空行を 1 行に保つ。
+         * 固定プロンプトでは入力した行がプロンプトから消えるため、区間は入力を受け取ってから始め、
+         * プロンプトを前置して書き戻す。入力を待つ間は他スレッドの表示を止めない。
+         * TTY でない場合は cplat_fgets へ切り替わり、プロンプトと入力が同じ行に並ぶため、
+         * 区間はプロンプトの前の空行から始め、プロンプトの後ろへ入力した行だけを続けて書く。
+         * 判定は pinned_prompt が固定プロンプトを使用する条件 (標準入力と標準出力の双方が TTY) と同じである。
+         */
+        if (!is_pinned)
+        {
+            begin_command_section(screen);
+        }
+
+        /*
+         * 直前のコマンドが入力欄の初期値を用意した場合は、それを入れて入力を受け付ける。
+         * 初期値は 1 回だけ使う。端末でない場合、cplat は初期値を使わずに行を読み取る。
+         */
+        if (s_next_input[0] != '\0')
+        {
+            ret = cplat_pinned_prompt_readline_with_initial_at(screen, line, sizeof(line), FILTER_SAMPLE_PROMPT,
+                                                               s_next_input, __FILE__,
+                                                               FILTER_SAMPLE_COMMAND_HISTORY_LINE);
+            s_next_input[0] = '\0';
+        }
+        else
+        {
+            ret = cplat_pinned_prompt_readline_at(screen, line, sizeof(line), FILTER_SAMPLE_PROMPT, __FILE__,
+                                                  FILTER_SAMPLE_COMMAND_HISTORY_LINE);
+        }
+
+        if (ret != CPLAT_OK)
+        {
+            if (!is_pinned)
+            {
+                end_command_section(screen);
+            }
+
+            break;
+        }
+
+        if (!is_pinned)
+        {
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", line);
+        }
+        else if (skip_spaces(line)[0] != '\0')
+        {
+            begin_command_section(screen);
+            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s%s\n", FILTER_SAMPLE_PROMPT,
+                                             line);
+        }
+        else
+        {
+            /* 固定プロンプトの空行は、書き戻しも区間も設けない。 */
+            continue;
+        }
+
+        process_line(screen, line, &exit_requested);
+        end_command_section(screen);
+    }
+
+    /* フックが画面を参照するため、画面の破棄より前にトレーサーを止める。 */
+    stop_all_workers();
+    dispose_worker_sync();
+
+    /*
+     * 停止するのは作成に成功した tracer であり、NULL の指定は接続の解除であり、停止と解除はどちらも
+     * 失敗の条件 (NULL のハンドル、ほかのカタログのスロット) に当たらないため、この 2 つの戻り値は明示的に破棄する。
+     */
+    (void)cplat_tracer_stop(tracer);
+    (void)sample_worker_trace_set_filter(NULL);
+    sample_worker_trace_set_tracer(NULL);
+    cplat_tracer_dispose(&tracer);
+    cplat_pinned_prompt_dispose(screen);
+
+    /*
+     * 共有領域を閉じる前に切り離す。
+     * 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しないため、
+     * 戻り値は明示的に破棄する。
+     */
+    (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
+    close_share();
+    cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
+    cplat_string_catalog_filter_slot_dispose(&slot);
+    cplat_local_lock_dispose(s_output_lock);
+    s_output_lock = NULL;
+    cplat_local_lock_dispose(s_display_lock);
+    s_display_lock = NULL;
+    s_slot = NULL;
+    return result;
+
+out_dispose_tracer:
+    cplat_tracer_dispose(&tracer);
+out_dispose_screen:
+    cplat_pinned_prompt_dispose(screen);
+out_dispose_output_lock:
+    cplat_local_lock_dispose(s_output_lock);
+    s_output_lock = NULL;
+out_dispose_lock:
+    cplat_local_lock_dispose(s_display_lock);
+    s_display_lock = NULL;
+out_dispose_slot:
+    /*
+     * 共有領域を閉じる前に切り離す。
+     * 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しないため、
+     * 戻り値は明示的に破棄する。
+     */
+    (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
+    close_share();
+    cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
+    cplat_string_catalog_filter_slot_dispose(&slot);
+
+    return result;
+}
+
 /* ===== 文字列テーブル引き ===== */
 
 static const char *line_error_label(const cplat_string_catalog_filter_line_error error)
@@ -895,98 +1321,6 @@ static void print_help(cplat_pinned_prompt *screen)
         sample_worker_trace_key_name_count(), (unsigned int)FILTER_SAMPLE_WORKER_DEFAULT_COUNT,
         (unsigned int)FILTER_SAMPLE_WORKER_DEFAULT_INTERVAL_MS);
 }
-
-/** usage が表示する行の種類です。 */
-typedef enum filter_sample_example_kind
-{
-    FILTER_SAMPLE_EXAMPLE_KIND_HEADING = 0,      /**< 分類の見出し。 */
-    FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION = 1,   /**< 条件式とその説明。 */
-    FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE = 2,  /**< レベルの名前と列挙値の対応表。 */
-    FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE = 3 /**< コンテキスト引数の一覧。 */
-} filter_sample_example_kind;
-
-/** usage が表示する 1 行分です。 */
-typedef struct filter_sample_expression_example
-{
-    filter_sample_example_kind kind; /**< 行の種類。 */
-    unsigned int pad;                /**< 明示的アラインメントです。 */
-    const char *expression;          /**< 条件式。条件式の行以外は NULL です。 */
-    const char *description;         /**< 説明、または見出し。対応表の行は NULL です。 */
-} filter_sample_expression_example;
-
-/**
- *  usage が表示する条件式の例です。README.md の「条件式の例」と同じ内容です。
- *
- *  例の値は、emit_worker_cycle() が出力する値 (ジョブ名、優先度、進捗の割合、バイト数、エラー コードなど) と、
- *  ラウンド トリップ ID の上限 (SAMPLE_WORKER_SEQUENCE_NUMBER_MAX) に合わせています。
- *  これらを変える場合は、この表と README.md の「条件式の例」を同じ変更で直してください。
- */
-static const filter_sample_expression_example s_expression_examples[] = {
-    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "項目の情報で選ぶ (引数の値によらず適用の時点で一致が確定します)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= 2", "レベルが WARNING 以上に重大なトレース (数値で指定)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "category <= WARNING", "同上 (レベル名で指定)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_LEVEL_TABLE, 0U, NULL, NULL},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "key == SAMPLE_WORKER_TRACE_KEY_JOB_PROGRESS", "ジョブの進捗"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U,
-     "key in [SAMPLE_WORKER_TRACE_KEY_JOB_RECEIVED, SAMPLE_WORKER_TRACE_KEY_JOB_FAILED]", "ジョブの受け付けと失敗"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id ends_with \"0005\"",
-     "ID が SAMPLE_WORKER_TRACE_ID_0005 のトレース"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "id matches \"000[45]$\"",
-     "ID の末尾が 0004 または 0005 のトレース (正規表現の部分一致)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "利用者の引数で選ぶ (引数を持たない項目には一致しません)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 1", "ワーカー 1 のトレース"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name starts_with \"import\"",
-     "ジョブ名が import で始まるジョブの受け付け"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name contains_i \"EXP\"",
-     "ジョブ名に exp を含むジョブの受け付け (ASCII の大文字と小文字を区別しない)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name matches \"^(im|ex)port-[01]$\"",
-     "ジョブ名がワーカー 0 または 1 の import か export であるジョブの受け付け (^ と $ で全体に固定)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.job_name matches_i \"PORT-1\"",
-     "ジョブ名に port-1 を含むジョブの受け付け (正規表現、ASCII の大文字と小文字を区別しない)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.priority between -3 and 3",
-     "優先度が -3 以上 3 以下のジョブの受け付け"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.ratio >= 0.9", "進捗の割合が 0.9 以上のジョブの進捗"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.buffer == null", "確保に失敗したバッファーの確保"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.byte_count > 200", "200 バイトを超えるバッファーの確保"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.error_code == -2", "エラー コードが -2 のジョブの失敗"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.command == 's'", "コマンドの文字が s の制御コマンドの受信"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.status == 0x1F", "状態フラグが 0x1F の制御コマンドの受信"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.delta < 0", "差分が負の制御コマンドの受信"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "呼び出し位置と実行コンテキストで選ぶ"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_CONTEXT_TABLE, 0U, NULL, NULL},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.function_name == \"emit_job_failed\"",
-     "関数 emit_job_failed から出力したトレース"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.source_file_name ends_with \".c\"",
-     "拡張子が .c のソースから出力したトレース"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg[42] > 300",
-     "300 行目より後ろの呼び出し位置から出力したトレース ({42} は source_line)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.sequence_number between 90 and 99",
-     "ラウンド トリップ ID が 90 から 99 のトレース"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg[46] == 1", "ラウンド トリップ ID が 1 のトレース"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_HEADING, 0U, NULL, "組み合わせる (! && || の順に強く結合します)"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "key == SAMPLE_WORKER_TRACE_KEY_JOB_FAILED && arg.error_code != -2",
-     "エラー コードが -2 以外のジョブの失敗"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "arg.worker_index == 0 && !(arg.job_name starts_with \"export\")",
-     "ワーカー 0 のトレースのうち、ジョブ名が export で始まるものを除いたもの"},
-    {FILTER_SAMPLE_EXAMPLE_KIND_EXPRESSION, 0U, "(arg.priority < 0 || arg.ratio >= 0.9) && has(arg.job_id)",
-     "ジョブ番号を持つトレースのうち、優先度が負、または進捗の割合が 0.9 以上のもの"},
-};
-
-/**
- *  コンテキスト引数の先頭の位置指定です。
- *
- *  トレース種別のカタログでは、生成器が {40} から {45} に cplat の文脈引数を、
- *  {46} から {49} に app が定義するコンテキスト引数を割り当てます。
- *  詳細は app/string-catalog-sample/docs/architecture.md の「トレース種別のカタログ」を参照してください。
- *  値は生成器 app/cplat/bin_internal/string_catalog_gen.py の CONTEXT_ARGUMENT_BASE (40) と一致させます。
- */
-#define FILTER_SAMPLE_CONTEXT_ARGUMENT_FIRST 40
-
-/** 引数種別の表示名です。cplat_string_catalog_argument_kind の値をインデックスとして参照します。 */
-static const char *const s_argument_kind_labels[] = {
-    "UNUSED", "STRING", "CHAR",  "INT8",  "UINT8", "INT16", "UINT16", "INT32",   "UINT32", "INT64",
-    "UINT64", "HEX8",   "HEX16", "HEX32", "HEX64", "SIZE",  "SSIZE",  "POINTER", "DOUBLE", "ERROR_CODE",
-};
 
 static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind)
 {
@@ -1886,9 +2220,6 @@ static void command_stop(cplat_pinned_prompt *screen)
     (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "ワーカーを停止しました。\n");
 }
 
-/** 出力言語の表示名です。cplat_string_catalog_language の値をインデックスとして参照します。 */
-static const char *const s_language_labels[] = {"neutral", "ja", "en"};
-
 /**
  *  @brief          出力言語を取得または設定します。
  *
@@ -2145,277 +2476,4 @@ static void process_line(cplat_pinned_prompt *screen, char *line, int *exit_requ
         (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDERR,
                                          "不明なコマンドです: %s (help を参照)\n", command);
     }
-}
-
-/**
- *  @brief          プログラムのエントリ ポイント。
- *  @param[in]      argc コマンド ライン引数の数。引数を指定した場合は使用方法を表示して終了します。
- *  @param[in]      argv コマンド ライン引数の配列。使用方法の表示に使います。
- *  @return         成功時は 0、失敗時は 0 以外の値を返します。
- */
-int main(int argc, char *argv[])
-{
-    cplat_string_catalog_filter_slot *slot = NULL;
-    cplat_pinned_prompt *screen = NULL;
-    cplat_tracer *tracer = NULL;
-    cplat_tracer_hook_entry *hook_entry = NULL;
-    char line[FILTER_SAMPLE_LINE_BUFFER_SIZE];
-    cplat_string_catalog_filter_source_lock source_lock;
-    const void *source;
-    size_t source_size = 0U;
-    int string_key = 0;
-    cplat_string_catalog_language language = CPLAT_STRING_CATALOG_LANGUAGE_NEUTRAL;
-    int exit_requested;
-    int is_pinned;
-    int result = EXIT_SUCCESS;
-    int ret;
-
-    /* 共有メモリは一時ディレクトリに固定するため、引数は受け付けない。 */
-    if (argc > 1)
-    {
-        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
-        (void)fprintf(stderr, "使用方法: %s\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    cplat_console_init();
-
-    ret = cplat_string_catalog_verify(sample_worker_trace_catalog(), &string_key, &language);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: カタログ sample_worker_trace の定義が不正です (文字列キー=%d、言語=%d)。\n",
-                      string_key, (int)language);
-        return EXIT_FAILURE;
-    }
-
-    ret = cplat_string_catalog_filter_compile(NULL, 0, FILTER_SAMPLE_LINE_WIDTH, FILTER_SAMPLE_LINE_CAPACITY,
-                                              s_draft_image, sizeof(s_draft_image), NULL, 0, NULL);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: 編集中イメージを初期化できませんでした (結果コード=%d)。\n", ret);
-        return EXIT_FAILURE;
-    }
-
-    /*
-     * 分類値はトレース レベルとして扱うため、条件式と説明文でもレベルの名前を使う。
-     * 名前解決表は生成物が持つため、作成は生成物の簡易関数に任せる。
-     */
-    ret = sample_worker_trace_create_filter(&s_category_names, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH,
-                                            &slot);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: フィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
-        return EXIT_FAILURE;
-    }
-
-    ret = sample_worker_trace_create_filter(&s_category_names, FILTER_SAMPLE_LINE_CAPACITY, FILTER_SAMPLE_LINE_WIDTH,
-                                            &s_preview_slot);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: 下見用のフィルター スロットを作成できませんでした (結果コード=%d)。\n", ret);
-        result = EXIT_FAILURE;
-        goto out_dispose_slot;
-    }
-
-    ret = open_share();
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: 共有メモリ %s を開けませんでした (結果コード=%d)。\n", s_share_path, ret);
-        result = EXIT_FAILURE;
-        goto out_dispose_slot;
-    }
-
-    /*
-     * 読み取り側の共有メモリを、書き込み側の排他とともにスロットへ結び付ける。
-     * 以降はトレース出力のたびに版番号を比べ、変化した場合だけ排他を取って取り込む (二重確認)。
-     */
-    source = sample_filter_share_get_source(s_reader_share, &source_size);
-    ret = sample_filter_share_get_source_lock(s_reader_share, &source_lock);
-    if (ret == CPLAT_OK)
-    {
-        ret = cplat_string_catalog_filter_slot_attach_source(slot, source, source_size, &source_lock);
-    }
-
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: 共有メモリをフィルター スロットへ結び付けられませんでした (結果コード=%d)。\n",
-                      ret);
-        result = EXIT_FAILURE;
-        goto out_dispose_slot;
-    }
-
-    ret = cplat_local_lock_create(&s_display_lock);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: 表示のしきい値を保護するロックを作成できませんでした。\n");
-        result = EXIT_FAILURE;
-        goto out_dispose_slot;
-    }
-
-    ret = cplat_local_lock_create(&s_output_lock);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: 表示の区間を保護するロックを作成できませんでした。\n");
-        result = EXIT_FAILURE;
-        goto out_dispose_lock;
-    }
-
-    screen = cplat_pinned_prompt_create(NULL);
-    if (screen == NULL)
-    {
-        (void)fprintf(stderr, "エラー: pinned-prompt を作成できませんでした。\n");
-        result = EXIT_FAILURE;
-        goto out_dispose_output_lock;
-    }
-
-    tracer = cplat_tracer_create(CPLAT_TRACER_CONCURRENCY_TRACER_MANAGED);
-    if (tracer == NULL)
-    {
-        (void)fprintf(stderr, "エラー: トレーサーを作成できませんでした。\n");
-        result = EXIT_FAILURE;
-        goto out_dispose_screen;
-    }
-
-    /* フックは stopped 状態でだけ登録できるため、start の前に登録する。 */
-    hook_entry = cplat_tracer_set_hook(tracer, filter_sample_trace_hook, screen);
-    if (hook_entry == NULL)
-    {
-        (void)fprintf(stderr, "エラー: トレース フックを登録できませんでした。\n");
-        result = EXIT_FAILURE;
-        goto out_dispose_tracer;
-    }
-
-    ret = cplat_tracer_start(tracer);
-    if (ret != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: トレースを開始できませんでした (結果コード=%d)。\n", ret);
-        result = EXIT_FAILURE;
-        goto out_dispose_tracer;
-    }
-
-    s_slot = slot;
-
-    /* sample_worker_trace_create_filter で作成したスロットであり、接続は失敗しないため、戻り値は明示的に破棄する。 */
-    sample_worker_trace_set_tracer(tracer);
-    (void)sample_worker_trace_set_filter(slot);
-
-    print_help(screen);
-
-    is_pinned = (cplat_isatty(CPLAT_STREAM_STDIN) != 0) && (cplat_isatty(CPLAT_STREAM_STDOUT) != 0);
-    exit_requested = 0;
-    while (!exit_requested)
-    {
-        /*
-         * コマンドの表示区間は、空行、入力の書き戻し、コマンドの応答、空行の順に、他スレッドの表示を挟まずに表示する。
-         * 直前の区間の終わりの空行のあとに表示がなければ、始まりの空行は省き、コマンドの間の空行を 1 行に保つ。
-         * 固定プロンプトでは入力した行がプロンプトから消えるため、区間は入力を受け取ってから始め、
-         * プロンプトを前置して書き戻す。入力を待つ間は他スレッドの表示を止めない。
-         * TTY でない場合は cplat_fgets へ切り替わり、プロンプトと入力が同じ行に並ぶため、
-         * 区間はプロンプトの前の空行から始め、プロンプトの後ろへ入力した行だけを続けて書く。
-         * 判定は pinned_prompt が固定プロンプトを使用する条件 (標準入力と標準出力の双方が TTY) と同じである。
-         */
-        if (!is_pinned)
-        {
-            begin_command_section(screen);
-        }
-
-        /*
-         * 直前のコマンドが入力欄の初期値を用意した場合は、それを入れて入力を受け付ける。
-         * 初期値は 1 回だけ使う。端末でない場合、cplat は初期値を使わずに行を読み取る。
-         */
-        if (s_next_input[0] != '\0')
-        {
-            ret = cplat_pinned_prompt_readline_with_initial_at(screen, line, sizeof(line), FILTER_SAMPLE_PROMPT,
-                                                               s_next_input, __FILE__,
-                                                               FILTER_SAMPLE_COMMAND_HISTORY_LINE);
-            s_next_input[0] = '\0';
-        }
-        else
-        {
-            ret = cplat_pinned_prompt_readline_at(screen, line, sizeof(line), FILTER_SAMPLE_PROMPT, __FILE__,
-                                                  FILTER_SAMPLE_COMMAND_HISTORY_LINE);
-        }
-
-        if (ret != CPLAT_OK)
-        {
-            if (!is_pinned)
-            {
-                end_command_section(screen);
-            }
-
-            break;
-        }
-
-        if (!is_pinned)
-        {
-            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s\n", line);
-        }
-        else if (skip_spaces(line)[0] != '\0')
-        {
-            begin_command_section(screen);
-            (void)cplat_pinned_prompt_printf(screen, CPLAT_PINNED_PROMPT_CHANNEL_STDOUT, "%s%s\n", FILTER_SAMPLE_PROMPT,
-                                             line);
-        }
-        else
-        {
-            /* 固定プロンプトの空行は、書き戻しも区間も設けない。 */
-            continue;
-        }
-
-        process_line(screen, line, &exit_requested);
-        end_command_section(screen);
-    }
-
-    /* フックが画面を参照するため、画面の破棄より前にトレーサーを止める。 */
-    stop_all_workers();
-    dispose_worker_sync();
-
-    /*
-     * 停止するのは作成に成功した tracer であり、NULL の指定は接続の解除であり、停止と解除はどちらも
-     * 失敗の条件 (NULL のハンドル、ほかのカタログのスロット) に当たらないため、この 2 つの戻り値は明示的に破棄する。
-     */
-    (void)cplat_tracer_stop(tracer);
-    (void)sample_worker_trace_set_filter(NULL);
-    sample_worker_trace_set_tracer(NULL);
-    cplat_tracer_dispose(&tracer);
-    cplat_pinned_prompt_dispose(screen);
-
-    /*
-     * 共有領域を閉じる前に切り離す。
-     * 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しないため、
-     * 戻り値は明示的に破棄する。
-     */
-    (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
-    close_share();
-    cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
-    cplat_string_catalog_filter_slot_dispose(&slot);
-    cplat_local_lock_dispose(s_output_lock);
-    s_output_lock = NULL;
-    cplat_local_lock_dispose(s_display_lock);
-    s_display_lock = NULL;
-    s_slot = NULL;
-    return result;
-
-out_dispose_tracer:
-    cplat_tracer_dispose(&tracer);
-out_dispose_screen:
-    cplat_pinned_prompt_dispose(screen);
-out_dispose_output_lock:
-    cplat_local_lock_dispose(s_output_lock);
-    s_output_lock = NULL;
-out_dispose_lock:
-    cplat_local_lock_dispose(s_display_lock);
-    s_display_lock = NULL;
-out_dispose_slot:
-    /*
-     * 共有領域を閉じる前に切り離す。
-     * 両終了経路では有効な slot だけ到達し、source=NULL・lock=NULL の切り離しは検証に失敗しないため、
-     * 戻り値は明示的に破棄する。
-     */
-    (void)cplat_string_catalog_filter_slot_attach_source(slot, NULL, 0U, NULL);
-    close_share();
-    cplat_string_catalog_filter_slot_dispose(&s_preview_slot);
-    cplat_string_catalog_filter_slot_dispose(&slot);
-
-    return result;
 }

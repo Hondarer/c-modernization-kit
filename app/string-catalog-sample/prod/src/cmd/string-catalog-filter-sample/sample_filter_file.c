@@ -35,89 +35,8 @@ static const unsigned char s_utf8_bom[] = {0xEFU, 0xBBU, 0xBFU};
 /** 復元した 1 行を格納する大きさ [byte] (終端 NUL を含む) です。括弧を補うため、行幅の上限より大きく取ります。 */
 #define DECOMPILE_BUFFER_SIZE ((size_t)CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX * 2U)
 
-/** 行末の改行 (LF または CRLF) を取り除きます。 */
-static void trim_newline(char *line)
-{
-    size_t length = strlen(line);
-
-    while ((length > 0U) && ((line[length - 1U] == '\n') || (line[length - 1U] == '\r')))
-    {
-        length--;
-        line[length] = '\0';
-    }
-}
-
-/**
- *  @brief          ファイルの行を、行幅ごとの条件式リストの配列へ読み込みます。
- *  @param[in]      stream          読み込むストリーム。
- *  @param[in]      line_width      行幅。
- *  @param[out]     rows            条件式リストの配列。@ref SAMPLE_FILTER_FILE_LINE_MAX 行分を 0 で埋めておきます。
- *  @param[out]     too_long        行幅を超えた行の印。@ref SAMPLE_FILTER_FILE_LINE_MAX 要素。
- *  @param[out]     line_count_out  読み込んだ行数。
- *  @return         成功時は `CPLAT_OK`、行数の上限を超えた場合は `CPLAT_ERR_LIMIT_EXCEEDED`、
- *                  読み取りに失敗した場合は `CPLAT_ERR_UNKNOWN` を返します。
- */
-static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *too_long, size_t *line_count_out)
-{
-    /* 行幅いっぱいの行に、BOM (3 [byte])、改行 (最大 2 [byte])、NUL を加えても収まる大きさ */
-    char buffer[CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX + READ_ROW_EXTRA_BYTES];
-    size_t line_count = 0U;
-
-    for (;;)
-    {
-        char *row;
-        int ret = cplat_fgets(buffer, line_width + READ_ROW_EXTRA_BYTES, stream, NULL);
-        bool is_overflowed = false;
-
-        if (ret == CPLAT_ERR_EOF)
-        {
-            break;
-        }
-
-        if (line_count >= SAMPLE_FILTER_FILE_LINE_MAX)
-        {
-            return CPLAT_ERR_LIMIT_EXCEEDED;
-        }
-
-        /* 収まらない行は、行の残りを読み捨てて、行幅を超えた行として扱う。 */
-        while (ret == CPLAT_ERR_BUFFER_TOO_SMALL)
-        {
-            char rest[READ_ROW_DISCARD_SIZE];
-
-            is_overflowed = true;
-            ret = cplat_fgets(rest, sizeof(rest), stream, NULL);
-        }
-
-        if ((ret != CPLAT_OK) && (ret != CPLAT_ERR_EOF))
-        {
-            return CPLAT_ERR_UNKNOWN;
-        }
-
-        trim_newline(buffer);
-
-        if ((line_count == 0U) && (memcmp(buffer, s_utf8_bom, sizeof(s_utf8_bom)) == 0))
-        {
-            memmove(buffer, buffer + sizeof(s_utf8_bom), strlen(buffer) - sizeof(s_utf8_bom) + 1U);
-        }
-
-        row = rows + (line_count * line_width);
-
-        if (is_overflowed || (strlen(buffer) > line_width))
-        {
-            too_long[line_count] = true;
-        }
-        else
-        {
-            memcpy(row, buffer, strlen(buffer));
-        }
-
-        line_count++;
-    }
-
-    *line_count_out = line_count;
-
-    return CPLAT_OK;
-}
+static void trim_newline(char *line);
+static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *too_long, size_t *line_count_out);
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -272,4 +191,88 @@ int sample_filter_file_save(const char *path, const void *image, const size_t im
     }
 
     return ret;
+}
+
+/** 行末の改行 (LF または CRLF) を取り除きます。 */
+static void trim_newline(char *line)
+{
+    size_t length = strlen(line);
+
+    while ((length > 0U) && ((line[length - 1U] == '\n') || (line[length - 1U] == '\r')))
+    {
+        length--;
+        line[length] = '\0';
+    }
+}
+
+/**
+ *  @brief          ファイルの行を、行幅ごとの条件式リストの配列へ読み込みます。
+ *  @param[in]      stream          読み込むストリーム。
+ *  @param[in]      line_width      行幅。
+ *  @param[out]     rows            条件式リストの配列。@ref SAMPLE_FILTER_FILE_LINE_MAX 行分を 0 で埋めておきます。
+ *  @param[out]     too_long        行幅を超えた行の印。@ref SAMPLE_FILTER_FILE_LINE_MAX 要素。
+ *  @param[out]     line_count_out  読み込んだ行数。
+ *  @return         成功時は `CPLAT_OK`、行数の上限を超えた場合は `CPLAT_ERR_LIMIT_EXCEEDED`、
+ *                  読み取りに失敗した場合は `CPLAT_ERR_UNKNOWN` を返します。
+ */
+static int read_rows(FILE *stream, const size_t line_width, char *rows, bool *too_long, size_t *line_count_out)
+{
+    /* 行幅いっぱいの行に、BOM (3 [byte])、改行 (最大 2 [byte])、NUL を加えても収まる大きさ */
+    char buffer[CPLAT_STRING_CATALOG_FILTER_LINE_WIDTH_MAX + READ_ROW_EXTRA_BYTES];
+    size_t line_count = 0U;
+
+    for (;;)
+    {
+        char *row;
+        int ret = cplat_fgets(buffer, line_width + READ_ROW_EXTRA_BYTES, stream, NULL);
+        bool is_overflowed = false;
+
+        if (ret == CPLAT_ERR_EOF)
+        {
+            break;
+        }
+
+        if (line_count >= SAMPLE_FILTER_FILE_LINE_MAX)
+        {
+            return CPLAT_ERR_LIMIT_EXCEEDED;
+        }
+
+        /* 収まらない行は、行の残りを読み捨てて、行幅を超えた行として扱う。 */
+        while (ret == CPLAT_ERR_BUFFER_TOO_SMALL)
+        {
+            char rest[READ_ROW_DISCARD_SIZE];
+
+            is_overflowed = true;
+            ret = cplat_fgets(rest, sizeof(rest), stream, NULL);
+        }
+
+        if ((ret != CPLAT_OK) && (ret != CPLAT_ERR_EOF))
+        {
+            return CPLAT_ERR_UNKNOWN;
+        }
+
+        trim_newline(buffer);
+
+        if ((line_count == 0U) && (memcmp(buffer, s_utf8_bom, sizeof(s_utf8_bom)) == 0))
+        {
+            memmove(buffer, buffer + sizeof(s_utf8_bom), strlen(buffer) - sizeof(s_utf8_bom) + 1U);
+        }
+
+        row = rows + (line_count * line_width);
+
+        if (is_overflowed || (strlen(buffer) > line_width))
+        {
+            too_long[line_count] = true;
+        }
+        else
+        {
+            memcpy(row, buffer, strlen(buffer));
+        }
+
+        line_count++;
+    }
+
+    *line_count_out = line_count;
+
+    return CPLAT_OK;
 }

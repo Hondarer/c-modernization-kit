@@ -35,6 +35,91 @@ static const char *const s_lookup_names[] = {"beta", "delta"};
 /** `s_lookup_names` の要素数です。 */
 #define LOOKUP_COUNT ((int)(sizeof(s_lookup_names) / sizeof(s_lookup_names[0])))
 
+static cplat_tracer *create_stderr_tracer(void);
+static int print_lookup_results(void);
+static int print_library_messages(void);
+
+/**
+ *  @brief          プログラムのエントリ ポイントです。
+ *  @param[in]      argc コマンド ライン引数の数。この引数は使用しません。
+ *  @param[in]      argv コマンド ライン引数の配列。この引数は使用しません。
+ *  @return         成功時は 0、失敗時は 0 以外の値を返します。
+ */
+int main(int argc, char *argv[])
+{
+    cplat_tracer *tracer;
+
+    (void)argc;
+    (void)argv;
+
+    cplat_console_init();
+
+    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響する。初期化の前に設定する。 */
+    if (cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE) != CPLAT_OK)
+    {
+        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
+        return EXIT_FAILURE;
+    }
+
+    tracer = create_stderr_tracer();
+    if (tracer == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+
+    /* カタログの点検はライブラリの責務であるため、利用側は初期化を呼び出すのみとする。 */
+    if (samplecatalog_initialize(tracer) != CPLAT_OK)
+    {
+        cplat_tracer_dispose(&tracer);
+        (void)fprintf(stderr, "エラー: ライブラリを初期化できませんでした。\n");
+        return EXIT_FAILURE;
+    }
+
+    /*
+     * 標準出力への途中の出力の失敗はストリームに残り、終了の直前にまとめて検査するため、
+     * この関数の printf と途中の fflush の戻り値は明示的に破棄する。
+     */
+    (void)printf("\n[ライブラリのカタログから組み立てた文字列]\n\n");
+    (void)fflush(stdout);
+
+    if (print_library_messages() != CPLAT_OK)
+    {
+        return EXIT_FAILURE;
+    }
+
+    (void)printf("\n[ライブラリの API が返す文字列]\n\n");
+    (void)fflush(stdout);
+
+    if (print_lookup_results() != CPLAT_OK)
+    {
+        return EXIT_FAILURE;
+    }
+
+    /* 利用側がライブラリのカタログへ直接トレースを出力することも可能である。 */
+    (void)printf("\n[利用側からのトレース出力]\n\n");
+    (void)fflush(stdout);
+
+    if (samplecatalog_trace_key_lookup_performed("epsilon") != CPLAT_OK)
+    {
+        (void)fprintf(stderr, "エラー: トレースを出力できませんでした。\n");
+        return EXIT_FAILURE;
+    }
+
+    /* 標準出力はこのサンプルの成果物であるため、途中の書き込みの失敗を終了の直前にまとめて検査する。 */
+    if (fflush(stdout) != 0 || ferror(stdout) != 0)
+    {
+        (void)fprintf(stderr, "エラー: 標準出力へ書き込めませんでした。\n");
+        return EXIT_FAILURE;
+    }
+
+    /*
+     * トレーサーの解除と破棄は行わない。プロセスの終了時に cplat が自動で破棄し、
+     * その後の出力要求経路が存在しないためである。
+     */
+    return EXIT_SUCCESS;
+}
+
 /**
  *  @brief          ライブラリのトレース出力先となるトレーサーを生成します。
  *  @return         生成したトレーサーを返します。失敗した場合は NULL を返します。
@@ -153,85 +238,4 @@ static int print_library_messages(void)
     (void)printf("  %s\n", text);
 
     return CPLAT_OK;
-}
-
-/**
- *  @brief          プログラムのエントリ ポイントです。
- *  @param[in]      argc コマンド ライン引数の数。この引数は使用しません。
- *  @param[in]      argv コマンド ライン引数の配列。この引数は使用しません。
- *  @return         成功時は 0、失敗時は 0 以外の値を返します。
- */
-int main(int argc, char *argv[])
-{
-    cplat_tracer *tracer;
-
-    (void)argc;
-    (void)argv;
-
-    cplat_console_init();
-
-    /* 言語はプロセス全体の設定であり、ライブラリの出力にも影響する。初期化の前に設定する。 */
-    if (cplat_string_catalog_set_language(CPLAT_STRING_CATALOG_LANGUAGE_JAPANESE) != CPLAT_OK)
-    {
-        /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
-        (void)fprintf(stderr, "エラー: 言語を設定できませんでした。\n");
-        return EXIT_FAILURE;
-    }
-
-    tracer = create_stderr_tracer();
-    if (tracer == NULL)
-    {
-        return EXIT_FAILURE;
-    }
-
-    /* カタログの点検はライブラリの責務であるため、利用側は初期化を呼び出すのみとする。 */
-    if (samplecatalog_initialize(tracer) != CPLAT_OK)
-    {
-        cplat_tracer_dispose(&tracer);
-        (void)fprintf(stderr, "エラー: ライブラリを初期化できませんでした。\n");
-        return EXIT_FAILURE;
-    }
-
-    /*
-     * 標準出力への途中の出力の失敗はストリームに残り、終了の直前にまとめて検査するため、
-     * この関数の printf と途中の fflush の戻り値は明示的に破棄する。
-     */
-    (void)printf("\n[ライブラリのカタログから組み立てた文字列]\n\n");
-    (void)fflush(stdout);
-
-    if (print_library_messages() != CPLAT_OK)
-    {
-        return EXIT_FAILURE;
-    }
-
-    (void)printf("\n[ライブラリの API が返す文字列]\n\n");
-    (void)fflush(stdout);
-
-    if (print_lookup_results() != CPLAT_OK)
-    {
-        return EXIT_FAILURE;
-    }
-
-    /* 利用側がライブラリのカタログへ直接トレースを出力することも可能である。 */
-    (void)printf("\n[利用側からのトレース出力]\n\n");
-    (void)fflush(stdout);
-
-    if (samplecatalog_trace_key_lookup_performed("epsilon") != CPLAT_OK)
-    {
-        (void)fprintf(stderr, "エラー: トレースを出力できませんでした。\n");
-        return EXIT_FAILURE;
-    }
-
-    /* 標準出力はこのサンプルの成果物であるため、途中の書き込みの失敗を終了の直前にまとめて検査する。 */
-    if (fflush(stdout) != 0 || ferror(stdout) != 0)
-    {
-        (void)fprintf(stderr, "エラー: 標準出力へ書き込めませんでした。\n");
-        return EXIT_FAILURE;
-    }
-
-    /*
-     * トレーサーの解除と破棄は行わない。プロセスの終了時に cplat が自動で破棄し、
-     * その後の出力要求経路が存在しないためである。
-     */
-    return EXIT_SUCCESS;
 }

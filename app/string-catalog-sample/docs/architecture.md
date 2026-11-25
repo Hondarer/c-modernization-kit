@@ -237,7 +237,7 @@ Table: トレース用文脈引数の位置指定と内容一覧
 `sample_trace.jsonc` の `SAMPLE_TRACE_KEY_STATE_DUMP` が、書式から文脈引数を参照する例です。
 
 ```text
-キューの長さは 7 です。[string-catalog-command-sample.c:273 write_traces] パス=string-catalog-command-sample.c プロセス=1917265 スレッド=1917265
+キューの長さは 7 です。[string-catalog-command-sample.c:355 write_traces] パス=string-catalog-command-sample.c プロセス=1917265 スレッド=1917265
 ```
 
 記述した引数の個数から 39 番までは、値を受け取らないインデックスです。  

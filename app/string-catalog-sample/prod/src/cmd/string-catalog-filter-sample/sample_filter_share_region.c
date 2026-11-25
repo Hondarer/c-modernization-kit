@@ -46,22 +46,7 @@ struct sample_filter_share_lock
     cplat_interprocess_lock *process; /**< プロセスの間を直列化するファイル ロック。 */
 };
 
-/** cplat の結果コードを、本モジュールの結果へ変換します。 */
-static sample_filter_share_region_result result_of(const int cplat_result)
-{
-    switch (cplat_result)
-    {
-    case CPLAT_OK:
-        return SAMPLE_FILTER_SHARE_REGION_OK;
-    case CPLAT_ERR_INVALID_ARGUMENT:
-        return SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT;
-    case CPLAT_ERR_TIMEOUT:
-    case CPLAT_ERR_BUSY:
-        return SAMPLE_FILTER_SHARE_REGION_TIMEOUT;
-    default:
-        return SAMPLE_FILTER_SHARE_REGION_FAILED;
-    }
-}
+static sample_filter_share_region_result result_of(const int cplat_result);
 
 /* ===== 受け渡し用のメモリ領域 ===== */
 
@@ -288,4 +273,21 @@ sample_filter_share_region_result sample_filter_share_lock_release(sample_filter
     }
 
     return SAMPLE_FILTER_SHARE_REGION_OK;
+}
+
+/** cplat の結果コードを、本モジュールの結果へ変換します。 */
+static sample_filter_share_region_result result_of(const int cplat_result)
+{
+    switch (cplat_result)
+    {
+    case CPLAT_OK:
+        return SAMPLE_FILTER_SHARE_REGION_OK;
+    case CPLAT_ERR_INVALID_ARGUMENT:
+        return SAMPLE_FILTER_SHARE_REGION_INVALID_ARGUMENT;
+    case CPLAT_ERR_TIMEOUT:
+    case CPLAT_ERR_BUSY:
+        return SAMPLE_FILTER_SHARE_REGION_TIMEOUT;
+    default:
+        return SAMPLE_FILTER_SHARE_REGION_FAILED;
+    }
 }

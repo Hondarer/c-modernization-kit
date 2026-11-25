@@ -38,23 +38,8 @@ struct sample_filter_share
     uint32_t line_width;                /**< 行幅。 */
 };
 
-/** cplat が公開と取り込みの間に、排他を取得するために呼び出します。 */
-static int acquire_source_lock(void *context)
-{
-    const source_lock_context *lock_context = (const source_lock_context *)context;
-
-    return sample_filter_share_to_result(
-        sample_filter_share_lock_acquire(lock_context->lock, lock_context->timeout_ms));
-}
-
-/** cplat が公開と取り込みの間に、排他を解放するために呼び出します。 */
-static void release_source_lock(void *context)
-{
-    if (sample_filter_share_lock_release(((const source_lock_context *)context)->lock) != SAMPLE_FILTER_SHARE_REGION_OK)
-    {
-        CPLAT_ABORT("共有文字列カタログの解放コールバックで排他を解放できません");
-    }
-}
+static int acquire_source_lock(void *context);
+static void release_source_lock(void *context);
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -213,4 +198,22 @@ int sample_filter_share_get_source_lock(sample_filter_share *share, cplat_string
     lock_out->context = &share->reader_lock;
 
     return CPLAT_OK;
+}
+
+/** cplat が公開と取り込みの間に、排他を取得するために呼び出します。 */
+static int acquire_source_lock(void *context)
+{
+    const source_lock_context *lock_context = (const source_lock_context *)context;
+
+    return sample_filter_share_to_result(
+        sample_filter_share_lock_acquire(lock_context->lock, lock_context->timeout_ms));
+}
+
+/** cplat が公開と取り込みの間に、排他を解放するために呼び出します。 */
+static void release_source_lock(void *context)
+{
+    if (sample_filter_share_lock_release(((const source_lock_context *)context)->lock) != SAMPLE_FILTER_SHARE_REGION_OK)
+    {
+        CPLAT_ABORT("共有文字列カタログの解放コールバックで排他を解放できません");
+    }
 }

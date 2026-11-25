@@ -15,6 +15,12 @@
 #include <cplat/base/result.h>
 #include <cplat/crt/stdio.h>
 
+static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind);
+static const cplat_string_catalog_argument *find_argument(const cplat_string_catalog *catalog, const int string_key,
+                                                          const int argument_index,
+                                                          const cplat_string_catalog_entry **entry_out);
+static const char *entry_label(const cplat_string_catalog_entry *entry);
+
 /** 文字列以外の引数をまとめて表す語です。cplat は文字列と文字列以外の 2 区分で混在を判断します。 */
 static const char *const s_other_class_label = "数値";
 
@@ -23,45 +29,6 @@ static const char *const s_argument_kind_labels[] = {
     "UNUSED", "STRING", "CHAR",  "INT8",  "UINT8", "INT16", "UINT16", "INT32",   "UINT32", "INT64",
     "UINT64", "HEX8",   "HEX16", "HEX32", "HEX64", "SIZE",  "SSIZE",  "POINTER", "DOUBLE", "ERROR_CODE",
 };
-
-/* 引数種別の表示名を取得する。範囲外の値の場合は "?" を返す。 */
-static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind)
-{
-    if ((unsigned int)kind >= (sizeof(s_argument_kind_labels) / sizeof(s_argument_kind_labels[0])))
-    {
-        return "?";
-    }
-
-    return s_argument_kind_labels[(unsigned int)kind];
-}
-
-/** 文字列キーと引数の位置から、カタログの引数定義を求めます。見つからない場合は NULL です。 */
-static const cplat_string_catalog_argument *find_argument(const cplat_string_catalog *catalog, const int string_key,
-                                                          const int argument_index,
-                                                          const cplat_string_catalog_entry **entry_out)
-{
-    const cplat_string_catalog_entry *entry = cplat_string_catalog_get_entry(catalog, string_key);
-
-    if ((entry == NULL) || (argument_index < 0) || (argument_index >= entry->argument_count))
-    {
-        return NULL;
-    }
-
-    *entry_out = entry;
-
-    return &entry->arguments[argument_index];
-}
-
-/** 項目を表す名前です。ID を省略した項目は brief で表します。 */
-static const char *entry_label(const cplat_string_catalog_entry *entry)
-{
-    if (entry->id != NULL)
-    {
-        return entry->id;
-    }
-
-    return entry->brief;
-}
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -111,4 +78,43 @@ int sample_filter_warning_format(const cplat_string_catalog *catalog,
     default:
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
+}
+
+/* 引数種別の表示名を取得する。範囲外の値の場合は "?" を返す。 */
+static const char *argument_kind_label(const cplat_string_catalog_argument_kind kind)
+{
+    if ((unsigned int)kind >= (sizeof(s_argument_kind_labels) / sizeof(s_argument_kind_labels[0])))
+    {
+        return "?";
+    }
+
+    return s_argument_kind_labels[(unsigned int)kind];
+}
+
+/** 文字列キーと引数の位置から、カタログの引数定義を求めます。見つからない場合は NULL です。 */
+static const cplat_string_catalog_argument *find_argument(const cplat_string_catalog *catalog, const int string_key,
+                                                          const int argument_index,
+                                                          const cplat_string_catalog_entry **entry_out)
+{
+    const cplat_string_catalog_entry *entry = cplat_string_catalog_get_entry(catalog, string_key);
+
+    if ((entry == NULL) || (argument_index < 0) || (argument_index >= entry->argument_count))
+    {
+        return NULL;
+    }
+
+    *entry_out = entry;
+
+    return &entry->arguments[argument_index];
+}
+
+/** 項目を表す名前です。ID を省略した項目は brief で表します。 */
+static const char *entry_label(const cplat_string_catalog_entry *entry)
+{
+    if (entry->id != NULL)
+    {
+        return entry->id;
+    }
+
+    return entry->brief;
 }
