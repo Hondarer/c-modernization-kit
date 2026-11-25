@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 01:40:00 JST
-最終更新エージェント: claude code (主セッション session_01KJc53UFydnbt2gLXTJC1ZC)
+最終更新日時: 2026-11-26 05:17:16 JST
+最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53UFydnbt2gLXTJC1ZC)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: 継続作業 `framework/makefw/docs/prompts/current/261125-makefw-backlog-overview.md` (検討 ID `261125-makefw-backlog`、検討用 Markdown `261125-makefw-backlog-discussion.md`、簡易 ADR `261125-makefw-backlog-lightadr.md`、残課題一覧 `261125-makefw-backlog-backlog.md`、最終仕様 `261125-makefw-backlog-design.md`) が BL-002、BL-029、BL-030 を対象に開始されています。継続作業 `261125-consumable-backlog-items` (`261125-consumable-backlog-items-overview.md`、検討用 Markdown `261125-consumable-backlog-items-discussion.md`、簡易 ADR `261125-consumable-backlog-items-lightadr.md`、最終仕様 `261125-consumable-backlog-items-design.md`。残課題一覧は未作成) が、BL-001、BL-003、BL-004、BL-005、BL-006、BL-007、BL-008、BL-009、BL-012、BL-013、BL-020、BL-024、BL-028、BL-031 を対象に開始されています。この残課題一覧を対策するほかの継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
@@ -329,7 +329,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: この変更では JSONC のラッパーを直列化し、cJSON 本体と struct-meta の直接の解析は変更しません。直接の解析との同時実行と共有変数の参照は、利用側で排他する契約です (`app/cjson/prod/include/cJSON_JSONC.h` と `app/cjson/README.md`)。この排他は、ロード後のフックの変更を許すものではありません。ロード後の `cJSON_InitHooks()` の解除と再差し替えは禁止します。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、cJSON の生成元のパッチ (`0003`) で `global_error` をスレッド ローカルにし、契約と文書を更新すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-005)。JSONC の共通ロックの扱いは追加の Q-020 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、cJSON の生成元のパッチ (`0003`) で `global_error` をスレッド ローカルにし、契約と文書を更新すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-005)。JSONC の共通ロックの扱いは追加の Q-020 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (`app/cjson` にパッチ `0003-thread-local-global-error.patch` と `prod/include_internal/cjson_app_thread_local.h` を追加し、`global_error` をスレッド ローカルに変更。`cJSON_JSONC.c` の共通ロックを削除。`cJSON_JSONC.h`、`README.md`、`patches/README.md`、porter の `porter_spec.h`、`docs/api.md`、`config_document.c` のコメントを並行に解析できる契約へ更新。`cjsonJsoncTest` の排他のテストを、2 つのスレッドの解析を cJSON 本体の中で重ね、結果と `cJSON_GetErrorPtr()` の位置がスレッドごとに独立することを確かめるテストへ置き換え。`app/cjson` の `make` と `make test`、porter の `configDocumentTest`、`configValidateFileTest` が成功。内容のある `.warn` なし)。コミット、Windows の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
@@ -352,7 +352,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 待機の処理の側の確認が要り、設定の検証の範囲を超えます。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、5 項目の値域の上限を `POTR_WAIT_MS_MAX` へ狭め、境界値のテストを加え、`app/porter/docs/config.md` の記載を更新すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-006)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、5 項目の値域の上限を `POTR_WAIT_MS_MAX` へ狭め、境界値のテストを加え、`app/porter/docs/config.md` の記載を更新すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-006)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (`config_schema.c` の 5 項目の上限を `POTR_WAIT_MS_MAX` へ、表記を `"0..2147483646"` へ変更。`docs/config.md` の値域を更新。`configCheckTest` に境界値のテストを追加。`configCheckTest`、`configSchemaTest` が成功。内容のある `.warn` なし)。コミット、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
