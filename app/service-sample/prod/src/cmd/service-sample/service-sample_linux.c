@@ -138,151 +138,11 @@ static_assert((sizeof("[Unit]\n"
                   UNIT_CONTENT_EXTRA_BYTES,
               "unit content fixed part must fit in UNIT_CONTENT_EXTRA_BYTES");
 
-/*
- * ============================================================
- *  内部ヘルパー
- * ============================================================
- */
-
-/**
- *  @brief          外部コマンドを fork + execvp で実行します。
- *  @param[in]      argv    コマンドと引数の配列 (NULL 終端)。
- *  @return         コマンドの終了コード。実行失敗時は -1 を返します。
- */
-static int run_command(char *const argv[])
-{
-    int exit_code;
-    cplat_process_options options = {0};
-    int result;
-
-    options.argv = argv;
-
-    result = cplat_process_run_sync(&options, &exit_code);
-    if (result != CPLAT_OK)
-    {
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                  "外部コマンドの実行に失敗しました: %s", argv[0]);
-        return -1;
-    }
-
-    return exit_code;
-}
-
-/**
- *  @brief          "systemd 248" 形式のバージョン行から major version を取得します。
- *  @param[in]      version_line  systemctl --version の 1 行目。NULL を渡してはなりません。
- *  @return         取得できた major version。失敗時は -1 を返します。
- */
-static int parse_systemd_major_version(const char *version_line)
-{
-    const char prefix[] = "systemd ";
-    size_t index;
-    int version;
-    int has_digit;
-
-    index = 0;
-
-    /* 接頭辞 "systemd " と一致するか判定する。 */
-    while (prefix[index] != '\0')
-    {
-        if (version_line[index] != prefix[index])
-        {
-            return -1;
-        }
-
-        index++;
-    }
-
-    version = 0;
-    has_digit = 0;
-
-    /* バージョン番号の数字列を整数に変換する。 */
-    while (version_line[index] >= '0' && version_line[index] <= '9')
-    {
-        has_digit = 1;
-        version = (version * 10) + (version_line[index] - '0');
-        index++;
-    }
-
-    if (has_digit == 0)
-    {
-        return -1;
-    }
-
-    return version;
-}
-
-/**
- *  @brief          systemd の major version を取得します。
- *  @return         取得できた major version。失敗時は -1 を返します。
- */
-static int get_systemd_major_version(void)
-{
-    char line[SYSTEMCTL_VERSION_LINE_SIZE];
-    FILE *pipe;
-    int version;
-
-    pipe = popen("systemctl --version", "r");
-    if (pipe == NULL)
-    {
-        return -1;
-    }
-
-    if (fgets(line, sizeof(line), pipe) == NULL)
-    {
-        (void)pclose(pipe); /* fgets の失敗で -1 を返す経路のため、戻り値は明示的に破棄する */
-        return -1;
-    }
-
-    if (pclose(pipe) == -1)
-    {
-        return -1;
-    }
-
-    version = parse_systemd_major_version(line);
-    if (version < 0)
-    {
-        return -1;
-    }
-
-    return version;
-}
-
-/**
- *  @brief          root 権限を保証します。
- *  @param[in]      command         昇格再実行するサブコマンド。
- *  @param[in]      operation_name  操作名 (エラー メッセージ用)。
- *  @param[out]     handled         別プロセスで処理済みの場合は 0 以外を格納します。
- *  @return         継続可能な場合は 0、失敗時または別プロセスの終了コードを返します。
- */
-static int ensure_elevated_for_operation(const char *command, const char *operation_name, int *handled)
-{
-    int exit_code;
-    int ret;
-
-    if (handled == NULL)
-    {
-        return EXIT_FAILURE;
-    }
-
-    exit_code = EXIT_FAILURE;
-    ret = cplat_elevated_process_run_if_needed(command, &exit_code, handled);
-    if (ret != 0)
-    {
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                  "%s には root 権限 (sudo) が必要です。", operation_name);
-        return EXIT_FAILURE;
-    }
-
-    if (*handled != 0)
-    {
-        return exit_code;
-    }
-
-    return EXIT_SUCCESS;
-}
+static int run_command(char *const argv[]);
+static int parse_systemd_major_version(const char *version_line);
+static int get_systemd_major_version(void);
+static int ensure_elevated_for_operation(const char *command, const char *operation_name, int *handled);
+static void trace_notify_failure(const char *message, const int result);
 
 /*
  * ============================================================
@@ -300,23 +160,6 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
 int sd_notify_send(const char *message)
 {
     return sd_notify(0, message);
-}
-
-/**
- *  @brief          sd_notify(3) の失敗をトレースへ記録します。
- *  @param[in]      message 通知名。
- *  @param[in]      result  sd_notify(3) の戻り値。
- *
- *  呼び出し元が通知ロックを解放した後に呼び出します。
- */
-static void trace_notify_failure(const char *message, const int result)
-{
-    if (result < 0)
-    {
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                  "sd_notify: %s の送信に失敗しました: %s", message, strerror(-result));
-    }
 }
 
 /*
@@ -713,6 +556,169 @@ int svc_os_uninstall(const svc_definition *def)
                               def->name);
 
     return EXIT_SUCCESS;
+}
+
+/*
+ * ============================================================
+ *  内部ヘルパー
+ * ============================================================
+ */
+
+/**
+ *  @brief          外部コマンドを fork + execvp で実行します。
+ *  @param[in]      argv    コマンドと引数の配列 (NULL 終端)。
+ *  @return         コマンドの終了コード。実行失敗時は -1 を返します。
+ */
+static int run_command(char *const argv[])
+{
+    int exit_code;
+    cplat_process_options options = {0};
+    int result;
+
+    options.argv = argv;
+
+    result = cplat_process_run_sync(&options, &exit_code);
+    if (result != CPLAT_OK)
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "外部コマンドの実行に失敗しました: %s", argv[0]);
+        return -1;
+    }
+
+    return exit_code;
+}
+
+/**
+ *  @brief          "systemd 248" 形式のバージョン行から major version を取得します。
+ *  @param[in]      version_line  systemctl --version の 1 行目。NULL を渡してはなりません。
+ *  @return         取得できた major version。失敗時は -1 を返します。
+ */
+static int parse_systemd_major_version(const char *version_line)
+{
+    const char prefix[] = "systemd ";
+    size_t index;
+    int version;
+    int has_digit;
+
+    index = 0;
+
+    /* 接頭辞 "systemd " と一致するか判定する。 */
+    while (prefix[index] != '\0')
+    {
+        if (version_line[index] != prefix[index])
+        {
+            return -1;
+        }
+
+        index++;
+    }
+
+    version = 0;
+    has_digit = 0;
+
+    /* バージョン番号の数字列を整数に変換する。 */
+    while (version_line[index] >= '0' && version_line[index] <= '9')
+    {
+        has_digit = 1;
+        version = (version * 10) + (version_line[index] - '0');
+        index++;
+    }
+
+    if (has_digit == 0)
+    {
+        return -1;
+    }
+
+    return version;
+}
+
+/**
+ *  @brief          systemd の major version を取得します。
+ *  @return         取得できた major version。失敗時は -1 を返します。
+ */
+static int get_systemd_major_version(void)
+{
+    char line[SYSTEMCTL_VERSION_LINE_SIZE];
+    FILE *pipe;
+    int version;
+
+    pipe = popen("systemctl --version", "r");
+    if (pipe == NULL)
+    {
+        return -1;
+    }
+
+    if (fgets(line, sizeof(line), pipe) == NULL)
+    {
+        (void)pclose(pipe); /* fgets の失敗で -1 を返す経路のため、戻り値は明示的に破棄する */
+        return -1;
+    }
+
+    if (pclose(pipe) == -1)
+    {
+        return -1;
+    }
+
+    version = parse_systemd_major_version(line);
+    if (version < 0)
+    {
+        return -1;
+    }
+
+    return version;
+}
+
+/**
+ *  @brief          root 権限を保証します。
+ *  @param[in]      command         昇格再実行するサブコマンド。
+ *  @param[in]      operation_name  操作名 (エラー メッセージ用)。
+ *  @param[out]     handled         別プロセスで処理済みの場合は 0 以外を格納します。
+ *  @return         継続可能な場合は 0、失敗時または別プロセスの終了コードを返します。
+ */
+static int ensure_elevated_for_operation(const char *command, const char *operation_name, int *handled)
+{
+    int exit_code;
+    int ret;
+
+    if (handled == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+
+    exit_code = EXIT_FAILURE;
+    ret = cplat_elevated_process_run_if_needed(command, &exit_code, handled);
+    if (ret != 0)
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "%s には root 権限 (sudo) が必要です。", operation_name);
+        return EXIT_FAILURE;
+    }
+
+    if (*handled != 0)
+    {
+        return exit_code;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+/**
+ *  @brief          sd_notify(3) の失敗をトレースへ記録します。
+ *  @param[in]      message 通知名。
+ *  @param[in]      result  sd_notify(3) の戻り値。
+ *
+ *  呼び出し元が通知ロックを解放した後に呼び出します。
+ */
+static void trace_notify_failure(const char *message, const int result)
+{
+    if (result < 0)
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "sd_notify: %s の送信に失敗しました: %s", message, strerror(-result));
+    }
 }
 
 #elif defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)

@@ -114,6 +114,451 @@ static SERVICE_STATUS s_status = {0};
 /** サービス ステータスと SCM 通知を直列化するロック。 */
 static cplat_local_lock *s_status_lock = NULL;
 
+    /** 停止完了を待つ上限 [ms] です。 */
+    #define SVC_STOP_TIMEOUT_MS 30000ULL
+    /** 停止状態を問い合わせる間隔 [ms] です。 */
+    #define SVC_STOP_POLL_INTERVAL_MS 50U
+
+static void lock_service_status(void);
+static void unlock_service_status(void);
+static DWORD notify_service_status_locked(int *failed);
+static DWORD set_service_status_locked(const DWORD state, const DWORD controls, const DWORD checkpoint,
+                                      const DWORD wait_hint, int *failed);
+static DWORD set_service_stopped_locked(const DWORD specific_exit_code, int *failed);
+static void trace_service_status_failure(const DWORD state, const DWORD error, const int failed);
+static void set_service_status(const DWORD state, const DWORD controls, const DWORD checkpoint, const DWORD wait_hint);
+static void set_service_stopped(const DWORD specific_exit_code);
+static DWORD accepted_controls(void);
+static void write_dispatcher_error(const DWORD err);
+static int ensure_elevated_for_operation(const char *command, const char *operation_name, int *handled);
+static void handle_power_event(const DWORD ev_type);
+static void handle_session_change(const DWORD ev_type, const LPVOID ev_data);
+static DWORD WINAPI service_ctrl_handler(DWORD ctrl, DWORD ev_type, LPVOID ev_data, LPVOID context);
+static VOID WINAPI service_main(DWORD argc, LPWSTR *argv);
+static int wait_for_service_stop(SC_HANDLE service);
+
+/*
+ * ============================================================
+ *  OS フック実装 (通知)
+ * ============================================================
+ */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+void svc_os_notify_ready(void)
+{
+    DWORD error = ERROR_SUCCESS;
+    DWORD controls;
+    int failed = 0;
+    int suppressed = 0;
+
+    if (s_status_handle == NULL)
+    {
+        return;
+    }
+
+    controls = accepted_controls();
+    lock_service_status();
+    if ((s_status.dwCurrentState == SERVICE_STOP_PENDING) || (s_status.dwCurrentState == SERVICE_STOPPED))
+    {
+        suppressed = 1;
+    }
+    else
+    {
+        error = set_service_status_locked(SERVICE_RUNNING, controls, 0, 0, &failed);
+    }
+    unlock_service_status();
+
+    if (suppressed != 0)
+    {
+        /* 状態通知を抑止した理由だけを記録し、トレースの失敗で処理を変えない。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                 "停止中のため SERVICE_RUNNING を通知しません。");
+    }
+    else
+    {
+        trace_service_status_failure(SERVICE_RUNNING, error, failed);
+    }
+}
+
+void svc_os_notify_stopping(void)
+{
+    DWORD error;
+    int failed;
+
+    if (s_status_handle == NULL)
+    {
+        return;
+    }
+
+    /*
+     * 停止要求を受けた場合は、制御ハンドラーが checkpoint 1 で SERVICE_STOP_PENDING を通知済みである。
+     * 同じ状態を続けて通知するときは checkpoint を増やすため、ここでは 2 を通知する。
+     * on_run() が停止要求なしに戻った場合は、この通知が最初の SERVICE_STOP_PENDING になる。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_status
+     */
+    lock_service_status();
+    error = set_service_status_locked(SERVICE_STOP_PENDING, 0, 2, SVC_ON_STOP_WAIT_HINT_MS, &failed);
+    unlock_service_status();
+
+    trace_service_status_failure(SERVICE_STOP_PENDING, error, failed);
+}
+
+void svc_os_notify_reloading(void)
+{
+    /* SCM には reload 開始を通知する仕組みがないため、何もしない。 */
+}
+
+void svc_os_notify_status(const char *text)
+{
+    /*
+     * SCM には状態テキストを表示する仕組みがないため、何もしない。
+     * 共通層がトレース出力済みである。
+     */
+    (void)text;
+}
+
+/*
+ * ============================================================
+ *  OS フック実装
+ * ============================================================
+ */
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int svc_os_prepare_run(void)
+{
+    /* Windows では、run の入口で行う準備がない。 */
+    return EXIT_SUCCESS;
+}
+
+int svc_os_run_service(const svc_definition *def)
+{
+    cplat_local_lock *status_lock = NULL;
+    int result;
+
+    /*
+     * テーブルの最後の要素は、終端を示すため lpServiceName と lpServiceProc を NULL にする。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
+     */
+    SERVICE_TABLE_ENTRYU dispatch_table[] = {{def->name, service_main}, {NULL, NULL}};
+
+    if (cplat_local_lock_create(&status_lock) != CPLAT_OK || status_lock == NULL)
+    {
+        if (status_lock != NULL)
+        {
+            cplat_local_lock_dispose(status_lock);
+        }
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "サービス ステータス ロックを生成できません。");
+        return EXIT_FAILURE;
+    }
+
+    s_status_lock = status_lock;
+
+    /*
+     * def をファイル static に退避する。ServiceMain() は固定シグネチャのため、直接渡せない。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nc-winsvc-lpservice_main_functionw
+     */
+    s_def = def;
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
+
+    result = EXIT_SUCCESS;
+    if (!StartServiceCtrlDispatcherU(dispatch_table))
+    {
+        DWORD err = GetLastError();
+        write_dispatcher_error(err);
+        result = EXIT_FAILURE;
+    }
+
+    cplat_local_lock_dispose(s_status_lock);
+    s_status_lock = NULL;
+
+    return result;
+}
+
+int svc_os_install(const svc_definition *def)
+{
+    SC_HANDLE scm = NULL;
+    SC_HANDLE svc = NULL;
+    /* パスに "\"<path>\" run" を格納するための十分なサイズ */
+    char bin_path[SVC_EXEC_PATH_MAX + SVC_BIN_PATH_EXTRA_BYTES];
+    char exe_path[SVC_EXEC_PATH_MAX];
+    int rc;
+    int handled;
+
+    rc = ensure_elevated_for_operation("install", "install", &handled);
+    if (rc != 0 || handled != 0)
+    {
+        return rc;
+    }
+
+    if (cplat_process_get_executable_path(exe_path, sizeof(exe_path)) != CPLAT_OK)
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "実行ファイルのパスを取得できませんでした。");
+        return EXIT_FAILURE;
+    }
+
+    /*
+     * binPath は "\"<パス>\" run" 形式にする (パスにスペースが含まれる場合の対策)。
+     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-createservicew
+     */
+    if (cplat_snprintf(bin_path, sizeof(bin_path), "\"%s\" run", exe_path) != CPLAT_OK)
+    {
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "パスの生成に失敗しました。");
+        return EXIT_FAILURE;
+    }
+
+    scm = OpenSCManagerU(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
+    if (scm == NULL)
+    {
+        DWORD err = GetLastError();
+        if (err == ERROR_ACCESS_DENIED)
+        {
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "SCM へのアクセスが拒否されました。管理者として実行してください。");
+        }
+        else
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
+        }
+
+        return EXIT_FAILURE;
+    }
+
+    rc = EXIT_FAILURE;
+    svc = CreateServiceU(scm, def->name, def->display_name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
+                         SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, bin_path, NULL, /* ロード オーダー グループなし */
+                         NULL,                                                     /* タグ ID なし */
+                         NULL,                                                     /* 依存サービスなし */
+                         NULL,                                                     /* LocalSystem アカウント */
+                         NULL                                                      /* パスワードなし */
+    );
+
+    if (svc == NULL)
+    {
+        DWORD err = GetLastError();
+        if (err == ERROR_SERVICE_EXISTS)
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "サービス '%s' は既に登録されています。", def->name);
+        }
+        else if (err == ERROR_ACCESS_DENIED)
+        {
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスの登録が拒否されました。管理者として実行してください。");
+        }
+        else if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
+        {
+            (void)cplat_tracer_writef(
+                svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
+        }
+        else
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "CreateServiceU が失敗しました (エラー コード: %lu)。", err);
+        }
+    }
+    else
+    {
+        SERVICE_DESCRIPTIONA description;
+        SERVICE_PRESHUTDOWN_INFO preshutdown_info;
+
+        description.lpDescription = (char *)def->description;
+        if (!ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, &description))
+        {
+            const DWORD err = GetLastError();
+
+            /*
+             * 説明がなくてもサービスは動作するため、警告を残してインストールを続ける。
+             * トレースの失敗の伝え先はないため、戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "サービスの説明の設定に失敗しました (エラー コード: %lu)。", err);
+        }
+
+        /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため、W 版を直接使う)。 */
+        preshutdown_info.dwPreshutdownTimeout = SVC_PRESHUTDOWN_TIMEOUT_MS;
+
+        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_PRESHUTDOWN_INFO, &preshutdown_info))
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+        }
+
+        /*
+         * 異常終了時の自動再起動を設定する (Linux の Restart=on-failure / RestartSec=5 と同等)。
+         * 文字列メンバー (lpRebootMsg / lpCommand) は NULL のため、W 版を直接使う。
+         */
+        SC_ACTION restart_action;
+        SERVICE_FAILURE_ACTIONSW failure_actions;
+
+        restart_action.Type = SC_ACTION_RESTART;
+        restart_action.Delay = SVC_FAILURE_RESTART_DELAY_MS;
+        failure_actions.dwResetPeriod = SVC_FAILURE_RESET_PERIOD_SEC;
+        failure_actions.lpRebootMsg = NULL;
+        failure_actions.lpCommand = NULL;
+
+        /*
+         * アクションが 1 件のみの場合、2 回目以降の失敗にも最後のアクションが繰り返される。
+         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actionsw
+         */
+        failure_actions.cActions = 1;
+        failure_actions.lpsaActions = &restart_action;
+
+        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS, &failure_actions))
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "自動再起動の設定に失敗しました (エラー コード: %lu)。", GetLastError());
+        }
+
+        /*
+         * 既定の SCM は SERVICE_STOPPED 未報告のプロセス消滅のみを失敗とみなすため、
+         * NO_ERROR 以外の終了コード報告 (例: on_start() の失敗) も失敗扱いにして、
+         * Linux の Restart=on-failure (非ゼロ終了で再起動) と意味を揃える。
+         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actions_flag
+         */
+        SERVICE_FAILURE_ACTIONS_FLAG failure_flag;
+
+        failure_flag.fFailureActionsOnNonCrashFailures = TRUE;
+
+        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &failure_flag))
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                      "自動再起動フラグの設定に失敗しました (エラー コード: %lu)。", GetLastError());
+        }
+
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
+                                  def->name);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "実行ファイル: %s", bin_path);
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "開始するには: sc start %s",
+                                  def->name);
+
+        /* 登録の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
+        (void)CloseServiceHandle(svc);
+
+        rc = EXIT_SUCCESS;
+    }
+
+    /* 登録の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
+    (void)CloseServiceHandle(scm);
+
+    return rc;
+}
+
+int svc_os_uninstall(const svc_definition *def)
+{
+    SC_HANDLE scm = NULL;
+    SC_HANDLE svc = NULL;
+    int rc;
+    int handled;
+
+    rc = ensure_elevated_for_operation("uninstall", "uninstall", &handled);
+    if (rc != 0 || handled != 0)
+    {
+        return rc;
+    }
+
+    scm = OpenSCManagerU(NULL, NULL, SC_MANAGER_CONNECT);
+    if (scm == NULL)
+    {
+        DWORD err = GetLastError();
+        if (err == ERROR_ACCESS_DENIED)
+        {
+            /*
+             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
+             * この関数のトレースの戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "SCM へのアクセスが拒否されました。管理者として実行してください。");
+        }
+        else
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
+        }
+
+        return EXIT_FAILURE;
+    }
+
+    rc = EXIT_FAILURE;
+
+    svc = OpenServiceU(scm, def->name, SERVICE_STOP | DELETE | SERVICE_QUERY_STATUS);
+    if (svc == NULL)
+    {
+        DWORD err = GetLastError();
+        if (err == ERROR_SERVICE_DOES_NOT_EXIST)
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "サービス '%s' は登録されていません。", def->name);
+        }
+        else if (err == ERROR_ACCESS_DENIED)
+        {
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスへのアクセスが拒否されました。管理者として実行してください。");
+        }
+        else
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "OpenServiceU が失敗しました (エラー コード: %lu)。", err);
+        }
+    }
+    else
+    {
+        /*
+         * 削除は停止確認後に要求する。ほかのハンドルが開いている間は、削除完了とは限らない。
+         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-deleteservice
+         */
+        if (!wait_for_service_stop(svc))
+        {
+            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                     "サービスの停止を確認できないため、削除しません。");
+
+            /* 停止を確認できない失敗を返す経路のため、この 2 つの CloseServiceHandle の戻り値は明示的に破棄する。 */
+            (void)CloseServiceHandle(svc);
+            (void)CloseServiceHandle(scm);
+            return EXIT_FAILURE;
+        }
+
+        if (!DeleteService(svc))
+        {
+            DWORD err = GetLastError();
+            if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
+            {
+                (void)cplat_tracer_writef(
+                    svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                    "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
+            }
+            else
+            {
+                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                          "DeleteService が失敗しました (エラー コード: %lu)。", err);
+            }
+        }
+        else
+        {
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                      "サービス '%s' の削除を要求しました。", def->name);
+            rc = EXIT_SUCCESS;
+        }
+
+        /* 削除の要求の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
+        (void)CloseServiceHandle(svc);
+    }
+
+    /* 終了コードは確定済みで、閉じる失敗で変わらないため、戻り値は明示的に破棄する。 */
+    (void)CloseServiceHandle(scm);
+
+    return rc;
+}
+
 /*
  * ============================================================
  *  内部ヘルパー
@@ -392,87 +837,6 @@ static int ensure_elevated_for_operation(const char *command, const char *operat
 
 /*
  * ============================================================
- *  OS フック実装 (通知)
- * ============================================================
- */
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-void svc_os_notify_ready(void)
-{
-    DWORD error = ERROR_SUCCESS;
-    DWORD controls;
-    int failed = 0;
-    int suppressed = 0;
-
-    if (s_status_handle == NULL)
-    {
-        return;
-    }
-
-    controls = accepted_controls();
-    lock_service_status();
-    if ((s_status.dwCurrentState == SERVICE_STOP_PENDING) || (s_status.dwCurrentState == SERVICE_STOPPED))
-    {
-        suppressed = 1;
-    }
-    else
-    {
-        error = set_service_status_locked(SERVICE_RUNNING, controls, 0, 0, &failed);
-    }
-    unlock_service_status();
-
-    if (suppressed != 0)
-    {
-        /* 状態通知を抑止した理由だけを記録し、トレースの失敗で処理を変えない。 */
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                                 "停止中のため SERVICE_RUNNING を通知しません。");
-    }
-    else
-    {
-        trace_service_status_failure(SERVICE_RUNNING, error, failed);
-    }
-}
-
-void svc_os_notify_stopping(void)
-{
-    DWORD error;
-    int failed;
-
-    if (s_status_handle == NULL)
-    {
-        return;
-    }
-
-    /*
-     * 停止要求を受けた場合は、制御ハンドラーが checkpoint 1 で SERVICE_STOP_PENDING を通知済みである。
-     * 同じ状態を続けて通知するときは checkpoint を増やすため、ここでは 2 を通知する。
-     * on_run() が停止要求なしに戻った場合は、この通知が最初の SERVICE_STOP_PENDING になる。
-     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_status
-     */
-    lock_service_status();
-    error = set_service_status_locked(SERVICE_STOP_PENDING, 0, 2, SVC_ON_STOP_WAIT_HINT_MS, &failed);
-    unlock_service_status();
-
-    trace_service_status_failure(SERVICE_STOP_PENDING, error, failed);
-}
-
-void svc_os_notify_reloading(void)
-{
-    /* SCM には reload 開始を通知する仕組みがないため、何もしない。 */
-}
-
-void svc_os_notify_status(const char *text)
-{
-    /*
-     * SCM には状態テキストを表示する仕組みがないため、何もしない。
-     * 共通層がトレース出力済みである。
-     */
-    (void)text;
-}
-
-/*
- * ============================================================
  *  サービス コントロール ハンドラー
  * ============================================================
  */
@@ -648,246 +1012,6 @@ static VOID WINAPI service_main(DWORD argc, LPWSTR *argv)
     set_service_stopped((DWORD)rc);
 }
 
-/*
- * ============================================================
- *  OS フック実装
- * ============================================================
- */
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int svc_os_prepare_run(void)
-{
-    /* Windows では、run の入口で行う準備がない。 */
-    return EXIT_SUCCESS;
-}
-
-int svc_os_run_service(const svc_definition *def)
-{
-    cplat_local_lock *status_lock = NULL;
-    int result;
-
-    /*
-     * テーブルの最後の要素は、終端を示すため lpServiceName と lpServiceProc を NULL にする。
-     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
-     */
-    SERVICE_TABLE_ENTRYU dispatch_table[] = {{def->name, service_main}, {NULL, NULL}};
-
-    if (cplat_local_lock_create(&status_lock) != CPLAT_OK || status_lock == NULL)
-    {
-        if (status_lock != NULL)
-        {
-            cplat_local_lock_dispose(status_lock);
-        }
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "サービス ステータス ロックを生成できません。");
-        return EXIT_FAILURE;
-    }
-
-    s_status_lock = status_lock;
-
-    /*
-     * def をファイル static に退避する。ServiceMain() は固定シグネチャのため、直接渡せない。
-     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nc-winsvc-lpservice_main_functionw
-     */
-    s_def = def;
-
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "SCM ディスパッチャーに接続します...");
-
-    result = EXIT_SUCCESS;
-    if (!StartServiceCtrlDispatcherU(dispatch_table))
-    {
-        DWORD err = GetLastError();
-        write_dispatcher_error(err);
-        result = EXIT_FAILURE;
-    }
-
-    cplat_local_lock_dispose(s_status_lock);
-    s_status_lock = NULL;
-
-    return result;
-}
-
-int svc_os_install(const svc_definition *def)
-{
-    SC_HANDLE scm = NULL;
-    SC_HANDLE svc = NULL;
-    /* パスに "\"<path>\" run" を格納するための十分なサイズ */
-    char bin_path[SVC_EXEC_PATH_MAX + SVC_BIN_PATH_EXTRA_BYTES];
-    char exe_path[SVC_EXEC_PATH_MAX];
-    int rc;
-    int handled;
-
-    rc = ensure_elevated_for_operation("install", "install", &handled);
-    if (rc != 0 || handled != 0)
-    {
-        return rc;
-    }
-
-    if (cplat_process_get_executable_path(exe_path, sizeof(exe_path)) != CPLAT_OK)
-    {
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "実行ファイルのパスを取得できませんでした。");
-        return EXIT_FAILURE;
-    }
-
-    /*
-     * binPath は "\"<パス>\" run" 形式にする (パスにスペースが含まれる場合の対策)。
-     * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-createservicew
-     */
-    if (cplat_snprintf(bin_path, sizeof(bin_path), "\"%s\" run", exe_path) != CPLAT_OK)
-    {
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL, "パスの生成に失敗しました。");
-        return EXIT_FAILURE;
-    }
-
-    scm = OpenSCManagerU(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
-    if (scm == NULL)
-    {
-        DWORD err = GetLastError();
-        if (err == ERROR_ACCESS_DENIED)
-        {
-            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                     "SCM へのアクセスが拒否されました。管理者として実行してください。");
-        }
-        else
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
-        }
-
-        return EXIT_FAILURE;
-    }
-
-    rc = EXIT_FAILURE;
-    svc = CreateServiceU(scm, def->name, def->display_name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                         SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, bin_path, NULL, /* ロード オーダー グループなし */
-                         NULL,                                                     /* タグ ID なし */
-                         NULL,                                                     /* 依存サービスなし */
-                         NULL,                                                     /* LocalSystem アカウント */
-                         NULL                                                      /* パスワードなし */
-    );
-
-    if (svc == NULL)
-    {
-        DWORD err = GetLastError();
-        if (err == ERROR_SERVICE_EXISTS)
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "サービス '%s' は既に登録されています。", def->name);
-        }
-        else if (err == ERROR_ACCESS_DENIED)
-        {
-            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                     "サービスの登録が拒否されました。管理者として実行してください。");
-        }
-        else if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
-        {
-            (void)cplat_tracer_writef(
-                svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
-        }
-        else
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "CreateServiceU が失敗しました (エラー コード: %lu)。", err);
-        }
-    }
-    else
-    {
-        SERVICE_DESCRIPTIONA description;
-        SERVICE_PRESHUTDOWN_INFO preshutdown_info;
-
-        description.lpDescription = (char *)def->description;
-        if (!ChangeServiceConfig2U(svc, SERVICE_CONFIG_DESCRIPTION, &description))
-        {
-            const DWORD err = GetLastError();
-
-            /*
-             * 説明がなくてもサービスは動作するため、警告を残してインストールを続ける。
-             * トレースの失敗の伝え先はないため、戻り値は明示的に破棄する。
-             */
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                      "サービスの説明の設定に失敗しました (エラー コード: %lu)。", err);
-        }
-
-        /* PRESHUTDOWN の猶予を設定する (構造体に文字列を含まないため、W 版を直接使う)。 */
-        preshutdown_info.dwPreshutdownTimeout = SVC_PRESHUTDOWN_TIMEOUT_MS;
-
-        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_PRESHUTDOWN_INFO, &preshutdown_info))
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                      "PRESHUTDOWN 猶予の設定に失敗しました (エラー コード: %lu)。", GetLastError());
-        }
-
-        /*
-         * 異常終了時の自動再起動を設定する (Linux の Restart=on-failure / RestartSec=5 と同等)。
-         * 文字列メンバー (lpRebootMsg / lpCommand) は NULL のため、W 版を直接使う。
-         */
-        SC_ACTION restart_action;
-        SERVICE_FAILURE_ACTIONSW failure_actions;
-
-        restart_action.Type = SC_ACTION_RESTART;
-        restart_action.Delay = SVC_FAILURE_RESTART_DELAY_MS;
-        failure_actions.dwResetPeriod = SVC_FAILURE_RESET_PERIOD_SEC;
-        failure_actions.lpRebootMsg = NULL;
-        failure_actions.lpCommand = NULL;
-
-        /*
-         * アクションが 1 件のみの場合、2 回目以降の失敗にも最後のアクションが繰り返される。
-         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actionsw
-         */
-        failure_actions.cActions = 1;
-        failure_actions.lpsaActions = &restart_action;
-
-        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS, &failure_actions))
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                      "自動再起動の設定に失敗しました (エラー コード: %lu)。", GetLastError());
-        }
-
-        /*
-         * 既定の SCM は SERVICE_STOPPED 未報告のプロセス消滅のみを失敗とみなすため、
-         * NO_ERROR 以外の終了コード報告 (例: on_start() の失敗) も失敗扱いにして、
-         * Linux の Restart=on-failure (非ゼロ終了で再起動) と意味を揃える。
-         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actions_flag
-         */
-        SERVICE_FAILURE_ACTIONS_FLAG failure_flag;
-
-        failure_flag.fFailureActionsOnNonCrashFailures = TRUE;
-
-        if (!ChangeServiceConfig2W(svc, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &failure_flag))
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
-                                      "自動再起動フラグの設定に失敗しました (エラー コード: %lu)。", GetLastError());
-        }
-
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス '%s' を登録しました。",
-                                  def->name);
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "実行ファイル: %s", bin_path);
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "開始するには: sc start %s",
-                                  def->name);
-
-        /* 登録の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
-        (void)CloseServiceHandle(svc);
-
-        rc = EXIT_SUCCESS;
-    }
-
-    /* 登録の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
-    (void)CloseServiceHandle(scm);
-
-    return rc;
-}
-
-    /** 停止完了を待つ上限 [ms] です。 */
-    #define SVC_STOP_TIMEOUT_MS 30000ULL
-    /** 停止状態を問い合わせる間隔 [ms] です。 */
-    #define SVC_STOP_POLL_INTERVAL_MS 50U
-
 /**
  *  @brief          必要なら停止を要求し、停止状態を上限時間まで確認します。
  *  @param[in]      service  状態照会と停止要求が可能なサービスのハンドル。
@@ -931,112 +1055,6 @@ static int wait_for_service_stop(SC_HANDLE service)
     }
 
     return 1;
-}
-
-int svc_os_uninstall(const svc_definition *def)
-{
-    SC_HANDLE scm = NULL;
-    SC_HANDLE svc = NULL;
-    int rc;
-    int handled;
-
-    rc = ensure_elevated_for_operation("uninstall", "uninstall", &handled);
-    if (rc != 0 || handled != 0)
-    {
-        return rc;
-    }
-
-    scm = OpenSCManagerU(NULL, NULL, SC_MANAGER_CONNECT);
-    if (scm == NULL)
-    {
-        DWORD err = GetLastError();
-        if (err == ERROR_ACCESS_DENIED)
-        {
-            /*
-             * トレースは補助の記録であり、出力の失敗で処理を変えないため、
-             * この関数のトレースの戻り値は明示的に破棄する。
-             */
-            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                     "SCM へのアクセスが拒否されました。管理者として実行してください。");
-        }
-        else
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "OpenSCManagerU が失敗しました (エラー コード: %lu)。", err);
-        }
-
-        return EXIT_FAILURE;
-    }
-
-    rc = EXIT_FAILURE;
-
-    svc = OpenServiceU(scm, def->name, SERVICE_STOP | DELETE | SERVICE_QUERY_STATUS);
-    if (svc == NULL)
-    {
-        DWORD err = GetLastError();
-        if (err == ERROR_SERVICE_DOES_NOT_EXIST)
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "サービス '%s' は登録されていません。", def->name);
-        }
-        else if (err == ERROR_ACCESS_DENIED)
-        {
-            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                     "サービスへのアクセスが拒否されました。管理者として実行してください。");
-        }
-        else
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "OpenServiceU が失敗しました (エラー コード: %lu)。", err);
-        }
-    }
-    else
-    {
-        /*
-         * 削除は停止確認後に要求する。ほかのハンドルが開いている間は、削除完了とは限らない。
-         * see: https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-deleteservice
-         */
-        if (!wait_for_service_stop(svc))
-        {
-            (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                     "サービスの停止を確認できないため、削除しません。");
-
-            /* 停止を確認できない失敗を返す経路のため、この 2 つの CloseServiceHandle の戻り値は明示的に破棄する。 */
-            (void)CloseServiceHandle(svc);
-            (void)CloseServiceHandle(scm);
-            return EXIT_FAILURE;
-        }
-
-        if (!DeleteService(svc))
-        {
-            DWORD err = GetLastError();
-            if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
-            {
-                (void)cplat_tracer_writef(
-                    svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                    "サービス '%s' は削除待ち状態です。Windows を再起動してから再度実行してください。", def->name);
-            }
-            else
-            {
-                (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                          "DeleteService が失敗しました (エラー コード: %lu)。", err);
-            }
-        }
-        else
-        {
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
-                                      "サービス '%s' の削除を要求しました。", def->name);
-            rc = EXIT_SUCCESS;
-        }
-
-        /* 削除の要求の結果は確定済みで、閉じる失敗で終了コードが変わらないため、戻り値は明示的に破棄する。 */
-        (void)CloseServiceHandle(svc);
-    }
-
-    /* 終了コードは確定済みで、閉じる失敗で変わらないため、戻り値は明示的に破棄する。 */
-    (void)CloseServiceHandle(scm);
-
-    return rc;
 }
 
 #endif /* PLATFORM_WINDOWS */

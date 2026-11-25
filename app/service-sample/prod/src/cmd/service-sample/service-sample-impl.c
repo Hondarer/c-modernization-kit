@@ -36,6 +36,30 @@ static_assert(SAMPLE_STATUS_TEXT_SIZE >= 53U, "状態テキストの文面と 20
  *  svc_wait_for_stop() で待機している間は on_run() の生存として扱われるため、Linux の watchdog の契約には影響しません。
  */
 #define SAMPLE_CYCLE_INTERVAL_MS 1000
+
+static int on_start(void *user_data);
+static int on_run(void *user_data);
+static int on_stop(void *user_data);
+static void on_event(const svc_event_info *info, void *user_data);
+static void on_reload(void *user_data);
+
+/*
+ * ============================================================
+ *  サービス定義
+ * ============================================================
+ */
+
+/** サービス定義。 */
+const svc_definition g_service_def = {"service-sample",
+                                      "C Modernization-kit Service Sample",
+                                      "c-modernization-kit のクロスプラットフォーム サービス サンプルです。",
+                                      on_start,
+                                      on_run,
+                                      on_stop,
+                                      NULL,
+                                      on_event,
+                                      on_reload};
+
 /*
  * ============================================================
  *  サービス コールバック
@@ -192,20 +216,3 @@ static void on_reload(void *user_data)
     /* TODO: ここに設定再読込処理を書く */
     (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 終了");
 }
-
-/*
- * ============================================================
- *  サービス定義
- * ============================================================
- */
-
-/** サービス定義。 */
-const svc_definition g_service_def = {"service-sample",
-                                      "C Modernization-kit Service Sample",
-                                      "c-modernization-kit のクロスプラットフォーム サービス サンプルです。",
-                                      on_start,
-                                      on_run,
-                                      on_stop,
-                                      NULL,
-                                      on_event,
-                                      on_reload};

@@ -196,6 +196,34 @@ typedef struct svc_linux_events_ctx
     svc_inhibit_lock inhibit_shutdown; /**< シャットダウンの delay inhibitor lock。 */
 } svc_linux_events_ctx;
 
+static void record_loop_failure(void);
+static int build_inhibit_message(const char *what, sd_bus_message **message);
+static int store_inhibit_fd(svc_inhibit_lock *lock, sd_bus_message *reply);
+static void acquire_inhibit_lock_sync(svc_inhibit_lock *lock);
+static int on_inhibit_reply(sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
+static void cancel_inhibit_request(svc_inhibit_lock *lock);
+static void request_inhibit_lock_async(svc_inhibit_lock *lock);
+static void release_inhibit_lock(svc_inhibit_lock *lock);
+static void release_inhibit_locks(void);
+static void dispatch_event_while_running(const svc_event_info *info);
+static void handle_prepare_for_sleep(int starting);
+static void handle_prepare_for_shutdown(int starting);
+static int on_prepare_for_sleep(sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
+static int on_prepare_for_shutdown(sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
+static int dispatch_session_signal(sd_bus_message *m, const svc_event_type type);
+static int on_session_new(sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
+static int on_session_removed(sd_bus_message *m, void *userdata, sd_bus_error *ret_error);
+static int on_stop_requested(sd_event_source *source, int fd, uint32_t revents, void *userdata);
+static int on_reload_requested(sd_event_source *source, const struct signalfd_siginfo *info, void *userdata);
+static int on_watchdog_timer(sd_event_source *source, uint64_t usec, void *userdata);
+static int setup_watchdog_timer(void);
+static void setup_bus_monitoring(void);
+static void notify_init_state(const int state);
+static void release_event_loop(void);
+static int setup_required_sources(void);
+static void events_thread_func(void *arg);
+static void release_local_resources(void);
+
 /** イベント監視スレッドの内部状態 (プロセスで 1 つ)。 */
 static svc_linux_events_ctx s_ctx = {
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0U, 0U, 0, SVC_LINUX_EVENTS_INIT_PENDING, -1,
@@ -207,21 +235,6 @@ static cplat_atomic_i32 s_loop_failed = CPLAT_ATOMIC_INIT(0);
 
 /** サービスの動作段階 (svc_linux_events_phase の値)。通知ロックで保護します。 */
 static svc_linux_events_phase s_phase = SVC_LINUX_EVENTS_PHASE_STARTING;
-
-/*
- * ============================================================
- *  動作段階と異常終了の記録
- * ============================================================
- */
-
-/**
- *  @brief          イベント ループの異常終了を記録し、サービスの停止を要求します。
- */
-static void record_loop_failure(void)
-{
-    cplat_atomic_store_i32(&s_loop_failed, 1, CPLAT_MEMORY_ORDER_RELEASE);
-    svc_request_stop();
-}
 
 /* Doxygen コメントは、ヘッダーに記載 */
 
@@ -280,6 +293,152 @@ int svc_linux_events_is_running(void)
 int svc_linux_events_is_stopping(void)
 {
     return (s_phase == SVC_LINUX_EVENTS_PHASE_STOPPING) ? 1 : 0;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int svc_linux_events_start(const svc_definition *def)
+{
+    int result;
+    int init_state;
+
+    if (def == NULL)
+    {
+        return -1;
+    }
+
+    if (s_ctx.thread != NULL)
+    {
+        /* すでに起動済みの場合は何もしない。 */
+        return 0;
+    }
+
+    s_ctx.def = def;
+    s_ctx.init_state = SVC_LINUX_EVENTS_INIT_PENDING;
+    cplat_atomic_store_i32(&s_loop_failed, 0, CPLAT_MEMORY_ORDER_RELEASE);
+
+    /* 通知入口がイベント監視スレッドの前に動くことはありませんが、段階の初期化も同じロックで保護します。 */
+    if ((cplat_local_lock_create(&s_ctx.notify_lock) != CPLAT_OK) || (s_ctx.notify_lock == NULL))
+    {
+        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "通知ロックを生成できないため、イベント監視スレッドを起動しません。");
+        release_local_resources();
+        return -1;
+    }
+
+    svc_linux_events_notify_lock();
+    s_phase = SVC_LINUX_EVENTS_PHASE_STARTING;
+    svc_linux_events_notify_unlock();
+
+    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
+    if ((cplat_local_lock_create(&s_ctx.init_lock) != CPLAT_OK) || (cplat_condvar_create(&s_ctx.init_cv) != CPLAT_OK))
+    {
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "イベント監視スレッドの起動を待ち合わせるロックまたは条件変数を生成できません。");
+        release_local_resources();
+        return -1;
+    }
+
+    s_ctx.stop_fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+    if (s_ctx.stop_fd < 0)
+    {
+        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                 "停止指示用 eventfd の生成に失敗しました。");
+        release_local_resources();
+        return -1;
+    }
+
+    result = cplat_thread_create(&s_ctx.thread, events_thread_func, NULL);
+    if (result != CPLAT_OK)
+    {
+        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                  "イベント監視スレッドの起動に失敗しました (結果コード: %d)。", result);
+        s_ctx.thread = NULL;
+        release_local_resources();
+        return -1;
+    }
+
+    /*
+     * スレッドの必須の初期化の完了を無期限に待つ。
+     * 起動時の Inhibit の同期呼び出しは、1 回 10 [s] で、sleep と shutdown の 2 回であり、READY=1 の前に終わる。
+     * 全体は systemd の TimeoutStartSec= (既定 90 [s]) が打ち切る。
+     * see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call.html
+     */
+    cplat_local_lock_lock(s_ctx.init_lock);
+    while (s_ctx.init_state == SVC_LINUX_EVENTS_INIT_PENDING)
+    {
+        cplat_condvar_wait(s_ctx.init_cv, s_ctx.init_lock);
+    }
+    init_state = s_ctx.init_state;
+    cplat_local_lock_unlock(s_ctx.init_lock);
+
+    if (init_state != SVC_LINUX_EVENTS_INIT_SUCCEEDED)
+    {
+        /* スレッドは失敗を通知した後に終了するため、終了を待ってから資源を解放する。 */
+        cplat_thread_join(s_ctx.thread);
+        s_ctx.thread = NULL;
+        release_local_resources();
+        return -1;
+    }
+
+    return 0;
+}
+
+int svc_linux_events_stop(void)
+{
+    int result;
+    uint64_t value;
+    ssize_t written;
+
+    if (s_ctx.thread != NULL)
+    {
+        value = 1;
+        written = write(s_ctx.stop_fd, &value, sizeof(value));
+        (void)written;
+
+        result = cplat_thread_timed_join(s_ctx.thread, SVC_EVENTS_JOIN_TIMEOUT_MS);
+        if (result != CPLAT_OK)
+        {
+            /*
+             * スレッドが動いたまま終了を続けると、スレッドが解放済みのサービス定義とトレースを参照する。
+             * 続行が危険なため、資源を解放せずにプロセスを異常終了させる。
+             * 利用側のコールバックの停滞による場合も含め、共通のコーディング規範の「プロセスの継続が危険な場合」に当たる。
+             * トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。
+             */
+            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
+                                      "イベント監視スレッドが %d [ms] 以内に終了しないため、資源を解放せずに"
+                                      "プロセスを異常終了します (結果コード: %d)。",
+                                      SVC_EVENTS_JOIN_TIMEOUT_MS, result);
+            CPLAT_ABORT("イベント監視スレッドが時間内に終了しません");
+        }
+
+        s_ctx.thread = NULL;
+    }
+
+    release_local_resources();
+
+    if (cplat_atomic_load_i32(&s_loop_failed, CPLAT_MEMORY_ORDER_ACQUIRE) != 0)
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
+ * ============================================================
+ *  動作段階と異常終了の記録
+ * ============================================================
+ */
+
+/**
+ *  @brief          イベント ループの異常終了を記録し、サービスの停止を要求します。
+ */
+static void record_loop_failure(void)
+{
+    cplat_atomic_store_i32(&s_loop_failed, 1, CPLAT_MEMORY_ORDER_RELEASE);
+    svc_request_stop();
 }
 
 /*
@@ -1287,137 +1446,6 @@ static void release_local_resources(void)
     }
 
     s_ctx.def = NULL;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int svc_linux_events_start(const svc_definition *def)
-{
-    int result;
-    int init_state;
-
-    if (def == NULL)
-    {
-        return -1;
-    }
-
-    if (s_ctx.thread != NULL)
-    {
-        /* すでに起動済みの場合は何もしない。 */
-        return 0;
-    }
-
-    s_ctx.def = def;
-    s_ctx.init_state = SVC_LINUX_EVENTS_INIT_PENDING;
-    cplat_atomic_store_i32(&s_loop_failed, 0, CPLAT_MEMORY_ORDER_RELEASE);
-
-    /* 通知入口がイベント監視スレッドの前に動くことはありませんが、段階の初期化も同じロックで保護します。 */
-    if ((cplat_local_lock_create(&s_ctx.notify_lock) != CPLAT_OK) || (s_ctx.notify_lock == NULL))
-    {
-        /* トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。 */
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "通知ロックを生成できないため、イベント監視スレッドを起動しません。");
-        release_local_resources();
-        return -1;
-    }
-
-    svc_linux_events_notify_lock();
-    s_phase = SVC_LINUX_EVENTS_PHASE_STARTING;
-    svc_linux_events_notify_unlock();
-
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-    if ((cplat_local_lock_create(&s_ctx.init_lock) != CPLAT_OK) || (cplat_condvar_create(&s_ctx.init_cv) != CPLAT_OK))
-    {
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "イベント監視スレッドの起動を待ち合わせるロックまたは条件変数を生成できません。");
-        release_local_resources();
-        return -1;
-    }
-
-    s_ctx.stop_fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-    if (s_ctx.stop_fd < 0)
-    {
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                 "停止指示用 eventfd の生成に失敗しました。");
-        release_local_resources();
-        return -1;
-    }
-
-    result = cplat_thread_create(&s_ctx.thread, events_thread_func, NULL);
-    if (result != CPLAT_OK)
-    {
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                  "イベント監視スレッドの起動に失敗しました (結果コード: %d)。", result);
-        s_ctx.thread = NULL;
-        release_local_resources();
-        return -1;
-    }
-
-    /*
-     * スレッドの必須の初期化の完了を無期限に待つ。
-     * 起動時の Inhibit の同期呼び出しは、1 回 10 [s] で、sleep と shutdown の 2 回であり、READY=1 の前に終わる。
-     * 全体は systemd の TimeoutStartSec= (既定 90 [s]) が打ち切る。
-     * see: https://www.freedesktop.org/software/systemd/man/latest/sd_bus_call.html
-     */
-    cplat_local_lock_lock(s_ctx.init_lock);
-    while (s_ctx.init_state == SVC_LINUX_EVENTS_INIT_PENDING)
-    {
-        cplat_condvar_wait(s_ctx.init_cv, s_ctx.init_lock);
-    }
-    init_state = s_ctx.init_state;
-    cplat_local_lock_unlock(s_ctx.init_lock);
-
-    if (init_state != SVC_LINUX_EVENTS_INIT_SUCCEEDED)
-    {
-        /* スレッドは失敗を通知した後に終了するため、終了を待ってから資源を解放する。 */
-        cplat_thread_join(s_ctx.thread);
-        s_ctx.thread = NULL;
-        release_local_resources();
-        return -1;
-    }
-
-    return 0;
-}
-
-int svc_linux_events_stop(void)
-{
-    int result;
-    uint64_t value;
-    ssize_t written;
-
-    if (s_ctx.thread != NULL)
-    {
-        value = 1;
-        written = write(s_ctx.stop_fd, &value, sizeof(value));
-        (void)written;
-
-        result = cplat_thread_timed_join(s_ctx.thread, SVC_EVENTS_JOIN_TIMEOUT_MS);
-        if (result != CPLAT_OK)
-        {
-            /*
-             * スレッドが動いたまま終了を続けると、スレッドが解放済みのサービス定義とトレースを参照する。
-             * 続行が危険なため、資源を解放せずにプロセスを異常終了させる。
-             * 利用側のコールバックの停滞による場合も含め、共通のコーディング規範の「プロセスの継続が危険な場合」に当たる。
-             * トレースは補助の記録であり、出力の失敗で処理を変えないため、戻り値は明示的に破棄する。
-             */
-            (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_ERROR, NULL,
-                                      "イベント監視スレッドが %d [ms] 以内に終了しないため、資源を解放せずに"
-                                      "プロセスを異常終了します (結果コード: %d)。",
-                                      SVC_EVENTS_JOIN_TIMEOUT_MS, result);
-            CPLAT_ABORT("イベント監視スレッドが時間内に終了しません");
-        }
-
-        s_ctx.thread = NULL;
-    }
-
-    release_local_resources();
-
-    if (cplat_atomic_load_i32(&s_loop_failed, CPLAT_MEMORY_ORDER_ACQUIRE) != 0)
-    {
-        return -1;
-    }
-
-    return 0;
 }
 
 #elif defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)
