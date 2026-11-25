@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 簡易 ADR (lightadr)
-最終更新日時: 2026-11-24 06:08:58 JST
-最終更新エージェント: claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
+最終更新日時: 2026-11-25 15:10:00 JST
+最終更新エージェント: claude code (Opus 5.5) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o
 稼働 OS: Windows
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)。削除されている場合があります。
 下流文書: `261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
@@ -348,6 +348,7 @@ app の並列数と各 app の並列度が、1 つの上限を共有していま
 
 - `run_ordered_subdir_target.sh` は、各 app の起動の前に `MAKEFLAGS` を消しています (codex の報告)。
 - MSVC の `/MP` と MSBuild の並列を、GNU make のジョブ サーバーの枠に数える仕組みは、GNU make の資料とリポジトリの経路から見つかりませんでした (codex の報告、2026-11-23 の 2 回目の調査)。
+- 実装の後の CI (2026-11-24、コミット `0f3dd230`) の Linux で、同時に動くコンパイルの最大は 3 つのジョブとも 4 (予算 4 以下)、空きメモリの最小は 5487 [MB] から 7354 [MB] で、取り除く条件を満たしました。割り振りで CI の Windows (4 CPU) の app ごとの並列度が 1 になったことで、以前からあった順序の不具合 (MSVC の一括コンパイルが、生成ヘッダーの生成を待たずに始まる) が表に出たため、あわせて直しました (`framework/makefw` の `b6b701c`)。
 
 ### 決定
 
@@ -883,7 +884,7 @@ porter の設定の整合性を確認する CLI を作り、この案件の対�
 | 2026-11-23 12:52 | 対話での指示 (発言者: Tetsuo Honda) | 該当なし | `優先利用の外部エージェントを追加する。codex の --dangerously-bypass-approvals-and-sandbox で、GPT-6-Luna の xhigh (Sonnet相当) と GPT-6.1-Sol の Medium (Opus相当) を Cloude よりも優先利用してトークン利用を分散したい。grokは継続利用。` | 外部のエージェントの優先を追加 |
 | 2026-11-23 13:23 | 対話での指示 (発言者: Tetsuo Honda) | 該当なし | `文章の操作は、 agy --dangerously-skip-permissions で gemini-4-hydrogen-high を利用することを許可します。日本語の処理が上手です。` | 文章の操作に使うエージェントを追加 |
 
-## LADR-039 実装は codex の GPT-6-Luna と grok が行い、Fable が審査する。手元のフル ビルド、コミット、プッシュを許可する
+## LADR-039 実装は外部のエージェント (codex、grok、Gemini) が行い、Fable が審査する。手元のフル ビルド、コミット、プッシュを許可する
 
 ### 背景と課題
 
@@ -893,13 +894,18 @@ porter の設定の整合性を確認する CLI を作り、この案件の対�
 
 - 最終仕様 (`261123-remaining-backlog-items-design.md`) は、別のモデルによる監査の指摘 38 件を直した版で、2026-11-23 に承認されました。
 - 2026-11-23 20:00 の時点の codex の利用量は、5 時間の枠が 43% (22:37 にリセット)、1 週間の枠が 65% (11-29 07:30 にリセット) です。
+- 2026-11-24 05:30 に、grok が利用の上限 (402) に達しました。2026-11-24 07:55 の時点の codex の 1 週間の枠は 75% を使っていました。
+- Windows で書かれた Linux だけの分岐のコードとテストは、WSL (Oracle Linux 8) の確認用の複製で、CI の前に確かめました。外部のエージェントへ WSL の確認を頼む場合は、WSL の中でエージェントを起動しました (Windows の PowerShell 5.1 から引用符の入れ子のコマンドを送らせると、入力待ちで止まったため)。
 
 ### 決定
 
-実装は、codex の GPT-6-Luna (推論の強さ xhigh) と grok 4.7 (high) が行い、Fable は審査を行います。文章の推敲は、`agy --dangerously-skip-permissions` で Gemini 4 Hydrogen (High) へ依頼します。この案件では、手元のフル ビルド、コミット、プッシュを行って構いません。CI の警告とエラーは、原因が目的に対して明確で、解消できるものを Fable が解消し、CI を通し直します。codex の残りの利用量とリセットの時刻を確かめながら進めます。Claude Code の利用の上限 (21:20 ごろ) の後も作業を続けるため、21:30 に起床する仕掛けを置きます。
+実装は、外部のエージェントが行い、Fable は審査を行います。開始の時点の担当は、codex の GPT-6-Luna (推論の強さ xhigh) と grok 4.7 (high) です。grok が利用の上限 (402) で使えない間は、ほかのエージェントで続けます。codex の 1 週間の枠の残りが少ない間は、新しい依頼を `agy --dangerously-skip-permissions --model gemini-4-hydrogen-high` へ回し、難易度が高いものに限って `gemini-4-neon-medium` を使います。agy の Claude Sonnet は、小さい作業に限り、1 度に 1 件だけ (並列にしない) 使います。文章の推敲は、`agy --dangerously-skip-permissions` で Gemini 4 Hydrogen (High) へ依頼します。この案件では、手元のフル ビルド、コミット、プッシュを行って構いません。CI の警告とエラーは、原因が目的に対して明確で、解消できるものを Fable が解消し、CI を通し直します。codex の残りの利用量とリセットの時刻を確かめながら進めます。Claude Code の利用の上限 (21:20 ごろ) の後も作業を続けるため、21:30 に起床する仕掛けを置きます。
 
 ### 経緯
 
 | 日時 (JST) | 源泉 | ユーザーの選択 | ユーザーのコメント | 決定への反映 |
 | --- | --- | --- | --- | --- |
 | 2026-11-23 20:00 | 対話での指示 (発言者: Tetsuo Honda)。第 2 ゲートの承認 | 該当なし | `設計が確定しているので、実装は GPT-6-Luna の xhigh と grok 4.7 high で進めて、審査を Fable が行うかたちにしましょう。手元でのフルビルドやコミットとプッシュも許可します。CIの警告やエラーは、原因が目的に対して明確で解消可能なものは、あなたが解消して再度CIを通してください。Claode Code が 21:20 までのターンになっています。作業に先立ち、21:30 に起床するシェルを仕掛け、トークンリミットになっても継続して作業できるようにしてください。codex の残りトークンやリセットタイミングも確認しながら作業してください。文章の推敲は、agy --dangerously-skip-permissions で gemini-4-hydrogen-high に依頼してください。上記条件のもと、承認します。作業を進めてください。` | 新規に決定 |
+| 2026-11-24 | 対話での指示 (発言者: Tetsuo Honda) | 該当なし | `grokはしばらく回復が見込めないので別のエージェントで続行して` | grok の代わりのエージェントを追加 |
+| 2026-11-24 07:55 | 対話での指示 (発言者: Tetsuo Honda) | 該当なし | `gemini が復活しているので、codex の代わりに gemini-4-hydrogen-high を利用してください。` `agy は --dangerously-skip-permissions でよい。(応答待ちになるため)` `難易度が高いものに限って、gemini-4-neon-medium も利用してよい。` | 実装の依頼を Gemini へ切り替え |
+| 2026-11-25 | 対話での指示 (発言者: Tetsuo Honda) | 該当なし | `agy の sonnet 枠が復活しているので、小さな作業を頼める。(トークンが少ないので、並列作業や大規模作業は依頼しないこと)` | 小さい作業に agy の Sonnet を追加 |
