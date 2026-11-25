@@ -387,11 +387,11 @@ TEST(structMetaBuildTest, rejects_duplicate_member_names)
     ASSERT_NE(nullptr, second_field); // [状態確認] - 2 つ目のフィールドがあること。
     ASSERT_STREQ("value", second_field->name); // [状態確認] - 2 つ目のフィールド名が "value" であること。
     /*
-     * フィールド規則は還元時に yyget_lineno を読む。先読みがセミコロンの次の改行を消費するため、
-     * 記録される行は字面の 4 行目ではなく、閉じ波括弧のある 5 行目である。
+     * フィールド規則は、フィールド名の字句の位置 (bison の位置情報) を記録する。
+     * 先読みの字句の位置に左右されないため、記録される行は字面の 4 行目である。
      */
     const int parser_second_line = second_field->line;
-    ASSERT_EQ(5, parser_second_line); // [状態確認] - 2 つ目のフィールドの source の行が 5 であること。
+    ASSERT_EQ(4, parser_second_line); // [状態確認] - 2 つ目のフィールドの source の行が 4 であること。
     ASSERT_NE(first_field->line,
               parser_second_line); // [状態確認] - 1 つ目と 2 つ目の記録行が異なること。
 

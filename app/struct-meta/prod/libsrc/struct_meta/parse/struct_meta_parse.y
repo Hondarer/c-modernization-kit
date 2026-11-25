@@ -25,15 +25,17 @@
 /*
  * 幅がプラットフォームに依存する型を診断付きで拒否する。
  *
+ * line には、拒否する long の字句の行を渡す。
+ *
  * 生成物は x86_64 の Linux と Windows の間でバイト互換であることを契約とする。
  * long と unsigned long は LP64 で 8 バイト、LLP64 で 4 バイトとなり、この契約を
  * 壊すため受け付けない。YYABORT は関数の中からは使えないため、マクロとして書く。
  * see: app/struct-meta/docs/architecture.md
  */
-#define REJECT_PLATFORM_DEPENDENT_TYPE()                                                                               \
+#define REJECT_PLATFORM_DEPENDENT_TYPE(line)                                                                           \
     do                                                                                                                 \
     {                                                                                                                  \
-        struct_meta_internal_diagnose(context->diagnostic, yyget_lineno(scanner),                                      \
+        struct_meta_internal_diagnose(context->diagnostic, (line),                                                   \
                                       "long と unsigned long は非対応です。"                                           \
                                       "LP64 と LLP64 で幅が異なり、生成物のプラットフォーム間互換性を壊します。"        \
                                       "long long または int64_t を使用してください");                                  \
@@ -55,12 +57,12 @@ typedef void *yyscan_t;
 }
 
 %code {
-int yylex(YYSTYPE *yylval_param, yyscan_t yyscanner);
-int yyget_lineno(yyscan_t yyscanner);
-void yyerror(yyscan_t scanner, struct_meta_internal_parse_context *context, const char *message);
+int yylex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner);
+void yyerror(YYLTYPE *location, yyscan_t scanner, struct_meta_internal_parse_context *context, const char *message);
 }
 
 %define api.pure full
+%locations
 %lex-param {yyscan_t scanner}
 %parse-param {yyscan_t scanner}
 %parse-param {struct_meta_internal_parse_context *context}
@@ -111,7 +113,7 @@ doc_prefix:
       /* empty */ { struct_meta_internal_parse_doc_attrs empty = {0}; $$ = empty; }
     | doc_prefix_tokens
         {
-            $$ = struct_meta_internal_parse_doc_attrs_from_raw($1, 0, yyget_lineno(scanner), context->diagnostic);
+            $$ = struct_meta_internal_parse_doc_attrs_from_raw($1, 0, @1.first_line, context->diagnostic);
             free($1);
             if ($$.invalid != 0) { context->failed = 1; YYABORT; }
         }
@@ -126,7 +128,7 @@ doc_postfix:
       /* empty */ { struct_meta_internal_parse_doc_attrs empty = {0}; $$ = empty; }
     | DOC_POSTFIX
         {
-            $$ = struct_meta_internal_parse_doc_attrs_from_raw($1, 1, yyget_lineno(scanner), context->diagnostic);
+            $$ = struct_meta_internal_parse_doc_attrs_from_raw($1, 1, @1.first_line, context->diagnostic);
             free($1);
             if ($$.invalid != 0) { context->failed = 1; YYABORT; }
         }
@@ -135,7 +137,7 @@ doc_postfix:
 typedef_struct_decl:
       doc_prefix TYPEDEF STRUCT LBRACE field_decl_list RBRACE IDENT SEMI doc_postfix
         {
-            const int line = yyget_lineno(scanner);
+            const int line = @7.first_line;
             struct_meta_internal_parse_doc_attrs attrs =
                 struct_meta_internal_parse_doc_attrs_choose($1, $9, line, context->diagnostic);
             if (attrs.invalid != 0) { context->failed = 1; YYABORT; }
@@ -143,7 +145,7 @@ typedef_struct_decl:
         }
     | doc_prefix TYPEDEF STRUCT IDENT LBRACE field_decl_list RBRACE IDENT SEMI doc_postfix
         {
-            const int line = yyget_lineno(scanner);
+            const int line = @8.first_line;
             struct_meta_internal_parse_doc_attrs attrs =
                 struct_meta_internal_parse_doc_attrs_choose($1, $10, line, context->diagnostic);
             if (attrs.invalid != 0) { context->failed = 1; YYABORT; }
@@ -160,7 +162,7 @@ field_decl_list:
 field_decl:
       doc_prefix type_spec IDENT SEMI doc_postfix
         {
-            const int line = yyget_lineno(scanner);
+            const int line = @3.first_line;
             struct_meta_internal_parse_doc_attrs attrs =
                 struct_meta_internal_parse_doc_attrs_choose($1, $5, line, context->diagnostic);
             if (attrs.invalid != 0) { context->failed = 1; YYABORT; }
@@ -169,7 +171,7 @@ field_decl:
         }
     | doc_prefix type_spec IDENT LBRACKET INTEGER RBRACKET SEMI doc_postfix
         {
-            const int line = yyget_lineno(scanner);
+            const int line = @3.first_line;
             struct_meta_internal_parse_doc_attrs attrs =
                 struct_meta_internal_parse_doc_attrs_choose($1, $8, line, context->diagnostic);
             if (attrs.invalid != 0) { context->failed = 1; YYABORT; }
@@ -183,7 +185,7 @@ field_decl:
             (void)$1;
             (void)$2;
             (void)$6;
-            struct_meta_internal_diagnose(context->diagnostic, yyget_lineno(scanner),
+            struct_meta_internal_diagnose(context->diagnostic, @4.first_line,
                                           "ポインター メンバーは非対応です: %s", $4);
             context->failed = 1;
             YYABORT;
@@ -212,10 +214,10 @@ type_spec:
     | T_UNSIGNED T_LONG T_LONG { $$.name = cplat_strdup("unsigned long long"); $$.is_struct = 0; $$.pad = 0; }
     | T_UNSIGNED T_LONG T_LONG T_INT { $$.name = cplat_strdup("unsigned long long"); $$.is_struct = 0; $$.pad = 0; }
     /* long は LP64 で 8 バイト、LLP64 で 4 バイトとなり、生成物の互換性を壊すため拒否する。 */
-    | T_LONG { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(); }
-    | T_LONG T_INT { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(); }
-    | T_UNSIGNED T_LONG { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(); }
-    | T_UNSIGNED T_LONG T_INT { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(); }
+    | T_LONG { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(@1.first_line); }
+    | T_LONG T_INT { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(@1.first_line); }
+    | T_UNSIGNED T_LONG { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(@2.first_line); }
+    | T_UNSIGNED T_LONG T_INT { $$.name = NULL; $$.is_struct = 0; $$.pad = 0; REJECT_PLATFORM_DEPENDENT_TYPE(@2.first_line); }
     /* 対応する型は表で判定し、表に無ければ同一ヘッダー内の構造体名として扱う。 */
     | IDENT
         {
@@ -231,10 +233,12 @@ type_spec:
  *  @brief          構文解析の失敗を診断へ記録します。
  *
  *  ライブラリとして呼ばれるため、プロセスを終了させず、診断だけを残します。\n
- *  エラー回復で構文解析自体が続いても、context->failed により最終的に失敗を返します。
+ *  エラー回復で構文解析自体が続いても、context->failed により最終的に失敗を返します。\n
+ *  行は、bison が渡す位置 (誤りを検出した字句) の開始行です。
  */
-void yyerror(yyscan_t scanner, struct_meta_internal_parse_context *context, const char *message)
+void yyerror(YYLTYPE *location, yyscan_t scanner, struct_meta_internal_parse_context *context, const char *message)
 {
-    struct_meta_internal_diagnose(context->diagnostic, yyget_lineno(scanner), "%s", message);
+    (void)scanner;
+    struct_meta_internal_diagnose(context->diagnostic, location->first_line, "%s", message);
     context->failed = 1;
 }
