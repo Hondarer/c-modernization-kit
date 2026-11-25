@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-25 06:10:00 JST
+最終更新日時: 2026-11-25 09:50:00 JST
 最終更新エージェント: agy (Claude Sonnet 5.5) / セッション ID: c62e1c33-6d3a-42f1-9908-85ce00e469e1 (それより前の更新: agy (Gemini 4 Hydrogen High) / セッション ID: cfb4ba03-381c-4c07-b9c1-0e468f114208、agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192、claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Opus 5.5) / セッション ID: session_01KJc53TSWN5zHivCc9BNYom)
 稼働 OS: Windows
 上流文書: `261120-source-comment-bl003-remaining-57-overview.md` (全体管理文書)、`261120-source-comment-bl003-remaining-57-design.md` (最終仕様)、`261120-source-comment-bl003-remaining-57-discussion.md` (検討用 Markdown)、`261120-source-comment-bl003-remaining-57-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -54,7 +54,7 @@ BL-039 と BL-040 は、2026-11-22 の実装の最終段階で見つけた事項
 | BL-037 | `service-sample` の Windows と共通の処理で、コールバックの順序の実装が 2 つある | 作業中摘出 | 低 | 対応済み |
 | BL-038 | `app/porter` の `potr_service_close.c` の、読まれない 0 の格納 | 作業中摘出 | 低 | 対応済み |
 | BL-039 | `platform.h` の静的検査が、`static_assert` への統一の規範に従っていない | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
-| BL-040 | Doxybook2 の生成物で、拡張パスの接頭辞の後に endiskip が表示される | 作業中摘出 | 低 | 対応中 |
+| BL-040 | Doxybook2 の生成物で、拡張パスの接頭辞の後に endiskip が表示される | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-041 | 受入条件 9 の実機での確認 (Windows と Linux の systemd) が未実施である | 検討時見送り | 中 | 未着手 |
 
 Table: 残課題の一覧
@@ -612,7 +612,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 作業中摘出。2026-11-22 の実装の最終段階で見つけました。
 - **今回の見送り理由**: 原因 (Doxygen のコマンドとしての `\e` などの解釈か、Doxybook2 の変換か) を特定していないためです。生成物は手で変更しない規則のため、生成物を直して済ませることはできません。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-027)。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-027)。 2026-11-25 に、原因を特定して対処しました。原因は、Doxygen 1.12.0 以降が、コード スパンの前後へ内部コマンド `\iskip` と `\endiskip` を挿入することでした。コード スパンの末尾が奇数個のバックスラッシュ (例: `\\?\`) だと、挿入された `\endiskip` の先頭の `\` と結び付き、文字列 `endiskip` が生成物へ漏れます。`app/cplat` の `stat.h`、`module.h`、`process.h`、`module.c` のコメントを、末尾が別の文字になる形 (例: `\\?\C:\...`) へ直し、生成物から `endiskip` がなくなったことを確かめました。再発を防ぐため、検査 `framework/doxyfw/bin/check-doxygen-code-span-backslash.py`、そのテスト 6 件、説明書を加え、`framework/doxyfw` の保守の文書、コマンドの一覧、記法の要点へ注意を書きました。全 19 の app の検査で、`app/cjson` の `cJSON_JSONC.h` の 1 件が見つかったため直し、検査は 0 件になりました (コミット: `app/cplat` の `9512dc1c`、`framework/doxyfw` の `3ce73ec`、`app/cjson` の `e2be92f`、ルートの `c4cb39bd`)。CI の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 

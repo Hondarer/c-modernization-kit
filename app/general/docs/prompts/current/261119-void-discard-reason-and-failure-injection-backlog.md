@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-25 06:10:00 JST
+最終更新日時: 2026-11-25 09:50:00 JST
 最終更新エージェント: agy (Claude Sonnet 5.5) / セッション ID: c62e1c33-6d3a-42f1-9908-85ce00e469e1 (それより前の更新: agy (Gemini 4 Hydrogen High) / セッション ID: cfb4ba03-381c-4c07-b9c1-0e468f114208、agy (Gemini 4 Hydrogen High) / セッション ID: 1858ae8c-468f-47a3-97d4-6af6cc338192、claude code (Fable 5.2) / セッション ID: session_01KJc53Ruv5x7E4gs2vUkZ1o、claude code (Fable 5.2) / セッション ID: session_01KJc53TxDHvQnb9NZpGEr1Q)
 稼働 OS: Windows
 上流文書: `261119-void-discard-reason-and-failure-injection-overview.md` (全体管理文書)、`261119-void-discard-reason-and-failure-injection-design.md` (最終仕様)、`261119-void-discard-reason-and-failure-injection-discussion.md` (検討用 Markdown)、`261119-void-discard-reason-and-failure-injection-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -32,7 +32,7 @@
 | BL-005 | compress-cli と etw-viewer で、引数の検証の失敗の内容が表示されない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-006 | service-sample の tracer_open() の Doxygen とコメントが実装と食い違う | 作業中摘出 | 低 | 対応済み |
 | BL-007 | porter の FIN の受信処理のコメントが動作と合わない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
-| BL-008 | porter の Windows で、受信を待っているソケットを別のスレッドが閉じている | 作業中摘出 | 中 | 対応中 (`cplat_socket_shutdown_receive` の削除を除いて実装済み) |
+| BL-008 | porter の Windows で、受信を待っているソケットを別のスレッドが閉じている | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
 | BL-009 | cplat の PATH を探索する実行で、報告する errno が最後の候補のものになる | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-010 | porter の設定ファイルの読み込みで、読み取りの失敗を終端と区別していない | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-011 | 戻り値の破棄を探す走査が、マクロの引数とカンマ式の中の呼び出しを検出できない | 作業中摘出 | 低 | 対応済み |
@@ -41,7 +41,7 @@
 | BL-014 | porter の potr_tracer_get() の Doxygen が、NULL を返さないと誤って記載している | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 | BL-015 | porter-test の経路の状態の表示が、最後の経路しか表示しない | 作業中摘出 | 低 | 対応済み |
 | BL-016 | makefw が、app の並列数と各 app の並列度で 1 つの上限を共有しない | 作業中摘出 | 中 | 対応済み (CI の確認待ち) |
-| BL-017 | Linux の CI に、ビルド中のメモリを記録する処理が残っている | 作業中摘出 | 低 | 対応中 (段階 1 を実施済み) |
+| BL-017 | Linux の CI に、ビルド中のメモリを記録する処理が残っている | 作業中摘出 | 低 | 対応済み (CI の確認待ち) |
 
 ## BL-001 override-sample の使い方の表示と終了の直前の検査に失敗時のテストがない
 
@@ -215,7 +215,7 @@
 
 - **摘出契機**: 一次資料の確認中に発見 (2026-11-19)。
 - **今回の見送り理由**: 戻り値の扱いではなく、スレッドの停止の方法の設計の問題です。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-010)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、両方の OS に共通の待機の解除のオブジェクトを足し、`cplat_socket_shutdown_receive()` を削除する方針が決まりました。TCP の停止の経路への適用と Windows の方式は、確認中です。 2026-11-24 に、`app/cplat` へ、解除できるソケットの待機の API を加えました。待機の解除の合図 (`cplat_socket_wait_cancel_*`) と、解除と期限を指定できる接続、送受信、受け付け (`cplat_socket_watch_*`) です。結果コード `CPLAT_ERR_WOULD_BLOCK` と `CPLAT_ERR_CANCELED` を加えました。Windows は Winsock のイベント、Linux は eventfd と `poll` で実装しています (`app/cplat` のコミット `63cdc3c8`、テスト用の mock は `framework/testfw` のコミット `d798bed`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。`app/porter` の通信を、この API を使う非ブロッキングの形へ作り直し、停止の時に待機を解除する変更は未着手です。`cplat_socket_shutdown_receive` の削除も、その変更と同時に行います。 2026-11-24 から 2026-11-25 にかけて、`app/porter` の通信を作り直しました。すべてのソケット (UDP、TCP のリスナー、接続の準備中、接続済み) を、cplat の解除できる待機 (`cplat_socket_watch_*`、`cplat_socket_wait_cancel_*`) へ登録し、停止の時は待機を解除します。受信を待っているソケットを別のスレッドから閉じる方式と、`cplat_socket_shutdown_receive` の利用をやめました。TCP の close の期限 (`tcp_close_timeout_ms`) を、受け付け済みの API の回収、送信キューの排出、FIN の送信、FIN_ACK の待機で、1 つの絶対の期限として共有し、期限切れは `POTR_ERR_TIMEOUT` を返します。OS の起床の通知が失敗した場合も、待機が 1 秒以内に解除されることを、失敗の注入のテストで確かめました (`app/porter` のコミット `c31c66c`、`bf1f7dd` (Linux のテストの直し)、ルートのコミット `0fc58e23`)。 Windows では、各 app の全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと全体のテストの成功を確かめました (`app/porter` 962 件、`app/cplat` 2285 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。 残る対処として、`app/cplat` の公開関数 `cplat_socket_shutdown_receive` の削除は、実装中です。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-010)。 2026-11-23 09:39 JST に、継続案件の検討用 Markdown の回答で、両方の OS に共通の待機の解除のオブジェクトを足し、`cplat_socket_shutdown_receive()` を削除する方針が決まりました。TCP の停止の経路への適用と Windows の方式は、確認中です。 2026-11-24 に、`app/cplat` へ、解除できるソケットの待機の API を加えました。待機の解除の合図 (`cplat_socket_wait_cancel_*`) と、解除と期限を指定できる接続、送受信、受け付け (`cplat_socket_watch_*`) です。結果コード `CPLAT_ERR_WOULD_BLOCK` と `CPLAT_ERR_CANCELED` を加えました。Windows は Winsock のイベント、Linux は eventfd と `poll` で実装しています (`app/cplat` のコミット `63cdc3c8`、テスト用の mock は `framework/testfw` のコミット `d798bed`)。Windows では、`app/cplat` と `app/porter` のビルドと全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと、関わるテストの成功を確かめました。CI (コミット `5542b692`) の結果は、まだ確かめていません。`app/porter` の通信を、この API を使う非ブロッキングの形へ作り直し、停止の時に待機を解除する変更は未着手です。`cplat_socket_shutdown_receive` の削除も、その変更と同時に行います。 2026-11-24 から 2026-11-25 にかけて、`app/porter` の通信を作り直しました。すべてのソケット (UDP、TCP のリスナー、接続の準備中、接続済み) を、cplat の解除できる待機 (`cplat_socket_watch_*`、`cplat_socket_wait_cancel_*`) へ登録し、停止の時は待機を解除します。受信を待っているソケットを別のスレッドから閉じる方式と、`cplat_socket_shutdown_receive` の利用をやめました。TCP の close の期限 (`tcp_close_timeout_ms`) を、受け付け済みの API の回収、送信キューの排出、FIN の送信、FIN_ACK の待機で、1 つの絶対の期限として共有し、期限切れは `POTR_ERR_TIMEOUT` を返します。OS の起床の通知が失敗した場合も、待機が 1 秒以内に解除されることを、失敗の注入のテストで確かめました (`app/porter` のコミット `c31c66c`、`bf1f7dd` (Linux のテストの直し)、ルートのコミット `0fc58e23`)。 Windows では、各 app の全体のテストが成功しました。Linux は、WSL (Oracle Linux 8) で、ビルドと全体のテストの成功を確かめました (`app/porter` 962 件、`app/cplat` 2285 件)。Windows だけで書かれた Linux の側のテストと、GCC の警告は、WSL で確かめて直しました。 残る対処として、`app/cplat` の公開関数 `cplat_socket_shutdown_receive` の削除は、実装中です。 2026-11-25 に、残っていた `app/cplat` の公開関数 `cplat_socket_shutdown_receive` を削除しました (宣言、Linux と Windows の実装、mock、エクスポートのテスト、単体テスト、`api-cheatsheet.md`、機能仕様の要件 `CPLAT-NET-COMP-002`)。`app` と `framework` に参照は残っていません。Windows で `cplat` の全体のテスト (2061 件) が成功し、WSL (Oracle Linux 8) で `cplat` の作り直し、net とエクスポートのテスト、`porter` のビルドが成功しました (コミット: `app/cplat` の `9512dc1c`、ルートの `c4cb39bd`)。CI の結果は、まだ確かめていません。
 
 ### 影響範囲とリスク
 
@@ -422,7 +422,7 @@
 
 - **摘出契機**: この案件の CI の回復で追加 (2026-11-20)。
 - **今回の見送り理由**: 原因の特定と、対処の効果の確認 (run 44685218067 で、空きメモリの最小が 5137 [MB]) には役立ちました。残すかどうかは、ユーザーの判断が要ります。
-- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-014)。 2026-11-24 から 2026-11-25 にかけて、段階 1 として、CI の Linux のビルドから、app を 1 つずつビルドする指定 (`MAKEFW_APP_BUILD_JOBS: "1"`) を取り除きました (ルートのコミット `0f3dd230`)。この CI の結果は次のとおりで、Linux の条件を満たしました。同時に動くコンパイルの最大は、ol8、ol9、ol10 とも 4 (予算 4 以下) でした。空きメモリの最小は、ol8 が 5487 [MB]、ol9 が 6159 [MB]、ol10 が 7354 [MB] (2048 [MB] 以上) でした。ランナーの停止 (exit 137) はありませんでした。ビルドの所要時間は ol8 が約 188 分で、変更の前の実行 (`5542b692`) の約 160 分から約 28 分増えましたが、2 つの実行の間にテストが数百ファイル加わっているため、割り振りの変更だけの影響とは切り分けられません。残る対処として、段階 2 (メモリの記録 `MEMWATCH` の除去) があります。
+- **継続作業での経緯と対処**: 2026-11-23 に、継続案件 `remaining-backlog-items` (検討 ID: `remaining-backlog-items-20261123`、全体管理文書: `261123-remaining-backlog-items-overview.md`) で検討を開始しました。2026-11-23 09:24 JST に、継続案件の検討用 Markdown の回答で、対策の方針が決まりました (継続案件の簡易 ADR の LADR-014)。 2026-11-24 から 2026-11-25 にかけて、段階 1 として、CI の Linux のビルドから、app を 1 つずつビルドする指定 (`MAKEFW_APP_BUILD_JOBS: "1"`) を取り除きました (ルートのコミット `0f3dd230`)。この CI の結果は次のとおりで、Linux の条件を満たしました。同時に動くコンパイルの最大は、ol8、ol9、ol10 とも 4 (予算 4 以下) でした。空きメモリの最小は、ol8 が 5487 [MB]、ol9 が 6159 [MB]、ol10 が 7354 [MB] (2048 [MB] 以上) でした。ランナーの停止 (exit 137) はありませんでした。ビルドの所要時間は ol8 が約 188 分で、変更の前の実行 (`5542b692`) の約 160 分から約 28 分増えましたが、2 つの実行の間にテストが数百ファイル加わっているため、割り振りの変更だけの影響とは切り分けられません。残る対処として、段階 2 (メモリの記録 `MEMWATCH` の除去) があります。 2026-11-25 に、段階 1 の Windows の条件を、順序の不具合の直しを含む CI (`dd6fbda8`) で、Windows と Linux の 3 つのジョブがすべて成功したことで確かめました。段階 2 として、CI の Linux のビルドから、メモリの記録 (`MEMWATCH`) を取り除きました (ルートの `fe6f11f3`)。`ci.yml` に `MEMWATCH` と `MAKEFW_APP_BUILD_JOBS` の文字列は残っていません。記録の処理は、`fe6f11f3` の前の `ci.yml` から取り出せます。
 
 ### 影響範囲とリスク
 
