@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 05:17:16 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53UFydnbt2gLXTJC1ZC)
+最終更新日時: 2026-11-26 08:23:16 JST
+最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
 下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は未作成です。未作成の場合や、削除されている場合があります。
@@ -46,7 +46,7 @@
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認 (簡易 ADR の LADR-001 から LADR-013 との照合)
     - ✅ 3.3. 対話セッションにおける最終仕様 (design.md) の承認の受付 (第 2 ゲート: 作業着手の合意。承認を、最終仕様の「Git の運用と書き込み操作の許可の範囲」の Git の書き込み操作の許可とする)。2026-11-25 21:48 ごろの対話でユーザーが承認 (経緯を参照)
 - 🔄 4. 承認された最終仕様に従った作業の実施 (統合の単位ごとに、実装、Linux の局所テスト、Windows の検証、main への統合と push、CI の確認の順に進める。単位の順は最終仕様の「統合の単位と順序」)
-    - ⏸️ 4.1. 作業ブランチ `work/261125-consumable-backlog-items` の作成と push (親リポジトリ、`app/cplat`、`app/porter`、`app/cjson`、`framework/testfw`。主エージェントが行う) ← **CURRENT**
+    - ⏸️ 4.1. 作業ブランチ `work/261125-consumable-backlog-items` の作成と push (親リポジトリ、`app/cplat`、`app/porter`、`app/cjson`、`framework/testfw`。主エージェントが行う)
     - 🔄 4.2. U1 BL-031 (親リポジトリ)
         - ✅ 4.2.1. `app/struct-meta/prod/libsrc/struct_meta/parse/struct_meta_parse.y` と `struct_meta_parse.l` の位置情報への移行
         - ✅ 4.2.2. `structMetaBuildTest.cc`、`structMetaGenEmitTest.cc` の期待値の修正と、`structMetaParseDocTest` への診断の行のテストの追加
@@ -70,14 +70,17 @@
         - ⏸️ 4.4.6. 作業ブランチへのコミットと push (主エージェントが行う。`app/cjson`、`app/porter` サブモジュールと親の参照)
         - ⏸️ 4.4.7. Windows の検証 (`app/cjson` のビルドと `cjsonTest`、`cjsonJsoncDynamicLoadTest`)
         - ⏸️ 4.4.8. main への統合と push、CI の確認
-    - ⏸️ 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
-        - ⏸️ 4.5.1. `argparser.h`、`argparser.c`、mock (`mock_cplat.h`、`mock_cplat.cc`、`mock_cplat_argparser.cc`)、`exportTest.cc`、`argparserTest.cc`、`argparserAllocFailureTest.cc`
-        - ⏸️ 4.5.2. `app/cplat/prod/src/cmd/` の 11 の呼び出し元と、そのテスト
-        - ⏸️ 4.5.3. `app/porter/prod/src/cmd/` の 3 の呼び出し元と、そのテスト
-        - ⏸️ 4.5.4. 親リポジトリの 9 の呼び出し元 (`app/calc`、`app/override-sample`、`app/service-sample`、`app/struct-meta`、`app/subfolder-sample`、`app/tutorial`) と、そのテスト
-        - ⏸️ 4.5.5. 文書 (`api-cheatsheet.md`、`argparser/README.md`、`argparser-sample/README.md`、`argparser.internal.md`)
-        - ⏸️ 4.5.6. `tracer.h` の `cplat_tracer_dispose` の記載と、`app/cplat/docs/coding-guideline.md` の「生成と破棄の動詞対」
-        - ⏸️ 4.5.7. Linux の局所テスト (`app/cplat` を make してから利用側)、Windows の検証、main への統合と push、CI の確認
+    - 🔄 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
+        - ✅ 4.5.1. `argparser.h`、`argparser.c`、mock (`mock_cplat.h`、`mock_cplat.cc`、`mock_cplat_argparser.cc`)、`exportTest.cc`、`argparserTest.cc`、`argparserAllocFailureTest.cc`
+        - ✅ 4.5.2. `app/cplat/prod/src/cmd/` の 11 の呼び出し元と、そのテスト
+        - ✅ 4.5.3. `app/porter/prod/src/cmd/` の 3 の呼び出し元と、そのテスト
+        - ✅ 4.5.4. 親リポジトリの 9 の呼び出し元 (`app/calc`、`app/override-sample`、`app/service-sample`、`app/struct-meta`、`app/subfolder-sample`、`app/tutorial`) と、そのテスト
+        - ✅ 4.5.5. 文書 (`api-cheatsheet.md`、`argparser/README.md`、`argparser-sample/README.md`、`argparser.internal.md`)
+        - ✅ 4.5.6. `tracer.h` の `cplat_tracer_dispose` の記載と、`app/cplat/docs/coding-guideline.md` の「生成と破棄の動詞対」
+        - ✅ 4.5.7. Linux の局所テスト (`app/cplat` を make してから `argparserTest`、`exportTest`、続いて呼び出し元の各 app の make と make test、内容のある `.warn` の確認)
+        - 🔄 4.5.8. 作業ブランチへのコミットと push (主エージェントが行う。`app/cplat`、`app/porter` サブモジュールと親の参照) ← **CURRENT**
+        - ⏸️ 4.5.9. Windows の検証 (`app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest`)
+        - ⏸️ 4.5.10. main への統合と push、CI の確認
     - ⏸️ 4.6. U5 BL-008 (`app/porter`)
         - ⏸️ 4.6.1. `potr_trace.c`、`potr_trace.h`、`porter_spec.h`
         - ⏸️ 4.6.2. `potrTraceTest.cc` と `potr_trace.inject.c`
@@ -263,6 +266,7 @@ Table: 質問の一覧
 | 2026-11-26 04:55 | U1 (BL-031) の実装と Linux の局所テストの完了 | sonnet サブエージェントが `struct_meta_parse.y`、`struct_meta_parse.l`、テスト、`architecture.md` を変更しました。作業ブランチの作成とコミットは主エージェントが行います。 |
 | 2026-11-26 05:20 | U2 (BL-013) の実装と Linux の局所テストの完了 | sonnet サブエージェントが `config_schema.c`、`docs/config.md`、`configCheckTest.cc` を変更しました。作業中、`configFileLoadTest` に旧構成のリンク切れのシンボリック リンク (`.gitignore` 対象の生成物) が残っていてビルドを妨げたため、削除しました。 |
 | 2026-11-26 05:17 | U3 (BL-012) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/cjson` (パッチ `0003`、`cjson_app_thread_local.h`、`cJSON_JSONC.c`、`cJSON_JSONC.h`、`README.md`、`patches/README.md`、`prod/libsrc/cjson/makepart.mk`、`cjsonJsoncTest.cc`、`cJSON_JSONC.inject.c` / `.inject.h`) と `app/porter` (`porter_spec.h`、`docs/api.md`、`config_document.c` のコメント) を変更しました。作業 WBS の 4.4.5 を、Linux の局所テスト、コミット、Windows の検証、統合の 4 項目に分けました。コミットは主エージェントが行います。 |
+| 2026-11-26 08:23 | U4 (BL-006) の Linux の局所テストの完了 | 前任の opus サブエージェントが作業 WBS 4.5.7 の途中で PC の障害により中断したため、別の opus サブエージェントが引き継ぎました。作業ツリーの差分を全件読み、4.5.1 から 4.5.6 の実装が最終仕様の「BL-006」の節と一致し、書きかけの箇所がないことを確認しました。`app/cplat` のビルドの成果物の一部 (`prod/lib/libcplat.so` と 18 の `.o`) が中断で 0 バイトになっており、リンクが失敗したため、`app/cplat` に限って `make clean` をしてから作り直し、4.5.7 を最初から実施しました。コミットは主エージェントが行います。 |
 
 ## 反映と検証の記録
 
@@ -282,3 +286,8 @@ U3 BL-012 (2026-11-26、Linux):
 
 - 対応箇所: `app/cjson/prod/include_internal/cjson_app_thread_local.h` (新規。`CJSON_APP_THREAD_LOCAL`)、`app/cjson/patches/0003-thread-local-global-error.patch` (新規。`cJSON.c` の `global_error` をスレッド ローカルへ。`PATCH:` の注記付き)、`patches/README.md` (表と説明)、`prod/libsrc/cjson/jsonc/cJSON_JSONC.c` (共通ロック、取得・解放の関数、`<pthread.h>` を削除し、`CJSON_APP_THREAD_LOCAL` を使用)、`prod/libsrc/cjson/makepart.mk` (共通ロックのためだけの `LIBS += pthread` とそのコメントを削除)、`prod/include/cJSON_JSONC.h` と `README.md` (並行に解析できること、`cJSON_GetErrorPtr()` は呼び出したスレッドの直近の失敗位置を返すこと、`cJSON_InitHooks()` の禁止は維持)、`cjsonJsoncTest.cc` (`serializes_new_and_existing_parser_calls` を `parses_concurrently_with_thread_local_error_positions` へ置き換え。JSONC と直接の解析、直接の解析どうし、新旧の JSONC の 3 組で、先行のスレッドを cJSON 本体の中で止めた間に後続の解析が完了し、値と `cJSON_GetErrorPtr()` がスレッドごとに独立することを確認。`recovers_after_syntax_and_allocation_errors` のロックの確認の 1 行を削除)、`cJSON_JSONC.inject.c` / `.inject.h` (`cjson_jsonc_test_parse_lock_is_available()` を削除)。`app/porter` の `porter_spec.h` (3 関数のスレッド セーフの記載)、`docs/api.md` (4 行)、`config_document.c` (`cJSON_GetErrorPtr()` を使わない理由のコメント)。
 - 検証: `make -C app/cjson` (パッチの再適用を含む) と `make -C app/cjson test` が成功 (`cjsonTest` 12 件、`cjsonJsoncDynamicLoadTest` ほか)。`global_error` の `CJSON_APP_THREAD_LOCAL` を一時的に外すと新しいテストが失敗することを確かめ、戻して再ビルドと再テストが成功。porter の `configDocumentTest`、`configValidateFileTest` の make と make test が成功。内容のある `.warn` なし。`cJSON_JSONC.c` の `check_c_topdown.py` は 0 件。`config_document.c` はコメントだけの変更で、既存の 4 件の違反 (トップ ダウン記載の統一の案件の第 2 段の対象) は変更していません。Windows の検証は未実施。
+
+U4 BL-006 (2026-11-26、Linux):
+
+- 対応箇所: `app/cplat` の `argparser.h` (`int` の戻り値、`@retval`、失敗時の状態の記載、ファイル先頭の例)、`argparser.c` (`argparser_default_acquire()` の `NULL` で `CPLAT_ERR_OUT_OF_MEMORY`)、mock (`mock_cplat.h` の宣言と `MOCK_METHOD`、`mock_cplat_argparser.cc` の `DEFINE_ARGPARSER_RESULT`。`mock_cplat.cc` の既定の委譲は変更不要)、`exportTest.cc` (関数型)、`argparserTest.cc` (8 箇所の戻り値の確認)、`argparserAllocFailureTest.cc` (2 箇所の戻り値の確認と、初回の生成の失敗、再初期化での説明の複製の失敗で `CPLAT_ERR_OUT_OF_MEMORY` を返すテスト 2 件)、`tracer.h` (`cplat_tracer_dispose` の出力の停止の失敗、再試行を求めないこと、終了処理による回収とリーク)、`docs/coding-guideline.md` (「生成と破棄の動詞対」に破棄の関数の失敗の扱い)、`docs/api-cheatsheet.md`、`argparser/README.md`、`argparser-sample/README.md`、`prod/src/cmd/` の 11 の呼び出し元。`app/porter` の 3 の呼び出し元と `porterConfigCheckTest.cc` (`returnsExecutionFailureWhenArgparserInitFails`)。親リポジトリの 9 の呼び出し元 (`app/calc` の 3、`app/override-sample`、`app/service-sample`、`app/struct-meta`、`app/subfolder-sample`、`app/tutorial` の 2)。呼び出し元は 23 箇所のすべてが戻り値を検査し、失敗時は標準エラー出力へ `引数の解析の準備に失敗しました。` を出力して、そのコマンドの失敗の終了コード (`porter-config-check` は実行失敗の 1、ほかは `EXIT_FAILURE`) で終了します。`argparser.internal.md` は記載の確認だけで、変更は不要でした。
+- 検証: 中断で壊れた `app/cplat` の成果物を `make -C app/cplat clean` で消してから `make -C app/cplat` が成功 (約 50 分)。`argparserTest` (102 件、新しい 2 件を含む) と `exportTest` (2 件) の make test が成功。`app/cplat/test/src/cmd` の make test が成功 (92 件)。`make -C app/porter` と `app/porter/test/src/cmd` の make test が成功 (42 件)。`app/calc` (36 件)、`app/override-sample` (18 件)、`app/service-sample` (76 件)、`app/struct-meta` (129 件)、`app/subfolder-sample` (3 件)、`app/tutorial` (11 件) の make と make test が成功。内容のある `.warn` はなし。変更した 24 の `.c` について、`check_c_topdown.py` の検査関数で HEAD の版と現在の版を比べ、新たな違反がないことを確認 (既存の違反は、トップ ダウン記載の統一の案件の第 2 段の対象)。Windows の検証は未実施。
