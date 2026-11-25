@@ -10,6 +10,7 @@
  *
  * ライブラリとして同一プロセスで繰り返し呼べるよう、再入可能な構成を用います。
  * 行番号は yylineno がまとめて数えるため、規則の中で数えません。
+ * 各字句の開始行と終了行は、bison の位置情報 (yylloc) へ YY_USER_ACTION で記録します。
  */
 
 %{
@@ -21,10 +22,36 @@
 #include <cplat/crt/string.h>
 
 #include <stdlib.h>
+
+/*
+ * 字句の開始行と終了行を yylloc へ記録する。
+ *
+ * flex は yylineno を、規則の動作へ入る前 (YY_DO_BEFORE_ACTION) に字句の中の改行まで数え終える。
+ * YY_USER_ACTION の時点の yylineno は字句の終了行であるため、開始行は、
+ * yylineno から字句の中の改行の数を引いて求める。
+ * see: https://westes.github.io/flex/manual/Misc-Macros.html
+ */
+#define YY_USER_ACTION                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        int newline_count = 0;                                                                                         \
+        for (yy_size_t i = 0; i < yyleng; i++)                                                                         \
+        {                                                                                                              \
+            if (yytext[i] == '\n')                                                                                     \
+            {                                                                                                          \
+                newline_count++;                                                                                       \
+            }                                                                                                          \
+        }                                                                                                              \
+        yylloc->first_line = yylineno - newline_count;                                                                 \
+        yylloc->last_line = yylineno;                                                                                  \
+        yylloc->first_column = 0;                                                                                      \
+        yylloc->last_column = 0;                                                                                       \
+    } while (0);
 %}
 
 %option reentrant
 %option bison-bridge
+%option bison-locations
 %option yylineno
 %option noyywrap
 %option nounput

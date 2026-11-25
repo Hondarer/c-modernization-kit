@@ -5,7 +5,12 @@
 extern "C"
 {
 #include "doc.h"
+
+#include <struct_meta/parse/ast.h>
+#include <struct_meta/parse/parse_internal.h>
 }
+
+#include <cstring>
 
 // 同じコメント内の複数の brief が記載順に連結されることの確認
 TEST(structMetaParseDocTest, joins_brief_tags_in_source_order)
@@ -237,4 +242,159 @@ TEST(structMetaParseDocTest, rejects_invalid_attribute_forms)
         0,
         multiline_result
             .invalid); // [確認_異常系] - multiline_result.invalid が 0 以外であること。(改行を含む属性値が拒否されたことの確認)
+}
+
+namespace
+{
+
+/**
+ *  @brief          ヘッダー文字列を構文解析します。
+ *  @param[in]      header      解析するヘッダー文字列です。
+ *  @param[out]     structs     解析結果の格納先です。呼び出し側が破棄します。
+ *  @param[out]     diagnostic  診断の格納先です。
+ *  @return         struct_meta_internal_parse_header_text() の戻り値です。
+ */
+int parse_text(const char *header, struct_meta_internal_parse_struct_list **structs, struct_meta_diagnostic *diagnostic)
+{
+    return struct_meta_internal_parse_header_text(header, strlen(header), structs, diagnostic);
+}
+
+} // namespace
+
+// 複数行の前置コメントの属性の誤りが、コメントの開始行を返すことの確認
+TEST(structMetaParseDocTest, reports_start_line_of_multiline_prefix_comment_with_invalid_attribute)
+{
+    // Arrange
+    const char header[] = "\n"
+                          "typedef struct probe\n"
+                          "{\n"
+                          "    /**\n"
+                          "     * @struct_meta{sample key=1}\n"
+                          "     */\n"
+                          "    int value;\n"
+                          "} probe;\n";
+    struct_meta_internal_parse_struct_list *structs = nullptr;
+    struct_meta_diagnostic diagnostic = {};
+
+    // Pre-Assert
+
+    // Act
+    int ret = parse_text(header, &structs, &diagnostic); // [手順] - 複数行の前置コメントに不正な属性を持つヘッダーを解析する。
+
+    // Assert
+    EXPECT_NE(0, ret);              // [確認_異常系] - 解析が失敗すること。
+    EXPECT_EQ(4, diagnostic.line);  // [確認_異常系] - diagnostic.line が前置コメントの開始行 (4) であること。
+    EXPECT_EQ(nullptr, structs);    // [確認_異常系] - 解析結果が返らないこと。
+}
+
+// 後置コメントの属性の誤りが、そのコメントの行を返すことの確認
+TEST(structMetaParseDocTest, reports_line_of_postfix_comment_with_invalid_attribute)
+{
+    // Arrange
+    const char header[] = "typedef struct probe\n"
+                          "{\n"
+                          "    int value;\n"
+                          "    int other; /**< @struct_meta{sample key=1} */\n"
+                          "} probe;\n";
+    struct_meta_internal_parse_struct_list *structs = nullptr;
+    struct_meta_diagnostic diagnostic = {};
+
+    // Pre-Assert
+
+    // Act
+    int ret = parse_text(header, &structs, &diagnostic); // [手順] - 後置コメントに不正な属性を持つヘッダーを解析する。
+
+    // Assert
+    EXPECT_NE(0, ret);              // [確認_異常系] - 解析が失敗すること。
+    EXPECT_EQ(4, diagnostic.line);  // [確認_異常系] - diagnostic.line が後置コメントの行 (4) であること。
+    EXPECT_EQ(nullptr, structs);    // [確認_異常系] - 解析結果が返らないこと。
+}
+
+// long のメンバーの拒否が、型と名前が別の行でも long の字句の行を返すことの確認
+TEST(structMetaParseDocTest, reports_line_of_long_keyword_when_type_and_name_are_on_different_lines)
+{
+    // Arrange
+    const char header[] = "typedef struct probe\n"
+                          "{\n"
+                          "    long\n"
+                          "        value;\n"
+                          "} probe;\n";
+    const char unsigned_header[] = "typedef struct probe\n"
+                                   "{\n"
+                                   "    int first;\n"
+                                   "    unsigned\n"
+                                   "        long\n"
+                                   "        value;\n"
+                                   "} probe;\n";
+    struct_meta_internal_parse_struct_list *structs = nullptr;
+    struct_meta_internal_parse_struct_list *unsigned_structs = nullptr;
+    struct_meta_diagnostic diagnostic = {};
+    struct_meta_diagnostic unsigned_diagnostic = {};
+
+    // Pre-Assert
+
+    // Act
+    int ret = parse_text(header, &structs, &diagnostic); // [手順] - 型と名前が別の行にある long のメンバーを解析する。
+    int unsigned_ret = parse_text(unsigned_header, &unsigned_structs,
+                                  &unsigned_diagnostic); // [手順] - 3 行にわたる unsigned long のメンバーを解析する。
+
+    // Assert
+    EXPECT_NE(0, ret);                       // [確認_異常系] - long の解析が失敗すること。
+    EXPECT_EQ(3, diagnostic.line);           // [確認_異常系] - diagnostic.line が long の行 (3) であること。
+    EXPECT_NE(0, unsigned_ret);              // [確認_異常系] - unsigned long の解析が失敗すること。
+    EXPECT_EQ(5, unsigned_diagnostic.line);  // [確認_異常系] - diagnostic.line が long の行 (5) であること。
+}
+
+// 構文エラーが、誤りを検出した字句の行を返すことの確認
+TEST(structMetaParseDocTest, reports_line_of_token_that_caused_syntax_error)
+{
+    // Arrange
+    const char header[] = "typedef struct probe\n"
+                          "{\n"
+                          "    int value;\n"
+                          "    int 123;\n"
+                          "} probe;\n";
+    struct_meta_internal_parse_struct_list *structs = nullptr;
+    struct_meta_diagnostic diagnostic = {};
+
+    // Pre-Assert
+
+    // Act
+    int ret = parse_text(header, &structs, &diagnostic); // [手順] - 4 行目に構文エラーのあるヘッダーを解析する。
+
+    // Assert
+    EXPECT_NE(0, ret);              // [確認_異常系] - 解析が失敗すること。
+    EXPECT_EQ(4, diagnostic.line);  // [確認_異常系] - diagnostic.line が誤りの字句の行 (4) であること。
+}
+
+// 複数行にわたるフィールドの宣言と構造体の AST の line が、名前の行であることの確認
+TEST(structMetaParseDocTest, records_name_line_for_multiline_field_and_struct)
+{
+    // Arrange
+    const char header[] = "typedef struct\n"
+                          "{\n"
+                          "    unsigned\n"
+                          "        int\n"
+                          "        value\n"
+                          "        ;\n"
+                          "}\n"
+                          "probe;\n";
+    struct_meta_internal_parse_struct_list *structs = nullptr;
+    struct_meta_diagnostic diagnostic = {};
+
+    // Pre-Assert
+
+    // Act
+    int ret = parse_text(header, &structs, &diagnostic); // [手順] - 型と名前が別の行にある宣言を解析する。
+
+    // Assert
+    ASSERT_EQ(0, ret);                          // [確認_正常系] - 解析が成功すること。
+    ASSERT_NE(nullptr, structs);                // [確認_正常系] - 解析結果が返ること。
+    ASSERT_NE(nullptr, structs->head);          // [確認_正常系] - 構造体があること。
+    ASSERT_NE(nullptr, structs->head->fields);  // [確認_正常系] - フィールドがあること。
+    EXPECT_EQ(5, structs->head->fields->line);  // [確認_正常系] - フィールドの line が名前の行 (5) であること。
+    EXPECT_EQ(8, structs->head->line);          // [確認_正常系] - 構造体の line が typedef の名前の行 (8) であること。
+
+    // Cleanup
+    struct_meta_internal_parse_struct_list_destroy(structs);
 }
