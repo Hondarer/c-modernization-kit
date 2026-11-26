@@ -70,7 +70,7 @@
         - ✅ 4.4.6. 作業ブランチへのコミットと push (主エージェントが行う。`app/cjson`、`app/porter` サブモジュールと親の参照)
         - ✅ 4.4.7. Windows の検証 (`app/cjson` のビルドと `cjsonTest`、`cjsonJsoncDynamicLoadTest`。成功)
         - ✅ 4.4.8. main への統合と push、CI の確認 (cjson main 57db801、porter main fb6bd71、親 main 937b6ab0。CI 45724460463 は成功)
-    - 🔄 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
+    - ✅ 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
         - ✅ 4.5.1. `argparser.h`、`argparser.c`、mock (`mock_cplat.h`、`mock_cplat.cc`、`mock_cplat_argparser.cc`)、`exportTest.cc`、`argparserTest.cc`、`argparserAllocFailureTest.cc`
         - ✅ 4.5.2. `app/cplat/prod/src/cmd/` の 11 の呼び出し元と、そのテスト
         - ✅ 4.5.3. `app/porter/prod/src/cmd/` の 3 の呼び出し元と、そのテスト
@@ -80,20 +80,20 @@
         - ✅ 4.5.7. Linux の局所テスト (`app/cplat` を make してから `argparserTest`、`exportTest`、続いて呼び出し元の各 app の make と make test、内容のある `.warn` の確認)
         - ✅ 4.5.8. 作業ブランチへのコミットと push (主エージェントが行う。`app/cplat`、`app/porter` サブモジュールと親の参照。cplat 7bd1c11b、porter 38c4995、親 839387f4)
         - ✅ 4.5.9. Windows の検証 (`app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest`。成功。argparserTest 102 件、exportTest 2 件、porter のコマンドのテスト 56 件 (Windows 専用を含む)、内容のある `.warn` なし。struct-meta の 803b8a3a も 128 件成功 (Windows で除外の 1 件を除き Linux と一致))
-        - ⏸️ 4.5.10. main への統合と push、CI の確認
-    - 🔄 4.6. U5 BL-008 (`app/porter`)
+        - ✅ 4.5.10. main への統合と push、CI の確認 (cplat main 5c3be8ed、porter main 3b0d4fc、親 main 712b55ff。CI 45751634321 は成功)
+    - ✅ 4.6. U5 BL-008 (`app/porter`)
         - ✅ 4.6.1. `potr_trace.c`、`potr_trace.h`、`porter_spec.h`
         - ✅ 4.6.2. `potrTraceTest.cc` と `potr_trace.inject.c`
-        - 🔄 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。作業ブランチへのコミットと push は porter 277e9f4、親 6a977b6a。Windows の検証は成功し、porter のビルドと `potrTraceTest` 8 件、内容のある `.warn` なし。残りは main への統合と push、CI の確認)
-    - 🔄 4.7. U6 BL-005、BL-007 (`app/cplat`)
+        - ✅ 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。作業ブランチへのコミットと push は porter 277e9f4、親 6a977b6a。Windows の検証は成功し、porter のビルドと `potrTraceTest` 8 件、内容のある `.warn` なし。main への統合は親 main 712b55ff、CI 45751634321 は成功)
+    - ✅ 4.7. U6 BL-005、BL-007 (`app/cplat`)
         - ✅ 4.7.1. `trace_etw_session.c` と `etw.h` (あわせて `api-cheatsheet.md` の ETW の行)
         - ✅ 4.7.2. `trace_etw_sessionTest.cc` と `trace_etw_session.inject.c` / `.inject.h`
-        - 🔄 4.7.3. Windows の検証、BL-007 のクローズの確認、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 5ef4bb9e、親 f6b96db8。Windows の検証は成功し、`trace_etw_sessionTest` 14 件、`etwSessionIntegrationTest` 9 件、停止のテストの 20 回の繰り返しで失敗 0 件、MSVC の警告と内容のある `.warn` なし。BL-007 のクローズの条件を満たした。残りは main への統合と push、CI の確認)
-    - 🔄 4.8. U7 BL-004 (`app/cplat`)
+        - ✅ 4.7.3. Windows の検証、BL-007 のクローズの確認、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 5ef4bb9e、親 f6b96db8。Windows の検証は成功し、`trace_etw_sessionTest` 14 件、`etwSessionIntegrationTest` 9 件、停止のテストの 20 回の繰り返しで失敗 0 件、MSVC の警告と内容のある `.warn` なし。BL-007 のクローズの条件を満たした。main への統合は親 main 712b55ff、CI 45751634321 は成功)
+    - ✅ 4.8. U7 BL-004 (`app/cplat`)
         - ✅ 4.8.1. `temp_file_internal.h` と `temp_file_windows.c` の新設
         - ✅ 4.8.2. `stdio_temp.c`、`elevated_process.c`、`stdio.h` (あわせて `api-cheatsheet.md` と `functional-spec/crt.md` の一時ファイルの記載)
         - ✅ 4.8.3. `tempFileTest` (新設)、`stdioTempTest`、`elevatedProcessTest` のテスト
-        - 🔄 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。作業ブランチへのコミットと push は cplat 6a83776d、親 f36e012d。Windows の検証は成功し、`tempFileTest` 14 件、`stdioTempTest` 8 件、`tempDirTest` 9 件、`elevatedProcessTest` 26 件、MSVC の警告と内容のある `.warn` なし、`%TEMP%` に残骸なし。残りは main への統合と push、CI の確認)
+        - ✅ 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。作業ブランチへのコミットと push は cplat 6a83776d、親 f36e012d。Windows の検証は成功し、`tempFileTest` 14 件、`stdioTempTest` 8 件、`tempDirTest` 9 件、`elevatedProcessTest` 26 件、MSVC の警告と内容のある `.warn` なし、`%TEMP%` に残骸なし。main への統合は親 main 712b55ff、CI 45751634321 は成功)
     - 🔄 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
         - ✅ 4.9.1. testfw の `GetFileInformationByHandleEx` の mock (`mock_windows.h`、`mock_GetFileInformationByHandleEx.cc`)
         - ✅ 4.9.2. `path.h`、`path_identity.c`、`mock_cplat`、`exportTest.cc`、`api-cheatsheet.md`、`functional-spec/crt.md`
