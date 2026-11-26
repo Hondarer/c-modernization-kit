@@ -59,6 +59,34 @@ typedef void *yyscan_t;
 %code {
 int yylex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner);
 void yyerror(YYLTYPE *location, yyscan_t scanner, struct_meta_internal_parse_context *context, const char *message);
+
+/*
+ * 規則の位置を、右辺の先頭から末尾までの範囲にする (bison の既定の動作と同じ)。
+ *
+ * 既定の YYLLOC_DEFAULT はマクロの中で if (N) を評価する。bison はエラー回復で
+ * YYLLOC_DEFAULT を定数の N = 2 で呼ぶため、条件式が定数になり、MSVC の C4127 になる。
+ * 生成物は直さず、同じ計算を関数で行い、N を実行時の値として渡す。
+ * see: https://www.gnu.org/software/bison/manual/html_node/Location-Default-Action.html
+ */
+static void struct_meta_parse_default_location(YYLTYPE *current, const YYLTYPE *rhs, const int n)
+{
+    if (n != 0)
+    {
+        current->first_line = rhs[1].first_line;
+        current->first_column = rhs[1].first_column;
+        current->last_line = rhs[n].last_line;
+        current->last_column = rhs[n].last_column;
+    }
+    else
+    {
+        current->first_line = rhs[0].last_line;
+        current->last_line = rhs[0].last_line;
+        current->first_column = rhs[0].last_column;
+        current->last_column = rhs[0].last_column;
+    }
+}
+
+#define YYLLOC_DEFAULT(Current, Rhs, N) struct_meta_parse_default_location(&(Current), (Rhs), (int)(N))
 }
 
 %define api.pure full
