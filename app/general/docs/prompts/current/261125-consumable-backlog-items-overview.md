@@ -1,11 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 12:48:35 JST
+最終更新日時: 2026-11-26 13:32:07 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
-下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7 の実装中に摘出した 3 件を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
+下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7、U8、U9 の実装中に摘出した BL-001 から BL-006 を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。この文書と、ユーザーが編集した最新の検討用 Markdown を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があり、どこまで進んでいたかは文書だけでは分かりません。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。`← **CURRENT**` がなく、作業 WBS がすべて完了 (✅) であれば、この案件の合意フローは完了しています。
 -->
 
@@ -98,10 +98,10 @@
         - ✅ 4.9.1. testfw の `GetFileInformationByHandleEx` の mock (`mock_windows.h`、`mock_GetFileInformationByHandleEx.cc`)
         - ✅ 4.9.2. `path.h`、`path_identity.c`、`mock_cplat`、`exportTest.cc`、`api-cheatsheet.md`、`functional-spec/crt.md`
         - ✅ 4.9.3. `pathIdentityTest` の新設と、`compress-cli.c` と `compress-cliTest` の変更
-        - ⚠️ 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。未確認の事項: 作業ブランチへのコミットと push (testfw と cplat)、Windows の `framework/testfw` (`mock_libc`) と `app/cplat` のビルドと、`pathIdentityTest` (20 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件) のテスト、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
-    - ⏸️ 4.10. U9 BL-028 (`app/cplat`)
-        - ⏸️ 4.10.1. `socketTest.cc` への 8 件のテストの追加
-        - ⏸️ 4.10.2. Windows の検証、main への統合と push、CI の確認
+        - ⚠️ 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。未確認の事項: 作業ブランチへのコミットと push (testfw と cplat)、Windows の `framework/testfw` (`mock_libc`) と `app/cplat` のビルドと、`pathIdentityTest` (20 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件) のテスト、main への統合と push、CI の確認。いずれも主エージェントが行う)
+    - ⚠️ 4.10. U9 BL-028 (`app/cplat`)
+        - ✅ 4.10.1. `socketTest.cc` への 8 件のテストの追加 (Winsock のイベントを試験側で模擬する `winsock_event_simulator` と、障壁で順序を固定する 8 件の Windows 専用のテスト。Linux の socketTest の make と make test が成功 (62 件)。8 件は Linux では本体がコンパイルされないため、Windows の Winsock の型を代替した試験用の構成 (scratchpad、リポジトリ外) で `socket_watch_windows.c` の写しと合わせて実行し、8 件の成功と、実装の分岐を壊す 11 種の一時的な改変がいずれも検出されることを確かめた)
+        - ⚠️ 4.10.2. Windows の検証、main への統合と push、CI の確認 (未確認の事項: cplat の作業ブランチへのコミットと push、Windows の `socketTest` のビルドとテスト (60 件。新しい 8 件を含む)、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
     - ⏸️ 4.11. U10 BL-001 (`framework/testfw`、`app/porter`)
         - ⏸️ 4.11.1. `testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc` と、testfw のテスト
         - ⏸️ 4.11.2. `framework/testfw/docs/how-to-test.md`
@@ -273,6 +273,7 @@ Table: 質問の一覧
 | 2026-11-26 11:33 | U7 (BL-004) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/cplat` の `temp_file_internal.h` と `temp_file_windows.c` (新規)、`stdio_temp.c`、`elevated_process.c`、`stdio.h`、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md`、`stdioTempTest` と `elevatedProcessTest` のテストと `makepart.mk` を変更しました。`temp_file_windows.c` は、同じディレクトリの `temp_dir_windows.c` と同じく Linux では空の翻訳単位になるため、ビルドから除外していません。`stdio.h` の変更で `mock_cplat` と cplat のテストの全体が作り直しになり、`make -C app/cplat` に約 49 分かかりました。`api-cheatsheet.md` と機能仕様は、公開 API の契約の変更に伴い `app/cplat/AGENTS.md` に従って更新しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 | 2026-11-26 11:41 | U7 のテストの構成の変更 | 最終仕様の作成者 (主エージェント) が、`how-to-test.md` の「テスト対象のソース ファイル 1 本に対してホワイト ボックス テスト 1 本」に合わせて、最終仕様の「BL-004」のテストの節を改めました。opus サブエージェントが、`temp_file_windows.c` だけを `TEST_SRCS` とする `tempFileTest` を新設して名前の規則、衝突の再試行と打ち切り、拡張パスの接頭辞のテストを移し、`stdioTempTest` は `temp_file_windows.c` を `ADD_SRCS` で取り込んで `cplat_fopen_temp()` の経路のテストだけにしました。`crt` のテストのディレクトリは makefw が `*/makefile` で列挙するため、登録の変更は不要です。 |
 | 2026-11-26 12:48 | U8 (BL-003) の実装と Linux の局所テストの完了 | opus サブエージェントが、`framework/testfw` の `GetFileInformationByHandleEx` の mock、`app/cplat` の公開 API `cplat_path_is_same_file()` (`path.h`、`path_identity.c`)、`mock_cplat`、`exportTest`、`errorContractTest`、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md` (要件 `CPLAT-CRT-FUNC-007` を追加)、`pathIdentityTest` (新設)、`compress-cli.c` と `compress-cliTest` を変更し、Linux の局所テストを終えました。最終仕様との相違を、規範の側に合わせて判断した点 (空文字のパスの拒否、戻り値の一覧) は「反映と検証の記録」に記載します。Windows の検証、main への統合、CI の確認は主エージェントが行います。 |
+| 2026-11-26 13:32 | U9 (BL-028) の実装と Linux の確認の完了 | opus サブエージェントが `app/cplat` の `socketTest.cc` に、Winsock のイベントの模擬と障壁を使う Windows 専用のテスト 8 件を加えました。Linux では 8 件の本体がコンパイルされないため、リポジトリ外の試験用の構成で 8 件の成功と、実装の分岐を壊す改変の検出を確かめました (「反映と検証の記録」)。作業 WBS 4.10.1 の着手時の更新 (実施中への変更と現在の項目の印の付け替え) は、実装の後に行いました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 
 ## 反映と検証の記録
 
@@ -320,3 +321,10 @@ U8 BL-003 (2026-11-26、Linux):
 - 規範に合わせた判断: (1) 最終仕様の宣言例は `lhs` と `rhs` を「NULL を渡してはなりません」としていますが、同じヘッダーの `cplat_path_equal()` の規約 (「NULL および空文字は渡してはなりません」) に合わせ、空文字も `CPLAT_ERR_INVALID_ARGUMENT` (詳細 `EINVAL`) で拒否しました。(2) 最終仕様の戻り値の一覧 (5 種) に、実装が返す `CPLAT_ERR_BUFFER_TOO_SMALL` (Windows の `PLATFORM_PATH_MAX` を超えるパス、Linux の `ENAMETOOLONG`) と `CPLAT_ERR_OUT_OF_MEMORY` (`ENOMEM` など) を加えました。Windows のパスの変換は、`cplat_stat()` と `cplat_path_equal()` と同じ `PLATFORM_PATH_MAX` の配列で行います。それ以外の OS の失敗は `CPLAT_ERR_UNKNOWN` にそろえ、OS のエラー値は詳細に残します。(3) `@param` と `@return` の書式は、同じヘッダーの既存の関数 (`detail_out` の説明、`@ref` の付け方) に合わせました。
 - 検証: `make -C framework/testfw` が成功。`make -C app/cplat` が成功 (`mock_cplat.h` の変更で `mock_cplat` と cplat のテスト全体が作り直し)。`framework/testfw` と `app/cplat` に内容のある `.warn` なし。`pathIdentityTest` (18 件)、`exportTest` (2 件)、`errorContractTest` (4 件)、`compress-cliTest` (19 件) の make と make test が成功 (`path_identity.c` の行の網羅 100%、分岐 92%)。`check_c_topdown.py` の `check_text()` で `path_identity.c` は 0 件、`compress-cli.c` は変更の前後とも 13 件 (新しい違反なし。既存の違反は案件 `261125-topdown-function-order` で扱う)。新規の C と C++ のファイルの `clang-format` で差分なし。変更した Markdown は `text_style_jp.py --dry-run` で指摘なし。
 - 未完了: Windows の `framework/testfw` (`mock_libc`) と `app/cplat` のビルド、`pathIdentityTest` (20 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件)。`make doxy` は、生成物の更新を別に扱うため実施していません。
+
+U9 BL-028 (2026-11-26、Linux):
+
+- 対応箇所: `app/cplat/test/src/libcplatTest/net/socketTest/socketTest.cc` だけです (製品のソースは変更なし)。Windows の節に、Winsock のイベント (`WSACreateEvent`、`WSASetEvent`、`WSAResetEvent`、`WSAWaitForMultipleEvents`、`WSAEnumNetworkEvents`、`WSAEventSelect`) を試験側で模擬する `winsock_event_simulator` を置きました。呼び出しを待機の役割 (受信側、送信側、別のスレッド) ごとに記録し、待機の直前、E_s の確認、列挙の 3 か所に 1 回だけ働く障壁を置けます。待機は製品の 50 [ms] の内部間隔を無視して最大 2 [s] まで待ち、失われた起床を時間切れの記録として検出します。テストは `watch_writer_wakes_by_write_event_set_by_reader`、`watch_reader_wakes_by_read_event_set_by_writer` (FD_READ と FD_ACCEPT)、`watch_later_direction_uses_notification_taken_by_other_direction`、`watch_follower_keeps_waiting_after_empty_enumeration`、`watch_write_wait_ignores_read_only_notification`、`watch_enumeration_and_state_update_share_watch_lock`、`watch_close_notification_reaches_both_directions`、`watch_waits_rearm_after_partial_receive_and_write_generation_update` の 8 件で、最終仕様の「BL-028」の列挙の順に対応します。確認件数は順に 14、29、20、19、15、21、17、28 件 (すべて正常系) です。
+- 規範に合わせた判断: 試験側の型、関数、変数の名前は、同じファイルの既存の `RealWinsockSession` (大文字始まり) ではなく、[コーディング規範](../../coding-guideline.md) の命名規則 (snake_case、列挙定数は全大文字、ファイル内の変数は `s_`) に合わせました。整形は、ファイル全体がローカルの clang-format の出力と一致しない (既存の部分に 720 行の差) ため、追加した範囲だけに clang-format を適用しました。
+- 検証: socketTest の make と make test が成功 (Linux の 62 件)。内容のある `.warn` なし。8 件は Linux ではコンパイルされないため、scratchpad (リポジトリ外) に、Winsock の型と関数を代替する構成を作り、`socket_watch_windows.c` の写しと 8 件を Linux で実行しました。8 件は 100 回の繰り返しと、8 本の同時実行 (各 30 回) で成功しました。同じ構成で写しの分岐を壊す 11 種の改変 (E_w の通知の削除、E_r の通知の削除、受信側の E_w のリセット、ロックの外での列挙、FD_CLOSE の共有状態への不保存、世代の無視、pending の未消費、送信の待機配列への E_r、送信側のリセットの削除、受信側のリセットの削除、FD_READ による送信可能の設定) を加え、どの改変も 8 件のうち 1 件以上が失敗することを確かめました。改変は写しだけに行い、リポジトリの `socket_watch_windows.c` は変更していません (`git diff` で確認)。
+- 未完了: cplat の作業ブランチへのコミットと push、Windows の `socketTest` のビルドとテスト (60 件)、main への統合と push、CI の確認。

@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 12:48:46 JST
+最終更新日時: 2026-11-26 13:32:07 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -701,7 +701,7 @@
 
 - **摘出契機**: 実装作業中に発見 (`261123-remaining-backlog-items-overview.md` の作業 WBS 4.1.1、単位 W4-A の報告)。
 - **今回の見送り理由**: 作業 WBS 4.1.1 で実施済みの範囲と Windows・Linux の CI 成功をもって完了とし、未実施の組み合わせの追加は残課題一覧へ記録すると判断したためです。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 に、最終仕様 `261123-remaining-backlog-items-design.md` の該当のテストと `socketTest.cc` の既存のテストを突き合わせ、未実施の組み合わせ (方向ごとの通知の障壁による順序、`FD_CLOSE` の両方向、世代の更新と再待機) を特定しました (全体管理文書の「調査で判明した事実」)。追加するテストは最終仕様で列挙します。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 に、最終仕様 `261123-remaining-backlog-items-design.md` の該当のテストと `socketTest.cc` の既存のテストを突き合わせ、未実施の組み合わせ (方向ごとの通知の障壁による順序、`FD_CLOSE` の両方向、世代の更新と再待機) を特定しました (全体管理文書の「調査で判明した事実」)。追加するテストは最終仕様で列挙します。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に U9 として実装し、Linux の確認を終えました。`socketTest.cc` に、Winsock のイベントを試験側で模擬して mock の呼び出しの中に障壁を置く仕組みと、最終仕様 `261125-consumable-backlog-items-design.md` の「BL-028」に列挙した 8 件の Windows 専用のテスト (送信側と受信側の方向別の通知の順序 (FD_WRITE、FD_READ、FD_ACCEPT)、他方向の通知の後から始めた待機、空の列挙の後の再待機、FD_READ だけの通知での送信の待機、列挙と状態の更新のロック、FD_CLOSE の両方向への通知、一部の受信の後と送信の世代の更新の前後の再待機) を加えました。製品のソースは変更していません。Linux では 8 件の本体がコンパイルされないため、リポジトリ外の試験用の構成で実行し、8 件の成功と、実装の分岐を壊す 11 種の改変がいずれも検出されることを確かめました。Windows の検証、main への統合、CI の確認が残るため、状態は「対応中」のままです。
 
 ### 影響範囲とリスク
 

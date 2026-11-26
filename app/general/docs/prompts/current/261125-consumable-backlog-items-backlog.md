@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 12:49:15 JST
+最終更新日時: 2026-11-26 13:32:07 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-design.md` (最終仕様)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -30,6 +30,7 @@
 | BL-003 | porter-test の一時ファイルのパスの配列が固定長で、一時ディレクトリが長いと保存に失敗する | 作業中摘出 | 低 | 未着手 |
 | BL-004 | cplat_file_get_path_id() と cplat_file_get_id() が Windows で 64 ビットのファイル識別子を使い、ReFS で一意とは限らない | 作業中摘出 | 低 | 未着手 |
 | BL-005 | cplat_path_is_same_file() が Windows で、絶対化すると MAX_PATH を超える相対パスを「存在しない」と判定する | 作業中摘出 | 低 | 未着手 |
+| BL-006 | socketTest の既存の Windows 専用の待機のテストに、確認ごとのエビデンスのタグと TearDown の参照がない | 作業中摘出 | 低 | 未着手 |
 
 ## BL-001 cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない
 
@@ -145,3 +146,26 @@
 
 - **恒久対応案**: `GetFullPathNameW` で完全なパスへ直してから長さを判定し、`MAX_PATH` 以上なら `temp_file_internal.h` の規則と同じく `\\?\` (UNC は `\\?\UNC\`) を前置して `CreateFileW` へ渡します。長いパスの扱いを cplat の内部の共通関数へまとめ、BL-001 の `cplat_remove()` と同じ変更で適用します。
 - **参考情報**: [Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)、`app/cplat/prod/include_internal/cplat/crt/temp_file_internal.h`。
+
+## BL-006 socketTest の既存の Windows 専用の待機のテストに、確認ごとのエビデンスのタグと TearDown の参照がない
+
+### 概要と問題点
+
+- **現状の事象**: `app/cplat/test/src/libcplatTest/net/socketTest/socketTest.cc` の Windows 専用の節にある既存の 6 件 (`watch_cancel_reports_event_creation_failure`、`watch_cancel_signal_failure_is_detected_by_finite_wait`、`watch_attach_cleans_up_each_event_creation_failure`、`watch_wait_propagates_wait_and_enumeration_failures`、`watch_read_wait_ignores_write_only_notification`、`watch_wait_uses_bounded_event_arrays`) は、`EXPECT_*`、`ASSERT_*`、`EXPECT_CALL` の多く (この節の 97 か所) に確認のタグ (`[確認_*]`、`[Pre-Assert確認_*]`、`[状態確認]`) がなく、テストの末尾に 1 行の `[確認_*]` だけを置いています。テストの閉じ括弧の直後に `// [サブ手順参照 名前=socketTest.TearDown]` もありません。同じファイルの Linux と共通の部分のテストは、確認ごとにタグを付けています。`text_style_jp.py --mode cpp --dry-run` も、この範囲の確認に `test-comment-assertion-check` などを報告します。
+- **本来あるべき姿**: [テスト フェーズ](../../../../../framework/testfw/docs/about-test-phase.md) の「期待を確認する行為 1 回を 1 件として集計する」と [サブ手順](../../../../../framework/testfw/docs/test-subprocedures.md) に従い、確認ごとにタグがあり、確認件数と TearDown の参照がテスト エビデンスに出る状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U9、BL-028 のテストを同じ節へ追加したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: BL-028 の範囲は、方向別のイベントの競合のテストの追加です。既存のテストのエビデンスの書き直しは範囲外で、U9 で追加した 8 件だけを規範どおりに記載しました。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `socketTest.cc` の Windows 専用の節の既存の 6 件と、Windows の `results/` のテスト エビデンス。
+- **放置した場合のリスク**: テスト エビデンスで、これらのテストの確認件数が実際の確認より少なく表示され、確認の内容を追えません。テストの成否には影響しないため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: 6 件の各確認にタグを付け、ループの確認には回数を記載し (`watch_attach_cleans_up_each_event_creation_failure` は 3 段階のループ)、閉じ括弧の直後に TearDown の参照を置きます。`text_style_jp.py --mode cpp --dry-run` の指摘が 0 件になることと、Windows のテスト エビデンスの確認件数を確かめます。あわせて、ファイル全体が現在の clang-format の出力と一致しない (2026-11-26 の時点で 720 行の差) 点も、同じ変更で整形するかを判断します。
+- **参考情報**: `framework/testfw/docs/about-test-phase.md`、`framework/testfw/docs/test-subprocedures.md`、`app/general/docs/source-style-guideline.md` の「整形結果の確定と手作業修正の禁止」。
