@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 11:45:01 JST
-最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 12:49:15 JST
+最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-design.md` (最終仕様)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
@@ -28,6 +28,8 @@
 | BL-001 | cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない | 作業中摘出 | 中 | 未着手 |
 | BL-002 | 昇格プロセス側の結果のファイルのパスが 780 バイトを超えると受け取れない | 作業中摘出 | 低 | 未着手 |
 | BL-003 | porter-test の一時ファイルのパスの配列が固定長で、一時ディレクトリが長いと保存に失敗する | 作業中摘出 | 低 | 未着手 |
+| BL-004 | cplat_file_get_path_id() と cplat_file_get_id() が Windows で 64 ビットのファイル識別子を使い、ReFS で一意とは限らない | 作業中摘出 | 低 | 未着手 |
+| BL-005 | cplat_path_is_same_file() が Windows で、絶対化すると MAX_PATH を超える相対パスを「存在しない」と判定する | 作業中摘出 | 低 | 未着手 |
 
 ## BL-001 cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない
 
@@ -97,3 +99,49 @@
 
 - **恒久対応案**: `tmp_path` を `PLATFORM_PATH_UTF8_MAX` の大きさにします。パスの長さが原因の失敗が分かるよう、`cplat_fopen_temp()` の `detail_out` を受け取って出力へ含めます。削除の経路 (610 行) は CRT の `remove()` を使っており、拡張パスの接頭辞付きのパスは、BL-001 が解消するまで `cplat_remove()` でも削除できないため、BL-001 の対策と合わせて見直します。
 - **参考情報**: `app/porter/prod/src/cmd/porter-test/porter-test.c`、`app/cplat/prod/include/cplat/crt/stdio.h` の `cplat_fopen_temp()`、本書の BL-001。
+
+## BL-004 cplat_file_get_path_id() と cplat_file_get_id() が Windows で 64 ビットのファイル識別子を使い、ReFS で一意とは限らない
+
+### 概要と問題点
+
+- **現状の事象**: `app/cplat/prod/libsrc/cplat/crt/file.c` の `cplat_file_get_path_id()` (535 行付近) と `cplat_file_get_id()` は、Windows で `GetFileInformationByHandle()` の `dwVolumeSerialNumber` (32 ビット) と `nFileIndexHigh` / `nFileIndexLow` (64 ビット) を `cplat_file_id` (`prod/include/cplat/crt/file.h` の 80 行) に格納します。ReFS のファイル識別子は 128 ビットで、64 ビットの値は一意とは限りません。また、`cplat_file_get_path_id()` は `FILE_FLAG_BACKUP_SEMANTICS` を指定せずに開くため、ディレクトリの識別子を取得できません。
+- **本来あるべき姿**: BL-003 の対策 (U8) で追加した `cplat_path_is_same_file()` (`prod/libsrc/cplat/crt/path_identity.c`) と同じく、`GetFileInformationByHandleEx(FileIdInfo)` の 128 ビットの識別子とボリュームのシリアル番号 (64 ビット) で同一性を表し、ファイル システムによらず一意な状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U8、BL-003 の実装を担当したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: BL-003 の範囲は、2 つのパスの同一性を判定する API の追加と `compress-cli` への適用です。`cplat_file_id` の構造体の変更は公開 API と ABI の変更を伴い、範囲の外です。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `cplat_file_get_id()`、`cplat_file_get_path_id()`、`cplat_file_id` を比べて、同じパスにファイルが作り直されたことを検出する利用側 (トレースのファイル出力の再オープンの判定など、`cplat_file_get_path_id` の呼び出し元)。
+- **放置した場合のリスク**: ReFS のボリュームで、異なるファイルを同じファイルと誤判定する可能性があります。発生は ReFS の利用環境に限られるため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: `cplat_file_id` の `index` を 128 ビット (例: `uint8_t index[16]`、または `index_high` と `index_low`) へ広げ、Windows の取得を `GetFileInformationByHandleEx(FileIdInfo)` へ改めます。`cplat_file_get_path_id()` は `FILE_FLAG_BACKUP_SEMANTICS` を指定してディレクトリも扱えるようにします。`exportTest`、`mock_cplat`、`api-cheatsheet.md` を同じ変更で更新します。
+- **参考情報**: [FILE_ID_INFO structure](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_id_info)、`app/cplat/prod/libsrc/cplat/crt/path_identity.c`。
+
+## BL-005 cplat_path_is_same_file() が Windows で、絶対化すると MAX_PATH を超える相対パスを「存在しない」と判定する
+
+### 概要と問題点
+
+- **現状の事象**: `app/cplat/prod/libsrc/cplat/crt/path_identity.c` の Windows の分岐は、入力の UTF-8 を `PLATFORM_PATH_MAX` (`MAX_PATH`) 要素の配列へ変換し、収まらなければ `CPLAT_ERR_BUFFER_TOO_SMALL` を返します。入力が短い相対パスで、カレント ディレクトリと合わせた完全なパスが `MAX_PATH` を超える場合は、長いパスを宣言していないプロセスでは `CreateFileW` が `ERROR_PATH_NOT_FOUND` で失敗します。この関数は `ERROR_PATH_NOT_FOUND` を「存在しない」として扱うため、`CPLAT_OK` と `*same_out = 0` を返し、実在するファイルを異なる実体と判定します。
+- **本来あるべき姿**: 長いパスのために照会できない場合は、存在しない場合と区別して失敗を返すか、拡張パスの接頭辞 (`\\?\`) を付けて照会できる状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U8、BL-003 の実装を担当したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: 最終仕様は、Windows のパスの扱いを既存の `cplat_stat()` と `cplat_path_equal()` と同じ `PLATFORM_PATH_MAX` の範囲としています。長いパスへの対応は、BL-001 (`cplat_remove()`) などと同じ、cplat の長いパスの扱いの課題です。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `cplat_path_is_same_file()` と、その呼び出し元の `compress-cli` (`prod/src/cmd/compress-cli/compress-cli.c` の `compress_cli_resolve_paths()`)。
+- **放置した場合のリスク**: 深いカレント ディレクトリで相対パスを指定すると、入力と出力に同じファイルを指定した誤りを検出できず、入力を上書きする可能性があります。発生は `MAX_PATH` を超える深さの作業ディレクトリに限られるため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: `GetFullPathNameW` で完全なパスへ直してから長さを判定し、`MAX_PATH` 以上なら `temp_file_internal.h` の規則と同じく `\\?\` (UNC は `\\?\UNC\`) を前置して `CreateFileW` へ渡します。長いパスの扱いを cplat の内部の共通関数へまとめ、BL-001 の `cplat_remove()` と同じ変更で適用します。
+- **参考情報**: [Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)、`app/cplat/prod/include_internal/cplat/crt/temp_file_internal.h`。
