@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 08:23:16 JST
+最終更新日時: 2026-11-26 10:14:39 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
@@ -21,7 +21,7 @@
 
 検討用 Markdown の版: 2
 
-状態: 作業の実施中 (第 2 ゲート通過済み。U1、U2、U3 の実装と Linux の局所テストが完了し、作業ブランチの作成とコミット待ち)
+状態: 作業の実施中 (第 2 ゲート通過済み。U1 から U5 の実装と Linux の局所テストが完了。Windows の検証、main への統合、CI の確認は単位ごとに主エージェントが進行中)
 
 ## 作業 WBS と進捗管理
 
@@ -46,30 +46,30 @@
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認 (簡易 ADR の LADR-001 から LADR-013 との照合)
     - ✅ 3.3. 対話セッションにおける最終仕様 (design.md) の承認の受付 (第 2 ゲート: 作業着手の合意。承認を、最終仕様の「Git の運用と書き込み操作の許可の範囲」の Git の書き込み操作の許可とする)。2026-11-25 21:48 ごろの対話でユーザーが承認 (経緯を参照)
 - 🔄 4. 承認された最終仕様に従った作業の実施 (統合の単位ごとに、実装、Linux の局所テスト、Windows の検証、main への統合と push、CI の確認の順に進める。単位の順は最終仕様の「統合の単位と順序」)
-    - ⏸️ 4.1. 作業ブランチ `work/261125-consumable-backlog-items` の作成と push (親リポジトリ、`app/cplat`、`app/porter`、`app/cjson`、`framework/testfw`。主エージェントが行う)
+    - ✅ 4.1. 作業ブランチ `work/261125-consumable-backlog-items` の作成と push (親リポジトリ、`app/cplat`、`app/porter`、`app/cjson`、`framework/testfw`。主エージェントが行う)
     - 🔄 4.2. U1 BL-031 (親リポジトリ)
         - ✅ 4.2.1. `app/struct-meta/prod/libsrc/struct_meta/parse/struct_meta_parse.y` と `struct_meta_parse.l` の位置情報への移行
         - ✅ 4.2.2. `structMetaBuildTest.cc`、`structMetaGenEmitTest.cc` の期待値の修正と、`structMetaParseDocTest` への診断の行のテストの追加
         - ✅ 4.2.3. `app/struct-meta/docs/architecture.md` の更新
         - ✅ 4.2.4. Linux の局所テスト (`make -C app/struct-meta` と `make -C app/struct-meta test` が成功、内容のある `.warn` なし)
-        - ⏸️ 4.2.5. 作業ブランチへのコミットと push (主エージェントが行う)
-        - ⏸️ 4.2.6. Windows の検証 (`app/struct-meta` のビルドとテスト)
-        - ⏸️ 4.2.7. main への統合と push、CI の確認
+        - ✅ 4.2.5. 作業ブランチへのコミットと push (主エージェントが行う。親 9baebbff)
+        - ✅ 4.2.6. Windows の検証 (`app/struct-meta` のビルドとテスト。成功)
+        - 🔄 4.2.7. main への統合と push、CI の確認 (親 main 937b6ab0 へ統合と push 済み。CI 45724460463 の結果待ち)
     - 🔄 4.3. U2 BL-013 (`app/porter`)
         - ✅ 4.3.1. `config_schema.c` の 5 項目の値域と `docs/config.md`
         - ✅ 4.3.2. `configCheckTest.cc` の境界値のテスト
         - ✅ 4.3.3. Linux の局所テスト (`configCheckTest`、`configSchemaTest` の make と make test、`app/porter` の make が成功。内容のある `.warn` なし)
-        - ⏸️ 4.3.4. 作業ブランチへのコミットと push (主エージェントが行う。`app/porter` サブモジュールと親の参照)
-        - ⏸️ 4.3.5. main への統合と push、CI の確認
+        - ✅ 4.3.4. 作業ブランチへのコミットと push (主エージェントが行う。`app/porter` サブモジュールと親の参照。porter 0d290b8)
+        - 🔄 4.3.5. main への統合と push、CI の確認 (porter main fb6bd71、親 main 937b6ab0。CI 45724460463 の結果待ち)
     - 🔄 4.4. U3 BL-012 (`app/cjson`、`app/porter`)
         - ✅ 4.4.1. `cjson_app_thread_local.h` の新設、`patches/0003-thread-local-global-error.patch`、`patches/README.md`
         - ✅ 4.4.2. `cJSON_JSONC.c` の共通ロックの削除、`cJSON_JSONC.h`、`README.md`
         - ✅ 4.4.3. `cjsonJsoncTest.cc` と `cJSON_JSONC.inject.c` / `.inject.h` のテストの置き換え
         - ✅ 4.4.4. `porter_spec.h`、`app/porter/docs/api.md`、`config_document.c` のコメント
         - ✅ 4.4.5. Linux の局所テスト (`app/cjson` の make と make test、porter の `configDocumentTest`、`configValidateFileTest`、内容のある `.warn` の確認)
-        - ⏸️ 4.4.6. 作業ブランチへのコミットと push (主エージェントが行う。`app/cjson`、`app/porter` サブモジュールと親の参照)
-        - ⏸️ 4.4.7. Windows の検証 (`app/cjson` のビルドと `cjsonTest`、`cjsonJsoncDynamicLoadTest`)
-        - ⏸️ 4.4.8. main への統合と push、CI の確認
+        - ✅ 4.4.6. 作業ブランチへのコミットと push (主エージェントが行う。`app/cjson`、`app/porter` サブモジュールと親の参照)
+        - ✅ 4.4.7. Windows の検証 (`app/cjson` のビルドと `cjsonTest`、`cjsonJsoncDynamicLoadTest`。成功)
+        - 🔄 4.4.8. main への統合と push、CI の確認 (cjson main 57db801、porter main fb6bd71、親 main 937b6ab0。CI 45724460463 の結果待ち)
     - 🔄 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
         - ✅ 4.5.1. `argparser.h`、`argparser.c`、mock (`mock_cplat.h`、`mock_cplat.cc`、`mock_cplat_argparser.cc`)、`exportTest.cc`、`argparserTest.cc`、`argparserAllocFailureTest.cc`
         - ✅ 4.5.2. `app/cplat/prod/src/cmd/` の 11 の呼び出し元と、そのテスト
@@ -78,13 +78,13 @@
         - ✅ 4.5.5. 文書 (`api-cheatsheet.md`、`argparser/README.md`、`argparser-sample/README.md`、`argparser.internal.md`)
         - ✅ 4.5.6. `tracer.h` の `cplat_tracer_dispose` の記載と、`app/cplat/docs/coding-guideline.md` の「生成と破棄の動詞対」
         - ✅ 4.5.7. Linux の局所テスト (`app/cplat` を make してから `argparserTest`、`exportTest`、続いて呼び出し元の各 app の make と make test、内容のある `.warn` の確認)
-        - 🔄 4.5.8. 作業ブランチへのコミットと push (主エージェントが行う。`app/cplat`、`app/porter` サブモジュールと親の参照) ← **CURRENT**
-        - ⏸️ 4.5.9. Windows の検証 (`app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest`)
+        - ✅ 4.5.8. 作業ブランチへのコミットと push (主エージェントが行う。`app/cplat`、`app/porter` サブモジュールと親の参照。cplat 7bd1c11b、porter 38c4995、親 839387f4)
+        - ✅ 4.5.9. Windows の検証 (`app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest`。成功。argparserTest 102 件、exportTest 2 件、porter のコマンドのテスト 56 件 (Windows 専用を含む)、内容のある `.warn` なし。struct-meta の 803b8a3a も 128 件成功 (Windows で除外の 1 件を除き Linux と一致))
         - ⏸️ 4.5.10. main への統合と push、CI の確認
-    - ⏸️ 4.6. U5 BL-008 (`app/porter`)
-        - ⏸️ 4.6.1. `potr_trace.c`、`potr_trace.h`、`porter_spec.h`
-        - ⏸️ 4.6.2. `potrTraceTest.cc` と `potr_trace.inject.c`
-        - ⏸️ 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認
+    - ⚠️ 4.6. U5 BL-008 (`app/porter`)
+        - ✅ 4.6.1. `potr_trace.c`、`potr_trace.h`、`porter_spec.h`
+        - ✅ 4.6.2. `potrTraceTest.cc` と `potr_trace.inject.c`
+        - ⚠️ 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。未確認の事項: 作業ブランチへのコミットと push、Windows の porter のビルドと `potrTraceTest`、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
     - ⏸️ 4.7. U6 BL-005、BL-007 (`app/cplat`)
         - ⏸️ 4.7.1. `trace_etw_session.c` と `etw.h`
         - ⏸️ 4.7.2. `trace_etw_sessionTest.cc` と `trace_etw_session.inject.c` / `.inject.h`
@@ -267,6 +267,7 @@ Table: 質問の一覧
 | 2026-11-26 05:20 | U2 (BL-013) の実装と Linux の局所テストの完了 | sonnet サブエージェントが `config_schema.c`、`docs/config.md`、`configCheckTest.cc` を変更しました。作業中、`configFileLoadTest` に旧構成のリンク切れのシンボリック リンク (`.gitignore` 対象の生成物) が残っていてビルドを妨げたため、削除しました。 |
 | 2026-11-26 05:17 | U3 (BL-012) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/cjson` (パッチ `0003`、`cjson_app_thread_local.h`、`cJSON_JSONC.c`、`cJSON_JSONC.h`、`README.md`、`patches/README.md`、`prod/libsrc/cjson/makepart.mk`、`cjsonJsoncTest.cc`、`cJSON_JSONC.inject.c` / `.inject.h`) と `app/porter` (`porter_spec.h`、`docs/api.md`、`config_document.c` のコメント) を変更しました。作業 WBS の 4.4.5 を、Linux の局所テスト、コミット、Windows の検証、統合の 4 項目に分けました。コミットは主エージェントが行います。 |
 | 2026-11-26 08:23 | U4 (BL-006) の Linux の局所テストの完了 | 前任の opus サブエージェントが作業 WBS 4.5.7 の途中で PC の障害により中断したため、別の opus サブエージェントが引き継ぎました。作業ツリーの差分を全件読み、4.5.1 から 4.5.6 の実装が最終仕様の「BL-006」の節と一致し、書きかけの箇所がないことを確認しました。`app/cplat` のビルドの成果物の一部 (`prod/lib/libcplat.so` と 18 の `.o`) が中断で 0 バイトになっており、リンクが失敗したため、`app/cplat` に限って `make clean` をしてから作り直し、4.5.7 を最初から実施しました。コミットは主エージェントが行います。 |
+| 2026-11-26 10:14 | U5 (BL-008) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/porter` の `potr_trace.c`、`potr_trace.h`、`porter_spec.h`、`docs/api.md`、`potrTraceTest.cc`、`potr_trace.inject.c` を変更しました。`potr_trace.c` は、変更に合わせてトップ ダウンの順へ並べ替えました。`docs/api.md` は、公開 API の契約の変更に伴い `app/porter/AGENTS.md` の「公開 API と文書の同期」に従って更新しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 
 ## 反映と検証の記録
 
@@ -291,3 +292,8 @@ U4 BL-006 (2026-11-26、Linux):
 
 - 対応箇所: `app/cplat` の `argparser.h` (`int` の戻り値、`@retval`、失敗時の状態の記載、ファイル先頭の例)、`argparser.c` (`argparser_default_acquire()` の `NULL` で `CPLAT_ERR_OUT_OF_MEMORY`)、mock (`mock_cplat.h` の宣言と `MOCK_METHOD`、`mock_cplat_argparser.cc` の `DEFINE_ARGPARSER_RESULT`。`mock_cplat.cc` の既定の委譲は変更不要)、`exportTest.cc` (関数型)、`argparserTest.cc` (8 箇所の戻り値の確認)、`argparserAllocFailureTest.cc` (2 箇所の戻り値の確認と、初回の生成の失敗、再初期化での説明の複製の失敗で `CPLAT_ERR_OUT_OF_MEMORY` を返すテスト 2 件)、`tracer.h` (`cplat_tracer_dispose` の出力の停止の失敗、再試行を求めないこと、終了処理による回収とリーク)、`docs/coding-guideline.md` (「生成と破棄の動詞対」に破棄の関数の失敗の扱い)、`docs/api-cheatsheet.md`、`argparser/README.md`、`argparser-sample/README.md`、`prod/src/cmd/` の 11 の呼び出し元。`app/porter` の 3 の呼び出し元と `porterConfigCheckTest.cc` (`returnsExecutionFailureWhenArgparserInitFails`)。親リポジトリの 9 の呼び出し元 (`app/calc` の 3、`app/override-sample`、`app/service-sample`、`app/struct-meta`、`app/subfolder-sample`、`app/tutorial` の 2)。呼び出し元は 23 箇所のすべてが戻り値を検査し、失敗時は標準エラー出力へ `引数の解析の準備に失敗しました。` を出力して、そのコマンドの失敗の終了コード (`porter-config-check` は実行失敗の 1、ほかは `EXIT_FAILURE`) で終了します。`argparser.internal.md` は記載の確認だけで、変更は不要でした。
 - 検証: 中断で壊れた `app/cplat` の成果物を `make -C app/cplat clean` で消してから `make -C app/cplat` が成功 (約 50 分)。`argparserTest` (102 件、新しい 2 件を含む) と `exportTest` (2 件) の make test が成功。`app/cplat/test/src/cmd` の make test が成功 (92 件)。`make -C app/porter` と `app/porter/test/src/cmd` の make test が成功 (42 件)。`app/calc` (36 件)、`app/override-sample` (18 件)、`app/service-sample` (76 件)、`app/struct-meta` (129 件)、`app/subfolder-sample` (3 件)、`app/tutorial` (11 件) の make と make test が成功。内容のある `.warn` はなし。変更した 24 の `.c` について、`check_c_topdown.py` の検査関数で HEAD の版と現在の版を比べ、新たな違反がないことを確認 (既存の違反は、トップ ダウン記載の統一の案件の第 2 段の対象)。Windows の検証は未実施。
+
+U5 BL-008 (2026-11-26、Linux):
+
+- 対応箇所: `app/porter/prod/libsrc/porter/infra/potr_trace.c` (状態 3 (終了済み) の追加と状態の説明、終了コールバック `potr_trace_shutdown()` (`s_trace` を `NULL`、状態を 3。いずれもリリースの順序で、トレーサーは解放しない)、`create_trace()` の後で公開の前の `cplat_shutdown_register()` と、失敗時の `cplat_tracer_dispose()` と状態 0 への復帰、LIFO による実行順の根拠のコメント、状態 3 で `NULL` を返し再生成しないこと、ファイル先頭のコメント。関数をトップ ダウンの順 (前方宣言、公開関数、ライブラリ内共有関数、ファイル内補助関数) へ並べ替え)、`prod/include_internal/porter/infra/potr_trace.h` (`potr_internal_trace_get()` が終了処理の開始後に `NULL` を返すこと)、`prod/include/porter/porter_spec.h` (`potr_tracer_get()` の「寿命と cplat の終了処理」)、`docs/api.md` (戻り値表の終了処理の開始後の `NULL` と、スレッド セーフ表の注意)、`test/src/libporter/potrTraceTest/potrTraceTest.cc` (テスト 4 件の追加)、`potr_trace.inject.c` (状態 3 からも 0 へ戻すことのコメント。処理はすでにすべての状態から 0 へ戻す)。
+- 検証: `make -C app/porter` が成功。`potrTraceTest` の make と make test が成功 (8 件。追加の 4 件は、生成の成功後に終了コールバックを 1 回登録すること、コールバックの後に `potr_tracer_get()` と `potr_internal_trace_get()` が `NULL` を返し `cplat_tracer_create()` を呼ばないこと、コールバックの後の `POTR_TRACE` が `NULL` のハンドルで出力を試み異常終了しないこと、登録の失敗でトレーサーを解放して `NULL` を返し次の呼び出しで再試行すること。`potr_trace.c` の行の網羅率 98%、未実行の 1 行は既存の引数検査)。`make -C app/porter test` が成功 (54 の集計、948 件、失敗 0)。`app/porter` に内容のある `.warn` なし。`check_c_topdown.py` で `potr_trace.c` の違反が 4 件から 0 件。変更したソースの `text_style_jp.py --dry-run` で、追加した行に指摘なし。Windows の検証は未実施。

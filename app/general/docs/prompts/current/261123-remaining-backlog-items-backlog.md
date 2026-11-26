@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 08:23:16 JST
+最終更新日時: 2026-11-26 10:14:39 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -237,7 +237,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 生成失敗の再試行とは別の、ライブラリ間の終了順序とハンドル寿命の契約の問題であり、この案件では扱わないと決まっています。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、porter がトレーサーの生成後に自分の終了コールバックを登録し、`s_trace` の無効化と再生成の禁止を行い、終了処理と並行する porter の利用の禁止を `porter_spec.h` の契約に明記すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-004)。参照カウントによる進行中の参照の回収は行わず、契約で扱います。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、porter がトレーサーの生成後に自分の終了コールバックを登録し、`s_trace` の無効化と再生成の禁止を行い、終了処理と並行する porter の利用の禁止を `porter_spec.h` の契約に明記すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-004)。参照カウントによる進行中の参照の回収は行わず、契約で扱います。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (`potr_trace.c` に状態 3 (終了済み) と終了コールバック `potr_trace_shutdown()` を追加。トレーサーの生成後、公開の前に `cplat_shutdown_register()` で登録し、cplat のトレースの終了コールバックより後の登録のため LIFO で先に実行されることをコメントに記載。登録の失敗では生成したトレーサーを解放して生成の失敗として扱い、次の呼び出しで再試行。コールバックの後は `potr_tracer_get()` と `potr_internal_trace_get()` が `NULL` を返し、再生成しない。`potr_trace.h`、`porter_spec.h`、`docs/api.md` に契約を記載。`potrTraceTest` にテスト 4 件を追加し 8 件が成功。`make -C app/porter` と `make -C app/porter test` (948 件) が成功。内容のある `.warn` なし)。コミット、Windows の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
