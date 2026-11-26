@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 12:48:46 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 14:23:00 JST
+最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: 継続作業 `framework/makefw/docs/prompts/current/261125-makefw-backlog-overview.md` (検討 ID `261125-makefw-backlog`、検討用 Markdown `261125-makefw-backlog-discussion.md`、簡易 ADR `261125-makefw-backlog-lightadr.md`、残課題一覧 `261125-makefw-backlog-backlog.md`、最終仕様 `261125-makefw-backlog-design.md`) が BL-002、BL-029、BL-030 を対象に開始されています。継続作業 `261125-consumable-backlog-items` (`261125-consumable-backlog-items-overview.md`、検討用 Markdown `261125-consumable-backlog-items-discussion.md`、簡易 ADR `261125-consumable-backlog-items-lightadr.md`、最終仕様 `261125-consumable-backlog-items-design.md`、残課題一覧 `261125-consumable-backlog-items-backlog.md`) が、BL-001、BL-003、BL-004、BL-005、BL-006、BL-007、BL-008、BL-009、BL-012、BL-013、BL-020、BL-024、BL-028、BL-031 を対象に開始されています。この残課題一覧を対策するほかの継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
@@ -28,12 +28,12 @@
 | BL-001 | 通信のテストが固定のポートを使い、並列の実行やランナーのポートと衝突し得る | 作業中摘出 | 中 | 対応中 |
 | BL-002 | mock のヘッダーを変えた後の、MSVC の差分のビルドで古いオブジェクトが残る | 作業中摘出 | 低 | 転記済み |
 | BL-003 | NTFS の名前の比較と CompareStringOrdinal の一致 | 検討時見送り | 低 | 対応中 |
-| BL-004 | 長いパスの一時ファイルの作成 | 検討時見送り | 低 | 対応中 |
-| BL-005 | ETW の停止で、停止の要求とトレースを閉じる処理の両方が失敗した場合に戻らないことがある | 検討時見送り | 低 | 対応中 |
-| BL-006 | cplat_tracer_dispose と cplat_argparser_init が失敗を通知しない | 検討時見送り | 低 | 対応中 |
-| BL-007 | ETW の停止の失敗の経路は、実際の ETW では確かめられない | 検討時見送り | 低 | 対応中 |
-| BL-008 | cplat の終了処理後に残るトレーサーのハンドル | 検討時見送り | 中 | 対応中 |
-| BL-009 | 長いパスに置いた tcpServer の子プロセスの実際の起動 | 検討時見送り | 中 | 対応中 |
+| BL-004 | 長いパスの一時ファイルの作成 | 検討時見送り | 低 | 対策済み |
+| BL-005 | ETW の停止で、停止の要求とトレースを閉じる処理の両方が失敗した場合に戻らないことがある | 検討時見送り | 低 | 対策済み |
+| BL-006 | cplat_tracer_dispose と cplat_argparser_init が失敗を通知しない | 検討時見送り | 低 | 対策済み |
+| BL-007 | ETW の停止の失敗の経路は、実際の ETW では確かめられない | 検討時見送り | 低 | 対策済み |
+| BL-008 | cplat の終了処理後に残るトレーサーのハンドル | 検討時見送り | 中 | 対策済み |
+| BL-009 | 長いパスに置いた tcpServer の子プロセスの実際の起動 | 検討時見送り | 中 | 対策済み |
 | BL-010 | マルチキャストの TTL と実ネットワークでの到達範囲 | 検討時見送り | 低 | 未着手 |
 | BL-011 | 実運用の負荷下での通信停止の時間 | 検討時見送り | 中 | 未着手 |
 | BL-012 | JSONC の共通ロックを通らない cJSON の直接の解析と global_error の参照の競合 | 検討時見送り | 中 | 対策済み |
@@ -44,11 +44,11 @@
 | BL-017 | Windows の制御ハンドラーの直列実行の実機での確認 | 検討時見送り | 低 | 未着手 |
 | BL-018 | Windows の実機での並列の予算の確認 | 検討時見送り | 中 | 未着手 |
 | BL-019 | 受入条件 9 の実機での確認 (Windows と Linux の systemd) が未実施である (B-BL-041) | 過去 backlog からの転記 | 中 | 未着手 |
-| BL-020 | Windows の cplat_module_get_path が、長いパスと非 ASCII のパスで失敗する (B-BL-001) | 過去 backlog からの転記 | 中 | 対応中 |
+| BL-020 | Windows の cplat_module_get_path が、長いパスと非 ASCII のパスで失敗する (B-BL-001) | 過去 backlog からの転記 | 中 | 対策済み |
 | BL-021 | 別のアカウントで昇格した場合に、出力パイプの接続が失敗する可能性がある (B-BL-006) | 過去 backlog からの転記 | 中 | 未着手 |
 | BL-022 | service-sample の Linux で、イベント監視スレッドの起動に失敗すると再起動を繰り返す可能性がある (B-BL-007) | 過去 backlog からの転記 | 中 | 未着手 |
 | BL-023 | service-sample の Linux で、切り離したイベント監視スレッドが解放済みの資源を参照する可能性がある (B-BL-008) | 過去 backlog からの転記 | 中 | 未着手 |
-| BL-024 | WriteConsoleU が、入力の途中の NUL 以降を出力せずに全量を書いた扱いにする (B-BL-009) | 過去 backlog からの転記 | 低 | 対応中 |
+| BL-024 | WriteConsoleU が、入力の途中の NUL 以降を出力せずに全量を書いた扱いにする (B-BL-009) | 過去 backlog からの転記 | 低 | 対策済み |
 | BL-025 | コンソールへの再接続の後に書き込みが失敗する事象の原因が、未特定である (B-BL-011) | 過去 backlog からの転記 | 中 | 未着手 |
 | BL-026 | SYSTEM の一時ディレクトリの選択の実機確認 | 検討時見送り | 低 | 未着手 |
 | BL-027 | sd_notify() がブロックする状態での、service-sample の通知の直列化の実機での確認 | 作業中摘出 | 中 | 未着手 |
@@ -70,7 +70,7 @@
 
 - **摘出契機**: CI の失敗の分析 (2026-11-25)。
 - **今回の見送り理由**: 原因がポートの衝突と確定していないこと、固定のポートは `app/porter` の多くのテストに共通する既存の書き方 (2026-11-14 のコミット `a98cef4` から) であり、局所の直しではなく、テストの全体に共通の仕組みとして設計するのが望ましいこと (ユーザーの判断、2026-11-25)。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で方針を合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-008)。`framework/testfw` に、一時ディレクトリの共有ファイルとファイル ロックで直近の払い出しをプロセスの間で記録するポートの払い出しのヘルパーを新設し、OS の一時的なポートの範囲の外 (Linux は実行時に `ip_local_port_range` を読んで避ける) から払い出して、`app/porter` の固定のポートを使うテストを移します。`app/cplat` の実ソケットのテストはポート 0 を使っており、移行は要りません。詳細は最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で方針を合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-008)。`framework/testfw` に、一時ディレクトリの共有ファイルとファイル ロックで直近の払い出しをプロセスの間で記録するポートの払い出しのヘルパーを新設し、OS の一時的なポートの範囲の外 (Linux は実行時に `ip_local_port_range` を読んで避ける) から払い出して、`app/porter` の固定のポートを使うテストを移します。`app/cplat` の実ソケットのテストはポート 0 を使っており、移行は要りません。詳細は最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に U10 として Linux の実装と局所テストを終えました。`framework/testfw` に `allocateTestPort()` と `allocateTestPorts()` (`include/testPort.h`、`libsrc/test_com/testPort*.cc`) を新設し、20000 から 32767 のうち OS の一時的なポートの範囲を除いた番号を、一時ディレクトリの共有ファイルとファイル全体のロックで直近の 1024 件を記録しながら、TCP と UDP の bind を確かめて払い出します。使い方は `framework/testfw/docs/how-to-test.md` に記載しました。`app/porter` の 11 ファイル (certificateTest、porterSendRecvTest の 6 ファイル、porterCancelFailureTest、tcpServerPreforkTest の 2 ファイル、porterTestOutputTest) の固定のポートとポート 0 で調べる方式を払い出しへ移し、プロセス内で porter を開く結合テストは、`SetUp` などで porter のトレーサーの標準エラー出力を ERROR で開始して bind の失敗の理由を出すようにしました。Linux で testfw の `testPortTest` (12 件) と移行した porter のテストが成功し、テストの実行ファイルを 2 本同時に流しても衝突しないことを確かめました。子プロセス (`porter-test`) の bind の失敗の理由が出ない点は、継続作業の残課題一覧 `261125-consumable-backlog-items-backlog.md` の BL-007 に記録しました。Windows の検証、main への統合、CI の確認は未了で、状態は「対応中」のままです。
 
 ### 影響範囲とリスク
 
@@ -260,7 +260,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 実機の確認はこの案件の対象外です。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、Windows の環境を変えずに確認すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-012)。`LongPathsEnabled` は `0x1` を確認済みです。マニフェストを組み込んだ確認用の実行ファイルを一時ディレクトリで作り、確認します。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、Windows の環境を変えずに確認すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-012)。`LongPathsEnabled` は `0x1` を確認済みです。マニフェストを組み込んだ確認用の実行ファイルを一時ディレクトリで作り、確認します。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に Windows 実機で確認しました (結果の元: 継続案件 `261125-consumable-backlog-items` の作業 WBS 4.12。リポジトリのソースと Windows の環境は変更せず、確認用のソースと実行ファイルは `%TEMP%\consumable-check\` に置き、確認後に削除。cplat 8c844743 の `libcplat.dll`、`tcpServer.exe` は porter 277e9f4、`cl` 19.50 /W4 /utf-8 /MD、警告なし)。手順: `tcpServer.exe`、`libcplat.dll`、`libcplat_eventlog_messages.dll` を長いディレクトリの 2 か所 (実行ファイル 308 文字) へ複製し、マニフェストを A (`mt -manifest longpath.manifest -outputresource` の単独指定。元の `activeCodePage=UTF-8` が消える) と B (元のマニフェストと結合。両方残る) の 2 通りで組み込みました。`mt.exe` は長いパスのファイルのリソースを更新できない (exit 31) ため、短いパスで組み込んでから複製しました。起動用の実行ファイルから `--mode fork` と `--mode prefork --workers 2` で起動し、PowerShell の `TcpClient` で 2 回接続して `hello 1 こんにちは` と `hello 2` のエコーを比べました。結果: `\\?\` 付きで起動すると、`fork` は 2 回ともエコーが一致し、接続ごとに別の PID の子が処理しました (子の起動は `GetModuleFileNameU` の `\\?\` 付きのパスを `lpApplicationName` へ渡し、長いパスでも成功)。`prefork` も 2 回ともエコーが一致し、親と 2 ワーカーの 3 プロセスで動きました。接頭辞なしでは親が `0xC0000106` で起動しません (BL-020 と同じ現象)。マニフェストの A と B で差はなく、日本語のエコーと子のログの表示は正常でした。`prefork` のワーカーのログに受信の行が見えないのは、`Stop-Process -Force` で標準出力が書き出されなかったためと推測します。結論: `\\?\` 付きで起動すれば、長いパスの `tcpServer` は `fork` と `prefork` の両方で子プロセスを起動して通信できます。確認の目的を満たしたため、状態を「対策済み」にしました。起動に `\\?\` が要る制約は案件 `261125-consumable-backlog-items` の残課題一覧の BL-010 に、マニフェストの組み込みの注意は BL-011 に送りました。
 
 ### 影響範囲とリスク
 
@@ -517,7 +517,7 @@
 
 - **摘出契機**: `261120-source-comment-bl003-remaining-57-backlog.md` の BL-001。
 - **今回の見送り理由**: 仕様どおりの変更は実装済みであり、OS 上限の実機確認を今回扱いません (`261123-remaining-backlog-items-lightadr.md` の LADR-002)。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、Windows の環境を変えずに確認すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-012)。`LongPathsEnabled` は `0x1` を確認済みです。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、Windows の環境を変えずに確認すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-012)。`LongPathsEnabled` は `0x1` を確認済みです。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に Windows 実機で確認しました (結果の元: 継続案件 `261125-consumable-backlog-items` の作業 WBS 4.12。リポジトリのソースと Windows の環境は変更せず、確認用のソースと実行ファイルは `%TEMP%\consumable-check\` に置き、確認後に削除。cplat 8c844743 の `libcplat.dll`、`tcpServer.exe` は porter 277e9f4、`cl` 19.50 /W4 /utf-8 /MD、警告なし)。手順: `longPathAware` のマニフェストを `/MANIFEST:EMBED /MANIFESTINPUT:longpath.manifest` で組み込んだ確認用の DLL と実行ファイル (`bl020dll.dll`、`bl020.exe`) と、比較用のマニフェストなしの実行ファイルを、空白と非 ASCII を含む 12 階層のディレクトリ (ディレクトリ 284 文字、実行ファイル 294 文字) へ配置し、`libcplat.dll` も複製しました。PowerShell の `&` と `ProcessStartInfo` では起動できず (接頭辞なしはエラー 2、`\\?\` 付きはエラー 206)、`CreateProcessW` を直接呼ぶ起動用の実行ファイルで確認しました。結果: `lpApplicationName` に `\\?\` 付きのパスを渡すと、マニフェストの有無によらず起動に成功し、`cplat_module_get_path` (実行ファイル) は `rc=0`、`GetLastError=0`、UTF-16 で 298 文字 (UTF-8 で 574 バイト)、`//?/C:/Users/.../bl020.exe` を返しました。`cplat_process_get_executable_path` も同じ値で、DLL も `rc=0` で正しい長いパスを返しました (マニフェストなしは UTF-16 で 309 文字)。接頭辞なしの `lpApplicationName` では `CreateProcessW` は成功しますが、子は `0xC0000106` (`STATUS_NAME_TOO_LONG`) で即座に終了し、マニフェストの有無で変わりません。`libcplat.dll` に依存しない実行ファイルは、同じ場所から接頭辞なしでも起動しました。長いディレクトリのアプリケーションから DLL を読み込む段階で起きていると推測します (ローダーの内部は未確認)。結論: 起動できたプロセスでは、`cplat_module_get_path` と `cplat_process_get_executable_path` は長いパスと非 ASCII を正しく返します。確認の目的を満たしたため、状態を「対策済み」にしました。DLL 依存の実行ファイルを長いパスから `\\?\` なしで起動できない点は cplat の外の制約で、案件 `261125-consumable-backlog-items` の残課題一覧の BL-010 へ送りました。
 
 ### 影響範囲とリスク
 
@@ -609,7 +609,7 @@
 
 - **摘出契機**: `261120-source-comment-bl003-remaining-57-backlog.md` の BL-009。
 - **今回の見送り理由**: 実コンソールの表示は資料から確定できません (`261123-remaining-backlog-items-lightadr.md` の LADR-002)。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、新しいコンソールを作る確認用の実行ファイルで画面バッファーを読み、結果を記録すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-001、LADR-012)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、新しいコンソールを作る確認用の実行ファイルで画面バッファーを読み、結果を記録すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-001、LADR-012)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に Windows 実機で確認しました (結果の元: 継続案件 `261125-consumable-backlog-items` の作業 WBS 4.12。リポジトリのソースと Windows の環境は変更せず、確認用のソースと実行ファイルは `%TEMP%\consumable-check\` に置き、確認後に削除。cplat 8c844743 の `libcplat.dll`、`tcpServer.exe` は porter 277e9f4、`cl` 19.50 /W4 /utf-8 /MD、警告なし)。手順: 子を `CREATE_NEW_CONSOLE` で起動し、`WriteConsoleU(h, "AB\0CD", 5)` と比較用の `WriteConsoleW(h, L"AB\0CD", 5)` を別の行へ書き、`ReadConsoleOutputCharacterW` で先頭の 8 セルを読みました。結果: どちらも成功 (`ok=1`、`written=5`、`GetLastError=0`) で、セルは `0041 0042 0043 0044 0020...` でした。NUL の位置にセルはできず `ABCD` と詰めて表示され、`CD` は表示されます。`WriteConsoleW` でも同じため、変換ではなくコンソール (conhost 10.0.26100.10068、DelegationConsole と Terminal は既定の 0 GUID) の挙動です。報告の事象 (入力の途中の NUL 以降が出力されない) は再現しませんでした。確認の結果で解消したため、状態を「対策済み」にしました。
 
 ### 影響範囲とリスク
 
@@ -701,7 +701,7 @@
 
 - **摘出契機**: 実装作業中に発見 (`261123-remaining-backlog-items-overview.md` の作業 WBS 4.1.1、単位 W4-A の報告)。
 - **今回の見送り理由**: 作業 WBS 4.1.1 で実施済みの範囲と Windows・Linux の CI 成功をもって完了とし、未実施の組み合わせの追加は残課題一覧へ記録すると判断したためです。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 に、最終仕様 `261123-remaining-backlog-items-design.md` の該当のテストと `socketTest.cc` の既存のテストを突き合わせ、未実施の組み合わせ (方向ごとの通知の障壁による順序、`FD_CLOSE` の両方向、世代の更新と再待機) を特定しました (全体管理文書の「調査で判明した事実」)。追加するテストは最終仕様で列挙します。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 に、最終仕様 `261123-remaining-backlog-items-design.md` の該当のテストと `socketTest.cc` の既存のテストを突き合わせ、未実施の組み合わせ (方向ごとの通知の障壁による順序、`FD_CLOSE` の両方向、世代の更新と再待機) を特定しました (全体管理文書の「調査で判明した事実」)。追加するテストは最終仕様で列挙します。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に U9 として実装し、Linux の確認を終えました。`socketTest.cc` に、Winsock のイベントを試験側で模擬して mock の呼び出しの中に障壁を置く仕組みと、最終仕様 `261125-consumable-backlog-items-design.md` の「BL-028」に列挙した 8 件の Windows 専用のテスト (送信側と受信側の方向別の通知の順序 (FD_WRITE、FD_READ、FD_ACCEPT)、他方向の通知の後から始めた待機、空の列挙の後の再待機、FD_READ だけの通知での送信の待機、列挙と状態の更新のロック、FD_CLOSE の両方向への通知、一部の受信の後と送信の世代の更新の前後の再待機) を加えました。製品のソースは変更していません。Linux では 8 件の本体がコンパイルされないため、リポジトリ外の試験用の構成で実行し、8 件の成功と、実装の分岐を壊す 11 種の改変がいずれも検出されることを確かめました。Windows の検証、main への統合、CI の確認が残るため、状態は「対応中」のままです。
 
 ### 影響範囲とリスク
 

@@ -1,11 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 12:48:35 JST
+最終更新日時: 2026-11-26 14:55:22 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
-下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7 の実装中に摘出した 3 件を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
+下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7、U8、U9、U10 の実装中に摘出した BL-001 から BL-009 と、U11 の確認で摘出した BL-010、BL-011 を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。この文書と、ユーザーが編集した最新の検討用 Markdown を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があり、どこまで進んでいたかは文書だけでは分かりません。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。`← **CURRENT**` がなく、作業 WBS がすべて完了 (✅) であれば、この案件の合意フローは完了しています。
 -->
 
@@ -70,7 +70,7 @@
         - ✅ 4.4.6. 作業ブランチへのコミットと push (主エージェントが行う。`app/cjson`、`app/porter` サブモジュールと親の参照)
         - ✅ 4.4.7. Windows の検証 (`app/cjson` のビルドと `cjsonTest`、`cjsonJsoncDynamicLoadTest`。成功)
         - ✅ 4.4.8. main への統合と push、CI の確認 (cjson main 57db801、porter main fb6bd71、親 main 937b6ab0。CI 45724460463 は成功)
-    - 🔄 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
+    - ✅ 4.5. U4 BL-006 (`app/cplat`、`app/porter`、親リポジトリ)
         - ✅ 4.5.1. `argparser.h`、`argparser.c`、mock (`mock_cplat.h`、`mock_cplat.cc`、`mock_cplat_argparser.cc`)、`exportTest.cc`、`argparserTest.cc`、`argparserAllocFailureTest.cc`
         - ✅ 4.5.2. `app/cplat/prod/src/cmd/` の 11 の呼び出し元と、そのテスト
         - ✅ 4.5.3. `app/porter/prod/src/cmd/` の 3 の呼び出し元と、そのテスト
@@ -80,41 +80,41 @@
         - ✅ 4.5.7. Linux の局所テスト (`app/cplat` を make してから `argparserTest`、`exportTest`、続いて呼び出し元の各 app の make と make test、内容のある `.warn` の確認)
         - ✅ 4.5.8. 作業ブランチへのコミットと push (主エージェントが行う。`app/cplat`、`app/porter` サブモジュールと親の参照。cplat 7bd1c11b、porter 38c4995、親 839387f4)
         - ✅ 4.5.9. Windows の検証 (`app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest`。成功。argparserTest 102 件、exportTest 2 件、porter のコマンドのテスト 56 件 (Windows 専用を含む)、内容のある `.warn` なし。struct-meta の 803b8a3a も 128 件成功 (Windows で除外の 1 件を除き Linux と一致))
-        - ⏸️ 4.5.10. main への統合と push、CI の確認
-    - 🔄 4.6. U5 BL-008 (`app/porter`)
+        - ✅ 4.5.10. main への統合と push、CI の確認 (cplat main 5c3be8ed、porter main 3b0d4fc、親 main 712b55ff。CI 45751634321 は成功)
+    - ✅ 4.6. U5 BL-008 (`app/porter`)
         - ✅ 4.6.1. `potr_trace.c`、`potr_trace.h`、`porter_spec.h`
         - ✅ 4.6.2. `potrTraceTest.cc` と `potr_trace.inject.c`
-        - 🔄 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。作業ブランチへのコミットと push は porter 277e9f4、親 6a977b6a。Windows の検証は成功し、porter のビルドと `potrTraceTest` 8 件、内容のある `.warn` なし。残りは main への統合と push、CI の確認)
-    - 🔄 4.7. U6 BL-005、BL-007 (`app/cplat`)
+        - ✅ 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。作業ブランチへのコミットと push は porter 277e9f4、親 6a977b6a。Windows の検証は成功し、porter のビルドと `potrTraceTest` 8 件、内容のある `.warn` なし。main への統合は親 main 712b55ff、CI 45751634321 は成功)
+    - ✅ 4.7. U6 BL-005、BL-007 (`app/cplat`)
         - ✅ 4.7.1. `trace_etw_session.c` と `etw.h` (あわせて `api-cheatsheet.md` の ETW の行)
         - ✅ 4.7.2. `trace_etw_sessionTest.cc` と `trace_etw_session.inject.c` / `.inject.h`
-        - 🔄 4.7.3. Windows の検証、BL-007 のクローズの確認、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 5ef4bb9e、親 f6b96db8。Windows の検証は成功し、`trace_etw_sessionTest` 14 件、`etwSessionIntegrationTest` 9 件、停止のテストの 20 回の繰り返しで失敗 0 件、MSVC の警告と内容のある `.warn` なし。BL-007 のクローズの条件を満たした。残りは main への統合と push、CI の確認)
-    - 🔄 4.8. U7 BL-004 (`app/cplat`)
+        - ✅ 4.7.3. Windows の検証、BL-007 のクローズの確認、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 5ef4bb9e、親 f6b96db8。Windows の検証は成功し、`trace_etw_sessionTest` 14 件、`etwSessionIntegrationTest` 9 件、停止のテストの 20 回の繰り返しで失敗 0 件、MSVC の警告と内容のある `.warn` なし。BL-007 のクローズの条件を満たした。main への統合は親 main 712b55ff、CI 45751634321 は成功)
+    - ✅ 4.8. U7 BL-004 (`app/cplat`)
         - ✅ 4.8.1. `temp_file_internal.h` と `temp_file_windows.c` の新設
         - ✅ 4.8.2. `stdio_temp.c`、`elevated_process.c`、`stdio.h` (あわせて `api-cheatsheet.md` と `functional-spec/crt.md` の一時ファイルの記載)
         - ✅ 4.8.3. `tempFileTest` (新設)、`stdioTempTest`、`elevatedProcessTest` のテスト
-        - 🔄 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。作業ブランチへのコミットと push は cplat 6a83776d、親 f36e012d。Windows の検証は成功し、`tempFileTest` 14 件、`stdioTempTest` 8 件、`tempDirTest` 9 件、`elevatedProcessTest` 26 件、MSVC の警告と内容のある `.warn` なし、`%TEMP%` に残骸なし。残りは main への統合と push、CI の確認)
-    - ⚠️ 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
+        - ✅ 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。作業ブランチへのコミットと push は cplat 6a83776d、親 f36e012d。Windows の検証は成功し、`tempFileTest` 14 件、`stdioTempTest` 8 件、`tempDirTest` 9 件、`elevatedProcessTest` 26 件、MSVC の警告と内容のある `.warn` なし、`%TEMP%` に残骸なし。main への統合は親 main 712b55ff、CI 45751634321 は成功)
+    - 🔄 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
         - ✅ 4.9.1. testfw の `GetFileInformationByHandleEx` の mock (`mock_windows.h`、`mock_GetFileInformationByHandleEx.cc`)
         - ✅ 4.9.2. `path.h`、`path_identity.c`、`mock_cplat`、`exportTest.cc`、`api-cheatsheet.md`、`functional-spec/crt.md`
         - ✅ 4.9.3. `pathIdentityTest` の新設と、`compress-cli.c` と `compress-cliTest` の変更
-        - ⚠️ 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。未確認の事項: 作業ブランチへのコミットと push (testfw と cplat)、Windows の `framework/testfw` (`mock_libc`) と `app/cplat` のビルドと、`pathIdentityTest` (20 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件) のテスト、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
-    - ⏸️ 4.10. U9 BL-028 (`app/cplat`)
-        - ⏸️ 4.10.1. `socketTest.cc` への 8 件のテストの追加
-        - ⏸️ 4.10.2. Windows の検証、main への統合と push、CI の確認
-    - ⏸️ 4.11. U10 BL-001 (`framework/testfw`、`app/porter`)
-        - ⏸️ 4.11.1. `testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc` と、testfw のテスト
-        - ⏸️ 4.11.2. `framework/testfw/docs/how-to-test.md`
-        - ⏸️ 4.11.3. `app/porter/test/src/integration/` と `cmd/porterTestOutputTest/` の移行 (最終仕様の一覧の 11 ファイル)
-        - ⏸️ 4.11.4. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認
-    - ⏸️ 4.12. U11 Windows 実機での確認 (BL-024、BL-020、BL-009)
-        - ⏸️ 4.12.1. 事前確認 (読み取りだけ。`LongPathsEnabled`、`mt.exe`、動的ポートの範囲と除外範囲。主エージェントが依頼済みの結果を取り込む)
-        - ⏸️ 4.12.2. BL-024 の確認と記録
-        - ⏸️ 4.12.3. BL-020 の確認と記録
-        - ⏸️ 4.12.4. BL-009 の確認と記録
+        - 🔄 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。作業ブランチへのコミットと push は testfw bbaeb87、cplat 237d3c6b、親 7e4017b5。Windows の検証は成功し、`framework/testfw` と `app/cplat` の make が成功、`pathIdentityTest` 20 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件がすべて成功、MSVC の警告と内容のある `.warn` なし。残りは main への統合と push、CI の確認。主エージェントが行う)
+    - 🔄 4.10. U9 BL-028 (`app/cplat`)
+        - ✅ 4.10.1. `socketTest.cc` への 8 件のテストの追加 (Winsock のイベントを試験側で模擬する `winsock_event_simulator` と、障壁で順序を固定する 8 件の Windows 専用のテスト。Linux の socketTest の make と make test が成功 (62 件)。8 件は Linux では本体がコンパイルされないため、Windows の Winsock の型を代替した試験用の構成 (scratchpad、リポジトリ外) で `socket_watch_windows.c` の写しと合わせて実行し、8 件の成功と、実装の分岐を壊す 11 種の一時的な改変がいずれも検出されることを確かめた)
+        - 🔄 4.10.2. Windows の検証、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 8c844743、親 1de5df7b。Windows の検証は成功し、`socketTest` 60 件 (新しい 8 件を含む) が成功、`--gtest_filter=socketTest.watch_* --gtest_repeat=30` で 570 件が OK、失敗 0 件、追加の 8 件の最長は 318 ms、MSVC /W4 の警告と内容のある `.warn` なし。残りは main への統合。主エージェントが行う)
+    - 🔄 4.11. U10 BL-001 (`framework/testfw`、`app/porter`)
+        - ✅ 4.11.1. `testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc` と、testfw のテスト
+        - ✅ 4.11.2. `framework/testfw/docs/how-to-test.md`
+        - ✅ 4.11.3. `app/porter/test/src/integration/` と `cmd/porterTestOutputTest/` の移行 (最終仕様の一覧の 11 ファイル)
+        - 🔄 4.11.4. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了し、`testPortTest` 12 件と移行した 5 つのテストのディレクトリが成功、実行ファイルの 2 本の同時実行で衝突なし。作業ブランチへのコミットと push は testfw 1c49497、porter b301c08、親 c9fc044b。Windows の検証は成功し、`testPortTest` 12 件、`porterSendRecvTest` 39 件 (実行 38 件と Linux 専用の SKIPPED 1 件。Linux の 54 件との差は Linux 専用の 16 件)、`certificateTest` 33 件、`porterCancelFailureTest` 3 件、`tcpServerPreforkTest` 13 件、`porterTestOutputTest` 24 件。2 本の同時実行で衝突なし、払い出しの記録に重複なし、予約された除外範囲の番号は bind で避けられた。MSVC の警告と内容のある `.warn` なし。残りは main への統合と push、CI の確認)
+    - 🔄 4.12. U11 Windows 実機での確認 (BL-024、BL-020、BL-009)
+        - ✅ 4.12.1. 事前確認 (読み取りだけ。`LongPathsEnabled`、`mt.exe`、動的ポートの範囲と除外範囲。結果は「調査で判明した事実」に記録済み: `LongPathsEnabled=1`、`mt.exe` あり、動的ポート 49152 から 65535)
+        - ✅ 4.12.2. BL-024 の確認と記録 (報告の事象は再現しなかった。`WriteConsoleU` と比較用の `WriteConsoleW` のどちらも、書けた数は 5 で `GetLastError` は 0。画面のセルは NUL の位置にできず `ABCD` と詰まり、`CD` は表示される。conhost の挙動で、変換の問題ではない。対策済み)
+        - ✅ 4.12.3. BL-020 の確認と記録 (ディレクトリ 284 文字、実行ファイル 294 文字、非 ASCII を含む配置。`\\?\` 付きで起動すれば、`cplat_module_get_path` と `cplat_process_get_executable_path` は長いパスと非 ASCII を正しく返す (マニフェストの有無によらない)。接頭辞なしの起動は子が `0xC0000106` で終了し、cplat の外のローダーの制約。対策済み。起動の制約は案件の残課題一覧の BL-010 へ)
+        - ✅ 4.12.4. BL-009 の確認と記録 (`\\?\` 付きで起動すれば、長いパスの `tcpServer` は `fork` と `prefork` の両方で子プロセスを起動し、日本語を含むエコーが 2 回とも一致。接頭辞なしは親が `0xC0000106` で起動せず。マニフェストの組み込み方の違いによる差はなし。`mt.exe` は長いパスのファイルを更新できないため、短いパスで組み込んでから複製。対策済み。起動の制約は BL-010、マニフェストの注意は BL-011 へ)
         - ⏸️ 4.12.5. 記録の main への統合 (`[skip ci]`)
-    - ⏸️ 4.13. 正本ドキュメントおよびコード コメントへの永続的知見の反映の確認 (最終仕様の「知見の反映計画」の全行)
-    - ⏸️ 4.14. 受入条件への適合確認 (全作業の完了確認)
+    - ✅ 4.13. 正本ドキュメントおよびコード コメントへの永続的知見の反映の確認 (最終仕様の「知見の反映計画」の全 11 行が反映済み。追加の変更なし。「反映と検証の記録」の「知見の反映の確認」を参照)
+    - ⏸️ 4.14. 受入条件への適合確認 (全作業の完了確認) ← **CURRENT**
     - ⏸️ 4.15. 簡易 ADR (`261125-consumable-backlog-items-lightadr.md`) の最終確認
     - ⏸️ 4.16. 残課題一覧 (`261125-consumable-backlog-items-backlog.md`) の再構築と整理、対策元 `261123-remaining-backlog-items-backlog.md` の最終状態の確定
 - ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
@@ -273,6 +273,10 @@ Table: 質問の一覧
 | 2026-11-26 11:33 | U7 (BL-004) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/cplat` の `temp_file_internal.h` と `temp_file_windows.c` (新規)、`stdio_temp.c`、`elevated_process.c`、`stdio.h`、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md`、`stdioTempTest` と `elevatedProcessTest` のテストと `makepart.mk` を変更しました。`temp_file_windows.c` は、同じディレクトリの `temp_dir_windows.c` と同じく Linux では空の翻訳単位になるため、ビルドから除外していません。`stdio.h` の変更で `mock_cplat` と cplat のテストの全体が作り直しになり、`make -C app/cplat` に約 49 分かかりました。`api-cheatsheet.md` と機能仕様は、公開 API の契約の変更に伴い `app/cplat/AGENTS.md` に従って更新しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 | 2026-11-26 11:41 | U7 のテストの構成の変更 | 最終仕様の作成者 (主エージェント) が、`how-to-test.md` の「テスト対象のソース ファイル 1 本に対してホワイト ボックス テスト 1 本」に合わせて、最終仕様の「BL-004」のテストの節を改めました。opus サブエージェントが、`temp_file_windows.c` だけを `TEST_SRCS` とする `tempFileTest` を新設して名前の規則、衝突の再試行と打ち切り、拡張パスの接頭辞のテストを移し、`stdioTempTest` は `temp_file_windows.c` を `ADD_SRCS` で取り込んで `cplat_fopen_temp()` の経路のテストだけにしました。`crt` のテストのディレクトリは makefw が `*/makefile` で列挙するため、登録の変更は不要です。 |
 | 2026-11-26 12:48 | U8 (BL-003) の実装と Linux の局所テストの完了 | opus サブエージェントが、`framework/testfw` の `GetFileInformationByHandleEx` の mock、`app/cplat` の公開 API `cplat_path_is_same_file()` (`path.h`、`path_identity.c`)、`mock_cplat`、`exportTest`、`errorContractTest`、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md` (要件 `CPLAT-CRT-FUNC-007` を追加)、`pathIdentityTest` (新設)、`compress-cli.c` と `compress-cliTest` を変更し、Linux の局所テストを終えました。最終仕様との相違を、規範の側に合わせて判断した点 (空文字のパスの拒否、戻り値の一覧) は「反映と検証の記録」に記載します。Windows の検証、main への統合、CI の確認は主エージェントが行います。 |
+| 2026-11-26 13:32 | U9 (BL-028) の実装と Linux の確認の完了 | opus サブエージェントが `app/cplat` の `socketTest.cc` に、Winsock のイベントの模擬と障壁を使う Windows 専用のテスト 8 件を加えました。Linux では 8 件の本体がコンパイルされないため、リポジトリ外の試験用の構成で 8 件の成功と、実装の分岐を壊す改変の検出を確かめました (「反映と検証の記録」)。作業 WBS 4.10.1 の着手時の更新 (実施中への変更と現在の項目の印の付け替え) は、実装の後に行いました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
+| 2026-11-26 14:21 | U10 (BL-001) の実装と Linux の局所テストの完了 | opus サブエージェントが、`framework/testfw` にテスト用ポートの払い出しのヘルパー (`testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc`、内部の `testPort_impl.h`) と `testPortTest` を新設し、`how-to-test.md` に使い方を記載しました。`app/porter` の 11 ファイルの固定のポートと、ポート 0 で調べる方式を払い出しへ移し、トレーサーの開始の補助 `test/include/porter_test_trace.h` を加えました。最終仕様との相違と判断は「反映と検証の記録」に記載します。作業 WBS 4.11.1 と 4.11.2 の着手時の更新は、実装の後に行いました。範囲外の気付きを残課題一覧の BL-007 から BL-009 に起票しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
+| 2026-11-26 14:23 | U8、U9 の Windows の検証と、U11 の Windows 実機の確認の結果の記録 | U8 (親 7e4017b5、testfw bbaeb87、cplat 237d3c6b) と U9 (親 1de5df7b、cplat 8c844743) の Windows の検証が成功しました (作業 WBS 4.9.4、4.10.2。残りは main への統合と CI の確認)。U11 の Windows 実機の確認の結果を作業 WBS 4.12.1 から 4.12.4 に記録し、対策元 `261123-remaining-backlog-items-backlog.md` の BL-024、BL-020、BL-009 を「対策済み」にしました。摘出した 2 件を残課題一覧の BL-010、BL-011 に起票しました。4.12.5 は主エージェントが行います。 |
+| 2026-11-26 14:55 | 知見の反映の確認の完了 (作業 WBS 4.13) | opus サブエージェントが、最終仕様の「知見の反映計画」の 11 行を、各リポジトリの作業ブランチの現在の内容と照合しました。すべて反映済みで、正本ドキュメントとコード コメントの追加の変更はありません (「反映と検証の記録」の「知見の反映の確認」)。 |
 
 ## 反映と検証の記録
 
@@ -320,3 +324,41 @@ U8 BL-003 (2026-11-26、Linux):
 - 規範に合わせた判断: (1) 最終仕様の宣言例は `lhs` と `rhs` を「NULL を渡してはなりません」としていますが、同じヘッダーの `cplat_path_equal()` の規約 (「NULL および空文字は渡してはなりません」) に合わせ、空文字も `CPLAT_ERR_INVALID_ARGUMENT` (詳細 `EINVAL`) で拒否しました。(2) 最終仕様の戻り値の一覧 (5 種) に、実装が返す `CPLAT_ERR_BUFFER_TOO_SMALL` (Windows の `PLATFORM_PATH_MAX` を超えるパス、Linux の `ENAMETOOLONG`) と `CPLAT_ERR_OUT_OF_MEMORY` (`ENOMEM` など) を加えました。Windows のパスの変換は、`cplat_stat()` と `cplat_path_equal()` と同じ `PLATFORM_PATH_MAX` の配列で行います。それ以外の OS の失敗は `CPLAT_ERR_UNKNOWN` にそろえ、OS のエラー値は詳細に残します。(3) `@param` と `@return` の書式は、同じヘッダーの既存の関数 (`detail_out` の説明、`@ref` の付け方) に合わせました。
 - 検証: `make -C framework/testfw` が成功。`make -C app/cplat` が成功 (`mock_cplat.h` の変更で `mock_cplat` と cplat のテスト全体が作り直し)。`framework/testfw` と `app/cplat` に内容のある `.warn` なし。`pathIdentityTest` (18 件)、`exportTest` (2 件)、`errorContractTest` (4 件)、`compress-cliTest` (19 件) の make と make test が成功 (`path_identity.c` の行の網羅 100%、分岐 92%)。`check_c_topdown.py` の `check_text()` で `path_identity.c` は 0 件、`compress-cli.c` は変更の前後とも 13 件 (新しい違反なし。既存の違反は案件 `261125-topdown-function-order` で扱う)。新規の C と C++ のファイルの `clang-format` で差分なし。変更した Markdown は `text_style_jp.py --dry-run` で指摘なし。
 - 未完了: Windows の `framework/testfw` (`mock_libc`) と `app/cplat` のビルド、`pathIdentityTest` (20 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件)。`make doxy` は、生成物の更新を別に扱うため実施していません。
+
+U9 BL-028 (2026-11-26、Linux):
+
+- 対応箇所: `app/cplat/test/src/libcplatTest/net/socketTest/socketTest.cc` だけです (製品のソースは変更なし)。Windows の節に、Winsock のイベント (`WSACreateEvent`、`WSASetEvent`、`WSAResetEvent`、`WSAWaitForMultipleEvents`、`WSAEnumNetworkEvents`、`WSAEventSelect`) を試験側で模擬する `winsock_event_simulator` を置きました。呼び出しを待機の役割 (受信側、送信側、別のスレッド) ごとに記録し、待機の直前、E_s の確認、列挙の 3 か所に 1 回だけ働く障壁を置けます。待機は製品の 50 [ms] の内部間隔を無視して最大 2 [s] まで待ち、失われた起床を時間切れの記録として検出します。テストは `watch_writer_wakes_by_write_event_set_by_reader`、`watch_reader_wakes_by_read_event_set_by_writer` (FD_READ と FD_ACCEPT)、`watch_later_direction_uses_notification_taken_by_other_direction`、`watch_follower_keeps_waiting_after_empty_enumeration`、`watch_write_wait_ignores_read_only_notification`、`watch_enumeration_and_state_update_share_watch_lock`、`watch_close_notification_reaches_both_directions`、`watch_waits_rearm_after_partial_receive_and_write_generation_update` の 8 件で、最終仕様の「BL-028」の列挙の順に対応します。確認件数は順に 14、29、20、19、15、21、17、28 件 (すべて正常系) です。
+- 規範に合わせた判断: 試験側の型、関数、変数の名前は、同じファイルの既存の `RealWinsockSession` (大文字始まり) ではなく、[コーディング規範](../../coding-guideline.md) の命名規則 (snake_case、列挙定数は全大文字、ファイル内の変数は `s_`) に合わせました。整形は、ファイル全体がローカルの clang-format の出力と一致しない (既存の部分に 720 行の差) ため、追加した範囲だけに clang-format を適用しました。
+- 検証: socketTest の make と make test が成功 (Linux の 62 件)。内容のある `.warn` なし。8 件は Linux ではコンパイルされないため、scratchpad (リポジトリ外) に、Winsock の型と関数を代替する構成を作り、`socket_watch_windows.c` の写しと 8 件を Linux で実行しました。8 件は 100 回の繰り返しと、8 本の同時実行 (各 30 回) で成功しました。同じ構成で写しの分岐を壊す 11 種の改変 (E_w の通知の削除、E_r の通知の削除、受信側の E_w のリセット、ロックの外での列挙、FD_CLOSE の共有状態への不保存、世代の無視、pending の未消費、送信の待機配列への E_r、送信側のリセットの削除、受信側のリセットの削除、FD_READ による送信可能の設定) を加え、どの改変も 8 件のうち 1 件以上が失敗することを確かめました。改変は写しだけに行い、リポジトリの `socket_watch_windows.c` は変更していません (`git diff` で確認)。
+- 未完了: cplat の作業ブランチへのコミットと push、Windows の `socketTest` のビルドとテスト (60 件)、main への統合と push、CI の確認。
+
+U10 BL-001 (2026-11-26、Linux):
+
+- 対応箇所: `framework/testfw/include/testPort.h` (新規。`allocateTestPort()`、`allocateTestPorts()`)、`include/testfw.h` (`testPort.h` を取り込む)、`libsrc/test_com/testPort_impl.h` (新規。内部の定数、候補の作成、記録のロックの下での払い出し、プラットフォーム固有の関数の宣言)、`testPort.cc` (新規。候補の作成、乱数の開始位置からの走査、記録の形式の解釈と初期化)、`testPort_linux.cc` (新規。`ip_local_port_range` の読み取り、`${TMPDIR:-/tmp}/testfw-port-registry-<uid>.bin` と `flock(LOCK_EX)`、TCP と UDP の bind の確認)、`testPort_windows.cc` (新規。既定の動的ポートの範囲、`%TEMP%\testfw-port-registry.bin` と `LockFileEx`、`WSAStartup` を 1 回だけ、`#pragma comment(lib, "ws2_32.lib")`)、`test/src/testPortTest/` (新規。12 件。Windows では `reads_ephemeral_range_file` の代わりに `uses_default_dynamic_range` を実行し 12 件)、`docs/how-to-test.md` (「待ち受けのポートは allocateTestPort() で払い出す」)。`app/porter/test/include/porter_test_trace.h` (新規。`porter_test_start_error_trace()`)、`certificateTest.cc`、`porterSendRecvTest.cc`、`handleConcurrencyTest.cc`、`pathGroupReportTest.cc`、`tcpMultipathTest.cc`、`tcp_allocation_failure_test.cc`、`nonblockingStopIntegrationTest.cc` (局所の `pick_free_port()` を削除)、`porterCancelFailureTest.cc`、`tcpServerPreforkTest.cc`、`tcpServerPreforkObservationTest.cc` (ポート 0 で調べる方式を払い出しへ)、`porterTestOutputTest.cc`。
+- 最終仕様に合わせた判断: (1) testfw のテストは、既存の `exportCheckTest` と同じく `TEST_SRCS` を指定しない黒箱の構成とし、決定的に確かめるため内部の関数 (`testPort_impl.h`) も呼び出します。自分自身を子プロセスとして起動するため `NO_GTEST_MAIN` とし、`main()` をテスト側に置きました。払い出しの記録が実際のテストと混ざらないよう、各テストは一時ディレクトリの環境変数をテスト専用のディレクトリへ切り替えます。(2) `allocateTestPorts()` は、記録の件数 (1024) を超える個数を失敗とし、0 個は成功 (空) としました。(3) `porterTestOutputTest.cc` は、最終仕様に挙げた 392 行のほか、実際に待ち受ける 105 行と 134 行も移しました。198 行の 19362 は、存在しないサービス (999) を開くテストの設定の値で待ち受けないため、残しました。(4) `porterCancelFailureTest.cc` の宛先は mock の `connect` だけが受け取り、実際には待ち受けませんが、最終仕様の一覧のとおり移しました。払い出しは OS の関数の mock を作る前に行います。(5) トレーサーの ERROR での開始は、テストのプロセス内で porter を開く結合テスト (certificateTest、handleConcurrencyTest、pathGroupReportTest、tcpMultipathTest、tcp_allocation_failure_test、nonblockingStopIntegrationTest) に入れました。`porterSendRecvTest.cc` は porter を子プロセス (`porter-test`) で動かすため、`porterTestOutputTest.cc` は `porter-test.c` がトレーサーの停止中にフックを登録するため、`porterCancelFailureTest.cc` は `mock_porter` が `potr_tracer_get()` を置き換えるため、入れていません (前の 2 つは残課題一覧の BL-007)。(6) fixture に `uint16_t` のメンバーを 1 つだけ足すと `-Wpadded` の警告になるため、fixture では払い出した番号を `std::vector<uint16_t>` で持ちます。
+- 検証: `make -C framework/testfw` が成功し、`framework/testfw/test` の make test (`testPortTest` 12 件、`exportCheckTest` 2 件、`mockInstanceTest` 2 件) が成功。`make -C app/porter` が成功 (`testfw.h` の変更で mock と各テストが作り直し)。`porterSendRecvTest` (54 件)、`certificateTest` (33 件)、`porterCancelFailureTest` (3 件)、`tcpServerPreforkTest` (2 件。Linux では Windows 専用の本体を省略)、`porterTestOutputTest` (24 件) の make test が成功。`testPortTest`、`porterSendRecvTest`、`certificateTest`、`porterTestOutputTest` の実行ファイルを、それぞれ 2 本同時に直接実行して、すべて成功。`framework/testfw` と `app/porter` に内容のある `.warn` なし。追加・変更した C++ の `text_style_jp.py --mode cpp --dry-run` の指摘は、変更前より増えていません (testfw の新規ファイルは 0 件)。`check_c_topdown.py` は `.c` だけが対象で、今回の変更は C++ のため新たな違反はありません (C++ のソースもトップ ダウンの順に記載)。`/tmp` にテストの一時ディレクトリの残骸がないことを確認。
+- 未完了: 作業ブランチへのコミットと push、Windows の検証 (`framework/testfw` の Windows の 4 つの CRT の変種のビルド、`testPortTest` 12 件、`porterSendRecvTest`、`certificateTest`、`porterCancelFailureTest`、`tcpServerPreforkTest` (Windows 専用の本体を含む)、`porterTestOutputTest`)、main への統合と push、CI の確認。
+
+知見の反映の確認 (2026-11-26、作業 WBS 4.13):
+
+各リポジトリの作業ブランチ `work/261125-consumable-backlog-items` の現在の内容を、最終仕様の「知見の反映計画」の行ごとに照合しました。
+
+Table: 知見の反映計画の行ごとの確認結果
+
+| 反映先 | 確認結果 | 確認した箇所 |
+| --- | --- | --- |
+| `app/cplat/docs/coding-guideline.md` の「生成と破棄の動詞対」 | 反映済み | 破棄の関数は `void`、解放を完了したときだけ `*handle` を `NULL` にし、呼び出し側は `NULL` かどうかで判定、再試行を求めずリークを許容 (1012 から 1015 行)。`cplat_argparser_init` は破棄の関数を対にしない初期化 (1017 行以降) |
+| `etw.h` と `trace_etw_session.c` のコメント | 反映済み | `etw.h` の `cplat_etw_session_stop()` に最大 5 秒の待機、実行中のコールバックの終了の待機、資源を解放しない戻り、戻った後はコールバックを呼ばないこと。`trace_etw_session.c` に `callback_closed` と `callback_active` のメンバーの説明、`deliver_event()` の逐次一貫の順序の根拠、`cplat_etw_session_stop()` の構造体、名前、プロパティを解放しない理由 (処理スレッドがあとで戻っても参照先を有効に保つ)。待機は `sync.h` の `cplat_thread_yield()` の注記どおり `cplat_sleep_ms(1)` の繰り返し |
+| `stdio.h` と `temp_file_windows.c` のコメント | 反映済み | `stdio.h` の `cplat_fopen_temp()` に、完全なパスが `MAX_PATH` 以上の場合の接頭辞の形、`path_out` の形、削除の注意と see: Maximum Path Length Limitation。`temp_file_windows.c` に接頭辞を付ける条件と理由 (同じ see:)、`GetTempFileNameW` を使わない理由、区切りを先にそろえる理由。内部共有の `temp_file_internal.h` にも同じ条件 |
+| `path.h`、`functional-spec/crt.md`、`api-cheatsheet.md` | 反映済み | `path.h` の `cplat_path_equal()` に実体を調べないことと `cplat_path_is_same_file()` への案内、`cplat_path_is_same_file()` の契約。`crt.md` の要件 `CPLAT-CRT-FUNC-007` と、文字列の比較と実体の比較の使い分け (121 行)。`api-cheatsheet.md` の 199、200 行 |
+| `app/cjson/README.md`、`patches/README.md`、`cJSON_JSONC.h` | 反映済み | `README.md` の 50 から 52 行、`patches/README.md` の `0003` の行と説明、`cJSON_JSONC.h` の 2 関数の並行実行とパッチへの依存 |
+| `porter_spec.h` | 反映済み | `potr_tracer_get()` の「寿命と cplat の終了処理」と戻り値、JSONC を解析する 3 関数の並行実行とパッチへの依存 |
+| `app/porter/docs/config.md` | 反映済み | 79、83、446、447 行の `0〜2,147,483,646` と、564 行の `connect_timeout_ms` の上限 |
+| `app/struct-meta/docs/architecture.md` の `parse` の節 | 反映済み | 「解析器の境界」の 143 行以降に、`%locations` と `%option bison-locations`、先読みでずれないこと、診断が誤りの字句または対象の名前の行を指すこと、対象ごとの行の表 |
+| `framework/testfw/docs/how-to-test.md` | 反映済み | 「待ち受けのポートは allocateTestPort() で払い出す」に、使い方、候補の範囲、bind の確認、記録の共有とロック、記録のファイル、失敗時の通知、呼ぶ時点 (`EXPECT_CALL` の前) の注意 |
+| `struct_meta_parse.l` のコメント | 反映済み | `YY_USER_ACTION` の定義の前に、`YY_DO_BEFORE_ACTION` で `yylineno` が字句の中の改行まで数え済みであることと、開始行の求め方 (see: flex manual) |
+| `potr_trace.c` のコメント | 反映済み | 終了コールバックの登録が `create_trace()` の後になることと、`cplat_shutdown_register()` の LIFO による実行順の根拠 (104 行付近) |
+
+規範に合わせて最終仕様を直した 2 点の正本の記載も確かめました。U6 の待機の方式は、`app/cplat/prod/include/cplat/sync/sync.h` の `cplat_thread_yield()` の `@note` (処理の完了を待つ場合は条件変数または `cplat_sleep_ms()` を使う) が規範で、実装もこれに従っています。U7 のテストの構成は、`framework/testfw/docs/how-to-test.md` の「テストの構成単位」(ソース 1 本につきテスト ディレクトリは 1 つ) と、冒頭の `TEST_SRCS` と `ADD_SRCS` の使い分け (リンクを成立させる依存実装は `ADD_SRCS`) が規範で、`tempFileTest` の新設と、`stdioTempTest` と `elevatedProcessTest` の `ADD_SRCS` による取り込みはこれに従っています。どちらも正本に足りない記載はなく、変更していません。
+
+コード コメントを変更していないため、make と `.warn` の確認は行っていません。

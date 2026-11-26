@@ -41,23 +41,23 @@
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認 (簡易 ADR LADR-001 〜 LADR-008 との一致)
     - ✅ 3.3. 対話セッションにおける最終仕様 (`261125-topdown-function-order-design.md`) の承認の受付 (第 2 ゲート: 作業着手の合意。2026-11-25 21:48 の対話の「ユーザーの確認なく継続的に自走すること」の指示により承認済みとして扱う。承認を、最終仕様の「Git の運用と書き込み操作の許可の範囲」の許可とする)
 - 🔄 4. 承認された最終仕様に従った作業の実施 (`make` は同時に 1 本、`make clean` は禁止。Git の書き込み操作は主エージェントだけが行う)
-    - 🔄 4.1. 第 1 段 (`app/general` の規範とツール、`cplat` と `porter` 以外の app)
+    - ✅ 4.1. 第 1 段 (`app/general` の規範とツール、`cplat` と `porter` 以外の app)
         - ✅ 4.1.1. コーディング規範 (`app/general/docs/coding-guideline.md`) への `## 関数の記載順と前方宣言` 節の追加と、概要・`## 実装コメント` 節の整合更新、`text_style_jp.py --dry-run` / `--in-place`
         - ✅ 4.1.2. チェッカー (`app/general/bin/check_c_topdown.py`) と単体テスト (`app/general/bin_test/test_check_c_topdown.py`) の作成
         - ✅ 4.1.3. 並べ替えツール (`app/general/bin/reorder_c_topdown.py`、等価性の検証を含む) と単体テスト (`app/general/bin_test/test_reorder_c_topdown.py`) の作成
         - ✅ 4.1.4. `make bin-test BIN_TEST_ARGS=app/general` の実行
-        - ⚠️ 4.1.5. `app/general` の単位のコミット、main への push、CI の確認 (2026-11-26 04:22 に親リポジトリへ 76b19dfc としてコミット。push は実行中の CI 45652297836 の完了後に、ほかの案件の取り込みとまとめて行う。未確認事項: push と CI の確認 (主エージェント))
+        - ✅ 4.1.5. `app/general` の単位のコミット、main への push、CI の確認 (親リポジトリの 76b19dfc を main へ push 済み。CI 45692020891 は成功)
         - ✅ 4.1.6. `service-sample` (違反 5 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (チェッカーのエラー 94 件を 0 件にした。`check_c_blank_lines.py` の検出は 23 件のまま。`.warn` は空。`make test` は合格)
-        - ⚠️ 4.1.7. `service-sample` のコミット、push、CI の確認 (未確認事項: コミット、push、CI の確認 (主エージェント))
+        - ✅ 4.1.7. `service-sample` のコミット、push、CI の確認 (親リポジトリの 9ab53061 を main へ push 済み。CI 45692020891 は成功)
         - ✅ 4.1.8. `string-catalog-sample` (違反 7 ファイル) の書き換え、`--verify`、`app/string-catalog-sample/docs/architecture.md` の 240 行ほかの行番号の追従、`make`、`.warn` の確認、`make test` (チェッカーのエラー 91 件を 0 件にした。`architecture.md` の 240 行の `string-catalog-command-sample.c:273` を、書き換え後の `sample_trace_key_state_dump` の呼び出し行の 355 へ直した。`.warn` は空。`make test` は合格)
-        - ⚠️ 4.1.9. `string-catalog-sample` のコミット、push、CI の確認 (未確認事項: コミット、push、CI の確認 (主エージェント))
+        - ✅ 4.1.9. `string-catalog-sample` のコミット、push、CI の確認 (親リポジトリの f2d5d837 を main へ push 済み。CI 45692020891 は成功)
         - ✅ 4.1.10. `cjson` の第一者管理の拡張 (`integer/cJSON_Integer.c`、`jsonc/cJSON_JSONC.c`) の書き換え、`--verify`、`app/cjson` の `make`、`.warn` の確認、`make test` (`app/cjson` はサブモジュール (`Hondarer/app_cjson`)。チェッカーのエラー 39 件を 0 件にした。`check_c_blank_lines.py` の検出は 79 件のまま。`.warn` は空。`make test` は合格)
-        - ⚠️ 4.1.11. `cjson` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (未確認事項: コミット、push、CI の確認 (主エージェント))
+        - ✅ 4.1.11. `cjson` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (cjson の main 3317d91 と、親リポジトリの参照の更新 42f4f0f2 を push 済み。CI 45692020891 は成功)
         - ✅ 4.1.12. 違反のない app (`calc`、`doxygen-sample`、`override-sample`、`subfolder-sample`、`tutorial`、`zlib_sample.c`、`cjson_sample.c`) の `check_c_topdown.py` の確認 (`calc` 8、`doxygen-sample` 7、`override-sample` 6、`subfolder-sample` 6、`tutorial` 2、`zlib` 1、`cjson_sample.c` を含む `cjson` 3 ファイルで、エラー 0 件、警告 0 件)
         - ✅ 4.1.13. `struct-meta` (違反 17 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (開始条件の U1 (BL-031) は main (937b6ab0) へ統合済みのため、作業ブランチ `work/261125-consumable-backlog-items` (839387f4) の作業ツリーで実施した。チェッカーのエラー 161 件を 0 件にした (対象 23 ファイル、変更 17 ファイル、警告 0 件)。17 ファイルはすべて手書きで、生成物の違反はない。`--verify` は全 17 ファイルに合格。`check_c_blank_lines.py` の検出は対象 17 ファイルで書き換え前後とも 17 件のまま。`make` 後の `.warn` は空。`make test` は合格 (18 テスト ディレクトリで Passed 129 件、Failed 0 件)。`architecture.md` に行番号の参照はなく、追従は不要)
-        - ⚠️ 4.1.14. `struct-meta` のコミット、push、CI の確認 (未確認事項: コミット、push、CI の確認 (主エージェント)) ← **CURRENT**
-    - ⏸️ 4.2. 第 2 段 (`porter`、`cplat`、並行案件が変更したファイルの再実行)
-        - ⏸️ 4.2.1. 開始条件の確認 (並行案件 `261125-consumable-backlog-items` と `261123-porter-remaining-backlog-phase2` の main への統合、または統合なしの終了。満たせない場合は残りを残課題一覧へ送る)
+        - ✅ 4.1.14. `struct-meta` のコミット、push、CI の確認 (作業ブランチの 803b8a3a を、並行案件の U4〜U7 とともに main の 712b55ff へ統合して push。Windows の検証は 128 件成功 (Windows で除外の 1 件を除き Linux の 129 件と一致)。CI 45751634321 は成功)
+    - 🔄 4.2. 第 2 段 (`porter`、`cplat`、並行案件が変更したファイルの再実行)
+        - 🔄 4.2.1. 開始条件の確認 (並行案件 `261125-consumable-backlog-items` と `261123-porter-remaining-backlog-phase2` の main への統合、または統合なしの終了。満たせない場合は残りを残課題一覧へ送る) ← **CURRENT**
         - ⏸️ 4.2.2. `porter` (違反 42 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test`
         - ⏸️ 4.2.3. `porter` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認
         - ⏸️ 4.2.4. `cplat` (違反 81 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test`
