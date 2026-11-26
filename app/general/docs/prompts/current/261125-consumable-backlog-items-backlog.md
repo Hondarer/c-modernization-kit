@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 13:32:07 JST
+最終更新日時: 2026-11-26 14:21:00 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-design.md` (最終仕様)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -31,6 +31,9 @@
 | BL-004 | cplat_file_get_path_id() と cplat_file_get_id() が Windows で 64 ビットのファイル識別子を使い、ReFS で一意とは限らない | 作業中摘出 | 低 | 未着手 |
 | BL-005 | cplat_path_is_same_file() が Windows で、絶対化すると MAX_PATH を超える相対パスを「存在しない」と判定する | 作業中摘出 | 低 | 未着手 |
 | BL-006 | socketTest の既存の Windows 専用の待機のテストに、確認ごとのエビデンスのタグと TearDown の参照がない | 作業中摘出 | 低 | 未着手 |
+| BL-007 | porter-test を子プロセスとして使う結合テストで、待ち受けの失敗の理由が出力に出ない | 作業中摘出 | 低 | 未着手 |
+| BL-008 | certificateTest.cc に複数のスイートがあり、エビデンスのタグがないテストがある | 作業中摘出 | 低 | 未着手 |
+| BL-009 | nonblockingStopIntegrationTest と porterCancelFailureTest に、確認ごとのエビデンスのタグがない | 作業中摘出 | 低 | 未着手 |
 
 ## BL-001 cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない
 
@@ -169,3 +172,72 @@
 
 - **恒久対応案**: 6 件の各確認にタグを付け、ループの確認には回数を記載し (`watch_attach_cleans_up_each_event_creation_failure` は 3 段階のループ)、閉じ括弧の直後に TearDown の参照を置きます。`text_style_jp.py --mode cpp --dry-run` の指摘が 0 件になることと、Windows のテスト エビデンスの確認件数を確かめます。あわせて、ファイル全体が現在の clang-format の出力と一致しない (2026-11-26 の時点で 720 行の差) 点も、同じ変更で整形するかを判断します。
 - **参考情報**: `framework/testfw/docs/about-test-phase.md`、`framework/testfw/docs/test-subprocedures.md`、`app/general/docs/source-style-guideline.md` の「整形結果の確定と手作業修正の禁止」。
+
+## BL-007 porter-test を子プロセスとして使う結合テストで、待ち受けの失敗の理由が出力に出ない
+
+### 概要と問題点
+
+- **現状の事象**: `app/porter/test/src/integration/porterSendRecvTest/porterSendRecvTest.cc` は、`porter-test` を受信側と送信側の子プロセスとして起動します。U10 (BL-001) で、ポートは `allocateTestPort()` の払い出しへ移しました。しかし、子プロセスは `-l` を指定せずに起動するため、`porter-test` のトレーサーは何も出力しません。子プロセスの待ち受け (bind) が失敗した場合、テストの失敗は `tryWaitForOutput(recv_h_, "受信待機中", 5000)` の時間切れとして現れ、OS のエラー コードは出力に残りません。
+- **本来あるべき姿**: 子プロセスの待ち受けが失敗した場合に、その理由 (OS のエラー コード) がテストの出力から分かる状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U10、BL-001 の移行を担当したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: 最終仕様は、テストのプロセス内の porter のトレーサーを `SetUp` で ERROR にして開始することを定めています。子プロセスのトレーサーはテストのプロセスから設定できません。子プロセスへ `-l ERROR` を渡すと、標準エラー出力を検査するテスト (`wait_for_stderr()` や `count_occurrences()` を使うテスト) の期待に、ERROR の行が混ざる可能性があり、テストごとの判断が要ります。`app/porter/test/src/cmd/porterTestOutputTest/porterTestOutputTest.cc` は、`porter-test.c` を同じプロセスで動かし、`porter-test` がトレーサーの停止中にフックを登録するため、テスト側でトレーサーを開始していません。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `porterSendRecvTest.cc` の 24 件のテスト、`porterTestOutputTest.cc` の実際に待ち受ける 3 件のテスト。
+- **放置した場合のリスク**: 払い出しの後に別の処理が同じ番号を使った場合など、まれな待ち受けの失敗の原因を、CI のログから特定できません。払い出しで衝突の大半は避けられるため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: 標準エラー出力を検査しないテストに限り、`porter-test` の起動の引数へ `-l ERROR` を加えます。テストの失敗時に `getStderr()` の内容を出力するよう、`TearDown` で `HasFailure()` を見て子プロセスの標準エラー出力を表示します。`porterTestOutputTest.cc` は、`porter-test` のトレーサーの開始の手順 (`ensure_tracer_started()`) と矛盾しない方法を、`porter-test.c` の設計と合わせて決めます。
+- **参考情報**: `app/porter/prod/src/cmd/porter-test/porter-test.c` の `-l` の説明、`framework/testfw/docs/how-to-test.md` の「待ち受けのポートは allocateTestPort() で払い出す」、親の残課題 `261123-remaining-backlog-items-backlog.md` の BL-001。
+
+## BL-008 certificateTest.cc に複数のスイートがあり、エビデンスのタグがないテストがある
+
+### 概要と問題点
+
+- **現状の事象**: `app/porter/test/src/integration/certificateTest/certificateTest.cc` は、1 ファイルに `certificateTest`、`certificate_rejection_test`、`certificate_open_test`、`certificate_group_test`、`certificate_packet_test` の 5 つのスイートを置いています。末尾の `TEST(certificateTest, tcp_stop_during_certificate_exchange_completes_quickly)` は、フェーズのコメントと確認のタグを持ちません。
+- **本来あるべき姿**: [テスト方法](../../../../../framework/testfw/docs/how-to-test.md) の「テスト ファイルとスイート名を一致させる」(1 ファイルに 1 スイート) と、[テスト フェーズ](../../../../../framework/testfw/docs/about-test-phase.md) のフェーズとタグの規則を満たす状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U10、BL-001 の移行を担当したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: BL-001 の範囲は、固定のポートの払い出しへの移行です。スイートの分割と、既存のテストのエビデンスの書き直しは範囲外です。U10 で追加した払い出しの行には、タグを付けました。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `certificateTest.cc` と、そのテスト エビデンス。
+- **放置した場合のリスク**: テスト エビデンスで、末尾のテストの確認件数が 0 件として表示され、確認の内容を追えません。テストの成否には影響しないため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: スイートごとにテスト ファイルを分け (`certificateRejectionTest.cc` など)、末尾のテストにフェーズのコメントと確認のタグを付けます。`text_style_jp.py --mode cpp --dry-run` の指摘が 0 件であることと、テスト エビデンスの確認件数を確かめます。
+- **参考情報**: `framework/testfw/docs/how-to-test.md`、`framework/testfw/docs/about-test-phase.md`。
+
+## BL-009 nonblockingStopIntegrationTest と porterCancelFailureTest に、確認ごとのエビデンスのタグがない
+
+### 概要と問題点
+
+- **現状の事象**: `app/porter/test/src/integration/porterSendRecvTest/nonblockingStopIntegrationTest.cc` の 3 件のテストは、フェーズのコメントと確認のタグを持ちません。`app/porter/test/src/integration/porterCancelFailureTest/porterCancelFailureTest.cc` の 3 件は、Arrange の `ASSERT_*` と一部の `EXPECT_*` にタグがありません。U10 (BL-001) で追加した払い出しの行も、ファイルの既存の書き方に合わせてタグを付けていません。
+- **本来あるべき姿**: [テスト フェーズ](../../../../../framework/testfw/docs/about-test-phase.md) の「期待を確認する行為 1 回を 1 件として集計する」に従い、確認ごとにタグがあり、確認件数がテスト エビデンスに出る状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U10、BL-001 の移行を担当したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: BL-001 の範囲は、固定のポートの払い出しへの移行です。既存のテストのエビデンスの書き直しは範囲外です。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: 2 ファイルの 6 件のテストと、そのテスト エビデンス。
+- **放置した場合のリスク**: テスト エビデンスで確認件数が実際の確認より少なく表示され、確認の内容を追えません。テストの成否には影響しないため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: 各テストに `// Arrange` から `// Assert` までのフェーズのコメントを置き、`ASSERT_*` に `[状態確認]`、期待の確認に `[確認_正常系]` または `[確認_異常系]` を付けます。`text_style_jp.py --mode cpp --dry-run` の指摘が 0 件であることと、テスト エビデンスの確認件数を確かめます。
+- **参考情報**: `framework/testfw/docs/about-test-phase.md`。

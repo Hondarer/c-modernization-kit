@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 13:32:07 JST
+最終更新日時: 2026-11-26 14:21:00 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -70,7 +70,7 @@
 
 - **摘出契機**: CI の失敗の分析 (2026-11-25)。
 - **今回の見送り理由**: 原因がポートの衝突と確定していないこと、固定のポートは `app/porter` の多くのテストに共通する既存の書き方 (2026-11-14 のコミット `a98cef4` から) であり、局所の直しではなく、テストの全体に共通の仕組みとして設計するのが望ましいこと (ユーザーの判断、2026-11-25)。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で方針を合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-008)。`framework/testfw` に、一時ディレクトリの共有ファイルとファイル ロックで直近の払い出しをプロセスの間で記録するポートの払い出しのヘルパーを新設し、OS の一時的なポートの範囲の外 (Linux は実行時に `ip_local_port_range` を読んで避ける) から払い出して、`app/porter` の固定のポートを使うテストを移します。`app/cplat` の実ソケットのテストはポート 0 を使っており、移行は要りません。詳細は最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で方針を合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-008)。`framework/testfw` に、一時ディレクトリの共有ファイルとファイル ロックで直近の払い出しをプロセスの間で記録するポートの払い出しのヘルパーを新設し、OS の一時的なポートの範囲の外 (Linux は実行時に `ip_local_port_range` を読んで避ける) から払い出して、`app/porter` の固定のポートを使うテストを移します。`app/cplat` の実ソケットのテストはポート 0 を使っており、移行は要りません。詳細は最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に U10 として Linux の実装と局所テストを終えました。`framework/testfw` に `allocateTestPort()` と `allocateTestPorts()` (`include/testPort.h`、`libsrc/test_com/testPort*.cc`) を新設し、20000 から 32767 のうち OS の一時的なポートの範囲を除いた番号を、一時ディレクトリの共有ファイルとファイル全体のロックで直近の 1024 件を記録しながら、TCP と UDP の bind を確かめて払い出します。使い方は `framework/testfw/docs/how-to-test.md` に記載しました。`app/porter` の 11 ファイル (certificateTest、porterSendRecvTest の 6 ファイル、porterCancelFailureTest、tcpServerPreforkTest の 2 ファイル、porterTestOutputTest) の固定のポートとポート 0 で調べる方式を払い出しへ移し、プロセス内で porter を開く結合テストは、`SetUp` などで porter のトレーサーの標準エラー出力を ERROR で開始して bind の失敗の理由を出すようにしました。Linux で testfw の `testPortTest` (12 件) と移行した porter のテストが成功し、テストの実行ファイルを 2 本同時に流しても衝突しないことを確かめました。子プロセス (`porter-test`) の bind の失敗の理由が出ない点は、継続作業の残課題一覧 `261125-consumable-backlog-items-backlog.md` の BL-007 に記録しました。Windows の検証、main への統合、CI の確認は未了で、状態は「対応中」のままです。
 
 ### 影響範囲とリスク
 
