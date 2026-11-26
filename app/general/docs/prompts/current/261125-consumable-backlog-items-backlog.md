@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 14:21:00 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 14:23:00 JST
+最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-design.md` (最終仕様)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
@@ -34,6 +34,8 @@
 | BL-007 | porter-test を子プロセスとして使う結合テストで、待ち受けの失敗の理由が出力に出ない | 作業中摘出 | 低 | 未着手 |
 | BL-008 | certificateTest.cc に複数のスイートがあり、エビデンスのタグがないテストがある | 作業中摘出 | 低 | 未着手 |
 | BL-009 | nonblockingStopIntegrationTest と porterCancelFailureTest に、確認ごとのエビデンスのタグがない | 作業中摘出 | 低 | 未着手 |
+| BL-010 | cplat の DLL に依存する実行ファイルを、MAX_PATH を超えるディレクトリから \\?\ なしで起動できない | 作業中摘出 | 中 | 未着手 |
+| BL-011 | mt -outputresource の単独指定が、既存のマニフェストの activeCodePage=UTF-8 を消す | 作業中摘出 | 低 | 未着手 |
 
 ## BL-001 cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない
 
@@ -241,3 +243,49 @@
 
 - **恒久対応案**: 各テストに `// Arrange` から `// Assert` までのフェーズのコメントを置き、`ASSERT_*` に `[状態確認]`、期待の確認に `[確認_正常系]` または `[確認_異常系]` を付けます。`text_style_jp.py --mode cpp --dry-run` の指摘が 0 件であることと、テスト エビデンスの確認件数を確かめます。
 - **参考情報**: `framework/testfw/docs/about-test-phase.md`。
+
+## BL-010 cplat の DLL に依存する実行ファイルを、MAX_PATH を超えるディレクトリから \\?\ なしで起動できない
+
+### 概要と問題点
+
+- **現状の事象**: Windows 実機の確認 (U11、2026-11-26。`LongPathsEnabled=1`、conhost 10.0.26100) で、`libcplat.dll` に依存する実行ファイル (`tcpServer.exe` と確認用の実行ファイル) を `MAX_PATH` を超えるディレクトリ (ディレクトリ 284 文字、実行ファイル 294 文字から 308 文字) に置くと、接頭辞なしのパスでは起動できないことが分かりました。`CreateProcessW` 自体は成功しますが、子プロセスが `0xC0000106` (`STATUS_NAME_TOO_LONG`) で即座に終了します。マニフェストの `longPathAware` の有無で変わりません。PowerShell の `&` と `ProcessStartInfo` では、起動そのものができません (接頭辞なしはエラー 2、`\\?\` 付きはエラー 206)。`lpApplicationName` へ `\\?\` 付きのパスを渡すと、マニフェストの有無によらず起動に成功し、`cplat_module_get_path` と `cplat_process_get_executable_path` は長いパスを正しく返します。`libcplat.dll` に依存しない実行ファイルは、同じ場所から接頭辞なしでも起動するため、長いアプリケーション ディレクトリから DLL を読み込む段階で起きていると推測します (ローダーの内部は未確認)。
+- **本来あるべき姿**: 長いパスへ配置する運用で、起動側が `\\?\` を付けることが前提であること、または配置を `MAX_PATH` 以内に制限することが、利用者に分かる文書に記載されている状態です。原因が特定されていれば、cplat 側で回避できるかどうかも判断されている状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U11、BL-024、BL-020、BL-009 の Windows 実機の確認を担当したエージェントが 2026-11-26 に摘出。結果は対策元 `261123-remaining-backlog-items-backlog.md` の BL-020 と BL-009 に記録)。
+- **今回の見送り理由**: 案件の目的は、長いパスで cplat が正しく動くかの確認です。確認の目的は満たしたため、BL-020 と BL-009 は「対策済み」としました。起動できない原因は cplat の外 (ローダーの依存 DLL の探索) と推測され、原因の特定と文書化は範囲外です。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `libcplat.dll` に依存する実行ファイル全般 (`tcpServer` など) を `MAX_PATH` を超えるディレクトリへ配置する運用。
+- **放置した場合のリスク**: 長いパスへ配置した実行ファイルが、起動側によっては起動できず、終了コード `0xC0000106` だけが残るため、原因を特定しにくくなります。優先度を中とした理由は、利用者が配置の制約に気付く手掛かりが現状なく、原因の切り分けに手間がかかるためです。発生するのは、`MAX_PATH` を超える配置を前提とした環境に限られます。
+
+### 推奨される対応策
+
+- **恒久対応案**: まず原因を特定します (Process Monitor またはローダーのスナップショットで、依存 DLL の探索の失敗を確認する)。cplat 側で回避できない場合は、`app/cplat` または `app/porter` の文書へ、長いパスへの配置では起動側が `\\?\` 付きのパスを `CreateProcessW` の `lpApplicationName` へ渡す必要があること、または配置を `MAX_PATH` 以内に制限することを記載します。
+- **参考情報**: 対策元 `261123-remaining-backlog-items-backlog.md` の BL-020、BL-009、[Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)。
+
+## BL-011 mt -outputresource の単独指定が、既存のマニフェストの activeCodePage=UTF-8 を消す
+
+### 概要と問題点
+
+- **現状の事象**: Windows 実機の確認 (U11、2026-11-26) で、`tcpServer.exe` に `longPathAware` のマニフェストを `mt -manifest longpath.manifest -outputresource:tcpServer.exe;1` で組み込むと、実行ファイルの元のマニフェストが置き換わり、`activeCodePage=UTF-8` が消えることを確認しました。元のマニフェストと結合する場合 (`mt -manifest orig.manifest longpath.manifest`) は、両方が残ります。リンカーの `/MANIFESTINPUT` を追加する方法も、両方を残せます。また、`mt.exe` は長いパスのファイルのリソースを更新できません (exit 31)。短いパスで組み込んでから複製する必要があります。
+- **本来あるべき姿**: リポジトリに `longPathAware` を導入する場合に、既存の `activeCodePage=UTF-8` を保ったまま組み込む手順が決まっている状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (U11、BL-009 の Windows 実機の確認を担当したエージェントが 2026-11-26 に摘出)。
+- **今回の見送り理由**: リポジトリには `longPathAware` を含むマニフェストが現在なく、導入の予定もありません。今回の確認は、一時ディレクトリでの確認用の実行ファイルに限りました。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: 将来 `longPathAware` を導入する際の、Windows 向けの実行ファイルのマニフェストの組み込み手順 (makefw のテンプレートを含む)。
+- **放置した場合のリスク**: 導入時に `mt -outputresource` を単独で使うと、UTF-8 のコード ページの指定が失われ、日本語を含む引数や出力の扱いが変わる可能性があります。現状では導入の予定がないため、優先度を低としました。
+
+### 推奨される対応策
+
+- **恒久対応案**: `longPathAware` を導入する場合は、リンカーの `/MANIFESTINPUT` で追加するか、`mt -manifest orig.manifest longpath.manifest` で結合する手順とし、`mt.exe` を長いパスのファイルに対して使わないことを makefw の文書に記載します。導入後は、組み込み後のマニフェストに `activeCodePage` と `longPathAware` の両方が残ることを確かめます。
+- **参考情報**: 対策元 `261123-remaining-backlog-items-backlog.md` の BL-009、[Application manifests](https://learn.microsoft.com/en-us/windows/win32/sbscs/application-manifests)。

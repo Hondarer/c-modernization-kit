@@ -1,11 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 14:21:00 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 14:23:00 JST
+最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
-下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7、U8、U9、U10 の実装中に摘出した BL-001 から BL-009 を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
+下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7、U8、U9、U10 の実装中に摘出した BL-001 から BL-009 と、U11 の確認で摘出した BL-010、BL-011 を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。この文書と、ユーザーが編集した最新の検討用 Markdown を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があり、どこまで進んでいたかは文書だけでは分かりません。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。`← **CURRENT**` がなく、作業 WBS がすべて完了 (✅) であれば、この案件の合意フローは完了しています。
 -->
 
@@ -94,24 +94,24 @@
         - ✅ 4.8.2. `stdio_temp.c`、`elevated_process.c`、`stdio.h` (あわせて `api-cheatsheet.md` と `functional-spec/crt.md` の一時ファイルの記載)
         - ✅ 4.8.3. `tempFileTest` (新設)、`stdioTempTest`、`elevatedProcessTest` のテスト
         - 🔄 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。作業ブランチへのコミットと push は cplat 6a83776d、親 f36e012d。Windows の検証は成功し、`tempFileTest` 14 件、`stdioTempTest` 8 件、`tempDirTest` 9 件、`elevatedProcessTest` 26 件、MSVC の警告と内容のある `.warn` なし、`%TEMP%` に残骸なし。残りは main への統合と push、CI の確認)
-    - ⚠️ 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
+    - 🔄 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
         - ✅ 4.9.1. testfw の `GetFileInformationByHandleEx` の mock (`mock_windows.h`、`mock_GetFileInformationByHandleEx.cc`)
         - ✅ 4.9.2. `path.h`、`path_identity.c`、`mock_cplat`、`exportTest.cc`、`api-cheatsheet.md`、`functional-spec/crt.md`
         - ✅ 4.9.3. `pathIdentityTest` の新設と、`compress-cli.c` と `compress-cliTest` の変更
-        - ⚠️ 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。未確認の事項: 作業ブランチへのコミットと push (testfw と cplat)、Windows の `framework/testfw` (`mock_libc`) と `app/cplat` のビルドと、`pathIdentityTest` (20 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件) のテスト、main への統合と push、CI の確認。いずれも主エージェントが行う)
-    - ⚠️ 4.10. U9 BL-028 (`app/cplat`)
+        - 🔄 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。作業ブランチへのコミットと push は testfw bbaeb87、cplat 237d3c6b、親 7e4017b5。Windows の検証は成功し、`framework/testfw` と `app/cplat` の make が成功、`pathIdentityTest` 20 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件がすべて成功、MSVC の警告と内容のある `.warn` なし。残りは main への統合と push、CI の確認。主エージェントが行う)
+    - 🔄 4.10. U9 BL-028 (`app/cplat`)
         - ✅ 4.10.1. `socketTest.cc` への 8 件のテストの追加 (Winsock のイベントを試験側で模擬する `winsock_event_simulator` と、障壁で順序を固定する 8 件の Windows 専用のテスト。Linux の socketTest の make と make test が成功 (62 件)。8 件は Linux では本体がコンパイルされないため、Windows の Winsock の型を代替した試験用の構成 (scratchpad、リポジトリ外) で `socket_watch_windows.c` の写しと合わせて実行し、8 件の成功と、実装の分岐を壊す 11 種の一時的な改変がいずれも検出されることを確かめた)
-        - ⚠️ 4.10.2. Windows の検証、main への統合と push、CI の確認 (未確認の事項: cplat の作業ブランチへのコミットと push、Windows の `socketTest` のビルドとテスト (60 件。新しい 8 件を含む)、main への統合と push、CI の確認。いずれも主エージェントが行う)
+        - 🔄 4.10.2. Windows の検証、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 8c844743、親 1de5df7b。Windows の検証は成功し、`socketTest` 60 件 (新しい 8 件を含む) が成功、`--gtest_filter=socketTest.watch_* --gtest_repeat=30` で 570 件が OK、失敗 0 件、追加の 8 件の最長は 318 ms、MSVC /W4 の警告と内容のある `.warn` なし。残りは main への統合。主エージェントが行う)
     - ⚠️ 4.11. U10 BL-001 (`framework/testfw`、`app/porter`)
         - ✅ 4.11.1. `testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc` と、testfw のテスト
         - ✅ 4.11.2. `framework/testfw/docs/how-to-test.md`
         - ✅ 4.11.3. `app/porter/test/src/integration/` と `cmd/porterTestOutputTest/` の移行 (最終仕様の一覧の 11 ファイル)
         - ⚠️ 4.11.4. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。`framework/testfw` の make と testfw のテスト (`testPortTest` 12 件ほか)、`app/porter` の make と、移行した 5 つのテストのディレクトリの make test が成功し、テストの実行ファイルを 2 本同時に流しても衝突しないことを確かめた。未確認の事項: 作業ブランチへのコミットと push (testfw、porter、親)、Windows の検証 (testfw の `testPortTest` と、移行した porter のテスト)、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
-    - ⏸️ 4.12. U11 Windows 実機での確認 (BL-024、BL-020、BL-009)
-        - ⏸️ 4.12.1. 事前確認 (読み取りだけ。`LongPathsEnabled`、`mt.exe`、動的ポートの範囲と除外範囲。主エージェントが依頼済みの結果を取り込む)
-        - ⏸️ 4.12.2. BL-024 の確認と記録
-        - ⏸️ 4.12.3. BL-020 の確認と記録
-        - ⏸️ 4.12.4. BL-009 の確認と記録
+    - 🔄 4.12. U11 Windows 実機での確認 (BL-024、BL-020、BL-009)
+        - ✅ 4.12.1. 事前確認 (読み取りだけ。`LongPathsEnabled`、`mt.exe`、動的ポートの範囲と除外範囲。結果は「調査で判明した事実」に記録済み: `LongPathsEnabled=1`、`mt.exe` あり、動的ポート 49152 から 65535)
+        - ✅ 4.12.2. BL-024 の確認と記録 (報告の事象は再現しなかった。`WriteConsoleU` と比較用の `WriteConsoleW` のどちらも、書けた数は 5 で `GetLastError` は 0。画面のセルは NUL の位置にできず `ABCD` と詰まり、`CD` は表示される。conhost の挙動で、変換の問題ではない。対策済み)
+        - ✅ 4.12.3. BL-020 の確認と記録 (ディレクトリ 284 文字、実行ファイル 294 文字、非 ASCII を含む配置。`\\?\` 付きで起動すれば、`cplat_module_get_path` と `cplat_process_get_executable_path` は長いパスと非 ASCII を正しく返す (マニフェストの有無によらない)。接頭辞なしの起動は子が `0xC0000106` で終了し、cplat の外のローダーの制約。対策済み。起動の制約は案件の残課題一覧の BL-010 へ)
+        - ✅ 4.12.4. BL-009 の確認と記録 (`\\?\` 付きで起動すれば、長いパスの `tcpServer` は `fork` と `prefork` の両方で子プロセスを起動し、日本語を含むエコーが 2 回とも一致。接頭辞なしは親が `0xC0000106` で起動せず。マニフェストの組み込み方の違いによる差はなし。`mt.exe` は長いパスのファイルを更新できないため、短いパスで組み込んでから複製。対策済み。起動の制約は BL-010、マニフェストの注意は BL-011 へ)
         - ⏸️ 4.12.5. 記録の main への統合 (`[skip ci]`)
     - ⏸️ 4.13. 正本ドキュメントおよびコード コメントへの永続的知見の反映の確認 (最終仕様の「知見の反映計画」の全行)
     - ⏸️ 4.14. 受入条件への適合確認 (全作業の完了確認)
@@ -275,6 +275,7 @@ Table: 質問の一覧
 | 2026-11-26 12:48 | U8 (BL-003) の実装と Linux の局所テストの完了 | opus サブエージェントが、`framework/testfw` の `GetFileInformationByHandleEx` の mock、`app/cplat` の公開 API `cplat_path_is_same_file()` (`path.h`、`path_identity.c`)、`mock_cplat`、`exportTest`、`errorContractTest`、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md` (要件 `CPLAT-CRT-FUNC-007` を追加)、`pathIdentityTest` (新設)、`compress-cli.c` と `compress-cliTest` を変更し、Linux の局所テストを終えました。最終仕様との相違を、規範の側に合わせて判断した点 (空文字のパスの拒否、戻り値の一覧) は「反映と検証の記録」に記載します。Windows の検証、main への統合、CI の確認は主エージェントが行います。 |
 | 2026-11-26 13:32 | U9 (BL-028) の実装と Linux の確認の完了 | opus サブエージェントが `app/cplat` の `socketTest.cc` に、Winsock のイベントの模擬と障壁を使う Windows 専用のテスト 8 件を加えました。Linux では 8 件の本体がコンパイルされないため、リポジトリ外の試験用の構成で 8 件の成功と、実装の分岐を壊す改変の検出を確かめました (「反映と検証の記録」)。作業 WBS 4.10.1 の着手時の更新 (実施中への変更と現在の項目の印の付け替え) は、実装の後に行いました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 | 2026-11-26 14:21 | U10 (BL-001) の実装と Linux の局所テストの完了 | opus サブエージェントが、`framework/testfw` にテスト用ポートの払い出しのヘルパー (`testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc`、内部の `testPort_impl.h`) と `testPortTest` を新設し、`how-to-test.md` に使い方を記載しました。`app/porter` の 11 ファイルの固定のポートと、ポート 0 で調べる方式を払い出しへ移し、トレーサーの開始の補助 `test/include/porter_test_trace.h` を加えました。最終仕様との相違と判断は「反映と検証の記録」に記載します。作業 WBS 4.11.1 と 4.11.2 の着手時の更新は、実装の後に行いました。範囲外の気付きを残課題一覧の BL-007 から BL-009 に起票しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
+| 2026-11-26 14:23 | U8、U9 の Windows の検証と、U11 の Windows 実機の確認の結果の記録 | U8 (親 7e4017b5、testfw bbaeb87、cplat 237d3c6b) と U9 (親 1de5df7b、cplat 8c844743) の Windows の検証が成功しました (作業 WBS 4.9.4、4.10.2。残りは main への統合と CI の確認)。U11 の Windows 実機の確認の結果を作業 WBS 4.12.1 から 4.12.4 に記録し、対策元 `261123-remaining-backlog-items-backlog.md` の BL-024、BL-020、BL-009 を「対策済み」にしました。摘出した 2 件を残課題一覧の BL-010、BL-011 に起票しました。4.12.5 は主エージェントが行います。 |
 
 ## 反映と検証の記録
 
