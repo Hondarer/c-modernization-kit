@@ -56,6 +56,124 @@ typedef struct index_record
 static cplat_hashtable *s_registry;
 
 /**
+ *  @brief          この呼び出しで登録簿へ追加した記述子の記録です。
+ *
+ *  失敗したときに、追加した記録だけを末尾から取り消すために使います。
+ */
+typedef struct added_descriptor_log
+{
+    const struct_meta_descriptor **items; /**< 追加した記述子です。未使用なら NULL です。 */
+    size_t count;                         /**< @c items の使用数です。 */
+    size_t capacity;                      /**< @c items の要素数です。 */
+} added_descriptor_log;
+
+static int ensure_registry(void);
+static const index_record *find_record(const struct_meta_descriptor *descriptor);
+static int build_field_names(const struct_meta_descriptor *descriptor, cplat_hashtable **table_out);
+static int reserve_added_descriptor(added_descriptor_log *log);
+static void rollback_added_descriptors(const added_descriptor_log *log);
+static int register_descriptor(const struct_meta_descriptor *descriptor, added_descriptor_log *log);
+static int unregister_descriptor(const struct_meta_descriptor *descriptor);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_index_register(const struct_meta_descriptor *descriptor)
+{
+    if (descriptor == NULL)
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    int ret = ensure_registry();
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    added_descriptor_log log = {0};
+    ret = register_descriptor(descriptor, &log);
+    if (ret != CPLAT_OK)
+    {
+        rollback_added_descriptors(&log);
+    }
+
+    cplat_free(log.items);
+
+    return ret;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_index_unregister(const struct_meta_descriptor *descriptor)
+{
+    if (descriptor == NULL)
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    return unregister_descriptor(descriptor);
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_internal_index_find_validation(const struct_meta_descriptor *descriptor, int *result_out)
+{
+    if ((descriptor == NULL) || (result_out == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const index_record *record = find_record(descriptor);
+    if (record == NULL)
+    {
+        return CPLAT_SKIPPED;
+    }
+
+    *result_out = record->validation_result;
+
+    return CPLAT_OK;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_internal_index_find_field(const struct_meta_descriptor *descriptor, const char *name,
+                                          size_t name_length, size_t *index_out)
+{
+    if ((descriptor == NULL) || (name == NULL) || (index_out == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const index_record *record = find_record(descriptor);
+    if ((record == NULL) || (record->field_names == NULL))
+    {
+        return CPLAT_SKIPPED;
+    }
+
+    if (name_length >= STRUCT_META_INDEX_FIELD_NAME_BYTES)
+    {
+        /* 表へ入れたどの名前より長いため、線形走査でも一致しない。 */
+        return CPLAT_ERR_NOT_FOUND;
+    }
+
+    /* 鍵は NUL 終端が要るため、区間名を一時バッファーへ複製する。 */
+    char key[STRUCT_META_INDEX_FIELD_NAME_BYTES];
+    memcpy(key, name, name_length);
+    key[name_length] = '\0';
+
+    const void *value = NULL;
+    if (cplat_hashtable_find_value_ref(record->field_names, key, &value) != CPLAT_OK)
+    {
+        return CPLAT_ERR_NOT_FOUND;
+    }
+
+    /* value_align に sizeof(size_t) を指定しているため、型付きで参照できる。 */
+    *index_out = *(const size_t *)value;
+
+    return CPLAT_OK;
+}
+
+/**
  *  @brief          登録簿を必要に応じて構築します。
  *  @return         @c CPLAT_OK 、または @c CPLAT_ERR_OUT_OF_MEMORY を返します。
  */
@@ -110,18 +228,6 @@ static const index_record *find_record(const struct_meta_descriptor *descriptor)
     /* value_align に sizeof(void *) を指定しているため、型付きで参照できる。 */
     return (const index_record *)value;
 }
-
-/**
- *  @brief          この呼び出しで登録簿へ追加した記述子の記録です。
- *
- *  失敗したときに、追加した記録だけを末尾から取り消すために使います。
- */
-typedef struct added_descriptor_log
-{
-    const struct_meta_descriptor **items; /**< 追加した記述子です。未使用なら NULL です。 */
-    size_t count;                         /**< @c items の使用数です。 */
-    size_t capacity;                      /**< @c items の要素数です。 */
-} added_descriptor_log;
 
 /**
  *  @brief          フィールド名の表を構築します。
@@ -359,104 +465,6 @@ static int unregister_descriptor(const struct_meta_descriptor *descriptor)
             }
         }
     }
-
-    return CPLAT_OK;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_index_register(const struct_meta_descriptor *descriptor)
-{
-    if (descriptor == NULL)
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    int ret = ensure_registry();
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    added_descriptor_log log = {0};
-    ret = register_descriptor(descriptor, &log);
-    if (ret != CPLAT_OK)
-    {
-        rollback_added_descriptors(&log);
-    }
-
-    cplat_free(log.items);
-
-    return ret;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_index_unregister(const struct_meta_descriptor *descriptor)
-{
-    if (descriptor == NULL)
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    return unregister_descriptor(descriptor);
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_internal_index_find_validation(const struct_meta_descriptor *descriptor, int *result_out)
-{
-    if ((descriptor == NULL) || (result_out == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    const index_record *record = find_record(descriptor);
-    if (record == NULL)
-    {
-        return CPLAT_SKIPPED;
-    }
-
-    *result_out = record->validation_result;
-
-    return CPLAT_OK;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_internal_index_find_field(const struct_meta_descriptor *descriptor, const char *name,
-                                          size_t name_length, size_t *index_out)
-{
-    if ((descriptor == NULL) || (name == NULL) || (index_out == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    const index_record *record = find_record(descriptor);
-    if ((record == NULL) || (record->field_names == NULL))
-    {
-        return CPLAT_SKIPPED;
-    }
-
-    if (name_length >= STRUCT_META_INDEX_FIELD_NAME_BYTES)
-    {
-        /* 表へ入れたどの名前より長いため、線形走査でも一致しない。 */
-        return CPLAT_ERR_NOT_FOUND;
-    }
-
-    /* 鍵は NUL 終端が要るため、区間名を一時バッファーへ複製する。 */
-    char key[STRUCT_META_INDEX_FIELD_NAME_BYTES];
-    memcpy(key, name, name_length);
-    key[name_length] = '\0';
-
-    const void *value = NULL;
-    if (cplat_hashtable_find_value_ref(record->field_names, key, &value) != CPLAT_OK)
-    {
-        return CPLAT_ERR_NOT_FOUND;
-    }
-
-    /* value_align に sizeof(size_t) を指定しているため、型付きで参照できる。 */
-    *index_out = *(const size_t *)value;
 
     return CPLAT_OK;
 }

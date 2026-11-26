@@ -23,7 +23,32 @@
 #include <string.h>
 #include <stdlib.h>
 
+static int scalar_to_json(struct_meta_field_kind kind, const unsigned char *field_ptr, size_t element_size,
+                          size_t char_buffer_size, cJSON **item_out);
+static int element_to_json(const struct_meta_field *field, const unsigned char *elem_ptr, cJSON **item_out);
+static int byte_array_to_json(const struct_meta_field *field, const unsigned char *base, cJSON **item_out);
+static int field_to_json(const struct_meta_field *field, const unsigned char *base, cJSON **item_out);
+static const char *json_key(const struct_meta_field *field);
 static int struct_to_json(const struct_meta_descriptor *desc, const unsigned char *base, cJSON **json_out);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_json_encode(const struct_meta_descriptor *desc, const void *instance, cJSON **json_out)
+{
+    if ((desc == NULL) || (instance == NULL) || (json_out == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    *json_out = NULL;
+    int ret = struct_meta_descriptor_validate(desc);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    return struct_to_json(desc, (const unsigned char *)instance, json_out);
+}
 
 /**
  *  @brief          スカラー値 1 個分のメモリ内容から cJSON アイテムを作成します。
@@ -289,23 +314,4 @@ static int struct_to_json(const struct_meta_descriptor *desc, const unsigned cha
     *json_out = obj;
 
     return CPLAT_OK;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_json_encode(const struct_meta_descriptor *desc, const void *instance, cJSON **json_out)
-{
-    if ((desc == NULL) || (instance == NULL) || (json_out == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    *json_out = NULL;
-    int ret = struct_meta_descriptor_validate(desc);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    return struct_to_json(desc, (const unsigned char *)instance, json_out);
 }

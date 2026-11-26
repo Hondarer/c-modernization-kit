@@ -18,6 +18,90 @@
 #include <stdint.h>
 #include <string.h>
 
+static const struct_meta_field *find_field_segment(const struct_meta_descriptor *descriptor, const char *name,
+                                                   size_t name_length);
+static int parse_index(const char **cursor_in_out, size_t *index_out);
+static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t instance_address, const char *path,
+                        const struct_meta_field **field_out, uintptr_t *value_address_out);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_path_resolve_const(const struct_meta_descriptor *descriptor, const void *instance, const char *path,
+                                   const struct_meta_field **field_out, const void **value_out)
+{
+    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0') || (value_out == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const struct_meta_field *discarded_field = NULL;
+
+    if (field_out == NULL)
+    {
+        field_out = &discarded_field;
+    }
+
+    *field_out = NULL;
+    *value_out = NULL;
+
+    int ret = struct_meta_descriptor_validate(descriptor);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    uintptr_t value_address = 0U;
+    ret = resolve_path(descriptor, (uintptr_t)instance, path, field_out, &value_address);
+    if (ret == CPLAT_OK)
+    {
+        *value_out = (const void *)value_address;
+    }
+
+    return ret;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_path_resolve(const struct_meta_descriptor *descriptor, void *instance, const char *path,
+                             const struct_meta_field **field_out, void **value_out)
+{
+    if (value_out == NULL)
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    *value_out = NULL;
+
+    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0'))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const struct_meta_field *discarded_field = NULL;
+
+    if (field_out == NULL)
+    {
+        field_out = &discarded_field;
+    }
+
+    *field_out = NULL;
+
+    int ret = struct_meta_descriptor_validate(descriptor);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    uintptr_t value_address = 0U;
+    ret = resolve_path(descriptor, (uintptr_t)instance, path, field_out, &value_address);
+    if (ret == CPLAT_OK)
+    {
+        *value_out = (void *)value_address;
+    }
+
+    return ret;
+}
+
 /*
  * パス セグメントのフィールド名からフィールド記述子を検索する。
  * フィールドが見つかった場合はそのポインターを返し、見つからない場合は NULL を返す。
@@ -185,82 +269,4 @@ static int resolve_path(const struct_meta_descriptor *descriptor, uintptr_t inst
     }
 
     return CPLAT_ERR_INVALID_ARGUMENT;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_path_resolve_const(const struct_meta_descriptor *descriptor, const void *instance, const char *path,
-                                   const struct_meta_field **field_out, const void **value_out)
-{
-    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0') || (value_out == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    const struct_meta_field *discarded_field = NULL;
-
-    if (field_out == NULL)
-    {
-        field_out = &discarded_field;
-    }
-
-    *field_out = NULL;
-    *value_out = NULL;
-
-    int ret = struct_meta_descriptor_validate(descriptor);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    uintptr_t value_address = 0U;
-    ret = resolve_path(descriptor, (uintptr_t)instance, path, field_out, &value_address);
-    if (ret == CPLAT_OK)
-    {
-        *value_out = (const void *)value_address;
-    }
-
-    return ret;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_path_resolve(const struct_meta_descriptor *descriptor, void *instance, const char *path,
-                             const struct_meta_field **field_out, void **value_out)
-{
-    if (value_out == NULL)
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    *value_out = NULL;
-
-    if ((descriptor == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0'))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    const struct_meta_field *discarded_field = NULL;
-
-    if (field_out == NULL)
-    {
-        field_out = &discarded_field;
-    }
-
-    *field_out = NULL;
-
-    int ret = struct_meta_descriptor_validate(descriptor);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    uintptr_t value_address = 0U;
-    ret = resolve_path(descriptor, (uintptr_t)instance, path, field_out, &value_address);
-    if (ret == CPLAT_OK)
-    {
-        *value_out = (void *)value_address;
-    }
-
-    return ret;
 }

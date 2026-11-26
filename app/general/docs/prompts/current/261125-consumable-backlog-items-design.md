@@ -233,7 +233,7 @@ Table: 診断と AST に記録する行
     - セッションの構造体に、利用側のコールバックの停止の印 (`cplat_atomic_i32 callback_closed`) と、実行中のコールバックの数 (`cplat_atomic_i32 callback_active`) を加えます。
     - `event_record_callback()`: `callback_active` を増やし (順序は逐次一貫)、`callback_closed` を読んで 1 なら `callback_active` を減らして戻ります。0 なら利用側のコールバックを呼び、`callback_active` を減らします。
     - `cplat_etw_session_stop()`: 停止の要求が失敗し、かつ `close_trace_handle()` も失敗した場合だけ、`cplat_thread_timed_join(thread, s_stop_abandon_timeout_ms)` で待ちます。それ以外は従来どおり `cplat_thread_join()` で待ちます。
-    - 期限を超えた場合: `callback_closed` を 1 にし (逐次一貫)、`callback_active` が 0 になるまで `cplat_thread_yield()` で待ちます。その後、スレッドを `cplat_thread_detach()` で切り離し、セッションの構造体と名前、プロパティを解放せずに戻ります。処理スレッドがあとで戻っても参照先が有効なままになるためです。
+    - 期限を超えた場合: `callback_closed` を 1 にし (逐次一貫)、`callback_active` が 0 になるまで `cplat_sleep_ms(1)` の繰り返しで待ちます (`sync.h` の `cplat_thread_yield()` の注記が、他のスレッドの処理完了の待機に `cplat_sleep_ms()` を指定しているため)。その後、スレッドを `cplat_thread_detach()` で切り離し、セッションの構造体と名前、プロパティを解放せずに戻ります。処理スレッドがあとで戻っても参照先が有効なままになるためです。
     - 期限は内部の定数 5000 [ms] とし、静的変数 `s_stop_abandon_timeout_ms` に置きます。単体テストは inject で短くします。5000 [ms] は、リアルタイムのセッションのバッファーの書き出しの周期 (既定 1 [s]) より十分に長く、停止の呼び出しが待つ上限として妥当な値です。
 - `app/cplat/prod/include/cplat/trace/etw.h` (191 から 207 行): 「本関数が戻らないことがあります」を削除し、両方が失敗した場合は最大 5 秒待ってから、セッションの資源を解放せずに戻ること、戻った後はコールバックを呼ばないこと (実行中のコールバックの終了は待つこと) を記載します。
 
@@ -264,7 +264,7 @@ Table: 診断と AST に記録する行
 
 #### テスト
 
-- `app/cplat/test/src/libcplatTest/crt/stdioTempTest/` (Windows): `CreateFileW` の mock で、名前の衝突 (1 回目に `ERROR_FILE_EXISTS`) で再試行すること、16 回の衝突で失敗を返すこと、`MAX_PATH` 以上になる一時ディレクトリで `\\?\` 付きのパスで作成し、`path_out` が接頭辞付きであること、`MAX_PATH` 未満では接頭辞なしであることを確かめます。UNC の一時ディレクトリで `\\?\UNC\` になることを確かめます。一時ディレクトリの取得は既存のテストの差し替えの方法に従います。
+- `app/cplat/test/src/libcplatTest/crt/tempFileTest/` (新設、Windows): `TEST_SRCS` を `temp_file_windows.c` だけとし (`how-to-test.md` の、テスト対象のソース ファイル 1 本に対してホワイト ボックス テスト 1 本の対応に従う)、`CreateFileW` の mock で、名前の衝突 (1 回目に `ERROR_FILE_EXISTS`) で再試行すること、16 回の衝突で失敗を返すこと、`MAX_PATH` 以上になる一時ディレクトリで `\\?\` 付きのパスで作成し、`path_out` が接頭辞付きであること、`MAX_PATH` 未満では接頭辞なしであることを確かめます。UNC の一時ディレクトリで `\\?\UNC\` になることを確かめます。一時ディレクトリの取得は既存のテストの差し替えの方法に従います。`stdioTempTest` は `temp_file_windows.c` を `ADD_SRCS` で取り込み、`cplat_fopen_temp()` の経路 (長い一時ディレクトリでの作成、書き込み、削除と、`path_out`) を確かめます。
 - 実ファイルのテスト: 長い一時ディレクトリ (環境変数 `TMP` を、`MAX_PATH` を超える深さの実ディレクトリへ一時的に向ける) で `cplat_fopen_temp()` が成功し、書き込みと削除ができることを確かめます。ディレクトリの作成と後始末は `\\?\` 付きのパスで行います。
 - `app/cplat/test/src/libcplatTest/runtime/elevatedProcessTest/`: 結果ファイルの作成が新しい関数を通ること、作成の失敗で失敗を返すことを確かめます。
 
@@ -388,7 +388,7 @@ Table: 統合の単位、順序、検証
 | 4 | U4 | BL-006 | cplat、porter、親 | `app/cplat` の `make` の後に `argparserTest`、`exportTest`、続いて呼び出し元の各 app の `make` と `make test` | `app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest` |
 | 5 | U5 | BL-008 | porter | `potrTraceTest` と porter の `make test` | porter のビルド |
 | 6 | U6 | BL-005、BL-007 | cplat | ビルドだけ (Windows 専用) | `trace_etw_sessionTest`、`etwSessionIntegrationTest` |
-| 7 | U7 | BL-004 | cplat | `stdioTempTest` (Linux の経路の不変) | `stdioTempTest`、`tempDirTest`、`elevatedProcessTest` |
+| 7 | U7 | BL-004 | cplat | `stdioTempTest` (Linux の経路の不変) | `tempFileTest`、`stdioTempTest`、`tempDirTest`、`elevatedProcessTest` |
 | 8 | U8 | BL-003 | testfw、cplat | testfw の `make`、`pathIdentityTest`、`exportTest`、`compress-cli` のテスト | 同じテストと `mock_libc` のビルド |
 | 9 | U9 | BL-028 | cplat | ビルドだけ (Windows 専用のテスト) | `socketTest` |
 | 10 | U10 | BL-001 | testfw、porter | testfw のテスト、移行した porter のテスト | 同じテスト |

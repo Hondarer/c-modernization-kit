@@ -1,11 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 05:17:16 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53UFydnbt2gLXTJC1ZC)
+最終更新日時: 2026-11-26 12:48:46 JST
+最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
-下流文書: 継続作業 `framework/makefw/docs/prompts/current/261125-makefw-backlog-overview.md` (検討 ID `261125-makefw-backlog`、検討用 Markdown `261125-makefw-backlog-discussion.md`、簡易 ADR `261125-makefw-backlog-lightadr.md`、残課題一覧 `261125-makefw-backlog-backlog.md`、最終仕様 `261125-makefw-backlog-design.md`) が BL-002、BL-029、BL-030 を対象に開始されています。継続作業 `261125-consumable-backlog-items` (`261125-consumable-backlog-items-overview.md`、検討用 Markdown `261125-consumable-backlog-items-discussion.md`、簡易 ADR `261125-consumable-backlog-items-lightadr.md`、最終仕様 `261125-consumable-backlog-items-design.md`。残課題一覧は未作成) が、BL-001、BL-003、BL-004、BL-005、BL-006、BL-007、BL-008、BL-009、BL-012、BL-013、BL-020、BL-024、BL-028、BL-031 を対象に開始されています。この残課題一覧を対策するほかの継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
+下流文書: 継続作業 `framework/makefw/docs/prompts/current/261125-makefw-backlog-overview.md` (検討 ID `261125-makefw-backlog`、検討用 Markdown `261125-makefw-backlog-discussion.md`、簡易 ADR `261125-makefw-backlog-lightadr.md`、残課題一覧 `261125-makefw-backlog-backlog.md`、最終仕様 `261125-makefw-backlog-design.md`) が BL-002、BL-029、BL-030 を対象に開始されています。継続作業 `261125-consumable-backlog-items` (`261125-consumable-backlog-items-overview.md`、検討用 Markdown `261125-consumable-backlog-items-discussion.md`、簡易 ADR `261125-consumable-backlog-items-lightadr.md`、最終仕様 `261125-consumable-backlog-items-design.md`、残課題一覧 `261125-consumable-backlog-items-backlog.md`) が、BL-001、BL-003、BL-004、BL-005、BL-006、BL-007、BL-008、BL-009、BL-012、BL-013、BL-020、BL-024、BL-028、BL-031 を対象に開始されています。この残課題一覧を対策するほかの継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい全体管理文書と検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、継続作業の開始時 (全体管理文書と検討用 Markdown の作成時) から検討・設計・実装・整理の各段階において、このファイルのメタ情報、各項目の状態、および経緯と対処を随時更新することを原則とします。また、フェーズ分けした対策で対処できていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
 
@@ -36,8 +36,8 @@
 | BL-009 | 長いパスに置いた tcpServer の子プロセスの実際の起動 | 検討時見送り | 中 | 対応中 |
 | BL-010 | マルチキャストの TTL と実ネットワークでの到達範囲 | 検討時見送り | 低 | 未着手 |
 | BL-011 | 実運用の負荷下での通信停止の時間 | 検討時見送り | 中 | 未着手 |
-| BL-012 | JSONC の共通ロックを通らない cJSON の直接の解析と global_error の参照の競合 | 検討時見送り | 中 | 対応中 |
-| BL-013 | 上限を検査していない待機の時間の項目の安全性 | 検討時見送り | 低 | 対応中 |
+| BL-012 | JSONC の共通ロックを通らない cJSON の直接の解析と global_error の参照の競合 | 検討時見送り | 中 | 対策済み |
+| BL-013 | 上限を検査していない待機の時間の項目の安全性 | 検討時見送り | 低 | 対策済み |
 | BL-014 | systemd 239 の D-Bus の呼び出しとインヒビター fd の実機確認 | 検討時見送り | 中 | 未着手 |
 | BL-015 | 停止の後に届いた通知の systemd での扱い | 検討時見送り | 低 | 未着手 |
 | BL-016 | unit の起動の回数の制限の実機での確認 | 検討時見送り | 低 | 未着手 |
@@ -55,7 +55,7 @@
 | BL-028 | Windows のソケットの待機の、方向別のイベントの競合の全組み合わせのテスト | 作業中摘出 | 中 | 対応中 |
 | BL-029 | makefw のスクリプトのテストの文字コードの指定の漏れ | 作業中摘出 | 低 | 対応済み |
 | BL-030 | makefw のスクリプトのテストが、統合ワークスペースの外で動かない | 作業中摘出 | 低 | 対応済み |
-| BL-031 | struct-meta のフィールドの診断の行が、字面の行より 1 行後ろになる | 作業中摘出 | 低 | 対応中 |
+| BL-031 | struct-meta のフィールドの診断の行が、字面の行より 1 行後ろになる | 作業中摘出 | 低 | 対策済み |
 | BL-032 | makefw の予算の割り振りの後の、CI のビルドの所要時間 | 作業中摘出 | 中 | 未着手 |
 | BL-033 | porter-test の出力のテストが、1 回だけ終了コード 127 で失敗した | 作業中摘出 | 中 | 未着手 |
 
@@ -122,7 +122,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 仕様は文字列としての比較だけを約束し、公開ヘッダー `app/cplat/prod/include/cplat/crt/path.h` にその範囲を明記します。ファイル システムと同じ判定は、この案件の決定の範囲の外です。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、ファイルの識別子 (Windows はボリュームとファイルの識別子、Linux は `st_dev` と `st_ino`) で同じ実体かを判定する公開 API を `app/cplat` に追加し、`compress-cli` へ適用すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-011)。存在しないパスの扱いは追加の Q-023 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、ファイルの識別子 (Windows はボリュームとファイルの識別子、Linux は `st_dev` と `st_ino`) で同じ実体かを判定する公開 API を `app/cplat` に追加し、`compress-cli` へ適用すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-011)。存在しないパスの扱いは追加の Q-023 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に U8 として実装し、Linux の局所テストを終えました。`framework/testfw` に `GetFileInformationByHandleEx` の mock を加え、`app/cplat` に公開 API `cplat_path_is_same_file()` (`prod/include/cplat/crt/path.h`、`prod/libsrc/cplat/crt/path_identity.c`。Linux は `st_dev` と `st_ino`、Windows は `FileIdInfo` のボリュームのシリアル番号と 128 ビットのファイル識別子) を追加し、`compress-cli` の入力と出力の同一性の検査を、この API へ置き換えました。`pathIdentityTest` (Linux 18 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件) が Linux で成功しています。Windows の検証、main への統合、CI の確認が残るため、状態は「対応中」のままです。
 
 ### 影響範囲とリスク
 
@@ -145,7 +145,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 一時ディレクトリの取得の集約が、この案件の決定の範囲です。一時ファイルの作成の方式の変更は、決定に含まれません。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、cplat が名前を作り `CreateFileW` の `CREATE_NEW` で排他的に作る内部の共通関数へ 2 箇所を置き換えると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-010)。拡張パスの接頭辞の扱いは追加の Q-022 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、cplat が名前を作り `CreateFileW` の `CREATE_NEW` で排他的に作る内部の共通関数へ 2 箇所を置き換えると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-010)。拡張パスの接頭辞の扱いは追加の Q-022 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (内部の共通関数 `cplat_internal_create_temp_file_w()` を `app/cplat/prod/include_internal/cplat/crt/temp_file_internal.h` と `app/cplat/prod/libsrc/cplat/crt/temp_file_windows.c` に新設。名前は接頭辞 3 文字まで、`cplat_random_bytes()` の 8 バイトの 16 進表記、`.tmp` とし、`CreateFileW` の `CREATE_NEW` で作成して、名前の衝突は 16 回まで再試行。完全なパスが `MAX_PATH` 以上の場合だけ `\\?\` または `\\?\UNC\` を前置。`cplat_fopen_temp()` と `cplat_elevated_process_run_with_result()` から `GetTempFileNameW` と固定長の配列をなくし、`stdio.h`、`api-cheatsheet.md`、`functional-spec/crt.md` を更新。内部の共通関数の単体テスト `tempFileTest` を新設し、`stdioTempTest` (`cplat_fopen_temp()` の経路と、長い一時ディレクトリの実ファイルの作成、書き込み、削除) と `elevatedProcessTest` に Windows のテストを追加。Linux の `make -C app/cplat` が成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件、`elevatedProcessTest` 11 件が成功し、内容のある `.warn` なし)。コミット、Windows の `tempFileTest`、`stdioTempTest`、`tempDirTest`、`elevatedProcessTest` の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
@@ -168,7 +168,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: スレッドを切り離して構造体を解放しない方式は、使用中のコールバックのユーザー データの解放後の使用を招くおそれがあります。そのため、現状の戻らない動作より危険と判断したためです。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、停止の要求とトレースを閉じる処理の両方が失敗した場合は期限付きで処理スレッドの終了を待ち、期限を超えたら構造体を解放せずに戻ると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。期限の長さと、戻った後にコールバックを呼ばない契約を保つ仕組みは、最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、停止の要求とトレースを閉じる処理の両方が失敗した場合は期限付きで処理スレッドの終了を待ち、期限を超えたら構造体を解放せずに戻ると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。期限の長さと、戻った後にコールバックを呼ばない契約を保つ仕組みは、最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux のビルドを完了しました (`cplat_etw_session_stop()` は、停止の要求とトレースを閉じる処理の両方が失敗した場合だけ、処理スレッドの終了を最大 5000 [ms] 待つ。期限を超えたら、利用側のコールバックを止める印を立て、実行中のコールバックの終了を待ってから処理スレッドを切り離し、セッションの資源を解放せずに戻る。`etw.h` と `api-cheatsheet.md` の契約を更新し、`trace_etw_sessionTest` にテスト 3 件を追加。`make -C app/cplat` が成功し、内容のある `.warn` なし)。コミット、Windows の `trace_etw_sessionTest` と `etwSessionIntegrationTest` の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
@@ -191,7 +191,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: この案件では、公開ヘッダー (`tracer.h` と `argparser.h`) の記載で対処すると決めたためです。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で方針を合意しました。`cplat_argparser_init()` は `int` の戻り値へ変え、全呼び出し元を同じ変更で移行します (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-003)。`cplat_tracer_dispose()` は `void` のまま、`*handle` で判定できること、再試行を求めないこと、失敗時の資源はリークとして許容することを cplat の規範へ明記し、容認としてクローズします (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-002)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で方針を合意しました。`cplat_argparser_init()` は `int` の戻り値へ変え、全呼び出し元を同じ変更で移行します (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-003)。`cplat_tracer_dispose()` は `void` のまま、`*handle` で判定できること、再試行を求めないこと、失敗時の資源はリークとして許容することを cplat の規範へ明記し、容認としてクローズします (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-002)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (`cplat_argparser_init()` を `int` の戻り値へ変更し、確保や複製、内部ロックの生成の失敗で `CPLAT_ERR_OUT_OF_MEMORY` を返す。mock、`exportTest`、`argparserTest` と `argparserAllocFailureTest` (失敗の戻り値のテスト 2 件を追加)、文書を合わせて更新。cplat、porter、親リポジトリの 23 の呼び出し元のすべてが戻り値を検査し、失敗時は診断を出してそのコマンドの失敗の終了コードで終了。porter の `porterConfigCheckTest` に失敗のテストを追加。`cplat_tracer_dispose()` は `void` のまま、`tracer.h` と cplat の `coding-guideline.md` の「生成と破棄の動詞対」に契約を記載。`app/cplat` の `make`、`argparserTest`、`exportTest`、cplat と porter のコマンドのテスト、`app/porter`、`app/calc`、`app/override-sample`、`app/service-sample`、`app/struct-meta`、`app/subfolder-sample`、`app/tutorial` の `make` と `make test` が成功。内容のある `.warn` なし)。コミット、Windows の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
@@ -214,7 +214,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 単体テスト (`app/cplat/test/src/libcplatTest/trace/trace_etw_sessionTest/`) のモック (`ControlTraceW`、`CloseTrace`、`ProcessTrace`) で経路を通すため、実機の確認は必須としません。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、BL-005 の対策の単体テスト (`trace_etw_sessionTest`) で打ち切りの経路を通し、実機での確認を要しないものとしてクローズすると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、BL-005 の対策の単体テスト (`trace_etw_sessionTest`) で打ち切りの経路を通し、実機での確認を要しないものとしてクローズすると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に `trace_etw_sessionTest` へ打ち切りの経路のテスト 3 件を追加しました。既存のテストと合わせ、`ControlTraceW` の失敗 (`CloseTrace` の成功と `ERROR_CTX_CLOSE_PENDING`)、`ControlTraceW` と `CloseTrace` の両方の失敗、`ProcessTrace` が戻らない場合の各経路を mock で通します。Windows でのテストの成功の確認 (主エージェントが行う) の後に、実機の確認を要しないものとしてクローズします。
 
 ### 影響範囲とリスク
 
@@ -237,7 +237,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 生成失敗の再試行とは別の、ライブラリ間の終了順序とハンドル寿命の契約の問題であり、この案件では扱わないと決まっています。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、porter がトレーサーの生成後に自分の終了コールバックを登録し、`s_trace` の無効化と再生成の禁止を行い、終了処理と並行する porter の利用の禁止を `porter_spec.h` の契約に明記すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-004)。参照カウントによる進行中の参照の回収は行わず、契約で扱います。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、porter がトレーサーの生成後に自分の終了コールバックを登録し、`s_trace` の無効化と再生成の禁止を行い、終了処理と並行する porter の利用の禁止を `porter_spec.h` の契約に明記すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-004)。参照カウントによる進行中の参照の回収は行わず、契約で扱います。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (`potr_trace.c` に状態 3 (終了済み) と終了コールバック `potr_trace_shutdown()` を追加。トレーサーの生成後、公開の前に `cplat_shutdown_register()` で登録し、cplat のトレースの終了コールバックより後の登録のため LIFO で先に実行されることをコメントに記載。登録の失敗では生成したトレーサーを解放して生成の失敗として扱い、次の呼び出しで再試行。コールバックの後は `potr_tracer_get()` と `potr_internal_trace_get()` が `NULL` を返し、再生成しない。`potr_trace.h`、`porter_spec.h`、`docs/api.md` に契約を記載。`potrTraceTest` にテスト 4 件を追加し 8 件が成功。`make -C app/porter` と `make -C app/porter test` (948 件) が成功。内容のある `.warn` なし)。コミット、Windows の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 

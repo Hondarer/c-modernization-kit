@@ -51,6 +51,143 @@ typedef struct emitted_name
     struct emitted_name *next;
 } emitted_name;
 
+static int is_emitted(const emitted_name *list, const char *name);
+static const char *path_basename(const char *path);
+static int header_stem(const char *header_path, char *dest, size_t dest_size);
+static int stem_prefix(const char *stem, char *dest, size_t dest_size);
+static int header_out_path(const char *c_path, char *header_path_out, size_t header_path_size);
+static const char *generated_header_include(const char *header_out);
+static void fprint_c_string(FILE *out, const char *text);
+static const char *field_kind_name(struct_meta_field_kind kind);
+static int field_is_declared_array(const struct_meta_field *field);
+static void emit_attributes(FILE *out, const char *symbol, const struct_meta_attribute *attributes, size_t count);
+static void emit_layout_assertions(FILE *out, const struct_meta_descriptor *descriptor);
+static int formatted_fits(int written, size_t buffer_size);
+static void report_name_too_long(const struct_meta_descriptor *descriptor, const struct_meta_field *field);
+static int emit_struct(FILE *out, const struct_meta_descriptor *descriptor, emitted_name **emitted);
+static int close_generated_file(FILE *out, const char *path);
+static int emit_catalog_header(const char *header_out, const char *stem, const char *prefix,
+                               const struct_meta_catalog *catalog);
+static size_t max_struct_name_bytes(const struct_meta_catalog *catalog, size_t count);
+static int emit_catalog_index_image(FILE *out, const char *prefix, const struct_meta_catalog *catalog, size_t count);
+static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, const struct_meta_catalog *catalog,
+                               size_t count);
+
+int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_path, const char *out_path)
+{
+    /* 診断の出力先がほかにないため、この関数の stderr への fprintf の戻り値は明示的に破棄する。 */
+
+    char stem[STRUCT_META_GEN_EMIT_PATH_BYTES];
+    char prefix[STRUCT_META_GEN_EMIT_PATH_BYTES];
+    char header_out[STRUCT_META_GEN_EMIT_PATH_BYTES];
+    size_t count = 0U;
+
+    if ((catalog == NULL) || (header_path == NULL) || (out_path == NULL))
+    {
+        (void)fprintf(stderr, "struct-meta-gen: 生成に必要な引数がありません\n");
+        return 1;
+    }
+
+    if ((struct_meta_catalog_get_count(catalog, &count) != CPLAT_OK) || (count == 0U))
+    {
+        (void)fprintf(stderr, "struct-meta-gen: 構造体が見つかりません: %s\n", header_path);
+        return 1;
+    }
+
+    if (header_stem(header_path, stem, sizeof(stem)) != 0)
+    {
+        (void)fprintf(stderr, "struct-meta-gen: ヘッダー名から識別子を作れません: %s\n", header_path);
+        return 1;
+    }
+
+    if (stem_prefix(stem, prefix, sizeof(prefix)) != 0)
+    {
+        (void)fprintf(stderr, "struct-meta-gen: ヘッダー名から接頭辞を作れません: %s\n", header_path);
+        return 1;
+    }
+
+    if (header_out_path(out_path, header_out, sizeof(header_out)) != 0)
+    {
+        (void)fprintf(stderr, "struct-meta-gen: 出力パスは .c で終わる必要があります: %s\n", out_path);
+        return 1;
+    }
+
+    FILE *out = cplat_fopen(out_path, "w", NULL);
+    if (out == NULL)
+    {
+        (void)fprintf(stderr, "struct-meta-gen: 出力ファイルを作成できません: %s\n", out_path);
+        return 1;
+    }
+
+    /*
+     * 生成 C ソースへの書き込みの失敗はストリームに残り、この関数でファイルを閉じる直前にまとめて検査するため、
+     * この関数の out への fprintf の戻り値は明示的に破棄する。
+     */
+    (void)fprintf(out, "/* このファイルは struct-meta-gen が自動生成した。手編集しないこと。 */\n");
+    (void)fprintf(out, "#include \"../%s\"\n", header_path);
+    (void)fprintf(out, "#include \"%s\"\n\n", generated_header_include(header_out));
+    (void)fprintf(out, "#include <struct_meta/catalog/catalog.h>\n");
+    (void)fprintf(out, "#include <struct_meta/meta/index.h>\n\n");
+    (void)fprintf(out, "#include <cplat/base/result.h>\n");
+    (void)fprintf(out, "#include <cplat/hashtable/hashtable.h>\n");
+    (void)fprintf(out, "#include <cplat/runtime/abort.h>\n");
+    (void)fprintf(out, "#include <cplat/runtime/shutdown.h>\n");
+    (void)fprintf(out, "#include <cplat/sync/sync.h>\n\n");
+    (void)fprintf(out, "#include <stddef.h>\n");
+    (void)fprintf(out, "#include <limits.h>\n");
+    (void)fprintf(out, "#include <stdint.h>\n");
+    (void)fprintf(out, "#include <stdio.h>\n");
+    (void)fprintf(out, "#include <stdlib.h>\n");
+    (void)fprintf(out, "#include <time.h>\n\n");
+    (void)fprintf(out, "_Static_assert(CHAR_BIT == 8, \"struct-meta は8ビットの char を前提とします\");\n");
+    (void)fprintf(out, "_Static_assert(CHAR_MIN == INT8_MIN, \"struct-meta は符号付きの char を前提とします\");\n");
+    (void)fprintf(
+        out, "_Static_assert(CHAR_MAX == INT8_MAX, \"struct-meta は char と int8_t の同じ範囲を前提とします\");\n\n");
+
+    emitted_name *emitted = NULL;
+    int struct_ret = 0;
+
+    for (size_t index = 0; (index < count) && (struct_ret == 0); index++)
+    {
+        const struct_meta_descriptor *descriptor = NULL;
+
+        /* 引数は非 NULL で、添字は get_count で得た件数未満であり、失敗しないため、戻り値は明示的に破棄する。 */
+        (void)struct_meta_catalog_get(catalog, index, &descriptor);
+        struct_ret = emit_struct(out, descriptor, &emitted);
+    }
+
+    /* emit_struct() が calloc() したノードの所有権はリストにあり、出力が終わったらここで解放する。 */
+    while (emitted != NULL)
+    {
+        emitted_name *next = emitted->next;
+        free(emitted);
+        emitted = next;
+    }
+
+    if (struct_ret != 0)
+    {
+        /* 名前が長すぎる失敗で 1 を返す経路のため、戻り値は明示的に破棄する。 */
+        (void)fclose(out);
+        return 1;
+    }
+
+    int catalog_ret = emit_catalog_source(out, stem, prefix, catalog, count);
+
+    if (catalog_ret != 0)
+    {
+        /* 生成の失敗で 1 を返す経路のため、戻り値は明示的に破棄する。 */
+        (void)fclose(out);
+        return 1;
+    }
+
+    if (close_generated_file(out, out_path) != 0)
+    {
+        return 1;
+    }
+
+    return emit_catalog_header(header_out, stem, prefix, catalog);
+}
+
 static int is_emitted(const emitted_name *list, const char *name)
 {
     for (; list != NULL; list = list->next)
@@ -926,119 +1063,4 @@ static int emit_catalog_source(FILE *out, const char *stem, const char *prefix, 
     (void)fprintf(out, "}\n");
 
     return 0;
-}
-
-int struct_meta_gen_emit(const struct_meta_catalog *catalog, const char *header_path, const char *out_path)
-{
-    /* 診断の出力先がほかにないため、この関数の stderr への fprintf の戻り値は明示的に破棄する。 */
-
-    char stem[STRUCT_META_GEN_EMIT_PATH_BYTES];
-    char prefix[STRUCT_META_GEN_EMIT_PATH_BYTES];
-    char header_out[STRUCT_META_GEN_EMIT_PATH_BYTES];
-    size_t count = 0U;
-
-    if ((catalog == NULL) || (header_path == NULL) || (out_path == NULL))
-    {
-        (void)fprintf(stderr, "struct-meta-gen: 生成に必要な引数がありません\n");
-        return 1;
-    }
-
-    if ((struct_meta_catalog_get_count(catalog, &count) != CPLAT_OK) || (count == 0U))
-    {
-        (void)fprintf(stderr, "struct-meta-gen: 構造体が見つかりません: %s\n", header_path);
-        return 1;
-    }
-
-    if (header_stem(header_path, stem, sizeof(stem)) != 0)
-    {
-        (void)fprintf(stderr, "struct-meta-gen: ヘッダー名から識別子を作れません: %s\n", header_path);
-        return 1;
-    }
-
-    if (stem_prefix(stem, prefix, sizeof(prefix)) != 0)
-    {
-        (void)fprintf(stderr, "struct-meta-gen: ヘッダー名から接頭辞を作れません: %s\n", header_path);
-        return 1;
-    }
-
-    if (header_out_path(out_path, header_out, sizeof(header_out)) != 0)
-    {
-        (void)fprintf(stderr, "struct-meta-gen: 出力パスは .c で終わる必要があります: %s\n", out_path);
-        return 1;
-    }
-
-    FILE *out = cplat_fopen(out_path, "w", NULL);
-    if (out == NULL)
-    {
-        (void)fprintf(stderr, "struct-meta-gen: 出力ファイルを作成できません: %s\n", out_path);
-        return 1;
-    }
-
-    /*
-     * 生成 C ソースへの書き込みの失敗はストリームに残り、この関数でファイルを閉じる直前にまとめて検査するため、
-     * この関数の out への fprintf の戻り値は明示的に破棄する。
-     */
-    (void)fprintf(out, "/* このファイルは struct-meta-gen が自動生成した。手編集しないこと。 */\n");
-    (void)fprintf(out, "#include \"../%s\"\n", header_path);
-    (void)fprintf(out, "#include \"%s\"\n\n", generated_header_include(header_out));
-    (void)fprintf(out, "#include <struct_meta/catalog/catalog.h>\n");
-    (void)fprintf(out, "#include <struct_meta/meta/index.h>\n\n");
-    (void)fprintf(out, "#include <cplat/base/result.h>\n");
-    (void)fprintf(out, "#include <cplat/hashtable/hashtable.h>\n");
-    (void)fprintf(out, "#include <cplat/runtime/abort.h>\n");
-    (void)fprintf(out, "#include <cplat/runtime/shutdown.h>\n");
-    (void)fprintf(out, "#include <cplat/sync/sync.h>\n\n");
-    (void)fprintf(out, "#include <stddef.h>\n");
-    (void)fprintf(out, "#include <limits.h>\n");
-    (void)fprintf(out, "#include <stdint.h>\n");
-    (void)fprintf(out, "#include <stdio.h>\n");
-    (void)fprintf(out, "#include <stdlib.h>\n");
-    (void)fprintf(out, "#include <time.h>\n\n");
-    (void)fprintf(out, "_Static_assert(CHAR_BIT == 8, \"struct-meta は8ビットの char を前提とします\");\n");
-    (void)fprintf(out, "_Static_assert(CHAR_MIN == INT8_MIN, \"struct-meta は符号付きの char を前提とします\");\n");
-    (void)fprintf(
-        out, "_Static_assert(CHAR_MAX == INT8_MAX, \"struct-meta は char と int8_t の同じ範囲を前提とします\");\n\n");
-
-    emitted_name *emitted = NULL;
-    int struct_ret = 0;
-
-    for (size_t index = 0; (index < count) && (struct_ret == 0); index++)
-    {
-        const struct_meta_descriptor *descriptor = NULL;
-
-        /* 引数は非 NULL で、添字は get_count で得た件数未満であり、失敗しないため、戻り値は明示的に破棄する。 */
-        (void)struct_meta_catalog_get(catalog, index, &descriptor);
-        struct_ret = emit_struct(out, descriptor, &emitted);
-    }
-
-    /* emit_struct() が calloc() したノードの所有権はリストにあり、出力が終わったらここで解放する。 */
-    while (emitted != NULL)
-    {
-        emitted_name *next = emitted->next;
-        free(emitted);
-        emitted = next;
-    }
-
-    if (struct_ret != 0)
-    {
-        /* 名前が長すぎる失敗で 1 を返す経路のため、戻り値は明示的に破棄する。 */
-        (void)fclose(out);
-        return 1;
-    }
-
-    int catalog_ret = emit_catalog_source(out, stem, prefix, catalog, count);
-
-    if (catalog_ret != 0)
-    {
-        /* 生成の失敗で 1 を返す経路のため、戻り値は明示的に破棄する。 */
-        (void)fclose(out);
-        return 1;
-    }
-
-    if (close_generated_file(out, out_path) != 0)
-    {
-        return 1;
-    }
-
-    return emit_catalog_header(header_out, stem, prefix, catalog);
 }

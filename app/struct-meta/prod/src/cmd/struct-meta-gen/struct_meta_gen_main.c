@@ -34,36 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 
-static void print_usage(const char *prog)
-{
-    /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
-    (void)fprintf(stderr, "usage: %s --header <header> --out <out.c>\n", prog);
-}
-
-/**
- *  @brief          診断を標準エラーへ書き出します。
- *
- *  行が定まらない診断では、行番号を付けません。
- */
-static void print_diagnostic(const char *header_path, const struct_meta_diagnostic *diagnostic)
-{
-    /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
-
-    /* 診断が無い失敗では、ヘッダー パスだけを出す。 */
-    if (diagnostic->message[0] == '\0')
-    {
-        (void)fprintf(stderr, "struct-meta-gen: ヘッダーを解析できません: %s\n", header_path);
-        return;
-    }
-
-    if (diagnostic->line > 0)
-    {
-        (void)fprintf(stderr, "struct-meta-gen: %d: %s\n", diagnostic->line, diagnostic->message);
-        return;
-    }
-
-    (void)fprintf(stderr, "struct-meta-gen: %s\n", diagnostic->message);
-}
+static void print_usage(const char *prog);
+static void print_diagnostic(const char *header_path, const struct_meta_diagnostic *diagnostic);
 
 int main(int argc, char **argv)
 {
@@ -112,4 +84,35 @@ int main(int argc, char **argv)
     struct_meta_catalog_destroy(catalog);
 
     return ret;
+}
+
+static void print_usage(const char *prog)
+{
+    /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+    (void)fprintf(stderr, "usage: %s --header <header> --out <out.c>\n", prog);
+}
+
+/**
+ *  @brief          診断を標準エラーへ書き出します。
+ *
+ *  行が定まらない診断では、行番号を付けません。
+ */
+static void print_diagnostic(const char *header_path, const struct_meta_diagnostic *diagnostic)
+{
+    /* 診断の出力先がほかにないため、この関数の fprintf の戻り値は明示的に破棄する。 */
+
+    /* 診断が無い失敗では、ヘッダー パスだけを出す。 */
+    if (diagnostic->message[0] == '\0')
+    {
+        (void)fprintf(stderr, "struct-meta-gen: ヘッダーを解析できません: %s\n", header_path);
+        return;
+    }
+
+    if (diagnostic->line > 0)
+    {
+        (void)fprintf(stderr, "struct-meta-gen: %d: %s\n", diagnostic->line, diagnostic->message);
+        return;
+    }
+
+    (void)fprintf(stderr, "struct-meta-gen: %s\n", diagnostic->message);
 }

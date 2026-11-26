@@ -45,8 +45,94 @@
 
 static_assert(PATCH_HEX_LINE_FACTOR >= 1U, "hex line factor must be at least 1");
 
+static int append_path(const char *path, const char *separator, const char *suffix, char **path_out);
+static int append_field_path(const char *path, const char *field_name, char **path_out);
+static int append_index_path(const char *path, size_t index, char **path_out);
+static void format_scalar_value(struct_meta_field_kind kind, const unsigned char *field_ptr, size_t element_size,
+                                size_t char_buffer_size, char *dest, size_t dest_size);
+static int parse_int(const char *text, int *value_out);
+static int find_field_by_name(const struct_meta_descriptor *descriptor, const char *name,
+                              const struct_meta_field **field_out);
+static int parse_signed_integer(const char *text, int64_t *value_out);
+static int parse_unsigned_integer(const char *text, uint64_t *value_out);
+static int parse_double(const char *text, double *value_out);
+static int patch_scalar(cplat_prompt *prompt, const struct_meta_field *field, unsigned char *field_ptr,
+                        const char *path);
+static int patch_hex_array(cplat_prompt *prompt, const struct_meta_field *field, unsigned char *field_ptr,
+                           const char *path);
+static int patch_element(cplat_prompt *prompt, const struct_meta_field *field, unsigned char *elem_ptr,
+                         const char *path);
+static int patch_array_field(cplat_prompt *prompt, const struct_meta_field *field, unsigned char *field_ptr,
+                             const char *path);
 static int patch_struct(cplat_prompt *prompt, const struct_meta_descriptor *desc, unsigned char *base,
                         const char *path);
+static int path_has_terminal_index(const char *path);
+static int patch_target(const struct_meta_field *field, unsigned char *value, const char *path, int edit_array,
+                        int edit_hex);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_patch_interactive(const struct_meta_descriptor *desc, void *instance)
+{
+    if ((desc == NULL) || (instance == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    int ret = struct_meta_descriptor_validate(desc);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    cplat_prompt *prompt = cplat_prompt_create(NULL);
+    if (prompt == NULL)
+    {
+        return CPLAT_ERR_OUT_OF_MEMORY;
+    }
+
+    ret = patch_struct(prompt, desc, (unsigned char *)instance, "");
+    cplat_prompt_dispose(prompt);
+
+    if (ret == CPLAT_ERR_EOF)
+    {
+        return CPLAT_OK;
+    }
+
+    return ret;
+}
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_patch_path_interactive(const struct_meta_descriptor *desc, void *instance, const char *path)
+{
+    if ((desc == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0'))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    const struct_meta_field *field;
+    void *value;
+    int ret = struct_meta_path_resolve(desc, instance, path, &field, &value);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    int edit_array = (field->kind != STRUCT_META_FIELD_CHAR_ARRAY) && (field->element_count > 1U) &&
+                     (path_has_terminal_index(path) == 0);
+    struct_meta_internal_byte_format byte_format;
+    ret = struct_meta_internal_field_byte_format(field, &byte_format);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    int edit_hex = (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX) && (path_has_terminal_index(path) == 0);
+    ret = patch_target(field, (unsigned char *)value, path, edit_array, edit_hex);
+
+    return ret;
+}
 
 /**
  *  @brief          現在位置へ区切り文字と末尾文字列を追加したパスを確保します。
@@ -850,70 +936,6 @@ static int patch_target(const struct_meta_field *field, unsigned char *value, co
     {
         return CPLAT_OK;
     }
-
-    return ret;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_patch_interactive(const struct_meta_descriptor *desc, void *instance)
-{
-    if ((desc == NULL) || (instance == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    int ret = struct_meta_descriptor_validate(desc);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    cplat_prompt *prompt = cplat_prompt_create(NULL);
-    if (prompt == NULL)
-    {
-        return CPLAT_ERR_OUT_OF_MEMORY;
-    }
-
-    ret = patch_struct(prompt, desc, (unsigned char *)instance, "");
-    cplat_prompt_dispose(prompt);
-
-    if (ret == CPLAT_ERR_EOF)
-    {
-        return CPLAT_OK;
-    }
-
-    return ret;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_patch_path_interactive(const struct_meta_descriptor *desc, void *instance, const char *path)
-{
-    if ((desc == NULL) || (instance == NULL) || (path == NULL) || (path[0] == '\0'))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    const struct_meta_field *field;
-    void *value;
-    int ret = struct_meta_path_resolve(desc, instance, path, &field, &value);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    int edit_array = (field->kind != STRUCT_META_FIELD_CHAR_ARRAY) && (field->element_count > 1U) &&
-                     (path_has_terminal_index(path) == 0);
-    struct_meta_internal_byte_format byte_format;
-    ret = struct_meta_internal_field_byte_format(field, &byte_format);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    int edit_hex = (byte_format == STRUCT_META_INTERNAL_BYTE_FORMAT_HEX) && (path_has_terminal_index(path) == 0);
-    ret = patch_target(field, (unsigned char *)value, path, edit_array, edit_hex);
 
     return ret;
 }

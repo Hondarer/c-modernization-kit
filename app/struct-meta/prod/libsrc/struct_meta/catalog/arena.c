@@ -33,64 +33,14 @@ struct struct_meta_internal_arena
     arena_chunk *chunks; /**< 塊の連結リストです。先頭が最も新しい塊です。 */
 };
 
+static arena_chunk *add_chunk(struct_meta_internal_arena *arena, size_t capacity);
+static size_t aligned_offset(const arena_chunk *chunk, size_t alignment);
+
 /* Doxygen コメントは、ヘッダーに記載 */
 
 struct_meta_internal_arena *struct_meta_internal_arena_create(void)
 {
     return (struct_meta_internal_arena *)calloc(1, sizeof(struct_meta_internal_arena));
-}
-
-/**
- *  @brief          指定した容量の塊を確保し、アリーナの先頭へつなぎます。
- *  @param[in,out]  arena     確保元。
- *  @param[in]      capacity  塊のバイト数。
- *  @return         つないだ塊です。確保できない場合は NULL を返します。
- */
-static arena_chunk *add_chunk(struct_meta_internal_arena *arena, size_t capacity)
-{
-    arena_chunk *chunk = (arena_chunk *)calloc(1, sizeof(*chunk));
-    if (chunk == NULL)
-    {
-        return NULL;
-    }
-
-    chunk->bytes = (unsigned char *)calloc(1, capacity);
-    if (chunk->bytes == NULL)
-    {
-        free(chunk);
-        return NULL;
-    }
-
-    chunk->capacity = capacity;
-    chunk->used = 0U;
-    chunk->next = arena->chunks;
-    arena->chunks = chunk;
-
-    return chunk;
-}
-
-/**
- *  @brief          塊の中で、アラインメントを満たす次の位置を求めます。
- *  @param[in]      chunk      対象の塊。
- *  @param[in]      alignment  必要なアラインメント。
- *  @return         塊の先頭からの位置を返します。
- */
-static size_t aligned_offset(const arena_chunk *chunk, size_t alignment)
-{
-    const uintptr_t base = (uintptr_t)chunk->bytes + (uintptr_t)chunk->used;
-    const uintptr_t misaligned = base % (uintptr_t)alignment;
-    size_t padding;
-
-    if (misaligned == 0U)
-    {
-        padding = 0U;
-    }
-    else
-    {
-        padding = (size_t)((uintptr_t)alignment - misaligned);
-    }
-
-    return chunk->used + padding;
 }
 
 void *struct_meta_internal_arena_allocate(struct_meta_internal_arena *arena, size_t size, size_t alignment)
@@ -179,4 +129,57 @@ void struct_meta_internal_arena_destroy(struct_meta_internal_arena *arena)
     }
 
     free(arena);
+}
+
+/**
+ *  @brief          指定した容量の塊を確保し、アリーナの先頭へつなぎます。
+ *  @param[in,out]  arena     確保元。
+ *  @param[in]      capacity  塊のバイト数。
+ *  @return         つないだ塊です。確保できない場合は NULL を返します。
+ */
+static arena_chunk *add_chunk(struct_meta_internal_arena *arena, size_t capacity)
+{
+    arena_chunk *chunk = (arena_chunk *)calloc(1, sizeof(*chunk));
+    if (chunk == NULL)
+    {
+        return NULL;
+    }
+
+    chunk->bytes = (unsigned char *)calloc(1, capacity);
+    if (chunk->bytes == NULL)
+    {
+        free(chunk);
+        return NULL;
+    }
+
+    chunk->capacity = capacity;
+    chunk->used = 0U;
+    chunk->next = arena->chunks;
+    arena->chunks = chunk;
+
+    return chunk;
+}
+
+/**
+ *  @brief          塊の中で、アラインメントを満たす次の位置を求めます。
+ *  @param[in]      chunk      対象の塊。
+ *  @param[in]      alignment  必要なアラインメント。
+ *  @return         塊の先頭からの位置を返します。
+ */
+static size_t aligned_offset(const arena_chunk *chunk, size_t alignment)
+{
+    const uintptr_t base = (uintptr_t)chunk->bytes + (uintptr_t)chunk->used;
+    const uintptr_t misaligned = base % (uintptr_t)alignment;
+    size_t padding;
+
+    if (misaligned == 0U)
+    {
+        padding = 0U;
+    }
+    else
+    {
+        padding = (size_t)((uintptr_t)alignment - misaligned);
+    }
+
+    return chunk->used + padding;
 }

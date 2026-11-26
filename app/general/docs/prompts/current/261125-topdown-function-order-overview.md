@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 04:36:34 JST
+最終更新日時: 2026-11-26 09:03:37 JST
 最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53UFydnbt2gLXTJC1ZC)
 稼働 OS: Linux (WSL)
 下流文書: `261125-topdown-function-order-discussion.md` (検討用 Markdown)、`261125-topdown-function-order-lightadr.md` (簡易 ADR)、`261125-topdown-function-order-design.md` (最終仕様)、`261125-topdown-function-order-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
@@ -54,8 +54,8 @@
         - ✅ 4.1.10. `cjson` の第一者管理の拡張 (`integer/cJSON_Integer.c`、`jsonc/cJSON_JSONC.c`) の書き換え、`--verify`、`app/cjson` の `make`、`.warn` の確認、`make test` (`app/cjson` はサブモジュール (`Hondarer/app_cjson`)。チェッカーのエラー 39 件を 0 件にした。`check_c_blank_lines.py` の検出は 79 件のまま。`.warn` は空。`make test` は合格)
         - ⚠️ 4.1.11. `cjson` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (未確認事項: コミット、push、CI の確認 (主エージェント))
         - ✅ 4.1.12. 違反のない app (`calc`、`doxygen-sample`、`override-sample`、`subfolder-sample`、`tutorial`、`zlib_sample.c`、`cjson_sample.c`) の `check_c_topdown.py` の確認 (`calc` 8、`doxygen-sample` 7、`override-sample` 6、`subfolder-sample` 6、`tutorial` 2、`zlib` 1、`cjson_sample.c` を含む `cjson` 3 ファイルで、エラー 0 件、警告 0 件)
-        - 🚫 4.1.13. `struct-meta` (違反 17 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (開始条件: 並行案件 `261125-consumable-backlog-items` の U1 (BL-031) の main への統合。停止理由: 開始条件の待ち。U1 は main へ統合されていない) ← **CURRENT**
-        - ⏸️ 4.1.14. `struct-meta` のコミット、push、CI の確認
+        - ✅ 4.1.13. `struct-meta` (違反 17 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (開始条件の U1 (BL-031) は main (937b6ab0) へ統合済みのため、作業ブランチ `work/261125-consumable-backlog-items` (839387f4) の作業ツリーで実施した。チェッカーのエラー 161 件を 0 件にした (対象 23 ファイル、変更 17 ファイル、警告 0 件)。17 ファイルはすべて手書きで、生成物の違反はない。`--verify` は全 17 ファイルに合格。`check_c_blank_lines.py` の検出は対象 17 ファイルで書き換え前後とも 17 件のまま。`make` 後の `.warn` は空。`make test` は合格 (18 テスト ディレクトリで Passed 129 件、Failed 0 件)。`architecture.md` に行番号の参照はなく、追従は不要)
+        - ⚠️ 4.1.14. `struct-meta` のコミット、push、CI の確認 (未確認事項: コミット、push、CI の確認 (主エージェント)) ← **CURRENT**
     - ⏸️ 4.2. 第 2 段 (`porter`、`cplat`、並行案件が変更したファイルの再実行)
         - ⏸️ 4.2.1. 開始条件の確認 (並行案件 `261125-consumable-backlog-items` と `261123-porter-remaining-backlog-phase2` の main への統合、または統合なしの終了。満たせない場合は残りを残課題一覧へ送る)
         - ⏸️ 4.2.2. `porter` (違反 42 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test`
@@ -162,6 +162,7 @@
 | 2026-11-26 04:02 | 第 1 段の作業の開始 | 主エージェントの指示により、作業 WBS 4.1.1 〜 4.1.4 (規範の節、チェッカー、並べ替えツール、単体テスト) に着手 |
 | 2026-11-26 04:19 | 第 1 段の規範とツールの作成の完了 | 作業 WBS 4.1.1 〜 4.1.4 を完了。チェッカーで対象 244 ファイル、違反 154 ファイルを数え直し、反映と検証の記録に記載。並べ替えツールの試行で判明した、複数の分岐に完全な実装を持つファイルの判定の問題を残課題一覧の BL-004 に送った。作業 WBS 4.1.5 (主エージェントによるコミット、push、CI の確認) で停止 |
 | 2026-11-26 04:36 | 第 1 段の app の書き換えの完了 | 作業 WBS 4.1.6、4.1.8、4.1.10、4.1.12 を完了。`service-sample` (5 ファイル)、`string-catalog-sample` (7 ファイル)、`cjson` の拡張 (2 ファイル、サブモジュール) を `reorder_c_topdown.py` で書き換え、`--verify` に合格し、チェッカーのエラーを 0 件にした。`check_c_blank_lines.py` の検出は増えていない。各 app の `make` で `.warn` は空、`make test` は合格。`architecture.md` の行番号を追従。4.1.5、4.1.7、4.1.9、4.1.11 は主エージェントのコミット項目のため要注意とした。4.1.13 (`struct-meta`) は開始条件の待ちのため、ブロック中として停止 |
+| 2026-11-26 09:03 | `struct-meta` の書き換えの完了 | 開始条件の U1 (BL-031) の main (937b6ab0) への統合を受け、作業 WBS 4.1.13 を完了。`struct-meta` の 17 ファイルを `reorder_c_topdown.py` で書き換え、`--verify` に合格し、チェッカーのエラー 161 件を 0 件にした。`check_c_blank_lines.py` の検出は増えていない。`make` で `.warn` は空、`make test` は合格 (Passed 129 件)。4.1.14 は主エージェントのコミット項目のため要注意とした |
 
 ## 反映と検証の記録
 

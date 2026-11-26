@@ -37,50 +37,8 @@ YY_BUFFER_STATE yy_scan_bytes(const char *bytes, int len, yyscan_t scanner);
 void yy_delete_buffer(YY_BUFFER_STATE buffer, yyscan_t scanner);
 int yyparse(yyscan_t scanner, struct_meta_internal_parse_context *context);
 
-/**
- *  @brief          構文解析の結果を受け取り、AST か診断のどちらかを確定させます。
- *  @param[in]      parse_result  yyparse の戻り値。
- *  @param[in,out]  context       構文解析の状態。
- *  @param[out]     structs_out   AST の格納先。
- *  @return         結果コードを返します。
- *
- *  失敗したときは、ここまでに作った AST を解放し、@p structs_out を触りません。
- */
 static int finish(int parse_result, struct_meta_internal_parse_context *context,
-                  struct_meta_internal_parse_struct_list **structs_out)
-{
-    if ((parse_result != 0) || (context->failed != 0))
-    {
-        struct_meta_internal_parse_struct_list_destroy(context->structs);
-        context->structs = NULL;
-
-        /*
-         * yyparse() が 2 を返すのはメモリ不足の場合に限られる。
-         * see: https://www.gnu.org/software/bison/manual/html_node/Parser-Function.html
-         */
-        if (parse_result == 2)
-        {
-            struct_meta_internal_diagnose(context->diagnostic, 0, "構文解析に必要なメモリを確保できません");
-            return CPLAT_ERR_OUT_OF_MEMORY;
-        }
-
-        struct_meta_internal_diagnose(context->diagnostic, 0, "構文解析に失敗しました");
-        return CPLAT_ERR_INVALID_PATTERN;
-    }
-
-    if ((context->structs == NULL) || (context->structs->head == NULL))
-    {
-        struct_meta_internal_parse_struct_list_destroy(context->structs);
-        context->structs = NULL;
-        struct_meta_internal_diagnose(context->diagnostic, 0, "構造体が見つかりません");
-        return CPLAT_ERR_NOT_FOUND;
-    }
-
-    *structs_out = context->structs;
-    context->structs = NULL;
-
-    return CPLAT_OK;
-}
+                  struct_meta_internal_parse_struct_list **structs_out);
 
 int struct_meta_internal_parse_header_file(const char *path, struct_meta_internal_parse_struct_list **structs_out,
                                            struct_meta_diagnostic *diagnostic_out)
@@ -172,4 +130,49 @@ int struct_meta_internal_parse_header_text(const char *text, size_t length,
     (void)yylex_destroy(scanner);
 
     return finish(parse_result, &context, structs_out);
+}
+
+/**
+ *  @brief          構文解析の結果を受け取り、AST か診断のどちらかを確定させます。
+ *  @param[in]      parse_result  yyparse の戻り値。
+ *  @param[in,out]  context       構文解析の状態。
+ *  @param[out]     structs_out   AST の格納先。
+ *  @return         結果コードを返します。
+ *
+ *  失敗したときは、ここまでに作った AST を解放し、@p structs_out を触りません。
+ */
+static int finish(int parse_result, struct_meta_internal_parse_context *context,
+                  struct_meta_internal_parse_struct_list **structs_out)
+{
+    if ((parse_result != 0) || (context->failed != 0))
+    {
+        struct_meta_internal_parse_struct_list_destroy(context->structs);
+        context->structs = NULL;
+
+        /*
+         * yyparse() が 2 を返すのはメモリ不足の場合に限られる。
+         * see: https://www.gnu.org/software/bison/manual/html_node/Parser-Function.html
+         */
+        if (parse_result == 2)
+        {
+            struct_meta_internal_diagnose(context->diagnostic, 0, "構文解析に必要なメモリを確保できません");
+            return CPLAT_ERR_OUT_OF_MEMORY;
+        }
+
+        struct_meta_internal_diagnose(context->diagnostic, 0, "構文解析に失敗しました");
+        return CPLAT_ERR_INVALID_PATTERN;
+    }
+
+    if ((context->structs == NULL) || (context->structs->head == NULL))
+    {
+        struct_meta_internal_parse_struct_list_destroy(context->structs);
+        context->structs = NULL;
+        struct_meta_internal_diagnose(context->diagnostic, 0, "構造体が見つかりません");
+        return CPLAT_ERR_NOT_FOUND;
+    }
+
+    *structs_out = context->structs;
+    context->structs = NULL;
+
+    return CPLAT_OK;
 }
