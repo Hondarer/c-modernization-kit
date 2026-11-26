@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 10:25:21 JST
+最終更新日時: 2026-11-26 11:41:49 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
@@ -81,19 +81,19 @@
         - ✅ 4.5.8. 作業ブランチへのコミットと push (主エージェントが行う。`app/cplat`、`app/porter` サブモジュールと親の参照。cplat 7bd1c11b、porter 38c4995、親 839387f4)
         - ✅ 4.5.9. Windows の検証 (`app/cplat` と呼び出し元の app のビルド、`argparserTest`、`exportTest`。成功。argparserTest 102 件、exportTest 2 件、porter のコマンドのテスト 56 件 (Windows 専用を含む)、内容のある `.warn` なし。struct-meta の 803b8a3a も 128 件成功 (Windows で除外の 1 件を除き Linux と一致))
         - ⏸️ 4.5.10. main への統合と push、CI の確認
-    - ⚠️ 4.6. U5 BL-008 (`app/porter`)
+    - 🔄 4.6. U5 BL-008 (`app/porter`)
         - ✅ 4.6.1. `potr_trace.c`、`potr_trace.h`、`porter_spec.h`
         - ✅ 4.6.2. `potrTraceTest.cc` と `potr_trace.inject.c`
-        - ⚠️ 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。未確認の事項: 作業ブランチへのコミットと push、Windows の porter のビルドと `potrTraceTest`、main への統合と push、CI の確認。いずれも主エージェントが行う)
-    - ⚠️ 4.7. U6 BL-005、BL-007 (`app/cplat`)
+        - 🔄 4.6.3. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了。作業ブランチへのコミットと push は porter 277e9f4、親 6a977b6a。Windows の検証は成功し、porter のビルドと `potrTraceTest` 8 件、内容のある `.warn` なし。残りは main への統合と push、CI の確認)
+    - 🔄 4.7. U6 BL-005、BL-007 (`app/cplat`)
         - ✅ 4.7.1. `trace_etw_session.c` と `etw.h` (あわせて `api-cheatsheet.md` の ETW の行)
         - ✅ 4.7.2. `trace_etw_sessionTest.cc` と `trace_etw_session.inject.c` / `.inject.h`
-        - ⚠️ 4.7.3. Windows の検証、BL-007 のクローズの確認、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、内容のある `.warn` なし。未確認の事項: 作業ブランチへのコミットと push、Windows の `trace_etw_sessionTest` (14 件) と `etwSessionIntegrationTest` のビルドとテスト、BL-007 のクローズの確認、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
-    - ⏸️ 4.8. U7 BL-004 (`app/cplat`)
-        - ⏸️ 4.8.1. `temp_file_internal.h` と `temp_file_windows.c` の新設
-        - ⏸️ 4.8.2. `stdio_temp.c`、`elevated_process.c`、`stdio.h`
-        - ⏸️ 4.8.3. `stdioTempTest`、`elevatedProcessTest` のテスト
-        - ⏸️ 4.8.4. Windows の検証、main への統合と push、CI の確認
+        - 🔄 4.7.3. Windows の検証、BL-007 のクローズの確認、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 5ef4bb9e、親 f6b96db8。Windows の検証は成功し、`trace_etw_sessionTest` 14 件、`etwSessionIntegrationTest` 9 件、停止のテストの 20 回の繰り返しで失敗 0 件、MSVC の警告と内容のある `.warn` なし。BL-007 のクローズの条件を満たした。残りは main への統合と push、CI の確認)
+    - ⚠️ 4.8. U7 BL-004 (`app/cplat`)
+        - ✅ 4.8.1. `temp_file_internal.h` と `temp_file_windows.c` の新設
+        - ✅ 4.8.2. `stdio_temp.c`、`elevated_process.c`、`stdio.h` (あわせて `api-cheatsheet.md` と `functional-spec/crt.md` の一時ファイルの記載)
+        - ✅ 4.8.3. `tempFileTest` (新設)、`stdioTempTest`、`elevatedProcessTest` のテスト
+        - ⚠️ 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、内容のある `.warn` なし。`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。未確認の事項: 作業ブランチへのコミットと push、Windows の `app/cplat` のビルドと `tempFileTest` (14 件)、`stdioTempTest` (8 件)、`tempDirTest` (9 件)、`elevatedProcessTest` (26 件) のテスト、main への統合と push、CI の確認。いずれも主エージェントが行う) ← **CURRENT**
     - ⏸️ 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
         - ⏸️ 4.9.1. testfw の `GetFileInformationByHandleEx` の mock (`mock_windows.h`、`mock_GetFileInformationByHandleEx.cc`)
         - ⏸️ 4.9.2. `path.h`、`path_identity.c`、`mock_cplat`、`exportTest.cc`、`api-cheatsheet.md`、`functional-spec/crt.md`
@@ -270,6 +270,8 @@ Table: 質問の一覧
 | 2026-11-26 10:14 | U5 (BL-008) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/porter` の `potr_trace.c`、`potr_trace.h`、`porter_spec.h`、`docs/api.md`、`potrTraceTest.cc`、`potr_trace.inject.c` を変更しました。`potr_trace.c` は、変更に合わせてトップ ダウンの順へ並べ替えました。`docs/api.md` は、公開 API の契約の変更に伴い `app/porter/AGENTS.md` の「公開 API と文書の同期」に従って更新しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 | 2026-11-26 10:23 | U6 (BL-005、BL-007) の実装と Linux のビルドの完了 | opus サブエージェントが `app/cplat` の `trace_etw_session.c`、`etw.h`、`docs/api-cheatsheet.md`、`trace_etw_sessionTest.cc`、`trace_etw_session.inject.c` / `.inject.h` を変更しました。testfw に `TdhGetEventInformation` の mock がなく、偽のイベントでは利用側のコールバックまで届かないため、利用側のコールバックの呼び出しと停止の印の判定をファイル内補助関数 `deliver_event()` に分け、テストは ProcessTrace の mock の中から inject 経由でこの関数を呼びます。`api-cheatsheet.md` は、公開 API の契約の変更に伴い `app/cplat/AGENTS.md` の「公開 API と文書の同期」に従って更新しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 | 2026-11-26 10:25 | U6 の待機の方式の変更 | 最終仕様の作成者 (主エージェント) が、`sync.h` の `cplat_thread_yield()` の注記を優先し、実行中のコールバックの終了の待機を `cplat_sleep_ms(1)` の繰り返しへ改めました (最終仕様の「BL-005 と BL-007」の節)。opus サブエージェントが `trace_etw_session.c` と `trace_etw_sessionTest.cc` を合わせて直しました。 |
+| 2026-11-26 11:33 | U7 (BL-004) の実装と Linux の局所テストの完了 | opus サブエージェントが `app/cplat` の `temp_file_internal.h` と `temp_file_windows.c` (新規)、`stdio_temp.c`、`elevated_process.c`、`stdio.h`、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md`、`stdioTempTest` と `elevatedProcessTest` のテストと `makepart.mk` を変更しました。`temp_file_windows.c` は、同じディレクトリの `temp_dir_windows.c` と同じく Linux では空の翻訳単位になるため、ビルドから除外していません。`stdio.h` の変更で `mock_cplat` と cplat のテストの全体が作り直しになり、`make -C app/cplat` に約 49 分かかりました。`api-cheatsheet.md` と機能仕様は、公開 API の契約の変更に伴い `app/cplat/AGENTS.md` に従って更新しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
+| 2026-11-26 11:41 | U7 のテストの構成の変更 | 最終仕様の作成者 (主エージェント) が、`how-to-test.md` の「テスト対象のソース ファイル 1 本に対してホワイト ボックス テスト 1 本」に合わせて、最終仕様の「BL-004」のテストの節を改めました。opus サブエージェントが、`temp_file_windows.c` だけを `TEST_SRCS` とする `tempFileTest` を新設して名前の規則、衝突の再試行と打ち切り、拡張パスの接頭辞のテストを移し、`stdioTempTest` は `temp_file_windows.c` を `ADD_SRCS` で取り込んで `cplat_fopen_temp()` の経路のテストだけにしました。`crt` のテストのディレクトリは makefw が `*/makefile` で列挙するため、登録の変更は不要です。 |
 
 ## 反映と検証の記録
 
@@ -304,3 +306,9 @@ U6 BL-005、BL-007 (2026-11-26、Linux):
 
 - 対応箇所: `app/cplat/prod/libsrc/cplat/trace/backends/etw/trace_etw_session.c` (セッションの構造体に `callback_closed` と `callback_active` (`cplat_atomic_i32`) を追加。利用側のコールバックの呼び出しをファイル内補助関数 `deliver_event()` に分け、実行中の数を逐次一貫の順序で増やしてから停止の印を読み、印が立っていなければ呼ぶ。`cplat_etw_session_stop()` は、停止の要求と `close_trace_handle()` の両方が失敗した場合だけ `cplat_thread_timed_join()` で `s_stop_abandon_timeout_ms` (既定 `STOP_ABANDON_TIMEOUT_MS` の 5000 [ms]) まで待ち、期限を超えたら停止の印を立て、実行中の数が 0 になるまで `cplat_sleep_ms(1)` の繰り返しで待ってから `cplat_thread_detach()` で切り離し、構造体と名前、プロパティを解放せずに戻る。それ以外は従来どおり `cplat_thread_join()`)、`prod/include/cplat/trace/etw.h` (`cplat_etw_session_stop()` の「戻らないことがあります」を、最大 5 秒の待機と資源を解放しない戻り、実行中のコールバックの終了を待つことへ変更)、`docs/api-cheatsheet.md` (ETW の行に、閉じる処理も失敗した場合の動作を追記)、`test/src/libcplatTest/trace/trace_etw_sessionTest/trace_etw_session.inject.c` / `.inject.h` (期限の設定と既定値への復帰、`deliver_event()` の呼び出し、切り離したセッションの解放の 4 関数)、`trace_etw_sessionTest.cc` (fixture の `TearDown()` で期限を既定値へ戻す。テスト 3 件の追加: 期限の後に切り離して戻ること、戻った後のイベントで利用側のコールバックを呼ばないこと、実行中のコールバックの終了を待ってから戻ること。既存の停止のテスト 2 件に `cplat_thread_timed_join()` を呼ばないことの期待を追加)。
 - 検証: `make -C app/cplat` が成功 (ソースとテストは Windows 専用のため、Linux ではテスト本体はコンパイルされない)。`app/cplat` に内容のある `.warn` なし。`check_c_topdown.py` で `trace_etw_session.c` の違反は変更前と同じ 14 件 (新しい違反なし。`deliver_event()` は前方プロトタイプ宣言を置いた。既存の違反は案件 `261125-topdown-function-order` の第 2 段で扱う)。変更した C のソースとヘッダーの `clang-format --dry-run` で指摘なし。Windows の検証は未実施。
+
+U7 BL-004 (2026-11-26、Linux):
+
+- 対応箇所: `app/cplat/prod/include_internal/cplat/crt/temp_file_internal.h` (新規。`cplat_internal_create_temp_file_w()`、`CPLAT_INTERNAL_TEMP_FILE_PREFIX_MAX`、`CPLAT_INTERNAL_TEMP_FILE_ATTEMPT_MAX`)、`prod/libsrc/cplat/crt/temp_file_windows.c` (新規。名前は接頭辞 3 文字まで、`cplat_random_bytes()` の 8 バイトの 16 進表記、`.tmp`。`CreateFileW` の `CREATE_NEW` で作成し、衝突は 16 回で打ち切り。完全なパスが `MAX_PATH` 以上の場合だけ `\\?\` または `\\?\UNC\` を前置。Linux では空の翻訳単位で、同じディレクトリの `temp_dir_windows.c` と同じくビルドから除外しない)、`stdio_temp.c` と `elevated_process.c` (`GetTempFileNameW` と固定長の配列の廃止。`elevated_process.c` は `cplat_wstr_to_utf8_alloc()` で拡張パスの接頭辞を保ったまま昇格プロセスへ渡す)、`stdio.h` (`cplat_fopen_temp()` の説明)、`docs/api-cheatsheet.md`、`docs/functional-spec/crt.md`。テストは `test/src/libcplatTest/crt/tempFileTest/` (新設。`TEST_SRCS` は `temp_file_windows.c` だけ。Windows 14 件、Linux は空のテスト 1 件)、`crt/stdioTempTest/` (`temp_file_windows.c` を `ADD_SRCS` で取り込み、`cplat_fopen_temp()` の経路だけ。Windows 8 件で、うち実ファイルのテストは長い一時ディレクトリでの作成、書き込み、削除と `path_out` の確認)、`runtime/elevatedProcessTest/` (`temp_file_windows.c` を `ADD_SRCS` で取り込み、実ディレクトリで結果ファイルの作成、長い一時ディレクトリでの `\\?\` 付きのパス、作成の失敗を確認。Windows 26 件)。
+- 検証: `make -C app/cplat` が成功 (`stdio.h` の変更で `mock_cplat` と cplat のテスト全体が作り直しになり、約 49 分)。内容のある `.warn` なし。`stdioTempTest` (14 件)、`tempFileTest` (1 件)、`elevatedProcessTest` (11 件) の make と make test が成功。`check_c_topdown.py app/cplat/prod` は変更の前後とも 1483 件で、新しい違反なし (`temp_file_windows.c` は 0 件)。`GetTempFileNameW` の呼び出しはなし (`temp_file_windows.c` の、使わない理由のコメントに 1 件)。
+- 未完了: Windows の `tempFileTest` (14 件)、`stdioTempTest` (8 件)、`tempDirTest` (9 件)、`elevatedProcessTest` (26 件)。`make doxy` は、生成物の更新を別に扱うため実施していません。

@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 10:23:13 JST
+最終更新日時: 2026-11-26 11:41:49 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -145,7 +145,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 一時ディレクトリの取得の集約が、この案件の決定の範囲です。一時ファイルの作成の方式の変更は、決定に含まれません。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、cplat が名前を作り `CreateFileW` の `CREATE_NEW` で排他的に作る内部の共通関数へ 2 箇所を置き換えると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-010)。拡張パスの接頭辞の扱いは追加の Q-022 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、cplat が名前を作り `CreateFileW` の `CREATE_NEW` で排他的に作る内部の共通関数へ 2 箇所を置き換えると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-010)。拡張パスの接頭辞の扱いは追加の Q-022 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux の局所テストを完了しました (内部の共通関数 `cplat_internal_create_temp_file_w()` を `app/cplat/prod/include_internal/cplat/crt/temp_file_internal.h` と `app/cplat/prod/libsrc/cplat/crt/temp_file_windows.c` に新設。名前は接頭辞 3 文字まで、`cplat_random_bytes()` の 8 バイトの 16 進表記、`.tmp` とし、`CreateFileW` の `CREATE_NEW` で作成して、名前の衝突は 16 回まで再試行。完全なパスが `MAX_PATH` 以上の場合だけ `\\?\` または `\\?\UNC\` を前置。`cplat_fopen_temp()` と `cplat_elevated_process_run_with_result()` から `GetTempFileNameW` と固定長の配列をなくし、`stdio.h`、`api-cheatsheet.md`、`functional-spec/crt.md` を更新。内部の共通関数の単体テスト `tempFileTest` を新設し、`stdioTempTest` (`cplat_fopen_temp()` の経路と、長い一時ディレクトリの実ファイルの作成、書き込み、削除) と `elevatedProcessTest` に Windows のテストを追加。Linux の `make -C app/cplat` が成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件、`elevatedProcessTest` 11 件が成功し、内容のある `.warn` なし)。コミット、Windows の `tempFileTest`、`stdioTempTest`、`tempDirTest`、`elevatedProcessTest` の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
