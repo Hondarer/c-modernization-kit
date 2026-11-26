@@ -33,6 +33,38 @@ typedef struct validation_context
     size_t capacity;
 } validation_context;
 
+static int push_descriptor(validation_context *context, const struct_meta_descriptor *descriptor);
+static int validate_attributes(const struct_meta_attribute *attributes, const size_t attribute_count);
+static int validate_descriptor(validation_context *context, const struct_meta_descriptor *descriptor);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_descriptor_validate(const struct_meta_descriptor *descriptor)
+{
+    if (descriptor == NULL)
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    /*
+     * 登録済みの記述子は、登録時に求めた結果を控えている。公開入口が呼ばれるたびに
+     * 記述子全体を再帰走査し直す費用を避ける。未登録なら控えが無く、以降で検査する。
+     */
+    int cached;
+
+    if (struct_meta_internal_index_find_validation(descriptor, &cached) == CPLAT_OK)
+    {
+        return cached;
+    }
+
+    validation_context context = {0};
+    int ret = validate_descriptor(&context, descriptor);
+
+    free(context.stack);
+
+    return ret;
+}
+
 /*
  * 再帰走査中の記述子スタックへ記述子を追加し、循環参照を検出する。
  * 成功時は CPLAT_OK、循環検出時は CPLAT_ERR_CORRUPT_DESCRIPTOR、メモリ不足時は CPLAT_ERR_OUT_OF_MEMORY を返す。
@@ -246,34 +278,6 @@ static int validate_descriptor(validation_context *context, const struct_meta_de
     }
 
     context->depth--;
-
-    return ret;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_descriptor_validate(const struct_meta_descriptor *descriptor)
-{
-    if (descriptor == NULL)
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    /*
-     * 登録済みの記述子は、登録時に求めた結果を控えている。公開入口が呼ばれるたびに
-     * 記述子全体を再帰走査し直す費用を避ける。未登録なら控えが無く、以降で検査する。
-     */
-    int cached;
-
-    if (struct_meta_internal_index_find_validation(descriptor, &cached) == CPLAT_OK)
-    {
-        return cached;
-    }
-
-    validation_context context = {0};
-    int ret = validate_descriptor(&context, descriptor);
-
-    free(context.stack);
 
     return ret;
 }

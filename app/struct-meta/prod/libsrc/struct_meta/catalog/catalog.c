@@ -32,138 +32,11 @@ struct struct_meta_catalog
     struct_meta_internal_arena *arena;                /**< 記述子の記憶域です。静的カタログでは NULL です。 */
 };
 
-/**
- *  @brief          構造体名のうち、終端を含む最長のバイト数を求めます。
- */
-static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, size_t count)
-{
-    size_t longest = 0U;
-
-    for (size_t i = 0; i < count; i++)
-    {
-        const size_t length = strlen(descriptors[i]->name);
-        if (length > longest)
-        {
-            longest = length;
-        }
-    }
-
-    return longest + 1U;
-}
-
-/**
- *  @brief          構造体名からインデックスを引き当てる索引を構築します。
- *  @return         @c CPLAT_OK 、@c CPLAT_ERR_OUT_OF_MEMORY 、または
- *                  @c CPLAT_ERR_DUPLICATE_KEY を返します。
- *
- *  件数もキーの最大長も、構文解析を終えた時点で確定します。自動拡張版ではなく、
- *  必要量を求めてから 1 回だけ構築します。
- *  see: app/struct-meta/docs/architecture.md
- */
-static int create_index(struct_meta_catalog *catalog, struct_meta_diagnostic *diagnostic)
-{
-    cplat_hashtable_config config = {0};
-    /* 件数の STRUCT_META_INDEX_CAPACITY_FACTOR 倍とする。正本は app/struct-meta/docs/architecture.md の「索引の容量」節である。 */
-    config.capacity = catalog->descriptor_count * STRUCT_META_INDEX_CAPACITY_FACTOR;
-    config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
-    config.key_size = max_name_bytes(catalog->descriptors, catalog->descriptor_count);
-    config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
-    config.value_size = sizeof(size_t);
-    config.value_align = sizeof(size_t);
-    /*
-     * 索引は構築後に削除しないため、lifetime は動作に影響しない。
-     * 構成検査が 2 以上を求めるため、値を指定する。
-     */
-    config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
-
-    if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &catalog->index) != CPLAT_OK)
-    {
-        struct_meta_internal_diagnose(diagnostic, 0, "索引を構築できません");
-        return CPLAT_ERR_OUT_OF_MEMORY;
-    }
-
-    for (size_t i = 0; i < catalog->descriptor_count; i++)
-    {
-        if (cplat_hashtable_add(catalog->index, catalog->descriptors[i]->name, &i,
-                                CPLAT_HASHTABLE_ADD_DELETED_OVERWRITE) != CPLAT_OK)
-        {
-            struct_meta_internal_diagnose(diagnostic, 0, "索引へ型名を登録できません: %s",
-                                          catalog->descriptors[i]->name);
-            return CPLAT_ERR_DUPLICATE_KEY;
-        }
-    }
-
-    return CPLAT_OK;
-}
-
-/**
- *  @brief          カタログの記述子を索引へ登録します。
- *
- *  登録は検索を速くするだけで、失敗しても、その呼び出しで追加した登録は取り消され、
- *  未登録の記述子として正しく動作します。そのため戻り値を持たず、失敗を握りつぶします。
- */
-static void register_descriptors(const struct_meta_catalog *catalog)
-{
-    for (size_t i = 0; i < catalog->descriptor_count; i++)
-    {
-        /*
-         * 失敗しても、その呼び出しで追加した登録は取り消され、未登録の記述子として正しく動作するため、
-         * 戻り値は明示的に破棄する。
-         */
-        (void)struct_meta_index_register(catalog->descriptors[i]);
-    }
-}
-
-/**
- *  @brief          構文解析結果からカタログを組み立てます。
- *  @return         結果コードを返します。
- */
+static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, size_t count);
+static int create_index(struct_meta_catalog *catalog, struct_meta_diagnostic *diagnostic);
+static void register_descriptors(const struct_meta_catalog *catalog);
 static int create_from_structs(struct_meta_internal_parse_struct_list *structs, struct_meta_catalog **catalog_out,
-                               struct_meta_diagnostic *diagnostic)
-{
-    struct_meta_internal_arena *arena = struct_meta_internal_arena_create();
-    if (arena == NULL)
-    {
-        struct_meta_internal_parse_struct_list_destroy(structs);
-        struct_meta_internal_diagnose(diagnostic, 0, "記述子の記憶域を確保できません");
-        return CPLAT_ERR_OUT_OF_MEMORY;
-    }
-
-    struct_meta_catalog *catalog = (struct_meta_catalog *)calloc(1, sizeof(*catalog));
-    if (catalog == NULL)
-    {
-        struct_meta_internal_arena_destroy(arena);
-        struct_meta_internal_parse_struct_list_destroy(structs);
-        struct_meta_internal_diagnose(diagnostic, 0, "カタログを確保できません");
-        return CPLAT_ERR_OUT_OF_MEMORY;
-    }
-
-    catalog->arena = arena;
-
-    int ret = struct_meta_internal_build_descriptors(structs, arena, &catalog->descriptors, &catalog->descriptor_count,
-                                                     diagnostic);
-
-    /* AST はここまでで役目を終える。記述子は arena へ複写済みである。 */
-    struct_meta_internal_parse_struct_list_destroy(structs);
-
-    if (ret != CPLAT_OK)
-    {
-        struct_meta_catalog_destroy(catalog);
-        return ret;
-    }
-
-    ret = create_index(catalog, diagnostic);
-    if (ret != CPLAT_OK)
-    {
-        struct_meta_catalog_destroy(catalog);
-        return ret;
-    }
-
-    register_descriptors(catalog);
-    *catalog_out = catalog;
-
-    return CPLAT_OK;
-}
+                               struct_meta_diagnostic *diagnostic);
 
 int struct_meta_catalog_create_from_header_file(const char *path, struct_meta_catalog **catalog_out,
                                                 struct_meta_diagnostic *diagnostic_out)
@@ -331,6 +204,139 @@ int struct_meta_catalog_find(const struct_meta_catalog *catalog, const char *nam
     }
 
     *descriptor_out = catalog->descriptors[index];
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          構造体名のうち、終端を含む最長のバイト数を求めます。
+ */
+static size_t max_name_bytes(const struct_meta_descriptor *const *descriptors, size_t count)
+{
+    size_t longest = 0U;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        const size_t length = strlen(descriptors[i]->name);
+        if (length > longest)
+        {
+            longest = length;
+        }
+    }
+
+    return longest + 1U;
+}
+
+/**
+ *  @brief          構造体名からインデックスを引き当てる索引を構築します。
+ *  @return         @c CPLAT_OK 、@c CPLAT_ERR_OUT_OF_MEMORY 、または
+ *                  @c CPLAT_ERR_DUPLICATE_KEY を返します。
+ *
+ *  件数もキーの最大長も、構文解析を終えた時点で確定します。自動拡張版ではなく、
+ *  必要量を求めてから 1 回だけ構築します。
+ *  see: app/struct-meta/docs/architecture.md
+ */
+static int create_index(struct_meta_catalog *catalog, struct_meta_diagnostic *diagnostic)
+{
+    cplat_hashtable_config config = {0};
+    /* 件数の STRUCT_META_INDEX_CAPACITY_FACTOR 倍とする。正本は app/struct-meta/docs/architecture.md の「索引の容量」節である。 */
+    config.capacity = catalog->descriptor_count * STRUCT_META_INDEX_CAPACITY_FACTOR;
+    config.key_type = CPLAT_HASHTABLE_FIELD_FIXED_STRING;
+    config.key_size = max_name_bytes(catalog->descriptors, catalog->descriptor_count);
+    config.value_type = CPLAT_HASHTABLE_FIELD_BINARY;
+    config.value_size = sizeof(size_t);
+    config.value_align = sizeof(size_t);
+    /*
+     * 索引は構築後に削除しないため、lifetime は動作に影響しない。
+     * 構成検査が 2 以上を求めるため、値を指定する。
+     */
+    config.lifetime = CPLAT_HASHTABLE_LIFETIME_INFINITE;
+
+    if (cplat_hashtable_create(&config, NULL, 0, NULL, 0, &catalog->index) != CPLAT_OK)
+    {
+        struct_meta_internal_diagnose(diagnostic, 0, "索引を構築できません");
+        return CPLAT_ERR_OUT_OF_MEMORY;
+    }
+
+    for (size_t i = 0; i < catalog->descriptor_count; i++)
+    {
+        if (cplat_hashtable_add(catalog->index, catalog->descriptors[i]->name, &i,
+                                CPLAT_HASHTABLE_ADD_DELETED_OVERWRITE) != CPLAT_OK)
+        {
+            struct_meta_internal_diagnose(diagnostic, 0, "索引へ型名を登録できません: %s",
+                                          catalog->descriptors[i]->name);
+            return CPLAT_ERR_DUPLICATE_KEY;
+        }
+    }
+
+    return CPLAT_OK;
+}
+
+/**
+ *  @brief          カタログの記述子を索引へ登録します。
+ *
+ *  登録は検索を速くするだけで、失敗しても、その呼び出しで追加した登録は取り消され、
+ *  未登録の記述子として正しく動作します。そのため戻り値を持たず、失敗を握りつぶします。
+ */
+static void register_descriptors(const struct_meta_catalog *catalog)
+{
+    for (size_t i = 0; i < catalog->descriptor_count; i++)
+    {
+        /*
+         * 失敗しても、その呼び出しで追加した登録は取り消され、未登録の記述子として正しく動作するため、
+         * 戻り値は明示的に破棄する。
+         */
+        (void)struct_meta_index_register(catalog->descriptors[i]);
+    }
+}
+
+/**
+ *  @brief          構文解析結果からカタログを組み立てます。
+ *  @return         結果コードを返します。
+ */
+static int create_from_structs(struct_meta_internal_parse_struct_list *structs, struct_meta_catalog **catalog_out,
+                               struct_meta_diagnostic *diagnostic)
+{
+    struct_meta_internal_arena *arena = struct_meta_internal_arena_create();
+    if (arena == NULL)
+    {
+        struct_meta_internal_parse_struct_list_destroy(structs);
+        struct_meta_internal_diagnose(diagnostic, 0, "記述子の記憶域を確保できません");
+        return CPLAT_ERR_OUT_OF_MEMORY;
+    }
+
+    struct_meta_catalog *catalog = (struct_meta_catalog *)calloc(1, sizeof(*catalog));
+    if (catalog == NULL)
+    {
+        struct_meta_internal_arena_destroy(arena);
+        struct_meta_internal_parse_struct_list_destroy(structs);
+        struct_meta_internal_diagnose(diagnostic, 0, "カタログを確保できません");
+        return CPLAT_ERR_OUT_OF_MEMORY;
+    }
+
+    catalog->arena = arena;
+
+    int ret = struct_meta_internal_build_descriptors(structs, arena, &catalog->descriptors, &catalog->descriptor_count,
+                                                     diagnostic);
+
+    /* AST はここまでで役目を終える。記述子は arena へ複写済みである。 */
+    struct_meta_internal_parse_struct_list_destroy(structs);
+
+    if (ret != CPLAT_OK)
+    {
+        struct_meta_catalog_destroy(catalog);
+        return ret;
+    }
+
+    ret = create_index(catalog, diagnostic);
+    if (ret != CPLAT_OK)
+    {
+        struct_meta_catalog_destroy(catalog);
+        return ret;
+    }
+
+    register_descriptors(catalog);
+    *catalog_out = catalog;
 
     return CPLAT_OK;
 }

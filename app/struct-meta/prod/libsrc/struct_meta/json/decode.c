@@ -22,7 +22,30 @@
 
 #include <string.h>
 
+static int scalar_from_json(struct_meta_field_kind kind, const cJSON *item, unsigned char *field_ptr,
+                            size_t element_size, size_t char_buffer_size);
+static int element_from_json(const struct_meta_field *field, const cJSON *item, unsigned char *elem_ptr);
+static const char *json_key(const struct_meta_field *field);
+static int field_from_json(const struct_meta_field *field, const cJSON *json, unsigned char *base);
 static int struct_from_json(const struct_meta_descriptor *desc, const cJSON *json, unsigned char *base);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_json_decode(const struct_meta_descriptor *desc, const cJSON *json, void *instance)
+{
+    if ((desc == NULL) || (json == NULL) || (instance == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    int ret = struct_meta_descriptor_validate(desc);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    return struct_from_json(desc, json, (unsigned char *)instance);
+}
 
 /**
  *  @brief          cJSON アイテム 1 個分をスカラー値としてメモリへ書き戻します。
@@ -260,22 +283,4 @@ static int struct_from_json(const struct_meta_descriptor *desc, const cJSON *jso
     }
 
     return CPLAT_OK;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_json_decode(const struct_meta_descriptor *desc, const cJSON *json, void *instance)
-{
-    if ((desc == NULL) || (json == NULL) || (instance == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    int ret = struct_meta_descriptor_validate(desc);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    return struct_from_json(desc, json, (unsigned char *)instance);
 }

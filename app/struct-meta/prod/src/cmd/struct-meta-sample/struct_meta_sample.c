@@ -121,6 +121,274 @@ typedef struct sample_target
     char catalog_name[SAMPLE_CMD_LINE_BYTES]; /**< init へ渡したカタログ名またはヘッダー パスです。 */
 } sample_target;
 
+static void print_builtin_catalog_names(FILE *stream);
+static void print_commands(void);
+static void print_init_usage(void);
+static int select_descriptor(cplat_prompt *prompt, const struct_meta_catalog *catalog,
+                             const struct_meta_descriptor **descriptor_out);
+static int match_command(const char *line, const char *cmd, const char **args_out);
+static const char *require_path(const char *args);
+static int ensure_selected(const sample_target *target);
+static void cmd_loadjson(const sample_target *target, const char *path);
+static void cmd_savejson(const sample_target *target, const char *path);
+static void flush_command_output(const char *command);
+static void cmd_dumpjson(const sample_target *target);
+static void cmd_savebin(const sample_target *target, const char *path);
+static void cmd_loadbin(const sample_target *target, const char *path);
+static void cmd_catjson(const char *path);
+static void print_hexdump(const unsigned char *buffer, size_t size, size_t offset);
+static void cmd_dumpbin(const sample_target *target);
+static void cmd_catbin(const char *path);
+static void cmd_patch(const sample_target *target, const char *path);
+static void cmd_dump(const sample_target *target);
+static int open_parsed_catalog(const char *header_path, struct_meta_catalog **catalog_out);
+static void cmd_init(cplat_prompt *prompt, sample_target *target, const char *args);
+
+int main(int argc, char **argv)
+{
+    sample_target target = {NULL, NULL, NULL, NULL, {0}};
+    int exit_code = 0;
+    cplat_prompt *prompt = NULL;
+    char line[SAMPLE_CMD_LINE_BYTES];
+    int need_help = 0;
+    int parse_result;
+
+    cplat_console_init();
+
+    if (cplat_argparser_init(argc, argv, "struct-meta の動作確認コマンドです。起動後は対話コマンドを入力します。") !=
+        CPLAT_OK)
+    {
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "引数の解析の準備に失敗しました。\n");
+        return EXIT_FAILURE;
+    }
+
+    /* 登録の失敗は戻り値ではなく直後の登録エラー件数で判定するため、戻り値は明示的に破棄する。 */
+    (void)cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
+
+    if (cplat_argparser_get_register_error_count() > 0U)
+    {
+        /* 登録失敗が確定した診断出力であり、診断出力の成否に関わらず失敗終了を返すため、戻り値は明示的に破棄する。 */
+        (void)cplat_argparser_print_register_error_messages(stderr);
+        return EXIT_FAILURE;
+    }
+
+    parse_result = cplat_argparser_parse();
+
+    /*
+     * 必須引数が省略されていても、-h と --help を優先する。
+     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
+     * cplat_argparser_print_usage() は fprintf の結果を検査しないため、
+     * 戻り値に加えて stdout のフラッシュ失敗とストリーム エラーも確認する。
+     */
+    if (need_help != 0)
+    {
+        if (cplat_argparser_print_usage(stdout) != CPLAT_OK || fflush(stdout) != 0 || ferror(stdout) != 0)
+        {
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "struct-meta-sample: 使い方を標準出力へ書き込めません\n");
+            return EXIT_FAILURE;
+        }
+        return EXIT_SUCCESS;
+    }
+
+    if (parse_result != CPLAT_OK)
+    {
+        /*
+         * 既に解析失敗が確定した診断出力であり、診断出力の成否に関わらず最初の解析失敗を維持するため、
+         * 次の 2 つの呼び出しの戻り値は明示的に破棄する。
+         */
+        (void)cplat_argparser_print_error_messages(stderr);
+        (void)cplat_argparser_print_usage(stderr);
+        return EXIT_FAILURE;
+    }
+
+    prompt = cplat_prompt_create(NULL);
+    if (prompt == NULL)
+    {
+        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+        (void)fprintf(stderr, "struct-meta-sample: プロンプトを作成できません\n");
+        return 1;
+    }
+
+    /* 対象は未選択の状態で始める。init で定めるまで、値を扱うコマンドは受け付けない。 */
+    print_commands();
+
+    /*
+     * 対話コマンドを 1 行ずつ処理する。
+     * EOF では終了コード 0、入力の失敗またはキャンセルでは終了コード 1 でループを抜ける。
+     * 引数のない exit でも抜け、そのときの終了コードは 0 のままである。
+     */
+    for (;;)
+    {
+        const char *args = NULL;
+        int ret;
+
+        if (target.descriptor == NULL)
+        {
+            ret = cplat_prompt_readline(prompt, line, sizeof(line), "struct-meta-sample> ");
+        }
+        else
+        {
+            ret = cplat_prompt_readline_fmt(prompt, line, sizeof(line), "struct-meta-sample(%s/%s)> ",
+                                            target.catalog_name, target.descriptor->name);
+        }
+
+        if ((ret == CPLAT_ERR_EOF) || (ret == CPLAT_ERR_CANCELED))
+        {
+            if (ret == CPLAT_ERR_EOF)
+            {
+                exit_code = 0;
+            }
+            else
+            {
+                exit_code = 1;
+            }
+
+            break;
+        }
+
+        if (ret != CPLAT_OK)
+        {
+            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
+            (void)fprintf(stderr, "struct-meta-sample: 入力に失敗しました (結果コード %d)\n", ret);
+            exit_code = 1;
+            break;
+        }
+
+        if (line[0] == '\0')
+        {
+            print_commands();
+            continue;
+        }
+
+        if (match_command(line, "exit", &args) != 0)
+        {
+            if (args[0] != '\0')
+            {
+                print_commands();
+            }
+            else
+            {
+                break;
+            }
+        }
+        else if (match_command(line, "help", &args) != 0)
+        {
+            print_commands();
+        }
+        else if (match_command(line, "init", &args) != 0)
+        {
+            cmd_init(prompt, &target, args);
+        }
+        else if (match_command(line, "loadjson", &args) != 0)
+        {
+            const char *path = require_path(args);
+            if ((path != NULL) && (ensure_selected(&target) != 0))
+            {
+                cmd_loadjson(&target, path);
+            }
+        }
+        else if (match_command(line, "savejson", &args) != 0)
+        {
+            const char *path = require_path(args);
+            if ((path != NULL) && (ensure_selected(&target) != 0))
+            {
+                cmd_savejson(&target, path);
+            }
+        }
+        else if (match_command(line, "catjson", &args) != 0)
+        {
+            /* ファイルを読むだけなので、対象の選択を必要としない。 */
+            const char *path = require_path(args);
+            if (path != NULL)
+            {
+                cmd_catjson(path);
+            }
+        }
+        else if (match_command(line, "dumpjson", &args) != 0)
+        {
+            if (args[0] != '\0')
+            {
+                print_commands();
+            }
+            else if (ensure_selected(&target) != 0)
+            {
+                cmd_dumpjson(&target);
+            }
+        }
+        else if (match_command(line, "loadbin", &args) != 0)
+        {
+            const char *path = require_path(args);
+            if ((path != NULL) && (ensure_selected(&target) != 0))
+            {
+                cmd_loadbin(&target, path);
+            }
+        }
+        else if (match_command(line, "savebin", &args) != 0)
+        {
+            const char *path = require_path(args);
+            if ((path != NULL) && (ensure_selected(&target) != 0))
+            {
+                cmd_savebin(&target, path);
+            }
+        }
+        else if (match_command(line, "catbin", &args) != 0)
+        {
+            /* ファイルを読むだけなので、対象の選択を必要としない。 */
+            const char *path = require_path(args);
+            if (path != NULL)
+            {
+                cmd_catbin(path);
+            }
+        }
+        else if (match_command(line, "dumpbin", &args) != 0)
+        {
+            if (args[0] != '\0')
+            {
+                print_commands();
+            }
+            else if (ensure_selected(&target) != 0)
+            {
+                cmd_dumpbin(&target);
+            }
+        }
+        else if (match_command(line, "patch", &args) != 0)
+        {
+            if (ensure_selected(&target) != 0)
+            {
+                cmd_patch(&target, args);
+            }
+        }
+        else if (match_command(line, "dump", &args) != 0)
+        {
+            if (args[0] != '\0')
+            {
+                print_commands();
+            }
+            else if (ensure_selected(&target) != 0)
+            {
+                cmd_dump(&target);
+            }
+        }
+        else
+        {
+            print_commands();
+        }
+    }
+
+    cplat_prompt_dispose(prompt);
+    free(target.instance);
+
+    /*
+     * 事後解析型で作ったカタログだけを破棄する。組み込みカタログは静的領域であり、
+     * 生成コードが cplat_shutdown_register で管理する。
+     */
+    struct_meta_catalog_destroy(target.parsed_catalog);
+
+    return exit_code;
+}
+
 /**
  *  @brief          組み込みカタログの名前を `a|b|c` の形で並べます。
  */
@@ -934,249 +1202,4 @@ static void cmd_init(cplat_prompt *prompt, sample_target *target, const char *ar
     target->instance = instance;
     memcpy(target->catalog_name, args, catalog_name_length + 1U);
     memset(target->instance, 0, descriptor->size);
-}
-
-int main(int argc, char **argv)
-{
-    sample_target target = {NULL, NULL, NULL, NULL, {0}};
-    int exit_code = 0;
-    cplat_prompt *prompt = NULL;
-    char line[SAMPLE_CMD_LINE_BYTES];
-    int need_help = 0;
-    int parse_result;
-
-    cplat_console_init();
-
-    if (cplat_argparser_init(argc, argv, "struct-meta の動作確認コマンドです。起動後は対話コマンドを入力します。") !=
-        CPLAT_OK)
-    {
-        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
-        (void)fprintf(stderr, "引数の解析の準備に失敗しました。\n");
-        return EXIT_FAILURE;
-    }
-
-    /* 登録の失敗は戻り値ではなく直後の登録エラー件数で判定するため、戻り値は明示的に破棄する。 */
-    (void)cplat_argparser_register_flag("-h", "--help", "ヘルプを表示します。", &need_help);
-
-    if (cplat_argparser_get_register_error_count() > 0U)
-    {
-        /* 登録失敗が確定した診断出力であり、診断出力の成否に関わらず失敗終了を返すため、戻り値は明示的に破棄する。 */
-        (void)cplat_argparser_print_register_error_messages(stderr);
-        return EXIT_FAILURE;
-    }
-
-    parse_result = cplat_argparser_parse();
-
-    /*
-     * 必須引数が省略されていても、-h と --help を優先する。
-     * 正本は app/cplat/prod/include/cplat/argparser/argparser.h の「使用例」節である。
-     * cplat_argparser_print_usage() は fprintf の結果を検査しないため、
-     * 戻り値に加えて stdout のフラッシュ失敗とストリーム エラーも確認する。
-     */
-    if (need_help != 0)
-    {
-        if (cplat_argparser_print_usage(stdout) != CPLAT_OK || fflush(stdout) != 0 || ferror(stdout) != 0)
-        {
-            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
-            (void)fprintf(stderr, "struct-meta-sample: 使い方を標準出力へ書き込めません\n");
-            return EXIT_FAILURE;
-        }
-        return EXIT_SUCCESS;
-    }
-
-    if (parse_result != CPLAT_OK)
-    {
-        /*
-         * 既に解析失敗が確定した診断出力であり、診断出力の成否に関わらず最初の解析失敗を維持するため、
-         * 次の 2 つの呼び出しの戻り値は明示的に破棄する。
-         */
-        (void)cplat_argparser_print_error_messages(stderr);
-        (void)cplat_argparser_print_usage(stderr);
-        return EXIT_FAILURE;
-    }
-
-    prompt = cplat_prompt_create(NULL);
-    if (prompt == NULL)
-    {
-        /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
-        (void)fprintf(stderr, "struct-meta-sample: プロンプトを作成できません\n");
-        return 1;
-    }
-
-    /* 対象は未選択の状態で始める。init で定めるまで、値を扱うコマンドは受け付けない。 */
-    print_commands();
-
-    /*
-     * 対話コマンドを 1 行ずつ処理する。
-     * EOF では終了コード 0、入力の失敗またはキャンセルでは終了コード 1 でループを抜ける。
-     * 引数のない exit でも抜け、そのときの終了コードは 0 のままである。
-     */
-    for (;;)
-    {
-        const char *args = NULL;
-        int ret;
-
-        if (target.descriptor == NULL)
-        {
-            ret = cplat_prompt_readline(prompt, line, sizeof(line), "struct-meta-sample> ");
-        }
-        else
-        {
-            ret = cplat_prompt_readline_fmt(prompt, line, sizeof(line), "struct-meta-sample(%s/%s)> ",
-                                            target.catalog_name, target.descriptor->name);
-        }
-
-        if ((ret == CPLAT_ERR_EOF) || (ret == CPLAT_ERR_CANCELED))
-        {
-            if (ret == CPLAT_ERR_EOF)
-            {
-                exit_code = 0;
-            }
-            else
-            {
-                exit_code = 1;
-            }
-
-            break;
-        }
-
-        if (ret != CPLAT_OK)
-        {
-            /* 診断の出力先がほかにないため、戻り値は明示的に破棄する。 */
-            (void)fprintf(stderr, "struct-meta-sample: 入力に失敗しました (結果コード %d)\n", ret);
-            exit_code = 1;
-            break;
-        }
-
-        if (line[0] == '\0')
-        {
-            print_commands();
-            continue;
-        }
-
-        if (match_command(line, "exit", &args) != 0)
-        {
-            if (args[0] != '\0')
-            {
-                print_commands();
-            }
-            else
-            {
-                break;
-            }
-        }
-        else if (match_command(line, "help", &args) != 0)
-        {
-            print_commands();
-        }
-        else if (match_command(line, "init", &args) != 0)
-        {
-            cmd_init(prompt, &target, args);
-        }
-        else if (match_command(line, "loadjson", &args) != 0)
-        {
-            const char *path = require_path(args);
-            if ((path != NULL) && (ensure_selected(&target) != 0))
-            {
-                cmd_loadjson(&target, path);
-            }
-        }
-        else if (match_command(line, "savejson", &args) != 0)
-        {
-            const char *path = require_path(args);
-            if ((path != NULL) && (ensure_selected(&target) != 0))
-            {
-                cmd_savejson(&target, path);
-            }
-        }
-        else if (match_command(line, "catjson", &args) != 0)
-        {
-            /* ファイルを読むだけなので、対象の選択を必要としない。 */
-            const char *path = require_path(args);
-            if (path != NULL)
-            {
-                cmd_catjson(path);
-            }
-        }
-        else if (match_command(line, "dumpjson", &args) != 0)
-        {
-            if (args[0] != '\0')
-            {
-                print_commands();
-            }
-            else if (ensure_selected(&target) != 0)
-            {
-                cmd_dumpjson(&target);
-            }
-        }
-        else if (match_command(line, "loadbin", &args) != 0)
-        {
-            const char *path = require_path(args);
-            if ((path != NULL) && (ensure_selected(&target) != 0))
-            {
-                cmd_loadbin(&target, path);
-            }
-        }
-        else if (match_command(line, "savebin", &args) != 0)
-        {
-            const char *path = require_path(args);
-            if ((path != NULL) && (ensure_selected(&target) != 0))
-            {
-                cmd_savebin(&target, path);
-            }
-        }
-        else if (match_command(line, "catbin", &args) != 0)
-        {
-            /* ファイルを読むだけなので、対象の選択を必要としない。 */
-            const char *path = require_path(args);
-            if (path != NULL)
-            {
-                cmd_catbin(path);
-            }
-        }
-        else if (match_command(line, "dumpbin", &args) != 0)
-        {
-            if (args[0] != '\0')
-            {
-                print_commands();
-            }
-            else if (ensure_selected(&target) != 0)
-            {
-                cmd_dumpbin(&target);
-            }
-        }
-        else if (match_command(line, "patch", &args) != 0)
-        {
-            if (ensure_selected(&target) != 0)
-            {
-                cmd_patch(&target, args);
-            }
-        }
-        else if (match_command(line, "dump", &args) != 0)
-        {
-            if (args[0] != '\0')
-            {
-                print_commands();
-            }
-            else if (ensure_selected(&target) != 0)
-            {
-                cmd_dump(&target);
-            }
-        }
-        else
-        {
-            print_commands();
-        }
-    }
-
-    cplat_prompt_dispose(prompt);
-    free(target.instance);
-
-    /*
-     * 事後解析型で作ったカタログだけを破棄する。組み込みカタログは静的領域であり、
-     * 生成コードが cplat_shutdown_register で管理する。
-     */
-    struct_meta_catalog_destroy(target.parsed_catalog);
-
-    return exit_code;
 }

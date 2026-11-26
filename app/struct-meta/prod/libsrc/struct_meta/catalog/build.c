@@ -50,7 +50,85 @@ typedef struct build_context
     struct_meta_diagnostic *diagnostic; /**< 診断の書き込み先です。 */
 } build_context;
 
+static size_t count_attributes(const struct_meta_internal_parse_attribute *attributes);
+static size_t count_fields(const struct_meta_internal_parse_field *fields);
+static const struct_meta_internal_parse_attribute *
+find_attribute(const struct_meta_internal_parse_attribute *attributes, const char *key);
+static int is_explicit_byte_type(const char *type_name);
+static int field_is_byte_array(const struct_meta_internal_parse_field *field);
+static int validate_meta_attributes(const struct_meta_internal_parse_field *field, struct_meta_diagnostic *diagnostic);
+static int copy_attributes(build_context *context, const struct_meta_internal_parse_attribute *source,
+                           const struct_meta_attribute **attributes_out, size_t *count_out);
+static build_entry *find_entry(build_context *context, const char *name);
+static int build_field(build_context *context, const struct_meta_internal_parse_field *source,
+                       struct_meta_field *target, struct_meta_internal_layout_builder *layout);
 static int build_one(build_context *context, build_entry *entry);
+
+int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_struct_list *structs,
+                                           struct_meta_internal_arena *arena,
+                                           const struct_meta_descriptor *const **descriptors_out, size_t *count_out,
+                                           struct_meta_diagnostic *diagnostic)
+{
+    if ((structs == NULL) || (arena == NULL) || (descriptors_out == NULL) || (count_out == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    size_t count = 0U;
+
+    for (const struct_meta_internal_parse_struct *item = structs->head; item != NULL; item = item->next)
+    {
+        count++;
+    }
+
+    if (count == 0U)
+    {
+        return CPLAT_ERR_NOT_FOUND;
+    }
+
+    build_entry *entries =
+        (build_entry *)struct_meta_internal_arena_allocate(arena, count * sizeof(*entries), sizeof(void *));
+    struct_meta_descriptor *descriptors = (struct_meta_descriptor *)struct_meta_internal_arena_allocate(
+        arena, count * sizeof(*descriptors), sizeof(void *));
+    const struct_meta_descriptor **table = (const struct_meta_descriptor **)struct_meta_internal_arena_allocate(
+        arena, count * sizeof(*table), sizeof(void *));
+    if ((entries == NULL) || (descriptors == NULL) || (table == NULL))
+    {
+        return CPLAT_ERR_OUT_OF_MEMORY;
+    }
+
+    size_t index = 0U;
+
+    for (const struct_meta_internal_parse_struct *item = structs->head; item != NULL; item = item->next)
+    {
+        entries[index].source = item;
+        entries[index].descriptor = &descriptors[index];
+        entries[index].state = BUILD_STATE_PENDING;
+        index++;
+    }
+
+    build_context context = {entries, count, arena, diagnostic};
+
+    for (size_t i = 0; i < count; i++)
+    {
+        const int ret = build_one(&context, &entries[i]);
+        if (ret != CPLAT_OK)
+        {
+            return ret;
+        }
+
+        table[i] = entries[i].descriptor;
+    }
+
+    /*
+     * 配列の中身はこの先変えない。C では多段ポインターへの const 付与が暗黙に
+     * 行われないため、カタログが保持する型へ明示的に変換する。
+     */
+    *descriptors_out = (const struct_meta_descriptor *const *)table;
+    *count_out = count;
+
+    return CPLAT_OK;
+}
 
 /**
  *  @brief          属性の連結リストの要素数を返します。
@@ -480,72 +558,6 @@ static int build_one(build_context *context, build_entry *entry)
     }
 
     entry->state = BUILD_STATE_DONE;
-
-    return CPLAT_OK;
-}
-
-int struct_meta_internal_build_descriptors(const struct_meta_internal_parse_struct_list *structs,
-                                           struct_meta_internal_arena *arena,
-                                           const struct_meta_descriptor *const **descriptors_out, size_t *count_out,
-                                           struct_meta_diagnostic *diagnostic)
-{
-    if ((structs == NULL) || (arena == NULL) || (descriptors_out == NULL) || (count_out == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    size_t count = 0U;
-
-    for (const struct_meta_internal_parse_struct *item = structs->head; item != NULL; item = item->next)
-    {
-        count++;
-    }
-
-    if (count == 0U)
-    {
-        return CPLAT_ERR_NOT_FOUND;
-    }
-
-    build_entry *entries =
-        (build_entry *)struct_meta_internal_arena_allocate(arena, count * sizeof(*entries), sizeof(void *));
-    struct_meta_descriptor *descriptors = (struct_meta_descriptor *)struct_meta_internal_arena_allocate(
-        arena, count * sizeof(*descriptors), sizeof(void *));
-    const struct_meta_descriptor **table = (const struct_meta_descriptor **)struct_meta_internal_arena_allocate(
-        arena, count * sizeof(*table), sizeof(void *));
-    if ((entries == NULL) || (descriptors == NULL) || (table == NULL))
-    {
-        return CPLAT_ERR_OUT_OF_MEMORY;
-    }
-
-    size_t index = 0U;
-
-    for (const struct_meta_internal_parse_struct *item = structs->head; item != NULL; item = item->next)
-    {
-        entries[index].source = item;
-        entries[index].descriptor = &descriptors[index];
-        entries[index].state = BUILD_STATE_PENDING;
-        index++;
-    }
-
-    build_context context = {entries, count, arena, diagnostic};
-
-    for (size_t i = 0; i < count; i++)
-    {
-        const int ret = build_one(&context, &entries[i]);
-        if (ret != CPLAT_OK)
-        {
-            return ret;
-        }
-
-        table[i] = entries[i].descriptor;
-    }
-
-    /*
-     * 配列の中身はこの先変えない。C では多段ポインターへの const 付与が暗黙に
-     * 行われないため、カタログが保持する型へ明示的に変換する。
-     */
-    *descriptors_out = (const struct_meta_descriptor *const *)table;
-    *count_out = count;
 
     return CPLAT_OK;
 }

@@ -18,22 +18,9 @@
 /** 1 [byte] の 16 進表記 (2 文字) と、区切りの空白または終端 NUL (1 文字) を合わせた文字数です。 */
 #define BYTES_HEX_CHARS_PER_BYTE 3U
 
-/*
- * フィールドの属性一覧から指定されたキーを持つ属性を検索する。
- * 一致する属性へのポインターを返す。見つからない場合は NULL を返す。
- */
-static const struct_meta_attribute *find_attribute(const struct_meta_field *field, const char *key)
-{
-    for (size_t i = 0; i < field->attribute_count; i++)
-    {
-        if (strcmp(field->attributes[i].key, key) == 0)
-        {
-            return &field->attributes[i];
-        }
-    }
-
-    return NULL;
-}
+static const struct_meta_attribute *find_attribute(const struct_meta_field *field, const char *key);
+static int hex_value(const char ch, unsigned char *value_out);
+static int validate_hex_text(const char *text, const size_t byte_count);
 
 int struct_meta_internal_field_is_byte_array(const struct_meta_field *field)
 {
@@ -147,6 +134,60 @@ int struct_meta_internal_bytes_to_hex(const unsigned char *bytes, const size_t b
     return CPLAT_OK;
 }
 
+int struct_meta_internal_bytes_from_hex(unsigned char *bytes, const size_t byte_count, const char *text)
+{
+    if ((bytes == NULL) || (text == NULL) || (byte_count == 0U))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    int ret = validate_hex_text(text, byte_count);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    const char *cursor = text;
+
+    for (size_t i = 0; i < byte_count; i++)
+    {
+        unsigned char high = 0U;
+        unsigned char low = 0U;
+
+        /*
+         * 事前の validate_hex_text() で妥当性を検証済みであり、失敗しないため、
+         * 次の 2 つの hex_value() の戻り値は明示的に破棄する。
+         */
+        (void)hex_value(cursor[0], &high);
+        (void)hex_value(cursor[1], &low);
+        bytes[i] = (unsigned char)((high << 4U) | low);
+        cursor += 2;
+        while (*cursor == ' ')
+        {
+            cursor++;
+        }
+    }
+
+    return CPLAT_OK;
+}
+
+/*
+ * フィールドの属性一覧から指定されたキーを持つ属性を検索する。
+ * 一致する属性へのポインターを返す。見つからない場合は NULL を返す。
+ */
+static const struct_meta_attribute *find_attribute(const struct_meta_field *field, const char *key)
+{
+    for (size_t i = 0; i < field->attribute_count; i++)
+    {
+        if (strcmp(field->attributes[i].key, key) == 0)
+        {
+            return &field->attributes[i];
+        }
+    }
+
+    return NULL;
+}
+
 /*
  * 16 進文字を 4 ビットの数値へ変換する。
  * 成功時は CPLAT_OK、16 進文字でない場合は CPLAT_ERR_INVALID_ENCODING を返す。
@@ -216,41 +257,4 @@ static int validate_hex_text(const char *text, const size_t byte_count)
     {
         return CPLAT_ERR_INVALID_ENCODING;
     }
-}
-
-int struct_meta_internal_bytes_from_hex(unsigned char *bytes, const size_t byte_count, const char *text)
-{
-    if ((bytes == NULL) || (text == NULL) || (byte_count == 0U))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    int ret = validate_hex_text(text, byte_count);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    const char *cursor = text;
-
-    for (size_t i = 0; i < byte_count; i++)
-    {
-        unsigned char high = 0U;
-        unsigned char low = 0U;
-
-        /*
-         * 事前の validate_hex_text() で妥当性を検証済みであり、失敗しないため、
-         * 次の 2 つの hex_value() の戻り値は明示的に破棄する。
-         */
-        (void)hex_value(cursor[0], &high);
-        (void)hex_value(cursor[1], &low);
-        bytes[i] = (unsigned char)((high << 4U) | low);
-        cursor += 2;
-        while (*cursor == ' ')
-        {
-            cursor++;
-        }
-    }
-
-    return CPLAT_OK;
 }

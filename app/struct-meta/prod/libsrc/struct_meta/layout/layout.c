@@ -15,6 +15,8 @@
 #include <stdint.h>
 #include <string.h>
 
+static int is_power_of_two(size_t value);
+
 /**
  *  対応する型の表です。
  *
@@ -66,25 +68,6 @@ const struct_meta_internal_layout_type *struct_meta_internal_layout_find_type(co
     }
 
     return NULL;
-}
-
-/**
- *  @brief          2 の冪かどうかを返します。
- *  @param[in]      value  判定する値。
- *  @return         2 の冪なら 0 以外、そうでなければ 0 を返します。
- *
- *  0 は 2 の冪ではないため 0 を返します。
- */
-static int is_power_of_two(size_t value)
-{
-    if ((value != 0U) && ((value & (value - 1U)) == 0U))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
 }
 
 void struct_meta_internal_layout_begin(struct_meta_internal_layout_builder *builder)
@@ -190,4 +173,23 @@ int struct_meta_internal_layout_end(const struct_meta_internal_layout_builder *b
     *alignment_out = builder->alignment;
 
     return CPLAT_OK;
+}
+
+/**
+ *  @brief          2 の冪かどうかを返します。
+ *  @param[in]      value  判定する値。
+ *  @return         2 の冪なら 0 以外、そうでなければ 0 を返します。
+ *
+ *  0 は 2 の冪ではないため 0 を返します。
+ */
+static int is_power_of_two(size_t value)
+{
+    if ((value != 0U) && ((value & (value - 1U)) == 0U))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }

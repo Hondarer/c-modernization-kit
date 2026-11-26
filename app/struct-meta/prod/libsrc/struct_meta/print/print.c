@@ -28,6 +28,43 @@
 /** 階層ごとの字下げの空白の数です。print_indent() の引数が int のため、U を付けません。 */
 #define STRUCT_META_PRINT_INDENT 2
 
+static void print_indent(FILE *out, int indent);
+static int print_label(FILE *out, const int indent, const char *name, const int has_index, const size_t index);
+static int format_scalar_value(struct_meta_field_kind kind, const unsigned char *field_ptr, size_t element_size,
+                               char *dest, size_t dest_size);
+static int print_element(const struct_meta_field *field, const unsigned char *elem_ptr, FILE *out, int indent,
+                         int has_index, size_t index);
+static int print_field(const struct_meta_field *field, const unsigned char *base, FILE *out, int indent);
+static int print_struct(const struct_meta_descriptor *desc, const unsigned char *base, FILE *out, int indent);
+
+/* Doxygen コメントは、ヘッダーに記載 */
+
+int struct_meta_print_write(const struct_meta_descriptor *desc, const void *instance, FILE *out)
+{
+    if ((desc == NULL) || (instance == NULL) || (out == NULL))
+    {
+        return CPLAT_ERR_INVALID_ARGUMENT;
+    }
+
+    /*
+     * 構造体の内容へアクセスする前に、記述子全体を検査する。
+     * 正本は app/struct-meta/docs/architecture.md の「記述子と属性」節である。
+     */
+    int ret = struct_meta_descriptor_validate(desc);
+    if (ret != CPLAT_OK)
+    {
+        return ret;
+    }
+
+    /* 構造体名を見出しにし、フィールドは空白 2 個で字下げして表示する。 */
+    if ((print_label(out, 0, desc->name, 0, 0U) != CPLAT_OK) || (fprintf(out, ":\n") < 0) || (ferror(out) != 0))
+    {
+        return CPLAT_ERR_UNKNOWN;
+    }
+
+    return print_struct(desc, (const unsigned char *)instance, out, STRUCT_META_PRINT_INDENT);
+}
+
 /*
  * 字下げ分の空白を出力する。
  * 個々の fputc() の失敗はストリームのエラー指示に残り、呼び出し元の print_label() が
@@ -139,8 +176,6 @@ static int format_scalar_value(struct_meta_field_kind kind, const unsigned char 
         return CPLAT_ERR_INVALID_ARGUMENT;
     }
 }
-
-static int print_struct(const struct_meta_descriptor *desc, const unsigned char *base, FILE *out, int indent);
 
 /*
  * 1 要素をフィールド名 (配列要素時はインデックス付き) で表示する。
@@ -299,32 +334,4 @@ static int print_struct(const struct_meta_descriptor *desc, const unsigned char 
     }
 
     return CPLAT_OK;
-}
-
-/* Doxygen コメントは、ヘッダーに記載 */
-
-int struct_meta_print_write(const struct_meta_descriptor *desc, const void *instance, FILE *out)
-{
-    if ((desc == NULL) || (instance == NULL) || (out == NULL))
-    {
-        return CPLAT_ERR_INVALID_ARGUMENT;
-    }
-
-    /*
-     * 構造体の内容へアクセスする前に、記述子全体を検査する。
-     * 正本は app/struct-meta/docs/architecture.md の「記述子と属性」節である。
-     */
-    int ret = struct_meta_descriptor_validate(desc);
-    if (ret != CPLAT_OK)
-    {
-        return ret;
-    }
-
-    /* 構造体名を見出しにし、フィールドは空白 2 個で字下げして表示する。 */
-    if ((print_label(out, 0, desc->name, 0, 0U) != CPLAT_OK) || (fprintf(out, ":\n") < 0) || (ferror(out) != 0))
-    {
-        return CPLAT_ERR_UNKNOWN;
-    }
-
-    return print_struct(desc, (const unsigned char *)instance, out, STRUCT_META_PRINT_INDENT);
 }
