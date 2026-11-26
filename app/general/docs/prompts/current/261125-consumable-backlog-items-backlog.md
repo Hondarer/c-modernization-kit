@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 14:23:00 JST
+最終更新日時: 2026-11-26 19:48:00 JST
 最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-design.md` (最終仕様)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -17,9 +17,14 @@
 
 案件名: `consumable-backlog-items`  
 作成日: `2026-11-26`  
-整理状態: 随時追記中
+整理状態: 整理済み
 
-この文書は、見送る決定がなされた問題点や、作業中に潜在的な問題や別問題として判明したものの、今回は対策しなかった最終的な残渣 (残課題) を記録したものです。作業期間中は気付いた時点で随時追記し、設計および実装・検証作業がすべて完了した後に、再構築して整理します。当該作業中に解消した問題や、仕様・制約として容認した問題点は整理時に除外します。後続の継続作業でこの文書の残課題を対策する場合は、このファイルや記載を削除せず、継続作業の開始時から進行に応じて各項目の状態および経緯と対処を随時更新します。また、フェーズ分けした対策で未対処の項目がある場合は、最新作業の backlog にも転記します。各項目はチケット管理システム (GitHub Issues、Jira など) への起票にそのまま利用できる詳細度・具体性で記載します。
+この文書は、見送る決定がなされた問題点や、作業中に潜在的な問題や別問題として判明したものの、今回は対策しなかった最終的な残渣 (残課題) を記録したものです。作業期間中は気付いた時点で随時追記し、設計および実装・検証作業がすべて完了した後に、再構築して整理しています。当該作業中に解消した問題や、仕様・制約として容認した問題点は整理時に除外しています。後続の継続作業でこの文書の残課題を対策する場合は、このファイルや記載を削除せず、継続作業の開始時から進行に応じて各項目の状態および経緯と対処を随時更新します。また、フェーズ分けした対策で未対処の項目がある場合は、最新作業の backlog にも転記します。各項目はチケット管理システム (GitHub Issues、Jira など) への起票にそのまま利用できる詳細度・具体性で記載されています。
+
+対策元 `261123-remaining-backlog-items-backlog.md` の対象 14 件は、すべて対策済みです。フェーズ分けによる未対処の項目はなく、この文書への転記はありません。
+
+> [!NOTE]
+> この案件の U3 (BL-012) の作業中に摘出した「cJSON 本体にパッチ 0003 が当たっていることを、ビルド時に検査していない」は、ユーザーの指示により `app/cjson/docs/prompts/current/261126-cjson-patch-check-backlog.md` の BL-001 に記録しています。この文書には重複して記載しません。
 
 ## 残課題一覧
 
@@ -36,12 +41,13 @@
 | BL-009 | nonblockingStopIntegrationTest と porterCancelFailureTest に、確認ごとのエビデンスのタグがない | 作業中摘出 | 低 | 未着手 |
 | BL-010 | cplat の DLL に依存する実行ファイルを、MAX_PATH を超えるディレクトリから \\?\ なしで起動できない | 作業中摘出 | 中 | 未着手 |
 | BL-011 | mt -outputresource の単独指定が、既存のマニフェストの activeCodePage=UTF-8 を消す | 作業中摘出 | 低 | 未着手 |
+| BL-012 | testfw の allocateTestPort() が、Windows で新しいテストの実行ファイルごとに Windows Defender Firewall の確認画面を出させる | 作業中摘出 | 低 | 未着手 |
 
 ## BL-001 cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない
 
 ### 概要と問題点
 
-- **現状の事象**: `app/cplat/prod/libsrc/cplat/crt/stdio.c` の `cplat_remove()` (371 行) は、Windows の分岐 (386 行) で `wchar_t wpath[PLATFORM_PATH_MAX]` (`MAX_PATH` の 260 要素) の固定長の配列へ UTF-8 のパスを変換し、`_wremove()` へ渡します。`MAX_PATH` 文字以上のパスは配列に収まらず、変換が失敗して `-1` を返します。`cplat_fopen_temp()` (BL-004 の対策、U7) は、一時ディレクトリが長い場合に、拡張パスの接頭辞を付けた `//?/C:/...` 形式の `path_out` を返すようになりました。しかし、そのパスを `cplat_remove()` へ渡しても削除できません。この制限は、`app/cplat/prod/include/cplat/crt/stdio.h` (527 行付近の `cplat_fopen_temp()` の説明) と `app/cplat/docs/api-cheatsheet.md` (140 行) に明記済みで、利用者には `DeleteFileW()` などでの削除を案内しています。同じ `wpath[PLATFORM_PATH_MAX]` の配列は、同じファイルの 67 行と 139 行にもあります (調べた範囲で、削除以外の関数の配列の大きさは未確認)。
+- **現状の事象**: `app/cplat/prod/libsrc/cplat/crt/stdio.c` の `cplat_remove()` (371 行) は、Windows の分岐 (386 行) で `wchar_t wpath[PLATFORM_PATH_MAX]` (`MAX_PATH` の 260 要素) の固定長の配列へ UTF-8 のパスを変換し、`_wremove()` へ渡します。`MAX_PATH` 文字以上のパスは配列に収まらず、変換が失敗して `-1` を返します。`cplat_fopen_temp()` (BL-004 の対策、U7) は、一時ディレクトリが長い場合に、拡張パスの接頭辞を付けた `//?/C:/...` 形式の `path_out` を返すようになりました。しかし、そのパスを `cplat_remove()` へ渡しても削除できません。この制限は、`app/cplat/prod/include/cplat/crt/stdio.h` (527 行付近の `cplat_fopen_temp()` の説明) と `app/cplat/docs/api-cheatsheet.md` (140 行) に明記済みで、利用者には `DeleteFileW()` などでの削除を案内しています。同じ `PLATFORM_PATH_MAX` 要素の固定長の配列は、同じファイルの `cplat_fopen()` (67 行)、`cplat_freopen()` (139 行)、`cplat_rename()` (443、444 行) にもあり、これらも `MAX_PATH` 文字以上のパスを扱えません。
 - **本来あるべき姿**: `cplat_fopen_temp()` が返した `path_out` を、そのまま `cplat_remove()` へ渡して削除できる状態です。利用者に、Windows 固有の削除の迂回策を求めない状態です。
 
 ### 経緯と見送り理由
@@ -52,12 +58,12 @@
 
 ### 影響範囲とリスク
 
-- **影響対象**: `cplat_remove()` (`app/cplat/prod/libsrc/cplat/crt/stdio.c`)、`cplat_remove_fmt()` / `cplat_vremove_fmt()` (`cplat_remove()` を呼ぶ場合)、`cplat_fopen_temp()` が返す長いパスの一時ファイルを削除する利用側 (`app/cplat/prod/libsrc/cplat/mmap/mmap_windows.c` の `cplat_remove(path, NULL)` の呼び出しなど)。
+- **影響対象**: `cplat_remove()`、`cplat_fopen()`、`cplat_freopen()`、`cplat_rename()` (`app/cplat/prod/libsrc/cplat/crt/stdio.c`)、`cplat_remove_fmt()` / `cplat_vremove_fmt()` (`cplat_remove()` を呼ぶ場合)、`cplat_fopen_temp()` が返す長いパスの一時ファイルを削除する利用側 (`app/cplat/prod/libsrc/cplat/mmap/mmap_windows.c` の 77、86 行の `(void)cplat_remove(path, NULL)` など)。
 - **放置した場合のリスク**: 長い一時ディレクトリの環境で、一時ファイルが削除されずに残ります。利用側が `cplat_remove()` の戻り値を無視すると (例: `mmap_windows.c`)、残骸に気付けません。優先度を中とした理由は、利用者に回避策を求める公開 API の制限であり、cplat の公開 API として、パスの長さにより移植性が異なる状態が残るためです。発生するのは長いパスを明示した環境に限られます。
 
 ### 推奨される対応策
 
-- **恒久対応案**: `cplat_remove()` の Windows の分岐で、変換先を固定長の配列ではなく、必要な長さを動的に確保した配列 (または `cplat_utf8_to_wpath()` の長いパス対応版) にします。`MAX_PATH` 以上のパスや、`//?/` で始まるパスは、区切り文字を `'\\'` へ戻して拡張パスの接頭辞付きのまま `_wremove()` か `DeleteFileW()` へ渡します。同じ配列を持つ 67 行と 139 行の関数も、同じ変更で見直します。変更後は、`stdio.h` と `api-cheatsheet.md` の制限の記載を削除し、`stdioTempTest` の長い一時ディレクトリのテストを `cplat_remove()` による削除へ戻します。
+- **恒久対応案**: `cplat_remove()` の Windows の分岐で、変換先を固定長の配列ではなく、必要な長さを動的に確保した配列 (または `cplat_utf8_to_wpath()` の長いパス対応版) にします。`MAX_PATH` 以上のパスや、`//?/` で始まるパスは、区切り文字を `'\\'` へ戻して拡張パスの接頭辞付きのまま `_wremove()` か `DeleteFileW()` へ渡します。同じ配列を持つ `cplat_fopen()`、`cplat_freopen()`、`cplat_rename()` も、同じ変更で見直します。変更後は、`stdio.h` と `api-cheatsheet.md` の制限の記載を削除し、`stdioTempTest` の長い一時ディレクトリのテストを `cplat_remove()` による削除へ戻します。
 - **参考情報**: `app/cplat/prod/libsrc/cplat/crt/stdio_temp.c`、`app/cplat/prod/include_internal/cplat/crt/temp_file_internal.h`、[Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)、親の残課題 `261123-remaining-backlog-items-backlog.md` の BL-004。
 
 ## BL-002 昇格プロセス側の結果のファイルのパスが 780 バイトを超えると受け取れない
@@ -289,3 +295,26 @@
 
 - **恒久対応案**: `longPathAware` を導入する場合は、リンカーの `/MANIFESTINPUT` で追加するか、`mt -manifest orig.manifest longpath.manifest` で結合する手順とし、`mt.exe` を長いパスのファイルに対して使わないことを makefw の文書に記載します。導入後は、組み込み後のマニフェストに `activeCodePage` と `longPathAware` の両方が残ることを確かめます。
 - **参考情報**: 対策元 `261123-remaining-backlog-items-backlog.md` の BL-009、[Application manifests](https://learn.microsoft.com/en-us/windows/win32/sbscs/application-manifests)。
+
+## BL-012 testfw の allocateTestPort() が、Windows で新しいテストの実行ファイルごとに Windows Defender Firewall の確認画面を出させる
+
+### 概要と問題点
+
+- **現状の事象**: `framework/testfw/libsrc/test_com/testPort_windows.cc` のポートの使用の確認 (`probe_port()` が呼ぶ `try_bind()`、228 行から) は、`0.0.0.0` (`INADDR_ANY`、242 行) へ bind します。このため、新しく作ったテストの実行ファイルが最初にポートの払い出しを行うと、Windows の受信の許可の確認画面 (Windows Defender Firewall) が出ます。2026-11-26 の U10 の Windows の検証 (依頼 15) で、`testPortTest.exe` の受信の規則が新しく増えていました。ユーザーが許可したため、検証の結果には影響していません。
+- **本来あるべき姿**: テストの実行ファイルを新しく作っても、ポートの使用の確認だけでは確認画面が出ない状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (2026-11-26、Windows 側のセッションの報告)。
+- **今回の見送り理由**: 検証の結果に影響せず、初回の実行だけの手間です。確認の方式の変更は、使用中の番号の検出の精度に影響するため、別途の調査が必要です。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `allocateTestPort()` を使う Windows 側のテストの実行ファイル全般 (`testPortTest.exe` や porter の結合テストなど)。
+- **放置した場合のリスク**: 対話の環境で、テストの初回の実行のたびに確認画面が出ます。CI や無人の実行では、画面が出ても bind は成功し止まらない見込みですが、確かめていません。優先度を低とした理由は、結果に影響せず、初回だけの手間のためです。
+
+### 推奨される対応策
+
+- **恒久対応案**: 確認を `127.0.0.1` への bind にすると、確認画面は避けられます。ただし Windows では、ほかのプロセスが `0.0.0.0` へ bind している番号でも、`SO_EXCLUSIVEADDRUSE` がなければ特定のアドレスへの bind が成功します。このため、使用中の番号を見逃すおそれがあります。対象のテスト (porter の結合テストなど) 自体も、`0.0.0.0` で待ち受けるなら確認画面が出ます。これらを調べたうえで、確認の方式 (loopback と `SO_EXCLUSIVEADDRUSE` の組み合わせなど) と、テストの待ち受けのアドレスを決めます。
+- **参考情報**: BL-001 (案件の U10、対策元 `261123-remaining-backlog-items-backlog.md` の BL-001)。

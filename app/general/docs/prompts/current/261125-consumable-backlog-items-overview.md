@@ -1,11 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-26 14:55:22 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 21:17:17 JST
+最終更新エージェント: agy (gemini-4-hydrogen-medium、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
-下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は作成済みです (U7、U8、U9、U10 の実装中に摘出した BL-001 から BL-009 と、U11 の確認で摘出した BL-010、BL-011 を起票。整理状態は随時追記中)。未作成の場合や、削除されている場合があります。
+下流文書: `261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。`261125-consumable-backlog-items-design.md` (最終仕様)。残課題一覧 (`261125-consumable-backlog-items-backlog.md`) は整理済みです (BL-001 から BL-011)。U3 で摘出した 1 件は、ユーザーの指示で `../../../../cjson/docs/prompts/current/261126-cjson-patch-check-backlog.md` に記録しています。未作成の場合や、削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。この文書と、ユーザーが編集した最新の検討用 Markdown を読み直し、作業 WBS の `← **CURRENT**` の項目から再開します。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。`← **CURRENT**` の項目は処理が中止された項目である場合があり、どこまで進んでいたかは文書だけでは分かりません。対象成果物の内容を確認して実施済みの範囲を特定してから、作業を再開してください。`← **CURRENT**` がなく、作業 WBS がすべて完了 (✅) であれば、この案件の合意フローは完了しています。
 -->
 
@@ -21,7 +21,7 @@
 
 検討用 Markdown の版: 2
 
-状態: 作業の実施中 (第 2 ゲート通過済み。U1 から U5 の実装と Linux の局所テストが完了。Windows の検証、main への統合、CI の確認は単位ごとに主エージェントが進行中)
+状態: 成果物の承認の受付中 (第 2 ゲート通過済み。U1 から U11 は main へ統合済み。CI 45777368591 はビルドとテストがすべて成功し、作業 WBS 4 章は完了)
 
 ## 作業 WBS と進捗管理
 
@@ -45,7 +45,7 @@
     - ✅ 3.1. `261125-consumable-backlog-items-design.md` の作成 (課題ごとの節、Git の書き込み操作の許可の範囲、統合の単位と順序、Windows 側への依頼の手順、受入条件、知見の反映計画。対策元 `261123-remaining-backlog-items-backlog.md` の対象 14 件を「対応中」へ更新)
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認 (簡易 ADR の LADR-001 から LADR-013 との照合)
     - ✅ 3.3. 対話セッションにおける最終仕様 (design.md) の承認の受付 (第 2 ゲート: 作業着手の合意。承認を、最終仕様の「Git の運用と書き込み操作の許可の範囲」の Git の書き込み操作の許可とする)。2026-11-25 21:48 ごろの対話でユーザーが承認 (経緯を参照)
-- 🔄 4. 承認された最終仕様に従った作業の実施 (統合の単位ごとに、実装、Linux の局所テスト、Windows の検証、main への統合と push、CI の確認の順に進める。単位の順は最終仕様の「統合の単位と順序」)
+- ✅ 4. 承認された最終仕様に従った作業の実施 (統合の単位ごとに、実装、Linux の局所テスト、Windows の検証、main への統合と push、CI の確認の順に進める。単位の順は最終仕様の「統合の単位と順序」)
     - ✅ 4.1. 作業ブランチ `work/261125-consumable-backlog-items` の作成と push (親リポジトリ、`app/cplat`、`app/porter`、`app/cjson`、`framework/testfw`。主エージェントが行う)
     - ✅ 4.2. U1 BL-031 (親リポジトリ)
         - ✅ 4.2.1. `app/struct-meta/prod/libsrc/struct_meta/parse/struct_meta_parse.y` と `struct_meta_parse.l` の位置情報への移行
@@ -94,31 +94,31 @@
         - ✅ 4.8.2. `stdio_temp.c`、`elevated_process.c`、`stdio.h` (あわせて `api-cheatsheet.md` と `functional-spec/crt.md` の一時ファイルの記載)
         - ✅ 4.8.3. `tempFileTest` (新設)、`stdioTempTest`、`elevatedProcessTest` のテスト
         - ✅ 4.8.4. Windows の検証、main への統合と push、CI の確認 (Linux の `make -C app/cplat` は成功し、`stdioTempTest` 14 件、`tempFileTest` 1 件 (Linux では空のテスト)、`elevatedProcessTest` 11 件が成功。作業ブランチへのコミットと push は cplat 6a83776d、親 f36e012d。Windows の検証は成功し、`tempFileTest` 14 件、`stdioTempTest` 8 件、`tempDirTest` 9 件、`elevatedProcessTest` 26 件、MSVC の警告と内容のある `.warn` なし、`%TEMP%` に残骸なし。main への統合は親 main 712b55ff、CI 45751634321 は成功)
-    - 🔄 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
+    - ✅ 4.9. U8 BL-003 (`framework/testfw`、`app/cplat`)
         - ✅ 4.9.1. testfw の `GetFileInformationByHandleEx` の mock (`mock_windows.h`、`mock_GetFileInformationByHandleEx.cc`)
         - ✅ 4.9.2. `path.h`、`path_identity.c`、`mock_cplat`、`exportTest.cc`、`api-cheatsheet.md`、`functional-spec/crt.md`
         - ✅ 4.9.3. `pathIdentityTest` の新設と、`compress-cli.c` と `compress-cliTest` の変更
-        - 🔄 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。作業ブランチへのコミットと push は testfw bbaeb87、cplat 237d3c6b、親 7e4017b5。Windows の検証は成功し、`framework/testfw` と `app/cplat` の make が成功、`pathIdentityTest` 20 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件がすべて成功、MSVC の警告と内容のある `.warn` なし。残りは main への統合と push、CI の確認。主エージェントが行う)
-    - 🔄 4.10. U9 BL-028 (`app/cplat`)
+        - ✅ 4.9.4. Linux の局所テスト (testfw を make してから)、Windows の検証、main への統合と push、CI の確認 (Linux の `make -C framework/testfw` と `make -C app/cplat` は成功し、内容のある `.warn` なし。`pathIdentityTest` 18 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件が成功。作業ブランチへのコミットと push は testfw bbaeb87、cplat 237d3c6b、親 7e4017b5。Windows の検証は成功し、`framework/testfw` と `app/cplat` の make が成功、`pathIdentityTest` 20 件、`exportTest` 2 件、`errorContractTest` 4 件、`compress-cliTest` 19 件がすべて成功、MSVC の警告と内容のある `.warn` なし。main への統合と push は完了 (testfw main 84b1b78、cplat main 84ea0ec6、親 main e1afe99b)。CI 45777368591 はビルドとテストのジョブ (build-and-test-linux の ol8、ol9、ol10、build-and-test-windows、docs、verify-gen、warnings-summary) がすべて成功し、deploy-pages だけが GitHub Pages の公開の段階で失敗)
+    - ✅ 4.10. U9 BL-028 (`app/cplat`)
         - ✅ 4.10.1. `socketTest.cc` への 8 件のテストの追加 (Winsock のイベントを試験側で模擬する `winsock_event_simulator` と、障壁で順序を固定する 8 件の Windows 専用のテスト。Linux の socketTest の make と make test が成功 (62 件)。8 件は Linux では本体がコンパイルされないため、Windows の Winsock の型を代替した試験用の構成 (scratchpad、リポジトリ外) で `socket_watch_windows.c` の写しと合わせて実行し、8 件の成功と、実装の分岐を壊す 11 種の一時的な改変がいずれも検出されることを確かめた)
-        - 🔄 4.10.2. Windows の検証、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 8c844743、親 1de5df7b。Windows の検証は成功し、`socketTest` 60 件 (新しい 8 件を含む) が成功、`--gtest_filter=socketTest.watch_* --gtest_repeat=30` で 570 件が OK、失敗 0 件、追加の 8 件の最長は 318 ms、MSVC /W4 の警告と内容のある `.warn` なし。残りは main への統合。主エージェントが行う)
-    - 🔄 4.11. U10 BL-001 (`framework/testfw`、`app/porter`)
+        - ✅ 4.10.2. Windows の検証、main への統合と push、CI の確認 (作業ブランチへのコミットと push は cplat 8c844743、親 1de5df7b。Windows の検証は成功し、`socketTest` 60 件 (新しい 8 件を含む) が成功、`--gtest_filter=socketTest.watch_* --gtest_repeat=30` で 570 件が OK、失敗 0 件、追加の 8 件の最長は 318 ms、MSVC /W4 の警告と内容のある `.warn` なし。main への統合と push は完了 (cplat main 84ea0ec6、親 main e1afe99b)。CI 45777368591 はビルドとテストのジョブ (build-and-test-linux の ol8、ol9、ol10、build-and-test-windows、docs、verify-gen、warnings-summary) がすべて成功し、deploy-pages だけが GitHub Pages の公開の段階で失敗)
+    - ✅ 4.11. U10 BL-001 (`framework/testfw`、`app/porter`)
         - ✅ 4.11.1. `testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc` と、testfw のテスト
         - ✅ 4.11.2. `framework/testfw/docs/how-to-test.md`
         - ✅ 4.11.3. `app/porter/test/src/integration/` と `cmd/porterTestOutputTest/` の移行 (最終仕様の一覧の 11 ファイル)
-        - 🔄 4.11.4. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了し、`testPortTest` 12 件と移行した 5 つのテストのディレクトリが成功、実行ファイルの 2 本の同時実行で衝突なし。作業ブランチへのコミットと push は testfw 1c49497、porter b301c08、親 c9fc044b。Windows の検証は成功し、`testPortTest` 12 件、`porterSendRecvTest` 39 件 (実行 38 件と Linux 専用の SKIPPED 1 件。Linux の 54 件との差は Linux 専用の 16 件)、`certificateTest` 33 件、`porterCancelFailureTest` 3 件、`tcpServerPreforkTest` 13 件、`porterTestOutputTest` 24 件。2 本の同時実行で衝突なし、払い出しの記録に重複なし、予約された除外範囲の番号は bind で避けられた。MSVC の警告と内容のある `.warn` なし。残りは main への統合と push、CI の確認)
-    - 🔄 4.12. U11 Windows 実機での確認 (BL-024、BL-020、BL-009)
+        - ✅ 4.11.4. Linux の局所テスト、Windows の検証、main への統合と push、CI の確認 (Linux の局所テストは完了し、`testPortTest` 12 件と移行した 5 つのテストのディレクトリが成功、実行ファイルの 2 本の同時実行で衝突なし。作業ブランチへのコミットと push は testfw 1c49497、porter b301c08、親 c9fc044b。Windows の検証は成功し、`testPortTest` 12 件、`porterSendRecvTest` 39 件 (実行 38 件と Linux 専用の SKIPPED 1 件。Linux の 54 件との差は Linux 専用の 16 件)、`certificateTest` 33 件、`porterCancelFailureTest` 3 件、`tcpServerPreforkTest` 13 件、`porterTestOutputTest` 24 件。2 本の同時実行で衝突なし、払い出しの記録に重複なし、予約された除外範囲の番号は bind で避けられた。MSVC の警告と内容のある `.warn` なし。main への統合と push は完了 (testfw main 84b1b78、porter main cdfa5ec、親 main e1afe99b)。CI 45777368591 はビルドとテストのジョブ (build-and-test-linux の ol8、ol9、ol10、build-and-test-windows、docs、verify-gen、warnings-summary) がすべて成功し、deploy-pages だけが GitHub Pages の公開の段階で失敗)
+    - ✅ 4.12. U11 Windows 実機での確認 (BL-024、BL-020、BL-009)
         - ✅ 4.12.1. 事前確認 (読み取りだけ。`LongPathsEnabled`、`mt.exe`、動的ポートの範囲と除外範囲。結果は「調査で判明した事実」に記録済み: `LongPathsEnabled=1`、`mt.exe` あり、動的ポート 49152 から 65535)
         - ✅ 4.12.2. BL-024 の確認と記録 (報告の事象は再現しなかった。`WriteConsoleU` と比較用の `WriteConsoleW` のどちらも、書けた数は 5 で `GetLastError` は 0。画面のセルは NUL の位置にできず `ABCD` と詰まり、`CD` は表示される。conhost の挙動で、変換の問題ではない。対策済み)
         - ✅ 4.12.3. BL-020 の確認と記録 (ディレクトリ 284 文字、実行ファイル 294 文字、非 ASCII を含む配置。`\\?\` 付きで起動すれば、`cplat_module_get_path` と `cplat_process_get_executable_path` は長いパスと非 ASCII を正しく返す (マニフェストの有無によらない)。接頭辞なしの起動は子が `0xC0000106` で終了し、cplat の外のローダーの制約。対策済み。起動の制約は案件の残課題一覧の BL-010 へ)
         - ✅ 4.12.4. BL-009 の確認と記録 (`\\?\` 付きで起動すれば、長いパスの `tcpServer` は `fork` と `prefork` の両方で子プロセスを起動し、日本語を含むエコーが 2 回とも一致。接頭辞なしは親が `0xC0000106` で起動せず。マニフェストの組み込み方の違いによる差はなし。`mt.exe` は長いパスのファイルを更新できないため、短いパスで組み込んでから複製。対策済み。起動の制約は BL-010、マニフェストの注意は BL-011 へ)
-        - ⏸️ 4.12.5. 記録の main への統合 (`[skip ci]`)
+        - ✅ 4.12.5. 記録の main への統合 (U8 から U10 と同じ統合で、親 main e1afe99b へ統合と push 済み。CI 45777368591 はビルドとテストのジョブ (build-and-test-linux の ol8、ol9、ol10、build-and-test-windows、docs、verify-gen、warnings-summary) がすべて成功し、deploy-pages だけが GitHub Pages の公開の段階で失敗)
     - ✅ 4.13. 正本ドキュメントおよびコード コメントへの永続的知見の反映の確認 (最終仕様の「知見の反映計画」の全 11 行が反映済み。追加の変更なし。「反映と検証の記録」の「知見の反映の確認」を参照)
-    - ⏸️ 4.14. 受入条件への適合確認 (全作業の完了確認) ← **CURRENT**
-    - ⏸️ 4.15. 簡易 ADR (`261125-consumable-backlog-items-lightadr.md`) の最終確認
-    - ⏸️ 4.16. 残課題一覧 (`261125-consumable-backlog-items-backlog.md`) の再構築と整理、対策元 `261123-remaining-backlog-items-backlog.md` の最終状態の確定
+    - ✅ 4.14. 受入条件への適合確認 (全作業の完了確認。受入条件 1 から 13 はすべて適合。12 の CI 45777368591 はビルドとテストのジョブがすべて成功し、失敗した deploy-pages は公開の段階の問題でビルドとテストの結果に影響しない。対策として `.github/workflows/ci.yml` の deploy-pages に 120 秒待って 1 回だけ再試行する処理を追加済み。「反映と検証の記録」の「受入条件への適合確認」)
+    - ✅ 4.15. 簡易 ADR (`261125-consumable-backlog-items-lightadr.md`) の最終確認 (LADR-001 から LADR-013 は実装の結果と一致。LADR-008 と LADR-009 の「最終仕様で定める」を実装の値で補足し、U6 と U7 の実装中の修正を経緯に記録。「反映と検証の記録」の「簡易 ADR の最終確認」)
+    - ✅ 4.16. 残課題一覧 (`261125-consumable-backlog-items-backlog.md`) の再構築と整理、対策元 `261123-remaining-backlog-items-backlog.md` の最終状態の確定 (残課題一覧は整理済み。対策元の 14 件 (BL-001、BL-003、BL-028 を含む) はすべて「対策済み」。「反映と検証の記録」の「残課題一覧の整理」)
 - ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
-    - ⏸️ 5.1. 成果物・検証結果・残課題の提示 (全単位の統合と CI の結果を含む)
+    - 🔄 5.1. 成果物・検証結果・残課題の提示 (全単位の統合と CI の結果を含む) ← **CURRENT**
     - ⏸️ 5.2. 対話セッションにおける成果物の承認の受付 (「承認」または「完了」の受領によるスキル完了。指摘は作業ブランチで直して同じ手順で統合)
     - ⏸️ 5.3. 作業ブランチの削除 (リモートとローカル)
 
@@ -277,6 +277,8 @@ Table: 質問の一覧
 | 2026-11-26 14:21 | U10 (BL-001) の実装と Linux の局所テストの完了 | opus サブエージェントが、`framework/testfw` にテスト用ポートの払い出しのヘルパー (`testPort.h`、`testPort.cc`、`testPort_linux.cc`、`testPort_windows.cc`、内部の `testPort_impl.h`) と `testPortTest` を新設し、`how-to-test.md` に使い方を記載しました。`app/porter` の 11 ファイルの固定のポートと、ポート 0 で調べる方式を払い出しへ移し、トレーサーの開始の補助 `test/include/porter_test_trace.h` を加えました。最終仕様との相違と判断は「反映と検証の記録」に記載します。作業 WBS 4.11.1 と 4.11.2 の着手時の更新は、実装の後に行いました。範囲外の気付きを残課題一覧の BL-007 から BL-009 に起票しました。コミット、Windows の検証、main への統合は主エージェントが行います。 |
 | 2026-11-26 14:23 | U8、U9 の Windows の検証と、U11 の Windows 実機の確認の結果の記録 | U8 (親 7e4017b5、testfw bbaeb87、cplat 237d3c6b) と U9 (親 1de5df7b、cplat 8c844743) の Windows の検証が成功しました (作業 WBS 4.9.4、4.10.2。残りは main への統合と CI の確認)。U11 の Windows 実機の確認の結果を作業 WBS 4.12.1 から 4.12.4 に記録し、対策元 `261123-remaining-backlog-items-backlog.md` の BL-024、BL-020、BL-009 を「対策済み」にしました。摘出した 2 件を残課題一覧の BL-010、BL-011 に起票しました。4.12.5 は主エージェントが行います。 |
 | 2026-11-26 14:55 | 知見の反映の確認の完了 (作業 WBS 4.13) | opus サブエージェントが、最終仕様の「知見の反映計画」の 11 行を、各リポジトリの作業ブランチの現在の内容と照合しました。すべて反映済みで、正本ドキュメントとコード コメントの追加の変更はありません (「反映と検証の記録」の「知見の反映の確認」)。 |
+| 2026-11-26 16:53 | U8 から U11 の main への統合の記録、受入条件の照合、簡易 ADR の最終確認、残課題一覧の整理 (作業 WBS 4.14 から 4.16) | opus サブエージェントが、U8 から U11 の親 main e1afe99b への統合を作業 WBS 4.9.4、4.10.2、4.11.4、4.12.5 に記録しました (CI 45777368591 は実行中)。受入条件 1 から 11 と 13 は適合、12 は CI の結果待ちで、4.14 を要注意にしました。簡易 ADR は全決定が実装と一致し、LADR-008 と LADR-009 を補足しました。残課題一覧を整理済みにし、対策元の 11 件を「対策済み」、BL-001、BL-003、BL-028 を CI の結果待ちの「対応中」としました。CI の結果待ちのため、現在の項目は 4.14 のままです (「反映と検証の記録」)。 |
+| 2026-11-26 21:17 | CI 45777368591 の結果の記録と第 3 ゲートへの移行 | CI 45777368591 はビルドとテストのジョブがすべて成功し、失敗したのは公開の段階の deploy-pages だけであることを確認しました (`.github/workflows/ci.yml` の deploy-pages に 120 秒待って 1 回だけ再試行する処理を追加済み)。作業 WBS 4.9 から 4.12、4.14、4.16 と 4 章を完了にし、対策元 `261123-remaining-backlog-items-backlog.md` の BL-001、BL-003、BL-028 を「対策済み」にしました。現在の項目を 5.1 へ移しました (「反映と検証の記録」)。 |
 
 ## 反映と検証の記録
 
@@ -362,3 +364,53 @@ Table: 知見の反映計画の行ごとの確認結果
 規範に合わせて最終仕様を直した 2 点の正本の記載も確かめました。U6 の待機の方式は、`app/cplat/prod/include/cplat/sync/sync.h` の `cplat_thread_yield()` の `@note` (処理の完了を待つ場合は条件変数または `cplat_sleep_ms()` を使う) が規範で、実装もこれに従っています。U7 のテストの構成は、`framework/testfw/docs/how-to-test.md` の「テストの構成単位」(ソース 1 本につきテスト ディレクトリは 1 つ) と、冒頭の `TEST_SRCS` と `ADD_SRCS` の使い分け (リンクを成立させる依存実装は `ADD_SRCS`) が規範で、`tempFileTest` の新設と、`stdioTempTest` と `elevatedProcessTest` の `ADD_SRCS` による取り込みはこれに従っています。どちらも正本に足りない記載はなく、変更していません。
 
 コード コメントを変更していないため、make と `.warn` の確認は行っていません。
+
+受入条件への適合確認 (2026-11-26、作業 WBS 4.14):
+
+最終仕様の「受入条件」の 1 から 13 を、各単位の検証の記録 (上の各節と作業 WBS 4.2 から 4.12) と、main の内容に対する読み取りだけの確認で照合しました。読み取りの確認は、親 main e1afe99b、`app/cplat` main 84ea0ec6、`framework/testfw` main 84b1b78、`app/cjson` main 57db801 と同じ内容の作業ツリー、および `app/porter` main cdfa5ec 以降の作業ツリー (後の追加は `docs/prompts/` だけ) で行いました。
+
+Table: 受入条件ごとの判定
+
+| 番号 | 対象 | 判定 | 根拠 |
+| --- | --- | --- | --- |
+| 1 | BL-031 | 適合 | `structMetaParseDocTest` の診断の行のテスト 5 件と、`structMetaBuildTest`、`structMetaGenEmitTest` の期待値 4 が Linux で成功 (4.2.4)。Windows のビルドとテストも成功 (4.2.6)。対象ごとの行は `architecture.md` の表と一致 (4.13) |
+| 2 | BL-013 | 適合 | `configCheckTest` の `limitsWaitTimeItemsToWaitMsMax` で、5 項目の `POTR_WAIT_MS_MAX` の受理と `+ 1U` の値域の誤りを確認 (4.3.3)。`docs/config.md` の 79、83、446、447 行と 564 行の値域が一致 (4.13) |
+| 3 | BL-012 | 適合 | `patches/0003-thread-local-global-error.patch` があり、生成後の `cJSON.c` の 100 行が `static CJSON_APP_THREAD_LOCAL error global_error`。`cJSON_JSONC.c` に `pthread` と `jsonc_parse_exclusion` がない。`app/cjson/README.md`、`cJSON_JSONC.h`、`patches/README.md`、`porter_spec.h`、`app/porter/docs/api.md` に、ロックを前提とする記載がない (`grep` で確認)。並行する解析のテストは Linux (4.4.5) と Windows (4.4.7) で成功 |
+| 4 | BL-006 | 適合 | `argparser.h` の 218 行が `int` の戻り値。製品のソースの呼び出し 23 箇所のすべてが戻り値を検査する (`grep` で確認)。mock、`exportTest`、文書、`tracer.h`、cplat の `coding-guideline.md` の記載は 4.5.1 から 4.5.6 と 4.13 で確認済み。呼び出し元の app を含めて Linux (4.5.7) と Windows (4.5.9) でビルドとテストが成功 |
+| 5 | BL-008 | 適合 | `potrTraceTest` の追加の 4 件で、終了コールバックの後に `NULL` を返し再生成しないことを確認 (Linux 8 件、Windows 8 件。4.6.3)。`porter_spec.h` の `potr_tracer_get()` に契約がある (4.13) |
+| 6 | BL-005、BL-007 | 適合 | Windows の `trace_etw_sessionTest` 14 件 (期限の後の戻り、戻った後のコールバックの不呼び出し、実行中のコールバックの終了の待機を含む) と `etwSessionIntegrationTest` 9 件が成功し、停止のテストの 20 回の繰り返しで失敗 0 件 (4.7.3)。`etw.h` の記載が一致 (4.13) |
+| 7 | BL-004 | 適合 | Windows の `tempFileTest` 14 件 (mock)、`stdioTempTest` 8 件 (長い一時ディレクトリの実ファイル)、`elevatedProcessTest` 26 件 (長い一時ディレクトリの結果ファイル) が成功 (4.8.4)。`app/cplat/prod` の `GetTempFileNameW` は、`temp_file_windows.c` の使わない理由のコメント 1 件だけで、呼び出しはない (`grep` で確認) |
+| 8 | BL-003 | 適合 | `pathIdentityTest` (Linux 18 件、Windows 20 件。ハード リンク、シンボリック リンク、存在しないパスを含む) と `compress-cliTest` 19 件が Linux と Windows で成功 (4.9.4)。`GetFileInformationByHandleEx` の mock が `framework/testfw/libsrc/mock_libc/mock_GetFileInformationByHandleEx.cc` にある |
+| 9 | BL-028 | 適合 | Windows の `socketTest` 60 件 (追加の 8 件を含む) が成功し、`watch_*` の 30 回の繰り返しで 570 件が成功、失敗 0 件 (4.10.2) |
+| 10 | BL-001 | 適合 | `testPortTest` 12 件が Linux と Windows で成功 (4.11.4)。移行した 11 ファイルに残る 5 桁の番号は、待ち受けない `porterTestOutputTest.cc` の 198 行の 19362 (存在しないサービスの設定値) と、ポート以外の値 (バッファーの大きさ、パケットの識別子) だけ (`grep` で確認) |
+| 11 | BL-024、BL-020、BL-009 | 適合 | 3 件とも前提を満たして実施し、結果を対策元 `261123-remaining-backlog-items-backlog.md` の各項目に記録済み (4.12.2 から 4.12.4)。実施できなかった項目はない。確認で分かった制約は、残課題一覧の BL-010 と BL-011 に記録済み |
+| 12 | 全単位の統合と CI | 適合 | U1 から U3 は親 main 937b6ab0 で CI 45724460463 が成功。U4 から U7 は親 main 712b55ff で CI 45751634321 が成功。U8 から U11 は親 main e1afe99b (testfw 84b1b78、cplat 84ea0ec6、porter cdfa5ec) へ統合と push 済み。CI 45777368591 はビルドとテストのジョブ (build-and-test-linux の ol8、ol9、ol10、build-and-test-windows、docs、verify-gen、warnings-summary) がすべて成功。deploy-pages だけが GitHub Pages への公開の段階で "Fetching artifact metadata failed" となり再実行も同じ理由で失敗したが、公開する artifact (`github-pages`) は作成済みであり、公開の段階の問題でビルドとテストの結果には影響しない。2026-11-25 の CI 45603988425 でも起きており、対策として `.github/workflows/ci.yml` の deploy-pages にジョブの中で 120 秒待って 1 回だけ再試行する処理を追加済み (次の main への push の CI で確認する) |
+| 13 | Markdown と `.warn` | 適合 | 各リポジトリの起点 (親 9d37dce0、cplat 45217b7d、porter f643d3a、cjson 7b7a020、testfw 1f79ca1) から main までに変更された、`docs/prompts/` の外の Markdown 13 ファイルで、`text_style_jp.py --dry-run` の指摘なし。`app/cplat`、`app/porter`、`app/cjson`、`framework/testfw`、`app/struct-meta`、`app/calc`、`app/tutorial`、`app/override-sample`、`app/service-sample`、`app/subfolder-sample` に、内容のある `.warn` はない |
+
+未確認の事項: なし (受入条件 1 から 13 はすべて適合。deploy-pages の再試行の対策は、次の main への push の CI で確認します)。
+
+簡易 ADR の最終確認 (2026-11-26、作業 WBS 4.15):
+
+Table: 簡易 ADR の決定ごとの確認結果
+
+| 決定 ID | 確認結果 | 確認した実装、記録 |
+| --- | --- | --- |
+| LADR-001 | 一致 | 14 件すべてを対策し、BL-007 は BL-005 の単体テストでクローズ (作業 WBS 4.2 から 4.12) |
+| LADR-002 | 一致 | `cplat_tracer_dispose()` は `void` のまま。`tracer.h` と cplat の `coding-guideline.md` に、`*handle` による判定、再試行を求めないこと、リークの許容を記載 |
+| LADR-003 | 一致 | `cplat_argparser_init()` は `int`。23 の呼び出し元が戻り値を検査し、失敗の終了コードで終了 |
+| LADR-004 | 一致 | `potr_trace.c` の終了コールバック、状態 3 での `NULL` と再生成の禁止、`porter_spec.h` の並行利用の禁止。参照カウントはない |
+| LADR-005 | 一致 | パッチ 0003 と共通ロックの削除、並行する解析のテスト、文書の更新。公開ヘッダーへのパッチの依存の注記は、決定の範囲内の補足 |
+| LADR-006 | 一致 | 5 項目の上限が `POTR_WAIT_MS_MAX`。`group_failback_ms` は変更なし |
+| LADR-007 | 一致 | `%locations` と `bison-locations`。対象ごとの行は最終仕様の表のとおり |
+| LADR-008 | 一致 (補足) | 決定が「最終仕様で定める」としていた範囲 (20000 から 32767)、記録の個数 (1024)、ファイルの置き場所を、`testPort_impl.h` と `testPort_linux.cc`、`testPort_windows.cc` の値で補足 |
+| LADR-009 | 一致 (補足) | 期限 5000 [ms] (`STOP_ABANDON_TIMEOUT_MS`)、停止の印と実行中の数、`cplat_sleep_ms(1)` の繰り返しの待機、`cplat_thread_detach()`。U6 の待機の方式の修正は決定と矛盾しないため、経緯に記録して決定を補足 |
+| LADR-010 | 一致 | `temp_file_windows.c` の `CREATE_NEW`、16 回の再試行、`MAX_PATH` 以上での接頭辞。U7 のテストを `tempFileTest` に分けた修正は、作成方式の決定と矛盾しないため、経緯だけに記録 |
+| LADR-011 | 一致 | `cplat_path_is_same_file()` と `compress-cli` への適用、`cplat_path_equal()` は変更なし、testfw の mock、存在しないパスで `CPLAT_OK` と `*same_out = 0`。空文字の拒否と戻り値の追加 (U8 の規範に合わせた判断) は、決定の範囲内の詳細 |
+| LADR-012 | 一致 | U11 は Windows の環境とリポジトリのソースを変更せず、確認用の実行ファイルを一時ディレクトリで作成 (4.12) |
+| LADR-013 | 一致 | 単位ごとに `--no-ff` で、サブモジュール、親リポジトリの順に統合して push。作業ブランチの削除は作業 WBS 5.3 で行う |
+
+残課題一覧の整理 (2026-11-26、作業 WBS 4.16):
+
+- 案件の残課題一覧 `261125-consumable-backlog-items-backlog.md`: 11 件 (BL-001 から BL-011) は、どれもこの案件で解消しておらず、仕様として容認したものもないため、すべて残しました。重複はありません。各項目の現状の事象、本来あるべき姿、見送り理由、影響範囲、恒久対応案と、記載した行番号を main の内容で確かめました。BL-001 は、同じ固定長の配列を持つ関数を具体化しました (`cplat_fopen()`、`cplat_freopen()`、`cplat_rename()`)。課題 ID は振り直していません。整理状態を「整理済み」にしました。優先度の内訳は、中が 2 件 (BL-001、BL-010)、低が 9 件です。
+- U3 で摘出したパッチ 0003 の検査の残課題は、ユーザーの指示で `app/cjson/docs/prompts/current/261126-cjson-patch-check-backlog.md` の BL-001 に記録済みのため、案件の残課題一覧には注記だけを置き、重複して記載していません。
+- 対策元 `261123-remaining-backlog-items-backlog.md`: 対象 14 件の「継続作業での経緯と対処」に、Windows の検証、main への統合、CI の結果の記録を追記し、14 件 (BL-001、BL-003、BL-028 を含む) すべてを「対策済み」にしました。メタ情報の下流文書に、継続作業の完了の状況と残課題の記録先を追記しました。次フェーズへ転記する項目はありません。

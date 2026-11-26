@@ -928,7 +928,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
 
     steps:
       # index.html のタイトルを .vscode/pub_markdown.config.yaml から解決するため、
@@ -1215,6 +1215,20 @@ jobs:
         with:
           path: ./pages
 
+      # deploy-pages は、アップロード直後の artifact の情報の取得 (Actions の API) に
+      # 失敗することがある ("Fetching artifact metadata failed")。artifact は作成済みのため、
+      # 待ってから 1 回だけ同じ artifact で再試行する。ジョブの再実行は artifact が重複して
+      # "Multiple artifacts named github-pages" で失敗するため、ジョブの中で再試行する。
       - name: Deploy to GitHub Pages
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Wait before retrying the Pages deployment
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 120
+
+      - name: Deploy to GitHub Pages (retry)
+        id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v5
