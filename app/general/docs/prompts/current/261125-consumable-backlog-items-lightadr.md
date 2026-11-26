@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 簡易 ADR (lightadr)
-最終更新日時: 2026-11-26 04:45:00 JST
-最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53UFydnbt2gLXTJC1ZC)
+最終更新日時: 2026-11-26 16:53:10 JST
+最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)。いずれも削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。上流文書の全体管理文書が存在する場合は、その再開手順に従って進行位置を確認します。存在しない場合は、この文書を単体の決定事項の記録として扱います。この文書は正式な ADR ではありません。正式な ADR への転記はユーザーが必要時に行うため、エージェントは依頼なしに転記や正式な ADR の作成・更新を行わないでください。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
@@ -15,6 +15,8 @@
 この文書は、検討で得られた事実、ユーザーの選択とコメント、およびそれらに基づく決定事項を、決定 1 件ごとにまとめた簡易 ADR (Architecture Decision Record: 設計判断の記録) です。正式な ADR ではなく、対案の比較や決定の影響の評価は記載していません。  
 各決定の「決定」は、方針が変わるたびに書き換え、常に最新の決定だけを示します。変更の推移は「経緯」に時系列で記録します。  
 課題 ID (BL-xxx) は、対策元 `261123-remaining-backlog-items-backlog.md` の課題 ID です。
+
+2026-11-26 に、全 13 件の決定が、main へ統合した実装の結果と一致することを確かめました (全体管理文書の作業 WBS 4.15)。各決定の「決定」は、案件終了時点の決定です。
 
 ## 決定事項一覧
 
@@ -29,9 +31,9 @@ Table: 決定事項の一覧
 | [LADR-005](#ladr-005-cjson-の-global_error-のスレッド-ローカル化) | cJSON の `global_error` のスレッド ローカル化 | 2026-11-25 | [Q-006](261125-consumable-backlog-items-discussion.md#q-006-cjson-の直接解析と-global_error-の競合の対策方式)、[Q-020](261125-consumable-backlog-items-discussion.md#q-020-jsonc-の共通ロックの扱い) |
 | [LADR-006](#ladr-006-待機時間の項目の値域) | 待機時間の項目の値域 | 2026-11-25 | [Q-007](261125-consumable-backlog-items-discussion.md#q-007-待機時間の項目の上限の検査方式) |
 | [LADR-007](#ladr-007-struct-meta-の診断の行番号) | struct-meta の診断の行番号 | 2026-11-25 | [Q-008](261125-consumable-backlog-items-discussion.md#q-008-struct-meta-のフィールド診断の行番号の修正方式)、[Q-009](261125-consumable-backlog-items-discussion.md#q-009-フィールド診断で報告する行の定義)、[Q-021](261125-consumable-backlog-items-discussion.md#q-021-フィールドと構造体以外の診断で報告する行) |
-| [LADR-008](#ladr-008-テスト用ポートの払い出し) | テスト用ポートの払い出し | 2026-11-25 | [Q-010](261125-consumable-backlog-items-discussion.md#q-010-テスト用ポートの払い出しの共有方式)、[Q-011](261125-consumable-backlog-items-discussion.md#q-011-テスト用ポートの払い出し範囲) |
-| [LADR-009](#ladr-009-etw-の停止の待機の打ち切り) | ETW の停止の待機の打ち切り | 2026-11-25 | [Q-012](261125-consumable-backlog-items-discussion.md#q-012-etw-停止で両方失敗した場合の待機の打ち切り方式) |
-| [LADR-010](#ladr-010-一時ファイルの作成方式) | 一時ファイルの作成方式 | 2026-11-25 | [Q-013](261125-consumable-backlog-items-discussion.md#q-013-長いパスの一時ファイルの作成方式)、[Q-022](261125-consumable-backlog-items-discussion.md#q-022-長いパスの一時ファイルでの拡張パスの接頭辞) |
+| [LADR-008](#ladr-008-テスト用ポートの払い出し) | テスト用ポートの払い出し | 2026-11-26 | [Q-010](261125-consumable-backlog-items-discussion.md#q-010-テスト用ポートの払い出しの共有方式)、[Q-011](261125-consumable-backlog-items-discussion.md#q-011-テスト用ポートの払い出し範囲) |
+| [LADR-009](#ladr-009-etw-の停止の待機の打ち切り) | ETW の停止の待機の打ち切り | 2026-11-26 | [Q-012](261125-consumable-backlog-items-discussion.md#q-012-etw-停止で両方失敗した場合の待機の打ち切り方式) |
+| [LADR-010](#ladr-010-一時ファイルの作成方式) | 一時ファイルの作成方式 | 2026-11-26 | [Q-013](261125-consumable-backlog-items-discussion.md#q-013-長いパスの一時ファイルの作成方式)、[Q-022](261125-consumable-backlog-items-discussion.md#q-022-長いパスの一時ファイルでの拡張パスの接頭辞) |
 | [LADR-011](#ladr-011-ファイルの同一性の判定) | ファイルの同一性の判定 | 2026-11-25 | [Q-014](261125-consumable-backlog-items-discussion.md#q-014-ntfs-の同一性判定の扱い)、[Q-023](261125-consumable-backlog-items-discussion.md#q-023-同一性の判定で存在しないパスを渡した場合の結果) |
 | [LADR-012](#ladr-012-windows-実機確認での環境の扱い) | Windows 実機確認での環境の扱い | 2026-11-25 | [Q-015](261125-consumable-backlog-items-discussion.md#q-015-windows-実機確認での環境変更の許可) |
 | [LADR-013](#ladr-013-作業ブランチと-main-への統合) | 作業ブランチと main への統合 | 2026-11-25 | [Q-002](261125-consumable-backlog-items-discussion.md#q-002-windows-側での検証の受け渡し方式)、[Q-016](261125-consumable-backlog-items-discussion.md#q-016-作業ブランチのコミットを受け渡す経路) から [Q-019](261125-consumable-backlog-items-discussion.md#q-019-main-の-push-の扱い) |
@@ -232,7 +234,7 @@ Table: LADR-007 の経緯
 ## LADR-008 テスト用ポートの払い出し
 
 決定者: Tetsuo Honda  
-最終更新日: 2026-11-25
+最終更新日: 2026-11-26
 
 ### 背景と課題
 
@@ -247,7 +249,7 @@ Table: LADR-007 の経緯
 
 ### 決定
 
-`framework/testfw` に、空いているポートを払い出すヘルパーを新設します。払い出した番号は、一時ディレクトリの共有ファイルに直近の一定個数を記録し、ファイル ロック (Linux は `flock`、Windows は `LockFileEx`) で直列化して、プロセスの間でも重ならないようにします。払い出す範囲は OS の一時的なポートの範囲の外とし、Linux は実行時に `ip_local_port_range` を読んで避けます。候補は bind で空きを確かめます。記録の個数、ファイルの置き場所、範囲の具体値は最終仕様で定めます。`app/porter` の固定のポートを使うテストを、このヘルパーへ移します。
+`framework/testfw` に、空いているポートを払い出すヘルパーを新設します。払い出した番号は、一時ディレクトリの共有ファイルに直近の一定個数を記録し、ファイル ロック (Linux は `flock`、Windows は `LockFileEx`) で直列化して、プロセスの間でも重ならないようにします。払い出す範囲は OS の一時的なポートの範囲の外とし、Linux は実行時に `ip_local_port_range` を読んで避けます。候補は bind で空きを確かめます。候補の範囲は 20000 から 32767 (Linux は `ip_local_port_range` と重なる番号を除く)、記録は直近の 1024 件、記録のファイルは Linux が `${TMPDIR:-/tmp}/testfw-port-registry-<uid>.bin`、Windows が `%TEMP%\testfw-port-registry.bin` です。`app/porter` の固定のポートを使うテストを、このヘルパーへ移します。
 
 ### 経緯
 
@@ -257,11 +259,12 @@ Table: LADR-008 の経緯
 | --- | --- | --- | --- | --- |
 | 2026-11-25 20:52 | [Q-010](261125-consumable-backlog-items-discussion.md#q-010-テスト用ポートの払い出しの共有方式) | A: プロセスの間で共有する (共有ファイルとファイル ロックで直近の払い出しを記録する) | なし | 新規に決定 |
 | 2026-11-25 20:52 | [Q-011](261125-consumable-backlog-items-discussion.md#q-011-テスト用ポートの払い出し範囲) | A: OS の一時的な範囲の外から払い出す (実行時に OS の設定を読んで避ける) | なし | 決定を補足 (払い出す範囲) |
+| 2026-11-26 16:50 | 実装の結果の確認 (作業 WBS 4.15) | なし (値は、第 2 ゲートで承認された最終仕様の「BL-001」の節のとおり) | なし | 決定を補足 (最終仕様で定めるとしていた範囲、記録の個数、ファイルの置き場所を、実装の値 (`framework/testfw/libsrc/test_com/testPort_impl.h`) で記載) |
 
 ## LADR-009 ETW の停止の待機の打ち切り
 
 決定者: Tetsuo Honda  
-最終更新日: 2026-11-25
+最終更新日: 2026-11-26
 
 ### 背景と課題
 
@@ -275,7 +278,7 @@ Table: LADR-008 の経緯
 
 ### 決定
 
-停止の要求とトレースを閉じる処理の両方が失敗した場合は、期限付きで処理スレッドの終了を待ち、期限を超えたらセッションの構造体を解放せずに戻ります。戻った後にコールバックを呼ばない契約を保つ仕組みと、期限の長さは最終仕様で定めます。BL-007 は、同じ単体テストで打ち切りの経路を通し、実機での確認を要しないものとしてクローズします。
+停止の要求とトレースを閉じる処理の両方が失敗した場合は、期限付きで処理スレッドの終了を待ち、期限を超えたらセッションの構造体を解放せずに戻ります。期限は 5000 [ms] です。戻った後にコールバックを呼ばない契約は、利用側のコールバックの停止の印と、実行中のコールバックの数で保ちます。期限を超えたら停止の印を立て、実行中のコールバックが 0 になるまで `cplat_sleep_ms(1)` の繰り返しで待ってから、処理スレッドを切り離して戻ります。BL-007 は、同じ単体テストで打ち切りの経路を通し、実機での確認を要しないものとしてクローズします。
 
 ### 経緯
 
@@ -285,11 +288,13 @@ Table: LADR-009 の経緯
 | --- | --- | --- | --- | --- |
 | 2026-11-25 20:52 | [Q-012](261125-consumable-backlog-items-discussion.md#q-012-etw-停止で両方失敗した場合の待機の打ち切り方式) | A: 期限付きの待機にして、期限を超えたら構造体を解放せずに戻る。待機の期限の長さは設計で決める | なし | 新規に決定 |
 | 2026-11-25 20:52 | [Q-001](261125-consumable-backlog-items-discussion.md#q-001-対策する残課題の範囲) | J: BL-007 を、I (BL-005) と同時に選ぶ | なし | 決定を補足 (BL-007 のクローズ) |
+| 2026-11-26 10:25 | 実装中の最終仕様の修正 (主エージェント) | なし | なし | 決定は変わらない。実行中のコールバックの終了の待機を、`sync.h` の `cplat_thread_yield()` の注記 (他のスレッドの処理の完了の待機には `cplat_sleep_ms()` を使う) に従い、`cplat_sleep_ms(1)` の繰り返しにした |
+| 2026-11-26 16:50 | 実装の結果の確認 (作業 WBS 4.15) | なし (期限と仕組みは、第 2 ゲートで承認された最終仕様の「BL-005 と BL-007」の節のとおり) | なし | 決定を補足 (最終仕様で定めるとしていた期限の長さと、コールバックを呼ばない仕組みを、実装 (`trace_etw_session.c`) のとおりに記載)。Windows の `trace_etw_sessionTest` 14 件の成功で BL-007 をクローズした |
 
 ## LADR-010 一時ファイルの作成方式
 
 決定者: Tetsuo Honda  
-最終更新日: 2026-11-25
+最終更新日: 2026-11-26
 
 ### 背景と課題
 
@@ -313,6 +318,7 @@ Table: LADR-010 の経緯
 | --- | --- | --- | --- | --- |
 | 2026-11-25 20:52 | [Q-013](261125-consumable-backlog-items-discussion.md#q-013-長いパスの一時ファイルの作成方式) | A: 内部の共通関数で、名前を作って排他的に作成する方式へ置き換える | なし | 新規に決定 |
 | 2026-11-25 21:33 | [Q-022](261125-consumable-backlog-items-discussion.md#q-022-長いパスの一時ファイルでの拡張パスの接頭辞) | A: `MAX_PATH` 以上になる場合だけ接頭辞を付けて作成し、その形のパスを返す | なし | 決定を補足 (拡張パスの接頭辞) |
+| 2026-11-26 11:41 | 実装中の最終仕様の修正 (主エージェント) | なし | なし | 決定は変わらない。テストの構成を、`framework/testfw/docs/how-to-test.md` の「テスト対象のソース ファイル 1 本に対してホワイト ボックス テスト 1 本」に合わせ、内部の共通関数のテストを `tempFileTest` に分けた。作成方式の決定とは矛盾しない |
 
 ## LADR-011 ファイルの同一性の判定
 
