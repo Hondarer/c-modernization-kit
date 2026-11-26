@@ -233,7 +233,7 @@ Table: 診断と AST に記録する行
     - セッションの構造体に、利用側のコールバックの停止の印 (`cplat_atomic_i32 callback_closed`) と、実行中のコールバックの数 (`cplat_atomic_i32 callback_active`) を加えます。
     - `event_record_callback()`: `callback_active` を増やし (順序は逐次一貫)、`callback_closed` を読んで 1 なら `callback_active` を減らして戻ります。0 なら利用側のコールバックを呼び、`callback_active` を減らします。
     - `cplat_etw_session_stop()`: 停止の要求が失敗し、かつ `close_trace_handle()` も失敗した場合だけ、`cplat_thread_timed_join(thread, s_stop_abandon_timeout_ms)` で待ちます。それ以外は従来どおり `cplat_thread_join()` で待ちます。
-    - 期限を超えた場合: `callback_closed` を 1 にし (逐次一貫)、`callback_active` が 0 になるまで `cplat_thread_yield()` で待ちます。その後、スレッドを `cplat_thread_detach()` で切り離し、セッションの構造体と名前、プロパティを解放せずに戻ります。処理スレッドがあとで戻っても参照先が有効なままになるためです。
+    - 期限を超えた場合: `callback_closed` を 1 にし (逐次一貫)、`callback_active` が 0 になるまで `cplat_sleep_ms(1)` の繰り返しで待ちます (`sync.h` の `cplat_thread_yield()` の注記が、他のスレッドの処理完了の待機に `cplat_sleep_ms()` を指定しているため)。その後、スレッドを `cplat_thread_detach()` で切り離し、セッションの構造体と名前、プロパティを解放せずに戻ります。処理スレッドがあとで戻っても参照先が有効なままになるためです。
     - 期限は内部の定数 5000 [ms] とし、静的変数 `s_stop_abandon_timeout_ms` に置きます。単体テストは inject で短くします。5000 [ms] は、リアルタイムのセッションのバッファーの書き出しの周期 (既定 1 [s]) より十分に長く、停止の呼び出しが待つ上限として妥当な値です。
 - `app/cplat/prod/include/cplat/trace/etw.h` (191 から 207 行): 「本関数が戻らないことがあります」を削除し、両方が失敗した場合は最大 5 秒待ってから、セッションの資源を解放せずに戻ること、戻った後はコールバックを呼ばないこと (実行中のコールバックの終了は待つこと) を記載します。
 

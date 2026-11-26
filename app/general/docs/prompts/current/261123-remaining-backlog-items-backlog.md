@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 10:14:39 JST
+最終更新日時: 2026-11-26 10:23:13 JST
 最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -168,7 +168,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: スレッドを切り離して構造体を解放しない方式は、使用中のコールバックのユーザー データの解放後の使用を招くおそれがあります。そのため、現状の戻らない動作より危険と判断したためです。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、停止の要求とトレースを閉じる処理の両方が失敗した場合は期限付きで処理スレッドの終了を待ち、期限を超えたら構造体を解放せずに戻ると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。期限の長さと、戻った後にコールバックを呼ばない契約を保つ仕組みは、最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、停止の要求とトレースを閉じる処理の両方が失敗した場合は期限付きで処理スレッドの終了を待ち、期限を超えたら構造体を解放せずに戻ると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。期限の長さと、戻った後にコールバックを呼ばない契約を保つ仕組みは、最終仕様で定めます。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に実装と Linux のビルドを完了しました (`cplat_etw_session_stop()` は、停止の要求とトレースを閉じる処理の両方が失敗した場合だけ、処理スレッドの終了を最大 5000 [ms] 待つ。期限を超えたら、利用側のコールバックを止める印を立て、実行中のコールバックの終了を待ってから処理スレッドを切り離し、セッションの資源を解放せずに戻る。`etw.h` と `api-cheatsheet.md` の契約を更新し、`trace_etw_sessionTest` にテスト 3 件を追加。`make -C app/cplat` が成功し、内容のある `.warn` なし)。コミット、Windows の `trace_etw_sessionTest` と `etwSessionIntegrationTest` の検証、main への統合と CI の確認は主エージェントが行い、完了後に状態を「対策済み」へ更新します。
 
 ### 影響範囲とリスク
 
@@ -214,7 +214,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 単体テスト (`app/cplat/test/src/libcplatTest/trace/trace_etw_sessionTest/`) のモック (`ControlTraceW`、`CloseTrace`、`ProcessTrace`) で経路を通すため、実機の確認は必須としません。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、BL-005 の対策の単体テスト (`trace_etw_sessionTest`) で打ち切りの経路を通し、実機での確認を要しないものとしてクローズすると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、BL-005 の対策の単体テスト (`trace_etw_sessionTest`) で打ち切りの経路を通し、実機での確認を要しないものとしてクローズすると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-009)。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に `trace_etw_sessionTest` へ打ち切りの経路のテスト 3 件を追加しました。既存のテストと合わせ、`ControlTraceW` の失敗 (`CloseTrace` の成功と `ERROR_CTX_CLOSE_PENDING`)、`ControlTraceW` と `CloseTrace` の両方の失敗、`ProcessTrace` が戻らない場合の各経路を mock で通します。Windows でのテストの成功の確認 (主エージェントが行う) の後に、実機の確認を要しないものとしてクローズします。
 
 ### 影響範囲とリスク
 
