@@ -363,6 +363,175 @@ class GapDetectionTest(unittest.TestCase):
             """
         self.assertEqual(kinds(text), [])
 
+    def test_doxygen_marker_valid_patterns(self) -> None:
+        text = """
+            /* ファイルの見出し */
+
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int f(void)
+            {
+                return 0;
+            }
+
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            /**
+             * @details 実装に固有の補足です。
+             */
+            int g(void)
+            {
+                return 0;
+            }
+            """
+        self.assertEqual(kinds(text), [])
+
+    def test_doxygen_marker_blank_detection_and_fix(self) -> None:
+        text = source(
+            """
+            /* Doxygen コメントは、ヘッダーに記載 */
+            int f(void)
+            {
+                return 0;
+            }
+
+              /* Doxygen コメントは、ヘッダーに記載 */
+            /**
+             * @details 実装に固有の補足です。
+             */
+            int g(void)
+            {
+                return 0;
+            }
+            """
+        )
+        self.assertEqual(
+            [(index + 1, kind) for index, kind in CHECKER.find_gaps(text)],
+            [(2, "doxygen-marker-blank"), (8, "doxygen-marker-blank")],
+        )
+        fixed = CHECKER.insert_gaps(text, CHECKER.find_gaps(text))
+        expected = source(
+            """
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int f(void)
+            {
+                return 0;
+            }
+
+              /* Doxygen コメントは、ヘッダーに記載 */
+
+            /**
+             * @details 実装に固有の補足です。
+             */
+            int g(void)
+            {
+                return 0;
+            }
+            """
+        )
+        self.assertEqual(fixed, expected)
+        self.assertEqual(CHECKER.find_gaps(fixed), [])
+
+    def test_comment_before_marker_detection_and_not_fixed(self) -> None:
+        text = source(
+            """
+            /* 1 行の説明。 */
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int f(void)
+            {
+                return 0;
+            }
+
+            /*
+             * 複数行の説明。
+             */
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int g(void)
+            {
+                return 0;
+            }
+            """
+        )
+        self.assertEqual(
+            [(index + 1, kind) for index, kind in CHECKER.find_gaps(text)],
+            [(2, "comment-before-marker"), (12, "comment-before-marker")],
+        )
+        self.assertEqual(CHECKER.insert_gaps(text, CHECKER.find_gaps(text)), text)
+
+    def test_comment_before_marker_and_blank_together(self) -> None:
+        text = source(
+            """
+            /* 関数の説明。 */
+            /* Doxygen コメントは、ヘッダーに記載 */
+            int f(void)
+            {
+                return 0;
+            }
+            """
+        )
+        gaps = CHECKER.find_gaps(text)
+        self.assertEqual(
+            [(index + 1, kind) for index, kind in gaps],
+            [(2, "comment-before-marker"), (3, "doxygen-marker-blank")],
+        )
+        fixed = CHECKER.insert_gaps(text, gaps)
+        expected = source(
+            """
+            /* 関数の説明。 */
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int f(void)
+            {
+                return 0;
+            }
+            """
+        )
+        self.assertEqual(fixed, expected)
+        self.assertEqual(
+            [(index + 1, kind) for index, kind in CHECKER.find_gaps(fixed)],
+            [(2, "comment-before-marker")],
+        )
+
+    def test_doxygen_comment_before_marker_is_exempt(self) -> None:
+        text = """
+            /** @brief 1 行の Doxygen コメントです。 */
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int f(void)
+            {
+                return 0;
+            }
+
+            /**
+             * @brief 複数行の Doxygen コメントです。
+             */
+            /* Doxygen コメントは、ヘッダーに記載 */
+
+            int g(void)
+            {
+                return 0;
+            }
+            """
+        self.assertEqual(kinds(text), [])
+
+    def test_marker_text_inside_comment_or_string_is_ignored(self) -> None:
+        text = """
+            /*
+            /* Doxygen コメントは、ヘッダーに記載 */
+             * コメントの中の文字列はマーカーではない。
+             */
+            int f(void)
+            {
+                const char *s =
+                    "/* Doxygen コメントは、ヘッダーに記載 */";
+                return s != NULL;
+            }
+            """
+        self.assertEqual(kinds(text), [])
+
 
 class FixTest(unittest.TestCase):
     def test_insert_gaps(self) -> None:
@@ -433,6 +602,36 @@ class MainTest(unittest.TestCase):
                 self.assertEqual(CHECKER.main(["--fix", str(path)]), 0)
                 self.assertEqual(CHECKER.main([str(path)]), 0)
             self.assertIn("    g();\n\n    /* 日本語", path.read_text(encoding="utf-8"))
+
+    def test_fix_skips_comment_before_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "marker.c"
+            original = source(
+                """
+                /* 関数の説明。 */
+                /* Doxygen コメントは、ヘッダーに記載 */
+
+                int f(void)
+                {
+                    return 0;
+                }
+                """
+            )
+            path.write_text(original, encoding="utf-8")
+
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(CHECKER.main([str(path)]), 1)
+            self.assertIn(
+                "marker.c:2: comment-before-marker: /* Doxygen コメントは、ヘッダーに記載 */",
+                output.getvalue(),
+            )
+
+            fix_output = io.StringIO()
+            with contextlib.redirect_stdout(fix_output):
+                self.assertEqual(CHECKER.main(["--fix", str(path)]), 0)
+            self.assertEqual(fix_output.getvalue(), "")
+            self.assertEqual(path.read_text(encoding="utf-8"), original)
 
 
 if __name__ == "__main__":

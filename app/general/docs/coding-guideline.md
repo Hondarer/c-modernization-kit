@@ -413,7 +413,20 @@ static int is_ready(const sample_context *context)
 
 ### 検証
 
-`app/general/bin/check_c_blank_lines.py` で、空行がない箇所を検出します。`--fix` を指定すると空行を挿入します。
+`app/general/bin/check_c_blank_lines.py` で、空行がない箇所と Doxygen の誘導マーカーの配置違反を検出します。`--fix` を指定すると、自動修正の対象となる箇所に空行を挿入します。  
+Doxygen の誘導マーカーの規則の正本は、[app 向け Doxygen コメント](doxygen-comment-guideline.md) の「定義側の誘導マーカー」節です。
+
+Table: check_c_blank_lines.py の検出種別
+
+| 種別 | 検出内容 | `--fix` の動作 |
+| --- | --- | --- |
+| `after-block` | 閉じ波括弧 (`do` 文の末尾を含む) の後に、同じ字下げで次の文が続く | 空行を挿入 |
+| `before-block` | 通常の文の後に、同じ字下げでブロックが続く | 空行を挿入 |
+| `comment` | 前置コメントの直前が空行でない | 空行を挿入 |
+| `final-return` | 関数末尾の `return` の直前が空行でない | 空行を挿入 |
+| `comment-before-else` | 閉じ波括弧と `else` の間にコメントがある | 直さない |
+| `doxygen-marker-blank` | Doxygen の誘導マーカーの次の行が空行でない | 空行を挿入 |
+| `comment-before-marker` | Doxygen の誘導マーカーの直前に通常のブロック コメントがある | 直さない |
 
 ```bash
 # 空行がない箇所の検出 (0 件であること。検出があれば終了コード 1)

@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """C / C++ ソースで、処理を区切る空行がない箇所を検出し、必要に応じて挿入する。
 
-判定規則の正本は app/general/docs/coding-guideline.md の「処理を区切る空行」節である。
+判定規則の正本は app/general/docs/coding-guideline.md の「処理を区切る空行」節、
+Doxygen の誘導マーカーの規則の正本は app/general/docs/doxygen-comment-guideline.md の「定義側の誘導マーカー」節である。
 
 検出する種別:
-    after-block   閉じ波括弧 (do 文の末尾を含む) の後に、同じ字下げで次の文が続く
-    before-block  通常の文の後に、同じ字下げでブロックが続く
-    comment       前置コメントの直前が空行でない
-    final-return  関数末尾の return の直前が空行でない
-    comment-before-else  閉じ波括弧と else の間にコメントがある (--fix では直さない)
+    after-block            閉じ波括弧 (do 文の末尾を含む) の後に、同じ字下げで次の文が続く
+    before-block           通常の文の後に、同じ字下げでブロックが続く
+    comment                前置コメントの直前が空行でない
+    final-return           関数末尾の return の直前が空行でない
+    comment-before-else    閉じ波括弧と else の間にコメントがある (--fix では直さない)
+    doxygen-marker-blank   Doxygen の誘導マーカーの次の行が空行でない
+    comment-before-marker  Doxygen の誘導マーカーの直前に通常のブロック コメントがある (--fix では直さない)
 
 既定では検出結果を出力し、1 件以上あれば終了コード 1 を返す。--fix を指定すると空行を挿入する。
 """
@@ -23,6 +26,8 @@ import sys
 
 
 SOURCE_SUFFIXES = (".c", ".h", ".cc")
+DOXYGEN_MARKER = "/* Doxygen コメントは、ヘッダーに記載 */"
+NO_FIX_KINDS = frozenset({"comment-before-else", "comment-before-marker"})
 CONTROL_KEYWORDS = ("if", "else", "for", "while", "switch", "do")
 CONTROL_RE = re.compile(r"^(if|for|while|switch|do)\b")
 LABEL_RE = re.compile(r"^(case\b.*|default\s*|[A-Za-z_]\w*\s*):$")
@@ -37,6 +42,7 @@ class Line:
     code: str = ""  # コメントと文字列の中身を除いたコード部分
     indent: int = 0
     starts_in_comment: bool = False  # 行頭がブロック コメントの途中
+    ends_regular_block_comment: bool = False  # 通常のブロック コメント (/* で始まり /** ではない) がこの行で終わる
     is_preprocessor: bool = False  # 前処理指令の行 (継続行を含む)
     paren_depth_at_start: int = 0
     closes: str | None = None  # 行頭の '}' が閉じたブロックの種類
@@ -79,6 +85,7 @@ def analyze(text: str) -> Analysis:
     result = Analysis(lines=lines)
 
     in_comment = False
+    comment_is_regular = False  # 現在開いているブロック コメントが /* で始まり /** ではない
     in_preprocessor = False
     paren_depth = 0
     stack: list[Block] = []
@@ -120,6 +127,7 @@ def analyze(text: str) -> Analysis:
             continue
 
         code_chars: list[str] = []
+        ended_regular_block_comment = False
         i = 0
         quote = ""
         while i < len(raw):
@@ -128,6 +136,8 @@ def analyze(text: str) -> Analysis:
             if in_comment:
                 if ch == "*" and nxt == "/":
                     in_comment = False
+                    ended_regular_block_comment = comment_is_regular
+                    comment_is_regular = False
                     i += 2
                     continue
                 i += 1
@@ -143,9 +153,12 @@ def analyze(text: str) -> Analysis:
                 continue
             if ch == "/" and nxt == "*":
                 in_comment = True
+                third = raw[i + 2] if i + 2 < len(raw) else ""
+                comment_is_regular = third != "*"
                 i += 2
                 continue
             if ch == "/" and nxt == "/":
+                ended_regular_block_comment = False
                 break
             if ch in ("'", '"'):
                 quote = ch
@@ -216,6 +229,7 @@ def analyze(text: str) -> Analysis:
         if quote:
             quote = ""
         line.code = "".join(code_chars).strip()
+        line.ends_regular_block_comment = ended_regular_block_comment and not in_comment and not line.code
         if pending.strip():
             pending += " "
     return result
@@ -310,6 +324,15 @@ def is_comment_line(line: Line) -> bool:
     return line.starts_in_comment or (not line.code and stripped.startswith(("/*", "//", "*")))
 
 
+def is_doxygen_marker(line: Line) -> bool:
+    return (
+        not line.starts_in_comment
+        and not line.is_preprocessor
+        and not line.code
+        and line.text.strip() == DOXYGEN_MARKER
+    )
+
+
 def find_gaps(text: str) -> list[tuple[int, str]]:
     """空行を挿入すべき位置 (挿入後に空行の次になる行の 0 始まりの番号) と種別を返す。"""
     analysis = analyze(text)
@@ -326,6 +349,9 @@ def find_gaps(text: str) -> list[tuple[int, str]]:
         prev = lines[index - 1]
         if not cur.text.strip() or not prev.text.strip():
             continue
+        if is_doxygen_marker(prev):
+            add(index, "doxygen-marker-blank")
+            continue
         if cur.is_preprocessor or prev.is_preprocessor:
             continue
         if cur.starts_in_comment:
@@ -333,6 +359,9 @@ def find_gaps(text: str) -> list[tuple[int, str]]:
 
         # 前置コメントの直前
         if is_comment_start(cur):
+            if is_doxygen_marker(cur) and prev.ends_regular_block_comment:
+                add(index, "comment-before-marker")
+                continue
             if cur.paren_depth_at_start > 0:
                 continue
             # 閉じ波括弧と else の間のコメントは、空行の挿入では直せないため別の種別とする
@@ -381,7 +410,7 @@ def find_gaps(text: str) -> list[tuple[int, str]]:
 def insert_gaps(text: str, gaps: list[tuple[int, str]]) -> str:
     lines = text.split("\n")
     for index, kind in sorted(gaps, reverse=True):
-        if kind == "comment-before-else":
+        if kind in NO_FIX_KINDS:
             continue
         lines.insert(index, "")
     return "\n".join(lines)
@@ -411,8 +440,11 @@ def main(argv: list[str] | None = None) -> int:
         if not gaps:
             continue
         if args.fix:
+            fixed_count = sum(1 for _, kind in gaps if kind not in NO_FIX_KINDS)
+            if fixed_count == 0:
+                continue
             path.write_text(insert_gaps(text, gaps), encoding="utf-8", newline="\n")
-            print(f"{path}: {len(gaps)} 件の空行を挿入しました")
+            print(f"{path}: {fixed_count} 件の空行を挿入しました")
             continue
         lines = text.split("\n")
         for index, kind in gaps:
