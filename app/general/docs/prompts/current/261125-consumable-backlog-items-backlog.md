@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 16:53:10 JST
-最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 19:48:00 JST
+最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-consumable-backlog-items-overview.md` (全体管理文書)、`261125-consumable-backlog-items-design.md` (最終仕様)、`261125-consumable-backlog-items-discussion.md` (検討用 Markdown)、`261125-consumable-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
@@ -41,6 +41,7 @@
 | BL-009 | nonblockingStopIntegrationTest と porterCancelFailureTest に、確認ごとのエビデンスのタグがない | 作業中摘出 | 低 | 未着手 |
 | BL-010 | cplat の DLL に依存する実行ファイルを、MAX_PATH を超えるディレクトリから \\?\ なしで起動できない | 作業中摘出 | 中 | 未着手 |
 | BL-011 | mt -outputresource の単独指定が、既存のマニフェストの activeCodePage=UTF-8 を消す | 作業中摘出 | 低 | 未着手 |
+| BL-012 | testfw の allocateTestPort() が、Windows で新しいテストの実行ファイルごとに Windows Defender Firewall の確認画面を出させる | 作業中摘出 | 低 | 未着手 |
 
 ## BL-001 cplat_remove() が Windows で MAX_PATH 以上の長いパスのファイルを削除できない
 
@@ -294,3 +295,26 @@
 
 - **恒久対応案**: `longPathAware` を導入する場合は、リンカーの `/MANIFESTINPUT` で追加するか、`mt -manifest orig.manifest longpath.manifest` で結合する手順とし、`mt.exe` を長いパスのファイルに対して使わないことを makefw の文書に記載します。導入後は、組み込み後のマニフェストに `activeCodePage` と `longPathAware` の両方が残ることを確かめます。
 - **参考情報**: 対策元 `261123-remaining-backlog-items-backlog.md` の BL-009、[Application manifests](https://learn.microsoft.com/en-us/windows/win32/sbscs/application-manifests)。
+
+## BL-012 testfw の allocateTestPort() が、Windows で新しいテストの実行ファイルごとに Windows Defender Firewall の確認画面を出させる
+
+### 概要と問題点
+
+- **現状の事象**: `framework/testfw/libsrc/test_com/testPort_windows.cc` のポートの使用の確認 (`probe_port()` が呼ぶ `try_bind()`、228 行から) は、`0.0.0.0` (`INADDR_ANY`、242 行) へ bind します。このため、新しく作ったテストの実行ファイルが最初にポートの払い出しを行うと、Windows の受信の許可の確認画面 (Windows Defender Firewall) が出ます。2026-11-26 の U10 の Windows の検証 (依頼 15) で、`testPortTest.exe` の受信の規則が新しく増えていました。ユーザーが許可したため、検証の結果には影響していません。
+- **本来あるべき姿**: テストの実行ファイルを新しく作っても、ポートの使用の確認だけでは確認画面が出ない状態です。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 実装作業中に発見 (2026-11-26、Windows 側のセッションの報告)。
+- **今回の見送り理由**: 検証の結果に影響せず、初回の実行だけの手間です。確認の方式の変更は、使用中の番号の検出の精度に影響するため、別途の調査が必要です。
+- **継続作業での経緯と対処**: なし (未着手)。
+
+### 影響範囲とリスク
+
+- **影響対象**: `allocateTestPort()` を使う Windows 側のテストの実行ファイル全般 (`testPortTest.exe` や porter の結合テストなど)。
+- **放置した場合のリスク**: 対話の環境で、テストの初回の実行のたびに確認画面が出ます。CI や無人の実行では、画面が出ても bind は成功し止まらない見込みですが、確かめていません。優先度を低とした理由は、結果に影響せず、初回だけの手間のためです。
+
+### 推奨される対応策
+
+- **恒久対応案**: 確認を `127.0.0.1` への bind にすると、確認画面は避けられます。ただし Windows では、ほかのプロセスが `0.0.0.0` へ bind している番号でも、`SO_EXCLUSIVEADDRUSE` がなければ特定のアドレスへの bind が成功します。このため、使用中の番号を見逃すおそれがあります。対象のテスト (porter の結合テストなど) 自体も、`0.0.0.0` で待ち受けるなら確認画面が出ます。これらを調べたうえで、確認の方式 (loopback と `SO_EXCLUSIVEADDRUSE` の組み合わせなど) と、テストの待ち受けのアドレスを決めます。
+- **参考情報**: BL-001 (案件の U10、対策元 `261123-remaining-backlog-items-backlog.md` の BL-001)。
