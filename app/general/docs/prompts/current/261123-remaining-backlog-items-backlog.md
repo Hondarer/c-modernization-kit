@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-26 11:45:08 JST
-最終更新エージェント: claude code (sonnet サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-26 12:48:46 JST
+最終更新エージェント: claude code (opus サブエージェント、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261123-remaining-backlog-items-overview.md` (全体管理文書)、`261123-remaining-backlog-items-design.md` (最終仕様)、`261123-remaining-backlog-items-discussion.md` (検討用 Markdown)、`261123-remaining-backlog-items-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: 継続作業 `framework/makefw/docs/prompts/current/261125-makefw-backlog-overview.md` (検討 ID `261125-makefw-backlog`、検討用 Markdown `261125-makefw-backlog-discussion.md`、簡易 ADR `261125-makefw-backlog-lightadr.md`、残課題一覧 `261125-makefw-backlog-backlog.md`、最終仕様 `261125-makefw-backlog-design.md`) が BL-002、BL-029、BL-030 を対象に開始されています。継続作業 `261125-consumable-backlog-items` (`261125-consumable-backlog-items-overview.md`、検討用 Markdown `261125-consumable-backlog-items-discussion.md`、簡易 ADR `261125-consumable-backlog-items-lightadr.md`、最終仕様 `261125-consumable-backlog-items-design.md`、残課題一覧 `261125-consumable-backlog-items-backlog.md`) が、BL-001、BL-003、BL-004、BL-005、BL-006、BL-007、BL-008、BL-009、BL-012、BL-013、BL-020、BL-024、BL-028、BL-031 を対象に開始されています。この残課題一覧を対策するほかの継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
@@ -36,8 +36,8 @@
 | BL-009 | 長いパスに置いた tcpServer の子プロセスの実際の起動 | 検討時見送り | 中 | 対応中 |
 | BL-010 | マルチキャストの TTL と実ネットワークでの到達範囲 | 検討時見送り | 低 | 未着手 |
 | BL-011 | 実運用の負荷下での通信停止の時間 | 検討時見送り | 中 | 未着手 |
-| BL-012 | JSONC の共通ロックを通らない cJSON の直接の解析と global_error の参照の競合 | 検討時見送り | 中 | 対応中 |
-| BL-013 | 上限を検査していない待機の時間の項目の安全性 | 検討時見送り | 低 | 対応中 |
+| BL-012 | JSONC の共通ロックを通らない cJSON の直接の解析と global_error の参照の競合 | 検討時見送り | 中 | 対策済み |
+| BL-013 | 上限を検査していない待機の時間の項目の安全性 | 検討時見送り | 低 | 対策済み |
 | BL-014 | systemd 239 の D-Bus の呼び出しとインヒビター fd の実機確認 | 検討時見送り | 中 | 未着手 |
 | BL-015 | 停止の後に届いた通知の systemd での扱い | 検討時見送り | 低 | 未着手 |
 | BL-016 | unit の起動の回数の制限の実機での確認 | 検討時見送り | 低 | 未着手 |
@@ -55,7 +55,7 @@
 | BL-028 | Windows のソケットの待機の、方向別のイベントの競合の全組み合わせのテスト | 作業中摘出 | 中 | 対応中 |
 | BL-029 | makefw のスクリプトのテストの文字コードの指定の漏れ | 作業中摘出 | 低 | 対応済み |
 | BL-030 | makefw のスクリプトのテストが、統合ワークスペースの外で動かない | 作業中摘出 | 低 | 対応済み |
-| BL-031 | struct-meta のフィールドの診断の行が、字面の行より 1 行後ろになる | 作業中摘出 | 低 | 対応中 |
+| BL-031 | struct-meta のフィールドの診断の行が、字面の行より 1 行後ろになる | 作業中摘出 | 低 | 対策済み |
 | BL-032 | makefw の予算の割り振りの後の、CI のビルドの所要時間 | 作業中摘出 | 中 | 未着手 |
 | BL-033 | porter-test の出力のテストが、1 回だけ終了コード 127 で失敗した | 作業中摘出 | 中 | 未着手 |
 
@@ -122,7 +122,7 @@
 
 - **摘出契機**: 最終仕様 (`261123-remaining-backlog-items-design.md`) の検討時に見送りました。
 - **今回の見送り理由**: 仕様は文字列としての比較だけを約束し、公開ヘッダー `app/cplat/prod/include/cplat/crt/path.h` にその範囲を明記します。ファイル システムと同じ判定は、この案件の決定の範囲の外です。
-- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、ファイルの識別子 (Windows はボリュームとファイルの識別子、Linux は `st_dev` と `st_ino`) で同じ実体かを判定する公開 API を `app/cplat` に追加し、`compress-cli` へ適用すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-011)。存在しないパスの扱いは追加の Q-023 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。
+- **継続作業での経緯と対処**: 2026-11-25 に継続案件 `261125-consumable-backlog-items` (全体管理文書: `app/general/docs/prompts/current/261125-consumable-backlog-items-overview.md`) で対策を検討中です。方針は検討用 Markdown `261125-consumable-backlog-items-discussion.md` の Q&A で合意します。状態は「検討中」です。2026-11-25 の Q&A で、ファイルの識別子 (Windows はボリュームとファイルの識別子、Linux は `st_dev` と `st_ino`) で同じ実体かを判定する公開 API を `app/cplat` に追加し、`compress-cli` へ適用すると合意しました (簡易 ADR `261125-consumable-backlog-items-lightadr.md` の LADR-011)。存在しないパスの扱いは追加の Q-023 で確認中です。 2026-11-25 に最終仕様 `261125-consumable-backlog-items-design.md` を作成し、確定した対策方針を記載しました (第 2 ゲートの承認待ち)。状態を「対応中」にしました。 2026-11-26 に U8 として実装し、Linux の局所テストを終えました。`framework/testfw` に `GetFileInformationByHandleEx` の mock を加え、`app/cplat` に公開 API `cplat_path_is_same_file()` (`prod/include/cplat/crt/path.h`、`prod/libsrc/cplat/crt/path_identity.c`。Linux は `st_dev` と `st_ino`、Windows は `FileIdInfo` のボリュームのシリアル番号と 128 ビットのファイル識別子) を追加し、`compress-cli` の入力と出力の同一性の検査を、この API へ置き換えました。`pathIdentityTest` (Linux 18 件)、`exportTest`、`errorContractTest`、`compress-cliTest` (19 件) が Linux で成功しています。Windows の検証、main への統合、CI の確認が残るため、状態は「対応中」のままです。
 
 ### 影響範囲とリスク
 
