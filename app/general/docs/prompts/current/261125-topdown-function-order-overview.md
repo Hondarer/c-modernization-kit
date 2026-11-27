@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-27 08:36:02 JST
+最終更新日時: 2026-11-27 12:37:39 JST
 最終更新エージェント: agy (gemini-4-neon-medium、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 下流文書: `261125-topdown-function-order-discussion.md` (検討用 Markdown)、`261125-topdown-function-order-lightadr.md` (簡易 ADR)、`261125-topdown-function-order-design.md` (最終仕様)、`261125-topdown-function-order-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
@@ -62,8 +62,8 @@
         - 🔄 4.2.3. `porter` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (porter の main 91fa196 へコミットと push。Windows の検証 (依頼 20) は成功し、cplat の全体 2,172 件、porter の全体 996 件が合格 (test.stamp で省かれた 32 ディレクトリも流し直して合格)。#if の分岐の中の宣言の崩れ (BL-006) は Windows でも見つからず、MSVC の警告と内容のある .warn はなし。親リポジトリの参照の更新を push し、CI の結果待ち)
         - ✅ 4.2.4. `cplat` (違反 81 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (対象 117 ファイル、違反 81 ファイル、エラー 1,485 件 (`missing-prototype` 746 件、`non-topdown-order` 739 件)、警告 1 件 (`console.c` の `order-mismatch`)。生成物と外部由来のファイルは対象外。80 ファイルを `reorder_c_topdown.py` で、`prompt_windows.c` を手作業で書き換え、さらに `#if` 分岐内の `#include`・マクロ・型定義・静的変数が関数より後へ移った `elevated_process.c`・`process.c`・`eventlog-register.c` を手作業で整え、全 81 ファイルが `--verify` に合格した。チェッカーは BL-004 の 2 ファイル (`console.c` 5 件、`etw-viewer.c` 2 件の計 7 件の `non-topdown-order`) を除きエラー 0 件、警告 0 件。`check_c_blank_lines.py` の検出は 456 件のまま増えていない。`make` 後の `.warn` は空。`make test` は合格 (実行した 84 テスト ディレクトリで Passed 2,202 件、Warning 0 件、Failed 0 件、所要 02:04:01)。`test.stamp` で実行を省いた 17 ディレクトリは、いずれも書き換えたソースをビルドに含まないため流し直していない。`app/cplat/docs/` (`prompts/` を除く) とソース コメントに行番号の参照はなく、追従は不要)
         - 🔄 4.2.5. `cplat` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (cplat の main 1780861a へコミットと push。Windows の検証は 4.2.3 と同じ。親リポジトリの参照の更新を push し、CI の結果待ち) ← **CURRENT**
-        - ⏸️ 4.2.6. 第 1 段の後に並行案件が変更したファイルへの `reorder_c_topdown.py` の再実行、検証、コミット、push、CI の確認
-    - ⏸️ 4.3. 全対象 (2026-11-25 時点で 244 ファイル) への `check_c_topdown.py` の実行 (エラーと警告 0 件) と実行時間の計測
+        - ⚠️ 4.2.6. 第 1 段の後に並行案件が変更したファイルへの `reorder_c_topdown.py` の再実行、検証、コミット、push、CI の確認 (第 1 段コミット後に変更された `.c` は 9 ファイル (`service-sample.c`、`add.c`、`calc.c`、`shared-and-static-calc.c`、`override-sample.c`、`sample-app/main.c`、`hello.c`、`hello_with_args.c`、`cJSON_JSONC.c`) で、`struct-meta` の `9376a220` は生成元の `struct_meta_parse.y` のみ。9 ファイルすべて `check_c_topdown.py` でエラー 0 件・警告 0 件のため、書き換え・再ビルド・再テストは不要。コミット・push・CI の確認は主エージェントが行う)
+    - ⚠️ 4.3. 全対象 (2026-11-25 時点で 244 ファイル) への `check_c_topdown.py` の実行 (エラーと警告 0 件) と実行時間の計測 (2026-11-27 時点の全対象は 246 ファイル (`cplat` が 115 → 117 ファイルへ増加)。結果はエラー 7 件、警告 0 件で、残ったのは BL-004 の 2 ファイル (`cplat` の `console.c` 5 件、`etw-viewer.c` 2 件) のみ。実行時間は約 1.67 [s] (3 回計測: 1.659 [s]、1.677 [s]、1.672 [s])。BL-004 のため受入条件 4 を満たせない扱いは主エージェントが決める)
     - ⏸️ 4.4. 受入条件への適合確認
     - ⏸️ 4.5. 簡易 ADR (`261125-topdown-function-order-lightadr.md`) の最終確認
     - ⏸️ 4.6. 残課題一覧 (`261125-topdown-function-order-backlog.md`) の再構築と整理
@@ -165,6 +165,7 @@
 | 2026-11-26 09:03 | `struct-meta` の書き換えの完了 | 開始条件の U1 (BL-031) の main (937b6ab0) への統合を受け、作業 WBS 4.1.13 を完了。`struct-meta` の 17 ファイルを `reorder_c_topdown.py` で書き換え、`--verify` に合格し、チェッカーのエラー 161 件を 0 件にした。`check_c_blank_lines.py` の検出は増えていない。`make` で `.warn` は空、`make test` は合格 (Passed 129 件)。4.1.14 は主エージェントのコミット項目のため要注意とした |
 | 2026-11-27 06:08 | 第 2 段の開始と `porter` の書き換えの完了 | 並行案件 `261125-consumable-backlog-items` の main への統合と完了、`261123-porter-remaining-backlog-phase2` の各サブモジュールの main への統合と親リポジトリの参照の更新 (dbc28819) を受け、作業 WBS 4.2.1 を完了 (統合後の CI 45888369745 は実行中)。作業 WBS 4.2.2 で `porter` の 41 ファイルを書き換え、`--verify` に合格し、チェッカーのエラー 551 件を 0 件にした。`make` で `.warn` は空、`make test` は合格 (Passed 895 件)。4.2.3 は主エージェントのコミット項目のため要注意とした |
 | 2026-11-27 08:36 | `cplat` の書き換えの完了 | 作業 WBS 4.2.4 を完了。`cplat` の 81 ファイルを書き換え、全 81 ファイルが `--verify` に合格し、チェッカーのエラー 1,485 件・警告 1 件を、BL-004 の 2 ファイル (`console.c` 5 件、`etw-viewer.c` 2 件の計 7 件) を除き 0 件にした。`check_c_blank_lines.py` の検出は 456 件のまま増えていない。`make` で `.warn` は空、`make test` は合格 (84 テスト ディレクトリで Passed 2,202 件、Failed 0 件)。4.2.5 は主エージェントのコミット項目のため要注意とした |
+| 2026-11-27 12:37 | 第 1 段以降の変更確認と全対象チェッカー実行 | 作業 WBS 4.2.6 と 4.3 を実施。4.2.6 は第 1 段コミット後に変更された 9 ファイルで `check_c_topdown.py` のエラー 0 件・警告 0 件を確認し、書き換え不要 (コミット・push・CI の確認は主エージェントが行うため要注意)。4.3 は全対象 246 ファイルに実行し、BL-004 の 2 ファイル (`console.c` 5 件、`etw-viewer.c` 2 件) の計 7 件を除きエラー 0 件・警告 0 件、実行時間は約 1.67 [s] (BL-004 の残存のため要注意) |
 
 ## 反映と検証の記録
 
@@ -200,3 +201,14 @@ Table: app ごとの対象ファイル数と違反ファイル数 (`check_c_topd
 - 違反 154 ファイル全件にメモリ上で適用し、150 ファイルが等価性の検証に合格し、結果のチェッカーのエラーと警告が 0 件、`check_c_blank_lines.py` の検出の増加なし、再実行で変化なしだった。第 1 段の対象 (`service-sample`、`string-catalog-sample`、`cjson`、`struct-meta`) はすべて含まれる。
 - 残る 4 ファイルはすべて第 2 段の対象。`cplat` の `prompt_windows.c` (`static` 関数を参照する変数がマクロの定義より前にある) と `porter` の `tcpServer.c` (`main` を `#pragma warning(push)` と `pop` で囲む) は自動で並べ替えられないと判定され、手作業での書き換えになる。`cplat` の `console.c` と `etw-viewer.c` は、並べ替えても `non-topdown-order` が残る ([残課題一覧](261125-topdown-function-order-backlog.md) の BL-004)。
 - `service-sample` の 5 ファイルを一時ディレクトリの Git リポジトリへ複製し、`reorder_c_topdown.py --in-place` で書き換えた。5 ファイルとも `--verify` に合格し、`check_c_topdown.py` のエラーと警告が 0 件、`check_c_blank_lines.py` の検出が書き換え前と同じだった。
+
+### 第 1 段以降の変更確認と全対象チェッカー実行 (作業 WBS 4.2.6、4.3)
+
+- 4.2.6 (第 1 段のコミット以降に変更された `.c` の確認、2026-11-27):
+    - 対象 (`cplat` と `porter` 以外の app) で第 1 段のコミット後に変更された `.c` は 9 ファイル (`839387f4` による `service-sample.c`、`add.c`、`calc.c`、`shared-and-static-calc.c`、`override-sample.c`、`sample-app/main.c`、`hello.c`、`hello_with_args.c` と、`cjson` サブモジュールの `77c9c3a` / `57db801` による `cJSON_JSONC.c`)。`struct-meta` の `9376a220` は生成元の `struct_meta_parse.y` のみの変更であり、対象 `.c` の変更はなし。
+    - 9 ファイルすべてに対して `check_c_topdown.py` を実行し、エラー 0 件・警告 0 件を確認した。書き換え対象がないため、`reorder_c_topdown.py` の再実行、`make`、`make test` は不要。
+- 4.3 (全対象への `check_c_topdown.py` の実行と計測、2026-11-27、Linux (WSL)):
+    - 引数なしで `python3 app/general/bin/check_c_topdown.py` を実行した。
+    - 対象ファイル数: 246 ファイル (2026-11-25 時点の 244 ファイルから +2。`cplat` が 115 → 117 ファイルに増加。内訳: `calc` 8、`cjson` 3、`cplat` 117、`doxygen-sample` 7、`override-sample` 6、`porter` 58、`service-sample` 5、`string-catalog-sample` 10、`struct-meta` 23、`subfolder-sample` 6、`tutorial` 2、`zlib` 1)。
+    - 結果: エラー 7 件、警告 0 件 (終了コード 1)。残ったエラーはすべて BL-004 の 2 ファイル (`app/cplat/prod/libsrc/cplat/console/console.c` の `non-topdown-order` 5 件と、`app/cplat/prod/src/cmd/etw-viewer/etw-viewer.c` の `non-topdown-order` 2 件) であり、それ以外のエラー・警告は 0 件。
+    - 実行時間: 約 1.67 [s] (3 回計測: 1.659 [s]、1.677 [s]、1.672 [s]。初回ウォーム アップ時 1.764 [s])。
