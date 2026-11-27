@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-27 12:37:39 JST
+最終更新日時: 2026-11-27 22:42:35 JST
 最終更新エージェント: agy (gemini-4-neon-medium、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 下流文書: `261125-topdown-function-order-discussion.md` (検討用 Markdown)、`261125-topdown-function-order-lightadr.md` (簡易 ADR)、`261125-topdown-function-order-design.md` (最終仕様)、`261125-topdown-function-order-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
@@ -20,7 +20,7 @@
 
 検討用 Markdown の版: 4 (合意済み。版 4 は第 2 ゲートでの差し戻しへの対処の版で、新しい Q はない)
 
-状態: 作業実施中 (第 2 段)
+状態: 第 3 ゲート承認待ち
 
 ## 作業 WBS と進捗管理
 
@@ -40,7 +40,7 @@
     - ✅ 3.1. `261125-topdown-function-order-design.md` の作成と、レビュー指摘に基づく改訂 (適用範囲のファイル単位化、構成順の変更、`inline` の記述の削除、並べ替えツールと等価性の検証、Git と CI の手順、段階分け、判定基準の一意化、件数の実測)
     - ✅ 3.2. 最終仕様における受入条件と整合性の確認 (簡易 ADR LADR-001 〜 LADR-008 との一致)
     - ✅ 3.3. 対話セッションにおける最終仕様 (`261125-topdown-function-order-design.md`) の承認の受付 (第 2 ゲート: 作業着手の合意。2026-11-25 21:48 の対話の「ユーザーの確認なく継続的に自走すること」の指示により承認済みとして扱う。承認を、最終仕様の「Git の運用と書き込み操作の許可の範囲」の許可とする)
-- 🔄 4. 承認された最終仕様に従った作業の実施 (`make` は同時に 1 本、`make clean` は禁止。Git の書き込み操作は主エージェントだけが行う)
+- ✅ 4. 承認された最終仕様に従った作業の実施 (`make` は同時に 1 本、`make clean` は禁止。Git の書き込み操作は主エージェントだけが行う)
     - ✅ 4.1. 第 1 段 (`app/general` の規範とツール、`cplat` と `porter` 以外の app)
         - ✅ 4.1.1. コーディング規範 (`app/general/docs/coding-guideline.md`) への `## 関数の記載順と前方宣言` 節の追加と、概要・`## 実装コメント` 節の整合更新、`text_style_jp.py --dry-run` / `--in-place`
         - ✅ 4.1.2. チェッカー (`app/general/bin/check_c_topdown.py`) と単体テスト (`app/general/bin_test/test_check_c_topdown.py`) の作成
@@ -56,19 +56,19 @@
         - ✅ 4.1.12. 違反のない app (`calc`、`doxygen-sample`、`override-sample`、`subfolder-sample`、`tutorial`、`zlib_sample.c`、`cjson_sample.c`) の `check_c_topdown.py` の確認 (`calc` 8、`doxygen-sample` 7、`override-sample` 6、`subfolder-sample` 6、`tutorial` 2、`zlib` 1、`cjson_sample.c` を含む `cjson` 3 ファイルで、エラー 0 件、警告 0 件)
         - ✅ 4.1.13. `struct-meta` (違反 17 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (開始条件の U1 (BL-031) は main (937b6ab0) へ統合済みのため、作業ブランチ `work/261125-consumable-backlog-items` (839387f4) の作業ツリーで実施した。チェッカーのエラー 161 件を 0 件にした (対象 23 ファイル、変更 17 ファイル、警告 0 件)。17 ファイルはすべて手書きで、生成物の違反はない。`--verify` は全 17 ファイルに合格。`check_c_blank_lines.py` の検出は対象 17 ファイルで書き換え前後とも 17 件のまま。`make` 後の `.warn` は空。`make test` は合格 (18 テスト ディレクトリで Passed 129 件、Failed 0 件)。`architecture.md` に行番号の参照はなく、追従は不要)
         - ✅ 4.1.14. `struct-meta` のコミット、push、CI の確認 (作業ブランチの 803b8a3a を、並行案件の U4〜U7 とともに main の 712b55ff へ統合して push。Windows の検証は 128 件成功 (Windows で除外の 1 件を除き Linux の 129 件と一致)。CI 45751634321 は成功)
-    - 🔄 4.2. 第 2 段 (`porter`、`cplat`、並行案件が変更したファイルの再実行)
+    - ✅ 4.2. 第 2 段 (`porter`、`cplat`、並行案件が変更したファイルの再実行)
         - ✅ 4.2.1. 開始条件の確認 (並行案件 `261125-consumable-backlog-items` と `261123-porter-remaining-backlog-phase2` の main への統合、または統合なしの終了。満たせない場合は残りを残課題一覧へ送る) (`261125-consumable-backlog-items` は main へ統合済みで、第 3 ゲートの承認を受けて完了した。`261123-porter-remaining-backlog-phase2` は各サブモジュールの main への統合と、親リポジトリの参照の更新 (親の main の dbc28819) を終えた。統合後の CI 45888369745 は実行中だが、開始条件は満たされたものとして扱う)
         - ✅ 4.2.2. `porter` (違反 42 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (並行案件の統合後の数え直しで違反は 41 ファイル、エラー 551 件 (`missing-prototype` 336 件)。生成物と外部由来のファイルはない。40 ファイルを `reorder_c_topdown.py` で、`#pragma warning` で `main` を囲む `tcpServer.c` を手作業で書き換え、41 ファイルすべてが `--verify` に合格した。チェッカーのエラーは 0 件、警告は 0 件 (対象 58 ファイル)。`check_c_blank_lines.py` の検出は 1,059 件から 1,058 件で、増えていない。`make` 後の `.warn` は空。`make test` は合格 (実行した 50 テスト ディレクトリで Passed 895 件、Failed 0 件)。`test.stamp` で実行を省いた 7 ディレクトリは、書き換えたソースを含まないため流し直していない。Windows 専用の `tcpServerWindowsTest` は Linux では実行されない。`app/porter/docs/` の `prompts/` の外に行番号の参照はなく、追従は不要)
-        - 🔄 4.2.3. `porter` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (porter の main 91fa196 へコミットと push。Windows の検証 (依頼 20) は成功し、cplat の全体 2,172 件、porter の全体 996 件が合格 (test.stamp で省かれた 32 ディレクトリも流し直して合格)。#if の分岐の中の宣言の崩れ (BL-006) は Windows でも見つからず、MSVC の警告と内容のある .warn はなし。親リポジトリの参照の更新を push し、CI の結果待ち)
+        - ✅ 4.2.3. `porter` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (`porter` の main 91fa196 と `cplat` の main 1780861a を親リポジトリの main (12404d08) へ統合。Windows の検証 (依頼 20) は成功し、`cplat` の全体 2,172 件、`porter` の全体 996 件が合格 (`test.stamp` で省かれた 32 ディレクトリも流し直して合格)、`#if` の分岐の中の宣言の崩れ (BL-006) は Windows でも見つからず、MSVC の警告と内容のある `.warn` はなし。統合後の最初の CI 45935059124 は Linux のスクリプト テストで失敗したが、原因は `docsfw` の新しいテストであり本案件とは無関係。`docsfw` を修正した後の CI 45964310605 (親 3c9e0c08) は全ジョブが成功し、警告の注釈は 0 件)
         - ✅ 4.2.4. `cplat` (違反 81 ファイル) の書き換え、`--verify`、`make`、`.warn` の確認、`make test` (対象 117 ファイル、違反 81 ファイル、エラー 1,485 件 (`missing-prototype` 746 件、`non-topdown-order` 739 件)、警告 1 件 (`console.c` の `order-mismatch`)。生成物と外部由来のファイルは対象外。80 ファイルを `reorder_c_topdown.py` で、`prompt_windows.c` を手作業で書き換え、さらに `#if` 分岐内の `#include`・マクロ・型定義・静的変数が関数より後へ移った `elevated_process.c`・`process.c`・`eventlog-register.c` を手作業で整え、全 81 ファイルが `--verify` に合格した。チェッカーは BL-004 の 2 ファイル (`console.c` 5 件、`etw-viewer.c` 2 件の計 7 件の `non-topdown-order`) を除きエラー 0 件、警告 0 件。`check_c_blank_lines.py` の検出は 456 件のまま増えていない。`make` 後の `.warn` は空。`make test` は合格 (実行した 84 テスト ディレクトリで Passed 2,202 件、Warning 0 件、Failed 0 件、所要 02:04:01)。`test.stamp` で実行を省いた 17 ディレクトリは、いずれも書き換えたソースをビルドに含まないため流し直していない。`app/cplat/docs/` (`prompts/` を除く) とソース コメントに行番号の参照はなく、追従は不要)
-        - 🔄 4.2.5. `cplat` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (cplat の main 1780861a へコミットと push。Windows の検証は 4.2.3 と同じ。親リポジトリの参照の更新を push し、CI の結果待ち) ← **CURRENT**
-        - ⚠️ 4.2.6. 第 1 段の後に並行案件が変更したファイルへの `reorder_c_topdown.py` の再実行、検証、コミット、push、CI の確認 (第 1 段コミット後に変更された `.c` は 9 ファイル (`service-sample.c`、`add.c`、`calc.c`、`shared-and-static-calc.c`、`override-sample.c`、`sample-app/main.c`、`hello.c`、`hello_with_args.c`、`cJSON_JSONC.c`) で、`struct-meta` の `9376a220` は生成元の `struct_meta_parse.y` のみ。9 ファイルすべて `check_c_topdown.py` でエラー 0 件・警告 0 件のため、書き換え・再ビルド・再テストは不要。コミット・push・CI の確認は主エージェントが行う)
-    - ⚠️ 4.3. 全対象 (2026-11-25 時点で 244 ファイル) への `check_c_topdown.py` の実行 (エラーと警告 0 件) と実行時間の計測 (2026-11-27 時点の全対象は 246 ファイル (`cplat` が 115 → 117 ファイルへ増加)。結果はエラー 7 件、警告 0 件で、残ったのは BL-004 の 2 ファイル (`cplat` の `console.c` 5 件、`etw-viewer.c` 2 件) のみ。実行時間は約 1.67 [s] (3 回計測: 1.659 [s]、1.677 [s]、1.672 [s])。BL-004 のため受入条件 4 を満たせない扱いは主エージェントが決める)
-    - ⏸️ 4.4. 受入条件への適合確認
-    - ⏸️ 4.5. 簡易 ADR (`261125-topdown-function-order-lightadr.md`) の最終確認
-    - ⏸️ 4.6. 残課題一覧 (`261125-topdown-function-order-backlog.md`) の再構築と整理
-- ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
-    - ⏸️ 5.1. 成果物・検証結果・残課題の提示
+        - ✅ 4.2.5. `cplat` リポジトリのコミットと push、親リポジトリの参照の更新のコミットと push、CI の確認 (`cplat` の main 1780861a を `porter` (91fa196) とともに親リポジトリの main (12404d08) へ統合。Windows の検証 (依頼 20) は 4.2.3 のとおり成功。`docsfw` 修正後の CI 45964310605 (親 3c9e0c08) は全ジョブが成功し、警告の注釈は 0 件)
+        - ✅ 4.2.6. 第 1 段の後に並行案件が変更したファイルへの `reorder_c_topdown.py` の再実行、検証、コミット、push、CI の確認 (第 1 段コミット後に変更された `.c` は 9 ファイル (`service-sample.c`、`add.c`、`calc.c`、`shared-and-static-calc.c`、`override-sample.c`、`sample-app/main.c`、`hello.c`、`hello_with_args.c`、`cJSON_JSONC.c`) で、`struct-meta` の `9376a220` は生成元の `struct_meta_parse.y` のみ。9 ファイルすべて `check_c_topdown.py` でエラー 0 件・警告 0 件のため、書き換え・再ビルド・再テストは不要。コミットと push は親 3c9e0c08 に含まれ、CI 45964310605 で成功)
+    - ✅ 4.3. 全対象 (2026-11-25 時点で 244 ファイル) への `check_c_topdown.py` の実行 (エラーと警告 0 件) と実行時間の計測 (2026-11-27 時点の全対象は 246 ファイル (`cplat` が 115 → 117 ファイルへ増加)。結果はエラー 7 件、警告 0 件で、エラーはすべて BL-004 の 2 ファイル (`cplat` の `console.c` 5 件、`etw-viewer.c` 2 件)。実行時間は約 1.67 [s] (3 回計測: 1.659 [s]、1.677 [s]、1.672 [s])。BL-004 の解消にはチェッカーの判定の変更かファイルの OS 別分割の設計判断が要るため、本案件では解消しない。主エージェント (最終仕様の作成者) の判断として、対応する受入条件 4 は BL-004 の 7 件を除きエラー・警告 0 件であることから「条件付きで適合」とする。最終仕様の定義どおりに判定すれば不適合であることと、この判断を第 3 ゲートでユーザーへ示す)
+    - ✅ 4.4. 受入条件への適合確認 (受入条件 1 〜 8 を照合し、「反映と検証の記録」に表で記録。受入条件 4 は条件付きで適合 (最終仕様の定義どおりでは不適合)、ほか 7 件は適合)
+    - ✅ 4.5. 簡易 ADR (`261125-topdown-function-order-lightadr.md`) の最終確認 (LADR-001 〜 LADR-008 が実装結果と一致することを確認し、実装中に判明した並べ替えツールの欠陥 (BL-006)、手作業で修正した 5 ファイル、BL-004 の扱いと検証結果を経緯に追記)
+    - ✅ 4.6. 残課題一覧 (`261125-topdown-function-order-backlog.md`) の再構築と整理 (BL-001 〜 BL-006 の最新状況と具体性を確認・更新し、整理状態を「整理済み」にした)
+- 🔄 5. 成果物の承認の受付 (第 3 ゲート)
+    - 🔄 5.1. 成果物・検証結果・残課題の提示 ← **CURRENT**
     - ⏸️ 5.2. 対話セッションにおける成果物の承認の受付 (「承認」または「完了」の受領によるスキル完了)
 
 ## 対象と参照資料
@@ -166,6 +166,7 @@
 | 2026-11-27 06:08 | 第 2 段の開始と `porter` の書き換えの完了 | 並行案件 `261125-consumable-backlog-items` の main への統合と完了、`261123-porter-remaining-backlog-phase2` の各サブモジュールの main への統合と親リポジトリの参照の更新 (dbc28819) を受け、作業 WBS 4.2.1 を完了 (統合後の CI 45888369745 は実行中)。作業 WBS 4.2.2 で `porter` の 41 ファイルを書き換え、`--verify` に合格し、チェッカーのエラー 551 件を 0 件にした。`make` で `.warn` は空、`make test` は合格 (Passed 895 件)。4.2.3 は主エージェントのコミット項目のため要注意とした |
 | 2026-11-27 08:36 | `cplat` の書き換えの完了 | 作業 WBS 4.2.4 を完了。`cplat` の 81 ファイルを書き換え、全 81 ファイルが `--verify` に合格し、チェッカーのエラー 1,485 件・警告 1 件を、BL-004 の 2 ファイル (`console.c` 5 件、`etw-viewer.c` 2 件の計 7 件) を除き 0 件にした。`check_c_blank_lines.py` の検出は 456 件のまま増えていない。`make` で `.warn` は空、`make test` は合格 (84 テスト ディレクトリで Passed 2,202 件、Failed 0 件)。4.2.5 は主エージェントのコミット項目のため要注意とした |
 | 2026-11-27 12:37 | 第 1 段以降の変更確認と全対象チェッカー実行 | 作業 WBS 4.2.6 と 4.3 を実施。4.2.6 は第 1 段コミット後に変更された 9 ファイルで `check_c_topdown.py` のエラー 0 件・警告 0 件を確認し、書き換え不要 (コミット・push・CI の確認は主エージェントが行うため要注意)。4.3 は全対象 246 ファイルに実行し、BL-004 の 2 ファイル (`console.c` 5 件、`etw-viewer.c` 2 件) の計 7 件を除きエラー 0 件・警告 0 件、実行時間は約 1.67 [s] (BL-004 の残存のため要注意) |
+| 2026-11-27 22:42 | 第 2 段の統合・CI 確認および最終確認の完了 | `porter` (91fa196) と `cplat` (1780861a) を親リポジトリの main (12404d08) へ統合。`docsfw` の新テストによる無関係な CI 失敗 (CI 45935059124) の修正後、CI 45964310605 (親 3c9e0c08) が全ジョブ成功・警告 0 件となり、作業 WBS 4.2.3、4.2.5、4.2.6 を完了。4.3 は BL-004 の 2 ファイル 7 件を除き 0 件のため、受入条件 4 を条件付きで適合 (最終仕様の定義どおりでは不適合である旨を第 3 ゲートで提示) とする主エージェント判断を記録して完了。4.4 (受入条件確認)、4.5 (簡易 ADR 最終確認)、4.6 (残課題一覧整理) を完了し、第 3 ゲートの提示 (5.1) へ移行 |
 
 ## 反映と検証の記録
 
@@ -212,3 +213,24 @@ Table: app ごとの対象ファイル数と違反ファイル数 (`check_c_topd
     - 対象ファイル数: 246 ファイル (2026-11-25 時点の 244 ファイルから +2。`cplat` が 115 → 117 ファイルに増加。内訳: `calc` 8、`cjson` 3、`cplat` 117、`doxygen-sample` 7、`override-sample` 6、`porter` 58、`service-sample` 5、`string-catalog-sample` 10、`struct-meta` 23、`subfolder-sample` 6、`tutorial` 2、`zlib` 1)。
     - 結果: エラー 7 件、警告 0 件 (終了コード 1)。残ったエラーはすべて BL-004 の 2 ファイル (`app/cplat/prod/libsrc/cplat/console/console.c` の `non-topdown-order` 5 件と、`app/cplat/prod/src/cmd/etw-viewer/etw-viewer.c` の `non-topdown-order` 2 件) であり、それ以外のエラー・警告は 0 件。
     - 実行時間: 約 1.67 [s] (3 回計測: 1.659 [s]、1.677 [s]、1.672 [s]。初回ウォーム アップ時 1.764 [s])。
+    - 主エージェント (最終仕様の作成者) の判断: BL-004 の解消にはチェッカーの判定の変更かファイルの OS 別分割の設計判断が要るため、本案件では解消しない。BL-004 の 7 件を除けばエラーと警告は 0 件であるため、受入条件 4 は「条件付きで適合」とする。最終仕様の定義どおりに判定すれば不適合であることと、この判断を第 3 ゲートでユーザーへ示す。
+- 4.2.3、4.2.5、4.2.6 の統合と CI 確認:
+    - `porter` (91fa196) と `cplat` (1780861a) を親リポジトリの main (12404d08) へ統合した。
+    - 統合後の最初の CI 45935059124 は Linux のスクリプト テストで失敗したが、原因は `docsfw` の新しいテストであり本案件とは無関係だった。
+    - `docsfw` を修正した後の CI 45964310605 (親 3c9e0c08、4.2.6 を含む) は全ジョブが成功し、警告の注釈は 0 件だった。
+    - Windows の検証 (依頼 20) も成功し、`cplat` 全体 2,172 件、`porter` 全体 996 件が合格 (MSVC 警告・内容のある `.warn` なし)。
+
+### 受入条件の確認結果 (作業 WBS 4.4)
+
+Table: 受入条件の確認結果
+
+| No. | 受入条件 | 判定 | 根拠・確認結果 |
+| --- | --- | --- | --- |
+| 1 | `coding-guideline.md` に `## 関数の記載順と前方宣言` 節があり、概要、`## 実装コメント` 節、「inline 関数」節と矛盾せず、個別の app 名を規範として記載していない。`text_style_jp.py --dry-run` の指摘がない。 | 適合 | `## 関数の記載順と前方宣言` 節を新設し、概要一覧と `## 実装コメント` 節を整合させた。個別 app 名の記載なし。`text_style_jp.py --dry-run` の指摘なし (作業 WBS 4.1.1、親 76b19dfc)。 |
+| 2 | `check_c_topdown.py` と `reorder_c_topdown.py` の単体テストが `make bin-test BIN_TEST_ARGS=app/general` で全件合格し、最終仕様のテスト観点を網羅する。 | 適合 | `test_check_c_topdown.py` (23 件) と `test_reorder_c_topdown.py` (18 件) で全観点 (各検査項目の検出・非検出、分岐の重複定義、`inline` 付き `static` 関数、対象外ファイルの除外、並べ替え結果、等価性検証の合格・不合格) を網羅。`make bin-test BIN_TEST_ARGS=app/general` で 99 件全件合格 (作業 WBS 4.1.2 〜 4.1.4、親 76b19dfc)。 |
+| 3 | 書き換えたすべてのファイルが、改修前のファイルに対する `reorder_c_topdown.py --verify` に合格している。 | 適合 | 書き換えた全 153 ファイル (`service-sample` 5、`string-catalog-sample` 7、`cjson` 2、`struct-meta` 17、`porter` 41、`cplat` 81。手作業修正 5 ファイルを含む) が `--verify` に合格 (作業 WBS 4.1.6、4.1.8、4.1.10、4.1.13、4.2.2、4.2.4)。 |
+| 4 | 対象のすべてのファイルに対して `check_c_topdown.py` のエラーと警告が 0 件で、全件の走査の実行時間を計測して記録している。 | 条件付きで適合 (最終仕様の定義どおりでは不適合) | 全対象 246 ファイルで実行し、実行時間を約 1.67 [s] (3 回計測) と記録した。BL-004 の 2 ファイル (`cplat` の `console.c` 5 件、`etw-viewer.c` 2 件の計 7 件) を除きエラー 0 件・警告 0 件。BL-004 の解消には設計判断が要るため本案件では解消せず、主エージェント判断で条件付き適合とし、最終仕様の定義どおりでは不適合である旨とあわせて第 3 ゲートでユーザーへ提示する (作業 WBS 4.3)。 |
+| 5 | 書き換えた各 app で、Linux (WSL) の `make` が成功し、対象範囲の `.warn` に内容がなく、`make test` が全件合格する。 | 適合 | 書き換えた全 6 app (`service-sample`、`string-catalog-sample`、`cjson`、`struct-meta`、`porter`、`cplat`) で Linux (WSL) の `make` が成功し、`.warn` は空、`make test` は全件合格 (`struct-meta` 129 件、`porter` 895 件、`cplat` 2,202 件ほか、すべて Failed 0 件)。Windows の検証 (依頼 20) でも `cplat` 2,172 件・`porter` 996 件が合格し、MSVC 警告と内容のある `.warn` はなし (作業 WBS 4.1.6、4.1.8、4.1.10、4.1.13、4.2.2 〜 4.2.5)。 |
+| 6 | 行番号の引用 (`app/string-catalog-sample/docs/architecture.md` ほか) が書き換え後のソースと一致している。 | 適合 | `app/string-catalog-sample/docs/architecture.md` の 240 行 (`string-catalog-command-sample.c:273` → 355 行) を追従した。`struct-meta`、`porter`、`cplat` の文書とコメントに行番号の参照はなく追従不要を確認 (作業 WBS 4.1.8、4.1.13、4.2.2、4.2.4)。 |
+| 7 | 各段の最後の push の後の CI (Windows/MSVC を含む) が成功し、警告がない。 | 適合 | 第 1 段の CI 45692020891・CI 45751634321 (親 712b55ff)、第 2 段の CI 45964310605 (親 3c9e0c08。直前の CI 45935059124 の失敗は本案件と無関係な `docsfw` の新テストによるもので修正済み) がいずれも Windows/MSVC を含め全ジョブ成功した。警告は、第 1 段の CI 45751634321 の windows-warns に struct-meta の生成パーサーの C4127 があった (並行案件の BL-031 の `%locations` による。本案件の書き換えによるものではない)。親 9376a220 で直し、第 2 段の CI 45964310605 では警告の注釈が 0 件 (作業 WBS 4.1.5、4.1.7、4.1.9、4.1.11、4.1.14、4.2.3、4.2.5、4.2.6)。 |
+| 8 | 変更した Markdown に `text_style_jp.py --dry-run` の指摘がない。 | 適合 | 変更した成果物 Markdown (`app/general/docs/coding-guideline.md`、`app/string-catalog-sample/docs/architecture.md`) および案件管理文書 (`overview.md`、`lightadr.md`、`backlog.md`) に `text_style_jp.py --dry-run` の指摘なし (作業 WBS 4.1.1、4.4 〜 4.6)。 |
