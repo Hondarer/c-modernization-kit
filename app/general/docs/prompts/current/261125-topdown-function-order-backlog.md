@@ -1,7 +1,7 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-27 05:28:28 JST
+最終更新日時: 2026-11-27 08:39:08 JST
 最終更新エージェント: claude code (主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
 稼働 OS: Linux (WSL)
 上流文書: `261125-topdown-function-order-overview.md` (全体管理文書)、`261125-topdown-function-order-design.md` (最終仕様)、`261125-topdown-function-order-discussion.md` (検討用 Markdown)、`261125-topdown-function-order-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
@@ -30,6 +30,7 @@
 | BL-003 | エージェントに編集時のチェッカー実行を発火させる手段 | 検討時見送り | 中 | 未着手 |
 | BL-004 | 複数の分岐にそれぞれ完全な実装を持つファイルとチェッカーの判定 | 作業中判明 | 中 | 未着手 |
 | BL-005 | Doxygen の誘導マーカーと定義側のコメントの全件の精査、static 関数の前方宣言への Doxygen コメントの付与 | 作業中判明 | 中 | 未着手 |
+| BL-006 | reorder_c_topdown.py が、条件付きコンパイルの分岐の中の #include、マクロ、型の定義を主たる関数の後ろへ移す | 作業中判明 | 高 | 未着手 |
 
 ## BL-001 移行前のファイルを部分的に編集する場合のチェッカーの扱い
 
@@ -173,3 +174,34 @@
     - `doxygen-comment-guideline.md` の「定義側の誘導マーカー」と「静的関数とファイル内シンボル」
     - `coding-guideline.md` の「関数の記載順と前方宣言」
     - Doxygen の詳細説明の連結: https://www.doxygen.nl/manual/docblocks.html
+
+## BL-006 reorder_c_topdown.py が、条件付きコンパイルの分岐の中の #include、マクロ、型の定義を主たる関数の後ろへ移す
+
+### 概要と問題点
+
+- **現状の事象**: 第 2 段の `cplat` の書き換え (作業 WBS 4.2.4、2026-11-27) で、`reorder_c_topdown.py --in-place` の結果が、`make -C app/cplat` でコンパイル エラーになった。
+    - `#if defined(PLATFORM_LINUX) ... #elif defined(PLATFORM_WINDOWS) ... #endif` の分岐の中に、`#include`、マクロ、型の定義、ファイル内変数、`static` 関数の定義が混在していた。
+    - ツールが、この分岐をまとめて主たる関数の後ろへ移した。このため、`elevated_process.c` で、`#include <unistd.h>` より前に `geteuid()` の呼び出しが来た。
+    - `process.c` でも、`struct process_start_resources` と `typedef struct wide_buffer` が、主たる関数や前方プロトタイプ宣言の後ろへ移った。これは Windows でだけコンパイル エラーになる。
+    - 実装の担当 (agy) が、`elevated_process.c`、`process.c`、`eventlog-register.c` を手作業で直した。Windows 専用の分岐の崩れは、Linux のビルドでは見つからないため、Windows のビルドで確かめる (Windows 側への依頼 20)。
+- **`--verify` で見つからない理由**: `--verify` は、関数の集合とトークンの一致を確かめるだけで、宣言と定義の前後関係 (使う前に宣言されているか) を確かめない。
+- **本来あるべき姿**: ツールが、`#include`、マクロ、型の定義、ファイル内変数を、それを使う関数の前に残す。崩れが起きた場合は、`--verify` か、書き換え後のコンパイルで必ず止まる。
+
+### 経緯と見送り理由
+
+- **摘出契機**: 作業 WBS 4.2.4 の `make -C app/cplat` (2026-11-27)
+- **今回の見送り理由**: 第 2 段の書き換えは、手作業の修正で完了させた。ツールの修正は、分岐の扱いの設計 (BL-004 と同じく、分岐の中の並べ替えの範囲の決め方) と合わせて決める必要があるため。
+- **継続作業での経緯と対処**: なし
+
+### 影響範囲とリスク
+
+- **影響対象**: `app/general/bin/reorder_c_topdown.py` を使う、すべての書き換え。特に、OS ごとの分岐の中に宣言を持つファイル。
+- **放置した場合のリスク**: 書き換えが、片方の OS でだけコンパイル エラーになる。Linux だけで確かめると、Windows の崩れを見落とす。優先度を高とした理由は、ツールの結果が、確認なしでは正しいと扱えないため。
+
+### 推奨される対応策
+
+- **恒久対応案**:
+    - ツールで、関数の定義だけを並べ替えの単位にし、`#include`、マクロ、型の定義、ファイル内変数は元の位置 (関数より前) に残す。
+    - 分岐の中に関数の定義とそれ以外が混在する場合は、書き換えを止めて、手作業を求める。
+    - `--verify` に、宣言より前の使用がないことの確認を加えるか、書き換えたファイルのコンパイルを確認の手順に入れる。
+- **参考情報**: 作業 WBS 4.2.4 の記録 (`261125-topdown-function-order-overview.md`)、BL-004
