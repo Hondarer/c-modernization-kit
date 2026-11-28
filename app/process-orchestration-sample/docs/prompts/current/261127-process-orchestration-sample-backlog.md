@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-28 05:56:03 JST
-最終更新エージェント: claude code / セッション ID: session_01KJc53PpM9v6GRymmPiAMGv
+最終更新日時: 2026-11-28 09:30:00 JST
+最終更新エージェント: claude code / セッション ID: session_01KJc53R3sHho3mKmprBhJmz
 稼働 OS: Linux (WSL)
 上流文書: `261127-process-orchestration-sample-overview.md` (全体管理文書)、`261127-process-orchestration-sample-design.md` (最終仕様)、`261127-process-orchestration-sample-discussion.md` (検討用 Markdown)、`261127-process-orchestration-sample-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
 下流文書: BL-003 〜 BL-019 の継続案件: `261128-process-orchestration-sample-review-fix-overview.md` (全体管理文書)、`261128-process-orchestration-sample-review-fix-discussion.md` (検討用 Markdown)。未作成の場合や、削除されている場合があります。
@@ -104,7 +104,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。失敗後の接続の扱いとプロトコルの版 2 (要求番号による照合) を、同案件の検討用 Markdown の版 2 (Q-020 〜 Q-023) で確認中です。
 
 ### 影響範囲とリスク
 
@@ -130,7 +130,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。Windows での再現は確認していません。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。Windows の既定のバックエンドを名前付きパイプにするか (Q-026) とあわせて、対策方針を確認中です。
 
 ### 影響範囲とリスク
 
@@ -153,7 +153,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。Windows での再現は確認していません。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。再現テストは両 OS の不具合に追加する方針に決まりました (LADR-010)。OS API の mock で確定的に再現するかを Q-019 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -176,7 +176,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、`child-start` と `child-stop` は `STARTING` と `STOPPING` の子に `CPLAT_ERR_BUSY` を返し、起動確認で子のプロセス ID を照合する方針に決まりました (継続案件の LADR-003)。
 
 ### 影響範囲とリスク
 
@@ -199,7 +199,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、テスト結果の範囲を確認して判明しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。Windows の実機での性能比較は [BL-002](#bl-002-windows-実機でのトランスポート性能比較と-cplat-への汎用-ipc-統合) が扱いますが、ビルドと機能テストは含んでいません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。待機している Windows 側の Claude Code と調停して検証する方針の回答を受け、修正を Windows 側へ渡す方法を Q-029 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -222,7 +222,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、ディレクトリの検証に失敗した場合は `CPLAT_ERR_PERMISSION_DENIED` で失敗する方針に決まりました (継続案件の LADR-005)。Linux の配置方式を抽象名前空間に変更するか (Q-025) によっては、この課題の対象自体がなくなります。
 
 ### 影響範囲とリスク
 
@@ -248,7 +248,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。`SYSTEM` スコープの権限設計は [BL-001](#bl-001-共通サービス空間-system-スコープの異ユーザー権限適用と実機検証) の対象ですが、本課題は `USER` スコープの既定の権限の問題です。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、作成ユーザーと LocalSystem に接続を許可する方針に決まりました (継続案件の LADR-006)。クライアントがサーバーの作成ユーザーを確かめるかを Q-030 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -273,7 +273,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。ファイルを作らない排他の方式 (Linux の抽象名前空間、Windows の名前付きパイプと名前付きミューテックス) を Q-025 〜 Q-027 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -296,7 +296,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、`timeout_ms` を呼び出し全体の期限とする方針に決まりました (継続案件の LADR-002)。
 
 ### 影響範囲とリスク
 
@@ -319,7 +319,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。停止 API から期限の引数を削る案を Q-024 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -348,7 +348,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、検査スクリプトの実行と既存 app との比較で判明しました。`clang-format --dry-run` の指摘はありませんでした。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、空行は修正ツールで直してから残りを手作業で直し (LADR-007)、要件 ID の参照は今回追加または変更するテストに付ける方針に決まりました (LADR-008)。
 
 ### 影響範囲とリスク
 
@@ -371,7 +371,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで判明しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。`cplat` への統合 ([BL-002](#bl-002-windows-実機でのトランスポート性能比較と-cplat-への汎用-ipc-統合)) の際に、OS API の呼び出し方と合わせて整理するのが効率的です。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。今回の案件で OS API の mock を整備するかを Q-019 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -394,7 +394,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。`accept4` への置き換えは、Linux の配置方式の決定 (Q-025) とあわせて対策します。
 
 ### 影響範囲とリスク
 
@@ -417,7 +417,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。接続は同じユーザーに限られるため、優先度を低としています。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。今回の案件で対策するかを Q-018 で確認中です。
 
 ### 影響範囲とリスク
 
@@ -444,7 +444,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が実施した成果物のレビューで、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、親が要求していない終了コード 0 の終了を新しい状態 `EXITED` で記録する方針に決まりました (継続案件の LADR-004)。
 
 ### 影響範囲とリスク
 
@@ -469,7 +469,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が、CI の Windows のジョブで失敗しうるかを調べる中で、コードと cplat の公開ヘッダーを照合して発見しました。Windows での実際のビルドは行っていません。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。Linux では該当箇所が `#if defined(PLATFORM_WINDOWS)` の中にあるため、ビルドとテストに影響せず、検出されませんでした。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答 (版 1) を受け、ユーザーの指示により対処内容を理想の最終形の観点で見直しています。Windows のファイル操作の実装方法を Q-028 で確認中です。`g_wsa_once` は `cplat_once_flag` に変更します。
 
 ### 影響範囲とリスク
 
@@ -498,7 +498,7 @@ Table: 残課題の一覧
 
 - **摘出契機**: 2026-11-27 に Claude Code (Opus) が、CI の Windows のジョブで失敗しうるかを調べる中で、コードを読んで発見しました。
 - **今回の見送り理由**: 案件の完了後に判明したため、本案件では対策していません。
-- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。対策の範囲と方針は、同案件の検討用 Markdown で確認中です。
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-process-orchestration-sample-review-fix` (`261128-process-orchestration-sample-review-fix-overview.md`) で検討を開始しました。2026-11-28 08:42 の回答により、`cplat_strcpy` に置き換えて収まらない場合はエラーにする方針に決まりました (継続案件の LADR-009)。
 
 ### 影響範囲とリスク
 

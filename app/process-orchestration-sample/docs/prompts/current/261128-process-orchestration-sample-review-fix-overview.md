@@ -1,8 +1,8 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 全体管理文書 (overview)
-最終更新日時: 2026-11-28 05:56:03 JST
-最終更新エージェント: claude code / セッション ID: session_01KJc53PpM9v6GRymmPiAMGv
+最終更新日時: 2026-11-28 09:30:00 JST
+最終更新エージェント: claude code / セッション ID: session_01KJc53R3sHho3mKmprBhJmz
 稼働 OS: Linux (WSL)
 上流文書: `261127-process-orchestration-sample-backlog.md` (対策元の残課題一覧)。削除されている場合があります。
 下流文書: `261128-process-orchestration-sample-review-fix-discussion.md` (検討用 Markdown)、`261128-process-orchestration-sample-review-fix-lightadr.md` (簡易 ADR)、`261128-process-orchestration-sample-review-fix-design.md` (最終仕様)、`261128-process-orchestration-sample-review-fix-backlog.md` (残課題一覧)。未作成の場合や、削除されている場合があります。
@@ -19,7 +19,7 @@
 
 検討 ID: `261128-process-orchestration-sample-review-fix`
 
-検討用 Markdown の版: 1
+検討用 Markdown の版: 2
 
 状態: 検討中
 
@@ -30,11 +30,13 @@
 
 凡例: ⏸️ 未着手、🔄 実施中、🚫 ブロック中、⚠️ 要注意、✅ 完了。現在取り組んでいる項目の末尾に `← **CURRENT**` を付けます。
 
-- 🔄 1. 検討用 Markdown のための情報収集と質問の実施
+- 🚫 1. 検討用 Markdown のための情報収集と質問の実施
     - ✅ 1.1. 前提条件と要求事項の調査 (対策元 `261127-process-orchestration-sample-backlog.md` の BL-003 〜 BL-019 の状態を「検討中」へ更新し継続案件の開始を記録、cplat の既存 API (`cplat_stat`、`cplat_mkdir`、`cplat_remove`、`cplat_strcpy`、`cplat_thread_timed_join`、`cplat_once_flag`) と結果コード、機能仕様の記載規範、CI の Windows のジョブの確認)
     - ✅ 1.2. 課題・論点の抽出と明確化のための確認項目 ([Q-001](261128-process-orchestration-sample-review-fix-discussion.md#q-001-今回の案件で対策する残課題の範囲) 〜 [Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針)) の作成、および初期決定事項の簡易 ADR ([LADR-001](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-001-レビュー指摘の残課題を継続案件として対策する)) への記録
-    - 🚫 1.3. ターン 1 (Q-001 〜 Q-017) のユーザー回答の受付と記録 ← **CURRENT** (停止理由: ユーザーの回答待ち。[Q-001](261128-process-orchestration-sample-review-fix-discussion.md#q-001-今回の案件で対策する残課題の範囲) 〜 [Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針))
-    - ⏸️ 1.4. ターン 1 回答の検証、簡易 ADR への決定事項の反映、WBS の見直し (対策元 `backlog.md` へ合意方針と見送り決定を反映)
+    - ✅ 1.3. ターン 1 (Q-001 〜 Q-017) のユーザー回答の受付と記録
+    - ✅ 1.4. ターン 1 回答の検証、簡易 ADR への決定事項の反映、WBS の見直し (対策元 `backlog.md` へ合意方針と見送り決定を反映)
+    - ✅ 1.5. 版 2 の作成 (理想の最終形を基準とした全 Q の全面見直しと Q-018 〜 Q-030 の追記)
+    - 🚫 1.6. ターン 2 (版 2: Q-018 〜 Q-030) のユーザー回答の受付と記録 ← **CURRENT** (停止理由: ユーザーの回答待ち。[Q-018](261128-process-orchestration-sample-review-fix-discussion.md#q-018-受信途中の接続がワーカーを占有する問題-bl-016-を今回対策するか) 〜 [Q-030](261128-process-orchestration-sample-review-fix-discussion.md#q-030-名前付きパイプのクライアントがサーバーの作成ユーザーを確かめるか))
 - ⏸️ 2. 前提合意と残懸念の解消 (第 1 ゲート: 最終仕様作成への着手)
     - ⏸️ 2.1. 全論点に対する未解決事項および質問の解消確認
     - ⏸️ 2.2. 方針・前提条件の合意確定 (簡易 ADR の決定事項と、根拠となった解決済み Q の回答またはユーザーの明示的な指示との一致を確認し、懸念がないことをもってフェーズ 2 へ着手)
@@ -42,18 +44,24 @@
     - ⏸️ 3.1. `261128-process-orchestration-sample-review-fix-design.md` の作成 (対策元 `backlog.md` の該当課題の状態を「対応中」へ更新)
     - ⏸️ 3.2. 最終仕様における受入条件と整合性の確認
     - ⏸️ 3.3. 対話セッションにおける最終仕様 (design.md) の承認の受付 (第 2 ゲート: 作業着手の合意)
-- ⏸️ 4. 承認された最終仕様に従った作業の実施 (対象 app: `app/process-orchestration-sample`。小項目は最終仕様の確定時に課題単位へ詳細化する)
+- ⏸️ 4. 承認された最終仕様に従った作業の実施 (対象 app: `app/process-orchestration-sample`。cplat の強化を決めた場合は `app/cplat` を含む。小項目は最終仕様の確定時に課題単位へ詳細化する)
     - ⏸️ 4.1. Windows のビルドの修正 (BL-018、BL-019)
-    - ⏸️ 4.2. 汎用 IPC 層の不具合と契約の修正 (BL-003、BL-004、BL-005、BL-008、BL-009、BL-010、BL-011、BL-012、BL-015 のうち対象と決めたもの)
-    - ⏸️ 4.3. 親・子プロセス制御の修正 (BL-006、BL-017 のうち対象と決めたもの)
-    - ⏸️ 4.4. 再現テストの追加 ([Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針) の決定に従う)
-    - ⏸️ 4.5. リポジトリ規範との差の解消 (BL-013)
-    - ⏸️ 4.6. 正本ドキュメント (公開ヘッダーの Doxygen、機能仕様、README) およびコード コメントへの永続的知見の反映
-    - ⏸️ 4.7. Linux での局所ビルド、`.warn` 確認、`make test`、および機械的検証 (`check_c_topdown.py`、`check_c_blank_lines.py`、`clang-format`、`text_style_jp.py`)
-    - ⏸️ 4.8. Windows での検証 (BL-007。[Q-013](261128-process-orchestration-sample-review-fix-discussion.md#q-013-windows-での検証の実施方法) の決定に従う)
-    - ⏸️ 4.9. 受入条件への適合確認 (全作業の完了確認)
-    - ⏸️ 4.10. 簡易 ADR (`261128-process-orchestration-sample-review-fix-lightadr.md`) の最終確認
-    - ⏸️ 4.11. 残課題一覧 (`261128-process-orchestration-sample-review-fix-backlog.md`) の再構築と整理 (次フェーズとした課題の転記、および対策元 `261127-process-orchestration-sample-backlog.md` の最終状態・転記先の確定)
+    - ⏸️ 4.2. cplat の強化 (版 2 で cplat への機能の追加を決めた場合。`mock_cplat`、テスト、機能仕様を含む。cplat で `make` を実行してから、この app をテストする)
+    - ⏸️ 4.3. 汎用 IPC 層の修正 (プロトコルの版 2、トランスポート、エンドポイント解決。BL-003、BL-004、BL-005、BL-008、BL-009、BL-010、BL-011、BL-012、BL-015、および対象と決めた場合の BL-016)
+    - ⏸️ 4.4. 親・子プロセス制御の修正 (BL-006、BL-017)
+    - ⏸️ 4.5. OS API の mock の整備 (BL-014。[Q-019](261128-process-orchestration-sample-review-fix-discussion.md#q-019-os-api-の-mock-bl-014-を今回整備するか) の決定に従う)
+    - ⏸️ 4.6. 再現テストの追加 ([Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針) の決定に従う)
+    - ⏸️ 4.7. リポジトリ規範との差の解消 (BL-013)
+    - ⏸️ 4.8. 正本ドキュメント (公開ヘッダーの Doxygen、機能仕様、README) およびコード コメントへの永続的知見の反映
+    - ⏸️ 4.9. Linux での局所ビルド、`.warn` 確認、`make test`、および機械的検証 (`check_c_topdown.py`、`check_c_blank_lines.py`、`clang-format`、`text_style_jp.py`)
+    - ⏸️ 4.10. Windows 側の Claude Code セッションと調停した Windows での検証 (BL-007。[Q-013](261128-process-orchestration-sample-review-fix-discussion.md#q-013-windows-での検証の実施方法) と [Q-029](261128-process-orchestration-sample-review-fix-discussion.md#q-029-windows-側へ修正を渡す方法) の決定に従う)
+        - ⏸️ 4.10.1. 修正を Windows 側へ渡す ([Q-029](261128-process-orchestration-sample-review-fix-discussion.md#q-029-windows-側へ修正を渡す方法) で決めた方法)
+        - ⏸️ 4.10.2. 主エージェントから Windows 側の Claude Code セッションへの検証の依頼 (依頼内容: 依存する app を含むビルド (`make`)、この app の `make test`、`.warn` の確認、`ipcUnitTest` の `AF_UNIX` と名前付きパイプの両パラメーターでの実行、BL-004 と BL-005 の繰り返し実行のテスト、`results/` の集計と `.warn` の内容の返送。Windows 側は修正の判断をせず、結果を返す)
+        - ⏸️ 4.10.3. 結果の受領と失敗の修正 (Linux 側で修正し、4.9 の局所確認を行ってから 4.10.1 へ戻る)
+        - ⏸️ 4.10.4. 完了条件の確認 (Windows/MSVC で、ライブラリ、実行ファイル 4 本、テストのビルドが通り、対象範囲の `.warn` に C4013、C4996、LNK2019 を含む警告がないこと。`ipcUnitTest` が両バックエンドで全件合格し、`orchestrationE2ETest` が既定のバックエンドで合格すること。BL-004 と BL-005 の繰り返し実行のテストが合格すること)
+    - ⏸️ 4.11. 受入条件への適合確認 (全作業の完了確認)
+    - ⏸️ 4.12. 簡易 ADR (`261128-process-orchestration-sample-review-fix-lightadr.md`) の最終確認
+    - ⏸️ 4.13. 残課題一覧 (`261128-process-orchestration-sample-review-fix-backlog.md`) の再構築と整理 (次フェーズとした課題の転記、および対策元 `261127-process-orchestration-sample-backlog.md` の最終状態・転記先の確定)
 - ⏸️ 5. 成果物の承認の受付 (第 3 ゲート)
     - ⏸️ 5.1. 成果物・検証結果・残課題の提示
     - ⏸️ 5.2. 対話セッションにおける成果物の承認の受付 (「承認」または「完了」の受領によるスキル完了)
@@ -81,12 +89,12 @@
 
 | 観点 | 状態 | 根拠・関連 Q |
 | --- | --- | --- |
-| 目的・利用者 | 確認済み | ユーザーの指示 (2026-11-28、「対処計画を進めて」)。成果物のレビューで追加した残課題の対策 ([LADR-001](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-001-レビュー指摘の残課題を継続案件として対策する)) |
-| 範囲・境界 | 未解決 | [Q-001](261128-process-orchestration-sample-review-fix-discussion.md#q-001-今回の案件で対策する残課題の範囲)、[Q-002](261128-process-orchestration-sample-review-fix-discussion.md#q-002-windows-のファイル操作の置き換え方法) (cplat を変更するかどうか)、[Q-015](261128-process-orchestration-sample-review-fix-discussion.md#q-015-要件-id-の参照コメントを付けるか) |
-| 入力・根拠 | 確認済み | 対策元の残課題一覧と参照資料の表 |
-| 整合性・依存関係 | 未解決 | [Q-003](261128-process-orchestration-sample-review-fix-discussion.md#q-003-持続接続で送受信に失敗した後の扱い)、[Q-004](261128-process-orchestration-sample-review-fix-discussion.md#q-004-破損した持続接続で返す結果コード)、[Q-005](261128-process-orchestration-sample-review-fix-discussion.md#q-005-要求と応答の照合方法)、[Q-006](261128-process-orchestration-sample-review-fix-discussion.md#q-006-タイムアウト指定の意味)、[Q-007](261128-process-orchestration-sample-review-fix-discussion.md#q-007-サーバー停止の期限を過ぎた場合の扱い)、[Q-009](261128-process-orchestration-sample-review-fix-discussion.md#q-009-子の正常終了の記録方法)、[Q-012](261128-process-orchestration-sample-review-fix-discussion.md#q-012-名前付きパイプに接続を許可するアカウント) (公開ヘッダーの契約との整合) |
-| 実現性・例外 | 未解決 | [Q-008](261128-process-orchestration-sample-review-fix-discussion.md#q-008-起動中または停止中の子への操作の扱い)、[Q-010](261128-process-orchestration-sample-review-fix-discussion.md#q-010-同じ宛先のサーバーの二重起動を防ぐ方式)、[Q-011](261128-process-orchestration-sample-review-fix-discussion.md#q-011-代替配置先の検証に失敗した場合の扱い)、[Q-016](261128-process-orchestration-sample-review-fix-discussion.md#q-016-文字列コピーが収まらない場合の扱い) |
-| 受入条件・検証 | 未解決 | [Q-013](261128-process-orchestration-sample-review-fix-discussion.md#q-013-windows-での検証の実施方法)、[Q-014](261128-process-orchestration-sample-review-fix-discussion.md#q-014-空行の規範の修正方法)、[Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針) |
+| 目的・利用者 | 確認済み | ユーザーの指示 (2026-11-28、「対処計画を進めて」、および理想の最終形の観点での見直しの指示)。[LADR-001](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-001-レビュー指摘の残課題を継続案件として対策する)、[LADR-011](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-011-対処内容を理想の最終形の観点で見直す) |
+| 範囲・境界 | 未解決 | [Q-018](261128-process-orchestration-sample-review-fix-discussion.md#q-018-受信途中の接続がワーカーを占有する問題-bl-016-を今回対策するか)、[Q-019](261128-process-orchestration-sample-review-fix-discussion.md#q-019-os-api-の-mock-bl-014-を今回整備するか) (BL-016 と BL-014 の扱い)、[Q-028](261128-process-orchestration-sample-review-fix-discussion.md#q-028-windows-のファイル操作の実装方法) (cplat を変更するかどうか)。[Q-015](261128-process-orchestration-sample-review-fix-discussion.md#q-015-要件-id-の参照コメントを付けるか) は解決済み |
+| 入力・根拠 | 確認済み | 対策元の残課題一覧、参照資料の表、抽象名前空間の試験 (scratchpad、WSL2 のカーネル 6.6) |
+| 整合性・依存関係 | 未解決 | [Q-020](261128-process-orchestration-sample-review-fix-discussion.md#q-020-持続接続で失敗した後の扱い) 〜 [Q-024](261128-process-orchestration-sample-review-fix-discussion.md#q-024-サーバー停止-api-の期限の引数) (公開 API とプロトコルの版 2)、[Q-026](261128-process-orchestration-sample-review-fix-discussion.md#q-026-windows-の既定のバックエンド) (元の案件の LADR-012 との関係)。[Q-006](261128-process-orchestration-sample-review-fix-discussion.md#q-006-タイムアウト指定の意味)、[Q-009](261128-process-orchestration-sample-review-fix-discussion.md#q-009-子の正常終了の記録方法)、[Q-012](261128-process-orchestration-sample-review-fix-discussion.md#q-012-名前付きパイプに接続を許可するアカウント) は解決済み |
+| 実現性・例外 | 未解決 | [Q-025](261128-process-orchestration-sample-review-fix-discussion.md#q-025-linux-の-af_unix-のアドレス方式) (ネットワーク名前空間と名前の先取りの制約)、[Q-027](261128-process-orchestration-sample-review-fix-discussion.md#q-027-windows-の-af_unix-バックエンドの二重起動の防止方式)、[Q-030](261128-process-orchestration-sample-review-fix-discussion.md#q-030-名前付きパイプのクライアントがサーバーの作成ユーザーを確かめるか)。[Q-008](261128-process-orchestration-sample-review-fix-discussion.md#q-008-起動中または停止中の子への操作の扱い)、[Q-011](261128-process-orchestration-sample-review-fix-discussion.md#q-011-代替配置先の検証に失敗した場合の扱い)、[Q-016](261128-process-orchestration-sample-review-fix-discussion.md#q-016-文字列コピーが収まらない場合の扱い) は解決済み |
+| 受入条件・検証 | 未解決 | [Q-029](261128-process-orchestration-sample-review-fix-discussion.md#q-029-windows-側へ修正を渡す方法) (Windows 側へ修正を渡す方法)。Windows での検証の完了条件は作業 WBS の 4.10.4。[Q-014](261128-process-orchestration-sample-review-fix-discussion.md#q-014-空行の規範の修正方法)、[Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針) は解決済み |
 
 ## 質問一覧
 
@@ -94,23 +102,36 @@
 
 | Q-ID | 論点 | 状態 | 依存・関連 | 反映先の決定 |
 | --- | --- | --- | --- | --- |
-| [Q-001](261128-process-orchestration-sample-review-fix-discussion.md#q-001-今回の案件で対策する残課題の範囲) | 今回の案件で対策する残課題の範囲 | 未回答 | Q-013 | 未反映 |
-| [Q-002](261128-process-orchestration-sample-review-fix-discussion.md#q-002-windows-のファイル操作の置き換え方法) | Windows のファイル操作の置き換え方法 (BL-018) | 未回答 | なし | 未反映 |
-| [Q-003](261128-process-orchestration-sample-review-fix-discussion.md#q-003-持続接続で送受信に失敗した後の扱い) | 持続接続で送受信に失敗した後の扱い (BL-003) | 未回答 | Q-004、Q-005 | 未反映 |
-| [Q-004](261128-process-orchestration-sample-review-fix-discussion.md#q-004-破損した持続接続で返す結果コード) | 破損した持続接続で返す結果コード (BL-003) | 未回答 | Q-003 | 未反映 |
-| [Q-005](261128-process-orchestration-sample-review-fix-discussion.md#q-005-要求と応答の照合方法) | 要求と応答の照合方法 (BL-003) | 未回答 | Q-003 | 未反映 |
-| [Q-006](261128-process-orchestration-sample-review-fix-discussion.md#q-006-タイムアウト指定の意味) | タイムアウト指定の意味 (BL-011) | 未回答 | なし | 未反映 |
-| [Q-007](261128-process-orchestration-sample-review-fix-discussion.md#q-007-サーバー停止の期限を過ぎた場合の扱い) | サーバー停止の期限を過ぎた場合の扱い (BL-012) | 未回答 | なし | 未反映 |
-| [Q-008](261128-process-orchestration-sample-review-fix-discussion.md#q-008-起動中または停止中の子への操作の扱い) | 起動中または停止中の子への操作の扱い (BL-006) | 未回答 | なし | 未反映 |
-| [Q-009](261128-process-orchestration-sample-review-fix-discussion.md#q-009-子の正常終了の記録方法) | 子の正常終了の記録方法 (BL-017) | 未回答 | なし | 未反映 |
-| [Q-010](261128-process-orchestration-sample-review-fix-discussion.md#q-010-同じ宛先のサーバーの二重起動を防ぐ方式) | 同じ宛先のサーバーの二重起動を防ぐ方式 (BL-010) | 未回答 | なし | 未反映 |
-| [Q-011](261128-process-orchestration-sample-review-fix-discussion.md#q-011-代替配置先の検証に失敗した場合の扱い) | 代替配置先の検証に失敗した場合の扱い (BL-008) | 未回答 | なし | 未反映 |
-| [Q-012](261128-process-orchestration-sample-review-fix-discussion.md#q-012-名前付きパイプに接続を許可するアカウント) | 名前付きパイプに接続を許可するアカウント (BL-009) | 未回答 | なし | 未反映 |
-| [Q-013](261128-process-orchestration-sample-review-fix-discussion.md#q-013-windows-での検証の実施方法) | Windows での検証の実施方法 (BL-007) | 未回答 | Q-001 | 未反映 |
-| [Q-014](261128-process-orchestration-sample-review-fix-discussion.md#q-014-空行の規範の修正方法) | 空行の規範の修正方法 (BL-013) | 未回答 | なし | 未反映 |
-| [Q-015](261128-process-orchestration-sample-review-fix-discussion.md#q-015-要件-id-の参照コメントを付けるか) | 要件 ID の参照コメントを付けるか (BL-013) | 未回答 | なし | 未反映 |
-| [Q-016](261128-process-orchestration-sample-review-fix-discussion.md#q-016-文字列コピーが収まらない場合の扱い) | 文字列コピーが収まらない場合の扱い (BL-019) | 未回答 | なし | 未反映 |
-| [Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針) | 不具合ごとの再現テストの追加方針 | 未回答 | Q-001、Q-013 | 未反映 |
+| [Q-001](261128-process-orchestration-sample-review-fix-discussion.md#q-001-今回の案件で対策する残課題の範囲) | 今回の案件で対策する残課題の範囲 | 未解決 | Q-013、Q-018、Q-019 | 未反映 |
+| [Q-002](261128-process-orchestration-sample-review-fix-discussion.md#q-002-windows-のファイル操作の置き換え方法) | Windows のファイル操作の置き換え方法 (BL-018) | 未解決 | Q-028 | 未反映 |
+| [Q-003](261128-process-orchestration-sample-review-fix-discussion.md#q-003-持続接続で送受信に失敗した後の扱い) | 持続接続で送受信に失敗した後の扱い (BL-003) | 未解決 | Q-004、Q-005、Q-020 | 未反映 |
+| [Q-004](261128-process-orchestration-sample-review-fix-discussion.md#q-004-破損した持続接続で返す結果コード) | 破損した持続接続で返す結果コード (BL-003) | 未解決 | Q-003、Q-020 | 未反映 |
+| [Q-005](261128-process-orchestration-sample-review-fix-discussion.md#q-005-要求と応答の照合方法) | 要求と応答の照合方法 (BL-003) | 未解決 | Q-003、Q-021、Q-022、Q-023 | 未反映 |
+| [Q-006](261128-process-orchestration-sample-review-fix-discussion.md#q-006-タイムアウト指定の意味) | タイムアウト指定の意味 (BL-011) | 解決済み | なし | [LADR-002](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-002-タイムアウト指定を呼び出し全体の期限とする) |
+| [Q-007](261128-process-orchestration-sample-review-fix-discussion.md#q-007-サーバー停止の期限を過ぎた場合の扱い) | サーバー停止の期限を過ぎた場合の扱い (BL-012) | 未解決 | Q-024 | 未反映 |
+| [Q-008](261128-process-orchestration-sample-review-fix-discussion.md#q-008-起動中または停止中の子への操作の扱い) | 起動中または停止中の子への操作の扱い (BL-006) | 解決済み | なし | [LADR-003](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-003-起動中と停止中の子への操作を拒否する) |
+| [Q-009](261128-process-orchestration-sample-review-fix-discussion.md#q-009-子の正常終了の記録方法) | 子の正常終了の記録方法 (BL-017) | 解決済み | なし | [LADR-004](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-004-親が要求していない子の正常終了を-exited-と記録する) |
+| [Q-010](261128-process-orchestration-sample-review-fix-discussion.md#q-010-同じ宛先のサーバーの二重起動を防ぐ方式) | 同じ宛先のサーバーの二重起動を防ぐ方式 (BL-010) | 未解決 | Q-025、Q-026、Q-027 | 未反映 |
+| [Q-011](261128-process-orchestration-sample-review-fix-discussion.md#q-011-代替配置先の検証に失敗した場合の扱い) | 代替配置先の検証に失敗した場合の扱い (BL-008) | 解決済み | Q-025 | [LADR-005](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-005-代替配置先のディレクトリの検証に失敗したら権限エラーで失敗する) |
+| [Q-012](261128-process-orchestration-sample-review-fix-discussion.md#q-012-名前付きパイプに接続を許可するアカウント) | 名前付きパイプに接続を許可するアカウント (BL-009) | 解決済み | Q-030 | [LADR-006](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-006-名前付きパイプの接続を作成ユーザーと-localsystem-に限定する) |
+| [Q-013](261128-process-orchestration-sample-review-fix-discussion.md#q-013-windows-での検証の実施方法) | Windows での検証の実施方法 (BL-007) | 未解決 | Q-001、Q-029 | 未反映 |
+| [Q-014](261128-process-orchestration-sample-review-fix-discussion.md#q-014-空行の規範の修正方法) | 空行の規範の修正方法 (BL-013) | 解決済み | なし | [LADR-007](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-007-空行の不足を修正ツールで直してから残りを手作業で直す) |
+| [Q-015](261128-process-orchestration-sample-review-fix-discussion.md#q-015-要件-id-の参照コメントを付けるか) | 要件 ID の参照コメントを付けるか (BL-013) | 解決済み | なし | [LADR-008](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-008-要件-id-の参照を今回追加または変更するテストに付ける) |
+| [Q-016](261128-process-orchestration-sample-review-fix-discussion.md#q-016-文字列コピーが収まらない場合の扱い) | 文字列コピーが収まらない場合の扱い (BL-019) | 解決済み | なし | [LADR-009](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-009-文字列コピーが収まらない場合はエラーにする) |
+| [Q-017](261128-process-orchestration-sample-review-fix-discussion.md#q-017-不具合ごとの再現テストの追加方針) | 不具合ごとの再現テストの追加方針 | 解決済み | Q-001、Q-013、Q-019 | [LADR-010](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-010-不具合ごとに両-os-の再現テストを追加する) |
+| [Q-018](261128-process-orchestration-sample-review-fix-discussion.md#q-018-受信途中の接続がワーカーを占有する問題-bl-016-を今回対策するか) | BL-016 を今回対策するか | 未回答 | Q-001、Q-024 | 未反映 |
+| [Q-019](261128-process-orchestration-sample-review-fix-discussion.md#q-019-os-api-の-mock-bl-014-を今回整備するか) | BL-014 を今回整備するか | 未回答 | Q-001、Q-017 | 未反映 |
+| [Q-020](261128-process-orchestration-sample-review-fix-discussion.md#q-020-持続接続で失敗した後の扱い) | 持続接続で失敗した後の扱い (BL-003) | 未回答 | Q-003、Q-004、Q-006、Q-022 | 未反映 |
+| [Q-021](261128-process-orchestration-sample-review-fix-discussion.md#q-021-プロトコルの版-2-のヘッダー構成) | プロトコルの版 2 のヘッダー構成 (BL-003) | 未回答 | Q-005、Q-022、Q-023 | 未反映 |
+| [Q-022](261128-process-orchestration-sample-review-fix-discussion.md#q-022-不正なフレームを受信した場合の扱い) | 不正なフレームを受信した場合の扱い (BL-003) | 未回答 | Q-005、Q-020、Q-021 | 未反映 |
+| [Q-023](261128-process-orchestration-sample-review-fix-discussion.md#q-023-ipc-層の結果と処理側の結果の区別) | IPC 層の結果と処理側の結果の区別 | 未回答 | Q-005、Q-020、Q-021 | 未反映 |
+| [Q-024](261128-process-orchestration-sample-review-fix-discussion.md#q-024-サーバー停止-api-の期限の引数) | サーバー停止 API の期限の引数 (BL-012) | 未回答 | Q-007、Q-018 | 未反映 |
+| [Q-025](261128-process-orchestration-sample-review-fix-discussion.md#q-025-linux-の-af_unix-のアドレス方式) | Linux の AF_UNIX のアドレス方式 (BL-008、BL-010) | 未回答 | Q-010、Q-011、Q-026、Q-028 | 未反映 |
+| [Q-026](261128-process-orchestration-sample-review-fix-discussion.md#q-026-windows-の既定のバックエンド) | Windows の既定のバックエンド (BL-010) | 未回答 | Q-010、Q-012、Q-025、Q-027、Q-030 | 未反映 |
+| [Q-027](261128-process-orchestration-sample-review-fix-discussion.md#q-027-windows-の-af_unix-バックエンドの二重起動の防止方式) | Windows の AF_UNIX バックエンドの二重起動の防止方式 (BL-010) | 未回答 | Q-010、Q-026、Q-028 | 未反映 |
+| [Q-028](261128-process-orchestration-sample-review-fix-discussion.md#q-028-windows-のファイル操作の実装方法) | Windows のファイル操作の実装方法 (BL-018) | 未回答 | Q-002、Q-025、Q-027 | 未反映 |
+| [Q-029](261128-process-orchestration-sample-review-fix-discussion.md#q-029-windows-側へ修正を渡す方法) | Windows 側へ修正を渡す方法 (BL-007) | 未回答 | Q-013 | 未反映 |
+| [Q-030](261128-process-orchestration-sample-review-fix-discussion.md#q-030-名前付きパイプのクライアントがサーバーの作成ユーザーを確かめるか) | 名前付きパイプのクライアントがサーバーの作成ユーザーを確かめるか (BL-009) | 未回答 | Q-012、Q-025、Q-026 | 未反映 |
 
 ## 対象成果物と合意版
 
@@ -129,6 +150,9 @@
 | 日時 (JST) | 出来事 | 内容・参照先 |
 | --- | --- | --- |
 | 2026-11-28 05:56 | 案件の開始 | ユーザーの指示 (「対処計画を進めて」) により、全体管理文書、検討用 Markdown (版 1、Q-001 〜 Q-017)、簡易 ADR (LADR-001) を作成。対策元 `261127-process-orchestration-sample-backlog.md` の BL-003 〜 BL-019 を「検討中」に更新 |
+| 2026-11-28 08:42 | ターン 1 の回答の受領 | ユーザーが検討用 Markdown の Q-001 〜 Q-017 に回答を記入し (保存時刻 08:42:56)、対処内容を理想の最終形の観点で見直すよう指示 ([LADR-011](261128-process-orchestration-sample-review-fix-lightadr.md#ladr-011-対処内容を理想の最終形の観点で見直す)) |
+| 2026-11-28 09:30 | ターン 1 の回答の記録と検証 | Q-006、Q-008、Q-009、Q-011、Q-012、Q-014 〜 Q-017 を解決済みとし、簡易 ADR に LADR-002 〜 LADR-010 を追加。対策元 `261127-process-orchestration-sample-backlog.md` の継続作業の経緯を更新。作業 WBS のフェーズ 4 を見直し (cplat の強化、OS API の mock、Windows 側との調停の手順を追加) |
+| 2026-11-28 09:30 | 版 2 の作成 | Q-001 〜 Q-005、Q-007、Q-010、Q-013 を見直しの観点で再検討し、Q-018 〜 Q-030 を追記 (検討用 Markdown の版 2)。同日 agy が着手したが利用枠の枯渇で中断し、claude code が WBS 1.3 の途中から引き継いだ |
 
 ## 反映と検証の記録
 
