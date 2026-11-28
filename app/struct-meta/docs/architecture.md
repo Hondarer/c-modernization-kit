@@ -357,6 +357,9 @@ Linux では共有ライブラリを、Windows では DLL を同じ bundle 定�
 Linux で生成器を実行するレシピは、このディレクトリを一時的な `LD_LIBRARY_PATH` の先頭へ追加します。  
 設定済みの `LD_LIBRARY_PATH` は後続要素として維持します。
 
+JSON の変換は、`app/cjson` が独自のパッチ (`0003-thread-local-global-error.patch`) を当てた cJSON を前提とします。  
+`struct_meta/json/json.h` が `cJSON_PatchCheck.h` を取り込むことで、パッチのない `cJSON.h` でのコンパイルを失敗させてビルド時に検査します。
+
 ## JSON デコードの更新単位
 
 JSON デコードは従来どおり、検証済みのフィールドから順に出力先を更新します。  

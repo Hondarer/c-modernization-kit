@@ -1,6 +1,6 @@
 # service-sample
 
-クロスプラットフォーム サービス (デーモン) サンプルです。
+`cplat/service/service.h` を利用したクロスプラットフォーム サービス (デーモン) サンプルです。
 
 ## モジュール仕様書
 
@@ -19,5 +19,11 @@
     - [ファイルの一覧](doxybook2/Files/README.md)
 
 ## 関連ドキュメント
+
+サービス基盤のイベント仕様と OOM killer 対策は、`app/cplat` 側を正本とします。
+
+- [サービス イベントのタイミング](../../cplat/docs/service-events.md)
+- [Linux systemd OOM killer 対策アドバイザリ](../../cplat/docs/systemd-oomkiller-advisory.md)
+- [cplat サービス機能仕様](../../cplat/docs/functional-spec/service.md)
 
 \toc depth=-1 exclude-basedir=true exclude="doxybook2/*"

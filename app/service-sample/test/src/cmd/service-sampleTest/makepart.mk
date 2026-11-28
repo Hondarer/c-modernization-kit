@@ -1,6 +1,7 @@
 # テスト対象のソース ファイル
 TEST_SRCS := \
-	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample.c
+	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample.c \
+	$(MYAPP_DIR)/prod/src/cmd/service-sample/service-sample-impl.c
 
 # エントリ ポイントの変更
 # テスト対象のソース ファイルにある main() は直接実行されず、

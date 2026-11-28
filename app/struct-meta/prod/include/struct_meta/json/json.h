@@ -12,6 +12,7 @@
 #define STRUCT_META_JSON_H
 
 #include <cJSON.h>
+#include <cJSON_PatchCheck.h>
 
 #include <struct_meta/meta/meta.h>
 

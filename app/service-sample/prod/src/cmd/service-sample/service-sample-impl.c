@@ -3,10 +3,8 @@
  *  @file           service-sample-impl.c
  *  @brief          クロスプラットフォーム サービスのサンプル処理を実装します。
  *  @author         Tetsuo Honda
- *  @date           2026/06/09
- *  @version        1.0.0
- *
- *  サービス定義と、ライフサイクル コールバックを実装します。
+ *  @date           2026/11/28
+ *  @version        2.0.0
  *
  *  @copyright      Copyright (C) Tetsuo Honda. 2026. All rights reserved.
  *
@@ -17,202 +15,119 @@
 #include <stdio.h>
 
 #include <cplat/crt/stdio.h>
+#include <cplat/service/service.h>
 
 #include "service-sample.h"
 
-/**
- *  状態テキストを組み立てる配列の大きさ [byte] (終端 NUL を含む)。
- *
- *  固定の文面 (UTF-8 で 32 [byte]) と unsigned long の最大 20 桁、終端の計 53 [byte] が収まる大きさとします。
- */
+/** 状態テキストを組み立てる配列の大きさ [byte] (終端 NUL を含む)。 */
 #define SAMPLE_STATUS_TEXT_SIZE 64U
 
 static_assert(SAMPLE_STATUS_TEXT_SIZE >= 53U, "状態テキストの文面と 20 桁と終端 NUL が収まること");
 
-/**
- *  周期処理の待機間隔 [ms]。svc_wait_for_stop() の引数が int のため、U を付けません。
- *
- *  値を変えると、周期処理の実行間隔が変わります。
- *  svc_wait_for_stop() で待機している間は on_run() の生存として扱われるため、Linux の watchdog の契約には影響しません。
- */
+/** 周期処理の待機間隔 [ms]。 */
 #define SAMPLE_CYCLE_INTERVAL_MS 1000
 
 static int on_start(void *user_data);
 static int on_run(void *user_data);
 static int on_stop(void *user_data);
-static void on_event(const svc_event_info *info, void *user_data);
+static void on_event(const cplat_service_event_info *info, void *user_data);
 static void on_reload(void *user_data);
 
-/*
- * ============================================================
- *  サービス定義
- * ============================================================
- */
-
 /** サービス定義。 */
-const svc_definition g_service_def = {"service-sample",
-                                      "C Modernization-kit Service Sample",
-                                      "c-modernization-kit のクロスプラットフォーム サービス サンプルです。",
-                                      on_start,
-                                      on_run,
-                                      on_stop,
-                                      NULL,
-                                      on_event,
-                                      on_reload};
+const cplat_service_definition g_service_def = {"service-sample",
+                                                "C Modernization-kit Service Sample",
+                                                "c-modernization-kit のクロスプラットフォーム サービス サンプルです。",
+                                                on_start,
+                                                on_run,
+                                                on_stop,
+                                                NULL,
+                                                on_event,
+                                                on_reload,
+                                                NULL};
 
-/*
- * ============================================================
- *  サービス コールバック
- * ============================================================
- */
-
-/**
- *  @brief          サービス初期化処理の雛形。
- *  @param[in]      user_data 未使用。
- *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
- */
 static int on_start(void *user_data)
 {
     (void)user_data;
 
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 開始");
-
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 開始");
     /* TODO: ここに初期化処理を書く */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 終了");
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "起動処理 終了");
 
     return 0;
 }
 
-/**
- *  @brief          サービス メイン ループの雛形。
- *  @param[in]      user_data 未使用。
- *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
- *
- *  1 [s] ごとに動作ログを出力し、停止要求を受け取るとループを抜けます。\n
- *  svc_set_status_text() による状態テキスト通知の利用例を含みます。\n
- *  1000 [ms] (SAMPLE_CYCLE_INTERVAL_MS) の待機の後の周期処理は短時間で終わり、すぐに次の svc_wait_for_stop() を呼ぶため、
- *  Linux の watchdog の契約 (svc_on_run_fn の「Linux の watchdog との関係」) を満たします。
- */
 static int on_run(void *user_data)
 {
     char status_text[SAMPLE_STATUS_TEXT_SIZE];
-    unsigned long cycle_count;
+    unsigned long cycle_count = 0;
 
     (void)user_data;
 
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
                              "動作中です。Ctrl+C または停止コマンドで終了します。");
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
 
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 開始");
-    cycle_count = 0;
-
-    /*
-     * 停止要求が届くまで 1000 [ms] 間隔で周期処理を繰り返す。
-     * 周期処理は短時間で終わり、すぐに次の svc_wait_for_stop() を呼ぶため、Linux の watchdog の契約を満たす。
-     */
-    while (svc_wait_for_stop(SAMPLE_CYCLE_INTERVAL_MS) == 0)
+    while (cplat_service_wait_for_stop(SAMPLE_CYCLE_INTERVAL_MS) == CPLAT_ERR_TIMEOUT)
     {
-        /* TODO: ここに周期処理を書く (現状は何もしない雛形) */
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
-
-        /* 状態テキストの通知例 (Linux では systemctl status に表示される)。 */
+        (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_VERBOSE, NULL, "動作中...");
         cycle_count++;
-
-        /*
-         * 固定の文面 (UTF-8 で 32 [byte]) と unsigned long の最大 20 桁、終端の計 53 [byte] が
-         * status_text の 64 [byte] に収まり、切り詰めは起きないため、戻り値は明示的に破棄する。
-         */
         (void)cplat_snprintf(status_text, sizeof(status_text), "動作中 (周期処理 %lu 回目)", cycle_count);
-        svc_set_status_text(status_text);
+        cplat_service_set_status_text(status_text);
     }
 
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 終了");
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サービス処理 終了");
 
     return 0;
 }
 
-/**
- *  @brief          サービス停止処理の雛形。
- *  @param[in]      user_data 未使用。
- *  @return         成功時は 0、失敗時は 0 以外を返します。この雛形では失敗する処理がないため 0 固定で返します。
- */
 static int on_stop(void *user_data)
 {
     (void)user_data;
 
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 開始");
-
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 開始");
     /* TODO: ここに停止処理を書く */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 終了");
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "停止処理 終了");
 
     return 0;
 }
 
-/**
- *  @brief          OS イベント処理の雛形。
- *  @param[in]      info        イベントの付加情報。
- *  @param[in]      user_data   未使用。
- *
- *  on_run() とは別のスレッドから呼ばれます。短時間で戻るように実装します。
- */
-static void on_event(const svc_event_info *info, void *user_data)
+static void on_event(const cplat_service_event_info *info, void *user_data)
 {
     (void)user_data;
 
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
     switch (info->type)
     {
-    case SVC_EVENT_POWER_SUSPEND:
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドを開始します。");
-
-        /* TODO: ここにサスペンド前処理を書く */
+    case CPLAT_SERVICE_EVENT_POWER_SUSPEND:
+        (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドを開始します。");
         break;
-    case SVC_EVENT_POWER_RESUME:
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "サスペンドから復帰しました。");
-
-        /* TODO: ここに復帰処理を書く */
+    case CPLAT_SERVICE_EVENT_POWER_RESUME:
+        (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+                                 "サスペンドから復帰しました。");
         break;
-    case SVC_EVENT_SESSION_LOGON:
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+    case CPLAT_SERVICE_EVENT_SESSION_LOGON:
+        (void)cplat_tracer_writef(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
                                   "セッションがログオンしました (ID: %s)。", info->session_id);
-
-        /* TODO: ここにログオン時処理を書く */
         break;
-    case SVC_EVENT_SESSION_LOGOFF:
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+    case CPLAT_SERVICE_EVENT_SESSION_LOGOFF:
+        (void)cplat_tracer_writef(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
                                   "セッションがログオフしました (ID: %s)。", info->session_id);
-
-        /* TODO: ここにログオフ時処理を書く */
         break;
-    case SVC_EVENT_PRESHUTDOWN:
-        (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
+    case CPLAT_SERVICE_EVENT_PRESHUTDOWN:
+        (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL,
                                  "システムのシャットダウンが始まります。");
-
-        /* TODO: ここにシャットダウン前処理を書く */
         break;
     default:
-        (void)cplat_tracer_writef(svc_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL, "未知のイベントです (種別: %d)。",
-                                  (int)info->type);
+        (void)cplat_tracer_writef(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_WARNING, NULL,
+                                  "未知のイベントです (種別: %d)。", (int)info->type);
         break;
     }
 }
 
-/**
- *  @brief          設定再読込処理の雛形。
- *  @param[in]      user_data   未使用。
- *
- *  on_run() とは別のスレッドから呼ばれます。短時間で戻るように実装します。
- */
 static void on_reload(void *user_data)
 {
     (void)user_data;
 
-    /* トレースは補助の記録であり、出力の失敗で処理を変えないため、この関数のトレースの戻り値は明示的に破棄する。 */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 開始");
-
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 開始");
     /* TODO: ここに設定再読込処理を書く */
-    (void)cplat_tracer_write(svc_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 終了");
+    (void)cplat_tracer_write(service_sample_get_tracer(), CPLAT_TRACE_LEVEL_INFO, NULL, "設定再読込 終了");
 }
