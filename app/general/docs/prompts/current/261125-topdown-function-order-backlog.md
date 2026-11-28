@@ -1,11 +1,11 @@
 <!--
 生成元: agree-before-implement スキル
 文書種別: 残課題一覧 (backlog)
-最終更新日時: 2026-11-27 22:42:35 JST
-最終更新エージェント: agy (gemini-4-neon-medium、主セッション session_01KJc53RTnwmpzd7VMLf1qR9)
+最終更新日時: 2026-11-28 08:38:00 JST
+最終更新エージェント: agy (セッション ID: 34911232-f261-4dd8-bdce-4b9a89670d15)
 稼働 OS: Linux (WSL)
 上流文書: `261125-topdown-function-order-overview.md` (全体管理文書)、`261125-topdown-function-order-design.md` (最終仕様)、`261125-topdown-function-order-discussion.md` (検討用 Markdown)、`261125-topdown-function-order-lightadr.md` (簡易 ADR)。いずれも削除されている場合があります。
-下流文書: この残課題一覧を対策する継続作業が開始された場合は、その全体管理文書・検討用 Markdown・最終仕様・残課題一覧のパスを追記します。未作成の場合や、削除されている場合があります。
+下流文書: BL-006 (および関連 BL-004 の扱い検討) の継続作業として、`261128-reorder-topdown-conditional-blocks-overview.md` (全体管理文書)、`261128-reorder-topdown-conditional-blocks-discussion.md` (検討用 Markdown)、`261128-reorder-topdown-conditional-blocks-lightadr.md` (簡易 ADR)、`261128-reorder-topdown-conditional-blocks-backlog.md` (残課題一覧) を作成済み。最終仕様は未作成です。いずれも削除されている場合があります。
 再開手順: このファイルを開いたエージェントは、作業の前に agree-before-implement スキルを読み込んでください。「整理状態」が「随時追記中」であれば、案件の作業中です。気付いた事項を追記し、第 3 ゲートの前に文書を再構築して整理します。上流文書が存在する場合は、各課題の背景と見送りの判断を上流文書で確認します。存在しない場合は、この文書を単体の残課題一覧として扱います。このファイルの残課題を参照して新たな成果物の作成または更新を始めるときは、元案件の再開とは別の作業として扱います。その開始には agree-before-implement を原則として使い、新しい全体管理文書と検討用 Markdown から開始してください。継続作業によってこのファイルの残課題を対策する場合は、このファイルや各項目の記載を削除することなく、継続作業の開始時 (全体管理文書と検討用 Markdown の作成時) から検討・設計・実装・整理の各段階において、このファイルのメタ情報、各項目の状態、および経緯と対処を随時更新することを原則とします。また、フェーズ分けした対策で対処できていない項目がある場合は、当該継続作業の backlog にも必ず転記し、最新作業の backlog を見れば残件が把握できるようにしてください。最終更新エージェントのセッション情報や稼働 OS・最終更新日時が参照可能であれば再開時のコンテキストや環境差分の把握に利用し、別エージェントや別環境・別 OS からの引き継ぎ、担当変更によりセッションが見つからない場合も異常とせず、文書の記載から継続してください。
 -->
 
@@ -28,9 +28,9 @@
 | BL-001 | 移行前のファイルを部分的に編集する場合のチェッカーの扱い | 検討時見送り | 中 | 未着手 |
 | BL-002 | 並行案件の変更へのトップ ダウン規則の適用 | 検討時見送り | 中 | 未着手 |
 | BL-003 | エージェントに編集時のチェッカー実行を発火させる手段 | 検討時見送り | 中 | 未着手 |
-| BL-004 | 複数の分岐にそれぞれ完全な実装を持つファイルとチェッカーの判定 | 作業中判明 | 中 | 未着手 |
+| BL-004 | 複数の分岐にそれぞれ完全な実装を持つファイルとチェッカーの判定 | 作業中判明 | 中 | 検討中 (同時対応要否を確認中) |
 | BL-005 | Doxygen の誘導マーカーと定義側のコメントの全件の精査、static 関数の前方宣言への Doxygen コメントの付与 | 作業中判明 | 中 | 未着手 |
-| BL-006 | reorder_c_topdown.py が、条件付きコンパイルの分岐の中の #include、マクロ、型の定義を主たる関数の後ろへ移す | 作業中判明 | 高 | 未着手 |
+| BL-006 | reorder_c_topdown.py が、条件付きコンパイルの分岐の中の #include、マクロ、型の定義を主たる関数の後ろへ移す | 作業中判明 | 高 | 検討中 |
 
 ## BL-001 移行前のファイルを部分的に編集する場合のチェッカーの扱い
 
@@ -112,7 +112,7 @@
 
 - **摘出契機**: 作業 WBS 4.1.3 で `reorder_c_topdown.py` を全対象の違反ファイル (154 ファイル) へ一時的に適用した試行 (2026-11-26、リポジトリのファイルは変更していない)。作業 WBS 4.2.4・4.3 (2026-11-27) で実ファイルでも同様に計 7 件が残存することを確認した。
 - **今回の見送り理由**: 解消するには、(a) チェッカーの判定基準の変更 (関数定義をすべて含む 1 つの分岐の各分岐を、別のファイルとして評価する) か、(b) 該当 2 ファイルの OS 別ファイル分割のどちらかを決める設計判断が要る。本案件では解消せず、受入条件 4 は BL-004 の 7 件を除きエラー・警告 0 件として「条件付きで適合」(最終仕様の定義どおりでは不適合) とする判断を第 3 ゲートでユーザーへ提示する。
-- **継続作業での経緯と対処**: なし
+- **継続作業での経緯と対処**: 2026-11-28 に BL-006 の継続案件 `261128-reorder-topdown-conditional-blocks` (`app/general/docs/prompts/current/261128-reorder-topdown-conditional-blocks-overview.md`、`261128-reorder-topdown-conditional-blocks-discussion.md`、`261128-reorder-topdown-conditional-blocks-lightadr.md`、`261128-reorder-topdown-conditional-blocks-backlog.md`) を開始し、Q-004 で本案件へ BL-004 を含めるか (チェッカー改修 / ファイル分割 / 別案件へ見送り) を確認中 (フェーズ 1、回答待ち)。
 
 ### 影響範囲とリスク
 
@@ -191,7 +191,7 @@
 
 - **摘出契機**: 作業 WBS 4.2.4 の `make -C app/cplat` (2026-11-27)
 - **今回の見送り理由**: 第 2 段の書き換えは、手作業の修正で完了させた。ツールの修正は、分岐の扱いの設計 (BL-004 と同じく、分岐の中の並べ替えの範囲の決め方) と合わせて決める必要があるため。
-- **継続作業での経緯と対処**: なし
+- **継続作業での経緯と対処**: 2026-11-28 に継続案件 `261128-reorder-topdown-conditional-blocks` (`app/general/docs/prompts/current/261128-reorder-topdown-conditional-blocks-overview.md`、`261128-reorder-topdown-conditional-blocks-discussion.md`、`261128-reorder-topdown-conditional-blocks-lightadr.md`、`261128-reorder-topdown-conditional-blocks-backlog.md`) を開始した。現行実装の原因箇所の特定、一時ディレクトリでの最小再現、`app/*/prod/` 259 ファイルの混在件数調査を終え、検討用 Markdown (版 1、Q-001 〜 Q-007) を作成してフェーズ 1 の回答待ち。
 
 ### 影響範囲とリスク
 
